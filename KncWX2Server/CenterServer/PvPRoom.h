@@ -192,6 +192,11 @@ protected:
 	//{{ 2012. 07. 16	박세훈	2012 대전 시즌2
 #ifdef SERV_2012_PVP_SEASON2_2
 	void RevengeBuffProcess( IN const UidType& iMyUnitUID, IN int iPrevMyTeamKillNumGab, IN int iNowMyTeamKillNumGab );
+
+#ifdef SERV_FIX_REVENGE_BUFF// 작업날짜: 2013-08-09	// 박세훈
+	int	GetTeamRevengeBuffID( IN const UidType iMyUnitUID ) const;
+#endif // SERV_FIX_REVENGE_BUFF
+
 #endif SERV_2012_PVP_SEASON2_2
 	//}}
 

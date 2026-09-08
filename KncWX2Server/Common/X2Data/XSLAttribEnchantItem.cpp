@@ -364,37 +364,37 @@ char CXSLAttribEnchantItem::GetAttribEnchantType( IN ATTRIB_COUNT_TYPE eCountTyp
 {
 	switch( eCountType )
 	{
-	case ATTRIB_COUNT_TYPE::ACT_NONE:
+	case ACT_NONE:
 		{
 			if( bWeapon )
 			{
-				return ATTRIB_ENCHANT_TYPE::AET_SINGLE_WEAPON;
+				return AET_SINGLE_WEAPON;
 			}
 			else
 			{
-				return ATTRIB_ENCHANT_TYPE::AET_ARMOR;
+				return AET_ARMOR;
 			}
 		}
 		break;
 
-	case ATTRIB_COUNT_TYPE::ACT_SINGLE:
+	case ACT_SINGLE:
 		{
 			if( bWeapon )
 			{
-				return ATTRIB_ENCHANT_TYPE::AET_DUAL_WEAPON;
+				return AET_DUAL_WEAPON;
 			}
 			else
 			{
-				return ATTRIB_ENCHANT_TYPE::AET_DUAL_ARMOR;
+				return AET_DUAL_ARMOR;
 			}
 		}
 		break;
 
-	case ATTRIB_COUNT_TYPE::ACT_DUAL:
+	case ACT_DUAL:
 		{
 			if( bWeapon )
 			{
-				return ATTRIB_ENCHANT_TYPE::AET_TRIPLE_WEAPON;
+				return AET_TRIPLE_WEAPON;
 			}
 		}
 		break;
@@ -405,7 +405,7 @@ char CXSLAttribEnchantItem::GetAttribEnchantType( IN ATTRIB_COUNT_TYPE eCountTyp
 		<< BUILD_LOG( bWeapon )
 		<< END_LOG;
 
-	return ATTRIB_ENCHANT_TYPE::AET_NONE;	
+	return AET_NONE;	
 }
 
 bool CXSLAttribEnchantItem::GetRequireItemCount_Insert( IN ATTRIB_COUNT_TYPE eCountType, IN bool bWeapon, IN int iEqipLevel, IN int iItemGrade, OUT int& iRequireCount ) const
@@ -450,34 +450,34 @@ bool CXSLAttribEnchantItem::GetRequireED_Insert( IN ATTRIB_COUNT_TYPE eCountType
     
 	switch( cAttribEnchantType )
 	{
-	case ATTRIB_ENCHANT_TYPE::AET_SINGLE_WEAPON:
+	case AET_SINGLE_WEAPON:
 		{
 			iRequireED = ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100;
 		}
 		break;
 
-	case ATTRIB_ENCHANT_TYPE::AET_DUAL_WEAPON:
+	case AET_DUAL_WEAPON:
 		{
 			iRequireED = ( ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100 ) * 3;
 		}
 		break;
 
 		//{{ 2009. 11. 9  최육사	트리플속성
-	case ATTRIB_ENCHANT_TYPE::AET_TRIPLE_WEAPON:
+	case AET_TRIPLE_WEAPON:
 		{
 			iRequireED = ( ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100 ) * 6;
 		}
 		break;
 		//}}
 
-	case ATTRIB_ENCHANT_TYPE::AET_ARMOR:
+	case AET_ARMOR:
 		{
 			iRequireED = static_cast<int>( ( ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100 ) * 0.25f );
 		}
 		break;
 
 		//{{ 2009. 11. 9  최육사	트리플속성
-	case ATTRIB_ENCHANT_TYPE::AET_DUAL_ARMOR:
+	case AET_DUAL_ARMOR:
 		{
 			iRequireED = static_cast<int>( ( ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100 ) * 0.75f );
 		}
@@ -502,20 +502,20 @@ bool CXSLAttribEnchantItem::GetRequireED_Remove( IN ATTRIB_COUNT_TYPE eCountType
 	{
 		switch( eCountType )
 		{
-		case ATTRIB_COUNT_TYPE::ACT_SINGLE:
+		case ACT_SINGLE:
 			{
 				iRequireED = ( ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100 ) * 3;
 			}
 			break;
 
-		case ATTRIB_COUNT_TYPE::ACT_DUAL:
+		case ACT_DUAL:
 			{
 				iRequireED = ( ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100 ) * 6;
 			}
 			break;
 
 			//{{ 2009. 11. 9  최육사	트리플속성
-		case ATTRIB_COUNT_TYPE::ACT_TRIPLE:
+		case ACT_TRIPLE:
 			{
 				iRequireED = ( ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100 ) * 12;
 			}
@@ -535,14 +535,14 @@ bool CXSLAttribEnchantItem::GetRequireED_Remove( IN ATTRIB_COUNT_TYPE eCountType
 	{
 		switch( eCountType )
 		{
-		case ATTRIB_COUNT_TYPE::ACT_SINGLE:
+		case ACT_SINGLE:
 			{
 				iRequireED = static_cast<int>( ( ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100 ) * 0.75f );
 			}
 			break;
 
 			//{{ 2009. 11. 9  최육사	트리플속성
-		case ATTRIB_COUNT_TYPE::ACT_DUAL:
+		case ACT_DUAL:
 			{
 				iRequireED = static_cast<int>( ( ( iEqipLevel + CXSLAttribEnchantItem::GetRequireEDFactor( iItemGrade ) ) * 100 ) * 1.5f );
 			}
@@ -592,13 +592,13 @@ bool CXSLAttribEnchantItem::IsAttribItemID( int iItemID )
 {
 	switch( iItemID )
 	{
-	case ATTRIB_ITEM_ID::ATI_UNKNOWN:
-	case ATTRIB_ITEM_ID::ATI_RED:
-	case ATTRIB_ITEM_ID::ATI_BLUE:
-	case ATTRIB_ITEM_ID::ATI_GREEN:
-	case ATTRIB_ITEM_ID::ATI_WIND:
-	case ATTRIB_ITEM_ID::ATI_LIGHT:
-	case ATTRIB_ITEM_ID::ATI_DARK:
+	case ATI_UNKNOWN:
+	case ATI_RED:
+	case ATI_BLUE:
+	case ATI_GREEN:
+	case ATI_WIND:
+	case ATI_LIGHT:
+	case ATI_DARK:
 		return true;
 
 	default:
@@ -612,14 +612,14 @@ bool CXSLAttribEnchantItem::VerifyAttribEnchantType( IN char cAttribEnchantType 
 {
 	switch( cAttribEnchantType )
 	{
-	case ENCHANT_TYPE::ET_NONE:
-	case ENCHANT_TYPE::ET_BLAZE:
-	case ENCHANT_TYPE::ET_WATER:
-	case ENCHANT_TYPE::ET_NATURE:
-	case ENCHANT_TYPE::ET_WIND:
-	case ENCHANT_TYPE::ET_LIGHT:
-	case ENCHANT_TYPE::ET_DARK:
-	case ENCHANT_TYPE::ET_RANDOM:
+	case ET_NONE:
+	case ET_BLAZE:
+	case ET_WATER:
+	case ET_NATURE:
+	case ET_WIND:
+	case ET_LIGHT:
+	case ET_DARK:
+	case ET_RANDOM:
 		return true;
 
 	default:
@@ -634,13 +634,13 @@ char CXSLAttribEnchantItem::GetRandomAttribResult( IN ATTRIB_COUNT_TYPE eCurrent
 	// 현재 속성석이 한개만 박혀있음
 	switch( eCurrentCountType )
 	{
-	case ATTRIB_COUNT_TYPE::ACT_NONE:
+	case ACT_NONE:
 		{
 			cResultCase = static_cast<char>( m_kLotRandomAttribSingle.Decision() );
 		}
 		break;
 
-	case ATTRIB_COUNT_TYPE::ACT_SINGLE:
+	case ACT_SINGLE:
 		{
 			std::map< char, KLottery >::const_iterator mit;
 			mit = m_mapRandomAttribDual.find( cFirstAttribEnchant );
@@ -650,7 +650,7 @@ char CXSLAttribEnchantItem::GetRandomAttribResult( IN ATTRIB_COUNT_TYPE eCurrent
 					<< BUILD_LOGc( cFirstAttribEnchant )
 					<< END_LOG;
 
-				cResultCase = ENCHANT_TYPE::ET_NONE;
+				cResultCase = ET_NONE;
 				break;
 			}
 
@@ -659,7 +659,7 @@ char CXSLAttribEnchantItem::GetRandomAttribResult( IN ATTRIB_COUNT_TYPE eCurrent
 		break;
 
 		//{{ 2009. 11. 9  최육사	트리플속성
-	case ATTRIB_COUNT_TYPE::ACT_DUAL:
+	case ACT_DUAL:
 		{
 			KTripleEnchantKey kKey( cFirstAttribEnchant, cSecondAttribEnchant );
 
@@ -672,7 +672,7 @@ char CXSLAttribEnchantItem::GetRandomAttribResult( IN ATTRIB_COUNT_TYPE eCurrent
 					<< BUILD_LOGc( cSecondAttribEnchant )
 					<< END_LOG;
 
-				cResultCase = ENCHANT_TYPE::ET_NONE;
+				cResultCase = ET_NONE;
 				break;
 			}
 
@@ -687,7 +687,7 @@ char CXSLAttribEnchantItem::GetRandomAttribResult( IN ATTRIB_COUNT_TYPE eCurrent
 				<< BUILD_LOG( eCurrentCountType )
 				<< END_LOG;
 
-			cResultCase = ENCHANT_TYPE::ET_NONE;
+			cResultCase = ET_NONE;
 		}
 		break;
 	}
@@ -700,7 +700,7 @@ char CXSLAttribEnchantItem::GetRandomAttribResult( IN ATTRIB_COUNT_TYPE eCurrent
 			<< BUILD_LOGc( cSecondAttribEnchant )
 			<< END_LOG;
 
-		cResultCase = ENCHANT_TYPE::ET_NONE;
+		cResultCase = ET_NONE;
 	}
 
 	return cResultCase;
@@ -709,7 +709,7 @@ char CXSLAttribEnchantItem::GetRandomAttribResult( IN ATTRIB_COUNT_TYPE eCurrent
 bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchantType, IN char cAttribEnchantSlotNo, IN const KItemAttributeEnchantInfo& kInfo ) const
 {	
 	// 박는건지 빼는건지 체크
-	if( cAttribEnchantType != ENCHANT_TYPE::ET_NONE )
+	if( cAttribEnchantType != ET_NONE )
 	{
 		//////////////////////////////////////////////////////////////////////////
 		// 새로운 속성 박기 - 슬롯 위치 검사
@@ -718,9 +718,9 @@ bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchant
 
 		switch( cAttribEnchantSlotNo )
 		{
-		case ENCHANT_SLOT_ID::ESI_SLOT_1:
+		case ESI_SLOT_1:
 			{
-				if( kInfo.m_cAttribEnchant0 != ENCHANT_TYPE::ET_NONE )
+				if( kInfo.m_cAttribEnchant0 != ET_NONE )
 				{
 					SET_ERROR( ERR_ATTRIB_ENCHANT_02 );
 					return false;
@@ -731,9 +731,9 @@ bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchant
 			}
 			break;
 
-		case ENCHANT_SLOT_ID::ESI_SLOT_2:
+		case ESI_SLOT_2:
 			{
-				if( kInfo.m_cAttribEnchant1 != ENCHANT_TYPE::ET_NONE )
+				if( kInfo.m_cAttribEnchant1 != ET_NONE )
 				{
 					SET_ERROR( ERR_ATTRIB_ENCHANT_02 );
 					return false;
@@ -745,9 +745,9 @@ bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchant
 			break;
 
 			//{{ 2009. 11. 9  최육사	트리플속성
-		case ENCHANT_SLOT_ID::ESI_SLOT_3:
+		case ESI_SLOT_3:
 			{
-				if( kInfo.m_cAttribEnchant2 != ENCHANT_TYPE::ET_NONE )
+				if( kInfo.m_cAttribEnchant2 != ET_NONE )
 				{
 					SET_ERROR( ERR_ATTRIB_ENCHANT_02 );
 					return false;
@@ -775,22 +775,22 @@ bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchant
 
 		switch( eCurrentCountType )
 		{
-		case ATTRIB_COUNT_TYPE::ACT_NONE: // 지금 아무것도 안박혀있어!
+		case ACT_NONE: // 지금 아무것도 안박혀있어!
 			{
 				// 랜덤일 경우
-				if( cAttribEnchantType == ENCHANT_TYPE::ET_RANDOM )
+				if( cAttribEnchantType == ET_RANDOM )
 				{
 					cAttribEnchantType = GetRandomAttribResult( eCurrentCountType );
 				}
 			}
 			break;
 
-		case ATTRIB_COUNT_TYPE::ACT_SINGLE: // 한개 박혀있네
+		case ACT_SINGLE: // 한개 박혀있네
 			{
 				if( cFirstAttribType != 0 )
 				{
 					// 랜덤일 경우
-					if( cAttribEnchantType == ENCHANT_TYPE::ET_RANDOM )
+					if( cAttribEnchantType == ET_RANDOM )
 					{
 						cAttribEnchantType = GetRandomAttribResult( eCurrentCountType, cFirstAttribType );
 					}
@@ -805,7 +805,7 @@ bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchant
 				else if( cSecondAttribType != 0 )
 				{
 					// 랜덤일 경우
-					if( cAttribEnchantType == ENCHANT_TYPE::ET_RANDOM )
+					if( cAttribEnchantType == ET_RANDOM )
 					{
 						cAttribEnchantType = GetRandomAttribResult( eCurrentCountType, cSecondAttribType );
 					}
@@ -831,10 +831,10 @@ bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchant
 			}
 			break;
 
-		case ATTRIB_COUNT_TYPE::ACT_DUAL: // 두개 박혀있네
+		case ACT_DUAL: // 두개 박혀있네
 			{
 				// 랜덤일 경우
-				if( cAttribEnchantType == ENCHANT_TYPE::ET_RANDOM )
+				if( cAttribEnchantType == ET_RANDOM )
 				{
 					cAttribEnchantType = GetRandomAttribResult( eCurrentCountType, cFirstAttribType, cSecondAttribType );
 				}
@@ -888,9 +888,9 @@ bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchant
 		// 기존 속성 제거
 		switch( cAttribEnchantSlotNo )
 		{
-		case ENCHANT_SLOT_ID::ESI_SLOT_1:
+		case ESI_SLOT_1:
 			{
-				if( kInfo.m_cAttribEnchant0 == ENCHANT_TYPE::ET_NONE )
+				if( kInfo.m_cAttribEnchant0 == ET_NONE )
 				{
 					SET_ERROR( ERR_ATTRIB_ENCHANT_03 );
 					return false;
@@ -898,9 +898,9 @@ bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchant
 			}
 			break;
 
-		case ENCHANT_SLOT_ID::ESI_SLOT_2:
+		case ESI_SLOT_2:
 			{
-				if( kInfo.m_cAttribEnchant1 == ENCHANT_TYPE::ET_NONE )
+				if( kInfo.m_cAttribEnchant1 == ET_NONE )
 				{
 					SET_ERROR( ERR_ATTRIB_ENCHANT_03 );
 					return false;
@@ -909,9 +909,9 @@ bool CXSLAttribEnchantItem::IsPossibleAttribEnchant( IN OUT char& cAttribEnchant
 			break;
 
 			//{{ 2009. 11. 9  최육사	트리플속성
-		case ENCHANT_SLOT_ID::ESI_SLOT_3:
+		case ESI_SLOT_3:
 			{
-				if( kInfo.m_cAttribEnchant2 == ENCHANT_TYPE::ET_NONE )
+				if( kInfo.m_cAttribEnchant2 == ET_NONE )
 				{
 					SET_ERROR( ERR_ATTRIB_ENCHANT_03 );
 					return false;
@@ -937,14 +937,14 @@ int CXSLAttribEnchantItem::GetRequireItemID( IN char cAttribEnchantType )
 {
 	switch( cAttribEnchantType )
 	{
-	case ENCHANT_TYPE::ET_NONE:	  return ATI_NONE;
-	case ENCHANT_TYPE::ET_BLAZE:  return ATI_RED;	
-	case ENCHANT_TYPE::ET_WATER:  return ATI_BLUE;
-	case ENCHANT_TYPE::ET_NATURE: return ATI_GREEN;
-	case ENCHANT_TYPE::ET_WIND:	  return ATI_WIND;
-	case ENCHANT_TYPE::ET_LIGHT:  return ATI_LIGHT;
-	case ENCHANT_TYPE::ET_DARK:   return ATI_DARK;
-	case ENCHANT_TYPE::ET_RANDOM: return ATI_UNKNOWN;
+	case ET_NONE:	return ATI_NONE;
+	case ET_BLAZE:  return ATI_RED;	
+	case ET_WATER:  return ATI_BLUE;
+	case ET_NATURE: return ATI_GREEN;
+	case ET_WIND:	return ATI_WIND;
+	case ET_LIGHT:  return ATI_LIGHT;
+	case ET_DARK:   return ATI_DARK;
+	case ET_RANDOM: return ATI_UNKNOWN;
 
 	default:
 		break;
@@ -1013,3 +1013,22 @@ bool CXSLAttribEnchantItem::IsPossibleToPush( IN char cExistingType, IN char cTy
 
 
 
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+bool CXSLAttribEnchantItem::IsExtractItem( const int iItemID )
+{
+	switch( iItemID )
+	{
+	case ATI_RED:
+	case ATI_BLUE:
+	case ATI_GREEN:
+	case ATI_WIND:
+	case ATI_LIGHT:
+	case ATI_DARK:
+		return true;
+	default:
+		break;
+	}
+
+	return false;
+}
+#endif // SERV_FINALITY_SKILL_SYSTEM

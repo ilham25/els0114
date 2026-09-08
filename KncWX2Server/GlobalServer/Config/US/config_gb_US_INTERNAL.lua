@@ -3,7 +3,7 @@
 ----------     Global Server 설정     ----------
 
 -- 크래쉬 리포트 메일링 리스트 --
-Server:SetMailingList( "honnak@kog.co.kr" )
+Server:SetMailingList( "ninil@kog.co.kr, bowrain@kog.co.kr" )
 
 -- 종료시 db 처리 대기시간 --
 Server:SetShutDownWait( 60 * 1000 )
@@ -13,8 +13,8 @@ Server:SetShutDownWait( 60 * 1000 )
 
 -- 스크립트 파싱 실패 리포트
 Server:SetScriptParsingErrReport( true )
-Server:AddScriptParsingErrReportMail( 'liefellen@kog.co.kr' )	-- 오현택
-Server:AddScriptParsingErrReportMail( 'honnak@kog.co.kr' )	-- 임홍락
+Server:AddScriptParsingErrReportMail( 'bowrain@kog.co.kr' )	-- 오현택
+Server:AddScriptParsingErrReportMail( 'ninil@kog.co.kr' )	-- 임홍락
 
 -- Add moritoring server's IP for checking port of elsword's server ( SERV_PERMIT_PORT_CHECK )
 --Server:AddPortCheckMoritoringServer( "79.110.90.240" )
@@ -46,7 +46,7 @@ AF_NEXON_KOREA : 넥슨 국내 인증
 SimLayer:SetAuthFlag( AF_INTERNAL )
 
 -- Script File Path --
-SimLayer:AddPath( "D:\\ProjectX2_SVN\\source\\EU_CN_US\\Trunk\\KncWX2Server\\ServerResource\\US" ) -- server common
+SimLayer:AddPath( "D:\\ProjectX2_SVN\\source\\JP_TW_EU_CN_US\\Trunk\\KncWX2Server\\ServerResource\\US" ) -- server common
 SimLayer:AddPath( "D:\\ProjectX2_SVN\\resource\\US\\Trunk\\dat\\Script" ) -- client script
 
 

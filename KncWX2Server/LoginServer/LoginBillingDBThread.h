@@ -54,10 +54,10 @@ protected:
 										IN const char cLevel,
 										IN const int iChargeCash,
 										IN const std::wstring& wstrUserIP,
-										IN const char cOrderType 
-#ifdef SERV_COUNTRY_PH
+										IN const char cOrderType
+#if defined( SERV_COUNTRY_PH ) || defined( SERV_ALL_RENEWAL_SP )
 										, OUT __int64&	i64TransactionID
-#endif //SERV_COUNTRY_PH
+#endif //( SERV_COUNTRY_PH ) || ( SERV_ALL_RENEWAL_SP )
 										);
 
 	// 캐시 전환 주문 완료
@@ -113,6 +113,7 @@ protected:
 	//}}
 
 	int DoQuery_SetChangeGameCurrencyFailLog(IN KEJSON_GN_CHANGE_GAME_CURRENCY_ACK kPaket);
+
 #endif //SERV_COUNTRY_PH
 
 	// event handler

@@ -8,11 +8,15 @@ CX2MonsterIndicator::CX2MonsterIndicator(MONSTER_INDICATOR_TYPE eIndicatorType_ 
 CX2MonsterIndicator::CX2MonsterIndicator(void)
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
 {	
-	m_hMonsterIndicator = INVALID_PARTICLE_HANDLE;
-	m_pMonsterIndicatorParticle = NULL;
-
-	m_hMonsterIndicatorFace = INVALID_PARTICLE_HANDLE;
+	m_hMonsterIndicator = INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hMonsterIndicatorFace = INVALID_PARTICLE_SEQUENCE_HANDLE;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hMonsterIndicatorParticle = INVALID_PARTICLE_HANDLE;
+	m_hMonsterIndicatorFaceParticle = INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_pMonsterIndicatorParticle = NULL;
 	m_pMonsterIndicatorFaceParticle = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	if( NULL != g_pX2Game &&
 		NULL != g_pX2Game->GetMajorParticle() )
@@ -22,11 +26,11 @@ CX2MonsterIndicator::CX2MonsterIndicator(void)
 		if( NULL != pSeq )
 		{
 			pSeq->SetTriggerWait( true );
-			if( m_pMonsterIndicatorParticle == NULL )
-			{
-
-				m_pMonsterIndicatorParticle = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-			}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hMonsterIndicatorParticle = pSeq->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_pMonsterIndicatorParticle = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
@@ -38,6 +42,11 @@ CX2MonsterIndicator::CX2MonsterIndicator(void)
 			case MIT_FIELD_MIDDLE_BOSS :// 필드 중간 보스 형태
 				m_hMonsterIndicatorFace = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL,  L"TargetMiddleBossMon", 0, 0, 0 );
 				break;
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+			case MIT_FIELD_EVENT_BOSS :// 필드 이벤트 보스 형태
+				m_hMonsterIndicatorFace = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL,  L"TargetEventBossMon", 0, 0, 0 );
+				break;
+#endif //SERV_BATTLEFIELD_EVENT_BOSS_INT
 		}
 #else //  SERV_BATTLEFIELD_MIDDLE_BOSS
 		m_hMonsterIndicatorFace = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL,  L"TargetArrowMon", 0, 0, 0 );
@@ -48,10 +57,11 @@ CX2MonsterIndicator::CX2MonsterIndicator(void)
 		if( NULL != pSeq )
 		{
 			pSeq->SetTriggerWait( true );
-			if( m_pMonsterIndicatorFaceParticle == NULL )
-			{
-				m_pMonsterIndicatorFaceParticle = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-			}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		    m_hMonsterIndicatorFaceParticle = pSeq->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_pMonsterIndicatorFaceParticle = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 	}
 
@@ -82,12 +92,22 @@ void CX2MonsterIndicator::OnFrameMove()
 	KTDXPROFILE();
 
 
-	if( INVALID_PARTICLE_HANDLE == m_hMonsterIndicator ||
-		NULL == m_pMonsterIndicatorParticle )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hMonsterIndicator ||
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        INVALID_PARTICLE_HANDLE == m_hMonsterIndicatorParticle
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		NULL == m_pMonsterIndicatorParticle 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        )
 		return;
 
-	if( INVALID_PARTICLE_HANDLE == m_hMonsterIndicatorFace ||
-		NULL == m_pMonsterIndicatorFaceParticle )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hMonsterIndicatorFace ||
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        INVALID_PARTICLE_HANDLE == m_hMonsterIndicatorFaceParticle
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		NULL == m_pMonsterIndicatorFaceParticle 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        )
 		return;
 
 	if( NULL == g_pX2Game )
@@ -111,7 +131,11 @@ void CX2MonsterIndicator::OnFrameMove()
 
 	// 화면안에 몬스터가 없고, 화면밖에 몬스터가 있다면 
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT 
+	if ( m_eIndicatorType == MIT_FIELD_MIDDLE_BOSS || m_eIndicatorType == MIT_FIELD_EVENT_BOSS)
+#else //SERV_BATTLEFIELD_EVENT_BOSS_INT
 	if ( m_eIndicatorType == MIT_FIELD_MIDDLE_BOSS )		// FieldMiddleBoss 일 경우
+#endif //SERV_BATTLEFIELD_EVENT_BOSS_INT
 	{
 		if ( null != m_pTargetNPC )		// 타켓으로 지정된 몬스터가 있나?
 		{	
@@ -141,7 +165,7 @@ void CX2MonsterIndicator::OnFrameMove()
 				m_pTargetNPC->GetTransformCenter( &center );
 
 				if( m_pTargetNPC->GetBoundingRadius() > 0 &&
-					g_pKTDXApp->GetDGManager()->GetFrustum()->CheckSphere( center, m_pTargetNPC->GetBoundingRadius() * m_pTargetNPC->GetScale() ) == true )
+					g_pKTDXApp->GetDGManager()->GetFrustum().CheckSphere( center, m_pTargetNPC->GetBoundingRadius() * m_pTargetNPC->GetScale() ) == true )
 				{
 					iNPCCountInFrustum += 1;	
 				}
@@ -182,7 +206,7 @@ void CX2MonsterIndicator::OnFrameMove()
 			pNPC->GetTransformCenter( &center );
 
 			if( pNPC->GetBoundingRadius() > 0 &&
-				g_pKTDXApp->GetDGManager()->GetFrustum()->CheckSphere( center, pNPC->GetBoundingRadius() * pNPC->GetScale() ) == true )
+				g_pKTDXApp->GetDGManager()->GetFrustum().CheckSphere( center, pNPC->GetBoundingRadius() * pNPC->GetScale() ) == true )
 			{
 				iNPCCountInFrustum += 1;
 			}
@@ -301,8 +325,16 @@ void CX2MonsterIndicator::OnFrameMove()
 			pSeqArrow->SetAddRotate( vRot );
 			pSeqArrow->SetAxisAngle( vRot );
 
-			m_pMonsterIndicatorParticle->m_vAxisRotateDegree = vRot;
-			m_pMonsterIndicatorParticle->m_vRotate = vRot;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CKTDGParticleSystem::CParticle* pParticle = pSeqArrow->GetParticle( m_hMonsterIndicatorParticle ) )
+            {
+			    pParticle->SetAxisRotateDegree( vRot );
+			    pParticle->SetRotate( vRot );
+            }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_pMonsterIndicatorParticle->SetAxisRotateDegree( vRot );
+			m_pMonsterIndicatorParticle->SetRotate( vRot );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
 			float fScaleFactor = fNearestDistance / 2000.f;

@@ -37,10 +37,6 @@ CX2Room::CX2Room()
 
 	if( g_pData->GetMyUser()->GetSelectUnit() != NULL )
 		g_pData->GetGameUDP()->SetMyUID( g_pData->GetMyUser()->GetSelectUnit()->GetUID() );
-
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	m_iRoomBuffType = (int)KRoomInfo::RBT_NONE;
-#endif
 	
 #ifdef UDP_CAN_NOT_SEND_USER_KICK
 	m_bCheckGameStart	= false;
@@ -69,9 +65,9 @@ CX2Room::~CX2Room(void)
 	ClearSlotDataList();
 	ClearObserverSlotDataList();	
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	g_pData->GetGameUDP()->DisconnectToRelay();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	g_pData->GetGameUDP()->DisconnectToRelay();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	g_pData->GetGameUDP()->ClearPeer();
 	g_pData->GetGameUDP()->ClearRecvBuffer();
 
@@ -80,10 +76,10 @@ CX2Room::~CX2Room(void)
 #endif	SERV_COLLECTION_OF_RELAY_AND_P2P_INFO
 	g_pX2Room = NULL;
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
         g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_NONE ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 }
 
@@ -96,15 +92,15 @@ void CX2Room::ConnectRelayServer( const WCHAR* pIP, int port )
 		NULL != pSlotData->m_pUnit )
 	{
 		pSlotData->m_pUnit->GetUID();
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         g_pData->GetGameUDP()->SetMyUIDAndRelayIPAddressAndPort( pSlotData->m_pUnit->GetUID(), 
             CKTDNUDP::ConvertIPToAddress( pIP ), port );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		g_pData->GetGameUDP()->SetMyUIDAndRelayIpAndPort( pSlotData->m_pUnit->GetUID(), pIP, port );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		g_pData->GetGameUDP()->SetMyUIDAndRelayIpAndPort( pSlotData->m_pUnit->GetUID(), pIP, port );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         g_pData->GetGameUDP()->DisconnectToRelay();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		g_pData->GetGameUDP()->ConnectTestToRelay();
 	}
 }
@@ -278,21 +274,21 @@ void CX2Room::NetworkProcess()
 
 
 					g_pData->GetGameUDP()->AddPeer( pSlotData->m_UnitUID, 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        CKTDNUDP::ConvertIPToAddress( pSlotData->m_pUnit->GetUnitData()->m_IP.c_str() ), 
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        pSlotData->m_pUnit->GetUnitData()->m_IP.c_str(), 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        pSlotData->m_pUnit->GetUnitData()->m_Port
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+                        CKTDNUDP::ConvertIPToAddress( pSlotData->m_pUnit->GetUnitData().m_IP.c_str() ), 
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//                        pSlotData->m_pUnit->GetUnitData().m_IP.c_str(), 
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+                        pSlotData->m_pUnit->GetUnitData().m_Port
 					//{{ 2013. 1. 9	박세훈	Merge 공인IP 연결 실패시 내부IP로 시도( 박진웅 )
 //#ifdef  SERV_KTDX_RETRY_USING_INTERNAL_IP
                         , 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        CKTDNUDP::ConvertIPToAddress( pSlotData->m_pUnit->GetUnitData()->m_InternalIP.c_str() ), 
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        pSlotData->m_pUnit->GetUnitData()->m_InternalIP.c_str(), 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        pSlotData->m_pUnit->GetUnitData()->m_InternalPort
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+                        CKTDNUDP::ConvertIPToAddress( pSlotData->m_pUnit->GetUnitData().m_InternalIP.c_str() ), 
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//                        pSlotData->m_pUnit->GetUnitData().m_InternalIP.c_str(), 
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+                        pSlotData->m_pUnit->GetUnitData().m_InternalPort
 //#endif  SERV_KTDX_RETRY_USING_INTERNAL_IP
                         );
 
@@ -328,20 +324,20 @@ void CX2Room::NetworkProcess()
 					//{{ 2013. 1. 9	박세훈	Merge 공인IP 연결 실패시 내부IP로 시도( 박진웅 )
 
 					g_pData->GetGameUDP()->AddPeer( pSlotData->m_UnitUID, 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        CKTDNUDP::ConvertIPToAddress( pSlotData->m_pUnit->GetUnitData()->m_IP.c_str() ),
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        pSlotData->m_pUnit->GetUnitData()->m_IP.c_str(), 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        pSlotData->m_pUnit->GetUnitData()->m_Port
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+                        CKTDNUDP::ConvertIPToAddress( pSlotData->m_pUnit->GetUnitData().m_IP.c_str() ),
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//                        pSlotData->m_pUnit->GetUnitData().m_IP.c_str(), 
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+                        pSlotData->m_pUnit->GetUnitData().m_Port
 //#ifdef SERV_KTDX_RETRY_USING_INTERNAL_IP
                         , 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        CKTDNUDP::ConvertIPToAddress( pSlotData->m_pUnit->GetUnitData()->m_InternalIP.c_str() ),
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        pSlotData->m_pUnit->GetUnitData()->m_InternalIP.c_str(), 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                        pSlotData->m_pUnit->GetUnitData()->m_InternalPort 
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+                        CKTDNUDP::ConvertIPToAddress( pSlotData->m_pUnit->GetUnitData().m_InternalIP.c_str() ),
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//                        pSlotData->m_pUnit->GetUnitData().m_InternalIP.c_str(), 
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+                        pSlotData->m_pUnit->GetUnitData().m_InternalPort 
 //#endif SERV_KTDX_RETRY_USING_INTERNAL_IP
                         );
 
@@ -360,7 +356,12 @@ void CX2Room::NetworkProcess()
 	}
 
 	//핑 테스트를 한다.
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_fPingTestTime += g_pKTDXApp->GetElapsedTime();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_fPingTestTime += m_fElapsedTime;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_fPingTestTime > 5.0f 
 		
 		//{{ kimhc // 2012-10-16 // 핑이 빠른 유저를 호스트로 변경하는 코드
@@ -394,73 +395,73 @@ void CX2Room::P2PPacketHandler()
 	CKTDNUDP::RecvData* pRecvData = g_pData->GetGameUDP()->PopRecvData();
 	while( pRecvData != NULL )
 	{
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK					
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK					
 		P2PPacketHandler( pRecvData );
 		SAFE_DELETE( pRecvData );
 		pRecvData = g_pData->GetGameUDP()->PopRecvData();		
-#else 	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		bool bRetVal = false;
-		if( g_pX2Game != NULL )
-		{
-			bRetVal = g_pX2Game->P2PPacketHandler( pRecvData );
-		}
-
-		if( bRetVal == false )
-		{
-			switch( pRecvData->m_ID )
-			{
-			case XPT_PING_TEST_REQ:
-				{
-					KSerBuffer ksBuff;
-					ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-					KXPT_PING_TEST_REQ kKXPT_PING_TEST_REQ;
-					DeSerialize( &ksBuff, &kKXPT_PING_TEST_REQ );
-
-					KXPT_PING_TEST_ACK kKXPT_PING_TEST_ACK;
-					kKXPT_PING_TEST_ACK.m_UnitUID	=  GetMySlot()->m_pUnit->GetUID();
-					kKXPT_PING_TEST_ACK.m_SendTime	=  kKXPT_PING_TEST_REQ.m_SendTime;
-
-					KSerBuffer buff;
-					Serialize( &buff, &kKXPT_PING_TEST_ACK );
-					g_pData->GetGameUDP()->Send( kKXPT_PING_TEST_REQ.m_UnitUID, XPT_PING_TEST_ACK, (char*)buff.GetData(), buff.GetLength() );
-				}
-				break;
-
-			case XPT_PING_TEST_ACK:
-				{
-					KSerBuffer ksBuff;
-					ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-					KXPT_PING_TEST_ACK kKXPT_PING_TEST_ACK;
-					DeSerialize( &ksBuff, &kKXPT_PING_TEST_ACK );
-
-					SlotData* pSlotData = GetSlotDataByUnitUID( kKXPT_PING_TEST_ACK.m_UnitUID );
-					if( pSlotData != NULL )
-					{
-                        LONG    lTimeDiff = (LONG) ( timeGetTime() - kKXPT_PING_TEST_ACK.m_SendTime );
-                        DWORD   dwPingTime = ( lTimeDiff >= 0 ) ? lTimeDiff : 0;
-                        if ( dwPingTime > 5000 )
-                            dwPingTime = 5000;
-				        pSlotData->m_PingTime = dwPingTime
-#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-                        float   fInvWeight = 1.f/(float) ( pSlotData->m_dwPingCount + 1 );
-                        float   fCutPingTime = __min(pSlotData->m_PingTime,2000) * 0.001f;
-                        pSlotData->m_fAvgPingTime = ( pSlotData->m_dwPingCount * pSlotData->m_fAvgPingTime + fCutPingTime ) * fInvWeight;
-#ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
-                        pSlotData->m_fAvgPingTimeSqr = ( pSlotData->m_dwPingCount * pSlotData->m_fAvgPingTimeSqr + fCutPingTime * fCutPingTime ) * fInvWeight;
-                        float fPingStd = pSlotData->m_fAvgPingTimeSqr - pSlotData->m_fAvgPingTime * pSlotData->m_fAvgPingTime;
-                        pSlotData->m_fAvgPingStd = ( fPingStd <= 0.f ) ? 0.f : sqrtf( fPingStd );
-#endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
-                        if ( pSlotData->m_dwPingCount < 12 )
-                            pSlotData->m_dwPingCount++;
-#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-					}
-				}
-				break;
-			}
-		}		
-		SAFE_DELETE( pRecvData );
-		pRecvData = g_pData->GetGameUDP()->PopRecvData();
-#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK			
+//#else 	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		bool bRetVal = false;
+//		if( g_pX2Game != NULL )
+//		{
+//			bRetVal = g_pX2Game->P2PPacketHandler( pRecvData );
+//		}
+//
+//		if( bRetVal == false )
+//		{
+//			switch( pRecvData->m_ID )
+//			{
+//			case XPT_PING_TEST_REQ:
+//				{
+//					KSerBuffer ksBuff;
+//					ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//					KXPT_PING_TEST_REQ kKXPT_PING_TEST_REQ;
+//					DeSerialize( &ksBuff, &kKXPT_PING_TEST_REQ );
+//
+//					KXPT_PING_TEST_ACK kKXPT_PING_TEST_ACK;
+//					kKXPT_PING_TEST_ACK.m_UnitUID	=  GetMySlot()->m_pUnit->GetUID();
+//					kKXPT_PING_TEST_ACK.m_SendTime	=  kKXPT_PING_TEST_REQ.m_SendTime;
+//
+//					KSerBuffer buff;
+//					Serialize( &buff, &kKXPT_PING_TEST_ACK );
+//					g_pData->GetGameUDP()->Send( kKXPT_PING_TEST_REQ.m_UnitUID, XPT_PING_TEST_ACK, (char*)buff.GetData(), buff.GetLength() );
+//				}
+//				break;
+//
+//			case XPT_PING_TEST_ACK:
+//				{
+//					KSerBuffer ksBuff;
+//					ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//					KXPT_PING_TEST_ACK kKXPT_PING_TEST_ACK;
+//					DeSerialize( &ksBuff, &kKXPT_PING_TEST_ACK );
+//
+//					SlotData* pSlotData = GetSlotDataByUnitUID( kKXPT_PING_TEST_ACK.m_UnitUID );
+//					if( pSlotData != NULL )
+//					{
+//                      LONG    lTimeDiff = (LONG) ( timeGetTime() - kKXPT_PING_TEST_ACK.m_SendTime );
+//                        DWORD   dwPingTime = ( lTimeDiff >= 0 ) ? lTimeDiff : 0;
+//                        if ( dwPingTime > 5000 )
+//                            dwPingTime = 5000;
+//				        pSlotData->m_PingTime = dwPingTime
+//#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
+//                        float   fInvWeight = 1.f/(float) ( pSlotData->m_dwPingCount + 1 );
+//                        float   fCutPingTime = __min(pSlotData->m_PingTime,2000) * 0.001f;
+//                        pSlotData->m_fAvgPingTime = ( pSlotData->m_dwPingCount * pSlotData->m_fAvgPingTime + fCutPingTime ) * fInvWeight;
+//#ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
+//                        pSlotData->m_fAvgPingTimeSqr = ( pSlotData->m_dwPingCount * pSlotData->m_fAvgPingTimeSqr + fCutPingTime * fCutPingTime ) * fInvWeight;
+//                        float fPingStd = pSlotData->m_fAvgPingTimeSqr - pSlotData->m_fAvgPingTime * pSlotData->m_fAvgPingTime;
+//                        pSlotData->m_fAvgPingStd = ( fPingStd <= 0.f ) ? 0.f : sqrtf( fPingStd );
+//#endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
+//                        if ( pSlotData->m_dwPingCount < 12 )
+//                            pSlotData->m_dwPingCount++;
+//#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
+//					}
+//				}
+//				break;
+//			}
+//		}		
+//		SAFE_DELETE( pRecvData );
+//		pRecvData = g_pData->GetGameUDP()->PopRecvData();
+//#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK			
 	}
 
 #ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
@@ -468,7 +469,7 @@ void CX2Room::P2PPacketHandler()
 #endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
 }
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 bool    CX2Room::P2PPacketHandler( CKTDNUDP::RecvData* pRecvData )
 {
 	KTDXPROFILE();
@@ -512,7 +513,7 @@ bool    CX2Room::P2PPacketHandler( CKTDNUDP::RecvData* pRecvData )
             if ( pRecvData->m_Size != sizeof(KXPT_PING_TEST_ACK) )
                 return false;
             const KXPT_PING_TEST_ACK* pkAck = (const KXPT_PING_TEST_ACK*) pRecvData->m_pRecvBuffer;
-			CX2Room::SlotData* pSlotData = g_pX2Room->GetSlotDataByUnitUID( pkAck->m_UnitUID );
+			CX2Room::SlotData* pSlotData = GetSlotDataByUnitUID( pkAck->m_UnitUID );
 			if( pSlotData != NULL )
 			{
                 DWORD   dwCurrTime = timeGetTime();
@@ -566,6 +567,7 @@ bool    CX2Room::P2PPacketHandler( CKTDNUDP::RecvData* pRecvData )
                 bValidPingTime = true;
 				pSlotData->m_PingTime = dwPingTime;
 #endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
+	
 				
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
                 if ( bValidPingTime == true )
@@ -590,7 +592,7 @@ bool    CX2Room::P2PPacketHandler( CKTDNUDP::RecvData* pRecvData )
 
     return false;
 }
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 void CX2Room::TestPing()
 {
@@ -627,7 +629,7 @@ void CX2Room::TestPing()
 
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	std::map<__int64,CKTDNUDP::Peer>::const_iterator iter;
 	const std::map<__int64,CKTDNUDP::Peer>& mapPeer = g_pData->GetGameUDP()->GetPeerMap();
@@ -656,46 +658,46 @@ void CX2Room::TestPing()
 
 
 
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-	map<__int64,CKTDNUDP::Peer>::const_iterator iter;
-	const map<__int64,CKTDNUDP::Peer>& mapPeer = g_pData->GetGameUDP()->GetPeerMap();
-	for( iter = mapPeer.begin(); iter != mapPeer.end(); iter++ )
-	{
-		const CKTDNUDP::Peer* pPeer = &iter->second;
-
-		if( pPeer != g_pData->GetGameUDP()->GetMyPeer() )
-		{
-			kKXPT_PING_TEST_REQ.m_bRelay = pPeer->GetUseRelay();
-			kKXPT_PING_TEST_REQ.m_uiSendCounter = KOGGamePerformanceCheck::GetInstance()->GetUdpPingCheckMgr()->SendPingCheckPacket();
-
-			//유효한 SendCounter가 존재할 경우에만...
-			if( !kKXPT_PING_TEST_REQ.m_bRelay )
-			{
-				KOGGamePerformanceCheck::GetInstance()->GetP2PPingCheckMgr()->SendPingCheckPacket( kKXPT_PING_TEST_REQ.m_uiSendCounter );
-			}
-			else
-			{
-				KOGGamePerformanceCheck::GetInstance()->GetRelayPingCheckMgr()->SendPingCheckPacket( kKXPT_PING_TEST_REQ.m_uiSendCounter );
-			}
-
-			KSerBuffer buff;
-			Serialize( &buff, &kKXPT_PING_TEST_REQ );
-			g_pData->GetGameUDP()->Send( pPeer->m_UID, XPT_PING_TEST_REQ, (char*)buff.GetData(), buff.GetLength() );
-		}
-	}
-
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+//	map<__int64,CKTDNUDP::Peer>::const_iterator iter;
+//	const map<__int64,CKTDNUDP::Peer>& mapPeer = g_pData->GetGameUDP()->GetPeerMap();
+//	for( iter = mapPeer.begin(); iter != mapPeer.end(); iter++ )
+//	{
+//		const CKTDNUDP::Peer* pPeer = &iter->second;
+//
+//		if( pPeer != g_pData->GetGameUDP()->GetMyPeer() )
+//		{
+//			kKXPT_PING_TEST_REQ.m_bRelay = pPeer->GetUseRelay();
+//			kKXPT_PING_TEST_REQ.m_uiSendCounter = KOGGamePerformanceCheck::GetInstance()->GetUdpPingCheckMgr()->SendPingCheckPacket();
+//
+//			//유효한 SendCounter가 존재할 경우에만...
+//			if( !kKXPT_PING_TEST_REQ.m_bRelay )
+//			{
+//				KOGGamePerformanceCheck::GetInstance()->GetP2PPingCheckMgr()->SendPingCheckPacket( kKXPT_PING_TEST_REQ.m_uiSendCounter );
+//			}
+//			else
+//			{
+//				KOGGamePerformanceCheck::GetInstance()->GetRelayPingCheckMgr()->SendPingCheckPacket( kKXPT_PING_TEST_REQ.m_uiSendCounter );
+//			}
+//
+//			KSerBuffer buff;
+//			Serialize( &buff, &kKXPT_PING_TEST_REQ );
+//			g_pData->GetGameUDP()->Send( pPeer->m_UID, XPT_PING_TEST_REQ, (char*)buff.GetData(), buff.GetLength() );
+//		}
+//	}
+//
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #else//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     g_pData->GetGameUDP()->BroadCast( XPT_PING_TEST_REQ, (char*)&kKXPT_PING_TEST_REQ, sizeof(KXPT_PING_TEST_REQ) );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	KSerBuffer buff;
-	Serialize( &buff, &kKXPT_PING_TEST_REQ );
-	g_pData->GetGameUDP()->BroadCast( XPT_PING_TEST_REQ, (char*)buff.GetData(), buff.GetLength() );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	KSerBuffer buff;
+//	Serialize( &buff, &kKXPT_PING_TEST_REQ );
+//	g_pData->GetGameUDP()->BroadCast( XPT_PING_TEST_REQ, (char*)buff.GetData(), buff.GetLength() );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 }
@@ -814,6 +816,16 @@ void    CX2Room::ResetSlotPingSendsAll()
     m_bSkipPingSendCheck = true;
 }
 
+bool    CX2Room::ResetSlotPingSendByUnitUID( UidType unitUID )
+{
+    CX2Room::SlotData* pSlotData = GetSlotDataByUnitUID( unitUID );
+    if ( pSlotData != NULL )
+    {
+        ZeroMemory( pSlotData->m_adwPingSendTime, sizeof(pSlotData->m_adwPingSendTime) );
+        return true;
+    }
+    return false;
+}
 #endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
 
 
@@ -943,11 +955,7 @@ void CX2Room::Set_KRoomInfo( const KRoomInfo& kRoomInfo_ )
 	m_RoomState		= (CX2Room::ROOM_STATE)kRoomInfo_.m_RoomState;
 	m_bPublic		= kRoomInfo_.m_bPublic;
 	m_RelayServerIP		= kRoomInfo_.m_wstrUDPRelayIP;
-	m_RelayServerPort	= kRoomInfo_.m_usUDPRelayPort;	
-
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	m_iRoomBuffType = kRoomInfo_.m_iBuffType;
-#endif
+	m_RelayServerPort	= kRoomInfo_.m_usUDPRelayPort;
 }
 
 void CX2Room::Set_KRoomSlotInfo( const KRoomSlotInfo& kRoomSlotInfo_ )
@@ -980,7 +988,7 @@ void CX2Room::Set_KRoomSlotInfoList( const std::vector<KRoomSlotInfo>& vecSlot_ 
 	}
 
 #ifdef FIX_OBSERVER_MODE_CRASH		/// 옵저버는 제외
-	if ( NULL != g_pX2Room && NULL != g_pX2Room->GetMySlot() && false == g_pX2Room->GetMySlot()->m_bObserver )
+	if (NULL != GetMySlot() && false == GetMySlot()->m_bObserver )
 		MatchingMySlotData( vecSlot_ );
 #endif FIX_OBSERVER_MODE_CRASH
 
@@ -1081,25 +1089,15 @@ void CX2Room::DeleteNpcSlot()
 #ifdef PVP_SEASON2
 			roomNpcSlot.m_cRank = pSlotData->m_cRank;
 #endif
-			roomNpcSlot.m_wstrNpcName = pSlotData->m_pUnit->GetUnitData()->m_NickName;
-			roomNpcSlot.m_iLevel = pSlotData->m_pUnit->GetUnitData()->m_Level;
-
-#ifdef SERV_IRUHADEV_OFFLINE
-			// AI_PARTY_PLAN.md phase 1. The offline server puts the bot's hero
-			// selection in KRoomUserInfo::m_cUnitClass, which is the only field
-			// on the slot free to carry it - the ingest above reads just the
-			// UID, the nickname and the rating for an m_bNpc slot. This is the
-			// last point it is reachable: the SlotData is deleted three lines
-			// below, and CX2Game::CreateOfflinePartyBots runs afterwards.
-			roomNpcSlot.m_cUnitClass = (char)pSlotData->m_pUnit->GetUnitData()->m_UnitClass;
-#endif SERV_IRUHADEV_OFFLINE
+			roomNpcSlot.m_wstrNpcName = pSlotData->m_pUnit->GetUnitData().m_NickName;
+			roomNpcSlot.m_iLevel = pSlotData->m_pUnit->GetUnitData().m_Level;
 
 			// 대전 NPC Stat은 RoomSlot에 저장된 Stat정보를 사용한다.
-			roomNpcSlot.m_fBaseHP		= pSlotData->m_pUnit->GetUnitData()->m_GameStat.m_fBaseHP;
-			roomNpcSlot.m_fAtkPhysic	= pSlotData->m_pUnit->GetUnitData()->m_GameStat.m_fAtkPhysic;
-			roomNpcSlot.m_fAtkMagic		= pSlotData->m_pUnit->GetUnitData()->m_GameStat.m_fAtkMagic;
-			roomNpcSlot.m_fDefPhysic	= pSlotData->m_pUnit->GetUnitData()->m_GameStat.m_fDefPhysic;
-			roomNpcSlot.m_fDefMagic		= pSlotData->m_pUnit->GetUnitData()->m_GameStat.m_fDefMagic;
+			roomNpcSlot.m_fBaseHP		= pSlotData->m_pUnit->GetUnitData().m_GameStat.m_fBaseHP;
+			roomNpcSlot.m_fAtkPhysic	= pSlotData->m_pUnit->GetUnitData().m_GameStat.m_fAtkPhysic;
+			roomNpcSlot.m_fAtkMagic		= pSlotData->m_pUnit->GetUnitData().m_GameStat.m_fAtkMagic;
+			roomNpcSlot.m_fDefPhysic	= pSlotData->m_pUnit->GetUnitData().m_GameStat.m_fDefPhysic;
+			roomNpcSlot.m_fDefMagic		= pSlotData->m_pUnit->GetUnitData().m_GameStat.m_fDefMagic;
 
 			m_vecNpcSlot.push_back( roomNpcSlot );
 			SAFE_DELETE( pSlotData );
@@ -1463,7 +1461,7 @@ bool CX2Room::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( KEGS_CHANGE_EQUIPPED
 	if( pSlotData->m_pUnit->GetUID() != kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_UnitUID )
 		return false;
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
     if(kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_vecInventorySlotInfo.size() == 0)
     {
 #ifdef SERV_TITLE_DATA_SIZE
@@ -1477,12 +1475,12 @@ bool CX2Room::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( KEGS_CHANGE_EQUIPPED
 
         return true;
     }
-#endif
+//#endif
 
 
 
 
-	pSlotData->m_pUnit->GetUnitData()->m_GameStat.SetKStat( kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_kGameStat );
+	pSlotData->m_pUnit->AccessUnitData().m_GameStat.SetKStat( kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_kGameStat );
 
 
 
@@ -1522,7 +1520,7 @@ bool CX2Room::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( KEGS_CHANGE_EQUIPPED
 			kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_ACCESSORY ||
 			kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_AVARTA )
 		{
-			CX2Item* pItem = pSlotData->m_pUnit->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+			CX2Item* pItem = pSlotData->m_pUnit->GetInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 			if( pItem != NULL )
 			{
 				wstring wstrLog = L"RemoveItemName: ";
@@ -1543,7 +1541,7 @@ bool CX2Room::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( KEGS_CHANGE_EQUIPPED
 	for( int i = 0; i < (int)kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_vecInventorySlotInfo.size(); i++ )
 	{
 		KInventoryItemInfo& kInventorySlotInfo = kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_vecInventorySlotInfo[i];
-		pSlotData->m_pUnit->GetInventory()->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+		pSlotData->m_pUnit->AccessInventory().RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 	}
 
 	for( int i = 0; i < (int)kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_vecInventorySlotInfo.size(); i++ )
@@ -1552,13 +1550,14 @@ bool CX2Room::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( KEGS_CHANGE_EQUIPPED
 		if( kInventorySlotInfo.m_iItemUID <= 0 )
 			continue;
 
-
-		CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
-		pSlotData->m_pUnit->GetInventory()->AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, pItemData );
+        {
+		    CX2Item::ItemData kItemData( kInventorySlotInfo );
+		    pSlotData->m_pUnit->AccessInventory().AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, kItemData );
+        }
 
 		if( kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
 		{
-			CX2Item* pItem = pSlotData->m_pUnit->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+			CX2Item* pItem = pSlotData->m_pUnit->GetInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 			if( pItem != NULL )
 			{
 				if( true == pSlotData->m_pUnit->AddEqip( pItem->GetUID() ) )
@@ -1639,14 +1638,11 @@ bool CX2Room::Handler_EGS_CHANGE_SKILL_INFO_IN_ROOM_NOT( KEGS_CHANGE_SKILL_INFO_
 	if ( NULL == pUser->GetUnit() )
 		return false;
 
-	CX2Unit::UnitData* pUnitData = pUser->GetUnit()->GetUnitData();//pSlotData->m_pUnit->GetUnitData();
+	CX2Unit::UnitData& kUnitData = pUser->GetUnit()->AccessUnitData();//pSlotData->m_pUnit->GetUnitData();
 
-	if ( NULL == pUnitData )
-		return false;
-	
-	pUnitData->m_GameStat.SetKStat( kEvent_.m_kGameStat );
-	pUnitData->m_byMemberShipGrade = kEvent_.m_ucMemberShipGrade;
-	CX2UserSkillTree& userSkillTree = pUnitData->m_UserSkillTree;
+	kUnitData.m_GameStat.SetKStat( kEvent_.m_kGameStat );
+	kUnitData.m_byMemberShipGrade = kEvent_.m_ucMemberShipGrade;
+	CX2UserSkillTree& userSkillTree = kUnitData.m_UserSkillTree;
 	
 	// 내 유닛이면 - 스킬 변경 NOT으로 길드 스킬 정보는 이미 처리된 상태
 	if ( g_pData->GetMyUser()->GetSelectUnit()->GetUID() != kEvent_.m_iUnitUID )
@@ -1661,7 +1657,7 @@ bool CX2Room::Handler_EGS_CHANGE_SKILL_INFO_IN_ROOM_NOT( KEGS_CHANGE_SKILL_INFO_
 			if ( userSkillTree.IsChangedSkillSlot( i, false, skillDataInSlotA ) )
 			{
 				userSkillTree.SetEquippedSkill( i, false, skillDataInSlotA );
-				pUser->ChangeEquippedSkillState( pUnitData, 
+				pUser->ChangeEquippedSkillState( kUnitData, 
 					static_cast<CX2SkillTree::SKILL_ID>( skillDataInSlotA.m_iSkillID ), 
 					i, false );
 			}
@@ -1670,7 +1666,7 @@ bool CX2Room::Handler_EGS_CHANGE_SKILL_INFO_IN_ROOM_NOT( KEGS_CHANGE_SKILL_INFO_
 			if ( userSkillTree.IsChangedSkillSlot( i, true, skillDataInSlotB ) )
 			{
 				userSkillTree.SetEquippedSkill( i, true, skillDataInSlotB );
-				pUser->ChangeEquippedSkillState( pUnitData, 
+				pUser->ChangeEquippedSkillState( kUnitData, 
 					static_cast<CX2SkillTree::SKILL_ID>( skillDataInSlotB.m_iSkillID ),
 					i, true );
 			}
@@ -1990,7 +1986,7 @@ wstring CX2Room::GetStringNetworkInfo( const SlotData* pSlotData_ )
 		{
 			wstringstream wstrNetworkInfo;
 			//{{ 2013. 1. 11	박세훈	Merge 공인IP 연결 실패시 내부IP로 시도( 박진웅 )
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 //#ifdef  SERV_KTDX_RETRY_USING_INTERNAL_IP
 			if( pPeer->GetUseRelay() == true )
 			{
@@ -2008,26 +2004,26 @@ wstring CX2Room::GetStringNetworkInfo( const SlotData* pSlotData_ )
 //#else   SERV_KTDX_RETRY_USING_INTERNAL_IP
 //			wstrNetworkInfo << ( pPeer->m_bUseRelay ? L" 릴레이 연결 / " : L" P2P 연결 / " );
 //#endif  SERV_KTDX_RETRY_USING_INTERNAL_IP
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-			wstrNetworkInfo << ( pPeer->GetUseRelay() ? L" 릴레이 연결 / " : L" P2P 연결 / " );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//			wstrNetworkInfo << ( pPeer->GetUseRelay() ? L" 릴레이 연결 / " : L" P2P 연결 / " );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 			//}}
 			wstrNetworkInfo << L"P2P 시도 횟수: " << pPeer->m_ConnectTestCount;
 			wstrNetworkInfo << L" / 유저패킷 받은 횟수: " << pSlotData_->m_uiUserPacketCountToReceive;
 			wstrNetworkInfo << L" / IP: " 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                 << CKTDNUDP::ConvertAddressToIP( pPeer->m_IPAddress )
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                << pPeer->m_IP 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//                << pPeer->m_IP 
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                 << L" / Port: " << pPeer->m_Port
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                 << L" / AvgPing: " << (int)(pSlotData_->m_fAvgPingTime * 1000)
 #ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
                 << L"(" << (int)(pSlotData_->m_fAvgPingStd * 1000) << L")"
 #endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                ;
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+				;
 			return wstrNetworkInfo.str();
 		}
 		else
@@ -2107,10 +2103,10 @@ void CX2Room::SlotData::Free()
 #endif TAG_MATCH_TEST
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-	m_bIsBoss		= false;
-#endif PVP_BOSS_COMBAT_TEST
-
+//#ifdef PVP_BOSS_COMBAT_TEST
+//	m_bIsBoss		= false;
+//#endif PVP_BOSS_COMBAT_TEST
+//
 
 #ifdef SHOW_UDP_NETWORK_INFO_IN_ROOM
 	m_uiUserPacketCountToReceive = 0;		/// 받은 유저 패킷 수
@@ -2177,7 +2173,7 @@ bool CX2Room::SlotData::Set_KRoomSlotInfoOfMine( const KRoomSlotInfo& kRoomSlotI
 	}
 	
 	if ( NULL != m_pUnit )
-		m_pUnit->GetUnitData()->SetKRoomUserInfo( kRoomSlotInfo_.m_kRoomUserInfo );
+		m_pUnit->AccessUnitData().SetKRoomUserInfo( kRoomSlotInfo_.m_kRoomUserInfo );
 
 #ifdef RIDING_SYSTEM
 	SetOrClearRidingPetInfo( m_pUnit, kRoomSlotInfo_ );
@@ -2241,7 +2237,7 @@ bool CX2Room::SlotData::Set_KRoomSlotInfoOfOthers( const KRoomSlotInfo& kRoomSlo
 		}
 		else	// 기존의 슬롯과 새로운 슬롯의 Unit이 같다면 업데이트만
 		{
-			m_pUnit->GetUnitData()->SetKRoomUserInfo( kRoomSlotInfo_.m_kRoomUserInfo );
+			m_pUnit->AccessUnitData().SetKRoomUserInfo( kRoomSlotInfo_.m_kRoomUserInfo );
 		}
 	}
 
@@ -2321,9 +2317,9 @@ bool CX2Room::SlotData::Set_KRoomSlotInfo( const KRoomSlotInfo& kRoomSlotInfo )
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-	m_bIsBoss		= kRoomSlotInfo.m_bIsBoss;
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//	m_bIsBoss		= kRoomSlotInfo.m_bIsBoss;
+//#endif PVP_BOSS_COMBAT_TEST
 
 #ifdef PVP_SEASON2
 	m_cRank			= kRoomSlotInfo.m_kRoomUserInfo.m_cRank;
@@ -2438,7 +2434,15 @@ void CX2Room::SlotData::MakeUnitViewer()
 #ifdef PET_DROP_ITEM_PICKUP
 			petInfo.m_bIsDropItemPickup = pPetInfo->m_bAutoLooting;
 #endif //PET_DROP_ITEM_PICKUP
+#ifdef SERV_PET_SYSTEM_EX1
+			petInfo.m_bAlwaysMaxSatiety = pPetInfo->m_bAlwaysMaxSatiety;
+#endif //SERV_PET_SYSTEM_EX1
+
 			petInfo.m_bSummon = true;
+#ifdef SERV_EVENT_PET_INVENTORY
+			petInfo.m_bEventFoodEat		= pPetInfo->m_bEventFoodEat;
+			petInfo.m_bIsEventPetID		= pPetInfo->m_bIsEventPetID;
+#endif SERV_EVENT_PET_INVENTORY
 
 			g_pData->GetPetManager()->CreatePet( m_pUnit->GetUID(), petInfo );
 		}
@@ -2456,7 +2460,7 @@ bool CX2Room::SlotData::IsMyUnit() const
 	//CKTDXThread::CLocker locker( g_pMain->GetUnitLoader()->GetLock() );
 	if ( m_pUnit != NULL )
 	{
-		if ( g_pData->GetMyUser()->IsMyUnitByUnitUID( m_pUnit->GetUnitData()->m_UnitUID ) == true )
+		if ( g_pData->GetMyUser()->IsMyUnitByUnitUID( m_pUnit->GetUnitData().m_UnitUID ) == true )
 		{
 			return true;
 		}
@@ -2522,12 +2526,9 @@ bool CX2Room::Handler_EGS_CHANGE_GAME_STAT_INFO_IN_ROOM_NOT( KEGS_CHANGE_GAME_ST
 	if ( NULL == pUser->GetUnit() )
 		return false;
 
-	CX2Unit::UnitData* pUnitData = pUser->GetUnit()->GetUnitData();//pSlotData->m_pUnit->GetUnitData();
+	CX2Unit::UnitData& kUnitData = pUser->GetUnit()->AccessUnitData();//pSlotData->m_pUnit->GetUnitData();
 
-	if ( NULL == pUnitData )
-		return false;
-
-	pUnitData->m_GameStat.SetKStat( kEvent_.m_kGameStat );
+	kUnitData.m_GameStat.SetKStat( kEvent_.m_kGameStat );
 
 	pUser->SetMaxHp( static_cast< const float >( kEvent_.m_kGameStat.m_iBaseHP ) );
 	if ( pUser->GetNowHp() > pUser->GetMaxHp() )

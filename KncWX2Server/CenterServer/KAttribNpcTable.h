@@ -140,7 +140,13 @@ public:
 #ifdef SERV_REFORM_ITEM_DROP
 	//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
 #ifdef SERV_ITEM_DROP_EVENT
+
+#ifdef SERV_DROP_EVENT_RENEWAL// ÀÛ¾÷³¯Â¥: 2013-09-09	// ¹Ú¼¼ÈÆ
+	bool AttribNpcDropItem( IN int iDifficulty, IN int iNpcLv, IN const float fUserContribution, IN float fDropRate, OUT std::vector< int >& vecDropItem );
+#else // SERV_DROP_EVENT_RENEWAL
 	bool AttribNpcDropItem( IN int iDifficulty, IN int iNpcLv, IN const float fUserContribution, IN int iDropCount, OUT std::vector< int >& vecDropItem );
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #else
 	bool AttribNpcDropItem( IN int iDifficulty, IN int iNpcLv, IN const float fUserContribution, OUT std::vector< int >& vecDropItem );
 #endif SERV_ITEM_DROP_EVENT

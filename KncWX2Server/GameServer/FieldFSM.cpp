@@ -13,7 +13,7 @@ const wchar_t*  KFieldFSM::ms_szInput[] =
 #   include "FieldFSMInput_def.h" 
 };
 
-KFieldFSM::KFieldFSM() : FSMclass( KFieldFSM::ENUM_STATE::S_INIT )
+KFieldFSM::KFieldFSM() : FSMclass( S_INIT )
 {
 	// S_INIT
 	FSMstate* pState = new FSMstate( S_INIT, 1 );

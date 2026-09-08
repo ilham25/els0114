@@ -2104,6 +2104,48 @@ public:
 		NUI_WALDO_TROCK_HENIR								= 1565, //헤니르용 왈도	//	2013.09.15	//	공솔
 		NUI_HENIR_CUT_REPORTER_HAMEL_DUMMY					= 1566,
 
+		NUI_ELESIS_FIRE_BLOSSOM								= 1567,	// 블레이징 하트 패시브 '불꽃 개화'용 NPC	//	2013.10.04	//	공솔
+
+		NUI_FIELD_BOSS_IRON_ELTRION							= 1568,	//	--필드 보스 강철의 엔트리온	//	2013.10.10	//	이승만
+
+		NUI_FIELD_BOSS_COLLISION_BOX_1						= 1569,		//필드 보스 더미몬스터	//	2013.10.24	//	이승만
+		NUI_FIELD_BOSS_COLLISION_BOX_2						= 1570,		//필드 보스 더미몬스터	//	2013.10.24	//	이승만
+		NUI_FIELD_BOSS_COLLISION_BOX_3						= 1571,		//필드 보스 더미몬스터	//	2013.10.24	//	이승만
+		NUI_FIELD_BOSS_COLLISION_BOX_4						= 1572,		//필드 보스 더미몬스터	//	2013.10.24	//	이승만
+		NUI_FIELD_BOSS_COLLISION_BOX_5						= 1573,		//필드 보스 더미몬스터	//	2013.10.24	//	이승만
+
+		NUI_UFO_AISHA_DROPPER								= 1574,		//다크 매지션 '헬드롭' 용 몬스터 // 2013.10.31 // 공솔
+		NUI_UFO_AISHA_DROPPER_MEMO							= 1575,		//'헬드롭' 메모용 몬스터 // 2013.11.29 // 공솔
+
+		NUI_PARTICLE_PRISM_START							= 1576, //애드 - 파티클 프리즘 시작 지점 길막용 몬스터
+		NUI_PARTICLE_PRISM_END								= 1577, //애드 - 파티클 프리즘 끝 지점 길막용 몬스터
+
+		// PVE 용 몬스터 추가 / JHKang
+		NUI_PVE_RED_KNIGHT_FIRE_TOWER	= 1578,	/// 붉은 기사단의 화염타워
+		NUI_PVE_RED_KNIGHT_REGENERATION,		/// 재생의 봉화
+		NUI_PVE_RED_KNIGHT_BASTARD,				/// 자이언트 베른(대검 보스)
+		NUI_PVE_RED_MAGIC_KNIGHT,				/// 신비한 카인(마법 보스)
+		NUI_PVE_RED_KNIGHT_HELLBIRD,			/// 백인댕장 바네사(창병대장)
+		NUI_PVE_RED_KNIGHT_SHIELD,				/// 철별의 라드(방패보스)
+		NUI_PVE_RED_KNIGHT_BASTARD_SMALL,		/// 벨더 대검병
+		NUI_PVE_RED_MAGIC_KNIGHT_SMALL,			/// 벨더 마법병
+		NUI_PVE_RED_KNIGHT_HELLBIRD_SMALL,		/// 벨더 돌결병
+		NUI_PVE_RED_KNIGHT_SHIELD_SMALL,		/// 벨더 수호병
+		NUI_PVE_RED_KNIGHT_CANNON,				/// 벨더 공성탑
+		NUI_PVE_BULE_KNIGHT_WATER_TOWER,		/// 수호 기사단의 재생 타워
+		NUI_PVE_BLUE_KNIGHT_REGENERATION,		/// 재생의 샘물
+		NUI_PVE_BLUE_KNIGHT_BASTARD,			/// 휴즈 시그(대검 보스)
+		NUI_PVE_BLUE_MAGIC_KNIGHT,				/// 마법단장 레온(마법 보스)
+		NUI_PVE_BLUE_KNIGHT_HELLBIRD,			/// 수호단장 렉슬러(창병 보스)
+		NUI_PVE_BLUE_KNIGHT_SHIELD,				/// 방벽의 자망(방패 보스)
+		NUI_PVE_BLUE_KNIGHT_BASTARD_SMALL,		/// 하멜 대검병
+		NUI_PVE_BLUE_MAGIC_KNIGHT_SMALL,		/// 하멜 마법병
+		NUI_PVE_BLUE_KNIGHT_HELLBIRD_SMALL,		/// 하멜 돌격병
+		NUI_PVE_BLUE_KNIGHT_SHIELD_SMALL,		/// 하멜 수호병
+		NUI_PVE_BLUE_KNIGHT_CANNON,				/// 하멜 공성탑
+		NUI_PVE_TESTER_OF_BRAVE,				/// 엘 타워(중립 몬스터)
+		NUI_PVE_TESTER_OF_GHOST			= 1601,	/// 망령의 시험관(중립 몬스터)
+
 		/// 국내 이벤트 몬스터 ( 3000 ~ 3999 )
 		NUI_EVENT_TEACHER_HAGERS							= 3000,		NUI_EVENT_TEACHER_EMIRATE							= 3001,		NUI_EVENT_TEACHER_RICHANG							= 3002,		NUI_EVENT_TEACHER_ECHO								= 3003,		NUI_EVENT_TEACHER_HOFMANN							= 3004,		NUI_EVENT_KIM_WALLY									= 3005,
 		///--------어둠의 문 이벤트 ------------------------------
@@ -2123,14 +2165,43 @@ public:
 
 		NUI_EVENT_MAD_MOON									= 3018,	// 한가위 보름달
 
+		NUI_UOOL_FD_BOSS_HALLOWEEN			= 3019,	 //	할로윈 악령 : 울
+		NUI_ILLY_FD_BOSS_HALLOWEEN			= 3020,	 //	할로윈 악령 : 일리
+		NUI_WALLY_ZERO_FD_BOSS_HALLOWEEN	= 3021,	 //	할로윈 악령 : 월리 0호 TYPE_P
+		NUI_VESCOO_FD_BOSS_HALLOWEEN		= 3022,	 //	할로윈 악령 : 베스쿠
+		NUI_SLESHU_FD_BOSS_HALLOWEEN		= 3023,	 //	할로윈 악령 : 슬레슈
+		NUI_MUTA_FD_BOSS_HALLOWEEN			= 3024,	 //	할로윈 악령 : 무타
+		NUI_WAMU_FD_BOSS_HALLOWEEN			= 3025,	 //	할로윈 악령 : 와무
+		NUI_BATER_FD_BOSS_HALLOWEEN			= 3026,	 //	할로윈 악령 : 배터
+		NUI_GLITER_BLACK_FD_BOSS_HALLOWEEN	= 3027,	 //	할로윈 전대 : 블랙
+		NUI_GLITER_BLUE_FD_BOSS_HALLOWEEN	= 3028,	 //	할로윈 전대 : 블루
+		NUI_GLITER_PINK_FD_BOSS_HALLOWEEN	= 3029,	 //	할로윈 전대 : 핑크
+		NUI_GLITER_RED_FD_BOSS_HALLOWEEN	= 3030,	 //	할로윈 전대 : 레드
+		NUI_GLITER_YELLOW_FD_BOSS_HALLOWEEN	= 3031,	 //	할로윈 전대 : 옐로
+		NUI_LANOS_FD_BOSS_HALLOWEEN			= 3032,	 //	할로윈 악령 : 라노스
+		NUI_SHINEE_FD_BOSS_HALLOWEEN		= 3033,	 //	할로윈 악령 : 샤이니
+		NUI_MOONSTAR_FD_BOSS_HALLOWEEN		= 3034,	 //	할로윈 악령 : 문스타
+		NUI_STRONE_GOD_FD_BOSS_HALLOWEEN	= 3035,	 //	할로윈 악령 : 스톤 갓
+		NUI_SHADOSS_FD_BOSS_HALLOWEEN		= 3036,	 //	할로윈 악령 : 쉐도스
+		NUI_KALLVEROS_FD_BOSS_HALLOWEEN		= 3037,	 //	할로윈 악령 : 카르베로스
+		NUI_MAFU_FD_BOSS_HALLOWEEN			= 3038,	 //	할로윈 악령 : 마푸
+		NUI_HAPPY_HALLOWEEN_PUPPET			= 3039,	 //	해피 할로윈 퍼핏
+		NUI_WITCH_PPORU						= 3040,	 //	마녀 뽀루
+		NUI_HAPPY_HALLOWEEN_PUPPET_SMALL_FALSE		=	3041,	// 해피 할로윈 퍼핏 분신(가짜)
+		NUI_HAPPY_HALLOWEEN_PUPPET_SMALL_TRUE		=	3042,	// 해피 할로윈 퍼핏 분신(진짜)
+		NUI_HAPPY_HALLOWEEN_DROP_DUMMY1		= 3043,	// 일반 라운드 보상
+		NUI_HAPPY_HALLOWEEN_DROP_DUMMY2		= 3044,	// 스페셜 라운드 보상
+		NUI_HAPPY_HALLOWEEN_DROP_DUMMY3		= 3045,	// 10 라운드 보상
 
-		/// 해외 사용 몬스터 ( 4000 ~ 4999 )		NUI_PvP_Event_Low_1									= 4000,
-		NUI_PvP_Event_Low_2									= 4001,
-		NUI_PvP_Event_Low_3									= 4002,
-		NUI_PvP_Event_Low_4									= 4003,
-		NUI_PvP_Event_Low_5									= 4004,
-		NUI_PvP_Event_Low_6									= 4005,
-		NUI_PvP_Event_Low_7									= 4006,		/// 해외 나이트 와쳐 이벤트용 NPC 2013.07.03 김창한
+
+
+		/// 해외 사용 몬스터 ( 4000 ~ 4999 )		NUI_PVP_EVENT_LOW_1									= 4000,
+		NUI_PVP_EVENT_LOW_2									= 4001,
+		NUI_PVP_EVENT_LOW_3									= 4002,
+		NUI_PVP_EVENT_LOW_4									= 4003,
+		NUI_PVP_EVENT_LOW_5									= 4004,
+		NUI_PVP_EVENT_LOW_6									= 4005,
+		NUI_PVP_EVENT_LOW_7									= 4006,		/// 해외 나이트 와쳐 이벤트용 NPC 2013.07.03 김창한
 		NUI_EVENT_BABY_JAIL                                 = 4007, //해외팀 이벤트용 아기 퐁고 감옥
 		NUI_EVENT_BABY                                      = 4008, //해외팀 이벤트용 아기 퐁고
 		NUI_EVENT_NIGHT_WATCHER_RESPAWNER                   = 4009, //해외팀 이벤트용 npc 생성기
@@ -2149,6 +2220,40 @@ public:
 		NUI_EVENT_HOVALANCHE_SUBSTAGE1						= 4021,
 		NUI_SONOKONG_STEB_1									= 4022,
 		NUI_SONOKONG_STEB_2									= 4023,
+		NUI_RED_KNIGHT_EVENT								= 4024,
+		NUI_EVENT_DUMPLING_THIEF_PHORU						= 4037,		//만두 도둑 뽀루
+		NUI_EVENT_DUMPLING_THIEF_BOSS						= 4038,		//만두 도둑 대장
+		NUI_EVENT_PPORU_TUXEDO								= 4041,
+		NUI_EVENT_PPORU_WEDDING								= 4042,
+		NUI_EVENT_DARK_EARL_PPORU							= 4043,
+		NUI_EVENT_FAKE_RAN_DUNGEON							= 4044,
+		NUI_EVENT_FAKE_RAN_FIELD							= 4045,
+//#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+		NUI_EVENT_VALENTINE_MONSTER_1						= 4047,
+		NUI_EVENT_VALENTINE_MONSTER_2						= 4048,
+		NUI_EVENT_VALENTINE_MONSTER_3						= 4049,
+		NUI_EVENT_VALENTINE_MONSTER_4						= 4050,
+		NUI_EVENT_VALENTINE_MONSTER_5						= 4051,
+		NUI_EVENT_VALENTINE_MONSTER_6						= 4052,
+		NUI_EVENT_VALENTINE_MONSTER_7						= 4053,
+		NUI_EVENT_VALENTINE_MONSTER_8						= 4054,
+		NUI_EVENT_VALENTINE_OBSTACLE_1						= 4055,
+		NUI_EVENT_VALENTINE_OBSTACLE_2						= 4056,
+		
+		NUI_EVENT_DIMENSION_WITCH							= 4066, //--EVENT_NPC_STANDING_VILLAGE
+		
+		NUI_EVENT_VALENTINEGIFT_BOX							= 4067,		NUI_EVENT_VALENTINE_CONVEYOR_BELT					= 4068,		NUI_EVENT_VALENTINE_CONVEYOR_BELT_SWITCH			= 4069,
+
+		NUI_EVENT_SANDER_SAND								= 4070,		// 샌더 5,6던전 이벤트몬스터. 모래더미
+		NUI_EVENT_VALENTINE_SIEGE_TOWER						= 4071,
+		NUI_EVENT_VALENTINE_CUP_CAKE_KILLER					= 4072,
+		NUI_EVENT_VALENTINE_GLITER_ARCHER_GREAT_TRAP		= 4073,
+//#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+		NUI_EVENT_ZOMBI_GLITER								= 4074,
+//#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+		NUI_EVENT_VALENTINE_GLITER_ARCHER_GREAT_TRAP_BLUE	= 4075,
+		NUI_EVENT_VALENTINE_GLITER_ARCHER_GREAT_TRAP_LIGHT	= 4076,
+//#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 
 		NUI_DUNGEON_NPC_END						= 5000,
 
@@ -2399,6 +2504,10 @@ public:
 		NUI_EVENT_CRAYONPOP,		/// -- 이벤트 // 2013.06.10 // 크레용 팝 NPC '엘린'
 		NUI_EVENT_MOON_RABBIT,		/// 추석이벤트 달토끼
 		NUI_EVENT_HELLEN,	// 중국 국경절 이벤트 헬렌
+		NUI_EVENT_SHEATH_NIGHT						=   10064, //--EVENT_NPC_STANDING_VILLAGE
+		NUI_EVENT_INFINITY_SWORD					=   10065, //--EVENT_NPC_STANDING_VILLAGE
+		NUI_EVENT_LIRE_NIGHT_WATCHER				=   10066, //--ALWAYS_EVENT_LIRE_NIGHT_WATCHER_NPC
+		NUI_EVENT_ADAMS_UI_SHOP						=   10067, //--ALWAYS_EVENT_ADAMS_UI_SHOP
 	};
 
 	enum NPC_ABILITY_ID
@@ -2419,9 +2528,15 @@ public:
 	//{{ 2009. 12. 18  최육사	던전경험치개편
 	enum MONSTER_GRADE
 	{
-		MG_NORMAL_NPC = 0,
-		MG_BOSS_NPC,
-		MG_MIDDLE_BOSS_NPC,
+		MG_NORMAL_NPC				= 0,
+		MG_BOSS_NPC					= 1,
+		MG_MIDDLE_BOSS_NPC			= 2,
+#ifdef SERV_ADD_MONSTER_GRADE_FOR_DEFINITELY_DROP_HP_BALL_ITEM// 작업날짜: 2013-08-28	// 박세훈
+		MG_DEFINITELY_DROP_HP_BALL	= 3,
+#endif // SERV_ADD_MONSTER_GRADE_FOR_DEFINITELY_DROP_HP_BALL_ITEM
+//#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+		MG_EVENT_BOSS_NPC,
+//#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 	};
 	//}}
 
@@ -2432,6 +2547,9 @@ public:
 		MTF_LOW_ELITE_NPC	= 2,
 		MTF_HIGH_ELITE_NPC	= 3,
 		MTF_MIDDLE_BOSS_NPC	= 4,
+		//#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+		MTF_EVENT_BOSS_NPC	= 5,
+		//#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 		MTF_BOSS_NPC		= 12,
 	};
 	//}}
@@ -2531,6 +2649,11 @@ public:
 	static bool IsValidMonsterGrade( IN const MONSTER_GRADE eMonsterGrade );
 //#endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
+
+#ifdef NOT_CREATE_NPC_EXCEPT_FOR_SPECIFIC_NPC
+	static bool CanCreateThisNpc( IN const int iNpcID_ );
+#endif // NOT_CREATE_NPC_EXCEPT_FOR_SPECIFIC_NPC
+
 
 private:
 	std::map<CXSLUnit::UNIT_CLASS,CXSLUnit::UnitTemplet*>	m_UnitTempletMap;

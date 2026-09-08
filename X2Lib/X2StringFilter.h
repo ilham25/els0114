@@ -15,6 +15,16 @@ class CX2StringFilter
 //#endif //SERV_POST_BAN_WORD_FILTER
 		};
 		
+//#ifdef SERV_STRING_FILTER_USING_DB
+		enum FILTER_WORD_TYPE
+		{
+			FWT_NICKNAME = 0,
+			FWT_NICKNAMEWORD,
+			FWT_WORD,
+			FWT_POSTWORD,
+		};
+//#endif //SERV_STRING_FILTER_USING_DB
+
 		CX2StringFilter();
 		virtual ~CX2StringFilter(void);
 
@@ -28,7 +38,7 @@ class CX2StringFilter
 		//}}
 #ifdef SERV_POST_BAN_WORD_FILTER
 		bool CheckIsValidPostWordString( FILTER_TYPE filterType, const WCHAR* pString, OUT wstring &pOutString );	// 2012.09.10 lygan_조성욱 // 우편 본문 금칙어 걸렸을때 어떤 내용이 걸리는지 표시용
-		void	AddPostWordFilter_LUA( char* szFilter );
+		void AddPostWordFilter_LUA( char* szFilter );
 #endif //SERV_POST_BAN_WORD_FILTER
 
 		bool CheckIsKoreanNEnglishNNumber( const WCHAR* pString );
@@ -51,7 +61,6 @@ class CX2StringFilter
 		vector< wstring > m_BanNickNameWordList;
 		//}}
 		vector< wstring > m_BanWordList;
-
 		//{{ //2012.09.10 lygan_조성욱 // 우편에 운영자 사칭 금지 단어 등록
 #ifdef SERV_POST_BAN_WORD_FILTER
 		vector< wstring > m_BanPostWordList;

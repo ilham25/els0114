@@ -93,8 +93,6 @@ ImplementLuaScriptParser( CXSLItemManager )
 	lua_tinker::class_def<CXSLItemManager>( GetLuaState(), "AddCoolTimeGroupItem",		&CXSLItemManager::AddCoolTimeGroupItem_LUA );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
-
-
 	//{{ 2013. 04. 01	 인연 시스템 - 김민성
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	lua_tinker::class_def<CXSLItemManager>( GetLuaState(), "AddWeddingHallItem",						&CXSLItemManager::AddWeddingHallItem_LUA );
@@ -113,6 +111,10 @@ ImplementLuaScriptParser( CXSLItemManager )
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
 	lua_tinker::class_def<CXSLItemManager>( GetLuaState(), "AddKeepShowItem",		&CXSLItemManager::AddKeepShowItem_LUA );
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+
+#ifdef SERV_WISH_LIST_NO_ITEM
+	lua_tinker::class_def<CXSLItemManager>( GetLuaState(), "AddWishListNoItem",		&CXSLItemManager::AddWishListNoItem_LUA );
+#endif SERV_WISH_LIST_NO_ITEM
 
 	lua_tinker::class_def<CXSLItemManager>( GetLuaState(), "dump",						&CXSLItemManager::Dump );
 
@@ -384,6 +386,12 @@ bool CXSLItemManager::AddItemTemplet_LUA()
 	else
 	{
 		m_ItemTempletIDMap.insert( std::make_pair( kItemTemplet.m_ItemID, kItemTemplet ) );
+
+#ifdef SERV_USE_GM_TOOL_INFO
+		KItemName kItemName;
+		kItemName.m_wstrKRItemName = kItemTemplet.m_Name;
+		m_ItemTempletNameMap.insert( std::make_pair( kItemTemplet.m_ItemID, kItemName ) );
+#endif //SERV_USE_GM_TOOL_INFO
 	}
 	//}}	
 
@@ -419,12 +427,36 @@ bool CXSLItemManager::AddItemTempletTrans_LUA()
 		mit->second.m_Name = kItemTemplet.m_Name;
 		mit->second.m_Description = kItemTemplet.m_Description;
 		mit->second.m_DescriptionInShop = kItemTemplet.m_DescriptionInShop;
+
+#ifdef SERV_USE_GM_TOOL_INFO
+		std::map< int, KItemName >::iterator mitItemName;
+		mitItemName = m_ItemTempletNameMap.find( kItemTemplet.m_ItemID );
+
+		if( mitItemName == m_ItemTempletNameMap.end() )
+		{
+			START_LOG( cerr, L"Item.lua 에 없는 아이템이네?" )
+				<< BUILD_LOG( kItemTemplet.m_ItemID )
+				<< END_LOG;
+		}
+		else
+		{
+			mitItemName->second.m_wstrTransItemName = kItemTemplet.m_Name;
+		}
+#endif //SERV_USE_GM_TOOL_INFO
+
 	}
 	return true;
 }
 #endif SERV_ITEM_LUA_TRANS_DEVIDE
 
-bool CXSLItemManager::ItemExchangeData::AddExchangeData( IN const ITEM_EXCHANGE_TYPE eExchangeType, IN const int iDestItemID, IN const float fDestItemRate, IN const int iDestQuantity )
+bool CXSLItemManager::ItemExchangeData::AddExchangeData( IN const ITEM_EXCHANGE_TYPE eExchangeType,
+	IN const int iDestItemID,
+	IN const float fDestItemRate,
+	IN const int iDestQuantity
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+	, IN const short sPeriod
+#endif //SERV_EXCHANGE_PERIOD_ITEM
+	)
 {
 	// 값이 들어온적이 없으면 초기화 하자!
 	if( m_eExchangeType == IET_INVALID )
@@ -480,6 +512,10 @@ bool CXSLItemManager::ItemExchangeData::AddExchangeData( IN const ITEM_EXCHANGE_
 		}
 		break;
 	}
+
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+	m_mapDestItemPeriod.insert( std::make_pair( iDestItemID, sPeriod ) );
+#endif //SERV_EXCHANGE_PERIOD_ITEM
 
 	return true;
 }
@@ -563,6 +599,11 @@ bool CXSLItemManager::AddItemExchangeData_LUA( int iHouseID, ITEM_EXCHANGE_TYPE 
 	int iSourceQuantity = 0;
 	LUA_GET_VALUE(					luaManager, L"m_iSourceQuantity",	iSourceQuantity,				1 );
 
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+	short sPeriod = 0;
+	LUA_GET_VALUE(					luaManager, L"m_sPeriod",			sPeriod,				0 );
+#endif //SERV_EXCHANGE_PERIOD_ITEM
+
 	//////////////////////////////////////////////////////////////////////////
 	// 아이템 교환 테이블 구성
 
@@ -573,7 +614,11 @@ bool CXSLItemManager::AddItemExchangeData_LUA( int iHouseID, ITEM_EXCHANGE_TYPE 
 	
 	// 교환 정보
 	ItemExchangeData kExchangeData;
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+	LIF( kExchangeData.AddExchangeData( eExchangeType, iDestItemID, fDestItemRate, iDestQuantity, sPeriod ) );
+#else //SERV_EXCHANGE_PERIOD_ITEM
 	LIF( kExchangeData.AddExchangeData( eExchangeType, iDestItemID, fDestItemRate, iDestQuantity ) );
+#endif //SERV_EXCHANGE_PERIOD_ITEM
 
 	std::map< int, ItemExchangeTable >::iterator mitET;
 	mitET = m_mapItemExchangeTable.find( iHouseID );
@@ -595,7 +640,11 @@ bool CXSLItemManager::AddItemExchangeData_LUA( int iHouseID, ITEM_EXCHANGE_TYPE 
 		else
 		{
 			// 이미 교환 정보가 있으면 추가하기로 하자!
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+			LIF( mitED->second.AddExchangeData( eExchangeType, iDestItemID, fDestItemRate, iDestQuantity, sPeriod ) );
+#else //SERV_EXCHANGE_PERIOD_ITEM
             LIF( mitED->second.AddExchangeData( eExchangeType, iDestItemID, fDestItemRate, iDestQuantity ) );
+#endif // SERV_EXCHANGE_PERIOD_ITEM
 		}
 	}
 
@@ -895,7 +944,28 @@ bool CXSLItemManager::GetItemExchangeResult( IN const int iHouseID,
 				kInsertItemInfo.m_cEnchantLevel		 = kSrcItemInfo.m_cEnchantLevel;
 				kInsertItemInfo.m_kAttribEnchantInfo = kSrcItemInfo.m_kAttribEnchantInfo;
 				kInsertItemInfo.m_vecItemSocket		 = kSrcItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+				kInsertItemInfo.m_byteExpandedSocketNum	= kSrcItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			}
+
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+			std::map< int, short >::const_iterator mitDestItemPeriod;
+			mitDestItemPeriod = itemExchangeData.m_mapDestItemPeriod.find( kInsertItemInfo.m_iItemID );
+			if( mitDestItemPeriod == itemExchangeData.m_mapDestItemPeriod.end() )
+			{
+				START_LOG( cerr, L"(기간제교환기능)유저가 고른 itemid가 이상합니다." )
+					<< BUILD_LOG( iHouseID )
+					<< BUILD_LOG( iSrcItemID )
+					<< BUILD_LOG( kInsertItemInfo.m_iItemID )
+					<< BUILD_LOG( (int) itemExchangeData.m_mapDestItemPeriod.size() )
+					<< END_LOG;
+
+				return false;
+			}
+			kInsertItemInfo.m_sPeriod = mitDestItemPeriod->second;
+#endif //SERV_EXCHANGE_PERIOD_ITEM
+
 			mapResultItem.insert( std::make_pair( iResultItemID, kInsertItemInfo ) );
 		}
 		break;
@@ -937,7 +1007,28 @@ bool CXSLItemManager::GetItemExchangeResult( IN const int iHouseID,
 				kInsertItemInfo.m_cEnchantLevel		 = kSrcItemInfo.m_cEnchantLevel;
 				kInsertItemInfo.m_kAttribEnchantInfo = kSrcItemInfo.m_kAttribEnchantInfo;
 				kInsertItemInfo.m_vecItemSocket		 = kSrcItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+				kInsertItemInfo.m_byteExpandedSocketNum	= kSrcItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			}
+
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+			std::map< int, short >::const_iterator mitDestItemPeriod;
+			mitDestItemPeriod = itemExchangeData.m_mapDestItemPeriod.find( kInsertItemInfo.m_iItemID );
+			if( mitDestItemPeriod == itemExchangeData.m_mapDestItemPeriod.end() )
+			{
+				START_LOG( cerr, L"(기간제교환기능)유저가 고른 itemid가 이상합니다." )
+					<< BUILD_LOG( iHouseID )
+					<< BUILD_LOG( iSrcItemID )
+					<< BUILD_LOG( kInsertItemInfo.m_iItemID )
+					<< BUILD_LOG( (int) itemExchangeData.m_mapDestItemPeriod.size() )
+					<< END_LOG;
+
+				return false;
+			}
+			kInsertItemInfo.m_sPeriod = mitDestItemPeriod->second;
+#endif //SERV_EXCHANGE_PERIOD_ITEM
+
 			mapResultItem.insert( std::make_pair( mitIE->first, kInsertItemInfo ) );
 		}
 		break;
@@ -968,7 +1059,28 @@ bool CXSLItemManager::GetItemExchangeResult( IN const int iHouseID,
 					kInsertItemInfo.m_cEnchantLevel		 = kSrcItemInfo.m_cEnchantLevel;
 					kInsertItemInfo.m_kAttribEnchantInfo = kSrcItemInfo.m_kAttribEnchantInfo;
 					kInsertItemInfo.m_vecItemSocket		 = kSrcItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+					kInsertItemInfo.m_byteExpandedSocketNum	= kSrcItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 				}
+
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+				std::map< int, short >::const_iterator mitDestItemPeriod;
+				mitDestItemPeriod = itemExchangeData.m_mapDestItemPeriod.find( kInsertItemInfo.m_iItemID );
+				if( mitDestItemPeriod == itemExchangeData.m_mapDestItemPeriod.end() )
+				{
+					START_LOG( cerr, L"(기간제교환기능)유저가 고른 itemid가 이상합니다." )
+						<< BUILD_LOG( iHouseID )
+						<< BUILD_LOG( iSrcItemID )
+						<< BUILD_LOG( kInsertItemInfo.m_iItemID )
+						<< BUILD_LOG( (int) itemExchangeData.m_mapDestItemPeriod.size() )
+						<< END_LOG;
+
+					return false;
+				}
+				kInsertItemInfo.m_sPeriod = mitDestItemPeriod->second;
+#endif //SERV_EXCHANGE_PERIOD_ITEM
+
 				mapResultItem.insert( std::make_pair( mit->first, kInsertItemInfo ) );
 			}
 		}
@@ -1083,6 +1195,9 @@ bool CXSLItemManager::GetItemExchangeResult( IN const int iHouseID,
 				kInsertItemInfo.m_cEnchantLevel		 = kSrcItemInfo.m_cEnchantLevel;
 				kInsertItemInfo.m_kAttribEnchantInfo = kSrcItemInfo.m_kAttribEnchantInfo;
 				kInsertItemInfo.m_vecItemSocket		 = kSrcItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+				kInsertItemInfo.m_byteExpandedSocketNum	= kSrcItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			}
 			mapResultItem.insert( std::make_pair( iResultItemID, kInsertItemInfo ) );
 		}
@@ -1125,6 +1240,9 @@ bool CXSLItemManager::GetItemExchangeResult( IN const int iHouseID,
 				kInsertItemInfo.m_cEnchantLevel		 = kSrcItemInfo.m_cEnchantLevel;
 				kInsertItemInfo.m_kAttribEnchantInfo = kSrcItemInfo.m_kAttribEnchantInfo;
 				kInsertItemInfo.m_vecItemSocket		 = kSrcItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+				kInsertItemInfo.m_byteExpandedSocketNum	= kSrcItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			}
 			mapResultItem.insert( std::make_pair( mitIE->first, kInsertItemInfo ) );
 		}
@@ -1156,6 +1274,9 @@ bool CXSLItemManager::GetItemExchangeResult( IN const int iHouseID,
 					kInsertItemInfo.m_cEnchantLevel		 = kSrcItemInfo.m_cEnchantLevel;
 					kInsertItemInfo.m_kAttribEnchantInfo = kSrcItemInfo.m_kAttribEnchantInfo;
 					kInsertItemInfo.m_vecItemSocket		 = kSrcItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+					kInsertItemInfo.m_byteExpandedSocketNum	= kSrcItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 				}
 				mapResultItem.insert( std::make_pair( mit->first, kInsertItemInfo ) );
 			}
@@ -1469,6 +1590,7 @@ bool CXSLItemManager::IsFantasticKewpielJelly( const int iItemID )
 #ifdef SERV_NO_USE_KEWPIEL_JELLY_STEP8_BUG_FIX
 	case 99978:
 #endif //SERV_NO_USE_KEWPIEL_JELLY_STEP8_BUG_FIX
+
 		/*
 			99910 환상적인 큐피엘 젤리 (STEP1)
 			99911 환상적인 큐피엘 젤리 (STEP2)
@@ -1667,12 +1789,14 @@ bool CXSLItemManager::IsTreasureBox( int iBoxID , int iItemID)
 	if( pItemBoxTemplet->m_ItemID == 70000065 || pItemBoxTemplet->m_ItemID == 70000066 || pItemBoxTemplet->m_ItemID == 70000067 ||
 		pItemBoxTemplet->m_ItemID == 70000068 || pItemBoxTemplet->m_ItemID == 70000069 || pItemBoxTemplet->m_ItemID == 70001800
 #ifdef SERV_TREASURE_BOX_EVENT
+		|| pItemBoxTemplet->m_ItemID == 70006020 // 트레져박스(아라)
+		|| pItemBoxTemplet->m_ItemID == 67006709 || pItemBoxTemplet->m_ItemID == 67006710 // 트레져박스(엘리시스)
 		|| pItemBoxTemplet->m_ItemID == 70005650 || pItemBoxTemplet->m_ItemID == 67004670 || pItemBoxTemplet->m_ItemID == 250000260
 		|| pItemBoxTemplet->m_ItemID == 67005029 || pItemBoxTemplet->m_ItemID == 67005030 || pItemBoxTemplet->m_ItemID == 67005031
 		|| pItemBoxTemplet->m_ItemID == 67005032 || pItemBoxTemplet->m_ItemID == 67005033 || pItemBoxTemplet->m_ItemID == 67005034
 		|| pItemBoxTemplet->m_ItemID == 67005035 || pItemBoxTemplet->m_ItemID == 67005036 || pItemBoxTemplet->m_ItemID == 67005037
 		|| pItemBoxTemplet->m_ItemID == 67005038 || pItemBoxTemplet->m_ItemID == 67005039 || pItemBoxTemplet->m_ItemID == 67005040
-		|| pItemBoxTemplet->m_ItemID == 67005380
+		|| pItemBoxTemplet->m_ItemID == 67005380 || pItemBoxTemplet->m_ItemID == 70007190 || pItemBoxTemplet->m_ItemID == 67006285
 #endif SERV_TREASURE_BOX_EVENT
 		)		
 	{
@@ -1895,7 +2019,6 @@ bool CXSLItemManager::IsBuffItem( IN int iItemID )
 }
 #endif SERV_SERVER_BUFF_SYSTEM
 //}
-
 
 //{{ 2013. 05. 20	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
@@ -2212,32 +2335,37 @@ int CXSLItemManager::GetWeddingAnniversaryDayRewardTitle( const int iDays )
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
 
-//#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013// 작업날짜: 2013-06-25	// 박세훈 // 해외팀 주석 처리
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013// 작업날짜: 2013-06-25	// 박세훈
 int	CXSLItemManager::GetItemCSPoint( IN const int iItemID )
 {
 	switch( iItemID )
 	{
-#ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 	case CXSLItem::CI_CASH_SKILL_POINT_60_15:
 	case CXSLItem::CI_CASH_SKILL_POINT_60_30:
 	case CXSLItem::CI_SKILL_POINT_60_USE_INVEN:
 	case CXSLItem::CI_SKILL_POINT_60_USE_INVEN_ARA:
-#ifdef SERV_CASH_SKILL_POINT_TW
-	case CXSLItem::CI_CASH_SKILL_POINT_60_7:
-#endif SERV_CASH_SKILL_POINT_TW
-#ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
-	case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
-#endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
-#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
-	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
-	case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
-	case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 	case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP: 
 	case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP:
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_CASH_SKILL_POINT_TW
+	case CXSLItem::CI_CASH_SKILL_POINT_60_7:
+#endif //SERV_CASH_SKILL_POINT_TW
+#ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+	case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
+#endif //SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
 	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+#ifdef SERV_LURIEL_GNOSIS
+	case CXSLItem::EI_LURIEL_GNOSIS_60_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_7DAY:
+#endif //SERV_LURIEL_GNOSIS
 		return CXSLItem::CSP_60_POINT;
 
 	case CXSLItem::SI_COME_BACK_REWARD_SKILL_30_POINT_15_DAY:
@@ -2250,34 +2378,39 @@ int	CXSLItemManager::GetItemCSPoint( IN const int iItemID )
 	case CXSLItem::CI_CASH_SKILL_POINT_30_30:
 #ifdef SERV_CASH_SKILL_POINT_TW
 	case CXSLItem::CI_CASH_SKILL_POINT_30_7:
-#endif SERV_CASH_SKILL_POINT_TW
+#endif //SERV_CASH_SKILL_POINT_TW
 #ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
 	case CXSLItem::EI_SKILL_POINT_30_1DAY_USE_INVEN:
-#endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+#endif //SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN:
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 	case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
-	case CXSLItem::EI_SKILL_POINT_5_7DAY_USE_INVEN_JP:
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+	case CXSLItem::EI_SKILL_POINT_30_14DAY_USE_INVEN:
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+	case CXSLItem::EI_LURIEL_GNOSIS_30_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_7DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_60DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_GNOSIS_BR
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 		return CXSLItem::CSP_30_POINT;
 
 #ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 	case CXSLItem::EI_SKILL_POINT_130_1DAY_USE_INVEN:
 		return CXSLItem::CSP_130_POINT;
-#endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
-#else // SERV_UPGRADE_SKILL_SYSTEM_2013
-	case CXSLItem::CI_CASH_SKILL_POINT_5:
-	case CXSLItem::CI_SKILL_POINT_5_USE_INVEN:
-		return CXSLItem::CSP_5_POINT;
-	
-	case CXSLItem::CI_CASH_SKILL_POINT_10:
-	case CXSLItem::CI_SKILL_POINT_10_USE_INVEN:
-	case CXSLItem::CI_SKILL_POINT_10_USE_INVEN_ARA:
-		return CXSLItem::CSP_10_POINT;
-
-#endif // SERV_UPGRADE_SKILL_SYSTEM_2013
+#endif //SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 	default:
 		return CXSLItem::CSP_NONE;
 	}
@@ -2287,8 +2420,11 @@ int	CXSLItemManager::GetItemCSPointPeriod( IN const int iItemID )
 {
 	switch( iItemID )
 	{
-#ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 	case CXSLItem::SI_COME_BACK_REWARD_SKILL_30_POINT_60_DAY:
+#ifdef SERV_LURIEL_GNOSIS
+	case CXSLItem::EI_LURIEL_GNOSIS_30_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_60DAY:
+#endif //SERV_LURIEL_GNOSIS
 		return 60;
 
 	case CXSLItem::CI_SKILL_POINT_60_USE_INVEN_ARA:
@@ -2297,10 +2433,14 @@ int	CXSLItemManager::GetItemCSPointPeriod( IN const int iItemID )
 	case CXSLItem::CI_CASH_SKILL_POINT_30_30:
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 	case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 	case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP: 
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_LURIEL_GNOSIS
+	case CXSLItem::EI_LURIEL_GNOSIS_30_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_30DAY:
+#endif //SERV_LURIEL_GNOSIS
 		return 30;
 
 	case CXSLItem::CI_SKILL_POINT_60_USE_INVEN:
@@ -2310,53 +2450,64 @@ int	CXSLItemManager::GetItemCSPointPeriod( IN const int iItemID )
 	case CXSLItem::CI_CASH_SKILL_POINT_60_15:
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 	case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 	case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP: 
 	case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP: 
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_LURIEL_GNOSIS
+	case CXSLItem::EI_LURIEL_GNOSIS_30_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_15DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_GNOSIS_BR
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
 		return 15;
 
 	case CXSLItem::EI_SKILL_POINT_30_USE_INVEN:
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+	case CXSLItem::EI_SKILL_POINT_30_14DAY_USE_INVEN:
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
 		return 14;
 
 	case CXSLItem::EI_SKILL_POINT_30_DAY_7_USE_INVEN:
 #ifdef SERV_CASH_SKILL_POINT_TW
 	case CXSLItem::CI_CASH_SKILL_POINT_30_7:
 	case CXSLItem::CI_CASH_SKILL_POINT_60_7:
-#endif SERV_CASH_SKILL_POINT_TW
+#endif //SERV_CASH_SKILL_POINT_TW
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
 	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN:
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
-#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-	case CXSLItem::EI_SKILL_POINT_5_7DAY_USE_INVEN_JP: // EI_SKILL_POINT_5_USE_INVEN 기존5P15Day
-#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+#ifdef SERV_GNOSIS_BR
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+#ifdef SERV_LURIEL_GNOSIS
+		case CXSLItem::EI_LURIEL_GNOSIS_30_7DAY:
+		case CXSLItem::EI_LURIEL_GNOSIS_60_7DAY:
+#endif SERV_LURIEL_GNOSIS
 		return 7;
 
 #ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 	case CXSLItem::EI_SKILL_POINT_130_1DAY_USE_INVEN:
 		return 1;
-#endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
+#endif //SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 #ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
 	case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
 	case CXSLItem::EI_SKILL_POINT_30_1DAY_USE_INVEN:
 		return 1;
-#endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
-#else // SERV_UPGRADE_SKILL_SYSTEM_2013
-
-	case CXSLItem::SI_COME_BACK_REWARD_SKILL_5_POINT_15_DAY:
-	case CXSLItem::SI_COME_BACK_REWARD_SKILL_5_POINT_30_DAY:
-	case CXSLItem::SI_COME_BACK_REWARD_SKILL_5_POINT_60_DAY:
-		return 5;
-
-#endif // SERV_UPGRADE_SKILL_SYSTEM_2013
+#endif //SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
 	default:
 		return 0;
 	}
 }
-//#endif // SERV_UPGRADE_SKILL_SYSTEM_2013
+#endif // SERV_UPGRADE_SKILL_SYSTEM_2013
+
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
 bool CXSLItemManager::IsKeepItemShowItem( const int iItemID )
 {
@@ -2369,9 +2520,7 @@ bool CXSLItemManager::IsKeepItemShowItem( const int iItemID )
 	}
 	return false;
 }
-#endif SERV_KEEP_ITEM_SHOW_CASHSHOP
 
-#ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
 bool CXSLItemManager::AddKeepShowItem_LUA(void)
 {
 	KLuaManager luaManager( GetLuaState() );
@@ -2405,7 +2554,7 @@ bool CXSLItemManager::AddKeepShowItem_LUA(void)
 	}
 	return false;
 }
-#endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+#endif //SERV_KEEP_ITEM_SHOW_CASHSHOP
 
 #ifdef SERV_RESTRICTED_TO_MOVE_TO_BANK
 bool CXSLItemManager::IsInventoryOnly( IN const int iItemID )
@@ -2417,5 +2566,53 @@ bool CXSLItemManager::IsInventoryOnly( IN const int iItemID )
 
 	return mitItemTemplet->second.m_bInventoryOnly;
 }
-#endif SERV_RESTRICTED_TO_MOVE_TO_BANK
+#endif //SERV_RESTRICTED_TO_MOVE_TO_BANK
+#ifdef SERV_WISH_LIST_NO_ITEM
+void CXSLItemManager::AddWishListNoItem_LUA()
+{
+	KLuaManager luaManager( GetLuaState() );
+	TableBind( &luaManager );
 
+	if( S_OK == luaManager.BeginTable( "WISH_LIST_NO_ITEM_ID") )
+	{
+		int WistListNoItem_Id = 0;
+		int Tempindex = 1;
+		while( S_OK == luaManager.GetValue( Tempindex,WistListNoItem_Id ) )
+		{
+			if( WistListNoItem_Id <= 0 )
+			{
+				START_LOG( cerr, L"정상적인 아이템이 아닙니다." )
+					<< BUILD_LOG( WistListNoItem_Id )
+					<< END_LOG;
+				continue;
+			}
+
+			BOOST_TEST_FOREACH( int, iID, m_setWishListNoItemList )
+			{
+				if( WistListNoItem_Id == iID )
+				{
+					START_LOG( cerr, L"동일한 아이템이 존재합니다." )
+						<< BUILD_LOG( WistListNoItem_Id )
+						<< END_LOG;
+					continue;;
+				}
+			}
+			m_setWishListNoItemList.insert( WistListNoItem_Id );
+			Tempindex++;
+		}
+		luaManager.EndTable();
+	}
+}
+
+bool CXSLItemManager::IsWishListNoItem( const int iItemID )
+{
+
+	std::set< int >::iterator mit;
+	mit = m_setWishListNoItemList.find(iItemID);
+	if( mit != m_setWishListNoItemList.end() )
+	{
+		return true;
+	}
+	return false;
+}
+#endif SERV_WISH_LIST_NO_ITEM

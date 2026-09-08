@@ -77,9 +77,9 @@ CKTDXDeviceXMesh::~CKTDXDeviceXMesh(void)
 }
 
 /*virtual*/ HRESULT CKTDXDeviceXMesh::_Load( bool bSkipStateCheck
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD			
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD			
 	)
 {
     // qff
@@ -147,7 +147,7 @@ CKTDXDeviceXMesh::~CKTDXDeviceXMesh(void)
 
     proxy.LoadTextures();
 //#ifdef  BACKGROUND_LOADING_TEST // 2008-12-12
-	proxy.Load_LuaData( 0L );
+	proxy.LoadXET();
 //#endif  BACKGROUND_LOADING_TEST // 2008-12-12
     
 #endif // #ifndef _KSMTOOL
@@ -176,6 +176,9 @@ CKTDXDeviceXMesh::~CKTDXDeviceXMesh(void)
                 std::swap( m_pAttributeRange, proxy.m_pAttributeRange );
                 m_vCenter = proxy.m_vCenter;
                 m_fRadius = proxy.m_fRadius;
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+				std::swap( m_vecSubsetCullingInfo, proxy.m_vecSubsetCullingInfo );
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
                 m_Size = dwSize;
 		        m_eDeviceState = DEVICE_STATE_LOADED;
 			    break;
@@ -196,6 +199,9 @@ CKTDXDeviceXMesh::~CKTDXDeviceXMesh(void)
             std::swap( m_pAttributeRange, proxy.m_pAttributeRange );
             m_vCenter = proxy.m_vCenter;
             m_fRadius = proxy.m_fRadius;
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+			std::swap( m_vecSubsetCullingInfo, proxy.m_vecSubsetCullingInfo );
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
             m_Size = dwSize;
         }//if.. else..
     }
@@ -256,9 +262,13 @@ void CKTDXDeviceXMesh::PreLoad()
 
 
 #ifndef _KSMTOOL
-
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 HRESULT	CKTDXDeviceXMesh::Render( CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET* pMultiTexXET, 
-								 CKTDXDeviceXET::AniData* pAniData, float fAniTime )
+	const CKTDXDeviceXET::AniData* pAniData, float fAniTime, const std::vector<bool>* pvecDrawSubset )
+#else//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+HRESULT	CKTDXDeviceXMesh::Render( CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET* pMultiTexXET, 
+	const CKTDXDeviceXET::AniData* pAniData, float fAniTime )
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 {
 	if ( IsLoaded() == false )
 		return S_OK;
@@ -270,6 +280,12 @@ HRESULT	CKTDXDeviceXMesh::Render( CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET*
 
     DWORD   dwNumSubsets = ( m_dwNumAttrGroups == 0 ) ? m_dwNumMaterials : m_dwNumAttrGroups;
     DWORD   dwAttribId = 0;
+
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+	//pvecDrawSubset 사이즈랑 같이 않다면 pvecDrawSubset 정보는 무시하도록 한다.
+	if( pvecDrawSubset && pvecDrawSubset->size() != dwNumSubsets )
+		pvecDrawSubset = NULL;
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
 	for( DWORD i = 0; i < dwNumSubsets; i++ )
 	{
@@ -288,6 +304,12 @@ HRESULT	CKTDXDeviceXMesh::Render( CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET*
                 ErrorLogMsg(KEM_ERROR146, m_DeviceID.c_str());
             ASSERT( dwAttribId < m_dwNumMaterials );
         }//if.. else..
+
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+		//그려야 할 subset인지 확인...
+		if( pvecDrawSubset && (*pvecDrawSubset)[i] == false )
+			continue;		
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
         hr = GET_D3DDEVICE()->SetMaterial( &m_pdxMaterials[ dwAttribId ].MatD3D );
 		CKTDXDeviceBaseTexture* pResultTexture0 = NULL;
@@ -349,7 +371,7 @@ LPD3DXBASEMESH CKTDXDeviceXMesh::GetMesh()
 
 CKTDXDeviceBaseTexture* CKTDXDeviceXMesh::SetNowTexture( CKTDXDeviceBaseTexture* orgTex, int stage,
 													CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET* pMultiTexXET, 
-													CKTDXDeviceXET::AniData* pAniData, float fAniTime )
+													const CKTDXDeviceXET::AniData* pAniData, float fAniTime )
 {
 	if( orgTex == NULL )
 		return NULL;
@@ -889,6 +911,40 @@ HRESULT         CKTDXDeviceXMesh::XMeshProxy::LoadD3DXMesh( const void* pInData_
 
 #endif // #ifdef KME_ATTRIBUTE_SORT
 
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+	//subset 단위로 bounding sphere 저장
+	void* pVertex = NULL;
+	hr = m_pMesh->LockVertexBuffer( D3DLOCK_READONLY, &pVertex );
+	if ( SUCCEEDED( hr ) )
+	{
+		D3DXVECTOR3 vSubsetCenter;
+		float fSubsetRadius;
+        m_vecSubsetCullingInfo.resize( m_dwNumAttrGroups );
+		for( int i = 0; i < (int) m_dwNumAttrGroups; i++ )
+		{
+			hr = D3DXComputeBoundingSphere( (D3DXVECTOR3*)((MESH_VERTEX*)pVertex + m_pAttributeRange[i].VertexStart), m_pAttributeRange[i].VertexCount,
+				m_pMesh->GetNumBytesPerVertex(),
+				&vSubsetCenter, &fSubsetRadius );
+			if( SUCCEEDED( hr ) )
+            {
+                m_vecSubsetCullingInfo[ i ].m_vCenter = vSubsetCenter;
+                m_vecSubsetCullingInfo[ i ].m_fRadius = fSubsetRadius;
+            }
+            else
+            {
+                m_vecSubsetCullingInfo[ i ].m_vCenter = D3DXVECTOR3(0,0,0);
+                m_vecSubsetCullingInfo[ i ].m_fRadius = 0.f;
+            }
+		}
+		m_pMesh->UnlockVertexBuffer();
+	}
+    else
+    {
+        m_vecSubsetCullingInfo.resize(0);
+    }
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+
+
     hr = S_OK;
 
 
@@ -1247,6 +1303,38 @@ HRESULT         CKTDXDeviceXMesh::XMeshProxy::LoadKMEMesh( const void* pInData_,
 
 #endif // #if defined(KME_ATTRIBUTE_SORT) || !defined(_KSMTOOL)
 
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+	//subset 단위로 bounding sphere 저장
+	void* pVertex = NULL;
+	hr = m_pMesh->LockVertexBuffer( D3DLOCK_READONLY, &pVertex );
+	if ( SUCCEEDED( hr ) )
+	{
+		D3DXVECTOR3 vSubsetCenter;
+		float fSubsetRadius;
+        m_vecSubsetCullingInfo.resize( m_dwNumAttrGroups );
+		for( int i = 0; i < (int) m_dwNumAttrGroups; i++ )
+		{
+			hr = D3DXComputeBoundingSphere( (D3DXVECTOR3*)((MESH_VERTEX*)pVertex + m_pAttributeRange[i].VertexStart), m_pAttributeRange[i].VertexCount,
+				m_pMesh->GetNumBytesPerVertex(),
+				&vSubsetCenter, &fSubsetRadius );
+			if( SUCCEEDED( hr ) )
+            {
+                m_vecSubsetCullingInfo[ i ].m_vCenter = vSubsetCenter;
+                m_vecSubsetCullingInfo[ i ].m_fRadius = fSubsetRadius;
+            }
+            else
+            {
+                m_vecSubsetCullingInfo[ i ].m_vCenter = D3DXVECTOR3(0,0,0);
+                m_vecSubsetCullingInfo[ i ].m_fRadius = 0.f;
+            }
+		}
+		m_pMesh->UnlockVertexBuffer();
+	}
+    else
+    {
+        m_vecSubsetCullingInfo.resize(0);
+    }
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
     hr = S_OK;
 
@@ -1291,7 +1379,7 @@ void            CKTDXDeviceXMesh::XMeshProxy::LoadTextures()
 
 
 //#ifdef BACKGROUND_LOADING_TEST // 2008-12-12
-HRESULT CKTDXDeviceXMesh::XMeshProxy::Load_LuaData(DWORD dwParam_)
+HRESULT CKTDXDeviceXMesh::XMeshProxy::LoadXET()
 {
 	//안쓰는 kom파일 없애는거(지금은 이름 바꾸는거) 넣은 부분임
 	int strIndex = m_DeviceID.rfind( L"." );
@@ -1310,7 +1398,7 @@ HRESULT CKTDXDeviceXMesh::XMeshProxy::Load_LuaData(DWORD dwParam_)
 
 	return m_pXET != NULL ? S_OK : E_FAIL;
 
-}//CKTDXDeviceXMesh::Load_LuaData()
+}//CKTDXDeviceXMesh::LoadXET()
 //#endif // BACKGROUND_LOADING_TEST // 2008-12-12
 
 #endif // #ifndef _KSMTOOL

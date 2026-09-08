@@ -99,7 +99,9 @@ public:
 		RS_PICK_UP_PSHOP,	// [20]
 #endif SERV_PSHOP_AGENCY
 		//}}
-
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+		RS_ITEM_EXTRACT,	// [21]
+#endif // SERV_FINALITY_SKILL_SYSTEM
 		RS_MAX,
 	};
 

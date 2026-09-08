@@ -23,7 +23,6 @@
 #include "X2Data/xslitem.h"
 #endif SERV_BATTLE_FIELD_ITEM_LEVEL
 //}}
-	
 
 SmartPointer(KGSUser);
 
@@ -205,7 +204,11 @@ public:
 //#ifdef SERV_PET_AURA_SKILL
 	//{{ 2011. 07. 08    김민성    옵션 수치화
 //#ifdef SERV_USE_PERCENT_IN_OPTION_DATA
+#ifdef SERV_EVENT_VALENTINE_RING_IS_DUNGEON
+	void GetEquippedStat( IN const bool bIsDungeon, IN const KStat& kBaseStat, IN OUT float& fTotalIncHPRate, OUT KStat& kAddStat, IN unsigned int& uiHP_OnePoint, IN unsigned int& uiUnitLevel, IN int iTempDungeonID = 0 );
+#else 
 	void GetEquippedStat( IN const bool bIsDungeon, IN const KStat& kBaseStat, IN OUT float& fTotalIncHPRate, OUT KStat& kAddStat, IN unsigned int& uiHP_OnePoint, IN unsigned int& uiUnitLevel );
+#endif SERV_EVENT_VALENTINE_RING_IS_DUNGEON
 //#endif SERV_USE_PERCENT_IN_OPTION_DATA
 	//}} 
 //#endif SERV_PET_AURA_SKILL
@@ -320,7 +323,7 @@ public:
  
 	void ResetQuickSlotCoolTime();
 
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 #ifdef SERV_PERSONAL_SHOP_NO_MOVE
 	bool MoveItem( IN UidType iItemUID, IN int iDestCategory, IN int iDestSlotID, IN bool bCoolTimeCheck, OUT std::vector< KInventoryItemInfo >& vecChanged, OUT KDBE_SEAL_ITEM_REQ &kSealReq, IN std::vector< KSellPersonalShopItemInfo > vecPersonalShopItemInfo );
 	bool MoveItem( IN int iSrcCategory, IN int iSrcSlotID, IN int iDestCategory, IN int iDestSlotID, IN bool bCoolTimeCheck, OUT std::vector< KInventoryItemInfo >& vecChanged, OUT KDBE_SEAL_ITEM_REQ &kSealReq, IN std::vector< KSellPersonalShopItemInfo > vecPersonalShopItemInfo );
@@ -328,10 +331,10 @@ public:
 	bool MoveItem( IN UidType iItemUID, IN int iDestCategory, IN int iDestSlotID, IN bool bCoolTimeCheck, OUT std::vector< KInventoryItemInfo >& vecChanged, OUT KDBE_SEAL_ITEM_REQ &kSealReq );
 	bool MoveItem( IN int iSrcCategory, IN int iSrcSlotID, IN int iDestCategory, IN int iDestSlotID, IN bool bCoolTimeCheck, OUT std::vector< KInventoryItemInfo >& vecChanged, OUT KDBE_SEAL_ITEM_REQ &kSealReq );
 #endif SERV_PERSONAL_SHOP_NO_MOVE
-#else	SERV_SHARING_BANK_TEST
-	bool MoveItem( IN UidType iItemUID, IN int iDestCategory, IN int iDestSlotID, IN bool bCoolTimeCheck, OUT std::vector< KInventoryItemInfo >& vecChanged );
-	bool MoveItem( IN int iSrcCategory, IN int iSrcSlotID, IN int iDestCategory, IN int iDestSlotID, IN bool bCoolTimeCheck, OUT std::vector< KInventoryItemInfo >& vecChanged );
-#endif	SERV_SHARING_BANK_TEST
+#else SERV_SHARING_BANK_TEST
+    bool MoveItem( IN UidType iItemUID, IN int iDestCategory, IN int iDestSlotID, IN bool bCoolTimeCheck, OUT std::vector< KInventoryItemInfo >& vecChanged );
+    bool MoveItem( IN int iSrcCategory, IN int iSrcSlotID, IN int iDestCategory, IN int iDestSlotID, IN bool bCoolTimeCheck, OUT std::vector< KInventoryItemInfo >& vecChanged );
+#endif SERV_SHARING_BANK_TEST
 
 	//{{ 2009. 6. 1  최육사		인벤토리 정렬
 	bool SortInventory( IN int iCategory, OUT std::vector< KInventoryItemInfo >& vecChanged );
@@ -431,7 +434,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	// 아이템 가공
 	//{{ 2010. 12. 20	최육사	특정 시각 큐브 보상
-//#ifdef SERV_TIME_OPEN_RANDOM_ITEM_EVENT
+#ifdef SERV_TIME_OPEN_RANDOM_ITEM_EVENT //SERV_ALL_RENEWAL_SP
 	//{{ 2012. 11. 26 큐브 ED 오픈 조건 기능 추가 - 김민성
 #ifdef SERV_CUBE_OPEN_ED_CONDITION
 	bool OpenRandomItem( IN char cUnitClass, IN UidType iItemUID, IN const int iEventItemID, OUT std::map< int, int >& mapInsertedItem, OUT std::vector< KInventoryItemInfo >& vecUpdated, OUT std::vector< KItemInfo >& vecNewItem, OUT int& iRessurectionCount, OUT int& iRestoreSpirit, OUT int& iED, OUT bool& bCharmItem );
@@ -439,9 +442,9 @@ public:
 	bool OpenRandomItem( IN char cUnitClass, IN UidType iItemUID, IN const int iEventItemID, OUT std::map< int, int >& mapInsertedItem, OUT std::vector< KInventoryItemInfo >& vecUpdated, OUT std::vector< KItemInfo >& vecNewItem, OUT int& iRessurectionCount, OUT int& iRestoreSpirit, OUT bool& bCharmItem );
 #endif SERV_CUBE_OPEN_ED_CONDITION
 	//}
-//#else
-//	bool OpenRandomItem( IN char cUnitClass, IN UidType iItemUID, OUT std::map< int, int >& mapInsertedItem, OUT std::vector< KInventoryItemInfo >& vecUpdated, OUT std::vector< KItemInfo >& vecNewItem, OUT int& iRessurectionCount, OUT int& iRestoreSpirit, OUT bool& bCharmItem );
-//#endif SERV_TIME_OPEN_RANDOM_ITEM_EVENT
+#else //SERV_ALL_RENEWAL_SP
+	bool OpenRandomItem( IN char cUnitClass, IN UidType iItemUID, OUT std::map< int, int >& mapInsertedItem, OUT std::vector< KInventoryItemInfo >& vecUpdated, OUT std::vector< KItemInfo >& vecNewItem, OUT int& iRessurectionCount, OUT int& iRestoreSpirit, OUT int& iED, OUT bool& bCharmItem );
+#endif SERV_TIME_OPEN_RANDOM_ITEM_EVENT //SERV_ALL_RENEWAL_SP
 	//}}    
 
 #ifdef SERV_DEVELOPER_RANDOM_OPEN_ITEM_LOG
@@ -474,7 +477,17 @@ public:
 //#ifdef SERV_SOCKET_NEW
 	//{{ 2011. 07. 25    김민성    아이템 옵션ID 데이터 사이즈 증가
 //#ifdef SERV_ITEM_OPTION_DATA_SIZE
-	bool SocketItem( IN UidType iItemUID, IN const std::map< int, UidType >& mapSocketInfo, IN bool bCheat, OUT int& iTargetItemID, OUT int& iED, OUT std::vector< int >& vecSocketResult, OUT std::vector< KInventoryItemInfo >& vecUpdated );
+	bool SocketItem( IN UidType iItemUID
+				   , IN const std::map< int, UidType >& mapSocketInfo
+				   , IN bool bCheat
+				   , OUT int& iTargetItemID
+				   , OUT int& iED
+				   , OUT std::vector< int >& vecSocketResult
+				   , OUT std::vector< KInventoryItemInfo >& vecUpdated
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+				   , OUT byte& byteExpandedSocketNum
+#endif // SERV_BATTLE_FIELD_BOSS
+				   );
 //#endif SERV_ITEM_OPTION_DATA_SIZE
 //	//}} 
 //#endif SERV_SOCKET_NEW
@@ -574,8 +587,11 @@ public:
 	//}}
 
 	int  CheckItemForTrade( IN UidType iItemUID, IN int iQuantity, OUT KInventoryItemInfo& kInventoryItemInfo );
-
+#ifdef SERV_DELETE_CUBE_GIVE_POST
+	void ExpireItem( OUT std::vector< UidType >& vecItemUID, OUT std::vector< KInventoryItemInfo >& vecInventorySlotInfo, OUT std::vector< KInventoryItemInfo >& vecDeleteItem);	
+#else SERV_DELETE_CUBE_GIVE_POST
     void ExpireItem( OUT std::vector< UidType >& vecItemUID, OUT std::vector< KInventoryItemInfo >& vecInventorySlotInfo );	
+#endif SERV_DELETE_CUBE_GIVE_POST
 	
 	bool ResetSkillItem( OUT KInventoryItemInfo& kInventoryItemInfo );
 
@@ -724,6 +740,15 @@ public:
 	bool OpenSynthesisItem( IN UidType iKeyItemUID, IN int iSocketNo , IN std::map<int,UidType> mapSynthesisData , OUT std::map< int, int >& mapInsertedItem, OUT std::vector< KInventoryItemInfo >& vecUpdated, OUT std::vector< KItemInfo >& vecNewItem, OUT std::set< int > &setSealCashItem);
 #endif SERV_SYNTHESIS_AVATAR
 	//}}
+#ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
+	bool CheckKeepItem( void );
+	bool CheckKeepItem2( void );
+	bool CheckKeepItem3( void );
+	bool CheckKeepItem4( void );
+	bool CheckKeepItem5( void );
+	bool CheckKeepItem6( void );
+#endif //SERV_KEEP_ITEM_SHOW_CASHSHOP
+
 #ifdef SERV_READY_TO_SOSUN_EVENT
 	bool ExchangeToEvent( IN int iDeleteItemID, IN int iDeleteItemCount, IN int iInsertItemID, IN int iInsertItemCount, OUT std::vector< KInventoryItemInfo >& vecUpdatedInventorySlot, OUT std::vector< KItemInfo >& vecNewItemInfo, IN int iFirstUnitClass  );
 #endif SERV_READY_TO_SOSUN_EVENT
@@ -748,13 +773,40 @@ public:
 	bool	RestoreItemEvaluateCheck( IN const UidType iSupportItemUID, IN const UidType iTargetItemUID, OUT std::vector< KInventoryItemInfo >& vecInventorySlotInfo );
 	bool	RestoreItemEvaluateResult( IN const UidType iTargetItemUID, IN OUT std::vector< KInventoryItemInfo >& vecInventorySlotInfo );
 
-	bool	ItemConvert( IN const UidType iItemUID, OUT std::map< int, int >& mapInsertedItem, OUT std::vector< KItemInfo >& vecNewItem, OUT std::vector< KInventoryItemInfo >& vecUpdated, OUT int& iCommissionED );
+	bool	ItemConvert( IN const UidType& iItemUID, IN const int& iItemQuantity_, OUT std::map< int, int >& mapInsertedItem, OUT std::vector< KItemInfo >& vecNewItem, OUT std::vector< KInventoryItemInfo >& vecUpdated, OUT int& iCommissionED );
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 	//}}
 
 #ifdef SERV_RECRUIT_EVENT_BASE
 	void DeleteItemAll( IN int iItemID, OUT std::vector< KInventoryItemInfo >& vecInventorySlotInfo, IN KDeletedItemInfo::DELETE_REASON eReason );
 #endif SERV_RECRUIT_EVENT_BASE
+
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+	bool IsPossibleExtractItem( const int iItemID );
+
+	bool ItemExtract( IN const UidType iSourceItemUID, 
+		IN const int iSourceQuantity, 
+		OUT std::map< int, int >& mapInsertedItem, 
+		OUT std::vector< KInventoryItemInfo >& vecUpdated, 
+		OUT std::vector< KItemInfo >& vecNewItem	);
+
+	bool UseFinalitySkill( IN const UidType iSourceItemUID, 
+		IN const int iSourceQuantity, 
+		OUT std::map< int, int >& mapInsertedItem, 
+		OUT std::vector< KInventoryItemInfo >& vecUpdated, 
+		OUT std::vector< KItemInfo >& vecNewItem	);
+#endif // SERV_FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_GOOD_ELSWORD
+    int GetNextUpgradeBankED( IN const int& iNextGrade_ );
+    int GetNextUpgradeInventoryED( IN const int& iNextGrade_ );
+
+#endif // SERV_GOOD_ELSWORD
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	bool	UpdateExpandedSocketNum( IN UidType iItemUID, IN const byte byteExpandedSocketNum );
+#endif // SERV_BATTLE_FIELD_BOSS
+
 
 protected:
     bool VerifyCategorySlotID( IN const int iCategory, IN const int iSlotID ) const;
@@ -846,6 +898,7 @@ protected:
 	//{{ 2011. 09. 26  임규수 칭호 수리비 감소 속성 적용
 #ifdef SERV_TITLE_REPAIR_DISCOUNT
 	float GetRepairTitleDiscount( IN const int iTitleID );
+
 #endif SERV_TITLE_REPAIR_DISCOUNT
 	//}}
 
@@ -883,7 +936,7 @@ protected:
 	//}}
 
 #ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_FIX
-	bool								m_bUseItemNeedPayment;
+	bool										m_bUseItemNeedPayment;
 #endif //SERV_DUNGEON_CLEAR_PAYMENT_ITEM_FIX
 };
 

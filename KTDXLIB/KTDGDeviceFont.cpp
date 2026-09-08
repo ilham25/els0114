@@ -39,21 +39,21 @@ class CKTDGFontCacheScheduler
 public: 
 	bool operator()( const SGCFontCache* p, const SGCFontCache* q ) const
 	{
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		return (LONG) ( p->dwLastUse - q->dwLastUse ) < 0;
-#else
-		return p->dwLastUse < q->dwLastUse;
-#endif
+//#else
+//		return p->dwLastUse < q->dwLastUse;
+//#endif
 	}
 };
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 CKTDGDeviceFont::CKTDGDeviceFont(std::string strFontName, int iFontSize, int iOutLineSize, 
 	bool bRHW, int fontWeight /*= FW_NORMAL*/, int enlargeNum /*= 1*/,  bool bNoRes )
-#else
-CKTDGDeviceFont::CKTDGDeviceFont(std::string strFontName, int iFontSize, int iOutLineSize, 
-								 bool bRHW, int fontWeight /*= FW_NORMAL*/, int enlargeNum /*= 1*/ )
-#endif
+//#else
+//CKTDGDeviceFont::CKTDGDeviceFont(std::string strFontName, int iFontSize, int iOutLineSize, 
+//								 bool bRHW, int fontWeight /*= FW_NORMAL*/, int enlargeNum /*= 1*/ )
+//#endif
 : m_wstrBuffer( L"" )
 {
 	m_bLoad = false;
@@ -71,15 +71,15 @@ CKTDGDeviceFont::CKTDGDeviceFont(std::string strFontName, int iFontSize, int iOu
 	m_iOutLineSize = iOutLineSize;
 	m_iFontWeight = fontWeight;
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	m_iFontSize = m_iOrgFontSize;
 	m_iFontCacheSize = (m_iFontSize) + m_iOutLineSize*2;
-#endif
+//#endif
 
 	m_bRHW = bRHW;
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	m_bNoRes = bNoRes;
-#endif
+//#endif
 
 	for(int i = 0; i < FONT_CACHE_PAGE; i++)
 	{	
@@ -92,11 +92,11 @@ CKTDGDeviceFont::CKTDGDeviceFont(std::string strFontName, int iFontSize, int iOu
     m_RenderStateID = s_akStates;
 //}} robobeg : 2008-10-13
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
     m_iTotalCache = 0;
     m_iNumCandidatesInAPage = 0;
 	m_uDCFontCount = 0;
-#endif
+//#endif
 	m_dwCurrentStamp = 1;
 
 #ifdef  FONT_CASH_DATA_STRUCTURE_REFORM
@@ -107,7 +107,7 @@ CKTDGDeviceFont::CKTDGDeviceFont(std::string strFontName, int iFontSize, int iOu
 	m_mapChar.clear();
 #endif FONT_CASH_DATA_STRUCTURE_REFORM
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	m_hPen = NULL;
     m_hOldPen = NULL;
 	m_hBitmap = NULL;
@@ -118,12 +118,12 @@ CKTDGDeviceFont::CKTDGDeviceFont(std::string strFontName, int iFontSize, int iOu
 
     m_wstrBuffer.clear();
 	ZeroMemory( m_apPageVertex, sizeof(m_apPageVertex) );
-#endif
+//#endif
 }
 
 CKTDGDeviceFont::~CKTDGDeviceFont(void)
 {
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	for( int i = 0; i < ARRAY_SIZE( m_apPageVertex ); i++ )
 	{
 		if ( m_apPageVertex[ i ] != NULL )
@@ -132,7 +132,7 @@ CKTDGDeviceFont::~CKTDGDeviceFont(void)
 			m_apPageVertex[ i ] = NULL;
 		}//if
 	}//for
-#endif
+//#endif
 }
 
 void CKTDGDeviceFont::OnResetDevice()
@@ -258,21 +258,21 @@ bool CKTDGDeviceFont::Load()
 		return true;
 
 	float fFontSize = (float)m_iOrgFontSize;
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	if ( m_bNoRes == false )
 		fFontSize *= g_pKTDXApp->GetResolutionScaleY();
-#else
-	fFontSize *= g_pKTDXApp->GetResolutionScaleY();
-#endif
+//#else
+//	fFontSize *= g_pKTDXApp->GetResolutionScaleY();
+//#endif
 	
 	m_iFontSize = (int)fFontSize;
 
 
 	m_iFontCacheSize = (m_iFontSize) + m_iOutLineSize*2;	
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
     m_iNumCandidatesInAPage = 3 * (FONT_CACHE_SIZE / m_iFontCacheSize) * (FONT_CACHE_SIZE / m_iFontCacheSize);
-#endif
+//#endif
 
 #ifndef NUMBER_TO_LANGUAGE
 	WCHAR wChar[255];
@@ -322,7 +322,7 @@ bool CKTDGDeviceFont::Load()
 
 	InitCache();
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
     int iNumVertices = 6 * m_iNumCandidatesInAPage;
 
     for( int i = 0; i < ARRAY_SIZE( m_apPageVertex ); i++ )
@@ -332,7 +332,7 @@ bool CKTDGDeviceFont::Load()
         m_apPageVertex[ i ] = (void*) malloc( iNumVertices * ( ( m_bRHW == true ) ? sizeof(S2DUIVertex) : sizeof(SLVERTEX) ) );
         ASSERT( m_apPageVertex[ i ] != NULL );
     }//for
-#endif
+//#endif
 	m_bLoad = true;
 	return true;
 }
@@ -403,7 +403,11 @@ void CKTDGDeviceFont::UnLoad(bool bComplete)
 #endif
 
 #else
+#ifdef SUPPORT_THAI_FONT
+	boost::unordered_map< std::wstring, SGCFontCache* >::iterator itor = m_mapChar.begin();
+#else //SUPPORT_THAI_FONT
 	std::map< WCHAR, SGCFontCache* >::iterator itor = m_mapChar.begin();
+#endif //SUPPORT_THAI_FONT
 	while( itor != m_mapChar.end() )
 	{
 		SAFE_DELETE( itor->second );
@@ -412,7 +416,7 @@ void CKTDGDeviceFont::UnLoad(bool bComplete)
 	m_mapChar.clear();
 #endif FONT_CASH_DATA_STRUCTURE_REFORM
 	
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	for( int i = 0; i < ARRAY_SIZE( m_apPageVertex ); i++ )
 	{
 		if ( m_apPageVertex[ i ] != NULL )
@@ -421,7 +425,7 @@ void CKTDGDeviceFont::UnLoad(bool bComplete)
 			m_apPageVertex[ i ] = NULL;
 		}//if
 	}//for
-#endif
+//#endif
 }
 
 std::string CKTDGDeviceFont::MakeFontID( std::string strFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight/* = FW_NORMAL*/ )
@@ -466,7 +470,11 @@ void CKTDGDeviceFont::PreloadFont( const WCHAR* pwstr )
 void CKTDGDeviceFont::CharToSystemTexture( SGCFontCache* cache)
 {	
 	COLORREF black = RGB(0,0,0);
+#ifdef SUPPORT_THAI_FONT
+	TextOutW( m_hDC, 0, 0, cache->_Char.c_str(), cache->_Char.length() );	
+#else SUPPORT_THAI_FONT
 	TextOutW( m_hDC, 0, 0, &cache->_Char, 1 );	
+#endif SUPPORT_THAI_FONT
 	COLORREF _col;
 
 	MYFONTCOLOR_PTR pFirst = (MYFONTCOLOR_PTR)m_pTexture[cache->iPage]->m_LockedRect.pBits;
@@ -548,7 +556,99 @@ void CKTDGDeviceFont::CharToSystemTexture( SGCFontCache* cache)
 		}
 	}
 	//----------------------------------------------------------------------------------------------------------------------------------
+#ifdef SUPPORT_THAI_FONT
+	OnResetDevice();
+#endif SUPPORT_THAI_FONT
 }
+
+#ifdef SUPPORT_THAI_FONT
+SGCFontCache* CKTDGDeviceFont::GetFontCache( std::wstring _Char )
+{
+	boost::unordered_map< std::wstring, SGCFontCache* >::iterator itor = m_mapChar.find(_Char);
+
+	if( itor != m_mapChar.end() )
+	{
+		itor->second->dwLastUse = m_dwCurrentStamp;
+		return itor->second;
+	}
+
+	//자리가 없으므로 자리를 마련함
+	if( (int)m_mapChar.size() >= m_iTotalCache )
+	{
+		std::vector<SGCFontCache*> vecCache;
+		boost::unordered_map< std::wstring, SGCFontCache* >::iterator i = m_mapChar.begin();
+
+		while( i != m_mapChar.end() )
+		{
+			vecCache.push_back( i->second );
+			i++;
+		}
+
+		std::sort( vecCache.begin(), vecCache.end(), CKTDGFontCacheScheduler() );
+		SGCFontCache *cache = vecCache[0];
+
+		RECT    rect;
+		rect.left = cache->iLeft;
+		rect.top  = cache->iTop;
+		rect.right = cache->iLeft + cache->iWidth;
+		rect.bottom = cache->iTop + cache->iHeight;
+
+		m_pTexture[cache->iPage]->SetChange( rect );
+
+		if( m_pTextureOutLine[cache->iPage] )
+			m_pTextureOutLine[cache->iPage]->SetChange( rect );
+
+		m_mapChar.erase( m_mapChar.find(cache->_Char) );
+		cache->_Char = _Char;
+		cache->dwLastUse = m_dwCurrentStamp;
+		SIZE size;
+		GetTextExtentPoint32W( m_hDC, cache->_Char.c_str(), cache->_Char.size(), &size);
+		if( size.cx > m_iFontCacheSize )
+			size.cx = m_iFontCacheSize;
+		if( size.cy > m_iFontCacheSize )
+			size.cy = m_iFontCacheSize;
+		cache->_SetRect(size.cx + m_iOutLineSize*2, size.cy + m_iOutLineSize*2 );
+		CharToSystemTexture( cache );
+		m_mapChar[_Char] = cache;
+		return cache;
+	}
+
+
+	SGCFontCache *cache = new SGCFontCache();
+	const int iCharPerPage = (FONT_CACHE_SIZE / m_iFontCacheSize) * (FONT_CACHE_SIZE / m_iFontCacheSize);
+	int iPage = (int)m_mapChar.size() / iCharPerPage;
+	int iIndexInPage = (int)m_mapChar.size() % iCharPerPage;
+	int y = iIndexInPage / (FONT_CACHE_SIZE / m_iFontCacheSize);
+	int x = iIndexInPage % (FONT_CACHE_SIZE / m_iFontCacheSize);
+
+	cache->iPage = iPage;
+
+	RECT    rect;
+	rect.left = cache->iLeft;
+	rect.top  = cache->iTop;
+	rect.right = cache->iLeft + cache->iWidth;
+	rect.bottom = cache->iTop + cache->iHeight;
+
+	m_pTexture[cache->iPage]->SetChange( rect );
+
+	if( m_pTextureOutLine[cache->iPage] )
+		m_pTextureOutLine[cache->iPage]->SetChange( rect );
+	cache->SetPos(x,y,m_iFontCacheSize);
+	cache->_Char = _Char;
+	cache->dwLastUse = m_dwCurrentStamp;
+	SIZE size;
+	GetTextExtentPoint32W( m_hDC, cache->_Char.c_str(), cache->_Char.size(), &size);	
+	if( size.cx > m_iFontCacheSize )
+		size.cx = m_iFontCacheSize;
+	if( size.cy > m_iFontCacheSize )
+		size.cy = m_iFontCacheSize;
+	cache->_SetRect( size.cx + m_iOutLineSize*2, size.cy + m_iOutLineSize*2 );
+
+	CharToSystemTexture( cache );
+	m_mapChar[_Char] = cache;
+	return cache;
+}
+#else SUPPORT_THAI_FONT
 
 SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 {
@@ -608,7 +708,7 @@ SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 		cache->_SetRect(size.cx + m_iOutLineSize*2, size.cy + m_iOutLineSize*2 );
 		CharToSystemTexture( cache );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		RECT    rect;
 		rect.left = cache->iLeft;
 		rect.top  = cache->iTop;
@@ -619,12 +719,12 @@ SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 
 		if( m_pTextureOutLine[cache->iPage] )
 			m_pTextureOutLine[cache->iPage]->SetChange( rect );
-#else
-		m_pTexture[cache->iPage]->SetChange(true);
-
-		if( m_pTextureOutLine[cache->iPage] )
-			m_pTextureOutLine[cache->iPage]->SetChange(true);
-#endif
+//#else
+//		m_pTexture[cache->iPage]->SetChange(true);
+//
+//		if( m_pTextureOutLine[cache->iPage] )
+//			m_pTextureOutLine[cache->iPage]->SetChange(true);
+//#endif
 
 		return cache;
 	}
@@ -672,7 +772,7 @@ SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 
 	CharToSystemTexture( cache );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	RECT    rect;
 	rect.left = cache->iLeft;
 	rect.top  = cache->iTop;
@@ -682,12 +782,12 @@ SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 	m_pTexture[cache->iPage]->SetChange( rect );
 	if( m_pTextureOutLine[cache->iPage] )
 		m_pTextureOutLine[cache->iPage]->SetChange( rect );
-#else
-	m_pTexture[cache->iPage]->SetChange(true);
-
-	if( m_pTextureOutLine[cache->iPage] )
-		m_pTextureOutLine[cache->iPage]->SetChange(true);
-#endif
+//#else
+//	m_pTexture[cache->iPage]->SetChange(true);
+//
+//	if( m_pTextureOutLine[cache->iPage] )
+//		m_pTextureOutLine[cache->iPage]->SetChange(true);
+//#endif
 
 	m_iSizeArray++;
 
@@ -707,9 +807,9 @@ SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 	if( (int)m_mapChar.size() >= m_iTotalCache )
 	{		
 		std::vector<SGCFontCache*> vecCache;
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT		
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT		
         vecCache.reserve( m_mapChar.size() );
-#endif
+//#endif
 		std::map< WCHAR, SGCFontCache* >::iterator i = m_mapChar.begin();
 
 		while( i != m_mapChar.end() )
@@ -742,7 +842,7 @@ SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 		m_mapChar[_Char] = cache;
 #endif FIX_MEMORY_VIOLATE
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		RECT    rect;
 		rect.left = cache->iLeft;
 		rect.top  = cache->iTop;
@@ -754,12 +854,12 @@ SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 			m_pTextureOutLine[cache->iPage]->SetChange( rect );
 			
 		m_mapChar[_Char] = cache;
-#else
-		m_pTexture[cache->iPage]->SetChange(true);
-
-		if( m_pTextureOutLine[cache->iPage] )
-			m_pTextureOutLine[cache->iPage]->SetChange(true);
-#endif
+//#else
+//		m_pTexture[cache->iPage]->SetChange(true);
+//
+//		if( m_pTextureOutLine[cache->iPage] )
+//			m_pTextureOutLine[cache->iPage]->SetChange(true);
+//#endif
 
 		return cache;
 	}
@@ -792,7 +892,7 @@ SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 
 	CharToSystemTexture( cache );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	RECT    rect;
 	rect.left = cache->iLeft;
 	rect.top  = cache->iTop;
@@ -804,19 +904,19 @@ SGCFontCache* CKTDGDeviceFont::GetFontCache(WCHAR _Char)
 		m_pTextureOutLine[cache->iPage]->SetChange( rect );
 	
 	m_mapChar[_Char] = cache;
-#else
-	m_pTexture[cache->iPage]->SetChange(true);
-
-	if( m_pTextureOutLine[cache->iPage] )
-		m_pTextureOutLine[cache->iPage]->SetChange(true);
-#endif
+//#else
+//	m_pTexture[cache->iPage]->SetChange(true);
+//
+//	if( m_pTextureOutLine[cache->iPage] )
+//		m_pTextureOutLine[cache->iPage]->SetChange(true);
+//#endif
 
 	return cache;
 #endif FONT_CASH_DATA_STRUCTURE_REFORM
 }
+#endif SUPPORT_THAI_FONT
 
-
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 void CKTDGDeviceFont::Flush(bool bOutLine, int iPage )
 {
 	KTDXPROFILE();
@@ -829,9 +929,9 @@ void CKTDGDeviceFont::Flush(bool bOutLine, int iPage )
 
 	KD3DPUSH( m_RenderStateID )
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	HRESULT hr;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	HRESULT hr;
+//#endif
 
 	for(int i = iStartPage; i <= iEndPage; i++)
 	{	
@@ -851,27 +951,27 @@ void CKTDGDeviceFont::Flush(bool bOutLine, int iPage )
 
 		if( m_bRHW == true )
 		{
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 
                 BOOST_STATIC_ASSERT( S2DUIVertex::FVF == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
                 g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1, D3DPT_TRIANGLELIST, m_iCandidate[i]*2, m_apPageVertex[i] );
-#else
-
-			    g_pKTDXApp->GetDevice()->SetFVF( S2DUIVertex::FVF );
-			    hr = g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, m_iCandidate[i]*2, m_apPageVertex[i], sizeof( S2DUIVertex ) );
-
-#endif
+//#else
+//
+//			    g_pKTDXApp->GetDevice()->SetFVF( S2DUIVertex::FVF );
+//			    hr = g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, m_iCandidate[i]*2, m_apPageVertex[i], sizeof( S2DUIVertex ) );
+//
+//#endif
 		    }
 		    else
 		    {
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
                 BOOST_STATIC_ASSERT( SLVERTEX::FVF == D3DFVF_XYZ_DIFFUSE_TEX1 );
                 g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZ_DIFFUSE_TEX1, D3DPT_TRIANGLELIST, m_iCandidate[i]*2, m_apPageVertex[i] );
-#else
-			    g_pKTDXApp->GetDevice()->SetFVF( SLVERTEX::FVF );
-			    hr = g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, m_iCandidate[i]*2, m_apPageVertex[i], sizeof( SLVERTEX ) );
-#endif
+//#else
+//			    g_pKTDXApp->GetDevice()->SetFVF( SLVERTEX::FVF );
+//			    hr = g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, m_iCandidate[i]*2, m_apPageVertex[i], sizeof( SLVERTEX ) );
+//#endif
 		    }
 
 		m_iCandidate[i] = 0;
@@ -879,59 +979,59 @@ void CKTDGDeviceFont::Flush(bool bOutLine, int iPage )
 
 	KD3DEND()
 }
-#else
-void CKTDGDeviceFont::Flush(bool bOutLine)
-{
-	KTDXPROFILE();
+//#else
+//void CKTDGDeviceFont::Flush(bool bOutLine)
+//{
+//	KTDXPROFILE();
+//
+//	KD3DPUSH( m_RenderStateID )
+//
+//		HRESULT hr;
+//
+//	for(int i = 0; i < FONT_CACHE_PAGE; i++)
+//	{	
+//		if( m_iCandidate[i] == 0 )
+//			continue;
+//
+//		if( bOutLine )
+//			m_pTextureOutLine[i]->SetTexture(0);
+//		else
+//			m_pTexture[i]->SetTexture(0);
+//
+//		if( m_iCandidate[i]*2 > MAX_VERTEX_IN_PAGE )
+//		{
+//			WCHAR wszText[256] = L"";
+//			swprintf( wszText, sizeof(wszText) / sizeof(WCHAR) - 1, L"Font Vertex Over : %d/%d", m_iCandidate[i]*2, MAX_VERTEX_IN_PAGE );
+//			ErrorLogMsg( KEM_ERROR8, wszText );
+//		}
+//
+//		if( m_bRHW == true )
+//		{
+//			g_pKTDXApp->GetDevice()->SetFVF( S2DUIVertex::FVF );
+//			hr = g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, m_iCandidate[i]*2,  m_pUIVertex[i], sizeof( S2DUIVertex ) );
+//		}
+//		else
+//		{
+//			g_pKTDXApp->GetDevice()->SetFVF( SLVERTEX::FVF );
+//			hr = g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, m_iCandidate[i]*2, m_pVertex[i], sizeof( SLVERTEX ) );
+//		}
+//
+//		if ( hr != D3D_OK )
+//		{
+//			ErrorLogMsg( KEM_ERROR8, m_strFontName.c_str() );
+//		}
+//
+//		m_iCandidate[i] = 0;
+//	}
+//
+//	KD3DEND()
+//}
+//#endif
 
-	KD3DPUSH( m_RenderStateID )
-
-		HRESULT hr;
-
-	for(int i = 0; i < FONT_CACHE_PAGE; i++)
-	{	
-		if( m_iCandidate[i] == 0 )
-			continue;
-
-		if( bOutLine )
-			m_pTextureOutLine[i]->SetTexture(0);
-		else
-			m_pTexture[i]->SetTexture(0);
-
-		if( m_iCandidate[i]*2 > MAX_VERTEX_IN_PAGE )
-		{
-			WCHAR wszText[256] = L"";
-			swprintf( wszText, sizeof(wszText) / sizeof(WCHAR) - 1, L"Font Vertex Over : %d/%d", m_iCandidate[i]*2, MAX_VERTEX_IN_PAGE );
-			ErrorLogMsg( KEM_ERROR8, wszText );
-		}
-
-		if( m_bRHW == true )
-		{
-			g_pKTDXApp->GetDevice()->SetFVF( S2DUIVertex::FVF );
-			hr = g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, m_iCandidate[i]*2,  m_pUIVertex[i], sizeof( S2DUIVertex ) );
-		}
-		else
-		{
-			g_pKTDXApp->GetDevice()->SetFVF( SLVERTEX::FVF );
-			hr = g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, m_iCandidate[i]*2, m_pVertex[i], sizeof( SLVERTEX ) );
-		}
-
-		if ( hr != D3D_OK )
-		{
-			ErrorLogMsg( KEM_ERROR8, m_strFontName.c_str() );
-		}
-
-		m_iCandidate[i] = 0;
-	}
-
-	KD3DEND()
-}
-#endif
-
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
-	#ifdef HIDE_FONT_OUT_OF_EDITBOX_SIZE
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+#ifdef HIDE_FONT_OUT_OF_EDITBOX_SIZE
 	void CKTDGDeviceFont::Buffering( bool bOutLine, const int& iLeft, const int& iTop, const WCHAR* str, const D3DCOLOR& color, const D3DCOLOR& DefColor,bool bNoColor, int nCount, float fScaleX, float fScaleY, const int& iRight )
-	#else //HIDE_FONT_OUT_OF_EDITBOX_SIZE
+#else //HIDE_FONT_OUT_OF_EDITBOX_SIZE
 	void CKTDGDeviceFont::Buffering( bool bOutLine, const int& iLeft, const int& iTop, const WCHAR* str, const D3DCOLOR& color, const D3DCOLOR& DefColor,bool bNoColor, int nCount, float fScaleX, float fScaleY )
 #endif //HIDE_FONT_OUT_OF_EDITBOX_SIZE
 {
@@ -987,7 +1087,21 @@ void CKTDGDeviceFont::Flush(bool bOutLine)
 			continue;
 		}
 
+#ifdef SUPPORT_THAI_FONT
+		int charSize = (int)(KTDGUTIL_STR_THAI::CharNextTh(&str[i]) - &str[i]);
+
+		std::wstring wstr;
+		for( int charIndex = 0; charIndex < charSize; charIndex++ )
+		{
+			wstr += str[i + charIndex];
+		}
+
+		SGCFontCache *cache = GetFontCache( wstr );
+
+		i += ( charSize - 1 ); //여러개 조합된 경우
+#else SUPPORT_THAI_FONT
 		SGCFontCache *cache = GetFontCache(str[i]);
+#endif SUPPORT_THAI_FONT
         ASSERT( cache != NULL && cache->iPage >= 0 && cache->iPage < FONT_CACHE_PAGE
             && m_apPageVertex[cache->iPage] != NULL );
         if ( false == ( cache != NULL && cache->iPage >= 0 && cache->iPage < FONT_CACHE_PAGE ) )
@@ -998,19 +1112,19 @@ void CKTDGDeviceFont::Flush(bool bOutLine)
             return;
         }//if
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		if ( m_iCandidate[cache->iPage] >= m_iNumCandidatesInAPage )
         {
             Flush( bOutLine, cache->iPage );
             ASSERT( m_iCandidate[cache->iPage] < m_iNumCandidatesInAPage );
             if ( m_iCandidate[cache->iPage] >= m_iNumCandidatesInAPage )
-#else
-		if ( m_iCandidate[cache->iPage] >= PAGE_VERTEX_MULTIPLE * (FONT_CACHE_SIZE / m_iFontCacheSize) * (FONT_CACHE_SIZE / m_iFontCacheSize ) )
-		{
-			Flush( bOutLine, cache->iPage );
-			ASSERT( m_iCandidate[cache->iPage] < PAGE_VERTEX_MULTIPLE * (FONT_CACHE_SIZE / m_iFontCacheSize) * (FONT_CACHE_SIZE / m_iFontCacheSize ) );
-			if ( m_iCandidate[cache->iPage] >= PAGE_VERTEX_MULTIPLE * (FONT_CACHE_SIZE / m_iFontCacheSize) * (FONT_CACHE_SIZE / m_iFontCacheSize ) )
-#endif
+//#else
+//		if ( m_iCandidate[cache->iPage] >= PAGE_VERTEX_MULTIPLE * (FONT_CACHE_SIZE / m_iFontCacheSize) * (FONT_CACHE_SIZE / m_iFontCacheSize ) )
+//		{
+//			Flush( bOutLine, cache->iPage );
+//			ASSERT( m_iCandidate[cache->iPage] < PAGE_VERTEX_MULTIPLE * (FONT_CACHE_SIZE / m_iFontCacheSize) * (FONT_CACHE_SIZE / m_iFontCacheSize ) );
+//			if ( m_iCandidate[cache->iPage] >= PAGE_VERTEX_MULTIPLE * (FONT_CACHE_SIZE / m_iFontCacheSize) * (FONT_CACHE_SIZE / m_iFontCacheSize ) )
+//#endif
 			{
 				m_iCandidate[ cache->iPage ] = 0;
 				return;
@@ -1063,6 +1177,58 @@ void CKTDGDeviceFont::Flush(bool bOutLine)
 	}	
 }
 
+#ifdef SUPPORT_THAI_FONT
+int CKTDGDeviceFont::GetWidth( const WCHAR* wszText, int nCount )
+{
+	int iLen = (int)wcslen(wszText);
+	if (iLen==0 ) return 0;
+	int iCur = 0;
+	int iWidth = 0;
+	int iMaxWidth = 0;
+
+	m_wstrBuffer.resize(0);
+	for(int i = 0; i < iLen; )
+	{
+		if ( wszText[i] == '\n' )
+		{
+			if( iWidth > iMaxWidth )
+				iMaxWidth = iWidth;
+
+			iWidth = 0;
+			i++;
+			continue;
+		}
+
+		if( wszText[i] == L'#' && i < iLen -1 && ( wszText[i+1] == L'c' || wszText[i+1] == L'C' ) )
+		{
+			if( wszText[i+2] == 'x' || wszText[i+2] == 'X' )
+			{
+				i += 2;
+			}
+			else
+			{
+				i += 7;
+			}
+			i++;//For문에서 도는거 빠져서 넣어줌
+			continue;
+		}
+		int charSize = (int)(KTDGUTIL_STR_THAI::CharNextTh(&wszText[i]) - &wszText[i]);
+
+		std::wstring wstr;
+		for (int charIndex=0;charIndex<charSize;charIndex++)
+		{
+			wstr+=wszText[i+charIndex];
+		}
+		iWidth += GetWidthLetter( wstr );
+		i+=charSize;
+	}
+
+	if( iWidth > iMaxWidth )
+		iMaxWidth = iWidth;
+
+	return iMaxWidth;
+}
+#else SUPPORT_THAI_FONT
 int CKTDGDeviceFont::GetWidth( const WCHAR* wszText, int nCount )
 {
 	KTDXPROFILE();
@@ -1143,6 +1309,7 @@ int CKTDGDeviceFont::GetWidth( const WCHAR* wszText, int nCount )
 
 	return maxWidth;
 }
+#endif SUPPORT_THAI_FONT
 
 void CKTDGDeviceFont::OutTextXY( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color, D3DCOLOR colorOutLine, RECT* pRt, DWORD dwFlag, int nCount, float fScaleX, float fScaleY )
 {
@@ -1157,17 +1324,17 @@ void CKTDGDeviceFont::OutTextXY( const int& iLeft, const int& iTop, const WCHAR*
 #endif // USE_DT_VCENTER
 
 	m_dwCurrentStamp = timeGetTime();
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	
-	for(int i = 0; i < FONT_CACHE_PAGE; i++)
-	{
-		if ( m_pTexture[i] != NULL )
-			m_pTexture[i]->SetChange(false);
-
-		if( m_pTextureOutLine[i] != NULL )
-			m_pTextureOutLine[i]->SetChange(false);
-	}
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	
+//	for(int i = 0; i < FONT_CACHE_PAGE; i++)
+//	{
+//		if ( m_pTexture[i] != NULL )
+//			m_pTexture[i]->SetChange(false);
+//
+//		if( m_pTextureOutLine[i] != NULL )
+//			m_pTextureOutLine[i]->SetChange(false);
+//	}
+//#endif
 
 	D3DCOLOR curcol;
 
@@ -1207,20 +1374,23 @@ void CKTDGDeviceFont::OutTextMultiline( const int& iLeft, const int& iTop, const
 	if( wszText == NULL || wszText[0] == 0 || nCount == 0 )
 		return;
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	m_dwCurrentStamp = timeGetTime();
-	for(int i = 0; i < FONT_CACHE_PAGE; i++)
-	{
-		m_pTexture[i]->SetChange(false);
-		if( m_pTextureOutLine[i] )
-		{
-			m_pTextureOutLine[i]->SetChange(false);
-		}
-	}
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	m_dwCurrentStamp = timeGetTime();
+//	for(int i = 0; i < FONT_CACHE_PAGE; i++)
+//	{
+//		m_pTexture[i]->SetChange(false);
+//		if( m_pTextureOutLine[i] )
+//		{
+//			m_pTextureOutLine[i]->SetChange(false);
+//		}
+//	}
+//#endif
 
 	static WCHAR			wstrBuf[VIRTUAL_FONT_LINE_MAX];
 
+#ifdef SUPPORT_THAI_FONT
+	wcscpy( wstrBuf, wszText );
+#else SUPPORT_THAI_FONT
 	int iOrgLength = wcslen( wszText );
 	if ( nCount < 0 )
 		nCount = iOrgLength;
@@ -1235,6 +1405,7 @@ void CKTDGDeviceFont::OutTextMultiline( const int& iLeft, const int& iTop, const
 	wcscpy( wstrBuf, wszText );
 #endif	CONVERSION_VS
 	wstrBuf[nCount] = 0;
+#endif SUPPORT_THAI_FONT
 
 	WCHAR*			pToken = wstrBuf;
 	int iSize       = (int)wcslen(wstrBuf);
@@ -1337,4 +1508,4 @@ void CKTDGDeviceFont::OutTextMultiline( const int& iLeft, const int& iTop, const
 
 	Flush(false);
 }
-#endif
+//#endif

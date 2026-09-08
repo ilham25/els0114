@@ -29,7 +29,9 @@ class KPersonalShopItemList
 #ifdef SERV_NEW_CHARACTER_EL
 		UTSI_ELESIS,
 #endif // SERV_NEW_CHARACTER_EL
-
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		UTSI_NEW_CHARACTER,
+#endif //SERV_9TH_NEW_CHARACTER
 	};
 
 public:
@@ -42,6 +44,7 @@ public:
 	bool	ChangeItemInfo( KERM_PERSONAL_SHOP_INFO_NOT & kNot );
 
 	void	GetSearchList( IN KEGS_SEARCH_TRADE_BOARD_REQ & kReq, OUT KEGS_SEARCH_TRADE_BOARD_ACK & kAck );
+    void    GetStrictSearchList( IN KEGS_SEARCH_TRADE_BOARD_REQ & kReq, OUT KEGS_SEARCH_TRADE_BOARD_ACK & kAck );
 
 private:
 	//## Inv 함수는 기획서에서 의도한 키값으로 재정하는 함수

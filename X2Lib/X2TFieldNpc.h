@@ -3,7 +3,11 @@
 
 //{{ seojt // 2009-1-14, 21:32
 class CX2TFieldNpc;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2TFieldNpc>     CX2TFieldNpcPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2TFieldNpc>     CX2TFieldNpcPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 //}} seojt // 2009-1-14, 21:32
 
 
@@ -34,7 +38,11 @@ class CX2TFieldNpc : public CKTDGObject
 		//{{ seojt // 2009-1-14, 21:33
 		static CX2TFieldNpcPtr CreateTFieldNPC( bool bBackgroundLoad )
         {
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            CX2TFieldNpcPtr ptrSquareNpc( new CX2TFieldNpc( bBackgroundLoad ) );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 			CX2TFieldNpcPtr ptrSquareNpc( new CX2TFieldNpc( bBackgroundLoad ), CKTDGObject::KTDGObjectDeleter() );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
             return ptrSquareNpc;
         }//CreateTFieldNPC()
 		//}} seojt // 2009-1-14, 21:33
@@ -209,13 +217,11 @@ class CX2TFieldNpc : public CKTDGObject
 		wstring m_strRegisterTalk;
 		wstring m_strReceiveTalk;
 #endif
-
 		//{{ 2011.05.04   임규수 아바타 합성 시스템
 #ifdef SERV_SYNTHESIS_AVATAR
 		wstring m_strSynthesisTalk;
 #endif SERV_SYNTHESIS_AVATAR
-		//}}
-		
+		//}}		
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		wstring m_strExchangeNewItemTalk;
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
@@ -251,6 +257,14 @@ class CX2TFieldNpc : public CKTDGObject
 		short	m_sTalkNum;
 #endif
 
+#ifdef ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_NEAR // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+		bool	m_bIsPlayNearSound;				// 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능을 사용할 것인가?
+		wstring	m_wstrNearSoundFileName;		// 사운드 파일 이름
+		float	m_fPlayMaxNearSoundCoolTime;	// 사운드 출력 재사용 시간
+		float	m_fPlayNowNearSoundCoolTime;	// 사운드 출력 재사용 시간
+		float	m_fPlayNearSoundDistance;		// 사운드 출력 조건 ( 거리 )
+		CKTDXDeviceSound* m_pNearPlaySound;		// 사운드 포인터
+#endif // ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_CLOSE // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
 
 	public:
 

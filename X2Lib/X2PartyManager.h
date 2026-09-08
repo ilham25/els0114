@@ -482,11 +482,7 @@ public:
 #ifdef SERV_NEW_EVENT_TYPES
 	bool Handler_EGS_UPDATE_DUNGEON_STATUS_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif //SERV_NEW_EVENT_TYPES
-
-
-#ifdef FIX_DUNGEON_CHANGESTART
 	void SetGameStartFlag(bool bVal) { m_bStartGame = bVal; }
-#endif
 
 	bool Handler_EGS_PARTY_GAME_START_OPINION_CHECK_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 	void Send_EGS_PARTY_GAME_START_OPINION_CHECK_REPLY_NOT( const bool bAccept_ );
@@ -523,6 +519,10 @@ protected:
 //#endif SERV_KTDX_RETRY_USING_INTERNAL_IP
 	//}}
 
+#ifdef NEW_MAIL_LOG
+	void AddClosePartyLog( const string& strPacketName_, int iReason_ );
+#endif // NEW_MAIL_LOG
+
 private:
 	PartyData			m_MyPartyData;
 
@@ -538,8 +538,6 @@ private:
 	std::map<int,KAutoPartyDungeonBonusInfo>	m_mapAutoPartyDungeonBonusInfo;
 	int											m_iCurrentDungeonIDWithDifficulty;
 
-#ifdef FIX_DUNGEON_CHANGESTART
 	bool				m_bChangeMap;
 	bool				m_bStartGame;
-#endif
 };

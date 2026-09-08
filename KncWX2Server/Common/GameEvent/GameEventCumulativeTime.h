@@ -60,21 +60,6 @@ public:
 	int		GetChannelCode()						{ return m_iChannelCode; }
 #endif SERV_TOONILAND_CHANNELING_CONNECT_EVENT
 	//}}
-	//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-	void				SetFixedDate( IN const std::wstring& wstrFixedDate ){	m_wstrFixedDate = wstrFixedDate;	}
-	const std::wstring	GetFixedDate( void ) const {	return m_wstrFixedDate;	}
-
-	void	SetEventUserType( IN const int iEventUserType ){	m_iEventUserType = iEventUserType;	}
-	int		GetEventUserType( void ) const {	return m_iEventUserType;	}
-#endif SERV_FIXED_DATE_EVENT
-	//}}
-	//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-	void	SetRepeatEvent( const bool bRepeat )	{	m_bRepeatEvent = bRepeat;	}
-	bool	GetRepeatEvent( void ) const			{	return m_bRepeatEvent;	}
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-	//}}
 
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 	void	SetCustomEventID( IN const int iCustomEventID ){	m_iCustomEventID = iCustomEventID;	}
@@ -109,17 +94,6 @@ private:
 #ifdef SERV_TOONILAND_CHANNELING_CONNECT_EVENT
 	int		m_iChannelCode;
 #endif SERV_TOONILAND_CHANNELING_CONNECT_EVENT
-	//}}
-	//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-	std::wstring	m_wstrFixedDate;
-	int				m_iEventUserType;
-#endif SERV_FIXED_DATE_EVENT
-	//}}
-	//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-	bool	m_bRepeatEvent;
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 	//}}
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 	int		m_iCustomEventID;

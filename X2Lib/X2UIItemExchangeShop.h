@@ -6,7 +6,27 @@
 namespace		_CONST_UI_ITEM_EXCHANGE_SHOP_
 {
 	const int	g_iNumOfSlotSet				=	5;		// 한페이지 당 슬롯셋트의 갯수
+#ifdef SERV_9TH_NEW_CHARACTER // 해외팀 코드 추가
+
+#ifdef SERV_LIMIT_UNIT
+#if defined( SERV_COUNTRY_TWHK ) || defined( SERV_COUNTRY_JP ) || defined( SERV_COUNTRY_EU ) || defined( SERV_COUNTRY_US ) || defined( SERV_COUNTRY_CN )
+	const int	g_iNumOfSlotInSlotSet = 8; // 엘리시스
+#elif defined( SERV_COUNTRY_TH ) || defined( SERV_COUNTRY_ID ) || defined( SERV_COUNTRY_BR ) || defined( SERV_COUNTRY_PH ) || defined( SERV_COUNTRY_IN )
+	const int	g_iNumOfSlotInSlotSet = 7; // 청
+#else
+	const int	g_iNumOfSlotInSlotSet = 9;
+#endif //SERV_COUNTRY_XX
+#else //SERV_LIMIT_UNIT
+	const int	g_iNumOfSlotInSlotSet		=	9;		// 한 슬롯 셋트 당 교환아이템슷롯의 갯수(유저가 가진 아이템 슬롯 제외)	( 갯수 변경 : 6 -> 7 )
+#endif //SERV_LIMIT_UNIT
+	
+#else
+#if defined(SERV_NEW_CHARACTER_EL) && !defined(SERV_NEW_CHARACTER_EL_DISABLE)
+	const int	g_iNumOfSlotInSlotSet		=	8;		// 한 슬롯 셋트 당 교환아이템슷롯의 갯수(유저가 가진 아이템 슬롯 제외)	( 갯수 변경 : 6 -> 7 )
+#else
 	const int	g_iNumOfSlotInSlotSet		=	7;		// 한 슬롯 셋트 당 교환아이템슷롯의 갯수(유저가 가진 아이템 슬롯 제외)	( 갯수 변경 : 6 -> 7 )
+#endif SERV_NEW_CHARACTER_EL
+#endif SERV_9TH_NEW_CHARACTER
 }
 class CX2UIItemExchangeShop : public CX2ItemSlotManager
 {
@@ -69,7 +89,7 @@ public:
 	void				SetLayer( X2_DIALOG_LAYER layer );
 	void				SetHouseID( int iHouseID );
 	virtual		bool	MouseDown( D3DXVECTOR2 mousePos );
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	void				InvalidLastSrcItem();
 	void				InvalidLastSelectExchange();
 	void				PlayWarningSelectExchange();
@@ -80,7 +100,6 @@ public:
 #ifdef EXCHANGE_OPEN_IMAGE
 	bool				Handler_EGS_ITEM_EXCHANGE_REQ() { return Handler_EGS_ITEM_EXCHANGE_REQ( m_iSrcItemUID, m_iSrcItemID, m_iSrcQuantity, m_iDestItemID ); }
 #endif EXCHANGE_OPEN_IMAGE
-
 #endif SERV_ITEM_EXCHANGE_NEW
 
 private:
@@ -100,7 +119,7 @@ private:
 	void				LostItemSlotList();
 	//void				DestoryUIItemExchangeShop();
 	int					SearchItemInUserInventory( int iItemID );	// 인벤토리에 해당 아이템이 없는 경우 -1 리턴
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	bool				PushedExchangeButton( int iCustomMsg, bool bPopupCenter = false );
 #else
 	bool				PushedExchangeButton( int iCustomMsg );
@@ -121,7 +140,7 @@ private:
 	UINT								m_uiNowPage;			// 현재 보여지는 페이지 수
 	UINT								m_uiMaxPage;			// 현재 보여줄 수 있는 최대 페이지 수
 	UINT								m_uiSelectedSlotID;		// 선택된 슬롯의 ID
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	int									m_iLastCustomMsg;
 	int									m_iLastSrcItemID;
 	UidType								m_iLastSelectSrcItemUID;

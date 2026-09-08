@@ -115,7 +115,7 @@ m_bUnitClicked(false)
 
 	m_bDetailPoint = false;
 	m_vDetailPoint = D3DXVECTOR2( 0.f, 0.f );
-	m_hParticle = INVALID_PARTICLE_HANDLE;	
+	m_hParticle = INVALID_PARTICLE_SEQUENCE_HANDLE;	
 }
 
 
@@ -582,10 +582,10 @@ HRESULT CX2UIPetInfo::OnFrameMove( double fTime, float fElapsedTime )
 				g_pData->GetUIMajorParticle()->CreateSequence( NULL, L"Pet_Ui_Effect01", vPos.x, vPos.y, 0  );
 			if( pParticle != NULL )
 			{
-				if( m_hParticle != INVALID_PARTICLE_HANDLE )
+				if( m_hParticle != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle(m_hParticle);
-					m_hParticle = INVALID_PARTICLE_HANDLE;
+					m_hParticle = INVALID_PARTICLE_SEQUENCE_HANDLE;
 				}
 
 				pParticle->SetOverUI( true );
@@ -595,10 +595,10 @@ HRESULT CX2UIPetInfo::OnFrameMove( double fTime, float fElapsedTime )
 	}
 	else
 	{
-		if( m_hParticle != INVALID_PARTICLE_HANDLE )
+		if( m_hParticle != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle(m_hParticle);
-			m_hParticle = INVALID_PARTICLE_HANDLE;
+			m_hParticle = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -827,12 +827,15 @@ bool CX2UIPetInfo::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 						
 					if( NULL != g_pData->GetMyUser() && 
 						NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-						NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() && //인벤토리 널체크
 						NULL != g_pData->GetUIManager() && 
 						NULL != g_pData->GetUIManager()->GetUIInventory() ) //인벤토리 UI 널체크
 					{
-						CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-						m_UseItemUID = pInventory->GetItemUIDBySortTypeAndItemID( CX2Inventory::ST_SPECIAL, ACTIVATION_DROP_ITEM_PICKUP_SKILL);
+						const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+						m_UseItemUID = kInventory.GetItemUIDBySortTypeAndItemID( CX2Inventory::ST_SPECIAL, ACTIVATION_DROP_ITEM_PICKUP_SKILL);
+#ifdef SERV_PET_AUTO_LOOTING_ITEM_CN
+						if( 0 == m_UseItemUID )
+							m_UseItemUID = kInventory.GetItemUIDBySortTypeAndItemID( CX2Inventory::ST_SPECIAL, ACTIVATION_DROP_ITEM_PICKUP_SKILL_CN);
+#endif // SERV_PET_AUTO_LOOTING_ITEM_CN
 						//잠금 해제 아이템을 가지고 있지 않다면 캐시샵으로 이동
 						if( 0 == m_UseItemUID )
 						{
@@ -1024,9 +1027,14 @@ bool CX2UIPetInfo::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGUIRidingPetReleasePopup, NULL, false );
 				m_pDLGUIRidingPetReleasePopup = NULL;
 			}
+#ifdef RIDINGPET_INFO_ADD_LINEBREAK
+			wstring wstrRidingPetReleaseDesc = CWordLineHandler::GetStrByLineBreakInX2Main(GET_STRING( STR_ID_24382 ), 360, 1);
+			m_pDLGUIRidingPetReleasePopup = 
+				g_pMain->KTDGUIOkAndCancelEditBox2( D3DXVECTOR2( -999, -999 ), wstrRidingPetReleaseDesc.c_str(), PLUCM_RIDING_PET_RELEASE_OK, g_pMain->GetNowState(), 10, false, PLUCM_RIDING_PET_RELEASE_CANCLE );
+#else RIDINGPET_INFO_ADD_LINEBREAK
 			m_pDLGUIRidingPetReleasePopup = 
 				g_pMain->KTDGUIOkAndCancelEditBox2( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_24382 ),	PLUCM_RIDING_PET_RELEASE_OK, g_pMain->GetNowState(), 10, false, PLUCM_RIDING_PET_RELEASE_CANCLE );
-			
+#endif RIDINGPET_INFO_ADD_LINEBREAK			
 			if( NULL == m_pDLGUIRidingPetReleasePopup )
 				return true;
 
@@ -1134,6 +1142,9 @@ void CX2UIPetInfo::UpdateDLGNPCViewerUI()
 		m_pNPCViewerUI = CX2NPCUnitViewerUI::Create();
 	}
 
+	if( NULL == m_pNPCViewerUI )
+		return;
+
 	if( m_ViewPetUid <= 0 )
 		return; 
 
@@ -1151,7 +1162,13 @@ void CX2UIPetInfo::UpdateDLGNPCViewerUI()
 	
 	if( bFind == false )
 	{
-		kPetInfo = *g_pData->GetMyUser()->GetSelectUnit()->GetPetInfo();
+		if( NULL != g_pData &&
+			NULL != g_pData->GetMyUser() &&
+			NULL != g_pData->GetMyUser()->GetSelectUnit() &&
+			NULL != g_pData->GetMyUser()->GetSelectUnit()->GetPetInfo() )
+		{
+			kPetInfo = *g_pData->GetMyUser()->GetSelectUnit()->GetPetInfo();
+		}
 	}
 
 #ifdef SERV_PETID_DATA_TYPE_CHANGE //2013.07.02
@@ -1271,10 +1288,10 @@ void CX2UIPetInfo::SetShow(bool val, UidType eTab)
 #endif //RIDING_SYSTEM
 
 		m_bDetailPoint = false;
-		if( m_hParticle != INVALID_PARTICLE_HANDLE )
+		if( m_hParticle != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle(m_hParticle);
-			m_hParticle = INVALID_PARTICLE_HANDLE;
+			m_hParticle = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -1489,17 +1506,24 @@ void CX2UIPetInfo::SetPetRow(int rowIndex, int petId, char petLv, wstring petNam
 			}
 			if( pPicture != NULL )
 			{
-				CX2PetManager::PetStepImage petStepImage = pTemplet->m_Evolution_Step_Image[ petLv ];
+#ifdef DEFENCE_CODE_FOR_CRASH
+				if( petLv < pTemplet->m_Evolution_Step_Image.size() )
+				{
+#endif //DEFENCE_CODE_FOR_CRASH
+					CX2PetManager::PetStepImage petStepImage = pTemplet->m_Evolution_Step_Image[ petLv ];
 
-				wstring wstrImageName = petStepImage.m_wstrImageName;
-				if( petStepImage.m_wstrKeyName == L"" )
-				{
-					pPicture->SetTex( wstrImageName.c_str() );
+					wstring wstrImageName = petStepImage.m_wstrImageName;
+					if( petStepImage.m_wstrKeyName == L"" )
+					{
+						pPicture->SetTex( wstrImageName.c_str() );
+					}
+					else
+					{
+						pPicture->SetTex( wstrImageName.c_str(), petStepImage.m_wstrKeyName.c_str() );
+					}
+#ifdef DEFENCE_CODE_FOR_CRASH
 				}
-				else
-				{
-					pPicture->SetTex( wstrImageName.c_str(), petStepImage.m_wstrKeyName.c_str() );
-				}
+#endif //DEFENCE_CODE_FOR_CRASH
 			}		
 		}
 
@@ -1564,7 +1588,6 @@ void CX2UIPetInfo::UpdatePetList()
 #else SERV_PERIOD_PET
 		SetPetRow( i+1, (int)kPetInfo.m_iPetID, petLv, petName, (float)kPetInfo.m_sSatiety, (float)kPetInfo.m_iIntimacy, bSummoned );
 #endif SERV_PERIOD_PET
-
 #else //SERV_PETID_DATA_TYPE_CHANGE
 		CX2PetManager::PetTemplet *pTemplet = g_pData->GetPetManager()->GetPetTemplet( (CX2PetManager::PET_UNIT_ID)kPetInfo.m_cPetID );
 
@@ -1580,7 +1603,6 @@ void CX2UIPetInfo::UpdatePetList()
 #else SERV_PERIOD_PET
 		SetPetRow( i+1, (int)kPetInfo.m_cPetID, petLv, petName, (float)kPetInfo.m_sSatiety, (float)kPetInfo.m_iIntimacy, bSummoned );
 #endif SERV_PERIOD_PET
-
 #endif //SERV_PETID_DATA_TYPE_CHANGE
 	}
 
@@ -1894,15 +1916,13 @@ void CX2UIPetInfo::UpdatePetInfo( KPetInfo *kPetInfo )
 		CX2PetManager::PetSkillInfo petSkillInfo = pTemplet->m_CheerSkill[iStep];
 		pButtonCheer->SetNormalTex( petSkillInfo.m_wstrImageName.c_str(), petSkillInfo.m_wstrKeyName.c_str() );
 		pButtonCheer->SetOverTex( petSkillInfo.m_wstrImageName.c_str(), petSkillInfo.m_wstrKeyName.c_str() );
-		pButtonCheer->SetDownTex( petSkillInfo.m_wstrImageName.c_str(), petSkillInfo.m_wstrKeyName.c_str() );	
+		pButtonCheer->SetDownTex( petSkillInfo.m_wstrImageName.c_str(), petSkillInfo.m_wstrKeyName.c_str() );		
 #ifdef CLIENT_GLOBAL_LINEBREAK
 		wstring wstrSkillDesc = CWordLineHandler::GetStrByLineBreakInX2Main(petSkillInfo.m_wstrSkillDesc.c_str(), 300, 1);
 		pButtonCheer->SetGuideDesc( wstrSkillDesc.c_str() );
 #else //CLIENT_GLOBAL_LINEBREAK
 		pButtonCheer->SetGuideDesc( petSkillInfo.m_wstrSkillDesc.c_str() );
 #endif //CLIENT_GLOBAL_LINEBREAK
-
-		
 		//pButtonCheer->SetGuideDescAbsolutePos( pButtonCheer->GetPos() );
 		pButtonCheer->SetGuideDescOffsetPos( D3DXVECTOR2( 50.f, 40.f ) );
 		//pButtonAttack->SetDownStateAtNormal( true );
@@ -1957,9 +1977,7 @@ void CX2UIPetInfo::UpdatePetInfo( KPetInfo *kPetInfo )
 					wstrAuraDesc += L"\n\n";
 
 					//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 					const int iLevel_ = g_pData->GetSelectUnitLevel();
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 					//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 					const std::vector<int> &vecSocketOption = pTemplet->m_vecAuraSkillOption[i];
@@ -1978,16 +1996,12 @@ void CX2UIPetInfo::UpdatePetInfo( KPetInfo *kPetInfo )
 						if( 0 == socketOption )
 							continue;
 
-						CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
+						const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
 						if( pSocketData == NULL )
 							continue;
 
 						//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 						wstrAuraDesc += pSocketData->GetSocketDesc( iLevel_ );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-						wstrAuraDesc += pSocketData->GetSocketDesc();
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 						//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 						wstrAuraDesc += L"\n";
@@ -2047,15 +2061,21 @@ void CX2UIPetInfo::UpdatePetInfo( KPetInfo *kPetInfo )
 		pButton->SetGuideDesc( BtnGuideDesc.c_str() );
 
 		pButton->SetGuideDescOffsetPos( D3DXVECTOR2( 50.f, 40.f ) );
+
+#ifdef SERV_EVENT_VC
+		// 용병 뽀루는 먹이주기 버튼 비활성화
+		if( kPetInfo->m_iPetID == CX2PetManager::PUI_PET_MERCENARY_PPORU_EVENT_INT )
+		{
+			pButton->SetEnable( false );
+		}
+#endif //SERV_EVENT_VC
 	}
 #endif //PET_DROP_ITEM_PICKUP
 
 	float fSatiety = (float)kPetInfo->m_sSatiety / CX2PetManager::MAX_OF_SATIETY;
 	float fIntimacy = (float)kPetInfo->m_iIntimacy / pTemplet->m_Evolution_Step_Max[ kPetInfo->m_cEvolutionStep ];
 	
-#ifdef FIX_PET_EVOLUTION
 	bool bEvolution = true;
-#endif
 	// 소환버튼 활성화 여부 검사
 	bool bSummoned = true;
 	KPetInfo *petInfo = g_pData->GetMyUser()->GetSelectUnit()->GetPetInfo();
@@ -2066,9 +2086,7 @@ void CX2UIPetInfo::UpdatePetInfo( KPetInfo *kPetInfo )
 	{
 		pButton1->SetShowEnable(true, true);
 		pButton3->SetShowEnable(false, false);
-#ifdef FIX_PET_EVOLUTION
 		bEvolution = false;
-#endif
 	}
 	else
 	{
@@ -2085,12 +2103,10 @@ void CX2UIPetInfo::UpdatePetInfo( KPetInfo *kPetInfo )
 	else
 		pButton2->SetShowEnable(false, false);
 
-#ifdef FIX_PET_EVOLUTION	
 	if( bEvolution == false )
 	{
 		pButton2->SetEnable( false );		
 	}
-#endif
 
 	if( g_pMain->GetNowStateID() == CX2Main::XS_SQUARE_GAME || 
 		g_pMain->GetNowStateID() == CX2Main::XS_PVP_LOBBY ||
@@ -2205,17 +2221,24 @@ void CX2UIPetInfo::UpdatePetInfo( KPetInfo *kPetInfo )
 	// 펫 아이콘
 	if( pPictureIcon != NULL )
 	{
-		CX2PetManager::PetStepImage petStepImage = pTemplet->m_Evolution_Step_Image[ kPetInfo->m_cEvolutionStep ];
+#ifdef DEFENCE_CODE_FOR_CRASH
+		if( kPetInfo->m_cEvolutionStep < pTemplet->m_Evolution_Step_Image.size() )
+		{
+#endif //DEFENCE_CODE_FOR_CRASH
+			CX2PetManager::PetStepImage petStepImage = pTemplet->m_Evolution_Step_Image[ kPetInfo->m_cEvolutionStep ];
 
-		wstring wstrImageName = petStepImage.m_wstrImageName;
-		if( petStepImage.m_wstrKeyName == L"" )
-		{
-			pPictureIcon->SetTex( wstrImageName.c_str() );
+			wstring wstrImageName = petStepImage.m_wstrImageName;
+			if( petStepImage.m_wstrKeyName == L"" )
+			{
+				pPictureIcon->SetTex( wstrImageName.c_str() );
+			}
+			else
+			{
+				pPictureIcon->SetTex( wstrImageName.c_str(), petStepImage.m_wstrKeyName.c_str() );
+			}
+#ifdef DEFENCE_CODE_FOR_CRASH
 		}
-		else
-		{
-			pPictureIcon->SetTex( wstrImageName.c_str(), petStepImage.m_wstrKeyName.c_str() );
-		}
+#endif //DEFENCE_CODE_FOR_CRASH
 	}
 
 	// 포만도 바
@@ -2229,7 +2252,11 @@ void CX2UIPetInfo::UpdatePetInfo( KPetInfo *kPetInfo )
 		float xPos = vPos.x + vSize.x - 38.f;
 
 		pStaticSatiety->SetOffsetPos( D3DXVECTOR2( vSize.x, 0.f ) );
+#ifdef ALWAYS_TEMP_LINEBREAK
+		pPictureTip1->SetPos( D3DXVECTOR2( xPos, 390.f ) );
+#else //ALWAYS_TEMP_LINEBREAK
 		pPictureTip1->SetPos( D3DXVECTOR2( xPos, pPictureTip1->GetPos().y ) );
+#endif //ALWAYS_TEMP_LINEBREAK
 
 		wstring wstrBuff = GET_REPLACED_STRING( ( STR_ID_5340, "i", (int)(fSatiety * 100.f) ) );	// 포만도	
 #ifdef ALWAYS_TEMP_LINEBREAK
@@ -2257,7 +2284,11 @@ void CX2UIPetInfo::UpdatePetInfo( KPetInfo *kPetInfo )
 #endif ALWAYS_MISS_DEFINE_CHECK
 
 		pStaticIntimacy->SetOffsetPos( D3DXVECTOR2( vSize.x, 0.f ) );
+#ifdef ALWAYS_TEMP_LINEBREAK
 		pPictureTip2->SetPos( D3DXVECTOR2( xPos, pPictureTip2->GetPos().y ) );
+#else ALWAYS_TEMP_LINEBREAK
+		pPictureTip2->SetPos( D3DXVECTOR2( xPos, 470.f ) );
+#endif ALWAYS_TEMP_LINEBREAK
 
 		wstring wstrBuff = GET_REPLACED_STRING( ( STR_ID_5341, "i", (int)(fIntimacy * 100.f) ) );	// 포만도	
 #ifdef ALWAYS_TEMP_LINEBREAK
@@ -2464,17 +2495,24 @@ void CX2UIPetInfo::UpdatePetDetail( KPetInfo *kPetInfo )
 	// 펫 아이콘
 	if( pPicture1 != NULL )
 	{
-		CX2PetManager::PetStepImage petStepImage = pTemplet->m_Evolution_Step_Image[ kPetInfo->m_cEvolutionStep ];
+#ifdef DEFENCE_CODE_FOR_CRASH
+		if( kPetInfo->m_cEvolutionStep < pTemplet->m_Evolution_Step_Image.size() )
+		{
+#endif //DEFENCE_CODE_FOR_CRASH
+			CX2PetManager::PetStepImage petStepImage = pTemplet->m_Evolution_Step_Image[ kPetInfo->m_cEvolutionStep ];
 
-		wstring wstrImageName = petStepImage.m_wstrImageName;
-		if( petStepImage.m_wstrKeyName == L"" )
-		{
-			pPicture1->SetTex( wstrImageName.c_str() );
+			wstring wstrImageName = petStepImage.m_wstrImageName;
+			if( petStepImage.m_wstrKeyName == L"" )
+			{
+				pPicture1->SetTex( wstrImageName.c_str() );
+			}
+			else
+			{
+				pPicture1->SetTex( wstrImageName.c_str(), petStepImage.m_wstrKeyName.c_str() );
+			}
+#ifdef DEFENCE_CODE_FOR_CRASH
 		}
-		else
-		{
-			pPicture1->SetTex( wstrImageName.c_str(), petStepImage.m_wstrKeyName.c_str() );
-		}
+#endif //DEFENCE_CODE_FOR_CRASH
 	}
 
 	// 펫이름
@@ -2674,10 +2712,10 @@ void CX2UIPetInfo::UpdatePetDetail( KPetInfo *kPetInfo )
 		g_pData->GetUIMajorParticle()->CreateSequence( NULL, L"Pet_Ui_Effect01", vPoint.x, vPoint.y, 0  );
 	if( pParticle != NULL )
 	{
-		if( m_hParticle != INVALID_PARTICLE_HANDLE )
+		if( m_hParticle != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle(m_hParticle);
-			m_hParticle = INVALID_PARTICLE_HANDLE;
+			m_hParticle = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 
 		pParticle->SetOverUI( true );
@@ -2752,7 +2790,7 @@ void CX2UIPetInfo::UpdateDLGRidingPetViewerUI()
 		vPos.y += m_pDLGUIRidingPetInfo->GetPos().y;
 
 		//뽀루일 경우만 위치 이동.
-		if( CX2RidingPetManager::RPUI_ANCIENT_PPORU == pTemplet->m_Uid )
+		if( CX2RidingPetManager::RPUI_ANCIENT_PPORU == pTemplet->m_Uid || CX2RidingPetManager::RPUI_ANCIENT_PPORU_NAVER == pTemplet->m_Uid )
 			m_fMoveViewerPetPositionX = -40.f;
 		else
 			m_fMoveViewerPetPositionX = 0.f;
@@ -3218,24 +3256,11 @@ void CX2UIPetInfo::SetRidingPetInfo()
 				//설명
 				if( NULL != pStatic->GetString(1) )
 				{
-					switch (static_cast<CX2RidingPetManager::RIDING_PET_UNIT_ID>(sInfo.m_usRindingPetID))
-					{
-					case CX2RidingPetManager::RPUI_NASOD_MOBI:
-						pStatic->SetString( 1, GET_STRING( STR_ID_24353 ) );
-						break;
-					case CX2RidingPetManager::RPUI_KOUCIKA:
-						pStatic->SetString( 1, GET_STRING( STR_ID_24370 ) );
-						break;
-					case CX2RidingPetManager::RPUI_ANCIENT_PPORU:
-						pStatic->SetString( 1, GET_STRING( STR_ID_24381 ) );
-						break;
-					case CX2RidingPetManager::RPUI_SCORPION_TYPE_R:
-						pStatic->SetString( 1, GET_STRING( STR_ID_25082 ) );
-						break;
-					default:
-						pStatic->SetString( 1, L"" );
-						break;
-					}	
+					pStatic->SetString( 1, pTemplet->m_wstrDescription.c_str() );
+#ifdef RIDINGPET_INFO_ADD_LINEBREAK
+					wstring wstrSkillDesc = CWordLineHandler::GetStrByLineBreakInX2Main(pStatic->GetString(1)->msg.c_str(), 450, 1);
+					pStatic->GetString(1)->msg = wstrSkillDesc;
+#endif //RIDINGPET_INFO_ADD_LINEBREAK
 				}
 			}
 
@@ -3289,7 +3314,7 @@ void CX2UIPetInfo::SetRidingPetInfo()
 
 			//탑승 버튼 처리
 			bool bRide = ( sInfo.m_fStamina < fEnableStamina )? false : true;
-	
+
 			if( m_ViewRidingPetUid == CX2RidingPetManager::GetInstance()->GetRidingPetId() )
 				SelectKindRideButton( BUTTON_RIDE_OFF, bRide );
 			else
@@ -3453,7 +3478,8 @@ void CX2UIPetInfo::SelectKindRideButton( KIND_OF_RIDE_BUTTON  _select, bool _ena
 				default:
 					break;
 				}
-					pButton->SetEnable( _enable );
+
+				pButton->SetEnable( _enable );
 			}
 		}
 	}

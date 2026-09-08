@@ -26,20 +26,20 @@ CX2NumbersToLanguage::~CX2NumbersToLanguage(void)
     @author		: JHKang
 	@date		: 2010/08/31
 */
-#ifdef NUMBER_TO_LANGUAGE_CN
+#ifdef _LANGUAGE_FIX_CHINESE_
 void CX2NumbersToLanguage::TranslateDigits(TypeLanguage eType, __int64 i64lNumbers, wstring& strMsg)
-#else NUMBER_TO_LANGUAGE_CN
+#else _LANGUAGE_FIX_CHINESE_
 void CX2NumbersToLanguage::TranslateDigits(TypeLanguage eType, __int64 i64lNumbers, string& strMsg)
-#endif NUMBER_TO_LANGUAGE_CN
+#endif _LANGUAGE_FIX_CHINESE_
 {
 	string InData = ToString(i64lNumbers);
 	int length = static_cast<int>(InData.length());
 	int iCount = 0;
 
-#ifdef NUMBER_TO_LANGUAGE_CN
+#ifdef _LANGUAGE_FIX_CHINESE_
 	wstring (*Lang)[10];
 	Lang = m_LanguageData.LD_CHN_SIMPLIFIED;
-#else NUMBER_TO_LANGUAGE_CN
+#else _LANGUAGE_FIX_CHINESE_
 	string (*Lang)[10];
 
 	switch (eType)
@@ -56,7 +56,7 @@ void CX2NumbersToLanguage::TranslateDigits(TypeLanguage eType, __int64 i64lNumbe
 		break;
 #endif // NUMBER_TO_LANGUAGE_JPN
 	}
-#endif NUMBER_TO_LANGUAGE_CN
+#endif _LANGUAGE_FIX_CHINESE_
 
 	while (length != 0)
 	{
@@ -66,11 +66,11 @@ void CX2NumbersToLanguage::TranslateDigits(TypeLanguage eType, __int64 i64lNumbe
 
 		if (num1 == 0 && modNum == 0)
 		{
-#ifdef NUMBER_TO_LANGUAGE_CN
+#ifdef _LANGUAGE_FIX_CHINESE_
 			strMsg += L"÷√";
 #else
 			strMsg += "øµ";
-#endif NUMBER_TO_LANGUAGE_CN
+#endif _LANGUAGE_FIX_CHINESE_
 			break;
 		}
 
@@ -97,11 +97,11 @@ void CX2NumbersToLanguage::TranslateDigits(TypeLanguage eType, __int64 i64lNumbe
 				if (digit != 0)
 					strMsg += Lang[0][digit] + Lang[1][temp];
 				else
-#ifdef NUMBER_TO_LANGUAGE_CN
+#ifdef _LANGUAGE_FIX_CHINESE_
 					strMsg += L"";
 #else
 					strMsg += "";
-#endif NUMBER_TO_LANGUAGE_CN
+#endif _LANGUAGE_FIX_CHINESE_
 
 				length--;
 				iCount++;

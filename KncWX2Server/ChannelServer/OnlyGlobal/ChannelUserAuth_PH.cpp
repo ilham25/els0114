@@ -195,14 +195,19 @@ void KChannelUser::RequestPublisherLogin(const KECH_VERIFY_ACCOUNT_REQ& kPacket_
 		return;
 	}
 
-
-	
-	int iUsernameSize = strlen(tokInfo.Username);
+	//2013.11.13 lygan_조성욱 // 서비스 도중에 	m_wstrServiceAccountID를 퍼블리셔 SN 값으로 변경하는 이슈 발생해서 아래 코드 주석
+	/*int iUsernameSize = strlen(tokInfo.Username);
 
 	int size_needed = MultiByteToWideChar(CP_UTF8, 0, tokInfo.Username, iUsernameSize, NULL, 0);
 
 	std::wstring wstrAccountID(size_needed, 0);
-	MultiByteToWideChar(CP_UTF8, 0, tokInfo.Username, iUsernameSize, &wstrAccountID[0], size_needed);
+	MultiByteToWideChar(CP_UTF8, 0, tokInfo.Username, iUsernameSize, &wstrAccountID[0], size_needed);*/
+	
+	WCHAR wchGarenaUID[ 100 ];
+	
+	_ultow(ntohl(tokInfo.Uid),wchGarenaUID, 10);
+
+	std::wstring wstrAccountID(wchGarenaUID);
 
 
 	// 정상 로그인 성공
@@ -213,7 +218,7 @@ void KChannelUser::RequestPublisherLogin(const KECH_VERIFY_ACCOUNT_REQ& kPacket_
 #ifdef SERV_PURCHASE_TOKEN
 	kPacketReq.m_wstrPurchaseTok = L"";;
 #endif SERV_PURCHASE_TOKEN
-	kPacketReq.m_usGarenaCyberCafe = ntohs(tokInfo.GcaType);
+	kPacketReq.m_usGarenaCyberCafe = tokInfo.GcaType;
 	kPacketReq.m_bServerUseKogOTP = KSimLayer::GetKObj()->GetUseKogOTP();
 	
 	
@@ -247,6 +252,9 @@ void KChannelUser::RequestKOGOTPLogin(const KECH_VERIFY_ACCOUNT_REQ& kPacket_)
 #ifdef SERV_PURCHASE_TOKEN
 	kPacketReq.m_wstrPurchaseTok = L"";
 #endif SERV_PURCHASE_TOKEN
+#if defined( SERV_STEAM ) || defined( SERV_ALL_RENEWAL_SP )
+	kPacketReq.m_iChannelingCode = kPacket_.m_iChannelingCode;
+#endif //( SERV_STEAM ) || ( SERV_ALL_RENEWAL_SP )
 
 	SendToAccountDB( DBE_CH_USER_KOGOTP_LOGIN_REQ, kPacketReq );
 }

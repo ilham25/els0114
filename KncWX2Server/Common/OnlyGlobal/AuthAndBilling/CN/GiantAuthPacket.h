@@ -16,6 +16,7 @@ class KGiantAuthPacket : public KGiantCommonPacket
 public:
 	enum ENUM_AUTH_COMMAND_TYPE { 
 		GAP_ACT_LOGIN					= 2,
+		GAP_ACT_SESSION					= 3,// SERV_DIRECT_CHARGE_ELSWORD_CASH
 	};
 
 	enum ENUM_AUTH_PARACOMMAND_TYPE { 
@@ -24,6 +25,11 @@ public:
 		GA_PCT_LOGIN_SUCCESS			= 3,
 		GA_PCT_LOGIN_MTCARD				= 4,
 	};
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	enum ENUM_AUTH_SESSION_PARACOMMAND_TYPE {
+		GAS_PCT_SESSION_GETTOKEN		= 3,
+	};
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 
 	enum ENUM_RETURN_CODE_TYPE {
 		GAP_RCT_SYSTEM_ERROR			= -4,	// 시스템 에러
@@ -63,6 +69,14 @@ public:
 
 	virtual bool Read( KEPUBLISHER_SECURITY_AUTH_REQ& kPacket );
 	virtual bool Write( const KEPUBLISHER_SECURITY_AUTH_REQ& kPacket );
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	virtual bool Read( KEGIANT_AUTH_DIRECT_CHARGE_REQ& kPacket );
+	virtual bool Write( const KEGIANT_AUTH_DIRECT_CHARGE_REQ& kPacket );
+
+	virtual bool Read( KEGIANT_AUTH_DIRECT_CHARGE_ACK& kPacket );
+	virtual bool Write( const KEGIANT_AUTH_DIRECT_CHARGE_ACK& kPacket );
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 };
 
 #endif // SERV_COUNTRY_CN

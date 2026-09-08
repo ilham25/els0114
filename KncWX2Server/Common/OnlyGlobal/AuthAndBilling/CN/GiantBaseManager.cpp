@@ -19,15 +19,12 @@ void KGiantBaseManager::Init( int nThreadNum )
 	m_iRecvCP = 0;
 
 	//////////////////////////////////////////////////////////////////////////
-	// thread setting : recvï¿½ï¿½ recvfrom() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¼ï¿½ blockï¿½È´ï¿½.
-	//{{ Iruha : 2026-08-27 // VS2010 port: bare Class::Method as a member-function pointer
-	// was a VC7.1 extension; VC10 requires the explicit &.
+	// thread setting : recv´Â recvfrom() ÇÔ¼ö¿¡¼­ ¾Ë¾Æ¼­ blockµÈ´Ù.
 	m_spThreadRecv = boost::shared_ptr< KTThread< KGiantBaseManager > >
-		( new KTThread< KGiantBaseManager >( *this, &KGiantBaseManager::Recv, 50 ) );
+		( new KTThread< KGiantBaseManager >( *this, KGiantBaseManager::Recv, 50 ) );
 
 	m_spThreadSend = boost::shared_ptr< KTThread< KGiantBaseManager > >
-		( new KTThread< KGiantBaseManager >(*this, &KGiantBaseManager::Send, 100 ) );
-	//}}
+		( new KTThread< KGiantBaseManager >(*this, KGiantBaseManager::Send, 100 ) );
 
 	KThreadManager::Init( nThreadNum );
 }
@@ -114,7 +111,7 @@ void KGiantBaseManager::BeginThread()
 
 	if( !Connect() )
 	{
-		START_LOG( cerr, L"Giant Platform Server ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
+		START_LOG( cerr, L"Giant Platform Server Á¢¼Ó ½ÇÆÐ." )
 			<< END_LOG;
 	}
 }
@@ -164,7 +161,7 @@ void KGiantBaseManager::Send()
 	{
 		if( !spPacket )
 		{
-			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
+			START_LOG( cerr, L"Æ÷ÀÎÅÍ ÀÌ»ó." )
 				<< BUILD_LOG( m_kSendQueue.size() )
 				<< END_LOG;
 
@@ -173,14 +170,14 @@ void KGiantBaseManager::Send()
 
 		if( spPacket->GetTotalLength() > MAX_PACKET_SIZE_OF_GIANT_AUTH )
 		{
-			START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
+			START_LOG( cerr, L"ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
 				<< BUILD_LOG( spPacket->GetTotalLength() )
 				<< END_LOG;
 
 			continue;
 		}
 
-		START_LOG( clog2, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½" )
+		START_LOG( clog2, L"ÆÐÅ¶ Àü¼Û" )
 			<< END_LOG;
 		spPacket->WriteToBuffer( ( BYTE* )buf );
 		DumpBuffer( ( BYTE* )buf, false );
@@ -220,7 +217,7 @@ void KGiantBaseManager::Recv()
 		MAX_PACKET_SIZE_OF_GIANT_AUTH - m_iRecvCP,
 		0 );
 
-	START_LOG( clog, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½." )
+	START_LOG( clog, L"ÆÐÅ¶ ¹ÞÀ½." )
 		<< BUILD_LOG( ret );
 
 	if( ret == SOCKET_ERROR )
@@ -232,7 +229,7 @@ void KGiantBaseManager::Recv()
 
 	if( ret == 0 )
 	{
-		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
+		START_LOG( cerr, L"¼ÒÄÏ ¿¬°áÀÌ ²÷¾îÁü." )
 			<< BUILD_LOG( GET_WSA_MSG )
 			<< END_LOG;
 
@@ -242,7 +239,7 @@ void KGiantBaseManager::Recv()
 
 	if( ret > MAX_PACKET_SIZE_OF_GIANT_AUTH - m_iRecvCP )
 	{
-		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ûµï¿½ Å©ï¿½â°¡ ï¿½Ê¹ï¿½ Å©ï¿½ï¿½." )
+		START_LOG( cerr, L"Àü¼ÛµÈ Å©±â°¡ ³Ê¹« Å©´Ù." )
 			<< BUILD_LOG( ret )
 			<< BUILD_LOG( MAX_PACKET_SIZE_OF_GIANT_AUTH )
 			<< BUILD_LOG( m_iRecvCP )
@@ -255,7 +252,7 @@ void KGiantBaseManager::Recv()
 
 	while( m_iRecvCP >= 6 )
 	{
-		// ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ 6ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ì»ï¿½ï¿½ï¿½
+		// ¸ðµç ÆÐÅ¶ÀÌ 6¹ÙÀÌÆ® ÀÌ»óÀÓ
 
 		int iLength;
 		::memcpy( &iLength, m_cRecvBuffer, sizeof(int) );
@@ -264,7 +261,7 @@ void KGiantBaseManager::Recv()
 		int iTotalPacketSize = iLength + sizeof(int);
 		if( iTotalPacketSize > MAX_PACKET_SIZE_OF_GIANT_AUTH )
 		{
-			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
+			START_LOG( cerr, L"ÃßÃâÇÑ ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
 				<< BUILD_LOG( iTotalPacketSize )
 				<< BUILD_LOG( MAX_PACKET_SIZE_OF_GIANT_AUTH )
 				<< END_LOG;
@@ -298,13 +295,13 @@ void KGiantBaseManager::ClearSendQueue()
 
 bool KGiantBaseManager::Connect()
 {
-	START_LOG( cout, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½" )
+	START_LOG( cout, L"¿¬°á ½Ãµµ" )
 		<< BUILD_LOG( m_kGiantConnectInfo.m_strIP )
 		<< BUILD_LOG( m_kGiantConnectInfo.m_usPort )				
 		<< END_LOG;
 
 	m_iRecvCP = 0;
-	SOCKET sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	SOCKET sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
 
 	if( INVALID_SOCKET == sock )
 	{
@@ -336,13 +333,13 @@ bool KGiantBaseManager::Connect()
 
 	m_sock = sock;
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	// ÀÎÁõ ÆÐÅ¶À» º¸³»±â Àü¿¡ ½×ÀÎ ÆÐÅ¶À» Å¬¸®¾î
 	ClearSendQueue();
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½
+	// ÀÎÁõ ½Ãµµ
 	KEGIANT_COMMON_INITIALIZE_REQ kPacketInit;
 	kPacketInit.m_wstrIP		= NetCommon::GetLocalIPW();
-	kPacketInit.m_usPort		= 10000;						// ï¿½Ü¼ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½
+	kPacketInit.m_usPort		= 10000;						// ´Ü¼ø ÇÃ·¡±×
 
 	boost::shared_ptr< KGiantCommonPacket > spPacket( new KGiantCommonPacket );
 	spPacket->Write( kPacketInit );
@@ -370,7 +367,7 @@ void KGiantBaseManager::KeepConnection()
 
 	m_dwLastHeartBeatTick = ::GetTickCount();
 
-	// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ÇãÆ®ºø º¸³»±â
 	KEGIANT_COMMON_NULL_CLIENT kPacket;
 	boost::shared_ptr< KGiantCommonPacket > spPacket( new KGiantCommonPacket );
 	spPacket->Write( kPacket );

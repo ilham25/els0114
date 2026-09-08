@@ -63,7 +63,7 @@ bool KGarenaBillingPacket::ReadFromBuffer( IN const char* pbyteBuffer )
 	m_iPacketType = static_cast<int>(root.get( "ID", 0 ).asUInt());
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[테스트로그] 패킷 파싱 성공! 패킷 id값을 보자!" )
+	START_LOG( cwarn, L"패킷 파싱 성공! 패킷 id값을 보자!" )
 		<< BUILD_LOGc( m_iPacketType )
 		<< BUILD_LOG( m_ulPacketLength )
 		<< BUILD_LOG( ulTotalPacketLength )
@@ -91,7 +91,7 @@ bool KGarenaBillingPacket::WriteToBuffer( OUT BYTE* pbyteBuffer )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[테스트로그] 패킷 생성 성공! 패킷 내용을 보자!" )
+	START_LOG( cwarn, L"패킷 생성 성공! 패킷 내용을 보자!" )
 		<< BUILD_LOGc( m_iPacketType )
 		<< BUILD_LOG( m_ulPacketLength )
 		<< BUILD_LOG( m_strPacketContent.size() )
@@ -116,7 +116,7 @@ bool KGarenaBillingPacket::Read( KEJSON_GN_CHECK_ACCOUNT_REQ& kPacket )
 	kPacket.m_uiGarenaUID		= root["data"].get( "garena_uid", "-1" ).asUInt();
 	
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[테스트로그] 계정 확인 패킷 파싱!" )
+	START_LOG( cwarn, L"계정 확인 패킷 파싱!" )
 		<< BUILD_LOG( kPacket.m_uiGarenaUID )
 		;
 	//////////////////////////////////////////////////////////////////////////
@@ -174,7 +174,7 @@ bool KGarenaBillingPacket::Write( const KEJSON_GN_CHECK_ACCOUNT_ACK& kPacket )
 	m_ulPacketLength = /*HEADER_SIZE_NGMT + */m_strPacketContent.size();
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[테스트로그] 패킷 생성 성공! 패킷 내용을 보자!" )
+	START_LOG( cwarn, L"패킷 생성 성공! 패킷 내용을 보자!" )
 		<< BUILD_LOGc( m_iPacketType )
 		<< BUILD_LOG( m_ulPacketLength )
 		//<< BUILD_LOG( strResult.size() )
@@ -208,7 +208,7 @@ bool KGarenaBillingPacket::Read( KEJSON_GN_CHANGE_GAME_CURRENCY_REQ& kPacket )
 
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[테스트로그] 캐쉬 전환 파싱!" )
+	START_LOG( cwarn, L"캐쉬 전환 파싱!" )
 		<< BUILD_LOG( kPacket.m_uiGameCurrency_Amount )
 		<< BUILD_LOG( kPacket.m_uiShell_Amount )
 		<< BUILD_LOG( kPacket.m_uiGarenaUID )
@@ -256,7 +256,7 @@ bool KGarenaBillingPacket::Write( const KEJSON_GN_CHANGE_GAME_CURRENCY_ACK& kPac
 	m_ulPacketLength = /*HEADER_SIZE_NGMT + */m_strPacketContent.size();
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[테스트로그] 패킷 생성 성공! 패킷 내용을 보자!" )
+	START_LOG( cwarn, L"패킷 생성 성공! 패킷 내용을 보자!" )
 		<< BUILD_LOGc( m_iPacketType )
 		<< BUILD_LOG( m_ulPacketLength )
 		//<< BUILD_LOG( strResult.size() )
@@ -287,7 +287,7 @@ bool KGarenaBillingPacket::Read( KEJSON_GN_TRANSACTION_REQ& kPacket )
 	kPacket.m_strGarenaTransactionID		= root["data"].get( "garena_txnid", "" ).asString();
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[테스트로그] 전환 실패 로그 전달!" )
+	START_LOG( cwarn, L"전환 실패 로그 전달!" )
 		<< BUILD_LOG( kPacket.m_uiGarenaUID )
 		<< BUILD_LOG( kPacket.m_strGarenaTransactionID )
 		;
@@ -333,7 +333,7 @@ bool KGarenaBillingPacket::Write( const KEJSON_GN_TRANSACTION_ACK& kPacket )
 	m_ulPacketLength = /*HEADER_SIZE_NGMT + */m_strPacketContent.size();
 
 	//////////////////////////////////////////////////////////////////////////
-	START_LOG( cout, L"[테스트로그] 패킷 생성 성공! 패킷 내용을 보자!" )
+	START_LOG( cwarn, L"패킷 생성 성공! 패킷 내용을 보자!" )
 		<< BUILD_LOGc( m_iPacketType )
 		<< BUILD_LOG( m_ulPacketLength )
 		//<< BUILD_LOG( strResult.size() )

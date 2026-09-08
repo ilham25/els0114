@@ -230,8 +230,14 @@ void KThreadStatisticsManager::QueueingEventID( unsigned short usEventID )
 int KThreadStatisticsManager::GetCurLocalTime()
 {
 	time_t t0 = time(0);
+#ifdef _CONVERT_VS_2010
+	tm t;
+	localtime_s(&t, &t0);
+	int iCurTime = t.tm_year * 365 * 24 * 60 + t.tm_yday * 24 * 60 + t.tm_hour * 60 + t.tm_min;
+#else
 	tm* t = localtime(&t0);
 	int iCurTime = t->tm_year * 365 * 24 * 60 + t->tm_yday * 24 * 60 + t->tm_hour * 60 + t->tm_min;
+#endif _CONVERT_VS_2010
 
 	return iCurTime;
 }
@@ -478,9 +484,9 @@ void KThreadStatisticsManager::BackUpAndSendFTPLocalLog( bool bSendFileFtp )
 	KApplyAllFiles( KSendLocalLog( kLogReporter, L"SI_LOG_ABUSER_MORNITORING" ) );
 #endif SERV_AUTO_HACK_CHECK_GET_ITEM
 	//}}
-#ifdef SERV_WATCH_LOG
-	KApplyAllFiles( KSendLocalLog( kLogReporter, L"SI_LOG_WATCH" ) );
-#endif //SERV_WATCH_LOG
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET
+	KApplyAllFiles( KSendLocalLog( kLogReporter, L"SI_LOG_UNDEFINED_QUEST_TEMPLET" ) );
+#endif // SERV_LOG_UNDEFINED_QUEST_TEMPLET
 
 	if ( CheckStatistics( KStatistics::SI_LOC_PVP ) == true )
 		kLogReporter.InsertFile( L"Statistics\\SI_LOG_PVP.txt", ostmPvp.str().c_str() );
@@ -569,8 +575,18 @@ void KThreadStatisticsManager::BackUpSendFTPFiles( const std::vector< KLogReport
 void KThreadStatisticsManager::AttachTimeTag( std::wostringstream& os )
 {
 	time_t t0 = time(0);
+#ifdef _CONVERT_VS_2010
+	tm t;
+	localtime_s(&t, &t0);
+	os
+		<< L"_["
+		<< 1900 + t.tm_year	<< L"_"
+		<< t.tm_mon + 1		<< L"_"
+		<< t.tm_mday		<< L"_"
+		<< t.tm_hour		<< L"_"
+		<< t.tm_min			<< L"]";
+#else
 	tm* t = localtime(&t0);
-
 	os
 		<< L"_["
 		<< 1900 + t->tm_year	<< L"_"
@@ -578,6 +594,7 @@ void KThreadStatisticsManager::AttachTimeTag( std::wostringstream& os )
 		<< t->tm_mday			<< L"_"
 		<< t->tm_hour			<< L"_"
 		<< t->tm_min			<< L"]";
+#endif _CONVERT_VS_2010
 }
 
 void KThreadStatisticsManager::AttachSvnameTag( std::wostringstream& os )
@@ -627,7 +644,12 @@ void KThreadStatisticsManager::UpdateFlushLocalLog()
 		return;
 
 	time_t t0 = time(0);
+#ifdef _CONVERT_VS_2010
+	tm t;
+	localtime_s(&t, &t0);
+#else
 	tm* t = localtime(&t0);
+#endif _CONVERT_VS_2010
 
 	int iCurTime = GetCurLocalTime();
 
@@ -649,8 +671,13 @@ void KThreadStatisticsManager::UpdateFlushLocalLog()
 	}
 
 	// 스케쥴러, 4시에 전송, 타입 갭이 2시간 이상일 경우
+#ifdef _CONVERT_VS_2010
+	if ( t.tm_hour == 4 && 
+		iCurTime - m_iLocalLogLastUpdateTime >= 2 * 60 )
+#else
 	if ( t->tm_hour == 4 && 
 		iCurTime - m_iLocalLogLastUpdateTime >= 2 * 60 )
+#endif _CONVERT_VS_2010
 	{
 		OnFlushLocalLog();
 

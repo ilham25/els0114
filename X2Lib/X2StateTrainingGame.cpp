@@ -25,6 +25,9 @@
 #ifdef NEW_CHARACTER_EL
 #include "./X2GUEl.h"
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+#include "./X2GUAdd.h"
+#endif //SERV_9TH_NEW_CHARACTER
 
 
 #endif REDUCED_PRECOMPILED_HEADER_TEST
@@ -64,7 +67,7 @@ m_bSend_EGS_END_TC_GAME_REQ(false)
 			g_pKTDXApp->GetDGManager()->AddObjectChain( m_pUINPC );
 			m_pUINPC->SetShowObject( true );
 			m_pUINPC->SetCameIn( true );
-			m_pUINPC->StateChange( L"LOW_TRAINING_IN" );
+			m_pUINPC->StateChange( "LOW_TRAINING_IN" );
 			m_pUINPC->SetLayer( XL_MINIMAP );
 		}
 	}
@@ -159,29 +162,10 @@ bool CX2StateTrainingGame::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			case STGUCM_NPC_TYPE:
 				{
 					CKTDGUIComboBox* pCombo = (CKTDGUIComboBox*)lParam;
-#ifdef ADD_TRAININGGAME_NPC
 					CX2UnitManager::NPC_UNIT_ID iNpcID = pDungeonGame->GetTrainingGameUI()->GetNpcIdByIndex( pCombo->GetSelectedItemIndex() );
 					pDungeonGame->KillNPC( pDungeonGame->GetTrainingGameUI()->GetFTNPCID(), 100 );
 
-					pDungeonGame->GetTrainingGameUI()->SetFTNPCID( iNpcID );		
-
-#else //ADD_TRAININGGAME_NPC
-					switch( pCombo->GetSelectedItemIndex() )
-					{
-					default:
-					case 0:
-						{
-							pDungeonGame->GetTrainingGameUI()->SetFTNPCID( CX2UnitManager::NUI_MUSHROOM_WOODEN );
-							pDungeonGame->KillNPC( CX2UnitManager::NUI_BEEHOUSE, 100 );
-						} break;
-						//case 1:
-						//	{
-						//		pDungeonGame->GetTrainingGameUI()->SetFTNPCID( CX2UnitManager::NUI_BEEHOUSE );
-						//		pDungeonGame->KillNPC( CX2UnitManager::NUI_MUSHROOM_WOODEN, 100 );
-						//	} break;
-					}
-					return true;
-#endif //ADD_TRAININGGAME_NPC
+					pDungeonGame->GetTrainingGameUI()->SetFTNPCID( iNpcID );
 				} break;
 
 			case STGUCM_NPC_COUNT:
@@ -196,13 +180,9 @@ bool CX2StateTrainingGame::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			case STGUCM_NPC_LEVEL:
 				{
 					CKTDGUIComboBox* pCombo = (CKTDGUIComboBox*)lParam;
-#ifdef ADD_TRAININGGAME_NPC
 					int iLevel = g_pData->GetSelectUnitLevel();
 					iLevel += (pCombo->GetSelectedItemIndex() - 10);
 					pDungeonGame->GetTrainingGameUI()->SetFTNPCLevel( iLevel );
-#else
-					pDungeonGame->GetTrainingGameUI()->SetFTNPCLevel( pCombo->GetSelectedItemIndex()+1 );
-#endif
 					return true;
 				} break;
 
@@ -445,8 +425,8 @@ bool CX2StateTrainingGame::Handler_EGS_END_TC_GAME_ACK( HWND hWnd, UINT uMsg, WP
 
 			if( true == kEvent.m_bIsSuccess )
 			{
-				int iEDDifference = kEvent.m_kUnitInfo.m_iED - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
-				int iEXPDifference = kEvent.m_kUnitInfo.m_iEXP - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP;
+				int iEDDifference = kEvent.m_kUnitInfo.m_iED - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
+				int iEXPDifference = kEvent.m_kUnitInfo.m_iEXP - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP;
 
 				g_pMain->SetTrainingRewardED( iEDDifference );
 				g_pMain->SetTrainingRewardEXP( iEXPDifference );
@@ -619,12 +599,10 @@ void CX2StateTrainingGame::ResetUnit()
 			iCount += 1;
 		}
 	}
-#ifdef ADD_TRAININGGAME_NPC
 	else
 	{
 		pDungeonGame->KillNPC( pDungeonGame->GetTrainingGameUI()->GetFTNPCID(), 100 );
 	}
-#endif
 
 	g_pX2Game->PauseNPCAI( 5.f );
 }

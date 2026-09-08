@@ -105,9 +105,9 @@ HRESULT CX2WorldLayer::OnFrameMove( double fTime, float fElapsedTime )
  #endif
 	
 #if 0
-    D3DXVECTOR3 nowPos = g_pKTDXApp->GetDGManager()->GetCamera()->GetEye();
+    D3DXVECTOR3 nowPos = g_pKTDXApp->GetDGManager()->GetCamera().GetEye();
 #else
-    D3DXVECTOR3 nowPos = g_pKTDXApp->GetDGManager()->GetCamera()->GetLookAt(); // GetEye();
+    D3DXVECTOR3 nowPos = g_pKTDXApp->GetDGManager()->GetCamera().GetLookAt(); // GetEye();
 #endif
        
 
@@ -221,9 +221,9 @@ void CX2WorldLayer::SetPos(float x, float y, float wx, float wy)
 #endif
 
 #if 0
-    m_prePos = g_pKTDXApp->GetDGManager()->GetCamera()->GetEye();
+    m_prePos = g_pKTDXApp->GetDGManager()->GetCamera().GetEye();
 #else
-    m_prePos = g_pKTDXApp->GetDGManager()->GetCamera()->GetLookAt();
+    m_prePos = g_pKTDXApp->GetDGManager()->GetCamera().GetLookAt();
 #endif
 }
 

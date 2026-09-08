@@ -344,7 +344,7 @@ IMPL_ON_FUNC( EBILL_LOGIN_ACCOUNT_USER_OFFLINE_GN_ACCOUNT_CHECK_ACK )
 		kPacket.m_uiGarenaUID = kPacket_.m_uiPublisherUID;
 		kPacket.m_iSessionUID = kPacket_.m_iSessionUID;
 
-		START_LOG( cerr, L"Garena에서 계정 조회 요청 들어 왔는데 우리한테 없는 유저다!!" )
+		START_LOG( cwarn, L"Garena에서 계정 조회 요청 들어 왔는데 우리한테 없는 유저다!!" )
 			<< BUILD_LOG( kPacket_.m_uiPublisherUID)
 			<< END_LOG;
 

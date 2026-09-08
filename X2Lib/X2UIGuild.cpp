@@ -178,7 +178,7 @@ bool	CX2UIGuild::SetShowChangeGradeMenu( bool bEnable, int iTargetGrade )
 {
 	if( bEnable == true )
 	{
-		int iMyGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
+		int iMyGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
 
 		//if( iGrade > 2 || iGrade == 0 ) //	길드 관리자, 마스터인지 검사
 		if( iMyGrade != CX2GuildManager::GUG_MASTER && iMyGrade != CX2GuildManager::GUG_SYSOP )
@@ -899,7 +899,7 @@ void		CX2UIGuild::UpdateGuildMemberInfo( const KEGS_GET_GUILD_USER_LIST_ACK &kEv
 		//wsprintfW( wszDeleteControl, L"BTN_DeleteIntroduce%02d", i+1 );
 		StringCchPrintf( wszDeleteControl, 50, L"BTN_DeleteIntroduce%02d", i+1 );
 
-		int		iMyGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
+		int		iMyGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
 		UidType iMyUID = g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 
 		//	길드말 삭제 버튼 보이기, 가리기

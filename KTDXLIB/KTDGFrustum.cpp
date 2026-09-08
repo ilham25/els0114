@@ -96,19 +96,9 @@ bool CKTDGFrustum::Construct( float ZDistance )
 	return true;
 }
 
-bool CKTDGFrustum::CheckPoint(float XPos, float YPos, float ZPos)
-{
-	// Make sure point is in frustum
-	for( int i = 0; i < 6; i++ ) 
-	{
-		if(D3DXPlaneDotCoord(&m_Planes[i], &D3DXVECTOR3(XPos, YPos, ZPos)) < 0.0f)
-			return false;
-	}
 
-	return true;
-}
 
-bool CKTDGFrustum::CheckCube(float XCenter, float YCenter, float ZCenter, float Size)
+bool CKTDGFrustum::CheckCube(float XCenter, float YCenter, float ZCenter, float Size) const
 {
 	// Make sure at least one point is completely in frustum
 	for( int i = 0; i < 6; i++ )
@@ -135,7 +125,7 @@ bool CKTDGFrustum::CheckCube(float XCenter, float YCenter, float ZCenter, float 
 	return true;
 }
 
-bool CKTDGFrustum::CheckRectangle(float XCenter, float YCenter, float ZCenter, float XSize, float YSize, float ZSize)
+bool CKTDGFrustum::CheckRectangle(float XCenter, float YCenter, float ZCenter, float XSize, float YSize, float ZSize) const
 {
 	// Make sure at least one point is in frustum
 	for( int i = 0; i < 6; i++ ) 

@@ -191,6 +191,75 @@ bool KCnGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 
 		//////////////////////////////////////////////////////////////////////////		
 		// 소켓 정보가 존재한다면 역시 DB에 insert하자!
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-12-11	// 박세훈
+		{
+			bool bNeedSocketInfoDBUpdate = false;
+
+			if( 0 < kNewItemInfo.m_byteExpandedSocketNum )
+			{
+				bNeedSocketInfoDBUpdate = true;
+			}
+			else if( kNewItemInfo.m_vecItemSocket.empty() == false )
+			{
+				for( std::vector<int>::const_iterator it = kNewItemInfo.m_vecItemSocket.begin(); it != kNewItemInfo.m_vecItemSocket.end(); ++it )
+				{
+					if( 0 < *it )
+					{
+						bNeedSocketInfoDBUpdate = true;
+						break;
+					}
+				}
+			}
+
+			if( bNeedSocketInfoDBUpdate == true )
+			{
+				const byte byteArraySize = 5;
+				int arrSocketInfo[byteArraySize]; // DB 테이블의 소켓테이블 참고
+				memset( arrSocketInfo, 0, sizeof(int) * byteArraySize );
+
+				std::vector<int>::const_iterator it = kNewItemInfo.m_vecItemSocket.begin();
+				for( int i = 0; i < byteArraySize; ++i )
+				{
+					if( it == kNewItemInfo.m_vecItemSocket.end() )
+						continue;
+
+					arrSocketInfo[i] = *it;
+					++it;
+				}
+
+				DO_QUERY( L"exec dbo.P_GItemSocket_SET", L"%d, %d, %d, %d, %d, %d, %d, %d",
+					% iUnitUID					// @iUnitUID bigint
+					% iItemUID		            // @iItemUID bigint
+					% arrSocketInfo[0]			// @iSoket1 smallint
+					% arrSocketInfo[1]			// @iSoket2 smallint
+					% arrSocketInfo[2]			// @iSoket3 smallint
+					% arrSocketInfo[3]			// @iSoket4 smallint
+					% arrSocketInfo[4]			// @iSoket5 smallint
+					% kNewItemInfo.m_byteExpandedSocketNum
+					);
+
+				if( m_kODBC.BeginFetch() )
+				{
+					FETCH_DATA( iOK );
+					m_kODBC.EndFetch();
+				}
+
+				if( iOK != NetError::NET_OK )
+				{
+					START_LOG( cerr, L"아이템 소켓 정보 업데이트 실패." )
+						<< BUILD_LOG( iOK )
+						<< BUILD_LOG( iUnitUID )
+						<< BUILD_LOG( iItemUID )
+						<< BUILD_LOG( arrSocketInfo[0] )
+						<< BUILD_LOG( arrSocketInfo[1] )
+						<< BUILD_LOG( arrSocketInfo[2] )
+						<< BUILD_LOG( arrSocketInfo[3] )
+						<< BUILD_LOG( arrSocketInfo[4] )
+						<< END_LOG;
+				}
+			}
+		}
+#else // SERV_BATTLE_FIELD_BOSS
 		if( kNewItemInfo.m_vecItemSocket.empty() == false )
 		{
 			bool bSocketExist = false;
@@ -240,6 +309,7 @@ bool KCnGameDBThread::Query_InsertItemList( IN const SEnum::GET_ITEM_REASON eGet
 					}
 			}
 		}
+#endif // SERV_BATTLE_FIELD_BOSS
 
 		// 생성되는 아이템 정보를 모두 DB에 insert하였으므로 컨테이너에도 넣자!
 		mapInsertedItemInfo.insert( std::make_pair( iItemUID, kNewItemInfoResult ) );

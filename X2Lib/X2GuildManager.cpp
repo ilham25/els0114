@@ -143,7 +143,7 @@ bool CX2GuildManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 				} 
 				//변경 가능 여부 확인
 				if ( true == g_pData->GetGuildManager()->DidJoinGuild()
-					&&  CX2GuildManager::GUG_MASTER == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade )
+					&&  CX2GuildManager::GUG_MASTER == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade )
 				{ 
 					Handler_EGS_CHANGE_GUILD_NAME_CHECK_REQ( wstrGuildName.c_str() );
 				} 
@@ -342,11 +342,10 @@ bool CX2GuildManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 	case GUM_GUILD_INFO_LEAVE_BUTTON:	// 길드 탈퇴
 		{
 			if ( g_pData->GetMyUser() == NULL ||
-				 g_pData->GetMyUser()->GetSelectUnit() == NULL ||
-				 g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
+				 g_pData->GetMyUser()->GetSelectUnit() == NULL )
 				 return false;
 
-			GUILD_USER_GRADE eMyGrade = static_cast< GUILD_USER_GRADE >( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade );
+			GUILD_USER_GRADE eMyGrade = static_cast< GUILD_USER_GRADE >( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade );
 
 
 			switch ( eMyGrade )
@@ -385,12 +384,8 @@ bool CX2GuildManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 		break;
 	case GUM_GUILD_INFO_CHANGE_MESSAGE_BUTTON:	// 길드 메시지 변경 버튼
 		{
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+			const CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
-			if( pUnitData == NULL )
-			{
-				return false;
-			}
 
 			if( pUnitData->m_byMemberShipGrade == GUG_MASTER ||	pUnitData->m_byMemberShipGrade == GUG_SYSOP )
 			{
@@ -480,11 +475,10 @@ bool CX2GuildManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 	case GUM_GUILD_INFO_DESTROY_BUTTON:
 		{
 			if ( g_pData->GetMyUser() == NULL ||
-				 g_pData->GetMyUser()->GetSelectUnit() == NULL ||
-				 g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
+				 g_pData->GetMyUser()->GetSelectUnit() == NULL )
 				 return false;
 
-			if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade !=
+			if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade !=
 				 GUG_MASTER )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_4585 ) , g_pMain->GetNowState() );
@@ -1010,19 +1004,18 @@ bool	CX2GuildManager::Handler_EGS_CREATE_GUILD_ACK( HWND hWnd, UINT uMsg, WPARAM
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 			if ( g_pData->GetMyUser() == NULL ||
-				g_pData->GetMyUser()->GetSelectUnit() == NULL ||
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
+				g_pData->GetMyUser()->GetSelectUnit() == NULL )
 				return false;
 
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade = GUG_MASTER;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_byMemberShipGrade = GUG_MASTER;
 
 			//	길드 생성 완료
 			SetGuildInfo( kEvent.m_kGuildInfo );
 
 			//	인벤토리 갱신
-			CX2Inventory* pInven = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+			CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 			//	아이템 업데이트
-			pInven->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			kInventory.UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 			g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
 			//	다이얼로그 닫기
@@ -1059,21 +1052,21 @@ bool	CX2GuildManager::Handler_EGS_GUILD_INFO_NOT( HWND hWnd, UINT uMsg, WPARAM w
 	
 	if ( NULL != pUnit )
 	{
-		pUnit->GetUnitData()->m_UserSkillTree.SetGuildClass(0);
-		pUnit->GetUnitData()->m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_kGuildSkillInfo.m_vecGuildSkill ); // 함수 임시 변경
+		pUnit->AccessUnitData().m_UserSkillTree.SetGuildClass(0);
+		pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_kGuildSkillInfo.m_vecGuildSkill ); // 함수 임시 변경
 	
 		// oasis907 : 김상윤 [2009.11.27] // 길드 스킬 포인트, 캐시 스킬 포인트 SET
-		pUnit->GetUnitData()->m_iGuildSPoint = kEvent.m_kGuildSkillInfo.m_iGuildSPoint;
-		pUnit->GetUnitData()->m_iGuildCSPoint = kEvent.m_kGuildSkillInfo.m_iGuildCSPoint;
-		pUnit->GetUnitData()->m_iMaxGuildCSPoint = kEvent.m_kGuildSkillInfo.m_iMaxGuildCSPoint;
-		pUnit->GetUnitData()->m_wstrGuildCSPointEndDate = kEvent.m_kGuildSkillInfo.m_wstrGuildCSPointEndDate;
+		pUnit->AccessUnitData().m_iGuildSPoint = kEvent.m_kGuildSkillInfo.m_iGuildSPoint;
+		pUnit->AccessUnitData().m_iGuildCSPoint = kEvent.m_kGuildSkillInfo.m_iGuildCSPoint;
+		pUnit->AccessUnitData().m_iMaxGuildCSPoint = kEvent.m_kGuildSkillInfo.m_iMaxGuildCSPoint;
+		pUnit->AccessUnitData().m_wstrGuildCSPointEndDate = kEvent.m_kGuildSkillInfo.m_wstrGuildCSPointEndDate;
 	}
 
 	// oasis907 : 김상윤 [2009.12.3] // 그노시스 대축복 남은 기간 표시
 	if(kEvent.m_kGuildSkillInfo.m_iMaxGuildCSPoint > 0 )
 	{
 		wstring wstr = L"";
-		wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrGuildCSPointEndDate, g_pData->GetServerCurrentTime() );
+		wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrGuildCSPointEndDate, g_pData->GetServerCurrentTime() );
 
 		g_pChatBox->AddChatLog( GET_REPLACED_STRING( ( STR_ID_4800, "L", wstr ) ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 	}
@@ -1082,9 +1075,8 @@ bool	CX2GuildManager::Handler_EGS_GUILD_INFO_NOT( HWND hWnd, UINT uMsg, WPARAM w
 #endif GUILD_SKILL
 
 	//	UnitData에 길드명 추가
-	if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
 	{
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrGuildName = kEvent.m_kGuildInfo.m_wstrGuildName.c_str();
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_wstrGuildName = kEvent.m_kGuildInfo.m_wstrGuildName.c_str();
 	}
 
 	return true;
@@ -1151,8 +1143,7 @@ bool	CX2GuildManager::Handler_EGS_GUILD_MESSAGE_NOT( HWND hWnd, UINT uMsg, WPARA
 			g_pChatBox->AddChatLog( GET_REPLACED_STRING( ( STR_ID_4529, "L", kEvent.m_wstrNickName ) ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 
 			if ( g_pData->GetMyUser() == NULL ||
-				 g_pData->GetMyUser()->GetSelectUnit() == NULL ||
-				 g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
+				 g_pData->GetMyUser()->GetSelectUnit() == NULL )
 			{
 				ASSERT( !L"Wrong!" );
 				return false;
@@ -1160,7 +1151,7 @@ bool	CX2GuildManager::Handler_EGS_GUILD_MESSAGE_NOT( HWND hWnd, UINT uMsg, WPARA
 
 			if ( g_pData->GetMyUser()->GetSelectUnit()->GetUID() == kEvent.m_iUnitUID )
 			{
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade = static_cast<BYTE>(kEvent.m_iMessageData);
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_byMemberShipGrade = static_cast<BYTE>(kEvent.m_iMessageData);
 			}
 
 			UpdateNowNumOfGuildMember( kEvent.m_iUnitUID );
@@ -1179,10 +1170,9 @@ bool	CX2GuildManager::Handler_EGS_GUILD_MESSAGE_NOT( HWND hWnd, UINT uMsg, WPARA
 
 			if ( g_pData->GetMyUser() != NULL &&
 				g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL &&
 				g_pData->GetMyUser()->GetSelectUnit()->GetUID() == kEvent.m_iUnitUID )
 			{
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade = static_cast<BYTE>(kEvent.m_iMessageData);
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_byMemberShipGrade = static_cast<BYTE>(kEvent.m_iMessageData);
 			}
 
 			g_pChatBox->AddChatLog( wszMsg.c_str(), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
@@ -1331,9 +1321,9 @@ bool	CX2GuildManager::Handler_EGS_GUILD_MESSAGE_NOT( HWND hWnd, UINT uMsg, WPARA
 #ifdef GUILD_SKILL
 			// oasis907 : 김상윤 [2009.12.8] // kEvent.m_iMessageData2 새로운 GuildSPoint
 			CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
-			int iDifference = kEvent.m_iMessageData2 - (pUnit->GetUnitData()->m_iGuildSPoint);
+			int iDifference = kEvent.m_iMessageData2 - (pUnit->GetUnitData().m_iGuildSPoint);
 
-			pUnit->GetUnitData()->m_iGuildSPoint = kEvent.m_iMessageData2;
+			pUnit->AccessUnitData().m_iGuildSPoint = kEvent.m_iMessageData2;
 
 			iDifference = 1; // 임시
 			// oasis907 : 김상윤 [2009.12.3] // 길드 스킬 포인트 상승 알림
@@ -1370,11 +1360,11 @@ bool	CX2GuildManager::Handler_EGS_GUILD_MESSAGE_NOT( HWND hWnd, UINT uMsg, WPARA
 			// oasis907 : 김상윤 [2009.12.2] //
 			CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
 
-			int iDifference = kEvent.m_iMessageData - (pUnit->GetUnitData()->m_iGuildCSPoint);
+			int iDifference = kEvent.m_iMessageData - (pUnit->GetUnitData().m_iGuildCSPoint);
 
-			pUnit->GetUnitData()->m_iGuildCSPoint = kEvent.m_iMessageData; // 현재 CSP 보유량
-			pUnit->GetUnitData()->m_iMaxGuildCSPoint = kEvent.m_iMessageData2; // 그노시스 대축복 사용 CSP 증가량
-			pUnit->GetUnitData()->m_wstrGuildCSPointEndDate = kEvent.m_wstrMessage; // CSP 만료일
+			pUnit->AccessUnitData().m_iGuildCSPoint = kEvent.m_iMessageData; // 현재 CSP 보유량
+			pUnit->AccessUnitData().m_iMaxGuildCSPoint = kEvent.m_iMessageData2; // 그노시스 대축복 사용 CSP 증가량
+			pUnit->AccessUnitData().m_wstrGuildCSPointEndDate = kEvent.m_wstrMessage; // CSP 만료일
 
 			// oasis907 : 김상윤 [2009.12.3] // 그노시스 대축복 사용 CSP 증가 알림
 	
@@ -1385,13 +1375,13 @@ bool	CX2GuildManager::Handler_EGS_GUILD_MESSAGE_NOT( HWND hWnd, UINT uMsg, WPARA
 
 			// oasis907 : 김상윤 [2009.12.3] // 그노시스 대축복 남은 기간 표시
 			wstring wstr = L"";
-			wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrGuildCSPointEndDate, g_pData->GetServerCurrentTime() );
+			wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrGuildCSPointEndDate, g_pData->GetServerCurrentTime() );
 	
 			g_pChatBox->AddChatLog( GET_REPLACED_STRING( ( STR_ID_4800, "L", wstr ) ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 
 
 			//{{ oasis907 : 김상윤 [2009.11.19] // 길드마스터의 경우 메시지 박스 생성
-			if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade == CX2GuildManager::GUG_MASTER)
+			if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade == CX2GuildManager::GUG_MASTER)
 			{
 				//g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(300, 250), GET_REPLACED_STRING( ( STR_ID_4799, "i", kEvent.m_iMessageData2) ), g_pMain->GetNowState() );
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(300, 250), GET_REPLACED_STRING( ( STR_ID_4799, "i", iDifference) ), g_pMain->GetNowState() );
@@ -1567,7 +1557,6 @@ bool	CX2GuildManager::Handler_EGS_INVITE_GUILD_ACK( HWND hWnd, UINT uMsg, WPARAM
 				break;
 			}
 #endif SERVER_GROUP_UI_ADVANCED
-			
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300), GET_REPLACED_STRING( ( STR_ID_5132, "L", wstrServerName ) ), g_pMain->GetNowState() );
 			return true;
 		}
@@ -1923,9 +1912,8 @@ bool	CX2GuildManager::Handler_EGS_JOIN_GUILD_SUCCESS_NOT( HWND hWnd, UINT uMsg, 
 	SetGuildInfo( kEvent );
 
 	//	UnitData에 길드명 추가
-	if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
 	{
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrGuildName = kEvent.m_kGuildInfo.m_wstrGuildName.c_str();
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_wstrGuildName = kEvent.m_kGuildInfo.m_wstrGuildName.c_str();
 	}
 
 	// 길드탭이 열렸을 경우에
@@ -1938,20 +1926,20 @@ bool	CX2GuildManager::Handler_EGS_JOIN_GUILD_SUCCESS_NOT( HWND hWnd, UINT uMsg, 
 #ifdef GUILD_SKILL
 	// oasis907 : 김상윤 [2009.12.4] // 길드 가입시
 	CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
-	pUnit->GetUnitData()->m_UserSkillTree.SetGuildClass(0);
-	pUnit->GetUnitData()->m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_kGuildSkillInfo.m_vecGuildSkill );
+	pUnit->AccessUnitData().m_UserSkillTree.SetGuildClass(0);
+	pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_kGuildSkillInfo.m_vecGuildSkill );
 
 	// oasis907 : 김상윤 [2009.11.27] // 길드 스킬 포인트, 캐시 스킬 포인트 SET
-	pUnit->GetUnitData()->m_iGuildSPoint = kEvent.m_kGuildSkillInfo.m_iGuildSPoint;
-	pUnit->GetUnitData()->m_iGuildCSPoint = kEvent.m_kGuildSkillInfo.m_iGuildCSPoint;
-	pUnit->GetUnitData()->m_iMaxGuildCSPoint = kEvent.m_kGuildSkillInfo.m_iMaxGuildCSPoint;
-	pUnit->GetUnitData()->m_wstrGuildCSPointEndDate = kEvent.m_kGuildSkillInfo.m_wstrGuildCSPointEndDate;
+	pUnit->AccessUnitData().m_iGuildSPoint = kEvent.m_kGuildSkillInfo.m_iGuildSPoint;
+	pUnit->AccessUnitData().m_iGuildCSPoint = kEvent.m_kGuildSkillInfo.m_iGuildCSPoint;
+	pUnit->AccessUnitData().m_iMaxGuildCSPoint = kEvent.m_kGuildSkillInfo.m_iMaxGuildCSPoint;
+	pUnit->AccessUnitData().m_wstrGuildCSPointEndDate = kEvent.m_kGuildSkillInfo.m_wstrGuildCSPointEndDate;
 
 	// oasis907 : 김상윤 [2009.12.3] // 그노시스 대축복 남은 기간 표시
 	if(kEvent.m_kGuildSkillInfo.m_iMaxGuildCSPoint > 0 )
 	{
 		wstring wstr = L"";
-		wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrGuildCSPointEndDate, g_pData->GetServerCurrentTime() );
+		wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrGuildCSPointEndDate, g_pData->GetServerCurrentTime() );
 
 		g_pChatBox->AddChatLog( GET_REPLACED_STRING( ( STR_ID_4800, "L", wstr ) ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 
@@ -1984,11 +1972,10 @@ bool CX2GuildManager::CanDestroyGuild() const
 bool CX2GuildManager::CanInviteMember() const
 {
 	if ( g_pData->GetMyUser() == NULL ||
-		g_pData->GetMyUser()->GetSelectUnit() == NULL ||
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
+		g_pData->GetMyUser()->GetSelectUnit() == NULL )
 		return false;
 
-	switch ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade )
+	switch ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade )
 	{
 	case GUG_MASTER:
 	case GUG_SYSOP:
@@ -2033,7 +2020,7 @@ void CX2GuildManager::UpdateNowNumOfGuildMember( UidType iUnitUID, bool bIsAdd )
 		BYTE byMaxNumOfGuildAdmin = m_pMyGuildInfo->m_byMaxNumOfGuildAdmin;
 		m_pMyGuildInfo->UpdateMaxNumOfGuildAdmin();
 
-		if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade == GUG_MASTER 
+		if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade == GUG_MASTER 
 			 && byMaxNumOfGuildAdmin != m_pMyGuildInfo->m_byMaxNumOfGuildAdmin )
 		{
 			g_pChatBox->AddChatLog( GET_REPLACED_STRING( ( STR_ID_4618, "i", static_cast< int >( m_pMyGuildInfo->m_byMaxNumOfGuildAdmin ) ) ),
@@ -2059,12 +2046,11 @@ void CX2GuildManager::SafeDeleteGuildInfo()
 
 	//	길드명 삭제, 명예 포인트 삭제
 	if( g_pData->GetMyUser() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+		g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrGuildName = L"";
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iGuildHonorPoint = 0;
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade = CX2GuildManager::GUG_INVALID;
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_wstrGuildName = L"";
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_iGuildHonorPoint = 0;
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_byMemberShipGrade = CX2GuildManager::GUG_INVALID;
 	}
 }
 
@@ -2160,29 +2146,8 @@ bool		CX2GuildManager::OpenScriptFile( const wstring wstrFileName )
 	if( true == wstrFileName.empty() )
 		return false;
 
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( wstrFileName.c_str() );
+	return g_pKTDXApp->LoadLuaTinker( wstrFileName.c_str() );
 
-	/*KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR135, strFileName.c_str() );
-
-		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR136, strFileName.c_str() );
-
-		return false;
-	}*/
-
-	return true;
 }
 
 void		CX2GuildManager::SetLimitGuildLevel_LUA( BYTE byLimitGuildLevel )
@@ -2274,7 +2239,7 @@ int	CX2GuildManager::GetNowMyGuildHonorPoint( BYTE byNowGuildLevel) const
 {
 	if ( byNowGuildLevel < GetLimitGuildLevel() )
 	{
-		return g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iGuildHonorPoint;
+		return g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iGuildHonorPoint;
 	}
 	else
 	{

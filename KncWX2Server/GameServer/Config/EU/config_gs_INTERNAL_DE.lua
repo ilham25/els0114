@@ -87,12 +87,14 @@ SimLayer:SetBillingFlag( BF_INTERNAL )
 
 -- Script File Path --
 --SimLayer:AddPath( "C:\\Servers\\INTERNAL_EU\\ServerResource" ) -- server ServerResource
-SimLayer:AddPath( "D:\\ProjectX2_SVN\\source\\EU_CN_US\\Trunk\\KncWX2Server\\ServerResource\\EU" ) -- server ServerResource
-SimLayer:AddPath( "D:\\ProjectX2_SVN\\resource\\DE\\Trunk\\dat\\Script" ) -- client script
+SimLayer:AddPath( "D:\\ProjectX2_SVN\\source\\JP_TW_EU_CN_US\\Trunk\\KncWX2Server\\ServerResource\\EU" ) -- server ServerResource
+SimLayer:AddPath( "D:\\ProjectX2_SVN\\resource\\EU\\DE\\Trunk\\dat\\Script" ) -- client script
 
 --SimLayer:AddPath( "C:\\projectx2_svn\\source\\EU\\Trunk\\KncWX2Server\\Common" ) -- server common
 --SimLayer:AddPath( "C:\\projectx2_svn\\resource\\EU\\Trunk\\dat\\Script" ) -- client script
 
+-- Server Group 수 설정 --
+SimLayer:SetServerGroupNum( 1 ) -- 서버군의 수(진입구조 개편 관련하여 필요)
 
 ----------     DB Layer 설정     ----------
 

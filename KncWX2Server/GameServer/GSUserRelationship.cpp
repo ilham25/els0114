@@ -22,6 +22,10 @@
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	#include "StringFilterManager.h"
+#endif //SERV_STRING_FILTER_USING_DB
+
 #define CLASS_TYPE      KGSUser
 
 //{{ 2013. 04. 01	 인연 시스템 - 김민성
@@ -68,7 +72,11 @@ IMPL_ON_FUNC( EGS_COUPLE_PROPOSE_REQ )
 		return;
 	}
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrUnitName ) == false )
+#else //SERV_STRING_FILTER_USING_DB
 	if( SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrUnitName ) == false )
+#endif //SERV_STRING_FILTER_USING_DB
 	{
 		KEGS_COUPLE_PROPOSE_ACK kPacket;
 		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_01;
@@ -550,6 +558,17 @@ IMPL_ON_FUNC( EGS_WEDDING_PROPOSE_REQ )
 	//////////////////////////////////////////////////////////////////////////
 	// 조건 검사
 	//////////////////////////////////////////////////////////////////////////
+#ifdef SERV_WEDING_PROPOSE_MSG_BUG_FIX
+	// 문자열 검사
+	if( KODBC::IsInvalidMarkInForLetter( kPacket_.m_wstrWeddingMsg ) )
+	{
+		KEGS_WEDDING_PROPOSE_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_ODBC_00;
+		SendPacket( EGS_WEDDING_PROPOSE_ACK, kPacket );
+		return;
+	}
+#endif // SERV_WEDING_PROPOSE_MSG_BUG_FIX
+
 	// 커플 상태인가
 	if( m_kUserRelationshipManager.IsCouple() == false )
 	{
@@ -1308,6 +1327,10 @@ IMPL_ON_FUNC( ELG_CALL_MY_LOVER_JOIN_BATTLE_FIELD_NOT )
 	kPacket.m_kBattleFieldJoinInfo.m_iBattleFieldID = kPacket_.m_iBattleFieldID;
 	kPacket.m_kBattleFieldJoinInfo.m_iStartPosIndex = kPacket_.m_LastTouchLineIndex;
 	kPacket.m_kBattleFieldJoinInfo.m_bMoveForMyParty = false;
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+    kPacket.m_kBattleFieldJoinInfo.m_bNowBattleFieldPositionInfoStartPosition = false;
+    kPacket.m_kBattleFieldJoinInfo.m_usBattleFieldPositionValue = 0;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	GetRoomUserInfo( kPacket.m_kRoomUserInfo, CXSLRoom::RT_BATTLE_FIELD );
 	GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 	m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
@@ -1777,7 +1800,6 @@ IMPL_ON_FUNC( EGS_LEAVE_WEDDING_HALL_REQ )
 
 	SendToCnRoom( ERM_LEAVE_WEDDING_HALL_REQ, kPacket_ );
 }
-
 _IMPL_ON_FUNC( ERM_LEAVE_WEDDING_HALL_ACK, KEGS_LEAVE_ROOM_ACK )
 {
 	if( kPacket_.m_iOK == NetError::NET_OK )
@@ -2188,7 +2210,7 @@ IMPL_ON_FUNC( ERM_START_WEDDING_NOT )
 			kNotify.m_cNotifyType = KEGS_NOTIFY_MSG_NOT::NT_WEDDING_SUCCESS; // 결혼 성공 알림
 			kNotify.m_Count = 1;
 #ifdef SERV_RELATIONSHIP_SYSTEM_INT
-			kNotify.m_wstrMSG = GetCharName() + L"&" + m_kUserRelationshipManager.GetLoverNickName();
+			kNotify.m_wstrMSG = GetCharName() + L" & " + m_kUserRelationshipManager.GetLoverNickName();
 #else
 			kNotify.m_wstrMSG = GetCharName() + L"님과 " + m_kUserRelationshipManager.GetLoverNickName();
 #endif SERV_RELATIONSHIP_SYSTEM_INT
@@ -2200,6 +2222,13 @@ IMPL_ON_FUNC( ERM_START_WEDDING_NOT )
 IMPL_ON_FUNC( EGS_CHANGE_LOVE_WORD_REQ )
 {
 	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		kPacket_.m_wstrNewLoveWord = SiKStringFilterManager()->FilteringNoteString( kPacket_.m_wstrNewLoveWord.c_str(), L'♡' );
+	}
+#endif //SERV_STRING_FILTER_USING_DB
 
 	// 인연 상태 확인
 	if( m_kUserRelationshipManager.GetRelationshipType() != SEnum::RT_MARRIED )

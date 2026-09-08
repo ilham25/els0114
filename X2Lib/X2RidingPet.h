@@ -40,7 +40,11 @@
 #include "./X2SoundCloseManager.h"
 
 class CX2RidingPet;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2RidingPet> CX2RidingPetPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2RidingPet> CX2RidingPetPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 #pragma region CX2RidingPet
 /** @class : CX2RidingPet
@@ -323,8 +327,8 @@ public:
 	#pragma endregion 상태 데이터
 
 	#pragma region typedef
-	typedef boost::bimaps::bimap< char, wstring > StateBiMap;				/// 기존 두 개의 맵을 사용한 것을 bimap으로 바뀜
-	typedef boost::bimaps::bimap< char, wstring >::value_type BiMapValue;	/// biMap에 접근하기 위한 값
+	typedef boost::bimaps::bimap< char, string > StateBiMap;				/// 기존 두 개의 맵을 사용한 것을 bimap으로 바뀜
+	typedef boost::bimaps::bimap< char, string >::value_type BiMapValue;	/// biMap에 접근하기 위한 값
 	typedef std::map< char, RidingPetStateData > RidingPetStateDataMap;		/// StateDataMap
 	typedef map< float, bool > EventTimeMap;								/// 이벤트 타이머 맵
 	#pragma endregion 타입 정의
@@ -338,7 +342,11 @@ public:
 
 	static CX2RidingPetPtr CreateRidingPetPtr()
 	{
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        CX2RidingPetPtr pObject( new CX2RidingPet );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		CX2RidingPetPtr pObject( new CX2RidingPet, CKTDGObject::KTDGObjectDeleter() );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		return pObject;
 	}
 
@@ -398,17 +406,17 @@ public:
 
 	CKTDGXSkinAnimPtr GetXSkinAnimFuturePtr() const { return m_pXSkinAnimFuture; }
 
-	int GetStateID( IN const WCHAR* wcState_ )
+	int GetStateID( IN const char* wcState_ )
 	{
 		if ( NULL == wcState_ )
 			return RSI_NONE;
 
-		return GetStateID( std::wstring( wcState_ ) );
+		return GetStateID( std::string( wcState_ ) );
 	}
 
-	int GetStateID( IN const std::wstring& wstrInState_ )
+	int GetStateID( IN const std::string& strInState_ )
 	{
-		StateBiMap::right_const_iterator rightIter = m_StateBiMap.right.find( wstrInState_ );
+		StateBiMap::right_const_iterator rightIter = m_StateBiMap.right.find( strInState_ );
 
 		if ( rightIter == m_StateBiMap.right.end() )
 			return RSI_END;
@@ -418,14 +426,18 @@ public:
 
 	float GetUnitWidth() { return m_ConditionData.m_fUnitWidth; }
 	float GetUnitHeight() { return m_ConditionData.m_fUnitHeight; }
-	const PhysicParam GetPhysicParam() { return m_PhysicParam; }
+	const PhysicParam& GetPhysicParam() const { return m_PhysicParam; }
 
 	void StateChangeFuture( IN int iStateID_ );
-	void StateChangeFuture( IN const WCHAR* stateName_ );
+	void StateChangeFuture( IN const char* stateName_ );
 
 	void StateChange( IN int iStateID_ );
-	void StateChange( IN const WCHAR* stateName_ );
+	void StateChange( IN const char* stateName_ );
 	void StateChange_LUA( IN const char* stateName_ );
+
+#ifdef FIX_HIT_FLY_RIDING_PET_MOTION // 김태환
+	const RidingPetCondition GetConditionData() const { return m_ConditionData; }
+#endif //FIX_HIT_FLY_RIDING_PET_MOTION
 
 #pragma endregion function
 

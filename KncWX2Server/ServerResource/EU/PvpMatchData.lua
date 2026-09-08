@@ -55,8 +55,8 @@ PvpMatchManager:AddPvpMapForMatch( WORLD_ID["WI_PEITA_OFFERING_PVP_STAGE"]			)	-
 PvpMatchManager:AddPvpMapForMatch( WORLD_ID["WI_PEITA_SPIRAL_CORRIDOR_PVP_STAGE"]	)	-- 페이타 나선회랑 대전맵
 PvpMatchManager:AddPvpMapForMatch( WORLD_ID["WI_ELDER_BRIDGE_HOPE_PVPMAP"]			)	-- 희망의 다리 대전맵
 PvpMatchManager:AddPvpMapForMatch( WORLD_ID["WI_WINTER_PVPMAP"]						)	-- 겨울 대전맵
---PvpMatchManager:AddPvpMapForMatch( WORLD_ID["WI_SANDER_GARPAI_ROCK_PVPMAP"]			)	-- 샌더 PVP 맵1
---PvpMatchManager:AddPvpMapForMatch( WORLD_ID["WI_SANDER_VILLIAGE_PVPMAP"]			)	-- 샌더 PVP 맵2
+PvpMatchManager:AddPvpMapForMatch( WORLD_ID["WI_SANDER_GARPAI_ROCK_PVPMAP"]			)	-- 샌더 PVP 맵1
+PvpMatchManager:AddPvpMapForMatch( WORLD_ID["WI_SANDER_VILLIAGE_PVPMAP"]			)	-- 샌더 PVP 맵2
 
 
 --	NPC대전 전용 맵 정보

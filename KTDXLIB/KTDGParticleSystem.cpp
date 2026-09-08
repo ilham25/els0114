@@ -2,8 +2,13 @@
 #include ".\ktdgparticlesystem.h"
 
 
-
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 CKTDGParticleSystem::CParticleEventSequenceHandle CKTDGParticleSystem::s_iNextParticleEventSequenceHandle = 0;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+ bool   CKTDGParticleSystem::ms_bParticleCullingEnabled = false;
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 
 
 //{{ robobeg : 2008-10-13
@@ -50,30 +55,56 @@ static const CKTDGStateManager::KState s_akSkinMeshRenderStates[] =
 
 
 
-CKTDGParticleSystem::CKTDGParticleSystem( LPDIRECT3DDEVICE9 pd3dDevice )
-{
+CKTDGParticleSystem::CKTDGParticleSystem( LPDIRECT3DDEVICE9 pd3dDevice
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            , unsigned char ucSystemID
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK    
+    )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    : m_coParticleSequence( SEQUENCELIST_NUM, 512 )
+    , m_coParticleList( PARTICLELIST_NUM, 2048 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-	
-	m_Offset		= 0;   
-	m_OffsetRHW		= 0;	
-	m_BatchSize		= 20; 
+{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    m_ucSystemID = ucSystemID & 0x3;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    m_bInCriticalLoop = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
+    m_vecVERTEX_PARTICLE.reserve( 1024 );
+    m_vecVERTEX_PARTICLE_RHW.reserve( 1024 );
+
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//	m_Offset		= 0;   
+//	m_OffsetRHW		= 0;	
+//	m_BatchSize		= 20; 
+//
+//	m_vbParticles		= NULL;
+//	m_vbParticlesRHW	= NULL;
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
 	m_Priority		= 0;
 	m_bEnable		= true;
 
-	m_vbParticles		= NULL;
-	m_vbParticlesRHW	= NULL;
-
-
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_InstanceSequences.reserve( 256 );
 	m_InstanceSequencesReady.reserve( 256 );
-
 	InitializeCriticalSection( &m_csParticleLock );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-	m_bUseDynamicTexture = false;
 
 
-	HRESULT hr;
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//	m_bUseDynamicTexture = false;
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
+
+//	HRESULT hr;
 	 //create vertex buffer
 
 
@@ -107,29 +138,31 @@ CKTDGParticleSystem::CKTDGParticleSystem( LPDIRECT3DDEVICE9 pd3dDevice )
 	}
 	else
 */
-	{
-		m_iVBSize		= 100;
-
-		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize * 6 * sizeof(VERTEX_PARTICLE), 
-			D3DUSAGE_WRITEONLY, 
-			D3DFVF_PARTICLE, D3DPOOL_MANAGED , 
-			&m_vbParticles, NULL ))) 
-		{
-			ErrorLogMsg( KEM_ERROR27, "Fail: CKTDGParticleSystem::CreateVertexBuffer" );
-			wcout << L"Fail: CKTDGParticleSystem::CreateVertexBuffer" << std::endl;
-			return;
-		}
-
-		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize * 6 * sizeof(VERTEX_PARTICLE_RHW), 
-			D3DUSAGE_WRITEONLY, 
-			D3DFVF_PARTICLE_RHW, D3DPOOL_MANAGED, 
-			&m_vbParticlesRHW, NULL ))) 
-		{
-			ErrorLogMsg( KEM_ERROR28, "Fail: CKTDGParticleSystem::CreateVertexBufferRHW" );
-			wcout << L"Fail: CKTDGParticleSystem::CreateVertexBufferRHW" << std::endl;
-			return;
-		}
-	}
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//	{
+//		m_iVBSize		= 100;
+//
+//		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize * 6 * sizeof(VERTEX_PARTICLE), 
+//			D3DUSAGE_WRITEONLY, 
+//			D3DFVF_PARTICLE, D3DPOOL_MANAGED , 
+//			&m_vbParticles, NULL ))) 
+//		{
+//			ErrorLogMsg( KEM_ERROR27, "Fail: CKTDGParticleSystem::CreateVertexBuffer" );
+//			wcout << L"Fail: CKTDGParticleSystem::CreateVertexBuffer" << std::endl;
+//			return;
+//		}
+//
+//		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize * 6 * sizeof(VERTEX_PARTICLE_RHW), 
+//			D3DUSAGE_WRITEONLY, 
+//			D3DFVF_PARTICLE_RHW, D3DPOOL_MANAGED, 
+//			&m_vbParticlesRHW, NULL ))) 
+//		{
+//			ErrorLogMsg( KEM_ERROR28, "Fail: CKTDGParticleSystem::CreateVertexBufferRHW" );
+//			wcout << L"Fail: CKTDGParticleSystem::CreateVertexBufferRHW" << std::endl;
+//			return;
+//		}
+//	}
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
 
 //{{ robobeg : 2008-10-13
@@ -152,24 +185,42 @@ CKTDGParticleSystem::CKTDGParticleSystem( LPDIRECT3DDEVICE9 pd3dDevice )
 
 CKTDGParticleSystem::~CKTDGParticleSystem(void)
 {
-	DestroyAllInstance();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    ASSERT( m_bInCriticalLoop == false );
+    m_bInCriticalLoop = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+	DestroyAllInstances();
 
 	map<wstring, CParticleEventSequence*>::iterator i;
 	CParticleEventSequence* pSeq;
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	EnterCriticalSection( &m_csParticleLock );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for ( i = m_TempletSequences.begin(); i != m_TempletSequences.end(); i++ )
 	{
 		pSeq = (CParticleEventSequence*)i->second;
 		SAFE_DELETE_KTDGOBJECT( pSeq );
 	}
     m_TempletSequences.clear();
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	LeaveCriticalSection( &m_csParticleLock );
-
-	SAFE_RELEASE( m_vbParticles );
-	SAFE_RELEASE( m_vbParticlesRHW );
-
 	DeleteCriticalSection( &m_csParticleLock );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    for( unsigned u = 0; u != m_coParticleList.storage_size(); u++ )
+    {
+        KParticleHandleInfo& info = m_coParticleList.data( u );
+        SAFE_DELETE( info.m_pParticle );
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//	SAFE_RELEASE( m_vbParticles );
+//	SAFE_RELEASE( m_vbParticlesRHW );
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
 }
 
 HRESULT CKTDGParticleSystem::OnFrameMove( double fTime, float fElapsedTime )
@@ -178,33 +229,47 @@ HRESULT CKTDGParticleSystem::OnFrameMove( double fTime, float fElapsedTime )
 
 	////CKTDXThread::CLocker locker( m_csParticleLock );
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    ASSERT( m_bInCriticalLoop == false );
+    m_bInCriticalLoop = true;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 
 	KTDXPROFILE_BEGIN( "m_InstanceSequences loop" );
-	if( false == m_InstanceSequences.empty() )
+	//if( false == m_InstanceSequences.empty() )
 	{
-		//for( int i=(int)m_InstanceSequences.size()-1; i>=0; i-- )
-		//{
-		//	CParticleEventSequence* pSeq = m_InstanceSequences[i];
-		//	ASSERT( NULL != pSeq );
-		//	if( NULL == pSeq )
-		//		continue;
 
-		//	if( pSeq->GetDelete() == true )
-		//	{
-		//		KTDXPROFILE_BEGIN( "delete pseq" );	
-		//		m_mapInstanceSequences.erase( pSeq->GetHandle() );
-		//		m_InstanceSequences.erase( m_InstanceSequences.begin() + i );
-		//		SAFE_DELETE( pSeq );
-		//		KTDXPROFILE_END();
-		//	}
-		//	else
-		//	{
-		//		KTDXPROFILE_BEGIN( "pSeq onframemove" );	
-		//		pSeq->OnFrameMove( fTime, fElapsedTime );
-		//		KTDXPROFILE_END();
-		//	}
-		//}
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        KSequenceHandleList::iterator iterNext;
+        KSequenceHandleList::iterator iterEnd = m_coParticleSequence.end(SEQUENCELIST_LIVE);
+        for( KSequenceHandleList::iterator iter = m_coParticleSequence.begin(SEQUENCELIST_LIVE); 
+            iter != iterEnd; 
+            iter = iterNext )
+        {
+            iterNext = iter;    ++iterNext;
+            KSequenceHandleInfo& info = *iter;
+            CParticleEventSequence* pSeq = info.m_pSequence;
+            if ( pSeq == NULL )
+            {
+                info.m_eType = SEQUENCELIST_FREE;
+                m_coParticleSequence.splice( m_coParticleSequence.begin( SEQUENCELIST_FREE ), iter );
+            }
+            else if ( pSeq->GetDelete() == true )
+            {
+				KTDXPROFILE_BEGIN( "delete pseq" );	
+                SAFE_DELETE_KTDGOBJECT( pSeq );
+                info.m_pSequence = NULL;
+                info.m_eType = SEQUENCELIST_FREE;
+                m_coParticleSequence.splice( m_coParticleSequence.begin( SEQUENCELIST_FREE ), iter );
+				KTDXPROFILE_END();
+            }
+            else
+            {
+				KTDXPROFILE_BEGIN( "pSeq onframemove" );	
+				pSeq->OnFrameMove( fTime, fElapsedTime );
+				KTDXPROFILE_END();
+            }
+        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		for( int i=0; i<(int)m_InstanceSequences.size(); i++ )
 		{
 			CParticleEventSequence* pSeq = m_InstanceSequences[i];
@@ -215,6 +280,7 @@ HRESULT CKTDGParticleSystem::OnFrameMove( double fTime, float fElapsedTime )
 			if( pSeq->GetDelete() == true )
 			{
 				KTDXPROFILE_BEGIN( "delete pseq" );	
+
 
 				m_mapInstanceSequences.erase( pSeq->GetHandle() );
 				SAFE_DELETE_KTDGOBJECT( pSeq );
@@ -230,6 +296,7 @@ HRESULT CKTDGParticleSystem::OnFrameMove( double fTime, float fElapsedTime )
 				KTDXPROFILE_END();
 			}
 		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 	KTDXPROFILE_END();
 
@@ -237,11 +304,41 @@ HRESULT CKTDGParticleSystem::OnFrameMove( double fTime, float fElapsedTime )
 
 
 	KTDXPROFILE_BEGIN( "Ready" );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_coParticleSequence.empty( SEQUENCELIST_READY ) == false )
+    {
+        KSequenceHandleList::iterator iterNext;
+        KSequenceHandleList::iterator iterEnd = m_coParticleSequence.end(SEQUENCELIST_READY);
+        for( KSequenceHandleList::iterator iter = m_coParticleSequence.begin(SEQUENCELIST_READY); 
+            iter != iterEnd; 
+            iter = iterNext )
+        {
+            iterNext = iter;    ++iterNext;
+            KSequenceHandleInfo& info = *iter;
+            if ( info.m_pSequence == NULL )
+            {
+                info.m_eType = SEQUENCELIST_FREE;
+                m_coParticleSequence.splice( m_coParticleSequence.begin( SEQUENCELIST_FREE ), iter );
+            }
+            else
+            {
+                info.m_eType = SEQUENCELIST_LIVE;
+            }
+        }
+        m_coParticleSequence.splice_list( m_coParticleSequence.end(SEQUENCELIST_LIVE), SEQUENCELIST_READY );
+    }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( false == m_InstanceSequencesReady.empty() )
 	{
 		m_InstanceSequences.insert( m_InstanceSequences.end(), m_InstanceSequencesReady.begin(), m_InstanceSequencesReady.end() );
 		m_InstanceSequencesReady.resize(0);
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    m_bInCriticalLoop = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
 	KTDXPROFILE_END();
 
 	return S_OK;
@@ -253,47 +350,50 @@ HRESULT CKTDGParticleSystem::OnFrameMove( double fTime, float fElapsedTime )
 HRESULT CKTDGParticleSystem::OnResetDevice()
 {
 
-	
-	if ( m_bUseDynamicTexture == true )
-	{
-		SAFE_RELEASE( m_vbParticles );
-		SAFE_RELEASE( m_vbParticlesRHW );
-
-		HRESULT hr;
-
-		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize * 6 * sizeof(VERTEX_PARTICLE), 
-			D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, 
-			D3DFVF_PARTICLE, D3DPOOL_DEFAULT,
-			&m_vbParticles, NULL ))) 
-		{
-			ErrorLogMsg( KEM_ERROR27, "Fail: CKTDGParticleSystem::CreateVertexBuffer" );
-			wcout << L"Fail: CKTDGParticleSystem::CreateVertexBuffer" << std::endl;
-			return hr;
-		}
-
-		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize * 6 * sizeof(VERTEX_PARTICLE_RHW), 
-			D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, 
-			D3DFVF_PARTICLE_RHW, D3DPOOL_DEFAULT, 
-			&m_vbParticlesRHW, NULL ))) 
-		{
-			ErrorLogMsg( KEM_ERROR28, "Fail: CKTDGParticleSystem::CreateVertexBufferRHW" );
-			wcout << L"Fail: CKTDGParticleSystem::CreateVertexBufferRHW" << std::endl;
-			return hr; 
-		}
-
-	}
-
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB	
+//	if ( m_bUseDynamicTexture == true )
+//	{
+//		SAFE_RELEASE( m_vbParticles );
+//		SAFE_RELEASE( m_vbParticlesRHW );
+//
+//		HRESULT hr;
+//
+//		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize * 6 * sizeof(VERTEX_PARTICLE), 
+//			D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, 
+//			D3DFVF_PARTICLE, D3DPOOL_DEFAULT,
+//			&m_vbParticles, NULL ))) 
+//		{
+//			ErrorLogMsg( KEM_ERROR27, "Fail: CKTDGParticleSystem::CreateVertexBuffer" );
+//			wcout << L"Fail: CKTDGParticleSystem::CreateVertexBuffer" << std::endl;
+//			return hr;
+//		}
+//
+//		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize * 6 * sizeof(VERTEX_PARTICLE_RHW), 
+//			D3DUSAGE_DYNAMIC | D3DUSAGE_WRITEONLY, 
+//			D3DFVF_PARTICLE_RHW, D3DPOOL_DEFAULT, 
+//			&m_vbParticlesRHW, NULL ))) 
+//		{
+//			ErrorLogMsg( KEM_ERROR28, "Fail: CKTDGParticleSystem::CreateVertexBufferRHW" );
+//			wcout << L"Fail: CKTDGParticleSystem::CreateVertexBufferRHW" << std::endl;
+//			return hr; 
+//		}
+//
+//	}
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 	
 	return S_OK;
 }
 
 HRESULT CKTDGParticleSystem::OnLostDevice()
 {
-	if ( m_bUseDynamicTexture == true )
-	{
-		SAFE_RELEASE( m_vbParticles );
-		SAFE_RELEASE( m_vbParticlesRHW );
-	}
+
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//	if ( m_bUseDynamicTexture == true )
+//	{
+//		SAFE_RELEASE( m_vbParticles );
+//		SAFE_RELEASE( m_vbParticlesRHW );
+//	}
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 	return S_OK;
 }
 
@@ -301,7 +401,7 @@ void CKTDGParticleSystem::OpenScriptFile( const WCHAR* pFilename )
 {
 	////CKTDXThread::CLocker locker( m_csParticleLock );
 
-	if( NULL == pFilename )
+	if( NULL == pFilename || pFilename[0] == NULL )
 		return;
 
 	StateLog( pFilename );	
@@ -310,45 +410,15 @@ void CKTDGParticleSystem::OpenScriptFile( const WCHAR* pFilename )
 	m_strCurrentFileName = pFilename;
 #endif //EFFECT_TOOL
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFilename );
-	if( Info == NULL )
-	{
-		string strName;
-		ConvertWCHARToChar( strName, pFilename );
-		ErrorLogMsg( KEM_ERROR29, strName.c_str() );
+    bool bRet = g_pKTDXApp->LoadAndDoMemory( this, pFilename );
+    if ( bRet == false )
+    {
+		ErrorLogMsg( KEM_ERROR29, pFilename );
 #ifdef EFFECT_TOOL
 		m_strCurrentFileName = L"";
 #endif //EFFECT_TOOL
 		return;
-	}
-
-	char* pBuffer = Info->pRealData;
-
-#ifdef _ENCRIPT_SCRIPT_
-	pBuffer = XORDecrypt( pBuffer, Info->size );
-#endif
-
-	//{{ dmlee 2008.06.13 크래시 디버깅 용도
-	{
-		if( NULL == pBuffer )
-		{
-			StateLog( "decrypted buffer is NULL" );
-		}
-		else if( NULL == Info->pRealData )
-		{
-			StateLog( "Info->pRealData is NULL" );
-		}
-	}
-	//}} dmlee 2008.06.13 크래시 디버깅 용도
-	
-#ifdef _ENCRIPT_SCRIPT_
-	Compile( pBuffer, -1 );
-	SAFE_DELETE_ARRAY( pBuffer );	 // XORDecrypt() 함수에서 할당된 메모리 해제
-#else
-	Compile( pBuffer, Info->size );
-#endif _ENCRIPT_SCRIPT_
-
+    }
 
 }
 
@@ -482,12 +552,47 @@ particle_compile_error:
 CKTDGParticleSystem::CParticleEventSequenceHandle CKTDGParticleSystem::CreateInstanceNonTemplet( CParticleEventSequence* pSeq, D3DXVECTOR3 pos, D3DXVECTOR2 emitRate, D3DXVECTOR2 trigger )
 {
 	// 핸들 등록
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( pSeq == NULL )
+        return INVALID_PARTICLE_SEQUENCE_HANDLE;
+    {
+        KSequenceHandleList::iterator iterEmpty = m_coParticleSequence.begin(SEQUENCELIST_FREE);
+        if ( iterEmpty == m_coParticleSequence.end(SEQUENCELIST_FREE) )
+        {
+            if ( m_coParticleSequence.storage_size() >= 0x10000 )
+            {
+                return INVALID_PARTICLE_SEQUENCE_HANDLE;
+            }
+            m_coParticleSequence.push_back_default(SEQUENCELIST_FREE);
+            iterEmpty = m_coParticleSequence.begin(SEQUENCELIST_FREE);
+            ASSERT( iterEmpty != m_coParticleSequence.end(SEQUENCELIST_FREE) );
+        }
+        m_coParticleSequence.splice( m_coParticleSequence.end(SEQUENCELIST_LIVE), iterEmpty );
+        iterEmpty->m_pSequence = pSeq;
+        iterEmpty->m_eType = SEQUENCELIST_LIVE;
+        WORD   wIndex = (WORD) iterEmpty.GetIndex();
+        CParticleEventSequenceHandle    handle;
+        DWORD   dwHandle = 0;
+        do
+        {
+            ++iterEmpty->m_wStamp;
+            dwHandle = ComposeHandle( wIndex, iterEmpty->m_wStamp );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            handle.SetValue( (int) dwHandle );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            handle = (int) dwHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        } while( handle == INVALID_PARTICLE_SEQUENCE_HANDLE );
+        pSeq->SetHandle( handle );
+    }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	pSeq->SetHandle( s_iNextParticleEventSequenceHandle );
 	++s_iNextParticleEventSequenceHandle;
 	if( s_iNextParticleEventSequenceHandle > INT_MAX-2 ) 
 	{
 		s_iNextParticleEventSequenceHandle = 0;
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	// 텍스쳐 리소스 로드
 	CParticleEvent* pEvent = NULL;
@@ -513,10 +618,12 @@ CKTDGParticleSystem::CParticleEventSequenceHandle CKTDGParticleSystem::CreateIns
 
 
 	// m_mapInstanceSequences 및 m_InstanceSequences에 등록하여, framemove, framerender 가능하게
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	ASSERT( m_mapInstanceSequences.find( pSeq->GetHandle() ) == m_mapInstanceSequences.end() );
 	m_mapInstanceSequences[ pSeq->GetHandle() ] = pSeq;
-
 	m_InstanceSequences.push_back( pSeq );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 
 	pSeq->SetPosition( pos );
 
@@ -576,11 +683,26 @@ CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::CreateSequence
 		return NULL;
 	}
 
+
 	map<wstring, CParticleEventSequence*>::iterator i = m_TempletSequences.find( pSequenceName );
 	if( i == m_TempletSequences.end() )
 	{
 		return NULL;
 	}
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KSequenceHandleList::iterator iterEmpty = m_coParticleSequence.begin(SEQUENCELIST_FREE);
+    if ( iterEmpty == m_coParticleSequence.end(SEQUENCELIST_FREE) )
+    {
+        if ( m_coParticleSequence.storage_size() >= 0x10000L )
+        {
+            return NULL;
+        }
+        m_coParticleSequence.push_back_default(SEQUENCELIST_FREE);
+        iterEmpty = m_coParticleSequence.begin(SEQUENCELIST_FREE);
+        ASSERT( iterEmpty != m_coParticleSequence.end(SEQUENCELIST_FREE) );
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	CParticleEventSequence* retval = i->second->GetCloneSequence();
 
@@ -590,6 +712,23 @@ CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::CreateSequence
 #endif
 
 	// handle 발급
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    iterEmpty->m_pSequence = retval;
+    WORD    wIndex = (WORD) iterEmpty.GetIndex();
+    CParticleEventSequenceHandle    handle;
+    DWORD   dwHandle = 0;
+    do
+    {
+        ++iterEmpty->m_wStamp;
+        dwHandle = ComposeHandle( wIndex, iterEmpty->m_wStamp );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle.SetValue( (int) dwHandle );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle = (int) dwHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    } while ( handle == INVALID_PARTICLE_SEQUENCE_HANDLE );
+    retval->SetHandle( handle );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	retval->SetHandle( s_iNextParticleEventSequenceHandle );
 	++s_iNextParticleEventSequenceHandle;
 	if( s_iNextParticleEventSequenceHandle > INT_MAX-2 ) 
@@ -599,7 +738,7 @@ CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::CreateSequence
 
 	ASSERT( m_mapInstanceSequences.find( retval->GetHandle() ) == m_mapInstanceSequences.end() );
 	m_mapInstanceSequences[ retval->GetHandle() ] = retval;
-
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
 
@@ -628,15 +767,28 @@ CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::CreateSequence
 #endif GIANT_UNIT_GIANT_EFFECT_TEST
 
 
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( bNextFrame == false )
+    {
+        iterEmpty->m_eType = SEQUENCELIST_LIVE;
+        m_coParticleSequence.splice( m_coParticleSequence.end(SEQUENCELIST_LIVE), iterEmpty );
+    }
+    else
+    {
+        iterEmpty->m_eType = SEQUENCELIST_READY;
+        m_coParticleSequence.splice( m_coParticleSequence.end(SEQUENCELIST_READY), iterEmpty );
+    }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( bNextFrame == false )
 	{
 		m_InstanceSequences.push_back( retval );
+        
 	}
 	else
 	{
 		m_InstanceSequencesReady.push_back( retval );
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	if( maxEmitrate != -1.0f && minEmitrate != -1.0f )
 	{
@@ -683,9 +835,64 @@ CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::CreateSequence
 
 
 
-void CKTDGParticleSystem::DestroyAllInstance()
+void CKTDGParticleSystem::DestroyAllInstances()
 {
 	//CKTDXThread::CLocker locker( m_csParticleLock );
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( IsInCriticalLoop() == true )
+    {
+        KSequenceHandleList::iterator iterEnd = m_coParticleSequence.end(SEQUENCELIST_LIVE);
+        for( KSequenceHandleList::iterator iter = m_coParticleSequence.begin(SEQUENCELIST_LIVE);
+            iter != iterEnd;
+            ++iter )
+        {
+            CParticleEventSequence* pSeq = iter->m_pSequence;
+            if ( pSeq != NULL )
+                pSeq->_SetDelete();
+        }
+        iterEnd = m_coParticleSequence.end(SEQUENCELIST_READY);
+        for( KSequenceHandleList::iterator iter = m_coParticleSequence.begin(SEQUENCELIST_READY);
+            iter != iterEnd;
+            ++iter  )
+        {
+            CParticleEventSequence* pSeq = iter->m_pSequence;
+            if ( pSeq != NULL )
+                pSeq->_SetDelete();
+        }
+    }
+    else
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    {
+        KSequenceHandleList::iterator iterNext;
+        KSequenceHandleList::iterator iterEnd = m_coParticleSequence.end(SEQUENCELIST_LIVE);
+        for( KSequenceHandleList::iterator iter = m_coParticleSequence.begin(SEQUENCELIST_LIVE);
+            iter != iterEnd;
+            iter = iterNext )
+        {
+            iterNext = iter; ++iterNext;
+            CParticleEventSequence* pSeq = iter->m_pSequence;
+            iter->m_pSequence = NULL;
+            iter->m_eType = SEQUENCELIST_FREE;
+            SAFE_DELETE_KTDGOBJECT( pSeq );
+        }
+        iterEnd = m_coParticleSequence.end(SEQUENCELIST_READY);
+        for( KSequenceHandleList::iterator iter = m_coParticleSequence.begin(SEQUENCELIST_READY);
+            iter != iterEnd;
+            iter = iterNext )
+        {
+            iterNext = iter; ++iterNext;
+            CParticleEventSequence* pSeq = iter->m_pSequence;
+            iter->m_pSequence = NULL;
+            iter->m_eType = SEQUENCELIST_FREE;
+            SAFE_DELETE_KTDGOBJECT( pSeq );
+        }
+        m_coParticleSequence.splice_list( m_coParticleSequence.begin(SEQUENCELIST_FREE), SEQUENCELIST_LIVE );
+        m_coParticleSequence.splice_list( m_coParticleSequence.begin(SEQUENCELIST_FREE), SEQUENCELIST_READY );
+    }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	for( int i = 0; i < (int)m_InstanceSequences.size(); i++ )
 	{
@@ -698,24 +905,80 @@ void CKTDGParticleSystem::DestroyAllInstance()
 		SAFE_DELETE_KTDGOBJECT( m_InstanceSequencesReady[i] );
 	}
 	m_InstanceSequencesReady.resize(0); 
-
 	m_mapInstanceSequences.clear();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+void CKTDGParticleSystem::DestroyInstance_LUA( CParticleEventSequence* pSeq )
+{
+    DestroyInstance( pSeq );
+}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+void CKTDGParticleSystem::DestroyInstance( CParticleEventSequence*& pSeq )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 void CKTDGParticleSystem::DestroyInstance( CParticleEventSequence* pSeq )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 {
 	if( pSeq == NULL )
 		return ;
 
-	CParticleEventSequenceHandle hSeq = pSeq->GetHandle();
 
+    CParticleEventSequenceHandle hSeq = pSeq->GetHandle();
+
+#ifdef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    if ( hSeq == INVALID_PARTICLE_SEQUENCE_HANDLE )
+    {
+        pSeq = NULL;
+        return;
+    }
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq.GetValue() );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        pSeq = NULL;
+        return;
+    }
+    if ( wIndex >= m_coParticleSequence.storage_size() )
+    {
+        pSeq = NULL;
+        return;
+    }
+    KSequenceHandleInfo& info = m_coParticleSequence.data( wIndex );
+    if ( info.m_pSequence != pSeq || info.m_wStamp != wStamp )
+    {
+        pSeq = NULL;
+        return;
+    }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( IsInCriticalLoop() == true )
+    {
+        pSeq->_SetDelete();
+        pSeq = NULL;
+        return;
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+    info.m_pSequence = NULL;
+    info.m_eType = SEQUENCELIST_FREE;
+    SAFE_DELETE_KTDGOBJECT( pSeq );
+    m_coParticleSequence.splice( m_coParticleSequence.begin( SEQUENCELIST_FREE ), wIndex );
+    pSeq = NULL;
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	map< CParticleEventSequenceHandle, CParticleEventSequence* >::iterator itseq 
 		= m_mapInstanceSequences.find( hSeq );
-
 	if( itseq == m_mapInstanceSequences.end() )
 		return;
-
 	if( pSeq != itseq->second )
 		return; 
 
@@ -733,19 +996,61 @@ void CKTDGParticleSystem::DestroyInstance( CParticleEventSequence* pSeq )
 	}	
 
 	m_mapInstanceSequences.erase( hSeq );
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 }
-
-
 
 void CKTDGParticleSystem::DestroyInstanceHandle( CParticleEventSequenceHandle& hSeq )
 {
-	//kimhc // 2009-09-16 // DestroyInstanceHandle 실행시 INVALID_PARTICLE_HANDLE 인지 검사
-	if ( hSeq == INVALID_PARTICLE_HANDLE )
+	//kimhc // 2009-09-16 // DestroyInstanceHandle 실행시 INVALID_PARTICLE_SEQUENCE_HANDLE 인지 검사
+	if ( hSeq == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		return;
 
+#ifdef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq.GetValue() );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
+        return;
+    }
+    if ( wIndex >= m_coParticleSequence.storage_size() )
+    {
+        hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
+        return;
+    }
+    KSequenceHandleInfo& info = m_coParticleSequence.data( wIndex );
+    if ( info.m_pSequence == NULL || info.m_wStamp != wStamp )
+    {
+        hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
+        return;
+    }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( IsInCriticalLoop() == true )
+    {
+        info.m_pSequence->_SetDelete();
+        hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
+        return;
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+    CParticleEventSequence* pSeq = info.m_pSequence;
+    info.m_pSequence = NULL;
+    info.m_eType = SEQUENCELIST_FREE;
+    SAFE_DELETE_KTDGOBJECT( pSeq );
+    m_coParticleSequence.splice( m_coParticleSequence.begin( SEQUENCELIST_FREE ), wIndex );
+    hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
+#else//X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	map< CParticleEventSequenceHandle, CParticleEventSequence* >::iterator itseq 
 		= m_mapInstanceSequences.find( hSeq );
-
 	if( itseq == m_mapInstanceSequences.end() )
 		return;
 
@@ -766,7 +1071,9 @@ void CKTDGParticleSystem::DestroyInstanceHandle( CParticleEventSequenceHandle& h
 
 	m_mapInstanceSequences.erase( hSeq );
 
-	hSeq = INVALID_PARTICLE_HANDLE;
+	hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
+#endif//X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 }
 
 
@@ -775,18 +1082,72 @@ bool CKTDGParticleSystem::IsLiveInstance( CParticleEventSequence* pSeq )
 	if( NULL == pSeq )
 		return false;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CParticleEventSequenceHandle hSeq = pSeq->GetHandle();
+
+	if ( hSeq == INVALID_PARTICLE_SEQUENCE_HANDLE )
+		return false;
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq.GetValue() );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        return false;
+    }
+    if ( wIndex >= m_coParticleSequence.storage_size() )
+        return false;
+    KSequenceHandleInfo& info = m_coParticleSequence.data( wIndex );
+    if ( info.m_pSequence != pSeq || info.m_wStamp != wStamp || info.m_eType != SEQUENCELIST_LIVE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        || pSeq->GetDelete() == true
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        )
+        return false;
+    return true;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	return IsLiveInstanceHandle( pSeq->GetHandle() );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
 bool CKTDGParticleSystem::IsLiveInstanceHandle( CParticleEventSequenceHandle hSeq )
 {
-	if( INVALID_PARTICLE_HANDLE == hSeq )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == hSeq )
 		return false;
 
+#ifdef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq.GetValue() );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        return false;
+    }
+    if ( wIndex >= m_coParticleSequence.storage_size() )
+        return false;
+    KSequenceHandleInfo& info = m_coParticleSequence.data( wIndex );
+    if ( info.m_pSequence == NULL || info.m_wStamp != wStamp || info.m_eType != SEQUENCELIST_LIVE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        || info.m_pSequence->GetDelete() == true
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX        
+        )
+        return false;
+    return true;
+#else//X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	map< CParticleEventSequenceHandle, CParticleEventSequence* >::iterator itseq 
 		= m_mapInstanceSequences.find( hSeq );
-
 	if( itseq != m_mapInstanceSequences.end() )
 	{
 		return true;
@@ -795,16 +1156,49 @@ bool CKTDGParticleSystem::IsLiveInstanceHandle( CParticleEventSequenceHandle hSe
 	{
 		return false; 
 	}
+#endif//X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
-CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::GetInstanceSequence( CParticleEventSequenceHandle hSeq )
+CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::GetInstanceSequence( CParticleEventSequenceHandle hSeq
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    , bool bLiveOnly
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    )
 {
-	if( INVALID_PARTICLE_HANDLE == hSeq )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == hSeq )
 		return NULL;
 
+#ifdef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq.GetValue() );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hSeq );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        return NULL;
+    }
+    if ( wIndex >= m_coParticleSequence.storage_size() )
+        return NULL;
+    KSequenceHandleInfo& info = m_coParticleSequence.data( wIndex );
+    CParticleEventSequence* pSeq = info.m_pSequence;
+    if ( pSeq == NULL || info.m_wStamp != wStamp || bLiveOnly == true && 
+        ( info.m_eType != SEQUENCELIST_LIVE 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            || pSeq->GetDelete() == true
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX   
+        )
+        )
+        return NULL;
+    return  pSeq;
+
+#else//X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	map< CParticleEventSequenceHandle, CParticleEventSequence* >::iterator itseq 
 		= m_mapInstanceSequences.find( hSeq );
-
 	if( itseq != m_mapInstanceSequences.end() )
 	{
 		return itseq->second;
@@ -813,6 +1207,8 @@ CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::GetInstanceSeq
 	{
 		return NULL;
 	}
+#endif//X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 }
 
 
@@ -1138,6 +1534,9 @@ bool CKTDGParticleSystem::ProcessEventSequenceBlock(CParticleEventSequence &seq,
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 					else if (savedtoken.IsApplyUnitScale())		{ seq.SetApplyUnitScale(bValue); }
 #endif
+#ifdef ADD_ALPHATESTENABLE
+					else if (savedtoken.IsAlphaTest())			{ seq.SetAlphTest(bValue); }
+#endif
 					else 
 					{
 						throw("Unknown sequence particle type property!");
@@ -1379,26 +1778,58 @@ bool CKTDGParticleSystem::CParticleEvent_Color::ProcessTokenStream(std::vector<C
 
 void CKTDGParticleSystem::CParticleEvent_Color::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-	if( !IsFade() || fRemainTime == 0 ) 
-		part.m_Color = m_Color.GetRandomNumInRange();
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+	if( !IsFade() ) 
+		part.SetColor( m_Color.GetRandomNumInRange() );
 	else	// fade 이면서, fRemainTime이 0이 아니면
 	{
 		// 파티클 생성 초반에 final 값을 미리 정해주고
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
-			part.m_ColorFinal = m_Color.GetRandomNumInRange();
+		if( fOld <= m_ActualTime.m_Min )
+			part.SetColorFinal( m_Color.GetRandomNumInRange() );
 
 		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
-			part.m_Color = part.m_ColorFinal;
+		if( m_ActualTime.m_Max <= fNew )
+			part.SetColor( part.GetColorFinal() );
 		else
 		{
 			// fade
-			D3DXCOLOR	remainColor = part.m_ColorFinal - part.m_Color;
-			part.m_Color += (remainColor / fRemainTime)	* fElapsedTime;
+            float fRatio = 0.f;
+            if ( fOld < m_ActualTime.m_Min )
+                fOld = m_ActualTime.m_Min;
+            fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+			D3DXCOLOR	remainColor = part.GetColorFinal() - part.GetColor();
+			part.SetColor( part.GetColor() + remainColor * fRatio );
 		}
 	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
+
+	if( !IsFade() || fRemainTime == 0 ) 
+		part.SetColor( m_Color.GetRandomNumInRange() );
+	else	// fade 이면서, fRemainTime이 0이 아니면
+	{
+		// 파티클 생성 초반에 final 값을 미리 정해주고
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+			part.SetColorFinal( m_Color.GetRandomNumInRange() );
+
+		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
+		if( ( m_ActualTime.m_Max - fEventTimerFix ) < fElapsedTime )
+			part.SetColor( part.GetColorFinal() );
+		else
+		{
+			// fade
+			D3DXCOLOR	remainColor = part.GetColorFinal() - part.GetColor();
+			part.SetColor( part.GetColor() + remainColor * ( fElapsedTime / fRemainTime) );
+		}
+	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGParticleSystem::CParticleEvent_Size::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1411,26 +1842,59 @@ bool CKTDGParticleSystem::CParticleEvent_Size::ProcessTokenStream(std::vector<CP
 
 void CKTDGParticleSystem::CParticleEvent_Size::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-	if( !IsFade() || fRemainTime == 0 ) 
-		part.m_vSize = m_Size.GetRandomNumInRange();
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+	if( !IsFade() ) 
+		part.SetSize( m_Size.GetRandomNumInRange() );
 	else	// fade 이면서, fRemainTime이 0이 아니면
 	{
 		// 파티클 생성 초반에 final 값을 미리 정해주고
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
-			part.m_vSizeFinal = m_Size.GetRandomNumInRange();
+		if( fOld <= m_ActualTime.m_Min )
+			part.SetSizeFinal( m_Size.GetRandomNumInRange() );
 		
 		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
-			part.m_vSize = part.m_vSizeFinal;
+		if( m_ActualTime.m_Max <= fNew )
+			part.SetSize( part.GetSizeFinal() );
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOld < m_ActualTime.m_Min )
+                fOld = m_ActualTime.m_Min;
+            fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+			// fade
+			D3DXVECTOR3	remainSize	= part.GetSizeFinal() - part.GetSize();
+			part.SetSize( part.GetSize() + remainSize * fRatio );
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
+
+	if( !IsFade() || fRemainTime == 0 ) 
+		part.SetSize( m_Size.GetRandomNumInRange() );
+	else	// fade 이면서, fRemainTime이 0이 아니면
+	{
+		// 파티클 생성 초반에 final 값을 미리 정해주고
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+			part.SetSizeFinal( m_Size.GetRandomNumInRange() );
+		
+		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
+		if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+			part.SetSize( part.GetSizeFinal() );
 		else
 		{
 			// fade
-			D3DXVECTOR3	remainSize	= part.m_vSizeFinal - part.m_vSize;
-			part.m_vSize += (remainSize / fRemainTime) * fElapsedTime;
+			D3DXVECTOR3	remainSize	= part.GetSizeFinal() - part.GetSize();
+			part.SetSize( part.GetSize() + remainSize * ( fElapsedTime / fRemainTime) );
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGParticleSystem::CParticleEvent_Scale::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1443,32 +1907,69 @@ bool CKTDGParticleSystem::CParticleEvent_Scale::ProcessTokenStream(std::vector<C
 
 void CKTDGParticleSystem::CParticleEvent_Scale::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-	if( !IsFade() || fRemainTime == 0 ) 
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+	if( !IsFade() ) 
 	{
-		part.m_vSize *= m_Scale.GetRandomNumInRange();
+		part.SetSize( part.GetSize() * m_Scale.GetRandomNumInRange() );
 	}
 	else	// fade 이면서, fRemainTime이 0이 아니면
 	{
 		// 파티클 생성 초반에 final 값을 미리 정해주고
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
+		if( fOld <= m_ActualTime.m_Min )
 		{
-			part.m_vSizeFinal = part.m_vSize * m_Scale.GetRandomNumInRange();
+			part.SetSizeFinal( part.GetSize() * m_Scale.GetRandomNumInRange() );
 		}
 
 		// 파티클 생성 초반에 final 값을 미리 정해주고
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
+		if( m_ActualTime.m_Max <= fNew )
 		{
-			part.m_vSize = part.m_vSizeFinal;
+			part.SetSize( part.GetSizeFinal() );
+		}
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOld < m_ActualTime.m_Min )
+                fOld = m_ActualTime.m_Min;
+            fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+			// fade
+			D3DXVECTOR3	remainSize	= part.GetSizeFinal() - part.GetSize();
+			part.SetSize( part.GetSize() + remainSize * fRatio );
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
+
+	if( !IsFade() || fRemainTime == 0 ) 
+	{
+		part.SetSize( part.GetSize() * m_Scale.GetRandomNumInRange() );
+	}
+	else	// fade 이면서, fRemainTime이 0이 아니면
+	{
+		// 파티클 생성 초반에 final 값을 미리 정해주고
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+		{
+			part.SetSizeFinal( part.GetSize() * m_Scale.GetRandomNumInRange() );
+		}
+
+		// 파티클 생성 초반에 final 값을 미리 정해주고
+		if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+		{
+			part.SetSize( part.GetSizeFinal() );
 		}
 		else
 		{
 			// fade
-			D3DXVECTOR3	remainSize	= part.m_vSizeFinal - part.m_vSize;
-			part.m_vSize += (remainSize / fRemainTime) * fElapsedTime;
+			D3DXVECTOR3	remainSize	= part.GetSizeFinal() - part.GetSize();
+			part.SetSize( part.GetSize() + remainSize * ( fElapsedTime / fRemainTime ) );
 		}
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 
@@ -1485,26 +1986,96 @@ bool CKTDGParticleSystem::CParticleEvent_Velocity::ProcessTokenStream(std::vecto
 
 void CKTDGParticleSystem::CParticleEvent_Velocity::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    part.ResetVelocityToAccumPos();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+
+	if( !IsFade() ) 
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+        part.UpdateVelocityAccumPosAndEventTimer( m_ActualTime.m_Min );
+        part.SetVelocity( m_Velocity.GetRandomNumInRange(), false );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+        if ( fOld <= m_ActualTime.m_Min )
+            part.AddVelocityToAccumPos( m_ActualTime.m_Min - fOld );
+		part.SetVelocity( m_Velocity.GetRandomNumInRange(), false );
+        if ( m_ActualTime.m_Min <= fNew )
+            part.AddVelocityToAccumPos( fNew - m_ActualTime.m_Min );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    }
+	else	// fade 이면서, fRemainTime이 0이 아니면
+	{		
+
+		// 파티클 생성 초반에 final 값을 미리 정해주고
+		if( fOld <= m_ActualTime.m_Min )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            part.UpdateVelocityAccumPosAndEventTimer( m_ActualTime.m_Min );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            part.AddVelocityToAccumPos( m_ActualTime.m_Min - fOld );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+			part.SetVelocityFinal( m_Velocity.GetRandomNumInRange() );
+        }
+
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            float   fOld2 = __max( part.GetEventTimerVelocity(), m_ActualTime.m_Min );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            float   fOld2 = __max( fOld, m_ActualTime.m_Min );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            float   fNew2 = __min( fNew, m_ActualTime.m_Max );
+            if ( fOld2 < fNew2 )
+            {
+                float fRatio = ( fNew2 - fOld2 ) / ( m_ActualTime.m_Max - fOld2 );
+                fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+			    // fade
+			    D3DXVECTOR3	remainVelocity	= part.GetVelocityFinal() - part.GetVelocity();
+			    part.SetVelocity( part.GetVelocity() + remainVelocity * ( fRatio * 0.5f ), false );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                part.UpdateVelocityAccumPosAndEventTimer( fNew2 );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                part.AddVelocityToAccumPos( fNew2 - fOld2 );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+			    part.SetVelocity( part.GetVelocity() + remainVelocity * fRatio, false );
+            }
+		}
+
+		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
+        if ( m_ActualTime.m_Max <= fNew )
+        {
+			part.SetVelocity( part.GetVelocityFinal(), false );
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            part.AddVelocityToAccumPos( fNew - m_ActualTime.m_Max );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+        }
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
 
 	if( !IsFade() || fRemainTime == 0 ) 
-		part.m_vVelocity = m_Velocity.GetRandomNumInRange();
+		part.SetVelocity( m_Velocity.GetRandomNumInRange() );
 	else	// fade 이면서, fRemainTime이 0이 아니면
 	{		
 		// 파티클 생성 초반에 final 값을 미리 정해주고
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
-			part.m_vVelocityFinal = m_Velocity.GetRandomNumInRange();
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+			part.SetVelocityFinal( m_Velocity.GetRandomNumInRange() );
 
 		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
-			part.m_vVelocity = part.m_vVelocityFinal;
+		if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+			part.SetVelocity( part.GetVelocityFinal() );
 		else
 		{
 			// fade
-			D3DXVECTOR3	remainVelocity	= part.m_vVelocityFinal - part.m_vVelocity;
-			part.m_vVelocity += (remainVelocity / fRemainTime) * fElapsedTime;
+			D3DXVECTOR3	remainVelocity	= part.GetVelocityFinal() - part.GetVelocity();
+			part.SetVelocity( part.GetVelocity() + remainVelocity * (fElapsedTime / fRemainTime) );
 		}
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGParticleSystem::CParticleEvent_Position::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1517,35 +2088,77 @@ bool CKTDGParticleSystem::CParticleEvent_Position::ProcessTokenStream(std::vecto
 
 void CKTDGParticleSystem::CParticleEvent_Position::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-	if( !IsFade() || fRemainTime == 0 ) 
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+	if( !IsFade() ) 
 	{
-		part.m_vPos = m_Position.GetRandomNumInRange();
-		INIT_VECTOR3( part.m_vPositionGap, 0.0f, 0.0f, 0.0f );
+		part.SetPos( m_Position.GetRandomNumInRange() );
+        part.SetPositionGap( D3DXVECTOR3(0,0,0) );
 	}
 	else	// fade 이면서, fRemainTime이 0이 아니면
 	{		
 		// 파티클 생성 초반에 final 값을 미리 정해주고
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
+		if( fOld <= m_ActualTime.m_Min )
 		{
-			part.m_vPositionFinal = m_Position.GetRandomNumInRange();
+			part.SetPositionFinal( m_Position.GetRandomNumInRange() );
 		}
 
 		// fade 이면서, fRemainTime이 0이 아니면
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
+		if( m_ActualTime.m_Max <= fNew )
 		{
-			part.m_vPos = m_Position.GetRandomNumInRange();
-			INIT_VECTOR3( part.m_vPositionGap, 0.0f, 0.0f, 0.0f );
+			part.SetPos( m_Position.GetRandomNumInRange() );
+			part.SetPositionGap( D3DXVECTOR3(0,0,0) );
+		}
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOld < m_ActualTime.m_Min )
+                fOld = m_ActualTime.m_Min;
+            fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+			// fade
+			D3DXVECTOR3	remainPositionGap	= part.GetPositionFinal() - part.GetPos();
+			// not need: 왜 직접 part.m_vPos에 더해주기 보다는 m_vPositionGap을 이용하는 것일까?
+			part.SetPositionGap( remainPositionGap * fRatio );
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
+
+	if( !IsFade() || fRemainTime == 0 ) 
+	{
+		part.SetPos( m_Position.GetRandomNumInRange() );
+        part.SetPositionGap( D3DXVECTOR3(0,0,0) );
+	}
+	else	// fade 이면서, fRemainTime이 0이 아니면
+	{		
+		// 파티클 생성 초반에 final 값을 미리 정해주고
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+		{
+			part.SetPositionFinal( m_Position.GetRandomNumInRange() );
+		}
+
+		// fade 이면서, fRemainTime이 0이 아니면
+		if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+		{
+			part.SetPos( m_Position.GetRandomNumInRange() );
+			part.SetPositionGap( D3DXVECTOR3(0,0,0) );
 		}
 		else
 		{
 			// fade
-			D3DXVECTOR3	remainPositionGap	= part.m_vPositionFinal - part.m_vPos;
+			D3DXVECTOR3	remainPositionGap	= part.GetPositionFinal() - part.GetPos();
 			// not need: 왜 직접 part.m_vPos에 더해주기 보다는 m_vPositionGap을 이용하는 것일까?
-			part.m_vPositionGap = (remainPositionGap / fRemainTime) * fElapsedTime;
+			part.SetPositionGap( (remainPositionGap / fRemainTime) * fElapsedTime );
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGParticleSystem::CParticleEvent_Tex0UV::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1558,26 +2171,61 @@ bool CKTDGParticleSystem::CParticleEvent_Tex0UV::ProcessTokenStream(std::vector<
 
 void CKTDGParticleSystem::CParticleEvent_Tex0UV::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-	if( !IsFade() || fRemainTime == 0 ) 
-		part.m_vTexStage0UV = m_TexUV.GetRandomNumInRange();
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+	if( !IsFade() ) 
+		part.SetTexStage0UV( m_TexUV.GetRandomNumInRange() );
 	else	// fade 이면서, fRemainTime이 0이 아니면
 	{		
 		// 파티클 생성 초반에 final 값을 미리 정해주고
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
-			part.m_vTexStage0UVFinal = m_TexUV.GetRandomNumInRange();
+		if( fOld <= m_ActualTime.m_Min )
+			part.SetTexStage0UVFinal( m_TexUV.GetRandomNumInRange() );
 
 		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
-			part.m_vTexStage0UV = part.m_vTexStage0UVFinal;
+		if( m_ActualTime.m_Max <= fNew )
+			part.SetTexStage0UV( part.GetTexStage0UVFinal() );
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOld < m_ActualTime.m_Min )
+                fOld = m_ActualTime.m_Min;
+            fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			// fade
+			D3DXVECTOR2	remainTexUV	= part.GetTexStage0UVFinal() - part.GetTexStage0UV();
+			part.SetTexStage0UV( part.GetTexStage0UV() + remainTexUV * fRatio );
+		}
+	}
+
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
+
+	if( !IsFade() || fRemainTime == 0 ) 
+		part.SetTexStage0UV( m_TexUV.GetRandomNumInRange() );
+	else	// fade 이면서, fRemainTime이 0이 아니면
+	{		
+		// 파티클 생성 초반에 final 값을 미리 정해주고
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+			part.SetTexStage0UVFinal( m_TexUV.GetRandomNumInRange() );
+
+		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
+		if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+			part.SetTexStage0UV( part.GetTexStage0UVFinal() );
 		else
 		{
 			// fade
-			D3DXVECTOR2	remainTexUV	= part.m_vTexStage0UVFinal - part.m_vTexStage0UV;
-			part.m_vTexStage0UV += (remainTexUV / fRemainTime) * fElapsedTime;
+			D3DXVECTOR2	remainTexUV	= part.GetTexStage0UVFinal() - part.GetTexStage0UV();
+			part.SetTexStage0UV( part.GetTexStage0UV() + remainTexUV * ( fElapsedTime / fRemainTime ) );
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGParticleSystem::CParticleEvent_Tex1UV::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1590,26 +2238,60 @@ bool CKTDGParticleSystem::CParticleEvent_Tex1UV::ProcessTokenStream(std::vector<
 
 void CKTDGParticleSystem::CParticleEvent_Tex1UV::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-	if( !IsFade() || fRemainTime == 0 ) 
-		part.m_vTexStage1UV = m_TexUV.GetRandomNumInRange();
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+	if( !IsFade() ) 
+		part.SetTexStage1UV( m_TexUV.GetRandomNumInRange() );
 	else	// fade 이면서, fRemainTime이 0이 아니면
 	{		
 		// 파티클 생성 초반에 final 값을 미리 정해주고
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
-			part.m_vTexStage1UVFinal = m_TexUV.GetRandomNumInRange();
+		if( fOld <= m_ActualTime.m_Min )
+			part.SetTexStage1UVFinal( m_TexUV.GetRandomNumInRange() );
 
 		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
-			part.m_vTexStage1UV = part.m_vTexStage1UVFinal;
+		if( m_ActualTime.m_Max <= fNew )
+			part.SetTexStage1UV( part.GetTexStage1UVFinal() );
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOld < m_ActualTime.m_Min )
+                fOld = m_ActualTime.m_Min;
+            fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			// fade
+			D3DXVECTOR2	remainTexUV	= part.GetTexStage1UVFinal() - part.GetTexStage1UV();
+			part.SetTexStage1UV( part.GetTexStage1UV() + remainTexUV * fRatio );
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
+
+	if( !IsFade() || fRemainTime == 0 ) 
+		part.SetTexStage1UV( m_TexUV.GetRandomNumInRange() );
+	else	// fade 이면서, fRemainTime이 0이 아니면
+	{		
+		// 파티클 생성 초반에 final 값을 미리 정해주고
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+			part.SetTexStage1UVFinal( m_TexUV.GetRandomNumInRange() );
+
+		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
+		if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+			part.SetTexStage1UV( part.GetTexStage1UVFinal() );
 		else
 		{
 			// fade
-			D3DXVECTOR2	remainTexUV	= part.m_vTexStage1UVFinal - part.m_vTexStage1UV;
-			part.m_vTexStage1UV += (remainTexUV / fRemainTime) * fElapsedTime;
+			D3DXVECTOR2	remainTexUV	= part.GetTexStage1UVFinal() - part.GetTexStage1UV();
+			part.SetTexStage1UV( part.GetTexStage1UV() + remainTexUV * ( fElapsedTime / fRemainTime) );
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGParticleSystem::CParticleEvent_Tex2UV::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1622,26 +2304,60 @@ bool CKTDGParticleSystem::CParticleEvent_Tex2UV::ProcessTokenStream(std::vector<
 
 void CKTDGParticleSystem::CParticleEvent_Tex2UV::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-	if( !IsFade() || fRemainTime == 0 ) 
-		part.m_vTexStage2UV = m_TexUV.GetRandomNumInRange();
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+	if( !IsFade() ) 
+		part.SetTexStage2UV( m_TexUV.GetRandomNumInRange() );
 	else	// fade 이면서, fRemainTime이 0이 아니면
 	{		
 		// 파티클 생성 초반에 final 값을 미리 정해주고
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
-			part.m_vTexStage2UVFinal = m_TexUV.GetRandomNumInRange();
+		if( fOld <= m_ActualTime.m_Min )
+			part.SetTexStage2UVFinal( m_TexUV.GetRandomNumInRange() );
 
 		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
-			part.m_vTexStage2UV = part.m_vTexStage2UVFinal;
+		if( m_ActualTime.m_Max <= fNew )
+			part.SetTexStage2UV( part.GetTexStage2UVFinal() );
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOld < m_ActualTime.m_Min )
+                fOld = m_ActualTime.m_Min;
+            fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			// fade
+			D3DXVECTOR2	remainTexUV	= part.GetTexStage2UVFinal() - part.GetTexStage2UV();
+			part.SetTexStage2UV( part.GetTexStage2UV() + remainTexUV * fRatio );
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
+
+	if( !IsFade() || fRemainTime == 0 ) 
+		part.SetTexStage2UV( m_TexUV.GetRandomNumInRange() );
+	else	// fade 이면서, fRemainTime이 0이 아니면
+	{		
+		// 파티클 생성 초반에 final 값을 미리 정해주고
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+			part.SetTexStage2UVFinal( m_TexUV.GetRandomNumInRange() );
+
+		// 파티클이 시간에 의해 종료되기 직전에 final 값을 넣준다.
+		if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+			part.SetTexStage2UV( part.GetTexStage2UVFinal() );
 		else
 		{
 			// fade
-			D3DXVECTOR2	remainTexUV	= part.m_vTexStage2UVFinal - part.m_vTexStage2UV;
-			part.m_vTexStage2UV += (remainTexUV / fRemainTime) * fElapsedTime;
+			D3DXVECTOR2	remainTexUV	= part.GetTexStage2UVFinal() - part.GetTexStage2UV();
+			part.SetTexStage2UV( part.GetTexStage2UV() + remainTexUV * ( fElapsedTime / fRemainTime) );
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGParticleSystem::CParticleEvent_Rotate::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1654,43 +2370,94 @@ bool CKTDGParticleSystem::CParticleEvent_Rotate::ProcessTokenStream(std::vector<
 
 void CKTDGParticleSystem::CParticleEvent_Rotate::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-	if( !IsFade() || fRemainTime == 0 ) 
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+	if( !IsFade()  ) 
 	{
-#ifdef LOCAL_ROTATE_EFFECT_P
-		part.m_vRotateLocal = m_Rotate.GetRandomNumInRange();
-#else
-		part.m_vRotate = m_Rotate.GetRandomNumInRange();
-#endif
+//#ifdef LOCAL_ROTATE_EFFECT_P
+		part.SetRotateLocal( m_Rotate.GetRandomNumInRange() );
+//#else
+//		part.m_vRotate = m_Rotate.GetRandomNumInRange();
+//#endif
 	}
 	else
 	{
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
-			part.m_vRotateFinal = m_Rotate.GetRandomNumInRange();
+		if( fOld <= m_ActualTime.m_Min )
+			part.SetRotateFinal( m_Rotate.GetRandomNumInRange() );
 
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
+		if( m_ActualTime.m_Max <= fNew )
 		{
-#ifdef LOCAL_ROTATE_EFFECT_P
-			part.m_vRotateLocal = part.m_vRotateFinal;
-#else
-			part.m_vRotate = part.m_vRotateFinal;
-#endif
+//#ifdef LOCAL_ROTATE_EFFECT_P
+			part.SetRotateLocal( part.GetRotateFinal() );
+//#else
+//			part.m_vRotate = part.GetRotateFinal();
+//#endif
 			
 		}
 		else
 		{
-#ifdef LOCAL_ROTATE_EFFECT_P
-			D3DXVECTOR3 remainRotate = part.m_vRotateFinal - part.m_vRotateLocal;
-			part.m_vRotateLocal += (remainRotate / fRemainTime) * fElapsedTime;
-#else
-			D3DXVECTOR3 remainRotate = part.m_vRotateFinal - part.m_vRotate;
-			part.m_vRotate += (remainRotate / fRemainTime) * fElapsedTime;
-#endif
+            float fRatio = 0.f;
+            if ( fOld < m_ActualTime.m_Min )
+                fOld = m_ActualTime.m_Min;
+            fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+//#ifdef LOCAL_ROTATE_EFFECT_P
+			D3DXVECTOR3 remainRotate = part.GetRotateFinal() - part.GetRotateLocal();
+			part.SetRotateLocal( part.GetRotateLocal() + remainRotate * fRatio );
+//#else
+//			D3DXVECTOR3 remainRotate = part.GetRotateFinal() - part.m_vRotate;
+//			part.m_vRotate += (remainRotate / fRemainTime) * fElapsedTime;
+//#endif
 
 			
 		}
 	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;	
+
+	if( !IsFade() || fRemainTime == 0 ) 
+	{
+//#ifdef LOCAL_ROTATE_EFFECT_P
+		part.SetRotateLocal( m_Rotate.GetRandomNumInRange() );
+//#else
+//		part.m_vRotate = m_Rotate.GetRandomNumInRange();
+//#endif
+	}
+	else
+	{
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+			part.SetRotateFinal( m_Rotate.GetRandomNumInRange() );
+
+		if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+		{
+//#ifdef LOCAL_ROTATE_EFFECT_P
+			part.SetRotateLocal( part.GetRotateFinal() );
+//#else
+//			part.m_vRotate = part.GetRotateFinal();
+//#endif
+			
+		}
+		else
+		{
+//#ifdef LOCAL_ROTATE_EFFECT_P
+			D3DXVECTOR3 remainRotate = part.GetRotateFinal() - part.GetRotateLocal();
+			part.SetRotateLocal( part.GetRotateLocal() + remainRotate * ( fElapsedTime / fRemainTime ) );
+//#else
+//			D3DXVECTOR3 remainRotate = part.GetRotateFinal() - part.m_vRotate;
+//			part.m_vRotate += (remainRotate / fRemainTime) * fElapsedTime;
+//#endif
+
+			
+		}
+	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGParticleSystem::CParticleEvent_DirSpeed::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1703,23 +2470,54 @@ bool CKTDGParticleSystem::CParticleEvent_DirSpeed::ProcessTokenStream(std::vecto
 
 void CKTDGParticleSystem::CParticleEvent_DirSpeed::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-	if( !IsFade() || fRemainTime == 0 ) 
-		part.m_fDirSpeed = m_DirSpeed.GetRandomNumInRange();
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+	if( !IsFade() ) 
+		part.SetDirSpeed( m_DirSpeed.GetRandomNumInRange() );
 	else
 	{
-		if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
-			part.m_fDirSpeedFinal = m_DirSpeed.GetRandomNumInRange();
+		if( fOld <= m_ActualTime.m_Min )
+			part.SetDirSpeedFinal( m_DirSpeed.GetRandomNumInRange() );
 
-		if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
-			part.m_fDirSpeed = part.m_fDirSpeedFinal;
+		if( m_ActualTime.m_Max <= fNew )
+			part.SetDirSpeed( part.GetDirSpeedFinal() );
 		else
 		{
-			float fRemainDirSpeed	= part.m_fDirSpeedFinal - part.m_fDirSpeed;
-			part.m_fDirSpeed += (fRemainDirSpeed / fRemainTime) * fElapsedTime;
+            float fRatio = 0.f;
+            if ( fOld < m_ActualTime.m_Min )
+                fOld = m_ActualTime.m_Min;
+            fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			float fRemainDirSpeed	= part.GetDirSpeedFinal() - part.GetDirSpeed();
+			part.SetDirSpeed( part.GetDirSpeed() + fRemainDirSpeed * fRatio );
 		}
 	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
+
+	if( !IsFade() || fRemainTime == 0 ) 
+		part.SetDirSpeed( m_DirSpeed.GetRandomNumInRange() );
+	else
+	{
+		if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+			part.SetDirSpeedFinal( m_DirSpeed.GetRandomNumInRange() );
+
+		if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+			part.SetDirSpeed( part.GetDirSpeedFinal() );
+		else
+		{
+			float fRemainDirSpeed	= part.GetDirSpeedFinal() - part.GetDirSpeed();
+			part.SetDirSpeed( part.GetDirSpeed() + (fRemainDirSpeed / fRemainTime) * fElapsedTime );
+		}
+	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGParticleSystem::CParticleEvent_BlackHole::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1732,7 +2530,7 @@ bool CKTDGParticleSystem::CParticleEvent_BlackHole::ProcessTokenStream(std::vect
 
 void CKTDGParticleSystem::CParticleEvent_BlackHole::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	part.m_BlackHoleTime = m_BlackHole.GetRandomNumInRange();
+	part.SetBlackHoleTime( m_BlackHole.GetRandomNumInRange() );
 }
 
 
@@ -1740,26 +2538,26 @@ bool CKTDGParticleSystem::CParticleEvent_Crash::ProcessTokenStream(std::vector<C
 																   std::vector<CParticleEmitterToken>::iterator &EndIter)
 {
 	if (TokenIter->m_strValue.compare("CRASH") != 0) throw("Expecting Crash!");
-	ProcessPropEqualsValue(m_Crash, TokenIter, EndIter);
+	ProcessPropEqualsValue(m_vCrash, TokenIter, EndIter);
 	return(true);
 }
 
 void CKTDGParticleSystem::CParticleEvent_Crash::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	if( part.m_fNowResetCrash < part.m_fResetCrash )
+	if( part.GetNowResetCrash() < part.GetResetCrash() )
 	{
 		return;
 	}
 	else
 	{
-		part.m_fNowResetCrash = 0.0f;
+		part.SetNowResetCrash( 0.0f );
 	}
 
-	if( m_ActualTime.m_Min > part.m_fEventTimer || m_ActualTime.m_Max < part.m_fEventTimer ) 
-		part.m_Crash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
+	if( m_ActualTime.m_Min > part.GetEventTimer() || m_ActualTime.m_Max < part.GetEventTimer() ) 
+		part.SetCrash( D3DXVECTOR3( 0.0f, 0.0f, 0.0f ) );
 	else
 	{
-		part.m_Crash = m_Crash.GetRandomNumInRange();
+		part.SetCrash( m_vCrash.GetRandomNumInRange() );
 	}
 }
 
@@ -1773,7 +2571,7 @@ bool CKTDGParticleSystem::CParticleEvent_ResetCrash::ProcessTokenStream(std::vec
 
 void CKTDGParticleSystem::CParticleEvent_ResetCrash::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	part.m_fResetCrash = m_ResetCrash.GetRandomNumInRange();
+	part.SetResetCrash( m_ResetCrash.GetRandomNumInRange() );
 }
 
 bool CKTDGParticleSystem::CParticleEvent_Texture::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1787,7 +2585,7 @@ bool CKTDGParticleSystem::CParticleEvent_Texture::ProcessTokenStream(std::vector
 
 void CKTDGParticleSystem::CParticleEvent_Texture::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	part.m_TextureID = m_TextureID;
+	part.SetTextureID( m_TextureID );
 }
 
 bool CKTDGParticleSystem::CParticleEvent_EventTimer::ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
@@ -1801,7 +2599,10 @@ bool CKTDGParticleSystem::CParticleEvent_EventTimer::ProcessTokenStream(std::vec
 
 void CKTDGParticleSystem::CParticleEvent_EventTimer::OnFrameMove( CParticle &part, float fElapsedTime )
 {
-	part.m_fEventTimer = m_EventTimer.GetRandomNumInRange();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    part.UpdateVelocityAccumPosAndEventTimer( m_ActualTime.m_Min );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+	part.SetEventTimer( m_EventTimer.GetRandomNumInRange() );
 }
 
 
@@ -1820,23 +2621,54 @@ void CKTDGParticleSystem::CParticleEvent_EventTimer::OnFrameMove( CParticle &par
 
 	void CKTDGParticleSystem::CParticleEvent_Stretch::OnFrameMove( CParticle &part, float fElapsedTime )
 	{
-		float fRemainTime = m_ActualTime.m_Max - part.m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
-		if( !IsFade() || fRemainTime == 0 ) 
-			part.m_fStretchScale = m_StretchScale.GetRandomNumInRange();
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+		if( !IsFade() ) 
+			part.SetStretchScale( m_StretchScale.GetRandomNumInRange() );
 		else
 		{
-			if( (part.m_fEventTimer - m_ActualTime.m_Min) <= fElapsedTime )
-				part.m_fStretchScaleFinal = m_StretchScale.GetRandomNumInRange();
+		    if( fOld <= m_ActualTime.m_Min )
+				part.SetStretchScaleFinal( m_StretchScale.GetRandomNumInRange() );
 
-			if( (m_ActualTime.m_Max - part.m_fEventTimer) < fElapsedTime )
-				part.m_fStretchScale = part.m_fStretchScaleFinal;
+		    if( m_ActualTime.m_Max <= fNew )
+				part.SetStretchScale( part.GetStretchScaleFinal() );
 			else
 			{
-				float fRemainStretchScale	= part.m_fStretchScaleFinal - part.m_fStretchScale;
-				part.m_fStretchScale += (fRemainStretchScale / fRemainTime) * fElapsedTime;
+                float fRatio = 0.f;
+                if ( fOld < m_ActualTime.m_Min )
+                    fOld = m_ActualTime.m_Min;
+                fRatio = ( fNew - fOld ) / ( m_ActualTime.m_Max - fOld );
+                fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+				float fRemainStretchScale	= part.GetStretchScaleFinal() - part.GetStretchScale();
+				part.SetStretchScale( part.GetStretchScale() + fRemainStretchScale * fRatio );
 			}
 		}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+		float fRemainTime = m_ActualTime.m_Max - fEventTimerFix;
+
+		if( !IsFade() || fRemainTime == 0 ) 
+			part.SetStretchScale( m_StretchScale.GetRandomNumInRange() );
+		else
+		{
+			if( (fEventTimerFix - m_ActualTime.m_Min) <= fElapsedTime )
+				part.SetStretchScaleFinal( m_StretchScale.GetRandomNumInRange() );
+
+			if( (m_ActualTime.m_Max - fEventTimerFix) < fElapsedTime )
+				part.SetStretchScale( part.GetStretchScaleFinal() );
+			else
+			{
+				float fRemainStretchScale	= part.GetStretchScaleFinal() - part.GetStretchScale();
+				part.SetStretchScale( part.GetStretchScale() + (fRemainStretchScale / fRemainTime) * fElapsedTime );
+			}
+		}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	}
 #endif PARTICLE_STRETCH_TEST
 
@@ -1848,7 +2680,10 @@ void CKTDGParticleSystem::CParticleEvent_EventTimer::OnFrameMove( CParticle &par
 // Particle Event Sequence
 ///////////////////////////////////////////////////////////////////////////////
 CKTDGParticleSystem::CParticleEventSequence::CParticleEventSequence( CKTDGParticleSystem* pParticleSystem, CParticleEventSequence* pTempletSequence )
-: m_Handle( INVALID_PARTICLE_HANDLE )
+: m_Handle( INVALID_PARTICLE_SEQUENCE_HANDLE )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+, m_iParticleList( -1 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 {
 	SetAlphaObject( true );
 
@@ -1857,7 +2692,6 @@ CKTDGParticleSystem::CParticleEventSequence::CParticleEventSequence( CKTDGPartic
 	m_Priority			= 0;
 	m_ParticleType		= PT_3D_PLANE;
 	m_pMathMatrix		= new CKTDGMatrix( g_pKTDXApp->GetDevice() );
-	m_pInitMatrix		= new CKTDGMatrix( g_pKTDXApp->GetDevice() );
 	INIT_VECTOR3( m_AxisAngleDegree, 0.0f, 0.0f, 0.0f );
 
 	m_BillBoardType		= CKTDGMatrix::BT_ALL;
@@ -1951,6 +2785,9 @@ CKTDGParticleSystem::CParticleEventSequence::CParticleEventSequence( CKTDGPartic
 
 	m_LatencyTime		= 0.0f;
 	m_bCullingCheck		= true;
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+    m_bRenderCullCheck = true;
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 
 	m_bTriggerWait		= false;
 	m_bDelete			= false;
@@ -1991,6 +2828,19 @@ CKTDGParticleSystem::CParticleEventSequence::CParticleEventSequence( CKTDGPartic
 	INIT_VECTOR3( m_vSphericalEmitRotation_Origin.m_Max, 0.0f, 0.0f, 0.0f );
 	INIT_VECTOR3( m_vSphericalEmitRotation_Origin.m_Min, 0.0f, 0.0f, 0.0f );
 #endif //EFFECT_TOOL
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+	m_fAccumElapsedTime = 0.0f;
+    m_bPerFrameSimulation = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+	m_pkBoundingSphere = g_pKTDXApp->GetDeviceManager()->OpenXMesh( L"Bounding_Sphere.x" );
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+
+#ifdef ADD_ALPHATESTENABLE
+	m_bAlphaTest = false;
+#endif
 }
 
 CKTDGParticleSystem::CParticleEventSequence::~CParticleEventSequence()
@@ -2018,7 +2868,6 @@ CKTDGParticleSystem::CParticleEventSequence::~CParticleEventSequence()
 
 	SAFE_CLOSE( m_pXMesh );
 	SAFE_DELETE( m_pMathMatrix );
-	SAFE_DELETE( m_pInitMatrix );
 
 #ifdef SKINMESH_PARTICLE_TEST
 
@@ -2028,10 +2877,34 @@ CKTDGParticleSystem::CParticleEventSequence::~CParticleEventSequence()
 
 	m_TraceSeqNameList.clear();
 	m_FinalSeqNameList.clear();
+
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+	SAFE_CLOSE( m_pkBoundingSphere );
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
 }
 
 void    CKTDGParticleSystem::CParticleEventSequence::ClearAllParticle()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_pParticleSystem != NULL )
+    {
+        KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+        if ( m_iParticleList >= 0 && m_iParticleList < (int) coParticleList.storage_size() )
+        {
+            for( KParticleHandleList::iterator iter = coParticleList.begin( m_iParticleList );
+                iter != coParticleList.end( m_iParticleList ); ++iter )
+            {
+                KParticleHandleInfo& info = *iter;
+                if ( info.m_pParticle != NULL )
+                    info.m_pParticle->Finalize();
+            }//for
+            if ( coParticleList.data( m_iParticleList ).m_pParticle != NULL )
+                coParticleList.data( m_iParticleList ).m_pParticle->Finalize();
+            coParticleList.splice_and_merge_list( coParticleList.begin( PARTICLELIST_FREE ), m_iParticleList );
+        }
+    }
+    m_iParticleList = -1;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for( CParticleList::iterator iter = m_ParticleList.begin(); iter != m_ParticleList.end(); iter++ )
 	{
 		CParticle* pParticle = *iter;
@@ -2042,6 +2915,7 @@ void    CKTDGParticleSystem::CParticleEventSequence::ClearAllParticle()
 	}//for
 
 	m_ParticleList.clear();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 }//CKTDGParticleSystem::CParticleEventSequence::ClearAllParticle()
 
@@ -2065,17 +2939,23 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 {	
 	KTDXPROFILE();
 
-	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	m_fAccumElapsedTime += fElapsedTime;
+
+	if( m_bPerFrameSimulation == false && !g_pKTDXApp->IsFinalFrameOfSimulationLoop() )
+		return S_OK;
+
+	fElapsedTime = m_fAccumElapsedTime;
+	m_fAccumElapsedTime = 0.0f;
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 	if( m_LatencyTime > 0.0f )
 	{
 		m_LatencyTime -= fElapsedTime;
 		return S_OK;
 	}
-
-
-
-
 
 #ifdef STOP_UNIT_STOP_EFFECT_TEST
 
@@ -2086,10 +2966,6 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 	}
 
 #endif STOP_UNIT_STOP_EFFECT_TEST
-
-
-
-
 
 	//트레이스 시스템
 	D3DXVECTOR3 gapPos;
@@ -2116,16 +2992,32 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 		m_Position += vDisplace;
 	}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	if( GetTriggerTime() != -1.0f && GetTriggerTime() <= GetTime() )
 	{
 		SetEmitRate( 0.0f, 0.0f );
-		if( GetTriggerWait() == false && m_ParticleList.empty() )
+		if( GetTriggerWait() == false 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            && ( m_iParticleList < 0 || m_iParticleList >= (int) coParticleList.storage_size() || coParticleList.empty( m_iParticleList ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            && m_ParticleList.empty() 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+           )
 			m_bDelete = true;
 	}
 	if( GetTriggerCount() != -1  && GetTriggerCount() <= GetCount() )
 	{
 		SetEmitRate( 0.0f, 0.0f );			
-		if( GetTriggerWait() == false && m_ParticleList.empty() )
+		if( GetTriggerWait() == false 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            && ( m_iParticleList < 0 || m_iParticleList >= (int) coParticleList.storage_size() || coParticleList.empty( m_iParticleList ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            && m_ParticleList.empty() 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            )
 			m_bDelete = true;
 	}
 
@@ -2139,8 +3031,27 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 	SetBoundingRadius( 0.0f );
 	float newBoundingRadius = 0.f;
 	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    unsigned    uParticleNum = 0;
+    if ( m_iParticleList >= 0 && m_iParticleList < (int) coParticleList.storage_size() )
+    for( KParticleHandleList::iterator iter = coParticleList.begin( m_iParticleList );
+        iter != coParticleList.end( m_iParticleList ); )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for( CParticleList::iterator iter = m_ParticleList.begin(); iter != m_ParticleList.end(); )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        KParticleHandleInfo& info = *iter;
+        CParticle* pParticle = info.m_pParticle;
+        ASSERT( pParticle != NULL );
+        if ( pParticle == NULL )
+        {
+            KParticleHandleList::iterator iterTemp = iter;
+            ++iter;
+            coParticleList.splice( coParticleList.begin( PARTICLELIST_FREE ), iterTemp );
+            continue;
+        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CParticle* pParticle = *iter;
 		ASSERT( pParticle != NULL );
 		if ( pParticle == NULL )
@@ -2148,12 +3059,13 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 			iter = m_ParticleList.erase( iter );
 			continue;
 		}//if
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		if( pParticle->OnFrameMove( fTime, fElapsedTime ) == false )
 		{
 			for( int i = 0; i < (int)m_FinalSeqNameList.size(); i++ )
 			{
-				CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->CreateSequence( NULL, m_FinalSeqNameList[i].c_str(), pParticle->m_vPos, -1, -1, -1, -1, -1.0f, true, 0.0f, true );
+				CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->CreateSequence( NULL, m_FinalSeqNameList[i].c_str(), pParticle->GetPos(), -1, -1, -1, -1, -1.0f, true, 0.0f, true );
 
 #ifdef GIANT_UNIT_GIANT_EFFECT_TEST
 				if( NULL != pSeq )
@@ -2163,30 +3075,39 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 #endif GIANT_UNIT_GIANT_EFFECT_TEST
 
 			}
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            pParticle->Finalize();
+            KParticleHandleList::iterator iterTemp = iter;
+            ++iter;
+            coParticleList.splice( coParticleList.begin( PARTICLELIST_FREE ), iterTemp );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			iter = m_ParticleList.erase( iter );
 			SAFE_DELETE( pParticle );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 		else
 		{
 			//트레이스 적용
 			if( m_Trace == true )
 			{
-				pParticle->m_vPos += gapPos;
-				pParticle->m_vAxisRotateDegree = m_AxisAngleDegree;
+				pParticle->SetPos( pParticle->GetPos() + gapPos );
+				pParticle->SetAxisRotateDegree( m_AxisAngleDegree );
 			}
 
 			//중력 적용
-			pParticle->m_vVelocity += m_vGravity.GetRandomNumInRange() * fElapsedTime;
-
+            D3DXVECTOR3 vGravity = m_vGravity.GetRandomNumInRange();
+			pParticle->m_vVelocity += vGravity * fElapsedTime;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            pParticle->m_vVelocityToAccumPos += ( 0.5f * fElapsedTime * fElapsedTime ) * vGravity;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 			//블랙홀 포인트
-			if( pParticle->m_BlackHoleTime > 0.0f )
-				pParticle->m_BlackHoleSpeed = (m_BlackHolePosition - pParticle->m_vPos) / pParticle->m_BlackHoleTime;
+			if( pParticle->GetBlackHoleTime() > 0.0f )
+				pParticle->SetBlackHoleSpeed( (m_BlackHolePosition - pParticle->GetPos()) / pParticle->GetBlackHoleTime() );
 
 			if( m_bUseLookPoint == true )
 			{
 				D3DXVECTOR3 dirVec;
-				D3DXVec3Normalize( &dirVec, &(m_LookPoint - pParticle->m_vPos) );
+				D3DXVec3Normalize( &dirVec, &(m_LookPoint - pParticle->GetPos()) );
 
 				D3DXMATRIX matRotation, matRotationOrth;
 
@@ -2218,7 +3139,7 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 					dirVec.x	= D3DXToDegree(atan2f( -matRotationOrth._12, matRotationOrth._22 ));
 				}
 
-				pParticle->m_vRotate = dirVec;
+				pParticle->SetRotate( dirVec );
 			}
 
 			//이벤트 적용
@@ -2234,9 +3155,19 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 					{
 						if( pParticle->m_vVelocity.y >= -50.0f
 							&& pParticle->m_vVelocity.y <= 50.0f )
+                        {
 							pParticle->m_vVelocity.y = 0.0f;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                            pParticle->m_vVelocityToAccumPos.y = 0.f;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                        }
 						else
+                        {
 							pParticle->m_vVelocity.y *= -0.5f;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                            pParticle->m_vVelocityToAccumPos.y = pParticle->m_vVelocity.y * fElapsedTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                        }
 					}
 				}
 			}
@@ -2248,7 +3179,9 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 				if( GetBoundingRadius() < newBoundingRadius )
 					SetBoundingRadius( newBoundingRadius );
 			}
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            uParticleNum++;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			iter++;
 		}
 	}
@@ -2269,19 +3202,33 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 
 	for( int q = 0; q < iNumNewParts ; q++ ) 
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( m_iMaxParticleNum > (int)uParticleNum )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( m_iMaxParticleNum > (int)m_ParticleList.size() )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			if( GetTriggerCount() != -1 )
 			{
 				if( GetTriggerCount() > GetCount() )
 				{
-					CreateNewParticle( m_Position );
+                    CParticle* pParticle = CreateNewParticle( m_Position );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    if ( pParticle != NULL )
+                        ++uParticleNum;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				}
 				else
 					break;
 			}
 			else
-				CreateNewParticle( m_Position );
+            {
+                CParticle* pParticle = CreateNewParticle( m_Position );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                if ( pParticle != NULL )
+                    ++uParticleNum;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            }
 		}
 		else
 			break;
@@ -2293,7 +3240,13 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 
 
 	KTDXPROFILE_BEGIN( "particle in/out render chain" );
-	if( GetShowObject() == false || m_ParticleList.empty() || m_LatencyTime > 0.0f )
+	if( GetShowObject() == false
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        || ( m_iParticleList < 0 || m_iParticleList >= (int) coParticleList.storage_size() || coParticleList.empty( m_iParticleList ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        || m_ParticleList.empty()
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE        
+        || m_LatencyTime > 0.0f )
 	{
 		//OutChain();
 	}
@@ -2313,8 +3266,25 @@ HRESULT CKTDGParticleSystem::CParticleEventSequence::OnFrameMove( double fTime, 
 /*virtual*/ 
 RENDER_HINT   CKTDGParticleSystem::CParticleEventSequence::OnFrameRender_Prepare() 
 { 
-    if ( !( m_ParticleList.empty() == false && m_LatencyTime <= 0.f ) )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    if ( m_LatencyTime > 0.f || 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            ( m_iParticleList < 0 || m_iParticleList >= (int) coParticleList.storage_size() || coParticleList.empty( m_iParticleList ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_ParticleList.empty() 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            )
         return RENDER_HINT_NORENDER;
+
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+	if ( m_pkBoundingSphere != NULL )
+	{
+		return RENDER_HINT_DEFAULT;
+	}//if
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
 
     switch( m_ParticleType )
     {
@@ -2330,8 +3300,18 @@ RENDER_HINT   CKTDGParticleSystem::CParticleEventSequence::OnFrameRender_Prepare
         	RENDER_HINT renderHintResult = RENDER_HINT_NORENDER;
             RENDER_HINT renderHint;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( m_iParticleList >= 0 && m_iParticleList < (int) coParticleList.storage_size() )
+            for( KParticleHandleList::iterator iter = coParticleList.begin( m_iParticleList );
+                iter != coParticleList.end( m_iParticleList ); ++iter)
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
     	    BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
     		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                KParticleHandleInfo& info = *iter;
+                CParticle* pPart = info.m_pParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				// Render each particle a bunch of times to get a blurring effect		
 			    ASSERT( pPart != NULL && pPart->m_pXSkinAnim != NULL );
                 if ( pPart == NULL || pPart->m_pXSkinAnim == NULL )
@@ -2363,7 +3343,17 @@ void    CKTDGParticleSystem::CParticleEventSequence::OnFrameRender_Draw()
 {
 	KTDXPROFILE();
 
-    if ( !( m_ParticleList.empty() == false && m_LatencyTime <= 0.f ) )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    if ( m_LatencyTime > 0.f || 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            ( m_iParticleList < 0 || m_iParticleList >= (int) coParticleList.storage_size() || coParticleList.empty( m_iParticleList ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_ParticleList.empty() 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            )
         return;
 
 	switch( m_ParticleType )
@@ -2372,10 +3362,12 @@ void    CKTDGParticleSystem::CParticleEventSequence::OnFrameRender_Draw()
 			{
 				KTDXPROFILE_BEGIN("PT_3D_PLANE");
 				// Set up the vertex buffer to be rendered
-				g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_PARTICLE );
-				g_pKTDXApp->GetDevice()->SetStreamSource( 0, m_pParticleSystem->GetVB(), 0, sizeof(VERTEX_PARTICLE) );
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//				g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_PARTICLE );
+//				g_pKTDXApp->GetDevice()->SetStreamSource( 0, m_pParticleSystem->GetVB(), 0, sizeof(VERTEX_PARTICLE) );
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
-				m_pInitMatrix->UpdateWorldMatrix();
+                g_pKTDXApp->ResetWorldTransform();
 
                 KD3DBEGIN()
 
@@ -2393,7 +3385,11 @@ void    CKTDGParticleSystem::CParticleEventSequence::OnFrameRender_Draw()
 				    //	CKTDGStateManager::PushRenderState( D3DRS_ZWRITEENABLE,	TRUE );
 				    //}
 
-				    OnFrameRender( m_pParticleSystem->GetVB(), m_pParticleSystem->GetVBSize() );
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+                    OnFrameRender_VERTEX_PARTICLE();
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//				    OnFrameRender( m_pParticleSystem->GetVB(), m_pParticleSystem->GetVBSize() );
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
     				
 				    //if( m_bZWriteEnable == true )
 				    //{
@@ -2409,19 +3405,26 @@ void    CKTDGParticleSystem::CParticleEventSequence::OnFrameRender_Draw()
 		case PT_2D_PLANE:
 			{
 				KTDXPROFILE_BEGIN("PT_2D_PLANE");
-				// Set up the vertex buffer to be rendered
-				g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_PARTICLE_RHW );
-				g_pKTDXApp->GetDevice()->SetStreamSource( 0, m_pParticleSystem->GetVBRHW(), 0, sizeof(VERTEX_PARTICLE_RHW) );
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//				// Set up the vertex buffer to be rendered
+//				g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_PARTICLE_RHW );
+//				g_pKTDXApp->GetDevice()->SetStreamSource( 0, m_pParticleSystem->GetVBRHW(), 0, sizeof(VERTEX_PARTICLE_RHW) );
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
-				m_pInitMatrix->UpdateWorldMatrix();
+                g_pKTDXApp->ResetWorldTransform();
 
 				// Set the render states for using point sprites
                 KD3DBEGIN()
 				    CKTDGStateManager::PushRenderState( D3DRS_SRCBLEND,		GetSrcBlendMode() );
 				    CKTDGStateManager::PushRenderState( D3DRS_DESTBLEND,	GetDestBlendMode() );
 
-					if ( NULL != m_pParticleSystem->GetVBRHW() )
-						OnFrameRenderRHW( m_pParticleSystem->GetVBRHW(), m_pParticleSystem->GetVBSize() );
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+                    OnFrameRender_VERTEX_PARTICLE_RHW();
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//					if ( NULL != m_pParticleSystem->GetVBRHW() )
+//						OnFrameRenderRHW( m_pParticleSystem->GetVBRHW(), m_pParticleSystem->GetVBSize() );
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
                 KD3DEND()
                 KTDXPROFILE_END();
 			}
@@ -2453,7 +3456,11 @@ void    CKTDGParticleSystem::CParticleEventSequence::OnFrameRender_Draw()
 
 
 
-void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTEXBUFFER9 pVB, int iVBSize )
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender_VERTEX_PARTICLE()
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTEXBUFFER9 pVB, int iVBSize )
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 {
 
 	KTDXPROFILE();
@@ -2462,263 +3469,276 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 	if( false == m_pParticleSystem->GetRenderEffectMadeByGameUnit() && 
 		CKTDGObject::OT_EFFECT_MADE_BY_GAME_UNIT == GetObjectType() )
 		return;
+
+    //bool    bIdentityWorldMatrix = false;
 #endif //NOT_RENDER_EFFECT_MADE_BY_GAME_UNIT
 
-	if ( m_pParticleSystem->GetUseDynamicTexture() == true )
-	{
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
-		HRESULT hr;
+    ASSERT( m_pParticleSystem != NULL );
+    if ( m_pParticleSystem == NULL || m_DrawCount <= 0 )
+        return;
 
-		VERTEX_PARTICLE*		pVertices;
+    std::vector<VERTEX_PARTICLE>& vecVERTEX_PARTICLE = m_pParticleSystem->GetVecVERTEX_PARTICLE();
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
-		// Lock the vertex buffer.  We fill the vertex buffer in small
-		// chunks, using D3DLOCK_NOOVERWRITE.  When we are done filling
-		// each chunk, we call DrawPrim, and lock the next chunk.  When
-		// we run out of space in the vertex buffer, we start over at
-		// the beginning, using D3DLOCK_DISCARD.
-		D3DXMATRIX finalMat;
-		D3DXVECTOR4 v4temp;
-		int iCurStart = 0;
-		UINT renderParticle = 0;	
-
-		g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_PARTICLE );
-		g_pKTDXApp->GetDevice()->SetStreamSource(0, pVB, 0, sizeof(VERTEX_PARTICLE));
-
-		//텍스쳐 그룹화 해서 그린다
-		map<int,CKTDXDeviceTexture*>::iterator iTex;
-		for( iTex = m_TextureMap.begin() ; iTex != m_TextureMap.end() ; iTex++ )
-		{
-			CKTDXDeviceTexture* pTex = (CKTDXDeviceTexture*)iTex->second;
-			if( pTex != NULL )
-				pTex->SetDeviceTexture();
-			int texID = iTex->first;
-
-			if( m_pParticleSystem->GetOffsetSize() >= m_pParticleSystem->GetVBSize() )
-				m_pParticleSystem->SetOffsetSize( 0 );
-
-			KTDXPROFILE_BEGIN( "LOCK" );
-			if( FAILED( hr = pVB->Lock( m_pParticleSystem->GetOffsetSize() * 6 * sizeof(VERTEX_PARTICLE), 
-				m_pParticleSystem->GetBatchSize() * 6 * sizeof(VERTEX_PARTICLE), 
-                /** Direct3D9: (ERROR) :Can specify D3DLOCK_DISCARD or D3DLOCK_NOOVERWRITE for only Vertex Buffers created with D3DUSAGE_DYNAMIC
-                    - jintaeks on 2008-10-15, 11:06 */
-                    (void**)&pVertices, m_pParticleSystem->GetUseDynamicTexture() ? (m_pParticleSystem->GetOffsetSize() ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD) : 0L )))
-			{
-				wcout << L"Fail: CKTDGParticleSystem::CParticleEventSequence::OnFrameRender::Lock" << std::endl;
-				ErrorLogMsg( KEM_ERROR358, L"OnFrameRender" );
-				return;
-			}
-			KTDXPROFILE_END();
-
-			DWORD numParticlesInBatch = 0;
-			
-
-			// Render each particle
-			BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
-			{	
-				if ( pPart == NULL )
-					continue;
-				// Render each particle a bunch of times to get a blurring effect		
-				if( texID != pPart->m_TextureID )
-					continue;
-				else
-				{
-					numParticlesInBatch++;
-					renderParticle++;
-					if( renderParticle >= m_ParticleList.size() )
-						iTex = m_TextureMap.end();
-				}
-
-
-				//1-----3,4
-				//
-				//2,5---6
-
-				KTDXPROFILE_BEGIN( "MATH_MATRIX" );
-
-				D3DXVECTOR3 partPos = pPart->m_vPos;
-				partPos.x += pPart->m_Crash.x;
-				partPos.y += pPart->m_Crash.y;
-				partPos.z += pPart->m_Crash.z;
-				pPart->m_Crash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
-
-#ifdef LOCAL_ROTATE_EFFECT_P
-				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x-pPart->m_vRotateLocal.x), 
-												D3DXToRadian(pPart->m_vRotate.y-pPart->m_vRotateLocal.y), 
-												D3DXToRadian(pPart->m_vRotate.z-pPart->m_vRotateLocal.z) );
-#else
-				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
-#endif
-
-				m_pMathMatrix->Move( partPos.x, partPos.y, partPos.z );
-				m_pMathMatrix->Rotate( vRot );
-				//m_pMathMatrix->Scale( pPart->m_vSize.x, pPart->m_vSize.y, 1.0f );
-
-
-				finalMat = m_pMathMatrix->GetMatrix( m_BillBoardType );
-				KTDXPROFILE_END();
-
-				KTDXPROFILE_BEGIN( "SET_VERTEX" );
-
-
-				//wstringstream wstrstm;
-				//wstrstm << numParticlesInBatch << L" " << m_pParticleSystem->GetOffsetSize() << L" " << m_pParticleSystem->GetBatchSize();
-				//LastErrorLog( wstrstm.str().c_str() );
-				
-				//1
-				pVertices->position.x = -pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = v4temp.x;
-				pVertices->position.y = v4temp.y;
-				pVertices->position.z = v4temp.z;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//2
-				pVertices->position.x = -pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = -pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = v4temp.x;
-				pVertices->position.y = v4temp.y;
-				pVertices->position.z = v4temp.z;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//3
-				pVertices->position.x = pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = v4temp.x;
-				pVertices->position.y = v4temp.y;
-				pVertices->position.z = v4temp.z;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//4
-				pVertices->position.x = pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = v4temp.x;
-				pVertices->position.y = v4temp.y;
-				pVertices->position.z = v4temp.z;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//5
-				pVertices->position.x = -pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = -pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = v4temp.x;
-				pVertices->position.y = v4temp.y;
-				pVertices->position.z = v4temp.z;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//6			
-				pVertices->position.x = pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = -pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = v4temp.x;
-				pVertices->position.y = v4temp.y;
-				pVertices->position.z = v4temp.z;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				KTDXPROFILE_END();
-
-				if( numParticlesInBatch == m_pParticleSystem->GetBatchSize() )
-				{
-					// Done filling this chunk of the vertex buffer.  Lets unlock and
-					// draw this portion so we can begin filling the next chunk.
-
-					pVB->Unlock();
-
-					
-					
-					for( int dc = 0; dc < m_DrawCount; dc++ )
-					{
-						if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 
-							m_pParticleSystem->GetOffsetSize() * 6, numParticlesInBatch * 2 )))
-						{
-							ErrorLog( KEM_ERROR30 );
-							return;
-						}
-					}
-					
-
-					m_pParticleSystem->SetOffsetSize( m_pParticleSystem->GetOffsetSize() + m_pParticleSystem->GetBatchSize() );
-
-					if(m_pParticleSystem->GetOffsetSize() >= m_pParticleSystem->GetVBSize() ) 
-						m_pParticleSystem->SetOffsetSize( 0 );
-
-
-					// Lock the next chunk of the vertex buffer.  If we are at the 
-					// end of the vertex buffer, DISCARD the vertex buffer and start
-					// at the beginning.  Otherwise, specify NOOVERWRITE, so we can
-					// continue filling the VB while the previous chunk is drawing.
-
-					KTDXPROFILE_BEGIN( "LOCK_INNER" );
-					if( FAILED( hr = pVB->Lock( m_pParticleSystem->GetOffsetSize() * 6 * sizeof(VERTEX_PARTICLE), 
-						m_pParticleSystem->GetBatchSize() * 6 * sizeof(VERTEX_PARTICLE), 
-                        (void**)&pVertices, m_pParticleSystem->GetUseDynamicTexture() ? (m_pParticleSystem->GetOffsetSize() ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD) : 0L )))
-					{
-						ErrorLogMsg( KEM_ERROR358, L"OnFrameRender2" );
-						return;
-					}
-					KTDXPROFILE_END();
-
-					numParticlesInBatch = 0;
-					renderParticle = 0;
-				}
-			}
-
-			// Unlock the vertex buffer
-			pVB->Unlock();
-
-			
-			
-			// Render any remaining particles
-			KTDXPROFILE_BEGIN( "DrawPrimitive" );
-			if( numParticlesInBatch > 0 )
-			{
-				for( int dc = 0; dc < m_DrawCount; dc++ )
-				{
-					if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 
-						m_pParticleSystem->GetOffsetSize() * 6, numParticlesInBatch * 2 )))
-					{
-						ErrorLog( KEM_ERROR31 );
-						return;
-					}
-				}
-				numParticlesInBatch = 0;
-			}
-
-			m_pParticleSystem->SetOffsetSize( m_pParticleSystem->GetOffsetSize() + m_pParticleSystem->GetBatchSize() );
-
-			KTDXPROFILE_END();		
-		}	
-
-	}
-//}}AFX
-	else
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//	if ( m_pParticleSystem->GetUseDynamicTexture() == true )
+//	{
+//
+//		HRESULT hr;
+//
+//		VERTEX_PARTICLE*		pVertices;
+//
+//		// Lock the vertex buffer.  We fill the vertex buffer in small
+//		// chunks, using D3DLOCK_NOOVERWRITE.  When we are done filling
+//		// each chunk, we call DrawPrim, and lock the next chunk.  When
+//		// we run out of space in the vertex buffer, we start over at
+//		// the beginning, using D3DLOCK_DISCARD.
+//		D3DXMATRIX finalMat;
+//		D3DXVECTOR4 v4temp;
+//		int iCurStart = 0;
+//		UINT renderParticle = 0;	
+//
+//		g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_PARTICLE );
+//		g_pKTDXApp->GetDevice()->SetStreamSource(0, pVB, 0, sizeof(VERTEX_PARTICLE));
+//
+//		//텍스쳐 그룹화 해서 그린다
+//		map<int,CKTDXDeviceTexture*>::iterator iTex;
+//		for( iTex = m_TextureMap.begin() ; iTex != m_TextureMap.end() ; iTex++ )
+//		{
+//			CKTDXDeviceTexture* pTex = (CKTDXDeviceTexture*)iTex->second;
+//			if( pTex != NULL )
+//				pTex->SetDeviceTexture();
+//			int texID = iTex->first;
+//
+//			if( m_pParticleSystem->GetOffsetSize() >= m_pParticleSystem->GetVBSize() )
+//				m_pParticleSystem->SetOffsetSize( 0 );
+//
+//			KTDXPROFILE_BEGIN( "LOCK" );
+//			if( FAILED( hr = pVB->Lock( m_pParticleSystem->GetOffsetSize() * 6 * sizeof(VERTEX_PARTICLE), 
+//				m_pParticleSystem->GetBatchSize() * 6 * sizeof(VERTEX_PARTICLE), 
+//                /** Direct3D9: (ERROR) :Can specify D3DLOCK_DISCARD or D3DLOCK_NOOVERWRITE for only Vertex Buffers created with D3DUSAGE_DYNAMIC
+//                    - jintaeks on 2008-10-15, 11:06 */
+//                    (void**)&pVertices, m_pParticleSystem->GetUseDynamicTexture() ? (m_pParticleSystem->GetOffsetSize() ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD) : 0L )))
+//			{
+//				wcout << L"Fail: CKTDGParticleSystem::CParticleEventSequence::OnFrameRender::Lock" << std::endl;
+//				ErrorLogMsg( KEM_ERROR358, L"OnFrameRender" );
+//				return;
+//			}
+//			KTDXPROFILE_END();
+//
+//			DWORD numParticlesInBatch = 0;
+//			
+//
+//			// Render each particle
+//			BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
+//			{	
+//				if ( pPart == NULL )
+//					continue;
+//				// Render each particle a bunch of times to get a blurring effect		
+//				if( texID != pPart->m_TextureID )
+//					continue;
+//				else
+//				{
+//					numParticlesInBatch++;
+//					renderParticle++;
+//					if( renderParticle >= m_ParticleList.size() )
+//						iTex = m_TextureMap.end();
+//				}
+//
+//
+//				//1-----3,4
+//				//
+//				//2,5---6
+//
+//				KTDXPROFILE_BEGIN( "MATH_MATRIX" );
+//
+//				D3DXVECTOR3 partPos = pPart->m_vPos;
+//				partPos.x += pPart->m_vCrash.x;
+//				partPos.y += pPart->m_vCrash.y;
+//				partPos.z += pPart->m_vCrash.z;
+//				pPart->m_vCrash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
+//
+//#ifdef LOCAL_ROTATE_EFFECT_P
+//				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x-pPart->GetRotateLocal().x), 
+//												D3DXToRadian(pPart->m_vRotate.y-pPart->GetRotateLocal().y), 
+//												D3DXToRadian(pPart->m_vRotate.z-pPart->GetRotateLocal().z) );
+//#else
+//				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
+//#endif
+//
+//				m_pMathMatrix->Move( partPos.x, partPos.y, partPos.z );
+//				m_pMathMatrix->Rotate( vRot );
+//				//m_pMathMatrix->Scale( pPart->m_vSize.x, pPart->m_vSize.y, 1.0f );
+//
+//
+//				finalMat = m_pMathMatrix->GetMatrix( m_BillBoardType );
+//				KTDXPROFILE_END();
+//
+//				KTDXPROFILE_BEGIN( "SET_VERTEX" );
+//
+//
+//				//wstringstream wstrstm;
+//				//wstrstm << numParticlesInBatch << L" " << m_pParticleSystem->GetOffsetSize() << L" " << m_pParticleSystem->GetBatchSize();
+//				//LastErrorLog( wstrstm.str().c_str() );
+//				
+//				//1
+//				pVertices->position.x = -pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = v4temp.x;
+//				pVertices->position.y = v4temp.y;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//2
+//				pVertices->position.x = -pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = -pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = v4temp.x;
+//				pVertices->position.y = v4temp.y;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//3
+//				pVertices->position.x = pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = v4temp.x;
+//				pVertices->position.y = v4temp.y;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//4
+//				pVertices->position.x = pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = v4temp.x;
+//				pVertices->position.y = v4temp.y;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//5
+//				pVertices->position.x = -pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = -pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = v4temp.x;
+//				pVertices->position.y = v4temp.y;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//6			
+//				pVertices->position.x = pPart->m_vSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = -pPart->m_vSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = v4temp.x;
+//				pVertices->position.y = v4temp.y;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				KTDXPROFILE_END();
+//
+//				if( numParticlesInBatch == m_pParticleSystem->GetBatchSize() )
+//				{
+//					// Done filling this chunk of the vertex buffer.  Lets unlock and
+//					// draw this portion so we can begin filling the next chunk.
+//
+//					pVB->Unlock();
+//
+//					
+//					
+//					for( int dc = 0; dc < m_DrawCount; dc++ )
+//					{
+//						if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 
+//							m_pParticleSystem->GetOffsetSize() * 6, numParticlesInBatch * 2 )))
+//						{
+//							ErrorLog( KEM_ERROR30 );
+//							return;
+//						}
+//					}
+//					
+//
+//					m_pParticleSystem->SetOffsetSize( m_pParticleSystem->GetOffsetSize() + m_pParticleSystem->GetBatchSize() );
+//
+//					if(m_pParticleSystem->GetOffsetSize() >= m_pParticleSystem->GetVBSize() ) 
+//						m_pParticleSystem->SetOffsetSize( 0 );
+//
+//
+//					// Lock the next chunk of the vertex buffer.  If we are at the 
+//					// end of the vertex buffer, DISCARD the vertex buffer and start
+//					// at the beginning.  Otherwise, specify NOOVERWRITE, so we can
+//					// continue filling the VB while the previous chunk is drawing.
+//
+//					KTDXPROFILE_BEGIN( "LOCK_INNER" );
+//					if( FAILED( hr = pVB->Lock( m_pParticleSystem->GetOffsetSize() * 6 * sizeof(VERTEX_PARTICLE), 
+//						m_pParticleSystem->GetBatchSize() * 6 * sizeof(VERTEX_PARTICLE), 
+//                        (void**)&pVertices, m_pParticleSystem->GetUseDynamicTexture() ? (m_pParticleSystem->GetOffsetSize() ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD) : 0L )))
+//					{
+//						ErrorLogMsg( KEM_ERROR358, L"OnFrameRender2" );
+//						return;
+//					}
+//					KTDXPROFILE_END();
+//
+//					numParticlesInBatch = 0;
+//					renderParticle = 0;
+//				}
+//			}
+//
+//			// Unlock the vertex buffer
+//			pVB->Unlock();
+//
+//			
+//			
+//			// Render any remaining particles
+//			KTDXPROFILE_BEGIN( "DrawPrimitive" );
+//			if( numParticlesInBatch > 0 )
+//			{
+//				for( int dc = 0; dc < m_DrawCount; dc++ )
+//				{
+//					if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 
+//						m_pParticleSystem->GetOffsetSize() * 6, numParticlesInBatch * 2 )))
+//					{
+//						ErrorLog( KEM_ERROR31 );
+//						return;
+//					}
+//				}
+//				numParticlesInBatch = 0;
+//			}
+//
+//			m_pParticleSystem->SetOffsetSize( m_pParticleSystem->GetOffsetSize() + m_pParticleSystem->GetBatchSize() );
+//
+//			KTDXPROFILE_END();		
+//		}	
+//
+//	}
+////}}AFX
+//	else
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 	{
 		HRESULT hr;
 
@@ -2734,27 +3754,53 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 		int iCurStart = 0;
 		UINT renderParticle = 0;
 
+#ifdef X2OPTIMIZE_CULLING_PARTICLE
+		CKTDGCamera& kCamera = g_pKTDXApp->GetDGManager()->GetCamera();
+		const CKTDGFrustum& kFrustum = g_pKTDXApp->GetDGManager()->GetFrustum();
+#endif//X2OPTIMIZE_CULLING_PARTICLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 		//텍스쳐 그룹화 해서 그린다
 		map<int,CKTDXDeviceTexture*>::iterator iTex;
 		for( iTex = m_TextureMap.begin() ; iTex != m_TextureMap.end() ; iTex++ )
 		{
 			CKTDXDeviceTexture* pTex = (CKTDXDeviceTexture*)iTex->second;
-			if( pTex != NULL )
-				pTex->SetDeviceTexture();
+
 			int texID = iTex->first;
 
-			KTDXPROFILE_BEGIN( "LOCK" );
-			if( FAILED( hr = pVB->Lock( 0, iVBSize * 6 * sizeof(VERTEX_PARTICLE), (void**)&pVertices, 0 )))
-			{
-				wcout << L"Fail: CKTDGParticleSystem::CParticleEventSequence::OnFrameRender::Lock" << std::endl;
-				return;
-			}
-			KTDXPROFILE_END();
 
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+			renderParticle = 0;
+			vecVERTEX_PARTICLE.resize( 0 );
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//
+//			KTDXPROFILE_BEGIN( "LOCK" );
+//			if( FAILED( hr = pVB->Lock( 0, iVBSize * 6 * sizeof(VERTEX_PARTICLE), (void**)&pVertices, 0 )))
+//			{
+//				wcout << L"Fail: CKTDGParticleSystem::CParticleEventSequence::OnFrameRender::Lock" << std::endl;
+//				return;
+//			}
+//			KTDXPROFILE_END();
+//
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
 			// Render each particle
-			BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( m_iParticleList >= 0 && m_iParticleList < (int) coParticleList.storage_size() )
+            for( KParticleHandleList::iterator iter = coParticleList.begin( m_iParticleList );
+                iter != coParticleList.end( m_iParticleList ); ++iter)
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    	    BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                KParticleHandleInfo& info = *iter;
+                CParticle* pPart = info.m_pParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 				if ( pPart == NULL )
 					continue;
 				// Render each particle a bunch of times to get a blurring effect		
@@ -2763,8 +3809,10 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 				else
 				{
 					renderParticle++;
-					if( renderParticle >= m_ParticleList.size() )
-						iTex = m_TextureMap.end();
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//					if( renderParticle >= m_ParticleList.size() )
+//						iTex = m_TextureMap.end();
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 				}
 
 
@@ -2774,15 +3822,12 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 
 				KTDXPROFILE_BEGIN( "MATH_MATRIX" );
 
-				D3DXVECTOR3 partPos = pPart->m_vPos;
-				partPos.x += pPart->m_Crash.x;
-				partPos.y += pPart->m_Crash.y;
-				partPos.z += pPart->m_Crash.z;
-				pPart->m_Crash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
+				D3DXVECTOR3 partPos = pPart->GetPos() + pPart->GetCrash();
+				pPart->SetCrash( D3DXVECTOR3( 0.0f, 0.0f, 0.0f ) );
 
 
 #ifdef PARTICLE_STRETCH_TEST
-				if( 1.f != pPart->m_fStretchScale )
+				if( 1.f != pPart->GetStretchScale() )
 				{
 					D3DXVECTOR3 vYAxis(0, 1, 0);
 					D3DXVECTOR3 vDirVec = pPart->m_vPos - pPart->m_vPosOld;
@@ -2822,15 +3867,13 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 #endif PARTICLE_STRETCH_TEST
 				{
 
-#ifdef LOCAL_ROTATE_EFFECT_P
+//#ifdef LOCAL_ROTATE_EFFECT_P
 
-					D3DXVECTOR3 vRot( 0, 0, 0 );
+					D3DXVECTOR3 vRotDegree( 0, 0, 0 );
 
 					if( true == m_bUseLookPoint )
 					{
-						vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x+pPart->m_vRotateLocal.x), 
-							D3DXToRadian(pPart->m_vRotate.y+pPart->m_vRotateLocal.y), 
-							D3DXToRadian(pPart->m_vRotate.z+pPart->m_vRotateLocal.z) );
+						vRotDegree = pPart->GetRotate() + pPart->GetRotateLocal();
 					}
 					else
 					{
@@ -2844,49 +3887,43 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 								if ( true == m_bReverseY )
 									fYDegree = 180.f;
 
-								vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotateLocal.x), 
-									D3DXToRadian(pPart->m_vRotateLocal.y + fYDegree ), 
-									D3DXToRadian(pPart->m_vRotateLocal.z) );
+                                vRotDegree = pPart->GetRotateLocal();
+                                vRotDegree.y += fYDegree;
 
 							} break;
 
 						case CKTDGMatrix::BT_X:
 							{
-								vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotateLocal.x), 
-									D3DXToRadian(pPart->m_vRotate.y+pPart->m_vRotateLocal.y), 
-									D3DXToRadian(pPart->m_vRotate.z+pPart->m_vRotateLocal.z) );
+                                vRotDegree = pPart->GetRotate() + pPart->GetRotateLocal();
+                                vRotDegree.x = pPart->GetRotateLocal().x;
 							} break;
 
 						case CKTDGMatrix::BT_Y:
 							{
-								vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x+pPart->m_vRotateLocal.x), 
-									D3DXToRadian(pPart->m_vRotateLocal.y), 
-									D3DXToRadian(pPart->m_vRotate.z+pPart->m_vRotateLocal.z) );
+                                vRotDegree = pPart->GetRotate() + pPart->GetRotateLocal();
+                                vRotDegree.y = pPart->GetRotateLocal().y;
 							} break;
 
 						case CKTDGMatrix::BT_Z:
 							{
-								vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x+pPart->m_vRotateLocal.x), 
-									D3DXToRadian(pPart->m_vRotate.y+pPart->m_vRotateLocal.y), 
-									D3DXToRadian(pPart->m_vRotateLocal.z) );
+                                vRotDegree = pPart->GetRotate() + pPart->GetRotateLocal();
+                                vRotDegree.z = pPart->GetRotateLocal().z;
 							} break;
 
 
 						case CKTDGMatrix::BT_NONE:
 							{
-								vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x+pPart->m_vRotateLocal.x), 
-									D3DXToRadian(pPart->m_vRotate.y+pPart->m_vRotateLocal.y), 
-									D3DXToRadian(pPart->m_vRotate.z+pPart->m_vRotateLocal.z) );
+						        vRotDegree = pPart->GetRotate() + pPart->GetRotateLocal();
 							} break;
 						}
 					}
-#else
-					D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
-#endif LOCAL_ROTATE_EFFECT_P
+//#else
+//					D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
+//#endif LOCAL_ROTATE_EFFECT_P
 
 
 					m_pMathMatrix->Move( partPos.x, partPos.y, partPos.z );
-					m_pMathMatrix->Rotate( vRot );
+					m_pMathMatrix->RotateDegree( vRotDegree );
 					//m_pMathMatrix->Scale( pPart->m_vSize.x, pPart->m_vSize.y, 1.0f );
 
 
@@ -2907,7 +3944,7 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 
 				float fStretchScale = 1.f;
 #ifdef PARTICLE_STRETCH_TEST
-				fStretchScale = pPart->m_fStretchScale;
+				fStretchScale = pPart->GetStretchScale();
 #endif PARTICLE_STRETCH_TEST
 
 
@@ -2926,6 +3963,12 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 
 				KTDXPROFILE_BEGIN( "SET_VERTEX" );
 
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+                unsigned uSize = vecVERTEX_PARTICLE.size();
+                vecVERTEX_PARTICLE.resize( uSize + 6 );
+                pVertices = &vecVERTEX_PARTICLE[ uSize ];
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
 				//1
 				pVertices->position.x = -0.5f * pPart->m_vSize.x * m_ScaleFactor.x * fStretchScale * vScaleByUnit.x;
 				pVertices->position.y = 0.5f * pPart->m_vSize.y * m_ScaleFactor.y * vScaleByUnit.y;
@@ -2935,8 +3978,8 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 				pVertices->position.y = v4temp.y;
 				pVertices->position.z = v4temp.z;
 				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
+				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
 				pVertices++;
 
 				//2
@@ -2948,8 +3991,8 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 				pVertices->position.y = v4temp.y;
 				pVertices->position.z = v4temp.z;
 				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
+				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
 				pVertices++;
 
 				//3
@@ -2961,8 +4004,8 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 				pVertices->position.y = v4temp.y;
 				pVertices->position.z = v4temp.z;
 				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
+				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
 				pVertices++;
 
 				//4
@@ -2982,75 +4025,409 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender( LPDIRECT3DVERTE
 				pVertices->position.y = v4temp.y;
 				pVertices->position.z = v4temp.z;
 				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
+				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
 				pVertices++;
 
 				KTDXPROFILE_END();
 
-				if( renderParticle == iVBSize )
-				{
-					// Done filling this chunk of the vertex buffer.  Lets unlock and
-					// draw this portion so we can begin filling the next chunk.
+//#ifndef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//
+//				if( renderParticle == iVBSize )
+//				{
+//					// Done filling this chunk of the vertex buffer.  Lets unlock and
+//					// draw this portion so we can begin filling the next chunk.
+//
+//					pVB->Unlock();
+//
+//					for( int dc = 0; dc < m_DrawCount; dc++ )
+//					{
+//						if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, renderParticle * 2)))
+//						{
+//							ErrorLog( KEM_ERROR30 );
+//							return;
+//						}
+//					}
+//					renderParticle = 0;
+//
+//
+//					// Lock the next chunk of the vertex buffer.  If we are at the 
+//					// end of the vertex buffer, DISCARD the vertex buffer and start
+//					// at the beginning.  Otherwise, specify NOOVERWRITE, so we can
+//					// continue filling the VB while the previous chunk is drawing.
+//
+//					KTDXPROFILE_BEGIN( "LOCK_INNER" );
+//					if( FAILED( hr = pVB->Lock( 0, iVBSize * 6 * sizeof(VERTEX_PARTICLE), (void**)&pVertices,
+//                        m_pParticleSystem->GetUseDynamicTexture() ? D3DLOCK_DISCARD : 0L )))
+//					{
+//						return;
+//					}
+//					KTDXPROFILE_END();
+//				}
+//
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
-					pVB->Unlock();
-
-					for( int dc = 0; dc < m_DrawCount; dc++ )
-					{
-						if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, renderParticle * 2)))
-						{
-							ErrorLog( KEM_ERROR30 );
-							return;
-						}
-					}
-					renderParticle = 0;
-
-
-					// Lock the next chunk of the vertex buffer.  If we are at the 
-					// end of the vertex buffer, DISCARD the vertex buffer and start
-					// at the beginning.  Otherwise, specify NOOVERWRITE, so we can
-					// continue filling the VB while the previous chunk is drawing.
-
-					KTDXPROFILE_BEGIN( "LOCK_INNER" );
-					if( FAILED( hr = pVB->Lock( 0, iVBSize * 6 * sizeof(VERTEX_PARTICLE), (void**)&pVertices,
-                        m_pParticleSystem->GetUseDynamicTexture() ? D3DLOCK_DISCARD : 0L )))
-					{
-						return;
-					}
-					KTDXPROFILE_END();
-				}
 			}
 
-			// Unlock the vertex buffer
-			pVB->Unlock();
 
-			// Render any remaining particles
-			KTDXPROFILE_BEGIN( "DrawPrimitive" );
-			if( renderParticle > 0 )
-			{
-				for( int dc = 0; dc < m_DrawCount; dc++ )
-				{
-					if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, renderParticle * 2 )))
-					{
-						ErrorLog( KEM_ERROR31 );
-						return;
-					}
-				}
-				renderParticle = 0;
-			}
-			KTDXPROFILE_END();		
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
+            //BOOST_STATIC_ASSERT( D3DFVF_PARTICLE == CKTDGDynamicVBManager::D3DFVF_XYZ_DIFFUSE_TEX1 );
+            if ( renderParticle > 0 )
+            {
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+                if ( ms_bParticleCullingEnabled == true 
+                    && m_bRenderCullCheck == true )
+                {
+		            D3DXVECTOR3 vCenter = *( (D3DXVECTOR3*)&vecVERTEX_PARTICLE[0] );
+                    if ( kFrustum.CheckPoint( vCenter ) == false )
+                    {
+		                float fRadius;
+		                hr = ComputeBoundingSphere( (D3DXVECTOR3*)&vecVERTEX_PARTICLE[0], vecVERTEX_PARTICLE.size(),
+			                sizeof( VERTEX_PARTICLE ),
+			                &vCenter, &fRadius );
+                        if ( FAILED( hr ) )
+                            continue;
+			            if( kFrustum.CheckSphere( vCenter, fRadius ) == false )
+				            continue;
+                        //_DecideWorldMatrix_Normal( kCamera, vCenter, fRadius, bIdentityWorldMatrix );
+                    }
+                }
+#endif  X2OPTIMIZE_CULLING_PARTICLE
+
+			    if( pTex != NULL )
+				    pTex->SetDeviceTexture();
+
+                g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZ_DIFFUSE_TEX1
+                    , D3DPT_TRIANGLELIST, renderParticle * 2, &vecVERTEX_PARTICLE[0], m_DrawCount );
+            }//if
+
+
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//
+//			// Unlock the vertex buffer
+//			pVB->Unlock();
+//
+//			// Render any remaining particles
+//			KTDXPROFILE_BEGIN( "DrawPrimitive" );
+//			if( renderParticle > 0 )
+//			{
+//				for( int dc = 0; dc < m_DrawCount; dc++ )
+//				{
+//					if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, renderParticle * 2 )))
+//					{
+//						ErrorLog( KEM_ERROR31 );
+//						return;
+//					}
+//				}
+//				renderParticle = 0;
+//			}
+//			KTDXPROFILE_END();		
+//
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
 		}	
+
 	}
 }
 
-void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVERTEXBUFFER9 pVB, int iVBSize )
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+void CKTDGParticleSystem::CParticleEventSequence::OnFrameRender_VERTEX_PARTICLE_RHW()
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVERTEXBUFFER9 pVB, int iVBSize )
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 {
 	KTDXPROFILE();
 //{{AFX
 
-	if ( m_pParticleSystem->GetUseDynamicTexture() == true )
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
+    ASSERT( m_pParticleSystem != NULL );
+    if ( m_pParticleSystem == NULL || m_DrawCount <= 0 )
+        return;
+
+    std::vector<VERTEX_PARTICLE_RHW>& vecVERTEX_PARTICLE_RHW = m_pParticleSystem->GetVecVERTEX_PARTICLE_RHW();
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//
+//	if ( m_pParticleSystem->GetUseDynamicTexture() == true )
+//
+//	{
+//		HRESULT hr;
+//
+//		VERTEX_PARTICLE_RHW*	pVertices;
+//
+//		// Lock the vertex buffer.  We fill the vertex buffer in small
+//		// chunks, using D3DLOCK_NOOVERWRITE.  When we are done filling
+//		// each chunk, we call DrawPrim, and lock the next chunk.  When
+//		// we run out of space in the vertex buffer, we start over at
+//		// the beginning, using D3DLOCK_DISCARD.
+//		D3DXMATRIX finalMat;
+//		D3DXVECTOR4 v4temp;
+//		int iCurStart = 0;
+//		UINT renderParticle = 0;
+//
+//		g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_PARTICLE_RHW );
+//		g_pKTDXApp->GetDevice()->SetStreamSource(0, pVB, 0, sizeof(VERTEX_PARTICLE_RHW));
+//
+//		//텍스쳐 그룹화 해서 그린다
+//		map<int,CKTDXDeviceTexture*>::iterator iTex;
+//		for( iTex = m_TextureMap.begin() ; iTex != m_TextureMap.end() ; iTex++ )
+//		{		
+//			KTDXPROFILE_BEGIN("SetTexture");
+//			CKTDXDeviceTexture* pTex = (CKTDXDeviceTexture*)iTex->second;
+//			if( pTex != NULL )
+//				pTex->SetDeviceTexture();
+//			KTDXPROFILE_END();
+//			int texID = iTex->first;
+//
+//			
+//
+//			if( m_pParticleSystem->GetOffsetRHWSize() >= m_pParticleSystem->GetVBSize() )
+//				m_pParticleSystem->SetOffsetRHWSize( 0 );
+//
+//			KTDXPROFILE_BEGIN("Lock");
+//			if( FAILED( hr = pVB->Lock( m_pParticleSystem->GetOffsetRHWSize() * 6 * sizeof(VERTEX_PARTICLE_RHW)
+//				,m_pParticleSystem->GetBatchSize() * 6 * sizeof(VERTEX_PARTICLE_RHW), (void**)&pVertices, 
+//                m_pParticleSystem->GetUseDynamicTexture() ? (m_pParticleSystem->GetOffsetRHWSize() ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD) : 0L )))
+//			{
+//				ErrorLogMsg( KEM_ERROR358, L"OnFrameRenderRHW" );
+//				return;
+//			}
+//			KTDXPROFILE_END();
+//
+//			DWORD numParticlesInBatch = 0;
+//
+//			// Render each particle
+//			BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
+//			{	
+//				if ( pPart == NULL )
+//					continue;
+//
+//				// Render each particle a bunch of times to get a blurring effect		
+//				if( texID != pPart->m_TextureID )
+//					continue;
+//				else
+//				{
+//					numParticlesInBatch++;
+//					renderParticle++;
+//					if( renderParticle >= m_ParticleList.size() )
+//						iTex = m_TextureMap.end();
+//				}
+//
+//
+//				//1-----3,4
+//				//
+//				//2,5---6
+//
+//				D3DXVECTOR3 partPos = pPart->m_vPos;
+//				partPos.x += pPart->m_vCrash.x;
+//				partPos.y += pPart->m_vCrash.y;
+//				partPos.z += pPart->m_vCrash.z;
+//				pPart->m_vCrash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
+//
+//				D3DXVECTOR3 partSize = pPart->m_vSize;
+//
+//				KTDXPROFILE_BEGIN("MatrixMath");
+//				//해상도 변경 정보를 보간하고 싶으면 계산한다
+//				D3DXVECTOR2 temp;
+//				if( m_bResolutionConvert == true )
+//				{
+//					temp = g_pKTDXApp->ConvertByResolution( partPos.x, partPos.y );
+//					partPos.x = temp.x;
+//					partPos.y = temp.y;				
+//				}
+//				temp = g_pKTDXApp->ConvertByResolution( partSize.x, partSize.y );
+//				partSize.x = temp.x;
+//				partSize.y = temp.y;
+//
+//#ifdef LOCAL_ROTATE_EFFECT_P
+//				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x+pPart->m_vRotateLocal.x), 
+//					D3DXToRadian(pPart->m_vRotate.y+pPart->m_vRotateLocal.y), 
+//					D3DXToRadian(pPart->m_vRotate.z+pPart->m_vRotateLocal.z) );
+//#else
+//				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
+//#endif
+//
+//				m_pMathMatrix->Move( partPos.x, partPos.y, partPos.z );
+//				m_pMathMatrix->Rotate( vRot );
+//				//m_pMathMatrix->Scale( pPart->m_vSize.x, pPart->m_vSize.y, 1.0f );
+//
+//				KTDXPROFILE_END();
+//
+//
+//				//finalMat = m_pMathMatrix->GetMatrix( m_BillBoardType );
+//				finalMat = m_pMathMatrix->GetMatrix( CKTDGMatrix::BT_NONE );
+//
+//				KTDXPROFILE_BEGIN("SetVertex");
+//
+//				//wstringstream wstrstm;
+//				//wstrstm << numParticlesInBatch << L" " << m_pParticleSystem->GetOffsetSize() << L" " << m_pParticleSystem->GetBatchSize();
+//				//LastErrorLog( wstrstm.str().c_str() );
+//
+//				//1
+//				pVertices->position.x = -partSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = partSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = (int)v4temp.x - 0.5f;
+//				pVertices->position.y = (int)v4temp.y - 0.5f;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->rhw		  = 1.0f;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//2
+//				pVertices->position.x = -partSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = -partSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = (int)v4temp.x - 0.5f;
+//				pVertices->position.y = (int)v4temp.y - 0.5f;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->rhw		  = 1.0f;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//3
+//				pVertices->position.x = partSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = partSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = (int)v4temp.x - 0.5f;
+//				pVertices->position.y = (int)v4temp.y - 0.5f;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->rhw		  = 1.0f;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//4
+//				pVertices->position.x = partSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = partSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = (int)v4temp.x - 0.5f;
+//				pVertices->position.y = (int)v4temp.y - 0.5f;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->rhw		  = 1.0f;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//5
+//				pVertices->position.x = -partSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = -partSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = (int)v4temp.x - 0.5f;
+//				pVertices->position.y = (int)v4temp.y - 0.5f;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->rhw		  = 1.0f;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				//6			
+//				pVertices->position.x = partSize.x * m_ScaleFactor.x / 2.0f;
+//				pVertices->position.y = -partSize.y * m_ScaleFactor.y / 2.0f;
+//				pVertices->position.z = 0.0f;
+//				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
+//				pVertices->position.x = (int)v4temp.x - 0.5f;
+//				pVertices->position.y = (int)v4temp.y - 0.5f;
+//				pVertices->position.z = v4temp.z;
+//				pVertices->rhw		  = 1.0f;
+//				pVertices->color = (DWORD)pPart->m_Color;
+//				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+//				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
+//				pVertices++;
+//
+//				KTDXPROFILE_END();
+//
+//				if( numParticlesInBatch == m_pParticleSystem->GetBatchSize() )
+//				{
+//					// Done filling this chunk of the vertex buffer.  Lets unlock and
+//					// draw this portion so we can begin filling the next chunk.
+//
+//					KTDXPROFILE_BEGIN("Unlock");
+//					pVB->Unlock();
+//					KTDXPROFILE_END();
+//
+//					for( int dc = 0; dc < m_DrawCount; dc++ )
+//					{
+//						KTDXPROFILE_BEGIN("Draw");
+//						if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 
+//							m_pParticleSystem->GetOffsetRHWSize() * 6, numParticlesInBatch * 2)))
+//						{
+//							ErrorLog( KEM_ERROR32 );
+//							return;
+//						}
+//						KTDXPROFILE_END();
+//					}
+//
+//
+//					m_pParticleSystem->SetOffsetRHWSize( m_pParticleSystem->GetOffsetRHWSize() + m_pParticleSystem->GetBatchSize() );
+//
+//					if(m_pParticleSystem->GetOffsetRHWSize() >= m_pParticleSystem->GetVBSize() ) 
+//						m_pParticleSystem->SetOffsetRHWSize( 0 );
+//
+//
+//
+//					// Lock the next chunk of the vertex buffer.  If we are at the 
+//					// end of the vertex buffer, DISCARD the vertex buffer and start
+//					// at the beginning.  Otherwise, specify NOOVERWRITE, so we can
+//					// continue filling the VB while the previous chunk is drawing.
+//
+//					KTDXPROFILE_BEGIN("Lock2");
+//					if(FAILED(hr = pVB->Lock(m_pParticleSystem->GetOffsetRHWSize() * 6 * sizeof(VERTEX_PARTICLE_RHW), 
+//						m_pParticleSystem->GetBatchSize() * 6 * sizeof(VERTEX_PARTICLE_RHW), 
+//                        (void**)&pVertices, m_pParticleSystem->GetUseDynamicTexture() ? (m_pParticleSystem->GetOffsetRHWSize() ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD) : 0L )))
+//					{
+//						ErrorLogMsg( KEM_ERROR358, L"OnFrameRenderRHW2" );
+//						return;
+//					}
+//					KTDXPROFILE_END();
+//
+//					numParticlesInBatch = 0;
+//					renderParticle = 0;
+//
+//				}
+//			}
+//
+//			// Unlock the vertex buffer
+//			KTDXPROFILE_BEGIN("Unlock");
+//			pVB->Unlock();
+//			KTDXPROFILE_END();
+//
+//			// Render any remaining particles
+//			if( numParticlesInBatch > 0 )
+//			{
+//				for( int dc = 0; dc < m_DrawCount; dc++ )
+//				{
+//					KTDXPROFILE_BEGIN("Draw2");
+//					if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 
+//						m_pParticleSystem->GetOffsetRHWSize() * 6, numParticlesInBatch * 2 )))
+//					{
+//						ErrorLog( KEM_ERROR33 );
+//						return;
+//					}
+//					KTDXPROFILE_END();
+//				}
+//				numParticlesInBatch = 0;
+//			}
+//		}
+//	}
+////}}AFX
+//	else
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 	{
-		HRESULT hr;
+//		HRESULT hr;
 
 		VERTEX_PARTICLE_RHW*	pVertices;
 
@@ -3064,8 +4441,9 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 		int iCurStart = 0;
 		UINT renderParticle = 0;
 
-		g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_PARTICLE_RHW );
-		g_pKTDXApp->GetDevice()->SetStreamSource(0, pVB, 0, sizeof(VERTEX_PARTICLE_RHW));
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		//텍스쳐 그룹화 해서 그린다
 		map<int,CKTDXDeviceTexture*>::iterator iTex;
@@ -3078,26 +4456,34 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 			KTDXPROFILE_END();
 			int texID = iTex->first;
 
-			
-
-			if( m_pParticleSystem->GetOffsetRHWSize() >= m_pParticleSystem->GetVBSize() )
-				m_pParticleSystem->SetOffsetRHWSize( 0 );
-
-			KTDXPROFILE_BEGIN("Lock");
-			if( FAILED( hr = pVB->Lock( m_pParticleSystem->GetOffsetRHWSize() * 6 * sizeof(VERTEX_PARTICLE_RHW)
-				,m_pParticleSystem->GetBatchSize() * 6 * sizeof(VERTEX_PARTICLE_RHW), (void**)&pVertices, 
-                m_pParticleSystem->GetUseDynamicTexture() ? (m_pParticleSystem->GetOffsetRHWSize() ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD) : 0L )))
-			{
-				ErrorLogMsg( KEM_ERROR358, L"OnFrameRenderRHW" );
-				return;
-			}
-			KTDXPROFILE_END();
-
-			DWORD numParticlesInBatch = 0;
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+            renderParticle = 0;
+            vecVERTEX_PARTICLE_RHW.resize( 0 );
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//
+//			KTDXPROFILE_BEGIN("Lock");
+//			if( FAILED( hr = pVB->Lock( 0, iVBSize * 6 * sizeof(VERTEX_PARTICLE_RHW), (void**)&pVertices, 0 )))
+//			{
+//				return;
+//			}
+//			KTDXPROFILE_END();
+//
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
 			// Render each particle
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( m_iParticleList >= 0 && m_iParticleList < (int) coParticleList.storage_size() )
+            for( KParticleHandleList::iterator iter = coParticleList.begin( m_iParticleList );
+                iter != coParticleList.end( m_iParticleList ); ++iter)
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                KParticleHandleInfo& info = *iter;
+                CParticle* pPart = info.m_pParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 				if ( pPart == NULL )
 					continue;
 
@@ -3106,10 +4492,11 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 					continue;
 				else
 				{
-					numParticlesInBatch++;
 					renderParticle++;
-					if( renderParticle >= m_ParticleList.size() )
-						iTex = m_TextureMap.end();
+//#ifndef X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//					if( renderParticle >= m_ParticleList.size() )
+//						iTex = m_TextureMap.end();
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 				}
 
 
@@ -3117,11 +4504,8 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 				//
 				//2,5---6
 
-				D3DXVECTOR3 partPos = pPart->m_vPos;
-				partPos.x += pPart->m_Crash.x;
-				partPos.y += pPart->m_Crash.y;
-				partPos.z += pPart->m_Crash.z;
-				pPart->m_Crash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
+				D3DXVECTOR3 partPos = pPart->m_vPos + pPart->GetCrash();
+				pPart->SetCrash( D3DXVECTOR3( 0.0f, 0.0f, 0.0f ) );
 
 				D3DXVECTOR3 partSize = pPart->m_vSize;
 
@@ -3138,276 +4522,14 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 				partSize.x = temp.x;
 				partSize.y = temp.y;
 
-#ifdef LOCAL_ROTATE_EFFECT_P
-				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x+pPart->m_vRotateLocal.x), 
-					D3DXToRadian(pPart->m_vRotate.y+pPart->m_vRotateLocal.y), 
-					D3DXToRadian(pPart->m_vRotate.z+pPart->m_vRotateLocal.z) );
-#else
-				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
-#endif
-
+//#ifdef LOCAL_ROTATE_EFFECT_P
+				D3DXVECTOR3 vRotDegree = pPart->GetRotate() + pPart->GetRotateLocal();
+//#else
+//				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
+//#endif
+//			
 				m_pMathMatrix->Move( partPos.x, partPos.y, partPos.z );
-				m_pMathMatrix->Rotate( vRot );
-				//m_pMathMatrix->Scale( pPart->m_vSize.x, pPart->m_vSize.y, 1.0f );
-
-				KTDXPROFILE_END();
-
-
-				//finalMat = m_pMathMatrix->GetMatrix( m_BillBoardType );
-				finalMat = m_pMathMatrix->GetMatrix( CKTDGMatrix::BT_NONE );
-
-				KTDXPROFILE_BEGIN("SetVertex");
-
-				//wstringstream wstrstm;
-				//wstrstm << numParticlesInBatch << L" " << m_pParticleSystem->GetOffsetSize() << L" " << m_pParticleSystem->GetBatchSize();
-				//LastErrorLog( wstrstm.str().c_str() );
-
-				//1
-				pVertices->position.x = -partSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = partSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = (int)v4temp.x - 0.5f;
-				pVertices->position.y = (int)v4temp.y - 0.5f;
-				pVertices->position.z = v4temp.z;
-				pVertices->rhw		  = 1.0f;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//2
-				pVertices->position.x = -partSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = -partSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = (int)v4temp.x - 0.5f;
-				pVertices->position.y = (int)v4temp.y - 0.5f;
-				pVertices->position.z = v4temp.z;
-				pVertices->rhw		  = 1.0f;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//3
-				pVertices->position.x = partSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = partSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = (int)v4temp.x - 0.5f;
-				pVertices->position.y = (int)v4temp.y - 0.5f;
-				pVertices->position.z = v4temp.z;
-				pVertices->rhw		  = 1.0f;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//4
-				pVertices->position.x = partSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = partSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = (int)v4temp.x - 0.5f;
-				pVertices->position.y = (int)v4temp.y - 0.5f;
-				pVertices->position.z = v4temp.z;
-				pVertices->rhw		  = 1.0f;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//5
-				pVertices->position.x = -partSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = -partSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = (int)v4temp.x - 0.5f;
-				pVertices->position.y = (int)v4temp.y - 0.5f;
-				pVertices->position.z = v4temp.z;
-				pVertices->rhw		  = 1.0f;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				//6			
-				pVertices->position.x = partSize.x * m_ScaleFactor.x / 2.0f;
-				pVertices->position.y = -partSize.y * m_ScaleFactor.y / 2.0f;
-				pVertices->position.z = 0.0f;
-				D3DXVec3Transform( &v4temp, &pVertices->position, &finalMat );
-				pVertices->position.x = (int)v4temp.x - 0.5f;
-				pVertices->position.y = (int)v4temp.y - 0.5f;
-				pVertices->position.z = v4temp.z;
-				pVertices->rhw		  = 1.0f;
-				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
-				pVertices++;
-
-				KTDXPROFILE_END();
-
-				if( numParticlesInBatch == m_pParticleSystem->GetBatchSize() )
-				{
-					// Done filling this chunk of the vertex buffer.  Lets unlock and
-					// draw this portion so we can begin filling the next chunk.
-
-					KTDXPROFILE_BEGIN("Unlock");
-					pVB->Unlock();
-					KTDXPROFILE_END();
-
-					for( int dc = 0; dc < m_DrawCount; dc++ )
-					{
-						KTDXPROFILE_BEGIN("Draw");
-						if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 
-							m_pParticleSystem->GetOffsetRHWSize() * 6, numParticlesInBatch * 2)))
-						{
-							ErrorLog( KEM_ERROR32 );
-							return;
-						}
-						KTDXPROFILE_END();
-					}
-
-
-					m_pParticleSystem->SetOffsetRHWSize( m_pParticleSystem->GetOffsetRHWSize() + m_pParticleSystem->GetBatchSize() );
-
-					if(m_pParticleSystem->GetOffsetRHWSize() >= m_pParticleSystem->GetVBSize() ) 
-						m_pParticleSystem->SetOffsetRHWSize( 0 );
-
-
-
-					// Lock the next chunk of the vertex buffer.  If we are at the 
-					// end of the vertex buffer, DISCARD the vertex buffer and start
-					// at the beginning.  Otherwise, specify NOOVERWRITE, so we can
-					// continue filling the VB while the previous chunk is drawing.
-
-					KTDXPROFILE_BEGIN("Lock2");
-					if(FAILED(hr = pVB->Lock(m_pParticleSystem->GetOffsetRHWSize() * 6 * sizeof(VERTEX_PARTICLE_RHW), 
-						m_pParticleSystem->GetBatchSize() * 6 * sizeof(VERTEX_PARTICLE_RHW), 
-                        (void**)&pVertices, m_pParticleSystem->GetUseDynamicTexture() ? (m_pParticleSystem->GetOffsetRHWSize() ? D3DLOCK_NOOVERWRITE : D3DLOCK_DISCARD) : 0L )))
-					{
-						ErrorLogMsg( KEM_ERROR358, L"OnFrameRenderRHW2" );
-						return;
-					}
-					KTDXPROFILE_END();
-
-					numParticlesInBatch = 0;
-					renderParticle = 0;
-
-				}
-			}
-
-			// Unlock the vertex buffer
-			KTDXPROFILE_BEGIN("Unlock");
-			pVB->Unlock();
-			KTDXPROFILE_END();
-
-			// Render any remaining particles
-			if( numParticlesInBatch > 0 )
-			{
-				for( int dc = 0; dc < m_DrawCount; dc++ )
-				{
-					KTDXPROFILE_BEGIN("Draw2");
-					if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 
-						m_pParticleSystem->GetOffsetRHWSize() * 6, numParticlesInBatch * 2 )))
-					{
-						ErrorLog( KEM_ERROR33 );
-						return;
-					}
-					KTDXPROFILE_END();
-				}
-				numParticlesInBatch = 0;
-			}
-		}
-	}
-//}}AFX
-	else
-	{
-		HRESULT hr;
-
-		VERTEX_PARTICLE_RHW*	pVertices;
-
-		// Lock the vertex buffer.  We fill the vertex buffer in small
-		// chunks, using D3DLOCK_NOOVERWRITE.  When we are done filling
-		// each chunk, we call DrawPrim, and lock the next chunk.  When
-		// we run out of space in the vertex buffer, we start over at
-		// the beginning, using D3DLOCK_DISCARD.
-		D3DXMATRIX finalMat;
-		D3DXVECTOR4 v4temp;
-		int iCurStart = 0;
-		UINT renderParticle = 0;
-
-		//텍스쳐 그룹화 해서 그린다
-		map<int,CKTDXDeviceTexture*>::iterator iTex;
-		for( iTex = m_TextureMap.begin() ; iTex != m_TextureMap.end() ; iTex++ )
-		{		
-			KTDXPROFILE_BEGIN("SetTexture");
-			CKTDXDeviceTexture* pTex = (CKTDXDeviceTexture*)iTex->second;
-			if( pTex != NULL )
-				pTex->SetDeviceTexture();
-			KTDXPROFILE_END();
-			int texID = iTex->first;
-
-			KTDXPROFILE_BEGIN("Lock");
-			if( FAILED( hr = pVB->Lock( 0, iVBSize * 6 * sizeof(VERTEX_PARTICLE_RHW), (void**)&pVertices, 0 )))
-			{
-				return;
-			}
-			KTDXPROFILE_END();
-
-			// Render each particle
-			BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
-			{	
-				if ( pPart == NULL )
-					continue;
-
-				// Render each particle a bunch of times to get a blurring effect		
-				if( texID != pPart->m_TextureID )
-					continue;
-				else
-				{
-					renderParticle++;
-					if( renderParticle >= m_ParticleList.size() )
-						iTex = m_TextureMap.end();
-				}
-
-
-				//1-----3,4
-				//
-				//2,5---6
-
-				D3DXVECTOR3 partPos = pPart->m_vPos;
-				partPos.x += pPart->m_Crash.x;
-				partPos.y += pPart->m_Crash.y;
-				partPos.z += pPart->m_Crash.z;
-				pPart->m_Crash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
-
-				D3DXVECTOR3 partSize = pPart->m_vSize;
-
-				KTDXPROFILE_BEGIN("MatrixMath");
-				//해상도 변경 정보를 보간하고 싶으면 계산한다
-				D3DXVECTOR2 temp;
-				if( m_bResolutionConvert == true )
-				{
-					temp = g_pKTDXApp->ConvertByResolution( partPos.x, partPos.y );
-					partPos.x = temp.x;
-					partPos.y = temp.y;				
-				}
-				temp = g_pKTDXApp->ConvertByResolution( partSize.x, partSize.y );
-				partSize.x = temp.x;
-				partSize.y = temp.y;
-
-#ifdef LOCAL_ROTATE_EFFECT_P
-				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x+pPart->m_vRotateLocal.x), 
-					D3DXToRadian(pPart->m_vRotate.y+pPart->m_vRotateLocal.y), 
-					D3DXToRadian(pPart->m_vRotate.z+pPart->m_vRotateLocal.z) );
-#else
-				D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
-#endif
-			
-				m_pMathMatrix->Move( partPos.x, partPos.y, partPos.z );
-				m_pMathMatrix->Rotate( vRot );
+				m_pMathMatrix->RotateDegree( vRotDegree );
 				//m_pMathMatrix->Scale( pPart->m_vSize.x, pPart->m_vSize.y, 1.0f );
 
 				KTDXPROFILE_END();
@@ -3433,6 +4555,12 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 
 				KTDXPROFILE_BEGIN("SetVertex");
 
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+                unsigned uSize = vecVERTEX_PARTICLE_RHW.size();
+                vecVERTEX_PARTICLE_RHW.resize( uSize + 6 );
+                pVertices = &vecVERTEX_PARTICLE_RHW[ uSize ];
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
 				//1
 				pVertices->position.x = -0.5f * partSize.x * m_ScaleFactor.x * vScaleByUnit.x;
 				pVertices->position.y = 0.5f * partSize.y * m_ScaleFactor.y * vScaleByUnit.y;
@@ -3443,8 +4571,8 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 				pVertices->position.z = v4temp.z;
 				pVertices->rhw		  = 1.0f;
 				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
+				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
 				pVertices++;
 
 				//2
@@ -3457,8 +4585,8 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 				pVertices->position.z = v4temp.z;
 				pVertices->rhw		  = 1.0f;
 				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 0.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
+				pVertices->tex.x = 0.0f + pPart->GetTexStage0UV().x;
+				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
 				pVertices++;
 
 				//3
@@ -3471,8 +4599,8 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 				pVertices->position.z = v4temp.z;
 				pVertices->rhw		  = 1.0f;
 				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 1.0f + pPart->m_vTexStage0UV.y;
+				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+				pVertices->tex.y = 1.0f + pPart->GetTexStage0UV().y;
 				pVertices++;
 
 				//4
@@ -3493,72 +4621,89 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderRHW( LPDIRECT3DVE
 				pVertices->position.z = v4temp.z;
 				pVertices->rhw		  = 1.0f;
 				pVertices->color = (DWORD)pPart->m_Color;
-				pVertices->tex.x = 1.0f + pPart->m_vTexStage0UV.x;
-				pVertices->tex.y = 0.0f + pPart->m_vTexStage0UV.y;
+				pVertices->tex.x = 1.0f + pPart->GetTexStage0UV().x;
+				pVertices->tex.y = 0.0f + pPart->GetTexStage0UV().y;
 				pVertices++;
 
 				KTDXPROFILE_END();
 
-				if( renderParticle == iVBSize )
-				{
-					// Done filling this chunk of the vertex buffer.  Lets unlock and
-					// draw this portion so we can begin filling the next chunk.
-
-					KTDXPROFILE_BEGIN("Unlock");
-					pVB->Unlock();
-					KTDXPROFILE_END();
-
-					for( int dc = 0; dc < m_DrawCount; dc++ )
-					{
-						KTDXPROFILE_BEGIN("Draw");
-						if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, renderParticle * 2)))
-						{
-							ErrorLog( KEM_ERROR32 );
-							return;
-						}
-						KTDXPROFILE_END();
-					}
-					renderParticle = 0;
-
-
-					// Lock the next chunk of the vertex buffer.  If we are at the 
-					// end of the vertex buffer, DISCARD the vertex buffer and start
-					// at the beginning.  Otherwise, specify NOOVERWRITE, so we can
-					// continue filling the VB while the previous chunk is drawing.
-
-					KTDXPROFILE_BEGIN("Lock2");
-					if(FAILED(hr = pVB->Lock(0, iVBSize * 6 * sizeof(VERTEX_PARTICLE_RHW), (void**) &pVertices, 0)))
-					{
-						return;
-					}
-					KTDXPROFILE_END();
-				}
+//#ifndef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//
+//				if( renderParticle == iVBSize )
+//				{
+//					// Done filling this chunk of the vertex buffer.  Lets unlock and
+//					// draw this portion so we can begin filling the next chunk.
+//
+//					KTDXPROFILE_BEGIN("Unlock");
+//					pVB->Unlock();
+//					KTDXPROFILE_END();
+//
+//					for( int dc = 0; dc < m_DrawCount; dc++ )
+//					{
+//						KTDXPROFILE_BEGIN("Draw");
+//						if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, renderParticle * 2)))
+//						{
+//							ErrorLog( KEM_ERROR32 );
+//							return;
+//						}
+//						KTDXPROFILE_END();
+//					}
+//					renderParticle = 0;
+//
+//
+//					// Lock the next chunk of the vertex buffer.  If we are at the 
+//					// end of the vertex buffer, DISCARD the vertex buffer and start
+//					// at the beginning.  Otherwise, specify NOOVERWRITE, so we can
+//					// continue filling the VB while the previous chunk is drawing.
+//
+//					KTDXPROFILE_BEGIN("Lock2");
+//					if(FAILED(hr = pVB->Lock(0, iVBSize * 6 * sizeof(VERTEX_PARTICLE_RHW), (void**) &pVertices, 0)))
+//					{
+//						return;
+//					}
+//					KTDXPROFILE_END();
+//				}
+//
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 			}
 
-			// Unlock the vertex buffer
-			KTDXPROFILE_BEGIN("Unlock");
-			pVB->Unlock();
-			KTDXPROFILE_END();
 
-			// Render any remaining particles
-			if( renderParticle > 0 )
-			{
-				for( int dc = 0; dc < m_DrawCount; dc++ )
-				{
-					KTDXPROFILE_BEGIN("Draw2");
-					if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, renderParticle * 2 )))
-					{
-						ErrorLog( KEM_ERROR33 );
-						return;
-					}
-					KTDXPROFILE_END();
-				}
-				renderParticle = 0;
-			}
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
+            //BOOST_STATIC_ASSERT( D3DFVF_PARTICLE_RHW == CKTDGDynamicVBManager::D3DFVF_XYZRHW_DIFFUSE_TEX1 );
+            if ( renderParticle > 0 )
+            {
+                g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
+                    , D3DPT_TRIANGLELIST, renderParticle * 2, &vecVERTEX_PARTICLE_RHW[0], m_DrawCount );
+            }//if
+
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//
+//			// Unlock the vertex buffer
+//			KTDXPROFILE_BEGIN("Unlock");
+//			pVB->Unlock();
+//			KTDXPROFILE_END();
+//
+//			// Render any remaining particles
+//			if( renderParticle > 0 )
+//			{
+//				for( int dc = 0; dc < m_DrawCount; dc++ )
+//				{
+//					KTDXPROFILE_BEGIN("Draw2");
+//					if(FAILED(hr = g_pKTDXApp->GetDevice()->DrawPrimitive( D3DPT_TRIANGLELIST, 0, renderParticle * 2 )))
+//					{
+//						ErrorLog( KEM_ERROR33 );
+//						return;
+//					}
+//					KTDXPROFILE_END();
+//				}
+//				renderParticle = 0;
+//			}
+//
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+
 		}
 	}
-
-	
 }
 
 void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
@@ -3569,27 +4714,42 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
     if ( m_pXMesh == NULL )
         return;
 
+#ifdef X2OPTIMIZE_CULLING_PARTICLE
+    CKTDGCamera& kCamera = g_pKTDXApp->GetDGManager()->GetCamera();
+	const CKTDGFrustum& kFrustum = g_pKTDXApp->GetDGManager()->GetFrustum();
+#endif//X2OPTIMIZE_CULLING_PARTICLE
+
 	CKTDGXRenderer::RenderParam renderParam;
 
 	// Render each particle
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+    if ( m_iParticleList >= 0 && m_iParticleList < (int) coParticleList.storage_size() )
+    for( KParticleHandleList::iterator iter = coParticleList.begin( m_iParticleList );
+        iter != coParticleList.end( m_iParticleList ); ++iter)
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        KParticleHandleInfo& info = *iter;
+        CParticle* pPart = info.m_pParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 		if ( pPart == NULL )
 			continue;
 		// Render each particle a bunch of times to get a blurring effect		
-		pPart->m_vPosCrash = pPart->m_vPos + pPart->m_Crash;
-		pPart->m_Crash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
+		pPart->SetPosCrash( pPart->GetPos() + pPart->GetCrash() );
+		pPart->SetCrash( D3DXVECTOR3( 0.0f, 0.0f, 0.0f ) );
 
-#ifdef LOCAL_ROTATE_EFFECT_P
-		D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x+pPart->m_vRotateLocal.x), 
-			D3DXToRadian(pPart->m_vRotate.y+pPart->m_vRotateLocal.y), 
-			D3DXToRadian(pPart->m_vRotate.z+pPart->m_vRotateLocal.z) );
-#else
-		D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
-#endif
+//#ifdef LOCAL_ROTATE_EFFECT_P
+		D3DXVECTOR3 vRotDegree = pPart->GetRotate() + pPart->GetRotateLocal();
+//#else
+//		D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x), D3DXToRadian(pPart->m_vRotate.y), D3DXToRadian(pPart->m_vRotate.z) );
+//#endif
 
 		m_pMathMatrix->Move( pPart->m_vPosCrash.x, pPart->m_vPosCrash.y, pPart->m_vPosCrash.z );
-		m_pMathMatrix->Rotate( vRot );
+		m_pMathMatrix->RotateDegree( vRotDegree );
 
 #ifdef GIANT_UNIT_GIANT_EFFECT_TEST
 		m_pMathMatrix->Scale( pPart->m_vSize.x * m_ScaleFactor.x * GetScaleByUnit().x,
@@ -3612,7 +4772,23 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
 			matWorld = m_pMathMatrix->GetScaleMatrix() * m_DXMATRIX;
 		}
 #endif NEW_HENIR_TEST
+		
+#ifdef X2OPTIMIZE_CULLING_PARTICLE
+        if ( ms_bParticleCullingEnabled == true && m_bRenderCullCheck == true )
+        {
+		    D3DXVECTOR3 vCenter;
+		    D3DXVECTOR3 vScale;
 
+		    D3DXVec3TransformCoord( &vCenter, &m_pXMesh->GetCenter(), &matWorld );
+            vScale = GetDecomposeScale( &matWorld ) * m_pXMesh->GetRadius();
+            float fRadius = __max( vScale.x, vScale.y );
+            fRadius = __max( fRadius, vScale.z );
+		    if( kFrustum.CheckSphere( vCenter, fRadius ) == false )
+			    continue;
+
+		    //_DecideWorldMatrix_Mesh( matWorld, kCamera, vCenter, fRadius );
+        }
+#endif//X2OPTIMIZE_CULLING_PARTICLE
 
 		renderParam.lightPos			= m_LightPos;
 		renderParam.color				= pPart->m_Color;
@@ -3620,7 +4796,7 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
 		if( renderParam.renderType == CKTDGXRenderer::RT_CARTOON_BLACK_EDGE 
 			|| renderParam.renderType == CKTDGXRenderer::RT_CARTOON_COLOR_EDGE )
 		{
-			float fDistance = GetDistance(pPart->m_vPosCrash,g_pKTDXApp->GetDGManager()->GetCamera()->GetEye());
+			float fDistance = GetDistance(pPart->m_vPosCrash,g_pKTDXApp->GetDGManager()->GetCamera().GetEye());
 			if( fDistance > 700.0f )
 				renderParam.fOutLineWide = fDistance / 1000.0f;
 			else
@@ -3632,14 +4808,18 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
 		renderParam.cullMode			= (D3DCULL)GetCullMode();		// 09.05.06 태완
 		renderParam.srcBlend			= (D3DBLEND)GetSrcBlendMode();
 		renderParam.destBlend			= (D3DBLEND)GetDestBlendMode();
-		renderParam.texOffsetStage0.x	= pPart->m_vTexStage0UV.x;
-		renderParam.texOffsetStage0.y	= pPart->m_vTexStage0UV.y;
-		renderParam.texOffsetStage1.x	= pPart->m_vTexStage1UV.x;
-		renderParam.texOffsetStage1.y	= pPart->m_vTexStage1UV.y;
-		renderParam.texOffsetStage2.x	= pPart->m_vTexStage2UV.x;
-		renderParam.texOffsetStage2.y	= pPart->m_vTexStage2UV.y;
+		renderParam.texOffsetStage0	= pPart->GetTexStage0UV();
+		renderParam.texOffsetStage1	= pPart->GetTexStage1UV();
+		renderParam.texOffsetStage2 = pPart->GetTexStage2UV();
+#ifdef ADD_ALPHATESTENABLE
+		renderParam.bAlphaTestEnable = m_bAlphaTest;
+#endif
 
         g_pKTDXApp->GetDGManager()->GetXRenderer()->OnFrameRender( renderParam, matWorld, *m_pXMesh, m_pChangeTexXET, m_pMultiTexXET, m_pAniData, pPart->m_fEventTimer, m_DrawCount );
+
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+		_RenderBoundingSphere( (D3DXVECTOR3)vCenter, abs(vRadius.x) + abs(vRadius.y) + abs(vRadius.z) );
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
 	}
 }
 
@@ -3651,8 +4831,20 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
 		KTDXPROFILE();
 
 		// Render each particle
-		BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+        if ( m_iParticleList >= 0 && m_iParticleList < (int) coParticleList.storage_size() )
+        for( KParticleHandleList::iterator iter = coParticleList.begin( m_iParticleList );
+            iter != coParticleList.end( m_iParticleList ); ++iter)
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	    BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            KParticleHandleInfo& info = *iter;
+            CParticle* pPart = info.m_pParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 			if ( pPart == NULL )
 				continue;
 
@@ -3667,8 +4859,8 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
 			CKTDGXRenderer::RenderParam* pRenderParam = pPart->m_pXSkinAnim->GetRenderParam();
             ASSERT( pRenderParam != NULL );
 
-		    pPart->m_vPosCrash = pPart->m_vPos + pPart->m_Crash;
-		    pPart->m_Crash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
+		    pPart->m_vPosCrash = pPart->m_vPos + pPart->GetCrash();
+		    pPart->SetCrash( D3DXVECTOR3( 0.0f, 0.0f, 0.0f ) );
 
 //#ifdef LOCAL_ROTATE_EFFECT_P
 //			D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(pPart->m_vRotate.x+pPart->m_vRotateLocal.x), 
@@ -3693,7 +4885,7 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
 			if( pRenderParam->renderType == CKTDGXRenderer::RT_CARTOON_BLACK_EDGE ||
 				pRenderParam->renderType == CKTDGXRenderer::RT_CARTOON_COLOR_EDGE )
 			{
-				float fDistance = GetDistance(pPart->m_vPosCrash,g_pKTDXApp->GetDGManager()->GetCamera()->GetEye());
+				float fDistance = GetDistance(pPart->m_vPosCrash,g_pKTDXApp->GetDGManager()->GetCamera().GetEye());
 				if( fDistance > 700.0f )
 					pRenderParam->fOutLineWide = fDistance / 1000.0f;
 				else
@@ -3705,12 +4897,9 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
 			pRenderParam->cullMode			= (D3DCULL)GetCullMode();		// 09.05.06 태완
 			pRenderParam->srcBlend			= (D3DBLEND)GetSrcBlendMode();
 			pRenderParam->destBlend			= (D3DBLEND)GetDestBlendMode();
-			pRenderParam->texOffsetStage0.x	= pPart->m_vTexStage0UV.x;
-			pRenderParam->texOffsetStage0.y	= pPart->m_vTexStage0UV.y;
-			pRenderParam->texOffsetStage1.x	= pPart->m_vTexStage1UV.x;
-			pRenderParam->texOffsetStage1.y	= pPart->m_vTexStage1UV.y;
-			pRenderParam->texOffsetStage2.x	= pPart->m_vTexStage2UV.x;
-			pRenderParam->texOffsetStage2.y	= pPart->m_vTexStage2UV.y;
+			pRenderParam->texOffsetStage0	= pPart->GetTexStage0UV();
+			pRenderParam->texOffsetStage1	= pPart->GetTexStage1UV();
+			pRenderParam->texOffsetStage2	= pPart->GetTexStage2UV();
 
 			for( int i = 0; i < m_DrawCount; i++ )
 			{
@@ -3720,6 +4909,75 @@ void CKTDGParticleSystem::CParticleEventSequence::OnFrameRenderMesh_Draw()
 	}
 
 #endif SKINMESH_PARTICLE_TEST
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+CKTDGParticleSystem::CParticle*  CKTDGParticleSystem::GetParticle( CParticleHandle hParticle )
+{
+    if ( hParticle == INVALID_PARTICLE_HANDLE )
+        return NULL;
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hParticle.GetValue() );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hParticle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        return NULL;
+    }
+    if ( wIndex >= m_coParticleList.storage_size() )
+        return NULL;
+    KParticleHandleInfo& info = m_coParticleList.data( wIndex );
+    if ( info.m_wStamp != wStamp || info.m_pParticle == NULL )
+        return NULL;
+    return  info.m_pParticle;
+}
+
+CKTDGParticleSystem::CParticle*  CKTDGParticleSystem::CParticleEventSequence::GetParticle( CParticleHandle hParticle )
+{
+    if ( hParticle == INVALID_PARTICLE_HANDLE || m_iParticleList < 0 )
+        return NULL;
+    KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hParticle.GetValue() );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hParticle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( m_pParticleSystem->DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        return NULL;
+    }
+    if ( wIndex >= coParticleList.storage_size() )
+        return NULL;
+    KParticleHandleInfo& info = coParticleList.data( wIndex );
+    if ( info.m_wStamp != wStamp || info.m_pParticle == NULL || info.m_pParticle->GetMasterSequence() != this )
+        return NULL;
+    return  info.m_pParticle;
+}
+
+int			CKTDGParticleSystem::CParticleEventSequence::GetLiveParticleNum()
+{
+    if ( m_pParticleSystem == NULL || m_iParticleList < 0 )
+    {
+        return 0;
+    }
+    KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+    if ( m_iParticleList >= (int) coParticleList.storage_size() )
+    {
+        return 0;
+    }
+    return  coParticleList.size( m_iParticleList );
+}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 void        CKTDGParticleSystem::CParticleEventSequence::ValidateParticlePointer( CParticle*& pParticle )
 {
@@ -3732,19 +4990,68 @@ void        CKTDGParticleSystem::CParticleEventSequence::ValidateParticlePointer
 	}//if
 }//CKTDGParticleSystem::CParticleEventSequence::ValidateParticlePointer()
 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 CKTDGParticleSystem::CParticle* CKTDGParticleSystem::CParticleEventSequence::CreateNewParticle( D3DXVECTOR3 m_vPartSysPos )
 {
 	KTDXPROFILE();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+    KParticleHandleList::iterator iter;
+    if ( m_iParticleList < 0 || m_iParticleList >= (int) coParticleList.storage_size() )
+    {
+        iter = coParticleList.begin( PARTICLELIST_FREE );
+        if ( iter == coParticleList.end( PARTICLELIST_FREE ) )
+        {
+            if ( coParticleList.storage_size() >= 0x10000 )
+                return NULL;
+            m_iParticleList = coParticleList.push_back_default( PARTICLELIST_FREE ).GetIndex();
+        }
+        else
+        {
+            m_iParticleList = iter.GetIndex();
+        }
+        coParticleList.make_new_list( m_iParticleList );
+    }
+    iter = coParticleList.begin( PARTICLELIST_FREE );
+    if ( iter == coParticleList.end( PARTICLELIST_FREE ) )
+    {
+        if ( coParticleList.storage_size() >= 0x10000 )
+            return NULL;
+        iter = coParticleList.push_back_default( PARTICLELIST_FREE );
+    }
+    KParticleHandleInfo& info = *iter;
+    CParticle* pPart = info.m_pParticle;
+    if ( pPart== NULL )
+        info.m_pParticle = pPart = new CParticle;
+    else
+        pPart->Init();
+    WORD   wIndex = (WORD) iter.GetIndex();
+    CParticleHandle handle;
+    DWORD   dwHandle = 0;
+    do 
+    {
+        ++info.m_wStamp;
+        dwHandle = m_pParticleSystem->ComposeHandle( wIndex, info.m_wStamp );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle.SetValue( (int) dwHandle );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle = (int) dwHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    } while ( handle == INVALID_PARTICLE_HANDLE );
+    pPart->m_hHandle = handle;
+
+    coParticleList.splice( coParticleList.end( m_iParticleList ), iter );
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CParticle* pPart = new CParticle;
-	
-	pPart->m_pMasterSeq = this;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	pPart->m_pMasterSeq = this;	
+
 
 	pPart->m_ScrewValue			= m_ScrewValue;
 	pPart->m_ScrewRotateSpeed	= m_ScrewRotateSpeed;
 	pPart->m_fLifetime			= m_Lifetime.GetRandomNumInRange();
-
-
-
 
 #ifdef PARTICLE_SPHERICAL_EMIT_TEST
 	if( 0.f != m_SphericalEmitRadius.m_Max )
@@ -3877,8 +5184,8 @@ CKTDGParticleSystem::CParticle* CKTDGParticleSystem::CParticleEventSequence::Cre
 #endif PARTICLE_EMIT_REGION_TEST
 	}
 
-	pPart->m_vPosOrg = pPart->m_vPos;
-	pPart->m_vAxisRotateDegree	= m_AxisAngleDegree;
+	pPart->SetPosOrg( pPart->GetPos() );
+	pPart->SetAxisRotateDegree( m_AxisAngleDegree );
 
 	// process any initial events
 	if ( m_pTempletSequence != NULL )
@@ -3928,11 +5235,10 @@ CKTDGParticleSystem::CParticle* CKTDGParticleSystem::CParticleEventSequence::Cre
 			dirVec.x	= D3DXToDegree(atan2f( -matRotationOrth._12, matRotationOrth._22 ));
 		}
 
-		pPart->m_vRotate = dirVec;
+		pPart->SetRotate( dirVec );
 	}
 
-	pPart->m_vRotate += m_AddRotate;
-	pPart->m_vRotate += m_AddRotateRel;	
+	pPart->SetRotate( pPart->GetRotate() + m_AddRotate + m_AddRotateRel );
 
 	for( int i = 0; i < (int)m_TraceSeqNameList.size(); i++ )
 	{
@@ -3971,7 +5277,9 @@ CKTDGParticleSystem::CParticle* CKTDGParticleSystem::CParticleEventSequence::Cre
 
 	m_Count++;
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_ParticleList.push_back( pPart );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	return pPart;
 }
@@ -4038,13 +5346,21 @@ void CKTDGParticleSystem::CParticleEventSequence::SetPosition( const D3DXVECTOR3
 	{
 		const D3DXVECTOR3 vDisplace = pos - m_Position;
 		
-		BOOST_TEST_FOREACH( CParticle*, pParticle, m_ParticleList )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        auto AddDisplacementCB = [&vDisplace]( CParticle& particle )
+        {
+            particle.SetPos( particle.GetPos() + vDisplace );
+        };
+        ApplyFunctionToParticles( AddDisplacementCB );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	    BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
 		{	
 			if ( pParticle == NULL )
 				continue;
-
-				pParticle->m_vPos += vDisplace;
+            pParticle->m_vPos += vDisplace;
 		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	}
 		
 	m_Position = pos;
@@ -4066,36 +5382,65 @@ void CKTDGParticleSystem::CParticleEventSequence::SetPosition( const D3DXVECTOR3
 
 void CKTDGParticleSystem::CParticleEventSequence::SetParticlePosition( const D3DXVECTOR3& pos )
 {
-	BOOST_TEST_FOREACH( CParticle*, pParticle, m_ParticleList )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    auto SetPositionCB = [&pos]( CParticle& particle )
+    {
+        particle.SetPos( pos );
+    };
+    ApplyFunctionToParticles( SetPositionCB );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
 	{	
 		if ( pParticle == NULL )
 			continue;
 		pParticle->m_vPos = pos;
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 }
 
 void CKTDGParticleSystem::CParticleEventSequence::RunEvent( CParticle &part )
 {
 	KTDXPROFILE();
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    part.ResetVelocityToAccumPos();
+    part.AddVelocityToAccumPos( m_fElapsedTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+    float   fOld = part.GetEventTimerOld();
+    float   fNew = part.GetEventTimer();
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 
 	if ( m_pTempletSequence != NULL )
 	{
 		BOOST_TEST_FOREACH( CParticleEvent*, pEvt, m_pTempletSequence->m_EventList )
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            float   fOld = part.GetEventTimerOld();
+            float   fNew = part.GetEventTimer();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+
 			if( pEvt->IsFade() == true )
 			{
-				if( part.m_fEventTimer >= pEvt->GetActualTime().m_Min 
-					&& part.m_fEventTimer < pEvt->GetActualTime().m_Max )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                if ( fNew >= pEvt->GetActualTime().m_Min
+                    && fOld < pEvt->GetActualTime().m_Max )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				if( fNew >= pEvt->GetActualTime().m_Min 
+					&& fNew < pEvt->GetActualTime().m_Max )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				{
 					pEvt->OnFrameMove( part, m_fElapsedTime );
 				}
 			}
 			else
 			{
-				if( (part.m_fEventTimerOld < pEvt->GetActualTime().m_Min 
-					&& part.m_fEventTimer >= pEvt->GetActualTime().m_Min)
-					|| (pEvt->GetActualTime().m_Min == 0.0f && part.m_fEventTimerOld == 0.0f ) )
+				if( (fOld < pEvt->GetActualTime().m_Min 
+					&& fNew >= pEvt->GetActualTime().m_Min)
+					|| (pEvt->GetActualTime().m_Min == 0.0f && fOld == 0.0f ) )
 				{
 					pEvt->OnFrameMove( part, m_fElapsedTime );
 				}
@@ -4108,24 +5453,38 @@ void CKTDGParticleSystem::CParticleEventSequence::RunEvent( CParticle &part )
 
 	BOOST_TEST_FOREACH( CParticleEvent*, pEvt, m_EventList )
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+        float   fOld = part.GetEventTimerOld();
+        float   fNew = part.GetEventTimer();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+
 		if( pEvt->IsFade() == true )
 		{
-			if( part.m_fEventTimer >= pEvt->GetActualTime().m_Min 
-				&& part.m_fEventTimer < pEvt->GetActualTime().m_Max )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            if ( fNew >= pEvt->GetActualTime().m_Min
+                && fOld < pEvt->GetActualTime().m_Max )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			if( fNew >= pEvt->GetActualTime().m_Min 
+				&& fNew < pEvt->GetActualTime().m_Max )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 			{
 				pEvt->OnFrameMove( part, m_fElapsedTime );
 			}
 		}
 		else
 		{
-			if( (part.m_fEventTimerOld < pEvt->GetActualTime().m_Min 
-				&& part.m_fEventTimer >= pEvt->GetActualTime().m_Min)
-				|| (pEvt->GetActualTime().m_Min == 0.0f && part.m_fEventTimerOld == 0.0f ) )
+			if( (fOld < pEvt->GetActualTime().m_Min 
+				&& fNew >= pEvt->GetActualTime().m_Min)
+				|| (pEvt->GetActualTime().m_Min == 0.0f && fOld == 0.0f ) )
 			{
 				pEvt->OnFrameMove( part, m_fElapsedTime );
 			}
 		}
 	}
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    part.UpdateVelocityAccumPosAndEventTimer( part.GetEventTimer() );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 }
 
 CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::CParticleEventSequence::GetCloneSequence()
@@ -4187,6 +5546,9 @@ CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::CParticleEvent
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 	clone->SetApplyUnitScale( GetApplyUnitScale() );
 #endif
+#ifdef ADD_ALPHATESTENABLE
+	clone->SetAlphTest( GetAlphTest() );
+#endif
 
 	clone->m_TraceSeqNameList = m_TraceSeqNameList;
 	clone->m_FinalSeqNameList = m_FinalSeqNameList;
@@ -4216,7 +5578,7 @@ CKTDGParticleSystem::CParticleEventSequence* CKTDGParticleSystem::CParticleEvent
 
 void CKTDGParticleSystem::CParticleEventSequence::SetCameraZoomDistance( float fCameraZoom )
 { 
-	D3DXVECTOR3 dir = g_pKTDXApp->GetDGManager()->GetCamera()->GetEye() - m_Position;
+	D3DXVECTOR3 dir = g_pKTDXApp->GetDGManager()->GetCamera().GetEye() - m_Position;
 	D3DXVec3Normalize( &dir, &dir );
 	m_Position += dir * fCameraZoom;
 	GetMatrix().Move( m_Position );
@@ -4234,12 +5596,20 @@ void CKTDGParticleSystem::CParticleEventSequence::ChangeTex( const WCHAR* pTexNa
 	while( m_TextureMap.find(key) != m_TextureMap.end() );
 	m_TextureMap.insert( std::make_pair(key,pNewTex) );
 
-	BOOST_TEST_FOREACH( CParticle*, pParticle, m_ParticleList )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    auto ChangeTexCB = [key]( CParticle& particle )
+    {
+        particle.SetTextureID( key );
+    };
+    ApplyFunctionToParticles( ChangeTexCB );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
 	{	
 		if ( pParticle == NULL )
 			continue;
-		pParticle->m_TextureID = key;
+		pParticle->SetTextureID( key );
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 void CKTDGParticleSystem::CParticleEventSequence::ChangeTexForce( const WCHAR* pTexName )
@@ -4257,26 +5627,60 @@ void CKTDGParticleSystem::CParticleEventSequence::ChangeTexForce( const WCHAR* p
 }
 
 #ifdef ELSWORD_SHEATH_KNIGHT
-void CKTDGParticleSystem::CParticleEventSequence::ChangeSizeForce( D3DXVECTOR3& vNewSize_ )
+void CKTDGParticleSystem::CParticleEventSequence::ChangeSizeForce( const D3DXVECTOR3& vNewSize_ )
 { 
-	BOOST_TEST_FOREACH( CParticle*, pParticle, m_ParticleList )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    auto ChangeSizeForceCB = [&vNewSize_]( CParticle& particle )
+    {
+        particle.SetSize( vNewSize_ );
+    };
+    ApplyFunctionToParticles( ChangeSizeForceCB );
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
 	{	
 		if ( pParticle == NULL )
 			continue;
 		pParticle->m_vSize = vNewSize_;
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
-void CKTDGParticleSystem::CParticleEventSequence::ChangeColorForce( D3DXCOLOR& vColor_ )
+void CKTDGParticleSystem::CParticleEventSequence::ChangeColorForce( const D3DXCOLOR& vColor_ )
 { 
-	BOOST_TEST_FOREACH( CParticle*, pParticle, m_ParticleList )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    auto ChangeColorForceCB = [&vColor_]( CParticle& particle ) 
+    {
+        particle.SetColor( vColor_ );
+    };
+    ApplyFunctionToParticles( ChangeColorForceCB );
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	BOOST_TEST_FOREACH( CParticle*, pPart, m_ParticleList )
 	{	
 		if ( pParticle == NULL )
 			continue;
 		pParticle->m_Color = vColor_;
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 #endif ELSWORD_SHEATH_KNIGHT
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+CKTDGParticleSystem::CParticle* CKTDGParticleSystem::CParticleEventSequence::GetFrontParticle()
+{
+    KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+    if ( m_iParticleList >= 0 && m_iParticleList < (int) coParticleList.storage_size() )
+    {
+        KParticleHandleList::iterator iter = coParticleList.begin( m_iParticleList );
+        if ( iter != coParticleList.end( m_iParticleList ) )
+            return  iter->m_pParticle;
+    }
+    return NULL;
+}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef BOOST_SINGLETON_POOL_TEST
 	typedef boost::singleton_pool<boost::pool_allocator_tag, sizeof(CKTDGParticleSystem::CParticleEventSequence)> CParticleEventSequencePool;
@@ -4311,15 +5715,16 @@ void CKTDGParticleSystem::CParticleEmitterTokenizer::Tokenize( const char *str, 
 	const char*				p		= str;
 	CParticleEmitterToken	token;
 
-#ifdef _ENCRIPT_SCRIPT_
-	while( (*p) != 0 ) 
-#else
-	ASSERT( -1 != iLength ); 
-	int iCurrPos = 0;
-	while( (*p) != 0 && iCurrPos < iLength ) 
-#endif _ENCRIPT_SCRIPT_
+//#ifdef _ENCRIPT_SCRIPT_
+//	while( (*p) != 0 ) 
+//#else
+//	ASSERT( -1 != iLength ); 
+//	int iCurrPos = 0;
+//	while( (*p) != 0 && iCurrPos < iLength ) 
+//#endif _ENCRIPT_SCRIPT_
+    int iCurrPos = 0;
+    while( ( iLength < 0 || iCurrPos < iLength ) && (*p) != 0 ) 
 	{
-
 		ASSERT( InComment == cs || *p != ';' );
 
 
@@ -4333,9 +5738,9 @@ void CKTDGParticleSystem::CParticleEmitterTokenizer::Tokenize( const char *str, 
 					// add it to the running buffer
 					token.m_strValue = (*p);
 					// switch to appropriate case
-					if( (*p) == '/' && *(p+1) == '/' ) // '//'는 주석
+					if( (*p) == '/' && ( iLength < 0 || iCurrPos +1 < iLength ) && *(p+1) == '/' ) // '//'는 주석
 						cs = InComment;
-					else if( (*p) == '-' && *(p+1) == '-' ) // '--'도 주석
+					else if( (*p) == '-' && ( iLength < 0 || iCurrPos +1 < iLength ) && *(p+1) == '-' ) // '--'도 주석
 						cs = InComment;
 					else 
 						cs = (*p == '\"') ? InQuote : InText;
@@ -4358,7 +5763,7 @@ void CKTDGParticleSystem::CParticleEmitterTokenizer::Tokenize( const char *str, 
 					// if this letter is a token terminator
 					if ((*p) == '(' || (*p) == ')' || (*p) == ',' || (*p) == '\"' || (*p) == '{' || (*p) == '}' || (*p) == '/') 
 					{
-						if ((*p) == '/' && *(p+1) == '/') 
+						if ((*p) == '/' && ( iLength < 0 || iCurrPos +1 < iLength ) && *(p+1) == '/') 
 							cs = InComment;
 						else 
 						{
@@ -4413,10 +5818,11 @@ void CKTDGParticleSystem::CParticleEmitterTokenizer::Tokenize( const char *str, 
 		}
 		p++;
 
-#ifdef _ENCRIPT_SCRIPT_
-#else
-		iCurrPos++;
-#endif _ENCRIPT_SCRIPT_
+//#ifdef _ENCRIPT_SCRIPT_
+//#else
+//		iCurrPos++;
+//#endif _ENCRIPT_SCRIPT_
+        iCurrPos++;
 
 	}
 	AddToken(token);
@@ -4504,6 +5910,9 @@ void CKTDGParticleSystem::CParticleEmitterTokenizer::DetermineTokenType( CPartic
 		token.m_strValue.compare("RESOLUTIONCONVERT")	== 0 ||
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 		token.m_strValue.compare("APPLYUNITSCALE")		== 0 ||
+#endif
+#ifdef ADD_ALPHATESTENABLE
+		token.m_strValue.compare("ALPHATEST")		== 0 ||
 #endif
 		token.m_strValue.compare("FORCELAYER")	== 0 ) 
 	{ 
@@ -4967,6 +6376,9 @@ bool CKTDGParticleSystem::CParticleEmitterTokenizer::ProcessTime(CMinMax<float> 
 				ProcessNumber(TimeRange, TokenIter, EndIter);
 
 				TimeRange.m_Min = startTime;
+
+                ASSERT( TimeRange.m_Max - TimeRange.m_Min > (1/70) );
+
 			}
 			break;
 
@@ -5108,3 +6520,151 @@ void CKTDGParticleSystem::MoveParticleTempletFile( const WCHAR* pSrcFileName_, c
 	}
 }
 #endif //EFFECT_TOOL
+
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+void CKTDGParticleSystem::CParticleEventSequence::_RenderBoundingSphere( const D3DXVECTOR3& vCenter, float fRadius )
+{
+	if ( m_pkBoundingSphere != NULL )
+	{
+		DWORD dwOldFillMode = CKTDGStateManager::GetRenderState( D3DRS_FILLMODE );
+		CKTDGStateManager::SetRenderState( D3DRS_FILLMODE, D3DFILL_WIREFRAME );
+		CKTDGStateManager::SetTexture( 0, NULL );
+		CKTDGStateManager::SetTexture( 1, NULL );
+	
+		CKTDGXRenderer::RenderParam renderParam;
+		renderParam.renderType = CKTDGXRenderer::RT_REAL_COLOR;		
+		renderParam.color = D3DXCOLOR(0,0,1,1);
+		CKTDGMatrix matTemp( g_pKTDXApp->GetDevice() );
+	
+		matTemp.Scale( fRadius, fRadius, fRadius );
+		matTemp.Move( vCenter );	
+		D3DXMATRIX worldMatrix = matTemp.GetMatrix();
+	
+		g_pKTDXApp->GetDGManager()->GetXRenderer()->OnFrameRender( renderParam, worldMatrix, *m_pkBoundingSphere );
+	
+		CKTDGStateManager::SetRenderState( D3DRS_FILLMODE, dwOldFillMode );
+	}//if
+}
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+
+//#ifdef X2OPTIMIZE_CULLING_PARTICLE
+//void CKTDGParticleSystem::CParticleEventSequence::_DecideWorldMatrix_Normal( CKTDGCamera& kCamera, D3DXVECTOR3& vCenter, float fRadius, bool& bIdentityWorldMatrix )
+//{
+//	if( fRadius <= 0.0f )
+//		return;
+//
+//	//frustum의 far에 걸치면 앞쪽으로 당기는 트릭을 사용한다.
+//	D3DXVECTOR3 dirVec = kCamera.GetLookAt() - kCamera.GetEye();
+//	D3DXVec3Normalize( &dirVec, &dirVec );
+//
+//	D3DXVECTOR3 vEyeToCenter = vCenter - kCamera.GetEye();
+//	float fCenterProjLength = D3DXVec3Dot( &vEyeToCenter, &dirVec );
+//
+//	if( fCenterProjLength > 0.0f )
+//	{
+//		float fFarLength = g_pKTDXApp->GetDGManager()->GetFar();
+//
+//		if( fCenterProjLength - fRadius < fFarLength && fCenterProjLength + fRadius > fFarLength )
+//		{
+//			D3DXMATRIX kWorldMatrix;
+//			D3DXMatrixIdentity( &kWorldMatrix );
+//
+//			D3DXVec3Normalize( &vEyeToCenter, &vEyeToCenter );
+//
+//			D3DXMATRIX TranslationMatrix1;
+//			D3DXMATRIX TranslationMatrix2;
+//			D3DXMATRIX TranslationMatrix3;
+//			D3DXMATRIX ScaleMatrix;
+//
+//			//scale을 위해 world space의 원점으로 이동
+//			D3DXMatrixTranslation(&TranslationMatrix1, -vCenter.x, -vCenter.y, -vCenter.z );
+//
+//			float fScale = ( fFarLength - fRadius * 2 ) / fFarLength;//가까워진 만큼 작아진다.
+//			D3DXMatrixScaling(&ScaleMatrix, fScale, fScale, fScale );
+//
+//			//원위치로...
+//			D3DXMatrixTranslation(&TranslationMatrix2, vCenter.x, vCenter.y, vCenter.z );
+//
+//			D3DXVECTOR3 vMove = -vEyeToCenter * ( fRadius * 2 );//지름만큼 강제로 이동
+//			D3DXMatrixTranslation(&TranslationMatrix3, vMove.x, vMove.y, vMove.z );
+//
+//			kWorldMatrix = kWorldMatrix * TranslationMatrix1 * ScaleMatrix * TranslationMatrix2 * TranslationMatrix3;
+//
+//			g_pKTDXApp->SetWorldTransform( &kWorldMatrix );
+//            bIdentityWorldMatrix = false;
+//            return;
+//        }
+//    }
+//    if ( bIdentityWorldMatrix == false )
+//    {
+//		D3DXMATRIX kWorldMatrix;
+//		D3DXMatrixIdentity( &kWorldMatrix );
+//		g_pKTDXApp->SetWorldTransform( &kWorldMatrix );
+//        bIdentityWorldMatrix = true;
+//	}
+//}
+//
+//void CKTDGParticleSystem::CParticleEventSequence::_DecideWorldMatrix_Mesh( D3DXMATRIX& kWorldMatrix, CKTDGCamera& kCamera, D3DXVECTOR3& vCenter, float fRadius )
+//{
+//	if( fRadius <= 0.0f )
+//		return;
+//
+//	//frustum의 far에 걸치면 앞쪽으로 당기는 트릭을 사용한다.
+//	D3DXVECTOR3 dirVec = kCamera.GetLookAt() - kCamera.GetEye();
+//	D3DXVec3Normalize( &dirVec, &dirVec );
+//
+//	D3DXVECTOR3 vEyeToCenter = vCenter - kCamera.GetEye();
+//	float fCenterProjLength = D3DXVec3Dot( &vEyeToCenter, &dirVec );
+//
+//	if( fCenterProjLength > 0.0f )
+//	{
+//		float fFarLength = g_pKTDXApp->GetDGManager()->GetFar();
+//
+//		if( fCenterProjLength - fRadius < fFarLength && fCenterProjLength + fRadius > fFarLength )
+//		{
+//			D3DXVec3Normalize( &vEyeToCenter, &vEyeToCenter );
+//
+//			D3DXMATRIX TranslationMatrix1;
+//			D3DXMATRIX TranslationMatrix2;
+//			D3DXMATRIX TranslationMatrix3;
+//			D3DXMATRIX ScaleMatrix;
+//
+//			//scale을 위해 world space의 원점으로 이동
+//			D3DXMatrixTranslation(&TranslationMatrix1, -vCenter.x, -vCenter.y, -vCenter.z );
+//
+//			float fScale = ( fFarLength - fRadius * 2 ) / fFarLength;//지름만큼 가까워졌음으로 작아지도록 한다.
+//			D3DXMatrixScaling(&ScaleMatrix, fScale, fScale, fScale );
+//
+//			//원위치로...
+//			D3DXMatrixTranslation(&TranslationMatrix2, vCenter.x, vCenter.y, vCenter.z );
+//
+//			D3DXVECTOR3 vMove = -vEyeToCenter * ( fRadius * 2 );//지름만큼 강제로 이동
+//			D3DXMatrixTranslation(&TranslationMatrix3, vMove.x, vMove.y, vMove.z );
+//
+//			kWorldMatrix = kWorldMatrix * TranslationMatrix1 * ScaleMatrix * TranslationMatrix2 * TranslationMatrix3;
+//		}
+//	}
+//}
+//#endif//X2OPTIMIZE_CULLING_PARTICLE
+
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+UINT    CKTDGParticleSystem::EstimateParticleSequenceNum()
+{
+    if ( m_coParticleSequence.empty( SEQUENCELIST_LIVE ) == true )
+        return 0;
+    UINT    uCount = 0;
+    KSequenceHandleList::iterator iterEnd = m_coParticleSequence.end(SEQUENCELIST_LIVE);
+    for( KSequenceHandleList::iterator iter = m_coParticleSequence.begin( SEQUENCELIST_LIVE );
+        iter != iterEnd;
+        ++iter )
+    {
+        uCount++;
+    }
+    return  uCount;
+}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+
+

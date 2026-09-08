@@ -3,6 +3,7 @@
 #include "X2Data/XSLItemManager.h"
 #include "X2Data/XSLUnit.h"
 
+
 ImplementRefreshSingleton( CXSLPetManager );
 
 CXSLPetManager::CXSLPetManager(void)
@@ -98,7 +99,7 @@ bool CXSLPetManager::AddPetTemplet_LUA()
 	PetTemplet petData;
 
 	int iTemp = 0;
-	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"PET_ID",					petData.m_PetId,		PET_UNIT_ID,	PET_UNIT_ID::PUI_NONE,	goto end_proc );
+	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"PET_ID",					petData.m_PetId,		PET_UNIT_ID,	PUI_NONE,	goto end_proc );
 	LUA_GET_VALUE_RETURN(		luaManager, L"COMMON_NAME",				petData.m_wstrCommonName,		L"",	goto end_proc );
 
 	LUA_GET_VALUE_RETURN(		luaManager, L"CAPRICE",					petData.m_caprice,				0,		goto end_proc );
@@ -585,12 +586,11 @@ CXSLPetManager::PET_UNIT_ID CXSLPetManager::GetPetIDByItemID( IN int iItemID )
 			return ePetID;
 #endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 
-
 		START_LOG( cerr, L"펫 생성 아이템이 아닌데?" )
 			<< BUILD_LOG( iItemID )
 			<< END_LOG;
 
-		return PET_UNIT_ID::PUI_NONE;
+		return PUI_NONE;
 	}
     
 	return mit->second;
@@ -745,7 +745,7 @@ bool CXSLPetManager::CheckExtroversion( IN int iPetID, IN short sCurExtroversion
 
 	//{{edit : 장훈
 	//if( sCurExtroversion < PET_ENUM::PE_MIN_EMOTION  ||  sCurExtroversion > PET_ENUM::PE_MAX_EMOTION )
-	if( sCurExtroversion < PET_ENUM::PE_MIN_EXTROVERSION  ||  sCurExtroversion > PET_ENUM::PE_MAX_EXTROVERSION )
+	if( sCurExtroversion < PE_MIN_EXTROVERSION  ||  sCurExtroversion > PE_MAX_EXTROVERSION )
 	{
 		START_LOG( cerr, L"외향지수 수치가 이상합니다!" )
 			<< BUILD_LOG( sCurExtroversion )
@@ -795,7 +795,7 @@ bool CXSLPetManager::CheckEmotion( IN int iPetID, IN short sCurEmotion, IN int i
 		return false;
 	}
 
-	if( sCurEmotion < PET_ENUM::PE_MIN_EMOTION  ||  sCurEmotion > PET_ENUM::PE_MAX_EMOTION )
+	if( sCurEmotion < PE_MIN_EMOTION  ||  sCurEmotion > PE_MAX_EMOTION )
 	{
 		START_LOG( cerr, L"감성지수 수치가 이상합니다!" )
 			<< BUILD_LOG( sCurEmotion )
@@ -843,13 +843,18 @@ bool CXSLPetManager::MakeNewPetInfo( IN PET_UNIT_ID ePetID, IN const std::wstrin
 			<< END_LOG;
 		return false;
 	}
-
+	
+#ifdef CORRECT_NOT_TAKING_BONUS_WHEN_FEEDING_RIGHT_AFTER_CREATING_PET
+	std::wstring wstrTimeWhenPetIsCreated = static_cast<CStringW>( CTime::GetCurrentTime().Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
+#else CORRECT_NOT_TAKING_BONUS_WHEN_FEEDING_RIGHT_AFTER_CREATING_PET
 	CTime tCurTime = CTime::GetCurrentTime();
 	CTime tFirstFeedDate = CTime( tCurTime.GetYear(), tCurTime.GetMonth(), tCurTime.GetDay(), 6, 0, 0, 0 );
 	if( tFirstFeedDate < tCurTime )
 	{
 		tFirstFeedDate += CTimeSpan( 1, 0, 0, 0	);
 	}
+#endif // CORRECT_NOT_TAKING_BONUS_WHEN_FEEDING_RIGHT_AFTER_CREATING_PET
+
 
 	// DB에서 생성할 펫 정보를 세팅하자!
 #ifdef SERV_PETID_DATA_TYPE_CHANGE // 2013.07.02
@@ -863,10 +868,21 @@ bool CXSLPetManager::MakeNewPetInfo( IN PET_UNIT_ID ePetID, IN const std::wstrin
 	kNewPetInfo.m_iIntimacy				= m_kNewPetInfo.m_iIntimacy;
 	kNewPetInfo.m_sExtroversion			= m_kNewPetInfo.m_sExtroversion;
 	kNewPetInfo.m_sEmotion				= m_kNewPetInfo.m_sEmotion;
+	
+#ifdef CORRECT_NOT_TAKING_BONUS_WHEN_FEEDING_RIGHT_AFTER_CREATING_PET
+	kNewPetInfo.m_wstrLastFeedDate		= wstrTimeWhenPetIsCreated;
+	kNewPetInfo.m_wstrLastSummonDate	= wstrTimeWhenPetIsCreated;
+	kNewPetInfo.m_wstrRegDate			= wstrTimeWhenPetIsCreated;
+#else CORRECT_NOT_TAKING_BONUS_WHEN_FEEDING_RIGHT_AFTER_CREATING_PET
 	kNewPetInfo.m_wstrLastFeedDate		= ( CStringW )( tFirstFeedDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) ); // 펫 생성날짜를 마지막 소환 시각으로 세팅
 	kNewPetInfo.m_wstrLastSummonDate	= ( CStringW )( tCurTime.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) ); // 펫 생성날짜를 마지막 소환 시각으로 세팅
 	kNewPetInfo.m_wstrRegDate			= ( CStringW )( tCurTime.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) ); // 펫 생성날짜를 RegDate로 세팅
-
+#endif // CORRECT_NOT_TAKING_BONUS_WHEN_FEEDING_RIGHT_AFTER_CREATING_PET
+#ifdef SERV_EVENT_PET_INVENTORY
+	///이벤트 펫 먹이에 사용 유무 셋팅
+	kNewPetInfo.m_bEventFoodEat			= false; //처음 초기에는 아이템을 먹지 않았기 때문에 fasle처리 한다.
+	kNewPetInfo.m_bIsEventPetID			= IsEventFoodPetID( kNewPetInfo.m_iPetID ); //이펫이 이벤트 펫인지 확인한다. 
+#endif SERV_EVENT_PET_INVENTORY
 #ifdef SERV_FREE_AUTO_LOOTING
 	kNewPetInfo.m_bFreeAutoLooting		= IsFreeAutoLootingPet( kNewPetInfo.m_iPetID );
 #endif SERV_FREE_AUTO_LOOTING
@@ -1022,7 +1038,7 @@ short CXSLPetManager::CalcDecreaseSatietyValueOnPvpRoom( IN const PET_UNIT_ID eP
 
 bool CXSLPetManager::IsValidCommand( IN PET_ACTION_COMMAND eCommand )
 {
-	if( PET_ACTION_COMMAND::PAC_NONE < eCommand  &&  PET_ACTION_COMMAND::PAC_END > eCommand )
+	if( PAC_NONE < eCommand  &&  PAC_END > eCommand )
 		return true;
 	
     return false;
@@ -1032,9 +1048,9 @@ bool CXSLPetManager::IsUnconditionalCommand( IN PET_ACTION_COMMAND eCommand )
 {
 	switch( eCommand )
 	{
-	case PET_ACTION_COMMAND::PAC_SIT_END:
-	case PET_ACTION_COMMAND::PAC_SLEEP_END:
-	case PET_ACTION_COMMAND::PAC_FORCE_SLEEP:
+	case PAC_SIT_END:
+	case PAC_SLEEP_END:
+	case PAC_FORCE_SLEEP:
 		return true;
 	}
 
@@ -1088,7 +1104,7 @@ int CXSLPetManager::CalcChangeIntimacyValue( IN CXSLRoom::ROOM_TYPE eRoomType, I
 #endif SERV_PET_TOY
 		//}}
 	}
-	else if( 3840 < sSatiety  &&  sSatiety <= PET_ENUM::PE_MAX_SATIETY )
+	else if( 3840 < sSatiety  &&  sSatiety <= PE_MAX_SATIETY )
 	{
 		//{{ 2012. 04. 26	박세훈	펫 장난감
 #ifdef SERV_PET_TOY
@@ -1121,9 +1137,9 @@ int CXSLPetManager::CalcChangeIntimacyValue( IN CXSLRoom::ROOM_TYPE eRoomType, I
 		{
 			if( 0 <= sSatiety  &&  sSatiety <= 1920 )
 			{
-				iCalcChangeIntimacyValue = static_cast<int>( static_cast<double>( PET_ENUM::PE_MAX_SATIETY - sSatiety ) * fIntimacyFactor );
+				iCalcChangeIntimacyValue = static_cast<int>( static_cast<double>( PE_MAX_SATIETY - sSatiety ) * fIntimacyFactor );
 			}
-			else if( 1920 < sSatiety  &&  sSatiety <= PET_ENUM::PE_MAX_SATIETY )
+			else if( 1920 < sSatiety  &&  sSatiety <= PE_MAX_SATIETY )
 			{
 				iCalcChangeIntimacyValue = static_cast<int>( static_cast<double>(sSatiety) * fIntimacyFactor );
 			}
@@ -1192,6 +1208,20 @@ bool CXSLPetManager::IsEvolutionExceptionPet( IN const int iPetID ) const
 }
 #endif SERV_PET_AUTO_LOOTING
 //}}
+#ifdef SERV_EVENT_PET_INVENTORY
+bool    CXSLPetManager::IsEventFoodPetID( IN int iPetID ) const
+{
+	switch( iPetID )
+	{
+	case 30009: // 이벤트 성 펫은 여기다 등록을 합시다.
+		{
+			return true;
+		}
+		break;
+	}
+	return false;
+}
+#endif SERV_EVENT_PET_INVENTORY
 
 #ifdef SERV_FREE_AUTO_LOOTING
 bool CXSLPetManager::IsFreeAutoLootingPet( IN const int iPetID_ ) const

@@ -140,6 +140,10 @@ public:
 	// 펫 치트
 	bool	Handler_EGS_ADMIN_CHANGE_PET_INFO_NOT( IN const KEGS_ADMIN_CHANGE_PET_INFO_NOT& kNot, IN KGSUserPtr spUser, OUT KPetInfo& kPetInfo, OUT int& iPetCategorySlotSize );
 
+#ifdef SERV_EVENT_VC
+	bool	Handler_EGS_USE_INTIMACY_UP_ITEM_REQ( OUT KEGS_CHANGED_PET_INTIMACY_NOT& kNotIntimacy, OUT int& iUpPercent );
+#endif //SERV_EVENT_VC
+
 	//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
 #if defined(SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT) || defined(SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT_EX)
 	bool	ExistItemInPetInventory( IN int iItemID );

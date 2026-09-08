@@ -1,6 +1,7 @@
 #pragma once
 #include "Event.h"
 #include <boost/timer.hpp>
+#include "ServerDefine.h"
 
 class KAfterWorkStorage
 {
@@ -11,6 +12,9 @@ public:
 		AWS_FAILED				= 1,
 		AWS_NOTKEY				= 2,
 		AWS_DESERIALZE_FAILED	= 3,
+#ifdef SERV_FIX_AFTER_WORK_STORAGE_CLASS// 작업날짜: 2013-12-21	// 박세훈
+		AWS_DATA_IS_NOT_EXIST	= 4,
+#endif // SERV_FIX_AFTER_WORK_STORAGE_CLASS
 	};
 
 	enum AfterWorkStorageEnum

@@ -9,11 +9,7 @@ struct  CX2PetManager_PetInitTemplate;
 #endif	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 
 
-#ifdef REFORM_UI_CHARACTER_INFO
 class CX2PetManager : public CX2PopupUIBase
-#else
-class CX2PetManager
-#endif
 {	
 public:
 
@@ -58,6 +54,15 @@ public:
 		PUI_STINKO_HATS_ON,			/// 스팅코 햇츠온
 		PUI_EBONY_HATS_ON,			/// 에보니 햇츠온
 
+		PUI_PPORU_HOLLOWEEN_EVENT,		/// 할로윈 이벤트 펫 마녀 뽀루
+
+		PUI_GRIM_REAPER_DEATH				= 38, //그림 리퍼-데스(사신 펫)
+		PUI_GRIM_REAPER_REBIRTH				= 39, //그림 리퍼-리버스(사신 펫)
+
+		PUI_RAINCOAT_CAT_BLACK_KR           = 40, /// 우비 입은 고양이 블랙
+		PUI_RAINCOAT_CAT_YELLOW_KR          = 41, /// 우비 입은 고양이 엘로우
+
+		PUI_PPORU_NAVER_EVENT				= 42, /// 네이버 채널링 이벤트 뽀루
 
 		// 해외팀 pet
 		PUI_PANDA_STICK_RED					= 96,
@@ -98,6 +103,9 @@ public:
 		PUI_PETIT_DARKBRINGER_UNIRING_F		= 138,	/// 유니링(완전체)
 		PUI_PET_BLOOD_EATER_EVENT			= 139,	/// 대만 이벤트용 블러드 이터
 		PUI_HATCHLING_BLUE_F                = 140,	///	유럽 영국 CBT기념 야생 해츨링 완전체
+		PUI_PETTE_BERTHE					= 141,  /// 베르드 Jr.
+		PUI_PETTE_BERTHE_F					= 142,  /// 베르드 Jr. 완전체
+		
 
 		PUI_PET_SILVERFOX_MIHO_F            = 30000, /// 은여우 미호 완전체
 		PUI_PET_FIREFOX_SHIHO_F             = 30001, /// 불여우 시호 완전체
@@ -118,7 +126,8 @@ public:
 		PUI_HALLOWEEN_PUMPKIN_LOJETA_F		= 30019, /// 할로윈 호박 요정 로제타 완전체
 		PUI_HALLOWEEN_PUMPKIN_NARENEA_F		= 30020, /// 할로윈 호박 요정 나르네아 완전체
 		PUI_HALLOWEEN_PUMPKIN_ELDENA_F		= 30021, /// 할로윈 호박 요정 엘데나 (레어) 완전체
-
+		PUI_SONOKONG						= 30022, /// 손오공
+		PUI_SONOKONG_F						= 30023, /// 손오공 완전체
 		PUI_FIREWORK_PPORU					= 30024, /// 연말 이벤트 불꽃 뽀루
 		PUI_PET_SNOWBUMP					= 30025, /// 눈사람
 		PUI_PET_HUNTER_PENGUIN				= 30026, /// 팽귄
@@ -207,6 +216,9 @@ public:
 		std::vector<PetSkillInfo> m_AuraSkill;					// 기운스킬 정보
 		std::vector<int>		m_vecAuraSkillOption[3];		// 기운스킬 소켓옵션 
 #endif
+#ifdef SERV_PET_SYSTEM_EX1
+		bool					m_bAlwaysMaxSatiety;
+#endif //SERV_PET_SYSTEM_EX1
 
 		PetTemplet()
 		{
@@ -231,6 +243,9 @@ public:
 			m_vecAuraSkillOption[1].clear();
 			m_vecAuraSkillOption[2].clear();
 #endif
+#ifdef SERV_PET_SYSTEM_EX1
+			m_bAlwaysMaxSatiety = false;
+#endif //SERV_PET_SYSTEM_EX1
 		}
 #ifdef	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 		~PetTemplet();
@@ -426,12 +441,11 @@ public:
 #else
 	bool GetMyPetPick( bool bOpenPopup);
 #endif
-	
-	//{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
+
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
 	void PrintPetInfo_ToExcel(void);
 #endif PRINT_INGAMEINFO_TO_EXCEL
-	//}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
+	
 
 	//}} 김상훈 : 2010.10.07  캐릭터 우클리 팝업메뉴 UI 개선
 	void ClosePetPopupMenu();
@@ -442,9 +456,10 @@ public:
 
 	void UpdateMasterUserSocketAndEnchantData( CX2GUUser* pMasterUser_ );
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	//void OpenPetGagePopupMenu();
-#endif
+#ifdef SERV_EVENT_VC
+	void UseIntimacyUpItem( UidType itemUid_ );
+#endif //SERV_EVENT_VC
 
 	bool Handler_EGS_COMMANDS_FOR_PETS_REQ( CX2PET::PET_ACTION_COMMAND ePetAction );
 	bool Handler_EGS_COMMANDS_FOR_PETS_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
@@ -488,6 +503,11 @@ public:
 #ifdef SERV_PERIOD_PET
 	bool Handler_EGS_RELEASE_PET_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif SERV_PERIOD_PET
+
+#ifdef SERV_EVENT_VC
+	void Handler_EGS_USE_INTIMACY_UP_ITEM_REQ( UidType itemUid_ );
+	bool Handler_EGS_USE_INTIMACY_UP_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //SERV_EVENT_VC
 
 public:
 	static const float MAX_OF_SATIETY;	/// 최대 포만감

@@ -19,21 +19,13 @@ void CX2BuffTempletManager::OpenScriptFileForTemplet()
 
 
 
-	const char* szScriptFileName = "BattleFieldBuffTemplet.lua";
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info 
-		= g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szScriptFileName );
+	const wchar_t* wszScriptFileName = L"BattleFieldBuffTemplet.lua";
 
-	if ( NULL == Info )
-	{
-		ASSERT( !"LoadDataFile doesn't work!" );
-		ErrorLogMsg( XEM_ERROR1, szScriptFileName );
-	}
-
-	if ( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
+    if ( g_pKTDXApp->LoadLuaTinker( wszScriptFileName ) == false )
+    {
 		ASSERT( !"DoMemory doesn't work!" );
-		ErrorLogMsg( XEM_ERROR2, szScriptFileName );
-	}
+		ErrorLogMsg( XEM_ERROR2, wszScriptFileName );
+    }
 }
 
 
@@ -41,21 +33,13 @@ void CX2BuffTempletManager::OpenScriptFileForFactor()
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(), "g_pBuffTempletManager", this );
 
-	const char* szScriptFileName = "BattleFieldBuffFactor.lua";
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info 
-		= g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szScriptFileName );
+	const wchar_t* wszScriptFileName = L"BattleFieldBuffFactor.lua";
 
-	if ( NULL == Info )
-	{
-		ASSERT( !"LoadDataFile doesn't work!" );
-		ErrorLogMsg( XEM_ERROR1, szScriptFileName );
-	}
-
-	if ( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
+    if ( g_pKTDXApp->LoadLuaTinker( wszScriptFileName ) == false )
+    {
 		ASSERT( !"DoMemory doesn't work!" );
-		ErrorLogMsg( XEM_ERROR2, szScriptFileName );
-	}
+		ErrorLogMsg( XEM_ERROR2, wszScriptFileName );
+    }
 }
 
 /** @function : AddBuffTemplet_LUA

@@ -26,6 +26,8 @@ public:
 		// 해외팀 각국가 전용 디파인
 #if defined( SERV_COUNTRY_JP )
 		ERI_SECOND_SECURITY = 650,
+#elif defined( SERV_COUNTRY_TWHK ) 
+		ERI_SECOND_SECURITY = 716,
 #elif defined( SERV_COUNTRY_US ) || defined( SERV_COUNTRY_CN )
 		ERI_SECOND_SECURITY = 10135,
 #elif defined( SERV_COUNTRY_EU )
@@ -44,17 +46,22 @@ public:
 		ERI_COME_BACK_USER_ITEM_CUBE_TWO		= 10144,	// reward
 		ERI_COME_BACK_USER_ITEM_CUBE_THREE		= 10145,	// reward
 #endif SERV_COME_BACK_USER_REWARD
-		//}} 
-
-		//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		ERI_ELIOS_INVESTIGATIONS_REWARD			= 10411,
-#endif SERV_ELIOS_INVESTIGATIONS
 		//}}
-
 #ifdef SERV_2013_JUNGCHU_TITLE
 		ERI_2013_JUNGCHU_TITLE					= 50100,
 #endif SERV_2013_JUNGCHU_TITLE
+
+#ifdef SERV_STEAM_EVENT
+		ERI_STEAM_EVENT_TITLE					= 35210, // 새로운 세계로부터의 모험가 칭호
+#endif //SERV_STEAM_EVENT
+#ifdef SERV_CREATE_CHUNG_REWARD_TITLE
+		ERI_CREATE_CHUNG_REWARD_TITLE					= 70250, // 하멜의 하얀 늑대 칭호
+#endif //SERV_CREATE_CHUNG_REWARD_TITLE
+
+#ifdef SERV_CREATE_NEW_CHARACTER_REWARD_TITLE
+		ERI_CREATE_NEW_CHARACTER_REWARD_TITLE					= 35240, // 새로운 영웅의 탄생
+#endif //SERV_CREATE_NEW_CHARACTER_REWARD_TITLE
+
 #ifdef SERV_CHANNELING_AERIA_EVENT
 		ERI_CHANNELING_AERIA_EVENT_TITLE		= 35230,
 #endif SERV_CHANNELING_AERIA_EVENT
@@ -62,6 +69,8 @@ public:
 #endif SERV_SECOND_SECURITY
 	//}}
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 	struct KRewardData
 	{	
 		int				m_iRewardItemID;
@@ -79,6 +88,8 @@ public:
 			return *this;
 		}
 	};
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+	
 
 public:
 	KRewardTable(void);
@@ -107,9 +118,24 @@ public:
 	bool GetLevelUpRewardItem( IN u_char& ucLevel, OUT std::vector< int >& vecRewardID );
 #endif SERV_CHAR_LEVEL_UP_EVENT
 	//}}
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	const std::map< int, std::vector< KRewardData > >& GetMapRewardDBData() const { return m_mapRewardDBData; }
+	const std::map< int, std::vector< KRewardData > >& GetMapRewardScriptData() const { return m_mapRewardData; }
+
+	const std::map< int, std::vector< KRewardData > >& GetMapTotalRewardData() const { return m_mapTotalRewardData; }
+
+	void SetMapTotalRewardData(  IN const std::map< int, std::vector< KRewardData > > mapRewardScriptData, IN const std::map< int, std::vector< KRewardData > > mapRewardDBData  );
+	void SetMapRewardDBData(std::map< int, std::vector< KRewardData > > mapRewardDBData) { m_mapRewardDBData = mapRewardDBData; }
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 	
 private:
 	std::map< int, std::vector< KRewardData > >		m_mapRewardData;
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	std::map< int, std::vector< KRewardData > >		m_mapTotalRewardData;
+	std::map< int, std::vector< KRewardData > >		m_mapRewardDBData;
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 	//{{ 2011. 06. 22    김민성    이탈 방지 모델 - NEXON 세션 시스템 수정
 #ifdef SERV_NEXON_SESSION_PROTOCOL

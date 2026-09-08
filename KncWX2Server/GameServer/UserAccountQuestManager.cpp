@@ -100,6 +100,15 @@ void KUserAccountQuestManager::SetAccountQuest( IN std::vector< KQuestInstance >
 		const CXSLQuestManager::QuestTemplet* pQuestTemplet = SiCXSLQuestManager()->GetAccountQuestTemplet( kQuestInstance.m_iID );
 		if( pQuestTemplet == NULL )
 		{
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET // 퀘스트 템플릿 부재
+			CTime kRegDate = CTime::GetCurrentTime();
+			KE_LOCAL_LOG_UNDEFINED_QUEST_TEMPLET_NOT kNot;
+			kNot.m_iQuestID	= kQuestInstance.m_iID;
+			kNot.m_wstrRegDate = (const wchar_t*)kRegDate.Format(_T("%Y-%m-%d %H:%M:%S"));
+			KSIManager.QueueingEvent( E_LOCAL_LOG_UNDEFINED_QUEST_TEMPLET_NOT, kNot );
+			continue;
+#endif // SERV_LOG_UNDEFINED_QUEST_TEMPLET 
+
 			START_LOG( cerr, L"계정 QUEST TEMPLET가 없음." )
 				<< BUILD_LOG( kQuestInstance.m_iID )
 				<< BUILD_LOG( kQuestInstance.m_OwnorUnitUID )
@@ -314,7 +323,7 @@ void KUserAccountQuestManager::CheckAccountQuest_NewQuestByBeforeQuest( IN KGSUs
 			kTempReq.m_iTalkNPCID = CXSLUnitManager::NUI_NONE;
 			if( Handler_EGS_NEW_QUEST_REQ_Account( kTempReq, spUser ) == false )
 			{
-				START_LOG( cwarn, L"New Account Quest Req Fail.!(Before)" )	// cwarn 으로 변경하기
+				START_LOG( cwarn, L"New Account Quest Req Fail.!(Before)" )
 					<< BUILD_LOG( spUser->GetCharName() )
 					<< BUILD_LOG( kTempReq.m_iQuestID )
 					<< END_LOG;
@@ -414,6 +423,13 @@ bool KUserAccountQuestManager::Handler_EGS_NEW_QUEST_REQ_Account( IN const KEGS_
 
 		return false;
 	}
+#ifdef SERV_NAVER_CHANNELING
+    // 채널링 퀘스트로 설정한 경우에 퍼블리셔가 다르면 해당 퀘스트를 등록할 수 없게 한다. 2014-01-22 우상혁
+    if ( pQuestTemplet->m_ePublisher != spUser->GetChannelCode() ) 
+    { // AccountQuest.lua 에 m_eQuestType 항목이 없는 경우는 default 로 0 이다.
+        return false;
+    }
+#endif SERV_NAVER_CHANNELING
 
 	// PC방 전용 퀘스트인지 체크
 	if( pQuestTemplet->m_bIsPcBang == true )
@@ -460,7 +476,7 @@ bool KUserAccountQuestManager::Handler_EGS_NEW_QUEST_REQ_Account( IN const KEGS_
 			CTime tCheckTime = CTime( tCompleteDate.GetYear(), tCompleteDate.GetMonth(), tCompleteDate.GetDay(), CXSLQuestManager::QE_ACCOUNT_DAILY_REPEAT_HOUR, 0, 0 );
 			if( tCompleteDate.GetHour() >= CXSLQuestManager::QE_ACCOUNT_DAILY_REPEAT_HOUR )
 			{
-				// 6시보다 넘는 시각이라면 다음날로 세팅
+				// 기준시(게임에서 리셋되는 시각) 를 넘는 시각이라면 다음날로 세팅
 				tCheckTime += CTimeSpan( 1, 0, 0, 0 );
 			}
 
@@ -795,6 +811,10 @@ void KUserAccountQuestManager::Handler_EGS_QUEST_COMPLETE_REQ_Account( IN const 
 		kDBReq.m_bIsRepeat	= ( pQuestTemplet->m_eRepeatType != CXSLQuestManager::QRT_NORMAL );	
 		kDBReq.m_bIsNew		= false;
 		kDBReq.m_bIsChangeJob = false;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		kDBReq.m_iTheNumberOfSkillPagesAvailable = spUser->GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 		if( pQuestTemplet->m_eQuestType == CXSLQuestManager::QT_CHANGE_JOB &&
 			pQuestTemplet->m_Reward.m_eChangeUnitClass != CXSLUnit::UC_NONE &&
@@ -1256,6 +1276,12 @@ void KUserAccountQuestManager::Handler_CharaterLevelUp_Account( IN KGSUserPtr sp
 			SET_ERROR( ERR_QUEST_08 );
 			continue;
 		}
+#ifdef SERV_NAVER_CHANNELING
+        if( pQuestTemplet->m_ePublisher != spUser->GetChannelCode() ) // 채널링 전용 퀘스트
+        {
+            continue;
+        }
+#endif SERV_NAVER_CHANNELING
 
 		if( pQuestTemplet->m_vecSubQuest.empty() == true )
 			continue;
@@ -1569,6 +1595,12 @@ void KUserAccountQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUse
 						CXSLDungeon::IsValentineDungeon( iDungeonID ) == false &&
 #endif SERV_EVENT_VALENTINE_DUNGEON
 						//}
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+						CXSLDungeon::IsValentineDungeonInt( iDungeonID ) == false &&
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / 강정훈
+						CXSLDungeon::IsHalloweenDungeon( iDungeonID ) == false &&
+#endif //SERV_HALLOWEEN_EVENT_2013
 						CXSLDungeon::IsRubenDungeon( iDungeonID ) == false )
 					{
 

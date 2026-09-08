@@ -59,9 +59,9 @@ bool CXSLDungeonManager::OpenScriptFile_AllDungeonScriptLoad( IN lua_State* pLua
 
 	const DWORD dwTime = ::GetTickCount();		
 
-	std::pair< std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::iterator, bool > pairRet;
+	std::pair< std::map< SEnum::DUNGEON_ID, CXSLDungeon >::iterator, bool > pairRet;
 
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData >::iterator mit;
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon::DungeonData >::iterator mit;
 	for( mit = m_mapDungeonData.begin(); mit != m_mapDungeonData.end(); ++mit )
 	{
 		pairRet = m_mapDungeon.insert( std::make_pair( mit->second.m_DungeonID, CXSLDungeon( mit->second ) ) );
@@ -93,7 +93,7 @@ bool CXSLDungeonManager::AddDungeonData_LUA()
 
 	CXSLDungeon::DungeonData dungeonData; //= new CXSLDungeon::DungeonData;
 
-	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"dungeonID",			dungeonData.m_DungeonID,	CXSLDungeon::DUNGEON_ID,	CXSLDungeon::DI_NONE,	return false; );
+	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"dungeonID",			dungeonData.m_DungeonID,	SEnum::DUNGEON_ID,	SEnum::DI_NONE,	return false; );
 	//LUA_GET_VALUE_RETURN(		luaManager, L"dungeonName",			dungeonData.m_DungeonName,	L"",	return false; );
 	LUA_GET_VALUE_RETURN(		luaManager, L"dataFileName",		dungeonData.m_DataFileName,	L"",	return false; );
 
@@ -105,7 +105,7 @@ bool CXSLDungeonManager::AddDungeonData_LUA()
 #endif SERV_DUNGEON_NPC_LEVEL
 	//}}
 	//LUA_GET_VALUE(				luaManager, L"requireLevel",		dungeonData.m_RequireLevel,		 0 );
-	LUA_GET_VALUE_ENUM(			luaManager, L"requireDungeonID",	dungeonData.m_RequireDungeonID, CXSLDungeon::DUNGEON_ID,	CXSLDungeon::DI_NONE );
+	LUA_GET_VALUE_ENUM(			luaManager, L"requireDungeonID",	dungeonData.m_RequireDungeonID, SEnum::DUNGEON_ID,	SEnum::DI_NONE );
 	//{{ 2007. 8. 29  최육사  
 	LUA_GET_VALUE(				luaManager, L"requireItemID",		dungeonData.m_RequireItemID,	 0 );
 	LUA_GET_VALUE(				luaManager, L"requireItemCount",	dungeonData.m_RequireItemCount,	 0 );
@@ -212,8 +212,8 @@ bool CXSLDungeonManager::AddDungeonData_LUA()
 #ifdef SERV_CREATED_NPC_LIMITED_DROPS
 int CXSLDungeonManager::GetNPCDropTime( IN const int nDungeonID, IN const int iStageIndex, IN const int iSubStageIndex, IN const int iNPCID )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( (CXSLDungeon::DUNGEON_ID)nDungeonID );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: 던전 스크립트가 정상인지 확인 바랍니다~!!!" )
@@ -227,6 +227,24 @@ int CXSLDungeonManager::GetNPCDropTime( IN const int nDungeonID, IN const int iS
 }
 #endif SERV_CREATED_NPC_LIMITED_DROPS
 
+#ifdef SERV_DUNGEON_NPC_DATA_EXP_RATE		// 적용날짜: 2013-08-13
+float CXSLDungeonManager::GetNPCExpRate( IN const int nDungeonID, IN const int iStageIndex, IN const int iSubStageIndex, IN const int iNPCID )
+{
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
+	if( mit == m_mapDungeon.end() )
+	{
+		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: 던전 스크립트가 정상인지 확인 바랍니다~!!!" )
+			<< BUILD_LOG( nDungeonID )
+			<< END_LOG;
+
+		return 1.f;
+	}
+
+	return mit->second.GetNPCExpRate( iStageIndex, iSubStageIndex, iNPCID );
+}
+#endif // SERV_DUNGEON_NPC_DATA_EXP_RATE
+
 //{{ 2012. 05. 10	최육사	던전 몬스터 레벨 지정
 #ifdef SERV_DUNGEON_NPC_LEVEL
 bool CXSLDungeonManager::GetNPCData( IN const int nDungeonID, IN const int nStageNum, IN const int iRelativeMonsterLevel, OUT KEGS_DUNGEON_STAGE_LOAD_NOT& kNot, OUT bool& bIsBossStage )
@@ -235,8 +253,8 @@ bool CXSLDungeonManager::GetNPCData( IN const int nDungeonID, IN const int nStag
 #endif SERV_DUNGEON_NPC_LEVEL
 //}}
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( (CXSLDungeon::DUNGEON_ID)nDungeonID );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: 던전 스크립트가 정상인지 확인 바랍니다~!!!" )
@@ -268,8 +286,8 @@ bool CXSLDungeonManager::GetNPCData( IN const int nDungeonID, IN const int nStag
 
 bool CXSLDungeonManager::GetDungeonName( IN int nDungeonID, OUT std::wstring& strDungeonName )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( (CXSLDungeon::DUNGEON_ID)nDungeonID );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: " )
@@ -284,9 +302,9 @@ bool CXSLDungeonManager::GetDungeonName( IN int nDungeonID, OUT std::wstring& st
 }
 int CXSLDungeonManager::GetDungeonMinLevel( IN int nDungeonID ) const
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
 
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -304,9 +322,9 @@ int CXSLDungeonManager::GetDungeonMinLevel( IN int nDungeonID ) const
 
 int CXSLDungeonManager::GetDungeonMaxLevel( IN int nDungeonID ) const
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
 
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -326,8 +344,8 @@ int CXSLDungeonManager::GetDungeonMaxLevel( IN int nDungeonID ) const
 #ifdef SERV_DUNGEON_NPC_LEVEL
 int CXSLDungeonManager::GetDungeonNpcLevel( IN const int iDungeonID ) const
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(iDungeonID) );
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(iDungeonID) );
 	if( mit != m_mapDungeonData.end() )
 	{
 		return mit->second.m_NpcLevel;
@@ -346,9 +364,9 @@ int CXSLDungeonManager::GetDungeonNpcLevel( IN const int iDungeonID ) const
 
 int CXSLDungeonManager::GetRequireDungeonID( IN int nDungeonID )
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::iterator mit;
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::iterator mit;
 
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -368,8 +386,8 @@ int CXSLDungeonManager::GetRequireDungeonID( IN int nDungeonID )
 #ifdef SERV_DUNGEON_REQUIRE_ITEM_LEVEL
 int	CXSLDungeonManager::GetRequireItemLevel( IN const int iDungeonID ) const
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(iDungeonID) );
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(iDungeonID) );
 	if( mit != m_mapDungeonData.end() )
 	{
 		return mit->second.m_RequireItemLevel;
@@ -389,8 +407,8 @@ int	CXSLDungeonManager::GetRequireItemLevel( IN const int iDungeonID ) const
 //{{ 2010. 03. 24  최육사	비밀던전 헬모드
 CXSLDungeonStage::STAGE_TYPE CXSLDungeonManager::GetStageType( IN int iDungeonID, IN int iStageNum )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( static_cast<CXSLDungeon::DUNGEON_ID>(iDungeonID) );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( static_cast<SEnum::DUNGEON_ID>(iDungeonID) );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L"던전 정보가 없습니다!" )
@@ -409,8 +427,8 @@ bool CXSLDungeonManager::GetTicketInformation( IN int nDungeonID, OUT std::vecto
 {
 	vecTicketInformation.clear();
 
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -434,8 +452,8 @@ bool CXSLDungeonManager::GetRequireItemIDAndCount( IN int nDungeonID, IN CXSLDun
 	iItemID = 0;
 	iItemCount = 0;
 	
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -536,9 +554,9 @@ bool CXSLDungeonManager::GetRequireItemIDAndCount( IN int nDungeonID, IN CXSLDun
 //{{ 2007. 10. 4  최육사  근성도 얻기 함수
 bool CXSLDungeonManager::GetRequireSpiritCount( IN int nDungeonID, OUT int& nSpiritByDungeon )
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::iterator mit;
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::iterator mit;
 
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -558,8 +576,8 @@ bool CXSLDungeonManager::GetRequireSpiritCount( IN int nDungeonID, OUT int& nSpi
 
 int CXSLDungeonManager::GetStartPosByRandom( IN int nDungeonID, IN int iStageIndex, IN int iSubStageIndex )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( (CXSLDungeon::DUNGEON_ID)nDungeonID );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: " )
@@ -581,8 +599,8 @@ void CXSLDungeonManager::GetExtraNpcInfo( IN int nDungeonID, IN int iStageIndex,
 	iStartPos = -1;
 	bIsRight = false;
 
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( (CXSLDungeon::DUNGEON_ID)nDungeonID );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: " )
@@ -599,8 +617,8 @@ void CXSLDungeonManager::GetExtraNpcInfo( IN int nDungeonID, IN int iStageIndex,
 
 float CXSLDungeonManager::GetPoisonTimeLimit( IN int nDungeonID )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 	if( mit != m_mapDungeonData.end() )
 	{
 		return mit->second.m_fPoisonTimeLimit;
@@ -617,8 +635,8 @@ float CXSLDungeonManager::GetPoisonTimeLimit( IN int nDungeonID )
 
 float CXSLDungeonManager::GetExtraStagePoisonTimeLimit( IN int nDungeonID )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 	if( mit != m_mapDungeonData.end() )
 	{
 		return mit->second.m_fExtraStagePoisonTimeLimit;
@@ -639,9 +657,9 @@ float CXSLDungeonManager::GetExtraStagePoisonTimeLimit( IN int nDungeonID )
 
 float CXSLDungeonManager::GetPlayTimeLimit( IN int nDungeonID )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
 
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -660,9 +678,9 @@ float CXSLDungeonManager::GetPlayTimeLimit( IN int nDungeonID )
 //{{ 2009. 7. 3  최육사		헤니르던전
 CXSLDungeon::DUNGEON_TYPE CXSLDungeonManager::GetDungeonType( IN int nDungeonID )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
 
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) );
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -742,8 +760,8 @@ float CXSLDungeonManager::GetExtraStageConditionFactor( IN char cLevel )
 #ifdef SERV_DUNGEON_OPTION_IN_LUA
 bool CXSLDungeonManager::IsFixedMembers( IN int nDungeonID )
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>( nDungeonID ) );
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>( nDungeonID ) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -760,8 +778,8 @@ bool CXSLDungeonManager::IsFixedMembers( IN int nDungeonID )
 }
 short CXSLDungeonManager::GetFixedMembers( IN int nDungeonID )
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>( nDungeonID ) );
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>( nDungeonID ) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -778,8 +796,8 @@ short CXSLDungeonManager::GetFixedMembers( IN int nDungeonID )
 }
 bool CXSLDungeonManager::IsEventDungeon( IN int nDungeonID )
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>( nDungeonID ) );
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>( nDungeonID ) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -800,8 +818,8 @@ bool CXSLDungeonManager::IsEventDungeon( IN int nDungeonID )
 #ifdef SERV_NEW_EVENT_TYPES
 bool CXSLDungeonManager::IsSwitchingWithEventInfo( IN int nDungeonID )
 {
-	std::map<CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
-	mit = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>( nDungeonID ) );
+	std::map<SEnum::DUNGEON_ID, CXSLDungeon::DungeonData>::const_iterator mit;
+	mit = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>( nDungeonID ) );
 
 	if( mit != m_mapDungeonData.end() )
 	{
@@ -826,15 +844,15 @@ bool CXSLDungeonManager::GetCanBeEnteredDungeonID( IN const std::map< int, KDung
 
     if( mapDungeonClear.empty() )
 	{
-		iDungeonID = CXSLDungeon::DI_RUBEN_EL_TREE_NORMAL;
+		iDungeonID = SEnum::DI_RUBEN_EL_TREE_NORMAL;
 		return true;
 	}
 
 	std::map< int, KDungeonClearInfo >::const_reverse_iterator mit;
 	for( mit = mapDungeonClear.rbegin(); mit != mapDungeonClear.rend(); ++mit )
 	{
-		std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mitDI;
-		mitDI = m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(mit->first) );
+		std::map< SEnum::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mitDI;
+		mitDI = m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(mit->first) );
 		if( mitDI == m_mapDungeonData.end() )
 		{
 			START_LOG( cerr, L"클리어 했는데 던전데이터에는 없는 던전이네?" )
@@ -857,7 +875,7 @@ void CXSLDungeonManager::GetNormalDungeonIDList( OUT std::vector< int >& vecNorm
 {
 	vecNormalDungeonIDList.clear();
 
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
 	for( mit = m_mapDungeonData.begin(); mit != m_mapDungeonData.end(); ++mit )
 	{
 		if( mit->second.m_eDungeonType != CXSLDungeon::DT_NORMAL )
@@ -874,7 +892,7 @@ void CXSLDungeonManager::GetDefenceDungeonIDList( OUT std::vector< int >& vecDef
 {
 	vecDefenceDungeonIDList.clear();
 
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon::DungeonData >::const_iterator mit;
 	for( mit = m_mapDungeonData.begin(); mit != m_mapDungeonData.end(); ++mit )
 	{
 		if( CXSLDungeon::IsDefenceDungeon( mit->first ) == false )
@@ -900,11 +918,11 @@ bool CXSLDungeonManager::CheckLevelForDungeonAutoPartyBonus( IN const int iDunge
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 int CXSLDungeonManager::GetSecretStageEnteringEvent( IN const int nDungeonID, IN const int iStageIndex, IN const int iSubStageIndex, IN int iClearConditionIndex )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( (CXSLDungeon::DUNGEON_ID)nDungeonID );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: 던전 스크립트가 정상인지 확인 바랍니다~!!!" )
@@ -919,8 +937,8 @@ int CXSLDungeonManager::GetSecretStageEnteringEvent( IN const int nDungeonID, IN
 
 bool CXSLDungeonManager::GetNextStage( OUT CXSLDungeonSubStage::NextStageData& kNextStageData, IN const int nDungeonID, IN const int iStageIndex, IN const int iSubStageIndex, IN int iClearConditionIndex, IN int iSecretPadIndex/* = 0*/ )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( (CXSLDungeon::DUNGEON_ID)nDungeonID );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: 던전 스크립트가 정상인지 확인 바랍니다~!!!" )
@@ -932,13 +950,13 @@ bool CXSLDungeonManager::GetNextStage( OUT CXSLDungeonSubStage::NextStageData& k
 
 	return mit->second.GetNextStage( kNextStageData, iStageIndex, iSubStageIndex, iClearConditionIndex, iSecretPadIndex );
 }
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 #ifdef SERV_LIMITED_DUNGEON_PLAY_TIMES
 bool CXSLDungeonManager::GetLimitedPlayTimes( IN const int nDungeonID, OUT int& iPlayTimes )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( (CXSLDungeon::DUNGEON_ID)nDungeonID );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: 던전 스크립트가 정상인지 확인 바랍니다~!!!" )
@@ -958,8 +976,8 @@ bool CXSLDungeonManager::GetLimitedPlayTimes( IN const int nDungeonID, OUT int& 
 }
 bool CXSLDungeonManager::GetLimitedClearTimes( IN const int nDungeonID, OUT int& iClearTimes )
 {
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
-	mit = m_mapDungeon.find( (CXSLDungeon::DUNGEON_ID)nDungeonID );
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >::const_iterator mit;
+	mit = m_mapDungeon.find( (SEnum::DUNGEON_ID)nDungeonID );
 	if( mit == m_mapDungeon.end() )
 	{
 		START_LOG( cerr, L" ::: DUNGEON DATA를 찾지 못했음 ::: 던전 스크립트가 정상인지 확인 바랍니다~!!!" )

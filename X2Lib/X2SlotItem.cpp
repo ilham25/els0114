@@ -17,8 +17,8 @@ CX2SlotItem::CX2SlotItem(void)
 	m_ItemTID	= -1;
 
 	m_bReset = false;
-#ifdef SERV_ITEM_EXCHANGE_NEW
-	m_hEffectExchangeReady = INVALID_PARTICLE_HANDLE;
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
+	m_hEffectExchangeReady = INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif SERV_ITEM_EXCHANGE_NEW
 }
 
@@ -60,7 +60,7 @@ void CX2SlotItem::LuaGetValue( KLuaManager& luaManager )
 	LUA_GET_VALUE_ENUM( luaManager, "EQUIP_POS", m_EquipPos, CX2Unit::EQIP_POSITION, CX2Unit::EP_NONE );
 
     int iIndex;
-	LUA_GET_VALUE( luaManager, L"SLOT_DESC", iIndex, STR_ID_EMPTY );
+	LUA_GET_VALUE( luaManager, "SLOT_DESC", iIndex, STR_ID_EMPTY );
     m_SlotDesc = GET_STRING( iIndex );
 }
 
@@ -105,12 +105,20 @@ bool CX2SlotItem::CreateItemUI( CX2Item* pItem, int itemQuantity /* = -1 */ )
 
 	CKTDGUIControl::CPictureData* pPicture2 = new CKTDGUIControl::CPictureData();
 	// 기본 텍스쳐
-	pPicture2->SetTex( L"HQ_ImpossibleEqip.tga" );
-	pPicture2->SetSize( imageSize );			
-	pPicture2->SetShow( false );
-	pPicture2->pPoint->color = D3DXCOLOR( 1,1,1,0.7f );
+#ifdef  X2OPTIMIZE_X2SLOTITEM_CRASH_BUG_FIX
+    if ( pPicture2 != NULL )
+#endif  X2OPTIMIZE_X2SLOTITEM_CRASH_BUG_FIX
+    {
+	    pPicture2->SetTex( L"HQ_ImpossibleEqip.tga" );
+	    pPicture2->SetSize( imageSize );			
+	    pPicture2->SetShow( false );
+#ifdef  X2OPTIMIZE_X2SLOTITEM_CRASH_BUG_FIX
+        if ( pPicture2->pPoint != NULL )
+#endif  X2OPTIMIZE_X2SLOTITEM_CRASH_BUG_FIX
+	        pPicture2->pPoint->color = D3DXCOLOR( 1,1,1,0.7f );
+	    pStatic->AddPicture( pPicture2 );
+    }
 
-	pStatic->AddPicture( pPicture2 );
 
 	if ( pItem->GetItemTemplet()->GetItemType() == CX2Item::IT_WEAPON ||
 		pItem->GetItemTemplet()->GetItemType() == CX2Item::IT_DEFENCE ||
@@ -123,14 +131,20 @@ bool CX2SlotItem::CreateItemUI( CX2Item* pItem, int itemQuantity /* = -1 */ )
 			if( true == pItem->IsDisabled() )
 			{ // 파괴된 아이템 텍스쳐
 				pPicture2->SetTex( L"DLG_UI_Common_Texture07.tga", L"Disabled_Item" );
-				pPicture2->pPoint->color = D3DXCOLOR( 1,1,1,1 );
+#ifdef  X2OPTIMIZE_X2SLOTITEM_CRASH_BUG_FIX
+                if ( pPicture2->pPoint != NULL )
+#endif  X2OPTIMIZE_X2SLOTITEM_CRASH_BUG_FIX
+				    pPicture2->pPoint->color = D3DXCOLOR( 1,1,1,1 );
 			}
 #endif //ITEM_RECOVERY_TEST
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // 미감정 아이템 텍스쳐
 			else if(  false == pItem->GetIsEvaluation() )
 			{ // 미감정 아이템 텍스쳐
 				pPicture2->SetTex( L"Unvalued_Icon.tga", L"Unvalued_Icon" );
-				pPicture2->pPoint->color = D3DXCOLOR( 1,1,1,1 );
+#ifdef  X2OPTIMIZE_X2SLOTITEM_CRASH_BUG_FIX
+                if ( pPicture2->pPoint != NULL )
+#endif  X2OPTIMIZE_X2SLOTITEM_CRASH_BUG_FIX
+				    pPicture2->pPoint->color = D3DXCOLOR( 1,1,1,1 );
 			}
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
@@ -146,7 +160,7 @@ bool CX2SlotItem::CreateItemUI( CX2Item* pItem, int itemQuantity /* = -1 */ )
 		pStatic->AddString( pString );
 		pString->fontIndex = SLOT_MANAGER_FONT_INDEX;
 		pString->color = D3DXCOLOR( 1,1,1,1 );
-		if ( pItem->GetItemData()->m_Quantity >= pItem->GetItemTemplet()->GetQuantity() )
+		if ( pItem->GetItemData().m_Quantity >= pItem->GetItemTemplet()->GetQuantity() )
 			pString->color = D3DXCOLOR( 1,0,0,1 );
 		pString->outlineColor = D3DXCOLOR( 0,0,0,1 );
 		WCHAR buff[32] = {0};
@@ -159,12 +173,12 @@ bool CX2SlotItem::CreateItemUI( CX2Item* pItem, int itemQuantity /* = -1 */ )
 				if( false == g_pData->GetUIManager()->GetUIQuickSlot()->GetIsSummonCardSlot() ||
 					( true == g_pData->GetUIManager()->GetUIQuickSlot()->GetIsSummonCardSlot() && CX2Inventory::ST_E_QUICK_SLOT != GetSortType() ) )
 				{
-					StringCchPrintf( buff, 32, L"%d", pItem->GetItemData()->m_Quantity );
+					StringCchPrintf( buff, 32, L"%d", pItem->GetItemData().m_Quantity );
 				}
 			}
 	#else  //SERV_NEW_DEFENCE_DUNGEON
-				StringCchPrintf( buff, 32, L"%d", pItem->GetItemData()->m_Quantity );
-				//wsprintf( buff, L"%d", pItem->GetItemData()->m_Quantity );
+				StringCchPrintf( buff, 32, L"%d", pItem->GetItemData().m_Quantity );
+				//wsprintf( buff, L"%d", pItem->GetItemData().m_Quantity );
 	#endif //SERV_NEW_DEFENCE_DUNGEON
 
 		}
@@ -186,9 +200,8 @@ bool CX2SlotItem::CreateItemUI( CX2Item* pItem, int itemQuantity /* = -1 */ )
 	CreateSealedStatic();
 
 	// 봉인 상태인지 아닌지를 알 수 있으므로
-	if ( pItem->GetItemData() != NULL )
 	{
-		if ( pItem->GetItemData()->m_bIsSealed == true )
+		if ( pItem->GetItemData().m_bIsSealed == true )
 			SetShowSealedImage( true );
 		else
 			SetShowSealedImage( false );
@@ -196,11 +209,36 @@ bool CX2SlotItem::CreateItemUI( CX2Item* pItem, int itemQuantity /* = -1 */ )
 #endif	SEAL_ITEM
 	//}} kimhc // 2009-08-26 // 아이템 봉인 아이콘
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 개인 상점에 등록중인 아이템 표시 아이콘 생성
+	CreateSellWaitingStatic();
+
+	/// 개인 상점에 아이템 등록 대기중 상태라면, 아이콘에 표시 해주자
+	if ( NULL != g_pData &&
+		 NULL != g_pData->GetUIManager() &&
+		 NULL != g_pData->GetUIManager()->GetUIPersonalShop() )
+
+	{
+		const int iPickedShopItemIndex			= g_pData->GetUIManager()->GetUIPersonalShop()->GetPickedShopItemIndex();
+		/// 등록 여부
+		const bool bPersonalShopSellWaitingItem = g_pData->GetUIManager()->GetUIPersonalShop()->CheckDoubleShopItem( pItem->GetUID(), iPickedShopItemIndex + 1 );
+
+		if ( true == bPersonalShopSellWaitingItem )
+			SetShowWaitingSellImage( true );
+		else
+			SetShowWaitingSellImage( false );
+	}
+	else
+	{
+		SetShowWaitingSellImage( false );
+	}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 #ifdef SERV_SOCKET_NEW
 	CreateSocketUseStatic();
 	SetShowSocketUseImage(pItem->GetUID());
 #endif SERV_SOCKET_NEW
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	SetShowExchangeUseImage(
         pItem->GetItemTemplet()->GetItemID()
         );
@@ -208,9 +246,8 @@ bool CX2SlotItem::CreateItemUI( CX2Item* pItem, int itemQuantity /* = -1 */ )
 #endif SERV_ITEM_EXCHANGE_NEW
 
 #ifdef QUEST_REWARD_PERIOD
-	if ( pItem->GetItemData() != NULL )
 	{
-		m_Period = pItem->GetItemData()->m_Period;
+		m_Period = pItem->GetItemData().m_Period;
 	}
 #endif QUEST_REWARD_PERIOD
 
@@ -299,9 +336,7 @@ bool CX2SlotItem::CreateItemUI(
 #ifdef PACKAGEITEM_SET_NOT_EQUIP_ITEM
 		if ( pItemTemplet->GetItemType() == CX2Item::IT_SPECIAL )
 			pPicture2->SetShow( CheckPackageitemSetNotEquipItem( pItemTemplet ) );
-#endif PACKAGEITEM_SET_NOT_EQUIP_ITEM
-		
-		
+#endif PACKAGEITEM_SET_NOT_EQUIP_ITEM		
 	}
 
 	if ( ( pItemTemplet->GetPeriodType() == CX2Item::PT_QUANTITY &&
@@ -322,7 +357,6 @@ bool CX2SlotItem::CreateItemUI(
 		pString->pos = D3DXVECTOR2( imageSize.x - 15 - 4, imageSize.y - 15 - 4 );
 	}
 
-	
 #ifdef SERV_GLOBAL_BILLING
 	//** 선물 리본 표시해주는 부분..
 	if( m_KBillOrderInfo.m_iTransNo != -1 )
@@ -467,7 +501,7 @@ bool CX2SlotItem::CreateMaterialItemUI(
 		pString->pos = D3DXVECTOR2( imageSize.x - 15 +2 , imageSize.y - 15 + 2);
 	}
 
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	CreateSealedStatic();
 #endif SERV_ITEM_EXCHANGE_NEW
 
@@ -567,14 +601,14 @@ bool CX2SlotItem::ResetItemUI( CX2Item* pItem )
 			if ( pStaticRoot->GetString(0) != NULL )
 			{
 				WCHAR buff[32] = {0};
-				StringCchPrintf( buff, 32, L"%d", pItem->GetItemData()->m_Quantity );
-				//wsprintf( buff, L"%d", pItem->GetItemData()->m_Quantity );
+				StringCchPrintf( buff, 32, L"%d", pItem->GetItemData().m_Quantity );
+				//wsprintf( buff, L"%d", pItem->GetItemData().m_Quantity );
 				pStaticRoot->GetString(0)->msg = buff;
 
 				pStaticRoot->GetString(0)->color = D3DXCOLOR( 1,1,1,1 );
 				pStaticRoot->GetString(0)->outlineColor = D3DXCOLOR( 0,0,0,1 );				
 
-				if ( pItem->GetItemData()->m_Quantity >= pItem->GetItemTemplet()->GetQuantity() )
+				if ( pItem->GetItemData().m_Quantity >= pItem->GetItemTemplet()->GetQuantity() )
 					pStaticRoot->GetString(0)->color = D3DXCOLOR( 1,0,0,1 );
 			}
 			else
@@ -586,11 +620,11 @@ bool CX2SlotItem::ResetItemUI( CX2Item* pItem )
 				pString->outlineColor = D3DXCOLOR( 0,0,0,1 );
 				WCHAR buff[32] = {0};
 
-				if ( pItem->GetItemData()->m_Quantity >= pItem->GetItemTemplet()->GetQuantity() )
+				if ( pItem->GetItemData().m_Quantity >= pItem->GetItemTemplet()->GetQuantity() )
 					pString->color = D3DXCOLOR( 1,0,0,1 );
 
-				StringCchPrintf( buff, 32, L"%d", pItem->GetItemData()->m_Quantity );
-				//wsprintf( buff, L"%d", pItem->GetItemData()->m_Quantity );
+				StringCchPrintf( buff, 32, L"%d", pItem->GetItemData().m_Quantity );
+				//wsprintf( buff, L"%d", pItem->GetItemData().m_Quantity );
 				pString->msg = buff;
 				pString->fontStyle = CKTDGFontManager::FS_SHELL;
 				pString->sortFlag = DT_RIGHT;
@@ -743,9 +777,8 @@ bool CX2SlotItem::ResetItemUI( CX2Item* pItem )
 #ifdef	SEAL_ITEM
 	//CreateSealedStatic();
 
-	if ( pItem->GetItemData() != NULL )
 	{
-		if ( pItem->GetItemData()->m_bIsSealed == true )
+		if ( pItem->GetItemData().m_bIsSealed == true )
 		{
 			SetShowSealedImage( true );
 		}
@@ -757,11 +790,33 @@ bool CX2SlotItem::ResetItemUI( CX2Item* pItem )
 #endif	SEAL_ITEM
 	//}} kimhc // 2009-08-26 // 아이템 봉인 아이콘
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 개인 상점에 아이템 등록 대기중 상태라면, 아이콘에 표시 해주자
+	if ( NULL != g_pData &&
+		 NULL != g_pData->GetUIManager() &&
+		 NULL != g_pData->GetUIManager()->GetUIPersonalShop() )
+
+	{
+		const int iPickedShopItemIndex = g_pData->GetUIManager()->GetUIPersonalShop()->GetPickedShopItemIndex();
+		/// 등록 여부
+		const bool bPersonalShopSellWaitingItem = g_pData->GetUIManager()->GetUIPersonalShop()->CheckDoubleShopItem( pItem->GetUID(), iPickedShopItemIndex + 1 );
+
+		if ( true == bPersonalShopSellWaitingItem )
+			SetShowWaitingSellImage( true );
+		else
+			SetShowWaitingSellImage( false );
+	}
+	else
+	{
+		SetShowWaitingSellImage( false );
+	}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 #ifdef SERV_SOCKET_NEW
 	CreateSocketUseStatic();
 	SetShowSocketUseImage(pItem->GetUID());
 #endif SERV_SOCKET_NEW
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	SetShowExchangeUseImage(
         pItem->GetItemTemplet()->GetItemID()
         );
@@ -769,9 +824,8 @@ bool CX2SlotItem::ResetItemUI( CX2Item* pItem )
 #endif SERV_ITEM_EXCHANGE_NEW
 
 #ifdef QUEST_REWARD_PERIOD
-	if ( pItem->GetItemData() != NULL )
 	{
-		m_Period = pItem->GetItemData()->m_Period;
+		m_Period = pItem->GetItemData().m_Period;
 	}
 #endif QUEST_REWARD_PERIOD
 
@@ -1155,7 +1209,7 @@ bool CX2SlotItem::LostItemUI()
 #ifdef QUEST_REWARD_PERIOD
 	m_Period = 0;
 #endif QUEST_REWARD_PERIOD
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	ExchangeReadyEffectEnd();
 #endif SERV_ITEM_EXCHANGE_NEW
 
@@ -1174,7 +1228,7 @@ void CX2SlotItem::DestroyItemUI()
 #ifdef QUEST_REWARD_PERIOD
 	m_Period = 0;
 #endif QUEST_REWARD_PERIOD
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	ExchangeReadyEffectEnd();
 #endif SERV_ITEM_EXCHANGE_NEW
 
@@ -1385,7 +1439,7 @@ void CX2SlotItem::SetShowSocketUseImage( UidType Uid )
 //}} oasis907 : 김상윤 [2010.5.11] // 
 #endif SERV_SOCKET_NEW
 
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 void CX2SlotItem::SetShowExchangeSelectImage( bool bShow )
 {
 	CKTDGUIStatic* pStatic	= static_cast< CKTDGUIStatic* > ( GetDialog()->GetControl( L"static_SocketUseItemSlot" ) );
@@ -1433,7 +1487,7 @@ void CX2SlotItem::ExchangeReadyEffectStart()
 }
 void CX2SlotItem::ExchangeReadyEffectEnd()
 {
-	if( m_hEffectExchangeReady != INVALID_PARTICLE_HANDLE )
+	if( m_hEffectExchangeReady != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{	
 		CKTDGParticleSystem::CParticleEventSequence* pParticle = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hEffectExchangeReady );
 		if( pParticle != NULL )
@@ -1445,6 +1499,64 @@ void CX2SlotItem::ExchangeReadyEffectEnd()
 	return;
 }
 #endif SERV_ITEM_EXCHANGE_NEW
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+
+/** @function	: CreateSellWaitingStatic
+	@brief		: 개인 상점에 등록중인 아이템 표시 아이콘 생성
+*/
+void CX2SlotItem::CreateSellWaitingStatic()				// 봉인아이콘Picture를 가진 static 생성
+{
+
+	if ( m_pDLGSlot == NULL )
+	{
+		ASSERT( !"m_pDLGSlot is NULL" );
+		return;
+	}
+
+	CKTDGUIStatic* pStatic	= NULL;
+	pStatic = new CKTDGUIStatic();
+
+	if ( NULL != pStatic )
+	{
+		pStatic->SetName( L"static_SellWaitingItemSlot" );
+		m_pDLGSlot->AddControl( pStatic );
+
+		// 이미지
+		CKTDGUIControl::CPictureData* pPicture = new CKTDGUIControl::CPictureData();
+
+		if ( NULL != pPicture )
+		{
+			pPicture->SetTex( L"DLG_Icon_Regist_Item.tga", L"Regist_Item" );
+			pPicture->SetSize( m_Size );
+			pStatic->AddPicture( pPicture );
+
+			pStatic->SetShow( false );
+		}
+	}
+
+}
+
+/** @function	: SetShowWaitingSellImage
+	@brief		: 개인 상점에 등록중인 아이템 표시 아이콘 활성 여부
+	@param		: 활성 여부
+*/
+void CX2SlotItem::SetShowWaitingSellImage( IN bool bShow_ )	// 봉인아이콘을 보일것인가 말것인가?
+{
+	CKTDGUIStatic* pStatic	= NULL;
+
+	pStatic	= static_cast< CKTDGUIStatic* > ( GetDialog()->GetControl( L"static_SellWaitingItemSlot" ) );
+	
+	if ( pStatic == NULL )
+	{
+		ASSERT( !"static_SealedItemSlot is NULL" );
+		return;
+	}
+
+	pStatic->SetShow( bShow_ );
+}
+
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 #ifdef PACKAGEITEM_SET_NOT_EQUIP_ITEM
 bool CX2SlotItem::CheckPackageitemSetNotEquipItem( const CX2Item::ItemTemplet* pItemTemplet)

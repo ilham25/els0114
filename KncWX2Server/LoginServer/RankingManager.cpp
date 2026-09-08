@@ -120,7 +120,11 @@ bool KRankingManager::AddRankingRewardInfo_LUA( int iRankingType, int iRank, int
 //{{ 2009. 8. 3  최육사		랭킹보상시작
 bool KRankingManager::SetRankingRewardBeginDate_LUA( int iRankingType, const char* pBeginDate )
 {
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+	if( SEnum::IsHenirRankingType( iRankingType ) == false )
+#else // SERV_HENIR_RENEWAL_2013
 	if( iRankingType < 0  ||  iRankingType > SEnum::RT_MONTH_RANKING )
+#endif // SERV_HENIR_RENEWAL_2013
 	{
 		START_LOG( cerr, L"Ranking정보가 이상합니다!" )
 			<< BUILD_LOG( iRankingType )			
@@ -181,7 +185,11 @@ void KRankingManager::NewRecordForTest_LUA( int iCount )
 //{{ 2009. 7. 31  최육사	랭킹 삭제
 void KRankingManager::NewRecord_LUA( int iRankingType, int iStageCount, UINT ulPlayTime, __int64 tRegDate )
 {
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+	if( ( SEnum::IsHenirRankingType( iRankingType ) == false ) ||  ( iStageCount < 0 ) )
+#else // SERV_HENIR_RENEWAL_2013
 	if( iRankingType < 0  ||  iRankingType > SEnum::RT_MONTH_RANKING  ||  iStageCount < 0 )
+#endif // SERV_HENIR_RENEWAL_2013
 	{
 		START_LOG( cerr, L"Ranking정보가 이상합니다!" )
 			<< BUILD_LOG( iRankingType )
@@ -231,7 +239,11 @@ void KRankingManager::NewRecord_LUA( int iRankingType, int iStageCount, UINT ulP
 
 void KRankingManager::DeleteRecord_LUA( int iRankingType, const char* pNickName )
 {
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+	if( SEnum::IsHenirRankingType( iRankingType ) == false )
+#else // SERV_HENIR_RENEWAL_2013
 	if( iRankingType < 0  ||  iRankingType > SEnum::RT_MONTH_RANKING )
+#endif // SERV_HENIR_RENEWAL_2013
 	{
 		START_LOG( cerr, L"RankingType이 이상합니다!" )
 			<< BUILD_LOG( iRankingType )
@@ -733,6 +745,11 @@ bool KRankingManager::NewRecordHenirRanking( const KHenirRankingInfo& kNewRecord
 	std::map< int, KHenirRanking >::iterator mit;
 	for( mit = m_mapHenirRanking.begin(); mit != m_mapHenirRanking.end(); ++mit )
 	{
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+		if( ( mit->first == SEnum::RT_HERO_RANKING ) && ( kNewRecord.QualificationForHeroRank() == false ) )
+			continue;
+#endif // SERV_HENIR_RENEWAL_2013
+
 		if( mit->second.CheckNewRecord( kNewRecord ) == true )
 		{
 			bNewRecord = true;

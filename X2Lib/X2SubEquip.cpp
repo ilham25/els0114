@@ -8,11 +8,9 @@ m_pFrameMatrix( pFrameMatrix )
 	ASSERT( NULL != pFrameMatrix );
 	m_pNormalXMesh = g_pKTDXApp->GetDeviceManager()->OpenXMesh( modelName );
 
-#ifdef PVP_BOT
 	m_fScale = 1.f;
 	m_vRotate = D3DXVECTOR3(0.f, 0.f, 0.f);
 	m_vOffset = D3DXVECTOR3(0.f, 0.f, 0.f);
-#endif
 
 #ifdef ATTACH_SKINMESH
 	m_pSkinAnim = NULL;
@@ -56,11 +54,9 @@ m_pFrameMatrix( pFrameMatrix )
 		}		
 	}
 
-#ifdef PVP_BOT
 	m_fScale = 1.f;
 	m_vRotate = D3DXVECTOR3(0.f, 0.f, 0.f);
 	m_vOffset = D3DXVECTOR3(0.f, 0.f, 0.f);
-#endif
 }
 #endif
 
@@ -110,9 +106,7 @@ CX2SubEquip::~CX2SubEquip(void)
 	if( m_bSkinMesh == false )
 	{
 		if( NULL != m_pNormalXMesh )
-		{
-#ifdef PVP_BOT
-			
+		{	
 			D3DXMATRIX localMove, matTrans, matRot, matScale, matWorld;
 			
 			D3DXMatrixIdentity( &matWorld );
@@ -128,9 +122,6 @@ CX2SubEquip::~CX2SubEquip(void)
 			D3DXMatrixMultiply( &matWorld, &localMove, m_pFrameMatrix );
 
 			g_pKTDXApp->GetDGManager()->GetXRenderer()->OnFrameRender( m_NormalRenderParam, matWorld, *m_pNormalXMesh, NULL, NULL, NULL );
-#else
-			g_pKTDXApp->GetDGManager()->GetXRenderer()->OnFrameRender( m_NormalRenderParam, *m_pFrameMatrix, *m_pNormalXMesh, NULL, NULL, NULL );
-#endif
 		}
 	}
 	else

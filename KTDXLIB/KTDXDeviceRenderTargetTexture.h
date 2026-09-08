@@ -23,7 +23,7 @@ class CKTDXDeviceRenderTargetTexture
 
 	public:
 		CKTDXDeviceRenderTargetTexture( LPDIRECT3DDEVICE9 pd3dDevice, wstring deviceID, int width, int height, D3DFORMAT fmt = D3DFMT_UNKNOWN );
-		~CKTDXDeviceRenderTargetTexture(void);
+
 
 		virtual HRESULT OnResetDevice();
 		virtual HRESULT OnLostDevice();
@@ -60,7 +60,13 @@ class CKTDXDeviceRenderTargetTexture
 			}
 		}
 
+    protected:
+
+		virtual ~CKTDXDeviceRenderTargetTexture(void);
+
 	private:
+
+
 
 		int						m_Width;
 		int						m_Height;
@@ -76,9 +82,9 @@ class CKTDXDeviceRenderTargetTexture
 		LPDIRECT3DVERTEXBUFFER9	m_pDisplayVertexBuffer;
 		D3DFORMAT				m_D3DFormat;
 		
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		LPDIRECT3DVERTEXBUFFER9	m_pVB_RHW_VERTEX;
-		LPDIRECT3DVERTEXBUFFER9	m_pVB_RENDERTARGET_RHW_VERTEX;
-		LPDIRECT3DVERTEXBUFFER9	m_pVB_RENDERTARGET_VERTEX;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		LPDIRECT3DVERTEXBUFFER9	m_pVB_RHW_VERTEX;
+//		LPDIRECT3DVERTEXBUFFER9	m_pVB_RENDERTARGET_RHW_VERTEX;
+//		LPDIRECT3DVERTEXBUFFER9	m_pVB_RENDERTARGET_VERTEX;
+//#endif
 };

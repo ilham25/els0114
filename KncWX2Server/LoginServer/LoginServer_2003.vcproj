@@ -20,7 +20,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="_WIN32;_DEBUG;_WINDOWS;SERV_INT_INTERNAL"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -71,7 +71,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -121,7 +121,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -171,7 +171,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -221,7 +221,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_IN_HOUSE_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -271,7 +271,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_OPEN_TEST_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -321,7 +321,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_SERVICE_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -371,7 +371,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -421,7 +421,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -471,7 +471,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -521,7 +521,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_IN_HOUSE_SERVICE_READY_QA_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -567,7 +567,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_INT_INTERNAL"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -617,7 +617,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_TW;"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -667,7 +667,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_HK;"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -717,7 +717,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_EU"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -767,7 +767,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\Libs\ExternalLib\DXSDK\Include&quot;;&quot;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0&quot;;&quot;$(SolutionDir)KNCSDK\Include&quot;;&quot;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include&quot;;&quot;$(SolutionDir)XTRAP\Server&quot;;&quot;$(SolutionDir)KncWX2Server\GameServer\nProtect&quot;;..\Common;.\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_US"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -781,7 +781,7 @@
 				Name="VCLinkerTool"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\ia32\vc7.1\lib;$(SolutionDir)KNCSDK\lib"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86&quot;;&quot;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs&quot;;&quot;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\ia32\vc7.1\lib&quot;;&quot;$(SolutionDir)KNCSDK\lib&quot;"
 				IgnoreDefaultLibraryNames="libc"
 				GenerateDebugInformation="TRUE"
 				SubSystem="2"
@@ -818,7 +818,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_CN"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -869,7 +869,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="_WIN32;_DEBUG;_WINDOWS;SERV_COUNTRY_EU"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -921,7 +921,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="_WIN32;_DEBUG;_WINDOWS;SERV_COUNTRY_CN"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -941,6 +941,256 @@
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/$(ProjectName)D.pdb"
 				SubSystem="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_JP|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_JP"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_TH|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_TH"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_ID|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_ID"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_PH|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_PH"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_IN|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_IN"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -1151,6 +1401,36 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug_CN|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCustomBuildTool"/>
@@ -1430,6 +1710,9 @@
 				</File>
 				<File
 					RelativePath="..\Common\NetError_def.h">
+				</File>
+				<File
+					RelativePath="..\Common\Neterror\NetError_def_BR.h">
 				</File>
 			</Filter>
 			<Filter
@@ -2123,6 +2406,9 @@
 						RelativePath="..\Common\OnlyGlobal\ServerDefine\ServerDefine_ID.h">
 					</File>
 					<File
+						RelativePath="..\Common\OnlyGlobal\ServerDefine\ServerDefine_IN.h">
+					</File>
+					<File
 						RelativePath="..\Common\OnlyGlobal\ServerDefine\ServerDefine_JP.h">
 					</File>
 					<File
@@ -2384,15 +2670,39 @@
 					Filter="">
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GASHAuth.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GASHAuth.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GASHAuthManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GASHAuthManager.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 				</Filter>
 				<Filter
@@ -2400,6 +2710,12 @@
 					Filter="">
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantAuth.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantAuth.h">
@@ -2433,9 +2749,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantAuthManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantAuthManager.h">
@@ -2469,9 +2807,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantAuthPacket.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantAuthPacket.h">
@@ -2505,9 +2865,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantBaseManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantBaseManager.h">
@@ -2541,9 +2923,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantBilling.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantBilling.h">
@@ -2577,9 +2981,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantBillingManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantBillingManager.h">
@@ -2613,9 +3039,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantBillingPacket.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantBillingPacket.h">
@@ -2649,9 +3097,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantCommonPacket.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantCommonPacket.h">
@@ -2685,15 +3155,49 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantCouponManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantCouponManager.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantInfo.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantInfo.h">
@@ -2727,9 +3231,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantInfoManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantInfoManager.h">
@@ -2763,9 +3289,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantInfoPacket.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantInfoPacket.h">
@@ -2799,9 +3347,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantRoleReg.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantRoleReg.h">
@@ -2835,9 +3405,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantRoleRegManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantRoleRegManager.h">
@@ -2871,9 +3463,31 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantRoleRegPacket.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Cn\GiantRoleRegPacket.h">
@@ -2907,6 +3521,22 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 				</Filter>
 				<Filter
@@ -2914,27 +3544,75 @@
 					Filter="">
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\AsiaSoftAuth.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\AsiaSoftAuth.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\AsiaSoftAuthManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\AsiaSoftAuthManager.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\LoginOtpAuthTcpThread.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\LoginOtpAuthTcpThread.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\TCPThreadManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\TCPThreadManager.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 				</Filter>
 				<Filter
@@ -2942,27 +3620,75 @@
 					Filter="">
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanNetCafeForSvr.dll">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanNetCafeForSvr.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanNetCafeForSvr.lib">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanNetCafeForSvr.xml">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\LoginNetCafe.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\LoginNetCafe.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\LoginNetCafeManager.cpp">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\LoginNetCafeManager.h">
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 				</Filter>
 				<Filter
@@ -2971,6 +3697,24 @@
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBilling_def.h">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -2984,11 +3728,47 @@
 							<Tool
 								Name="VCCLCompilerTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingIOCP.h">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -3002,11 +3782,47 @@
 							<Tool
 								Name="VCCLCompilerTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingIOThread.h">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -3020,11 +3836,47 @@
 							<Tool
 								Name="VCCLCompilerTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingPacket.h">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -3038,11 +3890,47 @@
 							<Tool
 								Name="VCCLCompilerTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingServer.h">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -3056,11 +3944,47 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingUser.cpp">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCLCompilerTool"/>
@@ -3074,11 +3998,47 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingUserFSM.cpp">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCLCompilerTool"/>
@@ -3092,11 +4052,47 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingUserFSMInput_def.h">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -3110,11 +4106,47 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingUserManager.cpp">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCLCompilerTool"/>
@@ -3128,11 +4160,47 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingUtil.cpp">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCLCompilerTool"/>
@@ -3146,6 +4214,24 @@
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingWorkerThread.cpp">
@@ -3155,11 +4241,47 @@
 							<Tool
 								Name="VCCLCompilerTool"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\AuthAndBilling\PH\GarenaBillingWorkerThread.h">
 						<FileConfiguration
 							Name="INT_TEST|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>

@@ -287,26 +287,33 @@ void CX2TextManager::CX2Text::Move( D3DXVECTOR2 pos, const WCHAR* pMsg, D3DXCOLO
 void CX2TextManager::CX2Text::Move_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	bool bDirect;
 	float fChangeTime;
 	bool bAutoDelete;
-	string msg;
+	wstring wMsg;
 	
 
-	LUA_GET_VALUE( luaManager, "MSG", msg, "" );
+	LUA_GET_VALUE( luaManager, "MSG", wMsg, L"" );
 	LUA_GET_VALUE( luaManager, "IS_DIRECT", bDirect, false );
 	LUA_GET_VALUE( luaManager, "CHANGE_TIME", fChangeTime, 0.0f );
 	LUA_GET_VALUE( luaManager, "AUTO_DELETE", bAutoDelete, false );
 
-
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    D3DXVECTOR2 pos;
+    D3DXCOLOR color;
+    D3DXCOLOR outlineColor;
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "POS", pos, D3DXVECTOR2(0,0) );
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "COLOR", color, D3DXCOLOR(1,1,1,1) );
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "OUTLINE_COLOR", outlineColor, D3DXCOLOR(1,1,1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	D3DXVECTOR2 pos			= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "POS" );
 	D3DXCOLOR color			= lua_tinker::get<D3DXCOLOR>( luaManager.GetLuaState(),  "COLOR" );
 	D3DXCOLOR outlineColor	= lua_tinker::get<D3DXCOLOR>( luaManager.GetLuaState(),  "OUTLINE_COLOR" );
-
-	wstring wMsg;
-	ConvertCharToWCHAR( wMsg, msg.c_str() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	Move( pos, wMsg.c_str(), color, outlineColor, fChangeTime, bDirect, bAutoDelete );
 }

@@ -105,6 +105,10 @@ protected:
 	void	CheckExchangeLimit( IN const bool bForceNotify = false );
 #endif // SERV_ITEM_EXCHANGE_LIMIT
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-04	// 박세훈
+	void	CheckFieldBossSystem( IN const CTime tCurrentTime );
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	template < class T > void SendToGameServer( unsigned short usEventID, const T& data ) const;
 	template < class T > void BroadCastAllGS( unsigned short usEventID, const T& data ) const;
 
@@ -154,11 +158,17 @@ protected:
 #endif SERV_EVENT_JACKPOT
 	//}}
 
+
+#ifdef SERV_GOLBAL_SERVER_EVENT_MANAGER
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	DECL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
 	DECL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK );
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK	
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
-#ifdef SERV_GOLBAL_SERVER_EVENT_MANAGER
 	DECL_ON_FUNC( DBE_EVENT_UPDATE_ACK );
 #endif //SERV_GOLBAL_SERVER_EVENT_MANAGER
 

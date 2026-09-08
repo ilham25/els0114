@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../Common/SOAP/soapH.h" // or whatever it is called, you must already have it
+#include "../Common/soap/soapElswordGameSoapProxy.h"
 
 
 #include "Event.h"
@@ -44,10 +44,6 @@ class KNexonSOAP :public KSubThread
 		};
 	};
 
-#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-06-17	// 박세훈
-	static	const	std::string	m_strCouponSystemServiceCode;
-#endif // SERV_NEXON_COUPON_SYSTEM
-
 	_DeclareException;
 
 
@@ -65,13 +61,10 @@ public:
 
 
 public:
-
-#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-06-17	// 박세훈
 	enum NEXON_SERVICE_CODE
 	{
 		NSC_ELSWORD		= 5059,
 	};
-#endif // SERV_NEXON_COUPON_SYSTEM
 
 	enum NEXON_GAME_CODE
 	{
@@ -86,6 +79,25 @@ public:
 	static void AddWebMethod( int iSoapAction, std::string szMethod );
 	bool GetWebMethod( int iSoapAction, KWebMethod& kInfo );
 
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-11-06	// 박세훈
+	static	void	SetSoapServerAddressForUser( IN const std::string& strAddr )	{	m_strSoapServerAddressForUser = strAddr;	}
+	static	void	SetSoapServerAddressForCoupon( IN const std::string& strAddr )	{	m_strSoapServerAddressForCoupon = strAddr;	}
+#endif // SERV_NEXON_COUPON_SYSTEM
+
+protected:
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-10-23	// 박세훈
+	int	GetCouponTargetItemCount( IN const UidType iUnitUID
+								, IN const int iCouponCardNo
+								, OUT int& iTargetItemCount
+								) const;
+
+	int	GetCouponTargetItem( IN const UidType iUnitUID
+						   , IN const int iCouponCardNo
+						   , IN const int iStartRowIndex
+						   , IN const int iMaximumRows
+						   , OUT std::vector<KCouponBoxTargetItem>& vecTargetItem
+						   ) const;
+#endif // SERV_NEXON_COUPON_SYSTEM
 
 	//----------------------//
 	// Process Event handle //
@@ -121,11 +133,18 @@ public:
 #endif // SERV_NEXON_COUPON_SYSTEM
 
 protected:
-	struct soap* p_nx_soap;
+	ElswordGameSoapProxy *p_nx_soap;
 
 	std::string m_strWsdlPath;
 
 	static std::map< int, KWebMethod >  ms_mapWebMethodPath;
+
+private:
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-11-06	// 박세훈
+	static	const	std::string	m_strCouponSystemServiceCode;
+	static	std::string	m_strSoapServerAddressForUser;
+	static	std::string	m_strSoapServerAddressForCoupon;
+#endif // SERV_NEXON_COUPON_SYSTEM
 };
 
 #endif SERV_NEXON_AUTH_SOAP

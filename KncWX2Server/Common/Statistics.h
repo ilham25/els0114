@@ -70,6 +70,11 @@ public:
 		SI_ITEM_RETRANINING_REWARD,		// 이탈 방지 보상 아이템 지급
 //#endif SERV_NEXON_SESSION_PROTOCOL
 		//}} 
+//#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+		SI_ITEM_EXTRACT_S,		// 아이템 추출 [원래것]
+		SI_ITEM_EXTRACT_R,		// 아이템 추출 [바뀐것]
+		SI_ITEM_USE_FINALITY_SKILL,		// 궁극기 사용	
+//#endif // SERV_FINALITY_SKILL_SYSTEM
 
 		SI_ITEM_MAX,
 	};
@@ -103,9 +108,10 @@ public:
 		SLP_TEAM_DEATH_PT,
 		SLP_SURVIVAL_MC,
 		SLP_SURVIVAL_PT,
-		//#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+//#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 		SLP_UNITCLASS_ARA,
-		//#endif // SERV_ARA_CHANGE_CLASS_SECOND
+//#endif // SERV_ARA_CHANGE_CLASS_SECOND
+
 		SLP_MAX
 	};
 
@@ -226,6 +232,15 @@ public:
 //#ifdef SERV_NEW_ITEM_SYSTEM_2013_05// 작업날짜: 2013-06-17	// 박세훈
 		eSIColDB_ED_MItemEvaluate			= 29,		// 아이템 감정으로 소모한 ED
 //#endif // SERV_NEW_ITEM_SYSTEM_2013_05
+        
+//#ifdef SERV_GOOD_ELSWORD // 작업날짜 2013-11-08 , ED로 인벤토리 확장, ED 로 은행 확장
+        eSIColDB_ED_ExpandInventory         = 30, // 인벤토리
+        eSIColDB_ED_ExpandBank              = 31, // 은행
+//#endif SERV_GOOD_ELSWORD
+
+//#ifdef SERV_SKILL_PAGE_SYSTEM
+		eSIColDB_ED_ExpandSkillPage         = 32, // 스킬 페이지
+//#endif // SERV_SKILL_PAGE_SYSTEM
 
 		eSIColDB_ED_Max,
 	};
@@ -364,9 +379,11 @@ public:
 //#ifdef SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT // 작업날짜: 2013-09-04 // 오현빈
 		eSIColDR_InvlideCheckKomScript				= 61,    // [61] CheckKom.xml 스크립트 파싱 오류
 //#endif // SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
-//#ifdef SERV_KOM_FILE_CHECK_ADVANCED
-		eSIColDR_InvaildKomDetect					= 62,	 // [62] Kom 변조 감지
+
+//#ifdef SERV_KOM_FILE_CHECK_ADVANCED		// 작업날짜: 2013-11-06 // 임홍락
+		eSIColDR_InvaildKomDetect					= 62,   // [62] Kom 변조 감지
 //#endif SERV_KOM_FILE_CHECK_ADVANCED
+
 		eSIColDR_Num,
 	};
 

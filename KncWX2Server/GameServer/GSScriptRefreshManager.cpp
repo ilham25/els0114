@@ -93,7 +93,9 @@ void KGSScriptRefreshManager::RegToLua( lua_State* pLuaState )
 	//}}
 	//{{ 2011. 10. 12	최육사	컨텐츠 관리자
 #ifdef SERV_CONTENT_MANAGER
+#ifndef SERV_CONTENT_MANAGER_INT
 	lua_tinker::class_def<KGSScriptRefreshManager>( pLuaState, "ContentManager",			&KGSScriptRefreshManager::ContentManager_LUA );
+#endif SERV_CONTENT_MANAGER_INT
 #endif SERV_CONTENT_MANAGER
 	//}}
 
@@ -169,6 +171,18 @@ void KGSScriptRefreshManager::RegToLua( lua_State* pLuaState )
 	lua_tinker::class_def<KGSScriptRefreshManager>( pLuaState, "RidingPetManager",			&KGSScriptRefreshManager::RidingPetManager_LUA );
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+	lua_tinker::class_def<KGSScriptRefreshManager>( pLuaState, "SkillTree",			&KGSScriptRefreshManager::SkillTree_LUA );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	lua_tinker::class_def<KGSScriptRefreshManager>( pLuaState, "FieldBossData",		&KGSScriptRefreshManager::FieldBossData_LUA );
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_GOOD_ELSWORD
+    lua_tinker::class_def<KGSScriptRefreshManager>( pLuaState, "EDInventory", &KGSScriptRefreshManager::EDInventoryExpand_LUA );
+#endif // SERV_GOOD_ELSWORD
+
 	lua_tinker::decl( pLuaState, "ScriptRefresh", this );
 }
 
@@ -197,7 +211,6 @@ void KGSScriptRefreshManager::RandomItemManager_LUA()
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%") % 0 %L"RandomItemManager 클래스 스크립트 실시간 패치!"));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
 }
 
 void KGSScriptRefreshManager::ManufactureItemManager_LUA()
@@ -255,7 +268,7 @@ void KGSScriptRefreshManager::TitleManager_LUA()
 
 	//{{ 2011. 11. 3	최육사	헤니르 시공 랭킹 보상 안전성 패치
 #ifdef SERV_HENIR_RANKING_TITLE_REWARD_FIX
-	RefreshOrderToCnServerEachServerGroup( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_TITLE_MANAGER );
+	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_TITLE_MANAGER );
 #endif SERV_HENIR_RANKING_TITLE_REWARD_FIX
 	//}}
 
@@ -330,7 +343,7 @@ void KGSScriptRefreshManager::GuildManager_LUA()
 	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GS_GUILD_MANAGER );
 
 	// 로그인서버의 GuildManager 갱신 요청!
-	RefreshOrderToCnServerEachServerGroup( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_GUILD_MANAGER );
+	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_GUILD_MANAGER );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%") % 0 %L"GuildManager 클래스 스크립트 실시간 패치!"));
@@ -349,7 +362,7 @@ void KGSScriptRefreshManager::GameSysVal_LUA()
 
 	//{{ 2011. 08. 17	최육사	머신ID 중복 접속 차단
 #ifdef SERV_MACHINE_ID_DUPLICATE_CHECK
-	RefreshOrderToCnServerEachServerGroup( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_GAME_SYS_VAL );
+	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_GAME_SYS_VAL );
 #endif SERV_MACHINE_ID_DUPLICATE_CHECK
 	//}}
 
@@ -495,7 +508,7 @@ void KGSScriptRefreshManager::MornitoringManager_LUA()
 	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GS_MORNITORING_MANAGER );
 
 	// 로그인서버의 MornitoringManager 갱신 요청!
-	RefreshOrderToCnServerEachServerGroup( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_MORNITORING_MANAGER );
+	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_MORNITORING_MANAGER );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%") % 0 %L"MornitoringManager 클래스 스크립트 실시간 패치!"));
@@ -611,6 +624,7 @@ void KGSScriptRefreshManager::HenirResultTable_LUA()
 
 //{{ 2011. 10. 12	최육사	컨텐츠 관리자
 #ifdef SERV_CONTENT_MANAGER
+#ifndef SERV_CONTENT_MANAGER_INT
 void KGSScriptRefreshManager::ContentManager_LUA()
 {
 	START_LOG( cout, L"ContentManager 클래스 스크립트 실시간 패치!" );
@@ -623,6 +637,7 @@ void KGSScriptRefreshManager::ContentManager_LUA()
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
 
 }
+#endif SERV_CONTENT_MANAGER_INT
 #endif SERV_CONTENT_MANAGER
 //}}
 
@@ -631,6 +646,11 @@ void KGSScriptRefreshManager::ContentManager_LUA()
 void KGSScriptRefreshManager::BattleFieldManager_LUA()
 {
 	START_LOG( cout, L"BattleFieldManager 클래스 스크립트 실시간 패치!" );
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	// 글로벌서버의 Battle Field Manager 갱신 요청!
+	RefreshOrderToGBServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GB_BATTLE_FIELD_MANAGER );
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	// 센터서버의 Battle Field Manager 갱신 요청!
 	RefreshOrderToCnServerBroadCast( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_CN_BATTLE_FIELD_MANAGER );
@@ -743,6 +763,18 @@ void KGSScriptRefreshManager::Init()
 		if( 0 != LUA_DOFILE( m_pRefreshLuaState, strFile.c_str() ) )
 		{
 			START_LOG( cerr, L"GSScriptRefreshManager : Enum 정보 로드 실패.!" );
+			return;
+		}
+	}
+
+	{
+		// enum.lua 파싱
+		std::string strFile = "DungeonEnum.lua";
+		KAutoPath kAutoPath;
+		kAutoPath.GetPullPath( strFile );
+		if( 0 != LUA_DOFILE( m_pRefreshLuaState, strFile.c_str() ) )
+		{
+			START_LOG( cerr, L"GSScriptRefreshManager : DungeonEnum 정보 로드 실패.!" );
 			return;
 		}
 	}
@@ -909,7 +941,7 @@ void KGSScriptRefreshManager::SmsManager_Lua( void )
 	RefreshOrderToCnServerBroadCast( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_CN_SMS_MANAGER );
 
 	// 로그인서버의 SMSPhoneNumberManager 갱신 요청!
-	RefreshOrderToCnServerEachServerGroup( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_SMS_MANAGER );
+	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_SMS_MANAGER );
 
 	// 글로벌서버의 SMSPhoneNumberManager 갱신 요청!
 	RefreshOrderToGBServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GB_SMS_MANAGER );
@@ -942,7 +974,7 @@ void KGSScriptRefreshManager::LogManager_LUA()
 	RefreshOrderToCnServerBroadCast( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_CN_LOG_MANAGER );
 
 	// 로그인서버의 KLogManager 갱신 요청!
-	RefreshOrderToCnServerEachServerGroup( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_LOG_MANAGER );
+	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_LOG_MANAGER );
 
 	// 글로벌서버의 KLogManager 갱신 요청!
 	RefreshOrderToGBServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GB_LOG_MANAGER );
@@ -950,7 +982,6 @@ void KGSScriptRefreshManager::LogManager_LUA()
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%") % 0 %L"KLogManager 클래스 스크립트 실시간 패치!"));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
 }
 #endif SERV_LOG_SYSTEM_NEW
 //}}
@@ -965,7 +996,6 @@ void KGSScriptRefreshManager::SynthesisTable_LUA()
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%") % 0 %L"SynthesisTable 클래스 스크립트 실시간 패치!"));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
 }
 #endif SERV_SYNTHESIS_AVATAR
 
@@ -979,5 +1009,47 @@ void KGSScriptRefreshManager::RidingPetManager_LUA()
 }
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+void KGSScriptRefreshManager::SkillTree_LUA( void )
+{
+	START_LOG( cout, L"SkillTree 클래스 스크립트 실시간 패치!" );
+
+	// 게임서버의 SkillTree 갱신 요청!
+	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GS_SKILL_TREE );
+
+	// 로그인서버의 SkillTree 갱신 요청!
+	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_SKILL_TREE );
+}
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+void KGSScriptRefreshManager::FieldBossData_LUA( void )
+{
+	START_LOG( cout, L"CXSLFieldBossData 클래스 스크립트 실시간 패치!" );
+
+	// 게임서버 갱신 요청!
+	RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GS_FIELD_BOSS_DATA );
+
+	// 센터서버 갱신 요청!
+	RefreshOrderToCnServerBroadCast( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_CN_FIELD_BOSS_DATA );
+
+	//{{ 2011. 08. 29	김민성       일일 랜덤 퀘스트
+#ifdef SERV_RANDOM_DAY_QUEST
+	// 글로벌서버 갱신 요청!
+	RefreshOrderToGBServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GB_FIELD_BOSS_DATA );
+#endif SERV_RANDOM_DAY_QUEST
+	//}}
+}
+#endif // SERV_BATTLE_FIELD_BOSS
+
 //#endif SERV_REALTIME_SCRIPT
 //}}
+
+#ifdef SERV_GOOD_ELSWORD
+void KGSScriptRefreshManager::EDInventoryExpand_LUA()
+{
+    START_LOG( cout, L"InventoryExpand 클래스 스크립트 실시간 패치!" );
+    // 게임서버의 InventoryExpand 갱신 요청!
+    RefreshOrderToCnServer( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GS_ED_INVENTORY_EXPAND );
+}
+#endif // SERV_GOOD_ELSWORD

@@ -27,7 +27,6 @@ class CX2ComboManager
 		int				GetComboScoreFull()	{ return m_ComboScoreFull; }
 
 
-#ifdef ADD_TRAININGGAME_NPC
 		void ResetMyComboDamage() { m_iMyComboDamage = 0; }
 		void AddMyComboDamage(float fDamage) 
 		{ 
@@ -38,7 +37,6 @@ class CX2ComboManager
 			}
 		}
 		unsigned int GetMyComboDamage() { return m_iMyComboDamage; }
-#endif
 
 
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
@@ -68,7 +66,6 @@ class CX2ComboManager
 
 		CKTDGPicChar*										m_pPicChar;
 		CKTDGPicChar*										m_pPicCharBig;
-#ifdef REFORM_UI_SCORE
 		/*
 			[0] : Good(5)		[8] : Mavelous(85)
 			[1] : Nice(10)		[9] : Gorgeous(100)
@@ -84,16 +81,6 @@ class CX2ComboManager
 
 		KProtectedType<float>	m_fComboDamage;		/// 계산 값에 의한 콤보 데미지 값
 		float					m_fComboCount;		/// 중복 출력 제한과 오버 데미지 시 파티클 출력을 위한 변수
-#else
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hHitSeq;
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hLightSeq;
-
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hGoodSeq;
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hNiceSeq;
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hCoolSeq;
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hGreatSeq;
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPerfectSeq;
-#endif
 
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hScoreBonus;
 		CKTDGPicChar*										m_pScoreBonusPicChar;
@@ -106,12 +93,10 @@ class CX2ComboManager
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hGreatBonus;
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPerfectBonus;
 
-#ifdef ADD_TRAININGGAME_NPC
 		unsigned int			m_iMyMaxComboDamage;
 		unsigned int			m_iMyComboDamage;
 		CKTDGPicChar*			m_pPicCharComboDamage;
 		CKTDGPicChar*			m_pPicCharComboMaxDamage;
-#endif
 
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 		KProtectedType<int>									m_iUsingSubStageComboScore;		//SubStage 의 ComboScore 를 계산하기 위해 사용하는 인자값

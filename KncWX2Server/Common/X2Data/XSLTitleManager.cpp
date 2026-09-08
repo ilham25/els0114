@@ -51,7 +51,7 @@ bool CXSLTitleManager::AddTitleInfo_LUA()
 	LUA_GET_VALUE_RETURN(	luaManager, L"m_iTitleID",				kTitleInfo.m_iTitleID,					0,				goto end_proc );
 	LUA_GET_VALUE(			luaManager, L"m_iSortNum",				kTitleInfo.m_iSortNum,					0 );
 
-	LUA_GET_VALUE_ENUM(		luaManager, L"m_eTitleType",			kTitleInfo.m_eTitleType,				TITLE_TYPE,		TITLE_TYPE::TT_NONE );
+	LUA_GET_VALUE_ENUM(		luaManager, L"m_eTitleType",			kTitleInfo.m_eTitleType,				TITLE_TYPE,		TT_NONE );
 	LUA_GET_VALUE(			luaManager, L"m_TitleName",				kTitleInfo.m_wstrTitleName,				L"" );
 
 	LUA_GET_VALUE_ENUM(		luaManager, L"m_eUnitType",				kTitleInfo.m_eUnitType,					CXSLUnit::UNIT_TYPE,		CXSLUnit::UT_NONE );
@@ -317,9 +317,10 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 
 		case TMCT_NPC_HUNT:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
+				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
 
 				//{{ 2012. 1. 11	Merge 박세훈	2012.12.26 임규수 타이틀 미션 클리어 NPC 복수 적용
 #ifdef SERV_SUB_TITLE_MISSION_PLURAL_NPC
@@ -340,8 +341,9 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eKillNPCID",		kSubMissionTemplet.m_ClearCondition.m_eKillNPCID,		CXSLUnitManager::NPC_UNIT_ID,	CXSLUnitManager::NUI_NONE, goto error_proc; );
 #endif SERV_SUB_TITLE_MISSION_PLURAL_NPC
 				//}}
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iKillNum",			kSubMissionTemplet.m_ClearCondition.m_iKillNum,			0, goto error_proc; );
 
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iKillNum",			kSubMissionTemplet.m_ClearCondition.m_iKillNum,			0, goto error_proc; );
+				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		kSubMissionTemplet.m_ClearCondition.m_eDungeonMode,		CXSLDungeon::DUNGEON_MODE,		CXSLDungeon::DM_INVALID );
 			}
 			break;
 
@@ -354,7 +356,7 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 
 		case TMCT_QUEST_ITEM_COLLECTION:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
@@ -385,7 +387,7 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 
 		case TMCT_DUNGEON_TIME:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				//{{ 2010. 08. 23  최육사	비밀던전 헬모드
 #ifdef SERV_HELL_MODE_TITLE
 				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		kSubMissionTemplet.m_ClearCondition.m_eDungeonMode,		CXSLDungeon::DUNGEON_MODE,		CXSLDungeon::DM_INVALID );
@@ -406,7 +408,7 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 
 		case TMCT_DUNGEON_RANK:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				//{{ 2010. 08. 23  최육사	비밀던전 헬모드
 #ifdef SERV_HELL_MODE_TITLE
 				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		kSubMissionTemplet.m_ClearCondition.m_eDungeonMode,		CXSLDungeon::DUNGEON_MODE,		CXSLDungeon::DM_INVALID );
@@ -426,7 +428,7 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 
 		case TMCT_DUNGEON_DAMAGE:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				//{{ 2010. 08. 23  최육사	비밀던전 헬모드
 #ifdef SERV_HELL_MODE_TITLE
 				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		kSubMissionTemplet.m_ClearCondition.m_eDungeonMode,		CXSLDungeon::DUNGEON_MODE,		CXSLDungeon::DM_INVALID );
@@ -446,7 +448,7 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 
 		case TMCT_DUNGEON_CLEAR_COUNT:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				//{{ 2010. 08. 23  최육사	비밀던전 헬모드
 #ifdef SERV_HELL_MODE_TITLE
 				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		kSubMissionTemplet.m_ClearCondition.m_eDungeonMode,		CXSLDungeon::DUNGEON_MODE,		CXSLDungeon::DM_INVALID );
@@ -467,21 +469,21 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 
 		case TMCT_PVP_PLAY:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PVP_GAME_TYPE::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PGT_TEAM, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPPlay",			kSubMissionTemplet.m_ClearCondition.m_iPVPPlay,		-1, goto error_proc; );
 			}
 			break;
 
 		case TMCT_PVP_WIN:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PVP_GAME_TYPE::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PGT_TEAM, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPWin",			kSubMissionTemplet.m_ClearCondition.m_iPVPWin,		-1, goto error_proc; );
 			}
 			break;
 
 		case TMCT_PVP_KILL:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PVP_GAME_TYPE::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PGT_TEAM, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPKill",			kSubMissionTemplet.m_ClearCondition.m_iPVPKill,		-1, goto error_proc; );
 			}
 			break;
@@ -539,7 +541,7 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 #ifdef SERV_INTEGRATION
 		case TMCT_WITH_DIF_SERV_USER:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
@@ -559,7 +561,7 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 			break;
 		case TMCT_PLAYER_WITH_DUNGEON_CLEAR:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",			kSubMissionTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",			kSubMissionTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",			iDifficulty,												-1,					goto error_proc; );
 				kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
@@ -570,7 +572,7 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 			break;
 		case TMCT_RESURRECTION_STONE:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",			kSubMissionTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",			kSubMissionTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",			iDifficulty,												-1,					goto error_proc; );
 				kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
@@ -598,6 +600,56 @@ bool CXSLTitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTe
 //}}
 #endif SERV_ADD_TITLE_CONDITION
 			//}}			
+
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+			// 편의상 m_iDungeonClearCount 로 통일 한다.
+		case TMCT_ITEM_SOCKET:
+			{
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemSocketCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,		goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemLevel",		kSubMissionTemplet.m_ClearCondition.m_iItemLevel,	-1,				goto error_proc; );
+
+				if( kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount <= 0 || kSubMissionTemplet.m_ClearCondition.m_iItemLevel <= 0 )
+					goto error_proc;
+			}
+			break;
+		case TMCT_ITEM_ENCHANT_LEVEL:
+			{
+				kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount = 1; // 무조건 1회
+
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemEnchantLevel",	kSubMissionTemplet.m_ClearCondition.m_iEnchantLevel,	-1,		goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemLevel",		kSubMissionTemplet.m_ClearCondition.m_iItemLevel,	-1,				goto error_proc; );
+
+				if( kSubMissionTemplet.m_ClearCondition.m_iEnchantLevel <= 0 || kSubMissionTemplet.m_ClearCondition.m_iItemLevel <= 0 )
+					goto error_proc;
+			}
+			break;
+		case TMCT_ITEM_ENCHANT_COUNT:
+			{
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemEnchantCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,		goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemLevel",		kSubMissionTemplet.m_ClearCondition.m_iItemLevel,	-1,				goto error_proc; );
+
+				if( kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount <= 0 || kSubMissionTemplet.m_ClearCondition.m_iItemLevel <= 0 )
+					goto error_proc;
+			}
+			break;
+		case TMCT_ITEM_ATTRIB:
+			{
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemAttribCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,		goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemLevel",		kSubMissionTemplet.m_ClearCondition.m_iItemLevel,	-1,				goto error_proc; );
+
+				if( kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount <= 0 || kSubMissionTemplet.m_ClearCondition.m_iItemLevel <= 0 )
+					goto error_proc;
+			}
+			break;
+		case TMCT_ITEM_RESOLVE:
+			{
+				LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemResolveCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,		goto error_proc; );
+
+				if( kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount <= 0 )
+					goto error_proc;
+			}
+			break;
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
 
 		default:
 			{

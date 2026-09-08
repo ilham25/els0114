@@ -182,6 +182,26 @@ bool KTrainingCenterTable::GetReward( IN int iTCID, OUT int& iRewardED, OUT int&
 	return false;
 }
 
+#ifdef DO_NOT_COUNT_DEAD_NPC_RELATED_TO_TITLE_MISSION_IN_TRAINING_ROOM
+
+bool KTrainingCenterTable::IsTrainingCenter( IN int iDungeonID )
+{
+	std::map<int, TC_TABLE_INFO>::iterator mit
+		= m_mapTCInfo.begin();
+
+	while ( mit != m_mapTCInfo.end() )
+	{
+		if ( mit->second.m_iDungeonID == iDungeonID )
+			return true;
+		else
+			mit++;
+	}
+
+	return false;
+}
+
+#endif // DO_NOT_COUNT_DEAD_NPC_RELATED_TO_TITLE_MISSION_IN_TRAINING_ROOM
+
 
 
 

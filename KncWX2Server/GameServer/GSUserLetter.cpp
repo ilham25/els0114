@@ -58,6 +58,16 @@ IMPL_ON_FUNC( DBE_INSERT_REWARD_TO_POST_ACK )
 		}
 #endif SERV_FIRST_SELECT_UNIT_REWARD_SYSTEM
 		//}
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		//보상에 성공 했다면 클라에게 정상 패킷을 날린다.
+		CTime TempTime = CTime::GetCurrentTime();
+		KEGS_EVENT_CHUNG_GIVE_ITEM_ACK kPacketAck;
+		kPacketAck.m_iOK = kPacket_.m_iOK;
+		kPacketAck.m_wstrGetItemTime = TempTime.Format(L"%Y-%m-%d %H:%M:%S"); 
+		SendPacket( EGS_EVENT_CHUNG_GIVE_ITEM_ACK , kPacketAck );
+		SetChungGiveItem(true);
+		SetChungGiveItemTime(TempTime);
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
 	}
 }
 
@@ -139,23 +149,6 @@ IMPL_ON_FUNC( DBE_GET_POST_LETTER_LIST_ACK )
 	}
 #endif SERV_SECOND_SECURITY
 	//}}
-
-	//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-	if( ( kPacket_.m_bIsChannelChange == false ) && ( GetEliosInvestigationsReward() == false ) && ( kPacket_.m_bEliosInvestigationsReward == true ) )
-	{
-		SetEliosInvestigationsReward( true );
-
-		// 이벤트 보상을 주자!
-		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-		kPacketToDB.m_iFromUnitUID = GetCharUID();
-		kPacketToDB.m_iToUnitUID   = GetCharUID();
-		kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-		kPacketToDB.m_iRewardID	   = KRewardTable::ERI_ELIOS_INVESTIGATIONS_REWARD;
-		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-	}
-#endif SERV_ELIOS_INVESTIGATIONS
-	//}}
 }
 //}}
 
@@ -164,6 +157,22 @@ IMPL_ON_FUNC( DBE_GET_POST_LETTER_LIST_ACK )
 IMPL_ON_FUNC( EGS_SEND_LETTER_REQ )
 {
 	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_SEND_LETTER_REQ, EGS_SEND_LETTER_ACK );
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidPostWordString( CXSLStringFilter::FT_POST, kPacket_.m_wstrMessage ) == false )
+	{
+		KEGS_SEND_LETTER_ACK kAck;
+		kAck.m_iOK = NetError::ERR_STRING_FILTER_06;
+		SendPacket( EGS_SEND_LETTER_ACK, kAck );
+		return;
+	}
+
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		kPacket_.m_wstrTitle = SiKStringFilterManager()->FilteringNoteString( kPacket_.m_wstrTitle, L'♡' );
+		kPacket_.m_wstrMessage = SiKStringFilterManager()->FilteringNoteString( kPacket_.m_wstrMessage, L'♡' );
+	}
+#endif //SERV_STRING_FILTER_USING_DB
 
 	//////////////////////////////////////////////////////////////////////////
 	// 예외처리
@@ -435,6 +444,9 @@ IMPL_ON_FUNC( EGS_SEND_LETTER_REQ )
 			kPacketToDB.m_kSendLetter.m_cEnchantLevel	= kInvenItemInfo.m_kItemInfo.m_cEnchantLevel;
 			kPacketToDB.m_kSendLetter.m_kAttribEnchantInfo = kInvenItemInfo.m_kItemInfo.m_kAttribEnchantInfo;
 			kPacketToDB.m_kSendLetter.m_vecItemSocket	= kInvenItemInfo.m_kItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+			kPacketToDB.m_kSendLetter.m_byteExpandedSocketNum	= kInvenItemInfo.m_kItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 			kPacketToDB.m_kSendLetter.m_vecRandomSocket = kInvenItemInfo.m_kItemInfo.m_vecRandomSocket;
@@ -1267,7 +1279,6 @@ IMPL_ON_FUNC( EGS_SEND_LETTER_REQ )
 #endif SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharUID() );
 
-
 			kAck.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
 			SendPacket( EGS_SEND_LETTER_ACK, kAck );
 			return;
@@ -1398,6 +1409,20 @@ IMPL_ON_FUNC( EGS_SEND_LETTER_REQ )
 		}
 	}
 
+#ifdef SERV_FREE_MAIL_TICKET
+	bool bFreeMail = false;
+	for( int iFreeMailTicketIDIndex = 0;
+		iFreeMailTicketIDIndex < sizeof( _CONST_FREE_MAIL_TICKET_::arriFreeMailTicketID ) / sizeof( _CONST_FREE_MAIL_TICKET_::arriFreeMailTicketID[0] );
+		++iFreeMailTicketIDIndex )
+	{
+		if( m_kInventory.IsExist( _CONST_FREE_MAIL_TICKET_::arriFreeMailTicketID[iFreeMailTicketIDIndex], true ) == true )
+		{
+			bFreeMail = true;
+			break;
+		}
+	}
+#endif //SERV_FREE_MAIL_TICKET
+
 	// 5. 첨부물에 대한 검증 작업
 	if( kPacket_.m_iED > 0  ||  kPacket_.m_iItemUID > 0 ) 
 	{
@@ -1507,6 +1532,11 @@ IMPL_ON_FUNC( EGS_SEND_LETTER_REQ )
 #endif	SERV_SHARING_BANK_TEST
 
 			// 5-2. 수수료 계산
+#ifdef SERV_FREE_MAIL_TICKET
+			if( bFreeMail == true )
+				kPacketToDB.m_iSendLetterCost = 0;
+			else
+#endif //SERV_FREE_MAIL_TICKET
 			kPacketToDB.m_iSendLetterCost = static_cast<int>( ( ( ( pItemTemplet->m_Price * kPacket_.m_iQuantity ) * 0.2f ) * 0.05f ) + 200 );
 
 			if( GetED() < kPacketToDB.m_iSendLetterCost )
@@ -1521,6 +1551,9 @@ IMPL_ON_FUNC( EGS_SEND_LETTER_REQ )
 			kPacketToDB.m_kSendLetter.m_cEnchantLevel	= kInvenItemInfo.m_kItemInfo.m_cEnchantLevel;
 			kPacketToDB.m_kSendLetter.m_kAttribEnchantInfo = kInvenItemInfo.m_kItemInfo.m_kAttribEnchantInfo;
 			kPacketToDB.m_kSendLetter.m_vecItemSocket	= kInvenItemInfo.m_kItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+			kPacketToDB.m_kSendLetter.m_byteExpandedSocketNum	= kInvenItemInfo.m_kItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 			kPacketToDB.m_kSendLetter.m_vecRandomSocket	= kInvenItemInfo.m_kItemInfo.m_vecRandomSocket;
@@ -1554,6 +1587,11 @@ IMPL_ON_FUNC( EGS_SEND_LETTER_REQ )
 		else
 		{
 			// 5-1. 편지 수수료 검증
+#ifdef SERV_FREE_MAIL_TICKET
+			if( bFreeMail == true )
+				kPacketToDB.m_iSendLetterCost = 0;
+			else
+#endif //SERV_FREE_MAIL_TICKET
 			kPacketToDB.m_iSendLetterCost = static_cast<int>( ( kPacket_.m_iED * 0.05f ) + 200 );
 
 			if( GetED() < kPacketToDB.m_iSendLetterCost )
@@ -1671,6 +1709,11 @@ IMPL_ON_FUNC( EGS_SEND_LETTER_REQ )
 	else
 	{
 		// 편지 수수료
+#ifdef SERV_FREE_MAIL_TICKET
+		if( bFreeMail == true )
+			kPacketToDB.m_iSendLetterCost = 0;
+		else
+#endif //SERV_FREE_MAIL_TICKET
 		kPacketToDB.m_iSendLetterCost = 200;
 
 		if( GetED() < kPacketToDB.m_iSendLetterCost )
@@ -2148,6 +2191,48 @@ IMPL_ON_FUNC( DBE_GET_ITEM_FROM_LETTER_ACK )
 		}
 #endif SERV_RELATIONSHIP_SYSTEM
 		//}
+
+		//{{ 2013. 10. 18	박세훈	스킬슬롯체인지 체크(인벤토리-기간제) 기능 구현
+#ifdef SERV_SKILL_SLOT_CHANGE_INVENTORY
+		for( std::map<int, int>::const_iterator it = kPacket_.m_mapInsertedItem.begin(); it != kPacket_.m_mapInsertedItem.end(); ++it )
+		{
+			const int iItemID = it->first;
+			switch( iItemID )
+			{
+			case CXSLItem::CI_EXPAND_SKILL_SLOT_IN_PACKAGE:
+				{
+#ifdef	SERV_SKILL_SLOT_ITEM_BUG_FIX	// 적용날짜: 2013-07-04				
+					// 무제한 기준 (2049-12-31 23:59) 으로 기간 셋팅 되어 있음
+					CTime tLimitEndDate = CTime( 2049, 12, 31, 23, 59, 0 );
+					CTime tSkillSlotBEndDate;
+					m_kSkillTree.GetSkillSolotBEndDate( tSkillSlotBEndDate );		
+					if( tLimitEndDate == tSkillSlotBEndDate )
+					{
+						// 스킬 슬롯 무제한 구매했었다면 갱신 할 필요 없다.
+						break;
+					}
+#endif	// SERV_SKILL_SLOT_ITEM_BUG_FIX
+
+					std::wstring wstrSkillSlotBEndDate;
+					if( m_kInventory.GetSlotChangeBEndDate( iItemID, wstrSkillSlotBEndDate ) )
+					{
+						m_kSkillTree.SetSkillSolotBEndDate( wstrSkillSlotBEndDate );
+
+						KEGS_SKILL_SLOT_CHANGE_ITEM_NOT kpacket;
+
+						kpacket.m_cSkillSlotBExpirationState = KUserSkillTree::SSBES_NOT_EXPIRED;
+						kpacket.m_wstrSkillSlotBEndDate = wstrSkillSlotBEndDate;
+
+						SendPacket( EGS_SKILL_SLOT_CHANGE_ITEM_NOT, kpacket );
+						break;
+					}
+				}
+				break;
+			}
+		}
+#endif SERV_SKILL_SLOT_CHANGE_INVENTORY
+		//}}
+
 		kPacket.m_vecKInventorySlotInfo.insert( kPacket.m_vecKInventorySlotInfo.begin(), kPacket_.m_vecUpdatedInventorySlot.begin(), kPacket_.m_vecUpdatedInventorySlot.end() );
 	}
 

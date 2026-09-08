@@ -142,9 +142,13 @@ bool CXSLLineMap::AddCameraData_LUA()
 
 		LUA_GET_VALUE( luaManager,		"FOCUS_UNIT",		cameraData.m_bFocusUnit,				true );
 
-
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+	    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "EYE_POS", cameraData.m_vEye, D3DXVECTOR3(0,0,0) );
+        LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "LOOKAT_POS", cameraData.m_vLookAt, D3DXVECTOR3(0,0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 		cameraData.m_vEye		= lua_tinker::get<D3DXVECTOR3>( luaManager.GetLuaState(), "EYE_POS" );
 		cameraData.m_vLookAt	= lua_tinker::get<D3DXVECTOR3>( luaManager.GetLuaState(), "LOOKAT_POS" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	}
 
 	m_vecCameraData.push_back( cameraData );
@@ -204,24 +208,23 @@ bool CXSLLineMap::AddLine_LUA()
 #endif
 
 
-#ifdef LINEMAP_SLOW_WIND_TEST
-	LUA_GET_VALUE( luaManager,		"WIND_SPEED_X",				pLineData->m_vWindSpeed.x,		0.f			);
-	LUA_GET_VALUE( luaManager,		"WIND_SPEED_Y",				pLineData->m_vWindSpeed.y,		0.f			);
-	LUA_GET_VALUE( luaManager,		"WIND_RANGE",				pLineData->m_fWindRange,		0.f			);
-#endif LINEMAP_SLOW_WIND_TEST
+//#ifdef LINEMAP_SLOW_WIND_TEST
+//	LUA_GET_VALUE( luaManager,		"WIND_SPEED_X",				pLineData->m_vWindSpeed.x,		0.f			);
+//	LUA_GET_VALUE( luaManager,		"WIND_SPEED_Y",				pLineData->m_vWindSpeed.y,		0.f			);
+//	LUA_GET_VALUE( luaManager,		"WIND_RANGE",				pLineData->m_fWindRange,		0.f			);
+//#endif LINEMAP_SLOW_WIND_TEST
 
 
-#ifdef LINEMAP_FAST_WIND_TEST
-	LUA_GET_VALUE( luaManager,		"UPSIDE_WIND_ACCELARATION",		pLineData->m_fUpsideWindAccelaration,		0.f			);
-	LUA_GET_VALUE( luaManager,		"UPSIDE_WIND_RANGE",			pLineData->m_fUpsideWindRange,				0.f			);
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	LUA_GET_VALUE( luaManager,		"UPSIDE_WIND_ACCELARATION",		pLineData->m_fUpsideWindAccelaration,		0.f			);
+//	LUA_GET_VALUE( luaManager,		"UPSIDE_WIND_RANGE",			pLineData->m_fUpsideWindRange,				0.f			);
+//#endif LINEMAP_FAST_WIND_TEST
 
 #ifdef WORLD_TRIGGER
 	LUA_GET_VALUE( luaManager,		"TRIGGER_ID",				pLineData->m_iTriggerId,				-1			);	// Trigger Id
 	LUA_GET_VALUE( luaManager,		"TRIGGER_ON_LINE",			pLineData->m_bFootOnLine,				true		);	// Trigger Id
 #endif
 
-#ifdef UNDERWATER_LINEMAP
 	LUA_GET_VALUE( luaManager,		"IS_UNDERWATER",			pLineData->m_bUnderWater,				false		);	// 수중라인맵 여부
 	LUA_GET_VALUE( luaManager,		"UNDERWATER_HEIGHT",		pLineData->m_fWaterHeight,				0.f			);	// 부력(y)
 	LUA_GET_VALUE( luaManager,		"UNDERWATER_BUOYANCY",		pLineData->m_fBuoyancy,					0.6f		);	// 부력(y)
@@ -242,7 +245,6 @@ bool CXSLLineMap::AddLine_LUA()
 	{
 		pLineData->eDustType = LDT_WATER_SPLASH; 
 	}
-#endif
 
 //{{ kimhc // 2010.7.6 // 몬스터가 생성한 라인맵
 #ifdef	LINE_MAP_CREATED_BY_MONSTER
@@ -294,8 +296,13 @@ bool CXSLLineMap::AddLine_LUA()
 
 #endif MOVING_LINE_MAP_TEST
 
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+	LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "START_POS", pLineData->startPos, D3DXVECTOR3(0,0,0) );
+	LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "END_POS", pLineData->endPos, D3DXVECTOR3(0,0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	pLineData->startPos		= lua_tinker::get<D3DXVECTOR3>( luaManager.GetLuaState(),  "START_POS" );
 	pLineData->endPos		= lua_tinker::get<D3DXVECTOR3>( luaManager.GetLuaState(),  "END_POS" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 
 #ifdef ATTACH_MESH_LINE
@@ -567,9 +574,15 @@ bool CXSLLineMap::AddLineAnim_LUA()
 
 		LUA_GET_VALUE( luaManager,		"ENABLE",			pRectData->m_bEnable,				true					);
 		
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+	    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "LEFT_TOP", pRectData->m_vLeftTop, D3DXVECTOR3(0,0,0) );
+        LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "RIGHT_BOTTOM", pRectData->m_vRightBottom, D3DXVECTOR3(0,0,0) );
+        LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "LEFT_BOTTOM", pRectData->m_vLeftBottom, D3DXVECTOR3(0,0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 		pRectData->m_vLeftTop		= lua_tinker::get<D3DXVECTOR3>( luaManager.GetLuaState(),  "LEFT_TOP" );
 		pRectData->m_vRightBottom	= lua_tinker::get<D3DXVECTOR3>( luaManager.GetLuaState(),  "RIGHT_BOTTOM" );
 		pRectData->m_vLeftBottom	= lua_tinker::get<D3DXVECTOR3>( luaManager.GetLuaState(),  "LEFT_BOTTOM" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 		
 		m_RectList.push_back( pRectData );
 

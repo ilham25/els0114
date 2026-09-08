@@ -106,6 +106,9 @@ public:
 		USCM_ENCHANT_DESTROY_GUARD_CHECKBOX,
 //#endif // SERV_DESTROY_GUARD_ITEM
 		//}}
+//#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		USCM_EVENT_EXCHANGE_ITEM,
+//#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	};
 
 
@@ -187,9 +190,7 @@ protected:
 	void OpenBuyItemConfirmDLG();
 	virtual bool Handler_EGS_BUY_ED_ITEM_REQ();
 	virtual bool Handler_EGS_BUY_ED_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
-#ifdef PRECHECK_SHOP_BUY_ITEM
 	int PreCheckShopBuyItem();
-#endif
 
 	//강화
 	void OpenEnchantDLG( D3DXVECTOR2 pos);
@@ -250,7 +251,9 @@ protected:
 	bool Handler_EGS_SUPPORT_MATERIAL_EVENT_TIME_REQ( );
 	bool Handler_EGS_SUPPORT_MATERIAL_EVENT_TIME_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif //SERV_SUPPORT_MATERIAL_ENCHANT_EVENT
-
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	bool Handler_EGS_ITEM_EXCHANGE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 private:
 
 	// 공용

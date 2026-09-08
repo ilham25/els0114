@@ -282,6 +282,8 @@ protected:
 #endif SERV_PCBANG_AUTH_NEW
 	//}}	
 
+    int CheckUserIDAndSetChannelCode( IN const std::wstring& wstrUserID_, IN const std::wstring& wstrPostfix_ , IN const int& nAcocuntType_, OUT UCHAR& ucChannelCode_ );
+
 protected:
 	std::map< UidType,		boost::shared_ptr< KGSUserInfo > >		m_mapUserUID;   // main key, data
 	std::map< std::wstring,	boost::shared_ptr< KGSUserInfo > >		m_mapUserID;

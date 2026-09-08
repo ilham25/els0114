@@ -927,14 +927,14 @@ void CWordLineHandler::LineBreakInTalkBoxManagerImp( CKTDGFontManager::CUKFont* 
 	*/
 #ifdef RESIZE_BALLON
 	float resRate = 0.f;
-	if (true == g_pMain->GetGameOption()->GetOptionList()->m_bFullScreen)
+	if (true == g_pMain->GetGameOption().GetOptionList().m_bFullScreen)
 	{
 		int	iScreenX = GetSystemMetrics( SM_CXSCREEN );
 		resRate = 1024.f / (float)iScreenX;
 	}
 	else
 	{
-		D3DXVECTOR2 vOriginalResolution = g_pMain->GetGameOption()->GetOptionList()->m_vResolution;
+		D3DXVECTOR2 vOriginalResolution = g_pMain->GetGameOption().GetOptionList().m_vResolution;
 		resRate = 1024.f / vOriginalResolution.x;
 	}
 
@@ -2495,9 +2495,7 @@ int CWordLineHandler::LineBreakInX2MainMsgBox(wstring& tempText, CKTDGFontManage
 	return lineNum;
 }
 
-
 //{{ 허상형 : [2009/7/20] //	메가폰용 LineBreak, 나눈 값들을 바로 전송한다.
-#ifdef NASOD_SCOPE
 bool CWordLineHandler::MegaLineBreakAdd( wstring wstrText, CKTDGFontManager::CUKFont* pFont, int iTextWidth, CKTDGUIListBox* pListBox , int iMegaID, wstring wstrSenderName)
 {
 	enum CHAR_STATE
@@ -2838,13 +2836,6 @@ bool CWordLineHandler::MegaLineBreakAdd( wstring wstrText, CKTDGFontManager::CUK
 
 	return true;
 }
-#endif
-//}} 허상형 : [2009/7/20] //	메가폰용 LineBreak, 나눈 값들을 바로 전송한다.
-
-
-
-//======================================================================================//
-
 
 bool CWordLineHandler::IsSpaceLatter( WCHAR wszCharBuf )
 {
@@ -2947,7 +2938,11 @@ std::wstring CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse( const WCHAR
 	return wstrTempName;
 }
 
+#ifdef ELLIPSE_FIX
+std::wstring CWordLineHandler::CutStringWithEllipse( const WCHAR* pOrgStr, int width, int fontIndex, const int nLineNum, bool& bEllipse, const WCHAR* pEllipseStr /*= L"..."*/)
+#else // ELLIPSE_FIX
 std::wstring CWordLineHandler::CutStringWithEllipse( const WCHAR* pOrgStr, int width, int fontIndex, const int nLineNum, bool& bEllipse)
+#endif // ELLIPSE_FIX
 {
 	wstring wstrText = CWordLineHandler::BasicLineBreak(pOrgStr, width, fontIndex);
 
@@ -2990,10 +2985,40 @@ std::wstring CWordLineHandler::CutStringWithEllipse( const WCHAR* pOrgStr, int w
 			}
 			else
 			{
+#ifdef ELLIPSE_FIX
+				CKTDGFontManager::CUKFont* pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( fontIndex );
+				if( pFont != NULL )
+				{
+					int iEllipseSize = pFont->GetWidth(pEllipseStr)*g_pKTDXApp->GetResolutionScaleX();
+					int size = wstrText.length();
+					if(wstrText.length() >= iPos - (ilastCutPoint + 1) * lineNum)
+					{
+						for(int i = 1;i < wstrText.length();i++)
+						{
+							if( wstrText[iPos - (ilastCutPoint + 1) * lineNum - i] == L'')
+								int i = 0;
+
+							WCHAR tmpWChar = wstrText[iPos - (ilastCutPoint + 1) * lineNum - i];
+							int iUniCharSize = 0;
+							iUniCharSize += pFont->GetWidth( tmpWChar )*g_pKTDXApp->GetResolutionScaleX();
+
+							if( iUniCharSize >= iEllipseSize)
+							{
+								wstrTempName += wstrText.substr((ilastCutPoint + 1) * lineNum, iPos - (ilastCutPoint + 1) * lineNum - i);
+								wstrTempName += pEllipseStr;
+
+								bEllipse = true;
+								break;
+							}
+						}
+					}
+				}				
+#else // ELLIPSE_FIX
 				wstrTempName += wstrText.substr((ilastCutPoint + 1) * lineNum, iPos - (ilastCutPoint + 1) * lineNum - 3);
 				wstrTempName += L"...";
 
 				bEllipse = true;
+#endif // ELLIPSE_FIX
 				break;
 			}
 		}
@@ -3001,4 +3026,13 @@ std::wstring CWordLineHandler::CutStringWithEllipse( const WCHAR* pOrgStr, int w
 
 	return wstrTempName;
 }
+
+#ifdef ELLIPSE_FIX
+std::wstring CWordLineHandler::CutStringWithEllipse( const WCHAR* pOrgStr, int width, int fontIndex, const int nLineNum, const WCHAR* pEllipseStr/* = L"..."*/)
+{
+	bool bTemp = false;
+	return CutStringWithEllipse(pOrgStr, width, fontIndex, nLineNum, bTemp, pEllipseStr);
+}
+#endif // ELLIPSE_FIX
+
 #endif //defined(ELLIPSE_GLOBAL) || defined(ELLIPSE_CN)

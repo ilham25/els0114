@@ -9,17 +9,6 @@ using namespace YExcel;
 //}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 
 //{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifndef	NOT_USE_PERCENT_IN_OPTION_DATA
-const float CX2SocketItem::SocketData::MAX_MOVESPEED				= 0.2f;
-const float CX2SocketItem::SocketData::MAX_JUMPSPEED				= 0.2f;		
-const float	CX2SocketItem::SocketData::MAX_ANIMATION_SPEED_RATE		= 20;
-
-const float CX2SocketItem::SocketData::MAX_CRITICAL_RATE			= 1.0f;
-const float CX2SocketItem::SocketData::MAX_ANTI_EVADE_RATE			= 0.2f;
-const float CX2SocketItem::SocketData::MAX_EVADE_RATE				= 0.2f;
-const float CX2SocketItem::SocketData::MAX_HYPERMODECHARGERATE 		= 0.5f;
-
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 //}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 const float CX2SocketItem::SocketData::MAX_HYPERMODETIME			= 40.f;
@@ -49,70 +38,94 @@ CX2SocketItem::CX2SocketItem(void)
 
 CX2SocketItem::~CX2SocketItem(void)
 {
-	std::map<int,SocketData*>::iterator iter;
+#ifndef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+	SocketDataMap::iterator iter;
 	for( iter = m_mapSocketOptionPool.begin(); iter != m_mapSocketOptionPool.end(); iter++ )
 	{
 		SocketData* pSocketData = iter->second;
 		SAFE_DELETE( pSocketData );
 	}
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	m_mapSocketOptionPool.clear();
 }
 
 //{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 void	CX2SocketItem::OpenScriptFile( const WCHAR* pFileName, const WCHAR* pFormulaFileName_ )
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-void	CX2SocketItem::OpenScriptFile( WCHAR* pFileName )
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 //}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pCX2SocketItem", this );
-	g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName );	
+	g_pKTDXApp->LoadLuaTinker( pFileName );	
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
-	g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFormulaFileName_ );	
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+	g_pKTDXApp->LoadLuaTinker( pFormulaFileName_ );	
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 #ifdef LUA_TRANS_DEVIDE
-	g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( L"OptionItemDataTrans.lua" );	
+	g_pKTDXApp->LoadLuaTinker( L"OptionItemDataTrans.lua" );	
 #endif LUA_TRANS_DEVIDE
 
 #ifdef SERV_CASH_ITEM_SOCKET_OPTION
-	g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( L"SocketGroupDataForCashAvatar.lua" );	
+	g_pKTDXApp->LoadLuaTinker( L"SocketGroupDataForCashAvatar.lua" );	
 #endif // SERV_CASH_ITEM_SOCKET_OPTION
 
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // 오현빈
-	g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( L"SkillLevelUpSocketGroup.lua" );	
+	g_pKTDXApp->LoadLuaTinker( L"SkillLevelUpSocketGroup.lua" );	
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
 }
 
-CX2SocketItem::SocketData* CX2SocketItem::GetSocketData( int key ) const
+const CX2SocketItem::SocketData* CX2SocketItem::GetSocketData( int key ) const
 {
-	std::map<int,SocketData*>::const_iterator iter;
+	SocketDataMap::const_iterator iter;
 	iter = m_mapSocketOptionPool.find( key );
 	if( iter == m_mapSocketOptionPool.end() )
 		return NULL;
 
-	CX2SocketItem::SocketData* pSocketData = (CX2SocketItem::SocketData*)iter->second;
-	return pSocketData;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    return &iter->second;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+	return iter->second;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 }
 
 bool CX2SocketItem::AddSocketData_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    SocketData* pSocketData = NULL;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	SocketData* pSocketData = new SocketData();
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 
 	//데이터 로드
-	LUA_GET_VALUE(		luaManager, L"ID",		pSocketData->m_ID,		0 );
-	LUA_GET_VALUE_ENUM( luaManager, L"TYPE",	pSocketData->m_Type,	SOCKET_DATA_TYPE, SDT_NONE );
+    int iSocketID = 0;
+	LUA_GET_VALUE(		luaManager, "ID",		iSocketID,		0 );
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    {
+        SocketDataMap::_Pairib ib = m_mapSocketOptionPool.insert( SocketDataMap::value_type( iSocketID, SocketData() ) );
+        if ( ib.second == false )
+	    {
+            wstringstream strstm;
+            strstm << iSocketID;
+            ErrorLogMsg( XEM_ERROR127, strstm.str().c_str() );
+#ifndef _SERVICE_
+		    MessageBox( g_pKTDXApp->GetHWND(), strstm.str().c_str(), L"SocketItem Error", MB_OK );
+#endif
+            return false;
+	    }
+        pSocketData = &ib.first->second;
+    }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    pSocketData->m_ID = iSocketID;
+
+	LUA_GET_VALUE_ENUM( luaManager, "TYPE",	pSocketData->m_Type,	SOCKET_DATA_TYPE, SDT_NONE );
 
 	//스탯정보
-	if( luaManager.BeginTable( L"STAT" ) == true )
+	if( luaManager.BeginTable( "STAT" ) == true )
 	{
 
 		float fData = 0.0f;
@@ -133,7 +146,7 @@ bool CX2SocketItem::AddSocketData_LUA()
 	}
 
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-	if( luaManager.BeginTable( L"STAT_RELATION_ADD_LEVEL" ) == true )
+	if( luaManager.BeginTable( "STAT_RELATION_ADD_LEVEL" ) == true )
 	{
 		LUA_GET_VALUE( luaManager,	"m_fBaseHPRelLV",		pSocketData->m_kStatRelLVData.m_fBaseHPRelLV, 0.f );
 		LUA_GET_VALUE( luaManager,	"m_fAtkPhysicRelLV",	pSocketData->m_kStatRelLVData.m_fAtkPhysicRelLV, 0.f );
@@ -155,20 +168,22 @@ bool CX2SocketItem::AddSocketData_LUA()
 	//LUA_GET_VALUE( luaManager,		"m_fRepairPriceSale",		pSocketData->m_fRepairPriceSale,		0.0f	);  // ???????
 
 	//{{ kimhc // 2011-07-19 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	LUA_GET_VALUE( luaManager,		"m_fAdditionalAttackValue",		pSocketData->m_fAdditionalAttackValue,	0.0f	);
 	LUA_GET_VALUE( luaManager,		"m_fAdditionalDefenceValue",	pSocketData->m_fAdditionalDefenceValue,	0.0f	);
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-19 // 옵션데이타 수치화 작업
 
 	UINT uiBuffFactorId = 0;
 	LUA_GET_VALUE( luaManager, "BUFF_FACTOR_ID", uiBuffFactorId, 0 );
 
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+	bool bIsSetBuffFactor = false;		/// 버프 설정 여부
+#else // HAMEL_SECRET_DUNGEON 
 	if ( uiBuffFactorId )
 		pSocketData->m_ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( uiBuffFactorId );
+#endif // HAMEL_SECRET_DUNGEON
 		
 	//특수 데미지
-	if( luaManager.BeginTable( L"EXTRA_DAMAGE" ) == true )
+	if( luaManager.BeginTable( "EXTRA_DAMAGE" ) == true )
 	{
 		CX2DamageManager::ExtraDamageData socketExtraDamage;
 
@@ -205,6 +220,18 @@ bool CX2SocketItem::AddSocketData_LUA()
 		LUA_GET_VALUE( luaManager, "DEFENDER_LEVEL",	bDefenderLevel,	false );
 		socketExtraDamage.m_bDefenderLevel = bDefenderLevel;		
 #endif
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+		/// 지금은 EXTRA_DAMAGE 테이블 밖에 있는 BUFF_FACTOR_ID를 참조하지만, 
+		/// 나중에 툴 작업이 진행 되면 해당 구문을 사용했으면 한다.
+
+		/*UINT uiBuffFactorIdByEDT = 0;		/// EDT에 사용할 버프 정보
+
+		LUA_GET_VALUE( luaManager, "BUFF_FACTOR_ID", uiBuffFactorIdByEDT, 0 );
+
+		if ( uiBuffFactorIdByEDT )
+			socketExtraDamage.m_ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( uiBuffFactorIdByEDT );*/
+#endif // HAMEL_SECRET_DUNGEON
 
 		switch( socketExtraDamage.m_ExtraDamageType )
 		{
@@ -273,13 +300,30 @@ bool CX2SocketItem::AddSocketData_LUA()
 			{
 				pSocketData->m_MultipleSocketExtraDamage.push_back( socketExtraDamage );
 			} break;
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+		case CX2DamageManager::EDT_ACTIVE_DEBUFF:	/// 공격 성공시 디버프 적용
+			{
+				/// 적용시킬 버프 설정
+				if ( uiBuffFactorId )
+				{
+					socketExtraDamage.m_ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( uiBuffFactorId );
+
+					pSocketData->m_MultipleSocketExtraDamage.push_back( socketExtraDamage );
+
+					bIsSetBuffFactor = true;
+				}
+				else
+					/// 디버프 설정 않하셨는데요!!
+					ASSERT( !"EDT_ACTIVE_DEBUFF - Not Setting Buff Factor!!" );
+			} break;
+#endif // HAMEL_SECRET_DUNGEON
 		}
 
 		luaManager.EndTable();
 	}
 
 
-	if( true == luaManager.BeginTable( L"RESIST_ENCHANT" ) )
+	if( true == luaManager.BeginTable( "RESIST_ENCHANT" ) )
 	{
 		LUA_GET_VALUE( luaManager, "BLAZE",		pSocketData->m_aiResistEnchant[ CX2EnchantItem::ET_BLAZE ],		0 );
 		LUA_GET_VALUE( luaManager, "WATER",		pSocketData->m_aiResistEnchant[ CX2EnchantItem::ET_WATER ],		0 );
@@ -292,7 +336,7 @@ bool CX2SocketItem::AddSocketData_LUA()
 	}
 
 #ifdef PET_AURA_SKILL
-	if( true == luaManager.BeginTable( L"ATTACK_ENCHANT" ) )
+	if( true == luaManager.BeginTable( "ATTACK_ENCHANT" ) )
 	{
 		LUA_GET_VALUE( luaManager, "BLAZE",		pSocketData->m_afAttackEnchant[ CX2EnchantItem::ET_BLAZE ],		0.f );
 		LUA_GET_VALUE( luaManager, "WATER",		pSocketData->m_afAttackEnchant[ CX2EnchantItem::ET_WATER ],		0.f );
@@ -307,17 +351,17 @@ bool CX2SocketItem::AddSocketData_LUA()
 
 
 
-	LUA_GET_VALUE(		luaManager, L"DUNGEON_ONLY",		pSocketData->m_bDungeonOnly,		false );
-	LUA_GET_VALUE(		luaManager, L"PVP_ONLY",			pSocketData->m_bPVPOnly,			false );
+	LUA_GET_VALUE(		luaManager, "DUNGEON_ONLY",		pSocketData->m_bDungeonOnly,		false );
+	LUA_GET_VALUE(		luaManager, "PVP_ONLY",			pSocketData->m_bPVPOnly,			false );
 
-	LUA_GET_VALUE(		luaManager, L"OVER_LAP",			pSocketData->m_bOverlap,			true );
+	LUA_GET_VALUE(		luaManager, "OVER_LAP",			pSocketData->m_bOverlap,			true );
 
 	
-	LUA_GET_VALUE(		luaManager, L"m_fDamageReduce",				pSocketData->m_fDamageReduce,					0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fPercentDamageReduce",		pSocketData->m_fPercentDamageReduce,			0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fDamageReduce",				pSocketData->m_fDamageReduce,					0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fPercentDamageReduce",		pSocketData->m_fPercentDamageReduce,			0.0f );
 
 	wstring monsterIDDamageReduced;
-	LUA_GET_VALUE(		luaManager, L"m_SetMonsterIDDamageReduced",	monsterIDDamageReduced,							L"Group 0" );
+	LUA_GET_VALUE(		luaManager, "m_SetMonsterIDDamageReduced",	monsterIDDamageReduced,							L"Group 0" );
 	if ( monsterIDDamageReduced.empty() == true )
 	{
 		ErrorLog( KEM_ERROR359 );
@@ -347,108 +391,105 @@ bool CX2SocketItem::AddSocketData_LUA()
 	}
 
 
-	LUA_GET_VALUE(		luaManager, L"m_fPercentDRByMonsterAttack",				pSocketData->m_fPercentDRByMonsterAttack,			0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fDamageReduceByMonsterAttack",			pSocketData->m_fDamageReduceByMonsterAttack,		0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_DescEvadeByMonsterAttack",				pSocketData->m_DescEvadeByMonsterAttack,		L"" );
+	LUA_GET_VALUE(		luaManager, "m_fPercentDRByMonsterAttack",				pSocketData->m_fPercentDRByMonsterAttack,			0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fDamageReduceByMonsterAttack",			pSocketData->m_fDamageReduceByMonsterAttack,		0.0f );
+	LUA_GET_VALUE(		luaManager, "m_DescEvadeByMonsterAttack",				pSocketData->m_DescEvadeByMonsterAttack,		L"" );
 
 
-	LUA_GET_VALUE(		luaManager, L"m_fEvadePercent",							pSocketData->m_fEvadePercent,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fEvadePercent",							pSocketData->m_fEvadePercent,				0.0f );
 
-	LUA_GET_VALUE(		luaManager, L"m_fAntiEvadePercent",						pSocketData->m_fAntiEvadePercent,			0.0f );
-
-
-
-	LUA_GET_VALUE(		luaManager, L"m_iAnimationSpeedRate",					pSocketData->m_fAnimationSpeedRate,			0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fAntiEvadePercent",						pSocketData->m_fAntiEvadePercent,			0.0f );
 
 
-	LUA_GET_VALUE(		luaManager, L"m_fPercentCritical",						pSocketData->m_fPercentCritical,			0.0f );
 
-	LUA_GET_VALUE(		luaManager, L"m_fCritical",								pSocketData->m_fCritical,					0.0f );	
+	LUA_GET_VALUE(		luaManager, "m_iAnimationSpeedRate",					pSocketData->m_fAnimationSpeedRate,			0.0f );
+
+
+	LUA_GET_VALUE(		luaManager, "m_fPercentCritical",						pSocketData->m_fPercentCritical,			0.0f );
+
+	LUA_GET_VALUE(		luaManager, "m_fCritical",								pSocketData->m_fCritical,					0.0f );	
 
 	
 	//{{ kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
-#ifdef	OPTION_ITEM_DATA_MODIFY
 
 	D3DXVECTOR2 vRateAndHpUpRatio;
 	//  공격을 당했을 때 HP 증가 효과가 발동할 확률
-	LUA_GET_VALUE(		luaManager, L"m_fHPRecoverRateByAttacked",		vRateAndHpUpRatio.x,		0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fHPRecoverRateByAttacked",		vRateAndHpUpRatio.x,		0.0f );
 
 	// 공격을 당했을 때 HP가 증가할 확률이 0보다 크면
 	if ( 0.0f < vRateAndHpUpRatio.x )
 	{
-		LUA_GET_VALUE(		luaManager, L"m_fHPRecoverRatioByAttacked",				vRateAndHpUpRatio.y,		0.0f );
+		LUA_GET_VALUE(		luaManager, "m_fHPRecoverRatioByAttacked",				vRateAndHpUpRatio.y,		0.0f );
 		pSocketData->m_vecHpUpByAttacked.push_back( vRateAndHpUpRatio );
 	}
 
 	// HPRecoverValueByAttacked 미적용
 
 	//  공격을 했을 때 HP 증가 효과가 발동할 확률
-	LUA_GET_VALUE(		luaManager, L"m_fHPRecoverRateByAttack",			vRateAndHpUpRatio.x,		0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fHPRecoverRateByAttack",			vRateAndHpUpRatio.x,		0.0f );
 
 	// 공격을 했을 때 HP가 증가할 확률이 0보다 크면
 	if ( 0.0f < vRateAndHpUpRatio.x )
 	{
-		LUA_GET_VALUE(		luaManager, L"m_fHPRecoverRatioByAttack",				vRateAndHpUpRatio.y,		0.0f );
+		LUA_GET_VALUE(		luaManager, "m_fHPRecoverRatioByAttack",				vRateAndHpUpRatio.y,		0.0f );
 		pSocketData->m_vecHpUpByAttack.push_back( vRateAndHpUpRatio );
 	}
 
 	D3DXVECTOR2 vRateAndMPValue;
-	LUA_GET_VALUE(		luaManager, L"m_fPercentMPUpByAttacked",				vRateAndMPValue.x,		0.0f );
+#ifndef ADJUST_SECRET_ITEM_OPTION //김창한
+	LUA_GET_VALUE(		luaManager, "m_fPercentMPUpByAttacked",				vRateAndMPValue.x,		0.0f );
 
 	// 공격을 당했을 때 MP가 증가할 확률이 0보다 크면
 	if ( 0.0f < vRateAndMPValue.x )
 	{
-		LUA_GET_VALUE(		luaManager, L"m_fMPUpByAttacked",						vRateAndMPValue.y,		0.0f );
+		LUA_GET_VALUE(		luaManager, "m_fMPUpByAttacked",						vRateAndMPValue.y,		0.0f );
 		pSocketData->m_vecMpUpByAttacked.push_back( vRateAndMPValue );
 	}
+#endif //ADJUST_SECRET_ITEM_OPTION
 
 	// 공격을 했을 때 MP가 증가할 확률이 0보다 크면
-	LUA_GET_VALUE(		luaManager, L"m_fPercentMPUpByAttack",					vRateAndMPValue.x,		0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fPercentMPUpByAttack",					vRateAndMPValue.x,		0.0f );
 	if ( 0.0f < vRateAndMPValue.x )
 	{
-		LUA_GET_VALUE(		luaManager, L"m_fMPUpByAttack",							vRateAndMPValue.y,		0.0f );
+		LUA_GET_VALUE(		luaManager, "m_fMPUpByAttack",							vRateAndMPValue.y,		0.0f );
 		pSocketData->m_vecMpUpByAttack.push_back( vRateAndMPValue );
 	}
-#else	OPTION_ITEM_DATA_MODIFY
-	LUA_GET_VALUE(		luaManager, L"m_fPercentMPUpByAttacked",				pSocketData->m_fPercentMPUpByAttacked,		0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fMPUpByAttacked",						pSocketData->m_fMPUpByAttacked,				0.0f );
-	
-	LUA_GET_VALUE(		luaManager, L"m_fPercentMPUpByAttack",					pSocketData->m_fPercentMPUpByAttack,		0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fMPUpByAttack",							pSocketData->m_fMPUpByAttack,				0.0f );
-#endif	OPTION_ITEM_DATA_MODIFY
 	//}} kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
 
 	//{{ 2011.09.05 / 이지헌 / 대만/홍콩 / 마법의 목걸이 개편 / 병합 : 강정훈
 #ifdef MAGIC_NEC_FIX
-	LUA_GET_VALUE(		luaManager, L"m_fMPMultiplyByAll",						pSocketData->m_fMPMultiplyByAll,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fMPMultiplyByAll",						pSocketData->m_fMPMultiplyByAll,				0.0f );
 #endif
 	//}}
 
-	LUA_GET_VALUE(		luaManager, L"m_fDamageUpByAMADS",						pSocketData->m_fDamageUpByAMADS,			0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fDamageUpByAMADS",						pSocketData->m_fDamageUpByAMADS,			0.0f );
 
-	LUA_GET_VALUE_ENUM( luaManager, L"m_ResistExtraDamageType",					pSocketData->m_ResistExtraDamageType,		CX2DamageManager::EXTRA_DAMAGE_TYPE,	CX2DamageManager::EDT_NONE );
-	LUA_GET_VALUE(		luaManager, L"m_fResistExtraDamage",					pSocketData->m_fResistExtraDamage,			0.0f );
+	LUA_GET_VALUE_ENUM( luaManager, "m_ResistExtraDamageType",					pSocketData->m_ResistExtraDamageType,		CX2DamageManager::EXTRA_DAMAGE_TYPE,	CX2DamageManager::EDT_NONE );
+	LUA_GET_VALUE(		luaManager, "m_fResistExtraDamage",					pSocketData->m_fResistExtraDamage,			0.0f );
 
-	LUA_GET_VALUE(		luaManager, L"m_AllSkillLevelUp",						pSocketData->m_AllSkillLevelUp,				0 );
+	LUA_GET_VALUE(		luaManager, "m_AllSkillLevelUp",						pSocketData->m_AllSkillLevelUp,				0 );
 
-	LUA_GET_VALUE(		luaManager, L"m_IncreaseHP",							pSocketData->m_Stat.m_ExtraStat.m_fIncreaseHPRate,		0.f );
+	LUA_GET_VALUE(		luaManager, "m_IncreaseHP",							pSocketData->m_Stat.m_ExtraStat.m_fIncreaseHPRate,		0.f );
 
 #ifdef PET_AURA_SKILL
-	LUA_GET_VALUE(		luaManager, L"m_IncreaseMP",							pSocketData->m_Stat.m_ExtraStat.m_fIncreaseMPRate,		0.f );
-	LUA_GET_VALUE(		luaManager, L"m_IncreaseAtkPhysic",						pSocketData->m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate,		0.f );
-	LUA_GET_VALUE(		luaManager, L"m_IncreaseAtkMagic",						pSocketData->m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate,		0.f );
-	LUA_GET_VALUE(		luaManager, L"m_IncreaseDefPhysic",						pSocketData->m_Stat.m_ExtraStat.m_fIncreaseDefPhysicRate,		0.f );
-	LUA_GET_VALUE(		luaManager, L"m_IncreaseDefMagic",						pSocketData->m_Stat.m_ExtraStat.m_fIncreaseDefMagicRate,		0.f );
+	LUA_GET_VALUE(		luaManager, "m_IncreaseMP",							pSocketData->m_Stat.m_ExtraStat.m_fIncreaseMPRate,		0.f );
+	LUA_GET_VALUE(		luaManager, "m_IncreaseAtkPhysic",						pSocketData->m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate,		0.f );
+	LUA_GET_VALUE(		luaManager, "m_IncreaseAtkMagic",						pSocketData->m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate,		0.f );
+	LUA_GET_VALUE(		luaManager, "m_IncreaseDefPhysic",						pSocketData->m_Stat.m_ExtraStat.m_fIncreaseDefPhysicRate,		0.f );
+	LUA_GET_VALUE(		luaManager, "m_IncreaseDefMagic",						pSocketData->m_Stat.m_ExtraStat.m_fIncreaseDefMagicRate,		0.f );
 #endif
 
 	wstring skillGroupID = L"";
-	LUA_GET_VALUE(		luaManager, L"m_SkillLevelUpID",	skillGroupID,							L"Group 0" );
+	LUA_GET_VALUE(		luaManager, "m_SkillLevelUpID",	skillGroupID,							L"Group 0" );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 오현빈
 	int iSkillLvUpNum = 1;
-	LUA_GET_VALUE(		luaManager, L"m_iSkillLevelUpValue", iSkillLvUpNum, 1);
+	LUA_GET_VALUE(		luaManager, "m_iSkillLevelUpValue", iSkillLvUpNum, 1);
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+	LUA_GET_VALUE(		luaManager, "m_iAllSkillLevelUpEx",					pSocketData->m_iAllSkillLevelUpEx,				0 );
+#endif //SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
 
 	if( false == skillGroupID.empty() )
 	{
@@ -516,22 +557,20 @@ bool CX2SocketItem::AddSocketData_LUA()
 	}
 
 #ifdef BUFF_TEMPLET_SYSTEM
-	LUA_GET_VALUE(		luaManager, L"m_iAddMpValue",							pSocketData->m_iAddMPValue,					0	 );// MP 증가량
-	LUA_GET_VALUE(		luaManager, L"m_iMpChangeValue",						pSocketData->m_iMPChangeValue,				0	 );// MP 자연 회복량
-	LUA_GET_VALUE(		luaManager, L"m_fHpRelativeChangeRate",					pSocketData->m_fHPRelativeChangeRate,		0.0f );// HP 전체 대비 자연 회복량
-	LUA_GET_VALUE(		luaManager, L"m_fSkillDamageUpRate",					pSocketData->m_fSkillDamageUpRate,			0.0f );// 스킬 공격 증가 데미지값	
-	LUA_GET_VALUE(		luaManager, L"m_fAllAttackEnchantRate",					pSocketData->m_fAllAttackEnchantRate,		1.0f );// 속성 발동 확률 % 증가
+	LUA_GET_VALUE(		luaManager, "m_iAddMpValue",							pSocketData->m_iAddMPValue,					0	 );// MP 증가량
+	LUA_GET_VALUE(		luaManager, "m_iMpChangeValue",						pSocketData->m_iMPChangeValue,				0	 );// MP 자연 회복량
+	LUA_GET_VALUE(		luaManager, "m_fHpRelativeChangeRate",					pSocketData->m_fHPRelativeChangeRate,		0.0f );// HP 전체 대비 자연 회복량
+	LUA_GET_VALUE(		luaManager, "m_fSkillDamageUpRate",					pSocketData->m_fSkillDamageUpRate,			0.0f );// 스킬 공격 증가 데미지값	
+	LUA_GET_VALUE(		luaManager, "m_fAllAttackEnchantRate",					pSocketData->m_fAllAttackEnchantRate,		1.0f );// 속성 발동 확률 % 증가
 #endif BUFF_TEMPLET_SYSTEM
-#ifdef SUMMON_NPC_SOCKET
-	LUA_GET_VALUE(		luaManager, L"m_iSummonNpcId",							pSocketData->m_iSummonNpcId,				0 );
-	LUA_GET_VALUE(		luaManager, L"m_fSummonNpcRate",						pSocketData->m_fSummonNpcRate,				0.f );
-	LUA_GET_VALUE(		luaManager, L"m_fSummonNpcCoolTime",					pSocketData->m_fSummonNpcCoolTime,			20.f );	
-#endif
+	LUA_GET_VALUE(		luaManager, "m_iSummonNpcId",							pSocketData->m_iSummonNpcId,				0 );
+	LUA_GET_VALUE(		luaManager, "m_fSummonNpcRate",						pSocketData->m_fSummonNpcRate,				0.f );
+	LUA_GET_VALUE(		luaManager, "m_fSummonNpcCoolTime",					pSocketData->m_fSummonNpcCoolTime,			20.f );	
 
-	LUA_GET_VALUE(		luaManager, L"m_fDamageUpPerAtSpecificMonster",			pSocketData->m_fDamageUpPerAtSpecificMonster,				0 );
+	LUA_GET_VALUE(		luaManager, "m_fDamageUpPerAtSpecificMonster",			pSocketData->m_fDamageUpPerAtSpecificMonster,				0 );
 
 	wstring monsterIDForDamageUp = L"";
-	LUA_GET_VALUE(		luaManager, L"m_setMonsterIDForDamageUp",				monsterIDForDamageUp,							L"Group 0" );
+	LUA_GET_VALUE(		luaManager, "m_setMonsterIDForDamageUp",				monsterIDForDamageUp,							L"Group 0" );
 	if ( monsterIDForDamageUp.empty() == true )
 	{
 		ErrorLog( KEM_ERROR359 );
@@ -562,10 +601,10 @@ bool CX2SocketItem::AddSocketData_LUA()
 
 
 
-	LUA_GET_VALUE(		luaManager, L"m_fEvadePercentByMonsterAttack",			pSocketData->m_fEvadePercentByMonsterAttack,				0 );
+	LUA_GET_VALUE(		luaManager, "m_fEvadePercentByMonsterAttack",			pSocketData->m_fEvadePercentByMonsterAttack,				0 );
 
 	wstring monsterIDForEvade = L"";
-	LUA_GET_VALUE(		luaManager, L"m_setMonsterIDForEvade",					monsterIDForEvade,							L"Group 0" );
+	LUA_GET_VALUE(		luaManager, "m_setMonsterIDForEvade",					monsterIDForEvade,							L"Group 0" );
 	if ( monsterIDForEvade.empty() == true )
 	{
 		ErrorLog( KEM_ERROR359 );
@@ -594,29 +633,44 @@ bool CX2SocketItem::AddSocketData_LUA()
 		}
 	}
 
-	LUA_GET_VALUE_ENUM( luaManager, L"m_ImmuneExtraDamageType",					pSocketData->m_ImmuneExtraDamageType,		CX2DamageManager::EXTRA_DAMAGE_TYPE,	CX2DamageManager::EDT_NONE );
-	LUA_GET_VALUE(		luaManager, L"m_fPercentImmuneExtraDamage",				pSocketData->m_fPercentImmuneExtraDamage,	0.0f );
+	LUA_GET_VALUE_ENUM( luaManager, "m_ImmuneExtraDamageType",					pSocketData->m_ImmuneExtraDamageType,		CX2DamageManager::EXTRA_DAMAGE_TYPE,	CX2DamageManager::EDT_NONE );
+	LUA_GET_VALUE(		luaManager, "m_fPercentImmuneExtraDamage",				pSocketData->m_fPercentImmuneExtraDamage,	0.0f );
 
-	LUA_GET_VALUE(		luaManager, L"m_fSpeedUpManaGather",					pSocketData->m_fSpeedUpManaGather,			0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fSpeedUpManaGather",					pSocketData->m_fSpeedUpManaGather,			0.0f );
 
-	LUA_GET_VALUE(		luaManager, L"m_fIncreaseEDPercent",					pSocketData->m_fIncreaseEDPercent,			0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fIncreaseDCBExpPercent",				pSocketData->m_fIncreaseDCBExpPercent,		0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fIncreaseEDPercent",					pSocketData->m_fIncreaseEDPercent,			0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fIncreaseDCBExpPercent",				pSocketData->m_fIncreaseDCBExpPercent,		0.0f );
 
-	LUA_GET_VALUE(		luaManager, L"m_fPercentSuperArmor",					pSocketData->m_fPercentSuperArmor,		0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fTimeSuperArmor",						pSocketData->m_fTimeSuperArmor,			0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fPercentSuperArmor",					pSocketData->m_fPercentSuperArmor,		0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fTimeSuperArmor",						pSocketData->m_fTimeSuperArmor,			0.0f );
 	
 //{{ kimhc // 2010.4.1 // 비밀던전 작업(셋트아이템효과)
 #ifdef SERV_SECRET_HELL
-	LUA_GET_VALUE_ENUM( luaManager, L"m_eTypeSetItemEffectEx",					pSocketData->m_eTypeSocketItemEffectEx,		SOCKET_ITEM_EFFECT_EX,	SIEE_NONE );
-	LUA_GET_VALUE_ENUM(	luaManager, L"m_eStatUpType",							pSocketData->m_eStatUpType,			STAT_UP_TYPE,	SUT_NONE );
-	LUA_GET_VALUE(		luaManager, L"m_fDurationTime",							pSocketData->m_fDurationTime,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fProbability",							pSocketData->m_fProbability,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fIncOrDecRate",							pSocketData->m_fIncOrDecRate,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fIncOrDecVal",							pSocketData->m_fIncOrDecVal,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_iCount",								pSocketData->m_iCount,						0 );
-	LUA_GET_VALUE(		luaManager, L"m_fIntervalTime",							pSocketData->m_fIntervalTime,				0.0f );
+	LUA_GET_VALUE_ENUM( luaManager, "m_eTypeSetItemEffectEx",					pSocketData->m_eTypeSocketItemEffectEx,		SOCKET_ITEM_EFFECT_EX,	SIEE_NONE );
+	LUA_GET_VALUE_ENUM(	luaManager, "m_eStatUpType",							pSocketData->m_eStatUpType,			STAT_UP_TYPE,	SUT_NONE );
+	LUA_GET_VALUE(		luaManager, "m_fDurationTime",							pSocketData->m_fDurationTime,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fProbability",							pSocketData->m_fProbability,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fIncOrDecRate",							pSocketData->m_fIncOrDecRate,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fIncOrDecVal",							pSocketData->m_fIncOrDecVal,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_iCount",								pSocketData->m_iCount,						0 );
+	LUA_GET_VALUE(		luaManager, "m_fIntervalTime",							pSocketData->m_fIntervalTime,				0.0f );
 
-	if ( luaManager.BeginTable( L"EFFECT_NAME" ) == true )
+#ifdef ADJUST_SECRET_ITEM_OPTION //김창한
+	D3DXVECTOR4 vRateAndMPValueAndCooltime;
+	LUA_GET_VALUE(		luaManager, "m_fPercentMPUpByAttacked",				vRateAndMPValueAndCooltime.x,		0.0f );
+
+	// 공격을 당했을 때 MP가 증가할 확률이 0보다 크면
+	if ( 0.0f < vRateAndMPValueAndCooltime.x )
+	{
+		LUA_GET_VALUE(		luaManager, "m_fMPUpByAttacked",						vRateAndMPValueAndCooltime.y,		0.0f );
+		vRateAndMPValueAndCooltime.z = pSocketData->m_fIntervalTime;
+		vRateAndMPValueAndCooltime.w = 0.0f;
+
+		pSocketData->m_vecMpUpByAttacked.push_back( vRateAndMPValueAndCooltime );
+	}
+#endif //ADJUST_SECRET_ITEM_OPTION
+
+	if ( luaManager.BeginTable( "EFFECT_NAME" ) == true )
 	{
 		wstring wstrEffectName;
 		
@@ -626,27 +680,48 @@ bool CX2SocketItem::AddSocketData_LUA()
 #endif SERV_SECRET_HELL
 //}} kimhc // 2010.4.1 // 비밀던전 작업(셋트아이템효과)
 
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+	/// 효과 값
+	LUA_GET_VALUE(		luaManager, "m_fEffectiveValue",						pSocketData->m_fEffectiveValue,			0.f );
+
+	/// 각성시 사용할 효과 설정
+	LUA_GET_VALUE_ENUM( luaManager, "HYPER_MODE_EFFECTIVE_TYPE",				pSocketData->m_eHyperModeEffectiveType, HYPER_MODE_EFFECTIVE_TYPE,	HMET_NONE );
+
+	/// 버프 아이디를 파싱했으며, 아직 버프 정보를 설정한 곳이 없을 때
+	if ( uiBuffFactorId && false == bIsSetBuffFactor )
+	{
+		/// 각성시 혹은 피격서 적용할 버프라면, 따로 저장 ( 기존대로 저장하면 타 구문에서 일괄 처리되어, 오동작이 발생 )
+		if ( HMET_USE_BUFF == pSocketData->m_eHyperModeEffectiveType ||
+			 SIEE_ACTIVE_BUFF == pSocketData->m_eTypeSocketItemEffectEx )
+		{
+			pSocketData->m_ptrBuffFactorCustomUse = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( uiBuffFactorId );
+		}
+		/// 그 외에는 기존에 설정했던 대로 저장
+		else
+			pSocketData->m_ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( uiBuffFactorId );
+	}
+#endif // HAMEL_SECRET_DUNGEON
+
 #ifdef SERV_GROW_UP_SOCKET
 	wstring GrowUpSocketID;
-	LUA_GET_VALUE(		luaManager, L"m_vecGrowUpSocketID",						GrowUpSocketID,								L"Group 0" );
-	SetGrowUpSocketData( GrowUpSocketID, pSocketData->m_mapGrowUpSocketID );	
+	LUA_GET_VALUE( luaManager,	"m_vecGrowUpSocketID",		GrowUpSocketID,						L"Group 0" );
+	SetGrowUpSocketData( GrowUpSocketID, pSocketData->m_mapGrowUpSocketID );
 #endif //SERV_GROW_UP_SOCKET
 
 #ifdef PVP_SEASON2_SOCKET
-	LUA_GET_VALUE( luaManager,	L"m_bIsLevelLinkedStat",	pSocketData->m_bIsLevelLinkedStat,	false	);
-	LUA_GET_VALUE( luaManager,	L"m_iAddLevel",				pSocketData->m_iAddLevel,			0		);
+	LUA_GET_VALUE( luaManager,	"m_bIsLevelLinkedStat",	pSocketData->m_bIsLevelLinkedStat,	false	);
+	LUA_GET_VALUE( luaManager,	"m_iAddLevel",				pSocketData->m_iAddLevel,			0		);
 #endif
 
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 
 	int iStrID = -1;
-	LUA_GET_VALUE( luaManager,	L"m_eDescStringID",	iStrID, -1);
+	LUA_GET_VALUE( luaManager,	"m_eDescStringID",	iStrID, -1);
 	if( -1 != iStrID )
 		m_mapSocketDescStrID.insert(  std::make_pair(pSocketData->m_ID, iStrID));
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	// 소수로 표기된 확률에 100을 곱하여 배율(기획에서 편의상 의미하는 단계)로 사용함
 	pSocketData->m_fMoveSpeed			*= 100;
 	pSocketData->m_fJumpSpeed			*= 100;
@@ -663,9 +738,11 @@ bool CX2SocketItem::AddSocketData_LUA()
 	pSocketData->m_fAdditionalAttackValue	*= 100;
 	pSocketData->m_fAdditionalDefenceValue	*= 100;
 	// 애니메이션 스피드는 이미 정수로 되어 있어서 제외
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    return  true;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if( m_mapSocketOptionPool.find(pSocketData->m_ID) != m_mapSocketOptionPool.end() )
 	{
         wstringstream strstm;
@@ -684,6 +761,7 @@ bool CX2SocketItem::AddSocketData_LUA()
 	}
 
 	return false;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 }
 
 #ifdef LUA_TRANS_DEVIDE
@@ -695,8 +773,8 @@ bool CX2SocketItem::AddSocketDataTrans_LUA()
 	SocketData* pSocketData = new SocketData();
 
 	//데이터 로드
-	LUA_GET_VALUE(		luaManager, L"ID",		pSocketData->m_ID,		0 );
-	LUA_GET_VALUE(		luaManager, L"m_DescEvadeByMonsterAttack",				pSocketData->m_DescEvadeByMonsterAttack,		L"" );
+	LUA_GET_VALUE(		luaManager, "ID",		pSocketData->m_ID,		0 );
+	LUA_GET_VALUE(		luaManager, "m_DescEvadeByMonsterAttack",				pSocketData->m_DescEvadeByMonsterAttack,		L"" );
 
 	// 여기서 치환 해주어야 함.
 	std::map<int,SocketData*>::iterator mit;
@@ -718,7 +796,6 @@ bool CX2SocketItem::AddSocketDataTrans_LUA()
 	return true;
 }
 #endif LUA_TRANS_DEVIDE
-
 
 bool CX2SocketItem::GetIsPossibleSocketItemByOnlyItemType( int itemID )
 {
@@ -768,15 +845,11 @@ void CX2SocketItem::PrintOptionInfo_ToExcel( KProtectedType<int> iLevel )
 //}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 
 //{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // 오현빈
-	wstring CX2SocketItem::SocketData::GetSocketDesc( const int iSocketLevel_, bool bCompact /*= false*/, CX2Unit::UNIT_CLASS eUnitClass_ /*= CX2Unit::UC_NONE */ )
+	wstring CX2SocketItem::SocketData::GetSocketDesc( const int iSocketLevel_, bool bCompact /*= false*/, CX2Unit::UNIT_CLASS eUnitClass_ /*= CX2Unit::UC_NONE */ ) const
 	#else
-	wstring CX2SocketItem::SocketData::GetSocketDesc( const int iSocketLevel_, bool bCompact /*= false*/ )
+	wstring CX2SocketItem::SocketData::GetSocketDesc( const int iSocketLevel_, bool bCompact /*= false*/ ) const
 	#endif // SERV_NEW_ITEM_SYSTEM_2013_05
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 //}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 {
 	wstringstream wstrstm;
@@ -787,6 +860,13 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	if ( true == m_bIsLevelLinkedStat )
 		iLevelValue = iSocketLevel_ + m_iAddLevel;
 #endif
+
+#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+	if( NULL == g_pData || NULL == g_pData->GetMyUser() || NULL == g_pData->GetMyUser()->GetSelectUnit() )
+		return NULL;
+
+	CX2Unit::UNIT_TYPE eUnitType = g_pData->GetMyUser()->GetSelectUnit()->GetType();
+#endif //SERV_9TH_NEW_CHARACTER
 
 #ifdef SERV_SOCKET_NEW
 //{{ oasis907 : 김상윤 [2010.4.20] // 고정 옵션 마법석
@@ -878,100 +958,49 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	else if( 0 != m_fAnimationSpeedRate && m_fHyperModeTime > 0) // 광휘의 마법석
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13581, "h", GetLinearAnimationSpeedValue( iSocketLevel_ ) ) );
 		wstrstm << L", ";
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_13578, "f", m_fHyperModeTime ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		if(bCompact)
-		{
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_5098, "h", (int)m_fAnimationSpeedRate ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_5099, "h", ( int )m_fHyperModeTime) );
-		}
+	#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+		if ( eUnitType == CX2Unit::UT_ADD )
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_29461, "f", m_fHyperModeTime * 0.5f ) );
 		else
-		{
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_525, "hi", (int)m_fAnimationSpeedRate, (int)CX2SocketItem::SocketData::MAX_ANIMATION_SPEED_RATE ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_488, "hi", ( int )m_fHyperModeTime, ( int )CX2SocketItem::SocketData::MAX_HYPERMODETIME ) );
-		}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_13578, "f", m_fHyperModeTime ) );
+	#else //SERV_9TH_NEW_CHARACTER
+		wstrstm << GET_REPLACED_STRING( ( STR_ID_13578, "f", m_fHyperModeTime ) );
+	#endif //SERV_9TH_NEW_CHARACTER
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 	else if ( m_Stat.m_ExtraStat.m_fIncreaseHPRate != 0 && m_fAntiEvadePercent > 0.0f ) // 전투의 마법석
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_5100, "h", ( int )( m_Stat.m_ExtraStat.m_fIncreaseHPRate * GetHpIncrementValue( iSocketLevel_ ) ) ) );
 		wstrstm << L", ";
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13576, "h", GetLinearAntiEvadeValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		if(bCompact)
-		{
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_5100, "h", ( int )( m_Stat.m_ExtraStat.m_fIncreaseHPRate * 100 ) ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_5101, "f", ( m_fAntiEvadePercent * 100 ) ) );
-
-		}
-		else
-		{
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_484, "hi", ( int )( m_Stat.m_ExtraStat.m_fIncreaseHPRate * 100 ), ( int )( CX2Stat::Stat::MAX_INCREASE_HP_RATE * 100.f ) ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_502, "fi", ( m_fAntiEvadePercent * 100 ), ( int )( CX2SocketItem::SocketData::MAX_ANTI_EVADE_RATE * 100 ) ) );
-		}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 	else if ( m_fMoveSpeed > 0 && m_fJumpSpeed > 0 && m_fHyperModeChargeRate > 0 ) // 증강의 마법석
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13582, "h", GetLinearMoveSpeedValue( iSocketLevel_ ) ) );
 		wstrstm << L", ";
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13583, "h", GetLinearJumpSpeedValue( iSocketLevel_ ) ) );
 		wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_13577, "h", GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		if(bCompact)
-		{
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_5102, "h", ( int )( m_fMoveSpeed * 100 ) ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_5103, "h", ( int )( m_fJumpSpeed * 100 ) ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_487, "h", ( int )( m_fHyperModeChargeRate * 100 ) ) );
-		}
+	#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+		if ( eUnitType == CX2Unit::UT_ADD )
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_29460, "h", static_cast<int>( GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) * 0.5f + 0.5f ) ) );
 		else
-		{
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_485, "hi", ( int )( m_fMoveSpeed * 100 ), ( int )( CX2SocketItem::SocketData::MAX_MOVESPEED * 100.f ) ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_486, "hi", ( int )( m_fJumpSpeed * 100 ), ( int )( CX2SocketItem::SocketData::MAX_JUMPSPEED * 100.f ) ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_487, "h", ( int )( m_fHyperModeChargeRate * 100 ) ) );
-		}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_13577, "h", GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) ) );
+	#else //SERV_9TH_NEW_CHARACTER
+		wstrstm << GET_REPLACED_STRING( ( STR_ID_13577, "h", GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) ) );
+	#endif //SERV_9TH_NEW_CHARACTER
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 	else if ( m_fEvadePercent > 0.0f && m_fPercentCritical > 0.0f ) // 적중의 마법석
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13579, "h", GetLinearEvadeValue( iSocketLevel_ ) ) );
 		wstrstm << L", ";
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13574, "h", GetLinearCriticalValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		if(bCompact)
-		{
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_5104, "f", ( m_fEvadePercent * 100 ) ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_504, "if", ( int )( m_fPercentCritical * 100 ), m_fCritical + 1.5f ) );
-		}
-		else
-		{
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_503, "fi", ( m_fEvadePercent * 100 ), ( int )( CX2SocketItem::SocketData::MAX_EVADE_RATE * 100 ) ) );
-			wstrstm << L", ";
-			wstrstm << GET_REPLACED_STRING( ( STR_ID_504, "if", ( int )( m_fPercentCritical * 100 ), m_fCritical + 1.5f ) );
-		}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 	else if ( m_fPercentCritical > 0.0f && m_Stat.m_ExtraStat.m_fIncreaseHPRate > 0.0f )	// 파괴의 마법석
@@ -1002,9 +1031,24 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	}
 	else if ( m_fHyperModeTime > 0.0f && m_fHyperModeChargeRate > 0.0f ) // 격노의 마법석
 	{
+	#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+		if ( eUnitType == CX2Unit::UT_ADD )
+		{
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_29461, "f", m_fHyperModeTime * 0.5f ) );
+			wstrstm << L", ";
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_29460, "h", static_cast<int>( GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) * 0.5f + 0.5f ) ) );
+		}
+		else
+		{
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_13578, "f", m_fHyperModeTime ) );
+			wstrstm << L", ";
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_13577, "h", GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) ) );
+		}
+	#else //SERV_9TH_NEW_CHARACTER
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13578, "f", m_fHyperModeTime ) );
 		wstrstm << L", ";
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13577, "h", GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) ) );
+	#endif //SERV_9TH_NEW_CHARACTER
 	}
 	else
 //}} oasis907 : 김상윤 [2010.4.20] // 
@@ -1133,11 +1177,7 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	else if ( m_Stat.m_ExtraStat.m_fIncreaseHPRate != 0 )
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_5100, "h", ( int )( m_Stat.m_ExtraStat.m_fIncreaseHPRate * GetHpIncrementValue( iSocketLevel_ ) ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_484, "ei", ( m_Stat.m_ExtraStat.m_fIncreaseHPRate * 100 ), ( int )( CX2Stat::Stat::MAX_INCREASE_HP_RATE * 100.f ) ) );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 	else if ( m_Stat.m_ExtraStat.m_fIncreaseMPRate != 0 )
@@ -1164,40 +1204,41 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	else if ( m_fMoveSpeed > 0 )
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13582, "h", GetLinearMoveSpeedValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_485, "hi", ( int )( m_fMoveSpeed * 100 ), ( int )( CX2SocketItem::SocketData::MAX_MOVESPEED * 100.f ) ) );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 	else if ( m_fJumpSpeed > 0 )
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13583, "h", GetLinearJumpSpeedValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_486, "hi", ( int )( m_fJumpSpeed * 100 ), ( int )( CX2SocketItem::SocketData::MAX_JUMPSPEED * 100.f ) ) );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 	else if ( m_fHyperModeChargeRate > 0 )
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
+	#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+		if ( eUnitType == CX2Unit::UT_ADD )
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_29460, "h", static_cast<int>( GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) * 0.5f + 0.5f ) ) );
+		else
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_13577, "h", GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) ) );
+	#else //SERV_9TH_NEW_CHARACTER
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13577, "h", GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_487, "h", ( int )( m_fHyperModeChargeRate * 100 ) ) );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+	#endif //SERV_9TH_NEW_CHARACTER
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 	else if ( m_fHyperModeTime > 0 )
 	{
+	#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+		if ( eUnitType == CX2Unit::UT_ADD )
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_29461, "f", m_fHyperModeTime * 0.5f ) );
+		else
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_13578, "f", m_fHyperModeTime ) );
+	#else //SERV_9TH_NEW_CHARACTER
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13578, "f", m_fHyperModeTime ) );
+	#endif //SERV_9TH_NEW_CHARACTER
 	}
 
 	//{{ kimhc // 2011-07-21 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	else if ( 0 < m_fAdditionalAttackValue )
 	{
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13575, "h", GetLinearAdditionalAttackValue( iSocketLevel_ ) ) );
@@ -1206,9 +1247,9 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	{
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13580, "h", GetLinearAdditionalDefenceValue( iSocketLevel_ ) ) );
 	}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-21 // 옵션데이타 수치화 작업
 
+#ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // 스킬 레벨
 	else if ( m_vecSkillLevelUpID.empty() == false)
 	{		
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -1241,7 +1282,6 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		}		
 	}
-#ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // 스킬 레벨
 	else if ( false == m_vecSkillLevelUpGroupID.empty() &&
 			  NULL != g_pData->GetSocketItem() )
 	{
@@ -1361,9 +1401,9 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 		default:
 			{
 				//{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
-					#ifndef PRINT_INGAMEINFO_TO_EXCEL
-						ASSERT( !"invalid socket extra damage" );
-					#endif PRINT_INGAMEINFO_TO_EXCEL
+#ifndef PRINT_INGAMEINFO_TO_EXCEL
+				ASSERT( !"invalid socket extra damage" );
+#endif PRINT_INGAMEINFO_TO_EXCEL
 				//}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 			} break;
 		}
@@ -1437,7 +1477,18 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 #ifdef HAMEL_NEW_SETOPTION_EXTRADAMAGE
 			case CX2DamageManager::EDT_WIND_STORM:
 				{
-					wstrstm << GET_REPLACED_STRING( ( STR_ID_13421, "i", static_cast<int>( ( socketExtraDamage.m_fRate * 100 ) + 0.5f ) ) );
+#ifdef SERV_EVENT_VALENTINE_RING_IS_DUNGEON
+					if( false == m_DescEvadeByMonsterAttack.empty() )
+					{
+						wstrstm << m_DescEvadeByMonsterAttack;
+					}
+					else
+					{
+						wstrstm << GET_REPLACED_STRING( ( STR_ID_13421, "i", static_cast<int>( (socketExtraDamage.m_fRate * 100) + 0.5f ) ) );
+					}
+#else //SERV_EVENT_VALENTINE_RING_IS_DUNGEON
+					wstrstm << GET_REPLACED_STRING( ( STR_ID_13421, "i", static_cast<int>( (socketExtraDamage.m_fRate * 100) + 0.5f ) ) );
+#endif //SERV_EVENT_VALENTINE_RING_IS_DUNGEON
 				} break;
 
 			case CX2DamageManager::EDT_EARTH_QUAKE:
@@ -1449,7 +1500,7 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 #ifdef	VELDER_SECRET_DUNGEON
 			case CX2DamageManager::EDT_CURSE_CLOUD:
 				{
-					wstrstm << GET_REPLACED_STRING( ( STR_ID_13921, "i", static_cast<int>( ( socketExtraDamage.m_fRate * 100 ) + 0.5f ) ) );
+					wstrstm << GET_REPLACED_STRING( ( STR_ID_13921, "i", static_cast<int>( socketExtraDamage.m_fRate * 100 ) ) );
 				} break;
 #endif	VELDER_SECRET_DUNGEON
 
@@ -1501,6 +1552,17 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 					wstrstm << GET_REPLACED_STRING( ( STR_ID_23111, "i", static_cast<int>( ( socketExtraDamage.m_fRate * 100 ) + 0.5f ) ) );
 				} break;
 #endif //ADD_SOCKET_OPTION_SANDER_SET
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+			case CX2DamageManager::EDT_ACTIVE_DEBUFF:	/// 타격시 특정 디버프를 적용
+				{
+					/// 설정된 버프에 따라 내용이 바뀌어야 하므로, 스크립트에서 받아온 툴팁 설정
+					if( false == m_DescEvadeByMonsterAttack.empty() )
+					{
+						wstrstm << m_DescEvadeByMonsterAttack;
+					}
+				} break;
+#endif // HAMEL_SECRET_DUNGEON
 			default:
 				{
 					ASSERT( !"invalid multiple socket extra damage" );
@@ -1510,6 +1572,14 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	}
 	else if ( m_fDamageReduce > 0.0f )
 	{
+#ifdef ADJUST_SECRET_ITEM_OPTION //김창한
+		if( m_fIntervalTime > 0.0f )
+		{
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_28644, "iii", static_cast<int>( m_fPercentDamageReduce * 100 ), 
+				static_cast<int>( m_fDamageReduce * 100 ), static_cast<int>( m_fIntervalTime ) ) );
+		}
+		else
+#endif //ADJUST_SECRET_ITEM_OPTION
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_500, "ii", ( int )( m_fPercentDamageReduce * 100 ), ( int )( m_fDamageReduce * 100 ) ) );
 	}
 	else if ( m_fDamageReduceByMonsterAttack > 0.0f )
@@ -1539,40 +1609,27 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	else if ( m_fAntiEvadePercent > 0.0f )
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13576, "h", GetLinearAntiEvadeValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_502, "fi", ( m_fAntiEvadePercent * 100 ), ( int )( CX2SocketItem::SocketData::MAX_ANTI_EVADE_RATE * 100 ) ) );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 
 	else if ( m_fEvadePercent > 0.0f )
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13579, "h", GetLinearEvadeValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_503, "fi", ( m_fEvadePercent * 100 ), ( int )( CX2SocketItem::SocketData::MAX_EVADE_RATE * 100 ) ) );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	}
 	else if ( m_fPercentCritical > 0.0f )
 	{
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13574, "h", GetLinearCriticalValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_504, "if", ( int )( m_fPercentCritical * 100 ), m_fCritical + 1.5f ) );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업	
 	}
 
 	//{{ kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
-#ifdef	OPTION_ITEM_DATA_MODIFY
 	else if ( false == m_vecHpUpByAttacked.empty() )
 	{
-		D3DXVECTOR2& vRateAndHpUpRatio = m_vecHpUpByAttacked[0];
+		const D3DXVECTOR2& vRateAndHpUpRatio = m_vecHpUpByAttacked[0];
 #ifdef FIX_HP_DOWN_SOCKET_OPTION
 		if( vRateAndHpUpRatio.y < 0.f )
 			wstrstm << GET_REPLACED_STRING( ( STR_ID_23389, "ff", vRateAndHpUpRatio.x * 100,
@@ -1584,7 +1641,7 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	}
 	else if ( false == m_vecHpUpByAttack.empty() )
 	{
-		D3DXVECTOR2& vRateAndHpUpRatio = m_vecHpUpByAttack[0];
+		const D3DXVECTOR2& vRateAndHpUpRatio = m_vecHpUpByAttack[0];
 #ifdef FIX_HP_DOWN_SOCKET_OPTION
 		if( vRateAndHpUpRatio.y < 0.f )
 			wstrstm << GET_REPLACED_STRING( ( STR_ID_23390, "ff", vRateAndHpUpRatio.x * 100,
@@ -1596,32 +1653,35 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	}
 	else if ( false == m_vecMpUpByAttacked.empty() )
 	{
-		D3DXVECTOR2& vRateAndValue = m_vecMpUpByAttacked[0];
+#ifdef ADJUST_SECRET_ITEM_OPTION //김창한
+		const D3DXVECTOR4& vRateAndValue = m_vecMpUpByAttacked[0];
+
+		if( vRateAndValue.z > 0.0f )
+		{
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_28643, "iSii", static_cast<int>( vRateAndValue.x * 100 ),
+				( ( vRateAndValue.y >= 0 ) ? L"+" : L"-" ), abs( static_cast<int>(vRateAndValue.y) ), static_cast<int>(vRateAndValue.z) ) );
+		}
+		else
+		{
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_505, "iSi", ( int )( vRateAndValue.x * 100 ),
+				( ( vRateAndValue.y >= 0 ) ? L"+" : L"-" ),
+				abs( ( int )vRateAndValue.y ) ) );
+		}
+#else //ADJUST_SECRET_ITEM_OPTION
+		const D3DXVECTOR2& vRateAndValue = m_vecMpUpByAttacked[0];	// 해외팀 오류 수정
+
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_505, "iSi", ( int )( vRateAndValue.x * 100 ),
 			( ( vRateAndValue.y >= 0 ) ? L"+" : L"-" ),
 			abs( ( int )vRateAndValue.y ) ) );
+#endif //ADJUST_SECRET_ITEM_OPTION
 	}
 	else if ( false == m_vecMpUpByAttack.empty() )
 	{
-		D3DXVECTOR2& vRateAndValue = m_vecMpUpByAttack[0];
+		const D3DXVECTOR2& vRateAndValue = m_vecMpUpByAttack[0];
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_4470, "iSi", ( int )( vRateAndValue.x * 100 ),
 			( ( vRateAndValue.y >= 0 ) ? L"+" : L"-" ),
 			abs( ( int )vRateAndValue.y ) ) );
 	}
-#else	OPTION_ITEM_DATA_MODIFY
-	else if ( m_fPercentMPUpByAttacked > 0.0f )
-	{
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_505, "iSi", ( int )( m_fPercentMPUpByAttacked * 100 ),
-			( ( m_fMPUpByAttacked >= 0 ) ? L"+" : L"-" ),
-			abs( ( int )m_fMPUpByAttacked ) ) );
-	}
-	else if ( m_fPercentMPUpByAttack > 0.0f )
-	{
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_4470, "iSi", ( int )( m_fPercentMPUpByAttack * 100 ),
-			( ( m_fMPUpByAttack >= 0 ) ? L"+" : L"-" ),
-			abs( ( int )m_fMPUpByAttack ) ) );
-	}
-#endif	OPTION_ITEM_DATA_MODIFY
 	//}} kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
 
 	//{{ 2011.09.05 / 이지헌 / 대만/홍콩 / 마법의 목걸이 개편 / 병합 : 강정훈
@@ -1656,7 +1716,7 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	}
 	else if ( m_fDamageUpPerAtSpecificMonster > 0 )
 	{
-		set< int >::iterator sit;
+		set< int >::const_iterator sit;
 		sit = m_setMonsterIDForDamageUp.begin();
         wstringstream wstmPart;
 		for ( ; sit != m_setMonsterIDForDamageUp.end(); sit++ )
@@ -1666,15 +1726,15 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 			if ( pNpcTemplet != NULL )
 			{
 				wstmPart << pNpcTemplet->m_Name.c_str();
-				set< int >::iterator sit2 = sit;
+				set< int >::const_iterator sit2 = sit;
 				sit2++;
 				if ( sit2 != m_setMonsterIDForDamageUp.end() )
 				{
-					#ifdef MONSTERID_TITLE_ADD_LINEBREAK //몬스터 이름 하나당 라인 하나
+#ifdef MONSTERID_TITLE_ADD_LINEBREAK //몬스터 이름 하나당 라인 하나
 					wstmPart << L",\n";
-					#else //MONSTERID_TITLE_ADD_LINEBREAK
+#else //MONSTERID_TITLE_ADD_LINEBREAK
 					wstmPart << L",";
-					#endif //MONSTERID_TITLE_ADD_LINEBREAK
+#endif //MONSTERID_TITLE_ADD_LINEBREAK
 				}
 			}
 
@@ -1689,7 +1749,7 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 		}
 		else
 		{
-			set< int >::iterator sit;
+			set< int >::const_iterator sit;
 			sit = m_setMonsterIDForEvade.begin();
             wstringstream wstmPart;
 			for ( ; sit != m_setMonsterIDForEvade.end(); sit++ )
@@ -1699,7 +1759,7 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 				if ( pNpcTemplet != NULL )
 				{
 					wstmPart << pNpcTemplet->m_Name.c_str();
-					set< int >::iterator sit2 = sit;
+					set< int >::const_iterator sit2 = sit;
 					sit2++;
 					if ( sit2 != m_setMonsterIDForEvade.end() )
 					{
@@ -1793,13 +1853,20 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 	}
 	else if( m_fAnimationSpeedRate > 0.0f )
 	{
+#ifdef SERV_EVENT_VALENTINE_RING_IS_DUNGEON
+		if( false == m_DescEvadeByMonsterAttack.empty() )
+		{
+			wstrstm << m_DescEvadeByMonsterAttack;
+		}
+		else
+		{
+#endif //SERV_EVENT_VALENTINE_RING_IS_DUNGEON
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_13581, "h", GetLinearAnimationSpeedValue( iSocketLevel_ ) ) );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		wstrstm << GET_REPLACED_STRING( ( STR_ID_525, "hi", (int)m_fAnimationSpeedRate, (int)CX2SocketItem::SocketData::MAX_ANIMATION_SPEED_RATE ) );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
+#ifdef SERV_EVENT_VALENTINE_RING_IS_DUNGEON
+		}
+#endif //SERV_EVENT_VALENTINE_RING_IS_DUNGEON
 	}
 	else if ( m_fPercentSuperArmor > 0.0f )
 	{
@@ -1874,7 +1941,6 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_9062, "e", m_afAttackEnchant[ CX2EnchantItem::ET_DARK ]*100.f ) );
 	}
 #endif
-#ifdef SUMMON_NPC_SOCKET
 	else if( m_iSummonNpcId > 0 && m_fSummonNpcRate > 0.f )
 	{		
 		const CX2UnitManager::NPCUnitTemplet* pNpcTemplet = g_pData->GetUnitManager()->GetNPCUnitTemplet( (CX2UnitManager::NPC_UNIT_ID)m_iSummonNpcId );
@@ -1883,7 +1949,6 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 			wstrstm << GET_REPLACED_STRING( ( STR_ID_17094, "iS", (int)(m_fSummonNpcRate * 100), pNpcTemplet->m_Name.c_str() ) );
 		}		
 	}
-#endif
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	else if( m_kStatRelLVData.m_fBaseHPRelLV != 0.f )
 	{				
@@ -1906,6 +1971,33 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 		wstrstm << GET_REPLACED_STRING( ( STR_ID_25058, "f", ( m_kStatRelLVData.m_fDefMagicRelLV ) ));
 	}
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef SKILL_LEVEL_UP_BY_POWER_RATE_TYPE // 스킬 레벨업 툴팁
+	else if( 0 < m_iAllSkillLevelUpEx &&
+		NULL != g_pData->GetSkillTree() )
+	{
+		const UINT uiLevelUpNumBasicClass = g_pData->GetSkillTree()->GetSkillLevelUpNumByPowerRateType( CX2SkillTree::SPRT_BASIC_CLASS  );
+		const UINT uiLevelUpNumFirstClass = g_pData->GetSkillTree()->GetSkillLevelUpNumByPowerRateType( CX2SkillTree::SPRT_FIRST_CLASS  );
+		const UINT uiLevelUpNumSecondClass = g_pData->GetSkillTree()->GetSkillLevelUpNumByPowerRateType( CX2SkillTree::SPRT_SECOND_CLASS  );
+		const UINT uiLevelUpNumSecondClass2 = g_pData->GetSkillTree()->GetSkillLevelUpNumByPowerRateType( CX2SkillTree::SPRT_SECOND_CLASS2  );
+
+		wstrstm << GET_REPLACED_STRING( ( STR_ID_26356, "iiii", static_cast<int>(m_iAllSkillLevelUpEx * uiLevelUpNumBasicClass),
+																static_cast<int>(m_iAllSkillLevelUpEx * uiLevelUpNumFirstClass),
+																static_cast<int>(m_iAllSkillLevelUpEx * uiLevelUpNumSecondClass),
+																static_cast<int>(m_iAllSkillLevelUpEx * uiLevelUpNumSecondClass2)) );
+	}
+#endif //SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+	else if( HMET_NONE != m_eHyperModeEffectiveType )		/// 각성시 특정 버프 적용
+	{
+		/// 설정된 버프에 따라 내용이 바뀌어야 하므로, 스크립트에서 받아온 툴팁 설정
+		if( false == m_DescEvadeByMonsterAttack.empty() )
+		{
+			wstrstm << m_DescEvadeByMonsterAttack;
+		}
+	}
+#endif // HAMEL_SECRET_DUNGEON
+
 //{{ kimhc // 2010.4.9 // 비밀던전 작업(셋트아이템효과)
 #ifdef SERV_SECRET_HELL
 	wstrstm	<< GetSocketDescEx();
@@ -1942,7 +2034,7 @@ wstring CX2SocketItem::SocketData::GetSocketDesc(bool bCompact /*= false*/ )
 
 //{{ kimhc // 2010.4.9 // 비밀던전 작업(셋트아이템효과)
 #ifdef SERV_SECRET_HELL
-wstring CX2SocketItem::SocketData::GetSocketDescEx()
+wstring CX2SocketItem::SocketData::GetSocketDescEx() const
 {
 	wstringstream wstrStream;
 
@@ -2098,8 +2190,20 @@ wstring CX2SocketItem::SocketData::GetSocketDescEx()
 
 	case SIEE_ATTACK_SPEED_UP:
 		{
+#ifdef SERV_EVENT_VALENTINE_RING_IS_DUNGEON
+			if( false == m_DescEvadeByMonsterAttack.empty() )
+			{
+				wstrStream << m_DescEvadeByMonsterAttack;
+			}
+			else
+			{
+				wstrStream << GET_REPLACED_STRING( (STR_ID_5084, "iii", static_cast<int>( m_fProbability * 100 ), 
+					static_cast<int>( m_fDurationTime ), static_cast<int>( m_fIncOrDecRate * 100 ) ) );
+			}
+#else //SERV_EVENT_VALENTINE_RING_IS_DUNGEON
 			wstrStream << GET_REPLACED_STRING( (STR_ID_5084, "iii", static_cast<int>( m_fProbability * 100 ), 
 				static_cast<int>( m_fDurationTime ), static_cast<int>( m_fIncOrDecRate * 100 ) ) );
+#endif //SERV_EVENT_VALENTINE_RING_IS_DUNGEON
 
 		} break;
 
@@ -2122,6 +2226,17 @@ wstring CX2SocketItem::SocketData::GetSocketDescEx()
 			wstrStream << GET_REPLACED_STRING( ( STR_ID_17558, "i", static_cast<int>( m_fProbability * 100 ) ) );
 		} break;
 #endif
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+	case SIEE_ABSORB_HP_NO_REACT:	/// 피격 시 HP 흡수 세트 효과 ( 경직 제거 )
+	case SIEE_ACTIVE_BUFF:			/// 피격 시 버프 적용 효과
+		{
+			/// 설정된 버프에 따라 내용이 바뀌어야 하므로, 스크립트에서 받아온 툴팁 설정
+			if( false == m_DescEvadeByMonsterAttack.empty() )
+			{
+				wstrStream << m_DescEvadeByMonsterAttack;
+			}
+		} break;
+#endif // HAMEL_SECRET_DUNGEON
 	}
 
 	return wstrStream.str();
@@ -2157,10 +2272,12 @@ float CX2SocketItem::GetOptionRateCorrection( const float fOptionRate_ )
 void CX2SocketItem::AddSocketGroupDataForCashAvatar_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	int	iGroupID = 0;
-	LUA_GET_VALUE(		luaManager, L"GROUP_ID",		iGroupID,		0 );
+	LUA_GET_VALUE(		luaManager, "GROUP_ID",		iGroupID,		0 );
 
 	/// iGroupID가 지정되어 있고, SOCKET_ID_LIST 테이블이 있으면
 	if ( 0 != iGroupID && luaManager.BeginTable( "SOCKET_ID_LIST" ) )
@@ -2181,7 +2298,7 @@ void CX2SocketItem::AddSocketGroupDataForCashAvatar_LUA()
 		}
 		else	/// iGroupID가 중복되었음
 		{
-			DisplayErrorMessage( L"GROUP_ID is duplicated" );
+			DisplayErrorMessage( "GROUP_ID is duplicated" );
 		}
 		
 		luaManager.EndTable();
@@ -2273,6 +2390,7 @@ void CX2SocketItem::GetSocketPrefix( IN int iSocketID_, OUT wstring& wstrItemDes
 	wstrItemDesc_ += GET_STRING( iStrID );;
 	wstrItemDesc_ += L" ";
 }
+
 #ifdef EU_NEW_ITEM_SYSTEM_PREFIX_TO_POSTFIX
 void CX2SocketItem::GetSocketPostfix( IN int iSocketID_, OUT wstring& wstrItemDesc_ ) const
 {
@@ -2283,6 +2401,7 @@ void CX2SocketItem::GetSocketPostfix( IN int iSocketID_, OUT wstring& wstrItemDe
 	wstrItemDesc_ += GET_STRING( iStrID );;
 }
 #endif // EU_NEW_ITEM_SYSTEM_PREFIX_TO_POSTFIX
+
 /** @function : AddSkillLevelUpSocketGroup_LUA
 	@brief : 스킬 레벨업 소켓 그룹 등록
 */
@@ -2411,17 +2530,21 @@ CX2SkillTree::SKILL_ID CX2SocketItem::GetSkillIDByUnicClassAndGropID( CX2Unit::U
 
 const CX2SocketItem::KItemStatRelLVData& CX2SocketItem::GetStatRelLVDataBySocktID( int iSocketID_ ) const
 {
-	std::map< int, SocketData* >::const_iterator it = m_mapSocketOptionPool.find( iSocketID_ ) ;
+	SocketDataMap::const_iterator it = m_mapSocketOptionPool.find( iSocketID_ ) ;
 	if( m_mapSocketOptionPool.end() == it )
 	{
-		ASSERT(!" SocketID Error");
+		if( 0 != iSocketID_ )
+			ASSERT(!" SocketID Error");
 		return ms_KDummyItemStatRelLVData;
 	}
-
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    return  it->second.m_kStatRelLVData;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if( NULL != it->second )
 		return it->second->m_kStatRelLVData;
 
 	return ms_KDummyItemStatRelLVData;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 }
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환
@@ -2436,13 +2559,32 @@ void CX2SocketItem::GetSkillLevelIncreaseValue( IN const SocketData* pSocketData
 	if( NULL == pSocketData ||
 		NULL == g_pData->GetMyUser() ||
 		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() ||
 		NULL == g_pData->GetSkillTree() )
 		return;
 
 	/// 모든 스킬 레벨을 올려주는 소켓 효과
+
+#ifdef FINALITY_SKILL_SYSTEM // 김태환
+
+	/// 모든 스킬 레벨 1 증가 효과는 궁극기를 제외한다.
+
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );	/// 스킬 템플릿
+
+	if ( NULL == pSkillTemplet )
+		return;
+
+	const CX2SkillTree::SKILL_TYPE eSkillType = pSkillTemplet->m_eType;	/// 스킬 타입
+
+	/// 모든 스킬 레벨 증가 소켓이 있을 때, 궁극기가 아니면 증가 시켜 준다.
+	if( 0.f < pSocketData->m_AllSkillLevelUp && CX2SkillTree::ST_HYPER_ACTIVE_SKILL != eSkillType )
+		iIncreaseSkillLevelBySocket += pSocketData->m_AllSkillLevelUp;
+
+#else // FINALITY_SKILL_SYSTEM
+
 	if( 0.f < pSocketData->m_AllSkillLevelUp )
 		iIncreaseSkillLevelBySocket += pSocketData->m_AllSkillLevelUp;
+
+#endif // FINALITY_SKILL_SYSTEM
 
 	/// 하나의 스킬 레벨을 올려주는 소켓 효과
 	BOOST_FOREACH( SkillLevelUpIDAndNum sSkillLevelUpIDAndNum, pSocketData->m_vecSkillLevelUpID)
@@ -2558,7 +2700,7 @@ bool CX2SocketItem::GetGrowUpSocketData( IN const vector<int>& vecOldSocketOptio
 	for( UINT j=0; j<vecOldSocketOption_.size(); j++ )
 	{
 		int socketOptionID = vecOldSocketOption_[j];
-		CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+		const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 
 		if( NULL == pSocketData )
 			continue;
@@ -2572,11 +2714,11 @@ bool CX2SocketItem::GetGrowUpSocketData( IN const vector<int>& vecOldSocketOptio
 				// 성장 소켓이다
 				// 성장 단계에 해당하는 소켓들을 집어 넣자.
 				int iLevel = 1;
-				if( NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() && NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+				if( NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 				{
-					iLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->GetGrowUpLevelBySocket(pSocketData->m_Type);
+					iLevel = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().GetGrowUpLevelBySocket(pSocketData->m_Type);
 				}
-				map<int, vector<int>>::iterator mit = pSocketData->m_mapGrowUpSocketID.find(iLevel);
+				map<int, vector<int>>::const_iterator mit = pSocketData->m_mapGrowUpSocketID.find(iLevel);
 				if( mit != pSocketData->m_mapGrowUpSocketID.end())
 				{
 					BOOST_TEST_FOREACH( const int&, iSocketID, mit->second )

@@ -33,6 +33,9 @@ bool KGSRankingManager::GetRankingInfo( IN const KEGS_GET_RANKING_INFO_REQ& kReq
 	case SEnum::RT_DAY_RANKING:
 	case SEnum::RT_WEEK_RANKING:
 	case SEnum::RT_MONTH_RANKING:
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+	case SEnum::RT_HERO_RANKING:
+#endif // SERV_HENIR_RENEWAL_2013
 		{
 			std::map< int, KGSHenirRanking >::const_iterator mit;
 			mit = m_mapHenirRanking.find( kReq.m_iRankingType );
@@ -75,6 +78,11 @@ bool KGSRankingManager::CheckNewRecord( const KHenirRankingInfo& kRankingInfo )
 	std::map< int, KGSHenirRanking >::const_iterator mit;
 	for( mit = m_mapHenirRanking.begin(); mit != m_mapHenirRanking.end(); ++mit )
 	{
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+		if( ( mit->first == SEnum::RT_HERO_RANKING ) && ( kRankingInfo.QualificationForHeroRank() == false ) )
+			continue;
+#endif // SERV_HENIR_RENEWAL_2013
+
         if( mit->second.CheckNewRecord( kRankingInfo ) == true )
 		{
 			bNewRecord = true;

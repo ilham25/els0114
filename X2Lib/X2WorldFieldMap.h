@@ -62,7 +62,6 @@ public:
 	void MakeQuestNoticeEffect( int NPCID );
 	void DestoryQuestNoticeEffect();
 
-#ifdef REFORM_UI_WORLDMAP
 	void SetFieldDLG( IN CKTDGUIDialogType pFieldDLG_ )
 	{
 		m_pFieldDLG = pFieldDLG_;
@@ -70,7 +69,6 @@ public:
 	D3DXVECTOR2 CalcPosForScroll( const D3DXVECTOR2& vPos_ );
 
 	void InitCharacterMaker( void );
-#endif
 
 private:
 	std::map< int, FieldData > m_mapFieldData;

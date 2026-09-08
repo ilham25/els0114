@@ -147,6 +147,9 @@ public:
 	void	SetAutoLootingPet( void ){	m_bAutoLooting = true;	}
 #endif SERV_PET_AUTO_LOOTING
 	//}}
+#ifdef SERV_EVENT_PET_INVENTORY
+	bool    IsEventFoodEat(void) { return m_bEventFoodEat; }
+#endif SERV_EVENT_PET_INVENTORY
 
 #ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 	void	ChangePetID( int iChangePetID ){	m_iPetID = iChangePetID; }
@@ -162,6 +165,15 @@ public:
 	}
 #endif SERV_PERIOD_PET
 
+#ifdef SERV_PET_SYSTEM_EX1
+	bool	IsAlwaysMaxSatiety() const { return m_bAlwaysMaxSatiety; }
+	void	SetAlwaysMaxSatiety( IN const bool bVal_ ) { m_bAlwaysMaxSatiety = bVal_; }
+#endif//SERV_PET_SYSTEM_EX1
+
+#ifdef SERV_EVENT_VC
+	bool	IncreaseIntimacyByItem( OUT int& iCurrentIntimacy, OUT int& iUpPercent );	// 친밀도 증가 아이템 사용 처리
+#endif //SERV_EVENT_VC
+
 protected:
 	void	CheckExtroversion();	// 외향지수 변동
 	void	CheckEmotion();			// 감성지수 변동
@@ -170,7 +182,7 @@ private:
 	// Pet Info
 	UidType									m_iPetUID;
 #ifdef SERV_PETID_DATA_TYPE_CHANGE //2013.07.02
-	int									m_iPetID;
+	int										m_iPetID;
 #else //SERV_PETID_DATA_TYPE_CHANGE
 	char									m_cPetID;
 #endif //SERV_PETID_DATA_TYPE_CHANGE
@@ -202,11 +214,18 @@ private:
 	bool									m_bAutoLooting;			// 오토 루팅 여부
 #endif SERV_PET_AUTO_LOOTING
 	//}}
-
+#ifdef SERV_EVENT_PET_INVENTORY
+	bool									m_bEventFoodEat;      // 이벤트 먹이의 사용 유무 
+	bool									m_bIsEventPetID;      // 이벤트 성 펫인지 확인 한다.									
+#endif SERV_EVENT_PET_INVENTORY
 #ifdef SERV_PERIOD_PET
 	bool									m_bDestroy;
 	CTime									m_tDestroyDate;
 #endif SERV_PERIOD_PET
+
+#ifdef SERV_PET_SYSTEM_EX1
+	bool									m_bAlwaysMaxSatiety;	// 항상 최대 포만도
+#endif//SERV_PET_SYSTEM_EX1
 };
 
 

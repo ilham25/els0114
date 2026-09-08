@@ -22,7 +22,7 @@ KChannelingUserManager::~KChannelingUserManager(void)
 	m_mapChannelingUserList.clear();
 }
 
-void KChannelingUserManager::UpdateChannelingUserList( IN bool bLogIn, IN int iChannelingCode )
+void KChannelingUserManager::UpdateChannelingUserList( IN bool bLogIn, IN int iChannelingCode , IN bool bGameServerLogin = false )
 {
 	if( KNexonAccountInfo::JCE_NONE >= iChannelingCode || iChannelingCode >= KNexonAccountInfo::JCE_MAX )
 	{
@@ -36,7 +36,7 @@ void KChannelingUserManager::UpdateChannelingUserList( IN bool bLogIn, IN int iC
 	{
 		if( bLogIn == true )
 			mit->second += 1;
-		else
+		else if( bGameServerLogin == true )
 			mit->second -= 1;
 	}
 	else

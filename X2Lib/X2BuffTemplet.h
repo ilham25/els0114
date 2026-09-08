@@ -1,14 +1,18 @@
 /** @file : X2BuffTemplet.h
-    @breif : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àµ¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    @breif : ¹öÇÁÀÇ Çàµ¿°ú Á¾·áµîÀ» °¡Áö°í ÀÖ´Â Å¬·¡½º Á¤ÀÇ ÆÄÀÏ
 */
 
 class CX2BuffTemplet;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2BuffTemplet> CX2BuffTempletPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2BuffTemplet> CX2BuffTempletPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 #pragma once
 
 /** @class : CX2BuffTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àµ¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁÀÇ Çàµ¿°ú Á¾·áµîÀ» °¡Áö°í ÀÖ´Â Å¬·¡½º
 	@date : 2012/7/17/
 */
 class CX2BuffTemplet
@@ -17,11 +21,11 @@ public:
 	static CX2BuffTempletPtr CreateBuffTempletPtr() { return CX2BuffTempletPtr( new CX2BuffTemplet ); }
 
 public:
-	enum UN_COMMON_MEMBER		/// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ enum
+	enum UN_COMMON_MEMBER		/// ¸ðµç ¹öÇÁ¿¡ °øÅëÀ¸·Î Àû¿ëµÇ´Â º¯¼ö°¡ ¾Æ´Ñ °ÍÀ» Á¤ÀÇ ÇÏ±â À§ÇÑ enum
 	{
-		UCM_ACCUMULATION_COUNT_NOW = 0,			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¸ Ä«ï¿½ï¿½Æ® (ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½î°³ï¿½ï¿½Å­ ï¿½ï¿½Ã¸ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½Â°ï¿½)
-		UCM_ACCUMULATION_MULTIPLIER,		/// ï¿½ï¿½Ã¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½
-		UCM_REGIST_TYPE,					/// ï¿½ï¿½ï¿½×¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½î¶² ï¿½ï¿½ï¿½×¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(CX2EnchantItem::ENCHANT_TYPE)
+		UCM_ACCUMULATION_COUNT_NOW = 0,			/// ÇöÀç ÁßÃ¸ Ä«¿îÆ® (ÁßÃ¸°¡´ÉÇÒ ½Ã¿¡ ÇöÀç ¸î°³¸¸Å­ ÁßÃ¸ÀÌ µÇ¾ú´Â°¡)
+		UCM_ACCUMULATION_MULTIPLIER,		/// ÁßÃ¸½Ã Àû¿ëµÇ´Â ¹èÀ²
+		UCM_REGIST_TYPE,					/// ÀúÇ×¿¡ ¿µÇâÀ» ¹ÞÀ» ¶§ ¾î¶² ÀúÇ×¿¡ ¿µÇâÀ» ¹Þ´ÂÁö ÁöÁ¤(CX2EnchantItem::ENCHANT_TYPE)
 	};
 
 	CX2BuffTemplet( const CX2BuffTemplet& rhs_ ) 
@@ -31,6 +35,9 @@ public:
 		, m_wstIconFileName ( rhs_.m_wstIconFileName ), m_wstIconKeyName ( rhs_.m_wstIconKeyName )
 		, m_iBuffName( rhs_.m_iBuffName ), m_iBuffDesc( rhs_.m_iBuffDesc ), m_bUseBuffIcon ( rhs_.m_bUseBuffIcon )
 #endif //BUFF_ICON_UI
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{
 		m_vecBehaviorPtr.clear();
 		m_vecBehaviorPtr.reserve( rhs_.m_vecBehaviorPtr.size() );
@@ -64,12 +71,22 @@ public:
 	bool SetFactor( const CX2BuffFactor& buffFactor_, CX2GameUnit* pGameUnit_ );
 	bool SetFactorFromPacket( const KBuffFactor& kBuffFactor_, CX2GameUnit* pGameUnit_ );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	void OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime )
+	{
+		OnFrameMoveBehavior( pGameUnit_, fElapsedTime );
+		OnFrameMoveFinalizerAndCheckFinish( pGameUnit_, fElapsedTime );
+		OnFrameMoveDisplayer( pGameUnit_, fElapsedTime );
+	}
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	void OnFrameMove( CX2GameUnit* pGameUnit_ )
 	{
 		OnFrameMoveBehavior( pGameUnit_ );
 		OnFrameMoveFinalizerAndCheckFinish( pGameUnit_ );
 		OnFrameMoveDisplayer( pGameUnit_ );
 	}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 	
 	void DoFinishBehavior( CX2GameUnit* pGameUnit_ );
 	void DoFinishDisplayer( CX2GameUnit* pGameUnit_ );
@@ -96,7 +113,7 @@ public:
 	bool GetDidFinish() const { return m_bDidFinish; }
 	void SetDidFinish(bool val) { m_bDidFinish = val; }
 
-	/// ï¿½ßºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ì¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(Ä«ï¿½ï¿½Æ®)
+	/// Áßº¹ÀÌ °¡´ÉÇÑ ¹öÇÁ ÀÎ °æ¿ì¿¡ ±¸ºÐÇÒ ¼ö ÀÖ´Â ¼ýÀÚ(Ä«¿îÆ®)
 	UINT GetUniqueNum() const { return m_BuffIdentity.m_uiUniqueNum; }
 	void SetUniqueNum( const UINT uiUniqueNum_ ) { m_BuffIdentity.m_uiUniqueNum = uiUniqueNum_; }
 
@@ -115,10 +132,15 @@ public:
 	void GetFinalizerTempletPtrList( OUT vector<CX2BuffFinalizerTempletPtr>& vecFinalizerPtr_ );
 	void ChangeFinalizerTempletPtrList( const vector<CX2BuffFinalizerTempletPtr>& vecFinalizerPtr_ );
 
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-	/// Remaining seconds of the BFT_TIME finalizer, if any; -1.f if this buff has no time-based finalizer
-	float GetRemainDurationTime() const;
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+	// Çàµ¿ ºÒ´É µð¹öÇÁ ÀÎ°¡?, Æ¯Á¤ BBT ¸¦ °¡Áö°í ÀÖÀ¸¸é ÂüÀ» ¹ÝÈ¯
+	bool	IsNonControlDebuff();
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+	
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 protected:
 	CX2BuffTemplet() : m_BuffIdentity(), m_uiAccumulationLimit( 0 ), m_bDeBuff( false )
@@ -126,58 +148,86 @@ protected:
 #ifdef BUFF_ICON_UI
 						,m_iBuffName( -1 ), m_iBuffDesc( -1 ), m_bUseBuffIcon ( false )
 #endif //BUFF_ICON_UI
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 	{
 		m_mapUnCommonMember.clear();
 	}
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    CX2BuffTemplet& operator = ( const CX2BuffTemplet& );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	void OnFrameMoveBehavior( CX2GameUnit* pGameUnit_, float fElapsedTime_ );
+	void OnFrameMoveFinalizerAndCheckFinish( CX2GameUnit* pGameUnit_, float fElapsedTime_ );
+	void OnFrameMoveDisplayer( CX2GameUnit* pGameUnit_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	void OnFrameMoveBehavior( CX2GameUnit* pGameUnit_ );
 	void OnFrameMoveFinalizerAndCheckFinish( CX2GameUnit* pGameUnit_ );
 	void OnFrameMoveDisplayer( CX2GameUnit* pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	vector<CX2BuffBehaviorTempletPtr>		m_vecBehaviorPtr;
 	vector<CX2BuffFinalizerTempletPtr>		m_vecFinalizerPtr;
 	vector<CX2BuffDisplayerTempletPtr>		m_vecDisplayerPtr;
 	KBuffIdentity							m_BuffIdentity;
-	UINT									m_uiAccumulationLimit;		/// ï¿½ï¿½Ã¸ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ ï¿½ßºï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½), 1ï¿½ï¿½ ï¿½ï¿½Ã¼(ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼), 2 ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½Í´ï¿½ ï¿½Ø´ï¿½ È½ï¿½ï¿½ ï¿½ï¿½Å­ ï¿½ï¿½Ã¸ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½Ã¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	UINT									m_uiAccumulationLimit;		/// ÁßÃ¸ °¡´É È½¼ö·Î 0Àº Áßº¹(°°Àº ¹öÇÁ°¡ °É¸±¼öÀÖÀ½), 1Àº ±³Ã¼(»õ·Î¿î ¹öÇÁ·Î ±³Ã¼), 2 ÀÌ»ó ºÎÅÍ´Â ÇØ´ç È½¼ö ¸¸Å­ ÁßÃ¸ °¡´É(ÁßÃ¸ ¹èÀ²¿¡ µû¶ó »êÁ¤)
 
 	typedef map<UN_COMMON_MEMBER, float>	MAP_UN_COMMON_MEMBER;
-	MAP_UN_COMMON_MEMBER					m_mapUnCommonMember;		/// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ Map
+	MAP_UN_COMMON_MEMBER					m_mapUnCommonMember;		/// ¸ðµç ¹öÇÁ¿¡ °øÅëÀ¸·Î Àû¿ëµÇ´Â º¯¼ö°¡ ¾Æ´Ñ °ÍÀ» Á¤ÀÇ ÇÏ±â À§ÇÑ Map
 
-	bool									m_bDeBuff;					/// ï¿½Ø·Î¿ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ true
-	bool									m_bDidFinish;				/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
-	bool									m_bWorldBuff;				/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ true
+	bool									m_bDeBuff;					/// ÇØ·Î¿î È¿°ú¸¦ ÁÖ´Â µð¹öÇÁÀÎ °æ¿ì true
+	bool									m_bDidFinish;				/// Á¾·áµÈ ¹öÇÁ ÀÎ°¡?
+	bool									m_bWorldBuff;				/// ¿ùµå ¹öÇÁÀÎ °æ¿ì true
 
 #ifdef BUFF_ICON_UI
 	wstring									m_wstIconFileName;
 	wstring									m_wstIconKeyName;
 	int										m_iBuffName;
 	int										m_iBuffDesc;
-	bool									m_bUseBuffIcon;				/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	bool									m_bUseBuffIcon;				/// ¹öÇÁ ¾ÆÀÌÄÜ »ç¿ë ¿©ºÎ
 #endif //BUFF_ICON_UI
 
 	
 };
 
+IMPLEMENT_INTRUSIVE_PTR( CX2BuffTemplet );
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** @class : CX2BuffIdentity
-	@brief : KBuffIdentity ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : KBuffIdentity ¸¦ °¡Áö¸ç ÇØ´ç Á¤º¸°¡ °°ÀºÁö¸¦ ºñ±³ÇÏ´Â Å¬·¡½º
 	@date : 2012/7/22/
 */
 class CX2BuffIdentity;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2BuffIdentity> CX2BuffIdentityPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2BuffIdentity> CX2BuffIdentityPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 class CX2BuffIdentity
 {
 public:
 	CX2BuffIdentity( const KBuffIdentity& BuffIdentity_ )
 		: m_DataBuffIdentity( BuffIdentity_ )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{}
 			
 	virtual ~CX2BuffIdentity() {}
 
-	/// ï¿½ï¿½ï¿½Ï°ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+	/// ºñ±³ÇÏ°íÀÚ ÇÏ´Â ¹öÇÁ¿¡ ÀÇÇØ ¹ß»ýµÈ È¿°úÀÎÁö È®ÀÎ
 	bool IsSame( const KBuffIdentity& BuffIdentity_ ) const
 	{
 		if ( m_DataBuffIdentity.m_eBuffTempletID == BuffIdentity_.m_eBuffTempletID 
@@ -191,16 +241,40 @@ public:
 	virtual bool Verify() { return true; }
 #endif // VERIFY_STAT_BY_BUFF
 
-protected:
-	CX2BuffIdentity() {}
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 protected:
-	KBuffIdentity		m_DataBuffIdentity;		/// ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	CX2BuffIdentity()
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        : m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR    
+    {}
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    CX2BuffIdentity& operator = ( const CX2BuffIdentity& );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
+
+
+protected:
+	KBuffIdentity		m_DataBuffIdentity;		/// ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ È¿°ú ÀÎÁö
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+private:
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 };
 
+IMPLEMENT_INTRUSIVE_PTR( CX2BuffIdentity );
+
+
 /** @function : FindSameBuffIdentity
-	@brief : CX2BuffIdentityï¿½ï¿½ ï¿½ï¿½Ó¹Þ´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ Ã£ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½Íºï¿½ï¿½ï¿½(vector_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : CX2BuffIdentity¸¦ »ó¼Ó¹Þ´Â Å¬·¡½º¸¦ ´ã´Â ½º¸¶Æ® Æ÷ÀÎÅÍ º¤ÅÍ Áß ¹öÇÁÁ¤º¸°¡ µ¿ÀÏÇÑ ¿ä¼Ò¸¦ Ã£´Â ÇÔ¼ö
+	@param : ½º¸¶Æ®Æ÷ÀÎÅÍº¤ÅÍ(vector_), ¹öÇÁÁ¤º¸(BuffIdentity_)
 	@return : 
 */
 template<typename ITR, typename T>
@@ -208,7 +282,7 @@ ITR FindSameBuffIdentity( IN vector<T>& vector_, const KBuffIdentity& BuffIdenti
 {
 	if ( !vector_.empty() )
 	{
-		auto FindFunc = [BuffIdentity_]( T ptr_ ) {
+		auto FindFunc = [&BuffIdentity_]( T ptr_ ) {
 			return ptr_->IsSame( BuffIdentity_ );
 		};
 
@@ -220,41 +294,51 @@ ITR FindSameBuffIdentity( IN vector<T>& vector_, const KBuffIdentity& BuffIdenti
 }
 
 /** @class : CX2ReverseLefRight
-	@brief : ï¿½Â¿ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ÁÂ¿ì¹ÝÀü È¿°ú Å¬·¡½º
 	@date : 2012/7/22/
 */
 class CX2ReverseLefRight;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2ReverseLefRight> CX2ReverseLefRightPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2ReverseLefRight> CX2ReverseLefRightPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 class CX2ReverseLefRight : public CX2BuffIdentity
 {
 public:
 	CX2ReverseLefRight( const KBuffIdentity& BuffIdentity_ ) 
 		: CX2BuffIdentity( BuffIdentity_ ),
-		m_bReverse( true )	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Â¿ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		m_bReverse( true )	/// ½ÃÀÛÇÏÀÚ ¸¶ÀÚ ÁÂ¿ì¹ÝÀü È¿°ú¸¦ ÁÖ±â À§ÇØ true·Î ¼ÂÆÃ
 	{}
 
 	/** @function : GetReverse
-		@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î°ï¿½?
-		@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ true
+		@brief : ¹ÝÀüÀÌ Àû¿ë ÁßÀÎ°¡?
+		@return : ¹ÝÀüÁßÀÌ¸é true
 	*/
 	bool GetReverse() const { return m_bReverse; }
 
-	/// ï¿½Â¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	/// ÁÂ¿ì¹ÝÀü Åä±Û
 	void ToggleReverseLeftRightByBuff() { m_bReverse = !m_bReverse; }
 
 protected:
 	CX2ReverseLefRight() {}
 
 private:
-	bool				m_bReverse;				/// trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ ï¿½Â¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½ ï¿½ï¿½
+	bool				m_bReverse;				/// true¸é ÇöÀç ÇÁ·¹ÀÓ¿¡ ÁÂ¿ì¹ÝÀü ÁßÀÌ¾î¾ß ÇÔ
 };
 
 /** @class : CX2NeverMoveByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ÇöÀç À§Ä¡¿¡ °íÁ¤½ÃÅ°´Â Å¬·¡½º
 	@date : 2012/9/6/
 */
 class CX2NeverMoveByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2NeverMoveByBuff> CX2NeverMoveByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2NeverMoveByBuff> CX2NeverMoveByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 class CX2NeverMoveByBuff : public CX2BuffIdentity
 {
 public:
@@ -285,18 +369,22 @@ protected:
 private:
 	D3DXVECTOR3		m_vPos;
 #ifdef NEVER_MOVE_GRAVITY_APPLY
-	bool			m_bIsGravity;	//ï¿½ß·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ò°ï¿½ï¿½Î°ï¿½. trueï¿½ï¿½ ï¿½ß·ï¿½ ï¿½ï¿½ï¿½ï¿½, falseï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	bool			m_bIsGravity;	//Áß·ÂÀ» Àû¿ëÇÒ°ÍÀÎ°¡. true¸é Áß·Â Àû¿ë, false¸é À§Ä¡ °íÁ¤
 #endif //NEVER_MOVE_GRAVITY_APPLY
 
 };
 
 /** @class : CX2RenderParamByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½É¼ï¿½ ï¿½Ö´ï¿½ RenderParam ï¿½ï¿½ï¿½ï¿½ BuffIdentityï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ¿¡ ÀÇÇØ¼­ º¯°æµÉ¼ö ÀÖ´Â RenderParam °ª¿¡ BuffIdentity¸¦ °áÇÕÇÏ¿© ±¸ºÐÇÒ ¼ö ÀÖ°ÔÇÑ Å¬·¡½º
 	@date : 2012/8/3/
 */
 
 class CX2RenderParamByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2RenderParamByBuff> CX2RenderParamByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2RenderParamByBuff> CX2RenderParamByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2RenderParamByBuff : public CX2BuffIdentity
 {
 public:
@@ -311,15 +399,19 @@ private:
 };
 
 /** @class : CX2EffectSetImpactPointByBuff
-	@brief : Å¸ï¿½Ý½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ BuffIdentityï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : Å¸°Ý½Ã Å¸°Ý Æ÷ÀÎÆ®¿¡ ÀÌÆÑÆ® ¼ÂÀ» »ý¼ºÇÏ´Â ±â´ÉÀ» BuffIdentity¿Í °áÇÕÇÏ¿© ±¸ºÐÇÒ ¼ö ÀÖ°Ô ÇÑ Å¬·¡½º
 	@date : 2012/8/20/
 */
 class CX2EffectSetImpactPointByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2EffectSetImpactPointByBuff> CX2EffectSetImpactPointByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2EffectSetImpactPointByBuff> CX2EffectSetImpactPointByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2EffectSetImpactPointByBuff : public CX2BuffIdentity
 {
 public:
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09		»ý¼º °£°Ý Ãß°¡
 	CX2EffectSetImpactPointByBuff( const KBuffIdentity& BuffIdentity_, const WCHAR* pwszEffectSetName_, const WCHAR* pwszSoundName_, const float fCreateGap )
 		: CX2BuffIdentity( BuffIdentity_ ), m_wstrEffectSetName( pwszEffectSetName_ ), m_wstrSoundName( pwszSoundName_ ), m_fCreateGap( fCreateGap ), m_fNowCoolTime( 0.f )
 		{}
@@ -332,9 +424,9 @@ public:
 	void PlayEffectSetImpactPointByBuff( CX2GameUnit* pGameUnit_, const D3DXVECTOR3& vImpactPos_ );
 	void PlayEffectSetHittedByBuff( CX2GameUnit* pGameUnit_ );
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09	
-	void PlayEffectSetNormalAttackByBuff( CX2GameUnit* pGameUnit_, const CX2DamageManager::ATTACK_TYPE eAttackType );	/// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	void ProcessCoolTime( const float fElapsedTime );		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09	
+	void PlayEffectSetNormalAttackByBuff( CX2GameUnit* pGameUnit_, const CX2DamageManager::ATTACK_TYPE eAttackType );	/// ÀÏ¹Ý °ø°Ý Å¸°Ý½Ã ÀÌÆåÆ® ¼Â »ý¼º ÇÔ¼ö
+	void ProcessCoolTime( const float fElapsedTime );		/// »ý¼º °£°Ý ¿¬»ê ÇÔ¼ö
 #endif // SERV_NEW_DEFENCE_DUNGEON
 	
 protected:
@@ -343,18 +435,22 @@ protected:
 private:
 	wstring	m_wstrEffectSetName;
 	wstring m_wstrSoundName;
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09
-	const float m_fCreateGap;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	float m_fNowCoolTime;			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09
+	const float m_fCreateGap;		/// »ý¼º °£°Ý
+	float m_fNowCoolTime;			/// »ý¼º °£°Ý Ã³¸®¿ë ÄðÅ¸ÀÓ
 #endif // SERV_NEW_DEFENCE_DUNGEON
 };
 
 /** @class : CX2ChangeUnitScaleByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Scaleï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ BuffIdentityï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : À¯´ÖÀÇ ScaleÀ» º¯°æÇÏ´Â ±â´ÉÀ» BuffIdentity¿Í °áÇÕÇÏ¿© ±¸ºÐÇÒ ¼ö ÀÖ°Ô ÇÑ Å¬·¡½º
 	@date : 2012/8/20/
 */
 class CX2ChangeUnitScaleByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2ChangeUnitScaleByBuff> CX2ChangeUnitScaleByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2ChangeUnitScaleByBuff> CX2ChangeUnitScaleByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2ChangeUnitScaleByBuff : public CX2BuffIdentity
 {
 public:
@@ -390,11 +486,15 @@ private:
 };
 
 /** @class : CX2AfterImageByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ AfterImageï¿½ï¿½ On ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ BuffIdentityï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : À¯´ÖÀÇ AfterImage¸¦ On ÇÏ´Â ±â´ÉÀ» BuffIdentity¿Í °áÇÕÇÑ Å¬·¡½º
 	@date : 2012/8/28/
 */
 class CX2AfterImageByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2AfterImageByBuff> CX2AfterImageByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2AfterImageByBuff> CX2AfterImageByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2AfterImageByBuff : public CX2BuffIdentity
 {
 public:
@@ -410,11 +510,15 @@ private:
 
 #ifdef ADD_DISPLAYER_WEAPON_AFTER_IMAGE
 /** @class : CX2WeaponAfterImageByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ AfterImageï¿½ï¿½ On ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ BuffIdentityï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : À¯´ÖÀÇ ¹«±â AfterImage¸¦ On ÇÏ´Â ±â´ÉÀ» BuffIdentity¿Í °áÇÕÇÑ Å¬·¡½º
 	@date : 2012/8/28/
 */
 class CX2WeaponAfterImageByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2WeaponAfterImageByBuff> CX2WeaponAfterImageByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2WeaponAfterImageByBuff> CX2WeaponAfterImageByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2WeaponAfterImageByBuff : public CX2BuffIdentity
 {
 public:
@@ -430,11 +534,15 @@ private:
 #endif ADD_DISPLAYER_WEAPON_AFTER_IMAGE
 
 /** @class : CX2CustomFunctionByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½àµ¿ ï¿½ï¿½CommonStateStart, CommonFrameMove, CommonStateEnd ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ï´ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ Çàµ¿ ÁßCommonStateStart, CommonFrameMove, CommonStateEnd ¿¡¼­ Ã³¸®µÇ¾ß ÇÏ´Â ÇÏµåÄÚµù ÇÔ¼ö¸¦ ¼öÇàÇÏµµ·Ï Ã³¸® µÇµµ·Ï ÇÏ´Â Å¬·¡½º
 	@date : 2012/8/21/
 */
 class CX2CustomFunctionByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2CustomFunctionByBuff> CX2CustomFunctionByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2CustomFunctionByBuff> CX2CustomFunctionByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2CustomFunctionByBuff : public CX2BuffIdentity
 {
 public:
@@ -450,7 +558,7 @@ public:
 };
 
 /** @class : CX2CustomFunctionByBuffPhantomSword
-	@brief : ï¿½ï¿½ï¿½Ò¼Òµï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ÆÒÅÒ¼Òµå ¹öÇÁ Å¬·¡½º
 	@date : 2012/8/21/
 	*/
 class CX2CustomFunctionByBuffPhantomSword : public CX2CustomFunctionByBuff
@@ -467,7 +575,11 @@ private:
 	void InitializeDamageEffectThridBlade( CX2GameUnit* pGameUnit_ );
 	void InitializeMeshThirdBaldeCenter( CX2GameUnit* pGameUnit_ );
 	void CreateAndInsertThirdBladeData( CX2GameUnit* pGameUnit_, KLuaManager& luaManager_ );
-	void MoveDataDataToDamageEffect( CX2GameUnit* pGameUnit_ );
+	void MoveDataDataToDamageEffect( CX2GameUnit* pGameUnit_
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            , CX2DamageEffect::CEffect*   m_pDamageEffectThirdBlade
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        );
 
 private:
 	struct ThirdBladeMatrix
@@ -484,7 +596,7 @@ private:
 	struct ThirdBladeDamageData
 	{
 		CX2DamageManager::DamageData	m_DamageData;
-		D3DXVECTOR2						m_vAttackTime;	/// xï¿½ï¿½ Start, yï¿½ï¿½ Endï¿½ï¿½
+		D3DXVECTOR2						m_vAttackTime;	/// x´Â Start, y´Â End°ª
 		
 		ThirdBladeDamageData() : m_DamageData(), m_vAttackTime( 0.0f, 0.0f )
 		{
@@ -492,28 +604,32 @@ private:
 	};
 	typedef boost::shared_ptr<ThirdBladeDamageData> ThirdBladeDamageDataPtr;
 
-	const float MAGIC_PHANTOM_SWORD_DELAY;			/// ï¿½ï¿½ï¿½Ò¼Òµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	const float MAGIC_PHANTOM_DAMAGE_MULTIPLIER;	/// ï¿½ï¿½ï¿½Ò¼Òµï¿½ 1.2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	const float MAGIC_PHANTOM_STOP_TIME_DEF;		/// ï¿½ï¿½ï¿½Ò¼Òµå¿¡ ï¿½Â¾ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¾ï¿½Ç´ï¿½ ï¿½Ã°ï¿½
-	const float MAGIC_MAX_COUNT_CATCH_UP;			/// ï¿½ï¿½ï¿½Ò¼Òµå°¡ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ó°¡µï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ï¿½..ï¿½ï¿½?
+	const float MAGIC_PHANTOM_SWORD_DELAY;			/// ÆÒÅÒ¼Òµå µô·¹ÀÌ
+	const float MAGIC_PHANTOM_DAMAGE_MULTIPLIER;	/// ÆÒÅÒ¼Òµå 1.2¹è µ¥¹ÌÁö
+	const float MAGIC_PHANTOM_STOP_TIME_DEF;		/// ÆÒÅÒ¼Òµå¿¡ ¸Â¾ÒÀ» ¶§ ½ºÅ¾µÇ´Â ½Ã°£
+	const float MAGIC_MAX_COUNT_CATCH_UP;			/// ÆÒÅÒ¼Òµå°¡ ÇÑÅ¸ÀÓ ´Ê°Ô µû¶ó°¡µµ·Ï ÇÏ·Á´Â °Ç..°¡?
 
-	float											m_fThirdBladeTime;				/// ï¿½ï¿½ï¿½Ò¼Òµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ 
-	CX2DamageEffect::CEffect*						m_pDamageEffectThirdBlade;		/// ï¿½ï¿½ï¿½Ò¼Òµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
-	CKTDGXMeshPlayer::CXMeshInstanceHandle			m_hThirdBladeCenterMesh;		/// ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½...?
-	CKTDGXMeshPlayer::CXMeshInstanceHandle			m_hThirdBladeSheathMesh;
+	float											m_fThirdBladeTime;				/// ÆÒÅÒ¼Òµå ÇöÀç±îÁö ÁøÇàµÈ ½Ã°£ 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffectHandle                  m_hDamageEffectThirdBlade;		/// ÆÒÅÒ¼Òµå µ¥¹ÌÁöÀÌÆåÆ®
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CX2DamageEffect::CEffect*						m_pDamageEffectThirdBlade;		/// ÆÒÅÒ¼Òµå µ¥¹ÌÁöÀÌÆåÆ®
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CKTDGXMeshPlayer::CXMeshInstanceHandle			m_hThirdBladeCenterMesh;		/// ÀÌ ¸Þ½Ã ÀÌ¹ÌÁö´Â...?
+	//CKTDGXMeshPlayer::CXMeshInstanceHandle			m_hThirdBladeSheathMesh;
 
- 	std::queue<ThirdBladeMatrixPtr>					m_ThirdBladeMatrixQueue;		/// ï¿½ï¿½ï¿½Ò¼Òµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Å¥
- 	std::list<ThirdBladeDamageDataPtr>				m_ThirdBladeDamageDataList;		/// ï¿½ï¿½ï¿½Ò¼Òµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ list
+ 	std::queue<ThirdBladeMatrixPtr>					m_ThirdBladeMatrixQueue;		/// ÆÒÅÒ¼Òµå ¿òÁ÷ÀÓ ´ã´ç Å¥
+ 	std::list<ThirdBladeDamageDataPtr>				m_ThirdBladeDamageDataList;		/// ÆÒÅÒ¼Òµå µ¥¹ÌÁöÀÌÆåÆ®¿¡ Àû¿ëµÉ µ¥¹ÌÁö list
 
-	wstring											m_wstrPhantomBladeDamageDataName;	/// ï¿½ï¿½ï¿½Ò¼Òµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½
-	int												m_iPhantomBladeAttackTimeIndex;		/// ï¿½ï¿½ï¿½Ò¼Òµå°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+	string											m_strPhantomBladeDamageDataNameUTF8;	/// ÆÒÅÒ¼Òµå µ¥¹ÌÁöµ¥ÀÌÅÍ°¡ µû·Î ÀÖ´Â °æ¿ì, Àû¿ëÇÒ µ¥¹ÌÁöµ¥ÀÌÅ¸ Å×ÀÌºí ¸í
+	int												m_iPhantomBladeAttackTimeIndex;		/// ÆÒÅÒ¼Òµå°¡ Àû¿ëµÉ °ø°Ý Å¸ÀÔ
 	
-	D3DXVECTOR2										m_vPhantomBladeBackSpeed;	/// ï¿½ï¿½ï¿½Ò¼Òµï¿½ ï¿½é½ºï¿½Çµï¿½
-	CX2DamageManager::REACT_TYPE					m_PhantomBladeReActType;	/// ï¿½ï¿½ï¿½Ò¼Òµï¿½ï¿½ï¿½ ReactType
+	D3DXVECTOR2										m_vPhantomBladeBackSpeed;	/// ÆÒÅÒ¼Òµå ¹é½ºÇÇµå
+	CX2DamageManager::REACT_TYPE					m_PhantomBladeReActType;	/// ÆÒÅÒ¼ÒµåÀÇ ReactType
 };
 
 /** @class : CX2CustomFunctionByBuffBigBangStream
-	@brief : ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ºò¹ð½ºÆ®¸² ¹öÇÁ Å¬·¡½º
 	@date : 2012/8/30/
 	*/
 class CX2CustomFunctionByBuffBigBangStream : public CX2CustomFunctionByBuff
@@ -540,7 +656,7 @@ private:
 };
 
 /** @class : CX2CustomFunctionByBuffMarkOfCommand
-	@brief : ï¿½ï¿½ï¿½Ö°ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ÁöÈÖ°üÀÇ Ç¥¹öÇÁ Å¬·¡½º
 	@date : 2012/8/30/
 	*/
 class CX2CustomFunctionByBuffMarkOfCommand : public CX2CustomFunctionByBuff
@@ -554,27 +670,24 @@ public:
 		m_fBasicPosX[2] = -1100.0f;
 		m_fBasicPosX[3] = -800.0f;
 		m_fBasicPosX[4] = -1200.0f;
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // Ã» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // Ã» ½ºÅ³ °³Æí, ±èÁ¾ÈÆ
+		/// µ¥¹ÌÁö ÀÌÆåÆ®¸¦ Ãâ·ÂÇÒ °¹¼ö¸¦ ¾ò¾î¿È
 		m_uiDamageEffectCount = 3;
 		m_fAddPowerRate = static_cast<float>( kBuffBehaviorFactor_[1] );
 		
 		m_uiDamageEffectCount = min( 5, m_uiDamageEffectCount );
-		m_fMemoRate = kBuffBehaviorFactor_[0];	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0.0ï¿½ï¿½ ï¿½ï¿½ï¿½Ôµï¿½ ï¿½ï¿½ï¿½Ì´ï¿½.
-#else // UPGRADE_SKILL_SYSTEM_2013 // Ã» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		m_fMemoRate = kBuffBehaviorFactor_[0];	/// ¾øÀ¸¸é 0.0ÀÌ ´ëÀÔµÉ °ÍÀÌ´Ù.
+#else // UPGRADE_SKILL_SYSTEM_2013 // Ã» ½ºÅ³ °³Æí, ±èÁ¾ÈÆ
 		m_uiDamageEffectCount = static_cast<UINT>( kBuffBehaviorFactor_[0] );
 		m_uiDamageEffectCount = min( 5, m_uiDamageEffectCount );
-		m_fMemoRate = kBuffBehaviorFactor_[1];	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0.0ï¿½ï¿½ ï¿½ï¿½ï¿½Ôµï¿½ ï¿½ï¿½ï¿½Ì´ï¿½.
-#endif // UPGRADE_SKILL_SYSTEM_2013 // Ã» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		m_fMemoRate = kBuffBehaviorFactor_[1];	/// ¾øÀ¸¸é 0.0ÀÌ ´ëÀÔµÉ °ÍÀÌ´Ù.
+#endif // UPGRADE_SKILL_SYSTEM_2013 // Ã» ½ºÅ³ °³Æí, ±èÁ¾ÈÆ
 	}
 
 	~CX2CustomFunctionByBuffMarkOfCommand()
 	{}
 	
-	virtual void FunctionInCommonFrameMove( CX2GameUnit* pGameUnit_, KLuaManager& luaManager_ )
-	{
-		m_checkElapsedTime.OnFrameMove();
-	}
+	virtual void FunctionInCommonFrameMove( CX2GameUnit* pGameUnit_, KLuaManager& luaManager_ );
 
 	virtual void FunctionInDamageReact( CX2GameUnit* pGameUnit_, IN CX2DamageManager::DamageData& damageData_ );
 	
@@ -582,18 +695,18 @@ private:
 	void DoMarkOfCommand( CX2GameUnit* pGameUnit_, IN CX2DamageManager::DamageData& damageData_ );
 
 private:
-	UINT	m_uiDamageEffectCount;				/// ï¿½ß»ï¿½ï¿½ï¿½ ï¿½ï¿½Åº ï¿½ï¿½ï¿½ï¿½
-	CKTDXCheckElapsedTime	m_checkElapsedTime;	/// ï¿½Æ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î´ï¿½ ï¿½Ù½ï¿½ ï¿½ß»ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½	
+	UINT	m_uiDamageEffectCount;				/// ¹ß»çÇÒ Æ÷Åº °¹¼ö
+	CKTDXCheckElapsedTime	m_checkElapsedTime;	/// ¾Æ¹«¸® »¡¶óµµ ÀÌ°£°ß ¾ÈÀ¸·Î´Â ´Ù½Ã ¹ß»çÇÏÁö ¾ÊÀ½	
 	float m_fBasicPosX[5];
-	float m_fMemoRate;			/// ï¿½ï¿½ï¿½Ö°ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+	float m_fMemoRate;			/// ÁöÈÖ°üÀÇ Ç¥½Ä ¸Þ¸ð¸¦ ÀåÂøÇßÀ» ¶§ÀÇ È®·ü
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // Ã» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // Ã» ½ºÅ³ °³Æí, ±èÁ¾ÈÆ
 	float m_fAddPowerRate;
-#endif // UPGRADE_SKILL_SYSTEM_2013 // Ã» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#endif // UPGRADE_SKILL_SYSTEM_2013 // Ã» ½ºÅ³ °³Æí, ±èÁ¾ÈÆ
 };
 
 // /** @class : CX2CustomFunctionByBuffMagicalMakeUp
-// 	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½Å©ï¿½ï¿½ Ã³ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+// 	@brief : ¸ÅÁöÄÃ¸ÞÀÌÅ©¾÷ Ã³¸® Å¬·¡½º
 // 	@date : 2012/8/23/
 // */
 // class CX2CustomFunctionByBuffMagicalMakeUp : public CX2CustomFunctionByBuff
@@ -614,11 +727,15 @@ private:
 // };
 
 /** @class : C2StatDataByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ ½ºÅÈ Áõ°¡½Ã »ç¿ë
 	@date : 2012/7/23/
 */
 class CX2StatFactorByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2StatFactorByBuff> CX2StatFactorByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2StatFactorByBuff> CX2StatFactorByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2StatFactorByBuff : public CX2BuffIdentity
 {
 public:
@@ -634,18 +751,18 @@ public:
 #endif // VERIFY_STAT_BY_BUFF
 
 private:
-	KProtectedType<float>		m_fValue;				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½î¶² ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	KProtectedType<float>		m_fValue;				/// ½ºÅÈÀÇ Á¾·ù¿¡ µû¶ó ¾î¶² °ªÀÌµç µÉ ¼ö ÀÖÀ½
 };
 
 /** @class : CX2AdditionalStatByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ¿¡ ÀÇÇØ Ãß°¡µÇ´Â ½ºÅÈÁ¤º¸¸¦ ´ã´Â Å¬·¡½º
 	@date : 2012/8/6/
 */
 class CX2AdditionalStatByBuff
 {
 public:
 	CX2AdditionalStatByBuff() : m_fBasicStatValue( 0.0f ),
-		 /*ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½ï¿½ï¿½ 0 */m_fPassiveSum( 0.0f ), /*ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½ï¿½ï¿½ 1 */m_fPassiveMultiple( 1.0f ),
+		 /*ÇÕÀÇÇ×µî¿øÀº 0 */m_fPassiveSum( 0.0f ), /*°öÀÇÇ×µî¿øÀº 1 */m_fPassiveMultiple( 1.0f ),
 		m_fOptionValue( 0.0f ), m_fResultValue( 0.0f ), m_bMustChangeResultValue( false )
 	{
 		for ( UINT i = 0; i < BCT_END; ++i )
@@ -684,14 +801,14 @@ public:
 	
 	void UpdateResultValueByChangeType();
 
-	void UpdateResultValue();			/// ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	void CheckAndUpdateResultValue();	/// ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	void UpdateResultValue();			/// ±âº»½ºÅÈ °è»ê¿ë
+	void CheckAndUpdateResultValue();	/// ±âº»½ºÅÈ °è»ê¿ë
 
 	template<typename Func>
-	void UpdateResultValueWithOptionData( Func func_ptr, const int iUserLevel_, const float fModifier_ = 1.0f );	/// È®ï¿½å½ºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	void UpdateResultValueWithOptionData( Func func_ptr, const int iUserLevel_, const float fModifier_ = 1.0f );	/// È®Àå½ºÅÈ °è»ê¿ë
 
 	template<typename Func>
-	void CheckAndUpdateResultValueWithOptionData( Func func_ptr, const int iUserLevel_, const float fModifier_ = 1.0f );	/// È®ï¿½å½ºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½É¼Ç¼ï¿½Ä¡È­ ï¿½ï¿½ï¿½ï¿½)
+	void CheckAndUpdateResultValueWithOptionData( Func func_ptr, const int iUserLevel_, const float fModifier_ = 1.0f );	/// È®Àå½ºÅÈ °è»ê¿ë(¿É¼Ç¼öÄ¡È­ Àû¿ë)
 
 	void CreateAndInsertStatFactor( const BUFF_CHANGE_TYPE eChangeType_, const KBuffIdentity& BuffIdentity_, const float fStatValue_ );
 	bool UpdateAddtionalStatFactor( const BUFF_CHANGE_TYPE eChangeType_, const KBuffIdentity& BuffIdentity_, const float fValue_ );
@@ -711,36 +828,36 @@ private:
 #endif // VERIFY_STAT_BY_BUFF
 
 private:
-	KProtectedType<float>					m_fBasicStatValue;		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Þ¹ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½âº»ï¿½ï¿½(ï¿½âº»ï¿½ï¿½ï¿½ï¿½+ï¿½ï¿½ï¿½+ï¿½Ð½Ãºê½ºÅ³)
-	KProtectedType<float>					m_fPassiveSum;			/// ï¿½Ð½Ãºê½ºÅ³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Õ¹ï¿½ï¿½ï¿½
-	KProtectedType<float>					m_fPassiveMultiple;		/// ï¿½Ð½Ãºê½ºÅ³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	KProtectedType<float>					m_fOptionValue;			/// ï¿½ï¿½ï¿½Ï¿É¼Ç¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(ï¿½Ï´ï¿½, Ã¼ï¿½ï¿½, ï¿½ï¿½ï¿½Ý·ï¿½, ï¿½ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½È¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
-	vector<CX2StatFactorByBuffPtr>			m_vecStatFactorArray[BCT_END];	/// 0: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¡È¯, 1: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡, 2: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡, 3: ï¿½ï¿½ï¿½ï¿½
-	KProtectedType<float>					m_fArrayResultValueByChangeType[BCT_END];	/// ï¿½ï¿½ ChangeType ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+	KProtectedType<float>					m_fBasicStatValue;		/// ¼­¹ö·Î ºÎÅÍ Àü´Þ¹ÞÀº ¶Ç´Â ½ºÅ©¸³Æ®·ÎºÎÅÍ ÀÐÀº ½ºÅÈ ±âº»°ª(±âº»½ºÅÈ+Àåºñ+ÆÐ½Ãºê½ºÅ³)
+	KProtectedType<float>					m_fPassiveSum;			/// ÆÐ½Ãºê½ºÅ³Áß ½ºÅÈ ÇÕ¹èÀ²
+	KProtectedType<float>					m_fPassiveMultiple;		/// ÆÐ½Ãºê½ºÅ³Áß ½ºÅÈ °ö¹èÀ²
+	KProtectedType<float>					m_fOptionValue;			/// ¼ÒÄÏ¿É¼Ç¿¡ ÀÇÇÑ °ª(ÀÏ´Ü, Ã¼·Â, °ø°Ý·Â, ¹æ¾î·Âµî ½ºÅÈ¿¡¼­´Â »ç¿ëÇÏÁö ¾ÊÀ½)
+	vector<CX2StatFactorByBuffPtr>			m_vecStatFactorArray[BCT_END];	/// 0: ½ºÅÈÀÇ Ä¡È¯, 1: °íÁ¤¼öÄ¡, 2: ¿¬µ¿¼öÄ¡, 3: ¹èÀ²
+	KProtectedType<float>					m_fArrayResultValueByChangeType[BCT_END];	/// °¢ ChangeType º° °á°ú°ª
 	
-	KProtectedType<float>					m_fResultValue;				/// ï¿½ï¿½ï¿½ ChangeTypeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
-	std::bitset<BCT_END>					m_bitsetMustChange;			/// ï¿½ï¿½ ChangeTypeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	bool									m_bMustChangeResultValue;	/// m_fResultValueï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ true
+	KProtectedType<float>					m_fResultValue;				/// ¸ðµç ChangeTypeÀ» °í·ÁÇÑ °á°ú°ª(À§ÀÇ ¸®½ºÆ®µéÀ» °í·ÁÇÑ)
+	std::bitset<BCT_END>					m_bitsetMustChange;			/// °¢ ChangeTypeÀÇ °á°ú°ªÀÌ º¯°æµÇ¾ß ÇÏ´ÂÁö¿©ºÎ
+	bool									m_bMustChangeResultValue;	/// m_fResultValue¸¦ ´Ù½Ã ±¸ÇØ¾ß ÇÏ´Â °æ¿ì true
 
 };
 
 /** @function : UpdateResultValueWithOptionData
-	@brief : ï¿½É¼Ç¼ï¿½Ä¡È­ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ï¿½È¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½É¼Ç¼ï¿½Ä¡È­ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(func_ptr), ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½(iUserLevel_)
+	@brief : ¿É¼Ç¼öÄ¡È­¿Í °ü·ÃµÈ ½ºÅÈ¿¡ ´ëÇÑ º¯°æ °á°ú°ªÀ» °»½ÅÇÏ´Â ÇÔ¼ö
+	@param : ¿É¼Ç¼öÄ¡È­ÇÔ¼öÆ÷ÀÎÅÍ(func_ptr), À¯´Ö·¹º§(iUserLevel_)
 */
 template<typename Func>
 void CX2AdditionalStatByBuff::UpdateResultValueWithOptionData( Func func_ptr, const int iUserLevel_, const float fModifier_ /*= 1.0f*/ )
 {
-	if ( !m_vecStatFactorArray[BCT_SWAP_VALUE].empty() )	/// Ä¡È¯ï¿½ï¿½Ò°ï¿½ ï¿½Ö´Ù¸ï¿½
+	if ( !m_vecStatFactorArray[BCT_SWAP_VALUE].empty() )	/// Ä¡È¯¿ä¼Ò°¡ ÀÖ´Ù¸é
 	{
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¡È¯ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ¹«Á¶°Ç Ä¡È¯¿ä¼ÒÁß Á¦ÀÏ ³ªÁß¿¡ °É¸°°Í Àû¿ë
 		SetResultValue( m_fArrayResultValueByChangeType[BCT_SWAP_VALUE] );
 	}
-	else	/// Ä¡È¯ï¿½ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½
+	else	/// Ä¡È¯¿ä¼Ò°¡ ¾ø´Ù¸é
 	{
 		float fResultValue = GetBasicStatValue();
 		bool bShouldMinus = false;
-		/// ï¿½âº»ï¿½ï¿½ï¿½ï¿½ 0.0ï¿½Î°ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ 1.0ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ö°ï¿½
+		/// ±âº»°ªÀÌ 0.0ÀÎ°ÍÀº ÀÏ´Ü 1.0À» ´õ ÇØÁÖ°í
 		if( !( 0.0f < fResultValue ) )
 		{
 			fResultValue += 1.0f;
@@ -754,20 +871,30 @@ void CX2AdditionalStatByBuff::UpdateResultValueWithOptionData( Func func_ptr, co
 		float fMultiplier 
 			= ( 1 + func_ptr( fIntermediateValue, iUserLevel_ ) ) * ( 1 + GetPassiveSum() ) 
 			* GetPassiveMultiple() * m_fArrayResultValueByChangeType[BCT_PERCENT];
+
 		if ( fMultiplier > 0.0f )
 		{
-			// kimhc // if ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ fModifier_ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ï¿½Ø¼ï¿½ ï¿½Æ·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ù´ï¿½ ï¿½×»ï¿½ ï¿½Ï´Â°ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ ï¿½Ç´ï¿½ï¿½ï¿½
-			fMultiplier -= 1.0f;		/// ï¿½ï¿½ï¿½ï¿½ 1.0ï¿½ï¿½ ï¿½ï¿½ï¿½à¼­ 0.xx ï¿½ï¿½ï¿½Â·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½. (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½)
-			fMultiplier *= fModifier_;	/// ï¿½×°ï¿½ï¿½ï¿½ fModifier_ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö°ï¿½ (ï¿½Ìµï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ 0.5ï¿½ï¿½)
-			fMultiplier += 1.0f;
+#ifdef ADJUST_BUFF_CALCULATE
+			//ÀÌµ¿, Á¡ÇÁ¼Óµµ µîÀÇ °æ¿ì 0.5¹è¸¦ ÇØÁÖ´Âµ¥
+			//ÀÌ ¶§¹®¿¡ BattleFieldBuffFactor.lua¿¡¼­ °ªÀ» ÀÛ°Ô ¼³Á¤ÇØÁàµµ ÃÖ¼Ò 0.5ÀÌÇÏ·Î ³»·Á°¡Áö ¾Ê¾Æ µð¹öÇÁÂÊÀÇ ¿µÇâÀÌ ¹ÌºñÇÔ.
+			//µû¶ó¼­ BattleFieldBuffFactor.lua °ªÀÌ 1º¸´Ù Å¬ °æ¿ì(¹öÇÁ)¿¡´Â ±âÁ¸°ú °°ÀÌ 0.5¸¦ °öÇÏ°í
+			//1º¸´Ù ÀÛÀ» °æ¿ì(µð¹öÇÁ)ÀÏ °æ¿ì¿¡´Â 0.5¸¦ °öÇÏÁö ¾ÊÀ½.
+			if( m_fArrayResultValueByChangeType[BCT_PERCENT] >= 1.0f )
+#endif //ADJUST_BUFF_CALCULATE
+			{
+				// kimhc // if ¹®À¸·Î fModifier_ °ªÀ» ÆÇ´ÜÇØ¼­ ¾Æ·¡ ¼ö½ÄÀ» Àû¿ëÇÏ±â º¸´Ù´Â Ç×»ó ÇÏ´Â°Ô ´õ ³ªÀ» °ÍÀÌ¶ó ÆÇ´ÜÇÔ
+				fMultiplier -= 1.0f;		/// ¸ÕÀú 1.0À» »©Áà¼­ 0.xx »óÅÂ·Î ¸¸µç´Ù. (Áõ°¡·®¸¸ ±¸ÇÑ´Ù)
+				fMultiplier *= fModifier_;	/// ±×°ª¿¡ fModifier_ °ªÀ» °öÇØÁÖ°í (ÀÌµ¿, Á¡ÇÁ¼Óµµ µîÀÇ °æ¿ì 0.5¹è)
+				fMultiplier += 1.0f;
+			}
 
 			fResultValue *= fMultiplier;
 		}
 
 		if ( bShouldMinus )
-			fResultValue -= 1.0f;	/// ï¿½Ù½ï¿½ 1.0ï¿½ï¿½ ï¿½ï¿½ï¿½Ø´ï¿½.
+			fResultValue -= 1.0f;	/// ´Ù½Ã 1.0À» »©ÁØ´Ù.
 
-		fResultValue = max( fResultValue, 0.0f );	/// È¤ï¿½ï¿½ ï¿½ï¿½ï¿½Ì³Ê½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½Ö¼Ò°ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		fResultValue = max( fResultValue, 0.0f );	/// È¤½Ã ¸¶ÀÌ³Ê½ºÀÎ °æ¿ì¿¡´Â ÃÖ¼Ò°ªÀ» 0À¸·Î ¼³Á¤
 		
 		SetResultValue( fResultValue );
 	}
@@ -775,28 +902,32 @@ void CX2AdditionalStatByBuff::UpdateResultValueWithOptionData( Func func_ptr, co
 }
 
 /** @function : CheckAndUpdateResultValueWithOptionData
-	@brief : ï¿½É¼Ç¼ï¿½Ä¡È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½È¿ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½Ç´ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½É¼Ç¼ï¿½Ä¡È­ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(func_ptr), ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½(iUserLevel_)
+	@brief : ¿É¼Ç¼öÄ¡È­¿Í °ü·ÃÇÑ ½ºÅÈ¿¡ ´ëÇÏ¿© º¯°æµÇ¾ú´ÂÁö ¿©ºÎ¸¦ ÆÇ´ÜÇÏ°í °»½ÅÀ» ¼öÇàÇÏ°Ô ÇÏ´Â ÇÔ¼ö
+	@param : ¿É¼Ç¼öÄ¡È­ÇÔ¼öÆ÷ÀÎÅÍ(func_ptr), À¯´Ö·¹º§(iUserLevel_)
 */
 template<typename Func>
 void CX2AdditionalStatByBuff::CheckAndUpdateResultValueWithOptionData( Func func_ptr, const int iUserLevel_, const float fModifier_ /*= 1.0f*/ )
 {
 	if ( GetMustChangeResultValue() )
 	{
-		/// ï¿½ï¿½ Å¸ï¿½Ôºï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+		/// °¢ Å¸ÀÔº° ¸®½ºÆ® °»½Å
 		UpdateResultValueByChangeType();
 
-		/// ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÀüÃ¼°ª °»½Å
 		UpdateResultValueWithOptionData( func_ptr, iUserLevel_, fModifier_ );
 	}
 }
 
 /** @class : CX2Stun
-	@brief : ï¿½×·Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ±×·Î±â ½ºÅ×ÀÌÆ® °íÁ¤ È¿°ú Å¬·¡½º
 	@date : 2012/7/22/
 */
 class CX2Stun;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2Stun> CX2StunPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2Stun> CX2StunPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2Stun : public CX2BuffIdentity
 {
 public:
@@ -811,11 +942,15 @@ private:
 };
 
 /** @class : CX2Freeze
-	@brief : ï¿½×·Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ±×·Î±â ½ºÅ×ÀÌÆ® °íÁ¤ È¿°ú Å¬·¡½º
 	@date : 2012/7/22/
 */
 class CX2Freeze;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2Freeze> CX2FreezePtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2Freeze> CX2FreezePtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2Freeze : public CX2BuffIdentity
 {
 public:
@@ -830,11 +965,15 @@ private:
 };
 
 /** @class : CX2ChangeAttackByType
-	@brief : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : °ø°Ý Å¸ÀÔ¿¡ µû¸¥ µ¥¹ÌÁö Å¬·¡½º
 	@date : 2012/11/03/
 */
 class CX2ChangeAttackByType;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2ChangeAttackByType> CX2ChangeAttackByTypePtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2ChangeAttackByType> CX2ChangeAttackByTypePtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2ChangeAttackByType : public CX2BuffIdentity
 {
 public:
@@ -850,49 +989,80 @@ public:
 #endif // VERIFY_STAT_BY_BUFF
 
 private:
-	CX2DamageManager::ATTACK_TYPE	m_eAttackType;			///  ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+	CX2DamageManager::ATTACK_TYPE	m_eAttackType;			///  °ø°Ý Å¸ÀÔ
 
 #ifdef VERIFY_STAT_BY_BUFF
-	KProtectedType<float>			m_fValue;				///  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
+	KProtectedType<float>			m_fValue;				///  µ¥¹ÌÁö Áõ°¡Ä¡
 #else
-	float							m_fValue;				///  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
+	float							m_fValue;				///  µ¥¹ÌÁö Áõ°¡Ä¡
 #endif // VERIFY_STAT_BY_BUFF
 };
 
 /** @class : CX2ChangeEnchantAttackRate
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ßµï¿½ È®ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ¼ÒÄÏ ¼Ó¼º °ø°Ý ¹ßµ¿ È®·ü Å¬·¡½º
 	@date : 2012/11/03/
 */
 class CX2ChangeEnchantAttackRate;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2ChangeEnchantAttackRate> CX2ChangeEnchantAttackRatePtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2ChangeEnchantAttackRate> CX2ChangeEnchantAttackRatePtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2ChangeEnchantAttackRate : public CX2BuffIdentity
 {
 public:
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+	// ÀÎÃ¦Æ® ¼Ó¼º Å¸ÀÔ°ú º¯°æ Å¸ÀÔ Ãß°¡
+	CX2ChangeEnchantAttackRate( const KBuffIdentity& BuffIdentity_, float fRate_, BUFF_ENCHANT_ATTRIBUTE_TYPE eType_, BUFF_CHANGE_TYPE eChangeType_ )
+		: CX2BuffIdentity( BuffIdentity_ ), m_fRate( fRate_ ), m_eEnchantAttributeType ( eType_ ), m_eBuffChangeType ( eChangeType_)
+#else // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 	CX2ChangeEnchantAttackRate( const KBuffIdentity& BuffIdentity_, float fRate_ )
 		: CX2BuffIdentity( BuffIdentity_ ), m_fRate( fRate_ )
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 	{}
 
 	float			GetRate() const { return m_fRate; }
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+	BUFF_ENCHANT_ATTRIBUTE_TYPE	GetBuffEnchantAttributeType () const { return m_eEnchantAttributeType; }
+	BUFF_CHANGE_TYPE			GetBuffChangeType() const { return m_eBuffChangeType; }
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 
 #ifdef VERIFY_STAT_BY_BUFF
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+	// ÀÎÃ¦Æ® ¼Ó¼º Å¸ÀÔ°ú º¯°æ Å¸ÀÔ¿¡ Verify Ãß°¡
+	virtual bool	Verify() { return ( m_fRate.Verify() && m_eEnchantAttributeType.Verify() && m_eBuffChangeType.Verify() ); }
+#else // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 	virtual bool	Verify() { return m_fRate.Verify(); }
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+
 #endif // VERIFY_STAT_BY_BUFF
+
+
 
 private:
 
 #ifdef VERIFY_STAT_BY_BUFF
-	KProtectedType<float> m_fRate;				///  È®ï¿½ï¿½
+	KProtectedType<float> m_fRate;				///  È®·ü
 #else	// VERIFY_STAT_BY_BUFF
-	float				 m_fRate;				///  È®ï¿½ï¿½
+	float				 m_fRate;				///  È®·ü
 #endif // VERIFY_STAT_BY_BUFF
+
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+	KProtectedType<BUFF_ENCHANT_ATTRIBUTE_TYPE>		m_eEnchantAttributeType;		///  È®·ü
+	KProtectedType<BUFF_CHANGE_TYPE>				m_eBuffChangeType;				///  ¹öÇÁ º¯°æ Å¸ÀÔ ( BCT_FIX_VALUE, BCT_PERCENT µî.. )
+#endif // BALANCE_PATCH_20131107				// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 };
 
 /** @class : CX2DoubleAttackPtr
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ´õºí ¾îÅÃ Å¬·¡½º
 	@date : 2012/11/03/
 */
 class CX2DoubleAttack;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2DoubleAttack> CX2DoubleAttackPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2DoubleAttack> CX2DoubleAttackPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2DoubleAttack : public CX2BuffIdentity
 {
 public:
@@ -909,18 +1079,22 @@ public:
 private:
 	
 #ifdef VERIFY_STAT_BY_BUFF
-	KProtectedType<float> m_fRate;				///  È®ï¿½ï¿½
+	KProtectedType<float> m_fRate;				///  È®·ü
 #else	// VERIFY_STAT_BY_BUFF
-	float				m_fRate;				///	È®ï¿½ï¿½
+	float				m_fRate;				///	È®·ü
 #endif // VERIFY_STAT_BY_BUFF
 };
 
 /** @class : CX2AddSkillLevelByBuffPtr
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ´õºí ¾îÅÃ Å¬·¡½º
 	@date : 2013/04/16/
 */
 class CX2AddSkillLevelByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2AddSkillLevelByBuff> CX2AddSkillLevelByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2AddSkillLevelByBuff> CX2AddSkillLevelByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2AddSkillLevelByBuff : public CX2BuffIdentity
 {
 public:
@@ -937,20 +1111,24 @@ public:
 
 private:
 #ifdef VERIFY_STAT_BY_BUFF
-	KProtectedType<int> m_iAddSkillLevel;				///  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	KProtectedType<int> m_iAddSkillLevel;				///  Áõ°¨ÇÒ ½ºÅ³ ·¹º§
 #else	// VERIFY_STAT_BY_BUFF
-	int					m_iAddSkillLevel;				///  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	int					m_iAddSkillLevel;				///  Áõ°¨ÇÒ ½ºÅ³ ·¹º§
 #endif // VERIFY_STAT_BY_BUFF
 };
 
-#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
 
 /** @class : CX2ReflectMagicByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : °ø°Ý Å¸ÀÔ¿¡ µû¸¥ µ¥¹ÌÁö Å¬·¡½º
 	@date : 2013/07/10/
 */
 class CX2ReflectMagicByBuff;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2ReflectMagicByBuff> CX2ReflectMagicByBuffPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2ReflectMagicByBuff> CX2ReflectMagicByBuffPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 class CX2ReflectMagicByBuff : public CX2BuffIdentity
 {
 public:
@@ -962,7 +1140,7 @@ public:
 	virtual bool	Verify() { return m_fValue.Verify(); }
 
 private:
-	KProtectedType<float>			m_fValue;				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
+	KProtectedType<float>			m_fValue;				/// µ¥¹ÌÁö Áõ°¡Ä¡
 };
 
 #endif // SERV_ARA_CHANGE_CLASS_SECOND

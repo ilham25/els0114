@@ -1,5 +1,5 @@
 /**@file	X2PremiumBuff.cpp
-   @breif	ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å¸ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
+   @breif	ÈÞ¸é º¹±Í À¯Àú ¹öÇÁ ¹× ±âÅ¸ Æ¯¼ö ¹öÇÁ °ü¸® 
 */
 #pragma once
 
@@ -10,16 +10,16 @@
 
 #pragma region CX2PremiumBuffManager
 /** @function 	: CX2PremuimBuff
-	@brief 		: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	@param		: ï¿½ï¿½ï¿½ï¿½
-	@return		: ï¿½ï¿½ï¿½ï¿½
+	@brief 		: »ý¼ºÀÚ
+	@param		: ¾øÀ½
+	@return		: ¾øÀ½
 */
 CX2PremiumBuffManager::CX2PremiumBuffManager()
-	//{{ kimhc // 2011-08-08 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½Î¸ï¿½ ï¿½Ìºï¿½Æ®
+	//{{ kimhc // 2011-08-08 // Åõ´Ï ·£µå Ã¤³Î¸µ ÀÌº¥Æ®
 #ifdef	SERV_TOONILAND_CHANNELING_EVENT
-//: m_bTooniLandChannelingEvent( false )	/// ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ Ã¤ï¿½Î¸ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Å±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//: m_bTooniLandChannelingEvent( false )	/// Åõ´Ï·£µå Ã¤³Î¸µ ÀÌº¥Æ® µ¿¾È ½Å±Ô °èÁ¤À» »ý¼ºÇÑ À¯Àú
 #endif	SERV_TOONILAND_CHANNELING_EVENT
-//}} kimhc // 2011-08-08 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½Î¸ï¿½ ï¿½Ìºï¿½Æ®
+//}} kimhc // 2011-08-08 // Åõ´Ï ·£µå Ã¤³Î¸µ ÀÌº¥Æ®
 #ifdef BUFF_TEMPLET_SYSTEM
 : m_bBuffTempletUI( false )
 #endif
@@ -30,9 +30,9 @@ CX2PremiumBuffManager::CX2PremiumBuffManager()
 
 #pragma region ~CX2PremiumBuffManager
 /** @function 	: ~CX2PremuimBuff
-	@brief 		: ï¿½Ò¸ï¿½ï¿½ï¿½
-	@param		: ï¿½ï¿½ï¿½ï¿½
-	@return		: ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ¼Ò¸êÀÚ
+	@param		: ¾øÀ½
+	@return		: ¾øÀ½
 */
 CX2PremiumBuffManager::~CX2PremiumBuffManager()
 {
@@ -43,9 +43,9 @@ CX2PremiumBuffManager::~CX2PremiumBuffManager()
 
 #pragma region Clear
 /** @function 	: Clear
-	@brief 		: ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
-	@param		: ï¿½ï¿½ï¿½ï¿½
-	@return		: ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ¸â¹ö ÃÊ±âÈ­
+	@param		: ¾øÀ½
+	@return		: ¾øÀ½
 */
 void CX2PremiumBuffManager::Clear()
 {
@@ -87,8 +87,8 @@ void CX2PremiumBuffManager::Clear()
 
 #pragma region IsComeBackUser
 /** @function 	: IsComeBackUser
-	@brief 		: ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½
-	@param		: ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÈÞ¸é º¹±Í À¯Àú ÆÇ´Ü
+	@param		: ¾øÀ½
 	@return		: bool
 */
 bool CX2PremiumBuffManager::IsComeBackUser() const
@@ -99,9 +99,9 @@ bool CX2PremiumBuffManager::IsComeBackUser() const
 
 #pragma region SetComeBackUser
 /** @function 	: SetComeBackUser
-	@brief 		: ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÈÞ¸é º¹±Í À¯Àú ¼³Á¤
 	@param		: bool
-	@return		: ï¿½ï¿½ï¿½ï¿½
+	@return		: ¾øÀ½
 */
 void CX2PremiumBuffManager::SetComeBackUser( IN bool bComeBackUser_ )
 {
@@ -111,7 +111,7 @@ void CX2PremiumBuffManager::SetComeBackUser( IN bool bComeBackUser_ )
 
 #pragma region GetComeBackBuffEnd
 /** @function 	: GetComeBackBuffEnd
-	@brief 		: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ±ï¿½
+	@brief 		: ¹öÇÁ ³²Àº ½Ã°£ °ªÀ» ³Ñ±è
 	@return		: ref INT64
 */
 INT64 CX2PremiumBuffManager::GetComeBackBuffEnd() const
@@ -122,8 +122,8 @@ INT64 CX2PremiumBuffManager::GetComeBackBuffEnd() const
 
 #pragma region IsFirstComeBack
 /** @function 	: IsFirstComeBack
-	@brief 		: ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
-	@param		: ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÈÞ¸é º¹±Í À¯Àú Ã¹ Á¢¼Ó ¿©ºÎ È®ÀÎ
+	@param		: ¾øÀ½
 	@return		: bool
 */
 bool CX2PremiumBuffManager::IsFirstComeBack() const
@@ -134,8 +134,8 @@ bool CX2PremiumBuffManager::IsFirstComeBack() const
 
 #pragma region IsFirstComeBackBuffDesc
 /** @function 	: IsFirstComeBackBuffDesc
-	@brief 		: ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
-	@param		: ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÈÞ¸é º¹±Í À¯Àú Ã¹ Á¢¼Ó ¼³¸í Ç¥½Ã ¿©ºÎ È®ÀÎ
+	@param		: ¾øÀ½
 	@return		: bool
 */
 bool CX2PremiumBuffManager::IsFirstComeBackBuffDesc() const
@@ -146,7 +146,7 @@ bool CX2PremiumBuffManager::IsFirstComeBackBuffDesc() const
 
 #pragma region IsDescComplete
 /** @function 	: IsDescComplete
-	@brief 		: Premium Buff ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½Æ² È°ï¿½ï¿½È­
+	@brief 		: Premium Buff ¼³¸í È®ÀÎ ¿Ï·á ÈÄ Å¸ÀÌÆ² È°¼ºÈ­
 	@return		: bool
 */
 bool CX2PremiumBuffManager::IsDescComplete() const
@@ -157,9 +157,9 @@ bool CX2PremiumBuffManager::IsDescComplete() const
 
 #pragma region SetFirstComeBack
 /** @function 	: SetFirstComeBack
-	@brief 		: ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÈÞ¸é º¹±Í À¯Àú Ã¹ Á¢¼Ó ¼³Á¤
 	@param		: bool
-	@return		: ï¿½ï¿½ï¿½ï¿½
+	@return		: ¾øÀ½
 */
 void CX2PremiumBuffManager::SetFirstComeBack( IN bool bFirstComeBack_ )
 {
@@ -169,9 +169,9 @@ void CX2PremiumBuffManager::SetFirstComeBack( IN bool bFirstComeBack_ )
 
 #pragma region SetShowFirstComBackUI
 /** @function 	: SetShowFirstComBackUI
-	@brief 		: ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÈÞ¸é º¹±Í À¯Àú Ã¹ Á¢¼Ó ¼³Á¤
 	@param		: bool
-	@return		: ï¿½ï¿½ï¿½ï¿½
+	@return		: ¾øÀ½
 */
 void CX2PremiumBuffManager::SetShowFirstComBackUI( IN bool bShow_ )
 {
@@ -204,8 +204,8 @@ void CX2PremiumBuffManager::SetShowFirstComBackUI( IN bool bShow_ )
 
 #pragma region IsPremiumPC
 /** @function 	: IsPremiumPC
-	@brief 		: PCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
-	@param		: ï¿½ï¿½ï¿½ï¿½
+	@brief 		: PC¹æÀÎÁö È®ÀÎ
+	@param		: ¾øÀ½
 	@return		: bool
 */
 bool CX2PremiumBuffManager::IsPremiumPC() const
@@ -216,9 +216,9 @@ bool CX2PremiumBuffManager::IsPremiumPC() const
 
 #pragma region SetPremiumPC
 /** @function 	: SetPremiumPC
-	@brief 		: PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief 		: PC¹æ ¼³Á¤
 	@param		: bool
-	@return		: ï¿½ï¿½ï¿½ï¿½
+	@return		: ¾øÀ½
 */
 void CX2PremiumBuffManager::SetPremiumPC( IN bool bPremiumPC_ )
 {
@@ -228,8 +228,8 @@ void CX2PremiumBuffManager::SetPremiumPC( IN bool bPremiumPC_ )
 
 #pragma region GetShowPremiumBuffUI
 /** @function 	: GetShowPremiumBuffUI
-	@brief 		: ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ È®ï¿½ï¿½
-	@param		: ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÇÁ¸®¹Ì¾ö ¹öÇÁ Ç¥½Ã È®ÀÎ
+	@param		: ¾øÀ½
 	@return		: bool
 */
 bool CX2PremiumBuffManager::GetShowPremiumBuffUI() const
@@ -240,9 +240,9 @@ bool CX2PremiumBuffManager::GetShowPremiumBuffUI() const
 
 #pragma region SetShowPremiumBuffUI
 /** @function 	: SetShowPremiumBuffUI
-	@brief 		: ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÇÁ¸®¹Ì¾ö ¹öÇÁ Ç¥½Ã ¼³Á¤
 	@param		: bool
-	@return		: ï¿½ï¿½ï¿½ï¿½
+	@return		: ¾øÀ½
 */
 bool CX2PremiumBuffManager::SetShowPremiumBuffUI( IN bool bShow_ )
 {
@@ -252,11 +252,11 @@ bool CX2PremiumBuffManager::SetShowPremiumBuffUI( IN bool bShow_ )
 	case CX2Main::XS_VILLAGE_MAP:
 	case CX2Main::XS_DUNGEON_GAME:
 	//case CX2Main::XS_SERVER_SELECT:
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ¸¶À»°ú ´øÀüÀÎ °æ¿ì¿¡¸¸ ´ÙÀ½ ºÎºÐÀ» ¼öÇà
 		break;
 
 	default:
-		// ï¿½×¿ï¿½ï¿½ï¿½ Stateï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½ return
+		// ±×¿ÜÀÇ State¿¡¼­´Â ±×³É return
 		return false;
 		break;
 	}
@@ -284,7 +284,7 @@ bool CX2PremiumBuffManager::SetShowPremiumBuffUI( IN bool bShow_ )
 
 #pragma region GetViewBuffChat
 /** @function 	: GetViewBuffChat
-	@brief 		: Ã¤ï¿½ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief 		: Ã¤ÆÃÃ¢ ¹öÇÁ ¼³¸í °ü·Ã
 	@return		: bool
 */
 bool CX2PremiumBuffManager::GetViewBuffChat() const
@@ -295,7 +295,7 @@ bool CX2PremiumBuffManager::GetViewBuffChat() const
 
 #pragma region SetViewBuffChat
 /** @function 	: SetViewBuffChat
-	@brief 		: Ã¤ï¿½ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief 		: Ã¤ÆÃÃ¢ ¹öÇÁ ¼³¸í °ü·Ã
 	@param		: bool
 */
 void CX2PremiumBuffManager::SetViewBuffChat( IN bool bShow_ )
@@ -306,7 +306,7 @@ void CX2PremiumBuffManager::SetViewBuffChat( IN bool bShow_ )
 
 #pragma region IsComeBackUserInParty
 /** @function 	: IsComeBackUserInParty
-	@brief 		: ï¿½ï¿½Æ¼ ï¿½ß¿ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+	@brief 		: ÆÄÆ¼ Áß¿¡ ÈÞ¸é º¹±Í À¯Àú°¡ ÀÖ´ÂÁö È®ÀÎ
 	@return		: bool
 */
 bool CX2PremiumBuffManager::IsComeBackUserInParty() const
@@ -317,7 +317,7 @@ bool CX2PremiumBuffManager::IsComeBackUserInParty() const
 
 #pragma region SetComeBackUserInParty
 /** @function 	: SetComeBackUserInParty
-	@brief 		: ï¿½ï¿½Æ¼ ï¿½ß¿ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+	@brief 		: ÆÄÆ¼ Áß¿¡ ÈÞ¸é º¹±Í À¯Àú°¡ ÀÖ´ÂÁö È®ÀÎ
 	@param		: bool
 */
 void CX2PremiumBuffManager::SetComeBackUserInParty( IN bool bShow_ )
@@ -328,7 +328,7 @@ void CX2PremiumBuffManager::SetComeBackUserInParty( IN bool bShow_ )
 
 #pragma region UpdateGuideDescPremiumBuffUI
 /** @function 	: UpdateGuideDescPremiumBuffUI
-	@brief 		: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief 		: ¹öÇÁ ¾ÆÀÌÄÜ Ãâ·Â
 */
 void CX2PremiumBuffManager::UpdateGuideDescPremiumBuffUI()
 {
@@ -336,11 +336,11 @@ void CX2PremiumBuffManager::UpdateGuideDescPremiumBuffUI()
 	{
 	case CX2Main::XS_VILLAGE_MAP:
 	case CX2Main::XS_DUNGEON_GAME:
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ¸¶À»°ú ´øÀüÀÎ °æ¿ì¿¡¸¸ ´ÙÀ½ ºÎºÐÀ» ¼öÇà
 		break;
 
 	default:
-		// ï¿½×¿ï¿½ï¿½ï¿½ Stateï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½ return
+		// ±×¿ÜÀÇ State¿¡¼­´Â ±×³É return
 		return;
 		break;
 	}
@@ -361,7 +361,7 @@ void CX2PremiumBuffManager::UpdateGuideDescPremiumBuffUI()
 
 #pragma region UICustomEventProc
 /** @function 	: UICustomEventProc
-	@brief 		: UI ï¿½Ìºï¿½Æ®
+	@brief 		: UI ÀÌº¥Æ®
 	@param		: procedure
 	@return		: bool
 */
@@ -385,7 +385,7 @@ bool CX2PremiumBuffManager::UICustomEventProc( IN HWND hWnd, IN UINT uMsg, IN WP
 				m_bFirstComeBackBuffDesc = false;
 				m_pDLGComeBackUserBuffDesc->SetShowEnable( false, false );
 #ifdef SERV_EVENT_RETURN_USER_MARK
-				//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				//¿¤¸®¿À½º °¡ÀÌµåºÏ ÀÌº¥Æ® ÆäÀÌÁö ¿ÀÇÂ
 
 	#ifdef CHECK_INHERIT_STATE_MENU
 				if( g_pMain->IsInheritStateMenu() )
@@ -405,7 +405,7 @@ bool CX2PremiumBuffManager::UICustomEventProc( IN HWND hWnd, IN UINT uMsg, IN WP
 
 #pragma region UIServerEventProc
 /** @function 	: UIServerEventProc
-	@brief 		: ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
+	@brief 		: ¼­¹ö ÀÌº¥Æ®
 	@param		: procedure
 	@return		: bool
 */
@@ -445,7 +445,7 @@ bool CX2PremiumBuffManager::UIServerEventProc( IN HWND hWnd, IN UINT uMsg, IN WP
 
 #pragma region Handler_EGS_COME_BACK_USER_NOT
 /** @function 	: Handler_EGS_COME_BACK_USER_NOT
-	@brief 		: ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Dialog Ç¥ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½
+	@brief 		: ÈÞ¸é º¹±Í À¯Àú°¡ Ã³À½ Á¢¼ÓÇßÀ» ¶§ Dialog Ç¥½Ã¸¦ À§ÇØ¼­ »ç¿ë
 	@param		: HWND, UINT, WPARAM, LPARAM
 	@return		: bool
 */
@@ -483,8 +483,8 @@ bool CX2PremiumBuffManager::Handler_EGS_COME_BACK_USER_NOT( IN HWND hWnd, IN UIN
 
 
 /** @function : Handler_EGS_UPDATE_BUFF_INFO_IN_ROOM_NOT
-	@brief : ï¿½ï¿½ ï¿½È¿ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½, ï¿½Êµï¿½ )
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ) ( kBuffInfo )
+	@brief : ·ë ¾È¿¡ ÀÖ´Â À¯ÀúµéÀÇ ÄÉ¸¯ÅÍ¿¡ ´ëÇÑ ¼­¹ö ¹öÇÁ Ã³¸® ( ´ëÀü, ´øÀü, ÇÊµå )
+	@param : ¼­¹ö¿¡¼­ º¸³»ÁØ ¹öÇÁ Á¤º¸µé( Àû¿ë½ÃÄÑ¾ß ÇÒ ¹öÇÁ ¸ñ·Ï ) ( kBuffInfo )
 	@return : true
 */
 bool CX2PremiumBuffManager::Handler_EGS_UPDATE_BUFF_INFO_IN_ROOM_NOT( IN HWND hWnd, IN UINT uMsg, IN WPARAM wParam, IN LPARAM lParam )
@@ -503,28 +503,63 @@ bool CX2PremiumBuffManager::Handler_EGS_UPDATE_BUFF_INFO_IN_ROOM_NOT( IN HWND hW
 
 			if( NULL != pCX2Unit )
 			{
+	#ifdef SET_WORLD_BUFF_AT_RESURRECTION // ±èÅÂÈ¯			¹öÇÁ ÆåÅÍ ÀúÀå¿¡¼­ ¹öÇÁ ÆåÅÍ ¾ÆÀÌµð ÀúÀåÀ¸·Î º¯°æ
+				vector<BUFF_FACTOR_ID>& vecWorldBuffFactorID = pCX2Unit->GetWorldBuffFactorID();
+
+				BOOST_FOREACH( BUFF_FACTOR_ID eWorldBuffFactorID, vecWorldBuffFactorID )			/// ¸ðµç ¼­¹ö ¹öÇÁ ÇØÁ¦
+				{
+					CX2BuffFactorPtr ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( eWorldBuffFactorID );
+
+					if ( NULL != ptrBuffFactor )
+						pCX2GUUser->EraseBuffTempletFromGameUnit( ptrBuffFactor->GetBuffTempletID() );
+				}
+
+				vecWorldBuffFactorID.clear();	/// ¼­¹ö ¹öÇÁ ÀúÀå ÄÁÅ×ÀÌ³Ê ÃÊ±âÈ­
+	#else // SET_WORLD_BUFF_AT_RESURRECTION 
 				vector<CX2BuffFactorPtr>& vecWorldBuffFactorPtr = pCX2Unit->GetWorldBuffFactorPtr();
 
-				BOOST_FOREACH( CX2BuffFactorPtr WorldBuffFactorPtr, vecWorldBuffFactorPtr )			/// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				BOOST_FOREACH( CX2BuffFactorPtr WorldBuffFactorPtr, vecWorldBuffFactorPtr )			/// ¸ðµç ¼­¹ö ¹öÇÁ ÇØÁ¦
 				{
 					pCX2GUUser->EraseBuffTempletFromGameUnit( WorldBuffFactorPtr->GetBuffTempletID() );
 				}
 
-				vecWorldBuffFactorPtr.clear();	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½ ï¿½Ê±ï¿½È­
+				vecWorldBuffFactorPtr.clear();	/// ¼­¹ö ¹öÇÁ ÀúÀå ÄÁÅ×ÀÌ³Ê ÃÊ±âÈ­
+	#endif // SET_WORLD_BUFF_AT_RESURRECTION
 
-				BOOST_FOREACH( KBuffInfo& kBuffInfo, kEvent.m_vecActivateBuffList )			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				BOOST_FOREACH( KBuffInfo& kBuffInfo, kEvent.m_vecActivateBuffList )			/// ¼­¹ö¿¡¼­ ÁØ ¹öÇÁ Àû¿ë
 				{
+
+#ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+#pragma NOTE("ºü¸¥ ¼öÁ¤À» À§ÇØ ÀÓ½Ã ¿¹¿ÜÃ³¸® ÇÔ. °ü·Ã ÀÌº¥Æ® °è¼Ó »ç¿ëÇÏ·Á¸é º¯°æÇØ¾ß ÇÔ")
+					switch( kBuffInfo.m_kFactorInfo.m_iFactorID )
+					{
+					case BFI_EMPTY_EXP_BUFF:
+						if( CX2Game::GT_BATTLE_FIELD == g_pX2Game->GetGameType() )
+							continue;
+						break;
+					default:
+						break;
+					}
+#endif // SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+
 					UINT			 iFactorID	   = kBuffInfo.m_kFactorInfo.m_iFactorID;	/// Factor ID
 					CX2BuffFactorPtr ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( kBuffInfo.m_kFactorInfo.m_iFactorID );
 
 					if ( NULL != ptrBuffFactor )
 					{
-						CX2BuffFactorPtr ptrBuffFactorClone = ptrBuffFactor->GetClonePtr();	/// Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í·ï¿½ ï¿½ï¿½ï¿½ï¿½
+						CX2BuffFactorPtr ptrBuffFactorClone = ptrBuffFactor->GetClonePtr();	/// Å¬·Ð ¹öÇÁ ÆÑÅÍ·Î ´ëÀÔ
 
 						if ( NULL != ptrBuffFactorClone )
 						{
-							pCX2GUUser->SetBuffFactorToGameUnitByBuffFactorID( static_cast<UINT>( kBuffInfo.m_kFactorInfo.m_iFactorID ) );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-							vecWorldBuffFactorPtr.push_back( ptrBuffFactorClone );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#ifdef SET_WORLD_BUFF_AT_RESURRECTION // ±èÅÂÈ¯
+							/// ¹öÇÁ Àû¿ëÀ» ¼º°ø ÇÏ¿´°Å³ª, Á×Àº »óÅÂ¶ó¸é ¼­¹ö ¹öÇÁ Á¤º¸ ÀúÀå
+							if ( true == pCX2GUUser->SetBuffFactorToGameUnitByBuffFactorID( static_cast<UINT>( kBuffInfo.m_kFactorInfo.m_iFactorID ) ) ||
+								( pCX2GUUser->GetNowHp() <= 0.0f || pCX2GUUser->GetNowStateID() == CX2GUUser::GUSI_DIE ) )
+								vecWorldBuffFactorID.push_back( static_cast<BUFF_FACTOR_ID>( kBuffInfo.m_kFactorInfo.m_iFactorID ) );	/// ¼­¹ö ¹öÇÁ ÀúÀå
+	#else // SET_WORLD_BUFF_AT_RESURRECTION 
+							if ( true == pCX2GUUser->SetBuffFactorToGameUnitByBuffFactorID( static_cast<UINT>( kBuffInfo.m_kFactorInfo.m_iFactorID ) ) )	/// ¹öÇÁ Àû¿ë
+								vecWorldBuffFactorPtr.push_back( ptrBuffFactorClone );	/// ¼­¹ö ¹öÇÁ ÀúÀå
+	#endif // SET_WORLD_BUFF_AT_RESURRECTION
 						}
 					}
 				}
@@ -536,8 +571,8 @@ bool CX2PremiumBuffManager::Handler_EGS_UPDATE_BUFF_INFO_IN_ROOM_NOT( IN HWND hW
 }
 
 /** @function : Handler_EGS_UPDATE_BUFF_INFO_NOT
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ )
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ) ( kBuffInfo )
+	@brief : ·ëÀÌ ¾Æ´Ñ °÷¿¡ ÀÖ´Â ÀÚ½ÅÀÇ ÄÉ¸¯ÅÍ¿¡ ´ëÇÑ ¼­¹ö ¹öÇÁ ¾ÆÀÌÄÜ Ã³¸® ( ¸¶À» )
+	@param : ¼­¹ö¿¡¼­ º¸³»ÁØ ¹öÇÁ Á¤º¸µé( Àû¿ë½ÃÄÑ¾ß ÇÒ ¹öÇÁ ¸ñ·Ï ) ( kBuffInfo )
 	@return : true
 */
 bool CX2PremiumBuffManager::Handler_EGS_UPDATE_BUFF_INFO_NOT( IN HWND hWnd, IN UINT uMsg, IN WPARAM wParam, IN LPARAM lParam )
@@ -546,7 +581,7 @@ bool CX2PremiumBuffManager::Handler_EGS_UPDATE_BUFF_INFO_NOT( IN HWND hWnd, IN U
 	KEGS_UPDATE_BUFF_INFO_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
-	if( NULL != g_pX2Game )		/// ï¿½ï¿½ ï¿½È¿ï¿½ ï¿½Ö´Âµï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¿ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½Å´
+	if( NULL != g_pX2Game )		/// ·ë ¾È¿¡ ÀÖ´Âµ¥ ÇØ´ç ÆÐÅ¶ÀÌ ³¯¾Æ¿À¸é, µ¿ÀÛ ¾Ê½ÃÅ´
 		return true;
 
 	if(  NULL != g_pData && NULL != g_pData->GetMyUser() )
@@ -555,30 +590,76 @@ bool CX2PremiumBuffManager::Handler_EGS_UPDATE_BUFF_INFO_NOT( IN HWND hWnd, IN U
 
 		if( NULL != pCX2Unit )
 		{
+#ifdef SET_WORLD_BUFF_AT_RESURRECTION // ±èÅÂÈ¯
+			vector<BUFF_FACTOR_ID>& vecWorldBuffFactorID = pCX2Unit->GetWorldBuffFactorID();
+
+			BOOST_FOREACH( BUFF_FACTOR_ID eWorldBuffFactorID, vecWorldBuffFactorID )				/// ¸ðµç ¼­¹ö ¹öÇÁ ¾ÆÀÌÄÜ ÇØÁ¦
+			{
+				CX2BuffFactorPtr ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( eWorldBuffFactorID );
+
+				if ( NULL != ptrBuffFactor )
+				{
+					CX2BuffTempletPtr ptrBuffTemplet = CX2BuffTempletManager::GetInstance()->GetBuffTempletPtr( ptrBuffFactor->GetBuffTempletID() );
+
+#ifdef BUFF_ICON_UI
+					if( NULL != ptrBuffTemplet && true == ptrBuffTemplet->GetUseBuffIcon() )
+					{
+						CX2GageManager::GetInstance()->EraseBuff( pCX2Unit->GetUID(), ptrBuffTemplet->GetBuffTempletID(), ptrBuffTemplet->IsDeBuff() );
+					}
+#endif // BUFF_ICON_UI
+				}
+			}
+
+			vecWorldBuffFactorID.clear();	/// ¼­¹ö ¹öÇÁ ÀúÀå ÄÁÅ×ÀÌ³Ê ÃÊ±âÈ­
+#else // SET_WORLD_BUFF_AT_RESURRECTION
 			vector<CX2BuffFactorPtr>& vecWorldBuffFactorPtr = pCX2Unit->GetWorldBuffFactorPtr();
 
-			BOOST_FOREACH( CX2BuffFactorPtr WorldBuffFactorPtr, vecWorldBuffFactorPtr )				/// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			BOOST_FOREACH( CX2BuffFactorPtr WorldBuffFactorPtr, vecWorldBuffFactorPtr )				/// ¸ðµç ¼­¹ö ¹öÇÁ ¾ÆÀÌÄÜ ÇØÁ¦
 			{
 				CX2BuffTempletPtr ptrBuffTemplet = CX2BuffTempletManager::GetInstance()->GetBuffTempletPtr( WorldBuffFactorPtr->GetBuffTempletID() );
 
-#ifdef BUFF_ICON_UI
+	#ifdef BUFF_ICON_UI
 				if( NULL != ptrBuffTemplet && true == ptrBuffTemplet->GetUseBuffIcon() )
 				{
 					CX2GageManager::GetInstance()->EraseBuff( pCX2Unit->GetUID(), ptrBuffTemplet->GetBuffTempletID(), ptrBuffTemplet->IsDeBuff() );
 				}
-#endif // BUFF_ICON_UI
+	#endif // BUFF_ICON_UI
 			}
 
-			vecWorldBuffFactorPtr.clear();	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½ ï¿½Ê±ï¿½È­
+			vecWorldBuffFactorPtr.clear();	/// ¼­¹ö ¹öÇÁ ÀúÀå ÄÁÅ×ÀÌ³Ê ÃÊ±âÈ­
+#endif // SET_WORLD_BUFF_AT_RESURRECTION
 
-			BOOST_FOREACH( KBuffInfo& kBuffInfo, kEvent.m_vecActivateBuffList )				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			BOOST_FOREACH( KBuffInfo& kBuffInfo, kEvent.m_vecActivateBuffList )				/// ¼­¹ö¿¡¼­ ÁØ ¹öÇÁ ¾ÆÀÌÄÜ Àû¿ë
 			{
+#ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+#pragma NOTE("ºü¸¥ ¼öÁ¤À» À§ÇØ ÀÓ½Ã ¿¹¿ÜÃ³¸® ÇÔ. °ü·Ã ÀÌº¥Æ® °è¼Ó »ç¿ëÇÏ·Á¸é º¯°æÇØ¾ß ÇÔ")
+				switch( kBuffInfo.m_kFactorInfo.m_iFactorID )
+				{
+				case BFI_EMPTY_EXP_BUFF:
+					continue;
+					break;
+				default:
+					break;
+				}
+#endif // SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+
+#ifdef FIX_REFORM_ENTRY_POINT_7TH					// ±èÁ¾ÈÆ, ±ÍÈ¯ÀÚ ¿¥ºí·½ Ãâ·Â ºÎºÐ Emblem Manager ·Î º¯°æ
+				switch( kBuffInfo.m_kFactorInfo.m_iFactorID )
+				{
+					// ¼­¹ö·Î ºÎÅÍ ¹ÞÀº ¹öÇÁÀÇ Factor ID °¡ ±ÍÈ¯ÀÚ ¹öÇÁ ÀÏ ¶§ ¿¥ºí·½À» Ãâ·ÂÇÑ´Ù.
+					case BFI_BUFF_RETURN_OF_HERO:
+						CX2EmblemManager::GetInstance()->PlayEmblem(CX2EmblemManager::EI_RETURN_OF_HERO, true);					
+						break;
+					default:
+						break;
+				}
+#endif // FIX_REFORM_ENTRY_POINT_7TH				// ±èÁ¾ÈÆ, ±ÍÈ¯ÀÚ ¿¥ºí·½ Ãâ·Â ºÎºÐ Emblem Manager ·Î º¯°æ
 				UINT			 iFactorID	   = kBuffInfo.m_kFactorInfo.m_iFactorID;		/// Factor ID
 				CX2BuffFactorPtr ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( kBuffInfo.m_kFactorInfo.m_iFactorID );
 
 				if ( NULL != ptrBuffFactor )
 				{
-					CX2BuffFactorPtr ptrBuffFactorClone = ptrBuffFactor->GetClonePtr();		/// Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í·ï¿½ ï¿½ï¿½ï¿½ï¿½
+					CX2BuffFactorPtr ptrBuffFactorClone = ptrBuffFactor->GetClonePtr();		/// Å¬·Ð ¹öÇÁ ÆÑÅÍ·Î ´ëÀÔ
 
 					if ( NULL != ptrBuffFactorClone )
 					{
@@ -589,25 +670,23 @@ bool CX2PremiumBuffManager::Handler_EGS_UPDATE_BUFF_INFO_NOT( IN HWND hWnd, IN U
 						{
 							if( true == ptrBuffTemplet->GetUseBuffIcon() )
 							{
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-								CX2GageManager::GetInstance()->PushBuff( pCX2Unit->GetUID(), CX2GageUI::BuffIcon( ptrBuffTemplet->GetBuffTempletID(),ptrBuffTemplet->GetIconFileName(),
-									ptrBuffTemplet->GetIconKeyName() , ptrBuffTemplet->GetBuffName(), ptrBuffTemplet->GetBuffDesc(), ptrBuffTemplet->GetRemainDurationTime() ), ptrBuffTemplet->IsDeBuff() );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-#else
-								CX2GageManager::GetInstance()->PushBuff( pCX2Unit->GetUID(), CX2GageUI::BuffIcon( ptrBuffTemplet->GetBuffTempletID(),ptrBuffTemplet->GetIconFileName(),
-									ptrBuffTemplet->GetIconKeyName() , ptrBuffTemplet->GetBuffName(), ptrBuffTemplet->GetBuffDesc() ), ptrBuffTemplet->IsDeBuff() );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
+								CX2GageManager::GetInstance()->PushBuff( pCX2Unit->GetUID(), CX2GageUI::BuffIcon( ptrBuffTemplet->GetBuffTempletID(),ptrBuffTemplet->GetIconFileName(), 
+									ptrBuffTemplet->GetIconKeyName() , ptrBuffTemplet->GetBuffName(), ptrBuffTemplet->GetBuffDesc() ), ptrBuffTemplet->IsDeBuff() );	/// ¹öÇÁ ¾ÆÀÌÄÜ Àû¿ë
 							}
 						}
 #endif // BUFF_ICON_UI
 
-						vecWorldBuffFactorPtr.push_back( ptrBuffFactorClone );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef SET_WORLD_BUFF_AT_RESURRECTION // ±èÅÂÈ¯
+						vecWorldBuffFactorID.push_back( static_cast<BUFF_FACTOR_ID>( kBuffInfo.m_kFactorInfo.m_iFactorID ) );	/// ¼­¹ö ¹öÇÁ ÀúÀå
+#else // SET_WORLD_BUFF_AT_RESURRECTION
+						vecWorldBuffFactorPtr.push_back( ptrBuffFactorClone );	/// ¼­¹ö ¹öÇÁ ÀúÀå
+#endif // SET_WORLD_BUFF_AT_RESURRECTION
 
 					}
 				}
 			}
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ç¼³ï¿½ï¿½
-			if ( NULL != pCX2Unit->GetUnitData() )
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
+			/// ¹öÇÁ·Î ÀÎÇÏ¿© Ãß°¡µÈ ½ºÅ³ ·¹º§ Àç¼³Á¤
 				pCX2Unit->ResetIncreaseSkillLevelByBuff();
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 
@@ -620,7 +699,7 @@ bool CX2PremiumBuffManager::Handler_EGS_UPDATE_BUFF_INFO_NOT( IN HWND hWnd, IN U
 
 #pragma region Handler_EGS_COME_BACK_BUFF_NOT
 /** @function 	: Handler_EGS_COME_BACK_BUFF_NOT
-	@brief 		: ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief 		: ÈÞ¸Õ º¹±Í À¯ÀúÀÏ °æ¿ì
 	@param		: HWND, UINT, WPARAM, LPARAM
 	@return		: bool
 */
@@ -658,14 +737,14 @@ HRESULT CX2PremiumBuffManager::OnFrameMove( IN double fTime, IN float fElapsedTi
 		{
 			if ( false == GetShowPremiumBuffUI() )
 			{
-				// NPCï¿½ï¿½ ï¿½ï¿½È­ ï¿½ßµï¿½ ï¿½Æ´Ï°ï¿½, ï¿½Å·ï¿½ ï¿½ï¿½ï¿½åµµ ï¿½Æ´Ï¸ï¿½
+				// NPC¿Í ´ëÈ­ Áßµµ ¾Æ´Ï°í, °Å·¡ ±¤Àåµµ ¾Æ´Ï¸é
 				if ( ( NULL != g_pTFieldGame && false == g_pTFieldGame->GetJoinNpc() ) &&
 					( NULL == g_pSquareGame ) )
 					SetShowPremiumBuffUI( true );
 			}
 			else
 			{
-				// NPCï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½Ì°Å³ï¿½, ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½
+				// NPC¿Í ´ëÈ­ÁßÀÌ°Å³ª, °Å·¡ ±¤ÀåÀÌ¸é
 				if ( ( NULL != g_pTFieldGame && true == g_pTFieldGame->GetJoinNpc() ) ||
 					( NULL != g_pSquareGame ) )
 					SetShowPremiumBuffUI( false );
@@ -697,13 +776,13 @@ HRESULT CX2PremiumBuffManager::OnFrameMove( IN double fTime, IN float fElapsedTi
 			{
 				pStateMenu->SetShowBuffTempletIcon( true );
 
-				if( NULL != g_pData && NULL != g_pData->GetCashShop() )		//Ä³ï¿½Ã¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
+				if( NULL != g_pData && NULL != g_pData->GetCashShop() )		//Ä³½Ã¼¥ÀÌ ¿­·Á ÀÖÀ» ¶§, ¾ÆÀÌÄÜ Ç¥½Ã¸¦ ¸·´Â´Ù.
 				{
 					if( true == g_pData->GetCashShop()->GetOpen() )
 						pStateMenu->SetShowBuffTempletIcon( false );
 				}
 
-				// NPCï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½,
+				// NPC¿Í ´ëÈ­ÁßÀÏ ¶§,
 				if ( NULL != g_pTFieldGame && true == g_pTFieldGame->GetJoinNpc() )
 				{
 					pStateMenu->SetShowBuffTempletIcon( false );
@@ -730,7 +809,7 @@ void CX2PremiumBuffManager::InsertPremiumBuff( const CX2PremiumBuffTemplet::BUFF
 {
 	const WCHAR* pFileName	= NULL;
 	const WCHAR* pKeyName	= NULL;
-	bool		 bUsingIcon = NULL; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	bool		 bUsingIcon = NULL; //¹öÇÁ ¾ÆÀÌÄÜ »ç¿ë À¯¹«
 
 	//if ( false == GetFileAndKeyName( ePremiumBuffID_, &pFileName, &pKeyName ) )
 	if ( false == GetFileAndKeyName( ePremiumBuffID_, &pFileName, &pKeyName, &bUsingIcon ) )
@@ -785,78 +864,78 @@ bool CX2PremiumBuffManager::GetFileAndKeyName( IN const CX2PremiumBuffTemplet::B
 			*ppKeyName_	= L"BUBBLE_EVENT";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_PROTECTION_OF_NUT:			// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½È£   ( ï¿½ï¿½ï¿½ )
+	case CX2PremiumBuffTemplet::BI_PROTECTION_OF_NUT:			// ´©Æ®ÀÇ °¡È£   ( ºñ¾à )
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"NUTE";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_PROTECTION_OF_PUTA:			// ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½È£   ( ï¿½ï¿½ï¿½ )
+	case CX2PremiumBuffTemplet::BI_PROTECTION_OF_PUTA:			// ÇÁÅ¸ÀÇ °¡È£   ( ºñ¾à )
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"PTA";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_PROTECTION_OF_LAHELL:		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£   ( ï¿½ï¿½ï¿½ )
+	case CX2PremiumBuffTemplet::BI_PROTECTION_OF_LAHELL:		// ¶óÇïÀÇ °¡È£   ( ºñ¾à )
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"RAHEL";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_PROTECTION_OF_JAKIELL:		// ï¿½ï¿½Å°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£ ( ï¿½ï¿½ï¿½ )
+	case CX2PremiumBuffTemplet::BI_PROTECTION_OF_JAKIELL:		// ÀÚÅ°¿¤ÀÇ °¡È£ ( ºñ¾à )
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"JAKIEL";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_BELSSING_OF_SERAPHIM:		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àº¹	 ( ï¿½ï¿½ï¿½ï¿½ )
+	case CX2PremiumBuffTemplet::BI_BELSSING_OF_SERAPHIM:		// ¼¼¶óÇËÀÇ Ãàº¹	 ( ¿µ¾à )
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"SERAPHIM";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_BELSSING_OF_GEV:				// ï¿½Ôºï¿½ï¿½ï¿½ ï¿½àº¹	 ( ï¿½ï¿½ï¿½ï¿½ )
+	case CX2PremiumBuffTemplet::BI_BELSSING_OF_GEV:				// °ÔºêÀÇ Ãàº¹	 ( ¿µ¾à )
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"GEV";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_BELSSING_OF_AMON:			// ï¿½Æ¸ï¿½ï¿½ï¿½ ï¿½àº¹	 ( ï¿½ï¿½ï¿½ï¿½ )
+	case CX2PremiumBuffTemplet::BI_BELSSING_OF_AMON:			// ¾Æ¸óÀÇ Ãàº¹	 ( ¿µ¾à )
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"AMON";
 		} break;
 		
-	case CX2PremiumBuffTemplet::BI_BELSSING_OF_CRONOS:			// Å©ï¿½Î³ë½ºï¿½ï¿½ ï¿½àº¹ ( ï¿½ï¿½ï¿½ï¿½ )
+	case CX2PremiumBuffTemplet::BI_BELSSING_OF_CRONOS:			// Å©·Î³ë½ºÀÇ Ãàº¹ ( ¿µ¾à )
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"CRONOS";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_SAVE_CRYSTAL_BUFF_LEVEL_1:	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Level 1
+	case CX2PremiumBuffTemplet::BI_SAVE_CRYSTAL_BUFF_LEVEL_1:	// ¾îµÒÀÇ ¹® °³ÀÎ º¸»ó ¹öÇÁ Level 1
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"HERO";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_SAVE_CRYSTAL_BUFF_LEVEL_2:	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Level 2
+	case CX2PremiumBuffTemplet::BI_SAVE_CRYSTAL_BUFF_LEVEL_2:	// ¾îµÒÀÇ ¹® °³ÀÎ º¸»ó ¹öÇÁ Level 2
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"HERO";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_SAVE_CRYSTAL_BUFF_LEVEL_3:	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Level 3
+	case CX2PremiumBuffTemplet::BI_SAVE_CRYSTAL_BUFF_LEVEL_3:	// ¾îµÒÀÇ ¹® °³ÀÎ º¸»ó ¹öÇÁ Level 3
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"HERO";
 		} break;
 
-	case CX2PremiumBuffTemplet::BI_SAVE_CRYSTAL_BUFF_LEVEL_4:	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Level 4
+	case CX2PremiumBuffTemplet::BI_SAVE_CRYSTAL_BUFF_LEVEL_4:	// ¾îµÒÀÇ ¹® °³ÀÎ º¸»ó ¹öÇÁ Level 4
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"HERO";
 		} break;
-	case CX2PremiumBuffTemplet::BI_STRENGTHENING_BODY:			// ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½Ã¼ ( ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ )
+	case CX2PremiumBuffTemplet::BI_STRENGTHENING_BODY:			// °­È­µÈ ½ÅÃ¼ ( ºñ¾à »ç¿ë Á¦ÇÑ µð¹öÇÁ )
 		{
 			*ppFileName_	= L"DLG_ui_button20.tga";
 			*ppKeyName_	= L"DEBUFF";
@@ -864,15 +943,15 @@ bool CX2PremiumBuffManager::GetFileAndKeyName( IN const CX2PremiumBuffTemplet::B
 
 	default:
 		{
-			//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½. ( ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+			//¹öÇÁ ¾ÆÀÌÄÜÀÌ ¾ø´Â ¹öÇÁÀÎ °æ¿ì, ¾ÆÀÌÄÜÀ» Ç¥½ÃÇÏÁö ¾Ê´Â´Ù. ( ¿¹ : ¿¤ÀÇ ¼öÁ¤ ¹öÇÁ )
 			*ppFileName_	= NULL;
 			*ppKeyName_		= NULL;
-			*bUsingIcon_	= false;	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½
+			*bUsingIcon_	= false;	//¹öÇÁ ¾ÆÀÌÄÜ ¹Ì»ç¿ë
 
 			return false;
 		} break;
 	}
-	*bUsingIcon_ = true;				//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+	*bUsingIcon_ = true;				//¹öÇÁ ¾ÆÀÌÄÜ »ç¿ëÁß
 	return true;
 }
 
@@ -910,26 +989,16 @@ void CX2PremiumBuffManager::AddBuffInfo_LUA()
 	}
 }
 
-void CX2PremiumBuffManager::OpenScriptFile( const char* szScriptFileName_ )
+void CX2PremiumBuffManager::OpenScriptFile( const wchar_t* wszScriptFileName_ )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "BuffManager", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szScriptFileName_ );
-
-	if ( NULL == Info )
-	{
-		ASSERT( !"LoadDataFile doesn't work!" );
-		ErrorLogMsg( XEM_ERROR1, szScriptFileName_ );
-		//return false;
-	}
-
-	if ( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
+    if ( g_pKTDXApp->LoadLuaTinker( wszScriptFileName_ ) == false )
+    {
 		ASSERT( !"DoMemory doesn't work!" );
-		ErrorLogMsg( XEM_ERROR2, szScriptFileName_ );
+		ErrorLogMsg( XEM_ERROR2, wszScriptFileName_ );
 		//return false;
-	}
+    }
 }
 
 CX2PremiumBuffTempletPtr CX2PremiumBuffManager::GetPremiumBuffTempletPtr( const CX2PremiumBuffTemplet::BUFF_ID ePremiumBuffID_ )
@@ -963,7 +1032,7 @@ void CX2PremiumBuffManager::GetSocketOptions( IN const vector<int>& vecBuffIdLis
 		vecBuffSocetOptions_.insert( vecBuffSocetOptions_.end(), vecSocketOptionsPerBuff.begin(), vecSocketOptionsPerBuff.end() );
 	}
 }
-/* ï¿½Êµå¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥
+/* ÇÊµå¿¡¼­ »ç¿ëÁßÀÎ ¹öÇÁ ¾ÆÀÌÄÜ ÁÂÇ¥
 const float				CX2PremiumBuffIcon::POSITION_X		= 264.0f;
 const float				CX2PremiumBuffIcon::POSITION_Y		= 686.0f;
 */
@@ -987,9 +1056,9 @@ CX2PremiumBuffIcon::~CX2PremiumBuffIcon()
 void CX2PremiumBuffIcon::CreateBuffIcon( const WCHAR* pFileName_, const WCHAR* pKeyName_ )
 {
 /*
-	m_pDlgBuffIcon = new CKTDGUIDialog( NULL, L"DLG_UI_Buff_Icon.lua" );	//ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	m_pDlgBuffIcon = new CKTDGUIDialog( NULL, L"DLG_UI_Buff_Icon.lua" );	//ÀÓ½Ã ¼³Á¤
 
-	CKTDGUIButton* pButton = static_cast<CKTDGUIButton*>( m_pDlgBuffIcon->GetControl( L"Button_Buff_Icon" ) );	//ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	CKTDGUIButton* pButton = static_cast<CKTDGUIButton*>( m_pDlgBuffIcon->GetControl( L"Button_Buff_Icon" ) );	//ÀÓ½Ã ¼³Á¤
 	if ( NULL != pButton )
 	{
 		pButton->SetNormalTex( pFileName_, pKeyName_ );  
@@ -1075,7 +1144,7 @@ bool CX2PremiumBuffTemplet::ParsingScript( IN KLuaManager& luaManager_ )
 		while ( luaManager_.GetValue( iIndex, iSocketOption ) ) {
 			m_vecSocketOptions.push_back( iSocketOption );
 			++iIndex;
-			iSocketOption = 0; // ï¿½Ê±ï¿½È­
+			iSocketOption = 0; // ÃÊ±âÈ­
 		}
 		luaManager_.EndTable();
 	}
@@ -1102,19 +1171,19 @@ wstring CX2PremiumBuffManager::GetPcBangBuffString()
 	switch( m_kPcBangReward.m_iPcBangType )
 	{
 	case 0:
-		// ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ÇÁ¸®¹Ì¾ö PC¹æ ¼­ºñ½º
 		wstrPcBangBuff = GET_STRING( STR_ID_20839 );
 		break;
 	case 1:
-		// ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ÇÁ¸®¹Ì¾ö PC¹æ ¼­ºñ½º
 		wstrPcBangBuff = GET_STRING( STR_ID_23944 );
 		break;
 	case 2:
-		// ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½++
+		// ÇÁ¸®¹Ì¾ö PC¹æ ¼­ºñ½º++
 		wstrPcBangBuff = GET_STRING( STR_ID_23945 );
 		break;
 	case 3:
-		// ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½++
+		// ÇÁ¸®¹Ì¾ö PC¹æ ¼­ºñ½º++
 		wstrPcBangBuff = GET_STRING( STR_ID_23946 );
 		break;
 	default:
@@ -1123,58 +1192,58 @@ wstring CX2PremiumBuffManager::GetPcBangBuffString()
 	wstrPcBangBuff += L"\n";
 
 	// STR_ID_20840
-	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½Ä¡ +20%\nPCï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸®(ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½Å¸) ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½\nPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ÄªÈ£ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½\nï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½\nï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ +2È¸ ï¿½ß°ï¿½
+	// ±Ù¼ºµµ ¹«Á¦ÇÑ, °æÇèÄ¡ +20%\nPC¹æ ÀÎº¥Åä¸®(Àü¿ë ¾Æ¹ÙÅ¸) »ç¿ë °¡´É\nPC¹æ Àü¿ë ÄªÈ£ »ç¿ë °¡´É\nºñ¹Ð´øÀü ÀÏ¹Ý ¹«Á¦ÇÑ ÀÔÀå\nÇì´Ï¸£ÀÇ ½Ã°ø º¸»ó È½¼ö +2È¸ Ãß°¡
 
-	// ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+	// ±Ù¼ºµµ ¹«Á¦ÇÑ 
 	if( m_kPcBangReward.m_bSpiritFree == true )
 	{
 		wstrPcBangBuff += GET_STRING( STR_ID_23935 );
 		wstrPcBangBuff += _GetLastString( wstrPcBangBuff );
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½Ä¡ +@1%
+	// °æÇèÄ¡ +@1%
 	if( m_kPcBangReward.m_fEXPRate > 0.0f )
 	{
 		wstrPcBangBuff += GET_REPLACED_STRING( ( STR_ID_23936, "f", m_kPcBangReward.m_fEXPRate * 100.0f ) );
 		wstrPcBangBuff += _GetLastString( wstrPcBangBuff );
 	}
 
-	// EDÈ¹ï¿½æ·® +@1%
+	// EDÈ¹µæ·® +@1%
 	if( m_kPcBangReward.m_fEDRate > 0.0f )
 	{
 		wstrPcBangBuff += GET_REPLACED_STRING( ( STR_ID_23942, "f", m_kPcBangReward.m_fEDRate * 100.0f ) );
 		wstrPcBangBuff += _GetLastString( wstrPcBangBuff );
 	}
 
-	// APÈ¹ï¿½æ·® +@1%
+	// APÈ¹µæ·® +@1%
 	if( m_kPcBangReward.m_fVSPointRate > 0.0f )
 	{
 		wstrPcBangBuff += GET_REPLACED_STRING( ( STR_ID_23943, "f", m_kPcBangReward.m_fVSPointRate * 100.0f ) );
 		wstrPcBangBuff += _GetLastString( wstrPcBangBuff );
 	}
 
-	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ +@1%
+	// Æê °æÇèÄ¡ +@1%
 	if( m_kPcBangReward.m_fPetEXPRate > 0.0f )
 	{
 		wstrPcBangBuff += GET_REPLACED_STRING( ( STR_ID_23941, "f", m_kPcBangReward.m_fPetEXPRate * 100.0f ) );
 		wstrPcBangBuff += _GetLastString( wstrPcBangBuff );
 	}
 
-	// PCï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸®(ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½Å¸) ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// PC¹æ ÀÎº¥Åä¸®(Àü¿ë ¾Æ¹ÙÅ¸) »ç¿ë °¡´É
 	if( m_kPcBangReward.m_bAvatar == true )
 	{
 		wstrPcBangBuff += GET_STRING( STR_ID_23937 );
 		wstrPcBangBuff += _GetLastString( wstrPcBangBuff );
 	}
 
-	// PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ÄªÈ£ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// PC¹æ Àü¿ë ÄªÈ£ »ç¿ë °¡´É
 	if( m_kPcBangReward.m_bTitle == true )
 	{
 		wstrPcBangBuff += GET_STRING( STR_ID_23938 );
 		wstrPcBangBuff += _GetLastString( wstrPcBangBuff );
 	}
 
-	// ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ +@1È¸ ï¿½ß°ï¿½
+	// Çì´Ï¸£ÀÇ ½Ã°ø º¸»ó È½¼ö +@1È¸ Ãß°¡
 	if( m_kPcBangReward.m_iAdditionalHenirReward > 0 )
 	{
 		wstrPcBangBuff += GET_REPLACED_STRING( ( STR_ID_23940, "i", m_kPcBangReward.m_iAdditionalHenirReward ) );

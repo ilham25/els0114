@@ -69,7 +69,7 @@ HRESULT CX2DropItemManager::OnFrameMove( double fTime, float fElapsedTime )
 	{		
 		if( g_pMain != NULL && g_pData != NULL )
 		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
+			if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
 				g_pKTDXApp->GetFindHacking() == false )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
@@ -93,9 +93,23 @@ HRESULT CX2DropItemManager::OnFrameMove( double fTime, float fElapsedTime )
 
 	for( int i = 0; i < (int)m_DropItemDataList.size(); i++ )
 	{
-
-
 		DropItemData* pDropItemData = m_DropItemDataList[i];
+        CKTDGParticleSystem::CParticle* pParticle = NULL;
+
+		if( NULL == pDropItemData 
+            || INVALID_PARTICLE_SEQUENCE_HANDLE == pDropItemData->m_hSeq
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            || NULL == ( pParticle = g_pX2Game->GetMajorParticle()->ValidateParticleHandle( pDropItemData->m_hParticle ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            || NULL == ( pParticle = pDropItemData->m_pParticle )   
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            )
+        {
+			SAFE_DELETE( pDropItemData );
+			m_DropItemDataList.erase( m_DropItemDataList.begin() + i );
+			i--;
+            continue;
+        }
 
 		if( g_pKTDXApp->GetIsNowVeryfy() == true )
 		{
@@ -109,31 +123,21 @@ HRESULT CX2DropItemManager::OnFrameMove( double fTime, float fElapsedTime )
 		}
 
 
-		if( NULL == pDropItemData )
-			continue;
-
-		if( INVALID_PARTICLE_HANDLE == pDropItemData->m_hSeq )
-			continue;
-
-		if( NULL == pDropItemData->m_pParticle )
-			continue;
-
-
-
 		if( pDropItemData->m_bGet == true )
 		{
-			pDropItemData->m_pParticle->m_vVelocity.x = 0.0f;
-			pDropItemData->m_pParticle->m_vVelocity.z = 0.0f;
+			pParticle->SetVelocity( D3DXVECTOR3( 0.0f, pParticle->GetVelocity().y, 0.f ) );
 
 			pDropItemData->m_fScale -= 0.3f * fElapsedTime;
-			pDropItemData->m_pParticle->m_vSize *= pDropItemData->m_fScale;
-
 			if( pDropItemData->m_fScale < 0.0f )
 			{
 				SAFE_DELETE( pDropItemData );
 				m_DropItemDataList.erase( m_DropItemDataList.begin() + i );
 				i--;
-			}				
+			}
+            else
+            {
+			    pParticle->SetSize( pParticle->GetSize() * pDropItemData->m_fScale );
+            }
 		}
 		else
 		{
@@ -186,10 +190,10 @@ HRESULT CX2DropItemManager::OnFrameMove( double fTime, float fElapsedTime )
 							pDropItemData->m_bLeft = !pDropItemData->m_bLeft;
 						}
 
-						CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
+						const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
 						if( pLineData != NULL )
 						{
-							if( pDropItemData != NULL && pDropItemData->m_hSeq != INVALID_PARTICLE_HANDLE )
+							if( pDropItemData != NULL && pDropItemData->m_hSeq != INVALID_PARTICLE_SEQUENCE_HANDLE )
 							{
 								pSeq->SetLandPosition( outPos.y );
 							}
@@ -206,9 +210,9 @@ HRESULT CX2DropItemManager::OnFrameMove( double fTime, float fElapsedTime )
 						}
 					}
 
-					pDropItemData->m_pParticle->m_vPos.x	= pDropItemData->m_Pos.x;
-					pDropItemData->m_pParticle->m_vPos.z	= pDropItemData->m_Pos.z;
-					pDropItemData->m_Pos.y					= pDropItemData->m_pParticle->m_vPos.y;
+                    float fPosY = pParticle->GetPos().y;
+					pDropItemData->m_Pos.y					= fPosY;
+					pParticle->SetPos( pDropItemData->m_Pos );
 				}		
 			}
 		}
@@ -239,19 +243,28 @@ void CX2DropItemManager::RenderName()
 	for( int i = 0; i < (int)m_DropItemDataList.size(); i++ )
 	{
 		DropItemData* pDropItemData = m_DropItemDataList[i];
+        CKTDGParticleSystem::CParticle* pParticle = NULL;
 
 		if( pDropItemData != NULL 
-			&& pDropItemData->m_hSeq != INVALID_PARTICLE_HANDLE 
-			&& pDropItemData->m_pParticle != NULL 
+			&& pDropItemData->m_hSeq != INVALID_PARTICLE_SEQUENCE_HANDLE 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            && NULL != ( pParticle = g_pX2Game->GetMajorParticle()->ValidateParticleHandle( pDropItemData->m_hParticle ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            && NULL != ( pParticle = pDropItemData->m_pParticle )   
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			&& pDropItemData->m_fCoolTime <= 0.0f
 			&& pDropItemData->m_pItemTemplet != NULL
 			&& pDropItemData->m_bGet == false )
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CKTDGParticleSystem::CParticleEventSequence* pSeq = pParticle->GetMasterSequence();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pDropItemData->m_hSeq );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			if( NULL == pSeq )
 				continue;
 			
-			D3DXVECTOR3 pos = pDropItemData->m_pParticle->m_vPos;
+			D3DXVECTOR3 pos = pParticle->GetPos();
 			pos.y = pSeq->GetLandPosition();
 
 			D3DXCOLOR color;
@@ -354,15 +367,36 @@ void CX2DropItemManager::AddDropItem( int iItemID, UidType ItemUID, D3DXVECTOR3 
 		{
 			pSeq->SetAlphaObject( false );
 			pSeq->SetLandPosition( pos.y );
-			pDropItemData->m_pParticle	= pSeq->CreateNewParticle( pos );
-
-			// 랜덤한 모양으로 아이템이 드롭되는 것처럼 보이게 하기 위한 trick
-			int iSpeedY = ((int)fSpeed)%9 + 12;
-			//pDropItemData->m_pParticle->m_vVelocity = D3DXVECTOR3( 0.f, (float)iSpeedY * 63.f, 0.f );
-			// oasis907 : 김상윤 [2010.9.29] // y 이동 줄임
-			pDropItemData->m_pParticle->m_vVelocity = D3DXVECTOR3( 0.f, (float)iSpeedY * 43.f, 0.f );
-
+            CKTDGParticleSystem::CParticle* pParticle = pSeq->CreateNewParticle( pos );
+            if ( pParticle != NULL )
+            {
+			    // 랜덤한 모양으로 아이템이 드롭되는 것처럼 보이게 하기 위한 trick
+			    int iSpeedY = ((int)fSpeed)%9 + 12;
+			    //pParticle->SetVelocity( D3DXVECTOR3( 0.f, (float)iSpeedY * 63.f, 0.f ) );
+			    // oasis907 : 김상윤 [2010.9.29] // y 이동 줄임
+			    pParticle->SetVelocity( D3DXVECTOR3( 0.f, (float)iSpeedY * 43.f, 0.f ) );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                pDropItemData->m_hParticle	= pParticle->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                pDropItemData->m_pParticle	= pParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            }
+            else
+            {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                pDropItemData->m_hParticle = INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                pDropItemData->m_pParticle = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            }
 		}
+#ifdef _IN_HOUSE_
+		else
+		{
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"There is no drop viewer", g_pMain->GetNowState() );
+		}
+#endif // IN_HOUSE
+
 
 		m_DropItemDataList.push_back( pDropItemData );
 	}	
@@ -472,12 +506,15 @@ bool CX2DropItemManager::GetDropItem( IN const UidType itemUID_, IN const UidTyp
 		//THEMIDA_VM_START
 
 		pDropItemData->m_bGet = true;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CKTDGParticleSystem::CParticle* pParticle = g_pX2Game->GetMajorParticle()->ValidateParticleHandle( pDropItemData->m_hParticle );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CKTDGParticleSystem::CParticle* pParticle = pDropItemData->m_pParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-		if( pDropItemData->m_pParticle != NULL )
+		if( pParticle != NULL )
 		{
-			pDropItemData->m_pParticle->m_vVelocity.x = 0.0f;
-			pDropItemData->m_pParticle->m_vVelocity.z = 0.0f;
-			pDropItemData->m_pParticle->m_vVelocity.y = 800.0f;
+			pParticle->SetVelocity( D3DXVECTOR3( 0.0f, 800.f, 0.0f ) );
 		}
 		//pDropItemData의 m_pItemTemplet가 NULL이 아닐 경우 새롭게 찾지 않도록 변경
 		if( NULL != pDropItemData->m_pItemTemplet )
@@ -493,13 +530,14 @@ bool CX2DropItemManager::GetDropItem( IN const UidType itemUID_, IN const UidTyp
 // 				true == pDropItemData->m_pItemTemplet->m_vecBuffFactorPtr.empty() )
 			if( CX2Item::IT_OUTLAY != pItemTemplet_->GetItemType() )
 			{
-				if( pDropItemData->m_hSeq != INVALID_PARTICLE_HANDLE )
+				if( pDropItemData->m_hSeq != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pDropItemData->m_hSeq );
 					if( NULL != pSeq )
 					{
 						pSeq->SetBlackHolePosition( pCX2GUUser->GetPos() );
-						pDropItemData->m_pParticle->m_BlackHoleTime = 0.1f;
+                        if ( pParticle != NULL )
+						    pParticle->SetBlackHoleTime( 0.1f );
 					}
 				}
 			}
@@ -650,11 +688,28 @@ bool CX2DropItemManager::GetDropItemPosition( int iIndex, D3DXVECTOR3& vPos )
 	return true;
 }
 
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+const D3DXVECTOR3*  CX2DropItemManager::GetDropItemPosition_LUA( int iIndex )
+{
+	if( iIndex < 0 || iIndex >= (int)m_DropItemDataList.size() )
+	{
+		return NULL;
+	}	
+	
+	DropItemData* pDropItem = m_DropItemDataList[iIndex];
+	if( true == pDropItem->m_bGet )
+		return NULL;
+
+	return &pDropItem->m_Pos;
+}
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
 ////////////////////////////////////////////////////////////////////////////////
 CX2DropItemManager::DropItemData::~DropItemData()
 {
 	m_pItemTemplet	= NULL;
-	m_pParticle		= NULL;
+	//m_pParticle		= NULL;
 
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeq );
 }
@@ -723,6 +778,29 @@ void CX2DropItemManager::AddDropItem( int iItemID, UidType ItemUID, D3DXVECTOR3 
 		pDropItemData->m_fRemainTime	= fRemainTime;		
 
 		pDropItemData->m_pItemTemplet	= pTemplet;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+        pDropItemData->m_hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
+        pDropItemData->m_hParticle = INVALID_PARTICLE_HANDLE;
+        CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( NULL, pTemplet->GetDropViewer(),
+            pos.x, pos.y, pos.z, 0.0 );
+        if ( pSeq != NULL )
+        {
+            pDropItemData->m_hSeq = pSeq->GetHandle();
+			pSeq->SetAlphaObject( false );
+			pSeq->SetLandPosition( pos.y );
+            pSeq->SetPerFrameSimulation( true );
+			CKTDGParticleSystem::CParticle* pParticle = pSeq->CreateNewParticle( pos );
+            if ( pParticle != NULL )
+            {
+			    pParticle->SetVelocity( D3DXVECTOR3( 0.f, (float)0.f, 0.f ) );
+                pDropItemData->m_hParticle = pParticle->GetHandle();
+            }
+        }
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 		pDropItemData->m_hSeq			= g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL,
             pTemplet->GetDropViewer(),
             pos, 0,0 );
@@ -732,9 +810,11 @@ void CX2DropItemManager::AddDropItem( int iItemID, UidType ItemUID, D3DXVECTOR3 
 			pSeq->SetAlphaObject( false );
 			pSeq->SetLandPosition( pos.y );
 			pDropItemData->m_pParticle	= pSeq->CreateNewParticle( pos );
-					
-			pDropItemData->m_pParticle->m_vVelocity = D3DXVECTOR3( 0.f, (float)0.f, 0.f );
+            if ( pDropItemData->m_pParticle != NULL )
+			    pDropItemData->m_pParticle->SetVelocity( D3DXVECTOR3( 0.f, (float)0.f, 0.f ) );
 		}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 		m_DropItemDataList.push_back( pDropItemData );
 	}	

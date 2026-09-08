@@ -15,7 +15,7 @@ CX2NPCAI( pMasterNPC, CX2NPCAI::NAT_NORMAL )
 	m_bFleeing = false;
 
 	m_bEnableLuaTargetingFunc	= false;
-	m_wstrLuaTargetingFunc		= L"";
+	m_strLuaTargetingFunc		= "";
 
 	m_fScanCloakingNearRange	= 0.f;
 	m_fScanCloaking				= 0.f;
@@ -69,21 +69,25 @@ void CX2GUNPCAI::OnFrameMove( double fTime, float fElapsedTime )
 
 	// 루아 Function에 의해 타겟팅을 하는 것이면
 	if( true == m_bEnableLuaTargetingFunc && 
-		false == m_wstrLuaTargetingFunc.empty() )
+		false == m_strLuaTargetingFunc.empty() )
 	{
 		m_fElapsedTimeAfterLastTargeting += fElapsedTime;
 		if( m_fElapsedTimeAfterLastTargeting > m_pAIData->targetData.targetInterval )
 		{
 			m_fElapsedTimeAfterLastTargeting = 0.f;
-			string func = "";
-			ConvertWCHARToChar( func, m_wstrLuaTargetingFunc.c_str() );
+			//string func = "";
+			//ConvertWCHARToChar( func, m_wstrLuaTargetingFunc.c_str() );
 //#ifdef	X2OPTIMIZE_NPC_LUASPACE_SHARING
-			lua_tinker::call<void>( m_pMasterNPC->GetFunctionLuaState(),  func.c_str(), g_pKTDXApp, g_pX2Game, m_pMasterNPC );
+			lua_tinker::call<void>( m_pMasterNPC->GetFunctionLuaState(),  m_strLuaTargetingFunc.c_str(), g_pKTDXApp, g_pX2Game, m_pMasterNPC );
 //#else	X2OPTIMIZE_NPC_LUASPACE_SHARING
 //			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  func.c_str(), g_pKTDXApp, g_pX2Game, m_pMasterNPC );
 //#endif	X2OPTIMIZE_NPC_LUASPACE_SHARING
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 	// 그룹AI가 켜져 있으면
 	//{{oasis:김상윤////2009-10-7////
@@ -103,9 +107,11 @@ void CX2GUNPCAI::OnFrameMove( double fTime, float fElapsedTime )
 				m_pMasterNPC->SetTargetUnit( pGroupAiTargetGameUnit );
 			} break;
 		}
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		TargetUpdate();
-
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 	//}}oasis:김상윤////2009-10-7////
 	else	// 그룹 AI를 사용 하는 것이 아니면
@@ -138,11 +144,11 @@ void CX2GUNPCAI::LoadAIDataFromLUA( KLuaManager& luaManager )
 
 		if( luaManager.BeginTable( "TARGET" ) == true )
 		{
-			LUA_GET_VALUE( luaManager, "MANUAL_TARGETING_FUNC",	m_pMainAIData->targetData.wstrLuaTargetingFunc,		L"" );
+			LUA_GET_VALUE_UTF8( luaManager, "MANUAL_TARGETING_FUNC",	m_pMainAIData->targetData.strLuaTargetingFunc,		"" );
 
-			if( false == m_pMainAIData->targetData.wstrLuaTargetingFunc.empty() )
+			if( false == m_pMainAIData->targetData.strLuaTargetingFunc.empty() )
 			{
-				SetLuaTargetingFunc( m_pMainAIData->targetData.wstrLuaTargetingFunc );
+				SetLuaTargetingFunc( m_pMainAIData->targetData.strLuaTargetingFunc );
 				SetEnableLuaTargetingFunc( true );
 			}			
 
@@ -257,9 +263,7 @@ void CX2GUNPCAI::LoadAIDataFromLUA( KLuaManager& luaManager )
 			LUA_GET_VALUE( luaManager, "DEST_AREA",				m_pMainAIData->flymovedata.fDestArea,				0 );
 			LUA_GET_VALUE( luaManager, "FLY_MOVE_INTERVAL",		m_pMainAIData->flymovedata.fFlyMoveInterval,		0 );			
 
-#ifdef UNDERWATER_LINEMAP
 			LUA_GET_VALUE( luaManager, "UNDERWATER_MODE",		m_pMainAIData->flymovedata.bUnderWaterMode,		false );			
-#endif
 			luaManager.EndTable();
 		}
 #endif	
@@ -272,11 +276,11 @@ void CX2GUNPCAI::LoadAIDataFromLUA( KLuaManager& luaManager )
 
 		if( luaManager.BeginTable( "TARGET" ) == true )
 		{
-			LUA_GET_VALUE( luaManager, "MANUAL_TARGETING_FUNC",	m_pSubAIData->targetData.wstrLuaTargetingFunc,		L"" );
+			LUA_GET_VALUE_UTF8( luaManager, "MANUAL_TARGETING_FUNC",	m_pSubAIData->targetData.strLuaTargetingFunc,		"" );
 
-			if( false == m_pSubAIData->targetData.wstrLuaTargetingFunc.empty() )
+			if( false == m_pSubAIData->targetData.strLuaTargetingFunc.empty() )
 			{
-				SetLuaTargetingFunc( m_pSubAIData->targetData.wstrLuaTargetingFunc );
+				SetLuaTargetingFunc( m_pSubAIData->targetData.strLuaTargetingFunc );
 				SetEnableLuaTargetingFunc( true );
 			}			
 
@@ -391,9 +395,7 @@ void CX2GUNPCAI::LoadAIDataFromLUA( KLuaManager& luaManager )
 			LUA_GET_VALUE( luaManager, "DEST_AREA",				m_pSubAIData->flymovedata.fDestArea,				0 );
 			LUA_GET_VALUE( luaManager, "FLY_MOVE_INTERVAL",		m_pSubAIData->flymovedata.fFlyMoveInterval,		0 );			
 
-#ifdef UNDERWATER_LINEMAP
 			LUA_GET_VALUE( luaManager, "UNDERWATER_MODE",		m_pSubAIData->flymovedata.bUnderWaterMode,		false );			
-#endif
 
 			luaManager.EndTable();
 		}
@@ -408,33 +410,33 @@ void CX2GUNPCAI::SetMasterUnitData()
 {
 	KTDXPROFILE();
 
-	const CX2GUNPC::NPCFrameData* pFrameData = m_pMasterNPC->GetNPCFrameData();
-	const CX2GUNPC::NPCSyncData* pSyncData = m_pMasterNPC->GetNPCSyncData();
+	const CX2GUNPC::NPCFrameData& frameData = m_pMasterNPC->GetNPCFrameData();
+	//const CX2GUNPC::NPCSyncData& syncData = m_pMasterNPC->GetNPCSyncData();
 
 #ifdef RIDING_MONSTER
 	if(m_pMasterNPC->GetRideState() == CX2GUNPC::RS_ON_RIDING && 
 		m_pMasterNPC->GetRideType() ==  CX2GUNPC::RT_RIDER )
 	{
-		const CX2GUNPC::NPCFrameData* pRidingFrameData = m_pMasterNPC->GetRideUnit()->GetNPCFrameData();
-		m_vPosition = pRidingFrameData->syncData.position;	//FieldFix: 포인터 등으로 해당 부분 연결해되 될듯..
-		m_bIsRight = pRidingFrameData->syncData.bIsRight;
-		m_iLastTouchLineIndex = pRidingFrameData->syncData.lastTouchLineIndex;
-		m_bFootOnLine = pRidingFrameData->unitCondition.bFootOnLine;
+		const CX2GUNPC::NPCFrameData& ridingFrameData = m_pMasterNPC->GetRideUnit()->GetNPCFrameData();
+		m_vPosition = ridingFrameData.syncData.position;	//FieldFix: 포인터 등으로 해당 부분 연결해되 될듯..
+		m_bIsRight = ridingFrameData.syncData.bIsRight;
+		m_iLastTouchLineIndex = ridingFrameData.syncData.lastTouchLineIndex;
+		m_bFootOnLine = ridingFrameData.unitCondition.bFootOnLine;
 	}
 	else
 	{
-		m_vPosition = pFrameData->syncData.position;
-		m_bIsRight = pFrameData->syncData.bIsRight;
-		m_iLastTouchLineIndex = pFrameData->syncData.lastTouchLineIndex;
-		m_bFootOnLine = pFrameData->unitCondition.bFootOnLine;
+		m_vPosition = frameData.syncData.position;
+		m_bIsRight = frameData.syncData.bIsRight;
+		m_iLastTouchLineIndex = frameData.syncData.lastTouchLineIndex;
+		m_bFootOnLine = frameData.unitCondition.bFootOnLine;
 	}
 
 
 #else
-	m_vPosition = pFrameData->syncData.position;
-	m_bIsRight = pFrameData->syncData.bIsRight;
-	m_iLastTouchLineIndex = pFrameData->syncData.lastTouchLineIndex;
-	m_bFootOnLine = pFrameData->unitCondition.bFootOnLine;
+	m_vPosition = frameData.syncData.position;
+	m_bIsRight = frameData.syncData.bIsRight;
+	m_iLastTouchLineIndex = frameData.syncData.lastTouchLineIndex;
+	m_bFootOnLine = frameData.unitCondition.bFootOnLine;
 #endif RIDING_MONSTER
 
 	m_fNowHP = m_pMasterNPC->GetNowHp();
@@ -443,7 +445,7 @@ void CX2GUNPCAI::SetMasterUnitData()
 	// fix!! 미리 한번만 계산해서 가지고 있어야, 아니면 대략 계산하거나
 	// t = v0/g
 	// l = v0*t - 1/2*g*t^2 = 1/2*v0^2/g
-	CX2GameUnit::PhysicParam& physicParam = m_pMasterNPC->GetPhysicParam();	
+	const CX2GameUnit::PhysicParam& physicParam = m_pMasterNPC->GetPhysicParam();	
 
 	float fHalfTimeOnAir;
 	if( physicParam.fGAccel != 0.f )
@@ -469,6 +471,7 @@ void CX2GUNPCAI::SetMasterUnitData()
 	if( NULL == pLineMap )
 		return;
 
+
 	//FieldFix: 부동소수점은 == 연산 되도록 사용하지 말자
 	// 그리고 밑의 Cloaking 부분과 연관해서는 뭔가 비효율적인듯
 	if( m_fScanCloaking == 0.f && m_fScanCloakingNearRange == 0.f )
@@ -484,7 +487,13 @@ void CX2GUNPCAI::SetMasterUnitData()
 	{
 		m_bScanCloaking = false;
 		// 클로킹을 볼 수 있는 확률을 확인
-		if( m_fScanCloaking > 0.f && (float)RandomInt() <= m_fScanCloaking )
+		if( m_fScanCloaking > 0.f && 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            CX2GUNPC::EstimateFrameOneshotPercent( m_fScanCloaking ) == true
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            (float)RandomInt() <= m_fScanCloaking 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            )
 		{
 			m_bScanCloaking = true;
 		}
@@ -493,9 +502,35 @@ void CX2GUNPCAI::SetMasterUnitData()
 	// 자신을 공격한 유닛이 있으면 타겟팅
 	if( m_optrAttackerGameUnit != null )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if ( m_pMasterNPC->EstimateFrameAccumPercent( m_pAIData->targetData.attackTargetRate ) == true )
+		{
+			SetTargetGameUnit( m_optrAttackerGameUnit.GetObservable() );
+        }
+		// 공격당했을 때 일정 확률로 도망가자~
+		const float fNowHPRate = 100.f * m_fNowHP / m_fMaxHP;
+
+		if ( NULL != m_pMasterNPC && m_pMasterNPC->GetSiegeMode() )
+		{
+			ResetAttackerGameUnit();
+
+			if ( null != m_optrTargetGameUnit )
+			{
+				if( fNowHPRate < m_pAIData->escapeCondition.myHP &&
+					m_pMasterNPC->EstimateFrameAccumPercent( m_pAIData->escapeCondition.escapeRate ) == true &&
+					true == EscapeFlagCheck( m_pAIData->escapeCondition.m_iFlagTrue) )	// 09.04.16 태완
+				{
+					m_bFleeing = true;
+				}
+
+				return TargetUpdate( true );
+			}
+		}	
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if ( RandomFloat( 0.f, 100.f ) < m_pAIData->targetData.attackTargetRate )
 		{
 			SetTargetGameUnit( m_optrAttackerGameUnit.GetObservable() );
+
 			// 공격당했을 때 일정 확률로 도망가자~
 			const float fNowHPRate = 100.f * m_fNowHP / m_fMaxHP;
 
@@ -514,8 +549,9 @@ void CX2GUNPCAI::SetMasterUnitData()
 
 					return TargetUpdate();
 				}
-			}			
+			}	
 		}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 
 	// 도망가는 중인데
@@ -527,13 +563,16 @@ void CX2GUNPCAI::SetMasterUnitData()
 		if ( null == m_optrTargetGameUnit )
 		{ 
 			ResetTarget();
-			return TargetUpdate();
 		}
  		else if( GetDistance3Sq( m_optrTargetGameUnit->GetPos(), m_vPosition ) > static_cast<float>( m_pAIData->escapeMoveData.escapeGap * m_pAIData->escapeMoveData.escapeGap ) )
  		{
 			m_bFleeing = false;
-			return TargetUpdate();
  		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        return TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 	
 	//FieldFix: 무슨 투명화 처리가 이렇게 여러번 되어 있나...
@@ -543,15 +582,23 @@ void CX2GUNPCAI::SetMasterUnitData()
 		if ( m_optrTargetGameUnit->GetInvisibility() && false == m_bScanCloaking )
 		{
 			ResetTarget();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            return TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		}
 		
 #ifdef EVE_ELECTRA
 		if( m_pMasterNPC->GetShowSubBossName() == false && m_pMasterNPC->GetShowBossName() == false && 
-			m_pMasterNPC->GetExtraDamagePack()->m_FlashBang.m_fTime > 0.0f )
+			m_pMasterNPC->GetExtraDamagePack().m_FlashBang.m_fTime > 0.0f )
 		{
 			ResetTarget();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            return TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		}
 #endif EVE_ELECTRA
 
@@ -563,23 +610,43 @@ void CX2GUNPCAI::SetMasterUnitData()
 
 		// targetInterval 시간이 지나지 않았으면 이 중괄포 밑에 부분을 수행할 수 없음
 		if( m_fElapsedTimeAfterLastTargeting < m_pAIData->targetData.targetInterval )
+        {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            return TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        }
 		m_fElapsedTimeAfterLastTargeting = 0.f;	// FieldFix: 이건 괄호 다음에 있던지 해야할 듯
 
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if( CX2GUNPC::EstimateFrameOneshotPercent( m_pAIData->targetData.targetSuccessRate ) == false )
+			return TargetUpdate( false );	// 이부분을 보면 TargetUpdate가 Success를 의미하진 않는듯
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( RandomFloat( 0.f, 100.f ) >= m_pAIData->targetData.targetSuccessRate )
 			return TargetUpdate();	// 이부분을 보면 TargetUpdate가 Success를 의미하진 않는듯
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 
 	// 이전 타겟을 유지할까요?
 	if( false == m_bLostTarget && null != m_optrTargetGameUnit )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if ( CX2GUNPC::EstimateFrameOneshotPercent( m_pAIData->targetData.preserveLastTargetRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if ( RandomFloat( 0.f, 100.f ) < m_pAIData->targetData.preserveLastTargetRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			const float fDistance3Sq = GetDistance3Sq( m_optrTargetGameUnit->GetPos(), m_vPosition );
 			if( fDistance3Sq < m_pAIData->targetData.targetLostRange * m_pAIData->targetData.targetLostRange 
 				&& CX2GameUnit::GUSI_DIE == m_optrTargetGameUnit->GetGameUnitState() )
+            {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                return TargetUpdate( false );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            }
 			else
 				ResetTarget();
 		}
@@ -597,6 +664,11 @@ void CX2GUNPCAI::SetMasterUnitData()
 	
 	bool			bFoundNearTargetGameUnit		= false;	// 무조건 타겟되는 거리내의 유저를 찾았는지
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_vecpTempGameUnit.resize( 0 );
+    float                       fRate = 0.f;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 	for( int i = 0; i<g_pX2Game->GetUserUnitListSize(); i++ )
 	{
 		CX2GameUnit* pGameUnit =  g_pX2Game->GetUserUnit(i);
@@ -606,10 +678,8 @@ void CX2GUNPCAI::SetMasterUnitData()
 		if( true == pGameUnit->GetInvisibility() && m_bScanCloaking == false)
 			continue;
 
-#ifdef FIX_NPC_AI
 		if( pGameUnit->GetNowHp() <= 0.f )
 			continue;
-#endif
 
 		const float fDistance3Sq = GetDistance3Sq( pGameUnit->GetPos(), m_vPosition );
 
@@ -694,23 +764,46 @@ void CX2GUNPCAI::SetMasterUnitData()
 			default:
 			case TP_RANDOM:
 				{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    m_vecpTempGameUnit.push_back( pGameUnit );
+                    fRate = fRate * 0.5f + 0.5f;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 					if( RandomFloat( 0.f, 100.f ) < 50.f || NULL == pTargetPickedGameUnit )
 					{
 						pTargetPickedGameUnit = pGameUnit;
 					}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				} break;
 
 #ifdef SEASON3_MONSTER_2010_12
 			case TP_ONLY_ONE:
 				{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    m_vecpTempGameUnit.push_back( pGameUnit );
+                    fRate = 1.f;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 					if( NULL == pTargetPickedGameUnit )
 						pTargetPickedGameUnit = pGameUnit;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				} break;
 #endif
 			}
 		}		
 	} // end of for(i)
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( pTargetPickedGameUnit == NULL && m_vecpTempGameUnit.empty() == false
+        && CX2GUNPC::EstimateFrameOneshotPercent( fRate * 100.f ) == true )
+    {
+        if ( m_vecpTempGameUnit.size() == 1 )
+            pTargetPickedGameUnit = m_vecpTempGameUnit.front();
+        else
+        {
+            int i = rand()% m_vecpTempGameUnit.size();
+            pTargetPickedGameUnit = m_vecpTempGameUnit[ i ];
+        }
+    }
+    m_vecpTempGameUnit.resize( 0 );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	// escape range 안에 그 유닛을 타겟으로 도망갈지 말지 결정한다
 
@@ -721,7 +814,11 @@ void CX2GUNPCAI::SetMasterUnitData()
 	if( false == m_pMasterNPC->GetSiegeMode() && 
 		NULL != pTargetPickedGameUnit && 
 		fNowHPRate <= m_pAIData->escapeCondition.myHP &&
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        CX2GUNPC::EstimateFrameOneshotPercent( m_pAIData->escapeCondition.escapeRate ) == true &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		RandomFloat( 0.f, 100.f ) <= m_pAIData->escapeCondition.escapeRate &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		true == EscapeFlagCheck( m_pAIData->escapeCondition.m_iFlagTrue ) )		// 09.04.16 태완
 	{
 		m_optrTargetGameUnit = pFleePickedGameUnit;
@@ -731,7 +828,11 @@ void CX2GUNPCAI::SetMasterUnitData()
 		m_optrTargetGameUnit = pTargetPickedGameUnit;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    return TargetUpdate( false );	
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	return TargetUpdate();	
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 }
 
 
@@ -743,6 +844,10 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 	if( NULL == pLineMap )
 		return;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    // 이 아래 코드는 매 프레임이 아니라 adaptive 하게 실행될 수 있다. 따라서 올바른 누적 확률 계산을 위해서는
+    // m_pMasterNPC->EstimateFrameAccumPercent 을 사용한다.
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	// 근처에 유저 유닛이 있으면 그 유닛을 타겟으로 flee
 	// 유저 유닛이 없으면 근처에 있는 나소드 중에서 보스, 중간보스, 일반 순서로 피가 적은 애를 타겟으로 이동한다
@@ -751,11 +856,19 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 	// 자신을 공격한 유닛을 타겟으로 flee
 	if( m_optrAttackerGameUnit != null )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if ( m_pMasterNPC->EstimateFrameAccumPercent( m_pAIData->targetData.attackTargetRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( RandomFloat( 0.f, 100.f ) < m_pAIData->targetData.attackTargetRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			m_bFleeing = true;
 			ResetAttackerGameUnit();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            return TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		}
 	}
 	
@@ -768,36 +881,59 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 			m_bFleeing		= false;
 
 		}
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        return TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 
 	// 타게팅 할 때가 되었는지 알아보자~
 	m_fElapsedTimeAfterLastTargeting += fElapsedTime;
 	if( m_fElapsedTimeAfterLastTargeting < m_pAIData->targetData.targetInterval )
+    {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        return TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    }
 	m_fElapsedTimeAfterLastTargeting = 0.f;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    // 이 아래 코드는 m_fElapsedTimeAfterLastTargeting 이 m_pAIData->targetData.targetInterval 을 지날 때마다
+    // 1번씩 trigger 되어 실행된다. 따라서 random 계산할 때는 CX2GUNPC::EstimateFrameOneshotPercent 을 이용하도록 한다
+    // <- 기존의 random 계산법과 동일 
+
+    if( CX2GUNPC::EstimateFrameOneshotPercent( m_pAIData->targetData.targetSuccessRate ) == false )
+        return TargetUpdate( false );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( RandomFloat( 0.f, 100.f ) >= m_pAIData->targetData.targetSuccessRate )
 		return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 
 	// 이전 타겟을 유지할까요?
 	if( false == m_bLostTarget && null != m_optrTargetGameUnit )
 	{
-		if ( CX2GameUnit::GUSI_DIE == m_optrTargetGameUnit->GetGameUnitState() )
-			ResetTarget();
-		else
+		if ( CX2GameUnit::GUSI_DIE != m_optrTargetGameUnit->GetGameUnitState() )
 		{
 			// LostRange 거리 밖이면 타겟하던 것을 없앤다
 			const float fDistance3Sq = GetDistance3Sq( m_optrTargetGameUnit->GetPos(), m_vPosition );
-			if( fDistance3Sq > m_pAIData->targetData.targetLostRange * m_pAIData->targetData.targetLostRange )
-				ResetTarget();
+			if( fDistance3Sq <= m_pAIData->targetData.targetLostRange * m_pAIData->targetData.targetLostRange )
+            {
 			// 거리 내에 있으나 이전 타겟을 확률에 의해 유지 실패하면
-			else if ( RandomFloat( 0.f, 100.f ) > m_pAIData->targetData.preserveLastTargetRate )
-				ResetTarget();
-			else
-				return TargetUpdate();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                if ( CX2GUNPC::EstimateFrameOneshotPercent( m_pAIData->targetData.preserveLastTargetRate ) == true )
+                    return TargetUpdate( false );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                if ( RandomFloat( 0.f, 100.f ) <= m_pAIData->targetData.preserveLastTargetRate )
+                    return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
+            }
 		}
+		ResetTarget();
 	}
 
 	// Escape 관련 변수
@@ -808,6 +944,11 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 	CX2GameUnit*	pTargetPickedGameUnit			= NULL;
 	float			fTargetPicketDistance3Sq		= 0.f;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_vecpTempGameUnit.resize( 0 );
+    float                       fRate = 0.f;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 	for( int i = 0; i < g_pX2Game->GetNPCUnitListSize(); i++ )
 	{
 		CX2GameUnit* pGameUnit =  g_pX2Game->GetNPCUnit( i );
@@ -817,10 +958,8 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 		if( true == pGameUnit->GetInvisibility() && m_bScanCloaking == false)
 			continue;
 
-#ifdef FIX_NPC_AI
 		if( pGameUnit->GetNowHp() <= 0.f )
 			continue;
-#endif
 		
 		const float fDistance3Sq = GetDistance3Sq( pGameUnit->GetPos(), m_vPosition );
 
@@ -828,7 +967,12 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 		if ( fDistance3Sq < m_pAIData->targetData.targetNearRange )
 		{
 			m_optrTargetGameUnit = pGameUnit;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_vecpTempGameUnit.resize( 0 );
+            return TargetUpdate( false );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			return TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		}
 
 		// 도망 중인 상태가 아닌 경우
@@ -896,17 +1040,27 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 
 		case TP_RANDOM:
 			{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                m_vecpTempGameUnit.push_back( pGameUnit );
+                fRate = fRate * 0.5f + 0.5f;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				if( RandomFloat( 0.f, 100.f ) < 50.f || NULL == pTargetPickedGameUnit )
 				{
 					pTargetPickedGameUnit = pGameUnit;
 				}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			} break;
 
 #ifdef SEASON3_MONSTER_2010_12
 		case TP_ONLY_ONE:
 			{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                m_vecpTempGameUnit.push_back( pGameUnit );
+                fRate = 1.f;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				if( NULL == pTargetPickedGameUnit )
 					pTargetPickedGameUnit = pGameUnit;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			} break;
 #endif
 		default:
@@ -914,6 +1068,21 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 			break;
 		}
 	} // end of for(i)
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( pTargetPickedGameUnit == NULL && m_vecpTempGameUnit.empty() == false
+        && CX2GUNPC::EstimateFrameOneshotPercent( fRate * 100.f ) == true )
+    {
+        if ( m_vecpTempGameUnit.size() == 1 )
+            pTargetPickedGameUnit = m_vecpTempGameUnit.front();
+        else
+        {
+            int i = rand()% m_vecpTempGameUnit.size();
+            pTargetPickedGameUnit = m_vecpTempGameUnit[ i ];
+        }
+    }
+    m_vecpTempGameUnit.resize( 0 );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 
 	// NPC가 시즈모드가 아니고 도망가야하는 조건을 만족 하는 경우
 	// iPickedFleeTargetIndex에 설정해놓은 대상을 타겟으로 하여 도망 간다
@@ -922,7 +1091,11 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 	if( false == m_pMasterNPC->GetSiegeMode() && 
 		NULL != pTargetPickedGameUnit && 
 		fNowHPRate <= m_pAIData->escapeCondition.myHP &&
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        CX2GUNPC::EstimateFrameOneshotPercent( m_pAIData->escapeCondition.escapeRate ) == true &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		RandomFloat( 0.f, 100.f ) <= m_pAIData->escapeCondition.escapeRate &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		true == EscapeFlagCheck( m_pAIData->escapeCondition.m_iFlagTrue ) )		// 09.04.16 태완
 	{
 		m_optrTargetGameUnit = pFleePickedGameUnit;
@@ -931,14 +1104,20 @@ void CX2GUNPCAI::TargetingNPC( float fElapsedTime )
 	{
 		m_optrTargetGameUnit = pTargetPickedGameUnit;
 	}
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    return TargetUpdate( false );	
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	return TargetUpdate();	
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 }
 
 
 
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2GUNPCAI::TargetUpdate( bool bAccumulate_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2GUNPCAI::TargetUpdate()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	KTDXPROFILE();	
 
@@ -1020,7 +1199,12 @@ void CX2GUNPCAI::TargetUpdate()
 			m_vPivotPoint = m_vPosition;	// 현재 자리를 기점으로 패트롤?
 			m_iPivotPointLineIndex = m_iLastTouchLineIndex;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            if( bAccumulate_ == true && m_pMasterNPC->EstimateFrameAccumPercent( m_pAIData->patrolMoveData.patrolBeginRate ) == true
+                || bAccumulate_ == false && CX2GUNPC::EstimateFrameOneshotPercent( m_pAIData->patrolMoveData.patrolBeginRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if( RandomFloat( 0.f, 100.f ) < m_pAIData->patrolMoveData.patrolBeginRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				SetNowPatroling( true );
 			else
 				SetNowPatroling( false );
@@ -1116,7 +1300,7 @@ void CX2GUNPCAI::Moving( float fElapsedTime )
 			// patrol중에 현재 linegroup에만 있어야 한다면 라인맵의 끝에 있는지 체크
 			if( true == bStayOnCurrLineGroup )
 			{
-				CKTDGLineMap::LineData* pLineDataTemp = pLineMap->GetLineData( m_iLastTouchLineIndex );
+				const CKTDGLineMap::LineData* pLineDataTemp = pLineMap->GetLineData( m_iLastTouchLineIndex );
 				if( NULL != pLineDataTemp )
 				{
 					// 오른쪽을 바라보고 있으면 라인의 끝을 체크
@@ -1682,7 +1866,11 @@ void CX2GUNPCAI::Moving( float fElapsedTime )
 			if( fFinalDestDist < m_pAIData->chaseMoveData.moveSplitRange )
 			{
 				// NEAR_WALK_RATE 확률에 따라서
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                if( CX2GUNPC::EstimateFrameOneshotPercent( m_pAIData->chaseMoveData.nearWalkRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				if( RandomFloat( 0.f, 100.f ) < m_pAIData->chaseMoveData.nearWalkRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				{
 					message = CX2GUNPC::SCT_AI_WALK;	// 걷던지..
 				}
@@ -1694,7 +1882,11 @@ void CX2GUNPCAI::Moving( float fElapsedTime )
 			else	// MOVE_SPLIT_RANGE 보다 작지 않으면
 			{
 				// FAR_WALK_RATE 확률에 따라서
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                if( CX2GUNPC::EstimateFrameOneshotPercent( m_pAIData->chaseMoveData.farWalkRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				if( RandomFloat( 0.f, 100.f ) < m_pAIData->chaseMoveData.farWalkRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				{
 					message = CX2GUNPC::SCT_AI_WALK;	// 걷던지..
 				}
@@ -1718,18 +1910,10 @@ SEND_AI_MESSAGE:
 	{
 		float fHeightHigh = -9999.f;		// 살아있는 유저들과의 Y포지션 차이중 가장 큰 것
 		float fHeightLow = 9999.f;		// 살아있는 유저들과의 Y포지션 차이중 가장 작은것
-#ifdef FIX_NPC_AI
 		for(int i=0; i<g_pX2Game->GetUserUnitListSize(); ++i)
-#else
-		for(int i=0; i<g_pX2Game->GetUnitNum(); ++i)
-#endif
 		{			
 			CX2GUUser *pUser = g_pX2Game->GetUserUnit(i);
-#ifdef FIX_NPC_AI
 			if(pUser != NULL && pUser->GetNowHp() > 0.f )
-#else
-			if(pUser != NULL)
-#endif
 			{
 				float fHeightDist = m_vPosition.y - pUser->GetPos().y;
 
@@ -1748,12 +1932,11 @@ SEND_AI_MESSAGE:
 
 		// 물라인맵에서 움직이는 물고기의 경우도 fly로 처리하는데...
 		// FLY_CHASE_MOVE 의 UNDERWATER_MODE 가 TRUE 면
-#ifdef UNDERWATER_LINEMAP
 		if( m_pAIData != NULL && m_pAIData->flymovedata.bUnderWaterMode == true && m_pMasterNPC != NULL )
 		{
 			int iLastLine = m_pMasterNPC->GetLastTouchLineIndex();
 			CKTDGLineMap* pLineMap	= g_pX2Game->GetWorld()->GetLineMap();
-			CKTDGLineMap::LineData *pLineData = pLineMap->GetLineData(iLastLine);
+			const CKTDGLineMap::LineData *pLineData = pLineMap->GetLineData(iLastLine);
 			if( pLineData != NULL && pLineData->m_bUnderWater == true )
 			{
 				// 물라인맵의 높이를 넘지 않도록 조절
@@ -1769,7 +1952,6 @@ SEND_AI_MESSAGE:
 				message = CX2GUNPC::SCT_AI_WAIT;
 			}
 		}
-#endif
 	}	
 #endif
 

@@ -1349,6 +1349,25 @@ enum NetErrorEnum
 	ERR_EVENT_PET_03,             //브라질 쁘띠 뽀루에게만 사용 할 수 있습니다.
 	ERR_ROOM_53,             //공식 대전에는 난입할 수 없습니다.
 	ERR_ROOM_54,             //잘못된 스테이지 정보 요청입니다.
+	ERR_NX_COUPON_17,             //적용 가능 하한 금액 미만입니다.
+	ERR_NX_COUPON_16,             //적용 가능 상한 금액 초과입니다.
+	ERR_NX_COUPON_19,             //이미 등록된 쿠폰입니다.
+	ERR_NX_COUPON_18,             //할인 대상 아이템이 아닙니다.
+	ERR_NX_COUPON_15,             //PC방이 아닙니다.
+	ERR_PERSONAL_SHOP_57,             //대리상점(캐시)가 개설되어 있습니다
+	ERR_PERSONAL_SHOP_58,             //대리상인에 등록된 아이템이 있어서 다른 종류의 보증서를 등록할 수 없습니다.
+	NOT_REQUEST_TRADE_REPLY_05,             //해당 유저는 거래가 제한된 상태입니다.
+	ERR_EXPAND_INVENTORY_ED_01,             //ED 가 부족합니다
+	ERR_EXPAND_INVENTORY_ED_02,             //더 이상 슬롯을 확장할 수 없습니다.
+	ERR_EXPAND_INVENTORY_ED_03,             //확장에 필요한 금액이 잘못되었습니다.
+	ERR_BATTLEFIELD_19,             //해당 필드는 열려있지 않습니다.
+	ERR_BATTLEFIELD_18,             //현재 필드에서는 입장할 수 없습니다.
+	ERR_BATTLEFIELD_20,             //재도전을 위한 휴식 버프로 인해 시간의 포탈에 입장 할 수 없습니다. 다음 포탈 생성시까지 기다려 주세요.
+	ERR_CLIENT_QUIT_04,             //Kom 파일의 변조로 인한 종료입니다.
+	ERR_ACCOUNT_BLOCK_03,             //당신의 계정은 차단되었습니다(LE3) 웹사이트를 방문하여 문의 하세요.
+	ERR_ACCOUNT_BLOCK_02,             //로그인이 불가능합니다(LE2). 웹사이트를 방문하여 문의 하세요.
+	ERR_ACCOUNT_BLOCK_04,             //당신의 계정은 차단되었습니다(LE4) 웹사이트를 방문하여 문의 하세요.
+	ERR_ACCOUNT_BLOCK_01,             //로그인이 불가능합니다(LE1). 웹사이트를 방문하여 문의 하세요.
 
 	ERR_SENTINEL
 };

@@ -1,3 +1,5 @@
+#include "StdAfx.h"
+
 #include <winsock2.h>
 #include "CollectPacket.h"
 

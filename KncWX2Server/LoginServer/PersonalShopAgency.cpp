@@ -12,6 +12,8 @@
 ////}}
 #include "LoginRoomManager.h"
 
+#include "X2Data/XSLSquareUnit.h"
+
 //{{ 2011. 04. 13	최육사	대리 상인
 #ifdef SERV_PSHOP_AGENCY
 
@@ -31,7 +33,11 @@ KPersonalShopAgency::KPersonalShopAgency(void)
 	m_kPersonalShopItemManager.Clear();
 	m_wstrPersonalShopName.clear();
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+	m_PersonalShopType = SEnum::AST_NONE;
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	m_PersonalShopType = CXSLSquareUnit::PST_NONE;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 }
 
 KPersonalShopAgency::~KPersonalShopAgency(void)
@@ -78,6 +84,7 @@ void KPersonalShopAgency::Tick()
 		{
 			if( m_kTimer[TM_WAIT_OTHER].elapsed() >= 1800.0 )
 			{
+                m_kTimer[TM_WAIT_OTHER].restart();
 				const UidType iHostUnitUID = m_kPersonalShopUserManager.GetPShopAgencyHostUnitUID();
 				const UidType iHostGSUID = m_kPersonalShopUserManager.GetPShopAgencyHostGSUID();
 				BreakPersonalShop( ( int )NetError::NOT_LEAVE_ROOM_REASON_17, iHostGSUID, iHostUnitUID );
@@ -411,6 +418,8 @@ void KPersonalShopAgency::ProcessEvent( const KEventPtr& spEvent_ )
 #endif SERV_PSHOP_AGENCY_ZOMBIE_USER_BUG_FIX
 	//}}
 
+    CASE( ERM_CHECK_MY_PSHOP_AGENCY_INFO_REQ );
+
 	default:
 		START_LOG( cerr, L"핸들러가 정의되지 않았음." )
 			<< BUILD_LOG( KEvent::GetIDStr( spEvent_->m_usEventID ) )
@@ -546,7 +555,11 @@ IMPL_ON_FUNC( ERM_OPEN_PSHOP_AGENCY_REQ )
 
 	// 상점 타입 저장
 	kPacket.m_cPersonalShopType = kPacket_.m_cPersonalShopType;
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+	m_PersonalShopType = static_cast<SEnum::AGENCY_SHOP_TYPE>(kPacket_.m_cPersonalShopType);
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	m_PersonalShopType = static_cast<CXSLSquareUnit::PERSONAL_SHOP_TYPE>(kPacket_.m_cPersonalShopType);
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 	// 상점 개설 시각 저장
 	m_tAgencyOpenDate = CTime::GetCurrentTime();
@@ -682,7 +695,11 @@ IMPL_ON_FUNC( ERM_OPEN_PSHOP_AGENCY_BY_SERVER_NOT )
 	}
 
 	// 상점 타입 저장
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+	m_PersonalShopType = static_cast<SEnum::AGENCY_SHOP_TYPE>(kPacket_.m_cPersonalShopType);
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	m_PersonalShopType = static_cast<CXSLSquareUnit::PERSONAL_SHOP_TYPE>(kPacket_.m_cPersonalShopType);
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 	// 상점 개설 시각 저장
 	if( KncUtil::ConvertStringToCTime( kPacket_.m_wstrAgencyOpenDate, m_tAgencyOpenDate ) == false )
@@ -899,7 +916,7 @@ _IMPL_ON_FUNC( ERM_REG_PSHOP_AGENCY_ITEM_REQ, KERM_REG_PERSONAL_SHOP_ITEM_REQ )
 		goto end_proc;
 	}
 
-	// 대리상점은 최대 9개까지 물품 등록이 가능
+	// 대리상점은 최대 9개까지 물품 등록이 가능 --> 15개로 변경. 2013.10
 	//{{ 2012. 05. 31	김민성       대리 상점 거래 로직 변경
 #ifdef SERV_TRADE_LOGIC_CHANGE_AGENCY_SHOP
 	if( static_cast<int>(kPacket_.m_vecSellItemInfo.size()) > SEnum::PAE_SELL_ITEM_LIMIT_NUM )
@@ -948,6 +965,8 @@ _IMPL_ON_FUNC( DBE_REG_PSHOP_AGENCY_ITEM_ACK, KERM_REG_PERSONAL_SHOP_ITEM_ACK )
 
 	if( kPacket_.m_iOK != NetError::NET_OK )
 	{
+        kPacket_.m_iOK = NetError::ERR_PERSONAL_SHOP_45;
+
 		START_LOG( cerr, L"대리 상인 물품 DB등록이 실패하였습니다!" )
 			<< BUILD_LOG( kPacket_.m_iOK )
 			<< BUILD_LOG( NetError::GetErrStr( kPacket_.m_iOK ) )
@@ -1033,6 +1052,9 @@ _IMPL_ON_FUNC( ERM_JOIN_MY_PSHOP_AGENCY_REQ, KERM_JOIN_PERSONAL_SHOP_REQ )
 {
 	KEGS_JOIN_MY_PSHOP_AGENCY_ACK kPacket;
 	kPacket.m_cJoinType = kPacket_.m_cJoinType;
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+    kPacket.m_iUsedItemID = kPacket_.m_iUsedItemID;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 	switch( kPacket_.m_cJoinType )
 	{
@@ -1181,6 +1203,8 @@ _IMPL_ON_FUNC( ERM_JOIN_MY_PSHOP_AGENCY_REQ, KERM_JOIN_PERSONAL_SHOP_REQ )
 		}
 
 		kPacket.m_iOK = NetError::ERR_PERSONAL_SHOP_52;
+        BreakPersonalShop( NetError::NOT_LEAVE_ROOM_REASON_21, LAST_SENDER_UID, FIRST_SENDER_UID );
+
 	}
 #else
 	if( kPacket_.m_cJoinType == KEGS_JOIN_MY_PSHOP_AGENCY_REQ::JT_SHOW_MY_ITEM_LIST )
@@ -1424,7 +1448,7 @@ IMPL_ON_FUNC( ERM_BUY_PERSONAL_SHOP_ITEM_REQ )
 			<< END_LOG;
 
 		KEGS_BUY_PERSONAL_SHOP_ITEM_ACK kPacketAck;
-		kPacket.m_iOK = NetError::GetLastError();
+		kPacketAck.m_iOK = NetError::GetLastError();
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_BUY_PERSONAL_SHOP_ITEM_ACK, kPacketAck );
 		return;
 	}	
@@ -1745,10 +1769,11 @@ _IMPL_ON_FUNC( ERM_PICK_UP_FROM_PSHOP_AGENCY_REQ, KEGS_PICK_UP_FROM_PSHOP_AGENCY
 
 	if( m_kPersonalShopItemManager.PrepareForPickUp( kPacket_.m_vecPickUpItemList, kPacketToGS ) == false )
 	{
-		START_LOG( cwarn, L"대리상인 물품 가져오기 준비 실패!" )
+		START_LOG( cerr, L"대리상인 물품 가져오기 준비 실패!" )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_vecPickUpItemList.size() )
+            << BUILD_LOG( NetError::GetLastErrMsg() )
 			<< END_LOG;
 
 		kPacket.m_iOK = NetError::GetLastError();
@@ -1777,11 +1802,12 @@ IMPL_ON_FUNC( ERM_PREPARE_PICK_UP_FROM_PSHOP_AGENCY_ACK )
 	// pick up
 	if( m_kPersonalShopItemManager.PickUp( kPacket_.m_vecPickUpItemList, kPacketToDB ) == false )
 	{
-		START_LOG( cerr, L"대리상인 물품 가져오기 준비 실패!" )
+		START_LOG( cerr, L"대리상인 물품 가져오기 실패!" )
 			<< BUILD_LOG( GetUID() )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< BUILD_LOG( kPacket_.m_vecPickUpItemList.size() )
 			<< BUILD_LOG( kPacketToDB.m_vecPickUpItemList.size() )
+            << BUILD_LOG( NetError::GetLastErrMsg() )
 			<< END_LOG;
 
 		kPacket.m_iOK = NetError::GetLastError();
@@ -1794,7 +1820,19 @@ IMPL_ON_FUNC( ERM_PREPARE_PICK_UP_FROM_PSHOP_AGENCY_ACK )
 
 	BOOST_TEST_FOREACH( const KSellPersonalShopItemInfo&, kItem, kPacketToDB.m_vecPickUpItemList )
 	{
-		kPacketToDB.m_iSellItemTotalED += kItem.m_iTotalSellEDIn;
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		if ( kPacket_.m_cShopType <= SEnum::AST_NORMAL ) 
+#else // SERV_UPGRADE_TRADE_SYSTEM
+		if ( kPacket_.m_cShopType <= CXSLSquareUnit::PST_NORMAL ) 
+#endif // SERV_UPGRADE_TRADE_SYSTEM
+        {
+            kPacketToDB.m_iSellItemTotalED += ( kItem.m_iTotalSellEDIn * 0.9 );
+        }
+        else 
+        {
+            kPacketToDB.m_iSellItemTotalED += kItem.m_iTotalSellEDIn;
+        }
+        
 	}
 
 	SendToGameDB( DBE_PICK_UP_FROM_PSHOP_AGENCY_REQ, kPacketToDB );
@@ -1854,6 +1892,16 @@ IMPL_ON_FUNC( DBE_PICK_UP_FROM_PSHOP_AGENCY_ACK )
 
 	// Pick Up 결과를 GSUser에게 보내자!
 	kPacket.m_iOK = NetError::NET_OK;
+
+    if ( m_kPersonalShopItemManager.IsEmptySellItemList() == true ) 
+    {
+        kPacket.m_bRemainSellItem = false;
+    }
+    else 
+    {
+        kPacket.m_bRemainSellItem = true;
+    }
+
 	SendToGSCharacter( kPacket_.m_iGSUID, kPacket_.m_iUnitUID, ERM_PICK_UP_FROM_PSHOP_AGENCY_ACK, kPacket );
 
 	// 판매중인 물품이 하나도 없다면 방을 닫는다!
@@ -2017,3 +2065,25 @@ IMPL_ON_FUNC( ERM_CHECK_ZOMBIE_USER_ACK )
 //}}
 
 
+IMPL_ON_FUNC( ERM_CHECK_MY_PSHOP_AGENCY_INFO_REQ )
+{
+    std::vector< KSellPShopItemBackupData > vecMissingSellItemInfo;
+    BOOST_TEST_FOREACH( KSellPShopItemBackupData&, kItem, kPacket_.m_vecSellItemInfo )
+    {
+        if( false == m_kPersonalShopItemManager.IsExistItem( kItem.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_iItemUID ) )
+        {
+            vecMissingSellItemInfo.push_back( kItem );
+        }
+        
+    }
+    if ( !vecMissingSellItemInfo.empty() ) 
+    {
+        START_LOG( cout, L"대리상점에 등록된 아이템이 DB 아이템과 다른 경우 발생하여 추가" )
+            << BUILD_LOG( FIRST_SENDER_UID )
+            << BUILD_LOG( LAST_SENDER_UID )
+            << BUILD_LOG( vecMissingSellItemInfo.size() )
+            << BUILD_LOG( m_kPersonalShopItemManager.GetSellItemCount() );
+            
+        m_kPersonalShopItemManager.UpdateSellItemBackupDataList( vecMissingSellItemInfo );
+    }
+}

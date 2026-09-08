@@ -99,8 +99,15 @@ void KRewardTable::GetRewardItem( IN const KPostItemInfo& kPostItemInfo, OUT std
 	//}}
 
 	std::map< int, std::vector< KRewardData > >::const_iterator mit;
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	mit = m_mapTotalRewardData.find( kPostItemInfo.m_iScriptIndex );
+	if( mit == m_mapTotalRewardData.end() )
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 	mit = m_mapRewardData.find( kPostItemInfo.m_iScriptIndex );
 	if( mit == m_mapRewardData.end() )
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+	
 	{
 		START_LOG( cerr, L"존재하지 않는 RewardID입니다." )
 			<< BUILD_LOG( kPostItemInfo.m_iScriptIndex )
@@ -159,8 +166,14 @@ void KRewardTable::GetRewardItem( IN const std::vector< KPostItemInfo >& vecPost
 bool KRewardTable::GetRewardInfo( IN int iRewardID, OUT std::map< int, int >& mapRewardInfo ) const
 {
 	std::map< int, std::vector< KRewardData > >::const_iterator mit;
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	mit = m_mapTotalRewardData.find( iRewardID );
+	if( mit == m_mapTotalRewardData.end() )
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 	mit = m_mapRewardData.find( iRewardID );
 	if( mit == m_mapRewardData.end() )
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 	{
 		START_LOG( cerr, L"존재하지 않는 RewardID입니다." )
 			<< BUILD_LOG( iRewardID )
@@ -348,3 +361,40 @@ bool KRewardTable::GetLevelUpRewardItem( IN u_char& ucLevel, OUT std::vector< in
 }
 #endif SERV_CHAR_LEVEL_UP_EVENT
 //}}
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+void KRewardTable::SetMapTotalRewardData(  IN const std::map< int, std::vector< KRewardData > > mapRewardScriptData, IN const std::map< int, std::vector< KRewardData > > mapRewardDBData  )
+{
+	m_mapTotalRewardData.clear();
+	std::map< int, std::vector< KRewardData > >::const_iterator cmitRewardScript = mapRewardScriptData.begin();
+
+	for (; cmitRewardScript != mapRewardScriptData.end(); ++cmitRewardScript )
+	{
+		std::map< int, std::vector< KRewardData > >::iterator mitTotalRewardData = m_mapTotalRewardData.find(cmitRewardScript->first);
+
+		if ( mitTotalRewardData == m_mapTotalRewardData.end() )
+		{
+			// 2013.11.01 darkstarbt_조성욱 // 기존 RewardTable.lua 에 있던 데이터는 스크립트 파싱 할때 이미 맵에 백터 구성 정보가 다 들어 있는 상태다
+			m_mapTotalRewardData.insert(std::make_pair(cmitRewardScript->first, cmitRewardScript->second));
+		}
+	}
+
+	std::map< int, std::vector< KRewardData > >::const_iterator cmitRewardDB = mapRewardDBData.begin();
+
+	for (; cmitRewardDB != mapRewardDBData.end(); ++cmitRewardDB )
+	{
+		std::map< int, std::vector< KRewardData > >::iterator mitTotalRewardData = m_mapTotalRewardData.find(cmitRewardDB->first);
+
+		if ( mitTotalRewardData == m_mapTotalRewardData.end() )
+		{
+			m_mapTotalRewardData.insert(std::make_pair(cmitRewardDB->first, cmitRewardDB->second));
+		}
+		else
+		{
+			START_LOG( cerr, L"RewardTable.lua에서 사용된 RewardID 가 DB 이벤트 정보 셋팅 하는 RewardID 와 중복되었습니다. 해당 DB 정보는 셋팅 되지 않았습니다." )
+				<< BUILD_LOG( mitTotalRewardData->first )
+				;
+		}
+	}
+}
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM

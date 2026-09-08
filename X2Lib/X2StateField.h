@@ -74,7 +74,11 @@ protected:
 	void SetNowMovingToBattleField( const bool bNowMovingToBattleField_ ) { m_bNowMovingToBattleField = bNowMovingToBattleField_; }
 
 	FORCEINLINE bool MoveFromVillageToBattleField( const int iVillageStartPosIdToBattleField_ ) const;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    bool MoveToOtherPlace( float fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	bool MoveToOtherPlace();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	void DrawMovingSmallBar();
 	void CreateMovingSmallBar();
 	void DrawFace( const float fX_, const float fY_, const CKTDGUIControl::UITextureData& texData_, D3DCOLOR color_ /* = 0xffffffff */, const float fWidthPercent_ = 1.0f );
@@ -135,10 +139,10 @@ public:
 #ifdef SERV_IDENTITY_CONFIRM_POPUP_MESSAGE
 	bool Handler_EGS_IDENTITY_CONFIRM_POPUP_MESSAGE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ); // 2011.10.06 lygan_조성욱 // 방침미 알림 팝업 표시용
 #endif //SERV_IDENTITY_CONFIRM_POPUP_MESSAGE
+
 #ifdef SERV_EPAY_SYSTEM
 	bool Handler_EGS_EPAY_INFO_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ); // 2011.10.06 lygan_조성욱 // 방침미 알림 팝업 표시용
 #endif //SERV_EPAY_SYSTEM
-
 
 	virtual bool Handler_EGS_CHAR_LEVEL_UP_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 

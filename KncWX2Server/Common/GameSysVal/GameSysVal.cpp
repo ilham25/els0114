@@ -202,6 +202,16 @@ KGameSysVal::KGameSysVal()
 #ifdef SERV_DUNGEON_STAGE_LOAD_LOG// 작업날짜: 2013-05-15	// 박세훈
 	m_bDungeonStageLoadLog	= true;
 #endif // SERV_DUNGEON_STAGE_LOAD_LOG
+
+#ifdef SERV_FIX_AFTER_WORK_STORAGE_CLASS// 작업날짜: 2013-12-21	// 박세훈
+	m_iAwsCriterionNum		= 100;
+	m_iAwsUnderTerm			= 5;
+	m_iAwsAboveOrEqualTerm	= 300;
+#endif // SERV_FIX_AFTER_WORK_STORAGE_CLASS
+
+#ifdef SERV_EVENT_CHECK_POWER
+	m_fMultiplayer = 1.25f;
+#endif SERV_EVENT_CHECK_POWER
 }
 
 KGameSysVal::~KGameSysVal()
@@ -229,8 +239,7 @@ ImplToStringW( KGameSysVal )
 	}
 	stm_
 #else SERV_PC_BANG_TYPE
-
-		<< TOSTRINGW( m_fValue[GSVT_GB_EXP] )
+			<< TOSTRINGW( m_fValue[GSVT_GB_EXP] )
 			<< TOSTRINGW( m_fValue[GSVT_GB_ED] )
 			<< TOSTRINGW( m_fValue[GSVT_GB_VP] )
 			<< TOSTRINGW( m_fValue[GSVT_GB_SPIRIT] )
@@ -441,17 +450,6 @@ ImplementLuaScriptParser( KGameSysVal )
 #endif SERV_SUB_STAGE_NPC_DIE_CHECK
 	//}}
 
-	//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	lua_tinker::class_def<KGameSysVal>( GetLuaState(), "SetDungeonClearStartTime",					&KGameSysVal::SetDungeonClearStartTime_LUA );
-	lua_tinker::class_def<KGameSysVal>( GetLuaState(), "SetDungeonClearEndTime",					&KGameSysVal::SetDungeonClearEndTime_LUA );
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	//}}
-
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT_EX
-	lua_tinker::class_def<KGameSysVal>( GetLuaState(), "SetDungeonClearPaymentItemID",					&KGameSysVal::SetDungeonClearPaymentItemID_LUA );
-#endif //SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT_EX
-
 	//{{ 2012. 07. 09	김민성       이벤트 큐브 오픈 가능 시간
 #ifdef SERV_EVENT_CUBE_OPEN_TIME
 	lua_tinker::class_def<KGameSysVal>( GetLuaState(), "SetEventCubeOpenStartTime",					&KGameSysVal::SetEventCubeOpenStartTime_LUA );
@@ -601,6 +599,10 @@ ImplementLuaScriptParser( KGameSysVal )
 #ifdef SERV_ITEM_EXCHANGE_LIMIT// 작업날짜: 2013-07-03	// 박세훈
 	lua_tinker::class_def<KGameSysVal>( GetLuaState(), "ResetExchangeLimitInfo",		&KGameSysVal::ResetExchangeLimitInfo_Lua );
 #endif // SERV_ITEM_EXCHANGE_LIMIT
+
+#ifdef SERV_FIX_AFTER_WORK_STORAGE_CLASS// 작업날짜: 2013-12-21	// 박세훈
+	lua_tinker::class_def<KGameSysVal>( GetLuaState(), "AfterWorkStorageMessageDeleteTerm_Second",		&KGameSysVal::AfterWorkStorageMessageDeleteTerm_Second_LUA );
+#endif // SERV_FIX_AFTER_WORK_STORAGE_CLASS
 
 	lua_tinker::decl( GetLuaState(), "GameSysVal", this );
 }
@@ -1441,28 +1443,28 @@ void KGameSysVal::SetEnchantEventStartTime_LUA( int iYear, int iMonth, int iDay,
 {
 	m_tEventEnchantStart = CTime( iYear, iMonth, iDay, iHour, iMin, iSec );
 
-	START_LOG( cout, L"이벤트 강화 종료 시간" )
-		<< BUILD_LOG( iYear )
-		<< BUILD_LOG( iMonth )
-		<< BUILD_LOG( iDay )
-		<< BUILD_LOG( iHour )
-		<< BUILD_LOG( iMin )
-		<< BUILD_LOG( iSec )
-		<< END_LOG;
+	// 오현빈 // 2014-01-27 // 적용 시간에 대한 로그 추가
+	{
+		std::wstring wstrBeginTime	= ( m_tEventEnchantStart.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) ).GetString();
+
+		START_LOG( cout, L"강화 이벤트 시작 시간" )
+			<< BUILD_LOG( wstrBeginTime )
+			<< END_LOG;
+	}
 }
 
 void KGameSysVal::SetEnchantEventEndTime_LUA( int iYear, int iMonth, int iDay, int iHour, int iMin, int iSec )
 {
 	m_tEventEnchantEnd = CTime( iYear, iMonth, iDay, iHour, iMin, iSec );
 
-	START_LOG( cout, L"이벤트 강화 종료 시간" )
-		<< BUILD_LOG( iYear )
-		<< BUILD_LOG( iMonth )
-		<< BUILD_LOG( iDay )
-		<< BUILD_LOG( iHour )
-		<< BUILD_LOG( iMin )
-		<< BUILD_LOG( iSec )
-		<< END_LOG;
+	// 오현빈 // 2014-01-27 // 적용 시간에 대한 로그 추가
+	{
+		std::wstring wstrEndTime	= ( m_tEventEnchantEnd.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) ).GetString();
+
+		START_LOG( cout, L"강화 이벤트 종료 시간" )
+			<< BUILD_LOG( wstrEndTime )
+			<< END_LOG;
+	}
 }
 
 bool KGameSysVal::IsEnchantEvent()
@@ -2096,7 +2098,6 @@ void KGameSysVal::SetIsRecordChat_LUA( bool bVal )
 	START_LOG( cout2, L"채팅 로그 On-Off 여부!" )
 		<< BUILD_LOG( m_bRecordChat );
 }
-
 #endif SERV_RECORD_CHAT
 //}}
 
@@ -2414,6 +2415,23 @@ void KGameSysVal::SetAttractionItemTimeEvent_Lua( IN int iSrcItemID, IN int iDes
 
 	sData.m_iEventAttractionItem = iDesItemID;
 	m_mmapAttractionItemTimeEventInfo.insert( std::multimap<int, AttractionItemTimeEventInfo>::value_type( iSrcItemID, sData ) );
+
+
+	// 오현빈 // 2014-01-27 // 적용 시간에 대한 로그 추가
+	{
+		std::wstring wstrBeginTime	= ( sData.m_tBeginDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) ).GetString();
+		std::wstring wstrEndTime	= ( sData.m_tEndDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) ).GetString();
+
+		START_LOG( cout, L"가열기 확률 변경 시작 시간" )
+			<< BUILD_LOG( iSrcItemID )
+			<< BUILD_LOG( sData.m_iEventAttractionItem )
+			<< BUILD_LOG( wstrBeginTime )
+			<< END_LOG;
+
+		START_LOG( cout, L"가열기 확률 변경 종료 시간" )
+			<< BUILD_LOG( wstrEndTime )
+			<< END_LOG;
+	}
 }
 
 void KGameSysVal::CheckAttractionItemTimeEvent( IN OUT int& iItemID )
@@ -2481,3 +2499,18 @@ void KGameSysVal::ResetExchangeLimitInfo_Lua( void ) const
 	KncSend( iPfID, KBaseServer::GetKObj()->GetUID(), PI_LOG_DB, 0, NULL, DBE_EXCHANGE_LIMIT_INFO_REQ, char() );
 }
 #endif // SERV_ITEM_EXCHANGE_LIMIT
+
+#ifdef SERV_FIX_AFTER_WORK_STORAGE_CLASS// 작업날짜: 2013-12-21	// 박세훈
+void KGameSysVal::AfterWorkStorageMessageDeleteTerm_Second_LUA( IN int iAwsCriterionNum, IN int iAwsUnderTerm, IN int iAwsAboveOrEqualTerm )
+{
+	m_iAwsCriterionNum		= iAwsCriterionNum;
+	m_iAwsUnderTerm			= iAwsUnderTerm;
+	m_iAwsAboveOrEqualTerm	= iAwsAboveOrEqualTerm;
+
+	START_LOG( cout, L"AfterWorkStorage 정보 설정 완료" )
+		<< BUILD_LOG( m_iAwsCriterionNum )
+		<< BUILD_LOG( m_iAwsUnderTerm )
+		<< BUILD_LOG( m_iAwsAboveOrEqualTerm )
+		;
+}
+#endif // SERV_FIX_AFTER_WORK_STORAGE_CLASS

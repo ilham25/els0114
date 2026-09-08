@@ -33,22 +33,25 @@ class CX2DungeonSubStage
 			GT_DOWN,
 		};
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 		enum SECRET_STAGE_PAD
 		{
-			SSP_NONE = 0,
-			SSP_SECRET,
-			SSP_ELITE,
-			SSP_NORMAL,
+			SSP_NONE	= 0,
+			SSP_SECRET	= 1,
+			SSP_ELITE	= 2,
+			SSP_NORMAL	= 3,
 		};
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 #ifdef X2TOOL
 		enum MONSTER_GRADE
 		{
-			MG_NORMAL_NPC = 0,
-			MG_BOSS_NPC,
-			MG_MIDDLE_BOSS_NPC,
+			MG_NORMAL_NPC				= 0,
+			MG_BOSS_NPC					= 1,
+			MG_MIDDLE_BOSS_NPC			= 2,
+#ifdef SERV_ADD_MONSTER_GRADE_FOR_DEFINITELY_DROP_HP_BALL_ITEM// 작업날짜: 2013-08-28	// 박세훈
+			MG_DEFINITELY_DROP_HP_BALL	= 3,
+#endif // SERV_ADD_MONSTER_GRADE_FOR_DEFINITELY_DROP_HP_BALL_ITEM
 		};
 #endif
 
@@ -205,8 +208,8 @@ class CX2DungeonSubStage
 			bool		m_bReacted;
 			float		m_Interval;
 			float		m_NowInterval;
-			wstring		m_ConditionFunc;
-			wstring		m_ReactFunc;
+			string		m_ConditionFunc;
+			string		m_ReactFunc;
 
 #ifdef X2TOOL
 			Trigger()
@@ -216,8 +219,8 @@ class CX2DungeonSubStage
 				m_bReacted = false;
 				m_Interval = 0.f;
 				m_NowInterval = 0.f;
-				m_ConditionFunc = L"";
-				m_ReactFunc = L"";
+				m_ConditionFunc = "";
+				m_ReactFunc = "";
 			}
 #endif
 		};
@@ -235,7 +238,7 @@ class CX2DungeonSubStage
 			CX2DungeonSubStage::GO_TYPE	m_GoType;
 			vector<ClearCondtionData>	m_vecClearCondData;
 
-			map < int, wstring >	m_mapKeyCodeNStartState;
+			map < int, string >	m_mapKeyCodeNStartState;
 
 
 			typedef std::vector< wstring > SecretStageEnteringSpeech;
@@ -244,10 +247,8 @@ class CX2DungeonSubStage
 			CX2UnitManager::NPC_UNIT_ID m_eSecretStageNPCID;
 			
 //{{ kimhc // 2010.8.10 // 특정 몬스터의 위치 값을 부활 위치로 사용
-#ifdef	USE_MONSTER_POS_FOR_REBIRTH
 			bool					m_bUsePosOfMonsterForRebirth;
 			int						m_iKeyCodeOfMonsterForRebirth;
-#endif	USE_MONSTER_POS_FOR_REBIRTH
 //}} kimhc // 2010.8.10 // 특정 몬스터의 위치 값을 부활 위치로 사용
 
 			SubStageData()
@@ -263,10 +264,8 @@ class CX2DungeonSubStage
 				, m_mapKeyCodeNStartState()
 				, m_SecretStageEnteringSpeech()
 				, m_eSecretStageNPCID( CX2UnitManager::NUI_NONE )
-#ifdef	USE_MONSTER_POS_FOR_REBIRTH
 				, m_bUsePosOfMonsterForRebirth( false )
 				, m_iKeyCodeOfMonsterForRebirth( -1 )
-#endif	USE_MONSTER_POS_FOR_REBIRTH
 			{
 			}
 
@@ -306,12 +305,10 @@ class CX2DungeonSubStage
 			void AddNPCData( KNPCUnitReq& kNPCUnitReq );
 
 			//{{ kimhc // 2010.8.10 // 특정 몬스터의 위치 값을 부활 위치로 사용
-#ifdef	USE_MONSTER_POS_FOR_REBIRTH
 			bool GetUsePosOfMonsterForRebirth() const { return m_bUsePosOfMonsterForRebirth; }
 			void SetUsePosOfMonsterForRebirth(bool val) { m_bUsePosOfMonsterForRebirth = val; }
 			int	 GetKeyCodeOfMonsterForRebirth() const { return m_iKeyCodeOfMonsterForRebirth; }
 			void SetKeyCodeOfMonsterForRebirth(int val) { m_iKeyCodeOfMonsterForRebirth = val; }
-#endif	USE_MONSTER_POS_FOR_REBIRTH
 			//}} kimhc // 2010.8.10 // 특정 몬스터의 위치 값을 부활 위치로 사용
 
 		private:
@@ -363,9 +360,9 @@ class CX2DungeonSubStage
 		int					GetSubStageIndex(){ return m_SubStageIndex; }
 		
 		void				SetMonsterCountForSubStageClearCheck();
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 		void				PrepareClearSubStage( int iClearConditionIndex );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 		void				ClearSubStage( int clearType, int nextStageNum, int nextSubStageNum );
 		void				CheckIfSubStageCleared();
 		void				CheckIfSubStageCleared_NotHost();
@@ -430,8 +427,16 @@ class CX2DungeonSubStage
 
 		static CX2GUNPC*    CreateGUNPC( const NPCData* pNpcData_ );
 
+#ifdef DYNAMIC_PORTAL_LINE_MAP
+		void				ProcessAfterSubStageClear_NotHost();
+#endif // DYNAMIC_PORTAL_LINE_MAP
 	protected:		
 		void				ProcessTrigger();
+
+#ifdef DYNAMIC_PORTAL_LINE_MAP
+		void				ChangeLineTypeAfterStageClear();
+#endif // DYNAMIC_PORTAL_LINE_MAP
+
 		
 	
 		SubStageData*		m_pSubStageData;

@@ -66,6 +66,13 @@ CX2CashShop::CX2CashShop( CKTDXStage* pStage, const WCHAR* wszFileName )
 ,m_pDLGPetPreview ( NULL )
 ,m_iPrePetItemID ( -1 )
 #endif //PET_PREVIEW
+#ifdef COUPON_SYSTEM
+, m_pUICouponBox( NULL )
+, m_ulTempSelectedProductNo( 0 )
+#endif // COUPON_SYSTEM
+#ifdef REFORM_SKILL_NOTE_UI
+, m_iItemIDShowBuyUIAfterEnter(0)
+#endif // REFORM_SKILL_NOTE_UI
 {
 	m_pUnitViewerUI		= NULL;
 	CX2UnitViewerUI::SetUnitClicked( false );
@@ -379,12 +386,20 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 	switch( wParam )
 	{
+#ifdef COUPON_SYSTEM
+	case CX2StateMenu::SMUCM_COUPON_INPUT_BOX:
+		{
+			if ( NULL != m_pUICouponBox )
+				m_pUICouponBox->SetOpen( true );
+		} break;
+#endif // COUPON_SYSTEM
+
 
 	case CSCUM_CASH_CHARGE:
 		{
 			//{{ 2013.03.13 조효진	캐시충전 버튼을 누르면 웹페이지를 띄워줌
 #ifdef CASH_CHARGE_FROM_WEB
-			if( NULL != g_pData && NULL != g_pData->GetMyUser() && g_pData->GetMyUser()->GetUserData() != NULL &&
+			if( NULL != g_pData && NULL != g_pData->GetMyUser() &&
 				true == g_pMain->GetBrowserWrapper()->IsClosed() )
 			{
 				g_pKTDXApp->GetDevice()->SetDialogBoxMode( TRUE ); 
@@ -451,7 +466,7 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 // #ifdef SERV_TOONILAND_CHANNELING	// SERV_JAPAN_CHANNELING 때문에 문제 여지 있어서 주석 처리함
 // 			if( NULL != g_pData && NULL != g_pData->GetMyUser() )
 // 			{
-// 				if( g_pData->GetMyUser()->GetUserData()->m_uChannelCode == 3 )
+// 				if( g_pData->GetMyUser()->GetUserData().m_uChannelCode == 3 )
 // 				{
 // 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_13713 ), g_pMain->GetNowState() );
 // 					return true;
@@ -484,6 +499,21 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 				CKTDGUIStatic* pStatic_Giant_Tap = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Giant_Tap" );
 				pStatic_Giant_Tap->SetShowEnable(false,true);
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH_TEST_MODE
+				if( g_pData->GetMyUser()->GetAuthLevel() < CX2User::XUAL_OPERATOR )
+				{
+					CKTDGUIRadioButton* pDirect_Charge_TapButton = (CKTDGUIRadioButton*) m_pDLGCashchange->GetControl( L"CashChange_Direct_Charge_tap" );
+					pDirect_Charge_TapButton->SetShowEnable(false,false);
+				}
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH_TEST_MODE
+				CKTDGUIStatic* pStatic_Direct_Charge_Tap = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Direct_Charge_Tap" );
+				pStatic_Direct_Charge_Tap->SetShowEnable(false,true);
+
+				CKTDGUIButton* pDirect_Charge_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Direct_Charge_ok" );
+				pDirect_Charge_OK->SetShowEnable(false, false);
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 
 				CKTDGUIButton* pCash_Giant_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Giant_cash_ok" );
 				pCash_Giant_OK->SetShowEnable(false, false);
@@ -552,24 +582,31 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 #ifdef	SERV_CHANNELING_SOAP
 				SetOpenNexonCashChargePage( strURL, rcWebPage );
 #else	SERV_CHANNELING_SOAP
-				switch ( g_pData->GetMyUser()->GetUserData()->m_uChannelCode )
+				switch ( g_pData->GetMyUser()->GetUserData().m_uChannelCode )
 				{
 				default:
 
-				case 0:	// 넥슨 접속자
+				case KNexonAccountInfo::CE_NEXON_ACCOUNT:	// 넥슨 접속자
 					SetOpenNexonCashChargePage( strURL, rcWebPage );
 					break;
 
-				case 3:	// 투니랜드 접속자
+				case KNexonAccountInfo::CE_TOONILAND_ACCOUNT:	// 투니랜드 접속자
 					//ShellExecute(NULL ,NULL, L"https://member.tooniland.com/membersMember/checkIdPopup2.tl",NULL,NULL,SW_SHOWNA); 
 					//return true;
 					SetOpenTooniCashChargePage( strURL, rcWebPage );
 					break;
+
+#ifdef SERV_NAVER_CHANNELING
+				case KNexonAccountInfo::CE_NAVER_ACCOUNT:		// 네이버 접속자
+					SetOpenNaverCashChargePage( strURL, rcWebPage );
+					break;
+#endif // SERV_NAVER_CHANNELING
+
 				}
 #endif	SERV_CHANNELING_SOAP
 				//}} kimhc // 2011-08-10 // 채널링 SOAP
 
-				D3DXVECTOR2 vResolution = g_pMain->GetGameOption()->GetOptionList()->m_vResolution;
+				D3DXVECTOR2 vResolution = g_pMain->GetGameOption().GetOptionList().m_vResolution;
 
 				if( rcWebPage.right > static_cast<long>( vResolution.x ) )
 					rcWebPage.right = static_cast<long>( vResolution.x );
@@ -588,8 +625,6 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 				rcWebPage.right		+= rcWebPage.left;
 				rcWebPage.bottom	+= rcWebPage.top;
-				
-
 				g_pMain->GetBrowserWrapper()->Create( rcWebPage, g_pKTDXApp->GetHWND() );
 				g_pMain->GetBrowserWrapper()->Navigate( strURL.c_str(), NULL ); 
 
@@ -628,7 +663,8 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 #endif //SERV_EPAY_SYSTEM
 
 					m_pDLGCashchange->SetShowEnable(false,false);
-
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+#else // SERV_DIRECT_CHARGE_ELSWORD_CASH
 					CKTDGUIStatic* pStatic_Graphic = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Elsword_Tap" );
 					pStatic_Graphic->SetShowEnable(false,false);
 
@@ -640,7 +676,7 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 					CKTDGUIButton* pCash_CANCEL= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Exchange_cash_cancel" );
 					pCash_CANCEL->SetShowEnable(false, false);
-
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 #ifdef SERV_EPAY_SYSTEM
 				}
 #endif //SERV_EPAY_SYSTEM
@@ -651,20 +687,52 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			break;
 		case CSCUM_CASH_CHARGE_TAP_ELSWORD_CN:
 			{
-
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+				SetShowChinaCash_Tap_Elsword(true);
+				SetShowChinaCash_Tap_Giant(false);
+				SetShowChinaCash_Tap_DirectCharge(false);
+#else // SERV_DIRECT_CHARGE_ELSWORD_CASH
 				ChinaCash_Tap_Change(true);
 				CKTDGUIComboBox* pCombo_cash= (CKTDGUIComboBox*) m_pDLGCashchange->GetControl( L"CashChangeList" );
 				
-
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 			}
 			break;
 		case CSCUM_CASH_CHARGE_TAP_GIANT_CN:
 			{
-
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+				SetShowChinaCash_Tap_Elsword(false);
+				SetShowChinaCash_Tap_Giant(true);
+				SetShowChinaCash_Tap_DirectCharge(false);
+#else // SERV_DIRECT_CHARGE_ELSWORD_CASH
 				ChinaCash_Tap_Change(false);
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 
 			}
 			break;
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+		case CSCUM_CASH_CHARGE_TAP_DIRECT_CHARGE_CN:
+			{
+				SetShowChinaCash_Tap_Elsword(false);
+				SetShowChinaCash_Tap_Giant(false);
+				SetShowChinaCash_Tap_DirectCharge(true);
+			}
+			break;
+		case CSCUM_CASH_DIRECT_CHARGE_CN:
+			{
+				if(m_EpayTimer.elapsed() > 3)
+				{
+					if(m_bRunEpay == true )
+					{
+						CX2State* pNowState = (CX2State*)g_pMain->GetNowState();
+						pNowState->Handler_EGS_CHECK_BALANCE_REQ();
+						m_bRunEpay = false;
+					}
+					m_EpayTimer.restart();
+				}
+			}
+			break;
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 		case CSCUM_CASH_GIANT_TAP_EXIT_CN:
 			{
 #ifdef SERV_EPAY_SYSTEM
@@ -673,11 +741,14 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 #endif //SERV_EPAY_SYSTEM
 					m_pDLGCashchange->SetShowEnable(false,false);
 
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+#else // SERV_DIRECT_CHARGE_ELSWORD_CASH
 					CKTDGUIButton* pCash_Giant_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Giant_cash_ok" );
 					pCash_Giant_OK->SetShowEnable(false, false);
 
 					CKTDGUIButton* pCash_Giant_CANCEL= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Giant_cash_cancel" );
 					pCash_Giant_CANCEL->SetShowEnable(false, false);
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 
 #ifdef SERV_EPAY_SYSTEM
 					if(m_bRunEpay == true )
@@ -704,6 +775,9 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 				
 #ifdef SERV_EPAY_SYSTEM
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+				ExecuteEpaySystem();
+#else // SERV_DIRECT_CHARGE_ELSWORD_CASH
 				/*if(g_pData->GetMyUser().GetAuthLevel() >= CX2User::XUAL_OPERATOR)
 				{*/
 
@@ -779,6 +853,7 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 				{
 					ShellExecute(NULL, L"open", GET_STRING( STR_ID_14497 ), L"", L"", SW_SHOW ); 
 				}*/
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 #else //SERV_EPAY_SYSTEM
 
 		ShellExecute(NULL, L"open", GET_STRING( STR_ID_14497 ), L"", L"", SW_SHOW ); 
@@ -858,6 +933,9 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 //////////////////////////////////////////////////////////////////////////
 	case CSCUM_BUY:
 		{
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+			g_pInstanceData->SetChoicedItem(false);
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 			// Buy 버튼 누르면 캐시 체크 한번 더 한다. 
 			CX2State* pNowState = (CX2State*)g_pMain->GetNowState();
 			if ( NULL != pNowState )
@@ -982,6 +1060,14 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 	case CSCUM_PRESENT:
 		{
+#ifdef CLIENT_COUNTRY_PH
+			if (g_pData != NULL && g_pData->GetSelectUnitLevel() < 15)
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_14852 ), g_pMain->GetNowState() );
+				return true;
+			}
+#endif //CLIENT_COUNTRY_PH
+
 			CKTDGUIControl* pControl = (CKTDGUIControl*)lParam;
 			if ( pControl != NULL )
 			{
@@ -1099,6 +1185,16 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			m_pBuyItemPopUp->NextPage();
 		}
 		break;
+#ifdef COUPON_SYSTEM
+	case CSCUM_BUY_POP_UP_TO_FIRST_PAGE:			// 구매하기 UI, 상품 페이지 첫 페이지로 변경
+		{
+			m_pBuyItemPopUp->FirstPage();
+		} break;
+	case CSCUM_BUY_POP_UP_TO_LAST_PAGE:			// 구매하기 UI, 상품 페이지 첫 페이지로 변경
+		{
+			m_pBuyItemPopUp->LastPage();
+		} break;
+#endif // COUPON_SYSTEM
 
 	case CSCUM_BUY_POP_UP_ALL_CHECK_CHANGED:
 		{
@@ -1125,7 +1221,16 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		{
 			CKTDGUIComboBox* pComboBox = (CKTDGUIComboBox*)lParam;
 			if ( pComboBox != NULL )
+			{
+#ifdef COUPON_SYSTEM // 기간(수량) 변경 시 사용 가능 한 할인 쿠폰 목록 요청
+				unsigned long ulProductNo = 
+					m_pBuyItemPopUp->ChangeItemPeriod( pComboBox->GetDialog(), pComboBox->GetSelectedItemIndex() );		
+
+				Handler_EGS_DISCOUNT_COUPON_LIST_INQUIRY_REQ( ulProductNo ) ;
+#else
 				m_pBuyItemPopUp->ChangeItemPeriod( pComboBox->GetDialog(), pComboBox->GetSelectedItemIndex() );		
+#endif // COUPON_SYSTEM
+			}
 			
 			return true;
 		}
@@ -1140,7 +1245,14 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 	case CSCUM_BUY_POP_UP_CANCEL:
 		{
-			m_pBuyItemPopUp->SetOpen( false );
+			if( NULL != m_pBuyItemPopUp )
+			{
+				m_pBuyItemPopUp->SetOpen( false );
+#ifdef COUPON_SYSTEM
+				m_pBuyItemPopUp->InitCouponList();
+#endif // COUPON_SYSTEM
+			}
+
 			return true;
 		}
 		break;
@@ -1254,10 +1366,12 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 #else	AUTO_PAYMENT
 				m_pSubSM->Reset( vecItemID );
 #endif	AUTO_PAYMENT
-
 #ifdef SERV_USE_ENABLE_GIFT
 				m_pSubSM->SetShowPresentButton();
 #endif SERV_USE_ENABLE_GIFT
+#ifdef SERV_WISH_LIST_NO_ITEM
+				m_pSubSM->SetShowCartButton();
+#endif SERV_WISH_LIST_NO_ITEM
 				//}} kimhc // 2009-10-12 // 자동결제 시 캐시 - 원 으로 표시
 				ResetItemSlot(  CX2Slot::ST_CASH_SHOP_SUB,			m_pSubSM->GetNowShowItemIDList() );
 
@@ -1478,12 +1592,22 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 #ifdef SAVE_CASH_SHOP_PRE_EQUIP_ITEM_LIST
 			BuyAllEquippingItems();
 #else
+#ifdef BUY_ALL_CHECK_BALANCE
+			// Buy 버튼 누르면 캐시 체크 한번 더 한다. 
+			CX2State* pNowState = (CX2State*)g_pMain->GetNowState();
+			if ( NULL != pNowState )
+				pNowState->Handler_EGS_CHECK_BALANCE_REQ();
+#endif // BUY_ALL_CHECK_BALANCE
 			if ( m_vecPreEquipItemID.empty() == false )
 			{
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 				if( false == CheckBuyPossibleRelationItem( m_vecPreEquipItemID ) )
 					return false;
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+				// 모든 다격 표시를 위해서 찜 구매와 같은 처리를 한다
+				g_pInstanceData->SetChoicedItem(true);
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 				m_pBuyItemPopUp->Reset( m_vecPreEquipItemID );
 				m_pBuyItemPopUp->SetOpen( true );
 				m_pBuyItemPopUp->SetChoicedItemBuy( false );
@@ -1501,6 +1625,10 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 	case CSCUM_CHOICED_BUY:
 		{
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+			g_pInstanceData->SetChoicedItem(true);
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+
 			vector< int > vecItemID;
 #ifdef SERV_USE_ENABLE_GIFT
 			// 사려고 하는 캐쉬아이템이 캐쉬아이템 리스트에 없다면...
@@ -1524,7 +1652,11 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 			SetStringBuyItemRefund();
 #endif CASH_ITEM_REFUND
 
-			ShowPopUpGuideByItemID( m_ChoicedItemMenuItemID );
+			BOOST_FOREACH( const int& iItemID, vecItemID )
+			{
+				if ( ShowPopUpGuideByItemID( iItemID ) )
+					break;
+			}
 
 			if ( m_pDLGChoicedItemMenu != NULL )
 				m_pDLGChoicedItemMenu->SetShowEnable( false, false );
@@ -1589,6 +1721,9 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		{
 			if ( m_vecChoicedItemID.empty() == false )
 			{
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+				g_pInstanceData->SetChoicedItem(true);
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 				if( false == CheckBuyPossibleRelationItem( m_vecChoicedItemID ) )
 					return false;
@@ -1850,7 +1985,7 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
 				SetOpenCheckAuthority( strURL, rcWebPage );
 
-				D3DXVECTOR2 vResolution = g_pMain->GetGameOption()->GetOptionList()->m_vResolution;
+				D3DXVECTOR2 vResolution = g_pMain->GetGameOption().GetOptionList().m_vResolution;
 
 				if( rcWebPage.right > static_cast<long>( vResolution.x ) )
 					rcWebPage.right = static_cast<long>( vResolution.x );
@@ -1929,7 +2064,27 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		}
 		break;
 #endif CASH_INVEN_PICKUP_ALL
+#ifdef COUPON_SYSTEM // 할인 쿠폰 콤보박스 변경
+	case CSCUM_BUY_COUPON_COMBOBOX_CHANGED:
+		{
+			CKTDGUIComboBox* pComboBox = reinterpret_cast<CKTDGUIComboBox*>(lParam);
+			if ( NULL != pComboBox )
+			{
+				m_pBuyItemPopUp->ChangeItemCoupon( pComboBox->GetDialog(), pComboBox->GetSelectedItemIndex() );		
+			}
+			return true;
+		}
+		break;
+#endif // COUPON_SYSTEM
+
 	}
+
+#ifdef COUPON_SYSTEM
+	if ( m_pUICouponBox && 
+		 true == m_pUICouponBox->UICustomEventProc( hWnd, uMsg, wParam, lParam ) )
+		return true;
+#endif // COUPON_SYSTEM
+
 
 	return false;
 }
@@ -1937,10 +2092,15 @@ bool CX2CashShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 bool CX2CashShop::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 #ifdef SERV_EVENT_BINGO
-	if ( NULL !=  m_pBingo && true == m_pBingo->UIServerEventProc( hWnd, uMsg, wParam, lParam ) )
+	if ( NULL != m_pBingo && true == m_pBingo->UIServerEventProc( hWnd, uMsg, wParam, lParam ) )
 		return true;
 #endif //SERV_EVENT_BINGO
 
+#ifdef COUPON_SYSTEM
+	if ( NULL != m_pUICouponBox && 
+		true == m_pUICouponBox->UIServerEventProc( hWnd, uMsg, wParam, lParam ) )
+		return true;
+#endif // COUPON_SYSTEM
 	switch( wParam )
 	{
 	case EGS_BUY_CASH_ITEM_ACK:
@@ -2055,6 +2215,24 @@ bool CX2CashShop::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		}
 		break;
 #endif //SERV_COUNTRY_PH
+#ifdef COUPON_SYSTEM
+	case EGS_DISCOUNT_COUPON_LIST_INQUIRY_ACK:
+		{
+			return Handler_EGS_DISCOUNT_COUPON_LIST_INQUIRY_ACK(hWnd, uMsg, wParam, lParam);
+		} break;
+#endif // COUPON_SYSTEM
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	case EGS_CASH_DIRECT_CHARGE_CN_ACK:
+		{
+			return Handler_EGS_CASH_DIRECT_CHARGE_CN_ACK( hWnd, uMsg, wParam, lParam );
+		}
+		break;
+	case EGS_CASH_DIRECT_CHARGE_CN_NOT:
+		{
+
+		}
+		break;
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 	}
 
 	return false;
@@ -2091,6 +2269,16 @@ wstring CX2CashShop::GetSlotCashItemPeriodDesc( int itemTID )
 							continue;
 						}
 #endif 
+
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+						if( m_pNowOverItemSlot->GetSlotType() == CX2Slot::ST_CASH_SHOP_CHOICED || m_pNowOverItemSlot->GetSlotType() == CX2Slot::ST_EQUIPPED )
+						{
+							// 찜목록에서는 모든 가격 다 보여준다
+						}
+						else if( false == g_pInstanceData->IsCurrentSubCategoryInNowCatagory( kKBillProductInfo.m_cCategoryNo ))
+							continue;
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+
 						slotDesc += pCashItem->GetPeriod( kKBillProductInfo );
 						slotDesc += L"\n";
 					}
@@ -2428,6 +2616,10 @@ void CX2CashShop::SetOpen( bool bOpen )
 	}
 #endif //SERV_EVENT_BINGO
 
+#ifdef HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+	Send_EGS_VISIT_CASH_SHOP_NOT( bOpen );
+#endif // HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+
 	if ( bOpen == true )
 	{
 
@@ -2471,6 +2663,10 @@ void CX2CashShop::SetOpen( bool bOpen )
 		switch ( m_iMenuTypeCallingCashShop )
 		{
 		case CX2UIManager::UI_MENU_PRIVATE_BANK:
+#ifdef DIRECT_OPEN_BUY_DIALOG
+		case CX2UIManager::UI_SKILL_SLOT:
+		case CX2UIManager::UI_MENU_QUICK_SLOT:
+#endif //DIRECT_OPEN_BUY_DIALOG
 			{
 				SetCashShopState( CX2CashShop::CSS_SUB, CX2CashShop::CSC_INSTALL );
 				CKTDGUIRadioButton* pRadioButton = NULL;
@@ -2483,6 +2679,23 @@ void CX2CashShop::SetOpen( bool bOpen )
 				
 			}
 			break;
+		case CX2UIManager::UI_SKILL_NOTE:
+			{
+				// # 메모 구매를 위한 카테고리로 이동 
+				SetCashShopState( CX2CashShop::CSS_SUB, CX2CashShop::CSC_CONSUME );
+				CKTDGUIRadioButton* pRadioButton = pRadioButton = static_cast< CKTDGUIRadioButton* >( m_pDLGFront->GetControl( L"tab_Use" ) );
+				if ( NULL != pRadioButton )
+					pRadioButton->SetChecked( true );
+
+				if( NULL != m_pDLGSubPageMenu[CSC_CONSUME] )
+				{
+					ChangeSubCategory( CSSC_CONSUME_ETC );
+					pRadioButton = static_cast< CKTDGUIRadioButton* >(m_pDLGSubPageMenu[CSC_CONSUME]->GetControl(L"Tab_Other"));
+					if( NULL != pRadioButton )
+						pRadioButton->SetChecked(true);
+				}
+			} break;
+
 #ifdef LINK_CASH_SHOP_WHEN_JOB_CHANGE
 		case CX2LVUpEventMgr::LUEMCUM_ELSWORD_SWORD_KNIGHT:
 		case CX2LVUpEventMgr::LUEMCUM_ELSWORD_MAGIC_KNIGHT:
@@ -2604,7 +2817,9 @@ void CX2CashShop::SetOpen( bool bOpen )
 			{
 				if( NULL != g_pX2Game )
 				{
+#ifndef HSB_ALWAYS_VALID_IN_THE_CASHSHOP
 					Send_EGS_VISIT_CASH_SHOP_NOT( bOpen );
+#endif // HSB_ALWAYS_VALID_IN_THE_CASHSHOP
 
 					CX2BattleFieldGame* pBattleFieldGame = static_cast<CX2BattleFieldGame*>(g_pX2Game);
 					if( NULL != pBattleFieldGame ->GetNpcIndicator() )
@@ -2632,6 +2847,14 @@ void CX2CashShop::SetOpen( bool bOpen )
 		UpdateDLGPetViewerUI();
 #endif //PET_PREVIEW
 
+#ifdef COUPON_SYSTEM
+		if ( NULL == m_pUICouponBox )
+			m_pUICouponBox = new CX2UICouponBox;
+#endif // COUPON_SYSTEM
+
+#ifdef REFORM_SKILL_NOTE_UI
+		OpenBuyPopupByReserve();
+#endif // REFORM_SKILL_NOTE_UI
 
 	}
 	else
@@ -2758,7 +2981,9 @@ if(g_pTFieldGame != NULL && g_pTFieldGame->GetJoinNpc() == false ) // npc와 조우
 			{
 				if( NULL != g_pX2Game )
 				{
+#ifndef HSB_ALWAYS_VALID_IN_THE_CASHSHOP
 					Send_EGS_VISIT_CASH_SHOP_NOT( bOpen );
+#endif // HSB_ALWAYS_VALID_IN_THE_CASHSHOP
 
 					CX2BattleFieldGame* pBattleFieldGame = static_cast<CX2BattleFieldGame*>(g_pX2Game);
 					if( NULL != pBattleFieldGame ->GetNpcIndicator() )
@@ -2785,6 +3010,11 @@ if(g_pTFieldGame != NULL && g_pTFieldGame->GetJoinNpc() == false ) // npc와 조우
 #ifdef PET_PREVIEW
 		ResetPetViewer();
 #endif //PET_PREVIEW
+
+#ifdef COUPON_SYSTEM
+		SAFE_DELETE( m_pUICouponBox );
+#endif // COUPON_SYSTEM
+
 	}
 
 
@@ -2810,6 +3040,40 @@ if(g_pTFieldGame != NULL && g_pTFieldGame->GetJoinNpc() == false ) // npc와 조우
 		}
 	}
 	SetShowOtherUI( bOpen );
+
+#ifdef SERV_EVENT_CHECK_POWER
+	g_pMain->GetMemoryHolder()->GetCheckPowerEventDLG( (CKTDXStage*)g_pMain->GetNowState() );
+	switch( g_pMain->GetNowStateID() )
+	{
+	case CX2Main::XS_VILLAGE_MAP:
+	case CX2Main::XS_BATTLE_FIELD:
+	case CX2Main::XS_DUNGEON_GAME:
+		{
+			if( bOpen == true )
+			{
+				g_pMain->GetMemoryHolder()->SetShowCheckPowerEvent( false );
+			}
+			else
+			{
+				g_pMain->GetMemoryHolder()->SetShowCheckPowerEvent( true );
+				g_pMain->GetMemoryHolder()->SetShowCheckPowerEventGuidePage( false );
+			}
+		}break;
+	default:
+		{
+			g_pMain->GetMemoryHolder()->SetShowCheckPowerEvent( true );
+			g_pMain->GetMemoryHolder()->SetShowCheckPowerEventGuidePage( false );
+		}break;
+	}
+	g_pMain->GetMemoryHolder()->UpdateCheckPowerEvent();
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	if( bOpen == true )
+	{
+		g_pMain->GetMemoryHolder()->SetShow4thEvent( false );
+	}
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 }
 
 void CX2CashShop::ResetUnitViewer( CX2Unit* pUnit )
@@ -2825,7 +3089,8 @@ void CX2CashShop::ResetUnitViewer( CX2Unit* pUnit )
 		m_pUnitViewerUI = CX2UnitViewerUI::CreateUnitViewerUI();
 		//m_pUnitViewerUI->SetLightPos( 1000, 1000, -200 );
 		//m_pUnitViewerUI->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
-		m_pUnitViewerUI->SetLightPos( -250000, 50000, -500000 );	// 캐릭터뷰어 라이트 위치 변경
+		//m_pUnitViewerUI->SetLightPos( -250000, 50000, -500000 );	// 캐릭터뷰어 라이트 위치 변경
+		m_pUnitViewerUI->SetLightPos( -250, 100, -600 );	// 캐릭터뷰어 라이트 위치 변경
 		
 		g_pKTDXApp->GetDGManager()->AddObjectChain( m_pUnitViewerUI );
 		
@@ -2982,6 +3247,11 @@ void CX2CashShop::InitUI( CKTDXStage* pStage )
 #endif	AUTO_PAYMENT
 	//}} kimhc // 2009-10-08 // 자동결제
 
+#ifndef	ADD_CASH_SHOP_CATEGORY_EVENT_2
+	if ( m_pDLGFront->GetRadioButton_LUA( "tab_Event_2" ) != NULL )
+		m_pDLGFront->GetRadioButton_LUA( "tab_Event_2" )->SetShowEnable( false, false );
+#endif	ADD_CASH_SHOP_CATEGORY_EVENT_2
+
 #ifdef NO_REFUND_BUTTON
 	CKTDGUIControl* pRefund = m_pDLGFront->GetControl( L"refund" );
 
@@ -3101,7 +3371,13 @@ void CX2CashShop::InitUI( CKTDXStage* pStage )
 	m_nowColor = D3DXCOLOR(0.3f, 1.f, 1.f, 1.f);
 #endif //SERV_NOTIFY_BONUS_CASH
 
+#ifdef COUPON_SYSTEM
+//	m_pBuyItemPopUp		= new BuyItemPopup( L"DLG_Cash_Shop_Popup_Buy_New.lua" ); // 해외팀 제거
+	m_pBuyItemPopUp->Init( new BuyItemPopupSlot(), L"DLG_Cash_Shop_Popup_BUY_Slot_New.lua", 2 );
+#else
+//	m_pBuyItemPopUp		= new BuyItemPopup( L"DLG_Cash_Shop_Popup_Buy.lua" ); // 해외팀 제거
 	m_pBuyItemPopUp->Init( new BuyItemPopupSlot(), L"DLG_Cash_Shop_Popup_Buy_Slot.lua", 4 );
+#endif //COUPON_SYSTEM
 	m_pBuyItemPopUp->SetReverseDLGLayer( true );
 
 	m_pCashItemToInvenPopup = new CashItemToInvenPopup( L"DLG_Cash_Shop_Popup_ItemToInven.lua" );
@@ -3125,9 +3401,9 @@ void CX2CashShop::CategoryDataParsing( const WCHAR* pFileName )
 //}} robobeg : 2008-10-28
 
 //{{ robobeg : 2008-10-28
-	//g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"Enum.lua" );
+	//g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"Enum.lua" );
 //}} robobeg : 2008-10-28
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, pFileName );
+	g_pKTDXApp->LoadAndDoMemory( &kLuamanager, pFileName );
 
 
 	if( kLuamanager.BeginTable( "CASH_SHOP_REAL_CATEGORY_ID" ) == true )
@@ -3139,7 +3415,7 @@ void CX2CashShop::CategoryDataParsing( const WCHAR* pFileName )
 				int realID = 0;
 				vector< D3DXVECTOR2 > vecSubCateID;
 
-				LUA_GET_VALUE( kLuamanager, L"REAL_ID", realID, 0 );
+				LUA_GET_VALUE( kLuamanager, "REAL_ID", realID, 0 );
 
 				if( kLuamanager.BeginTable( "CASH_SHOP_REAL_SUB_CATEGORY_ID" ) == true )
 				{
@@ -3188,10 +3464,12 @@ void CX2CashShop::CategoryDataParsing( const WCHAR* pFileName )
 		return;
 	}
 }
-
-
 #ifdef SERV_GLOBAL_BILLING
+#ifdef COUPON_SYSTEM
+bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< std::pair<unsigned long, int> > vecProductAndCouponNoList, bool bChoicedItemBuy /*= false*/ )
+#else
 bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecProductNoList, bool bChoicedItemBuy /* = false */ )
+#endif // COUPON_SYSTEM
 {
 #ifdef DISABLE_REDUDANT_PACKET_CASH
 	if( true == g_pMain->IsWaitingServerPacket(EGS_BUY_CASH_ITEM_ACK))
@@ -3205,6 +3483,30 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
 	kPacket.m_bIsWishList = bChoicedItemBuy;
 	std::vector< KNXBTPurchaseReqInfo > vecKNXBTPurchaseReqInfo;
 
+#ifdef COUPON_SYSTEM // 구매 시 상품 번호와 쿠폰 번호를 매칭시켜 패킷에 담기
+	kPacket.m_bUseCoupon = false;
+
+	// 상품번호 & 쿠폰 번호를 패킷에 같이 담기
+	for ( UINT uiIndex = 0; uiIndex < vecProductAndCouponNoList.size(); ++uiIndex )
+	{
+		KNXBTPurchaseReqInfo kReqInfo;
+		// 상품 번호
+		kReqInfo.m_ulProductNo = vecProductAndCouponNoList[uiIndex].first;
+		// 쿠폰 번호
+		kReqInfo.m_iCouponCardNo = vecProductAndCouponNoList[uiIndex].second;
+		if( 0 < kReqInfo.m_iCouponCardNo )
+		{
+			kPacket.m_bUseCoupon = true;
+		}
+		else
+		{
+			kReqInfo.m_iCouponCardNo = -1;
+		}
+
+		kReqInfo.m_usOrderQuantity = 1;		
+		vecKNXBTPurchaseReqInfo.push_back( kReqInfo );
+	}
+#else
 	for ( int i = 0; i < (int)vecProductNoList.size(); i++ )
 	{
 		unsigned long productNo = vecProductNoList[i];
@@ -3213,6 +3515,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
 		kReqInfo.m_usOrderQuantity = 1;
 		vecKNXBTPurchaseReqInfo.push_back( kReqInfo );
 	}
+#endif // COUPON_SYSTEM
 
 	if ( vecKNXBTPurchaseReqInfo.empty() == true )
 		return true;
@@ -3282,7 +3585,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
 				)
 			{
 				//  인벤 최대 공간 체크
-				if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum( static_cast<CX2Inventory::SORT_TYPE>(iCategory) ) >= INVENTORY_SLOT_MAX_NUM )
+				if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum( static_cast<CX2Inventory::SORT_TYPE>(iCategory) ) >= INVENTORY_SLOT_MAX_NUM )
 				{
 					// 최대 확장 가능한 공간이상이면 실패처리
 					m_pBuyItemPopUp->SetOpen( false );
@@ -3342,7 +3645,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
 					pItemTemplet->GetItemType() == CX2Item::IT_ACCESSORY )
 				{
 					if ( g_pData->GetMyUser()->GetSelectUnit() != NULL
-						&& g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( itemID, true ) != NULL )
+						&& g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( itemID, true ) != NULL )
 					{
 						vecOverlapItemID.push_back( itemID );
 					}
@@ -3353,7 +3656,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
 			if( itemID == UNLIMITED_SECOND_CHANGE_JOB_ITEM_ID )
 			{
 				if( g_pData->GetMyUser()->GetSelectUnit() != NULL
-					&& g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( itemID ) != NULL
+					&& g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( itemID ) != NULL
 					|| 2 != g_pData->GetMyUser()->GetSelectUnit()->GetClassLevel()
 					)
 				{
@@ -3479,7 +3782,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wP
 							pItemTemplet->GetItemType() == CX2Item::IT_ACCESSORY )
 						{
 							if ( g_pData->GetMyUser()->GetSelectUnit() != NULL
-								&& g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( itemID, true ) != NULL )
+								&& g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( itemID, true ) != NULL )
 							{
 
 								g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_21 ), g_pMain->GetNowState() );
@@ -3533,11 +3836,11 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wP
 						}
 #endif	PRIVATE_BANK
 						//{{ kimhc // 2009-08-11 // 은행 회원권 구매지 다이얼로그 처리 다르게 하기위해
-#ifdef NO_SHOW_PRICE
+#ifdef SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
 						wstrstm << pItemTemplet->GetName() << L"(" << pCashItem->GetPeriod( *pKBillProductInfo, false ) << L")";
 #else
 						wstrstm << pItemTemplet->GetName() << L"(" << pCashItem->GetPeriod( *pKBillProductInfo ) << L")";
-#endif
+#endif SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
 						if ( i != (int)kEvent.m_vecPurchaseReqInfo.size() - 1 )
 						{
 							wstrstm << L", ";
@@ -3557,7 +3860,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wP
 					if ( bCheckBuyResurrectionStone == true && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 						wstrstm << GET_REPLACED_STRING( ( STR_ID_23, "i", g_pData->GetMyUser()->GetSelectUnit()->GetResurrectionStoneNum() + rebirthStoneNum ) ) << L"\n";
 					if ( bCheckBuyInvenSlotAdd == true && g_pData->GetMyUser()->GetSelectUnit() != NULL )
-						wstrstm << GET_REPLACED_STRING( ( STR_ID_25, "i", g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum(CX2Inventory::ST_EQUIP) + 8 ) );
+						wstrstm << GET_REPLACED_STRING( ( STR_ID_25, "i", g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum(CX2Inventory::ST_EQUIP) + 8 ) );
 					//{{ kimhc // 2009-08-11 // 은행 회원권 구매지 다이얼로그 처리 다르게 하기위해
 #ifdef	PRIVATE_BANK
 					if ( bCheckBuyBankMembershipItem	== true )
@@ -3586,261 +3889,6 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wP
 	return false;
 }
 
-// bool CX2CashShop::Handler_EBILL_BUY_PRODUCT_REQ( vector< int >& vecProductNoList, bool bChoicedItemBuy )
-// {
-// 	if ( m_bBuyPacketSent == true )
-// 		return false;	
-// 
-// 	KEBILL_BUY_PRODUCT_REQ kPacket;
-// 	kPacket.m_bIsWishList = bChoicedItemBuy;
-// 	
-// 	for ( int i = 0; i < (int)vecProductNoList.size(); i++ )
-// 	{
-// 		int productNo = vecProductNoList[i];
-// 		kPacket.m_vecProductNo.push_back( productNo );
-// 	}
-// 
-// 	if ( kPacket.m_vecProductNo.empty() == true )
-// 		return true;
-// 	
-// 	//검사해보고 거시기 하면 //
-// 	//if (  )
-// 	vector<int> vecOverlapItemID;
-// 	for ( int i = 0; i < (int)kPacket.m_vecProductNo.size(); i++ )
-// 	{
-// 		int kReqInfo = kPacket.m_vecProductNo[i];
-// 		KBillProductInfo* pKBillProductInfo = g_pData->GetItemManager()->GetCashItemProduct( kReqInfo );
-// 		if ( pKBillProductInfo != NULL )
-// 		{
-// 			int itemID = pKBillProductInfo->m_iProductID;
-// 
-// 			//{{ kimhc // 2009-08-11 // PLATINUM 은행 회원권 구매시 예외처리
-// #ifdef	PRIVATE_BANK
-// 			if ( ( itemID	== PLATINUM_MEMBERSHIP_CARD || itemID == COBO_CREDIT_CARD ) 
-// 				&& m_bCheckDialogWarningPlatinumMembership == false )
-// 			{
-// 				if ( g_pData->GetQuestManager() != NULL )
-// 				{
-// 					// 은행 퀘스트를 클리어 했는가?
-// 					if ( g_pData->GetQuestManager()->GetMapCompleteQuest().find( _CONST_UI_PRIVATE_BANK_::g_iBankQuestID )
-// 						== g_pData->GetQuestManager()->GetMapCompleteQuest().end() )	// 퀘스트를 클리어 하지 않았으면
-// 					{
-// 						if ( itemID	== PLATINUM_MEMBERSHIP_CARD )
-// 						{
-// 							g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_3869 ), CSCUM_BUY_PLATINUM_CARD_OK, 
-// 								g_pMain->GetNowState(), CSCUM_BUY_PLATINUM_CARD_CANCEL );
-// 						}
-// 						else if ( itemID == COBO_CREDIT_CARD )
-// 						{
-// 							g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_4353 ), CSCUM_BUY_PLATINUM_CARD_OK, 
-// 								g_pMain->GetNowState(), CSCUM_BUY_PLATINUM_CARD_CANCEL );
-// 						}
-// 
-// 
-// 
-// 						return false;
-// 					}					
-// 				}
-// 			}
-// #endif	PRIVATE_BANK
-// 			//}} kimhc // 2009-08-11 // PLATINUM 은행 회원권 구매시 예외처리
-// 
-// 			CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( itemID );
-// 			if ( pItemTemplet != NULL )
-// 			{
-// 				if ( pItemTemplet->m_ItemType == CX2Item::IT_WEAPON || 
-// 					pItemTemplet->m_ItemType == CX2Item::IT_DEFENCE || 
-// 					pItemTemplet->m_ItemType == CX2Item::IT_ACCESSORY )
-// 				{
-// 					if ( g_pData->GetMyUser().GetSelectUnit()->GetInventory()->GetItemByTID( itemID, true ) != NULL )
-// 					{
-// 						vecOverlapItemID.push_back( itemID );
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-// 
-// 
-// 	if ( vecOverlapItemID.empty() == false )
-// 	{
-// 		wstring wstrItemNames;
-// 		for ( int i = 0; i < (int)vecOverlapItemID.size(); i++ )
-// 		{
-// 			CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( vecOverlapItemID[i] );
-// 			if ( pItemTemplet != NULL )
-// 			{
-// 				wstrItemNames += pItemTemplet->m_Name.c_str();
-// 				if ( i != (int)vecOverlapItemID.size() - 1 )
-// 				{
-// 					wstrItemNames += L", ";
-// 				}
-// 			}
-// 
-// 		}
-// 		m_ReservedKEGS_EBILL_BUY_PRODUCT_REQ = kPacket;
-// 		g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), GET_REPLACED_STRING( ( STR_ID_20, "L", wstrItemNames ) ), CSCUM_BUY_POP_UP_OVERLAP_OK, 
-// 			g_pMain->GetNowState(), CSCUM_BUY_POP_UP_OVERLAP_CANCEL );
-// 		return false;
-// 	}
-// 
-// 	g_pData->GetServerProtocol()->SendPacket( EBILL_BUY_PRODUCT_REQ, kPacket );
-// 	g_pMain->AddServerPacket( EBILL_BUY_PRODUCT_ACK );
-// 
-// 	m_bBuyPacketSent = true;
-// 
-// 	return true;
-// 
-// }
-// 
-// bool CX2CashShop::Handler_EBILL_BUY_PRODUCT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
-// {
-// 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
-// 	KEBILL_BUY_PRODUCT_ACK kEvent;
-// 	DeSerialize( pBuff, &kEvent );
-// 
-// 	m_bBuyPacketSent = false;
-// 
-// 	if ( g_pMain->DeleteServerPacket( EBILL_BUY_PRODUCT_ACK ) == true )
-// 	{
-// 		if ( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
-// 		{
-// 	
-// 			if ( kEvent.m_bIsWishList == true )
-// 			{
-// 				vector< int > vecItemID;
-// 				for ( int i = 0; i < (int)kEvent.m_vecProductNo.size(); i++ )
-// 				{
-// 					int ProductNo = kEvent.m_vecProductNo[i];
-// 					KBillProductInfo* pKBillProductInfo = g_pData->GetItemManager()->GetCashItemProduct( ProductNo );
-// 					if ( pKBillProductInfo != NULL )
-// 					{
-// 						vecItemID.push_back( pKBillProductInfo->m_iProductID );
-// 					}
-// 				}
-// 				Handler_EGS_MODIFY_WISH_LIST_REQ( false, vecItemID );	
-// 			}			
-// 
-// 			bool bCheckBuyResurrectionStone		= false;
-// 			bool bCheckBuyInvenSlotAdd			= false;
-// 			//{{ kimhc // 2009-08-11 // 은행 회원권 구매지 다이얼로그 처리 다르게 하기위해
-// #ifdef	PRIVATE_BANK
-// 			bool bCheckBuyBankMembershipItem	= false;
-// #endif	PRIVATE_BANK
-// 			//{{ kimhc // 2009-08-11 // 은행 회원권 구매지 다이얼로그 처리 다르게 하기위해
-// 
-// 			int rebirthStoneNum = 0;
-// 
-// 			for ( int i = 0; i < (int)kEvent.m_vecProductNo.size(); i++ )
-// 			{
-// 				int ProductNo = kEvent.m_vecProductNo[i];
-// 				KBillProductInfo* pKBillProductInfo = g_pData->GetItemManager()->GetCashItemProduct( ProductNo );
-// 				if ( pKBillProductInfo != NULL )
-// 				{
-// 					int itemID = pKBillProductInfo->m_iProductID;
-// 					CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( itemID );
-// 					if ( pItemTemplet != NULL )
-// 					{
-// 						if ( pItemTemplet->m_ItemType == CX2Item::IT_WEAPON || 
-// 							pItemTemplet->m_ItemType == CX2Item::IT_DEFENCE || 
-// 							pItemTemplet->m_ItemType == CX2Item::IT_ACCESSORY )
-// 						{
-// 							if ( g_pData->GetMyUser().GetSelectUnit()->GetInventory()->GetItemByTID( itemID, true ) != NULL )
-// 							{
-// 
-// 								g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_21 ), g_pMain->GetNowState() );
-// 							}
-// 						}
-// 					}
-// 				}
-// 			}
-// 
-// 			wstringstream wstrstm;
-// 			for ( int i = 0;  i < (int)kEvent.m_vecProductNo.size(); i++ )
-// 			{
-// 				int ProductNo = kEvent.m_vecProductNo[i];
-// 				KBillProductInfo* pKBillProductInfo = g_pData->GetItemManager()->GetCashItemProduct( ProductNo );
-// 
-// 				if ( pKBillProductInfo != NULL )
-// 				{
-// 
-// 					CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( pKBillProductInfo->m_iProductID );
-// 					CX2ItemManager::CashItem* pCashItem = g_pData->GetItemManager()->GetCashItem( pKBillProductInfo->m_iProductID );
-// 					if ( pItemTemplet != NULL && pCashItem != NULL )
-// 					{
-// 						//127030부활석
-// 						if ( 127030 == pItemTemplet->m_ItemID )
-// 						{
-// 							bCheckBuyResurrectionStone = true;
-// 							rebirthStoneNum = (int)pKBillProductInfo->m_cQuantity;
-// 						}
-// 
-// 						//200750 소지품 8칸 확장
-// 						if ( INVENTORY_SLOT_ADD_ITEM == pItemTemplet->m_ItemID )
-// 						{
-// 							bCheckBuyInvenSlotAdd = true;
-// 						}
-// 
-// 						//{{ kimhc // 2009-08-11 // 은행 회원권 구매시 다이얼로그 처리 다르게 하기위해
-// #ifdef	PRIVATE_BANK
-// 						switch ( pItemTemplet->m_ItemID )
-// 						{
-// 						case SILVER_MEMBERSHIP_CARD:
-// 						case GOLD_MEMBERSHIP_CARD:
-// 						case EMERALD_MEMBERSHIP_CARD:
-// 						case DIAMOND_MEMBERSHIP_CARD:
-// 						case PLATINUM_MEMBERSHIP_CARD:
-// 						case COBO_CREDIT_CARD:
-// 							bCheckBuyBankMembershipItem		= true;
-// 							break;
-// 
-// 						default:
-// 							break;
-// 						}
-// #endif	PRIVATE_BANK
-// 						//{{ kimhc // 2009-08-11 // 은행 회원권 구매지 다이얼로그 처리 다르게 하기위해
-// 
-// 						wstrstm << pItemTemplet->m_Name.c_str() << L"(" << pCashItem->GetPeriod( *pKBillProductInfo ) << L")";
-// 						if ( i != (int)kEvent.m_vecProductNo.size() - 1 )
-// 						{
-// 							wstrstm << L", ";
-// 						}
-// 					}
-// 
-// 				}
-// 
-// 				if ( i == (int)kEvent.m_vecProductNo.size() - 1 )
-// 				{
-// 					wstrstm << GET_STRING( STR_ID_22 ) << L"\n";
-// 					if ( bCheckBuyResurrectionStone == true )
-// 						wstrstm << GET_REPLACED_STRING( ( STR_ID_23, "i", g_pData->GetMyUser().GetSelectUnit()->GetResurrectionStoneNum() + rebirthStoneNum ) ) << L"\n";
-// 					if ( bCheckBuyInvenSlotAdd == true )
-// 						wstrstm << GET_REPLACED_STRING( ( STR_ID_25, "i", g_pData->GetMyUser().GetSelectUnit()->GetInventory()->GetItemMaxNum(CX2Inventory::ST_EQUIP) + 8 ) );
-// 					//{{ kimhc // 2009-08-11 // 은행 회원권 구매지 다이얼로그 처리 다르게 하기위해
-// #ifdef	PRIVATE_BANK
-// 					if ( bCheckBuyBankMembershipItem	== true )
-// 						wstrstm	<< GET_STRING( STR_ID_3868 );					
-// #endif	PRIVATE_BANK
-// 					//{{ kimhc // 2009-08-11 // 은행 회원권 구매지 다이얼로그 처리 다르게 하기위해
-// 				}
-// 
-// 			}
-// 
-// 
-// 
-// 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), wstrstm.str().c_str(), g_pMain->GetNowState() );
-// 			//g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"아이템 구매 성공!", g_pMain->GetNowState() );
-// 
-// 			CX2State* pNowState = (CX2State*)g_pMain->GetNowState();
-// 			pNowState->Handler_EGS_CHECK_BALANCE_REQ();
-// 
-// 			return Handler_EBILL_INVENTORY_INQUIRY_REQ( 1, CASH_SHOP_DEPOSIT_SLOT_NUM );
-// 
-// 		}
-// 	}
-// 	return false;
-// 
-// }
 bool CX2CashShop::Handler_EGS_BILL_INVENTORY_INQUIRY_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 
@@ -3890,7 +3938,12 @@ bool CX2CashShop::Handler_EGS_BILL_INVENTORY_INQUIRY_ACK( HWND hWnd, UINT uMsg, 
 	return false;
 }
 #else // SERV_GLOBAL_BILLING
+
+#ifdef COUPON_SYSTEM
+bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< std::pair<unsigned long, int> > vecProductAndCouponNoList, bool bChoicedItemBuy /*= false*/ )
+#else
 bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecProductNoList, bool bChoicedItemBuy /* = false */ )
+#endif // COUPON_SYSTEM
 {
 	if ( m_bSend_EGS_BUY_CASH_ITEM_REQ == true )
 		return false;	
@@ -3899,6 +3952,30 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
 	kPacket.m_bIsWishList = bChoicedItemBuy;
 	std::vector< KNXBTPurchaseReqInfo > vecKNXBTPurchaseReqInfo;
 
+#ifdef COUPON_SYSTEM // 구매 시 상품 번호와 쿠폰 번호를 매칭시켜 패킷에 담기
+	kPacket.m_bUseCoupon = false;
+
+	// 상품번호 & 쿠폰 번호를 패킷에 같이 담기
+	for ( UINT uiIndex = 0; uiIndex < vecProductAndCouponNoList.size(); ++uiIndex )
+	{
+		KNXBTPurchaseReqInfo kReqInfo;
+		// 상품 번호
+		kReqInfo.m_ulProductNo = vecProductAndCouponNoList[uiIndex].first;
+		// 쿠폰 번호
+		kReqInfo.m_iCouponCardNo = vecProductAndCouponNoList[uiIndex].second;
+		if( 0 < kReqInfo.m_iCouponCardNo )
+		{
+			kPacket.m_bUseCoupon = true;
+		}
+		else
+		{
+			kReqInfo.m_iCouponCardNo = -1;
+		}
+
+		kReqInfo.m_usOrderQuantity = 1;		
+		vecKNXBTPurchaseReqInfo.push_back( kReqInfo );
+	}
+#else
 	for ( int i = 0; i < (int)vecProductNoList.size(); i++ )
 	{
 		unsigned long productNo = vecProductNoList[i];
@@ -3907,6 +3984,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
 		kReqInfo.m_usOrderQuantity = 1;
 		vecKNXBTPurchaseReqInfo.push_back( kReqInfo );
 	}
+#endif // COUPON_SYSTEM
 
 	if ( vecKNXBTPurchaseReqInfo.empty() == true )
 		return true;
@@ -3926,6 +4004,8 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
 
 			//{{ kimhc // 2009-08-11 // PLATINUM 은행 회원권 구매시 예외처리
 #ifdef	PRIVATE_BANK
+			#pragma region 은행 확장 캐시 구입 관련
+			#ifndef GOOD_ELSWORD //JHKang
 			if ( ( itemID	== PLATINUM_MEMBERSHIP_CARD || itemID == COBO_CREDIT_CARD ) 
 				&& m_bCheckDialogWarningPlatinumMembership == false )
 			{
@@ -3946,13 +4026,13 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
 							g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_4353 ), CSCUM_BUY_PLATINUM_CARD_OK, 
 								g_pMain->GetNowState(), CSCUM_BUY_PLATINUM_CARD_CANCEL );
 						}
-						
-						
 
 						return false;
-					}					
+					}
 				}
 			}
+			#endif //GOOD_ELSWORD
+			#pragma endregion 은행 퀘스트 처리
 #endif	PRIVATE_BANK
 			//}} kimhc // 2009-08-11 // PLATINUM 은행 회원권 구매시 예외처리
 						
@@ -3965,7 +4045,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecPro
                 case CX2Item::IT_DEFENCE:
                 case CX2Item::IT_ACCESSORY:
 				    {
-					    if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( itemID, true ) != NULL )
+					    if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( itemID, true ) != NULL )
 					    {
 						    vecOverlapItemID.push_back( itemID );
 					    }
@@ -4093,7 +4173,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wP
                         case CX2Item::IT_DEFENCE:
                         case CX2Item::IT_ACCESSORY:
 						    {
-							    if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( itemID, true ) != NULL )
+							    if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( itemID, true ) != NULL )
 							    {
 
 								    g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_21 ), g_pMain->GetNowState() );
@@ -4195,7 +4275,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wP
 						wstrstm << GET_REPLACED_STRING( ( STR_ID_23, "i", g_pData->GetMyUser()->GetSelectUnit()->GetResurrectionStoneNum() + rebirthStoneNum ) ) << L"\n";
 #ifndef SERV_REFORM_INVENTORY_TEST
 					if ( bCheckBuyInvenSlotAdd == true )
-						wstrstm << GET_REPLACED_STRING( ( STR_ID_25, "i", g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum(CX2Inventory::ST_EQUIP) + 8 ) );
+						wstrstm << GET_REPLACED_STRING( ( STR_ID_25, "i", g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum(CX2Inventory::ST_EQUIP) + 8 ) );
 #endif SERV_REFORM_INVENTORY_TEST
 					//{{ kimhc // 2009-08-11 // 은행 회원권 구매지 다이얼로그 처리 다르게 하기위해
 #ifdef	PRIVATE_BANK
@@ -4289,7 +4369,6 @@ bool CX2CashShop::Handler_EGS_PURCHASED_CASH_ITEM_LIST_ACK( HWND hWnd, UINT uMsg
 }
 #endif // SERV_GLOBAL_BILLING
 
-
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GLOBAL_BILLING
 #ifdef SERV_CASH_ITEM_SOCKET_OPTION
@@ -4322,9 +4401,9 @@ bool CX2CashShop::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_REP( KBillOrderInfo& 
 	if ( (int)kKBillOrderInfo.m_kBillProductInfo.m_cPeriod > 0 )
 	{
 		//int itemID = pKBillProductInfo->m_iProductID;
-		//if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( itemID ) > 0 )
+		//if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( itemID ) > 0 )
 		if ( g_pData->GetMyUser()->GetSelectUnit() != NULL
-			&& g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( kKBillOrderInfo.m_kBillProductInfo.m_iProductID ) > 0 )
+			&& g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( kKBillOrderInfo.m_kBillProductInfo.m_iProductID ) > 0 )
 		{
 			//경고문 띄워주자.
 			m_pDLGOverlapCheckCashItemToInven = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_26 ), CSCUM_ITEM_TO_INVEN_OVERLAP_CHECK_OK, g_pMain->GetNowState() );
@@ -4366,17 +4445,17 @@ bool CX2CashShop::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK( HWND hWnd, UINT 
 		{
 			//need a process 
 			Handler_EGS_BILL_INVENTORY_INQUIRY_REQ( 1, CASH_SHOP_DEPOSIT_SLOT_NUM );
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
 			bool		bUpdateCashShopState	= false;
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+			CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 			map< int, int >::iterator mit;
 			for ( mit = kEvent.m_mapExpandedCategorySlot.begin(); mit != kEvent.m_mapExpandedCategorySlot.end(); mit++ )
 			{
-				if ( pInventory != NULL )
+				//if ( pInventory != NULL )
 				{
-					pInventory->SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
-						pInventory->GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
+					kInventory.SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
+						kInventory.GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
 
 					//{{ kimhc // 2009-08-17 // 은행 확장권을 구입했을 때만 업데이트
 #ifdef	PRIVATE_BANK
@@ -4389,7 +4468,7 @@ bool CX2CashShop::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK( HWND hWnd, UINT 
 					{
 						if( NULL != g_pData->GetUIManager()->GetUIQuickSlot() )
 						{
-							g_pData->GetUIManager()->GetUIQuickSlot()->SetExpandQuickSlot( pInventory->GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );	// 맥스 슬롯 올리고
+							g_pData->GetUIManager()->GetUIQuickSlot()->SetExpandQuickSlot( kInventory.GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );	// 맥스 슬롯 올리고
 
 							bExpandQuickSlot = true;
 
@@ -4400,15 +4479,15 @@ bool CX2CashShop::Handler_EGS_BILL_GET_PURCHASED_CASH_ITEM_ACK( HWND hWnd, UINT 
 
 							if( g_pKTDXApp->GetDIManager()->GetJoystic() != NULL )
 							{
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 								g_pKTDXApp->GetDIManager()->GetJoystic()->SetAction( GAMEACTION_QUICKSLOT4, JB_BUTTON14 );
 								g_pKTDXApp->GetDIManager()->GetJoystic()->SetAction( GAMEACTION_QUICKSLOT5,	JB_BUTTON15 );
 								g_pKTDXApp->GetDIManager()->GetJoystic()->SetAction( GAMEACTION_QUICKSLOT6,	JB_BUTTON16 );
-#else //KEY_MAPPING_INT
+#else //SERV_KEY_MAPPING_INT
 								g_pKTDXApp->GetDIManager()->GetJoystic()->SetAction( GAMEACTION_QUICKSLOT4, DIJOFS_BUTTON14 );
 								g_pKTDXApp->GetDIManager()->GetJoystic()->SetAction( GAMEACTION_QUICKSLOT5,	DIJOFS_BUTTON15 );
 								g_pKTDXApp->GetDIManager()->GetJoystic()->SetAction( GAMEACTION_QUICKSLOT6,	DIJOFS_BUTTON16 );
-#endif //KEY_MAPPING_INT
+#endif //SERV_KEY_MAPPING_INT
 							}
 #endif KEY_MAPPING
 						}
@@ -4510,7 +4589,7 @@ bool CX2CashShop::Handler_EGS_GET_PURCHASED_CASH_ITEM_REP( const KNXBTOrderInfo&
 	if ( pKNXBTProductInfo != NULL && pKNXBTProductInfo->GetProductExpire() > 0 )
 	{
 		int itemID = _wtoi( pKNXBTProductInfo->m_wstrProductID.c_str() );
-		if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( itemID ) > 0 )
+		if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( itemID ) > 0 )
 		{
 			//경고문 띄워주자.
 			m_pDLGOverlapCheckCashItemToInven = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_26 ), CSCUM_ITEM_TO_INVEN_OVERLAP_CHECK_OK, g_pMain->GetNowState() );
@@ -4550,17 +4629,17 @@ bool CX2CashShop::Handler_EGS_GET_PURCHASED_CASH_ITEM_ACK( HWND hWnd, UINT uMsg,
 		{
 			//need a process 
 			Handler_EGS_PURCHASED_CASH_ITEM_LIST_REQ( 1, CASH_SHOP_DEPOSIT_SLOT_NUM );
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
+			kInventory.UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
 			bool		bUpdateCashShopState	= false;
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+
 			map< int, int >::iterator mit;
 			for ( mit = kEvent.m_mapExpandedCategorySlot.begin(); mit != kEvent.m_mapExpandedCategorySlot.end(); mit++ )
 			{
-				if ( pInventory != NULL )
 				{
-					pInventory->SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
-						pInventory->GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
+					kInventory.SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
+						kInventory.GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
 
 					//{{ kimhc // 2009-08-17 // 은행 확장권을 구입했을 때만 업데이트
 #ifdef	PRIVATE_BANK
@@ -4574,7 +4653,7 @@ bool CX2CashShop::Handler_EGS_GET_PURCHASED_CASH_ITEM_ACK( HWND hWnd, UINT uMsg,
 					{
 						if( NULL != g_pData->GetUIManager()->GetUIQuickSlot() )
 						{
-							g_pData->GetUIManager()->GetUIQuickSlot()->SetExpandQuickSlot( pInventory->GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );	// 맥스 슬롯 올리고
+							g_pData->GetUIManager()->GetUIQuickSlot()->SetExpandQuickSlot( kInventory.GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );	// 맥스 슬롯 올리고
 
 							bExpandQuickSlot = true;
 						}
@@ -4713,7 +4792,7 @@ bool CX2CashShop::Handler_EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REP( const KNXBTOr
 		if ( kKNXBTPackageInfo.GetProductExpire() > 0 )
 		{
 			int itemID = _wtoi( kKNXBTPackageInfo.m_wstrProductID.c_str() );
-			if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( itemID ) > 0 )
+			if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( itemID ) > 0 )
 			{
 				//경고문 띄워주자.
 				m_pDLGOverlapCheckCashItemToInven = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_26 ), CSCUM_ITEM_TO_INVEN_OVERLAP_CHECK_OK_PACKAGE, g_pMain->GetNowState() );
@@ -4757,16 +4836,17 @@ bool CX2CashShop::Handler_EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_ACK( HWND hWnd, UI
 #else // SERV_GLOBAL_CASH_PACKAGE
 			Handler_EGS_PURCHASED_CASH_ITEM_LIST_REQ( 1, CASH_SHOP_DEPOSIT_SLOT_NUM );
 #endif // SERV_GLOBAL_CASH_PACKAGE
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+			CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
+			kInventory.UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+
 			map< int, int >::iterator mit;
 			for ( mit = kEvent.m_mapExpandedCategorySlot.begin(); mit != kEvent.m_mapExpandedCategorySlot.end(); mit++ )
 			{
-				if ( pInventory != NULL )
 				{
-					pInventory->SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
-						pInventory->GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
+					kInventory.SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
+						kInventory.GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
 				}
 			}
 
@@ -4943,6 +5023,18 @@ bool CX2CashShop::Handler_EGS_PRESENT_CASH_ITEM_REQ( const WCHAR* wszReceiverNic
 	kPacket.m_iUseCashType = m_pPresentItemPopup->GetUseCashType();
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 
+#ifdef CLIENT_COUNTRY_PH
+	if ( m_pPresentItemPopup != NULL && m_pPresentItemPopup->RestPresentItemCashCheck(ulProductNo) == false )
+	{
+		m_pPresentItemPopup->SetOpen( false, 0 );
+
+		
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), NetError::GetErrStrF(NetError::ERR_BUY_CASH_ITEM_16) , g_pMain->GetNowState() );
+
+		return false;
+	}
+#endif //CLIENT_COUNTRY_PH
+
 	KNXBTPurchaseReqInfo kReqInfo;
 	kReqInfo.m_ulProductNo = ulProductNo;
 	kReqInfo.m_usOrderQuantity = 1;
@@ -5016,21 +5108,12 @@ bool CX2CashShop::Handler_EGS_EXPAND_CHAR_SLOT_NOT( HWND hWnd, UINT uMsg, WPARAM
 	KEGS_EXPAND_CHAR_SLOT_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );	
 
-	g_pData->GetMyUser()->GetUserData()->maxUnitCount = kEvent.m_iCharSlotSize;
+	g_pData->GetMyUser()->AccessUserData().maxUnitCount = kEvent.m_iCharSlotSize;
 
 	g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_REPLACED_STRING( ( STR_ID_29, "i", kEvent.m_iCharSlotSize ) ), g_pMain->GetNowState() );
 
 	return true;
 }
-
-void CX2CashShop::Send_EGS_VISIT_CASH_SHOP_NOT( const bool bOpen_ ) const
-{
-	KEGS_VISIT_CASH_SHOP_NOT kPacket;
-	kPacket.m_bEnterCashShop = bOpen_;
-
-	g_pData->GetServerProtocol()->SendPacket( EGS_VISIT_CASH_SHOP_NOT, kPacket );
-}
-
 
 #ifdef CASH_ITEM_REFUND
 
@@ -5071,7 +5154,6 @@ bool CX2CashShop::Handler_EGS_CASH_ITEM_REFUND_ACK( HWND hWnd, UINT uMsg, WPARAM
 #else // SERV_GLOBAL_BILLING
 			Handler_EGS_PURCHASED_CASH_ITEM_LIST_REQ( 1, CASH_SHOP_DEPOSIT_SLOT_NUM );
 #endif // SERV_GLOBAL_BILLING
-
 			return true;
 		}
 	}
@@ -5167,6 +5249,13 @@ bool CX2CashShop::MouseRButtonUp( D3DXVECTOR2 mousePos )
 			pGift->SetEnable( false );
 		}
 #endif SERV_USE_ENABLE_GIFT
+
+#ifdef CLIENT_COUNTRY_PH
+		if ( pGift != NULL && g_pData != NULL && g_pData->GetSelectUnitLevel() < 15 )
+		{
+			pGift->SetEnable( false );
+		}
+#endif //CLIENT_COUNTRY_PH
 
 		D3DXVECTOR2 vMousePos;
 		vMousePos.x = (float)g_pKTDXApp->GetDIManager()->GetMouse()->GetXPos();
@@ -5385,8 +5474,7 @@ bool CX2CashShop::MouseLRButtonUpEquip( CX2SlotItem* pItemSlot )
 #ifdef ICE_HEATER_PRE_VIEW
 				vector< int > vecIceHeaterItemData;
 				CX2Unit::UNIT_TYPE eUnitType = CX2Unit::UT_NONE;
-				if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-					NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData())
+				if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 				{
 					eUnitType = g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet()->m_UnitType;
 				}
@@ -5426,8 +5514,7 @@ bool CX2CashShop::MouseLRButtonUpEquip( CX2SlotItem* pItemSlot )
 #ifdef ICE_HEATER_PRE_VIEW
 				vector< int > vecIceHeaterItemData;
 				CX2Unit::UNIT_TYPE eUnitType = CX2Unit::UT_NONE;
-				if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-					NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData())
+				if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit())
 				{
 					eUnitType = g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet()->m_UnitType;
 				}
@@ -5504,6 +5591,10 @@ void CX2CashShop::SetCashShopState( CASH_SHOP_STATE cashShopState, CASH_SHOP_CAT
 
 	ResetSellCashItemByPreEquip();
 
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+	g_pInstanceData->SetNowSubCategoryList(m_vecCashShopCateList, cashShopCate);
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+
 	if ( m_CashShopState == CX2CashShop::CSS_MAIN )
 	{
 		CKTDGUIRadioButton* pRadioButton = (CKTDGUIRadioButton*)m_pDLGFront->GetControl( L"tab_main" );
@@ -5545,7 +5636,11 @@ void CX2CashShop::SetCashShopState( CASH_SHOP_STATE cashShopState, CASH_SHOP_CAT
 		m_pMainNewSM->SetShowPresentButton();
 		m_pMainRecommendSM->SetShowPresentButton();
 #endif SERV_USE_ENABLE_GIFT
-
+#ifdef SERV_WISH_LIST_NO_ITEM
+		m_pMainHotSM->SetShowCartButton();
+		m_pMainNewSM->SetShowCartButton();
+		m_pMainRecommendSM->SetShowCartButton();
+#endif SERV_WISH_LIST_NO_ITEM
 		ResetMainPageNumUI();
 
 	}
@@ -5641,6 +5736,10 @@ void CX2CashShop::SetCashShopState( CASH_SHOP_STATE cashShopState, CASH_SHOP_CAT
 		m_pSubSM->SetShowPresentButton();
 #endif SERV_USE_ENABLE_GIFT
 
+#ifdef SERV_WISH_LIST_NO_ITEM
+		m_pSubSM->SetShowCartButton();
+#endif SERV_WISH_LIST_NO_ITEM
+
 		ResetSubPageNumUI();
 	}	
 }
@@ -5692,7 +5791,6 @@ void CX2CashShop::ResetItemSlot( CX2Slot::SLOT_TYPE slotType, vector<int>& vecIt
 
 	ResetSellCashItemByPreEquip();
 }
-
 
 #ifdef SERV_GLOBAL_BILLING
 void CX2CashShop::ResetDepositItemSlot( CX2Slot::SLOT_TYPE slotType, vector< KBillOrderInfo >& vecKBillOrderInfo )
@@ -6125,13 +6223,6 @@ vector<int> CX2CashShop::GetItemByCategory( CASH_SHOP_CATEGORY categoryID )
 					}
 #endif  SERV_EXPAND_QUICK_SLOT
 
-#ifdef SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
-					if( (itemID == 60007354 || itemID == 60007355 || itemID == 60007356) && CX2Unit::UC_ARA_LITTLE_HSIEN != iUnitClass )
-					{
-						continue;
-					}
-#endif SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
-
 					//{{ 허상형 : [2012/12/5] //		특정 아이템 가지고 있어야 캐시샵에서 구매 가능
 #ifdef	SERV_KEEP_ITEM_SHOW_CASHSHOP
 					if( g_pData != NULL )
@@ -6145,7 +6236,7 @@ vector<int> CX2CashShop::GetItemByCategory( CASH_SHOP_CATEGORY categoryID )
 							{
 								for( int i = 0; i < TempItemID.size(); ++i )
 								{
-									if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( TempItemID[i] ) == NULL )
+									if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( TempItemID[i] ) == NULL )
 									{
 										bContinue = true;
 										break;
@@ -6160,6 +6251,18 @@ vector<int> CX2CashShop::GetItemByCategory( CASH_SHOP_CATEGORY categoryID )
 					}
 #endif  SERV_KEEP_ITEM_SHOW_CASHSHOP
 						//}} 허상형 : [2012/12/5] //		특정 아이템 가지고 있어야 캐시샵에서 구매 가능
+
+#ifdef SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
+					if( (itemID == 60007354 || itemID == 60007355 || itemID == 60007356) && CX2Unit::UC_ARA_LITTLE_HSIEN != iUnitClass )
+					{
+						continue;
+					}
+#endif SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
+ 
+#ifdef SERV_BUY_EXCEPTION_ARA
+					if( g_pData->GetMyUser()->GetSelectUnit()->GetType() == CX2Unit::UT_ARA && ( itemID == 60007760 || itemID == 60007761 || itemID == 60007762 || itemID == 60007763 ) )
+						continue;
+#endif SERV_BUY_EXCEPTION_ARA
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 					/// 교본 아이템인데, 요구 클래스 레빌이 현재 전직 클래스 레벨보다 높다면
@@ -6176,14 +6279,25 @@ vector<int> CX2CashShop::GetItemByCategory( CASH_SHOP_CATEGORY categoryID )
 					if ( pCashItem != NULL )
 					{
 #ifdef SERV_GLOBAL_BILLING
+						// 첫번째 아이템 카테고리로 아이템을 등록한다.
+						// 이걸 모든 상품의 카테고리를 다 보도록 하자
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+						std::vector<int> vecGateList = pCashItem->GetGateListOfProduct();
+						if ( vecGateList.empty() == false )
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 						const KBillProductInfo* pkKBillProductInfo = pCashItem->GetGateProduct();
 						if ( pkKBillProductInfo != NULL )
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 						{
 							for ( int j = 0; j < (int)pCashShopCategory->m_vecSubCategoryID.size(); j++ )
 							{
 								D3DXVECTOR2 subCateID = pCashShopCategory->m_vecSubCategoryID[j];
 
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+								if ( std::find( vecGateList.begin(), vecGateList.end(),(int)subCateID.y) != vecGateList.end() )
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 								if ( (int)pkKBillProductInfo->m_cCategoryNo == (int)subCateID.y )
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 								{
 									vecItem.push_back( pCashItem->m_ItemID );
 								}
@@ -6319,13 +6433,6 @@ vector<int> CX2CashShop::GetItemByCategory( CASH_SHOP_CATEGORY categoryID, CASH_
 					}
 #endif  SERV_EXPAND_QUICK_SLOT
 
-#ifdef SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
-					if( (itemID == 60007354 || itemID == 60007355 || itemID == 60007356) && CX2Unit::UC_ARA_LITTLE_HSIEN != iUnitClass )
-					{
-						continue;
-					}
-#endif SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
-
 #ifdef	SERV_KEEP_ITEM_SHOW_CASHSHOP
 					if( g_pData != NULL )
 					{
@@ -6338,7 +6445,7 @@ vector<int> CX2CashShop::GetItemByCategory( CASH_SHOP_CATEGORY categoryID, CASH_
 							{
 								for( int i = 0; i < TempItemID.size(); ++i )
 								{
-									if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( TempItemID[i] ) == NULL )
+									if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( TempItemID[i] ) == NULL )
 									{
 										bContinue = true;
 										break;
@@ -6352,6 +6459,18 @@ vector<int> CX2CashShop::GetItemByCategory( CASH_SHOP_CATEGORY categoryID, CASH_
 						}
 					}
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+
+#ifdef SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
+					if( (itemID == 60007354 || itemID == 60007355 || itemID == 60007356) && CX2Unit::UC_ARA_LITTLE_HSIEN != iUnitClass )
+					{
+						continue;
+					}
+#endif SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
+
+#ifdef SERV_BUY_EXCEPTION_ARA
+					if( g_pData->GetMyUser()->GetSelectUnit()->GetType() == CX2Unit::UT_ARA && ( itemID == 60007760 || itemID == 60007761 || itemID == 60007762 || itemID == 60007763 ) )
+						continue;
+#endif SERV_BUY_EXCEPTION_ARA
 
 					CX2ItemManager::CashItem* pCashItem = g_pData->GetItemManager()->GetCashItem( itemID );
 					if ( pCashItem != NULL )
@@ -6416,13 +6535,9 @@ void CX2CashShop::ChangeCategory( CKTDGUIRadioButton* pRadioButton )
 		SetCashShopState( CX2CashShop::CSS_SUB, (CX2CashShop::CASH_SHOP_CATEGORY)pRadioButton->GetDummyInt(0) );
 	}
 }
-
-void CX2CashShop::ChangeSubCategory( CKTDGUIRadioButton* pRadioButton )
-{
-	if ( pRadioButton == NULL )
-		return;
-
-	m_CashShopSubCategory = (CX2CashShop::CASH_SHOP_SUB_CATEGORY) pRadioButton->GetDummyInt(0);
+void CX2CashShop::ChangeSubCategory( CX2CashShop::CASH_SHOP_SUB_CATEGORY eSubCategory )
+{	
+	m_CashShopSubCategory = eSubCategory;
 
 	vector< int > vecItemID;
 	if ( m_CashShopSubCategory == CX2CashShop::CSSC_ALL )
@@ -6436,28 +6551,39 @@ void CX2CashShop::ChangeSubCategory( CKTDGUIRadioButton* pRadioButton )
 	}
 
 	//{{ kimhc // 2009-10-12 // 자동결제 시 '캐시' 스트링을 '원' 으로 고침
-#ifdef	AUTO_PAYMENT
+	#ifdef	AUTO_PAYMENT
 	bool bAutoPayment = false;
 
 	if ( m_CashShopCategory == CSC_AUTO_PAYMENT )
 		bAutoPayment = true;
 
 	m_pSubSM->Reset( vecItemID, bAutoPayment );
-#else	AUTO_PAYMENT
+	#else	AUTO_PAYMENT
 	m_pSubSM->Reset( vecItemID );
-#endif	AUTO_PAYMENT
+	#endif	AUTO_PAYMENT
 	//}} kimhc // 2009-10-12 // 자동결제 시 '캐시' 스트링을 '원' 으로 고침
 
 #ifdef SERV_USE_ENABLE_GIFT
 	m_pSubSM->SetShowPresentButton();
 #endif SERV_USE_ENABLE_GIFT
-	
+
+#ifdef SERV_WISH_LIST_NO_ITEM
+	m_pSubSM->SetShowCartButton();
+#endif SERV_WISH_LIST_NO_ITEM
+
 	ResetItemSlot(  CX2Slot::ST_CASH_SHOP_SUB,			m_pSubSM->GetNowShowItemIDList() );
 
 	m_pSubSpeicialSM->Reset( GetHotItemList( vecItemID, CASH_SHOP_SUB_SPECIAL_SLOT_NUM ) );
 	ResetItemSlot(  CX2Slot::ST_CASH_SHOP_SUB_SPECIAL,			m_pSubSpeicialSM->GetNowShowItemIDList() );
 
 	ResetSubPageNumUI();
+}
+void CX2CashShop::ChangeSubCategory( CKTDGUIRadioButton* pRadioButton )
+{
+	if ( pRadioButton == NULL )
+		return;
+
+	ChangeSubCategory ( static_cast<CX2CashShop::CASH_SHOP_SUB_CATEGORY>(pRadioButton->GetDummyInt(0)) );
 }
 
 /*static*/ bool CX2CashShop::IsPossibleUsedByMyCharacter( int itemID )
@@ -6472,14 +6598,10 @@ vector<int> CX2CashShop::GetHotItemList( vector<int>& vecItemID, int maxItemNum 
 	int iHotItemCheck = 0;
 	vector< int > vecTempHotCashItem =  g_pData->GetItemManager()->GetHotCashItemList();
 #endif //CASH_SHOP_HOT_ITEM_LIST_FIX
-	
-
 
 #ifdef CASH_SHOP_HOT_ITEM_LIST_FIX
-
 	for ( int i = 0; i < (int)vecTempHotCashItem.size(); i++ )
 	{
-
 		int itemID = vecTempHotCashItem[i];
 
 		CX2ItemManager::CashItem* pCashItem = g_pData->GetItemManager()->GetCashItem( itemID );
@@ -6488,23 +6610,16 @@ vector<int> CX2CashShop::GetHotItemList( vector<int>& vecItemID, int maxItemNum 
 
 		if ( pCashItem->GetIsHot() == true )
 		{
-
-
 			if ( std::find(vecItemID.begin(), vecItemID.end(), itemID) != vecItemID.end() )
 			{
 				vecHotItemID.push_back(itemID);
-
 				if ( (int)vecHotItemID.size() >= maxItemNum )
 				{
 					break;
 				}
 			}
-
 		}
-
 	}
-
-
 #else //CASH_SHOP_HOT_ITEM_LIST_FIX
 	for ( int i = 0; i < (int)vecItemID.size(); i++ )
 	{
@@ -6515,7 +6630,6 @@ vector<int> CX2CashShop::GetHotItemList( vector<int>& vecItemID, int maxItemNum 
 
 		if ( pCashItem->GetIsHot() == true )
 		{
-
 			vecHotItemID.push_back( pCashItem->m_ItemID );
 			if ( (int)vecHotItemID.size() >= maxItemNum )
 			{
@@ -6525,9 +6639,7 @@ vector<int> CX2CashShop::GetHotItemList( vector<int>& vecItemID, int maxItemNum 
 	}
 #endif //CASH_SHOP_HOT_ITEM_LIST_FIX
 
-
 	std::sort( vecHotItemID.begin(), vecHotItemID.end(), CashItemSorter() );
-	
 
 	return vecHotItemID;
 }
@@ -6602,16 +6714,16 @@ void CX2CashShop::RemovePreEquipItemByEquipPos( int itemTID )
 #endif // SAVE_CASH_SHOP_PRE_EQUIP_ITEM_LIST
 }
 
-void CX2CashShop::InsertPreEquipItem( int itemTID, bool bForce )
+bool CX2CashShop::InsertPreEquipItem( int itemTID, bool bForce )
 {
 	// 케릭터 종류에 맞는지 체크
     const CX2Item::ItemTemplet* pItemTemplate = g_pData->GetItemManager()->GetItemTemplet( (int) itemTID );
 	if ( pItemTemplate == NULL )
-		return;
+		return false;
 
 	if (g_pData->GetMyUser()->GetSelectUnit()->GetType() != pItemTemplate->GetUnitType()
 		&& pItemTemplate->GetUseCondition() != CX2Item::UC_ANYONE )
-		return;
+		return false;
 
 
 
@@ -6648,6 +6760,8 @@ void CX2CashShop::InsertPreEquipItem( int itemTID, bool bForce )
 
 	// Unit Viewer
 	PreEquipping();
+
+	return true;
 }
 
 void CX2CashShop::PreEquipping()
@@ -6679,14 +6793,14 @@ void CX2CashShop::OnRevertItem( int iItemTID )
 
 void CX2CashShop::ResetNowEquipUI()
 {
-	CX2Unit::UnitData* pMyUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Unit::UnitData& kMyUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 	// 현재 내정보에 장착된 슬롯 초기화
 	ClearNowEquipUI();
 
 	// 내 인벤토리에 맞게 업데이트
-	ResetNowEquipUIByInven(pMyUnitData, pInventory);
+	ResetNowEquipUIByInven(kMyUnitData, kInventory);
 
 	// 샵 미리보기 정보에 맞게 업데이트
 	ResetNowEquipUIByShopEquip();
@@ -6715,19 +6829,18 @@ void CX2CashShop::ClearNowEquipUI()
 	}
 }
 
-void CX2CashShop::ResetNowEquipUIByInven(CX2Unit::UnitData* pMyUnitData, CX2Inventory* pInventory)
+void CX2CashShop::ResetNowEquipUIByInven( const CX2Unit::UnitData& kMyUnitData, const CX2Inventory& kInventory)
 {
 #ifdef TAKE_OFF_ALL_ITEM
 	if( false == m_bShowInvenEquip )
 		return;
 #endif // TAKE_OFF_ALL_ITEM
 
-	if ( pMyUnitData != NULL && pInventory != NULL )
 	{
-		for ( int i = 0; i < (int)pMyUnitData->m_NowEqipItemUIDList.size(); i++ )
+		for ( int i = 0; i < (int)kMyUnitData.m_NowEqipItemUIDList.size(); i++ )
 		{
-			UidType uidType = pMyUnitData->m_NowEqipItemUIDList[i];
-			CX2Item* pItem = pInventory->GetItem( uidType );
+			UidType uidType = kMyUnitData.m_NowEqipItemUIDList[i];
+			CX2Item* pItem = kInventory.GetItem( uidType );
 			if ( pItem == NULL )
 				continue;
 
@@ -7004,12 +7117,11 @@ void CX2CashShop::SetEnableBuyEquippingItem( bool bEnable )
 bool CX2CashShop::IsPossiblePresent( int itemID )
 { 
 #ifdef SERV_CASHITEM_PURCHASE_RESTRICTION
-	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level <= 20)
+	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level <= 20)
 	{
 		return false;
 	}
 #endif SERV_CASHITEM_PURCHASE_RESTRICTION
-
 
 #ifdef SERV_USE_ENABLE_GIFT
 	CX2ItemManager::CashItem* pCashItem = g_pData->GetItemManager()->GetCashItem( itemID );
@@ -7184,6 +7296,10 @@ bool CX2CashShop::IsPossiblePresent( int itemID )
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case UNIT_CLASS_CHANGE_YAMA_RAJA_ID:
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case UNIT_CLASS_CHANGE_GRAND_MASTER_ID:
+	case UNIT_CLASS_CHANGE_BLAZING_HEART_ID:
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 #pragma endregion
 #endif
 		{
@@ -7201,32 +7317,56 @@ bool CX2CashShop::IsPossiblePresent( int itemID )
 
 void CX2CashShop::ProcessBuyPopUpOk()
 {
-	vector<unsigned long> vecProductNoList;
-	if ( m_pBuyItemPopUp->GetCheckedProductNoList(vecProductNoList) == true )
+#ifdef COUPON_SYSTEM
+	vector< std::pair<unsigned long, int> > vecProductAndCouponNoList;
+	if ( m_pBuyItemPopUp->GetCheckedProductAndCouponNoList( vecProductAndCouponNoList ) == true )
 	{
-
-//{{ 김상훈 2010.11.1
-#ifdef REST_CASH_CHECK
+		//{{ 김상훈 2010.11.1
+	#ifdef REST_CASH_CHECK
 		if ( m_pBuyItemPopUp->RestCashCheck() == true )
 		{
-			if ( Handler_EGS_BUY_CASH_ITEM_REQ( vecProductNoList, m_pBuyItemPopUp->GetChoicedItemBuy() ) == true )
+			if ( Handler_EGS_BUY_CASH_ITEM_REQ( vecProductAndCouponNoList, m_pBuyItemPopUp->GetChoicedItemBuy() ) == true )
 				m_pBuyItemPopUp->SetOpen( false );
 		}
 		else
 		{
 			m_pBuyItemPopUp->SetOpen( false );
-#ifdef SERV_USE_GetErrStrF
-			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), NetError::GetErrStrF(NetError::ERR_BUY_CASH_ITEM_16) , g_pMain->GetNowState() );
-#else SERV_USE_GetErrStrF
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), NetError::GetErrStr(NetError::ERR_BUY_CASH_ITEM_16) , g_pMain->GetNowState() );
-#endif SERV_USE_GetErrStrF
 		}
-#else
-		if ( Handler_EGS_BUY_CASH_ITEM_REQ( vecProductNoList, m_pBuyItemPopUp->GetChoicedItemBuy() ) == true )
+	#else
+		if ( Handler_EGS_BUY_CASH_ITEM_REQ( vecProductAndCouponNoList, m_pBuyItemPopUp->GetChoicedItemBuy() ) == true )
 			m_pBuyItemPopUp->SetOpen( false );
-#endif REST_CASH_CHECK
+	#endif REST_CASH_CHECK
+
+	}
+#else
+	vector<unsigned long> vecProductNoList;
+	if ( m_pBuyItemPopUp->GetCheckedProductNoList(vecProductNoList) == true )
+	{
+
+	//{{ 김상훈 2010.11.1
+	#ifdef REST_CASH_CHECK
+			if ( m_pBuyItemPopUp->RestCashCheck() == true )
+			{
+				if ( Handler_EGS_BUY_CASH_ITEM_REQ( vecProductNoList, m_pBuyItemPopUp->GetChoicedItemBuy() ) == true )
+					m_pBuyItemPopUp->SetOpen( false );
+			}
+			else
+			{
+				m_pBuyItemPopUp->SetOpen( false );
+#ifdef SERV_USE_GetErrStrF
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), NetError::GetErrStrF(NetError::ERR_BUY_CASH_ITEM_16) , g_pMain->GetNowState() );
+#else SERV_USE_GetErrStrF
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), NetError::GetErrStr(NetError::ERR_BUY_CASH_ITEM_16) , g_pMain->GetNowState() );
+#endif SERV_USE_GetErrStrF
+			}
+	#else
+			if ( Handler_EGS_BUY_CASH_ITEM_REQ( vecProductNoList, m_pBuyItemPopUp->GetChoicedItemBuy() ) == true )
+				m_pBuyItemPopUp->SetOpen( false );
+	#endif REST_CASH_CHECK
 //}} 김상훈 2010.11.1
 	}
+#endif // COUPON_SYSTEM
 	else
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_7 ), g_pMain->GetNowState() );
@@ -7304,17 +7444,16 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_AUTOMATIC_PAYMENT_ACK( HWND hWnd, UI
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
+#ifdef SEND_NEXON_WISE_LOG_BY_URL // 김태환
+			if( false == g_pMain->GetBrowserWrapper()->IsClosed() )	/// 켜져있으면, 끄자
+				g_pMain->GetBrowserWrapper()->CloseBrowser();
+#else // SEND_NEXON_WISE_LOG_BY_URL
 			if( true == g_pMain->GetBrowserWrapper()->IsClosed() )
+#endif // SEND_NEXON_WISE_LOG_BY_URL
 			{
 				if ( g_pData->GetMyUser() == NULL )
 				{
 					ASSERT( !L"GetMyUser is NULL" );
-					return false;
-				}
-
-				if ( g_pData->GetMyUser()->GetUserData() == NULL )
-				{
-					ASSERT( !L"GetUserData() is NULL" );
 					return false;
 				}
 
@@ -7324,14 +7463,8 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_AUTOMATIC_PAYMENT_ACK( HWND hWnd, UI
 					return false;
 				}
 
-				if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
-				{
-					ASSERT( !L"GetUnitData() is NULL" );
-					return false;
-				}
-
-				CX2User::UserData* pUserData = g_pData->GetMyUser()->GetUserData();
-				CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+				const CX2User::UserData& kUserData = g_pData->GetMyUser()->GetUserData();
+				const CX2Unit::UnitData& kUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 				
 				std::stringstream strStreamValByPost;
 				//string strValuesByPost;		// post 방식으로 넘길 값들에 대한 string을 지정
@@ -7343,7 +7476,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_AUTOMATIC_PAYMENT_ACK( HWND hWnd, UI
 				int iWidth = 475;//490;
 				int iHeight = 585;//585;
 
-				D3DXVECTOR2 vResolution = g_pMain->GetGameOption()->GetOptionList()->m_vResolution;
+				D3DXVECTOR2 vResolution = g_pMain->GetGameOption().GetOptionList().m_vResolution;
 
 				g_pKTDXApp->GetDevice()->SetDialogBoxMode( TRUE ); 
 
@@ -7373,7 +7506,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_AUTOMATIC_PAYMENT_ACK( HWND hWnd, UI
 				strStreamValByPost << kEvent.m_uiUserSN;
 
 				// userId
-				ConvertWCHARToChar( strTemp, pUserData->userID.c_str() );
+				ConvertWCHARToChar( strTemp, kUserData.userID.c_str() );
 				strStreamValByPost << "&userId=";
 				strStreamValByPost << strTemp;
 
@@ -7383,7 +7516,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_AUTOMATIC_PAYMENT_ACK( HWND hWnd, UI
 
 				// userAge
 				strStreamValByPost << "&userAge=";
-				strStreamValByPost << pUnitData->m_Age;
+				strStreamValByPost << kUnitData.m_Age;
 
 				// gameId 는 userId와 동일하게
 				strStreamValByPost << "&gameId=";
@@ -7410,7 +7543,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_AUTOMATIC_PAYMENT_ACK( HWND hWnd, UI
 				strStreamValByPost << "2";
 
 				// 유저의 IP
-				ConvertWCHARToChar( strTemp, pUnitData->m_IP.c_str() );
+				ConvertWCHARToChar( strTemp, kUnitData.m_IP.c_str() );
 				strStreamValByPost << "&requestIp=";
 				strStreamValByPost << strTemp;
 
@@ -7440,7 +7573,7 @@ bool CX2CashShop::Handler_EGS_BUY_CASH_ITEM_AUTOMATIC_PAYMENT_ACK( HWND hWnd, UI
 				std::string strIN;
 				strIN = "ELSW";
 				
-				ConvertWCHARToChar( strTemp, pUserData->userID.c_str() );
+				ConvertWCHARToChar( strTemp, kUserData.userID.c_str() );
 				strIN += strTemp;
 				
 				ConvertWCHARToChar( strTemp, static_cast< const wchar_t * >( ctCurrentTime.Format( L"%Y%m%d%I" ) ) );
@@ -7489,17 +7622,10 @@ bool CX2CashShop::IsPossibleUsedByMyBankMembership( int itemID ) const
 
 	if ( g_pData->GetMyUser()	!= NULL &&	g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2Inventory*	pInventory	= NULL;
-		pInventory		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-
-		if ( pInventory == NULL )
-		{
-			ASSERT( !"Inventory IS NULL" );
-			return false;
-		}
+		const CX2Inventory&	kInventory	= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 		CX2Inventory::MEMBERSHIP_PRIVATE_BANK	eMembershipGrade	= CX2Inventory::MPB_NORMAL;
-		eMembershipGrade	= static_cast< CX2Inventory::MEMBERSHIP_PRIVATE_BANK >( pInventory->GetItemMaxNum( CX2Inventory::ST_BANK ) );
+		eMembershipGrade	= static_cast< CX2Inventory::MEMBERSHIP_PRIVATE_BANK >( kInventory.GetItemMaxNum( CX2Inventory::ST_BANK ) );
 
 		switch ( eMembershipGrade )
 		{
@@ -7508,7 +7634,7 @@ bool CX2CashShop::IsPossibleUsedByMyBankMembership( int itemID ) const
 				if ( itemID	== SILVER_MEMBERSHIP_CARD )
 					return true;
 				else if ( itemID == COBO_CREDIT_CARD 
-					&&  pInventory->GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) == NULL )
+					&&  kInventory.GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) == NULL )
 					return true;
 			}
 			break;
@@ -7537,7 +7663,7 @@ bool CX2CashShop::IsPossibleUsedByMyBankMembership( int itemID ) const
 		case CX2Inventory::MPB_DIAMOND:
 			{
 				if ( itemID	== PLATINUM_MEMBERSHIP_CARD 
-					&& pInventory->GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) == NULL )
+					&& kInventory.GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) == NULL )
 					return true;
 			}
 			break;
@@ -7604,6 +7730,9 @@ bool CX2CashShop::IsPossibleUsedByMyBankMembership( int itemID ) const
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case CLASS_CHANGE_LITTLE_DEVIL_ID:
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CLASS_CHANGE_ADD_PSYCHIC_TRACER_ID:
+#endif //SERV_9TH_NEW_CHARACTER
 		{
 			return 1;
 		} break;
@@ -7655,7 +7784,13 @@ bool CX2CashShop::IsPossibleUsedByMyBankMembership( int itemID ) const
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case CLASS_CHANGE_YAMA_RAJA_ID:
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case CLASS_CHANGE_GRAND_MASTER_ID:
+	case CLASS_CHANGE_BLAZING_HEART_ID:
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CLASS_CHANGE_ADD_LUNATIC_PSYKER_ID:
+#endif //SERV_ADD_LUNATIC_PSYKER
 		{
 			return 2;
 		} break;
@@ -7901,6 +8036,32 @@ const wstring CX2CashShop::GetClassNameByClassChangeItem( int itemID )
 			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ARA_YAMA_RAJA)->m_Description;
 		} break;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case CLASS_CHANGE_GRAND_MASTER_ID:
+		{
+			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ELESIS_GRAND_MASTER )->m_Description;
+		} break;
+		
+	case CLASS_CHANGE_BLAZING_HEART_ID:
+		{
+			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ELESIS_BLAZING_HEART )->m_Description;
+		} break;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CLASS_CHANGE_ADD_PSYCHIC_TRACER_ID:
+		{
+			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ADD_PSYCHIC_TRACER )->m_Description;
+		} break;
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CLASS_CHANGE_ADD_LUNATIC_PSYKER_ID:
+		{
+			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ADD_LUNATIC_PSYKER )->m_Description;
+		} break;
+#endif //SERV_ADD_LUNATIC_PSYKER
 	}
 
 	return L"";
@@ -7909,7 +8070,7 @@ const wstring CX2CashShop::GetClassNameByClassChangeItem( int itemID )
 #ifdef SERV_SKILL_NOTE
 bool CX2CashShop::GetCanByeSkillNoteItem( int itemID )
 {
-	if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( SKILL_NOTE_ITEM_ID, true ) != NULL )
+	if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( SKILL_NOTE_ITEM_ID, true ) != NULL )
 	{
 		return false;
 	}
@@ -7952,6 +8113,8 @@ int CX2CashShop::GetUnitClassChangeItemLevel( int itemID )
 	case UNIT_CLASS_CHANGE_FURY_GUARDIAN_ID:
 	case UNIT_CLASS_CHANGE_SHOOTING_GUARDIAN_ID:
 	case UNIT_CLASS_CHANGE_SHELLING_GUARDIAN_ID:
+	case UNIT_CLASS_CHANGE_SABER_KNIGHT_ID:/// 엘리시스 세이버 나이트
+	case UNIT_CLASS_CHANGE_PYRO_KNIGHT_ID: /// 엘리시스 파이로 나이트
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case UNIT_CLASS_CHANGE_LITTLE_HSIEN_ID:
 	case UNIT_CLASS_CHANGE_LITTLE_DEVIL_ID:
@@ -7994,7 +8157,10 @@ int CX2CashShop::GetUnitClassChangeItemLevel( int itemID )
 	case UNIT_CLASS_CHANGE_SAKRA_DEVANAM_ID:
 	case UNIT_CLASS_CHANGE_YAMA_RAJA_ID:
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case UNIT_CLASS_CHANGE_GRAND_MASTER_ID:
+	case UNIT_CLASS_CHANGE_BLAZING_HEART_ID:
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 		{
 			return 2;
 		} break;
@@ -8094,6 +8260,14 @@ const wstring CX2CashShop::GetClassNameByUnitClassChangeItem( int itemID )
 			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_CHUNG_SHELLING_GUARDIAN )->m_Description;
 		} break;
 #endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
+	case UNIT_CLASS_CHANGE_SABER_KNIGHT_ID:/// 엘리시스 세이버 나이트
+		{
+			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ELESIS_SABER_KNIGHT )->m_Description;
+		} break;
+	case UNIT_CLASS_CHANGE_PYRO_KNIGHT_ID: /// 엘리시스 파이로 나이트
+		{
+			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ELESIS_PYRO_KNIGHT)->m_Description;
+		} break;
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case UNIT_CLASS_CHANGE_LITTLE_HSIEN_ID:
 		{
@@ -8205,6 +8379,23 @@ const wstring CX2CashShop::GetClassNameByUnitClassChangeItem( int itemID )
 			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ARA_YAMA_RAJA )->m_Description;
 		} break;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case UNIT_CLASS_CHANGE_GRAND_MASTER_ID:
+		{
+			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ELESIS_GRAND_MASTER )->m_Description;
+		} break;
+
+	case UNIT_CLASS_CHANGE_BLAZING_HEART_ID:
+		{
+			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ELESIS_BLAZING_HEART )->m_Description;
+		} break;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case UNIT_CLASS_CHANGE_LUNATIC_PSYKER_ID:
+		{
+			return g_pData->GetUnitManager()->GetUnitTemplet( CX2Unit::UC_ADD_LUNATIC_PSYKER )->m_Description;
+		} break;
+#endif //SERV_ADD_LUNATIC_PSYKER
 #pragma endregion
 	}
 
@@ -8222,7 +8413,7 @@ void CX2CashShop::SetOpenNexonCashChargePage( OUT string& strURL_, OUT RECT& rcW
 
 	string strUserID;
 
-	ConvertWCHARToChar( strUserID, g_pData->GetMyUser()->GetUserData()->userID.c_str() );
+	ConvertWCHARToChar( strUserID, g_pData->GetMyUser()->GetUserData().userID.c_str() );
 
 	strURL_ += strUserID;
 
@@ -8265,12 +8456,12 @@ void CX2CashShop::SetOpenNexonCashChargePage( OUT string& strURL_, OUT RECT& rcW
 void CX2CashShop::SetOpenTooniCashChargePage( OUT string& strURL_, OUT RECT& rcWebPage_ )	
 {
 	// 아직 투니랜드 아이디를 서버로 부터 받지 못했다면...
-	if ( false == g_pData->GetMyUser()->GetUserData()->m_wstrTooniLandID.empty() )
+	if ( false == g_pData->GetMyUser()->GetUserData().m_wstrTooniLandID.empty() )
 	{
 		strURL_ = "https://cert.tooniland.com/billing/INIsecureNewStart.tl?type=etc&price=1000&userId=";
 		
 		string strUserID;
-		ConvertWCHARToChar( strUserID, g_pData->GetMyUser()->GetUserData()->m_wstrTooniLandID );
+		ConvertWCHARToChar( strUserID, g_pData->GetMyUser()->GetUserData().m_wstrTooniLandID );
 		strURL_ += strUserID;
 	}
 	// 투니랜드 아이디를 서버로 부터 받았다면
@@ -8305,11 +8496,7 @@ void CX2CashShop::SetOpenCheckAuthority( OUT string& strURL_, OUT RECT& rcWebPag
 #ifdef	SERV_EXPAND_QUICK_SLOT
 bool CX2CashShop::GetCahBuyExpandQuickSlotItem( int itemID )
 {
-//{{ Iruha : 2026-08-27 // Quick slots are always full now; never let the now-pointless expansion ticket show in the shop
-#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-	return false;
-#else
-	if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( EXPAND_QUICK_SLOT_ITEM_ID, true ) != NULL )
+	if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( EXPAND_QUICK_SLOT_ITEM_ID, true ) != NULL )
 	{
 		return false;
 	}
@@ -8321,8 +8508,6 @@ bool CX2CashShop::GetCahBuyExpandQuickSlotItem( int itemID )
 	}
 
 	return true;
-#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-//}}
 }
 #endif  SERV_EXPAND_QUICK_SLOT
 CX2CashShop::CashShopSlot::CashShopSlot( CX2Slot::SLOT_TYPE cashShopSlotType, int slotIndex )
@@ -8433,6 +8618,14 @@ void CX2CashShop::CashShopSlot::SetInfo( bool bAutoPayment /*= false*/ )
 				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 17 );
 #elif defined ( UNIQUENESS_EU_ONLY )
 				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 20 );
+#elif defined ( CASHSHOP_ITEM_NAME_LONGER )
+				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 20 );								
+#elif defined ( CLIENT_COUNTRY_CN )
+#ifdef ELLIPSE_FIX
+				pStaticName->GetString(0)->msg = CWordLineHandler::CutStringWithEllipse(pItemTemplet->GetName(), 110, pStaticName->GetString(0)->fontIndex, 1, L"..");
+#else // ELLIPSE_FIX
+				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 9 );
+#endif // ELLIPSE_FIX
 #else
 				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 10 );
 #endif
@@ -8443,6 +8636,14 @@ void CX2CashShop::CashShopSlot::SetInfo( bool bAutoPayment /*= false*/ )
 				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 24 );
 #elif defined ( UNIQUENESS_EU_ONLY )
 				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 27 );				
+#elif defined ( CASHSHOP_ITEM_NAME_LONGER )
+				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 27 );				
+#elif defined ( CLIENT_COUNTRY_CN )
+#ifdef ELLIPSE_FIX
+				pStaticName->GetString(0)->msg = CWordLineHandler::CutStringWithEllipse(pItemTemplet->GetName(), 150, pStaticName->GetString(0)->fontIndex, 1, L"..");
+#else // ELLIPSE_FIX
+				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 13 );
+#endif // ELLIPSE_FIX
 #else
 				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 14 );
 #endif
@@ -8453,10 +8654,18 @@ void CX2CashShop::CashShopSlot::SetInfo( bool bAutoPayment /*= false*/ )
 				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 16 );
 #elif defined ( UNIQUENESS_EU_ONLY )				
 				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 19 );
+#elif defined ( CASHSHOP_ITEM_NAME_LONGER )
+				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 19 );
+#elif defined ( CLIENT_COUNTRY_CN )
+#ifdef ELLIPSE_FIX
+				pStaticName->GetString(0)->msg = CWordLineHandler::CutStringWithEllipse(pItemTemplet->GetName(), 95, pStaticName->GetString(0)->fontIndex, 1, L"..");
+#else // ELLIPSE_FIX
+				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 8 );
+#endif // ELLIPSE_FIX
 #else
 				pStaticName->GetString(0)->msg = GetCutString( pItemTemplet->GetName(), 10 );
 #endif
-			} break;
+			}break;
 		default:
 			{
                 pStaticName->GetString(0)->msg = pItemTemplet->GetName();
@@ -8483,7 +8692,7 @@ void CX2CashShop::CashShopSlot::SetInfo( bool bAutoPayment /*= false*/ )
 		 // 같은 아이템 2종류 팔 때
 		/*const KBillProductInfo* pkKBillProductInfo = pCashItem->GetGateProduct();
 		if ( pkKBillProductInfo != NULL && m_ItemID == ITEM_ID_EVENT_NEW_SKILL_NOTE &&
-			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) )
+			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) )
 		{
 			pStaticPrice->GetString(0)->msg = GET_REPLACED_STRING( ( STR_ID_38, "L", g_pMain->GetEDString( 3000 ) ) );
 		}*/
@@ -8494,7 +8703,7 @@ void CX2CashShop::CashShopSlot::SetInfo( bool bAutoPayment /*= false*/ )
 		{
 			for(int i = 0; i < TempList.size(); ++i)
 			{
-				if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( TempList[i] ) )
+				if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( TempList[i] ) )
 				{
 					int nPrice = g_pData->GetItemManager()->GetChangeCashPoint(TempProDuctNo);
 					pStaticPrice->GetString(0)->msg = GET_REPLACED_STRING( ( STR_ID_38, "L", g_pMain->GetEDString( nPrice ) ) );
@@ -8623,17 +8832,10 @@ bool CX2CashShop::CashShopSlotManager::IsPossibleUsedByMyBankMembership( int ite
 
 	if ( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2Inventory*	pInventory	= NULL;
-		pInventory		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-
-		if ( pInventory == NULL )
-		{
-			ASSERT( !"Inventory IS NULL" );
-			return false;
-		}
+		const CX2Inventory&	kInventory	= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 		CX2Inventory::MEMBERSHIP_PRIVATE_BANK	eMembershipGrade	= CX2Inventory::MPB_NORMAL;
-		eMembershipGrade	= static_cast< CX2Inventory::MEMBERSHIP_PRIVATE_BANK >( pInventory->GetItemMaxNum( CX2Inventory::ST_BANK ) );
+		eMembershipGrade	= static_cast< CX2Inventory::MEMBERSHIP_PRIVATE_BANK >( kInventory.GetItemMaxNum( CX2Inventory::ST_BANK ) );
 
 		switch ( eMembershipGrade )
 		{
@@ -8642,7 +8844,7 @@ bool CX2CashShop::CashShopSlotManager::IsPossibleUsedByMyBankMembership( int ite
 				if ( itemID	== SILVER_MEMBERSHIP_CARD )
 					return true;
 				else if ( itemID == COBO_CREDIT_CARD 
-					&&  pInventory->GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) == NULL )
+					&&  kInventory.GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) == NULL )
 					return true;
 			}
 			break;
@@ -8671,7 +8873,7 @@ bool CX2CashShop::CashShopSlotManager::IsPossibleUsedByMyBankMembership( int ite
 		case CX2Inventory::MPB_DIAMOND:
 			{
 				if ( itemID	== PLATINUM_MEMBERSHIP_CARD 
-					&& pInventory->GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) == NULL )
+					&& kInventory.GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) == NULL )
 					return true;
 			}
 			break;
@@ -8716,8 +8918,7 @@ void CX2CashShop::CashShopSlotManager::Reset( vector<int>& vecItemID, bool bAuto
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
 			if( vecItemID[i] == UNLIMITED_SECOND_CHANGE_JOB_ITEM_ID
 				&& 2 != g_pData->GetMyUser()->GetSelectUnit()->GetClassLevel() )
-				continue;																				//2차 전직 아니면 보이지 않도록 함
-				
+				continue;																				//2차 전직 아니면 보이지 않도록 함				
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
 
 #ifdef PACKAGEITEM_SET_NOT_EQUIP_ITEM
@@ -8752,6 +8953,10 @@ void CX2CashShop::CashShopSlotManager::Reset( vector<int>& vecItemID, bool bAuto
 			}
 #endif
 
+#ifdef SERV_BUY_EXCEPTION_ARA
+			if( g_pData->GetMyUser()->GetSelectUnit()->GetType() == CX2Unit::UT_ARA && ( vecItemID[i] == 60007760 || vecItemID[i] == 60007761 || vecItemID[i] == 60007762 || vecItemID[i] == 60007763 ) )
+				continue;
+#endif SERV_BUY_EXCEPTION_ARA
 
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 			if( vecItemID[i] == SHARING_BANK_OPEN_CASH_ITEM_ID && GetCahBuySharingBankItem( vecItemID[i] ) == false )
@@ -8759,13 +8964,6 @@ void CX2CashShop::CashShopSlotManager::Reset( vector<int>& vecItemID, bool bAuto
 				continue;
 			}
 #endif
-
-#ifdef SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
-			if( (vecItemID[i] == 60007354 || vecItemID[i] == 60007355 || vecItemID[i] == 60007356) && CX2Unit::UC_ARA_LITTLE_HSIEN != g_pData->GetMyUser()->GetSelectUnit()->GetClass() )
-			{
-				continue;
-			}
-#endif SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
 
 			//{{ 허상형 : [2012/12/5] //		특정 아이템 가지고 있어야 캐시샵에서 구매 가능
 #ifdef	SERV_KEEP_ITEM_SHOW_CASHSHOP
@@ -8780,7 +8978,7 @@ void CX2CashShop::CashShopSlotManager::Reset( vector<int>& vecItemID, bool bAuto
 					{
 						for( int i = 0; i < TempItemID.size(); ++i )
 						{
-							if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( TempItemID[i] ) == NULL )
+							if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( TempItemID[i] ) == NULL )
 							{
 								bContinue = true;
 								break;
@@ -8794,6 +8992,14 @@ void CX2CashShop::CashShopSlotManager::Reset( vector<int>& vecItemID, bool bAuto
 				}
 			}
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+
+#ifdef SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
+			if( (vecItemID[i] == 60007354 || vecItemID[i] == 60007355 || vecItemID[i] == 60007356) && CX2Unit::UC_ARA_LITTLE_HSIEN != g_pData->GetMyUser()->GetSelectUnit()->GetClass() )
+			{
+				continue;
+			}
+#endif SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
+			//{{ 허상형 : [2012/12/5] //		특정 아이템 가지고 있어야 캐시샵에서 구매 가능
 
 #ifdef UNIT_CLASS_CHANGE_ITEM
 			int iUnitClassChangeItemLevel = GetUnitClassChangeItemLevel( vecItemID[i] );
@@ -9029,6 +9235,11 @@ void CX2CashShop::CashShopSlotManager::ResetNowPage( bool bAutoPayment )
 		pCashShopSlot->SetShowPresentButton( bShow );
 #endif SERV_USE_ENABLE_GIFT
 
+#ifdef SERV_WISH_LIST_NO_ITEM
+		bool bCartShow = IsNotPossibleWishList(itemID);
+		pCashShopSlot->SetShowCartButton( !bCartShow );
+#endif SERV_WISH_LIST_NO_ITEM
+
 		//{{ kimhc // 2009-10-12 // 자동결제 시 캐시 - 원 으로 표시
 #ifdef	AUTO_PAYMENT
 		pCashShopSlot->SetInfo( bAutoPayment );
@@ -9038,7 +9249,25 @@ void CX2CashShop::CashShopSlotManager::ResetNowPage( bool bAutoPayment )
 		//}} kimhc // 2009-10-12 // 자동결제 시 캐시 - 원 으로 표시
 	}
 }
+#ifdef REFORM_SKILL_NOTE_UI
+void CX2CashShop::CashShopSlotManager::ResetNowPage( int iVal_) 
+{ 
+	m_NowPage = iVal_; 
+	ResetNowPage(); 
+}
+const CX2CashShop::CashShopSlot* CX2CashShop::CashShopSlotManager::GetCashShopSlot( int iItemID_ )
+{
+	BOOST_FOREACH( const CX2CashShop::CashShopSlot* pCashShopSlot, m_vecCashShopSlot )
+	{
+		if( iItemID_ == pCashShopSlot->m_ItemID )
+		{
+			return pCashShopSlot;
+		}
+	}
 
+	return NULL;
+}
+#endif // REFORM_SKILL_NOTE_UI
 CX2CashShop::BuyItemPopupSlot::BuyItemPopupSlot() 
 {
 }
@@ -9065,11 +9294,69 @@ void CX2CashShop::BuyItemPopupSlot::UpdateUI()
 	CX2ItemManager::CashItem* pCashItem = g_pData->GetItemManager()->GetCashItem( GetItemID() );
 	if ( pCashItem == NULL )
 		return;
+#ifdef COUPON_SYSTEM // 구매 팝업 UI 갱신
+	// 아이템 아이콘, 이름 설정
+	CKTDGUIStatic* pItemIcon = static_cast<CKTDGUIStatic*>(m_pDialog->GetControl( L"Static_ItemIcon" ));
+	if( NULL != pItemIcon )
+	{
+		if ( pItemIcon->GetPicture(0)->SetTex( pItemTemplet->GetShopImage() ) == false )
+		{
+			pItemIcon->GetPicture(0)->SetTex( L"HQ_Shop_Ui_Noimage.dds" );
+		}
 
+		if( NULL != pItemIcon->GetString(0) )
+		{
+			wstring wstrItemName = pItemTemplet->GetName();
+			if( wstrItemName.length() > 15 )
+			{
+				wstrItemName = wstrItemName.substr(0,15);
+				wstrItemName  += L"...";
+			}
+
+			pItemIcon->SetString( 0, wstrItemName.c_str() );
+		}
+	}
+
+	// 아이템 수량(기간) / 가격 표기 콤보 박스
+	CKTDGUIComboBox* pComboBox = static_cast<CKTDGUIComboBox*>(m_pDialog->GetControl( L"ComboBox_Price" ));
+	if ( pComboBox != NULL )
+	{
+		pComboBox->RemoveAllItems();
+		for ( UINT uiIndex = 0; uiIndex < pCashItem->m_vecKNXBTProductInfo.size(); ++uiIndex )
+		{
+			if ( uiIndex == 0 )
+				pComboBox->AddItem( GET_STRING( STR_ID_35 ), NULL, false );
+
+			KNXBTProductInfo& kNXBTProductInfo = pCashItem->m_vecKNXBTProductInfo[uiIndex];
+			wstringstream wstrstm;
+
+			
+			if ( kNXBTProductInfo.GetProductExpire() != 0 )
+			{// 기간제
+				wstrstm << kNXBTProductInfo.GetProductExpire() << GET_STRING( STR_ID_14 ) << L"/"; 
+			}
+			else
+			{// 1개권
+				wstrstm << kNXBTProductInfo.m_usProductPieces << GET_STRING( STR_ID_24 ) << L"/";
+			}
+
+			wstrstm << kNXBTProductInfo.m_ulSalePrice << GET_STRING( STR_ID_34 ); 
+			pComboBox->AddItem( wstrstm.str().c_str(), NULL, false );
+		}
+	}
+
+	// 사용 가능 한 할인 쿠폰 리스트 초기화
+	pComboBox = static_cast<CKTDGUIComboBox*>(m_pDialog->GetControl( L"ComboBox_Discount" ));
+	if ( pComboBox != NULL )
+	{
+		pComboBox->SetShow(false);
+	}
+#else
 	CKTDGUIStatic* pShopImage = (CKTDGUIStatic*)m_pDialog->GetControl( L"g_pStaticCashShop_BuyWindow_Slot_Image" );
+
 	if ( pShopImage != NULL && pShopImage->GetPicture(0) != NULL )
 	{
-        if ( pShopImage->GetPicture(0)->SetTex( pItemTemplet->GetShopImage() ) == false )
+		if ( pShopImage->GetPicture(0)->SetTex( pItemTemplet->GetShopImage() ) == false )
 		{
 			pShopImage->GetPicture(0)->SetTex( L"HQ_Shop_Ui_Noimage.dds" );
 		}
@@ -9077,6 +9364,7 @@ void CX2CashShop::BuyItemPopupSlot::UpdateUI()
 
 	CKTDGUIStatic* pItemName = (CKTDGUIStatic*)m_pDialog->GetControl( L"g_pStatic_Item_ID_1Line" );
 	if ( pItemName != NULL && pItemName->GetString(0) != NULL )
+
 	{
 #ifdef CLIENT_GLOBAL_LINEBREAK
 		wstring tempName = CWordLineHandler::GetStrByLineBreakInX2Main( pItemTemplet->GetName(), 97, pItemName->GetString(0)->fontIndex );
@@ -9116,11 +9404,10 @@ void CX2CashShop::BuyItemPopupSlot::UpdateUI()
 	// 같은 아이템 2종류 팔 때
 	bool bIdexReset = false;
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
-	CKTDGUIComboBox* pComboBox = (CKTDGUIComboBox*)m_pDialog->GetControl( L"CashItemList" );
+	CKTDGUIComboBox* pComboBox = static_cast<CKTDGUIComboBox*>(m_pDialog->GetControl( L"CashItemList" ));
 	if ( pComboBox != NULL )
 	{
 		pComboBox->RemoveAllItems();
-
 #if defined ( SERV_GLOBAL_BILLING ) && defined ( USE_PERMANENT_INSTEAD_OF_1EA )
 		bool bPeriod = false;
 		for ( int i = 0; i < (int)pCashItem->m_vecKBillProductInfo.size(); i++ )
@@ -9135,6 +9422,9 @@ void CX2CashShop::BuyItemPopupSlot::UpdateUI()
 #endif //  ( SERV_GLOBAL_BILLING ) && defined ( USE_PERMANENT_INSTEAD_OF_1EA )
 
 #ifdef SERV_GLOBAL_BILLING
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+		bool bFirstProduct = true;
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 		for ( int i = 0; i < (int)pCashItem->m_vecKBillProductInfo.size(); i++ )
 		{
 			KBillProductInfo& kBillProductInfo = pCashItem->m_vecKBillProductInfo[i];
@@ -9142,13 +9432,13 @@ void CX2CashShop::BuyItemPopupSlot::UpdateUI()
 			//wstrstm << kBillProductInfo
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP	 // 같은 아이템 2종류 팔 때
 			/*	if( kBillProductInfo.m_iProductNo == ITEM_ID_EVENT_NEW_SKILL_NOTE_PNO &&
-			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) )
+			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) )
 			{
 			bIdexReset = true;
 			continue;
 			}
 			if( kBillProductInfo.m_iProductNo == ITEM_ID_EVENT_NEW_SKILL_NOTE_PNO2 &&
-			NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) )
+			NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) )
 			{
 			continue;
 			}*/
@@ -9156,12 +9446,30 @@ void CX2CashShop::BuyItemPopupSlot::UpdateUI()
 			{
 				continue;
 			}
-
 #endif 
+
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+			if( true == g_pInstanceData->IsChoicedItem() )
+			{
+				// 찜목록 아이템은 가격 다 보여준다
+			}
+			else if( false == g_pInstanceData->IsCurrentSubCategoryInNowCatagory(kBillProductInfo.m_cCategoryNo))
+				continue;
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+
 			if ( (int)kBillProductInfo.m_cPeriod != 0 )
 			{
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+				if( true == bFirstProduct )
+				{
+					bFirstProduct = false;
+					pComboBox->AddItem( GET_STRING( STR_ID_35 ), NULL, false );
+				}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 				if ( i == 0 )
 					pComboBox->AddItem( GET_STRING( STR_ID_35 ), NULL, false );
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP  // 같은 아이템 2종류 팔 때
 				if( bIdexReset == true )
 				{
@@ -9173,8 +9481,17 @@ void CX2CashShop::BuyItemPopupSlot::UpdateUI()
 			}
 			else
 			{
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+				if( true == bFirstProduct )
+				{
+					bFirstProduct = false;
+					pComboBox->AddItem( GET_STRING( STR_ID_35 ), NULL, false );
+				}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 				if ( i == 0 )
 					pComboBox->AddItem( GET_STRING( STR_ID_36 ), NULL, false );
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP  // 같은 아이템 2종류 팔 때
 				if( bIdexReset == true )
 				{
@@ -9196,11 +9513,10 @@ void CX2CashShop::BuyItemPopupSlot::UpdateUI()
 			pComboBox->AddItem( wstrstm.str().c_str(), NULL, false );
 		}
 #else // SERV_GLOBAL_BILLING
-		for ( int i = 0; i < (int)pCashItem->m_vecKNXBTProductInfo.size(); i++ )
+		for ( int i = 0; i < static_cast<int>(pCashItem->m_vecKNXBTProductInfo.size()); ++i )
 		{
 			KNXBTProductInfo& kNXBTProductInfo = pCashItem->m_vecKNXBTProductInfo[i];
 			wstringstream wstrstm;
-			//wstrstm << kNXBTProductInfo
 
 			if ( kNXBTProductInfo.GetProductExpire() != 0 )
 			{
@@ -9225,8 +9541,40 @@ void CX2CashShop::BuyItemPopupSlot::UpdateUI()
 		}
 #endif // SERV_GLOBAL_BILLING
 	}
+#endif // COUPON_SYSTEM
 
 }
+#ifdef COUPON_SYSTEM  // 아이템 개별 사용 가능한 할인 쿠폰 리스트 갱신
+void CX2CashShop::BuyItemPopupSlot::UpdateCouponList( const vector<CouponNoAndName>& vecCouponList_ , const int iSelectedCouponNo_ /*= -1*/ )
+{
+	if( NULL != m_pDialog )
+	{
+		CKTDGUIComboBox* pComboBox = static_cast<CKTDGUIComboBox*>(m_pDialog->GetControl( L"ComboBox_Discount" ));
+		if ( NULL != pComboBox )
+		{
+			if( true == vecCouponList_.empty() )
+			{
+				pComboBox->SetShow(false);
+			}
+			else
+			{
+				pComboBox->SetShow(true);
+				pComboBox->RemoveAllItems();
+
+				pComboBox->AddItem( GET_STRING( STR_ID_28127 ), IntToPtr(-1), true );
+				BOOST_FOREACH( const CouponNoAndName CouponInfo, vecCouponList_ )
+				{
+					pComboBox->AddItem( CouponInfo.m_wstrCouponName.c_str(), IntToPtr(CouponInfo.m_iCouponNo), false );
+				}
+
+				// 기존 선택된 쿠폰 정보가 있다면, 콤보박스 선택 해주기
+				if( -1 != iSelectedCouponNo_ )
+					pComboBox->SetSelectedByData( IntToPtr(iSelectedCouponNo_) );
+			}
+		}
+	}
+}
+#endif // COUPON_SYSTEM
 
 void CX2CashShop::BuyItemPopupSlot::SetCheck( bool bCheck )
 {
@@ -9238,6 +9586,7 @@ void CX2CashShop::BuyItemPopupSlot::SetCheck( bool bCheck )
 			pCheckBox->SetCheckedPure( bCheck );
 		}
 	}
+
 	//가격 종류에 맞게끔 콤보 박스 데이타 셋팅해주고.. 현재 선택된거에 따라 선택된 항목 보여주자..
 }
 
@@ -9245,7 +9594,13 @@ void CX2CashShop::BuyItemPopupSlot::SetCash( int comboBoxIndex )
 {
 	if ( m_pDialog != NULL )
 	{
-		CKTDGUIComboBox* pComboBox = (CKTDGUIComboBox*)m_pDialog->GetControl( L"CashItemList" );
+#ifdef COUPON_SYSTEM
+		// 아이템 수량(기간) / 가격 표기 콤보 박스
+		CKTDGUIComboBox* pComboBox = static_cast<CKTDGUIComboBox*>(m_pDialog->GetControl( L"ComboBox_Price" ));
+#else
+		CKTDGUIComboBox* pComboBox = static_cast<CKTDGUIComboBox*>(m_pDialog->GetControl( L"CashItemList" ));
+#endif // COUPON_SYSTEM
+
 		if ( pComboBox != NULL )
 		{
 			pComboBox->SetSelectedByIndex( comboBoxIndex );
@@ -9328,30 +9683,11 @@ void CX2CashShop::CashItemToInvenPopupSlot::UpdateUI()
 		pComboBox->SetShow( true );
 		pComboBox->RemoveAllItems();
 
-		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
-
 #ifdef SERV_GLOBAL_BILLING
 		AddItemToComboBox_KOG( pComboBox, pItemTemplet );
 #else // SERV_GLOBAL_BILLING
 		AddItemToComboBox( pComboBox, pItemTemplet );		
 #endif // SERV_GLOBAL_BILLING
-
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-
-#ifdef SERV_GLOBAL_BILLING
-		AddItemToComboBox_KOG( pComboBox);		
-#else // SERV_GLOBAL_BILLING
-		AddItemToComboBox( pComboBox );
-#endif // SERV_GLOBAL_BILLING
-
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
-		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-
-		
-
-
-
 
 		if ( pComboBox->GetNumItems() == 0 )
 		{	
@@ -9363,8 +9699,6 @@ void CX2CashShop::CashItemToInvenPopupSlot::UpdateUI()
 
 }
 
-//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 #ifdef SERV_GLOBAL_BILLING
 void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox_KOG( CKTDGUIComboBox* pComboBox_, const CX2Item::ItemTemplet* pItemTemplet_ )
 {
@@ -9410,7 +9744,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox_KOG( CKTDGUIComboB
 		if(m_KBillPackageInfo.m_vecSocketOption.empty() == false)
 		{
 			int iLevel_ = 
-				( 0 < pItemTemplet_->GetUseLevel() ? pItemTemplet_->GetUseLevel() : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level );
+				( 0 < pItemTemplet_->GetUseLevel() ? pItemTemplet_->GetUseLevel() : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level );
 
 			pComboBox_->AddItem( GET_STRING( STR_ID_37 ), NULL, false );
 
@@ -9433,7 +9767,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox_KOG( CKTDGUIComboB
 		if ( m_KBillOrderInfo.m_vecSocketOption.empty() == false )
 		{
 			int iLevel_ = 
-				( 0 < pItemTemplet_->GetUseLevel() ? pItemTemplet_->GetUseLevel() : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level );
+				( 0 < pItemTemplet_->GetUseLevel() ? pItemTemplet_->GetUseLevel() : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level );
 
 			pComboBox_->AddItem( GET_STRING( STR_ID_37 ), NULL, false );
 
@@ -9484,7 +9818,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 	{
 		if ( m_KNXBTPackageInfo.m_wstrProductAttribute0.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute0.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute0.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( GET_STRING( STR_ID_37 ), NULL, false );
@@ -9494,7 +9828,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 
 		if ( m_KNXBTPackageInfo.m_wstrProductAttribute1.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute1.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute1.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( pSocketData->GetSocketDesc( iLevel_ ).c_str(), NULL, false );
@@ -9503,7 +9837,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 
 		if ( m_KNXBTPackageInfo.m_wstrProductAttribute2.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute2.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute2.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( pSocketData->GetSocketDesc( iLevel_ ).c_str(), NULL, false );
@@ -9512,7 +9846,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 
 		if ( m_KNXBTPackageInfo.m_wstrProductAttribute3.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute3.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute3.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( pSocketData->GetSocketDesc( iLevel_ ).c_str(), NULL, false );
@@ -9520,7 +9854,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 		}
 		if ( m_KNXBTPackageInfo.m_wstrProductAttribute4.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute4.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute4.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( pSocketData->GetSocketDesc( iLevel_ ).c_str(), NULL, false );
@@ -9531,7 +9865,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 	{
 		if ( m_KNXBTOrderInfo.m_wstrProductAttribute0.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute0.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute0.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( GET_STRING( STR_ID_37 ), NULL, false );
@@ -9541,7 +9875,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 
 		if ( m_KNXBTOrderInfo.m_wstrProductAttribute1.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute1.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute1.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( pSocketData->GetSocketDesc( iLevel_ ).c_str(), NULL, false );
@@ -9550,7 +9884,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 
 		if ( m_KNXBTOrderInfo.m_wstrProductAttribute2.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute2.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute2.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( pSocketData->GetSocketDesc( iLevel_ ).c_str(), NULL, false );
@@ -9559,7 +9893,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 
 		if ( m_KNXBTOrderInfo.m_wstrProductAttribute3.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute3.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute3.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( pSocketData->GetSocketDesc( iLevel_ ).c_str(), NULL, false );
@@ -9567,7 +9901,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 		}
 		if ( m_KNXBTOrderInfo.m_wstrProductAttribute4.empty() == false )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute4.c_str() ) );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute4.c_str() ) );
 			if ( pSocketData != NULL )
 			{
 				pComboBox_->AddItem( pSocketData->GetSocketDesc( iLevel_ ).c_str(), NULL, false );
@@ -9578,131 +9912,6 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* 
 
 }
 #endif // SERV_GLOBAL_BILLING
-
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-
-#ifdef SERV_GLOBAL_BILLING
-void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox_KOG( CKTDGUIComboBox* pComboBox_ )
-{
-	if ( m_KBillOrderInfo.m_vecSocketOption.empty() == false )
-	{
-		pComboBox_->AddItem( GET_STRING( STR_ID_37 ), NULL, false );
-
-		for( std::vector<int>::iterator it = m_KBillOrderInfo.m_vecSocketOption.begin(); it < m_KBillOrderInfo.m_vecSocketOption.end(); ++it )
-		{
-			int iSocketNo = *it;
-			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketNo );
-
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-	}
-}
-#else // SERV_GLOBAL_BILLING
-void CX2CashShop::CashItemToInvenPopupSlot::AddItemToComboBox( CKTDGUIComboBox* pComboBox_ )
-{
-	if ( m_KNXBTOrderInfo.m_byteProductKind == 1 )
-	{
-		if ( m_KNXBTPackageInfo.m_wstrProductAttribute0.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute0.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( GET_STRING( STR_ID_37 ), NULL, false );
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-
-		if ( m_KNXBTPackageInfo.m_wstrProductAttribute1.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute1.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-
-		if ( m_KNXBTPackageInfo.m_wstrProductAttribute2.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute2.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-
-		if ( m_KNXBTPackageInfo.m_wstrProductAttribute3.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute3.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-		if ( m_KNXBTPackageInfo.m_wstrProductAttribute4.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTPackageInfo.m_wstrProductAttribute4.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-
-
-	}
-	else
-	{
-		if ( m_KNXBTOrderInfo.m_wstrProductAttribute0.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute0.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( GET_STRING( STR_ID_37 ), NULL, false );
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-
-		if ( m_KNXBTOrderInfo.m_wstrProductAttribute1.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute1.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-
-		if ( m_KNXBTOrderInfo.m_wstrProductAttribute2.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute2.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-
-		if ( m_KNXBTOrderInfo.m_wstrProductAttribute3.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute3.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-		if ( m_KNXBTOrderInfo.m_wstrProductAttribute4.empty() == false )
-		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( _wtoi( m_KNXBTOrderInfo.m_wstrProductAttribute4.c_str() ) );
-			if ( pSocketData != NULL )
-			{
-				pComboBox_->AddItem( pSocketData->GetSocketDesc().c_str(), NULL, false );
-			}
-		}
-	}
-}
-#endif // SERV_GLOBAL_BILLING
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
-//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 void CX2CashShop::CashItemToInvenPopupSlot::SetOption( int comboBoxIndex )
 {
@@ -9743,7 +9952,6 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddSocketIdListToComboBox( CKTDGUICo
 void CX2CashShop::CashItemToInvenPopupSlot::AddSocketIdListToComboBox( CKTDGUIComboBox* pComboBox_, const CX2Item::ItemTemplet* pItemTemplet_, const WCHAR* wszSocketItemGroupID_ )
 #endif //SERV_GLOBAL_BILLING
 {
-
 #ifndef SERV_GLOBAL_BILLING
 	if ( NULL != wszSocketItemGroupID_ )
 #endif //ndef SERV_GLOBAL_BILLING
@@ -9768,7 +9976,7 @@ void CX2CashShop::CashItemToInvenPopupSlot::AddSocketIdListToComboBox( CKTDGUICo
 				// 얻어왔으면, 차례로 넣는다.
 				BOOST_FOREACH( const int iSocketID, vecSocketIdList )
 				{
-					CX2SocketItem::SocketData* pSocketData = pSocketItem->GetSocketData( iSocketID );
+					const CX2SocketItem::SocketData* pSocketData = pSocketItem->GetSocketData( iSocketID );
 					if ( NULL != pSocketData )
 						pComboBox_->AddItem( pSocketData->GetSocketDesc( iLevel ).c_str(), NULL, false );
 				}
@@ -9839,7 +10047,11 @@ void CX2CashShop::BuyItemPopup::ChangeCheckItem( CKTDGUIDialogType pDialog, bool
 	ResetNowPage();
 }
 
+#ifdef COUPON_SYSTEM
+unsigned long CX2CashShop::BuyItemPopup::ChangeItemPeriod( CKTDGUIDialogType pDialog, int comboBoxIndex )
+#else
 void CX2CashShop::BuyItemPopup::ChangeItemPeriod( CKTDGUIDialogType pDialog, int comboBoxIndex )
+#endif // COUPON_SYSTEM
 {
 	CX2CashShop::BuyItemPopupSlot* pBuyItemPopupSlot = (CX2CashShop::BuyItemPopupSlot*)GetPageSlot( pDialog );
 	if ( pBuyItemPopupSlot != NULL )
@@ -9854,19 +10066,57 @@ void CX2CashShop::BuyItemPopup::ChangeItemPeriod( CKTDGUIDialogType pDialog, int
 		{
 			m_mapSelectedProductNo.insert( std::make_pair( pBuyItemPopupSlot->GetItemID(), comboBoxIndex ) );
 		}
+#ifdef COUPON_SYSTEM
+		// 페이지 슬롯 UI 갱신을 위해 현재 페이지 Dialog 저장
+		m_pDialogSelectedPage = pDialog;
+		m_ulSelectedProductNo = 0;
+#endif //COUPON_SYSTEM
+	}
+	UpdateCashUI();
+
+#ifdef COUPON_SYSTEM // 사용 가능한 쿠폰 정보 요청 하기 위한 자료 얻기
+	if( NULL != pBuyItemPopupSlot )
+	{
+		CX2ItemManager::CashItem* pCashItem = g_pData->GetItemManager()->GetCashItem( pBuyItemPopupSlot->GetItemID() );
+		if ( NULL != pCashItem )
+		{
+			// ChangeItemPeriod는 1부터 시작하는 값을 받기 때문에 -1
+			int iVecIndex = comboBoxIndex - 1;
+
+			if ( 0 <= iVecIndex && 
+				static_cast<int>(pCashItem->m_vecKNXBTProductInfo.size()) > iVecIndex )
+			{
+				// 선택된 아이템ID의 상품 번호 저장
+				KNXBTProductInfo& kNXBTProductInfo = pCashItem->m_vecKNXBTProductInfo[iVecIndex];	
+				m_ulSelectedProductNo = kNXBTProductInfo.m_ulProductNo;
+
+				// 서버로 패킷 요청 할 때 사용 할 수 있도록 상품 번호 반환
+				return m_ulSelectedProductNo;
+			}
+		}
 	}
 
-	UpdateCashUI();
+	return 0;
+#endif // COUPON_SYSTEM
 }
 
-bool CX2CashShop::BuyItemPopup::GetCheckedProductNoList( vector<unsigned long>& vecProductNoList )
+#ifdef COUPON_SYSTEM
+	bool CX2CashShop::BuyItemPopup::GetCheckedProductAndCouponNoList(OUT vector< std::pair<unsigned long, int> >& vecProductAndCouponNoList_ )
+#else
+	bool CX2CashShop::BuyItemPopup::GetCheckedProductNoList(OUT vector<unsigned long>& vecProductNoList )
+#endif // COUPON_SYSTEM
 {
+#ifdef COUPON_SYSTEM
+	vecProductAndCouponNoList_.clear();
+#endif // COUPON_SYSTEM
+
+	// 구매 하기 위해 선택된 아이템 List 순회
 	for ( int i = 0; i < (int)m_vecCheckedItem.size(); i++ )
 	{
 		int itemID = m_vecCheckedItem[i];
 
-		map< int, int >::iterator mit;
-		mit = m_mapSelectedProductNo.find( itemID );
+		// 기간(수량)에 대한 정보 검색
+		map< int, int >::iterator mit = m_mapSelectedProductNo.find( itemID );
 		if ( mit != m_mapSelectedProductNo.end() )
 		{
 			if ( mit->second == 0 )
@@ -9876,7 +10126,7 @@ bool CX2CashShop::BuyItemPopup::GetCheckedProductNoList( vector<unsigned long>& 
 
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP  // 같은 아이템 2종류 팔 때
 		/*	if( itemID == ITEM_ID_EVENT_NEW_SKILL_NOTE &&
-				NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) )
+				NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) )
 			{
 				productIndex += 1;
 			}*/
@@ -9886,7 +10136,7 @@ bool CX2CashShop::BuyItemPopup::GetCheckedProductNoList( vector<unsigned long>& 
 			{
 				for(int i = 0; i < TempVec.size(); ++i)
 				{
-					if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( TempVec[i] ) )
+					if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( TempVec[i] ) )
 					{
 						productIndex += 1;
 						break;
@@ -9898,40 +10148,58 @@ bool CX2CashShop::BuyItemPopup::GetCheckedProductNoList( vector<unsigned long>& 
 			if ( pCashItem != NULL )
 			{
 #ifdef SERV_GLOBAL_BILLING
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+				vector< KBillProductInfo > vecBillInfoTemp;
+				if( true == GetChoicedItemBuy() || true == g_pInstanceData->IsChoicedItem() )
+				{
+					vecBillInfoTemp = pCashItem->m_vecKBillProductInfo;
+				}
+				else
+				{
+					vecBillInfoTemp = g_pInstanceData->GetCurrentProductInfoListInNowCatagory( pCashItem->m_vecKBillProductInfo );
+				}
+				
+				if ( productIndex >= 0 && (int)vecBillInfoTemp.size() > productIndex )
+				{
+					KBillProductInfo& kBillProductInfo = vecBillInfoTemp[productIndex];
+					vecProductNoList.push_back( kBillProductInfo.m_iProductNo );
+				}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 				if ( productIndex >= 0 && (int)pCashItem->m_vecKBillProductInfo.size() > productIndex )
 				{
 					KBillProductInfo& kBillProductInfo = pCashItem->m_vecKBillProductInfo[productIndex];
 					vecProductNoList.push_back( kBillProductInfo.m_iProductNo );
 				}
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 #else // SERV_GLOBAL_BILLING
 				if ( productIndex >= 0 && (int)pCashItem->m_vecKNXBTProductInfo.size() > productIndex )
 				{
+					// 선택된 아이템ID의 상품 번호 담기
 					KNXBTProductInfo& kNXBTProductInfo = pCashItem->m_vecKNXBTProductInfo[productIndex];
+ 
+#ifdef COUPON_SYSTEM // 할인 쿠폰 번호 적용
+// 					// 선택된 상품에 맞는 쿠폰을 선택 했다면 쿠폰 정보 포함 시키기
+ 					int iCouponCardNo = -1;
+					map< unsigned long, int >::iterator itCoupon = m_mapSelectedCouponNo.find( kNXBTProductInfo.m_ulProductNo );
+ 					if( itCoupon != m_mapSelectedCouponNo.end() )
+ 					{
+ 						iCouponCardNo = itCoupon->second;
+ 					}
+ 
+ 					vecProductAndCouponNoList_.push_back( std::make_pair( kNXBTProductInfo.m_ulProductNo, iCouponCardNo ));
+#else
 					vecProductNoList.push_back( kNXBTProductInfo.m_ulProductNo );
+#endif // COUPON_SYSTEM
 				}
 #endif // SERV_GLOBAL_BILLING
 			}
 		}
 		else
 		{
-			/*
-			CX2ItemManager::CashItem* pCashItem = g_pData->GetItemManager()->GetCashItem( itemID );
-			if ( pCashItem != NULL )
-			{
-
-
-				const KNXBTProductInfo* pKNXBTProductInfo = pCashItem->GetGateProduct();
-				if ( pKNXBTProductInfo != NULL )
-				{
-					vecProductNoList.push_back( pKNXBTProductInfo->m_ulProductNo );
-				}
-			}
-			*/
-				return false;
+			return false;
 		}
 
 	}
-
 	return true;
 }
 
@@ -10061,7 +10329,7 @@ void CX2CashShop::BuyItemPopup::UpdateCashUI()
 					int productIndex = mit->second - 1;
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP  // 같은 아이템 2종류 팔 때
 				/*	if( itemID == ITEM_ID_EVENT_NEW_SKILL_NOTE &&
-						NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) &&
+						NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( ITEM_ID_EVENT_NEW_SPECIAL ) &&
 						productIndex != -1 )
 					{
 						productIndex += 1;
@@ -10072,7 +10340,7 @@ void CX2CashShop::BuyItemPopup::UpdateCashUI()
 					{
 						for(int i = 0; i < nTempVec.size(); ++i)
 						{
-							if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( nTempVec[i] ) )
+							if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( nTempVec[i] ) )
 							{
 								if( productIndex != -1 )
 								{
@@ -10085,11 +10353,30 @@ void CX2CashShop::BuyItemPopup::UpdateCashUI()
 #endif
 
 #ifdef SERV_GLOBAL_BILLING
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+					vector< KBillProductInfo > vecBillInfoTemp;
+					if( true == GetChoicedItemBuy() )
+					{
+						// 찜목록에서는 모든 가격이 다 표시 한다
+						vecBillInfoTemp = pCashItem->m_vecKBillProductInfo;
+					}
+					else
+					{
+						vecBillInfoTemp = g_pInstanceData->GetCurrentProductInfoListInNowCatagory( pCashItem->m_vecKBillProductInfo );
+					}
+					
+					if ( productIndex >= 0 && (int)vecBillInfoTemp.size() > productIndex )
+					{
+						KBillProductInfo& kKBillProductInfo = vecBillInfoTemp[productIndex];
+						cashToBuy += kKBillProductInfo.m_iSalePrice;
+					}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 					if ( productIndex >= 0 && productIndex < (int)pCashItem->m_vecKBillProductInfo.size() )
 					{
 						KBillProductInfo& kKBillProductInfo = pCashItem->m_vecKBillProductInfo[productIndex];
 						cashToBuy += kKBillProductInfo.m_iSalePrice;						
 					}
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 #else // SERV_GLOBAL_BILLING
 					if ( productIndex >= 0 && productIndex < (int)pCashItem->m_vecKNXBTProductInfo.size() )
 					{
@@ -10210,11 +10497,20 @@ bool CX2CashShop::BuyItemPopup:: RestCashCheck()
 				{
 					int productIndex = mit->second - 1;
 
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+					vector< KBillProductInfo > vecBillInfoTemp = g_pInstanceData->GetCurrentProductInfoListInNowCatagory( pCashItem->m_vecKBillProductInfo );
+					if ( productIndex >= 0 && (int)vecBillInfoTemp.size() > productIndex )
+					{
+						KBillProductInfo& kBillProductInfo = vecBillInfoTemp[productIndex];
+						cashToBuy += kBillProductInfo.m_iSalePrice;
+					}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 					if ( productIndex >= 0 && productIndex < (int)pCashItem->m_vecKBillProductInfo.size() )
 					{
 						KBillProductInfo& kBillProductInfo = pCashItem->m_vecKBillProductInfo[productIndex];
 						cashToBuy += kBillProductInfo.m_iSalePrice;	// 사고자하는 아이템의 가격을 가져온다.
 					}
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 				}
 			}
 
@@ -10235,21 +10531,18 @@ bool CX2CashShop::BuyItemPopup:: RestCashCheck()
 				break;
 			}
 
-#if defined(_IN_HOUSE_) && defined(SERV_COUNTRY_US)
+#if defined(_IN_HOUSE_) && ( defined(SERV_COUNTRY_US) || defined( CLIENT_COUNTRY_ID ) )
 			return true;
-#else // defined(_IN_HOUSE_) && defined(SERV_COUNTRY_US)
+#else // defined(_IN_HOUSE_) && ( defined(SERV_COUNTRY_US) || defined( CLIENT_COUNTRY_ID ) )
 			if ( restCash >= 0 )
 				return true;
-#endif // defined(_IN_HOUSE_) && defined(SERV_COUNTRY_US)
+#endif // defined(_IN_HOUSE_) &&  ( defined(SERV_COUNTRY_US) || defined( CLIENT_COUNTRY_ID ) )
 		}
 
 #else // SERV_SUPPORT_SEVERAL_CASH_TYPES
 		pStatic = (CKTDGUIStatic*)m_pDialog->GetControl( L"g_pStaticCashshop_Buywindow_Myrest" );
 		if ( pStatic != NULL )
 		{
-			//wstringstream wstrstm;
-			//wstrstm << L"";
-			//pStatic->SetString( 0, g_pMain->GetEDString( -10000 ).c_str() );
 
 			int cashToBuy = 0;
 			for ( int i = 0; i < (int)m_vecCheckedItem.size(); i++ )
@@ -10266,11 +10559,20 @@ bool CX2CashShop::BuyItemPopup:: RestCashCheck()
 					int productIndex = mit->second - 1;
 
 #ifdef SERV_GLOBAL_BILLING
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+					vector< KBillProductInfo > vecBillInfoTemp = GetCurrentProductInfoListInNowCatagory( pCashItem->m_vecKBillProductInfo );
+					if ( productIndex >= 0 && (int)vecBillInfoTemp.size() > productIndex )
+					{
+						KBillProductInfo& kBillProductInfo = vecBillInfoTemp[productIndex];
+						cashToBuy += kKBillProductInfo.m_iSalePrice;
+					}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 					if ( productIndex >= 0 && productIndex < (int)pCashItem->m_vecKBillProductInfo.size() )
 					{
 						KBillProductInfo& kBillProductInfo = pCashItem->m_vecKBillProductInfo[productIndex];
 						cashToBuy += kBillProductInfo.m_iSalePrice;	// 사고자하는 아이템의 가격을 가져온다.
 					}
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 #else // SERV_GLOBAL_BILLING
 					if ( productIndex >= 0 && productIndex < (int)pCashItem->m_vecKNXBTProductInfo.size() )
 					{
@@ -10279,16 +10581,6 @@ bool CX2CashShop::BuyItemPopup:: RestCashCheck()
 					}
 #endif // SERV_GLOBAL_BILLING
 				}
-				/*
-				else
-				{
-					if ( pCashItem->m_vecKNXBTProductInfo.empty() == false )
-					{
-						KNXBTProductInfo& kKNXBTProductInfo = pCashItem->m_vecKNXBTProductInfo[0];
-						cashToBuy += kKNXBTProductInfo.m_ulSalePrice;
-					}
-				}
-				*/
 			}
 
 			int restCash = g_pData->GetMyUser()->GetCash() - cashToBuy;
@@ -10356,6 +10648,7 @@ void CX2CashShop::BuyItemPopup::SetStringNonRefundableItemInclude()
 
 void CX2CashShop::SetStringBuyItemRefund()
 {
+#ifndef COUPON_SYSTEM
 	if(m_pBuyItemPopUp->NonRefundableItemInclude() == true)
 	{
 		if(m_pBuyItemPopUp->GetCheckedItemListSize() > 1)
@@ -10371,15 +10664,28 @@ void CX2CashShop::SetStringBuyItemRefund()
 	{
 		m_pBuyItemPopUp->SetStringRefundableItem();
 	}
+#endif // COUPON_SYSTEM
+
 	return;
 }
-
 #endif CASH_ITEM_REFUND
+
+void CX2CashShop::Send_EGS_VISIT_CASH_SHOP_NOT( const bool bOpen_ ) const // 청약 철회 디파인 안에 있어서 해외팀 수정
+{
+	KEGS_VISIT_CASH_SHOP_NOT kPacket;
+	kPacket.m_bEnterCashShop = bOpen_;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_VISIT_CASH_SHOP_NOT, kPacket );
+}
 
 void CX2CashShop::BuyItemPopup::InitbyOpen()
 {
 	m_vecCheckedItem = m_vecItemID;
-	m_mapSelectedProductNo.clear();		//itemID, CashData에 KNXBTProductInfo 벡터 인덱스
+	m_mapSelectedProductNo.clear();		//itemID, CashData에 KNXBTProductInfo 벡터 인덱스	
+#ifdef COUPON_SYSTEM
+	m_mapProductCouponNo.clear();
+	m_mapSelectedCouponNo.clear();
+#endif // COUPON_SYSTEM
 
 	SetCheckAllItem( true );
 
@@ -10403,8 +10709,11 @@ void CX2CashShop::BuyItemPopup::ResetNowPage()
 	if ( m_pDialog != NULL )
 	{
 
-
+#ifdef COUPON_SYSTEM
+		CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDialog->GetControl( L"ByItemPopup_Page" ));
+#else
 		CKTDGUIStatic* pStatic = (CKTDGUIStatic*)m_pDialog->GetControl( L"g_pStaticCashshop_Buywindow_Font" );
+#endif // COUPON_SYSTEM
 		if ( pStatic != NULL )
 		{
 			wstringstream wstrstm;
@@ -10503,7 +10812,6 @@ bool CX2CashShop::CashItemToInvenPopup::GetSelectedOptionListAndGroupID( OUT map
 bool CX2CashShop::CashItemToInvenPopup::GetSelectedOptionList( map< int, int >& mapSelectedOptionList_ )
 #endif	SERV_CASH_ITEM_SOCKET_OPTION
 {
-
 #ifdef SERV_GLOBAL_BILLING
 	if ( m_vecKBillOrderInfo.empty() == true )
 #else // SERV_GLOBAL_BILLING
@@ -10513,9 +10821,7 @@ bool CX2CashShop::CashItemToInvenPopup::GetSelectedOptionList( map< int, int >& 
 		return false;
 	}
 
-
 #ifdef SERV_CASH_ITEM_SOCKET_OPTION
-
 #ifdef SERV_GLOBAL_BILLING
 	KBillOrderInfo& kCashOrderInfo = m_vecKBillOrderInfo[0];
 #else //SERV_GLOBAL_BILLING
@@ -10542,8 +10848,6 @@ bool CX2CashShop::CashItemToInvenPopup::GetSelectedOptionList( map< int, int >& 
 			KNXBTPackageInfo& kCashPackageInfo = vecPackageInfo[j];
 			int itemID = _wtoi( kCashPackageInfo.m_wstrProductID.c_str() );
 #endif //SERV_GLOBAL_BILLING
-
-			
 
 			bool bCheckedItem = false;
 			for ( int k = 0; k < (int)m_vecCheckedItem.size(); k++ )
@@ -10682,7 +10986,6 @@ bool CX2CashShop::CashItemToInvenPopup::GetSelectedOptionList( map< int, int >& 
 			KNXBTPackageInfo& kCashPackageInfo = vecPackageInfo[j];
 			int itemID = _wtoi( kCashPackageInfo.m_wstrProductID.c_str() );
 #endif //SERV_GLOBAL_BILLING
-
 
 			bool bCheckedItem = false;
 			for ( int k = 0; k < (int)m_vecCheckedItem.size(); k++ )
@@ -10932,7 +11235,6 @@ void CX2CashShop::CashItemToInvenPopup::GetCheckedPackageInfo( vector< KNXBTPack
 }
 #endif // SERV_GLOBAL_BILLING
 
-
 void CX2CashShop::CashItemToInvenPopup::SetCheckAllItem( bool bCheck )
 {
 	if ( bCheck == true )
@@ -11053,9 +11355,8 @@ void CX2CashShop::CashItemToInvenPopup::ResetNowPage()
 
 		//검사해서 이 프로덕트에 맞는 패키지 상품 정보를 셋팅..
 //검사해서 이 프로덕트에 맞는 패키지 상품 정보를 셋팅..
-#ifdef SERV_GLOBAL_BILLING
 		//** 패키지는 풀려서 들어오니까...일단 패키지 관련은 주석처리. 나중에 처리하자
-
+#ifdef SERV_GLOBAL_BILLING
 #ifdef SERV_GLOBAL_CASH_PACKAGE
  		if ( m_vecKBillOrderInfo.empty() == false )
  		{
@@ -11161,7 +11462,6 @@ CX2CashShop::PresentItemPopup::PresentItemPopup()
 	m_SelectedProductNum = 0;
 
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
-
 #if defined (CLIENT_COUNTRY_CN) || defined (CLIENT_COUNTRY_PH)
 	m_iUseCashType = KGlobalCashInfo::GCT_KOG_ELSWORD_CASH;
 #elif defined (CLIENT_COUNTRY_TWHK)
@@ -11169,7 +11469,6 @@ CX2CashShop::PresentItemPopup::PresentItemPopup()
 #else // CLIENT_COUNTRY_XX
 	m_iUseCashType = KGlobalCashInfo::GCT_PUBLISHER_CASH;
 #endif // CLIENT_COUNTRY_XX
-	
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 }
 
@@ -11344,7 +11643,6 @@ void CX2CashShop::PresentItemPopup::UpdateCash()
 			if ( productNo == 0 )
 			{
 #ifdef ADD_COMMA_TO_CASH_ITEM		/// 선물하기 때 현재 넥슨 캐시량에 콤마 않찍힌 문제 수정
-
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 				int restCash = 0;
 				switch(GetUseCashType())
@@ -11478,11 +11776,29 @@ unsigned long CX2CashShop::PresentItemPopup::GetSelectedProductNo()
 				if ( pCashItem != NULL )
 				{
 #ifdef SERV_GLOBAL_BILLING
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+					vector< KBillProductInfo > vecBillInfoTemp;
+					if( true == g_pInstanceData->IsChoicedItem() )
+					{
+						vecBillInfoTemp = pCashItem->m_vecKBillProductInfo;
+					}
+					else
+					{
+						vecBillInfoTemp = g_pInstanceData->GetCurrentProductInfoListInNowCatagory( pCashItem->m_vecKBillProductInfo );
+					}
+
+					if ( productIndex >= 0 && (int)vecBillInfoTemp.size() > productIndex )
+					{
+						KBillProductInfo& kBillProductInfo = vecBillInfoTemp[productIndex];
+						return kBillProductInfo.m_iProductNo;
+					}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 					if ( productIndex >= 0 && (int)pCashItem->m_vecKBillProductInfo.size() > productIndex )
 					{
 						KBillProductInfo& kBillProductInfo = pCashItem->m_vecKBillProductInfo[productIndex];
 						return kBillProductInfo.m_iProductNo;
 					}
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 #else // SERV_GLOBAL_BILLING
 					if ( productIndex >= 0 && (int)pCashItem->m_vecKNXBTProductInfo.size() > productIndex )
 					{
@@ -11589,13 +11905,12 @@ void CX2CashShop::PresentItemPopup::InitUI()
 #else 
 	m_pDLGPresent = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_Cash_Shop_Popup_Present.lua" );
 #endif
-
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGPresent );
 
 #if defined(SERV_TOONILAND_CHANNELING) && !defined(SERV_STEAM)
 	if( NULL != g_pData && NULL != g_pData->GetMyUser() )
 	{
-		if( g_pData->GetMyUser()->GetUserData()->m_uChannelCode == 3 )
+		if( g_pData->GetMyUser()->GetUserData().m_uChannelCode == 3 )
 		{
 			// 투니랜드 유저라면 선물하기 비번입력창 안보이도록			
 			CKTDGUIStatic *pStatic = (CKTDGUIStatic*)m_pDLGPresent->GetControl( L"g_pStaticCashShop_PresentWindow" );
@@ -11667,23 +11982,51 @@ void CX2CashShop::PresentItemPopup::InitUI()
 #endif // ( SERV_GLOBAL_BILLING ) && defined ( USE_PERMANENT_INSTEAD_OF_1EA )
 
 #ifdef SERV_GLOBAL_BILLING
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+		bool bFirstProduct = true;
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 		for ( int i = 0; i < (int)pCashItem->m_vecKBillProductInfo.size(); i++ )
 		{
 			KBillProductInfo& kBillProductInfo = pCashItem->m_vecKBillProductInfo[i];
 			wstringstream wstrstm;
 			//wstrstm << kBillProductInfo
 
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+			if( GetChoicedItem() == true )
+			{
+				// 찜목록 아이템은 가격 다 보여준다
+			}
+			else if( false == g_pInstanceData->IsCurrentSubCategoryInNowCatagory(kBillProductInfo.m_cCategoryNo) )
+				continue;
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+
 			if ( kBillProductInfo.m_cPeriod != 0 )
 			{
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+				if ( true == bFirstProduct )
+				{
+					bFirstProduct = false;
+					pComboBox->AddItem( GET_STRING( STR_ID_35 ), NULL, false );
+				}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 				if ( i == 0 )
 					pComboBox->AddItem( GET_STRING( STR_ID_35 ), NULL, false );
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 
 				wstrstm << (int)kBillProductInfo.m_cPeriod << GET_STRING( STR_ID_14 ) << L"/"; 
 			}
 			else
 			{
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+				if ( true == bFirstProduct )
+				{
+					bFirstProduct = false;
+					pComboBox->AddItem( GET_STRING( STR_ID_35 ), NULL, false );
+				}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 				if ( i == 0 )
 					pComboBox->AddItem( GET_STRING( STR_ID_36 ), NULL, false );
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 
 #ifdef USE_PERMANENT_INSTEAD_OF_1EA
 				if( bPeriod == true && kBillProductInfo.m_cQuantity == 1 )
@@ -11746,7 +12089,6 @@ void CX2CashShop::PresentItemPopup::InitUI()
 }
 
 #ifdef CHINA_CASH_CHANGE
-
 void CX2CashShop::ExchangeChinaCash(int _icash)
 {
 	CKTDGUIButton* pCash_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Exchange_cash_ok" );
@@ -11821,7 +12163,6 @@ void CX2CashShop::ExchangeChinaCash(int _icash)
 		pStaticElsowrdCash->SetString( 0, g_pMain->GetEDString( g_pData->GetMyUser()->GetGlobalCash( KGlobalCashInfo::GCT_KOG_ELSWORD_CASH ) ).c_str() );
 		pStaticGiantCash->SetString( 0, g_pMain->GetEDString( g_pData->GetMyUser()->GetGlobalCash( KGlobalCashInfo::GCT_PUBLISHER_CASH ) ).c_str() );
 	}
-
 }
 
 void CX2CashShop::ChinaCash_Tap_Change(bool _bShow)
@@ -11858,7 +12199,6 @@ void CX2CashShop::ChinaCash_Tap_Change(bool _bShow)
 		pStaticChangeFONT_AFTER_ELS_CASH->SetShowEnable(false,false);
 	}
 
-
 	CKTDGUIStatic* pStatic_Graphic = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Elsword_Tap" );
 	pStatic_Graphic->SetShowEnable(_bShow,_bShow);
 	CKTDGUIStatic* pStatic_Giant_Tap = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Giant_Tap" );
@@ -11894,12 +12234,10 @@ void CX2CashShop::ChinaCash_Tap_Change(bool _bShow)
 	{
 		pStaticChangeBingon->SetShow(false);
 	}
-
 }
 
 bool CX2CashShop::Handler_EGS_EXCHANGE_REQ() // 2011.03.08 lygan_조성욱 // 자이언트 캐쉬 전환 관련
 {
-
 	SAFE_DELETE_DIALOG(m_pDLGMsgBox);
 	m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2( 279, 300 ), GET_STRING( STR_ID_2558 ), (CKTDXStage*) m_pNowState );
 	KEGS_EXCHANGE_CASH_REQ kPacket;
@@ -11910,7 +12248,6 @@ bool CX2CashShop::Handler_EGS_EXCHANGE_REQ() // 2011.03.08 lygan_조성욱 // 자이�
 	g_pMain->AddServerPacket( EGS_EXCHANGE_CASH_ACK );
 
 	return true;
-
 }
 
 bool CX2CashShop::Handler_EGS_EXCHANGE_ACK(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) // 2011.03.08 lygan_조성욱 // 자이언트 캐쉬 전환 관련
@@ -11944,7 +12281,6 @@ bool CX2CashShop::Handler_EGS_EXCHANGE_ACK(HWND hWnd, UINT uMsg, WPARAM wParam, 
 		}
 	}
 	return false;
-
 }
 #endif //CHINA_CASH_CHANGE
 
@@ -11969,36 +12305,6 @@ void CX2CashShop::PushDelayedMails()
 	}
 }
 #endif FIX_MISSING_MAIL
-
-#ifdef UIRRL_CASH_SHOP 
-void CX2CashShop::DeleteUI()
-{ 
-	if( m_bCreateDialog == false)
-		return;
-
-	SAFE_DELETE( m_pMainNewSM );
-	SAFE_DELETE( m_pMainHotSM );
-	SAFE_DELETE( m_pMainRecommendSM ); 
-	SAFE_DELETE( m_pSubSM );
-	SAFE_DELETE( m_pSubSpeicialSM ); 
-	SAFE_DELETE( m_pBuyItemPopUp );
-	SAFE_DELETE( m_pCashItemToInvenPopup );
-	SAFE_DELETE( m_pPresentItemPopup );
-
-	g_pKTDXApp->SendGameDlgMessage( XGM_REAL_DELETE_DIALOG, m_pDLGFront, NULL, false );   
-	g_pKTDXApp->SendGameDlgMessage( XGM_REAL_DELETE_DIALOG, m_pDLGMainPage, NULL, false );   
-	g_pKTDXApp->SendGameDlgMessage( XGM_REAL_DELETE_DIALOG, m_pDLGSubPage, NULL, false );   
-
-	for ( int i = 0; i < CX2CashShop::CSC_END; i++)
-	{
-		CKTDGUIDialogType pDialog = m_pDLGSubPageMenu[i]; 
-		g_pKTDXApp->SendGameDlgMessage( XGM_REAL_DELETE_DIALOG, pDialog, NULL, false );    
-		m_pDLGSubPageMenu[i] = NULL;
-	} 
-
-	m_bCreateDialog = false;
-}
-#endif //UIRRL_CASH_SHOP
 
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 bool CX2CashShop::SetDialyGiftBoxPopup( int ItemID )
@@ -12398,7 +12704,7 @@ void CX2CashShop::CashShopSlot::SetShowPresentButton( bool bShow )
 bool CX2CashShop::CashShopSlotManager::IsPossiblePresent( int itemID )
 {
 #ifdef SERV_CASHITEM_PURCHASE_RESTRICTION
-	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level <= 20)
+	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level <= 20)
 	{
 		return false;
 	}
@@ -12452,6 +12758,96 @@ void CX2CashShop::CashShopSlotManager::SetShowPresentButton()
 	}
 }
 #endif SERV_USE_ENABLE_GIFT
+
+#ifdef SERV_WISH_LIST_NO_ITEM
+void CX2CashShop::CashShopSlot::SetShowCartButton( bool bShow )
+{
+	switch(m_SlotType)
+	{
+	case CX2Slot::ST_CASH_SHOP_MAIN_NEW:
+	case CX2Slot::ST_CASH_SHOP_MAIN_HOT:
+	case CX2Slot::ST_CASH_SHOP_MAIN_RECOMMEND:
+		{
+			if(m_pDLGCashShopSlot != NULL)
+			{
+				CKTDGUIButton* pCartSmallButton = reinterpret_cast< CKTDGUIButton* >( m_pDLGCashShopSlot->GetControl( L"MainItemSlot_Check" ) );
+
+				if(pCartSmallButton != NULL)
+				{
+					pCartSmallButton->SetShowEnable( true, bShow );
+				}
+			}
+		}
+		break;
+	case CX2Slot::ST_CASH_SHOP_SUB:
+	case CX2Slot::ST_CASH_SHOP_SUB_SPECIAL:
+		{
+			if(m_pDLGCashShopSlot != NULL)
+			{
+				CKTDGUIButton* pCartButton = reinterpret_cast< CKTDGUIButton* >( m_pDLGCashShopSlot->GetControl( L"Cart" ) );
+
+				if(pCartButton != NULL)
+				{
+					pCartButton->SetShowEnable( true, bShow );
+				}
+			}
+		}
+		break;
+	default:
+		{
+			ASSERT( !"Unexpected CashShop Slot Type" );
+		}
+		break;
+
+	}
+}
+
+bool CX2CashShop::CashShopSlotManager::IsNotPossibleWishList( int itemID )
+{
+
+	bool bNotEnableCart = false;
+	CX2ItemManager::CashItem* pCashItem = g_pData->GetItemManager()->GetCashItem( itemID );
+
+	if(pCashItem == NULL )
+	{
+		return false;
+	}
+
+	bNotEnableCart = pCashItem->GetIsWishListNotEnable();
+
+	return bNotEnableCart;
+}
+
+void CX2CashShop::CashShopSlotManager::SetShowCartButton()
+{
+	CX2CashShop::CashShopSlot* pCashShopSlot = NULL;
+
+	for ( UINT i = 0; i < m_vecCashShopSlot.size(); i++ )
+	{
+		pCashShopSlot = m_vecCashShopSlot[i];
+
+		if ( pCashShopSlot == NULL )
+		{
+			continue;
+		}
+
+		int nItemID = pCashShopSlot->GetItemID();
+
+
+		if(IsNotPossibleWishList(nItemID) == false)
+		{
+			pCashShopSlot->SetShowCartButton( true );
+		}
+		else
+		{
+			pCashShopSlot->SetShowCartButton( false );
+		}
+
+
+		pCashShopSlot = NULL;
+	}
+}
+#endif SERV_WISH_LIST_NO_ITEM
 
 //{{ 2013.03.13 조효진	캐시충전 버튼을 누르면 웹페이지를 띄워줌
 #ifdef CASH_CHARGE_FROM_WEB
@@ -12521,12 +12917,17 @@ std::wstring CX2CashShop::GetWstrConnectChargePage()
 	// 홍콩
 	case CX2Main::NF_HK:	wstrURL = L"http://hk.beanfun.com/Default.aspx";	break;	
 	// 브라질
-	case CX2Main::NF_BR:	wstrURL = L"https://myaccounttest.elswordonline.com/Elsword/howtoloadup";	break;
+	case CX2Main::NF_BR:	wstrURL = L"https://loja.levelupgames.com.br/Multivendas/frmVitrine.aspx?cdProvider=4&cdGame=52";	break;
+	//동남아시아
+	case CX2Main::NF_PH:	wstrURL = L"http://shop.elsword.garena.ph/";	break;
+
+	// 태국
+	case CX2Main::NF_TH:	wstrURL = L"https://secure3.playpark.com/refill/refillplaypark/";	break;
 	// 일본
 #ifdef CASH_CHARGE_URL_JP
 	case CX2Main::NF_JP:
 		{
-			switch( g_pData->GetMyUser()->GetUserData()->m_uChannelCode )
+			switch( g_pData->GetMyUser()->GetUserData().m_uChannelCode )
 			{
 			case KNexonAccountInfo::JCE_NHN:	wstrURL = g_pMain->GetNHNCashChargeURL();	break;
 			case KNexonAccountInfo::JCE_MSN:	wstrURL = g_pMain->GetMSCashChargeURL();	break;
@@ -12603,14 +13004,17 @@ std::wstring CX2CashShop::GetWstrConnectChargePage()
 	// 홍콩
 	case CX2Main::NF_HK:	wstrURL = L"http://hk.beanfun.com/Default.aspx";	break;	
 	// 브라질
-	case CX2Main::NF_BR:	wstrURL = L"https://ssl.gameastor.com.tw/services/els/intro_main.aspx";	break;
+	case CX2Main::NF_BR:	wstrURL = L"https://loja.levelupgames.com.br/Multivendas/frmVitrine.aspx?cdProvider=4&cdGame=52";	break;
 	//동남아시아
-	case CX2Main::NF_PH:	wstrURL = L"http://shop.elph.garena.com/index/";	break;
+	case CX2Main::NF_PH:	wstrURL = L"http://shoptest.elsword.garena.ph";	break;
+
+		// 태국
+	case CX2Main::NF_TH:	wstrURL = L"https://secure3.playpark.com/refill/refillplaypark/";	break;
 	// 일본
 #ifdef CASH_CHARGE_URL_JP
 	case CX2Main::NF_JP:
 		{
-			switch( g_pData->GetMyUser()->GetUserData()->m_uChannelCode )
+			switch( g_pData->GetMyUser()->GetUserData().m_uChannelCode )
 			{
 			case KNexonAccountInfo::JCE_NHN:	wstrURL = g_pMain->GetNHNCashChargeURL();	break;
 			case KNexonAccountInfo::JCE_MSN:	wstrURL = g_pMain->GetMSCashChargeURL();	break;
@@ -12636,7 +13040,7 @@ std::wstring CX2CashShop::GetWstrConnectChargePage()
 	case CX2Main::NF_PL:
 	case CX2Main::NF_ES:
 	case CX2Main::NF_EN:
-		wstrURL += g_pData->GetMyUser()->GetUserData()->userID;
+		wstrURL += g_pData->GetMyUser()->GetUserData().userID;
 		wstrURL += L"/";
 #ifdef SERV_PURCHASE_TOKEN
 		wstrURL += g_pInstanceData->GetPurchaseToken();
@@ -12656,7 +13060,7 @@ std::wstring CX2CashShop::GetWstrConnectChargePage()
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 bool CX2CashShop::GetCahBuySharingBankItem( int itemID )
 {
-	if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( SHARING_BANK_OPEN_CASH_ITEM_ID, true ) != NULL )
+	if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( SHARING_BANK_OPEN_CASH_ITEM_ID, true ) != NULL )
 	{
 		return false;
 	}
@@ -12794,9 +13198,7 @@ bool CX2CashShop::Handler_EGS_BONUS_CASH_EVENT_NOT(HWND hWnd, UINT uMsg, WPARAM 
 
 	m_bCheckCashEvent = kEvent.m_bEventStart;
 	return true;
-
 }
-
 #endif //SERV_NOTIFY_BONUS_CASH
 
 #ifdef CJ_ID_WEB_BILLING
@@ -12835,7 +13237,6 @@ bool CX2CashShop::InitCJBillingWebBrowser()
 	g_pMain->GetNMBrowserWrapper()->Navigate( strURL.c_str() ); 
 
 	return true;
-
 }
 #endif //CJ_ID_WEB_BILLING
 
@@ -12869,15 +13270,40 @@ bool CX2CashShop::Handler_EGS_EXCHANGE_CASH_CLIENT_NOT(HWND hWnd, UINT uMsg, WPA
 	return false;
 }
 
+bool CX2CashShop::PresentItemPopup::RestPresentItemCashCheck( int iProductNo ) // 2013.09.17 lygan_조성욱 // 선물하기 전에도 잔액 체크를 해서 잔액이 모자라면 서버로 REQ 보내지 않게 하기
+{
+	KBillProductInfo* pKBillProductInfo = g_pData->GetItemManager()->GetCashItemProduct( iProductNo );
+	if ( pKBillProductInfo != NULL )
+	{
+		int remainCash = 0; 
+
+		switch( GetUseCashType() )
+		{
+		case KGlobalCashInfo::GCT_PUBLISHER_ELSWORD_CASH:
+			remainCash = g_pData->GetMyUser()->GetGlobalCash(KGlobalCashInfo::GCT_PUBLISHER_ELSWORD_CASH) - pKBillProductInfo->m_iSalePrice;
+			break;
+		case KGlobalCashInfo::GCT_PUBLISHER_CASH:
+			remainCash = g_pData->GetMyUser()->GetGlobalCash(KGlobalCashInfo::GCT_PUBLISHER_CASH) - pKBillProductInfo->m_iSalePrice;
+			break;
+		case KGlobalCashInfo::GCT_KOG_ELSWORD_BONUS_POINT:
+			remainCash = g_pData->GetMyUser()->GetGlobalCash( KGlobalCashInfo::GCT_KOG_ELSWORD_BONUS_POINT ) - pKBillProductInfo->m_iSalePrice;
+			break;
+		default:
+			remainCash = g_pData->GetMyUser()->GetGlobalMainCash() - pKBillProductInfo->m_iSalePrice;
+			break;
+		}
+
+	if ( remainCash >= 0 )
+		return true;
+	}
+
+	return false;		
+}
 #endif //SERV_COUNTRY_PH
-
-
-
 
 //=======================================================================================//
 //--------------------------------- ES_GLOBAL_CODE_AREA ---------------------------------//
 //=======================================================================================//
-
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 /** @function : CheckBuyPossibleRelationItem
@@ -12994,6 +13420,537 @@ bool CX2CashShop::ShowPopUpGuideByItemID( const int iItemID_ )
 	return false;
 }
 
+#ifdef COUPON_SYSTEM
+/** @function : Handler_EGS_DISCOUNT_COUPON_LIST_INQUIRY_REQ
+	@brief : 상품 번호 별 사용 가능한 할인 쿠폰 목록 요청
+*/
+void CX2CashShop::Handler_EGS_DISCOUNT_COUPON_LIST_INQUIRY_REQ( const unsigned long ulProductNo_ )
+{
+	if( NULL != m_pBuyItemPopUp )
+	{
+		if( 0 == ulProductNo_ )
+		{
+			m_pBuyItemPopUp->UpdateCouponList();
+			return;
+		}
+		else
+		{
+			// 사용 가능한 할인 쿠폰 목록을 이미 가지고 있다면 REQ를 다시 보내지 않아도 됨.
+			// (구매 창 닫으면 초기화 되기 때문에 갱신 염려는 없음)
+			if( true == m_pBuyItemPopUp->IsHavePrdouctCouponInfo(ulProductNo_) )
+			{
+				m_pBuyItemPopUp->UpdateCouponList();
+				return;
+			}
+		}
+	}
+
+	// 패킷이 Vector로 정의되어 있지만 한번에 1개씩만 보내고 있음.
+	// 넥슨 양식에 맞추기 위해 Vector로 처리 했다고 함.
+ 	KEGS_DISCOUNT_COUPON_LIST_INQUIRY_REQ kPacket;
+
+	// 현재는 m_usOrderQuantity 값은 무조건 1로 설정. 
+	// 불필요한 값 같은데 일단 캐시 관련 코드는 넥슨에서 요청한 양식 그대로 처리하고 있어서
+	// 1로 주고 있음.
+	KDiscountCouponInquriyInfo kDiscountCouponInquriyInfo;
+	kDiscountCouponInquriyInfo.m_ulProductNo = ulProductNo_;
+	kDiscountCouponInquriyInfo.m_usOrderQuantity = 1;
+
+	kPacket.m_vecDiscountCouponInquiryInfo.push_back( kDiscountCouponInquriyInfo );
+
+	m_ulTempSelectedProductNo = ulProductNo_;
+	g_pData->GetServerProtocol()->SendPacket( EGS_DISCOUNT_COUPON_LIST_INQUIRY_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_DISCOUNT_COUPON_LIST_INQUIRY_ACK );
+}
+/** @function : Handler_EGS_DISCOUNT_COUPON_LIST_INQUIRY_ACK
+	@brief : 상품 번호 별 사용 가능한 할인 쿠폰 목록 설정
+*/
+bool CX2CashShop::Handler_EGS_DISCOUNT_COUPON_LIST_INQUIRY_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_DISCOUNT_COUPON_LIST_INQUIRY_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+	
+	if ( g_pMain->DeleteServerPacket( EGS_DISCOUNT_COUPON_LIST_INQUIRY_ACK ) == true )
+	{
+		if ( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{											 
+			m_pBuyItemPopUp->InitProductAndCouponNo( m_ulTempSelectedProductNo );
+
+			if( NULL != m_pBuyItemPopUp )
+			{
+				BOOST_FOREACH( KDiscountCoupon kDiscountCoupon, kEvent.m_vecDiscountCoupon )
+				{
+					// 쿠폰 번호 별 상품 이름 등록
+					m_pBuyItemPopUp->InsertCouponNoAndName( m_ulTempSelectedProductNo, kDiscountCoupon.m_iCouponCardNo, kDiscountCoupon.m_wstrContractDetailName );
+					
+					// 쿠폰 번호 별 할인 정보 등록
+					{
+
+						wstring::size_type sizeType = 0;
+						sizeType = kDiscountCoupon.m_wstrDiscountValue.find( L"%" );
+						if( 0 != sizeType && sizeType < kDiscountCoupon.m_wstrDiscountValue.size() )
+						{
+							kDiscountCoupon.m_wstrDiscountValue.erase( sizeType );
+
+							m_pBuyItemPopUp->InsertCouponNoAndDiscountInfo(kDiscountCoupon.m_iCouponCardNo, 
+								CouponDiscountInfo( true, _wtoi( kDiscountCoupon.m_wstrDiscountValue.c_str() )));
+						}
+						else
+						{
+							sizeType = kDiscountCoupon.m_wstrDiscountValue.find( GET_STRING(STR_ID_4634) );
+							if( 0 != sizeType && sizeType < kDiscountCoupon.m_wstrDiscountValue.size() )
+							{
+								kDiscountCoupon.m_wstrDiscountValue.erase( sizeType );
+
+								m_pBuyItemPopUp->InsertCouponNoAndDiscountInfo(kDiscountCoupon.m_iCouponCardNo, 
+									CouponDiscountInfo( false, _wtoi( kDiscountCoupon.m_wstrDiscountValue.c_str() )));
+							}
+						}
+					}
+				}
+				m_pBuyItemPopUp->UpdateCouponList();
+			}
+		}
+		m_ulTempSelectedProductNo = 0;
+	}
+
+	return true;
+
+}
+#endif // COUPON_SYSTEM
+
+#ifdef ADJUST_UNIT_CLASS_CHANGE_ITEM_REPETITION
+// 해당 유닛의 전직 아이템을 찜하기 목록에서 삭제함.
+void CX2CashShop::RemoveUnitClassChangeItemInChoice( const CX2Unit::UNIT_CLASS eUnitClass_ )
+{
+	const int ItemID = GetUnitClassChangeItemID( eUnitClass_ );
+
+	if( 0 < ItemID )
+	{
+		if ( std::find( m_vecChoicedItemID.begin(), m_vecChoicedItemID.end(), ItemID ) != m_vecChoicedItemID.end() )
+		{
+			RemoveChoicedItem( ItemID );
+		}
+	}
+}
+// 전직에 해당하는 전직 아이템 ID를 반환함.
+const int CX2CashShop::GetUnitClassChangeItemID( const CX2Unit::UNIT_CLASS eUnitClass_ )
+{
+	int ItemId = -1;
+
+	switch( eUnitClass_ )
+	{
+	case CX2Unit::UC_ELSWORD_KNIGHT:
+		{
+			ItemId = UNIT_CLASS_CHANGE_SWORD_KNIGHT_ITEM_ID;
+		}
+		break;
+
+	case CX2Unit::UC_ELSWORD_MAGIC_KNIGHT:
+		{
+			ItemId = UNIT_CLASS_CHANGE_MAGIC_KNIGHT_ITEM_ID;
+		}
+		break;
+	
+#ifdef ELSWORD_SHEATH_KNIGHT
+	case CX2Unit::UC_ELSWORD_SHEATH_KNIGHT:
+		{
+			ItemId = UNIT_CLASS_CHANGE_SHEATH_KNIGHT_ITEM_ID;
+		}
+		break;
+#endif //ELSWORD_SHEATH_KNIGHT
+
+	case CX2Unit::UC_ARME_HIGH_MAGICIAN:
+		{
+			ItemId = UNIT_CLASS_CHANGE_HIGH_MAGICIAN_ITEM_ID;
+		}
+		break;
+
+	case CX2Unit::UC_ARME_DARK_MAGICIAN:
+		{
+			ItemId = UNIT_CLASS_CHANGE_DARK_MAGICIAN_ITEM_ID;
+		}
+		break;
+
+#ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
+	case CX2Unit::UC_ARME_BATTLE_MAGICIAN:
+		{
+			ItemId = UNIT_CLASS_CHANGE_BATTLE_MAGICIAN_ITEM_ID;
+		}
+		break;
+#endif //SERV_ADD_ARME_BATTLE_MAGICIAN
+
+	case CX2Unit::UC_LIRE_COMBAT_RANGER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_COMBAT_RANGER_ITEM_ID;
+		}
+		break;
+		
+	case CX2Unit::UC_LIRE_SNIPING_RANGER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_SNIPING_RANGER_ITEM_ID;
+		}
+		break;
+
+	case CX2Unit::UC_LIRE_TRAPPING_RANGER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_TRAPPING_RANGER_ITEM_ID;
+		}
+		break;
+
+	case CX2Unit::UC_RAVEN_SOUL_TAKER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_SOUL_TAKER_ITEM_ID;
+		}
+		break;
+		
+	case CX2Unit::UC_RAVEN_OVER_TAKER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_OVER_TAKER_ITEM_ID;
+		}
+		break;
+		
+#ifdef RAVEN_WEAPON_TAKER
+	case CX2Unit::UC_RAVEN_WEAPON_TAKER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_WEAPON_TAKER_ITEM_ID;
+		}
+		break;
+#endif //RAVEN_WEAPON_TAKER
+
+	case CX2Unit::UC_EVE_EXOTIC_GEAR:
+		{
+			ItemId = UNIT_CLASS_CHANGE_EXOTIC_GEAR_ITEM_ID;
+		}
+		break;
+	
+	case CX2Unit::UC_EVE_ARCHITECTURE:
+		{
+			ItemId = UNIT_CLASS_CHANGE_ARCHITECTURE_ITEM_ID;
+		}
+		break;
+	
+#ifdef EVE_ELECTRA
+	case CX2Unit::UC_EVE_ELECTRA:
+		{
+			ItemId = UNIT_CLASS_CHANGE_ELECTRA_ITEM_ID;
+		}
+		break;
+#endif //EVE_ELECTRA
+
+	case CX2Unit::UC_CHUNG_FURY_GUARDIAN:
+		{
+			ItemId = UNIT_CLASS_CHANGE_FURY_GUARDIAN_ID;
+		}
+		break;
+	
+	case CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN:
+		{
+			ItemId = UNIT_CLASS_CHANGE_SHOOTING_GUARDIAN_ID;
+		}
+		break;
+
+#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
+	case CX2Unit::UC_CHUNG_SHELLING_GUARDIAN:
+		{
+			ItemId = UNIT_CLASS_CHANGE_SHELLING_GUARDIAN_ID;
+		}
+		break;
+#endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
+
+	case CX2Unit::UC_ELESIS_SABER_KNIGHT:
+		{
+			ItemId = UNIT_CLASS_CHANGE_SABER_KNIGHT_ID;
+		}
+		break;
+
+	case CX2Unit::UC_ELESIS_PYRO_KNIGHT:
+		{
+			ItemId = UNIT_CLASS_CHANGE_PYRO_KNIGHT_ID;
+		}
+		break;
+
+#ifdef ARA_CHANGE_CLASS_FIRST
+	case CX2Unit::UC_ARA_LITTLE_HSIEN:
+		{
+			ItemId = UNIT_CLASS_CHANGE_LITTLE_HSIEN_ID;
+		}
+		break;
+#endif //ARA_CHANGE_CLASS_FIRST
+
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+	case CX2Unit::UC_ARA_LITTLE_DEVIL:
+		{
+			ItemId = UNIT_CLASS_CHANGE_LITTLE_DEVIL_ID;
+		}
+		break;
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+	case CX2Unit::UC_ELSWORD_LORD_KNIGHT:
+		{
+			ItemId = UNIT_CLASS_CHANGE_LORD_KNIGHT_ITEM_ID;
+		}
+		break;
+
+	case CX2Unit::UC_ELSWORD_RUNE_SLAYER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_RUNE_SLAYER_ITEM_ID;
+		}
+		break;
+			
+#ifdef SERV_ELSWORD_INFINITY_SWORD
+	case CX2Unit::UC_ELSWORD_INFINITY_SWORD:
+		{
+			ItemId = UNIT_CLASS_CHANGE_INFINITY_SWORD_ITEM_ID;
+		}
+		break;
+#endif //SERV_ELSWORD_INFINITY_SWORD
+
+	case CX2Unit::UC_ARME_VOID_PRINCESS:
+		{
+			ItemId = UNIT_CLASS_CHANGE_VOID_PRINCESS_ITEM_ID;
+		}
+		break;
+
+	case CX2Unit::UC_ARME_ELEMENTAL_MASTER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_ELEMENTAL_MASTER_ITEM_ID;
+		}
+		break;
+
+#ifdef SERV_ARME_DIMENSION_WITCH
+	case CX2Unit::UC_ARME_DIMENSION_WITCH:
+		{
+			ItemId = UNIT_CLASS_CHANGE_DIMENSION_WITCH_ITEM_ID;
+		}
+		break;
+#endif //SERV_ARME_DIMENSION_WITCH
+
+	case CX2Unit::UC_LIRE_WIND_SNEAKER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_WIND_SNEAKER_ITEM_ID;
+		}
+		break;
+			
+	case CX2Unit::UC_LIRE_GRAND_ARCHER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_GRAND_ARCHER_ITEM_ID;
+		}
+		break;
+	
+#ifdef SERV_RENA_NIGHT_WATCHER
+	case CX2Unit::UC_LIRE_NIGHT_WATCHER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_NIGHT_WATCHER_ITEM_ID;
+		}
+		break;
+#endif //SERV_RENA_NIGHT_WATCHER
+			
+	case CX2Unit::UC_RAVEN_BLADE_MASTER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_BLADE_MASTER_ITEM_ID;
+		}
+		break;
+	
+	case CX2Unit::UC_RAVEN_RECKLESS_FIST:
+		{
+			ItemId = UNIT_CLASS_CHANGE_RECKLESS_FIST_ITEM_ID;
+		}
+		break;
+	
+#ifdef SERV_RAVEN_VETERAN_COMMANDER
+	case CX2Unit::UC_RAVEN_VETERAN_COMMANDER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_VETERAN_COMMANDER_ITEM_ID;
+		}
+		break;
+#endif //SERV_RAVEN_VETERAN_COMMANDER
+
+	case CX2Unit::UC_EVE_CODE_NEMESIS:
+		{
+			ItemId = UNIT_CLASS_CHANGE_NEMESIS_ITEM_ID;
+		}
+		break;
+	
+	case CX2Unit::UC_EVE_CODE_EMPRESS:
+		{
+			ItemId = UNIT_CLASS_CHANGE_EMPRESS_ITEM_ID;
+		}
+		break;
+
+#ifdef SERV_EVE_BATTLE_SERAPH
+	case CX2Unit::UC_EVE_BATTLE_SERAPH:
+		{
+			ItemId = UNIT_CLASS_CHANGE_BATTLE_SERAPH_ITEM_ID;
+		}
+		break;
+#endif //SERV_EVE_BATTLE_SERAPH
+
+#ifdef CHUNG_SECOND_CLASS_CHANGE
+	case CX2Unit::UC_CHUNG_IRON_PALADIN:
+		{
+			ItemId = UNIT_CLASS_CHANGE_IRON_PALADIN_ID;
+		}
+		break;
+	
+	case CX2Unit::UC_CHUNG_DEADLY_CHASER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_DEADLY_CHASER_ID;
+		}
+		break;
+#endif //CHUNG_SECOND_CLASS_CHANGE
+
+#ifdef SERV_CHUNG_TACTICAL_TROOPER
+	case CX2Unit::UC_CHUNG_TACTICAL_TROOPER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_TACTICAL_TROOPER_ID;
+		}
+		break;
+#endif //SERV_CHUNG_TACTICAL_TROOPER
+
+#ifdef ARA_CHANGE_CLASS_FIRST
+	case CX2Unit::UC_ARA_SAKRA_DEVANAM:
+		{
+			ItemId = UNIT_CLASS_CHANGE_SAKRA_DEVANAM_ID;
+		}
+		break;
+#endif //ARA_CHANGE_CLASS_FIRST
+
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+	case CX2Unit::UC_ARA_YAMA_RAJA:
+		{
+			ItemId = UNIT_CLASS_CHANGE_YAMA_RAJA_ID;
+		}
+		break;
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+	case CX2Unit::UC_ELESIS_GRAND_MASTER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_GRAND_MASTER_ID;
+		}
+		break;
+			
+	case CX2Unit::UC_ELESIS_BLAZING_HEART:
+		{
+			ItemId = UNIT_CLASS_CHANGE_BLAZING_HEART_ID;
+		}
+		break;
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+		{
+			ItemId = UNIT_CLASS_CHANGE_LUNATIC_PSYKER_ID;
+		}
+		break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
+	default:
+		break;
+	}
+
+	return ItemId;
+}
+#endif //ADJUST_UNIT_CLASS_CHANGE_ITEM_REPETITION
+
+#ifdef REFORM_SKILL_NOTE_UI
+/** @function : OpenBuyPopupByReserve
+	@brief : 아이템 구매 팝업 열기.
+			 캐시샵 입장과 동시에 구매 팝업 열어주기 위해 사용
+*/
+void CX2CashShop::OpenBuyPopupByReserve()
+{
+	// # 현재 페이지를 타겟 아이템이 있는 페이지로 변경하기.
+	if( NULL != m_pSubSM )
+	{
+		const int iBuyItemID = m_iItemIDShowBuyUIAfterEnter;
+		vector<int> vecItemList = GetItemByCategory( m_CashShopCategory, m_CashShopSubCategory );
+		{
+			int iIndex = 0;
+			bool bIsChangedPage = false;
+			BOOST_FOREACH( const int iItemID, vecItemList )
+			{
+				if( iBuyItemID == iItemID )
+				{
+					const int iBuyItemPage = (iIndex / 10) + 1;
+
+					// 직접적인 페이지 변경 구문
+					m_pSubSM->ResetNowPage( iBuyItemPage );
+					bIsChangedPage = true;
+					break;
+				}
+				++iIndex;
+			}
+
+			// # 페이지를 찾지 못했다면 진행 중지
+			if( false == bIsChangedPage )
+				return;
+		}
+
+		// # 구매 팝업 생성
+		vector< int > vecItemID;
+		vecItemID.push_back( iBuyItemID );
+		if( NULL != m_pBuyItemPopUp )
+		{
+			m_pBuyItemPopUp->Reset( vecItemID );
+			m_pBuyItemPopUp->SetOpen( true );
+			m_pBuyItemPopUp->SetChoicedItemBuy( false );
+		}
+
+		ResetItemSlot( CX2Slot::ST_CASH_SHOP_SUB, m_pSubSM->GetNowShowItemIDList() );
+		ResetSubPageNumUI();
+	}
+
+	SetItemIDShowBuyUIAfterEnter(0);
+}
+#endif // REFORM_SKILL_NOTE_UI
+
+#ifdef SERV_NAVER_CHANNELING
+void CX2CashShop::SetOpenNaverCashChargePage( OUT string& strURL_, OUT RECT& rcWebPage_ )
+{
+	strURL_ = "https://cash.nexon.game.naver.com/Main.aspx?chid=ELSW&ukey=";
+
+	
+	char strUkey[MAX_PATH];
+	ZeroMemory( strUkey, MAX_PATH );
+
+	UINT uiNexonSN = g_pData->GetMyUser()->GetNexonSN();
+	_itoa_s( uiNexonSN, strUkey, 10 );
+
+	strURL_ += strUkey;
+
+	string strCtype = "&CTYPE=29&HKEY=";
+	strURL_ += strCtype;
+
+	// 해시키 ///////////////////
+	std::string strSource;
+	std::string strTemp;	
+	strSource = "ELSW";
+
+	// oasis907 : 김상윤 [2011.1.10] // 서버 시간 가지고 오게 수정
+	CTime ctCurrentTime( g_pData->GetServerCurrentTime() );
+
+	ConvertWCHARToChar( strTemp, static_cast< const wchar_t * >( ctCurrentTime.Format( L"%Y%m%d%I" ) ) );
+	strSource += strTemp;
+
+	string strMD5 = KncUtil::GetMD5( strSource );
+
+
+	strURL_ += strMD5;
+
+	if ( NULL != g_pInstanceData )
+	{
+		strURL_ += "&token=";
+		strURL_ += g_pInstanceData->GetNaverAccessToken();
+	}
+	////////////////////////////////
+
+	rcWebPage_.left = 250;
+	rcWebPage_.top	= 250;
+	rcWebPage_.right	= 600;
+	rcWebPage_.bottom	= 500;
+}
+#endif // SERV_NAVER_CHANNELING
 
 #ifdef CASH_INVEN_PICKUP_ALL
 bool CX2CashShop::PickUpAll()
@@ -13070,8 +14027,7 @@ bool CX2CashShop::PickUpAll()
 						}
 					}				
 				}
-			}
-			
+			}			
 			
 			if ( vecKBillPackageInfo.empty() == false )
 			{
@@ -13158,6 +14114,269 @@ bool CX2CashShop::PickUpAll()
 }
 #endif CASH_INVEN_PICKUP_ALL
 
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+void CX2CashShop::ChinaCash_Tap_Change_Direct_Charge(bool _bShow)
+{
+	bool _bshowTemp = !_bShow; 
+
+	CKTDGUIStatic* pStaticChangeFont_Giantcash = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"g_StateicFONT_GIANTPOINT" );
+	CKTDGUIStatic* pStaticChangeFont_Goldcash = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"g_StateicFONT_GOLDCOIN" );
+	CKTDGUIStatic* pStaticChangeFONT_AFTER_GIANT = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"g_StateicFONT_AFTER_GIANT" );
+	CKTDGUIStatic* pStaticChangeFONT_AFTER_ELS_CASH = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"g_StateicFONT_AFTER_ELS_CASH" );
+
+	pStaticChangeFont_Giantcash->SetShowEnable(false,false);
+	pStaticChangeFont_Goldcash->SetShowEnable(false,false);
+
+	pStaticChangeFONT_AFTER_GIANT->SetShowEnable(false,false);
+	pStaticChangeFONT_AFTER_ELS_CASH->SetShowEnable(false,false);
+
+	CKTDGUIStatic* pStatic_Graphic = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Elsword_Tap" );
+	pStatic_Graphic->SetShowEnable(_bshowTemp,_bshowTemp);
+	CKTDGUIStatic* pStatic_Giant_Tap = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Giant_Tap" );
+	pStatic_Giant_Tap->SetShowEnable(_bshowTemp,_bshowTemp);
+	/*
+	CKTDGUIComboBox* pCombo_cash= (CKTDGUIComboBox*) m_pDLGCashchange->GetControl( L"CashChangeList" );
+	pCombo_cash->SetShowEnable(_bshowTemp, _bshowTemp);
+
+	CKTDGUIButton* pCash_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Exchange_cash_ok" );
+	pCash_OK->SetShowEnable(_bshowTemp, _bshowTemp);
+
+	CKTDGUIButton* pCash_CANCEL= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Exchange_cash_cancel" );
+	pCash_CANCEL->SetShowEnable(_bshowTemp, _bshowTemp);
+
+	CKTDGUIButton* pCash_Giant_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Giant_cash_ok" );
+	pCash_Giant_OK->SetShowEnable(_bshowTemp, _bshowTemp);
+
+	CKTDGUIButton* pCash_Giant_CANCEL= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Giant_cash_cancel" );
+	pCash_Giant_CANCEL->SetShowEnable(true, true);
+
+	CKTDGUIStatic* pStaticChangeBingon = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"Exchange_cash_Bingon" );
+
+	pStaticChangeBingon->SetShow(false);
+	*/
+
+	CKTDGUIStatic* pStatic_Direct_Charge_Tap = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Direct_Charge_Tap" );
+	pStatic_Direct_Charge_Tap->SetShowEnable(_bShow,_bShow);
+
+	CKTDGUIButton* pCash_Direct_Charge_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Direct_Charge_ok" );
+	pCash_Direct_Charge_OK->SetShowEnable(_bshowTemp, _bshowTemp);
+}
+
+
+void CX2CashShop::SetShowChinaCash_Tap_Elsword(bool _bShow)
+{
+	bool _bshowTemp; 
+
+	CKTDGUIStatic* pStaticChangeFont_Giantcash = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"g_StateicFONT_GIANTPOINT" );
+	CKTDGUIStatic* pStaticChangeFont_Goldcash = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"g_StateicFONT_GOLDCOIN" );
+	CKTDGUIStatic* pStaticChangeFONT_AFTER_GIANT = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"g_StateicFONT_AFTER_GIANT" );
+	CKTDGUIStatic* pStaticChangeFONT_AFTER_ELS_CASH = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"g_StateicFONT_AFTER_ELS_CASH" );
+
+	pStaticChangeFont_Giantcash->SetShowEnable(false,false);
+	pStaticChangeFont_Goldcash->SetShowEnable(false,false);
+
+	if(m_bCashlistCheck == true)
+	{
+		pStaticChangeFONT_AFTER_GIANT->SetShowEnable(true,true);
+		pStaticChangeFONT_AFTER_ELS_CASH->SetShowEnable(true,true);
+	}
+	else if(m_bCashlistCheck == false)
+	{
+		pStaticChangeFont_Giantcash->SetShowEnable(true,true);
+		pStaticChangeFont_Goldcash->SetShowEnable(true,true);
+		pStaticChangeFONT_AFTER_GIANT->SetShowEnable(false,false);
+		pStaticChangeFONT_AFTER_ELS_CASH->SetShowEnable(false,false);
+	}
+
+
+	CKTDGUIStatic* pStatic_Graphic = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Elsword_Tap" );
+	pStatic_Graphic->SetShowEnable(_bShow,_bShow);
+	
+	CKTDGUIComboBox* pCombo_cash= (CKTDGUIComboBox*) m_pDLGCashchange->GetControl( L"CashChangeList" );
+	pCombo_cash->SetShowEnable(_bShow, _bShow);
+
+	CKTDGUIButton* pCash_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Exchange_cash_ok" );
+	pCash_OK->SetShowEnable(_bShow, _bShow);
+
+	CKTDGUIButton* pCash_CANCEL= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Exchange_cash_cancel" );
+	pCash_CANCEL->SetShowEnable(_bShow, _bShow);
+	
+	CKTDGUIStatic* pStaticChangeBingon = (CKTDGUIStatic*)m_pDLGCashchange->GetControl( L"Exchange_cash_Bingon" );
+	
+
+	if(m_bLowCashCheck == true && _bShow == true)
+	{
+		pStaticChangeBingon->SetShow(true);
+	}
+	else if(m_bLowCashCheck == false && _bShow == true)
+	{
+		pStaticChangeBingon->SetShow(false);
+	}
+	else
+	{
+		pStaticChangeBingon->SetShow(false);
+	}
+}
+
+
+void CX2CashShop::SetShowChinaCash_Tap_Giant(bool _bShow)
+{
+	CKTDGUIStatic* pStatic_Giant_Tap = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Giant_Tap" );
+	pStatic_Giant_Tap->SetShowEnable(_bShow,_bShow);
+	
+	CKTDGUIButton* pCash_Giant_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Giant_cash_ok" );
+	pCash_Giant_OK->SetShowEnable(_bShow, _bShow);
+
+	CKTDGUIButton* pCash_Giant_CANCEL= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Giant_cash_cancel" );
+	pCash_Giant_CANCEL->SetShowEnable(_bShow, _bShow);
+}
+
+void CX2CashShop::SetShowChinaCash_Tap_DirectCharge(bool _bShow)
+{
+	CKTDGUIStatic* pStatic_Direct_Charge_Tap = (CKTDGUIStatic*) m_pDLGCashchange->GetControl( L"BG_Cash_Direct_Charge_Tap" );
+	pStatic_Direct_Charge_Tap->SetShowEnable(_bShow,_bShow);
+
+	CKTDGUIButton* pCash_Direct_Charge_OK= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Direct_Charge_ok" );
+	pCash_Direct_Charge_OK->SetShowEnable(_bShow, _bShow);
+
+	// 취소 버튼은 기존 취소 버튼과 동일한 것을 사용합니다.
+	CKTDGUIButton* pCash_Giant_CANCEL= (CKTDGUIButton*) m_pDLGCashchange->GetControl( L"Giant_cash_cancel" );
+	pCash_Giant_CANCEL->SetShowEnable(_bShow, _bShow);
+}
+
+bool CX2CashShop::Handler_EGS_CASH_DIRECT_CHARGE_CN_REQ()
+{
+	KEGS_CASH_DIRECT_CHARGE_CN_REQ kPacket;
+
+	kPacket.m_iUserUID = g_pData->GetMyUser()->GetUID();;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_CASH_DIRECT_CHARGE_CN_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_CASH_DIRECT_CHARGE_CN_ACK );
+
+	return true;
+}
+
+bool CX2CashShop::Handler_EGS_CASH_DIRECT_CHARGE_CN_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_CASH_DIRECT_CHARGE_CN_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+
+	if( g_pMain->DeleteServerPacket( EGS_CASH_DIRECT_CHARGE_CN_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			// 받은 정보로 인터넷 뱅킹 조수 연다
+			// 테스트 기간동안은 운영자 이상만
+			if(g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR)
+			{
+				ExecuteEpaySystem(kEvent.m_wstrToken);
+			}
+		}
+	}
+
+	return true;
+}
+
+void CX2CashShop::ExecuteEpaySystem( std::wstring wstrToken/* = L""*/ )
+{
+	STARTUPINFO stif;
+	PROCESS_INFORMATION pi;
+	memset(&stif,0,sizeof(STARTUPINFO));
+	stif.cb=sizeof(STARTUPINFO);
+	stif.dwFlags= STARTF_USESHOWWINDOW;
+	stif.wShowWindow=SW_SHOW;
+
+	//std::string command = localpath + patchername + " " + commandline;
+	WCHAR	wszFullFilePath[MAX_PATH] = L"";
+	WCHAR	wszFilePath[MAX_PATH] = L"";
+	WCHAR	wszDriveName[10] = L"";
+	WCHAR	wszMsg[MAX_PATH] = L"";
+	WCHAR	wszExeFilePath[MAX_PATH] = L"";
+	WCHAR	wszCommandLine[MAX_PATH] = L"";
+	WCHAR	wszZone[MAX_PATH] = L"";
+	WCHAR	wszUid[MAX_PATH] = L"";
+
+
+	int iTempZone = (int)(g_pInstanceData->GetGiantGame() * 65536 +  g_pInstanceData->GetGiantZone());
+	_itow(iTempZone,wszZone, 10 );
+	//tempCommand =  (int)(g_pInstanceData->GetGiantZone() + g_pInstanceData->GetGiantGame());
+
+	int iTempUid = (int)(g_pData->GetMyUser()->GetSelectUnit()->GetUID() );
+	_itow(iTempUid,wszUid, 10 );
+
+	/*boost::str( boost::wformat( L"%d" ) % GetUID() );*/
+
+	GetModuleFileNameW( NULL, wszFullFilePath, MAX_PATH );
+	_wsplitpath(wszFullFilePath, wszDriveName, wszFilePath, NULL, NULL);
+	// Data 폴더 패스 
+	std::wstring wstrDataFolderFullPath(wszFullFilePath);
+
+	wcscpy( wszFullFilePath, L"" );
+
+	wcscat( wszFullFilePath, wszDriveName );
+	wcscat( wszFullFilePath, wszFilePath );
+	wcscat( wszFullFilePath, L"\\epay\\" );
+
+	wcscat( wszExeFilePath, wszFullFilePath );
+	wcscat( wszExeFilePath, L"\\epay.exe" );
+
+	wcscat(wszCommandLine, L" -id ");
+	wcscat(wszCommandLine, g_pInstanceData->GetUserID().c_str());
+	wcscat(wszCommandLine, L" -zone ");
+	//wcscat(wszCommandLine, L" ");
+
+	wcscat(wszCommandLine, wszZone);
+	wcscat(wszCommandLine, L" -cname ");
+	//wcscat(wszCommandLine, L" ");
+	wcscat(wszCommandLine, g_pData->GetMyUser()->GetSelectUnit()->GetNickName());
+	wcscat(wszCommandLine, L" -cid ");
+	//wcscat(wszCommandLine, L" ");
+	wcscat(wszCommandLine, wszUid);
+
+	if( L"" != wstrToken )
+	{
+		wcscat(wszCommandLine, L" -token ");
+		wcscat(wszCommandLine, wstrToken.c_str());
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH_TEST_MODE
+		if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR )
+		{
+			// token 값 확인을 위해서 메지시 박스 띄운다.
+			MessageBoxW(NULL, wszCommandLine, L"Test", MB_OK);
+		}
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH_TEST_MODE
+	}
+
+
+	//wszCommandLine = boost::str(boost::wformat(L"-id %s, -zone %d, -cname %s, - cid %d") %L"a" %1 %L"f" %2 ).c_str();
+	if(false == CreateProcessW(wszExeFilePath,wszCommandLine,NULL,NULL,0,0,NULL,wszFullFilePath,&stif,&pi))
+	{
+		ShellExecute(NULL, L"open", GET_STRING( STR_ID_14497 ), L"", L"", SW_SHOW ); 
+		m_bRunEpay = true; //2011.12.21 epay 홈페이지가 떠도 충전 닫기 버튼을 누르면 갱신되게 수정
+	}
+	else
+	{
+		m_bRunEpay = true;
+	}
+}
+
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH 
+
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+void CX2CashShop::ShowEventCategoryInCashShop()
+{
+	if ( m_pDLGFront->GetRadioButton_LUA( "tab_Event_2" ) != NULL )
+		m_pDLGFront->GetRadioButton_LUA( "tab_Event_2" )->SetShowEnable( true, true );
+}
+void CX2CashShop::OffEventCategoryInCashShop()
+{
+	if ( m_pDLGFront->GetRadioButton_LUA( "tab_Event_2" ) != NULL )
+		m_pDLGFront->GetRadioButton_LUA( "tab_Event_2" )->SetShowEnable( false, false );
+}
+#endif ADD_CASH_SHOP_CATEGORY_EVENT_2
 
 //=======================================================================================//
 //--------------------------------- ES_GLOBAL_CODE_AREA ---------------------------------//

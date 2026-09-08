@@ -11,7 +11,7 @@ m_iCurrentPage(0)
     
 }
 
-CX2Book::CX2Book( const WCHAR* bookTableName )
+CX2Book::CX2Book( const char* bookTableName )
 {
 	CX2Book::CX2Book();
 	SetBookTable( bookTableName );
@@ -99,26 +99,18 @@ void CX2Book::SetShow(bool bOpen )
 
 }
 
-bool CX2Book::SetBookTable( const WCHAR* bookTableName )
+bool CX2Book::SetBookTable( const char* bookTableName )
 {
 	// Show 여부랑은 상관없이, 책을 읽어오고 첫 페이지를 열어두는 역할.
 
 	KLuaManager kLuamanager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
 
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( "Book_Table.lua" );
-	if( Info == NULL )
-	{
-		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_2 ), g_pMain->GetNowState() );
-		return false;
-	}
-
-	if( kLuamanager.DoMemory( Info->pRealData, Info->size ) == false )
-	{
+    if ( g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"Book_Table.lua" ) == false )
+    {
 		// 에러메시지를 위의 거랑 미묘하게 바꿔두면 구분되겠지? (.. )
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_3 ), g_pMain->GetNowState() );
 		return false;
-	}
+    }
 
 	wstring wstrDefaultBookCoverFileName;
 	if ( kLuamanager.BeginTable( bookTableName ) == true )

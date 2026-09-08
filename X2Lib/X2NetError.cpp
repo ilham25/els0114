@@ -43,10 +43,9 @@ wchar_t* NetError::GetErrStrF( NetErrorID errorID )
 	default:
 		return szErrorStrDE[ errorID ];
 	}
-
 #else UNITED_CLIENT_EU
-	if( errorID >= ERR_SENTINEL || errorID < 0 ) return szErrorStrF[ ERR_SENTINEL ];
-	return szErrorStrF[ errorID ];
+    if( errorID >= ERR_SENTINEL || errorID < 0 ) return szErrorStrF[ ERR_SENTINEL ];
+    return szErrorStrF[ errorID ];
 #endif UNITED_CLIENT_EU
 	//}}
 }

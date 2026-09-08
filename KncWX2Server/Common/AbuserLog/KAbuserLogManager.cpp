@@ -19,7 +19,7 @@ KAbuserLogManager::KAbuserLogManager(void)
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 #else
 	// 릴리즈틱 초기화
-	for( int iIdx = 0; iIdx < ABUSER_TYPE::AT_MAX; ++iIdx )
+	for( int iIdx = 0; iIdx < AT_MAX; ++iIdx )
 	{
 		m_arrReleaseTick[iIdx] = 0;
 	}
@@ -199,7 +199,7 @@ void KAbuserLogManager::SendAbuserListReq()
 	KDBE_ABUSER_LIST_REQ kPacketToDB;
 
 	// 릴리즈틱 얻기
-	for( int iIdx = 0; iIdx < ABUSER_TYPE::AT_MAX; ++iIdx )
+	for( int iIdx = 0; iIdx < AT_MAX; ++iIdx )
 	{
 		kPacketToDB.m_mapReleaseTick.insert( std::make_pair( iIdx, m_arrReleaseTick[iIdx] ) );
 	}
@@ -289,7 +289,7 @@ void KAbuserLogManager::UpdateAbuserList( const std::map< int, KAbuserList >& ma
 {
 	std::map< int, KAbuserList >::const_iterator mit;
 
-	for( int iIdx = 0; iIdx < ABUSER_TYPE::AT_MAX; ++iIdx )
+	for( int iIdx = 0; iIdx < AT_MAX; ++iIdx )
 	{
 		mit = mapAbuserList.find( iIdx );
 		if( mit == mapAbuserList.end() )
@@ -378,11 +378,11 @@ int KAbuserLogManager::ChangeEnchantAbuserResult( int iEnchantResult )
 {
 	switch( iEnchantResult )
 	{
-	case NetError::ERR_ENCHANT_RESULT_00: return ENCHANT_RESULT_STATE::ERS_SUCCESS;
-	case NetError::ERR_ENCHANT_RESULT_01: return ENCHANT_RESULT_STATE::ERS_NO_CHANGE;
-	case NetError::ERR_ENCHANT_RESULT_02: return ENCHANT_RESULT_STATE::ERS_LEVEL_DOWN;
-	case NetError::ERR_ENCHANT_RESULT_03: return ENCHANT_RESULT_STATE::ERS_RESET;
-	case NetError::ERR_ENCHANT_RESULT_04: return ENCHANT_RESULT_STATE::ERS_BROKEN;
+	case NetError::ERR_ENCHANT_RESULT_00: return ERS_SUCCESS;
+	case NetError::ERR_ENCHANT_RESULT_01: return ERS_NO_CHANGE;
+	case NetError::ERR_ENCHANT_RESULT_02: return ERS_LEVEL_DOWN;
+	case NetError::ERR_ENCHANT_RESULT_03: return ERS_RESET;
+	case NetError::ERR_ENCHANT_RESULT_04: return ERS_BROKEN;
 	default:
 		{
 			START_LOG( cerr, L"정의 되지 않은 강화 결과입니다." )
@@ -391,7 +391,7 @@ int KAbuserLogManager::ChangeEnchantAbuserResult( int iEnchantResult )
 		}
 		break;
 	}
-	return ENCHANT_RESULT_STATE::ERS_NONE;
+	return ERS_NONE;
 }
 
 //{{ 2008. 11. 12  최육사	세부로그

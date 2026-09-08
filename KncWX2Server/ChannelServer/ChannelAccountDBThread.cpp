@@ -122,21 +122,26 @@ IMPL_ON_FUNC( DBE_CH_USER_GENERAL_LOGIN_REQ )
 	if(wstrAccountID == L"")
 		wstrAccountID = kPacket_.m_wstrServiceAccountID;
 	kPacket.m_wstrUserID = wstrAccountID;
-
 #else // SERV_COUNTRY_TH
 	std::wstring wstrAccountID = kPacket_.m_wstrServiceAccountID;
 	kPacket.m_wstrUserID = wstrAccountID;
 #endif // SERV_COUNTRY_TH
 
-
 #ifdef SERV_USE_KOG_ACCOUNTDB_PASSWORD
 	DO_QUERY( L"exec dbo.P_MUser_CHK_TW", L"N\'%s\', N\'%s\'", % wstrAccountID.c_str() % kPacket_.m_wstrPassword.c_str() );
 #else //SERV_USE_KOG_ACCOUNTDB_PASSWORD
+
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUser_SEL_Auth_Global", L"N\'%s\', %d", % wstrAccountID.c_str() % kPacket_.m_iChannelingCode );
+#else //SERV_ALL_RENEWAL_SP
+
 #ifdef SERV_STEAM
 	DO_QUERY( L"exec dbo.mup_auth_global_user", L"N\'%s\', %d", % wstrAccountID.c_str() % kPacket_.m_iChannelingCode );
 #else //SERV_STEAM
 	DO_QUERY( L"exec dbo.mup_auth_global_user", L"N\'%s\'", % wstrAccountID.c_str() );
 #endif //SERV_STEAM
+#endif //SERV_ALL_RENEWAL_SP
+
 #endif //SERV_USE_KOG_ACCOUNTDB_PASSWORD
 
 	if( m_kODBC.BeginFetch() )
@@ -162,7 +167,11 @@ IMPL_ON_FUNC( DBE_CH_USER_GENERAL_LOGIN_REQ )
 		case -2:    kPacket.m_iOK = NetError::ERR_VERIFY_18;	break;
 		case -3:	kPacket.m_iOK = NetError::ERR_VERIFY_19;	break;
 		// 차단 부분 추가함 
+#ifdef SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
+		case -5:	kPacket.m_iOK = NetError::ERR_ACCOUNT_BLOCK_01;	break;
+#else //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
 		case -5:	kPacket.m_iOK = NetError::ERR_VERIFY_11;	break;
+#endif //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
 		case -7:	kPacket.m_iOK = NetError::ERR_VERIFY_06;	break;  // 테스트 서버용
 		default:
 			kPacket.m_iOK = NetError::ERR_UNKNOWN;
@@ -172,6 +181,18 @@ IMPL_ON_FUNC( DBE_CH_USER_GENERAL_LOGIN_REQ )
 		// 신규 유저 생성. - 성공 시 정상적으로 mup_update_user_otp까지 호출됨
 		if( kPacket.m_iOK == NetError::ERR_VERIFY_04 )
 		{
+#ifdef SERV_ALL_RENEWAL_SP
+			DO_QUERY( L"exec dbo.P_MUser_INS_Global", L"N\'%s\', N\'%s\', %d, %d, %d, N\'%s\', %d, %d",
+				% wstrAccountID
+				% kPacket_.m_wstrIP	// 생성시에 OTP칸 공백으로 설정 //kPacket_.m_wstrOTP
+				% kPacket_.m_uiPublisherUID
+				% 0
+				% 0
+				% kPacket_.m_wstrServiceAccountID
+				% 0
+				% kPacket_.m_iChannelingCode
+				);
+#else //SERV_ALL_RENEWAL_SP
 			DO_QUERY( L"exec dbo.mup_create_global_user", L"N\'%s\', N\'%s\', %d, %d, %d, N\'%s\', %d, %d",
 				% wstrAccountID
 				% kPacket_.m_wstrIP	// 생성시에 OTP칸 공백으로 설정 //kPacket_.m_wstrOTP
@@ -182,6 +203,8 @@ IMPL_ON_FUNC( DBE_CH_USER_GENERAL_LOGIN_REQ )
 				% 0
 				% kPacket_.m_iChannelingCode
 				);
+#endif //SERV_ALL_RENEWAL_SP
+
 
 			bool bPlayGuide;
 			bool bInternalUser;
@@ -216,12 +239,22 @@ IMPL_ON_FUNC( DBE_CH_USER_GENERAL_LOGIN_REQ )
 		int iOTP  = gen();	// 21억 범위내에서 iOTP 값 생성
 
 		wchar_t wszOTP[128];
+#ifdef _CONVERT_VS_2010
+        _itow_s( iOTP, wszOTP, 10 );
+#else
 		::_itow( iOTP, wszOTP, 10 );
+#endif _CONVERT_VS_2010
 		kPacket.m_wstrOTP = wszOTP;
 
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_MUserOTP_UPD", L"%d, N\'%s\'",
+			% kPacket.m_iUserUID
+			% kPacket.m_wstrOTP );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.mup_update_user_otp", L"%d, N\'%s\'",
 			% kPacket.m_iUserUID
 			% kPacket.m_wstrOTP );
+#endif //SERV_ALL_RENEWAL_SP
 
 		if( m_kODBC.BeginFetch() )
 		{
@@ -244,7 +277,6 @@ IMPL_ON_FUNC( DBE_CH_USER_GENERAL_LOGIN_REQ )
 #endif SERV_PURCHASE_TOKEN
 		//}}
 
-
 #ifdef SERV_COUNTRY_PH
 		DO_QUERY( L"exec dbo.P_MUserOption_SET", L"%d, %d",
 			% kPacket.m_iUserUID
@@ -257,8 +289,6 @@ IMPL_ON_FUNC( DBE_CH_USER_GENERAL_LOGIN_REQ )
 			m_kODBC.EndFetch();
 		}
 #endif //SERV_COUNTRY_PH
-
-
 	}
 
 #ifdef SERV_ANTI_ADDICTION_SYSTEM
@@ -325,13 +355,17 @@ IMPL_ON_FUNC( DBE_CH_USER_KOGOTP_LOGIN_REQ )
 	}
 	//}}
 
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUser_SEL_Auth_Global", L"N\'%s\', %d", % kPacket_.m_wstrServiceAccountID.c_str() % kPacket_.m_iChannelingCode );
+#else //SERV_ALL_RENEWAL_SP
 #ifdef SERV_STEAM
 	DO_QUERY( L"exec dbo.mup_auth_global_user", L"N\'%s\', %d", % kPacket_.m_wstrServiceAccountID.c_str() % kPacket_.m_iChannelingCode );
 #else //SERV_STEAM
 	DO_QUERY( L"exec dbo.mup_auth_global_user", L"N\'%s\'",
-			% kPacket_.m_wstrServiceAccountID.c_str() 
-			);
+		% kPacket_.m_wstrServiceAccountID.c_str() 
+		);
 #endif //SERV_STEAM
+#endif //SERV_ALL_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -356,7 +390,11 @@ IMPL_ON_FUNC( DBE_CH_USER_KOGOTP_LOGIN_REQ )
 		case -2:    kPacket.m_iOK = NetError::ERR_VERIFY_18;	break;
 		case -3:	kPacket.m_iOK = NetError::ERR_VERIFY_19;	break;
 		// 차단 부분 추가함 
-		case -5:	kPacket.m_iOK = NetError::ERR_VERIFY_11;	break;
+#ifdef SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
+			case -5:	kPacket.m_iOK = NetError::ERR_ACCOUNT_BLOCK_02;	break;
+#else //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
+			case -5:	kPacket.m_iOK = NetError::ERR_VERIFY_11;	break;
+#endif //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
 		default:
 			kPacket.m_iOK = NetError::ERR_UNKNOWN;
 			break;
@@ -370,9 +408,15 @@ IMPL_ON_FUNC( DBE_CH_USER_KOGOTP_LOGIN_REQ )
 
 
 	// OTP 인증 먼저 한다. 
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUserOTP_SEL_Check", L"%d, N\'%s\'",
+		% kPacket.m_iUserUID
+		% kPacket.m_wstrOTP );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.mup_verify_user_otp", L"%d, N\'%s\'",
 		% kPacket.m_iUserUID
 		% kPacket.m_wstrOTP );
+#endif //SERV_ALL_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -408,9 +452,15 @@ IMPL_ON_FUNC( DBE_CH_USER_KOGOTP_LOGIN_REQ )
 		::_itow( iOTP, wszOTP, 10 );
 		kPacket.m_wstrOTP = wszOTP;
 
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_MUserOTP_UPD", L"%d, N\'%s\'",
+			% kPacket.m_iUserUID
+			% kPacket.m_wstrOTP );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.mup_update_user_otp", L"%d, N\'%s\'",
 			% kPacket.m_iUserUID
 			% kPacket.m_wstrOTP );
+#endif //SERV_ALL_RENEWAL_SP
 
 		if( m_kODBC.BeginFetch() )
 		{
@@ -658,7 +708,11 @@ IMPL_ON_FUNC( DBE_CHECK_ACCOUNT_BLOCK_LIST_REQ )
 	KDBE_CHECK_ACCOUNT_BLOCK_LIST_ACK kPacket;
 
 	// Release Tick 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_ReleaseTick_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.mup_get_release_tick" );
+#endif //SERV_ALL_RENEWAL_SP
 
 	while( m_kODBC.Fetch() )
 	{
@@ -696,7 +750,11 @@ IMPL_ON_FUNC( DBE_CHECK_ACCOUNT_BLOCK_LIST_REQ )
 			case KMachineBlockManager::BT_MACHINE_ID_BLOCK:
 				{
 					// 거래 블럭 리스트 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+					DO_QUERY_NO_ARG( L"exec dbo.P_Temp_Add_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 					DO_QUERY_NO_ARG( L"exec dbo.mup_get_add" );
+#endif //SERV_ALL_RENEWAL_SP
 
 					while( m_kODBC.Fetch() )
 					{

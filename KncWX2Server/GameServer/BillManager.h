@@ -28,9 +28,11 @@ public:
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 	enum CASH_SHOP_RELEASE_TICK_TYPE
 	{
-		CSRTT_NORMAL			= 0,	/// 캐시샵 목록 변경 tick
-		CSRTT_BONUS_EVENT		= 1,	/// 캐시샵 보너스 캐쉬 이벤트 tick
-
+		CSRTT_NORMAL			= 0,	// 캐시샵 목록 변경 tick
+		CSRTT_BONUS_EVENT		= 1,	// 캐시샵 보너스 캐쉬 이벤트 tick
+#ifdef SERV_CONTENT_MANAGER_INT
+		CSRTT_CASHSHOP_ON_OFF	= 2,	// 캐시샵 OnOff Tick 
+#endif SERV_CONTENT_MANAGER_INT
 	};
 
 

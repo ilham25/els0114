@@ -10,7 +10,7 @@ CX2DungeonStage::CX2DungeonStage( StageData* pStageData )
 	, m_pBeforeSubStage( NULL )
 	, m_BeforeSubStageIndex( 0 )
 	, m_fElapsedTime( 0.0f )
-	, m_hParticleGo( INVALID_PARTICLE_HANDLE )
+	, m_hParticleGo( INVALID_PARTICLE_SEQUENCE_HANDLE )
 {
 	LoadReadyNPCResources();
 	//LoadReadyNPC();
@@ -57,9 +57,9 @@ void CX2DungeonStage::OnFrameMove( double fTime, float fElapsedTime )
 	{
 		switch( pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID )
 		{
-		case CX2Dungeon::DI_PEITA_CHAPEL_EXPERT:
-		case CX2Dungeon::DI_BESMA_SECRET_COMMON:
-		case CX2Dungeon::DI_BESMA_SECRET_HELL:
+		case SEnum::DI_PEITA_CHAPEL_EXPERT:
+		case SEnum::DI_BESMA_SECRET_COMMON:
+		case SEnum::DI_BESMA_SECRET_HELL:
 
 			{
 				if( m_pBeforeSubStage != NULL )
@@ -200,6 +200,8 @@ void    CX2DungeonStage::FlushNPCs()
 		return;
 
 	unsigned    uSize = m_vecSubStageGUNPC.size();
+
+
 	for( unsigned u = 0; u != uSize; u++ )
 	{
 		CX2GUNPC* pCX2GUNPC = m_vecSubStageGUNPC[ u ];
@@ -392,7 +394,7 @@ bool CX2DungeonStage::StageData::LoadData( KLuaManager& luaManager, bool bIsNpcL
 	LUA_GET_VALUE_ENUM( luaManager, "STAGE_TYPE", m_eStageType, CX2DungeonStage::STAGE_TYPE, CX2DungeonStage::ST_NONE );
 	//}}
 
-	LUA_GET_VALUE( luaManager, L"MISSION_TITLE", m_MissionTitle, L"" );
+	LUA_GET_VALUE( luaManager, "MISSION_TITLE", m_MissionTitle, L"" );
 
 	m_UnitColor = D3DXCOLOR(-1, -1, -1, 1);
 	m_WorldColor = D3DXCOLOR(-1, -1, -1, 1);

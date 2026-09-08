@@ -78,6 +78,7 @@ public:
 	void	SetBattleFieldZUTickTime( double dfTickTime );
 	double	GetBattleFieldZUTickTime() const				{ return m_dfBattleFieldZUTickTime; }
 	double	GetBattleFieldZUEchoTime() const				{ return m_dfBattleFIeldZUEchoTime; }
+
 #endif SERV_BATTLE_FIELD_SYSTEM
 #ifdef  SERV_OPTIMIZE_DETECT_ZOMBIE_HOST
     void    SetBattleFieldZombieAlertTickTime( double dfTickTime );
@@ -128,6 +129,7 @@ protected:
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	double									m_dfBattleFieldZUTickTime;
 	double									m_dfBattleFIeldZUEchoTime;
+
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 #ifdef  SERV_OPTIMIZE_DETECT_ZOMBIE_HOST

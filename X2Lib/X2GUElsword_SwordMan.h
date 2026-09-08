@@ -164,9 +164,9 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 			ESSI_WALL_LANDING,			
 //#endif WALL_JUMP_TEST
 
-#ifdef PVP_BOSS_COMBAT_TEST
-			ESSI_FROZEN,
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//			ESSI_FROZEN,
+//#endif PVP_BOSS_COMBAT_TEST
 		};
 		
 		enum ELSWORD_MAJOR_PARTICLE_INSTANCE_ID
@@ -215,6 +215,58 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 #endif ELSWORD_SHEATH_KNIGHT
 
 
+
+#ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
+
+        class   CElswordGuardSkill;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        typedef boost::intrusive_ptr<CElswordGuardSkill> CElswordGuardSkillPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+		typedef boost::shared_ptr<CElswordGuardSkill> CElswordGuardSkillPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
+		class CElswordGuardSkill : boost::noncopyable
+		{
+		private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+			ELSWORD_SWORDMAN_STATE_ID	m_eSkillSlotID_Guard;			/// 엘소드의 Guard가 어느 스킬슬롯에 장착되어 있는지를 담는 변수
+			const bool*					m_pGuardKey;					/// 엘소드의 Guard가 장착되어 있는 스킬슬롯의 Key(A, S, D, C 등)	
+			bool						m_bGuardEquippedAtSlotB;		/// 엘소드의 Guard가 B슬롯에 장착되어 있는지를 담는 변수
+			int							m_iDamageReducePercent;			/// 엘소드의 Guard 상태에서 데미지 감소율
+			CElswordGuardSkill() : m_eSkillSlotID_Guard( ESSI_BASE ),
+				m_pGuardKey( NULL ), m_bGuardEquippedAtSlotB( false ), m_iDamageReducePercent( 0 )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+                , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+			{}
+
+		public:
+			static CElswordGuardSkillPtr    CreateElswordGuardSkill() { return CElswordGuardSkillPtr( new CElswordGuardSkill ); }
+
+			CX2GUElsword_SwordMan::ELSWORD_SWORDMAN_STATE_ID GetSkillSlotID_Guard() const { return m_eSkillSlotID_Guard; }	// 엘소드의 Guard가 어느 스킬슬롯에 장착되어 있는지를 담는 변수값을 얻어옴
+			void SetSkillSlotID_Guard(CX2GUElsword_SwordMan::ELSWORD_SWORDMAN_STATE_ID eSkillSlotID_Guard_) { m_eSkillSlotID_Guard = eSkillSlotID_Guard_; } // 엘소드의 Guard가 어느 스킬슬롯에 장착되어 있는지를 담는 변수값을 Set함
+
+			bool GetGuardKeyValue() const { return *m_pGuardKey; }	// 엘소드의 Guard가 장착되어 있는 스킬슬롯의 Key(A, S, D, C 등)	의 값을 얻어옴 (눌렸는지 안눌렸는지)
+			void SetGuardKeyPointer( const bool* pGuardKey_ ) { m_pGuardKey = pGuardKey_; }	// 엘소드의 Guard가 장착되어 있는 스킬슬롯의 Key(A, S, D, C 등)	포인터를 Set함
+
+			bool GetGuardEquippedAtSlotB() const { return m_bGuardEquippedAtSlotB; }	// 엘소드의 Guard가 B슬롯에 장착되어 있는지를 얻어옴
+			void SetGuardEquippedAtSlotB(bool bGuardEquippedAtSlotB_) { m_bGuardEquippedAtSlotB = bGuardEquippedAtSlotB_; }
+
+			int GetDamageReducePercent() const { return m_iDamageReducePercent; }
+			void SetDamageReducePercent(int iDamageReducePercent_) { m_iDamageReducePercent = iDamageReducePercent_; }
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            void    AddRef()    {   ++m_uRefCount; }
+            void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+		};
+
+
+#endif //UPGRADE_SKILL_SYSTEM_2013
+
+
 	private:
 		CX2GUElsword_SwordMan( int unitIndex, int teamNum, 
 #ifdef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
@@ -231,37 +283,6 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 #endif	NEW_SKILL_2010_11
 		//}} kimhc // 2010.11.2 // 로드나이트 - 고통 억제
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
-		class CElswordGuardSkill : boost::noncopyable
-		{
-		private:
-			ELSWORD_SWORDMAN_STATE_ID	m_eSkillSlotID_Guard;			/// 엘소드의 Guard가 어느 스킬슬롯에 장착되어 있는지를 담는 변수
-			const bool*					m_pGuardKey;					/// 엘소드의 Guard가 장착되어 있는 스킬슬롯의 Key(A, S, D, C 등)	
-			bool						m_bGuardEquippedAtSlotB;		/// 엘소드의 Guard가 B슬롯에 장착되어 있는지를 담는 변수
-			int							m_iDamageReducePercent;			/// 엘소드의 Guard 상태에서 데미지 감소율
-			CElswordGuardSkill() : m_eSkillSlotID_Guard( ESSI_BASE ),
-				m_pGuardKey( NULL ), m_bGuardEquippedAtSlotB( false ), m_iDamageReducePercent( 0 )
-			{}
-
-		public:
-			static boost::shared_ptr<CElswordGuardSkill> CreateElswordGuardSkill() { return boost::shared_ptr<CElswordGuardSkill>( new CElswordGuardSkill ); }
-
-			CX2GUElsword_SwordMan::ELSWORD_SWORDMAN_STATE_ID GetSkillSlotID_Guard() const { return m_eSkillSlotID_Guard; }	// 엘소드의 Guard가 어느 스킬슬롯에 장착되어 있는지를 담는 변수값을 얻어옴
-			void SetSkillSlotID_Guard(CX2GUElsword_SwordMan::ELSWORD_SWORDMAN_STATE_ID eSkillSlotID_Guard_) { m_eSkillSlotID_Guard = eSkillSlotID_Guard_; } // 엘소드의 Guard가 어느 스킬슬롯에 장착되어 있는지를 담는 변수값을 Set함
-
-			bool GetGuardKeyValue() const { return *m_pGuardKey; }	// 엘소드의 Guard가 장착되어 있는 스킬슬롯의 Key(A, S, D, C 등)	의 값을 얻어옴 (눌렸는지 안눌렸는지)
-			void SetGuardKeyPointer( const bool* pGuardKey_ ) { m_pGuardKey = pGuardKey_; }	// 엘소드의 Guard가 장착되어 있는 스킬슬롯의 Key(A, S, D, C 등)	포인터를 Set함
-
-			bool GetGuardEquippedAtSlotB() const { return m_bGuardEquippedAtSlotB; }	// 엘소드의 Guard가 B슬롯에 장착되어 있는지를 얻어옴
-			void SetGuardEquippedAtSlotB(bool bGuardEquippedAtSlotB_) { m_bGuardEquippedAtSlotB = bGuardEquippedAtSlotB_; }
-
-			int GetDamageReducePercent() const { return m_iDamageReducePercent; }
-			void SetDamageReducePercent(int iDamageReducePercent_) { m_iDamageReducePercent = iDamageReducePercent_; }
-
-		};
-
-		typedef boost::shared_ptr<CElswordGuardSkill> CElswordGuardSkillPtr;
-#endif //UPGRADE_SKILL_SYSTEM_2013
 
 	public:
 		static CX2GUElsword_SwordMan* CreateGUElsword( int unitIndex, int teamNum, 
@@ -301,7 +322,13 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 
 		virtual float		GetFinalDamageToBeChangedByActiveSkill( float fFinalDamage_ );
 		void				ApplyBuffToHarshSlayer( const CX2DamageManager::DamageData& damageData_ );
-#endif //UPGRADE_SKILL_SYSTEM_2013		
+#endif //UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef BALANCE_PATCH_20131107
+		//각 유닛마다 Enchant가 적용될 때 셋팅해야 하는 함수 실행.
+		virtual void				SetSpecificValueByEnchant();
+#endif //BALANCE_PATCH_20131107
+
 		virtual void		Win();
 		virtual void		Lose();
 		virtual void		Draw();
@@ -319,19 +346,19 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 		CKTDGParticleSystem::CParticleEventSequence* SetElswordMajorParticleByEnum( ELSWORD_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ = -1 );	// 각 캐릭터들만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		ParticleEventSequenceHandle	GetHandleElswordMajorParticleByEnum( ELSWORD_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) const // 엘소드만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		{
-			ASSERT( ELSWORD_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( ELSWORD_MAJOR_PII_END > eVal_ && ELSWORD_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahElswordMajorParticleInstance[eVal_];
 		}
 
 		ParticleEventSequenceHandle& GetHandleReferenceElswordMajorParticleByEnum( ELSWORD_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) // 엘소드만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		{
-			ASSERT( ELSWORD_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( ELSWORD_MAJOR_PII_END > eVal_ && ELSWORD_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahElswordMajorParticleInstance[eVal_];
 		}
 
 		void				SetHandleElswordMajorParticleByEnum( ELSWORD_MAJOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ ) // 엘소드만 쓰는 메이저 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함 // kimhc // 2010.11.5 
 		{
-			ASSERT( ELSWORD_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( ELSWORD_MAJOR_PII_END > eVal_ && ELSWORD_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			m_ahElswordMajorParticleInstance[eVal_] = hHandle_;
 		}
 		void				DeleteElswordMajorParticle();
@@ -345,19 +372,19 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 		CKTDGParticleSystem::CParticleEventSequence* SetElswordMinorParticleByEnum( ELSWORD_MINOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ = -1 );	// 각 캐릭터들만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		ParticleEventSequenceHandle	GetHandleElswordMinorParticleByEnum( ELSWORD_MINOR_PARTICLE_INSTANCE_ID eVal_ ) const	// 엘소드만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴	// kimhc // 2010.11.5 
 		{
-			ASSERT( ELSWORD_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( ELSWORD_MINOR_PII_END > eVal_ && ELSWORD_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahElswordMinorParticleInstance[eVal_];
 		}
 
 		ParticleEventSequenceHandle& GetHandleReferenceElswordMinorParticleByEnum( ELSWORD_MINOR_PARTICLE_INSTANCE_ID eVal_ ) // 엘소드만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴	// kimhc // 2010.11.5 
 		{
-			ASSERT( ELSWORD_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( ELSWORD_MINOR_PII_END > eVal_ && ELSWORD_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahElswordMinorParticleInstance[eVal_];
 		}
 
 		void				SetHandleElswordMinorParticleByEnum( ELSWORD_MINOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ )	// 엘소드만 쓰는 마이너 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함	// kimhc // 2010.11.5 
 		{
-			ASSERT( ELSWORD_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( ELSWORD_MINOR_PII_END > eVal_ && ELSWORD_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			m_ahElswordMinorParticleInstance[eVal_] = hHandle_;
 		}
 		void				DeleteElswordMinorParticle();
@@ -366,6 +393,8 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 
 		virtual bool		SpecialAttackNoStageChange( const CX2SkillTree::SkillTemplet* pSkillTemplet );
 		
+		virtual float	GetActualMPConsume( const CX2SkillTree::SKILL_ID eSkillID_, const int iSkillLevel_ ) const;
+
 #ifdef NEW_SKILL_2010_11
 		//{{ oasis907 : 김상윤 [2010.11.1] // 룬 슬레이어 - 마법 저항 수련
 		float				GetMagicReflectRate();
@@ -398,11 +427,7 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 
 #endif ELSWORD_WAY_OF_SWORD
 #ifdef ELSWORD_SHEATH_KNIGHT
-#ifdef INT_SKILL_BUG_FIX
-		void				AddComboToBrutalSlayer();
-#else
 		void				AddComboToBrutalSlayer( const CX2DamageManager::DamageData& damageData_ );
-#endif INT_SKILL_BUG_FIX
 #endif ELSWORD_SHEATH_KNIGHT
 #ifdef RIDING_SYSTEM
 		virtual bool CanRidingState();
@@ -470,14 +495,22 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 
 		CX2EffectSet::Handle	m_hSwordFire;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle   m_hRuneSlayerDashJumpXZ;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect* m_pRuneSlayerDashJumpXZ;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2EffectSet::Handle m_hRuneSlayerComboXZ;
 		CX2EffectSet::Handle m_hSwordEnchant;
 
 
 
 #ifdef SKILL_CASH_10_TEST
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle			    m_hDoubleSlash;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*			m_pDoubleSlash;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif
 		
 #ifdef NEW_SKILL_2010_11
@@ -556,7 +589,11 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 		int												m_iETKComboXXXLoopCount;
 
 		D3DXVECTOR3										m_vFinalStrikeBlackHolePos;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle   						m_hFinalStrikeBlackHole;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*						m_FinalStrikeBlackHole;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		D3DXVECTOR3										m_vSwordFallSheathPos;
 
@@ -573,7 +610,11 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 
 		CKTDGXMeshPlayer::CXMeshInstanceHandle			m_hSecondBladeSheath;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle                           m_hDamageEffectHarshChaserBlade;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*						m_pDamageEffectHarshChaserBlade;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		
 		float											m_fRollingHpConsumeRel;
 		float											m_fRollingSpeedRel;
@@ -590,7 +631,11 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 		float											m_fDashStateTime;
 		float											m_fMindOfFighterConsumeMpRate;
 		int												m_iBrutalSlayerActivatedLevel;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle                           m_hDamageSwordBlasting[3];
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*						m_pDamageSwordBlasting[3];
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif
 
 #ifdef BALANCE_RUNE_SLAYER_20130214
@@ -601,7 +646,11 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 		CElswordGuardSkillPtr							m_GuardForElswordPtr;				//막기
 		float											m_fAutoGuardRate;					//오토 가드 확률
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle						    m_hDamageEffectPiercingSword;		//피어싱 소드 이펙트 핸들
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*						m_pDamageEffectPiercingSword;		//피어싱 소드 이펙트 핸들
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		float											m_fPiercingSwordProjectileRange;	//피어싱 소드 사거리
 		float											m_fRuneProjectileRangeIncPercent;	//룬 사거리 증가 비율(룬 마스터리)
 		float											m_fRuneProjectileSizeIncPercent;	//룬 크기 증가 비율(룬 마스터리)	
@@ -613,6 +662,10 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 		CX2EffectSet::Handle							m_hEffectSwordShield;				//소드 실드 이펙트 핸들
 		float											m_fSwordShieldEffectiveTime;		//소드 실드 이펙트 유지 시간
 #endif //UPGRADE_SKILL_SYSTEM_2013 
+
+#ifdef BALANCE_PATCH_20131107
+		int												m_iSkillLevelInduranceOfRevenge; //역전의 인내 스킬 레벨 값.
+#endif //BALANCE_PATCH_20131107
 
 	private:
 
@@ -705,7 +758,7 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 		void RidingHyperModeFrameMove();
 		void CommonHyperModeFrameMove( float fTime1_, float fTime2_, bool bSound_ = false );
 #endif // MODIFY_RIDING_PET_AWAKE
-		
+
 		////ESSI_DAMAGE_GROGGY
 		//void ESSI_DAMAGE_GROGGY_FrameMoveFuture();
 		//void ESSI_DAMAGE_GROGGY_EventProcess();
@@ -1164,7 +1217,9 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 
 		//ESSI_A_ESK_WEAPON_BREAK
 		void ESSI_A_ESK_WEAPON_BREAK_Init();
+#ifndef ADD_MEMO_1ST_CLASS //김창한
 		void ESSI_A_ESK_WEAPON_BREAK_StateStart();
+#endif //ADD_MEMO_1ST_CLASS
 		void ESSI_A_ESK_WEAPON_BREAK_EventProcess();
 		
 #endif //UPGRADE_SKILL_SYSTEM_2013 
@@ -1566,6 +1621,24 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 
 #endif GRAPPLING_TEST
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	#pragma region SI_FS_ELK_Gigantic_Slash
+	void ESSI_HA_ELK_Gigantic_Slash_Init();
+	#pragma endregion 기간틱 슬래시 : 궁극기
+
+	#pragma region SI_FS_ERS_Shining_Rune_Buster
+	void ESSI_HA_ERS_Shining_Rune_Buster_Init();
+	void ESSI_HA_ERS_Shining_Rune_Buster_EventProcess();
+
+	#pragma endregion 샤이닝 룬 버스트 : 궁극기
+
+	#pragma region SI_FS_EIS_Blade_Rain
+	void ESSI_HA_EIS_Blade_Rain_Init();
+	void ESSI_HA_EIS_Blade_Rain_EventProcess();
+	#pragma endregion 블레이드 레인 : 궁극기
+
+#endif //FINALITY_SKILL_SYSTEM
+
 	void ShowActiveSkillCutInAndLight( const float fTimeToShow_, const UINT uiCutInIndex_, const bool bOnlyLight_ = false );
 	virtual void ShowActiveSkillCutInAndLightByScript( float fTimeToShow_, bool bOnlyLight_ );
 
@@ -1573,4 +1646,8 @@ class CX2GUElsword_SwordMan : public CX2GUUser
 };
 
 
+#ifdef UPGRADE_SKILL_SYSTEM_2013
 
+IMPLEMENT_INTRUSIVE_PTR( CX2GUElsword_SwordMan::CElswordGuardSkill );
+
+#endif  UPGRADE_SKILL_SYSTEM_2013

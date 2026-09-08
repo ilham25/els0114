@@ -1,6 +1,12 @@
+// undef 시작
+// 기존 비던 셋옵에 문제가 있어서 undef
+// 비던 개편(하멜 추가 및 장비 변경) 이 들어가면 undef 풀어줘야 합니다.
+#undef ADJUST_SECRET_ITEM_OPTION
+// undef 끝
+
 #if defined( _SERVICE_ ) || defined( _OPEN_TEST_ )	// 테스트 및 라이브 버전만 적용
 #define	HACK_SHIELD
-#define ALWAYS_CHECK_KOM_LIVE_CHECK
+//#define ALWAYS_CHECK_KOM_LIVE_CHECK
 #endif
 
 #if defined( _SERVICE_ ) && !defined( _OPEN_TEST_ )	// 라이브 버전만 적용
@@ -33,7 +39,7 @@
 #define _LANGUAGE_FIX_CHINESE_					// 중국어라서 고쳐야 하는 부분 ( 일단은 닉네임 필터링에서 한글제한->중국어제한 )
 #define _LANGUAGE_FIX_TW_HK						// 언어 어순 등의 문제로 고치는 부분
 #define ARGUMENT_LOGIN							// argv[1], [2] 들어오면 오토로그인, argv[1]만 들어오면 패처로 실행된 건지 체크 후 매뉴얼 로그인. 안 들어오면 종료
-#define USE_MAXLEVEL_LIMIT_VAL const int g_iMaxLevel = 65;	// MAXLevel 수정 시 GameSysValTable.lua에서도 값 수정해야함
+#define USE_MAXLEVEL_LIMIT_VAL const int g_iMaxLevel = 70;	// MAXLevel 수정 시 GameSysValTable.lua에서도 값 수정해야함
 #define USE_CHANNEL_SERVER_IP_AT_SCRIPT			// 허상형 : [2012/6/14] //	SERVER_GROUP_UI_ADVANCED 쓸때 중국 빼고 전국가 적용 , 중국은 런쳐에서 아규먼트로 받아옴
 #define CHEAT_WCHART_TO_UTF8					// 2012. 07. 06 lygan_조성욱 // 중문 들어간 캐릭터 닉네임으로 치트 사용시 글자 깨져서 치트 안되는 문제 수정
 #define HIDE_HAIR_BY_EP_AC_FACE2				// 특정 아이템(악세서리 얼굴(중))을 장착시 헤어가 보이지 않도록 하기 위한 작업(아누비스의 투구)
@@ -41,7 +47,7 @@
 #define USE_FREE_TYPE_SUB_FONT					// 프리타입 서브 폰트 기능
 
 #ifdef CLIENT_COUNTRY_TW
-
+#undef REFORM_ENTRY_POINT_FOR_ONE_SERVER_GROUP
 #endif CLIENT_COUNTRY_TW
 
 #ifdef CLIENT_COUNTRY_HK
@@ -66,12 +72,40 @@
 //////////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////////
-// 이름: 이지헌
-// 아이디: ninil
-// 작업시작날짜: 2013-09-09
-// 패치날짜: 2013-09-11
-// 작업내용: 스팀 이벤트 카테고리 캐쉬샵에 추가
-//			 이벤트 끝났으니 주석 제거
-// 추가작업: 코드이벤트 걸어서 탭 열고 닫는 기능- 최민철
-//#define ADD_CASH_SHOP_CATEGORY_EVENT_2
+// 이름: 김준환
+// 아이디: jhkim86
+// 작업시작날짜: 2013-05-21\
+// 패치날짜: 미정
+// 작업내용: 아담스의 상점
+//#define ALWAYS_EVENT_ADAMS_UI_SHOP
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// 이름: 최민철
+// 아이디: hohocmc
+// 작업시작날짜: 2014-01-07
+// 패치날짜: 2014-01-15
+// 작업내용: 춘절 특별 상점 폭죽 아이템
+#define EVENT_FIRE_CRACKER_THROW_ITEM
+//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+// 이름: 최민철
+// 아이디: hohocmc
+// 작업시작날짜: 2013-05-10
+// 패치날짜: 	
+// 작업내용: 해외팀 공용 라인브레이커 
+#define CLIENT_GLOBAL_LINEBREAK
+//////////////////////////////////////////////////////////////////////////
+
+// 2012.09.12 임홍락 말줄임
+#define ELLIPSE_GLOBAL
+
+//////////////////////////////////////////////////////////////////////////
+// 이름: 조성욱
+// 아이디: darkstarbt
+// 작업시작날짜: 2013-05-29
+// 패치날짜: 2013-06-19
+// 작업내용: 칭호 설명 부분 스크롤 다는 기능
+#define TITLE_DESCRIPTION_RENEWAL
 //////////////////////////////////////////////////////////////////////////

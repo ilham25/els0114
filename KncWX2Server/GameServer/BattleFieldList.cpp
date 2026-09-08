@@ -165,6 +165,11 @@ UidType KBattleFieldList::GetBattleFieldRoomUID_MaxPartyMemberCount( IN const Ui
 			continue;
 		}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-06	// 박세훈
+		if( SEnum::CheckFlag( spRoomInfo->GetBossFieldState(), ( SEnum::BFRS_BOSS_FIELD | SEnum::BFRS_INTRUDE_RESTRICTION ) ) == true )
+			continue;
+#endif // SERV_BATTLE_FIELD_BOSS
+
 		// 해당 배틀필드에 입장해있는 같은 파티원이 있는지 확인!
 		if( spRoomInfo->IsExistParty( iPartyUID ) == false )
 			continue;
@@ -222,6 +227,11 @@ UidType KBattleFieldList::GetBattleFieldRoomUID_TargetRoom( IN const UidType iTa
         return 0;
 	}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-06	// 박세훈
+	if( SEnum::CheckFlag( spBeforeRoomInfo->GetBossFieldState(), ( SEnum::BFRS_BOSS_FIELD | SEnum::BFRS_INTRUDE_RESTRICTION ) ) == true )
+		return 0;
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	if( spBeforeRoomInfo->GetJoinUserCountWithReservedUserCount() >= spBeforeRoomInfo->GetMaxUserCount() )
 	{
 		// 입장할 수 있을만큼 빈 자리가 없다.
@@ -244,6 +254,11 @@ UidType KBattleFieldList::GetBattleFieldRoomUID_AllRandom()
 				<< END_LOG;
 			continue;
 		}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-06	// 박세훈
+		if( SEnum::CheckFlag( spRoomInfo->GetBossFieldState(), ( SEnum::BFRS_BOSS_FIELD | SEnum::BFRS_INTRUDE_RESTRICTION ) ) == true )
+			continue;
+#endif // SERV_BATTLE_FIELD_BOSS
 
 		// 실제 방안에 있는 유저 + 그 유저가 파티일 경우 해당 소속 파티원 수의 합산
 		if( spRoomInfo->GetJoinUserCountWithReservedUserCount() >= spRoomInfo->GetMaxUserCount() )

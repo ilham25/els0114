@@ -62,6 +62,11 @@ enum STR_ID_DEF12
 #   include "StringID_def12.h"
 };
 
+enum STR_ID_DEF13
+{
+#   include "StringID_def13.h"
+};
+
 class CKTDXStringTable
 {
     DeclareSingleton( CKTDXStringTable );
@@ -111,11 +116,11 @@ do \
 } while( false )
 
 #ifdef NETERROR_KOREAN_HELP
-	#define	GET_STRING( str_id )	( (SiCKTDXStringTable()->GetEnableDebugInfo()) ?	\
-									boost::str( boost::wformat( L"[S%1%]%2%" ) % str_id % SiCKTDXStringTable()->GetGeneralString( str_id ) ).c_str()	:	\
-									SiCKTDXStringTable()->GetGeneralString( str_id ).c_str() )
+#define	GET_STRING( str_id )	( (SiCKTDXStringTable()->GetEnableDebugInfo()) ?	\
+								boost::str( boost::wformat( L"[S%1%]%2%" ) % str_id % SiCKTDXStringTable()->GetGeneralString( str_id ) ).c_str()	:	\
+								SiCKTDXStringTable()->GetGeneralString( str_id ).c_str() )
 #else NETERROR_KOREAN_HELP
-	#define GET_STRING( str_id ) SiCKTDXStringTable()->GetGeneralString( str_id ).c_str()
+#define GET_STRING( str_id ) SiCKTDXStringTable()->GetGeneralString( str_id ).c_str()
 #endif NETERROR_KOREAN_HELP
 
 #define GET_REPLACED_STRING( varg ) SiCKTDXStringTable()->GetReplacedString##varg##.c_str()

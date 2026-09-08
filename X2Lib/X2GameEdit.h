@@ -44,6 +44,11 @@ class CX2GameEdit
 		virtual HRESULT OnFrameMove( double fTime, float fElapsedTime );
 		virtual HRESULT OnFrameRender();
 
+		void HotKeyProcess();
+		void HotKeyProcess_BossRaid();
+#ifdef SUMMON_MONSTER_BY_PRESS_KEY_AT_TRAINING_GAME
+		void HotKeyProcess_FreeTraining();
+#endif // SUMMON_MONSTER_BY_PRESS_KEY_AT_TRAINING_GAME
 #ifdef MODIFY_GAME_EDIT_CAMERA
 		virtual bool UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif //MODIFY_GAME_EDIT_CAMERA
@@ -162,8 +167,13 @@ class CX2GameEdit
 		//}} kimhc // 2012-10-16 // 핑이 빠른 유저를 호스트로 변경하는 코드
 
 #ifdef ADD_HERO_MATCH_NOTICE		/// 영웅 대전 치트 인자를 받아오기 위한 함수
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+		bool SetValueByHeroMatchWisperNotice( KLuaManagerProxy& kLuaManager_, std::vector<KLuaManagerProxyLuaValue>& vec_, string wstrCommandString, int iNowStringIndex_ );	/// 귓속말 공지
+		bool SetValueByHeroMatchDeleteGroupUser( KLuaManagerProxy& kLuaManager_, std::vector<KLuaManagerProxyLuaValue>& vec_, string wstrCommandString, int iNowStringIndex_ );	/// 그룹에서 특정 유저 제거
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 		bool SetValueByHeroMatchWisperNotice( string& wstrSlashCommandString_, string wstrCommandString, int iNowStringIndex_ );	/// 귓속말 공지
 		bool SetValueByHeroMatchDeleteGroupUser( string& wstrSlashCommandString_, string wstrCommandString, int iNowStringIndex_ );	/// 그룹에서 특정 유저 제거
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 #endif ADD_HERO_MATCH_NOTICE
 
 #ifdef SERV_HERO_PVP_MANAGE_LIST
@@ -178,6 +188,12 @@ class CX2GameEdit
 		bool DeleteGUildAdd_LUA( int iGuildUID );
 #endif
 
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		void SetCoboEventItemGet_LUA( bool bItemGive,bool bNextDay );
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		void SetValenTineCountCheat_LUA( int iCount );
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 		//{{ 2011.03.04  임규수 헤니르 랭킹 삭제 치트 ( 운영자,개발자 계정 )
 #ifdef SERV_DELETE_HENIR_RANKING
 		bool DeleteHenirRankingRank_LUA( int nRankingType, int nRank );
@@ -206,6 +222,17 @@ class CX2GameEdit
 #ifdef CHEAT_CLASS_CHANGE //JHKang
 		void ToggleClassChangeCheat();
 #endif //CHEAT_CLASS_CHANGE
+
+#ifdef FIELD_BOSS_RAID
+		void OpenRaidGate();
+		void CloseRateGate();
+		void RequireGetTotalDangerousValue();
+		void IncreaseTotalDangerousValue(int iValue_);
+#endif //FIELD_BOSS_RAID
+
+#ifdef SERV_EVENT_CHECK_POWER
+		void SetMultiplyer( float f );
+#endif SERV_EVENT_CHECK_POWER
 	protected:
 
 		bool Reset();

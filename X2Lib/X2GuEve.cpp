@@ -20,6 +20,30 @@ static const float s_fEveDefaultInvisibilityTime = 5.f;
 static const CX2GUUser::SkillCutIn s_SkillCutInSetFoolsDay = CX2GUUser::SkillCutIn( L"HQ_CutIn_Eve_Gura.dds");
 #endif //APRIL_FOOLS_DAY
 
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
+namespace _CONST_EVE_
+{
+	//	기동 코어 상태 유지 시간 상수, BEFORE_ATTACK -> ATTACK -> AFTER_ATTACK 순의 숫자 입니다.
+	const float MANEUVER_CORE_BEFORE_ATTACK_TIME = 0.2f;							
+	const float MANEUVER_CORE_ATTACK_TIME = 1.0f;									
+	const float MANEUVER_CORE_AFTER_ATTACK_TIME = 1.0f;								
+	
+	const float MANEUVER_CORE_PARRYING_TIME = 1.1f;									// Parrying State 의 유지 시간	( 변경 필요 )
+	const float MANEUVER_CORE_3RD_WAKE_UP_DAMAGE_EFFECT_MAKE_COOL_TIME = 0.1f;		// 3각성 공격의 데미지 이펙트 생성 쿨타임 ( 삭제? )
+	
+	const float MANEUVER_CORE_ATTACK_TIME_USING_MANEUVER_GAUGE = 1.133f;			// 각성 소모 공격의 유지 시간
+	const float MANEUVER_CORE_COEFF_INCREASE_DAMAGE_EFFECT_SIZE = 1.f;				// 각성 소모 공격의 데미지 이펙트 사이즈가 증가하는 계수
+	
+	const int	MANEUVER_CORE_MAX_LEVEL	= 3;
+	const D3DXVECTOR3 MANEUVER_CORE_WAIT_STATE_POSITION_OFFSET				= D3DXVECTOR3 ( 90.f, 189.f, 0.f );
+	const D3DXVECTOR3 MANEUVER_CORE_ATTACK_STATE_POSITION_OFFSET			= D3DXVECTOR3 ( 200.f, 100.f, 0.f );
+
+	const float	MANEUVER_CORE_LASER_ATTACK_HIT_VALUE						= 5.f;
+
+}
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
 // 필살기 쓸 때 cut in image 
 static const CX2GUUser::SkillCutInSet s_SkillCutInSet[] = 
 {
@@ -84,10 +108,40 @@ CX2GUEve::CX2GUEve( int unitIndex, int teamNum,
 	, m_fAddSpectrumTime( 0.f )
 	, m_fAddEnergeticHeartTime( 0.f )
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	, m_bStartLinkOverChargeIllusion( false )
+	, m_fFerdinandLifeTime( -1.f )
+	, m_iFerdinandNPCUID( -1 )
+#endif //FINALITY_SKILL_SYSTEM
 #ifdef FIX_EVE_ELCRYSTAL_BUG
 	, m_eReserveEndElCrystalBuffID( BTI_NONE )
 	, m_bIsCheckEndElCrystal ( false )
 #endif // FIX_EVE_ELCRYSTAL_BUG
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	, m_fDecraseInvisibilityMP ( -4.f )		
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	, m_pManeuverCore ( NULL )
+	, m_iManeuverCoreLv ( 0 )
+	, m_fManeuverGauge ( 0.f )
+	, m_bManeuverCoreAttackLockOnNpc ( false )
+	, m_iManeuverCoreAttackLockOnUid ( 0 )		
+	, m_bCanParrying  ( false )		
+	, m_fManeuverCoreStateTime ( 0.f )
+	, m_bHyperState ( false )
+	, m_hSeqHyperBall ( INVALID_PARTICLE_SEQUENCE_HANDLE )
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	, m_pManeuverCoreParryingEffect ( NULL )
+#else // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	, m_hManeuverCoreParryingEffect ( INVALID_EFFECTSET_HANDLE )
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	, m_pManeuverCoreAttackDamageEffect ( NULL )
+	, m_fManeuverCoreAttackParticleCreateCoolTime ( 0.f )
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	, m_wstrManeuverCoreTargetBoneName (L"")
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 {
 	m_bReAttackZ1Right		= false;
 	m_fReAttackZ1Time		= 0.0f;
@@ -123,7 +177,7 @@ CX2GUEve::CX2GUEve( int unitIndex, int teamNum,
 	InitializeEveMinorParticleArray();
 
 #ifdef SKILL_BALANCE_PATCH
-	m_hOberonGuard = CX2EffectSet::INVALID_HANDLE;
+	m_hOberonGuard = INVALID_EFFECTSET_HANDLE;
 #endif
 
 	m_iSuccessiveHit_OneZ	= 0;
@@ -157,20 +211,29 @@ CX2GUEve::CX2GUEve( int unitIndex, int teamNum,
 	m_fPhotonBlinkBackSpeedX				= 0.f;
 	m_fPhotonBlinkDummyLifeTime				= 0.f;
 
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_hEffectSweepParadeTriangle	= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hEffectSweepParadeLight		= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hEffectSweepParadeElectric	= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hEffectElectraDashComboZ		= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hEffectElectraDashComboZZ		= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hEffectElectraLaserZZZfrontZ	= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hEffectElectraLaserXXZ		= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectSweepParadeTriangle		= NULL;
 	m_EffectSweepParadeLight		= NULL;
 	m_EffectSweepParadeElectric		= NULL;
+	m_EffectElectraDashComboZ		= NULL;
+	m_EffectElectraDashComboZZ		= NULL;
+	m_EffectElectraLaserZZZfrontZ	= NULL;
+	m_EffectElectraLaserXXZ			= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_fSweepParadeTriangleLIfeTime	= 0.f;
 	m_fInitDamageSweepParade		= 0.f;
 
-	m_EffectElectraDashComboZ		= NULL;
-	m_EffectElectraDashComboZZ		= NULL;
-
-	m_hEffectElectraDashComboZ		= INVALID_MESH_INSTANCE_HANDLE;
-	m_hEffectElectraDashComboZZ		= INVALID_MESH_INSTANCE_HANDLE;
-
-	m_EffectElectraLaserZZZfrontZ	= NULL;
-	m_EffectElectraLaserXXZ			= NULL;
+	m_hElectraDashComboZMesh		= INVALID_MESH_INSTANCE_HANDLE;
+	//m_hElectraDashComboZMeshZZ	= INVALID_MESH_INSTANCE_HANDLE;
 
 	m_bXXZLaserEnd			= false;
 	m_bNotEnoughMPZZZfrontZLaser	= false;
@@ -180,7 +243,7 @@ CX2GUEve::CX2GUEve( int unitIndex, int teamNum,
 	m_iLockOnUid			= -1;
 
 #ifdef BALANCE_PATCH_20120329
-	m_hCountDownThousandStar	= INVALID_PARTICLE_HANDLE;
+	m_hCountDownThousandStar	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif BALANCE_PATCH_20120329
 	m_bDelayAttackThousandStar	= false;
 	m_fDelayAttackTime			= 0.f;
@@ -210,16 +273,20 @@ CX2GUEve::CX2GUEve( int unitIndex, int teamNum,
 	m_bNotEnoughMPDashJumpXZLaser	= false;
 	m_bExceptionPlane				= false;
 	m_fExceptioncPlaneZAngle		= 0.f;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraLaserDashJumpXZ	= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectElectraLaserDashJumpXZ	= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-	m_hBoostDashParticle	= INVALID_PARTICLE_HANDLE;
-	m_hBoostDashMesh		= INVALID_MESH_INSTANCE_HANDLE;
+	m_hBoostDashParticle	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	//m_hBoostDashMesh		= INVALID_MESH_INSTANCE_HANDLE;
 
 	m_bNotEnoughMPDashJumpZX	= false;
 	m_iBoostAttackCount			= 0;
 	m_bBoostUpAttack			= false;
 	m_iAddBoostAttack			= 0;
-	m_hEffectEnergeticHeart		= CX2EffectSet::INVALID_HANDLE;
+	m_hEffectEnergeticHeart		= INVALID_EFFECTSET_HANDLE;
 #endif
 
 #ifdef FIX_SPECTRO_EL_CRYSTAL_ACTIVE_BUG
@@ -243,12 +310,12 @@ CX2GUEve::~CX2GUEve(void)
 
 	for( int i=0; i<MajorMID_END; i++ )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_ahMajorMeshInstance[i] );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_ahMajorMeshInstance[i] );
 	}
 
 	for( int i=0; i<MinorMID_END; i++ )
 	{
-		g_pX2Game->GetMinorXMeshPlayer()->DestroyInstance( m_ahMinorMeshInstance[i] );
+		g_pX2Game->GetMinorXMeshPlayer()->DestroyInstanceHandle( m_ahMinorMeshInstance[i] );
 	}
 
 	DeleteEveMajorParticle();
@@ -268,12 +335,15 @@ CX2GUEve::~CX2GUEve(void)
 	SetSelfDestructSummonedNPC( CX2UnitManager::NUI_ATOMIC_SHIELD_EVE );	/// 아토믹 쉴드 소환 해제
 #endif NEW_SKILL_2010_11
 	//}} JHKang / 강정훈 / 2010/11/23 / 아토믹 쉴드
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	SetSelfDestructSummonedNPC( CX2UnitManager::NUI_SI_HA_FERDINAND );
+#endif //FINALITY_SKILL_SYSTEM
 
 	g_pKTDXApp->GetDeviceManager()->StopSound( L"Eve_MEB_Condense_power.ogg" );
 	g_pKTDXApp->GetDeviceManager()->StopSound( L"Eve_MEB_FullCharge.ogg" );	
 
 #ifdef SERV_EVE_BATTLE_SERAPH
-	if ( CX2EffectSet::INVALID_HANDLE != m_hEffectEnergeticHeart  )
+	if ( INVALID_EFFECTSET_HANDLE != m_hEffectEnergeticHeart  )
 	{
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hEffectEnergeticHeart );
 	}
@@ -295,6 +365,33 @@ CX2GUEve::~CX2GUEve(void)
 	m_EveElectraSystem.SetPlaneFormation( PFT_NONE );
 	m_EveElectraSystem.SetEnableSystem( false );
 #endif
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	ClearManeuverCore( true );
+	// SetFullHyperMode( false );
+	if( m_hSeqHyperBall != INVALID_PARTICLE_SEQUENCE_HANDLE )
+	{
+		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle(m_hSeqHyperBall);
+	}
+
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	if ( NULL != g_pX2Game->GetDamageEffect() && NULL != m_pManeuverCoreParryingEffect )
+	{
+		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreParryingEffect );
+	}
+#else  FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	if ( m_hManeuverCoreParryingEffect != INVALID_EFFECTSET_HANDLE )
+	{
+		g_pX2Game->GetEffectSet()->DestroyInstanceHandle( m_hManeuverCoreParryingEffect );
+	}
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+
+	if ( m_pManeuverCoreAttackDamageEffect != NULL )
+	{
+		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreAttackDamageEffect );
+	}
+
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 }
 
 void CX2GUEve::ReInit( bool bRandom, int startPosIndex )
@@ -312,16 +409,24 @@ void CX2GUEve::ReInit( bool bRandom, int startPosIndex )
 	SetSelfDestructSummonedNPC( CX2UnitManager::NUI_ATOMIC_SHIELD_EVE );	/// 아토믹 쉴드 소환 해제
 #endif NEW_SKILL_2010_11
 	//}} JHKang / 강정훈 / 2010/11/23 / 아토믹 쉴드
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	SetSelfDestructSummonedNPC( CX2UnitManager::NUI_SI_HA_FERDINAND );
+#endif //FINALITY_SKILL_SYSTEM
+
 #ifdef EVE_ELECTRA
 	ClearThousandStar();
-	if( m_EffectSweepParadeTriangle != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeTriangle ) == true )
-	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffectSweepParadeTriangle != INVALID_DAMAGE_EFFECT_HANDLE )
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectSweepParadeTriangle );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( m_EffectSweepParadeTriangle != NULL )
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_EffectSweepParadeTriangle );
-	}
+    m_EffectSweepParadeTriangle = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif EVE_ELECTRA
 
 #ifdef SERV_EVE_BATTLE_SERAPH
-	if ( CX2EffectSet::INVALID_HANDLE != m_hEffectEnergeticHeart  )
+	if ( INVALID_EFFECTSET_HANDLE != m_hEffectEnergeticHeart  )
 	{
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hEffectEnergeticHeart );
 	}
@@ -356,6 +461,31 @@ void CX2GUEve::ReInit( bool bRandom, int startPosIndex )
 #ifdef FIX_SPECTRO_EL_CRYSTAL_ACTIVE_BUG
 	m_bStartSpectroElCrystal = false;		/// 분광결정이 스킬을 눌러 시작 되었는지, 버프로 시작 되었는지에 대한 여부
 #endif FIX_SPECTRO_EL_CRYSTAL_ACTIVE_BUG
+
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	m_pManeuverCore = NULL;
+	m_iManeuverCoreLv = 0;
+	m_fManeuverGauge = 0.f;
+	m_bManeuverCoreAttackLockOnNpc = false;
+	m_iManeuverCoreAttackLockOnUid = 0;		
+	m_bCanParrying  = false;		
+	m_fManeuverCoreStateTime = 0.f;
+	m_bHyperState = false;
+
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	if ( m_pManeuverCoreParryingEffect != NULL )
+	{
+		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreParryingEffect );
+	}
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항	
+	if ( m_hManeuverCoreParryingEffect != INVALID_EFFECTSET_HANDLE )
+	{
+		g_pX2Game->GetEffectSet()->DestroyInstanceHandle( m_hManeuverCoreParryingEffect );
+	}
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항	
+
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 }
 
 
@@ -371,6 +501,24 @@ void CX2GUEve::DamageReact( CX2DamageManager::DamageData* pDamageData )
 	KTDXPROFILE();
 	CX2GUUser::DamageReact( pDamageData );
 	CX2GUUser::DamageReactStateChange( pDamageData );
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	if( -1 < m_iFerdinandNPCUID )
+	{
+		CX2GUNPC* pFerdinand = g_pX2Game->GetNPCUnitByUID( m_iFerdinandNPCUID );
+		if( NULL != pFerdinand && pFerdinand->GetDyingStart() != true )
+		{
+			D3DXVECTOR3 vecMyDir = GetDirVector();
+			D3DXVECTOR3 vecMyPos = GetPos();
+			bool bMyIsRight = GetIsRight();
+
+			vecMyPos.x += ( vecMyDir.x * 20.f );
+
+			pFerdinand->SetPosition(vecMyPos, bMyIsRight);
+			pFerdinand->StateChange( "FERDINAND_ATTACK_A_EMERGENCY", true );
+		}
+	}
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef BALANCE_PATCH_20120329
 	m_fInvisibilityTime = 0.f;
@@ -446,48 +594,48 @@ void CX2GUEve::Draw()
 
 void CX2GUEve::ParseCommonRandomState()
 {
-	if( true == m_LuaManager.BeginTable( L"INIT_COMMON_RANDOM_STATE" ) )
+	if( true == m_LuaManager.BeginTable( "INIT_COMMON_RANDOM_STATE" ) )
 	{
 
-		std::wstring tableName = L"";
-		switch( m_pUnit->GetClass() )
+		const char* tableName = "";
+		switch( GetUnit()->GetClass() )
 		{
 		case CX2Unit::UC_EVE_NASOD:
 			{
-				tableName = L"EVE_NASOD";
+				tableName = "EVE_NASOD";
 			} break;
 
 		case CX2Unit::UC_EVE_EXOTIC_GEAR:
 			{
-				tableName = L"EVE_EXOTIC_GEAR";
+				tableName = "EVE_EXOTIC_GEAR";
 			} break;
 
 
 		case CX2Unit::UC_EVE_ARCHITECTURE:
 			{
-				tableName = L"EVE_ARCHITECTURE";
+				tableName = "EVE_ARCHITECTURE";
 			} break;
 
 		case CX2Unit::UC_EVE_CODE_NEMESIS:
 			{
-				tableName = L"UC_EVE_CODE_NEMESIS";
+				tableName = "UC_EVE_CODE_NEMESIS";
 			} break;
 
 
 		case CX2Unit::UC_EVE_CODE_EMPRESS:
 			{
-				tableName = L"UC_EVE_CODE_EMPRESS";
+				tableName = "UC_EVE_CODE_EMPRESS";
 			} break;
 #ifdef EVE_ELECTRA
 		case CX2Unit::UC_EVE_ELECTRA:
 			{
-				tableName = L"UC_EVE_ELECTRA";
+				tableName = "UC_EVE_ELECTRA";
 			} break;
 #endif EVE_ELECTRA
 #ifdef SERV_EVE_BATTLE_SERAPH
 		case CX2Unit::UC_EVE_BATTLE_SERAPH:
 			{
-				tableName = L"UC_EVE_BATTLE_SERAPH";
+				tableName = "UC_EVE_BATTLE_SERAPH";
 			} break;
 #endif
 		default:
@@ -509,16 +657,16 @@ void CX2GUEve::InitStateID()
 	m_CommonState.m_Wait	= USI_WAIT;
 	m_ChargeMpState			= USI_WAIT;
 
-#ifdef PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//
+//	m_FrozenState = ENSI_FROZEN;
+//
+//#endif PVP_BOSS_COMBAT_TEST
 
-	m_FrozenState = ENSI_FROZEN;
 
-#endif PVP_BOSS_COMBAT_TEST
-
-
-#ifdef TRANSFORMER_TEST
-	m_CommonState.m_Transformed			= ENSI_TRANSFORMED;
-#endif TRANSFORMER_TEST
+//#ifdef TRANSFORMER_TEST
+//	m_CommonState.m_Transformed			= ENSI_TRANSFORMED;
+//#endif TRANSFORMER_TEST
 
 }
 
@@ -528,7 +676,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_DIE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DIE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_DIE_FRONT_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DIE_FRONT_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DIE_FRONT_FrameMove );
@@ -537,7 +685,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_DIE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DIE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_DIE_BACK_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DIE_BACK_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DIE_BACK_FrameMove );
@@ -546,7 +694,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_START_INTRUDE;
-	m_LuaManager.MakeTableReference( L"ENSI_START_INTRUDE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_START_INTRUDE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, StartIntrudeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, StartIntrudeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartIntrudeEventProcess );
@@ -554,7 +702,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WAIT;
-	m_LuaManager.MakeTableReference( L"ENSI_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_WAIT_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_WAIT_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_WAIT_EventProcess );
@@ -562,34 +710,34 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WALK;
-	m_LuaManager.MakeTableReference( L"ENSI_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_WALK", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, WalkFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_WALK_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_READY;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_READY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_UP", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_UP_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_DOWN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_DOWN_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_LANDING_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_LANDING_EventProcess );
@@ -597,7 +745,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, DashStartFuture );	// Override
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -606,7 +754,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_END;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH_END", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_END_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_END_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_END_FrameMove );
@@ -615,7 +763,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_Start );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_FrameMoveFuture );
@@ -625,17 +773,15 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_JUMP_LANDING", stateData.stateID );
-#ifdef MODIFY_DASH_JUMP_LANDING_SPEED
+	m_LuaManager.MakeTableReference( "ENSI_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
-#endif
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_LANDING_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ENSI_DASH_JUMP_POWER_LANDING;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_JUMP_POWER_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH_JUMP_POWER_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_POWER_LANDING_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_POWER_LANDING_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_POWER_LANDING_EventProcess );
@@ -646,7 +792,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_JUMP_FLY_UP;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_FLY_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_FLY_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_FLY_UP_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_FLY_UP_Start );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_FLY_UP_FrameMoveFuture );
@@ -658,7 +804,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_JUMP_FLY_DOWN;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_FLY_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_FLY_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_FLY_DOWN_StartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_FLY_DOWN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_FLY_DOWN_EventProcess );
@@ -671,7 +817,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_JUMP_DASH;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_DASH_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_DASH_Start );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_DASH_FrameMoveFuture );
@@ -683,7 +829,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"ENSI_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_HYPER_MODE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, HyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, HyperModeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, HyperModeEventProcess );
@@ -695,86 +841,86 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_GROGGY;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_GROGGY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_GROGGY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DAMAGE_GROGGY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_SMALL_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_SMALL_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_SMALL_FRONT_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_SMALL_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_SMALL_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_SMALL_BACK_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_BIG_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_BIG_FRONT", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_BIG_FRONT_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_BIG_FRONT_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_BIG_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_BIG_BACK", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_BIG_BACK_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_BIG_BACK_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_DOWN_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_DOWN_FRONT", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_DOWN_FRONT_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_DOWN_FRONT_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_DOWN_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_DOWN_BACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_DOWN_BACK_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_DOWN_BACK_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_STANDUP_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_STANDUP_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_STANDUP_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_STANDUP_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_SMALL;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_AIR_SMALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_AIR_SMALL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DamageAirSmallStartFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirSmallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_AIR_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_AIR_DOWN", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_INVINCIBLE;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownInvincibleEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_LANDING;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DAMAGE_AIR_DOWN_LANDING_EventProcess );
@@ -782,31 +928,31 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FALL;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_AIR_FALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_AIR_FALL", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_UP;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_AIR_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_AIR_UP", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_REVENGE;
-	m_LuaManager.MakeTableReference( L"ENSI_DAMAGE_REVENGE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DAMAGE_REVENGE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageRevengeStart );
 	stateData.OnCameraMove		= SET_CB_FUNC( CX2GUUser, DamageRevengeCameraMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageRevengeEventProcess );
@@ -814,35 +960,35 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_STANDUP_ROLLING_FRONT_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ROLLING_FRONT_FRONT_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ROLLING_FRONT_FRONT_End );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ENSI_STANDUP_ROLLING_FRONT_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ROLLING_FRONT_BACK_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ROLLING_FRONT_BACK_End );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ENSI_STANDUP_ROLLING_BACK_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ROLLING_BACK_FRONT_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ROLLING_BACK_FRONT_End );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ENSI_STANDUP_ROLLING_BACK_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ROLLING_BACK_BACK_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ROLLING_BACK_BACK_End );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ENSI_STANDUP_ATTACK_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_STANDUP_ATTACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_STANDUP_ATTACK_FRONT", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ATTACK_FRONT_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ATTACK_FRONT_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ATTACK_FRONT_End );
@@ -850,7 +996,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_STANDUP_ATTACK_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_STANDUP_ATTACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_STANDUP_ATTACK_BACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ATTACK_BACK_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ATTACK_BACK_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_STANDUP_ATTACK_BACK_End );
@@ -859,7 +1005,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_Z", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_Z_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_Z_End );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_Z_FrameMove );
@@ -868,7 +1014,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_ZZ;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_ZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_ZZ", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZ_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZ_End );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZ_FrameMove );
@@ -877,7 +1023,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_ZZZ;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_ZZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_ZZZ", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZ_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZ_End );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZ_FrameMove );
@@ -887,7 +1033,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_ZZZZ;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_ZZZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_ZZZZ", stateData.stateID );
 	//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZZ_FrameMoveFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZZ_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZZ_End );
@@ -898,7 +1044,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_ZZZX;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_ZZZX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_ZZZX", stateData.stateID );
 	//stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZX_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZX_EventProcess );
@@ -908,7 +1054,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_ZZZdownZ;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_ZZZdownZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_ZZZdownZ", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZdownZ_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZdownZ_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZdownZ_End );
@@ -918,7 +1064,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_X;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_X", stateData.stateID );
 #ifdef EVE_ELECTRA
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_X_Start );
 #endif EVE_ELECTRA
@@ -928,7 +1074,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_XX;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_XX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_XX", stateData.stateID );
 #ifdef EVE_ELECTRA
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XX_Start );
 #endif EVE_ELECTRA
@@ -939,7 +1085,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_XXX;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_XXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_XXX", stateData.stateID );
 #ifdef EVE_ELECTRA
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXX_Start );
 #endif EVE_ELECTRA
@@ -950,14 +1096,14 @@ void CX2GUEve::InitStateCommon()
 #ifdef EVE_ELECTRA
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_XXfrontX;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_XXfrontX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_XXfrontX", stateData.stateID );
 	//stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXfrontX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXfrontX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_XXdownX;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_XXdownX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_XXdownX", stateData.stateID );
 	//stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXdownX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXdownX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -965,7 +1111,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_DASH_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH_COMBO_Z", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_Z_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_Z_End );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_Z_FrameMove );
@@ -975,7 +1121,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_DASH_COMBO_X;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH_COMBO_X", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_X_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_X_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -983,7 +1129,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_JUMP_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_COMBO_Z", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_COMBO_Z_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_COMBO_Z_End );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_COMBO_Z_FrameMove );
@@ -992,7 +1138,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_JUMP_COMBO_X;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_COMBO_X", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_COMBO_X_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_COMBO_X_End );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_COMBO_X_FrameMove );
@@ -1002,7 +1148,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_JUMP_COMBO_X_LANDING;
-	m_LuaManager.MakeTableReference( L"ENSI_JUMP_COMBO_X_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_JUMP_COMBO_X_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_COMBO_X_LANDING_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_COMBO_X_LANDING_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_JUMP_COMBO_X_LANDING_EventProcess );
@@ -1011,7 +1157,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_DASH_JUMP_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_JUMP_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH_JUMP_COMBO_Z", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_Z_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_Z_End );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_Z_FrameMove );
@@ -1021,7 +1167,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_DASH_JUMP_COMBO_ZZ;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_JUMP_COMBO_ZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH_JUMP_COMBO_ZZ", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_ZZ_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_ZZ_End );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_ZZ_FrameMove );
@@ -1032,7 +1178,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_DASH_JUMP_COMBO_ZZZ;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_JUMP_COMBO_ZZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH_JUMP_COMBO_ZZZ", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_ZZZ_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_ZZZ_End );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_ZZZ_FrameMove );
@@ -1042,7 +1188,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_DASH_JUMP_COMBO_X;
-	m_LuaManager.MakeTableReference( L"ENSI_DASH_JUMP_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_DASH_JUMP_COMBO_X", stateData.stateID );
 	//stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_X_Init );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_X_Start );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_X_End );
@@ -1054,7 +1200,7 @@ void CX2GUEve::InitStateCommon()
 #ifdef WALL_JUMP_TEST
 	stateData.Init();
 	stateData.stateID			= ENSI_WALL_LANDING;
-	m_LuaManager.MakeTableReference( L"ENSI_WALL_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_WALL_LANDING", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, WallLandingEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GUUser, WallLandingEndFuture );
 	m_StateList[stateData.stateID] = stateData;
@@ -1063,27 +1209,27 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_READY;
-	m_LuaManager.MakeTableReference( L"ENSI_PEPPER_RUN_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_PEPPER_RUN_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_READY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN;
-	m_LuaManager.MakeTableReference( L"ENSI_PEPPER_RUN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_PEPPER_RUN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_END;
-	m_LuaManager.MakeTableReference( L"ENSI_PEPPER_RUN_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_PEPPER_RUN_END", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ENSI_PEPPER_RUN_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_PEPPER_RUN_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_EventProcess );
@@ -1091,7 +1237,7 @@ void CX2GUEve::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ENSI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_EventProcess );
@@ -1100,7 +1246,7 @@ void CX2GUEve::InitStateCommon()
 #ifdef SPECIAL_USE_ITEM
 	stateData.Init();
 	stateData.stateID			= USI_THROW_ITEM;
-	m_LuaManager.MakeTableReference( L"ENSI_THROW_ITEM", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_THROW_ITEM", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_StateStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMove );
@@ -1114,7 +1260,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_START
 	stateData.Init();
 	stateData.stateID			= GetRidingStartStateID();
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_START", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingStartStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingStartStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingStartEventProcess );
@@ -1125,7 +1271,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_ON
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ON;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_ON", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_ON", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingOnStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingOnStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOnEventProcess );
@@ -1136,7 +1282,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_OFF
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_OFF;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_OFF", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_OFF", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOffEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, RidingOffEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -1145,7 +1291,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_WAIT_HABIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT_HABIT;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_WAIT_HABIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_WAIT_HABIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitEventProcess );
@@ -1155,7 +1301,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_WAIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitEventProcess );
@@ -1165,7 +1311,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_WALK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WALK;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_WALK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWalkStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWalkStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, WalkFrameMoveFuture );
@@ -1176,7 +1322,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_JUMP_UP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpUpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpUpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -1187,7 +1333,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_JUMP_DOWN
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpDownStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpDownStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -1198,7 +1344,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingEventProcess );
@@ -1208,7 +1354,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_DASH
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -1219,7 +1365,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_DASH_END
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_END;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_DASH_END", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashEndStart );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashEndStartFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingDashEndFrameMove );
@@ -1230,7 +1376,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_DASH_JUMP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpFrameMoveFuture );
@@ -1242,7 +1388,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_DASH_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingEventProcess );
@@ -1252,7 +1398,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_DAMAGE_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_FRONT;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_DAMAGE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_DAMAGE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontEventProcess );
@@ -1262,7 +1408,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_DAMAGE_BACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_BACK;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_DAMAGE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_DAMAGE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageBackStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageBackEventProcess );
@@ -1272,7 +1418,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_DIE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DIE;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_DIE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_DIE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_DIE_FRONT_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DIE_FRONT_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DIE_FRONT_FrameMove );
@@ -1283,7 +1429,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackZStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackZEventProcess );
@@ -1293,7 +1439,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_JUMP_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZFrameMoveFuture );
@@ -1304,7 +1450,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_ATTACK_X
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_ATTACK_X", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackXStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackXStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackXEventProcess );
@@ -1314,7 +1460,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_SPECIAL_ATTACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_ATTACK;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_ATTACK_SPECIAL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_ATTACK_SPECIAL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackFrameMove );
@@ -1325,7 +1471,7 @@ void CX2GUEve::InitStateCommon()
 	#pragma region ENSI_RIDING_SPECIAL_MOVE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_MOVE;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_SPECIAL_MOVE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_SPECIAL_MOVE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveFrameMoveFuture );
@@ -1340,7 +1486,7 @@ void CX2GUEve::InitStateCommon()
 #ifdef MODIFY_RIDING_PET_AWAKE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"ENSI_RIDING_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_RIDING_HYPER_MODE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingHyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, RidingHyperModeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingHyperModeEventProcess );
@@ -1351,52 +1497,105 @@ void CX2GUEve::InitStateCommon()
 	m_StateList[stateData.stateID] = stateData;
 #endif // MODIFY_RIDING_PET_AWAKE
 
-#ifdef PVP_BOSS_COMBAT_TEST
-
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	// Small 데미지에 반응하는 Parrying State
 	stateData.Init();
-	stateData.stateID			= ENSI_FROZEN;
-	m_LuaManager.MakeTableReference( L"ENSI_FROZEN", stateData.stateID );
-	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
-	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
-	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
+	stateData.stateID			= ENSI_PARRYING_SMALL;
+	m_LuaManager.MakeTableReference( "ENSI_PARRYING_SMALL", stateData.stateID );
+	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_StartFuture );
+	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_Start );
+	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_EventProcess );
+	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_StateEnd ); 
 	m_StateList[stateData.stateID] = stateData;
 
-	m_FrozenState = ENSI_FROZEN;
-
-#endif PVP_BOSS_COMBAT_TEST
-
-
-
-
-
-
-#ifdef TRANSFORMER_TEST
+	// Small 이 아닌 데미지에 반응하는 Parrying State
+	stateData.Init();
+	stateData.stateID			= ENSI_PARRYING;
+	m_LuaManager.MakeTableReference( "ENSI_PARRYING", stateData.stateID );
+	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_StartFuture );
+	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_Start );
+	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_EventProcess );
+	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_StateEnd );	
+	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
-	stateData.stateID			= ENSI_TRANSFORMED;
-	m_LuaManager.MakeTableReference( L"ENSI_TRANSFORMED", stateData.stateID );
+	stateData.stateID			= ENSI_PARRYING_BLINK;
+	m_LuaManager.MakeTableReference( "ENSI_PARRYING_BLINK", stateData.stateID );
+
+	// Parrying 중 Z 혹은 X 키로 변경되는 점멸 State
+	stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_BLINK_Init );
+	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_BLINK_Start );
+	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_BLINK_StartFuture );
+	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_BLINK_EventProcess );
+	stateData.OnFrameMoveFuture = SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_BLINK_FrameMoveFuture );
+	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_BLINK_FrameMove );
+	stateData.StateEndFuture	= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_BLINK_EndFuture );	
+	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_PARRYING_BLINK_End );
+
 	m_StateList[stateData.stateID] = stateData;
-	m_CommonState.m_Transformed = ENSI_TRANSFORMED;
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	stateData.Init();
+	stateData.stateID			= ENSI_BERSERK_MODE;
+	m_LuaManager.MakeTableReference( "ENSI_BERSERK_MODE", stateData.stateID );
+	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, HyperModeStart );
+	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, HyperModeFrameMove );
+	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, HyperModeEventProcess );
+	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, HyperModeStartFuture );
+	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, HyperModeEnd );
+	m_StateList[stateData.stateID] = stateData;
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 
 
-#endif TRANSFORMER_TEST
+
+
+//#ifdef PVP_BOSS_COMBAT_TEST
+//
+//	stateData.Init();
+//	stateData.stateID			= ENSI_FROZEN;
+//	m_LuaManager.MakeTableReference( "ENSI_FROZEN", stateData.stateID );
+//	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
+//	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
+//	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
+//	m_StateList[stateData.stateID] = stateData;
+//
+//	m_FrozenState = ENSI_FROZEN;
+//
+//#endif PVP_BOSS_COMBAT_TEST
+
+
+
+
+
+
+//#ifdef TRANSFORMER_TEST
+//
+//	stateData.Init();
+//	stateData.stateID			= ENSI_TRANSFORMED;
+//	m_LuaManager.MakeTableReference( "ENSI_TRANSFORMED", stateData.stateID );
+//	m_StateList[stateData.stateID] = stateData;
+//	m_CommonState.m_Transformed = ENSI_TRANSFORMED;
+//
+//
+//#endif TRANSFORMER_TEST
 
 	//stateData.Init();
 	//stateData.stateID			= ENSI_SUPER_DASH_READY;
-	//m_LuaManager.MakeTableReference( L"ENSI_SUPER_DASH_READY", stateData.stateID );
+	//m_LuaManager.MakeTableReference( "ENSI_SUPER_DASH_READY", stateData.stateID );
 	//stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SUPER_DASH_READY_EventProcess );
 	//m_StateList[stateData.stateID] = stateData;
 
 	//stateData.Init();
 	//stateData.stateID			= ENSI_SUPER_DASH;
-	//m_LuaManager.MakeTableReference( L"ENSI_SUPER_DASH", stateData.stateID );
+	//m_LuaManager.MakeTableReference( "ENSI_SUPER_DASH", stateData.stateID );
 	//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SUPER_DASH_FrameMoveFuture );
 	//stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SUPER_DASH_EventProcess );
 	//m_StateList[stateData.stateID] = stateData;
 
 	//stateData.Init();
 	//stateData.stateID			= ENSI_SUPER_DASH_END;
-	//m_LuaManager.MakeTableReference( L"ENSI_SUPER_DASH_END", stateData.stateID );
+	//m_LuaManager.MakeTableReference( "ENSI_SUPER_DASH_END", stateData.stateID );
 	//stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SUPER_DASH_END_FrameMove );
 	//stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SUPER_DASH_END_EventProcess );
 	//m_StateList[stateData.stateID] = stateData;
@@ -1405,11 +1604,10 @@ void CX2GUEve::InitStateCommon()
 
 void CX2GUEve::InitState()
 {
-	ASSERT( NULL != m_pUnit );
-	ASSERT( NULL != m_pUnit->GetUnitData() );
+	ASSERT( NULL != GetUnit() );
 
 
-	CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+	const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 	switch( pUnitData->m_UnitClass )
 	{
@@ -1464,10 +1662,10 @@ void CX2GUEve::InitState()
 	InitStateCommon();
 
 	// 공통으로 쓰는 랜덤한 상태 start, win, lose 상태 초기화
-	std::wstring tableNameStart	= L"";
-	std::wstring tableNameWin	= L"";
-	std::wstring tableNameLose	= L"";
-	InitStateCommonRandom( tableNameStart, tableNameWin, tableNameLose );
+	std::string tableNameStartUTF8;
+	std::string tableNameWinUTF8;
+	std::string tableNameLoseUTF8;
+	InitStateCommonRandom( tableNameStartUTF8, tableNameWinUTF8, tableNameLoseUTF8 );
 
 
 	UserUnitStateData stateData;
@@ -1475,7 +1673,7 @@ void CX2GUEve::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_START;
-	m_LuaManager.MakeTableReference( tableNameStart.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameStartUTF8.c_str(), stateData.stateID );
 	//{{ kimhc // 2010-03-09 // start 모션의 effect들을 effectset으로 바꿈
 	//stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, StartFrameMove );
 	//}} kimhc // 2010-03-09 // start 모션의 effect들을 effectset으로 바꿈
@@ -1487,7 +1685,7 @@ void CX2GUEve::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_WIN;
-	m_LuaManager.MakeTableReference( tableNameWin.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameWinUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, WinStateStart );	
 #endif
@@ -1501,7 +1699,7 @@ void CX2GUEve::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_LOSE;
-	m_LuaManager.MakeTableReference( tableNameLose.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameLoseUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, LoseStateStart );	
 #endif
@@ -1511,12 +1709,12 @@ void CX2GUEve::InitState()
 	//}} kimhc // 2010-03-09 // start 모션의 effect들을 effectset으로 바꿈
 	m_StateList[stateData.stateID] = stateData;
 
-	if( 0 == tableNameWin.compare( L"ENSI_WIN2" ) || 0 == tableNameWin.compare( L"ENSI_AT_WIN2" ) || 0 == tableNameWin.compare( L"ENSI_EG_WIN2" ))
+	if( 0 == tableNameWinUTF8.compare( "ENSI_WIN2" ) || 0 == tableNameWinUTF8.compare( "ENSI_AT_WIN2" ) || 0 == tableNameWinUTF8.compare( "ENSI_EG_WIN2" ))
 	{
 		m_bIsWinMotion2 = true;
 	}
 
-	if( 0 == tableNameLose.compare( L"ENSI_LOSE2" ) || 0 == tableNameLose.compare( L"ENSI_AT_LOSE2" ) || 0 == tableNameLose.compare( L"ENSI_EG_LOSE2" ))
+	if( 0 == tableNameLoseUTF8.compare( "ENSI_LOSE2" ) || 0 == tableNameLoseUTF8.compare( "ENSI_AT_LOSE2" ) || 0 == tableNameLoseUTF8.compare( "ENSI_EG_LOSE2" ))
 	{
 		m_bIsLoseMotion2 = true;
 	}
@@ -1534,7 +1732,7 @@ void CX2GUEve::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ENSI_COMBO_ZZZdownZZ;
-			m_LuaManager.MakeTableReference( L"ENSI_COMBO_ZZZdownZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_COMBO_ZZZdownZZ", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZdownZZ_Init );			
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZdownZZ_StartFuture );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZZdownZZ_Start );
@@ -1553,7 +1751,7 @@ void CX2GUEve::InitState()
 #ifdef EVE_FIRST_CHANGE_JOB
 			stateData.Init();
 			stateData.stateID			= ENSI_COMBO_XXZ4;
-			m_LuaManager.MakeTableReference( L"ENSI_COMBO_XXZ4", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_COMBO_XXZ4", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXZ4_Init );			
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXZ4_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXZ4_EventProcess );
@@ -1574,7 +1772,7 @@ void CX2GUEve::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ENSI_EPR_COMBO_ZZZfrontZ;
-			m_LuaManager.MakeTableReference( L"ENSI_EPR_COMBO_ZZZfrontZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EPR_COMBO_ZZZfrontZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EPR_COMBO_ZZZfrontZ_Start );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_EPR_COMBO_ZZZfrontZ_End );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EPR_COMBO_ZZZfrontZ_FrameMove );
@@ -1583,7 +1781,7 @@ void CX2GUEve::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ENSI_EPR_COMBO_XXZ;
-			m_LuaManager.MakeTableReference( L"ENSI_EPR_COMBO_XXZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EPR_COMBO_XXZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EPR_COMBO_XXZ_Start );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_EPR_COMBO_XXZ_End );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EPR_COMBO_XXZ_FrameMove );
@@ -1597,7 +1795,7 @@ void CX2GUEve::InitState()
 #ifdef EVE_ELECTRA
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_XXfrontXX;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_XXfrontXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_XXfrontXX", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXfrontXX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXfrontXX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1606,7 +1804,7 @@ void CX2GUEve::InitState()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_COMBO_XXdownXX;
-	m_LuaManager.MakeTableReference( L"ENSI_COMBO_XXdownXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_COMBO_XXdownXX", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXdownXX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_XXdownXX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1618,7 +1816,7 @@ void CX2GUEve::InitState()
 #pragma region 부스트 대쉬 스타트
 	stateData.Init();
 	stateData.stateID			= ENSI_EBS_BOOST_DASH_START;
-	m_LuaManager.MakeTableReference( L"ENSI_EBS_BOOST_DASH_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_EBS_BOOST_DASH_START", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_START_StartFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_START_EventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_START_EndFuture );
@@ -1628,7 +1826,7 @@ void CX2GUEve::InitState()
 #pragma region 부스트 대쉬
 	stateData.Init();
 	stateData.stateID			= ENSI_EBS_BOOST_DASH;
-	m_LuaManager.MakeTableReference( L"ENSI_EBS_BOOST_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_EBS_BOOST_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_FrameMove );
@@ -1641,7 +1839,7 @@ void CX2GUEve::InitState()
 #pragma region 부스트 대쉬 스타트
 	stateData.Init();
 	stateData.stateID			= ENSI_EBS_BOOST_DASH_AIR_START;
-	m_LuaManager.MakeTableReference( L"ENSI_EBS_BOOST_DASH_AIR_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_EBS_BOOST_DASH_AIR_START", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_AIR_START_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_AIR_START_Start );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_AIR_START_FrameMoveFuture );
@@ -1653,7 +1851,7 @@ void CX2GUEve::InitState()
 #pragma region 부스트 대쉬 에어
 	stateData.Init();
 	stateData.stateID			= ENSI_EBS_BOOST_DASH_AIR;
-	m_LuaManager.MakeTableReference( L"ENSI_EBS_BOOST_DASH_AIR", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_EBS_BOOST_DASH_AIR", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_AIR_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_AIR_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_BOOST_DASH_AIR_FrameMove );
@@ -1667,7 +1865,7 @@ void CX2GUEve::InitState()
 #pragma region 대쉬 점프 콤보 X(Push)Z
 	stateData.Init();
 	stateData.stateID			= ENSI_EBS_DASH_JUMP_COMBO_XZ;
-	m_LuaManager.MakeTableReference( L"ENSI_EBS_DASH_JUMP_COMBO_XZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_EBS_DASH_JUMP_COMBO_XZ", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_XZ_Start );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_XZ_EndFuture );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_XZ_End );
@@ -1679,7 +1877,7 @@ void CX2GUEve::InitState()
 #pragma region 이브 부스트 점프 공격
 	stateData.Init();
 	stateData.stateID			= ENSI_EBS_DASH_JUMP_COMBO_ZFrontX;
-	m_LuaManager.MakeTableReference( L"ENSI_EBS_DASH_JUMP_COMBO_ZFrontX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_EBS_DASH_JUMP_COMBO_ZFrontX", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_ZFrontX_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_ZFrontX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_ZFrontX_EventProcess );
@@ -1689,7 +1887,7 @@ void CX2GUEve::InitState()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_EBS_DASH_JUMP_COMBO_ZUpX;
-	m_LuaManager.MakeTableReference( L"ENSI_EBS_DASH_JUMP_COMBO_ZUpX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_EBS_DASH_JUMP_COMBO_ZUpX", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_ZUpX_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_ZUpX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_ZUpX_EventProcess );
@@ -1699,7 +1897,7 @@ void CX2GUEve::InitState()
 
 	stateData.Init();
 	stateData.stateID			= ENSI_EBS_DASH_JUMP_COMBO_ZDownX;
-	m_LuaManager.MakeTableReference( L"ENSI_EBS_DASH_JUMP_COMBO_ZDownX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ENSI_EBS_DASH_JUMP_COMBO_ZDownX", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_ZDownX_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_ZDownX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_DASH_JUMP_COMBO_ZDownX_EventProcess );
@@ -1719,7 +1917,7 @@ void CX2GUEve::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ENSI_DASH_COMBO_ZZ;
-			m_LuaManager.MakeTableReference( L"ENSI_DASH_COMBO_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_DASH_COMBO_ZZ", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_ZZ_Init );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_ZZ_StartFuture );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_ZZ_Start );					
@@ -1730,7 +1928,7 @@ void CX2GUEve::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ENSI_DASH_COMBO_ZZZ;										
-			m_LuaManager.MakeTableReference( L"ENSI_DASH_COMBO_ZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_DASH_COMBO_ZZZ", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_ZZZ_StartFuture );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_ZZZ_Start );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_ZZZ_End );
@@ -1740,7 +1938,7 @@ void CX2GUEve::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ENSI_DASH_COMBO_XZ;
-			m_LuaManager.MakeTableReference( L"ENSI_DASH_COMBO_XZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_DASH_COMBO_XZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_XZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_XZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1753,7 +1951,7 @@ void CX2GUEve::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ENSI_EP_DASH_COMBO_ZZ;
-			m_LuaManager.MakeTableReference( L"ENSI_EP_DASH_COMBO_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EP_DASH_COMBO_ZZ", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_EP_DASH_COMBO_ZZ_Init );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EP_DASH_COMBO_ZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EP_DASH_COMBO_ZZ_EventProcess );
@@ -1761,7 +1959,7 @@ void CX2GUEve::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ENSI_EP_DASH_COMBO_ZZZ;
-			m_LuaManager.MakeTableReference( L"ENSI_EP_DASH_COMBO_ZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EP_DASH_COMBO_ZZZ", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_EP_DASH_COMBO_ZZZ_Init );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EP_DASH_COMBO_ZZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EP_DASH_COMBO_ZZZ_EventProcess );
@@ -1779,7 +1977,7 @@ void CX2GUEve::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ENSI_EPR_DASH_COMBO_ZZ;										
-			m_LuaManager.MakeTableReference( L"ENSI_EPR_DASH_COMBO_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EPR_DASH_COMBO_ZZ", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_EPR_DASH_COMBO_ZZ_Init );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_EPR_DASH_COMBO_ZZ_StartFuture );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EPR_DASH_COMBO_ZZ_Start );
@@ -1790,7 +1988,7 @@ void CX2GUEve::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ENSI_EPR_DASH_COMBO_ZZZ;										
-			m_LuaManager.MakeTableReference( L"ENSI_EPR_DASH_COMBO_ZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EPR_DASH_COMBO_ZZZ", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_EPR_DASH_COMBO_ZZZ_Init );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_EPR_DASH_COMBO_ZZZ_StartFuture );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EPR_DASH_COMBO_ZZZ_Start );
@@ -1814,7 +2012,7 @@ void CX2GUEve::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ENSI_NS_DASH_COMBO_ZX;
-			m_LuaManager.MakeTableReference( L"ENSI_NS_DASH_COMBO_ZX", stateData.stateID );		
+			m_LuaManager.MakeTableReference( "ENSI_NS_DASH_COMBO_ZX", stateData.stateID );		
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_NS_DASH_COMBO_ZX_Init );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_NS_DASH_COMBO_ZX_Start );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_NS_DASH_COMBO_ZX_FrameMove );
@@ -1823,7 +2021,7 @@ void CX2GUEve::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ENSI_NS_DASH_COMBO_ZXX;							
-			m_LuaManager.MakeTableReference( L"ENSI_NS_DASH_COMBO_ZXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_NS_DASH_COMBO_ZXX", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_NS_DASH_COMBO_ZXX_Init );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_NS_DASH_COMBO_ZXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_NS_DASH_COMBO_ZXX_EventProcess );
@@ -1832,14 +2030,14 @@ void CX2GUEve::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ENSI_NS_COMBO_XXZ;
-			m_LuaManager.MakeTableReference( L"ENSI_NS_COMBO_XXZ", stateData.stateID );			
+			m_LuaManager.MakeTableReference( "ENSI_NS_COMBO_XXZ", stateData.stateID );			
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_NS_COMBO_XXZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_NS_COMBO_XXZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ENSI_NS_COMBO_XXZZ8;										
-			m_LuaManager.MakeTableReference( L"ENSI_NS_COMBO_XXZZ8", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_NS_COMBO_XXZZ8", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_NS_COMBO_XXZZ8_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_NS_COMBO_XXZZ8_EventProcess );
 
@@ -1847,7 +2045,7 @@ void CX2GUEve::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ENSI_NS_COMBO_XXZZ8Z;
-			m_LuaManager.MakeTableReference( L"ENSI_NS_COMBO_XXZZ8Z", stateData.stateID );			
+			m_LuaManager.MakeTableReference( "ENSI_NS_COMBO_XXZZ8Z", stateData.stateID );			
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_NS_COMBO_XXZZ8Z_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_NS_COMBO_XXZZ8Z_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1859,7 +2057,7 @@ void CX2GUEve::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ENSI_EP_JUMP_COMBO_ZX;
-			m_LuaManager.MakeTableReference( L"ENSI_EP_JUMP_COMBO_ZX", stateData.stateID );		
+			m_LuaManager.MakeTableReference( "ENSI_EP_JUMP_COMBO_ZX", stateData.stateID );		
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_EP_JUMP_COMBO_ZX_Init );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EP_JUMP_COMBO_ZX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EP_JUMP_COMBO_ZX_EventProcess );
@@ -1867,7 +2065,7 @@ void CX2GUEve::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ENSI_EP_COMBO_XXdownX;										
-			m_LuaManager.MakeTableReference( L"ENSI_EP_COMBO_XXdownX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EP_COMBO_XXdownX", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_EP_COMBO_XXdownX_Init );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EP_COMBO_XXdownX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EP_COMBO_XXdownX_EventProcess );
@@ -1881,7 +2079,7 @@ void CX2GUEve::InitState()
 	//#ifdef EVE_COMBO_TEST_TEST
 	//	stateData.Init();
 	//	stateData.stateID			= ENSI_DASH_COMBO_ZX;
-	//	m_LuaManager.MakeTableReference( L"ENSI_DASH_COMBO_ZX", stateData.stateID );
+	//	m_LuaManager.MakeTableReference( "ENSI_DASH_COMBO_ZX", stateData.stateID );
 	//	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_ZX_FrameMove );
 	//	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_COMBO_ZX_EventProcess );
 	//	m_StateList[stateData.stateID] = stateData;
@@ -1897,7 +2095,7 @@ void CX2GUEve::InitState()
 	//	{
 	//		stateData.Init();
 	//		stateData.stateID			= ENSI_DASH_JUMP_COMBO_ZX;
-	//		m_LuaManager.MakeTableReference( L"ENSI_DASH_JUMP_COMBO_ZX", stateData.stateID );
+	//		m_LuaManager.MakeTableReference( "ENSI_DASH_JUMP_COMBO_ZX", stateData.stateID );
 	//		stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_ZX_FrameMove );
 	//		stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_ZX_EventProcess );
 	//		stateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_ZX_End );
@@ -1916,7 +2114,7 @@ void CX2GUEve::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ENSI_DASH_JUMP_COMBO_XZ;
-			m_LuaManager.MakeTableReference( L"ENSI_DASH_JUMP_COMBO_XZ", stateData.stateID );	
+			m_LuaManager.MakeTableReference( "ENSI_DASH_JUMP_COMBO_XZ", stateData.stateID );	
 			stateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_XZ_Init );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_XZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_DASH_JUMP_COMBO_XZ_EventProcess );
@@ -1932,13 +2130,13 @@ void CX2GUEve::InitState()
 
 	//stateData.Init();
 	//stateData.stateID			= ENSI_COMBO_ZZX;
-	//m_LuaManager.MakeTableReference( L"ENSI_COMBO_ZZX", stateData.stateID );
+	//m_LuaManager.MakeTableReference( "ENSI_COMBO_ZZX", stateData.stateID );
 	//stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZX_EventProcess );
 	//m_StateList[stateData.stateID] = stateData;
 
 	//stateData.Init();
 	//stateData.stateID			= ENSI_COMBO_ZZXX;
-	//m_LuaManager.MakeTableReference( L"ENSI_COMBO_ZZXX", stateData.stateID );
+	//m_LuaManager.MakeTableReference( "ENSI_COMBO_ZZXX", stateData.stateID );
 	//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZXX_FrameMoveFuture );
 	//stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_COMBO_ZZXX_EventProcess );
 	//m_StateList[stateData.stateID] = stateData;
@@ -1976,11 +2174,11 @@ void CX2GUEve::InitState()
 	{	
 	case CX2SkillTree::ST_BUFF:
 		{	// 버프 필살기
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_COMMON_BUFF", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_COMMON_BUFF", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, COMMON_BUFF_FrameMove );	
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_COMMON_BUFF_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_COMMON_BUFF_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, COMMON_BUFF_FrameMove );	
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );
 
@@ -1988,6 +2186,9 @@ void CX2GUEve::InitState()
 		} break;
 	case CX2SkillTree::ST_ACTIVE:
 	case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 		{
 			// ST_ACTIVE, ST_SPECIAL_ACTIVE는 아래 구문에서 수행
 		} break;
@@ -1998,11 +2199,11 @@ void CX2GUEve::InitState()
 			{
 			case CX2SkillTree::SI_ETC_WS_COMMON_LOVE:
 				{
-					m_LuaManager.MakeTableReference( L"ENSI_THROW_ITEM", normalStateData.stateID );
+					m_LuaManager.MakeTableReference( "ENSI_THROW_ITEM", normalStateData.stateID );
 					normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_FrameMove );	
 					normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_EventProcess );	
 
-					m_LuaManager.MakeTableReference( L"ENSI_THROW_ITEM", hyperStateData.stateID );
+					m_LuaManager.MakeTableReference( "ENSI_THROW_ITEM", hyperStateData.stateID );
 					hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 					hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 				} break;
@@ -2028,13 +2229,13 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_EN_ILLUSION_STRIKE:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_ILLUSION_STRIKE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_ILLUSION_STRIKE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_ILLUSION_STRIKE_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_ILLUSION_STRIKE_FrameMove );
 			//normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_ILLUSION_STRIKE_CameraMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_ILLUSION_STRIKE_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_ILLUSION_STRIKE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_ILLUSION_STRIKE_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_ILLUSION_STRIKE_HYPER_FrameMove );
 			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_MAXIMUM_CANNON_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_ILLUSION_STRIKE_HYPER_EventProcess );
@@ -2046,13 +2247,13 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_EN_DIMENSION_LINK:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_DIMENSION_LINK", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_DIMENSION_LINK", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_DIMENSION_LINK_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_DIMENSION_LINK_FrameMove );
 			//normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_DIMENSION_LINK_CameraMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_DIMENSION_LINK_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_DIMENSION_LINK_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_DIMENSION_LINK_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_DIMENSION_LINK_HYPER_FrameMove );
 			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_DIMENSION_LINK_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_DIMENSION_LINK_HYPER_EventProcess );
@@ -2062,56 +2263,37 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_SA_EN_ILLUSION_STINGER:
 		{
-#ifdef NEW_MEMO_01
-			wstring wstrStateName = L"ENSI_SI2_ILLUSION_STINGER";
-			wstring wstrHyperStateName = L"ENSI_SI2_ILLUSION_STINGER_HYPER";
+			const char* pszStateName = "ENSI_SI2_ILLUSION_STINGER";
+			const char* pszHyperStateName = "ENSI_SI2_ILLUSION_STINGER_HYPER";
 
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO8 ) == true )
 			{
-				wstrStateName = L"ENSI_SI2_ILLUSION_STINGER_MEMO";
-				wstrHyperStateName = L"ENSI_SI2_ILLUSION_STINGER_HYPER_MEMO";
+				pszStateName = "ENSI_SI2_ILLUSION_STINGER_MEMO";
+				pszHyperStateName = "ENSI_SI2_ILLUSION_STINGER_HYPER_MEMO";
 			}
 
-			m_LuaManager.MakeTableReference( wstrStateName.c_str(), normalStateData.stateID );
+			m_LuaManager.MakeTableReference( pszStateName, normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_Start );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_End );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_EventProcess );	
 
-			m_LuaManager.MakeTableReference( wstrHyperStateName.c_str(), hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( pszHyperStateName, hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_Start );
 			hyperStateData.StateEnd				= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_End );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_EventProcess );
-#else
-			m_LuaManager.MakeTableReference( L"ENSI_SI2_ILLUSION_STINGER", normalStateData.stateID );
-			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_Init );
-			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_Start );
-			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_End );
-			//normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_FrameMoveFuture );
-			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_FrameMove );
-			//normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_CameraMove );		
-			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_EventProcess );	
-
-			m_LuaManager.MakeTableReference( L"ENSI_SI2_ILLUSION_STINGER_HYPER", hyperStateData.stateID );
-			//hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMoveFuture );
-			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_Start );
-			hyperStateData.StateEnd				= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_End );
-			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove );
-			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_CameraMove );
-			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_ILLUSION_STINGER_HYPER_EventProcess );
-#endif
 		} break;
 
 	case CX2SkillTree::SI_SA_EN_DIMENSION_LINK_BLADER:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI2_DIMENSION_LINK_BLADER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI2_DIMENSION_LINK_BLADER", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_DIMENSION_LINK_BLADER_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_DIMENSION_LINK_BLADER_FrameMove );	
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_DIMENSION_LINK_BLADER_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI2_DIMENSION_LINK_BLADER_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI2_DIMENSION_LINK_BLADER_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_DIMENSION_LINK_BLADER_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_DIMENSION_LINK_BLADER_HYPER_EventProcess );
 
@@ -2119,14 +2301,14 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_SA_EN_GENERATE_BLACKHOLE:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI3_GENERATE_BLACKHOLE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI3_GENERATE_BLACKHOLE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_GENERATE_BLACKHOLE_Init );
 			//normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SI3_GENERATE_BLACKHOLE_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_GENERATE_BLACKHOLE_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI3_GENERATE_BLACKHOLE_EventProcess );
 			//normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_GENERATE_BLACKHOLE_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI3_GENERATE_BLACKHOLE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI3_GENERATE_BLACKHOLE_HYPER", hyperStateData.stateID );
 			//hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SI3_GENERATE_BLACKHOLE_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_GENERATE_BLACKHOLE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI3_GENERATE_BLACKHOLE_HYPER_EventProcess );
@@ -2137,14 +2319,14 @@ void CX2GUEve::InitState()
 	case CX2SkillTree::SI_SA_EN_DIMENSION_LINK_GUARDIAN:
 		{
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI3_DIMENSION_LINK_GUARDIAN", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI3_DIMENSION_LINK_GUARDIAN", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_DIMENSION_LINK_GUARDIAN_Init );
 			//normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SI3_DIMENSION_LINK_GUARDIAN_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_DIMENSION_LINK_GUARDIAN_FrameMove );
 			//normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_DIMENSION_LINK_GUARDIAN_CameraMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI3_DIMENSION_LINK_GUARDIAN_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI3_DIMENSION_LINK_GUARDIAN_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI3_DIMENSION_LINK_GUARDIAN_HYPER", hyperStateData.stateID );
 			//hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SI3_DIMENSION_LINK_GUARDIAN_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_DIMENSION_LINK_GUARDIAN_HYPER_FrameMove );
 			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_DIMENSION_LINK_GUARDIAN_HYPER_CameraMove );
@@ -2157,13 +2339,13 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_EEG_HORNET_STING:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_EG_HORNET_STING", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_EG_HORNET_STING", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_EG_HORNET_STING_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_EG_HORNET_STING_FrameMove );
 			//normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_EG_HORNET_STING_CameraMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_EG_HORNET_STING_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_EG_HORNET_STING_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_EG_HORNET_STING_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_EG_HORNET_STING_HYPER_FrameMove );
 			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_MAXIMUM_CANNON_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_EG_HORNET_STING_HYPER_EventProcess );
@@ -2172,14 +2354,14 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_SA_EEG_EXPLOSION_IMPACT:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI2_EG_EXPLOSION_IMPACT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI2_EG_EXPLOSION_IMPACT", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_EG_EXPLOSION_IMPACT_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_EG_EXPLOSION_IMPACT_Start );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_EG_EXPLOSION_IMPACT_End );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_EG_EXPLOSION_IMPACT_FrameMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_EG_EXPLOSION_IMPACT_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER_EventProcess );
 
@@ -2187,14 +2369,14 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_SA_EEG_QUEENS_THRONE:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI3_EG_QUEENS_THRONE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI3_EG_QUEENS_THRONE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_EG_QUEENS_THRONE_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_EG_QUEENS_THRONE_Start );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_EG_QUEENS_THRONE_End );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_EG_QUEENS_THRONE_FrameMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI3_EG_QUEENS_THRONE_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI3_EG_QUEENS_THRONE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI3_EG_QUEENS_THRONE_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_EG_QUEENS_THRONE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI3_EG_QUEENS_THRONE_HYPER_EventProcess );
 		} break;
@@ -2205,12 +2387,12 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_EAT_SURFACE_CUTING:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_AT_SURFACE_CUTING", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_AT_SURFACE_CUTING", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_AT_SURFACE_CUTING_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_AT_SURFACE_CUTING_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_AT_SURFACE_CUTING_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI1_AT_SURFACE_CUTING_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI1_AT_SURFACE_CUTING_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI1_AT_SURFACE_CUTING_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI1_AT_SURFACE_CUTING_HYPER_EventProcess );
 
@@ -2218,12 +2400,12 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_SA_EAT_SONIC_WAVE:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI2_AT_SONIC_WAVE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI2_AT_SONIC_WAVE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_AT_SONIC_WAVE_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_AT_SONIC_WAVE_FrameMove );	
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_AT_SONIC_WAVE_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI2_AT_SONIC_WAVE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI2_AT_SONIC_WAVE_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI2_AT_SONIC_WAVE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI2_AT_SONIC_WAVE_HYPER_EventProcess );
 
@@ -2231,7 +2413,7 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_SA_EAT_GENOCIDE_RIPPER:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI3_AT_GENOCIDE_RIPPER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI3_AT_GENOCIDE_RIPPER", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_AT_GENOCIDE_RIPPER_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_AT_GENOCIDE_RIPPER_Start );
 			//normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMoveFuture );
@@ -2239,7 +2421,7 @@ void CX2GUEve::InitState()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI3_AT_GENOCIDE_RIPPER_EventProcess );
 			//normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_AT_GENOCIDE_RIPPER_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER", hyperStateData.stateID );
 			//hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_EventProcess );
@@ -2250,14 +2432,14 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_A_EN_CLOAKING:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_INVISIBILITY_ON", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_INVISIBILITY_ON", normalStateData.stateID );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_INVISIBILITY_ON_Start );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_INVISIBILITY_ON_End );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_INVISIBILITY_ON_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_INVISIBILITY_ON_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"ENSI_INVISIBILITY_ON", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_INVISIBILITY_ON", hyperStateData.stateID );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_INVISIBILITY_ON_Start );
 			hyperStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_INVISIBILITY_ON_End );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_INVISIBILITY_ON_FrameMove );
@@ -2267,12 +2449,12 @@ void CX2GUEve::InitState()
 		// 마력전환
 	case CX2SkillTree::SI_A_EN_CONVERSION:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI_A_EN_CONVERSION", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SI_A_EN_CONVERSION", normalStateData.stateID ); 
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_CONVERSION_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_CONVERSION_Start );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_CONVERSION_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI_A_EN_CONVERSION_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI_A_EN_CONVERSION_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_CONVERSION_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_CONVERSION_Start );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_CONVERSION_EventProcess );
@@ -2280,7 +2462,7 @@ void CX2GUEve::InitState()
 		// 메가일랙트론볼
 	case CX2SkillTree::SI_A_EN_MEGA_ELECTRONBALL:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI_A_EN_MEGA_ELECTRONBALL", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SI_A_EN_MEGA_ELECTRONBALL", normalStateData.stateID ); 
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_MEGA_ELECTRONBALL_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_MEGA_ELECTRONBALL_StartFuture );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_MEGA_ELECTRONBALL_Start );
@@ -2289,7 +2471,7 @@ void CX2GUEve::InitState()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_MEGA_ELECTRONBALL_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_MEGA_ELECTRONBALL_EndFuture );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI_A_EN_MEGA_ELECTRONBALL_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI_A_EN_MEGA_ELECTRONBALL_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_MEGA_ELECTRONBALL_Init );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_MEGA_ELECTRONBALL_StartFuture );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_MEGA_ELECTRONBALL_Start );
@@ -2310,7 +2492,7 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_EEG_IRONSCRAPS:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEG_IRONSCRAPS", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEG_IRONSCRAPS", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_IRONSCRAPS_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_IRONSCRAPS_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_IRONSCRAPS_FrameMove );				
@@ -2318,7 +2500,7 @@ void CX2GUEve::InitState()
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_IRONSCRAPS_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEG_IRONSCRAPS_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEG_IRONSCRAPS_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_IRONSCRAPS_HYPER_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_IRONSCRAPS_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_IRONSCRAPS_HYPER_FrameMove );		
@@ -2333,14 +2515,14 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_EAT_SPACE_WRENCH:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EAT_SPACE_WRENCH", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "ENSI_SA_EAT_SPACE_WRENCH", normalStateData.stateID ); 				
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_SPACE_WRENCH_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_SPACE_WRENCH_FrameMove );				
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_SPACE_WRENCH_EventProcess );				
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_SPACE_WRENCH_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EAT_SPACE_WRENCH_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SA_EAT_SPACE_WRENCH_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_SPACE_WRENCH_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_SPACE_WRENCH_HYPER_FrameMove );		
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_SPACE_WRENCH_HYPER_EventProcess );	
@@ -2350,7 +2532,7 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_A_EEG_METAL_DUST_AURA:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EEG_METAL_DUST_AURA", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_A_EEG_METAL_DUST_AURA", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_METAL_DUST_AURA_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_METAL_DUST_AURA_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_METAL_DUST_AURA_FrameMove );				
@@ -2358,7 +2540,7 @@ void CX2GUEve::InitState()
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_METAL_DUST_AURA_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EEG_METAL_DUST_AURA_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_A_EEG_METAL_DUST_AURA_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_METAL_DUST_AURA_HYPER_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_METAL_DUST_AURA_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_METAL_DUST_AURA_HYPER_FrameMove );		
@@ -2369,7 +2551,7 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_A_EAT_OBERON_GUARD:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EAT_OBERON_GUARD", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EAT_OBERON_GUARD", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_OBERON_GUARD_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_OBERON_GUARD_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_OBERON_GUARD_FrameMove );				
@@ -2377,7 +2559,7 @@ void CX2GUEve::InitState()
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_OBERON_GUARD_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EAT_OBERON_GUARD_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_A_EAT_OBERON_GUARD_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_OBERON_GUARD_HYPER_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_OBERON_GUARD_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove );		
@@ -2390,13 +2572,13 @@ void CX2GUEve::InitState()
 #ifdef SKILL_CASH_10_TEST
 	case CX2SkillTree::SI_SA_EEG_JUNK_BREAK:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EEG_JUNK_BREAK", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_A_EEG_JUNK_BREAK", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_JUNK_BREAK_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_JUNK_BREAK_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_JUNK_BREAK_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EEG_JUNK_BREAK_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_A_EEG_JUNK_BREAK_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_JUNK_BREAK_Init );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_JUNK_BREAK_Hyper_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EEG_JUNK_BREAK_Hyper_EventProcess );
@@ -2408,13 +2590,13 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_EAT_HEAVENS_FIST:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EAT_HEAVENS_FIST", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_A_EAT_HEAVENS_FIST", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_HEAVENS_FIST_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_HEAVENS_FIST_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_HEAVENS_FIST_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EAT_HEAVENS_FIST_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_A_EAT_HEAVENS_FIST_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_HEAVENS_FIST_Init );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_HEAVENS_FIST_Hyper_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EAT_HEAVENS_FIST_Hyper_EventProcess );
@@ -2429,14 +2611,14 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_ENS_ATOMIC_BLASTER:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_ENS_ATOMIC_BLASTER", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_SA_ENS_ATOMIC_BLASTER", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_ATOMIC_BLASTER_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_ATOMIC_BLASTER_Start );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_ATOMIC_BLASTER_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_ATOMIC_BLASTER_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_ATOMIC_BLASTER_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_ENS_ATOMIC_BLASTER_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SA_ENS_ATOMIC_BLASTER_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_ATOMIC_BLASTER_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_ATOMIC_BLASTER_Start );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_ATOMIC_BLASTER_Hyper_FrameMove );
@@ -2446,13 +2628,13 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_A_ENS_SPEAR_BURST:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_ENS_BURST_SPEAR", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_A_ENS_BURST_SPEAR", normalStateData.stateID ); 			
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_Start );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_ENS_BURST_SPEAR_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_A_ENS_BURST_SPEAR_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_Hyper_Start );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_Hyper_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_Hyper_EventProcess );
@@ -2463,14 +2645,14 @@ void CX2GUEve::InitState()
 
 				stateData.Init();
 				stateData.stateID				= ENSI_A_ENS_BURST_SPEAR_Landing;
-				m_LuaManager.MakeTableReference( L"ENSI_A_ENS_BURST_SPEAR_Landing", stateData.stateID ); 			
+				m_LuaManager.MakeTableReference( "ENSI_A_ENS_BURST_SPEAR_Landing", stateData.stateID ); 			
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_Landing_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_Landing_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID				= ENSI_A_ENS_BURST_SPEAR_Landing_HYPER;
-				m_LuaManager.MakeTableReference( L"ENSI_A_ENS_BURST_SPEAR_Landing_HYPER", stateData.stateID ); 
+				m_LuaManager.MakeTableReference( "ENSI_A_ENS_BURST_SPEAR_Landing_HYPER", stateData.stateID ); 
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_Landing_Hyper_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_ENS_BURST_SPEAR_Landing_Hyper_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
@@ -2481,12 +2663,12 @@ void CX2GUEve::InitState()
 		// oasis907 : 김상윤 [2010.1.28] //  엠프레스 스킬
 	case CX2SkillTree::SI_A_EEP_ELECTRONIC_FIELD:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEP_ELECTRONIC_FIELD", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEP_ELECTRONIC_FIELD", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEP_ELECTRONIC_FIELD_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEP_ELECTRONIC_FIELD_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEP_ELECTRONIC_FIELD_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEP_ELECTRONIC_FIELD_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEP_ELECTRONIC_FIELD_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEP_ELECTRONIC_FIELD_Hyper_Init );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEP_ELECTRONIC_FIELD_Hyper_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEP_ELECTRONIC_FIELD_Hyper_EventProcess );
@@ -2498,12 +2680,12 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_A_EEP_SPIT_FIRE:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EEP_SPIT_FIRE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EEP_SPIT_FIRE", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEP_SPIT_FIRE_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEP_SPIT_FIRE_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EEP_SPIT_FIRE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EEP_SPIT_FIRE_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_A_EEP_SPIT_FIRE_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEP_SPIT_FIRE_Hyper_Init );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEP_SPIT_FIRE_Hyper_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EEP_SPIT_FIRE_Hyper_EventProcess );
@@ -2524,12 +2706,12 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_EEP_ASSUALT_SPEAR:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPP_ASSUALT_SPEAR", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPP_ASSUALT_SPEAR", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_ASSUALT_SPEAR_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_ASSUALT_SPEAR_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_ASSUALT_SPEAR_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPP_ASSUALT_SPEAR_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPP_ASSUALT_SPEAR_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_ASSUALT_SPEAR_HYPER_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_ASSUALT_SPEAR_HYPER_EventProcess );
 		} break;
@@ -2537,13 +2719,13 @@ void CX2GUEve::InitState()
 		//{{ JHKang / 강정훈 / 2010/11/12 / 아토믹 쉴드
 	case CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEG_ATOMIC_SHIELD", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEG_ATOMIC_SHIELD", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_ATOMIC_SHIELD_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_ATOMIC_SHIELD_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_ATOMIC_SHIELD_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_ATOMIC_SHIELD_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEG_ATOMIC_SHIELD_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEG_ATOMIC_SHIELD_HYPER", hyperStateData.stateID );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_ATOMIC_SHIELD_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_ATOMIC_SHIELD_HYPER_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_ATOMIC_SHIELD_HYPER_EventProcess );
@@ -2557,7 +2739,7 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_A_EVE_PHOTON_BLINK:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EVE_PHOTON_BLINK", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EVE_PHOTON_BLINK", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EVE_PHOTON_BLINK_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EVE_PHOTON_BLINK_Start );
 			normalStateData.StateStartFuture = SET_CB_FUNC( CX2GUEve, ENSI_A_EVE_PHOTON_BLINK_StartFuture );
@@ -2567,7 +2749,7 @@ void CX2GUEve::InitState()
 			normalStateData.StateEndFuture	= SET_CB_FUNC( CX2GUEve, ENSI_A_EVE_PHOTON_BLINK_EndFuture );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_A_EVE_PHOTON_BLINK_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EVE_PHOTON_BLINK", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EVE_PHOTON_BLINK", hyperStateData.stateID );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EVE_PHOTON_BLINK_Start );
 			hyperStateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_A_EVE_PHOTON_BLINK_StartFuture );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EVE_PHOTON_BLINK_EventProcess );
@@ -2580,13 +2762,13 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_A_EEL_SPECTRO_EL_CRYSTAL:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EPR_SPECTRO_EL_CRYSTAL", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EPR_SPECTRO_EL_CRYSTAL", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EPR_SPECTRO_EL_CRYSTAL_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EPR_SPECTRO_EL_CRYSTAL_Start );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EPR_SPECTRO_EL_CRYSTAL_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EPR_SPECTRO_EL_CRYSTAL_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EPR_SPECTRO_EL_CRYSTAL", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_A_EPR_SPECTRO_EL_CRYSTAL", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EPR_SPECTRO_EL_CRYSTAL_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EPR_SPECTRO_EL_CRYSTAL_Start );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EPR_SPECTRO_EL_CRYSTAL_FrameMove );
@@ -2596,7 +2778,7 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_SA_EEL_PARTICLE_RAY:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_PARTICLE_RAY", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPR_PARTICLE_RAY", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PARTICLE_RAY_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PARTICLE_RAY_Start );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PARTICLE_RAY_StartFuture );
@@ -2605,7 +2787,7 @@ void CX2GUEve::InitState()
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PARTICLE_RAY_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PARTICLE_RAY_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_PARTICLE_RAY", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPR_PARTICLE_RAY", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PARTICLE_RAY_Start );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PARTICLE_RAY_StartFuture );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PARTICLE_RAY_FrameMoveFuture );
@@ -2620,14 +2802,14 @@ void CX2GUEve::InitState()
 		case CX2SkillTree::SI_SA_EEL_SWEEP_ROLLING:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_SWEEP_ROLLING_READY", normalStateData.stateID );				
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPR_SWEEP_ROLLING_READY", normalStateData.stateID );				
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_READY_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_READY_Start );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_READY_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_READY_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_READY_End );				
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_SWEEP_ROLLING_READY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPR_SWEEP_ROLLING_READY", hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_READY_Start );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_READY_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_READY_EventProcess );
@@ -2638,7 +2820,7 @@ void CX2GUEve::InitState()
 
 				stateData.Init();
 				stateData.stateID			= ENSI_SA_EPR_SWEEP_ROLLING_CHARGE;
-				m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_SWEEP_ROLLING_CHARGE", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ENSI_SA_EPR_SWEEP_ROLLING_CHARGE", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_Start );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_EventProcess );	
@@ -2647,7 +2829,7 @@ void CX2GUEve::InitState()
 
 				stateData.Init();
 				stateData.stateID			= ENSI_SA_EPR_SWEEP_ROLLING_FIRE;
-				m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_SWEEP_ROLLING_FIRE", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ENSI_SA_EPR_SWEEP_ROLLING_FIRE", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_FIRE_Start );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_FIRE_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_FIRE_EventProcess );	
@@ -2656,7 +2838,7 @@ void CX2GUEve::InitState()
 
 				stateData.Init();
 				stateData.stateID			= ENSI_SA_EPR_SWEEP_ROLLING_END;
-				m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_SWEEP_ROLLING_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ENSI_SA_EPR_SWEEP_ROLLING_END", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_END_Start );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_END_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_SWEEP_ROLLING_END_EventProcess );	
@@ -2668,14 +2850,14 @@ void CX2GUEve::InitState()
 	case CX2SkillTree::SI_SA_EEL_PHOTON_FLARE:
 		{
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_PHOTON_FLARE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPR_PHOTON_FLARE", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PHOTON_FLARE_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PHOTON_FLARE_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PHOTON_FLARE_FrameMove );				
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PHOTON_FLARE_EventProcess );				
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PHOTON_FLARE_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_PHOTON_FLARE", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPR_PHOTON_FLARE", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PHOTON_FLARE_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PHOTON_FLARE_FrameMove );		
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_PHOTON_FLARE_EventProcess );	
@@ -2684,19 +2866,19 @@ void CX2GUEve::InitState()
 
 	case CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_THOUSANDS_OF_STARS", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPR_THOUSANDS_OF_STARS", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_THOUSANDS_OF_STARS_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_THOUSANDS_OF_STARS_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_THOUSANDS_OF_STARS_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EPR_THOUSANDS_OF_STARS", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EPR_THOUSANDS_OF_STARS", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_THOUSANDS_OF_STARS_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_THOUSANDS_OF_STARS_EventProcess );
 		} break;
 
 	case CX2SkillTree::SI_SA_EEL_GIGA_STREAM:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_GIGA_STREAM", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_SA_GIGA_STREAM", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_GIGA_STREAM_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_GIGA_STREAM_Start );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_GIGA_STREAM_StartFuture );
@@ -2705,7 +2887,7 @@ void CX2GUEve::InitState()
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_GIGA_STREAM_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_GIGA_STREAM_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_GIGA_STREAM", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SA_GIGA_STREAM", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_GIGA_STREAM_Start );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_GIGA_STREAM_StartFuture );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EPR_GIGA_STREAM_FrameMoveFuture );
@@ -2721,7 +2903,7 @@ void CX2GUEve::InitState()
 #pragma region 테이저 필라
 	case CX2SkillTree::SI_A_EBS_TASER_PILUM:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SI_A_EBS_TASER_PILUM", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI_A_EBS_TASER_PILUM", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_TASER_PILUM_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_TASER_PILUM_StartFuture );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_TASER_PILUM_Start );
@@ -2730,7 +2912,7 @@ void CX2GUEve::InitState()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_TASER_PILUM_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_TASER_PILUM_EndFuture );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SI_A_EBS_TASER_PILUM", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SI_A_EBS_TASER_PILUM", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_TASER_PILUM_Init );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_TASER_PILUM_StartFuture );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_TASER_PILUM_Start );
@@ -2744,14 +2926,14 @@ void CX2GUEve::InitState()
 #pragma region 에너지 니들스
 	case CX2SkillTree::SI_SA_EBS_ENERGY_NEEDLES:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_EBS_ENERGY_NEEDLES", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EBS_ENERGY_NEEDLES", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGY_NEEDLES_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGY_NEEDLES_Start );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGY_NEEDLES_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGY_NEEDLES_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGY_NEEDLES_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_EBS_ENERGY_NEEDLES", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EBS_ENERGY_NEEDLES", hyperStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGY_NEEDLES_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGY_NEEDLES_Start );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGY_NEEDLES_FrameMove );
@@ -2763,13 +2945,13 @@ void CX2GUEve::InitState()
 #pragma region 에네제틱 하트
 	case CX2SkillTree::SI_SA_EBS_ENERGETIC_HEART:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_EBS_ENERGETIC_HEART", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EBS_ENERGETIC_HEART", normalStateData.stateID );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGETIC_HEART_Start );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGETIC_HEART_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGETIC_HEART_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGETIC_HEART_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_EBS_ENERGETIC_HEART", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_EBS_ENERGETIC_HEART", hyperStateData.stateID );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGETIC_HEART_Start );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGETIC_HEART_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_EBS_ENERGETIC_HEART_EventProcess );
@@ -2783,7 +2965,7 @@ void CX2GUEve::InitState()
 	#pragma region SI_SA_EN_ILLUSION_RAY
 	case CX2SkillTree::SI_A_EN_ILLUSION_RAY:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EN_ILLUSION_RAY", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_SA_EN_ILLUSION_RAY", normalStateData.stateID ); 			
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_Illusion_Ray_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_Illusion_Ray_Start );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_Illusion_Ray_StartFuture );
@@ -2792,7 +2974,7 @@ void CX2GUEve::InitState()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_Illusion_Ray_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_Illusion_Ray_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EN_ILLUSION_RAY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EN_ILLUSION_RAY", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStart			= normalStateData.StateStart;
 			hyperStateData.StateStartFuture		= normalStateData.StateStartFuture;
@@ -2806,13 +2988,13 @@ void CX2GUEve::InitState()
 	#pragma region SI_A_EN_TESLA_SHOCK
 	case CX2SkillTree::SI_A_EN_TESLA_SHOCK:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EN_TESLA_SHOCK", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_A_EN_TESLA_SHOCK", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_Tesla_Shock_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_Tesla_Shock_StateStart );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_Tesla_Shock_EventProcess );		
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUEve, ENSI_A_EN_Tesla_Shock_StateEnd );
 			
-			m_LuaManager.MakeTableReference( L"ENSI_A_EN_TESLA_SHOCK", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EN_TESLA_SHOCK", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2823,12 +3005,12 @@ void CX2GUEve::InitState()
 	#pragma region SI_SA_EEG_HORNET_STING_SHAPED_CHARGE
 	case CX2SkillTree::SI_A_EEG_HORNET_STING_SHAPED_CHARGE:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEG_HORNET_STING_SHAPED_CHARGE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEG_HORNET_STING_SHAPED_CHARGE", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_Hornet_Sting_Shaped_Charge_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_Hornet_Sting_Shaped_Charge_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEG_Hornet_Sting_Shaped_Charge_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEG_HORNET_STING_SHAPED_CHARGE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEG_HORNET_STING_SHAPED_CHARGE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2839,13 +3021,13 @@ void CX2GUEve::InitState()
 	#pragma region SI_SA_ENS_ATOMIC_BLASTER_SONICGUN
 	case CX2SkillTree::SI_A_ENS_ATOMIC_BLASTER_SONICGUN:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_ENS_ATOMIC_BLASTER_SONICGUN", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_SA_ENS_ATOMIC_BLASTER_SONICGUN", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_Atomic_Blaster_SonicGun_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_Atomic_Blaster_SonicGun_Start );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_Atomic_Blaster_SonicGun_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_Atomic_Blaster_SonicGun_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_ENS_ATOMIC_BLASTER_SONICGUN", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SA_ENS_ATOMIC_BLASTER_SONICGUN", hyperStateData.stateID ); 
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
@@ -2856,13 +3038,13 @@ void CX2GUEve::InitState()
 	#pragma region SI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN
 	case CX2SkillTree::SI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN_READY", normalStateData.stateID );				
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN_READY", normalStateData.stateID );				
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Ready_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Ready_Start );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Ready_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Ready_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN_READY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN_READY", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
@@ -2873,7 +3055,7 @@ void CX2GUEve::InitState()
 				
 				stateData.Init();
 				stateData.stateID			= ENSI_SA_EEN_SWEEP_ROLLING_TRI_VULCAN_FIRE;
-				m_LuaManager.MakeTableReference( L"ENSI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN_FIRE", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ENSI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN_FIRE", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Fire_Start );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Fire_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Fire_EventProcess );
@@ -2882,7 +3064,7 @@ void CX2GUEve::InitState()
 
 				stateData.Init();
 				stateData.stateID			= ENSI_SA_EEN_SWEEP_ROLLING_TRI_VULCAN_END;
-				m_LuaManager.MakeTableReference( L"ENSI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ENSI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN_END", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_End_Start );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_End_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
@@ -2893,13 +3075,13 @@ void CX2GUEve::InitState()
 	#pragma region SI_SA_EAT_HEAVENS_FIST_SWEEPER
 	case CX2SkillTree::SI_SA_EAT_HEAVENS_FIST_SWEEPER:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EAT_HEAVENS_FIST_SWEEPER", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_A_EAT_HEAVENS_FIST_SWEEPER", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_Heavens_Fist_Sweeper_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_Heavens_Fist_Sweeper_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EAT_Heavens_Fist_Sweeper_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EAT_HEAVENS_FIST_SWEEPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_A_EAT_HEAVENS_FIST_SWEEPER", hyperStateData.stateID ); 
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2909,13 +3091,13 @@ void CX2GUEve::InitState()
 	#pragma region SI_SA_ENS_ASSUALT_SPEAR
 	case CX2SkillTree::SI_SA_ENS_ASSUALT_SPEAR_ANNIHILATOR:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_ENS_ASSUALT_SPEAR", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "ENSI_SA_ENS_ASSUALT_SPEAR", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_Assualt_Spear_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_Assualt_Spear_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_SA_ENS_Assualt_Spear_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_ENS_ASSUALT_SPEAR", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ENSI_SA_ENS_ASSUALT_SPEAR", hyperStateData.stateID ); 
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2925,12 +3107,12 @@ void CX2GUEve::InitState()
 	#pragma region SI_A_EEP_SPIT_FIRE_GRENADE
 	case CX2SkillTree::SI_A_EEP_SPIT_FIRE_GRENADE:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EEP_SPIT_FIRE_GRENADE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EEP_SPIT_FIRE_GRENADE", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEP_Spit_Fire_Grenade_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUEve, ENSI_A_EEP_Spit_Fire_Grenade_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUEve, ENSI_A_EEP_Spit_Fire_Grenade_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EEP_SPIT_FIRE_GRENADE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EEP_SPIT_FIRE_GRENADE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2941,7 +3123,7 @@ void CX2GUEve::InitState()
 	#pragma region SI_A_EBS_KUGELBLITZ
 	case CX2SkillTree::SI_A_EBS_KUGELBLITZ:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_A_EBS_KUGELBLITZ", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EBS_KUGELBLITZ", normalStateData.stateID );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_Kugelblitz_StartFuture );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_Kugelblitz_Start );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_Kugelblitz_FrameMoveFuture );
@@ -2949,7 +3131,7 @@ void CX2GUEve::InitState()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_Kugelblitz_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUEve, ENSI_A_EBS_Kugelblitz_EndFuture );
 
-			m_LuaManager.MakeTableReference( L"ENSI_A_EBS_KUGELBLITZ", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_A_EBS_KUGELBLITZ", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStartFuture		= normalStateData.StateStartFuture;
 			hyperStateData.StateStart			= normalStateData.StateStart;
@@ -2963,7 +3145,7 @@ void CX2GUEve::InitState()
 	#pragma region SI_SA_EEL_LINEAR_DIVIDER
 	case CX2SkillTree::SI_SA_EEL_LINEAR_DIVIDER:
 		{
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEL_LINEAR_DIVIDER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEL_LINEAR_DIVIDER", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_LINEAR_DIVIDER_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_LINEAR_DIVIDER_Start );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_LINEAR_DIVIDER_StartFuture );
@@ -2972,17 +3154,60 @@ void CX2GUEve::InitState()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_LINEAR_DIVIDER_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_SA_EEL_LINEAR_DIVIDER_End );
 
-			m_LuaManager.MakeTableReference( L"ENSI_SA_EEL_LINEAR_DIVIDER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ENSI_SA_EEL_LINEAR_DIVIDER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStart			= normalStateData.StateStart;
 			hyperStateData.StateStartFuture		= normalStateData.StateStartFuture;
 			hyperStateData.OnFrameMoveFuture	= normalStateData.OnFrameMoveFuture;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
+			hyperStateData.StateEnd				= normalStateData.StateEnd;
 		} break;
 	#pragma endregion 드레드 쇼크
 
 #endif //UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	case CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION:
+		{
+			m_LuaManager.MakeTableReference( "ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION", normalStateData.stateID );
+			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_Init );
+			normalStateData.StateStart			= SET_CB_FUNC( CX2GUEve, ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_Start );
+			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_FrameMove );	
+			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_EventProcess );
+			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUEve, ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_End );
+
+			m_LuaManager.MakeTableReference( "ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION", hyperStateData.stateID );
+			hyperStateData.StateStart			= normalStateData.StateStart;
+			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
+			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
+			hyperStateData.StateEnd				= normalStateData.StateEnd;
+		} break;
+
+	case CX2SkillTree::SI_HA_ENS_LUNATIC_SCUD:
+		{
+			m_LuaManager.MakeTableReference( "ENSI_HA_ENS_LUNATIC_SCUD", normalStateData.stateID );
+			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_HA_ENS_LUNATIC_SCUD_Init );
+			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_HA_ENS_LUNATIC_SCUD_EventProcess );
+
+			m_LuaManager.MakeTableReference( "ENSI_HA_ENS_LUNATIC_SCUD", hyperStateData.stateID );
+			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
+		} break;
+
+	case CX2SkillTree::SI_HA_EBS_PSYCHIC_ARTILLERRY :
+		{
+			m_LuaManager.MakeTableReference( "ENSI_HA_EBS_PSYCHIC_ARTILLERY", normalStateData.stateID );
+			normalStateData.StateInit			= SET_CB_FUNC( CX2GUEve, ENSI_HA_EBS_PSYCHIC_ARTILLERY_Init );
+			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_HA_EBS_PSYCHIC_ARTILLERY_FrameMove );
+			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_HA_EBS_PSYCHIC_ARTILLERY_EventProcess );	
+
+			m_LuaManager.MakeTableReference( "ENSI_HA_EBS_PSYCHIC_ARTILLERY", hyperStateData.stateID );
+			hyperStateData.m_bHyperState		= true;
+			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUEve, ENSI_HA_EBS_PSYCHIC_ARTILLERY_FrameMove );
+			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUEve, ENSI_HA_EBS_PSYCHIC_ARTILLERY_EventProcess );	
+		} break;
+#endif //FINALITY_SKILL_SYSTEM
+
 	}
 }
 
@@ -3003,10 +3228,10 @@ void CX2GUEve::InitState()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -3094,10 +3319,10 @@ void CX2GUEve::InitState()
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EEL_SWEEP_ROLLING_TRI_VULCAN );
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -3160,7 +3385,7 @@ void CX2GUEve::InitEquippedActiveSkillState(bool bOnlySkillLevel /* = false  */)
 	CX2GUUser::InitEquippedActiveSkillState(bOnlySkillLevel);
 
 	// 메가일랙트론볼 슬롯아이디를 검색.
-	if( m_pUnit != NULL && m_pUnit->GetUnitData() != NULL )
+	if( GetUnit() != NULL )
 	{
 		m_sMegaElectronBallData.SetSlotID( -1 );
 		for( int iSlot = 0; iSlot < EQUIPPED_SKILL_SLOT_COUNT*2; ++iSlot )	// 슬롯 인덱스.
@@ -3168,12 +3393,12 @@ void CX2GUEve::InitEquippedActiveSkillState(bool bOnlySkillLevel /* = false  */)
 			const bool bSlotB = (iSlot > 3) ? true : false;
 			const int iSlotIndex = (iSlot > 3) ? iSlot - 4 : iSlot;
 			//슬롯 B가 활성화 되지 않으면 슬롯 A만 확인하도록 break;
-			if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() 
+			if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
 				&& bSlotB == true)
 			{
 				break;
 			}
-			const CX2UserSkillTree::SkillSlotData* pSlotData = m_pUnit->GetUnitData()->m_UserSkillTree.GetSkillSlot( iSlotIndex, bSlotB );
+			const CX2UserSkillTree::SkillSlotData* pSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( iSlotIndex, bSlotB );
 
 			if( pSlotData != NULL )
 			{
@@ -3197,12 +3422,12 @@ void CX2GUEve::InitEquippedActiveSkillState(bool bOnlySkillLevel /* = false  */)
 				const bool bSlotB = (iSlot > 3) ? true : false;
 				const int iSlotIndex = (iSlot > 3) ? iSlot - 4 : iSlot;
 				//슬롯 B가 활성화 되지 않으면 슬롯 A만 확인하도록 break;
-				if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() 
+				if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
 					&& bSlotB == true)
 				{
 					break;
 				}
-				const CX2UserSkillTree::SkillSlotData* pSlotData = m_pUnit->GetUnitData()->m_UserSkillTree.GetSkillSlot( iSlotIndex, bSlotB );
+				const CX2UserSkillTree::SkillSlotData* pSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( iSlotIndex, bSlotB );
 
 				if( pSlotData != NULL )
 				{
@@ -3231,12 +3456,12 @@ void CX2GUEve::InitEquippedActiveSkillState(bool bOnlySkillLevel /* = false  */)
 				const bool bSlotB = (iSlot > 3) ? true : false;
 				const int iSlotIndex = (iSlot > 3) ? iSlot - 4 : iSlot;
 				
-				if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() 
+				if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
 					&& bSlotB == true)
 				{
 					break;
 				}
-				const CX2UserSkillTree::SkillSlotData* pSlotData = m_pUnit->GetUnitData()->m_UserSkillTree.GetSkillSlot( iSlotIndex, bSlotB );
+				const CX2UserSkillTree::SkillSlotData* pSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( iSlotIndex, bSlotB );
 
 				if( pSlotData != NULL )
 				{
@@ -3255,10 +3480,10 @@ void CX2GUEve::InitEquippedActiveSkillState(bool bOnlySkillLevel /* = false  */)
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -3280,7 +3505,7 @@ void CX2GUEve::InitPassiveSkillState()
 
 	// 마나 회복량 증가 값 초기화.
 	SetAdditionalMPChangeRateByPassive(0.f);
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	int iSkillLevel = userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EN_REFINED_STEP, true );
@@ -3322,7 +3547,7 @@ void CX2GUEve::InitPassiveSkillState()
 
 #ifdef EVE_ELECTRA
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EN_PHOTON_BOOSTER, true ); // SI_P_EPR_PHOTON_BOOSTER 광자 추진기
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EN_PHOTON_BOOSTER, true ); // SI_P_EPR_PHOTON_BOOSTER 광자 추진기
 
 	if( iSkillLevel > 0 )
 	{
@@ -3336,7 +3561,7 @@ void CX2GUEve::InitPassiveSkillState()
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EEL_PHOTON_BOOSTER ); // SI_P_EPR_PHOTON_BOOSTER 광자 추진기
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EEL_PHOTON_BOOSTER ); // SI_P_EPR_PHOTON_BOOSTER 광자 추진기
 
 	if( iSkillLevel > 0 )
 	{
@@ -3579,14 +3804,10 @@ void CX2GUEve::InitPassiveSkillState()
 		if( NULL != pSkillTemplet )
 		{
 			m_sATOveronGuardData.SetProjectileSize( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_SIZE, iSkillLevel ) );
-	#ifdef NEW_MEMO_01
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO12 ) == true )
 				m_sATOveronGuardData.SetEffectiveTime( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME, iSkillLevel ) / 2.f );
 			else
 				m_sATOveronGuardData.SetEffectiveTime( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME, iSkillLevel ) );
-	#else // NEW_MEMO_01
-			m_sATOveronGuardData.SetEffectiveTime( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME, iSkillLevel ) );
-	#endif // NEW_MEMO_01
 		}
 #else // UPGRADE_SKILL_SYSTEM_2013
 	#ifdef PVP_SEASON2
@@ -3599,14 +3820,10 @@ void CX2GUEve::InitPassiveSkillState()
 		if( NULL != pSkillTemplet )
 		{
 			m_sATOveronGuardData.SetProjectileSize( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_SIZE ) );
-	#ifdef NEW_MEMO_01
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO12 ) == true )
 				m_sATOveronGuardData.SetEffectiveTime( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME ) / 2.f );
 			else
 				m_sATOveronGuardData.SetEffectiveTime( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME ) );
-	#else // NEW_MEMO_01
-			m_sATOveronGuardData.SetEffectiveTime( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME ) );
-	#endif // NEW_MEMO_01
 		}
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	}
@@ -3649,7 +3866,11 @@ void CX2GUEve::InitPassiveSkillState()
 
 	if ( NULL != pSkillTempletChargingBooster )
 	{
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR    
+        if ( !m_ChargingBoosterSkillDataBasePtr )
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR    
 		if ( 0 == m_ChargingBoosterSkillDataBasePtr.use_count() )
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR    
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 			const int iSkillLevel = userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EEP_CHARGING_BOOSTER, true );
@@ -3734,7 +3955,7 @@ void CX2GUEve::InitPassiveSkillState()
 		if( NULL != pSkillTemplet )
 		{
 			const float fCriticalRateValueAtkBase = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_CRITICAL_RATE_ATK_BASE, iSkillLevel );
-			const float fMixAtk = (m_pStat->GetStat()->m_fAtkMagic + m_pStat->GetStat()->m_fAtkPhysic) / 2;
+			const float fMixAtk = (GetStat().GetStat().m_fAtkMagic + GetStat().GetStat().m_fAtkPhysic) / 2;
 
 			float fPassiveCriticalValue = fMixAtk * fCriticalRateValueAtkBase;
 			m_AdditionalCriticalRate.SetOptionValue( m_AdditionalCriticalRate.GetOptionValue() + fPassiveCriticalValue );
@@ -3744,7 +3965,7 @@ void CX2GUEve::InitPassiveSkillState()
 		if( NULL != pSkillTemplet )
 		{
 			const float fCriticalRateValueAtkBase = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_CRITICAL_RATE_ATK_BASE );
-			const float fMixAtk = (m_pStat->GetStat()->m_fAtkMagic + m_pStat->GetStat()->m_fAtkPhysic) / 2;
+			const float fMixAtk = (GetStat().GetStat().m_fAtkMagic + GetStat().GetStat().m_fAtkPhysic) / 2;
 
 			float fPassiveCriticalValue = fMixAtk * fCriticalRateValueAtkBase;
 			m_AdditionalCriticalRate.SetOptionValue( m_AdditionalCriticalRate.GetOptionValue() + fPassiveCriticalValue );
@@ -3762,7 +3983,7 @@ void CX2GUEve::InitPassiveSkillState()
 		if( NULL != pSkillTemplet )
 		{
 			const float fCriticalRateValueAtkBase = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_CRITICAL_RATE_ATK_BASE, iSkillLevel );
-			const float fMixAtk = (m_pStat->GetStat()->m_fAtkMagic + m_pStat->GetStat()->m_fAtkPhysic) / 2;
+			const float fMixAtk = (GetStat().GetStat().m_fAtkMagic + GetStat().GetStat().m_fAtkPhysic) / 2;
 
 			float fPassiveCriticalValue = fMixAtk * fCriticalRateValueAtkBase;
 			m_AdditionalCriticalRate.SetOptionValue( m_AdditionalCriticalRate.GetOptionValue() + fPassiveCriticalValue );
@@ -3830,7 +4051,7 @@ void CX2GUEve::DeleteEveMinorParticle()
 
 	for ( int index = 0; index < EVE_MINOR_PII_END; index++ )
 	{
-		m_ahEveMinorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahEveMinorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -3840,7 +4061,7 @@ void CX2GUEve::InitializeEveMajorParticleArray()
 
 	for ( int index = 0; index < EVE_MAJOR_PII_END; index++ )
 	{
-		m_ahEveMajorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahEveMajorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -3901,7 +4122,7 @@ void	CX2GUEve::AppendMajorParticleToDeviceList( CKTDXDeviceDataList& listInOut_ 
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GUEve::SetEveMajorParticleByEnum( EVE_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ /*= -1*/ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleEveMajorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleEveMajorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), 0,0,0, 0, 0, iDrawCount_, 0 );
@@ -3921,7 +4142,7 @@ void CX2GUEve::InitializeEveMinorParticleArray()
 
 	for ( int index = 0; index < EVE_MINOR_PII_END; index++ )
 	{
-		m_ahEveMinorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahEveMinorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -3941,7 +4162,7 @@ void	CX2GUEve::AppendMinorParticleToDeviceList( CKTDXDeviceDataList& listInOut_ 
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GUEve::SetEveMinorParticleByEnum( EVE_MINOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ /*= -1*/ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleEveMinorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleEveMinorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), 0,0,0, 0, 0, iDrawCount_, 0 );
@@ -3982,6 +4203,11 @@ void CX2GUEve::CommonFrameMoveFuture()
 	if( m_fReDashJumpXTime < 0.0f )
 		m_fReDashJumpXTime = 0.0f;
 
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	// Maneuver Core Lv 을 전달한다.
+	m_FrameDataFuture.syncData.m_CannonBallCount = m_iManeuverCoreLv;
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
 	CX2GUUser::CommonFrameMoveFuture();
 }
 
@@ -4020,6 +4246,16 @@ void CX2GUEve::CommonFrameMove()
 #endif NEW_SKILL_2010_11
 	//}} JHKang / 강정훈 / 2010/11/22 / 아토믹 쉴드 지속 시간 처리
 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	if( 0.f <= m_fFerdinandLifeTime )
+	{
+		if( m_timerFerdinandSummoned.elapsed() > static_cast<double>( m_fFerdinandLifeTime ) )
+		{
+			SetSelfDestructSummonedNPC( CX2UnitManager::NUI_SI_HA_FERDINAND );
+		}
+	}
+#endif //FINALITY_SKILL_SYSTEM
+
 	// 이브 투명화 특수기 처리
 	if( true == m_bInvisibility )
 	{
@@ -4049,7 +4285,12 @@ void CX2GUEve::CommonFrameMove()
 #ifdef BALANCE_PATCH_20120329
 			else
 			{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 마나 소모량, SA 값으로 변경
+				UpNowMp(m_fDecraseInvisibilityMP * m_fElapsedTime);
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				UpNowMp(-5.f * m_fElapsedTime);
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			}
 #endif
 		}
@@ -4104,6 +4345,17 @@ void CX2GUEve::CommonFrameMove()
 				if( pEquip != NULL )
 					pEquip->SetShowAttachedParticle( true );
 			}
+#ifdef EVE_CLOAKING_ADJUST
+			BOOST_FOREACH( Weapon* pWeapon, m_vecpWeapon )
+			{
+				if( NULL != pWeapon )
+				{
+					pWeapon->SetShowObject(true);
+				}
+			}
+			
+			SetShowViewList( true );
+#endif //EVE_CLOAKING_ADJUST
 
 #ifdef SERV_SKILL_NOTE
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO5 ) == true )
@@ -4144,8 +4396,13 @@ void CX2GUEve::CommonFrameMove()
 		if( 0.f == m_fInvisibilityAlpha ) // 이브를 전혀 못보는 상태
 #endif
 		{
-			if( true == GetStateparam(false)->bAttackState ||			
-				false == m_AttackTimeList.empty() )				// 공격상태이면 
+			if( true == GetStateparam(false).bAttackState ||			
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                false == m_vecAttackTime.empty()
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+				false == m_AttackTimeList.empty() 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                )				// 공격상태이면 
 			{
 				m_bAbsoluteInvisibility = false;				// 이브를 보이게 하고
 #ifdef BALANCE_PATCH_20120329
@@ -4167,7 +4424,11 @@ void CX2GUEve::CommonFrameMove()
 	bool bHandSlash = false;
 	LUA_GET_VALUE( m_LuaManager, "HAND_SLASH_TRACE", bHandSlash, false );
 
-	if( g_pMain->GetGameOption()->GetOptionList()->m_bEffect == true )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_bEffect == true )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	{
 		for( int i=0; i<ARRAY_SIZE( m_aSlashTraceData ) ; i++ )
 		{
@@ -4187,7 +4448,11 @@ void CX2GUEve::CommonFrameMove()
 		}
 	}
 
-	if( g_pMain->GetGameOption()->GetOptionList()->m_bEffect == true )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_bEffect == true )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	{
 		if( NULL != m_aSlashTraceData[ SlashID_LHand ].m_pSlashTrace )
 		{
@@ -4323,7 +4588,7 @@ void CX2GUEve::CommonFrameMove()
 				// Eve_StateMsg01.tga : 공용으로 사용되는 텍스쳐 64Kbyte
 				if( m_TimerEGQTRefreshMsg.elapsed() > 0.6 )
 				{
-					m_sEGQueensThrone.m_ahMajorParticleInstance[EG_QueensThroneData::PP_BODY] = INVALID_PARTICLE_HANDLE;
+					m_sEGQueensThrone.m_ahMajorParticleInstance[EG_QueensThroneData::PP_BODY] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 					WCHAR wstrParName[MAX_PATH] = L"";
 
 					StringCchPrintf(wstrParName,MAX_PATH, L"Eve_EG_Sp3a_QT_StateMsg0%d", (rand()%5 + 1) );
@@ -4343,7 +4608,7 @@ void CX2GUEve::CommonFrameMove()
 				else
 				{
 					//파티클 위치 업데이트.
-					if( m_sEGQueensThrone.m_ahMajorParticleInstance[EG_QueensThroneData::PP_BODY] != INVALID_PARTICLE_HANDLE )
+					if( m_sEGQueensThrone.m_ahMajorParticleInstance[EG_QueensThroneData::PP_BODY] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sEGQueensThrone.m_ahMajorParticleInstance[EG_QueensThroneData::PP_BODY] );
 						if( NULL != pSeq )
@@ -4351,7 +4616,7 @@ void CX2GUEve::CommonFrameMove()
 							pSeq->SetPosition(GetBonePos(m_sEGQueensThrone.m_wstrBoneName[m_sEGQueensThrone.GetBoneNameID()].c_str()));
 						}
 					}
-					if( m_sEGQueensThrone.m_ahMajorParticleInstance[EG_QueensThroneData::PP_WING] != INVALID_PARTICLE_HANDLE )
+					if( m_sEGQueensThrone.m_ahMajorParticleInstance[EG_QueensThroneData::PP_WING] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_sEGQueensThrone.m_ahMajorMeshInstance[2] );
 						if( pMeshInst != NULL )
@@ -4388,7 +4653,7 @@ void CX2GUEve::CommonFrameMove()
 	{
 		// 차지도중 슬롯이 바뀌면 중지..
 		if( m_sMegaElectronBallData.GetSkillSlotSwap() != g_pData->GetUIManager()->GetUISkillTree()->GetSkillSlotSwap() )
-			m_sMegaElectronBallData.Reset( false, GetFutureFrameData() );
+			m_sMegaElectronBallData.Reset( false, &AccessFutureFrameData() );
 		else
 		{
 
@@ -4399,7 +4664,7 @@ void CX2GUEve::CommonFrameMove()
 				// 모으는 이펙트.
 				if( m_sMegaElectronBallData.m_dMaxTime > m_sMegaElectronBallData.m_timerElapsedTime.elapsed() )
 				{
-					if( m_sMegaElectronBallData.m_ahMajorParticleInstance[0] == INVALID_PARTICLE_HANDLE )
+					if( m_sMegaElectronBallData.m_ahMajorParticleInstance[0] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 						vBonePos.x += 5.f;
@@ -4426,7 +4691,7 @@ void CX2GUEve::CommonFrameMove()
 							pSeq->SetPosition( vBonePos );
 						}
 					}
-					if( m_sMegaElectronBallData.m_ahMajorParticleInstance[1] == INVALID_PARTICLE_HANDLE )
+					if( m_sMegaElectronBallData.m_ahMajorParticleInstance[1] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 						vBonePos.y += 5.f;
@@ -4451,7 +4716,7 @@ void CX2GUEve::CommonFrameMove()
 							pSeq->SetPosition( vBonePos );
 						}
 					}
-					if( m_sMegaElectronBallData.m_ahMajorParticleInstance[2] == INVALID_PARTICLE_HANDLE )
+					if( m_sMegaElectronBallData.m_ahMajorParticleInstance[2] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 						vBonePos.y += 5.f;
@@ -4543,7 +4808,7 @@ void CX2GUEve::CommonFrameMove()
 					}
 					else
 					{
-						if( m_sMegaElectronBallData.m_ahMajorParticleInstance[0] != INVALID_PARTICLE_HANDLE )
+						if( m_sMegaElectronBallData.m_ahMajorParticleInstance[0] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sMegaElectronBallData.m_ahMajorParticleInstance[0] );
 							if( NULL != pSeq )
@@ -4554,7 +4819,7 @@ void CX2GUEve::CommonFrameMove()
 								pSeq->SetPosition( vBonePos );
 							}
 						}
-						if( m_sMegaElectronBallData.m_ahMajorParticleInstance[1] != INVALID_PARTICLE_HANDLE )
+						if( m_sMegaElectronBallData.m_ahMajorParticleInstance[1] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sMegaElectronBallData.m_ahMajorParticleInstance[1] );
 							if( NULL != pSeq )
@@ -4565,7 +4830,7 @@ void CX2GUEve::CommonFrameMove()
 								pSeq->SetPosition( vBonePos );
 							}
 						}
-						if( m_sMegaElectronBallData.m_ahMajorParticleInstance[2] != INVALID_PARTICLE_HANDLE )
+						if( m_sMegaElectronBallData.m_ahMajorParticleInstance[2] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sMegaElectronBallData.m_ahMajorParticleInstance[2] );
 							if( NULL != pSeq )
@@ -4577,7 +4842,7 @@ void CX2GUEve::CommonFrameMove()
 								pSeq->SetPosition( vBonePos );
 							}
 						}
-						if( m_sMegaElectronBallData.m_ahMajorParticleInstance[3] != INVALID_PARTICLE_HANDLE )
+						if( m_sMegaElectronBallData.m_ahMajorParticleInstance[3] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sMegaElectronBallData.m_ahMajorParticleInstance[3] );
 							if( NULL != pSeq )
@@ -4600,12 +4865,12 @@ void CX2GUEve::CommonFrameMove()
 			}
 			else
 				//내캐릭티 죽었으면 차지 중지..
-				m_sMegaElectronBallData.Reset( false, GetFutureFrameData() );
+				m_sMegaElectronBallData.Reset( false, &AccessFutureFrameData() );
 		}
 #ifdef BALANCE_PATCH_20120329
 		for(int iParticle = 0; iParticle < 4; ++iParticle)
 		{
-			if( m_sMegaElectronBallData.m_ahMajorParticleInstance[iParticle] != INVALID_PARTICLE_HANDLE )
+			if( m_sMegaElectronBallData.m_ahMajorParticleInstance[iParticle] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sMegaElectronBallData.m_ahMajorParticleInstance[iParticle] );
 				if( pSeq != NULL && m_bInvisibility == true )
@@ -4626,21 +4891,21 @@ void CX2GUEve::CommonFrameMove()
 	{
 		m_sATOveronGuardData.SetEnable(false);
 
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] );
 		m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] = INVALID_MESH_INSTANCE_HANDLE;
 
 #ifndef SKILL_BALANCE_PATCH
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] );
 		m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] = INVALID_MESH_INSTANCE_HANDLE;
 
 		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01 ) );
-		SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01, INVALID_PARTICLE_HANDLE );
+		SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
 
 		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02 ) );
-		SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02, INVALID_PARTICLE_HANDLE );
+		SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 #else
 		g_pX2Game->GetEffectSet()->StopEffectSet(m_hOberonGuard);
-		m_hOberonGuard = CX2EffectSet::INVALID_HANDLE;
+		m_hOberonGuard = INVALID_EFFECTSET_HANDLE;
 #endif
 	}
 #endif SKILL_30_TEST
@@ -4648,14 +4913,23 @@ void CX2GUEve::CommonFrameMove()
 	//{{ kimhc // 2010.11.9 // 엠프레스 - 충전 추진기
 #ifdef	NEW_SKILL_2010_11
 	// 충전 추진기를 배웠고, 아직 쿨타임 중이면
-	if ( 0 < m_ChargingBoosterSkillDataBasePtr.use_count() 
+	if ( 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR      
+        m_ChargingBoosterSkillDataBasePtr
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR        
+        0 < m_ChargingBoosterSkillDataBasePtr.use_count() 
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR        
 		&& false == m_ChargingBoosterSkillDataBasePtr->IsEndCoolTime() )
 		m_ChargingBoosterSkillDataBasePtr->OnFrameMove( m_fElapsedTime );
 #endif	NEW_SKILL_2010_11
 	//}} kimhc // 2010.11.9 // 엠프레스 - 충전 추진기
 
 #ifdef EVE_ELECTRA
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_EveElectraSystem.ProcessSystem( m_fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_EveElectraSystem.ProcessSystem();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	DoFrameMoveThousandStar();
 #endif EVE_ELECTRA
 
@@ -4665,7 +4939,7 @@ void CX2GUEve::CommonFrameMove()
 	{
 		// 차지도중 슬롯이 바뀌면 중지..
 		if( m_sTaserPilumData.GetSkillSlotSwap() != g_pData->GetUIManager()->GetUISkillTree()->GetSkillSlotSwap() )
-			m_sTaserPilumData.Reset( false, GetFutureFrameData() );
+			m_sTaserPilumData.Reset( false, &AccessFutureFrameData() );
 		else
 		{
 			//살아있으면 이팩트 랜더링..
@@ -4674,7 +4948,7 @@ void CX2GUEve::CommonFrameMove()
 				// 모으는 이펙트.
 				if( m_sTaserPilumData.m_dMaxTime > m_sTaserPilumData.m_timerElapsedTime.elapsed() )
 				{
-					if( m_sTaserPilumData.m_ahMajorParticleInstance[0] == INVALID_PARTICLE_HANDLE )
+					if( m_sTaserPilumData.m_ahMajorParticleInstance[0] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 						vBonePos.x += 5.f;
@@ -4701,7 +4975,7 @@ void CX2GUEve::CommonFrameMove()
 							pSeq->SetPosition( vBonePos );
 						}
 					}
-					if( m_sTaserPilumData.m_ahMajorParticleInstance[1] == INVALID_PARTICLE_HANDLE )
+					if( m_sTaserPilumData.m_ahMajorParticleInstance[1] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 						vBonePos.y += 5.f;
@@ -4726,7 +5000,7 @@ void CX2GUEve::CommonFrameMove()
 							pSeq->SetPosition( vBonePos );
 						}
 					}
-					if( m_sTaserPilumData.m_ahMajorParticleInstance[2] == INVALID_PARTICLE_HANDLE )
+					if( m_sTaserPilumData.m_ahMajorParticleInstance[2] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 						vBonePos.y += 5.f;
@@ -4818,7 +5092,7 @@ void CX2GUEve::CommonFrameMove()
 					}
 					else
 					{
-						if( m_sTaserPilumData.m_ahMajorParticleInstance[0] != INVALID_PARTICLE_HANDLE )
+						if( m_sTaserPilumData.m_ahMajorParticleInstance[0] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sTaserPilumData.m_ahMajorParticleInstance[0] );
 							if( NULL != pSeq )
@@ -4829,7 +5103,7 @@ void CX2GUEve::CommonFrameMove()
 								pSeq->SetPosition( vBonePos );
 							}
 						}
-						if( m_sTaserPilumData.m_ahMajorParticleInstance[1] != INVALID_PARTICLE_HANDLE )
+						if( m_sTaserPilumData.m_ahMajorParticleInstance[1] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sTaserPilumData.m_ahMajorParticleInstance[1] );
 							if( NULL != pSeq )
@@ -4840,7 +5114,7 @@ void CX2GUEve::CommonFrameMove()
 								pSeq->SetPosition( vBonePos );
 							}
 						}
-						if( m_sTaserPilumData.m_ahMajorParticleInstance[2] != INVALID_PARTICLE_HANDLE )
+						if( m_sTaserPilumData.m_ahMajorParticleInstance[2] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sTaserPilumData.m_ahMajorParticleInstance[2] );
 							if( NULL != pSeq )
@@ -4852,7 +5126,7 @@ void CX2GUEve::CommonFrameMove()
 								pSeq->SetPosition( vBonePos );
 							}
 						}
-						if( m_sTaserPilumData.m_ahMajorParticleInstance[3] != INVALID_PARTICLE_HANDLE )
+						if( m_sTaserPilumData.m_ahMajorParticleInstance[3] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sTaserPilumData.m_ahMajorParticleInstance[3] );
 							if( NULL != pSeq )
@@ -4875,12 +5149,12 @@ void CX2GUEve::CommonFrameMove()
 			}
 			else
 				//내캐릭티 죽었으면 차지 중지..
-				m_sTaserPilumData.Reset( false, GetFutureFrameData() );
+				m_sTaserPilumData.Reset( false, &AccessFutureFrameData() );
 		}
 
 		for(int iParticle = 0; iParticle < 4; ++iParticle)
 		{
-			if( m_sTaserPilumData.m_ahMajorParticleInstance[iParticle] != INVALID_PARTICLE_HANDLE )
+			if( m_sTaserPilumData.m_ahMajorParticleInstance[iParticle] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sTaserPilumData.m_ahMajorParticleInstance[iParticle] );
 				if( pSeq != NULL && m_bInvisibility == true )
@@ -4899,7 +5173,7 @@ void CX2GUEve::CommonFrameMove()
 // 		{
 // 			if( m_GuildSkillData.m_ChangeToReverse.m_fTimeLeft > 0.f )
 // 			{
-// 				if( m_GuildSkillData.m_ChangeToReverse.m_hEffectSet != CX2EffectSet::INVALID_HANDLE )
+// 				if( m_GuildSkillData.m_ChangeToReverse.m_hEffectSet != INVALID_EFFECTSET_HANDLE )
 // 				{
 // 					g_pX2Game->GetEffectSet()->StopEffectSet( m_GuildSkillData.m_ChangeToReverse.m_hEffectSet );				
 // 				}
@@ -4909,7 +5183,7 @@ void CX2GUEve::CommonFrameMove()
 // 		{
 // 			if( m_GuildSkillData.m_ChangeToReverse.m_fTimeLeft > 0.f )
 // 			{
-// 				if ( m_GuildSkillData.m_ChangeToReverse.m_hEffectSet == CX2EffectSet::INVALID_HANDLE )
+// 				if ( m_GuildSkillData.m_ChangeToReverse.m_hEffectSet == INVALID_EFFECTSET_HANDLE )
 // 				{
 // 					m_GuildSkillData.m_ChangeToReverse.m_hEffectSet = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ChanceToReverse", this, this );				
 // 				}
@@ -4923,7 +5197,7 @@ void CX2GUEve::CommonFrameMove()
 	{
 		// 차지도중 슬롯이 바뀌면 중지..
 		if( m_sKugelBlitz_Data.GetSkillSlotSwap() != g_pData->GetUIManager()->GetUISkillTree()->GetSkillSlotSwap() )
-			m_sKugelBlitz_Data.Reset( false, GetFutureFrameData() );
+			m_sKugelBlitz_Data.Reset( false, &AccessFutureFrameData() );
 		else
 		{
 			//살아있으면 이팩트 랜더링..
@@ -4932,7 +5206,7 @@ void CX2GUEve::CommonFrameMove()
 				// 모으는 이펙트.
 				if( m_sKugelBlitz_Data.m_dMaxTime > m_sKugelBlitz_Data.m_timerElapsedTime.elapsed() )
 				{
-					if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[0] == INVALID_PARTICLE_HANDLE )
+					if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[0] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 						vBonePos.x += 5.f;
@@ -4963,7 +5237,7 @@ void CX2GUEve::CommonFrameMove()
 							pSeq->SetPosition( vBonePos );
 						}
 					}
-					if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[1] == INVALID_PARTICLE_HANDLE )
+					if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[1] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 						vBonePos.y += 5.f;
@@ -4990,7 +5264,7 @@ void CX2GUEve::CommonFrameMove()
 							pSeq->SetPosition( vBonePos );
 						}
 					}
-					if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[2] == INVALID_PARTICLE_HANDLE )
+					if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[2] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 						vBonePos.y += 5.f;
@@ -5080,11 +5354,13 @@ void CX2GUEve::CommonFrameMove()
 						}					
 						bIsFirstSucCharge = true;
 
+#ifndef SERV_COUNTRY_JP
 						PlaySoundAtNoAttackState( L"EveVoice_MegaElectronBall.ogg" );
+#endif //SERV_COUNTRY_JP
 					}
 					else
 					{
-						if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[0] != INVALID_PARTICLE_HANDLE )
+						if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[0] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sKugelBlitz_Data.m_ahMajorParticleInstance[0] );
 							if( NULL != pSeq )
@@ -5095,7 +5371,7 @@ void CX2GUEve::CommonFrameMove()
 								pSeq->SetPosition( vBonePos );
 							}
 						}
-						if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[1] != INVALID_PARTICLE_HANDLE )
+						if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[1] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sKugelBlitz_Data.m_ahMajorParticleInstance[1] );
 							if( NULL != pSeq )
@@ -5106,7 +5382,7 @@ void CX2GUEve::CommonFrameMove()
 								pSeq->SetPosition( vBonePos );
 							}
 						}
-						if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[2] != INVALID_PARTICLE_HANDLE )
+						if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[2] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sKugelBlitz_Data.m_ahMajorParticleInstance[2] );
 							if( NULL != pSeq )
@@ -5118,7 +5394,7 @@ void CX2GUEve::CommonFrameMove()
 								pSeq->SetPosition( vBonePos );
 							}
 						}
-						if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[3] != INVALID_PARTICLE_HANDLE )
+						if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[3] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sKugelBlitz_Data.m_ahMajorParticleInstance[3] );
 							if( NULL != pSeq )
@@ -5141,12 +5417,12 @@ void CX2GUEve::CommonFrameMove()
 			}
 			else
 				//내캐릭티 죽었으면 차지 중지..
-				m_sKugelBlitz_Data.Reset( false, GetFutureFrameData() );
+				m_sKugelBlitz_Data.Reset( false, &AccessFutureFrameData() );
 		}
 
 		for(int iParticle = 0; iParticle < 4; ++iParticle)
 		{
-			if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[iParticle] != INVALID_PARTICLE_HANDLE )
+			if( m_sKugelBlitz_Data.m_ahMajorParticleInstance[iParticle] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_sKugelBlitz_Data.m_ahMajorParticleInstance[iParticle] );
 				if( pSeq != NULL && m_bInvisibility == true )
@@ -5167,6 +5443,11 @@ void CX2GUEve::CommonFrameMove()
 #ifdef FIX_EVE_ELCRYSTAL_BUG
 	OnFrameMove_EndElCrystalSystem();
 #endif // FIX_EVE_ELCRYSTAL_BUG
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	// 기동 코어의 OnFrameMove
+	OnFrameMove_ManeuverCore();
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 
 }
 
@@ -5347,6 +5628,10 @@ void CX2GUEve::CommonStateEnd()
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	m_fEffectStartTime = 0.f;
 #endif //UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef FIX_EVE_ELCRYSTAL_BUG
+	m_bIsCheckEndElCrystal = true;
+#endif // FIX_EVE_ELCRYSTAL_BUG
 }
 
 //{{ robobeg : 2008-10-28
@@ -5383,7 +5668,7 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 
 	int iPressedSkillSlotIndex = INVALID_SKILL_SLOT_INDEX;
 	const CX2UserSkillTree::SkillSlotData* pSkillSlotData = NULL;
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;	// 유저가 배운 스킬 트리
+	CX2UserSkillTree& cUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;	// 유저가 배운 스킬 트리
 
 	if ( false == CommonSpecialAttackEventProcess( cUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
 		return false;
@@ -5448,7 +5733,11 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 	if( NULL == pSkillTempletUsing )
 		return false;
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTempletUsing->m_eActiveSkillUseCondtion ) )
+#else //ADD_MEMO_1ST_CLASS
 	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTempletUsing ) )
+#endif //ADD_MEMO_1ST_CLASS
 		return false;
 
 	//소환 필살기 종류는 게임이 끝난 상태에서 사용할 수 없다.
@@ -5487,21 +5776,63 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 	}
 #endif EVE_ELECTRA
 
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+#if defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_OPERATOR ) || false == g_pMain->IsUnlimitedSkillUse() )
+#endif //defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+#else //TOGGLE_UNLIMITED_SKILL_USE
 #ifndef _SERVICE_
 	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
 #endif _SERVICE_
+#endif //TOGGLE_UNLIMITED_SKILL_USE
 	{
 		if( pSkillSlotData->m_fCoolTimeLeft > 0.f )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_226 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
 
 		if ( GetNowMp() < fMPConsume )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		if ( pSkillTempletUsing->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME
+			&& false == GetActiveLinkOverChargeIllusion() ) //페르디난도 피니시 공격에 대한 예외처리)
+		{
+			const int iItemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+			if( iItemNum <= 0
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+				&& false == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence()
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+				)
+			{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
+				g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_26119 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+				return false;
+			}
+		}
+#endif //FINALITY_SKILL_SYSTEM
 	}
 
 	if( pSkillTempletUsing->m_eID == CX2SkillTree::SI_SA_EEG_QUEENS_THRONE )
@@ -5520,6 +5851,12 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 		if( (GetMaxHp() * pSkillTempletUsing->GetSkillAbilityValue( CX2SkillTree::SA_HP_REL_TO_MP_ABS_1 ) ) >= GetNowHp() )
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, 
 				GET_STRING( STR_ID_2627 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 
@@ -5528,6 +5865,12 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 
 		if( GetMaxMp() == GetNowMp() )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, 
 				GET_STRING( STR_ID_2662 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 
@@ -5548,6 +5891,14 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 		}
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	if ( NULL != m_pManeuverCore && m_pManeuverCore->m_eManeuverCoreState == MCS_PARRYING ) 
+	{
+		// Parrying 중에는 기술을 사용할 수 없다.
+		return false;
+	}	
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
 	//메가일론트론볼은 자체스테이트에서 깍는다.
 	if( pSkillSlotData->m_eID != CX2SkillTree::SI_A_EN_MEGA_ELECTRONBALL
 #ifdef SERV_EVE_BATTLE_SERAPH
@@ -5561,6 +5912,26 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 		UpNowMp( -fMPConsume );
 	}
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	if ( pSkillTempletUsing->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME 
+		&& false == GetActiveLinkOverChargeIllusion() ) //페르디난도 피니시 공격에 대한 예외처리
+	{
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		if ( true == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence() )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ();
+		else
+		{
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+		if ( NULL != pItem )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ( pItem->GetItemData().m_ItemUID );
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+	}
+#endif //FINALITY_SKILL_SYSTEM
+
 	//{{ JHKang / 강정훈 / 2011/02/14 / 던전 랭크 개선 관련
 #ifdef DUNGEON_RANK_NEW
 	CountUsedSkill( iPressedSkillSlotIndex );
@@ -5569,6 +5940,7 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 	cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) );
+
 #else // UPGRADE_SKILL_SYSTEM_2013
 	cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->m_fSkillCoolTime );
 #endif // UPGRADE_SKILL_SYSTEM_2013
@@ -5585,6 +5957,7 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) + 3.f );
+
 	#else // UPGRADE_SKILL_SYSTEM_2013
 			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->m_fSkillCoolTime + 3.f );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
@@ -5597,6 +5970,7 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) + 5.f );
+
 	#else // UPGRADE_SKILL_SYSTEM_2013
 			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->m_fSkillCoolTime + 5.f );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
@@ -5607,6 +5981,7 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) - 1.f );
+
 	#else // UPGRADE_SKILL_SYSTEM_2013
 			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->m_fSkillCoolTime - 1.f );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
@@ -5695,12 +6070,30 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 		else if ( pSkillTempletUsing->m_eID == CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS )
 		{
 			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, 0.f );
+
 			g_pX2Game->UpdateSkillSlotUI();
 		}
 
 #endif EVE_ELECTRA
-
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+		if( pSkillTempletUsing->m_eID == CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION )
+		{
+			cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION, 0.f  );
+		}
+#endif //FINALITY_SKILL_SYSTEM
 #endif
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+		// 스페셜 어택에 대해서 본노게이지 누적
+		if( pSkillTempletUsing->m_eType == CX2SkillTree::ST_SPECIAL_ACTIVE && GetRemainHyperModeTime() > 0.f && IsMyUnit() == true )
+		{
+			m_fManeuverGauge += ( fMPConsume / 3.f );
+			if( m_fManeuverGauge > 100.f )
+				m_fManeuverGauge = 100.f;
+		}
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어			   
+
+
 
 		if( false == SpecialAttackNoStageChange( pSkillTempletUsing ) )
 		{
@@ -5739,7 +6132,7 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 #ifdef	NEW_SKILL_2010_11
 		if ( true == CanUseChargingBooster( pSkillTempletUsing->m_eType, cUserSkillTree ) )
 		{
-			UseChargingBooster( &cUserSkillTree );
+			UseChargingBooster( cUserSkillTree );
 			m_ChargingBoosterSkillDataBasePtr->ResetTimerBasedOnCoolTime();
 		}
 #endif	NEW_SKILL_2010_11
@@ -5792,6 +6185,16 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 			}
 		} break;
 #endif
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	case CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION:
+		{
+			if( true == GetActiveLinkOverChargeIllusion() )
+			{
+				m_FrameDataFuture.syncData.nowAction = UAI_EEP_LINK_OVERCHARGE_ILLUSION;
+				return true;
+			}
+		} break;
+#endif //FINALITY_SKILL_SYSTEM
 	default:
 		break;
 	}
@@ -5819,10 +6222,10 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 					m_sMegaElectronBallData.m_bEnable	= true;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit() )
 						return;
 
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 					const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EN_CONVERSION ) );	/// 스킬 레벨
 
@@ -5917,26 +6320,28 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 								m_iThousandStarCount = (int)( m_iThousandStarCount / 2.f) + 1;
 							}
 							const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS );
-							CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
 							if( NULL != pSkillTemplet )
 							{
 				#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-								if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+								if ( NULL == GetUnit() )
 									return;
 	
-								const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+								CX2UserSkillTree& userSkillTree = GetUnit()->AccessUnitData().m_UserSkillTree;
 	
 								const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 								float fRemainCoolTime = pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - m_fElapsedTimeThousandStartCreated; 
 				#else // UPGRADE_SKILL_SYSTEM_2013
+
+								CX2UserSkillTree& userSkillTree = GetUnit()->AccessUnitData().m_UserSkillTree;
+
 								float fRemainCoolTime = pSkillTemplet->m_fSkillCoolTime - m_fElapsedTimeThousandStartCreated; 
 				#endif // UPGRADE_SKILL_SYSTEM_2013
 								
 								if( fRemainCoolTime < 0.f )
 									fRemainCoolTime = 0.f;
 
-								cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS, fRemainCoolTime  );
+								userSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS, fRemainCoolTime  );
 								if ( IsMyUnit() )
 									g_pX2Game->UpdateSkillSlotUI();
 							}
@@ -5981,7 +6386,7 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 							m_iThousandStarCount = (int)( m_iThousandStarCount / 2.f) + 1;
 						}
 						const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS );
-						CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& cUserSkillTree =  GetUnit()->GetUnitData().m_UserSkillTree;
 						if( NULL != pSkillTemplet )
 						{
 							float fRemainCoolTime = pSkillTemplet->m_fSkillCoolTime - m_fElapsedTimeThousandStartCreated; 
@@ -6025,10 +6430,10 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 					m_sTaserPilumData.m_bEnable = true;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit() )
 						return;
 
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 					const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EBS_TASER_PILUM ) );	/// 스킬 레벨
 
@@ -6102,10 +6507,10 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 				{
 					m_sKugelBlitz_Data.m_bEnable = true;
 
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit() )
 						return;
 
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 					const int iSkillLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EBS_KUGELBLITZ ) );	/// 스킬 레벨
 					m_sKugelBlitz_Data.m_dMaxTime = static_cast<double>( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_CHARGING_TIME, iSkillLevel ) );
@@ -6126,9 +6531,24 @@ RENDER_HINT CX2GUEve::CommonRender_Prepare()
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 #endif
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	case UAI_EEP_LINK_OVERCHARGE_ILLUSION:
+		{
+#ifdef RIDING_SYSTEM
+			if ( false == GetRidingOn() && true == GetActiveLinkOverChargeIllusion() )
+#else //RIDING_SYSTEM
+			if ( true == GetActiveLinkOverChargeIllusion() )
+#endif //RIDING_SYSTEM
+			{
+				SetSelfDestructSummonedNPC( CX2UnitManager::NUI_SI_HA_FERDINAND );
+			}		
+		} break;
+#endif //FINALITY_SKILL_SYSTEM
 	}
 }
 
+#ifndef SERV_9TH_NEW_CHARACTER // 김태환
+/// 다른 캐릭터들 전부 똑같은 함수를 쓰고 있으니, X2GUUser로 옮기자.
 void CX2GUEve::CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ )
 {
 	CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleCommonMajorParticleByEnum( COMMON_MAJOR_PII_MAGIC_FAIL ) );
@@ -6142,6 +6562,7 @@ void CX2GUEve::CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float 
 		pSeq->SetAddRotate( vAngle );
 	}
 }
+#endif // SERV_9TH_NEW_CHARACTER
 
 
 
@@ -6210,15 +6631,28 @@ void CX2GUEve::ENSI_DIE_FRONT_Start()
 	SetSelfDestructSummonedNPC( CX2UnitManager::NUI_ATOMIC_SHIELD_EVE );	/// 아토믹 쉴드 소환 해제
 #endif NEW_SKILL_2010_11
 	//}} JHKang / 강정훈 / 2010/11/23 / 아토믹 쉴드
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	SetSelfDestructSummonedNPC( CX2UnitManager::NUI_SI_HA_FERDINAND );
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef EVE_FIRST_CHANGE_JOB
 	m_sEGQueensThrone.Reset();
 #endif EVE_FIRST_CHANGE_JOB
 
 #ifdef EVE_ELECTRA
-	if( m_EffectSweepParadeTriangle != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeTriangle ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffectSweepParadeTriangle != INVALID_DAMAGE_EFFECT_HANDLE )
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectSweepParadeTriangle );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( m_EffectSweepParadeTriangle != NULL )
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_EffectSweepParadeTriangle );
+    m_EffectSweepParadeTriangle = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif EVE_ELECTRA
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	ClearManeuverCore( true );
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 }
 
 void CX2GUEve::ENSI_DIE_FRONT_FrameMove()
@@ -6266,15 +6700,28 @@ void CX2GUEve::ENSI_DIE_BACK_Start()
 	SetSelfDestructSummonedNPC( CX2UnitManager::NUI_ATOMIC_SHIELD_EVE );	/// 아토믹 쉴드 소환 해제
 #endif NEW_SKILL_2010_11
 	//}} JHKang / 강정훈 / 2010/11/23 / 아토믹 쉴드
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	SetSelfDestructSummonedNPC( CX2UnitManager::NUI_SI_HA_FERDINAND );
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef EVE_FIRST_CHANGE_JOB
 	m_sEGQueensThrone.Reset();
 #endif EVE_FIRST_CHANGE_JOB
 
 #ifdef EVE_ELECTRA
-	if( m_EffectSweepParadeTriangle != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeTriangle ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffectSweepParadeTriangle != INVALID_DAMAGE_EFFECT_HANDLE )
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectSweepParadeTriangle );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( m_EffectSweepParadeTriangle != NULL )
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_EffectSweepParadeTriangle );
+    m_EffectSweepParadeTriangle = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif EVE_ELECTRA
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	ClearManeuverCore( true );
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 }
 
 void CX2GUEve::ENSI_DIE_BACK_FrameMove()
@@ -6350,7 +6797,13 @@ void CX2GUEve::ENSI_WAIT_EventProcess()
 		m_PhysicParam.nowSpeed.y = GetJumpSpeed();
 		m_FrameDataFuture.syncData.position.y += LINE_RADIUS;
 	}
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( GetHyperModeStateID() )
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( USI_HYPER_MODE )
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	
+		
 		//ELSE_IF_EVE_CAN_USE_SPECIAL_ABILITY_THEN_STATE_CHANGE( 35.f, m_bInvisibility, ENSI_INVISIBILITY_ON )
 	else if( m_InputData.oneDown == true 
 	&& g_pX2Game->GetWorld()->GetLineMap()->CanDown( m_FrameDataFuture.syncData.position, LINE_RADIUS, &m_FrameDataFuture.unitCondition.landPosition, &m_FrameDataFuture.syncData.lastTouchLineIndex ) == true )
@@ -6400,7 +6853,12 @@ void CX2GUEve::ENSI_WALK_EventProcess()
 		m_PhysicParam.nowSpeed.y = GetJumpSpeed();
 		m_FrameDataFuture.syncData.position.y += LINE_RADIUS;
 	}
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( GetHyperModeStateID() )
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항	
 	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( USI_HYPER_MODE )
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항	
+	
 		//ELSE_IF_EVE_CAN_USE_SPECIAL_ABILITY_THEN_STATE_CHANGE( 35.f, m_bInvisibility, ENSI_INVISIBILITY_ON )
 	else if( m_InputData.oneDown == true 
 	&& g_pX2Game->GetWorld()->GetLineMap()->CanDown( m_FrameDataFuture.syncData.position, 
@@ -6436,18 +6894,14 @@ void CX2GUEve::ENSI_JUMP_READY_EventProcess()
 		m_PhysicParam.nowSpeed.y = GetJumpSpeed();
 		m_FrameDataFuture.syncData.position.y += LINE_RADIUS;
 
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"J", L"JZ");
-#endif
 	}
 	else if( m_InputData.oneX == true )
 	{
 		StateChange( ENSI_JUMP_COMBO_X );
 		m_PhysicParam.nowSpeed.y = GetJumpSpeed();
 		m_FrameDataFuture.syncData.position.y += LINE_RADIUS;
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"J", L"JX");
-#endif
 	}
 	else if( SpecialAttackEventProcess() == true )
 	{
@@ -6486,16 +6940,12 @@ void CX2GUEve::ENSI_JUMP_UP_EventProcess()
 	else if( m_InputData.oneZ == true )
 	{
 		StateChange( ENSI_JUMP_COMBO_Z );
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"J", L"JZ");
-#endif
 	}
 	else if( m_InputData.oneX == true )
 	{
 		StateChange( ENSI_JUMP_COMBO_X );
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"J", L"JX");
-#endif
 	}
 	else if( m_PhysicParam.nowSpeed.y <= 0.0f )
 	{
@@ -6561,16 +7011,12 @@ void CX2GUEve::ENSI_JUMP_DOWN_EventProcess()
 	else if( m_InputData.oneZ == true )
 	{
 		StateChange( ENSI_JUMP_COMBO_Z );
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"J", L"JZ");
-#endif
 	}
 	else if( m_InputData.oneX == true )
 	{
 		StateChange( ENSI_JUMP_COMBO_X );
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"J", L"JX");
-#endif
 	}
 	else if( m_InputData.pureDown == true )
 	{
@@ -6640,8 +7086,14 @@ void CX2GUEve::ENSI_JUMP_LANDING_EventProcess()
 		m_PhysicParam.nowSpeed.y = GetJumpSpeed();
 		m_FrameDataFuture.syncData.position.y += LINE_RADIUS;
 	}
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( GetHyperModeStateID() )
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( USI_HYPER_MODE )
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 		//ELSE_IF_EVE_CAN_USE_SPECIAL_ABILITY_THEN_STATE_CHANGE( 35.f, m_bInvisibility, ENSI_INVISIBILITY_ON )
+	
+	
 	else if( m_InputData.oneDown == true 
 	&& g_pX2Game->GetWorld()->GetLineMap()->CanDown( m_FrameDataFuture.syncData.position, 
 	LINE_RADIUS, 
@@ -6717,7 +7169,11 @@ void CX2GUEve::ENSI_DASH_EventProcess()
 		StateChange( USI_DASH_JUMP );
 		m_PhysicParam.nowSpeed.y = GetDashJumpSpeed();
 	}
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( GetHyperModeStateID() )
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( USI_HYPER_MODE )
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 		//ELSE_IF_EVE_CAN_USE_SPECIAL_ABILITY_THEN_STATE_CHANGE( 35.f, m_bInvisibility, ENSI_INVISIBILITY_ON )
 	else if( m_InputData.pureRight == false && m_InputData.pureLeft == false )
 	{
@@ -6850,7 +7306,11 @@ void CX2GUEve::ENSI_DASH_END_EventProcess()
 	{
 		StateChange( USI_JUMP_READY );
 	}
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( GetHyperModeStateID() )
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( USI_HYPER_MODE )
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 		//ELSE_IF_EVE_CAN_USE_SPECIAL_ABILITY_THEN_STATE_CHANGE( 35.f, m_bInvisibility, ENSI_INVISIBILITY_ON )
 	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{	
@@ -7333,18 +7793,14 @@ void CX2GUEve::ENSI_JUMP_FLY_UP_EventProcess()
 		m_PhysicParam.nowSpeed.y = 0.f;	
 		StateChange( ENSI_JUMP_COMBO_Z );
 
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"j", L"JJZ");
-#endif
 	}
 	else if( m_InputData.oneX == true && m_fReDashJumpXTime <= 0.0f )
 	{
 		m_PhysicParam.nowSpeed.y = 0.f;
 		StateChange( ENSI_JUMP_COMBO_X ); 
 
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"j", L"JJX");
-#endif
 	}
 	//else if( m_InputData.pureRight == true )
 	//{
@@ -7462,16 +7918,12 @@ void CX2GUEve::ENSI_JUMP_FLY_DOWN_EventProcess()
 	else if( m_InputData.oneZ == true )
 	{
 		StateChange( ENSI_JUMP_COMBO_Z );
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"j", L"JJZ");
-#endif
 	}
 	else if( m_InputData.oneX == true )
 	{
 		StateChange( ENSI_JUMP_COMBO_X );
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"j", L"JJX");
-#endif
 	}
 	else if( m_PhysicParam.nowSpeed.y >= 0.0f )
 	{
@@ -7735,7 +8187,7 @@ void CX2GUEve::HyperModeFrameMove()
 	//g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.05f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.05f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.05f ) == true && EventCheck(0.05f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -7767,7 +8219,7 @@ void CX2GUEve::HyperModeFrameMove()
 
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.83f ) == true && EventCheck(0.83f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -8022,7 +8474,11 @@ void CX2GUEve::ENSI_DAMAGE_BIG_BACK_EventProcess()
 //ENSI_DAMAGE_DOWN_FRONT
 void CX2GUEve::ENSI_DAMAGE_DOWN_FRONT_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.19f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.19f ) == true && EventCheck( 0.19f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		CreateStepDust();
@@ -8486,12 +8942,17 @@ void CX2GUEve::ENSI_INVISIBILITY_ON_Start()
 	
 	if( NULL != pSkillTemplet )
 	{
-		int iSkillLevel	= GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EN_CLOAKING );
+		int iSkillLevel	= GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EN_CLOAKING );
 		m_fInvisibilityTime += pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME, iSkillLevel );
 		fAddMoveSpeedFactor = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MOVE_SPEED, iSkillLevel );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 클로킹에 사용되는 MP 소모량, SA 로 변경
+		// SA 에서는 마이너스 값으로 적혀있음
+		m_fDecraseInvisibilityMP = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MP_RETAKE_ABS, iSkillLevel );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EN_CLOAKING_UP );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EN_CLOAKING_UP );
 	if( iSkillLevel > 0 )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_EN_CLOAKING_UP, iSkillLevel );
@@ -8552,7 +9013,11 @@ void CX2GUEve::ENSI_INVISIBILITY_ON_Start()
 void CX2GUEve::ENSI_INVISIBILITY_ON_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Spine1" );
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"LightParticle_Eve_Sp_Invisible01", vBonePos );
@@ -8656,6 +9121,27 @@ void CX2GUEve::ENSI_INVISIBILITY_ON_End()
 			if( pEquip != NULL )
 				pEquip->SetShowAttachedParticle( false );
 		}
+
+#ifdef EVE_CLOAKING_ADJUST
+		BOOST_FOREACH( Weapon* pWeapon, m_vecpWeapon )
+		{
+			if( NULL != pWeapon )
+			{
+				pWeapon->SetShowObject(false);
+			}
+		}
+		if( NULL != m_pUnitShadow )
+		{
+			m_pUnitShadow->SetShowObject( false );
+			D3DXVECTOR3 vecInvisiblityShadow = m_FrameDataNow.syncData.position;
+			vecInvisiblityShadow.y += 400;
+			m_pUnitShadow->UpdatePosition( vecInvisiblityShadow, m_FrameDataNow.unitCondition.landPosition, m_FrameDataNow.unitCondition.dirDegree );
+		}
+
+		SetShowViewList( false );
+
+#endif //EVE_CLOAKING_ADJUST
+
 	}
 
 #ifdef SERV_SKILL_NOTE
@@ -8668,6 +9154,18 @@ void CX2GUEve::ENSI_INVISIBILITY_ON_End()
 #endif
 	}			
 #endif
+
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	// 클로킹 상태에서 같은 팀원이 아니라면 생성을 막는다.
+	if ( NULL != g_pX2Game->GetMyUnit() )
+	{
+		if ( true == m_bInvisibility && g_pX2Game->GetMyUnit()->GetTeam() != GetTeam() )
+		{
+			ClearManeuverCore();
+		}
+	}
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 
 	CommonStateEnd();
 }
@@ -8687,7 +9185,7 @@ void CX2GUEve::ENSI_COMBO_Z_End()
 	// To do..
 #ifdef EVE_FIRST_CHANGE_JOB
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1] = INVALID_MESH_INSTANCE_HANDLE;
 #endif
 
@@ -8702,7 +9200,11 @@ void CX2GUEve::ENSI_COMBO_Z_FrameMove()
 	//}
 
 #ifdef EVE_FIRST_CHANGE_JOB
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		/*GetUnit()->GetClass() == CX2Unit::UC_EVE_EXOTIC_GEAR &&*/ m_sEGQueensThrone.m_bEnable == true )
 	{
 		D3DXVECTOR3 vPos = GetPos();
@@ -8822,7 +9324,7 @@ void CX2GUEve::ENSI_COMBO_ZZ_End()
 	// To do..
 #ifdef EVE_FIRST_CHANGE_JOB
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1] = INVALID_MESH_INSTANCE_HANDLE;
 #endif
 
@@ -8832,7 +9334,11 @@ void CX2GUEve::ENSI_COMBO_ZZ_End()
 void CX2GUEve::ENSI_COMBO_ZZ_FrameMove()
 {
 #ifdef EVE_FIRST_CHANGE_JOB
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		/*GetUnit()->GetClass() == CX2Unit::UC_EVE_EXOTIC_GEAR &&*/ m_sEGQueensThrone.m_bEnable == true )
 	{
 		D3DXVECTOR3 vPos = GetPos();
@@ -8962,7 +9468,7 @@ void CX2GUEve::ENSI_COMBO_ZZZ_End()
 	// To do..
 #ifdef EVE_FIRST_CHANGE_JOB
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1] = INVALID_MESH_INSTANCE_HANDLE;
 #endif
 
@@ -8972,7 +9478,11 @@ void CX2GUEve::ENSI_COMBO_ZZZ_End()
 void CX2GUEve::ENSI_COMBO_ZZZ_FrameMove()
 {
 #ifdef EVE_FIRST_CHANGE_JOB
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		/*GetUnit()->GetClass() == CX2Unit::UC_EVE_EXOTIC_GEAR &&*/ m_sEGQueensThrone.m_bEnable == true )
 	{
 		D3DXVECTOR3 vPos = GetPos();
@@ -9098,7 +9608,7 @@ void CX2GUEve::ENSI_COMBO_ZZZ_EventProcess()
 		m_FrameDataFuture.stateParam.bEventFlagList[3] = false;
 	}
 #endif EVE_ELECTRA
-	//else if( CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass &&
+	//else if( CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass &&
 	//	m_FrameDataFuture.stateParam.bEventFlagList[2] == true && 
 	//	m_pXSkinAnimFuture->GetNowAnimationTime() > 0.5f )
 	//{
@@ -9107,7 +9617,7 @@ void CX2GUEve::ENSI_COMBO_ZZZ_EventProcess()
 	//	m_FrameDataFuture.stateParam.bEventFlagList[1] = false;
 	//	m_FrameDataFuture.stateParam.bEventFlagList[2] = false;
 	//}
-	//else if( CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass &&
+	//else if( CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass &&
 	//	m_InputData.oneZ == true && m_InputData.pureUp == true && 
 	//	m_pXSkinAnimFuture->GetNowAnimationTime() < 0.65f )
 	//{
@@ -9125,7 +9635,7 @@ void CX2GUEve::ENSI_COMBO_ZZZ_EventProcess()
 			m_FrameDataFuture.stateParam.bEventFlagList[3] = false;
 		}
 #ifdef EVE_ELECTRA
-		else if( CX2Unit::UC_EVE_ELECTRA == m_pUnit->GetUnitData()->m_UnitClass )
+		else if( CX2Unit::UC_EVE_ELECTRA == GetUnit()->GetUnitData().m_UnitClass )
 		{
 			m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
 			m_FrameDataFuture.stateParam.bEventFlagList[1] = false;
@@ -9200,7 +9710,7 @@ void CX2GUEve::ENSI_COMBO_ZZZZ_End()
 	// To do..
 #ifdef EVE_FIRST_CHANGE_JOB
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Combo_Z1] = INVALID_MESH_INSTANCE_HANDLE;
 #endif EVE_FIRST_CHANGE_JOB
 
@@ -9209,13 +9719,21 @@ void CX2GUEve::ENSI_COMBO_ZZZZ_End()
 
 void CX2GUEve::ENSI_COMBO_ZZZZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.bReAttack		= false;
 	}
 
 #ifdef EVE_FIRST_CHANGE_JOB
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		/*GetUnit()->GetClass() == CX2Unit::UC_EVE_EXOTIC_GEAR &&*/ m_sEGQueensThrone.m_bEnable == true )
 	{
 		D3DXVECTOR3 vPos = GetBonePos(L"Dummy2_Lhand");
@@ -9315,7 +9833,11 @@ void CX2GUEve::ENSI_COMBO_ZZZZ_EventProcess()
 
 void CX2GUEve::ENSI_COMBO_ZZZX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger01" );
 		D3DXVECTOR2 projPos = g_pKTDXApp->GetProj3DPos( vBonePos );
@@ -9432,7 +9954,11 @@ void CX2GUEve::ENSI_COMBO_ZZZdownZ_End()
 
 void CX2GUEve::ENSI_COMBO_ZZZdownZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.33f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.33f ) == true && EventCheck( 0.33f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//{{ 09.01.20.hoons.
 #ifdef EVE_FIRST_CHANGE_JOB
@@ -9578,9 +10104,13 @@ void CX2GUEve::ENSI_COMBO_ZZZdownZ_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	//{{ 09.01.21.hoons.
 #ifdef EVE_FIRST_CHANGE_JOB
 	// ZZZdownZ콤보로 연결되는 부분 일단 막음
@@ -9693,7 +10223,11 @@ void CX2GUEve::ENSI_COMBO_ZZZdownZZ_End()
 
 void CX2GUEve::ENSI_COMBO_ZZZdownZZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		switch( GetUnit()->GetClass() )
 		{
@@ -9790,7 +10324,11 @@ void CX2GUEve::ENSI_COMBO_ZZZdownZZ_EventProcess()
 void CX2GUEve::ENSI_COMBO_X_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef EVE_ELECTRA
 		if( FlushMp( 8.f * m_fMPConsumeRateElectronBall ) == true ) 
@@ -9848,7 +10386,11 @@ void CX2GUEve::ENSI_COMBO_X_FrameMove()
 		}
 	}
 #ifdef EVE_ELECTRA
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( 0, 1.1f, 280.f, 130.f, L"EveProtoPurityXXZPlane" );
 	}
@@ -9940,7 +10482,11 @@ void CX2GUEve::ENSI_COMBO_X_EventProcess()
 
 void CX2GUEve::ENSI_COMBO_XX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy1_Rhand" );
 
@@ -9983,7 +10529,11 @@ void CX2GUEve::ENSI_COMBO_XX_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -10240,7 +10790,11 @@ void CX2GUEve::ENSI_COMBO_XXZ4_Init()
 void CX2GUEve::ENSI_COMBO_XXZ4_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vDamagePos = GetPos();
@@ -10257,14 +10811,17 @@ void CX2GUEve::ENSI_COMBO_XXZ4_FrameMove()
 
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_AT_ComboX5a_Guardian", GetPos(), GetRotateDegree(), GetRotateDegree() );
-
 		//g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_GUARDIAN_EVE, 0, true, vBonePos, 
 		//	GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
 
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_AT_COMBO_XXZ4_START", GetPowerRate(), vDamagePos, GetRotateDegree(), GetRotateDegree() );		
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.07f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( (m_pXSkinAnim->EventTimer( 1.07f ) && EventCheck( 1.07f, false ) == true) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 125.f;
@@ -10285,7 +10842,11 @@ void CX2GUEve::ENSI_COMBO_XXZ4_FrameMove()
 		}
 	}
 #if 0 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( (m_pXSkinAnim->EventTimerOneshot( 0.333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( (m_pXSkinAnim->EventTimer( 0.333f ) && EventCheck( 0.333f, false ) == true) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 
 		D3DXVECTOR3 vDamagePos = GetPos();
@@ -10326,7 +10887,11 @@ void CX2GUEve::ENSI_COMBO_XXZ4_EventProcess()
 
 void CX2GUEve::ENSI_COMBO_XXX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Spine" );
 		D3DXVECTOR3 vBonePos1 = vBonePos;
@@ -10354,7 +10919,11 @@ void CX2GUEve::ENSI_COMBO_XXX_FrameMove()
 
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.23f ) && EventCheck( 0.23f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 
@@ -10372,16 +10941,28 @@ void CX2GUEve::ENSI_COMBO_XXX_FrameMove()
 
 	}
 #ifdef EVE_ELECTRA
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( m_fPlaneZAngle, 2.0f, 240.f, 130.f);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.m_fPlaneZAngle = m_fPlaneZAngle;
 	}
 #endif EVE_ELECTRA
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.43f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.43f ) && EventCheck( 0.43f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Spine" );
 
@@ -10525,9 +11106,13 @@ void CX2GUEve::ENSI_COMBO_XXfrontX_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 #ifdef SERV_EVE_BATTLE_SERAPH
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() < 0.57f )
 #else
@@ -10564,7 +11149,11 @@ void CX2GUEve::ENSI_COMBO_XXfrontXX_FrameMove()
 {
 
 #ifdef EVE_COMBO_TEST_TEST
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos1 = GetBonePos( L"Dummy1_Rhand" );
 		D3DXVECTOR3 vBonePos2 = GetBonePos( L"Dummy2_Lhand" );
@@ -10577,7 +11166,11 @@ void CX2GUEve::ENSI_COMBO_XXfrontXX_FrameMove()
 	}
 
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -10622,9 +11215,13 @@ void CX2GUEve::ENSI_COMBO_XXdownX_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 #ifdef SERV_EVE_BATTLE_SERAPH
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() < 0.57f )
 #else
@@ -10661,7 +11258,11 @@ void CX2GUEve::ENSI_COMBO_XXdownX_EventProcess()
 void CX2GUEve::ENSI_COMBO_XXdownXX_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -10700,7 +11301,11 @@ void CX2GUEve::ENSI_DASH_COMBO_Z_Start()
 
 	m_ahMajorMeshInstance[MajorMID_DashComboZ] = INVALID_MESH_INSTANCE_HANDLE;
 #ifdef EVE_ELECTRA
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraDashComboZ = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectElectraDashComboZ	= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif EVE_ELECTRA
 }
 
@@ -10710,7 +11315,13 @@ void CX2GUEve::ENSI_DASH_COMBO_Z_End()
 	m_ahMajorMeshInstance[MajorMID_DashComboZ] = INVALID_MESH_INSTANCE_HANDLE;
 
 #ifdef EVE_ELECTRA
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffectElectraDashComboZ != INVALID_DAMAGE_EFFECT_HANDLE )
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectElectraDashComboZ );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	g_pX2Game->GetDamageEffect()->DestroyInstance( m_EffectElectraDashComboZ );
+    m_EffectElectraDashComboZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif EVE_ELECTRA
 
 	CommonStateEnd();
@@ -10720,7 +11331,11 @@ void CX2GUEve::ENSI_DASH_COMBO_Z_End()
 
 void CX2GUEve::ENSI_DASH_COMBO_Z_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( false == GetAbsoluteInvisibility() )
 		{
@@ -10769,7 +11384,11 @@ void CX2GUEve::ENSI_DASH_COMBO_Z_FrameMove()
 			}
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 
@@ -10794,7 +11413,12 @@ void CX2GUEve::ENSI_DASH_COMBO_Z_FrameMove()
 #ifdef SERV_EVE_BATTLE_SERAPH
 		case CX2Unit::UC_EVE_BATTLE_SERAPH:
 #endif
-			m_EffectElectraDashComboZ = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_Z", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hEffectElectraDashComboZ = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_EffectElectraDashComboZ = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                this, L"EVE_PR_DASH_COMBO_Z", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
 			break;
 #endif EVE_ELECTRA
 #endif EVE_FIRST_CHANGE_JOB
@@ -10826,11 +11450,17 @@ void CX2GUEve::ENSI_DASH_COMBO_Z_FrameMove()
 	}
 
 #ifdef EVE_ELECTRA
-	if( m_EffectElectraDashComboZ != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraDashComboZ ) == true && 
-		m_EffectElectraDashComboZ->GetMainEffect() != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectElectraDashComboZ = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectElectraDashComboZ ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( CX2DamageEffect::CEffect* pEffectElectraDashComboZ = ( g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraDashComboZ ) == true ) ? m_EffectElectraDashComboZ : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
-		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
-		m_EffectElectraDashComboZ->GetMainEffect()->SetPos( vBonePos );
+        if ( CKTDGXMeshPlayer::CXMeshInstance *pMeshInstance = pEffectElectraDashComboZ->GetMainEffect() )
+        {
+		    D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
+		    pMeshInstance->SetPos( vBonePos );
+        }
 	}
 
 #endif EVE_ELECTRA
@@ -10864,9 +11494,13 @@ void CX2GUEve::ENSI_DASH_COMBO_Z_EventProcess()
 #endif EVE_COMBO_TEST_TEST
 #ifdef EVE_FIRST_CHANGE_JOB
 	//{{ 09.01.21.hoons. 대쉬 Z 컴보는 전직캐릭터 2개다 사용
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[1] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.33f )
 	{
 		m_FrameDataFuture.stateParam.bEventFlagList[1] = false;
@@ -11017,7 +11651,11 @@ void CX2GUEve::ENSI_DASH_COMBO_ZZ_End()
 void CX2GUEve::ENSI_DASH_COMBO_ZZ_FrameMove()
 {
 	//To do..
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true ) 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//if( false == GetAbsoluteInvisibility() )
 		{
@@ -11046,9 +11684,13 @@ void CX2GUEve::ENSI_DASH_COMBO_ZZ_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && 
 		( m_pXSkinAnimFuture->GetNowAnimationTime() > 0.53f )/* ||
 															 (m_pXSkinAnimFuture->GetNowAnimationTime() > 0.33f && GetUnit()->GetClass() == CX2Unit::UC_EVE_ARCHITECTURE) )*/ )
@@ -11159,7 +11801,11 @@ void CX2GUEve::ENSI_DASH_COMBO_ZZZ_FrameMove()
 	case CX2Unit::UC_EVE_EXOTIC_GEAR:
 	case CX2Unit::UC_EVE_CODE_NEMESIS:
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true ) 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			{
 				//if( false == GetAbsoluteInvisibility() )
 				{
@@ -11177,7 +11823,11 @@ void CX2GUEve::ENSI_DASH_COMBO_ZZZ_FrameMove()
 	case CX2Unit::UC_EVE_ARCHITECTURE:
 	case CX2Unit::UC_EVE_CODE_EMPRESS:
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if( m_pXSkinAnim->EventTimer( 0.23f ) == true && EventCheck( 0.23f, false ) == true ) 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			{
 				D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy1_Rhand" );
 
@@ -11309,7 +11959,11 @@ void CX2GUEve::ENSI_DASH_COMBO_ZZZ_EventProcess()
 #ifdef EVE_COMBO_TEST_TEST
 void CX2GUEve::ENSI_DASH_COMBO_ZX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.27f ) == true && EventCheck( 0.27f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 
@@ -11362,7 +12016,11 @@ void CX2GUEve::ENSI_DASH_COMBO_ZX_EventProcess()
 void CX2GUEve::ENSI_DASH_COMBO_X_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -11378,7 +12036,11 @@ void CX2GUEve::ENSI_DASH_COMBO_X_FrameMove()
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Eve_DashAttackX_FireImpact01", vPos );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.13f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.13f ) == true && EventCheck( 0.13f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos1 = GetBonePos( L"Dummy1_Rhand" );
 		D3DXVECTOR3 vBonePos2 = GetBonePos( L"Dummy2_Lhand" );
@@ -11457,7 +12119,11 @@ void CX2GUEve::ENSI_DASH_COMBO_X_FrameMove()
 		}
 	}
 #ifdef EVE_ELECTRA
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.066f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.066f ) == true && EventCheck( 0.066f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( 70.f, 2.0f, 140.f, 230.f );
 	}
@@ -11514,7 +12180,11 @@ void CX2GUEve::ENSI_DASH_COMBO_X_EventProcess()
 // ENDSI_DASH_COMBO_XZ
 void CX2GUEve::ENSI_DASH_COMBO_XZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Footsteps" );
 
@@ -11576,10 +12246,10 @@ void CX2GUEve::ENSI_JUMP_COMBO_Z_End()
 	// to do.. 
 #ifdef EVE_FIRST_CHANGE_JOB
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_Z_01] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_Z_01]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_Z_01]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_Z_01] = INVALID_MESH_INSTANCE_HANDLE;
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_Z_02] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_Z_02]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_Z_02]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_Z_02] = INVALID_MESH_INSTANCE_HANDLE;
 #endif EVE_FIRST_CHANGE_JOB
 
@@ -11589,7 +12259,11 @@ void CX2GUEve::ENSI_JUMP_COMBO_Z_FrameMove()
 {
 	// to do..
 #ifdef EVE_FIRST_CHANGE_JOB
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		/*GetUnit()->GetClass() == CX2Unit::UC_EVE_EXOTIC_GEAR &&*/ m_sEGQueensThrone.m_bEnable == true )
 	{
 		D3DXVECTOR3 vPos = GetBonePos(L"Dummy2_Lhand");
@@ -11674,10 +12348,10 @@ void CX2GUEve::ENSI_JUMP_COMBO_X_End()
 	// to do.. 
 #ifdef EVE_FIRST_CHANGE_JOB
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_X_01] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_X_01]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_X_01]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_X_01] = INVALID_MESH_INSTANCE_HANDLE;
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_X_02] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_X_02]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_X_02]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Jump_Attack_X_02] = INVALID_MESH_INSTANCE_HANDLE;
 #endif EVE_FIRST_CHANGE_JOB
 
@@ -11687,7 +12361,11 @@ void CX2GUEve::ENSI_JUMP_COMBO_X_FrameMove()
 {
 	// to do..
 #ifdef EVE_FIRST_CHANGE_JOB
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		/*GetUnit()->GetClass() == CX2Unit::UC_EVE_EXOTIC_GEAR &&*/ m_sEGQueensThrone.m_bEnable == true )
 	{
 		D3DXVECTOR3 vPos = GetBonePos(L"Dummy2_Lhand");
@@ -11876,10 +12554,10 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_Z_End()
 	// to do..
 #ifdef EVE_FIRST_CHANGE_JOB
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_Z_01] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_Z_01]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_Z_01]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_Z_01] = INVALID_MESH_INSTANCE_HANDLE;
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_Z_02] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_Z_02]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_Z_02]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_Z_02] = INVALID_MESH_INSTANCE_HANDLE;
 #endif EVE_FIRST_CHANGE_JOB
 
@@ -11887,14 +12565,22 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_Z_End()
 }
 void CX2GUEve::ENSI_DASH_JUMP_COMBO_Z_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    //if( m_pXSkinAnim->EventTimerOneshot( 0) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	//if( m_pXSkinAnim->EventTimer( 0.135f ) == true && EventCheck( 0.135f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	//{
 	//	m_DamageData.hitUnitList.resize(0);
 
 	//	m_DamageData.reActType		= CX2DamageManager::RT_DOWN;
 	//}
 #ifdef EVE_FIRST_CHANGE_JOB
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		/*GetUnit()->GetClass() == CX2Unit::UC_EVE_EXOTIC_GEAR && */m_sEGQueensThrone.m_bEnable == true )
 	{
 		D3DXVECTOR3 vPos = GetBonePos(L"Dummy2_Lhand");
@@ -12045,10 +12731,10 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_ZZ_End()
 	// to do..
 #ifdef EVE_FIRST_CHANGE_JOB
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZ_01] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZ_01]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZ_01]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZ_01] = INVALID_MESH_INSTANCE_HANDLE;
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZ_02] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZ_02]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZ_02]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZ_02] = INVALID_MESH_INSTANCE_HANDLE;
 #endif EVE_FIRST_CHANGE_JOB
 
@@ -12063,7 +12749,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_ZZ_FrameMove()
 	//	m_DamageData.reActType		= CX2DamageManager::RT_DOWN;
 	//}
 #ifdef EVE_FIRST_CHANGE_JOB
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		/*GetUnit()->GetClass() == CX2Unit::UC_EVE_EXOTIC_GEAR && */m_sEGQueensThrone.m_bEnable == true )
 	{
 		D3DXVECTOR3 vPos = GetBonePos(L"Dummy2_Lhand");
@@ -12172,10 +12862,10 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_ZZZ_End()
 	// to do..
 #ifdef EVE_FIRST_CHANGE_JOB
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZZ_01] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZZ_01]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZZ_01]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZZ_01] = INVALID_MESH_INSTANCE_HANDLE;
 	if( m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZZ_02] != INVALID_MESH_INSTANCE_HANDLE )
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZZ_02]);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZZ_02]);
 	m_ahMajorMeshInstance[MajorMID_EG_SP3_Dash_Jump_Combo_ZZZ_02] = INVALID_MESH_INSTANCE_HANDLE;
 #endif EVE_FIRST_CHANGE_JOB
 
@@ -12190,7 +12880,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_ZZZ_FrameMove()
 	//	m_DamageData.reActType		= CX2DamageManager::RT_DOWN;
 	//}
 #ifdef EVE_FIRST_CHANGE_JOB
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		/*GetUnit()->GetClass() == CX2Unit::UC_EVE_EXOTIC_GEAR && */m_sEGQueensThrone.m_bEnable == true )
 	{
 		D3DXVECTOR3 vPos = GetBonePos(L"Dummy2_Lhand");
@@ -12260,7 +12954,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_ZZZ_EventProcess()
 // ENSI_DASH_JUMP_COMBO_ZX
 void CX2GUEve::ENSI_DASH_JUMP_COMBO_ZX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 
@@ -12317,8 +13015,8 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_Start()
 {
 	CommonStateStart();
 
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_01, INVALID_PARTICLE_HANDLE );
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_02, INVALID_PARTICLE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 #ifdef EVE_ELECTRA
 	m_fPlaneZAngle = 0.f;
 #endif EVE_ELECTRA
@@ -12327,8 +13025,8 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_Start()
 void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_End()
 {
 
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_01, INVALID_PARTICLE_HANDLE );
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_02, INVALID_PARTICLE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 
 	CommonStateEnd();
 }
@@ -12337,7 +13035,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_End()
 void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Spine1" );
 
@@ -12362,7 +13064,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_FrameMove()
 		}
 	}
 #ifdef BALANCE_CODE_NEMESIS_20121213
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.266f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.266f ) == true && EventCheck( 0.266f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 
@@ -12425,7 +13131,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_FrameMove()
 		}
 	}
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.266f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.266f ) == true && EventCheck( 0.266f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_R_Finger2" );
 
@@ -12449,7 +13159,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Spine" );
 
@@ -12493,14 +13207,18 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_FrameMove()
 #endif //BALANCE_CODE_NEMESIS_20121213
 
 #ifdef EVE_ELECTRA
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( m_fPlaneZAngle, 2.0f, 240.f, 130.f );
 	}
 #endif EVE_ELECTRA
 
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_01 ) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_01 ) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_01 ) );
@@ -12522,7 +13240,7 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_FrameMove()
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_01, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
@@ -12531,7 +13249,7 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_FrameMove()
 
 
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_02) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_02) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_02 ) );
@@ -12553,7 +13271,7 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_X_FrameMove()
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_02, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_DASH_JUMP_COMBO_X_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
@@ -12646,7 +13364,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_XZ_Init()
 
 void CX2GUEve::ENSI_DASH_JUMP_COMBO_XZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		switch( GetUnit()->GetClass() )
 		{
@@ -12658,7 +13380,6 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_XZ_FrameMove()
 				vBonePos.y += 290.f;
 
 				pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_AT_DashJumpComboXa_Guardian", GetPos(), GetRotateDegree(), GetRotateDegree() );							
-
 
 				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Particle_Eve_AT_Combo01", vBonePos );
 				if( NULL != pSeq )
@@ -12674,7 +13395,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_XZ_FrameMove()
 			break;
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_vSummonedUnitBonePos = GetPos();
 		m_vSummonedUnitBonePos.y += 150.f;
@@ -12682,7 +13407,11 @@ void CX2GUEve::ENSI_DASH_JUMP_COMBO_XZ_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_AT_DASH_JUMP_COMBO_XZ", GetPowerRate(), m_vSummonedUnitBonePos, GetRotateDegree(), GetRotateDegree() );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.15f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.15f ) == true && EventCheck( 0.15f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
 
@@ -12729,7 +13458,11 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -12804,13 +13537,12 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_FrameMove()
 
 
 
-
-			if( NULL == pEffect ||
-				NULL == pEffect->GetMainEffect() ||
-				NULL == pEffect->GetMainEffect()->GetXSkinAnim() )
+            CKTDGXMeshPlayer::CXMeshInstance *pEffectMainEffect = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL;
+			if( NULL == pEffectMainEffect ||
+				NULL == pEffectMainEffect->GetXSkinAnim() )
 				continue;
 
-			CKTDGXSkinAnim* pSkinAnim = pEffect->GetMainEffect()->GetXSkinAnim();
+			CKTDGXSkinAnim* pSkinAnim = pEffectMainEffect->GetXSkinAnim();
 			switch( i )
 			{
 			case 1:
@@ -12839,7 +13571,11 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_FrameMove()
 
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.63f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.63f ) == true && EventCheck( 0.63f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 120.f;
@@ -12855,7 +13591,11 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_FrameMove()
 		SetEnableAttackBox( L"Creature2", true );
 		SetEnableAttackBox( L"Creature1", false );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		SetEnableAttackBox( L"Creature2", false );
 		SetEnableAttackBox( L"Creature1", true );
@@ -12866,7 +13606,7 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_FrameMove()
 	}
 
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01 ) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01 ) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01 ) );
@@ -12878,12 +13618,12 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_FrameMove()
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02 ) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02 ) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02 ) );
@@ -12895,7 +13635,7 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_FrameMove()
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
@@ -12923,7 +13663,11 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -12999,12 +13743,12 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_HYPER_FrameMove()
 
 
 
-			if( NULL == pEffect ||
-				NULL == pEffect->GetMainEffect() ||
-				NULL == pEffect->GetMainEffect()->GetXSkinAnim() )
+            CKTDGXMeshPlayer::CXMeshInstance *pEffectMainEffect = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL;
+			if( NULL == pEffectMainEffect ||
+				NULL == pEffectMainEffect->GetXSkinAnim() )
 				continue;
 
-			CKTDGXSkinAnim* pSkinAnim = pEffect->GetMainEffect()->GetXSkinAnim();
+			CKTDGXSkinAnim* pSkinAnim = pEffectMainEffect->GetXSkinAnim();
 			switch( i )
 			{
 			case 1:
@@ -13033,7 +13777,11 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_HYPER_FrameMove()
 
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.63f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.63f ) == true && EventCheck( 0.63f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 120.f;
@@ -13049,7 +13797,11 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_HYPER_FrameMove()
 		SetEnableAttackBox( L"Creature2", true );
 		SetEnableAttackBox( L"Creature1", false );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		SetEnableAttackBox( L"Creature2", false );
 		SetEnableAttackBox( L"Creature1", true );
@@ -13060,7 +13812,7 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_HYPER_FrameMove()
 	}
 
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01 ) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01 ) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01 ) );
@@ -13072,12 +13824,12 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_HYPER_FrameMove()
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02 ) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02 ) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02 ) );
@@ -13089,7 +13841,7 @@ void CX2GUEve::ENSI_SI1_ILLUSION_STRIKE_HYPER_FrameMove()
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STRIKE_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
@@ -13126,8 +13878,8 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_Start()
 	m_ahMajorMeshInstance[MajorMID_IllusionStinger01] = INVALID_MESH_INSTANCE_HANDLE;
 	m_ahMajorMeshInstance[MajorMID_IllusionStinger02] = INVALID_MESH_INSTANCE_HANDLE;
 
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_HANDLE );
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 }
 
 void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_End()
@@ -13135,8 +13887,8 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_End()
 	m_ahMajorMeshInstance[MajorMID_IllusionStinger01] = INVALID_MESH_INSTANCE_HANDLE;
 	m_ahMajorMeshInstance[MajorMID_IllusionStinger02] = INVALID_MESH_INSTANCE_HANDLE;
 
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_HANDLE );
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 
 	CommonStateEnd();
 }
@@ -13150,35 +13902,43 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		D3DXVECTOR3 vBonePos1 = GetBonePos( L"Dummy2_Lhand" );
-		D3DXVECTOR3 vBonePos2 = GetBonePos( L"Dummy1_Rhand" );
+		m_vecBoneILLUSIONSTINGER1 = GetBonePos( L"Dummy2_Lhand" );
+		m_vecBoneILLUSIONSTINGER2 = GetBonePos( L"Dummy1_Rhand" );
 
 		D3DXVECTOR3 vRotDegree = GetRotateDegree();
 
-		CX2DamageEffect::CEffect* pEffect1 = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_01",
-			GetPowerRate(), vBonePos1, 
+		CX2DamageEffect::CEffect* pDamageEffect1 = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_01",
+			GetPowerRate(), m_vecBoneILLUSIONSTINGER1, 
 			vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
 
 
-		CX2DamageEffect::CEffect* pEffect2 = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_02",
-			GetPowerRate(), vBonePos2, 
+		CX2DamageEffect::CEffect* pDamageEffect2 = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_02",
+			GetPowerRate(), m_vecBoneILLUSIONSTINGER2, 
 			vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
 
 
-		if( NULL != pEffect1 )
+		if( NULL != pDamageEffect1 )
 		{
-			m_ahMajorMeshInstance[MajorMID_IllusionStinger01] = pEffect1->GetMainEffectHandle();
+			m_ahMajorMeshInstance[MajorMID_IllusionStinger01] = pDamageEffect1->GetMainEffectHandle();
 		}
 
-		if( NULL != pEffect2 )
+		if( NULL != pDamageEffect2 )
 		{
-			m_ahMajorMeshInstance[MajorMID_IllusionStinger02] = pEffect2->GetMainEffectHandle();
+			m_ahMajorMeshInstance[MajorMID_IllusionStinger02] = pDamageEffect2->GetMainEffectHandle();
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.26f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.26f ) == true && EventCheck( 0.26f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Finger1Nub" );
 
@@ -13191,7 +13951,11 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, pSeq->GetHandle() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Finger1Nub" );
 
@@ -13205,7 +13969,11 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vPos = GetPos();
@@ -13260,7 +14028,11 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 		UpDownCrashCamera( 3.f, 0.2f );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const float fEffTime[] = 
 		{
@@ -13300,13 +14072,11 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 			D3DXVECTOR3(	600,	100,	0		),
 		};
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO8 ) == true )
 		{
 			for(int i=0; i<ARRAY_SIZE( vEffPos ); ++i)
 				vEffPos[i].x = ( vEffPos[i].x - 135.f) * 0.8f + 135.f;
 		}
-#endif
 
 		D3DXVECTOR3 vRotDegree = GetRotateDegree();
 
@@ -13324,17 +14094,12 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 				vPos -= GetDirVector() * vEffPos[i].x;
 			}
 
-#ifdef NEW_MEMO_01
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO8 ) == true )
 				g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_EXPLOSION_MEMO",
 				GetPowerRate(), vPos, vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y, true, fEffTime[i] );
 			else
 				g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_EXPLOSION",
 				GetPowerRate(), vPos, vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y, true, fEffTime[i] );			
-#else
-			g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_EXPLOSION",
-				GetPowerRate(), vPos, vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y, true, fEffTime[i] );
-#endif
 
 		}
 
@@ -13349,6 +14114,14 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 		if( NULL != pMeshInst )
 		{
 			D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO8 ) == true )
+			{
+				D3DXVECTOR3 vecDir = vBonePos - m_vecBoneILLUSIONSTINGER1;
+				vecDir *= 0.8f;
+				vBonePos = m_vecBoneILLUSIONSTINGER1 + vecDir;
+			}
+#endif //ADD_MEMO_1ST_CLASS
 			pMeshInst->SetPos( vBonePos );
 		}
 		else
@@ -13364,6 +14137,14 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 		if( NULL != pMeshInst )
 		{
 			D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy1_Rhand" );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO8 ) == true )
+			{
+				D3DXVECTOR3 vecDir = vBonePos - m_vecBoneILLUSIONSTINGER2;
+				vecDir *= 0.8f;
+				vBonePos = m_vecBoneILLUSIONSTINGER2 + vecDir;
+			}
+#endif //ADD_MEMO_1ST_CLASS
 			pMeshInst->SetPos( vBonePos );
 		}
 		else
@@ -13372,7 +14153,7 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 		}
 	}
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01 ) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01 ) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01 ) );
@@ -13384,23 +14165,23 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_FrameMove()
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02 ) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02 ) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02 ) );
 
 		if( NULL != pSeq )
 		{
-			D3DXVECTOR3 vBonePos = GetBonePos( L"Bip02_L_Finger1Nub" );
+			D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Finger1Nub" );
 			pSeq->SetPosition( vBonePos );
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
@@ -13430,8 +14211,8 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_Start()
 	m_ahMajorMeshInstance[MajorMID_IllusionStinger01] = INVALID_MESH_INSTANCE_HANDLE;
 	m_ahMajorMeshInstance[MajorMID_IllusionStinger02] = INVALID_MESH_INSTANCE_HANDLE;
 
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_HANDLE );
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 
 }
 
@@ -13440,8 +14221,8 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_End()
 	m_ahMajorMeshInstance[MajorMID_IllusionStinger01] = INVALID_MESH_INSTANCE_HANDLE;
 	m_ahMajorMeshInstance[MajorMID_IllusionStinger02] = INVALID_MESH_INSTANCE_HANDLE;
 
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_HANDLE );
-	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
+	SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 
 	CommonStateEnd();
 }
@@ -13454,35 +14235,43 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		D3DXVECTOR3 vBonePos1 = GetBonePos( L"Dummy2_Lhand" );
-		D3DXVECTOR3 vBonePos2 = GetBonePos( L"Dummy1_Rhand" );
+		m_vecBoneILLUSIONSTINGER1 = GetBonePos( L"Dummy2_Lhand" );
+		m_vecBoneILLUSIONSTINGER2 = GetBonePos( L"Dummy1_Rhand" );
 
 		D3DXVECTOR3 vRotDegree = GetRotateDegree();
 
-		CX2DamageEffect::CEffect* pEffect1 = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_01",
-			GetPowerRate(), vBonePos1, 
+		CX2DamageEffect::CEffect* pDamageEffect1 = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_01",
+			GetPowerRate(), m_vecBoneILLUSIONSTINGER1, 
 			vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
 
 
-		CX2DamageEffect::CEffect* pEffect2 = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_02",
-			GetPowerRate(), vBonePos2, 
+		CX2DamageEffect::CEffect* pDamageEffect2 = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_02",
+			GetPowerRate(), m_vecBoneILLUSIONSTINGER2, 
 			vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
 
 
-		if( NULL != pEffect1 )
+		if( NULL != pDamageEffect1 )
 		{
-			m_ahMajorMeshInstance[MajorMID_IllusionStinger01] = pEffect1->GetMainEffectHandle();
+			m_ahMajorMeshInstance[MajorMID_IllusionStinger01] = pDamageEffect1->GetMainEffectHandle();
 		}
 
-		if( NULL != pEffect2 )
+		if( NULL != pDamageEffect2 )
 		{
-			m_ahMajorMeshInstance[MajorMID_IllusionStinger02] = pEffect2->GetMainEffectHandle();
+			m_ahMajorMeshInstance[MajorMID_IllusionStinger02] = pDamageEffect2->GetMainEffectHandle();
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.26f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.26f ) == true && EventCheck( 0.26f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Finger1Nub" );
 
@@ -13495,7 +14284,11 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, pSeq->GetHandle() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Finger1Nub" );
 
@@ -13509,7 +14302,11 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vPos = GetPos();
@@ -13564,7 +14361,11 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 		UpDownCrashCamera( 3.f, 0.2f );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const float fEffTime[] = 
 		{
@@ -13604,13 +14405,11 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 			D3DXVECTOR3(	600,	100,	0		),
 		};
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO8 ) == true )
 		{
 			for(int i=0; i<ARRAY_SIZE( vEffPos ); ++i)
 				vEffPos[i].x = ( vEffPos[i].x - 135.f) * 0.8f + 135.f;
 		}
-#endif
 
 		D3DXVECTOR3 vRotDegree = GetRotateDegree();
 
@@ -13628,17 +14427,12 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 				vPos -= GetDirVector() * vEffPos[i].x;
 			}
 
-#ifdef NEW_MEMO_01
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO8 ) == true )
 				g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_EXPLOSION_MEMO",
 				GetPowerRate(), vPos, vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y, true, fEffTime[i] );
 			else
 				g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_EXPLOSION",
 				GetPowerRate(), vPos, vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y, true, fEffTime[i] );	
-#else
-			g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"EVE_ILLUSION_STINGER_EXPLOSION",
-				GetPowerRate(), vPos, vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y, true, fEffTime[i] );
-#endif
 		}
 
 	}
@@ -13652,6 +14446,14 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 		if( NULL != pMeshInst )
 		{
 			D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO8 ) == true )
+			{
+				D3DXVECTOR3 vecDir = vBonePos - m_vecBoneILLUSIONSTINGER1;
+				vecDir *= 0.8f;
+				vBonePos = m_vecBoneILLUSIONSTINGER1 + vecDir;
+			}
+#endif //ADD_MEMO_1ST_CLASS
 			pMeshInst->SetPos( vBonePos );
 		}
 		else
@@ -13667,6 +14469,14 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 		if( NULL != pMeshInst )
 		{
 			D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy1_Rhand" );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO8 ) == true )
+			{
+				D3DXVECTOR3 vecDir = vBonePos - m_vecBoneILLUSIONSTINGER2;
+				vecDir *= 0.8f;
+				vBonePos = m_vecBoneILLUSIONSTINGER2 + vecDir;
+			}
+#endif //ADD_MEMO_1ST_CLASS
 			pMeshInst->SetPos( vBonePos );
 		}
 		else
@@ -13675,7 +14485,7 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 		}
 	}
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01 ) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01 ) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01 ) );
@@ -13687,24 +14497,24 @@ void CX2GUEve::ENSI_SI2_ILLUSION_STINGER_HYPER_FrameMove()
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
 
-	if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02 ) )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02 ) )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = 
 			g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02 ) );
 
 		if( NULL != pSeq )
 		{
-			D3DXVECTOR3 vBonePos = GetBonePos( L"Bip02_L_Finger1Nub" );
+			D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Finger1Nub" );
 			pSeq->SetPosition( vBonePos );
 		}
 		else
 		{
-			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_HANDLE );
+			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_ILLUSION_STINGER_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 		}
 	}
 
@@ -13742,7 +14552,11 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos1 = GetBonePos( L"Bip01_Spine1" );
 		D3DXVECTOR3 vBonePos2 = GetBonePos( L"Dummy2_Lhand" );
@@ -13767,7 +14581,11 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -13819,7 +14637,11 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_FrameMove()
 		}
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -13885,11 +14707,19 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.57f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.57f ) == true && EventCheck( 0.57f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 4.f, 3.5f );	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.65f ) == true && EventCheck( 2.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -13942,7 +14772,11 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_FrameMove()
 
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.27f ) == true && EventCheck( 3.27f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 10.f, 0.4f );	
 	}
@@ -14019,7 +14853,11 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos1 = GetBonePos( L"Bip01_Spine1" );
 		D3DXVECTOR3 vBonePos2 = GetBonePos( L"Dummy2_Lhand" );
@@ -14044,7 +14882,11 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_HYPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_GenBlackHole03] = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -14094,7 +14936,11 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_HYPER_FrameMove()
 		}
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -14160,11 +15006,19 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_HYPER_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.57f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.57f ) == true && EventCheck( 0.57f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 4.f, 3.5f );	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.65f ) == true && EventCheck( 2.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -14217,7 +15071,11 @@ void CX2GUEve::ENSI_SI3_GENERATE_BLACKHOLE_HYPER_FrameMove()
 
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.27f ) == true && EventCheck( 3.27f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 10.f, 0.4f );	
 	}
@@ -14312,7 +15170,11 @@ void CX2GUEve::ENSI_SI1_DIMENSION_LINK_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -14341,7 +15203,11 @@ void CX2GUEve::ENSI_SI1_DIMENSION_LINK_FrameMove()
 			pSeq->m_EventList.push_back( pEventRotate );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -14428,8 +15294,15 @@ void CX2GUEve::ENSI_SI1_DIMENSION_LINK_FrameMove()
 #ifdef SERV_SKILL_NOTE
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO2 ) == true )
 			{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 이브 소환물 스크립트가 하나로 통일되고 키코드 값을 통해 메모 여부가 결정됨
+				g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_NASOD_WATCH_EVE, iHyperMode, true, vPos, 
+					GetIsRight(), 0.f, true, 1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_NASOD_WATCH_EVE_MEMO, iHyperMode, true, vPos, 
-					GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
+					GetIsRight(), 0.f, true, 1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				
 			}
 			else
 			{
@@ -14470,7 +15343,11 @@ void CX2GUEve::ENSI_SI1_DIMENSION_LINK_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -14499,7 +15376,11 @@ void CX2GUEve::ENSI_SI1_DIMENSION_LINK_HYPER_FrameMove()
 			pSeq->m_EventList.push_back( pEventRotate );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -14643,7 +15524,11 @@ void CX2GUEve::ENSI_SI2_DIMENSION_LINK_BLADER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -14671,7 +15556,11 @@ void CX2GUEve::ENSI_SI2_DIMENSION_LINK_BLADER_FrameMove()
 			pSeq->m_EventList.push_back( pEventRotate );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -14715,7 +15604,11 @@ void CX2GUEve::ENSI_SI2_DIMENSION_LINK_BLADER_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 110.f;
@@ -14789,7 +15682,11 @@ void CX2GUEve::ENSI_SI2_DIMENSION_LINK_BLADER_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -14817,7 +15714,11 @@ void CX2GUEve::ENSI_SI2_DIMENSION_LINK_BLADER_HYPER_FrameMove()
 			pSeq->m_EventList.push_back( pEventRotate );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -14861,7 +15762,11 @@ void CX2GUEve::ENSI_SI2_DIMENSION_LINK_BLADER_HYPER_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 110.f;
@@ -14943,7 +15848,11 @@ void CX2GUEve::ENSI_SI3_DIMENSION_LINK_GUARDIAN_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -14963,7 +15872,11 @@ void CX2GUEve::ENSI_SI3_DIMENSION_LINK_GUARDIAN_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -15003,7 +15916,11 @@ void CX2GUEve::ENSI_SI3_DIMENSION_LINK_GUARDIAN_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.66f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.66f ) == true && EventCheck( 0.66f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -15083,7 +16000,11 @@ void CX2GUEve::ENSI_SI3_DIMENSION_LINK_GUARDIAN_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -15103,7 +16024,11 @@ void CX2GUEve::ENSI_SI3_DIMENSION_LINK_GUARDIAN_HYPER_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -15143,7 +16068,11 @@ void CX2GUEve::ENSI_SI3_DIMENSION_LINK_GUARDIAN_HYPER_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.66f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.66f ) == true && EventCheck( 0.66f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -15231,21 +16160,29 @@ void CX2GUEve::ENSI_SI3_DIMENSION_LINK_GUARDIAN_HYPER_EventProcess()
 #endif // UPGRADE_SKILL_SYSTEM_2013 // 공통 스킬 개편, 김종훈
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.83f ) == true && EventCheck( 0.83f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		PlayCommonBuffMinorParticle();
 		UpDownCrashCamera( 30.0f, 0.4f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.85f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.85f ) == true && EventCheck( 0.85f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		int	iSkillSlotIndex = 0;
 		bool bSlotB = false;
 
 		if ( true == GetSkillSlotIndexUsed( iSkillSlotIndex, bSlotB ) )
 		{
-			CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+			const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = pUnitData->m_UserSkillTree.GetSkillSlot( iSkillSlotIndex, bSlotB );
 			CX2SkillTree::SKILL_ID eSkillID = CX2SkillTree::SI_NONE;
@@ -15279,8 +16216,7 @@ void CX2GUEve::SetSelfDestructSummonedNPC( CX2UnitManager::NPC_UNIT_ID eNPCID /*
 
 		CX2GUNPC *pNPC = (CX2GUNPC*) pUnit;
 		if( CX2UnitManager::NUI_NONE != eNPCID &&
-			NULL != pNPC->GetNPCTemplet() &&
-			pNPC->GetNPCTemplet()->m_nNPCUnitID != eNPCID )
+			pNPC->GetNPCTemplet().m_nNPCUnitID != eNPCID )
 		{
 			continue;
 		}
@@ -15312,6 +16248,14 @@ void CX2GUEve::SetSelfDestructSummonedNPC( CX2UnitManager::NPC_UNIT_ID eNPCID /*
 				case CX2UnitManager::NUI_ATOMIC_SHIELD_EVE:
 					pNPC->StartSelfDestruction( 0.f );
 					break;
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+				case CX2UnitManager::NUI_SI_HA_FERDINAND:
+					{	
+						pNPC->StartSelfDestruction( 0.f );
+						ResetLinkOverChargeIllusion();
+					}
+					break;
+#endif //FINALITY_SKILL_SYSTEM
 				}
 #else
 				pNPC->StartSelfDestruction( 3.f );
@@ -15343,8 +16287,7 @@ void CX2GUEve::CallSummonedNPC( CX2UnitManager::NPC_UNIT_ID eNPCID /*= CX2UnitMa
 		CX2GUNPC *pNPC = (CX2GUNPC*) pUnit;
 
 		if( CX2UnitManager::NUI_NONE != eNPCID &&
-			NULL != pNPC->GetNPCTemplet() &&
-			pNPC->GetNPCTemplet()->m_nNPCUnitID != eNPCID )
+			pNPC->GetNPCTemplet().m_nNPCUnitID != eNPCID )
 		{
 			continue;
 		}
@@ -15368,7 +16311,7 @@ void CX2GUEve::CallSummonedNPC( CX2UnitManager::NPC_UNIT_ID eNPCID /*= CX2UnitMa
 void CX2GUEve::ResetMegaEletronCharge()
 {
 	if( m_sMegaElectronBallData.m_bEnable == true )
-		m_sMegaElectronBallData.Reset(false, GetFutureFrameData());
+		m_sMegaElectronBallData.Reset(false, &AccessFutureFrameData());
 }
 
 #ifdef EVE_FIRST_CHANGE_JOB
@@ -15383,7 +16326,11 @@ void CX2GUEve::ENSI_SI1_AT_SURFACE_CUTING_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -15412,7 +16359,11 @@ void CX2GUEve::ENSI_SI1_AT_SURFACE_CUTING_FrameMove()
 			pSeq->m_EventList.push_back( pEventRotate );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -15488,17 +16439,12 @@ void CX2GUEve::ENSI_SI1_AT_SURFACE_CUTING_FrameMove()
 
 
 			int iHyperMode = 0;
-#ifdef NEW_MEMO_01
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO10 ) == true )
 				g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_GUARDIAN_SP1_EVE_MEMO, iHyperMode, true, vPos, 
 				GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
 			else
 				g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_GUARDIAN_SP1_EVE, iHyperMode, true, vPos, 
 				GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
-#else
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_GUARDIAN_SP1_EVE, iHyperMode, true, vPos, 
-				GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
-#endif
 		}
 
 		m_fSummonedLifeTime = 20.f;
@@ -15530,7 +16476,11 @@ void CX2GUEve::ENSI_SI1_AT_SURFACE_CUTING_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -15559,7 +16509,11 @@ void CX2GUEve::ENSI_SI1_AT_SURFACE_CUTING_HYPER_FrameMove()
 			pSeq->m_EventList.push_back( pEventRotate );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -15634,7 +16588,6 @@ void CX2GUEve::ENSI_SI1_AT_SURFACE_CUTING_HYPER_FrameMove()
 
 
 			int iHyperMode = 1;
-#ifdef NEW_MEMO_01
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO10 ) == true )
 				g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_GUARDIAN_SP1_EVE_MEMO, iHyperMode, true, vPos, 
 				GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
@@ -15642,10 +16595,6 @@ void CX2GUEve::ENSI_SI1_AT_SURFACE_CUTING_HYPER_FrameMove()
 				g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_GUARDIAN_SP1_EVE, iHyperMode, true, vPos, 
 				GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
 
-#else
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_GUARDIAN_SP1_EVE, iHyperMode, true, vPos, 
-				GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
-#endif
 		}
 
 		m_fSummonedLifeTime = 20.f;
@@ -15681,7 +16630,11 @@ void CX2GUEve::ENSI_SI2_AT_SONIC_WAVE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -15697,7 +16650,11 @@ void CX2GUEve::ENSI_SI2_AT_SONIC_WAVE_FrameMove()
 
 		pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Eve_Sp3a_Magicsquare01", vPos );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 110.f;
@@ -15773,7 +16730,11 @@ void CX2GUEve::ENSI_SI2_AT_SONIC_WAVE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -15789,7 +16750,11 @@ void CX2GUEve::ENSI_SI2_AT_SONIC_WAVE_HYPER_FrameMove()
 
 		pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Eve_Sp3a_Magicsquare01", vPos );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 110.f;
@@ -15917,7 +16882,50 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 
 	float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimerOneshot( 0.533f ) )
+#else //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.533f ) == true && EventCheck( 0.533f, false ) == true )
+#endif //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 vPos = GetPos();
+		if(GetIsRight() == true)
+		{
+			vPos += GetDirVector() * 375.f;
+		}
+		else
+		{
+			vPos -= GetDirVector() * 375.f;
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Genocide_Ripper", GetPowerRate() * fStatAtkRateOfSummoned, vPos, GetRotateDegree(), GetRotateDegree() );	
+	}
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimerOneshot( 1.783f ) )
+#else //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 1.783f ) == true && EventCheck( 1.783f, false ) == true )
+#endif //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 vPos = GetPos();
+		if(GetIsRight() == true)
+		{
+			vPos += GetDirVector() * 375.f;
+		}
+		else
+		{
+			vPos -= GetDirVector() * 375.f;
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Genocide_Ripper_Final", GetPowerRate() * fStatAtkRateOfSummoned, vPos, GetRotateDegree(), GetRotateDegree() );	
+	}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 제노사이드 리퍼, 모든 이펙트가 Script 내의 EffectSet 으로 변경됨
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.533f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 0.533f ) == true && EventCheck( 0.533f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -15936,7 +16944,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.567f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.567f ) == true && EventCheck( 0.567f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -15953,7 +16965,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.666f ) == true && EventCheck( 0.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -15971,7 +16987,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -15988,7 +17008,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.866f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.866f ) == true && EventCheck( 0.866f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16006,7 +17030,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16023,7 +17051,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.033f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.033f ) == true && EventCheck( 1.033f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16041,7 +17073,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.064f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.064f ) == true && EventCheck( 1.064f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16058,7 +17094,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16076,7 +17116,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.231f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.231f ) == true && EventCheck( 1.231f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16093,7 +17137,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.366f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.366f ) == true && EventCheck( 1.366f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16111,7 +17159,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.397f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.397f ) == true && EventCheck( 1.397f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16128,7 +17180,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.466f ) == true && EventCheck( 1.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		CX2DamageEffect::CEffect* pEffect;
@@ -16158,7 +17214,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			}			
 		}
 	}	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.84f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.84f ) == true && EventCheck( 1.84f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -16182,7 +17242,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 
 		UpDownCrashCamera( 30.0f, 0.4f );
 	}	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.9f ) == true && EventCheck( 1.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16193,8 +17257,8 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 		{
 			vPos -= GetDirVector() * 270.f;
 		}
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_EarthBreaker01_Mesh", vPos, GetRotateDegree(), GetRotateDegree() );
-
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_EarthBreaker01_Mesh", vPos, GetRotateDegree(), GetRotateDegree() );
 
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Stone_Raven_EarthBreaker02", vPos );
 		if( NULL != pSeq )
@@ -16204,7 +17268,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 		}	
 	}	
 	// 텔레포트 이펙트
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.66f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.66f ) == true && EventCheck( 3.66f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		D3DXVECTOR3 vPos = GetPos();		
 		if(GetIsRight() == true)
@@ -16228,7 +17296,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			pSeq2->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.76f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.76f ) == true && EventCheck( 3.76f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16243,7 +17315,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.79f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.79f ) == true && EventCheck( 3.79f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16258,7 +17334,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.92f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.92f ) == true && EventCheck( 3.92f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16273,7 +17353,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 4.05f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 4.05f ) == true && EventCheck( 4.05f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16288,7 +17372,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 4.18f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 4.18f ) == true && EventCheck( 4.18f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16303,6 +17391,7 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 	CommonFrameMove();
 }
@@ -16326,6 +17415,132 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 
 	float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.533f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 0.533f ) == true && EventCheck( 0.533f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 vPos = GetPos();
+		if(GetIsRight() == true)
+		{
+			vPos += GetDirVector() * 375.f;
+		}
+		else
+		{
+			vPos -= GetDirVector() * 375.f;
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Genocide_Ripper_Hyper", GetPowerRate() * fStatAtkRateOfSummoned, vPos, GetRotateDegree(), GetRotateDegree() );	
+	}
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.783f ) )
+#else //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimer( 1.783f ) == true && EventCheck( 1.783f, false ) == true )
+#endif //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 vPos = GetPos();
+		if(GetIsRight() == true)
+		{
+			vPos += GetDirVector() * 375.f;
+		}
+		else
+		{
+			vPos -= GetDirVector() * 375.f;
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Genocide_Ripper_Hyper_Dummy", GetPowerRate() * fStatAtkRateOfSummoned, vPos, GetRotateDegree(), GetRotateDegree() );	
+	}
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimerOneshot( 0.666f ) )
+#else //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimer( 0.666f ) == true && EventCheck( 0.666f, false ) == true )
+#endif //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 vPos = GetPos();
+		if(GetIsRight() == true)
+		{
+			vPos += GetDirVector() * 375.f;
+		}
+		else
+		{
+			vPos -= GetDirVector() * 375.f;
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Genocide_Ripper_Hyper_Dummy", GetPowerRate() * fStatAtkRateOfSummoned, vPos, GetRotateDegree(), GetRotateDegree() );	
+	}
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimerOneshot( 0.866f ) )
+#else //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimer( 0.866f ) == true && EventCheck( 0.866f, false ) == true )
+#endif //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 vPos = GetPos();
+		if(GetIsRight() == true)
+		{
+			vPos += GetDirVector() * 375.f;
+		}
+		else
+		{
+			vPos -= GetDirVector() * 375.f;
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Genocide_Ripper_Hyper_Dummy", GetPowerRate() * fStatAtkRateOfSummoned, vPos, GetRotateDegree(), GetRotateDegree() );	
+	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.033f ) )
+#else //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimer( 1.033f ) == true && EventCheck( 1.033f, false ) == true )
+#endif //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 vPos = GetPos();
+		if(GetIsRight() == true)
+		{
+			vPos += GetDirVector() * 375.f;
+		}
+		else
+		{
+			vPos -= GetDirVector() * 375.f;
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Genocide_Ripper_Hyper_Dummy", GetPowerRate() * fStatAtkRateOfSummoned, vPos, GetRotateDegree(), GetRotateDegree() );	
+	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.333f ) )
+#else //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimer( 1.333f ) == true && EventCheck( 1.333f, false ) == true )
+#endif //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 vPos = GetPos();
+		if(GetIsRight() == true)
+		{
+			vPos += GetDirVector() * 375.f;
+		}
+		else
+		{
+			vPos -= GetDirVector() * 375.f;
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Genocide_Ripper_Hyper_Dummy", GetPowerRate() * fStatAtkRateOfSummoned, vPos, GetRotateDegree(), GetRotateDegree() );	
+	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.783f ) )
+#else //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimer( 1.783f ) == true && EventCheck( 1.783f, false ) == true )
+#endif //X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 vPos = GetPos();
+		if(GetIsRight() == true)
+		{
+			vPos += GetDirVector() * 375.f;
+		}
+		else
+		{
+			vPos -= GetDirVector() * 375.f;
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Genocide_Ripper_Final_Hyper", GetPowerRate() * fStatAtkRateOfSummoned, vPos, GetRotateDegree(), GetRotateDegree() );	
+	}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	if( m_pXSkinAnim->EventTimer( 0.533f ) == true && EventCheck( 0.533f, false ) == true )
 	{
 		D3DXVECTOR3 vPos = GetPos();
@@ -16345,7 +17560,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.567f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.567f ) == true && EventCheck( 0.567f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16362,7 +17581,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.666f ) == true && EventCheck( 0.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16380,7 +17603,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16397,7 +17624,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.866f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.866f ) == true && EventCheck( 0.866f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16415,7 +17646,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16432,7 +17667,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.033f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.033f ) == true && EventCheck( 1.033f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16450,7 +17689,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.064f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.064f ) == true && EventCheck( 1.064f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16467,7 +17710,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16485,7 +17732,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.231f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.231f ) == true && EventCheck( 1.231f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16502,7 +17753,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.366f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.366f ) == true && EventCheck( 1.366f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16520,7 +17775,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			m_ahMajorMeshInstance[MajorMID_AT_SP3] = pEffect->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.397f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.397f ) == true && EventCheck( 1.397f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(m_ahMajorMeshInstance[MajorMID_AT_SP3] != INVALID_MESH_INSTANCE_HANDLE)
 		{
@@ -16537,7 +17796,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			}
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.466f ) == true && EventCheck( 1.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		CX2DamageEffect::CEffect* pEffect;
@@ -16567,7 +17830,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			}			
 		}
 	}	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.84f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.84f ) == true && EventCheck( 1.84f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -16592,7 +17859,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 		UpDownCrashCamera( 30.0f, 0.4f );
 
 	}	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.9f ) == true && EventCheck( 1.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16603,8 +17874,8 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 		{
 			vPos -= GetDirVector() * 270.f;
 		}
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_EarthBreaker01_Mesh", vPos, GetRotateDegree(), GetRotateDegree() );
-
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_EarthBreaker01_Mesh", vPos, GetRotateDegree(), GetRotateDegree() );
 
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Stone_Raven_EarthBreaker02", vPos );
 		if( NULL != pSeq )
@@ -16614,7 +17885,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 		}
 	}
 	// 텔레포트 이펙트
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.66f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.66f ) == true && EventCheck( 3.66f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		D3DXVECTOR3 vPos = GetPos();		
 		if(GetIsRight() == true)
@@ -16638,7 +17913,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			pSeq2->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.76f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.76f ) == true && EventCheck( 3.76f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16653,7 +17932,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.79f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.79f ) == true && EventCheck( 3.79f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16668,7 +17951,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 3.92f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 3.92f ) == true && EventCheck( 3.92f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16683,7 +17970,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 4.05f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 4.05f ) == true && EventCheck( 4.05f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16698,7 +17989,11 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 4.18f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 4.18f ) == true && EventCheck( 4.18f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if(GetIsRight() == true)
@@ -16713,7 +18008,7 @@ void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_FrameMove()
 			pSeq->SetScaleFactor(D3DXVECTOR3(2.f, 2.f, 2.f));
 		}		
 	}
-
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	CommonFrameMove();
 }
 void CX2GUEve::ENSI_SI3_AT_GENOCIDE_RIPPER_HYPER_EventProcess()
@@ -16745,12 +18040,21 @@ void CX2GUEve::ENSI_SI1_EG_HORNET_STING_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.02f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_EG_SP1a_HornetSting_Cannon", vBonePos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_EG_SP1a_HornetSting_Cannon", vBonePos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.47f ) == true && EventCheck( 0.47f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Finger1" );
 
@@ -16758,14 +18062,10 @@ void CX2GUEve::ENSI_SI1_EG_HORNET_STING_FrameMove()
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Expl_EG_SP1a_HornetSting_01", vBonePos );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Explosion_Eve_EG_Sp1a_HS02", vBonePos );
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO9 ) == true )
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_EG_SP1A_HORNETSTING_BOMB_MEMO", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
 		else
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_EG_SP1A_HORNETSTING_BOMB", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
-#else
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_EG_SP1A_HORNETSTING_BOMB", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
-#endif
 	}
 
 	CommonFrameMove();
@@ -16790,12 +18090,21 @@ void CX2GUEve::ENSI_SI1_EG_HORNET_STING_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.02f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_EG_SP1a_HornetSting_Cannon", vBonePos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_EG_SP1a_HornetSting_Cannon", vBonePos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.47f ) == true && EventCheck( 0.47f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetPos();
 		vBonePos.x -= 20.f;
@@ -16813,14 +18122,10 @@ void CX2GUEve::ENSI_SI1_EG_HORNET_STING_HYPER_FrameMove()
 
 		vBonePos = GetBonePos( L"Bip01_L_Finger0" );
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO9 ) == true )
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_EG_SP1A_HORNETSTING_BOMB_MEMO", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
 		else
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_EG_SP1A_HORNETSTING_BOMB", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
-#else
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_EG_SP1A_HORNETSTING_BOMB", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
-#endif
 	}
 
 
@@ -16866,7 +18171,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.02f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos(L"Bip01_R_Hand");
 
@@ -16893,7 +18202,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.88f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.88f ) == true && EventCheck( 1.88f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//if( m_ahMajorMeshInstance[MajorMID_ExplosionImpact01] != INVALID_MESH_INSTANCE_HANDLE )
 		//{
@@ -16931,7 +18244,12 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_FrameMove()
 		//	}
 		//}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.96f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.96f ) == true && EventCheck( 1.96f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 	{
 		//if( m_ahMajorMeshInstance[MajorMID_ExplosionImpact01] != INVALID_MESH_INSTANCE_HANDLE )
 		//{
@@ -16969,7 +18287,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_FrameMove()
 		//	}
 		//}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.04f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.04f ) == true && EventCheck( 2.04f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//if( m_ahMajorMeshInstance[MajorMID_ExplosionImpact01] != INVALID_MESH_INSTANCE_HANDLE )
 		//{
@@ -17008,7 +18330,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_FrameMove()
 		//	}
 		//}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.12f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.12f ) == true && EventCheck( 2.12f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//if( m_ahMajorMeshInstance[MajorMID_ExplosionImpact01] != INVALID_MESH_INSTANCE_HANDLE )
 		//{
@@ -17046,7 +18372,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_FrameMove()
 		//	}
 		//}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.2f ) == true && EventCheck( 2.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//if( m_ahMajorMeshInstance[MajorMID_ExplosionImpact01] != INVALID_MESH_INSTANCE_HANDLE )
 		//{
@@ -17084,7 +18414,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_FrameMove()
 		//	}
 		//}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.28f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.28f ) == true && EventCheck( 2.28f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//if( m_ahMajorMeshInstance[MajorMID_ExplosionImpact01] != INVALID_MESH_INSTANCE_HANDLE )
 		//{
@@ -17153,7 +18487,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.02f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos(L"Bip01_R_Hand");
 
@@ -17179,7 +18517,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.88f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.88f ) == true && EventCheck( 1.88f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//if( m_ahMajorMeshInstance[MajorMID_ExplosionImpact01] != INVALID_MESH_INSTANCE_HANDLE )
 		//{
@@ -17211,7 +18553,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER_FrameMove()
 
 		UpDownCrashCameraNoReset( 15.0f, 0.3f );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.96f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.96f ) == true && EventCheck( 1.96f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vPos = GetPos();
@@ -17239,7 +18585,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER_FrameMove()
 
 		UpDownCrashCameraNoReset( 15.0f, 0.3f );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.04f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.04f ) == true && EventCheck( 2.04f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 100.f;
@@ -17267,7 +18617,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER_FrameMove()
 		UpDownCrashCameraNoReset( 15.0f, 0.3f );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.12f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.12f ) == true && EventCheck( 2.12f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 100.f;
@@ -17294,7 +18648,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER_FrameMove()
 
 		UpDownCrashCameraNoReset( 15.0f, 0.3f );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.2f ) == true && EventCheck( 2.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 100.f;
@@ -17321,7 +18679,11 @@ void CX2GUEve::ENSI_SI2_EG_EXPLOSION_IMPACT_HYPER_FrameMove()
 
 		UpDownCrashCameraNoReset( 15.0f, 0.3f );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.28f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.28f ) == true && EventCheck( 2.28f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 100.f;
@@ -17414,14 +18776,17 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.02f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_EG_Sp3a_QT_UpLight01", vBonePos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_EG_Sp3a_QT_UpLight01", vBonePos, GetRotateDegree(), GetRotateDegree() );
 
 		D3DXVECTOR3 vBonePos1 = GetBonePos( L"Bip01_Spine1" );
-
-		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
 
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing", vBonePos1, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
@@ -17461,7 +18826,11 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -17472,7 +18841,11 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_FrameMove()
 		pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Eve_EG_Sp3a_QT_Text01", vPos );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.3f ) == true && EventCheck( 1.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -17499,7 +18872,11 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_FrameMove()
 		pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Eve_EG_Sp3a_QT_Text02", vPos );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -17552,12 +18929,16 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_FrameMove()
 	}
 
 	//3필 준비를 마치고 버프를 시작함.
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.9f ) == true && EventCheck( 1.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//준비 이펙트를 위해 붙어있던 날개를 지운다.
 		if( INVALID_MESH_INSTANCE_HANDLE != m_ahMajorMeshInstance[MajorMID_EG_SP3_Wing] )
 		{
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Wing]);
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Wing]);
 		}
 
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Spine1" );
@@ -17567,13 +18948,22 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_FrameMove()
 		m_sEGQueensThrone.Reset();
 		m_sEGQueensThrone.m_bEnable = true;
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO17 ) == true && m_sEGQueensThrone.m_dMaxLifeTime < 35.f )
+			m_sEGQueensThrone.m_dMaxLifeTime += 5;
+#endif //ADD_MEMO_1ST_CLASS
+
 		// 날개를 붙인다.(4조각)
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing_Weapon_01", vBonePos, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
+        {
 			m_sEGQueensThrone.m_ahMajorMeshInstance[0] = pMeshInst->GetHandle();
+        }
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing_Weapon_02", vBonePos, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
+        {
 			m_sEGQueensThrone.m_ahMajorMeshInstance[1] = pMeshInst->GetHandle();
+        }
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing_Weapon_03", vBonePos, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
 		{
@@ -17585,7 +18975,9 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_FrameMove()
 		}
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing_Weapon_04", vBonePos, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
+        {
 			m_sEGQueensThrone.m_ahMajorMeshInstance[3] = pMeshInst->GetHandle();
+        }
 
 		m_sEGQueensThrone.m_TimerElapsedTime.restart();
 	}
@@ -17612,14 +19004,18 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.02f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_EG_Sp3a_QT_UpLight01", vBonePos, GetRotateDegree(), GetRotateDegree() );
-
+		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_Eve_EG_Sp3a_QT_UpLight01", vBonePos, GetRotateDegree(), GetRotateDegree() );
 		D3DXVECTOR3 vBonePos1 = GetBonePos( L"Bip01_Spine1" );
 
-		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+
 
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing", vBonePos1, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
@@ -17659,7 +19055,11 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_HYPER_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -17670,7 +19070,11 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_HYPER_FrameMove()
 		pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Eve_EG_Sp3a_QT_Text01", vPos );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.3f ) == true && EventCheck( 1.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -17697,7 +19101,11 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_HYPER_FrameMove()
 		pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Eve_EG_Sp3a_QT_Text02", vPos );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -17750,12 +19158,16 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_HYPER_FrameMove()
 	}
 
 	//3필 준비를 마치고 버프를 시작함.
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.9f ) == true && EventCheck( 1.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//준비 이펙트를 위해 붙어있던 날개를 지운다.
 		if( INVALID_MESH_INSTANCE_HANDLE != m_ahMajorMeshInstance[MajorMID_EG_SP3_Wing] )
 		{
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance[MajorMID_EG_SP3_Wing]);
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance[MajorMID_EG_SP3_Wing]);
 		}
 
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Spine1" );
@@ -17765,13 +19177,22 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_HYPER_FrameMove()
 		m_sEGQueensThrone.Reset();
 		m_sEGQueensThrone.m_bEnable = true;
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO17 ) == true && m_sEGQueensThrone.m_dMaxLifeTime < 35.f )
+			m_sEGQueensThrone.m_dMaxLifeTime += 5;
+#endif //ADD_MEMO_1ST_CLASS
+
 		// 날개를 붙인다.(4조각)
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing_Weapon_01", vBonePos, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
+        {
 			m_sEGQueensThrone.m_ahMajorMeshInstance[0] = pMeshInst->GetHandle();
+        }
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing_Weapon_02", vBonePos, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
+        {
 			m_sEGQueensThrone.m_ahMajorMeshInstance[1] = pMeshInst->GetHandle();
+        }
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing_Weapon_03", vBonePos, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
 		{
@@ -17783,7 +19204,9 @@ void CX2GUEve::ENSI_SI3_EG_QUEENS_THRONE_HYPER_FrameMove()
 		}
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Mesh_EG_SP3a_QueensThrone_Wing_Weapon_04", vBonePos, GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
+        {
 			m_sEGQueensThrone.m_ahMajorMeshInstance[3] = pMeshInst->GetHandle();
+        }
 
 		m_sEGQueensThrone.m_TimerElapsedTime.restart();
 	}
@@ -17815,15 +19238,15 @@ void CX2GUEve::EG_QueensThroneData::Reset()
 	for( int i = 0; i < ARRAY_SIZE(m_ahMajorMeshInstance); ++i )
 	{
 		if( m_ahMajorMeshInstance[i] != INVALID_MESH_INSTANCE_HANDLE )
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_ahMajorMeshInstance[i] );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_ahMajorMeshInstance[i] );
 
 		m_ahMajorMeshInstance[i] = INVALID_MESH_INSTANCE_HANDLE;
 	}
 	for( int i = 0; i < ARRAY_SIZE(m_ahMajorParticleInstance); ++i )
 	{
-		if( m_ahMajorParticleInstance[i] != INVALID_PARTICLE_HANDLE )
+		if( m_ahMajorParticleInstance[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle(m_ahMajorParticleInstance[i]);
-		m_ahMajorParticleInstance[i] = INVALID_PARTICLE_HANDLE;
+		m_ahMajorParticleInstance[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 #endif EVE_FIRST_CHANGE_JOB
@@ -17849,10 +19272,10 @@ void CX2GUEve::ENSI_A_EN_CONVERSION_Start()
 	float fTemp = 0.f;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+	if ( NULL == GetUnit() )
 		return;
 
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 	const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EN_CONVERSION ) );	/// 스킬 레벨
 
@@ -17967,22 +19390,30 @@ void CX2GUEve::ENSI_A_EN_MEGA_ELECTRONBALL_FrameMoveFuture()
 void CX2GUEve::ENSI_A_EN_MEGA_ELECTRONBALL_FrameMove()
 {
 #ifdef EVE_ELECTRA
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.22f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.22f ) == true && EventCheck( 0.22f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( m_fPlaneZAngle, 2.0f, 240.f, 130.f );
 	}
 #endif EVE_ELECTRA
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.23f ) == true && EventCheck( 0.23f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// MP 소모
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_EN_MEGA_ELECTRONBALL );
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 		const int iSkillLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EN_MEGA_ELECTRONBALL ) );	/// 스킬 레벨
 	#endif // UPGRADE_SKILL_UI
@@ -18201,7 +19632,11 @@ void CX2GUEve::ENSI_A_EN_MEGA_ELECTRONBALL_EventProcess()
 	//	else
 	//		StateChange( ENSI_WAIT );
 	//}	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -18345,7 +19780,11 @@ void CX2GUEve::ENSI_SA_EAT_SPACE_WRENCH_FrameMove()
 	//여왕의 지배력 영향력을 주기 위해 데미지 이펙트만 코드로 빼냄.
 	float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.066f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.066f ) == true && EventCheck( 0.066f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_AT_SPACE_WRENCH", GetPowerRate() * fStatAtkRateOfSummoned,
 			GetPos(), GetRotateDegree(), GetRotateDegree() );
@@ -18393,7 +19832,11 @@ void CX2GUEve::ENSI_SA_EAT_SPACE_WRENCH_HYPER_FrameMove()
 	//여왕의 지배력 영향력을 주기 위해 데미지 이펙트만 코드로 빼냄.
 	float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.066f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.066f ) == true && EventCheck( 0.066f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_AT_SPACE_WRENCH_HYPER", GetPowerRate() * fStatAtkRateOfSummoned,
 			GetPos(), GetRotateDegree(), GetRotateDegree() );
@@ -18439,7 +19882,11 @@ void CX2GUEve::ENSI_A_EEG_METAL_DUST_AURA_StateStart()
 }
 void CX2GUEve::ENSI_A_EEG_METAL_DUST_AURA_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.333f ) == true && EventCheck( 0.333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet 
 			= GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_EEG_METAL_DUST_AURA );
@@ -18494,7 +19941,11 @@ void CX2GUEve::ENSI_A_EEG_METAL_DUST_AURA_HYPER_StateStart()
 }
 void CX2GUEve::ENSI_A_EEG_METAL_DUST_AURA_HYPER_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.333f ) == true && EventCheck( 0.333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet 
 			= GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_EEG_METAL_DUST_AURA );
@@ -18557,11 +20008,14 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_FrameMove()
 	float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 
 	//첫타격을 하는 오베론 돌격 데미지 이펙트.
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.26f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.26f ) == true && EventCheck( 0.26f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetPos();
 
-#ifdef NEW_MEMO_01
 		CX2DamageEffect::CEffect* pEffect = NULL;
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO12 ) == true )
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD01_MEMO", GetPowerRate() * fStatAtkRateOfSummoned,
@@ -18569,15 +20023,11 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_FrameMove()
 		else
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD01", GetPowerRate() * fStatAtkRateOfSummoned,
 			vPos, GetRotateDegree(), GetRotateDegree() );
-#else
-		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD01", GetPowerRate() * fStatAtkRateOfSummoned,
-			vPos, GetRotateDegree(), GetRotateDegree() );
-#endif
 		if( NULL != pEffect )
 		{
 			if( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] != INVALID_MESH_INSTANCE_HANDLE )
 			{
-				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] );
+				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] );
 				m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] = INVALID_MESH_INSTANCE_HANDLE;
 			}
 
@@ -18588,24 +20038,24 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_FrameMove()
 		m_sATOveronGuardData.SetEnable(true);
 
 #ifdef SKILL_BALANCE_PATCH
-		if( m_hOberonGuard != CX2EffectSet::INVALID_HANDLE )
+		if( m_hOberonGuard != INVALID_EFFECTSET_HANDLE )
 		{
 			g_pX2Game->GetEffectSet()->StopEffectSet(m_hOberonGuard);
 		}
 
 		float fScale = m_sATOveronGuardData.GetProjectileSize();
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO12 ) == true )
 			m_hOberonGuard = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EAT_OBERON_GUARD_MEMO", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, D3DXVECTOR3(fScale, fScale, fScale) );
 		else
 			m_hOberonGuard = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EAT_OBERON_GUARD", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, D3DXVECTOR3(fScale, fScale, fScale) );
-#else
-		m_hOberonGuard = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EAT_OBERON_GUARD", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, D3DXVECTOR3(fScale, fScale, fScale) );
-#endif
 #endif
 	}
 	//시작시 발동 되는 파티클 3종
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetBonePos( L"Bip01_R_Finger2" );
 
@@ -18618,7 +20068,11 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_FrameMove()
 	}
 
 #ifndef SKILL_BALANCE_PATCH
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.466f ) == true && EventCheck( 0.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetPos();
 		vPos.y += 120.f;
@@ -18635,16 +20089,20 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_FrameMove()
 			float fScale = m_sATOveronGuardData.GetProjectileSize();
 			pSeq->SetScaleFactor( D3DXVECTOR3(fScale,fScale,fScale) );
 
-			if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01 ) )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01 ) )
 			{
 				g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01 ) );
-				SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01, INVALID_PARTICLE_HANDLE );
+				SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
 			}
 
 			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01, pSeq->GetHandle() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.47f ) == true && EventCheck( 0.47f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetPos();
 		vPos.y += 120.f;
@@ -18661,16 +20119,20 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_FrameMove()
 			float fSize = m_sATOveronGuardData.GetProjectileSize();
 			pSeq->SetScaleFactor( D3DXVECTOR3(fSize,fSize,fSize) );
 
-			if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02 ) )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02 ) )
 			{
 				g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02 ) );
-				SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02, INVALID_PARTICLE_HANDLE );
+				SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 			}
 			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02, pSeq->GetHandle() );
 		}
 	}
 	//반격을 준비하는 데미지 이펙트.
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetPos();
 		vPos.y += 120.f;
@@ -18685,7 +20147,6 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_FrameMove()
 		else
 			vPos += GetDirVector() * 270.f;
 #endif
-#ifdef NEW_MEMO_01
 		CX2DamageEffect::CEffect* pEffect = NULL;
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO12 ) == true )
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD02_MEMO", GetPowerRate() * fStatAtkRateOfSummoned,
@@ -18693,10 +20154,6 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_FrameMove()
 		else
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD02", GetPowerRate() * fStatAtkRateOfSummoned,
 			vPos, GetRotateDegree(), GetRotateDegree() );
-#else
-		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD02", GetPowerRate() * fStatAtkRateOfSummoned,
-			vPos, GetRotateDegree(), GetRotateDegree() );
-#endif
 		if( NULL != pEffect )
 		{
 			float fScale = m_sATOveronGuardData.GetProjectileSize();
@@ -18704,7 +20161,7 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_FrameMove()
 
 			if( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] != INVALID_MESH_INSTANCE_HANDLE )
 			{
-				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] );
+				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] );
 				m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] = INVALID_MESH_INSTANCE_HANDLE;
 			}
 
@@ -18763,11 +20220,14 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove()
 	float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 
 	//첫타격을 하는 오베론 돌격 데미지 이펙트.
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.26f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.26f ) == true && EventCheck( 0.26f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetPos();
 
-#ifdef NEW_MEMO_01
 		CX2DamageEffect::CEffect* pEffect = NULL;
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO12 ) == true )
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD01_MEMO", GetPowerRate() * fStatAtkRateOfSummoned,
@@ -18775,15 +20235,11 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove()
 		else
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD01", GetPowerRate() * fStatAtkRateOfSummoned,
 			vPos, GetRotateDegree(), GetRotateDegree() );
-#else
-		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD01", GetPowerRate() * fStatAtkRateOfSummoned,
-			vPos, GetRotateDegree(), GetRotateDegree() );
-#endif
 		if( NULL != pEffect )
 		{
 			if( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] != INVALID_MESH_INSTANCE_HANDLE )
 			{
-				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] );
+				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] );
 				m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_01] = INVALID_MESH_INSTANCE_HANDLE;
 			}
 
@@ -18795,25 +20251,25 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove()
 
 
 #ifdef SKILL_BALANCE_PATCH
-		if( m_hOberonGuard != CX2EffectSet::INVALID_HANDLE )
+		if( m_hOberonGuard != INVALID_EFFECTSET_HANDLE )
 		{
 			g_pX2Game->GetEffectSet()->StopEffectSet(m_hOberonGuard);
 		}
 
 		float fScale = m_sATOveronGuardData.GetProjectileSize();
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO12 ) == true )
 			m_hOberonGuard = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EAT_OBERON_GUARD_MEMO", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, D3DXVECTOR3(fScale, fScale, fScale) );
 		else
 			m_hOberonGuard = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EAT_OBERON_GUARD", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, D3DXVECTOR3(fScale, fScale, fScale) );
-#else
-		m_hOberonGuard = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EAT_OBERON_GUARD", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, D3DXVECTOR3(fScale, fScale, fScale) );
-#endif
 #endif
 	}
 
 	//시작시 발동 되는 파티클 3종
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetBonePos( L"Bip01_R_Finger2" );
 
@@ -18825,7 +20281,11 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove()
 		}
 	}
 #ifndef SKILL_BALANCE_PATCH
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.466f ) == true && EventCheck( 0.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetPos();
 		vPos.y += 120.f;
@@ -18842,16 +20302,20 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove()
 			float fScale = m_sATOveronGuardData.GetProjectileSize();
 			pSeq->SetScaleFactor( D3DXVECTOR3(fScale,fScale,fScale) );
 
-			if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01 ) )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01 ) )
 			{
 				g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01 ) );
-				SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01, INVALID_PARTICLE_HANDLE );
+				SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01, INVALID_PARTICLE_SEQUENCE_HANDLE );
 			}
 
 			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_01, pSeq->GetHandle() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.47f ) == true && EventCheck( 0.47f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetPos();
 		vPos.y += 120.f;
@@ -18868,17 +20332,21 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove()
 			float fSize = m_sATOveronGuardData.GetProjectileSize();
 			pSeq->SetScaleFactor( D3DXVECTOR3(fSize,fSize,fSize) );
 
-			if( INVALID_PARTICLE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02 ) )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02 ) )
 			{
 				g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( GetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02 ) );
-				SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02, INVALID_PARTICLE_HANDLE );
+				SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02, INVALID_PARTICLE_SEQUENCE_HANDLE );
 			}
 
 			SetHandleEveMajorParticleByEnum( EVE_MAJOR_PII_OVERON_GUARD_02, pSeq->GetHandle() );
 		}
 	}
 	//반격을 준비하는 데미지 이펙트.
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		vPos = GetPos();
 		vPos.y += 120.f;
@@ -18894,7 +20362,6 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove()
 			vPos += GetDirVector() * 270.f;
 #endif
 
-#ifdef NEW_MEMO_01
 		CX2DamageEffect::CEffect* pEffect = NULL;
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO12 ) == true )
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD02_MEMO", GetPowerRate() * fStatAtkRateOfSummoned,
@@ -18902,10 +20369,6 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove()
 		else
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD02", GetPowerRate() * fStatAtkRateOfSummoned,
 			vPos, GetRotateDegree(), GetRotateDegree() );
-#else
-		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_EVE_SI_A_OVERON_GUARD02", GetPowerRate() * fStatAtkRateOfSummoned,
-			vPos, GetRotateDegree(), GetRotateDegree() );
-#endif
 		if( NULL != pEffect )
 		{
 			float fScale = m_sATOveronGuardData.GetProjectileSize();
@@ -18913,7 +20376,7 @@ void CX2GUEve::ENSI_A_EAT_OBERON_GUARD_HYPER_FrameMove()
 
 			if( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] != INVALID_MESH_INSTANCE_HANDLE )
 			{
-				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] );
+				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] );
 				m_ahMajorMeshInstance[MajorMID_AT_Overon_Guard_02] = INVALID_MESH_INSTANCE_HANDLE;
 			}
 
@@ -19034,18 +20497,32 @@ void CX2GUEve::ENSI_A_EAT_HEAVENS_FIST_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_Spine1", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//여왕의 지배력 파워수치를 이펙트 셋에 전달.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 		if( g_pX2Game != NULL && g_pX2Game->GetEffectSet() != NULL )
 		{
-			CX2EffectSet::Handle hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_HEAVENS_FIST", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned );
-			if( hFist != CX2EffectSet::INVALID_HANDLE )
+			CX2EffectSet::Handle hFist = INVALID_EFFECTSET_HANDLE;
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO20 ) == true )
+				hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_HEAVENS_FIST_MEMO", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned );
+			else
+#endif //ADD_MEMO_1ST_CLASS
+			hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_HEAVENS_FIST", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned );
+			if( hFist != INVALID_EFFECTSET_HANDLE )
 				m_vecEffectSetToDeleteOnDamageReact.push_back(hFist);
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.241f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.241f ) == true && EventCheck( 1.241f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 80.f, 1.0f );
 	}
@@ -19059,18 +20536,32 @@ void CX2GUEve::ENSI_A_EAT_HEAVENS_FIST_Hyper_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_Spine1", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//여왕의 지배력 파워수치를 이펙트 셋에 전달.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 		if( g_pX2Game != NULL && g_pX2Game->GetEffectSet() != NULL )
 		{
-			CX2EffectSet::Handle hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_HEAVENS_FIST", (CX2GameUnit*)this, NULL, true, GetPowerRate() * fStatAtkRateOfSummoned );
-			if( hFist != CX2EffectSet::INVALID_HANDLE )
+			CX2EffectSet::Handle hFist = INVALID_EFFECTSET_HANDLE;
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO20 ) == true )
+				hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_HEAVENS_FIST_MEMO", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned );
+			else
+#endif //ADD_MEMO_1ST_CLASS
+			hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_HEAVENS_FIST", (CX2GameUnit*)this, NULL, true, GetPowerRate() * fStatAtkRateOfSummoned );
+			if( hFist != INVALID_EFFECTSET_HANDLE )
 				m_vecEffectSetToDeleteOnDamageReact.push_back(hFist);
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.25f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.25f ) == true && EventCheck( 1.25f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 80.f, 1.0f );
 	}
@@ -19136,9 +20627,9 @@ void CX2GUEve::MEGA_ELECTRONBALL_Data::ResetParticle()
 {
 	for( int i = 0; i < ARRAY_SIZE(m_ahMajorParticleInstance); ++i )
 	{
-		if( m_ahMajorParticleInstance[i] != INVALID_PARTICLE_HANDLE )
+		if( m_ahMajorParticleInstance[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle(m_ahMajorParticleInstance[i]);
-		m_ahMajorParticleInstance[i] = INVALID_PARTICLE_HANDLE;
+		m_ahMajorParticleInstance[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -19212,10 +20703,10 @@ void CX2GUEve::CreateSpearBurst()
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -19230,9 +20721,12 @@ void CX2GUEve::CreateSpearBurst()
 
 		if ( pEffect != NULL )
 		{
-			float fLifeTime = fGapY / 3500;//( pEffect->GetMainEffect()->GetVelocity().y * -1 );
-			pEffect->GetMainEffect()->SetLandPosition( GetLandPosition().y );
-			pEffect->GetMainEffect()->SetNotCheckLandTime( fLifeTime + 0.17f );	// 0.17 만큼의 라인맵 체크할 시간이 생김
+			float fLifeTime = fGapY / 3500;//( pMeshInstance->GetVelocity().y * -1 );
+            if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+            {
+			    pMeshInstance->SetLandPosition( GetLandPosition().y );
+			    pMeshInstance->SetNotCheckLandTime( fLifeTime + 0.17f );	// 0.17 만큼의 라인맵 체크할 시간이 생김
+            }
 			m_bDoneSpearBurst	= true;
 			//m_ahMajorMeshInstance[MajorPID_SPEAR_BURST01] = pEffect->GetMainEffectHandle();			
 		}
@@ -19271,7 +20765,11 @@ void CX2GUEve::ENSI_NS_DASH_COMBO_ZX_FrameMove()
 		vPos.x += GetDirVector().x * 70;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.27f ) == true && EventCheck( 0.27f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_DASH_COMBO_ZX_SPEAR", fPowerRate, 
 			vPos, GetRotateDegree(), GetRotateDegree() );
@@ -19325,7 +20823,11 @@ void CX2GUEve::ENSI_NS_DASH_COMBO_ZXX_FrameMove()
 
 	D3DXVECTOR3 vPos = GetPos();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_DASH_COMBO_ZXX_SPEAR", fPowerRate, 
 			vPos, GetRotateDegree(), GetRotateDegree() );
@@ -19362,7 +20864,11 @@ void CX2GUEve::ENSI_NS_COMBO_XXZ_FrameMove()
 
 	D3DXVECTOR3 vPos = GetPos();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_COMBO_XXZ_SPEAR1", fPowerRate, 
 			vPos, GetRotateDegree(), GetRotateDegree() );
@@ -19414,42 +20920,66 @@ void CX2GUEve::ENSI_NS_COMBO_XXZZ8_FrameMove()
 		vPos += D3DXVECTOR3( 40.0f, 0.0f, 0.0f );
 
 	// 6타중 첫번째 1타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.26f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.26f ) == true && EventCheck( 0.26f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_COMBO_XXZZ8_SPEAR1", fPowerRate, 
 			vPos, GetRotateDegree(), GetRotateDegree() );
 	}
 
 	// 6타중 2타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.40f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.40f ) == true && EventCheck( 0.40f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_COMBO_XXZZ8_SPEAR2", fPowerRate, 
 			vPos, GetRotateDegree(), GetRotateDegree() );
 	}
 
 	// 6타중 3타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_COMBO_XXZZ8_SPEAR3", fPowerRate, 
 			vPos, GetRotateDegree(), GetRotateDegree() );
 	}
 
 	// 6타중 4타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.66f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.66f ) == true && EventCheck( 0.66f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_COMBO_XXZZ8_SPEAR4", fPowerRate, 
 			vPos, GetRotateDegree(), GetRotateDegree() );
 	}
 
 	// 6타중 5타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_COMBO_XXZZ8_SPEAR5", fPowerRate, 
 			vPos, GetRotateDegree(), GetRotateDegree() );
 	}
 
 	// 6타중 6타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.93f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.93f ) == true && EventCheck( 0.93f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_COMBO_XXZZ8_SPEAR6", fPowerRate, 
 			vPos, GetRotateDegree(), GetRotateDegree() );
@@ -19504,7 +21034,11 @@ void CX2GUEve::ENSI_NS_COMBO_XXZZ8_EventProcess()
 
 void CX2GUEve::ENSI_NS_COMBO_XXZZ8Z_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		float fPowerRate = GetPowerRate();
 
@@ -19527,10 +21061,14 @@ void CX2GUEve::ENSI_NS_COMBO_XXZZ8Z_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.46f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	ELSE_IF_ASDC_PRESSED_AFTER( 0.46f )
 	{
 		SpecialAttackEventProcess();
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 
 #ifdef BALANCE_CODE_NEMESIS_20121213
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
@@ -19713,7 +21251,7 @@ void CX2GUEve::ENSI_SA_ENS_ATOMIC_BLASTER_Start()
 	{
 		if ( m_ahMajorMeshInstance[i] != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_ahMajorMeshInstance[i] );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_ahMajorMeshInstance[i] );
 			m_ahMajorMeshInstance[i] = INVALID_MESH_INSTANCE_HANDLE;
 		}
 	}
@@ -19728,7 +21266,11 @@ void CX2GUEve::ENSI_SA_ENS_ATOMIC_BLASTER_FrameMove()
 	D3DXVECTOR3 vUnitPos	= GetPos();
 	D3DXVECTOR3	vRotate		= GetRotateDegree();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.07f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.07f ) == true && EventCheck( 0.07f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( m_ahMajorMeshInstance[MajorPID_ATOMIC_BLASTER_GUN] == INVALID_MESH_INSTANCE_HANDLE )
 		{
@@ -19760,7 +21302,11 @@ void CX2GUEve::ENSI_SA_ENS_ATOMIC_BLASTER_FrameMove()
 			pMeshInst->SetPos( vUnitPos );
 			D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Pelvis" );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.89f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if ( m_pXSkinAnim->EventTimer( 0.89f ) == true && EventCheck( 0.89f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				m_ahMajorMeshInstance[MajorPID_ATOMIC_BLASTER_DUMMY] == INVALID_MESH_INSTANCE_HANDLE )
 			{
 				CX2DamageEffect::CEffect* pEffectDummy = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_ATOMIC_BLASTER_DUMMY", GetPowerRate(),
@@ -19852,7 +21398,11 @@ void CX2GUEve::ENSI_SA_ENS_ATOMIC_BLASTER_Hyper_FrameMove()
 	D3DXVECTOR3 vUnitPos	= GetPos();
 	D3DXVECTOR3	vRotate		= GetRotateDegree();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.07f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.07f ) == true && EventCheck( 0.07f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( m_ahMajorMeshInstance[MajorPID_ATOMIC_BLASTER_GUN] == INVALID_MESH_INSTANCE_HANDLE )
 		{
@@ -19884,7 +21434,11 @@ void CX2GUEve::ENSI_SA_ENS_ATOMIC_BLASTER_Hyper_FrameMove()
 			pMeshInst->SetPos( vUnitPos );
 			D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Pelvis" );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.89f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if ( m_pXSkinAnim->EventTimer( 0.89f ) == true && EventCheck( 0.89f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				m_ahMajorMeshInstance[MajorPID_ATOMIC_BLASTER_DUMMY] == INVALID_MESH_INSTANCE_HANDLE )
 			{
 				CX2DamageEffect::CEffect* pEffectDummy = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_ATOMIC_BLASTER_DUMMY_HYPER", GetPowerRate(),
@@ -19985,7 +21539,11 @@ void CX2GUEve::ENSI_A_ENS_BURST_SPEAR_FrameMove()
 	}
 #endif
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.15f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.15f ) == true && EventCheck( 0.15f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateSpearBurst();
 	}
@@ -20027,7 +21585,11 @@ void CX2GUEve::ENSI_A_ENS_BURST_SPEAR_Hyper_FrameMove()
 	}
 #endif
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.15f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.15f ) == true && EventCheck( 0.15f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateSpearBurst();
 	}
@@ -20111,18 +21673,26 @@ void CX2GUEve::ENSI_SA_EEP_ELECTRONIC_FIELD_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_Spine1", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//여왕의 지배력 파워수치를 이펙트 셋에 전달.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 		if( g_pX2Game != NULL && g_pX2Game->GetEffectSet() != NULL )
 		{
 			CX2EffectSet::Handle hEField = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Eve_ELECTRONIC_FIELD", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned );
-			if( hEField != CX2EffectSet::INVALID_HANDLE )
+			if( hEField != INVALID_EFFECTSET_HANDLE )
 				m_vecEffectSetToDeleteOnDamageReact.push_back(hEField);
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.18f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.18f ) == true && EventCheck( 0.18f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -20150,7 +21720,11 @@ void CX2GUEve::ENSI_SA_EEP_ELECTRONIC_FIELD_FrameMove()
 			pSeq->m_EventList.push_back( pEventRotate );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -20194,7 +21768,11 @@ void CX2GUEve::ENSI_SA_EEP_ELECTRONIC_FIELD_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.23f ) == true && EventCheck( 0.23f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 110.f;
@@ -20244,18 +21822,26 @@ void CX2GUEve::ENSI_SA_EEP_ELECTRONIC_FIELD_Hyper_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_Spine1", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//여왕의 지배력 파워수치를 이펙트 셋에 전달.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 		if( g_pX2Game != NULL && g_pX2Game->GetEffectSet() != NULL )
 		{
 			CX2EffectSet::Handle hEField = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Eve_ELECTRONIC_FIELD", (CX2GameUnit*)this, NULL, true, GetPowerRate() * fStatAtkRateOfSummoned );
-			if( hEField != CX2EffectSet::INVALID_HANDLE )
+			if( hEField != INVALID_EFFECTSET_HANDLE )
 				m_vecEffectSetToDeleteOnDamageReact.push_back(hEField);
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.18f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.18f ) == true && EventCheck( 0.18f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -20283,7 +21869,11 @@ void CX2GUEve::ENSI_SA_EEP_ELECTRONIC_FIELD_Hyper_FrameMove()
 			pSeq->m_EventList.push_back( pEventRotate );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
@@ -20327,7 +21917,11 @@ void CX2GUEve::ENSI_SA_EEP_ELECTRONIC_FIELD_Hyper_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.23f ) == true && EventCheck( 0.23f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 110.f;
@@ -20371,14 +21965,18 @@ void CX2GUEve::ENSI_A_EEP_SPIT_FIRE_Init()
 
 void CX2GUEve::ENSI_A_EEP_SPIT_FIRE_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//여왕의 지배력 파워수치를 이펙트 셋에 전달.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 		if( g_pX2Game != NULL && g_pX2Game->GetEffectSet() != NULL )
 		{
 			CX2EffectSet::Handle hSpitFire = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Eve_SPIT_FIRE", (CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned );
-			if( hSpitFire != CX2EffectSet::INVALID_HANDLE )
+			if( hSpitFire != INVALID_EFFECTSET_HANDLE )
 				m_vecEffectSetToDeleteOnDamageReact.push_back(hSpitFire);
 		}
 	}
@@ -20414,14 +22012,18 @@ void CX2GUEve::ENSI_A_EEP_SPIT_FIRE_Hyper_Init()
 
 void CX2GUEve::ENSI_A_EEP_SPIT_FIRE_Hyper_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//여왕의 지배력 파워수치를 이펙트 셋에 전달.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 		if( g_pX2Game != NULL && g_pX2Game->GetEffectSet() != NULL )
 		{
 			CX2EffectSet::Handle hSpitFire = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Eve_SPIT_FIRE", (CX2GameUnit*)this, NULL, true, GetPowerRate() * fStatAtkRateOfSummoned );
-			if( hSpitFire != CX2EffectSet::INVALID_HANDLE )
+			if( hSpitFire != INVALID_EFFECTSET_HANDLE )
 				m_vecEffectSetToDeleteOnDamageReact.push_back(hSpitFire);
 		}
 	}
@@ -20484,7 +22086,7 @@ bool CX2GUEve::IsUpSkillSlotMegaElectronBall()
 			break;
 
 		default: // 시전시에 데이터 저장이 제대로 이루어 지지 않았을 경우.
-			m_sMegaElectronBallData.Reset( false, GetFutureFrameData() );
+			m_sMegaElectronBallData.Reset( false, &AccessFutureFrameData() );
 			break;;
 		}
 	}
@@ -20502,7 +22104,7 @@ const CX2UserSkillTree::SkillSlotData* CX2GUEve::GetSkillSlotDataMegaElectronBal
 	if( CX2SkillTree::SI_NONE == pSkillSlotData->m_eID ||
 		CX2SkillTree::SI_A_EN_MEGA_ELECTRONBALL != pSkillSlotData->m_eID)
 	{
-		m_sMegaElectronBallData.Reset( false, GetFutureFrameData() );
+		m_sMegaElectronBallData.Reset( false, &AccessFutureFrameData() );
 		return NULL;
 	}
 
@@ -20516,12 +22118,12 @@ const CX2UserSkillTree::SkillSlotData* CX2GUEve::GetSkillSlotDataMegaElectronBal
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	if( NULL == pSkillTemplet )
 	{
-		m_sMegaElectronBallData.Reset( false, GetFutureFrameData() );
+		m_sMegaElectronBallData.Reset( false, &AccessFutureFrameData() );
 		return NULL;
 	}
 
 	// 메가일렉트론볼 정상 사용 완료
-	m_sMegaElectronBallData.Reset( false, GetFutureFrameData() );
+	m_sMegaElectronBallData.Reset( false, &AccessFutureFrameData() );
 	iSkillSlotIndexPressed_ = m_sMegaElectronBallData.GetSkillSlotID();
 
 	return pSkillSlotData;
@@ -20574,14 +22176,14 @@ bool CX2GUEve::CanUseChargingBooster( CX2SkillTree::SKILL_TYPE eSkillType_, cons
 @param : 유저가 배운 스킬 트리
 @return : 없음
 */
-void CX2GUEve::UseChargingBooster( OUT CX2UserSkillTree* pcUserSkillTree_ )
+void CX2GUEve::UseChargingBooster( CX2UserSkillTree& pcUserSkillTree_ )
 {
 	const CX2SkillTree::SkillTemplet* pSkillTempletChargingBooster
-		= pcUserSkillTree_->GetUserSkillTemplet( CX2SkillTree::SI_P_EEP_CHARGING_BOOSTER );
+		= pcUserSkillTree_.GetUserSkillTemplet( CX2SkillTree::SI_P_EEP_CHARGING_BOOSTER );
 	SpecialAttackNoStageChange( pSkillTempletChargingBooster );
 
 	m_ChargingBoosterSkillDataBasePtr->SetTimerBasedOnCoolTime( m_ChargingBoosterSkillDataBasePtr->GetCoolTime() );
-	pcUserSkillTree_->ResetLeftSkillCoolTimeAll();
+	pcUserSkillTree_.ResetLeftSkillCoolTimeAll();
 }
 
 #endif	NEW_SKILL_2010_11
@@ -20626,8 +22228,19 @@ void CX2GUEve::ENSI_SA_EAT_ASSUALT_SPEAR_FrameMove()
 	ChangeWorldColorByHyperMode();
 
 	ShowActiveSkillCutInAndLight( L"Bip01_L_Finger11", 0.01f, 2 );
-
+#ifdef 	BALANCE_PATCH_20131107
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if ( m_pXSkinAnim->EventTimerOneshot( 0.3f ) ) 
+#else	X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if ( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif	X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+#else	BALANCE_PATCH_20131107
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.266f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.266f ) == true && EventCheck( 0.266f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+#endif	BALANCE_PATCH_20131107
 	{
 		D3DXVECTOR3 vPos = GetBonePos( L"Bip01_Head" );
 
@@ -20640,6 +22253,11 @@ void CX2GUEve::ENSI_SA_EAT_ASSUALT_SPEAR_FrameMove()
 			vPos -= GetDirVector() * -135.f * GetScaleByUnit().x;
 		}
 		vPos.y += 435.f * GetScaleByUnit().y;
+
+#ifdef BALANCE_PATCH_20131107
+		vPos.x -= 10.f;
+		vPos.y -= 10.f;
+#endif //BALANCE_PATCH_20131107
 
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"SA_EAT_ASSUALT_SPEAR_READY", GetPowerRate(),
 			vPos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -20664,10 +22282,16 @@ void CX2GUEve::ENSI_SA_EAT_ASSUALT_SPEAR_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"SI_SA_EAT_ASSUALT_SPEAR_OBERON_NO_DAMAGE", GetPowerRate(),
 			vPos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 1.199f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 1.199f ) == true && EventCheck( 1.199f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetBonePos( L"Bip01_Head" );
-
+#ifdef BALANCE_PATCH_20131107
+		vPos.y += 285.f * GetScaleByUnit().y;
+#else //BALANCE_PATCH_20131107
 		if( true == GetIsRight() )
 		{
 			vPos += GetDirVector() * 175.f * GetScaleByUnit().x;
@@ -20677,6 +22301,7 @@ void CX2GUEve::ENSI_SA_EAT_ASSUALT_SPEAR_FrameMove()
 			vPos -= GetDirVector() * 175.f * GetScaleByUnit().x;
 		}
 		vPos.y += 135.f * GetScaleByUnit().y;
+#endif //BALANCE_PATCH_20131107
 
 		/// 여왕의 지배력 영향력을 주기 위해 데미지 이펙트만 코드로 빼냄.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
@@ -20724,7 +22349,19 @@ void CX2GUEve::ENSI_SA_EAT_ASSUALT_SPEAR_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_L_Finger11", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+#ifdef 	BALANCE_PATCH_20131107
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else	BALANCE_PATCH_20131107
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.266f ) )
+#endif	BALANCE_PATCH_20131107
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+#ifdef BALANCE_PATCH_20131107
+	if ( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#else //BALANCE_PATCH_20131107
 	if ( m_pXSkinAnim->EventTimer( 0.266f ) == true && EventCheck( 0.266f, false ) == true )
+#endif //BALANCE_PATCH_20131107
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetBonePos( L"Bip01_Head" );
 
@@ -20737,6 +22374,11 @@ void CX2GUEve::ENSI_SA_EAT_ASSUALT_SPEAR_HYPER_FrameMove()
 			vPos -= GetDirVector() * -135.f * GetScaleByUnit().x;
 		}
 		vPos.y += 435.f * GetScaleByUnit().y;
+
+#ifdef BALANCE_PATCH_20131107
+		vPos.x -= 10.f;
+		vPos.y -= 10.f;
+#endif //BALANCE_PATCH_20131107
 
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"SA_EAT_ASSUALT_SPEAR_READY", GetPowerRate(),
 			vPos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -20761,10 +22403,16 @@ void CX2GUEve::ENSI_SA_EAT_ASSUALT_SPEAR_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"SI_SA_EAT_ASSUALT_SPEAR_OBERON_NO_DAMAGE", GetPowerRate(),
 			vPos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 1.199f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 1.199f ) == true && EventCheck( 1.199f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetBonePos( L"Bip01_Head" );
-
+#ifdef BALANCE_PATCH_20131107
+		vPos.y += 285.f * GetScaleByUnit().y;
+#else //BALANCE_PATCH_20131107
 		if( true == GetIsRight() )
 		{
 			vPos += GetDirVector() * 175.f * GetScaleByUnit().x;
@@ -20774,6 +22422,7 @@ void CX2GUEve::ENSI_SA_EAT_ASSUALT_SPEAR_HYPER_FrameMove()
 			vPos -= GetDirVector() * 175.f * GetScaleByUnit().x;
 		}
 		vPos.y += 135.f * GetScaleByUnit().y;
+#endif //BALANCE_PATCH_20131107
 
 		/// 여왕의 지배력 영향력을 주기 위해 데미지 이펙트만 코드로 빼냄.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
@@ -20855,16 +22504,20 @@ void CX2GUEve::ENSI_SA_EEG_ATOMIC_SHIELD_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_L_Hand", 0.02f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD);
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD ) );	/// 스킬 레벨
 
@@ -20892,10 +22545,9 @@ void CX2GUEve::ENSI_SA_EEG_ATOMIC_SHIELD_FrameMove()
 
 			/// 초기 이펙트
 			CX2EffectSet::Handle hAtomicShield = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_ATOMIC_SHIELD_INIT", this, NULL );
-			if( CX2EffectSet::INVALID_HANDLE != hAtomicShield )
+			if( INVALID_EFFECTSET_HANDLE != hAtomicShield )
 			{
-				CX2EffectSet::EffectSetInstance* pAtomicShield = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hAtomicShield );
-				if( NULL != pAtomicShield )
+				if ( CX2EffectSet::EffectSetInstance* pAtomicShield = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hAtomicShield ) )
 				{
 					pAtomicShield->SetEffectScale( vScale );
 					pAtomicShield->m_bCustomPosition = true;
@@ -20905,7 +22557,11 @@ void CX2GUEve::ENSI_SA_EEG_ATOMIC_SHIELD_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// 기존에 소환된 몬스터가 있으면 자폭 시키고 다시 소환한다
 		SetSelfDestructSummonedNPC( CX2UnitManager::NUI_ATOMIC_SHIELD_EVE );
@@ -20915,10 +22571,10 @@ void CX2GUEve::ENSI_SA_EEG_ATOMIC_SHIELD_FrameMove()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD ) );	/// 스킬 레벨
 
@@ -21014,16 +22670,20 @@ void CX2GUEve::ENSI_SA_EEG_ATOMIC_SHIELD_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_L_Hand", 0.02f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD);
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD ) );	/// 스킬 레벨
 
@@ -21050,10 +22710,9 @@ void CX2GUEve::ENSI_SA_EEG_ATOMIC_SHIELD_HYPER_FrameMove()
 
 			/// 초기 이펙트
 			CX2EffectSet::Handle hAtomicShield = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_ATOMIC_SHIELD_INIT", this, NULL );
-			if( CX2EffectSet::INVALID_HANDLE != hAtomicShield )
+			if( INVALID_EFFECTSET_HANDLE != hAtomicShield )
 			{
-				CX2EffectSet::EffectSetInstance* pAtomicShield = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hAtomicShield );
-				if( NULL != pAtomicShield )
+				if ( CX2EffectSet::EffectSetInstance* pAtomicShield = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hAtomicShield ) )
 				{
 					pAtomicShield->SetEffectScale( vScale );
 					pAtomicShield->m_bCustomPosition = true;
@@ -21063,7 +22722,11 @@ void CX2GUEve::ENSI_SA_EEG_ATOMIC_SHIELD_HYPER_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// 기존에 소환된 몬스터가 있으면 자폭 시키고 다시 소환한다
 		SetSelfDestructSummonedNPC( CX2UnitManager::NUI_ATOMIC_SHIELD_EVE );
@@ -21073,10 +22736,10 @@ void CX2GUEve::ENSI_SA_EEG_ATOMIC_SHIELD_HYPER_FrameMove()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -21180,11 +22843,11 @@ CX2GUEve::EveElectraLaserData::EveElectraLaserData( EveElectraSystem* _pEveElect
 	m_bPenetrateGiga[1]	= false;
 	m_bPenetrateGiga[2]	= false;
 	m_bPenetrateGiga[3]	= false;
-	m_hParticleLaserCross			= INVALID_PARTICLE_HANDLE;
-	m_hParticleGigaLaserCross[0]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleGigaLaserCross[1]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleGigaLaserCross[2]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleGigaLaserCross[3]	= INVALID_PARTICLE_HANDLE;
+	m_hParticleLaserCross			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleGigaLaserCross[0]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleGigaLaserCross[1]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleGigaLaserCross[2]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleGigaLaserCross[3]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	m_bApplyLaserRangePassive		= false;
 #ifdef SERV_EVE_BATTLE_SERAPH
@@ -21197,9 +22860,10 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 	D3DXVECTOR3 vRotateDegree;
 	m_fElapsedTime += fElapsedTime;
 
-	if( m_vecDamageEffect.size() > 0 && m_vecDamageEffect[0] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_vecDamageEffect[0]) == true && m_vecDamageEffect[0]->GetMainEffect() != NULL )
+    CX2DamageEffect::CEffect* pDamageEffect0 = ( m_vecDamageEffect.size() > 0 ) ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[0] ) : NULL;
+	if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffect0 = ( pDamageEffect0 != NULL ) ? pDamageEffect0->GetMainEffect() : NULL )
 	{
-		vRotateDegree = m_vecDamageEffect[0]->GetMainEffect()->GetRotateLocalDegree();
+		vRotateDegree = pMainEffect0->GetRotateLocalDegree();
 
 		D3DXVECTOR3 vRotationAxis;
 		D3DXVec3Cross( &vRotationAxis, &m_vDirVector, &Y_AXIS );
@@ -21215,7 +22879,7 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 		D3DXVECTOR3 vDirVectorLaser = v4DirVectorLaser;
 
 
-		m_vecDamageEffect[0]->SetPos( m_vLaserStartPos );
+		pDamageEffect0->SetPos( m_vLaserStartPos );
 
 		D3DXVECTOR3 vLaserNowPos = m_vLaserStartPos + ( m_fVelocity * m_fElapsedTime * vDirVectorLaser );
 		D3DXVECTOR3 vLaserEndPos = m_vLaserStartPos + ( m_fVelocity * m_fLaserPropagateTime * m_pEveElectraSystem->m_fLaserRangeScale * vDirVectorLaser );
@@ -21237,14 +22901,22 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 				float fLaserLength = D3DXVec3Length( &( vLaserNowPos - m_vLaserStartPos ) );
 				fLaserLength *= MAGIC_LASER_LENGTH;
 
-				m_vecDamageEffect[0]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
+				pMainEffect0->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
 
 				if( m_vecDamageEffect.size() > 1 )
 				{
 					for(UINT i = 1; i < m_vecDamageEffect.size(); i++ )
 					{
-						if( m_vecDamageEffect[i] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_vecDamageEffect[i]) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        if ( m_vecDamageEffect[i] != INVALID_DAMAGE_EFFECT_HANDLE )
+                            g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_vecDamageEffect[i] );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						if( m_vecDamageEffect[i] != NULL )
+                        {
 							g_pX2Game->GetDamageEffect()->DestroyInstance( m_vecDamageEffect[i] );
+                            m_vecDamageEffect[i] = NULL;
+                        }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					}
 				}
 			}
@@ -21260,7 +22932,7 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 					float fLaserLength = D3DXVec3Length( &( vLaserNowPos - m_vLaserStartPos ) );
 					fLaserLength *= MAGIC_LASER_LENGTH;
 
-					m_vecDamageEffect[0]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
+					pMainEffect0->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
 				}
 				else
 				{
@@ -21269,27 +22941,38 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 					float fLaserLength = D3DXVec3Length( &( vGigaPlaneIntersectPoint - m_vLaserStartPos ) );
 					fLaserLength *= MAGIC_LASER_LENGTH;
 
-					m_vecDamageEffect[0]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
+					pMainEffect0->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
 
 					if( m_bPenetrate == false )
 					{
 						CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_pEveElectraSystem->m_pGUEve, m_AmplifyDamageEffectName.c_str(), m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vGigaPlaneIntersectPoint, m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), 
 							0, false, -1.f, 1.f, 1.f, -1, -1.f, 0, -1.f, true );
 						m_pEveElectraSystem->LaserAttackLineSet( pEffect );
-						pEffect->GetMainEffect()->SetNowLifeTime( m_vecDamageEffect[0]->GetMainEffect()->GetNowLifeTime() );
-						pEffect->GetMainEffect()->SetMaxLifeTime( m_vecDamageEffect[0]->GetMainEffect()->GetMaxLifeTime() );
+                        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                        {
+						    pMeshInstance->SetNowLifeTime( pMainEffect0->GetNowLifeTime() );
+						    pMeshInstance->SetMaxLifeTime( pMainEffect0->GetMaxLifeTime() );
+                        }
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-						pEffect->SetLaserGroupID( m_vecDamageEffect[0]->GetLaserGroupID() );
+						pEffect->SetLaserGroupID( pDamageEffect0->GetLaserGroupID() );
 #else //UPGRADE_SKILL_SYSTEM_2013
 						pEffect->SetLaserGroupID( 1 );
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        m_vecDamageEffect.push_back( pEffect->GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						m_vecDamageEffect.push_back( pEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-						CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-						*pDamageData = *(m_vecDamageEffect[0]->GetDamageData());
+						CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+						*pDamageData = pDamageEffect0->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			            pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-						pDamageData->m_iLaserGroupID = m_vecDamageEffect[0]->GetLaserGroupID();
+						pDamageData->m_iLaserGroupID = pDamageEffect0->GetLaserGroupID();
 #else //UPGRADE_SKILL_SYSTEM_2013
 						pDamageData->m_iLaserGroupID = 1;
 #endif //UPGRADE_SKILL_SYSTEM_2013
@@ -21312,25 +22995,23 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 						m_bPenetrate = true;
 					}
 
-					if(m_vecDamageEffect[1] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_vecDamageEffect[1]) == true && m_vecDamageEffect[0]->GetMainEffect() != NULL)
-#ifdef GET_MAINEFFECT_NULL_CHECK
-					if(NULL != m_vecDamageEffect[1]->GetMainEffect())
-#endif //GET_MAINEFFECT_NULL_CHECK
+                    CX2DamageEffect::CEffect* pDamageEffect1 = ( m_vecDamageEffect.size() > 1 ) ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[1] ) : NULL;
+					if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffect1 = ( pDamageEffect1 != NULL ) ? pDamageEffect1->GetMainEffect() : NULL )
 					{
 
-						m_vecDamageEffect[1]->SetPos( vGigaPlaneIntersectPoint );
+						pDamageEffect1->SetPos( vGigaPlaneIntersectPoint );
 
 						D3DXVECTOR3 vSecondRotateDegree = vRotateDegree; 
 
 						vSecondRotateDegree.z += m_pEveElectraSystem->m_fPlaneZAngle + vSecondRotateDegree.z * 0.8f;
 
-						m_vecDamageEffect[1]->GetMainEffect()->SetRotateLocalDegree( vSecondRotateDegree );
+						pMainEffect1->SetRotateLocalDegree( vSecondRotateDegree );
 
 						float fSecondLaserLength = D3DXVec3Length( &( vLaserNowPos - vGigaPlaneIntersectPoint ) );
 						fSecondLaserLength *= MAGIC_LASER_LENGTH;
-						m_vecDamageEffect[1]->GetMainEffect()->SetScale( fSecondLaserLength, m_fLaserWidthScale * 5.0f, 1.f );
+						pMainEffect1->SetScale( fSecondLaserLength, m_fLaserWidthScale * 5.0f, 1.f );
 
-						m_vecDamageEffect[1]->GetMainEffect()->SetMeshAlphaColor( m_vecDamageEffect[0]->GetMainEffect()->GetMeshAlphaColor() );
+						pMainEffect1->SetMeshAlphaColor( pMainEffect0->GetMeshAlphaColor() );
 
 					}
 
@@ -21350,7 +23031,7 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 			float fLaserLength = D3DXVec3Length( &( vLaserNowPos - m_vLaserStartPos ) );
 			fLaserLength *= MAGIC_LASER_LENGTH;
 
-			m_vecDamageEffect[0]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
+			pMainEffect0->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
 		}
 		else if( m_fPenetrateTime > 0.f )
 		{
@@ -21361,7 +23042,7 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 			float fLaserLength = D3DXVec3Length( &( vPlaneIntersectPoint - m_vLaserStartPos ) );
 			fLaserLength *= MAGIC_LASER_LENGTH;
 
-			m_vecDamageEffect[0]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
+			pMainEffect0->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
 
 		}
 		else	// 역장이 있을 시
@@ -21370,7 +23051,7 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 			float fLaserLength = D3DXVec3Length( &( vPlaneIntersectPoint - m_vLaserStartPos ) );
 			fLaserLength *= MAGIC_LASER_LENGTH;
 
-			m_vecDamageEffect[0]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
+			pMainEffect0->SetScale( fLaserLength, m_fLaserWidthScale, 1.f );
 
 			if( m_bPenetrate == false )
 			{
@@ -21380,29 +23061,43 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 					{
 						CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_pEveElectraSystem->m_pGUEve, m_AmplifyDamageEffectName.c_str(), m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vPlaneIntersectPoint, m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree(),
 							0, false, -1.f, 1.f, 1.f, -1, -1.f, 0, -1.f, true );
-						m_pEveElectraSystem->LaserAttackLineSet( pEffect );
 
-						pEffect->GetMainEffect()->SetNowLifeTime( m_vecDamageEffect[0]->GetMainEffect()->GetNowLifeTime() );
-						pEffect->GetMainEffect()->SetMaxLifeTime( m_vecDamageEffect[0]->GetMainEffect()->GetMaxLifeTime() );
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-						pEffect->SetLaserGroupID( m_vecDamageEffect[0]->GetLaserGroupID() );
-#else //UPGRADE_SKILL_SYSTEM_2013
-						pEffect->SetLaserGroupID( 1 );
-#endif //UPGRADE_SKILL_SYSTEM_2013
-						m_vecDamageEffect.push_back( pEffect );
+                        if ( pEffect != NULL )
+                        {
+						    m_pEveElectraSystem->LaserAttackLineSet( pEffect );
 
-						CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-						*pDamageData = *(m_vecDamageEffect[0]->GetDamageData());
-						pDamageData->pAttackerEffect = pEffect;
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-						pDamageData->m_iLaserGroupID = m_vecDamageEffect[0]->GetLaserGroupID();
-#else //UPGRADE_SKILL_SYSTEM_2013
-						pDamageData->m_iLaserGroupID = 1;
-#endif //UPGRADE_SKILL_SYSTEM_2013
+                            if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                            {
+						        pMeshInstance->SetNowLifeTime( pMainEffect0->GetNowLifeTime() );
+						        pMeshInstance->SetMaxLifeTime( pMainEffect0->GetMaxLifeTime() );
+                            }
+    #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
+						    pEffect->SetLaserGroupID( pDamageEffect0->GetLaserGroupID() );
+    #else //UPGRADE_SKILL_SYSTEM_2013
+						    pEffect->SetLaserGroupID( 1 );
+    #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                            m_vecDamageEffect.push_back( pEffect->GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						    m_vecDamageEffect.push_back( pEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
+						    CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+						    *pDamageData = pDamageEffect0->GetDamageData();
+    #ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			                pDamageData->hAttackerEffect = pEffect->GetHandle();
+    #else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						    pDamageData->pAttackerEffect = pEffect;
+    #endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
+						    pDamageData->m_iLaserGroupID = pDamageEffect0->GetLaserGroupID();
+    #else //UPGRADE_SKILL_SYSTEM_2013
+						    pDamageData->m_iLaserGroupID = 1;
+    #endif //UPGRADE_SKILL_SYSTEM_2013
 
-						pDamageData->damage.fPhysic *= 1.2f;
-						pDamageData->damage.fMagic *= 1.2f;
+						    pDamageData->damage.fPhysic *= 1.2f;
+						    pDamageData->damage.fMagic *= 1.2f;
+                        }
 
 					}
 					break;
@@ -21412,36 +23107,51 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 						{
 							CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_pEveElectraSystem->m_pGUEve, m_SpectrumDamageEffectName.c_str(), m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vPlaneIntersectPoint, m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree(),
 								0, false, -1.f, 1.f, 1.f, -1, -1.f, 0, -1.f, true );
-							m_pEveElectraSystem->LaserAttackLineSet( pEffect );
 
-							pEffect->GetMainEffect()->SetNowLifeTime( m_vecDamageEffect[0]->GetMainEffect()->GetNowLifeTime() );
-							pEffect->GetMainEffect()->SetMaxLifeTime( m_vecDamageEffect[0]->GetMainEffect()->GetMaxLifeTime() );
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-							pEffect->SetLaserGroupID( i + ( m_vecDamageEffect[0]->GetLaserGroupID() - 1 ) * 3 );
-#else //UPGRADE_SKILL_SYSTEM_2013
-							pEffect->SetLaserGroupID( i );
-#endif //UPGRADE_SKILL_SYSTEM_2013
-							m_vecDamageEffect.push_back( pEffect );
+                            if ( pEffect != NULL )
+                            {
+							    m_pEveElectraSystem->LaserAttackLineSet( pEffect );
 
-							CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-							*pDamageData = *(m_vecDamageEffect[0]->GetDamageData());
-							pDamageData->pAttackerEffect = pEffect;
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-							pDamageData->m_iLaserGroupID = i + ( m_vecDamageEffect[0]->GetLaserGroupID() - 1 ) * 3;
-#else //UPGRADE_SKILL_SYSTEM_2013
-							pDamageData->m_iLaserGroupID = i;
-#endif //UPGRADE_SKILL_SYSTEM_2013
+                                if (  CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                                {
+							        pMeshInstance->SetNowLifeTime( pMainEffect0->GetNowLifeTime() );
+							        pMeshInstance->SetMaxLifeTime( pMainEffect0->GetMaxLifeTime() );
+                                }
+    #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
+							    pEffect->SetLaserGroupID( i + ( pDamageEffect0->GetLaserGroupID() - 1 ) * 3 );
+    #else //UPGRADE_SKILL_SYSTEM_2013
+							    pEffect->SetLaserGroupID( i );
+    #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                                m_vecDamageEffect.push_back( pEffect->GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+							    m_vecDamageEffect.push_back( pEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-							pDamageData->damage.fPhysic *= 0.45f;
-							pDamageData->damage.fMagic *= 0.45f;
+							    CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+							    *pDamageData = pDamageEffect0->GetDamageData();
+    #ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			                    pDamageData->hAttackerEffect = pEffect->GetHandle();
+    #else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						        pDamageData->pAttackerEffect = pEffect;
+    #endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
+							    pDamageData->m_iLaserGroupID = i + ( pDamageEffect0->GetLaserGroupID() - 1 ) * 3;
+    #else //UPGRADE_SKILL_SYSTEM_2013
+							    pDamageData->m_iLaserGroupID = i;
+    #endif //UPGRADE_SKILL_SYSTEM_2013
 
-							pDamageData->fHitAddMP *= 0.45f;
+							    pDamageData->damage.fPhysic *= 0.45f;
+							    pDamageData->damage.fMagic *= 0.45f;
 
-							pDamageData->m_fRateModifier *= 0.45f;
+							    pDamageData->fHitAddMP *= 0.45f;
 
-#ifdef SERV_EVE_BATTLE_SERAPH
-							pDamageData->fForceDownValue	*= 0.333f;
-#endif
+							    pDamageData->m_fRateModifier *= 0.45f;
+
+    #ifdef SERV_EVE_BATTLE_SERAPH
+							    pDamageData->fForceDownValue	*= 0.333f;
+    #endif
+                            }
 						}
 					}
 					break;
@@ -21473,10 +23183,11 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 			{
 			case PFT_AMPLIFIER:
 				{
-					if(m_vecDamageEffect[1] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_vecDamageEffect[1]) == true 
-						&& m_vecDamageEffect[0]->GetMainEffect() != NULL && m_vecDamageEffect[1]->GetMainEffect() != NULL )
+                    CX2DamageEffect::CEffect* pDamageEffect1 = ( m_vecDamageEffect.size() > 1 ) 
+                        ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[1] ) : NULL;
+					if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffect1 = ( pDamageEffect1 != NULL ) ? pDamageEffect1->GetMainEffect() : NULL )
 					{
-						m_vecDamageEffect[1]->SetPos( vPlaneIntersectPoint );
+						pDamageEffect1->SetPos( vPlaneIntersectPoint );
 
 						D3DXVECTOR3 vSecondRotateDegree = vRotateDegree;
 
@@ -21486,17 +23197,17 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 						vSecondRotateDegree.z += m_pEveElectraSystem->m_fPlaneZAngle + vSecondRotateDegree.z * 0.8f;
 #endif
 
-						m_vecDamageEffect[1]->GetMainEffect()->SetRotateLocalDegree( vSecondRotateDegree );
+						pMainEffect1->SetRotateLocalDegree( vSecondRotateDegree );
 
 						float fSecondLaserLength = D3DXVec3Length( &( vLaserNowPos - vPlaneIntersectPoint ) );
 						fSecondLaserLength *= MAGIC_LASER_LENGTH;
 #ifdef SERV_EVE_BATTLE_SERAPH
-						m_vecDamageEffect[1]->GetMainEffect()->SetScale( fSecondLaserLength, 
+						pMainEffect1->SetScale( fSecondLaserLength, 
 							m_fLaserWidthScale * ( 1.5f + m_pEveElectraSystem->m_fHyperOpticalResearchScale ), 1.f );
 #else
-						m_vecDamageEffect[1]->GetMainEffect()->SetScale( fSecondLaserLength, m_fLaserWidthScale * 1.5f, 1.f );
+						pMainEffect1->SetScale( fSecondLaserLength, m_fLaserWidthScale * 1.5f, 1.f );
 #endif
-						m_vecDamageEffect[1]->GetMainEffect()->SetMeshAlphaColor( m_vecDamageEffect[0]->GetMainEffect()->GetMeshAlphaColor() );
+						pMainEffect1->SetMeshAlphaColor( pMainEffect0->GetMeshAlphaColor() );
 
 					}
 				}
@@ -21505,9 +23216,11 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 				{
 					for(UINT i = 1; i <=3; i++ )
 					{
-						if(m_vecDamageEffect[i] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_vecDamageEffect[i]) == true && m_vecDamageEffect[i]->GetMainEffect() != NULL)
+                        CX2DamageEffect::CEffect* pDamageEffecti = ( m_vecDamageEffect.size() > i ) 
+                            ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[i] ) : NULL;
+						if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffecti = ( pDamageEffecti != NULL ) ? pDamageEffecti->GetMainEffect() : NULL )
 						{
-							m_vecDamageEffect[i]->SetPos( vPlaneIntersectPoint );
+							pDamageEffecti->SetPos( vPlaneIntersectPoint );
 
 							D3DXVECTOR3 vSecondRotateDegree = vRotateDegree; 
 
@@ -21536,13 +23249,13 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 									vSecondRotateDegree.z -= vSpectrumZRotate * 0.6f;
 							}
 
-							m_vecDamageEffect[i]->GetMainEffect()->SetRotateLocalDegree( vSecondRotateDegree );
+							pMainEffecti->SetRotateLocalDegree( vSecondRotateDegree );
 
 							float fSecondLaserLength = D3DXVec3Length( &( vLaserNowPos - vPlaneIntersectPoint ) );
 							fSecondLaserLength *= MAGIC_LASER_LENGTH;
-							m_vecDamageEffect[i]->GetMainEffect()->SetScale( fSecondLaserLength, m_fLaserWidthScale * 0.7f, 1.f );
+							pMainEffecti->SetScale( fSecondLaserLength, m_fLaserWidthScale * 0.7f, 1.f );
 
-							m_vecDamageEffect[i]->GetMainEffect()->SetMeshAlphaColor( m_vecDamageEffect[0]->GetMainEffect()->GetMeshAlphaColor() );
+							pMainEffecti->SetMeshAlphaColor( pMainEffect0->GetMeshAlphaColor() );
 						}
 					}
 				} break;
@@ -21550,11 +23263,11 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 #ifdef SERV_EVE_BATTLE_SERAPH
 			case PFT_INDUCTION:	// 반응장 bPenetrate 후 처리될 부분
 				{
-					m_vecDamageEffect[0]->GetDamageData()->bReAttack = false;
+					pDamageEffect0->GetDamageData().bReAttack = false;
 
-					if ( m_fElapsedTime < m_vecDamageEffect[0]->GetMainEffect()->GetMaxLifeTime() &&
-						m_fElapsedTime <= m_vecDamageEffect[0]->GetAttackTime().y &&
-						m_fElapsedTime > m_iFireCount * m_vecDamageEffect[0]->GetDamageData()->fHitGap )
+					if ( m_fElapsedTime < pMainEffect0->GetMaxLifeTime() &&
+						m_fElapsedTime <= pDamageEffect0->GetAttackTime().y &&
+						m_fElapsedTime > m_iFireCount * pDamageEffect0->GetDamageData().fHitGap )
 					{
 						++m_iFireCount;
 
@@ -21562,15 +23275,19 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 
 						CX2DamageEffect::CEffect* pEffect = NULL;
 
-						if ( CX2DamageManager::AT_SPECIAL == m_vecDamageEffect[0]->GetDamageData()->attackType )
+						if ( CX2DamageManager::AT_SPECIAL == pDamageEffect0->GetDamageData().attackType )
 						{
 							pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( 
 								m_pEveElectraSystem->m_pGUEve, L"EVE_EBS_INDUCTION_LASER_SPECIAL",
 								m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vPlaneIntersectPoint, 
 								m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree() );
+							ASSERT( pEffect != NULL );
+                            if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                            {
+						        pMeshInstance->SetNowLifeTime( 0.f );
+						        pMeshInstance->SetMaxLifeTime( 2.5f );
+                            }
 
-							pEffect->GetMainEffect()->SetNowLifeTime( 0.f );
-							pEffect->GetMainEffect()->SetMaxLifeTime( 2.5f );
 							vLockOnRange = D3DXVECTOR2( 0, 1500 );
 						}
 						else
@@ -21579,18 +23296,26 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 								m_pEveElectraSystem->m_pGUEve, L"EVE_EBS_INDUCTION_LASER",
 								m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vPlaneIntersectPoint, 
 								m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree() );
+							ASSERT( pEffect != NULL );
+                            if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                            {
+						        pMeshInstance->SetNowLifeTime( 0.f );
+						        pMeshInstance->SetMaxLifeTime( 1.0f );
+                            }
 
-							pEffect->GetMainEffect()->SetNowLifeTime( 0.f );
-							pEffect->GetMainEffect()->SetMaxLifeTime( 1.0f );
 							vLockOnRange = D3DXVECTOR2( 0, 500 );
 						}
 
 						pEffect->SetAttackTime( D3DXVECTOR2( 0.f, 100.f) );
-						CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
+						CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
 
 						D3DXVECTOR2 vBackSpeed = pDamageData->backSpeed;
-						*pDamageData = *(m_vecDamageEffect[0]->GetDamageData());
-						pDamageData->pAttackerEffect	= pEffect;
+						*pDamageData = pDamageEffect0->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			            pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						pDamageData->damage.fPhysic		*= 0.55f;
 						pDamageData->damage.fMagic		*= 0.55f;
 						pDamageData->fHitGap			= 0.5f;
@@ -21601,12 +23326,12 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 						pDamageData->backSpeed			= vBackSpeed;
 						pDamageData->fForceDownValue	*= 0.5f;
 						pDamageData->techPoint			= int(pDamageData->techPoint * 0.55);
-						pDamageData->m_iLaserGroupID = -1;
+						pDamageData->m_iLaserGroupID	= -1;
 
 						bool bUserUnit = false;
 						UidType gameUnitUID = -1;
 
-						if ( CX2DamageManager::AT_SPECIAL == m_vecDamageEffect[0]->GetDamageData()->attackType )
+						if ( CX2DamageManager::AT_SPECIAL == pDamageEffect0->GetDamageData().attackType )
 						{
 							pDamageData->m_fPvpRate *= 0.75f;
 						}
@@ -21629,17 +23354,23 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 							pEffect->SetLockOnNPCUID( static_cast<int>( gameUnitUID ) );
 
 						if( m_pEveElectraSystem->GetEnableGigaPlane() == true )
+                        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                            m_vecDamageEffect.push_back( pEffect->GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 							m_vecDamageEffect.push_back( pEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        }
 					}
 				} break;
 
 			case PFT_FUSION:
 				{
-					m_vecDamageEffect[0]->GetDamageData()->bReAttack = false;
+					pDamageEffect0->GetDamageData().bReAttack = false;
 
-					if ( m_fElapsedTime < m_vecDamageEffect[0]->GetMainEffect()->GetMaxLifeTime() &&
-						m_fElapsedTime <= m_vecDamageEffect[0]->GetAttackTime().y &&
-						m_fElapsedTime > m_iFireCount * m_vecDamageEffect[0]->GetDamageData()->fHitGap )
+					if ( m_fElapsedTime < pMainEffect0->GetMaxLifeTime() &&
+						m_fElapsedTime <= pDamageEffect0->GetAttackTime().y &&
+						m_fElapsedTime > m_iFireCount * pDamageEffect0->GetDamageData().fHitGap )
 					{
 						++m_iFireCount;
 
@@ -21649,15 +23380,18 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 						{
 							CX2DamageEffect::CEffect* pEffect = NULL;
 
-							if ( CX2DamageManager::AT_SPECIAL == m_vecDamageEffect[0]->GetDamageData()->attackType )
+							if ( CX2DamageManager::AT_SPECIAL == pDamageEffect0->GetDamageData().attackType )
 							{
 								pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( 
 									m_pEveElectraSystem->m_pGUEve, L"EVE_EBS_INDUCTION_LASER_SPECIAL",
 									m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vPlaneIntersectPoint, 
 									m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree() );
-
-								pEffect->GetMainEffect()->SetNowLifeTime( 0.f );
-								pEffect->GetMainEffect()->SetMaxLifeTime( 2.5f );
+								ASSERT( pEffect != NULL );									
+                                if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                                {
+								    pMeshInstance->SetNowLifeTime( 0.f );
+								    pMeshInstance->SetMaxLifeTime( 2.5f );
+                                }
 								vLockOnRange = D3DXVECTOR2( 0, 1500 );
 							}
 							else
@@ -21666,17 +23400,24 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 									m_pEveElectraSystem->m_pGUEve, L"EVE_EBS_INDUCTION_LASER",
 									m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vPlaneIntersectPoint, 
 									m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree() );
-
-								pEffect->GetMainEffect()->SetNowLifeTime( 0.f );
-								pEffect->GetMainEffect()->SetMaxLifeTime( 1.0f );
+								ASSERT( pEffect != NULL );									
+                                if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                                {
+								    pMeshInstance->SetNowLifeTime( 0.f );
+								    pMeshInstance->SetMaxLifeTime( 1.0f );
+                                }
 								vLockOnRange = D3DXVECTOR2( 0, 500 );
 							}
 
 							pEffect->SetAttackTime( D3DXVECTOR2( 0.f, 100.f) );
-							CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
+							CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
 							D3DXVECTOR2 vBackSpeed = pDamageData->backSpeed;
-							*pDamageData = *(m_vecDamageEffect[0]->GetDamageData());
-							pDamageData->pAttackerEffect = pEffect;
+							*pDamageData = pDamageEffect0->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			                pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						    pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 							pDamageData->fHitGap			= 0.5f;
 							pDamageData->bReAttack			= true;
 							pDamageData->damage.fPhysic		*= 0.25f;
@@ -21687,12 +23428,12 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 							pDamageData->backSpeed			= vBackSpeed;
 							pDamageData->fForceDownValue	*= 0.166f;
 							pDamageData->techPoint			= int(pDamageData->techPoint * 0.25);
-							pDamageData->m_iLaserGroupID = -1;
+							pDamageData->m_iLaserGroupID	= -1;
 
 							bool bUserUnit = false;
 							UidType gameUnitUID = -1;
 
-							if ( CX2DamageManager::AT_SPECIAL == m_vecDamageEffect[0]->GetDamageData()->attackType )
+							if ( CX2DamageManager::AT_SPECIAL == pDamageEffect0->GetDamageData().attackType )
 							{
 								pDamageData->m_fPvpRate *= 0.75f;
 							}
@@ -21715,7 +23456,13 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 								pEffect->SetLockOnNPCUID( static_cast<int>( gameUnitUID ) );
 
 							if( m_pEveElectraSystem->GetEnableGigaPlane() == true )
+                            {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                                m_vecDamageEffect.push_back( pEffect->GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 								m_vecDamageEffect.push_back( pEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                            }
 						}
 					}
 				} break;
@@ -21733,9 +23480,11 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 				{
 				case PFT_AMPLIFIER:
 					{
-						if(m_vecDamageEffect[1] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_vecDamageEffect[1]) == true && m_vecDamageEffect[1]->GetMainEffect() != NULL)
+                        CX2DamageEffect::CEffect* pDamageEffect1 = ( m_vecDamageEffect.size() > 1 ) 
+                            ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[1] ) : NULL;
+					    if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffect1 = ( pDamageEffect1 != NULL ) ? pDamageEffect1->GetMainEffect() : NULL )
 						{
-							D3DXVECTOR3 vRotateDegree = m_vecDamageEffect[1]->GetMainEffect()->GetRotateLocalDegree();
+							D3DXVECTOR3 vRotateDegree = pMainEffect1->GetRotateLocalDegree();
 
 							D3DXVECTOR3 vRotationAxis;
 							D3DXVec3Cross( &vRotationAxis, &m_vDirVector, &Y_AXIS );
@@ -21769,7 +23518,7 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 								float fLaserLength = D3DXVec3Length( &( vLaserNowPos - vLaserStartPos ) );
 								fLaserLength *= MAGIC_LASER_LENGTH;
 
-								m_vecDamageEffect[1]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale * 1.5f, 1.f );
+								pMainEffect1->SetScale( fLaserLength, m_fLaserWidthScale * 1.5f, 1.f );
 							}
 							else
 							{
@@ -21778,27 +23527,39 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 								float fLaserLength = D3DXVec3Length( &( vGigaPlaneIntersectPoint - vLaserStartPos ) );
 								fLaserLength *= MAGIC_LASER_LENGTH;
 
-								m_vecDamageEffect[1]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale * 1.5f, 1.f );
+								pMainEffect1->SetScale( fLaserLength, m_fLaserWidthScale * 1.5f, 1.f );
 
 								if( m_bPenetrateGiga[0] == false )
 								{
 									CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_pEveElectraSystem->m_pGUEve, m_AmplifyDamageEffectName.c_str(), m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vGigaPlaneIntersectPoint, m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree(),
 										0, false, -1.f, 1.f, 1.f, -1, -1.f, 0, -1.f, true );
+									ASSERT( pEffect != NULL );
 									m_pEveElectraSystem->LaserAttackLineSet( pEffect );
-									pEffect->GetMainEffect()->SetNowLifeTime( m_vecDamageEffect[1]->GetMainEffect()->GetNowLifeTime() );
-									pEffect->GetMainEffect()->SetMaxLifeTime( m_vecDamageEffect[1]->GetMainEffect()->GetMaxLifeTime() );
+                                    if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                                    {
+									    pMeshInstance->SetNowLifeTime( pMainEffect1->GetNowLifeTime() );
+									    pMeshInstance->SetMaxLifeTime( pMainEffect1->GetMaxLifeTime() );
+                                    }
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-									pEffect->SetLaserGroupID( m_vecDamageEffect[0]->GetLaserGroupID() );
+									pEffect->SetLaserGroupID( pDamageEffect0->GetLaserGroupID() );
 #else //UPGRADE_SKILL_SYSTEM_2013
 									pEffect->SetLaserGroupID( 1 );
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                                    m_vecDamageEffect.push_back( pEffect->GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 									m_vecDamageEffect.push_back( pEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-									CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-									*pDamageData = *(m_vecDamageEffect[1]->GetDamageData());
-									pDamageData->pAttackerEffect = pEffect;
+									CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+									*pDamageData = pDamageEffect1->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			                        pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						            pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-									pDamageData->m_iLaserGroupID = m_vecDamageEffect[0]->GetLaserGroupID();
+									pDamageData->m_iLaserGroupID = pDamageEffect0->GetLaserGroupID();
 #else //UPGRADE_SKILL_SYSTEM_2013
 									pDamageData->m_iLaserGroupID = 1;
 #endif //UPGRADE_SKILL_SYSTEM_2013
@@ -21828,30 +23589,29 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 									m_bPenetrateGiga[0] = true;
 								}
 
-								if(m_vecDamageEffect[2] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_vecDamageEffect[2]) == true && m_vecDamageEffect[1]->GetMainEffect() != NULL)
-#ifdef GET_MAINEFFECT_NULL_CHECK
-								if(NULL != m_vecDamageEffect[2]->GetMainEffect())
-#endif //GET_MAINEFFECT_NULL_CHECK
+                                CX2DamageEffect::CEffect* pDamageEffect2 = ( m_vecDamageEffect.size() > 2 ) 
+                                    ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[2] ) : NULL;
+        					    if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffect2 = ( pDamageEffect2 != NULL ) ? pDamageEffect2->GetMainEffect() : NULL )
 								{
 
-									m_vecDamageEffect[2]->SetPos( vGigaPlaneIntersectPoint );
+									pDamageEffect2->SetPos( vGigaPlaneIntersectPoint );
 
 									D3DXVECTOR3 vSecondRotateDegree = vRotateDegree; 
 
 									//vSecondRotateDegree.z += m_pEveElectraSystem->m_fPlaneZAngle + vSecondRotateDegree.z * 0.8f;
 
-									m_vecDamageEffect[2]->GetMainEffect()->SetRotateLocalDegree( vSecondRotateDegree );
+									pMainEffect2->SetRotateLocalDegree( vSecondRotateDegree );
 
 									float fSecondLaserLength = D3DXVec3Length( &( vLaserNowPos - vGigaPlaneIntersectPoint ) );
 									fSecondLaserLength *= MAGIC_LASER_LENGTH;
 #ifdef SERV_EVE_BATTLE_SERAPH
-									m_vecDamageEffect[2]->GetMainEffect()->SetScale( fSecondLaserLength, 
+									pMainEffect2->SetScale( fSecondLaserLength, 
 										( m_fLaserWidthScale + m_pEveElectraSystem->m_fHyperOpticalResearchScale ) * 7.5f, 1.f );
 #else
-									m_vecDamageEffect[2]->GetMainEffect()->SetScale( fSecondLaserLength, m_fLaserWidthScale * 7.5f, 1.f );
+									pMainEffect2->SetScale( fSecondLaserLength, m_fLaserWidthScale * 7.5f, 1.f );
 #endif
 
-									m_vecDamageEffect[2]->GetMainEffect()->SetMeshAlphaColor( m_vecDamageEffect[1]->GetMainEffect()->GetMeshAlphaColor() );
+									pMainEffect2->SetMeshAlphaColor( pMainEffect1->GetMeshAlphaColor() );
 
 								}
 							}
@@ -21866,10 +23626,12 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 					{
 						for(UINT i=1; i<4; ++i )
 						{
-							if(m_vecDamageEffect[i] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_vecDamageEffect[i]) == true && m_vecDamageEffect[i]->GetMainEffect() != NULL)
+                            CX2DamageEffect::CEffect* pDamageEffecti = ( m_vecDamageEffect.size() > i ) 
+                                ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[i] ) : NULL;
+						    if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffecti = ( pDamageEffecti != NULL ) ? pDamageEffecti->GetMainEffect() : NULL )
 							{
 
-								D3DXVECTOR3 vRotateDegree = m_vecDamageEffect[i]->GetMainEffect()->GetRotateLocalDegree();
+								D3DXVECTOR3 vRotateDegree = pMainEffecti->GetRotateLocalDegree();
 
 								D3DXVECTOR3 vRotationAxis;
 								D3DXVec3Cross( &vRotationAxis, &m_vDirVector, &Y_AXIS );
@@ -21903,7 +23665,7 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 									float fLaserLength = D3DXVec3Length( &( vLaserNowPos - vLaserStartPos ) );
 									fLaserLength *= MAGIC_LASER_LENGTH;
 
-									m_vecDamageEffect[i]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale * 0.7f, 1.f );
+									pMainEffecti->SetScale( fLaserLength, m_fLaserWidthScale * 0.7f, 1.f );
 								}
 								else
 								{
@@ -21912,27 +23674,39 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 									float fLaserLength = D3DXVec3Length( &( vGigaPlaneIntersectPoint - vLaserStartPos ) );
 									fLaserLength *= MAGIC_LASER_LENGTH;
 
-									m_vecDamageEffect[i]->GetMainEffect()->SetScale( fLaserLength, m_fLaserWidthScale * 0.7f, 1.f );
+									pMainEffecti->SetScale( fLaserLength, m_fLaserWidthScale * 0.7f, 1.f );
 
 									if( m_bPenetrateGiga[i] == false )
 									{
 										CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_pEveElectraSystem->m_pGUEve, m_AmplifyDamageEffectName.c_str(), m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vGigaPlaneIntersectPoint, m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree(),
 											0, false, -1.f, 1.f, 1.f, -1, -1.f, 0, -1.f, true );
+										ASSERT( pEffect != NULL );
 										m_pEveElectraSystem->LaserAttackLineSet( pEffect );
-										pEffect->GetMainEffect()->SetNowLifeTime( m_vecDamageEffect[i]->GetMainEffect()->GetNowLifeTime() );
-										pEffect->GetMainEffect()->SetMaxLifeTime( m_vecDamageEffect[i]->GetMainEffect()->GetMaxLifeTime() );
+                                        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                                        {
+										    pMeshInstance->SetNowLifeTime( pMainEffecti->GetNowLifeTime() );
+										    pMeshInstance->SetMaxLifeTime( pMainEffecti->GetMaxLifeTime() );
+                                        }
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-										pEffect->SetLaserGroupID( m_vecDamageEffect[i]->GetLaserGroupID() );
+										pEffect->SetLaserGroupID( pDamageEffecti->GetLaserGroupID() );
 #else //UPGRADE_SKILL_SYSTEM_2013
 										pEffect->SetLaserGroupID( i );
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                                        m_vecDamageEffect.push_back( pEffect->GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 										m_vecDamageEffect.push_back( pEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-										CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-										*pDamageData = *(m_vecDamageEffect[i]->GetDamageData());
-										pDamageData->pAttackerEffect = pEffect;
+										CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+										*pDamageData = pDamageEffecti->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			                            pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						                pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-										pDamageData->m_iLaserGroupID = m_vecDamageEffect[i]->GetLaserGroupID();
+										pDamageData->m_iLaserGroupID = pDamageEffecti->GetLaserGroupID();
 #else //UPGRADE_SKILL_SYSTEM_2013
 										pDamageData->m_iLaserGroupID = i;
 #endif //UPGRADE_SKILL_SYSTEM_2013
@@ -21954,28 +23728,24 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 										m_bPenetrateGiga[i] = true;
 									}
 
-		
-#ifdef GET_MAINEFFECT_NULL_CHECK
-									if(m_vecDamageEffect[i+3] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_vecDamageEffect[i+3]) == true && m_vecDamageEffect[i+3]->GetMainEffect() != NULL 
-										&& m_vecDamageEffect[i] != NULL && m_vecDamageEffect[i]->GetMainEffect() != NULL )
-#else //GET_MAINEFFECT_NULL_CHECK
-									if(m_vecDamageEffect[i+3] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_vecDamageEffect[i+3]) == true && m_vecDamageEffect[i]->GetMainEffect() != NULL)
-#endif //GET_MAINEFFECT_NULL_CHECK
+                                    CX2DamageEffect::CEffect* pDamageEffecti3 = ( m_vecDamageEffect.size() > i+3 ) 
+                                        ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[i+3] ) : NULL;
+						            if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffecti3 = ( pDamageEffecti3 != NULL ) ? pDamageEffecti3->GetMainEffect() : NULL )
 									{
 
-										m_vecDamageEffect[i+3]->SetPos( vGigaPlaneIntersectPoint );
+										pDamageEffecti3->SetPos( vGigaPlaneIntersectPoint );
 
 										D3DXVECTOR3 vSecondRotateDegree = vRotateDegree; 
 
 										//vSecondRotateDegree.z += m_pEveElectraSystem->m_fPlaneZAngle + vSecondRotateDegree.z * 0.8f;
 
-										m_vecDamageEffect[i+3]->GetMainEffect()->SetRotateLocalDegree( vSecondRotateDegree );
+										pMainEffecti3->SetRotateLocalDegree( vSecondRotateDegree );
 
 										float fSecondLaserLength = D3DXVec3Length( &( vLaserNowPos - vGigaPlaneIntersectPoint ) );
 										fSecondLaserLength *= MAGIC_LASER_LENGTH;
-										m_vecDamageEffect[i+3]->GetMainEffect()->SetScale( fSecondLaserLength, m_fLaserWidthScale * 3.5f, 1.f );
+										pMainEffecti3->SetScale( fSecondLaserLength, m_fLaserWidthScale * 3.5f, 1.f );
 
-										m_vecDamageEffect[i+3]->GetMainEffect()->SetMeshAlphaColor( m_vecDamageEffect[i]->GetMainEffect()->GetMeshAlphaColor() );
+										pMainEffecti3->SetMeshAlphaColor( pMainEffecti->GetMeshAlphaColor() );
 
 									}
 								}
@@ -21992,13 +23762,14 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 					{
 						for( UINT i = 1; i < m_vecDamageEffect.size(); ++i )
 						{
-							if( m_vecDamageEffect[i] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_vecDamageEffect[i])
-								== true && m_vecDamageEffect[i]->GetMainEffect() != NULL )
+                            CX2DamageEffect::CEffect* pDamageEffecti = ( m_vecDamageEffect.size() > i ) 
+                                ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[i] ) : NULL;
+						    if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffecti = ( pDamageEffecti != NULL ) ? pDamageEffecti->GetMainEffect() : NULL )
 							{
-								D3DXVECTOR3 vEffectNowPos = m_vecDamageEffect[i]->GetMainEffect()->GetPos();	// 이펙트의 현재 위치
+								D3DXVECTOR3 vEffectNowPos = pMainEffecti->GetPos();	// 이펙트의 현재 위치
 								D3DXVECTOR2 vLockOnRange( 0.f, 0.f );
 
-								if( false == m_vecDamageEffect[i]->GetCheckSpectro() &&
+								if( false == pDamageEffecti->GetCheckSpectro() &&
 									0.f < D3DXPlaneDotCoord( &m_pEveElectraSystem->m_GigaStreamPlane, &D3DXVECTOR3( vEffectNowPos ) ) )
 								{
 									D3DXVECTOR3 vEffectEndPos;
@@ -22006,16 +23777,19 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 										&vPlaneIntersectPoint );
 
 									CX2DamageEffect::CEffect* pEffect = NULL;
-
-									if ( CX2DamageManager::AT_SPECIAL == m_vecDamageEffect[i]->GetDamageData()->attackType )
+                                    CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+									if ( CX2DamageManager::AT_SPECIAL == pDamageEffecti->GetDamageData().attackType )
 									{
 										pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( 
 											m_pEveElectraSystem->m_pGUEve, L"EVE_EBS_INDUCTION_LASER_SPECIAL",
 											m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vEffectEndPos, 
 											m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree() );
-
-										pEffect->GetMainEffect()->SetNowLifeTime( 0.f );
-										pEffect->GetMainEffect()->SetMaxLifeTime( 2.5f );
+										ASSERT( pEffect != NULL );
+                                        if ( pMeshInstance = pEffect->GetMainEffect() )
+                                        {
+										    pMeshInstance->SetNowLifeTime( 0.f );
+										    pMeshInstance->SetMaxLifeTime( 2.5f );
+                                        }
 										vLockOnRange = D3DXVECTOR2( 1, 1500 );
 									}
 									else
@@ -22024,16 +23798,23 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 											m_pEveElectraSystem->m_pGUEve, L"EVE_EBS_INDUCTION_LASER",
 											m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vEffectEndPos, 
 											m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree() );
-
-										pEffect->GetMainEffect()->SetNowLifeTime( 0.f );
-										pEffect->GetMainEffect()->SetMaxLifeTime( 1.0f );
+										ASSERT( pEffect != NULL );											
+                                        if ( pMeshInstance = pEffect->GetMainEffect() )
+                                        {
+										    pMeshInstance->SetNowLifeTime( 0.f );
+										    pMeshInstance->SetMaxLifeTime( 1.0f );
+                                        }
 										vLockOnRange = D3DXVECTOR2( 1, 400 );
 									}
 
 									pEffect->SetAttackTime( D3DXVECTOR2( 0.f, 100.f) );
-									CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-									*pDamageData = *(m_vecDamageEffect[i]->GetDamageData());
-									pDamageData->pAttackerEffect	= pEffect;
+									CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+									*pDamageData = pDamageEffecti->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			                        pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						            pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 									pDamageData->damage.fPhysic		*= 2.0f;
 									pDamageData->damage.fMagic		*= 2.0f;
 									pDamageData->fHitGap			= 0.5f;
@@ -22063,7 +23844,7 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 									}
 
 									pEffect->SetCheckSpectro( true );
-									g_pX2Game->GetDamageEffect()->DestroyInstanceSilently( m_vecDamageEffect[i] );
+									g_pX2Game->GetDamageEffect()->DestroyInstanceSilently( pDamageEffecti );
 
 									CKTDGParticleSystem::CParticleEventSequenceHandle hParticleCross = g_pX2Game->
 										GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) m_pEveElectraSystem->m_pGUEve,
@@ -22073,7 +23854,8 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 
 									if( pSeqLaserCross != NULL )
 									{
-										pSeqLaserCross->SetScaleFactor( pEffect->GetMainEffect()->GetScale() * 0.3f );
+                                        if ( pMeshInstance != NULL )
+										    pSeqLaserCross->SetScaleFactor( pMeshInstance->GetScale() * 0.3f );
 										D3DXVECTOR3 vRotateDegree = m_pEveElectraSystem->m_pGUEve->GetRotateDegree();
 										vRotateDegree.z = m_pEveElectraSystem->m_fPlaneZAngle;
 										pSeqLaserCross->SetAxisAngle( vRotateDegree );
@@ -22087,13 +23869,14 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 					{
 						for( UINT i = 1; i < m_vecDamageEffect.size(); ++i )
 						{
-							if( m_vecDamageEffect[i] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_vecDamageEffect[i])
-								== true && m_vecDamageEffect[i]->GetMainEffect() != NULL )
+                            CX2DamageEffect::CEffect* pDamageEffecti = ( m_vecDamageEffect.size() > i ) 
+                                ? g_pX2Game->GetDamageEffect()->GetInstance( m_vecDamageEffect[i] ) : NULL;
+						    if( CKTDGXMeshPlayer::CXMeshInstance *pMainEffecti = ( pDamageEffecti != NULL ) ? pDamageEffecti->GetMainEffect() : NULL )
 							{
-								D3DXVECTOR3 vEffectNowPos = m_vecDamageEffect[i]->GetMainEffect()->GetPos();	// 이펙트의 현재 위치
+								D3DXVECTOR3 vEffectNowPos = pMainEffecti->GetPos();	// 이펙트의 현재 위치
 								D3DXVECTOR2 vLockOnRange( 0.f, 0.f );
 
-								if( false == m_vecDamageEffect[i]->GetCheckSpectro() &&
+								if( false == pDamageEffecti->GetCheckSpectro() &&
 									0.f < D3DXPlaneDotCoord( &m_pEveElectraSystem->m_GigaStreamPlane, &D3DXVECTOR3( vEffectNowPos ) ) )
 								{
 									D3DXVECTOR3 vEffectEndPos;
@@ -22101,16 +23884,18 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 										&vPlaneIntersectPoint );
 
 									CX2DamageEffect::CEffect* pEffect = NULL;
-
-									if ( CX2DamageManager::AT_SPECIAL == m_vecDamageEffect[i]->GetDamageData()->attackType )
+                                    CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+									if ( CX2DamageManager::AT_SPECIAL == pDamageEffecti->GetDamageData().attackType )
 									{
 										pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( 
 											m_pEveElectraSystem->m_pGUEve, L"EVE_EBS_INDUCTION_LASER_SPECIAL",
 											m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vEffectEndPos, 
 											m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree() );
-
-										pEffect->GetMainEffect()->SetNowLifeTime( 0.f );
-										pEffect->GetMainEffect()->SetMaxLifeTime( 2.5f );
+                                        if ( pMeshInstance = pEffect->GetMainEffect() )
+                                        {
+										    pMeshInstance->SetNowLifeTime( 0.f );
+										    pMeshInstance->SetMaxLifeTime( 2.5f );
+                                        }
 										vLockOnRange = D3DXVECTOR2( 1, 1500 );
 									}
 									else
@@ -22119,16 +23904,22 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 											m_pEveElectraSystem->m_pGUEve, L"EVE_EBS_INDUCTION_LASER",
 											m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vEffectEndPos, 
 											m_pEveElectraSystem->m_pGUEve->GetRotateDegree(), m_pEveElectraSystem->m_pGUEve->GetRotateDegree() );
-
-										pEffect->GetMainEffect()->SetNowLifeTime( 0.f );
-										pEffect->GetMainEffect()->SetMaxLifeTime( 1.0f );
+                                        if ( pMeshInstance = pEffect->GetMainEffect() )
+                                        {
+										    pMeshInstance->SetNowLifeTime( 0.f );
+										    pMeshInstance->SetMaxLifeTime( 1.0f );
+                                        }
 										vLockOnRange = D3DXVECTOR2( 1, 400 );
 									}
 
 									pEffect->SetAttackTime( D3DXVECTOR2( 0.f, 100.f) );
-									CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-									*pDamageData = *(m_vecDamageEffect[i]->GetDamageData());
-									pDamageData->pAttackerEffect	= pEffect;
+									CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+									*pDamageData = pDamageEffecti->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			                        pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						            pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 									pDamageData->damage.fPhysic		*= 2.0f;
 									pDamageData->damage.fMagic		*= 2.0f;
 									pDamageData->fHitGap			= 0.5f;
@@ -22158,7 +23949,7 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 									}
 
 									pEffect->SetCheckSpectro( true );
-									g_pX2Game->GetDamageEffect()->DestroyInstanceSilently( m_vecDamageEffect[i] );
+									g_pX2Game->GetDamageEffect()->DestroyInstanceSilently( pDamageEffecti );
 
 									CKTDGParticleSystem::CParticleEventSequenceHandle hParticleCross = g_pX2Game->
 										GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) m_pEveElectraSystem->m_pGUEve,
@@ -22168,7 +23959,8 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 
 									if( pSeqLaserCross != NULL )
 									{
-										pSeqLaserCross->SetScaleFactor( pEffect->GetMainEffect()->GetScale() * 0.3f );
+                                        if ( pMeshInstance != NULL )
+										    pSeqLaserCross->SetScaleFactor( pMeshInstance->GetScale() * 0.3f );
 										D3DXVECTOR3 vRotateDegree = m_pEveElectraSystem->m_pGUEve->GetRotateDegree();
 										vRotateDegree.z = m_pEveElectraSystem->m_fPlaneZAngle;
 										pSeqLaserCross->SetAxisAngle( vRotateDegree );
@@ -22194,7 +23986,14 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hParticleGigaLaserCross[2] );
 		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hParticleGigaLaserCross[3] );
 
-		m_vecDamageEffect[0]	= NULL;
+        if ( m_vecDamageEffect.empty() == false )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_vecDamageEffect[0]	= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		    m_vecDamageEffect[0]	= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        }
 		m_bDie					= true;
 	}
 
@@ -22204,12 +24003,20 @@ void CX2GUEve::EveElectraLaserData::OnFrameMove( float fElapsedTime )
 
 void CX2GUEve::EveElectraLaserData::Delete()
 {
-	if( m_vecDamageEffect.size() > 0 )
+	if( m_vecDamageEffect.empty() == false )
 	{
 		for(UINT i = 0; i < m_vecDamageEffect.size(); i++ )
 		{
-			if( m_vecDamageEffect[i] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_vecDamageEffect[i] ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( m_vecDamageEffect[i] != INVALID_DAMAGE_EFFECT_HANDLE )
+                g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_vecDamageEffect[i] );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			if( m_vecDamageEffect[i] != NULL )
+            {
 				g_pX2Game->GetDamageEffect()->DestroyInstance( m_vecDamageEffect[i] );
+                m_vecDamageEffect[i] = NULL;
+            }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 	}
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hParticleLaserCross );
@@ -22225,7 +24032,11 @@ CX2GUEve::EveElectraEffectData::EveElectraEffectData( EveElectraSystem* _pEveEle
 	m_fElapsedTime		= 0.f;
 	m_bPlaneFront		= false;
 	m_bDie				= false;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hDamageEffect = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pDamageEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
@@ -22233,13 +24044,18 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 	D3DXVECTOR3 vRotateDegree;
 	m_fElapsedTime += fElapsedTime;
 
-	if( m_pDamageEffect != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDamageEffect ) == true &&
-		m_pDamageEffect->GetMainEffect() != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* m_pDamageEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_hDamageEffect );
+    if( CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( m_pDamageEffect != NULL ) ? m_pDamageEffect->GetMainEffect() : NULL)
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( m_pDamageEffect != NULL ) ? m_pDamageEffect->GetMainEffect() : NULL;
+	if( pMainEffect != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDamageEffect ) == true )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
-		vRotateDegree = m_pDamageEffect->GetMainEffect()->GetRotateDegree();
+		vRotateDegree = pMainEffect->GetRotateDegree();
 
 
-		D3DXVECTOR3 vEffectNowPos = m_pDamageEffect->GetMainEffect()->GetPos();
+		D3DXVECTOR3 vEffectNowPos = pMainEffect->GetPos();
 
 
 		if( m_pEveElectraSystem->GetEnablePlane() == false )
@@ -22270,9 +24086,13 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 					CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_pEveElectraSystem->m_pGUEve, m_AmplifyDamageEffectName.c_str(), m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vEffectEndPos, vRotateDegree, vRotateDegree );
 #endif
 
-					CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-					*pDamageData = *(m_pDamageEffect->GetDamageData());
+					CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+					*pDamageData = m_pDamageEffect->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			        pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef FIX_EVE_TASER_PILUM
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
@@ -22297,26 +24117,43 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 					pEffect->SetDamageTime( pEffect->GetDamageTime() + iAddDamageTime );
 	#endif //UPGRADE_SKILL_SYSTEM_2013
 #endif // FIX_EVE_TASER_PILUM
-
-					pEffect->GetMainEffect()->SetNowLifeTime( m_pDamageEffect->GetMainEffect()->GetNowLifeTime() );	
-					pEffect->GetMainEffect()->SetMaxLifeTime( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() + 0.13333f );
+                    CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect();
+                    if ( pMeshInstance != NULL )
+                    {
+					    pMeshInstance->SetNowLifeTime( pMainEffect->GetNowLifeTime() );	
+					    pMeshInstance->SetMaxLifeTime( pMainEffect->GetMaxLifeTime() + 0.13333f );
+                    }
 
 					pDamageData->damage.fPhysic *= 1.2f;
 					pDamageData->damage.fMagic *= 1.2f;
 
 					D3DXVECTOR3 vAmplifyScale = m_pDamageEffect->GetMainEffectScaleByUnit();
-					D3DXVECTOR3 vScale = m_pDamageEffect->GetMainEffect()->GetScale();
+					D3DXVECTOR3 vScale = pMainEffect->GetScale();
 #ifdef SERV_EVE_BATTLE_SERAPH
 					if ( m_AmplifyDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE" ) != 0
 						&& m_AmplifyDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE_MEMO" ) != 0
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 						&& m_AmplifyDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) != 0
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef ADD_MEMO_1ST_CLASS
+						&& m_AmplifyDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) != 0
+#endif //ADD_MEMO_1ST_CLASS
 						)
 					{
-						pEffect->SetPassiveparticleTriggerTimeRate( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() + 0.13333f );
+						pEffect->SetPassiveparticleTriggerTimeRate( pMainEffect->GetMaxLifeTime() + 0.13333f );
 					}
 #endif
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					if ( m_AmplifyDamageEffectName.compare( L"EVE_MEGA_ELECTRON_BALL_FILTERED" ) == 0 )
+					{
+						float fNowPowerRate = m_pDamageEffect->GetPowerRate();
+						const float fPowerRateModifier = 1.2f;
+						fNowPowerRate *= fPowerRateModifier;
+
+						// 메가 일렉트론 볼의 DieDamageEffect 데미지 적용을 위해 추가
+						pEffect->SetPowerRate(fNowPowerRate);
+					}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 					vAmplifyScale.x *= vScale.x;
 					vAmplifyScale.y *= vScale.y;
@@ -22335,8 +24172,11 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 					if( vRotateDegree.z != 0.f)
 						vSecondRotateDegree.z -= vRotateDegree.z;
 
-					pEffect->GetMainEffect()->SetRotateDegree( vSecondRotateDegree );
-					pEffect->GetMainEffect()->SetMoveAxisAngleDegree( vSecondRotateDegree );
+                    if ( pMeshInstance != NULL )
+                    {
+					    pMeshInstance->SetRotateDegree( vSecondRotateDegree );
+					    pMeshInstance->SetMoveAxisAngleDegree( vSecondRotateDegree );
+                    }
 
 
 				}
@@ -22353,9 +24193,13 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 						CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_pEveElectraSystem->m_pGUEve, m_SpectrumDamageEffectName.c_str(), m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vEffectEndPos, vRotateDegree, vRotateDegree );
 #endif
 
-						CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-						*pDamageData = *(m_pDamageEffect->GetDamageData());
-						pDamageData->pAttackerEffect = pEffect;
+						CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+						*pDamageData = m_pDamageEffect->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			            pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+					    pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #ifdef FIX_EVE_TASER_PILUM
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 						int iAddDamageTime = m_pEveElectraSystem->m_pGUEve->GetTaserPilumAddDamageTime();
@@ -22379,26 +24223,49 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 							pEffect->SetDamageTime( pEffect->GetDamageTime() + iAddDamageTime );
 	#endif //UPGRADE_SKILL_SYSTEM_2013
 #endif // FIX_EVE_TASER_PILUM
-
-						pEffect->GetMainEffect()->SetNowLifeTime( m_pDamageEffect->GetMainEffect()->GetNowLifeTime() );
-						pEffect->GetMainEffect()->SetMaxLifeTime( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() + 0.13333f );
+                        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect();
+                        if ( pMeshInstance != NULL )
+                        {
+						    pMeshInstance->SetNowLifeTime( pMainEffect->GetNowLifeTime() );
+						    pMeshInstance->SetMaxLifeTime( pMainEffect->GetMaxLifeTime() + 0.13333f );
+                        }
 #ifdef SERV_EVE_BATTLE_SERAPH
 						if ( m_SpectrumDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE" ) != 0
 							&& m_SpectrumDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE_MEMO" ) != 0
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 							&& m_SpectrumDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) != 0
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef ADD_MEMO_1ST_CLASS
+							&& m_SpectrumDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) != 0
+#endif //ADD_MEMO_1ST_CLASS
 							)
 						{
-							pEffect->SetPassiveparticleTriggerTimeRate( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() + 0.13333f );
+							pEffect->SetPassiveparticleTriggerTimeRate( pMainEffect->GetMaxLifeTime() + 0.13333f );
 						}
 						pDamageData->fForceDownValue	*= 0.333f;
 #endif
-						pDamageData->damage.fPhysic *= 0.45f;
-						pDamageData->damage.fMagic *= 0.45f;
+
+						float fNowPowerRate = m_pDamageEffect->GetPowerRate();
+						// 공격력 감소
+						{
+							const float fPowerRateModifier = 0.45f;
+							pDamageData->damage.fPhysic *= fPowerRateModifier;
+							pDamageData->damage.fMagic *= fPowerRateModifier;
+							fNowPowerRate *= fPowerRateModifier;
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+							// 일반 일렉트론 볼은 역장마다 다른 데미지 이펙트를 사용하여 
+							// 데미지가 이미 결정되어 있다.
+							if ( m_SpectrumDamageEffectName.compare( L"EVE_MEGA_ELECTRON_BALL_FILTERED" ) == 0 )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+							{
+								// 메가 일렉트론 볼의 DieDamageEffect 데미지 적용을 위해 추가
+								pEffect->SetPowerRate(fNowPowerRate);
+							}
+						}
 
 						D3DXVECTOR3 vSpectrumScale = m_pDamageEffect->GetMainEffectScaleByUnit();
-						D3DXVECTOR3 vScale = m_pDamageEffect->GetMainEffect()->GetScale();
+						D3DXVECTOR3 vScale = pMainEffect->GetScale();
 
 						vSpectrumScale.x *= vScale.x;
 						vSpectrumScale.y *= vScale.y;
@@ -22419,8 +24286,11 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 						if( vRotateDegree.z != 0.f)
 							vSecondRotateDegree.z -= vRotateDegree.z;
 
-						pEffect->GetMainEffect()->SetRotateDegree( vSecondRotateDegree );
-						pEffect->GetMainEffect()->SetMoveAxisAngleDegree( vSecondRotateDegree );
+                        if ( pMeshInstance != NULL )
+                        {
+						    pMeshInstance->SetRotateDegree( vSecondRotateDegree );
+						    pMeshInstance->SetMoveAxisAngleDegree( vSecondRotateDegree );
+                        }
 					}
 				}
 				break;
@@ -22431,11 +24301,17 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 						m_pEveElectraSystem->m_pGUEve, m_InductionDamageEffectName.c_str(), m_pDamageEffect->GetPowerRate(),
 						vEffectEndPos, vRotateDegree, vRotateDegree );
 
-					CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-					*pDamageData = *(m_pDamageEffect->GetDamageData());
+					CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+					*pDamageData = m_pDamageEffect->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			        pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-					pEffect->GetMainEffect()->SetNowLifeTime( m_pDamageEffect->GetMainEffect()->GetNowLifeTime() );	
+                    CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect();
+                    if ( pMeshInstance != NULL )
+					    pMeshInstance->SetNowLifeTime( pMainEffect->GetNowLifeTime() );	
 
 					if ( m_InductionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE" ) != 0
 						&& m_InductionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE_MEMO" ) != 0
@@ -22446,10 +24322,15 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 						&& m_InductionDamageEffectName.compare( L"Damage_KugelBlitz_Charge_FILTERED" ) != 0
 #endif //UPGRADE_SKILL_SYSTEM_2013
+						&& m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) != 0
+#ifdef ADD_MEMO_1ST_CLASS
+						&& m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) != 0
+#endif //ADD_MEMO_1ST_CLASS
 						)
 					{
-						pEffect->GetMainEffect()->SetMaxLifeTime( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() * 1.1f + 0.13333f );
-						pEffect->SetPassiveparticleTriggerTimeRate( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() * 1.1f + 0.13333f );
+                        if ( pMeshInstance != NULL )
+						    pMeshInstance->SetMaxLifeTime( pMainEffect->GetMaxLifeTime() * 1.1f + 0.13333f );
+						pEffect->SetPassiveparticleTriggerTimeRate( pMainEffect->GetMaxLifeTime() * 1.1f + 0.13333f );
 						pEffect->SetDamageTime( pEffect->GetDamageTime() + 1 );
 
 						pDamageData->damage.fPhysic *= 0.55f;
@@ -22462,7 +24343,7 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 						pDamageData->techPoint			= int(pDamageData->techPoint * 0.55);
 
 						D3DXVECTOR3 vInductionScale = m_pDamageEffect->GetMainEffectScaleByUnit();
-						D3DXVECTOR3 vScale = m_pDamageEffect->GetMainEffect()->GetScale();
+						D3DXVECTOR3 vScale = pMainEffect->GetScale();
 
 						vInductionScale.x *= vScale.x;
 						vInductionScale.y *= vScale.y;
@@ -22471,13 +24352,25 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 						vInductionScale *= 0.8f;
 
 						pEffect->SetScale( vInductionScale );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+						if ( m_InductionDamageEffectName.compare( L"EVE_MEGA_ELECTRON_BALL_FILTERED" ) == 0 )
+						{
+							float fNowPowerRate = m_pDamageEffect->GetPowerRate();
+							const float fPowerRateModifier = 0.55f;
+							fNowPowerRate *= fPowerRateModifier;
+
+							// 메가 일렉트론 볼의 DieDamageEffect 데미지 적용을 위해 추가
+							pEffect->SetPowerRate(fNowPowerRate);
+						}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 					}
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 					else if ( m_InductionDamageEffectName.compare( L"Damage_KugelBlitz_Charge_FILTERED" ) == 0 )
 					{
 						int iAddDamageTime = m_pEveElectraSystem->m_pGUEve->GetKugelBlitzAddDamageTime();						
 						D3DXVECTOR3 vInductionScale = m_pDamageEffect->GetMainEffectScaleByUnit();
-						D3DXVECTOR3 vScale = m_pDamageEffect->GetMainEffect()->GetScale();
+						D3DXVECTOR3 vScale = pMainEffect->GetScale();
 
 						vInductionScale.x *= vScale.x;
 						vInductionScale.y *= vScale.y;
@@ -22495,6 +24388,30 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 						}
 					}
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				
+					else if ( m_InductionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) == 0 ||
+#ifdef ADD_MEMO_1ST_CLASS
+							m_InductionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) == 0 ||
+#endif //ADD_MEMO_1ST_CLASS
+							m_InductionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE" ) == 0 ||
+							m_InductionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE_MEMO" ) == 0 )
+					{
+						// 트라이 앵클 발칸의 경우 아래의 경우에 대해 예외적으로 처리 한다.
+						// 크기 0.8배 감소
+						D3DXVECTOR3 vInductionScale = m_pDamageEffect->GetMainEffectScaleByUnit();
+						D3DXVECTOR3 vScale = pMainEffect->GetScale();
+
+						vInductionScale.x *= vScale.x;
+						vInductionScale.y *= vScale.y;
+						vInductionScale.z *= vScale.z;
+
+						vInductionScale *= 0.8f;
+
+						pEffect->SetScale( vInductionScale );
+					}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 #ifdef FIX_EVE_TASER_PILUM
 					else
 					{
@@ -22505,8 +24422,28 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 #endif // FIX_EVE_TASER_PILUM
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-					if ( m_InductionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) == 0 )
+					if ( m_InductionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) == 0
+#ifdef ADD_MEMO_1ST_CLASS
+						|| m_InductionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) == 0 
+#endif //ADD_MEMO_1ST_CLASS
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+						|| m_InductionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE" ) == 0 
+						|| m_InductionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE_MEMO" ) == 0 
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편											
+						)
+					{
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+						// 트라이 앵클 발칸의 경우 아래의 경우에 대해 예외적으로 처리 한다.
+						// 데미지 1.1배 증가, R
+						pDamageData->damage.fPhysic *= 1.1f;
+						pDamageData->damage.fMagic *= 1.1f;
+						
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 						pDamageData->fHitGap = 0.7f;
+
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					}
 #endif //UPGRADE_SKILL_SYSTEM_2013
 					D3DXVECTOR3 vSecondRotateDegree = vRotateDegree; 
 					vSecondRotateDegree.z += m_pEveElectraSystem->m_fPlaneZAngle;
@@ -22514,15 +24451,31 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 					if( vRotateDegree.z != 0.f)
 						vSecondRotateDegree.z -= vRotateDegree.z;
 
-					pEffect->GetMainEffect()->SetRotateDegree( vSecondRotateDegree );
-					pEffect->GetMainEffect()->SetMoveAxisAngleDegree( vSecondRotateDegree );
+					if ( pMeshInstance != NULL )
+					{
+						pMeshInstance->SetRotateDegree( vSecondRotateDegree );
+						pMeshInstance->SetMoveAxisAngleDegree( vSecondRotateDegree );
 
-					pEffect->GetMainEffect()->SetDirSpeed( pEffect->GetMainEffect()->GetVelocity().x );
-					pEffect->GetMainEffect()->SetVelocity( D3DXVECTOR3( 0.f, 0.f, 0.f ) );
+						pMeshInstance->SetDirSpeed( pEffect->GetMainEffect()->GetVelocity().x );
+						pMeshInstance->SetVelocity( D3DXVECTOR3( 0.f, 0.f, 0.f ) );
+					}
 
-					pEffect->GetLockOnData()->m_LockOnType = CX2DamageEffect::LOT_NEARST_UID_VECTOR_IN_RANGE;
-					pEffect->GetLockOnData()->m_fCurveSpeed = 10;
-					pEffect->GetLockOnData()->m_fTimeUnlockFromStart = 0.1f;
+					pEffect->GetLockOnData().m_LockOnType = CX2DamageEffect::LOT_NEARST_UID_VECTOR_IN_RANGE;
+					pEffect->GetLockOnData().m_fCurveSpeed = 10;
+					pEffect->GetLockOnData().m_fTimeUnlockFromStart = 0.1f;
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					// 트라이 앵클 발칸의 경우 아래의 경우에 대해 예외적으로 처리 한다.
+					// NOT_TARGET_PRE_LOCK_ON_TARGET 추가 ( 때린 유닛이 있다면 다음 유닛을 때리러 감, 체인 라이트닝 )
+					if ( m_InductionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) == 0 
+#ifdef ADD_MEMO_1ST_CLASS
+						|| m_InductionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) == 0 
+#endif //ADD_MEMO_1ST_CLASS
+						)
+					{
+						pEffect->GetLockOnData().m_bIsNotTargetPreLockOnTarget = true;
+					}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 					bool bUserUnit = false;
 					UidType gameUnitUID = -1;
@@ -22554,11 +24507,18 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 							m_pEveElectraSystem->m_pGUEve, m_FusionDamageEffectName.c_str(), m_pDamageEffect->GetPowerRate(),
 							vEffectEndPos, vRotateDegree, vRotateDegree );
 
-						CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-						*pDamageData = *(m_pDamageEffect->GetDamageData());
-						pDamageData->pAttackerEffect = pEffect;
+						CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+						*pDamageData = m_pDamageEffect->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			            pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+					    pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-						pEffect->GetMainEffect()->SetNowLifeTime( m_pDamageEffect->GetMainEffect()->GetNowLifeTime() );	
+                        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect();
+                        if ( pMeshInstance != NULL )
+						    pMeshInstance->SetNowLifeTime( pMainEffect->GetNowLifeTime() );	
+						float fNowPowerRate = m_pDamageEffect->GetPowerRate();
 
 						if ( m_FusionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE" ) != 0
 							&& m_FusionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE_MEMO" ) != 0
@@ -22569,19 +24529,31 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 							&& m_FusionDamageEffectName.compare( L"Damage_KugelBlitz_Charge_FILTERED" ) != 0
 	#endif //UPGRADE_SKILL_SYSTEM_2013
+							&& m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) != 0
+#ifdef ADD_MEMO_1ST_CLASS
+							&& m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) != 0
+#endif //ADD_MEMO_1ST_CLASS
 							)
 						{
-							pEffect->GetMainEffect()->SetMaxLifeTime( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() * 1.1f + 0.13333f );
-							pEffect->SetPassiveparticleTriggerTimeRate( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() * 1.1f + 0.13333f );
+                            if ( pMeshInstance != NULL )
+							    pMeshInstance->SetMaxLifeTime( pMainEffect->GetMaxLifeTime() * 1.1f + 0.13333f );
+							pEffect->SetPassiveparticleTriggerTimeRate( pMainEffect->GetMaxLifeTime() * 1.1f + 0.13333f );
 
 							pEffect->SetDamageTime( pEffect->GetDamageTime() + 1 );
 
-							pDamageData->damage.fPhysic *= 0.5f;
-							pDamageData->damage.fMagic *= 0.5f;
+							// 공격력 감소
+							{
+								const float fPowerRateModifier = 0.5f;				
+								pDamageData->damage.fPhysic *= fPowerRateModifier;
+								pDamageData->damage.fMagic *= fPowerRateModifier;
+								fNowPowerRate *= fPowerRateModifier;
+							}
 
 							pDamageData->fHitGap = 0.3f;
 							pDamageData->bReAttack			= true;
 							pDamageData->m_fRateModifier	*= 0.25f;
+
+
 						}
 #ifdef FIX_EVE_TASER_PILUM
 						else
@@ -22610,18 +24582,59 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 						}
 #endif // FIX_EVE_TASER_PILUM
 
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-						if ( m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) == 0 )
+						if ( m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) == 0 
+#ifdef ADD_MEMO_1ST_CLASS
+							|| m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) == 0 
+#endif //ADD_MEMO_1ST_CLASS
+							)
 							pDamageData->fHitGap = 0.7f;
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
-						pDamageData->damage.fPhysic *= 0.5f;
-						pDamageData->damage.fMagic *= 0.5f;
-						pDamageData->fHitAddMP *= 0.25f;
+						{
+							// 공격력 감소
+						
+							const float fPowerRateModifier = 0.5f;
+							
+							pDamageData->damage.fPhysic *= fPowerRateModifier;
+							pDamageData->damage.fMagic *= fPowerRateModifier;
+							fNowPowerRate *= fPowerRateModifier;
+							
+							// 메가 일렉트론 볼의 DieDamageEffect 데미지 적용을 위해 추가
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+							if ( m_InductionDamageEffectName.compare( L"EVE_MEGA_ELECTRON_BALL_FILTERED" ) == 0 )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+							{
+								pEffect->SetPowerRate( fNowPowerRate );
+							}
+						}
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+						if ( m_FusionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE" ) == 0 ||
+							m_FusionDamageEffectName.compare( L"EVE_SWEEP_PARADE_TRIANGLE_MEMO" ) == 0 ) 
+						{
+							pDamageData->fHitAddMP *= 0.5f;
+						} 
+						else if ( m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) == 0 
+#ifdef ADD_MEMO_1ST_CLASS
+								|| m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) == 0 
+#endif //ADD_MEMO_1ST_CLASS
+							)
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+						{
+							// 밸런스 개편으로 트라이 발칸이 융합장을 지나갈 시, Hitgap 변경 삭제
+							pDamageData->fHitAddMP *= 0.25f;
+						}
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+						pDamageData->techPoint = int(pDamageData->techPoint * 0.5);
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 						pDamageData->techPoint = int(pDamageData->techPoint * 0.25);
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 						D3DXVECTOR3 vFusionScale = m_pDamageEffect->GetMainEffectScaleByUnit();
-						D3DXVECTOR3 vScale = m_pDamageEffect->GetMainEffect()->GetScale();
+						D3DXVECTOR3 vScale = pMainEffect->GetScale();
 
 						vFusionScale.x *= vScale.x;
 						vFusionScale.y *= vScale.y;
@@ -22643,16 +24656,29 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 						if( vRotateDegree.z != 0.f)
 							vSecondRotateDegree.z -= vRotateDegree.z;
 
-						pEffect->GetMainEffect()->SetRotateDegree( vSecondRotateDegree );
-						pEffect->GetMainEffect()->SetMoveAxisAngleDegree( vSecondRotateDegree );
+						if ( pMeshInstance != NULL )
+						{
+							pMeshInstance->SetRotateDegree( vSecondRotateDegree );
+							pMeshInstance->SetMoveAxisAngleDegree( vSecondRotateDegree );
 
-						pEffect->GetMainEffect()->SetDirSpeed( pEffect->GetMainEffect()->GetVelocity().x );
-						pEffect->GetMainEffect()->SetVelocity( D3DXVECTOR3( 0.f, 0.f, 0.f ) );
+							pMeshInstance->SetDirSpeed( pMeshInstance->GetVelocity().x );
+							pMeshInstance->SetVelocity( D3DXVECTOR3( 0.f, 0.f, 0.f ) );
+						}
+						pEffect->GetLockOnData().m_LockOnType = CX2DamageEffect::LOT_NEARST_UID_VECTOR;
+						pEffect->GetLockOnData().m_fCurveSpeed = 10;
+						pEffect->GetLockOnData().m_fTimeUnlockFromStart = 0.1f;
 
-						pEffect->GetLockOnData()->m_LockOnType = CX2DamageEffect::LOT_NEARST_UID_VECTOR;
-						pEffect->GetLockOnData()->m_fCurveSpeed = 10;
-						pEffect->GetLockOnData()->m_fTimeUnlockFromStart = 0.1f;
-
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+						if ( m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet" ) == 0 
+#ifdef ADD_MEMO_1ST_CLASS
+							|| m_FusionDamageEffectName.compare( L"DamageEffect_Triangle_Vulcan_Bullet_MEMO" ) == 0 
+#endif //ADD_MEMO_1ST_CLASS
+							)
+						{
+							// 밸런스 개편으로 트라이 발칸이 융합장을 지나갈 시, NOT_TARGET_PRE_LOCK_ON_TARGET 옵션을 켜줌
+							pEffect->GetLockOnData().m_bIsNotTargetPreLockOnTarget = true;
+						}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 						bool bUserUnit = false;
 						UidType gameUnitUID = -1;
 
@@ -22677,7 +24703,11 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 				} break;
 #endif
 			}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            g_pX2Game->GetDamageEffect()->DestroyInstanceHandleSilently( m_hDamageEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			g_pX2Game->GetDamageEffect()->DestroyInstanceSilently( m_pDamageEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_bDie = true;
 
 		}
@@ -22685,7 +24715,11 @@ void CX2GUEve::EveElectraEffectData::OnFrameMove( float fElapsedTime )
 	else
 	{
 		m_bDie = true;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hDamageEffect = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pDamageEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
 
@@ -22697,7 +24731,11 @@ CX2GUEve::EveElectraLockonData::EveElectraLockonData( EveElectraSystem* _pEveEle
 	m_fElapsedTime		= 0.f;
 	m_bPlaneFront		= false;
 	m_bDie				= false;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hDamageEffect = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pDamageEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 void CX2GUEve::EveElectraLockonData::OnFrameMove( float fElapsedTime )
@@ -22705,13 +24743,18 @@ void CX2GUEve::EveElectraLockonData::OnFrameMove( float fElapsedTime )
 	D3DXVECTOR3 vRotateDegree;
 	m_fElapsedTime += fElapsedTime;
 
-	if( m_pDamageEffect != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDamageEffect ) == true &&
-		m_pDamageEffect->GetMainEffect() != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* m_pDamageEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_hDamageEffect );
+    if( CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( m_pDamageEffect != NULL ) ? m_pDamageEffect->GetMainEffect() : NULL )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( m_pDamageEffect != NULL ) ? m_pDamageEffect->GetMainEffect() : NULL;
+	if( pMainEffect != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDamageEffect ) == true )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
-		vRotateDegree = m_pDamageEffect->GetMainEffect()->GetRotateDegree();
+		vRotateDegree = pMainEffect->GetRotateDegree();
 
 
-		D3DXVECTOR3 vEffectNowPos = m_pDamageEffect->GetMainEffect()->GetPos();
+		D3DXVECTOR3 vEffectNowPos = pMainEffect->GetPos();
 
 
 		if( m_pEveElectraSystem->GetEnablePlane() == false )
@@ -22736,16 +24779,24 @@ void CX2GUEve::EveElectraLockonData::OnFrameMove( float fElapsedTime )
 				{
 					CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_pEveElectraSystem->m_pGUEve, m_AmplifyDamageEffectName.c_str(), m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vEffectEndPos, vRotateDegree, vRotateDegree );
 
-					CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-					*pDamageData = *(m_pDamageEffect->GetDamageData());
+					CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+					*pDamageData = m_pDamageEffect->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			        pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-					pEffect->GetLockOnData()->m_bLockOnUserUnit	= m_pDamageEffect->GetLockOnData()->m_bLockOnUserUnit;
-					pEffect->GetLockOnData()->m_LockOnUnitUID	= m_pDamageEffect->GetLockOnData()->m_LockOnUnitUID;
-					pEffect->GetLockOnData()->m_LockOnNPCUID	= m_pDamageEffect->GetLockOnData()->m_LockOnNPCUID;
+					pEffect->GetLockOnData().m_bLockOnUserUnit	= m_pDamageEffect->GetLockOnData().m_bLockOnUserUnit;
+					pEffect->GetLockOnData().m_LockOnUnitUID	= m_pDamageEffect->GetLockOnData().m_LockOnUnitUID;
+					pEffect->GetLockOnData().m_LockOnNPCUID	= m_pDamageEffect->GetLockOnData().m_LockOnNPCUID;
 
-					pEffect->GetMainEffect()->SetNowLifeTime( m_pDamageEffect->GetMainEffect()->GetNowLifeTime() );	
-					pEffect->GetMainEffect()->SetMaxLifeTime( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() + 0.2f );	
+                    CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect();
+                    if ( pMeshInstance != NULL )
+                    {
+					    pMeshInstance->SetNowLifeTime( pMainEffect->GetNowLifeTime() );	
+					    pMeshInstance->SetMaxLifeTime( pMainEffect->GetMaxLifeTime() + 0.2f );	
+                    }
 
 					pDamageData->damage.fPhysic *= 1.2f;
 					pDamageData->damage.fMagic *= 1.2f;
@@ -22760,8 +24811,11 @@ void CX2GUEve::EveElectraLockonData::OnFrameMove( float fElapsedTime )
 					vManualDirDegree.y = D3DXToDegree(m_pEveElectraSystem->m_vPlaneNormal.y);
 					vManualDirDegree.z = D3DXToDegree(m_pEveElectraSystem->m_vPlaneNormal.z);
 
-					pEffect->GetMainEffect()->SetManualDirDegree( vManualDirDegree );
-					pEffect->GetMainEffect()->UseManualDirDegree( true );
+                    if ( pMeshInstance != NULL )
+                    {
+					    pMeshInstance->SetManualDirDegree( vManualDirDegree );
+					    pMeshInstance->UseManualDirDegree( true );
+                    }
 
 				}
 				break;
@@ -22771,16 +24825,24 @@ void CX2GUEve::EveElectraLockonData::OnFrameMove( float fElapsedTime )
 					{
 						CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_pEveElectraSystem->m_pGUEve, m_SpectrumDamageEffectName.c_str(), m_pEveElectraSystem->m_pGUEve->GetPowerRate(), vEffectEndPos, vRotateDegree, vRotateDegree );
 
-						CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
-						*pDamageData = *(m_pDamageEffect->GetDamageData());
-						pDamageData->pAttackerEffect = pEffect;
+						CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
+						*pDamageData = m_pDamageEffect->GetDamageData();
+#ifdef      X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			            pDamageData->hAttackerEffect = pEffect->GetHandle();
+#else       X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+					    pDamageData->pAttackerEffect = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-						pEffect->GetLockOnData()->m_bLockOnUserUnit	= m_pDamageEffect->GetLockOnData()->m_bLockOnUserUnit;
-						pEffect->GetLockOnData()->m_LockOnUnitUID	= m_pDamageEffect->GetLockOnData()->m_LockOnUnitUID;
-						pEffect->GetLockOnData()->m_LockOnNPCUID	= m_pDamageEffect->GetLockOnData()->m_LockOnNPCUID;
+						pEffect->GetLockOnData().m_bLockOnUserUnit	= m_pDamageEffect->GetLockOnData().m_bLockOnUserUnit;
+						pEffect->GetLockOnData().m_LockOnUnitUID	= m_pDamageEffect->GetLockOnData().m_LockOnUnitUID;
+						pEffect->GetLockOnData().m_LockOnNPCUID	= m_pDamageEffect->GetLockOnData().m_LockOnNPCUID;
 
-						pEffect->GetMainEffect()->SetNowLifeTime( m_pDamageEffect->GetMainEffect()->GetNowLifeTime() );
-						pEffect->GetMainEffect()->SetMaxLifeTime( m_pDamageEffect->GetMainEffect()->GetMaxLifeTime() + 0.2f );	
+                        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect();
+                        if ( pMeshInstance != NULL )
+                        {
+    						pMeshInstance->SetNowLifeTime( pMainEffect->GetNowLifeTime() );
+	    					pMeshInstance->SetMaxLifeTime( pMainEffect->GetMaxLifeTime() + 0.2f );	
+                        }
 
 						pDamageData->damage.fPhysic *= 0.5f;
 						pDamageData->damage.fMagic *= 0.5f;
@@ -22824,20 +24886,26 @@ void CX2GUEve::EveElectraLockonData::OnFrameMove( float fElapsedTime )
 						vManualDirDegree3.z = D3DXToDegree(vDirVectorLockon_3.z);
 
 
+                        if ( pMeshInstance != NULL )
+                        {
+						    if( i == 2)
+							    pMeshInstance->SetManualDirDegree( vManualDirDegree2 );
+						    else if( i == 3)
+							    pMeshInstance->SetManualDirDegree( vManualDirDegree3 );
+						    else
+							    pMeshInstance->SetManualDirDegree( vManualDirDegree1 );
 
-						if( i == 2)
-							pEffect->GetMainEffect()->SetManualDirDegree( vManualDirDegree2 );
-						else if( i == 3)
-							pEffect->GetMainEffect()->SetManualDirDegree( vManualDirDegree3 );
-						else
-							pEffect->GetMainEffect()->SetManualDirDegree( vManualDirDegree1 );
-
-						pEffect->GetMainEffect()->UseManualDirDegree( true );
+						    pMeshInstance->UseManualDirDegree( true );
+                        }
 					}
 				}
 				break;
 			}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            g_pX2Game->GetDamageEffect()->DestroyInstanceHandleSilently( m_hDamageEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			g_pX2Game->GetDamageEffect()->DestroyInstanceSilently( m_pDamageEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_bDie = true;
 
 		}
@@ -22845,7 +24913,11 @@ void CX2GUEve::EveElectraLockonData::OnFrameMove( float fElapsedTime )
 	else
 	{
 		m_bDie = true;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hDamageEffect = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pDamageEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 	return;
 }
@@ -22887,19 +24959,19 @@ CX2GUEve::EveElectraSystem::EveElectraSystem( CX2GUEve* _pGUEve )
 	m_hEffectCrystal2	= INVALID_MESH_INSTANCE_HANDLE;
 	m_hEffectCrystal3	= INVALID_MESH_INSTANCE_HANDLE;
 
-	m_hParticlePlane		= INVALID_PARTICLE_HANDLE;
+	m_hParticlePlane		= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hParticleCrystal[0]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleCrystal[1]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleCrystal[2]	= INVALID_PARTICLE_HANDLE;
+	m_hParticleCrystal[0]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleCrystal[1]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleCrystal[2]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hParticleFormationMark[0]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleFormationMark[1]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleFormationMark[2]	= INVALID_PARTICLE_HANDLE;
+	m_hParticleFormationMark[0]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleFormationMark[1]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleFormationMark[2]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hParticleFormationMsg[0]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleFormationMsg[1]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleFormationMsg[2]	= INVALID_PARTICLE_HANDLE;
+	m_hParticleFormationMsg[0]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleFormationMsg[1]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleFormationMsg[2]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	m_hEffectGigaPlane		= INVALID_MESH_INSTANCE_HANDLE;
 	m_hEffectGigaCrystal[0] = INVALID_MESH_INSTANCE_HANDLE;
@@ -22908,14 +24980,14 @@ CX2GUEve::EveElectraSystem::EveElectraSystem( CX2GUEve* _pGUEve )
 	m_hEffectGigaCrystal[3] = INVALID_MESH_INSTANCE_HANDLE;
 	m_hEffectGigaCrystal[4] = INVALID_MESH_INSTANCE_HANDLE;
 
-	m_hParticleGigaPlane		= INVALID_PARTICLE_HANDLE;
-	m_hParticleGigaCrystal[0]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleGigaCrystal[1]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleGigaCrystal[2]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleGigaCrystal[3]	= INVALID_PARTICLE_HANDLE;
-	m_hParticleGigaCrystal[4]	= INVALID_PARTICLE_HANDLE;
+	m_hParticleGigaPlane		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleGigaCrystal[0]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleGigaCrystal[1]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleGigaCrystal[2]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleGigaCrystal[3]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hParticleGigaCrystal[4]	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hParticleThousandStarFormation = INVALID_PARTICLE_HANDLE;
+	m_hParticleThousandStarFormation = INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	m_fLaserEndOffsetX	= 0.f;
 	m_fLaserEndOffsetY	= 0.f;
@@ -22923,7 +24995,7 @@ CX2GUEve::EveElectraSystem::EveElectraSystem( CX2GUEve* _pGUEve )
 	m_iPriorEffectID		= 1 * ( _pGUEve->GetUnitIndex() + 1 );
 	m_iPosteriorEffectID	= 1 * ( _pGUEve->GetUnitIndex() + 1 );
 
-	m_pEffectPlane = NULL;
+	//m_pEffectPlane = NULL;
 }
 
 void CX2GUEve::EveElectraSystem::ProcessPlane( float _fElapsedTime )
@@ -23157,7 +25229,11 @@ void CX2GUEve::EveElectraSystem::ProcessGigaPlane( float _fElapsedTime )
 	}
 	else
 	{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        m_hParticleGigaPlane = INVALID_PARTICLE_SEQUENCE_HANDLE;	/// 시간에 의해 종료됬을 것이기에 INVALID 처리함
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		m_hParticleGigaPlane = INVALID_MESH_INSTANCE_HANDLE;	/// 시간에 의해 종료됬을 것이기에 INVALID 처리함
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		DestroyGigaPlaneAndCrystalEffect();
 		SetEnableGigaPlane( false );
 	}
@@ -23378,7 +25454,11 @@ void CX2GUEve::EveElectraSystem::ProcessFormation( float _fElapsedTime )
 	}
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2GUEve::EveElectraSystem::ProcessSystem( float fElapsedTime )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2GUEve::EveElectraSystem::ProcessSystem()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	//#ifdef SERV_EVE_BATTLE_SERAPH
 	//			if ( false == m_bExceptionSystem )
@@ -23418,7 +25498,7 @@ void CX2GUEve::EveElectraSystem::ProcessSystem()
 
 	m_pGUEve->m_iAddBoostAttack = 0;
 
-	if ( CX2EffectSet::INVALID_HANDLE != m_pGUEve->m_hEffectEnergeticHeart  )
+	if ( INVALID_EFFECTSET_HANDLE != m_pGUEve->m_hEffectEnergeticHeart  )
 	{
 	g_pX2Game->GetEffectSet()->StopEffectSet( m_pGUEve->m_hEffectEnergeticHeart );
 	g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Seraph_Energetic_Heart_End", m_pGUEve );
@@ -23450,7 +25530,9 @@ void CX2GUEve::EveElectraSystem::ProcessSystem()
 	#endif
 	*/
 
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	const float fElapsedTime = g_pKTDXApp->GetElapsedTime();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	ProcessPlane( fElapsedTime );
 
 	ProcessGigaPlane( fElapsedTime );
@@ -23522,7 +25604,11 @@ void CX2GUEve::EveElectraSystem::AddLaserToSystem( CX2DamageEffect::CEffect* _pD
 		return;
 
 	EveElectraLaserData kEveElectraLaserData( this );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    kEveElectraLaserData.m_vecDamageEffect.push_back(_pDamageEffect->GetHandle());
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	kEveElectraLaserData.m_vecDamageEffect.push_back(_pDamageEffect);
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	kEveElectraLaserData.m_vLaserStartPos	= _vLaserStartPos;
 
 	kEveElectraLaserData.m_vDirVector		= _vDirVector;
@@ -23534,7 +25620,9 @@ void CX2GUEve::EveElectraSystem::AddLaserToSystem( CX2DamageEffect::CEffect* _pD
 	kEveElectraLaserData.m_fLaserWidthScale = _fLaserWidthScale;
 	kEveElectraLaserData.m_bApplyLaserRangePassive = _bApplyLaserRangePassive;
 
-	kEveElectraLaserData.m_vInitRotateLocalDegree = _pDamageEffect->GetMainEffect()->GetRotateLocalDegree();
+    
+    CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = _pDamageEffect->GetMainEffect();
+	kEveElectraLaserData.m_vInitRotateLocalDegree = ( pMainEffect != NULL ) ? pMainEffect->GetRotateLocalDegree() : D3DXVECTOR3(0,0,0);
 
 
 	kEveElectraLaserData.m_AmplifyDamageEffectName	= AmplifyDamageEffectName;
@@ -23573,7 +25661,14 @@ void CX2GUEve::EveElectraSystem::AddLaserToSystem( CX2DamageEffect::CEffect* _pD
 
 void CX2GUEve::EveElectraSystem::LaserAttackLineSet( CX2DamageEffect::CEffect* _pDamageEffect, float _fRadiusScale /*= 1.0f*/ )
 {
-	CKTDXCollision::CollisionDataList* pCollisionDataList = &_pDamageEffect->GetMainEffect()->GetXSkinAnim()->GetAttackDataListNonConst();
+	if( _pDamageEffect == NULL )
+		return;
+    CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = _pDamageEffect->GetMainEffect();
+    if ( pMainEffect == NULL || pMainEffect->GetXSkinAnim() == NULL )
+        return;
+	CKTDXCollision::CollisionDataList* pCollisionDataList = &pMainEffect->GetXSkinAnim()->GetAttackDataListNonConst();
+    if ( pCollisionDataList == NULL )
+        return;
 
 	BOOST_TEST_FOREACH( CKTDXCollision::CollisionData*, pColA, *pCollisionDataList )
 	{
@@ -23621,7 +25716,11 @@ void CX2GUEve::EveElectraSystem::AddEffectToSystem( CX2DamageEffect::CEffect* _p
 		return;
 
 	EveElectraEffectData kEveElectraEffectData( this );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    kEveElectraEffectData.m_hDamageEffect =  _pDamageEffect->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	kEveElectraEffectData.m_pDamageEffect =  _pDamageEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	if( AmplifyDamageEffectName == L"" )
 		kEveElectraEffectData.m_AmplifyDamageEffectName = _pDamageEffect->GetName();
@@ -23666,7 +25765,11 @@ void CX2GUEve::EveElectraSystem::AddLockonToSystem( CX2DamageEffect::CEffect* _p
 		return;
 
 	EveElectraLockonData kEveElectraLockonData( this );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    kEveElectraLockonData.m_hDamageEffect =  _pDamageEffect->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	kEveElectraLockonData.m_pDamageEffect =  _pDamageEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	if( AmplifyDamageEffectName == L"" )
 		kEveElectraLockonData.m_AmplifyDamageEffectName = _pDamageEffect->GetName();
@@ -23693,7 +25796,11 @@ void CX2GUEve::EveElectraSystem::AddLockonToSystem( CX2DamageEffect::CEffect* _p
 
 void CX2GUEve::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName_, const float fTimeToShow_, const UINT uiCutInIndex_, const bool bOnlyLight_ /*= false */ )
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( fTimeToShow_ ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( fTimeToShow_ ) == true && EventCheck( fTimeToShow_, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( GetShowCutInAndChangeWorldColor() && GetShowActiveSkillShow() )
 #ifdef SERV_APRIL_FOOLS_DAY
@@ -23807,31 +25914,59 @@ void CX2GUEve::EveElectraSystem::CreatePlane( float _fZAngle/* = 0.f*/, float _L
 
 	CKTDGXMeshPlayer* pMajorMeshPlayer = g_pX2Game->GetMajorXMeshPlayer();
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstPlane = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityPlane", vPlanePos, vPlaneRotateDegree, vPlaneRotateDegree );
-
-	m_hEffectPlane = pMeshInstPlane->GetHandle();
-	pMeshInstPlane->SetMaxLifeTime( _LifeTime );
+    if ( pMeshInstPlane != NULL )
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        pMeshInstPlane->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+	    m_hEffectPlane = pMeshInstPlane->GetHandle();
+	    pMeshInstPlane->SetMaxLifeTime( _LifeTime );
+    }
 	SetEnablePlane( true );
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCrystal1 = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityCrystal", vPlanePos, m_pGUEve->GetRotateDegree(), m_pGUEve->GetRotateDegree() );
-	m_hEffectCrystal1 = pMeshInstCrystal1->GetHandle();
-	pMeshInstCrystal1->SetPos( pMeshInstPlane->GetBonePos( L"Dummy02" ));
+    if ( pMeshInstCrystal1 != NULL )
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        pMeshInstCrystal1->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+	    m_hEffectCrystal1 = pMeshInstCrystal1->GetHandle();
+	    pMeshInstCrystal1->SetPos( pMeshInstPlane->GetBonePos( L"Dummy02" ));
+    }
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCrystal2 = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityCrystal", vPlanePos, m_pGUEve->GetRotateDegree(), m_pGUEve->GetRotateDegree() );
-	m_hEffectCrystal2 = pMeshInstCrystal2->GetHandle();
-	pMeshInstCrystal2->SetPos( pMeshInstPlane->GetBonePos( L"Dummy03" ));
+    if ( pMeshInstCrystal2 != NULL )
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        pMeshInstCrystal2->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+	    m_hEffectCrystal2 = pMeshInstCrystal2->GetHandle();
+	    pMeshInstCrystal2->SetPos( pMeshInstPlane->GetBonePos( L"Dummy03" ));
+    }
+
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCrystal3 = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityCrystal", vPlanePos, m_pGUEve->GetRotateDegree(), m_pGUEve->GetRotateDegree() );
-	m_hEffectCrystal3 = pMeshInstCrystal3->GetHandle();
-	pMeshInstCrystal3->SetPos( pMeshInstPlane->GetBonePos( L"Dummy04" ));
+    if ( pMeshInstCrystal3 != NULL )
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        pMeshInstCrystal3->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+	    m_hEffectCrystal3 = pMeshInstCrystal3->GetHandle();
+	    pMeshInstCrystal3->SetPos( pMeshInstPlane->GetBonePos( L"Dummy04" ));
+    }
+
 
 	// Plane Start 이펙트 생성
 	CKTDGParticleSystem* pMajorParticleSystem = g_pX2Game->GetMajorParticle();
-	pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P02", pMeshInstPlane->GetBonePos( L"Dummy02" ) );
-	pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P03", pMeshInstPlane->GetBonePos( L"Dummy02" ) );
-	pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P02", pMeshInstPlane->GetBonePos( L"Dummy03" ) );
-	pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P03", pMeshInstPlane->GetBonePos( L"Dummy03" ) );
-	pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P02", pMeshInstPlane->GetBonePos( L"Dummy04" ) );
-	pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P03", pMeshInstPlane->GetBonePos( L"Dummy04" ) );
+	if ( pMajorParticleSystem != NULL && pMeshInstPlane != NULL )
+	{
+		pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P02", pMeshInstPlane->GetBonePos( L"Dummy02" ) );
+		pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P03", pMeshInstPlane->GetBonePos( L"Dummy02" ) );
+		pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P02", pMeshInstPlane->GetBonePos( L"Dummy03" ) );
+		pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P03", pMeshInstPlane->GetBonePos( L"Dummy03" ) );
+		pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P02", pMeshInstPlane->GetBonePos( L"Dummy04" ) );
+		pMajorParticleSystem->CreateSequence( (CKTDGObject*) m_pGUEve,  L"eve_spectro_model_P03", pMeshInstPlane->GetBonePos( L"Dummy04" ) );
+	}
 
 	return;
 }
@@ -23887,33 +26022,51 @@ void CX2GUEve::EveElectraSystem::CreateGigaPlane( float _fZAngle/* = 0.f*/, floa
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstPlane = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityGigaPlane", vPlanePos, vPlaneRotateDegree, vPlaneRotateDegree );
 
 	if ( NULL != pMeshInstPlane )
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        pMeshInstPlane->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		pMeshInstPlane->SetScale ( D3DXVECTOR3 ( 1.f, _fScale, _fScale ) );
-	// X 축을 제외하고 Scale 을 키운다..
-
-
-	m_hEffectGigaPlane = pMeshInstPlane->GetHandle();
-	pMeshInstPlane->SetMaxLifeTime( _LifeTime );
+	    // X 축을 제외하고 Scale 을 키운다..
+    	m_hEffectGigaPlane = pMeshInstPlane->GetHandle();
+	    pMeshInstPlane->SetMaxLifeTime( _LifeTime );
+    }
 	SetEnableGigaPlane( true );
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCrystal1 = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityGigaCrystal", vPlanePos, m_pGUEve->GetRotateDegree(), m_pGUEve->GetRotateDegree() );
+    if ( pMeshInstCrystal1 != NULL )
+    {
 	m_hEffectGigaCrystal[0] = pMeshInstCrystal1->GetHandle();
 	pMeshInstCrystal1->SetPos( pMeshInstPlane->GetBonePos( L"Dummy02" ));
+    }
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCrystal2 = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityGigaCrystal", vPlanePos, m_pGUEve->GetRotateDegree(), m_pGUEve->GetRotateDegree() );
+    if ( pMeshInstCrystal2 != NULL )
+    {
 	m_hEffectGigaCrystal[1] = pMeshInstCrystal2->GetHandle();
 	pMeshInstCrystal2->SetPos( pMeshInstPlane->GetBonePos( L"Dummy03" ));
+    }
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCrystal3 = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityGigaCrystal", vPlanePos, m_pGUEve->GetRotateDegree(), m_pGUEve->GetRotateDegree() );
+    if ( pMeshInstCrystal3 != NULL )
+    {
 	m_hEffectGigaCrystal[2] = pMeshInstCrystal3->GetHandle();
 	pMeshInstCrystal3->SetPos( pMeshInstPlane->GetBonePos( L"Dummy04" ));
+    }
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCrystal4 = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityGigaCrystal", vPlanePos, m_pGUEve->GetRotateDegree(), m_pGUEve->GetRotateDegree() );
+    if ( pMeshInstCrystal4 != NULL )
+    {
 	m_hEffectGigaCrystal[3] = pMeshInstCrystal4->GetHandle();
 	pMeshInstCrystal4->SetPos( pMeshInstPlane->GetBonePos( L"Dummy05" ));
+    }
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCrystal5 = pMajorMeshPlayer->CreateInstance( (CKTDGObject*) m_pGUEve,  L"EveProtoPurityGigaCrystal", vPlanePos, m_pGUEve->GetRotateDegree(), m_pGUEve->GetRotateDegree() );
+    if ( pMeshInstCrystal5 != NULL )
+    {
 	m_hEffectGigaCrystal[4] = pMeshInstCrystal5->GetHandle();
 	pMeshInstCrystal5->SetPos( pMeshInstPlane->GetBonePos( L"Dummy06" ));
+    }
 
 	// Plane Start 이펙트 생성
 	CKTDGParticleSystem* pMajorParticleSystem = g_pX2Game->GetMajorParticle();
@@ -23946,10 +26099,10 @@ void CX2GUEve::EveElectraSystem::DestroyFormationMarkAndMsgParticle()
 void CX2GUEve::EveElectraSystem::DestroyPlaneAndCrystalEffect()
 {
 	CKTDGXMeshPlayer* pMajorMeshPlayer = g_pX2Game->GetMajorXMeshPlayer();
-	pMajorMeshPlayer->DestroyInstance( m_hEffectCrystal1 );
-	pMajorMeshPlayer->DestroyInstance( m_hEffectCrystal2 );
-	pMajorMeshPlayer->DestroyInstance( m_hEffectCrystal3 );
-	pMajorMeshPlayer->DestroyInstance( m_hEffectPlane );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectCrystal1 );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectCrystal2 );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectCrystal3 );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectPlane );
 
 	CKTDGParticleSystem* pMajorParticleSystem = g_pX2Game->GetMajorParticle();
 	pMajorParticleSystem->DestroyInstanceHandle( m_hParticleCrystal[0] );
@@ -23963,12 +26116,12 @@ void CX2GUEve::EveElectraSystem::DestroyPlaneAndCrystalEffect()
 void CX2GUEve::EveElectraSystem::DestroyGigaPlaneAndCrystalEffect()
 {
 	CKTDGXMeshPlayer* pMajorMeshPlayer = g_pX2Game->GetMajorXMeshPlayer();
-	pMajorMeshPlayer->DestroyInstance( m_hEffectGigaCrystal[0] );
-	pMajorMeshPlayer->DestroyInstance( m_hEffectGigaCrystal[1] );
-	pMajorMeshPlayer->DestroyInstance( m_hEffectGigaCrystal[2] );
-	pMajorMeshPlayer->DestroyInstance( m_hEffectGigaCrystal[3] );
-	pMajorMeshPlayer->DestroyInstance( m_hEffectGigaCrystal[4] );
-	pMajorMeshPlayer->DestroyInstance( m_hEffectGigaPlane );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectGigaCrystal[0] );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectGigaCrystal[1] );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectGigaCrystal[2] );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectGigaCrystal[3] );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectGigaCrystal[4] );
+	pMajorMeshPlayer->DestroyInstanceHandle( m_hEffectGigaPlane );
 
 	CKTDGParticleSystem* pMajorParticleSystem = g_pX2Game->GetMajorParticle();
 	pMajorParticleSystem->DestroyInstanceHandle( m_hParticleGigaCrystal[0] );
@@ -24012,25 +26165,46 @@ CX2GUEve::FlyingImpactData::FlyingImpactData()
 {
 	m_vOffsetRotate = D3DXVECTOR3(0, 0, 0);
 	m_vOffsetPos = D3DXVECTOR3( 0, 0, 0 );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffect = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 CX2GUEve::FlyingImpactData::~FlyingImpactData()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffect != INVALID_DAMAGE_EFFECT_HANDLE )
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffect );
+#else  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL != m_pEffect )
-	{
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pEffect );
-		m_pEffect = NULL;
-	}
+    m_pEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
+
+//{{ robobeg : 2013-08-30
+CX2DamageEffect::CEffect*   CX2GUEve::FlyingImpactData::GetLiveDamageEffect()
+{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    return  g_pX2Game->GetDamageEffect()->GetInstance( m_hEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    return  ( g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pEffect ) == true ) ? m_pEffect : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+}
+//}} robobeg : 2013-08-30
+
 
 void CX2GUEve::ClearThousandStar()
 {
-	if( m_pThousandStar != NULL && 
-		m_pThousandStar->m_pEffect != NULL && 
-		g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pThousandStar->m_pEffect ) == true )
+    if ( CX2DamageEffect::CEffect* pTSEffect =  ( m_pThousandStar != NULL ) ? m_pThousandStar->GetLiveDamageEffect() : NULL )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"EveThousandStarDie", m_pThousandStar->m_pEffect->GetMainEffect()->GetPos(), GetRotateDegree(), GetRotateDegree() );
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pTSEffect->GetMainEffect() )
+        {
+            CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		    pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"EveThousandStarDie", pMeshInstance->GetPos(), GetRotateDegree(), GetRotateDegree() );
+        }
 	}
 
 
@@ -24064,9 +26238,10 @@ void CX2GUEve::CreateThousandStar()
 		m_pThousandStar = new FlyingImpactData;
 		m_pThousandStar->m_vOffsetPos = D3DXVECTOR3( -180*0.9f, 52*3.f, 0.f );		
 	}
+    if ( m_pThousandStar == NULL )
+        return;
 
-	if( m_pThousandStar != NULL && 
-		(m_pThousandStar->m_pEffect == NULL || g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pThousandStar->m_pEffect ) == false) )
+    if ( m_pThousandStar->GetLiveDamageEffect() == NULL )
 	{
 		D3DXVECTOR3 vRotDegree = GetRotateDegree();
 		D3DXVECTOR3 vDirVec = GetDirVector();
@@ -24088,10 +26263,18 @@ void CX2GUEve::CreateThousandStar()
 			return;
 		}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_pThousandStar->m_hEffect = pEffectThounsandStar->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pThousandStar->m_pEffect = pEffectThounsandStar;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-		pEffectThounsandStar->GetMainEffect()->SetMoveAxisAngleDegree( GetRotateDegree() );
-		pEffectThounsandStar->GetMainEffect()->SetRotateDegree( GetRotateDegree() + m_pThousandStar->m_vOffsetRotate );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectThounsandStar->GetMainEffect();
+        if ( pMeshInstance != NULL  )
+        {
+		    pMeshInstance->SetMoveAxisAngleDegree( GetRotateDegree() );
+		    pMeshInstance->SetRotateDegree( GetRotateDegree() + m_pThousandStar->m_vOffsetRotate );
+        }
 
 		D3DXVECTOR3 vTargetPos = GetPos(); 
 		if( true == GetIsRight() )
@@ -24107,7 +26290,8 @@ void CX2GUEve::CreateThousandStar()
 			vTargetPos += m_pThousandStar->m_vOffsetPos.z * vZVec;
 		}
 
-		pEffectThounsandStar->GetMainEffect()->SetPos( vTargetPos );
+        if ( pMeshInstance != NULL )
+		    pMeshInstance->SetPos( vTargetPos );
 
 		m_iThousandStarCount = 100;
 	}
@@ -24116,7 +26300,13 @@ void CX2GUEve::CreateThousandStar()
 void CX2GUEve::DoFrameMoveThousandStar()
 {
 #ifdef BALANCE_PATCH_20120329
-	if( m_pThousandStar != NULL && m_pThousandStar->m_pEffect != NULL )
+	if( m_pThousandStar != NULL 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        && m_pThousandStar->m_hEffect != INVALID_DAMAGE_EFFECT_HANDLE
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        && m_pThousandStar->m_pEffect != NULL 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        )
 	{
 		m_fElapsedTimeThousandStartCreated += m_fElapsedTime;
 	}
@@ -24142,9 +26332,21 @@ void CX2GUEve::DoFrameMoveThousandStar()
 	}
 #ifdef BALANCE_PATCH_20120329
 	else if( m_fElapsedTimeThousandStartCreated >= 55.f && m_fElapsedTimeThousandStartCreated - m_fElapsedTime < 55.f
-		&& m_pThousandStar != NULL && m_pThousandStar->m_pEffect != NULL )
+		&& m_pThousandStar != NULL 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        && m_pThousandStar->m_hEffect != INVALID_DAMAGE_EFFECT_HANDLE
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        && m_pThousandStar->m_pEffect != NULL 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        )
 	{
-		m_hCountDownThousandStar = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"CountDown5", m_pThousandStar->m_pEffect->GetPos() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect*   pTSEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pThousandStar->m_hEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect*   pTSEffect = m_pThousandStar->m_pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( pTSEffect != NULL )
+			m_hCountDownThousandStar = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"CountDown5", pTSEffect->GetPos() );
 	}
 	else if( m_fElapsedTimeThousandStartCreated >= 60.f )
 	{
@@ -24164,25 +26366,28 @@ void CX2GUEve::DoFrameMoveThousandStar()
 
 		m_iThousandStarCount = 0;
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS );
-		CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			CX2UserSkillTree& userSkillTree = GetUnit()->AccessUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 			float fRemainCoolTime = pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - m_fElapsedTimeThousandStartCreated; 
 	#else // UPGRADE_SKILL_SYSTEM_2013
+
+			CX2UserSkillTree& userSkillTree = GetUnit()->AccessUnitData().m_UserSkillTree;
+
 			float fRemainCoolTime = pSkillTemplet->m_fSkillCoolTime - m_fElapsedTimeThousandStartCreated; 
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 			if( fRemainCoolTime < 0.f )
 				fRemainCoolTime = 0.f;
 
-			cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS, fRemainCoolTime  );
+			userSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS, fRemainCoolTime  );
 			if ( IsMyUnit() )
 				g_pX2Game->UpdateSkillSlotUI();
 		}
@@ -24202,15 +26407,22 @@ void CX2GUEve::DoFrameMoveThousandStar()
 
 	D3DXVECTOR3 vDirVec = GetDirVector();
 
-	if( m_pThousandStar != NULL && m_pThousandStar->m_pEffect != NULL )
+
+	if( m_pThousandStar != NULL 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        && m_pThousandStar->m_hEffect != INVALID_DAMAGE_EFFECT_HANDLE
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        && m_pThousandStar->m_pEffect != NULL 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        )
 	{
-		if( true == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pThousandStar->m_pEffect ) )
+        if ( CX2DamageEffect::CEffect* pSTEffect = m_pThousandStar->GetLiveDamageEffect() )
 		{
 			D3DXVECTOR3 vZVec = GetZVector();
 			D3DXVec3Normalize( &vDirVec, &vDirVec );
 
-			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pThousandStar->m_pEffect->GetMainEffect();
-			if( NULL != pMeshInst && m_bEntireFireMode == false )
+			CKTDGXMeshPlayer::CXMeshInstance* pThousandStarMeshInstance = pSTEffect->GetMainEffect();
+			if( NULL != pThousandStarMeshInstance && m_bEntireFireMode == false )
 			{
 				D3DXVECTOR3 vTargetPos = GetPos();
 				if( true == GetIsRight() )
@@ -24228,22 +26440,22 @@ void CX2GUEve::DoFrameMoveThousandStar()
 
 				float coeff = 0.05f;
 				D3DXVECTOR3 vRotateDegree = GetRotateDegree() + m_pThousandStar->m_vOffsetRotate;
-				pMeshInst->SetRotateDegree( vRotateDegree );
-				pMeshInst->SetMoveAxisAngleDegree( GetRotateDegree() );
+				pThousandStarMeshInstance->SetRotateDegree( vRotateDegree );
+				pThousandStarMeshInstance->SetMoveAxisAngleDegree( GetRotateDegree() );
 
-				vTargetPos = vTargetPos * coeff + pMeshInst->GetPos() * ( 1.f-coeff );
-				pMeshInst->SetPos( vTargetPos );
+				vTargetPos = vTargetPos * coeff + pThousandStarMeshInstance->GetPos() * ( 1.f-coeff );
+				pThousandStarMeshInstance->SetPos( vTargetPos );
 
 				CKTDGParticleSystem::CParticleEventSequence* pSeqThousandStarFormation = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_EveElectraSystem.m_hParticleThousandStarFormation );
 				if( pSeqThousandStarFormation != NULL )
 				{
-					pSeqThousandStarFormation->SetPosition( pMeshInst->GetPos() );
+					pSeqThousandStarFormation->SetPosition( pThousandStarMeshInstance->GetPos() );
 				}
 #ifdef BALANCE_PATCH_20120329
 				CKTDGParticleSystem::CParticleEventSequence* pSeqCountDownThousandStar = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hCountDownThousandStar );
 				if( pSeqCountDownThousandStar != NULL )
 				{
-					D3DXVECTOR3 vCountDownPos = pMeshInst->GetPos();
+					D3DXVECTOR3 vCountDownPos = pThousandStarMeshInstance->GetPos();
 					vCountDownPos.y += 80.f;
 					pSeqCountDownThousandStar->SetPosition( vCountDownPos );
 				}
@@ -24258,9 +26470,31 @@ void CX2GUEve::DoFrameMoveThousandStar()
 				else
 					pGameUnit = g_pX2Game->GetUserUnitByUID( m_iLockOnUid );
 
+				D3DXVECTOR3 vPos( 0.f, 0.f, 0.f );
+				
+				if( pGameUnit != NULL )
+				{
+					const CKTDXCollision::CollisionDataListSet& AttackListSet = pGameUnit->GetCollisionListSet();
+					vPos = pGameUnit->GetPos();
+					vPos.y += 100.f;
+
+					BOOST_FOREACH( const CKTDXCollision::CollisionDataList* collisionDataList, AttackListSet )
+					{
+						BOOST_FOREACH( CKTDXCollision::CollisionData* collisionData, *collisionDataList )
+						{
+							D3DXVECTOR3 vCollPos = collisionData->GetPointStart();
+							float fDist = GetDistance( GetPos(), vCollPos );
+							float fOldDist = GetDistance( GetPos(), vPos );
+
+							if ( fDist <= fOldDist )
+								vPos = vCollPos;
+						}
+					}
+				}
+
 				if( pGameUnit == NULL || 
 					( pGameUnit != NULL && pGameUnit->GetNowHp() <= 0.f) ||
-					( pGameUnit != NULL && GetDistance( GetPos(), pGameUnit->GetPos() ) > 1000.f ) )
+					( pGameUnit != NULL && GetDistance( GetPos(), vPos/*pGameUnit->GetPos()*/ ) > 1000.f ) )
 				{
 					m_iLockOnUid = -1;
 				}
@@ -24278,8 +26512,7 @@ void CX2GUEve::DoFrameMoveThousandStar()
 
 void CX2GUEve::EntireAttackThousandStar()
 {
-	if( m_pThousandStar != NULL && m_pThousandStar->m_pEffect != NULL &&
-		g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pThousandStar->m_pEffect ) == true ) 
+	if( CX2DamageEffect::CEffect* pTSEffect = ( m_pThousandStar != NULL ) ? m_pThousandStar->GetLiveDamageEffect() : NULL )
 	{
 		D3DXVECTOR3 vRotateDegree;
 		vRotateDegree = GetRotateDegree();
@@ -24294,7 +26527,7 @@ void CX2GUEve::EntireAttackThousandStar()
 		wstring wstrDamageEffectName = L"EVE_THOUSANDSTAR_MAGICBALL_ENTIRE";
 
 		CX2DamageEffect::CEffect* pEffect = NULL;
-
+        CKTDGXMeshPlayer::CXMeshInstance* pThousandStarMeshInstance = pTSEffect->GetMainEffect();
 		if( m_EveElectraSystem.GetEnableSystem() == true &&
 			( m_EveElectraSystem.GetPlaneFormation() == PFT_AMPLIFIER 
 			|| m_EveElectraSystem.GetPlaneFormation() == PFT_SPECTRUM
@@ -24305,45 +26538,55 @@ void CX2GUEve::EntireAttackThousandStar()
 			)
 			)
 		{
-			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, m_pThousandStar->m_pEffect->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree );
+            if ( pThousandStarMeshInstance != NULL )
+            {
+			    pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, pThousandStarMeshInstance->GetPos(), vRotateDegree, vRotateDegree );
 
-			CX2DamageEffect::LockOnData* pLockOnData = pEffect->GetLockOnData();
-			if( m_bLockOnNpc == true )
-				pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
-			else
-				pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
+			    CX2DamageEffect::LockOnData* pLockOnData = &pEffect->GetLockOnData();
+			    if( m_bLockOnNpc == true )
+				    pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
+			    else
+				    pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
 
-			pEffect->GetDamageData()->damage.fPhysic *= 1.2f;
-			pEffect->GetDamageData()->damage.fMagic *= 1.2f;
+			    pEffect->GetDamageData().damage.fPhysic *= 1.2f;
+			    pEffect->GetDamageData().damage.fMagic *= 1.2f;
 
-			D3DXVECTOR3 vAmplifyScale = pEffect->GetMainEffectScaleByUnit();
-			D3DXVECTOR3 vScale = pEffect->GetMainEffect()->GetScale();
+			    D3DXVECTOR3 vAmplifyScale = pEffect->GetMainEffectScaleByUnit();
 
-			vAmplifyScale.x *= vScale.x;
-			vAmplifyScale.y *= vScale.y;
-			vAmplifyScale.z *= vScale.z;
-			vAmplifyScale *= 1.3f;
+                if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                {
+			        D3DXVECTOR3 vScale = pMeshInstance->GetScale();
 
-			pEffect->SetScale( vAmplifyScale );
+			        vAmplifyScale.x *= vScale.x;
+			        vAmplifyScale.y *= vScale.y;
+			        vAmplifyScale.z *= vScale.z;
+			        vAmplifyScale *= 1.3f;
+
+			        pEffect->SetScale( vAmplifyScale );
+                }
+            }
 
 			// 			if( NULL != pEffect )
 			// 				m_EveElectraSystem.AddLockonToSystem( pEffect, L"EVE_THOUSANDSTAR_MAGICBALL_FILTERED", L"EVE_THOUSANDSTAR_MAGICBALL_FILTERED" 
 		}
 		else
 		{
-			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, m_pThousandStar->m_pEffect->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree );
+            if ( pThousandStarMeshInstance != NULL )
+            {
+			    pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, pThousandStarMeshInstance->GetPos(), vRotateDegree, vRotateDegree );
 
-			CX2DamageEffect::LockOnData* pLockOnData = pEffect->GetLockOnData();
-			if( m_bLockOnNpc == true )
-				pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
-			else
-				pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
-
+			    CX2DamageEffect::LockOnData* pLockOnData = &pEffect->GetLockOnData();
+			    if( m_bLockOnNpc == true )
+				    pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
+			    else
+				    pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
+                }
 			// 			if( NULL != pEffect )
 			// 				m_EveElectraSystem.AddLockonToSystem( pEffect, L"EVE_THOUSANDSTAR_MAGICBALL_FILTERED", L"EVE_THOUSANDSTAR_MAGICBALL_FILTERED" 
 		}
 
-		g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( this ),  L"eve_thousandsOfStars_model_P02", m_pThousandStar->m_pEffect->GetMainEffect()->GetPos() );
+        if ( pThousandStarMeshInstance != NULL )
+		    g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( this ),  L"eve_thousandsOfStars_model_P02", pThousandStarMeshInstance->GetPos() );
 
 
 
@@ -24352,19 +26595,21 @@ void CX2GUEve::EntireAttackThousandStar()
 		if( m_iThousandStarCount <= 0 )
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS );
-			CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
 			if( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				CX2UserSkillTree& cUserSkillTree = GetUnit()->AccessUnitData().m_UserSkillTree;
 	
-				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+				const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 				float fRemainCoolTime = pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - m_fElapsedTimeThousandStartCreated; 
 	#else // UPGRADE_SKILL_SYSTEM_2013
+
+				CX2UserSkillTree& cUserSkillTree = GetUnit()->AccessUnitData().m_UserSkillTree;
+
 				float fRemainCoolTime = pSkillTemplet->m_fSkillCoolTime - m_fElapsedTimeThousandStartCreated; 
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 				
@@ -24384,8 +26629,7 @@ void CX2GUEve::EntireAttackThousandStar()
 
 void CX2GUEve::AttackThousandStar()
 {
-	if( m_pThousandStar != NULL && m_pThousandStar->m_pEffect != NULL &&
-		g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pThousandStar->m_pEffect ) == true ) 
+	if( CX2DamageEffect::CEffect* pTSEffect = ( m_pThousandStar != NULL ) ? m_pThousandStar->GetLiveDamageEffect() : NULL )
 	{
 
 		D3DXVECTOR3 vRotateDegree;
@@ -24407,29 +26651,36 @@ void CX2GUEve::AttackThousandStar()
 
 
 		CX2DamageEffect::CEffect* pEffect = NULL;
-
+         CKTDGXMeshPlayer::CXMeshInstance* pThousandStarMeshInstance = pTSEffect->GetMainEffect();
 		if( m_EveElectraSystem.GetEnableSystem() == true && m_EveElectraSystem.GetPlaneFormation() == PFT_AMPLIFIER )
 		{
-			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, m_pThousandStar->m_pEffect->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree );
+            if ( pThousandStarMeshInstance != NULL )
+            {
+			    pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, pThousandStarMeshInstance->GetPos(), vRotateDegree, vRotateDegree );
 
-			CX2DamageEffect::LockOnData* pLockOnData = pEffect->GetLockOnData();
-			if( m_bLockOnNpc == true )
-				pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
-			else
-				pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
+			    CX2DamageEffect::LockOnData* pLockOnData = &pEffect->GetLockOnData();
+			    if( m_bLockOnNpc == true )
+				    pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
+			    else
+				    pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
 
-			pEffect->GetDamageData()->damage.fPhysic *= 1.2f;
-			pEffect->GetDamageData()->damage.fMagic *= 1.2f;
+			    pEffect->GetDamageData().damage.fPhysic *= 1.2f;
+			    pEffect->GetDamageData().damage.fMagic *= 1.2f;
 
-			D3DXVECTOR3 vAmplifyScale = pEffect->GetMainEffectScaleByUnit();
-			D3DXVECTOR3 vScale = pEffect->GetMainEffect()->GetScale();
+			    D3DXVECTOR3 vAmplifyScale = pEffect->GetMainEffectScaleByUnit();
 
-			vAmplifyScale.x *= vScale.x;
-			vAmplifyScale.y *= vScale.y;
-			vAmplifyScale.z *= vScale.z;
-			vAmplifyScale *= 1.3f;
+                if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                {
+			        D3DXVECTOR3 vScale = pMeshInstance->GetScale();
 
-			pEffect->SetScale( vAmplifyScale );
+			        vAmplifyScale.x *= vScale.x;
+			        vAmplifyScale.y *= vScale.y;
+			        vAmplifyScale.z *= vScale.z;
+			        vAmplifyScale *= 1.3f;
+
+			        pEffect->SetScale( vAmplifyScale );
+                }
+            }
 
 			// 			if( NULL != pEffect )
 			// 				m_EveElectraSystem.AddLockonToSystem( pEffect, L"EVE_THOUSANDSTAR_MAGICBALL_FILTERED", L"EVE_THOUSANDSTAR_MAGICBALL_FILTERED" 
@@ -24447,27 +26698,33 @@ void CX2GUEve::AttackThousandStar()
 					vRotateDegree.x += 120.f;
 				}
 
-				pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, m_pThousandStar->m_pEffect->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree );
+                if ( pThousandStarMeshInstance != NULL )
+                {
+				    pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, pThousandStarMeshInstance->GetPos(), vRotateDegree, vRotateDegree );
 
-				CX2DamageEffect::LockOnData* pLockOnData = pEffect->GetLockOnData();
-				if( m_bLockOnNpc == true )
-					pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
-				else
-					pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
+				    CX2DamageEffect::LockOnData* pLockOnData = &pEffect->GetLockOnData();
+				    if( m_bLockOnNpc == true )
+					    pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
+				    else
+					    pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
 
 
-				pEffect->GetDamageData()->damage.fPhysic *= 0.5f;
-				pEffect->GetDamageData()->damage.fMagic *= 0.5f;
+				    pEffect->GetDamageData().damage.fPhysic *= 0.5f;
+				    pEffect->GetDamageData().damage.fMagic *= 0.5f;
 
-				D3DXVECTOR3 vSpectrumScale = pEffect->GetMainEffectScaleByUnit();
-				D3DXVECTOR3 vScale = pEffect->GetMainEffect()->GetScale();
+				    D3DXVECTOR3 vSpectrumScale = pEffect->GetMainEffectScaleByUnit();
+                    if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                    {
+				        D3DXVECTOR3 vScale = pMeshInstance->GetScale();
 
-				vSpectrumScale.x *= vScale.x;
-				vSpectrumScale.y *= vScale.y;
-				vSpectrumScale.z *= vScale.z;
-				vSpectrumScale *= 0.8f;
+				        vSpectrumScale.x *= vScale.x;
+				        vSpectrumScale.y *= vScale.y;
+				        vSpectrumScale.z *= vScale.z;
+				        vSpectrumScale *= 0.8f;
 
-				pEffect->SetScale( vSpectrumScale );
+				        pEffect->SetScale( vSpectrumScale );
+                    }
+                }
 
 
 				// 				if( NULL != pEffect )
@@ -24477,37 +26734,43 @@ void CX2GUEve::AttackThousandStar()
 #ifdef SERV_EVE_BATTLE_SERAPH
 		else if ( m_EveElectraSystem.GetEnableSystem() == true && m_EveElectraSystem.GetPlaneFormation() == PFT_INDUCTION )
 		{
-			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate,
-				m_pThousandStar->m_pEffect->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree );
+            if ( pThousandStarMeshInstance != NULL )
+            {
+			    pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate,
+				    pThousandStarMeshInstance->GetPos(), vRotateDegree, vRotateDegree );
 
-			CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
+			    CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
 
-			pEffect->SetDamageTime( pEffect->GetDamageTime() + 1 );
-			pEffect->GetDamageData()->damage.fPhysic *= 0.55f;
-			pEffect->GetDamageData()->damage.fMagic *= 0.55f;
-			pEffect->GetDamageData()->fHitGap = 1.0f;
+			    pEffect->SetDamageTime( pEffect->GetDamageTime() + 1 );
+			    pEffect->GetDamageData().damage.fPhysic *= 0.55f;
+			    pEffect->GetDamageData().damage.fMagic *= 0.55f;
+			    pEffect->GetDamageData().fHitGap = 1.0f;
 
-			pDamageData->bReAttack  = true;
-			pDamageData->fHitGap	= 1.f;
-			pDamageData->fHitAddMP			*= 0.55f;
-			pDamageData->m_fRateModifier	*= 0.55f;
-			pDamageData->techPoint			= int(pDamageData->techPoint * 0.55);
+			    pDamageData->bReAttack  = true;
+			    pDamageData->fHitGap	= 1.f;
+			    pDamageData->fHitAddMP			*= 0.55f;
+			    pDamageData->m_fRateModifier	*= 0.55f;
+			    pDamageData->techPoint			= int(pDamageData->techPoint * 0.55);
 
-			CX2DamageEffect::LockOnData* pLockOnData = pEffect->GetLockOnData();
-			if( m_bLockOnNpc == true )
-				pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
-			else
-				pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
+			    CX2DamageEffect::LockOnData* pLockOnData = &pEffect->GetLockOnData();
+			    if( m_bLockOnNpc == true )
+				    pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
+			    else
+				    pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
 
-			D3DXVECTOR3 vInductionScale = pEffect->GetMainEffectScaleByUnit();
-			D3DXVECTOR3 vScale = pEffect->GetMainEffect()->GetScale();
+			    D3DXVECTOR3 vInductionScale = pEffect->GetMainEffectScaleByUnit();
+                if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                {
+			        D3DXVECTOR3 vScale = pMeshInstance->GetScale();
 
-			vInductionScale.x *= vScale.x;
-			vInductionScale.y *= vScale.y;
-			vInductionScale.z *= vScale.z;
-			vInductionScale *= 0.8f;
+			        vInductionScale.x *= vScale.x;
+			        vInductionScale.y *= vScale.y;
+			        vInductionScale.z *= vScale.z;
+			        vInductionScale *= 0.8f;
 
-			pEffect->SetScale( vInductionScale );
+			        pEffect->SetScale( vInductionScale );
+                }
+            }
 		}
 		else if ( m_EveElectraSystem.GetEnableSystem() == true && m_EveElectraSystem.GetPlaneFormation() == PFT_FUSION )
 		{
@@ -24522,57 +26785,65 @@ void CX2GUEve::AttackThousandStar()
 					vRotateDegree.x += 120.f;
 				}
 
-				pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate,
-					m_pThousandStar->m_pEffect->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree );
+                if ( pThousandStarMeshInstance != NULL )
+                {
+				    pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate,
+					    pThousandStarMeshInstance->GetPos(), vRotateDegree, vRotateDegree );
 
-				CX2DamageManager::DamageData* pDamageData = pEffect->GetDamageData();
+				    CX2DamageManager::DamageData* pDamageData = &pEffect->GetDamageData();
 
-				pEffect->SetDamageTime( pEffect->GetDamageTime() + 1 );
-				pEffect->GetDamageData()->damage.fPhysic *= 0.25f;
-				pEffect->GetDamageData()->damage.fMagic *= 0.25f;
-				pEffect->GetDamageData()->fHitGap = 1.0f;
+				    pEffect->SetDamageTime( pEffect->GetDamageTime() + 1 );
+				    pEffect->GetDamageData().damage.fPhysic *= 0.25f;
+				    pEffect->GetDamageData().damage.fMagic *= 0.25f;
+				    pEffect->GetDamageData().fHitGap = 1.0f;
 
-				pDamageData->bReAttack  = true;
-				pDamageData->fHitGap	= 1.f;
-				pDamageData->fHitAddMP			*= 0.25f;
-				pDamageData->m_fRateModifier	*= 0.25f;
-				pDamageData->techPoint			= int(pDamageData->techPoint * 0.25);
+				    pDamageData->bReAttack  = true;
+				    pDamageData->fHitGap	= 1.f;
+				    pDamageData->fHitAddMP			*= 0.25f;
+				    pDamageData->m_fRateModifier	*= 0.25f;
+				    pDamageData->techPoint			= int(pDamageData->techPoint * 0.25);
 
-				CX2DamageEffect::LockOnData* pLockOnData = pEffect->GetLockOnData();
-				if( m_bLockOnNpc == true )
-					pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
-				else
-					pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
+				    CX2DamageEffect::LockOnData* pLockOnData = &pEffect->GetLockOnData();
+				    if( m_bLockOnNpc == true )
+					    pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
+				    else
+					    pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
 
-				D3DXVECTOR3 vInductionScale = pEffect->GetMainEffectScaleByUnit();
-				D3DXVECTOR3 vScale = pEffect->GetMainEffect()->GetScale();
+				    D3DXVECTOR3 vInductionScale = pEffect->GetMainEffectScaleByUnit();
+                    if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+                    {
+				        D3DXVECTOR3 vScale = pMeshInstance->GetScale();
 
-				vInductionScale.x *= vScale.x;
-				vInductionScale.y *= vScale.y;
-				vInductionScale.z *= vScale.z;
-				vInductionScale *= 0.75f;
+				        vInductionScale.x *= vScale.x;
+				        vInductionScale.y *= vScale.y;
+				        vInductionScale.z *= vScale.z;
+				        vInductionScale *= 0.75f;
 
-				pEffect->SetScale( vInductionScale );
+				        pEffect->SetScale( vInductionScale );
+                    }
+                }
 			}
 		}
 #endif
 		else
 		{
-			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, m_pThousandStar->m_pEffect->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree );
+            if ( pThousandStarMeshInstance != NULL )
+            {
+			    pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), m_fThousandStarPowerRate, pThousandStarMeshInstance->GetPos(), vRotateDegree, vRotateDegree );
 
-			CX2DamageEffect::LockOnData* pLockOnData = pEffect->GetLockOnData();
-			if( m_bLockOnNpc == true )
-				pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
-			else
-				pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
-
+			    CX2DamageEffect::LockOnData* pLockOnData = &pEffect->GetLockOnData();
+			    if( m_bLockOnNpc == true )
+				    pLockOnData->m_LockOnNPCUID = (int)m_iLockOnUid;
+			    else
+				    pLockOnData->m_LockOnUnitUID = m_iLockOnUid;
+            }
 			// 			if( NULL != pEffect )
 			// 				m_EveElectraSystem.AddLockonToSystem( pEffect, L"EVE_THOUSANDSTAR_MAGICBALL_FILTERED", L"EVE_THOUSANDSTAR_MAGICBALL_FILTERED" 		
 		}
 
 
-
-		g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( this ),  L"eve_thousandsOfStars_model_P02", m_pThousandStar->m_pEffect->GetMainEffect()->GetPos() );
+        if ( pThousandStarMeshInstance != NULL )
+		    g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( this ),  L"eve_thousandsOfStars_model_P02", pThousandStarMeshInstance->GetPos() );
 
 
 		PlaySound( L"Raven_NasodCore_Attack.ogg" );
@@ -24581,19 +26852,21 @@ void CX2GUEve::AttackThousandStar()
 		if( m_iThousandStarCount <= 0 )
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EEL_THOUSANDS_OF_STARS );
-			CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+
 			if( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				CX2UserSkillTree& cUserSkillTree = GetUnit()->AccessUnitData().m_UserSkillTree;
 	
-				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+				const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 				float fRemainCoolTime = pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - m_fElapsedTimeThousandStartCreated; 
 	#else // UPGRADE_SKILL_SYSTEM_2013
+			    CX2UserSkillTree& cUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
+
 				float fRemainCoolTime = pSkillTemplet->m_fSkillCoolTime - m_fElapsedTimeThousandStartCreated; 
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 				
@@ -24620,7 +26893,7 @@ void CX2GUEve::AttackResultByType( CX2DamageManager::DamageData &pDamageData )
 	if( pDamageData.optrDefenderGameUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 	{
 		CX2GUNPC *pNpc = static_cast<CX2GUNPC *>( pDamageData.optrDefenderGameUnit.GetObservable() );
-		if( pNpc != NULL && pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+		if( pNpc != NULL && pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 			return;
 	}
 
@@ -24628,39 +26901,53 @@ void CX2GUEve::AttackResultByType( CX2DamageManager::DamageData &pDamageData )
 		pDamageData.m_eDamageTrigger != CX2DamageManager::DTT_EVE_THOUSAND_STAR &&
 		pDamageData.m_fHpPercentUp <= 0.f &&
 		m_pThousandStar != NULL &&
-		m_pThousandStar->m_pEffect != NULL &&
-		g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pThousandStar->m_pEffect ) == true &&
-		m_pThousandStar->m_pEffect->GetMainEffect() != NULL &&
-		m_pThousandStar->m_pEffect->GetMainEffect()->GetGlobalTime() > 3.f )
-	{
-		// 발사		
-		m_bDelayAttackThousandStar = true;
-		m_fDelayAttackTime = 0.f;
-		m_fThousandStarAttackTime = 0.f;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_pThousandStar->m_hEffect != INVALID_DAMAGE_EFFECT_HANDLE
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_pThousandStar->m_pEffect != NULL 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        )
+    {
+	    if( CX2DamageEffect::CEffect* pTSEffect = m_pThousandStar->GetLiveDamageEffect() )
+        {
+            CKTDGXMeshPlayer::CXMeshInstance* pThousandStarMeshInstance = pTSEffect->GetMainEffect();
+		    if ( pThousandStarMeshInstance != NULL
+                && pThousandStarMeshInstance->GetGlobalTime() > 3.f )
+	        {
+		        // 발사		
+		        m_bDelayAttackThousandStar = true;
+		        m_fDelayAttackTime = 0.f;
+		        m_fThousandStarAttackTime = 0.f;
 
-		if( CX2DamageManager::AT_UNIT == pDamageData.defenderType )
-		{
-			if( null != pDamageData.optrDefenderGameUnit )
-			{				
-				if( CX2GameUnit::GUT_USER == pDamageData.optrDefenderGameUnit->GetGameUnitType() )
-				{
-					m_bLockOnNpc = false;
-					m_iLockOnUid = pDamageData.optrDefenderGameUnit->GetUnitUID();
-				}
-				else if( CX2GameUnit::GUT_NPC == pDamageData.optrDefenderGameUnit->GetGameUnitType() )
-				{
-					m_bLockOnNpc = true;
-					m_iLockOnUid = pDamageData.optrDefenderGameUnit->GetUnitUID();
-				}
-			}
-		}		
+		        if( CX2DamageManager::AT_UNIT == pDamageData.defenderType )
+		        {
+			        if( null != pDamageData.optrDefenderGameUnit )
+			        {				
+				        if( CX2GameUnit::GUT_USER == pDamageData.optrDefenderGameUnit->GetGameUnitType() )
+				        {
+					        m_bLockOnNpc = false;
+					        m_iLockOnUid = pDamageData.optrDefenderGameUnit->GetUnitUID();
+				        }
+				        else if( CX2GameUnit::GUT_NPC == pDamageData.optrDefenderGameUnit->GetGameUnitType() )
+				        {
+					        m_bLockOnNpc = true;
+					        m_iLockOnUid = pDamageData.optrDefenderGameUnit->GetUnitUID();
+				        }
+			        }
+		        }		
 
-		m_pThousandStar->m_pEffect->GetMainEffect()->SetDirSpeed( 0.f );
+		        pThousandStarMeshInstance->SetDirSpeed( 0.f );
 
 
-		PlaySound( L"Raven_NasodCore_Trans_Attack.ogg" );
+		        // PlaySound( L"Raven_NasodCore_Trans_Attack.ogg" );
+#ifndef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+				// 해당 구문으로 인해 기동 게이지가 차지 않고 반응하지 않던 문제 수정
+				return;
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+            }
+        }
 	}
-	else if( pDamageData.m_fHpPercentUp <= 0.f )
+	if( pDamageData.m_fHpPercentUp <= 0.f )
 	{
 		if( CX2DamageManager::AT_UNIT == pDamageData.defenderType )
 		{
@@ -24679,6 +26966,31 @@ void CX2GUEve::AttackResultByType( CX2DamageManager::DamageData &pDamageData )
 			}
 		}
 	}
+
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	// 각성 상태에서 AT Special Type 의 공격 이라면 기동 게이지를 증가 시킨다.
+	if ( pDamageData.attackType != CX2DamageManager::AT_SPECIAL && GetRemainHyperModeTime() > 0.f )
+	{
+		// 기동 게이지 관련 처리
+		if( IsMyUnit() == true )
+			m_fManeuverGauge += ( max( pDamageData.damage.fPhysic, pDamageData.damage.fMagic ) * pDamageData.m_fRateModifier * 4.f );
+
+		if( m_fManeuverGauge > 100.f )
+			m_fManeuverGauge = 100.f;
+	}
+	
+	// 기동 코어가 발사될 조건
+	if ( true == ( pDamageData.m_eDamageTrigger == CX2DamageManager::DTT_EVE_MANEUVER_ATTACK &&			// 데미지 데이터의 데미지 트리거가 이브 기동 코어 공격이고
+		NULL != m_pManeuverCore && IsWaitManeuverCore() == true )										// 기동 코어가 대기 중일 때		
+		)	
+	{
+		SetAttackManeuverCore ( pDamageData );			
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+		m_wstrManeuverCoreTargetBoneName = GetBoneNameNearestImpactPoint ( pDamageData.impactPoint );
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	}
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 }
 
 void CX2GUEve::ENSI_COMBO_X_Start()
@@ -24704,7 +27016,11 @@ void CX2GUEve::ENSI_EPR_COMBO_ZZZfrontZ_Start()
 	CommonStateStart();
 	m_fPlaneZAngle	= 0.f;
 	m_bNotEnoughMPZZZfrontZLaser = false;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraLaserZZZfrontZ = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectElectraLaserZZZfrontZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	m_EveElectraSystem.m_fLaserEndOffsetX = 0.f;
 	m_EveElectraSystem.m_fLaserEndOffsetY = 0.f;
@@ -24713,17 +27029,29 @@ void CX2GUEve::ENSI_EPR_COMBO_ZZZfrontZ_Start()
 void CX2GUEve::ENSI_EPR_COMBO_ZZZfrontZ_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( 0.f, 2.0f, 240.f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3666f ) == true && EventCheck( 0.3666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.m_fPlaneZAngle = m_fPlaneZAngle;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vDamageEffectPos = GetPos();
@@ -24741,7 +27069,11 @@ void CX2GUEve::ENSI_EPR_COMBO_ZZZfrontZ_FrameMove()
 		vDamageEffectPos += (130.f * vZeroYDirVector);
 
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_COMBO_ZZZFZ_LASER", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectElectraLaserZZZfrontZ = pEffect->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_EffectElectraLaserZZZfrontZ = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef SERV_EVE_BATTLE_SERAPH
 		m_EveElectraSystem.AddLaserToSystem( pEffect, L"Bip01_L_Finger2Nub", vDamageEffectPos,
@@ -24763,15 +27095,19 @@ void CX2GUEve::ENSI_EPR_COMBO_ZZZfrontZ_FrameMove()
 		}
 	}
 
-	if( m_EffectElectraLaserZZZfrontZ != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraLaserZZZfrontZ ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectElectraLaserZZZfrontZ = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectElectraLaserZZZfrontZ ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if ( CX2DamageEffect::CEffect* pEffectElectraLaserZZZfrontZ = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraLaserZZZfrontZ ) ? m_EffectElectraLaserZZZfrontZ : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		if( m_pXSkinAnim->GetNowAnimationTime() >= 0.4f && m_pXSkinAnim->GetNowAnimationTime() < 1.0f )
 		{
-			if ( NULL != m_EffectElectraLaserZZZfrontZ->GetMainEffect() )
+			if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectElectraLaserZZZfrontZ->GetMainEffect() )
 			{
-				D3DXVECTOR3 vRotateLocalDegree = m_EffectElectraLaserZZZfrontZ->GetMainEffect()->GetRotateLocalDegree();
+				D3DXVECTOR3 vRotateLocalDegree = pMeshInstance->GetRotateLocalDegree();
 				vRotateLocalDegree.z += (78.3f * m_fElapsedTime);
-				m_EffectElectraLaserZZZfrontZ->GetMainEffect()->SetRotateLocalDegree(vRotateLocalDegree);
+				pMeshInstance->SetRotateLocalDegree(vRotateLocalDegree);
 			}
 
 			m_EveElectraSystem.m_fLaserEndOffsetY = 15.f;
@@ -24821,7 +27157,11 @@ void CX2GUEve::ENSI_EPR_COMBO_ZZZfrontZ_EventProcess()
 void CX2GUEve::ENSI_EPR_COMBO_ZZZfrontZ_End()
 {
 	m_EveElectraSystem.DeleteLaserFromSystem();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraLaserZZZfrontZ = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectElectraLaserZZZfrontZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	m_EveElectraSystem.m_fLaserEndOffsetX = 0.f;
 	m_EveElectraSystem.m_fLaserEndOffsetY = 0.f;
@@ -24834,7 +27174,11 @@ void CX2GUEve::ENSI_EPR_COMBO_XXZ_Start()
 	m_bXXZLaserEnd = false;
 	m_bNotEnoughMPXXZLaser = false;
 	m_fPlaneZAngle	= 0.f;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraLaserXXZ = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectElectraLaserXXZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	SetNoDetonation(true);
 
 	m_EveElectraSystem.m_fLaserEndOffsetX = 0.f;
@@ -24843,17 +27187,29 @@ void CX2GUEve::ENSI_EPR_COMBO_XXZ_Start()
 
 void CX2GUEve::ENSI_EPR_COMBO_XXZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( m_fPlaneZAngle, 2.4f, 220.f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.m_fPlaneZAngle = m_fPlaneZAngle;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.23333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.23333f ) == true && EventCheck( 0.23333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vDamageEffectPos = GetPos();
@@ -24871,7 +27227,11 @@ void CX2GUEve::ENSI_EPR_COMBO_XXZ_FrameMove()
 		vDamageEffectPos += (130.f * vZeroYDirVector);
 
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_COMBO_XXZ_LASER", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectElectraLaserXXZ = pEffect->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_EffectElectraLaserXXZ = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef SERV_EVE_BATTLE_SERAPH
 		m_EveElectraSystem.AddLaserToSystem( pEffect, L"Bip01_L_Finger2", vDamageEffectPos, vZeroYDirVector, 5000.f, 0.108f, 0.5f,
@@ -24882,12 +27242,15 @@ void CX2GUEve::ENSI_EPR_COMBO_XXZ_FrameMove()
 #endif
 	}
 
-	if( m_EffectElectraLaserXXZ != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraLaserXXZ ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectElectraLaserXXZ = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectElectraLaserXXZ ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if ( CX2DamageEffect::CEffect* pEffectElectraLaserXXZ = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraLaserXXZ ) ? m_EffectElectraLaserXXZ : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		if( m_pXSkinAnim->GetNowAnimationTime() >= 0.83333f && m_pXSkinAnim->GetNowAnimationTime() < 1.93333f )
 		{
-			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstanceLaserXXZ = m_EffectElectraLaserXXZ->GetMainEffect();
-			if ( NULL != pMeshInstanceLaserXXZ  )
+			if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstanceLaserXXZ = pEffectElectraLaserXXZ->GetMainEffect() )
 			{
 				D3DXVECTOR3 vRotateLocalDegree = pMeshInstanceLaserXXZ->GetRotateLocalDegree();
 				vRotateLocalDegree.z += (41.904f * m_fElapsedTime);
@@ -24901,7 +27264,11 @@ void CX2GUEve::ENSI_EPR_COMBO_XXZ_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.76666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.76666f ) == true && EventCheck( 1.76666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bXXZLaserEnd = true;
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_COMBO_XXZ_END", this );
@@ -24965,7 +27332,11 @@ void CX2GUEve::ENSI_EPR_COMBO_XXZ_End()
 	m_EveElectraSystem.DeleteLaserFromSystem();
 	if( m_bXXZLaserEnd == false )
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_COMBO_XXZ_END", this );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraLaserXXZ = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectElectraLaserXXZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	SetNoDetonation(false);
 
 	m_EveElectraSystem.m_fLaserEndOffsetX = 0.f;
@@ -24996,10 +27367,14 @@ void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZ_Start()
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"EvePurityDashComboZBladeLoopEnd", vBonePos, GetRotateDegree(), GetRotateDegree() );
 	if( NULL != pMeshInst )
 	{
-		m_hEffectElectraDashComboZ = pMeshInst->GetHandle();
+		m_hElectraDashComboZMesh = pMeshInst->GetHandle();
 	}
 #ifdef EVE_ELECTRA
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraDashComboZZ = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectElectraDashComboZZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif EVE_ELECTRA
 }
 
@@ -25025,22 +27400,36 @@ void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZ_EventProcess()
 
 void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy1_Rhand" );
-
-		m_EffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_ZZ", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_EffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            this, L"EVE_PR_DASH_COMBO_ZZ", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
 
 	}
 
-	if( m_EffectElectraDashComboZZ != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraDashComboZZ ) == true && 
-		m_EffectElectraDashComboZZ->GetMainEffect() != NULL )
-	{
-		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy1_Rhand" );
-		m_EffectElectraDashComboZZ->GetMainEffect()->SetPos( vBonePos );
-	}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if( CX2DamageEffect::CEffect* pEffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectElectraDashComboZZ ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( CX2DamageEffect::CEffect* pEffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraDashComboZZ ) ? m_EffectElectraDashComboZZ : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    {
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectElectraDashComboZZ->GetMainEffect() )
+	    {
+		    D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy1_Rhand" );
+		    pMeshInstance->SetPos( vBonePos );
+	    }
+    }
 
-	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hEffectElectraDashComboZ );
+	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hElectraDashComboZMesh );
 	if( NULL != pMeshInst )
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -25053,8 +27442,14 @@ void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZ_FrameMove()
 
 void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZ_End()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffectElectraDashComboZZ != INVALID_DAMAGE_EFFECT_HANDLE )
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectElectraDashComboZZ );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	g_pX2Game->GetDamageEffect()->DestroyInstance( m_EffectElectraDashComboZZ );
-	g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hEffectElectraDashComboZ );
+    m_EffectElectraDashComboZZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hElectraDashComboZMesh );
 	CommonStateEnd();
 }
 
@@ -25077,10 +27472,20 @@ void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZZ_Start()
 	m_bNotEnoughMPDashZZZ = false;
 
 	D3DXVECTOR3 vBonePosL = GetBonePos( L"Dummy2_Lhand" );
-	m_EffectElectraDashComboZ = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_ZZZ_L", GetPowerRate(), vBonePosL, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraDashComboZ = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_EffectElectraDashComboZ = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        this, L"EVE_PR_DASH_COMBO_ZZZ_L", GetPowerRate(), vBonePosL, GetRotateDegree(), GetRotateDegree() );
 
 	D3DXVECTOR3 vBonePosR = GetBonePos( L"Dummy1_Rhand" );
-	m_EffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_ZZZ_R", GetPowerRate(), vBonePosR, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_EffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        this, L"EVE_PR_DASH_COMBO_ZZZ_R", GetPowerRate(), vBonePosR, GetRotateDegree(), GetRotateDegree() );
 
 	m_fBlinkInvisibilityAlpha	= 1.f;
 	m_bBlinkInvisibility		= true;
@@ -25113,21 +27518,37 @@ void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZZ_EventProcess()
 
 void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZZ_FrameMove()
 {
-	if( m_EffectElectraDashComboZ != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraDashComboZ ) == true && 
-		m_EffectElectraDashComboZ->GetMainEffect() != NULL )
-	{
-		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
-		m_EffectElectraDashComboZ->GetMainEffect()->SetPos( vBonePos );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectElectraDashComboZ = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectElectraDashComboZ ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if ( CX2DamageEffect::CEffect* pEffectElectraDashComboZ = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraDashComboZ ) ? m_EffectElectraDashComboZ : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    {
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectElectraDashComboZ->GetMainEffect() )
+	    {
+		    D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
+		    pMeshInstance->SetPos( vBonePos );
+        }
 	}
 
-	if( m_EffectElectraDashComboZZ != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraDashComboZZ ) == true && 
-		m_EffectElectraDashComboZZ->GetMainEffect() != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectElectraDashComboZZ ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if ( CX2DamageEffect::CEffect* pEffectElectraDashComboZZ = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraDashComboZZ ) ? m_EffectElectraDashComboZZ : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
-		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy1_Rhand" );
-		m_EffectElectraDashComboZZ->GetMainEffect()->SetPos( vBonePos );
+		if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectElectraDashComboZZ->GetMainEffect() )
+        {
+		    D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy1_Rhand" );
+		    pMeshInstance->SetPos( vBonePos );
+        }
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.43333f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.43333f ) == true && EventCheck( 0.43333f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_bNotEnoughMPDashZZZ == false )
 	{
 		if( FlushMp( 10.f ) == false )
@@ -25139,31 +27560,46 @@ void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZZ_FrameMove()
 			D3DXVECTOR3 vDamageEffectPos = GetBonePos( L"Dummy2_Lhand" );
 			vDamageEffectPos.y += 0.f;
 			CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_ZZZ_EXPLOSION", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
-			pEffect->GetMainEffect()->SetGlobalTime( 0.2f);
+            if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+			    pMeshInstance->SetGlobalTime( 0.2f);
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.46666f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.46666f ) == true && EventCheck( 0.46666f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_bNotEnoughMPDashZZZ == false )
 	{
 		D3DXVECTOR3 vDamageEffectPos = GetBonePos( L"Dummy1_Rhand" );
 		vDamageEffectPos.y += 20.f;
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_ZZZ_EXPLOSION", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
-		pEffect->GetMainEffect()->SetGlobalTime( 0.16666f);
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+		    pMeshInstance->SetGlobalTime( 0.16666f);
 
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_bNotEnoughMPDashZZZ == false )
 	{
 		D3DXVECTOR3 vDamageEffectPos = GetBonePos( L"Dummy2_Lhand" );
 		vDamageEffectPos.y += -40.f;
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_ZZZ_EXPLOSION", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
-		pEffect->GetMainEffect()->SetGlobalTime( 0.13333f);
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+		    pMeshInstance->SetGlobalTime( 0.13333f);
 
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53333f ) == true && EventCheck( 0.53333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_bNotEnoughMPDashZZZ == true )
 		{
@@ -25177,29 +27613,44 @@ void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZZ_FrameMove()
 			D3DXVECTOR3 vDamageEffectPos = GetBonePos( L"Dummy1_Rhand" );
 			vDamageEffectPos.y += 10.f;
 			CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_ZZZ_EXPLOSION", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
-			pEffect->GetMainEffect()->SetGlobalTime( 0.1f);
+            if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+			    pMeshInstance->SetGlobalTime( 0.1f);
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.56666f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.56666f ) == true && EventCheck( 0.56666f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_bNotEnoughMPDashZZZ == false )
 	{
 		D3DXVECTOR3 vDamageEffectPos = GetBonePos( L"Dummy2_Lhand" );
 		vDamageEffectPos.y += -20.f;
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_ZZZ_EXPLOSION", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
-		pEffect->GetMainEffect()->SetGlobalTime( 0.06666f);
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+		    pMeshInstance->SetGlobalTime( 0.06666f);
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_bNotEnoughMPDashZZZ == false )
 	{
 		D3DXVECTOR3 vDamageEffectPos = GetBonePos( L"Dummy1_Rhand" );
 		vDamageEffectPos.y += 40.f;
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PR_DASH_COMBO_ZZZ_EXPLOSION", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
-		pEffect->GetMainEffect()->SetGlobalTime( 0.03333f);
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect() )
+		    pMeshInstance->SetGlobalTime( 0.03333f);
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6333f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6333f ) == true && EventCheck( 0.63333f, false ) == true &&
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_bNotEnoughMPDashZZZ == false )
 	{
 		D3DXVECTOR3 vDamageEffectPos = GetBonePos( L"Dummy2_Lhand" );
@@ -25233,8 +27684,17 @@ void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZZ_EndFuture()
 
 void CX2GUEve::ENSI_EPR_DASH_COMBO_ZZZ_End()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffectElectraDashComboZ != INVALID_DAMAGE_EFFECT_HANDLE )
+	    g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectElectraDashComboZ );
+    if ( m_hEffectElectraDashComboZZ != INVALID_DAMAGE_EFFECT_HANDLE )
+    	g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectElectraDashComboZZ );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	g_pX2Game->GetDamageEffect()->DestroyInstance( m_EffectElectraDashComboZ );
 	g_pX2Game->GetDamageEffect()->DestroyInstance( m_EffectElectraDashComboZZ );
+    m_EffectElectraDashComboZ = NULL;
+    m_EffectElectraDashComboZZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CommonStateEnd();
 
 	m_bBlinkInvisibility			= false;
@@ -25275,10 +27735,10 @@ void CX2GUEve::ENSI_A_EVE_PHOTON_BLINK_Start()
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EN_PHOTON_BLINK ) );	/// 스킬 레벨
 
@@ -25305,11 +27765,19 @@ void CX2GUEve::ENSI_A_EVE_PHOTON_BLINK_StartFuture()
 
 void CX2GUEve::ENSI_A_EVE_PHOTON_BLINK_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.1f ) == true && EventCheck( 0.1f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = -m_fPhotonBlinkBackSpeedX;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.4f ) == true && EventCheck( 0.4f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = -300.f;
 	}
@@ -25319,13 +27787,17 @@ void CX2GUEve::ENSI_A_EVE_PHOTON_BLINK_FrameMoveFuture()
 void CX2GUEve::ENSI_A_EVE_PHOTON_BLINK_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_PHOTON_BLINK_DUMMY", GetPowerRate(), 
 			GetPos(), GetRotateDegree(), GetRotateDegree() );
-		if( pEffect != NULL && pEffect->GetMainEffect() != NULL )
+		if( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
 		{
-			pEffect->GetMainEffect()->SetMaxLifeTime( m_fPhotonBlinkDummyLifeTime );
+			pMeshInstance->SetMaxLifeTime( m_fPhotonBlinkDummyLifeTime );
 		}
 	}
 
@@ -25400,7 +27872,11 @@ void CX2GUEve::ENSI_A_EPR_SPECTRO_EL_CRYSTAL_Start()
 
 void CX2GUEve::ENSI_A_EPR_SPECTRO_EL_CRYSTAL_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_EveElectraSystem.GetEnableSystem() == true )
 		{
@@ -25442,7 +27918,11 @@ void CX2GUEve::ENSI_SA_EPR_PARTICLE_RAY_StartFuture()
 }
 void CX2GUEve::ENSI_SA_EPR_PARTICLE_RAY_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.01f ) == true && EventCheck( 0.01f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = 0.f;
 	}
@@ -25484,17 +27964,29 @@ void CX2GUEve::ENSI_SA_EPR_PARTICLE_RAY_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( m_fPlaneZAngle, 2.4f, 160.f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.m_fPlaneZAngle = m_fPlaneZAngle;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.43333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.43333f ) == true && EventCheck( 0.43333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vDamageEffectPos = GetPos();
@@ -25635,7 +28127,11 @@ void CX2GUEve::ENSI_SA_EPR_PHOTON_FLARE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.99f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.99f ) == true && EventCheck( 0.99f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const float fBasicEffectRange = 600.f;
 		float fEffectRange = 0.f;
@@ -25644,10 +28140,10 @@ void CX2GUEve::ENSI_SA_EPR_PHOTON_FLARE_FrameMove()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_EEL_PHOTON_FLARE ) );	/// 스킬 레벨
 
@@ -25690,7 +28186,7 @@ void CX2GUEve::ENSI_SA_EPR_PHOTON_FLARE_FrameMove()
 
 		float fEffectScale = fEffectRange / fBasicEffectRange;
 		pEffectDamage->SetScale( D3DXVECTOR3( fEffectScale, fEffectScale, fEffectScale ));
-		pEffectDamage->GetDamageData()->m_ExtraDamage.m_fTime = fEffectiveTime;
+		pEffectDamage->GetDamageData().m_ExtraDamage.m_fTime = fEffectiveTime;
 	}
 
 	CommonFrameMove();
@@ -25719,7 +28215,7 @@ void CX2GUEve::ENSI_SA_EPR_PHOTON_FLARE_StateEnd()
 {
 	m_bDisableGravity = false;
 	CommonStateEnd();
-}
+} 
 
 
 void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_READY_Init()
@@ -25746,7 +28242,11 @@ void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_READY_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( 0.f, 7.0f, 340.f, 130.f, L"EveProtoPuritySweepParadePlane" );
 	}
@@ -25788,17 +28288,24 @@ void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_Start()
 	else
 		vDamageEffectPos -= (150.f * GetDirVector() );
 
+    CX2DamageEffect::CEffect* pEffectSweepParadeTriangle;
 #ifdef ADDITIONAL_MEMO
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO15 ) == true )
-		m_EffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_SWEEP_PARADE_TRIANGLE_MEMO", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+		pEffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_SWEEP_PARADE_TRIANGLE_MEMO", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 	else
-		m_EffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_SWEEP_PARADE_TRIANGLE", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+		pEffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_SWEEP_PARADE_TRIANGLE", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 #else
-	m_EffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_SWEEP_PARADE_TRIANGLE", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+	pEffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_SWEEP_PARADE_TRIANGLE", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 #endif
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectSweepParadeTriangle = pEffectSweepParadeTriangle->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_EffectSweepParadeTriangle = pEffectSweepParadeTriangle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-	m_EveElectraSystem.AddEffectToSystem( m_EffectSweepParadeTriangle );
-	m_EffectSweepParadeTriangle->GetMainEffect()->SetVelocity( D3DXVECTOR3( 0.f, 0.f, 0.f ) );
+	m_EveElectraSystem.AddEffectToSystem( pEffectSweepParadeTriangle );
+    if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectSweepParadeTriangle->GetMainEffect() )
+	    pMeshInstance->SetVelocity( D3DXVECTOR3( 0.f, 0.f, 0.f ) );
 
 #ifdef VERIFY_STAT_BY_BUFF
 	m_vInitScaleByUnitSweepParade	= GetVec3ScaleByUnit();
@@ -25812,31 +28319,57 @@ void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_Start()
 #endif
 
 	m_fSweepParadeTriangleLIfeTime	= m_FrameDataNow.unitCondition.fStateTime;
-	m_fInitDamageSweepParade		= m_EffectSweepParadeTriangle->GetDamageData()->damage.fMagic;
+	m_fInitDamageSweepParade		= pEffectSweepParadeTriangle->GetDamageData().damage.fMagic;
 
-	m_EffectSweepParadeElectric		= g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_SWEEP_PARADE_ELECTRIC", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
-	m_EffectSweepParadeLight		= g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_SWEEP_PARADE_LIGHT", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectSweepParadeElectric		= g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_EffectSweepParadeElectric		= g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        this, L"EVE_SWEEP_PARADE_ELECTRIC", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectSweepParadeLight		= g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_EffectSweepParadeLight		= g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        this, L"EVE_SWEEP_PARADE_LIGHT", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 
 	m_FrameDataNow.stateParam.bSuperArmorNotRed = false;
 }
 
 void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_FrameMove()
 {	
-	if( m_EffectSweepParadeTriangle != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeTriangle ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectSweepParadeTriangle ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeTriangle ) ? m_EffectSweepParadeTriangle : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		float fScaleEffect = (1.f + m_FrameDataNow.unitCondition.fStateTime * 0.16667f) * m_vInitScaleByUnitSweepParade.x;
-		m_EffectSweepParadeTriangle->SetScaleByUnit( D3DXVECTOR3( fScaleEffect, fScaleEffect, fScaleEffect ) );
+		pEffectSweepParadeTriangle->SetScaleByUnit( D3DXVECTOR3( fScaleEffect, fScaleEffect, fScaleEffect ) );
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 수치 변경 : 0.06667f -> 0.075
+		float fScaleDamage = (1.f + m_FrameDataNow.unitCondition.fStateTime * 0.075f);
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		float fScaleDamage = (1.f + m_FrameDataNow.unitCondition.fStateTime * 0.06667f);
-		m_EffectSweepParadeTriangle->GetDamageData()->damage.fMagic = m_fInitDamageSweepParade * fScaleDamage;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		pEffectSweepParadeTriangle->GetDamageData().damage.fMagic = m_fInitDamageSweepParade * fScaleDamage;
 
 		m_fSweepParadeTriangleLIfeTime = m_FrameDataNow.unitCondition.fStateTime; 
 
 		float fScaleEffectElectric	= (1.f + m_FrameDataNow.unitCondition.fStateTime * 0.15f) * m_vInitScaleByUnitSweepParade.x;
 		float fScaleEffectLight		= (1.f + m_FrameDataNow.unitCondition.fStateTime * 0.1f) * m_vInitScaleByUnitSweepParade.x;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pEffectSweepParadeElectric = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectSweepParadeElectric ) )
+            pEffectSweepParadeElectric->SetScaleByUnit( D3DXVECTOR3( fScaleEffectElectric, fScaleEffectElectric, fScaleEffectElectric ) );
+        if ( CX2DamageEffect::CEffect* pEffectSweepParadeLight = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectSweepParadeLight ) )
+            pEffectSweepParadeLight->SetScaleByUnit( D3DXVECTOR3( fScaleEffectLight, fScaleEffectLight, fScaleEffectLight ) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_EffectSweepParadeElectric->SetScaleByUnit( D3DXVECTOR3( fScaleEffectElectric, fScaleEffectElectric, fScaleEffectElectric ) );
 		m_EffectSweepParadeLight->SetScaleByUnit( D3DXVECTOR3( fScaleEffectLight, fScaleEffectLight, fScaleEffectLight ) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
 		D3DXVECTOR3 vDamageEffectPos = GetBonePos( L"Bip01_R_Hand" );
@@ -25845,7 +28378,7 @@ void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_FrameMove()
 			vDamageEffectPos += (150.f * GetDirVector() );
 		else
 			vDamageEffectPos -= (150.f * GetDirVector() );
-		m_EffectSweepParadeTriangle->SetPos( vDamageEffectPos );
+		pEffectSweepParadeTriangle->SetPos( vDamageEffectPos );
 	}
 	CommonFrameMove();
 }
@@ -25895,14 +28428,19 @@ void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_EventProcess()
 
 void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_End()
 {
-	if( m_EffectSweepParadeLight != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeLight ) == true )
-	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffectSweepParadeLight != INVALID_DAMAGE_EFFECT_HANDLE )
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectSweepParadeLight );
+    if ( m_hEffectSweepParadeElectric != INVALID_DAMAGE_EFFECT_HANDLE )
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectSweepParadeElectric );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( m_EffectSweepParadeLight != NULL )
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_EffectSweepParadeLight );
-	}
-	if( m_EffectSweepParadeElectric != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeElectric ) == true )
-	{
+	if( m_EffectSweepParadeElectric != NULL )
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_EffectSweepParadeElectric );
-	}
+    m_EffectSweepParadeLight = NULL;
+    m_EffectSweepParadeElectric = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CommonStateEnd();
 	m_FrameDataNow.stateParam.bSuperArmorNotRed = true;
 }
@@ -25910,39 +28448,46 @@ void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_CHARGE_End()
 //////// FIRE ///////////
 void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_FIRE_Start()
 {
-	if( m_EffectSweepParadeTriangle != NULL && 
-		m_EffectSweepParadeTriangle->GetMainEffect() != NULL &&
-		m_EffectSweepParadeTriangle->GetDamageData() != NULL &&
-		g_pX2Game != NULL && g_pX2Game->GetDamageEffect() != NULL &&
-		g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeTriangle ) == true )
-	{
-#ifdef ADDITIONAL_MEMO
-		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO15 ) == true )
-		{
-			m_EffectSweepParadeTriangle->GetMainEffect()->SetMaxLifeTime( 5.6f );
-		}
-		else
-		{
-			m_EffectSweepParadeTriangle->GetMainEffect()->SetMaxLifeTime( 5.1f );
-		}
-#else		
-		m_EffectSweepParadeTriangle->GetMainEffect()->SetMaxLifeTime( 5.1f );
-#endif
-		m_EffectSweepParadeTriangle->GetMainEffect()->SetVelocity( D3DXVECTOR3( 400.f, 0.f, 0.f ) );
-		m_EffectSweepParadeTriangle->GetMainEffect()->SetNowLifeTime( m_fSweepParadeTriangleLIfeTime );
-		m_EffectSweepParadeTriangle->GetDamageData()->reActType = CX2DamageManager::RT_BIG_DAMAGE;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectSweepParadeTriangle ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeTriangle ) ? m_EffectSweepParadeTriangle : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    {
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectSweepParadeTriangle->GetMainEffect() )
+	    {
+    #ifdef ADDITIONAL_MEMO
+		    if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO15 ) == true )
+		    {
+			    pMeshInstance->SetMaxLifeTime( 5.6f );
+		    }
+		    else
+		    {
+			    pMeshInstance->SetMaxLifeTime( 5.1f );
+		    }
+    #else		
+		    pMeshInstance->SetMaxLifeTime( 5.1f );
+    #endif
+		    pMeshInstance->SetVelocity( D3DXVECTOR3( 400.f, 0.f, 0.f ) );
+		    pMeshInstance->SetNowLifeTime( m_fSweepParadeTriangleLIfeTime );
+		    pEffectSweepParadeTriangle->GetDamageData().reActType = CX2DamageManager::RT_BIG_DAMAGE;
 
-#ifndef SERV_EVE_BATTLE_SERAPH
-		m_EffectSweepParadeTriangle->GetDamageData()->backSpeed.y	= 525.f;
-		m_EffectSweepParadeTriangle->GetDamageData()->bArrangedFly	= true;
-#endif
-	}
+    #ifndef SERV_EVE_BATTLE_SERAPH
+		    pEffectSweepParadeTriangle->GetDamageData().backSpeed.y	= 525.f;
+		    pEffectSweepParadeTriangle->GetDamageData().bArrangedFly	= true;
+    #endif
+	    }
+    }
 	CommonStateStart();
 }
 
 void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_FIRE_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.m_fPlaneZAngle = m_fPlaneZAngle;
 	}
@@ -25975,33 +28520,36 @@ void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_FIRE_End()
 void CX2GUEve::ENSI_SA_EPR_SWEEP_ROLLING_END_Start()
 {
 	CommonStateStart();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectSweepParadeTriangle ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pEffectSweepParadeTriangle = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pEffectSweepParadeTriangle ) ? m_pEffectSweepParadeTriangle : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #ifdef SWEEP_ROLLING_END_NULL_CHECK
-	if(NULL != g_pX2Game && NULL != g_pX2Game->GetDamageEffect())
 	{
-		if( m_EffectSweepParadeTriangle != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeTriangle ) == true )
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectSweepParadeTriangle->GetMainEffect() )
 		{
-			if(NULL != m_EffectSweepParadeTriangle->GetMainEffect() && NULL != m_EffectSweepParadeTriangle->GetDamageData())
-			{
-				m_EffectSweepParadeTriangle->GetMainEffect()->SetMaxLifeTime( 5.1f );
-				m_EffectSweepParadeTriangle->GetMainEffect()->SetNowLifeTime( 5.0f );
-				m_EffectSweepParadeTriangle->GetDamageData()->reActType = CX2DamageManager::RT_FLY;
-				m_EffectSweepParadeTriangle->GetDamageData()->backSpeed.x = 1500.f;
-				m_EffectSweepParadeTriangle->GetDamageData()->backSpeed.y = 1500.f;
-				m_EffectSweepParadeTriangle->GetDamageData()->hitUnitList.clear();
-				m_EffectSweepParadeTriangle->GetDamageData()->bReAttack = false;
-			}
-		}	
+			pMeshInstance->SetMaxLifeTime( 5.1f );
+			pMeshInstance->SetNowLifeTime( 5.0f );
+			pEffectSweepParadeTriangle->GetDamageData().reActType = CX2DamageManager::RT_FLY;
+			pEffectSweepParadeTriangle->GetDamageData().backSpeed.x = 1500.f;
+			pEffectSweepParadeTriangle->GetDamageData().backSpeed.y = 1500.f;
+			pEffectSweepParadeTriangle->GetDamageData().hitUnitList.clear();
+			pEffectSweepParadeTriangle->GetDamageData().bReAttack = false;
+		}
 	}	
 #else
-	if( m_EffectSweepParadeTriangle != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectSweepParadeTriangle ) == true )
 	{
-		m_EffectSweepParadeTriangle->GetMainEffect()->SetMaxLifeTime( 5.1f );
-		m_EffectSweepParadeTriangle->GetMainEffect()->SetNowLifeTime( 5.0f );
-		m_EffectSweepParadeTriangle->GetDamageData()->reActType = CX2DamageManager::RT_FLY;
-		m_EffectSweepParadeTriangle->GetDamageData()->backSpeed.x = 1500.f;
-		m_EffectSweepParadeTriangle->GetDamageData()->backSpeed.y = 1500.f;
-		m_EffectSweepParadeTriangle->GetDamageData()->hitUnitList.clear();
-		m_EffectSweepParadeTriangle->GetDamageData()->bReAttack = false;
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectSweepParadeTriangle->GetMainEffect() )
+		{
+		    pMeshInstance->SetMaxLifeTime( 5.1f );
+		    pMeshInstance->SetNowLifeTime( 5.0f );
+        }
+		pEffectSweepParadeTriangle->GetDamageData().reActType = CX2DamageManager::RT_FLY;
+		pEffectSweepParadeTriangle->GetDamageData().backSpeed.x = 1500.f;
+		pEffectSweepParadeTriangle->GetDamageData().backSpeed.y = 1500.f;
+		pEffectSweepParadeTriangle->GetDamageData().hitUnitList.clear();
+		pEffectSweepParadeTriangle->GetDamageData().bReAttack = false;
 	}
 #endif //SWEEP_ROLLING_END_NULL_CHECK
 }
@@ -26041,7 +28589,11 @@ void CX2GUEve::ENSI_SA_EPR_THOUSANDS_OF_STARS_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateThousandStar();
 		m_fThousandStarPowerRate = GetPowerRate();
@@ -26051,7 +28603,11 @@ void CX2GUEve::ENSI_SA_EPR_THOUSANDS_OF_STARS_FrameMove()
 			g_pX2Game->UpdateSkillSlotUI();
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.93333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.93333f ) == true && EventCheck( 1.93333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		ChangeThousandsOfStarsFormation();
 	}
@@ -26124,7 +28680,11 @@ void CX2GUEve::ENSI_SA_EPR_GIGA_STREAM_EventProcess()
 
 void CX2GUEve::ENSI_SA_EPR_GIGA_STREAM_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.01f ) == true && EventCheck( 0.01f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = 0.f;
 	}
@@ -26137,17 +28697,29 @@ void CX2GUEve::ENSI_SA_EPR_GIGA_STREAM_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( 0.f, 3.0f, 110.f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.m_fPlaneZAngle = m_fPlaneZAngle;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_fPlaneZAngle > 0 && m_EveElectraSystem.GetEnablePlane() == true )
 			m_EveElectraSystem.CreateGigaPlane( m_fPlaneZAngle, 2.5f, 110.f + 120.f, 130.f + 69.24f );
@@ -26160,7 +28732,11 @@ void CX2GUEve::ENSI_SA_EPR_GIGA_STREAM_FrameMove()
 		//m_EveElectraSystem.CreateGigaPlane( m_fPlaneZAngle, 3.0f, 110.f + 116.3f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vDamageEffectPos = GetPos();
@@ -26238,17 +28814,22 @@ void CX2GUEve::DeleteMinorParticle()
 {
 	CX2GUUser::HyperModeBuffEffectStart();
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRFoot )
 		m_hHyperBoostRFoot = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightEve",		0, 0, 0, 0, 0);
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLFoot )
 		m_hHyperBoostLFoot = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftEve",		0, 0, 0, 0, 0);
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRArm )
 		m_hHyperBoostRArm = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightEve",		0, 0, 0, 0, 0);
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLArm )
 		m_hHyperBoostLArm = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftEve",		0, 0, 0, 0, 0);
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	// 각성 시 기동 게이지 값 세팅
+	m_fManeuverGauge = min( m_fManeuverGauge + 40.0f, 100.0f );	
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 }
 
 /** @function : GetAdditionalAccelBuffTime
@@ -26262,9 +28843,9 @@ void CX2GUEve::DeleteMinorParticle()
 
 	/// 엑조틱, 격려의 기운
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA, true );
+	const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA );
+	const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if ( iSkillLevel > 0 )
@@ -26304,10 +28885,10 @@ void CX2GUEve::DeleteMinorParticle()
 		if ( false == pSkillTemplet_->m_vecBuffFactorPtr.empty() )
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet_->m_eID ) );	/// 스킬 레벨
 
 			CX2BuffFactorPtr ptrBuffFactorClone = pSkillTemplet_->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel );		
@@ -26323,10 +28904,10 @@ void CX2GUEve::DeleteMinorParticle()
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet_->m_eID ) );	/// 스킬 레벨
 
@@ -26346,7 +28927,7 @@ void CX2GUEve::DeleteMinorParticle()
 				{
 					CX2GameUnit* pGameUnit = g_pX2Game->GetUnit( i );
 					if( pGameUnit != NULL && 
-						pGameUnit->GetTeam() == GetTeam() &&
+						pGameUnit->GetTeam() == GetTeam() && pGameUnit->GetGameUnitType() == GUT_USER && 
 						GetDistance3Sq( vMyPos_, pGameUnit->GetPos() ) < 490000.f &&
 						pGameUnit->CanApplyBuffToGameUnit() )	/// 거리 제한, 같은 팀
 					{
@@ -26376,9 +28957,9 @@ void CX2GUEve::DeleteMinorParticle()
 CX2BuffFactorPtr CX2GUEve::GetEnergyOfConcentrationBuffFactorClonePtr() const
 {
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevelEnergyOfConcentration = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ENS_ENERGY_OF_CONCENTRATION, true );
+	const int iSkillLevelEnergyOfConcentration = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ENS_ENERGY_OF_CONCENTRATION, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevelEnergyOfConcentration = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ENS_ENERGY_OF_CONCENTRATION );
+	const int iSkillLevelEnergyOfConcentration = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ENS_ENERGY_OF_CONCENTRATION );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevelEnergyOfConcentration > 0 )
@@ -26423,9 +29004,9 @@ CX2BuffFactorPtr CX2GUEve::GetEnergyOfConcentrationBuffFactorClonePtr() const
 	case CX2SkillTree::SI_SA_COMMON_AURA_SPEED_ACCEL:
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA, true );
+			const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA, true );
 	#else // UPGRADE_SKILL_SYSTEM_2013
-			const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA );
+			const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 			
 			if ( iSkillLevel > 0 )
@@ -26460,6 +29041,39 @@ CX2BuffFactorPtr CX2GUEve::GetEnergyOfConcentrationBuffFactorClonePtr() const
 			}
 		} break;
 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+		/// 엠프레스 궁극기 - 링크 오버차지 썬더볼트 피니쉬 타격에는 엠피가 소모되지 않음.
+	case CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION: 
+		{
+			if( true == GetActiveLinkOverChargeIllusion() )
+				fMpConsumption = 0.f;
+		} break;
+#endif //FINALITY_SKILL_SYSTEM
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	case CX2SkillTree::SI_SA_EEG_JUNK_BREAK:
+		{
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO18 ) == true )
+				fMpConsumption -= 30.f;
+		} break;
+
+	case CX2SkillTree::SI_SA_EAT_GENOCIDE_RIPPER:
+		{
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO19 ) == true )
+				fMpConsumption *= 0.9f;
+		} break;
+
+	case CX2SkillTree::SI_SA_EEL_PHOTON_FLARE:
+		{
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO23 ) == true )
+				fMpConsumption -= 20.f;
+		} break;
+
+	case CX2SkillTree::SI_SA_EEL_GIGA_STREAM:
+		{
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO25 ) == true )
+				fMpConsumption *= 0.9f;
+		} break;
+#endif //ADD_MEMO_1ST_CLASS
 	default:
 		break;
 	}
@@ -26467,7 +29081,16 @@ CX2BuffFactorPtr CX2GUEve::GetEnergyOfConcentrationBuffFactorClonePtr() const
 	if ( 0.0f > fMpConsumption )
 		fMpConsumption = 0.f;
 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT	
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( eSkillID_ );
+	float fMpDecreaseRate = 1.0f;
+	if( NULL != pSkillTemplet )
+		fMpDecreaseRate  =  g_pData->GetMyUser()->GetSelectUnit()->GetSkillMpDecreaseRate(eSkillID_, pSkillTemplet->m_eType);
+
+	return fMpConsumption * fMpDecreaseRate;
+#else SERV_BALANCE_FINALITY_SKILL_EVENT
 	return fMpConsumption;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
 }
 
 /** @function : AddUnitSlashData
@@ -26513,19 +29136,18 @@ CX2BuffFactorPtr CX2GUEve::GetEnergyOfConcentrationBuffFactorClonePtr() const
 {
 	if ( GetUnitClass() == CX2Unit::UC_EVE_CODE_NEMESIS && false == DidHitNasodWeapon() )
 	{
-		if ( NULL != GetUnit() &&
-			NULL != GetUnit()->GetUnitData() )
+		if ( NULL != GetUnit() )
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet =
-				GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_ENS_NASOD_WEAPON );
+				GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_ENS_NASOD_WEAPON );
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 			if ( NULL != pSkillTemplet )
 			{
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID, true ) );	/// 스킬 레벨
 
@@ -26563,11 +29185,10 @@ CX2BuffFactorPtr CX2GUEve::GetEnergyOfConcentrationBuffFactorClonePtr() const
 {
 	if ( GetUnitClass() == CX2Unit::UC_EVE_CODE_NEMESIS && false == DidHitNasodWeapon() )
 	{
-		if ( NULL != GetUnit() &&
-			NULL != GetUnit()->GetUnitData() )
+		if ( NULL != GetUnit() )
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet =
-				GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_ENS_NASOD_WEAPON );
+				GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_ENS_NASOD_WEAPON );
 
 			if ( NULL != pSkillTemplet &&
 				pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_RATE ) > GetRandomFloat() )
@@ -26618,10 +29239,10 @@ CX2BuffFactorPtr CX2GUEve::GetEnergyOfConcentrationBuffFactorClonePtr() const
 			if ( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -26817,9 +29438,9 @@ void CX2GUEve::ChangePlaneForamtionSystem( const PlaneFormationType ePlaneFormat
 
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_A_EEL_SPECTRO_EL_CRYSTAL);
 
-		if( NULL != pSkillTemplet && NULL != GetUnit() && NULL != GetUnit()->GetUnitData() )
+		if( NULL != pSkillTemplet && NULL != GetUnit() )
 		{
-			CX2UserSkillTree& cUserSkillTree =  GetUnit()->GetUnitData()->m_UserSkillTree;
+			CX2UserSkillTree& cUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
 
 			float fAdditionalTime = 0.f;	/// 분광결정 종료시 계산할 추가 쿨타임
 
@@ -26859,16 +29480,16 @@ void CX2GUEve::StartElCrystalSystem()
 	SetStartSpectroElCrystal( true );		/// 분광결정이 스킬을 눌러 시작 되었는지, 버프로 시작 되었는지에 대한 여부
 #endif FIX_SPECTRO_EL_CRYSTAL_ACTIVE_BUG
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_A_EEL_SPECTRO_EL_CRYSTAL);
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+
 	if( NULL != pSkillTemplet )
 	{
+	    const CX2UserSkillTree& cUserSkillTree =  GetUnit()->GetUnitData().m_UserSkillTree;
+
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
-	
-		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+		const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	#endif // UPGRADE_SKILL_UI
 
 		/// 분광결정을 사용 중이고, 분광장을 사용 할 수 있으면
@@ -27018,10 +29639,10 @@ void CX2GUEve::StartElCrystalSystem()
 void CX2GUEve::EndElCrystalSystem( bool bEnergeticHeartEnd_/* = false */ ) 
 {
 	/// 분광결정이 끝나면 사우전드스타의 파티클을 원래대로 되돌림
-	if( m_pThousandStar != NULL && m_pThousandStar->m_pEffect != NULL && true == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pThousandStar->m_pEffect ) )
+	if( CX2DamageEffect::CEffect* pTSEffect = ( m_pThousandStar != NULL ) ? m_pThousandStar->GetLiveDamageEffect() : NULL )
 	{
 		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_EveElectraSystem.m_hParticleThousandStarFormation );
-		m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01", m_pThousandStar->m_pEffect->GetPos() );
+		m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01", pTSEffect->GetPos() );
 	}
 
 	m_EveElectraSystem.DestroyFormationMarkAndMsgParticle();
@@ -27035,7 +29656,6 @@ void CX2GUEve::EndElCrystalSystem( bool bEnergeticHeartEnd_/* = false */ )
 		/// 분광결정은 지속시간이 끝난 후 부터 쿨타임 표시가 되는데,
 		/// 분광결정이 끝났을 때, 쿨타임-지속시간 만큼 표시 해줌(ex: 쿨타임 30초, 지속시간 25초 면 분광결정이 끝나고 쿨타임 5초로 셋팅)
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_A_EEL_SPECTRO_EL_CRYSTAL);
-		CX2UserSkillTree& cUserSkillTree =  GetUnit()->GetUnitData()->m_UserSkillTree;
 		if( NULL != pSkillTemplet )
 		{
 #ifdef SERV_EVE_BATTLE_SERAPH
@@ -27045,13 +29665,18 @@ void CX2GUEve::EndElCrystalSystem( bool bEnergeticHeartEnd_/* = false */ )
 			if( bEnergeticHeartEnd_ == false )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
+
+		        CX2UserSkillTree& cUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
 
 				const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 				float fRemainCoolTime = pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - m_EveElectraSystem.GetSystemOperationTime(); 
 	#else // UPGRADE_SKILL_SYSTEM_2013
+
+		        CX2UserSkillTree& cUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
+
 				float fRemainCoolTime = pSkillTemplet->m_fSkillCoolTime - m_EveElectraSystem.GetSystemOperationTime(); 
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 				
@@ -27071,10 +29696,6 @@ void CX2GUEve::EndElCrystalSystem( bool bEnergeticHeartEnd_/* = false */ )
 	SetStartSpectroElCrystal( false );		/// 분광결정이 스킬을 눌러 시작 되었는지, 버프로 시작 되었는지에 대한 여부
 #endif FIX_SPECTRO_EL_CRYSTAL_ACTIVE_BUG
 
-#ifdef FIX_EVE_ELCRYSTAL_BUG
-	m_bIsCheckEndElCrystal = true;
-#endif // FIX_EVE_ELCRYSTAL_BUG
-
 }
 
 /** @function : ChangeThousandsOfStarsFormation
@@ -27082,32 +29703,32 @@ void CX2GUEve::EndElCrystalSystem( bool bEnergeticHeartEnd_/* = false */ )
 */
 void CX2GUEve::ChangeThousandsOfStarsFormation()
 {
-	if( m_pThousandStar != NULL && m_pThousandStar->m_pEffect != NULL && true == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pThousandStar->m_pEffect ) )
+    if ( CX2DamageEffect::CEffect* pTSEffect = ( m_pThousandStar != NULL ) ? m_pThousandStar->GetLiveDamageEffect() : NULL )
 	{
 		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_EveElectraSystem.m_hParticleThousandStarFormation );
 
 		if( GetEnableElectraSystem() == false )
 		{
-			m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01", m_pThousandStar->m_pEffect->GetPos() );
+			m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01", pTSEffect->GetPos() );
 		}
 		else if( m_EveElectraSystem.GetPlaneFormation() == PFT_AMPLIFIER )
 		{
-			m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_2_red", m_pThousandStar->m_pEffect->GetPos() );
+			m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_2_red", pTSEffect->GetPos() );
 		}
 		else if( m_EveElectraSystem.GetPlaneFormation() == PFT_SPECTRUM )
 		{
-			m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_3_blue", m_pThousandStar->m_pEffect->GetPos() );
+			m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_3_blue",pTSEffect->GetPos() );
 		}
 #ifdef SERV_EVE_BATTLE_SERAPH
 		else if( m_EveElectraSystem.GetPlaneFormation() == PFT_INDUCTION )
 		{
 			m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( 
-				(CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_4_green", m_pThousandStar->m_pEffect->GetPos() );
+				(CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_4_green", pTSEffect->GetPos() );
 		}
 		else if( m_EveElectraSystem.GetPlaneFormation() == PFT_FUSION )
 		{
 			m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( 
-				(CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_5_white", m_pThousandStar->m_pEffect->GetPos() );
+				(CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_5_white", pTSEffect->GetPos() );
 		}
 #endif
 	}
@@ -27148,7 +29769,7 @@ bool CX2GUEve::IsUpSkillSlotTaserPilum()
 			break;
 
 		default: // 시전시에 데이터 저장이 제대로 이루어 지지 않았을 경우.
-			m_sTaserPilumData.Reset( false, GetFutureFrameData() );
+			m_sTaserPilumData.Reset( false, &AccessFutureFrameData() );
 			break;;
 		}
 	}
@@ -27170,7 +29791,7 @@ const CX2UserSkillTree::SkillSlotData* CX2GUEve::GetSkillSlotDataTaserPilum( IN 
 	if( CX2SkillTree::SI_NONE == pSkillSlotData->m_eID ||
 		CX2SkillTree::SI_A_EBS_TASER_PILUM != pSkillSlotData->m_eID)
 	{
-		m_sTaserPilumData.Reset( false, GetFutureFrameData() );
+		m_sTaserPilumData.Reset( false, &AccessFutureFrameData() );
 		return NULL;
 	}
 
@@ -27184,12 +29805,12 @@ const CX2UserSkillTree::SkillSlotData* CX2GUEve::GetSkillSlotDataTaserPilum( IN 
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	if( NULL == pSkillTemplet )
 	{
-		m_sTaserPilumData.Reset( false, GetFutureFrameData() );
+		m_sTaserPilumData.Reset( false, &AccessFutureFrameData() );
 		return NULL;
 	}
 
 	// 테이저 필라 정상 사용 완료
-	m_sTaserPilumData.Reset( false, GetFutureFrameData() );
+	m_sTaserPilumData.Reset( false, &AccessFutureFrameData() );
 	iSkillSlotIndexPressed_ = m_sTaserPilumData.GetSkillSlotID();
 
 	return pSkillSlotData;
@@ -27216,16 +29837,16 @@ void CX2GUEve::TASER_PILUM_Data::ResetParticle()
 {
 	for( int i = 0; i < ARRAY_SIZE( m_ahMajorParticleInstance ); ++i )
 	{
-		if( m_ahMajorParticleInstance[i] != INVALID_PARTICLE_HANDLE )
+		if( m_ahMajorParticleInstance[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_ahMajorParticleInstance[i] );
-		m_ahMajorParticleInstance[i] = INVALID_PARTICLE_HANDLE;
+		m_ahMajorParticleInstance[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
 void CX2GUEve::ResetTaserPilumCharge()
 {
 	if( m_sTaserPilumData.m_bEnable == true )
-		m_sTaserPilumData.Reset( false, GetFutureFrameData() );
+		m_sTaserPilumData.Reset( false, &AccessFutureFrameData() );
 }
 
 void CX2GUEve::ENSI_A_EBS_TASER_PILUM_Init()
@@ -27282,12 +29903,20 @@ void CX2GUEve::ENSI_A_EBS_TASER_PILUM_FrameMoveFuture()
 
 void CX2GUEve::ENSI_A_EBS_TASER_PILUM_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.406f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.406f ) == true && EventCheck( 0.406f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( m_fPlaneZAngle, 2.0f, 240.f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.416f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.416f ) == true && EventCheck( 0.416f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// MP 소모
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_EBS_TASER_PILUM );
@@ -27323,10 +29952,10 @@ void CX2GUEve::ENSI_A_EBS_TASER_PILUM_FrameMove()
 			}
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -27400,7 +30029,7 @@ void CX2GUEve::ENSI_A_EBS_TASER_PILUM_FrameMove()
 				GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f );
 
 			pEffect->SetDamageTime( pEffect->GetDamageTime() + iCount );
-			pEffect->GetDamageData()->bReAttack = false;
+			pEffect->GetDamageData().bReAttack = false;
 
 			if( pEffect != NULL )
 				pEffect->SetInheritForceDownRate(true);
@@ -27443,7 +30072,11 @@ void CX2GUEve::ENSI_A_EBS_TASER_PILUM_EventProcess()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -27477,7 +30110,7 @@ void CX2GUEve::ENSI_EBS_BOOST_DASH_START_StartFuture()
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInstPlane = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( 
 			(CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ), GetRotateDegree(), GetRotateDegree() );
-		m_hBoostDashMesh = pMeshInstPlane->GetHandle();
+		//m_hBoostDashMesh = pMeshInstPlane->GetHandle();
 	}
 }
 
@@ -27527,15 +30160,24 @@ void CX2GUEve::ENSI_EBS_BOOST_DASH_START_EventProcess()
 	{
 		StateChange( ENSI_DASH_COMBO_X );
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_InputData.oneUp == true && m_iDashJumpUpCount  < 1   )
 	{
 		StateChange( USI_DASH_JUMP );
 		m_PhysicParam.nowSpeed.y = m_PhysicParam.GetDashJumpSpeed();
 	}
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( GetHyperModeStateID() )
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( USI_HYPER_MODE )
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	
 	else if( m_InputData.pureRight == false && m_InputData.pureLeft == false )
 	{
 		StateChange( USI_DASH_END );
@@ -27666,15 +30308,23 @@ void CX2GUEve::ENSI_EBS_BOOST_DASH_EventProcess()
 	{
 		StateChange( ENSI_DASH_COMBO_X );
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_InputData.oneUp == true && m_iDashJumpUpCount  < 1   )
 	{
 		StateChange( USI_DASH_JUMP );
 		m_PhysicParam.nowSpeed.y = m_PhysicParam.GetDashJumpSpeed();
 	}
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( GetHyperModeStateID() )
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 	ELSE_IF_CAN_HYPER_MODE_THEN_STATE_CHANGE( USI_HYPER_MODE )
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
 	else if( m_InputData.pureRight == false && m_InputData.pureLeft == false )
 	{
 		StateChange( USI_DASH_END );
@@ -27709,8 +30359,7 @@ void CX2GUEve::ENSI_EBS_BOOST_DASH_EventProcess()
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstPlane = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( 
 				(CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ), GetRotateDegree(), GetRotateDegree() );
-			m_hBoostDashMesh = pMeshInstPlane->GetHandle();
-
+			//m_hBoostDashMesh = pMeshInstPlane->GetHandle();
 			PlaySound( L"Eve_BoostDash4.ogg" );
 		}
 	}
@@ -27722,8 +30371,7 @@ void CX2GUEve::ENSI_EBS_BOOST_DASH_EventProcess()
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstPlane = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( 
 				(CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ), GetRotateDegree(), GetRotateDegree() );
-			m_hBoostDashMesh = pMeshInstPlane->GetHandle();
-
+			//m_hBoostDashMesh = pMeshInstPlane->GetHandle();
 			PlaySound( L"Eve_BoostDash4.ogg" );
 		}
 	}
@@ -27735,8 +30383,7 @@ void CX2GUEve::ENSI_EBS_BOOST_DASH_EventProcess()
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstPlane = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( 
 				(CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ), GetRotateDegree(), GetRotateDegree() );
-			m_hBoostDashMesh = pMeshInstPlane->GetHandle();
-
+			//m_hBoostDashMesh = pMeshInstPlane->GetHandle();
 			PlaySound( L"Eve_BoostDash4.ogg" );
 		}
 	}
@@ -27919,7 +30566,7 @@ void CX2GUEve::ENSI_EBS_BOOST_DASH_AIR_START_EndFuture()
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInstPlane = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( 
 			(CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ), GetRotateDegree(), GetRotateDegree() );
-		m_hBoostDashMesh = pMeshInstPlane->GetHandle();
+		//m_hBoostDashMesh = pMeshInstPlane->GetHandle();
 	}
 
 	m_bDisableGravity = false;
@@ -28125,7 +30772,11 @@ void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_XZ_Start()
 	m_fExceptioncPlaneZAngle = -45.f;
 	m_bNotEnoughMPDashJumpXZLaser = false;
 	m_fPlaneZAngle = 0.f;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraLaserDashJumpXZ = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectElectraLaserDashJumpXZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	m_EveElectraSystem.m_fLaserEndOffsetX = 0.f;
 	m_EveElectraSystem.m_fLaserEndOffsetY = 0.f;
@@ -28138,17 +30789,29 @@ void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_XZ_Start()
 
 void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_XZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( m_fPlaneZAngle + m_fExceptioncPlaneZAngle, 1.8f, 150.f, -50.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.333f ) == true && EventCheck( 0.333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.m_fPlaneZAngle = m_fPlaneZAngle + m_fExceptioncPlaneZAngle;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.533f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.533f ) == true && EventCheck( 0.533f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDamageEffectPos = GetPos();
 		vDamageEffectPos.y += 130.f;
@@ -28165,37 +30828,45 @@ void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_XZ_FrameMove()
 
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_DASHJUMP_COMBO_XZ_LASER", 
 			GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectElectraLaserDashJumpXZ = pEffect->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_EffectElectraLaserDashJumpXZ = pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-		if ( NULL != m_EffectElectraLaserDashJumpXZ->GetMainEffect() )
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffect->GetMainEffect())
 		{
-			D3DXVECTOR3 vRotateLocalDegree = m_EffectElectraLaserDashJumpXZ->GetMainEffect()->GetRotateLocalDegree();
+			D3DXVECTOR3 vRotateLocalDegree = pMeshInstance->GetRotateLocalDegree();
 
 			vRotateLocalDegree.z += m_fExceptioncPlaneZAngle;
 
-			m_EffectElectraLaserDashJumpXZ->GetMainEffect()->SetRotateLocalDegree( vRotateLocalDegree );
+			pMeshInstance->SetRotateLocalDegree( vRotateLocalDegree );
 
 			m_EveElectraSystem.AddLaserToSystem( pEffect, L"Bip01_L_Finger2Nub", vDamageEffectPos, vZeroYDirVector, 6000.f, 0.108f, 0.5f,
 				L"EVE_DASHJUMP_COMBO_XZ_LASER_NEXT", L"EVE_DASHJUMP_COMBO_XZ_LASER_NEXT", L"EVE_DASHJUMP_COMBO_XZ_LASER_NEXT", true, 2.f );
 		}
 	}
 
-	if( m_EffectElectraLaserDashJumpXZ != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraLaserDashJumpXZ ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if( CX2DamageEffect::CEffect* pEffectElectraLaserDashJumpXZ = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectElectraLaserDashJumpXZ ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if( CX2DamageEffect::CEffect* pEffectElectraLaserDashJumpXZ = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_EffectElectraLaserDashJumpXZ ) ? m_EffectElectraLaserDashJumpXZ : NULL)
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
-		if ( NULL != m_EffectElectraLaserDashJumpXZ->GetMainEffect() )
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectElectraLaserDashJumpXZ->GetMainEffect() )
 		{
 			if( m_pXSkinAnim->GetNowAnimationTime() >= 0.733f && m_pXSkinAnim->GetNowAnimationTime() < 1.233f )
 			{
-				D3DXVECTOR3 vRotateLocalDegree = m_EffectElectraLaserDashJumpXZ->GetMainEffect()->GetRotateLocalDegree();
+				D3DXVECTOR3 vRotateLocalDegree = pMeshInstance->GetRotateLocalDegree();
 				vRotateLocalDegree.z += ( 70.904f * m_fElapsedTime );
-				m_EffectElectraLaserDashJumpXZ->GetMainEffect()->SetRotateLocalDegree( vRotateLocalDegree );
+				pMeshInstance->SetRotateLocalDegree( vRotateLocalDegree );
 				m_EveElectraSystem.m_fLaserEndOffsetY = 2.f;
 			}
 			else if ( m_pXSkinAnim->GetNowAnimationTime() >= 1.233f && m_pXSkinAnim->GetNowAnimationTime() < 1.733f )
 			{
-				D3DXVECTOR3 vRotateLocalDegree = m_EffectElectraLaserDashJumpXZ->GetMainEffect()->GetRotateLocalDegree();
+				D3DXVECTOR3 vRotateLocalDegree = pMeshInstance->GetRotateLocalDegree();
 				vRotateLocalDegree.z += ( 0.904f * m_fElapsedTime );
-				m_EffectElectraLaserDashJumpXZ->GetMainEffect()->SetRotateLocalDegree( vRotateLocalDegree );
+				pMeshInstance->SetRotateLocalDegree( vRotateLocalDegree );
 			}
 			else
 			{
@@ -28203,7 +30874,11 @@ void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_XZ_FrameMove()
 			}
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.833f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.833f ) == true && EventCheck( 1.866f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDashJumpXXLaserEnd = true;
 		m_bExceptionPlane = false;
@@ -28211,7 +30886,11 @@ void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_XZ_FrameMove()
 		m_fExceptioncPlaneZAngle = 0.f;
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_EVE_COMBO_XXZ_END", this );
 		m_EveElectraSystem.DeleteLaserFromSystem();
-		m_EffectElectraLaserDashJumpXZ = NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectElectraLaserDashJumpXZ = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	    m_EffectElectraLaserDashJumpXZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
 	if( m_pXSkinAnim->GetNowAnimationTime() > 0.600f && m_pXSkinAnim->GetNowAnimationTime() < 1.866f )
@@ -28283,7 +30962,11 @@ void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_XZ_End()
 {
 	m_EveElectraSystem.DeleteLaserFromSystem();
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectElectraLaserDashJumpXZ = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_EffectElectraLaserDashJumpXZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	m_EveElectraSystem.m_fLaserEndOffsetX = 0.f;
 	m_EveElectraSystem.m_fLaserEndOffsetY = 0.f;
@@ -28309,7 +30992,8 @@ void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_ZFrontX_Start()
 	m_bNotEnoughMPDashZX = false;
 	++m_iBoostAttackCount;
 
-	g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ),
+    CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+	pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ),
 		GetRotateDegree(), GetRotateDegree() );
 
 	g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Seraph_Boost_Dash_Attack", this );
@@ -28386,13 +31070,12 @@ void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_ZUpX_Start()
 	D3DXVECTOR3 vRot = GetRotateDegree();
 	vRot.z += 45.f;
 
-	g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ),
+    CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+	pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ),
 		vRot, vRot );
 
 	CX2EffectSet::Handle hEffect = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Seraph_Boost_Dash_Attack", this );
-	CX2EffectSet::EffectSetInstance* pEffect = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffect );
-
-	if ( NULL != pEffect )
+	if ( CX2EffectSet::EffectSetInstance* pEffect = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffect ) )
 	{
 		if ( true != GetIsRight() )
 			vRot.z += 90.f;
@@ -28472,13 +31155,11 @@ void CX2GUEve::ENSI_EBS_DASH_JUMP_COMBO_ZDownX_Start()
 	D3DXVECTOR3 vRot = GetRotateDegree();
 	vRot.z -= 45.f;
 
-	g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ),
+    CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+	pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"P_EBS_BoostDash_M01", GetBonePos( L"Bip01_Head" ),
 		vRot, vRot );
-
 	CX2EffectSet::Handle hEffect = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Seraph_Boost_Dash_Attack", this );
-	CX2EffectSet::EffectSetInstance* pEffect = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffect );
-
-	if ( NULL != pEffect )
+	if ( CX2EffectSet::EffectSetInstance* pEffect = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffect ) )
 	{
 		if ( true != GetIsRight() )
 			vRot.z -= 90.f;
@@ -28615,7 +31296,11 @@ void CX2GUEve::ENSI_EBS_ENERGY_NEEDLES_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.766f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.766f ) == true && EventCheck( 1.766f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EBS_ENERGY_NEEDLES );
 
@@ -28624,10 +31309,10 @@ void CX2GUEve::ENSI_EBS_ENERGY_NEEDLES_FrameMove()
 			m_EnergyNiddleData.m_bEnable = true;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -28742,15 +31427,13 @@ void CX2GUEve::ENSI_EBS_ENERGETIC_HEART_Start()
 	CommonStateStart();
 
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EBS_ENERGETIC_HEART );
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
-
 	if ( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );
 
 		CX2BuffFactorPtr ptrBuffFactorClone = pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel );
@@ -28767,14 +31450,14 @@ void CX2GUEve::ENSI_EBS_ENERGETIC_HEART_Start()
 #else //UPGRADE_SKILL_SYSTEM_2013
 		SetBuffFactorToGameUnit( pSkillTemplet, 0 );
 #endif //UPGRADE_SKILL_SYSTEM_2013
-		if( m_pThousandStar != NULL && m_pThousandStar->m_pEffect != NULL && true == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pThousandStar->m_pEffect ) )
+        if( CX2DamageEffect::CEffect* pTSEffect = ( m_pThousandStar != NULL ) ? m_pThousandStar->GetLiveDamageEffect() : NULL )
 		{
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_EveElectraSystem.m_hParticleThousandStarFormation );
 
 			if( m_EveElectraSystem.GetPlaneFormation() == PFT_FUSION )
 			{
 				m_EveElectraSystem.m_hParticleThousandStarFormation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle(
-					(CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_5_white", m_pThousandStar->m_pEffect->GetPos() );
+					(CKTDGObject*) this,  L"eve_thousandsOfStars_model_P01_5_white", pTSEffect->GetPos() );
 			}
 		}
 	}
@@ -28818,7 +31501,6 @@ void CX2GUEve::EveElectraSystem::SetExceptionSystemTime( float _fVal )
 void CX2GUEve::SPECTRO_EL_CRYSTAL_Start()
 {
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_A_EEL_SPECTRO_EL_CRYSTAL);
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
 	if( NULL != pSkillTemplet )
 	{
 #ifdef SERV_EVE_BATTLE_SERAPH
@@ -28845,10 +31527,10 @@ void CX2GUEve::SPECTRO_EL_CRYSTAL_Start()
 #ifdef ADDITIONAL_MEMO
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -28940,7 +31622,11 @@ void CX2GUEve::ENSI_A_EN_Illusion_Ray_StartFuture()
 
 void CX2GUEve::ENSI_A_EN_Illusion_Ray_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.01f ) == true && EventCheck( 0.01f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = 0.f;
 	}
@@ -28978,17 +31664,29 @@ void CX2GUEve::ENSI_A_EN_Illusion_Ray_EventProcess()
 
 void CX2GUEve::ENSI_A_EN_Illusion_Ray_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( m_fPlaneZAngle, 1.f, 185.f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.m_fPlaneZAngle = m_fPlaneZAngle;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.43333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.43333f ) == true && EventCheck( 0.43333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vDamageEffectPos = GetPos();
@@ -29048,20 +31746,20 @@ void CX2GUEve::ENSI_A_EN_Tesla_Shock_StateStart()
 
 		if ( NULL != pDamageEffect )
 		{
-			CX2DamageManager::DamageData* pDamageData = pDamageEffect->GetDamageData();
+			CX2DamageManager::DamageData* pDamageData = &pDamageEffect->GetDamageData();
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
-			if ( NULL != pDamageData )
+			//if ( NULL != pDamageData )
 				pDamageData->fForceDownValue = -pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_FORCE_DOWN_ABS, iSkillTempletLevel );
 	#else // UPGRADE_SKILL_UI
-			if ( NULL != pDamageData )
+			//if ( NULL != pDamageData )
 				pDamageData->fForceDownValue = -pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_FORCE_DOWN_ABS );
 	#endif // UPGRADE_SKILL_UI
 		}
@@ -29105,13 +31803,22 @@ void CX2GUEve::ENSI_SA_EEG_Hornet_Sting_Shaped_Charge_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.02f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this, L"Mesh_Eve_EG_SP1a_HornetSting_Cannon", vBonePos,
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this, L"Mesh_Eve_EG_SP1a_HornetSting_Cannon", vBonePos,
 			GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.47f ) == true && EventCheck( 0.47f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Finger1" );
 
@@ -29119,8 +31826,19 @@ void CX2GUEve::ENSI_SA_EEG_Hornet_Sting_Shaped_Charge_FrameMove()
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this, L"Expl_EG_SP1a_HornetSting_01", vBonePos );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this, L"Explosion_Eve_EG_Sp1a_HS02", vBonePos );
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		CX2DamageEffect::CEffect* pEffect =
+#endif //ADD_MEMO_1ST_CLASS
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Hornet_Sting_Shaped_Charge", GetPowerRate(), vBonePos,
 			GetRotateDegree(), GetRotateDegree() );
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( true == GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO16 ) && NULL != pEffect )
+		{
+			pEffect->SetDamageTime( pEffect->GetDamageTime() + 2 );
+		}
+#endif //ADD_MEMO_1ST_CLASS
+
 	}
 
 	CommonFrameMove();
@@ -29168,7 +31886,12 @@ void CX2GUEve::ENSI_SA_ENS_Atomic_Blaster_SonicGun_FrameMove()
 	D3DXVECTOR3 vUnitPos	= GetPos();
 	D3DXVECTOR3 vBonePos	= GetBonePos( L"Bip01_Pelvis" );
 
-	if ( m_pXSkinAnim->EventTimer( m_fEffectStartTime ) == true && EventCheck( m_fEffectStartTime, false ) == true && m_fEffectStartTime <= 1.357f  )
+	if ( m_fEffectStartTime <= 1.357f
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    && m_pXSkinAnim->EventTimerOneshot( m_fEffectStartTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        && m_pXSkinAnim->EventTimer( m_fEffectStartTime ) == true && EventCheck( m_fEffectStartTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"EVE_NS_ATOMIC_BLASTER_SONICGUN_DUMMY", GetPowerRate(), vBonePos,
 			m_vSonicGunRotate, m_vSonicGunRotate );
@@ -29228,7 +31951,11 @@ void CX2GUEve::ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Ready_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( 0.f, 7.0f, 140.f, 130.f, L"EveProtoPuritySweepParadePlane" );
 	}
@@ -29271,9 +31998,21 @@ void CX2GUEve::ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Fire_FrameMove()
 	else
 		vDamageEffectPos -= ( 50.f * GetDirVector() );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Triangle_Vulcan_Bullet", GetPowerRate(),
+		CX2DamageEffect::CEffect* pEffect = NULL;
+		
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO22 ) == true )
+			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Triangle_Vulcan_Bullet_MEMO", GetPowerRate(),
+				vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+		else
+#endif //ADD_MEMO_1ST_CLASS
+		pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Triangle_Vulcan_Bullet", GetPowerRate(),
 			vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 
 		if( NULL != pEffect )
@@ -29287,6 +32026,12 @@ void CX2GUEve::ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Fire_FrameMove()
 		{
 			if ( GetNowMp() < 10.f )
 			{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+				if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+				{
+					return;
+				}
+#endif ALWAYS_SCREEN_SHOT_TEST
 				g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 				StateChange( ENSI_SA_EEN_SWEEP_ROLLING_TRI_VULCAN_END );
 				return;
@@ -29297,7 +32042,15 @@ void CX2GUEve::ENSI_SA_EEL_Sweep_Rolling_Tri_Vulcan_Fire_FrameMove()
 			}
 		}
 
-		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Triangle_Vulcan_Bullet", GetPowerRate(),
+		CX2DamageEffect::CEffect* pEffect = NULL;
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO22 ) == true )
+			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Triangle_Vulcan_Bullet_MEMO", GetPowerRate(),
+			vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+		else
+#endif //ADD_MEMO_1ST_CLASS
+		pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Triangle_Vulcan_Bullet", GetPowerRate(),
 			vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 		
 		if( NULL != pEffect )
@@ -29380,25 +32133,37 @@ void CX2GUEve::ENSI_SA_EAT_Heavens_Fist_Sweeper_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_Spine1", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//여왕의 지배력 파워수치를 이펙트 셋에 전달.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
 
 		if( g_pX2Game != NULL && g_pX2Game->GetEffectSet() != NULL )
 		{
-			CX2EffectSet::Handle hFist = CX2EffectSet::INVALID_HANDLE;
-			CX2EffectSet::Handle hFistEffect = CX2EffectSet::INVALID_HANDLE;
+			CX2EffectSet::Handle hFist = INVALID_EFFECTSET_HANDLE;
+			//CX2EffectSet::Handle hFistEffect = INVALID_EFFECTSET_HANDLE;
 			D3DXVECTOR3 vPos = GetPos();
 
 			if ( GetIsRight() )
 			{
 				vPos += GetDirVector() * 300.f;
 				D3DXVECTOR3 vScale = GetVec3ScaleByUnit();
-				hFistEffect = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_EAT_HEAVENS_FIST_SWEEPER_Nodamage",
+				//#ifdef ADD_MEMO_1ST_CLASS //김창한   - Effectset_SA_EAT_HEAVENS_FIST_SWEEPER_Nodamage 이펙트셋이 존재하지 않음. ??? 일단 주석 처리
+				/*hFistEffect = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_EAT_HEAVENS_FIST_SWEEPER_Nodamage",
+					(CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, GetVec3ScaleByUnit(), true,
+					vPos, GetRotateDegree(), GetDirVector() );*/
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO21 ) == true )
+					hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_EAT_HEAVENS_FIST_SWEEPER_Right_MEMO",
 					(CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, GetVec3ScaleByUnit(), true,
 					vPos, GetRotateDegree(), GetDirVector() );
-								
+				else
+#endif //ADD_MEMO_1ST_CLASS
 				hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_EAT_HEAVENS_FIST_SWEEPER_Right",
 					(CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, GetVec3ScaleByUnit(), true,
 					vPos, GetRotateDegree(), GetDirVector() );
@@ -29406,18 +32171,29 @@ void CX2GUEve::ENSI_SA_EAT_Heavens_Fist_Sweeper_FrameMove()
  			else
 			{
 				vPos -= GetDirVector() * 300.f;
-				
-				hFistEffect = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_EAT_HEAVENS_FIST_SWEEPER_Nodamage",
+				//#ifdef ADD_MEMO_1ST_CLASS //김창한   - Effectset_SA_EAT_HEAVENS_FIST_SWEEPER_Nodamage 이펙트셋이 존재하지 않음. ??? 일단 주석 처리
+				/*hFistEffect = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_EAT_HEAVENS_FIST_SWEEPER_Nodamage",
 					(CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, GetVec3ScaleByUnit(), true,
-					vPos, GetRotateDegree() + D3DXVECTOR3( 0, 0, 180 ), GetDirVector() );
+					vPos, GetRotateDegree() + D3DXVECTOR3( 0, 0, 180 ), GetDirVector() );*/
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO21 ) == true )
+					hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_EAT_HEAVENS_FIST_SWEEPER_MEMO",
+					(CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, GetVec3ScaleByUnit(), true,
+					vPos, GetRotateDegree() + D3DXVECTOR3( 0, 180, 0 ), GetDirVector() );
+				else
+#endif //ADD_MEMO_1ST_CLASS
 				hFist = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_EAT_HEAVENS_FIST_SWEEPER",
  					(CX2GameUnit*)this, NULL, false, GetPowerRate() * fStatAtkRateOfSummoned, -1.f, GetVec3ScaleByUnit(), true,
  					vPos, GetRotateDegree() + D3DXVECTOR3( 0, 180, 0 ), GetDirVector() );
 			}
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.241f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.241f ) == true && EventCheck( 1.241f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 80.f, 1.0f );
 	}
@@ -29485,7 +32261,11 @@ void CX2GUEve::ENSI_A_EEP_Spit_Fire_Grenade_Init()
 
 void CX2GUEve::ENSI_A_EEP_Spit_Fire_Grenade_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//여왕의 지배력 파워수치를 이펙트 셋에 전달.
 		float fStatAtkRateOfSummoned = GetStatAtkRateOfSummoned();
@@ -29554,7 +32334,7 @@ bool CX2GUEve::IsUpSkillSlotKugelBlitz()
 			break;
 
 		default: // 시전시에 데이터 저장이 제대로 이루어 지지 않았을 경우.
-			m_sKugelBlitz_Data.Reset( false, GetFutureFrameData() );
+			m_sKugelBlitz_Data.Reset( false, &AccessFutureFrameData() );
 			break;;
 		}
 	}
@@ -29575,7 +32355,7 @@ const CX2UserSkillTree::SkillSlotData* CX2GUEve::GetSkillSlotDataKugelBlitz( IN 
 
 	if( CX2SkillTree::SI_NONE == pSkillSlotData->m_eID || CX2SkillTree::SI_A_EBS_KUGELBLITZ != pSkillSlotData->m_eID)
 	{
-		m_sKugelBlitz_Data.Reset( false, GetFutureFrameData() );
+		m_sKugelBlitz_Data.Reset( false, &AccessFutureFrameData() );
 		return NULL;
 	}
 
@@ -29583,11 +32363,11 @@ const CX2UserSkillTree::SkillSlotData* CX2GUEve::GetSkillSlotDataKugelBlitz( IN 
 
 	if( NULL == pSkillTemplet )
 	{
-		m_sKugelBlitz_Data.Reset( false, GetFutureFrameData() );
+		m_sKugelBlitz_Data.Reset( false, &AccessFutureFrameData() );
 		return NULL;
 	}
 		
-	m_sKugelBlitz_Data.Reset( false, GetFutureFrameData() );
+	m_sKugelBlitz_Data.Reset( false, &AccessFutureFrameData() );
 	iSkillSlotIndexPressed_ = m_sKugelBlitz_Data.GetSkillSlotID();
 
 	return pSkillSlotData;
@@ -29613,16 +32393,16 @@ void CX2GUEve::SKugelBlitz_Data::ResetParticle()
 {
 	for( int i = 0; i < ARRAY_SIZE( m_ahMajorParticleInstance ); ++i )
 	{
-		if( m_ahMajorParticleInstance[i] != INVALID_PARTICLE_HANDLE )
+		if( m_ahMajorParticleInstance[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_ahMajorParticleInstance[i] );
-		m_ahMajorParticleInstance[i] = INVALID_PARTICLE_HANDLE;
+		m_ahMajorParticleInstance[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
 void CX2GUEve::ResetKugelBlitzCharge()
 {
 	if( m_sKugelBlitz_Data.m_bEnable == true )
-		m_sKugelBlitz_Data.Reset( false, GetFutureFrameData() );
+		m_sKugelBlitz_Data.Reset( false, &AccessFutureFrameData() );
 }
 
 void CX2GUEve::ENSI_A_EBS_Kugelblitz_StartFuture()
@@ -29665,12 +32445,20 @@ void CX2GUEve::ENSI_A_EBS_Kugelblitz_FrameMoveFuture()
 
 void CX2GUEve::ENSI_A_EBS_Kugelblitz_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.406f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.406f ) == true && EventCheck( 0.406f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( m_fPlaneZAngle, 2.0f, 240.f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.416f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.416f ) == true && EventCheck( 0.416f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// MP 소모
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_EBS_KUGELBLITZ );
@@ -29683,10 +32471,10 @@ void CX2GUEve::ENSI_A_EBS_Kugelblitz_FrameMove()
 
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -29761,7 +32549,7 @@ void CX2GUEve::ENSI_A_EBS_Kugelblitz_FrameMove()
 				GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f );
 
 			pEffect->SetDamageTime( pEffect->GetDamageTime() + iCount );
-			pEffect->GetDamageData()->bReAttack = true;
+			pEffect->GetDamageData().bReAttack = true;
 
 			if( pEffect != NULL )
 			{
@@ -29803,7 +32591,11 @@ void CX2GUEve::ENSI_A_EBS_Kugelblitz_EventProcess()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -29844,7 +32636,11 @@ void CX2GUEve::ENSI_SA_EEL_LINEAR_DIVIDER_StartFuture()
 
 void CX2GUEve::ENSI_SA_EEL_LINEAR_DIVIDER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.01f ) == true && EventCheck( 0.01f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = 0.f;
 	}
@@ -29858,17 +32654,29 @@ void CX2GUEve::ENSI_SA_EEL_LINEAR_DIVIDER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.CreatePlane( 0.f, 3.0f, 110.f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_EveElectraSystem.m_fPlaneZAngle = m_fPlaneZAngle;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_fPlaneZAngle > 0 && m_EveElectraSystem.GetEnablePlane() == true )
 			m_EveElectraSystem.CreateGigaPlane( m_fPlaneZAngle, 2.5f, 110.f + 120.f, 130.f + 69.24f );
@@ -29878,7 +32686,11 @@ void CX2GUEve::ENSI_SA_EEL_LINEAR_DIVIDER_FrameMove()
 			m_EveElectraSystem.CreateGigaPlane( m_fPlaneZAngle, 2.5f, 110.f + 139.56f, 130.f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDamageEffectPos = GetPos();
 		vDamageEffectPos.y += 130.f;
@@ -29901,7 +32713,13 @@ void CX2GUEve::ENSI_SA_EEL_LINEAR_DIVIDER_FrameMove()
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Linear_Divider_Hyper", GetPowerRate(),
 				vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 
-			m_EveElectraSystem.AddLaserToSystem( pEffect, L"Bip01_L_Hand", vDamageEffectPos, vZeroYDirVector, 7000.f, 0.3f, 0.7f, 
+			float fDistance = 7000.f;
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO24 ) == true )
+				fDistance *= 1.3f;
+#endif //ADD_MEMO_1ST_CLASS
+
+			m_EveElectraSystem.AddLaserToSystem( pEffect, L"Bip01_L_Hand", vDamageEffectPos, vZeroYDirVector, fDistance, 0.3f, 0.7f, 
 				L"DamageEffect_Linear_Divider_Hyper_Next", L"DamageEffect_Linear_Divider_Hyper_Next",
 				L"DamageEffect_Linear_Divider_Hyper_Next", false );
 
@@ -29909,7 +32727,7 @@ void CX2GUEve::ENSI_SA_EEL_LINEAR_DIVIDER_FrameMove()
 				vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 
 			vZeroYDirVector.y = -vZeroYDirVector.y;
-			m_EveElectraSystem.AddLaserToSystem( pEffect_Reverse, L"Bip01_L_Hand", vDamageEffectPos, vZeroYDirVector, 7000.f, 0.3f, 0.7f, 
+			m_EveElectraSystem.AddLaserToSystem( pEffect_Reverse, L"Bip01_L_Hand", vDamageEffectPos, vZeroYDirVector, fDistance, 0.3f, 0.7f, 
 				L"DamageEffect_Linear_Divider_Hyper_Next_Reverse", L"DamageEffect_Linear_Divider_Hyper_Next_Reverse",
 				L"DamageEffect_Linear_Divider_Hyper_Next_Reverse", false );
 		}
@@ -29918,14 +32736,20 @@ void CX2GUEve::ENSI_SA_EEL_LINEAR_DIVIDER_FrameMove()
 			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Linear_Divider", GetPowerRate(),
 				vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 
-			m_EveElectraSystem.AddLaserToSystem( pEffect, L"Bip01_L_Hand", vDamageEffectPos, vZeroYDirVector, 7000.f, 0.3f, 0.8f, 
+			float fDistance = 7000.f;
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_EVE_MEMO24 ) == true )
+				fDistance *= 1.3f;
+#endif //ADD_MEMO_1ST_CLASS
+
+			m_EveElectraSystem.AddLaserToSystem( pEffect, L"Bip01_L_Hand", vDamageEffectPos, vZeroYDirVector, fDistance, 0.3f, 0.8f, 
 				L"DamageEffect_Linear_Divider_Next", L"DamageEffect_Linear_Divider_Next",
 				L"DamageEffect_Linear_Divider_Next", false );
 
 			pEffect_Reverse = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_Linear_Divider_Reverse", GetPowerRate(),
 				vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 
-			m_EveElectraSystem.AddLaserToSystem( pEffect_Reverse, L"Bip01_L_Hand", vDamageEffectPos, vZeroYDirVector, 7000.f, 0.3f, 0.8f, 
+			m_EveElectraSystem.AddLaserToSystem( pEffect_Reverse, L"Bip01_L_Hand", vDamageEffectPos, vZeroYDirVector, fDistance, 0.3f, 0.8f, 
 				L"DamageEffect_Linear_Divider_Next_Reverse", L"DamageEffect_Linear_Divider_Next_Reverse",
 				L"DamageEffect_Linear_Divider_Next_Reverse", false );
 		}
@@ -29972,11 +32796,347 @@ void CX2GUEve::ENSI_SA_EEL_LINEAR_DIVIDER_End()
 
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+//엠프레스, 링크 오버차지 일루전 
+void CX2GUEve::ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_Init()
+{
+	XSkinMeshReadyInBackground(L"CHARGING BOOSTER.X");
+	TextureReadyInBackground(L"Eve_Sp1a_SumonCircle01.dds");
+	TextureReadyInBackground(L"Explosion_Sphere.dds");
+}
+void CX2GUEve::ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_Start()
+{
+	CommonStateStart();
+}
+void CX2GUEve::ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_FrameMove()
+{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION );
+		if( NULL != pSkillTemplet )
+		{
+			if ( NULL == GetUnit() )
+				return;
+
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+
+			m_fFerdinandLifeTime = static_cast<float>(pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME, iSkillTempletLevel ));
+			m_fFerdinandLifeTime = max( 0, m_fFerdinandLifeTime );
+
+			if( m_fFerdinandLifeTime > 0.f )
+			{		
+				SetActiveLinkOverChargeIllusion(true);
+				m_timerFerdinandSummoned.restart();
+
+				if( true == g_pX2Game->IsHost() )
+				{
+					D3DXVECTOR3 vPos = GetPos();
+					if( true == GetIsRight() )
+					{
+						vPos += GetDirVector() * 300.f;
+					}
+					else
+					{
+						vPos -= GetDirVector() * 300.f;
+					}
+					
+					int iHyperMode = GetHyperModeUsed()? 1 : 0;
+					g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_SI_HA_FERDINAND, iHyperMode, true, vPos, 
+						GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID(), false, CX2Room::TN_NONE, CX2GUNPC::NCT_CHANGESTAGE_REMAIN  );
+				}
+			}
+			else
+			{
+				SetActiveLinkOverChargeIllusion( false );
+				if ( IsMyUnit() )
+					g_pX2Game->UpdateSkillSlotUI();
+			}
+		}
+	}
+
+	CommonFrameMove();
+}
+void CX2GUEve::ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+
+	CommonEventProcess();
+}
+void CX2GUEve::ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_End()
+{
+	if ( IsMyUnit() )
+		g_pX2Game->UpdateSkillSlotUI();		/// 스킬 아이콘 갱신
+
+	CommonStateEnd();
+}
+void CX2GUEve::ResetLinkOverChargeIllusion()
+{
+	if( true == IsMyUnit() )
+	{	
+		m_fFerdinandLifeTime = -1;
+		m_iFerdinandNPCUID = -1;
+
+		SetActiveLinkOverChargeIllusion( false );	/// 엠프레스 궁극기 - 링크 오버차지 썬더볼트 활성화 해제
+		g_pX2Game->UpdateSkillSlotUI();				/// 스킬 아이콘 갱신
+
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION );
+		if( NULL != pSkillTemplet )
+		{
+			CX2UserSkillTree& cUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
+			const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+
+			const float CoolTime = pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - static_cast<float>( m_timerFerdinandSummoned.elapsed() );
+
+			cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION, CoolTime );
+		}
+	}
+}
+
+
+
+// 네메시스, 루나틱 스커드
+void CX2GUEve::ENSI_HA_ENS_LUNATIC_SCUD_Init()
+{
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"ColorBallGray.dds");
+	TextureReadyInBackground(L"Inspector_State_Shield.tga");
+	TextureReadyInBackground(L"WhitePoint.dds");
+	TextureReadyInBackground(L"AeroTornado04.dds");
+	TextureReadyInBackground(L"ColorBallBlue.dds");
+	TextureReadyInBackground(L"Condense_Pulse01.dds");
+	XSkinMeshReadyInBackground(L"HA_ENS_Lunatic_Scud_Weapon01.X");
+	TextureReadyInBackground(L"Lire_Kick_Impact01.dds");
+	XSkinMeshReadyInBackground(L"Lire_SI_SA_Gungnir_Mesh03.X");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	XSkinMeshReadyInBackground(L"aisha_active_energySpurt_circle.X");
+	XSkinMeshReadyInBackground(L"EG_SP1a_HornetSting_Bomb.X");
+	TextureReadyInBackground(L"Arme01_Frost_Ring_LV2_effect_01.dds");
+	TextureReadyInBackground(L"eve_thousandsOfStars_gearLight.dds");
+	TextureReadyInBackground(L"EEP_servant_call_slash_02.tga");
+	TextureReadyInBackground(L"WhitePointSmall.dds");
+	TextureReadyInBackground(L"Star.dds");
+	TextureReadyInBackground(L"SlashLight.dds");
+	XSkinMeshReadyInBackground(L"HA_ENS_Lunatic_Scud_Weapon02.X");
+	TextureReadyInBackground(L"Lightning_Piercing01.dds");
+	TextureReadyInBackground(L"Mesh_Raven_Event_AC_Upbody21_Effect.tga");
+	TextureReadyInBackground(L"Particle_Frozen01.tga");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Fire_Flame01.Tga");
+	TextureReadyInBackground(L"GuideArrow01.dds");
+	XSkinMeshReadyInBackground(L"HA_ENS_Lunatic_Scud_Weapon03.X");
+	TextureReadyInBackground(L"Nasod_King_Laser03.dds");
+	TextureReadyInBackground(L"Whitecircle02.dds");
+	TextureReadyInBackground(L"smoke02.dds");
+	TextureReadyInBackground(L"Arme_Critical2.dds");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	XSkinMeshReadyInBackground(L"HA_ENS_Lunatic_Scud_Weapon04.X");
+	TextureReadyInBackground(L"IceHit_Impact01.dds");
+	TextureReadyInBackground(L"Smoke.dds");
+	TextureReadyInBackground(L"eve_SA_sweepParade_middle.DDS");
+	XSkinMeshReadyInBackground(L"HA_ENS_Lunatic_Scud_Weapon05.X");
+	TextureReadyInBackground(L"AeroTornado07.dds");
+	TextureReadyInBackground(L"Condense_Pulse02.dds");
+	TextureReadyInBackground(L"Pet_unicorn_lightning_After.DDS");
+	TextureReadyInBackground(L"RVC_SA_DeadlyRaid_spark.dds");
+	TextureReadyInBackground(L"SpreadLight01.dds");
+	TextureReadyInBackground(L"Steam_BP.DDS");
+	TextureReadyInBackground(L"White_Pulse01.dds");
+	TextureReadyInBackground(L"ran_StartB_light_P.dds");
+	TextureReadyInBackground(L"trockBome_0_MagicAttackA_pieceCircle.dds");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50");
+}
+void CX2GUEve::ENSI_HA_ENS_LUNATIC_SCUD_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+
+	CommonEventProcess();
+}
+
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+// 배틀 세라프, 사이킥 아틸러리 
+void CX2GUEve::ENSI_HA_EBS_PSYCHIC_ARTILLERY_Init()
+{
+	TextureReadyInBackground(L"AeroTornado04.dds");
+	TextureReadyInBackground(L"Arme_Critical2.dds");
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Colorballgray.dds");
+	TextureReadyInBackground(L"Condense_Light01.dds");
+	TextureReadyInBackground(L"Condense_Pulse02.dds");
+	XSkinMeshReadyInBackground(L"Dullahan_Special_Laser_Mesh01.X");
+	TextureReadyInBackground(L"Explosion_Fire01.dds");
+	XSkinMeshReadyInBackground(L"HA_EBS_Dragon_Slave_M01.X");
+	TextureReadyInBackground(L"Inspector_State_Shield.tga");
+	XSkinMeshReadyInBackground(L"Lire_SI_SA_Gungnir_Mesh03.X");
+	XSkinMeshReadyInBackground(L"Lire_SI_SA_Gungnir_Mesh05.X");
+	XSkinMeshReadyInBackground(L"NEPHILIM_AttackB_02.X");
+	TextureReadyInBackground(L"Particle_Blur.DDS");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	XSkinMeshReadyInBackground(L"Taranvash_SpecialAttackA_Mesh01.X");
+	TextureReadyInBackground(L"WhitePoint.dds");
+	TextureReadyInBackground(L"WhitePointSmall.dds");
+	TextureReadyInBackground(L"White_Pulse01.dds");
+	XSkinMeshReadyInBackground(L"aisha_active_energySpurt_circle.X");
+	TextureReadyInBackground(L"eve_thousandsOfStars_gearLight.DDS");
+}
+
+void CX2GUEve::ENSI_HA_EBS_PSYCHIC_ARTILLERY_FrameMove()
+{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		// 역장 각도 초기화 ( 궁극기는 각도가 꺽이지 않는다. )
+		m_EveElectraSystem.m_fPlaneZAngle = 0.f;
+		// 1페이즈 역장 생성
+		m_EveElectraSystem.CreateGigaPlane( 0.f, 2.5f, 110.f + 139.56f, 130.f, 1.f );
+	}
+	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		// 1페이즈 레이저 그룹 발사
+		D3DXVECTOR3 vDamageEffectPos = GetPos();
+		vDamageEffectPos.y += 100.f;
+		D3DXVECTOR3 vZeroYDirVector = GetDirVector();
+		vZeroYDirVector.y = 0.f;
+		D3DXVec3Normalize( &vZeroYDirVector, &vZeroYDirVector );
+
+
+		if(GetIsRight() == false)
+		{
+			vZeroYDirVector.x = -vZeroYDirVector.x;
+			vZeroYDirVector.z = -vZeroYDirVector.z;
+		}
+		vDamageEffectPos += (100.f * vZeroYDirVector);
+
+		CX2DamageEffect::CEffect* pEffect = NULL;
+
+		{
+			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_HA_EBS_Psychic_Artillery_Laser_Phase1_Before_Plane", GetPowerRate(),
+				vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+
+			m_EveElectraSystem.AddLaserToSystem( pEffect, L"", vDamageEffectPos, vZeroYDirVector, 10000.f, 0.3f, 1.0f, 
+				L"DAMAGE_EFFECT_HA_EBS_Psychic_Artillery_Laser_Phase1_1", L"DAMAGE_EFFECT_HA_EBS_Psychic_Artillery_Laser_Phase1_1",
+				L"DAMAGE_EFFECT_HA_EBS_Psychic_Artillery_Laser_Phase1_1", false );
+
+		}
+	}
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 2.6f ) == true && EventCheck( 2.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 2.7f ) == true && EventCheck( 3.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		// 1페이즈 역장 제거 
+		m_EveElectraSystem.DestroyGigaPlaneAndCrystalEffect();
+		// 2페이즈 역장 생성
+		m_EveElectraSystem.CreateGigaPlane( 0.f, 2.5f, 110.f + 139.56f - 90.f, 260.f, 2.f );
+	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 3.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 3.1f ) == true && EventCheck( 3.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		// 2페이즈 레이저 그룹 발사
+		D3DXVECTOR3 vDamageEffectPos = GetBonePos( L"Bip01_L_Hand");
+		D3DXVECTOR3 vZeroYDirVector = GetDirVector();
+		vZeroYDirVector.y = 0.f;
+		D3DXVec3Normalize( &vZeroYDirVector, &vZeroYDirVector );
+
+
+		if(GetIsRight() == false)
+		{
+			vZeroYDirVector.x = -vZeroYDirVector.x;
+			vZeroYDirVector.z = -vZeroYDirVector.z;
+		}
+		vDamageEffectPos -= (100.f * vZeroYDirVector);
+
+		CX2DamageEffect::CEffect* pEffect = NULL;
+
+		{
+			pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_HA_EBS_Psychic_Artillery_Laser_Phase2_Before_Plane", GetPowerRate(),
+				vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
+
+			m_EveElectraSystem.AddLaserToSystem( pEffect, L"Bip01_L_Hand", vDamageEffectPos, vZeroYDirVector, 10000.f, 0.3f, 1.0f, 
+				L"DAMAGE_EFFECT_HA_EBS_Psychic_Artillery_Laser_Phase2_1", L"DAMAGE_EFFECT_HA_EBS_Psychic_Artillery_Laser_Phase2_1",
+				L"DAMAGE_EFFECT_HA_EBS_Psychic_Artillery_Laser_Phase2_1", false );
+
+		}
+	}
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 5.545f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 5.545f ) == true && EventCheck( 5.545f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		// 2페이즈 역장 제거
+		m_EveElectraSystem.DestroyGigaPlaneAndCrystalEffect();
+	}
+	CommonFrameMove();	
+}
+
+void CX2GUEve::ENSI_HA_EBS_PSYCHIC_ARTILLERY_EventProcess()
+{
+
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+
+	CommonEventProcess();
+}
+
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+
 /*virtual*/ void CX2GUEve::ShowActiveSkillCutInAndLightByScript( float fTimeToShow_, bool bOnlyLight_ )
 {
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", fTimeToShow_, m_iSkillCutInSetSubIndex, bOnlyLight_ );
 }
-
 
 #ifdef MODIFY_RIDING_PET_AWAKE
 void CX2GUEve::RidingHyperModeFrameMove()
@@ -29989,7 +33149,7 @@ void CX2GUEve::CommonHyperModeFrameMove( float fTime1_, float fTime2_, bool bSou
 	//g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( fTime1_ ) )
+    if( m_pXSkinAnim->EventTimerOneshot( fTime1_ ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( fTime1_ ) == true && EventCheck(fTime1_, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -30019,7 +33179,7 @@ void CX2GUEve::CommonHyperModeFrameMove( float fTime1_, float fTime2_, bool bSou
 		}
 	}
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	else if( m_pXSkinAnim->EventTimerOneshot( fTime2_ ) )
+    else if( m_pXSkinAnim->EventTimerOneshot( fTime2_ ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( fTime2_ ) == true && EventCheck(fTime2_, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -30214,3 +33374,1391 @@ void CX2GUEve::OnFrameMove_EndElCrystalSystem()
 	}
 }
 #endif // FIX_EVE_ELCRYSTAL_BUG
+
+#ifdef FIX_SHOOTING_MEGABALL_AT_JUMP_LINE_MAP
+/*virtual*/void CX2GUEve::InitInpuDataProcess()
+{
+	// #특정 키는 제외하고 초기화 시키는 함수.
+	auto InitInputDataExceptMegaBallKey = []( OUT InputData& sInputData_, OUT bool& bInputDataPureKey_)
+	{
+		if( true == bInputDataPureKey_ )
+		{
+			sInputData_.Init();
+			bInputDataPureKey_ = true;
+		}
+		else
+		{
+			sInputData_.Init();
+		}
+	};
+
+	if( m_fCanNotInputTimeZXArrow > 0.f )
+	{
+		m_InputData.Init_ZXArrowOnly();
+	}
+
+	if( true == IsCanNotIntput() )
+	{
+		// # 메가 일렉트론볼 충전중에는, 충전 키 유지시켜 주기
+		if( m_sMegaElectronBallData.m_bEnable == true )
+		{
+			switch( m_sMegaElectronBallData.GetSkillSlotID() )
+			{
+			case 0: InitInputDataExceptMegaBallKey( m_InputData, m_InputData.pureA ); break;
+			case 1: InitInputDataExceptMegaBallKey( m_InputData, m_InputData.pureS ); break;
+			case 2: InitInputDataExceptMegaBallKey( m_InputData, m_InputData.pureD ); break;
+			case 3: InitInputDataExceptMegaBallKey( m_InputData, m_InputData.pureC ); break;
+			case 4: InitInputDataExceptMegaBallKey( m_InputData, m_InputData.pureQ ); break;
+			case 5: InitInputDataExceptMegaBallKey( m_InputData, m_InputData.pureW ); break;
+			case 6: InitInputDataExceptMegaBallKey( m_InputData, m_InputData.pureE ); break;
+			case 7: InitInputDataExceptMegaBallKey( m_InputData, m_InputData.pureR ); break;
+			default:
+				break;
+			}
+		}
+		else
+		{
+			m_InputData.Init();
+		}
+	}
+}
+#endif // FIX_SHOOTING_MEGABALL_AT_JUMP_LINE_MAP
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
+bool CX2GUEve::CanParryingState ()
+{
+	// Parrying 할 수 있는 상태인가?
+	if( m_FrameDataNow.unitCondition.bFootOnLine == false )
+		return false;
+
+	switch( GetNowStateID() )
+	{
+	case CX2GUUser::USI_JUMP_UP:		
+	case CX2GUUser::USI_JUMP_DOWN:
+	case CX2GUUser::USI_DASH_JUMP:
+		return false;
+	default:
+		break;
+	}
+	if(	GetNowStateID() >= CX2GUUser::USI_DAMAGE_GROGGY && GetNowStateID() <= CX2GUUser::USI_DAMAGE_GRAPPLED_FRONT )
+		return false;
+
+//	switch( GetNowStateID() )
+//	{
+//	case CX2GURaven::RSI_COMBO_ZZZX:
+//	case CX2GURaven::RBM_COMBO_ZZZXZ:
+//	case CX2GURaven::RBM_COMBO_ZZZX_EXPLOSION:
+// 		return false;
+// 	default:
+// 		break;
+// 	}
+
+	return true;
+}
+void CX2GUEve::AddManeuverGauge ( float fVal_ )
+{
+	// 기동 게이지를 추가한다.
+	m_fManeuverGauge = m_fManeuverGauge + fVal_;
+	if( m_fManeuverGauge > 100.f )
+		m_fManeuverGauge = 100.f;
+	else if( m_fManeuverGauge < 0.f )
+		m_fManeuverGauge = 0.f;
+
+}
+void CX2GUEve::DoParrying()
+{
+	if( m_pManeuverCore == NULL )
+		return;
+//	PlaySound(L"Raven_NasodCore_Trans_Parry.ogg");
+
+	m_fManeuverGauge -= 30.f;
+	if( m_fManeuverGauge < 0.f )
+		m_fManeuverGauge = 0.f;		
+
+	--m_iManeuverCoreLv;
+	if( m_iManeuverCoreLv < 0 )
+		m_iManeuverCoreLv = 0;
+
+	ChangeManeuverCoreState( MCS_PARRYING );
+}
+
+void CX2GUEve::ENSI_PARRYING_StartFuture ()
+{
+	CommonStateStartFuture();
+}
+void CX2GUEve::ENSI_PARRYING_Start ()
+{
+	CommonStateStart();
+
+	//	To do...			
+	// 	int iRand = GetRandomInt(0) % 2;
+	// 	if( iRand == 0 )
+	// 	{
+	// 		m_pXSkinAnim.get()->ChangeAnim( L"GuardSmallFront", false );		
+	// 	}
+	m_bCanParrying = true;
+	// 패링동작
+	DoParrying();
+}
+
+void CX2GUEve::ENSI_PARRYING_EventProcess ()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+		}
+		else
+		{
+			StateChange( USI_WAIT );
+		}
+	}
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	// 이브 추가 시스템 수정 사항, 패링 점멸 조건 중 Z 키 입력을 제거 
+	else if ( true == m_InputData.oneX )	
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	else if ( true == m_InputData.oneZ || true == m_InputData.oneX )
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	{
+		StateChange( ENSI_PARRYING_BLINK );
+	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.3f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
+	else if( m_pXSkinAnimFuture->GetNowAnimationTime() >= 0.3f ) 
+	{
+		if( SpecialAttackEventProcess() == true )
+		{
+		}
+	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
+	
+	CommonEventProcess();
+}
+
+void CX2GUEve::ENSI_PARRYING_StateEnd ()
+{
+	CommonStateEnd();
+	m_bCanParrying = false;
+	RestoreManeuverCore();
+}
+void CX2GUEve::ENSI_PARRYING_BLINK_Init ()
+{
+	
+
+}
+
+void CX2GUEve::ENSI_PARRYING_BLINK_Start ()
+{
+	CommonStateStart();
+	m_fPhotonBlinkBackSpeedX = 0.f;
+	m_fPhotonBlinkDummyLifeTime = 0.f;
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_A_EN_PHOTON_BLINK);
+
+	if( NULL != pSkillTemplet )
+	{
+		if ( NULL == GetUnit() )
+			return;
+
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+		// const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EN_PHOTON_BLINK ) );	/// 스킬 레벨
+		const int iSkillTempletLevel = 1;		// 모든 내용을 1 레벨 기준으로만 가져온다.
+
+		m_fPhotonBlinkBackSpeedX	= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_TELEPORT_RANGE_ABS, iSkillTempletLevel );
+	}
+
+	m_fBlinkInvisibilityAlpha	= 1.f;
+	m_bBlinkInvisibility		= true;
+
+	SetAlphaObject( true );
+	m_RenderParam.bAlphaBlend = true;
+}
+
+void CX2GUEve::ENSI_PARRYING_BLINK_StartFuture ()
+{
+	CommonStateStartFuture();
+	m_bDisableGravity = true;
+}
+
+
+void CX2GUEve::ENSI_PARRYING_BLINK_FrameMoveFuture ()
+{
+	CommonFrameMoveFuture ();
+	if( m_pXSkinAnimFuture->EventTimerOneshot( 0.1f ) )
+	{
+		m_PhysicParam.nowSpeed.x = -m_fPhotonBlinkBackSpeedX;
+	}
+	if( m_pXSkinAnimFuture->EventTimerOneshot( 0.4f ) )
+	{
+		m_PhysicParam.nowSpeed.x = -300.f;
+	}
+}
+
+void CX2GUEve::ENSI_PARRYING_BLINK_FrameMove()
+{
+	if( m_pXSkinAnim->GetNowAnimationTime() > 0.03f && m_pXSkinAnim->GetNowAnimationTime() < 0.3f)
+	{
+		m_fBlinkInvisibilityAlpha -= m_fElapsedTime * 10.f;
+		if( m_fBlinkInvisibilityAlpha < 0.f )
+			m_fBlinkInvisibilityAlpha = 0.f;
+	}
+	else if( m_pXSkinAnim->GetNowAnimationTime() > 0.3f && m_pXSkinAnim->GetNowAnimationTime() < 0.8f )
+	{
+		m_fBlinkInvisibilityAlpha += m_fElapsedTime * 5.f;
+		if( m_fBlinkInvisibilityAlpha > 1.f )
+			m_fBlinkInvisibilityAlpha = 1.f;
+	}
+	CommonFrameMove();
+}
+
+
+
+void CX2GUEve::ENSI_PARRYING_BLINK_EventProcess ()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+		}
+		else
+		{
+			StateChange( USI_WAIT );
+		}
+	}
+	CommonEventProcess();
+}
+
+void CX2GUEve::ENSI_PARRYING_BLINK_EndFuture()
+{
+	CommonStateEndFuture();
+	m_bDisableGravity = false;
+	m_PhysicParam.nowSpeed		= D3DXVECTOR2( 0, 0 );
+	m_PhysicParam.passiveSpeed	= D3DXVECTOR2( -1, -1 );
+}
+
+void CX2GUEve::ENSI_PARRYING_BLINK_End()
+{
+	CommonStateEnd();
+
+	m_bBlinkInvisibility			= false;
+
+	if( m_bInvisibility == false )
+	{
+		SetAlphaObject( false );
+		m_RenderParam.bAlphaBlend = false;
+		m_RenderParam.outLineColor.a	= 1.f;
+		m_RenderParam.color.a			= 1.f;
+	}
+}
+
+CX2GUEve::ManeuverCoreData::ManeuverCoreData()
+{
+	m_vOffsetRotate = D3DXVECTOR3(0, 20.f, 0);
+	m_vOffsetPos = D3DXVECTOR3( 0, 0, 0 );
+	m_hEffect = INVALID_DAMAGE_EFFECT_HANDLE;
+	m_eManeuverCoreState = MCS_NONE;
+}
+
+CX2GUEve::ManeuverCoreData::~ManeuverCoreData()
+{
+	if( NULL != g_pX2Game->GetDamageEffect() && INVALID_DAMAGE_EFFECT_HANDLE != m_hEffect )
+		g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffect );
+}
+
+
+void CX2GUEve::ClearManeuverCore ( bool bClearManeuverGauge /* = false */ )
+{
+	if ( true == bClearManeuverGauge )
+	{
+		m_fManeuverGauge = 0.f;
+		m_iManeuverCoreLv = 0;
+	}
+
+	m_bCanParrying  = false;		
+	m_fManeuverCoreStateTime = 0.f;
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	if( NULL != g_pX2Game->GetDamageEffect() )
+	{ 
+		if( NULL != m_pManeuverCoreParryingEffect )
+			g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreParryingEffect );
+	}	
+#else  // FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	if( NULL != g_pX2Game->GetEffectSet() )
+	{ 
+		if( INVALID_EFFECTSET_HANDLE != m_hManeuverCoreParryingEffect )
+			g_pX2Game->GetEffectSet()->DestroyInstanceHandle( m_hManeuverCoreParryingEffect );
+	}	
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	// 각성 공격 ( 레이저 ) 같은 경우, Clear 로 초기화 되지 않습니다.
+	// 공격 중 각성이 풀렸을 때, 마저 공격하기 위함 입니다.
+	// 해당 부분은 코어가 생성될 때, 초기화 됩니다. )
+
+	//if( NULL != g_pX2Game->GetDamageEffect() && NULL != m_pManeuverCoreAttackDamageEffect )
+	//	g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreAttackDamageEffect );
+	
+
+	m_bManeuverCoreAttackLockOnNpc = false;
+	m_iManeuverCoreAttackLockOnUid = 0;
+	SAFE_DELETE ( m_pManeuverCore );
+}	
+
+void CX2GUEve::RestoreManeuverCore ( )
+{
+	if( NULL != m_pManeuverCore && NULL != g_pX2Game->GetDamageEffect() )
+	{ 
+		if( INVALID_DAMAGE_EFFECT_HANDLE != m_pManeuverCore->m_hEffect )
+			g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_pManeuverCore->m_hEffect );
+	}
+
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	if( NULL != g_pX2Game->GetDamageEffect() )
+	{ 
+		if( NULL != m_pManeuverCoreParryingEffect )
+			g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreParryingEffect );
+	}
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	if( NULL != g_pX2Game->GetEffectSet() )
+	{ 
+		if( INVALID_EFFECTSET_HANDLE != m_hManeuverCoreParryingEffect )
+			g_pX2Game->GetEffectSet()->DestroyInstanceHandle( m_hManeuverCoreParryingEffect );
+	}
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	CreateManeuverCore(false);
+	m_fManeuverCoreStateTime = 0;
+	m_bManeuverCoreAttackLockOnNpc = false;
+	m_iManeuverCoreAttackLockOnUid = 0;
+}
+
+
+void CX2GUEve::CreateManeuverCore ( bool bShowCreateEffect /* = true */ )
+{
+	// 코어 생성은 항상 Wait 상태 일 때만 이루어 져야 합니다.
+
+	// 각성 공격 ( 레이저 ) 같은 경우, Clear 로 초기화 되지 않습니다.
+	// 공격 중 각성이 풀렸을 때, 마저 공격하기 위함 입니다.
+	// 해당 부분은 코어가 생성될 때, 초기화 됩니다.
+	if( NULL != g_pX2Game->GetDamageEffect() && NULL != m_pManeuverCoreAttackDamageEffect )
+		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreAttackDamageEffect );
+
+	// 클로킹 상태에서 같은 팀원이 아니라면 생성을 막는다.
+	if ( NULL != g_pX2Game->GetMyUnit() )
+	{
+		if ( true == m_bInvisibility && g_pX2Game->GetMyUnit()->GetTeam() != GetTeam() )
+		{
+			ClearManeuverCore();
+			return ;
+		}
+	}
+	
+	// 코어 레벨이 0 이하라면 생성을 막는다.
+	if( m_iManeuverCoreLv <= 0 )
+	{
+		ClearManeuverCore();
+		return;
+	}
+
+	SAFE_DELETE ( m_pManeuverCore );
+	m_pManeuverCore = new ManeuverCoreData;	
+	D3DXVECTOR3 vOffsetPos = D3DXVECTOR3 ( 0.f, 0.f, 0.f );
+	vOffsetPos = _CONST_EVE_::MANEUVER_CORE_WAIT_STATE_POSITION_OFFSET;
+	
+	// 오른쪽을 보고 있을 때는 Offset 값의 X 축을 변경한다.
+	if( true == GetIsRight() )
+		vOffsetPos.x *= -1;
+
+	// 이펙트가 존재 하지 않을 시 생성하고 Offset 을 캐릭터가 바라보고 있는 방향에서 뒤에 생성하게끔 설정
+	CX2DamageEffect::CEffect *pManeuverCore = NULL;
+	wstring wstrManeuverCoreDamageEffectName = L"";
+
+	switch ( GetManeuverCoreLevel() )
+	{
+	case 1 :
+		if ( true == IsFullHyperMode () )
+			wstrManeuverCoreDamageEffectName = L"DAMAGE_EFFECT_EVE_MANEUVER_CORE_DUMMY_LEVEL_1_HYPER";	
+		else
+			wstrManeuverCoreDamageEffectName = L"DAMAGE_EFFECT_EVE_MANEUVER_CORE_DUMMY_LEVEL_1";	
+
+		break;
+	case 2 :
+		if ( true == IsFullHyperMode () )
+			wstrManeuverCoreDamageEffectName = L"DAMAGE_EFFECT_EVE_MANEUVER_CORE_DUMMY_LEVEL_2_HYPER";	
+		else
+			wstrManeuverCoreDamageEffectName = L"DAMAGE_EFFECT_EVE_MANEUVER_CORE_DUMMY_LEVEL_2";	
+
+		break;
+	case 3 :
+		if ( true == IsFullHyperMode () )
+			wstrManeuverCoreDamageEffectName = L"DAMAGE_EFFECT_EVE_MANEUVER_CORE_DUMMY_LEVEL_3_HYPER";	
+		else
+			wstrManeuverCoreDamageEffectName = L"DAMAGE_EFFECT_EVE_MANEUVER_CORE_DUMMY_LEVEL_3";	
+		break;
+	}
+
+	pManeuverCore = g_pX2Game->GetDamageEffect()->CreateInstance( static_cast<CX2GameUnit*> (this), wstrManeuverCoreDamageEffectName.c_str(), GetPowerRate(), GetPos() + vOffsetPos, 
+		GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+
+
+	if( pManeuverCore == NULL )
+	{
+		ClearManeuverCore();
+		return;
+	}
+
+	m_pManeuverCore->m_hEffect = pManeuverCore->GetHandle();
+
+	if ( true == bShowCreateEffect )
+	{
+		CKTDGXMeshPlayer::CXMeshInstance*  pManeuverCoreMeshInstance = GetManeuverCoreMeshInstance();
+		if( NULL != pManeuverCoreMeshInstance )
+		{
+			D3DXVECTOR3 vEffectPos = pManeuverCoreMeshInstance->GetPos();
+
+			if ( true == IsFullHyperMode() )			
+				g_pX2Game->GetEffectSet()->PlayEffectSetWithCustomPos_LUA( "EffectSet_Eve_ManeuverCore_Beed_Up_Hyper", (CX2GameUnit*)this, vEffectPos, GetRotateDegree() );
+			else
+				g_pX2Game->GetEffectSet()->PlayEffectSetWithCustomPos_LUA( "EffectSet_Eve_ManeuverCore_Beed_Up", (CX2GameUnit*)this, vEffectPos, GetRotateDegree() );
+			PlaySound( L"Eve_Ensi_WaitStart01.ogg" );
+		}
+	}
+
+
+
+	ChangeManeuverCoreState( MCS_WAIT );
+}
+
+
+void CX2GUEve::OnFrameMove_ManeuverCore ()
+{
+	// 아래 로직은 OnFrameMove 에서 항상 처리 합니다.
+
+	// 기동 게이지가 변조됐다면 해킹 유저로 리포트 한다.
+	if ( false == m_fManeuverGauge.Verify() )
+	{
+		if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+	}
+
+	// 기동 코어의 이펙트 셋의 포지션을 잡아준다. ( 기동 코어 위치가 아닌 이펙트 셋의 포지션! ) 
+	SetManeuverCoreEffectSetPosition();
+
+	// 3각성 시 항상 처리 해야 할 것 
+	if( GetHyperModeCount() == 3 )
+	{
+		// 각성 구슬에 Effect 를 추가한다.
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
+
+		if( m_hSeqHyperBall == INVALID_PARTICLE_SEQUENCE_HANDLE )
+		{
+			D3DXVECTOR3 vHyperBallPos = D3DXVECTOR3(72.f * g_pKTDXApp->GetResolutionScaleX(), 80.f *g_pKTDXApp->GetResolutionScaleY(), 0.f);
+
+			m_hSeqHyperBall = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( static_cast<CKTDGObject*> ( this ),  L"Eve_PowerUp_UI_01", vHyperBallPos );
+			if( g_pX2Game->GetMajorParticle()->GetInstanceSequence(m_hSeqHyperBall ) != NULL )
+			{
+				pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence(m_hSeqHyperBall );
+				pSeq->SetOverUI( true );
+			}					
+		}
+		else
+		{
+			pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence(m_hSeqHyperBall);
+			if( pSeq != NULL )
+			{
+				D3DXVECTOR3 vHyperBallPos = D3DXVECTOR3(72.f * g_pKTDXApp->GetResolutionScaleX(), 80.f *g_pKTDXApp->GetResolutionScaleY(), 0.f);
+				pSeq->SetPosition( vHyperBallPos );
+			}				
+		}
+
+		if( pSeq != NULL )
+		{
+			if( g_pKTDXApp->GetDGManager()->GetDialogManager()->GetHideDialog() == true )
+				pSeq->SetShowObject(false);
+			else
+				pSeq->SetShowObject(true);
+		}
+	}
+	// 3 각성이 아니면 3각성 파티클을 제거한다.
+	else
+	{
+		if( m_hSeqHyperBall != INVALID_PARTICLE_SEQUENCE_HANDLE )
+		{
+			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle(m_hSeqHyperBall);
+		}	
+	}		
+
+
+
+	// 해당 로직부터는 각성 시간이 존재할 때 ( 즉, 각성 했을 때 ) 만 수행 합니다.
+	if( GetRemainHyperModeTime() > 0.f )
+	{
+		// 기동 코어의 레벨이 변경되면 새로 생성한다. ( 신규 생성도 포함 )
+		if( false == GetParrying() && false == IsAttackManeuverCore () )
+		{		
+			int iNowManeuverCoreLv = 0;
+			if( IsMyUnit() == true )
+				iNowManeuverCoreLv = static_cast<int> (m_fManeuverGauge / 30.f);
+			
+			else
+				iNowManeuverCoreLv = m_FrameDataNow.syncData.m_CannonBallCount;			
+
+			// 나소드볼 유지관리
+			// 기동 코어의 레벨이 변경되면 새로 생성한다. ( 신규 생성도 포함 )
+			if( m_iManeuverCoreLv != iNowManeuverCoreLv )
+			{
+				m_iManeuverCoreLv = iNowManeuverCoreLv;
+				if( m_iManeuverCoreLv > ::_CONST_EVE_::MANEUVER_CORE_MAX_LEVEL )
+					m_iManeuverCoreLv = ::_CONST_EVE_::MANEUVER_CORE_MAX_LEVEL;
+
+				CreateManeuverCore();
+			}
+			// 위 과정을 거치고도 코어가 없다면 다시 생성한다. Ex. 난입 유저, 사내에서 이펙트셋 다시 로드 등..
+			if ( INVALID_DAMAGE_EFFECT_HANDLE == GetManeuverCoreEffectHandle() && iNowManeuverCoreLv > 0 )
+			{
+				CreateManeuverCore ();
+			}
+		}		
+
+
+		if ( NULL != m_pManeuverCore && INVALID_DAMAGE_EFFECT_HANDLE != m_pManeuverCore->m_hEffect )
+		{
+			// 코어가 존재할 때 해야 할 처리, 각 State 에 맞게 처리를 해준다.
+			CX2DamageEffect::CEffectHandle hManeuverCoreEffect = GetManeuverCoreEffectHandle();
+			if ( INVALID_DAMAGE_EFFECT_HANDLE != hManeuverCoreEffect )
+			{
+				// 기동 코어 이동
+				MoveManeuverCoreByState( m_pManeuverCore->m_eManeuverCoreState );
+				RotateManeuverCoreByState ( m_pManeuverCore->m_eManeuverCoreState );
+				switch ( m_pManeuverCore->m_eManeuverCoreState )
+				{
+
+					// 대기 중
+				case MCS_WAIT :
+					break;
+
+					// 공격 준비 중
+				case MCS_BEFORE_ATTACK :
+					m_fManeuverCoreStateTime += m_fElapsedTime;
+
+					if( m_fManeuverCoreStateTime <= _CONST_EVE_::MANEUVER_CORE_BEFORE_ATTACK_TIME )
+					{	// MANEUVER_CORE_BEFORE_ATTACK_TIME 시간 동안 서서히 나타나도록 한다.
+						CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = GetManeuverCoreMeshInstance();
+						if ( NULL != pMeshInst ) 
+						{
+							float fAlphaValue = m_fManeuverCoreStateTime / _CONST_EVE_::MANEUVER_CORE_BEFORE_ATTACK_TIME;
+							if ( m_fManeuverCoreStateTime <= _CONST_EVE_::MANEUVER_CORE_BEFORE_ATTACK_TIME )
+							{
+								pMeshInst->SetMeshAlphaColor(fAlphaValue);
+							}							
+						}
+					}
+					else 
+					{	// MCS_BEFORE_ATTACK 상태의 시간이 모두 끝났다.
+						// 공격 상태로 전환한다.
+						ChangeManeuverCoreState( MCS_ATTACK );							
+					}
+					break;
+
+					// 공격 중
+				case MCS_ATTACK :
+					m_fManeuverCoreStateTime += m_fElapsedTime;				
+					if( m_fManeuverCoreStateTime >= _CONST_EVE_::MANEUVER_CORE_ATTACK_TIME )
+					{
+						ChangeManeuverCoreState( MCS_AFTER_ATTACK );
+					}
+
+					break;
+
+					// 공격 완료
+				case MCS_AFTER_ATTACK :
+					m_fManeuverCoreStateTime += m_fElapsedTime;					
+
+					if( m_fManeuverCoreStateTime <= _CONST_EVE_::MANEUVER_CORE_AFTER_ATTACK_TIME )
+					{
+						// MANEUVER_CORE_AFTER_ATTACK_TIME 만큼의 시간이 안되면 다음 상태로 넘어가지 않습니다.
+						if ( NULL != GetManeuverCoreMeshInstance() )
+						{
+							float fAlphaValue = m_fManeuverCoreStateTime / _CONST_EVE_::MANEUVER_CORE_AFTER_ATTACK_TIME;
+
+							// Fade-Out
+							if ( m_fManeuverCoreStateTime <= _CONST_EVE_::MANEUVER_CORE_AFTER_ATTACK_TIME )
+							{
+								GetManeuverCoreMeshInstance()->SetMeshAlphaColor(1-fAlphaValue);
+							}							
+						}
+					}
+					else 
+					{
+						// 연출이 끝났으면 삭제
+						if( IsMyUnit() == true )
+						{
+							m_fManeuverGauge = m_fManeuverGauge - (GetManeuverCoreLevelByGauge() * 30.f);
+						}
+						RestoreManeuverCore ();
+						ChangeManeuverCoreState( MCS_WAIT );
+						
+					}
+					break;		
+
+					// Parrying 상태 일 때
+				case MCS_PARRYING :
+					{	
+
+						m_fManeuverCoreStateTime += m_fElapsedTime;
+						
+						// Parrying 시의 Effect 는 캐릭터 크기와 비례한다.
+						const PROTECT_VECTOR3 &vScale = GetScaleByUnit();
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+						if ( NULL != m_pManeuverCoreParryingEffect )
+						{
+							m_pManeuverCoreParryingEffect->SetScale ( vScale.GetVector3() );
+						}
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+						CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance ( m_hManeuverCoreParryingEffect );
+						if ( NULL != pEffectInstance )
+						{
+							pEffectInstance->SetEffectScale( vScale.GetVector3() );
+						}
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+						
+						// 위치는 현재 유저의 위치 + y축 150
+						CKTDGXMeshPlayer::CXMeshInstance* pManeuverEffectMeshInstance = GetManeuverCoreMeshInstance();
+						if ( NULL != pManeuverEffectMeshInstance )
+						{
+							float fOffsetY = vScale.y * 150.f;
+							pManeuverEffectMeshInstance->SetPos( GetPos() + D3DXVECTOR3( 0.f, fOffsetY, 0.f ) );		
+						}
+
+						// Parrying 시간이 끝났다면 Parrying 상태 해제 
+						if( m_fManeuverCoreStateTime >= _CONST_EVE_::MANEUVER_CORE_PARRYING_TIME )
+						{
+							m_bCanParrying = false;
+							ChangeManeuverCoreState ( MCS_WAIT );
+						}
+					}
+					break;
+
+				case MCS_NONE :
+				default :
+					ASSERT ( !L"Wrong State Maneuver Core ! ");
+					break;
+				}
+			}
+		}
+	}
+	else
+	{
+		if ( NULL != m_pManeuverCore )
+		{
+			ClearManeuverCore();
+		}
+	}
+}
+
+void CX2GUEve::AttackManeuverCore ()
+{
+	// 기동 코어의 공격을 활성화 한다.
+	if ( m_pManeuverCore == NULL )
+		return;
+
+	CX2DamageEffect::CEffectHandle hManeuverCore = GetManeuverCoreEffectHandle();
+	CX2GameUnitoPtr pTargetUnit = GetManeuverCoreTargetGameUnit();
+	
+	if ( INVALID_DAMAGE_EFFECT_HANDLE != hManeuverCore && null != pTargetUnit && pTargetUnit->GetNowHp() > 0.f )
+	{
+		if ( NULL != g_pX2Game->GetEffectSet() && NULL != g_pX2Game->GetDamageEffect() )
+		{	
+			CX2DamageEffect::CEffect* pEffect = NULL;
+			CKTDGXMeshPlayer::CXMeshInstance* pManeuverCoreEffectMeshInstance = GetManeuverCoreMeshInstance();
+
+			// 데미지 이펙트를 발사한다.
+			if ( NULL != pManeuverCoreEffectMeshInstance )
+			{
+				if ( true == IsFullHyperMode() )
+				{
+					// 연출용 이펙트
+					g_pX2Game->GetEffectSet()->PlayEffectSetWithCustomPos_LUA( "EffectSet_Eve_QueenCore_Before_Attack_Hyper", static_cast<CX2GameUnit*> ( this ), 
+						pManeuverCoreEffectMeshInstance->GetPos(), pManeuverCoreEffectMeshInstance->GetRotateDegree()  );
+
+					// 공격 레이저
+					CX2DamageEffect::CEffect * pManeuverCoreInstance = GetManeuverCoreEffect();
+					pEffect = m_pManeuverCoreAttackDamageEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_EVE_MANEUVER_CORE_ATTACK_HYPER", pManeuverCoreInstance->GetPowerRate(),
+						pManeuverCoreEffectMeshInstance->GetPos(), m_pManeuverCore->GetManeuverCoreRotateExceptOffset(), m_pManeuverCore->GetManeuverCoreRotateExceptOffset() );							
+
+					// Index 를 1 로 설정하면 Hyper 데미지 이펙트
+					m_pManeuverCoreAttackDamageEffect->SetIndex( UMGAT_HYPER );
+
+					PlaySound( L"Eve_Ensi_Attack01.ogg" );
+				}
+				else
+				{
+					// 연출용 이펙트
+					g_pX2Game->GetEffectSet()->PlayEffectSetWithCustomPos_LUA( "EffectSet_Eve_QueenCore_Before_Attack", static_cast<CX2GameUnit*> ( this ), 
+						pManeuverCoreEffectMeshInstance->GetPos(), pManeuverCoreEffectMeshInstance->GetRotateDegree() );
+						
+					// 공격 레이저
+					CX2DamageEffect::CEffect * pManeuverCoreInstance = GetManeuverCoreEffect();
+					pEffect = m_pManeuverCoreAttackDamageEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_EVE_MANEUVER_CORE_ATTACK", pManeuverCoreInstance->GetPowerRate(),
+						pManeuverCoreEffectMeshInstance->GetPos(), m_pManeuverCore->GetManeuverCoreRotateExceptOffset(), m_pManeuverCore->GetManeuverCoreRotateExceptOffset() );
+
+					// Index 를 1 로 설정하면 그냥 데미지 이펙트
+					m_pManeuverCoreAttackDamageEffect->SetIndex( UMGAT_NORMAL );
+
+					PlaySound( L"Eve_Ensi_Attack02.ogg" );
+				}
+			}
+					
+			// 데미지 이펙트의 크기를 조절한다.
+			if ( NULL != pEffect && NULL != pEffect->GetMainEffect() )
+			{
+				ChangePowerRateManeuverCore( pEffect );
+
+				switch ( GetManeuverCoreLevel() )
+				{
+				case 1 :
+					pEffect->GetMainEffect()->SetScale( D3DXVECTOR3 ( 1.f, 1.f, 1.f ) );
+					break;
+				case 2 :
+					pEffect->GetMainEffect()->SetScale( D3DXVECTOR3 ( 1.f, 1.25f, 1.25f ) );
+					break;
+				case 3 :
+					pEffect->GetMainEffect()->SetScale( D3DXVECTOR3 ( 1.f, 1.5f, 1.5f ) );
+					break;
+				}
+			}
+		}				
+	}
+	// 정상적으로 타켓팅 할 수 없는 상태 일 때
+	else
+	{
+		RestoreManeuverCore();
+		ChangeManeuverCoreState( MCS_WAIT );
+	}		
+}
+
+
+void CX2GUEve::ChangePowerRateManeuverCore(CX2DamageEffect::CEffect* pEffect)
+{
+	// 기동 공격의 데미지 수치 변경
+	float fPhysic = 1.f;
+	float fMagic = 1.f;
+	float fManeuverCorePowerRate = 1.f;
+	switch( m_iManeuverCoreLv )
+	{
+	case 1:
+		fManeuverCorePowerRate = 3.3f;
+		break;
+	case 2:
+		fManeuverCorePowerRate = 6.6f;
+		break;
+	case 3:
+		fManeuverCorePowerRate = 9.9f;
+		break;
+	default:
+		RestoreManeuverCore();
+		if ( NULL != m_pManeuverCore )
+		{
+			ChangeManeuverCoreState( MCS_NONE );
+		}
+
+		return;
+	}	
+
+	if ( m_pManeuverCore == NULL )
+		return;
+
+	pEffect->GetDamageData().damage.fPhysic = fPhysic * fManeuverCorePowerRate / _CONST_EVE_::MANEUVER_CORE_LASER_ATTACK_HIT_VALUE;
+	pEffect->GetDamageData().damage.fMagic = fMagic * fManeuverCorePowerRate / _CONST_EVE_::MANEUVER_CORE_LASER_ATTACK_HIT_VALUE;
+}
+
+void CX2GUEve::SetManeuverCoreTargetUnit ( CX2GameUnit::GAME_UNIT_TYPE eGameUnitType_, UidType uidType_, MANEUVER_CORE_ATTACK_TYPE eManeuverCoreAttackType_ )
+{
+	// 기동 코어의 공격 타켓을 설정한다.
+	// 기동 코어의 경우 공격 타입이 2가지 로 
+	// 각각 타입을 잡아준다.
+	// AT_SPECIAL 일 경우 USE_MANEUVER_GAGE 공격 타켓
+	// 그 외의 공격이면서 3각성일 경우 FULL_HYPER_MODE 공격 타켓
+	switch ( eManeuverCoreAttackType_ )
+	{
+	case MCAT_USE_MANEUVER_GAGE :
+	{
+		if( CX2GameUnit::GUT_USER == eGameUnitType_ )
+		{
+			m_bManeuverCoreAttackLockOnNpc = false;
+		}
+		else if( CX2GameUnit::GUT_NPC == eGameUnitType_ )
+		{
+			m_bManeuverCoreAttackLockOnNpc = true;
+		}
+		m_iManeuverCoreAttackLockOnUid = uidType_;
+	}
+	break;
+
+	default :
+		ASSERT ( !L"Can Not FInd Maneuver Core Attack Type !" );
+	}
+}
+void CX2GUEve::ClearManeuverCoreEffect ()
+{
+	// 기동 코어의 이펙트들을 제거한다.
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	if ( NULL != g_pX2Game->GetDamageEffect() && NULL != m_pManeuverCoreParryingEffect )
+	{
+		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreParryingEffect );
+	}
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	if ( m_hManeuverCoreParryingEffect != INVALID_EFFECTSET_HANDLE )
+	{
+		g_pX2Game->GetEffectSet()->DestroyInstanceHandle( m_hManeuverCoreParryingEffect );
+	}
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+}
+void CX2GUEve::ChangeManeuverCoreState ( MANEUVER_CORE_STATE eState_ )
+{
+	// 기동 코어의 상태를 변경시키고 변경 할 때 처리해야 할 것을 여기서 해준다.
+	// 각 코어의 상태가 변경할 떄 나타나는 이펙트도 여기서 할당한다.
+
+	if ( NULL != m_pManeuverCore )
+	{
+		m_pManeuverCore->m_eManeuverCoreState = eState_;
+		ClearManeuverCoreEffect ();
+
+		switch ( eState_ )
+		{	
+		case MCS_NONE :
+			break;
+
+		case MCS_WAIT :
+			if ( NULL != GetManeuverCoreMeshInstance() )
+			{
+				GetManeuverCoreMeshInstance()->ChangeAnim(L"Wait", CKTDGXSkinAnim::XAP_LOOP, 1.f);
+			}
+			break;
+
+		case MCS_BEFORE_ATTACK :
+			if ( NULL != GetManeuverCoreMeshInstance() )
+			{
+				if( m_iManeuverCoreAttackLockOnUid > 0 )
+				{
+					// 타켓이 있는 경우, 해당 타켓으로 이동하고 없는 경우 이동하지 않는다.
+					CX2GameUnitoPtr pGameUnit = GetManeuverCoreTargetGameUnit();
+
+					if ( null != pGameUnit )
+					{	
+						// 메시의 애니메이션을 공격으로 변경해준다.
+						if ( NULL != GetManeuverCoreMeshInstance() )
+							GetManeuverCoreMeshInstance()->ChangeAnim(L"Attack02", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);	
+					}
+					else
+					{
+						// 타켓이 없을 때는 초기화
+						m_bManeuverCoreAttackLockOnNpc = false;
+						m_iManeuverCoreAttackLockOnUid = 0;		
+					}
+				}
+			}
+			break;
+
+		case MCS_ATTACK :
+			{
+				if ( NULL != m_pManeuverCoreAttackDamageEffect && NULL != g_pX2Game->GetDamageEffect() )
+				{
+					g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreAttackDamageEffect );
+				}
+				AttackManeuverCore();
+				m_fManeuverCoreAttackParticleCreateCoolTime = 0.f;
+			}
+			break;
+
+		case MCS_AFTER_ATTACK :
+			{
+				if ( NULL != m_pManeuverCoreAttackDamageEffect && NULL != g_pX2Game->GetDamageEffect() )
+				{
+					g_pX2Game->GetDamageEffect()->DestroyInstance( m_pManeuverCoreAttackDamageEffect );
+				}
+				m_fManeuverCoreAttackParticleCreateCoolTime = 0.f;
+			}
+			break;
+	
+		case MCS_PARRYING :
+			{
+				if ( NULL != GetManeuverCoreMeshInstance() )
+					GetManeuverCoreMeshInstance()->SetMeshAlphaColor(0.f);
+
+
+				if ( NULL != g_pX2Game->GetEffectSet() )
+				{
+					const PROTECT_VECTOR3 &vScale = GetScaleByUnit();
+					float fOffsetY = vScale.y * 150.f;
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+					if( true == IsFullHyperMode() )
+						m_pManeuverCoreParryingEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_Eve_QueenCore_Defence_Hyper", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree() );
+					else
+						m_pManeuverCoreParryingEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_Eve_QueenCore_Defence", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree() );
+#else // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+
+					if( true == IsFullHyperMode() )
+						m_hManeuverCoreParryingEffect = g_pX2Game->GetEffectSet()->PlayEffectSetWithCustomPos_LUA( "EffectSet_Eve_QueenCore_Defence_Hyper", static_cast<CX2GameUnit*> ( this ), GetPos() + D3DXVECTOR3 ( 0, fOffsetY, 0 ), GetRotateDegree() );
+					else
+						m_hManeuverCoreParryingEffect = g_pX2Game->GetEffectSet()->PlayEffectSetWithCustomPos_LUA( "EffectSet_Eve_QueenCore_Defence", static_cast<CX2GameUnit*> ( this ), GetPos() + D3DXVECTOR3 ( 0, fOffsetY, 0 ), GetRotateDegree() );
+
+
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	}
+			}
+			break;
+
+		default :
+			break;
+		}
+		m_fManeuverCoreStateTime = 0.f;
+	}
+	else
+	{
+		ASSERT ( !L"Can Find Maneuver Core Pointer !"  );
+	}
+}
+
+
+/* virtual */ void CX2GUEve::SetAttackManeuverCore ( CX2DamageManager::DamageData & pDamageData )
+{
+	if ( NULL != m_pManeuverCore )
+	{
+		// 기동 코어가 공격 가능 상태인지 확인한다.
+		// 타켓의 HP 가 0 보다 크며 기동 게이지가 1 이상이며
+		// 코어 상태가 Wait 일 때 		
+		if ( GetCanAttackManeuverCore ( pDamageData.optrDefenderGameUnit.GetObservable() ) )
+		{
+			// 기동 코어를 공격 상태로 변환한다.
+			if( CX2DamageManager::AT_UNIT == pDamageData.defenderType )
+			{
+				if( null != pDamageData.optrDefenderGameUnit )
+				{				
+					// MCAT_USE_MANEUVER_GAGE 와 MCAT_USE_MANEUVER_GAGE_HYPER 는 동일한 타켓 행동을 합니다.
+					SetManeuverCoreTargetUnit ( pDamageData.optrDefenderGameUnit->GetGameUnitType(), pDamageData.optrDefenderGameUnit->GetUnitUID(), MCAT_USE_MANEUVER_GAGE );
+				}
+			}		
+			ChangeManeuverCoreState ( MCS_BEFORE_ATTACK );
+		}
+	}
+}
+void CX2GUEve::SetManeuverCoreEffectSetPosition ()
+{	
+	// 기동 코어의 이펙트 좌표들을 설정한다.
+	
+	if ( NULL != g_pX2Game->GetDamageEffect() && NULL != g_pX2Game->GetEffectSet() )
+	{
+		// Parrying 상태의 Effect 처리
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+		if ( NULL != m_pManeuverCoreParryingEffect )
+		{			
+			// 변경된 위치에 EffectSet 을 붙여준다.
+			m_pManeuverCoreParryingEffect->SetPos ( GetPos() + D3DXVECTOR3 ( 0, 100.f, 0 )  );
+		}
+#else  // FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+		if ( INVALID_EFFECTSET_HANDLE != m_hManeuverCoreParryingEffect )
+		{			
+			// 변경된 위치에 EffectSet 을 붙여준다.
+			CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance ( m_hManeuverCoreParryingEffect );
+			if ( NULL != pEffectInstance )
+			{
+				pEffectInstance->SetPos ( GetPos() + D3DXVECTOR3 ( 0, 100.f, 0 ) );
+			}
+		}
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+
+		// 기동 게이지 소모하는 공격의 데미지 이펙트 인스턴스 핸들 처리
+		if ( NULL != m_pManeuverCoreAttackDamageEffect )
+		{
+			m_fManeuverCoreAttackParticleCreateCoolTime += GetElapsedTime();		// 이펙트 출력을 위해 시간 증감
+
+			// 유지되는 동안 타켓을 향한다. 레이저 형태의 공격이라 이 방법이 최선인 것으로 판단됩니다. - kimjh
+			CKTDGXMeshPlayer::CXMeshInstance* pManeuverCoreAttackMesh = m_pManeuverCoreAttackDamageEffect->GetMainEffect();
+			if ( NULL != pManeuverCoreAttackMesh )
+			{
+				CX2GameUnitoPtr pTargetUnit = GetManeuverCoreTargetGameUnit();
+
+				if ( null != pTargetUnit && pTargetUnit->GetNowHp() > 0.f )
+				{
+					// 타켓의 중점과의 거리를 계산하여 방향 벡터를 얻어온다.
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+					D3DXVECTOR3 vTargetPos_ = GetManeuverCoreTargetPosUsingCollisionData();
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+					D3DXVECTOR3 vTargetPos_ = pTargetUnit->GetPos();
+					vTargetPos_.y += _CONST_EVE_::MANEUVER_CORE_ATTACK_STATE_POSITION_OFFSET.y;
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+					D3DXVECTOR3 vMeshPos = pManeuverCoreAttackMesh->GetPos ();
+					D3DXVECTOR3 vOriginPos = vTargetPos_ - vMeshPos;
+					D3DXVECTOR3 vResultPos = GetDirVecToDegree ( vOriginPos );
+
+					pManeuverCoreAttackMesh->SetRotateDegree( vResultPos );
+					pManeuverCoreAttackMesh->SetMoveAxisAngleDegree( vResultPos );
+				}
+			}
+/*			
+			// 매 MANEUVER_CORE_3RD_WAKE_UP_DAMAGE_EFFECT_MAKE_COOL_TIME 시간마다 아래 루프에 진입합니다.
+			// 연출용 파티을 레이저 앞 머리에 뿌려주는 구문
+			if ( _CONST_EVE_::MANEUVER_CORE_3RD_WAKE_UP_DAMAGE_EFFECT_MAKE_COOL_TIME <= m_fManeuverCoreAttackParticleCreateCoolTime )
+			{	
+				m_fManeuverCoreAttackParticleCreateCoolTime = 0.f;
+				// 아래 구문은 하이퍼 이펙트 일 때만 진입합니다.
+				if ( UMGAT_HYPER == m_pManeuverCoreAttackDamageEffect->GetIndex () )
+				{
+					if ( NULL != m_pManeuverCoreAttackDamageEffect->GetMainEffect() )
+					{
+						D3DXVECTOR3 vLaserHeadPos = m_pManeuverCoreAttackDamageEffect->GetMainEffect()->GetBonePos( L"Dummy02");
+
+						g_pX2Game->GetMajorParticle()->CreateSequenceHandle( static_cast<CKTDGObject*> ( this ),  L"EVE_Attack_Hyper01", vLaserHeadPos, -1.f, -1.f, -1, 5 ); 
+					}
+				}
+			}
+*/
+		}
+	}
+}
+
+CKTDGXMeshPlayer::CXMeshInstance* CX2GUEve::GetManeuverCoreMeshInstance ()
+{
+	// 기동 코어의 데미지 이펙트 인스턴스의 메인 메쉬를 얻어온다.
+	// ( 좌표를 받아오는 용도 )
+	if ( INVALID_DAMAGE_EFFECT_HANDLE != GetManeuverCoreEffectHandle () )
+	{
+		CX2DamageEffect::CEffectHandle hManeuverEffect = GetManeuverCoreEffectHandle();
+		if ( hManeuverEffect != INVALID_DAMAGE_EFFECT_HANDLE )
+		{
+			if ( NULL != g_pX2Game->GetDamageEffect() )
+			{
+				CX2DamageEffect::CEffect * pManeuverInstance = g_pX2Game->GetDamageEffect()->GetInstance ( hManeuverEffect );
+				if ( NULL != pManeuverInstance )
+				{
+					return pManeuverInstance->GetMainEffect();
+				}
+			}
+		}
+	}
+	return NULL;
+}
+
+CX2DamageEffect::CEffect * CX2GUEve::GetManeuverCoreEffect()
+{
+	if ( NULL != m_pManeuverCore && INVALID_DAMAGE_EFFECT_HANDLE != m_pManeuverCore->m_hEffect )
+	{
+		if ( NULL != g_pX2Game->GetDamageEffect() )
+		{
+			CX2DamageEffect::CEffect * pManeuverCoreInstance = g_pX2Game->GetDamageEffect()->GetInstance ( m_pManeuverCore->m_hEffect );
+			return pManeuverCoreInstance;			
+		}
+	}	
+	return NULL;
+}
+
+CX2DamageEffect::CEffectHandle CX2GUEve::GetManeuverCoreEffectHandle()
+{
+	// 기동 코어의 데미지 이펙트 인스턴스를 얻어온다.
+	if ( NULL != m_pManeuverCore && INVALID_DAMAGE_EFFECT_HANDLE != m_pManeuverCore->m_hEffect )
+	{
+		return m_pManeuverCore->m_hEffect;
+	}	
+	return INVALID_DAMAGE_EFFECT_HANDLE;
+}
+
+void CX2GUEve::MoveManeuverCoreByState ( MANEUVER_CORE_STATE eState )
+{
+	// 기동 코어의 이동을 상태에 따라 설정한다.
+	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = GetManeuverCoreMeshInstance();
+	if( NULL != pMeshInst )
+	{
+		D3DXVECTOR3 vDirVec = GetDirVector();
+		D3DXVECTOR3 vZVec = GetZVector();
+		D3DXVec3Normalize( &vDirVec, &vDirVec );										
+
+		// 아래 3가지 요소는 꼭 추가 해주시기 바랍니다.
+		D3DXVECTOR3	vTargetPos			= D3DXVECTOR3 ( 0.f, 0.f, 0.f );	// 가야 할 타켓 위치
+		D3DXVECTOR3	vOffsetPos			= D3DXVECTOR3 ( 0.f, 0.f, 0.f );	// 가야 할 타켓 위치의 Offset
+		float		fCoeff				= 0.f;								// 보간 수치 ( 0 ~ 1 )
+
+		switch ( eState )
+		{
+		case MCS_WAIT :
+			// 기동 코어의 평소 위치를 잡아준다.
+			vTargetPos = GetPos ();
+			fCoeff = 0.05f;
+
+			vOffsetPos = _CONST_EVE_::MANEUVER_CORE_WAIT_STATE_POSITION_OFFSET;
+
+			// 오른쪽을 보고 있을 때는 Offset 값의 X 축을 변경한다.
+			if( true == GetIsRight() )
+				vOffsetPos.x *= -1;
+
+			// 해당 Offset 값은 캐릭터의 Scale 에 따라 증감합니다.
+
+			vOffsetPos.x *= GetScaleByUnit().x;
+			vOffsetPos.y *= GetScaleByUnit().x;
+			vOffsetPos.z *= GetScaleByUnit().x;
+			break;
+		
+		case MCS_BEFORE_ATTACK :			
+			{
+				// 기동 코어의 공격 위치를 잡아준다.
+				vTargetPos = GetPos ();
+				fCoeff = 1.f;
+
+				vOffsetPos = _CONST_EVE_::MANEUVER_CORE_ATTACK_STATE_POSITION_OFFSET;
+	
+				// 오른쪽을 보고 있을 때는 Offset 값의 X 축을 변경한다.
+				if( true == GetIsRight() )
+					vOffsetPos.x *= -1;
+
+				vOffsetPos.x *= GetScaleByUnit().x;
+				vOffsetPos.y *= GetScaleByUnit().x;
+				vOffsetPos.z *= GetScaleByUnit().x;
+
+	#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+				// 이브의 코어 타켓 위치가 이브의 위치 보다 크고 이브의 높이 보다 작을 때 ( 즉 발사각이 얼마 차이 나지 않을 때 )
+				// 이브의 코어 y 축을 Target 위치로 변경하여 일직선으로 발사가 유지되도록 한다.
+				D3DXVECTOR3 vTargetBonePos = GetManeuverCoreTargetPosUsingCollisionData ();
+				if ( vTargetPos.y <= vTargetBonePos.y && vTargetBonePos.y <= GetPos().y + ( GetUnitHeight(false) * GetScaleByUnit().y ) )
+				{
+					vOffsetPos.y = vTargetBonePos.y - vTargetPos.y;
+				}
+	#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+			}
+
+			break;
+
+		default :
+			return ;
+		}
+
+		// 타켓 위치에서 Offset 값을 더함
+		vTargetPos		+= vOffsetPos.x * vDirVec;
+		vTargetPos.y	+= vOffsetPos.y;
+		vTargetPos		+= vOffsetPos.z * vZVec;
+
+		vTargetPos = vTargetPos * fCoeff + pMeshInst->GetPos() * ( 1.f-fCoeff );
+		pMeshInst->SetPos( vTargetPos );
+	}
+}
+
+void CX2GUEve::RotateManeuverCoreByState ( MANEUVER_CORE_STATE eState )
+{
+	// 기동 코어의 회전 값을 상태에 따라 설정한다.
+	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = GetManeuverCoreMeshInstance();
+
+	// 아래 1가지 요소는 필요 시 추가해주시기 바랍니다.
+	D3DXVECTOR3 vOffsetRot = D3DXVECTOR3 ( 0.f, 0.f, 0.f );	// 회전 값 Offset
+
+	if( NULL != pMeshInst )
+	{
+		switch ( eState )
+		{
+			case MCS_WAIT :
+			case MCS_PARRYING :	
+				// 대기 및 패링 일 때는 이브의 Bip01_Spine1 본 위치를 바라본다.
+				// 좌우에 따라 20, -20 씩 Offset 값을 더한다.
+				// ( 코어가 잘 보이게 하기 위해 )
+				if ( true == GetIsRight() )
+					vOffsetRot = D3DXVECTOR3 ( 0.f, 20.f, 0.f );
+				else
+					vOffsetRot = D3DXVECTOR3 ( 0.f, -20.f, 0.f );
+				
+				SetManeuverCoreRotateToTargetPos ( GetBonePos ( L"Bip01_Spine1"), vOffsetRot );
+				break;
+
+			case MCS_BEFORE_ATTACK :	
+			case MCS_ATTACK :	
+			case MCS_AFTER_ATTACK :	
+			{
+				// 공격 상태 일 때는 타켓의 위치를 받아온다.
+				if ( NULL != GetManeuverCoreMeshInstance() )
+				{
+					CX2GameUnitoPtr pTargetUnit = GetManeuverCoreTargetGameUnit();
+
+					if ( null != pTargetUnit && pTargetUnit->GetNowHp() > 0.f )
+					{
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+						D3DXVECTOR3 vTargetPos = GetManeuverCoreTargetPosUsingCollisionData ();
+#else  // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항							
+ 						D3DXVECTOR3 vTargetPos = pTargetUnit->GetPos ();
+ 						vTargetPos.y += _CONST_EVE_::MANEUVER_CORE_ATTACK_STATE_POSITION_OFFSET.y;
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항							
+						SetManeuverCoreRotateToTargetPos ( vTargetPos, vOffsetRot );
+					}
+				}
+			}
+			break;
+
+			default :
+				return ;
+		}	
+	}
+}
+
+void CX2GUEve::FindAndSetManeuverCoreTargetGameUnit ( UidType iGameUnitUID_, bool bIsNPC_ )
+{
+	// 기동 코어의 타켓을 찾는다.
+	if( true == bIsNPC_ )
+		SetManeuverCoreTargetGameUnit( CX2GameUnitoPtr ( g_pX2Game->GetNPCUnitByUID( static_cast<int> ( iGameUnitUID_ ) ) ) );
+	else
+		SetManeuverCoreTargetGameUnit( CX2GameUnitoPtr ( g_pX2Game->GetUserUnitByUID( iGameUnitUID_ ) ) );	
+}
+
+CX2GameUnitoPtr CX2GUEve::GetManeuverCoreTargetGameUnit ()
+{
+	// 기동 코어의 타켓을 얻어온다.
+	FindAndSetManeuverCoreTargetGameUnit( m_iManeuverCoreAttackLockOnUid, m_bManeuverCoreAttackLockOnNpc );
+	return m_pManeuverCoreTargetGameUnit;
+}
+
+void CX2GUEve::SetManeuverCoreTargetGameUnit ( CX2GameUnitoPtr pTargetUnit_ )
+{
+	// 기동 코어의 타켓을 설정한다.
+	m_pManeuverCoreTargetGameUnit = CX2GameUnitoPtr(pTargetUnit_);
+}
+
+void CX2GUEve::SetManeuverCoreRotateToTargetPos ( D3DXVECTOR3 vTargetPos_, D3DXVECTOR3 vOffsetRot_ )
+{
+	// 기동 코어가 타켓을 바라보도록 한다.	
+	D3DXVECTOR3 vManeuverCorePos = m_pManeuverCore->GetManeuverCorePosition( );
+	D3DXVECTOR3 vOriginPos = vTargetPos_ - vManeuverCorePos;
+	D3DXVECTOR3 vResultPos = GetDirVecToDegree ( vOriginPos ) + vOffsetRot_;
+ 
+	if ( NULL != GetManeuverCoreMeshInstance() )
+	{
+		GetManeuverCoreMeshInstance()->SetRotateDegree( vResultPos );
+		GetManeuverCoreMeshInstance()->SetMoveAxisAngleDegree( vResultPos );
+	}
+}
+
+D3DXVECTOR3 CX2GUEve::ManeuverCoreData::GetManeuverCorePosition ()
+{
+	if ( NULL != g_pX2Game->GetDamageEffect() )
+	{
+		CX2DamageEffect::CEffect* pManeuverCoreEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffect );
+		CKTDGXMeshPlayer::CXMeshInstance*  pManeuverCoreMeshInstance = ( pManeuverCoreEffect != NULL ) ? pManeuverCoreEffect->GetMainEffect() : NULL;
+		if ( NULL != pManeuverCoreMeshInstance )	
+		{
+			return pManeuverCoreMeshInstance->GetPos();					 
+		}
+	}
+	return D3DXVECTOR3 ( 0.f, 0.f, 0.f );
+}
+D3DXVECTOR3 CX2GUEve::ManeuverCoreData::GetManeuverCoreRotateExceptOffset ()
+{
+	if ( NULL != g_pX2Game->GetDamageEffect() )
+	{
+		CX2DamageEffect::CEffect* pManeuverCoreEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffect );
+		CKTDGXMeshPlayer::CXMeshInstance*  pManeuverCoreMeshInstance = ( pManeuverCoreEffect != NULL ) ? pManeuverCoreEffect->GetMainEffect() : NULL;
+		if ( NULL != pManeuverCoreMeshInstance )	
+		{
+			return pManeuverCoreMeshInstance->GetRotateDegree() - m_vOffsetRotate;
+		}
+	}
+	return D3DXVECTOR3(0,0,0);
+}
+
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+wstring CX2GUEve::GetBoneNameNearestImpactPoint ( const D3DXVECTOR3 & vImpactPoint ) 
+{
+	// 이브의 코어가 타켓으로 잡은 유닛의 타격이 일어난 좌표에서 가장 가까운 본 이름을 반환, 
+	wstring wstrTargetUnitBoneName = L"";
+	if ( null != GetManeuverCoreTargetGameUnit() )
+	{
+		CX2GameUnitoPtr pTargetUnit = GetManeuverCoreTargetGameUnit();
+		const CKTDXCollision::CollisionDataListSet& AttackListSet = GetManeuverCoreTargetGameUnit()->GetCollisionListSet();
+		if ( false == AttackListSet.empty () )
+		{
+			bool    bInit = false;
+			const CKTDXCollision::CollisionDataList* collisionDataList = *AttackListSet.begin();	
+			if ( NULL != collisionDataList && false == collisionDataList->empty() )
+			{
+				CKTDXCollision::CollisionData* collisionData = *collisionDataList->begin();
+				if ( NULL != collisionData )
+				{
+					D3DXVECTOR3 vTargetPos = collisionData->GetPointStart();
+					BOOST_FOREACH( const CKTDXCollision::CollisionDataList* collisionDataList, AttackListSet )
+					{
+						BOOST_FOREACH( CKTDXCollision::CollisionData* collisionData, *collisionDataList )
+						{
+							D3DXVECTOR3 vCollPos = collisionData->GetPointStart();
+							if ( bInit == false )
+							{
+								bInit = true;
+								wstrTargetUnitBoneName = collisionData->m_Name;
+								vTargetPos = vCollPos;
+								continue;
+							}
+
+							float fDist = GetDistance( vImpactPoint, vCollPos );
+							float fOldDist = GetDistance( vImpactPoint, vTargetPos );
+
+							if ( fDist <= fOldDist )
+							{
+								wstrTargetUnitBoneName = collisionData->m_Name;
+								vTargetPos = vCollPos;
+							}
+						}
+					}
+
+					if ( bInit == false )
+					{
+						wstrTargetUnitBoneName = L"";
+					}
+				}
+			}
+		}
+	}
+	return wstrTargetUnitBoneName;
+}
+
+D3DXVECTOR3 CX2GUEve::GetManeuverCoreTargetPosUsingCollisionData ()
+{
+	// 이브 수정 사항, 엘트리온과 같이 더미 몬스터를 사용하는 경우를 위한 예외 처리,
+	// 해당 유닛의 충돌 박스를 검사하여 가장 가까운 충돌 박스를 반환한다.
+
+	if ( null != GetManeuverCoreTargetGameUnit() )
+	{
+		CX2GameUnitoPtr pTargetUnit = GetManeuverCoreTargetGameUnit();
+		const CKTDXCollision::CollisionDataListSet& AttackListSet = GetManeuverCoreTargetGameUnit()->GetCollisionListSet();
+		if ( false == AttackListSet.empty() )
+		{
+			const CKTDXCollision::CollisionDataList* collisionDataList = *AttackListSet.begin();
+			if ( NULL != collisionDataList && false == collisionDataList->empty() )
+			{
+				CKTDXCollision::CollisionData* collisionData = *collisionDataList->begin();
+				if ( NULL != collisionData )
+				{
+					BOOST_FOREACH( const CKTDXCollision::CollisionDataList* collisionDataList, AttackListSet )
+					{
+						BOOST_FOREACH( CKTDXCollision::CollisionData* collisionData, *collisionDataList )
+						{
+							if ( collisionData->m_Name == m_wstrManeuverCoreTargetBoneName )
+								return collisionData->GetPointStart();
+						}
+					}
+				}
+			}		
+		}
+		return pTargetUnit->GetPos( false );
+	}
+	return D3DXVECTOR3(0,0,0);
+}
+
+/*virtual*/ const int CX2GUEve::GetHyperModeStateID()
+{
+	if ( 3 <= m_FrameDataFuture.syncData.m_HyperModeCount )
+		return static_cast<int>( ENSI_BERSERK_MODE );
+	else
+		return static_cast<int>( USI_HYPER_MODE );
+}
+
+
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
+

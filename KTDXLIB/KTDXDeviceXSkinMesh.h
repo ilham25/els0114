@@ -270,7 +270,7 @@ class CKTDXDeviceXSkinMesh	: public CKTDXDevice
 	public:
 
 		CKTDXDeviceXSkinMesh( LPDIRECT3DDEVICE9 pd3dDevice, std::wstring fileName, std::wstring moveBoneName = L"Bip01" );
-		virtual ~CKTDXDeviceXSkinMesh(void);
+
 
 		//virtual HRESULT _Load( bool bSkipStateCheck = false );
 		//virtual HRESULT _UnLoad();
@@ -333,7 +333,10 @@ class CKTDXDeviceXSkinMesh	: public CKTDXDevice
 				ConvertCharToWCHAR( wstrDeviceId, g_CKTDXLog.GetLastErrorLog() );
 				swprintf( wszText, sizeof(wszText) / sizeof(WCHAR) - 1, L"max: %d, dwInIndex_: %d, deviceid : %s", (int)m_dwFrameNum, (int)dwInIndex_, wstrDeviceId.c_str() );
                 ErrorLogMsg(KEM_ERROR209, wszText);
-				//ErrorLog(KEM_ERROR209);				
+				//ErrorLog(KEM_ERROR209);	
+#ifdef  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
+                return NULL;
+#endif  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
 			}
             ASSERT( dwInIndex_ < m_dwFrameNum && m_apFrameList[ dwInIndex_ ] != NULL );
             return m_apFrameList[ dwInIndex_ ];
@@ -347,6 +350,9 @@ class CKTDXDeviceXSkinMesh	: public CKTDXDevice
 				//swprintf( wszText, sizeof(wszText) / sizeof(WCHAR) - 1, L"max: %d, dwInIndex_: %d, deviceid : %s", (int)m_dwDrawFrameNum, (int)dwInIndex_, GetDeviceID() );
 				//ErrorLogMsg(KEM_ERROR210, wszText);
                 ErrorLog(KEM_ERROR210);
+#ifdef  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
+                return NULL;
+#endif  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
 			}
             ASSERT( dwInIndex_ < m_dwDrawFrameNum && m_apDrawFrameList[ dwInIndex_ ] != NULL ); 
             return m_apDrawFrameList[ dwInIndex_ ];
@@ -376,19 +382,21 @@ class CKTDXDeviceXSkinMesh	: public CKTDXDevice
 
 
 
-#ifdef MONSTER_DIE_PARTICLE_TEST
-		bool GetSurfaceVertices( std::vector<D3DXVECTOR3>& vecVertices );
-#endif MONSTER_DIE_PARTICLE_TEST
+//#ifdef MONSTER_DIE_PARTICLE_TEST
+//		bool GetSurfaceVertices( std::vector<D3DXVECTOR3>& vecVertices );
+//#endif MONSTER_DIE_PARTICLE_TEST
 
 		CKTDXDeviceXET* SetXET( CKTDXDeviceXET* pXET ){ m_pXET = pXET; }
 		CKTDXDeviceXET* GetXET() const { return m_pXET; }
 
 protected:
 
+		virtual ~CKTDXDeviceXSkinMesh(void);
+
 		virtual HRESULT _Load( bool bSkipStateCheck = false
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool bBackgroundQueueing = false
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD			
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD			
 			);
 		virtual HRESULT _UnLoad();
 

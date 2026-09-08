@@ -143,7 +143,7 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 
 			if ( vecCompleteQuest.empty() == false )
 			{
-				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG == INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG == INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					pHouseQuestInfo->m_hSeqCompleteQuestInfoBG = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"CompleteQuestInfoBG", 0,0,0, 1000, 1000, 1, 1 );
 
@@ -155,7 +155,7 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 					}
 				}
 
-				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfo == INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfo == INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					pHouseQuestInfo->m_hSeqCompleteQuestInfo = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"CompleteQuestInfo", 0,0,0, 1000, 1000, 1, 1 );
 					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( pHouseQuestInfo->m_hSeqCompleteQuestInfo );
@@ -167,12 +167,12 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 
 				bCheckNormalQuest = true;
 			
-				if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG );
 				}
 
-				if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableQuestInfo );
 				}
@@ -181,12 +181,12 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 			}
 			else if ( vecAccecptableQuest.empty() == false )
 			{
-				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG );
 				}
 
-				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfo != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqCompleteQuestInfo );
 				}
@@ -196,7 +196,7 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 
 				if ( bCheckNormalQuest == true )
 				{
-					if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG == INVALID_PARTICLE_HANDLE )
+					if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"AcceptableQuestInfoBG", 0,0,0, 1000, 1000, 1, 1  );
 
@@ -207,7 +207,7 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 						}
 					}
 
-					if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo == INVALID_PARTICLE_HANDLE )
+					if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo == INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						pHouseQuestInfo->m_hSeqAccecptableQuestInfo = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"AcceptableQuestInfo", 0,0,0, 1000, 1000, 1, 1  );
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( pHouseQuestInfo->m_hSeqAccecptableQuestInfo );
@@ -219,12 +219,12 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 				}
 				else
 				{
-					if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_HANDLE )
+					if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG );
 					}
 
-					if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_HANDLE )
+					if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 					{
 						g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableQuestInfo );
 					}
@@ -233,22 +233,22 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 			}
 			else
 			{
-				if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG );
 				}
 
-				if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableQuestInfo );
 				}
 
-				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG );
 				}
 
-				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfo != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqCompleteQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqCompleteQuestInfo );
 				}
@@ -259,7 +259,7 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 
 			if ( bCheckEventQuest == true )
 			{
-				if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG == INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG == INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"AcceptableEventQuestInfoBG", 0,0,0, 1000, 1000, 1, 1  );
 					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG );
@@ -272,7 +272,7 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 					}
 				}
 
-				if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfo == INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfo == INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					pHouseQuestInfo->m_hSeqAccecptableEventQuestInfo = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"AcceptableEventQuestInfo", 0,0,0, 1000, 1000, 1, 1  );
 
@@ -288,12 +288,12 @@ void CX2InformerQuest::CheckHouseQuestInfo()
 			}
 			else
 			{
-				if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG );
 				}
 
-				if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfo != INVALID_PARTICLE_HANDLE )
+				if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfo );
 				}
@@ -313,32 +313,32 @@ void CX2InformerQuest::UnCheckHouseQuestInfo()
 
 
 			
-		if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_HANDLE )
+		if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableQuestInfoBG );
 		}
 
-		if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_HANDLE )
+		if ( pHouseQuestInfo->m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableQuestInfo );
 		}
 
-		if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG != INVALID_PARTICLE_HANDLE )
+		if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfoBG );
 		}
 
-		if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfo != INVALID_PARTICLE_HANDLE )
+		if ( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqAccecptableEventQuestInfo );
 		}
 
-		if ( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG != INVALID_PARTICLE_HANDLE )
+		if ( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqCompleteQuestInfoBG );
 		}
 
-		if ( pHouseQuestInfo->m_hSeqCompleteQuestInfo != INVALID_PARTICLE_HANDLE )
+		if ( pHouseQuestInfo->m_hSeqCompleteQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( pHouseQuestInfo->m_hSeqCompleteQuestInfo );
 		}
@@ -600,33 +600,33 @@ CX2InformerQuest::HouseQuestInfo::HouseQuestInfo()
 {
 	m_HouseID = -1;
 
-	m_hSeqAccecptableQuestInfoBG		= INVALID_PARTICLE_HANDLE;
-	m_hSeqAccecptableQuestInfo			= INVALID_PARTICLE_HANDLE;
-	m_hSeqCompleteQuestInfoBG			= INVALID_PARTICLE_HANDLE;
-	m_hSeqCompleteQuestInfo				= INVALID_PARTICLE_HANDLE;
+	m_hSeqAccecptableQuestInfoBG		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqAccecptableQuestInfo			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqCompleteQuestInfoBG			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqCompleteQuestInfo				= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hSeqAccecptableEventQuestInfoBG	= INVALID_PARTICLE_HANDLE;
-	m_hSeqAccecptableEventQuestInfo		= INVALID_PARTICLE_HANDLE;
+	m_hSeqAccecptableEventQuestInfoBG	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqAccecptableEventQuestInfo		= INVALID_PARTICLE_SEQUENCE_HANDLE;
 }
 
 CX2InformerQuest::HouseQuestInfo::~HouseQuestInfo()
 {
-	if ( m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqAccecptableQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqAccecptableQuestInfoBG );
 
-	if ( m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqAccecptableQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqAccecptableQuestInfo );
 
-	if ( m_hSeqCompleteQuestInfoBG != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqCompleteQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqCompleteQuestInfoBG );
 
-	if ( m_hSeqCompleteQuestInfo != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqCompleteQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqCompleteQuestInfo );
 
-	if ( m_hSeqAccecptableEventQuestInfoBG != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqAccecptableEventQuestInfoBG != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqAccecptableEventQuestInfoBG );
 
-	if ( m_hSeqAccecptableEventQuestInfo != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqAccecptableEventQuestInfo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqAccecptableEventQuestInfo );
 }
 

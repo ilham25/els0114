@@ -12,10 +12,10 @@
 #include "logfile.hpp"
 
 //{{ florist
-#include "atltime.h"    // ï¿½ï¿½ï¿½ï¿½ï¿½ Shared Class ï¿½ï¿½ï¿½. VC 6.0ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+#include "atltime.h"    // ´ë³õ°í Shared Class »ç¿ë. VC 6.0Àº »ç¿ëÇÒ ¼ö ¾ø´Ù.
 
 // The log file logs everything to this file name
-#define TB_LOGFILE_NAME "log.htm"   // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ cppï¿½ï¿½ ï¿½Å°Ü¿Ô´ï¿½.
+#define TB_LOGFILE_NAME "log.htm"   // Çì´õ¿¡ ÀÖ´ø ¸ÅÅ©·Î ¼±¾ðÀ» cpp·Î ¿Å°Ü¿Ô´Ù.
 
 #include <direct.h>     // _mkdir
 #include <windows.h>    // GetCurrentDirectory
@@ -31,7 +31,7 @@
 #include <boost/archive/codecvt_null.hpp>
 
 
-// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Î¿ï¿½ sub folderï¿½ï¿½ ï¿½Þ´Â´ï¿½. ï¿½Ô¼ï¿½ï¿½ï¿½ sub-folderï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½Þ´Â´ï¿½.
+// ÇöÀç °æ·Î¿¡ sub folder¸¦ ¹Þ´Â´Ù. ÇÔ¼ö´Â sub-folderÀÇ ÀÌ¸§¸¸ ¹Þ´Â´Ù.
 bool MakeFolder( const wchar_t* szPath )
 {
     wchar_t pathbuff[MAX_PATH]     = {0};
@@ -41,11 +41,11 @@ bool MakeFolder( const wchar_t* szPath )
     strFolderPath += L"\\";
     strFolderPath += szPath;
 
-    if( 0 == ::_wmkdir( strFolderPath.c_str() ) ) return true;  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½.
+    if( 0 == ::_wmkdir( strFolderPath.c_str() ) ) return true;  // »ý¼ºµÈ °æ¿ì.
 
     switch( errno )
     {
-    case EEXIST:    // ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
+    case EEXIST:    // ÀÌ¹Ì Á¸ÀçÇÏ´Â °æ¿ì
         return true;
         break;
     default:        // unknown error.
@@ -132,7 +132,7 @@ namespace dbg
         std::locale old_locale;
         std::locale utf8_locale( old_locale,new utf::utf8_codecvt_facet );
         //std::locale utf16_locale( old_locale,new boost::archive::codecvt_null<wchar_t> );
-        std::locale utf16_locale( "" );// 051226. kkurrung. ï¿½Ü¼Ö¿ï¿½ ï¿½Ñ±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½).
+        std::locale utf16_locale( "" );// 051226. kkurrung. ÄÜ¼Ö¿¡ ÇÑ±Û Ãâ·Â ¹®Á¦(ÄÚµåÆäÀÌÁö Áö¿ø¹®Á¦).
 
     } 
 
@@ -147,7 +147,7 @@ namespace dbg
     //bool logfile::m_was_warn = false;
 
     //{{ florist
-    bool logfile::ms_bFileNameAtTime = false;   // default : false. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+    bool logfile::ms_bFileNameAtTime = false;   // default : false. Å¬¶óÀÌ¾ðÆ®ÀÇ ±âº»°ª¿¡ ¸ÂÃßÀÚ.
     short logfile::ms_sLevel = 2;
     std::string logfile::ms_strFileName( "Logfile Not Initialize Yet." );
 
@@ -334,7 +334,7 @@ namespace dbg
         ms_sLevel = sLevel;
     }
 
-    void logfile::SetFileNameAtTime( bool bFileNameAtTime )     // trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ log ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×¾ÆµÐ´ï¿½.
+    void logfile::SetFileNameAtTime( bool bFileNameAtTime )     // true·Î ¼³Á¤ÇÏ¸é log Æú´õ ¹Ø¿¡ ·Î±×ÆÄÀÏÀ» ½×¾ÆµÐ´Ù.
     {
         CloseFile();
         ms_bFileNameAtTime = bFileNameAtTime;
@@ -349,7 +349,7 @@ namespace dbg
 
         if( ms_bFileNameAtTime )
         {
-            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
+            // Æú´õ°¡ ¾øÀ¸¸é ¸¸µç´Ù.
             MakeFolder( L"log" );
             stm << (CStringA)CTime::GetCurrentTime().Format(_T("log\\log_%Y.%m.%d_%H.%M.%S.htm"));
         }
@@ -407,95 +407,6 @@ namespace dbg
         std::wcout << L"\r\n-----------------------------------------------\r\n";
         return l;
     }
-
-	//{{ Iruha : 2026-08-27 // VS2010 port: backported from KNCSDK/Include/dbg/logfile.cpp.
-	// The original used std::hash_value() out of <hash_map>, whose availability/namespace
-	// is not consistent between the VC7.1 and VC10 Dinkumware STL; this key only needs to
-	// aggregate log call sites, so a plain FNV-1a hash over the same string avoids the
-	// portability question entirely.
-	namespace
-	{
-		unsigned int LogStatHashKey( const std::wstring& wstr )
-		{
-			unsigned int uiHash = 2166136261u;
-			for( size_t i = 0; i < wstr.size(); ++i )
-			{
-				uiHash ^= static_cast<unsigned int>( wstr[i] );
-				uiHash *= 16777619u;
-			}
-			return uiHash;
-		}
-	}
-
-	int logfile::GetLogFileSize()
-	{
-		m_file.seekp( 0, std::ios::end );
-
-		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		return m_file.tellp();
-	}
-
-	logfile& logfile::LogStat( const wchar_t* pStrFunctionName, const wchar_t* pStrFileName, const int iLineNum )
-	{
-		//{{ florist
-		if( m_sLevel > ms_sLevel ) return *this;
-		//}} florist
-
-		std::wstringstream wstrStream;
-		wstrStream << iLineNum;
-
-		// ï¿½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ hashï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
-		std::wstring wstrHashKey;
-		wstrHashKey += pStrFunctionName;
-		wstrHashKey += pStrFileName;
-		wstrHashKey += wstrStream.str();
-		const unsigned int uiHashKey = LogStatHashKey( wstrHashKey );
-
-		// ï¿½Ø´ï¿½ ï¿½Ø½ï¿½Å°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³Ê¸ï¿½ ï¿½ï¿½È¸ï¿½Ñ´ï¿½.
-		{
-			// lockï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½È­ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ ï¿½Ñ´ï¿½!
-			KLocker lock( m_csLogStat );
-
-			std::map< unsigned int, KLogStat >::iterator mit;
-			mit = m_mapLogStat.find( uiHashKey );
-			if( mit == m_mapLogStat.end() )
-			{
-				// ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ - Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×¶ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ insertï¿½ï¿½ ï¿½É°ï¿½ï¿½Ì´ï¿½.
-				KLogStat kLogStat;
-				kLogStat.m_wstrFunctionName = pStrFunctionName;
-				kLogStat.m_wstrFileName = pStrFileName;
-				kLogStat.m_wstrLineNum = wstrStream.str();
-				kLogStat.m_iCount = 1;
-				m_mapLogStat.insert( std::make_pair( uiHashKey, kLogStat ) );
-			}
-			else
-			{
-				// Ä«ï¿½ï¿½Æ® 1ï¿½ï¿½ï¿½ï¿½! - ï¿½Î¹ï¿½Â° ï¿½ï¿½ï¿½Ä·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×¶ï¿½ï¿½ findï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½æ¸¸ ï¿½Ï¾ï¿½Ç·ï¿½ lockï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½È­ ï¿½È´ï¿½.
-				++mit->second.m_iCount;
-			}
-		}
-
-		return *this;
-	}
-
-	void logfile::GetLogStat( std::map< unsigned int, KLogStat >& mapLogStat ) const
-	{
-		mapLogStat.clear();
-
-		{
-			KLocker lock( m_csLogStat );
-
-			mapLogStat = m_mapLogStat;
-		}
-	}
-
-	void logfile::ClearLogStat()
-	{
-		KLocker lock( m_csLogStat );
-
-		m_mapLogStat.clear();
-	}
-	//}}
 } // dbg
 
 

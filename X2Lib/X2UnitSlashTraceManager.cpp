@@ -15,8 +15,11 @@ void CX2UnitSlashTraceManager::OnFrameMove( double fTime, float fElapsedTime )
 {
 	KTDXPROFILE();
 
-
-	if( true == g_pMain->GetGameOption()->GetOptionList()->m_bEffect )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( true == g_pMain->GetGameOption().GetOptionList().m_bEffect )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	{
 		SetEnable( true );
 	}

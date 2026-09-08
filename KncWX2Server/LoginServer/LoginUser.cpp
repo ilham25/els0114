@@ -24,6 +24,22 @@
 	#include "../Common/OnlyGlobal/AuthAndBilling/TH/AsiaSoftAuthManager.h"
 #endif // SERV_COUNTRY_TH
 
+#ifdef SERV_KOG_OTP_VERIFY
+	#include "LoginSimLayer.h"
+#endif // SERV_KOG_OTP_VERIFY
+
+#ifdef SERV_COUNTRY_CN
+#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantAuthManager.h"
+#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantRoleRegManager.h"
+#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantInfoManager.h"
+#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantBillingManager.h"
+#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantCouponManager.h"
+#endif SERV_COUNTRY_CN
+
+#ifdef SERV_COUNTRY_PH
+#include "../Common/OnlyGlobal/AuthAndBilling/PH/GarenaBillingServer.h"
+#endif //SERV_COUNTRY_PH
+
 //{{ 2008. 7. 14  최육사  랭킹
 #include "RankingManager.h"
 //}}
@@ -68,27 +84,11 @@
 	#include "BuffManager.h"
 #endif SERV_SERVER_BUFF_SYSTEM
 //}
-#ifdef SERV_KOG_OTP_VERIFY
-	#include "LoginSimLayer.h"
-#endif // SERV_KOG_OTP_VERIFY
-
-#ifdef SERV_COUNTRY_CN
-#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantAuthManager.h"
-#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantRoleRegManager.h"
-#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantInfoManager.h"
-#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantBillingManager.h"
-#include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantCouponManager.h"
-#endif SERV_COUNTRY_CN
-
 //{{ 2013. 04. 01	 인연 시스템 - 김민성
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	#include "WeddingHallManager.h"
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
-
-#ifdef SERV_COUNTRY_PH
-#include "../Common/OnlyGlobal/AuthAndBilling/PH/GarenaBillingServer.h"
-#endif //SERV_COUNTRY_PH
 
 #pragma comment( lib, "../Common/Nexon/AuthCheck.lib" )
 
@@ -433,6 +433,9 @@ void KLoginUser::ProcessEvent( const KEventPtr& spEvent_ )
    CASE( EBILL_EXCHANGE_CASH_RESERVE_ACK );
    _CASE( ELG_USE_COUPON_REQ, KEBILL_USE_COUPON_REQ );
    CASE( EBILL_USE_COUPON_RESERVE_ACK );
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	CASE( ELG_CASH_DIRECT_CHARGE_CN_REQ );
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 #endif SERV_COUNTRY_CN
 
    //{{ 2013. 04. 01	 인연 시스템 - 김민성
@@ -457,11 +460,18 @@ void KLoginUser::ProcessEvent( const KEventPtr& spEvent_ )
    CASE( ELG_CHANGE_LOVE_WORD_NOT );
 #endif SERV_RELATIONSHIP_SYSTEM
    //}
-   
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	CASE( ELG_EVENT_PROPOSE_CHECK_CONNECT_USER_REQ );
+	_CASE( ELG_EVENT_PROPOSE_AGREE_CHECK_NOT, KEGS_EVENT_PROPOSE_AGREE_NOT );
+	_CASE( ELG_EVENT_PROPOSE_RESULT_SUCCESS_NOT, KERM_EVENT_PROPOSE_RESULT_SUCCESS_NOT );
+	CASE( ELG_DIVORCE_NOT );
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 #ifdef SERV_COUNTRY_PH
    _CASE( ELG_GN_CHANGE_GAME_CURRENCY_NOT, KEBILL_GN_CHANGE_GAME_CURRENCY_REQ );
 #endif //SERV_COUNTRY_PH
-
+   
 #ifdef SERV_RECRUIT_EVENT_BASE
    _CASE( ELG_REGISTER_RECRUITER_NOT, KEGS_REGISTER_RECRUITER_NOT );
    _CASE( ELG_GET_RECRUIT_RECRUITER_LIST_REQ, KEGS_GET_RECRUIT_RECRUITER_LIST_ACK );
@@ -581,6 +591,22 @@ bool KLoginUser::AuthenticateUser( const wchar_t* szPassport, const wchar_t* szH
 					uChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT;
 				}
 			}
+            else if( static_cast<int>( wstrID.find( L"@naver", 0 ) ) != -1 )
+            {
+                if( uChannelCode != KNexonAccountInfo::CE_NAVER_ACCOUNT )
+                {
+                    START_LOG( cout2, L"@naver 가 포함 되어 있다. 그런데 채널코드가 6 아니다!" )
+                        << BUILD_LOG( szPassport )
+                        << BUILD_LOG( (int)errorCode )
+                        << BUILD_LOG( szID )
+                        << BUILD_LOG( nNexonSN )
+                        << BUILD_LOG( uChannelCode )
+                        << END_LOG;
+
+                    // 보정하자
+                    uChannelCode = KNexonAccountInfo::CE_NAVER_ACCOUNT;
+                }
+            }
 			else if( static_cast<int>( wstrID.find( L"@nx", 0 ) ) != -1 )  //'@nx' 가 포함 되어 있다.
 			{
 				if( uChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
@@ -700,7 +726,9 @@ bool KLoginUser::AuthenticateUser( const wchar_t* szPassport, const wchar_t* szH
 				kInfo.m_uSecureCode = uSecureCode;
 				kInfo.m_uChannelCode = uChannelCode;
 
-				if( kInfo.m_uChannelCode != 0 && kInfo.m_uChannelCode != 3 )
+				if( kInfo.m_uChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT && 
+                    kInfo.m_uChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT && 
+                    kInfo.m_uChannelCode != KNexonAccountInfo::CE_NAVER_ACCOUNT )
 				{
 					START_LOG( cerr, L"사용하지 않는 채널링 값입니다." )
 						<< BUILD_LOG( errorCode )
@@ -1620,9 +1648,12 @@ IMPL_ON_FUNC( ELG_REGISTER_USER_REQ )
             << END_LOG;
     }
 
-	//{{ SERV_GLOBAL_AUTH 국내에 맞춰서 수정함
+#ifdef SERV_GLOBAL_AUTH
     if( KSimLayer::GetKObj()->GetAuthFlag() != KSimLayer::AF_NONE && 
 		KSimLayer::GetKObj()->GetAuthFlag() != KSimLayer::AF_INTERNAL )
+#else
+    if( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_NEXON_KOREA )
+#endif SERV_GLOBAL_AUTH
     {
         // OK 인 경우 PC 방 인증 처리 루틴으로 넘어갔다. 실패했으면 끊는다.
         if( kPacket.m_iOK != NetError::NET_OK )
@@ -1652,11 +1683,11 @@ IMPL_ON_FUNC( ELG_REGISTER_USER_REQ )
 		}
 #endif //SERV_GLOBAL_AUTH
     }
-	//}}
     else
     {
 		//{{ 2012. 09. 03	최육사		중복 접속 버그 수정
 #ifdef SERV_DUPLICATE_CONNECT_BUG_FIX
+		// 사내서버의 경우 PC방 인증서버로 인증패킷을 보내지 않기 때문에 중복체크를 바로 해제 시킨다.
 		GetKLoginSimLayer()->UnRegAuthWaitUser( FIRST_SENDER_UID );
 #endif SERV_DUPLICATE_CONNECT_BUG_FIX
 		//}}
@@ -1707,9 +1738,12 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_REGISTER_USER_REQ )
 		kPacket.m_kChangeUserInfo = kPacket_.m_kChangeUserInfo;
 	}
 
-	//{{ SERV_GLOBAL_AUTH 국내에 맞춰서 수정함
+#ifdef SERV_GLOBAL_AUTH
     if( KSimLayer::GetKObj()->GetAuthFlag() != KSimLayer::AF_NONE && 
 		KSimLayer::GetKObj()->GetAuthFlag() != KSimLayer::AF_INTERNAL )
+#else
+	if( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_NEXON_KOREA )
+#endif SERV_GLOBAL_AUTH
 	{
 		// OK 인 경우 PC 방 인증 처리 루틴으로 넘어갔다. 실패했으면 끊는다.
 		if( kPacket.m_iOK != NetError::NET_OK )
@@ -1726,10 +1760,10 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_REGISTER_USER_REQ )
 			SendToAccountDB( DBE_UPDATE_IS_LOGIN_NOT, kNot );
 		}
 	}
-	//}}
 
 	//{{ 2012. 09. 03	최육사		중복 접속 버그 수정
 #ifdef SERV_DUPLICATE_CONNECT_BUG_FIX
+	// 채널이동의 경우 중복 체크를 하지 않는다. 따라서 여기서 그냥 바로 해제 시킨다.
 	GetKLoginSimLayer()->UnRegAuthWaitUser( FIRST_SENDER_UID );
 #endif SERV_DUPLICATE_CONNECT_BUG_FIX
 	//}}
@@ -1811,7 +1845,6 @@ _IMPL_ON_FUNC( ELG_SECURITY_AUTH_REQ, KEPUBLISHER_SECURITY_AUTH_REQ )
 //////////////////////////////////////////////////////////////////////////
 
 #ifdef SERV_COUNTRY_CN
-
 IMPL_ON_FUNC( EPUBLISHER_BILLING_BALANCE_REQ )
 {
 	VERIFY_STATE( ( 1, KDefaultFSM::S_LOGINED ) );
@@ -1840,7 +1873,6 @@ IMPL_ON_FUNC( EPUBLISHER_BILLING_BALANCE_REQ )
 //	spEvent->SetData(PI_NULL, anTrace, EGIANT_AUTH_LOGIN_MTCARD, kPacket );
 //	SiKGiantAuthManager()->QueueingEvent( spEvent );
 //}
-
 
 IMPL_ON_FUNC( EBILL_GET_TRANS_FOR_CHECK_BALANCE_ACK )
 {
@@ -1980,10 +2012,8 @@ IMPL_ON_FUNC( EGIANT_INFO_USERONLINE_REQ )
 }
 #endif //SERV_INFOSERVER_ADD_WORK
 
-
 #endif // SERV_COUNTRY_CN
 //////////////////////////////////////////////////////////////////////////
-
 
 //{{ 2010. 06. 29  최육사	게임 PC방 인증 서버 개편
 #ifdef SERV_PCBANG_AUTH_NEW
@@ -2579,8 +2609,7 @@ IMPL_ON_FUNC( ELG_DEL_TUTORIAL_NOT )
 #else SERV_NETERROR_STR_GET_FROM_CLIENT
 	kPacket.m_wstrReason = kPacket_.m_wstrReason;
 #endif SERV_NETERROR_STR_GET_FROM_CLIENT
-	//}}
-	
+	//}}	
 
 	SendToGSUser( kUserInfo.m_nGSUID, kUserInfo.m_nUserUID, ELG_DEL_TUTORIAL_NOT, kPacket );
 }
@@ -5094,8 +5123,7 @@ IMPL_ON_FUNC( ELG_ADMIN_DELETE_GUILD_ADD_NOT )
 			<< BUILD_LOG( kPacket_.m_iGuildUID );
 	}
 }
-#endif
-
+#endif SERV_DELETE_GUILD_ADD_CHEAT
 
 //{{ 2011.03.04  임규수 헤니르 랭킹 삭제 치트 ( 운영자,개발자 계정 )
 #ifdef SERV_DELETE_HENIR_RANKING
@@ -5186,7 +5214,6 @@ IMPL_ON_FUNC( ELG_PCBANG_LOGOUT_NOT )
 	GetKLoginSimLayer()->LogoutPcBang( kPacket_ );
 }
 #endif //SERV_CHECK_PCBANG_BY_PUBLISHER
-
 
 #ifdef	SERV_LOCAL_RANKING_SYSTEM // 적용날짜: 2013-03-24
 _IMPL_ON_FUNC( EGS_LOCAL_RANKING_INQUIRY_REQ, KLocalRankingInquiryData )
@@ -5608,11 +5635,69 @@ IMPL_ON_FUNC( ELG_CHANGE_LOVE_WORD_NOT )
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
 
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+IMPL_ON_FUNC( ELG_EVENT_PROPOSE_CHECK_CONNECT_USER_REQ )
+{
+	KUserList::KGSUserInfo kUserInfo;
+	if( GetKLoginSimLayer()->GetGSUserInfoByUnitUID( kPacket_.m_iOtherUnitUID, kUserInfo ) == false )
+	{
+		KELG_EVENT_PROPOSE_CHECK_CONNECT_USER_ACK kAck;
+		kAck.m_iOK = NetError::ERR_RELATIONSHIP_08;
+		kAck.m_wstrNickName = kPacket_.m_wstrAcceptUnitName;
+		SendToGSUser( FIRST_SENDER_UID, ELG_EVENT_PROPOSE_CHECK_CONNECT_USER_ACK, kAck );
+		return;
+	}
+
+	// 신청자에게 결과 회신
+	KELG_EVENT_PROPOSE_CHECK_CONNECT_USER_ACK kAck;
+	kAck.m_iOK = NetError::NET_OK;
+	kAck.m_wstrNickName = kPacket_.m_wstrAcceptUnitName;
+	SendToGSUser( FIRST_SENDER_UID, ELG_EVENT_PROPOSE_CHECK_CONNECT_USER_ACK, kAck );
+
+	// 가상 결혼 프로포즈
+	KELG_EVENT_PROPOSE_NOT kPacket;
+	kPacket.m_wstrRequestUnitName = kPacket_.m_wstrRequestUnitName;
+	kPacket.m_iRequestUnitUID = kPacket_.m_iRequestUnitUID;
+	SendToGSUser( kUserInfo.m_nGSUID, kUserInfo.m_nUserUID, ELG_EVENT_PROPOSE_NOT, kPacket );
+}
+
+_IMPL_ON_FUNC( ELG_EVENT_PROPOSE_AGREE_CHECK_NOT, KEGS_EVENT_PROPOSE_AGREE_NOT )
+{
+	KUserList::KGSUserInfo kUserInfo;
+	if( GetKLoginSimLayer()->GetGSUserInfoByUnitUID( kPacket_.m_iRequestUnitUID, kUserInfo ) == false )
+	{
+		return;
+	}
+
+	SendToGSUser( kUserInfo.m_nGSUID, kUserInfo.m_nUserUID, ELG_EVENT_PROPOSE_AGREE_CHECK_NOT, kPacket_ );
+}
+
+_IMPL_ON_FUNC( ELG_EVENT_PROPOSE_RESULT_SUCCESS_NOT, KERM_EVENT_PROPOSE_RESULT_SUCCESS_NOT )
+{
+	KUserList::KGSUserInfo kUserInfo;
+	if( GetKLoginSimLayer()->GetGSUserInfoByUnitUID( kPacket_.m_iAcceptUnitUID, kUserInfo ) == false )
+	{
+		return;
+	}
+
+	SendToGSUser( kUserInfo.m_nGSUID, kUserInfo.m_nUserUID, ELG_EVENT_PROPOSE_RESULT_SUCCESS_NOT, kPacket_ );
+}
+
+IMPL_ON_FUNC( ELG_DIVORCE_NOT, KELG_DIVORCE_NOT )
+{
+	KUserList::KGSUserInfo kUserInfo;
+	if( GetKLoginSimLayer()->GetGSUserInfoByUnitUID( kPacket_.m_iLoverUnitUID, kUserInfo ) == false )
+	{
+		return;
+	}
+
+	SendToGSUser( kUserInfo.m_nGSUID, kUserInfo.m_nUserUID, ELG_DIVORCE_NOT, kPacket_ );
+}
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 #ifdef SERV_COUNTRY_PH
 _IMPL_ON_FUNC( ELG_GN_CHANGE_GAME_CURRENCY_NOT, KEBILL_GN_CHANGE_GAME_CURRENCY_REQ )
 {
-
-
 	if (kPacket_.m_iResult == 0)
 	{
 		SendToKOGBillingDB(EBILL_GN_CHANGE_GAME_CURRENCY_REQ, kPacket_);
@@ -5646,15 +5731,11 @@ _IMPL_ON_FUNC( ELG_GN_CHANGE_GAME_CURRENCY_NOT, KEBILL_GN_CHANGE_GAME_CURRENCY_R
 		spEvent->SetData(PI_LOGIN_GARENA_BILLING, anTrace, EJSON_GN_CHANGE_GAME_CURRENCY_ACK, kPacketACK );
 
 		SiKGarenaBillingServer()->QueueingEvent( spEvent );
-
 	}
-
 }
-
 #endif //SERV_COUNTRY_PH
 
 #ifdef SERV_RECRUIT_EVENT_BASE
-
 _IMPL_ON_FUNC( ELG_GET_RECRUIT_RECRUITER_LIST_REQ, KEGS_GET_RECRUIT_RECRUITER_LIST_ACK )
 {
 	VERIFY_STATE( ( 1, KDefaultFSM::S_LOGINED ) );
@@ -5763,3 +5844,50 @@ IMPL_ON_FUNC( ELG_RECRUIT_RECRUITER_INFO_NOT )
 	SendToGSUser( kUserInfo.m_nGSUID, kUserInfo.m_nUserUID, ELG_RECRUIT_RECRUITER_INFO_NOT, kReverse );
 }
 #endif SERV_RECRUIT_EVENT_BASE
+
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+IMPL_ON_FUNC( ELG_CASH_DIRECT_CHARGE_CN_REQ )
+{
+	VERIFY_STATE( ( 1, KDefaultFSM::S_LOGINED ) );
+
+	START_LOG( cout, L"[TEST] Direct Charge 주소 요청 Login User 에 도착" )
+		<< BUILD_LOG( kPacket_.m_iUserUID )
+		<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
+		<< BUILD_LOG( kPacket_.m_iUnitUID )
+		<< BUILD_LOG( kPacket_.m_wstrUnitNickName )
+		<< BUILD_LOG( kPacket_.m_wstrIP )
+		<< END_LOG;
+
+	if( false == GetKLoginSimLayer()->IsEnableCNDirectCharge() )
+	{
+		START_LOG( cout, L"[CN] Direct Charge 꺼져 있어서 중국 인증서버에 패킷 보내지 않는다." )
+			<< BUILD_LOG( kPacket_.m_iUserUID )
+			<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
+			<< BUILD_LOG( kPacket_.m_iUnitUID )
+			<< BUILD_LOG( kPacket_.m_wstrUnitNickName )
+			<< BUILD_LOG( kPacket_.m_wstrIP )
+			<< END_LOG;
+
+		KEGS_CASH_DIRECT_CHARGE_CN_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_UNKNOWN;
+		SendToGSUser(FIRST_SENDER_UID, ELG_CASH_DIRECT_CHARGE_CN_ACK, kPacketAck);
+
+		return;
+	}
+
+	// 필요한 정보 추가로 담고 중국 인증 서버로 패킷 보낸다
+	KEGIANT_AUTH_DIRECT_CHARGE_REQ kPacket;
+	kPacket.m_wstrServiceAccountID = GetName();
+	kPacket.m_uiUserUID = GetUID();
+	kPacket.m_ulGameZone = ((SiKGiantAuthManager()->GetServerInfo().m_usGame * 65536) + SiKGiantAuthManager()->GetServerInfo().m_usZone);
+	kPacket.m_uiUnitUID = kPacket_.m_iUnitUID;
+	kPacket.m_wstrUnitNickName = kPacket_.m_wstrUnitNickName;
+	kPacket.m_wstrIP = GetIP();
+	
+	KEventPtr spEvent( new KEvent );
+	UidType anTrace[2] = { GetUID(), -1 };
+	spEvent->SetData(PI_NULL, anTrace, EGIANT_AUTH_DIRECT_CHARGE_REQ, kPacket );
+	SiKGiantAuthManager()->QueueingEvent( spEvent );
+}
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH

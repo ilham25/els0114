@@ -64,10 +64,17 @@ public:
 	bool GetEnchantResult( IN bool bIsRare, IN int iEnchantLevel, OUT int& iResult );
 #endif SERV_ENCHANT_PLUS_ITEM
 	
+#ifdef SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+	std::vector< int > GetWeaponEnchantStoneID()          { return m_vecWeaponEnchantStone; }
+	std::vector< int > GetRareWeaponEnchantStoneID()      { return m_vecRareWeaponEnchantStone; }
+	std::vector< int > GetArmorEnchantStoneID()           { return m_vecArmorEnchantStone; }
+	std::vector< int > GetRareArmorEnchantStoneID()       { return m_vecRareArmorEnchantStone; }
+#else //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 	int  GetWeaponEnchantStoneID()          { return m_iWeaponEnchantStone; }
 	int  GetRareWeaponEnchantStoneID()      { return m_iRareWeaponEnchantStone; }
 	int  GetArmorEnchantStoneID()           { return m_iArmorEnchantStone; }
 	int  GetRareArmorEnchantStoneID()       { return m_iRareArmorEnchantStone; }
+#endif //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 
 	//{{ 2008. 11. 16  최육사	강화 개편
 	int  GetEnchantStoneItemID( int iEquipLv, int iItemType );
@@ -87,12 +94,19 @@ public:
 	bool SetEnchantProbability_LUA( int iEnchantLevel );
 	bool SetEnchantRareProbability_LUA( int iEnchantLevel );
 
+#ifdef SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+	void AddWeaponEnchantStone_LUA( int iWeaponEnchantStone )			{ m_vecWeaponEnchantStone.push_back( iWeaponEnchantStone ); }
+	void AddRareWeaponEnchantStone_LUA( int iRareWeaponEnchantStone )	{ m_vecRareWeaponEnchantStone.push_back( iRareWeaponEnchantStone ); }
+	void AddArmorEnchantStone_LUA( int iArmorEnchantStone )				{ m_vecArmorEnchantStone.push_back( iArmorEnchantStone ); }
+	void AddRareArmorEnchantStone_LUA( int iRareArmorEnchantStone )		{ m_vecRareArmorEnchantStone.push_back( iRareArmorEnchantStone ); }
+#else //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 	//{{hoons.080815. 변수 직접 링크가 아닌 함수인자로 받게함.
 	void SetWeaponEnchantStone_LUA( int iWeaponEnchantStone )			{ m_iWeaponEnchantStone = iWeaponEnchantStone; }
 	void SetRareWeaponEnchantStone_LUA( int iRareWeaponEnchantStone )	{ m_iRareWeaponEnchantStone = iRareWeaponEnchantStone; }
 	void SetArmorEnchantStone_LUA( int iArmorEnchantStone )				{ m_iArmorEnchantStone = iArmorEnchantStone; }
 	void SetRareArmorEnchantStone_LUA( int iRareArmorEnchantStone )		{ m_iRareArmorEnchantStone = iRareArmorEnchantStone; }
 	//}}
+#endif //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 
 	//{{ 2008. 11. 16  최육사	강화 개편
 	bool AddEnchantStoneInfo_LUA( int iItemID, int iItemType, int iEquipLvMin, int iEquipLvMax );
@@ -193,10 +207,17 @@ private:
 	std::map< int, float >		 			m_mapEnchantRate;
 	std::map< int, KLottery >               m_mapEnchantProb;
 	std::map< int, KLottery >               m_mapEnchantRareProb;
+#ifdef SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+	std::vector< int >						m_vecWeaponEnchantStone;
+	std::vector< int >						m_vecRareWeaponEnchantStone;
+	std::vector< int >						m_vecArmorEnchantStone;
+	std::vector< int >						m_vecRareArmorEnchantStone;
+#else //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
     int                                     m_iWeaponEnchantStone;
     int                                     m_iRareWeaponEnchantStone;
     int                                     m_iArmorEnchantStone;
     int                                     m_iRareArmorEnchantStone;
+#endif //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 	//{{ 2011. 01. 24	최육사	플루오르 강화 레벨 제한
 #ifdef SERV_SUPPORT_MATERIAL_LIMIT
 	int										m_iEnchantLimitLevel;

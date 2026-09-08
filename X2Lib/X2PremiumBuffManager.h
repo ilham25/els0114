@@ -7,10 +7,18 @@
 #ifdef COME_BACK_REWARD
 
 #ifdef BUFF_TEMPLET_SYSTEM
+
 class CX2PremiumBuffTemplet;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2PremiumBuffTemplet> CX2PremiumBuffTempletPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef shared_ptr<CX2PremiumBuffTemplet> CX2PremiumBuffTempletPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 class CX2PremiumBuffTemplet
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 {
 public:
 
@@ -78,13 +86,24 @@ public:
 
 	bool ParsingScript( IN KLuaManager& luaManager_ );
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 private:
 	CX2PremiumBuffTemplet()
 		: m_ePremiumBuffID( BI_NONE ), 
 		  m_uiStringID( 0 ),
 		  m_fPremiumBuffPeriodSecond( 0 )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+          , m_uRefCount( 0 )
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{}
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	CX2PremiumBuffTemplet::BUFF_ID					m_ePremiumBuffID;
 	UINT											m_uiStringID;
 	float											m_fPremiumBuffPeriodSecond;
@@ -92,10 +111,20 @@ private:
 	vector<int>										m_vecSocketOptions;	
 };
 
+IMPLEMENT_INTRUSIVE_PTR( CX2PremiumBuffTemplet );
+
+
 class CX2PremiumBuffIcon;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2PremiumBuffIcon> CX2PremiumBuffIconPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2PremiumBuffIcon> CX2PremiumBuffIconPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 class CX2PremiumBuffIcon
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 {
 public:
 
@@ -113,15 +142,26 @@ public:
 
 	~CX2PremiumBuffIcon();
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 protected:
 	CX2PremiumBuffIcon( const CX2PremiumBuffTemplet::BUFF_ID ePremiumBuffID_, UINT uiIndex_, wstring wstrEndTime, bool bUsingIcon ) 
 		: m_ePremiumBuffID( ePremiumBuffID_ ), m_pDlgBuffIcon( NULL ), m_uiIndex( uiIndex_ ), m_wstrEndTime( wstrEndTime ), m_bUsingIcon( bUsingIcon )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{}
 	void CreateBuffIcon( const WCHAR* pFileName_, const WCHAR* pKeyName_ );
 	void UpdateBuffIconPosition( const UINT uiIndexGap_ );
 	void SetBuffDesc();
 
 private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	CX2PremiumBuffTemplet::BUFF_ID	m_ePremiumBuffID;
 	CKTDGUIDialogType				m_pDlgBuffIcon;
 	UINT							m_uiIndex;
@@ -134,7 +174,11 @@ private:
 	const static UINT				NUMBER_OF_ROW	= 5;
 	const static UINT				SIZE_OF_ICON	= 31;
 };
+
+IMPLEMENT_INTRUSIVE_PTR( CX2PremiumBuffIcon );
+
 #endif BUFF_TEMPLET_SYSTEM
+
 
 /** @class : CX2PremuimBuff
 	@brief : 버프를 받을 유저에게 버프 적용 및 화면에 UI 표시
@@ -231,7 +275,7 @@ public:
 	bool GetFileAndKeyName( IN const CX2PremiumBuffTemplet::BUFF_ID ePremiumBuffID_, OUT const WCHAR** ppFileName_, OUT const WCHAR** ppKeyName_, OUT bool* bUsingIcon_ );
 	void UpdatePremiumBuffIconPosition();
 
-	void OpenScriptFile( const char* szScriptFileName_ );
+	void OpenScriptFile( const wchar_t* wszScriptFileName_ );
 	void AddBuffInfo_LUA();
 
 	CX2PremiumBuffTempletPtr GetPremiumBuffTempletPtr( const CX2PremiumBuffTemplet::BUFF_ID ePremiumBuffID_ );	

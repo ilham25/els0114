@@ -12,13 +12,13 @@ m_bStart(false),
 m_bCompleteTutorial(false),
 m_bActiveNoviceGuide(false),
 m_bShowDungeonMenu(false),
-m_hIndicator(INVALID_PARTICLE_HANDLE),
-m_hIndicatorMark(INVALID_PARTICLE_HANDLE),
+m_hIndicator(INVALID_PARTICLE_SEQUENCE_HANDLE),
+m_hIndicatorMark(INVALID_PARTICLE_SEQUENCE_HANDLE),
 m_pDLGParticle(NULL),
 m_bShowGuideParticle(false),
-m_hInputGuide(INVALID_PARTICLE_HANDLE),
+m_hInputGuide(INVALID_PARTICLE_SEQUENCE_HANDLE),
 m_eOldPlayGuide(PGT_NONE),
-m_hParticleGo( INVALID_PARTICLE_HANDLE )
+m_hParticleGo( INVALID_PARTICLE_SEQUENCE_HANDLE )
 #ifdef GUIDE_FIRST_EPIC_QUEST
 , m_pDLGUIFirstEpicQuestGuide(NULL)
 , m_bShowFirstEpicQuestGuide(false)
@@ -57,7 +57,7 @@ CX2PlayGuide::~CX2PlayGuide(void)
 	DeleteQuestGuideParticle();
 	DeleteInputGuideParticle();
 
-	if( INVALID_PARTICLE_HANDLE != m_hParticleGo )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hParticleGo )
 	{
 		if( NULL != g_pData && NULL != g_pData->GetUIMajorParticle() )
 		{
@@ -621,7 +621,7 @@ void CX2PlayGuide::SetMouseClickIndex(int val)
 				break;
 			case NGS_STEP_8: // 숲속의 폐허
 				arrowStyle = CX2State::MouseClickUI::MCS_FROM_RIGHT_TOP;
-				vPos = D3DXVECTOR2(645, 330 );
+				vPos = D3DXVECTOR2(390, 620 );
 				break;
 			case NGS_STEP_END:
 			default:
@@ -744,7 +744,7 @@ void CX2PlayGuide::CreateQuestGuideParticle()
 		m_pDLGParticle->SetShow(true);
 	}
 
-	if( INVALID_PARTICLE_HANDLE == m_hIndicator && INVALID_PARTICLE_HANDLE == m_hIndicatorMark )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hIndicator && INVALID_PARTICLE_SEQUENCE_HANDLE == m_hIndicatorMark )
 	{
 		if( NULL != g_pData && NULL != g_pData->GetUIManager() )
 		{
@@ -753,7 +753,7 @@ void CX2PlayGuide::CreateQuestGuideParticle()
 			//퀘스트 마크 파티클
 			m_hIndicatorMark = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"NPCTargetQuestion", 70, 450, 0);	
 
-			if( INVALID_PARTICLE_HANDLE != m_hIndicator )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hIndicator )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence(m_hIndicator);
 				if( NULL != pSeq )
@@ -770,7 +770,7 @@ void CX2PlayGuide::CreateQuestGuideParticle()
 				}
 			}
 
-			if( INVALID_PARTICLE_HANDLE != m_hIndicatorMark )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hIndicatorMark )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence(m_hIndicatorMark);
 				if( NULL != pSeq )
@@ -793,7 +793,7 @@ void CX2PlayGuide::CreateQuestGuideParticle()
 void CX2PlayGuide::DeleteQuestGuideParticle()
 {
 
-	if( INVALID_PARTICLE_HANDLE != m_hIndicator )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hIndicator )
 	{
 		if( NULL != g_pData && NULL != g_pData->GetUIMajorParticle() )
 		{
@@ -801,7 +801,7 @@ void CX2PlayGuide::DeleteQuestGuideParticle()
 		}
 	}
 
-	if( INVALID_PARTICLE_HANDLE != m_hIndicatorMark )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hIndicatorMark )
 	{
 		if( NULL != g_pData && NULL != g_pData->GetUIMajorParticle() )
 		{
@@ -813,7 +813,7 @@ void CX2PlayGuide::DeleteQuestGuideParticle()
 }
 void CX2PlayGuide::DeleteInputGuideParticle()
 {
-	if( INVALID_PARTICLE_HANDLE != m_hInputGuide )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hInputGuide )
 	{
 		if( NULL != g_pData && NULL != g_pData->GetUIMajorParticle() )
 		{
@@ -847,14 +847,14 @@ void CX2PlayGuide::CreateInputGuide()
 	if( NULL == g_pX2Game->GetMyUnit() )
 		return;
 
-	if( INVALID_PARTICLE_HANDLE != m_hInputGuide )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hInputGuide )
 		return;
 
 	if( NULL != g_pData && NULL != g_pData->GetUIMinorParticle() )
 	{
 		m_hInputGuide = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"InputGuide",0,0,0);
 
-		if( INVALID_PARTICLE_HANDLE != m_hInputGuide )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hInputGuide )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence(m_hInputGuide);
 			if( NULL != pSeq )
@@ -872,7 +872,7 @@ void CX2PlayGuide::CreateInputGuide()
 
 void CX2PlayGuide::SetPostionInputGuide(const D3DXVECTOR3& vPos)
 {
-	if( INVALID_PARTICLE_HANDLE == m_hInputGuide )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hInputGuide )
 	{
 		CreateInputGuide();
 		return;
@@ -903,7 +903,7 @@ bool CX2PlayGuide::IsShowGuide()
 	}
 
 	//F1 도움말 토글로 Hide 설정
-	if( false == g_pMain->GetGameOption()->GetOptionList()->m_bPlayGuide )
+	if( false == g_pMain->GetGameOption().GetOptionList().m_bPlayGuide )
 	{
 		return false;
 	}
@@ -1054,7 +1054,7 @@ bool CX2PlayGuide::GuideOrderManager::GetGuideListEmpty() const
 
 void CX2PlayGuide::StartGoEffect()
 {
-	if ( INVALID_PARTICLE_HANDLE == m_hParticleGo &&
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hParticleGo &&
 		CX2Main::XS_VILLAGE_MAP == g_pMain->GetNowStateID() )
 	{
 		if( NULL != g_pData->GetUIMinorParticle() )
@@ -1067,7 +1067,7 @@ void CX2PlayGuide::StartGoEffect()
 
 void CX2PlayGuide::StopGoEffect()
 {
-	if( INVALID_PARTICLE_HANDLE != m_hParticleGo ) 
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hParticleGo ) 
 	{
 		g_pKTDXApp->GetDeviceManager()->StopSound( L"Go.ogg" );
 		if( NULL != g_pData &&

@@ -56,11 +56,11 @@ m_iNessesaryHeroineNum( 2 )
 	g_pData->GetGameUDP()->ClearPeer();
 
 	g_pData->GetGameUDP()->SetMyUID( g_pData->GetMyUser()->GetSelectUnit()->GetUID() );
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     g_pData->GetGameUDP()->SetRelayIPAddress( CKTDNUDP::ConvertIPToAddress( m_udpData.m_RelayIP.c_str() ) );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	g_pData->GetGameUDP()->SetRelayIP( m_udpData.m_RelayIP.c_str() );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	g_pData->GetGameUDP()->SetRelayIP( m_udpData.m_RelayIP.c_str() );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	g_pData->GetGameUDP()->SetRelayPort( m_udpData.m_Port );
 	g_pData->GetGameUDP()->ConnectTestToRelay();
 
@@ -95,10 +95,10 @@ CX2WeddingGame::~CX2WeddingGame(void)
 
 	g_pWeddingGame = NULL;
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
         g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_NONE ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 }
 
@@ -175,28 +175,28 @@ CX2SquareUnit* CX2WeddingGame::AddUnit( CX2Unit* pUnit, bool bMyUnit, bool bInit
         m_pCamera->SquareCameraUpdate( m_pMyUnit.get(), 1200.0f, 200.0f, 0.0f, 0.0f, 0.0f );
 	}//if
 
-	CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
-	if( pUnitData != NULL )
+	const CX2Unit::UnitData* pUnitData = &pUnit->GetUnitData();
+	//if( pUnitData != NULL )
 	{
 		if( g_pData->GetMyUser()->GetUID() == pUnit->GetOwnerUserUID() )
 		{
 			g_pData->GetGameUDP()->SetMyUID( pUnitData->m_UnitUID );
 			g_pData->GetGameUDP()->AddPeer( pUnitData->m_UnitUID, 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                 g_pData->GetGameUDP()->GetMyIPAddress(), 
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                g_pData->GetGameUDP()->GetMyIP(), 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//                g_pData->GetGameUDP()->GetMyIP(), 
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                 g_pData->GetGameUDP()->GetMyExtPort() );
 		}
 		else
 		{
 			g_pData->GetGameUDP()->AddPeer( pUnitData->m_UnitUID, 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                 CKTDNUDP::ConvertIPToAddress( pUnitData->m_IP.c_str() ),
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-                pUnitData->m_IP.c_str(), 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//                pUnitData->m_IP.c_str(), 
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                 pUnitData->m_Port );
 		}
 	}
@@ -278,8 +278,7 @@ void CX2WeddingGame::OnFrameMove_UnitFrameMove( double fTime, float fElapsedTime
 			pCX2SquareUnit->SetShowObject( true );
 
 			// SD 모드
-			if( NULL != g_pMain->GetGameOption() )
-				pCX2SquareUnit->SetPlanRender( g_pMain->GetGameOption()->GetFieldSD() );
+				pCX2SquareUnit->SetPlanRender( g_pMain->GetGameOption().GetFieldSD() );
 
 			pCX2SquareUnit->OnFrameMove( fTime, fElapsedTime );
 		}
@@ -327,7 +326,7 @@ void CX2WeddingGame::OnFrameMove_Camera( double fTime, float fElapsedTime )
 							{
 								m_pCamera->GetLineScriptedCameraData().m_vFinalRelativeEyePosition = pCameraData->m_vRelativeEye;
 								m_pCamera->GetLineScriptedCameraData().m_fSpeed = pCameraData->m_fCameraRepositionSpeed;
-								m_pCamera->NomalTrackingCamera( GetMyUnit(), g_pMain->GetGameOption()->GetCameraDistance(), 200, 0.f, 0.f , 0.f, 0.3f );					
+								m_pCamera->NomalTrackingCamera( GetMyUnit(), g_pMain->GetGameOption().GetCameraDistance(), 200, 0.f, 0.f , 0.f, 0.3f );					
 							}
 						}
 						break;
@@ -350,20 +349,24 @@ void CX2WeddingGame::OnFrameMove_Camera( double fTime, float fElapsedTime )
 			m_FPSCamera.SetEnablePositionMovement( true );
 
 			m_FPSCamera.FrameMove( fElapsedTime * 300.f );			
-			m_pCamera->GetCamera()->Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
+			m_pCamera->GetCamera().Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
 			D3DXVECTOR3 vLookAt = *m_FPSCamera.GetWorldAhead() * 500.f + *m_FPSCamera.GetEyePt();
-			m_pCamera->GetCamera()->LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
-			m_pCamera->GetCamera()->UpdateCamera( fElapsedTime );
+			m_pCamera->GetCamera().LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
+			m_pCamera->GetCamera().UpdateCamera( fElapsedTime );
 		}
 	}
 }
 HRESULT	CX2WeddingGame::OnFrameRender()
 {
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+    CKTDGParticleSystem::EnableParticleCulling( true );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 	g_pKTDXApp->GetDGManager()->ObjectChainSort();
-
 	g_pKTDXApp->GetDGManager()->ObjectChainNonAlphaRender();
     g_pKTDXApp->GetDGManager()->ObjectChainAlphaRender();
-
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+    CKTDGParticleSystem::EnableParticleCulling( false );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 	
 	for( UINT i = 0; i < m_UserUnitList.size(); i++ )
 	{
@@ -435,7 +438,7 @@ void CX2WeddingGame::P2PPacketHandler()
 		{
 		case XPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL:
 			{
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 				if ( pRecvData->m_Size != sizeof(KXPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL) )
 					return;
 				KXPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL* pkPacket = (KXPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL*) pRecvData->m_pRecvBuffer;
@@ -445,15 +448,15 @@ void CX2WeddingGame::P2PPacketHandler()
 				CX2SquareUnit* pUserUnit = GetSquareUnitByUID( pkPacket->m_iUnitUID );
 				if( NULL != pUserUnit )
 					pUserUnit->RecvPacketP2PForWedding( *pkPacket );
-#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				KSerBuffer ksBuff;
-				ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-				KXPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL kPacket;
-				DeSerialize( &ksBuff, &kPacket );
-				CX2SquareUnit* pUserUnit = GetSquareUnitByUID( kPacket.m_iUnitUID );
-				if( NULL != pUserUnit )
-					pUserUnit->RecvPacketP2PForWedding( kPacket );
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//				KSerBuffer ksBuff;
+//				ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//				KXPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL kPacket;
+//				DeSerialize( &ksBuff, &kPacket );
+//				CX2SquareUnit* pUserUnit = GetSquareUnitByUID( kPacket.m_iUnitUID );
+//				if( NULL != pUserUnit )
+//					pUserUnit->RecvPacketP2PForWedding( kPacket );
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 			}
 			break;
 		}
@@ -673,41 +676,47 @@ void CX2WeddingGame::PopTalkBox( UidType iUnitUID_, const WCHAR* pWstrMsg_,
 		if( g_pChatBox != NULL && bCommandEmotion == false )
 #endif
 		{
-			//컬링
-			float fScale;
-			if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetYScale() )
-			{
-				if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
+            if( pCX2SquareUnit->GetBoundingRadius() > 0 )
+            {
+				D3DXVECTOR3 center;
+				pCX2SquareUnit->GetTransformCenter( &center );
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+                float   fScaledBoundingRadius =pCX2SquareUnit->GetScaledBoundingRadius();
+#else   X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+				//컬링
+				float fScale;
+				if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetYScale() )
 				{
-					//X가 제일 큼
-					fScale = pCX2SquareUnit->GetMatrix().GetXScale();
+					if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
+					{
+						//X가 제일 큼
+						fScale = pCX2SquareUnit->GetMatrix().GetXScale();
+					}
+					else
+					{
+						//Z가 제일 큼
+						fScale = pCX2SquareUnit->GetMatrix().GetZScale();
+					}
 				}
 				else
 				{
-					//Z가 제일 큼
-					fScale = pCX2SquareUnit->GetMatrix().GetZScale();
+					if( pCX2SquareUnit->GetMatrix().GetYScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
+					{
+						//Y가 제일 큼
+						fScale = pCX2SquareUnit->GetMatrix().GetYScale();
+					}
+					else
+					{
+						//Z가 제일 큼
+						fScale = pCX2SquareUnit->GetMatrix().GetZScale();
+					}
 				}
-			}
-			else
-			{
-				if( pCX2SquareUnit->GetMatrix().GetYScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
-				{
-					//Y가 제일 큼
-					fScale = pCX2SquareUnit->GetMatrix().GetYScale();
-				}
-				else
-				{
-					//Z가 제일 큼
-					fScale = pCX2SquareUnit->GetMatrix().GetZScale();
-				}
-			}
+                float   fScaledBoundingRadius = pCX2SquareUnit->GetBoundingRadius() * fScale;
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
-			D3DXVECTOR3 center;
-			pCX2SquareUnit->GetTransformCenter( &center );
-
-			if( pCX2SquareUnit->GetBoundingRadius() > 0
-				&& g_pKTDXApp->GetDGManager()->GetFrustum()->CheckSphere( center, pCX2SquareUnit->GetBoundingRadius() * fScale ) == false )
-				return;
+				if( g_pKTDXApp->GetDGManager()->GetFrustum().CheckSphere( center, fScaledBoundingRadius ) == false )
+					return;
+            }
 
 
 			CX2TalkBoxManagerImp::TalkBox talkBox;
@@ -823,8 +832,8 @@ void CX2WeddingGame::SetFreeCamera( bool bFreeCamera )
 
 	if( true == m_bFreeCamera )
 	{
-		D3DXVECTOR3 vEye	= m_pCamera->GetCamera()->GetEye();
-		D3DXVECTOR3 vLookAt = m_pCamera->GetCamera()->GetLookAt();
+		D3DXVECTOR3 vEye	= m_pCamera->GetCamera().GetEye();
+		D3DXVECTOR3 vLookAt = m_pCamera->GetCamera().GetLookAt();
 
 		m_FPSCamera.SetViewParams( &vEye, &vLookAt );
 	}

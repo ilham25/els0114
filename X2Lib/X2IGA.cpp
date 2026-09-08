@@ -271,13 +271,13 @@ void CX2IGA::ProcessTracking( CX2Camera* pCamera, float fElapsedTime )
 	if ( m_fElapsedTime >= ELAPSED_TIME_TO_CHECK )
 	{
 		int				iSize		= m_vecIgaInfo.size();
-		CKTDGFrustum*	pFrustum	= g_pKTDXApp->GetDGManager()->GetFrustum();
+		const CKTDGFrustum&	kFrustum	= g_pKTDXApp->GetDGManager()->GetFrustum();
 
 		for ( int i = 0; i < iSize; i++ )
 		{
 			for ( int index = 0; index < 4; index++ )
 			{
-				if ( pFrustum->CheckSphere( m_vecIgaInfo[i].m_vPoint[index], 0 ) == true )
+				if ( kFrustum.CheckSphere( m_vecIgaInfo[i].m_vPoint[index], 0 ) == true )
 				{
 					Track( m_vecIgaInfo[i], i, pCamera );
 					break;

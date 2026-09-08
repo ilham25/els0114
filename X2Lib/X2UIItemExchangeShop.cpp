@@ -17,7 +17,7 @@ m_vPosDlg( 0, 0 ),
 m_uiNowPage( 1 ),
 m_uiMaxPage( 1 ),
 m_uiSelectedSlotID( 0 ),
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 m_iLastCustomMsg( 0 ),
 m_iLastSrcItemID( 0 ),
 m_iLastSelectSrcItemUID( 0 ),
@@ -112,7 +112,7 @@ CX2UIItemExchangeShop::~CX2UIItemExchangeShop()
 	m_vecItemExchangeData.clear();
 	//m_SlotList.clear();	// 상위 클래스에서 이미 처리됨
 
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	SAFE_DELETE_DIALOG( m_pDLGWarningSelectExchange );
 #endif SERV_ITEM_EXCHANGE_NEW
 	SAFE_DELETE_DIALOG( m_pDlgExchangeConfirm );
@@ -269,7 +269,7 @@ bool		CX2UIItemExchangeShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPa
 	case IESCM_FOURTH_EXCHANGE_BUTTON:
 	case IESCM_FIFTH_EXCHANGE_BUTTON:
 		{
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 			// 중복 아이템 있는지, 수량성인지 여부 판단
 			// eCustomMsg가 IESCM_FIRST_EXCHANGE_BUTTON 경우에 eCustomMsg는 0이 됨
 			int iCustomMsg = static_cast< int >( wParam ); 
@@ -290,7 +290,7 @@ bool		CX2UIItemExchangeShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPa
 			{
 				if ( pItemTemplet->GetPeriodType() != CX2Item::PT_QUANTITY && iItemCount > 1)
 				{
-					CX2Inventory::SORT_TYPE eSortType = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetSortTypeByItemTemplet(pItemTemplet);
+					CX2Inventory::SORT_TYPE eSortType = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetSortTypeByItemTemplet(pItemTemplet);
 					CX2State*	pState	= static_cast< CX2State* >( g_pMain->GetNowState() );
 					CX2Cursor*	pCursor = pState->GetCursor();
 
@@ -313,7 +313,8 @@ bool		CX2UIItemExchangeShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPa
 				}
 				else if(pItemTemplet->GetPeriodType() != CX2Item::PT_QUANTITY && iItemCount == 1)
 				{
-					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID(m_iLastSrcItemID, false);
+					// 오현빈 // 2013-08-21 // 장착 중인 장비는 포함하지 않도록 변경
+					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID(m_iLastSrcItemID, false, false);
 					if(pItem != NULL)
 					{
 						m_iLastSelectSrcItemUID = pItem->GetUID();
@@ -338,7 +339,7 @@ bool		CX2UIItemExchangeShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPa
 			int iDestItemID	=	0;
 			iSrcItemID		=	m_pDlgExchangeConfirm->GetDummyInt( 0 );
 
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 			UidType iSrcItemUID	= 0;
 			int iSrcQuantity = 0;
 			iSrcItemUID = m_iLastSelectSrcItemUID;
@@ -390,7 +391,7 @@ bool		CX2UIItemExchangeShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPa
 			}
 			else
 #endif // EXCHANGE_OPEN_IMAGE
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW  // 디파인 잘 못 두른 것 해외팀 수정
 			Handler_EGS_ITEM_EXCHANGE_REQ( iSrcItemUID, iSrcItemID, iSrcQuantity, iDestItemID);
 #else
 			Handler_EGS_ITEM_EXCHANGE_REQ( iSrcItemID, iDestItemID );
@@ -471,7 +472,7 @@ void		CX2UIItemExchangeShop::SetShow( bool bShow )
 		CX2ItemSlotManager::InvalidSelectedItem();
 		CX2ItemSlotManager::InvalidSlotDesc();
 	}
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW  // 디파인 잘 못 두른 것 해외팀 수정
 	InvalidLastSelectExchange();
 #endif SERV_ITEM_EXCHANGE_NEW
 	m_pDlgBackground->SetShowEnable( m_bShow, m_bShow );
@@ -818,7 +819,7 @@ bool	CX2UIItemExchangeShop::UpdateSlotList()
 			iItemCount		=	SearchItemInUserInventory( myItemExchangeData.m_iSrcItemID );
 
 
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW  // 디파인 잘 못 두른 것 해외팀 수정
             const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( myItemExchangeData.m_iSrcItemID );
 			int iMaterialItemCount = iItemCount;
 			if( iMaterialItemCount == -1 )
@@ -836,7 +837,7 @@ bool	CX2UIItemExchangeShop::UpdateSlotList()
 			pSlotItem->SetShow( true );
 			pSlotItem->SetClickable( false );
 
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW  // 디파인 잘 못 두른 것 해외팀 수정
 			if ( iMaterialItemCount < myItemExchangeData.m_iSrcQuantity )
 			{
 				m_SlotSet[i - uiOffset].m_bUserHave = false;
@@ -901,6 +902,10 @@ bool	CX2UIItemExchangeShop::UpdateSlotList()
 				{
 					pSlotItem->SetClickable( false );
 				}
+
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+				pSlotItem->SetPeriod( static_cast< int >( itemExchangeData.m_sPeriod ) );
+#endif //SERV_EXCHANGE_PERIOD_ITEM
 
 				pSlotItem->SetEnable( true );
 				pSlotItem->SetShow( true );
@@ -1016,7 +1021,6 @@ bool	CX2UIItemExchangeShop::MouseDown( D3DXVECTOR2 mousePos )
 
 int			CX2UIItemExchangeShop::SearchItemInUserInventory( int iItemID )
 {
-	CX2Inventory*	pMyInventory		= NULL;
 	int				iCount				= 0;
 
 #ifdef SERV_EVENT_MONEY
@@ -1029,26 +1033,11 @@ int			CX2UIItemExchangeShop::SearchItemInUserInventory( int iItemID )
 	}
 	else
 	{
-		pMyInventory		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-
-		if ( pMyInventory	== NULL )
-		{
-			ASSERT( false );
-			return -1;
-		}
-
-		iCount				= pMyInventory->GetNumItemByTID( iItemID, true );
+		iCount				= g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( iItemID, true );
 	}
 #else
-	pMyInventory		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
-	if ( pMyInventory	== NULL )
-	{
-		ASSERT( false );
-		return -1;
-	}
-
-	iCount				= pMyInventory->GetNumItemByTID( iItemID, true );
+	iCount				= g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( iItemID, true );
 #endif //SERV_EVENT_MONEY
 
 	if ( iCount == 0 )	// 장착중인 장비 제외
@@ -1057,7 +1046,7 @@ int			CX2UIItemExchangeShop::SearchItemInUserInventory( int iItemID )
 		return iCount;
 }
 
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 bool		CX2UIItemExchangeShop::PushedExchangeButton( int iCustomMsg, bool bPopupCenter /*= false*/ )
 #else
 bool		CX2UIItemExchangeShop::PushedExchangeButton( int iCustomMsg )
@@ -1131,13 +1120,13 @@ bool		CX2UIItemExchangeShop::PushedExchangeButton( int iCustomMsg )
 				InvalidLastSelectExchange();
 #endif //FIX_WARNING_SELECT_EXCHANGE
 
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 				if(bPopupCenter == true)
 					g_pMain->KTDGUIOKMsgBox(  D3DXVECTOR2(250,300), GET_STRING( STR_ID_3832 ), g_pMain->GetNowState() );
 				else
 #endif SERV_ITEM_EXCHANGE_NEW
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_3832 ), g_pMain->GetNowState() );
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 				return false;
 #else
 				return true;
@@ -1153,7 +1142,7 @@ bool		CX2UIItemExchangeShop::PushedExchangeButton( int iCustomMsg )
 		}
 		break;
 	}
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	if(bPopupCenter == true)
 		m_pDlgExchangeConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), wstrStream.str().c_str(), IESCM_OK, 
 		g_pMain->GetNowState(), IESCM_CANCEL );
@@ -1163,7 +1152,7 @@ bool		CX2UIItemExchangeShop::PushedExchangeButton( int iCustomMsg )
 		g_pMain->GetNowState(), IESCM_CANCEL );
 
 	m_pDlgExchangeConfirm->AddDummyInt( vecItemExchangeData[0].m_iSrcItemID );
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 	m_pDlgExchangeConfirm->AddDummyInt( vecItemExchangeData[0].m_iSrcQuantity );
 #endif SERV_ITEM_EXCHANGE_NEW
 
@@ -1181,7 +1170,7 @@ const wchar_t* CX2UIItemExchangeShop::GetItemFullName_( int iItemID )
 	}
 	return pItemTemplet->GetFullName_();
 }
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 bool		CX2UIItemExchangeShop::Handler_EGS_ITEM_EXCHANGE_REQ( UidType iSrcItemUID, int iSrcItemID, int iSrcQuantity, int iSelectedItemID /* = 0 */ )
 {
 	KEGS_ITEM_EXCHANGE_REQ kPacket;
@@ -1226,15 +1215,13 @@ bool		CX2UIItemExchangeShop::Handler_EGS_ITEM_EXCHANGE_ACK( HWND hWnd, UINT uMsg
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 			if ( g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
 #ifdef SERV_GROW_UP_SOCKET
-				if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
-					g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->SetGrowUpPoint( CX2Unit::GUT_EXCHANGE_COUNT, kEvent.m_iExchangeCount, g_pData->GetMyUser()->GetSelectUnit()->GetUID() );
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetGrowUpPoint( CX2Unit::GUT_EXCHANGE_COUNT, kEvent.m_iExchangeCount, g_pData->GetMyUser()->GetSelectUnit()->GetUID() );
 #endif SERV_GROW_UP_SOCKET
 
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 				
 				if ( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_INVEN ) == true )
 					g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlot();
@@ -1343,6 +1330,5 @@ void CX2UIItemExchangeShop::StopWarningSelectExchange()
 	}
 }
 #endif SERV_ITEM_EXCHANGE_NEW
-
 #endif	ITEM_EXCHANGE_SHOP
 //}} kimhc // 2009-07-25 // 헤니르의 시공에 추가되는 ITEM_EXCHANGE_SHOP 작업

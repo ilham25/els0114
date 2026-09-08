@@ -157,7 +157,6 @@ void CServerUIDlg::OnClose(UINT nForceClose)
 #ifdef SERV_MANAGEMENT_TOOL
 		CDialog::OnClose(); 
 #else //SERV_MANAGEMENT_TOOL
-
 	// 강제 종료
 	if (nForceClose != NULL)
 	{

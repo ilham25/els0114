@@ -1,13 +1,14 @@
-//{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
-#ifdef SERV_GLOBAL_MISSION_MANAGER
-
 #pragma once
+
 
 #include <KNCSingleton.h>
 
 //{{ 2009. 6. 10  최육사	타이머 매니저
 #include "TimerManager.h"
 //}}
+
+//{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
+#ifdef SERV_GLOBAL_MISSION_MANAGER
 
 class KGSGlobalMissionManager
 {

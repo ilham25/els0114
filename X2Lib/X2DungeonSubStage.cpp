@@ -104,8 +104,8 @@ CX2DungeonSubStage::CX2DungeonSubStage( int subStageIndex, SubStageData* pSubSta
 #endif HENIR_TEST
 	}
 
-	m_hBossDanger = INVALID_PARTICLE_HANDLE;
-	m_hBossDangerAdd = INVALID_PARTICLE_HANDLE;
+	m_hBossDanger = INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hBossDangerAdd = INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 }
 
@@ -124,9 +124,9 @@ CX2DungeonSubStage::~CX2DungeonSubStage(void)
 
 	m_pSubStageData = NULL;
 
-	if( INVALID_PARTICLE_HANDLE != m_hBossDanger )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hBossDanger )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hBossDanger );
-	if( INVALID_PARTICLE_HANDLE != m_hBossDangerAdd )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hBossDangerAdd )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hBossDangerAdd );
 }
 
@@ -419,13 +419,13 @@ void CX2DungeonSubStage::ProcessTrigger()
 			{
 				pTrigger->m_NowInterval = 0.0f;
 
-				string func = "";
-				ConvertWCHARToChar( func, pTrigger->m_ConditionFunc.c_str() );
-				LastErrorLog( func.c_str() );
-				if( lua_tinker::call<bool>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, static_cast<CX2DungeonGame*>(g_pX2Game), this ) == true )
+				//string func = "";
+				//ConvertWCHARToChar( func, pTrigger->m_ConditionFunc.c_str() );
+				LastErrorLog( pTrigger->m_ConditionFunc.c_str() );
+				if( lua_tinker::call<bool>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), pTrigger->m_ConditionFunc.c_str(), g_pKTDXApp, static_cast<CX2DungeonGame*>(g_pX2Game), this ) == true )
 				{
-					ConvertWCHARToChar( func, pTrigger->m_ReactFunc.c_str() );
-					lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, static_cast<CX2DungeonGame*>(g_pX2Game), this );
+					//ConvertWCHARToChar( func, pTrigger->m_ReactFunc.c_str() );
+					lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), pTrigger->m_ReactFunc.c_str(), g_pKTDXApp, static_cast<CX2DungeonGame*>(g_pX2Game), this );
 
 					pTrigger->m_bReacted = true;
 				}
@@ -438,7 +438,7 @@ void CX2DungeonSubStage::ProcessTrigger()
 	}
 }
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 void CX2DungeonSubStage::PrepareClearSubStage( int iClearConditionIndex )
 {
 	if( g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME ||
@@ -448,7 +448,7 @@ void CX2DungeonSubStage::PrepareClearSubStage( int iClearConditionIndex )
 		pCX2DungeonGame->Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_REQ( iClearConditionIndex );
 	}
 }
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 void CX2DungeonSubStage::ClearSubStage( int clearType, int nextStageNum, int nextSubStageNum )
 {
@@ -463,7 +463,7 @@ void CX2DungeonSubStage::ClearSubStage( int clearType, int nextStageNum, int nex
 
 #ifdef CHECK_CLEAR_SCORE
 	const CX2Dungeon::DungeonData* pDungeonData_Difficulty = 
-		g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) (g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID + g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonDifficulty) );
+		g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) (g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID + g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonDifficulty) );
 
 	int iDungeonLv = pDungeonData_Difficulty->m_MinLevel;
 	if( pDungeonData_Difficulty->m_MaxLevel > 0 )
@@ -472,7 +472,7 @@ void CX2DungeonSubStage::ClearSubStage( int clearType, int nextStageNum, int nex
 	}
 
 	int nPlayer = (int)g_pX2Game->GetUserUnitNum();
-	int iUserLv = g_pData->GetDungeonRoom()->GetMySlot()->m_pUnit->GetUnitData()->m_Level;
+	int iUserLv = g_pData->GetDungeonRoom()->GetMySlot()->m_pUnit->GetUnitData().m_Level;
 
 	if( g_pX2Game->GetUserUnitNum() == 1 &&										// 솔플이고
 		iUserLv <= iDungeonLv + 20 &&						// 던전 적정최고렙보다 20레벨 이상의 유저가 아니면 핵검사
@@ -481,7 +481,7 @@ void CX2DungeonSubStage::ClearSubStage( int clearType, int nextStageNum, int nex
 		g_pKTDXApp->GetFindHacking() == false &&
 		g_pData->GetMyUser()->GetAuthLevel() < CX2User::XUAL_OPERATOR )
 	{
-		//CX2Dungeon::DUNGEON_ID eDungeon = g_pData->GetDungeonRoom()->GetDungeonID();
+		//SEnum::DUNGEON_ID eDungeon = g_pData->GetDungeonRoom()->GetDungeonID();
 		if( g_pX2Game->GetGameScore() == 0 )
 		{
 #ifdef ADD_COLLECT_CLIENT_INFO
@@ -507,11 +507,11 @@ void CX2DungeonSubStage::ClearSubStage( int clearType, int nextStageNum, int nex
 	{
 		if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 		{
-			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData != NULL && g_pData->GetMyUser() != NULL && 
+				g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-				g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+				g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 			}
 		}	
 
@@ -653,11 +653,11 @@ void CX2DungeonSubStage::ClearSubStage( int clearType, int nextStageNum, int nex
 					}
 					else
 					{
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 						pCX2StateDungeonGame->SecretDungeonStageLoadReq( CX2DungeonSubStage::SSP_NORMAL );
-#else SERV_STAGE_CLEAR_IN_SERVER
+#else // SERV_STAGE_CLEAR_IN_SERVER
 						pCX2StateDungeonGame->DungeonStageLoadReq( m_iNextNormalStageIndex );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 					}
 #endif //X2TOOL
 				}
@@ -793,7 +793,7 @@ void CX2DungeonSubStage::CheckIfSubStageCleared()
 							{
 								BOOST_TEST_FOREACH( int, portalLineIndex, clearCond.m_vecPortalLineIndex )
 								{
-									CKTDGLineMap::LineData* pLineData = g_pX2Game->GetLineMap()->GetLineData( portalLineIndex );
+									const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetLineMap()->GetLineData( portalLineIndex );
 									if( NULL != pLineData )
 									{
 										D3DXVECTOR3 vCenterPos = ( pLineData->startPos + pLineData->endPos ) * 0.5f;
@@ -930,12 +930,15 @@ void CX2DungeonSubStage::CheckIfSubStageCleared()
 	if( true == bCleared &&
 		( false == m_bCheckedClearSubStage || !(m_TimerDelayClearSubstage.elapsed() < m_fDelayTimeClearSubstage) ) )
 	{
+#ifdef DYNAMIC_PORTAL_LINE_MAP
+		ChangeLineTypeAfterStageClear();
+#endif // DYNAMIC_PORTAL_LINE_MAP
+
 		m_bCheckedClearSubStage = false;
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 		PrepareClearSubStage( iCompletedClearCondIndex );
-#else SERV_STAGE_CLEAR_IN_SERVER
-
+#else // SERV_STAGE_CLEAR_IN_SERVER
 		int iRandomNumber = rand()%100;
 		int iCumulativeRate = 0;
 
@@ -1044,7 +1047,7 @@ void CX2DungeonSubStage::CheckIfSubStageCleared()
 				}
 			}
 		}
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 	}
 
 #if defined( _SERVICE_ ) 
@@ -1112,16 +1115,16 @@ void CX2DungeonSubStage::CheckIfSubStageCleared_NotHost()
 						g_pX2Game->CreateStageLoadingTeleportEffectForAllUser( true );
 					}
 				}
-
-
-				if( true == bCleared )
-				{
-					m_bCheckedClearSubStage_NotHost = true;
-				}
-
 			} break;
 		}
+
+		if( true == bCleared )
+		{
+			m_bCheckedClearSubStage_NotHost = true;
+			break;
+		}
 	}
+
 }
 
 
@@ -1135,10 +1138,24 @@ void CX2DungeonSubStage::DeleteAllNPCUnit()
 		CX2GUNPC* pCX2GUNPC = g_pX2Game->GetNPCUnitByUID( pNPCData->m_UID );
 		if( NULL != pCX2GUNPC )
 		{
+
+#ifdef ADDED_NPC_REMAINING_WHEN_SUBSTAGE_CLEAR
+			if ( true == pCX2GUNPC->GetIsRemainingNpcWhenStageCleard() )
+			{
+				continue;
+			}
+#endif // ADDED_NPC_REMAINING_WHEN_STAGE_CLEAR
+
 			pCX2GUNPC->ResetGameUnitWhoAttackedMe();
 			g_pX2Game->DeleteNPCUnitByUID( pNPCData->m_UID );
 		}		
 	}
+
+#ifdef  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
+    if ( g_pKTDXApp->GetLuaBinder() != NULL )
+        g_pKTDXApp->GetLuaBinder()->FlushJitCompileMode();
+#endif  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
+
 }
 
 /*static*/
@@ -1155,10 +1172,22 @@ void CX2DungeonSubStage::DeleteAllNPCUnit( const vector<NPCData*>& vecNPCData_ )
 		pCX2GUNPC = g_pX2Game->GetNPCUnitByUID( pNpcData->m_UID );
 		if( NULL != pCX2GUNPC )
 		{
+#ifdef ADDED_NPC_REMAINING_WHEN_SUBSTAGE_CLEAR
+			if ( true == pCX2GUNPC->GetIsRemainingNpcWhenStageCleard() )
+			{
+				continue;
+			}
+#endif // ADDED_NPC_REMAINING_WHEN_SUBSTAGE_CLEAR
 			pCX2GUNPC->ResetGameUnitWhoAttackedMe();
 			g_pX2Game->DeleteNPCUnitByUID( pNpcData->m_UID );
 		}		
 	}
+
+#ifdef  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
+    if ( g_pKTDXApp->GetLuaBinder() != NULL )
+        g_pKTDXApp->GetLuaBinder()->FlushJitCompileMode();
+#endif  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
+
 }
 
 void CX2DungeonSubStage::ShowBossNameAtStart( float fElapsedTimeSubStage )
@@ -1272,20 +1301,18 @@ bool CX2DungeonSubStage::SubStageData::LoadData( KLuaManager& luaManager, bool b
 	LUA_GET_VALUE_ENUM( luaManager, "GO_TYPE",		m_GoType,			CX2DungeonSubStage::GO_TYPE, CX2DungeonSubStage::GT_NONE );
 
 //{{ kimhc // 2010.8.10 // 특정 몬스터의 위치 값을 부활 위치로 사용
-#ifdef	USE_MONSTER_POS_FOR_REBIRTH
 	LUA_GET_VALUE( luaManager, "USE_POS_OF_MONSTER_FOR_REBIRTH",		m_bUsePosOfMonsterForRebirth,		false	);
 	LUA_GET_VALUE( luaManager, "KEY_CODE_OF_MONSTER_FOR_REBIRTH",		m_iKeyCodeOfMonsterForRebirth,		-1		);
-#endif	USE_MONSTER_POS_FOR_REBIRTH
 //}} kimhc // 2010.8.10 // 특정 몬스터의 위치 값을 부활 위치로 사용
 
 	int index = 0;
 	while( luaManager.BeginTable( "KEYCODE_N_START_STATE", index ) == true )
 	{
 		int keyCode = 0;
-		wstring startState;
+		string startState;
 
 		LUA_GET_VALUE( luaManager, 1, keyCode,	-1	);
-		LUA_GET_VALUE( luaManager, 2, startState,	L""		);
+		LUA_GET_VALUE_UTF8( luaManager, 2, startState,	""		);
 
 		m_mapKeyCodeNStartState.insert( std::make_pair( keyCode, startState ) );
 
@@ -1448,35 +1475,6 @@ bool CX2DungeonSubStage::SubStageData::LoadData( KLuaManager& luaManager, bool b
 	LoadNpcData4Tool( luaManager );
 #endif
 
-//{{ Iruha : 2026-09-02 // offline mode - revive the studio's own NPC parser
-#ifdef SERV_IRUHADEV_OFFLINE
-	// LoadNPCData() is dead code in the shipping client: it is declared,
-	// defined and never called, and g_pInstanceData->m_bIsNpcLoad - the flag
-	// that threads bIsNpcLoad down to here - is initialised false and never
-	// set. That is not an oversight. Static dungeon monsters were the SERVER's
-	// to place: CXSLDungeon::GetNPCData parses this very same script server-side
-	// and ships the result in KEGS_DUNGEON_STAGE_LOAD_NOT::m_mapNPCData, which
-	// CX2Dungeon::SetStageStaticNPC then feeds into m_NPCDataList. The client
-	// has the placements in its own .kom all along and simply never reads them.
-	//
-	// Offline there is no server to parse it, so this parser is how the offline
-	// server gets the monster list - it builds m_mapNPCData from a throwaway
-	// CX2Dungeon created with bIsNpcLoad = true. Gated on that flag so the LIVE
-	// game dungeon (created with bIsNpcLoad = false) still gets its monsters
-	// only from the packet; loading them here as well would double every spawn.
-	//
-	// Only the plain NPC_GROUP table is understood, which is also the case the
-	// server's New_LoadNPCData falls back to when a sub-stage has no
-	// NPC_GROUP_RATE. A sub-stage using the newer NPC_GROUP_RATE / NPC_GROUP<N>
-	// random-group form yields an empty list here, and the offline server logs
-	// that rather than silently shipping an empty stage.
-	if( true == bIsNpcLoad )
-	{
-		LoadNPCData( luaManager );
-	}
-#endif SERV_IRUHADEV_OFFLINE
-//}}
-
 	//이 서브 스테이지에 사용할 트리거 리스트
 	LoadTrigger( luaManager );
 
@@ -1497,9 +1495,9 @@ void CX2DungeonSubStage::SubStageData::LoadCurtain( KLuaManager& luaManager )
 		{
 			CurtainData* pCurtainData = new CurtainData();
 
-			LUA_GET_VALUE( luaManager, L"LINE_INDEX",		pCurtainData->m_LineIndex,		-1		); 
-			LUA_GET_VALUE( luaManager, L"AT_START",			pCurtainData->m_bAtStart,		false	);
-			LUA_GET_VALUE( luaManager, L"LOOK_LEFT",		pCurtainData->m_bLookLeft,		true	);
+			LUA_GET_VALUE( luaManager, "LINE_INDEX",		pCurtainData->m_LineIndex,		-1		); 
+			LUA_GET_VALUE( luaManager, "AT_START",			pCurtainData->m_bAtStart,		false	);
+			LUA_GET_VALUE( luaManager, "LOOK_LEFT",		pCurtainData->m_bLookLeft,		true	);
 
 			curtainIndex++;
 			m_CurtainDataList.push_back( pCurtainData );
@@ -1512,9 +1510,9 @@ void CX2DungeonSubStage::SubStageData::LoadCurtain( KLuaManager& luaManager )
 
 void CX2DungeonSubStage::SubStageData::FetchNPCData( KLuaManager& luaManager, CX2DungeonSubStage::NPCData* pNPCData )
 {
-	LUA_GET_VALUE_ENUM( luaManager, L"NPC_ID",	 		pNPCData->m_UnitID,			CX2UnitManager::NPC_UNIT_ID, 	CX2UnitManager::NUI_NONE	);
-	LUA_GET_VALUE( luaManager, L"KEY_CODE", 			pNPCData->m_KeyCode,		0		);
-	LUA_GET_VALUE( luaManager, L"FOCUS_CAMERA",			pNPCData->m_bFocusCamera,	false	);
+	LUA_GET_VALUE_ENUM( luaManager, "NPC_ID",	 		pNPCData->m_UnitID,			CX2UnitManager::NPC_UNIT_ID, 	CX2UnitManager::NUI_NONE	);
+	LUA_GET_VALUE( luaManager, "KEY_CODE", 			pNPCData->m_KeyCode,		0		);
+	LUA_GET_VALUE( luaManager, "FOCUS_CAMERA",			pNPCData->m_bFocusCamera,	false	);
 
 	
 	pNPCData->m_StartPos = -1;
@@ -1532,48 +1530,48 @@ void CX2DungeonSubStage::SubStageData::FetchNPCData( KLuaManager& luaManager, CX
 		luaManager.EndTable();
 	}
 
-	LUA_GET_VALUE( luaManager, L"ACTIVE",				pNPCData->m_bActive,		true	);
-	LUA_GET_VALUE( luaManager, L"GAGE_BAR", 			pNPCData->m_bShowGage,		true	);
+	LUA_GET_VALUE( luaManager, "ACTIVE",				pNPCData->m_bActive,		true	);
+	LUA_GET_VALUE( luaManager, "GAGE_BAR", 			pNPCData->m_bShowGage,		true	);
 
-	LUA_GET_VALUE( luaManager, L"ADD_POS_X", 			pNPCData->m_AddPos.x,		0.0f	);
-	LUA_GET_VALUE( luaManager, L"ADD_POS_Y", 			pNPCData->m_AddPos.y,		0.0f	);
-	LUA_GET_VALUE( luaManager, L"ADD_POS_Z", 			pNPCData->m_AddPos.z,		0.0f	);
+	LUA_GET_VALUE( luaManager, "ADD_POS_X", 			pNPCData->m_AddPos.x,		0.0f	);
+	LUA_GET_VALUE( luaManager, "ADD_POS_Y", 			pNPCData->m_AddPos.y,		0.0f	);
+	LUA_GET_VALUE( luaManager, "ADD_POS_Z", 			pNPCData->m_AddPos.z,		0.0f	);
 
-	LUA_GET_VALUE( luaManager, L"RATE", 				pNPCData->m_Rate,			100		);
-	LUA_GET_VALUE( luaManager, L"LEVEL", 				pNPCData->m_Level,			0		);
+	LUA_GET_VALUE( luaManager, "RATE", 				pNPCData->m_Rate,			100		);
+	LUA_GET_VALUE( luaManager, "LEVEL", 				pNPCData->m_Level,			0		);
 
-	LUA_GET_VALUE( luaManager, L"HAVE_BOSS_GAGE",		pNPCData->m_bHasBossGage,	false	);
-	LUA_GET_VALUE( luaManager, L"SHOW_BOSS_NAME",		pNPCData->m_bShowBossName,	false	);
-	LUA_GET_VALUE( luaManager, L"SHOW_SUB_BOSS_NAME",	pNPCData->m_bShowSubBossName,	false	);
+	LUA_GET_VALUE( luaManager, "HAVE_BOSS_GAGE",		pNPCData->m_bHasBossGage,	false	);
+	LUA_GET_VALUE( luaManager, "SHOW_BOSS_NAME",		pNPCData->m_bShowBossName,	false	);
+	LUA_GET_VALUE( luaManager, "SHOW_SUB_BOSS_NAME",	pNPCData->m_bShowSubBossName,	false	);
 
-	LUA_GET_VALUE( luaManager, L"SIEGE_MODE",			pNPCData->m_bSiegeMode,		false	);
+	LUA_GET_VALUE( luaManager, "SIEGE_MODE",			pNPCData->m_bSiegeMode,		false	);
 	//{{ 2007. 10. 26  최육사  
-	LUA_GET_VALUE( luaManager, L"IS_RIGHT",				pNPCData->m_bIsRight,		false	);
+	LUA_GET_VALUE( luaManager, "IS_RIGHT",				pNPCData->m_bIsRight,		false	);
 	//}}
-	LUA_GET_VALUE( luaManager, L"NO_DROP",				pNPCData->m_bNoDrop,		false	);
+	LUA_GET_VALUE( luaManager, "NO_DROP",				pNPCData->m_bNoDrop,		false	);
 
 
-	LUA_GET_VALUE( luaManager, L"UNIT_SCALE",			pNPCData->m_fUnitScale,		-1.f	);
+	LUA_GET_VALUE( luaManager, "UNIT_SCALE",			pNPCData->m_fUnitScale,		-1.f	);
     
 	//{{ JHKang / 강정훈 / 2011/01/26 / 보스 HP 바 여러 개로 구현
 #ifdef SERV_BOSS_GAUGE_HP_LINES
-	LUA_GET_VALUE( luaManager, L"BOSS_GAUGE_HP_LINES",	pNPCData->m_usBossGaugeHPLines,	1	);
+	LUA_GET_VALUE( luaManager, "BOSS_GAUGE_HP_LINES",	pNPCData->m_usBossGaugeHPLines,	1	);
 #endif SERV_BOSS_GAUGE_HP_LINES
 	//}} JHKang / 강정훈 / 2011/01/26 / 보스 HP 바 여러 개로 구현
 
 	//{{ 2010. 03. 29  손영준	몬스터 팀 설정
 #ifdef SERV_ALLY_NPC
-	LUA_GET_VALUE( luaManager, L"ALLY_NPC",				pNPCData->m_bAllyNpc,		false );
+	LUA_GET_VALUE( luaManager, "ALLY_NPC",				pNPCData->m_bAllyNpc,		false );
 #endif SERV_ALLY_NPC
 
 #ifdef MODIFY_DUNGEON_STAGING
-	LUA_GET_VALUE( luaManager, L"SHOW_BOSS_NAME_DELAY_TIME", pNPCData->m_fShowBossNameDelayTime,	-1.f	);
+	LUA_GET_VALUE( luaManager, "SHOW_BOSS_NAME_DELAY_TIME", pNPCData->m_fShowBossNameDelayTime,	-1.f	);
 	if( -1.f != pNPCData->m_fShowBossNameDelayTime )
 	{
 		pNPCData->m_bShowBossName = true;
 	}
 
-	LUA_GET_VALUE( luaManager, L"STOP_AT_START_STATE",	pNPCData->m_bStopAtStartState,	false	);
+	LUA_GET_VALUE( luaManager, "STOP_AT_START_STATE",	pNPCData->m_bStopAtStartState,	false	);
 #endif //MODIFY_DUNGEON_STAGING
 
 #ifdef X2TOOL
@@ -1587,9 +1585,9 @@ void CX2DungeonSubStage::SubStageData::FetchNPCData( KLuaManager& luaManager, CX
 #ifdef X2TOOL
 bool CX2DungeonSubStage::SubStageData::FetchNPCData4Tool( KLuaManager& luaManager, NPCData *pNPCData )
 {	
-	LUA_GET_VALUE_ENUM( luaManager, L"NPC_ID",	 		pNPCData->m_UnitID,			CX2UnitManager::NPC_UNIT_ID, 	CX2UnitManager::NUI_NONE	);
-	LUA_GET_VALUE( luaManager, L"KEY_CODE", 			pNPCData->m_KeyCode,		0		);
-	LUA_GET_VALUE( luaManager, L"FOCUS_CAMERA",			pNPCData->m_bFocusCamera,	false	);
+	LUA_GET_VALUE_ENUM( luaManager, "NPC_ID",	 		pNPCData->m_UnitID,			CX2UnitManager::NPC_UNIT_ID, 	CX2UnitManager::NUI_NONE	);
+	LUA_GET_VALUE( luaManager, "KEY_CODE", 			pNPCData->m_KeyCode,		0		);
+	LUA_GET_VALUE( luaManager, "FOCUS_CAMERA",			pNPCData->m_bFocusCamera,	false	);
 
 	if( pNPCData->m_UnitID == CX2UnitManager::NUI_NONE )
 	{
@@ -1612,43 +1610,43 @@ bool CX2DungeonSubStage::SubStageData::FetchNPCData4Tool( KLuaManager& luaManage
 		}
 		luaManager.EndTable();
 	}
-	//LUA_GET_VALUE( luaManager, L"START_POS",			pNPCData->m_StartPos,		-1		);
+	//LUA_GET_VALUE( luaManager, "START_POS",			pNPCData->m_StartPos,		-1		);
 
-	LUA_GET_VALUE( luaManager, L"ACTIVE",				pNPCData->m_bActive,		true	);
-	LUA_GET_VALUE( luaManager, L"GAGE_BAR", 			pNPCData->m_bShowGage,		true	);
+	LUA_GET_VALUE( luaManager, "ACTIVE",				pNPCData->m_bActive,		true	);
+	LUA_GET_VALUE( luaManager, "GAGE_BAR", 			pNPCData->m_bShowGage,		true	);
 
-	LUA_GET_VALUE( luaManager, L"ADD_POS_X", 			pNPCData->m_AddPos.x,		0.0f	);
-	LUA_GET_VALUE( luaManager, L"ADD_POS_Y", 			pNPCData->m_AddPos.y,		0.0f	);
-	LUA_GET_VALUE( luaManager, L"ADD_POS_Z", 			pNPCData->m_AddPos.z,		0.0f	);
+	LUA_GET_VALUE( luaManager, "ADD_POS_X", 			pNPCData->m_AddPos.x,		0.0f	);
+	LUA_GET_VALUE( luaManager, "ADD_POS_Y", 			pNPCData->m_AddPos.y,		0.0f	);
+	LUA_GET_VALUE( luaManager, "ADD_POS_Z", 			pNPCData->m_AddPos.z,		0.0f	);
 
-	LUA_GET_VALUE( luaManager, L"RATE", 				pNPCData->m_Rate,			100		);
-	LUA_GET_VALUE( luaManager, L"LEVEL", 				pNPCData->m_iLevel4Tool,	0		);
+	LUA_GET_VALUE( luaManager, "RATE", 				pNPCData->m_Rate,			100		);
+	LUA_GET_VALUE( luaManager, "LEVEL", 				pNPCData->m_iLevel4Tool,	0		);
 	pNPCData->m_Level = pNPCData->m_iLevel4Tool;
 
-	LUA_GET_VALUE( luaManager, L"HAVE_BOSS_GAGE",		pNPCData->m_bHasBossGage,	false	);
-	LUA_GET_VALUE( luaManager, L"SHOW_BOSS_NAME",		pNPCData->m_bShowBossName,	false	);
-	LUA_GET_VALUE( luaManager, L"SHOW_SUB_BOSS_NAME",	pNPCData->m_bShowSubBossName,	false	);
+	LUA_GET_VALUE( luaManager, "HAVE_BOSS_GAGE",		pNPCData->m_bHasBossGage,	false	);
+	LUA_GET_VALUE( luaManager, "SHOW_BOSS_NAME",		pNPCData->m_bShowBossName,	false	);
+	LUA_GET_VALUE( luaManager, "SHOW_SUB_BOSS_NAME",	pNPCData->m_bShowSubBossName,	false	);
 
-	LUA_GET_VALUE( luaManager, L"SIEGE_MODE",			pNPCData->m_bSiegeMode,		false	);
+	LUA_GET_VALUE( luaManager, "SIEGE_MODE",			pNPCData->m_bSiegeMode,		false	);
 	//{{ 2007. 10. 26  최육사  
-	LUA_GET_VALUE( luaManager, L"IS_RIGHT",				pNPCData->m_bIsRight,		false	);
+	LUA_GET_VALUE( luaManager, "IS_RIGHT",				pNPCData->m_bIsRight,		false	);
 	//}}	
-	LUA_GET_VALUE( luaManager, L"NO_DROP",				pNPCData->m_bNoDrop,		false	);
+	LUA_GET_VALUE( luaManager, "NO_DROP",				pNPCData->m_bNoDrop,		false	);
 
-	LUA_GET_VALUE( luaManager, L"UNIT_SCALE",			pNPCData->m_fUnitScale,		-1.f	);
+	LUA_GET_VALUE( luaManager, "UNIT_SCALE",			pNPCData->m_fUnitScale,		-1.f	);
 
 	//{{ 2011. 01. 26	최육사	퀘스트 클리어 조건 추가
 #ifdef SERV_BOSS_GAUGE_HP_LINES
-	LUA_GET_VALUE( luaManager, L"BOSS_GAUGE_HP_LINES",	pNPCData->m_usBossGaugeHPLines, 1 );
+	LUA_GET_VALUE( luaManager, "BOSS_GAUGE_HP_LINES",	pNPCData->m_usBossGaugeHPLines, 1 );
 #endif SERV_BOSS_GAUGE_HP_LINES
 	//}}
 
 	//{{ 2010. 03. 29  손영준	몬스터 팀 설정
 #ifdef SERV_ALLY_NPC
-	LUA_GET_VALUE( luaManager, L"ALLY_NPC",				pNPCData->m_bAllyNpc,		false );
+	LUA_GET_VALUE( luaManager, "ALLY_NPC",				pNPCData->m_bAllyNpc,		false );
 #endif SERV_ALLY_NPC
 	
-	LUA_GET_VALUE_ENUM( luaManager, L"MONSTER_GRADE",	pNPCData->m_MonsterGrade,	CX2DungeonSubStage::MONSTER_GRADE, CX2DungeonSubStage::MG_NORMAL_NPC );
+	LUA_GET_VALUE_ENUM( luaManager, "MONSTER_GRADE",	pNPCData->m_MonsterGrade,	CX2DungeonSubStage::MONSTER_GRADE, CX2DungeonSubStage::MG_NORMAL_NPC );
 	
 	pNPCData->m_UID = g_pX2Game->GetNpcUID4Tool();
 	
@@ -1759,7 +1757,7 @@ void CX2DungeonSubStage::SubStageData::LoadNpcData4Tool( KLuaManager& luaManager
 					{
 						pNPCData->m_bSubNpc			= true;
 						pNPCData->m_iSubNPCIndex	= npcIndex;
-						LUA_GET_VALUE( luaManager, L"SUB_NPC_RATE", pNPCData->m_iSubNPCRate, 0 );
+						LUA_GET_VALUE( luaManager, "SUB_NPC_RATE", pNPCData->m_iSubNPCRate, 0 );
 						m_vecSubStageNpcData.push_back( pNPCData );	
 						
 						bSubNpc = true;
@@ -1784,7 +1782,7 @@ void CX2DungeonSubStage::SubStageData::LoadNpcData4Tool( KLuaManager& luaManager
 				{
 					pNPCData->m_bSubNpc			= false;
 					//pNPCData->m_iSubNPCIndex	= iNpcData;
-					//LUA_GET_VALUE( luaManager, L"SUB_NPC_RATE", pNPCData->m_iSubNPCRate, 0 );
+					//LUA_GET_VALUE( luaManager, "SUB_NPC_RATE", pNPCData->m_iSubNPCRate, 0 );
 					m_vecSubStageNpcData.push_back( pNPCData );					
 				}
 				else
@@ -1831,7 +1829,7 @@ void CX2DungeonSubStage::SubStageData::LoadNPCData( KLuaManager& luaManager )
 
 				
 					int iRate = 0;
-					LUA_GET_VALUE( luaManager, L"SUB_NPC_RATE", iRate, 0 );
+					LUA_GET_VALUE( luaManager, "SUB_NPC_RATE", iRate, 0 );
 					pNPCData->m_Rate = iRate;
 					iSubNPCRate += iRate;
 
@@ -1941,11 +1939,11 @@ void CX2DungeonSubStage::SubStageData::LoadTrigger( KLuaManager& luaManager )
 			pTrigger->m_NowInterval = 0.0f;
 			pTrigger->m_bReacted	= false;
 
-			LUA_GET_VALUE( luaManager, L"HOST", 				pTrigger->m_bHost,			false );
-			LUA_GET_VALUE( luaManager, L"ONE_TIME", 			pTrigger->m_bOneTime,		true );
-			LUA_GET_VALUE( luaManager, L"INTERVAL", 			pTrigger->m_Interval,		0.0f );
-			LUA_GET_VALUE( luaManager, L"CONDITION_FUNC",		pTrigger->m_ConditionFunc,	L"" );
-			LUA_GET_VALUE( luaManager, L"REACT_FUNG",			pTrigger->m_ReactFunc,		L"" );
+			LUA_GET_VALUE( luaManager, "HOST", 				pTrigger->m_bHost,			false );
+			LUA_GET_VALUE( luaManager, "ONE_TIME", 			pTrigger->m_bOneTime,		true );
+			LUA_GET_VALUE( luaManager, "INTERVAL", 			pTrigger->m_Interval,		0.0f );
+			LUA_GET_VALUE_UTF8( luaManager, "CONDITION_FUNC",		pTrigger->m_ConditionFunc,	"" );
+			LUA_GET_VALUE_UTF8( luaManager, "REACT_FUNG",			pTrigger->m_ReactFunc,		"" );
 
 			if( pTrigger->m_ConditionFunc.length() == 0 ||
 				pTrigger->m_ReactFunc.length() == 0 )
@@ -1978,7 +1976,7 @@ void CX2DungeonSubStage::SubStageData::LoadTrigger( KLuaManager& luaManager )
 void CX2DungeonSubStage::SubStageData::LoadSecretStageEnteringSpeech( KLuaManager& luaManager )
 {
 
-	LUA_GET_VALUE_ENUM( luaManager,	 L"SECRET_STAGE_NPC_ID", m_eSecretStageNPCID, CX2UnitManager::NPC_UNIT_ID, CX2UnitManager::NUI_NONE );
+	LUA_GET_VALUE_ENUM( luaManager,	 "SECRET_STAGE_NPC_ID", m_eSecretStageNPCID, CX2UnitManager::NPC_UNIT_ID, CX2UnitManager::NUI_NONE );
 
 
 
@@ -2081,7 +2079,7 @@ void CX2DungeonSubStage::SubStageData::LoadSecretStageEnteringSpeech( KLuaManage
 // 		{
 // 			CX2GUNPC *pNpc = m_NPCList[i];            
 // 						
-// 			if( pNpc != NULL && pNpc->IsActiveMonster() == true && pNpc->GetNPCTemplet()->m_ClassType == CX2UnitManager::NCT_BASIC )
+// 			if( pNpc != NULL && pNpc->IsActiveMonster() == true && pNpc->GetNPCTemplet().m_ClassType == CX2UnitManager::NCT_BASIC )
 // 			{
 // 				++iCheckNpc;
 // 				if( nActiveNpc <= iCheckNpc )
@@ -2131,10 +2129,8 @@ CX2GUNPC*    CX2DungeonSubStage::CreateGUNPC( const NPCData* pNpcData_ )
 	if( pInfo == NULL )
 		return NULL;
 
-#ifdef DUNGEON_ALARM_SYSTEM
 	if( g_pX2Game != NULL )
 		g_pX2Game->ClearDangerAlarm();
-#endif
 
 //#ifdef	X2OPTIMIZE_NPC_LUASPACE_SHARING
 	CX2GUNPC* pCX2GUNPC = CX2GUNPC::CreateGUNPC( 0, CX2Room::TN_MONSTER, pNpcData_->m_UID, 
@@ -2175,9 +2171,71 @@ CX2GUNPC*    CX2DungeonSubStage::CreateGUNPC( const NPCData* pNpcData_ )
 
 }// CX2DungeonSubStage::CreateGUNPC()
 
+#ifdef DYNAMIC_PORTAL_LINE_MAP
+/** @function : ChangeLineTypeAfterStageClear
+	@brief : 스테이지 클리어 이후 라인맵 속성을 변경
+*/
+void CX2DungeonSubStage::ChangeLineTypeAfterStageClear()
+{
+	// 현재 스테이지, 서브스테이지 체크
+	int iNowStage = 0;
+	int iNowSubStage = 0;
+	CX2DungeonGame* pDungoenGame = static_cast<CX2DungeonGame*>(g_pX2Game);
+	if( NULL != pDungoenGame )
+	{
+		CX2Dungeon* pDungeon = pDungoenGame->GetDungeon() ;
+		if( NULL != pDungeon && 
+			NULL != pDungeon->GetNowStage() )
+		{
+			iNowStage = pDungeon->GetNowStageIndex();
+			iNowSubStage = GetSubStageIndex();
+		}
+	}
 
+	if( NULL != g_pX2Game &&
+		NULL != g_pX2Game->GetWorld() &&
+		NULL != g_pX2Game->GetLineMap() &&
+		NULL != g_pX2Game->GetMajorParticle() )
+	{
+		for( int i=0; i<g_pX2Game->GetLineMap()->GetNumLineData(); ++i )
+		{
+			CKTDGLineMap::LineData* pLineData = g_pX2Game->GetLineMap()->AccessLineData( i );
 
-
+			// 변경할 라인타입과 현재 라인타입이 다를 때
+			if( NULL != pLineData &&
+				CKTDGLineMap::LT_INVALID != pLineData->m_eLineTypeAfterClearStage &&
+				pLineData->m_eLineTypeAfterClearStage != pLineData->lineType )
+			{
+				// 지정되지 않았거나, 현재 스테이지가 지정된 스테이지일 때
+				if( -1 == pLineData->m_iChangeAfterClearStage ||
+					iNowStage == pLineData->m_iChangeAfterClearStage )
+				{
+					// 서브스테이지도 같은 조건 체크
+					if( -1 == pLineData->m_iChangeAfterClearSubStage ||
+						iNowSubStage == pLineData->m_iChangeAfterClearSubStage )
+					{
+						pLineData->lineType = pLineData->m_eLineTypeAfterClearStage;
+						CX2WorldObjectParticle* pParticle = g_pX2Game->GetWorld()->CreateObjectParticle( g_pX2Game->GetMajorParticle(), "Peita_Teleport_MagicSquare01" );
+						if( NULL != pParticle )
+						{
+							pParticle->SetParticlePos( ( pLineData->startPos + pLineData->endPos ) * 0.5f + D3DXVECTOR3(0, 3, 0 ) );
+							pParticle->SetLayer( XL_EFFECT_0 );
+						}
+					}
+				}
+			}
+		}
+	}
+}
+/** @function : ProcessAfterSubStageClear
+	@brief : HOST가 아닌 경우, 서브 스테이지 클리 후 처리 해야 하는 동작
+*/
+void CX2DungeonSubStage::ProcessAfterSubStageClear_NotHost()
+{
+	// 라인맵 타입 변환 
+	ChangeLineTypeAfterStageClear();
+}
+#endif // DYNAMIC_PORTAL_LINE_MAP
 
 #ifdef SHOW_REMAIN_TIME_IN_CLEAR_CONDITION
 float CX2DungeonSubStage::GetRemainTimeInClearCondition()

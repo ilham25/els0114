@@ -9,8 +9,16 @@
 #include "GSNetLayer.h"
 #include "GSAccountDBThread.h"
 #include "GSGameDBThread.h"
+#include "GSGameDBThread2nd.h"
 #include "GSLogDBThread.h"
+#include "GSLogDBThread2nd.h"
 #include "GSSMSDBThread.h"
+#ifdef SERV_ADD_EVENT_DB
+#include "GSEventDBThread.h"
+#endif //SERV_ADD_EVENT_DB
+#ifdef SERV_ADD_SCRIPT_DB
+#include "GSScriptDBThread.h"
+#endif //SERV_ADD_SCRIPT_DB
 
 #ifdef SERV_COUNTRY_TH
 #include "../Common/OnlyGlobal/AuthAndBilling/TH/GSASBillingDBThread.h"	//	AsiaSoft Billing
@@ -25,7 +33,7 @@
 //{{ 2013. 09. 23	최육사	일본 이벤트 중계DB작업
 #ifdef SERV_RELAY_DB_CONNECTION
 #include "GSRelayDBThread.h"
-#endif SERV_RELAY_DB_CONNECTION
+#endif //SERV_RELAY_DB_CONNECTION
 //}}
 #endif //SERV_COUNTRY_TWHK
 
@@ -147,6 +155,10 @@
 	#include "GameEvent/GameEventScriptManager.h"
 #endif SERV_EVENT_SCRIPT_REFRESH
 //}}
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	#include "GameEvent/GameEventDBManager.h"
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 //{{ 2011. 03. 29	최육사	TBB 메모리 관리자
 #ifdef SERV_TBB_MALLOC_PROXY_TEST
@@ -279,6 +291,19 @@
 #endif SERV_GLOBAL_MISSION_MANAGER
 //}} 2012. 09. 13	임홍락	글로벌 미션 매니저
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	#include "X2Data/XSLFieldBossData.h"
+	#include "GSFieldBossManager.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_GOOD_ELSWORD
+    #include "X2Data/XSLEDInventoryExpand.h"
+#endif //SERV_GOOD_ELSWORD
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	#include "StringFilterManager.h"
+#endif //SERV_STRING_FILTER_USING_DB
+
 //#include "vld.h"
 
 #ifdef SERV_NPROTECT_CS_AUTH_30
@@ -365,6 +390,10 @@ KGameServer::KGameServer(void)
 #ifdef SERV_ITEM_EXCHANGE_LIMIT// 작업날짜: 2013-06-30	// 박세훈
 	, m_iExchangeLimitUID( 0 )
 #endif // SERV_ITEM_EXCHANGE_LIMIT
+
+#ifdef SERV_CONTENT_MANAGER_INT
+	, m_bFirstCashshopOnOffCheck( true )
+#endif SERV_CONTENT_MANAGER_INT
 {
 }
 
@@ -421,13 +450,16 @@ KThread*        CreateDBThread( int iDBConnectionInfo, const wchar_t* szDSN, boo
 		return new KGSNXWebDBThread( szDSN, bDBConnStr );
 #endif SERV_WEB_POINT_EVENT
 		//}}
+    case KDBLayer::DC_GAME_2ND:
+        return new KGSGameDBThread2nd( szDSN, bDBConnStr );
+    case KDBLayer::DC_LOG_2ND:
+        return new KGSLogDBThread2nd( szDSN, bDBConnStr );
 		//{{ 2010. 11. 12  조효진	GameForge 채팅 로그 관련 처리
 #ifdef SERV_RECORD_CHAT
 	case KDBLayer::DC_CHAT_LOG:
 		return new KGSChatLogDBThread( szDSN, bDBConnStr );
 #endif SERV_RECORD_CHAT
 		//}}
-
 #ifdef SERV_GLOBAL_BILLING
 	case KDBLayer::DC_KOG_BILLING:
 		return new KGSBillingDBThread( szDSN, bDBConnStr );
@@ -453,6 +485,15 @@ KThread*        CreateDBThread( int iDBConnectionInfo, const wchar_t* szDSN, boo
 		return new KGSRelayDBThread( szDSN, bDBConnStr );
 #endif SERV_RELAY_DB_CONNECTION
 		//}}
+#ifdef SERV_ADD_EVENT_DB
+	case KDBLayer::DC_EVENT:
+		return new KGSEventDBThread( szDSN, bDBConnStr );
+#endif //SERV_ADD_EVENT_DB
+
+#ifdef SERV_ADD_SCRIPT_DB
+	case KDBLayer::DC_SCRIPT:
+		return new KGSScriptDBThread( szDSN, bDBConnStr );
+#endif //SERV_ADD_SCRIPT_DB
 
     default:
         START_LOG( cerr, L"접속하려는 DB 종류가 이상함." )
@@ -552,8 +593,7 @@ bool KGameServer::Init()
 		START_LOG( cerr, L"빌링초기화 에러" )
 			<< BUILD_LOG( ret )			
 			<< END_LOG;
-	}	
-
+	}
 #endif //SERV_COUNTRY_JP
 
 	// nProtect 한국인증 모듈 사용설정
@@ -570,7 +610,7 @@ bool KGameServer::Init()
 	//	}
 	//}
 	//{{ 2009. 8. 18  최육사	hack shield
-	if( KSimLayer::GetKObj()->CheckCommonFlag( KSimLayer::CommonFlag::CF_HSHIELD ) == true )
+	if( KSimLayer::GetKObj()->CheckCommonFlag( KSimLayer::CF_HSHIELD ) == true )
 	{
 		KHSAuth::SetAhnHSServerHandle( _AhnHS_CreateServerObject( KHSAuth::GetHSBFilePath().c_str() ) );
 
@@ -586,6 +626,7 @@ bool KGameServer::Init()
 	//}}
 
 #ifdef SERV_USE_XTRAP
+	if( KSimLayer::GetKObj()->CheckCommonFlag( KSimLayer::CF_XTRAP ) == true )
 	{
 		GetKGSSimLayer()->ReloadXTRAP_MAP();
 	}
@@ -611,7 +652,14 @@ bool KGameServer::Init()
 	m_bServerRunningProcessCommunicationOnOff = false;
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
 	
-
+#ifdef SERV_USE_GM_TOOL_INFO
+	if( GetServerRollType() == KServerInfo::SRT_UPDATE_CASH_PRODUCT_LIST )
+	{
+		KDBE_USE_GM_TOOL_INSERT_ITEM_INFO_NOT kPacketNOT;
+		kPacketNOT.m_CurrentItemTempletNameMap = SiCXSLItemManager()->GetItemNameContainer();
+		SendToGameDB( DBE_USE_GM_TOOL_INSERT_ITEM_INFO_NOT, kPacketNOT );
+	}
+#endif //SERV_USE_GM_TOOL_INFO
 
     return true;
 }
@@ -671,11 +719,14 @@ void KGameServer::OnServerReadyComplete()
 		SiKProcessCommunicationManager()->InitWrite(TEXT("\\\\.\\pipe\\GameServerWrite"));
 		SiKProcessCommunicationManager()->Begin();
 	}
-
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
 
 	// 이벤트 정보 얻기
 	SiKGameEventManager()->Init();
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	SiKStringFilterManager()->Init();
+#endif //SERV_STRING_FILTER_USING_DB
 
 	//{{ 2012. 02. 03	박세훈	이벤트 관련정보 처리방법 변경 ( Script -> DB )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
@@ -704,7 +755,7 @@ void KGameServer::OnServerReadyComplete()
 
 	//{{ 2011. 02. 23	최육사	캐쉬 상품 리스트
 #ifdef SERV_CASH_ITEM_LIST
-	if( GetServerRollType() == KServerInfo::SRT_UPDATE_CASH_PRODUCT_LIST )
+	if( SEnum::CheckFlag( GetServerRollType(), KServerInfo::SRT_UPDATE_CASH_PRODUCT_LIST ) == true )
 	{
 		KELOG_CASH_PRODUCT_LIST_UPDATE_NOT kPacketToLogDB;
 		SiKNexonBillingTCPManager()->GetCashProductList( kPacketToLogDB.m_vecCashProductList );
@@ -758,6 +809,20 @@ void KGameServer::OnServerReadyComplete()
 	SendToLogDB( DBE_CHANNEL_LIST_REQ, kPacketToDB );
 #endif SERV_CHAR_CONNECT_LOG
 	//}}
+#ifdef SERV_ENTRY_POINT
+    // 서버군이 2개 국가에서만 동작
+    if ( GetKGSSimLayer()->GetServerGroupNum() == KGSSimLayer::DOUBLE_SERVER_GROUP )
+    {
+        KDBE_CHANNEL_LIST_REQ kPacketToDB2nd;
+        kPacketToDB2nd.m_iServerGroupID = ( GetServerGroupID() == SEnum::SGI_SOLES ? SEnum::SGI_GAIA : SEnum::SGI_SOLES );
+        SendToLogDB2nd( DBE_CHANNEL_LIST_REQ, kPacketToDB2nd );
+    }
+#endif SERV_ENTRY_POINT
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	InitTimeControlItemReleaseTick();
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING 
 	InitTimeControlCubeInItemMappingReleaseTick();
 #endif //SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
@@ -767,7 +832,6 @@ void KGameServer::OnServerReadyComplete()
 	KUdpRelayChecker::GetKObj()->Init();
 #endif SERV_UDP_RELAY_CHECKER
 	//}}
-
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 	SiKGSGlobalMissionManager()->Init();
 #endif SERV_GLOBAL_MISSION_MANAGER
@@ -789,13 +853,13 @@ void KGameServer::ShutDown()
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
 
 	//{{ 2009. 8. 18  최육사	hack shield
-	if( KSimLayer::GetKObj()->CheckCommonFlag( KSimLayer::CommonFlag::CF_HSHIELD ) == true )
+	if( KSimLayer::GetKObj()->CheckCommonFlag( KSimLayer::CF_HSHIELD ) == true )
 	{
 		_AhnHS_CloseServerHandle( KHSAuth::GetAhnHSServerHandle() );
 	}
 	//}}
 #ifdef SERV_NPROTECT_CS_AUTH_30
-	if( KSimLayer::GetKObj()->CheckCommonFlag( KSimLayer::CommonFlag::CF_NPGG ) == true )
+	if( KSimLayer::GetKObj()->CheckCommonFlag( KSimLayer::CF_NPGG ) == true )
 	{
 		CloseCSAuth3();
 	}
@@ -880,6 +944,10 @@ bool KGameServer::DestroyAllSession()
 
 void KGameServer::Tick()
 {
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	CTime tCurrentTime = CTime::GetCurrentTime();
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	KBaseServer::Tick();
 
 	//{{ 2010. 05. 31  최육사	동접 정보 개편
@@ -923,6 +991,15 @@ void KGameServer::Tick()
 //		SendToLogDB(DBE_CCU_AGENT_REQ, char());
 //	}
 //#endif SERV_KOG_STATISTICS
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	TickCheckTimeControlItem();
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	CheckGSFieldBossSystemRequest( tCurrentTime );
+	CheckGSFieldBossSystem( tCurrentTime );
+#endif // SERV_BATTLE_FIELD_BOSS
+
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING  
 	TickCheckTimeControlCubeInItemMapping();
 #endif //SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING 
@@ -950,6 +1027,19 @@ void KGameServer::Tick()
 	}
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
 
+#ifdef SERV_CONTENT_MANAGER_INT
+	if( m_tCashshopOnOffCheckTimer.elapsed() > 120.0f )
+	{
+		KDBE_GET_CASHSHOP_ON_OFF_INFO_REQ kPacket;
+		kPacket.m_bFirstCashshopOnOffCheck = m_bFirstCashshopOnOffCheck;
+		kPacket.m_iReleaseTick = SiKGSContentManager()->GetReleaseTick();		
+		kPacket.m_bEnableCashshop = SiKGSContentManager()->IsEnableCashShop();
+		SendToKOGBillingDB( DBE_GET_CASHSHOP_ON_OFF_INFO_REQ, kPacket );
+
+		m_tCashshopOnOffCheckTimer.restart();
+		m_bFirstCashshopOnOffCheck = false;
+	}
+#endif SERV_CONTENT_MANAGER_INT
 }
 
 void KGameServer::SetHackShieldHSBFilePath( const char* pFilePath )
@@ -1073,13 +1163,80 @@ void KGameServer::WriteServerInfoToDB()
 #endif SERV_CCU_NEW
 //}}
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+void KGameServer::InitTimeControlItemReleaseTick()
+{
+	m_mapTimeControlItem_StaticDBReleaseTick.clear();
+	std::map<int, int>::iterator mit = m_mapTimeControlItem_StaticDBReleaseTick.find(TCIRTT_TIME_CONTROL_ITEM_CHECK);
+
+	if ( mit != m_mapTimeControlItem_StaticDBReleaseTick.end() )
+	{
+		mit->second = 0;
+	}
+	else
+	{
+		m_mapTimeControlItem_StaticDBReleaseTick.insert(std::make_pair(TCIRTT_TIME_CONTROL_ITEM_CHECK, 0));
+	}
+}
+
+void KGameServer::SetTimeControlItemReleaseTick(TimeControl_Item_Release_Tick_Type _enum ,std::map<int, int> &mapReleaseTick)
+{
+
+	std::map<int, int>::iterator sitstr = mapReleaseTick.find(_enum);
+	std::map<int, int>::iterator sitdst = m_mapTimeControlItem_StaticDBReleaseTick.find(_enum);
+
+	if(sitdst != m_mapTimeControlItem_StaticDBReleaseTick.end())
+	{
+		m_mapTimeControlItem_StaticDBReleaseTick.find(_enum)->second = sitstr->second;
+	}
+	else
+	{
+		m_mapTimeControlItem_StaticDBReleaseTick.insert(std::make_pair(sitstr->first, sitstr->second));
+	}
+}
+
+int KGameServer::GetTimeControlItemReleaseTick(TimeControl_Item_Release_Tick_Type _enum)
+{
+	std::map<int, int>::const_iterator sit = m_mapTimeControlItem_StaticDBReleaseTick.find(_enum);
+
+	if(sit != m_mapTimeControlItem_StaticDBReleaseTick.end())
+	{
+		return sit->second;
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+bool KGameServer::TickCheckTimeControlItem()
+{
+	if( m_tTimeControlItemCheckTimer.elapsed() > 60.0f )
+	{
+		int iReleaseTickCount = 0;
+
+		iReleaseTickCount = GetTimeControlItemReleaseTick( TCIRTT_TIME_CONTROL_ITEM_CHECK );
+		if ( iReleaseTickCount == -1 )
+		{
+			m_tTimeControlItemCheckTimer.restart();
+			return false;
+		}
+
+		KDBE_GET_ITEM_ONOFF_NPCSHOP_REQ kPacket;
+		kPacket.m_mapTimeControlItem_StaticDBReleaseTick.insert(std::make_pair( TCIRTT_TIME_CONTROL_ITEM_CHECK, iReleaseTickCount ));
+		SendToLogDB( DBE_GET_ITEM_ONOFF_NPCSHOP_REQ, kPacket );
+
+		m_tTimeControlItemCheckTimer.restart();
+	}
+	return true;
+}
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING 
 void KGameServer::InitTimeControlCubeInItemMappingReleaseTick()
 {
 	m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick.clear();
-
 	std::map<int, int>::iterator mit = m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick.find(TCIRTT_TIME_CONTROL_CUBE_IN_ITEM_MAPPING);
-
 
 	if ( mit != m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick.end() )
 	{
@@ -1089,13 +1246,10 @@ void KGameServer::InitTimeControlCubeInItemMappingReleaseTick()
 	{
 		m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick.insert(std::make_pair(TCIRTT_TIME_CONTROL_CUBE_IN_ITEM_MAPPING, 0));
 	}
-
-
-
 }
+
 void KGameServer::SetTimeControlCubeInItemMappingReleaseTick(TimeControl_CubeInItemMapping_Release_Tick_Type _enum ,std::map<int, int> &mapReleaseTick)
 {
-
 	std::map<int, int>::iterator sitstr = mapReleaseTick.find(_enum);
 	std::map<int, int>::iterator sitdst = m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick.find(_enum);
 
@@ -1107,12 +1261,10 @@ void KGameServer::SetTimeControlCubeInItemMappingReleaseTick(TimeControl_CubeInI
 	{
 		m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick.insert(std::make_pair(sitstr->first, sitstr->second));
 	}
-
 }
 
 int KGameServer::GetTimeControlCubeInItemMappingReleaseTick(TimeControl_CubeInItemMapping_Release_Tick_Type _enum)
 {
-
 	std::map<int, int>::const_iterator sit = m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick.find(_enum);
 
 	if(sit != m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick.end())
@@ -1123,14 +1275,12 @@ int KGameServer::GetTimeControlCubeInItemMappingReleaseTick(TimeControl_CubeInIt
 	{
 		return -1;
 	}
-
 }
 
 bool KGameServer::TickCheckTimeControlCubeInItemMapping()
 {
 	if( m_tTimeControlCubeInItemMappingCheckTimer.elapsed() > 60.0f )
 	{
-
 		int iReleaseTickCount = 0;
 
 		iReleaseTickCount = GetTimeControlCubeInItemMappingReleaseTick( TCIRTT_TIME_CONTROL_CUBE_IN_ITEM_MAPPING );
@@ -1140,18 +1290,13 @@ bool KGameServer::TickCheckTimeControlCubeInItemMapping()
 			return false;
 		}
 
-
 		KDBE_GET_CUBE_IN_ITEM_MAPPING_ONOFF_REQ kPacket;
-
 		kPacket.m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick.insert(std::make_pair( TCIRTT_TIME_CONTROL_CUBE_IN_ITEM_MAPPING, iReleaseTickCount ));
-
 		SendToLogDB( DBE_GET_CUBE_IN_ITEM_MAPPING_ONOFF_REQ, kPacket );
 
 		m_tTimeControlCubeInItemMappingCheckTimer.restart();
 	}
-
 	return true;
-
 }
 #endif SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING 
 
@@ -1329,6 +1474,10 @@ void KGameServer::ProcessEvent( const KEventPtr& spEvent_ )
 	_CASE( EGB_SHUT_DOWN_NOTIFY_NOT, KEGS_NOTIFY_MSG_NOT );
 #endif SERV_SHUTDOWN_SYSTEM
 	//}}
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	CASE( DBE_GET_ITEM_ONOFF_NPCSHOP_ACK );
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING 
 	CASE( DBE_GET_CUBE_IN_ITEM_MAPPING_ONOFF_ACK );
 #endif SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
@@ -1375,7 +1524,6 @@ void KGameServer::ProcessEvent( const KEventPtr& spEvent_ )
 	CASE_FOR_REDIRECT( ELG_LOCAL_RANKING_SYSTEM_CHECK_NOT, SiKGSLocalRankingManager() );
 #endif SERV_LOCAL_RANKING_SYSTEM
 	//}}
-	
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
 	CASE( DBE_CHECK_EVENT_UPDATE_ACK );
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK	
@@ -1401,6 +1549,14 @@ void KGameServer::ProcessEvent( const KEventPtr& spEvent_ )
 	CASE( EGB_EXCHANGE_LIMIT_INFO_ACK );
 #endif // SERV_ITEM_EXCHANGE_LIMIT
 
+#ifdef SERV_CONTENT_MANAGER_INT
+	CASE( DBE_GET_CASHSHOP_ON_OFF_INFO_ACK );
+#endif SERV_CONTENT_MANAGER_INT
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	CASE( DBE_EVENT_DB_SCRIPT_ACK );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 	//{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 	_CASE( EGB_UPDATE_GLOBAL_MISSION_INFO_NOT, KEGB_GET_GLOBAL_MISSION_INFO_ACK );
@@ -1408,6 +1564,27 @@ void KGameServer::ProcessEvent( const KEventPtr& spEvent_ )
 	CASE( EGB_UPDATE_GLOBAL_MISSION_START_TIME_NOT );
 #endif SERV_GLOBAL_MISSION_MANAGER
 	//}} 2012. 09. 03	임홍락	글로벌 미션 매니저
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-29	// 박세훈
+	CASE( ERM_UPDATE_TOTAL_DANGEROUS_VALUE_NOT );
+	CASE_NOPARAM( EGB_VERIFY_SERVER_CONNECT_NOT );
+	CASE_NOPARAM( EGB_VERIFY_SERVER_DISCONNECT_NOT );
+	CASE( EGB_BATTLE_FIELD_BOSS_INFO_NOT );
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_ENTRY_POINT
+    _CASE( DBE_CHANNEL_LIST_2ND_ACK, KDBE_CHANNEL_LIST_ACK );
+#endif SERV_ENTRY_POINT
+
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH
+	_CASE( EGS_ADD_COMMON_FLAG_NOT, KEGS_ADD_COMMON_FLAG_NOT );
+	_CASE( EGS_DEL_COMMON_FLAG_NOT, KEGS_DEL_COMMON_FLAG_NOT );
+#endif // SERV_MODFIY_FLAG_REALTIME_PATCH
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	CASE( DBE_CHECK_STRING_FILTER_UPDATE_ACK );
+	CASE( DBE_STRING_FILTER_UPDATE_ACK );
+#endif //SERV_STRING_FILTER_USING_DB
 
     default:
         START_LOG( cerr, L"이벤트 핸들러가 정의되지 않았음 - " << spEvent_->GetIDStr() )
@@ -1501,7 +1678,15 @@ IMPL_ON_FUNC( DBE_CHANNEL_LIST_ACK )
 #endif SERV_CHANNEL_LIST_RENEWAL
 	//}}
 }
-//}}
+
+#ifdef SERV_ENTRY_POINT
+_IMPL_ON_FUNC( DBE_CHANNEL_LIST_2ND_ACK, KDBE_CHANNEL_LIST_ACK )
+{
+    SiKChannelManager()->UpdateChannelList2nd( kPacket_.m_mapChannelList );
+
+    SiKChannelManager()->UpdateChannelBonusList2nd( kPacket_.m_mapChannelBonusList );
+}
+#endif SERV_ENTRY_POINT
 
 IMPL_ON_FUNC( ERM_ROOM_LIST_INFO_NOT )
 {
@@ -1628,7 +1813,7 @@ IMPL_ON_FUNC( ENX_UPDATE_PRODUCT_LIST_NOT )
 
 	//{{ 2011. 02. 23	최육사	캐쉬 상품 리스트
 #ifdef SERV_CASH_ITEM_LIST
-	if( GetServerRollType() == KServerInfo::SRT_UPDATE_CASH_PRODUCT_LIST )
+	if( SEnum::CheckFlag( GetServerRollType(), KServerInfo::SRT_UPDATE_CASH_PRODUCT_LIST ) == true )
 	{
 		KELOG_CASH_PRODUCT_LIST_UPDATE_NOT kPacketToLogDB;
 		kPacketToLogDB.m_vecCashProductList = kPacket_.m_vecCashProductList;
@@ -1646,7 +1831,21 @@ IMPL_ON_FUNC( DBE_EVENT_UPDATE_ACK )
 {
 	if( kPacket_.m_vecEventList.size() > 0 )
 	{
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		
+		if ( SiKGameEventDBManager()->GetMapEventDBData().empty() == true )
+		{
+			SendToEventDB( DBE_EVENT_DB_SCRIPT_REQ );
+		}
+		else
+		{
+			SiKGameEventManager()->SetEvent( kPacket_.m_vecEventList );
+		}
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		SiKGameEventManager()->SetEvent( kPacket_.m_vecEventList );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 	}
 }
 
@@ -2221,11 +2420,15 @@ IMPL_ON_FUNC( ERM_PERSONAL_SHOP_INFO_NOT )
 _IMPL_ON_FUNC( ESR_ORDER_TO_GAME_SERVER_NOT, KESR_SCRIPT_REFRESH_ORDER_NOT )
 {
 	// 로그인서버로 가는 명령인지 확인!
-	if( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_CN_SENTINEL < kPacket_.m_iOrderType  && 
-		KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_SENTINEL > kPacket_.m_iOrderType )
+	if( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_CN_SENTINEL < kPacket_.m_iOrderType
+		&& KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_SENTINEL > kPacket_.m_iOrderType
+		)
 	{
-		UidType anTrace[2] = { GetUID(), -1 };
-		KncSend( PI_GS_SERVER, GetUID(), PI_LOGIN_SERVER, 0, anTrace, ESR_ORDER_TO_REFRESH_MANAGER_REQ, kPacket_ );
+		if( SEnum::CheckFlag( GetServerRollType(), KServerInfo::SRT_LOGIN_SERVER_SCRIPT_REFRESH ) == true )
+		{
+			UidType anTrace[2] = { GetUID(), -1 };
+			KncSend( PI_GS_SERVER, GetUID(), PI_LOGIN_SERVER, 0, anTrace, ESR_ORDER_TO_REFRESH_MANAGER_REQ, kPacket_ );
+		}
 	}
 	// 게임서버로 가는 명령인지 확인!
 	else if( KESR_SCRIPT_REFRESH_ORDER_NOT::OT_LG_SENTINEL < kPacket_.m_iOrderType  && 
@@ -2252,6 +2455,14 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 	{
         mapFieldInfo = SiCXSLMapData()->GetFieldInfo();
 	}
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	std::map< int, std::vector< KRewardData > > mapRewardScriptData;
+	if( kPacket_.m_iOrderType == KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GS_REWARD_TABLE )
+	{
+		mapRewardScriptData = SiKRewardTable()->GetMapRewardScriptData();
+	}
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 	switch( kPacket_.m_iOrderType )
 	{
@@ -2294,7 +2505,9 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 	//}}
 	//{{ 2011. 10. 12	최육사	컨텐츠 관리자
 #ifdef SERV_CONTENT_MANAGER
+#ifndef SERV_CONTENT_MANAGER_INT
 	CASE_SCRIPT_REFRESH_SWAP_INSTANCE( OT_GS_CONTENT_MANAGER, KGSContentManager );
+#endif SERV_CONTENT_MANAGER_INT
 #endif SERV_CONTENT_MANAGER
 	//}}
 	//{{ 2011.10.14     김민성    운영자 기능은 특정 IP 에서만 사용 가능
@@ -2357,6 +2570,17 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 	CASE_SCRIPT_REFRESH_SWAP_INSTANCE( OT_GS_RIDING_PET_MANAGER, CXSLRidingPetManager );
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+	CASE_SCRIPT_REFRESH_SWAP_INSTANCE( OT_GS_SKILL_TREE, CXSLSkillTree );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	CASE_SCRIPT_REFRESH_SWAP_INSTANCE( OT_GS_FIELD_BOSS_DATA, CXSLFieldBossData );
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_GOOD_ELSWORD
+    CASE_SCRIPT_REFRESH_SWAP_INSTANCE( OT_GS_ED_INVENTORY_EXPAND, CXSLEDInventoryExpand );
+#endif
 	default:
 		{
 			START_LOG( cerr, L"이쪽으로 오면 안되는 타입인데?" )
@@ -2380,12 +2604,20 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 #ifdef SERV_EVENT_SCRIPT_REFRESH
 	else if( kPacket_.m_iOrderType == KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GS_GAME_EVENT_SCRIPT_MANAGER )
 	{
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const std::map< int, EVENT_DATA >	mapEventScriptData = SiKGameEventScriptManager()->GetMapEventScriptData();
+		const std::map< int, EVENT_DATA >	mapEventDBData = SiKGameEventDBManager()->GetMapEventDBData();
+		
+		SiKGameEventManager()->SetTotalEventData( mapEventScriptData, mapEventDBData );
+
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 		SiKGameEventManager()->RefreshEventScript();
 	}
 #endif SERV_EVENT_SCRIPT_REFRESH
 	//}}
 	//{{ 2011. 10. 12	최육사	컨텐츠 관리자
 #ifdef SERV_CONTENT_MANAGER
+#ifndef SERV_CONTENT_MANAGER_INT
 	else if( kPacket_.m_iOrderType == KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GS_CONTENT_MANAGER )
 	{
 		// 캐쉬샵 상점을 열지 말지를 클라이언트에 알린다.
@@ -2408,6 +2640,7 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 		START_LOG( cout, L"[컨텐츠 관리자] 캐쉬샵 상점의 온오프 정보를 클라이언트로 브로드캐스팅 하였습니다!" )
 			<< BUILD_LOG( kNot.m_bCashShopOpen );
 	}
+#endif SERV_CONTENT_MANAGER_INT
 #endif SERV_CONTENT_MANAGER
 	//}}
 	//{{ 2011. 11. 04	김민성 일일 랜덤 퀘스트 실시간 패치 
@@ -2419,6 +2652,21 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 	}
 #endif SERV_RANDOM_DAY_QUEST
 		//}}
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	else if( kPacket_.m_iOrderType == KESR_SCRIPT_REFRESH_ORDER_NOT::OT_GS_REWARD_TABLE )
+	{
+		const std::map< int, std::vector< KRewardData > >	mapRewardDBData = SiKRewardTable()->GetMapRewardDBData();
+
+		SiKRewardTable()->SetMapTotalRewardData(mapRewardScriptData, mapRewardDBData);
+
+		KESG_REWARD_DB_DATA_NOT kPacket;
+
+		kPacket.m_mapTotalRewardData = SiKRewardTable()->GetMapTotalRewardData();
+		// 모든 유저들에게 브로드캐스팅
+		UidType anTrace[2] = { 0, -1 };
+		KncSend( PI_CN_SERVER, 0, PI_GS_USER, 0 , anTrace, ESG_REWARD_DB_DATA_NOT, kPacket );
+	}
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%") % 0 %L"GameServer 스크립트 실시간 패치 완료"));
@@ -2722,6 +2970,33 @@ _IMPL_ON_FUNC( EGB_JACKPOT_EVENT_POST_NOT, KDBE_INSERT_REWARD_TO_POST_REQ )
 }
 #endif SERV_EVENT_JACKPOT
 //}}
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+IMPL_ON_FUNC( DBE_GET_ITEM_ONOFF_NPCSHOP_ACK )
+{
+	std::map<int , int>::const_iterator cmit = kPacket_.m_mapTimeControlItem_StaticDBReleaseTick.find(TCIRTT_TIME_CONTROL_ITEM_CHECK);
+
+	if ( cmit !=  kPacket_.m_mapTimeControlItem_StaticDBReleaseTick.end() )
+	{
+		if ( GetTimeControlItemReleaseTick( TCIRTT_TIME_CONTROL_ITEM_CHECK )  != cmit->second )
+		{
+
+			if ( kPacket_.m_mapGetItemOnOff.empty() == false )
+			{
+				GetKGSSimLayer()->SetTimeControlItem_Info(kPacket_.m_mapGetItemOnOff);
+
+				KEGS_GET_TIME_CONTROL_ITME_LIST_NOT kPacket;
+				kPacket.m_iOK = NetError::NET_OK;
+
+				UidType anTrace[2] = { 0, -1 };
+				KncSend( PI_CN_SERVER, 0, PI_GS_USER, 0 , anTrace, DBE_GET_TIME_CONTROL_ITME_LIST_NOT, kPacket );
+			}
+			
+			SetTimeControlItemReleaseTick( TCIRTT_TIME_CONTROL_ITEM_CHECK, kPacket_.m_mapTimeControlItem_StaticDBReleaseTick );
+		}
+	}
+}
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING 
 IMPL_ON_FUNC( DBE_GET_CUBE_IN_ITEM_MAPPING_ONOFF_ACK )
 {
@@ -2744,11 +3019,100 @@ IMPL_ON_FUNC( DBE_GET_CUBE_IN_ITEM_MAPPING_ONOFF_ACK )
 			//}
 			
 			SetTimeControlCubeInItemMappingReleaseTick( TCIRTT_TIME_CONTROL_CUBE_IN_ITEM_MAPPING, kPacket_.m_mapTimeControlCubeInItemMapping_StaticDBReleaseTick );
-
 		}
 	}
 }
 #endif SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+IMPL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK )
+{
+	std::map<int , int>::const_iterator cmit;
+
+	cmit = kPacket_.m_mapReleaseTick.find( KGameEventManager::ERTT_EVENT_DB_SCRIPT_CHECK );
+
+	if( cmit !=  kPacket_.m_mapReleaseTick.end() )
+	{
+		int iOldReleaseTick = SiKGameEventManager()->GetEventDBScriptReleaseTick();
+		int iNewReleaseTick = cmit->second;
+		if( iOldReleaseTick != iNewReleaseTick )
+		{
+			START_LOG( cout2, L" 이벤트 DB 스크립트 데이터 변경 된 것을 새로 받아 옵니다." )
+				<< BUILD_LOG( iOldReleaseTick )
+				<< BUILD_LOG( iNewReleaseTick )
+				<< END_LOG;
+
+			SendToEventDB( DBE_EVENT_DB_SCRIPT_REQ );
+
+			SiKGameEventManager()->SetEventDBScriptReleaseTick( iNewReleaseTick );
+		}
+	}
+
+#ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
+	 cmit = kPacket_.m_mapReleaseTick.find( KGameEventManager::ERTT_EVENT_CHECK );
+
+	if( cmit !=  kPacket_.m_mapReleaseTick.end() )
+	{
+		int iOldReleaseTick = SiKGameEventManager()->GetEventReleaseTick();
+		int iNewReleaseTick = cmit->second;
+		if( iOldReleaseTick != iNewReleaseTick )
+		{
+			START_LOG( cout2, L"이벤트 바뀐 것을 확인하였으므로 새로 받아옵니다." )
+				<< BUILD_LOG( iOldReleaseTick )
+				<< BUILD_LOG( iNewReleaseTick )
+				<< END_LOG;
+
+			SendToEventDB( DBE_EVENT_UPDATE_REQ );
+
+			SiKGameEventManager()->SetEventReleaseTick( iNewReleaseTick );
+		}
+	}
+#endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+}
+
+IMPL_ON_FUNC( DBE_EVENT_DB_SCRIPT_ACK )
+{
+	if ( kPacket_.m_mapDBRewardData.size() > 0 )
+	{
+		const std::map< int, std::vector< KRewardData > >	mapRewardScriptData = SiKRewardTable()->GetMapRewardScriptData();
+		SiKRewardTable()->SetMapRewardDBData(kPacket_.m_mapDBRewardData);
+		const std::map< int, std::vector< KRewardData > >	mapRewardDBData = SiKRewardTable()->GetMapRewardDBData();
+
+		SiKRewardTable()->SetMapTotalRewardData(mapRewardScriptData, mapRewardDBData);
+
+		KESG_REWARD_DB_DATA_NOT kPacket;
+
+		kPacket.m_mapTotalRewardData = SiKRewardTable()->GetMapTotalRewardData();
+		// 모든 유저들에게 브로드캐스팅
+		UidType anTrace[2] = { 0, -1 };
+		KncSend( PI_CN_SERVER, 0, PI_GS_USER, 0 , anTrace, ESG_REWARD_DB_DATA_NOT, kPacket );
+	}
+
+	if( kPacket_.m_mapEventDBData.size() > 0 )
+	{
+		SiKGameEventDBManager()->SetEventDBData(kPacket_.m_mapEventDBData);
+
+		const std::map< int, EVENT_DATA >	mapEventScriptData = SiKGameEventScriptManager()->GetMapEventScriptData();
+		const std::map< int, EVENT_DATA >	mapEventDBData = SiKGameEventDBManager()->GetMapEventDBData();
+
+		SiKGameEventManager()->SetTotalEventData( mapEventScriptData, mapEventDBData );
+
+		if ( SiKGameEventManager()->CheckMapIngEventDataEmpty() == true)
+		{
+#ifdef SERV_ADD_EVENT_DB
+			SendToEventDB( DBE_EVENT_UPDATE_REQ );
+#else //SERV_ADD_EVENT_DB
+			SendToLogDB( DBE_EVENT_UPDATE_REQ );
+#endif //SERV_ADD_EVENT_DB
+		}
+		else
+		{
+			SiKGameEventManager()->RefreshEventScript();
+		}
+	}
+}
+
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
 IMPL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK )
@@ -2766,13 +3130,18 @@ IMPL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK )
 				<< BUILD_LOG( iNewReleaseTick )
 				<< END_LOG;
 
+#ifdef SERV_ADD_EVENT_DB
+			SendToEventDB( DBE_EVENT_UPDATE_REQ );
+#else //SERV_ADD_EVENT_DB
 			SendToLogDB( DBE_EVENT_UPDATE_REQ );
-
+#endif //SERV_ADD_EVENT_DB
+		
 			SiKGameEventManager()->SetEventReleaseTick( iNewReleaseTick );
 		}
 	}
 }
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 #ifdef SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK_VER2
 IMPL_ON_FUNC( ECN_SET_ACTIVE_LAGCHECK_NOT )
@@ -2892,6 +3261,41 @@ IMPL_ON_FUNC( EGB_EXCHANGE_LIMIT_INFO_ACK )
 }
 #endif // SERV_ITEM_EXCHANGE_LIMIT
 
+#ifdef SERV_CONTENT_MANAGER_INT
+IMPL_ON_FUNC( DBE_GET_CASHSHOP_ON_OFF_INFO_ACK )
+{
+	if( kPacket_.m_iOK == NetError::NET_OK )
+	{
+		if (SiKGSContentManager()->GetReleaseTick() != kPacket_.m_iReleaseTick )
+		{
+			SiKGSContentManager()->SetReleaseTick( kPacket_.m_iReleaseTick );
+			SiKGSContentManager()->SetEnableCashShop( kPacket_.m_bEnableCashshop );
+
+			// 캐쉬샵 상점을 열지 말지를 클라이언트에 알린다.
+			KEGS_CASH_SHOP_OPEN_NOT kNot;
+			kNot.m_bCashShopOpen = kPacket_.m_bEnableCashshop;
+
+			{
+				KEvent kEvent;
+				kEvent.SetData( PI_GS_PROXY, NULL, EGS_CASH_SHOP_OPEN_NOT, kNot );
+				KActorManager::GetKObj()->SendToAll( kEvent );
+			}
+
+			if ( kNot.m_bCashShopOpen == true)
+			{
+				// 클라이언트에 상품 정보를 다시 다 받으라고 알린다.
+				KEvent kEvent;
+				kEvent.SetData( PI_GS_PROXY, NULL, EGS_CASH_PRODUCT_INFO_CHANGED_NOT );
+				KActorManager::GetKObj()->SendToAll( kEvent );
+			}
+
+			START_LOG( cout, L"[컨텐츠 관리자] 캐쉬샵 상점의 온오프 정보를 클라이언트로 브로드캐스팅 하였습니다!" )
+				<< BUILD_LOG( kNot.m_bCashShopOpen );
+		}
+	}	
+}
+#endif SERV_CONTENT_MANAGER_INT
+
 //{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 _IMPL_ON_FUNC( EGB_UPDATE_GLOBAL_MISSION_INFO_NOT, KEGB_GET_GLOBAL_MISSION_INFO_ACK )	// 게임 서버에 GlobalMissionInfo 데이터 브로드 캐스팅
@@ -2910,3 +3314,180 @@ IMPL_ON_FUNC( EGB_UPDATE_GLOBAL_MISSION_START_TIME_NOT )
 }
 #endif SERV_GLOBAL_MISSION_MANAGER
 //}} 2012. 09. 03	임홍락	글로벌 미션 매니저
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-29	// 박세훈
+void KGameServer::CheckGSFieldBossSystemRequest( IN const CTime tCurrentTime )
+{
+	const __time64_t tReservedTimeForInitRequest = SiKGSFieldBossManager()->GetReservedTimeForInitRequest();
+	
+	if( tReservedTimeForInitRequest == 0 )
+		return;
+
+	if( tCurrentTime.GetTime() < tReservedTimeForInitRequest )
+		return;
+
+	// 실패를 대비하여 1분 뒤에 또 시도하도록 예약하자
+	SiKGSFieldBossManager()->SetReservedTimeForInitRequest( tCurrentTime.GetTime() + 60 );
+	KncSend( PI_GS_SERVER, KBaseServer::GetKObj()->GetUID(), PI_GLOBAL_USER, 0, NULL, EGB_BATTLE_FIELD_BOSS_INFO_NOT, char() );
+}
+
+void KGameServer::CheckGSFieldBossSystem( IN const CTime tCurrentTime )
+{
+	if( SiKGSFieldBossManager()->CheckTerm( tCurrentTime.GetTime() ) == false )
+		return;
+
+	// 글로벌 서버와 연결되어 있다면, 자체적으로 처리할 필요 없다.
+	if( SiKGSFieldBossManager()->IsConnected() == true )
+		return;
+
+	const bool bPortalOpen	= SiKGSFieldBossManager()->IsPortalOpen();
+	const bool bCoolTime	= SiKGSFieldBossManager()->IsCoolTime();
+
+	const __time64_t tPortalAppearanceTime = SiKGSFieldBossManager()->GetPortalAppearanceTime();
+
+	// 포탈이 열려 있는지 확인
+	if( bPortalOpen == true )
+	{
+		const __time64_t tPortalHoldingTime = tPortalAppearanceTime + SiKGSFieldBossManager()->GetRemainPortalTime();
+		if( tPortalHoldingTime <= tCurrentTime.GetTime() )
+		{
+			// 포탈 닫힘 처리
+			SiKGSFieldBossManager()->ClosePortal();
+
+			// 모든 유저들에게 브로드캐스팅
+			KEGS_BATTLE_FIELD_BOSS_GATE_CLOSE_NOT kPacket;
+			kPacket.m_iBattleFieldID	= SiKGSFieldBossManager()->GetPortalAppearanceMap();
+
+			UidType anTrace[2] = { 0, -1 };
+			KncSend( PI_CN_SERVER, 0, PI_GS_USER, 0 , anTrace, EGS_BATTLE_FIELD_BOSS_GATE_CLOSE_NOT, kPacket );
+		}
+	}
+
+	// 쿨 타임 체크
+	if( bCoolTime == true )
+	{
+		const __time64_t tFieldBossCoolTime = tPortalAppearanceTime + SiKGSFieldBossManager()->GetRemainCoolTime();
+		if( tFieldBossCoolTime <= tCurrentTime.GetTime() )
+		{
+			SiKGSFieldBossManager()->SetCoolTimeState( false );
+		}
+	}
+}
+
+IMPL_ON_FUNC( ERM_UPDATE_TOTAL_DANGEROUS_VALUE_NOT )
+{
+	SendToGlobalServer( EGB_UPDATE_TOTAL_DANGEROUS_VALUE_NOT, kPacket_ );
+}
+
+IMPL_ON_FUNC_NOPARAM( EGB_VERIFY_SERVER_CONNECT_NOT )
+{
+	// 바로 요청을 보내도록 하자
+	SiKGSFieldBossManager()->SetReservedTimeForInitRequest( 1 );
+	SiKGSFieldBossManager()->SetConnected( true );
+}
+
+IMPL_ON_FUNC_NOPARAM( EGB_VERIFY_SERVER_DISCONNECT_NOT )
+{
+	// 연결이 끊어져있으면 정보 요청 패킷을 보내지 말자
+	SiKGSFieldBossManager()->SetReservedTimeForInitRequest( 0 );
+	SiKGSFieldBossManager()->SetConnected( false );
+}
+
+IMPL_ON_FUNC( EGB_BATTLE_FIELD_BOSS_INFO_NOT )
+{
+	// 초기화 정보를 얻었으니 계속해서 정보 요청 패킷을 보낼 필요가 없다.
+	SiKGSFieldBossManager()->SetReservedTimeForInitRequest( 0 );
+
+	const bool bPortalOpen	= SiKGSFieldBossManager()->IsPortalOpen();
+
+	SiKGSFieldBossManager()->SetInfo( CTime::GetCurrentTime().GetTime()
+									, kPacket_.m_tRemainPortalTime
+									, kPacket_.m_tRemainCoolTime
+									, kPacket_.m_iPortalAppearanceMap
+									, kPacket_.m_iPortalDestination
+									, kPacket_.m_bPortalOpen
+									, kPacket_.m_bCoolTime
+									);
+
+	// 포탈 Open/Close에 변화가 없다면 루틴 종료
+	if( bPortalOpen == kPacket_.m_bPortalOpen )
+		return;
+
+	// BroadCasting
+	KEvent kEvent;
+
+	if( kPacket_.m_bPortalOpen == true )
+	{
+		KEGS_BATTLE_FIELD_BOSS_GATE_OPEN_NOT kPacket;
+		kPacket.m_iBattleFieldID	= kPacket_.m_iPortalAppearanceMap;
+		kPacket.m_iBossFieldID		= kPacket_.m_iPortalDestination;
+		
+		// 모든 유저들에게 브로드캐스팅
+		kEvent.SetData( PI_GS_PROXY, NULL, EGS_BATTLE_FIELD_BOSS_GATE_OPEN_NOT, kPacket );
+	}
+	else
+	{
+		KEGS_BATTLE_FIELD_BOSS_GATE_CLOSE_NOT kPacket;
+		kPacket.m_iBattleFieldID	= kPacket_.m_iPortalAppearanceMap;
+
+		// 모든 유저들에게 브로드캐스팅
+		kEvent.SetData( PI_GS_PROXY, NULL, EGS_BATTLE_FIELD_BOSS_GATE_CLOSE_NOT, kPacket );
+	}
+
+	KActorManager::GetKObj()->SendToAll( kEvent );
+}
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH
+_IMPL_ON_FUNC( EGS_ADD_COMMON_FLAG_NOT, KEGS_ADD_COMMON_FLAG_NOT )
+{
+	START_LOG( cout, L"EGS_ADD_COMMON_FLAG_NOT Recieve UID: " << GetUID() );
+	KSimLayer::GetKObj()->AddCommonFlag( kPacket_.dwFlag );	
+}
+_IMPL_ON_FUNC( EGS_DEL_COMMON_FLAG_NOT, KEGS_DEL_COMMON_FLAG_NOT )
+{
+	START_LOG( cout, L"EGS_DEL_COMMON_FLAG_NOT Recieve UID: " << GetUID() );
+	KSimLayer::GetKObj()->DeleteCommonFlag( kPacket_.dwFlag );	
+}
+#endif // SERV_MODFIY_FLAG_REALTIME_PATCH
+
+
+#ifdef SERV_STRING_FILTER_USING_DB
+IMPL_ON_FUNC( DBE_CHECK_STRING_FILTER_UPDATE_ACK )
+{
+	std::map<int , int>::const_iterator cmit = kPacket_.m_mapReleaseTick.find( KStringFilterManager::iReleaseTickType );
+
+	START_LOG( clog, L"스트링 필터 받아왔나" )
+		<< BUILD_LOG( SiKStringFilterManager()->GetReleaseTick() )
+		<< BUILD_LOG( kPacket_.m_mapReleaseTick.size() )
+		<< END_LOG;
+
+	if( cmit !=  kPacket_.m_mapReleaseTick.end() )
+	{
+		int iOldReleaseTick = SiKStringFilterManager()->GetReleaseTick();
+		int iNewReleaseTick = cmit->second;
+		if( iOldReleaseTick != iNewReleaseTick )
+		{
+			START_LOG( cout2, L"스트링 필터 바뀐 것을 확인하였으므로 새로 받아옵니다." )
+				<< BUILD_LOG( iOldReleaseTick )
+				<< BUILD_LOG( iNewReleaseTick )
+				<< END_LOG;
+
+			SendToScriptDB( DBE_STRING_FILTER_UPDATE_REQ );
+
+			SiKStringFilterManager()->SetReleaseTick( iNewReleaseTick );
+		}
+	}
+}
+IMPL_ON_FUNC( DBE_STRING_FILTER_UPDATE_ACK )
+{
+	START_LOG( clog, L"스트링 필터 목록 받아왔다" )
+		<< BUILD_LOG( kPacket_.m_vecStringFilterList.size() )
+		<< END_LOG;
+
+	if( kPacket_.m_vecStringFilterList.size() > 0 )
+	{
+		SiKStringFilterManager()->SetStringFilter( kPacket_.m_vecStringFilterList );
+	}
+}
+#endif //SERV_STRING_FILTER_USING_DB

@@ -45,6 +45,10 @@ public:
 //#ifdef ADDED_RELATIONSHIP_SYSTEM
 		ST_RELATIONSHIP_SKILL,
 //#endif // ADDED_RELATIONSHIP_SYSTEM
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		ST_HYPER_ACTIVE_SKILL,
+#endif //FINALITY_SKILL_SYSTEM
 	};
 
 
@@ -56,6 +60,7 @@ public:
 		ASUT_AIR,			// 공중에서도 쓸 수 있는 필살기, skip_point에서만
 		ASUT_ANYTIME,		// 아무때나 쓸 수 있는 필살기
 		ASUT_AIR_ONLY,		// 공중에서만 쓸 수 있는 필살기, skip_point에서만
+		ASUT_ANYTIME_EXCEPT_AIR, // 공중을 제외한 어디서든(피격 시 포함) 사용 할 수 있는 스킬
 	};
 
 
@@ -592,7 +597,7 @@ public:
 		#pragma endregion Passive
 
 		#pragma region Chung
-		SI_HA_CIP_DOOM_STRIKER = 6600,					/// 툼 스트라이크
+		SI_HA_CIP_DOOM_STRIKER = 6600,					/// 둠 스트라이크
 		SI_HA_CDC_OUTRAGE_STRIKE,						/// 아웃레이지 스트라이크
 		SI_HA_CTT_SATELITE_RAIN,						/// 세틀라이트 레인
 		#pragma endregion Finality Skill
@@ -1469,6 +1474,71 @@ public:
 #endif //SERV_ELESIS_SECOND_CLASS_CHANGE	
 
 #pragma endregion 스킬
+
+
+#pragma region 애드
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+
+		/// 하이퍼 액티브
+		SI_SA_AN_VOID_BREAKER						= 9000,		/// 보이드 브레이커
+		SI_SA_AN_PARTICLE_PRISM						= 9001,		/// 파티클 프리즘
+		SI_SA_AN_ENERGY_BOOM						= 9002,		/// 에너지 붐
+		SI_SA_AN_PARTICLE_ACCELERATOR				= 9003,		/// 파티클 액셀러레이터
+		SI_SA_AN_NEUTRON_BOMB						= 9004,		/// 뉴트란 밤
+
+		SI_SA_APT_PULSE_CANNON						= 9005,		/// 펄스 캐논
+		SI_SA_APT_EMP_SHOCK							= 9006,		/// EMP 쇼크
+		SI_SA_APT_QUAKE_BUSTER						= 9007,		/// 퀘이크 버스터
+		SI_SA_APT_STASIS_FIELD						= 9008,		/// 스테이시스 필드
+		SI_SA_APT_CONQUEROR							= 9009,		/// 퀀커러
+
+	#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		SI_SA_ALP_REVERSE_REACTOR					= 9010,		/// 리버스 리액터
+		SI_SA_ALP_QUICKSILVER_ACCEL					= 9011,		/// 퀵실버 액셀
+		SI_SA_ALP_QUICKSILVER_FRENZY				= 9012,		/// 퀵실버 프렌지
+		SI_SA_ALP_DUST_ANATOMY						= 9013,		/// 더스트 아나토미
+		SI_SA_ALP_PSYCHIC_STORM						= 9014,		/// 사이킥 스톰
+	#endif //SERV_ADD_LUNATIC_PSYKER
+
+
+		/// 액티브
+		SI_A_AN_PULSE_BULLET						= 9200,		/// 입자탄
+		SI_A_AN_MIND_BREAK							= 9201,		/// 정신 붕괴
+		SI_A_AN_PHASE_SHIFT							= 9202,		/// 위상 변화
+
+		SI_A_APT_MAGNETRON_DYNAMO					= 9203,		/// 다이너모 구성 - 마그네트론
+		SI_A_APT_DESOLVER_DYNAMO					= 9204,		/// 다이너모 구성 - 디졸버
+		SI_A_APT_PYLON_DYNAMO						= 9205,		/// 다이너모 구성 - 파일런
+
+	#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		SI_A_ALP_PSIONIC_BEAT						= 9206,		/// 사이오닉 비트
+		SI_A_ALP_TWIRL_RUSH							= 9207,		/// 트월 러시
+	#endif //SERV_ADD_LUNATIC_PSYKER
+
+
+		/// 패시브
+		SI_P_AN_CHARGED_IMPULSAR					= 9400,		/// 다이너모 구성 - 과충전기
+		SI_P_AN_RESEARCH_DYNAMO_DISSOLUTION			= 9401,		/// 다이너모 연구 - 해체
+		SI_P_AN_RESEARCH_DYNAMO_COMPOSITION			= 9402,		/// 다이너모 연구 - 구성
+		SI_P_APT_NASOD_ARMOR_MODE					= 9403,		/// 나소드 아머 모드
+
+		SI_P_APT_LIBRARY_OF_LIMITLESS				= 9404,		/// 무한의 도서관
+		SI_P_APT_DUST_STORM							= 9405,		/// 미립자 폭풍
+
+	#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		SI_P_ALP_BODY_OF_TRANSCENDENCE				= 9406,		/// 초월자의 신체
+		SI_P_ALP_POWER_EXCHANGER					= 9407,		/// 출력 교환기
+		SI_P_ALP_FANTASY_TRACER						= 9408,		/// 환상 추적자
+	#endif //SERV_ADD_LUNATIC_PSYKER
+
+
+		/// 하이퍼 액티브 스킬
+	#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		SI_HA_ALP_DOOMS_DAY							= 9600,		/// 둠스 데이
+	#endif //SERV_ADD_LUNATIC_PSYKER
+
+#endif //SERV_9TH_NEW_CHARACTER
+#pragma endregion 스킬
 	}; 
 
 
@@ -1607,9 +1677,6 @@ public:
 //#ifdef CHUNG_SECOND_CLASS_CHANGE
 		SA_DECREASE_REL,					/// 감소 비율
 //#endif
-//#ifdef ELSWORD_WAY_OF_SWORD
-		SA_WAY_OF_SWORD_TYPE,				/// 엘소드 개편, 검사의 길
-//#endif ELSWORD_WAY_OF_SWORD
 //#ifdef ELSWORD_SHEATH_KNIGHT
 		SA_ATK_ADD_DAMAGE_FIRST_ABS,
 		SA_ATK_ADD_DAMAGE_SECOND_ABS,
@@ -1658,7 +1725,9 @@ public:
 //#ifdef BALANCE_CODE_NEMESIS_20121213
 		SA_ATK_CRITICAL_RATE_ATK_BASE,			/// 공격력의 % 만큼 추가되는 크리티컬 비율
 //#endif //BALANCE_CODE_NEMESIS_20121213
-		SA_ATK_MAGIC_CRITICAL_RATE_ABS,			/// 공격자 마법 공격 크리티컬 비율
+		SA_PROJECTILE_CURVE_SPEED_REL,			/// 커브 스피드를 조절 해주는 배율
+		SA_DP_GAIN_REL,							/// DP 획득량 배율
+		SA_DP_USE_REL,							/// DP 소모량 배율
 		// XSLSkillTree.h에도 추가해주세요~
 	};																		
 																			
@@ -1681,13 +1750,11 @@ public:
 		SMI_ELSWORD_MEMO5,				/// 위험 부담 제거 법
 		SMI_ELSWORD_MEMO6,				/// 긴장된 호흡과 강화 유지법
 		SMI_ELSWORD_MEMO7,				/// 발차기
-#ifdef NEW_MEMO_01
 		SMI_ELSWORD_MEMO8,				/// 용암분출 (플레임게이져)
 		SMI_ELSWORD_MEMO9,				/// 정확하고 강한 타격 (스파이럴 블래스트)
 		SMI_ELSWORD_MEMO10,				/// 영혼파괴 (윈드 블레이드)
 		SMI_ELSWORD_MEMO11,				/// 갑옷붕괴 (아머 브레이크)
 		SMI_ELSWORD_MEMO12,				/// 꺼지지 않는 불길 (대폭살)
-#endif
 #ifdef ADDITIONAL_MEMO
 		SMI_ELSWORD_MEMO13	= 601013,	/// 궤뚫는 검 (하쉬 체이서)
 		SMI_ELSWORD_MEMO14,				/// 베고 또 베고 (크레센트 컷)
@@ -1701,13 +1768,11 @@ public:
 		SMI_AISHA_MEMO5,				/// 영혼 이동에 대한 메모
 		SMI_AISHA_MEMO6,				/// 견고한 마나 실드에 대한 메모
 		SMI_AISHA_MEMO7,				/// 써클플레임
-#ifdef NEW_MEMO_01
 		SMI_AISHA_MEMO8,				/// 200% 과충전 쇼크 (라이트닝 볼트)
 		SMI_AISHA_MEMO9,				/// 열기폭발 (체인 버스트)
 		SMI_AISHA_MEMO10,				/// 리드미컬한 회전 ( 헬스톤 )
 		SMI_AISHA_MEMO11,				/// 자유로운 영혼 (메디테이션)
 		SMI_AISHA_MEMO12,				/// 끝없는 갈망 (마나 인테이크)
-#endif
 #ifdef ADDITIONAL_MEMO
 		SMI_AISHA_MEMO13	= 602013,	/// 파워 드레인 (에너지 드레인)
 		SMI_AISHA_MEMO14,				/// 마력을 담은 망치질 (헤비 프레스)
@@ -1721,13 +1786,11 @@ public:
 		SMI_RENA_MEMO5,					/// 재 도약의 기회 (백덤블링 샷 편)
 		SMI_RENA_MEMO6,					/// 재 도약의 기회 (리플렉트 킥 편)
 		SMI_RENA_MEMO7,					/// 시즈모드
-#ifdef NEW_MEMO_01
 		SMI_RENA_MEMO8,					/// 처음은 살살3 ( 멀티플 스팅거)
 		SMI_RENA_MEMO9,					/// 급습 ( 스피닝 킥 )
 		SMI_RENA_MEMO10,				/// 공기 응축법 (허밍 윈드)
 		SMI_RENA_MEMO11,				/// 명품 발차기 ( 미들킥 )	/// 2013년 스킬 트리 개편 이후, 로우킥에서 미들킥으로 변경
 		SMI_RENA_MEMO12,				/// 덫 숙련 ( 인탱글 )
-#endif
 #ifdef ADDITIONAL_MEMO
 		SMI_RENA_MEMO13		= 603013,	/// 폭발물 취급 주의(폭발의 덫)
 		SMI_RENA_MEMO14,				/// 추격하는 정령 (이보크)
@@ -1741,13 +1804,11 @@ public:
 		SMI_RAVEN_MEMO5,				/// 신나는 달리기
 		SMI_RAVEN_MEMO6,				/// 번개 같은 발걸음,
 		SMI_RAVEN_MEMO7,				/// 새도우 피어싱
-#ifdef NEW_MEMO_01
 		SMI_RAVEN_MEMO8,				/// 새로운 보법 (파워 어설트)
 		SMI_RAVEN_MEMO9,				/// 약점 간파 (버서커 블레이드)
 		SMI_RAVEN_MEMO10,				/// 볼트 출력 강화 (차지드 볼트)
 		SMI_RAVEN_MEMO11,				/// 아물지 않는 상처 (컷텐던)
 		SMI_RAVEN_MEMO12,				/// 효과적인 무기 파괴 (웨폰 브레이크)
-#endif
 #ifdef ADDITIONAL_MEMO
 		SMI_RAVEN_MEMO13	= 604013,	/// 농밀한 화약 (연무폭파)
 		SMI_RAVEN_MEMO14,				/// 불붙은 칼의 춤 (버스팅 블레이드)
@@ -1761,13 +1822,11 @@ public:
 		SMI_EVE_MEMO5,					/// 쓸쓸한 기다림
 		SMI_EVE_MEMO6,					/// 속임수 계약
 		SMI_EVE_MEMO7,					/// 메가 일렉트론볼
-#ifdef NEW_MEMO_01
 		SMI_EVE_MEMO8,					/// 변형 카오스 엔진 (일루전 스팅어)
 		SMI_EVE_MEMO9,					/// 특제 나소드 고폭탄 (호넷 스팅)
 		SMI_EVE_MEMO10,					/// 도움이 되기 위한 훈련 (서피스 커팅)
 		SMI_EVE_MEMO11,					/// 짧고 굵게! (메탈 더스트 오라)
 		SMI_EVE_MEMO12,					/// 오펜스 모드 전환! (오베론 가드)
-#endif
 #ifdef ADDITIONAL_MEMO
 		SMI_EVE_MEMO13		= 605013,	/// 이중 자가 반응로 (엘 분광결정)
 		SMI_EVE_MEMO14,					/// 고출력 전자 빔 (파티클 레이)
@@ -1811,6 +1870,118 @@ public:
 		SMI_ARA_MEMO9,					/// 진 달빛베기 (용아 4식 : 달빛베기)
 
 #endif // ADD_ARA_MEMO
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		SMI_ELSWORD_MEMO16	= 601016,	/// 균열 파괴 ( 웨폰 브레이크 )
+		SMI_ELSWORD_MEMO17,				/// 순간을 파고드는 일격 ( 더블 슬래시 )
+		SMI_ELSWORD_MEMO18,				/// 강화된 검기의 응용법 ( 아마겟돈 블레이드 )
+		SMI_ELSWORD_MEMO19,				/// 버스트 인챈트 ( 소드 인챈트 )
+		SMI_ELSWORD_MEMO20,				/// 질적 향상에 대한 생각 1 (라이징 웨이브 )
+		SMI_ELSWORD_MEMO21,				/// 작열하는 화염의 검 (소드 파이어 )
+		SMI_ELSWORD_MEMO22,				/// 타고남은 재의 활용 (피닉스 탤런 )
+		SMI_ELSWORD_MEMO23,				/// 톱날 칼날 ( 소드 실드 )
+		SMI_ELSWORD_MEMO24,				/// 계산된 투척 ( 피어싱 소드 )
+		SMI_ELSWORD_MEMO25,				/// 허공검법 ( 파이널 스트라이크 )
+		SMI_ELSWORD_MEMO26,				/// 질적 향상에 대한 생각 2 ( 팬텀 소드 )
+
+		SMI_AISHA_MEMO16	= 602016,	/// 돌풍의 부름 ( 사이클론 )
+		SMI_AISHA_MEMO17,				/// 번개를 다루는 방법 ( 체인 라이트닝 )
+		SMI_AISHA_MEMO18,				/// 분노? 분노! (블레이즈 스텝 )
+		SMI_AISHA_MEMO19,				/// 차가운 마음가짐 ( 블리자드 샤워 )
+		SMI_AISHA_MEMO20,				/// 사신의 미소 ( 데스 필드 )
+		SMI_AISHA_MEMO21,				/// 주문하신 운석입니다 ( 헬 드롭 )
+		SMI_AISHA_MEMO22,				/// 쇠퇴, 집념, 사념 ( 에이징 )
+		SMI_AISHA_MEMO23,				/// 이온 플라즈마 ( 플라즈마 커터 )
+		SMI_AISHA_MEMO24,				/// 몸무게의 정의 ( 길로틴 프레스 )
+		SMI_AISHA_MEMO25,				/// 아름다운 화장법 ( 매지컬 메이크업 )
+		SMI_AISHA_MEMO26,				/// 네 것도 내꺼-! ( 바이탈 드레인 )
+		SMI_AISHA_MEMO27,				/// 추가 주문 ( 슈퍼 노바 )
+		
+		SMI_RENA_MEMO16		= 603016,	/// 고통에 대한 고찰 1 ( 로우 킥 )
+		SMI_RENA_MEMO17,				/// 후폭풍 ( 다이브킥 봄잉 )
+		SMI_RENA_MEMO18,				/// 집념의 증거 ( 바이올런트 어택 )
+		SMI_RENA_MEMO19,				/// 속성 화살 ( 슈팅 매그넘 )
+		SMI_RENA_MEMO20,				/// 마탄의 구체 ( 크레이지 샷 )
+		SMI_RENA_MEMO21,				/// 폭발에 대한 정의 1 ( 궁그닐 )
+		SMI_RENA_MEMO22,				/// 빈틈을 노리는 일격 ( 페이탈리티 )
+		SMI_RENA_MEMO23,				/// 냉기독을 가진 씨앗 ( 구속의 씨앗 )
+		SMI_RENA_MEMO24,				/// 날카로운 가시 1 ( 가시덩굴 덫 )
+		SMI_RENA_MEMO25,				/// 날카로운 가시 2 ( 찔레 덫 )
+		SMI_RENA_MEMO26,				/// 최상급 징벌 ( 콜 오브 루인 )
+		SMI_RENA_MEMO27,				/// 신성한 기운의 집약 ( 카르마 )
+
+		SMI_RAVEN_MEMO16	= 604016,	///	검기의 운용 1 ( 쇼크 웨이브 - 디바이더 )
+		SMI_RAVEN_MEMO17,				/// 검기의 운용 2 ( 쇼크 웨이브 - 커터 )
+		SMI_RAVEN_MEMO18,				/// 잘게썰기 ( 하이퍼 소닉 스탭 )
+		SMI_RAVEN_MEMO19,				/// 피의 맹약 ( 블러디 액셀 )
+		SMI_RAVEN_MEMO20,				/// 연쇄 폭발 ( 헬 다이브 )
+		SMI_RAVEN_MEMO21,				/// 높은 곳에서의 낙하 ( 발키리스 자벨린 )
+		SMI_RAVEN_MEMO22,				/// 완벽한 충격을 주는 방법 ( 아머 크래시 )
+		SMI_RAVEN_MEMO23,				/// 강철의 가시 ( 차지드 볼트 - 블러디 쏜즈 )
+		SMI_RAVEN_MEMO24,				/// 신성한 폭발 ( 가디언 스트라이크 )
+		SMI_RAVEN_MEMO25,				/// 폭발에 대한 정의 ( 뉴클리어 )
+		SMI_RAVEN_MEMO26,				/// 육참골단 ( 하푼 스피어 )
+		SMI_RAVEN_MEMO27,				/// 화염의 잔상 ( 화염인 )
+		SMI_RAVEN_MEMO28,				/// 버스트 리볼빙 ( 리볼버 캐논 - HE탄 )
+		SMI_RAVEN_MEMO29,				/// 오버 차지 ( 헬파이어 개틀링 )
+		SMI_RAVEN_MEMO30,				/// 폭발에 대한 정의 2 ( 기가 프로미넌스 )
+
+		SMI_EVE_MEMO16		= 605016,	/// 특제 나소드 관통탄 ( 호넷 스팅 - 쉐이프트 차지 )
+		SMI_EVE_MEMO17,					/// 자존감 강화 ( 퀸스 쓰론 )
+		SMI_EVE_MEMO18,					/// 코보 믹서기 엔진 ( 정크 브레이크 )
+		SMI_EVE_MEMO19,					/// 깊게 베기 ( 제노사이드 리퍼 )
+		SMI_EVE_MEMO20,					/// 강한 충격을 전하는 방법 ( 헤븐즈 피스트 - 프레셔 )
+		SMI_EVE_MEMO21,					/// 뺨때리기 ( 헤븐즈 피스트 - 스위퍼 )
+		SMI_EVE_MEMO22,					/// 삼단 프리즘 ( 스위프 롤링 - 트라이 발칸 )
+		SMI_EVE_MEMO23,					/// 코보 특제 섬광 ( 포톤 플레어 )
+		SMI_EVE_MEMO24,					/// 고출력 입자 ( 리니어 디바이더 )
+		SMI_EVE_MEMO25,					/// 풀 일렉트로닉 ( 기가 스트림 )
+
+		SMI_CHUNG_MEMO18	= 606018,	/// 공포 그리고 외침 ( 판데모니움 - 피어 )
+		SMI_CHUNG_MEMO19,				/// 혼돈 그리고 외침 ( 판데모니움 - 카오스 )
+		SMI_CHUNG_MEMO20,				/// 묵직한 일격 ( 루나틱 퓨리 )
+		SMI_CHUNG_MEMO21,				/// 향상된 외치기 ( 칼라드볼그 폐인 )
+		SMI_CHUNG_MEMO22,				/// 향상된 조준법 ( 더블 파이어 )
+		SMI_CHUNG_MEMO23,				/// 확산탄 제조법 ( 매그넘 샷 )
+		SMI_CHUNG_MEMO24,				/// 코보 특제 유도탄 ( 슈팅 스타 )
+		SMI_CHUNG_MEMO25,				/// 숙련된 포병의 유도 ( 아틸러리 스트라이크 - 퀀텀 발리스타 )
+		SMI_CHUNG_MEMO26,				/// 인가되지 않은 폭탄 ( 빅뱅 스트림 )
+		SMI_CHUNG_MEMO27,				/// 특제 수류탄 제조법 ( 일레스틱 밤 - 그리네이드 런처 )
+		SMI_CHUNG_MEMO28,				/// 흔들림 없는 자세 ( 캐논 스트라이크 )
+		SMI_CHUNG_MEMO29,				/// 포신 강화 ( 카오스 캐논 ) 
+		SMI_CHUNG_MEMO30,				/// 추가 지원 ( 카펫 바밍 )
+
+		SMI_ARA_MEMO10		= 607018,	/// 포용 ( 낙화)
+		SMI_ARA_MEMO11,					/// 숨겨진 맹수의 발톱 ( 맹호 2식 : 호랑이 발톱 )
+		SMI_ARA_MEMO12,					/// 맹호의 기상 ( 맹호격 )
+		SMI_ARA_MEMO13,					/// 효율적인 기력 운용 ( 나찰 1식 : 흡혼 )
+		SMI_ARA_MEMO14,					/// 깊게 할퀴기 ( 낭아 3식 : 늑대 발톱 )
+		SMI_ARA_MEMO15,					/// 끝 없는 갈망 3 ( 이기공 )
+		SMI_ARA_MEMO16,					/// 끝 없는 갈망 5 ( 이혈공 )
+		SMI_ARA_MEMO17,					/// 늑대의 물어 뜯기 ( 낭아 4식 : 늑대 이빨 )
+		SMI_ARA_MEMO18,					/// 구슬로 구슬치기 ( 연환지옥 )
+		SMI_ARA_MEMO19,					/// 탈출 불가능! ( 나찰 3식 : 창살감옥 )
+		SMI_ARA_MEMO20,					/// 패황의 기운 ( 기공파 )
+		SMI_ARA_MEMO21,					/// 탄력적인 기의 운용 ( 반탄공 )
+
+		SMI_ELESIS_MEMO1	= 608007,	/// 섬멸을 위한 준비 ( 크로스 슬래시 )
+		SMI_ELESIS_MEMO2,				/// 빠르고 강한 공격1 ( 스파이럴 블래스트 )
+		SMI_ELESIS_MEMO3,				/// 효율적인 타격 방법 ( 발차기 )
+		SMI_ELESIS_MEMO4,				/// 더 아프게 때리는 방법 ( 헤비 스터너 )
+		SMI_ELESIS_MEMO5,				/// 파괴 달인의 기술 ( 파워 브레이크 )
+		SMI_ELESIS_MEMO6,				/// 유연하게 움직이는 방법 ( 세이버 - 익스팅션 )
+		SMI_ELESIS_MEMO7,				/// 빠르고 강한 공격2 ( 심판의 검 )
+		SMI_ELESIS_MEMO8,				/// 환검 ( 승리의 검 )
+		SMI_ELESIS_MEMO9,				/// 명경지수 ( 극기 - 강 )
+		SMI_ELESIS_MEMO10,				/// 강한 충격 ( 소드 이럽션 )
+		SMI_ELESIS_MEMO11,				/// 효과적인 불 태우기 ( 대폭살 )
+		SMI_ELESIS_MEMO12,				/// 신속한 검격 ( 버스트 라이징 )
+		SMI_ELESIS_MEMO13,				///	강할 수록 좋지! ( 버스트 웨이브 )
+		SMI_ELESIS_MEMO14,				/// 불의 증폭 ( 소드 파이어 )
+		SMI_ELESIS_MEMO15,				/// 예리한 불의 칼날 ( 인페르날 블레이드 )
+		SMI_ELESIS_MEMO16,				/// 폭염 개화 ( 이터널 파이어 )
+
+#endif //ADD_MEMO_1ST_CLASS
 
 		SMI_END,
 	};
@@ -1883,6 +2054,10 @@ public:
 		float						m_fPowerRate;					/// 공격력 비율
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+		SKILL_POWER_RATE_TYPE		m_eSkillPowerRateType;
+#endif // SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+
 #ifdef UPGRADE_SKILL_SYSTEM_2013
 
 		/** @function	: GetSkillStatValue
@@ -1930,8 +2105,17 @@ public:
 		{
 			const int iIndex = iLevel - 1;
 			if ( 0 <= iIndex && static_cast<int>( m_vecEffectiveDesc.size() ) > iIndex )
-				return m_vecEffectiveDesc[iIndex];
-
+			{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 스킬 설명 확장이 필요한 경우의 예외 처리, 에너지 스퍼트의 @1 ( 현재 레벨 표기 ) 때문에 추가				
+				wstring wstrEffectiveDesc = m_vecEffectiveDesc[iIndex];
+				
+				if ( true == GetSkillEffectiveDescExpand ( wstrEffectiveDesc, iLevel ) )
+					return wstrEffectiveDesc;
+				else
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편	
+					return m_vecEffectiveDesc[iIndex];
+			}
 			return L"";
 		}
 
@@ -2016,6 +2200,25 @@ public:
 		/** @function	: SkillTemplet
 			@brief		: 생성자, 속성 초기화
 		*/
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		bool GetSkillEffectiveDescExpand ( OUT wstring & wstrSkillEffectiveDesc, int iLevel ) const;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		/** @function	: GetSkillDPConsumptionValue
+			@brief		: DP소비값을 가져옴
+		*/
+		const float GetSkillDPConsumptionValue() const { return static_cast<float>( m_usFPConsumtion ); }
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef REFORM_SKILL_NOTE_UI
+		const WCHAR* GetIconTextureFileName()const{ return m_wstrIconName.c_str(); }
+		const WCHAR* GetIconTextureKeyName()const{ return m_wstrIconPieceName.c_str(); }
+#endif // REFORM_SKILL_NOTE_UI
+
+
+
 		SkillTemplet() :
 		m_bGuildSkill( false ),
 		m_eType(ST_NONE ),
@@ -2047,6 +2250,9 @@ public:
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 		m_eActiveSkillUseCondtion( ASUT_NONE ),
 		m_bShowSkillLevel( false )
+	#ifdef SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+		,m_eSkillPowerRateType(SPRT_NONE)
+	#endif // SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
 		{
 			m_vecBuffFactorPtr.clear();
 			m_mapSkillAbility.clear();
@@ -2233,7 +2439,7 @@ public:
 
 	//{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
-//	void PrintSkillInfo_ToExcel();
+	void PrintSkillInfo_ToExcel();
 #endif PRINT_INGAMEINFO_TO_EXCEL
 	//}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 
@@ -2249,7 +2455,11 @@ public:
 	bool Handler_EGS_CHANGE_SKILL_SLOT_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
+	#ifdef SKILL_PAGE_SYSTEM //JHKang
+	bool Handler_EGS_GET_SKILL_REQ( USHORT usPageNumber_ = 0 );
+	#else //SKILL_PAGE_SYSTEM
 	bool Handler_EGS_GET_SKILL_REQ();
+	#endif //SKILL_PAGE_SYSTEM
 #else // UPGRADE_SKILL_SYSTEM_2013
 	bool Handler_EGS_GET_SKILL_REQ( CX2SkillTree::SKILL_ID eSkillID );
 #endif // UPGRADE_SKILL_SYSTEM_2013
@@ -2312,6 +2522,16 @@ public:
 	//}} oasis907 : 김상윤 //// 2009-11-12 //// 
 #endif GUILD_SKILL
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	bool Handler_EGS_GET_NEXT_SKILL_PAGE_ED_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+
+	bool Handler_EGS_EXPAND_SKILL_PAGE_REQ();
+	bool Handler_EGS_EXPAND_SKILL_PAGE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+
+	bool Handler_EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ( USHORT usPageNumber_ );
+	bool Handler_EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //SKILL_PAGE_SYSTEM
+
 	//{{ kimhc // 2010.7.29 // 난입시 무한 스킬 버그 수정
 #ifdef	MODIFY_INFINITE_SKILL_BUG_WHEN_INTRUDE
 	// 스킬슬롯체인지 중인가? (SkillSlotChangeReq를 전송한 후 Ack를 아직 받지 못한 상태인가?)
@@ -2328,7 +2548,11 @@ public:
 	/// 스킬 템플릿 내 값 설정 함수
 	void SetSkillAbilityMap( KLuaManager* pLuaManager, SKILL_ABILITY_TYPE eSkillAbility, CX2SkillTree::SkillTemplet* pSkillTemplet );
 	template< typename T >
+#ifdef HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC // 김태환
+	void SetSkillVlaue( KLuaManager& pLuaManager, vector<T>& vecValue, bool bAutoFill = true );
+#else //HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC
 	void SetSkillVlaue( KLuaManager& pLuaManager, vector<T>& vecValue );
+#endif //HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC
 	void SetSkillStat( KLuaManager& pLuaManager, vector<CX2Stat::Stat>& vecStat );
 
 	/// 스킬 습득 혹은 강화시 서버로 넘기기 위한 변동값 처리
@@ -2389,6 +2613,9 @@ public:
 	}
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+	UINT GetSkillLevelUpNumByPowerRateType( SKILL_POWER_RATE_TYPE eSkillPowerRateType_ );
+#endif // SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
 private:
 	SkillTempletMap			m_mapSkillTemplet;
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경

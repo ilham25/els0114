@@ -963,6 +963,21 @@
     <ClInclude Include="X2UIGlobalMission.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="X2MailLog.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="X2SkillNoteManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="X2BossRaidManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="X2GUAdd.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="X2SimpleEncryption.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="OnlyGlobal\JP\Auth\PurpleForClientD.lib" />
@@ -1845,6 +1860,24 @@
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="X2UIGlobalMission.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="X2MailLog.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="X2SkillNoteManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="X2BossRaidManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="OnlyGlobal\ID\KNMBrowserWrapper.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="X2GUAdd.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="X2SimpleEncryption.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

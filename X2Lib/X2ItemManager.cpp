@@ -3,7 +3,7 @@
 #include ".\X2LocationManager.h"
 
 CX2ItemManager::CX2ItemManager(void)
-{			
+{
 	//{{ 2013.01.26 최민철 큐브패키지아이템 미리보기기능
 #ifdef PACKAGE_IN_QUBE_PREVIEW
 	m_iLastPackacgeID = 0;
@@ -137,23 +137,27 @@ void CX2ItemManager::ClearManufactureResultGroupData()
 
 /*static*/ CX2EqipPtr CX2ItemManager::CreateDummyEquip( int iItemID_, CX2Unit* pUnit_, CKTDGXSkinAnimPtr pXSkinAnim_ )
 {
-	CX2Item::ItemData* pItemData	= new CX2Item::ItemData();
-	pItemData->m_ItemID				= iItemID_;
-	pItemData->m_PeriodType			= CX2Item::PT_INFINITY;
-	pItemData->m_Endurance			= 0;
-
+    CX2Item* pX2Item = NULL;
 	ASSERT( NULL != pUnit_ );
-	CX2Item* pX2Item				= new CX2Item( pItemData, pUnit_ );
 
+    {
+	    CX2Item::ItemData kItemData;
+	    kItemData.m_ItemID				= iItemID_;
+	    kItemData.m_PeriodType			= CX2Item::PT_INFINITY;
+	    kItemData.m_Endurance			= 0;
+	    pX2Item				= new CX2Item( kItemData, pUnit_ );
+        ASSERT( pX2Item != NULL );
+    }
+    int iEnchantLevel = pX2Item->GetItemData().m_EnchantLevel;
 #ifdef COMMON_ITEM_TEMPLET_TEST
 	if( pX2Item->GetItemTemplet()->GetUseCondition() == CX2Item::UC_ANYONE )
 	{
-		return CX2Eqip::CreateEquip( pX2Item, pXSkinAnim_, pItemData->m_EnchantLevel, true, true, pUnit_->GetType() );
+		return CX2Eqip::CreateEquip( pX2Item, pXSkinAnim_, iEnchantLevel, true, true, pUnit_->GetType() );
 	}
 	else
 #endif COMMON_ITEM_TEMPLET_TEST
 	{
-		return CX2Eqip::CreateEquip( pX2Item, pXSkinAnim_, pItemData->m_EnchantLevel, true, true );
+		return CX2Eqip::CreateEquip( pX2Item, pXSkinAnim_, iEnchantLevel, true, true );
 	}
 }
 
@@ -171,31 +175,38 @@ bool CX2ItemManager::OpenScriptFile( const WCHAR* pFileName )
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pCX2CubePackageManager", this );
 #endif PACKAGE_IN_QUBE_PREVIEW
 	//}}
-
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR8, strFileName.c_str() );
-			
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR9, pFileName );
 		return false;
-	}
+    }
 
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR9, strFileName.c_str() );
-
-		return false;
-	}
 	return true;
 }
 
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
+bool    CX2ItemManager::DoMemoryNotEncrypt( const char* pBuffer, long nSize )
+{
+	if( pBuffer != NULL && nSize >= sizeof(CX2Item::KItemFormatHeader) )
+    {
+        CX2Item::KItemFormatHeader kHeader = *( (const CX2Item::KItemFormatHeader*) ( pBuffer ) );
+        if ( kHeader.m_dwMagic == KX2ITEMMANAGER_FORMAT_MAGIC
+            && kHeader.m_dwVersion == KX2ITEMMANAGER_FORMAT_VERSION )
+        {
+            DWORD dwNumItem = kHeader.m_dwNumItems;
+            if ( nSize >= (int) ( sizeof(CX2Item::KItemFormatHeader) + dwNumItem * ( sizeof(DWORD) + sizeof(CX2Item::KItemFormatTemplet) ) ) )
+            {
+                m_vecItemTempletInfo.resize( 0 );
+                const BYTE* pData = (const BYTE*) pBuffer;
+                m_vecItemTempletInfo.assign( &pData[0], &pData[nSize] );
+                CX2Item::KItemFormatTemplet::_SetData( &m_vecItemTempletInfo.front() );
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 bool	CX2ItemManager::OpenItemScriptFile( const WCHAR* pKimFile, unsigned uNumScriptFiles, const WCHAR* apScriptFileName[] )
 {
@@ -211,11 +222,11 @@ bool	CX2ItemManager::OpenItemScriptFile( const WCHAR* pKimFile, unsigned uNumScr
                 bExistRealScript = false;
                 break;
             }
-            else if ( g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->IsValidFile( apScriptFileName[u], true ) == true )
+            else if ( g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->IsValidFile_LocalFile( apScriptFileName[u] ) == true )
             {
                 bExistRealScript = true;
             }
-            else if ( g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->IsValidFile( apScriptFileName[u], false ) == false )
+            else if ( g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->IsValidFile( apScriptFileName[u] ) == false )
             {
                 bExistRealScript = false;
                 break;
@@ -226,46 +237,13 @@ bool	CX2ItemManager::OpenItemScriptFile( const WCHAR* pKimFile, unsigned uNumScr
 
     if ( bExistRealScript == false )
     {
-	    KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	    Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pKimFile );
-	    if( Info != NULL && Info->pRealData != NULL && Info->size >= sizeof(CX2Item::KItemFormatHeader) )
-	    {
-            CX2Item::KItemFormatHeader kHeader = *( (const CX2Item::KItemFormatHeader*) ( Info->pRealData ) );
-            if ( kHeader.m_dwMagic == KX2ITEMMANAGER_FORMAT_MAGIC
-                && kHeader.m_dwVersion == KX2ITEMMANAGER_FORMAT_VERSION )
-            {
-                DWORD dwNumItem = kHeader.m_dwNumItems;
-                if ( Info->size >= (int) ( sizeof(CX2Item::KItemFormatHeader) + dwNumItem * ( sizeof(DWORD) + sizeof(CX2Item::KItemFormatTemplet) ) ) )
-                {
-                    m_vecItemTempletInfo.resize( 0 );
-                    const BYTE* pData = (const BYTE*)  Info->pRealData;
-                    m_vecItemTempletInfo.assign( &pData[0], &pData[Info->size] );
-                    CX2Item::KItemFormatTemplet::_SetData( &m_vecItemTempletInfo.front() );
-                    return true;
-                }
-            }
-	    }
+        bool bReturn = g_pKTDXApp->LoadAndDoMemory( this, pKimFile );
+        if ( bReturn == true )
+            return true;
     }
 
     if ( uNumScriptFiles == 0 || apScriptFileName == NULL )
         return false;
-
-    bool bRet = false;
-    KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER* pInfoArray 
-        = new KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER[uNumScriptFiles];
-    ASSERT( pInfoArray != NULL );
-
-    for( unsigned u = 0; u != uNumScriptFiles; ++u )
-    {
-	    pInfoArray[u] = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( apScriptFileName[u] );
-	    if( pInfoArray[u] == NULL )
-	    {
-		    string strFileName;
-		    ConvertWCHARToChar( strFileName, apScriptFileName[u] );
-		    ErrorLogMsg( XEM_ERROR8, strFileName.c_str() );
-		    goto out;
-	    }
-    }
 
 	{
 		/* 오현빈 // X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING주석 // 제가 이해한 내용을 바탕으로 작성 해서 틀린 내용 일 수 있습니다.
@@ -278,12 +256,11 @@ bool	CX2ItemManager::OpenItemScriptFile( const WCHAR* pKimFile, unsigned uNumScr
 
         for( unsigned u = 0; u != uNumScriptFiles; ++u )
         {
-	        if( g_pKTDXApp->GetLuaBinder()->DoMemory( pInfoArray[u]->pRealData, pInfoArray[u]->size ) == E_FAIL )
+            bool bRet = g_pKTDXApp->LoadLuaTinker( apScriptFileName[u] );
+	        if( bRet == false )
 	        {
-		        string strFileName;
-		        ConvertWCHARToChar( strFileName, apScriptFileName[u] );
-		        ErrorLogMsg( XEM_ERROR9, strFileName.c_str() );
-		        goto out;
+		        ErrorLogMsg( XEM_ERROR9, apScriptFileName[u] );
+                return false;
 	        }
         }
 
@@ -293,7 +270,11 @@ bool	CX2ItemManager::OpenItemScriptFile( const WCHAR* pKimFile, unsigned uNumScr
 			순서대로 아이템개수와 세트아이템의 개수를 저장하는 CX2Item::KItemFormatHeader
 			sizeof(DWORD) * 아이템개수,  sizeof(CX2Item::KItemFormatTemplet)* 아이템개수, 
 			sizeof(DWORD) * 세트아이템개수, sizeof(CX2Item::KItemFormatSetItemData)* 세트아이템개수 */
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+			KProxy2 kProxy2( kProxy.m_setItemIDs, kProxy.m_setSetIDs, kProxy.m_mapItemTrans, kProxy.m_mapSetItemTrans );
+#else //SERV_ITEM_LUA_TRANS_DEVIDE
             KProxy2 kProxy2( kProxy.m_setItemIDs, kProxy.m_setSetIDs );
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
 
 	        lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pItemManager", &kProxy2 );
 	        lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pCX2SetItemManager", &kProxy2 );
@@ -302,12 +283,11 @@ bool	CX2ItemManager::OpenItemScriptFile( const WCHAR* pKimFile, unsigned uNumScr
 			스크립트에 작성된 자료들을 실제로 등록하는 부분 */
             for( unsigned u = 0; u != uNumScriptFiles; ++u )
             {
-	            if( g_pKTDXApp->GetLuaBinder()->DoMemory( pInfoArray[u]->pRealData, pInfoArray[u]->size ) == E_FAIL )
+                bool bRet = g_pKTDXApp->LoadLuaTinker( apScriptFileName[u] );
+                if ( bRet == false )
 	            {
-		            string strFileName;
-		            ConvertWCHARToChar( strFileName, apScriptFileName[u] );
-		            ErrorLogMsg( XEM_ERROR9, strFileName.c_str() );
-		            goto out;
+		            ErrorLogMsg( XEM_ERROR9, apScriptFileName[u] );
+                    return false;
 	            }
             }
 
@@ -318,7 +298,7 @@ bool	CX2ItemManager::OpenItemScriptFile( const WCHAR* pKimFile, unsigned uNumScr
 		        string strFileName;
 		        ConvertWCHARToChar( strFileName, pKimFile );
 		        ErrorLogMsg( XEM_ERROR9, strFileName.c_str() );
-		        goto out;
+                return false;
             }
             //kProxy2.m_kFileSerializer.SaveFile( pKimFile );
             kProxy2.m_kFileSerializer.Swap( m_vecItemTempletInfo );
@@ -327,13 +307,9 @@ bool	CX2ItemManager::OpenItemScriptFile( const WCHAR* pKimFile, unsigned uNumScr
 
 	    lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pItemManager", this );
 	    lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pCX2SetItemManager", this );
-        bRet = true;
     }
 
-out:
-    delete[]    pInfoArray;
-
-	return bRet;
+    return true;
 
 }
 #endif	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
@@ -379,7 +355,9 @@ bool CX2ItemManager::AddItemTemplet_LUA()
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LUA_GET_VALUE_ENUM(	luaManager, "m_UseCondition",		pItemTemplet->m_UseCondition,			CX2Item::USE_CONDITION,		CX2Item::UC_ANYONE );
 	if( CX2Item::UC_NONE == pItemTemplet->m_UseCondition )
@@ -521,31 +499,31 @@ bool CX2ItemManager::AddItemTemplet_LUA()
 #endif
 
 	std::string strTemp = "";
-	LUA_GET_VALUE( luaManager, L"ELSWORD_ITEM_SCALE_ROTATE", strTemp, "" );
+	LUA_GET_VALUE( luaManager, "ELSWORD_ITEM_SCALE_ROTATE", strTemp, "" );
 	TokenizeByScaleRotate( strTemp, pItemTemplet, CX2Unit::UT_ELSWORD );
 
-	LUA_GET_VALUE( luaManager, L"AISHA_ITEM_SCALE_ROTATE", strTemp, "" );
+	LUA_GET_VALUE( luaManager, "AISHA_ITEM_SCALE_ROTATE", strTemp, "" );
 	TokenizeByScaleRotate( strTemp, pItemTemplet, CX2Unit::UT_ARME );
 
-	LUA_GET_VALUE( luaManager, L"RENA_ITEM_SCALE_ROTATE", strTemp, "" );
+	LUA_GET_VALUE( luaManager, "RENA_ITEM_SCALE_ROTATE", strTemp, "" );
 	TokenizeByScaleRotate( strTemp, pItemTemplet, CX2Unit::UT_LIRE );
 
-	LUA_GET_VALUE( luaManager, L"RAVEN_ITEM_SCALE_ROTATE", strTemp, "" );
+	LUA_GET_VALUE( luaManager, "RAVEN_ITEM_SCALE_ROTATE", strTemp, "" );
 	TokenizeByScaleRotate( strTemp, pItemTemplet, CX2Unit::UT_RAVEN );
 
 
-	LUA_GET_VALUE( luaManager, L"EVE_ITEM_SCALE_ROTATE", strTemp, "" );
+	LUA_GET_VALUE( luaManager, "EVE_ITEM_SCALE_ROTATE", strTemp, "" );
 	TokenizeByScaleRotate( strTemp, pItemTemplet, CX2Unit::UT_EVE );
 
 	//{{ kimhc // 2010.11.24 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
-	LUA_GET_VALUE( luaManager, L"CHUNG_ITEM_SCALE_ROTATE", strTemp, "" );
+	LUA_GET_VALUE( luaManager, "CHUNG_ITEM_SCALE_ROTATE", strTemp, "" );
 	TokenizeByScaleRotate( strTemp, pItemTemplet, CX2Unit::UT_CHUNG );
 #endif	NEW_CHARACTER_CHUNG
 //}} kimhc // 2010.11.24 //  2010-12-23 New Character CHUNG
 
 #ifdef ARA_CHARACTER_BASE
-	LUA_GET_VALUE( luaManager, L"ARA_ITEM_SCALE_ROTATE", strTemp, "" );
+	LUA_GET_VALUE( luaManager, "ARA_ITEM_SCALE_ROTATE", strTemp, "" );
 	TokenizeByScaleRotate( strTemp, pItemTemplet, CX2Unit::UT_ARA );
 #endif
 
@@ -569,11 +547,10 @@ bool CX2ItemManager::AddItemTemplet_LUA()
 	LUA_GET_VALUE(				luaManager, "m_DescriptionInSkillNote",	pItemTemplet->m_DescriptionInSkillNote,	L"" );
 #endif SERV_SKILL_NOTE
 	//}}
-
 #ifdef HIDE_SET_DESCRIPTION
 	LUA_GET_VALUE(				luaManager, "m_bHideSetDesc",	pItemTemplet->m_bHideSetDesc,	false );
 #endif HIDE_SET_DESCRIPTION
-
+	
 #ifdef PVP_SEASON2_SOCKET
 	LUA_GET_VALUE( luaManager, "m_iAttributeLevel",	pItemTemplet->m_iAttributeLevel,	0 );	
 #endif
@@ -823,17 +800,15 @@ bool CX2ItemManager::AddItemTemplet_LUA()
 #endif SUB_EQUIP_TEST
 
 
-	LUA_GET_VALUE(		luaManager, L"m_CoolTime",			pItemTemplet->m_CoolTime,				0 );
-	LUA_GET_VALUE(		luaManager, L"m_SetID",				pItemTemplet->m_SetID,					0 );
+	LUA_GET_VALUE(		luaManager, "m_CoolTime",			pItemTemplet->m_CoolTime,				0 );
+	LUA_GET_VALUE(		luaManager, "m_SetID",				pItemTemplet->m_SetID,					0 );
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	// 셋트효과가 있고, 요구레벨도 있는 경우
 	if ( 0 < pItemTemplet->m_SetID && 0 < pItemTemplet->m_UseLevel )
 	{
 		UpdateSetIDAndMaxLevelMap( pItemTemplet->m_SetID, pItemTemplet->m_UseLevel );
 	}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 
@@ -938,6 +913,7 @@ bool CX2ItemManager::AddItemTemplet_LUA()
 
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
+#ifndef X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 #ifdef SERV_ITEM_LUA_TRANS_DEVIDE
 bool CX2ItemManager::AddItemTempletTrans_LUA()
 {
@@ -1008,13 +984,15 @@ bool CX2ItemManager::AddSetItemDataTrans_LUA()
 	return true;
 }
 #endif LUA_TRANS_DEVIDE
-
+#endif X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 #ifdef IN_ITEM_KIM_USE_HIDE_SET_DESC
 bool CX2ItemManager::AddHideSetDesc_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	int m_iItemID = 0;
 	bool m_bHideSetDesc  = true;
@@ -1048,12 +1026,14 @@ bool CX2ItemManager::AddShopItemList_LUA()
 
 	
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	int villiageID;
-	LUA_GET_VALUE_RETURN(	luaManager, L"VILLIAGE_ID",	villiageID,	0, goto LFail );
+	LUA_GET_VALUE_RETURN(	luaManager, "VILLIAGE_ID",	villiageID,	0, goto LFail );
 
-	if( luaManager.BeginTable( L"SALE_GROUP" ) == true )
+	if( luaManager.BeginTable( "SALE_GROUP" ) == true )
 	{
 		int index = 1;
 		int buf;
@@ -1077,7 +1057,7 @@ bool CX2ItemManager::AddShopItemList_LUA()
 		luaManager.EndTable();
 	}
 
-	if( luaManager.BeginTable( L"SALE_ITEM" ) == true )
+	if( luaManager.BeginTable( "SALE_ITEM" ) == true )
 	{
 		int index = 1;
 		int buf;
@@ -1102,7 +1082,7 @@ bool CX2ItemManager::AddShopItemList_LUA()
 
 	// 특정 npc만이 판매하는 물품
 	NpcItemIDList* pNpcItemIDList = NULL;
-	if( luaManager.BeginTable( L"SALE_ITEM_NPC" ) == true )
+	if( luaManager.BeginTable( "SALE_ITEM_NPC" ) == true )
 	{
 		int index = 1;
 		while( luaManager.BeginTable( index ) == true )
@@ -1110,11 +1090,11 @@ bool CX2ItemManager::AddShopItemList_LUA()
 			pNpcItemIDList = new NpcItemIDList();
 
 			int npcID;
-			LUA_GET_VALUE_RETURN(	luaManager, L"NPC_ID",	npcID,	0, goto LFail01 );
+			LUA_GET_VALUE_RETURN(	luaManager, "NPC_ID",	npcID,	0, goto LFail01 );
 
 			pNpcItemIDList->m_NpcId = npcID;
 
-			if( luaManager.BeginTable( L"ITEM_LIST" ) == true )
+			if( luaManager.BeginTable( "ITEM_LIST" ) == true )
 			{
 				int index = 1;
 				int buf;
@@ -1159,12 +1139,14 @@ bool CX2ItemManager::AddShopItemGroup_LUA()
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	int groupID;
-	LUA_GET_VALUE_RETURN(	luaManager, L"GROUP_ID",	groupID,	0, goto LFail );
+	LUA_GET_VALUE_RETURN(	luaManager, "GROUP_ID",	groupID,	0, goto LFail );
 
-	if( luaManager.BeginTable( L"ITEM_ID" ) == true )
+	if( luaManager.BeginTable( "ITEM_ID" ) == true )
 	{
 		int index = 1;
 		int buf;
@@ -1279,14 +1261,13 @@ void CX2ItemManager::UpdateEqip( CX2Unit* pUnit, CKTDGXSkinAnimPtr pAnim,
 	{
 		int enchantLevel = 0;
 
-		pItem = pUnit->GetInventory()->GetItem( pUnit->GetViewEqipUID(i) );
+		pItem = pUnit->GetInventory().GetItem( pUnit->GetViewEqipUID(i) );
 		ASSERT( NULL != pItem );
 		if( NULL == pItem )
 			continue;
 
-		if( NULL != pItem->GetItemData() )
 		{
-			enchantLevel = pItem->GetItemData()->m_EnchantLevel;
+			enchantLevel = pItem->GetItemData().m_EnchantLevel;
 		}
 		
 
@@ -1363,14 +1344,19 @@ CX2EqipPtr CX2ItemManager::ReplaceEmptyToBasic( CX2Unit* pUnit, CKTDGXSkinAnimPt
 
 
 	// 기본 장비 생성
-	CX2Item::ItemData* pItemData	= new CX2Item::ItemData();
-	pItemData->m_ItemID				= itemID;
-	//pItemData->m_OwnerUnitUID		= pUnit->GetUID();
-	//pItemData->m_OwnerUserUID		= pUnit->GetOwnerUserUID();
-	pItemData->m_Endurance			= 1;
 
-	CX2Item* pX2Item				= new CX2Item( pItemData, pUnit );
-	int enchantLevel = pX2Item->GetItemData()->m_EnchantLevel;
+    CX2Item* pX2Item = NULL;
+    {
+	    CX2Item::ItemData kItemData;
+	    kItemData.m_ItemID				= itemID;
+	    //kItemData.m_OwnerUnitUID		= pUnit->GetUID();
+	    //kItemData.m_OwnerUserUID		= pUnit->GetOwnerUserUID();
+	    kItemData.m_Endurance			= 1;
+
+	    pX2Item				= new CX2Item( kItemData, pUnit );
+        ASSERT( pX2Item != NULL );
+    }
+	int enchantLevel = pX2Item->GetItemData().m_EnchantLevel;
 	
 #ifdef COMMON_ITEM_TEMPLET_TEST
 	if( pX2Item->GetItemTemplet()->GetUseCondition() == CX2Item::UC_ANYONE )
@@ -1413,15 +1399,12 @@ void CX2ItemManager::UpdateEqip( CX2Unit* pUnit, CKTDGXSkinAnimPtr pAnim,
 	{
 		int enchantLevel = 0;
 
-		pItem = pUnit->GetInventory()->GetItem( pUnit->GetViewEqipUID(i) );
+		pItem = pUnit->GetInventory().GetItem( pUnit->GetViewEqipUID(i) );
 		ASSERT( NULL != pItem );
 		if( NULL == pItem )
 			continue;
 
-		if( NULL != pItem->GetItemData() )
-		{
-			enchantLevel = pItem->GetItemData()->m_EnchantLevel;
-		}
+		enchantLevel = pItem->GetItemData().m_EnchantLevel;
 		
 
 		CX2EqipPtr pCX2Eqip;
@@ -1479,14 +1462,18 @@ void CX2ItemManager::ReplaceEmptyToBasic( CX2Unit* pUnit, CKTDGXSkinAnimPtr pAni
 	if( pViewEqipPosition[eqipPos] == false
 		&& itemID != 0 )
 	{
-		CX2Item::ItemData* pItemData	= new CX2Item::ItemData();
-		pItemData->m_ItemID				= itemID;
-		//pItemData->m_OwnerUnitUID		= pUnit->GetUID();
-		//pItemData->m_OwnerUserUID		= pUnit->GetOwnerUserUID();
-		pItemData->m_Endurance			= 1;
+        CX2Item* pX2Item = NULL;
+        {
+		    CX2Item::ItemData kItemData;
+		    kItemData.m_ItemID				= itemID;
+		    //kItemData.m_OwnerUnitUID		= pUnit->GetUID();
+		    //kItemData.m_OwnerUserUID		= pUnit->GetOwnerUserUID();
+		    kItemData.m_Endurance			= 1;
 
-		CX2Item* pX2Item				= new CX2Item( pItemData, pUnit );
-		int enchantLevel = pX2Item->GetItemData()->m_EnchantLevel;
+		    pX2Item				= new CX2Item( kItemData, pUnit );
+            ASSERT( pX2Item != NULL );
+        }
+		int enchantLevel = pX2Item->GetItemData().m_EnchantLevel;
 
 
 
@@ -1669,7 +1656,9 @@ CX2ItemManager::ManufactureData* CX2ItemManager::GetManufactureData( int Manufac
 bool CX2ItemManager::AddManufactureTemplet_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	ManufactureData* pManufactureData = new ManufactureData();
 	
@@ -1678,7 +1667,7 @@ bool CX2ItemManager::AddManufactureTemplet_LUA()
 
 #ifdef ADD_SERVER_GROUP
 	int iServerGroupId = -1;
-	LUA_GET_VALUE(		  luaManager, L"m_iServerGroupID",	iServerGroupId,							-1 );
+	LUA_GET_VALUE(		  luaManager, "m_iServerGroupID",	iServerGroupId,							-1 );
 	if( iServerGroupId != -1 && iServerGroupId != g_pInstanceData->GetServerGroupID() )
 	{
 		SAFE_DELETE( pManufactureData );
@@ -1688,10 +1677,10 @@ bool CX2ItemManager::AddManufactureTemplet_LUA()
 	pManufactureData->m_iServerGroupID = iServerGroupId;
 #endif
 	
-	LUA_GET_VALUE_RETURN( luaManager, L"m_ManufactureID",	iManufactureID,							0,		goto LoadFail; );
-	LUA_GET_VALUE_RETURN( luaManager, L"m_ResultGroupID",	pManufactureData->m_ResultGroupID,		0,		goto LoadFail; );
-	LUA_GET_VALUE(		  luaManager, L"m_Cost",			pManufactureData->m_Cost,				0 );
-	LUA_GET_VALUE(		  luaManager, L"m_ManufactureType",	pManufactureData->m_ManufactureType,	-1 );
+	LUA_GET_VALUE_RETURN( luaManager, "m_ManufactureID",	iManufactureID,							0,		goto LoadFail; );
+	LUA_GET_VALUE_RETURN( luaManager, "m_ResultGroupID",	pManufactureData->m_ResultGroupID,		0,		goto LoadFail; );
+	LUA_GET_VALUE(		  luaManager, "m_Cost",			pManufactureData->m_Cost,				0 );
+	LUA_GET_VALUE(		  luaManager, "m_ManufactureType",	pManufactureData->m_ManufactureType,	-1 );
 	
 
 	if( luaManager.BeginTable( "m_MaterialTable" ) == true )
@@ -1700,8 +1689,8 @@ bool CX2ItemManager::AddManufactureTemplet_LUA()
 		while( luaManager.BeginTable( index ) == true )
 		{
 			MaterialData materialData;
-			LUA_GET_VALUE_RETURN( luaManager, L"m_MaterialID",		materialData.m_MaterialItemID,		0,		goto LoadFail; );
-			LUA_GET_VALUE_RETURN( luaManager, L"m_MaterialCount",	materialData.m_MaterialCount,		0,		goto LoadFail; );
+			LUA_GET_VALUE_RETURN( luaManager, "m_MaterialID",		materialData.m_MaterialItemID,		0,		goto LoadFail; );
+			LUA_GET_VALUE_RETURN( luaManager, "m_MaterialCount",	materialData.m_MaterialCount,		0,		goto LoadFail; );
 
 			if( materialData.m_MaterialItemID == 0 || materialData.m_MaterialCount == 0 )
 			{
@@ -1750,7 +1739,7 @@ bool CX2ItemManager::AddManufactureVillageData_LUA( int iManufactureID, int iHou
 #ifdef ADD_SERVER_GROUP
 	int iServerGroup = 0;
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );	
-	LUA_GET_VALUE( luaManager, L"m_iServerGroupID",	iServerGroup,	-1 );
+	LUA_GET_VALUE( luaManager, "m_iServerGroupID",	iServerGroup,	-1 );
 	if( iServerGroup != -1 && iServerGroup != g_pInstanceData->GetServerGroupID() )
 	{
 		return false;
@@ -1792,7 +1781,7 @@ bool CX2ItemManager::AddManufactureVillageData_LUA( int iManufactureID, int iVil
 #ifdef ADD_SERVER_GROUP
 	int iServerGroup = 0;
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );	
-	LUA_GET_VALUE( luaManager, L"m_iServerGroupID",	iServerGroup,	-1 );
+	LUA_GET_VALUE( luaManager, "m_iServerGroupID",	iServerGroup,	-1 );
 	if( iServerGroup != -1 && iServerGroup != g_pInstanceData->GetServerGroupID() )
 	{
 		return false;
@@ -1843,11 +1832,12 @@ bool CX2ItemManager::AddManufactureResultGroup( int iGroupID, int iItemID )
 	return true;
 }
 
-
-
-
 #ifdef SERV_GLOBAL_BILLING
+#ifdef SERV_WISH_LIST_NO_ITEM
+bool CX2ItemManager::AddCashItem( vector< KBillProductInfo >& vecKBillProductInfo, std::set< int >& setWishListNoItemList )
+#else	//SERV_WISH_LIST_NO_ITEM
 bool CX2ItemManager::AddCashItem( vector< KBillProductInfo >& vecKBillProductInfo )
+#endif //SERV_WISH_LIST_NO_ITEM
 {
 	bool bCheckError = false;
 
@@ -1872,6 +1862,12 @@ bool CX2ItemManager::AddCashItem( vector< KBillProductInfo >& vecKBillProductInf
 
 			pCashItem->m_vecKBillProductInfo.push_back( kBillProductInfo );
 
+#ifdef SERV_WISH_LIST_NO_ITEM
+			set<int>::iterator sit;
+			sit = setWishListNoItemList.find( itemID );
+			if( sit != setWishListNoItemList.end() )
+				pCashItem->m_bIsWishListNotEnable = true;
+#endif SERV_WISH_LIST_NO_ITEM
 
 			m_mapCashItem.insert( std::make_pair( itemID, pCashItem ) );
 			m_vecCashItem.push_back( itemID );
@@ -1899,11 +1895,7 @@ bool CX2ItemManager::AddCashItem( vector< KBillProductInfo >& vecKBillProductInf
 
 				if ( bOverlap == false )
 				{
-
 					pCashItem->m_vecKBillProductInfo.push_back( kBillProductInfo );
-
-
-
 					std::sort( pCashItem->m_vecKBillProductInfo.begin(), pCashItem->m_vecKBillProductInfo.end(), CX2ItemManager::CCashProductSort() );
 				}
 			}
@@ -1924,12 +1916,11 @@ bool CX2ItemManager::AddCashItemEx()
 	m_vecLimitedCashItem.resize(0);
 	m_vecEventCashItem.resize(0);
 
-
 	//{{ robobeg : 2008-10-28
 	//KLuaManager kLuamanager;
 	KLuaManager kLuamanager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 	//}} robobeg : 2008-10-28
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"CashShopItemList.lua");
+	g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"CashShopItemList.lua");
 
 #ifdef	CASH_SHOP_ICON_USE_PRODUCTNO
 	if( kLuamanager.BeginTable( "FIRST_PAGE_ITEM_LIST" ) == true )
@@ -2328,9 +2319,6 @@ bool CX2ItemManager::AddCashItemEx()
 		kLuamanager.EndTable();
 	}
 
-
-
-
 	if( kLuamanager.BeginTable( "ICON_EVENT_ITEM" ) == true )
 	{
 		int tableIndex = 1;
@@ -2382,12 +2370,10 @@ bool CX2ItemManager::AddCashItemEx()
 		kLuamanager.EndTable();
 	}
 #endif CASH_ITEM_HOT_ICON
-#endif 	CASH_SHOP_ICON_USE_PRODUCTNO
+#endif CASH_SHOP_ICON_USE_PRODUCTNO
 
 	return true;
 }
-
-
 #else // SERV_GLOBAL_BILLING
 bool CX2ItemManager::AddCashItem( vector< KNXBTProductInfo >& vecKNXBTProductInfo )
 {
@@ -2402,6 +2388,20 @@ bool CX2ItemManager::AddCashItem( vector< KNXBTProductInfo >& vecKNXBTProductInf
 		map<int, CX2ItemManager::CashItem* >::iterator mit;
 		mit = m_mapCashItem.find( itemID );
 
+#ifdef CHECK_INVALIDE_CASH_SHOP_ITEM
+		static bool bHasInvalideData = false;
+		if( false == bHasInvalideData )
+		{
+			const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( itemID );
+			if( pItemTemplet == NULL )
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), 
+					GET_REPLACED_STRING( ( STR_ID_28249, "i", itemID ) ), g_pMain->GetNowState() );
+
+				bHasInvalideData = true;
+			}
+		}
+#endif // CHECK_INVALIDE_CASH_SHOP_ITEM
 		if ( mit == m_mapCashItem.end() )
 		{
 			CX2ItemManager::CashItem* pCashItem = new CX2ItemManager::CashItem();
@@ -2415,7 +2415,7 @@ bool CX2ItemManager::AddCashItem( vector< KNXBTProductInfo >& vecKNXBTProductInf
 #if defined(SERV_TOONILAND_CHANNELING) && !defined(SERV_STEAM)
 			if( NULL != g_pData && NULL != g_pData->GetMyUser() )
 			{
-				if( g_pData->GetMyUser()->GetUserData()->m_uChannelCode == 3 )
+				if( g_pData->GetMyUser()->GetUserData().m_uChannelCode == 3 )
 				{
 					// 투니랜드 유저에게 보여지면 안되는 아이템
 					if ( IsShowItemTooniland( itemID ) == true )
@@ -2483,7 +2483,7 @@ bool CX2ItemManager::AddCashItemEx()
 	//KLuaManager kLuamanager;
     KLuaManager kLuamanager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"CashShopItemList.lua");
+	g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"CashShopItemList.lua");
 
 	if( kLuamanager.BeginTable( "NEW_ITEM" ) == true )
 	{
@@ -2658,7 +2658,6 @@ bool CX2ItemManager::AddCashItemEx()
 
 	return true;
 }
-
 #endif // SERV_GLOBAL_BILLING
 
 //{{ 2008. 11. 18  최육사
@@ -2712,7 +2711,6 @@ CX2ItemManager::CashItem* CX2ItemManager::GetCashItem( int itemID )
 	return pCashItem;
 }
 
-
 #ifdef SERV_GLOBAL_BILLING
 wstring CX2ItemManager::GetCashItemPeriod( int iProductNo )
 {
@@ -2759,9 +2757,7 @@ KBillProductInfo* CX2ItemManager::GetCashItemProduct( int iProductNo )
 
 	return NULL;
 }
-
 #else // SERV_GLOBAL_BILLING
-
 wstring CX2ItemManager::GetCashItemPeriod( unsigned long ulProductNo )
 {
 	map<int, CX2ItemManager::CashItem* >::iterator mit;
@@ -2897,7 +2893,9 @@ bool CX2ItemManager::AddSetItemData_LUA()
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LUA_GET_VALUE(	luaManager, "m_SetID",						setID,					0	);
 
@@ -2981,9 +2979,7 @@ int CX2ItemManager::GetSetItemOptions( const int iSetID_, const int iNumOfEquipp
 			vecOptions.insert( vecOptions.end(), tempVecOption.begin(), tempVecOption.end() );
 			
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			return pSetItemData->m_iMaxLevel;
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업			
 		}	
 	}
@@ -3013,7 +3009,26 @@ bool CX2ItemManager::GetManufactureVillageData( int iHouseID, std::vector< int >
 	if( mit == m_mapManufactureVillage.end() )
 		return false;	
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	std::vector< int > vecTempManufactureVillageData;
+	std::set< int > setBanManufactureItem;
+	if ( g_pData != NULL && g_pData->GetUIManager() != NULL )
+	{
+		setBanManufactureItem = g_pData->GetUIManager()->GetBanManufactureItemList();
+	}
+
+	BOOST_TEST_FOREACH(int , iManufactureItemID, mit->second )
+	{
+		if ( setBanManufactureItem.find( iManufactureItemID ) != setBanManufactureItem.end() )
+			continue;
+		
+		vecTempManufactureVillageData.push_back(iManufactureItemID);
+	}
+
+	vecManufactureVillage = vecTempManufactureVillageData;
+#else //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 	vecManufactureVillage = mit->second;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 	
 	return true;
 }
@@ -3044,19 +3059,27 @@ const CX2ItemManager::ManufactureResultGroupData* CX2ItemManager::GetManufacture
 	return NULL;
 }
 
-
-
 #ifdef SERV_GLOBAL_BILLING
-
 int CX2ItemManager::CashItem::GetCash()
 {
-	unsigned long cashPrice = 0; //
+	unsigned long cashPrice = 0;
 
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+	BOOST_TEST_FOREACH(const KBillProductInfo, kInfo, m_vecKBillProductInfo)
+	{
+		if( true == g_pInstanceData->IsCurrentSubCategoryInNowCatagory( kInfo.m_cCategoryNo))
+		{
+			cashPrice = kInfo.m_iSalePrice;
+			break;
+		}
+	}
+#else //ADD_CASH_SHOP_CATEGORY_EVENT_2
 	const KBillProductInfo* pKBillProductInfo = GetGateProduct();
 	if ( pKBillProductInfo != NULL )
 	{
 		cashPrice = pKBillProductInfo->m_iSalePrice;
 	}
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
 
 	return cashPrice;
 }
@@ -3080,25 +3103,53 @@ const KBillProductInfo* CX2ItemManager::CashItem::GetGateProduct()
 
 	return NULL;
 }
-//{{ 2011.06.09 지헌 : 패키지 구매 시, 개별 아이템 가격이 표시 안되도록 수정
-#ifdef NO_SHOW_PRICE
-wstring CX2ItemManager::CashItem::GetPeriod( KBillProductInfo& kKBillProductInfo, bool bShowPrice /* = true */ )
+
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+const std::vector<int> CX2ItemManager::CashItem::GetGateListOfProduct()
+{
+	std::vector<int> vecGateList;
+
+	BOOST_TEST_FOREACH(const KBillProductInfo, kInfo, m_vecKBillProductInfo )
+	{
+		vecGateList.push_back(kInfo.m_cCategoryNo);
+	}
+
+	return vecGateList;
+}
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+
+#ifdef SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
+wstring CX2ItemManager::CashItem::GetPeriod( KBillProductInfo& kKBillProductInfo, bool bShowSalePeriod /* = true */ )
 {
 	wstringstream wstrstm;
-	//wstrstm << kBillProductInfo
 
 	if ( (int)kKBillProductInfo.m_cPeriod != 0 )
 	{
-		wstrstm << (int)kKBillProductInfo.m_cPeriod << GET_STRING( STR_ID_14 ); 
+		wstrstm << (int)kKBillProductInfo.m_cPeriod << GET_STRING( STR_ID_14 ) << L"/"; 
 	}
 	else
 	{
-		wstrstm << (int)kKBillProductInfo.m_cQuantity << GET_STRING( STR_ID_24 );
+		wstrstm << (int)kKBillProductInfo.m_cQuantity << GET_STRING( STR_ID_24 ) << L"/";
 	}
 
-	if(bShowPrice)
+	wstrstm << kKBillProductInfo.m_iSalePrice << GET_STRING( STR_ID_34 ); 
+
+	if( bShowSalePeriod )
 	{
-		wstrstm  << L"/" << kKBillProductInfo.m_iSalePrice << GET_STRING( STR_ID_34 ); 
+		std::set< pair< __int64, bool > >::iterator sit;
+
+		for( sit = kKBillProductInfo.m_setSalePeriod.begin(); sit != kKBillProductInfo.m_setSalePeriod.end(); ++sit )
+		{
+			CTime tCurrentTime = CTime::GetCurrentTime();
+
+			if( tCurrentTime.GetTime() <= sit->first && sit->second == 0 )
+			{
+				CTime tEndTime( sit->first );
+				std::wstring wstrEndTime = tEndTime.Format( _T( "%Y-%m-%d %H:%M" ) );
+				wstrstm << GET_REPLACED_STRING( ( STR_ID_30118, "L", wstrEndTime ) );
+				break;
+			}
+		}
 	}
 
 	return wstrstm.str().c_str();
@@ -3107,7 +3158,6 @@ wstring CX2ItemManager::CashItem::GetPeriod( KBillProductInfo& kKBillProductInfo
 wstring CX2ItemManager::CashItem::GetPeriod( KBillProductInfo& kKBillProductInfo )
 {
 	wstringstream wstrstm;
-	//wstrstm << kBillProductInfo
 
 	if ( (int)kKBillProductInfo.m_cPeriod != 0 )
 	{
@@ -3122,9 +3172,7 @@ wstring CX2ItemManager::CashItem::GetPeriod( KBillProductInfo& kKBillProductInfo
 
 	return wstrstm.str().c_str();
 }
-#endif
-//}}
-
+#endif SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
 
 #else // SERV_GLOBAL_BILLING
 int CX2ItemManager::CashItem::GetCash()
@@ -3334,13 +3382,11 @@ bool CX2ItemManager::GetPackageCubeItemData( int iPackageItemID, std::vector< Pa
 //}} 2013.01.26 최민철 큐브패키지아이템 미리보기기능
 bool CX2ItemManager::GetPackageData( int iPackageItemID, std::vector< PackageItemData >& vecPackageData )
 {
-
 	//{{ 2013.01.26 최민철 큐브패키지아이템 미리보기기능
 #ifdef PACKAGE_IN_QUBE_PREVIEW
 	m_iLastPackacgeID = 0;
 #endif PACKAGE_IN_QUBE_PREVIEW
 	//}} 2013.01.26 최민철 큐브패키지아이템 미리보기기능
-
 	vecPackageData.clear();
 
 	std::map< int, std::vector< PackageItemData > >::const_iterator mit;
@@ -3478,17 +3524,22 @@ bool CX2ItemManager::AddItemExchangeData( int iHOUSEID, ITEM_EXCHANGE_TYPE eExch
 #ifdef ADD_SERVER_GROUP
 	int iServerGroup = 0;
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );	
-	LUA_GET_VALUE( luaManager, L"m_iServerGroupID",	iServerGroup,	-1 );
+	LUA_GET_VALUE( luaManager, "m_iServerGroupID",	iServerGroup,	-1 );
 	if( iServerGroup != -1 && iServerGroup != g_pInstanceData->GetServerGroupID() )
 	{
 		return false;
 	}
 #endif
 
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 둘러져있는 것 해외팀 수정
 	int iSrcQuantity = 0;
-	LUA_GET_VALUE( luaManager, L"m_iSourceQuantity",	iSrcQuantity,	1 );
+	LUA_GET_VALUE( luaManager, "m_iSourceQuantity",	iSrcQuantity,	1 );
 #endif SERV_ITEM_EXCHANGE_NEW
+
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+	short sPeriod = 0;
+	LUA_GET_VALUE( luaManager, "m_sPeriod",			sPeriod,		0 );
+#endif //SERV_EXCHANGE_PERIOD_ITEM
 
 
 	//ItemExchangeData& itemExchangeData = m_mapItemExchangeData[ iHOUSEID ];
@@ -3508,10 +3559,13 @@ bool CX2ItemManager::AddItemExchangeData( int iHOUSEID, ITEM_EXCHANGE_TYPE eExch
 	itemExchangeData.m_eExchangeType	=	eExchangeType;
 	itemExchangeData.m_iSrcItemID		=	iSrcItemID;
 	itemExchangeData.m_iDestItemID		=	iDestItemID;
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 둘러져있는 것 해외팀 수정
 	itemExchangeData.m_iSrcQuantity		=	iSrcQuantity;
 #endif SERV_ITEM_EXCHANGE_NEW
 	itemExchangeData.m_iQuantity		=	iQuantity;
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+	itemExchangeData.m_sPeriod			=	sPeriod;
+#endif //SERV_EXCHANGE_PERIOD_ITEM
 
 	mItrItemExchangeData->second.push_back( itemExchangeData );
 
@@ -3529,9 +3583,30 @@ bool CX2ItemManager::GetItemExchangeData( int iHouseID, std::vector< ItemExchang
 	if ( mItrItemExchangeData == m_mapItemExchangeData.end () )
 		return false;
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	std::set< int > setBanExchangeItem;
+	std::vector< ItemExchangeData > vecTempExchangeData;
+
+	if ( g_pData != NULL && g_pData->GetUIManager() != NULL )
+	{
+		setBanExchangeItem = g_pData->GetUIManager()->GetBanExchangeItemList();
+	}
+
+	BOOST_TEST_FOREACH(ItemExchangeData , iExchangeItemID, mItrItemExchangeData->second )
+	{
+		if ( setBanExchangeItem.find( iExchangeItemID.m_iSrcItemID ) != setBanExchangeItem.end() )
+			continue;
+
+		vecTempExchangeData.push_back(iExchangeItemID);
+	}
+
+	vecItemExchangeData.reserve( vecTempExchangeData.size() );
+	vecItemExchangeData = vecTempExchangeData;
+#else //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 	vecItemExchangeData.reserve( mItrItemExchangeData->second.size() );
 
 	vecItemExchangeData = mItrItemExchangeData->second;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 	// 	std::copy( mItrItemExchangeData->second.begin(), 
 	// 		mItrItemExchangeData->second.begin() + mItrItemExchangeData->second.size(), vecItemExchangeData.begin() );
 	// 
@@ -3551,7 +3626,6 @@ bool CX2ItemManager::GetItemExchangeData( int iHouseID, std::vector< ItemExchang
 
 #ifndef X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 
 
 
@@ -3595,7 +3669,6 @@ void CX2ItemManager::UpdateMaxLevelToSetItemData()
 	}
 	m_mapSetIDAndMaxLevel.clear();
 }
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 //}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
@@ -3729,7 +3802,12 @@ void CX2ItemManager::GetCaculatedItemLevelByEnchantStat( IN const KStat& kEnchan
 
 
 #ifdef ICE_HEATER_PRE_VIEW
+
+#ifdef ICE_HEATER_RANDOM_PRE_VIEW // 김태환
+bool CX2ItemManager::AddIceHeaterItemData_LUA( int iIceHeaterItemID_, int iItemID_, int eUnitType_, int iItemGroup )
+#else //ICE_HEATER_RANDOM_PRE_VIEW
 bool CX2ItemManager::AddIceHeaterItemData_LUA( int iIceHeaterItemID_, int iItemID_, int eUnitType_ )
+#endif //ICE_HEATER_RANDOM_PRE_VIEW
 {
 	if( iIceHeaterItemID_ <= 0 || iItemID_ <= 0 )
 	{
@@ -3740,6 +3818,10 @@ bool CX2ItemManager::AddIceHeaterItemData_LUA( int iIceHeaterItemID_, int iItemI
 	IceHeaterItemData IceHeaterData;
 	IceHeaterData.m_iItemID = iItemID_;
 	IceHeaterData.m_eUnitType = static_cast<CX2Unit::UNIT_TYPE>(eUnitType_);
+
+#ifdef ICE_HEATER_RANDOM_PRE_VIEW // 김태환
+	IceHeaterData.m_iItemGroup = iItemGroup;
+#endif //ICE_HEATER_RANDOM_PRE_VIEW
 
 	std::map< int, std::vector< IceHeaterItemData > >::iterator mit;
 	mit = m_mapIceHeaterItemData.find( iIceHeaterItemID_ );
@@ -3765,7 +3847,63 @@ bool CX2ItemManager::GetIceHeaterItemData( int iIceHeaterItemID_, CX2Unit::UNIT_
 	if( mit == m_mapIceHeaterItemData.end() )
 		return false;
 
+#ifdef ICE_HEATER_RANDOM_PRE_VIEW // 김태환
+	typedef std::map<int, vector<int>> IceHeaterGroupMap;
 
+	IceHeaterGroupMap mapIceHeaterItemDataByGroub;	/// 그룹별 아이템 아이디 리스트 저장용 컨테이너
+
+	IceHeaterGroupMap::iterator mitGroup;
+
+	/// 그룹별로 분류하여 저장 시키자.
+	BOOST_FOREACH( IceHeaterItemData ItemData, mit->second )
+	{
+		/// 해당 캐릭터 타입이 아니면, 패스
+		if( eUnitType_ != ItemData.m_eUnitType )
+			continue;
+
+		/// 저장할 그룹이 이미 들어있는지 검사
+		mitGroup = mapIceHeaterItemDataByGroub.find( ItemData.m_iItemGroup );
+
+		if ( mitGroup == mapIceHeaterItemDataByGroub.end() )	/// 신규 그룹 추가
+		{
+			/// 아이디를 저장할 벡터 생성 후 삽입
+			vector<int> vecItemID;
+			vecItemID.push_back( ItemData.m_iItemID );
+
+			/// 새로운 그룹 추가
+			mapIceHeaterItemDataByGroub.insert( make_pair( ItemData.m_iItemGroup, vecItemID ) );
+		}
+		else	/// 이미 그룹이 추가 되어 있으면, 해당 그룹의 벡터에 아이디 추가
+		{
+			mitGroup->second.push_back( ItemData.m_iItemID );	/// 아이디 저장 벡터에만 추가
+		}
+	}
+
+	if ( true == mapIceHeaterItemDataByGroub.empty() )	/// 저장한 아이템이 없으면, 패스
+		return false;
+
+
+	UINT uiMapSize	= mapIceHeaterItemDataByGroub.size();
+	mitGroup		= mapIceHeaterItemDataByGroub.begin();
+
+	if ( 1 == uiMapSize )	/// 그룹이 하나뿐 이라면, 첫번째 그룹 출력
+	{
+		vecIceHeaterItemData_ = mitGroup->second;			/// 출력할 아이템 설정
+	}
+	else	/// 그룹이 여러개라면, 렌덤으로 출력
+	{
+		UINT uiRandomIndex	= rand() % uiMapSize;
+		UINT uiIndex		= 0;
+		
+		for ( mitGroup; mitGroup != mapIceHeaterItemDataByGroub.end(); ++mitGroup )
+		{
+			if ( uiRandomIndex == uiIndex)
+				vecIceHeaterItemData_ = mitGroup->second;	/// 출력할 아이템 설정
+			++uiIndex;
+		}
+	}
+
+#else //ICE_HEATER_RANDOM_PRE_VIEW
 	BOOST_FOREACH( IceHeaterItemData ItemData, mit->second )
 	{
 		if( eUnitType_ == ItemData.m_eUnitType )
@@ -3773,6 +3911,7 @@ bool CX2ItemManager::GetIceHeaterItemData( int iIceHeaterItemID_, CX2Unit::UNIT_
 			vecIceHeaterItemData_.push_back ( ItemData.m_iItemID );
 		}
 	}
+#endif //ICE_HEATER_RANDOM_PRE_VIEW
 
 	return true;
 }
@@ -3783,12 +3922,22 @@ bool CX2ItemManager::GetIceHeaterItemData( int iIceHeaterItemID_, CX2Unit::UNIT_
 #ifdef PET_PREVIEW
 bool CX2ItemManager::AddPetPreViewData_LUA( int iCashShopItemID_, int iPetUnitID_, PREVIEW_PET_TYPE ePetType_ /*= PPT_PET*/)
 {
+#ifdef _IN_HOUSE_
+	// 오류 팝업 1회만 보여주도록 수정
+	static bool bHasInvalidData = false;
+
+	if( true == bHasInvalidData )
+		return false;
+#endif // _IN_HOUSE_
+
 	if( iCashShopItemID_ <= 0 || iPetUnitID_ <= 0 )
 	{
 #ifdef _IN_HOUSE_		
-//		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), 
-//								L"PetPreview.lua 오류 : 아이템ID 또는 펫 ID를 확인 해 주세요.", 
-//								(CKTDXStage*)g_pMain->GetNowState() );	
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), 
+								L"PetPreview.lua 오류 : 아이템ID 또는 펫 ID를 확인 해 주세요.", 
+								(CKTDXStage*)g_pMain->GetNowState() );	
+
+		bHasInvalidData = true;
 #endif // _IN_HOUSE_
 		return false;
 	}
@@ -3800,9 +3949,11 @@ bool CX2ItemManager::AddPetPreViewData_LUA( int iCashShopItemID_, int iPetUnitID
 	const CX2Item::ItemTemplet* pItemTemplet = GetItemTemplet( iCashShopItemID_ );
 	if ( NULL == pItemTemplet )
 	{
-//		WCHAR strTemp[255];
-//		StringCchPrintfW( strTemp, 255, L"PetPreview.lua 에러 : ItemTemplet 에서 %d ItemID 에 대한 정보를 찾을 수 없습니다.", iCashShopItemID_ );
-//		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), strTemp, (CKTDXStage*)g_pMain->GetNowState() );	
+		WCHAR strTemp[255];
+		StringCchPrintfW( strTemp, 255, L"PetPreview.lua 에러 : ItemTemplet 에서 %d ItemID 에 대한 정보를 찾을 수 없습니다.", iCashShopItemID_ );
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), strTemp, (CKTDXStage*)g_pMain->GetNowState() );	
+
+		bHasInvalidData = true;
 	}
 	
 	// Pet Unit ID 유효성 체크
@@ -3817,9 +3968,11 @@ bool CX2ItemManager::AddPetPreViewData_LUA( int iCashShopItemID_, int iPetUnitID
 
 	if( false == bIsValidPetUnitID )
 	{
-//		WCHAR strTemp[255];
-//		StringCchPrintfW( strTemp, 255, L"PetPreview.lua 에러 : PetID %d에 대한 정보를 찾을 수 없습니다.", iPetUnitID_ );
-//		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), strTemp, (CKTDXStage*)g_pMain->GetNowState() );	
+		WCHAR strTemp[255];
+		StringCchPrintfW( strTemp, 255, L"PetPreview.lua 에러 : PetID %d에 대한 정보를 찾을 수 없습니다.", iPetUnitID_ );
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), strTemp, (CKTDXStage*)g_pMain->GetNowState() );	
+
+		bHasInvalidData = true;
 	}
 #endif // _IN_HOUSE_
 	
@@ -3858,15 +4011,25 @@ int	CX2ItemManager::GetPreviewIDByItemID( int iItemID_, PREVIEW_PET_TYPE ePetTyp
 #endif // PET_PREVIEW
 
 
-
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 void CX2ItemManager::AddItemConvertInfo_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
+	// NPC ID 파싱	
+	CX2UnitManager::NPC_UNIT_ID eNpcUnitID = CX2UnitManager::NUI_NONE;
+	LUA_GET_VALUE_ENUM(	luaManager, "m_ConvertNPC",	eNpcUnitID,	CX2UnitManager::NPC_UNIT_ID, CX2UnitManager::NUI_NONE );
+	if( CX2UnitManager::NUI_NONE == eNpcUnitID )
+	{
+		eNpcUnitID = CX2UnitManager::NUI_ARIEL;
+	}
+
+	// 결과 아이템
 	int iResultItemID = 0;
-	if( luaManager.BeginTable( L"m_ResultItemID" ) == true )
+	if( luaManager.BeginTable( "m_ResultItemID" ) == true )
 	{
 		luaManager.GetValue( 1, iResultItemID);
 		luaManager.EndTable();
@@ -3875,31 +4038,95 @@ void CX2ItemManager::AddItemConvertInfo_LUA()
 	if( 0 == iResultItemID )
 		return;
 
-	if( luaManager.BeginTable( L"m_TargetItemID" ) == true )
+	// 재료 아이템
+	if( luaManager.BeginTable( "m_TargetItemID" ) == true )
 	{
-		int index = 1;
-		int buf;
-		while( luaManager.GetValue(index++, buf) == true )
+		std::map< int, ItemConvertList>::iterator it = m_mapNpcItemConvertList.find( static_cast<int>(eNpcUnitID));
+		if( it != m_mapNpcItemConvertList.end() )
 		{
-			m_mapItemConvertList.insert( std::make_pair(buf, iResultItemID) );
+			int index = 1;
+			int buf;
+			while( luaManager.GetValue(index++, buf) == true )
+			{
+				it->second.insert( std::make_pair(buf, iResultItemID) );
+			}
+			luaManager.EndTable();
 		}
-		luaManager.EndTable();
+		else
+		{
+			int index = 1;
+			int buf;
+			ItemConvertList itConverList;
+			while( luaManager.GetValue(index++, buf) == true )
+			{
+				itConverList.insert( std::make_pair(buf, iResultItemID) );
+			}
+			luaManager.EndTable();
+
+			m_mapNpcItemConvertList.insert( std::make_pair( static_cast<int>(eNpcUnitID), itConverList ) );
+		}
 	}
 
 	return;
 }
 int	CX2ItemManager::GetConvertResultItemID( int iTargetItemID_ )
 {
-	std::map<int, int>::iterator it = m_mapItemConvertList.find( iTargetItemID_ );
-	if( it != m_mapItemConvertList.end() )
-		return it->second;
+	if( NULL != g_pTFieldGame )
+	{
+		int iNpcID = g_pTFieldGame->GetJoinNpcId();
 
+		std::map< int, ItemConvertList>::iterator it = m_mapNpcItemConvertList.find(iNpcID);
+		if( it != m_mapNpcItemConvertList.end() )
+		{
+			ItemConvertList::iterator itConverList = it->second.find( iTargetItemID_ );
+			if( itConverList != it->second.end() )
+				return itConverList->second;
+		}
+	}
 	return 0;
 }
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
+#ifdef MODIFY_FIND_SHOP_IMAGE_FILE_NAME
+void CX2ItemManager::CreateShopImageNameList()
+{
+	std::ofstream ofs;
+	ofs.open( "ShopImageName.txt" );
+	if( false == ofs.is_open() )
+		return;
+
+	ofs.clear();
+
+	stringstream strmResourceList;
+
+	unsigned int uiNumItems = g_pData->GetItemManager()->GetItemNum();
+	for( unsigned i = 0; i != uiNumItems; ++i )
+	{		
+		const CX2Item::ItemTemplet* pItemTemplet = NULL;
+
+#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
+		pItemTemplet = g_pData->GetItemManager()->GetItemTempletFromIndex( i );
+#endif // SERV_NEW_ITEM_SYSTEM_2013_05
+
+		strmResourceList << pItemTemplet->GetItemID();
+
+		string deviceName = "";
+		ConvertWCHARToChar( deviceName, pItemTemplet->GetName() );
+		strmResourceList << " " << deviceName << " ";
+
+		ConvertWCHARToChar( deviceName, pItemTemplet->GetShopImage() );
+		strmResourceList << deviceName << std::endl;
+	}
+
+	ofs << strmResourceList.str();
+
+	ofs.flush();
+	ofs.close();
+}
+#endif // MODIFY_FIND_SHOP_IMAGE_FILE_NAME
+
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
-bool	CX2ItemManager::CheckKeepShowItem( int TempItemID , std::vector<int>& GetItemID )
+bool CX2ItemManager::CheckKeepShowItem( int TempItemID , std::vector<int>& GetItemID )
 {
 	std::map<int,std::vector<int>>::iterator mit;
 	mit = m_mapKeepShowItemList.find( TempItemID );
@@ -3910,7 +4137,8 @@ bool	CX2ItemManager::CheckKeepShowItem( int TempItemID , std::vector<int>& GetIt
 	}
 	return false;
 }
-bool	CX2ItemManager::CheckDisCountItemList( int TempProDuct ,bool& bIdexReset )
+
+bool CX2ItemManager::CheckDisCountItemList( int TempProDuct ,bool& bIdexReset )
 {
 	int nCount = 0;
 	std::map< int,kDisCountItemInfo >::iterator mit;
@@ -3920,7 +4148,7 @@ bool	CX2ItemManager::CheckDisCountItemList( int TempProDuct ,bool& bIdexReset )
 		{
 			for(int i = 0; i < mit->second.m_DisCountKeepItem.size(); ++i)
 			{
-				if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID(mit->second.m_DisCountKeepItem[i]) == NULL )
+				if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID(mit->second.m_DisCountKeepItem[i]) == NULL )
 				{
 					bIdexReset = true;
 					return false;
@@ -3932,7 +4160,7 @@ bool	CX2ItemManager::CheckDisCountItemList( int TempProDuct ,bool& bIdexReset )
 		{
 			for(int i = 0; i < mit->second.m_DisCountKeepItem.size(); ++i)
 			{
-				if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID(mit->second.m_DisCountKeepItem[i]) != NULL )
+				if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID(mit->second.m_DisCountKeepItem[i]) != NULL )
 				{
 					nCount++;
 				}
@@ -3946,7 +4174,8 @@ bool	CX2ItemManager::CheckDisCountItemList( int TempProDuct ,bool& bIdexReset )
 	}
 	return true;
 }
-bool    CX2ItemManager::DisCountItemID_Find( int TempID, std::vector<int>& nTempList,int& nTempSale )
+
+bool CX2ItemManager::DisCountItemID_Find( int TempID, std::vector<int>& nTempList,int& nTempSale )
 {
 	std::map< int , kDisCountItemInfo >::iterator mit;
 	mit = m_DisCountInfoMap.find( TempID );
@@ -3958,7 +4187,8 @@ bool    CX2ItemManager::DisCountItemID_Find( int TempID, std::vector<int>& nTemp
 	}
 	return false;
 }
-int		CX2ItemManager::GetChangeCashPoint(int TempItemID)
+
+int	CX2ItemManager::GetChangeCashPoint(int TempItemID)
 {
 	map<int, CX2ItemManager::CashItem* >::iterator mit;
 
@@ -3976,3 +4206,36 @@ int		CX2ItemManager::GetChangeCashPoint(int TempItemID)
 	return 0;
 }
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+
+#ifdef SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
+wstring CX2ItemManager::CashItem::GetSalePeriod( KBillProductInfo& kKBillProductInfo )
+{
+	wstringstream wstrstm;
+	std::set< pair< __int64, bool > >::iterator sit;
+
+	for( sit = kKBillProductInfo.m_setSalePeriod.begin(); sit != kKBillProductInfo.m_setSalePeriod.end(); ++sit )
+	{
+		CTime tCurrentTime = CTime::GetCurrentTime();
+
+		if( tCurrentTime.GetTime() <= sit->first && sit->second == 0 )
+		{
+			CTime tEndTime( sit->first );
+
+			if( (int)kKBillProductInfo.m_cPeriod != 0 )
+			{
+				wstrstm << (int)kKBillProductInfo.m_cPeriod << GET_STRING( STR_ID_14 ); 
+			}
+			else
+			{
+				wstrstm << (int)kKBillProductInfo.m_cQuantity << GET_STRING( STR_ID_24 );
+			}
+
+			std::wstring wstrEndTime = tEndTime.Format( _T( "/Sale Period : ~ %Y-%m-%d %H:%M:%S" ) );
+			wstrstm << wstrEndTime;
+			break;
+		}
+	}
+
+	return wstrstm.str().c_str();
+}
+#endif SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION

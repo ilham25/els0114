@@ -83,8 +83,7 @@ public:
             EP_g_fColor,
             //float
             EP_g_fDensity,
-
-            EP_FOG_END = EP_g_fDensity,
+			EP_FOG_END = EP_g_fDensity,
 #endif // #ifdef FOG_WORLD
             
             EP_g_amWorldPalette,
@@ -199,13 +198,19 @@ public:
 		virtual HRESULT BeginRender( const CKTDGXRenderer::RenderParam& InRenderParam_, const D3DXMATRIX* pInMatrix_ = NULL );
 		virtual HRESULT NextRender();
 
-        HRESULT OnFrameRender( const RenderParam& InRenderParam_, const D3DXMATRIX& mInWorld_, CKTDXDeviceXMesh& pXMesh, 
-										CKTDXDeviceXET* pTexChangeXET = NULL, CKTDXDeviceXET* pMultiTexXET = NULL, 
-										CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0, unsigned uInDrawCount = 1 );
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+		HRESULT OnFrameRender( const RenderParam& InRenderParam_, const D3DXMATRIX& mInWorld_, CKTDXDeviceXMesh& pXMesh, 
+			CKTDXDeviceXET* pTexChangeXET = NULL, CKTDXDeviceXET* pMultiTexXET = NULL, 
+			const CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0, unsigned uInDrawCount = 1, std::vector<bool>* pvecDrawSubset = NULL );
+#else//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+		HRESULT OnFrameRender( const RenderParam& InRenderParam_, const D3DXMATRIX& mInWorld_, CKTDXDeviceXMesh& pXMesh, 
+			CKTDXDeviceXET* pTexChangeXET = NULL, CKTDXDeviceXET* pMultiTexXET = NULL, 
+			const CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0, unsigned uInDrawCount = 1 );
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
         void    DrawFrame( CKTDXDeviceXSkinMesh& kInXSkinMesh_, CKTDXDeviceXSkinMesh::MultiAnimFrame& kInFrame_
             , CKTDXDeviceXET* pTexChangeXET = NULL, CKTDXDeviceXET* pMultiTexXET = NULL
-            , CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0, int iInDetailPercent = 0, bool abInUseTex_[3] = NULL
+            , const CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0, int iInDetailPercent = 0, bool abInUseTex_[3] = NULL
             , CKTDXDeviceXET* pAnimAniExt = NULL, const wchar_t* pwszInNowAnimName_ = NULL );
 
         HRESULT BeginRenderGroup( CKTDGXRenderer::RENDER_TYPE eInRenderType_ );
@@ -232,7 +237,7 @@ public:
 
         CKTDXDeviceBaseTexture*     _SetNowTexture( CKTDXDeviceBaseTexture* orgTex, int stage,
 													CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET* pMultiTexXET, 
-													CKTDXDeviceXET::AniData* pAniData, float fAniTime,
+													const CKTDXDeviceXET::AniData* pAniData, float fAniTime,
                                                     bool abInUseTex_[3], CKTDXDeviceXET* pAnimAniExt, const wchar_t* pwszInNowAnimName_ );
 
 
@@ -254,7 +259,9 @@ public:
         bool                        m_bFog;	/// 포그 사용 여부 지정
         unsigned                    m_uMaxSkinningVertices;
 
-        bool                        m_bCommitChangesPending;
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+		bool                        m_bCommitChangesPending;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 
         CKTDGXRenderer::RENDER_TYPE m_eCurrentRenderType;
         int                         m_iCurrentShaderIndex;

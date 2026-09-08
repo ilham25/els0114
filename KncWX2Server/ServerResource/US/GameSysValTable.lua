@@ -13,7 +13,7 @@
 --GameSysVal:AddKNXGameBangPetEXP( 0.3 )					-- 엘소드 PC방 이벤트 (7월 5일 ~ 8월 30일 정기 점검 전까지)
 
 --제한 레벨.
-GameSysVal:AddLimitsMaxLevel( 67 )
+GameSysVal:AddLimitsMaxLevel( 70 )
 
 --프리미업 캐쉬아이템 경험치 숫치 : 축복의 메달
 GameSysVal:AddPremiumEXP( 0.3 )

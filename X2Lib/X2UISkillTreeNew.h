@@ -70,55 +70,68 @@ public:
 		STUCM_BUTTON_SKILL_LEVEL_MINUS_GUIDE_MOUSEOUT, 
 //#endif GUIDE_SKILL_LEVEL_MINUS
 
-		STUCM_BUTTON_SKILL_LEVEL_PLUS_RESULT,		/// ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
-		STUCM_BUTTON_SKILL_LEVEL_PLUS_CANCEL,		/// ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+		STUCM_BUTTON_SKILL_LEVEL_PLUS_RESULT,		/// °áÁ¤ÇÏ±â ¹öÆ° ´­·¶À» ¶§
+		STUCM_BUTTON_SKILL_LEVEL_PLUS_CANCEL,		/// Ãë¼Ò ¹öÆ°À» ´­·¶À» ¶§
 
-		STUCM_CHANGE_SKILL_LEVEL_PLUS,				/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
-		STUCM_BUTTON_SKILL_LEVEL_UPGRADE,			/// ï¿½ï¿½Å³ ï¿½ï¿½È­ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
-		STUCM_BUTTON_EXIT,							/// ï¿½Ý±ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
-		STUCM_EXIT_WITH_SKILL_LEVEL_PLUS,			/// ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+		STUCM_CHANGE_SKILL_LEVEL_PLUS,				/// ½ºÅ³ ½Àµæ Ã³¸®
+		STUCM_BUTTON_SKILL_LEVEL_UPGRADE,			/// ½ºÅ³ °­È­ ¹öÆ°À» ´­·¶À» ¶§
+		STUCM_BUTTON_EXIT,							/// ´Ý±â ¹öÆ°À» ´­·¶À» ¶§
+		STUCM_EXIT_WITH_SKILL_LEVEL_PLUS,			/// ´ÝÀ¸¸é¼­ ½ºÅ³ ·¹º§ Áõ°¡ Ã³¸®
 
-		STUCM_BUTTON_ENABLE_INIT_SKILL,				/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ°
-		STUCM_BUTTON_INIT_SKILL,					/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ°
-		STUCM_INIT_SKILL,							/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ Ã³ï¿½ï¿½ ( 0ï¿½ï¿½ï¿½ï¿½ )
-		STUCM_INIT_SKILL_ONE_POINT,					/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ Ã³ï¿½ï¿½ ( 1ï¿½ï¿½ )
+		STUCM_BUTTON_ENABLE_INIT_SKILL,				/// ½ºÅ³ Æ®¸® ³» ÃÊ±âÈ­ ¹öÆ°
+		STUCM_BUTTON_INIT_SKILL,					/// ½ºÅ³ ½½·Ô ÃÊ±âÈ­ ¹öÆ°
+		STUCM_INIT_SKILL,							/// ½ºÅ³ ½½·Ô ÃÊ±âÈ­ Ã³¸® ( 0À¸·Î )
+		STUCM_INIT_SKILL_ONE_POINT,					/// ½ºÅ³ ½½·Ô ÃÊ±âÈ­ Ã³¸® ( 1·Î )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		STUCM_SKILL_PAGE1,			/// ÆäÀÌÁö 1 ¼±ÅÃ (¹Ì¸®º¸±â)
+		STUCM_SKILL_PAGE2,			/// ÆäÀÌÁö 2 ¼±ÅÃ (¹Ì¸®º¸±â)
+		STUCM_SKILL_PAGE3,			/// ÆäÀÌÁö 3 ¼±ÅÃ (¹Ì¸®º¸±â)
+		STUCM_ADD_SKILL_PAGE_ED,	/// ÆäÀÌÁö Ãß°¡ ED
+		STUCM_ADD_SKILL_PAGE_CASH,	/// ÆäÀÌÁö Ãß°¡ CASH
+		STUCM_DECIDE_SKILL_PAGE,	/// ÆäÀÌÁö °áÁ¤
+		STUCM_BUY_CONFIRM,			/// ÆäÀÌÁö ±¸ÀÔ
+		STUCM_BUY_CANCEL,			/// ÆäÀÌÁö ±¸ÀÔ Ãë¼Ò
+
+		STUCM_DECIDE_WITH_SKILL_LEVEL_PLUS,			/// ½ºÅ³ °ª ¹× ÆäÀÌÁö º¯°æ
+		STUCM_CANCEL_DECIDE_WITH_SKILL_LEVEL_PLUS,	/// ½ºÅ³ °ª Àû¿ë Ãë¼Ò ¹× º¯°æ
+#endif //SKILL_PAGE_SYSTEM
 	};
 
-	/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+	/// ½ºÅ³ Æ®¸®¿¡ ÀÖ´Â ½ºÅ³ ½½·Ô Å¸ÀÔ
 	enum SKILL_TREE_SLOT_TYPE
 	{
 		STST_NONE				= -1,
-		STST_SELECT_SKILL_LEFT	= 0,	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		STST_SELECT_SKILL_RIGHT	= 1,	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		STST_SINGLE_SKILL		= 2,	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì±ï¿½ ï¿½ï¿½Å³ 
+		STST_SELECT_SKILL_LEFT	= 0,	/// 2Áö¼±´Ù ¿ÞÂÊ
+		STST_SELECT_SKILL_RIGHT	= 1,	/// 2Áö¼±´Ù ¿À¸¥ÂÊ
+		STST_SINGLE_SKILL		= 2,	/// °¡Àå ¿ìÃø ½Ì±Û ½ºÅ³ 
 		STST_END				= 3,
 	};
 
-	/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° Å¸ï¿½ï¿½
+	/// ½ºÅ³ Æ®¸®¿¡ ÀÖ´Â ½ºÅ³ ½½·ÔÀÇ ¹öÆ° Å¸ÀÔ
 	enum SKILL_TREE_SLOT_BUTTON_TYPE
 	{
 		STSBT_NONE					= -1,
-		STSBT_LEARN_SKILL			= 0,	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°
-		STSBT_UPGRADE_SKILL			= 1,	/// ï¿½ï¿½Å³ ï¿½ï¿½È­ ï¿½ï¿½Æ°
-		STSBT_CAN_NOT_LEARN_SKILL	= 2,	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ ï¿½ï¿½Æ°
-		STSBT_INIT_SKILL			= 3,	/// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ°
+		STSBT_LEARN_SKILL			= 0,	/// ½ºÅ³ ½Àµæ ¹öÆ°
+		STSBT_UPGRADE_SKILL			= 1,	/// ½ºÅ³ °­È­ ¹öÆ°
+		STSBT_CAN_NOT_LEARN_SKILL	= 2,	/// ½ºÅ³ ½Àµæ ºÒ°¡ ¹öÆ°
+		STSBT_INIT_SKILL			= 3,	/// ½ºÅ³ ÃÊ±âÈ­ ¹öÆ°
 		STSBT_END					= 5,
 	};
 
 	struct SkillSlotUI
 	{
-		CKTDGUISlot*	m_pSlot;					/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-		CKTDGUIStatic*	m_pStaticBG;				/// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		CKTDGUIStatic*	m_pStaticSkillBG;			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-		CKTDGUIStatic*	m_pStaticSkillLock;			/// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
-		CKTDGUIButton*	m_pButtonSkillInit;			/// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ°
-		CKTDGUIButton*	m_pButtonSkillDesc;			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½Ã¿ï¿½ ï¿½ï¿½Æ°
-		CKTDGUIButton*	m_pButtonSkillLearn;		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°
-		CKTDGUIStatic*	m_pStaticSkillMaster;		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½
-		CKTDGUIStatic*	m_pStaticSkillNoLearn;		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½
-		CKTDGUIStatic*	m_pStaticStringRequireSP;	/// ï¿½ä±¸ SP
-		bool			m_bSelectSkillBlind;		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½, ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ Ã³ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		bool			m_bSkillLineBlind;			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ ï¿½ï¿½Ü¹ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		CKTDGUISlot*	m_pSlot;					/// ½ºÅ³ ½½·Ô
+		CKTDGUIStatic*	m_pStaticBG;				/// ¹è°æ ¹éÆÇ
+		CKTDGUIStatic*	m_pStaticSkillBG;			/// ½ºÅ³ ¹éÆÇ
+		CKTDGUIStatic*	m_pStaticSkillLock;			/// Àá±è ½ºÅ³
+		CKTDGUIButton*	m_pButtonSkillInit;			/// ½ºÅ³ ÃÊ±âÈ­ ¹öÆ°
+		CKTDGUIButton*	m_pButtonSkillDesc;			/// ½ºÅ³ ÅøÆÁ Ç¥½Ã¿ë ¹öÆ°
+		CKTDGUIButton*	m_pButtonSkillLearn;		/// ½ºÅ³ ½Àµæ ¹öÆ°
+		CKTDGUIStatic*	m_pStaticSkillMaster;		/// ½ºÅ³ ¸¶½ºÅÍ ÀÌ¹ÌÁö
+		CKTDGUIStatic*	m_pStaticSkillNoLearn;		/// ½ºÅ³ ½Àµæ ºÒ°¡ ÀÌ¹ÌÁö
+		CKTDGUIStatic*	m_pStaticStringRequireSP;	/// ¿ä±¸ SP
+		bool			m_bSelectSkillBlind;		/// 2Áö¼±´Ù ½ºÅ³Áß, ¼±ÅÃµÇÁö ¾Ê¾Æ ºí¶óÀÎµå Ã³¸®ÇØ¾ß ÇÒ ¿©ºÎ
+		bool			m_bSkillLineBlind;			/// Á¶°ÇÀÌ ÃæÁ·µÇÁö ¾Ê¾Æ Àá°Ü¹ö¸° ½ºÅ³ ¶óÀÎ Ã³¸® ¿©ºÎ
 		
 
 		SkillSlotUI()
@@ -140,13 +153,13 @@ public:
 	public:
 		void SetSkillLineBlind(bool val) { m_bSkillLineBlind = val; }
 
-		// ï¿½Ò¸ï¿½ï¿½Ú´ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½ï¿½ï¿½ Dialog ï¿½Ò¸ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+		// ¼Ò¸êÀÚ´Â ÇÊ¿ä¾ø´Ù : ÀüºÎ Dialog ¼Ò¸êÀÚ¿¡¼­ »ç¶óÁü
 	};
 
 	struct SkillPositionKey
 	{
-		int	m_iRow;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
-		int	m_iCol;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
+		int	m_iRow;		/// °¡·Î À§Ä¡
+		int	m_iCol;		/// ¼¼·Î À§Ä¡
 
 		SkillPositionKey() :
 		m_iRow( 0 ),
@@ -205,10 +218,14 @@ public:
 	
 	void CreateSkillTree( CX2Unit::UNIT_CLASS eUnitClass );
 	void UpdateSkillTree();
-	void UpdateSkillTree( CX2SkillTree::SKILL_ID eSkillID );			// Treeï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ Slotï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ñ´ï¿½
+	void UpdateSkillTree( CX2SkillTree::SKILL_ID eSkillID );			// Tree¿¡¼­ ÇØ´ç Slot¸¸ ¾÷µ¥ÀÌÆ®ÇÑ´Ù
 	void UpdateBlind();
-
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	void UpdateUI( bool bEquipped, bool bSP = true, bool bSkillTree = false, bool bSkillPage_ = false );
+	void BuySkillPageDialog( const int iED_ );
+#else //SKILL_PAGE_SYSTEM
 	void UpdateUI( bool bEquipped, bool bSP = true, bool bSkillTree = false );
+#endif //SKILL_PAGE_SYSTEM
     
 	void CreateSlotUIPreset( SkillSlotUI& UISet, int eSkillID, int iCol );
 
@@ -226,7 +243,7 @@ public:
 
 	//////////////////////////////////////////////////////////////////////////
 
-	//** fix!! ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±×¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½. ï¿½ß°ï¿½ ï¿½Û¾ï¿½ ï¿½Ê¿ï¿½ï¿½Õ´Ï´ï¿½.
+	//** fix!! ½ºÅ³ ºÀÀÎÇØÁ¦ ´ÙÀÌ¾ó·Î±×¸¦ ¿©´Â ÇÔ¼ö. Ãß°¡ ÀÛ¾÷ ÇÊ¿äÇÕ´Ï´Ù.
 	void OpenSkillUnsealInformDLG( const CX2SkillTree::SkillTemplet* pSkillTemplet, D3DXVECTOR2 SlotCenterPos );	
 
 	void OpenDLGSkillUnsealed( bool bOpen );
@@ -247,38 +264,30 @@ public:
 	void ShowUIDesc( bool bShow, wstring wstr = L"", D3DXVECTOR2 pos = D3DXVECTOR2(0,0), 
 					 CX2TalkBoxManagerImp::TALK_BOX_TYPE TBT = CX2TalkBoxManagerImp::TBT_FROM_UP_LEFT,
 					 D3DXCOLOR coTextColor = D3DXCOLOR(0,0,0,1), D3DXCOLOR coBackColor = D3DXCOLOR(1, 0.96f, 0.6f, 1 ) );
-	//wstring GetExpirationDateDesc( const wstring& wstrExpirationDate );	// kimhc // KTDXCommonFuncï¿½ï¿½ ï¿½Å±ï¿½ // 2009-06-16
+	//wstring GetExpirationDateDesc( const wstring& wstrExpirationDate );	// kimhc // KTDXCommonFunc·Î ¿Å±è // 2009-06-16
 	
 	//////////////////////////////////////////////////////////////////////////
 
-//{{ kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//{{ kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤
 #ifdef MODIFY_INFINITE_SKILL_BUG
-	bool ProcessSkillTreeSlotRMouseUp( LPARAM lParam );	// ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ì½º ï¿½ï¿½Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
-	bool ProcessEquipSlotDropped( LPARAM lParam );		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½å·¡ï¿½×¾ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
-	bool ProcessEquipSlotRMouseUp( LPARAM lParam );		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ì½º ï¿½ï¿½Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+	bool ProcessSkillTreeSlotRMouseUp( LPARAM lParam );	// ½ºÅ³Æ®¸®¿¡¼­ ¸¶¿ì½º ¿ìÅ¬¸¯ ÇßÀ» ¶§ÀÇ Ã³¸®
+	bool ProcessEquipSlotDropped( LPARAM lParam );		// ÀåÂø½½·ÔÀ¸·Î µå·¡±×¾Ø µå¶ø ÇßÀ» ¶§ÀÇ Ã³¸®
+	bool ProcessEquipSlotRMouseUp( LPARAM lParam );		// ÀåÂø½½·Ô¿¡¼­ ¸¶¿ì½º ¿ìÅ¬¸¯ ÇßÀ» ¶§ÀÇ Ã³¸®
 
-// 	bool CheckIsReady();					// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ true, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´Ï¸ï¿½ false ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-// 	void ShowOkAndCancelMsgForUnReady( LPARAM lParam, SKILL_TREE_UI_CUSTOM_MSG eSTUCM ); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ Ç®ï¿½Ú³Ä´ï¿½ ok, cancel ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½, ï¿½ï¿½ï¿½Ú´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ UICustomMSGï¿½ï¿½ï¿½ï¿½ ï¿½Ñ°ï¿½ï¿½ï¿½ lParamï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½)	
+// 	bool CheckIsReady();					// ÇöÀç ·¹µð »óÅÂÀÌ¸é true, ·¹µð »óÅÂ°¡ ¾Æ´Ï¸é false ¸¦ ¸®ÅÏ
+// 	void ShowOkAndCancelMsgForUnReady( LPARAM lParam, SKILL_TREE_UI_CUSTOM_MSG eSTUCM ); // ·¹µð »óÅÂ¸¦ Ç®°Ú³Ä´Â ok, cancel ¸Þ½ÃÁö ¹Ú½º, ÀÎÀÚ´Â ÀåÂøÇÏ·Á´Â UICustomMSG¿¡¼­ ³Ñ°ÜÁØ lParam°ª(½½·Ô)	
 
 	//void ProcessChangeEquipSlotAfterUnReady();
 #endif MODIFY_INFINITE_SKILL_BUG
-//}} kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤
 
-#ifdef REFORM_UI_SKILLSLOT
+#ifdef REFORM_UI_SKILLSLOT 
 	CKTDGUIDialogType	GetDLGGameSkillSLot() {return m_pDLGGameSkillSlot; }
-//{{ Iruha : 2026-08-25 // Skill Slot B open by default, no medal purchase required
-#ifdef SERV_IRUHADEV_SKILL_SLOT_B_FREE
-	bool				IsExpandSkillSlot()	{return true; }
-#else
 	bool				IsExpandSkillSlot()	{return m_bIsExpandSkillSlot; }
-#endif SERV_IRUHADEV_SKILL_SLOT_B_FREE
-//}}
 	bool				GetShowEquipSkillGuide() {return m_bShowEquipSkillGuide; }
 #endif //REFORM_UI_SKILLSLOT
 
-#ifdef REFORM_UI_KEYPAD
 	void UpdateSkillSlotString();
-#endif
 
 #ifdef SKILL_SLOT_UI_TYPE_B
 	void				SetSkillUIType( bool bIsTypeA_ );
@@ -288,25 +297,25 @@ public:
 	void				SetOffsetPosEtcSkillSlotUI();
 #endif //SKILL_SLOT_UI_TYPE_B
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½Ö´Â°ï¿½
+	/// ÇöÀç ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖ´Â°¡
 	bool GetNowLearnSkill() const { return m_bNowLearnSkill; }
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ï°ï¿½ ï¿½Ö´Â°ï¿½
+	/// ÇöÀç ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ÃÊ±âÈ­ ÇÏ°í ÀÖ´Â°¡
 	bool GetNowInitSkill() const { return m_bNowInitSkill; }
 
-	bool													IsLearnBeforeSelectSkill( const int iNowTierIndex );						/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½ï¿½ï¿½ 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ï¿½È¯
+	bool													IsLearnBeforeSelectSkill( const int iNowTierIndex );						/// ÀÌÀü ´Ü°èÀÇ 2Áö¼±´Ù ½ºÅ³À» ¹è¿ü´ÂÁö ¿©ºÎ¸¦ ¹ÝÈ¯
 
-	const int												GetNotLearnTierIndex();														/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö»ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-	const int												GetNotEnoughLevelTierIndex( const int iLevel );								/// ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö»ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-	const map<SkillPositionKey,	CX2SkillTree::SKILL_ID>&	GetMapSkillPosition() { return m_mapSkillPosition; }						/// ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½ ï¿½ï¿½È¯
-	const CKTDGUIDialogType									GetDLGUISkillTree() { return m_pDLGUISkillTree; }							/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½È¯
-	const int												GetSkillLevelInSkillWimdow( const CX2SkillTree::SKILL_ID eSkillID ) const;	/// ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯
-	const CX2SkillTree::SKILL_ID							GetAnotherSelectSkillID( CX2SkillTree::SKILL_ID eCheckSkillID ) const;		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ ï¿½Ý´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯
-	const int												GetRequireSkillLineLevel( int iSkillLineTierIndex ) const					/// ï¿½ï¿½Å³ Tireï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ä±¸ ï¿½ï¿½ï¿½ï¿½
+	const int												GetNotLearnTierIndex();														/// ¹è¿ìÁö ¸øÇÑ ÃÖ»óÀ§ ½ºÅ³ ¶óÀÎ ¹ÝÈ¯
+	const int												GetNotEnoughLevelTierIndex( const int iLevel );								/// ¹è¿ï ¼ö ¾ø´Â ·¹º§ÀÇ ÃÖ»óÀ§ ½ºÅ³ ¶óÀÎ ¹ÝÈ¯
+	const map<SkillPositionKey,	CX2SkillTree::SKILL_ID>&	GetMapSkillPosition() { return m_mapSkillPosition; }						/// À§Ä¡¿¡ µû¸¥ ½ºÅ³ ¾ÆÀÌµð ÀúÀå ÄÁÅ×ÀÌ³Ê ¹ÝÈ¯
+	const CKTDGUIDialogType									GetDLGUISkillTree() { return m_pDLGUISkillTree; }							/// ½ºÅ³ Æ®¸® ´ÙÀÌ¾ó·Î±× °´Ã¼ ¹ÝÈ¯
+	const int												GetSkillLevelInSkillWimdow( const CX2SkillTree::SKILL_ID eSkillID ) const;	/// ½ºÅ³Ã¢ ³» ½ºÅ³ ¾ÆÀÌµð ¹ÝÈ¯
+	const CX2SkillTree::SKILL_ID							GetAnotherSelectSkillID( CX2SkillTree::SKILL_ID eCheckSkillID ) const;		/// 2Áö¼±´Ù ½ºÅ³ Áß ¹Ý´ëÆí¿¡ ÀÖ´Â ½ºÅ³ ¾ÆÀÌµð¸¦ ¹ÝÈ¯
+	const int												GetRequireSkillLineLevel( int iSkillLineTierIndex ) const					/// ½ºÅ³ Tire¿¡ µû¸¥ ½ºÅ³ ½Àµæ ¿ä±¸ ·¹º§
 	{ 
 		if ( iSkillLineTierIndex >= ARRAY_SIZE( OPEN_SKILL_TREE_LEVEL ) )
 		{
-			/// ï¿½ï¿½ ï¿½ï¿½ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­ï¿½ï¿½ï¿½ï¿½ Å« ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½!!!
+			/// °¢ ¶óÀÎº° ½Àµæ ·¹º§ ¹è¿­º¸´Ù Å« ¶óÀÎ ÀÎµ¦½º¸¦ ÂüÁ¶ÇÏ·Á°í ÇØ¿ä!!!
 			ASSERT( !L"NowSkillLineLevel Is Large Then OPEN_SKILL_TREE_LEVEL Array Size!!!" );
 			return 0;
 		}
@@ -319,19 +328,23 @@ private:
 	void					DrawElswordWSSDesc( D3DXVECTOR2 vDrawPos_ );
 #endif ELSWORD_WAY_OF_SWORD
 
-	void					CreateSkillTreePortrait( CKTDGUIContolList* pControlList );									/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½Ê»ï¿½È­ ï¿½ï¿½ ï¿½ï¿½ï¿½Ð¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+	void					CreateSkillTreePortrait( CKTDGUIContolList* pControlList );									/// ½ºÅ³ Æ®¸® ÃÊ»óÈ­ ¹× ±¸ºÐ¼± ¼³Á¤ ÇÔ¼ö
 
-	void					UpdateAtMoveScrollBar();																	/// ï¿½ï¿½Å©ï¿½ï¿½ ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+	void					UpdateAtMoveScrollBar();																	/// ½ºÅ©·Ñ ¹Ù°¡ ¿òÁ÷ÀÏ ¶§ º¯°æµÇ¾î¾ß ÇÒ Á¤º¸¸¦ Ã³¸®ÇÏ´Â ÇÔ¼ö
 
-	void					SetSelectSkillSlotPosition();																/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	void					SetDivisionLine( CKTDGUIContolList* pControlList );											/// ï¿½ï¿½ï¿½Ð¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	void					SetLearnSkillInfo( CX2SkillTree::SKILL_ID eSkillID );										/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ KGetSkillInfo ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	void					SetBlindSelectSkill();																		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
-	void					SetSkillSlotButton( CKTDGUIButton* pSlotButton, SKILL_TREE_SLOT_BUTTON_TYPE eButtonType );	/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	void					SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,											/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½Ê»ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+	void					SetSelectSkillSlotPosition();																/// 2Áö¼±´Ù ½ºÅ³ÀÇ ¹éÆÇ º¯°æ ÇÔ¼ö
+	void					SetDivisionLine( CKTDGUIContolList* pControlList );											/// ±¸ºÐ¼± ¼³Á¤ ÇÔ¼ö
+	void					SetLearnSkillInfo( CX2SkillTree::SKILL_ID eSkillID );										/// ½ºÅ³ ½ÀµæÀ» À§ÇÑ KGetSkillInfo °ª ¼³Á¤ ÇÔ¼ö
+	void					SetBlindSelectSkill();																		/// 2Áö¼±´Ù ½ºÅ³ Áß ¼±ÅÃµÇÁö ¾ÊÀº ½ºÅ³¿¡ ´ëÇÑ ºí¶óÀÎµå ¼³Á¤
+	void					SetSkillSlotButton( CKTDGUIButton* pSlotButton, SKILL_TREE_SLOT_BUTTON_TYPE eButtonType );	/// ½ºÅ³ Æ®¸®ÀÇ ½ºÅ³ ½½·Ô ¹öÆ° ¼³Á¤ ÇÔ¼ö
+	void					SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,											/// ½ºÅ³ Æ®¸® ÃÊ»óÈ­ÀÇ ÀüÁ÷ ÀÌ¹ÌÁö ¹× ÀüÁ÷¸í ¼³Á¤ ÇÔ¼ö
 														CX2Unit::UNIT_CLASS eUnitClass = CX2Unit::UC_ARME_VOID_PRINCESS, 
 														CX2Unit::UNIT_CLASS_TYPE UnitClassLevel = CX2Unit::UCT_BASIC_CLASS );
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	void UpdateSkillPageUI();
+#endif //SKILL_PAGE_SYSTEM
 
+private:
 	bool					m_bShow;
 	bool					m_bSkillRemoveMode;
 	bool					m_bClassInfoVaild;
@@ -342,7 +355,7 @@ private:
 	CKTDGUIDialogType			m_pDLGUISkillTree;   
 	CKTDGUIDialogType			m_pDLGSkillToolTip;	
 	CKTDGUIDialogType			m_pDLGSkillUnsealInform;	
-	CKTDGUIDialogType			m_pDLGSkillUnsealed;		// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ ï¿½Ë¾ï¿½
+	CKTDGUIDialogType			m_pDLGSkillUnsealed;		// ½ºÅ³ ºÀÀÎÇØÁ¦ ¿Ï·á ÆË¾÷
 #ifdef ELSWORD_WAY_OF_SWORD
 	CKTDGUIDialogType			m_pDLGElswordWSSDesc;
 #endif ELSWORD_WAY_OF_SWORD
@@ -351,16 +364,16 @@ private:
 	map<CX2SkillTree::SKILL_ID, SkillSlotUI>		m_mapSkillSlotUISet;
 	map<SkillPositionKey, CX2SkillTree::SKILL_ID>	m_mapSkillPosition;
 
-	CX2UserSkillTree*		m_pUserSkillTree;
+	const CX2UserSkillTree*		m_pUserSkillTree;
 		
-	// ï¿½ï¿½ï¿½ì½º ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ¸¶¿ì½º ÈÙ °ü·Ã
 	SHORT				m_SumDelta;
-	int					m_iPrevSP;	// UpdateSPï¿½ï¿½ ï¿½ï¿½ ï¿½Ù¶ï¿½ ï¿½ï¿½ï¿½ï¿½ SP ï¿½ï¿½ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ Tree Updateï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½
+	int					m_iPrevSP;	// UpdateSP¸¦ ÇØ ÁÙ¶§ ÀÌÀü SP »óÅÂ¿Í ºñ±³ÇØ¼­ Tree Update°¡ ÇÊ¿äÇÒÁö °áÁ¤ÇÑ´Ù
 
-	// Navigation ï¿½ï¿½ï¿½ï¿½
+	// Navigation °ü·Ã
 	float				m_fNaviMoveRange;
 
-	// ToolTip : TalkBox ï¿½Ì¿ï¿½ï¿½Ø¼ï¿½.
+	// ToolTip : TalkBox ÀÌ¿ëÇØ¼­.
 	CX2TalkBoxManager*		m_pTalkBoxManager;
 	bool					m_bUsingCSP;
 
@@ -374,20 +387,25 @@ private:
 	bool					m_bShowEquipSkillGuide;
 #endif //REFORM_UI_SKILLSLOT
 
-	bool					m_bSkillSlotSwap;			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½
+	bool					m_bSkillSlotSwap;			/// ½ºÅ³ ½½·Ô ½º¿Ò ½Ãµµ
 
 #ifdef SKILL_SLOT_UI_TYPE_B
-	bool					m_bIsSkillUITypeA;			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+	bool					m_bIsSkillUITypeA;			/// ½ºÅ³ ½½·Ô Å¸ÀÔ
 #endif //SKILL_SLOT_UI_TYPE_B
 
-	int						m_iMaxSkillRowNum;			/// ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½è¿­ ï¿½ï¿½ï¿½ï¿½
+	int						m_iMaxSkillRowNum;			/// ÃÖ´ë ½ºÅ³ ¹è¿­ ³ôÀÌ
 
-	bool					m_bNowLearnSkill;			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½Ö´Â°ï¿½
-	bool					m_bNowInitSkill;			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ï°ï¿½ ï¿½Ö´Â°ï¿½
+	bool					m_bNowLearnSkill;			/// ÇöÀç ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖ´Â°¡
+	bool					m_bNowInitSkill;			/// ÇöÀç ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ÃÊ±âÈ­ ÇÏ°í ÀÖ´Â°¡
 
-	CX2SkillTree::SKILL_ID	m_eCheckSkillID;			/// ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
+	CX2SkillTree::SKILL_ID	m_eCheckSkillID;			/// ¸Þ½ÃÁö ÀÌº¥Æ®¸¦ ÅëÇØ º¯°æµÉ ½ºÅ³ ¾ÆÀÌµð
 
-	bool					m_bReplacedEsCounter;		/// ï¿½ï¿½Æ´ï¿½ï¿½ï¿½ï¿½ ï¿½Ý°Ý¿ï¿½ ï¿½Ïµï¿½ ï¿½Úµï¿½ ï¿½Úµï¿½
+	bool					m_bReplacedEsCounter;		/// ºóÆ´¾ø´Â ¹Ý°Ý¿ë ÇÏµå ÄÚµù ÄÚµå
+
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	CKTDGUIDialogType	m_pDLGBuyConfirm;	/// ½ºÅ³ ÆäÀÌÁö È®Àå ´ÙÀÌ¾ó·Î±×
+	int					m_iConfirmED;		/// ½ºÅ³ ÆäÀÌÁö È®Àå½Ã ¿ä±¸ ±Ý¾×
+#endif //SKILL_PAGE_SYSTEM
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -399,12 +417,12 @@ public:
 
 	enum SKILL_TREE_SLOT_ADD_PICTURE_TYPE
 	{
-		STSAPT_DISABLE = 0,		/// ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½
-		STSAPT_EQUIPPED,		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
-		STSAPT_SEALED,			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©
-		STSAPT_LEVEL,			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-		STSAPT_CANLEARN,		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		STSAPT_SELECT,			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		STSAPT_DISABLE = 0,		/// ¾îµÎ¿î ¹è°æ
+		STSAPT_EQUIPPED,		/// ÀåÂøÁß 
+		STSAPT_SEALED,			/// ºÀÀÎ ¸¶Å©
+		STSAPT_LEVEL,			/// ½ºÅ³ ·¹º§
+		STSAPT_CANLEARN,		/// ½Àµæ °¡´É
+		STSAPT_SELECT,			/// ¼±ÅÃ °¡´É
 
 		STSAPT_END,
 	};
@@ -434,7 +452,7 @@ public:
 	CX2EquippedSkillSlotData(int index, bool bSlotb );
 	virtual ~CX2EquippedSkillSlotData();
 
-	int GetSlotID();		// 0~8ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½
+	int GetSlotID();		// 0~8·Î °è»êµÇ´Â ID¸¦ µ¹·ÁÁØ´Ù
 	void ShowSlotPicture(bool bShow, CKTDGUISlot* pSlot, SKILL_EQUIPPED_SLOT_ADD_PICTURE_TYPE eType, int val = -1, bool bIsSkillLevelUpByItem = false );
 
 	virtual void UpdateUI( CKTDGUISlot* pSlot );

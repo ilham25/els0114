@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "X2PopupUIBase.h"
 
-#ifdef REFORM_UI_CHARACTER_INFO
 
 /** @function 	: CX2PopupUIBase
 	@brief 		: »ý¼ºÀÚ
@@ -120,4 +119,3 @@ void CX2PopupUIBase::ChangeTopImage( IN bool bChange_ )
 	}
 }
 #pragma endregion ( IN bool bChange_ )
-#endif

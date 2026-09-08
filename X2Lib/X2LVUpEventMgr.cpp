@@ -66,7 +66,7 @@ void CX2LVUpEventMgr::OnFrameMove( double fTime, float fElapsedTime )
 bool CX2LVUpEventMgr::OpenScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pLVUpEventMgr", this );
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName );
+	return g_pKTDXApp->LoadLuaTinker( pFileName );
 }
 
 void CX2LVUpEventMgr::AddLevelUpEvent_LUA()
@@ -167,7 +167,9 @@ void CX2LVUpEventMgr::AddLevelUpEvent_LUA()
 	CX2LVUpEventMgr::LVUpEvent* pLVUpEvent = new CX2LVUpEventMgr::LVUpEvent();
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LUA_GET_VALUE_ENUM(	luaManager, "EVENT_ID",	pLVUpEvent->m_EventID, CX2LVUpEventMgr::LEVEL_UP_EVENT_ID, LUEI_NONE );
 	map< LEVEL_UP_EVENT_ID, LVUpEvent* >::iterator mit;
@@ -242,6 +244,22 @@ void CX2LVUpEventMgr::AddLevelUpEvent_LUA()
 
 				luaManager.EndTable();
 			}
+
+#ifdef ADD_PLAY_SOUND //±èÃ¢ÇÑ
+			if( luaManager.BeginTable( "SOUND_LIST" ) == true )
+			{
+				int tableIndex = 1;
+				wstring fileName;
+				while( luaManager.GetValue( tableIndex, fileName ) == true )
+				{
+					tableIndex++;
+					pLVUpEventCondNReact->m_vecSoundFileName.push_back( fileName );
+				}
+
+				luaManager.EndTable();
+			}
+#endif //ADD_PLAY_SOUND
+
 			luaManager.EndTable();
 		}
 
@@ -414,7 +432,7 @@ void CX2LVUpEventMgr::LVUpEvent::CheckLevel()
 				continue;
 
 			if ( pLVUpEventCondNReact->m_Level > m_LastCheckLevel &&
-				pLVUpEventCondNReact->m_Level <= pUnit->GetUnitData()->m_Level )
+				pLVUpEventCondNReact->m_Level <= pUnit->GetUnitData().m_Level )
 			{
 				m_bCheckShow = true;
 
@@ -471,6 +489,16 @@ void CX2LVUpEventMgr::LVUpEvent::CheckLevel()
 
 						m_vecDialog.push_back( pDialog );
 					}
+
+#ifdef ADD_PLAY_SOUND //±èÃ¢ÇÑ
+					if( !pLVUpEventCondNReact->m_vecSoundFileName.empty() && NULL != g_pKTDXApp->GetDeviceManager() )
+					{
+						int iSize = pLVUpEventCondNReact->m_vecSoundFileName.size();
+						int iRandom = RandomInt() % iSize;
+
+						g_pKTDXApp->GetDeviceManager()->PlaySound(pLVUpEventCondNReact->m_vecSoundFileName[iRandom].c_str(), false, false );
+					}
+#endif //ADD_PLAY_SOUND
 
 					break;
 				}

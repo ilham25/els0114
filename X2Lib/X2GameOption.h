@@ -3,6 +3,11 @@
 
 #include <algorithm> 
 
+#ifdef X2OPTIMIZE_AUTOSETUP_GAMEOPTION
+#include <libxml/parser.h>
+#include <libxml/tree.h>
+#endif//X2OPTIMIZE_AUTOSETUP_GAMEOPTION
+
 class CX2GameOption
 {
 	public:
@@ -40,7 +45,12 @@ class CX2GameOption
 			OptionLevel		m_UnitDetail;
 			OptionLevel		m_TexDetail;
 			OptionLevel		m_MapDetail;
-			bool			m_bEffect;
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			OptionLevel		m_eEffect;
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			bool				m_bEffect;
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 			D3DXVECTOR2		m_vResolution;
 			
 			bool			m_bMusic;
@@ -67,9 +77,9 @@ class CX2GameOption
 			bool			m_bParty;
 			bool			m_bSD;				// 필드 SD보기 모드
 			bool			m_bFullScreen;
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 			bool			m_bJoyEnable;
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
 
 			// 커뮤니티 옵션
@@ -98,6 +108,10 @@ class CX2GameOption
 #ifdef	ADDED_RELATIONSHIP_SYSTEM	/// 커플신청 거부 추가
 			bool			m_bRefuseRequestCouple;
 #endif // ADDED_RELATIONSHIP_SYSTEM
+
+#ifdef	FIX_INVITE_PVP_PLAYER // 김태환		/// 대전 초대 거부 추가
+			bool			m_bRefuseInvitePVP;
+#endif // FIX_INVITE_PVP_PLAYER
 			
 			//{{ kimhc // 2010.3.12 //	채팅창 개편
 #ifdef	CHAT_WINDOW_IMPROV
@@ -160,12 +174,22 @@ class CX2GameOption
 			bool			m_bShowRankUpInDungeon;
 #endif //SERV_LOCAL_RANKING_SYSTEM
 
+#ifdef PLAYER_ID_IN_GAME_OPTION
+			std::wstring	m_wstrSavedLoginID;
+#endif // PLAYER_ID_IN_GAME_OPTION
+
 			OptionList()
 			{
 				m_UnitDetail			= OL_HIGH;
 				m_TexDetail				= OL_HIGH;
 				m_MapDetail				= OL_HIGH;
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+				m_eEffect			= OL_HIGH;
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 				m_bEffect				= true;
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
+
 				m_vResolution			= D3DXVECTOR2(1024, 768);
 				
 				m_bMusic				= true;
@@ -216,6 +240,10 @@ class CX2GameOption
 				m_bRefuseRequestCouple	= false;
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef	FIX_INVITE_PVP_PLAYER // 김태환		/// 대전 초대 거부 추가
+				m_bRefuseInvitePVP		= false;
+#endif // FIX_INVITE_PVP_PLAYER
+
 #ifdef OPTIMIZED_DEFAULT_RESOLUTION
 				m_bFullScreen			= false;
 #else OPTIMIZED_DEFAULT_RESOLUTION
@@ -229,10 +257,9 @@ class CX2GameOption
 #endif	CHAT_WINDOW_IMPROV
 				//}} kimhc // 2010.3.12 //	채팅창 개편
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 				m_bJoyEnable = false;
-#endif // KEY_MAPPING_INT
-
+#endif // SERV_KEY_MAPPING_INT
 #ifdef SERV_PVP_NEW_SYSTEM
 				m_vecPvpMap.clear();
 #endif
@@ -282,6 +309,10 @@ class CX2GameOption
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 				m_bShowRankUpInDungeon		= false;
 #endif //SERV_LOCAL_RANKING_SYSTEM
+
+#ifdef PLAYER_ID_IN_GAME_OPTION
+				m_wstrSavedLoginID			= L"";
+#endif // PLAYER_ID_IN_GAME_OPTION
 			}
 			
 		};
@@ -310,7 +341,11 @@ class CX2GameOption
 		void UpMapDetail();
 		void DownMapDetail();
 
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		void SetEffectDetail( OptionLevel optionLevel, bool bForce = false );
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		void SetEffectDetail( bool bEffect, bool bForce = false );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		void UpEffectDetail();
 		void DownEffectDetail();
 
@@ -338,7 +373,9 @@ class CX2GameOption
 		void SetSoundVolume( float fSoundVolume );
 		float GetSoundVolume() { return m_OptionList.m_fSoundVolume; }
 		void SetResolution( DWORD dwWidth, DWORD dwHeight, int iColorBit = 32 );
+		const D3DXVECTOR2& GetResolution() { return m_OptionList.m_vResolution; }
 
+		bool GetIsFullScreen() const { return m_OptionList.m_bFullScreen; }
 
 
 
@@ -441,7 +478,10 @@ class CX2GameOption
 		
 		void ApplyAllOption( bool bForce = false );
 
-		OptionList* GetOptionList(){ return &m_OptionList; }
+//{{ robobeg : 2013-09-17
+		//OptionList* GetOptionList(){ return &m_OptionList; }
+        OptionList& GetOptionList(){ return m_OptionList; }
+//}} robobeg : 2013-09-17
 		vector<OptionList>& GetOptionListPreset() { return m_vecOptionListPreset; }
 		
 		void SendFieldOption();
@@ -475,6 +515,11 @@ class CX2GameOption
 		void SetRefuseRequestCouple( bool val );
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환	/// 대전 초대 거부 추가
+		void SetRefuseInvitePVP( CX2GameOption::BlackListDenyState val );
+		void SetRefuseInvitePVP( bool val );
+#endif // FIX_INVITE_PVP_PLAYER
+
 		void SetFullScreen( bool bFullScreen );
 
 		//{{ kimhc // 2010.3.12 //	채팅창 개편
@@ -486,12 +531,9 @@ class CX2GameOption
 #endif	CHAT_WINDOW_IMPROV
 		//}} kimhc // 2010.3.12 //	채팅창 개편
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 		void SetJoyEnable( bool bEnable );
-		bool SaveJoyScript();
-		bool OpenJoyScript();
-#endif // KEY_MAPPING_INT
-
+#endif // SERV_KEY_MAPPING_INT
 		//{{ JHKang // 2010.8.27 // 창 모드 전체 화면 구현
 #ifdef TOGGLE_WINDOW_FULLSCREEN
 		void ToggleWindowFullScreen( bool bFullScreen );
@@ -642,4 +684,13 @@ class CX2GameOption
 #ifdef ADD_MUSIC_SUB_VOLUME
 		float m_fMusicSubVolume;
 #endif
+
+#ifdef X2OPTIMIZE_AUTOSETUP_GAMEOPTION
+	private:
+		void _DecideProperGraphicOption();
+		int _CalcCpuScore();
+		void _CalcBestGraphicOption( int iCpuTotalScore, int iGpuTotalScore );
+		OptionLevel _CalcHighMiddleLow( const xmlNode* pkElement, int iCpuTotalScore, int iGpuTotalScore );
+		bool _CalcOnOff( const xmlNode* pkElement, int iCpuTotalScore, int iGpuTotalScore );
+#endif//X2OPTIMIZE_AUTOSETUP_GAMEOPTION
 };

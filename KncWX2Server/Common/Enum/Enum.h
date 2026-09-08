@@ -57,11 +57,14 @@ namespace SEnum
 	//{{ 2009. 7. 6  최육사	
 	enum RANKING_TYPE
 	{
-		RT_DAY_RANKING = 0,
-		RT_WEEK_RANKING,
-		RT_MONTH_RANKING,
-		RT_DUNGEON_RANKING,
-		RT_PVP_RANKING,
+		RT_DAY_RANKING		= 0,
+		RT_WEEK_RANKING		= 1,
+		RT_MONTH_RANKING	= 2,
+		RT_DUNGEON_RANKING	= 3,
+		RT_PVP_RANKING		= 4,
+//#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+		RT_HERO_RANKING		= 9,	// X2UIRankingInfo.h와 맞추기 위함.
+//#endif // SERV_HENIR_RENEWAL_2013
 
 		RT_MAX_NUM,
 	};
@@ -86,9 +89,10 @@ namespace SEnum
 		ET_PVP_DRAWN_TIME = 30,
 	};
 	//}}
-
-#ifdef EXTEND_SERVER_GROUP_MASK
-#else EXTEND_SERVER_GROUP_MASK
+// 2014.02.28 이지헌 해당 enum 쓰는 곳이 많아서 EXTEND_SERVER_GROUP_MASK 쓰는 국가도 사용하도록 주석
+// 이상 있을시 수정해야 합니다!
+//#ifdef EXTEND_SERVER_GROUP_MASK
+//#else EXTEND_SERVER_GROUP_MASK
 	//{{ 2009. 12. 15  최육사	서버군추가	
 	enum SERVER_GROUP_ID
 	{
@@ -98,7 +102,7 @@ namespace SEnum
 		SGI_END		= 2,
 	};
 	//}}
-#endif EXTEND_SERVER_GROUP_MASK
+//#endif EXTEND_SERVER_GROUP_MASK
 
 	//{{ 2011. 05. 11	최육사	대리상인
 //#ifdef SERV_PSHOP_AGENCY
@@ -120,25 +124,30 @@ namespace SEnum
 		PSHOP_AGENCY_PROXY_ID = 255,
 		//{{ 2012. 05. 31	김민성       대리 상점 거래 로직 변경
 //#ifdef SERV_TRADE_LOGIC_CHANGE_AGENCY_SHOP
-		PAE_SELL_ITEM_LIMIT_NUM = 9,
+		PAE_SELL_ITEM_LIMIT_NUM = 15,
 //#endif SERV_TRADE_LOGIC_CHANGE_AGENCY_SHOP
 		//}}
 	};
 //#endif SERV_PSHOP_AGENCY
 	//}}
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+    enum AGENCY_SHOP_TYPE // grade
+    {
+        AST_NONE = 0,
+        AST_FREE, 
+        AST_NORMAL,
+        AST_PREMIUM,
+        AST_END,
+    };
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 	//{{ 2011. 07. 18	최육사	대전 개편
 //#ifdef SERV_PVP_NEW_SYSTEM
 	enum PVP_ENUM
 	{
 		PE_MAX_SELECT_PVP_MAP_COUNT		= 2,	// 최대 선택 가능한 대전맵 갯수
-#ifdef SERV_FREE_PVP
-		PE_PVP_LIMIT_LEVEL				= 1,	// 대전 참가 최소 레벨
-		PE_PVP_OFFICIAL_LIMIT_LEVEL		= 1,	// 공식대전 참가 최소 레벨
-#else SERV_FREE_PVP
 		PE_PVP_LIMIT_LEVEL				= 3,	// 대전 참가 최소 레벨
 		PE_PVP_OFFICIAL_LIMIT_LEVEL		= 10,	// 공식대전 참가 최소 레벨
-#endif SERV_FREE_PVP
 		PE_PVP_OFFICIAL_MIN_PLAY_TIME	= 30,	// 공식대전에서 30초 이내에 이탈하면 페널티 처리
 		PE_MAX_MATCH_PLAYER_COUNT		= 3,	// 공식대전의 한팀 플레이 인원
 		PE_MAX_TOTAL_PLAYER_COUNT		= 6,	// 공식대전의 총 플레이 인원
@@ -242,33 +251,36 @@ namespace SEnum
 		
 		//////////////////////////////////////////////////////////////////////////
 		// BATTLE FIELD
-		VMI_BATTLE_FIELD_RUBEN_FIELD_01		= 40000,	/// 노아스의 호수
-		VMI_BATTLE_FIELD_ELDER_FIELD_01,	/// 월리 기념교
-		VMI_BATTLE_FIELD_ELDER_FIELD_02,	/// 쌍둥이 감시탑
-		VMI_BATTLE_FIELD_BESMA_FIELD_01,	/// 베스아가라 폭포
-		VMI_BATTLE_FIELD_BESMA_FIELD_02,	/// 레이키키 호수
-		VMI_BATTLE_FIELD_BESMA_FIELD_03,	/// 토리투게라 캐년
-		VMI_BATTLE_FIELD_ALTERA_FIELD_01,	/// 정화의 무덤
-		VMI_BATTLE_FIELD_ALTERA_FIELD_02,	/// 나소드 폐기장
-		VMI_BATTLE_FIELD_ALTERA_FIELD_03,	/// 천공의 기지
-		VMI_BATTLE_FIELD_PEITA_FIELD_01,	/// 순례자의 관문
-		VMI_BATTLE_FIELD_PEITA_FIELD_02,	/// 순례자의 터
-		VMI_BATTLE_FIELD_PEITA_FIELD_03,	/// 망자의 언덕
-		VMI_BATTLE_FIELD_VELDER_FIELD_01,	/// 번영의 길
-		VMI_BATTLE_FIELD_VELDER_FIELD_02,	/// 공존의 길
-		VMI_BATTLE_FIELD_VELDER_FIELD_03,	/// 평화의 길
-		VMI_BATTLE_FIELD_VELDER_FIELD_04,	/// 루렌시아 항구
-		VMI_BATTLE_FIELD_HAMEL_FIELD_01,	/// 엘라임의 물결
-		VMI_BATTLE_FIELD_HAMEL_FIELD_02,	/// 휩쓸린 도시
-		VMI_BATTLE_FIELD_HAMEL_FIELD_03,	/// 원형 수로
-		VMI_BATTLE_FIELD_HAMEL_FIELD_04,	/// 노아호의 무덤
-		VMI_BATTLE_FIELD_VELDER_SHIP_STAGE,	/// 벨더 배
-		VMI_BATTLE_FIELD_HAMEL_SHIP_STAGE,	/// 하멜 배
-		VMI_BATTLE_FIELD_SANDER_FIELD_01,	/// 바람의 사원
-		VMI_BATTLE_FIELD_SANDER_FIELD_02,	/// 샌더2
-		VMI_BATTLE_FIELD_SANDER_FIELD_03,	/// 샌더3
-		VMI_BATTLE_FIELD_SANDER_FIELD_04,	/// 샌더4
-		
+		VMI_BATTLE_FIELD_RUBEN_FIELD_01		= 40000,	// 노아스의 호수
+		VMI_BATTLE_FIELD_ELDER_FIELD_01		= 40001,	// 월리 기념교
+		VMI_BATTLE_FIELD_ELDER_FIELD_02		= 40002,	// 쌍둥이 감시탑
+		VMI_BATTLE_FIELD_BESMA_FIELD_01		= 40003,	// 베스아가라 폭포
+		VMI_BATTLE_FIELD_BESMA_FIELD_02		= 40004,	// 레이키키 호수
+		VMI_BATTLE_FIELD_BESMA_FIELD_03		= 40005,	// 토리투게라 캐년
+		VMI_BATTLE_FIELD_ALTERA_FIELD_01	= 40006,	// 정화의 무덤
+		VMI_BATTLE_FIELD_ALTERA_FIELD_02	= 40007,	// 나소드 폐기장
+		VMI_BATTLE_FIELD_ALTERA_FIELD_03	= 40008,	// 천공의 기지
+		VMI_BATTLE_FIELD_PEITA_FIELD_01		= 40009,	// 순례자의 관문
+		VMI_BATTLE_FIELD_PEITA_FIELD_02		= 40010,	// 순례자의 터
+		VMI_BATTLE_FIELD_PEITA_FIELD_03		= 40011,	// 망자의 언덕
+		VMI_BATTLE_FIELD_VELDER_FIELD_01	= 40012,	// 번영의 길
+		VMI_BATTLE_FIELD_VELDER_FIELD_02	= 40013,	// 공존의 길
+		VMI_BATTLE_FIELD_VELDER_FIELD_03	= 40014,	// 평화의 길
+		VMI_BATTLE_FIELD_VELDER_FIELD_04	= 40015,	// 루렌시아 항구
+		VMI_BATTLE_FIELD_HAMEL_FIELD_01		= 40016,	// 엘라임의 물결
+		VMI_BATTLE_FIELD_HAMEL_FIELD_02		= 40017,	// 휩쓸린 도시
+		VMI_BATTLE_FIELD_HAMEL_FIELD_03		= 40018,	// 원형 수로
+		VMI_BATTLE_FIELD_HAMEL_FIELD_04		= 40019,	// 노아호의 무덤
+		VMI_BATTLE_FIELD_VELDER_SHIP_STAGE	= 40020,	// 벨더 배
+		VMI_BATTLE_FIELD_HAMEL_SHIP_STAGE	= 40021,	// 하멜 배
+		VMI_BATTLE_FIELD_SANDER_FIELD_01	= 40022,	// 바람의 사원
+		VMI_BATTLE_FIELD_SANDER_FIELD_02	= 40023,	// 샌더2
+		VMI_BATTLE_FIELD_SANDER_FIELD_03	= 40024,	// 샌더3
+		VMI_BATTLE_FIELD_SANDER_FIELD_04	= 40025,	// 샌더4
+
+		VMI_FIELD_BOSSRAID_KINGDOM_OF_NASOD	= 40026,	// 보스 레이드 필드
+		VMI_FIELD_BOSSRAID_VALLEY_OF_ABYSS	= 40027,	// 보스 레이드 필드
+
 		VMI_BATTLE_FIELD_END,
 		//////////////////////////////////////////////////////////////////////////
 	};
@@ -312,15 +324,14 @@ namespace SEnum
 	enum LOCAL_MAP_ID
 	{
 		LMI_INVALID					= 0,
-		LMI_VELDER_NORTH			= 10000,
-		LMI_VELDER_EAST				= 10001,
-		LMI_VELDER_SOUTH			= 10002,
+		LMI_RUBEN					= 10000,
+		LMI_ELDER					= 10001,
+		LMI_BESMA					= 10002,
 		LMI_ALTERA_ISLAND			= 10003,
 		LMI_PEITA					= 10004,
 		LMI_VELDER					= 10005,
 		LMI_HAMEL					= 10006,
 		LMI_SANDER					= 10007,
-		LMI_CHINA					= 10008,
 	};
 //#endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
@@ -385,16 +396,19 @@ namespace SEnum
 		GIR_ENCHANTMENT_EXTRACTION_ITEM,      // [129] 강화 추출로 얻은 아리엘의 강화부적 아이템
 		//#endif SERV_ENCHANTMENT_EXTRACTION_SYSTEM
 		//}}
+//#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+		GIR_ITEM_EXTRACT,		// [130] 아이템 추출
+//#endif // SERV_FINALITY_SKILL_SYSTEM
 		GIR_MAX,
 	};
 
-	//#ifdef	SERV_SHARING_BANK_TEST
+//#ifdef	SERV_SHARING_BANK_TEST
 	enum TRADE_ERROR_TYPE
 	{
 		TET_POST			= 1,
 		TET_TRADE			= 2,
 	};
-	//#endif	SERV_SHARING_BANK_TEST
+//#endif	SERV_SHARING_BANK_TEST
 
 	static bool IsValidGetItemReason( GET_ITEM_REASON eReason )
 	{
@@ -463,6 +477,9 @@ namespace SEnum
 		case RT_DAY_RANKING:
 		case RT_WEEK_RANKING:
 		case RT_MONTH_RANKING:
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+		case RT_HERO_RANKING:
+#endif // SERV_HENIR_RENEWAL_2013
 			return true;
 		}
 
@@ -1231,4 +1248,14 @@ namespace SEnum
 //#endif // SERV_CRITERION_DATE_EVENT_JUMPING_CHARACTER
 	};
 //#endif // SERV_CRITERION_DATE_EVENT
+
+//#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-06	// 박세훈
+	enum BOSS_FIELD_ROOM_STATE
+	{
+		BFRS_BOSS_FIELD				= ( 1 << 0 ),
+		BFRS_INTRUDE_RESTRICTION	= ( 1 << 1 ),
+		BFRS_CLOSE_PROCESS			= ( 1 << 2 ),
+		BFRS_RETURN_TO_FIELD		= ( 1 << 3 ),
+	};
+//#endif // SERV_BATTLE_FIELD_BOSS
 }

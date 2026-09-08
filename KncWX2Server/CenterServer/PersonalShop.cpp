@@ -30,7 +30,11 @@ KPersonalShop::KPersonalShop(void)
 
 	m_wstrPersonalShopName.clear();
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+	m_PersonalShopType = SEnum::AST_NONE;
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	m_PersonalShopType = CXSLSquareUnit::PST_NONE;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 }
 
 KPersonalShop::~KPersonalShop(void)
@@ -354,7 +358,11 @@ IMPL_ON_FUNC( ERM_OPEN_PERSONAL_SHOP_REQ )
 	kPacket.m_iPersonalShopUID = GetUID();
 
 	kPacket.m_cPersonalShopType = kPacket_.m_cPersonalShopType;
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+	m_PersonalShopType = static_cast<SEnum::AGENCY_SHOP_TYPE>(kPacket_.m_cPersonalShopType);
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	m_PersonalShopType = static_cast<CXSLSquareUnit::PERSONAL_SHOP_TYPE>(kPacket_.m_cPersonalShopType);
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 end_proc:
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_OPEN_PERSONAL_SHOP_ACK, kPacket );
@@ -428,7 +436,11 @@ IMPL_ON_FUNC( ERM_REG_PERSONAL_SHOP_ITEM_REQ )
 	//현재는 임시로 3개까지만 가능하고 추후 유료화 모델에 따라 판매개수가 달라진다.
 	int iSellItemNum = 3;
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+	if( m_PersonalShopType == SEnum::AST_PREMIUM )
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	if( m_PersonalShopType == CXSLSquareUnit::PST_PREMIUM )
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 		iSellItemNum = 9;
 
 	if( static_cast<int>(kPacket_.m_vecSellItemInfo.size()) > iSellItemNum )
@@ -853,9 +865,7 @@ IMPL_ON_FUNC( ERM_CONFIRM_BUY_PERSONAL_SHOP_ITEM_ACK )
 			<< BUILD_LOG( m_kPersonalShopUserManager.GetNumMember() )
 			<< BUILD_LOG( m_kPersonalShopUserManager.GetMaxMember() )
 			<< END_LOG;
-#ifdef SERV_BUY_PERSONAL_SHOP_ITEM_ERROR_LOG
-		// ack 안보내고 바로 리턴?
-#endif //SERV_BUY_PERSONAL_SHOP_ITEM_ERROR_LOG
+
 		return;
 	}
 
@@ -973,7 +983,11 @@ IMPL_ON_FUNC( ERM_CONFIRM_BUY_PERSONAL_SHOP_ITEM_ACK )
 		//}}
 
 		//{{ 2009. 3. 24  최육사	수수료
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+		if( m_PersonalShopType != SEnum::AST_PREMIUM )
+#else //SERV_UPGRADE_TRADE_SYSTEM
 		if( m_PersonalShopType != CXSLSquareUnit::PST_PREMIUM )
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 		{
 			// [참고] 프리미엄 상점이 아니라면 판매가의 10%는 수수료로 차감 지급
 			kCompleteReq.m_iSellCommissionED = static_cast<int>(kCompleteReq.m_iSellUnitEDIN * TD_HOST_COMMISSION);
@@ -1271,7 +1285,7 @@ IMPL_ON_FUNC( ERM_CONFIRM_BUY_PERSONAL_SHOP_ITEM_ACK )
 		//}}
 
 		//{{ 2009. 3. 24  최육사	수수료
-		if( m_PersonalShopType != CXSLSquareUnit::PST_PREMIUM )
+		if( m_PersonalShopType != SEnum::AST_PREMIUM )
 		{
 			// [참고] 프리미엄 상점이 아니라면 판매가의 10%는 수수료로 차감 지급
 			kCompleteNot.m_iSellCommissionED = static_cast<int>(kCompleteNot.m_iSellUnitEDIN * TD_HOST_COMMISSION);

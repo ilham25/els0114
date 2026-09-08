@@ -1,7 +1,7 @@
 #include "StdAfx.h"
 #include ".\X2FrameUDPPack.h"
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 void    CX2FrameUDPPack::UpdateUDPMaxSize()
 {
@@ -9,19 +9,7 @@ void    CX2FrameUDPPack::UpdateUDPMaxSize()
     m_wUDPMaxSize = 0;
     if ( g_pData != NULL && g_pData->GetGameUDP() != NULL )
     {
-        int iData = 0;
-        if ( g_pData->GetGameUDP()->GetRelayUIDs().empty() == true )
-        {
-            iData = (int) CKTDNUDP_MTU_MAX - 1;
-        }
-        else
-        {
-            if ( g_pData->GetGameUDP()->ConnectRelayTestResult() == true
-                && g_pData->GetGameUDP()->GetRelayUIDsUpdated() == true )
-                iData = (int) CKTDNUDP_MTU_MAX - (int) ( 2 + sizeof(__int64) );
-            else
-                iData = (int) CKTDNUDP_MTU_MAX - (int) ( 3 + g_pData->GetGameUDP()->GetRelayUIDs().size() * sizeof(__int64) );
-        }
+        int iData = g_pData->GetGameUDP()->EstimateEffectiveMTUSize();
         if ( iData >= sizeof(WORD) )
         {
             m_wUDPMaxSize = (WORD) iData;
@@ -85,7 +73,7 @@ bool    CX2FrameUDPPack::AddFrameUDPPack( const char ID, const void* pData, WORD
         || m_wFrameUDPPackCurOffset > m_wFrameUDPPackEndOffset
         || m_wFrameUDPPackCurIDOffset > m_wFrameUDPPackEndOffset )
     {
-        ResetFrameUDPPack();
+        ResetFrameUDPPack( false );
         return false;
     }//if
 
@@ -147,7 +135,7 @@ bool    CX2FrameUDPPack::AddFrameUDPPack( const char ID, const void* pData, WORD
         }
     }
 
-    ResetFrameUDPPack();
+    ResetFrameUDPPack( false );
     return false;
 
 }//CX2FrameUDPPack::AddFrameUDPPack()
@@ -174,7 +162,7 @@ bool    CX2FrameUDPPack::AddFrameUDPPack_IDPack( const char ID, const void* pDat
         || m_wFrameUDPPackCurOffset > m_wFrameUDPPackEndOffset
         || m_wFrameUDPPackCurIDOffset > m_wFrameUDPPackEndOffset )
     {
-        ResetFrameUDPPack();
+        ResetFrameUDPPack( false );
         return false;
     }//if
 
@@ -256,7 +244,7 @@ bool    CX2FrameUDPPack::AddFrameUDPPack_IDPack( const char ID, const void* pDat
         }
     }
 
-    ResetFrameUDPPack();
+    ResetFrameUDPPack( false );
     return false;
 }
 
@@ -377,7 +365,7 @@ bool    CX2FrameUDPPack::FlushFrameUDPPack()
 
     if ( m_wFrameUDPPackEndOffset < sizeof(XPT_UDP_PACKET_PACK_PREFIX) + sizeof(WORD) )
     {
-        ResetFrameUDPPack();
+        ResetFrameUDPPack( false );
         return false;
     }
 
@@ -389,7 +377,7 @@ bool    CX2FrameUDPPack::FlushFrameUDPPack()
         || m_wFrameUDPPackEndOffset > wCurMaxDataSize
         || m_wFrameUDPPackCurOffset > m_wFrameUDPPackEndOffset )
     {
-        ResetFrameUDPPack();
+        ResetFrameUDPPack( false );
         return false;
     }//if
 
@@ -404,7 +392,7 @@ bool    CX2FrameUDPPack::FlushFrameUDPPack()
         }
         else if ( m_wFrameUDPPackCurOffset + sizeof(WORD) + wSize > m_wFrameUDPPackEndOffset )
         {
-            ResetFrameUDPPack();
+            ResetFrameUDPPack( false );
             return false;
         }
         if ( bCompressed == false )
@@ -434,14 +422,14 @@ bool    CX2FrameUDPPack::FlushFrameUDPPack()
     //{
     //    g_pData->GetGameUDP()->BroadCast( m_vecSyncUserList, XPT_UDP_PACKET_PACK, &m_abFrameUDPPack[0], m_wFrameUDPPackEndOffset );
     //}
-    ResetFrameUDPPack();
+    ResetFrameUDPPack( true );
 
     return true;
 
 }//CX2FrameUDPPack::FlushFrameUDPPack()
 
 
-void    CX2FrameUDPPack::ResetFrameUDPPack()
+void    CX2FrameUDPPack::ResetFrameUDPPack( bool bUpdateUDPMaxSize = false )
 {
     XPT_UDP_PACKET_PACK_PREFIX* pkPrefix = ( (XPT_UDP_PACKET_PACK_PREFIX*) &m_abFrameUDPPack[0] );
     pkPrefix->m_iUnitUID = m_pidUnitUID;
@@ -450,6 +438,10 @@ void    CX2FrameUDPPack::ResetFrameUDPPack()
     m_wFrameUDPPackCurIDOffset = m_wFrameUDPPackCurOffset;
     m_wFrameUDPPackEndOffset = m_wFrameUDPPackCurOffset;
 
+    if ( bUpdateUDPMaxSize == true )
+    {
+        UpdateUDPMaxSize();
+    }
 }//CX2FrameUDPPack::ResetFrameUDPPack()
 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK

@@ -528,7 +528,11 @@ HRESULT CX2Eqip::SetRenderParam( double fTime, float fElapsedTime, CKTDGXRendere
 						{						
 							pEqipRenderParam->renderType = CKTDGXRenderer::RT_REAL_COLOR;
 							pEqipRenderParam->cartoonTexType	= CKTDGXRenderer::CTT_NORMAL;
-							pEqipRenderParam->fOutLineWide		= 1.5f;							
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+							pEqipRenderParam->fOutLineWide		= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
+							pEqipRenderParam->fOutLineWide		= 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 						}
 					}
 #endif
@@ -678,7 +682,11 @@ HRESULT CX2Eqip::SetRenderParam( double fTime, float fElapsedTime, CKTDGXRendere
 						{
 							pEqipRenderParam->renderType = CKTDGXRenderer::RT_REAL_COLOR;
 							pEqipRenderParam->cartoonTexType	= CKTDGXRenderer::CTT_NORMAL;
-							pEqipRenderParam->fOutLineWide		= 1.5f;							
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+							pEqipRenderParam->fOutLineWide		= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
+							pEqipRenderParam->fOutLineWide		= 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 						}
 					}
 #endif
@@ -994,6 +1002,13 @@ void CX2Eqip::SetRenderParamSpecial( CKTDGXRenderer::RenderParam* pEqipRenderPar
 	case 88399: /// 쉐도우 인큐버스 윙츠 ( 레이븐 )
 	case 88400: /// 그레이스 페어리 윙츠 ( 이브 )
 	case 88401: /// 쉐도우 인큐버스 윙츠 ( 청 )
+	case 81986: /// 그레이스 페어리 라이트 윙(아라)
+	case 81987:	/// 그레이스 페어리 윙츠 (아라)
+	case 81955: /// 금강야차 화무일홍 망토 (아라)
+	case 81962: /// 금강 천야차 염령환 망토 (아라)
+	case 82003: /// 금강야차 화무일홍 망토 (엘리시스)
+	case 82010: /// 금강 천야차 염령환 망토 (엘리시스)
+	case 82075:	/// 아라 이블 트레이서
 		{
 		pEqipRenderParam->bAlphaBlend = true;
 		SetAlphaObject( true );
@@ -1357,7 +1372,6 @@ void    CX2Eqip::OnFrameRender_Draw()
 
 	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
 	{
-#ifdef NOT_RENDERING_NASOD_HAND_POS
 		// oasis907 : 김상윤 [2011.8.30] 빅터의 고사리 주먹 악세 - 레이븐 왼팔에는 붙지 않게 하드 코딩
 		if( m_pOwnerUnit != NULL &&  
 			m_pOwnerUnit->GetType() == CX2Unit::UT_RAVEN &&
@@ -1373,7 +1387,6 @@ void    CX2Eqip::OnFrameRender_Draw()
 		{
 			continue;
 		}
-#endif NOT_RENDERING_NASOD_HAND_POS
 
 		switch( m_EqipType )
 		{
@@ -1794,9 +1807,15 @@ void CX2Eqip::_UpdateSkin(int iIndex_)
 		switch( m_iXSkinModelAttachment )
 		{
 		case 1:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+            if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 			m_pUnitXSkinAnim->RemoveModelXSkinMesh( m_pNormalXSkinModel[i] );
 			break;
 		case 2:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+            if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 			m_pUnitXSkinAnim->RemoveModelXSkinMesh( m_pHyperXSkinModel[i] );
 			break;
 		}
@@ -1811,6 +1830,9 @@ void CX2Eqip::_UpdateSkin(int iIndex_)
 			case 2:
 				break;
 			case 1:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 				m_pUnitXSkinAnim->RemoveModelXSkinMesh( m_pNormalXSkinModel[i] );
 
 #ifdef HEAVY_LOG_TEST
@@ -1818,11 +1840,11 @@ void CX2Eqip::_UpdateSkin(int iIndex_)
 #endif HEAVY_LOG_TEST
 
 			default:
-#ifdef FIELD_NOT_COLLISIONDATA
-				m_pUnitXSkinAnim->AddModelXSkinMesh( m_pHyperXSkinModel[i], m_pHyperAniXET, NULL, m_pHyperTexChangeXET, false, false );
-#else
-				m_pUnitXSkinAnim->AddModelXSkinMesh( m_pHyperXSkinModel[i], m_pHyperAniXET, NULL, m_pHyperTexChangeXET );
-#endif
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+					m_pUnitXSkinAnim->AddModelXSkinMesh( m_pHyperXSkinModel[i], m_pHyperAniXET, NULL, m_pHyperTexChangeXET, false, false );
+
 				m_iXSkinModelAttachment = 2;
 
 #ifdef HEAVY_LOG_TEST
@@ -1838,17 +1860,20 @@ void CX2Eqip::_UpdateSkin(int iIndex_)
 			case 1:
 				break;
 			case 2:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 				m_pUnitXSkinAnim->RemoveModelXSkinMesh( m_pHyperXSkinModel[i] );
 #ifdef HEAVY_LOG_TEST
 				debugWPrintf( L"remove hyper skin : %s", m_pHyperXSkinModel[i]->GetDeviceID().c_str() );
 #endif HEAVY_LOG_TEST
 
 			default:
-#ifdef FIELD_NOT_COLLISIONDATA
-				m_pUnitXSkinAnim->AddModelXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET, NULL, m_pNormalTexChangeXET, false, false );
-#else
-				m_pUnitXSkinAnim->AddModelXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET, NULL, m_pNormalTexChangeXET );
-#endif				
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+					m_pUnitXSkinAnim->AddModelXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET, NULL, m_pNormalTexChangeXET, false, false );
+
 				if( NULL != m_pNormalXSkinModel[i] )
 					m_iXSkinModelAttachment = 1;
 				else
@@ -1911,9 +1936,15 @@ void CX2Eqip::_UpdateSkin()
 			switch( m_iXSkinModelAttachment )
 			{
 			case 1:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 				m_pUnitXSkinAnim->RemoveModelXSkinMesh( m_pNormalXSkinModel[i] );
 				break;
 			case 2:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 				m_pUnitXSkinAnim->RemoveModelXSkinMesh( m_pHyperXSkinModel[i] );
 				break;
 			}
@@ -1928,12 +1959,18 @@ void CX2Eqip::_UpdateSkin()
 				case 2:
 					break;
 				case 1:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                    if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 					m_pUnitXSkinAnim->RemoveModelXSkinMesh( m_pNormalXSkinModel[i] );
 
 #ifdef HEAVY_LOG_TEST
 					debugWPrintf( L"REMOVE NORMAL SKIN : %s", m_pNormalXSkinModel[i]->GetDeviceID().c_str() );
 #endif HEAVY_LOG_TEST
 				default:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                    if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 					m_pUnitXSkinAnim->AddModelXSkinMesh( m_pHyperXSkinModel[i], m_pHyperAniXET, NULL, m_pHyperTexChangeXET );
 					m_iXSkinModelAttachment = 2;
 #ifdef HEAVY_LOG_TEST
@@ -1948,12 +1985,18 @@ void CX2Eqip::_UpdateSkin()
 				case 1:
 					break;
 				case 2:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                    if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 					m_pUnitXSkinAnim->RemoveModelXSkinMesh( m_pHyperXSkinModel[i] );
 #ifdef HEAVY_LOG_TEST
 					debugWPrintf( L"REMOVE HYPER SKIN : %s", m_pHyperXSkinModel[i]->GetDeviceID().c_str() );
 #endif HEAVY_LOG_TEST
 
 				default:
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                    if ( m_pUnitXSkinAnim != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
 					m_pUnitXSkinAnim->AddModelXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET, NULL, m_pNormalTexChangeXET );
 					if( NULL != m_pNormalXSkinModel[i] )
 						m_iXSkinModelAttachment = 1;
@@ -1992,17 +2035,16 @@ CX2Item* CX2Eqip::GetItem()
 	}
 	
 	CX2Item* pItem = NULL; 
-	if( m_pOwnerUnit != NULL &&
-		m_pOwnerUnit->GetInventory() != NULL )
+	if( m_pOwnerUnit != NULL )
 	{
-		pItem = m_pOwnerUnit->GetInventory()->GetItem( m_ItemUID, true );
+		pItem = m_pOwnerUnit->GetInventory().GetItem( m_ItemUID, true );
 	}	
 	
 	return pItem;
 }//CX2Eqip::GetItem()
 
 
-#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
+//#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
 void CX2Eqip::InitSkin()
 {
 	KTDXPROFILE();
@@ -2083,64 +2125,64 @@ void CX2Eqip::InitSkin()
         _UpdateSkin();
     }//if.. else..
 }//CX2Eqip::InitSkin()
-#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
-//{{AFX
-void CX2Eqip::InitSkin()
-{
-	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
-	{
-		g_pMain->GetMemoryHolder()->LoadEquip( m_ModelName[i].c_str() );		// fix!! 이 부분 필요한가?
+//#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
+////{{AFX
+//void CX2Eqip::InitSkin()
+//{
+//	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
+//	{
+//		g_pMain->GetMemoryHolder()->LoadEquip( m_ModelName[i].c_str() );		// fix!! 이 부분 필요한가?
+//
+//		m_pNormalXSkinModel[i]	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelName[i] );
+//	}
+//	m_pNormalTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexName );
+//	m_pNormalAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETName );	
+//
+//	if( m_bCanHyperMode == true )
+//	{
+//
+//		for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
+//		{
+//			g_pMain->GetMemoryHolder()->LoadEquip( m_ModelNameHyper[i].c_str() );		// fix!! 이 부분 필요한가?
+//
+//			m_pHyperXSkinModel[i]	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelNameHyper[i] );
+//		}
+//		
+//		m_pHyperTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexNameHyper );
+//		m_pHyperAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETNameHyper );
+//	}
+//
+//	if ( m_pNormalXSkinModel[0] == NULL )
+//	{
+//		wstring errorMSG;
+//		errorMSG = L"- 모델 이름 : ";
+//		errorMSG += m_ModelName[0];
+//
+//		ErrorLogMsg( XEM_ERROR93, errorMSG.c_str() );
+//		ASSERT( !"CX2Eqip::InitSkin, null normal skin model" );
+//
+//		if ( m_bCanHyperMode == true && m_pHyperXSkinModel[0] == NULL )
+//		{
+//			wstring errorMSG2;
+//			errorMSG2 = L"- 모델 이름 : ";
+//			errorMSG2 += m_ModelNameHyper[0];
+//
+//			ErrorLogMsg( XEM_ERROR93, errorMSG2.c_str() );
+//		}
+//
+//		return;
+//	}
+//
+////{{ robobeg : 2008-10-21
+//	//m_pUnitXSkinAnim->AddModelXSkinMesh( m_pNormalXSkinModel, m_pNormalAniXET, NULL, m_pNormalTexChangeXET );
+//    _UpdateSkin();
+////}} robobeg : 2008-10-21
+//}//CX2Eqip::InitSkin()
+////}}AFX
+//#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
 
-		m_pNormalXSkinModel[i]	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelName[i] );
-	}
-	m_pNormalTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexName );
-	m_pNormalAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETName );	
 
-	if( m_bCanHyperMode == true )
-	{
-
-		for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
-		{
-			g_pMain->GetMemoryHolder()->LoadEquip( m_ModelNameHyper[i].c_str() );		// fix!! 이 부분 필요한가?
-
-			m_pHyperXSkinModel[i]	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelNameHyper[i] );
-		}
-		
-		m_pHyperTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexNameHyper );
-		m_pHyperAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETNameHyper );
-	}
-
-	if ( m_pNormalXSkinModel[0] == NULL )
-	{
-		wstring errorMSG;
-		errorMSG = L"- 모델 이름 : ";
-		errorMSG += m_ModelName[0];
-
-		ErrorLogMsg( XEM_ERROR93, errorMSG.c_str() );
-		ASSERT( !"CX2Eqip::InitSkin, null normal skin model" );
-
-		if ( m_bCanHyperMode == true && m_pHyperXSkinModel[0] == NULL )
-		{
-			wstring errorMSG2;
-			errorMSG2 = L"- 모델 이름 : ";
-			errorMSG2 += m_ModelNameHyper[0];
-
-			ErrorLogMsg( XEM_ERROR93, errorMSG2.c_str() );
-		}
-
-		return;
-	}
-
-//{{ robobeg : 2008-10-21
-	//m_pUnitXSkinAnim->AddModelXSkinMesh( m_pNormalXSkinModel, m_pNormalAniXET, NULL, m_pNormalTexChangeXET );
-    _UpdateSkin();
-//}} robobeg : 2008-10-21
-}//CX2Eqip::InitSkin()
-//}}AFX
-#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
-
-
-#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
+//#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
 void CX2Eqip::InitAttatchAnim()
 {
 	KTDXPROFILE();
@@ -2207,26 +2249,43 @@ void CX2Eqip::InitAttatchAnim()
 //     }
 //     else
     {
-	    for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
-	    {
-		    //g_pMain->GetMemoryHolder()->LoadEquip( m_ModelName[i].c_str() );		// fix!! 이 부분 필요한가?
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		/// 아이템 장착 위치
+		CX2Unit::EQIP_POSITION	eEquipPosition	= m_pItemTemplet->GetEqipPosition();
+#endif //SERV_9TH_NEW_CHARACTER
 
-		    m_pNormalXSkinModel[i]	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelName[i] );
+		for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
+		{
+			//g_pMain->GetMemoryHolder()->LoadEquip( m_ModelName[i].c_str() );		// fix!! 이 부분 필요한가?
 
-		    if( NULL == m_pNormalXSkinModel[i] )
-		    {
-			    //ASSERT( i != 0 );
-			    continue;
-		    }//if
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			int iTargetIndex	= i;		/// 설정할 대상의 인덱스
+
+			/// 애드의 무기일 때만, 0번 인덱스의 무기를 다른 인덱스에 모두 설정해줌
+			if( CX2Unit::UT_ADD == m_pItemTemplet->GetUnitType() &&  
+				( CX2Unit::EP_WEAPON_HAND == eEquipPosition || CX2Unit::EP_AC_WEAPON == eEquipPosition ) )
+				iTargetIndex = 0;
+
+			m_pNormalXSkinModel[i]	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelName[iTargetIndex] );
+#else //SERV_9TH_NEW_CHARACTER
+			m_pNormalXSkinModel[i]	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelName[i] );
+#endif //SERV_9TH_NEW_CHARACTER
+
+			if( NULL == m_pNormalXSkinModel[i] )
+			{
+				//ASSERT( i != 0 );
+				continue;
+			}//if
 
 			ASSERT( m_pNormalXSkinAnim[i] == NULL );
 			SAFE_DELETE_KTDGOBJECT( m_pNormalXSkinAnim[i] );
-		    m_pNormalXSkinAnim[i] = CKTDGXSkinAnim::CreateSkinAnim();
-		    m_pNormalXSkinAnim[i]->SetAnimXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET );
-		    m_pNormalXSkinAnim[i]->AddModelXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET, m_pNormalMultiTexXET, m_pNormalTexChangeXET );
-		    m_pNormalXSkinAnim[i]->ChangeAnim( m_AniName.c_str(), false );
-		    m_pNormalXSkinAnim[i]->Play( CKTDGXSkinAnim::XAP_LOOP );
-		    m_pNormalXSkinAnim[i]->UseDXMatrix( true );
+			m_pNormalXSkinAnim[i] = CKTDGXSkinAnim::CreateSkinAnim();
+			m_pNormalXSkinAnim[i]->SetAnimXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET );
+			m_pNormalXSkinAnim[i]->AddModelXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET, m_pNormalMultiTexXET, m_pNormalTexChangeXET );
+			m_pNormalXSkinAnim[i]->ChangeAnim( m_AniName.c_str(), false );
+			m_pNormalXSkinAnim[i]->Play( CKTDGXSkinAnim::XAP_LOOP );
+			m_pNormalXSkinAnim[i]->UseDXMatrix( true );
 
 #ifdef JIGGLEBONE_TEST
 			float fTension = GetJiggleBone();
@@ -2236,7 +2295,7 @@ void CX2Eqip::InitAttatchAnim()
 				m_pNormalXSkinAnim[i]->SetJiggleMesh(true, fTension);
 			}
 #endif
-	    }//for
+		}//for
 
 	    if( m_bCanHyperMode == true )
 	    {
@@ -2302,127 +2361,150 @@ void CX2Eqip::InitAttatchAnim()
 	        CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = NULL;
 	        for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM ; i++ )
 	        {
-                if( m_pItemTemplet->GetAttachFrameName(i)[0] != NULL )
-		        {
-			        pFrame = m_pUnitXSkinAnim->GetCloneFrame( 
-                        m_pItemTemplet->GetAttachFrameName(i)
-                        );
-			        if( NULL != pFrame )
-			        {
-				        m_pUnitMatrix[i] = &pFrame->combineMatrix;
-			        }//if
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+				/// 애드의 무기 및 무기 악세 일 때만, 지정된 본에 무기를 붙여주자.
+				if( CX2Unit::UT_ADD == m_pItemTemplet->GetUnitType() &&  
+					( CX2Unit::EP_WEAPON_HAND == eEquipPosition || CX2Unit::EP_AC_WEAPON == eEquipPosition ) )
+				{
+					WCHAR buf[256] = {0,};
+
+					StringCchPrintf( buf, 255, L"Weapon0%d", i + 1 );	/// Weapon01 ~ Weapon06
+
+					pFrame = m_pUnitXSkinAnim->GetCloneFrame( buf );
+
+					if( NULL != pFrame )
+						m_pUnitMatrix[i] = &pFrame->combineMatrix;
+				}
+				else
+#endif //SERV_9TH_NEW_CHARACTER
+				{
+					if( m_pItemTemplet->GetAttachFrameName(i)[0] != NULL )
+					{
+			        	pFrame = 
+	#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX          
+                        ( m_pUnitXSkinAnim != NULL ) ? m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->GetAttachFrameName(i) ) : NULL;
+	#else   X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                        m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->GetAttachFrameName(i) );
+	#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+			        	if( NULL != pFrame )
+			        	{
+				        	m_pUnitMatrix[i] = &pFrame->combineMatrix;
+						}//if
+					}//if
 		        }//if
 	        }//for
         }//if
     }//if.. else..
 }//CX2Eqip::InitAttatchAnim()
 
-#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
+//#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
+//
+////{{AFX
+//void CX2Eqip::InitAttatchAnim()
+//{
+//	m_pNormalTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexName );
+//	m_pNormalAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETName );
+//
+//	WCHAR wszMultiTexName[256] = L"";
+//	StringCchPrintfW( wszMultiTexName, ARRAY_SIZE(wszMultiTexName), L"MULTI_TEX_%s_%dl", m_ModelName[0].c_str(), m_ItemUID );
+//
+//	m_pNormalMultiTexXET = g_pKTDXApp->GetDeviceManager()->OpenXET( wszMultiTexName, true );
+//	if( m_EnchantLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_1 )
+//	{		
+//		if( m_EnchantLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_2 )
+//			m_pNormalMultiTexXET->SetMultiTexStage2_LUA( "*.*", "Gate_Protect.tga", D3DTOP_ADD );
+//		else
+//			m_pNormalMultiTexXET->SetMultiTexStage2_LUA( "*.*", "Gate_Protect_G01.tga", D3DTOP_ADD );	
+//	}
+//
+//
+//	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
+//	{
+//		g_pMain->GetMemoryHolder()->LoadEquip( m_ModelName[i].c_str() );		// fix!! 이 부분 필요한가?
+//
+//		m_pNormalXSkinModel[i]	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelName[i] );
+//
+//		if( NULL == m_pNormalXSkinModel[i] )
+//		{
+//			ASSERT( i != 0 );
+//			continue;
+//		}
+//
+//		m_pNormalXSkinAnim[i] = CKTDGXSkinAnim::CreateSkinAnim();
+//		m_pNormalXSkinAnim[i]->SetAnimXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET );
+//		m_pNormalXSkinAnim[i]->AddModelXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET, m_pNormalMultiTexXET, m_pNormalTexChangeXET );
+//		m_pNormalXSkinAnim[i]->ChangeAnim( m_AniName.c_str(), false );
+//		m_pNormalXSkinAnim[i]->Play( CKTDGXSkinAnim::XAP_LOOP );
+//		m_pNormalXSkinAnim[i]->UseDXMatrix( true );
+//	}
+//
+//
+//
+//	if( m_bCanHyperMode == true )
+//	{
+//
+//		m_pHyperTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexNameHyper );
+//		m_pHyperAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETNameHyper );
+//
+//		WCHAR wszMultiTexName[256] = L"";
+//		StringCchPrintfW( wszMultiTexName, ARRAY_SIZE(wszMultiTexName), L"MULTI_TEX_HYPER_%s_%dl", m_ModelName[0].c_str(), m_ItemUID );
+//
+//		m_pHyperMultiTexXET = g_pKTDXApp->GetDeviceManager()->OpenXET( wszMultiTexName, true );
+//		if( m_EnchantLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_1 )
+//		{			
+//			if( m_EnchantLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_2 )
+//				m_pHyperMultiTexXET->SetMultiTexStage2_LUA( "*.*", "Gate_Protect.tga", D3DTOP_ADD );
+//			else
+//				m_pHyperMultiTexXET->SetMultiTexStage2_LUA( "*.*", "Gate_Protect_G01.tga", D3DTOP_ADD );			
+//		}
+//
+//
+//
+//		for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
+//		{
+//			g_pMain->GetMemoryHolder()->LoadEquip( m_ModelNameHyper[i].c_str() );
+//
+//			m_pHyperXSkinModel[i]		= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelNameHyper[i] );
+//
+//			if( NULL == m_pHyperXSkinModel[i] )
+//			{
+//				ASSERT( i != 0 );
+//				continue;
+//			}
+//
+//			m_pHyperXSkinAnim[i] = CKTDGXSkinAnim::CreateSkinAnim();
+//			m_pHyperXSkinAnim[i]->SetAnimXSkinMesh( m_pHyperXSkinModel[i], m_pHyperAniXET );
+//			m_pHyperXSkinAnim[i]->AddModelXSkinMesh( m_pHyperXSkinModel[i], m_pHyperAniXET, m_pHyperMultiTexXET, m_pHyperTexChangeXET );
+//			m_pHyperXSkinAnim[i]->ChangeAnim( m_AniNameHyper.c_str(), false );
+//			m_pHyperXSkinAnim[i]->Play( CKTDGXSkinAnim::XAP_LOOP );
+//			m_pHyperXSkinAnim[i]->UseDXMatrix( true );
+//		}
+//	}
+//
+//
+//
+//	CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = NULL;
+//	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM ; i++ )
+//	{
+//        if( m_pItemTemplet->GetAttachFrameName(i)[0] != NULL )
+//		{
+//#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX  
+//            pFrame = ( m_pUnitXSkinAnim != NULL ) ? m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->GetAttachFrameName(i) ) : NULL;
+//#else   X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX  
+//			pFrame = m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->GetAttachFrameName(i) );
+//#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX  
+//			if( NULL != pFrame )
+//			{
+//				m_pUnitMatrix[i] = &pFrame->combineMatrix;
+//			}
+//		}
+//	}
+//}//CX2Eqip::InitAttatchAnim()
+////}}AFX
+//#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
 
-//{{AFX
-void CX2Eqip::InitAttatchAnim()
-{
-	m_pNormalTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexName );
-	m_pNormalAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETName );
 
-	WCHAR wszMultiTexName[256] = L"";
-	StringCchPrintfW( wszMultiTexName, ARRAY_SIZE(wszMultiTexName), L"MULTI_TEX_%s_%dl", m_ModelName[0].c_str(), m_ItemUID );
-
-	m_pNormalMultiTexXET = g_pKTDXApp->GetDeviceManager()->OpenXET( wszMultiTexName, true );
-	if( m_EnchantLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_1 )
-	{		
-		if( m_EnchantLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_2 )
-			m_pNormalMultiTexXET->SetMultiTexStage2_LUA( "*.*", "Gate_Protect.tga", D3DTOP_ADD );
-		else
-			m_pNormalMultiTexXET->SetMultiTexStage2_LUA( "*.*", "Gate_Protect_G01.tga", D3DTOP_ADD );	
-	}
-
-
-	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
-	{
-		g_pMain->GetMemoryHolder()->LoadEquip( m_ModelName[i].c_str() );		// fix!! 이 부분 필요한가?
-
-		m_pNormalXSkinModel[i]	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelName[i] );
-
-		if( NULL == m_pNormalXSkinModel[i] )
-		{
-			ASSERT( i != 0 );
-			continue;
-		}
-
-		m_pNormalXSkinAnim[i] = CKTDGXSkinAnim::CreateSkinAnim();
-		m_pNormalXSkinAnim[i]->SetAnimXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET );
-		m_pNormalXSkinAnim[i]->AddModelXSkinMesh( m_pNormalXSkinModel[i], m_pNormalAniXET, m_pNormalMultiTexXET, m_pNormalTexChangeXET );
-		m_pNormalXSkinAnim[i]->ChangeAnim( m_AniName.c_str(), false );
-		m_pNormalXSkinAnim[i]->Play( CKTDGXSkinAnim::XAP_LOOP );
-		m_pNormalXSkinAnim[i]->UseDXMatrix( true );
-	}
-
-
-
-	if( m_bCanHyperMode == true )
-	{
-
-		m_pHyperTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexNameHyper );
-		m_pHyperAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETNameHyper );
-
-		WCHAR wszMultiTexName[256] = L"";
-		StringCchPrintfW( wszMultiTexName, ARRAY_SIZE(wszMultiTexName), L"MULTI_TEX_HYPER_%s_%dl", m_ModelName[0].c_str(), m_ItemUID );
-
-		m_pHyperMultiTexXET = g_pKTDXApp->GetDeviceManager()->OpenXET( wszMultiTexName, true );
-		if( m_EnchantLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_1 )
-		{			
-			if( m_EnchantLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_2 )
-				m_pHyperMultiTexXET->SetMultiTexStage2_LUA( "*.*", "Gate_Protect.tga", D3DTOP_ADD );
-			else
-				m_pHyperMultiTexXET->SetMultiTexStage2_LUA( "*.*", "Gate_Protect_G01.tga", D3DTOP_ADD );			
-		}
-
-
-
-		for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
-		{
-			g_pMain->GetMemoryHolder()->LoadEquip( m_ModelNameHyper[i].c_str() );
-
-			m_pHyperXSkinModel[i]		= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_ModelNameHyper[i] );
-
-			if( NULL == m_pHyperXSkinModel[i] )
-			{
-				ASSERT( i != 0 );
-				continue;
-			}
-
-			m_pHyperXSkinAnim[i] = CKTDGXSkinAnim::CreateSkinAnim();
-			m_pHyperXSkinAnim[i]->SetAnimXSkinMesh( m_pHyperXSkinModel[i], m_pHyperAniXET );
-			m_pHyperXSkinAnim[i]->AddModelXSkinMesh( m_pHyperXSkinModel[i], m_pHyperAniXET, m_pHyperMultiTexXET, m_pHyperTexChangeXET );
-			m_pHyperXSkinAnim[i]->ChangeAnim( m_AniNameHyper.c_str(), false );
-			m_pHyperXSkinAnim[i]->Play( CKTDGXSkinAnim::XAP_LOOP );
-			m_pHyperXSkinAnim[i]->UseDXMatrix( true );
-		}
-	}
-
-
-
-	CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = NULL;
-	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM ; i++ )
-	{
-        if( m_pItemTemplet->GetAttachFrameName(i)[0] != NULL )
-		{
-			pFrame = m_pUnitXSkinAnim->GetCloneFrame( 
-                m_pItemTemplet->GetAttachFrameName(i)
-                );
-			if( NULL != pFrame )
-			{
-				m_pUnitMatrix[i] = &pFrame->combineMatrix;
-			}
-		}
-	}
-}//CX2Eqip::InitAttatchAnim()
-//}}AFX
-#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
-
-
-#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
+//#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
 void CX2Eqip::InitAttatchNormal()
 {
 	KTDXPROFILE();
@@ -2434,30 +2516,25 @@ void CX2Eqip::InitAttatchNormal()
 	    if( m_pNormalAniXET != NULL )
 		    m_pNormalAniData	= m_pHyperAniXET->GetAniData( m_AniName.c_str() );
 
-
-
-// 	    for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
-// 	    {
-//             if( m_ModelName[i].empty() )
-//             {
-//                 m_pNormalXMesh[i] = NULL;
-//             }
-//             else
-//             {
-// #ifdef FIX_EVE_WEAPON_ATTACH_ITEM
-// 		        HRESULT hr = g_pKTDXApp->GetDeviceManager()->ThreadReq_OpenDevice( 
-//                     this, m_ModelName[i], CKTDXDeviceManager::THREAD_REQUEST_EQUIP_NORMAL, i );
-// #else
-// 				HRESULT hr = g_pKTDXApp->GetDeviceManager()->ThreadReq_OpenDevice( 
-// 					this, m_ModelName[i], CKTDXDeviceManager::THREAD_REQUEST_EQUIP_NORMAL );
-// #endif
-//                 ASSERT( SUCCEEDED(hr) );
-//             }//if.. else..
-// 	    }//for
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		/// 아이템 장착 위치
+		CX2Unit::EQIP_POSITION	eEquipPosition	 = m_pItemTemplet->GetEqipPosition();
+#endif //SERV_9TH_NEW_CHARACTER
 
 		for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
 		{
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			int iTargetIndex	= i;		/// 설정할 대상의 인덱스
+
+			/// 애드의 무기일 때만, 0번 인덱스의 무기를 다른 인덱스에 모두 설정해줌
+			if( CX2Unit::UT_ADD == m_pItemTemplet->GetUnitType() && 
+				( CX2Unit::EP_WEAPON_HAND ==  eEquipPosition || CX2Unit::EP_AC_WEAPON == eEquipPosition )  )
+				iTargetIndex = 0;
+
+			m_pNormalXMesh[i]			= g_pKTDXApp->GetDeviceManager()->OpenXMesh( m_ModelName[iTargetIndex].c_str() );
+	#else // SERV_9TH_NEW_CHARACTER
 			m_pNormalXMesh[i]			= g_pKTDXApp->GetDeviceManager()->OpenXMesh( m_ModelName[i].c_str() );
+	#endif // SERV_9TH_NEW_CHARACTER
 		}//for
 
 
@@ -2478,14 +2555,35 @@ void CX2Eqip::InitAttatchNormal()
 			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = NULL;
 			for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM ; i++ )
 			{
-                if( m_pItemTemplet->GetAttachFrameName(i)[0] != NULL )
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+
+				/// 애드의 무기 및 무기 악세 일 때만, 지정된 본에 무기를 붙여주자.
+				if( CX2Unit::UT_ADD == m_pItemTemplet->GetUnitType() &&  
+					( CX2Unit::EP_WEAPON_HAND == eEquipPosition || CX2Unit::EP_AC_WEAPON == eEquipPosition ) )
 				{
-					pFrame = m_pUnitXSkinAnim->GetCloneFrame( 
-                        m_pItemTemplet->GetAttachFrameName(i)
-                        );
+					WCHAR buf[256] = {0,};
+
+					StringCchPrintf( buf, 255, L"Weapon0%d", i + 1 );	/// Weapon01 ~ Weapon06
+
+					pFrame = ( m_pUnitXSkinAnim != NULL ) ? m_pUnitXSkinAnim->GetCloneFrame( buf ) : NULL;
+
 					if( NULL != pFrame )
-					{
 						m_pUnitMatrix[i] = &pFrame->combineMatrix;
+				}
+				else
+	#endif // SERV_9TH_NEW_CHARACTER
+				{
+					if( m_pItemTemplet->GetAttachFrameName(i)[0] != NULL )
+					{
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX  
+						pFrame = ( m_pUnitXSkinAnim != NULL ) ? m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->GetAttachFrameName(i) ) : NULL;
+#else   X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX  
+						pFrame = m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->GetAttachFrameName(i) );
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX  
+						if( NULL != pFrame )
+						{
+							m_pUnitMatrix[i] = &pFrame->combineMatrix;
+						}//if
 					}//if
 				}//if
 			}//for
@@ -2529,7 +2627,11 @@ void CX2Eqip::InitAttatchNormal()
 	        {
 		        if( false == m_pItemTemplet->m_AttachFrameName[i].empty() )
 		        {
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX 
+                    pFrame = ( m_pUnitXSkinAnim != NULL ) ? m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->m_AttachFrameName[i].c_str() ) : NULL;
+#else   X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX 
 			        pFrame = m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->m_AttachFrameName[i].c_str() );
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX 
 			        if( NULL != pFrame )
 			        {
 				        m_pUnitMatrix[i] = &pFrame->combineMatrix;
@@ -2541,56 +2643,58 @@ void CX2Eqip::InitAttatchNormal()
 	*/
 }//CX2Eqip::InitAttatchNormal()
 
-#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
-
-//{{AFX
-void CX2Eqip::InitAttatchNormal()
-{
-	m_pNormalTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexName );
-	m_pNormalAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETName );
-	if( m_pNormalAniXET != NULL )
-		m_pNormalAniData	= m_pHyperAniXET->GetAniData( m_AniName.c_str() );
-
-
-	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
-	{
-		m_pNormalXMesh[i]			= g_pKTDXApp->GetDeviceManager()->OpenXMesh( m_ModelName[i] );
-	}//for
-
-
-	if( m_bCanHyperMode == true )
-	{
-		m_pHyperTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexNameHyper );
-		m_pHyperAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETNameHyper );
-		if( m_pHyperAniXET != NULL )
-			m_pHyperAniData		= m_pHyperAniXET->GetAniData( m_AniNameHyper.c_str() );
-
-
-		for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
-		{
-			m_pHyperXMesh[i]			= g_pKTDXApp->GetDeviceManager()->OpenXMesh( m_ModelNameHyper[i] );
-		}//for
-	}//if
-	
-
-	CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = NULL;
-	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM ; i++ )
-	{
-        if( m_pItemTemplet->GetAttachFrameName(i)[0] != NULL )
-		{
-			pFrame = m_pUnitXSkinAnim->GetCloneFrame( 
-                m_pItemTemplet->GetAttachFrameName(i)
-                );
-			if( NULL != pFrame )
-			{
-				m_pUnitMatrix[i] = &pFrame->combineMatrix;
-			}//if
-		}//if
-	}//for
-
-}//CX2Eqip::InitAttatchNormal()
-//}}AFX
-#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
+//#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
+//
+////{{AFX
+//void CX2Eqip::InitAttatchNormal()
+//{
+//	m_pNormalTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexName );
+//	m_pNormalAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETName );
+//	if( m_pNormalAniXET != NULL )
+//		m_pNormalAniData	= m_pHyperAniXET->GetAniData( m_AniName.c_str() );
+//
+//
+//	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
+//	{
+//		m_pNormalXMesh[i]			= g_pKTDXApp->GetDeviceManager()->OpenXMesh( m_ModelName[i] );
+//	}//for
+//
+//
+//	if( m_bCanHyperMode == true )
+//	{
+//		m_pHyperTexChangeXET	= g_pKTDXApp->GetDeviceManager()->OpenXET( m_ChangeTexNameHyper );
+//		m_pHyperAniXET			= g_pKTDXApp->GetDeviceManager()->OpenXET( m_AniXETNameHyper );
+//		if( m_pHyperAniXET != NULL )
+//			m_pHyperAniData		= m_pHyperAniXET->GetAniData( m_AniNameHyper.c_str() );
+//
+//
+//		for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM; i++ )
+//		{
+//			m_pHyperXMesh[i]			= g_pKTDXApp->GetDeviceManager()->OpenXMesh( m_ModelNameHyper[i] );
+//		}//for
+//	}//if
+//	
+//
+//	CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = NULL;
+//	for( int i=0; i< CX2Item::MAX_MODEL_COUNT_A_ITEM ; i++ )
+//	{
+//        if( m_pItemTemplet->GetAttachFrameName(i)[0] != NULL )
+//		{
+//#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX 
+//            pFrame = ( m_pUnitXSkinAnim != NULL ) ? m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->GetAttachFrameName(i) ) : NULL;
+//#else   X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX 
+//			pFrame = m_pUnitXSkinAnim->GetCloneFrame( m_pItemTemplet->GetAttachFrameName(i) );
+//#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX 
+//			if( NULL != pFrame )
+//			{
+//				m_pUnitMatrix[i] = &pFrame->combineMatrix;
+//			}//if
+//		}//if
+//	}//for
+//
+//}//CX2Eqip::InitAttatchNormal()
+////}}AFX
+//#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
 
 
 // 캐시 무기 장착했을 때 ED 무기 강화 이펙트 보이게 만들게 하기 위한 함수
@@ -3017,9 +3121,17 @@ void CX2Eqip::LoadAttached()
 						case 88678: /// 살바토르 벤투스 실론 윙 ( 엘리시스 )
 							{
 								pSubEquip->SetAlphaObject( true );
+								pRenderParam->renderType		= CKTDGXRenderer::RT_REAL_COLOR;
+								pRenderParam->bAlphaBlend		= true;
+								pRenderParam->bAlphaTestEnable	= true;
+								pRenderParam->cullMode			= D3DCULL_NONE;
+							} break;
+						case 82035:
+						case 82051:
+							{
+								pSubEquip->SetAlphaObject( true );
 								pRenderParam->renderType	= CKTDGXRenderer::RT_REAL_COLOR;
 								pRenderParam->bAlphaBlend	= true;
-								pRenderParam->cullMode		= D3DCULL_NONE;
 							} break;
 						}
 					}
@@ -3060,6 +3172,7 @@ void CX2Eqip::LoadAttached()
 					pSubEquip->GetNormalRenderParam().bAlphaBlend = true;
 					pSubEquip->GetNormalRenderParam().srcBlend	= D3DBLEND_SRCALPHA;
 					pSubEquip->GetNormalRenderParam().destBlend = D3DBLEND_INVSRCALPHA;
+					pSubEquip->GetNormalRenderParam().bAlphaTestEnable = true;
 				} break;
 
 			case 130896: // SF 무기, 이브
@@ -3128,12 +3241,17 @@ void CX2Eqip::LoadAttached()
 				{
 					CKTDGXRenderer::RenderParam* pRenderParam = pSubEquip->GetRenderParam();
 					pSubEquip->SetAlphaObject( true );
-					pRenderParam->renderType = CKTDGXRenderer::RT_REAL_COLOR;
-					pRenderParam->bAlphaBlend = true;
-					pRenderParam->srcBlend	= D3DBLEND_SRCALPHA;
-					pRenderParam->destBlend = D3DBLEND_DESTALPHA;
-					pRenderParam->bZWriteEnable = false;
-					pRenderParam->cullMode = D3DCULL_NONE;
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                    if ( pRenderParam != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                    {
+					    pRenderParam->renderType = CKTDGXRenderer::RT_REAL_COLOR;
+					    pRenderParam->bAlphaBlend = true;
+					    pRenderParam->srcBlend	= D3DBLEND_SRCALPHA;
+					    pRenderParam->destBlend = D3DBLEND_DESTALPHA;
+					    pRenderParam->bZWriteEnable = false;
+					    pRenderParam->cullMode = D3DCULL_NONE;
+                    }
 				} break;
 			case 41150: // 배틀 세라프 프로모션 무기
 			case 81836: /// 살바토르 이벨른 문 스테프
@@ -3158,7 +3276,8 @@ void CX2Eqip::LoadAttached()
 					pSubEquip->GetNormalRenderParam().srcBlend	= D3DBLEND_SRCALPHA;
 					pSubEquip->GetNormalRenderParam().destBlend = D3DBLEND_DESTALPHA;
 					pSubEquip->GetNormalRenderParam().cullMode = D3DCULL_NONE;
-					pSubEquip->GetNormalRenderParam().bZWriteEnable = false;
+					pSubEquip->GetNormalRenderParam().bZWriteEnable = true;
+					pSubEquip->GetNormalRenderParam().bAlphaTestEnable = true;
 				} break;
 //#endif SERV_EVE_BATTLE_SERAPH
 
@@ -3168,14 +3287,27 @@ void CX2Eqip::LoadAttached()
 			case 183210: /// 핑크 드레스 ( 이브 )
 			case 183212: /// 핑크 드레스 ( 아라 )
 			case 183213: /// 핑크 드레스 ( 엘리시스 )
+#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
+			case 67006491: /// 핑크 드레스 ( 아이샤 )
+			case 67006492: /// 핑크 드레스 ( 레나 )
+			case 67006494: /// 핑크 드레스 ( 이브 )
+			case 67006496: /// 핑크 드레스 ( 아라 )
+			case 67006497: /// 핑크 드레스 ( 엘리시스 )
+#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
 				{	
 					pSubEquip->SetAlphaObject( true );
 					if( true == pSubEquip->GetIsSkinMesh() )
 					{
-						pSubEquip->GetRenderParam()->bAlphaBlend	= true;
-						pSubEquip->GetRenderParam()->renderType		= CKTDGXRenderer::RT_REAL_COLOR;
-						pSubEquip->GetRenderParam()->cullMode		= D3DCULL_NONE;
-						pSubEquip->GetRenderParam()->bZWriteEnable	= false;
+                        CKTDGXRenderer::RenderParam* pRenderParam = pSubEquip->GetRenderParam();
+#ifdef  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                        if ( pRenderParam != NULL )
+#endif  X2OPTIMIZE_X2EQIP_CRASH_BUG_FIX
+                        {
+						    pRenderParam->bAlphaBlend	= true;
+						    pRenderParam->renderType		= CKTDGXRenderer::RT_REAL_COLOR;
+						    pRenderParam->cullMode		= D3DCULL_NONE;
+						    pRenderParam->bZWriteEnable	= false;
+                        }
 					}
 					else
 					{
@@ -3289,14 +3421,24 @@ void CX2Eqip::LoadAttached()
 		if( true == bIsMajorParticle )
 		{
 			pAttachedParticle->m_hSeq = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  seqName.c_str(), D3DXVECTOR3( 0, 0, 0 ) );
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+            CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( pAttachedParticle->m_hSeq );
+            if ( pSeq != NULL )
+                pSeq->SetRenderCullCheck( false );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 		}
 		else
 		{
 			pAttachedParticle->m_hSeq = g_pData->GetUIMinorParticle()->CreateSequenceHandle( NULL,  seqName.c_str(), D3DXVECTOR3( 0, 0, 0 ) );
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+            CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMinorParticle()->GetInstanceSequence( pAttachedParticle->m_hSeq );
+            if ( pSeq != NULL )
+                pSeq->SetRenderCullCheck( false );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 		}
 
 
-		if( INVALID_PARTICLE_HANDLE == pAttachedParticle->m_hSeq )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == pAttachedParticle->m_hSeq )
 		{
 			SAFE_DELETE( pAttachedParticle );
 			return;
@@ -3345,7 +3487,7 @@ void CX2Eqip::LoadAttached()
 		m_wstrBoneName			= L"";
 		m_bIsMajorParticle		= true;
 		m_vOffsetPos			= D3DXVECTOR3(0, 0, 0);
-		m_hSeq					= INVALID_PARTICLE_HANDLE;
+		m_hSeq					= INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 
 

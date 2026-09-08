@@ -15,10 +15,8 @@ m_pDLGNPCToolTip( NULL ),
 m_pDLGPartyToolTip(NULL),
 m_pDLGMiscToolTip( NULL ),
 m_iCurrFieldMapID( 0 )
-#ifdef REFORM_UI_WORLDMAP
 , m_bZoomed( false )
 , m_bBeforeField( false )
-#endif
 {
 }
 
@@ -54,12 +52,8 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 			int iFieldID = pButton->GetDummyInt(0);
 
 			OpenFieldMap( true, iFieldID );
-#ifdef REFORM_UI_WORLDMAP
 			m_bZoomed = true;
 			UpdateFieldMap();		
-#else
-			UpdateFieldMap();
-#endif
 			return true;
 		} break;
 
@@ -69,13 +63,10 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 			OpenFieldMap( false );
 			CloseAllToolTip();
 
-#ifdef REFORM_UI_WORLDMAP
 			m_bZoomed = true;
-#endif
 			return true;
 		} break;
 			
-#ifdef REFORM_UI_WORLDMAP
 	case WMUCM_FIELD_RIGHT_CLICK:
 		{
 			int iFieldID = -1;
@@ -124,7 +115,6 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 
 			return true;
 		} break;
-#endif
 
 	case WMUCM_CLOSE_FIELD_MAP:
 		{
@@ -143,10 +133,8 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 			OpenFieldMap( false, iFieldID );
 			OpenWorldMap( false );
 			CloseAllToolTip();
-#ifdef REFORM_UI_WORLDMAP
 			m_bZoomed = false;
 			UpdateFieldMap();
-#endif
 			return true;
 		} break;
 
@@ -155,11 +143,7 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 			CKTDGUIButton* pButton = (CKTDGUIButton*) lParam;
 			int iNPCID = pButton->GetDummyInt(0);
 
-#ifdef REFORM_UI_WORLDMAP
 			OpenNPCToolTip( true, iNPCID, pButton->GetPos() + pButton->GetDialog()->GetPos() );
-#else
-			OpenNPCToolTip( true, iNPCID, pButton->GetPos() );
-#endif
 			return true;
 		} break;
 
@@ -203,7 +187,6 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 			CKTDGUINavigation* pNavi	= (CKTDGUINavigation*)lParam;
 			D3DXVECTOR2 vRelativePos = pNavi->GetRelativeWindowPos();
 
-#ifdef REFORM_UI_WORLDMAP
 			D3DXVECTOR2 vPos;
 
 			if ( true == m_bZoomed )
@@ -234,19 +217,6 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 
 				m_pDLGWorldMap->SetPos( vPos );
 			}
-#else
-			if( m_pDLGWorldMap != NULL )
-			{
-				D3DXVECTOR2 vPos = m_pDLGWorldMap->GetSize();
-				vPos.x *= vRelativePos.x;
-				vPos.y *= vRelativePos.y;
-
-				vPos.x = 0.f - vPos.x;
-				vPos.y = 0.f - vPos.y;
-
-				m_pDLGWorldMap->SetPos( vPos );
-			}
-#endif
 
 			return true;
 
@@ -256,7 +226,6 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 			CKTDGUINavigation* pNavi	= (CKTDGUINavigation*)lParam;
 			D3DXVECTOR2 vRelativePos = pNavi->GetRelativeWindowPos();
 
-#ifdef REFORM_UI_WORLDMAP
 			D3DXVECTOR2 vPos;
 
 			if ( true == m_bZoomed )
@@ -287,24 +256,10 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 
 				m_pDLGWorldMap->SetPos( vPos );
 			}
-#else
-			if( m_pDLGWorldMap != NULL )
-			{
-				D3DXVECTOR2 vPos = m_pDLGWorldMap->GetSize();
-				vPos.x *= vRelativePos.x;
-				vPos.y *= vRelativePos.y;
-
-				vPos.x = 0.f - vPos.x;
-				vPos.y = 0.f - vPos.y;
-
-				m_pDLGWorldMap->SetPos( vPos );
-			}
-#endif
 
 			return true;
 
 		} break;
-#ifdef REFORM_UI_WORLDMAP
 	case WMUCM_NAVI_FIELD_MAP_STOP_DRAGGING:
 		{
 			if( m_pDLGWorldMapFront != NULL && m_pDLGWorldMap != NULL )
@@ -324,7 +279,6 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 			return true;
 
 		} break;
-#endif
 	case WMUCM_NAVI_WORLD_MAP_STOP_DRAGGING:
 		{
 			if( m_pDLGWorldMapFront != NULL && m_pDLGWorldMap != NULL )
@@ -333,14 +287,8 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 				CKTDGUINavigation* pNavi = (CKTDGUINavigation*) m_pDLGWorldMapFront->GetControl( L"WorldMap_Navi" );
 				if( NULL != pNavi )
 				{
-#ifdef REFORM_UI_WORLDMAP
 					D3DXVECTOR2 vPos( 0, 0 );
 					UpdateNaviMap( vPos, pNavi );
-#else
-					D3DXVECTOR2 vPos = m_pDLGWorldMap->GetPos();
-					vPos.x /= -m_pDLGWorldMap->GetSize().x;
-					vPos.y /= -m_pDLGWorldMap->GetSize().y;
-#endif
 
 					pNavi->SetRelativeWindowPos( vPos );
 				}
@@ -360,26 +308,17 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 
 		{
 			CKTDGUIButton* pButton = (CKTDGUIButton*) lParam;
-#ifdef REFORM_UI_WORLDMAP
 			OpenMiscToolTip( true, pButton->GetPos() + pButton->GetDialog()->GetPos(), (WORLD_MAP_UI_CUSTOM_MSG)wParam );
-#else
-			OpenMiscToolTip( true, pButton->GetPos(), (WORLD_MAP_UI_CUSTOM_MSG)wParam );
-#endif
 			return true;
 		} break;
 	case WMUCM_OTHER_FIELD_MOUSE_OVER:
 		{
 			CKTDGUIButton* pButton = (CKTDGUIButton*) lParam;
 			int iFieldID = pButton->GetDummyInt(0);
-#ifdef REFORM_UI_WORLDMAP
 			OpenMiscToolTip( true, pButton->GetPos() + pButton->GetDialog()->GetPos(), (WORLD_MAP_UI_CUSTOM_MSG)wParam, iFieldID );
-#else
-			OpenMiscToolTip( true, pButton->GetPos(), (WORLD_MAP_UI_CUSTOM_MSG)wParam, iFieldID );
-#endif
 			return true;
 		} break;
 
-#ifdef REFORM_UI_WORLDMAP
 	case WMUCM_VILLAGE_MOUSE_OVER:
 		{
 			CKTDGUIButton* pButton = (CKTDGUIButton*) lParam;
@@ -391,7 +330,6 @@ CX2WorldMapUI::~CX2WorldMapUI(void)
 			return true;
 		} break;
 	case WMUCM_VILLAGE_MOUSE_OUT:
-#endif
 	case WMUCM_POSTBOX_MOUSE_OUT:
 	case WMUCM_MARKET_MOUSE_OUT:
 	case WMUCM_OTHER_FIELD_MOUSE_OUT:
@@ -442,21 +380,13 @@ void CX2WorldMapUI::OpenWorldMap( bool bOpen )
 
 		if( m_pDLGWorldMap == NULL )
 		{
-#ifdef REFORM_UI_WORLDMAP
 			m_pDLGWorldMap = new CKTDGUIDialog( m_pStage, L"DLG_UI_World_Map_New.lua" );
-#else
-			m_pDLGWorldMap = new CKTDGUIDialog( m_pStage, L"DLG_UI_World_Map.lua" );
-#endif
 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGWorldMap );
 		}
 
 		if( m_pDLGWorldMapFront == NULL )
 		{
-#ifdef REFORM_UI_WORLDMAP
 			m_pDLGWorldMapFront = new CKTDGUIDialog( m_pStage, L"DLG_UI_World_Map_Front_NEW.lua" );
-#else
-			m_pDLGWorldMapFront = new CKTDGUIDialog( m_pStage, L"DLG_UI_World_Map_Front.lua" );
-#endif
 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGWorldMapFront );
 		}
 
@@ -556,8 +486,16 @@ void CX2WorldMapUI::UpdateWorldMap()
 				continue;
 			}
 
+
 #ifdef NO_SANDER_VILLIAGE
-			if( CX2LocationManager::LMI_SANDER == eLocalMapID )
+			if( CX2LocationManager::LMI_SANDER == eLocalMapID 
+#ifdef SERV_NO_VELDER_VILLIAGE
+				|| CX2LocationManager::LMI_VELDER == eLocalMapID 
+#endif //SERV_NO_VELDER_VILLIAGE
+#ifdef SERV_NO_HAMEL_VILLIAGE
+				|| CX2LocationManager::LMI_HAMEL == eLocalMapID 
+#endif //SERV_NO_HAMEL_VILLIAGE
+				)
 			{
 				pControl->SetShow(false);
 
@@ -580,22 +518,11 @@ void CX2WorldMapUI::UpdateWorldMap()
 					}
 
 					pStaticControl->SetShow(false);
-
 				}
 				continue;
 			}
 #endif // NO_SANDER_VILLIAGE
 
-#ifndef REFORM_UI_WORLDMAP
-			// 던전라운지면 던전게이트로 살짝 바꿔준다
-			if(g_pData->GetLocationManager()->IsDungeonLounge(eCurrentVillageID))
-			{
-				CX2LocationManager::LOCAL_MAP_ID eLocalMapID = g_pData->GetLocationManager()->GetLocalMapID( eCurrentVillageID );
-				eCurrentVillageID = g_pData->GetLocationManager()->GetDungeonGateID( eLocalMapID );
-			}
-#endif
-
-#ifdef REFORM_UI_WORLDMAP
 			float PosOffset = 0.0f;
 			SEnum::VILLAGE_MAP_ID eCurrentMapID = SEnum::VMI_INVALID;
 
@@ -614,25 +541,6 @@ void CX2WorldMapUI::UpdateWorldMap()
 				pButton_MyChar->SetShow(true);
 				PosOffset += (pButton_MyChar->GetWidth() + 1.0f);
 			}
-#else
-			float PosOffset = 0.0f;
-			SEnum::VILLAGE_MAP_ID eCurrentVillageID = g_pData->GetLocationManager()->GetCurrentVillageID();
-
-			if(pControl->GetDummyInt(0) == eCurrentVillageID )
-			{
-				// 버튼에 해당하는 마을맵에 내가 있으면
-				// 해당 버튼에 붙어있는 DummyPos를 가져와서 거기에 캐릭터 마크를 그린다
-				D3DXVECTOR3 DummyPos = pControl->GetDummyPos(0);
-				D3DXVECTOR2 CharMarkPos;
-				CharMarkPos.x = DummyPos.x;
-				CharMarkPos.y = DummyPos.y;
-				//D3DXVECTOR2 CharMarkPos = pControl->GetNowPoint().leftTopPoint;
-				//CharMarkPos.y -= ( pButton_MyChar->GetHeight() + 1.0f);
-				pButton_MyChar->SetOffsetPos( CharMarkPos );
-				pButton_MyChar->SetShow(true);
-				PosOffset += (pButton_MyChar->GetWidth() + 1.0f);
-			}
-#endif
 
 			// 파티가 있으면
 			if( g_pData->GetPartyManager()->DoIHaveParty() )
@@ -764,14 +672,8 @@ void CX2WorldMapUI::UpdateWorldMap()
 		CKTDGUINavigation* pNavi = (CKTDGUINavigation*) m_pDLGWorldMapFront->GetControl( L"WorldMap_Navi" );
 		if( NULL != pNavi )
 		{
-#ifdef REFORM_UI_WORLDMAP
 			D3DXVECTOR2 vPos( 0, 0 );
 			UpdateNaviMap( vPos, pNavi );
-#else
-			D3DXVECTOR2 vPos = m_pDLGWorldMap->GetPos();
-			vPos.x /= -m_pDLGWorldMap->GetSize().x;
-			vPos.y /= -m_pDLGWorldMap->GetSize().y;
-#endif
 
 			pNavi->SetRelativeWindowPos( vPos );
 		}
@@ -940,6 +842,17 @@ CKTDGUIDialogType CX2WorldMapUI::GetFieldMapDlg( int iFieldID )
 		} break;
 #endif //VILLAGE_SANDER
 
+#ifdef SANDER_DUNGEON_5_6
+	case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_03:
+		{
+			pDialog = new CKTDGUIDialog( m_pStage, L"DLG_UI_FIELD_MAP_Sander_03_NEW.lua" );
+		} break;
+	case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_04:
+		{
+			pDialog = new CKTDGUIDialog( m_pStage, L"DLG_UI_FIELD_MAP_Sander_04_NEW.lua" );
+		} break;
+#endif //SANDER_DUNGEON_5_6
+
 	default:
 		ASSERT( !L"iFieldID is Invalid" );
 		pDialog = NULL;
@@ -954,9 +867,7 @@ CKTDGUIDialogType CX2WorldMapUI::GetFieldMapDlg( int iFieldID )
 
 	ASSERT( pDialog != NULL );
 
-#ifdef REFORM_UI_WORLDMAP
 	m_bZoomed = true;
-#endif
 
 	return pDialog;
 }
@@ -1020,13 +931,11 @@ void CX2WorldMapUI::OpenFieldMap( bool bOpen, int iFieldID /*= -1*/ )
 	{
 		m_pWorldFieldMap->DestoryQuestNoticeEffect();
 
-#ifdef REFORM_UI_WORLDMAP
 		if( m_pDLGFieldMap != NULL )
 		{
 			m_pWorldFieldMap->SetFieldDLG( m_pDLGFieldMap );
 			m_pWorldFieldMap->InitCharacterMaker();
 		}
-#endif
 	}
 }
 
@@ -1179,7 +1088,6 @@ void CX2WorldMapUI::UpdateFieldMap()
 			//}}
 		}
 
-#ifdef REFORM_UI_WORLDMAP
 		if( m_pDLGWorldMapFront != NULL && m_pDLGWorldMap != NULL )
 		{
 
@@ -1192,7 +1100,6 @@ void CX2WorldMapUI::UpdateFieldMap()
 				pNavi->SetRelativeWindowPos( vPos );
 			}
 		}
-#endif
 	}
 }
 
@@ -1335,13 +1242,6 @@ void CX2WorldMapUI::SetNpcToolTipImage( int iNPCID_)
 		pStatic_Image->GetPicture(0)->SetTex( L"DLG_UI_Npc_Face01.tga", L"CRAYONPOP" );
 		break;
 #endif
-
-#ifdef EVENT_NPC_IN_VILLAGE
-//		case CX2UnitManager::NUI_EVENT_BENDERS:
-//			pStatic_Image->GetPicture(0)->SetTex( L"DLG_UI_Npc_Face01.tga", L"Andre_Benders" );
-//			break;
-#endif //EVENT_NPC_IN_VILLAGE
-
 #ifdef APINK_ARCHANGEL_NPC
 	case CX2UnitManager::NUI_EVENT_APINK_ARCHANGEL: // 에이핑크 대천사 NPC
 		pStatic_Image->GetPicture(0)->SetTex( L"DLG_UI_Npc_Face01.tga", L"NAUN" );
@@ -1374,6 +1274,10 @@ void CX2WorldMapUI::SetNpcToolTipImage( int iNPCID_)
 
 	case CX2UnitManager::NUI_DAPPAR: // 무기상 다파르
 		pStatic_Image->GetPicture(0)->SetTex( L"DLG_UI_Npc_Face01.tga", L"DAPPAR" );
+		break;
+
+	case CX2UnitManager::NUI_EVENT_MOON_RABBIT: // 추석이벤트 달토끼
+		pStatic_Image->GetPicture(0)->SetTex( L"DLG_UI_Npc_Face01.tga", L"MoonRabbit" );
 		break;
 #endif VILLAGE_SANDER
 	default:
@@ -1572,12 +1476,7 @@ void CX2WorldMapUI::OpenPartyMemberToolTip( bool bOpen, int PartyMemberIndex /* 
 		if(PartyMemberIndex == -1)
 		{
 			// 내정보
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-			ASSERT( pUnitData != NULL );
-			if( NULL == pUnitData )
-			{
-				return;
-			}
+			const CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 			iLevel = pUnitData->m_Level;
 			NickName = pUnitData->m_NickName;
@@ -1743,7 +1642,6 @@ void CX2WorldMapUI::OpenMiscToolTip(bool bOpen, D3DXVECTOR2 vPos, WORLD_MAP_UI_C
 #endif SERV_SECRET_HELL
 		//}} kimhc // 2010.5.4 // 비밀던전 작업(일일퀘스트)
 
-#ifdef REFORM_UI_WORLDMAP
 	case WMUCM_VILLAGE_MOUSE_OVER:
 		{
 			CX2LocationManager::VillageTemplet* pVillageTemplet = g_pData->GetLocationManager()->GetVillageMapTemplet( (SEnum::VILLAGE_MAP_ID) iFieldID );
@@ -1764,7 +1662,6 @@ void CX2WorldMapUI::OpenMiscToolTip(bool bOpen, D3DXVECTOR2 vPos, WORLD_MAP_UI_C
 			}
 
 		} break;
-#endif
 
 	default:
 		{
@@ -1811,7 +1708,11 @@ void CX2WorldMapUI::OpenMiscToolTip(bool bOpen, D3DXVECTOR2 vPos, WORLD_MAP_UI_C
 			}
 		}
 
+#ifdef CLIENT_COUNTRY_EU
+		const int MAGIC_DESC_ADD_SIZE_X = 65;
+#else //CLIENT_COUNTRY_EU
 		const int MAGIC_DESC_ADD_SIZE_X = 25;
+#endif //CLIENT_COUNTRY_EU
 		// Y값은 좀 더 늘어날 수도 있으니 ADD_SIZE_Y를 좀 넉넉하게 잡아 둔다 : 이름 등등이 늘어나는 경우는 고려하지 않았음
 		const int MAGIC_DESC_ADD_SIZE_Y = 40;
 		CKTDGFontManager::CUKFont* pDescFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( ukFontID );
@@ -1899,7 +1800,7 @@ wstring CX2WorldMapUI::GetNPCQuestDesc( CX2UnitManager::NPC_UNIT_ID eNPCID )
 			continue;
 #endif	SERV_DAY_QUEST
 		//}} kimhc // 2010.02.09 // 일정시간마다 퀘스트가 업데이트 되는 시스템 구현
-
+		
 #ifdef SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
 		if( CX2QuestManager::IsNewUserOnlyQuest( vecQuestID[i] ) == true &&
 			g_pInstanceData->IsRecruit() == false )
@@ -2004,18 +1905,18 @@ wstring CX2WorldMapUI::GetNPCQuestDesc( CX2UnitManager::NPC_UNIT_ID eNPCID )
 #ifdef REFORM_QUEST
 							if( true == pSubQuestTemplet->m_ClearCondition.m_setDungeonID.empty() )
 							{
-								std::set<CX2Dungeon::DUNGEON_ID>::iterator it = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
+								std::set<SEnum::DUNGEON_ID>::iterator it = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
 								if( NULL != g_pData->GetDungeonManager()->GetDungeonData( *it ) )
 								{
 									DungeonID = (int)(*it / 10) * 10;
 								}	
 								else
 								{
-									DungeonID = CX2Dungeon::DI_END;
+									DungeonID = SEnum::DI_END;
 								}
 							}
 #else
-							if( NULL != g_pData->GetDungeonManager()->GetDungeonData((CX2Dungeon::DUNGEON_ID)pSubQuestTemplet->m_ClearCondition.m_eDungeonID) )
+							if( NULL != g_pData->GetDungeonManager()->GetDungeonData((SEnum::DUNGEON_ID)pSubQuestTemplet->m_ClearCondition.m_eDungeonID) )
 							{
 								DungeonID = (int)(pSubQuestTemplet->m_ClearCondition.m_eDungeonID / 10) * 10;
 							}	
@@ -2023,7 +1924,7 @@ wstring CX2WorldMapUI::GetNPCQuestDesc( CX2UnitManager::NPC_UNIT_ID eNPCID )
 							else
 							{
 								// 아니면 일반으로 묶는다
-								DungeonID = CX2Dungeon::DI_END;
+								DungeonID = SEnum::DI_END;
 							}	
 						}
 						break;
@@ -2043,19 +1944,19 @@ wstring CX2WorldMapUI::GetNPCQuestDesc( CX2UnitManager::NPC_UNIT_ID eNPCID )
 					default:
 						{
 							// 없다
-							DungeonID = CX2Dungeon::DI_END;
+							DungeonID = SEnum::DI_END;
 						} break;
 					}
 				}
 				else
 				{
 					// 아예 해당 서브퀘스트가 없다
-					DungeonID = CX2Dungeon::DI_END;
+					DungeonID = SEnum::DI_END;
 				}			
 			}
 			else
 			{
-				DungeonID = CX2Dungeon::DI_NONE;
+				DungeonID = SEnum::DI_NONE;
 			}
 			mapQuest.insert(std::make_pair(DungeonID, pQuestTemplet));
 		}
@@ -2072,22 +1973,22 @@ wstring CX2WorldMapUI::GetNPCQuestDesc( CX2UnitManager::NPC_UNIT_ID eNPCID )
 		{
 			CurrentDID = it->first;
 
-			if(CurrentDID == CX2Dungeon::DI_END)
+			if(CurrentDID == SEnum::DI_END)
 			{
 				returnStr += L"+ ";
 				returnStr += GET_STRING( STR_ID_950 );
 				returnStr += L"\n";
 			}
-			else if(CurrentDID ==CX2Dungeon::DI_NONE)
+			else if(CurrentDID ==SEnum::DI_NONE)
 			{
 				returnStr += L"+ ";
 				returnStr += GET_STRING( STR_ID_890 );
 				returnStr += L"\n";
 			}
-			else if(NULL != g_pData->GetDungeonManager()->GetDungeonData((CX2Dungeon::DUNGEON_ID)CurrentDID) )
+			else if(NULL != g_pData->GetDungeonManager()->GetDungeonData((SEnum::DUNGEON_ID)CurrentDID) )
 			{
 				returnStr += L"+ ";
-				returnStr += g_pData->GetDungeonManager()->GetDungeonData((CX2Dungeon::DUNGEON_ID)CurrentDID)->m_DungeonName;				
+				returnStr += g_pData->GetDungeonManager()->GetDungeonData((SEnum::DUNGEON_ID)CurrentDID)->m_DungeonName;				
 				returnStr += L"\n";
 			}
 			else
@@ -2245,7 +2146,6 @@ wstring CX2WorldMapUI::GetNPCQuestDesc( CX2UnitManager::NPC_UNIT_ID eNPCID )
 
 }
 
-#ifdef REFORM_UI_WORLDMAP
 void CX2WorldMapUI::UpdateNaviMap( IN D3DXVECTOR2& vPos_, IN CKTDGUINavigation* pNavi_ )
 {
 	CKTDGUIStatic* pStaticWorld = NULL;
@@ -2411,6 +2311,14 @@ void CX2WorldMapUI::UpdateNaviMap( IN D3DXVECTOR2& vPos_, IN CKTDGUINavigation* 
 			case SEnum::VMI_BATTLE_FIELD_SANDER_REST_00:
 				pNavi_->SetBGTex( L"DLG_UI_Common_Texture_Rest.TGA", L"FieldMap_Navigation_Sander_R" );
 				break;
+#ifdef SANDER_DUNGEON_5_6
+			case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_03:
+				pNavi_->SetBGTex( L"DLG_UI_Common_Texture_Field_03.TGA", L"FieldMap_Navigation_Sander_03" );
+				break;
+			case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_04:
+				pNavi_->SetBGTex( L"DLG_UI_Common_Texture_Field_03.TGA", L"FieldMap_Navigation_Sander_04" );
+				break;
+#endif //SANDER_DUNGEON_5_6
 #pragma endregion 네비게이션
 
 			default:
@@ -2494,4 +2402,43 @@ bool CX2WorldMapUI::GetDragNaviMap()
 
 	return false;
 }
-#endif
+
+
+#ifdef VILLAGE_MAP_FAST_RELOADING
+void CX2WorldMapUI::ReLoadingVillageMap()
+{
+	map< int, CKTDGUIDialogType >::iterator it;
+	for( it = m_mapDLGFieldMap.begin(); it != m_mapDLGFieldMap.end(); it++ )
+	{
+		SAFE_DELETE_DIALOG( it->second );
+	}
+	m_mapDLGFieldMap.clear();
+
+	CKTDGUIDialogType pDLGFieldMap = NULL;
+	for( int iVillageID = SEnum::VMI_BATTLE_FIELD_ELDER_REST_00; iVillageID <= SEnum::VMI_BATTLE_FIELD_SANDER_REST_00; ++iVillageID )
+	{
+		if( iVillageID != SEnum::VMI_BATTLE_FIELD_PEITA_REST_00 )
+		{
+			pDLGFieldMap = GetFieldMapDlg( iVillageID );
+			if( NULL != pDLGFieldMap )
+				pDLGFieldMap->SetShowEnable(false,false);
+		}
+	}
+
+	for( int iVillageID = SEnum::VMI_RUBEN; iVillageID <= SEnum::VMI_SANDER; ++iVillageID )
+	{
+		pDLGFieldMap = GetFieldMapDlg( iVillageID );
+		if( NULL != pDLGFieldMap )
+			pDLGFieldMap->SetShowEnable(false,false);
+	}
+
+	for( int iVillageID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01; iVillageID <= SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_04; ++iVillageID )
+	{
+		pDLGFieldMap = GetFieldMapDlg( iVillageID );
+		if( NULL != pDLGFieldMap )
+			pDLGFieldMap->SetShowEnable(false,false);
+	}
+
+	m_bZoomed = false;
+}
+#endif //VILLAGE_MAP_FAST_RELOADING

@@ -112,11 +112,9 @@ protected:  // util function, Packet Handling
 #ifdef SERV_COUNTRY_TH
 	void				SetMasterID( IN const std::wstring& wstrMasterID ) { m_wstrMasterID = wstrMasterID; }
 	void				SetSocketID( IN const std::wstring& wstrSocketID ) { m_wstrSocketID = wstrSocketID; }
-
 	std::wstring		GetMasterID()	{ return m_wstrMasterID; }
 	std::wstring		GetSocketID()	{ return m_wstrSocketID; }
 #endif //SERV_COUNTRY_TH
-
 #endif // SERV_GLOBAL_AUTH
 
 #ifdef SERV_LOGIN_RESULT_INFO
@@ -129,6 +127,11 @@ protected:  // util function, Packet Handling
 
     template < class T > void SendToLogDB( unsigned short usEventID, const T& data );
     template < class T > void SendToAccountDB( unsigned short usEventID, const T& data );
+#ifdef SERV_GLOBAL_AUTH
+#ifdef SERV_COUNTRY_IN
+	template < class T > void SendToFunizenAuthDB( unsigned short usEventID, const T& data );
+#endif SERV_COUNTRY_IN
+#endif SERV_GLOBAL_AUTH
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 	template < class T > void SendToLoginServer( unsigned short usEventID, const T& data );
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
@@ -143,10 +146,6 @@ protected:  // util function, Packet Handling
 	DECL_ON_FUNC_NOPARAM( ECH_GET_CHANNEL_LIST_REQ );
 	DECL_ON_FUNC_NOPARAM( ECH_DISCONNECT_REQ );
 
-#ifdef SERVER_GROUP_UI_ADVANCED
-	DECL_ON_FUNC_NOPARAM( ECH_GET_SERVERGROUP_LIST_REQ );
-#endif SERVER_GROUP_UI_ADVANCED
-
 	//{{ 2009. 12. 16  최육사	동접툴
 	DECL_ON_FUNC( E_TOOL_GET_CCU_INFO_REQ );
 	DECL_ON_FUNC( DBE_GET_CONCURRENT_USER_INFO_ACK );
@@ -154,11 +153,6 @@ protected:  // util function, Packet Handling
 
 	DECL_ON_FUNC_NOPARAM( E_RESERVE_DESTROY );
 
-	//{{김준환 서버시간 받아오기
-#ifdef	SERV_SERVER_TIME_GET
-	DECL_ON_FUNC_NOPARAM( ECH_GET_SERVER_TIME_REQ );
-	//DECL_ON_FUNC( ELG_VERIFY_ACCOUNT_ACK );
-#endif  SERV_SERVER_TIME_GET
 	//{{ 2011. 01. 13 김민성	동접 모니터링 툴
 #ifdef SERV_CCU_MONITORING_TOOL
 	DECL_ON_FUNC( E_TOOL_CHECK_LOGIN_REQ );
@@ -200,6 +194,16 @@ protected:  // util function, Packet Handling
 	DECL_ON_FUNC( ECH_PCBANG_IP_AND_MAC_INFO_NOT );
 #endif //SERV_ID_NETMARBLE_PCBANG
 
+#ifdef SERVER_GROUP_UI_ADVANCED
+	DECL_ON_FUNC_NOPARAM( ECH_GET_SERVERGROUP_LIST_REQ );
+#endif SERVER_GROUP_UI_ADVANCED
+
+	//{{김준환 서버시간 받아오기
+#ifdef	SERV_SERVER_TIME_GET
+	DECL_ON_FUNC_NOPARAM( ECH_GET_SERVER_TIME_REQ );
+	//DECL_ON_FUNC( ELG_VERIFY_ACCOUNT_ACK );
+#endif  SERV_SERVER_TIME_GET
+
     bool RoutePacket( const KEvent* pkEvent );   // CnUser, GSUser가 같이 선언하지만 상속은 아님.
     //                          ^ KEvent가 수정되지 않아야 한다. (SmartPtr로는 불가능)
 
@@ -219,7 +223,6 @@ private:
 	KUserHackingManager				m_kUserHackingManager;
 #endif SERV_HACKING_TOOL_LIST
 	//}}
-
 
 	//{{ 2011. 09. 14  김민성	해킹 프로세스 목록 전달 - 게임 로딩 이전 단계
 #ifdef SERV_DLL_LIST_CHECK_BEFOR_LOADING
@@ -241,8 +244,6 @@ private:
 	std::wstring					m_wstrSocketID;
 #endif //SERV_COUNTRY_TH
 #endif //SERV_GLOBAL_AUTH
-
-
 
 	//{{ 2011. 09. 26  김민성	머신 ID 체크 - 게임 로딩 이전 단계
 #ifdef SERV_MACHINE_ID_CHECK_BEFOR_LOADING
@@ -286,6 +287,16 @@ void KChannelUser::SendToAccountDB( unsigned short usEventID_, const T& data_ )
     KncSend( GetPfID(), GetUID(), PI_ACCOUNT_DB, 0, anTrace, usEventID_, data_ );
 }
 
+#ifdef SERV_GLOBAL_AUTH
+#ifdef SERV_COUNTRY_IN
+template < class T >
+void KChannelUser::SendToFunizenAuthDB( unsigned short usEventID_, const T& data_ )
+{
+	UidType anTrace[2] = { GetUID(), -1 };
+	KncSend( GetPfID(), GetUID(), PI_CHANNEL_AUTH_DB, 0, anTrace, usEventID_, data_ );
+}
+#endif SERV_COUNTRY_IN
+#endif SERV_GLOBAL_AUTH
 
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 template < class T >

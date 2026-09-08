@@ -96,6 +96,9 @@ DropTable:AddPaymentDungeon(	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"]		, { 
 --DropTable:AddPaymentDungeon(	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"]		, { iItemID = 111383,	fRate = 100, iQuantity = 3, iMinLv = 35	} )
 --DropTable:AddPaymentDungeon(	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"]		, { iItemID = 78610,	fRate = 100, iQuantity = 1, iMinLv = 35	} )
 
+--발렌타인 던전 이벤트
+--DropTable:AddPaymentDungeon( DUNGEON_ID["DI_EVENT_VALENTINE_DUNGEON_INT"],		{ iItemID = 141000974, fRate = 100, iQuantity = 1  } )  
+
 --[[
 -- 2013년 크리스마스 이벤트
 DropTable:AddPaymentDungeon(	DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 153000084, fRate = 100, iGoingQuestID = 140190 } )  -- 경험치 받는 던전, 140190 퀘스트 보유 시, 펭귄산타의 잃어버린 선물 아이템을 100% 지급.
@@ -111,7 +114,7 @@ DropTable:AddPaymentDungeon( ALL_DUNGEON,		{ iItemID = 60007341, fRate = 100, iQ
 DropTable:AddPaymentDungeon( ALL_DUNGEON,		{ iItemID = 60007341, fRate = 100, iQuestID = 63750, wstrBeginDate = '2013-12-18 00:00:00', wstrEndDate = '2013-12-24 09:59:00'  } )  -- 모든던전 -- ES_JP 13.07.24 아라 이벤트
 --]]
 -- 아라 신 전직 전야 이벤트
-DropTable:AddPaymentDungeon( DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 85003832, fRate = 100, iQuestID = 85660, wstrBeginDate = '2014-01-06 00:00:00', wstrEndDate = '2014-01-15 09:59:00'  } )  
+--DropTable:AddPaymentDungeon( DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 85003832, fRate = 100, iQuestID = 85660, wstrBeginDate = '2014-01-06 00:00:00', wstrEndDate = '2014-01-15 09:59:00'  } )  
 
 
 

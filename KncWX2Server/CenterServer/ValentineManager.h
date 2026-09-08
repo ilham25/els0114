@@ -38,6 +38,9 @@ public:
 	bool SetStartTimer( IN int iEnum, IN bool bStart );
 	bool IsOnTimer( IN int iEnum );
 	void CheckTimer( IN int iEnum, OUT int& iType );
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	void CheckTimerForInt( IN int iEnum, OUT int& iType );		// 해외팀 발렌타인 이벤트 던전용 함수 추가
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 	int GetRemainTime( IN int iEnum );
 
 private:

@@ -49,6 +49,9 @@ public:
 
 	template < typename T > 
     bool SendPacket( DWORD dwDestPI, UidType nTo, UidType anTrace[], unsigned short usEventID, T& data, bool bLogging = true, bool bCompress = true );
+//#ifdef X2OPTIMIZE_TCP_RELAY_TEST
+//	bool SendPacket( DWORD dwDestPI, UidType nTo, UidType anTrace[], unsigned short usEventID, char* pBuffer, int iBufferSize );
+//#endif//X2OPTIMIZE_TCP_RELAY_TEST
     bool SendPacket( IN const KEvent& kEvent );
     bool SendID( DWORD dwDestPI, UidType nTo, UidType anTrace[], unsigned short usEventID );
 	//bool InitRecv();

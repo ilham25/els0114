@@ -309,13 +309,13 @@ public:
     bool IsAnyoneReachObjectiveNumKill( int nKill );
     bool IsAnyTeamReachObjectiveNumKill( int nKill );
 
-#ifdef PVP_BOSS_COMBAT_TEST
-	bool GetIsBoss( UidType nCID, bool& bIsBoss );
-	bool SetIsBoss( UidType nCID, bool bIsBoss );
-
-	bool PickRandomBoss();
-	bool IsAnyTeamBossDead( OUT bool& bRedTeamBossDead, OUT bool& bBlueTeamBossDead );
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//	bool GetIsBoss( UidType nCID, bool& bIsBoss );
+//	bool SetIsBoss( UidType nCID, bool bIsBoss );
+//
+//	bool PickRandomBoss();
+//	bool IsAnyTeamBossDead( OUT bool& bRedTeamBossDead, OUT bool& bBlueTeamBossDead );
+//#endif PVP_BOSS_COMBAT_TEST
 
 	//{{ 2012. 11. 21	최육사		난입자에게 캐쉬샵 유저 정보 보내기
 #ifdef SERV_VIEW_CASH_SHOP_USER_LIST_IN_BATTLE_FIELD
@@ -415,6 +415,9 @@ public:
 	bool ZU_IsCheckZU() const						{ return m_bIsCheckZU; }
 	void ZU_CheckStart();	//call endgame()
 	void ZU_CheckEnd();		//call startgame()
+
+
+
 	//{{ 2012. 09. 08	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	bool ZU_Tick( IN const CXSLRoom::ROOM_TYPE eRoomType, OUT std::vector< UidType >& vecZombieUnit );	//Tick()
@@ -423,7 +426,6 @@ public:
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}	
 	void ZU_Refresh( UidType nCID, u_short usEventID );		//ProcessEvent()
-
 
 	//{{ 2012. 10. 22	박세훈	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
@@ -577,14 +579,6 @@ public:
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM
 	//}}
 
-#ifdef SERV_PAYMENT_ITEM_ON_GOING_QUEST
-	bool	SetUnitGoingQuestInfo( UidType nCID, std::set< int >& setQuestInfo );
-#endif SERV_PAYMENT_ITEM_ON_GOING_QUEST
-
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_FOR_ARA_EVENT
-	bool	IsAraEvent();
-#endif SERV_DUNGEON_CLEAR_PAYMENT_FOR_ARA_EVENT
-
 	//{{ 2011. 05. 27    김민성    휴면 복귀 유저 보상
 #ifdef SERV_COME_BACK_USER_REWARD
 	bool	IsComeBackUserInRoom();
@@ -692,20 +686,36 @@ public:
 #endif SERV_SUITABLE_LEVEL_DUNGEON_CLEAR_SUB_QUEST
 	//}}
 
+#ifdef SERV_PAYMENT_ITEM_ON_GOING_QUEST
+	bool	SetUnitGoingQuestInfo( UidType nCID, std::set< int >& setQuestInfo );
+#endif SERV_PAYMENT_ITEM_ON_GOING_QUEST
+
+#ifdef SERV_DUNGEON_CLEAR_PAYMENT_FOR_ARA_EVENT
+	bool	IsAraEvent();
+#endif SERV_DUNGEON_CLEAR_PAYMENT_FOR_ARA_EVENT
+
 #ifdef SERV_PVP_REMATCH
 	bool			SetRematch( UidType nCID, bool bAcceptRematch );
 	bool			SetAllRematch( bool bAcceptRematch );
 	bool			IsAllPlayerWantRematch();
 #endif SERV_PVP_REMATCH
 
-#ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-21
-	bool SetRidingPetInfo( IN const UidType iUnitUID, IN const UidType iRidingPetUID, IN const USHORT usRidingPetID );
-#endif	// SERV_RIDING_PET_SYSTM
-
 #ifdef SERV_PAYMENT_ITEM_WITH_ALLY_NPC
 	bool			AddAllyNPC( IN const UidType iUnitUID, IN const KNPCUnitReq& kNPCUnit );
 	void			DeleteAllyNPC( IN const UidType iNPCUID );
 #endif SERV_PAYMENT_ITEM_WITH_ALLY_NPC
+
+#ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-21
+	bool SetRidingPetInfo( IN const UidType iUnitUID, IN const UidType iRidingPetUID, IN const USHORT usRidingPetID );
+#endif	// SERV_RIDING_PET_SYSTM
+
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+	byte	GetPlayStartedUserNum( void ) const{	return m_byteStartPlayMemberNum;	}
+#endif // SERV_HENIR_RENEWAL_2013
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	bool	CheckCouplePVP();
+#endif //SERV_RELATIONSHIP_EVENT_INT
 
 protected:
 
@@ -766,11 +776,15 @@ protected:
 #ifdef SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 public:
 	//bool IsForceHost() { return m_bForceHost; }
-    UidType GetForceHostCID() { return m_uidForceHostCID; }
+    UidType GetForceHostCID(); // { return m_uidForceHostCID; }
 private:
 	//bool m_bForceHost;
     UidType m_uidForceHostCID;
 #endif//SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+	byte	m_byteStartPlayMemberNum;
+#endif // SERV_HENIR_RENEWAL_2013
 };
 
 

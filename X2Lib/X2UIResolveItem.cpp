@@ -64,7 +64,7 @@ CX2UIResolveItem::~CX2UIResolveItem(void)
 
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstMoru )
 	{
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMoru );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMoru );
 	}
 }
 
@@ -103,7 +103,7 @@ HRESULT CX2UIResolveItem::OnFrameMove( double fTime, float fElapsedTime )
 
 			if ( m_hMeshInstMoru != INVALID_MESH_INSTANCE_HANDLE )
 			{
-				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMoru );
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMoru );
 				if( NULL != m_pDLGOpenMoru )
 				{
 					m_pDLGOpenMoru->SetHasUnit(NULL);
@@ -261,10 +261,12 @@ bool CX2UIResolveItem::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 
 void CX2UIResolveItem::SetShow(bool bShow)
 {
+#ifdef SERV_SYNTHESIS_AVATAR
 	if( g_pData->GetUIManager()->GetUISynthesisItem() != NULL && g_pData->GetUIManager()->GetUISynthesisItem()->GetShow() ==true )
 	{
 		return;
 	}
+#endif //SERV_SYNTHESIS_AVATAR
 
 	m_bShow	= bShow;
 
@@ -285,20 +287,6 @@ void CX2UIResolveItem::SetShow(bool bShow)
 	m_pDLGResolveItem->SetShowEnable( bShow, bShow );
 
 }
-
-void CX2UIResolveItem::SetLayer(X2_DIALOG_LAYER layer)
-{
-	SetSlotManagerLayer(layer);
-	SetSlotManagerChangeSequence(false);
-	if(m_pDLGResolveItem != NULL)
-	{
-		g_pKTDXApp->GetDGManager()->GetDialogManager()->ChangeLayer(m_pDLGResolveItem, layer);
-		g_pKTDXApp->GetDGManager()->GetDialogManager()->ChangeSequence( m_pDLGResolveItem, false );
-	}
-
-	g_pKTDXApp->GetDGManager()->GetDialogManager()->ChangeSequence( m_pDLGResolveItem, true );	// 이건 앞으로 당기자 =3=
-}
-
 
 bool CX2UIResolveItem::Handler_EGS_RESOLVE_ITEM_REQ()
 {
@@ -333,7 +321,7 @@ bool CX2UIResolveItem::Handler_EGS_RESOLVE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARA
 			OpenResolveResultWindow( kEvent.m_mapInsertedItem, kEvent.m_vecKInventorySlotInfo, kEvent.m_bJackpot );
 
 			//특수 처리 고고싱
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
 
 			if(g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_CHARINFO))
 			{
@@ -367,9 +355,9 @@ bool CX2UIResolveItem::OnDropAnyItem( D3DXVECTOR2 mousePos )
 	//{{ 2008.11.13 김태완 : UI 예외처리
 	if(!(*m_pSlotBeforeDragging)->IsItem()) return false;
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 	CX2Item* pItem = NULL;
-	pItem = pInventory->GetItem( *m_DraggingItemUID, true );
+	pItem = kInventory.GetItem( *m_DraggingItemUID, true );
 
 	if ( pItem == NULL )
 	{
@@ -378,7 +366,7 @@ bool CX2UIResolveItem::OnDropAnyItem( D3DXVECTOR2 mousePos )
 	}
 	
 	// 같은 아이템 분류 타입인지 보고..
-	if ( m_NowInventorySortType != pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) ) return false;
+	if ( m_NowInventorySortType != kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) ) return false;
 
 	switch((*m_pSlotBeforeDragging)->GetSlotType())
 	{
@@ -562,7 +550,7 @@ CX2State* pState = (CX2State*)g_pMain->GetNowState();
 		if ( pCursor != NULL && pCursor->GetCurorState() != CX2Cursor::XCS_NORMAL )
 		{
 			UidType ItemUID = pSlot->GetItemUID();
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( ItemUID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( ItemUID );
 
 			if(pItem == NULL )
 				return false;
@@ -735,7 +723,7 @@ bool CX2UIResolveItem::UpdateInventorySlotList( std::vector< KInventoryItemInfo 
 		if ( kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
 		{
 			// 은행 공유 char -> short 로 변경
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 			if ( pItem != NULL )
 			{				
 				RemoveEqip( pItem->GetUID() );
@@ -747,7 +735,7 @@ bool CX2UIResolveItem::UpdateInventorySlotList( std::vector< KInventoryItemInfo 
 	{
 		KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
 		// 은행 공유 char -> short 로 변경
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 	}
 
 	for ( int i = 0; i < (int)vecInventorySlotInfo.size(); i++ )
@@ -755,14 +743,14 @@ bool CX2UIResolveItem::UpdateInventorySlotList( std::vector< KInventoryItemInfo 
 		KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
 		if ( kInventorySlotInfo.m_iItemUID > 0 )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
+			//CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
 			// 은행 공유 char -> short 로 변경
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, pItemData );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, CX2Item::ItemData( kInventorySlotInfo ) );
 
 			if ( kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
 			{
 				// 은행 공유 char -> short 로 변경
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 				if ( pItem != NULL )
 				{
 					AddEqip( pItem->GetUID() );
@@ -826,7 +814,7 @@ void CX2UIResolveItem::RegisterResolveItem(CX2SlotItem* pItemSlot)
 
 	if ( pItemSlot->GetSlotType() == CX2Slot::ST_INVENTORY )
 	{
-		pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlot->GetItemUID() );
+		pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlot->GetItemUID() );
 
 #ifdef ENABLE_RESOLVE_FASHION
 
@@ -850,10 +838,7 @@ void CX2UIResolveItem::RegisterResolveItem(CX2SlotItem* pItemSlot)
 
 		//{{ kimhc // 2009-09-08 // 봉인된 아이템 분해 불가
 #ifdef	SEAL_ITEM
-		if ( pItem->GetItemData() == NULL )
-			return;
-
-		if ( pItem->GetItemData()->m_bIsSealed == true )
+		if ( pItem->GetItemData().m_bIsSealed == true )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4477 ), g_pMain->GetNowState() );
 			return; 
@@ -868,8 +853,8 @@ void CX2UIResolveItem::RegisterResolveItem(CX2SlotItem* pItemSlot)
 			{
 				if ( pItem->GetItemTemplet()->GetFashion() == true )
 				{
-					if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY &&
-						pItem->GetItemData()->m_Period > 0 )
+					if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY &&
+						pItem->GetItemData().m_Period > 0 )
 					{
 						//기간제로 판명.
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
@@ -889,8 +874,8 @@ void CX2UIResolveItem::RegisterResolveItem(CX2SlotItem* pItemSlot)
 					return;
 				}
 
-				if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY &&
-					pItem->GetItemData()->m_Period > 0 )
+				if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY &&
+					pItem->GetItemData().m_Period > 0 )
 				{
 					//기간제로 판명.
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
@@ -1041,7 +1026,7 @@ bool CX2UIResolveItem::AttachItem()
 				}
 				//
 
-				if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED < m_iTotalCostED)
+				if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED < m_iTotalCostED)
 				{
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
 						GET_STRING( STR_ID_5072 ), g_pMain->GetNowState() );
@@ -1179,7 +1164,7 @@ bool CX2UIResolveItem::MouseRButtonUp( D3DXVECTOR2 mousePos )
 	if( m_bPlayResolveItem == true )
 		return false;
 
-	CX2Item* m_pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlot->GetItemUID() );
+	CX2Item* m_pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlot->GetItemUID() );
 
 	if( m_pItemData == NULL)
 		return false;

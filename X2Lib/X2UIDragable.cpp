@@ -226,25 +226,24 @@ void CX2UIDragable::DrawSlotMouseOverImage()
 			//{{ 2008.11.13 김태완 : UI 예외처리
 			//*m_DraggingItemUID = ((CX2SlotItem*)(*m_pSlotBeforeDragging))->GetItemUID();
 			//}}
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+			const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 			// 예외처리 추가
-			if( pInventory == NULL || 
-				pInventory->GetItem( *m_DraggingItemUID, true ) == NULL || 
-				pInventory->GetItem( *m_DraggingItemUID, true )->GetItemTemplet() == NULL
+			if( kInventory.GetItem( *m_DraggingItemUID, true ) == NULL || 
+				kInventory.GetItem( *m_DraggingItemUID, true )->GetItemTemplet() == NULL
                 )
 				return;
 
-			CX2Item::ITEM_TYPE itemType = pInventory->GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetItemType();
+			CX2Item::ITEM_TYPE itemType = kInventory.GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetItemType();
 			if (  itemType == CX2Item::IT_WEAPON || itemType == CX2Item::IT_DEFENCE || itemType == CX2Item::IT_ACCESSORY )
 			{
-				CX2Unit::EQIP_POSITION equipPosition = pInventory->GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetEqipPosition();
+				CX2Unit::EQIP_POSITION equipPosition = kInventory.GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetEqipPosition();
 
 				for ( int i = 0; i < (int)m_SlotList.size(); i++ )
 				{
 					CX2SlotItem* pItemSlot = (CX2SlotItem*)GetSlot(i);
 					if ( pItemSlot->GetSlotType() == CX2Slot::ST_EQUIPPED && pItemSlot->GetEquipPos() == equipPosition && 
-						( itemType == CX2Item::IT_ACCESSORY || pItemSlot->GetFashion() == pInventory->GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetFashion() ))
+						( itemType == CX2Item::IT_ACCESSORY || pItemSlot->GetFashion() == kInventory.GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetFashion() ))
 					{
 						m_pDLGSelectedItem->SetPos( pItemSlot->GetPos() );
 						m_pDLGSelectedItem->GetStatic_LUA( "SelectedItem" )->GetPicture(0)->SetSize( pItemSlot->GetSize() );
@@ -310,7 +309,7 @@ wstring CX2UIDragable::GetSlotItemDesc()
 		}
 		else
 		{	
-			CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( 
+			CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( 
 				m_pNowOverItemSlot->GetItemUID() );
 			if ( pkItem != NULL )
 				itemDesc = GetSlotItemDescByUID( m_pNowOverItemSlot->GetItemUID(), false );

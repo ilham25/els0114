@@ -234,6 +234,7 @@ EnchantItemManager:AddAttachItemInfo( 130151,	{	iItemType = ITEM_TYPE["IT_NONE"]
 EnchantItemManager:AddAttachItemInfo( 130152,	{	iItemType = ITEM_TYPE["IT_NONE"],		iEnchantLevel = 10	}	) -- 강화권 Lv.10
 EnchantItemManager:AddAttachItemInfo( 130543,	{	iItemType = ITEM_TYPE["IT_DEFENCE"],	iEnchantLevel = 5	}	) -- 방어구 전용 강화의 부적 Lv.5
 EnchantItemManager:AddAttachItemInfo( 130544,	{	iItemType = ITEM_TYPE["IT_DEFENCE"],	iEnchantLevel = 6	}	) -- 방어구 전용 강화의 부적 Lv.6
+EnchantItemManager:AddAttachItemInfo( 133554,	{	iItemType = ITEM_TYPE["IT_DEFENCE"],	iEnchantLevel = 7}	) -- 방어구 전용 강화의 부적 Lv.7	//	2014.01.02	//	공솔	// 세공 큡용 추가
 EnchantItemManager:AddAttachItemInfo( 132495,	{	iItemType = ITEM_TYPE["IT_NONE"],		iEnchantLevel = 5	}	) -- 강화권 Lv.5_이벤트 용(거래불가)
 EnchantItemManager:AddAttachItemInfo( 132496,	{	iItemType = ITEM_TYPE["IT_NONE"],		iEnchantLevel = 6	}	) -- 강화권 Lv.6_이벤트 용(거래불가)
 EnchantItemManager:AddAttachItemInfo( 132497,	{	iItemType = ITEM_TYPE["IT_NONE"],		iEnchantLevel = 7	}	) -- 강화권 Lv.7_이벤트 용(거래불가)

@@ -9,14 +9,14 @@
 #define CASE_BEHAVIOR_FACTOR( func_, type_ ) \
 case type_: \
 	{ \
-	if ( false == ##func_( luaManager_ , STRINGIZE2(type_), type_ ) ) \
+	if ( false == ##func_( luaManager_ , STRINGIZEA2(type_), type_ ) ) \
 	return DISPLAY_ERROR( STRINGIZE2(type_) ); \
 	} break; \
 
 #define CASE_FINALIZER_FACTOR( func_, type_ ) \
 case type_: \
 	{ \
-	if ( false == ##func_( luaManager_ , STRINGIZE2(type_), type_ ) ) \
+	if ( false == ##func_( luaManager_ , STRINGIZEA2(type_), type_ ) ) \
 	return DISPLAY_ERROR( STRINGIZE2(type_) ); \
 	} break; \
 
@@ -25,14 +25,14 @@ case type_: \
 #define CASE_BEHAVIOR_FACTOR_SKILL( func_, type_, isSkill_ ) \
 case type_: \
 	{ \
-	if ( false == ##func_( luaManager_ , STRINGIZE2(type_), type_, isSkill_ ) ) \
+	if ( false == ##func_( luaManager_ , STRINGIZEA2(type_), type_, isSkill_ ) ) \
 	return DISPLAY_ERROR( STRINGIZE2(type_) ); \
 	} break; \
 
 #define CASE_FINALIZER_FACTOR_SKILL( func_, type_, isSkill_ ) \
 case type_: \
 	{ \
-	if ( false == ##func_( luaManager_ , STRINGIZE2(type_), type_, isSkill_ ) ) \
+	if ( false == ##func_( luaManager_ , STRINGIZEA2(type_), type_, isSkill_ ) ) \
 	return DISPLAY_ERROR( STRINGIZE2(type_) ); \
 	} break; \
 
@@ -187,6 +187,25 @@ bool CX2BuffFactor::ParsingCombinationBehavior( KLuaManager& luaManager_, bool b
 	#ifdef FIX_SKILL_BALANCE_AISHA_LENA //JHKang
 				CASE_BEHAVIOR_FACTOR_SKILL( ParsingChangConsumeMpRateBehavior, BBT_CHANGE_CONSUME_MP_RATE, bIsSkill )
 	#endif //FIX_SKILL_BALANCE_AISHA_LENA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// Z 공격 불가, X 공격 불가 버프 타입 추가
+				CASE_BEHAVIOR_FACTOR( ParsingEmptyBehavior, BBT_Z_ATTACK_IMPOSSIBLE )
+				CASE_BEHAVIOR_FACTOR( ParsingEmptyBehavior, BBT_X_ATTACK_IMPOSSIBLE )
+				
+				// 각 속성 별 인챈트 확률 증가
+				CASE_BEHAVIOR_FACTOR_SKILL( ParsingChangeEnchantAttackRateBehavior, BBT_CHANGE_ATTRIBUTE_BLAZE_ATTACK_RATE, bIsSkill )
+				CASE_BEHAVIOR_FACTOR_SKILL( ParsingChangeEnchantAttackRateBehavior, BBT_CHANGE_ATTRIBUTE_WATER_ATTACK_RATE, bIsSkill )
+				CASE_BEHAVIOR_FACTOR_SKILL( ParsingChangeEnchantAttackRateBehavior, BBT_CHANGE_ATTRIBUTE_NATURE_ATTACK_RATE, bIsSkill )
+				CASE_BEHAVIOR_FACTOR_SKILL( ParsingChangeEnchantAttackRateBehavior, BBT_CHANGE_ATTRIBUTE_WIND_ATTACK_RATE, bIsSkill )
+				CASE_BEHAVIOR_FACTOR_SKILL( ParsingChangeEnchantAttackRateBehavior, BBT_CHANGE_ATTRIBUTE_LIGHT_ATTACK_RATE, bIsSkill )
+				CASE_BEHAVIOR_FACTOR_SKILL( ParsingChangeEnchantAttackRateBehavior, BBT_CHANGE_ATTRIBUTE_DARK_ATTACK_RATE, bIsSkill )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+				/// 각성 충전 속도
+				CASE_BEHAVIOR_FACTOR_SKILL( ParsingChangeStatBehavior, BBT_CHANGE_HYPER_CHARGE_SPEED, bIsSkill )
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 			case BBT_EMPTY:
 				break;
 #ifdef EXCEPTION_BUFF_FACTOR_VER2
@@ -304,6 +323,11 @@ bool CX2BuffFactor::ParsingCombinationBehavior( KLuaManager& luaManager_ )
 	#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 					CASE_BEHAVIOR_FACTOR( ParsingReflectMagicBehavior, BBT_REFLECT_MAGIC )
 	#endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					// Z 공격 불가, X 공격 불가 버프 타입 추가
+					CASE_BEHAVIOR_FACTOR( ParsingEmptyBehavior, BBT_Z_ATTACK_IMPOSSIBLE )
+					CASE_BEHAVIOR_FACTOR( ParsingEmptyBehavior, BBT_X_ATTACK_IMPOSSIBLE )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			case BBT_EMPTY:
 				break;
 
@@ -404,44 +428,48 @@ bool CX2BuffFactor::ParsingCombinationFinalizer( KLuaManager& luaManager_ )
 */
 void CX2BuffFactor::UpdateValueByRelationType( const BUFF_RELATION_TYPE eRelationType_, OUT float& fValue_, CX2GameUnit* pGameUnit_ )
 {
-	CX2Stat::Stat* pStat = pGameUnit_->GetStat()->GetStat();	/// 시전자의 스탯
-	if ( NULL != pStat )
+    const CX2Stat::Stat& kStat = pGameUnit_->GetStat().GetStat();
 	{
 		switch ( eRelationType_ )
 		{
 		case BRT_MAX_HP:
 			{
-				fValue_ = pStat->m_fBaseHP;
+				fValue_ = kStat.m_fBaseHP;
 			} break;
 
 		case BRT_PHYSIC_ATTACK:
 			{
-				fValue_ = pStat->m_fAtkPhysic;
+				fValue_ = kStat.m_fAtkPhysic;
 			} break;
 
 		case BRT_MAGIC_ATTACK:
 			{
-				fValue_ = pStat->m_fAtkMagic;
+				fValue_ = kStat.m_fAtkMagic;
 			} break;
 
 		case BRT_MIX_ATTACK:
 			{
-				fValue_ = ( pStat->m_fAtkPhysic + pStat->m_fAtkPhysic ) * 0.5f;
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 잘못된 구문 수정
+				fValue_ = ( kStat.m_fAtkPhysic + kStat.m_fAtkMagic ) * 0.5f;
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				fValue_ = ( kStat.m_fAtkPhysic + kStat.m_fAtkPhysic ) * 0.5f;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			} break;
 
 		case BRT_PHYSIC_DEFENCE:
 			{
-				fValue_ = pStat->m_fDefPhysic;
+				fValue_ = kStat.m_fDefPhysic;
 			} break;
 
 		case BRT_MAGIC_DEFENCE:
 			{
-				fValue_ = pStat->m_fDefMagic;
+				fValue_ = kStat.m_fDefMagic;
 			} break;
 
 		case BRT_MIX_DEFENCE:
 			{
-				fValue_ = ( pStat->m_fDefPhysic + pStat->m_fDefMagic ) * 0.5f;
+				fValue_ = ( kStat.m_fDefPhysic + kStat.m_fDefMagic ) * 0.5f;
 			} break;
 
 		default:
@@ -465,7 +493,7 @@ bool CX2BuffFactor::ParsingBuffFactor( KLuaManager& luaManager_ )
 		BUFF_TEMPLET_ID, BTI_NONE, return DISPLAY_ERROR( L"BUFF_TEMPLET_ID" ); );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	ParsingTableForWhile( luaManager_, L"RATE", m_pDataBuffFactor->m_vecRate, bIsSkill );
+	ParsingTableForWhile( luaManager_, "RATE", m_pDataBuffFactor->m_vecRate, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 	LUA_GET_VALUE_RETURN( luaManager_, "RATE", m_pDataBuffFactor->m_fRate, 0.0f, return DISPLAY_ERROR( L"RATE" ); );
 #endif //UPGRADE_SKILL_SYSTEM_2013
@@ -638,6 +666,9 @@ void CX2BuffFactor::SetGameUnitBehavior( KBuffBehaviorFactor& factor_, CX2GameUn
 	case BBT_CHANGE_EVERY_ATTRIBUTE_DEFENCE:
 	case BBT_DRAIN_HP_NORMAL_ATTACK:
 	case BBT_CHANGE_MAX_MP:
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case BBT_CHANGE_HYPER_CHARGE_SPEED:
+#endif //SERV_ADD_LUNATIC_PSYKER
 		SetGameUnitChangeStatBehavior( factor_, pGameUnit_ );
 		break;
 
@@ -688,12 +719,12 @@ void CX2BuffFactor::SetGameUnitFinalizer( KBuffFinalizerFactor& factor_, CX2Game
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingChangeNowHpPerSecondBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingChangeNowHpPerSecondBehavior( KLuaManager& luaManager_, const char* pszTableNameUTF8_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingChangeNowHpPerSecondBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingChangeNowHpPerSecondBehavior( KLuaManager& luaManager_, const char* pszTableNameUTF8_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableNameUTF8_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -713,7 +744,7 @@ bool CX2BuffFactor::ParsingChangeNowHpPerSecondBehavior( KLuaManager& luaManager
 			{
 				/// 1. 수치를 읽어들임
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"FIX_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "FIX_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fFixValue = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "FIX_VALUE", fFixValue, 0.0f, return DISPLAY_ERROR( L"FIX_VALUE" ) );
@@ -726,7 +757,7 @@ bool CX2BuffFactor::ParsingChangeNowHpPerSecondBehavior( KLuaManager& luaManager
 			{
 				/// 1. 공격력에 곱하여질 배율을 읽어들임(수치, % 모두 배율이 필요함)
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fMultiplier = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "MULTIPLIER", fMultiplier, 0.0f, return DISPLAY_ERROR( L"MULTIPLIER" ) );
@@ -746,7 +777,7 @@ bool CX2BuffFactor::ParsingChangeNowHpPerSecondBehavior( KLuaManager& luaManager
 			{
 				/// 0. % 를 읽어들임
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fPercent = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
@@ -784,25 +815,24 @@ void CX2BuffFactor::SetGameUnitChangeNowHpPerSecondBehavior( KBuffBehaviorFactor
 			= STATIC_CAST_FLOAT_TO_ENUM( BUFF_RELATION_TYPE, factor_[CX2BuffChangeNowHpPerSecondBehaviorTemplet::FO_RELATION_TYPE] );
 
 		/// 3. 위의 타입과 관련한 공격력
-		CX2Stat::Stat* pStat = pGameUnit_->GetStat()->GetStat();	/// 시전자의 스탯
-		if ( NULL != pStat 
-			 && CX2BuffChangeNowHpPerSecondBehaviorTemplet::FO_ATTACK_VALUE < factor_.m_vecValues.size() )
+		const CX2Stat::Stat& kStat = pGameUnit_->GetStat().GetStat();	/// 시전자의 스탯
+		if ( CX2BuffChangeNowHpPerSecondBehaviorTemplet::FO_ATTACK_VALUE < factor_.m_vecValues.size() )
 		{
 			switch ( eRelationType )
 			{
 			case BRT_PHYSIC_ATTACK:		/// 물리공격력으로 초당데미지 적용
 				{
-					factor_.m_vecValues[CX2BuffChangeNowHpPerSecondBehaviorTemplet::FO_ATTACK_VALUE] = pStat->m_fAtkPhysic;
+					factor_.m_vecValues[CX2BuffChangeNowHpPerSecondBehaviorTemplet::FO_ATTACK_VALUE] = kStat.m_fAtkPhysic;
 				} break;
 
 			case BRT_MAGIC_ATTACK:		/// 마법공격력으로 초당데미지 적용
 				{
-					factor_.m_vecValues[CX2BuffChangeNowHpPerSecondBehaviorTemplet::FO_ATTACK_VALUE] = pStat->m_fAtkMagic;
+					factor_.m_vecValues[CX2BuffChangeNowHpPerSecondBehaviorTemplet::FO_ATTACK_VALUE] = kStat.m_fAtkMagic;
 				} break;
 
 			case BRT_MIX_ATTACK:		/// 물리+마법 공격력으로 초당 데미지 적용(1/2 함)
 				{
-					factor_.m_vecValues[CX2BuffChangeNowHpPerSecondBehaviorTemplet::FO_ATTACK_VALUE] = (pStat->m_fAtkPhysic + pStat->m_fAtkMagic) * 0.5f;
+					factor_.m_vecValues[CX2BuffChangeNowHpPerSecondBehaviorTemplet::FO_ATTACK_VALUE] = (kStat.m_fAtkPhysic + kStat.m_fAtkMagic) * 0.5f;
 				} break;
 
 			default:
@@ -823,12 +853,12 @@ void CX2BuffFactor::SetGameUnitChangeNowHpPerSecondBehavior( KBuffBehaviorFactor
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingTimeFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingTimeFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingTimeFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
+bool CX2BuffFactor::ParsingTimeFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -848,7 +878,7 @@ bool CX2BuffFactor::ParsingTimeFinalizer( KLuaManager& luaManager_, const WCHAR*
 			{
 				/// 1. 종료시간 (NORMAL인 경우 기입한 시간)
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"NORMAL_TIME", BuffFinalizerFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "NORMAL_TIME", BuffFinalizerFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fTime = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "NORMAL_TIME", fTime, 0.0f, return DISPLAY_ERROR( L"NORMAL_TIME" ) );					
@@ -860,7 +890,7 @@ bool CX2BuffFactor::ParsingTimeFinalizer( KLuaManager& luaManager_, const WCHAR*
 			{
 				// MIN, MAX 값을 정함
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableMinMaxForWhile( luaManager_, L"RANDOM_TIME", BuffFinalizerFactor.m_vecValues, bIsSkill );
+				ParsingTableMinMaxForWhile( luaManager_, "RANDOM_TIME", BuffFinalizerFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fMinTime = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "MIN_TIME", fMinTime, 0.0f, return DISPLAY_ERROR( L"MIN_TIME" ) );
@@ -881,7 +911,7 @@ bool CX2BuffFactor::ParsingTimeFinalizer( KLuaManager& luaManager_, const WCHAR*
 			{
 				/// 강제 각성 등의 버프 경우 시간입력
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"FORCE_TIME", BuffFinalizerFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "FORCE_TIME", BuffFinalizerFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fTime = 0.0f;
 				LUA_GET_VALUE( luaManager_, "FORCE_TIME", fTime, 0.0f );
@@ -952,12 +982,12 @@ void CX2BuffFactor::ApplyExternalFactorToTimeFinalizer( KBuffFinalizerFactor& fa
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingHitCountFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingHitCountFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingHitCountFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
+bool CX2BuffFactor::ParsingHitCountFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -973,7 +1003,7 @@ bool CX2BuffFactor::ParsingHitCountFinalizer( KLuaManager& luaManager_, const WC
 		
 		/// 1. 지정한 타격 횟수
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		ParsingTableForWhile( luaManager_, L"COUNT", BuffFinalizerFactor.m_vecValues, bIsSkill );
+		ParsingTableForWhile( luaManager_, "COUNT", BuffFinalizerFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 		float fCount = 0.0f;
 		LUA_GET_VALUE_RETURN( luaManager_, "COUNT", fCount, 0.0f, return DISPLAY_ERROR( L"COUNT" ) );
@@ -1037,12 +1067,12 @@ void CX2BuffFactor::SetGameUnitHitCountFinalizer( KBuffFinalizerFactor& factor_,
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingHittedCountFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingHittedCountFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingHittedCountFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
+bool CX2BuffFactor::ParsingHittedCountFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1058,7 +1088,7 @@ bool CX2BuffFactor::ParsingHittedCountFinalizer( KLuaManager& luaManager_, const
 
 		/// 1. 지정한 피격 횟수
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		ParsingTableForWhile( luaManager_, L"COUNT", BuffFinalizerFactor.m_vecValues, bIsSkill );
+		ParsingTableForWhile( luaManager_, "COUNT", BuffFinalizerFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 		float fCount = 0.0f;
 		LUA_GET_VALUE_RETURN( luaManager_, "COUNT", fCount, 0.0f, return DISPLAY_ERROR( L"COUNT" ) );
@@ -1122,7 +1152,7 @@ void CX2BuffFactor::SetGameUnitHittedCountFinalizer( KBuffFinalizerFactor& facto
 	@param : 읽어들이려는 스크립트의 루아매니저(luaManager_)
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
-bool CX2BuffFactor::ParsingStateChangeFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
+bool CX2BuffFactor::ParsingStateChangeFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
 {
 	if ( luaManager_.BeginTable( pwszTableName_ ) )
 	{
@@ -1145,12 +1175,12 @@ bool CX2BuffFactor::ParsingStateChangeFinalizer( KLuaManager& luaManager_, const
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingDamageValueFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingDamageValueFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingDamageValueFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
+bool CX2BuffFactor::ParsingDamageValueFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1169,7 +1199,7 @@ bool CX2BuffFactor::ParsingDamageValueFinalizer( KLuaManager& luaManager_, const
 		case BCT_FIX_VALUE:	/// 고정 수치 입력값
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"FIX_VALUE", BuffFinalizerFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "FIX_VALUE", BuffFinalizerFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fFixValue = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "FIX_VALUE", fFixValue, 0.0f, return DISPLAY_ERROR( L"FIX_VALUE" ) );
@@ -1193,7 +1223,7 @@ bool CX2BuffFactor::ParsingDamageValueFinalizer( KLuaManager& luaManager_, const
 				BuffFinalizerFactor.m_vecValues.push_back( static_cast<float>( eRelationType ) );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"MULTIPLIER", BuffFinalizerFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "MULTIPLIER", BuffFinalizerFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fMultiplier = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "MULTIPLIER", fMultiplier, 0.0f, return DISPLAY_ERROR( L"MULTIPLIER" ) );
@@ -1245,12 +1275,12 @@ void CX2BuffFactor::SetGameUnitDamageValueFinalizer( KBuffFinalizerFactor& facto
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingPassHpFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingPassHpFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingPassHpFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
+bool CX2BuffFactor::ParsingPassHpFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1271,7 +1301,7 @@ bool CX2BuffFactor::ParsingPassHpFinalizer( KLuaManager& luaManager_, const WCHA
 
 		/// 2. 기준 입력 ( 1의 타입에 따라 % 또는 값으로 사용)
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		ParsingTableForWhile( luaManager_, L"CRITERION", BuffFinalizerFactor.m_vecValues, bIsSkill );
+		ParsingTableForWhile( luaManager_, "CRITERION", BuffFinalizerFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 		float fCriterion = 0.0f;
 		LUA_GET_VALUE_RETURN( luaManager_, "CRITERION", fCriterion, 0.0f, return DISPLAY_ERROR( L"CRITERION" ) );
@@ -1292,12 +1322,12 @@ bool CX2BuffFactor::ParsingPassHpFinalizer( KLuaManager& luaManager_, const WCHA
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingPassMpFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingPassMpFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingPassMpFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
+bool CX2BuffFactor::ParsingPassMpFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1318,7 +1348,7 @@ bool CX2BuffFactor::ParsingPassMpFinalizer( KLuaManager& luaManager_, const WCHA
 
 		/// 2. 기준 입력 ( 1의 타입에 따라 % 또는 값으로 사용)
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		ParsingTableForWhile( luaManager_, L"CRITERION", BuffFinalizerFactor.m_vecValues, bIsSkill );
+		ParsingTableForWhile( luaManager_, "CRITERION", BuffFinalizerFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 		float fCriterion = 0.0f;
 		LUA_GET_VALUE_RETURN( luaManager_, "CRITERION", fCriterion, 0.0f, return DISPLAY_ERROR( L"CRITERION" ) );
@@ -1338,9 +1368,9 @@ bool CX2BuffFactor::ParsingPassMpFinalizer( KLuaManager& luaManager_, const WCHA
 	@param : 읽어들이려는 스크립트의 루아매니저(luaManager_)
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
-bool CX2BuffFactor::ParsingEmptyFinalizer( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
+bool CX2BuffFactor::ParsingEmptyFinalizer( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_FINALIZER_TYPE eFinalizerType_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1362,12 +1392,12 @@ bool CX2BuffFactor::ParsingEmptyFinalizer( KLuaManager& luaManager_, const WCHAR
 	@return : 성공시 true, 실패시 false
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingChangeNowMpPerSecondBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingChangeNowMpPerSecondBehavior( KLuaManager& luaManager_, const char* pszTableNameUTF8_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingChangeNowMpPerSecondBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingChangeNowMpPerSecondBehavior( KLuaManager& luaManager_, const char* pszTableNameUTF8_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableNameUTF8_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1388,7 +1418,7 @@ bool CX2BuffFactor::ParsingChangeNowMpPerSecondBehavior( KLuaManager& luaManager
 			{
 				/// 1. 수치를 읽어들임
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"FIX_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "FIX_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fValue = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "FIX_VALUE", fValue, 0.0f, return DISPLAY_ERROR( L"FIX_VALUE" ) );
@@ -1400,7 +1430,7 @@ bool CX2BuffFactor::ParsingChangeNowMpPerSecondBehavior( KLuaManager& luaManager
 			{
 				/// 1. 배율을 읽어들임
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fPercent = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
@@ -1422,12 +1452,12 @@ bool CX2BuffFactor::ParsingChangeNowMpPerSecondBehavior( KLuaManager& luaManager
 	@return : 성공시 true, 실패시 false
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingChangeStatBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingChangeStatBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingChangeStatBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingChangeStatBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1446,7 +1476,7 @@ bool CX2BuffFactor::ParsingChangeStatBehavior( KLuaManager& luaManager_, const W
 		case BCT_SWAP_VALUE:	/// 치환인 경우 수치만
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"SWAP_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "SWAP_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fSwapValue = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "SWAP_VALUE", fSwapValue, 0.0f, return DISPLAY_ERROR( L"SWAP_VALUE" ) );
@@ -1457,7 +1487,7 @@ bool CX2BuffFactor::ParsingChangeStatBehavior( KLuaManager& luaManager_, const W
 		case BCT_FIX_VALUE:	/// 고정 수치 입력값
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"FIX_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "FIX_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fValue = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "FIX_VALUE", fValue, 0.0f, return DISPLAY_ERROR( L"FIX_VALUE" ) );
@@ -1476,7 +1506,7 @@ bool CX2BuffFactor::ParsingChangeStatBehavior( KLuaManager& luaManager_, const W
 				BuffBehaviorFactor.m_vecValues.push_back( static_cast<float>( eRelationType ) );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fMultiplier = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "MULTIPLIER", fMultiplier, 0.0f, return DISPLAY_ERROR( L"MULTIPLIER" ) );
@@ -1487,10 +1517,10 @@ bool CX2BuffFactor::ParsingChangeStatBehavior( KLuaManager& luaManager_, const W
 		case BCT_PERCENT:	/// % 입력값
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fPercent = 0.0f;
-				LUA_GET_VALUE_RETURN( luaManager_, L"PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
+				LUA_GET_VALUE_RETURN( luaManager_, "PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
 				if ( 0.0f > fPercent )	/// 양수만 가능
 				{
 					return DISPLAY_ERROR( L"Percent value must be positive" );
@@ -1535,9 +1565,9 @@ void CX2BuffFactor::SetGameUnitChangeStatBehavior( KBuffBehaviorFactor& factor_,
 	@param : 읽어들일 루아스크립트의 매니저(luaManager_)
 	@return : 성공시 true, 실패시 false
 */
-bool CX2BuffFactor::ParsingCreateBuffFactorBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingCreateBuffFactorBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1568,12 +1598,12 @@ bool CX2BuffFactor::ParsingCreateBuffFactorBehavior( KLuaManager& luaManager_, c
 	@return : 성공시 true, 실패시 false
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingAbsorbEffectAttackBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingAbsorbEffectAttackBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingAbsorbEffectAttackBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingAbsorbEffectAttackBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1582,7 +1612,7 @@ bool CX2BuffFactor::ParsingAbsorbEffectAttackBehavior( KLuaManager& luaManager_,
 		KBuffBehaviorFactor BuffBehaviorFactor( eBehaviorType_ );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		ParsingTableForWhile( luaManager_, L"ABSORB_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
+		ParsingTableForWhile( luaManager_, "ABSORB_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 		float fAbsorbValue = 0.0f;
 		LUA_GET_VALUE_RETURN( luaManager_, "ABSORB_VALUE", fAbsorbValue, 0.0f,return DISPLAY_ERROR( L"ABSORB_VALUE" ) );
@@ -1602,12 +1632,12 @@ bool CX2BuffFactor::ParsingAbsorbEffectAttackBehavior( KLuaManager& luaManager_,
 	@return : 성공시 true, 실패시 false
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingChargeMpHitBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingChargeMpHitBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingChargeMpHitBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingChargeMpHitBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1616,7 +1646,7 @@ bool CX2BuffFactor::ParsingChargeMpHitBehavior( KLuaManager& luaManager_, const 
 		KBuffBehaviorFactor BuffBehaviorFactor( eBehaviorType_ );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		ParsingTableForWhile( luaManager_, L"MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
+		ParsingTableForWhile( luaManager_, "MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 		float fMultiplier = 1.0f;
 		LUA_GET_VALUE_RETURN( luaManager_, "MULTIPLIER", fMultiplier, 1.0f, return DISPLAY_ERROR( L"MULTIPLIER" ) );
@@ -1636,12 +1666,12 @@ bool CX2BuffFactor::ParsingChargeMpHitBehavior( KLuaManager& luaManager_, const 
 	@return : 성공시 true, 실패시 false
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingChargeMpHittedBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingChargeMpHittedBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingChargeMpHittedBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingChargeMpHittedBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1650,7 +1680,7 @@ bool CX2BuffFactor::ParsingChargeMpHittedBehavior( KLuaManager& luaManager_, con
 		KBuffBehaviorFactor BuffBehaviorFactor( eBehaviorType_ );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		ParsingTableForWhile( luaManager_, L"MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
+		ParsingTableForWhile( luaManager_, "MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 		float fMultiplier = 1.0f;
 		LUA_GET_VALUE_RETURN( luaManager_, "MULTIPLIER", fMultiplier, 1.0f, return DISPLAY_ERROR( L"MULTIPLIER" ) );
@@ -1669,9 +1699,9 @@ bool CX2BuffFactor::ParsingChargeMpHittedBehavior( KLuaManager& luaManager_, con
 	@param : 읽어들일 루아스크립트의 매니저(luaManager_)
 	@return : 성공시 true, 실패시 false
 */
-bool CX2BuffFactor::ParsingGameUnitChangeHyperModeBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingGameUnitChangeHyperModeBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1715,9 +1745,9 @@ void CX2BuffFactor::SetGameUnitChangeHyperModeBehavior( KBuffBehaviorFactor& fac
 	@param : 읽어들일 루아스크립트의 매니저(luaManager_)
 	@return : 성공시 true, 실패시 false
 */
-bool CX2BuffFactor::ParsingEmptyBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingEmptyBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1736,9 +1766,9 @@ bool CX2BuffFactor::ParsingEmptyBehavior( KLuaManager& luaManager_, const WCHAR*
 	@param : 읽어들일 루아스크립트의 매니저(luaManager_)
 	@return : 성공시 true, 실패시 false
 */
-bool CX2BuffFactor::ParsingCustomBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingCustomBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1767,21 +1797,21 @@ bool CX2BuffFactor::ParsingCustomBehavior( KLuaManager& luaManager_, const WCHAR
 	@param : 읽어들일 루아스크립트의 매니저(luaManager_)
 	@return : 성공시 true, 실패시 false
 */
-bool CX2BuffFactor::ParsingEffectSetWithDamageBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingEffectSetWithDamageBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
-		BOOST_SCOPE_EXIT( (&luaManager_) ) {
-			luaManager_.EndTable();
-		} BOOST_SCOPE_EXIT_END
 
 		KBuffBehaviorFactor BuffBehaviorFactor( eBehaviorType_ );
 
 		bool bNotUse = false;	/// 이펙트셋을 사용 안할 것인가?
-		LUA_GET_VALUE_RETURN( luaManager_, "NOT_USE", bNotUse, false );
+		LUA_GET_VALUE( luaManager_, "NOT_USE", bNotUse, false );
 		BuffBehaviorFactor.m_vecValues.push_back( (bNotUse ? 1.0f : 0.0f) );
 
 		m_pDataBuffFactor->m_vecBuffBehaviorFactors.push_back( BuffBehaviorFactor );
+
+        luaManager_.EndTable();
+
 		return true;
 	}
 	else
@@ -1794,12 +1824,12 @@ bool CX2BuffFactor::ParsingEffectSetWithDamageBehavior( KLuaManager& luaManager_
 	@return : 성공시 true, 실패시 false
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingChangeAttackByTypeBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingChangeAttackByTypeBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingChangeAttackByTypeBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingChangeAttackByTypeBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1818,10 +1848,10 @@ bool CX2BuffFactor::ParsingChangeAttackByTypeBehavior( KLuaManager& luaManager_,
 		case BCT_PERCENT:	/// % 입력값
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fPercent = 0.0f;
-				LUA_GET_VALUE_RETURN( luaManager_, L"PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
+				LUA_GET_VALUE_RETURN( luaManager_, "PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
 				if ( 0.0f > fPercent )	/// 양수만 가능
 				{
 					return DISPLAY_ERROR( L"Percent value must be positive" );
@@ -1856,12 +1886,12 @@ bool CX2BuffFactor::ParsingChangeAttackByTypeBehavior( KLuaManager& luaManager_,
 	@return : 성공시 true, 실패시 false
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingChangeEnchantAttackRateBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingChangeEnchantAttackRateBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingChangeEnchantAttackRateBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingChangeEnchantAttackRateBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1880,10 +1910,10 @@ bool CX2BuffFactor::ParsingChangeEnchantAttackRateBehavior( KLuaManager& luaMana
 		case BCT_PERCENT:	/// % 입력값
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fPercent = 0.0f;
-				LUA_GET_VALUE_RETURN( luaManager_, L"PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
+				LUA_GET_VALUE_RETURN( luaManager_, "PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
 				if ( 0.0f > fPercent )	/// 양수만 가능
 				{
 					return DISPLAY_ERROR( L"Percent value must be positive" );
@@ -1891,10 +1921,21 @@ bool CX2BuffFactor::ParsingChangeEnchantAttackRateBehavior( KLuaManager& luaMana
 				BuffBehaviorFactor.m_vecValues.push_back( fPercent );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 			} break;
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// BCT_FIX_VALUE 값을 파싱 할 수 있도록 추가 
+		case BCT_FIX_VALUE :
+			{
+				ParsingTableForWhile( luaManager_, "FIX_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
+			} break;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 		default:
 			{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				DISPLAY_ERROR( L"BCT_PERCENT OR BCT_FIX_VALUE Only!!" );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				DISPLAY_ERROR( L"BCT_PERCENT Only!!" );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			}
 			break;
 		}	
@@ -1912,12 +1953,12 @@ bool CX2BuffFactor::ParsingChangeEnchantAttackRateBehavior( KLuaManager& luaMana
 	@return : 성공시 true, 실패시 false
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingDoubleAttackByBuffBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingDoubleAttackByBuffBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingDoubleAttackByBuffBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingDoubleAttackByBuffBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1936,10 +1977,10 @@ bool CX2BuffFactor::ParsingDoubleAttackByBuffBehavior( KLuaManager& luaManager_,
 		case BCT_PERCENT:	/// % 입력값
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fPercent = 0.0f;
-				LUA_GET_VALUE_RETURN( luaManager_, L"PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
+				LUA_GET_VALUE_RETURN( luaManager_, "PERCENT", fPercent, 0.0f, return DISPLAY_ERROR( L"PERCENT" ) );
 				if ( 0.0f > fPercent )	/// 양수만 가능
 				{
 					return DISPLAY_ERROR( L"Percent value must be positive" );
@@ -1967,9 +2008,9 @@ bool CX2BuffFactor::ParsingDoubleAttackByBuffBehavior( KLuaManager& luaManager_,
 	@param : 읽어들일 루아스크립트의 매니저(luaManager_)
 	@return : 성공시 true, 실패시 false
 */
-bool CX2BuffFactor::ParsingAddSkillLevelByBuffBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingAddSkillLevelByBuffBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -1990,9 +2031,9 @@ bool CX2BuffFactor::ParsingAddSkillLevelByBuffBehavior( KLuaManager& luaManager_
 
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 
-bool CX2BuffFactor::ParsingReflectMagicBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingReflectMagicBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -2010,7 +2051,7 @@ bool CX2BuffFactor::ParsingReflectMagicBehavior( KLuaManager& luaManager_, const
 		{
 		case BCT_PERCENT:	/// % 입력값
 			{
-				ParsingTableForWhile( luaManager_, L"PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
 			} break;
 
 		default:
@@ -2037,12 +2078,12 @@ bool CX2BuffFactor::ParsingReflectMagicBehavior( KLuaManager& luaManager_, const
 	@return : 성공시 true, 실패시 false
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-bool CX2BuffFactor::ParsingResetSkillCoolTimeByBuffBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingResetSkillCoolTimeByBuffBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 #else //UPGRADE_SKILL_SYSTEM_2013
-bool CX2BuffFactor::ParsingResetSkillCoolTimeByBuffBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
+bool CX2BuffFactor::ParsingResetSkillCoolTimeByBuffBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -2062,7 +2103,7 @@ bool CX2BuffFactor::ParsingResetSkillCoolTimeByBuffBehavior( KLuaManager& luaMan
 			{
 				/// 1. 수치를 읽어들임
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"FIX_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "FIX_VALUE", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fFixValue = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "FIX_VALUE", fFixValue, 0.0f, return DISPLAY_ERROR( L"FIX_VALUE" ) );
@@ -2074,7 +2115,7 @@ bool CX2BuffFactor::ParsingResetSkillCoolTimeByBuffBehavior( KLuaManager& luaMan
 		case BCT_RELATION_VALUE:
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				ParsingTableForWhile( luaManager_, L"MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "MULTIPLIER", BuffBehaviorFactor.m_vecValues, bIsSkill );
 #else //UPGRADE_SKILL_SYSTEM_2013
 				float fMultiplier = 0.0f;
 				LUA_GET_VALUE_RETURN( luaManager_, "MULTIPLIER", fMultiplier, 0.0f, return DISPLAY_ERROR( L"MULTIPLIER" ) );
@@ -2087,7 +2128,7 @@ bool CX2BuffFactor::ParsingResetSkillCoolTimeByBuffBehavior( KLuaManager& luaMan
 
 		case BCT_PERCENT:
 			{
-				ParsingTableForWhile( luaManager_, L"PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
 			}
 			break;
 
@@ -2116,9 +2157,9 @@ bool CX2BuffFactor::ParsingResetSkillCoolTimeByBuffBehavior( KLuaManager& luaMan
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef FIX_SKILL_BALANCE_AISHA_LENA //JHKang
-bool CX2BuffFactor::ParsingChangConsumeMpRateBehavior( KLuaManager& luaManager_, const WCHAR* pwszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
+bool CX2BuffFactor::ParsingChangConsumeMpRateBehavior( KLuaManager& luaManager_, const char* pszTableName_, const BUFF_BEHAVIOR_TYPE eBehaviorType_, bool bIsSkill/* = true*/ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -2140,7 +2181,7 @@ bool CX2BuffFactor::ParsingChangConsumeMpRateBehavior( KLuaManager& luaManager_,
 		{
 		case BCT_PERCENT:	/// % 입력값
 			{
-				ParsingTableForWhile( luaManager_, L"PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
+				ParsingTableForWhile( luaManager_, "PERCENT", BuffBehaviorFactor.m_vecValues, bIsSkill );
 			} break;
 
 		default:
@@ -2159,10 +2200,10 @@ bool CX2BuffFactor::ParsingChangConsumeMpRateBehavior( KLuaManager& luaManager_,
 #endif //FIX_SKILL_BALANCE_AISHA_LENA
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-void CX2BuffFactor::ParsingTableForWhile( IN KLuaManager& luaManager_, IN const WCHAR* pwszTableName_,
+void CX2BuffFactor::ParsingTableForWhile( IN KLuaManager& luaManager_, IN const char* pszTableName_,
 	OUT vector<float>& vecValues_, IN bool bUpdateCount_/* = true*/ )
 {
-	if ( true == luaManager_.BeginTable( pwszTableName_ ) )
+	if ( true == luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -2188,12 +2229,12 @@ void CX2BuffFactor::ParsingTableForWhile( IN KLuaManager& luaManager_, IN const 
 			vecValues_.at( iValueSize ) = static_cast<float>( iIndex - 1 );
 	}
 	else
-		DISPLAY_ERROR( pwszTableName_ )
+		DISPLAY_ERROR( pszTableName_ )
 }
 
-void CX2BuffFactor::ParsingTableMinMaxForWhile( IN KLuaManager& luaManager_, IN const WCHAR* pwszTableName_, OUT vector<float>& vecValues_, IN bool bUpdateCount_/* = true*/ )
+void CX2BuffFactor::ParsingTableMinMaxForWhile( IN KLuaManager& luaManager_, IN const char* pszTableName_, OUT vector<float>& vecValues_, IN bool bUpdateCount_/* = true*/ )
 {
-	if ( true == luaManager_.BeginTable( pwszTableName_ ) )
+	if ( true == luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -2226,7 +2267,7 @@ void CX2BuffFactor::ParsingTableMinMaxForWhile( IN KLuaManager& luaManager_, IN 
 			vecValues_.at( iValueSize ) = static_cast<float>( iIndex - 1 );
 	}
 	else
-		DISPLAY_ERROR( pwszTableName_ )
+		DISPLAY_ERROR( pszTableName_ )
 }
 
 void BUFF_FACTOR::GetBehaviorFactorToLevel( IN const vector<KBuffBehaviorFactor>& vecInBehaviorFactorList ,
@@ -2302,6 +2343,9 @@ void BUFF_FACTOR::GetBehaviorFactorToLevel( IN const vector<KBuffBehaviorFactor>
 		case BBT_CHANGE_EVERY_ATTRIBUTE_DEFENCE:
 		case BBT_DRAIN_HP_NORMAL_ATTACK:
 		case BBT_CHANGE_MAX_MP:
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		case BBT_CHANGE_HYPER_CHARGE_SPEED:
+#endif //SERV_ADD_LUNATIC_PSYKER
 			{
 				const BUFF_CHANGE_TYPE eChangeType 
 					= STATIC_CAST_FLOAT_TO_ENUM( BUFF_CHANGE_TYPE, factor[CX2BuffChangeStatBehaviorTemplet::FO_CHANGE_TYPE] );

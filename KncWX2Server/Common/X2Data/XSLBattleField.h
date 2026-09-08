@@ -300,10 +300,19 @@ public:
 	bool	GetCreateMonsterList( IN const int iPlayerCount,
 							   OUT std::vector< KNPCUnitReq >& vecCreateNPCList ) const;
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	bool	GetCreateBossMonsterList( OUT std::vector<KNPCUnitReq>& vecCreateNPCList ) const;
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	// 리스폰 정보
 	bool	GetRespawnMonsterList( IN const CXSLBattleField::KBattleFieldMonsterCountInfo& kAliveMonsterCountInfo,
 								IN const std::map< int, int >& mapRespawnReadyNpcCount,
 								OUT std::vector< KNPCUnitReq >& vecCreateNPCList ) const;
+
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	bool	GetBattieFieldEventBossMonsterInfo( IN const int iDangerousValue, OUT std::vector<KNPCUnitReq>& vecNpcInfo );
+	bool	MakeEventBossMonsterInfo( IN const SSpawnNpcInfo& sSpawnNpcInfo, IN const bool bSiegeMode, IN const SRiskInfo& sRiskInfo, OUT KNPCUnitReq& kInfo ) const;
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 
 	//{{ 2013. 02. 15   필드 중간 보스 - 김민성
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
@@ -371,7 +380,13 @@ private:
 	std::vector< SRiskInfo >			m_vecRiskInfo;						// 위험도 정보
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	std::vector< SRiskInfo >			m_vecEventBossInfo;				// 이벤트보스 그룹정보
+#endif //SERV_BATTLEFIELD_EVENT_BOSS_INT
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	std::vector<SSpawnNpcGroup>			m_vecBossNpcGroupList;				// 출현 Boss NPC 그룹
+#endif // SERV_BATTLE_FIELD_BOSS
 	std::vector< SSpawnNpcGroup >		m_vecRespawnNpcGroupList;			// 출현 NPC 그룹
 	std::map< int, SSpawnNpcGroup >		m_mapNpcGroupList;					// 출현 NPC 그룹
 

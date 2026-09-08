@@ -18,6 +18,10 @@
 #include "Enum/Enum.h"
 #include "RoomListManager.h"
 
+#ifdef SERV_STRING_FILTER_USING_DB
+#include "StringFilterManager.h"
+#endif //SERV_STRING_FILTER_USING_DB
+
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GSUSER_CPP
@@ -38,6 +42,10 @@ IMPL_ON_FUNC( EGS_CHANGE_PARTY_TYPE_REQ )
 	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_CHANGE_PARTY_TYPE_REQ, EGS_CHANGE_PARTY_TYPE_ACK );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}	
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	kPacket_.m_wstrPartyName = SiKStringFilterManager()->FilteringChatString( kPacket_.m_wstrPartyName.c_str(), L'♡' );
+#endif //SERV_STRING_FILTER_USING_DB
 
 	KEGS_CHANGE_PARTY_TYPE_ACK kAck;
 
@@ -213,6 +221,34 @@ IMPL_ON_FUNC( EGS_REQUEST_MATCH_MAKING_REQ )
 		SendPacket( EGS_REQUEST_MATCH_MAKING_ACK, kPacketAck );
 		return;
 	}
+
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-09-26	// 박세훈
+	// 던전 자동 매칭 중인지 확인!!
+	if( m_kUserDungeonManager.GetAutoPartyWaitNumber() != 0  ||  m_kUserDungeonManager.GetAutoPartyUID() != 0 )
+	{
+		START_LOG( cerr, L"던전 자동 매칭 중인데 공식 대전 매칭 요청이 들어왔다!!" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< END_LOG;
+
+		kPacketAck.m_iOK = NetError::ERR_MATCH_MAKING_23;	// 던전 게임 신청 중에는 사용할 수 없는 기능입니다.
+		SendPacket( EGS_REQUEST_MATCH_MAKING_ACK, kPacketAck );
+		return;
+	}
+
+	// 룸 리스트 조회 중인지 확인!!
+	if( GetRoomListID() != 0 )
+	{
+		START_LOG( cerr, L"룸 리스트 조회 중에 공식 대전 매칭 요청이 들어왔다!!" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< END_LOG;
+
+		kPacketAck.m_iOK = NetError::ERR_AUTO_PARTY_08;	// 룸 리스트 조회 중에는 사용할 수 없는 기능입니다.
+		SendPacket( EGS_REQUEST_MATCH_MAKING_ACK, kPacketAck );
+		return;
+	}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
 
 	// 클라이언트가 보낸 정보를 검증한다.
 	switch( kPacket_.m_cPvpPlayerCount )

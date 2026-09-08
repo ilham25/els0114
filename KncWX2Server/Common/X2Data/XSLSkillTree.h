@@ -2,14 +2,25 @@
 
 #include "X2Data/XSLMain.h"
 #include <RTTI.h>
+
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+#include "RefreshSingleton.h"
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 #include <ToString.h>
 #include <KNCSingleton.h>
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 
 
 
 class CXSLSkillTree
 {
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+	DeclareRefreshSingleton( CXSLSkillTree );
+	DeclareLuaScriptParser;
+	DeclDumpToLogFile;
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	DeclareSingleton( CXSLSkillTree );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	DeclToStringW;
 	DeclDump;
 
@@ -1184,6 +1195,133 @@ public:
 */
 #endif //SERV_UPGRADE_SKILL_SYSTEM_2013
 
+		// Elesis
+		SI_SA_EL_WILD_SHOCK							= 8000,		/// 와일드 쇼크
+		SI_SA_EL_POWER_BURSTER						= 8001,		/// 파워 버스터
+		SI_SA_EL_MEGA_BURSTER						= 8002,		/// 메가 버스터
+		SI_SA_EL_UNLIMITED_BLADE					= 8003,		/// 언리미티드 블레이드
+
+		SI_SA_SSK_SPIRAL_BLAST						= 8004,		/// 스파이럴 블래스트
+		SI_SA_SSK_EXTINCTION						= 8005,		/// 세이버 - 익스팅션
+		SI_SA_SSK_VICTORIOUS_SWORD					= 8006,		/// 승리의 검
+		SI_SA_SSK_JUDGEMENT_DRIVE					= 8007,		/// 저지먼트 드라이브
+
+		SI_SA_SPK_BURST_RISING						= 8008,		/// 버스트 라이징
+		SI_SA_SPK_BURST_WAVE						= 8009,		/// 버스트 웨이브
+		SI_SA_SPK_SWORDFIRE							= 8010,		/// 소드 파이어
+		SI_SA_SPK_INFERNAL_BLADE					= 8011,		/// 인페르날 블레이드
+		SI_SA_SPK_ETERNAL_FIRE						= 8012,		/// 이터널 파이어
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+		SI_SA_SGM_SONIC_BLADE						= 8013,		/// 소닉 블레이드
+		SI_SA_SGM_CRITICAL_DIVE						= 8014,		/// 크리티컬 다이브
+		SI_SA_SBH_SCALDIC_SWORD						= 8015,		/// 스칼딕 소드
+		SI_SA_SBH_WALL_OF_PROMINENCE				= 8016,		/// 파이어 월
+		SI_SA_SGM_JUGGERNAUT_BUSTER					= 8017,		/// 저거넛 버스터
+		SI_SA_SGM_WAR_PRELUDE						= 8018,		/// 워 프렐류드
+		SI_SA_SBH_BLAZE_WING						= 8019,		/// 블레이즈 윙	
+		SI_SA_SBH_BLAZING_DANCE						= 8020,		/// 블레이징 댄스
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+		SI_A_EL_DODGE_AND_SLASH						= 8200,		/// 닷지&슬래시
+		SI_A_EL_LEAP_CRASH							= 8201,		/// 도약
+		SI_A_EL_RUSHING_SWORD						= 8202,		/// 러싱 소드
+		SI_A_EL_KICK								= 8203,		/// 발차기
+		SI_A_EL_MEGA_SLASH							= 8204,		/// 메가 슬래시
+		SI_A_EL_SONIC_ASSAULT_STAB					= 8205,		/// 소닉 어설트 - 스탭
+		SI_A_EL_SONIC_ASSAULT_STING					= 8206,		/// 소닉 어설트 - 스팅
+
+		SI_A_EL_ENDURANCE_POWER						= 8207,		/// 극기 - 강
+
+		SI_A_SSK_CROSS_SLASH						= 8208,		/// 크로스 슬래시
+		SI_A_SSK_POWER_BREAK						= 8209,		/// 파워 브레이크
+		SI_A_SSK_HEAVY_STUNNER						= 8210,		/// 헤비 스터너
+
+		SI_A_SPK_SWORD_ERUPTION						= 8211,		/// 소드 이럽션
+		SI_A_SPK_SCALDIC_SWORD						= 8212,		/// 불꽃의 검
+		SI_A_SPK_BIG_BURST							= 8213,		/// 대폭살
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+		SI_A_SGM_PROVOKE							= 8214,		/// 도발
+		SI_A_SGM_DRASTIC_CHARGE						= 8215,		/// 드래스틱 차지
+		SI_A_SGM_SNAP_CRASHER						= 8216,		/// 스냅 크래셔
+		SI_A_SBH_FLAME_SWORD						= 8217,		///	홍련의 검
+		SI_A_SBH_FIREWORKS							= 8218,		/// 불놀이
+		SI_A_SBH_SCALET_ROSE						= 8219,		/// 불꽃 장미
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+		SI_P_SSK_AGILITY_MASTERY					= 8400,		/// 순발력 향상
+		SI_P_SSK_CHIVALRY							= 8401,		/// 기사의 숙명
+		SI_P_SPK_CONCENTRATION_MASTERY				= 8402,		/// 집중력 향상
+		SI_P_SPK_BODY_OF_FIRE						= 8403,		/// 불의 신체
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+		SI_P_SGM_ADVANCED_KNIGHT_MASTERY			= 8404,		/// 상급 기사 숙련
+		SI_P_SGM_WALTZ_OF_SWORD						= 8405,		/// 검의 왈츠
+		SI_P_SGM_FIRST_STRIKE						= 8406,		/// 선수필승
+		SI_P_SBH_FIRE_BLOSSOMS						= 8407,		/// 불꽃 개화
+		SI_P_SBH_UNEXTINGUISHABLE_FIRE				= 8408,		/// 꺼지지 않는 불꽃
+		SI_P_SBH_STIGMA_OF_FIRE						= 8409,		/// 불꽃의 낙인	
+
+		SI_HA_SGM_SWORD_OF_RELICS					= 8600,		/// 소드 오브 렐릭스
+		SI_HA_SBH_ANCIENT_FIRE						= 8601,		/// 에인션트 파이어
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE	
+
+
+		// Add
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		SI_SA_AN_VOID_BREAKER						= 9000,		/// 보이드 브레이커
+		SI_SA_AN_PARTICLE_PRISM						= 9001,		/// 파티클 프리즘
+		SI_SA_AN_ENERGY_BOOM						= 9002,		/// 에너지 붐
+		SI_SA_AN_PARTICLE_ACCELERATOR				= 9003,		/// 파티클 액셀러레이터
+		SI_SA_AN_NEUTRON_BOMB						= 9004,		/// 뉴트란 밤
+
+		SI_SA_APT_PULSE_CANNON						= 9005,		/// 펄스 캐논
+		SI_SA_APT_EMP_SHOCK							= 9006,		/// EMP 쇼크
+		SI_SA_APT_QUAKE_BUSTER						= 9007,		/// 퀘이크 버스터
+		SI_SA_APT_STASIS_FIELD						= 9008,		/// 스테이시스 필드
+		SI_SA_APT_CONQUEROR							= 9009,		/// 퀀커러
+
+	#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		SI_SA_ALP_REVERSE_REACTOR					= 9010,		/// 리버스 리액터
+		SI_SA_ALP_QUICKSILVER_ACCEL					= 9011,		/// 퀵실버 액셀
+		SI_SA_ALP_QUICKSILVER_FRENZY				= 9012,		/// 퀵실버 프렌지
+		SI_SA_ALP_DUST_ANATOMY						= 9013,		/// 더스트 아나토미
+		SI_SA_ALP_PSYCHIC_STORM						= 9014,		/// 사이킥 스톰
+	#endif //SERV_ADD_LUNATIC_PSYKER
+
+
+		SI_A_AN_PULSE_BULLET						= 9200,		/// 입자탄
+		SI_A_AN_MIND_BREAK							= 9201,		/// 정신 붕괴
+		SI_A_AN_PHASE_SHIFT							= 9202,		/// 위상 변화
+
+		SI_A_APT_MAGNETRON_DYNAMO					= 9203,		/// 다이너모 구성 - 마그네트론
+		SI_A_APT_DESOLVER_DYNAMO					= 9204,		/// 다이너모 구성 - 디졸버
+		SI_A_APT_PYLON_DYNAMO						= 9205,		/// 다이너모 구성 - 파일런
+
+	#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		SI_A_ALP_PSIONIC_BEAT						= 9206,		/// 사이오닉 비트
+		SI_A_ALP_TWIRL_RUSH							= 9207,		/// 트월 러시
+	#endif //SERV_ADD_LUNATIC_PSYKER
+
+
+		SI_P_AN_CHARGED_IMPULSAR					= 9400,		/// 다이너모 구성 - 과충전기
+		SI_P_AN_RESEARCH_DYNAMO_DISSOLUTION			= 9401,		/// 다이너모 연구 - 해체
+		SI_P_AN_RESEARCH_DYNAMO_COMPOSITION			= 9402,		/// 다이너모 연구 - 구성
+		SI_P_APT_NASOD_ARMOR_MODE					= 9403,		/// 나소드 아머 모드
+
+		SI_P_APT_LIBRARY_OF_LIMITLESS				= 9404,		/// 무한의 도서관
+		SI_P_APT_DUST_STORM							= 9405,		/// 미립자 폭풍
+
+	#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		SI_P_ALP_BODY_OF_TRANSCENDENCE				= 9406,		/// 초월자의 신체
+		SI_P_ALP_POWER_EXCHANGER					= 9407,		/// 출력 교환기
+		SI_P_ALP_FANTASY_TRACER						= 9408,		/// 환상 추적자
+	#endif //SERV_ADD_LUNATIC_PSYKER
+
+
+	#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		SI_HA_ALP_DOOMS_DAY							= 9600,		/// 둠스 데이
+	#endif //SERV_ADD_LUNATIC_PSYKER
+#endif //SERV_9TH_NEW_CHARACTER
+
 	}; 
 
 	enum SKILL_ABILITY_TYPE
@@ -1493,7 +1631,7 @@ public:
 	//////////////////////////////////////////////////////////////////////////
 	//BEGIN : SERVER 에서만 사용되는 함수(레벨업시 스킬포인트를 주기위한..)
 	bool					GetCalcLevelUpIncreaseSkillPoint( IN u_char ucLevel, OUT int& iSkillPoint );	
-	bool					GetCalcInitSkillPoint( IN u_char ucLevel, OUT int& iSkillPoint );	
+	bool					GetCalcInitSkillPoint( IN u_char ucLevel, OUT int& iSkillPoint ) const;	
 	bool					IsUnitTypeDefaultSkill( IN int iSkillID );
 	bool					GetUnitClassDefaultSkill( IN char cUnitClass, OUT int& iSkillID1, OUT int& iSkillID2, OUT int& iSkillID3, OUT int& iSkillID4, OUT int& iSkillID5, OUT int& iSkillID6 );	
 	//END
@@ -1770,6 +1908,8 @@ private:
 
 };
 
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+DefRefreshSingletonInline( CXSLSkillTree );
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 DefSingletonInline( CXSLSkillTree );
-
-
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2

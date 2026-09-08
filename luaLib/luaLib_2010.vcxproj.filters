@@ -14,12 +14,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="KLuabinder.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="KLuaManager.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="lapi.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -104,9 +98,6 @@
     <ClCompile Include="lua.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="lua_tinker.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="luac.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
@@ -122,14 +113,17 @@
     <ClCompile Include="print.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="..\LuaCommon\lua_tinker.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LuaCommon\KLuabinder.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="..\LuaCommon\KLuaManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="KLuabinder.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="KLuaManager.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="lapi.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -187,9 +181,6 @@
     <ClInclude Include="lua.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="lua_tinker.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="luaconf.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
@@ -203,6 +194,18 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="lzio.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LuaCommon\LuaHeaderCommon.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LuaCommon\KLuabinder.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LuaCommon\KLuaManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LuaCommon\lua_tinker.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

@@ -753,15 +753,15 @@ bool CKTDGUIDialogManager::ExistDialogAtMousePos()
 {
 	KTDXPROFILE();
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	CKTDGUIDialogSet::iterator sitDialog;
 
 	for( sitDialog = m_setDialog.begin(); sitDialog != m_setDialog.end(); ++sitDialog )
-#else
-	CKTDGUIDialogList::iterator sitDialog;
-
-	for( sitDialog = m_listDialog.begin(); sitDialog != m_listDialog.end(); ++sitDialog )
-#endif
+//#else
+//	CKTDGUIDialogList::iterator sitDialog;
+//
+//	for( sitDialog = m_listDialog.begin(); sitDialog != m_listDialog.end(); ++sitDialog )
+//#endif
 	{
 		if( *sitDialog == NULL )
 			continue;
@@ -938,6 +938,34 @@ HRESULT CKTDGUIDialogManager::OnFrameRender( bool bFront )
         if ( pDialog->GetShow() )
             pDialog->OnFrameRender();
     }//while
+
+#ifdef LOG_LOAD_DLG_SCRIPT
+	if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_LCONTROL) == TRUE )
+	{
+		m_vecIterator.back() = m_listDialog.begin();
+
+		int iNum = 0;
+
+		while( m_vecIterator.back() != m_listDialog.end() )
+		{
+			CKTDGUIDialogType pDialog = *m_vecIterator.back();
+			ASSERT( pDialog != NULL );
+			m_vecIterator.back()++;
+			if ( pDialog->GetFront() != bFront )
+				continue;
+			
+			if ( pDialog->GetShow() && pDialog->GetShowScriptName() )
+			{
+				GetUKFont( 4 )->OutTextXY( 412, 100 + 100 * iNum, pDialog->GetScriptFileName().c_str(), D3DXCOLOR(1,0.6f,0,1),
+					CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_CENTER );
+				GetUKFont( 4 )->OutTextXY( 412, 150 + 100 * iNum, pDialog->GetMouseOverStaticName().c_str(), D3DXCOLOR(1,0.6f,0,1),
+					CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_CENTER );
+
+				++iNum;
+			}
+		}//while
+	}
+#endif //LOG_LOAD_DLG_SCRIPT
 
     m_vecIterator.back() = m_listDialog.begin();
 

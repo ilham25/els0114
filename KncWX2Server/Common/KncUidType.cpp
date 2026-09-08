@@ -8,7 +8,6 @@
 	#define EXTEND_SERVER_GROUP_MASK
 #endif //defined( SERV_COUNTRY_CN ) || defined( SERV_COUNTRY_US )
 
-
 namespace KncUid {
 
     typedef unsigned int DWORD;

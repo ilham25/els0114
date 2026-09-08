@@ -42,7 +42,11 @@ public:
 
 	void				SetLayer( int layer );
 	D3DXVECTOR2			GetDLGSize() const { return m_vDlgSize; }
-	CX2Inventory*		GetInventory();								// 후에 const를 붙여보기!!
+//{{ robobeg : 2013-11-01
+	//CX2Inventory*		GetInventory();								// 후에 const를 붙여보기!!
+    const CX2Inventory*		GetMyInventory() const;								// 후에 const를 붙여보기!!
+    CX2Inventory*		AccessMyInventory();								// 후에 const를 붙여보기!!
+//}} robobeg : 2013-11-01
 	void				UpdateSlotList();
 	void				UpdateUI();
 	void				LostItemSlotList( bool bShow = false, bool bEnable = false );

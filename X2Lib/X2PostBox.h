@@ -166,7 +166,7 @@ public:
     // 인벤토리 정렬    
     bool SetInventorySort();
 
-    CX2Inventory::SORT_TYPE GetNowInventorySortType() { return m_NowInventorySortType; }
+    CX2Inventory::SORT_TYPE GetInventorySortType() { return m_NowInventorySortType; }
 
 	void DrawSlotMouseOverImage();
     virtual bool DrawSlotMouseOverImageInEquipRect();
@@ -288,6 +288,11 @@ protected:
 
 	// 우편 제목, 보낸이 길이 제한
 	void LimitPostStringLength( OUT wstring& wstrTitle_, OUT wstring& wstrFromNickName_ );
+
+#ifdef SERV_FREE_MAIL_TICKET
+	int GetPostFee( IN int iED, IN const CX2Item* pItemData );
+#endif //SERV_FREE_MAIL_TICKET
+
 public:
     // 메일 전송
     
@@ -390,11 +395,7 @@ private:
     bool m_bAttachItem;
     int m_nTabIndex;
 		
-#ifdef FIX_SEND_LETTER
 	UidType m_iItemUid;
-#else
-    CX2Item *m_pItemData;
-#endif
 
     int m_nMaxPage;
     int m_nCurrentPage;

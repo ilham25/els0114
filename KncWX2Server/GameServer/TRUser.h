@@ -107,7 +107,7 @@ protected:
 	KSkTRUserPtr	m_spSockObj;
     UidType			m_iUnitUID;
 	bool			m_bDestroyReserved;
-	DWORD			m_adwTickCount[ENUM_TICKS::TICKS_NUM];
+	DWORD			m_adwTickCount[TICKS_NUM];
 };
 
 template< typename T >

@@ -747,10 +747,7 @@ public:
 
 			//»÷´õ PVP ¸Ê
 			WI_SANDER_GARPAI_ROCK_PVPMAP				= 546,	
-			WI_SANDER_VILLIAGE_PVPMAP					= 547,	
-			
-			WI_RUBEN_WEDDING							= 548,
-			WI_SANDER_WEDDING							= 549,
+			WI_SANDER_VILLIAGE_PVPMAP					= 547,							WI_RUBEN_WEDDING							= 548,			WI_SANDER_WEDDING							= 549,
 
 			// »÷´õ 5¹ø ´øÀü, »÷Æ¿·¯½º È£
 			WI_SANDER_SANTILUS_SHIP_STAGE0			 	= 550,
@@ -770,8 +767,11 @@ public:
 			//ÇØ¿ÜÆÀ ³ªÀÌÆ®¿ÍÃÄ ÀÌº¥Æ® ´øÁ¯ 2013.07.03 ±èÃ¢ÇÑ
 			WI_EVENT_NIGHT_WATCHER_STAGE1 = 560,
 
-			WI_EVENT_HALLOWEEN_2013_STAGE0			= 570,
+			//ÇÏ¸á ºñ´ø
+			WI_HAMEL_SECRET_STAGE0					 	= 561,			WI_HAMEL_SECRET_STAGE1					 	= 562,			WI_HAMEL_SECRET_STAGE2					 	= 563,			WI_HAMEL_SECRET_STAGE3					 	= 564,			WI_HAMEL_SECRET_BOSS_STAGE					= 565,			WI_HAMEL_SECRET_EXTRA_STAGE1				= 566,			WI_HAMEL_SECRET_EXTRA_STAGE2				= 567,			WI_HAMEL_SECRET_EXTRA_STAGE3				= 568,			WI_HAMEL_SECRET_EXTRA_BOSS_STAGE0			= 569,
 
+			WI_FIELD_BOSSRAID_KINGDOM_OF_NASOD			= 570,	// ³ª¼Òµå ¿Õ±¹
+			WI_FIELD_BOSSRAID_VALLEY_OF_ABYSS			= 571,	// ½É¿¬ÀÇ °è°î
 			WI_END,
 		};
 
@@ -958,10 +958,8 @@ public:
 #endif
 
 		void				SetBGM_LUA( const char* pFileName );
-#ifdef REFORM_TUTORIAL
 		void				SetBGMName( const wstring& BGMName_){ m_BGMName = BGMName_; } 
 		wstring				GetBGMName() const {return m_BGMName;}
-#endif //REFORM_TUTORIAL
 		void				AddEffectBGM_LUA( const char* pFileName );
 		void				Add3DEffectBGM_LUA( const char* pFileName, float x, float y, float z, float fMax3DDistance );
 		void				StopAllEffectBGM();

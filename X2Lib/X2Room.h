@@ -147,10 +147,10 @@ class CX2Room
 			CX2Unit*					m_pUnit;
 			CX2UnitViewerUI*			m_pUnitViewer;
 
-#ifdef PVP_BOSS_COMBAT_TEST
-			bool						m_bIsBoss;
-			
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//			bool						m_bIsBoss;
+//			
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 #ifdef TAG_MATCH_TEST
@@ -214,9 +214,9 @@ class CX2Room
 				m_pUnit			= NULL;
 				m_pUnitViewer	= NULL;
 
-#ifdef PVP_BOSS_COMBAT_TEST
-				m_bIsBoss		= false;
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//				m_bIsBoss		= false;
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 #ifdef TAG_MATCH_TEST
@@ -252,6 +252,7 @@ class CX2Room
 			
 			virtual void Free();
 
+            CX2Unit*    GetUnit()   { return m_pUnit; }
 
 			bool	Set_KRoomSlotInfo( const KRoomSlotInfo& kRoomSlotInfo );
 			bool	Set_KRoomSlotInfoOfMine( const KRoomSlotInfo& kRoomSlotInfo_ );
@@ -266,14 +267,15 @@ class CX2Room
 			bool	GetIsPitIn() { return m_bPitIn; }
 			int		GetSlotState() const { return (int)m_SlotState; }
 			int		GetTeamNum()	{ return m_TeamNum; }
-#ifdef PVP_BOSS_COMBAT_TEST
-			bool GetIsBoss() const { return m_bIsBoss; }
-			void SetIsBoss(const bool val) { m_bIsBoss = val; }
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//			bool GetIsBoss() const { return m_bIsBoss; }
+//			void SetIsBoss(const bool val) { m_bIsBoss = val; }
+//#endif PVP_BOSS_COMBAT_TEST
 
 #ifdef OBSERVER_DISABLE_IP
 			bool	IsObserver()	{ return m_bObserver;	}
 #endif OBSERVER_DISABLE_IP
+
 #ifdef SERV_NEW_PVPROOM_PROCESS
 			bool	GetIsObserver() { return m_bObserver; }
 #endif SERV_NEW_PVPROOM_PROCESS
@@ -301,18 +303,6 @@ class CX2Room
 			float		m_fDefPhysic;
 			float		m_fDefMagic;
 
-#ifdef SERV_IRUHADEV_OFFLINE
-			/// AI_PARTY_PLAN.md phase 1. The bot slot's unit class, carried
-			/// through so CX2Game::CreateOfflinePartyBots can turn it into an
-			/// NPC id. It has to be captured here because DeleteNpcSlot() has
-			/// already destroyed the SlotData by the time the spawn loop runs,
-			/// and no packet on the dungeon path carries an NPC id at all -
-			/// KEGS_PARTY_GAME_START_NOT has no m_mapPvpNpcInfo, only
-			/// EGS_GAME_START_PVP_MATCH_NOT does, so m_iNpcId is 0 there.
-			/// A client-side struct, not a packet, so this costs nothing.
-			char		m_cUnitClass;
-#endif SERV_IRUHADEV_OFFLINE
-
 			RoomNpcSlot()
 			{
 				m_iNpcId = 0;
@@ -329,9 +319,6 @@ class CX2Room
 				m_fAtkMagic = 0.f;
 				m_fDefPhysic = 0.f;
 				m_fDefMagic = 0.f;
-#ifdef SERV_IRUHADEV_OFFLINE
-				m_cUnitClass = 0;
-#endif SERV_IRUHADEV_OFFLINE
 			}
 		};
 #endif
@@ -345,9 +332,9 @@ class CX2Room
 
 		HRESULT				OnFrameMove( double fTime, float fElapsedTime );
 		void				P2PPacketHandler();
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK					
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK					
 		bool				P2PPacketHandler( CKTDNUDP::RecvData* pRecvData );
-#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
+//#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
 		void				TestPing();
 
 		UidType				GetRoomUID()								{ return m_RoomUID;						}
@@ -468,10 +455,6 @@ class CX2Room
 		
 		int					GetNumOfPlayers() const { return m_iNumOfPlayers; }
 		void				SetNumOfPlayers(int val) { m_iNumOfPlayers = val; }
-
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		int					GetRoomBuffType() { return m_iRoomBuffType; } //
-#endif
 
 #ifdef UDP_CAN_NOT_SEND_USER_KICK
 		bool				GetCheckUDPGameCountStart()	{return m_bCheckGameStart; }
@@ -604,10 +587,6 @@ class CX2Room
 
 #ifdef SERV_PVP_NEW_SYSTEM
 		std::vector< RoomNpcSlot >	m_vecNpcSlot;
-#endif
-
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		int							m_iRoomBuffType;
 #endif
 
 #ifdef UDP_CAN_NOT_SEND_USER_KICK

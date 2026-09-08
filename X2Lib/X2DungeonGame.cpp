@@ -53,7 +53,7 @@ m_pMonsterIndicator( NULL ),
 m_pDamageDataForDungeonTimeOut( NULL ),
 #endif DUNGEON_TIME_OUT_FRAMEMOVE
 m_bKilledBoss( false ),
-m_hBossName(INVALID_PARTICLE_HANDLE)
+m_hBossName(INVALID_PARTICLE_SEQUENCE_HANDLE)
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 , m_iDefenceDungeonWaveID( -1 )		// 어둠의 문 서브스테이지( Wave )
 #endif //SERV_DUNGEON_FORCED_EXIT_SYSTEM
@@ -147,15 +147,13 @@ CX2DungeonGame::~CX2DungeonGame(void)
 	//g_pData->GetUnitManager()->UnloadAllNPCInitData();
 //}} robobeg : 2013-06-12
 
-#ifdef REFORM_TUTORIAL
 	if( NULL != g_pData && NULL != g_pData->GetPlayGuide() )
 	{
 		g_pData->GetPlayGuide()->DeleteQuestGuideParticle();
 		g_pData->GetPlayGuide()->DeleteInputGuideParticle();
 	}
-#endif
 
-	if( INVALID_PARTICLE_HANDLE != m_hBossName )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hBossName )
 		GetMinorParticle()->DestroyInstanceHandle(m_hBossName);
 
 	CX2Game::Release();	/// 상위 클래스의 소멸자가 나중에 호출
@@ -175,20 +173,6 @@ HRESULT CX2DungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 		//}}
 #endif DUNGEON_TIME_OUT_FRAMEMOVE
 		CountTimeSubStageFrameMove( fTime, fElapsedTime );
-#ifndef REFORM_TUTORIAL
-		TutorialFrameMove( fTime, fElapsedTime );
-#endif //REFORM_TUTORIAL
-
-#ifdef SERV_IRUHADEV_OFFLINE
-		// AI_PARTY_PLAN.md phase 2. Bring a dead AI party member back.
-		//
-		// Per frame rather than per sub-stage because a bot dies mid-fight,
-		// and SubStageStart - where CreateOfflinePartyBots hangs - may not
-		// come round again for minutes. The method's own guards make this
-		// free on the solo path: it returns immediately when the room has no
-		// bot slots, which is every room the normal start button opens.
-		TickOfflinePartyBots( fElapsedTime );
-#endif SERV_IRUHADEV_OFFLINE
 
 		if( m_pDungeon != NULL )
 			m_pDungeon->OnFrameMove( fTime, fElapsedTime );
@@ -244,8 +228,8 @@ HRESULT CX2DungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 			CX2GUUser* pCX2GUUser = GetMyUnit();
 			if( pCX2GUUser != NULL && pCX2GUUser->GetGameUnitState() != CX2GameUnit::GUSI_DIE )
 			{
-				const CX2GUUser::SyncData* pSyncData = pCX2GUUser->GetSyncData( false );
-				if( m_pDungeon->GetNowStage()->GetNowSubStage()->TouchStartLineMapSet( pSyncData->lastTouchLineIndex ) == true )
+				const CX2GUUser::SyncData& kSyncData = pCX2GUUser->GetSyncData( false );
+				if( m_pDungeon->GetNowStage()->GetNowSubStage()->TouchStartLineMapSet( kSyncData.lastTouchLineIndex ) == true )
 				{
 #ifdef CHECK_SUB_STAGE_GO_NEXT
 					m_bCheckSubStageGoNext = true;
@@ -321,19 +305,6 @@ HRESULT CX2DungeonGame::OnFrameRender()
 		}
 
 		
-#ifndef REFORM_TUTORIAL
-		if( true == g_pMain->GetIsPlayingTutorial() )
-		{
-			if( true == m_bShowTutorialUI && true == m_bIsThereTutorialMsg )
-			{
-				if( m_fTimeLeftForTutorialMessage == -1.f || m_fTimeLeftForTutorialMessage > 0.f )
-				{
-					m_pFontForTutorialMsg->OutTextXY( 516, 264, m_wstrTutorialMsg.c_str(), 
-						m_coTutorialMsg, CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_CENTER );
-				}
-			}
-		}
-#endif //REFORM_TUTORIAL
 
 		if( CX2Main::XS_TRAINING_GAME == g_pMain->GetNowStateID() && true == m_bStartRealTraining &&
 			false == g_pMain->GetIsPlayingFreeTraining() )
@@ -601,16 +572,14 @@ void CX2DungeonGame::GameLoading( CX2Room* pRoom )
 	SAFE_DELETE( m_pMonsterIndicator );
 	if( false == g_pMain->GetIsPlayingTutorial() )		// 튜토리얼에서는 남은 몬스터 표시 화살표 안나오게
 	{
-#ifdef ADD_TRAININGGAME_NPC
 		if( g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
-#endif
-		m_pMonsterIndicator = new CX2MonsterIndicator();
+			m_pMonsterIndicator = new CX2MonsterIndicator();
 	}
 
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 	if ( g_pKTDXApp->GetDeviceManager() != NULL )
 		g_pKTDXApp->GetDeviceManager()->ReleaseAllMemoryBuffers();
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
 }
 
@@ -682,29 +651,7 @@ void CX2DungeonGame::StageLoading( int stageNum )
 
 	m_CreateNPCDataList.resize(0);
 
-#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
-	// AI_PARTY_PLAN.md phase 2. THIS SWEEP IS WHAT KILLED THE AI PARTY AT
-	// EVERY STAGE, and the flag below is the only thing that stops it.
-	//
-	// A real party member is never rebuilt here: CX2GUUser units are built
-	// once in CX2Game::UnitLoading and this function merely repositions them,
-	// a few dozen lines down. Our bots are NPCs, so they were swept away with
-	// the stage's monsters and CreateOfflinePartyBots had to spawn all three
-	// again at SubStageStart - a packet round trip plus three CX2GUNPC
-	// constructions, which land after the loading curtain has already
-	// lifted. Hence "I solo for a few seconds at every stage change".
-	//
-	// Scoped to this one call rather than made a property of a bot, so
-	// every other caller of DeleteAllNPCUnit still means all of them.
-	// Only LIVING bots are spared; a dead one is let go here and rebuilt
-	// whole by the spawn path, which is the cheapest revive available and
-	// costs nothing extra while the stage is loading anyway.
-	m_bOfflineKeepPartyBots = true;
 	DeleteAllNPCUnit();
-	m_bOfflineKeepPartyBots = false;
-#else
-	DeleteAllNPCUnit();
-#endif SERV_IRUHADEV_AIPARTY_PERSIST
 	m_pDropItemManager->DeleteAllItem();
 
 #ifdef DUNGEON_ITEM
@@ -763,27 +710,25 @@ void CX2DungeonGame::StageLoading( int stageNum )
 		{
 			for( int i=0; i<m_pWorld->GetLineMap()->GetNumLineData(); i++ )
 			{
-				CKTDGLineMap::LineData* pLineData = m_pWorld->GetLineMap()->GetLineData( i );
+				const CKTDGLineMap::LineData* pLineData = m_pWorld->GetLineMap()->GetLineData( i );
 				if( NULL != pLineData &&
 					CKTDGLineMap::LT_POTAL == pLineData->lineType )
 				{
-					CX2WorldObjectParticle* pParticle = m_pWorld->CreateObjectParticle( g_pX2Game->GetMajorParticle(), "Peita_Teleport_MagicSquare01" );
+					CX2WorldObjectParticle* pParticle = m_pWorld->CreateObjectParticle( GetMajorParticle(), "Peita_Teleport_MagicSquare01" );
 					if( NULL != pParticle )
 					{
 						pParticle->SetParticlePos( ( pLineData->startPos + pLineData->endPos ) * 0.5f + D3DXVECTOR3(0, 3, 0 ) );
 						pParticle->SetLayer( XL_EFFECT_0 );
 					}
-#ifdef REFORM_TUTORIAL
 					if( true == g_pMain->GetIsPlayingTutorial() )
 					{
-						CX2WorldObjectParticle* pParticle = m_pWorld->CreateObjectParticle( g_pX2Game->GetMajorParticle(), "CompleteQuest" );
+						CX2WorldObjectParticle* pParticle = m_pWorld->CreateObjectParticle( GetMajorParticle(), "CompleteQuest" );
 						if( NULL != pParticle )
 						{
 							pParticle->SetParticlePos( ( pLineData->startPos + pLineData->endPos ) * 0.5f + D3DXVECTOR3(0, 250, 0 ) );
 							pParticle->SetLayer( XL_EFFECT_0 );
 						}
 					}
-#endif //REFORM_TUTORIAL
 				}
 			}
 		}
@@ -869,28 +814,19 @@ void CX2DungeonGame::StageLoading( int stageNum )
 
 		pCX2GUUser->SetPepperRunTime( 0.f );
 		
-		//g_pX2Game->GetX2Camera()->NomalDirectCamera( (CX2GameUnit*) pCX2GUUser );
+		//GetX2Camera()->NomalDirectCamera( (CX2GameUnit*) pCX2GUUser );
 	}
 #ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 	::LeaveCriticalSection( &m_csGameIntruder );
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 
-#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
-	// AI_PARTY_PLAN.md phase 2. The AI party gets exactly what the loop
-	// above just gave the user units: a position on the new stage and its
-	// wait state. Here rather than in StageStart because m_pWorld and its
-	// line map are new as of a few lines up, and SetPosition re-derives the
-	// unit's line index from whatever map is current.
-	RepositionOfflinePartyBots();
-#endif SERV_IRUHADEV_AIPARTY_PERSIST
-
 	m_pCamera->SetLandHeight( m_pWorld->GetLineMap()->GetLandHeight() );
-	m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption()->GetCameraDistance() );
+	m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption().GetCameraDistance() );
 
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 	if ( g_pKTDXApp->GetDeviceManager() != NULL )
 		g_pKTDXApp->GetDeviceManager()->ReleaseAllMemoryBuffers();
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
 }
 
@@ -908,7 +844,7 @@ void CX2DungeonGame::StageStart()
 	m_pWorld->GetLineMap()->DisableAllLineData();
 	m_bKilledBoss = false;
 
-	m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption()->GetCameraDistance() );
+	m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption().GetCameraDistance() );
 	m_pCamera->OnFrameMove( 0, 0 );
 
 #ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
@@ -943,6 +879,12 @@ void CX2DungeonGame::StageStart()
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 	KOGGamePerformanceCheck::GetInstance()->Resume();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+#ifdef  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+    if ( g_pData->GetGameUDP() != NULL )
+        g_pData->GetGameUDP()->RemoveAllPendingPingSends();
+#endif  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+
 #ifdef SHOW_REMAIN_TIME_IN_CLEAR_CONDITION
 	if( NULL != m_pDungeon && NULL != m_pDungeon->GetDungeonData() &&
 		m_pDungeon->GetDungeonData()->m_bShowStageTime == true )
@@ -950,6 +892,7 @@ void CX2DungeonGame::StageStart()
 		m_bShowStageReaminTime = true;
 	}
 #endif SHOW_REMAIN_TIME_IN_CLEAR_CONDITION
+
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	if ( NULL != g_pData->GetRelationshipEffectManager() )
 	{
@@ -979,15 +922,15 @@ void CX2DungeonGame::SubStageOpen( int subStageNum )
 			// 적정레벨 던전을 시작하는 첫 서브스테이지에서만 소환
 			if( m_pDungeon->GetNowStageIndex() == 0 &&
 				subStageNum == 0 &&
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level >= pDungeonData->m_MinLevel - 2 &&
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level <= pDungeonData->m_MaxLevel + 2 &&
-				g_pData->GetDungeonManager()->IsHenirDungeon( g_pData->GetDungeonRoom()->GetDungeonID() ) == false &&
-				g_pData->GetDungeonRoom()->GetDungeonID() != CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL &&
-				g_pData->GetDungeonRoom()->GetDungeonID() != CX2Dungeon::DI_RUBEN_RUIN_OF_ELF_NORMAL &&
-				g_pData->GetDungeonRoom()->GetDungeonID() != CX2Dungeon::DI_RUBEN_SWAMP_NORMAL )
+				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level >= pDungeonData->m_MinLevel - 2 &&
+				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level <= pDungeonData->m_MaxLevel + 2 &&
+				CX2Dungeon::IsHenirDungeon( g_pData->GetDungeonRoom()->GetDungeonID() ) == false &&
+				g_pData->GetDungeonRoom()->GetDungeonID() != SEnum::DI_RUBEN_EL_TREE_NORMAL &&
+				g_pData->GetDungeonRoom()->GetDungeonID() != SEnum::DI_RUBEN_RUIN_OF_ELF_NORMAL &&
+				g_pData->GetDungeonRoom()->GetDungeonID() != SEnum::DI_RUBEN_SWAMP_NORMAL )
 			{
 				CX2GUUser* pCX2GUUser = GetMyUnit();
-				if( pCX2GUUser->GetUnit()->GetInventory()->GetItemByTID( _CONST_SERV_2013_CHRISTMAS_EVENT_::iPresentBagItemID ) != NULL )
+				if( pCX2GUUser->GetUnit()->GetInventory().GetItemByTID( _CONST_SERV_2013_CHRISTMAS_EVENT_::iPresentBagItemID ) != NULL )
 				{
 					g_pX2Game->Handler_EGS_NPC_UNIT_CREATE_REQ( CX2UnitManager::NUI_SOCCER_PPORU, pCX2GUUser->GetUnitLevel(), true,
 						pCX2GUUser->GetPos(), pCX2GUUser->GetIsRight(), 5.0f, true, -1, CX2Room::TN_RED,
@@ -1004,7 +947,19 @@ void CX2DungeonGame::SubStageOpen( int subStageNum )
 	CX2DungeonSubStage* pBeforeSubStage					= m_pDungeon->GetNowStage()->GetBeforeSubStage();
 
 	if( pBeforeSubStage != NULL )
+	{
+#ifdef DYNAMIC_PORTAL_LINE_MAP
+		// 오현빈 // 2013-09-04 // 
+		// HOST가 보내는 SUB_STAEG_OPEN_NOT로 인해, 
+		// HOST가 아닌 유저는 클리어 조건을 체크 할 수 없기 때문에. 
+		// 클리어 시 수행해야 하는 구문 추가 처리
+		if( false == IsHost() )
+		{
+			pBeforeSubStage->ProcessAfterSubStageClear_NotHost();
+		}
+#endif // DYNAMIC_PORTAL_LINE_MAP
 		pBeforeSubStage->ToggleEndLineMapSet( false );
+	}
 	if( pCX2DungeonSubStage != NULL )
 		pCX2DungeonSubStage->ToggleStartLineMapSet( true );
 
@@ -1112,11 +1067,11 @@ void CX2DungeonGame::SubStageStart()
 	{
 		if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 		{
-			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+				g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-				g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+				g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 			}
 		}	
 
@@ -1162,9 +1117,9 @@ void CX2DungeonGame::SubStageStart()
 			}
 			else
 			{
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                 if ( pCX2GUNPC->GetNowStateID() != CX2GameUnit::GUSI_DIE )
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     				pCX2GUNPC->StateChangeForce( pCX2GUNPC->GetStartState() );
 			}
 
@@ -1173,9 +1128,9 @@ void CX2DungeonGame::SubStageStart()
 				CX2DungeonSubStage::NPCData* pNPCData = pNowSubStage->GetSubStageData()->m_NPCDataList[i];
 				if( pNPCData != NULL && pCX2GUNPC->GetUID() == pNPCData->m_UID )
 				{
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                     if ( pCX2GUNPC->GetNowStateID() != CX2GameUnit::GUSI_DIE )
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                     {
 					    pCX2GUNPC->SetSiegeModeForce( false );
 					    pCX2GUNPC->SetSiegeModeForce( pNPCData->m_bSiegeMode );
@@ -1271,7 +1226,7 @@ void CX2DungeonGame::SubStageStart()
 	if( true == m_bShowTeleportEffectOnStageStart )
 	{
 		m_bShowTeleportEffectOnStageStart = true; // FieldFix: 이건 없어도 될 듯
-		g_pX2Game->CreateStageLoadingTeleportEffectForAllUser( false );
+		CreateStageLoadingTeleportEffectForAllUser( false );
 	}
 
 	
@@ -1290,10 +1245,6 @@ void CX2DungeonGame::SubStageStart()
 	ELSWORD_VIRTUALIZER_END
 #endif
 
-#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
-	KOGGamePerformanceCheck::GetInstance()->Resume();
-#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
-
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 	if( true == IsHost() )
 	{
@@ -1301,28 +1252,29 @@ void CX2DungeonGame::SubStageStart()
 	}
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
-#ifdef SERV_IRUHADEV_OFFLINE
-	// AI_PARTY_PLAN.md phase 1. The AI party members auto-party asked for.
-	//
-	// Here, and not in CX2Game::Handler_EGS_PLAY_START_NOT where the plan
-	// put it, for two reasons found by play-testing that handler doing
-	// nothing at all. First, a dungeon never calls it: EGS_PLAY_START_NOT
-	// goes to CX2StateDungeonGame::PlayStartNot(), which calls GameStart()
-	// directly (X2StateDungeonGame.cpp:1692) - that handler is the PvP and
-	// room paths only. Second, even reachable it would be too early: the
-	// first sub-stage has not loaded at play start, so there is no placed
-	// player to spawn beside.
-	//
-	// Deliberately alongside CreateAllyEventMonster() above, which is the
-	// studio's own "fill this party out to four with ally NPCs" feature and
-	// therefore the best evidence in the tree that this is the right moment.
-	// CreateOfflinePartyBots() is idempotent, so running once per sub-stage
-	// spawns on the first and recovers a lost bot on the rest.
-	if( true == IsHost() )
+#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+	KOGGamePerformanceCheck::GetInstance()->Resume();
+#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+#ifdef  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+    if ( g_pData->GetGameUDP() != NULL )
+        g_pData->GetGameUDP()->RemoveAllPendingPingSends();
+#endif  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+
+#ifdef SERV_9TH_NEW_CHARACTER
+	if( NULL != GetMyUnit() && GetMyUnit()->GetUnitType() == CX2Unit::UT_ADD )
 	{
-		CreateOfflinePartyBots();
+		GetMyUnit()->InitPhaseShift();
+
+		/// 스테이지 전환시, 각성중인데 각성 버프는 걸려있지 않았다면 해제 시켜주자
+		if ( true == GetMyUnit()->GetIsFormationMode() && false == GetMyUnit()->IsApplyBuffByBuffTempletID( BTI_FORMATION_MODE ) )
+			GetMyUnit()->SetIsFormationMode( false );
+
+		/// 스테이지 전환시, 각성은 되어 있지 않은데 각성 버프는 걸려있다면 해제 시켜 주자
+		if ( false == GetMyUnit()->GetIsFormationMode() && true == GetMyUnit()->IsApplyBuffByBuffTempletID( BTI_FORMATION_MODE ) )
+			GetMyUnit()->EraseBuffTempletFromGameUnit( BTI_FORMATION_MODE );
 	}
-#endif SERV_IRUHADEV_OFFLINE
+#endif //SERV_9TH_NEW_CHARACTER
 }
 
 
@@ -1331,7 +1283,7 @@ void CX2DungeonGame::SubStageStart()
 
 void CX2DungeonGame::DungeonLoading(bool bIsNpcLoad)
 {
-	CX2Dungeon::DUNGEON_ID dungeonID = (CX2Dungeon::DUNGEON_ID)(m_pDungeonRoom->GetDungeonID() + m_pDungeonRoom->GetDifficulty());
+	SEnum::DUNGEON_ID dungeonID = (SEnum::DUNGEON_ID)(m_pDungeonRoom->GetDungeonID() + m_pDungeonRoom->GetDifficulty());
 	SAFE_DELETE( m_pDungeon );
 	m_pDungeon = g_pData->GetDungeonManager()->CreateDungeon( dungeonID, bIsNpcLoad );
 
@@ -1440,10 +1392,8 @@ bool CX2DungeonGame::DetermineLastKill()
 			{
 				// HP가 0이더라도 NEVER_DIE_THIS_STATE가 true 면 패스
 				//{{ kimhc // 2010-07-21 // 현재 스테이트에서 HP가 0이 되어도 죽었다고 판단하지 않게 할 수 있는 기능
-#ifdef NEVER_DIE_THIS_STATE
 				if ( static_cast< CX2GUNPC* >( pCX2GameUnit )->GetNeverDieThisState() == true )
 					continue;
-#endif NEVER_DIE_THIS_STATE
 					//}} kimhc // 2010-07-21 // 현재 스테이트에서 HP가 0이 되어도 죽었다고 판단하지 않게 할 수 있는 기능
 
 #ifdef FIX_WRONG_CLEAR
@@ -1562,7 +1512,7 @@ bool CX2DungeonGame::DetermineLastKill()
 				{
 
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                     if ( g_pData->GetGameUDP()->GetNonRelayUIDs().empty() == false
                         || g_pData->GetGameUDP()->GetRelayUIDs().empty() == false )
                     {
@@ -1573,24 +1523,24 @@ bool CX2DungeonGame::DetermineLastKill()
 							    pCX2GUNPC->SendPacketImmediateForce( m_kFrameUDPPack );
 					    }
                     }
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-					//아래는 의미없는 코드인 것 같다( by hcsung )
-					// 전체 NPC의 패킷을 보내고... (pLastUnit만 보내면 되는거 아닌가??)
-					KXPT_UNIT_NPC_SYNC_PACK kXPT_UNIT_NPC_SYNC_PACK;
-
-					for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
-					{
-						CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
-						if( pCX2GUNPC != NULL )
-							pCX2GUNPC->SendPacketImmediateForce( kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
-					}
-
-
-
-					BroadCast_XPT_UNIT_NPC_SYNC_PACK();
-
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+//					//아래는 의미없는 코드인 것 같다( by hcsung )
+//					// 전체 NPC의 패킷을 보내고... (pLastUnit만 보내면 되는거 아닌가??)
+//					KXPT_UNIT_NPC_SYNC_PACK kXPT_UNIT_NPC_SYNC_PACK;
+//
+//					for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
+//					{
+//						CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
+//						if( pCX2GUNPC != NULL )
+//							pCX2GUNPC->SendPacketImmediateForce( kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
+//					}
+//
+//
+//
+//					BroadCast_XPT_UNIT_NPC_SYNC_PACK();
+//
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 					//KSerBuffer buff;
 					//Serialize( &buff, &kXPT_UNIT_NPC_SYNC_PACK );
@@ -1623,7 +1573,7 @@ bool CX2DungeonGame::DetermineLastKill()
 				// 헤니르도 분리하는게 좋을듯...
 #ifdef HENIR_TEST
 				// HENIR 던전인 경우에 보스를 죽인걸로 체크되면 EGS_PLAY_TIME_OUT_NOT가 오면 게임이 안 끝나기 때문에.
-				if( false == g_pData->GetDungeonManager()->IsHenirDungeon( m_pDungeon->GetDungeonData()->m_DungeonID ) )
+				if( CX2Dungeon::IsHenirDungeon( m_pDungeon->GetDungeonData()->m_DungeonID ) )
 #endif HENIR_TEST
 				{
 					// 헤니르 던전이 아닌 경우 보스게이지 있는 애가 죽으면
@@ -1658,10 +1608,10 @@ bool CX2DungeonGame::DetermineLastKill()
 						vPos.y += pLastDyingNPC->GetUnitHeight( false ) * 0.5f;
 
 						CKTDGParticleSystem::CParticleEventSequence* pSeq1 = 
-							g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle01", vPos, -1, -1 );
+							GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle01", vPos, -1, -1 );
 
 						CKTDGParticleSystem::CParticleEventSequence* pSeq2 = 
-							g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle02", vPos, -1, -1 );
+							GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle02", vPos, -1, -1 );
 
 						if( NULL != pSeq1 && NULL != pSeq2 )
 						{
@@ -1671,14 +1621,14 @@ bool CX2DungeonGame::DetermineLastKill()
 						}
 
 						CKTDGParticleSystem::CParticleEventSequence* pSeq3 = 
-							g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle03", D3DXVECTOR3(0, 0, 0), -1, -1 );
+							GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle03", D3DXVECTOR3(0, 0, 0), -1, -1 );
 						if( NULL != pSeq3 )
 						{
 							pSeq3->CreateNewParticle( D3DXVECTOR3(0, 0, 0) );
 							g_pKTDXApp->GetDeviceManager()->PlaySound( L"Boss_Finish.ogg", false, false ); 
 						}
 
-						g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"Dungeon_Finish_FadeIn", D3DXVECTOR3(0, 0, 0), -1, -1 );
+						GetMinorParticle()->CreateSequence( NULL,  L"Dungeon_Finish_FadeIn", D3DXVECTOR3(0, 0, 0), -1, -1 );
 
 #ifdef SUBBOSS_MONSTER_KILL_EFFECT
 						//{{ oasis907 : 김상윤 [2010.4.29] // 
@@ -1691,6 +1641,20 @@ bool CX2DungeonGame::DetermineLastKill()
 
 			}
 
+#ifdef SET_LAST_KILL_SHOT_HIDE_UI // 김태환
+			// 슬로모션이면 프레임도 느려지게
+			if( true == bLastKillSlowMotion )
+			{
+				g_pKTDXApp->StopFrame( 80 ); 
+				g_pKTDXApp->GetDGManager()->ClearScreen( 5 );
+				g_pKTDXApp->SlowFrame( 0.2f, 1.5f ); 
+
+				/// 슬로우 모션이면, 로딩용 캡처 타이밍을 뒤로 미룬다.
+				m_fLastkillShotTime = 0.3f;
+			}
+			else
+				m_fLastkillShotTime = 0.05f;
+#else // SET_LAST_KILL_SHOT_HIDE_UI
 			m_fLastkillShotTime = 0.05f;
 
 			// 슬로모션이면 프레임도 느려지게
@@ -1700,6 +1664,7 @@ bool CX2DungeonGame::DetermineLastKill()
 				g_pKTDXApp->GetDGManager()->ClearScreen( 5 );
 				g_pKTDXApp->SlowFrame( 0.2f, 1.5f ); 
 			}
+#endif // SET_LAST_KILL_SHOT_HIDE_UI
 
 			m_bLastKillCheck = true;
 			
@@ -1727,10 +1692,10 @@ bool CX2DungeonGame::DetermineLastKill()
 			vPos.y += pLastDyingNPC->GetUnitHeight( false ) * 0.5f;
 
 			CKTDGParticleSystem::CParticleEventSequence* pSeq1 = 
-				g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle01", vPos, -1, -1 );
+				GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle01", vPos, -1, -1 );
 
 			CKTDGParticleSystem::CParticleEventSequence* pSeq2 = 
-				g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle02", vPos, -1, -1 );
+				GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle02", vPos, -1, -1 );
 
 			if( NULL != pSeq1 && NULL != pSeq2 )
 			{
@@ -1740,14 +1705,14 @@ bool CX2DungeonGame::DetermineLastKill()
 			}
 
 			CKTDGParticleSystem::CParticleEventSequence* pSeq3 = 
-				g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle03", D3DXVECTOR3(0, 0, 0), -1, -1 );
+				GetMinorParticle()->CreateSequence( NULL,  L"Finish_Particle03", D3DXVECTOR3(0, 0, 0), -1, -1 );
 			if( NULL != pSeq3 )
 			{
 				pSeq3->CreateNewParticle( D3DXVECTOR3(0, 0, 0) );
 				g_pKTDXApp->GetDeviceManager()->PlaySound( L"Boss_Finish.ogg", false, false ); 
 			}
 
-			g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"Dungeon_Finish_FadeIn", D3DXVECTOR3(0, 0, 0), -1, -1 );
+			GetMinorParticle()->CreateSequence( NULL,  L"Dungeon_Finish_FadeIn", D3DXVECTOR3(0, 0, 0), -1, -1 );
 
 
 			g_pKTDXApp->StopFrame( 80 ); 
@@ -1769,11 +1734,11 @@ void CX2DungeonGame::ShowClearEffect()
 	if( g_pKTDXApp->GetDGManager()->GetDialogManager()->GetHideDialog() == false )
 #endif
 	{
-		g_pX2Game->GetMajorParticle()->CreateSequence( NULL,  L"Clear_C", 0,0,0, 1000, 1000, 1, 1 );
-		g_pX2Game->GetMajorParticle()->CreateSequence( NULL,  L"Clear_L", 0,0,0, 1000, 1000, 1, 1 );
-		g_pX2Game->GetMajorParticle()->CreateSequence( NULL,  L"Clear_E", 0,0,0, 1000, 1000, 1, 1 );
-		g_pX2Game->GetMajorParticle()->CreateSequence( NULL,  L"Clear_A", 0,0,0, 1000, 1000, 1, 1 );
-		g_pX2Game->GetMajorParticle()->CreateSequence( NULL,  L"Clear_R", 0,0,0, 1000, 1000, 1, 1 );
+		GetMajorParticle()->CreateSequence( NULL,  L"Clear_C", 0,0,0, 1000, 1000, 1, 1 );
+		GetMajorParticle()->CreateSequence( NULL,  L"Clear_L", 0,0,0, 1000, 1000, 1, 1 );
+		GetMajorParticle()->CreateSequence( NULL,  L"Clear_E", 0,0,0, 1000, 1000, 1, 1 );
+		GetMajorParticle()->CreateSequence( NULL,  L"Clear_A", 0,0,0, 1000, 1000, 1, 1 );
+		GetMajorParticle()->CreateSequence( NULL,  L"Clear_R", 0,0,0, 1000, 1000, 1, 1 );
 	}
 	
 	if( NULL != m_pDungeon &&
@@ -1811,7 +1776,8 @@ bool CX2DungeonGame::Handler_EGS_LEAVE_ROOM_NOT( KEGS_LEAVE_ROOM_NOT& kEGS_LEAVE
 	return true;
 }
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 bool CX2DungeonGame::Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_REQ( int iClearConditionIndex )
 {
 	KEGS_DUNGEON_SUB_STAGE_CLEAR_REQ kPacket;
@@ -1836,7 +1802,8 @@ bool CX2DungeonGame::Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_ACK( KEGS_DUNGEON_SUB_S
 	}
 	return false;
 }
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
+
 
 bool CX2DungeonGame::Handler_EGS_DUNGEON_SUB_STAGE_OPEN_REQ( int subStageNum )
 {
@@ -1907,11 +1874,11 @@ bool CX2DungeonGame::Handler_EGS_DUNGEON_SUB_STAGE_GO_NEXT_REQ( int beforeStage,
 		// 핵유저 의심
 		if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 		{
-			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData != NULL && g_pData->GetMyUser() != NULL && 
+				g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-				g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+				g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 			}
 		}		
 		
@@ -2011,11 +1978,11 @@ bool CX2DungeonGame::Handler_EGS_DUNGEON_SUB_STAGE_LOAD_COMPLETE_REQ()
 	{
 		if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 		{
-			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData != NULL && g_pData->GetMyUser() != NULL && 
+				g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-				g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+				g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 			}
 		}	
 
@@ -2101,18 +2068,6 @@ bool CX2DungeonGame::Handler_EGS_END_GAME_DUNGEON_RESULT_DATA_NOT( KEGS_END_GAME
 {
 	g_pData->ResetDungeonResultInfo( kPacket );
 
-#ifdef SERV_IRUHADEV_OFFLINE
-	//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 4b.
-	//
-	// This is the packet that fills the reward screen in - the line above is
-	// literally it - so it is the moment the AI party leaves. See
-	// CX2Game::EndOfflinePartyBots for why this packet and not one of the
-	// other three the end of a dungeon offers. Costs a solo run nothing: the
-	// first thing it looks at is whether the room has bot slots at all.
-	EndOfflinePartyBots();
-	//}}
-#endif SERV_IRUHADEV_OFFLINE
-
 // 	if( g_pData != NULL && 
 // 		g_pData->GetUIManager() != NULL && 
 // 		g_pData->GetUIManager()->GetUIQuickSlot() != NULL )
@@ -2165,17 +2120,17 @@ bool CX2DungeonGame::Handler_EGS_STATE_CHANGE_RESULT_NOT( KEGS_STATE_CHANGE_RESU
 	{
 		switch( m_pDungeon->GetDungeonData()->m_DungeonID )
 		{
-		case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-		case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:
-		case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:
-		case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+		case SEnum::DI_EVENT_KIDDAY_RUBEN:
+		case SEnum::DI_EVENT_KIDDAY_ELDER:
+		case SEnum::DI_EVENT_KIDDAY_BESMA:
+		case SEnum::DI_EVENT_KIDDAY_ALTERA:
 
-		case CX2Dungeon::DI_EVENT_TREE_DAY_ELDER:
-		case CX2Dungeon::DI_EVENT_TREE_DAY_BESMA:
-		case CX2Dungeon::DI_EVENT_TREE_DAY_ALTERA:
-		case CX2Dungeon::DI_EVENT_TREE_DAY_PEITA:
-		case CX2Dungeon::DI_EVENT_TREE_DAY_VELDER:
-		case CX2Dungeon::DI_EVENT_TREE_DAY_HAMEL:
+		case SEnum::DI_EVENT_TREE_DAY_ELDER:
+		case SEnum::DI_EVENT_TREE_DAY_BESMA:
+		case SEnum::DI_EVENT_TREE_DAY_ALTERA:
+		case SEnum::DI_EVENT_TREE_DAY_PEITA:
+		case SEnum::DI_EVENT_TREE_DAY_VELDER:
+		case SEnum::DI_EVENT_TREE_DAY_HAMEL:
 			{
 				if( NULL != m_pDungeon->GetNowStage() && NULL != m_pDungeon->GetNowStage()->GetStageData() )
 					
@@ -2184,13 +2139,13 @@ bool CX2DungeonGame::Handler_EGS_STATE_CHANGE_RESULT_NOT( KEGS_STATE_CHANGE_RESU
 				}
 			} break;
 
-		case CX2Dungeon::DI_ELDER_HENIR_SPACE:
-// 		case CX2Dungeon::DI_BESMA_HENIR_SPACE:
-// 		case CX2Dungeon::DI_ALTERA_HENIR_SPACE:
-// 		case CX2Dungeon::DI_FEITA_HENIR_SPACE:
+		case SEnum::DI_ELDER_HENIR_SPACE:
+// 		case SEnum::DI_BESMA_HENIR_SPACE:
+// 		case SEnum::DI_ALTERA_HENIR_SPACE:
+// 		case SEnum::DI_FEITA_HENIR_SPACE:
 // 		// kimhc // 벨더 헤니르 // 2009-10-27
-// 		case CX2Dungeon::DI_VELDER_HENIR_SPACE:
-// 		case CX2Dungeon::DI_HAMEL_HENIR_SPACE:
+// 		case SEnum::DI_VELDER_HENIR_SPACE:
+// 		case SEnum::DI_HAMEL_HENIR_SPACE:
 			{
 				if( NULL != m_pDungeon->GetNowStage() &&
 					NULL != m_pDungeon->GetNowStage()->GetStageData() &&
@@ -2322,23 +2277,17 @@ void CX2DungeonGame::TextOutTutorial_LUA( int nMsg, float fTime )
 			}
 
 			//{{ kimhc // 2010.8.7 // 무조건 NPC에게 카메라가 가도록 하는 기능
-#ifdef FOCUS_CAMERA_NPC_FORCE
 			if( true == pCX2GUNPC->GetFocusCameraForce() )
 			{
 				m_optrFocusUnit = pCX2GUNPC;
 				ResetFocusUnit();
 				return;
 			}
-#endif //FOCUS_CAMERA_NPC_FORCE
 			//}} kimhc // 2010.8.7 // 무조건 NPC에게 카메라가 가도록 하는 기능
 #else
 			//{{ kimhc // 2010.8.7 // 무조건 NPC에게 카메라가 가도록 하는 기능
-#ifdef	FOCUS_CAMERA_NPC_FORCE
 			if( pCX2GUNPC->GetFocusCameraForce() == true 
 				|| ( pCX2GUNPC->GetFocusCamera() == true && pCX2GUNPC->GetStartState() == (int)pCX2GUNPC->GetGameUnitState() ) )
-#else	FOCUS_CAMERA_NPC_FORCE
-			if( pCX2GUNPC->GetFocusCamera() == true && pCX2GUNPC->GetStartState() == (int)pCX2GUNPC->GetGameUnitState() )
-#endif	FOCUS_CAMERA_NPC_FORCE
 				//}} kimhc // 2010.8.7 // 무조건 NPC에게 카메라가 가도록 하는 기능
 			{
 				m_optrFocusUnit = pCX2GUNPC;
@@ -2374,8 +2323,8 @@ bool CX2DungeonGame::Handler_EGS_DUNGEON_EFFECT_TIME_OUT_NOT( KEGS_DUNGEON_EFFEC
 	{
 		switch(g_pData->GetDungeonRoom()->GetDungeonID())
 		{
-		case CX2Dungeon::DI_ALTERA_SECRET_COMMON:
-		case CX2Dungeon::DI_ALTERA_SECRET_HELL:
+		case SEnum::DI_ALTERA_SECRET_COMMON:
+		case SEnum::DI_ALTERA_SECRET_HELL:
 			{
 				m_bDungeonClearLimitTimeOut = true;
 				m_bShowDungeonClearLimitTimeOut = false;
@@ -2513,8 +2462,8 @@ void CX2DungeonGame::TutorialFrameMove( double fTime, float fElapsedTime )
 	if( true == g_pMain->GetIsPlayingTutorial() )
 	{
 		if( false == m_bShowTutorialUI 
-			&& g_pX2Game->GetMyUnit() != NULL
-			&& g_pX2Game->GetMyUnit()->GetWaitStateID() == g_pX2Game->GetMyUnit()->GetNowStateID() )
+			&& GetMyUnit() != NULL
+			&& GetMyUnit()->GetWaitStateID() == GetMyUnit()->GetNowStateID() )
 		{
 			m_bShowTutorialUI = true;
 		}
@@ -2567,19 +2516,19 @@ bool CX2DungeonGame::GetResurrectionOperationCond()
 		{
 			switch(g_pData->GetDungeonRoom()->GetDungeonID())
 			{
-			case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-			case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:
-			case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:
-			case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+			case SEnum::DI_EVENT_KIDDAY_RUBEN:
+			case SEnum::DI_EVENT_KIDDAY_ELDER:
+			case SEnum::DI_EVENT_KIDDAY_BESMA:
+			case SEnum::DI_EVENT_KIDDAY_ALTERA:
 				m_fResurrectionRemainTime = 0.0f;
 				return false;
-			case CX2Dungeon::DI_ELDER_HENIR_SPACE:
-// 			case CX2Dungeon::DI_BESMA_HENIR_SPACE:
-// 			case CX2Dungeon::DI_ALTERA_HENIR_SPACE:
-// 			case CX2Dungeon::DI_FEITA_HENIR_SPACE:
+			case SEnum::DI_ELDER_HENIR_SPACE:
+// 			case SEnum::DI_BESMA_HENIR_SPACE:
+// 			case SEnum::DI_ALTERA_HENIR_SPACE:
+// 			case SEnum::DI_FEITA_HENIR_SPACE:
 // 				// kimhc // 벨더 헤니르 // 2009-10-27
-// 			case CX2Dungeon::DI_VELDER_HENIR_SPACE:
-// 			case CX2Dungeon::DI_HAMEL_HENIR_SPACE:
+// 			case SEnum::DI_VELDER_HENIR_SPACE:
+// 			case SEnum::DI_HAMEL_HENIR_SPACE:
 				{					
 					if( (CX2Dungeon::DUNGEON_MODE) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode == CX2Dungeon::DM_HENIR_CHALLENGE )
 					{
@@ -2614,7 +2563,7 @@ bool CX2DungeonGame::DetermineShowDungeonPlayTime()
 
 
 	// 헤니르 시공 던전이면 던전 진행 시간 표시
-	if( true == g_pData->GetDungeonManager()->IsHenirDungeon( (int) g_pData->GetDungeonRoom()->GetDungeonID() ) )
+	if( true == CX2Dungeon::IsHenirDungeon( g_pData->GetDungeonRoom()->GetDungeonID() ) )
 	{
 		return true;
 	}
@@ -2653,7 +2602,7 @@ bool CX2DungeonGame::DetermineShowDungeonPlayTime()
 	#ifdef SERV_RANDOM_DAY_QUEST
 			if( false == pSubQuestTemplet->m_ClearCondition.m_setDungeonID.empty() )
 			{
-				std::set<CX2Dungeon::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
+				std::set<SEnum::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
 				for( ; sit != pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end(); ++sit)
 				{
 					if( ((*sit) - g_pData->GetDungeonManager()->GetDungeonData(*sit)->m_eDifficulty)  == g_pData->GetDungeonRoom()->GetDungeonID() )
@@ -2947,10 +2896,7 @@ void CX2DungeonGame::ResetUnitPositionAtTrainingGame()
 	if( g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
 		return;
 
-	if( NULL == g_pX2Game )
-		return;
-
-	CX2GUUser* pGUUser = g_pX2Game->GetMyUnit();
+	CX2GUUser* pGUUser = GetMyUnit();
 	if( NULL != pGUUser )
 	{
 		pGUUser->InitPosition( true, 0 );
@@ -2961,10 +2907,10 @@ void CX2DungeonGame::ResetUnitPositionAtTrainingGame()
 	int iCount = 1;
 	for( UINT i=0; i < m_NPCUnitList.size() ; i++ )
 	{
-		CX2GUNPC* pGUNPC = g_pX2Game->GetNPCUnit( i );
+		CX2GUNPC* pGUNPC = GetNPCUnit( i );
 		if( NULL == pGUNPC || pGUNPC->GetNowHp() <= 0.f ||
 			pGUNPC->GetGameUnitState() == CX2GameUnit::GUSI_DIE ||
-			pGUNPC->GetNPCTemplet()->m_nNPCUnitID == CX2UnitManager::NUI_INVISIBLE_DUMMY )
+			pGUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_INVISIBLE_DUMMY )
 		{
 			continue;
 		}
@@ -3070,8 +3016,8 @@ int	CX2DungeonGame::GetDungeonType()
 			return;
 		}
 
-		map< std::wstring, CX2Dungeon::DUNGEON_ID > mapDungeonList;
-		map< std::wstring, CX2Dungeon::DUNGEON_ID >::iterator it;
+		map< std::wstring, SEnum::DUNGEON_ID > mapDungeonList;
+		map< std::wstring, SEnum::DUNGEON_ID >::iterator it;
 		g_pData->GetDungeonManager()->GetDungeonList( mapDungeonList );
 
 
@@ -3249,7 +3195,6 @@ int	CX2DungeonGame::GetDungeonType()
 	}
 #endif
 
-#ifdef REFORM_TUTORIAL	
 /** @function : IsNearPortalLineMap() const
 	@brief : 포탈 라인맵에 내 유닛이 닿았는지를 검사
 	@param : void
@@ -3285,7 +3230,6 @@ bool CX2DungeonGame::IsNearPortalLineMap()
 		return false;
 	}
 }
-#endif //REFORM_TUTORIAL
 
 
 void CX2DungeonGame::ResurrectOtherUser()
@@ -3450,8 +3394,8 @@ bool CX2DungeonGame::Send_EGS_BAD_ATTITUDE_USER_CHECK_INFO_NOT ( const int iStag
 					}
 				}
 
-				const int iTechScore = ( NULL != g_pX2Game ? g_pX2Game->GetSubStageTechPoint() : 0 );	// 현재 서브 스테이지의 테크닉 점수를 얻어온다.
-				g_pX2Game->ResetSubStageTechPoint();
+				const int iTechScore = GetSubStageTechPoint();	// 현재 서브 스테이지의 테크닉 점수를 얻어온다.
+				ResetSubStageTechPoint();
 			
 
 				kEvent.m_iComboScore = iComboScore;
@@ -3516,13 +3460,13 @@ void CX2DungeonGame::CreateAllyEventMonster()
 	{
 		switch( m_pDungeon->GetDungeonData()->m_DungeonID )
 		{
-		case CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL:
-		case CX2Dungeon::DI_RUBEN_RUIN_OF_ELF_NORMAL:
-		case CX2Dungeon::DI_RUBEN_RUIN_OF_ELF_HARD:
-		case CX2Dungeon::DI_RUBEN_RUIN_OF_ELF_EXPERT:
-		case CX2Dungeon::DI_RUBEN_SWAMP_NORMAL:
-		case CX2Dungeon::DI_RUBEN_SWAMP_HARD:
-		case CX2Dungeon::DI_RUBEN_SWAMP_EXPERT:
+		case SEnum::DI_RUBEN_EL_TREE_NORMAL:
+		case SEnum::DI_RUBEN_RUIN_OF_ELF_NORMAL:
+		case SEnum::DI_RUBEN_RUIN_OF_ELF_HARD:
+		case SEnum::DI_RUBEN_RUIN_OF_ELF_EXPERT:
+		case SEnum::DI_RUBEN_SWAMP_NORMAL:
+		case SEnum::DI_RUBEN_SWAMP_HARD:
+		case SEnum::DI_RUBEN_SWAMP_EXPERT:
 			{					
 				bExceptDungeon = true;
 			} break;
@@ -3552,7 +3496,7 @@ void CX2DungeonGame::CreateAllyEventMonster()
 			if( pUser->GetNowHp() <= 0.f )
 				continue;
 
-			if( pUser->GetUnit()->GetUnitData()->GetGateOfDarknessSupportEventTime() > 0 )
+			if( pUser->GetUnit()->GetUnitData().GetGateOfDarknessSupportEventTime() > 0 )
 			{
 				bIngEvent = true;
 			}
@@ -3564,7 +3508,7 @@ void CX2DungeonGame::CreateAllyEventMonster()
 		{
 			return ;
 		}
-
+		
 		for( int i = 0; i < 4 - iUnitList; i++ )
 		{
 			unsigned int randomIndex = rand() % iUnitList;
@@ -3642,4 +3586,3 @@ void CX2DungeonGame::ReCreateAllyEventMonster( UidType EventOwnUnitUID )
 	}
 }
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-

@@ -59,6 +59,7 @@
 #ifdef SERV_CODE_EVENT
 #include "ScriptID_Code.h"
 #define IF_EVENT_ENABLED(id)		if( SiKGameEventManager()->IsEnableCode( id ) == true )
+#define IF_EVENT_NOT_ENABLED(id)	if( SiKGameEventManager()->IsEnableCode( id ) == false )
 #define ELSE_IF_EVENT_ENABLED(id)	else if( SiKGameEventManager()->IsEnableCode( id ) == true )
 #define ELSE						else
 #endif SERV_CODE_EVENT
@@ -82,12 +83,20 @@ class KGameEventManager
 		ST_GAME,
 	};
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	enum EventReleaseTickType
+	{
+		ERTT_EVENT_DB_SCRIPT_CHECK	= 1, // SERV_EVENT_DB_CONTROL_SYSTEM 에서 사용
+		ERTT_EVENT_CHECK	= 2, // SERV_REFRESH_EVENT_USING_RELEASE_TICK 에서 사용
+	};
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
 	enum EventReleaseTickType
 	{
 		ERTT_EVENT_CHECK	= 30,
 	};
 #endif SERV_REFRESH_EVENT_USING_RELEASE_TICK
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 	//{{ 2012. 12. 17	최육사	이벤트 보너스 코드 리팩토링
 	struct SGameEventBonusRate
@@ -172,27 +181,10 @@ public:
 #endif SERV_ADVERTISEMENT_EVENT
 
 		bool																	m_bDelFinishEvent;
-
-		//{{ 2012. 04. 13	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-#else
-		//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-		bool m_bEventReturnUserMark;
-#endif SERV_EVENT_RETURN_USER_MARK
-		//}}
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
 		//{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 		const std::multimap<int, KDailyGiftBoxInfo>&												m_mapDailyGiftBoxList;
 #endif SERV_EVENT_DAILY_GIFT_BOX
-		//}}
-		bool m_bIsComeBackUser;
-		//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-		const KAccountInfo& m_kAccountInfo;
-#endif SERV_FIXED_DATE_EVENT
 		//}}
 		//{{ 2012. 12. 12	박세훈	겨울 방학 전야 이벤트( 임시, 하드 코딩 )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
@@ -208,14 +200,15 @@ public:
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 		std::set< int >			m_setItemID;
 #endif SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
-#ifdef SERV_CUSTOM_CONNECT_EVENT
-		int						m_iCustomEventID;
-#endif //SERV_CUSTOM_CONNECT_EVENT
 
 #ifdef	SERV_CRITERION_DATE_EVENT// 적용날짜: 2013-04-11
 		const byte				m_byteCriterionDateEventInfo;
 		const std::wstring		m_wstrRegDate;
 #endif	// SERV_CRITERION_DATE_EVENT
+
+#ifdef SERV_CUSTOM_CONNECT_EVENT
+		int						m_iCustomEventID;
+#endif //SERV_CUSTOM_CONNECT_EVENT
 
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 		bool					m_bIsSteamUser;
@@ -253,29 +246,11 @@ public:
 			//}}
 
 			, IN const bool bDelFinishEvent
-
-			//{{ 2012. 04. 13	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-#else
-			//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-			, IN const bool bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-			//}}
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-			//}}
 			//{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
-			, IN const UidType iUnitUID
 			, IN const std::multimap<int, KDailyGiftBoxInfo>& mapDailyGiftBoxList
 #endif SERV_EVENT_DAILY_GIFT_BOX
 			//}}
-			, IN const bool bIsComeBackUser
-			//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-			, IN const KAccountInfo& kAccountInfo
-#endif SERV_FIXED_DATE_EVENT
-		//}}
 		//{{ 2012. 12. 12	박세훈	겨울 방학 전야 이벤트( 임시, 하드 코딩 )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 			, IN const std::wstring& wstrWinterVacationEventRegDate
@@ -290,13 +265,13 @@ public:
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 			, IN const std::set< int >& setItemID
 #endif SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
-#ifdef SERV_CUSTOM_CONNECT_EVENT
-			, IN const int iCustomEventID
-#endif //SERV_CUSTOM_CONNECT_EVENT
 #ifdef	SERV_CRITERION_DATE_EVENT// 적용날짜: 2013-04-11
 			, IN const byte byteCriterionDateEventInfo
 			, IN const std::wstring& wstrRegDate
 #endif	// SERV_CRITERION_DATE_EVENT
+#ifdef SERV_CUSTOM_CONNECT_EVENT
+			, IN const int iCustomEventID
+#endif //SERV_CUSTOM_CONNECT_EVENT
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 			, IN const bool bIsSteamUser
 #endif //SERV_STEAM_USER_CONNECT_EVENT
@@ -330,27 +305,10 @@ public:
 			//}}
 			
 			, m_bDelFinishEvent( bDelFinishEvent )
-
-			//{{ 2012. 04. 13	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-#else
-			//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-			, m_bEventReturnUserMark( bEventReturnUserMark )
-#endif SERV_EVENT_RETURN_USER_MARK
-			//}}
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-			//}}
 			//{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 			, m_mapDailyGiftBoxList( mapDailyGiftBoxList )
 #endif SERV_EVENT_DAILY_GIFT_BOX
-			//}}
-			, m_bIsComeBackUser( bIsComeBackUser )
-			//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-			, m_kAccountInfo( kAccountInfo )
-#endif SERV_FIXED_DATE_EVENT
 			//}}
 			//{{ 2012. 12. 12	박세훈	겨울 방학 전야 이벤트( 임시, 하드 코딩 )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
@@ -366,13 +324,13 @@ public:
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 			, m_setItemID( setItemID )
 #endif SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
-#ifdef SERV_CUSTOM_CONNECT_EVENT
-			, m_iCustomEventID( iCustomEventID )
-#endif //SERV_CUSTOM_CONNECT_EVENT
 #ifdef	SERV_CRITERION_DATE_EVENT// 적용날짜: 2013-04-11
 			, m_byteCriterionDateEventInfo( byteCriterionDateEventInfo )
 			, m_wstrRegDate( wstrRegDate )
-#endif	// SERV_CRITERION_DATE_EVENT
+#endif // SERV_CRITERION_DATE_EVENT
+#ifdef SERV_CUSTOM_CONNECT_EVENT
+			, m_iCustomEventID( iCustomEventID )
+#endif //SERV_CUSTOM_CONNECT_EVENT
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 			, m_bIsSteamUser( bIsSteamUser )
 #endif //SERV_STEAM_USER_CONNECT_EVENT
@@ -384,7 +342,6 @@ public:
 #ifdef SERV_NEW_USER_QUEST_HARD_CODING
 			, m_wstrRegDate( wstrRegDate )
 #endif	// SERV_NEW_USER_QUEST_HARD_CODING
-
 		{
 			m_pVecConnectTimeEvent		= NULL;
 			m_pVecCumulativeTimeEvent	= NULL;
@@ -437,6 +394,12 @@ public:
 #ifdef SERV_PCBANG_USER_REWARD_EVENT// 작업날짜: 2013-07-02	// 박세훈
 						  , IN const bool isPcBang
 #endif // SERV_PCBANG_USER_REWARD_EVENT
+
+#ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP	// 작업날짜: 2014-01-08 // 김현철 // 특정 캐릭터와 플레이시 경험치 증가 이벤트가 적용 될 때 다른 경험치 증가가 적용되지 않는 문제 수정
+						  , IN const bool bHasPlayWithSpecificCharacterBuff_
+#endif // SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+
+
 						  );
 #endif SERV_INTEGRATION
 	//}}
@@ -447,14 +410,24 @@ public:
 #ifdef DROPEVENT_RENEWAL
 	bool	CheckItemDropProbEvent(IN int iDungeonID, IN std::vector<char> vecUintClass, IN std::vector<char> vecUintType, IN std::vector<int> vecUintLevel, OUT int& iDropCount, OUT bool& bWithPlayPcBang );	// 드롭률 이벤트
 #else //DROPEVENT_RENEWAL
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	bool	CheckItemDropProbEvent( OUT float& fDropRate, OUT bool& bWithPlayPcBang );	// 드롭률 이벤트
+#else // SERV_DROP_EVENT_RENEWAL
 	bool	CheckItemDropProbEvent( OUT int& iDropCount, OUT bool& bWithPlayPcBang );	// 드롭률 이벤트
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #endif //DROPEVENT_RENEWAL
 #endif SERV_PC_BANG_DROP_EVENT
 	//}}
 
 	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	bool	CheckItemDropProbEvent( OUT float& fDropRate );	// 드롭률 이벤트
+#else // SERV_DROP_EVENT_RENEWAL
 	bool	CheckItemDropProbEvent( OUT int& iDropCount );	// 드롭률 이벤트
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 	//}}
 
@@ -550,12 +523,6 @@ public:
 													//}}
 													IN OUT std::map< int, std::pair< KUserConnectTimeEventInfo, KTimerManager > >& mapEventTime,
 													IN OUT std::set< int >& setCompletedEvent
-													//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-													, IN const bool bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-													//}}
-
 													//{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 													, IN const UidType& iUnitUID
@@ -589,12 +556,6 @@ public:
 								  		 OUT std::vector< KTimeEventSimpleInfo >& vecBeginEvent,
 								  		 OUT std::vector< KTimeEventSimpleInfo >& vecEndEvent,
 								  		 IN const bool bDelFinishEvent
-										 //{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-										 , IN const bool bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-								   //}}
-
 								   //{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 								   , IN const UidType& iUnitUID
@@ -628,22 +589,11 @@ public:
 								   OUT std::vector< KConnectTimeEventInfo >& vecUpdatedTime,
 								   OUT std::vector< KTimeEventSimpleInfo >& vecBeginEvent,
 								   OUT std::vector< KTimeEventSimpleInfo >& vecEndEvent
-								   //{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-								   , IN const bool bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-								   //}}
 								   //{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 								   , IN const UidType& iUnitUID
 								   , IN const std::multimap<int, KDailyGiftBoxInfo>& mmapDailyGiftBoxList
 #endif SERV_EVENT_DAILY_GIFT_BOX
-								   //}}
-
-								   //{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-								   , IN const bool bIsComeBackUser
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
 								   //}}
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 								   , IN const std::set< int >& setItemID
@@ -749,7 +699,16 @@ public:
 	//{{ 2011. 08. 12   김민성      헤니르 개편 
 #ifdef SERV_NEW_HENIR_TEST
 	void	AddHenirRewardCountEvent( IN const KEventInfo& kInfo );
+
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+	void	GetHenirRewardCountEvent( IN const bool bPcBangUser
+		, OUT bool& bUnLimited
+		, OUT int& iEventMax
+		);
+#else // SERV_HENIR_REWARD_EVENT
 	bool	GetHenirRewardCountEvent( OUT bool& bUnLimited, OUT int& iEventMax  );
+#endif // SERV_HENIR_REWARD_EVENT
+
 #endif SERV_NEW_HENIR_TEST
 	//}}
 
@@ -759,12 +718,25 @@ public:
 	void	GetAdvertisementURL( OUT std::vector< std::wstring >& vecAdvertisementURL );
 #endif SERV_ADVERTISEMENT_EVENT
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		bool TickCheckEvent();
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
+#ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
+		bool TickCheckEvent();
+#endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
 	void InitEventReleaseTick();
-	bool TickCheckEvent();
 	int GetEventReleaseTick() { return m_iEventReleaseTick; }
 	void SetEventReleaseTick( int iReleaseTick ) { m_iEventReleaseTick = iReleaseTick; }
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+
+#ifdef SERV_ADD_EVENT_DB
+	void InitEventDBScriptReleaseTick();
+	int GetEventDBScriptReleaseTick() { return m_iEventDBScriptReleaseTick; }
+	void SetEventDBScriptReleaseTick( int iReleaseTick ) { m_iEventDBScriptReleaseTick = iReleaseTick; }
+#endif //SERV_ADD_EVENT_DB
 
 #ifdef SERV_NEW_EVENT_TYPES
 	int		GetMaxLevel();
@@ -833,6 +805,17 @@ public:
 		) const;
 #endif // SERV_JUMPING_CHARACTER
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	void	SetTotalEventData( IN const std::map< int,  EVENT_DATA > mapEventScriptData, IN const std::map< int,  EVENT_DATA > mapEventDBData );
+	const EVENT_DATA* GetTotalEventData( IN int iEventID ) const;
+	bool	CheckMapIngEventDataEmpty();
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
+#ifdef SERV_GLOBAL_EVENT_TABLE
+	void CheckEnableCodeAndSetGlobalEventdata( OUT std::map< int, KGlobalEventTableData >& mapCheckCodeAndData );
+	void CheckInGameDisableCodeEvent( IN std::map< int, KGlobalEventTableData >& mapCheckEnableCodeAndData, OUT std::map< int, KGlobalEventTableData >& mapCheckDisableCodeAndData );
+#endif //SERV_GLOBAL_EVENT_TABLE
+
 protected:
 	bool	RefreshEventTime( IN const KEventInfo& kInfo, OUT KGameEvent* pkGameEvent );
 	bool	SetPeriodEventTime( IN const KEventInfo& kInfo, OUT CTime& ctBegin, OUT CTime& ctEnd );
@@ -867,14 +850,6 @@ protected:
 	void	AddCodeEvent( IN const KEventInfo& kInfo );
 #endif SERV_CODE_EVENT
 
-	//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-	bool	CheckFixedDateEvent( IN KGameEventConnectTime* pEvent, IN const ConnectEventFactorSet& kFactor );
-	int		_CheckFixedDateEvent_NEW( IN const KGameEventConnectTime* pEvent, IN const ConnectEventFactorSet& kFactor, IN const CTime& tFixedDate ) const;
-	int		_CheckFixedDateEvent_COMEBACK( IN const KGameEventConnectTime* pEvent, IN const ConnectEventFactorSet& kFactor, IN const CTime& tFixedDate  ) const;
-#endif SERV_FIXED_DATE_EVENT
-	//}}
-
 	//{{ 2012. 12. 12	박세훈	겨울 방학 전야 이벤트( 임시, 하드 코딩 )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 	bool	CheckWinterVacationEvent( IN const int iEventUID, IN const int iScriptID, IN ConnectEventFactorSet& kFactor );
@@ -886,6 +861,11 @@ protected:
 	template < class T > void SendToLogDB( unsigned short usEventID, const T& data );
 	void	SendToLogDB( unsigned short usEventID ){ SendToLogDB( usEventID, char() ); }
 
+#ifdef SERV_ADD_EVENT_DB
+	template < class T > void SendToEventDB( unsigned short usEventID, const T& data );
+	void	SendToEventDB( unsigned short usEventID ){ SendToEventDB( usEventID, char() ); }
+#endif //SERV_ADD_EVENT_DB
+
 protected:
 	SERVER_TYPE						m_eServerType;
 
@@ -893,19 +873,24 @@ protected:
 	boost::timer					m_TimerEnableCheck;						// 일정 시간마다 이벤트 진행 상태를 변경하기 위해..
 	boost::timer					m_TimerRefreshEvent;					// 일정 시간마다 DB에서 이벤트를 받아오기 위해..	
 
-	//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-	static int						m_iScriptID_SERV_EVENT_RETURN_USER_MARK;
-#endif SERV_EVENT_RETURN_USER_MARK
-	//}}
+#ifdef SERV_ADD_EVENT_DB
+	boost::timer					m_tEventReleaseTickTimer;
+	int								m_iEventDBScriptReleaseTick;
+	int								m_iEventReleaseTick;
+#else //SERV_ADD_EVENT_DB
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
 	boost::timer					m_tEventCheckTimer;
 	int								m_iEventReleaseTick;
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+#endif //SERV_ADD_EVENT_DB	
 
 #ifdef SERV_NEW_EVENT_TYPES
 	int								m_iAppliedEventTick;
 #endif SERV_NEW_EVENT_TYPES
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	std::map< int, EVENT_DATA >				m_mapTotalEventData; // 2013.10.30 darkstarbt_조성욱 // 기존 Eventdata.lua와 DB 에 있는 데이터 통합해서 사용하는 용도
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 };
 
 template < class T >
@@ -919,5 +904,19 @@ void KGameEventManager::SendToLogDB( unsigned short usEventID, const T& data )
 
 	SiKDBLayer()->QueueingEvent( spEvent );
 }
+
+#ifdef SERV_ADD_EVENT_DB
+template < class T >
+void KGameEventManager::SendToEventDB( unsigned short usEventID, const T& data )
+{
+	UidType anTrace[2] = { 0, -1 };
+
+	KEventPtr spEvent( new KEvent );
+	spEvent->SetData( PC_EVENT_DB, anTrace, usEventID, data );
+	LIF( spEvent->m_kDestPerformer.AddUID( 0 ) );
+
+	SiKDBLayer()->QueueingEvent( spEvent );
+}
+#endif //SERV_ADD_EVENT_DB
 
 DefSingletonInline( KGameEventManager );

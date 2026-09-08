@@ -42,6 +42,9 @@ m_pRadioButtonEventDeath( NULL )
 #endif	//	NEW_TERM_EVENT
 //}} 허상형 : [2009/8/21] //	신학기 이벤트 관련 컨트롤 변수 초기화
 //,m_pPicCharRank( NULL )
+#ifdef NEW_HENIR_DUNGEON
+, m_pRadioButtonHero (NULL)
+#endif // NEW_HENIR_DUNGEON
 {
 
 
@@ -67,10 +70,9 @@ m_pRadioButtonEventDeath( NULL )
 
 	if ( m_pStaticCommonInfo != NULL )
 	{
-		m_pStaticCommonInfo->SetString( 0, GET_STRING( STR_ID_3732 ) );		// 자기정보와 1~100위 까지의 정보만 제공합니다.
-		m_pStaticCommonInfo->SetString( 1, GET_STRING( STR_ID_1139 ) );		// 순위
-		m_pStaticCommonInfo->SetString( 2, GET_STRING( STR_ID_3727 ) );		// 직업
-		m_pStaticCommonInfo->SetString( 3, GET_STRING( STR_ID_1127 ) );		// 닉네임	
+		m_pStaticCommonInfo->SetString( 0, GET_STRING( STR_ID_1139 ) );		// 순위
+		m_pStaticCommonInfo->SetString( 1, GET_STRING( STR_ID_3727 ) );		// 직업
+		m_pStaticCommonInfo->SetString( 2, GET_STRING( STR_ID_1127 ) );		// 닉네임
 	}
 
 	
@@ -80,6 +82,9 @@ m_pRadioButtonEventDeath( NULL )
 	m_pRadioButtonDaily		= static_cast< CKTDGUIRadioButton* >( m_pDlgRankingInfo->GetControl( L"RadioButton_Day" ) );
 	m_pRadioButtonWeekly	= static_cast< CKTDGUIRadioButton* >( m_pDlgRankingInfo->GetControl( L"RadioButton_Week" ) );
 	m_pRadioButtonMonthly	= static_cast< CKTDGUIRadioButton* >( m_pDlgRankingInfo->GetControl( L"RadioButton_Month" ) );
+#ifdef NEW_HENIR_DUNGEON
+	m_pRadioButtonHero	= static_cast< CKTDGUIRadioButton* >( m_pDlgRankingInfo->GetControl( L"RadioButton_Hero" ) );
+#endif // NEW_HENIR_DUNGEON
 
 	//{{ 허상형 : [2009/8/20] //	신학기 관련 컨트롤 로딩
 #ifdef NEW_TERM_EVENT
@@ -282,9 +287,9 @@ void		CX2UIRankingInfo::InitUIRankingInfo()
 	if( NULL != pRadio )
 		pRadio->SetChecked( true );
 
-	CX2Unit::UnitData* pUnitData = NULL;
+	const CX2Unit::UnitData* pUnitData = NULL;
 	if( NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit())
-		pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+		pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 	if( NULL != pUnitData )
 	{
 		if( 0 == StrCmp( pUnitData->m_wstrGuildName.c_str(), L"" ) )
@@ -462,6 +467,9 @@ void		CX2UIRankingInfo::SetShowControlsByType( RANKING_TYPE type, bool bShow )
 	case RT_DAY_RANKING:
 	case RT_WEEK_RANKING:
 	case RT_MONTH_RANKING:
+#ifdef NEW_HENIR_DUNGEON
+	case RT_HERO_RANKING:
+#endif // NEW_HENIR_DUNGEON
 		{
 #ifndef HIDE_HENIR_RANKING
 			CKTDGUIRadioButton*		pRadioButton = 
@@ -476,7 +484,10 @@ void		CX2UIRankingInfo::SetShowControlsByType( RANKING_TYPE type, bool bShow )
 
 			if ( m_pRadioButtonMonthly )
 				m_pRadioButtonMonthly->SetShowEnable( bShow, bShow );
-
+#ifdef NEW_HENIR_DUNGEON
+			if ( m_pRadioButtonHero )
+				m_pRadioButtonHero->SetShowEnable( bShow, bShow );
+#endif // NEW_HENIR_DUNGEON
 			if ( m_pStaticHenirInfo )
 				m_pStaticHenirInfo->SetShowEnable( bShow, bShow );
 			
@@ -660,6 +671,9 @@ void		CX2UIRankingInfo::SetShowMyInfoByType( RANKING_TYPE type, bool bShow )
 	case RT_DAY_RANKING:
 	case RT_WEEK_RANKING:
 	case RT_MONTH_RANKING:
+#ifdef NEW_HENIR_DUNGEON
+	case RT_HERO_RANKING:
+#endif // NEW_HENIR_DUNGEON
 		{
 			m_columnForMyRank.m_pStaticClearStage->SetShowEnable( bShow, bShow );
 			m_columnForMyRank.m_pStaticPlayTime->SetShowEnable( bShow, bShow );
@@ -720,6 +734,9 @@ void		CX2UIRankingInfo::SetShowOthersInfoByType( ColumnForRank* const pColumnFor
 	case RT_DAY_RANKING:
 	case RT_WEEK_RANKING:
 	case RT_MONTH_RANKING:
+#ifdef NEW_HENIR_DUNGEON
+	case RT_HERO_RANKING:
+#endif // NEW_HENIR_DUNGEON
 		{
 			pColumnForOthersRank->m_pStaticClearStage->SetShowEnable( bShow, bShow );
 			pColumnForOthersRank->m_pStaticPlayTime->SetShowEnable( bShow, bShow );
@@ -831,6 +848,10 @@ bool		CX2UIRankingInfo::Handler_EGS_GET_RANKING_INFO_ACK( HWND hWnd, UINT uMsg, 
 		case RT_DAY_RANKING:
 		case RT_WEEK_RANKING:
 		case RT_MONTH_RANKING:
+#ifdef NEW_HENIR_DUNGEON
+		case RT_HERO_RANKING:
+#endif // NEW_HENIR_DUNGEON
+
 			{
 				// 다른 유저들의 랭킹
 				int i = 0;
@@ -966,7 +987,17 @@ bool		CX2UIRankingInfo::Handler_EGS_GET_RANKING_INFO_ACK( HWND hWnd, UINT uMsg, 
 #ifdef SERV_PVP_NEW_SYSTEM
 
 #ifdef PVP_SEASON2
+					
+#ifdef FIX_VISIBLE_BY_UNKNOWN_RANK // 김태환
+					char cRank = kPvpRankingInfo.m_cRank;
+
+					/// 랭크에 대한 범위 체크
+					if ( CX2PVPEmblem::PVPRANK_NONE >= cRank || CX2PVPEmblem::PVPRANK_RANK_SSS < cRank )
+						cRank = 0;
+#else // FIX_VISIBLE_BY_UNKNOWN_RANK
 					const char cRank = kPvpRankingInfo.m_cRank;
+#endif // FIX_VISIBLE_BY_UNKNOWN_RANK
+
 					pPvpEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( static_cast<CX2PVPEmblem::PVP_RANK>( cRank ) );
 #else
 					CX2PVPEmblem::PVP_EMBLEM		emblemID		= CX2PVPEmblem::PE_NONE;
@@ -978,7 +1009,12 @@ bool		CX2UIRankingInfo::Handler_EGS_GET_RANKING_INFO_ACK( HWND hWnd, UINT uMsg, 
 					pPvpEmblemData		= g_pMain->GetPVPEmblem()->GetPVPEmblemData( emblemID );
 #endif
 
+#ifdef FIX_VISIBLE_BY_UNKNOWN_RANK // 김태환
+					/// NULL 체크 추가
+					if ( static_cast<char>( CX2PVPEmblem::PVPRANK_RANK_ARRANGE ) < cRank && NULL != pPvpEmblemData )
+#else // FIX_VISIBLE_BY_UNKNOWN_RANK
 					if ( static_cast<char>( CX2PVPEmblem::PVPRANK_RANK_ARRANGE ) < cRank )
+#endif // FIX_VISIBLE_BY_UNKNOWN_RANK
 					{
 						m_columnForOthersRank[i].m_pStaticPvpEmblem->GetPicture( 0 )->SetShow( true );
 						m_columnForOthersRank[i].m_pStaticPvpEmblem->GetPicture( 0 )->SetTex( pPvpEmblemData->m_TextureName.c_str(),
@@ -1720,6 +1756,9 @@ bool		CX2UIRankingInfo::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				case RT_MONTH_RANKING:
 				case RT_LEVEL_RANKING:
 				case RT_PVP_RANKING:
+#ifdef NEW_HENIR_DUNGEON
+				case RT_HERO_RANKING:
+#endif // NEW_HENIR_DUNGEON
 					Handler_EGS_GET_RANKING_INFO_REQ();
 					break;
 				default:
@@ -1742,9 +1781,9 @@ bool		CX2UIRankingInfo::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 				m_iPickedUser--;
 
-				CX2Unit::UnitData* pUnitData = NULL;
+				const CX2Unit::UnitData* pUnitData = NULL;
 				if( NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit())
-					pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+					pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 				if( NULL == pUnitData )
 					return true;
 				if( pUnitData->m_NickName == m_columnForOthersFriendRank[m_iPickedUser].m_pStaticNickName->GetString( 0 )->msg )
@@ -1789,9 +1828,9 @@ bool		CX2UIRankingInfo::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 			m_iPickedUser--;
 
-			CX2Unit::UnitData* pUnitData = NULL;
+			const CX2Unit::UnitData* pUnitData = NULL;
 			if( NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit())
-				pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+				pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 			if( NULL == pUnitData )
 				return true;
 			if( pUnitData->m_NickName == m_columnForOthersFriendRank[m_iPickedUser].m_pStaticNickName->GetString( 0 )->msg )
@@ -2016,6 +2055,17 @@ bool		CX2UIRankingInfo::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 		break;
 #endif	//	NEW_TERM_EVENT
 		//}} 허상형 : [2009/8/21] //	신학기 이벤트 메시지
+#ifdef NEW_HENIR_DUNGEON
+	case URICM_SELECT_HERO_BUTTON:
+		{
+			m_nowRankingInfoType	=	RT_HERO_RANKING;
+			m_uiNowPage				=	1;
+
+			Handler_EGS_GET_RANKING_INFO_REQ();
+
+			return true;
+		} break;
+#endif // NEW_HENIR_DUNGEON
 
 	default:
 		break;

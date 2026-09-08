@@ -3,7 +3,7 @@
 
 #define BEGIN_NAMESPACE( name ) namespace name {
 #define END_NAMESPACE }
-#define NUM_ELEMENTS(x) ( sizeof((x)) / sizeof(0[x]) ) // vectorï¿½î¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
+#define NUM_ELEMENTS(x) ( sizeof((x)) / sizeof(0[x]) ) // vectorµî¿¡ »ç¿ë½Ã ÄÄÆÄÀÏ¿¡·¯¸¦ ³»µµ·Ï ÀÇµµµÈ ¸ÅÅ©·ÎÀÔ´Ï´Ù.
 
 #include <KncMacro.h>
 #include <string>
@@ -14,7 +14,6 @@
 #include <cryptopp/md5.h>
 #include <boost/format.hpp>
 #include <sstream>
-#include <vector>	// Iruha : 2026-08-27 // VS2010 port: needed by the backported NumberShuffle()
 
 
 //{{ GetTimeStampForLoadedLibrary
@@ -39,7 +38,7 @@ inline std::wstring GetLastErrMsg()
 	{
 		if( lpMsgBuf )
 			LocalFree( lpMsgBuf );
-		return std::wstring(L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.!");
+		return std::wstring(L"¿¡·¯°ª ¾ò±â ½ÇÆÐ.!");
 	}
 
 	std::wstring strRet( lpMsgBuf );
@@ -48,7 +47,7 @@ inline std::wstring GetLastErrMsg()
 	return strRet;
 }
 
-// MD5 ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½ï¿½ï¿½
+// MD5 ¹®ÀÚ¿­ ¾ò±â
 inline std::string GetMD5( std::string& strIN_ )
 {
     byte temp[16];
@@ -63,7 +62,7 @@ inline std::string GetMD5( std::string& strIN_ )
     return stm.str();
 }
 
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ø´ï¿½.
+// ½ÇÇàÆÄÀÏ ¸íÀ» ¾Ë·ÁÁØ´Ù.
 inline void GetAppName( OUT std::wstring& strAppName ) // 051228. kkurrung. Modify .
 {
     wchar_t szFileName[_MAX_PATH];
@@ -77,7 +76,7 @@ inline void GetAppName( OUT std::wstring& strAppName ) // 051228. kkurrung. Modi
 
 inline bool GetTimeStampByNameW( OUT std::wstring& strTimeStamp ) // 051228. kkurrung. Modify .
 {
-    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½.
+    // ½ÇÇà ÆÄÀÏ »ý¼º ½Ã°¢ ¾ò±â.
     HANDLE hFile;
     HANDLE hFMap;
     wchar_t szFileName[MAX_PATH];
@@ -89,9 +88,9 @@ inline bool GetTimeStampByNameW( OUT std::wstring& strTimeStamp ) // 051228. kku
         return false;
     }
 
-    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
+    // ÆÄÀÏ ¸ÊÇÎ ¿ÀºêÁ§Æ®¸¦ ¸¸µç´Ù.
     hFMap = CreateFileMappingW( hFile, NULL, PAGE_READONLY, 0, 0, NULL );
-    // ï¿½Ö¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
+    // ÁÖ¼Ò °ø°£¿¡ ¸ÊÇÑ´Ù.
     HMODULE hModule;
     hModule = ( HMODULE )MapViewOfFile( hFMap, FILE_MAP_READ, 0, 0, 0 );
     CTime time( GetTimestampForLoadedLibrary( hModule ) );
@@ -108,7 +107,7 @@ inline bool GetTimeStampByNameW( OUT std::wstring& strTimeStamp ) // 051228. kku
 //{{ 060105. kkurrung. ANSI Version
 inline bool GetTimeStampByNameA( OUT std::string& strTimeStamp )
 {
-    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½.
+    // ½ÇÇà ÆÄÀÏ »ý¼º ½Ã°¢ ¾ò±â.
     HANDLE hFile;
     HANDLE hFMap;
     char szFileName[MAX_PATH];
@@ -120,9 +119,9 @@ inline bool GetTimeStampByNameA( OUT std::string& strTimeStamp )
         return false;
     }
 
-    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
+    // ÆÄÀÏ ¸ÊÇÎ ¿ÀºêÁ§Æ®¸¦ ¸¸µç´Ù.
     hFMap = CreateFileMappingA( hFile, NULL, PAGE_READONLY, 0, 0, NULL );
-    // ï¿½Ö¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½.
+    // ÁÖ¼Ò °ø°£¿¡ ¸ÊÇÑ´Ù.
     HMODULE hModule;
     hModule = ( HMODULE )MapViewOfFile( hFMap, FILE_MAP_READ, 0, 0, 0 );
     CTime time( GetTimestampForLoadedLibrary( hModule ) );
@@ -137,8 +136,8 @@ inline bool GetTimeStampByNameA( OUT std::string& strTimeStamp )
 }
 //}} kkurrung.
 
-// powï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¹Ç·ï¿½, #include <cmath> ï¿½ï¿½ï¿½Ö¾ï¿½ï¿½ ï¿½Ñ´ï¿½.
-inline long hstol(char* str) // ï¿½Ý¸ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½Ô¼ï¿½. hex ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½Ù²ï¿½ï¿½Ø´ï¿½.
+// pow¸¦ »ç¿ëÇÏ¹Ç·Î, #include <cmath> ÇØÁÖ¾î¾ß ÇÑ´Ù.
+inline long hstol(char* str) // ³Ý¸¶ºí ¿¾ ÀÎÁõ¹æ½Ä¿¡ ¾²ÀÌ´ø ÇÔ¼ö. hex ¹®ÀÚ¿­À» ¼ýÀÚ·Î ¹Ù²ãÁØ´Ù.
 {
     if ( str == NULL ) return 0L;
 
@@ -162,7 +161,7 @@ inline long hstol(char* str) // ï¿½Ý¸ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿
     {
         p      = (long)pow(16.f, j);
 
-        {   // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ static functionï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½, inline ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½ï¿½ï¿½ï¿½.
+        {   // ÀÌÀü¿¡´Â ³»ºÎ Å¬·¡½ºÀÇ static functionÀ¸·Î ±¸ÇöµÇ¾úÀ¸³ª, inline ÇÔ¼ö·Î ¸¸µé¸é¼­ ¼öÁ¤.
             if ( '0' <= str[i] && str[i] <= '9')
                 index = str[i] - '0';
 
@@ -184,7 +183,7 @@ inline long hstol(char* str) // ï¿½Ý¸ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ ï¿
 
 inline time_t TimeToInt( CTime& cTime_ )
 {
-    // CTime::GetTime()ï¿½ï¿½ __time64_tï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ struct tmï¿½ï¿½ ï¿½ï¿½î¼­ timt_tï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+    // CTime::GetTime()Àº __time64_t¸¦ ¸®ÅÏÇÑ´Ù. ¾ÈÀüÇÏ°Ô struct tmÀ» ¾ò¾î¼­ timt_t¸¦ ±¸ÇÏÀÚ.
     struct tm tmBuff;
     cTime_.GetLocalTm( &tmBuff );
     return ::mktime( &tmBuff );
@@ -195,7 +194,7 @@ inline std::string toNarrowString( const wchar_t* pStr , int len = -1 )
     std::string buf ;
     if( pStr == NULL )
         return buf;
-    if( len != -1 && len <= 0 ) // florist. 0ï¿½Ì¾îµµ ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+    if( len != -1 && len <= 0 ) // florist. 0ÀÌ¾îµµ Åë°ú½ÃÅ°Áö ¸»ÀÚ.
         return buf;
 
     // figure out how many narrow characters we are going to get 
@@ -225,7 +224,7 @@ inline std::wstring toWideString( const char* pStr , int len = -1 )
     std::wstring buf ;
     if( pStr == NULL )
         return buf;
-    if( len != -1 && len <= 0 ) // florist. 0ï¿½Ì¾îµµ ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+    if( len != -1 && len <= 0 ) // florist. 0ÀÌ¾îµµ Åë°ú½ÃÅ°Áö ¸»ÀÚ.
         return buf;
 
     // figure out how many wide characters we are going to get 
@@ -254,7 +253,7 @@ inline std::wstring toWideString_UTF8( const char* pStr , int len = -1 )
 	std::wstring buf ;
 	if( pStr == NULL )
 		return buf;
-	if( len != -1 && len <= 0 ) // florist. 0ï¿½Ì¾îµµ ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+	if( len != -1 && len <= 0 ) // florist. 0ÀÌ¾îµµ Åë°ú½ÃÅ°Áö ¸»ÀÚ.
 		return buf;
 
 	// figure out how many wide characters we are going to get 
@@ -280,7 +279,7 @@ inline std::wstring toWideString_UTF8( const std::string& str )
 
 inline bool ConvertStringToCTime( const std::wstring& wstrDate, CTime& ctDate )
 {
-    //## ï¿½ï¿½Â¥ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½×»ï¿½ : 2008-01-22 11:16:00 ï¿½Ì·ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾ï¿½Í¾ï¿½ï¿½Ñ´ï¿½.
+    //## ³¯Â¥ ¹®ÀÚ¿­Àº Ç×»ó : 2008-01-22 11:16:00 ÀÌ·±½ÄÀÇ ÆÐÅÏÀ¸·Î ³Ñ¾î¿Í¾ßÇÑ´Ù.
 
     if( wstrDate.size() < 19 )
     {
@@ -312,7 +311,7 @@ inline bool ConvertStringToCTime( const std::wstring& wstrDate, CTime& ctDate )
 
         default:
             {
-                if( (*pT) >= L'0' && (*pT) <= L'9' )
+				if( (*pT) >= L'0' && (*pT) <= L'9' || (*pT) == L'.' )	// ÇØ¿ÜÆÀ Ãß°¡
                 {
                     if( wstrToken[iNowToken].size() == 0 )
                         wstrToken[iNowToken] = (*pT);
@@ -335,7 +334,7 @@ inline bool ConvertStringToCTime( const std::wstring& wstrDate, CTime& ctDate )
         iToken[i] = _wtoi( wstrToken[i].c_str() );
     }
 
-	//{{ 2010. 10. 13	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	CTimeï¿½ï¿½ï¿½ï¿½ exceptionï¿½ß»ï¿½ ï¿½È½ï¿½Å°ï¿½ï¿½ï¿½ï¿½ ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	//{{ 2010. 10. 13	ÃÖÀ°»ç	CTime¿¡¼­ exception¹ß»ý ¾È½ÃÅ°µµ·Ï ¹Û¿¡¼­ µû·Î °Ë»ç
 	if( iToken[2] < 1  ||  iToken[2] > 31 )
 	{
 		return false;
@@ -352,7 +351,7 @@ inline bool ConvertStringToCTime( const std::wstring& wstrDate, CTime& ctDate )
 	}
 	//}}
 
-	//{{ 2009. 10. 21  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½Ê±â°ª Ã¼Å© - exceptionï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ falseï¿½ï¿½ returnï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½.
+	//{{ 2009. 10. 21  ÃÖÀ°»ç	ÃÊ±â°ª Ã¼Å© - exception³»Áö ¾Ê°í false¸¦ returnÇÏµµ·Ï ÇÔ.
 	if( iToken[0] == 1900  &&
 		iToken[1] == 1 &&
 		iToken[2] == 1 &&
@@ -360,7 +359,7 @@ inline bool ConvertStringToCTime( const std::wstring& wstrDate, CTime& ctDate )
 		iToken[4] == 0 &&
 		iToken[5] == 0 )
 	{
-		// ï¿½Ì·ï¿½ï¿½ï¿½ì¿¡ï¿½ï¿½ falseï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½ï¿½.
+		// ÀÌ·±°æ¿ì¿¡µµ false¸®ÅÏ ÇØ¾ßÇÔ.
 		return false;
 	}
 	//}}
@@ -369,63 +368,5 @@ inline bool ConvertStringToCTime( const std::wstring& wstrDate, CTime& ctDate )
 
     return true;
 }
-
-//{{ Iruha : 2026-08-27 // VS2010 port: backported from KNCSDK/Include/KncUtil.h, which has
-// this function and Include_2010 does not. KncWX2Server/LoginServer/NexonAuthManager.cpp
-// calls it unconditionally.
-inline std::wstring EraseFrontWord( const std::wstring& wstrWord, const wchar_t flag )
-{
-	std::wstring wstrResult = wstrWord;
-
-	unsigned int uiIndex = static_cast<unsigned int>(wstrResult.find( L';' ));
-	if( uiIndex != 0 )
-	{
-		wstrResult.erase( 0, uiIndex + 1 );
-	}
-
-	return wstrResult;
-}
-//}}
-
-//{{ Iruha : 2026-08-27 // VS2010 port: backported from KNCSDK/Include/KncUtil.h, which has
-// this function and Include_2010 does not. KncWX2Server/CenterServer/RoomUserManager.cpp
-// calls it unconditionally.
-template< class T >
-inline std::vector< T > NumberShuffle( const std::vector< T >& vecSource )
-{
-	std::vector< T > vecDataSource = vecSource;
-	std::vector< T > vecResult;
-	const int iMaxNum = static_cast<int>(vecDataSource.size());
-
-	for( int iNum = 0; iNum < iMaxNum; ++iNum )
-	{
-		if( vecDataSource.size() == 0 )
-			break;
-
-		const int iRandomRet = static_cast<int>(rand() % static_cast<int>(vecDataSource.size()));
-
-		typename std::vector< T >::iterator vitSelected;
-		int iIndex = 0;
-		for( vitSelected = vecDataSource.begin(); vitSelected != vecDataSource.end(); ++vitSelected )
-		{
-			if( iIndex != iRandomRet )
-			{
-				++iIndex;
-				continue;
-			}
-
-			vecResult.push_back( *vitSelected );
-			break;
-		}
-
-		if( vitSelected != vecDataSource.end() )
-		{
-			vecDataSource.erase( vitSelected );
-		}
-	}
-
-	return vecResult;
-}
-//}}
 
 END_NAMESPACE

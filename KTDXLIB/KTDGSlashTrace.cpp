@@ -33,13 +33,22 @@ CKTDGSlashTrace::CKTDGSlashTrace( int vertexNum, bool bTexturedSlashTrace /*= fa
 , m_SplineBufDown4(0,0,0)
 , m_DisableTime( 0.f )
 {
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+    if ( vertexNum < 2 )
+        vertexNum = 2;
+    if ( ( vertexNum & 1 ) != 0 )
+        vertexNum++;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+
     SetAlphaObject( true );
 	m_bHasVisibleVertex	= false;
 	
 	m_VertexNum			= vertexNum;
 	m_pSlashVertexList	= new VERTEX_SLASH_TRACE[m_VertexNum];
 	ZeroMemory( m_pSlashVertexList, sizeof(VERTEX_SLASH_TRACE) * m_VertexNum );
-
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+    m_iSlashVertexList_StartIndex = 0;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 
 #ifdef TEXTURED_SLASH_TRACE_TEST
 	m_bHasVisibleVertexTextured = false;
@@ -56,7 +65,9 @@ CKTDGSlashTrace::CKTDGSlashTrace( int vertexNum, bool bTexturedSlashTrace /*= fa
 	}
 
 	m_pSlashVertexTexturedList = NULL;
-
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+    m_iSlashVertexTexturedList_StartIndex = 0;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 	m_DefaultSlashTraceTextureName = slashTraceTextureName;
 	m_bEnabledSlashTraceTexture = bTexturedSlashTrace;
 	if( true == m_bEnabledSlashTraceTexture )
@@ -72,58 +83,58 @@ CKTDGSlashTrace::CKTDGSlashTrace( int vertexNum, bool bTexturedSlashTrace /*= fa
 
 
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	HRESULT hr;
-
-	const D3DCAPS9* pD3DCAPS9 = DXUTGetDeviceCaps();
-	
-	if ( pD3DCAPS9 != NULL && (  pD3DCAPS9->Caps2 & D3DCAPS2_DYNAMICTEXTURES ) != 0 )
-	{
-		m_bUseDynamic = true;
-
-		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( m_VertexNum * sizeof(VERTEX_SLASH_TRACE), 
-			D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, D3DFVF_SLASH_TRACE, 
-			D3DPOOL_DEFAULT, &m_pSlashVB, NULL )))
-		{
-			wcout << L"Fail: CKTDGSlashTrace::CreateVertexBuffer" << std::endl;
-			ErrorLog( KEM_ERROR34 );
-			return;
-		}
-	}
-	else
-	{
-		m_bUseDynamic = false;
-
-		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( m_VertexNum * sizeof(VERTEX_SLASH_TRACE), 
-			D3DUSAGE_WRITEONLY, D3DFVF_SLASH_TRACE, 
-			D3DPOOL_MANAGED, &m_pSlashVB, NULL )))
-		{
-			wcout << L"Fail: CKTDGSlashTrace::CreateVertexBuffer" << std::endl;
-			ErrorLog( KEM_ERROR34 );
-			return;
-		}
-	}
-
-
-
-
-
-#ifdef TEXTURED_SLASH_TRACE_TEST
-	m_pSlashTexturedVB = NULL;
-	if( true == m_bEnabledSlashTraceTexture )
-	{
-		if( FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( m_VertexNum * sizeof(VERTEX_SLASH_TRACE_TEXTURED), 
-			D3DUSAGE_WRITEONLY, D3DFVF_SLASH_TRACE_TEXTURED, 
-			D3DPOOL_MANAGED, &m_pSlashTexturedVB, NULL )))
-		{
-			wcout << L"Fail: CKTDGSlashTrace::CreateVertexBuffer textured" << std::endl;
-			ErrorLog( KEM_ERROR34 );
-			return;
-		}
-	}
-#endif TEXTURED_SLASH_TRACE_TEST
-
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	HRESULT hr;
+//
+//	const D3DCAPS9* pD3DCAPS9 = DXUTGetDeviceCaps();
+//	
+//	if ( pD3DCAPS9 != NULL && (  pD3DCAPS9->Caps2 & D3DCAPS2_DYNAMICTEXTURES ) != 0 )
+//	{
+//		m_bUseDynamic = true;
+//
+//		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( m_VertexNum * sizeof(VERTEX_SLASH_TRACE), 
+//			D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, D3DFVF_SLASH_TRACE, 
+//			D3DPOOL_DEFAULT, &m_pSlashVB, NULL )))
+//		{
+//			wcout << L"Fail: CKTDGSlashTrace::CreateVertexBuffer" << std::endl;
+//			ErrorLog( KEM_ERROR34 );
+//			return;
+//		}
+//	}
+//	else
+//	{
+//		m_bUseDynamic = false;
+//
+//		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( m_VertexNum * sizeof(VERTEX_SLASH_TRACE), 
+//			D3DUSAGE_WRITEONLY, D3DFVF_SLASH_TRACE, 
+//			D3DPOOL_MANAGED, &m_pSlashVB, NULL )))
+//		{
+//			wcout << L"Fail: CKTDGSlashTrace::CreateVertexBuffer" << std::endl;
+//			ErrorLog( KEM_ERROR34 );
+//			return;
+//		}
+//	}
+//
+//
+//
+//
+//
+//#ifdef TEXTURED_SLASH_TRACE_TEST
+//	m_pSlashTexturedVB = NULL;
+//	if( true == m_bEnabledSlashTraceTexture )
+//	{
+//		if( FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( m_VertexNum * sizeof(VERTEX_SLASH_TRACE_TEXTURED), 
+//			D3DUSAGE_WRITEONLY, D3DFVF_SLASH_TRACE_TEXTURED, 
+//			D3DPOOL_MANAGED, &m_pSlashTexturedVB, NULL )))
+//		{
+//			wcout << L"Fail: CKTDGSlashTrace::CreateVertexBuffer textured" << std::endl;
+//			ErrorLog( KEM_ERROR34 );
+//			return;
+//		}
+//	}
+//#endif TEXTURED_SLASH_TRACE_TEST
+//
+//#endif
 
 
 #ifdef TEXTURED_SLASH_TRACE_TEST
@@ -189,15 +200,15 @@ CKTDGSlashTrace::CKTDGSlashTrace( int vertexNum, bool bTexturedSlashTrace /*= fa
 
 CKTDGSlashTrace::~CKTDGSlashTrace(void)
 {
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	SAFE_RELEASE( m_pSlashVB );
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	SAFE_RELEASE( m_pSlashVB );
+//#endif
 	SAFE_DELETE_ARRAY( m_pSlashVertexList );
 
 #ifdef TEXTURED_SLASH_TRACE_TEST
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	SAFE_RELEASE( m_pSlashTexturedVB );
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	SAFE_RELEASE( m_pSlashTexturedVB );
+//#endif
 	SAFE_DELETE_ARRAY( m_pSlashVertexTexturedList );
 
 	std::map<wstring, CKTDXDeviceTexture*>::iterator it;
@@ -254,9 +265,14 @@ HRESULT CKTDGSlashTrace::OnFrameMove( float fElapsedTime )
 			m_bHasVisibleVertexTextured = false;
 			D3DXCOLOR tempColor;
 
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+            int j = m_iSlashVertexTexturedList_StartIndex % m_VertexNum;
+#else   X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+            int j = 0;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 			for( int i=0; i<m_VertexNum; i++ )
 			{
-				tempColor = m_pSlashVertexTexturedList[i].color;
+				tempColor = m_pSlashVertexTexturedList[j].color;
 				if( tempColor.a > 0.f  )
 				{
 					tempColor.a -= (fElapsedTime / m_DisableTime);
@@ -279,7 +295,12 @@ HRESULT CKTDGSlashTrace::OnFrameMove( float fElapsedTime )
 						}
 					}
 				
-					m_pSlashVertexTexturedList[i].color = tempColor;
+					m_pSlashVertexTexturedList[j].color = tempColor;
+                    j++;
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+                    if ( j >= m_VertexNum )
+                        j = 0;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 				}
 
 
@@ -312,8 +333,13 @@ HRESULT CKTDGSlashTrace::OnFrameMove( float fElapsedTime )
 				const float fTextureStride = 0.5f * 1.f / (float) ( (iFirstZeroAlphaVertexIndex-iFirstNonZeroAlphaVertexIndex) * 0.5f );
 				for( int i=iFirstNonZeroAlphaVertexIndex; i<iFirstZeroAlphaVertexIndex && i+1<m_VertexNum; i+=2 )
 				{
-					VERTEX_SLASH_TRACE_TEXTURED& vertexUp	= m_pSlashVertexTexturedList[i];
-					VERTEX_SLASH_TRACE_TEXTURED& vertexDown	= m_pSlashVertexTexturedList[i+1];
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+                    int j = ( i + m_iSlashVertexTexturedList_StartIndex ) % m_VertexNum;
+#else   X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+                    int j = i;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+					VERTEX_SLASH_TRACE_TEXTURED& vertexUp	= m_pSlashVertexTexturedList[j];
+					VERTEX_SLASH_TRACE_TEXTURED& vertexDown	= m_pSlashVertexTexturedList[j+1];
 
 					vertexUp.texUV.y = 0.f;
 					vertexUp.texUV.x = (float) i * fTextureStride;
@@ -355,52 +381,52 @@ RENDER_HINT   CKTDGSlashTrace::OnFrameRender_Prepare()
 
 
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	if( true == m_bHasVisibleVertex )
-	{
-		VERTEX_SLASH_TRACE* pVertices;
-		if ( m_bUseDynamic == true )
-		{
-			if(FAILED( m_pSlashVB->Lock(0, 0, (void**) &pVertices, D3DLOCK_DISCARD) ))
-			{
-				wcout << L"Fail: CKTDGSlashTrace::Lock" << std::endl;
-				return RENDER_HINT_NORENDER;
-			}
-		}
-		else
-		{
-			if(FAILED( m_pSlashVB->Lock(0, 0, (void**) &pVertices, 0) ))
-			{
-				wcout << L"Fail: CKTDGSlashTrace::Lock" << std::endl;
-				return RENDER_HINT_NORENDER;
-			}
-		}
-
-		memcpy( pVertices, m_pSlashVertexList, sizeof(VERTEX_SLASH_TRACE) * m_VertexNum );
-		m_pSlashVB->Unlock();
-	}
-
-
-
-#ifdef TEXTURED_SLASH_TRACE_TEST
-	if( true == m_bEnabledSlashTraceTexture )
-	{
-		if( true == m_bHasVisibleVertexTextured )
-		{
-			VERTEX_SLASH_TRACE_TEXTURED* pVerticesTextured = NULL;
-			if( FAILED( m_pSlashTexturedVB->Lock(0, 0, (void**) &pVerticesTextured, 0) ) )
-			{
-				wcout << L"Fail: CKTDGSlashTrace::Lock textured" << std::endl;
-				return RENDER_HINT_NORENDER;
-			}
-
-			memcpy( pVerticesTextured, m_pSlashVertexTexturedList, sizeof(VERTEX_SLASH_TRACE_TEXTURED) * m_VertexNum );
-			m_pSlashTexturedVB->Unlock();
-		}
-	}
-#endif TEXTURED_SLASH_TRACE_TEST
-
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	if( true == m_bHasVisibleVertex )
+//	{
+//		VERTEX_SLASH_TRACE* pVertices;
+//		if ( m_bUseDynamic == true )
+//		{
+//			if(FAILED( m_pSlashVB->Lock(0, 0, (void**) &pVertices, D3DLOCK_DISCARD) ))
+//			{
+//				wcout << L"Fail: CKTDGSlashTrace::Lock" << std::endl;
+//				return RENDER_HINT_NORENDER;
+//			}
+//		}
+//		else
+//		{
+//			if(FAILED( m_pSlashVB->Lock(0, 0, (void**) &pVertices, 0) ))
+//			{
+//				wcout << L"Fail: CKTDGSlashTrace::Lock" << std::endl;
+//				return RENDER_HINT_NORENDER;
+//			}
+//		}
+//
+//		memcpy( pVertices, m_pSlashVertexList, sizeof(VERTEX_SLASH_TRACE) * m_VertexNum );
+//		m_pSlashVB->Unlock();
+//	}
+//
+//
+//
+//#ifdef TEXTURED_SLASH_TRACE_TEST
+//	if( true == m_bEnabledSlashTraceTexture )
+//	{
+//		if( true == m_bHasVisibleVertexTextured )
+//		{
+//			VERTEX_SLASH_TRACE_TEXTURED* pVerticesTextured = NULL;
+//			if( FAILED( m_pSlashTexturedVB->Lock(0, 0, (void**) &pVerticesTextured, 0) ) )
+//			{
+//				wcout << L"Fail: CKTDGSlashTrace::Lock textured" << std::endl;
+//				return RENDER_HINT_NORENDER;
+//			}
+//
+//			memcpy( pVerticesTextured, m_pSlashVertexTexturedList, sizeof(VERTEX_SLASH_TRACE_TEXTURED) * m_VertexNum );
+//			m_pSlashTexturedVB->Unlock();
+//		}
+//	}
+//#endif TEXTURED_SLASH_TRACE_TEST
+//
+//#endif
 
     return RENDER_HINT_DEFAULT;
 }//CKTDGSlashTrace::OnFrameRender_Prepare()
@@ -409,12 +435,12 @@ RENDER_HINT   CKTDGSlashTrace::OnFrameRender_Prepare()
 /*virtual*/
 void    CKTDGSlashTrace::OnFrameRender_Draw()
 {
-	CKTDGMatrixSet  oldMatrixSet = GetMatrix().GetMatrixSet();
-	GetMatrix().Move( 0.0f, 0.0f, 0.0f );
-	GetMatrix().Scale( 1.0f, 1.0f, 1.0f );
-	GetMatrix().Rotate( 0.0f, 0.0f, 0.0f );
-	GetMatrix().UpdateWorldMatrix();
-
+	//CKTDGMatrixSet  oldMatrixSet = GetMatrix().GetMatrixSet();
+	//GetMatrix().Move( 0.0f, 0.0f, 0.0f );
+	//GetMatrix().Scale( 1.0f, 1.0f, 1.0f );
+	//GetMatrix().Rotate( 0.0f, 0.0f, 0.0f );
+	//GetMatrix().UpdateWorldMatrix();
+    g_pKTDXApp->ResetWorldTransform();
 
 
 
@@ -440,18 +466,27 @@ void    CKTDGSlashTrace::OnFrameRender_Draw()
 				m_pCurrSlashTraceTexture->SetDeviceTexture( 0 );
 			}
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 			BOOST_STATIC_ASSERT( D3DFVF_SLASH_TRACE_TEXTURED == D3DFVF_XYZ_DIFFUSE_TEX1 );
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+            m_iSlashVertexTexturedList_StartIndex %= m_VertexNum;
+			g_pKTDXApp->GetDVBManager()->DrawPrimitive_SplitData( CKTDGDynamicVBManager::DVB_TYPE_XYZ_DIFFUSE_TEX1
+				, D3DPT_TRIANGLESTRIP, m_VertexNum - 2
+                , m_VertexNum - m_iSlashVertexTexturedList_StartIndex
+                , &m_pSlashVertexTexturedList[m_iSlashVertexTexturedList_StartIndex]
+                , &m_pSlashVertexTexturedList[0], m_DrawCount );
+#else   X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 			g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZ_DIFFUSE_TEX1
 				, D3DPT_TRIANGLESTRIP, m_VertexNum - 2, m_pSlashVertexTexturedList, m_DrawCount );
-#else
-			g_pKTDXApp->GetDevice()->SetFVF(D3DFVF_SLASH_TRACE_TEXTURED);
-			for( int i = 0; i < m_DrawCount; i++ )
-			{
-				g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, m_VertexNum - 2
-					, m_pSlashVertexTexturedList, sizeof(VERTEX_SLASH_TRACE_TEXTURED) );
-			}
-#endif
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+//#else
+//			g_pKTDXApp->GetDevice()->SetFVF(D3DFVF_SLASH_TRACE_TEXTURED);
+//			for( int i = 0; i < m_DrawCount; i++ )
+//			{
+//				g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, m_VertexNum - 2
+//					, m_pSlashVertexTexturedList, sizeof(VERTEX_SLASH_TRACE_TEXTURED) );
+//			}
+//#endif
 		}
 	}
 #endif TEXTURED_SLASH_TRACE_TEST
@@ -471,59 +506,69 @@ void    CKTDGSlashTrace::OnFrameRender_Draw()
 	if( true == m_bHasVisibleVertex && m_VertexNum > 2 )
 	{
 		CKTDGStateManager::SetTexture( 0, NULL );
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		BOOST_STATIC_ASSERT( D3DFVF_XYZ_DIFFUSE == D3DFVF_SLASH_TRACE );
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+        m_iSlashVertexList_StartIndex %= m_VertexNum;
+		g_pKTDXApp->GetDVBManager()->DrawPrimitive_SplitData( CKTDGDynamicVBManager::DVB_TYPE_XYZ_DIFFUSE
+			, D3DPT_TRIANGLESTRIP, m_VertexNum - 2
+            , m_VertexNum - m_iSlashVertexList_StartIndex
+            , &m_pSlashVertexList[m_iSlashVertexList_StartIndex]
+            , &m_pSlashVertexList[0]
+            , m_DrawCount );    
+#else   X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 		g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZ_DIFFUSE
 			, D3DPT_TRIANGLESTRIP, m_VertexNum - 2, m_pSlashVertexList, m_DrawCount );        
-#else
-		g_pKTDXApp->GetDevice()->SetFVF(D3DFVF_SLASH_TRACE);
-		for( int i = 0; i < m_DrawCount; i++ )
-		{
-			g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, m_VertexNum - 2
-				, m_pSlashVertexList, sizeof(VERTEX_SLASH_TRACE) );
-		}//if
-#endif
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+//#else
+//		g_pKTDXApp->GetDevice()->SetFVF(D3DFVF_SLASH_TRACE);
+//		for( int i = 0; i < m_DrawCount; i++ )
+//		{
+//			g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, m_VertexNum - 2
+//				, m_pSlashVertexList, sizeof(VERTEX_SLASH_TRACE) );
+//		}//if
+//#endif
 	}
 
-	GetMatrix().SetMatrixSet( oldMatrixSet );
+	//GetMatrix().SetMatrixSet( oldMatrixSet );
 }//CKTDGSlashTrace::OnFrameRender_Draw()
 
 //}} robobeg : 2008-10-24
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-HRESULT CKTDGSlashTrace::OnResetDevice()
-{
-	HRESULT hr = S_OK;
-
-	if ( m_bUseDynamic == true )
-	{
-		SAFE_RELEASE( m_pSlashVB );
-
-		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( m_VertexNum * sizeof(VERTEX_SLASH_TRACE), 
-			D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, D3DFVF_SLASH_TRACE, 
-			D3DPOOL_DEFAULT, &m_pSlashVB, NULL )))
-		{
-			wcout << L"Fail: CKTDGSlashTrace::CreateVertexBuffer" << std::endl;
-			ErrorLog( KEM_ERROR34 );
-			return hr;
-		}
-	}
-
-	return hr;
-}
-
-HRESULT CKTDGSlashTrace::OnLostDevice()
-{
-	HRESULT hr = S_OK;
-
-	if ( m_bUseDynamic == true )
-	{
-		SAFE_RELEASE( m_pSlashVB );
-	}
-
-	return hr;
-}
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//HRESULT CKTDGSlashTrace::OnResetDevice()
+//{
+//	HRESULT hr = S_OK;
+//
+//	if ( m_bUseDynamic == true )
+//	{
+//		SAFE_RELEASE( m_pSlashVB );
+//
+//		if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( m_VertexNum * sizeof(VERTEX_SLASH_TRACE), 
+//			D3DUSAGE_WRITEONLY | D3DUSAGE_DYNAMIC, D3DFVF_SLASH_TRACE, 
+//			D3DPOOL_DEFAULT, &m_pSlashVB, NULL )))
+//		{
+//			wcout << L"Fail: CKTDGSlashTrace::CreateVertexBuffer" << std::endl;
+//			ErrorLog( KEM_ERROR34 );
+//			return hr;
+//		}
+//	}
+//
+//	return hr;
+//}
+//
+//HRESULT CKTDGSlashTrace::OnLostDevice()
+//{
+//	HRESULT hr = S_OK;
+//
+//	if ( m_bUseDynamic == true )
+//	{
+//		SAFE_RELEASE( m_pSlashVB );
+//	}
+//
+//	return hr;
+//}
+//#endif
 
 
 
@@ -819,12 +864,13 @@ void CKTDGSlashTrace::PushRenderBuffer( D3DXVECTOR3 posUp, D3DXVECTOR3 posDown, 
 		vertexUp.color		= color;
 		vertexDown.position	= posDown;
 		vertexDown.color	= color;
-
+#ifndef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 		for( int i = m_VertexNum - 1; i >= 3; i -= 2 )
 		{
 			m_pSlashVertexTexturedList[i]	= m_pSlashVertexTexturedList[i-2];
 			m_pSlashVertexTexturedList[i-1]	= m_pSlashVertexTexturedList[i-3];
 		}
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 
 		if( m_bHighLight == true )
 		{
@@ -833,8 +879,17 @@ void CKTDGSlashTrace::PushRenderBuffer( D3DXVECTOR3 posUp, D3DXVECTOR3 posDown, 
 			vertexDown.color	= color;
 		}
 		
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+        if ( m_VertexNum >= 2 )
+        {
+            m_iSlashVertexTexturedList_StartIndex = ( m_iSlashVertexTexturedList_StartIndex + m_VertexNum - 2 ) % m_VertexNum;
+            m_pSlashVertexTexturedList[m_iSlashVertexTexturedList_StartIndex] = vertexUp;
+            m_pSlashVertexTexturedList[m_iSlashVertexTexturedList_StartIndex+1] = vertexDown;
+        }
+#else   X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 		m_pSlashVertexTexturedList[0] = vertexUp;
 		m_pSlashVertexTexturedList[1] = vertexDown;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 	}
 	else
 #endif TEXTURED_SLASH_TRACE_TEST
@@ -852,12 +907,14 @@ void CKTDGSlashTrace::PushRenderBuffer( D3DXVECTOR3 posUp, D3DXVECTOR3 posDown, 
 		}
 		vertexDown.color	= color;
 
+#ifndef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 		for( int i = m_VertexNum - 1; i >= 3; i-- )
 		{
 			m_pSlashVertexList[i]	= m_pSlashVertexList[i-2];
 			m_pSlashVertexList[i-1]	= m_pSlashVertexList[i-3];
 			i--;
 		}
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 
 		if( m_bHighLight == true )
 		{
@@ -865,9 +922,17 @@ void CKTDGSlashTrace::PushRenderBuffer( D3DXVECTOR3 posUp, D3DXVECTOR3 posDown, 
 			vertexUp.color		= color;
 			vertexDown.color	= color;
 		}
-
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+        if ( m_VertexNum >= 2 )
+        {
+            m_iSlashVertexList_StartIndex = ( m_iSlashVertexList_StartIndex + m_VertexNum - 2 ) % m_VertexNum;
+            m_pSlashVertexList[m_iSlashVertexList_StartIndex] = vertexUp;
+            m_pSlashVertexList[m_iSlashVertexList_StartIndex+1] = vertexDown;
+        }
+#else   X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 		m_pSlashVertexList[0] = vertexUp;
 		m_pSlashVertexList[1] = vertexDown;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 	}
 }
 

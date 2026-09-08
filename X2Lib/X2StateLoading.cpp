@@ -17,19 +17,19 @@ CX2StateLoading::CX2StateLoading(void) :
 // 2009.01.09 김태완 : 초기화 코드정리
 m_pDLGLoadingFront(NULL),
 m_fLogoTime(0.0f),
-m_hCompanyLogo(INVALID_PARTICLE_HANDLE),
-m_hLogoBack(INVALID_PARTICLE_HANDLE)
+m_hCompanyLogo(INVALID_PARTICLE_SEQUENCE_HANDLE),
+m_hLogoBack(INVALID_PARTICLE_SEQUENCE_HANDLE)
 #ifndef DELIBERATIONLOGO_SKIP
-,m_hDeliberationLogo(INVALID_PARTICLE_HANDLE)
+, m_hDeliberationLogo(INVALID_PARTICLE_SEQUENCE_HANDLE)
 #endif DELIBERATIONLOGO_SKIP
 //{{AFX
-//m_hNexonLogo(INVALID_PARTICLE_HANDLE),
-//m_hKOGBack(INVALID_PARTICLE_HANDLE),
-//m_hKOGLogo(INVALID_PARTICLE_HANDLE)
-//m_hKOGLogoMini(INVALID_PARTICLE_HANDLE),
-//m_hNexonLogoMini(INVALID_PARTICLE_HANDLE),
-//m_hPPoruSurprise(INVALID_PARTICLE_HANDLE),
-//m_hPPoruLogo(INVALID_PARTICLE_HANDLE)
+//m_hNexonLogo(INVALID_PARTICLE_SEQUENCE_HANDLE),
+//m_hKOGBack(INVALID_PARTICLE_SEQUENCE_HANDLE),
+//m_hKOGLogo(INVALID_PARTICLE_SEQUENCE_HANDLE)
+//m_hKOGLogoMini(INVALID_PARTICLE_SEQUENCE_HANDLE),
+//m_hNexonLogoMini(INVALID_PARTICLE_SEQUENCE_HANDLE),
+//m_hPPoruSurprise(INVALID_PARTICLE_SEQUENCE_HANDLE),
+//m_hPPoruLogo(INVALID_PARTICLE_SEQUENCE_HANDLE)
 //m_pWillium(NULL),
 //m_pElSword(NULL),
 //m_pLena(NULL),
@@ -114,14 +114,16 @@ m_bSentEGS_STATE_CHANGE_SERVER_SELECT_REQ(false)
 
 
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1500, 0,0,0 );
-	g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( 1.0f );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1500, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( 1.0f );
 
 	SetLoadingGageBar( 0 );
 
 	//m_pTextureTestMark = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"DLG_Test_Mark.tga" );
-#ifdef CLIENT_COUNTRY_TWHK
+#if defined( SERV_COUNTRY_TWHK )
 	m_hCompanyLogo  = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, L"HongkongIndexLogo", 512, 384, 0, 9999, 9999, -1, 1 );
+#elif defined (SERV_COUNTRY_JP)
+	m_hCompanyLogo	= g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"CompanyLogo_JP", 512, 384, 0, 9999, 9999, -1, 1 );
 #else	
 	m_hLogoBack		= g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"LogoBack", 512, 384, 0, 9999, 9999, -1, 1 );
 	m_hCompanyLogo	= g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"CompanyLogo", 512, 384, 0, 9999, 9999, -1, 1 );
@@ -152,12 +154,7 @@ m_bSentEGS_STATE_CHANGE_SERVER_SELECT_REQ(false)
 		PostQuitMessage(0);
 	}
 #endif // SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
-#endif SERV_KOM_FILE_CHECK_ADVANCED
-
-
-//#ifdef X2OPTIMIZE_TCP_RELAY_TEST
-//	g_pData->GetGameUDP()->SetServerProtocol( g_pData->GetServerProtocol() );
-//#endif//X2OPTIMIZE_TCP_RELAY_TEST
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
 
 #if defined( SERV_HACKING_TOOL_LIST )
 
@@ -171,13 +168,24 @@ m_bSentEGS_STATE_CHANGE_SERVER_SELECT_REQ(false)
 #ifdef EXTEND_SERVER_GROUP_MASK
 #else EXTEND_SERVER_GROUP_MASK
 	if ( g_pInstanceData->GetServerGroupID() == SGI_INVALID )
-		OpenScriptServerGroupFile();
+    {
+		//OpenScriptServerGroupFile();
+        g_pInstanceData->OpenScriptServerGroupFile();
+    }
 	g_pMain->SetPickedChannelServerIPIndex( g_pInstanceData->GetServerGroupID() );
 #endif EXTEND_SERVER_GROUP_MASK
 #endif
 
+#ifdef CLOSE_ON_START_FOR_GAMEGUARD
+#if defined( CLIENT_COUNTRY_JP ) || defined( CLIENT_COUNTRY_PH )
+	if(g_pMain->IsCloseOnStart()== false)
+	{
+		ConnectToChannelServer();
+	}
+#endif
+#else
 	ConnectToChannelServer();
-
+#endif CLOSE_ON_START_FOR_GAMEGUARD
 
 #if defined( _SERVICE_ )
 	ELSWORD_VIRTUALIZER_END
@@ -188,6 +196,15 @@ m_bSentEGS_STATE_CHANGE_SERVER_SELECT_REQ(false)
 
 	g_pKTDXApp->SkipFrame();
 
+#ifdef CLOSE_ON_START_FOR_GAMEGUARD
+#if defined( CLIENT_COUNTRY_JP )
+	if(g_pMain->IsCloseOnStart()== true)
+	{
+		Handler_EGS_CLIENT_QUIT_REQ();
+		g_pMain->SetCloseOnStart(false);
+	}
+#endif
+#endif CLOSE_ON_START_FOR_GAMEGUARD
 }
 
 CX2StateLoading::~CX2StateLoading(void)
@@ -202,11 +219,11 @@ CX2StateLoading::~CX2StateLoading(void)
 
 //{{AFX
 #if 0 
-	g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pWillium );
-	g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pElSword );
-	g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pLena );
-	g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pAisha );
-	g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pBenders );
+	g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pWillium );
+	g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pElSword );
+	g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pLena );
+	g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pAisha );
+	g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pBenders );
 #endif
 
 #ifdef LOADING_ANIMATION_TEST
@@ -270,21 +287,20 @@ HRESULT CX2StateLoading::OnFrameMove( double fTime, float fElapsedTime )
 
 	//# 회사로고 4초 후 심의등급 로고로 전환
 #ifndef DELIBERATIONLOGO_SKIP
-	if( m_hCompanyLogo != INVALID_PARTICLE_HANDLE && m_fLogoTime > 4.0f )
+	if( m_hCompanyLogo != INVALID_PARTICLE_SEQUENCE_HANDLE && m_fLogoTime > 4.0f )
 #else  DELIBERATIONLOGO_SKIP
-	if( m_hCompanyLogo != INVALID_PARTICLE_HANDLE && m_fLogoTime > 5.0f )
+	if( m_hCompanyLogo != INVALID_PARTICLE_SEQUENCE_HANDLE && m_fLogoTime > 5.0f )
 #endif DELIBERATIONLOGO_SKIP
 	{
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hCompanyLogo );
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hLogoBack );
-		m_hCompanyLogo	= INVALID_PARTICLE_HANDLE;
-		m_hLogoBack		= INVALID_PARTICLE_HANDLE;
+		m_hCompanyLogo	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+		m_hLogoBack		= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 		// 심의등급 로고 생성
 #ifndef DELIBERATIONLOGO_SKIP
 		m_hDeliberationLogo	= g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, L"DeliberationLogo", 512, 384, 0, 9999, 9999, -1, 1 );
 #endif DELIBERATIONLOGO_SKIP
-
 //{{AFX
 #if 0 
 		//m_hPPoruSurprise	= g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"LogoPPoruSurprise", 650, 450, 0, 9999, 9999, -1, 1 );
@@ -295,11 +311,38 @@ HRESULT CX2StateLoading::OnFrameMove( double fTime, float fElapsedTime )
 		//m_pBenders			= g_pData->GetUIMajorXMeshPlayer()->CreateInstance( NULL,  L"LogoBenders",			500,-230,-1100, 0,0,0, 0,180,0 );
 #endif
 //}}AFX
+		//m_fLogoTime = 0.0f;	// 해외팀 주석 처리
+
+#ifdef INACTIVEATION_MINIMIZE_TEST
+		{
+			// # 테스트를 위해 지정한 txt파일이 게임 폴더 내 존재할 때만 처리
+			const string strFileName = "Inactivation_Mimize.txt";
+			FILE* file = NULL;
+			file = fopen( strFileName.c_str(), "r" );		
+			if( NULL != file )
+			{
+				// #x2 윈도우의 위치가 정렬되지 않은 문제를 해결하기 위해 해상도 변경 작업 수행
+				if( NULL != g_pMain )
+				{
+					const D3DXVECTOR2& vRect = g_pMain->GetGameOption().GetResolution();
+					// # 기본 해상도이거나, 전체화면일 때 수행하지 않기
+					if( !(true == IsSamef( 1024.f, vRect.x) && true == IsSamef(768.f, vRect.y)) &&
+						false == g_pMain->GetGameOption().GetIsFullScreen() )
+					{
+						g_pMain->GetGameOption().SetResolution( static_cast<DWORD>(vRect.x), static_cast<DWORD>(vRect.y) );
+					}
+				}
+				fclose(file);
+			}
+		}
+#endif // INACTIVEATION_MINIMIZE_TEST
+
+
 		g_pKTDXApp->SkipFrame();
 #ifndef DELIBERATIONLOGO_SKIP
 		m_fLogoTime = 0.0f;
 	}
-	else if( m_hDeliberationLogo != INVALID_PARTICLE_HANDLE )
+	else if( m_hDeliberationLogo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 #endif DELIBERATIONLOGO_SKIP
 
 #endif SKIP_INTRO_ANIMATION
@@ -344,11 +387,11 @@ HRESULT CX2StateLoading::OnFrameMove( double fTime, float fElapsedTime )
 
 			//{{AFX
 #if 0
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pWillium );
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pElSword );
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pLena );
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pAisha );
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_pBenders );
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pWillium );
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pElSword );
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pLena );
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pAisha );
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_pBenders );
 #endif
 			//}}AFX
 			
@@ -419,6 +462,9 @@ HRESULT CX2StateLoading::OnFrameMove( double fTime, float fElapsedTime )
 #ifdef NEW_CHARACTER_EL
 			g_pData->LoadUserUnitMotion8();
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+			g_pData->LoadUserUnitMotion9();
+#endif //SERV_9TH_NEW_CHARACTER
 
 
 			g_pData->LoadCommonDevice();
@@ -625,7 +671,7 @@ HRESULT CX2StateLoading::OnFrameMove( double fTime, float fElapsedTime )
 			//}}
 
 #ifdef BUFF_TEMPLET_SYSTEM	
-			g_pData->GetPremiumBuffManager()->OpenScriptFile( "BuffTemplet.lua" );
+			g_pData->GetPremiumBuffManager()->OpenScriptFile( L"BuffTemplet.lua" );
 #endif BUFF_TEMPLET_SYSTEM
 
 #ifdef SERV_GLOBAL_MISSION_MANAGER
@@ -712,6 +758,18 @@ HRESULT CX2StateLoading::OnFrameMove( double fTime, float fElapsedTime )
 			CX2EmblemManager::ResetEmblemManager();
 #endif //NEW_EMBLEM_MANAGER
 
+#ifdef NEW_MAIL_LOG
+			CX2MailLogManager::ResetMailLogManager();
+#endif // NEW_MAIL_LOG
+
+#ifdef FIELD_BOSS_RAID
+			CX2BossRaidManager::ResetBossRaidManager();
+#endif // FIELD_BOSS_RAID
+#ifdef REFORM_SKILL_NOTE_UI
+			CX2SkillNoteManager::ResetSkillNoteManager();
+			CX2SkillNoteManager::GetInstance()->OpenScriptFile();
+#endif // REFORM_SKILL_NOTE_UI
+
 			//드랍아이템 리소스
 			DropItemLoading();
 			SetLoadingString( GET_REPLACED_STRING( ( STR_ID_655, "i", 100 ) ) );
@@ -747,24 +805,22 @@ HRESULT CX2StateLoading::OnFrameMove( double fTime, float fElapsedTime )
 		}
 	}
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	if( ( GET_KEY_STATE(GA_RETURN) || g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_RETURN) == TRUE ) ||
 		GET_KEY_STATE(GAMEACTION_SLOT_CHANGE)
 		|| g_pKTDXApp->GetDIManager()->GetMouse()->GetButtonState(MOUSE_LBUTTON) == TRUE )
-#else // KEY_MAPPING_INT
+#else // SERV_KEY_MAPPING_INT
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_RETURN) == TRUE
 		|| g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_SPACE) == TRUE 
 		|| g_pKTDXApp->GetDIManager()->GetMouse()->GetButtonState(MOUSE_LBUTTON) == TRUE )
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 	{
-#ifdef DELIBERATIONLOGO_SKIP
-		if( m_hCompanyLogo != INVALID_PARTICLE_HANDLE )
-			m_fLogoTime = 5.0f;		
-#else DELIBERATIONLOGO_SKIP
-		if( m_hCompanyLogo != INVALID_PARTICLE_HANDLE )
+		if( m_hCompanyLogo != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			m_fLogoTime = 5.0f;
+#ifdef DELIBERATIONLOGO_SKIP
+#else DELIBERATIONLOGO_SKIP
 		else
-		if( m_hDeliberationLogo != INVALID_PARTICLE_HANDLE &&
+		if( m_hDeliberationLogo != INVALID_PARTICLE_SEQUENCE_HANDLE &&
 			m_fLogoTime >= 3.f	//심의등급 로고는 3초이상 보여주어야 함.
 			)
 			m_fLogoTime = 16.0f;
@@ -925,9 +981,9 @@ void CX2StateLoading::DropItemLoading()
     KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
 
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, L"DropItemManager.lua" );
+	g_pKTDXApp->LoadAndDoMemory( &luaManager, L"DropItemManager.lua" );
 
-	if( luaManager.BeginTable( L"DROP_XFILE_LIST" ) == true )
+	if( luaManager.BeginTable( "DROP_XFILE_LIST" ) == true )
 	{
 		int			index = 1;
 		wstring		str;
@@ -1068,9 +1124,9 @@ void CX2StateLoading::DropItemLoading()
 			g_pData->ResetItemManager();
 
             //타이틀 데이타 로드
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
             g_pData->ResetTitleManager();
-#endif
+//#endif
 
 #ifdef SERV_LOCAL_RANKING_SYSTEM //지인시스템
 			g_pData->ResetProfileManager();
@@ -1217,71 +1273,65 @@ void CX2StateLoading::DropItemLoading()
 #endif FIRST_GAME_LOADING_THREAD_TEST
 
 #if defined( SERV_HACKING_TOOL_LIST )
-#ifdef	ADD_SERVER_GROUP
-	bool CX2StateLoading::OpenScriptServerGroupFile()
-	{
-#ifdef EXTEND_SERVER_GROUP_MASK
-		g_pInstanceData->SetServerGroupID( 0 );
-		bool			bParsingOK = true;
-#else  EXTEND_SERVER_GROUP_MASK
-
-		string			strFileName;
-		SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
-		bool			bParsingOK		= false;
-
-		ConvertWCHARToChar( strFileName, g_pData->GetSavedServerGroupFileName() );
-		
-		ConvertFileAnsiToUTF8( strFileName, strFileName );
-
-		KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-
-		KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-		Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( g_pData->GetSavedServerGroupFileName() );
-		if( Info != NULL )
-		{
-			if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-			{
-				if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-				{
-					LUA_GET_VALUE_ENUM( luaManager, L"SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
-				}
-			}
-		}
-
-		switch ( eServerGroupID )
-		{
-		case SGI_SOLES:
-		case SGI_GAIA:
-			{
-				g_pInstanceData->SetServerGroupID( eServerGroupID );
-				bParsingOK = true;
-			}
-			break;
-
-		default:
-			{
-#ifdef RANDOM_SERVER
-				if( g_pMain->GetDefaultChannelServerIPIndex() == SGI_INVALID )
-				{
-					g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( (rand() % 2) ) );
-				}
-				else
-				{
-					g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
-				}
-#else
-				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
-#endif		
-			}
-			break;
-
-		}
-#endif EXTEND_SERVER_GROUP_MASK
-
-		return bParsingOK;
-
-	}
-#endif
+//#ifdef	ADD_SERVER_GROUP
+//	bool CX2StateLoading::OpenScriptServerGroupFile()
+//	{
+//		string			strFileName;
+//		SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
+//		bool			bParsingOK		= false;
+//
+//		ConvertWCHARToChar( strFileName, g_pData->GetSavedServerGroupFileName() );
+//
+//		ConvertFileAnsiToUTF8( strFileName, strFileName );
+//
+//		KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
+//
+//		KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
+//		Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile_LocalFile( g_pData->GetSavedServerGroupFileName() );
+//		if( Info != NULL )
+//		{
+//			if( true == g_pKTDXApp->LoadLuaTinker_LocalFile( g_pData->GetSavedServerGroupFileName().c_str() ) )
+//			{
+//				if( true == g_pKTDXApp->LoadAndDoMemory_LocalFile( &luaManager, g_pData->GetSavedServerGroupFileName().c_str() ) )
+//				{
+//					LUA_GET_VALUE_ENUM( luaManager, "SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
+//				}
+//			}
+//		}
+//
+//		switch ( eServerGroupID )
+//		{
+//		case SGI_SOLES:
+//		case SGI_GAIA:
+//			{
+//				g_pInstanceData->SetServerGroupID( eServerGroupID );
+//				bParsingOK = true;
+//			}
+//			break;
+//
+//		default:
+//			{
+//#ifdef RANDOM_SERVER
+//				if( g_pMain->GetDefaultChannelServerIPIndex() == SGI_INVALID )
+//				{
+//					g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( (rand() % 2) ) );
+//				}
+//				else
+//				{
+//					g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
+//				}
+//#else
+//				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
+//#endif		
+//			}
+//			break;
+//
+//		}
+//
+//		return bParsingOK;
+//
+//	}
+//#endif
 	bool CX2StateLoading::ConnectToChannelServer()
 	{
 		ASSERT( NULL != g_pData->GetServerProtocol() );
@@ -1295,9 +1345,9 @@ void CX2StateLoading::DropItemLoading()
 			//{{ 09.08. 태완 : 서버-클라 접속시 패킷 변경.
 			//#ifdef SERV_KOG_OTP_VERIFY
 			return Handler_ECH_VERIFY_ACCOUNT_REQ();
-			// #else SERV_KOG_OTP_VERIFY
+			// #else
 			// 		return Handler_ECH_GET_CHANNEL_LIST_REQ();
-			// #endif SERV_KOG_OTP_VERIFY
+			// #endif
 			//}}
 		}
 		else
@@ -1565,6 +1615,7 @@ void CX2StateLoading::DropItemLoading()
 				// 첫 아이디 패스워드 입력 후에 접속을 끊을 필요가 없음
 				// Handler_ECH_DISCONNECT_REQ();
 #endif SERV_KOG_OTP_VERIFY
+
 #ifdef SERV_COUNTRY_PH
 #ifdef _SERVICE_
 #ifndef NO_GAMEGUARD
@@ -1586,7 +1637,6 @@ void CX2StateLoading::DropItemLoading()
 #endif // NO_GAMEGUARD
 #endif //_SERVICE_
 #endif //SERV_COUNTRY_PH
-
 				return true;
 			}
 		}

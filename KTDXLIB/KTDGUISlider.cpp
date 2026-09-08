@@ -27,6 +27,11 @@ CKTDGUISlider::CKTDGUISlider()
 	m_pButtonTex = NULL;
 
 	m_CustomMsgValueChanged = -1;
+
+#ifdef DLL_BUILD
+	m_pCheckedEdgeTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"UIEdge.tga" );
+	m_bEditEdge = false;
+#endif
 }
 
 
@@ -34,6 +39,10 @@ CKTDGUISlider::~CKTDGUISlider(void)
 {
 	SAFE_DELETE( m_pBGTex );
 	SAFE_DELETE( m_pButtonTex );
+
+#ifdef DLL_BUILD
+	SAFE_CLOSE( m_pCheckedEdgeTexture );
+#endif
 }
 
 HRESULT	CKTDGUISlider::OnFrameMove(double fTime, float fElapsedTime )
@@ -58,6 +67,10 @@ HRESULT CKTDGUISlider::OnFrameRender()
 	{
 		return false;
 	}
+
+#ifdef DLL_BUILD
+	DrawEditEdge();
+#endif
 
 	int nOffsetX = 0;
 	int nOffsetY = 0;
@@ -162,6 +175,11 @@ bool CKTDGUISlider::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lPar
 	if( m_bShow == false || m_bEnable == false )
 		return false;
 
+#ifdef DLL_BUILD
+	if( m_bUpdate == false )
+		return false;
+#endif
+
 	switch( uMsg )
 	{
 	case WM_LBUTTONDOWN:
@@ -171,8 +189,9 @@ bool CKTDGUISlider::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lPar
 			{
 				// Pressed while inside the control
 				m_bPressed = true;
+#ifndef DLL_BUILD
 				SetCapture( DXUTGetHWND() );
-
+#endif
 				m_nDragX = pt.x;
 				//m_nDragY = pt.y;
 				m_nDragOffset = m_nButtonX - m_nDragX;
@@ -371,3 +390,109 @@ void CKTDGUISlider::FromRectToPoint( RECT& rect, CKTDGUIControl::UIPointData& po
 	point.rightBottomPoint.x = (float)rect.right;
 	point.rightBottomPoint.y = (float)rect.bottom;
 }
+
+#ifdef DLL_BUILD
+
+bool CKTDGUISlider::IsSelectByEditGui( POINT pt )
+{
+	return ( PtInRect( &m_rcBoundingBox, pt ) || 
+		PtInRect( &m_rcButton, pt ) ); 
+}
+
+void CKTDGUISlider::MoveControl( float fx, float fy )
+{
+	m_x += (int)fx;
+	m_y += (int)fy;	
+
+	UpdateRects();
+}
+
+void CKTDGUISlider::SetEditGUI( bool bEdit )
+{
+	SetColor( D3DXCOLOR(0xffffffff) );
+
+	m_bUpdate = !bEdit;
+	m_bEditEdge = bEdit;
+
+	m_bPressed = false;
+}
+
+D3DXVECTOR2 CKTDGUISlider::GetPos()
+{
+	return D3DXVECTOR2((float)m_x, (float)m_y);
+}
+
+vector<D3DXVECTOR2> CKTDGUISlider::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;
+
+	ret.push_back( GetPos() );
+
+	return ret;
+}
+
+void CKTDGUISlider::DrawEditEdge()
+{
+	if( false == m_bEditEdge )
+		return;	
+
+	if ( m_pCheckedEdgeTexture == NULL )
+		return;	
+
+	//const CKTDGUIControl::UIPointData & point = *m_pEditEdgePoint;
+	D3DXCOLOR tempColor;
+
+	int edgeWidth = 2;
+	D3DXCOLOR edgeColor = D3DXCOLOR(0xffff0000);
+
+	tempColor.a = edgeColor.a * m_pDialog->GetColor().a * m_Color.a;
+	tempColor.r = edgeColor.r * m_pDialog->GetColor().r * m_Color.r;
+	tempColor.g = edgeColor.g * m_pDialog->GetColor().g * m_Color.g;
+	tempColor.b = edgeColor.b * m_pDialog->GetColor().b * m_Color.b;
+
+		
+	RECT edgeRect;
+	UnionRect( &edgeRect, &m_rcButton, &m_rcBoundingBox );
+
+// 	edgeRect.left = m_NowPoint.leftTopPoint.x;
+// 	edgeRect.top = m_NowPoint.leftTopPoint.y;
+// 	edgeRect.right = m_NowPoint.rightBottomPoint.x;
+// 	edgeRect.bottom = m_NowPoint.rightBottomPoint.y;
+
+	int _width = (int)(edgeRect.right - edgeRect.left);
+	int _height = (int)(edgeRect.bottom - edgeRect.top);
+
+	//if ( m_bDrawEdgeOut == true )
+	{
+		// ÁÂ left/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth), 
+			edgeWidth , 
+			_height + edgeWidth, 
+			tempColor );
+
+		// ÇÏleft/bottom
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.bottom ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+
+		// ¿ìright/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.right ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top ), 
+			edgeWidth, 
+			_height + edgeWidth, 
+			tempColor );
+
+		// »óleft/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+	}
+}
+
+#endif
+

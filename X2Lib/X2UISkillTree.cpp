@@ -28,7 +28,7 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 
 	CX2SkillTree* pSkillTree = g_pData->GetSkillTree();
 
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 	int iSkillLevel = refUserSkillTree.GetSkillLevel( m_eSkillID );
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( m_eSkillID, (iSkillLevel != 0 ? iSkillLevel : 1) );
 	if(pSkillTree == NULL || pSkillTemplet == NULL)
@@ -543,7 +543,7 @@ CX2EquippedSkillSlotData::CX2EquippedSkillSlotData(int index, bool bSlotb )
 	// 2. 1레벨이라도 익힌 스킬 여부 : 스킬 슬롯의 드래그 활성화 / 비활성화(패시브면 드래그 안 되게), 텍스쳐 변경. 스트링 설정 (레벨/최대레벨)
 
 
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 
 
 	if(m_bSlotb == true && false == refUserSkillTree.GetEnabledSkillSlotB() )
@@ -943,14 +943,13 @@ bool CX2UISkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			pos.y += pControl->GetHeight();
 						
 			if(g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
-				CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 				int iSPoint = 0;
 				int iCSPoint = 0;
 				refUserSkillTree.CalcUsedSPointAndCSPoint( iSPoint,iCSPoint );
-				int iMaxCSPoint = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iCSPoint 
+				int iMaxCSPoint = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iCSPoint 
 					+ iSPoint + iCSPoint - g_pData->GetSelectUnitLevel() * 2;
 
 				WCHAR wszText[32] = L"";
@@ -959,7 +958,7 @@ bool CX2UISkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				wstring wstr = L"";
 				wstr += GET_STRING(STR_ID_2689);
 				wstr += wszText;
-				wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrCSPointEndDate, g_pData->GetServerCurrentTime() );
+				wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrCSPointEndDate, g_pData->GetServerCurrentTime() );
 
 				ShowUIDesc(true, wstr, pos, CX2TalkBoxManagerImp::TBT_FROM_UP_LEFT, D3DXCOLOR(1,1,1,1), D3DXCOLOR(0.97f, 0.23f, 0.06f, 1) );			
 			}
@@ -979,10 +978,9 @@ bool CX2UISkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			pos.x += pControl->GetWidth() / 2.f;
 			
 			if(g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
-				CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 				wstring wstr = L"";
 				wstr += GET_STRING(STR_ID_2690);
 				wstr += GetExpirationDateDesc( refUserSkillTree.GetSkillSlotBEndDateString(), g_pData->GetServerCurrentTime() );
@@ -1316,20 +1314,20 @@ bool CX2UISkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			{
 				if(pMyUnit->GetInventory() != NULL)
 				{
-					if( NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_ITEM_ID ) ||
+					if( NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_ITEM_ID ) ||
 #ifdef SERV_EVENT_RESET_A_SKILL_ITEM
-						NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_ITEM ) ||
+						NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_ITEM ) ||
 #endif SERV_EVENT_RESET_A_SKILL_ITEM
-						NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_EVENT_ITEM_ID ) 
-						|| NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_ITEM_NOT_TRADE_ID )
+						NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_EVENT_ITEM_ID ) ||
+						NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_ITEM_NOT_TRADE_ID )
 #ifdef SERV_QUEST_SKILL_RESET
-						|| NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_QUEST_ITEM_ID )
+						|| NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_QUEST_ITEM_ID )
 #endif SERV_QUEST_SKILL_RESET
 #ifdef SERV_2ND_CLASS_SKILL_RESET
-						|| NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_2ND_CLASS_CHANGE_EVENT_ITEM_ID )
+						|| NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_2ND_CLASS_CHANGE_EVENT_ITEM_ID )
 #endif SERV_2ND_CLASS_SKILL_RESET
-
 						)
+
 					{
 						if(g_pData->GetSkillTree() != NULL)
 						{
@@ -1498,9 +1496,9 @@ void CX2UISkillTree::SetShow(bool val)
 #endif //REFORM_UI_SKILLSLOT
 
 #ifdef SKILL_SLOT_UI_TYPE_B //옵션으로 저장 하게되면 옵션쪽에서 가져오도록 수정
-		if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+		if( NULL != g_pMain )
 		{
-			SetSkillUIType(g_pMain->GetGameOption()->GetIsSkillUITypeA());
+			SetSkillUIType(g_pMain->GetGameOption().GetIsSkillUITypeA());
 		}
 #endif //SKILL_SLOT_UI_TYPE_B
 	}
@@ -1548,10 +1546,9 @@ void CX2UISkillTree::InitSkillTreeUI()
 
 	if( g_pData->GetMyUser() != NULL &&
 		g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+		g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet() != NULL )
 	{
-		m_pUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree);
+		m_pUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree);
 
 		const CX2Unit::UnitTemplet* pUnitTemplet = g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet();
 
@@ -2518,7 +2515,7 @@ void CX2UISkillTree::UpdateBlind()
 		int TopTier = pControlList->GetIndexY();
 		int iUsedSP = 0;
 		int iUsedCP = 0;
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.CalcUsedSPointAndCSPoint( iUsedSP, iUsedCP );
+		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.CalcUsedSPointAndCSPoint( iUsedSP, iUsedCP );
 		int iTotalUsedSP = iUsedCP + iUsedSP;
 
 		const int MAGIC_SP_NEED_PER_TIER = 5;
@@ -2587,7 +2584,7 @@ void CX2UISkillTree::UpdateSPInfo()
 
 	bool bUsingCSP = false;
 	CTime cTime;
-	KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrCSPointEndDate, cTime );
+	KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrCSPointEndDate, cTime );
 	CTime tCurrentTime = g_pData->GetServerCurrentTime();
 
 	if( tCurrentTime >= cTime )
@@ -2604,7 +2601,7 @@ void CX2UISkillTree::UpdateSPInfo()
 	{
 
 		CTime cTime;
-		KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrCSPointEndDate, cTime );
+		KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrCSPointEndDate, cTime );
 		CTime tCurrentTime = g_pData->GetServerCurrentTime();
 
 		if( bUsingCSP )
@@ -2618,13 +2615,12 @@ void CX2UISkillTree::UpdateSPInfo()
 	}
 
 	if( g_pData->GetMyUser() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+		g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		int iNewSP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iCSPoint;
+		int iNewSP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iCSPoint;
 		int iUsedSP = 0;
 		int iUsedCP = 0;
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.CalcUsedSPointAndCSPoint( iUsedSP, iUsedCP );
+		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.CalcUsedSPointAndCSPoint( iUsedSP, iUsedCP );
 		int iTotalUsedSP = iUsedCP + iUsedSP;
 
 		if( NULL != pStatic_SP )
@@ -2666,16 +2662,16 @@ void CX2UISkillTree::UpdateSPInfo()
 			WCHAR wszText[256] = {0,};
 			if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory() != NULL )
 			{	
-				int iSkillRevertItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( RESET_A_SKILL_ITEM_ID );
-				iSkillRevertItemCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( RESET_A_SKILL_EVENT_ITEM_ID );
+				int iSkillRevertItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( RESET_A_SKILL_ITEM_ID );
+				iSkillRevertItemCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( RESET_A_SKILL_EVENT_ITEM_ID );
 #ifdef SERV_EVENT_RESET_A_SKILL_ITEM
-				iSkillRevertItemCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( RESET_A_SKILL_ITEM );
+				iSkillRevertItemCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( RESET_A_SKILL_ITEM );
 #endif SERV_EVENT_RESET_A_SKILL_ITEM
 #ifdef SERV_QUEST_SKILL_RESET
-				iSkillRevertItemCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( RESET_A_SKILL_QUEST_ITEM_ID );
+				iSkillRevertItemCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( RESET_A_SKILL_QUEST_ITEM_ID );
 #endif SERV_QUEST_SKILL_RESET
 #ifdef SERV_2ND_CLASS_SKILL_RESET
-				iSkillRevertItemCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( RESET_A_SKILL_2ND_CLASS_CHANGE_EVENT_ITEM_ID );
+				iSkillRevertItemCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( RESET_A_SKILL_2ND_CLASS_CHANGE_EVENT_ITEM_ID );
 #endif SERV_2ND_CLASS_SKILL_RESET
 
 				StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"%d", iSkillRevertItemCount );
@@ -3159,8 +3155,7 @@ void CX2UISkillTree::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkillID 
 		SkillDesc = CWordLineHandler::GetStrByLineBreakColorInX2Main( SkillDesc.c_str(), (int)((float)MAGIC_SKILL_DESC_WIDTH*g_pKTDXApp->GetResolutionScaleX()), SLOT_MANAGER_FONT_INDEX );
 #else //#ifdef CLIENT_GLOBAL_LINEBREAK
 		SkillDesc = g_pMain->GetStrByLineBreakColor(SkillDesc.c_str(), (int)((float)MAGIC_SKILL_DESC_WIDTH*g_pKTDXApp->GetResolutionScaleX()), SLOT_MANAGER_FONT_INDEX);
-#endif //CLIENT_GLOBAL_LINEBREAK
-		
+#endif //CLIENT_GLOBAL_LINEBREAK		
 			
 		CKTDGFontManager::CUKFont* pItemDescFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( SLOT_MANAGER_FONT_INDEX );
 		int itemDescWidth = (int)( pItemDescFont->GetWidth( SkillDesc.c_str() ) / g_pKTDXApp->GetResolutionScaleX() ) + ITEM_DESC_ADD_SIZE_X;
@@ -3258,7 +3253,7 @@ wstring CX2UISkillTree::GetSkillDesc( CX2SkillTree::SKILL_ID eSkillID, bool bEqu
 {
 	CX2SkillTree* pSkillTree = g_pData->GetSkillTree();
 
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 
 
 #ifdef ELSWORD_SHEATH_KNIGHT
@@ -3519,7 +3514,7 @@ void CX2UISkillTree::CreateMiniSkillTree( CX2Unit::UNIT_CLASS eUnitClass )
 	if( NULL == pStatic_MiniIcon )
 		return;
 
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 
 	D3DXVECTOR2 vGridSize;
 	vGridSize.x = (float)pControlList->GetMaxIndexX();
@@ -4274,10 +4269,9 @@ void CX2UISkillTree::UpdateSkillCoolTime( float fElapsedTime )
 {
 	if( g_pData != NULL &&
 		g_pData->GetMyUser() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL)
+		g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 		
 		if ( m_pDLGGameSkillSlot != NULL )
 		{
@@ -4299,7 +4293,7 @@ void CX2UISkillTree::UpdateSkillCoolTime( float fElapsedTime )
 					int iSlotIndex = (i > 3) ? i-4 : i;
 
 					//슬롯 B가 활성화 되지 않으면 슬롯 A만 확인하도록 break;
-					if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() 
+					if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
 						&& bSlotB == true)
 					{
 						break;
@@ -4455,7 +4449,6 @@ void CX2UISkillTree::SetShowEnableStatic( const WCHAR* strControl_, bool bShow_,
 	{
 	}
 }
-#ifdef REFORM_UI_KEYPAD
 void CX2UISkillTree::UpdateSkillSlotString()
 {
 	if ( NULL == m_pDLGGameSkillSlot )
@@ -4493,7 +4486,6 @@ void CX2UISkillTree::UpdateSkillSlotString()
 		}
 	}
 }
-#endif
 
 #ifdef SKILL_SLOT_UI_TYPE_B
 void CX2UISkillTree::SetSkillUIType( bool bIsTypeA_ )
@@ -4516,10 +4508,9 @@ void CX2UISkillTree::SetSkillUIType( bool bIsTypeA_ )
 	}
 	//슬롯 B 활성화 여부
 	bool bEnableSlotB = false;
-	if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+	if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() )
+		if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() )
 			bEnableSlotB = true;
 	}
 

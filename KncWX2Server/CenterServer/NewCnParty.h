@@ -257,7 +257,11 @@ protected:
 	//{{ 2011. 12. 26	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	bool	LeaveCandidateMember( IN const UidType iUnitUID );
-	bool	LeaveMember( IN const UidType iUnitUID );
+	bool	LeaveMember( IN const UidType iUnitUID 
+					#ifdef LOG_PARTY_BREAK
+						, IN const int iReason	
+					#endif // LOG_PARTY_BREAK
+						);
 	void	CloseParty( IN const int iReason );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}

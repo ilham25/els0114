@@ -185,7 +185,9 @@ CKTDSManager::~CKTDSManager(void)
 
 HRESULT CKTDSManager::OnFrameMove( double fTime, float fElapsedTime )
 {
+#ifndef X2VIEWER //JHKang
 	KLagCheck( eKnown_LagCheckType_KTDSManager_FrameMove );
+#endif //X2VIEWER
 
 	if( NULL != m_pSystem && 
 		true == m_bInit )

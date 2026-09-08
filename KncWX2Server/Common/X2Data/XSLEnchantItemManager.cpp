@@ -10,10 +10,13 @@ ImplementRefreshSingleton( CXSLEnchantItemManager );
 
 CXSLEnchantItemManager::CXSLEnchantItemManager(void)
 {
+#ifdef SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+#else //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 	m_iWeaponEnchantStone = 0;
 	m_iRareWeaponEnchantStone = 0;
 	m_iArmorEnchantStone = 0;
 	m_iRareArmorEnchantStone = 0;
+#endif //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 	//{{ 2011. 01. 24	최육사	플루오르 강화 레벨 제한
 #ifdef SERV_SUPPORT_MATERIAL_LIMIT
 	m_iEnchantLimitLevel = 0;
@@ -27,7 +30,6 @@ CXSLEnchantItemManager::CXSLEnchantItemManager(void)
 #ifdef SERV_ENCHANT_LIMIT
 	m_iRealEnchantLimitLevel = 0;
 #endif SERV_ENCHANT_LIMIT
-
 }
 
 CXSLEnchantItemManager::~CXSLEnchantItemManager(void)
@@ -40,10 +42,17 @@ ImplToStringW( CXSLEnchantItemManager )
 			<< TOSTRINGW( m_mapEnchantRate.size() )
 			<< TOSTRINGW( m_mapEnchantProb.size() )			
 			<< TOSTRINGW( m_mapEnchantRareProb.size() )
+#ifdef SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+			<< TOSTRINGW( m_vecWeaponEnchantStone.size() )
+			<< TOSTRINGW( m_vecRareWeaponEnchantStone.size() )
+			<< TOSTRINGW( m_vecArmorEnchantStone.size() )
+			<< TOSTRINGW( m_vecRareArmorEnchantStone.size() )
+#else //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 			<< TOSTRINGW( m_iWeaponEnchantStone )
 			<< TOSTRINGW( m_iRareWeaponEnchantStone )
 			<< TOSTRINGW( m_iArmorEnchantStone )
 			<< TOSTRINGW( m_iRareArmorEnchantStone )
+#endif //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 			<< TOSTRINGW( m_mapEnchantStoneInfo.size() )
 			<< TOSTRINGW( m_mapSupportMaterialInfo.size() )
 			<< TOSTRINGW( m_mapRestoreItemInfo.size() )
@@ -103,10 +112,18 @@ ImplementLuaScriptParser( CXSLEnchantItemManager )
 	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "SetEnchantProbability",		&CXSLEnchantItemManager::SetEnchantProbability_LUA );
 	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "SetEnchantRareProbability",	&CXSLEnchantItemManager::SetEnchantRareProbability_LUA );
 	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "dump",						&CXSLEnchantItemManager::Dump );
+#ifdef SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "AddWeaponEnchantStone",		&CXSLEnchantItemManager::AddWeaponEnchantStone_LUA );
+	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "AddRareWeaponEnchantStone",	&CXSLEnchantItemManager::AddRareWeaponEnchantStone_LUA );
+	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "AddArmorEnchantStone",		&CXSLEnchantItemManager::AddArmorEnchantStone_LUA );
+	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "AddRareArmorEnchantStone",	&CXSLEnchantItemManager::AddRareArmorEnchantStone_LUA );
+#else //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "SetWeaponEnchantStone",		&CXSLEnchantItemManager::SetWeaponEnchantStone_LUA );
 	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "SetRareWeaponEnchantStone",	&CXSLEnchantItemManager::SetRareWeaponEnchantStone_LUA );
 	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "SetArmorEnchantStone",		&CXSLEnchantItemManager::SetArmorEnchantStone_LUA );
 	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "SetRareArmorEnchantStone",	&CXSLEnchantItemManager::SetRareArmorEnchantStone_LUA );
+#endif //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+
 	//{{ 2011. 01. 24	최육사	플루오르 강화 레벨 제한
 #ifdef SERV_SUPPORT_MATERIAL_LIMIT
 	lua_tinker::class_def<CXSLEnchantItemManager>( GetLuaState(), "SetSupportMaterialLimit",	&CXSLEnchantItemManager::SetSupportMaterialEnchantLimitLevel_LUA );
@@ -390,7 +407,7 @@ bool CXSLEnchantItemManager::SetEnchantRate_LUA( int iEnchantLevel, float fPerce
 {
     std::map< int, float >::iterator mit;
 
-	_JIF( 0 <= iEnchantLevel && iEnchantLevel <= ENCHANT_INFO::MAX_ENCHANT_LEVEL, goto err_proc );
+	_JIF( 0 <= iEnchantLevel && iEnchantLevel <= MAX_ENCHANT_LEVEL, goto err_proc );
     _JIF( fPercent >= 0.0f, goto err_proc );
 
     mit = m_mapEnchantRate.find( iEnchantLevel );
@@ -423,7 +440,7 @@ bool CXSLEnchantItemManager::SetEnchantProbability_LUA( int iEnchantLevel )
 	float fProb = 0.f;
     KLuaManager luaMgr( GetLuaState() );
 
-    _JIF( 0 < iEnchantLevel && iEnchantLevel <= ENCHANT_INFO::MAX_ENCHANT_LEVEL, goto err_proc );
+	_JIF( 0 < iEnchantLevel && iEnchantLevel <= MAX_ENCHANT_LEVEL, goto err_proc );
 
     LUA_GET_VALUE( luaMgr, "Up1", fProb, 0.f );
     _JIF( 0.f <= fProb && fProb <= 100.f, goto err_proc );
@@ -487,7 +504,7 @@ bool CXSLEnchantItemManager::SetEnchantRareProbability_LUA( int iEnchantLevel )
 	float fProb = 0.f;
 	KLuaManager luaMgr( GetLuaState() );
 
-	_JIF( 0 < iEnchantLevel && iEnchantLevel <= ENCHANT_INFO::MAX_ENCHANT_LEVEL, goto err_proc );
+	_JIF( 0 < iEnchantLevel && iEnchantLevel <= MAX_ENCHANT_LEVEL, goto err_proc );
 
 	LUA_GET_VALUE( luaMgr, "Up1", fProb, 0.f );
 	_JIF( 0.f <= fProb && fProb <= 100.f, goto err_proc );
@@ -811,7 +828,6 @@ void CXSLEnchantItemManager::SetEnchantLimitLevel_LUA( IN int iEnchantLimitLevel
 }
 #endif SERV_ENCHANT_LIMIT
 
-
 //{{ 2011.5.23 지헌 : 강화시 파괴 방지 아이템 추가
 #ifdef SERV_DESTROY_GUARD_ITEM
 bool CXSLEnchantItemManager::AddDestroyGuardInfo_LUA( int iItemID, int iEquipLvMin, int iEquipLvMax )
@@ -952,7 +968,6 @@ int CXSLEnchantItemManager::GetEnchantPlusItemID( int iEquipLv )
 #endif SERV_ENCHANT_PLUS_ITEM
 //}}
 
-
 //{{ 2012. 01. 19	김민성	플루오르 스톤 강화 이벤트 실시간 적용
 #ifdef SERV_SUPPORT_MATERIAL_ENCHANT_EVENT
 void CXSLEnchantItemManager::SetEventSupportMaterialEnchantLimitLevel_LUA( IN int iEnchantLimitLevel )
@@ -969,7 +984,7 @@ bool CXSLEnchantItemManager::SetEnchantProbability_Event_LUA( int iEnchantLevel 
 	float fProb = 0.f;
 	KLuaManager luaMgr( GetLuaState() );
 
-	_JIF( 0 < iEnchantLevel && iEnchantLevel <= ENCHANT_INFO::MAX_ENCHANT_LEVEL, goto err_proc );
+	_JIF( 0 < iEnchantLevel && iEnchantLevel <= MAX_ENCHANT_LEVEL, goto err_proc );
 
 	LUA_GET_VALUE( luaMgr, "Up1", fProb, 0.f );
 	_JIF( 0.f <= fProb && fProb <= 100.f, goto err_proc );

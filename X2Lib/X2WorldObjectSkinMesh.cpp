@@ -29,7 +29,11 @@ CX2WorldObjectSkinMesh::CX2WorldObjectSkinMesh( bool bBackgroundLoad_ )
 	//m_RenderParam.renderType = CKTDGXRenderer::RT_REAL_COLOR;
 	m_BillboardType		= CKTDGMatrix::BT_NONE;
 	m_RenderParam.bAlphaBlend = true;
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+	m_RenderParam.fOutLineWide = CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 	m_RenderParam.fOutLineWide = 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 	m_RenderParam.outLineColor = D3DXCOLOR( 1.f, 0.f, 0.f, 1.f);
 
 	INIT_VECTOR3( m_LightPos, 1000, 1000, 1000 );
@@ -45,13 +49,13 @@ CX2WorldObjectSkinMesh::CX2WorldObjectSkinMesh( bool bBackgroundLoad_ )
 	m_fOccasionalEventTime	= 0.f;
 	m_fElapsedLastOccansionalEventTime = 0.f;
 
-#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+//#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
 	m_bXSkinMeshLoaded			= false;
 	m_bModelXSkinMeshLoaded		= false;
     m_playTypeReq               = WOSMPY_ONE;
     m_bPlayTypeTransitionReq    = false;
     m_bPendingPlayAnim          = false;
-#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+//#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
 
 	m_fLocalInterval = 0.f;
 	m_fLocalElapsedTime = 0.f;
@@ -63,6 +67,7 @@ CX2WorldObjectSkinMesh::CX2WorldObjectSkinMesh( bool bBackgroundLoad_ )
 
 	m_PlayType	= WOSMPY_ONE_WAIT;
 	m_bAnyCamera = false;
+
 }//CX2WorldObjectSkinMesh::CX2WorldObjectSkinMesh()
 
 
@@ -183,10 +188,10 @@ HRESULT CX2WorldObjectSkinMesh::OnFrameMove( double fTime, float fElapsedTime )
         }//if
     }//if
 
-#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
+//#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
     if( !IsValidMesh() || !IsValidModelMesh() )
         return S_OK;
-#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
+//#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
 
 	KTDXPROFILE();
 
@@ -372,7 +377,7 @@ HRESULT CX2WorldObjectSkinMesh::OnFrameMove( double fTime, float fElapsedTime )
 		float fUpdateTime = 0.0f;
 		m_pXSkinAnim->SetIsCulled( !g_pKTDXApp->GetDGManager()->IsInFrustum( this, fUpdateTime ) );
 
-		m_pXSkinAnim->SetUpdatePassedNeedTime( fUpdateTime );
+		//m_pXSkinAnim->SetUpdatePassedNeedTime( fUpdateTime );
 	}
 	else
 		m_pXSkinAnim->SetIsCulled( false );
@@ -387,12 +392,12 @@ HRESULT CX2WorldObjectSkinMesh::OnFrameMove( double fTime, float fElapsedTime )
 /*virtual*/
 RENDER_HINT   CX2WorldObjectSkinMesh::OnFrameRender_Prepare() 
 { 
-    __super::SetLastAccessTime( g_NowTime );
+    //__super::SetLastAccessTime( g_NowTime );
 
-#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
+//#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
     if( !IsValidMesh() || !IsValidModelMesh() )
         return RENDER_HINT_NORENDER;
-#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
+//#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
 
     //if ( m_pXSkinMotionMesh == NULL || m_pXSkinAnim == NULL )
     //    return RENDER_HINT_NORENDER;
@@ -428,7 +433,7 @@ RENDER_HINT   CX2WorldObjectSkinMesh::OnFrameRender_Prepare()
 		{
 			if( m_bAnyCamera == true || g_pX2Game->GetX2Camera()->GetCameraState() != CX2Camera::CS_NORMAL )
 			{
-				if( RayHit( g_pKTDXApp->GetDGManager()->GetCamera()->GetEye(), g_pKTDXApp->GetDGManager()->GetCamera()->GetLookAt() ) == true )
+				if( RayHit( g_pKTDXApp->GetDGManager()->GetCamera().GetEye(), g_pKTDXApp->GetDGManager()->GetCamera().GetLookAt() ) == true )
 				{
 					//가려져야 한다
 					bHide			= true;
@@ -496,10 +501,10 @@ void CX2WorldObjectSkinMesh::OnFrameRender_Draw()
 {
     KTDXPROFILE();
 
-#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
+//#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
     if( !IsValidMesh() || !IsValidModelMesh() )
         return;
-#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
+//#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
 
     //if ( m_pXSkinMotionMesh == NULL || m_pXSkinAnim == NULL )
     //    return;
@@ -621,7 +626,7 @@ HRESULT CX2WorldObjectSkinMesh::OnLostDevice()
 //#endif  _HACKPROOF_CLIENT_
 
 
-#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
+//#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
 bool CX2WorldObjectSkinMesh::PlayAnim_LUA( WORLD_OBJECT_SKIN_MESH_PLAY_TYPE playType, bool btransition )
 {
     /** 이 함수는 메인 thread에서도, 리소스 로딩 쓰레드에서도 호출된다.
@@ -671,32 +676,32 @@ bool CX2WorldObjectSkinMesh::PlayAnim_LUA( WORLD_OBJECT_SKIN_MESH_PLAY_TYPE play
         return true;
     }//if.. else..
 }//CX2WorldObjectSkinMesh::PlayAnim_LUA()
-#else // UNIT_BACKGROUND_LOADING_TEST 
-//{{AFX
-bool CX2WorldObjectSkinMesh::PlayAnim_LUA( WORLD_OBJECT_SKIN_MESH_PLAY_TYPE playType, bool btransition )
-{
-	m_PlayType = playType;
-	m_bTransition = btransition;
-
-	m_pXSkinAnim->ChangeAnim( m_PlayList[m_NowPlayAnimIndex].c_str(), m_bTransition );
-	m_pXSkinAnim->SetPlaySpeed( m_fAnimSpeed );
-
-	
-	if ( playType == WOSMPY_ONE_WAIT )
-		m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE_WAIT );
-	else
-		m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE );
-
-
-	if( playType == WOSMPY_OCCASIONAL_ONE_WAIT )
-		m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE_WAIT );
-	else if( playType == WOSMPY_OCCASIONAL_ONE )
-		m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE );
-
-    return true;
-}
-//}}AFX
-#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
+//#else // UNIT_BACKGROUND_LOADING_TEST 
+////{{AFX
+//bool CX2WorldObjectSkinMesh::PlayAnim_LUA( WORLD_OBJECT_SKIN_MESH_PLAY_TYPE playType, bool btransition )
+//{
+//	m_PlayType = playType;
+//	m_bTransition = btransition;
+//
+//	m_pXSkinAnim->ChangeAnim( m_PlayList[m_NowPlayAnimIndex].c_str(), m_bTransition );
+//	m_pXSkinAnim->SetPlaySpeed( m_fAnimSpeed );
+//
+//	
+//	if ( playType == WOSMPY_ONE_WAIT )
+//		m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE_WAIT );
+//	else
+//		m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE );
+//
+//
+//	if( playType == WOSMPY_OCCASIONAL_ONE_WAIT )
+//		m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE_WAIT );
+//	else if( playType == WOSMPY_OCCASIONAL_ONE )
+//		m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE );
+//
+//    return true;
+//}
+////}}AFX
+//#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-12
 
 
 void CX2WorldObjectSkinMesh::AddAnim_LUA( const char* pAnimName )
@@ -716,7 +721,7 @@ void CX2WorldObjectSkinMesh::AddAnim_LUA( const char* pAnimName )
 }//CX2WorldObjectSkinMesh::AddAnim_LUA()
 
 
-#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+//#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
 void CX2WorldObjectSkinMesh::SetXSkinMotion_LUA( const char* pSkinMeshFileName )
 {
     ASSERT( ::GetCurrentThreadId() != g_pKTDXApp->GetDeviceManager()->GetThreadID() );
@@ -758,20 +763,20 @@ void CX2WorldObjectSkinMesh::SetXSkinMotion_LUA( const char* pSkinMeshFileName )
 
 	}//if.. else..
 }//CX2WorldObjectSkinMesh::SetXSkinMotion_LUA()
-#else // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
-//{{AFX
-void CX2WorldObjectSkinMesh::SetXSkinMotion_LUA( const char* pSkinMeshFileName )
-{
-	SAFE_CLOSE( m_pXSkinMotionMesh );
-	ConvertCharToWCHAR( m_XSkinMeshName, pSkinMeshFileName );
-
-	m_pXSkinMotionMesh	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_XSkinMeshName );
-
-	m_pXSkinAnim = CKTDGXSkinAnim::CreateSkinAnim();
-	m_pXSkinAnim->SetAnimXSkinMesh( m_pXSkinMotionMesh, m_pAnimXET);
-}
-//}}AFX
-#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+//#else // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+////{{AFX
+//void CX2WorldObjectSkinMesh::SetXSkinMotion_LUA( const char* pSkinMeshFileName )
+//{
+//	SAFE_CLOSE( m_pXSkinMotionMesh );
+//	ConvertCharToWCHAR( m_XSkinMeshName, pSkinMeshFileName );
+//
+//	m_pXSkinMotionMesh	= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( m_XSkinMeshName );
+//
+//	m_pXSkinAnim = CKTDGXSkinAnim::CreateSkinAnim();
+//	m_pXSkinAnim->SetAnimXSkinMesh( m_pXSkinMotionMesh, m_pAnimXET);
+//}
+////}}AFX
+//#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
 
 
 void CX2WorldObjectSkinMesh::SetAnimAniXET_LUA( const char* pFileName )
@@ -794,7 +799,7 @@ void CX2WorldObjectSkinMesh::SetAnimAniXET_LUA( const char* pFileName )
 }//CX2WorldObjectSkinMesh::SetAnimAniXET_LUA()
 
 
-#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+//#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
 void CX2WorldObjectSkinMesh::AddXSkinModel_LUA( const char* pFileName )
 {
     ASSERT( ::GetCurrentThreadId() != g_pKTDXApp->GetDeviceManager()->GetThreadID() );
@@ -896,53 +901,53 @@ void CX2WorldObjectSkinMesh::AddXSkinModel_LUA( const char* pFileName )
 	}//if.. else..
 	
 }//CX2WorldObjectSkinMesh::AddXSkinModel_LUA()
-#else // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
-//{{AFX
-void CX2WorldObjectSkinMesh::AddXSkinModel_LUA( const char* pFileName )
-{
-	wstring tempXMeshName;
-	ConvertCharToWCHAR( tempXMeshName, pFileName );
-	CKTDXDeviceXSkinMesh* pXModelMesh = g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( tempXMeshName );
-
-	m_pXSkinAnim->AddModelXSkinMesh( pXModelMesh,  m_pMeshXET, m_pMultiTexXET, m_pChangeTexXET );
-
-	m_XSkinModelMeshList.push_back( pXModelMesh );
-
-
-	// 충돌처리를 위해서 bounding sphere를 계산해두자. 
-	CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = this->m_XSkinModelMeshList[0]->GetFrameRoot();
-//{{ robobeg : 2008-01-10
-    // CKTDXDeviceXSkinMesh는 root frame의 center, radius값을 이미 계산해 두고 있다.
-    // 만약 아래 구문을 실행했을 때 pFrame 트리 아래의 MeshContainer에서 MeshData.pMesh를 삭제한 상태라면
-    // 시스템 크래쉬가 발생한다.
-	//if( pFrame != NULL )
-	//{
-	//	D3DXFrameCalculateBoundingSphere( pFrame, &m_Sphere.center, &m_Sphere.fRadius ); 
-	//}
-    if ( pFrame != NULL )
-    {
-        SetCenter( this->m_XSkinModelMeshList[0]->GetCenter() );
-        SetBoundingRadius( this->m_XSkinModelMeshList[0]->GetBoundingRadius() );
-    }//if
-//}} robobeg : 2008-01-10
-	
-	m_pMeshXET = NULL;
-	m_pMultiTexXET = NULL;
-	m_pChangeTexXET = NULL;
-
-    // 필요한 경우 전처리 데이터를 생성한다.
-    if ( g_pData->GetWorldManager()->IsWritingPreprocessingData() )
-    {
-        CX2WorldManager::WORLD_PREPROCESSING_INFO   preInfo;
-        preInfo.m_eInfoType         = CX2WorldManager::X2WM_PPIT_XSKIN_MODEL;
-        preInfo.m_wstrName          = tempXMeshName;
-        preInfo.m_vCenter           = GetCenter();
-        preInfo.m_fBSphereRadiua    = GetBoundingRadius();
-        g_pData->GetWorldManager()->WritePreprocessingData( preInfo );
-    }//if
-}
-//}}AFX
-#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+//#else // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+////{{AFX
+//void CX2WorldObjectSkinMesh::AddXSkinModel_LUA( const char* pFileName )
+//{
+//	wstring tempXMeshName;
+//	ConvertCharToWCHAR( tempXMeshName, pFileName );
+//	CKTDXDeviceXSkinMesh* pXModelMesh = g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( tempXMeshName );
+//
+//	m_pXSkinAnim->AddModelXSkinMesh( pXModelMesh,  m_pMeshXET, m_pMultiTexXET, m_pChangeTexXET );
+//
+//	m_XSkinModelMeshList.push_back( pXModelMesh );
+//
+//
+//	// 충돌처리를 위해서 bounding sphere를 계산해두자. 
+//	CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = this->m_XSkinModelMeshList[0]->GetFrameRoot();
+////{{ robobeg : 2008-01-10
+//    // CKTDXDeviceXSkinMesh는 root frame의 center, radius값을 이미 계산해 두고 있다.
+//    // 만약 아래 구문을 실행했을 때 pFrame 트리 아래의 MeshContainer에서 MeshData.pMesh를 삭제한 상태라면
+//    // 시스템 크래쉬가 발생한다.
+//	//if( pFrame != NULL )
+//	//{
+//	//	D3DXFrameCalculateBoundingSphere( pFrame, &m_Sphere.center, &m_Sphere.fRadius ); 
+//	//}
+//    if ( pFrame != NULL )
+//    {
+//        SetCenter( this->m_XSkinModelMeshList[0]->GetCenter() );
+//        SetBoundingRadius( this->m_XSkinModelMeshList[0]->GetBoundingRadius() );
+//    }//if
+////}} robobeg : 2008-01-10
+//	
+//	m_pMeshXET = NULL;
+//	m_pMultiTexXET = NULL;
+//	m_pChangeTexXET = NULL;
+//
+//    // 필요한 경우 전처리 데이터를 생성한다.
+//    if ( g_pData->GetWorldManager()->IsWritingPreprocessingData() )
+//    {
+//        CX2WorldManager::WORLD_PREPROCESSING_INFO   preInfo;
+//        preInfo.m_eInfoType         = CX2WorldManager::X2WM_PPIT_XSKIN_MODEL;
+//        preInfo.m_wstrName          = tempXMeshName;
+//        preInfo.m_vCenter           = GetCenter();
+//        preInfo.m_fBSphereRadiua    = GetBoundingRadius();
+//        g_pData->GetWorldManager()->WritePreprocessingData( preInfo );
+//    }//if
+//}
+////}}AFX
+//#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
 
 
 void CX2WorldObjectSkinMesh::SetMeshAniXET_LUA( const char* pFileName )
@@ -1060,7 +1065,11 @@ void CX2WorldObjectSkinMesh::SetCartoonRender()
 {
 	m_RenderParam.renderType		= CKTDGXRenderer::RT_CARTOON_BLACK_EDGE;
 	m_RenderParam.cartoonTexType	= CKTDGXRenderer::CTT_NORMAL;
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+	m_RenderParam.fOutLineWide		= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 	m_RenderParam.fOutLineWide		= 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 }
 
 #ifdef WORLD_TRIGGER

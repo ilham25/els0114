@@ -31,7 +31,10 @@ public:
 		//{{ 2011. 01. 25	최육사	하멜 추가
 		TT_HAMEL,
 		//}}
-		TT_GROW_UP,
+		TT_GROW_UP, // 해외. 이름 수정(2013.09.03 김창한)
+//#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+		TT_SANDER,
+//#endif // SERV_ADD_TITLE_CONDITION_2013_08
 
 		TT_END,
 	};
@@ -65,7 +68,13 @@ public:
 		TMCT_USER_UNIT_DIE,						// 유저 사망
 #endif SERV_ADD_TITLE_CONDITION
 		//}}		
-
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+		TMCT_ITEM_SOCKET,
+		TMCT_ITEM_ENCHANT_LEVEL,
+		TMCT_ITEM_ENCHANT_COUNT,
+		TMCT_ITEM_ATTRIB,
+		TMCT_ITEM_RESOLVE,
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
 		TMCT_MAX,
 	};
 
@@ -137,7 +146,7 @@ public:
 		MissionTemplet()
 		{
 			m_iMissionID	 = 0;
-			m_eClearType	 = TITLE_MISSION_CLEAR_TYPE::TMCT_NONE;			
+			m_eClearType	 = TMCT_NONE;			
 			m_sPeriod		 = 0;
 			m_iTitleID		 = 0;
 			m_bIsSecretTitle = false;
@@ -151,7 +160,7 @@ public:
 	{
 		//::공용 데이터
 		//::1. Dungeon ID
-		CXSLDungeon::DUNGEON_ID			m_eDungeonID;
+		SEnum::DUNGEON_ID			m_eDungeonID;
 		//::2. Dungeon Difficulty
 		char							m_cDifficulty;
 		//{{ 2010. 08. 23  최육사	비밀던전 헬모드
@@ -228,6 +237,11 @@ public:
 #endif SERV_ADD_TITLE_CONDITION_SANDER
 		//}
 
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+		int								m_iEnchantLevel;
+		int								m_iItemLevel;
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
+
 		ClearCondition()
 		{
 			//{{ 2012. 1. 11	Merge 박세훈	2012.12.26 임규수 타이틀 미션 클리어 NPC 복수 적용
@@ -239,7 +253,7 @@ public:
 			m_iKillNum				= 0;
 			m_iCollectionItemID		= -1;
 			m_iCollectionItemNum	= 0;
-			m_eDungeonID			= CXSLDungeon::DI_NONE;
+			m_eDungeonID			= SEnum::DI_NONE;
 			m_cDifficulty			= -1;
 			//{{ 2010. 08. 23  최육사	비밀던전 헬모드
 #ifdef SERV_HELL_MODE_TITLE
@@ -252,7 +266,7 @@ public:
 			m_iDungeonClearTime		= 0;
 			m_eTalkNPCID			= CXSLUnitManager::NUI_NONE;
 			m_bTalkNPC				= false;
-			m_ePVPType				= CXSLRoom::PVP_GAME_TYPE::PGT_TEAM;
+			m_ePVPType				= CXSLRoom::PGT_TEAM;
 			m_iPVPPlay				= 0;
 			m_iPVPWin				= 0;
 			m_iPVPKill				= 0;
@@ -276,6 +290,10 @@ public:
 			m_iUseResurrectionStoneCount = 0;
 #endif SERV_ADD_TITLE_CONDITION_SANDER
 			//}
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+			m_iEnchantLevel			= 0;
+			m_iItemLevel			= 0;
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
 		}
 	};
 
@@ -291,7 +309,7 @@ public:
 		SubMissionTemplet()
 		{
 			m_iSubMissionID = -1;
-			m_eClearType	= TITLE_MISSION_CLEAR_TYPE::TMCT_NONE;
+			m_eClearType	= TMCT_NONE;
 			m_bAutomaticDescription = true;
 		}
 	};

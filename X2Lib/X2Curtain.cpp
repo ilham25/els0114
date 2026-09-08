@@ -11,7 +11,7 @@ CX2Curtain::CX2Curtain( int iLineIndex, bool bAtStart, bool bLookLeft, int curta
 	m_ReactLength				= D3DXVECTOR2( 10.0f, 200.0f );
 	m_fReactGapLengthX			= 15.0f;
 
-	CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( iLineIndex );
+	const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( iLineIndex );
 	if( bAtStart == true )
 	{
 		m_vPos = pLineData->startPos;
@@ -32,9 +32,9 @@ CX2Curtain::CX2Curtain( int iLineIndex, bool bAtStart, bool bLookLeft, int curta
 		m_vRotateDegree.y += 90.0f - 20.0f;
 	}
 
-	m_hCurtainRing1		= INVALID_PARTICLE_HANDLE;
-	m_hCurtainRing2		= INVALID_PARTICLE_HANDLE;
-	m_hCurtainCenter	= INVALID_PARTICLE_HANDLE;
+	m_hCurtainRing1		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hCurtainRing2		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hCurtainCenter	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 	m_pCrashSound		= g_pKTDXApp->GetDeviceManager()->OpenSound( L"GlassChash.ogg" );
 	m_pHitSound			= g_pKTDXApp->GetDeviceManager()->OpenSound( L"CurtainHit.ogg" );
 
@@ -90,7 +90,7 @@ HRESULT CX2Curtain::OnFrameMove( double fTime, float fElapsedTime )
 void CX2Curtain::Open()
 {
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hCurtainCenter );
-	m_hCurtainCenter = INVALID_PARTICLE_HANDLE;
+	m_hCurtainCenter = INVALID_PARTICLE_SEQUENCE_HANDLE;
 }
 
 void CX2Curtain::CollisionCheck()
@@ -144,7 +144,7 @@ void CX2Curtain::CurtainHit( CX2GUUser* pUserUnit )
 	CX2GameUnit* pFocusUnit = g_pX2Game->GetFocusUnit();
 	if( GetDistance( pUserUnit->GetPos(), pFocusUnit->GetPos() ) < 300 )
 	{
-		g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCameraNoReset( 20.0f, 0.3f );
+		g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCameraNoReset( 20.0f, 0.3f );
 	}
 
 	if( NULL != m_pHitSound )
@@ -176,7 +176,7 @@ void CX2Curtain::CurtainBreak()
 	{
 		if( GetDistance( m_vPos, pFocusUnit->GetPos() ) < 500 )
 		{
-			g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCameraNoReset( 20.0f, 0.3f );
+			g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCameraNoReset( 20.0f, 0.3f );
 		}
 	}
 

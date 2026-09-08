@@ -11,7 +11,7 @@ const wchar_t*  KCnPartyFSM::ms_szInput[] = {
 #   include "CnPartyFSMInput_def.h" 
 };
 
-KCnPartyFSM::KCnPartyFSM() : FSMclass( KCnPartyFSM::ENUM_STATE::S_INIT )
+KCnPartyFSM::KCnPartyFSM() : FSMclass( S_INIT )
 {
     // S_INIT
     FSMstate* pState = new FSMstate( S_INIT, 1 );

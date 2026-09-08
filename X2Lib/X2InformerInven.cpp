@@ -79,13 +79,12 @@ void CX2InformerInven::SetNowInfo()
 
 	if ( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-		if ( pInventory != NULL )
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 		{
 			for ( int i = (int)(CX2Inventory::ST_EQUIP); i < (int)( CX2Inventory::ST_AVARTA ); i++ )
 			{
 				CX2Inventory::SORT_TYPE sortType = (CX2Inventory::SORT_TYPE)i;
-				int usedSlotNum = pInventory->GetUsedSlotNum( sortType );
+				int usedSlotNum = kInventory.GetUsedSlotNum( sortType );
 				m_mapNowInvenSizeForEnough.insert( std::make_pair( sortType, usedSlotNum ) );
 			}
 		}	
@@ -101,13 +100,12 @@ void CX2InformerInven::SetNowInfo()
 
 		if ( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 		{
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-			if ( pInventory != NULL )
+			const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 			{
 #ifdef MODIFY_INFORMER_INVEN
-				pInventory->GetItemIDAndNum( m_setNowInvenForNewItem );
+				kInventory.GetItemIDAndNum( m_setNowInvenForNewItem );
 #else
-				pInventory->GetItemIDAndNum( m_mapNowInvenForNewItem );
+				kInventory.GetItemIDAndNum( m_mapNowInvenForNewItem );
 #endif //MODIFY_INFORMER_INVEN;
 			}	
 		}
@@ -143,14 +141,14 @@ bool CX2InformerInven::CheckEnoughInven()
 {
 	if ( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 		if ( m_mapNowInvenSizeForEnough.empty() == true )
 		{
 			for ( int i = (int)(CX2Inventory::ST_EQUIP); i < (int)( CX2Inventory::ST_AVARTA ); i++ )
 			{
 				CX2Inventory::SORT_TYPE sortType = (CX2Inventory::SORT_TYPE)i;
-				int usedSlotNum = pInventory->GetUsedSlotNum( sortType );
+				int usedSlotNum = kInventory.GetUsedSlotNum( sortType );
 				m_mapNowInvenSizeForEnough.insert( std::make_pair( sortType, 0 ) );
 			}
 		}
@@ -160,13 +158,13 @@ bool CX2InformerInven::CheckEnoughInven()
 		{
 			CX2Inventory::SORT_TYPE sortType = mit->first;
 			int PrevUsedSlotNum = mit->second;
-			int nowUsedSlotNum = pInventory->GetUsedSlotNum( sortType );
+			int nowUsedSlotNum = kInventory.GetUsedSlotNum( sortType );
 
 			if ( nowUsedSlotNum > PrevUsedSlotNum )
 			{
 				m_mapNowInvenSizeForEnough[sortType] = nowUsedSlotNum;
 
-				if ( pInventory->GetItemMaxNum( sortType ) - nowUsedSlotNum < m_EnoughRemainSlotNum )
+				if ( kInventory.GetItemMaxNum( sortType ) - nowUsedSlotNum < m_EnoughRemainSlotNum )
 				{
 					return true;
 				}
@@ -182,17 +180,17 @@ bool CX2InformerInven::CheckNewItem()
 {
 	if ( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 #ifdef MODIFY_INFORMER_INVEN
 		if ( m_setNowInvenForNewItem.empty() == true )
 		{
-			pInventory->GetItemIDAndNum( m_setNowInvenForNewItem );
+			kInventory.GetItemIDAndNum( m_setNowInvenForNewItem );
 			return false;
 		}
 #else
 		if ( m_mapNowInvenForNewItem.empty() == true )
 		{
-			pInventory->GetItemIDAndNum( m_mapNowInvenForNewItem );
+			kInventory.GetItemIDAndNum( m_mapNowInvenForNewItem );
 			return false;
 		}
 #endif //MODIFY_INFORMER_INVEN
@@ -202,7 +200,7 @@ bool CX2InformerInven::CheckNewItem()
 #ifdef MODIFY_INFORMER_INVEN
 		//현재 가지고 있는 아이템의 ID  파악.
 		set<int> tempSetNowInvenForNewItem;
-		pInventory->GetItemIDAndNum( tempSetNowInvenForNewItem );
+		kInventory.GetItemIDAndNum( tempSetNowInvenForNewItem );
 
 		set<int>::iterator sit;
 		for ( sit = tempSetNowInvenForNewItem.begin(); sit != tempSetNowInvenForNewItem.end(); ++sit )
@@ -213,7 +211,7 @@ bool CX2InformerInven::CheckNewItem()
 			if ( prevSit == m_setNowInvenForNewItem.end() )
 			{
 				//퀘스트 아이템 예외처리.
-				if( CX2Inventory::ST_QUEST != pInventory->GetSortTypeByID(itemID) )
+				if( CX2Inventory::ST_QUEST != kInventory.GetSortTypeByID(itemID) )
 				{
 					bCheck = true;
 				}
@@ -238,7 +236,7 @@ bool CX2InformerInven::CheckNewItem()
 			if ( sit != m_setNowInvenForNewItem.end() )
 			{
 				//퀘스트 아이템 예외처리.
-				if( CX2Inventory::ST_QUEST == pInventory->GetSortTypeByID(itemID) )
+				if( CX2Inventory::ST_QUEST == kInventory.GetSortTypeByID(itemID) )
 				{
 					if( NULL != g_pData && NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUIQuestNew() )
 					{
@@ -252,7 +250,7 @@ bool CX2InformerInven::CheckNewItem()
 #else
 		//현재 가지고 있는 아이템의 ID와 수량 파악.
 		map<int, int> tempMapNowInvenForNewItem;
-		pInventory->GetItemIDAndNum( tempMapNowInvenForNewItem );
+		kInventory.GetItemIDAndNum( tempMapNowInvenForNewItem );
 
 		map<int, int>::iterator mit;
 		for ( mit = tempMapNowInvenForNewItem.begin(); mit != tempMapNowInvenForNewItem.end(); mit++ )
@@ -364,13 +362,13 @@ bool CX2InformerInven::IsEnoughAllInvenSlot()
 {
 	if ( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 		for ( int i = (int)(CX2Inventory::ST_EQUIP); i < (int)( CX2Inventory::ST_AVARTA ); i++ )
 		{
 			CX2Inventory::SORT_TYPE sortType = (CX2Inventory::SORT_TYPE)i;
-			int usedSlotNum = pInventory->GetUsedSlotNum( sortType );
-			if ( pInventory->GetItemMaxNum( sortType ) - usedSlotNum < m_EnoughRemainSlotNum )
+			int usedSlotNum = kInventory.GetUsedSlotNum( sortType );
+			if ( kInventory.GetItemMaxNum( sortType ) - usedSlotNum < m_EnoughRemainSlotNum )
 				return false;
 		}
 	}

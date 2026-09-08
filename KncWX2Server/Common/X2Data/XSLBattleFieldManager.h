@@ -56,6 +56,28 @@ public:
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
 
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	typedef std::pair< int, int >	KFieldEventBossDropKey;
+
+	struct KFieldEventBossDropInfo
+	{
+		int m_iEventBossCommonBonusItemID;
+		int m_iEventBossCommonBonusItemCount;
+		int m_iEventBossBonusItemID;
+		int m_iEventBossBonusItemIDCount_High;
+		int m_iEventBossBonusItemIDCount_Low;
+
+		KFieldEventBossDropInfo()
+		{
+			m_iEventBossCommonBonusItemID		= 0;
+			m_iEventBossCommonBonusItemCount	= 0;
+			m_iEventBossBonusItemID			= 0;
+			m_iEventBossBonusItemIDCount_High	= 0;
+			m_iEventBossBonusItemIDCount_Low	= 0;
+		}
+	};
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
+
 public:
 	~CXSLBattleFieldManager();
 	CXSLBattleFieldManager();
@@ -96,6 +118,10 @@ public:
 								  IN const int iPlayerCount,
 								  OUT KNPCList& kBattleFieldNpcList );
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	bool	GetCreateBossMonsterList( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, OUT KNPCList& kBattleFieldNpcList );
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	// respawn
 	bool	GetRespawnMonsterList( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, 
 								   IN const CXSLBattleField::KBattleFieldMonsterCountInfo& kAliveMonsterCountInfo,
@@ -113,6 +139,16 @@ public:
 	bool	GetBattleFieldMiddleBossDropInfo( IN int iFieldID, IN int iNpcID, OUT KFieldMiddleBossDropInfo& kDropInfo );
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
+
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	float	GetEventBossMonsterDropRate( IN const int iCurEventDangerousValue, IN const int iOldEventDangerousValue );
+	bool	GetBattieFieldEventBossMonsterInfo( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, 
+												IN const int iEventDangerousValue,
+												OUT std::vector<KNPCUnitReq>& vecNpcInfo );
+
+	void	SetBattleFieldEventBossDropInfo_LUA();
+	bool	GetBattleFieldEventBossDropInfo( IN int iFieldID, IN int iNpcID, OUT KFieldEventBossDropInfo& kDropInfo );
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 
 	bool	GetBattieFieldBossMonsterInfo( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, 
 										   IN const int iDangerousValue,
@@ -163,6 +199,11 @@ public:
 	bool	GetEventMonsterCreateInfo( IN const SEnum::BATTLE_FIELD_ID	eBattleFieldID, OUT KNPCUnitReq& kNpcInfo );
 #endif SERV_FIELD_EVENT_MONSTER
 	//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-30	// 박세훈
+	bool	IsBossFieldID( IN const int iVillageMapID ) const	{	return ( m_setBossFieldID.find( iVillageMapID ) != m_setBossFieldID.end() ); }
+	bool	GetRandomBossFieldID( OUT int& iVillageMapID ) const;
+#endif // SERV_BATTLE_FIELD_BOSS
  
 private:
 	std::map< SEnum::BATTLE_FIELD_ID, CXSLBattleField >		m_mapBattleField;					// 배틀필드 정보
@@ -195,6 +236,13 @@ private:
 	std::map< KFieldMiddleBossDropKey, KFieldMiddleBossDropInfo >				m_mapBattleFieldMiddleBossDropInfo;	// 필드 보스 드롭 정보
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-30	// 박세훈
+	std::set<int>	m_setBossFieldID;
+#endif // SERV_BATTLE_FIELD_BOSS
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	std::map< KFieldEventBossDropKey, KFieldEventBossDropInfo >				m_mapBattleFieldEventBossDropInfo;	// 필드 보스 드롭 정보
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 };
 
 DefRefreshSingletonInline( CXSLBattleFieldManager );

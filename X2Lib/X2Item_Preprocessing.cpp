@@ -1,5 +1,4 @@
 #include <StdAfx.h>
-#include <x2item.h>
 
 
 #ifdef  X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING

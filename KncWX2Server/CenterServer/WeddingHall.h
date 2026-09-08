@@ -102,7 +102,7 @@ protected:
 protected:
 	
 	KWeddingHallUserManagerPtr			m_spUserManager;
-	boost::timer						m_tTimer[TIMER_ENUM::TE_MAX];
+	boost::timer						m_tTimer[TE_MAX];
 
 	KWeddingHallInfo					m_kHallInfo;
 };

@@ -42,7 +42,7 @@ void CX2InformerCashShop::Reset()
 	m_bCheckFirstConnect = false;
 
 #ifdef CASHSHOP_CLASS_CHANGE_NOTIFICATION
-	m_LastCheckLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level;
+	m_LastCheckLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level;
 	m_bCanClassChange = false;
 #endif CASHSHOP_CLASS_CHANGE_NOTIFICATION
 }
@@ -74,8 +74,8 @@ bool CX2InformerCashShop::IsNowInfoChange()
 		{
 			CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
 
-			if( 15 > m_LastCheckLevel && 15 <= pUnit->GetUnitData()->m_Level ||
-				35 > m_LastCheckLevel && 35 <= pUnit->GetUnitData()->m_Level )
+			if( 15 > m_LastCheckLevel && 15 <= pUnit->GetUnitData().m_Level ||
+				35 > m_LastCheckLevel && 35 <= pUnit->GetUnitData().m_Level )
 			{
 				m_bCanClassChange = true;
 			}
@@ -84,7 +84,7 @@ bool CX2InformerCashShop::IsNowInfoChange()
 				m_bCanClassChange = false;
 			}
 
-			m_LastCheckLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level;
+			m_LastCheckLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level;
 
 			return m_bCanClassChange;
 		}

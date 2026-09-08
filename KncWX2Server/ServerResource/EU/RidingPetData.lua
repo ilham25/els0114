@@ -61,3 +61,12 @@ g_pRidingPetManager:AddRidingPetCreateItemInfo( 60008021, RIDING_PET_UNIT_ID["RP
 g_pRidingPetManager:AddRidingPetCreateItemInfo( 84002150, RIDING_PET_UNIT_ID["RPUI_NASOD_MOBI_INT"],	-1	)	-- 소환석 : 고대의 돌진 전차 모비RT
 g_pRidingPetManager:AddRidingPetCreateItemInfo( 84002160, RIDING_PET_UNIT_ID["RPUI_KOUCIKA_INT"],		-1	)	-- 소환석 : 고대의 바람의 코우시카
 g_pRidingPetManager:AddRidingPetCreateItemInfo( 84002170, RIDING_PET_UNIT_ID["RPUI_ANCIENT_PPORU_INT"],	-1	)	-- 소환석 : 고대의 에이션트 라이딩 뽀루
+
+-- 중국 이벤트 전용 탈것 ID
+g_pRidingPetManager:AddRidingPetCreateItemInfo( 82550000, RIDING_PET_UNIT_ID["RPUI_NASOD_MOBI"],	-1	)		-- 소환석 : 나소드 모비
+g_pRidingPetManager:AddRidingPetCreateItemInfo( 82550010, RIDING_PET_UNIT_ID["RPUI_KOUCIKA"],	-1	)			-- 소환석 : 신속의 코카
+g_pRidingPetManager:AddRidingPetCreateItemInfo( 82550020, RIDING_PET_UNIT_ID["RPUI_ANCIENT_PPORU"],	-1	)	-- 소환석 : 에이션트 뽀루
+g_pRidingPetManager:AddRidingPetCreateItemInfo( 82550030, RIDING_PET_UNIT_ID["RPUI_SCORPION_TYPE_R"],	-1	)	-- 소환석 : 퐁고 스콜피온 TYPE-R
+g_pRidingPetManager:AddRidingPetCreateItemInfo( 82550040, RIDING_PET_UNIT_ID["RPUI_ICE_HAMELING"],	-1	)	-- 소환석 : 아이스 하멜링
+g_pRidingPetManager:AddRidingPetCreateItemInfo( 82550041, RIDING_PET_UNIT_ID["RPUI_DARK_HAMELING"],	-1	)	-- 소환석 : 다크 하멜링
+g_pRidingPetManager:AddRidingPetCreateItemInfo( 82550042, RIDING_PET_UNIT_ID["RPUI_RED_HAMELING"],	-1	)	-- 소환석 : 레드 하멜링

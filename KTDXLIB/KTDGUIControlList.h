@@ -108,6 +108,30 @@ public:
 protected:
 	void FromRectToPoint( RECT& rect, CKTDGUIControl::UIPointData& point );
 
+#ifdef DLL_BUILD
+	virtual bool IsSelectByEditGui( POINT pt ) override { return ContainsPoint(pt); }
+
+	virtual void SetColor( D3DXCOLOR color );
+	virtual void MoveControl( float fx, float fy ) override;
+	virtual void MoveSubControl( float fx, float fy, wstring subControlName ) override;
+
+	virtual void SetEditGUI( bool bEdit ) override;		// GUI 에디트 모드 설정
+
+	virtual void ShowSubView( wstring name, bool bView ) override;	
+
+	virtual vector<D3DXVECTOR2> GetPosList() override;		// 컨트롤 내에 pictures의 위치 정보
+
+	virtual D3DXVECTOR2 GetPos() override;		/// 컨트롤의 위치
+	virtual D3DXVECTOR2 GetPos(wstring name) override;
+
+
+	void DrawEditEdge( CKTDGUIControl::UIPointData*	m_pEditEdgePoint );		// UITool에서 편집용으로 사용된다.
+
+protected:
+		bool m_bEditEdge;
+		CKTDXDeviceTexture * m_pCheckedEdgeTexture;
+#endif
+
 private:
 
 	ControlVectorMap	m_mapControls;

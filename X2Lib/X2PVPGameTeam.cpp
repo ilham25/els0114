@@ -41,16 +41,15 @@ HRESULT CX2PVPGameTeam::OnFrameMove( double fTime, float fElapsedTime )
 		CX2GUUser* pCX2GUUser = m_UserUnitList[i];
 		if( pCX2GUUser != NULL )
 		{
-			if( NULL != pCX2GUUser->GetUnit() &&
-				NULL != pCX2GUUser->GetUnit()->GetUnitData() )
+			if( NULL != pCX2GUUser->GetUnit() )
 			{
 				if( pCX2GUUser->GetTeam() == CX2Room::TN_RED )
 				{
-					redTeamVPMax += pCX2GUUser->GetUnit()->GetUnitData()->m_VSPointMax;
+					redTeamVPMax += pCX2GUUser->GetUnit()->GetUnitData().m_VSPointMax;
 				}
 				else if( pCX2GUUser->GetTeam() == CX2Room::TN_BLUE )
 				{
-					blueTeamVPMax += pCX2GUUser->GetUnit()->GetUnitData()->m_VSPointMax;
+					blueTeamVPMax += pCX2GUUser->GetUnit()->GetUnitData().m_VSPointMax;
 				}
 			}
 			else

@@ -113,15 +113,17 @@ class CX2StateMenu : public CX2StateCommonBG
 //#ifdef REFORM_UI_PLAYGUIDE
 			SMUCM_PLAYGUIDE_CLOSE,
 //#endif //REFORM_UI_PLAYGUIDE
-//#ifdef REFORM_UI_KEYPAD
 			SMUCM_OPEN_KEYPAD,
-//#endif
 //#ifdef SERV_RECOMMEND_LIST_EVENT
 			SMUCM_FRIEND_RECOMMEND_OPEN,
 			SMUCM_FRIEND_RECOMMEND_OK,
 			SMUCM_FRIEND_RECOMMEND_NEXT,
 			SMUCM_FRIEND_RECOMMEND_CLOSE,
 //#endif //SERV_RECOMMEND_LIST_EVENT
+//#ifdef FIELD_BOSS_RAID  // 레이드 필드 내 ESC 처리
+			SMUCM_RAID_FIELD_EXIT_OK,
+			SMUCM_RAID_FIELD_EXIT_CANCEL,
+//#endif // FIELD_BOSS_RAID //  레이드 필드 내 ESC 처리
 //#ifdef SHOW_WEB_ADVERTISEMENT
 			SMUCM_SHOW_ADVERTISEMENT,
 //#endif SHOW_WEB_ADVERTISEMENT
@@ -140,7 +142,6 @@ class CX2StateMenu : public CX2StateCommonBG
 			SMUCM_FACEBOOK_MOVE,
 			SMUCM_STEAM_COMMUNITY_MOVE,
 //#endif //CLIENT_COUNTRY_US
-
 //#ifdef SERV_NEW_YEAR_EVENT_2014
 			SMUCM_COMPLETE_SPECIAL_MISSION,
 			SMUCM_COMPLETE_SUPPORT_MISSION,
@@ -153,6 +154,31 @@ class CX2StateMenu : public CX2StateCommonBG
 //#ifdef SERV_CHANNELING_AERIA
 			SMUCM_SHOW_AERIA_USER_SUPPORT,
 //#endif //SERV_CHANNELING_AERIA
+//#ifdef SERV_ELESIS_UPDATE_EVENT
+			SMUCM_VIEW_NOTE,
+//#endif SERV_ELESIS_UPDATE_EVENT
+//#ifdef SERV_EVENT_CHECK_POWER
+			SMUCM_TOGGLE_CHECK_POWER_GUIDE_PAGE,
+			SMUCM_TOGGLE_CHECK_POWER_RESULT_PAGE,
+			SMUCM_START_CHECK_POWER,
+//#endif SERV_EVENT_CHECK_POWER
+//#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+			SMUCM_USE_CHUNG_GIVE_ITEM_ONE,
+			SMUCM_USE_CHUNG_GIVE_ITEM_TWO,
+			SMUCM_USE_CHUNG_GIVE_ITEM_TREE,
+//#endif SERV_EVENT_CHUNG_GIVE_ITEM
+//#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+			SMUCM_USE_COBO_EVET_BUTTON,
+//#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+//#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+			SMUCM_USE_ADAMS_EVET_BUTTON = 203,
+//#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+//#ifdef SERV_4TH_ANNIVERSARY_EVENT
+			SMUCM_TOGGLE_EVENT = 204,
+			SMUCM_4TH_EVENT_BUTTON,
+			SMUCM_4TH_EVENT_OK,
+			SMUCM_4TH_EVENT_CANCEL,
+//#endif SERV_4TH_ANNIVERSARY_EVENT
 		};
 
 		
@@ -205,7 +231,6 @@ class CX2StateMenu : public CX2StateCommonBG
 
 		virtual bool Handler_EGS_GET_CONNECTION_UNIT_INFO_REQ( const WCHAR* wszNickName );
 		virtual bool Handler_EGS_GET_CONNECTION_UNIT_INFO_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
-
 #ifdef SERV_ADVERTISEMENT_EVENT
 		virtual bool Handler_EGS_GET_ADVERTISEMENT_EVENT_REQ();
 		virtual bool Handler_EGS_GET_ADVERTISEMENT_EVENT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
@@ -272,14 +297,21 @@ class CX2StateMenu : public CX2StateCommonBG
 			}
 		}
 #ifdef MODIFY_DUNGEON_STAGING
+		bool GetShowUI() const { return m_bShowUI; }
 		void SetShowUI(bool bVal){m_bShowUI = bVal;}
 #endif //MODIFY_DUNGEON_STAGING
+	
+#ifdef MODIFY_ACCEPT_QUEST
+		void SetShowNewQuest(bool bVal);
+#endif // MODIFY_ACCEPT_QUEST
+
 #ifdef SERV_ADD_WARP_BUTTON
 		bool GetShowWarpDest();
 		void SetCurrentVillageWarpIndex( int iVal_ ) { m_iCurrentVillageWarpIndex = iVal_; }
 		void ClickWarpButton( bool bIsEdConsumption_ );
 		void SetShowWarpDest(bool val);
 #endif // SERV_ADD_WARP_BUTTON
+
 	protected:
 
 		virtual bool UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
@@ -292,6 +324,10 @@ class CX2StateMenu : public CX2StateCommonBG
 		virtual bool Handler_EGS_KNM_INVITE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 		virtual bool Handler_EGS_KNM_INVITE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif NEW_MESSENGER
+
+#ifdef SERV_NAVER_CHANNELING
+		bool		Handler_EGS_GET_NAVER_ACCESS_TOKEN_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif // SERV_NAVER_CHANNELING
 
 #ifdef SERV_GLOBAL_BILLING
 		virtual bool Handler_EGS_BILL_PRODUCT_INFO_REQ();
@@ -333,12 +369,49 @@ class CX2StateMenu : public CX2StateCommonBG
 		bool Handler_EGS_USE_SPIRIT_REWARD_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ); 
 #endif SERV_CHINA_SPIRIT_EVENT
 
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		bool Handler_EGS_EVENT_COBO_DUNGEON_FIELD_REQ( bool bTemp );
+		bool Handler_EGS_EVENT_COBO_DUNGEON_FIELD_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+		void ShowCoboEventUI(float TempTime);
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
 		bool Handler_EGS_2013_EVENT_MISSION_COMPLETE_REQ( IN bool bLevelUpEvent );
 		bool Handler_EGS_2014_EVENT_MISSION_COMPLETE_REQ();
 		bool Handler_EGS_2013_EVENT_MISSION_COMPLETE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ); 
 		bool Handler_EGS_2014_EVENT_MISSION_COMPLETE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ); 
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		void SetUsedCashShop(bool bUsed){ m_UsedCashShop = bUsed;}
+		bool GetUsedCashShop(void){ return m_UsedCashShop; }
+#endif //ALWAYS_EVENT_ADAMS_UI_SHOP
+
+#ifdef SERV_CONTENT_MANAGER_INT
+		bool Handler_EGS_CASH_SHOP_OPEN_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ); 
+#endif //SERV_CONTENT_MANAGER_INT
+
+#ifdef SERV_EVENT_CHECK_POWER
+		bool Handler_EGS_START_CHECK_POWER_REQ( bool bStart );
+		bool Handler_EGS_START_CHECK_POWER_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+		bool Handler_EGS_UPDATE_CHECK_POWER_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+		bool Handler_EGS_CHECK_POWER_RESULT_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		bool Handler_EGS_EVENT_CHUNG_GIVE_ITEM_REQ( int iChoice );
+		bool Handler_EGS_EVENT_CHUNG_GIVE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+		void ShowChungGiveItem_UI(void);
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		void SetShowAdamsUI(void);
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		bool Handler_EGS_4TH_ANNIV_EVENT_REWARD_REQ( IN int iSelectedIndex );
+		bool Handler_EGS_4TH_ANNIV_EVENT_REWARD_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 
 		virtual bool Handler_EGS_CHAR_LEVEL_UP_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 		virtual bool Handler_EGS_DECREASE_ENDURANCE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
@@ -456,11 +529,9 @@ class CX2StateMenu : public CX2StateCommonBG
 		int						m_TotalVP;
 #endif
 		//}}
-
 #ifdef SERV_EPAY_SYSTEM
 		boost::timer                m_EpayTimerCheck;
 #endif //SERV_EPAY_SYSTEM
-
 		float					m_fMenuMaxRemainTime; //메인메뉴가 유지 될 수 있는 최대 시간
 		bool					m_bShowMainMenuButton;  //마우스 동작 없을 때 메인메뉴 안보이도록 하기 위한 변수
 		vector<CKTDGUIButton*>  m_vecpButtonMainMenu; 
@@ -471,18 +542,38 @@ class CX2StateMenu : public CX2StateCommonBG
 #ifdef SERV_RECOMMEND_LIST_EVENT
 		CKTDGUIDialogType		m_pDLGFriendRecommendPopUp;
 #endif //SERV_RECOMMEND_LIST_EVENT
+
 #ifdef SERV_ADD_WARP_BUTTON
 		CKTDGUIDialogType			m_pDLGWarpDestination;
 		std::vector<CKTDGUIButton*> m_vecWarpListButton;
 		int							m_iSelectedWarpDest;
 		SHORT						m_SumDelta;
-
 		int							m_iSelectedWarpDestIndex;//현재 위치와 거리를 알기 위해 인덱스 저장
 		int							m_iCurrentVillageWarpIndex; //현재 위치 인덱스로 저장
 		bool						m_bIsEdConsumptionWarp;		//워프아이템 ED소모여부
-
 		float						m_fTimeCheckWarpVip;	// Vip 시간 체크는 1분 단위로 합니다.
 #endif // SERV_ADD_WARP_BUTTON
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		CKTDGUIDialogType			m_pDLGChungItemUI;
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		CKTDGUIDialogType			m_pDLGCoboEventUI;
+		CKTDGUIDialogType			m_pDLGCoboEventCountUI;
+		int							m_iElapsedTimeStage; //스타트 버튼을 누르고 흐른 시간
+		CTime						m_tRemaindTimeDisCount;
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		CKTDGUIDialogType			m_pDLGAdamsEventShopUI;
+		bool						m_UsedCashShop;
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		CKTDGUIDialogType			m_pDLG4thConfirm;
+		int							m_iSelectedButtonIndex;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 };
 
 

@@ -23,7 +23,17 @@ IMPL_PROFILER_DUMP( KGSNXWebDBThread )
 	{
 		unsigned int iAvg = 0;
 		if( vecDump[ui].m_iQueryCount > 0 )	iAvg = vecDump[ui].m_iTotalTime / vecDump[ui].m_iQueryCount;		
-
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY_NO_PROFILE( L"exec dbo.P_QueryStats_INS", L"N\'%s\', %d, %d, %d, %d, %d, %d",
+			% vecDump[ui].m_wstrQuery
+			% vecDump[ui].m_iMinTime
+			% iAvg
+			% vecDump[ui].m_iMaxTime
+			% vecDump[ui].m_iOver1Sec
+			% vecDump[ui].m_iQueryCount
+			% vecDump[ui].m_iQueryFail
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY_NO_PROFILE( L"exec dbo.gup_insert_querystats", L"N\'%s\', %d, %d, %d, %d, %d, %d",
 			% vecDump[ui].m_wstrQuery
 			% vecDump[ui].m_iMinTime
@@ -33,7 +43,7 @@ IMPL_PROFILER_DUMP( KGSNXWebDBThread )
 			% vecDump[ui].m_iQueryCount
 			% vecDump[ui].m_iQueryFail
 			);
-
+#endif //SERV_ALL_RENEWAL_SP
 		continue;
 
 end_proc:

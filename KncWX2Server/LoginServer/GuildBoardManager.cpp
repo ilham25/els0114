@@ -31,7 +31,7 @@ ImplToStringW( KGuildBoardManager )
 
 	stm_ << TOSTRINGW( m_mapGuildAd.size() );
 
-	for( int i = 0; i < AD_SORT_TYPE::AST_MAX; ++i )
+	for( int i = 0; i < AST_MAX; ++i )
 	{
 		stm_ << TOSTRINGW( m_vecGuildAd[i].size() );
 	}
@@ -175,7 +175,7 @@ void KGuildBoardManager::InsertGuildAd( IN const KGuildAdInfo& kInfo )
 	else
 	{
 		// 광고 리스트에 추가
-		for( int iType = 0; iType < AD_SORT_TYPE::AST_MAX; ++iType )
+		for( int iType = 0; iType < AST_MAX; ++iType )
 		{
 			std::vector< KGuildAdPtr >::iterator vit;
 			for( vit = m_vecGuildAd[iType].begin(); vit != m_vecGuildAd[iType].end(); ++vit )
@@ -212,7 +212,7 @@ void KGuildBoardManager::DeleteGuildAd( IN int iGuildUID )
 	m_mapGuildAd.erase( iGuildUID );
 
 	// 2. vector컨테이너에서 지우기
-	for( int iType = 0; iType < AD_SORT_TYPE::AST_MAX; ++iType )
+	for( int iType = 0; iType < AST_MAX; ++iType )
 	{
 		std::vector< KGuildAdPtr >::iterator vit;
 		for( vit = m_vecGuildAd[iType].begin(); vit != m_vecGuildAd[iType].end(); ++vit )
@@ -254,7 +254,7 @@ void KGuildBoardManager::DeleteGuildAd( IN int iGuildUID )
 void KGuildBoardManager::ExpiredGuildAd( IN int iGuildUID )
 {
 	// 1. 광고리스트에서 삭제
-	for( int iType = 0; iType < AD_SORT_TYPE::AST_MAX; ++iType )
+	for( int iType = 0; iType < AST_MAX; ++iType )
 	{
 		std::vector< KGuildAdPtr >::iterator vit;
 		for( vit = m_vecGuildAd[iType].begin(); vit != m_vecGuildAd[iType].end(); ++vit )
@@ -343,7 +343,7 @@ void KGuildBoardManager::UnexpiredGuildAd( IN const KGuildAdInfo& kInfo )
 		return;
 	}
 	
-	for( int iType = 0; iType < AD_SORT_TYPE::AST_MAX; ++iType )
+	for( int iType = 0; iType < AST_MAX; ++iType )
 	{
 		std::vector< KGuildAdPtr >::iterator vit;
 		for( vit = m_vecGuildAd[iType].begin(); vit != m_vecGuildAd[iType].end(); ++vit )
@@ -844,7 +844,7 @@ void KGuildBoardManager::GetGuildAdList( IN const KELG_GET_GUILD_AD_LIST_REQ& kR
 	kAck.m_uiViewPage = kReq.m_uiViewPage;
 	kAck.m_uiTotalPage = 1;
 
-	if( SORT_TYPE < 0  ||  SORT_TYPE >= AD_SORT_TYPE::AST_MAX )
+	if( SORT_TYPE < 0  ||  SORT_TYPE >= AST_MAX )
 	{
 		START_LOG( cerr, L"존재하지 않는 길드 광고 타입입니다." )
 			<< BUILD_LOGc( SORT_TYPE )

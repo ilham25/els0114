@@ -40,6 +40,7 @@ enum AuthCheckError
 	AUTHCHECK_ERROR_SESSION_NOT_EXIST,					//	12: User session data not exists. ( Maybe timeout or something. )
 	AUTHCHECK_ERROR_DISCONNECTED,						//	13: User IP or session key missmatched with current login session. Maybe logged out by another session.
 	AUTHCHECK_ERROR_INVALID_CHANNEL_CODE,				//	14:	Invalid channel code.
+	AUTHCHECK_ERROR_INVALID_CONFIGURATION,				//	15:	Invalid configuration
 	AUTHCHECK_ERROR_SERVER_FAILED	= 100,				//	100: Internal error.
 };
 
@@ -60,24 +61,49 @@ enum SsnCheckError
 #define _NMLOCALEID_DEFINED_
 enum	NMLOCALEID
 {
+	//////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////
+	//
+	// ----------------------------- WARNNING -----------------------------------
+	//
+	// 더 이상의 NMLOCALEID는 추가하지 않습니다.
+	// NMLOCALEID를 통한 soap endpoint 지정은 AuthCheck.dll.config를 사용합니다.
+	//
+	// ----------------------------------------------------------------- selfinder
+	//
+	//////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////
+
+	// old style
+	kLocaleID_JP_Test		= 0x10000100,
+	kLocaleID_JP2			= 0x00000101,	//	Japan arad
+	kLocaleID_JP3			= 0x00000103,	//	Japan TalesWeaver/CSO
+	kLocaleID_JP4			= 0x00000104,	//	Japan All(new IDC)
+	kLocaleID_CN_CNC		= 0x00000111,	//	China / CNC
+	kLocaleID_CN_CT			= 0x00000112,	//	China / CT
+	kLocaleID_TW2			= 0x00000107,	//	Taiwan MH (GASH)
+	kLocaleID_US_Test		= 0x10000200,
+
 	kLocaleID_Null			= 0x00000000,
 
 	kLocaleID_KR			= 0x00000001,	//	Korea, Republic of
 	kLocaleID_KR_Test		= 0x10000001,	//	Test
 
 	kLocaleID_JP			= 0x00000100,	//	Japan
-	kLocaleID_JP_Test		= 0x10000100,
-	kLocaleID_JP2			= 0x00000101,	//	Japan arad
-	kLocaleID_TW			= 0x00000102,	//	Taiwan CSO
-	kLocaleID_JP3			= 0x00000103,	//	Japan TalesWeaver/CSO
-	kLocaleID_JP4			= 0x00000104,	//	Japan All(new IDC)
+	kLocaleID_CN			= 0x00000101,	//	China(Tiancity)
+	kLocaleID_TW			= 0x00000102,	//	Taiwan CSO/MH
+	kLocaleID_TH			= 0x00000103,	//	Thailand Kart - 종료
+	kLocaleID_VN			= 0x00000104,	//	Vietnam Kart - 종료
 	kLocaleID_SG			= 0x00000105,	//	Singapore CSO
 	kLocaleID_ID			= 0x00000106,	//	Indonesia CSO
-	kLocaleID_CN_CNC		= 0x00000111,	//	China / CNC
-	kLocaleID_CN_CT			= 0x00000112,	//	China / CT
+	kLocaleID_CN2			= 0x00000107,	//	China BF(Shanda) - SSO 사용 안함
+	kLocaleID_ID2			= 0x00000108,	//	Indonesia(Kart) - SSO 사용 안함
+	kLocaleID_TH2			= 0x00000109,	//	Thailand(AsiaSoft)
+
 	kLocaleID_US			= 0x00000200,	//	United States
-	kLocaleID_US_Test		= 0x10000200,
 	kLocaleID_EU			= 0x00000300,	//	Europe
+	kLocaleID_RU			= 0x00000301,	//	Russia - SSO 사용 안함
+	kLocaleID_RU2			= 0x00000302,	//	Russia(Syncopate)
 	kLocaleID_BR			= 0x00000400,	//	Brazil CombatArms
 };
 #endif
@@ -100,6 +126,22 @@ AUTHCHECK_API
 AuthCheckError AuthCheck_SetLocale
 ( 
 	IN		NMLOCALEID		uLocale
+);
+
+/*
+returns :	AUTHCHECK_ERROR_OK
+			AUTHCHECK_ERROR_INVALID_CONFIGURATION
+*/
+AUTHCHECK_API
+AuthCheckError AuthCheck_LoadConfigA
+(
+	IN		const char *	pszKeyConfigFileName	= NULL
+);
+
+AUTHCHECK_API
+AuthCheckError AuthCheck_LoadConfigW
+(
+	IN		const WCHAR *	pszKeyConfigFileName	= NULL
 );
 
 AUTHCHECK_API
@@ -415,7 +457,7 @@ AuthCheckError AuthCheck_CheckSession2A
 	OUT		char*			pszMeta			= NULL,		// 1024
 	OUT		UINT8*			puSecureCode	= NULL,
 	OUT		UINT8*			puChannelCode	= NULL,
-	OUT		char*			pszChannelUID	= NULL		// 32
+	OUT		char*			pszChannelUID	= NULL		// 100
 );
 
 /*
@@ -453,7 +495,7 @@ AuthCheckError AuthCheck_CheckSession2W
 	OUT		WCHAR*			pszMeta			= NULL,		// 1024
 	OUT		UINT8*			puSecureCode	= NULL,
 	OUT		UINT8*			puChannelCode	= NULL,
-	OUT		WCHAR*			pszChannelUID	= NULL		// 32
+	OUT		WCHAR*			pszChannelUID	= NULL		// 100
 );
 
 /*
@@ -485,7 +527,7 @@ AuthCheckError AuthCheck_CheckSession3A
 	OUT		char*			pszMeta			= NULL,		// 1024
 	OUT		UINT8*			puSecureCode	= NULL,
 	OUT		UINT8*			puChannelCode	= NULL,
-	OUT		char*			pszChannelUID	= NULL,		// 32
+	OUT		char*			pszChannelUID	= NULL,		// 100
 	OUT		BOOL*			pbNewMembership	= NULL,
 	OUT		INT8*			pnMainAuthLevel	= NULL,
 	OUT		INT8*			pnSubAuthLevel	= NULL
@@ -522,7 +564,7 @@ AuthCheckError AuthCheck_CheckSession3W
 	OUT		WCHAR*			pszMeta			= NULL,		// 1024
 	OUT		UINT8*			puSecureCode	= NULL,
 	OUT		UINT8*			puChannelCode	= NULL,
-	OUT		WCHAR*			pszChannelUID	= NULL,		// 32
+	OUT		WCHAR*			pszChannelUID	= NULL,		// 100
 	OUT		BOOL*			pbNewMembership	= NULL,
 	OUT		INT8*			pnMainAuthLevel	= NULL,
 	OUT		INT8*			pnSubAuthLevel	= NULL
@@ -645,6 +687,7 @@ SsnCheckError AuthCheck_CheckSsnSubW
 );
 
 #if defined( UNICODE ) || defined( _UNICODE )
+	#define AuthCheck_LoadConfig			AuthCheck_LoadConfigW
 	#define AuthCheck_SetSoapHost			AuthCheck_SetSoapHostW
 	#define AuthCheck_GetPassportType		AuthCheck_GetPassportTypeW
 	#define AuthCheck_LoadKey				AuthCheck_LoadKeyW
@@ -661,6 +704,7 @@ SsnCheckError AuthCheck_CheckSsnSubW
 	#define AuthCheck_CheckSession2			AuthCheck_CheckSession2W
 	#define AuthCheck_CheckSession3			AuthCheck_CheckSession3W
 #else
+	#define AuthCheck_LoadConfig			AuthCheck_LoadConfigA
 	#define AuthCheck_SetSoapHost			AuthCheck_SetSoapHostA
 	#define AuthCheck_GetPassportType		AuthCheck_GetPassportTypeA
 	#define AuthCheck_LoadKey				AuthCheck_LoadKeyA

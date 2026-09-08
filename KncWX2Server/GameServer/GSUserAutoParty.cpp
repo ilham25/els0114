@@ -68,6 +68,36 @@ IMPL_ON_FUNC( EGS_AUTO_PARTY_DUNGEON_GAME_REQ )
 		return;
 	}
 
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-09-26	// 박세훈
+	// 공식 대전 매칭 중인지 확인!!
+	if( GetMatchUID() != 0 )
+	{
+		START_LOG( cerr, L"공식 대전 매칭 중인데 던전 자동 매칭 요청이 들어왔다!!" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< END_LOG;
+
+		KEGS_AUTO_PARTY_DUNGEON_GAME_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_AUTO_PARTY_07;	// 공식 대전 신청 중에는 사용할 수 없는 기능입니다.
+		SendPacket( EGS_AUTO_PARTY_DUNGEON_GAME_ACK, kPacketAck );
+		return;
+	}
+
+	// 룸 리스트 조회 중인지 확인!!
+	if( GetRoomListID() != 0 )
+	{
+		START_LOG( cerr, L"룸 리스트 조회 중에 던전 자동 매칭 요청이 들어왔다!!" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< END_LOG;
+
+		KEGS_AUTO_PARTY_DUNGEON_GAME_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_AUTO_PARTY_08;	// 룸 리스트 조회 중에는 사용할 수 없는 기능입니다.
+		SendPacket( EGS_AUTO_PARTY_DUNGEON_GAME_ACK, kPacketAck );
+		return;
+	}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
+
 	// DungeonID검증
 	if( !SiCXSLDungeonManager()->VerifyDungeonID( kPacket_.m_iDungeonID + static_cast<int>(kPacket_.m_DifficultyLevel) ) )
 	{

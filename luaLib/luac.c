@@ -191,8 +191,8 @@ int main(int argc, char* argv[])
  argc-=i; argv+=i;
  if (argc<=0) usage("no input files given");
  L=lua_open();
- lua_setencoding( L, LUA_ENCODING_UTF8 );
  if (L==NULL) fatal("not enough memory for state");
+ lua_setencoding( L, LUA_ENCODING_UTF8 );
  s.argc=argc;
  s.argv=argv;
  if (lua_cpcall(L,pmain,&s)!=0) fatal(lua_tostring(L,-1));

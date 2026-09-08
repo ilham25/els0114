@@ -57,11 +57,28 @@ m_TotalLevel(0)
 ,m_fTimeCheckWarpVip(0.f)
 #endif // SERV_ADD_WARP_BUTTON
 //}}
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+,m_pDLGCoboEventUI(NULL)
+,m_UsedCashShop(false)
+,m_iElapsedTimeStage(0)
+,m_pDLGCoboEventCountUI(NULL)
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 #ifdef SERV_NEW_YEAR_EVENT_2014
 ,m_pDLG2014Confirm( NULL )
 #endif SERV_NEW_YEAR_EVENT_2014
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+,m_pDLGChungItemUI(NULL)
+,m_UsedCashShop(false)
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+,m_pDLGAdamsEventShopUI(NULL)
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+, m_pDLG4thConfirm( NULL )
+, m_iSelectedButtonIndex( -1 )
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 {
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), false );
 
 	InitUI();
@@ -83,15 +100,36 @@ m_TotalLevel(0)
 	m_pPicCharMenuPlusInfoRed = new CKTDGPicChar( g_pData->GetPicChar(), pSeq );
 	m_pPicCharMenuPlusInfoRed->SetWidth( 10 );
 
-	m_TotalExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP;
-	m_TotalED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;	
+	m_TotalExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP;
+	m_TotalED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;	
 	m_TotalLevel = g_pData->GetSelectUnitLevel();
 
 #ifdef SERV_PVP_NEW_SYSTEM
-	m_TotalAP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint;
+	m_TotalAP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint;
 #else
-	m_TotalVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint;
+	m_TotalVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint;
 #endif
+#ifdef MODIFY_ACCEPT_QUEST // 퀘스트 메뉴 New표기 갱신
+	switch(g_pMain->GetNowStateID())
+	{
+	case CX2Main::XS_VILLAGE_MAP:
+	case CX2Main::XS_BATTLE_FIELD:
+		{
+			if( NULL != g_pData && 
+				NULL != g_pData->GetQuestManager() )
+			{
+				vector<int> vecAvailQuestID;
+				g_pData->GetQuestManager()->GetAvailableQuest( CX2UnitManager::NUI_BILLBOARD, vecAvailQuestID );
+				SetShowNewQuest( !vecAvailQuestID.empty() );
+			}
+		} break;
+	default:
+		break;
+	}
+#endif // MODIFY_ACCEPT_QUEST
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	m_tRemaindTimeDisCount = g_pData->GetServerCurrentTime64();
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 }
 
 CX2StateMenu::~CX2StateMenu(void)
@@ -102,6 +140,32 @@ CX2StateMenu::~CX2StateMenu(void)
 		m_pDLGMenu->SetShow( false );
 		m_pDLGMenu->SetEnable( false );
 	}
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+	if(m_pDLGChungItemUI != NULL)
+	{
+		m_pDLGChungItemUI->SetShow(false);
+		m_pDLGChungItemUI = NULL;
+	}
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	if(m_pDLGCoboEventUI != NULL)
+	{
+		m_pDLGCoboEventUI->SetShow(false);
+		m_pDLGCoboEventUI = NULL;
+	}
+	if(m_pDLGCoboEventCountUI != NULL)
+	{
+		m_pDLGCoboEventCountUI->SetShow(false);
+		m_pDLGCoboEventCountUI = NULL;
+	}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	if(m_pDLGAdamsEventShopUI != NULL)
+	{
+		m_pDLGAdamsEventShopUI->SetShow(false);
+		m_pDLGAdamsEventShopUI = NULL;
+	}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	// 2009.01.29 김태완 : 퀵슬롯 SetShow 타이밍 바꿈
 	g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_QUICK_SLOT, false);
 
@@ -116,7 +180,6 @@ CX2StateMenu::~CX2StateMenu(void)
 
 	SAFE_DELETE_DIALOG( m_pDLGSystem );
 	SAFE_DELETE_DIALOG( m_pDLGLeavePartyOrLounge );
-
 #ifdef SERV_NEW_YEAR_EVENT_2014
 	SAFE_DELETE_DIALOG( m_pDLG2014Confirm );
 #endif SERV_NEW_YEAR_EVENT_2014
@@ -126,7 +189,7 @@ CX2StateMenu::~CX2StateMenu(void)
 	if ( pMessenger != NULL )
 		pMessenger->SetOpen( false );
 
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 	if( NULL != g_pMain->GetCouponBox() )
 	{
 		g_pMain->GetCouponBox()->OpenCouponBoxDLG( false );
@@ -158,8 +221,30 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 	KTDXPROFILE();
 	CX2StateCommonBG::OnFrameMove( fTime, fElapsedTime );
 
-	CheckAndSendingPlayStatus();
+#ifdef SERV_EVENT_CHECK_POWER
+	g_pMain->GetMemoryHolder()->UpdateCheckPowerEventTimer();
+#endif SERV_EVENT_CHECK_POWER
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    CheckAndSendingPlayStatus( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	CheckAndSendingPlayStatus();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+	ShowChungGiveItem_UI();
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	IF_EVENT_ENABLED( CEI_EVENT_COBO_DUNGEON_AND_FIELD )
+	{
+		ShowCoboEventUI(fElapsedTime);
+	}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	SetShowAdamsUI();
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	//{{ 09.03.18 태완
 	// 꼭 FrameMove에 들어가 있을 이유가 없는데..
 	// 그런데 옵션에서 설정될 때 여기로 당기는 것도 좀 애매하긴 하다-_-;
@@ -174,7 +259,7 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 		if(pPartyOnly != NULL && g_pSquareGame == NULL)
 		{
 			pPartyOnly->SetShow(true);
-			bool bCurrentOption = g_pMain->GetGameOption()->GetFieldParty();
+			bool bCurrentOption = g_pMain->GetGameOption().GetFieldParty();
 			pPartyOnly->GetPicture(0)->SetShow(!bCurrentOption);	// off picture
 			pPartyOnly->GetPicture(1)->SetShow(bCurrentOption);		// on picture			
 		}
@@ -187,7 +272,7 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 		if(pSDMode != NULL)
 		{
 			pSDMode->SetShow(true);
-			bool bCurrentOption = g_pMain->GetGameOption()->GetFieldSD();
+			bool bCurrentOption = g_pMain->GetGameOption().GetFieldSD();
 			pSDMode->GetPicture(0)->SetShow(!bCurrentOption);	// off picture
 			pSDMode->GetPicture(1)->SetShow(bCurrentOption);		// on picture
 		}
@@ -235,8 +320,7 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 			case CX2Main::XS_DUNGEON_GAME:
 				{
 					pStatic->GetPicture(0)->SetShow( true );
-					if( NULL != g_pMain->GetGameOption() && NULL != g_pMain->GetGameOption()->GetOptionList() )
-						pStatic->GetPicture(1)->SetShow( g_pMain->GetGameOption()->GetOptionList()->m_bPlayGuide );
+						pStatic->GetPicture(1)->SetShow( g_pMain->GetGameOption().GetOptionList().m_bPlayGuide );
 				}break;
 			default:
 				{
@@ -255,10 +339,10 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 			}
 			else
 			{
-				if( NULL != pStatic && NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+				if( NULL != pStatic && NULL != g_pMain )
 				{
 					pStatic->GetPicture(0)->SetShow( true );
-					pStatic->GetPicture(1)->SetShow( g_pMain->GetGameOption()->GetOptionList()->m_bPlayGuide );
+					pStatic->GetPicture(1)->SetShow( g_pMain->GetGameOption().GetOptionList().m_bPlayGuide );
 				}
 			}*/
 	
@@ -337,10 +421,9 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 			if( NULL != pStaticSkill )
 			{
 				if( g_pData->GetMyUser() != NULL &&
-					g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-					g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+					g_pData->GetMyUser()->GetSelectUnit() != NULL )
 				{
-					if ( 0 < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iCSPoint )
+					if ( 0 < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iCSPoint )
 					{
 						pStaticSkill->SetShowEnable( true, false );
 					}
@@ -394,11 +477,10 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 				m_fTimeCheckWarpVip = 60.f;
 
 				if( g_pData->GetMyUser() != NULL &&
-					g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-					g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+					g_pData->GetMyUser()->GetSelectUnit() != NULL )
 				{
-					CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-					__int64 trWarpVipEndDate = pUnitData->m_trWarpVipEndDate;
+					CX2Unit::UnitData& kUnitData = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
+					__int64 trWarpVipEndDate = kUnitData.m_trWarpVipEndDate;
 
 					CKTDGUIButton *pButtonWarp = static_cast<CKTDGUIButton*>(m_pDLGMenu->GetControl( L"Warp" ));
 					if( trWarpVipEndDate > g_pData->GetServerCurrentTime64() )
@@ -406,7 +488,7 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 						// VIP 기간이니 아이콘 표시해주자
 						pStaticWarpVip->SetShowEnable( true, false );
 						// VIP 기간인 것을 셋팅도 해주자
-						pUnitData->m_bWarpVip = true;
+						kUnitData.m_bWarpVip = true;
 
 						// 기간도 표시해주자						
 						if( NULL != pButtonWarp	)
@@ -419,7 +501,7 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 					else
 					{
 						pStaticWarpVip->SetShowEnable( false, false );
-						pUnitData->m_bWarpVip = false;
+						kUnitData.m_bWarpVip = false;
 
 						// 기간도 제거하자
 						if( NULL != pButtonWarp )
@@ -432,7 +514,6 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 			}
 		}
 #endif //SERV_ADD_WARP_BUTTON
-
 
 #ifdef SHOW_DISCOUNT_TAG
 		// 급하니 여기서 같이 체크 하자
@@ -459,8 +540,6 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 				pStaticDiscountTag->SetShowEnable(false, false);
 			}
 		}
-
-
 #endif //SHOW_DISCOUNT_TAG
 
 #ifdef SERV_PET_SYSTEM
@@ -496,9 +575,33 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 			}
 		}		
 #endif
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		if( g_pData->GetMyUser() != NULL &&
+			g_pData->GetMyUser()->GetSelectUnit() != NULL )
+		{
+			CKTDGUIButton* pButtonElesisEvent = static_cast<CKTDGUIButton*>(m_pDLGMenu->GetControl( L"ElesisEventButton" ));
+			if( NULL != pButtonElesisEvent )
+			{
+				if( ( g_pMain->GetNowStateID() == CX2Main::XS_BATTLE_FIELD || g_pMain->GetNowStateID() == CX2Main::XS_SQUARE_GAME || g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP ) &&
+					g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().GetNoteViewCount() > 0 &&
+					g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level > 2 && 
+					g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level < 20 &&
+					CX2Unit::UT_ELESIS == g_pData->GetMyUser()->GetSelectUnit()->GetType() &&
+					//g_pData->GetPartyManager()->GetProcessDungeonMatch() &&
+					GetWaitGameStart() == false )
+				{
+					pButtonElesisEvent->SetShowEnable( true, true );
+				}
+				else
+				{
+					pButtonElesisEvent->SetShowEnable( false, false );
+				}
+			}
+		}
+#endif SERV_ELESIS_UPDATE_EVENT
 	}
 
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 	if( g_pMain->GetCouponBox() != NULL )
 		g_pMain->GetCouponBox()->OnFrameMove( fTime, fElapsedTime );
 #endif // COUPON_SYSTEM
@@ -546,19 +649,6 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 		
 	CheckPresentArrival();
 	
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF	
-	if( g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME && g_pX2Room != NULL )
-	{
-		if( g_pX2Room->GetRoomBuffType() > 0 )
-			SetShowFestivalRoomBuff(true);
-		else
-			SetShowFestivalRoomBuff(false);
-	}
-	else
-	{
-		SetShowFestivalRoomBuff(false);
-	}
-#endif
 	//마우스 동작 있을 때만 메인메뉴 보여주도록 수정
 	m_fMenuMaxRemainTime -= fElapsedTime;
 	if( true == m_bShowMainMenuButton )
@@ -580,7 +670,7 @@ HRESULT CX2StateMenu::OnFrameMove( double fTime, float fElapsedTime )
 	if ( NULL == g_pX2Game )
 	{
 		g_pData->GetUIManager()->GetUISkillTree()->UpdateSkillCoolTime(fElapsedTime);
-		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree;
 		refUserSkillTree.OnFrameMove(fTime, fElapsedTime);
 	}
 	if( NULL != g_pData && NULL != g_pData->GetPlayGuide() )
@@ -638,7 +728,7 @@ bool CX2StateMenu::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 	{
 	case WM_MOUSEWHEEL:
 		{ 
-			if( m_pDLGWarpDestination != NULL && m_pDLGWarpDestination->GetIsMouseOver() ) 
+			if( m_pDLGWarpDestination != NULL && m_pDLGWarpDestination->GetShow() && m_pDLGWarpDestination->GetIsMouseOver() ) 
 			{
 				CKTDGUIContolList* pControlList = (CKTDGUIContolList*) m_pDLGWarpDestination->GetControl( L"WarpDestControlList" );
 				if( pControlList == NULL )
@@ -695,7 +785,7 @@ bool CX2StateMenu::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		return true;
 	}
 
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 	if( NULL != g_pMain->GetCouponBox() &&
 		true == g_pMain->GetCouponBox()->MsgProc( hWnd, uMsg, wParam, lParam ) )
 	{
@@ -778,8 +868,7 @@ bool CX2StateMenu::Handler_EGS_SEARCH_UNIT_ACK( HWND hWnd, UINT uMsg, WPARAM wPa
 				wstrServerName = GET_STRING( STR_ID_5131 );
 				break;
 			}
-#endif SERVER_GROUP_UI_ADVANCED
-			
+#endif SERVER_GROUP_UI_ADVANCED			
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300), GET_REPLACED_STRING( ( STR_ID_5132, "L", wstrServerName ) ), g_pMain->GetNowState() );
 			return true;
 		}
@@ -920,13 +1009,11 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 #endif COME_BACK_REWARD
 #endif BUFF_TEMPLET_SYSTEM
 
-#ifdef REFORM_UI_KEYPAD
 	if ( NULL != g_pMain->GetKeyPad() )
 	{
 		if ( true == g_pMain->GetKeyPad()->UICustomEventProc( hWnd, uMsg, wParam, lParam ) )
 			return true;
 	}
-#endif
 
 	if(m_Book.UICustomEventProc(hWnd, uMsg, wParam, lParam) == true)
 	{
@@ -949,7 +1036,7 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 #endif
 
 
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 	if( NULL != g_pMain->GetCouponBox() )
 	{
 		if( true == g_pMain->GetCouponBox()->UICustomEventProc( hWnd, uMsg, wParam, lParam ) )
@@ -1079,9 +1166,17 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		// 2008.11.17 김태완
 #ifdef NEW_VILLAGE_UI
 	case SMUCM_COMMUNITY:
-		// 커뮤니티 창
-		if(g_pData->GetUIManager() != NULL)
-			return g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_COMMUNITY);
+		{
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+			if(g_pInstanceData->GetAdamsEventShopUIShow() == true )
+			{
+				return false;
+			}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+			// 커뮤니티 창
+			if(g_pData->GetUIManager() != NULL)
+				return g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_COMMUNITY);
+		}
 		break;
 
 	case SMUCM_INVENTORY:
@@ -1116,7 +1211,7 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	case SMUCM_VIEW_STUDENT_CANDIDATE_LIST:
 		{
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -1242,6 +1337,12 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 	case SMUCM_MY_INFO_QUEST:
 		{
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+			if(g_pInstanceData->GetAdamsEventShopUIShow() == true )
+			{
+				return false;
+			}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 #ifdef SERV_EPIC_QUEST
 			g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_QUEST_NEW);
 			return true;
@@ -1441,7 +1542,7 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 	case SMUCM_COUPON_BOX:
 		{
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 			if( NULL != g_pMain->GetCouponBox() )
 			{
 				g_pMain->GetCouponBox()->OpenCouponBoxDLG( true );
@@ -1452,11 +1553,11 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		}
 		break;
 
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 	case SMUCM_COUPON_INPUT_BOX:
 		{
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -1493,16 +1594,14 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 			if( g_pData->GetUIManager()->GetUIInventory()->GetSortType() != CX2Inventory::ST_AVARTA )
 				g_pData->GetUIManager()->GetUIInventory()->ChangeInventoryTab( CX2Inventory::ST_EQUIP );
 			m_pCursor->ChangeCursorState( CX2Cursor::XCS_SOCKET );
-			
 			//{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
 			if(g_pMain->IsInGameInfoToExcel())
 			{
-				g_pData->GetSocketItem()->PrintOptionInfo_ToExcel( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level );
+				g_pData->GetSocketItem()->PrintOptionInfo_ToExcel( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level );
 			}
 #endif PRINT_INGAMEINFO_TO_EXCEL
 			//}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
-
 		}
 		break;
 
@@ -1527,7 +1626,7 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	case SMUCM_USER_INFO_FRIEND_REQ:
 		{
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -1647,7 +1746,7 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		{
 			if(false == m_Book.GetShow())
 			{
-				m_Book.SetBookTable( L"BT_ELLIOS_GUIDE");
+				m_Book.SetBookTable( "BT_ELLIOS_GUIDE");
 				m_Book.SetShow(true);
 			}
 // 			else
@@ -1663,28 +1762,27 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		{
 			if(false == m_Book.GetShow())
 			{
-				m_Book.SetBookTable( L"BT_ELLIOS_GUIDE");
+				m_Book.SetBookTable( "BT_ELLIOS_GUIDE");
 				m_Book.SetShow(true);
 			}
 			CKTDGUIButton* pButton = (CKTDGUIButton*) lParam;
 			int iTargetPage = pButton->GetDummyInt(0);
 			m_Book.GotoPage(iTargetPage);
 
-			//{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
 			if(g_pMain->IsInGameInfoToExcel())
 			{
 				if(g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_QUEST_NEW ) == true)
 					g_pData->GetQuestManager()->PrintQuestInfo_ToExcel();
-				//else if(g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_SKILL)==true)
-				//	g_pData->GetSkillTree()->PrintSkillInfo_ToExcel();
+				else if(g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_SKILL)==true)
+					g_pData->GetSkillTree()->PrintSkillInfo_ToExcel();
 				else if(g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_PET_LIST) == true)
 					g_pData->GetPetManager()->PrintPetInfo_ToExcel();
 				
 				g_pData->GetUnitManager()->PrintNpcInfo_ToExcel();
 			}
 #endif PRINT_INGAMEINFO_TO_EXCEL
-				//}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
+
 		} break;
 
 	//  [11/9/2009 김상윤]
@@ -1692,6 +1790,12 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 #ifdef SERV_PET_SYSTEM
 	case SMUCM_PET_LIST:
 		{
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+			if(g_pInstanceData->GetAdamsEventShopUIShow() == true )
+			{
+				return false;
+			}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 			g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_PET_LIST);
 			return true;
 		}
@@ -1740,7 +1844,9 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				g_pChatBox->AddChatLog(  GET_STRING( STR_ID_16478 ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 				return false;
 			}
-
+#ifdef DIRECT_OPEN_BUY_DIALOG
+			g_pData->GetCashShop()->SetMenuTypeCallingCashShop( CX2UIManager::UI_MENU_QUICK_SLOT );
+#endif //DIRECT_OPEN_BUY_DIALOG
 			ToggleCashShop();
 			return true;
 		} break;
@@ -1759,6 +1865,9 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				g_pChatBox->AddChatLog(  GET_STRING( STR_ID_16478 ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 				return true;
 			}
+#ifdef DIRECT_OPEN_BUY_DIALOG
+			g_pData->GetCashShop()->SetMenuTypeCallingCashShop( CX2UIManager::UI_SKILL_SLOT );
+#endif //DIRECT_OPEN_BUY_DIALOG
 			ToggleCashShop();
 			return true;
 		}
@@ -1824,7 +1933,6 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 #endif //SERV_RECOMMEND_LIST_EVENT
 
-#ifdef REFORM_UI_KEYPAD
 	case SMUCM_OPEN_KEYPAD:
 		{
 			ToggleSystemMenu(false);
@@ -1833,11 +1941,29 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				g_pMain->GetKeyPad()->ShowKeyPad( true );
 		} 
 		break;
-#endif
+#ifdef FIELD_BOSS_RAID // 레이드 필드 내 ESC 처리
+	case SMUCM_RAID_FIELD_EXIT_OK:
+		{
+			if( CX2Main::XS_BATTLE_FIELD == g_pMain->GetNowStateID() )
+				static_cast<CX2StateBattleField*>(g_pMain->GetNowState())->MoveToBeforePlaceAtRaidField();
 
+			CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
+			if ( NULL != pControl )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+		} break;
+	case SMUCM_RAID_FIELD_EXIT_CANCEL:
+		{
+			CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
+			if ( NULL != pControl )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+		} break;
+#endif // FIELD_BOSS_RAID
 #ifdef SHOW_WEB_ADVERTISEMENT
 	case SMUCM_SHOW_ADVERTISEMENT:
 		{
+#ifdef SHOW_WEB_ADVERTISEMENT_USE_DEFAULT_BROWSER
+			ShellExecuteW( GetDesktopWindow(), L"open", L"http://elsword.hangame.co.jp/campaign/index.nhn" , L"dwmApi #102", NULL, SW_SHOWNORMAL); 
+#else //SHOW_WEB_ADVERTISEMENT_USE_DEFAULT_BROWSER
 			//현재 이벤트로 돌아가는 것만 보여줘야할 경우 아래 함수 쓰면 됨.
 			//Handler_EGS_GET_ADVERTISEMENT_EVENT_REQ();
 			if( false == g_pMain->GetBrowserWrapper()->IsClosed() )
@@ -1868,7 +1994,7 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	#elif defined( CLIENT_COUNTRY_HK )
 				std::wstring wstrURL = L"http://www.elsonline.com.hk/launcher/launcher.aspx";
 	#elif defined( CLIENT_COUNTRY_JP )
-				std::wstring wstrURL = L"http://www.elswordonline.com/ingameinfo/";
+				std::wstring wstrURL = L"http://alpha-pubgame.hangame.co.jp/game.nhn?gameId=J_ES";
 	#elif defined( CLIENT_COUNTRY_EU )
 				std::wstring wstrURL = L"http://www.elswordonline.com/ingameinfo/";
 	#elif defined( CLIENT_COUNTRY_US )
@@ -1884,13 +2010,19 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	#elif defined( CLIENT_COUNTRY_ID )
 				std::wstring wstrURL = L"http://elsword.netmarble.co.id/ingame/popup_start.html";
 	#elif defined( CLIENT_COUNTRY_BR )
-				std::wstring wstrURL = L"http://www.elswordonline.com/ingameinfo/";
+				std::wstring wstrURL = L"http://launcher.levelupgames.com.br/Launchers/Elsword/popup-ad-webpage.html";
 	#elif defined( CLIENT_COUNTRY_PH )
-				std::wstring wstrURL = L"http://elsword.netmarble.co.id/ingame/popup_start.html";
+			#if defined (_SERVICE_) && !defined (_OPEN_TEST_)
+					std::wstring wstrURL = L"http://elsword.garena.ph/ingame";
+			#else
+				std::wstring wstrURL = L"http://elsword.garena.ph/ingame_test/";
+			#endif			
+	#elif defined( CLIENT_COUNTRY_IN )	
+				std::wstring wstrURL = L"";
 	#endif
-
 				OpenAdvertisementDialog( wstrURL );
 			}
+#endif //SHOW_WEB_ADVERTISEMENT_USE_DEFAULT_BROWSER
 		}
 		break;
 #endif SHOW_WEB_ADVERTISEMENT
@@ -1899,10 +2031,9 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		{
 			// 캐쉬 소모 없이 하고 싶으면, 여기서 조건 검사를 하자
 			if( NULL != g_pData->GetMyUser() 
-				&& NULL != g_pData->GetMyUser()->GetSelectUnit() 
-				&& NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+				&& NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_bWarpVip )
+				if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_bWarpVip )
 					ClickWarpButton( false );
 				else
 					ClickWarpButton( true );
@@ -1941,10 +2072,8 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 			}
 
 			pButton->SetDownStateAtNormal(true);
-
 		}			
 		break;
-
 	case SMUCM_WARP_DEST:
 		{
 			if( m_iCurrentVillageWarpIndex == -1 )
@@ -1985,7 +2114,42 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		}
 		break;
 #endif SERV_CHINA_SPIRIT_EVENT
+#ifdef CLIENT_COUNTRY_US
+case SMUCM_FACEBOOK_MOVE:
+		{
+			wstring wstrURL = L"http://www.facebook.com/ElswordOnlineNA";
+#ifdef USE_DEFAULT_BROWSER
+			ShellExecuteW( GetDesktopWindow(), L"open", wstrURL.c_str(), L"dwmApi #102", NULL, SW_SHOWNORMAL); 
+#else USE_DEFAULT_BROWSER
+			ShellExecuteW(NULL, _T("open"), _T("iexplore.exe"), wstrURL.c_str(), NULL, SW_SHOW); 
+#endif USE_DEFAULT_BROWSER
+			return true;
+		}
+		break;
+	case SMUCM_STEAM_COMMUNITY_MOVE:
+		{
+			wstring wstrURL = L"https://www.facebook.com/Elsword/app_112813808737465";
+#ifdef USE_DEFAULT_BROWSER
+			ShellExecuteW( GetDesktopWindow(), L"open", wstrURL.c_str(), L"dwmApi #102", NULL, SW_SHOWNORMAL); 
+#else USE_DEFAULT_BROWSER
+			ShellExecuteW(NULL, _T("open"), _T("iexplore.exe"), wstrURL.c_str(), NULL, SW_SHOW); 
+#endif USE_DEFAULT_BROWSER
+			return true;
+		}
+		break;
+#endif //CLIENT_COUNTRY_US
+#ifdef SERV_ELESIS_UPDATE_EVENT
+	case SMUCM_VIEW_NOTE:
+		{
+			CX2State* pState = (CX2State*)g_pMain->GetNowState();
 
+			// 노트 UI를 띄울 준비
+			pState->ReadyToShowEventNoteUI();
+			pState->SetShowNoteUI( true );
+			return true;
+		}
+		break;
+#endif SERV_ELESIS_UPDATE_EVENT
 #ifdef SERV_NEW_YEAR_EVENT_2014
 	case SMUCM_COMPLETE_SPECIAL_MISSION:
 		{
@@ -2047,13 +2211,11 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 #ifdef SERV_CHANNELING_AERIA
 	case SMUCM_SHOW_AERIA_USER_SUPPORT:
 		{
-#if defined (_SERVICE_) && !defined (_OPEN_TEST_)
-			// 본섭
+#if defined (_SERVICE_) && !defined (_OPEN_TEST_) // 본섭
 			std::wstring wstrURL = L"https://api.elswordonline.com/aeria/auth/gamesupport?SID=";
-#else
-			// 테섭
+#else // 테섭
 			std::wstring wstrURL = L"http://apitest.elswordonline.com/aeria/auth/gamesupport?SID=";
-#endif //#if defined (_SERVICE_) && !defined (_OPEN_TEST_)
+#endif // defined (_SERVICE_) && !defined (_OPEN_TEST_)
 			wstrURL += g_pInstanceData->GetUserSessionID();
 #ifdef USE_DEFAULT_BROWSER
 			ShellExecuteW( GetDesktopWindow(), L"open", wstrURL.c_str(), L"dwmApi #102", NULL, SW_SHOWNORMAL); 
@@ -2063,6 +2225,116 @@ bool CX2StateMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 			return true;
 		} break;
 #endif //SERV_CHANNELING_AERIA
+
+#ifdef SERV_EVENT_CHECK_POWER
+	case SMUCM_TOGGLE_CHECK_POWER_GUIDE_PAGE:
+		{
+			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
+			{
+				CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
+
+				if( pUnit->IsShowCheckPowerPopUp() == true )
+				{
+					pUnit->SetShowCheckPowerPopUp( false );
+					Handler_EGS_START_CHECK_POWER_REQ( false );
+				}
+			}
+
+			g_pMain->GetMemoryHolder()->SetShowCheckPowerEventGuidePage( !g_pMain->GetMemoryHolder()->GetShowCheckPowerEventGuidePage() );
+			g_pMain->GetMemoryHolder()->UpdateCheckPowerEvent();
+		} return true;
+	case SMUCM_START_CHECK_POWER:
+		{
+			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
+			{
+				CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
+				pUnit->SetCheckPowerTime( g_pData->GetServerCurrentTime() );
+			}
+
+			g_pMain->GetMemoryHolder()->SetShowCheckPowerEventGuidePage( false );
+			Handler_EGS_START_CHECK_POWER_REQ( true );
+		} return true;
+#endif SERV_EVENT_CHECK_POWER
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		case SMUCM_USE_CHUNG_GIVE_ITEM_ONE:
+			{
+				Handler_EGS_EVENT_CHUNG_GIVE_ITEM_REQ( 1 ); //노전
+			}break;
+		case SMUCM_USE_CHUNG_GIVE_ITEM_TWO:
+			{
+				Handler_EGS_EVENT_CHUNG_GIVE_ITEM_REQ( 2 ); //1차
+			}break;
+		case SMUCM_USE_CHUNG_GIVE_ITEM_TREE:
+			{
+				Handler_EGS_EVENT_CHUNG_GIVE_ITEM_REQ( 3 ); //2차
+			}break;
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	case SMUCM_USE_COBO_EVET_BUTTON:
+		{
+			return Handler_EGS_EVENT_COBO_DUNGEON_FIELD_REQ(true); //버튼을 눌렀다.
+		}break;
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	case SMUCM_USE_ADAMS_EVET_BUTTON:
+		{
+			if( NULL != g_pData &&
+				NULL != g_pData->GetUIManager() )
+			{
+				g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_SHOP, true, CX2LocationManager::HI_EVENT_ADAMS_UI_SHOP);	//이벤트 상점 UI상점임 
+			}
+			if( g_pInstanceData != NULL )
+			{
+				g_pInstanceData->SetAdamsEventShopUIShow(true); //상점 UI가 켜졌다!!!
+				g_pData->GetUIManager()->SetShowPartyMenu(false);
+				g_pData->GetUIManager()->SetShowQucikQuest(false);
+				//현재 인원으로 시작 후 단축키 사용 못하도록 변경
+				CX2State* pNowState = static_cast<CX2State*>( g_pMain->GetNowState() );
+				if ( NULL != pNowState )
+					pNowState->SetEnableShortCutKey(false);
+			}
+		} break;
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	case SMUCM_TOGGLE_EVENT:
+		{
+			g_pMain->GetMemoryHolder()->ToggleShow4thEvent();
+			return true;
+		} break;
+	case SMUCM_4TH_EVENT_BUTTON:
+		{
+			CKTDGUIButton *pButton = (CKTDGUIButton*)lParam;
+			if( pButton != NULL )
+			{
+				int iSelectedButtonIndex = pButton->GetDummyInt( 0 );
+				if( iSelectedButtonIndex >= 0 && iSelectedButtonIndex <= 11 )
+				{
+					m_iSelectedButtonIndex = iSelectedButtonIndex;
+					m_pDLG4thConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_30426 ), SMUCM_4TH_EVENT_OK, g_pMain->GetNowState(), SMUCM_4TH_EVENT_CANCEL );
+				}
+			}
+			return true;
+		} break;
+	case SMUCM_4TH_EVENT_OK:
+		{
+			Handler_EGS_4TH_ANNIV_EVENT_REWARD_REQ( m_iSelectedButtonIndex );
+
+			if ( m_pDLG4thConfirm != NULL )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLG4thConfirm, NULL, false );
+
+			m_pDLG4thConfirm		= NULL;
+			return true;
+		} break;
+	case SMUCM_4TH_EVENT_CANCEL:
+		{
+			if ( m_pDLG4thConfirm != NULL )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLG4thConfirm, NULL, false );
+
+			m_pDLG4thConfirm		= NULL;
+			return true;
+		} break;
+
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 	}
 	
 	return false; 
@@ -2081,7 +2353,7 @@ bool CX2StateMenu::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	}
 #endif
 
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 	if( NULL != g_pMain->GetCouponBox() )
 	{
 		if( true == g_pMain->GetCouponBox()->UIServerEventProc( hWnd, uMsg, wParam, lParam ) )
@@ -2110,13 +2382,11 @@ bool CX2StateMenu::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	}
 #endif
 
-#ifdef REFORM_UI_KEYPAD
 	if( g_pMain->GetKeyPad() != NULL )
 	{
 		if( true == g_pMain->GetKeyPad()->UIServerEventProc( hWnd, uMsg, wParam, lParam ) )
 			return true;
 	}
-#endif
 
 #ifdef POSTBOX
     if( g_pMain->GetPostBox() != NULL )
@@ -2197,6 +2467,12 @@ bool CX2StateMenu::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 #endif	REAL_TIME_ELSWORD
 //}} kimhc	// 실시간 엘소드 중 실시간 아이템 획득 관련 임시 인벤토리
 
+#ifdef SERV_NAVER_CHANNELING
+		case EGS_GET_NAVER_ACCESS_TOKEN_ACK:
+			{
+				return Handler_EGS_GET_NAVER_ACCESS_TOKEN_ACK( hWnd, uMsg, wParam, lParam );
+			} break;
+#endif // SERV_NAVER_CHANNELING
 		//case EGS_OPEN_ARCADE_ROOM_LIST_ACK:
 		//	return Handler_EGS_OPEN_ARCADE_ROOM_LIST_ACK( hWnd, uMsg, wParam, lParam );
 		//	break;
@@ -2232,6 +2508,44 @@ bool CX2StateMenu::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				return Handler_EGS_2014_EVENT_MISSION_COMPLETE_ACK( hWnd, uMsg, wParam, lParam );
 			} break;
 #endif SERV_NEW_YEAR_EVENT_2014
+#ifdef SERV_CONTENT_MANAGER_INT
+		case EGS_CASH_SHOP_OPEN_NOT:
+			{
+				return Handler_EGS_CASH_SHOP_OPEN_NOT( hWnd, uMsg, wParam, lParam );
+			} break;
+#endif //SERV_CONTENT_MANAGER_INT
+#ifdef SERV_EVENT_CHECK_POWER
+		case EGS_START_CHECK_POWER_ACK:
+			{
+				return Handler_EGS_START_CHECK_POWER_ACK( hWnd, uMsg, wParam, lParam );
+			} break;
+		case EGS_UPDATE_CHECK_POWER_NOT:
+			{
+				return Handler_EGS_UPDATE_CHECK_POWER_NOT( hWnd, uMsg, wParam, lParam );
+			} break;
+		case EGS_CHECK_POWER_RESULT_NOT:
+			{
+				return Handler_EGS_CHECK_POWER_RESULT_NOT( hWnd, uMsg, wParam, lParam );
+			} break;
+#endif SERV_EVENT_CHECK_POWER
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		case EGS_EVENT_CHUNG_GIVE_ITEM_ACK:
+			{
+				return Handler_EGS_EVENT_CHUNG_GIVE_ITEM_ACK( hWnd, uMsg, wParam, lParam );
+			} break;
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		case EGS_EVENT_COBO_DUNGEON_FIELD_ACK:
+			{
+				return Handler_EGS_EVENT_COBO_DUNGEON_FIELD_ACK( hWnd, uMsg, wParam, lParam );
+			} break;
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		case EGS_4TH_ANNIV_EVENT_REWARD_ACK:
+			{
+				return Handler_EGS_4TH_ANNIV_EVENT_REWARD_ACK( hWnd, uMsg, wParam, lParam );
+			} break;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 	}
 
 	return false;
@@ -2298,7 +2612,6 @@ bool CX2StateMenu::Handler_EGS_KNM_INVITE_NOT( HWND hWnd, UINT uMsg, WPARAM wPar
 }
 #endif NEW_MESSENGER
 
-
 #ifdef SERV_GLOBAL_BILLING
 bool CX2StateMenu::Handler_EGS_BILL_PRODUCT_INFO_REQ()
 {
@@ -2324,8 +2637,11 @@ bool CX2StateMenu::Handler_EGS_BILL_PRODUCT_INFO_ACK( HWND hWnd, UINT uMsg, WPAR
 	if( g_pMain->DeleteServerPacket( EGS_BILL_PRODUCT_INFO_ACK ) == true )
 	{
 		SAFE_DELETE_DIALOG( m_pDLGCashItemUpdate );
-
+#ifdef SERV_WISH_LIST_NO_ITEM
+		g_pData->GetItemManager()->AddCashItem( kEvent.m_vecProductInfo, kEvent.m_setWishListNoItemList );
+#else	//SERV_WISH_LIST_NO_ITEM
 		g_pData->GetItemManager()->AddCashItem( kEvent.m_vecProductInfo );
+#endif //SERV_WISH_LIST_NO_ITEM
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
 		g_pData->GetItemManager()->SetKeepShowItemList( kEvent.m_mapKeepShowItem );
 		g_pData->GetItemManager()->SetDisCountList( kEvent.m_DisCountInfoMap );
@@ -2353,9 +2669,7 @@ bool CX2StateMenu::Handler_EGS_BILL_PRODUCT_INFO_ACK( HWND hWnd, UINT uMsg, WPAR
 	}
 	return false;
 }
-
 #else // SERV_GLOBAL_BILLING
-
 bool CX2StateMenu::Handler_EGS_CASH_PRODUCT_INFO_REQ()
 {
 	KEGS_CASH_PRODUCT_INFO_REQ kPacket;
@@ -2513,12 +2827,8 @@ bool CX2StateMenu::HandleMsgByESCImp()
 			}
 			else
 			{
-#ifdef REFORM_UI_KEYPAD
 				if ( NULL != g_pMain->GetKeyPad() && false == g_pMain->GetKeyPad()->GetShowKeyPad() )
 					ToggleSystemMenu(); // 시스템UI 띄운다.
-#else
-				ToggleSystemMenu(); // 시스템UI 띄운다.
-#endif
 			}
 		} break;
 
@@ -2538,12 +2848,16 @@ bool CX2StateMenu::HandleMsgByESCImp()
 			}
 #endif FIX_ESC_KEY_BY_FIELD
 
-#ifdef REFORM_UI_KEYPAD
+#ifdef FIELD_BOSS_RAID // 레이드 필드 내 ESC 처리
+			if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+			{
+				g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_29048 ), 
+					SMUCM_RAID_FIELD_EXIT_OK, g_pMain->GetNowState(), SMUCM_RAID_FIELD_EXIT_CANCEL );
+				return true;
+			}
+#endif // HandleMsgByESCImp
 			if ( NULL != g_pMain->GetKeyPad() && false == g_pMain->GetKeyPad()->GetShowKeyPad() )
 				ToggleSystemMenu(); // 시스템UI 띄운다.
-#else
-			ToggleSystemMenu(); // 시스템UI 띄운다.
-#endif
 		} break;
 
 	default:
@@ -2551,10 +2865,8 @@ bool CX2StateMenu::HandleMsgByESCImp()
 		break;
 	}
 
-#ifdef REFORM_UI_KEYPAD
 	if ( NULL != g_pMain->GetKeyPad() )
 		g_pMain->GetKeyPad()->ShowKeyPad( false );
-#endif
 
 	return false;
 }
@@ -2632,11 +2944,7 @@ void CX2StateMenu::UpdateUserInfoUI( KEGS_SEARCH_UNIT_ACK &kEvent )
 	// 캐릭터 클래스 그림 
 	wstring fileName;
 	wstring pieceName;
-#ifdef REFORM_UI_CHARACTER_INFO
 	if( true == CX2Data::GetCharacterImageName( fileName, pieceName, (CX2Unit::UNIT_CLASS) kEvent.m_kCUnitInfo.m_cUnitClass, CX2Data::CIT_Party ) )
-#else
-	if( true == CX2Data::GetCharacterImageName( fileName, pieceName, (CX2Unit::UNIT_CLASS) kEvent.m_kCUnitInfo.m_cUnitClass, CX2Data::CIT_50by50 ) )
-#endif
 	{
 		pStatic_UnitFace->GetPicture(0)->SetTex( fileName.c_str(), pieceName.c_str() );
 	}
@@ -2675,9 +2983,12 @@ void CX2StateMenu::UpdateUserInfoUI( KEGS_SEARCH_UNIT_ACK &kEvent )
 #endif
 
 #ifdef SERV_INTEGRATION
-#ifndef REMOVE_KR_SERVER_TEXTURE
 	CKTDGUIStatic* pStaticServerGroup = (CKTDGUIStatic*)m_pDLGUserInfo->GetControl( L"Static_SERVER" );
 
+#ifdef REMOVE_KR_SERVER_TEXTURE
+	if( pStaticServerGroup != NULL )
+		pStaticServerGroup->SetShow( false );
+#else REMOVE_KR_SERVER_TEXTURE
 	SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
 
 // 	switch( g_pMain->GetNowStateID() )
@@ -2823,6 +3134,34 @@ bool CX2StateMenu::InitUI()
 	}
 #endif
 
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		m_pDLGChungItemUI = g_pMain->GetMemoryHolder()->GetChungGiveItemDLG(this);
+		if( m_pDLGChungItemUI != NULL )
+			m_pDLGChungItemUI->SetShow(true);
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	IF_EVENT_ENABLED( CEI_EVENT_COBO_DUNGEON_AND_FIELD )
+	{
+		m_pDLGCoboEventUI = g_pMain->GetMemoryHolder()->GetUseCoboEventDLG(this);
+		if(m_pDLGCoboEventUI != NULL)
+		{
+			m_pDLGCoboEventUI->SetShow(true);
+		}
+		m_pDLGCoboEventCountUI = g_pMain->GetMemoryHolder()->GetCoboEventCountDLG(this);
+		if(m_pDLGCoboEventCountUI != NULL)
+		{
+			m_pDLGCoboEventCountUI->SetShow(true);
+			m_pDLGCoboEventCountUI->SetPos(D3DXVECTOR2( 0, 17 ));
+		}
+	}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	m_pDLGAdamsEventShopUI = g_pMain->GetMemoryHolder()->GetUseAdamsEventShop(this);
+	if(m_pDLGAdamsEventShopUI != NULL)
+	{
+		m_pDLGAdamsEventShopUI->SetShow(true);
+	}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 #ifdef SERV_RECOMMEND_LIST_EVENT
 	if( NULL != m_pDLGMenu->GetControl( L"FriendRecommed" ) )
 	{
@@ -2835,20 +3174,12 @@ bool CX2StateMenu::InitUI()
 	}
 #endif //SERV_RECOMMEND_LIST_EVENT
 
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 	if( NULL != g_pMain->GetCouponBox() )
 	{
 		g_pMain->GetCouponBox()->SetNowState( (CX2State*) this );
 	}
 #endif // COUPON_SYSTEM
-
-
-	// X2State 생성자에서 생성하도록 comment out
-	//if( NULL == g_pChatBox )
-	//{
-	//	g_pChatBox = new CX2ChatBox( this );
-	//}
-
 
 #ifdef POSTBOX
     if( NULL != g_pMain->GetPostBox() )
@@ -3239,29 +3570,19 @@ bool CX2StateMenu::ShortCutKeyProcess()
 #ifdef DUNGEON_SELECT_SKILLTREE_LOCK
 	if(NULL != g_pMain && NULL != g_pMain->GetPartyUI() && false == g_pMain->GetPartyUI()->GetShowLocalMap())
 #endif DUNGEON_SELECT_SKILLTREE_LOCK
-#ifdef REFORM_UI_KEYPAD
 	if( bHideDialog == false && GET_KEY_STATE( GA_SKILL_TREE ) == TRUE )
-#else
-	if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_K) == TRUE )
-#endif
 	{	
 		OnClickedMenuSkillButton();
 		return true;
 	}
 
-#ifndef REFORM_TUTORIAL
-	#ifdef COMBOTREE_IN_TUTORIAL
-	if ( true == g_pMain->GetIsPlayingTutorial() )
-		return true;
-	#endif COMBOTREE_IN_TUTORIAL
-#endif //REFORM_TUTORIAL
 
 
 	if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_F5 ) == TRUE )
 	{
 		if( g_pSquareGame == NULL )
 		{
-			CX2GameOption* pGameOption = g_pMain->GetGameOption();
+			CX2GameOption* pGameOption = &g_pMain->GetGameOption();
 			pGameOption->SetFieldParty( !pGameOption->GetFieldParty() );
 		}		
 	}
@@ -3280,11 +3601,15 @@ bool CX2StateMenu::ShortCutKeyProcess()
 	//}
 
 
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F12) == TRUE )
+	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F12) == TRUE 
+#ifdef SIMPLE_BUG_FIX
+		&& false == g_pMain->GetIsPlayingTutorial()
+#endif //SIMPLE_BUG_FIX
+		)
 	{
 		if(false == m_Book.GetShow())
 		{
-			m_Book.SetBookTable( L"BT_ELLIOS_GUIDE");
+			m_Book.SetBookTable( "BT_ELLIOS_GUIDE");
 			m_Book.SetShow(true);
 		}
 	}
@@ -3295,11 +3620,11 @@ bool CX2StateMenu::ShortCutKeyProcess()
 		wstring wstrSystemMessageColor = L"#CFF3F4D";								// 255, 63, 77
 		D3DXCOLOR coSystemMessageTextColor(1.f, 0.24705f, 0.30196f, 1.f);			// 255, 63, 77
 
-		g_pMain->GetGameOption()->SetPlayGuide( !g_pMain->GetGameOption()->GetOptionList()->m_bPlayGuide );
-		g_pMain->GetGameOption()->SaveScriptFile();
+		g_pMain->GetGameOption().SetPlayGuide( !g_pMain->GetGameOption().GetOptionList().m_bPlayGuide );
+		g_pMain->GetGameOption().SaveScriptFile();
 		if( NULL !=g_pData && NULL != g_pData->GetPlayGuide() && NULL != g_pData->GetPlayGuide()->GetDlgPlayGuide())
 		{
-			bool bShow = g_pMain->GetGameOption()->GetOptionList()->m_bPlayGuide;
+			bool bShow = g_pMain->GetGameOption().GetOptionList().m_bPlayGuide;
 			g_pData->GetPlayGuide()->GetDlgPlayGuide()->SetShowEnable(bShow, bShow);
 		}
 		if( m_bIsOptionWindowOpen == true )
@@ -3307,7 +3632,7 @@ bool CX2StateMenu::ShortCutKeyProcess()
 			InitOtherOption();
 		}
 
-		if( true == g_pMain->GetGameOption()->GetOptionList()->m_bPlayGuide )
+		if( true == g_pMain->GetGameOption().GetOptionList().m_bPlayGuide )
 		{
 			if( NULL != g_pChatBox )
 			{
@@ -3335,7 +3660,7 @@ bool CX2StateMenu::ShortCutKeyProcess()
 		{
 			if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_F6 ) == TRUE )
 			{
-				CX2GameOption* pGameOption = g_pMain->GetGameOption();
+				CX2GameOption* pGameOption = &g_pMain->GetGameOption();
 				if( NULL != pGameOption )
 					pGameOption->SetFieldSD( !pGameOption->GetFieldSD() );
 			}
@@ -3359,11 +3684,11 @@ void CX2StateMenu::RefreshMenuInfo()
 		UpdateExpGageBar();		
 		CKTDGUIStatic* pStatic;
 		pStatic = (CKTDGUIStatic*)m_pDLGMenu->GetControl( L"StaticMenu_Button_Tired_Gage" );
-		float gauagePercentage = (g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpiritMax );
+		float gauagePercentage = (g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax );
 
 		if ( pStatic != NULL && pStatic->GetPicture(0) != NULL )
 		{
-			float _width = (g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpiritMax ) * pStatic->GetPicture(0)->GetOriginalSize().x;
+			float _width = (g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax ) * pStatic->GetPicture(0)->GetOriginalSize().x;
 			pStatic->GetPicture(0)->SetSizeX( _width );
 		}
 
@@ -3372,17 +3697,24 @@ void CX2StateMenu::RefreshMenuInfo()
 		if( NULL != pSpiritInvisibleButton )
 		{
 			WCHAR buff[256] = L"";
-			int iSpirit = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit;
-			float fMaxSpirit = (float)(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpiritMax);
+#ifdef RESTORE_SPIRIT_VALUE_BUG_FIX
+			float fNowSpirit = static_cast<float>( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit );
+			fNowSpirit = fNowSpirit / static_cast<float>( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax ) * 100.0f;
+			fNowSpirit = floor(fNowSpirit * 10.0f + 0.5f) / 10.0f;
+			StringCchPrintfW( buff, ARRAY_SIZE(buff), L"%.1f%%", fNowSpirit );
+#else
+			int iSpirit = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit;
+			float fMaxSpirit = (float)(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax);
 			StringCchPrintfW( buff, ARRAY_SIZE(buff), L"%.1f%%", iSpirit / fMaxSpirit  * 100.f );
+#endif RESTORE_SPIRIT_VALUE_BUG_FIX
 			pSpiritInvisibleButton->SetGuideDesc(buff);
 			pSpiritInvisibleButton->SetShowEnable(true,true);
 		}
 		//}}
 		if ( NULL != g_pData && NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUIInventory() )
 		{
-			g_pData->GetUIManager()->GetUIInventory()->SetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED );
-			g_pData->GetUIManager()->GetUIInventory()->SetAPString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint );
+			g_pData->GetUIManager()->GetUIInventory()->SetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED );
+			g_pData->GetUIManager()->GetUIInventory()->SetAPString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint );
 		}
 		
 	}
@@ -3397,7 +3729,7 @@ void CX2StateMenu::UpdateExpGageBar()
 //{{ kimhc // 실시간 엘소드 중 실시간 경험치 획득
 #ifdef REAL_TIME_ELSWORD	
 
-	float	nowExp		= static_cast< float >( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP );
+	float	nowExp		= static_cast< float >( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP );
 	int		iOrgLevel	= g_pData->GetSelectUnitLevel();			// 캐릭터 정보에 저장된 level (Level up 전)	
 
 
@@ -3406,7 +3738,7 @@ void CX2StateMenu::UpdateExpGageBar()
 	float fTotalExpRate		= 0.0f;
 	float nowBaseExp		= 0;
 
-	nowBaseExp		= static_cast< float >( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NowBaseLevelEXP );
+	nowBaseExp		= static_cast< float >( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NowBaseLevelEXP );
 	fTotalExpRate	= ( nowExp - nowBaseExp ) / g_pData->GetEXPTable()->GetEXPData( iOrgLevel + 1 ).m_nNeedExp;
 
 	if( fTotalExpRate > 1.f )
@@ -3439,7 +3771,7 @@ void CX2StateMenu::UpdateExpGageBar()
 	//}}
 //}} 오현빈 // 2012-04-16 // UI개편_하단메뉴
 #else	REAL_TIME_ELSWORD	
-	float nowExp		= (float) g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP;
+	float nowExp		= (float) g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP;
 	float fGainedEXP	= 0.f;
 	if( NULL != g_pX2Game )		// 던전 플레이 중일때만 실행
 	{
@@ -3484,8 +3816,8 @@ void CX2StateMenu::UpdateExpGageBar()
 	else										// 경험치만 올랐을 때(던전 결과창 or quest complete)
 	{
 
-		float nowBaseExp	= (float) g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NowBaseLevelEXP;
-		float nextBaseExp	= (float) g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NextBaseLevelEXP;
+		float nowBaseExp	= (float) g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NowBaseLevelEXP;
+		float nextBaseExp	= (float) g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NextBaseLevelEXP;
 
 		fOrgExpRate	= ( nowExp - nowBaseExp ) / ( nextBaseExp - nowBaseExp );
 		if( fOrgExpRate > 1.f )
@@ -3547,6 +3879,15 @@ void CX2StateMenu::UpdateExpGageBar()
 
 void CX2StateMenu::ToggleCashShop()
 {
+#ifdef FIELD_BOSS_RAID // 캐시샵 오픈 제한
+	CX2BattleFieldManager& battleFieldManager = g_pData->GetBattleFieldManager();
+	if( true == battleFieldManager.GetIsBossRaidCurrentField() )
+	{
+		g_pChatBox->AddChatLog(  GET_STRING( STR_ID_28379 ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
+		return;
+	}
+#endif // FIELD_BOSS_RAID
+
 #ifdef FIX_CASH_SHOP_ENTER_BUG
 	if( NULL != g_pData->GetPartyManager() &&
 		true == g_pData->GetPartyManager()->GetProcessPvpMatch() )
@@ -3573,7 +3914,7 @@ void CX2StateMenu::ToggleCashShop()
 	}
 
 	// 체험 아이디 제한 
-	if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+	if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 		return;
@@ -3593,6 +3934,17 @@ void CX2StateMenu::ToggleCashShop()
 		if ( NULL != g_pX2Game && g_pX2Game->CheckAndWarningBusyStateNow() )
 			return ;
 
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+		IF_EVENT_ENABLED( CEI_CASH_SHOP_CATEGORY_EVENT_2_SHOW )
+		{
+			m_pCashShop->ShowEventCategoryInCashShop();
+		}
+		ELSE
+		{
+			m_pCashShop->OffEventCategoryInCashShop();
+		}
+#endif ADD_CASH_SHOP_CATEGORY_EVENT_2
+
 		//{{ kimhc // 2009-12-19 // 다른 서버군에 접속해서 캐시샵 버튼 클릭시 다른 리스트 받아오도록
 #ifdef	ADD_SERVER_GROUP
 		if ( g_pInstanceData->GetServerGroupIDCashShop() != g_pInstanceData->GetServerGroupID() )
@@ -3603,20 +3955,39 @@ void CX2StateMenu::ToggleCashShop()
 #endif	ADD_SERVER_GROUP
 		//}} kimhc // 2009-12-19 // 다른 서버군에 접속해서 캐시샵 버튼 클릭시 다른 리스트 받아오도록
 
+#if	defined(SERV_EVENT_CHUNG_GIVE_ITEM) || defined( ALWAYS_EVENT_ADAMS_UI_SHOP )
+		SetUsedCashShop(true);
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
 		if ( g_pData->GetItemManager()->GetIsUpdateCashItem() == false )
 		{
+#ifdef SERV_NAVER_CHANNELING
+			switch ( g_pData->GetMyUser()->GetUserData().m_uChannelCode )
+			{
+			case KNexonAccountInfo::CE_NAVER_ACCOUNT:
+				{
+					if ( NULL != g_pInstanceData && 
+						g_pInstanceData->GetNaverAccessToken().empty() )
+						g_pData->GetServerProtocol()->SendID( EGS_GET_NAVER_ACCESS_TOKEN_REQ );
+				} break;
+
+			default:
+				break;
+			}
+#endif // SERV_NAVER_CHANNELING
+
 #ifdef SERV_GLOBAL_BILLING
 			Handler_EGS_BILL_PRODUCT_INFO_REQ();
-#else // SERV_GLOBAL_BILLING
+#else
 			Handler_EGS_CASH_PRODUCT_INFO_REQ();
-#endif // SERV_GLOBAL_BILLING
+#endif SERV_GLOBAL_BILLING
 		}
 		else
 		{
-			//{{ 2010.12.8  조효진  캐쉬샵 누를 시 잔액 요청
+#ifdef SERV_GLOBAL_BILLING
 			CX2State* pNowState = (CX2State*)g_pMain->GetNowState();
 			pNowState->Handler_EGS_CHECK_BALANCE_REQ();
-			//}}
+#endif SERV_GLOBAL_BILLING
 			m_pCashShop->SetOpen( true );
 			ChangeByToggleCashShop();
 		}
@@ -3658,6 +4029,15 @@ void CX2StateMenu::ToggleCashShop()
 #endif //RIDING_SYSTEM
 #endif //REFORM_UI_SKILLSLOT
 #endif
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		SetUsedCashShop(false);
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	if( g_pInstanceData != NULL )
+		{
+			g_pInstanceData->SetAdamsEventShopUIShow(false);
+		}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	}
 }
 
@@ -3729,7 +4109,7 @@ void CX2StateMenu::CheckPresentArrival()
 					wstrstm << L" (" << presentArrival.m_KNXBTProductInfo.m_usProductPieces << GET_STRING( STR_ID_24 ) << L")";
 				}
 #endif // SERV_GLOBAL_BILLING
-				tempName += wstrstm.str().c_str();		
+				tempName += wstrstm.str().c_str();				
 #ifdef CLIENT_GLOBAL_LINEBREAK
 				tempName = CWordLineHandler::GetStrByLineBreakInX2Main( tempName.c_str(), 214, pStatic->GetString(0)->fontIndex );
 #else //CLIENT_GLOBAL_LINEBREAK
@@ -3770,15 +4150,23 @@ bool CX2StateMenu::ToggleSystemMenu(bool bShow)
 			{			
 				//SAFE_DELETE_DIALOG( m_pDLGSystem );
 #if defined( SERV_SECOND_SECURITY ) && !defined( SERV_DISABLE_SECOND_SECURITY )
-#ifdef SERV_CHANNELING_AERIA
+	#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		#ifdef SHOW_WEB_ADVERTISEMENT_USE_DEFAULT_BROWSER
+				m_pDLGSystem = new CKTDGUIDialog( this, L"DLG_UI_System_URLEvent.lua", 0.1f);
+		#else
+			#ifdef SERV_CHANNELING_AERIA
 				if( true == g_pInstanceData->IsAeriaChanneling() )
 					m_pDLGSystem = new CKTDGUIDialog( this, L"DLG_UI_System_New_For_Aeria.lua", 0.1f);
 				else
-#endif //SERV_CHANNELING_AERIA
+			#endif //SERV_CHANNELING_AERIA
+				m_pDLGSystem = new CKTDGUIDialog( this, L"DLG_UI_Entry_Point_System_New.lua", 0.1f);
+		#endif SHOW_WEB_ADVERTISEMENT_USE_DEFAULT_BROWSER
+	#else  // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 				m_pDLGSystem = new CKTDGUIDialog( this, L"DLG_UI_System_New.lua", 0.1f);
+	#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh			
 #else
 				m_pDLGSystem = new CKTDGUIDialog( this, L"DLG_UI_System.lua", 0.1f);
-#endif
+#endif //defined( SERV_SECOND_SECURITY ) && !defined( SERV_DISABLE_SECOND_SECURITY )
 				g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGSystem );	
 				m_pDLGSystem->SetDisableUnderWindow(true);
 				
@@ -3830,35 +4218,31 @@ void CX2StateMenu::CheckMyInfoChange()
 	if( NULL != g_pData && NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUIInventory() &&
 		true == g_pData->GetUIManager()->GetUIInventory()->GetShow() )
 	{
-		if ( m_TotalED < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+		if ( m_TotalED < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 		{
-			int changeED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED - m_TotalED;
+			int changeED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED - m_TotalED;
 			wstringstream wstrstm;
-		//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 			wstrstm << GET_STRING( STR_ID_14363 ) << changeED;
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 			wstrstm << L"ED +" << changeED;
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-		//}}
 			m_pPicCharMenuPlusInfo->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 789,687,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 		}
 
-		if ( m_TotalED > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+		if ( m_TotalED > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 		{
-			int changeED = m_TotalED - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+			int changeED = m_TotalED - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 			wstringstream wstrstm;
-		//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 			wstrstm << GET_STRING( STR_ID_14364 ) << changeED;
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 			wstrstm << L"ED -" << changeED;
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-		//}}
 			m_pPicCharMenuPlusInfoRed->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 789,687,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 		}
 
-		m_TotalED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+		m_TotalED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 
 		//{{ kimhc // 실시간 엘소드 중 실시간 ED 획득 관련
 	#ifdef	REAL_TIME_ELSWORD
@@ -3872,7 +4256,7 @@ void CX2StateMenu::CheckMyInfoChange()
 				wstringstream wstrstm;
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 		wstrstm << GET_STRING( STR_ID_14364 ) << changeED;
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 				wstrstm << L"ED -" << changeED;
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 				m_pPicCharMenuPlusInfoRed->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 789,687,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
@@ -3896,59 +4280,55 @@ void CX2StateMenu::CheckMyInfoChange()
 			m_pPicCharMenuPlusInfoRed->Clear();
 	}
 #ifdef SERV_PVP_NEW_SYSTEM
-	if ( m_TotalAP < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint )
+	if ( m_TotalAP < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint )
 	{
-		int changeAP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint - m_TotalAP;
+		int changeAP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint - m_TotalAP;
 		wstringstream wstrstm;
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 		wstrstm << GET_STRING( STR_ID_14367 ) << changeAP;
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 		wstrstm << L"AP +" << changeAP;
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 		m_pPicCharMenuPlusInfo->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 940,687,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 	}
 
-	if ( m_TotalAP > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint )
+	if ( m_TotalAP > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint )
 	{
-		int changeAP = m_TotalAP - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint;
+		int changeAP = m_TotalAP - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint;
 		wstringstream wstrstm;
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 		wstrstm << GET_STRING( STR_ID_14368 ) << changeAP;
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 		wstrstm << L"AP -" << changeAP;
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 		m_pPicCharMenuPlusInfoRed->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 940,687,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 	}
-	m_TotalAP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint;
+	m_TotalAP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint;
 #else
-	if ( m_TotalVP < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint )
+	if ( m_TotalVP < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint )
 	{
-		int changeVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint - m_TotalVP;
+		int changeVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint - m_TotalVP;
 		wstringstream wstrstm;
-		//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 		wstrstm << GET_STRING( STR_ID_14367 ) << changeVP;
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 		wstrstm << L"VP +" << changeVP;
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-		//}}
 		m_pPicCharMenuPlusInfo->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 969,721,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 	}
 
-	if ( m_TotalVP > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint )
+	if ( m_TotalVP > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint )
 	{
-		int changeVP = m_TotalVP - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint;
+		int changeVP = m_TotalVP - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint;
 		wstringstream wstrstm;
-		//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 		wstrstm << GET_STRING( STR_ID_14368 ) << changeVP;
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 		wstrstm << L"VP -" << changeVP;
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-		//}}
 		m_pPicCharMenuPlusInfoRed->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 969,721,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 	}
-	m_TotalVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint;
+	m_TotalVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint;
 #endif
 
 	if ( m_TotalLevel < g_pData->GetSelectUnitLevel() )
@@ -3976,9 +4356,9 @@ void CX2StateMenu::CheckMyInfoChange()
 				pSeq->SetOverUI( true );
 		}
 #ifdef _NEXON_KR_
-		if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser ) // 체험 아이디 제한
+		if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 		{
-			CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass << 24 ) | (UINT32)g_pData->GetSelectUnitLevel(), kUserFlag_GeneralLevelUp );
+			CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass << 24 ) | (UINT32)g_pData->GetSelectUnitLevel(), kUserFlag_GeneralLevelUp );
 		}
 #endif
 	}
@@ -4059,50 +4439,6 @@ void CX2StateMenu::UpdateGuideDescTooniLandEvent()
 #endif	SERV_TOONILAND_CHANNELING_EVENT
 //}} kimhc // 2011-08-08 // 투니 랜드 채널링 이벤트
 
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-void CX2StateMenu::SetShowFestivalRoomBuff( bool bVal )
-{
-	static bool bFestivalRoomBuffShow = false;
-
-	if( bFestivalRoomBuffShow == bVal )
-		return;
-	bFestivalRoomBuffShow = bVal;
-
-	for(int i=1; i<=5; ++i)
-	{
-		WCHAR buf[256] = L"";
-		StringCchPrintf( buf, 256, L"RoomBuff%d", i );
-
-		CKTDGUIButton* pButtonRoomBuff	= static_cast<CKTDGUIButton*>( m_pDLGMenu->GetControl( buf ) );
-		if ( NULL != pButtonRoomBuff )
-		{
-			pButtonRoomBuff->SetShow( false );
-			if ( false == pButtonRoomBuff->GetEnable() )
-				pButtonRoomBuff->SetEnable( false );
-		}
-	}	
-
-	if( bVal == false )
-	{
-		return;
-	}
-	
-	int iRoomBuf = g_pX2Room->GetRoomBuffType();
-	if( iRoomBuf <= 0 || iRoomBuf > 5 )
-		return;
-
-	WCHAR buf[256] = L"";
-	StringCchPrintf( buf, 256, L"RoomBuff%d", iRoomBuf );
-	CKTDGUIButton* pButtonRoomBuff	= static_cast<CKTDGUIButton*>( m_pDLGMenu->GetControl( buf ) );
-	if ( NULL != pButtonRoomBuff )
-	{
-		pButtonRoomBuff->SetShow( true );
-		if ( false == pButtonRoomBuff->GetEnable() )
-			pButtonRoomBuff->SetEnable( true );
-	}
-}
-#endif //SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-
 bool CX2StateMenu::Handler_EGS_ADD_ON_STAT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
@@ -4144,7 +4480,7 @@ bool CX2StateMenu::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( HWND hWnd, UINT
 	if ( pUser->GetUnit() == NULL )
 		return false;
 
-	CX2Unit::UnitData*	pUnitData	= pUnit->GetUnitData();
+	CX2Unit::UnitData*	pUnitData	= &pUnit->AccessUnitData();
 
 	pUser->SetGameStat( kEvent.m_kGameStat );
 	pUnitData->m_GameStat.SetKStat( kEvent.m_kGameStat );
@@ -4172,13 +4508,7 @@ bool CX2StateMenu::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( HWND hWnd, UINT
 		// 장비가 변경 되었을 경우
 	case KEGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT::CEPT_CHANGE_EQUIP:
 		{
-			CX2Inventory* pInventory = pUnit->GetInventory();
-
-			if ( pInventory == NULL )
-			{
-				ASSERT( pInventory != NULL );
-				return false;
-			} // if
+			CX2Inventory& kInventory = pUnit->AccessInventory();
 
 			const UidType myUID = g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 
@@ -4187,15 +4517,15 @@ bool CX2StateMenu::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( HWND hWnd, UINT
 			{
 				BOOST_TEST_FOREACH( KInventoryItemInfo&, kInventoryItemInfo, kEvent.m_vecInventorySlotInfo )
 				{
-					CX2Item* pItemToRemove = pInventory->GetItem( static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ), 
+					CX2Item* pItemToRemove = kInventory.GetItem( static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ), 
 						kInventoryItemInfo.m_sSlotID );
 
 					CX2Item* pItemToAdd = NULL;
 
 					if ( kInventoryItemInfo.m_iItemUID > 0 )
 					{
-						CX2Item::ItemData* pItemDataToAdd = new CX2Item::ItemData( kInventoryItemInfo );
-						pItemToAdd = new CX2Item( pItemDataToAdd, pUnit ); 
+						CX2Item::ItemData kItemDataToAdd( kInventoryItemInfo );
+						pItemToAdd = new CX2Item( kItemDataToAdd, pUnit ); 
 
 						if ( pItemToAdd == NULL )
 						{
@@ -4218,13 +4548,13 @@ bool CX2StateMenu::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( HWND hWnd, UINT
 						g_pX2Game->RemoveSpecialAbilityInEquip( pItemToRemove->GetItemTemplet(), pUser );
 
 						pUnit->RemoveEqip( pItemToRemove->GetUID() );						
-						pInventory->RemoveItem( pItemToRemove->GetUID() );				
+						kInventory.RemoveItem( pItemToRemove->GetUID() );				
 					} // if
 
 					if ( pItemToAdd != NULL )
 					{
 						pUnit->AddEqip( pItemToAdd );
-						pInventory->AddItem( static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ),
+						kInventory.AddItem( static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ),
 							kInventoryItemInfo.m_sSlotID, pItemToAdd );
 
 						g_pX2Game->SetSpecialAbilityInEquip( pItemToAdd->GetItemTemplet(), pUser );
@@ -4302,7 +4632,7 @@ bool CX2StateMenu::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( HWND hWnd, UINT
 	if ( pUser->GetUnit() == NULL )
 		return false;
 
-	CX2Unit::UnitData*	pUnitData	= pUnit->GetUnitData();
+	CX2Unit::UnitData*	pUnitData	= &pUnit->AccessUnitData();
 
 	pUser->SetGameStat( kEvent.m_kGameStat );
 	pUnitData->m_GameStat.SetKStat( kEvent.m_kGameStat );
@@ -4325,13 +4655,7 @@ bool CX2StateMenu::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( HWND hWnd, UINT
 	}
 	else // 장비가 변경 되었을 경우
 	{
-		CX2Inventory* pInventory = pUnit->GetInventory();
-
-		if ( pInventory == NULL )
-		{
-			ASSERT( pInventory != NULL );
-			return false;
-		}
+		CX2Inventory& kInventory = pUnit->GetInventory();
 
 		const UidType myUID = g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 
@@ -4340,15 +4664,15 @@ bool CX2StateMenu::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( HWND hWnd, UINT
 		{
 			BOOST_TEST_FOREACH( KInventoryItemInfo&, kInventoryItemInfo, kEvent.m_vecInventorySlotInfo )
 			{
-				CX2Item* pItemToRemove = pInventory->GetItem( static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ), 
+				CX2Item* pItemToRemove = kInventory.GetItem( static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ), 
 					kInventoryItemInfo.m_sSlotID );
 
 				CX2Item* pItemToAdd = NULL;
 
 				if ( kInventoryItemInfo.m_iItemUID > 0 )
 				{
-					CX2Item::ItemData* pItemDataToAdd = new CX2Item::ItemData( kInventoryItemInfo );
-					pItemToAdd = new CX2Item( pItemDataToAdd, pUnit ); 
+					CX2Item::ItemData kItemDataToAdd( kInventoryItemInfo );
+					pItemToAdd = new CX2Item( kItemDataToAdd, pUnit ); 
 
 					if ( pItemToAdd == NULL )
 					{
@@ -4372,13 +4696,13 @@ bool CX2StateMenu::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( HWND hWnd, UINT
 					g_pX2Game->RemoveSpecialAbilityInEquip( pItemToRemove->GetItemTemplet(), pUser );
 
 					pUnit->RemoveEqip( pItemToRemove->GetUID() );						
-					pInventory->RemoveItem( pItemToRemove->GetUID() );				
+					kInventory.RemoveItem( pItemToRemove->GetUID() );				
 				}
 
 				if ( pItemToAdd != NULL )
 				{
 					pUnit->AddEqip( pItemToAdd );
-					pInventory->AddItem( static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ),
+					kInventory.AddItem( static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ),
 						kInventoryItemInfo.m_sSlotID, pItemToAdd );
 
 					g_pX2Game->SetSpecialAbilityInEquip( pItemToAdd->GetItemTemplet(), pUser );
@@ -4441,12 +4765,11 @@ bool CX2StateMenu::Hander_EGS_ZERO_ENDURANCE_ITEM_IN_ROOM_NOT( HWND hWnd, UINT u
 	CX2GUUser* pUser = g_pX2Game->GetUserUnitByUID( kEvent.m_UnitUID );
 
 	if ( pUser == NULL ||
-		pUser->GetUnit() == NULL ||
-		pUser->GetUnit()->GetUnitData() == NULL )
+		pUser->GetUnit() == NULL )
 		return false;
 
 	CX2Unit* pUnit = pUser->GetUnit();
-	CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
+	CX2Unit::UnitData* pUnitData = &pUnit->AccessUnitData();
 
 
 	pUser->SetGameStat( kEvent.m_kGameStat );
@@ -4454,17 +4777,16 @@ bool CX2StateMenu::Hander_EGS_ZERO_ENDURANCE_ITEM_IN_ROOM_NOT( HWND hWnd, UINT u
 
 	for (size_t i = 0; i < kEvent.m_vecInventorySlotInfo.size(); i++ )
 	{
-		CX2Item* pItemToRemoveInView = pUser->GetUnit()->GetInventory()->GetItem( kEvent.m_vecInventorySlotInfo[i].m_iItemUID );
+		CX2Item* pItemToRemoveInView = pUser->GetUnit()->GetInventory().GetItem( kEvent.m_vecInventorySlotInfo[i].m_iItemUID );
 
 		if ( pItemToRemoveInView == NULL ||
-			pItemToRemoveInView->GetItemTemplet() == NULL ||
-			pItemToRemoveInView->GetItemData() == NULL )
+			pItemToRemoveInView->GetItemTemplet() == NULL )
 		{
 			ASSERT( pItemToRemoveInView );
 			return false;
 		}
 
-		pItemToRemoveInView->GetItemData()->m_Endurance		= 0;
+		pItemToRemoveInView->AccessItemData().m_Endurance		= 0;
 
 		g_pX2Game->RemoveSpecialAbilityInEquip( pItemToRemoveInView->GetItemTemplet(), pUser );
 		//kEvent.m_vecInventorySlotInfo[i].m_iItemUID = 0;
@@ -4541,16 +4863,13 @@ bool CX2StateMenu::Hander_EGS_ZERO_ENDURANCE_ITEM_IN_ROOM_NOT( HWND hWnd, UINT u
 		pUser->GetUnit() == NULL )
 		return false;
 
-	CX2Unit::UnitData* pUnitData = pUser->GetUnit()->GetUnitData();
-
-	if ( NULL == pUnitData )
-		return false;
+	CX2Unit::UnitData* pUnitData = &pUser->GetUnit()->AccessUnitData();
 
 #ifdef _NEXON_KR_
 	if( g_pData->GetMyUser()->GetSelectUnit()->GetUID() == kEvent.m_iUnitUID
-		&& false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser ) // 체험 아이디 제한
+		&& false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 	{
-		CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass << 24 ) | (UINT32)kEvent.m_ucLevel, kUserFlag_GeneralLevelUp );
+		CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass << 24 ) | (UINT32)kEvent.m_ucLevel, kUserFlag_GeneralLevelUp );
 	}
 #endif
 
@@ -4600,11 +4919,58 @@ bool CX2StateMenu::Hander_EGS_ZERO_ENDURANCE_ITEM_IN_ROOM_NOT( HWND hWnd, UINT u
 			// 아라인 경우 레벨업 시에 기력을 충전
 			if ( NULL != pGageData )
 			{
-				CX2AraGageData* pAraGageData = static_cast<CX2AraGageData*>( pGageData );
+				CX2AraGageData* pAraGageData = reinterpret_cast<CX2AraGageData*>( pGageData );
+				pAraGageData->SetMaxForcePower( min( pUser->GetUnitLevel() / 10, 6 ) + 4 );
 				pAraGageData->SetNowForcePower( pAraGageData->GetMaxForcePower() );
 			}
 		}
 #endif
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		ProcessElesisEvent( kEvent.m_ucLevel, kEvent.m_iNoteViewCount );
+#endif SERV_ELESIS_UPDATE_EVENT
+
+#ifdef ITEM_IS_IN_INVENTORY_MSG_BY_LEVEL
+		if( NULL != g_pData &&
+			NULL != g_pData->GetMyUser() &&
+			NULL != g_pData->GetMyUser()->GetSelectUnit() )
+		{
+			// 아라혼의 정수, 현재 임시로 가열기 처리, 임시로 STR_ID_25066 사용
+			if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( _CONST_ITEM_IN_INVENTORY_INT_::iRewardCube, false))
+			{
+				switch ( g_pMain->GetNowStateID() )
+				{
+				case CX2Main::XS_SQUARE_GAME:
+				case CX2Main::XS_PVP_GAME:
+				case CX2Main::XS_DUNGEON_GAME:
+					{
+						CX2Main::ReservedMessagePopUp EventPopUp;
+
+						EventPopUp.m_vecTargetState.push_back( CX2Main::XS_PVP_LOBBY );
+						EventPopUp.m_vecTargetState.push_back( CX2Main::XS_PVP_ROOM );
+						EventPopUp.m_vecTargetState.push_back( CX2Main::XS_DUNGEON_ROOM );
+						EventPopUp.m_vecTargetState.push_back( CX2Main::XS_VILLAGE_MAP );
+						EventPopUp.m_vecTargetState.push_back( CX2Main::XS_SQUARE_GAME );
+						EventPopUp.m_vecTargetState.push_back( CX2Main::XS_TRAINING_SCHOOL );
+						EventPopUp.m_vecTargetState.push_back( CX2Main::XS_BATTLE_FIELD );
+
+						if( _CONST_ITEM_IN_INVENTORY_INT_::iGoalLevel <= kEvent.m_ucLevel)
+						{
+							EventPopUp.m_Message = GET_STRING( STR_ID_29335 );
+							g_pMain->AddReservedMessagePopup( EventPopUp );
+						}
+					} break;
+				default:
+					{
+						if( _CONST_ITEM_IN_INVENTORY_INT_::iGoalLevel <= kEvent.m_ucLevel)
+						{
+							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_STRING( STR_ID_29335 ), (CKTDXStage*)g_pMain->GetNowStateID() );
+						}
+					} break;
+				}
+			}
+		}
+#endif //ITEM_IS_IN_INVENTORY_MSG_BY_LEVEL
 
 		if( g_pChatBox != NULL)
 		{
@@ -4650,23 +5016,20 @@ bool CX2StateMenu::Hander_EGS_ZERO_ENDURANCE_ITEM_IN_ROOM_NOT( HWND hWnd, UINT u
 	CX2GUUser*	pUser = g_pX2Game->GetMyUnit();
 
 	if ( pUser == NULL ||
-		pUser->GetUnit() == NULL ||
-		pUser->GetUnit()->GetInventory() == NULL )
+		pUser->GetUnit() == NULL )
 		return false;
 
-	CX2Inventory* pInventory = pUser->GetUnit()->GetInventory();
+	const CX2Inventory& kInventory = pUser->GetUnit()->GetInventory();
 
 	BOOST_TEST_FOREACH( const KDecreaseEnduranceInfo&, enduranceInfo, kEvent.m_vecEnduranceUpdate )
 	{
-		CX2Item* pItem = pInventory->GetItem( enduranceInfo.m_iItemUID );
+		CX2Item* pItem = kInventory.GetItem( enduranceInfo.m_iItemUID );
 		if ( NULL == pItem )
 			continue;
 
-		CX2Item::ItemData* pItemData = pItem->GetItemData();
-		if ( NULL == pItemData )
-			continue;
+		CX2Item::ItemData& kItemData = pItem->AccessItemData();
 
-		pItemData->m_Endurance = enduranceInfo.m_iEndurance;
+		kItemData.m_Endurance = enduranceInfo.m_iEndurance;
 
 		if(g_pInstanceData != NULL && g_pInstanceData->GetMiniMapUI() != NULL)
 		{
@@ -4686,7 +5049,7 @@ void CX2StateMenu::DisplayLevelUpEffect( CX2GUUser* pGUUser_ )
 		g_pData->GetUIEffectSet()->PlayEffectSet( L"EffectSet_LevelUp", pGUUser_ );
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 		g_pData->GetPicCharBlue()->DrawText( GET_STRING( STR_ID_14357 ), pGUUser_->GetHeadBonePos(), pGUUser_->GetDirVector(), CKTDGPicChar::AT_CENTER );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 		g_pData->GetPicCharBlue()->DrawText( L"LEVEL UP", pGUUser_->GetHeadBonePos(), pGUUser_->GetDirVector(), CKTDGPicChar::AT_CENTER );
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 		pGUUser_->GetUnit()->SetIsLevelUp( false );
@@ -4695,14 +5058,13 @@ void CX2StateMenu::DisplayLevelUpEffect( CX2GUUser* pGUUser_ )
 
 bool CX2StateMenu::CameraZoomInAndOutKeyProcess()
 {
-#ifdef REFORM_UI_KEYPAD
 	if( GET_KEY_STATE( GA_ZOOMIN ) == TRUE
 #ifndef REMOVE_DEFAULT_ZOOM
 		|| g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_ADD ) == TRUE
 #endif REMOVE_DEFAULT_ZOOM
 		)
 	{
-		g_pMain->GetGameOption()->CameraZoomIn( 1 );
+		g_pMain->GetGameOption().CameraZoomIn( 1 );
 		return true;
 	}
 	else if( GET_KEY_STATE( GA_ZOOMOUT ) == TRUE
@@ -4711,28 +5073,11 @@ bool CX2StateMenu::CameraZoomInAndOutKeyProcess()
 #endif REMOVE_DEFAULT_ZOOM
 			 )
 	{
-		g_pMain->GetGameOption()->CameraZoomIn( -1 );
+		g_pMain->GetGameOption().CameraZoomIn( -1 );
 		return true;
 	}
 	else
 		return false;
-#else
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_ADD ) == TRUE ||
-		g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_EQUALS ) == TRUE )
-	{
-		g_pMain->GetGameOption()->CameraZoomIn( 1 );
-		return true;
-	}
-	else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_SUBTRACT ) == TRUE ||
-		g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_MINUS ) == TRUE )
-
-	{
-		g_pMain->GetGameOption()->CameraZoomIn( -1 );
-		return true;
-	}
-	else
-		return false;
-#endif
 }
 
 void CX2StateMenu::ShowMainMenuButton()
@@ -4822,6 +5167,11 @@ void CX2StateMenu::UpdateMenuPosistion()
 #ifdef SERV_RECOMMEND_LIST_EVENT
 	CKTDGUIButton* pButtonFriendRecommend = static_cast<CKTDGUIButton* >( m_pDLGMenu->GetControl( L"FriendRecommed" ) ); //추천하기
 #endif //SERV_RECOMMEND_LIST_EVENT
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	CKTDGUIButton* pButtonEvent = static_cast<CKTDGUIButton*>(m_pDLGMenu->GetControl(L"Event"));	//이벤트버튼
+#endif SERV_4TH_ANNIVERSARY_EVENT
+
+
 	if( true == m_vecpButtonMainMenu.empty() )
 	{
 		m_vecpButtonMainMenu.push_back(pButtonChar);
@@ -4840,6 +5190,9 @@ void CX2StateMenu::UpdateMenuPosistion()
 #ifdef SERV_RECOMMEND_LIST_EVENT
 		m_vecpButtonMainMenu.push_back(pButtonFriendRecommend);
 #endif //SERV_RECOMMEND_LIST_EVENT
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		m_vecpButtonMainMenu.push_back(pButtonEvent);
+#endif SERV_4TH_ANNIVERSARY_EVENT
 	}
 
 	//메뉴 버튼 new
@@ -4847,6 +5200,9 @@ void CX2StateMenu::UpdateMenuPosistion()
 	CKTDGUIStatic* pButtonPetNew = (CKTDGUIStatic*)m_pDLGMenu->GetControl(L"Pat_Inventory_New"); //펫소환
 	CKTDGUIStatic* pButtonInvenNew = (CKTDGUIStatic*)m_pDLGMenu->GetControl(L"Inventory_New"); //인벤
 	CKTDGUIStatic* pButtonSkillNew = (CKTDGUIStatic*)m_pDLGMenu->GetControl(L"Skill_New"); //스킬
+#ifdef MODIFY_ACCEPT_QUEST
+	CKTDGUIStatic* pButtonQuestNew = (CKTDGUIStatic*)m_pDLGMenu->GetControl(L"Quest_New"); //퀘스트
+#endif // MODIFY_ACCEPT_QUEST
 #ifdef SERV_ADD_WARP_BUTTON
 	CKTDGUIStatic* pButtonWarpVIP = (CKTDGUIStatic*)m_pDLGMenu->GetControl(L"Warp_VIP"); //스킬
 #endif //SERV_ADD_WARP_BUTTON
@@ -4862,6 +5218,10 @@ void CX2StateMenu::UpdateMenuPosistion()
 #ifdef SERV_ADD_WARP_BUTTON
 		pButtonWarp->SetShowEnable( true, true );
 #endif //SERV_ADD_WARP_BUTTON
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		pButtonEvent->SetShowEnable( true, true );
+		pButtonEvent->SetOffsetPos( offset );
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 		pButtonChar->SetOffsetPos( offset );
 		pButtonInven->SetOffsetPos( offset );
 		pButtonSkill->SetOffsetPos( offset );
@@ -4876,10 +5236,13 @@ void CX2StateMenu::UpdateMenuPosistion()
 		pButtonPetNew->SetOffsetPos( offset );
 		pButtonInvenNew->SetOffsetPos( offset );
 		pButtonSkillNew->SetOffsetPos( offset );
+#ifdef MODIFY_ACCEPT_QUEST
+		pButtonQuestNew->SetOffsetPos( offset );	
+#endif // MODIFY_ACCEPT_QUEST
 #ifdef SERV_ADD_WARP_BUTTON
 		pButtonWarpVIP->SetOffsetPos( offset );
 #endif //SERV_ADD_WARP_BUTTON
-		//알림말풍선
+	//알림말풍선
 		g_pMain->GetInformerManager()->GetInvenInformer()->SetTalkBoxOffsetPos(offset);
 		g_pMain->GetInformerManager()->GetGuildInformer()->SetTalkBoxOffsetPos(offset);
 		g_pMain->GetInformerManager()->GetSkillInformer()->SetTalkBoxOffsetPos(offset);
@@ -4923,6 +5286,9 @@ void CX2StateMenu::UpdateMenuPosistion()
 			pButtonPetNew->SetOffsetPos( offset );
 			pButtonInvenNew->SetOffsetPos( offset );
 			pButtonSkillNew->SetOffsetPos( offset );
+#ifdef MODIFY_ACCEPT_QUEST
+			pButtonQuestNew->SetOffsetPos( offset );
+#endif // MODIFY_ACCEPT_QUEST
 #ifdef SERV_ADD_WARP_BUTTON
 			pButtonWarpVIP->SetOffsetPos( offset );
 #endif //SERV_ADD_WARP_BUTTON
@@ -4977,15 +5343,14 @@ void CX2StateMenu::UpdateMenuPosistion()
 
 		//스킬 포인트가 없다면
 		if( NULL != g_pData->GetMyUser() && 
-			NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-			NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+			NULL != g_pData->GetMyUser()->GetSelectUnit() )
 		{
 
 			int iUsedCP, iUsedSP;
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.CalcUsedSPointAndCSPoint( iUsedSP, iUsedCP );
+			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.CalcUsedSPointAndCSPoint( iUsedSP, iUsedCP );
 			int iTotalUsedSP = iUsedCP + iUsedSP;
 
-			int iNewSP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iCSPoint;
+			int iNewSP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iCSPoint;
 			if( iNewSP == 0 && iTotalUsedSP == 2 )
 			{
 #ifdef INT_WIDE_BAR
@@ -5014,6 +5379,9 @@ void CX2StateMenu::UpdateMenuPosistion()
 				pButtonPetEvolNew->SetOffsetPos( offset );
 				pButtonPetNew->SetOffsetPos( offset );
 				pButtonInvenNew->SetOffsetPos( offset );
+#ifdef MODIFY_ACCEPT_QUEST
+				pButtonQuestNew->SetOffsetPos( offset );
+#endif // MODIFY_ACCEPT_QUEST
 #ifdef SERV_ADD_WARP_BUTTON
 				pButtonWarpVIP->SetOffsetPos( offset );
 #endif //SERV_ADD_WARP_BUTTON
@@ -5021,8 +5389,6 @@ void CX2StateMenu::UpdateMenuPosistion()
 				g_pMain->GetInformerManager()->GetInvenInformer()->SetTalkBoxOffsetPos(offset);
 			}
 		}
-		//VIP가 아니라면 여기다 코딩
-
 	}
 
 }
@@ -5167,7 +5533,7 @@ void CX2StateMenu::OpenElliosGuide( int iTargetPage )
 		m_Book.GotoPage(iTargetPage);
 	}
 }
-#endif //RASING_HERO_EVENT
+#endif SERV_EVENT_RETURN_USER_MARK
 
 #ifdef BUFF_TEMPLET_SYSTEM
 void CX2StateMenu::UpdateGuideDescBuffTemplet( CX2PremiumBuffIconPtr pPremiumBuffPtr )
@@ -5332,14 +5698,14 @@ void CX2StateMenu::UpdateGuideDescBuffTemplet( CX2PremiumBuffIconPtr pPremiumBuf
 
 				for ( int i = 0; i < (int)vSocketOptionList.size(); i++ )
 				{
-					CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( vSocketOptionList[i] );
+					const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( vSocketOptionList[i] );
 
 					if( pSocketData != NULL )
 					{
 						strBufftempletDesc += L"#CFFFF00";
 
 						//소켓 정보 출력
-						strBufftempletDesc += pSocketData->GetSocketDesc( pkUnit->GetUnitData()->m_Level );
+						strBufftempletDesc += pSocketData->GetSocketDesc( pkUnit->GetUnitData().m_Level );
 
 						strBufftempletDesc += L"#CX";
 
@@ -5578,6 +5944,37 @@ void CX2StateMenu::OpenRecommendMsgBox( bool _bOpen )
 }
 #endif //SERV_RECOMMEND_LIST_EVENT
 
+#ifdef MODIFY_ACCEPT_QUEST
+void CX2StateMenu::SetShowNewQuest(bool bVal)
+{
+	CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDLGMenu->GetControl( L"Quest_New" ));
+	if( NULL != pStatic )
+	{
+		pStatic->SetShow(bVal);
+	}
+}
+#endif // MODIFY_ACCEPT_QUEST
+
+
+#ifdef SERV_NAVER_CHANNELING
+
+bool CX2StateMenu::Handler_EGS_GET_NAVER_ACCESS_TOKEN_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_GET_NAVER_ACCESS_TOKEN_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if( true == g_pMain->IsValidPacket( kEvent.m_iOK ) 
+		&& NULL != g_pInstanceData )
+	{
+		g_pInstanceData->SetNaverAccessToken( kEvent.m_strAccessToken );
+	}		
+
+	return true;
+}
+
+#endif // SERV_NAVER_CHANNELING
+
 #ifdef SERV_ADVERTISEMENT_EVENT
 bool CX2StateMenu::Handler_EGS_GET_ADVERTISEMENT_EVENT_REQ()
 {
@@ -5647,7 +6044,6 @@ void CX2StateMenu::ClickWarpButton( bool bIsEdConsumption_ )
 	}	/// switch
 }
 
-
 void CX2StateMenu::UseWarpPopup(bool bIsEdConsumption_)
 {
 	if( NULL != g_pData && NULL != g_pData->GetLocationManager() &&
@@ -5663,8 +6059,7 @@ void CX2StateMenu::UseWarpPopup(bool bIsEdConsumption_)
 			int iWarpDistance = abs(m_iSelectedWarpDestIndex - m_iCurrentVillageWarpIndex);
 			int iBasePrice = 6000;
 			float fDecreaseFactor = 0.6f;
-			if( NULL !=  g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData())
+			if( NULL !=  g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{				
 				float fLevel = static_cast<float>(g_pData->GetSelectUnitLevel());
 				if( fLevel > 0 )
@@ -5685,7 +6080,6 @@ void CX2StateMenu::UseWarpPopup(bool bIsEdConsumption_)
 		}
 	}
 }
-
 
 void CX2StateMenu::AddWarpList(CKTDGUIContolList *pControlList, const int row, const int iVillageId)
 {
@@ -5712,7 +6106,6 @@ void CX2StateMenu::AddWarpList(CKTDGUIContolList *pControlList, const int row, c
 	{
 		m_iCurrentVillageWarpIndex = row;
 	}
-
 
 	WCHAR wVillageId[256] = {0,};
 	//wsprintf(wVillageId, L"Village_%d", iVillageId);
@@ -5777,7 +6170,6 @@ void CX2StateMenu::InitWarpList()
 #endif //VILLAGE_SANDER
 }
 
-
 void CX2StateMenu::CreateWarpDest()
 {	
 	m_vecWarpListButton.clear();
@@ -5787,7 +6179,6 @@ void CX2StateMenu::CreateWarpDest()
 	{
 		m_pDLGWarpDestination = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_Destination_byButton.lua" );
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGWarpDestination );
-
 	}
 
 	if( m_pDLGWarpDestination != NULL )
@@ -5814,7 +6205,7 @@ void CX2StateMenu::CreateWarpDest()
 
 			// 엘더지역
 			const int iMyUnitLevel = g_pData->GetSelectUnitLevel();
-			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_VELDER_EAST );
+			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_ELDER );
 			if( pLocalMapTemplet != NULL )
 			{
 				if( iMyUnitLevel >= pLocalMapTemplet->m_RequireUnitLevel )
@@ -5834,7 +6225,7 @@ void CX2StateMenu::CreateWarpDest()
 			}
 
 			// 베스마지역
-			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_VELDER_SOUTH );
+			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_BESMA );
 			if( pLocalMapTemplet != NULL )
 			{
 				if( iMyUnitLevel >= pLocalMapTemplet->m_RequireUnitLevel )
@@ -5853,6 +6244,34 @@ void CX2StateMenu::CreateWarpDest()
 				}
 			}
 
+#ifdef SERV_ALTERA_AUTO_OPEN_HARD_CODE
+			IF_EVENT_ENABLED( CEI_ALTERA_AUTO_OPEN_HARD_CODE )
+			{
+				// 알테라지역
+				pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_ALTERA_ISLAND );
+				if( pLocalMapTemplet != NULL )
+				{
+					if( iMyUnitLevel >= pLocalMapTemplet->m_RequireUnitLevel )
+					{
+						// 알테라마을
+						pControl = (CKTDGUIStatic*)m_pDLGWarpDestination->GetControl(L"Village_20003");	//VMI_ALTERA
+						pControl->SetShow(false);
+						AddWarpList( pControlList, row, SEnum::VMI_ALTERA );
+						++row;
+
+						// 알테라 휴식처(풍고족 은신처)
+						pControl = (CKTDGUIStatic*)m_pDLGWarpDestination->GetControl(L"Village_1002");	//VMI_BATTLE_FIELD_ALTERA_REST_00
+						pControl->SetShow(false);
+						AddWarpList( pControlList, row, SEnum::VMI_BATTLE_FIELD_ALTERA_REST_00 );
+						++row;
+					}
+				}
+			}
+			ELSE
+			{
+				// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+			}
+#else
 			// 알테라지역
 			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_ALTERA_ISLAND );
 			if( pLocalMapTemplet != NULL )
@@ -5873,6 +6292,30 @@ void CX2StateMenu::CreateWarpDest()
 				}
 			}
 
+#endif //SERV_ALTERA_AUTO_OPEN_HARD_CODE
+			
+#ifdef SERV_PEITA_AUTO_OPEN_HARD_CODE
+			IF_EVENT_ENABLED( CEI_PEITA_AUTO_OPEN_HARD_CODE )
+			{
+				// 페이타지역
+				pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_PEITA );
+				if( pLocalMapTemplet != NULL )
+				{
+					if( iMyUnitLevel >= pLocalMapTemplet->m_RequireUnitLevel )
+					{
+						// 페이타(파견 텐트)
+						pControl = (CKTDGUIStatic*)m_pDLGWarpDestination->GetControl(L"Village_20005");	//VMI_PEITA
+						pControl->SetShow(false);
+						AddWarpList( pControlList, row, SEnum::VMI_PEITA );
+						++row;
+					}
+				}
+			}
+			ELSE
+			{
+				// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+			}
+#else
 			// 페이타지역
 			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_PEITA );
 			if( pLocalMapTemplet != NULL )
@@ -5886,7 +6329,39 @@ void CX2StateMenu::CreateWarpDest()
 					++row;
 				}
 			}
+#endif //SERV_PEITA_AUTO_OPEN_HARD_CODE
 
+#ifdef SERV_VELDER_AUTO_OPEN_HARD_CODE
+			IF_EVENT_ENABLED( CEI_VELDER_AUTO_OPEN_HARD_CODE )
+			{
+				// 벨더지역
+				pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_VELDER );
+				if( pLocalMapTemplet != NULL )
+				{
+					if( iMyUnitLevel >= pLocalMapTemplet->m_RequireUnitLevel )
+					{
+						// 벨더마을
+						pControl = (CKTDGUIStatic*)m_pDLGWarpDestination->GetControl(L"Village_20004");	//VMI_VELDER
+						pControl->SetShow(false);
+						AddWarpList( pControlList, row, SEnum::VMI_VELDER );
+						++row;
+
+						// 벨더 휴식처 (시계탑 광장)
+						pControl = (CKTDGUIStatic*)m_pDLGWarpDestination->GetControl(L"Village_1004");	//VMI_BATTLE_FIELD_VELDER_REST_00
+						pControl->SetShow(false);
+						AddWarpList( pControlList, row, SEnum::VMI_BATTLE_FIELD_VELDER_REST_00 );
+						++row;
+					}
+				}
+			}
+			ELSE
+			{
+				// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+			}
+#else
+
+#ifdef SERV_NO_VELDER_VILLIAGE
+#else //SERV_NO_VELDER_VILLIAGE
 			// 벨더지역
 			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_VELDER );
 			if( pLocalMapTemplet != NULL )
@@ -5906,9 +6381,45 @@ void CX2StateMenu::CreateWarpDest()
 					++row;
 				}
 			}
+#endif //SERV_NO_VELDER_VILLIAGE
+#endif //SERV_VELDER_AUTO_OPEN_HARD_CODE
 
+#ifdef SERV_HAMEL_AUTO_OPEN_HARD_CODE
+			IF_EVENT_ENABLED( CEI_HAMEL_AUTO_OPEN_HARD_CODE )
+			{
+				//{{ JHKang / 강정훈 / 2011/01/11 / 하멜 추가
+#ifdef ADD_HAMEL_VILLAGE
+				// 하멜지역
+				pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_HAMEL );
+				if( pLocalMapTemplet != NULL )
+				{
+					if( iMyUnitLevel >= pLocalMapTemplet->m_RequireUnitLevel )
+					{
+						// 수도 하멜
+						pControl = (CKTDGUIStatic*)m_pDLGWarpDestination->GetControl(L"Village_20006");	//VMI_HAMEL
+						pControl->SetShow(false);
+						AddWarpList( pControlList, row, SEnum::VMI_HAMEL );
+						++row;
+
+						// 하멜 휴식처(치유의 샘터)
+						pControl = (CKTDGUIStatic*)m_pDLGWarpDestination->GetControl(L"Village_1005");	//VMI_BATTLE_FIELD_HAMEL_REST_00
+						pControl->SetShow(false);
+						AddWarpList( pControlList, row, SEnum::VMI_BATTLE_FIELD_HAMEL_REST_00 );
+						++row;
+					}
+				}
+#endif ADD_HAMEL_VILLAGE
+				//}} JHKang / 강정훈 / 2011/01/11 / 하멜 추가
+			}
+			ELSE
+			{
+				// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+			}
+#else
 			//{{ JHKang / 강정훈 / 2011/01/11 / 하멜 추가
 #ifdef ADD_HAMEL_VILLAGE
+#ifdef SERV_NO_HAMEL_VILLIAGE
+#else //SERV_NO_HAMEL_VILLIAGE
 			// 하멜지역
 			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_HAMEL );
 			if( pLocalMapTemplet != NULL )
@@ -5928,11 +6439,13 @@ void CX2StateMenu::CreateWarpDest()
 					++row;
 				}
 			}
+#endif //SERV_NO_HAMEL_VILLIAGE
 #endif ADD_HAMEL_VILLAGE
 			//}} JHKang / 강정훈 / 2011/01/11 / 하멜 추가
 
-#ifdef SERV_SANDER_AUTO_OPEN_HARD_CODE
+#endif //SERV_HAMEL_AUTO_OPEN_HARD_CODE
 
+#ifdef SERV_SANDER_AUTO_OPEN_HARD_CODE
 			IF_EVENT_ENABLED( CEI_SANDER_AUTO_OPEN_HARD_CODE )
 			{
 #ifdef VILLAGE_SANDER 
@@ -5961,8 +6474,7 @@ void CX2StateMenu::CreateWarpDest()
 			{
 				// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
 			}
-
-#else //SERV_SANDER_AUTO_OPEN_HARD_CODE
+#else
 #ifdef VILLAGE_SANDER 
 #ifndef NO_SANDER_VILLIAGE
 			// 샌더지역
@@ -6006,8 +6518,6 @@ bool CX2StateMenu::GetShowWarpDest()
 	return false;
 }
 
-
-
 bool CX2StateMenu::Handler_EGS_WARP_BY_BUTTON_REQ( int iWarpDest_ )
 {
 	KEGS_WARP_BY_BUTTON_REQ kPacket;
@@ -6020,7 +6530,6 @@ bool CX2StateMenu::Handler_EGS_WARP_BY_BUTTON_REQ( int iWarpDest_ )
 	return true;
 }
 
-
 bool CX2StateMenu::Handler_EGS_WARP_BY_BUTTON_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	// 패킷 처리
@@ -6032,7 +6541,7 @@ bool CX2StateMenu::Handler_EGS_WARP_BY_BUTTON_ACK( HWND hWnd, UINT uMsg, WPARAM 
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED		= kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
 
 			if(g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_CHARINFO))
 			{
@@ -6078,10 +6587,9 @@ bool CX2StateMenu::Handler_EGS_UPDATE_WARP_VIP_NOT( HWND hWnd, UINT uMsg, WPARAM
 	if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 	{
 		if( g_pData->GetMyUser() != NULL &&
-			g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+			g_pData->GetMyUser()->GetSelectUnit() != NULL )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_trWarpVipEndDate = kEvent.m_trWarpVipEndDate;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_trWarpVipEndDate = kEvent.m_trWarpVipEndDate;
 			m_fTimeCheckWarpVip = 0.f;
 			return true;
 		}	
@@ -6166,12 +6674,12 @@ bool CX2StateMenu::Handler_EGS_USE_SPIRIT_REWARD_ACK( HWND hWnd, UINT uMsg, WPAR
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_arrChinaSpirit[0]	= kEvent.m_arrChinaSpirit[0];
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_arrChinaSpirit[1]	= kEvent.m_arrChinaSpirit[1];
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_arrChinaSpirit[2]	= kEvent.m_arrChinaSpirit[2];
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_arrChinaSpirit[3]	= kEvent.m_arrChinaSpirit[3];
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_arrChinaSpirit[4]	= kEvent.m_arrChinaSpirit[4];
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_arrChinaSpirit[5]	= kEvent.m_arrChinaSpirit[5];
+			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_arrChinaSpirit[0]	= kEvent.m_arrChinaSpirit[0];
+			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_arrChinaSpirit[1]	= kEvent.m_arrChinaSpirit[1];
+			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_arrChinaSpirit[2]	= kEvent.m_arrChinaSpirit[2];
+			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_arrChinaSpirit[3]	= kEvent.m_arrChinaSpirit[3];
+			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_arrChinaSpirit[4]	= kEvent.m_arrChinaSpirit[4];
+			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_arrChinaSpirit[5]	= kEvent.m_arrChinaSpirit[5];
 
 			g_pMain->GetMemoryHolder()->UpdateUseSpiritEvent();
 			return true;
@@ -6181,6 +6689,448 @@ bool CX2StateMenu::Handler_EGS_USE_SPIRIT_REWARD_ACK( HWND hWnd, UINT uMsg, WPAR
 	return false;
 }
 #endif SERV_CHINA_SPIRIT_EVENT
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+bool CX2StateMenu::Handler_EGS_EVENT_COBO_DUNGEON_FIELD_REQ( bool bTemp )
+{
+	//버튼을 눌렀다 패킷 날리자
+	KEGS_EVENT_COBO_DUNGEON_FIELD_REQ kPacket;
+	kPacket.m_iOK = 0;
+	kPacket.m_EventStart = bTemp;
+	//일단 누른 순간 비활성 처리 해줘야지
+	if(g_pInstanceData != NULL)
+	{
+		g_pInstanceData->SetStartUI(false);
+	}
+	g_pData->GetServerProtocol()->SendPacket( EGS_EVENT_COBO_DUNGEON_FIELD_REQ , kPacket );
+	g_pMain->AddServerPacket( EGS_EVENT_COBO_DUNGEON_FIELD_ACK );
+	return true;
+}
+bool CX2StateMenu::Handler_EGS_EVENT_COBO_DUNGEON_FIELD_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	//패킷 처리
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_EVENT_COBO_DUNGEON_FIELD_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );	
+	if( g_pMain->DeleteServerPacket( EGS_EVENT_COBO_DUNGEON_FIELD_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			//성공 했으면 정보를 담자.
+			g_pInstanceData->SetStartUI(kEvent.m_bStartUI);
+			g_pInstanceData->SetDungeonCountUI(kEvent.m_DungeonCountUI);
+			g_pInstanceData->SetFieldCountUI(kEvent.m_FieldCountUI);
+			g_pInstanceData->SetDungeonCount(kEvent.m_DungeonCount);
+			g_pInstanceData->SetFieldCount(kEvent.m_FieldMonsterKillCount);
+			g_pInstanceData->SetRemaindTime(kEvent.m_iRemaindTime);
+			g_pInstanceData->SetButtonPushTime(kEvent.m_tPushTime);
+			g_pInstanceData->SetSecondTime(0);
+		}
+		else
+		{
+			//일단 누른 순간 비활성 처리 해줘야지
+			if(g_pInstanceData != NULL)
+			{
+				g_pInstanceData->SetStartUI(false);
+				g_pInstanceData->SetRemaindTime(-1); //실패 하면 동작 하지 않는다 다시 눌러야 한다.
+			}
+		}
+	}
+	return true;
+}
+void CX2StateMenu::ShowCoboEventUI(float TempTime)
+{
+	//이벤트 UI활성화 여부판단
+	if( g_pInstanceData == NULL || m_pDLGCoboEventUI == NULL || m_pDLGCoboEventCountUI == NULL)
+	{
+		return;
+	}
+	CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDLGCoboEventCountUI->GetControl(L"StaticCoboCount"));
+	if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL && g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL)
+	{
+		if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level < 10 )
+		{
+			if( pStatic != NULL )
+			{
+				//일단 안보여주도록 초기화.
+				for(int i=0; i<11; ++i) // 4~5 : 레드팀 킬수,  6~7: 블루팀 킬수
+				{
+					if( NULL == pStatic->GetPicture(i) )
+						return;
+
+					pStatic->GetPicture(i)->SetShow(false);
+				}
+			}
+			return;
+		}
+	}
+	CKTDGUIButton* pCoboEventStartButton = static_cast<CKTDGUIButton*>(m_pDLGCoboEventUI->GetControl(L"Static_RamadanCenter_B")  );
+	CKTDGUIButton* pCoboEventStartButtonGray = static_cast<CKTDGUIButton*>(m_pDLGCoboEventUI->GetControl(L"Static_RamadanCenter_C")  );
+	CKTDGUIButton* pCoboTimer = static_cast<CKTDGUIButton*>(m_pDLGCoboEventUI->GetControl(L"Static_RamadanCenter_D")  );
+	CKTDGUIButton* pCoboDungeonBG = static_cast<CKTDGUIButton*>(m_pDLGCoboEventUI->GetControl(L"Static_RamadanCenter_E")  );
+	CKTDGUIButton* pCoboDungeonBGGray = static_cast<CKTDGUIButton*>(m_pDLGCoboEventUI->GetControl(L"Static_RamadanCenter_F")  );
+	CKTDGUIButton* pCoboFieldCountBG = static_cast<CKTDGUIButton*>(m_pDLGCoboEventUI->GetControl(L"Static_RamadanCenter_G")  );
+	CKTDGUIButton* pCoboFieldCountBGGray = static_cast<CKTDGUIButton*>(m_pDLGCoboEventUI->GetControl(L"Static_RamadanCenter_H")  );
+	IF_EVENT_ENABLED( CEI_EVENT_COBO_DUNGEON_AND_FIELD )
+	{
+		if( (g_pTFieldGame != NULL && g_pTFieldGame->GetJoinNpc() == true) || GetUsedCashShop() == true)
+		{
+			if(pCoboEventStartButton != NULL )
+			{
+				pCoboEventStartButton->SetShow(false); //이벤트 활성화 버튼 끄고
+			}
+			if(pCoboEventStartButtonGray != NULL )
+			{
+				pCoboEventStartButtonGray->SetShow(false); //비활성 버튼을 킨다
+			}
+			if( pCoboTimer != NULL)
+			{
+				pCoboTimer->SetShow(false);
+			}
+			if(pCoboDungeonBG != NULL)
+			{
+				pCoboDungeonBG->SetShow(false);
+			}
+			if( pCoboDungeonBGGray != NULL )
+			{
+				pCoboDungeonBGGray->SetShow(false);
+			}
+			if( pCoboFieldCountBG != NULL)
+			{
+				pCoboFieldCountBG->SetShow(false);
+			}
+			if(pCoboFieldCountBGGray != NULL)
+			{
+				pCoboFieldCountBGGray->SetShow(false);
+			}
+			if( pStatic != NULL )
+			{
+				//일단 안보여주도록 초기화.
+				for(int i=0; i<11; ++i) // 4~5 : 레드팀 킬수,  6~7: 블루팀 킬수
+				{
+					if( NULL == pStatic->GetPicture(i) )
+						return;
+
+					pStatic->GetPicture(i)->SetShow(false);
+				}
+			}
+			return;
+		}
+		///여기서 비활성화 시간 체크 하자
+		///여기서 시간이 23시30분에서 00시 사이라면 버튼 비활성화 처리 한다.
+		CTime tLimitTime(g_pData->GetServerCurrentTime64());
+		if(tLimitTime.GetHour() == 23 && tLimitTime.GetMinute() >= 30 && tLimitTime.GetMinute() <= 59)
+		{
+			if(pCoboEventStartButton != NULL )
+			{
+				pCoboEventStartButton->SetShow(false); //이벤트 활성화 버튼 끄고
+			}
+			if(pCoboEventStartButtonGray != NULL )
+			{
+				pCoboEventStartButtonGray->SetShow(true); //비활성 버튼을 킨다
+			}
+			if( pCoboTimer != NULL)
+			{
+				pCoboTimer->SetShow(false);
+			}
+			if(pCoboDungeonBG != NULL)
+			{
+				pCoboDungeonBG->SetShow(false);
+			}
+			if( pCoboDungeonBGGray != NULL )
+			{
+				pCoboDungeonBGGray->SetShow(true);
+			}
+			if( pCoboFieldCountBG != NULL)
+			{
+				pCoboFieldCountBG->SetShow(false);
+			}
+			if(pCoboFieldCountBGGray != NULL)
+			{
+				pCoboFieldCountBGGray->SetShow(true);
+			}
+			if( pStatic != NULL )
+			{
+				//일단 안보여주도록 초기화.
+				for(int i=0; i<11; ++i) // 4~5 : 레드팀 킬수,  6~7: 블루팀 킬수
+				{
+					if( NULL == pStatic->GetPicture(i) )
+						return;
+
+					pStatic->GetPicture(i)->SetShow(false);
+				}
+			}
+			return;
+		}
+		else
+		{
+			if(pCoboEventStartButtonGray != NULL )
+			{
+				pCoboEventStartButtonGray->SetShow(false); //비활성 버튼을 끈다
+			}
+			if( pCoboDungeonBGGray != NULL )
+			{
+				pCoboDungeonBGGray->SetShow(false);
+			}
+			if(pCoboFieldCountBGGray != NULL)
+			{
+				pCoboFieldCountBGGray->SetShow(false);
+			}
+			if( pCoboTimer != NULL)
+			{
+				pCoboTimer->SetShow(false);
+			}
+		}
+
+		if( g_pInstanceData->GetStartUI() == true ) //이벤트 스타트 버튼 활성화
+		{
+			//스타트 버튼을 활성화 시킨다.
+			if( pCoboEventStartButton != NULL )
+			{			
+				pCoboEventStartButton->SetShow(true);
+			}
+		}
+		else
+		{
+			if( pCoboEventStartButton != NULL )
+			{
+				pCoboEventStartButton->SetShow(false);
+			}
+			if(pCoboEventStartButtonGray != NULL )
+			{
+				if( g_pInstanceData->GetRemaindTime() <= 0 )
+					pCoboEventStartButtonGray->SetShow(true); //비활성 버튼을 끈다
+			}
+
+		}
+		if( pStatic != NULL )
+		{
+			//일단 안보여주도록 초기화.
+			for(int i=0; i<11; ++i) // 4~5 : 레드팀 킬수,  6~7: 블루팀 킬수
+			{
+				if( NULL == pStatic->GetPicture(i) )
+					return;
+
+				pStatic->GetPicture(i)->SetShow(false);
+			}
+			const wstring MAGIC_TEXTURE_KEY[] = {	L"_NUM_0",
+				L"_NUM_1",
+				L"_NUM_2",
+				L"_NUM_3",
+				L"_NUM_4",
+				L"_NUM_5",
+				L"_NUM_6",
+				L"_NUM_7",
+				L"_NUM_8",
+				L"_NUM_9" };
+
+			if( g_pInstanceData->GetDungeonCountUI() == true ) //던전 카운트 UI를 활성화 시킨다.
+			{
+				//던전 카운트 백그라운드 활성화 시키자
+				if(pCoboDungeonBG != NULL)
+				{
+					pCoboDungeonBG->SetShow(true);
+				}
+				///일단 폰트를 사용 하자
+				///던전 카운트 값 넣자
+				int iDungeonCountBag = (g_pInstanceData->GetDungeonCount() / 100 ) % 10;
+				int iDungeonCountTen = (g_pInstanceData->GetDungeonCount() / 10 ) % 10;
+				int iDungeonCount = g_pInstanceData->GetDungeonCount() % 10;
+				wstring KeyName;
+				if( iDungeonCountBag > 0 )
+				{
+					KeyName = L"BLUE" + MAGIC_TEXTURE_KEY[iDungeonCountBag];
+					pStatic->GetPicture(3)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(3)->SetShow(true);
+					KeyName = L"BLUE" + MAGIC_TEXTURE_KEY[iDungeonCountTen];
+					pStatic->GetPicture(4)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(4)->SetShow(true);
+				}
+				if( iDungeonCountTen > 0 )
+				{
+					KeyName = L"BLUE" + MAGIC_TEXTURE_KEY[iDungeonCountTen];
+					pStatic->GetPicture(4)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(4)->SetShow(true);
+				}
+				KeyName = L"BLUE" + MAGIC_TEXTURE_KEY[iDungeonCount] ;
+				pStatic->GetPicture(5)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+				pStatic->GetPicture(5)->SetShow(true);
+
+			}
+			else
+			{
+				//던전 카운트 백그라운드 비활성화 시키자
+				if(pCoboDungeonBG != NULL)
+				{
+					pCoboDungeonBG->SetShow(false);
+				}
+				if( pCoboDungeonBGGray != NULL )
+				{
+					pCoboDungeonBGGray->SetShow(true);
+				}
+			}
+			if( g_pInstanceData->GetFieldCountUI() ==  true ) //필드 카운트 UI를 활성화 시킨다.
+			{
+				if( pCoboFieldCountBG != NULL)
+				{
+					pCoboFieldCountBG->SetShow(true);
+				}
+				int iFieldCountbag = (g_pInstanceData->GetFieldCount() / 100 ) % 10;
+				int iFieldCountTen = (g_pInstanceData->GetFieldCount() / 10 ) % 10;
+				int iFieldCount = g_pInstanceData->GetFieldCount() % 10;
+				wstring KeyName;
+				if( iFieldCountbag > 0 )
+				{
+					KeyName = L"BLUE" + MAGIC_TEXTURE_KEY[iFieldCountbag];
+					pStatic->GetPicture(6)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(6)->SetShow(true);
+					KeyName = L"BLUE" + MAGIC_TEXTURE_KEY[iFieldCountTen];
+					pStatic->GetPicture(7)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(7)->SetShow(true);
+				}
+				if( iFieldCountTen > 0 )
+				{
+					KeyName = L"BLUE" + MAGIC_TEXTURE_KEY[iFieldCountTen];
+					pStatic->GetPicture(7)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(7)->SetShow(true);
+				}
+				KeyName = L"BLUE" + MAGIC_TEXTURE_KEY[iFieldCount] ;
+				pStatic->GetPicture(8)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+				pStatic->GetPicture(8)->SetShow(true);
+
+			}
+			else
+			{
+				if( pCoboFieldCountBG != NULL)
+				{
+					pCoboFieldCountBG->SetShow(false);
+				}
+				if(pCoboFieldCountBGGray != NULL)
+				{
+					pCoboFieldCountBGGray->SetShow(true);
+				}
+			}
+			///시간 표시를 해줘야 하는데 이건 남은 시간이 있고 스타트 버튼이 비활성이라면 보여준다
+			__time64_t tNowTime(g_pData->GetServerCurrentTime64());//서버의 시간을 받아온다.
+			CTimeSpan tItemGiveTime = tNowTime - g_pInstanceData->GetButtonPushTime(); //흐른시간 
+			if( g_pInstanceData->GetStartUI() == false && g_pInstanceData->GetRemaindTime() >= tItemGiveTime.GetTotalMinutes() )
+			{
+				if( g_pInstanceData->GetRemaindTime() < 0 )
+				{
+					wstring KeyName;
+					KeyName = L"RED" + MAGIC_TEXTURE_KEY[0];
+					pStatic->GetPicture(2)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(2)->SetShow(true);
+					// : 추가
+					KeyName = L"EVENT_TIME";
+					pStatic->GetPicture(0)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(0)->SetShow(true);
+					KeyName = L"RED" + MAGIC_TEXTURE_KEY[0];
+					pStatic->GetPicture(9)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(9)->SetShow(true);			
+					KeyName = L"RED" + MAGIC_TEXTURE_KEY[0] ;
+					pStatic->GetPicture(10)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(10)->SetShow(true);
+				}
+				else
+				{
+					if( pCoboTimer != NULL)
+					{
+						pCoboTimer->SetShow(true);
+					}
+
+					__time64_t tNowTime(g_pData->GetServerCurrentTime64());//서버의 시간을 받아온다.
+					CTimeSpan tItemGiveTime = tNowTime - g_pInstanceData->GetButtonPushTime(); //흐른시간 
+					int TempRemainTime = g_pInstanceData->GetRemaindTime() - 1; //9분부터 표시가 되야 하기 때문에 초때문에
+					int iMinutes = TempRemainTime - tItemGiveTime.GetMinutes();
+					if( iMinutes <= 0)
+					{
+						iMinutes = 0;
+					}
+					int iSecond =  60 - tItemGiveTime.GetSeconds();
+					if( iSecond >= 60 )
+					{
+						iSecond = 59;
+					}
+
+					int iRemaindTimeTen = (iMinutes / 10 ) % 10;
+					int iRemaindTime = iMinutes % 10;
+					wstring KeyName;
+					if( iRemaindTimeTen > 0 )
+					{
+						KeyName = L"RED" + MAGIC_TEXTURE_KEY[iRemaindTimeTen];
+						pStatic->GetPicture(1)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+						pStatic->GetPicture(1)->SetShow(true);
+
+					}
+					KeyName = L"RED" + MAGIC_TEXTURE_KEY[iRemaindTime] ;
+					pStatic->GetPicture(2)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(2)->SetShow(true);
+					// : 추가
+					KeyName = L"EVENT_TIME";
+					pStatic->GetPicture(0)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(0)->SetShow(true);
+
+					int iSecondTimeTen = (iSecond / 10 ) % 10;
+					int iSecondTime = iSecond % 10;
+
+					KeyName = L"RED" + MAGIC_TEXTURE_KEY[iSecondTimeTen];
+					pStatic->GetPicture(9)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(9)->SetShow(true);			
+					KeyName = L"RED" + MAGIC_TEXTURE_KEY[iSecondTime] ;
+					pStatic->GetPicture(10)->SetTex(L"DLG_UI_Common_Texture65_NEW.TGA", KeyName.c_str());
+					pStatic->GetPicture(10)->SetShow(true);
+
+
+				}
+
+			}
+		}
+	}
+	ELSE
+	{
+		if(pCoboEventStartButton != NULL )
+		{
+			pCoboEventStartButton->SetShow(false); //이벤트 활성화 버튼 끄고
+		}
+		if(pCoboEventStartButtonGray != NULL )
+		{
+			pCoboEventStartButtonGray->SetShow(false); //비활성 버튼을 킨다
+		}
+		if( pCoboTimer != NULL)
+		{
+			pCoboTimer->SetShow(false);
+		}
+		if(pCoboDungeonBG != NULL)
+		{
+			pCoboDungeonBG->SetShow(false);
+		}
+		if( pCoboDungeonBGGray != NULL )
+		{
+			pCoboDungeonBGGray->SetShow(false);
+		}
+		if( pCoboFieldCountBG != NULL)
+		{
+			pCoboFieldCountBG->SetShow(false);
+		}
+		if(pCoboFieldCountBGGray != NULL)
+		{
+			pCoboFieldCountBGGray->SetShow(false);
+		}
+		if( pStatic != NULL )
+		{
+			//일단 안보여주도록 초기화.
+			for(int i=0; i<11; ++i) // 4~5 : 레드팀 킬수,  6~7: 블루팀 킬수
+			{
+				if( NULL == pStatic->GetPicture(i) )
+					return;
+
+				pStatic->GetPicture(i)->SetShow(false);
+			}
+		}
+	}
+}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 
 
 #ifdef SERV_NEW_YEAR_EVENT_2014
@@ -6207,8 +7157,7 @@ bool CX2StateMenu::Handler_EGS_2013_EVENT_MISSION_COMPLETE_ACK( HWND hWnd, UINT 
 		{
 			// 보상받은 레벨 적용
 			if( g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
 				if( g_pData->GetMyUser()->GetSelectUnit()->GetOldYearMissionRewardedLevel() < kEvent.m_iRewardedLevel )
 				{
@@ -6220,7 +7169,7 @@ bool CX2StateMenu::Handler_EGS_2013_EVENT_MISSION_COMPLETE_ACK( HWND hWnd, UINT 
 			// 삭제된 인벤토리 적용
 			if( kEvent.m_vecInventorySlotInfo.empty() == false )
 			{
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 				if( NULL != g_pData->GetUIManager()->GetUIInventory() )
 				{
 					g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
@@ -6254,8 +7203,7 @@ bool CX2StateMenu::Handler_EGS_2014_EVENT_MISSION_COMPLETE_ACK( HWND hWnd, UINT 
 		{
 			// 미션 단계 적용
 			if( g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
 				int iStepID = g_pData->GetMyUser()->GetSelectUnit()->GetNewYearMissionStepID();
 				g_pData->GetMyUser()->GetSelectUnit()->SetNewYearMissionStepID( iStepID + 1 );
@@ -6269,3 +7217,548 @@ bool CX2StateMenu::Handler_EGS_2014_EVENT_MISSION_COMPLETE_ACK( HWND hWnd, UINT 
 	return false;
 }
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_CONTENT_MANAGER_INT
+bool CX2StateMenu::Handler_EGS_CASH_SHOP_OPEN_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	//// 패킷 처리
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_CASH_SHOP_OPEN_NOT kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+
+	if (m_pDLGMenu != NULL)
+	{
+		for( int i=0; i<m_pDLGMenu->GetControlSize(); i++ )
+		{
+			CKTDGUIControl* pControl = m_pDLGMenu->GetControl( i );
+			if( NULL == pControl )
+				continue;
+
+			if( CKTDGUIControl::UCT_BUTTON != pControl->GetType() )
+				continue;
+
+			CKTDGUIButton* pButton = (CKTDGUIButton*) pControl;
+			switch(	pButton->GetCustomMsgMouseUp() )
+			{
+			case CX2StateMenu::SMUCM_CASH_SHOP:
+				{
+					pButton->SetEnable(kEvent.m_bCashShopOpen);
+				} break;
+			}
+		}
+	}
+		
+
+	return false;
+}
+#endif //SERV_CONTENT_MANAGER_INT
+
+#ifdef SERV_EVENT_CHECK_POWER
+bool CX2StateMenu::Handler_EGS_START_CHECK_POWER_REQ( bool bStart )
+{
+	KEGS_START_CHECK_POWER_REQ kPacket;
+	kPacket.m_bStart = bStart;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_START_CHECK_POWER_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_START_CHECK_POWER_ACK );
+
+	return true;
+}
+bool CX2StateMenu::Handler_EGS_START_CHECK_POWER_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	// 패킷 처리
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_START_CHECK_POWER_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if( g_pMain->DeleteServerPacket( EGS_START_CHECK_POWER_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			// 팝업 끄기 적용
+			if( g_pData->GetMyUser() != NULL &&
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
+			{
+				g_pData->GetMyUser()->GetSelectUnit()->SetShowCheckPowerPopUp( false );
+			}
+
+			g_pMain->GetMemoryHolder()->UpdateCheckPowerEvent();
+			return true;
+		}
+	}
+
+	return false;
+}
+bool CX2StateMenu::Handler_EGS_UPDATE_CHECK_POWER_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	// 패킷 처리
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_UPDATE_CHECK_POWER_NOT kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	// 변경된 값 갱신
+	if( g_pData->GetMyUser() != NULL &&
+		g_pData->GetMyUser()->GetSelectUnit() != NULL )
+	{
+		g_pData->GetMyUser()->GetSelectUnit()->SetCheckPowerCount( kEvent.m_ucCheckPowerCount );
+		g_pData->GetMyUser()->GetSelectUnit()->SetCheckPowerScore( kEvent.m_ucCheckPowerScore );
+		g_pData->GetMyUser()->GetSelectUnit()->SetCheckPowerTime( kEvent.m_iCheckPowerTime );
+
+		g_pMain->GetMemoryHolder()->UpdateCheckPowerEvent();
+		return true;
+	}
+
+	return false;
+}
+
+bool CX2StateMenu::Handler_EGS_CHECK_POWER_RESULT_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	// 패킷 처리
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_UPDATE_CHECK_POWER_NOT kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	// 변경된 값 갱신
+	if( g_pData->GetMyUser() != NULL &&
+		g_pData->GetMyUser()->GetSelectUnit() != NULL )
+	{
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_REPLACED_STRING( ( STR_ID_29863, "i", static_cast<int>( kEvent.m_ucCheckPowerScore ) ) ), g_pMain->GetNowState() );
+
+		return true;
+	}
+
+	return false;
+}
+
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+bool CX2StateMenu::Handler_EGS_EVENT_CHUNG_GIVE_ITEM_REQ( int iChoice )
+{
+	KEGS_EVENT_CHUNG_GIVE_ITEM_REQ kPacket;
+	kPacket.iChoice = iChoice;
+	kPacket.bTwoGiveItem = g_pInstanceData->GetNextGiveItem();
+
+	///한번 받았으니까 비활성처리
+	if( g_pInstanceData != NULL )
+	{
+		g_pInstanceData->SetChungUIShow(false);
+	}
+	g_pData->GetServerProtocol()->SendPacket( EGS_EVENT_CHUNG_GIVE_ITEM_REQ , kPacket );
+	g_pMain->AddServerPacket( EGS_EVENT_CHUNG_GIVE_ITEM_ACK );
+	return true;
+}
+bool CX2StateMenu::Handler_EGS_EVENT_CHUNG_GIVE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	// 패킷 처리
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_EVENT_CHUNG_GIVE_ITEM_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );	
+	if( g_pMain->DeleteServerPacket( EGS_EVENT_CHUNG_GIVE_ITEM_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			// 비활성 처리가 됬으니까 툴팁에 표시해줄 시간을 체크 해야한다.
+			if( g_pInstanceData != NULL )
+				g_pInstanceData->SetToolTipTime(kEvent.m_wstrGetItemTime);
+			return true;
+		}
+		else
+		{
+			if( g_pInstanceData != NULL )
+				g_pInstanceData->SetChungUIShow(true);
+			return false;
+		}
+	}
+	return false;
+}
+void CX2StateMenu::ShowChungGiveItem_UI(void)
+{
+	if(m_pDLGChungItemUI == NULL)
+	{
+		return;
+	}
+	wstringstream wstrstm;
+	std::wstring TempString;
+	CTime GetItemTime;
+	CTime GetServerTime(g_pData->GetServerCurrentTime64());
+	int iNextTime = 0;
+	CKTDGUIButton* pChungGiveItem_One_A = static_cast<CKTDGUIButton*>(m_pDLGChungItemUI->GetControl(L"Static_RamadanCenter_A")  );
+	CKTDGUIButton* pChungGiveItem_One_B = static_cast<CKTDGUIButton*>(m_pDLGChungItemUI->GetControl(L"Static_RamadanCenter_B")  );
+	//1차
+	CKTDGUIButton* pChungGiveItem_Two_A = static_cast<CKTDGUIButton*>(m_pDLGChungItemUI->GetControl(L"Static_RamadanLeft_A")  );
+	CKTDGUIButton* pChungGiveItem_Two_B = static_cast<CKTDGUIButton*>(m_pDLGChungItemUI->GetControl(L"Static_RamadanLeft_B")  );
+	//2차
+	CKTDGUIButton* pChungGiveItem_Tree_A = static_cast<CKTDGUIButton*>(m_pDLGChungItemUI->GetControl(L"Static_RamadanRight_A")  );
+	CKTDGUIButton* pChungGiveItem_Tree_B = static_cast<CKTDGUIButton*>(m_pDLGChungItemUI->GetControl(L"Static_RamadanRight_B")  );
+	if(KncUtil::ConvertStringToCTime( g_pInstanceData->GetToolTipTime(), GetItemTime ) ==  false )
+	{
+		iNextTime = 0;
+	}
+	else
+	{
+		CTimeSpan cNextGetItemTime = GetServerTime - GetItemTime; //서버 시간에서 아이템 받은 시간을 빼고
+		if( cNextGetItemTime.GetDays() < 7 )
+		{
+			iNextTime = 7 - static_cast<int>(cNextGetItemTime.GetDays());
+		}
+		else 
+		{
+			iNextTime = 0;
+		}
+	}
+	
+	if( (g_pTFieldGame != NULL && g_pTFieldGame->GetJoinNpc() == true) || GetUsedCashShop() == true)
+	{
+		if( pChungGiveItem_One_A != NULL)
+			pChungGiveItem_One_A->SetShow(false);
+		if( pChungGiveItem_One_B != NULL )
+			pChungGiveItem_One_B->SetShow(false);
+		//1차
+		if( pChungGiveItem_Two_A != NULL )
+			pChungGiveItem_Two_A->SetShow(false);
+		if( pChungGiveItem_Two_B != NULL )
+			pChungGiveItem_Two_B->SetShow(false);
+		//2차
+		if( pChungGiveItem_Tree_A != NULL )
+			pChungGiveItem_Tree_A->SetShow(false);
+		if( pChungGiveItem_Tree_B != NULL )
+			pChungGiveItem_Tree_B->SetShow(false);
+
+		return;
+	}
+	if( g_pInstanceData != NULL && g_pInstanceData->GetChungUIShow() == true )
+	{
+		switch( g_pMain->GetNowStateID() )
+		{
+		case CX2Main::XS_VILLAGE_MAP:
+		case CX2Main::XS_BATTLE_FIELD:
+		case CX2Main::XS_DUNGEON_GAME:
+			{
+				if( CX2Unit::UC_CHUNG_IRON_CANNON == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass()) //청 노전직
+				{
+					//노전직 활성 시키고 나머지 비활성
+					if( pChungGiveItem_One_A != NULL)
+					pChungGiveItem_One_A->SetShow(false);
+	
+					if( pChungGiveItem_One_B != NULL )
+					pChungGiveItem_One_B->SetShow(true);
+
+					//1차
+					if( pChungGiveItem_Two_A != NULL )
+					pChungGiveItem_Two_A->SetShow(true);
+					TempString = GET_REPLACED_STRING( ( STR_ID_28252, "i", 0 ) );
+					pChungGiveItem_Two_A->SetGuideDesc(TempString.c_str());
+
+					//여기서 리플레스해서 숫자 표시 
+					if( pChungGiveItem_Two_B != NULL )
+					pChungGiveItem_Two_B->SetShow(false);
+
+					//2차
+					if( pChungGiveItem_Tree_A != NULL )
+					pChungGiveItem_Tree_A->SetShow(true);
+					TempString = GET_REPLACED_STRING( ( STR_ID_28252, "i", 0 ) );
+					pChungGiveItem_Tree_A->SetGuideDesc(TempString.c_str());
+					
+					if( pChungGiveItem_Tree_B != NULL )
+					pChungGiveItem_Tree_B->SetShow(false);
+
+				}
+				else if( CX2Unit::UC_CHUNG_FURY_GUARDIAN == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass() || CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass() )
+				{
+					//노전직 활성 시키고 나머지 비활성
+					if( pChungGiveItem_One_A != NULL)
+					pChungGiveItem_One_A->SetShow(true);
+					TempString = GET_REPLACED_STRING( ( STR_ID_28252, "i", 0 ) );
+					pChungGiveItem_One_A->SetGuideDesc(TempString.c_str());
+					
+					if( pChungGiveItem_One_B != NULL )
+					pChungGiveItem_One_B->SetShow(false);
+					//1차
+					
+					if( pChungGiveItem_Two_A != NULL )
+					pChungGiveItem_Two_A->SetShow(false);
+					
+					if( pChungGiveItem_Two_B != NULL )
+					pChungGiveItem_Two_B->SetShow(true);
+					//2차
+					
+					if( pChungGiveItem_Tree_A != NULL )
+						pChungGiveItem_Tree_A->SetShow(true);
+					TempString = GET_REPLACED_STRING( ( STR_ID_28252, "i", 0 ) );
+					pChungGiveItem_Tree_A->SetGuideDesc(TempString.c_str());
+					
+					if( pChungGiveItem_Tree_B != NULL )
+					pChungGiveItem_Tree_B->SetShow(false);
+				}
+				else if ( CX2Unit::UC_CHUNG_IRON_PALADIN == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass() || CX2Unit::UC_CHUNG_DEADLY_CHASER == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass() )
+				{
+					//청 2차 전직 활성 시키고 나머지 비활성
+					//노전직 활성 시키고 나머지 비활성
+				
+					if( pChungGiveItem_One_A != NULL)
+					pChungGiveItem_One_A->SetShow(true);
+					TempString = GET_REPLACED_STRING( ( STR_ID_28252, "i", 0 ) );
+					pChungGiveItem_One_A->SetGuideDesc(TempString.c_str());
+					
+					if( pChungGiveItem_One_B != NULL )
+					pChungGiveItem_One_B->SetShow(false);
+					//1차
+					
+					if( pChungGiveItem_Two_A != NULL )
+					pChungGiveItem_Two_A->SetShow(true);
+					TempString = GET_REPLACED_STRING( ( STR_ID_28252, "i", 0 ) );
+					pChungGiveItem_Two_A->SetGuideDesc(TempString.c_str());
+					
+					if( pChungGiveItem_Two_B != NULL )
+					pChungGiveItem_Two_B->SetShow(false);
+					//2차
+					
+					if( pChungGiveItem_Tree_A != NULL )
+					pChungGiveItem_Tree_A->SetShow(false);
+					
+					if( pChungGiveItem_Tree_B != NULL )
+					pChungGiveItem_Tree_B->SetShow(true);
+				}
+				else
+				{
+					//여기서는 다끄면됨 UI자체가 나오면 안됨
+					//노전직 활성 시키고 나머지 비활성
+					
+					if( pChungGiveItem_One_A != NULL)
+						pChungGiveItem_One_A->SetShow(false);
+					
+					if( pChungGiveItem_One_B != NULL )
+						pChungGiveItem_One_B->SetShow(false);
+					//1차
+					
+					if( pChungGiveItem_Two_A != NULL )
+						pChungGiveItem_Two_A->SetShow(false);
+					
+					if( pChungGiveItem_Two_B != NULL )
+						pChungGiveItem_Two_B->SetShow(false);
+					//2차
+					
+					if( pChungGiveItem_Tree_A != NULL )
+						pChungGiveItem_Tree_A->SetShow(false);
+					
+					if( pChungGiveItem_Tree_B != NULL )
+						pChungGiveItem_Tree_B->SetShow(false);
+				}
+			}break;
+		default:
+			{
+				//여기서는 다끄면됨 UI자체가 나오면 안됨
+				//노전직 활성 시키고 나머지 비활성
+				
+				if( pChungGiveItem_One_A != NULL)
+				pChungGiveItem_One_A->SetShow(false);
+				
+				if( pChungGiveItem_One_B != NULL )
+				pChungGiveItem_One_B->SetShow(false);
+				//1차
+				
+				if( pChungGiveItem_Two_A != NULL )
+				pChungGiveItem_Two_A->SetShow(false);
+				
+				if( pChungGiveItem_Two_B != NULL )
+				pChungGiveItem_Two_B->SetShow(false);
+				//2차
+				
+				if( pChungGiveItem_Tree_A != NULL )
+				pChungGiveItem_Tree_A->SetShow(false);
+				
+				if( pChungGiveItem_Tree_B != NULL )
+				pChungGiveItem_Tree_B->SetShow(false);
+			}break;
+		}
+	}
+	else
+	{
+		switch( g_pMain->GetNowStateID() )
+		{
+		case CX2Main::XS_VILLAGE_MAP:
+		case CX2Main::XS_BATTLE_FIELD:
+		case CX2Main::XS_DUNGEON_GAME:
+			{
+				//청이면 비활성
+				if( CX2Unit::UC_CHUNG_IRON_CANNON == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass()
+					|| CX2Unit::UC_CHUNG_FURY_GUARDIAN == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass() 
+					|| CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass()
+					||CX2Unit::UC_CHUNG_IRON_PALADIN == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass()
+					|| CX2Unit::UC_CHUNG_DEADLY_CHASER == (CX2Unit::UNIT_CLASS)g_pInstanceData->GetChungUIClass() )
+				{
+					//전부 비활성 처리하면 됨
+					//노전직 활성 시키고 나머지 비활성
+					
+					if( pChungGiveItem_One_A != NULL)
+					pChungGiveItem_One_A->SetShow(true);
+					TempString = GET_REPLACED_STRING( ( STR_ID_28252, "i", iNextTime ) );
+					pChungGiveItem_One_A->SetGuideDesc(TempString.c_str());
+					
+					if( pChungGiveItem_One_B != NULL )
+					pChungGiveItem_One_B->SetShow(false);
+					//1차
+					
+					if( pChungGiveItem_Two_A != NULL )
+					pChungGiveItem_Two_A->SetShow(true);
+					TempString = GET_REPLACED_STRING( ( STR_ID_28252, "i", iNextTime ) );
+					pChungGiveItem_Two_A->SetGuideDesc(TempString.c_str());
+					
+					if( pChungGiveItem_Two_B != NULL )
+					pChungGiveItem_Two_B->SetShow(false);
+					//2차
+					
+					if( pChungGiveItem_Tree_A != NULL )
+					pChungGiveItem_Tree_A->SetShow(true);
+					TempString = GET_REPLACED_STRING( ( STR_ID_28252, "i", iNextTime ) );
+					pChungGiveItem_Tree_A->SetGuideDesc(TempString.c_str());
+					
+					if( pChungGiveItem_Tree_B != NULL )
+					pChungGiveItem_Tree_B->SetShow(false);
+				}
+				else
+				{
+					//여기서는 다끄면됨 UI자체가 나오면 안됨
+					//노전직 활성 시키고 나머지 비활성
+					
+					if( pChungGiveItem_One_A != NULL)
+						pChungGiveItem_One_A->SetShow(false);
+					
+					if( pChungGiveItem_One_B != NULL )
+						pChungGiveItem_One_B->SetShow(false);
+					//1차
+					
+					if( pChungGiveItem_Two_A != NULL )
+						pChungGiveItem_Two_A->SetShow(false);
+					
+					if( pChungGiveItem_Two_B != NULL )
+						pChungGiveItem_Two_B->SetShow(false);
+					//2차
+					
+					if( pChungGiveItem_Tree_A != NULL )
+						pChungGiveItem_Tree_A->SetShow(false);
+					
+					if( pChungGiveItem_Tree_B != NULL )
+						pChungGiveItem_Tree_B->SetShow(false);
+				}
+			}break;
+		default:
+			{
+				//여기서는 다끄면됨 UI자체가 나오면 안됨
+				//노전직 활성 시키고 나머지 비활성
+				
+				if( pChungGiveItem_One_A != NULL)
+				pChungGiveItem_One_A->SetShow(false);
+				
+				if( pChungGiveItem_One_B != NULL )
+				pChungGiveItem_One_B->SetShow(false);
+				//1차
+				
+				if( pChungGiveItem_Two_A != NULL )
+				pChungGiveItem_Two_A->SetShow(false);
+				
+				if( pChungGiveItem_Two_B != NULL )
+				pChungGiveItem_Two_B->SetShow(false);
+				//2차
+				
+				if( pChungGiveItem_Tree_A != NULL )
+				pChungGiveItem_Tree_A->SetShow(false);
+				
+				if( pChungGiveItem_Tree_B != NULL )
+				pChungGiveItem_Tree_B->SetShow(false);
+			}break;
+		}
+	}
+}
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+void CX2StateMenu::SetShowAdamsUI(void)
+{
+	if( m_pDLGAdamsEventShopUI == NULL )
+	{
+		return;
+	}
+	CKTDGUIButton* pCoboEventShopOpen = static_cast<CKTDGUIButton*>(m_pDLGAdamsEventShopUI->GetControl(L"Static_AdamsShop")  );
+	IF_EVENT_ENABLED( CEI_EVENT_ADAMS_SHOP )
+	{
+		switch( g_pMain->GetNowStateID() )
+		{
+		case CX2Main::XS_VILLAGE_MAP:
+			{
+				if( g_pTFieldGame != NULL && g_pTFieldGame->GetJoinNpc() == false )
+				{
+					if( g_pData->GetUIManager()->GetbShowAdamsShop() != true ) //현재 내 NPC가 눌려 있지 않다면
+					{
+						g_pInstanceData->SetAdamsEventShopUIShow(false);
+					}
+				}
+				if( pCoboEventShopOpen != NULL )
+				{
+					if(g_pInstanceData->GetAdamsEventShopUIShow() == true || (g_pTFieldGame != NULL && g_pTFieldGame->GetJoinNpc() == true) || GetUsedCashShop() == true)
+					{
+						pCoboEventShopOpen->SetShow(false);
+					}
+					else
+					{
+						pCoboEventShopOpen->SetShow(true);
+					}
+				}
+			}break;
+		default:
+			{
+				if( pCoboEventShopOpen != NULL)
+				{
+					pCoboEventShopOpen->SetShow(false);
+				}
+				if( g_pInstanceData != NULL )
+				{
+					g_pInstanceData->SetAdamsEventShopUIShow(false);
+				}
+			}break;
+		}
+	}
+	ELSE
+	{
+		if( pCoboEventShopOpen != NULL)
+		{
+			pCoboEventShopOpen->SetShow(false);
+		}
+	}
+}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+bool CX2StateMenu::Handler_EGS_4TH_ANNIV_EVENT_REWARD_REQ( IN int iSelectedIndex )
+{
+	KEGS_4TH_ANNIV_EVENT_REWARD_REQ kPacket;
+	kPacket.m_iSeletedIndex = iSelectedIndex;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_4TH_ANNIV_EVENT_REWARD_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_4TH_ANNIV_EVENT_REWARD_ACK );
+
+	return true;
+}
+bool CX2StateMenu::Handler_EGS_4TH_ANNIV_EVENT_REWARD_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	// 패킷 처리
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_4TH_ANNIV_EVENT_REWARD_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if( g_pMain->DeleteServerPacket( EGS_4TH_ANNIV_EVENT_REWARD_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			g_pInstanceData->Set4thRewarded( kEvent.m_iSeletedIndex );
+			g_pMain->GetMemoryHolder()->Update4thEvent();
+
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_30427 ), this );
+		}
+	}
+
+	return true;
+}
+#endif //SERV_4TH_ANNIVERSARY_EVENT

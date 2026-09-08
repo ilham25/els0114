@@ -3690,7 +3690,7 @@ g_pCashItemManager:AddCashItemPrice(	81114	,	2400	)	--	금강야차 신발(아�
 g_pCashItemManager:AddCashItemPrice(	81115	,	5000	)	--	금강야차 머리 장식(아이샤)
 g_pCashItemManager:AddCashItemPrice(	81120	,	7000	)	--	금강야차 화령궁(레나)
 g_pCashItemManager:AddCashItemPrice(	81121	,	5000	)	--	금강야차 상의(레나)
-g_pCashItemManager:AddCashItemPrice(	81122	,	2400	)	--	금강야차 하의(레나)
+g_pCashItemManager:AddCashItemPrice(	81122	,	5000	)	--	금강야차 하의(레나)
 g_pCashItemManager:AddCashItemPrice(	81123	,	2400	)	--	금강야차 장갑(레나)
 g_pCashItemManager:AddCashItemPrice(	81124	,	2400	)	--	금강야차 신발(레나)
 g_pCashItemManager:AddCashItemPrice(	81125	,	5000	)	--	금강야차 머리 장식(레나)
@@ -3813,6 +3813,22 @@ g_pCashItemManager:AddCashItemPrice(	236740	,	2400	)	--	(2P)청 프리스트 장
 g_pCashItemManager:AddCashItemPrice(	236750	,	2400	)	--	(2P)청 프리스트 신발
 g_pCashItemManager:AddCashItemPrice(	237060	,	5000	)	--	(2P)청 프리스트 모자 헤어
 g_pCashItemManager:AddCashItemPrice(	236760	,	5000	)	--	(2P)청 프리스트 헤어
+
+g_pCashItemManager:AddCashItemPrice(	272221	,	7000	)	--	아라 다크 프리스트 십자창
+g_pCashItemManager:AddCashItemPrice(	272222	,	5000	)	--	아라 다크 프리스트 상의
+g_pCashItemManager:AddCashItemPrice(	272223	,	5000	)	--	아라 다크 프리스트 하의
+g_pCashItemManager:AddCashItemPrice(	272224	,	2400	)	--	아라 다크 프리스트 장갑
+g_pCashItemManager:AddCashItemPrice(	272225	,	2400	)	--	아라 다크 프리스트 신발
+g_pCashItemManager:AddCashItemPrice(	272226	,	5000	)	--	아라 다크 프리스트 헤어
+g_pCashItemManager:AddCashItemPrice(	272227	,	7000	)	--	아라 홀리 프리스트 십자창
+g_pCashItemManager:AddCashItemPrice(	272228	,	5000	)	--	아라 홀리 프리스트 상의
+g_pCashItemManager:AddCashItemPrice(	272229	,	5000	)	--	아라 홀리 프리스트 하의
+g_pCashItemManager:AddCashItemPrice(	272230	,	2400	)	--	아라 홀리 프리스트 장갑
+g_pCashItemManager:AddCashItemPrice(	272231	,	2400	)	--	아라 홀리 프리스트 신발
+g_pCashItemManager:AddCashItemPrice(	272232	,	5000	)	--	아라 홀리 프리스트 헤어
+g_pCashItemManager:AddCashItemPrice(	272676	,	5000	)	--	아라 다크 프리스트 후드
+g_pCashItemManager:AddCashItemPrice(	272677	,	5000	)	--	아라 홀리 프리스트 후드
+
 
 -- 추가 8/18 기존에 분해 가능하게 안되어 있던 아이템 추가.
 g_pCashItemManager:AddCashItemPrice(	234140	,	5000	)	--	보잉 선글라스(Ver.Blue)
@@ -10599,6 +10615,19 @@ g_pCashItemManager:AddCashItemPrice(	83000279	,	2400	)	--	청 황실 아바타 �
 g_pCashItemManager:AddCashItemPrice(	83000280	,	2400	)	--	청 황실 아바타 신발 (ver.2)
 g_pCashItemManager:AddCashItemPrice(	83000281	,	5000	)	--	청 황실 아바타 헤어 (ver.2)
 
+g_pCashItemManager:AddCashItemPrice(	84002330	,	7000	) --	아라 황실 아바타 무기 	
+g_pCashItemManager:AddCashItemPrice(	84002331	,	5000	) --	아라 황실 아바타 상의 	
+g_pCashItemManager:AddCashItemPrice(	84002332	,	5000	) --	아라 황실 아바타 하의 	
+g_pCashItemManager:AddCashItemPrice(	84002333	,	2400	) --	아라 황실 아바타 장갑 	
+g_pCashItemManager:AddCashItemPrice(	84002334	,	2400	) --	아라 황실 아바타 신발 	
+g_pCashItemManager:AddCashItemPrice(	84002335	,	5000	) --	아라 황실 아바타 헤어 	
+g_pCashItemManager:AddCashItemPrice(	84002336	,	7000	) --	아라 황실 아바타 무기 (ver.2)	
+g_pCashItemManager:AddCashItemPrice(	84002337	,	5000	) --	아라 황실 아바타 상의 (ver.2)	
+g_pCashItemManager:AddCashItemPrice(	84002338	,	5000	) --	아라 황실 아바타 하의 (ver.2)	
+g_pCashItemManager:AddCashItemPrice(	84002339	,	2400	) --	아라 황실 아바타 장갑 (ver.2)	
+g_pCashItemManager:AddCashItemPrice(	84002340	,	2400	) --	아라 황실 아바타 신발 (ver.2)	
+g_pCashItemManager:AddCashItemPrice(	84002341	,	5000	) --	아라 황실 아바타 헤어 (ver.2)	
+
 
 -- 130619/오현택/쿠폰 관련 액세
 
@@ -11296,3 +11325,123 @@ g_pCashItemManager:AddCashItemPrice(	85001138	,	5000	)	--	체커 사선 비치�
 g_pCashItemManager:AddCashItemPrice(	85001139	,	2400	)	--	체커 사선 비치룩 장갑 (빨강)
 g_pCashItemManager:AddCashItemPrice(	85001140	,	2400	)	--	체커 사선 비치룩 신발 (빨강)
 g_pCashItemManager:AddCashItemPrice(	85001141	,	5000	)	--	큐트 샤기 숏컷 (노랑)
+
+-- 140122/오현택/탈것이벤트
+
+g_pCashItemManager:AddCashItemPrice(	67006340	,	5000	)	--	프로(베스트) 라이딩 헬멧 (엘소드)
+g_pCashItemManager:AddCashItemPrice(	67006341	,	5000	)	--	프로(베스트) 라이딩 헬멧 (아이샤)
+g_pCashItemManager:AddCashItemPrice(	67006342	,	5000	)	--	프로(베스트) 라이딩 헬멧 (레나)
+g_pCashItemManager:AddCashItemPrice(	67006343	,	5000	)	--	프로(베스트) 라이딩 헬멧 (레이븐)
+g_pCashItemManager:AddCashItemPrice(	67006344	,	5000	)	--	프로(베스트) 라이딩 헬멧 (이브)
+g_pCashItemManager:AddCashItemPrice(	67006345	,	5000	)	--	프로(베스트) 라이딩 헬멧 (청)
+g_pCashItemManager:AddCashItemPrice(	67006346	,	5000	)	--	프로(베스트) 라이딩 헬멧 (아라)
+
+-- 140122/오현택/아라 파티퀘
+
+g_pCashItemManager:AddCashItemPrice(	271748	,	7000	)	--	아라 파티쉐 파르페 스피어(스트로베리)
+g_pCashItemManager:AddCashItemPrice(	271749	,	5000	)	--	아라 파티쉐 상의(스트로베리)
+g_pCashItemManager:AddCashItemPrice(	271750	,	5000	)	--	아라 파티쉐 하의(스트로베리)
+g_pCashItemManager:AddCashItemPrice(	271751	,	2400	)	--	아라 파티쉐 장갑(스트로베리)
+g_pCashItemManager:AddCashItemPrice(	271752	,	2400	)	--	아라 파티쉐 신발(스트로베리)
+g_pCashItemManager:AddCashItemPrice(	271753	,	5000	)	--	아라 파티쉐 헤어(스트로베리)
+g_pCashItemManager:AddCashItemPrice(	271754	,	7000	)	--	아라 파티쉐 파르페 스피어(라임오렌지)
+g_pCashItemManager:AddCashItemPrice(	271755	,	5000	)	--	아라 파티쉐 상의(라임오렌지)
+g_pCashItemManager:AddCashItemPrice(	271756	,	5000	)	--	아라 파티쉐 하의(라임오렌지)
+g_pCashItemManager:AddCashItemPrice(	271757	,	2400	)	--	아라 파티쉐 장갑(라임오렌지)
+g_pCashItemManager:AddCashItemPrice(	271758	,	2400	)	--	아라 파티쉐 신발(라임오렌지)
+g_pCashItemManager:AddCashItemPrice(	271759	,	5000	)	--	아라 파티쉐 헤어(라임오렌지)
+
+--140212/원소절 이벤트용 캐시 아이템
+g_pCashItemManager:AddCashItemPrice(	84002390	,	5000	)	--	어깨 망아지 인형(파랑)
+g_pCashItemManager:AddCashItemPrice(	84002391	,	5000	)	--	어깨 망아지 인형(분홍)
+
+--140212/발렌타인 이벤트 캐시 아이템
+g_pCashItemManager:AddCashItemPrice(	141001010	,	5000	)	--	I am Your Gift - 하트 아이
+g_pCashItemManager:AddCashItemPrice(	141001011	,	5000	)	--	I am Your Gift - 러브 마크
+g_pCashItemManager:AddCashItemPrice(	141001012	,	5000	)	--	I am Your Gift - 대형 리본 타이
+g_pCashItemManager:AddCashItemPrice(	141001013	,	5000	)	--	I am Your Gift - 하트 벌룬
+
+--140226/엘리시스 기본 아바타 6종
+g_pCashItemManager:AddCashItemPrice(	250001900	,	7000	)	--	엘리시스 초보 검투사 클레이모어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001901	,	5000	)	--	엘리시스 초보 검투사 상의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001902	,	5000	)	--	엘리시스 초보 검투사 하의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001903	,	2400	)	--	엘리시스 초보 검투사 장갑 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001904	,	2400	)	--	엘리시스 초보 검투사 신발 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001905	,	5000	)	--	엘리시스 초보 검투사 헤어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001910	,	7000	)	--	엘리시스 초보 검투사 클레이모어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001911	,	5000	)	--	엘리시스 초보 검투사 상의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001912	,	5000	)	--	엘리시스 초보 검투사 하의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001913	,	2400	)	--	엘리시스 초보 검투사 장갑 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001914	,	2400	)	--	엘리시스 초보 검투사 신발 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001915	,	5000	)	--	엘리시스 초보 검투사 헤어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001920	,	7000	)	--	엘리시스 초보 모험가 클레이모어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001921	,	5000	)	--	엘리시스 초보 모험가 상의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001922	,	5000	)	--	엘리시스 초보 모험가 하의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001923	,	2400	)	--	엘리시스 초보 모험가 장갑 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001924	,	2400	)	--	엘리시스 초보 모험가 신발 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001925	,	5000	)	--	엘리시스 초보 모험가 헤어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001930	,	7000	)	--	엘리시스 초보 모험가 클레이모어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001931	,	5000	)	--	엘리시스 초보 모험가 상의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001932	,	5000	)	--	엘리시스 초보 모험가 하의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001933	,	2400	)	--	엘리시스 초보 모험가 장갑 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001934	,	2400	)	--	엘리시스 초보 모험가 신발 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001935	,	5000	)	--	엘리시스 초보 모험가 헤어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001940	,	7000	)	--	엘리시스 인턴사원 클레이모어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001941	,	5000	)	--	엘리시스 인턴사원 상의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001942	,	5000	)	--	엘리시스 인턴사원 하의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001943	,	2400	)	--	엘리시스 인턴사원 장갑 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001944	,	2400	)	--	엘리시스 인턴사원 신발 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001945	,	5000	)	--	엘리시스 인턴 사원 헤어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001950	,	7000	)	--	엘리시스 인턴사원 클레이모어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001951	,	5000	)	--	엘리시스 인턴사원 상의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001952	,	5000	)	--	엘리시스 인턴사원 하의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001953	,	2400	)	--	엘리시스 인턴사원 장갑 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001954	,	2400	)	--	엘리시스 인턴사원 신발 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001955	,	5000	)	--	엘리시스 인턴 사원 헤어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001960	,	7000	)	--	엘리시스 견습 기사단 클레이모어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001961	,	5000	)	--	엘리시스 견습 기사단 상의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001962	,	5000	)	--	엘리시스 견습 기사단 하의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001963	,	2400	)	--	엘리시스 견습 기사단 장갑 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001964	,	2400	)	--	엘리시스 견습 기사단 신발 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001965	,	5000	)	--	엘리시스 견습 기사단 헤어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001970	,	7000	)	--	엘리시스 견습 기사단 클레이모어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001971	,	5000	)	--	엘리시스 견습 기사단 상의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001972	,	5000	)	--	엘리시스 견습 기사단 하의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001973	,	2400	)	--	엘리시스 견습 기사단 장갑 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001974	,	2400	)	--	엘리시스 견습 기사단 신발 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001975	,	5000	)	--	엘리시스 견습 기사단 헤어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001980	,	7000	)	--	엘리시스 기사 아카데미 클레이모어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001981	,	5000	)	--	엘리시스 기사 아카데미 상의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001982	,	5000	)	--	엘리시스 기사 아카데미 하의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001983	,	2400	)	--	엘리시스 기사 아카데미 장갑 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001984	,	2400	)	--	엘리시스 기사 아카데미 신발 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001985	,	5000	)	--	엘리시스 기사 아카데미 헤어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250001990	,	7000	)	--	엘리시스 기사 아카데미 클레이모어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001991	,	5000	)	--	엘리시스 기사 아카데미 상의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001992	,	5000	)	--	엘리시스 기사 아카데미 하의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001993	,	2400	)	--	엘리시스 기사 아카데미 장갑 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001994	,	2400	)	--	엘리시스 기사 아카데미 신발 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250001995	,	5000	)	--	엘리시스 기사 아카데미 헤어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250002000	,	7000	)	--	엘리시스 초보 사냥꾼 클레이모어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250002001	,	5000	)	--	엘리시스 초보 사냥꾼 상의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250002002	,	5000	)	--	엘리시스 초보 사냥꾼 하의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250002003	,	2400	)	--	엘리시스 초보 사냥꾼 장갑 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250002004	,	2400	)	--	엘리시스 초보 사냥꾼 신발 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250002005	,	5000	)	--	엘리시스 초보 사냥꾼 헤어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	250002010	,	7000	)	--	엘리시스 초보 사냥꾼 클레이모어 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250002011	,	5000	)	--	엘리시스 초보 사냥꾼 상의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250002012	,	5000	)	--	엘리시스 초보 사냥꾼 하의 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250002013	,	2400	)	--	엘리시스 초보 사냥꾼 장갑 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250002014	,	2400	)	--	엘리시스 초보 사냥꾼 신발 (Ver.B)
+g_pCashItemManager:AddCashItemPrice(	250002015	,	5000	)	--	엘리시스 초보 사냥꾼 헤어 (Ver.B)
+
+--140226/엘리시스전야 이벤트
+g_pCashItemManager:AddCashItemPrice(	100000100	,	200	)	--	엘리시스 견습 기사단 클레이모어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000101	,	200	)	--	엘리시스 견습 기사단 상의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000102	,	200	)	--	엘리시스 견습 기사단 하의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000103	,	200	)	--	엘리시스 견습 기사단 장갑 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000104	,	200	)	--	엘리시스 견습 기사단 신발 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000105	,	200	)	--	엘리시스 견습 기사단 헤어 (Ver.A)
+
+
+

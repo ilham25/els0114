@@ -26,22 +26,22 @@
 //#define MASS_FILE_FIRST
 //#endif// MASS_FILE_FIRST
 
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-__declspec(thread)  /*static*/  
-	KGCMassFileManager::KGCMASSFILEMANAGER_OVERLAPPED   KGCMassFileManager::m_overlapped;           
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//__declspec(thread)  /*static*/  
+//	KGCMassFileManager::KGCMASSFILEMANAGER_OVERLAPPED   KGCMassFileManager::m_overlapped;           
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 __declspec(thread)
 	KGCMassFileManager::KTLSData*  KGCMassFileManager::ms_pkTLSData = NULL;
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
 /*static*/ KGCMassFileBufferManager         KGCMassFileManager::m_massFileBufMan;
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 /*static*/
 const KGCMassFileManager::KTLSData&	KGCMassFileManager::GetUpdatedTLSData()
 {
@@ -56,45 +56,44 @@ const KGCMassFileManager::KTLSData&	KGCMassFileManager::GetUpdatedTLSData()
 	}
 	return	kTLSData;
 }
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 
 
-#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
-//{{AFX
-KGCMassFileManager::KGCBufferManager KGCMassFileManager::m_BufferManager;
-//}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
+////{{AFX
+//KGCMassFileManager::KGCBufferManager KGCMassFileManager::m_BufferManager;
+////}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 KGCMassFileManager::KGCMassFileManager()
 {
-
 #ifdef SERV_MASSFILE_MAPPING_FUNCTION
 	InitServerCurrentTime();
 #endif SERV_MASSFILE_MAPPING_FUNCTION
 
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 	m_bLockMassFileMap = false;
 	m_dwDataDirectoryStamp = 0;
-#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	::InitializeCriticalSection( &m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	::InitializeCriticalSection( &m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 	ZeroMemory( (void*) &m_adwThreadId[0], sizeof(m_adwThreadId) );
 	RegisterCurrentThread();
-#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-	m_dwForegroundThreadId = 0;
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//	m_dwForegroundThreadId = 0;
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 }//KGCMassFileManager::KGCMassFileManager()
 
 
 KGCMassFileManager::~KGCMassFileManager()
 {
-#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	::EnterCriticalSection( &m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK	
+//#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	::EnterCriticalSection( &m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK	
 
 	for(int i = 0; i < (int)m_vecMassFile.size(); i++)
 	{
@@ -102,23 +101,34 @@ KGCMassFileManager::~KGCMassFileManager()
 	}
 	m_vecMassFile.clear();
 	m_mapMassFile.clear();
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+
+#ifdef X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+	std::map< std::string, CMassFile::MASSFILE_MEMBERFILEINFO_POINTER >::iterator it;
+	std::map< std::string, CMassFile::MASSFILE_MEMBERFILEINFO_POINTER >::iterator iend = m_mapNewFolderFile.end();
+	for( it = m_mapNewFolderFile.begin(); it != iend; ++it )
+	{
+		delete it->second;
+	}
+	m_mapNewFolderFile.clear();
+#endif//X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 	{
 		CSLock	locker( m_csStrDataDirectory );
 		m_dwDataDirectoryStamp = 0;
 		m_vecstrDataDirectory.clear();
 	}
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
-#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	::LeaveCriticalSection( &m_csFileManager );
-
-	::DeleteCriticalSection( &m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	::LeaveCriticalSection( &m_csFileManager );
+//
+//	::DeleteCriticalSection( &m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 }//KGCMassFileManager::~KGCMassFileManager()
 
 
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 bool	KGCMassFileManager::RegisterCurrentThread()
 {
 	DWORD	dwCurrentThreadId = ::GetCurrentThreadId();
@@ -141,15 +151,15 @@ inline int		KGCMassFileManager::GetCurrentThreadIndex()
 	}
 	return -1;
 }
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 
 
 int  KGCMassFileManager::GetTotalFileCount()
 {
-#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	CSLock locker( m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	CSLock locker( m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 	return (int)m_mapMassFile.size();
 }//KGCMassFileManager::GetTotalFileCount()
@@ -392,11 +402,11 @@ void KGCMassFileManager::AddDataDirectory( const std::wstring& strDirectory, boo
 void KGCMassFileManager::AddDataDirectory( const std::string& strDirectory, bool bInsertFront /*= false*/ )
 #endif WCHAR_DIR
 {
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 	CSLock locker( m_csStrDataDirectory );
-#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	CSLock locker( m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	CSLock locker( m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 #ifdef WCHAR_DIR
 	std::vector< std::wstring >::iterator vit;
@@ -421,29 +431,36 @@ void KGCMassFileManager::AddDataDirectory( const std::string& strDirectory, bool
 	}
 }//KGCMassFileManager::AddDataDirectory()
 
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 void		KGCMassFileManager::LockMassFileMap()
 {
 	m_bLockMassFileMap = true;
 }
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
-
+#ifdef NEW_MAIL_LOG
+#ifdef WCHAR_DIR
+KGCMassFileManager::CMassFile* KGCMassFileManager::AddMassFile(const std::wstring& strKomFileName, OUT bool& bIsDuplicationError_)
+#else WCHAR_DIR
+KGCMassFileManager::CMassFile* KGCMassFileManager::AddMassFile(const std::string& strKomFileName, OUT bool& bIsDuplicationError_)
+#endif WCHAR_DIR
+#else
 #ifdef WCHAR_DIR
 KGCMassFileManager::CMassFile* KGCMassFileManager::AddMassFile(const std::wstring& strKomFileName)
 #else WCHAR_DIR
 KGCMassFileManager::CMassFile* KGCMassFileManager::AddMassFile(const std::string& strKomFileName)
 #endif WCHAR_DIR
+#endif // NEW_MAIL_LOG
 {
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 	if ( m_bLockMassFileMap == true )
 	{
 		ErrorLogMsg( KEM_ERROR426, strKomFileName.c_str() );
 		return NULL;
 	}
-#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	CSLock locker( m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	CSLock locker( m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 	CMassFile* pMassFile = new CMassFile();
 	if( !pMassFile->LoadMassFile(strKomFileName.c_str()) )
@@ -485,8 +502,21 @@ KGCMassFileManager::CMassFile* KGCMassFileManager::AddMassFile(const std::string
 		sFileIndex.pMassFile = pMassFile;
 
 		MassFileMap::_Pairib ib = m_mapMassFile.insert( MassFileMap::value_type( Info.strFileName, sFileIndex ) );
+
 		if( ib.second == false )
 		{
+#ifdef INT_KOM_DUPLICATE		
+			MassFileMap::const_iterator iter = m_mapMassFile.find( Info.strFileName );
+			if( 0 == strcmp( iter->second.pMassFile->m_strMassFileName, L"./dataINT.kom" ))
+			{
+				break;
+			}
+#endif //INT_KOM_DUPLICATE			
+
+#ifdef NEW_MAIL_LOG
+			bIsDuplicationError_ = true;
+#endif // NEW_MAIL_LOG
+
  #if defined(_IN_HOUSE_) || defined(_IN_HOUSE_SERVICE_READY_QA_)
  			// 중북파일 리스트
  			static int nDuplicateFile = 0;
@@ -535,7 +565,6 @@ KGCMassFileManager::CMassFile* KGCMassFileManager::AddMassFile(const std::string
 
 			MessageBoxA(NULL, strErrLog.c_str(), strErrLog.c_str(), MB_OK);
 #endif WCHAR_DIR
-
 #if defined(_IN_HOUSE_) || defined(_IN_HOUSE_SERVICE_READY_QA_)
 			if( fp != NULL )
 				fclose(fp);
@@ -553,17 +582,63 @@ KGCMassFileManager::CMassFile* KGCMassFileManager::AddMassFile(const std::string
 	return pMassFile;
 }//KGCMassFileManager::AddMassFile()
 
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-bool KGCMassFileManager::IsValidFile( std::wstring wstrFileName, bool bRealFileOnly )
-#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+#ifdef X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+void KGCMassFileManager::AddNewFolderFile( const char* szSearchDir )
+{
+	HANDLE				hSearch;
+	WIN32_FIND_DATAA	fd;
+	char				szSearchPath[256] = {0,};
+
+#ifdef	CONVERSION_VS
+	strncpy_s(szSearchPath, _countof(szSearchPath), szSearchDir , 255);
+#else	CONVERSION_VS
+	strncpy(szSearchPath, szSearchDir , 255);
+#endif	CONVERSION_VS
+
+	//strcpy(szSearchPath, szSearchDir);
+
+	StringCchCatA(szSearchPath, 256, "\\*.*");
+	//strcat(szSearchPath, "\\*.*");
+
+	hSearch = FindFirstFileA(szSearchPath, &fd);
+
+	if(hSearch == INVALID_HANDLE_VALUE)
+		return;
+
+	do
+	{
+		if( 0 != strcmp(fd.cFileName, ".") && 0 != strcmp(fd.cFileName, "..") )
+		{
+			if( fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY )
+			{			
+				char szSearchPath2[256] = {0,};
+				strncpy_s(szSearchPath2, _countof(szSearchPath2), szSearchDir , 255);
+				StringCchCatA(szSearchPath2, 256, "\\");
+				StringCchCatA(szSearchPath2, 256, fd.cFileName);
+
+				AddNewFolderFile( szSearchPath2 );
+			}
+			else
+			{
+				std::string strFileName = fd.cFileName;
+				MakeUpperCase( strFileName );
+
+				CMassFile::MASSFILE_MEMBERFILEINFO_POINTER kRealFileInfo;
+				LoadRealFile( strFileName, &kRealFileInfo );
+
+				m_mapNewFolderFile.insert( std::make_pair( strFileName, kRealFileInfo ) );
+			}
+		}
+	}while(FindNextFileA(hSearch, &fd));
+
+	FindClose(hSearch);
+}
+#endif//X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+
 bool KGCMassFileManager::IsValidFile( std::wstring wstrFileName )
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
 {
 	if ( wstrFileName.empty() == true )
 		return false;
-#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	CSLock locker( m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 #ifdef WCHAR_DIR
 	WCHAR strFileName[255] = { 0,};
@@ -572,7 +647,7 @@ bool KGCMassFileManager::IsValidFile( std::wstring wstrFileName )
 #endif WCHAR_DIR
 
     CMassFile::MASSFILE_MEMBERFILEINFO  mFileInfo;
-	mFileInfo.dwFlag = false;
+	mFileInfo.dwFlag = 0;
 	MakeUpperCase( wstrFileName );
 #ifdef WCHAR_DIR
 	StrCpyW( strFileName, wstrFileName.c_str() );
@@ -582,18 +657,18 @@ bool KGCMassFileManager::IsValidFile( std::wstring wstrFileName )
 
 #ifdef MASS_FILE_FIRST
 
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-    if ( bRealFileOnly == true )
-    {
-	    return LoadRealFile( strFileName, &mFileInfo );
-    }
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+#ifdef X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+	if( m_mapNewFolderFile.find( strFileName ) != m_mapNewFolderFile.end() )
+		return true;
+#endif//X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
 
 	if( m_mapMassFile.find(strFileName) == m_mapMassFile.end() )
 	{	
+#if !defined( _SERVICE_ ) //&& !defined( _VTUNE_ )
 		if( LoadRealFile( strFileName, &mFileInfo ) == true )
 			return true;
 		else
+#endif//_SERVICE_
 		{
 			//ErrorLogMsg( KEM_ERROR133, wstrFileName.c_str() );
 			return false;
@@ -606,10 +681,6 @@ bool KGCMassFileManager::IsValidFile( std::wstring wstrFileName )
 #else
 	if( LoadRealFile( strFileName, &mFileInfo ) == true )
 		return true;
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-    if ( bRealFileOnly == true )
-        return false;
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
 
 	else if( m_mapMassFile.find(strFileName) != m_mapMassFile.end() )
 	{
@@ -624,20 +695,168 @@ bool KGCMassFileManager::IsValidFile( std::wstring wstrFileName )
 }//KGCMassFileManager::IsValidFile()
 
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+bool KGCMassFileManager::IsValidFile_LocalFile( std::wstring wstrFileName )
+//#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//bool KGCMassFileManager::IsValidFile( std::wstring wstrFileName )
+//#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+{
+	if ( wstrFileName.empty() == true )
+		return false;
+//#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	CSLock locker( m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+
+	char strFileName[255] = {0,};
+
+    CMassFile::MASSFILE_MEMBERFILEINFO  mFileInfo;
+	mFileInfo.dwFlag = 0;
+	MakeUpperCase( wstrFileName );
+	WideCharToMultiByte( CP_ACP, 0, wstrFileName.c_str(), -1, strFileName, 255, NULL, NULL );
 
 #ifdef WCHAR_DIR
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::wstring strFileName, bool bRealData, bool bRealFileOnly )
-#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::wstring strFileName, bool bRealData )
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+	if( LoadRealFile( wstrFileName, &mFileInfo ) == true )
+		return true;
+#else
+	if( LoadRealFile( strFileName, &mFileInfo ) == true )
+		return true;
+#endif WCHAR_DIR
+
+    return false;
+
+}//KGCMassFileManager::IsValidFile()
+
+
+#ifdef  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+        // 두 개의 map 상 혹은 물리 위치상 adjacent 한 파일 데이타 로딩을 위한 인터페이스
+        // 텍스쳐파일과 .TET 파일 로딩을 위해 사용한다.
+KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR
+KGCMassFileManager::LoadTwoDataFiles( std::string strFileName, std::string strFileName2, OUT CMassFile::MASSFILE_MEMBERFILEINFO_PTR& info2, 
+            bool bRealData )
+{
+    CMassFile::MASSFILE_MEMBERFILEINFO_POINTER retInfo;
+    info2 = CMassFile::MASSFILE_MEMBERFILEINFO_POINTER();
+
+	ASSERT( false == strFileName.empty() );
+	if ( strFileName.empty() == true )
+		return	retInfo;
+
+	retInfo.dwFlag = ( bRealData ) ? MFI_REALDATA : 0;
+	MakeUpperCase( strFileName );
+    if ( strFileName2.empty() == false )
+    {
+	    info2.dwFlag = ( bRealData ) ? MFI_REALDATA : 0;
+	    MakeUpperCase( strFileName2 );
+    }
+
+#ifdef MASS_FILE_FIRST
+#ifdef WCHAR_DIR
+	std::wstring wstrFileName = KncUtil::toWideString( strFileName );
+	std::wstring wstrFileName2 = KncUtil::toWideString( strFileName2 );
+
+	MassFileMap::const_iterator iter = m_mapMassFile.find( wstrFileName );
+#else
+	MassFileMap::const_iterator iter = m_mapMassFile.find( strFileName );
+#endif WCHAR_DIR
+
+	if( iter == m_mapMassFile.end() )
+	{	
+#if !defined( _SERVICE_ ) //&& !defined( _VTUNE_ )
+#ifdef WCHAR_DIR
+		if( LoadTwoRealFiles( wstrFileName, retInfo, wstrFileName2, info2 ) == true )
+#else
+		if( LoadTwoRealFiles( strFileName, retInfo, strFileName2, info2 ) == true )
+#endif WCHAR_DIR
+			return retInfo;
+		else
+#endif//_SERVICE_
+		{
+			ErrorLogMsg( KEM_ERROR135, strFileName.c_str() );
+			return retInfo;
+		}
+	}
+	else
+	{	
+		iter->second.pMassFile->GetMemberFile( *this, iter->second.Index, &retInfo );
+#ifdef WCHAR_DIR
+        if ( wstrFileName2.empty() == false )
+        {
+            iter = m_mapMassFile.find( wstrFileName2 );
+            if ( iter != m_mapMassFile.end() )
+                iter->second.pMassFile->GetMemberFile( *this, iter->second.Index, &info2 );
+        }
+#else
+		if ( strFileName2.empty() == false )
+		{
+			iter = m_mapMassFile.find( strFileName2 );
+			if ( iter != m_mapMassFile.end() )
+				iter->second.pMassFile->GetMemberFile( *this, iter->second.Index, &info2 );
+		}
+#endif WCHAR_DIR
+		return retInfo;
+	}
+#else
+#ifdef WCHAR_DIR
+	std::wstring wstrFileName = KncUtil::toWideString( strFileName );
+	std::wstring wstrFileName2 = KncUtil::toWideString( strFileName2 );
+
+	if ( LoadTwoRealFiles( wstrFileName, retInfo, wstrFileName2, info2 ) == true )
+		return retInfo;
+
+	MassFileMap::const_iterator iter = m_mapMassFile.find( wstrFileName );
+#else
+	if ( LoadTwoRealFiles( strFileName, retInfo, strFileName2, info2 ) == true )
+		return retInfo;
+
+	MassFileMap::const_iterator iter = m_mapMassFile.find( strFileName );
+#endif WCHAR_DIR
+
+	if( iter != m_mapMassFile.end() )
+	{
+		iter->second.pMassFile->GetMemberFile( *this, iter->second.Index, &retInfo );
+#ifdef WCHAR_DIR
+		if ( wstrFileName2.empty() == false )
+		{
+			iter = m_mapMassFile.find( wstrFileName2 );
+			
+			if ( iter != m_mapMassFile.end() )
+				iter->second.pMassFile->GetMemberFile( *this, iter->second.Index, &info2 );
+		}
+#else
+		if ( strFileName2.empty() == false )
+		{
+			iter = m_mapMassFile.find( strFileName2 );
+
+			if ( iter != m_mapMassFile.end() )
+				iter->second.pMassFile->GetMemberFile( *this, iter->second.Index, &info2 );
+		}
+#endif WCHAR_DIR
+		return retInfo;
+	}
+	else
+	{
+		ErrorLogMsg( KEM_ERROR136, strFileName.c_str() );
+		return retInfo;
+	}
+#endif MASS_FILE_FIRST
+
+}
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+
+
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+#ifdef WCHAR_DIR
+KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::wstring strFileName, bool bRealData 
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+      , bool bKeepCompressedData
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS  
+      )
 #else WCHAR_DIR
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData, bool bRealFileOnly )
-#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
 KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData )
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+      , bool bKeepCompressedData
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS  
+      )
 #endif WCHAR_DIR
 {
     CMassFile::MASSFILE_MEMBERFILEINFO_POINTER retInfo;
@@ -646,36 +865,42 @@ KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::
 	if ( strFileName.empty() == true )
 		return	retInfo;
 
-#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	CSLock locker( m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	retInfo.dwFlag = bRealData;
+//#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	CSLock locker( m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+	retInfo.dwFlag = ( bRealData ) ? MFI_REALDATA : 0;
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+    if ( bRealData && bKeepCompressedData )
+        retInfo.dwFlag |= MFI_COMPRESSEDDATA;
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
 	MakeUpperCase( strFileName );
 
 #ifdef MASS_FILE_FIRST
 
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-    if ( bRealFileOnly == true )
-    {
-		LoadRealFile( strFileName, &retInfo );
-        return retInfo;
-    }
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+#ifdef X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+	std::map< std::string, CMassFile::MASSFILE_MEMBERFILEINFO_POINTER >::iterator itNewFolderFile = m_mapNewFolderFile.find( strFileName );
+	if(  itNewFolderFile != m_mapNewFolderFile.end() )
+		return itNewFolderFile->second;
+#endif//X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
 
 	MassFileMap::const_iterator iter = m_mapMassFile.find( strFileName );
 
 	if( iter == m_mapMassFile.end() )
 	{	
+#if !defined( _SERVICE_ ) //&& !defined( _VTUNE_ )
 		if( LoadRealFile( strFileName, &retInfo ) == true )
 			return retInfo;
 		else
+#endif//_SERVICE_
 		{
+#ifndef X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
 			// .TET 파일의 경우 없는 경우가 많으므로 에러로그를 남기지 않고, 다른 방법으로 에러체크할 방법이 필요. 일단 임시로 요렇게.
 #ifdef WCHAR_DIR
 			if( std::string::npos == strFileName.find( L".TET" ) )
 #else WCHAR_DIR
 			if( std::string::npos == strFileName.find( ".TET" ) )
-#endif WCHAR_DIR		
+#endif WCHAR_DIR
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
 			{
 				ErrorLogMsg( KEM_ERROR135, strFileName.c_str() );
 			}
@@ -691,13 +916,6 @@ KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::
 	if( LoadRealFile( strFileName, &retInfo ) == true )
 		return retInfo;
 
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-    if ( bRealFileOnly == true )
-    {
-        return retInfo;
-    }
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-	
 	MassFileMap::const_iterator iter = m_mapMassFile.find( strFileName );
 	if( iter != m_mapMassFile.end() )
 	{
@@ -706,13 +924,14 @@ KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::
 	}
 	else
 	{
+#ifndef X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
 		// .TET 파일의 경우 없는 경우가 많으므로 에러로그를 남기지 않고, 다른 방법으로 에러체크할 방법이 필요. 일단 임시로 요렇게.
 #ifdef WCHAR_DIR
 		if( std::string::npos == strFileName.find( L".TET" ) )
 #else WCHAR_DIR
 		if( std::string::npos == strFileName.find( ".TET" ) )
 #endif WCHAR_DIR
-
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
 		{
 			ErrorLogMsg( KEM_ERROR136, strFileName.c_str() );
 		}
@@ -723,187 +942,241 @@ KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::
 }//KGCMassFileManager::LoadDataFile()
 
 #ifdef WCHAR_DIR
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData, bool bRealFileOnly )
-#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData )
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+      , bool bKeepCompressedData
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS  
+      )
+//#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData )
+//#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
 {
 	WCHAR wstrFileName[255] = {0,};
 	MultiByteToWideChar( CP_ACP, 0, strFileName.c_str(), -1, wstrFileName, ARRAY_SIZE(wstrFileName) );
 	return LoadDataFile( wstrFileName, bRealData
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-        , bRealFileOnly
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-        );	
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        , bKeepCompressedData
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        );
 }//KGCMassFileManager::LoadDataFile()
 #else WCHAR_DIR
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::wstring wstrFileName, bool bRealData, bool bRealFileOnly )
-#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::wstring wstrFileName, bool bRealData )
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::wstring wstrFileName, bool bRealData
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+      , bool bKeepCompressedData
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS  
+      )
+//#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::wstring wstrFileName, bool bRealData )
+//#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
 {
 	char strFileName[255] = {0,};
 	WideCharToMultiByte( CP_ACP, 0, wstrFileName.c_str(), -1, strFileName, ARRAY_SIZE(strFileName), NULL, NULL );
     return LoadDataFile( strFileName, bRealData
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-        , bRealFileOnly
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        , bKeepCompressedData
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
         );
 }//KGCMassFileManager::LoadDataFile()
 #endif WCHAR_DIR
 
-#else // BACKGROUND_LOADING_TEST // 2008-10-16
-
-//{{AFX: jintaeks on 2008-10-16, 14:57
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData, bool bRealFileOnly )
-#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData )
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile_LocalFile( std::string strFileName, bool bRealData )
 {
-#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	CSLock locker( m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK	
+    CMassFile::MASSFILE_MEMBERFILEINFO_POINTER retInfo;
 
-	m_Info.dwFlag = bRealData;
+	ASSERT( false == strFileName.empty() );
+	if ( strFileName.empty() == true )
+		return	retInfo;
+
+	retInfo.dwFlag = ( bRealData ) ? MFI_REALDATA : 0;
 	MakeUpperCase( strFileName );
 
-#ifdef MASS_FILE_FIRST
+#ifdef WCHAR_DIR
+	WCHAR wstrFileName[255] = {0,};
+	MultiByteToWideChar( CP_ACP, 0, strFileName.c_str(), -1, wstrFileName, ARRAY_SIZE(wstrFileName) );
 
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-    if ( bRealFileOnly == true )
-    {
-		if ( LoadRealFile( strFileName, &m_Info ) == true )
-            return &m_Info;
-        return NULL;
-    }
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-
-	MassFileMap::const_iterator iter = m_mapMassFile.find(strFileName);
-
-	if( iter == m_mapMassFile.end() )
-	{	
-		if( LoadRealFile( strFileName, &m_Info ) == true )
-			return &m_Info;
-		else
-		{
-			// .TET 파일의 경우 없는 경우가 많으므로 에러로그를 남기지 않고, 다른 방법으로 에러체크할 방법이 필요. 일단 임시로 요렇게.
-			if( std::string::npos == strFileName.find( ".TET" ) )
-			{
-				ErrorLogMsg( KEM_ERROR135, strFileName.c_str() );
-			}
-            return NULL;
-		}
-	}
-	else
-	{	
-		const SMassFileIndex *sFileIndex = &iter->second;
-		sFileIndex->pMassFile->GetMemberFile( sFileIndex->Index, &m_Info );
-		return &m_Info;
-	}
+	LoadRealFile( wstrFileName, &retInfo );
 #else
-	if( LoadRealFile( strFileName, &m_Info ) == true )
-		return &m_Info;
-
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-    if ( bRealFileOnly == true )
-    {
-        return NULL;
-    }
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-
-	MassFileMap::const_iterator iter = m_mapMassFile.find(strFileName);
-	if( iter != m_mapMassFile.end() )
-	{
-		const SMassFileIndex *sFileIndex = &iter->second;
-		sFileIndex->pMassFile->GetMemberFile( sFileIndex->Index, &m_Info );
-		return &m_Info;
-	}
-	else
-	{
-		// .TET 파일의 경우 없는 경우가 많으므로 에러로그를 남기지 않고, 다른 방법으로 에러체크할 방법이 필요. 일단 임시로 요렇게.
-		if( std::string::npos == strFileName.find( ".TET" ) )
-		{
-			ErrorLogMsg( KEM_ERROR136, strFileName.c_str() );
-		}
-		return NULL;
-	}
-#endif MASS_FILE_FIRST
+	LoadRealFile( strFileName, &retInfo );
+#endif WCHAR_DIR
+    return retInfo;
 }//KGCMassFileManager::LoadDataFile()
 
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO* KGCMassFileManager::LoadDataFile( std::wstring wstrFileName, bool bRealData, bool bRealFileOnly )
-#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO* KGCMassFileManager::LoadDataFile( std::wstring wstrFileName, bool bRealData )
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile_LocalFile( std::wstring wstrFileName, bool bRealData )
 {
-#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	CSLock locker( m_csFileManager );
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK	
-
 	char strFileName[255] = {0,};
-
-	m_Info.dwFlag = bRealData;
-	MakeUpperCase( wstrFileName );
-	WideCharToMultiByte( CP_ACP, 0, wstrFileName.c_str(), -1, strFileName, 255, NULL, NULL );
-
-#ifdef MASS_FILE_FIRST
-
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-    if ( bRealFileOnly == true )
-    {
-		if ( LoadRealFile( strFileName, &m_Info ) == true )
-            return &m_Info;
-        return NULL;
-    }
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-
-	MassFileMap::const_iterator iter = m_mapMassFile.find(strFileName);
-	if( iter == m_mapMassFile.end() )
-	{	
-		if( LoadRealFile( strFileName, &m_Info ) == true )
-			return &m_Info;
-		else
-		{
-			//ErrorLogMsg( KEM_ERROR137, wstrFileName.c_str() );
-			return NULL;
-		}
-	}
-	else
-	{	
-		const SMassFileIndex *sFileIndex = &iter->second;
-		sFileIndex->pMassFile->GetMemberFile( sFileIndex->Index, &m_Info );
-		return &m_Info;
-	}
-#else 
-	if( LoadRealFile( strFileName, &m_Info ) == true )
-		return &m_Info;
-
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-    if ( bRealFileOnly == true )
-    {
-		return NULL;
-    }
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-
-	MassFileMap::const_iterator iter = m_mapMassFile.find(strFileName);
-	if( iter != m_mapMassFile.end() )
-	{
-		const SMassFileIndex *sFileIndex = &iter->second;
-		sFileIndex->pMassFile->GetMemberFile( sFileIndex->Index, &m_Info );
-		return &m_Info;
-	}
-	else
-	{
-		//ErrorLogMsg( KEM_ERROR138, wstrFileName.c_str() );
-		return NULL;
-	}
-#endif MASS_FILE_FIRST
+	WideCharToMultiByte( CP_ACP, 0, wstrFileName.c_str(), -1, strFileName, ARRAY_SIZE(strFileName), NULL, NULL );
+    return LoadDataFile_LocalFile( strFileName, bRealData );
 }//KGCMassFileManager::LoadDataFile()
-//}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+
+
+#ifdef  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+
+KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadTwoDataFiles( 
+    const std::wstring& wstrFileName, const std::wstring& wstrFileName2, OUT CMassFile::MASSFILE_MEMBERFILEINFO_PTR& info2,
+    bool bRealData )
+{
+	char strFileName[255] = {0,};
+	char strFileName2[255] = {0,};
+	WideCharToMultiByte( CP_ACP, 0, wstrFileName.c_str(), -1, strFileName, ARRAY_SIZE(strFileName), NULL, NULL );
+	WideCharToMultiByte( CP_ACP, 0, wstrFileName2.c_str(), -1, strFileName2, ARRAY_SIZE(strFileName2), NULL, NULL );
+    return LoadTwoDataFiles( strFileName, strFileName2, info2, bRealData );
+}//KGCMassFileManager::LoadDataFile()
+
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+
+
+//#else // BACKGROUND_LOADING_TEST // 2008-10-16
+//
+////{{AFX: jintaeks on 2008-10-16, 14:57
+//#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData, bool bLocalFileOnly )
+//#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_PTR  KGCMassFileManager::LoadDataFile( std::string strFileName, bool bRealData )
+//#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//{
+//#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	CSLock locker( m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK	
+//
+//	m_Info.dwFlag = bRealData;
+//	MakeUpperCase( strFileName );
+//
+//#ifdef MASS_FILE_FIRST
+//
+//#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//    if ( bLocalFileOnly == true )
+//    {
+//		if ( LoadRealFile( strFileName, &m_Info ) == true )
+//            return &m_Info;
+//        return NULL;
+//    }
+//#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//
+//	MassFileMap::const_iterator iter = m_mapMassFile.find(strFileName);
+//
+//	if( iter == m_mapMassFile.end() )
+//	{	
+//		if( LoadRealFile( strFileName, &m_Info ) == true )
+//			return &m_Info;
+//		else
+//		{
+//			// .TET 파일의 경우 없는 경우가 많으므로 에러로그를 남기지 않고, 다른 방법으로 에러체크할 방법이 필요. 일단 임시로 요렇게.
+//			if( std::string::npos == strFileName.find( ".TET" ) )
+//			{
+//				ErrorLogMsg( KEM_ERROR135, strFileName.c_str() );
+//			}
+//            return NULL;
+//		}
+//	}
+//	else
+//	{	
+//		const SMassFileIndex *sFileIndex = &iter->second;
+//		sFileIndex->pMassFile->GetMemberFile( sFileIndex->Index, &m_Info );
+//		return &m_Info;
+//	}
+//#else
+//	if( LoadRealFile( strFileName, &m_Info ) == true )
+//		return &m_Info;
+//
+//#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//    if ( bLocalFileOnly == true )
+//    {
+//        return NULL;
+//    }
+//#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//
+//	MassFileMap::const_iterator iter = m_mapMassFile.find(strFileName);
+//	if( iter != m_mapMassFile.end() )
+//	{
+//		const SMassFileIndex *sFileIndex = &iter->second;
+//		sFileIndex->pMassFile->GetMemberFile( sFileIndex->Index, &m_Info );
+//		return &m_Info;
+//	}
+//	else
+//	{
+//		// .TET 파일의 경우 없는 경우가 많으므로 에러로그를 남기지 않고, 다른 방법으로 에러체크할 방법이 필요. 일단 임시로 요렇게.
+//		if( std::string::npos == strFileName.find( ".TET" ) )
+//		{
+//			ErrorLogMsg( KEM_ERROR136, strFileName.c_str() );
+//		}
+//		return NULL;
+//	}
+//#endif MASS_FILE_FIRST
+//}//KGCMassFileManager::LoadDataFile()
+//
+//#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO* KGCMassFileManager::LoadDataFile( std::wstring wstrFileName, bool bRealData, bool bLocalFileOnly )
+//#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO* KGCMassFileManager::LoadDataFile( std::wstring wstrFileName, bool bRealData )
+//#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//{
+//#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	CSLock locker( m_csFileManager );
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK	
+//
+//	char strFileName[255] = {0,};
+//
+//	m_Info.dwFlag = bRealData;
+//	MakeUpperCase( wstrFileName );
+//	WideCharToMultiByte( CP_ACP, 0, wstrFileName.c_str(), -1, strFileName, 255, NULL, NULL );
+//
+//#ifdef MASS_FILE_FIRST
+//
+//#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//    if ( bLocalFileOnly == true )
+//    {
+//		if ( LoadRealFile( strFileName, &m_Info ) == true )
+//            return &m_Info;
+//        return NULL;
+//    }
+//#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//
+//	MassFileMap::const_iterator iter = m_mapMassFile.find(strFileName);
+//	if( iter == m_mapMassFile.end() )
+//	{	
+//		if( LoadRealFile( strFileName, &m_Info ) == true )
+//			return &m_Info;
+//		else
+//		{
+//			//ErrorLogMsg( KEM_ERROR137, wstrFileName.c_str() );
+//			return NULL;
+//		}
+//	}
+//	else
+//	{	
+//		const SMassFileIndex *sFileIndex = &iter->second;
+//		sFileIndex->pMassFile->GetMemberFile( sFileIndex->Index, &m_Info );
+//		return &m_Info;
+//	}
+//#else 
+//	if( LoadRealFile( strFileName, &m_Info ) == true )
+//		return &m_Info;
+//
+//#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//    if ( bLocalFileOnly == true )
+//    {
+//		return NULL;
+//    }
+//#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+//
+//	MassFileMap::const_iterator iter = m_mapMassFile.find(strFileName);
+//	if( iter != m_mapMassFile.end() )
+//	{
+//		const SMassFileIndex *sFileIndex = &iter->second;
+//		sFileIndex->pMassFile->GetMemberFile( sFileIndex->Index, &m_Info );
+//		return &m_Info;
+//	}
+//	else
+//	{
+//		//ErrorLogMsg( KEM_ERROR138, wstrFileName.c_str() );
+//		return NULL;
+//	}
+//#endif MASS_FILE_FIRST
+//}//KGCMassFileManager::LoadDataFile()
+////}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 
 //KGCMassFileManager::KGCMemoryFile* KGCMassFileManager::LoadMemoryFile( std::string strFileName )
@@ -940,17 +1213,17 @@ bool KGCMassFileManager::LoadRealFile(const std::wstring& strFileName, CMassFile
 bool KGCMassFileManager::LoadRealFile(const std::string& strFileName, CMassFile::MASSFILE_MEMBERFILEINFO* pOut)
 #endif WCHAR_DIR
 {
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 	const KTLSData& kTLSData = GetUpdatedTLSData();
 #ifdef WCHAR_DIR
 	const std::vector<std::wstring>& vecstrDataDirectory = kTLSData.m_vecstrDataDirectory;
 #else WCHAR_DIR
 	const std::vector<std::string>& vecstrDataDirectory = kTLSData.m_vecstrDataDirectory;
 #endif WCHAR_DIR
-#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	CSLock locker( m_csFileManager );
-	const std::vector<std::string>& vecstrDataDirectory = m_vecstrDataDirectory;
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//	CSLock locker( m_csFileManager );
+//	const std::vector<std::string>& vecstrDataDirectory = m_vecstrDataDirectory;
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 	HANDLE hFile = INVALID_HANDLE_VALUE; 
 
@@ -1037,50 +1310,56 @@ bool KGCMassFileManager::LoadRealFile(const std::string& strFileName, CMassFile:
 
 	if(pOut->dwFlag & MFI_REALDATA)
 	{
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 		KGCMassFileBufferPtr bufferPtr = KGCMassFileManager::m_massFileBufMan.GetBuffer( pOut->size );
 		pOut->pRealData = bufferPtr->GetBuffer();
-#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-		KGCMassFileBufferPtr bufferPtr = KGCMassFileManager::m_massFileBufMan.GetBuffer();
-		pOut->pRealData = bufferPtr->GetBuffer( pOut->size );
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//		KGCMassFileBufferPtr bufferPtr = KGCMassFileManager::m_massFileBufMan.GetBuffer();
+//		pOut->pRealData = bufferPtr->GetBuffer( pOut->size );
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
         
-#else // BACKGROUND_LOADING_TEST // 2008-10-16
-		pOut->pRealData = (char*)m_BufferManager.GetBuffer(pOut->size);
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#else // BACKGROUND_LOADING_TEST // 2008-10-16
+//		pOut->pRealData = (char*)m_BufferManager.GetBuffer(pOut->size);
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 		DWORD dwBytesRead = 0;
 		if( FALSE == ::ReadFile(hFile, pOut->pRealData, dwFileSize, &dwBytesRead, NULL) )
 		{
+            pOut->pRealData = NULL;
 			LeaveLastErrorLog( KEM_ERROR141, strFileName.c_str(), "read error" );
 
 			CloseHandle(hFile);
 			return false;
 		}
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
         pOut->pBuffer = bufferPtr;
-#else // BACKGROUND_LOADING_TEST // 2008-10-16
-        //{{AFX
-		pOut->pBuffer = m_BufferManager.GetCurrBuffer();
-        //}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#else // BACKGROUND_LOADING_TEST // 2008-10-16
+//        //{{AFX
+//		pOut->pBuffer = m_BufferManager.GetCurrBuffer();
+//        //}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+#ifdef  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+        pOut->dwFlag |= MFI_LOCALFILE;
+#endif  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        pOut->dwFlag &= ~MFI_COMPRESSEDDATA;
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+
 
 	}
 
 #ifdef WCHAR_DIR
 	StrCpyW( pOut->strFileName, strFileName.c_str() );
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 	strncpy_s( pOut->strFileName, _countof(pOut->strFileName), strFileName.c_str() , MASSFILE_NAMESIZE-1 );
 #else	CONVERSION_VS
 	strncpy( pOut->strFileName, strFileName.c_str() , MASSFILE_NAMESIZE-1 );
 #endif	CONVERSION_VS
-
 #endif WCHAR_DIR
-
 	//strcpy( pOut->strFileName, strFileName.c_str() );
 	CloseHandle(hFile);
 
@@ -1088,17 +1367,216 @@ bool KGCMassFileManager::LoadRealFile(const std::string& strFileName, CMassFile:
 }//KGCMassFileManager::LoadRealFile()
 
 
+#ifdef X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+#ifdef WCHAR_DIR
+bool    KGCMassFileManager::LoadTwoRealFiles(const std::wstring& strFileName, OUT CMassFile::MASSFILE_MEMBERFILEINFO& info,
+	const std::wstring& strFileName2, OUT CMassFile::MASSFILE_MEMBERFILEINFO& info2 )
+#else
+bool    KGCMassFileManager::LoadTwoRealFiles(const std::string& strFileName, OUT CMassFile::MASSFILE_MEMBERFILEINFO& info,
+            const std::string& strFileName2, OUT CMassFile::MASSFILE_MEMBERFILEINFO& info2 )
+#endif WCHAR_DIR
+{
+	const KTLSData& kTLSData = GetUpdatedTLSData();
+#ifdef WCHAR_DIR
+	const std::vector<std::wstring>& vecstrDataDirectory = kTLSData.m_vecstrDataDirectory;
+#else
+	const std::vector<std::string>& vecstrDataDirectory = kTLSData.m_vecstrDataDirectory;
+#endif WCHAR_DIR
+
+	HANDLE hFile = INVALID_HANDLE_VALUE;
+    HANDLE hFile2 = INVALID_HANDLE_VALUE;
+
+#ifdef WCHAR_DIR
+	std::wstring strName;
+	std::wstring strName2;
+#else
+	std::string	strName;
+	std::string	strName2;
+#endif WCHAR_DIR
+    int i = 0;
+	for( ; i < (int)vecstrDataDirectory.size(); i++ )
+	{
+		strName.resize(0);
+		strName = vecstrDataDirectory[i];
+		strName += strFileName;
+
+#ifdef WCHAR_DIR
+		hFile = CreateFileW(strName.c_str(),	// file to open
+#else
+		hFile = CreateFileA(strName.c_str(),	// file to open
+#endif WCHAR_DIR
+			GENERIC_READ,          				// open for reading
+			FILE_SHARE_READ,       				// share for reading
+			NULL,                  				// default security
+			OPEN_EXISTING,         				// existing file only
+			FILE_ATTRIBUTE_NORMAL, 				// normal file
+			NULL);                 				// no attr. template
+
+		if( INVALID_HANDLE_VALUE != hFile ) 
+		{ 
+			break;
+		}
+	}
+    if ( INVALID_HANDLE_VALUE != hFile  && strFileName2.empty() == false )
+    {
+        strName2 = vecstrDataDirectory[i];
+        strName2 += strFileName2;
+
+#ifdef WCHAR_DIR
+		hFile = CreateFileW(strName2.c_str(),	// file to open
+#else
+		hFile = CreateFileA(strName2.c_str(),	// file to open
+#endif WCHAR_DIR
+			GENERIC_READ,          				// open for reading
+			FILE_SHARE_READ,       				// share for reading
+			NULL,                  				// default security
+			OPEN_EXISTING,         				// existing file only
+			FILE_ATTRIBUTE_NORMAL, 				// normal file
+			NULL);  
+    }
+
+	if( INVALID_HANDLE_VALUE == hFile ) 
+	{ 
+		// .tet, .xet 파일은 없는 경우가 많아서 log 안 남김. 그리고 다른 파일의 경우에도 필요한 경우에만 로그 남기도록 수정
+#ifdef LOADREALFILE_ERROR_LOG
+		if( strFileName.empty() )
+		{
+			LeaveLastErrorLog( KEM_ERROR141, "_FILE_NAME_IS_NULL_", "open error" );
+		}
+		else
+		{
+			string tempFileName = strFileName;
+			MakeUpperCase( tempFileName );
+			string::size_type iCharIndex = tempFileName.find( ".TET" );
+			if( string::npos == iCharIndex ) // .tet 파일이 아니면
+			{
+				iCharIndex = tempFileName.find( ".XET" );
+				if( string::npos == iCharIndex ) // .xet 파일이 아니면
+				{
+					LeaveLastErrorLog( KEM_ERROR141, strFileName.c_str(), "open error" );
+				}
+			}
+		}
+#endif LOADREALFILE_ERROR_LOG
+		
+		return false;
+	}
+
+	DWORD dwFileSize = ::GetFileSize( hFile, NULL );
+	if( INVALID_FILE_SIZE == dwFileSize )
+	{
+		LeaveLastErrorLog( KEM_ERROR141, strFileName.c_str(), "file size error" );
+		CloseHandle( hFile );
+        if ( INVALID_HANDLE_VALUE != hFile2 )
+            CloseHandle( hFile2 );
+		return false;
+    }
+	info.size = (long) dwFileSize; // warning!! error-prone
+
+    DWORD   dwFileSize2 = 0;
+    if ( hFile2 != INVALID_HANDLE_VALUE )
+    {
+        dwFileSize2 = ::GetFileSize( hFile2, NULL );
+        if ( INVALID_FILE_SIZE == dwFileSize2 )
+        {
+		    LeaveLastErrorLog( KEM_ERROR141, strFileName2.c_str(), "file size error" );
+		    CloseHandle( hFile2 );
+            hFile2 = INVALID_HANDLE_VALUE;
+        }
+        else
+        {
+            info2.size = (long) dwFileSize2;
+        }
+    }
+
+	if( info.dwFlag & MFI_REALDATA)
+	{
+		KGCMassFileBufferPtr bufferPtr = KGCMassFileManager::m_massFileBufMan.GetBuffer( info.size );
+		info.pRealData = bufferPtr->GetBuffer();
+
+		DWORD dwBytesRead = 0;
+		if( FALSE == ::ReadFile(hFile, info.pRealData, dwFileSize, &dwBytesRead, NULL) )
+		{
+            info.pRealData = NULL;
+			LeaveLastErrorLog( KEM_ERROR141, strFileName.c_str(), "read error" );
+			CloseHandle(hFile);
+            if ( INVALID_HANDLE_VALUE != hFile2 )
+                CloseHandle( hFile2 );
+			return false;
+		}
+
+        info.pBuffer = bufferPtr;
+
+#ifdef  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+        info.dwFlag |= MFI_LOCALFILE;
+#endif  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        info.dwFlag &= ~MFI_COMPRESSEDDATA;
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+
+	}
+    if ( hFile2 != INVALID_HANDLE_VALUE && ( info2.dwFlag & MFI_REALDATA ) != 0 )
+    {
+		KGCMassFileBufferPtr bufferPtr = KGCMassFileManager::m_massFileBufMan.GetBuffer( info2.size );
+		info2.pRealData = bufferPtr->GetBuffer();
+		DWORD dwBytesRead = 0;
+		if( FALSE == ::ReadFile(hFile2, info2.pRealData, dwFileSize2, &dwBytesRead, NULL) )
+		{
+            info2.pRealData = NULL;
+			LeaveLastErrorLog( KEM_ERROR141, strFileName2.c_str(), "read error" );
+		}
+        else
+        {
+            info2.pBuffer = bufferPtr;
+#ifdef  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+            info2.dwFlag |= MFI_LOCALFILE;
+#endif  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+        }
+
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        info2.dwFlag &= ~MFI_COMPRESSEDDATA;
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+    }
+
+#ifdef	CONVERSION_VS
+#ifdef WCHAR_DIR
+	StrCpyW( info.strFileName, strFileName.c_str() );
+	if ( hFile2 != INVALID_HANDLE_VALUE )
+		StrCpyW( info2.strFileName, strFileName2.c_str() );
+#else
+	strncpy_s( info.strFileName, _countof(info.strFileName), strFileName.c_str() , MASSFILE_NAMESIZE-1 );
+	if ( hFile2 != INVALID_HANDLE_VALUE )
+		strncpy_s( info2.strFileName, _countof(info2.strFileName), strFileName2.c_str() , MASSFILE_NAMESIZE-1 );
+#endif WCHAR_DIR
+#else	CONVERSION_VS
+	strncpy( info.strFileName, strFileName.c_str() , MASSFILE_NAMESIZE-1 );
+    if ( hFile2 != INVALID_HANDLE_VALUE )
+        strncpy( info2.strFileName, strFileName2.c_str() , MASSFILE_NAMESIZE-1 );
+#endif	CONVERSION_VS
+
+    if ( hFile != INVALID_HANDLE_VALUE )
+	    CloseHandle(hFile);
+    if ( hFile2 != INVALID_HANDLE_VALUE )
+        CloseHandle(hFile2 );
+
+	return true;
+
+}
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 // MassFile
 ////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
-//{{AFX
-KGCMassFileManager::KGCBufferManager KGCMassFileManager::CMassFile::m_BufferManager1;
-KGCMassFileManager::KGCBufferManager KGCMassFileManager::CMassFile::m_BufferManager2;
-//}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
+////{{AFX
+//KGCMassFileManager::KGCBufferManager KGCMassFileManager::CMassFile::m_BufferManager1;
+//KGCMassFileManager::KGCBufferManager KGCMassFileManager::CMassFile::m_BufferManager2;
+////}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 KGCMassFileManager::CMassFile::CMassFile()
 {
@@ -1108,12 +1586,12 @@ KGCMassFileManager::CMassFile::CMassFile()
 
 	//{{ robobeg : 2011-08-16
 	//m_hFile = INVALID_HANDLE_VALUE;
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 	std::fill( &m_ahFilePerThread[0], &m_ahFilePerThread[MASS_FILE_MANAGER_MAX_NUM_THREADS], INVALID_HANDLE_VALUE );
-#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-	m_hFileForegroundSync = INVALID_HANDLE_VALUE;
-	m_hFileBackgroundAsync = INVALID_HANDLE_VALUE;
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//	m_hFileForegroundSync = INVALID_HANDLE_VALUE;
+//	m_hFileBackgroundAsync = INVALID_HANDLE_VALUE;
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 	//}} robobeg : 2011-08-16
     m_iFileVersion = 0;
 	memset( &m_MassFileHeader, 0, sizeof(MASSFILE_HEADER) );	
@@ -1124,7 +1602,7 @@ KGCMassFileManager::CMassFile::CMassFile()
 KGCMassFileManager::CMassFile::~CMassFile()
 {
 	//::EnterCriticalSection( &m_csMassFile );
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 	for( int i = 0; i < MASS_FILE_MANAGER_MAX_NUM_THREADS; i++ )
 	{
 		HANDLE	hFile = m_ahFilePerThread[i];
@@ -1138,25 +1616,25 @@ KGCMassFileManager::CMassFile::~CMassFile()
 			ErrorLog( KEM_ERROR142 );
 		}
 	}
-#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-	if ( INVALID_HANDLE_VALUE != m_hFileForegroundSync )
-	{
-		CloseHandle( m_hFileForegroundSync );
-	}
-	else
-	{
-		ErrorLog( KEM_ERROR142 );
-	}
-
-	if ( INVALID_HANDLE_VALUE != m_hFileBackgroundAsync )
-	{
-		CloseHandle( m_hFileBackgroundAsync );
-	}
-	else
-	{
-		ErrorLog( KEM_ERROR142 );
-	}
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//	if ( INVALID_HANDLE_VALUE != m_hFileForegroundSync )
+//	{
+//		CloseHandle( m_hFileForegroundSync );
+//	}
+//	else
+//	{
+//		ErrorLog( KEM_ERROR142 );
+//	}
+//
+//	if ( INVALID_HANDLE_VALUE != m_hFileBackgroundAsync )
+//	{
+//		CloseHandle( m_hFileBackgroundAsync );
+//	}
+//	else
+//	{
+//		ErrorLog( KEM_ERROR142 );
+//	}
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 	//::LeaveCriticalSection( &m_csMassFile );
 
 	//::DeleteCriticalSection( &m_csMassFile );
@@ -1188,15 +1666,13 @@ void KGCMassFileManager::CMassFile::GetFileName( char* Buffer, const char* strFi
 #ifdef WCHAR_DIR
 			StrCpyW( Buffer,&strFilePath[i + 1] );
 #else WCHAR_DIR
-
-#ifdef	CONVERSION_VS
+	#ifdef	CONVERSION_VS
 			strncpy_s(Buffer, MASSFILE_NAMESIZE, &strFilePath[i+1], MASSFILE_NAMESIZE-1);
 	#else	CONVERSION_VS
 			strncpy(Buffer,&strFilePath[i+1], MASSFILE_NAMESIZE-1);
-#endif	CONVERSION_VS
-
+	#endif	CONVERSION_VS
 #endif WCHAR_DIR
-
+			
 			//strcpy(Buffer,&strFilePath[i+1]);
 			return;
 		}
@@ -1205,15 +1681,12 @@ void KGCMassFileManager::CMassFile::GetFileName( char* Buffer, const char* strFi
 #ifdef WCHAR_DIR
 	StrCpyW( Buffer, strFilePath );
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 	strncpy_s(Buffer, MASSFILE_NAMESIZE, strFilePath , MASSFILE_NAMESIZE-1);
 #else	CONVERSION_VS
 	strncpy(Buffer,strFilePath , MASSFILE_NAMESIZE-1);
 #endif	CONVERSION_VS
-
 #endif WCHAR_DIR
-
 	//strcpy(Buffer,strFilePath);
 	return;
 }//KGCMassFileManager::CMassFile::GetFileName()
@@ -1226,7 +1699,7 @@ bool KGCMassFileManager::CMassFile::LoadMassFile( const char* strMassFile )
 #endif WCHAR_DIR
 {
 	//CSLock locker( m_csMassFile );
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 	for( int i = 0; i < MASS_FILE_MANAGER_MAX_NUM_THREADS; i++ )
 	{
 		HANDLE	hFileTemp = m_ahFilePerThread[i];
@@ -1236,22 +1709,22 @@ bool KGCMassFileManager::CMassFile::LoadMassFile( const char* strMassFile )
 			::CloseHandle( hFileTemp );
 		}
 	}
-#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-	if( INVALID_HANDLE_VALUE != m_hFileForegroundSync )
-	{
-		::CloseHandle( m_hFileForegroundSync );
-		m_hFileForegroundSync = INVALID_HANDLE_VALUE;
-	}
-	if( INVALID_HANDLE_VALUE != m_hFileBackgroundAsync )
-	{
-		::CloseHandle( m_hFileBackgroundAsync );
-		m_hFileBackgroundAsync = INVALID_HANDLE_VALUE;
-	}
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//	if( INVALID_HANDLE_VALUE != m_hFileForegroundSync )
+//	{
+//		::CloseHandle( m_hFileForegroundSync );
+//		m_hFileForegroundSync = INVALID_HANDLE_VALUE;
+//	}
+//	if( INVALID_HANDLE_VALUE != m_hFileBackgroundAsync )
+//	{
+//		::CloseHandle( m_hFileBackgroundAsync );
+//		m_hFileBackgroundAsync = INVALID_HANDLE_VALUE;
+//	}
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 	HANDLE	hFile = INVALID_HANDLE_VALUE;
 
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 	for( int i = 0; i < MASS_FILE_MANAGER_MAX_NUM_THREADS; i++ )
 	{
@@ -1270,37 +1743,35 @@ bool KGCMassFileManager::CMassFile::LoadMassFile( const char* strMassFile )
 	}
 	hFile = m_ahFilePerThread[0];
 
-#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-
-#ifdef	_SERVICE_
-	unsigned	uRetryCount = 2;
-#else	_SERVICE_
-	unsigned	uRetryCount = 0;
-#endif	_SERVICE_
-
-	m_hFileForegroundSync = KGCMassFileManager::OpenReadFileHandle( strMassFile, uRetryCount, false );
-	if ( m_hFileForegroundSync == INVALID_HANDLE_VALUE )
-		return false;
-	m_hFileBackgroundAsync = KGCMassFileManager::OpenReadFileHandle( strMassFile, 0, true );
-	if ( m_hFileBackgroundAsync == INVALID_HANDLE_VALUE )
-		return false;
-
-	hFile = m_hFileForegroundSync;
-
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//
+//#ifdef	_SERVICE_
+//	unsigned	uRetryCount = 2;
+//#else	_SERVICE_
+//	unsigned	uRetryCount = 0;
+//#endif	_SERVICE_
+//
+//	m_hFileForegroundSync = KGCMassFileManager::OpenReadFileHandle( strMassFile, uRetryCount, false );
+//	if ( m_hFileForegroundSync == INVALID_HANDLE_VALUE )
+//		return false;
+//	m_hFileBackgroundAsync = KGCMassFileManager::OpenReadFileHandle( strMassFile, 0, true );
+//	if ( m_hFileBackgroundAsync == INVALID_HANDLE_VALUE )
+//		return false;
+//
+//	hFile = m_hFileForegroundSync;
+//
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 #ifdef WCHAR_DIR
 	wcsncpy_s( m_strMassFileName, _countof(m_strMassFileName), strMassFile , MAX_PATH-1 );
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 	strncpy_s( m_strMassFileName, _countof(m_strMassFileName), strMassFile , MAX_PATH-1 );
 #else	CONVERSION_VS
 	strncpy( m_strMassFileName, strMassFile , MAX_PATH-1 );
 #endif	CONVERSION_VS
-	
 #endif WCHAR_DIR
-
+	
 	//strcpy( m_strMassFileName, strMassFile );
 	m_vecMemberFileHeader.clear();
 	memset(&m_MassFileHeader,0,sizeof(MASSFILE_HEADER));
@@ -1413,13 +1884,11 @@ bool KGCMassFileManager::CMassFile::LoadMassFile( const char* strMassFile )
 								MultiByteToWideChar( CP_ACP, 0, (char*)attribute->children->content, -1, filename, ARRAY_SIZE(filename) );
 								wcsncpy_s( MemberHeader.strFileName, _countof(MemberHeader.strFileName), filename, MASSFILE_NAMESIZE - 1 );
 #else WCHAR_DIR
-
-#ifdef	CONVERSION_VS
+					#ifdef	CONVERSION_VS
 								strncpy_s(MemberHeader.strFileName, _countof(MemberHeader.strFileName), (char*)attribute->children->content , MASSFILE_NAMESIZE-1);
 					#else	CONVERSION_VS
 								strncpy(MemberHeader.strFileName,(char*)attribute->children->content , MASSFILE_NAMESIZE-1);
-#endif	CONVERSION_VS
-
+					#endif	CONVERSION_VS
 #endif WCHAR_DIR
 								//strcpy(MemberHeader.strFileName,(char*)attribute->children->content);
 								MakeUpperCase(MemberHeader.strFileName);
@@ -1461,7 +1930,7 @@ bool KGCMassFileManager::CMassFile::LoadMassFile( const char* strMassFile )
 }//KGCMassFileManager::CMassFile::LoadMassFile()
 
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
 
 bool KGCMassFileManager::CMassFile::_GetMemberFile( KGCMassFileManager& kManager, const MASSFILE_MEMBERFILEHEADER& MEMBERFILEHEADER, MASSFILE_MEMBERFILEINFO* pOut)
 {
@@ -1469,19 +1938,19 @@ bool KGCMassFileManager::CMassFile::_GetMemberFile( KGCMassFileManager& kManager
 
 	HANDLE	hFile = INVALID_HANDLE_VALUE;
 
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 	int		iThreadIndex = kManager.GetCurrentThreadIndex();
 	if ( iThreadIndex < 0 || iThreadIndex >= MASS_FILE_MANAGER_MAX_NUM_THREADS )
 		return false;
 	hFile = m_ahFilePerThread[ iThreadIndex ];
 
-#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-
-	bool    bAsync = kManager.GetForegroundThreadId() != ::GetCurrentThreadId();
-	hFile = ( bAsync == false ) ? m_hFileForegroundSync : m_hFileBackgroundAsync;
-
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//
+//	bool    bAsync = kManager.GetForegroundThreadId() != ::GetCurrentThreadId();
+//	hFile = ( bAsync == false ) ? m_hFileForegroundSync : m_hFileBackgroundAsync;
+//
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 	if ( hFile == INVALID_HANDLE_VALUE )
 		return false;
@@ -1491,7 +1960,6 @@ bool KGCMassFileManager::CMassFile::_GetMemberFile( KGCMassFileManager& kManager
 #ifdef WCHAR_DIR
 	wcsncpy_s( pOut->strFileName, _countof(MEMBERFILEHEADER.strFileName ) , MEMBERFILEHEADER.strFileName ,  MASSFILE_NAMESIZE-1);
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 	strncpy_s( pOut->strFileName, _countof(pOut->strFileName), MEMBERFILEHEADER.strFileName , MASSFILE_NAMESIZE-1 );
 #else	CONVERSION_VS
@@ -1499,7 +1967,6 @@ bool KGCMassFileManager::CMassFile::_GetMemberFile( KGCMassFileManager& kManager
 #endif	CONVERSION_VS
 	//strcpy( pOut->strFileName, MEMBERFILEHEADER.strFileName );
 #endif WCHAR_DIR
-
     pOut->pRealData     = NULL;
 
 
@@ -1512,22 +1979,22 @@ bool KGCMassFileManager::CMassFile::_GetMemberFile( KGCMassFileManager& kManager
 		if(m_MassFileHeader.bCompressed)
 		{	
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 			KGCMassFileBufferPtr bufferPtr2 = KGCMassFileManager::m_massFileBufMan.GetBuffer( MEMBERFILEHEADER.CompressSize );
 			char* pCompressedData = bufferPtr2->GetBuffer();
-#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-			KGCMassFileBufferPtr bufferPtr2 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
-			char* pCompressedData = bufferPtr2->GetBuffer( MEMBERFILEHEADER.CompressSize );
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//			KGCMassFileBufferPtr bufferPtr2 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
+//			char* pCompressedData = bufferPtr2->GetBuffer( MEMBERFILEHEADER.CompressSize );
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
-#else // BACKGROUND_LOADING_TEST // 2008-10-16
-
-            //{{AFX
-			char* pCompressedData = m_BufferManager2.GetBuffer(MEMBERFILEHEADER.CompressSize, true);
-            //}}AFX
-			
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#else // BACKGROUND_LOADING_TEST // 2008-10-16
+//
+//            //{{AFX
+//			char* pCompressedData = m_BufferManager2.GetBuffer(MEMBERFILEHEADER.CompressSize, true);
+//            //}}AFX
+//			
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 
 			//DWORD dwSetFilePointer;
@@ -1541,56 +2008,80 @@ bool KGCMassFileManager::CMassFile::_GetMemberFile( KGCMassFileManager& kManager
 
 			DWORD dwBytesRead;
 			if( FALSE == KGCMassFileManager::ReadFile( hFile, MEMBERFILEHEADER.strFileName, pCompressedData, MEMBERFILEHEADER.CompressSize, &dwBytesRead, posRealDataStart + MEMBERFILEHEADER.offSet
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO				
-				, bAsync
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO									
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO				
+//				, bAsync
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO									
 				) )
 			{
 				LeaveLastErrorLog( KEM_ERROR390, MEMBERFILEHEADER.strFileName, "read error" );
 				return false;
 			}
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-			KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer( MEMBERFILEHEADER.RealSize );
-			pOut->pRealData = bufferPtr1->GetBuffer();
-#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-			KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
-			pOut->pRealData = bufferPtr1->GetBuffer( MEMBERFILEHEADER.RealSize );
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-            pOut->pBuffer   = bufferPtr1;
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+            if ( pOut->dwFlag & MFI_COMPRESSEDDATA )
+            {
+                pOut->pRealData = pCompressedData;
+                pOut->pBuffer = bufferPtr2;
+                pOut->compressedSize = MEMBERFILEHEADER.CompressSize;
+            }
+            else
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+            {
 
-#else // BACKGROUND_LOADING_TEST // 2008-10-16
 
-            //{{AFX
-			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
-			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
-            //}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+    //#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+    //#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+			    KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer( MEMBERFILEHEADER.RealSize );
+			    pOut->pRealData = bufferPtr1->GetBuffer();
+    //#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+    //			KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
+    //			pOut->pRealData = bufferPtr1->GetBuffer( MEMBERFILEHEADER.RealSize );
+    //#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+                pOut->pBuffer   = bufferPtr1;
 
-			unsigned long size = MEMBERFILEHEADER.RealSize;
-			uncompress((BYTE*)pOut->pRealData,&size,(BYTE*)pCompressedData,MEMBERFILEHEADER.CompressSize);
+    //#else // BACKGROUND_LOADING_TEST // 2008-10-16
+    //
+    //            //{{AFX
+    //			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
+    //			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
+    //            //}}AFX
+    //#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+
+			    unsigned long size = MEMBERFILEHEADER.RealSize;
+#ifdef  X2OPTIMIZE_ZLIB_UNCOMPRESS_ERROR_CHECK
+			    if ( Z_OK != uncompress((BYTE*)pOut->pRealData,&size,(BYTE*)pCompressedData,MEMBERFILEHEADER.CompressSize) )
+                {
+                    pOut->pRealData = NULL;
+                    pOut->pBuffer.reset();
+				    LeaveLastErrorLog( KEM_ERROR390, MEMBERFILEHEADER.strFileName, " uncompress error" );
+				    return false;
+                }
+#else   X2OPTIMIZE_ZLIB_UNCOMPRESS_ERROR_CHECK
+			    uncompress((BYTE*)pOut->pRealData,&size,(BYTE*)pCompressedData,MEMBERFILEHEADER.CompressSize);
+#endif  X2OPTIMIZE_ZLIB_UNCOMPRESS_ERROR_CHECK
+                ASSERT( size == MEMBERFILEHEADER.RealSize );
+            }
 		}
 		else
 		{
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 			KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer( MEMBERFILEHEADER.RealSize );
 			pOut->pRealData = bufferPtr1->GetBuffer();
-#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-			KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
-			pOut->pRealData = bufferPtr1->GetBuffer( MEMBERFILEHEADER.RealSize );
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//			KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
+//			pOut->pRealData = bufferPtr1->GetBuffer( MEMBERFILEHEADER.RealSize );
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
             pOut->pBuffer   = bufferPtr1;
-#else // BACKGROUND_LOADING_TEST // 2008-10-16
-
-            //{{AFX
-			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
-			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
-            //}}AFX
-
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#else // BACKGROUND_LOADING_TEST // 2008-10-16
+//
+//            //{{AFX
+//			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
+//			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
+//            //}}AFX
+//
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 // 			DWORD dwSetFilePointer;
 // 			dwSetFilePointer = SetFilePointer( m_hFile, posRealDataStart + MEMBERFILEHEADER.offSet, NULL, FILE_BEGIN );
@@ -1600,13 +2091,15 @@ bool KGCMassFileManager::CMassFile::_GetMemberFile( KGCMassFileManager& kManager
 // 				LeaveLastErrorLog( KEM_ERROR390, MEMBERFILEHEADER.strFileName, "file pointer error 2" );
 // 				return false;
 // 			}
-
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+            pOut->dwFlag &= ~MFI_COMPRESSEDDATA;
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
 
 			DWORD dwBytesRead;
 			if( FALSE == KGCMassFileManager::ReadFile( hFile, MEMBERFILEHEADER.strFileName, pOut->pRealData, MEMBERFILEHEADER.RealSize, &dwBytesRead, posRealDataStart + MEMBERFILEHEADER.offSet
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO				
-				, bAsync
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO	
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO				
+//				, bAsync
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO	
 				) )
 			{
 				LeaveLastErrorLog( KEM_ERROR390, MEMBERFILEHEADER.strFileName, "read error 2" );
@@ -1662,174 +2155,174 @@ bool KGCMassFileManager::CMassFile::GetMemberFile( KGCMassFileManager& kManager,
     return _GetMemberFile( kManager, MEMBERFILEHEADER, pOut );
 }//KGCMassFileManager::CMassFile::GetMemberFile()
 
-#else // BACKGROUND_LOADING_TEST // 2008-10-16
-
-//{{AFX: jintaeks on 2008-10-16, 15:11
-bool KGCMassFileManager::CMassFile::GetMemberFile(const char* strRealFile, MASSFILE_MEMBERFILEINFO* pOut)
-{
-	//CSLock locker( m_csMassFile );
-
-	if( INVALID_HANDLE_VALUE == m_hFile )
-	{
-		return false;
-	}
-
-	MASSFILE_MEMBERFILEHEADER MEMBERFILEHEADER;
-	bool find = false;
-	for(int i = 0; i < (int)m_vecMemberFileHeader.size(); i++)
-	{
-		if(strcmp(m_vecMemberFileHeader[i].strFileName,strRealFile) == 0)
-		{
-			MEMBERFILEHEADER = m_vecMemberFileHeader[i];
-			find = true;
-			break;
-		}
-	}
-	if(find == false)
-		return false;
-
-	pOut->size				= MEMBERFILEHEADER.RealSize;
-	strcpy(pOut->strFileName, MEMBERFILEHEADER.strFileName);
-
-	//GetRealData
-	if( pOut->dwFlag & MFI_REALDATA )
-	{			
-		long posRealDataStart = sizeof(MASSFILE_HEADER) + sizeof(MASSFILE_MEMBERFILEHEADER) * m_MassFileHeader.iTotalFileNo;
-
-
-		if(m_MassFileHeader.bCompressed)
-		{	
-			char* pCompressedData = m_BufferManager2.GetBuffer(MEMBERFILEHEADER.CompressSize, true);
-
-// 			DWORD dwSetFilePointer;
-// 			dwSetFilePointer = SetFilePointer( m_hFile, posRealDataStart + MEMBERFILEHEADER.offSet, NULL, FILE_BEGIN );
-// 
-// 			if( INVALID_SET_FILE_POINTER == dwSetFilePointer )
-// 			{ 
-// 				LeaveLastErrorLog( KEM_ERROR390, strRealFile, "file pointer error" );
-// 				return false;
-// 			}
-
-			DWORD dwBytesRead;
-			if( FALSE == KGCMassFileManager::NewReadFile( m_hFile, MEMBERFILEHEADER.strFileName, pCompressedData, MEMBERFILEHEADER.CompressSize, &dwBytesRead, posRealDataStart + MEMBERFILEHEADER.offSet ) )
-			{
-				LeaveLastErrorLog( KEM_ERROR390, strRealFile, "read error" );
-				return false;
-			}
-
-			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
-			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
-
-			unsigned long size = MEMBERFILEHEADER.RealSize;
-			uncompress((BYTE*)pOut->pRealData,&size,(BYTE*)pCompressedData,MEMBERFILEHEADER.CompressSize);
-		}
-		else
-		{
-			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
-			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
-
-// 			DWORD dwSetFilePointer;
-// 			dwSetFilePointer = SetFilePointer( m_hFile, posRealDataStart + MEMBERFILEHEADER.offSet, NULL, FILE_BEGIN );
-// 
-// 			if( INVALID_SET_FILE_POINTER == dwSetFilePointer )
-// 			{ 
-// 				LeaveLastErrorLog( KEM_ERROR390, strRealFile, "file pointer error 2" );
-// 				return false;
-// 			}
-
-
-			DWORD dwBytesRead;
-			if( FALSE == ReadFile( m_hFile, pOut->pRealData, MEMBERFILEHEADER.RealSize, &dwBytesRead, NULL ) )
-			{
-				LeaveLastErrorLog( KEM_ERROR390, strRealFile, "read error 2" );
-				return false;
-			}
-		}	
-	}
-
-	return true;
-}//KGCMassFileManager::CMassFile::GetMemberFile()
-
-
-bool KGCMassFileManager::CMassFile::GetMemberFile(int iFileIndex, MASSFILE_MEMBERFILEINFO* pOut)
-{
-	//CSLock locker( m_csMassFile );
-
-
-	if( INVALID_HANDLE_VALUE == m_hFile )
-	{
-		return false;
-	}
-
-	if(iFileIndex < 0 || iFileIndex >= (int)m_vecMemberFileHeader.size())
-		return false;
-
-	MASSFILE_MEMBERFILEHEADER MEMBERFILEHEADER = m_vecMemberFileHeader[iFileIndex];	
-
-	pOut->size = MEMBERFILEHEADER.RealSize;
-	strcpy(pOut->strFileName, MEMBERFILEHEADER.strFileName);
-	pOut->pRealData = 0;
-
-	if( pOut->dwFlag & MFI_REALDATA )
-	{		
-		long posRealDataStart = sizeof(MASSFILE_HEADER) + sizeof(MASSFILE_MEMBERFILEHEADER) * m_MassFileHeader.iTotalFileNo;
-
-		if(m_MassFileHeader.bCompressed)
-		{		
-			char* pCompressedData = m_BufferManager2.GetBuffer(MEMBERFILEHEADER.CompressSize, true);
-			
-// 			DWORD dwSetFilePointer;
-// 			dwSetFilePointer = SetFilePointer( m_hFile, posRealDataStart + MEMBERFILEHEADER.offSet, NULL, FILE_BEGIN );
-// 
-// 			if( INVALID_SET_FILE_POINTER == dwSetFilePointer )
-// 			{ 
-// 				LeaveLastErrorLog( KEM_ERROR394, MEMBERFILEHEADER.strFileName, "file pointer error" );
-// 				return false;
-// 			}
-
-			DWORD dwBytesRead;
-			if( FALSE == KGCMassFileManager::NewReadFile( m_hFile, MEMBERFILEHEADER.strFileName, pCompressedData, MEMBERFILEHEADER.CompressSize, &dwBytesRead, posRealDataStart + MEMBERFILEHEADER.offSet ) )
-			{
-				LeaveLastErrorLog( KEM_ERROR394, MEMBERFILEHEADER.strFileName, "read error" );
-				return false;
-			}
-
-
-			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
-			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
-
-			unsigned long size = MEMBERFILEHEADER.RealSize;
-			uncompress((BYTE*)pOut->pRealData,&size,(BYTE*)pCompressedData,MEMBERFILEHEADER.CompressSize);
-		}
-		else
-		{
-			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
-			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
-
-// 			DWORD dwSetFilePointer;
-// 			dwSetFilePointer = SetFilePointer( m_hFile, posRealDataStart + MEMBERFILEHEADER.offSet, NULL, FILE_BEGIN );
-// 
-// 			if( INVALID_SET_FILE_POINTER == dwSetFilePointer )
-// 			{ 
-// 				LeaveLastErrorLog( KEM_ERROR394, MEMBERFILEHEADER.strFileName, "file pointer error 2" );
-// 				return false;
-// 			}
-
-
-			DWORD dwBytesRead;
-			if( FALSE == KGCMassFileManager::NewReadFile( m_hFile, MEMBERFILEHEADER.strFileName, pOut->pRealData, MEMBERFILEHEADER.RealSize, &dwBytesRead, posRealDataStart + MEMBERFILEHEADER.offSet ) )
-			{
-				LeaveLastErrorLog( KEM_ERROR394, MEMBERFILEHEADER.strFileName, "read error 2" );
-				return false;
-			}
-		}
-	}
-
-
-	return true;
-}//KGCMassFileManager::CMassFile::GetMemberFile()
-//}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#else // BACKGROUND_LOADING_TEST // 2008-10-16
+//
+////{{AFX: jintaeks on 2008-10-16, 15:11
+//bool KGCMassFileManager::CMassFile::GetMemberFile(const char* strRealFile, MASSFILE_MEMBERFILEINFO* pOut)
+//{
+//	//CSLock locker( m_csMassFile );
+//
+//	if( INVALID_HANDLE_VALUE == m_hFile )
+//	{
+//		return false;
+//	}
+//
+//	MASSFILE_MEMBERFILEHEADER MEMBERFILEHEADER;
+//	bool find = false;
+//	for(int i = 0; i < (int)m_vecMemberFileHeader.size(); i++)
+//	{
+//		if(strcmp(m_vecMemberFileHeader[i].strFileName,strRealFile) == 0)
+//		{
+//			MEMBERFILEHEADER = m_vecMemberFileHeader[i];
+//			find = true;
+//			break;
+//		}
+//	}
+//	if(find == false)
+//		return false;
+//
+//	pOut->size				= MEMBERFILEHEADER.RealSize;
+//	strcpy(pOut->strFileName, MEMBERFILEHEADER.strFileName);
+//
+//	//GetRealData
+//	if( pOut->dwFlag & MFI_REALDATA )
+//	{			
+//		long posRealDataStart = sizeof(MASSFILE_HEADER) + sizeof(MASSFILE_MEMBERFILEHEADER) * m_MassFileHeader.iTotalFileNo;
+//
+//
+//		if(m_MassFileHeader.bCompressed)
+//		{	
+//			char* pCompressedData = m_BufferManager2.GetBuffer(MEMBERFILEHEADER.CompressSize, true);
+//
+//// 			DWORD dwSetFilePointer;
+//// 			dwSetFilePointer = SetFilePointer( m_hFile, posRealDataStart + MEMBERFILEHEADER.offSet, NULL, FILE_BEGIN );
+//// 
+//// 			if( INVALID_SET_FILE_POINTER == dwSetFilePointer )
+//// 			{ 
+//// 				LeaveLastErrorLog( KEM_ERROR390, strRealFile, "file pointer error" );
+//// 				return false;
+//// 			}
+//
+//			DWORD dwBytesRead;
+//			if( FALSE == KGCMassFileManager::NewReadFile( m_hFile, MEMBERFILEHEADER.strFileName, pCompressedData, MEMBERFILEHEADER.CompressSize, &dwBytesRead, posRealDataStart + MEMBERFILEHEADER.offSet ) )
+//			{
+//				LeaveLastErrorLog( KEM_ERROR390, strRealFile, "read error" );
+//				return false;
+//			}
+//
+//			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
+//			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
+//
+//			unsigned long size = MEMBERFILEHEADER.RealSize;
+//			uncompress((BYTE*)pOut->pRealData,&size,(BYTE*)pCompressedData,MEMBERFILEHEADER.CompressSize);
+//		}
+//		else
+//		{
+//			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
+//			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
+//
+//// 			DWORD dwSetFilePointer;
+//// 			dwSetFilePointer = SetFilePointer( m_hFile, posRealDataStart + MEMBERFILEHEADER.offSet, NULL, FILE_BEGIN );
+//// 
+//// 			if( INVALID_SET_FILE_POINTER == dwSetFilePointer )
+//// 			{ 
+//// 				LeaveLastErrorLog( KEM_ERROR390, strRealFile, "file pointer error 2" );
+//// 				return false;
+//// 			}
+//
+//
+//			DWORD dwBytesRead;
+//			if( FALSE == ReadFile( m_hFile, pOut->pRealData, MEMBERFILEHEADER.RealSize, &dwBytesRead, NULL ) )
+//			{
+//				LeaveLastErrorLog( KEM_ERROR390, strRealFile, "read error 2" );
+//				return false;
+//			}
+//		}	
+//	}
+//
+//	return true;
+//}//KGCMassFileManager::CMassFile::GetMemberFile()
+//
+//
+//bool KGCMassFileManager::CMassFile::GetMemberFile(int iFileIndex, MASSFILE_MEMBERFILEINFO* pOut)
+//{
+//	//CSLock locker( m_csMassFile );
+//
+//
+//	if( INVALID_HANDLE_VALUE == m_hFile )
+//	{
+//		return false;
+//	}
+//
+//	if(iFileIndex < 0 || iFileIndex >= (int)m_vecMemberFileHeader.size())
+//		return false;
+//
+//	MASSFILE_MEMBERFILEHEADER MEMBERFILEHEADER = m_vecMemberFileHeader[iFileIndex];	
+//
+//	pOut->size = MEMBERFILEHEADER.RealSize;
+//	strcpy(pOut->strFileName, MEMBERFILEHEADER.strFileName);
+//	pOut->pRealData = 0;
+//
+//	if( pOut->dwFlag & MFI_REALDATA )
+//	{		
+//		long posRealDataStart = sizeof(MASSFILE_HEADER) + sizeof(MASSFILE_MEMBERFILEHEADER) * m_MassFileHeader.iTotalFileNo;
+//
+//		if(m_MassFileHeader.bCompressed)
+//		{		
+//			char* pCompressedData = m_BufferManager2.GetBuffer(MEMBERFILEHEADER.CompressSize, true);
+//			
+//// 			DWORD dwSetFilePointer;
+//// 			dwSetFilePointer = SetFilePointer( m_hFile, posRealDataStart + MEMBERFILEHEADER.offSet, NULL, FILE_BEGIN );
+//// 
+//// 			if( INVALID_SET_FILE_POINTER == dwSetFilePointer )
+//// 			{ 
+//// 				LeaveLastErrorLog( KEM_ERROR394, MEMBERFILEHEADER.strFileName, "file pointer error" );
+//// 				return false;
+//// 			}
+//
+//			DWORD dwBytesRead;
+//			if( FALSE == KGCMassFileManager::NewReadFile( m_hFile, MEMBERFILEHEADER.strFileName, pCompressedData, MEMBERFILEHEADER.CompressSize, &dwBytesRead, posRealDataStart + MEMBERFILEHEADER.offSet ) )
+//			{
+//				LeaveLastErrorLog( KEM_ERROR394, MEMBERFILEHEADER.strFileName, "read error" );
+//				return false;
+//			}
+//
+//
+//			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
+//			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
+//
+//			unsigned long size = MEMBERFILEHEADER.RealSize;
+//			uncompress((BYTE*)pOut->pRealData,&size,(BYTE*)pCompressedData,MEMBERFILEHEADER.CompressSize);
+//		}
+//		else
+//		{
+//			pOut->pRealData = (char*)m_BufferManager1.GetBuffer(MEMBERFILEHEADER.RealSize);
+//			pOut->pBuffer = m_BufferManager1.GetCurrBuffer();
+//
+//// 			DWORD dwSetFilePointer;
+//// 			dwSetFilePointer = SetFilePointer( m_hFile, posRealDataStart + MEMBERFILEHEADER.offSet, NULL, FILE_BEGIN );
+//// 
+//// 			if( INVALID_SET_FILE_POINTER == dwSetFilePointer )
+//// 			{ 
+//// 				LeaveLastErrorLog( KEM_ERROR394, MEMBERFILEHEADER.strFileName, "file pointer error 2" );
+//// 				return false;
+//// 			}
+//
+//
+//			DWORD dwBytesRead;
+//			if( FALSE == KGCMassFileManager::NewReadFile( m_hFile, MEMBERFILEHEADER.strFileName, pOut->pRealData, MEMBERFILEHEADER.RealSize, &dwBytesRead, posRealDataStart + MEMBERFILEHEADER.offSet ) )
+//			{
+//				LeaveLastErrorLog( KEM_ERROR394, MEMBERFILEHEADER.strFileName, "read error 2" );
+//				return false;
+//			}
+//		}
+//	}
+//
+//
+//	return true;
+//}//KGCMassFileManager::CMassFile::GetMemberFile()
+////}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 /*
 #ifdef BACKGROUND_LOADING_TEST // 2008-10-16
@@ -2340,17 +2833,14 @@ bool KGCMassFileManager::CMassFile::SaveMassFile( char* strFileName, std::vector
 #endif WCHAR_DIR
 {
 	FILE* file = NULL;
-
 #ifdef WCHAR_DIR
 	file = _wfopen(strFileName, L"w+b");
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 	fopen_s( &file, strFileName, "w+b");
 #else	CONVERSION_VS
 	file = fopen(strFileName, "w+b");
 #endif	CONVERSION_VS
-
 #endif WCHAR_DIR
 	
 	if(file == NULL)
@@ -2368,12 +2858,12 @@ bool KGCMassFileManager::CMassFile::SaveMassFile( char* strFileName, std::vector
 	fwrite(&Header,sizeof(MASSFILE_HEADER),1,file);
 
 	//MASSFILE_MEMBERFILEHEADER
-#ifndef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
-    KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
-    KGCMassFileBufferPtr bufferPtr2 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifndef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+////#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//    KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
+//    KGCMassFileBufferPtr bufferPtr2 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
+////#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
 	MASSFILE_MEMBERFILEHEADER MemberFileHeader;
 	long TotalSize = 0;
@@ -2399,15 +2889,12 @@ bool KGCMassFileManager::CMassFile::SaveMassFile( char* strFileName, std::vector
 #ifdef WCHAR_DIR
 		pMemberFile = _wfopen( (*pVecFile)[i], L"rb" );
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 		fopen_s( &pMemberFile, (*pVecFile)[i],"rb");
 #else	CONVERSION_VS
 		pMemberFile = fopen((*pVecFile)[i],"rb");
 #endif	CONVERSION_VS
-
 #endif WCHAR_DIR
-
 		if(pMemberFile == NULL)
 		{
 			fclose(file);
@@ -2421,28 +2908,28 @@ bool KGCMassFileManager::CMassFile::SaveMassFile( char* strFileName, std::vector
 		if(bZip)
 		{
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 			WriteByte = compressBound( filesize+8 );
 			KGCMassFileBufferPtr bufferPtr2 = KGCMassFileManager::m_massFileBufMan.GetBuffer( filesize );
 			KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer( WriteByte );
 			pFileData = bufferPtr2->GetBuffer();
 			char* pDestData = bufferPtr1->GetBuffer();
-#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-			pFileData = bufferPtr2->GetBuffer( filesize );
-			char* pDestData = bufferPtr1->GetBuffer( compressBound( filesize+8 ) );
-			WriteByte = bufferPtr1->GetBufferSize();
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//			pFileData = bufferPtr2->GetBuffer( filesize );
+//			char* pDestData = bufferPtr1->GetBuffer( compressBound( filesize+8 ) );
+//			WriteByte = bufferPtr1->GetBufferSize();
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
-#else // BACKGROUND_LOADING_TEST // 2008-10-17
-
-            //{{AFX
-			pFileData = (char*)m_BufferManager2.GetBuffer(filesize, true);
-			char* pDestData = m_BufferManager1.GetBuffer( compressBound( filesize+8 ), true );
-            //}}AFX
-
-			WriteByte = m_BufferManager1.GetBufferSize();
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#else // BACKGROUND_LOADING_TEST // 2008-10-17
+//
+//            //{{AFX
+//			pFileData = (char*)m_BufferManager2.GetBuffer(filesize, true);
+//			char* pDestData = m_BufferManager1.GetBuffer( compressBound( filesize+8 ), true );
+//            //}}AFX
+//
+//			WriteByte = m_BufferManager1.GetBufferSize();
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 			fread(pFileData,sizeof(char),filesize,pMemberFile);
 
@@ -2456,20 +2943,20 @@ bool KGCMassFileManager::CMassFile::SaveMassFile( char* strFileName, std::vector
 		else
 		{
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 			KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer( filesize );
 			pFileData = bufferPtr1->GetBuffer();
-#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-			pFileData = bufferPtr1->GetBuffer( filesize );
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-#else // BACKGROUND_LOADING_TEST // 2008-10-17
-
-            //{{AFX
-			pFileData = (char*)m_BufferManager1.GetBuffer(filesize, true);
-            //}}AFX
-
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//			pFileData = bufferPtr1->GetBuffer( filesize );
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#else // BACKGROUND_LOADING_TEST // 2008-10-17
+//
+//            //{{AFX
+//			pFileData = (char*)m_BufferManager1.GetBuffer(filesize, true);
+//            //}}AFX
+//
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 			fread(pFileData,sizeof(char),filesize,pMemberFile);
 			fwrite(pFileData,sizeof(char),filesize,file);
@@ -2492,22 +2979,20 @@ bool KGCMassFileManager::CMassFile::SaveMassFile( char* strFileName, std::vector
 
 		memset(MemberFileHeader.strFileName,0,sizeof(char)*MASSFILE_NAMESIZE);
 		GetFileName(MemberFileHeader.strFileName,(*pVecFile)[i]);
-
 #ifdef WCHAR_DIR
-		if( wcslen( MemberFileHeader.strFileName ) >= MASSFILE_NAMESIZE )
+		if(wcslen( MemberFileHeader.strFileName ) >= MASSFILE_NAMESIZE)
 #else WCHAR_DIR
-		if( strlen( MemberFileHeader.strFileName ) >= MASSFILE_NAMESIZE )
+		if(strlen(MemberFileHeader.strFileName) >= MASSFILE_NAMESIZE)
 #endif WCHAR_DIR
 		{
 			fclose(file);
-
 #ifdef WCHAR_DIR
 			MessageBox( NULL, MemberFileHeader.strFileName, L"File Name Too Long!!!", 0 );
 #else WCHAR_DIR
 			WCHAR tempStr[255] = {0,};
 			MultiByteToWideChar( CP_ACP, 0, MemberFileHeader.strFileName, -1, tempStr, 255);
 			MessageBox( NULL, tempStr, L"File Name Too Long!!!", 0 );
-			ErrorLogMsg( KEM_ERROR108, strFileName );			
+			ErrorLogMsg( KEM_ERROR108, strFileName );
 #endif WCHAR_DIR
 			return false;
 		}
@@ -2537,17 +3022,14 @@ bool KGCMassFileManager::CMassFile::ModifyMassFile( KGCMassFileManager& kManager
 #endif WCHAR_DIR
 {
 	FILE* file = NULL;
-
 #ifdef WCHAR_DIR
 	file = _wfopen( strFileName, L"w+b" );
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 	fopen_s( &file, strFileName, "w+b");
 #else	CONVERSION_VS
 	file = fopen(strFileName, "w+b");
 #endif	CONVERSION_VS
-
 #endif WCHAR_DIR
 	
 	if(file == NULL)
@@ -2555,12 +3037,12 @@ bool KGCMassFileManager::CMassFile::ModifyMassFile( KGCMassFileManager& kManager
 
 	//CSLock locker( m_csMassFile );
 
-#ifndef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
-    KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
-    KGCMassFileBufferPtr bufferPtr2 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifndef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+////#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//    KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
+//    KGCMassFileBufferPtr bufferPtr2 = KGCMassFileManager::m_massFileBufMan.GetBuffer();
+////#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
 	MASSFILE_HEADER Header;
 	Header.iTotalFileNo = (UINT)pVecFile->size();
@@ -2602,13 +3084,11 @@ bool KGCMassFileManager::CMassFile::ModifyMassFile( KGCMassFileManager& kManager
 #ifdef WCHAR_DIR
 			pMemberFile = _wfopen((*pVecFile)[i],L"rb");
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 			fopen_s( &pMemberFile, (*pVecFile)[i],"rb");
 #else	CONVERSION_VS
 			pMemberFile = fopen((*pVecFile)[i],"rb");
 #endif	CONVERSION_VS
-
 #endif WCHAR_DIR
 			
 			if(pMemberFile == NULL)
@@ -2622,30 +3102,30 @@ bool KGCMassFileManager::CMassFile::ModifyMassFile( KGCMassFileManager& kManager
 			if(bZip)
 			{
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 				WriteByte = compressBound( FileSize+8 );
 				KGCMassFileBufferPtr bufferPtr2 = KGCMassFileManager::m_massFileBufMan.GetBuffer( FileSize );
 				KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer( WriteByte );
 				pFileData = bufferPtr2->GetBuffer();
 				char* pDestData = bufferPtr1->GetBuffer();
-#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-				pFileData = bufferPtr2->GetBuffer( FileSize );
-				char* pDestData = bufferPtr1->GetBuffer( compressBound( FileSize+8 ) );
-				WriteByte = bufferPtr1->GetBufferSize();
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//				pFileData = bufferPtr2->GetBuffer( FileSize );
+//				char* pDestData = bufferPtr1->GetBuffer( compressBound( FileSize+8 ) );
+//				WriteByte = bufferPtr1->GetBufferSize();
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
 
-#else // BACKGROUND_LOADING_TEST // 2008-10-17
-
-                //{{AFX
-				pFileData = (char*)m_BufferManager2.GetBuffer(FileSize, true);
-				char* pDestData = m_BufferManager1.GetBuffer( compressBound( FileSize+8 ), true );
-
-				WriteByte = m_BufferManager1.GetBufferSize();
-                //}}AFX
-
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#else // BACKGROUND_LOADING_TEST // 2008-10-17
+//
+//                //{{AFX
+//				pFileData = (char*)m_BufferManager2.GetBuffer(FileSize, true);
+//				char* pDestData = m_BufferManager1.GetBuffer( compressBound( FileSize+8 ), true );
+//
+//				WriteByte = m_BufferManager1.GetBufferSize();
+//                //}}AFX
+//
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 				fread(pFileData,sizeof(char),FileSize,pMemberFile);
 
@@ -2659,20 +3139,20 @@ bool KGCMassFileManager::CMassFile::ModifyMassFile( KGCMassFileManager& kManager
 			else
 			{
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 				KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer( FileSize );
 				pFileData = bufferPtr1->GetBuffer();
-#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-				pFileData = bufferPtr1->GetBuffer( FileSize );
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-#else // BACKGROUND_LOADING_TEST // 2008-10-17
-
-                //{{AFX
-				pFileData = (char*)m_BufferManager1.GetBuffer(FileSize, true);
-                //}}AFX
-
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//				pFileData = bufferPtr1->GetBuffer( FileSize );
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#else // BACKGROUND_LOADING_TEST // 2008-10-17
+//
+//                //{{AFX
+//				pFileData = (char*)m_BufferManager1.GetBuffer(FileSize, true);
+//                //}}AFX
+//
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 				fread(pFileData,sizeof(char),FileSize,pMemberFile);
 				fwrite(pFileData,sizeof(char),FileSize,file);
@@ -2701,25 +3181,25 @@ bool KGCMassFileManager::CMassFile::ModifyMassFile( KGCMassFileManager& kManager
 				{
 					FileSize = OutFile.size;
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 					WriteByte = compressBound( FileSize+8 );
 					KGCMassFileBufferPtr bufferPtr1 = KGCMassFileManager::m_massFileBufMan.GetBuffer( WriteByte );
 					char* pDestData = bufferPtr1->GetBuffer();
-#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
-					char* pDestData = bufferPtr1->GetBuffer( compressBound( FileSize+8 ) );
-					WriteByte = bufferPtr1->GetBufferSize();
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#else	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//					char* pDestData = bufferPtr1->GetBuffer( compressBound( FileSize+8 ) );
+//					WriteByte = bufferPtr1->GetBufferSize();
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
-#else // BACKGROUND_LOADING_TEST // 2008-10-17
-
-                    //{{AFX
-					char* pDestData = m_BufferManager1.GetBuffer( compressBound( FileSize+8 ), true );
-
-					WriteByte = m_BufferManager1.GetBufferSize();
-                    //}}AFX
-
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#else // BACKGROUND_LOADING_TEST // 2008-10-17
+//
+//                    //{{AFX
+//					char* pDestData = m_BufferManager1.GetBuffer( compressBound( FileSize+8 ), true );
+//
+//					WriteByte = m_BufferManager1.GetBufferSize();
+//                    //}}AFX
+//
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 					if(Z_OK	!= compress((BYTE*)pDestData,&WriteByte,(BYTE*)OutFile.pRealData,FileSize))
 					{
@@ -2752,16 +3232,16 @@ bool KGCMassFileManager::CMassFile::ModifyMassFile( KGCMassFileManager& kManager
 			memset(MemberFileHeader.strFileName,0,sizeof(char)*MASSFILE_NAMESIZE);
 			GetFileName(MemberFileHeader.strFileName,(*pVecFile)[i]);
 #ifdef WCHAR_DIR
-			if( wcslen( MemberFileHeader.strFileName ) >= MASSFILE_NAMESIZE )
+			if(wcslen( MemberFileHeader.strFileName ) >= MASSFILE_NAMESIZE)
 #else WCHAR_DIR
-			if( strlen( MemberFileHeader.strFileName ) >= MASSFILE_NAMESIZE )
+			if(strlen(MemberFileHeader.strFileName) >= MASSFILE_NAMESIZE)
 #endif WCHAR_DIR
 			{
 				fclose(file);
 #ifdef WCHAR_DIR
-				MessageBoxW( NULL, MemberFileHeader.strFileName, L"File Name Too Long!!!", 0 );
+				MessageBoxW(NULL, MemberFileHeader.strFileName, L"File Name Too Long!!!", 0);
 #else WCHAR_DIR
-				MessageBoxA( NULL, MemberFileHeader.strFileName, "File Name Too Long!!!", 0 );
+				MessageBoxA(NULL,MemberFileHeader.strFileName,"File Name Too Long!!!",0);
 #endif WCHAR_DIR
 				ErrorLogMsg( KEM_ERROR110, strFileName );
 				return false;
@@ -2863,7 +3343,6 @@ void KGCMassFileManager::LeaveLastErrorLog( KTDX_ERROR_MSG eErrorID, const char*
 #else WCHAR_DIR
 	string strErrorMsg = "";
 #endif WCHAR_DIR
-
 	if( NULL != lpMsgBuf )
 	{
 #ifdef WCHAR_DIR
@@ -2918,89 +3397,89 @@ bool KGCMassFileManager::ExtractFileDuplicatedToTextFile()
 // BufferManager
 ////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
-    //{{AFX
-	KGCMassFileManager::KGCBufferManager::KGCBufferManager()
-	{
-		::InitializeCriticalSection( &m_csBufferManager );
-
-		m_iCurrBufferIndex = 0;
-		m_iBufferCount = sizeof( m_aBuffer ) / sizeof( Buffer );
-	}//KGCMassFileManager::KGCBufferManager::KGCBufferManager()
-
-	KGCMassFileManager::KGCBufferManager::~KGCBufferManager()
-	{
-		Flush();
-
-		::DeleteCriticalSection( &m_csBufferManager );
-	}//KGCMassFileManager::KGCBufferManager::~KGCBufferManager()
-
-	void KGCMassFileManager::KGCBufferManager::Flush()
-	{
-		CSLock locker( m_csBufferManager );
-
-		for( int i=0; i<m_iBufferCount; i++ )
-		{
-			Buffer& buffer = m_aBuffer[i];
-			buffer.flush();
-		}
-
-		m_iCurrBufferIndex = 0;
-	}//KGCMassFileManager::KGCBufferManager::Flush()
-
-	char* KGCMassFileManager::KGCBufferManager::GetBuffer( int iSize, bool bForceCurrent /*= false*/ )
-	{
-		CSLock locker( m_csBufferManager );
-	#ifndef _SERVICE_
-
-		int iInUseCount = 0;
-		for( int i=0; i<m_iBufferCount; i++ )
-		{
-			if( m_aBuffer[i].m_bInUse == true )
-			{
-				iInUseCount++;
-			}
-		}
-		if( iInUseCount > 4 )
-		{
-			debugPrintf( "mass file buf in-use count: %d", iInUseCount );
-		}
-
-	#endif
-		
-		int iBufferIndex = m_iCurrBufferIndex;
-		if( true == bForceCurrent )
-		{
-			m_aBuffer[iBufferIndex].m_bInUse = false;
-		}
-		
-		while( true )
-		{
-			Buffer& buffer = m_aBuffer[iBufferIndex];
-			if( false == buffer.m_bInUse )
-			{
-				m_iCurrBufferIndex = iBufferIndex;
-				buffer.m_bInUse = true;
-				char* pBuf = buffer.GetMemory( iSize, false );
-				return pBuf;
-			}
-
-			iBufferIndex++;
-			if( iBufferIndex > m_iBufferCount-1 )
-				iBufferIndex = 0;
-
-			if( iBufferIndex == m_iCurrBufferIndex )
-				break;
-		}
-
-		// note!! 여기까지 오면 뭔가 잘못 됐다
-		// m_aBuffer를 vector로 바꾸고 실시간으로 확장할 수 있도록 바꾸자
-		StateLog( L"KGCBufferManager::GetBuffer returns NULL" );
-		assert( false );
-		return NULL;
-	}//KGCMassFileManager::KGCBufferManager::GetBuffer()
-    //}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
+//    //{{AFX
+//	KGCMassFileManager::KGCBufferManager::KGCBufferManager()
+//	{
+//		::InitializeCriticalSection( &m_csBufferManager );
+//
+//		m_iCurrBufferIndex = 0;
+//		m_iBufferCount = sizeof( m_aBuffer ) / sizeof( Buffer );
+//	}//KGCMassFileManager::KGCBufferManager::KGCBufferManager()
+//
+//	KGCMassFileManager::KGCBufferManager::~KGCBufferManager()
+//	{
+//		Flush();
+//
+//		::DeleteCriticalSection( &m_csBufferManager );
+//	}//KGCMassFileManager::KGCBufferManager::~KGCBufferManager()
+//
+//	void KGCMassFileManager::KGCBufferManager::Flush()
+//	{
+//		CSLock locker( m_csBufferManager );
+//
+//		for( int i=0; i<m_iBufferCount; i++ )
+//		{
+//			Buffer& buffer = m_aBuffer[i];
+//			buffer.flush();
+//		}
+//
+//		m_iCurrBufferIndex = 0;
+//	}//KGCMassFileManager::KGCBufferManager::Flush()
+//
+//	char* KGCMassFileManager::KGCBufferManager::GetBuffer( int iSize, bool bForceCurrent /*= false*/ )
+//	{
+//		CSLock locker( m_csBufferManager );
+//	#ifndef _SERVICE_
+//
+//		int iInUseCount = 0;
+//		for( int i=0; i<m_iBufferCount; i++ )
+//		{
+//			if( m_aBuffer[i].m_bInUse == true )
+//			{
+//				iInUseCount++;
+//			}
+//		}
+//		if( iInUseCount > 4 )
+//		{
+//			debugPrintf( "mass file buf in-use count: %d", iInUseCount );
+//		}
+//
+//	#endif
+//		
+//		int iBufferIndex = m_iCurrBufferIndex;
+//		if( true == bForceCurrent )
+//		{
+//			m_aBuffer[iBufferIndex].m_bInUse = false;
+//		}
+//		
+//		while( true )
+//		{
+//			Buffer& buffer = m_aBuffer[iBufferIndex];
+//			if( false == buffer.m_bInUse )
+//			{
+//				m_iCurrBufferIndex = iBufferIndex;
+//				buffer.m_bInUse = true;
+//				char* pBuf = buffer.GetMemory( iSize, false );
+//				return pBuf;
+//			}
+//
+//			iBufferIndex++;
+//			if( iBufferIndex > m_iBufferCount-1 )
+//				iBufferIndex = 0;
+//
+//			if( iBufferIndex == m_iCurrBufferIndex )
+//				break;
+//		}
+//
+//		// note!! 여기까지 오면 뭔가 잘못 됐다
+//		// m_aBuffer를 vector로 바꾸고 실시간으로 확장할 수 있도록 바꾸자
+//		StateLog( L"KGCBufferManager::GetBuffer returns NULL" );
+//		assert( false );
+//		return NULL;
+//	}//KGCMassFileManager::KGCBufferManager::GetBuffer()
+//    //}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 ////////////////////////////////////////////////////////////////////////////////////
 // MemoryFile
@@ -3066,7 +3545,6 @@ bool KGCMassFileManager::ExtractFileDuplicatedToTextFile()
 
 bool KGCMassFileManager::SetSubDirectory()
 {
-
 #ifdef WCHAR_DIR
 	WCHAR	szSearchDir[MAX_PATH] = L"";
 	WCHAR	szCurrentDir[MAX_PATH] = L"";
@@ -3248,17 +3726,17 @@ WCHAR* KGCMassFileManager::GetPullPath( WCHAR* cFileName )
 char* KGCMassFileManager::GetPullPath( char* cFileName )
 #endif WCHAR_DIR
 {
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 	const KTLSData& kTLSData = GetUpdatedTLSData();
 #ifdef WCHAR_DIR
 	const std::vector<std::wstring>& vecstrDataDirectory = kTLSData.m_vecstrDataDirectory;
 #else WCHAR_DIR
 	const std::vector<std::string>& vecstrDataDirectory = kTLSData.m_vecstrDataDirectory;
 #endif WCHAR_DIR
-#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-    CSLock  lock( m_csFileManager );
-	const std::vector<std::string>& vecstrDataDirectory = m_vecstrDataDirectory;
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#else	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//    CSLock  lock( m_csFileManager );
+//	const std::vector<std::string>& vecstrDataDirectory = m_vecstrDataDirectory;
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 	FILE* file = NULL;
 #ifdef WCHAR_DIR
@@ -3276,28 +3754,22 @@ char* KGCMassFileManager::GetPullPath( char* cFileName )
 #ifdef WCHAR_DIR
 		_wfopen_s( &file, strName.c_str(), L"rb" );
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 		fopen_s( &file, strName.c_str(), "rb" );
 #else	CONVERSION_VS
 		file = fopen( strName.c_str(), "rb" );
 #endif	CONVERSION_VS
-
 #endif WCHAR_DIR
-
 		if(file != NULL)
 		{
-
 #ifdef WCHAR_DIR
 			wcsncpy_s( cFileName, MAX_PATH, strName.c_str() , MAX_PATH-1);
 #else WCHAR_DIR
-
 #ifdef	CONVERSION_VS
 			strncpy_s( cFileName, MAX_PATH, strName.c_str() , MAX_PATH-1);
 #else	CONVERSION_VS
 			strncpy( cFileName, strName.c_str() , MAX_PATH-1);
 #endif	CONVERSION_VS
-
 #endif WCHAR_DIR
 			
 			//strcpy( cFileName, strName.c_str());
@@ -3315,7 +3787,7 @@ char* KGCMassFileManager::GetPullPath( char* cFileName )
 }//KGCMassFileManager::GetPullPath()
 
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
 
 #ifdef WCHAR_DIR
 char* KGCMassFileManager::GetPullPath( char* cFileName )
@@ -3325,7 +3797,7 @@ char* KGCMassFileManager::GetPullPath( char* cFileName )
 	GetPullPath( strFileName );
 	WideCharToMultiByte( CP_ACP, 0, strFileName, -1, cFileName, ARRAY_SIZE(strFileName), NULL, NULL );
 	return cFileName;
-}//KGCMassFileManager::GetPullPath()
+}
 #else WCHAR_DIR
 WCHAR* KGCMassFileManager::GetPullPath( WCHAR* wcFileName )
 {
@@ -3337,40 +3809,40 @@ WCHAR* KGCMassFileManager::GetPullPath( WCHAR* wcFileName )
 }//KGCMassFileManager::GetPullPath()
 #endif WCHAR_DIR
 
-#else // BACKGROUND_LOADING_TEST
-
-//{{AFX: jintaeks on 2008-10-16, 14:58
-WCHAR* KGCMassFileManager::GetPullPath( WCHAR* wcFileName )
-{
-	char strFileName[255] = {0,};
-	std::string strName;
-
-	WideCharToMultiByte( CP_ACP, 0, wcFileName, -1, strFileName, 255, NULL, NULL );
-
-	FILE* file = NULL;
-
-	for( int i = 0; i < (int)m_vecstrDataDirectory.size(); ++i )
-	{
-		strName = m_vecstrDataDirectory[i] + strFileName;
-
-		file = fopen( strName.c_str(), "rb" );
-		if(file != NULL)
-		{
-			MultiByteToWideChar( CP_ACP, 0, strName.c_str(), -1, wcFileName, 255);
-			break;
-		}
-	}
-
-	if( file == NULL)
-	{
-		return NULL;
-	}
-
-	fclose( file );
-	return wcFileName;
-}//KGCMassFileManager::GetPullPath()
-//}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#else // BACKGROUND_LOADING_TEST
+//
+////{{AFX: jintaeks on 2008-10-16, 14:58
+//WCHAR* KGCMassFileManager::GetPullPath( WCHAR* wcFileName )
+//{
+//	char strFileName[255] = {0,};
+//	std::string strName;
+//
+//	WideCharToMultiByte( CP_ACP, 0, wcFileName, -1, strFileName, 255, NULL, NULL );
+//
+//	FILE* file = NULL;
+//
+//	for( int i = 0; i < (int)m_vecstrDataDirectory.size(); ++i )
+//	{
+//		strName = m_vecstrDataDirectory[i] + strFileName;
+//
+//		file = fopen( strName.c_str(), "rb" );
+//		if(file != NULL)
+//		{
+//			MultiByteToWideChar( CP_ACP, 0, strName.c_str(), -1, wcFileName, 255);
+//			break;
+//		}
+//	}
+//
+//	if( file == NULL)
+//	{
+//		return NULL;
+//	}
+//
+//	fclose( file );
+//	return wcFileName;
+//}//KGCMassFileManager::GetPullPath()
+////}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 
 /*static*/
@@ -3387,11 +3859,10 @@ HANDLE KGCMassFileManager::OpenReadFileHandle( const char* pszFilename, unsigned
 	
 	for( unsigned u = 0; u <= uRetryCount; u++ )
 	{
-		
 #ifdef WCHAR_DIR
-			hFile = ::CreateFileW( pszFilename,		// file to open
+		hFile = ::CreateFileW( pszFilename,		// file to open
 #else WCHAR_DIR
-			hFile = ::CreateFileA( pszFilename,		// file to open
+		hFile = ::CreateFileA( pszFilename,		// file to open
 #endif WCHAR_DIR
 			GENERIC_READ,          				// open for reading
 			FILE_SHARE_READ,       				// share for reading
@@ -3419,18 +3890,17 @@ HANDLE KGCMassFileManager::OpenReadFileHandle( const char* pszFilename, unsigned
 /*static*/
 #ifdef WCHAR_DIR
 BOOL KGCMassFileManager::ReadFile( HANDLE hFile, const WCHAR* pLogInfo, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, DWORD dwOffset
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-								  , bool bAsync
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-								  )
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//								  , bool bAsync
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+	)
 #else WCHAR_DIR
 BOOL KGCMassFileManager::ReadFile( HANDLE hFile, const char* pLogInfo, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, DWORD dwOffset
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-	, bool bAsync
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-								  )
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//	, bool bAsync
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+	)
 #endif WCHAR_DIR
-
 {
 	if ( lpNumberOfBytesRead != NULL )
 	{
@@ -3438,9 +3908,9 @@ BOOL KGCMassFileManager::ReadFile( HANDLE hFile, const char* pLogInfo, LPVOID lp
 	}//if
 
 
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-	if ( bAsync == false )
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//	if ( bAsync == false )
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 	{
 
 		DWORD dwSetFilePointer = ::SetFilePointer( hFile, dwOffset, NULL, FILE_BEGIN );
@@ -3467,81 +3937,81 @@ BOOL KGCMassFileManager::ReadFile( HANDLE hFile, const char* pLogInfo, LPVOID lp
 		return TRUE;
 
 	}
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-	else
-	{
-		ZeroMemory( &m_overlapped, sizeof(m_overlapped ) );
-		m_overlapped.m_overlapped.Offset = dwOffset;
-		m_overlapped.m_dwNumBytesTransferred = 0;
-		m_overlapped.m_eFinishCode = KGCMASSFILEMANAGER_OVERLAPPED::NOT_FINISHED;
-
-		if ( FALSE == ::ReadFileEx( hFile, lpBuffer, nNumberOfBytesToRead, &m_overlapped.m_overlapped, _CompletionRoutine ) )
-		{
-			LeaveLastErrorLog( KEM_ERROR390, pLogInfo, "read error" );
-			return FALSE;
-		}//if
-		while( m_overlapped.m_eFinishCode == KGCMASSFILEMANAGER_OVERLAPPED::NOT_FINISHED )
-		{
-			::SleepEx( INFINITE, TRUE );
-		}//while
-
-		if ( m_overlapped.m_eFinishCode == KGCMASSFILEMANAGER_OVERLAPPED::FINISHED )
-		{
-			if ( lpNumberOfBytesRead != NULL )
-			{
-				*lpNumberOfBytesRead = m_overlapped.m_dwNumBytesTransferred;
-			}//if
-
-			if ( m_overlapped.m_dwNumBytesTransferred != nNumberOfBytesToRead )
-			{
-				LeaveLastErrorLog( KEM_ERROR390, pLogInfo, "read error" );
-				return FALSE;
-			}//if
-
-			return TRUE;
-		}//if
-
-		LeaveLastErrorLog( KEM_ERROR390, pLogInfo, "read error" );
-		return FALSE;
-
-	}//if.. else..
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//	else
+//	{
+//		ZeroMemory( &m_overlapped, sizeof(m_overlapped ) );
+//		m_overlapped.m_overlapped.Offset = dwOffset;
+//		m_overlapped.m_dwNumBytesTransferred = 0;
+//		m_overlapped.m_eFinishCode = KGCMASSFILEMANAGER_OVERLAPPED::NOT_FINISHED;
+//
+//		if ( FALSE == ::ReadFileEx( hFile, lpBuffer, nNumberOfBytesToRead, &m_overlapped.m_overlapped, _CompletionRoutine ) )
+//		{
+//			LeaveLastErrorLog( KEM_ERROR390, pLogInfo, "read error" );
+//			return FALSE;
+//		}//if
+//		while( m_overlapped.m_eFinishCode == KGCMASSFILEMANAGER_OVERLAPPED::NOT_FINISHED )
+//		{
+//			::SleepEx( INFINITE, TRUE );
+//		}//while
+//
+//		if ( m_overlapped.m_eFinishCode == KGCMASSFILEMANAGER_OVERLAPPED::FINISHED )
+//		{
+//			if ( lpNumberOfBytesRead != NULL )
+//			{
+//				*lpNumberOfBytesRead = m_overlapped.m_dwNumBytesTransferred;
+//			}//if
+//
+//			if ( m_overlapped.m_dwNumBytesTransferred != nNumberOfBytesToRead )
+//			{
+//				LeaveLastErrorLog( KEM_ERROR390, pLogInfo, "read error" );
+//				return FALSE;
+//			}//if
+//
+//			return TRUE;
+//		}//if
+//
+//		LeaveLastErrorLog( KEM_ERROR390, pLogInfo, "read error" );
+//		return FALSE;
+//
+//	}//if.. else..
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 	return FALSE;
 
 }//KGCMassFileManager::NewReadFile()
 
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//
+//
+///*static*/
+//void WINAPI KGCMassFileManager::_CompletionRoutine( DWORD dwErrorCode, DWORD dwNumTrans, LPOVERLAPPED lpOverlapped )
+//{
+//	KGCMASSFILEMANAGER_OVERLAPPED* temp =(KGCMASSFILEMANAGER_OVERLAPPED*)(lpOverlapped);
+//	if ( temp == NULL )
+//		return;
+//
+//	if ( dwErrorCode != 0 )
+//	{
+//		temp->m_dwNumBytesTransferred = 0L;
+//		temp->m_eFinishCode = KGCMASSFILEMANAGER_OVERLAPPED::FINISHED_WITH_ERROR;
+//	}
+//	else
+//	{
+//		temp->m_dwNumBytesTransferred = dwNumTrans;
+//		temp->m_eFinishCode = KGCMASSFILEMANAGER_OVERLAPPED::FINISHED;
+//	}//if.. else..
+//
+//}//KGCMassFileManager::_CompletionRoutine()
+//
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 
-/*static*/
-void WINAPI KGCMassFileManager::_CompletionRoutine( DWORD dwErrorCode, DWORD dwNumTrans, LPOVERLAPPED lpOverlapped )
-{
-	KGCMASSFILEMANAGER_OVERLAPPED* temp =(KGCMASSFILEMANAGER_OVERLAPPED*)(lpOverlapped);
-	if ( temp == NULL )
-		return;
-
-	if ( dwErrorCode != 0 )
-	{
-		temp->m_dwNumBytesTransferred = 0L;
-		temp->m_eFinishCode = KGCMASSFILEMANAGER_OVERLAPPED::FINISHED_WITH_ERROR;
-	}
-	else
-	{
-		temp->m_dwNumBytesTransferred = dwNumTrans;
-		temp->m_eFinishCode = KGCMASSFILEMANAGER_OVERLAPPED::FINISHED;
-	}//if.. else..
-
-}//KGCMassFileManager::_CompletionRoutine()
-
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-
-
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 void	KGCMassFileManager::ReleaseAllMemoryBuffers()
 {
-#ifdef	BACKGROUND_LOADING_TEST
+//#ifdef	BACKGROUND_LOADING_TEST
 	m_massFileBufMan.ReleaseAllBuffers();
-#endif	BACKGROUND_LOADING_TEST
+//#endif	BACKGROUND_LOADING_TEST
 }
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER

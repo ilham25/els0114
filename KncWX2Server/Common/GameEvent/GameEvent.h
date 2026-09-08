@@ -94,7 +94,6 @@ public:
 	bool			IsOn() const					{ return m_bOn; }
 #endif SERV_ALLOW_EVENT_ERASE
 
-
 	void			SetEventName( std::wstring wstrEventName ){ m_wstrEventName = wstrEventName; }
 	const std::wstring&	GetEventName() const		{ return m_wstrEventName; }
 
@@ -114,7 +113,7 @@ protected:
 	std::wstring		m_wstrEventName;
 
 	CTime				m_BeginDate;
-	CTime				m_EndDate;
+	CTime				m_EndDate;	
 
 #ifdef SERV_ADVERTISEMENT_EVENT
 	std::wstring		m_wstrAdvertisementURL;

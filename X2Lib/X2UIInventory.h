@@ -183,7 +183,7 @@ public:
 //#ifdef SPT_NONE_ITEM_DELETE
 		UIM_SPTNONE_ITEM_DELETE_OK,
 		UIM_SPTNONE_ITEM_DELETE_CANCEL,
-//#endif SPT_NONE_ITEM_DELETE
+//#endif //SPT_NONE_ITEM_DELETE
 //#ifdef SERV_NEW_ITEM_SYSTEM_2013_05 //미라클큐브
 		UIM_USE_RESTORE_ITEM_EVALUATION_OK,
 		UIM_USE_RESTORE_ITEM_EVALUATION_CANCEL,
@@ -195,9 +195,41 @@ public:
 //#ifdef RIDING_ITEM_POPUP_CHECK
 		UIM_RIDING_ITEM_USE_OK,
 //#endif //RIDING_ITEM_POPUP_CHECK
+
+//#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		UIM_EL_BREAK_EXIT,
+		UIM_EL_BREAK_NUM_PLUS,
+		UIM_EL_BREAK_NUM_MINUS,
+		UIM_EL_BREAK_NUM_UPDATE,
+		UIM_EL_BREAK_OK,
+		UIM_EL_BREAK_RESULT_OK,
+//#endif //FINALITY_SKILL_SYSTEM
+
+//#ifdef GOOD_ELSWORD //JHKang
+		UIM_EXPAND_INVENTORY_CASH,
+		UIM_EXPAND_INVENTORY_ED,
+		UIM_EXPAND_INVENTORY_ED_BUY_CONFIRM,
+		UIM_EXPAND_INVENTORY_ED_BUY_CANCEL,
+//#endif //GOOD_ELSWORD
+//#ifdef FIELD_BOSS_RAID // 소켓 슬롯 확장
+		UIM_USE_ADD_SOCKET_SLOT_OK		= 11841,
+		UIM_USE_ADD_SOCKET_SLOT_CANCEL	= 11842,
+//#endif // FIELD_BOSS_RAID
+//#ifdef REFORM_SKILL_NOTE_UI
+		UIM_BUY_SKILL_NOTE_GUIDE_MOUSE_UP = 11843,
+//#endif // REFORM_SKILL_NOTE_UI
 //#ifdef SERV_GOLD_TICKET
 		UIM_USE_GOLD_TICKET,
 //#endif SERV_GOLD_TICKET
+//#ifdef SERV_TOUR_TICKET_EVENT
+		UIM_USE_TOUR_TICKET,
+//#endif SERV_TOUR_TICKET_EVENT
+//#ifdef SERV_RELATIONSHIP_EVENT_INT
+		UIM_USE_PROPOSE_ITEM,
+		UIM_USE_PROPOSE_ITEM_OK,
+		UIM_USE_PROPOSE_ITEM_CANCLE,
+		UIM_USE_DIVORCE_ITEM,
+//#endif SERV_RELATIONSHIP_EVENT_INT
 #ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 		UIM_PET_HALLOWEEN_TRANSFORM_POSION_OK,
 #endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
@@ -215,7 +247,13 @@ public:
 		UIM_UNLIMITED_SECOND_CHANGE_JOB_DEST,	
 		UIM_UNLIMITED_SECOND_CHANGE_JOB_OK,
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
-
+//#ifdef SERV_RECRUIT_EVENT_BASE
+//		UIM_RECOMMEND_OK,
+//		UIM_RECOMMEND_CANCEL,
+//#endif SERV_RECRUIT_EVENT_BASE
+//#ifdef SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
+//		UIM_USE_EXPAND_INVENTORY_OK,
+//#endif //SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
 	};
 
 	enum RANDOM_ITEM_OPEN_EVENT_TYPE
@@ -226,7 +264,6 @@ public:
 #ifdef APRIL_5TH_TREE_DAY_EVENT
 		RIOET_APRIL_5TH_TREE_DAY_EVENT,		// 식목일 이벤트
 #endif
-
 		RIOET_GOLD_ICE_HEATER,		// 골드 얼음 조각상 가열기
 //#ifdef SERV_SERV_MINI_RANDOM_CUBE_REWARD
 		RIOET_MINI_ICE_HEATER,		// 미니 얼음 조각상 가열기
@@ -313,7 +350,7 @@ public:
 #endif // SERV_ALL_IN_ONE_RANDOM_CUBE_REWARD
 
 #ifdef FIX_ICE_HEATER_EVENT
-
+	
 	struct IceHeaterEventData
 	{
 		wstring m_wstrWaitUIEffectSetName;			/// 가열기 대기 상태 이펙트셋 이름
@@ -341,21 +378,21 @@ public:
 		float	m_fPlayTime;						/// 재생 시간 ( 가열기 가동 ~ 종료까지 시간 )
 
 		IceHeaterEventData()
-			: m_wstrWaitUIEffectSetName( L"" )
-			, m_wstrPlayUIEffectSetName( L"" )
-			, m_wstrWaitMeshPlayerName( L"" )
-			, m_wstrPlayMeshPlayerName( L"" )
-			, m_wstrMainDialogTitleTexture( L"" )
-			, m_wstrMainDialogTitleTextureKey( L"" )
-			, m_wstrResultDialogTitleTexture( L"" )
-			, m_wstrResultDialogTitleTextureKey( L"" )
-			, m_fCautionIconOffSetPositionX( 0.f )
-			, m_fCautionIconOffSetPositionY( 0.f )
-			, m_fCautionStringOffSetPositionX( 0.f )
-			, m_fCautionStringOffSetPositionY( 0.f )
-			, m_wstrIceHeaterPlaySound( L"" )
-			, m_iCautionStringNum( 0 )
-			, m_fPlayTime( 0.f )
+		: m_wstrWaitUIEffectSetName( L"" )
+		, m_wstrPlayUIEffectSetName( L"" )
+		, m_wstrWaitMeshPlayerName( L"" )
+		, m_wstrPlayMeshPlayerName( L"" )
+		, m_wstrMainDialogTitleTexture( L"" )
+		, m_wstrMainDialogTitleTextureKey( L"" )
+		, m_wstrResultDialogTitleTexture( L"" )
+		, m_wstrResultDialogTitleTextureKey( L"" )
+		, m_fCautionIconOffSetPositionX( 0.f )
+		, m_fCautionIconOffSetPositionY( 0.f )
+		, m_fCautionStringOffSetPositionX( 0.f )
+		, m_fCautionStringOffSetPositionY( 0.f )
+		, m_wstrIceHeaterPlaySound( L"" )
+		, m_iCautionStringNum( 0 )
+		, m_fPlayTime( 0.f )
 		{}
 
 	};
@@ -372,6 +409,10 @@ public:
 
 	virtual bool UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 	virtual bool UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+
+#ifdef CAMERA_ZOOM_BY_MOUSE_WHEEL
+	bool OnMouseWheel( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //CAMERA_ZOOM_BY_MOUSE_WHEEL
 
 	bool GetShow() { return m_bShow; }
 	void SetShow(bool val);
@@ -439,12 +480,12 @@ public:
 #endif //BUFF_TEMPLET_SYSTEM
 	bool Handler_EGS_USE_ITEM_IN_INVENTORY_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );       
 
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 	//{{ 지헌 : 은행간 교환 가능한 아이템인지 체크하는 함수
 	bool CheckCanMoveShareItem(CX2Item* pFromItem, CX2Item* pToItem, KEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ &kMoveInfo);
 	//}}
 	bool Handler_EGS_UPDATE_ITEM_POSITION_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 
 #ifdef SERV_TREASURE_BOX_ITEM
 	bool GetPlayTreasureBox() 
@@ -494,6 +535,11 @@ public:
 	void HideSkillNote(bool bVal);
 	void SetEnableSkillNote(bool bVal);
 #endif
+#ifdef REFORM_SKILL_NOTE_UI // 기술의 노트 버튼 제거하지 않고 비활성화로 변경
+	void SetEnableBuySkillNote( bool bVal );
+	void RegisterMemo( const CX2Item::ItemTemplet* pItemTemplet_, UidType uiMemoItemUID_ );
+#endif // REFORM_SKILL_NOTE_UI
+
 
 #ifdef RANDOM_CUBE_UI_NEW
 	CKTDGUIDialogType GetDLGResolveItemResult(){ return m_pDLGResolveItemResult; }
@@ -537,6 +583,20 @@ public:
 	void	AddIceHeaterEventInfo_LUA();
 #endif // FIX_ICE_HEATER_EVENT
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	const CX2Inventory::SORT_TYPE GetInventorySortType() { return m_NowInventorySortType; }
+
+	/// 외부 참조를 위해, Public으로 설정
+	bool	UpdatePageUI( int iPage = 1 );
+
+	/// /// 현재 카테고리 페이지 수 반환 ( 외부 참조를 위해, Public으로 설정 )
+	int		GetNowInventoryPageNum( CX2Inventory::SORT_TYPE InventorySortType_ ) const { return m_NowInventoryPageNum[ InventorySortType_ - 1 ]; }
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
+#ifdef CAMERA_ZOOM_BY_MOUSE_WHEEL
+	bool	GetIsMouseOver();
+#endif // CAMERA_ZOOM_BY_MOUSE_WHEEL
+
 #ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 	void	UseTransformPetItem();
 #endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
@@ -547,6 +607,9 @@ protected:
 	void InitItemObtainResult(const WCHAR* pFileName, std::map< int, int >& mapInsertedItem );
 	//오현빈 // 2012-03-06 // 아이템 분해로 획득한 아이템에 대한 결과창 초기화
 	void InitItemResolveResult(const WCHAR* pFileName, std::map< int, int >& mapInsertedItem );
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	void InitItemObtainResult2(const WCHAR* pFileName, std::map< int, int >& mapInsertedItem, int iSlotNum = RESOLVE_RESULT_ITEM_LIST_MAX_SLOT_NUM );
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 #endif RANDOM_EXCHANGE_RESULT_VIEW
 	//{{ kimhc // 2009-08-10 // 은행
 #ifdef	PRIVATE_BANK
@@ -719,21 +782,33 @@ protected:
 
 #ifdef	SERV_REFORM_INVENTORY_TEST
 	void	SetShowInventoryPageUI(int iMaxPageNum = 0 );
+
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 외부 참조를 위해, Public으로 이동
 	bool	UpdatePageUI( int iPage = 1 );
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 	int		GetPageNumBySlotID( int iSlotID );
 
 	int		GetMaxLineNumPerCategory( CX2Inventory::SORT_TYPE InventorySortType_ );	/// 현제 카테고리의 최대 슬롯 줄 수 반환
-	/// 현재 카테고리 페이지 수 반환
+
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 외부 참조를 위해, Public으로 이동 ( 현재 카테고리 페이지 수 반환 )
 	int		GetNowInventoryPageNum( CX2Inventory::SORT_TYPE InventorySortType_ ) const { return m_NowInventoryPageNum[ InventorySortType_ - 1 ]; }
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 	/// 현재 카테고리 페이지 수 설정
 	void	SetNowInventoryPageNum( CX2Inventory::SORT_TYPE InventorySortType_, int iPageNum_ ) { m_NowInventoryPageNum[ InventorySortType_ - 1 ] = iPageNum_; }
 #endif	SERV_REFORM_INVENTORY_TEST
+
+#ifdef SERV_TOUR_TICKET_EVENT
+	void	ShowTourEventDlg();
+#endif SERV_TOUR_TICKET_EVENT
 
 	//{{ 2012. 10. 08  할로윈 가열기
 #ifdef SERV_HALLOWEEN_ICE_HEATER
 	void UpdateOpenHalloWeenItemAck();
 #endif SERV_HALLOWEEN_ICE_HEATER
-
 
 protected:
 	void UseDefenceDungeonPotion( const UidType uidItem_, const int iItemId_ );
@@ -761,7 +836,7 @@ protected:
 	bool Handler_EGS_ITEM_EVALUATE_REQ();
 	bool Handler_EGS_ITEM_EVALUATE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
-	void Handler_EGS_ITEM_CONVERT_REQ( UidType iItemUID );
+	void Handler_EGS_ITEM_CONVERT_REQ( UidType iItemUID, int iQuantity );
 	bool Handler_EGS_ITEM_CONVERT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
@@ -769,6 +844,37 @@ protected:
 #ifdef ADDED_ENCHANT_COUPON_HAVE_LEVEL_LIMIT    // 김종훈 / 13-07-03 / 레벨 제한을 가진 강화의 부적
 	bool CheckLevelIfLevelLimitEnchantCoupon ( const int iCouponItemID_ , const int iTargetItemLevel_ );
 #endif // ADDED_ENCHANT_ITEM_HAVE_LEVEL_LIMIT // 김종훈 / 13-07-03 / 레벨 제한을 가진 강화의 부적
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	void OpenElBreakWindow( IN CX2Item* pItem_ );
+	void UpdateElBreakDLG( IN const bool bReadIME_ );
+	bool Handler_EGS_ITEM_EXTRACT_REQ();
+	bool Handler_EGS_ITEM_EXTRACT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef GOOD_ELSWORD //JHKang
+#ifndef NO_GOOD_ELSWORD_INT
+	bool	Handler_EGS_GET_NEXT_INVENTORY_ED_REQ();
+	bool	Handler_EGS_GET_NEXT_INVENTORY_ED_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+	bool	Handler_EGS_EXPAND_INVENTORY_ED_REQ();
+	bool	Handler_EGS_EXPAND_INVENTORY_ED_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif NO_GOOD_ELSWORD_INT
+#endif //GOOD_ELSWORD
+
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+	bool IsAddSocketSlotItem( const int ItemID_ ) const;
+	void UseAddSocketSlotItem( UidType iConsumeItemUID_ );
+
+	void Handler_EGS_SOCKET_EXPAND_ITEM_REQ();
+	bool Handler_EGS_SOCKET_EXPAND_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif // ADD_SOCKET_SLOT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	void Handler_EGS_USE_PROPOSE_ITEM_REQ( UidType iItemUID, wstring wstrNickName );
+	bool Handler_EGS_USE_PROPOSE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+	void Handler_EGS_USE_DIVORCE_ITEM_REQ();
+	bool Handler_EGS_USE_DIVORCE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif SERV_RELATIONSHIP_EVENT_INT
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
 	bool Handler_EGS_CUBE_IN_ITEM_MAPPING_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
@@ -804,6 +910,10 @@ private:
 	CKTDGUIDialogType			m_pDLGCubeCheck;
 	CKTDGUIDialogType			m_pDLGElChanger;
 	CKTDGUIDialogType			m_pDLGElChangerResult;
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	CKTDGUIDialogType			m_pDLGElBreak;			/// 엘 분해기
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef SERV_PSHOP_AGENCY
 	CKTDGUIDialogType			m_pDLGCheckPShop;
@@ -907,14 +1017,13 @@ private:
 	CKTDGUIDialogType			m_pDLGTreasureBox7;
 	CKTDGUIDialogType			m_pDLGTreasureBox8;
 	CKTDGUIDialogType			m_pDLGTreasureBox9;
-
 	CKTDGUIDialogType			m_pDLGTreasureBox_White;
 
-	bool					m_bPlayingTreasureBox;
-	bool					m_bTreasureBoxSoundPlayed;
+	bool						m_bPlayingTreasureBox;
+	bool						m_bTreasureBoxSoundPlayed;
 
 #ifdef TREASURE_BOX_ITEM_THIN
-	int						m_TreasureBoxSPItemID;
+	int							m_TreasureBoxSPItemID;
 #endif TREASURE_BOX_ITEM_THIN
 #endif 	SERV_TREASURE_BOX_ITEM
 	//}}100416 김정협 트레져 박스 추가
@@ -1034,11 +1143,36 @@ public:
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05 //미라클큐브
 	UidType					m_iConsumeItemUID;
 	UidType					m_iTargetItemUID;
+	int						m_iConsumeItemQuantity;
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
 #ifdef RIDING_ITEM_POPUP_CHECK
 	UidType					m_iRidingItemUid;
 #endif //RIDING_ITEM_POPUP_CHECK
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	UidType		m_ElBreakItemUID;
+	int			m_ElBreakItemCount;
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef GOOD_ELSWORD //JHKang
+	int					m_iConfirmED;
+	CKTDGUIDialogType	m_pDLGBuyConfirm;
+#endif //GOOD_ELSWORD
+
+#ifdef CAMERA_ZOOM_BY_MOUSE_WHEEL
+	float		m_fLeftMouseWhellCoolTime;
+#endif // CAMERA_ZOOM_BY_MOUSE_WHEEL
+
+#ifdef SERV_TOUR_TICKET_EVENT
+	CKTDGUIDialogType		m_pDLGTourEventDlg;
+	bool					m_bPlayTourEvent;
+	float					m_fPlayTourEventDlgTime;
+#endif SERV_TOUR_TICKET_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	CKTDGUIDialogType		m_pDLGMarryEventNickName;
+#endif SERV_RELATIONSHIP_EVENT_INT
 
 #ifdef SERV_RECRUIT_EVENT_BASE
 	CKTDGUIDialogType		m_pDLGRecommend;

@@ -65,7 +65,7 @@ m_iMyLastKillCount(0)
 	XSkinMeshReady( L"Motion_Elsword_LK.x" );
 	XSkinMeshReady( L"Motion_Elsword_MK.x" );
 	XSkinMeshReady( L"Motion_Elsword_RS.x" );
-	XSkinMeshReady( L"Motion_Elsword_SN.x" );	
+	XSkinMeshReady( L"Motion_Elsword_SK.x" );	
 
 	//XSkinMeshReady( L"Motion_Lire_Common.x" );
 	//XSkinMeshReady( L"Motion_Lire_Emotion.x" );
@@ -179,7 +179,7 @@ m_iMyLastKillCount(0)
 		g_pKTDXApp->GetDGManager()->GetFar(), true );
 
 	// note!! 임시로 대전게임 시작하면 카메라를 1500.f 거리로, 즉, 최대로 zoom out
-	g_pMain->GetGameOption()->CameraZoomIn( -100 );
+	g_pMain->GetGameOption().CameraZoomIn( -100 );
 
 	g_pData->PlayLobbyBGM( NULL, false );
 
@@ -201,6 +201,11 @@ m_iMyLastKillCount(0)
 	//서버로부터 랙체크 활성화 여부를 알아낸다.
 	CX2State::Handler_EGS_GET_ACTIVE_LAGCHECK_REQ();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK_VER2
+
+#ifdef  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+    if ( g_pData->GetGameUDP() != NULL )
+        g_pData->GetGameUDP()->RemoveAllPendingPingSends();
+#endif  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
 }
 
 CX2StatePVPGame::~CX2StatePVPGame(void)
@@ -431,7 +436,12 @@ void CX2StatePVPGame::LoadUI()
 					pStaticUnitInfoTex->GetPicture( LUI_EL_BLACK )->SetShow( true );		
 				} break;
 #endif // NEW_CHARACTER_EL
-
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+			case CX2Unit::UT_ADD:		/// 변경이 필요 하다.
+				{
+					pStaticUnitInfoTex->GetPicture( LUI_ADD_BLACK )->SetShow( true );		
+				} break;
+#endif //SERV_9TH_NEW_CHARACTER
 
 			default:
 				{
@@ -602,15 +612,14 @@ void CX2StatePVPGame::GameLoadingStart()
 
 	m_LoadingRenderCount = g_pKTDXApp->GetRenderCount();
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #ifdef  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
 
     if ( g_pData->GetGameUDP() != NULL )
         g_pData->GetGameUDP()->ResetConnectTestToPeersAll();
 
 #endif  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
     if ( g_pX2Room != NULL )
         g_pX2Room->ResetSlotPingSendsAll();
@@ -640,11 +649,7 @@ bool CX2StatePVPGame::ShortCutKeyProcess()
 	if ( CX2State::ShortCutKeyProcess() == true )
 		return true;
 
-#ifdef REFORM_UI_KEYPAD
 	if ( GET_KEY_STATE( GA_OPTION ) == TRUE )
-#else
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_O) == TRUE )
-#endif
 	{
 		if( true == IsOptionWindowOpen() )
 			CloseOptionWindow();
@@ -656,11 +661,7 @@ bool CX2StatePVPGame::ShortCutKeyProcess()
 
 #ifndef OPEN_TEST_1_NO_MESSENGER_CASHSHOP
 
-#ifdef REFORM_UI_KEYPAD
 	if ( GET_KEY_STATE( GA_FRIEND ) == TRUE )
-#else
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_M) == TRUE )
-#endif
 	{
 		g_pData->GetMessenger()->SetFriendTab(true);
 		g_pData->GetMessenger()->SetOpen( !g_pData->GetMessenger()->GetOpen() );
@@ -673,11 +674,7 @@ bool CX2StatePVPGame::ShortCutKeyProcess()
 	//{{ kimhc // 2009-10-13 // 길드 탭UI 단축키 지정
 #ifdef	GUILD_MANAGEMENT
 	// 커뮤니티(친구탭)
-#ifdef REFORM_UI_KEYPAD
 	if ( GET_KEY_STATE( GA_GUILD ) == TRUE )
-#else
-	if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_G) == TRUE )
-#endif
 	{			
 		g_pData->GetMessenger()->SetTabByShortCutKey( CX2Community::XMUT_GUILD );
 		g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_COMMUNITY);
@@ -691,15 +688,15 @@ bool CX2StatePVPGame::ShortCutKeyProcess()
 
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F11) == TRUE )
 	{
-		g_pMain->GetGameOption()->SetMusic( !g_pMain->GetGameOption()->GetOptionList()->m_bMusic );
-		g_pMain->GetGameOption()->SaveScriptFile();
+		g_pMain->GetGameOption().SetMusic( !g_pMain->GetGameOption().GetOptionList().m_bMusic );
+		g_pMain->GetGameOption().SaveScriptFile();
 		if( m_bIsOptionWindowOpen == true )
 		{
 			InitSoundOption();
 		}
 
 
-		if( true == g_pMain->GetGameOption()->GetOptionList()->m_bMusic )
+		if( true == g_pMain->GetGameOption().GetOptionList().m_bMusic )
 		{
 			if( NULL != g_pChatBox )
 			{
@@ -720,15 +717,15 @@ bool CX2StatePVPGame::ShortCutKeyProcess()
 
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F10) == TRUE )
 	{
-		g_pMain->GetGameOption()->SetSound( !g_pMain->GetGameOption()->GetOptionList()->m_bSound );
-		g_pMain->GetGameOption()->SaveScriptFile();
+		g_pMain->GetGameOption().SetSound( !g_pMain->GetGameOption().GetOptionList().m_bSound );
+		g_pMain->GetGameOption().SaveScriptFile();
 		if( m_bIsOptionWindowOpen == true )
 		{
 			InitSoundOption();
 		}
 
 
-		if( true == g_pMain->GetGameOption()->GetOptionList()->m_bSound )
+		if( true == g_pMain->GetGameOption().GetOptionList().m_bSound )
 		{
 			if( NULL != g_pChatBox )
 			{
@@ -750,14 +747,14 @@ bool CX2StatePVPGame::ShortCutKeyProcess()
 
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F9) == TRUE )
 	{
-		g_pMain->GetGameOption()->SetDynamicCamera( !g_pMain->GetGameOption()->GetOptionList()->m_bDynamicCamera );
-		g_pMain->GetGameOption()->SaveScriptFile();
+		g_pMain->GetGameOption().SetDynamicCamera( !g_pMain->GetGameOption().GetOptionList().m_bDynamicCamera );
+		g_pMain->GetGameOption().SaveScriptFile();
 		if( m_bIsOptionWindowOpen == true )
 		{
 			InitOtherOption();
 		}
 
-		if( true == g_pMain->GetGameOption()->GetOptionList()->m_bDynamicCamera )
+		if( true == g_pMain->GetGameOption().GetOptionList().m_bDynamicCamera )
 		{
 			if( NULL != g_pChatBox )
 			{
@@ -797,6 +794,17 @@ bool CX2StatePVPGame::ShortCutKeyProcess()
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->SetShow( !bShow );
 		bool bHide = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetHideDialog();
 		
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+		if(g_pInstanceData->GetScreenShotTest() == false)
+		{
+			g_pInstanceData->SetScreenShotTest(true);
+		}
+		else
+		{
+			g_pInstanceData->SetScreenShotTest(false);
+		}
+#endif ALWAYS_SCREEN_SHOT_TEST
+
 		if( g_pData->GetPicCharGameScore() != NULL )		
 		{
 			if( bHide == true )
@@ -1014,6 +1022,9 @@ HRESULT CX2StatePVPGame::OnFrameRender()
 		g_pInstanceData->GetMiniMapUI() != NULL )
 	{
 		g_pInstanceData->GetMiniMapUI()->UpdateEventNotice();
+#ifdef EVENT_CARNIVAL_DECORATION
+		g_pInstanceData->GetMiniMapUI()->UpdateCarnivalDeco();
+#endif //EVENT_CARNIVAL_DECORATION
 	}
 	//RenderMarketingEventTimer();
 	//}}
@@ -1246,6 +1257,17 @@ bool CX2StatePVPGame::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 			return true;
 		} break;
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case EGS_USE_FINALITY_SKILL_ACK:
+		{
+			if ( NULL != g_pX2Game )
+			{
+				return g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_ACK( hWnd, uMsg, wParam, lParam );
+			}
+			return true;
+		} break;
+#endif //FINALITY_SKILL_SYSTEM
+
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	case EGS_CREATE_ATTRIB_NPC_NOT:
 		{
@@ -1352,10 +1374,8 @@ bool CX2StatePVPGame::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 
 	case EGS_CHANGE_PVP_ITEM_POS_ACK:
 		return Handler_EGS_CHANGE_PVP_ITEM_POS_ACK( hWnd, uMsg, wParam, lParam );
-#ifdef MODIFY_PVP_ITEM
 	case EGS_CHANGE_PVP_ITEM_POS_NOT:
 		return Handler_EGS_CHANGE_PVP_ITEM_POS_NOT( hWnd, uMsg, wParam, lParam );
-#endif MODIFY_PVP_ITEM
 #endif
 
 #ifdef SERV_PVP_NEW_SYSTEM
@@ -1764,6 +1784,7 @@ bool CX2StatePVPGame::Handler_EGS_LEAVE_ROOM_ACK( HWND hWnd, UINT uMsg, WPARAM w
 #ifdef SERV_PVP_NEW_SYSTEM
 		if( g_pMain->GetConnectedChannelID() == KPVPChannelInfo::PCC_OFFICIAL )
 		{
+
 #ifndef HEAP_BROKEN_BY_ROOM
 			g_pData->DeletePVPRoom();
 #endif // HEAP_BROKEN_BY_ROOM
@@ -2000,7 +2021,7 @@ bool CX2StatePVPGame::GameLoadingNot( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 #endif
 	};*/
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #ifdef  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
     if ( kPacket.m_iLoadingProgress >= 100 )
     {
@@ -2008,7 +2029,8 @@ bool CX2StatePVPGame::GameLoadingNot( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
             g_pData->GetGameUDP()->ResetConnectTestToPeer( kPacket.m_iUnitUID );
     }//if
 #endif  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+
 
 	for ( int i = 0; i < g_pData->GetPVPRoom()->GetSlotNum(); i++ )
 	{
@@ -2115,6 +2137,13 @@ bool CX2StatePVPGame::GameLoadingNot( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 						pStaticUnitInfoTex->GetPicture( LUI_EL_COLOR )->SetShow( true );
 					} break;
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+				case CX2Unit::UT_ADD:		/// 변경이 필요 하다.
+					{
+						pStaticUnitInfoTex->GetPicture( LUI_ADD_BLACK )->SetShow( false );
+						pStaticUnitInfoTex->GetPicture( LUI_ADD_COLOR )->SetShow( true );
+					} break;
+#endif //SERV_9TH_NEW_CHARACTER
 				default:
 					{
 						ASSERT( !"Unexpected UnitClass!" );
@@ -2183,10 +2212,8 @@ bool CX2StatePVPGame::Handler_EGS_PLAY_START_NOT( HWND hWnd, UINT uMsg, WPARAM w
 				CX2Unit* pUnit = pCX2GUUser->GetUnit(); 
 				if ( NULL != pUnit ) 
 				{
-					CX2Unit::UnitData* pUnitData = pCX2GUUser->GetUnit()->GetUnitData();
-
-					if ( NULL != pUnitData )
-						pUnitData->ClearPremiumBuffInfo();
+					CX2Unit::UnitData* pUnitData = &pCX2GUUser->GetUnit()->AccessUnitData();
+                    pUnitData->ClearPremiumBuffInfo();
 				}
 			}
 		}
@@ -2668,7 +2695,7 @@ bool CX2StatePVPGame::BroadCastPVPGameChatInfoNot( HWND hWnd, UINT uMsg, WPARAM 
 		return true;
 
 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( "DLG_PVP_Game_ChatBox_Pos.lua" );
+	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( L"DLG_PVP_Game_ChatBox_Pos.lua" );
 	if( Info == NULL )
 	{
 		return true;
@@ -2678,7 +2705,11 @@ bool CX2StatePVPGame::BroadCastPVPGameChatInfoNot( HWND hWnd, UINT uMsg, WPARAM 
 	//KLuaManager kLuamanager;
     KLuaManager kLuamanager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
-	if( kLuamanager.DoMemory( Info->pRealData, Info->size ) == false )
+	if( kLuamanager.DoMemory( Info->pRealData, Info->size
+#ifdef  X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+        , L"DLG_PVP_Game_ChatBox_Pos.lua"
+#endif  X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION    
+    ) == false )
 		return true;
 
 	CX2TalkBoxManager::TalkBox* talkBox = new CX2TalkBoxManager::TalkBox();
@@ -2765,17 +2796,24 @@ bool CX2StatePVPGame::BroadCastPVPGameChatInfoNot( HWND hWnd, UINT uMsg, WPARAM 
 
 void CX2StatePVPGame::OpenExitDLG()
 {
-    if( KPVPChannelInfo::PCC_PLAY == g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) ||
-        KPVPChannelInfo::PCC_FREE == g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) )
-    {
-        m_pDLGExitMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_562 ), PGUCM_GAME_EXIT_OK, this, PGUCM_GAME_EXIT_CANCEL );
-		if( m_pDLGExitMsgBox != NULL )
+	switch( g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) )
+	{
+	case KPVPChannelInfo::PCC_PLAY:
+	case KPVPChannelInfo::PCC_FREE:
+	case KPVPChannelInfo::PCC_TOURNAMENT:
 		{
-			CKTDGUIButton* pCancelButton = (CKTDGUIButton*)m_pDLGExitMsgBox->GetControl( L"MsgBoxOkAndCancelCancelButton" );		
-			pCancelButton->RequestFocus();
-		}
-        return;
-    }
+			m_pDLGExitMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_562 ), PGUCM_GAME_EXIT_OK, this, PGUCM_GAME_EXIT_CANCEL );
+			if( m_pDLGExitMsgBox != NULL )
+			{
+				CKTDGUIButton* pCancelButton = (CKTDGUIButton*)m_pDLGExitMsgBox->GetControl( L"MsgBoxOkAndCancelCancelButton" );		
+				pCancelButton->RequestFocus();
+			}
+			return;
+		} break;
+
+	default:
+		break;
+	}
 
 	if ( g_pData->GetPVPRoom()->GetPVPGameType() == CX2PVPRoom::PGT_TEAM )
 	{
@@ -2830,41 +2868,48 @@ void CX2StatePVPGame::PopTalkBox( UidType iUnitUID_, const WCHAR* pWstrMsg_,
 			if( g_pChatBox != NULL && bCommandEmotion == false )
 #endif
 			{
-				//컬링
-				float fScale;
-				if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetYScale() )
-				{
-					if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetZScale() )
-					{
-						//X가 제일 큼
-						fScale = pGUUser->GetMatrix().GetXScale();
-					}
-					else
-					{
-						//Z가 제일 큼
-						fScale = pGUUser->GetMatrix().GetZScale();
-					}
-				}
-				else
-				{
-					if( pGUUser->GetMatrix().GetYScale() > pGUUser->GetMatrix().GetZScale() )
-					{
-						//Y가 제일 큼
-						fScale = pGUUser->GetMatrix().GetYScale();
-					}
-					else
-					{
-						//Z가 제일 큼
-						fScale = pGUUser->GetMatrix().GetZScale();
-					}
-				}
+                if( pGUUser->GetBoundingRadius() > 0 )
+                {
+				    D3DXVECTOR3 center;
+				    pGUUser->GetTransformCenter( &center );
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+                    float   fScaledBoundingRadius =pGUUser->GetScaledBoundingRadius();
+#else   X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+				    //컬링
+				    float fScale;
+				    if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetYScale() )
+				    {
+					    if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetZScale() )
+					    {
+						    //X가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetXScale();
+					    }
+					    else
+					    {
+						    //Z가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetZScale();
+					    }
+				    }
+				    else
+				    {
+					    if( pGUUser->GetMatrix().GetYScale() > pGUUser->GetMatrix().GetZScale() )
+					    {
+						    //Y가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetYScale();
+					    }
+					    else
+					    {
+						    //Z가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetZScale();
+					    }
+				    }
+                    float   fScaledBoundingRadius = pGUUser->GetBoundingRadius() * fScale;
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
-				D3DXVECTOR3 center;
-				pGUUser->GetTransformCenter( &center );
+				    if( g_pKTDXApp->GetDGManager()->GetFrustum().CheckSphere( center, fScaledBoundingRadius ) == false )
+					    return;
+                }
 
-				if( pGUUser->GetBoundingRadius() > 0
-					&& g_pKTDXApp->GetDGManager()->GetFrustum()->CheckSphere( center, pGUUser->GetBoundingRadius() * fScale ) == false )
-					return;
 
 
 				CX2TalkBoxManagerImp::TalkBox talkBox;
@@ -2920,9 +2965,7 @@ void CX2StatePVPGame::PopTalkBox( UidType iUnitUID_, const WCHAR* pWstrMsg_,
 		m_pPVPGame->SetSepcialItemId( 0 );
 		m_pPVPGame->ResetCreateItemTimer();
 		
-#ifdef MODIFY_PVP_ITEM
 		m_pPVPGame->SetSepcialItemUid( 0 );
-#endif
 
 		return true;
 	}
@@ -3000,7 +3043,6 @@ bool CX2StatePVPGame::Handler_EGS_CHANGE_PVP_ITEM_POS_ACK( HWND hWnd, UINT uMsg,
 
 	return true;
 }
-#ifdef MODIFY_PVP_ITEM
 bool CX2StatePVPGame::Handler_EGS_CHANGE_PVP_ITEM_POS_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
@@ -3013,7 +3055,6 @@ bool CX2StatePVPGame::Handler_EGS_CHANGE_PVP_ITEM_POS_NOT( HWND hWnd, UINT uMsg,
 	}
 	return true;
 }
-#endif MODIFY_PVP_ITEM
 #endif //DUNGEON_ITEM
 
 #ifdef SERV_PVP_NEW_SYSTEM

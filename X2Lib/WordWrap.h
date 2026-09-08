@@ -60,7 +60,12 @@ public:
 	//6
 #if defined(ELLIPSE_GLOBAL) || defined(ELLIPSE_CN) //...기능 
 	static std::wstring GetStrByLineBreakInX2MainWithEllipse( const WCHAR* pOrgStr, int width, int fontIndex, const int nLineNum, bool& bEllipse);
+#ifdef ELLIPSE_FIX
+	static std::wstring CutStringWithEllipse( const WCHAR* pOrgStr, int width, int fontIndex, const int nLineNum, bool& bEllipse, const WCHAR* pEllipseStr = L"..."); //단어단위로 짜르지 않고 ... 기능 사용하고 싶을때. ex 아이템 분해창
+	static std::wstring CutStringWithEllipse( const WCHAR* pOrgStr, int width, int fontIndex, const int nLineNum, const WCHAR* pEllipseStr = L"...");
+#else // ELLIPSE_FIX
 	static std::wstring CutStringWithEllipse( const WCHAR* pOrgStr, int width, int fontIndex, const int nLineNum, bool& bEllipse); //단어단위로 짜르지 않고 ... 기능 사용하고 싶을때. ex 아이템 분해창
+#endif // ELLIPSE_FIX
 #endif //defined(ELLIPSE_GLOBAL) || defined(ELLIPSE_CN)
 
 //=============================================//

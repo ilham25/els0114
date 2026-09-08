@@ -91,6 +91,10 @@ CX2World* CX2WorldManager::CreateWorld( const CX2World::WORLD_ID worldID, KLuabi
 
 		pCX2World->OpenScriptFile( pWorldData->dataFileName.c_str(), pKLuabinder );
 
+#ifdef X2OPTIMIZE_GAMEOPTION_BUGFIX
+		pCX2World->SetMapDetail( g_pMain->GetGameOption().GetOptionList().m_MapDetail );
+#endif//X2OPTIMIZE_GAMEOPTION_BUGFIX
+
 		return pCX2World;
 	}
 }//CX2WorldManager::CreateWorld()
@@ -103,26 +107,12 @@ bool CX2WorldManager::OpenScriptFile( const WCHAR* pFileName )
 	//바인더에 등록
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pWorldManager", this );
 
-	//파일 로드
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR0, strFileName.c_str() );
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR72, pFileName );
 
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR72, strFileName.c_str() );
-
-		return false;
-	}
+    }
 
 	return true;
 }
@@ -180,12 +170,14 @@ const CX2World::WorldData* CX2WorldManager::GetWorldData( CX2World::WORLD_ID eWo
 bool CX2WorldManager::AddWorldData_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	CX2World::WorldData* pWorldData = new CX2World::WorldData;
-	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"worldID",			pWorldData->worldID,		CX2World::WORLD_ID,	CX2World::WI_NONE,	SAFE_DELETE(pWorldData); return false; );
-	LUA_GET_VALUE_RETURN(		luaManager, L"worldName",		pWorldData->worldName,		L"",										SAFE_DELETE(pWorldData); return false; );
-	LUA_GET_VALUE_RETURN(		luaManager, L"dataFileName",	pWorldData->dataFileName,	L"",										SAFE_DELETE(pWorldData); return false; );
+	LUA_GET_VALUE_RETURN_ENUM(	luaManager, "worldID",			pWorldData->worldID,		CX2World::WORLD_ID,	CX2World::WI_NONE,	SAFE_DELETE(pWorldData); return false; );
+	LUA_GET_VALUE_RETURN(		luaManager, "worldName",		pWorldData->worldName,		L"",										SAFE_DELETE(pWorldData); return false; );
+	LUA_GET_VALUE_RETURN(		luaManager, "dataFileName",	pWorldData->dataFileName,	L"",										SAFE_DELETE(pWorldData); return false; );
 
 	m_WorldDataList.push_back( pWorldData );
 	return true;
@@ -196,16 +188,22 @@ bool CX2WorldManager::AddWorldData_LUA()
 bool CX2WorldManager::SetPreprocessingData_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	WORLD_PREPROCESSING_INFO    preInfo;
 
     // qfff
     preInfo.m_eInfoType = X2WM_PPIT_UNKNOWN;
-	LUA_GET_VALUE( luaManager, L"meshName",             preInfo.m_wstrName,         L"" );
-	//LUA_GET_VALUE( luaManager, L"centerPos",		    preInfo.m_vCenter,          D3DXVECTOR3(0,0,0) );
-	LUA_GET_VALUE( luaManager, L"boundingSphereRadius",	preInfo.m_fBSphereRadiua,  0.f );
+	LUA_GET_VALUE( luaManager, "meshName",             preInfo.m_wstrName,         L"" );
+	//LUA_GET_VALUE( luaManager, "centerPos",		    preInfo.m_vCenter,          D3DXVECTOR3(0,0,0) );
+	LUA_GET_VALUE( luaManager, "boundingSphereRadius",	preInfo.m_fBSphereRadiua,  0.f );
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "centerPos", preInfo.m_vCenter, D3DXVECTOR3(0,0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
     preInfo.m_vCenter = lua_tinker::get<D3DXVECTOR3>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), "centerPos" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 
     ///-----------------------------------------------------------------------------

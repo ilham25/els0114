@@ -16,7 +16,7 @@ CKTDXDeviceTexture::CKTDXDeviceTexture( LPDIRECT3DDEVICE9 pd3dDevice, wstring fi
 	m_LoadTexFormat	= texFormat;
 	m_bAlwaysHigh	= bAlwaysHigh;
 
-	m_pVB = NULL;
+	//m_pVB = NULL;
 }
 
 CKTDXDeviceTexture::~CKTDXDeviceTexture()
@@ -25,13 +25,11 @@ CKTDXDeviceTexture::~CKTDXDeviceTexture()
 }
 
 /*virtual*/ HRESULT CKTDXDeviceTexture::_Load( bool bSkipStateCheck
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD		
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD		
 	)
 {
-    // qff
-	////CKTDXThread::CLocker locker( g_pKTDXApp->GetDeviceManager()->GetDeviceLock() );
 
 	HRESULT hr;
     int     iSize = 0;
@@ -43,58 +41,22 @@ CKTDXDeviceTexture::~CKTDXDeviceTexture()
 	D3DFORMAT d3dFormat = D3DFMT_UNKNOWN;
 	DWORD	dwFilter = D3DX_FILTER_NONE;
 
-#ifdef REMOVE_DRAW_PRIMITIVE_UP
-	LPDIRECT3DVERTEXBUFFER9 pVB = NULL;
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-    /** D3DUSAGE_DYNAMIC 플래그는 D3DPOOL_MANAGED로 생성된 텍스쳐에 적용할 수 없다.
-        - jintaeks on 2008-10-15, 12:31 */
-	if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(TEXTURE_RHW_VERTEX), 
-		D3DUSAGE_WRITEONLY, D3DFVF_TEXTURE_RHW_VERTEX, 
-		D3DPOOL_MANAGED, &pVB, NULL) ))	
-	{
-		wstring errorMSG = L" oops!!!@@@@!!!!";
-
-		if ( hr != D3D_OK )
-		{
-			m_pTexture = NULL;
-			
-			if ( hr == D3DERR_NOTAVAILABLE )
-			{
-				errorMSG += L"D3DERR_NOTAVAILABLE";
-			}
-			else if ( hr == D3DERR_OUTOFVIDEOMEMORY )
-			{
-				errorMSG += L"D3DERR_OUTOFVIDEOMEMORY";
-			}
-			else if ( hr == D3DERR_INVALIDCALL )
-			{
-				errorMSG += L"D3DERR_INVALIDCALL";
-			}
-			else if ( hr == D3DXERR_INVALIDDATA )
-			{
-				errorMSG += L"D3DXERR_INVALIDDATA";
-			}
-			else if ( hr == E_OUTOFMEMORY )
-			{
-				errorMSG += L"E_OUTOFMEMORY";
-			}
-			else
-			{
-				errorMSG += L"알수없는에러";
-			}
-
-			errorMSG += m_DeviceID;
-		}
-
-		ErrorLogMsg( KEM_ERROR88, errorMSG.c_str() );
-		//ErrorLogMsg( , L"oops!!!@@@@!!!!" );
-		goto fail;
-	}
-
-#endif //REMOVE_DRAW_PRIMITIVE_UP
-
+    KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
+#ifdef  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+    KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info2;
+	wstring deviceTexUVRectName; 
+	int strSize = m_DeviceID.size();
+	if ( strSize > 3 )
+    {
+        deviceTexUVRectName.reserve( m_DeviceID.size() );
+	    deviceTexUVRectName.assign( m_DeviceID.begin(), m_DeviceID.begin() + strSize - 3 );
+	    deviceTexUVRectName += L"TET";
+    }
+	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadTwoDataFiles( m_DeviceID, deviceTexUVRectName, Info2 );
+#else   X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
 	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( m_DeviceID );
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
 	if( Info == NULL )
 	{
 		pTexture		= NULL;
@@ -184,9 +146,47 @@ CKTDXDeviceTexture::~CKTDXDeviceTexture()
 		goto fail;
 		
 	{
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+        CKTDXDeviceTET_Preprocessing   proxy;
+        {
+#ifdef  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+            if ( Info2 != NULL )
+            {
+                if ( proxy.OpenFile( (const BYTE*) Info2.pRealData, Info2.size, m_DeviceID ) == false )
+                {
+                    ErrorLogMsg( KEM_ERROR95, deviceTexUVRectName.c_str() );
+                }
+            }
+#else   X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+			wstring deviceTexUVRectName; 
+			int strSize = m_DeviceID.size();
+			ASSERT( strSize > 3 );
+			deviceTexUVRectName.assign( m_DeviceID.begin(), m_DeviceID.begin() + strSize - 3 );
+			deviceTexUVRectName += L"TET";
+			KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
+			Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( deviceTexUVRectName.c_str() );
+            if ( Info != NULL )
+            {
+                if ( proxy.OpenFile( deviceTexUVRectName.c_str(), m_DeviceID ) == false )
+                {
+                    ErrorLogMsg( KEM_ERROR95, deviceTexUVRectName.c_str() );
+                }
+            }
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+        }
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
 		TETProxy    proxy( GetDeviceID() );
 		{
-
+#ifdef  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+            if ( Info2 != NULL )
+            {
+				lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(), "m_pTEX", &proxy );
+				if( g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncrypt( Info2->pRealData, Info2->size ) == false )
+				{
+					ErrorLogMsg( KEM_ERROR95, deviceTexUVRectName.c_str() );
+				}
+            }
+#else   X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
 			wstring deviceTexUVRectName; 
 			int strSize = m_DeviceID.size();
 			ASSERT( strSize > 3 );
@@ -198,12 +198,14 @@ CKTDXDeviceTexture::~CKTDXDeviceTexture()
 			if ( Info != NULL )
 			{
 				lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(), "m_pTEX", &proxy );
-				if( g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( Info->pRealData, Info->size ) == E_FAIL )
+				if( g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncrypt( Info->pRealData, Info->size ) == false )
 				{
 					ErrorLogMsg( KEM_ERROR95, deviceTexUVRectName.c_str() );
 				}
 			}//if
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
 		}
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
 
 
         {
@@ -220,11 +222,15 @@ CKTDXDeviceTexture::~CKTDXDeviceTexture()
 			    case DEVICE_STATE_LOADING:
 			    case DEVICE_STATE_FAILED:
                     std::swap( m_pTexture, pTexture );
-#ifdef  REMOVE_DRAW_PRIMITIVE_UP
-                    std::swap( m_pVB, pVB );
-#endif	REMOVE_DRAW_PRIMITIVE_UP
+//#ifdef  REMOVE_DRAW_PRIMITIVE_UP
+//                    std::swap( m_pVB, pVB );
+//#endif	REMOVE_DRAW_PRIMITIVE_UP
                     m_Size = iSize;
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+                    m_tet.Swap( proxy );
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
 				    m_mapTexUVRect.swap( proxy.m_mapTexUVRect );
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
                     m_uWidth = uWidth;
                     m_uHeight = uHeight;
 					m_Info = imgInfo;
@@ -239,11 +245,15 @@ CKTDXDeviceTexture::~CKTDXDeviceTexture()
                 ASSERT( m_eDeviceState == DEVICE_STATE_LOADED );
 
                 std::swap( m_pTexture, pTexture );
-#ifdef  REMOVE_DRAW_PRIMITIVE_UP
-                std::swap( m_pVB, pVB );
-#endif	REMOVE_DRAW_PRIMITIVE_UP
+//#ifdef  REMOVE_DRAW_PRIMITIVE_UP
+//                std::swap( m_pVB, pVB );
+//#endif	REMOVE_DRAW_PRIMITIVE_UP
                 m_Size = iSize;
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+                m_tet.Swap( proxy );
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
                 m_mapTexUVRect.swap( proxy.m_mapTexUVRect );
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
                 m_uWidth = uWidth;
                 m_uHeight = uHeight;
 				m_Info = imgInfo;
@@ -251,9 +261,9 @@ CKTDXDeviceTexture::~CKTDXDeviceTexture()
         }
 
     	SAFE_RELEASE( pTexture );
-#ifdef  REMOVE_DRAW_PRIMITIVE_UP
-		SAFE_RELEASE( pVB );
-#endif	REMOVE_DRAW_PRIMITIVE_UP
+//#ifdef  REMOVE_DRAW_PRIMITIVE_UP
+//		SAFE_RELEASE( pVB );
+//#endif	REMOVE_DRAW_PRIMITIVE_UP
 
     }
 
@@ -262,9 +272,9 @@ CKTDXDeviceTexture::~CKTDXDeviceTexture()
 fail:
 
 	SAFE_RELEASE( pTexture );
-#ifdef  REMOVE_DRAW_PRIMITIVE_UP
-	SAFE_RELEASE( pVB );
-#endif  REMOVE_DRAW_PRIMITIVE_UP
+//#ifdef  REMOVE_DRAW_PRIMITIVE_UP
+//	SAFE_RELEASE( pVB );
+//#endif  REMOVE_DRAW_PRIMITIVE_UP
 
 	wstring errorMSG;
 	if ( hr == D3DERR_NOTAVAILABLE )
@@ -303,12 +313,15 @@ fail:
 HRESULT CKTDXDeviceTexture::_UnLoad()
 {
 	////CKTDXThread::CLocker locker( g_pKTDXApp->GetDeviceManager()->GetDeviceLock() );
-#ifdef  REMOVE_DRAW_PRIMITIVE_UP
-	SAFE_RELEASE( m_pVB );
-#endif  REMOVE_DRAW_PRIMITIVE_UP
+//#ifdef  REMOVE_DRAW_PRIMITIVE_UP
+//	SAFE_RELEASE( m_pVB );
+//#endif  REMOVE_DRAW_PRIMITIVE_UP
 	SAFE_RELEASE( m_pTexture );
 	//m_bLoading = false;
 
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+    m_tet.Release();
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
 	KeyTexUVMap::iterator i;
 	for ( i = m_mapTexUVRect.begin(); i != m_mapTexUVRect.end(); i++ )
 	{
@@ -316,6 +329,7 @@ HRESULT CKTDXDeviceTexture::_UnLoad()
 		SAFE_DELETE( pTextrueUV );
 	}
 	m_mapTexUVRect.clear();
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
 	m_eDeviceState = DEVICE_STATE_INIT;
 
 	return S_OK;
@@ -327,10 +341,10 @@ void CKTDXDeviceTexture::PreLoad()
 {
     if ( m_pTexture )
         m_pTexture->PreLoad();
-#ifdef  REMOVE_DRAW_PRIMITIVE_UP
-    if ( m_pVB )
-        m_pVB->PreLoad();
-#endif  REMOVE_DRAW_PRIMITIVE_UP
+//#ifdef  REMOVE_DRAW_PRIMITIVE_UP
+//    if ( m_pVB )
+//        m_pVB->PreLoad();
+//#endif  REMOVE_DRAW_PRIMITIVE_UP
 }//CKTDXDeviceTexture::PreLoad()
 //}} seojt // 2008-10-15, 15:03
 
@@ -414,7 +428,9 @@ void CKTDXDeviceTexture::SetDetailLevel( DETAIL_LEVEL detailLevel )
 	}
 }
 
-CKTDXDeviceTexture::TEXTURE_UV* CKTDXDeviceTexture::GetTexUV( const wstring& key )
+#ifndef  X2OPTIMIZE_TET_XET_PREPROCESSING
+
+const CKTDXDeviceTexture::TEXTURE_UV* CKTDXDeviceTexture::GetTexUV( const wstring& key )
 {
 	KTDXPROFILE();
 	
@@ -450,6 +466,8 @@ CKTDXDeviceTexture::TEXTURE_UV* CKTDXDeviceTexture::GetTexUV( const wstring& key
 
 	return NULL;
 }
+
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
 
 void CKTDXDeviceTexture::DrawLayer( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color, D3DXVECTOR2 minUV, D3DXVECTOR2 maxUV, int blendType)
 {
@@ -494,15 +512,15 @@ void CKTDXDeviceTexture::DrawLayer( float nX, float nY, float nWidth, float nHei
 
     SetDeviceTexture();
 
-    g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
+    //g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_TEXTURE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1, D3DPT_TRIANGLESTRIP, 2, vertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(TEXTURE_RHW_VERTEX) );
-#endif
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(TEXTURE_RHW_VERTEX) );
+//#endif
 
     KD3DEND()
 }
@@ -592,21 +610,21 @@ void CKTDXDeviceTexture::Draw( int nX, int nY, int nWidth, int nHeight, D3DCOLOR
 
 	SetDeviceTexture();
 
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
+	//g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
 
 
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_TEXTURE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1, D3DPT_TRIANGLESTRIP, 2, vertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(TEXTURE_RHW_VERTEX) );
-#endif
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(TEXTURE_RHW_VERTEX) );
+//#endif
 	KD3DEND()
 }
 
-void CKTDXDeviceTexture::Draw( int nX, int nY, int nWidth, int nHeight, TEXTURE_UV* pTextureUV, D3DCOLOR color /* = 0xffffffff  */)
+void CKTDXDeviceTexture::Draw( int nX, int nY, int nWidth, int nHeight, const TEXTURE_UV* pTextureUV, D3DCOLOR color /* = 0xffffffff  */)
 {
     KD3DPUSH( g_pKTDXApp->GetDGManager()->GetRSICKTDXDeviceTexture() )
 
@@ -665,13 +683,13 @@ void CKTDXDeviceTexture::Draw( int nX, int nY, int nWidth, int nHeight, TEXTURE_
 
 	SetDeviceTexture();
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_TEXTURE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1, D3DPT_TRIANGLESTRIP, 2, vertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(TEXTURE_RHW_VERTEX) );
-#endif
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(TEXTURE_RHW_VERTEX) );
+//#endif
     KD3DEND()
 }
 
@@ -718,15 +736,17 @@ void CKTDXDeviceTexture::Draw( float fX, float fY, float fWidth, float fHeight, 
 
 	SetDeviceTexture();
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_TEXTURE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1, D3DPT_TRIANGLESTRIP, 2, vertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(TEXTURE_RHW_VERTEX) );
-#endif
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(TEXTURE_RHW_VERTEX) );
+//#endif
     KD3DEND()
 }
+
+#ifndef X2OPTIMIZE_TET_XET_PREPROCESSING
 
 void CKTDXDeviceTexture::TETProxy::AddRect_LUA( const char* pKey, D3DXVECTOR2 leftTop, D3DXVECTOR2 rightTop /* = D3DXVECTOR2( -1, -1 ) */,
 									D3DXVECTOR2 leftBottom /* = D3DXVECTOR2( -1, -1 ) */, D3DXVECTOR2 rightBottom )
@@ -784,10 +804,10 @@ void CKTDXDeviceTexture::TETProxy::AddRect_LUA( const char* pKey, D3DXVECTOR2 le
 
 void CKTDXDeviceTexture::TETProxy::RotateRect_LUA( const char* pKey, int roateValue )
 {
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	if ( pKey == NULL || pKey[0] == NULL )
 		return;
-#endif
+//#endif
 
 	wstring wstrKeyName;
 	ConvertUtf8ToWCHAR( wstrKeyName, pKey );
@@ -868,6 +888,8 @@ CKTDXDeviceTexture::TETProxy::~TETProxy()
 	m_mapTexUVRect.clear();
 }
 
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
+
 // bool CKTDXDeviceTexture::LoadTET( const WCHAR* pFileName )
 // {
 //     //{{ seojt // 2008-10-20, 16:45
@@ -880,7 +902,7 @@ CKTDXDeviceTexture::TETProxy::~TETProxy()
 // 
 // 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "m_pTEX", this );
 // 
-// 	if( g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncript( Info->pRealData, Info->size ) == E_FAIL )
+// 	if( g_pKTDXApp->GetLuaBinder()->DoMemoryNotEncrypt( Info->pRealData, Info->size ) == false )
 // 	{
 // 		string strFileName;
 // 		ConvertWCHARToChar( strFileName, pFileName );

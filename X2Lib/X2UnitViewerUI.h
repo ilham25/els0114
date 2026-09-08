@@ -64,6 +64,7 @@
 		virtual HRESULT OnLostDevice();
 
 		void PlayAnim( const WCHAR* pName, CKTDGXSkinAnim::XSKIN_ANIM_PLAYTYPE playType = CKTDGXSkinAnim::XAP_LOOP, bool bTransition = false );
+
 		void SetUnit( CX2Unit* pUnit, CX2UnitViewerUI::UNIT_VIEWER_STATE eState = UVS_NONE );
 
 		//{{ robobeg : 2011-03-18
@@ -120,9 +121,9 @@
 
 		int GetEnchantExtraDamageType();
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
         void UpdateTitle();
-#endif
+//#endif
 	
 		void SetShowAttribEnchant( bool bShow );
 
@@ -174,6 +175,9 @@
 		void SetShowInvenEquip( bool bVal_ ) { m_bShowInvenEquip = bVal_; }
 #endif // TAKE_OFF_ALL_ITEM
 
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		bool IsPlayAvatarEmotionSoundWithouEmotion ( CX2Unit::EMOTION_TYPE eEmotionId );
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
 	private:
 		
 		void ReplaceEmptyToBasic( CX2Unit::EQIP_POSITION eqipPos, int itemID );
@@ -202,6 +206,9 @@
 #ifdef ARA_CHARACTER_BASE
 		void ProcessEnchantWeaponEffectForAra();
 #endif
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		void ProcessEnchantWeaponEffectForAdd();
+#endif //SERV_9TH_NEW_CHARACTER
 
 		void InitWeaponTrace();
 
@@ -283,7 +290,6 @@
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqEnergyBullet3;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
-
 		static bool										m_sbUnitClicked;
 
 		int												m_ExtraDamageType;
@@ -296,12 +302,16 @@
 		CKTDXDeviceXSkinMesh::MultiAnimFrame*			m_pFrame_WEAPON_BONE[ CX2Item::MAX_MODEL_COUNT_A_ITEM ];
 #endif
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
         CKTDGParticleSystem::CParticleEventSequenceHandle	m_hSeqEmblem;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CKTDGParticleSystem::CParticleHandle				m_hPart_Emblem_200;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
         CKTDGParticleSystem::CParticle*						m_pPart_Emblem_200;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
         int                                             m_iTitleId;
-#endif
+//#endif
 #ifdef NEW_VILLAGE_UI
 		D3DXVECTOR3 m_vScrPos;
 		bool		m_bFixed;
@@ -321,10 +331,8 @@
 		bool m_bEnableEquipSlotVisibilityUpdate;
 #endif	NOT_RENDERING_OTHER_EQUIP_POS
 
-#ifdef AVATAR_EMOTION
 		bool m_bMixedEmotion[AVATAR_EMOTION_NUM];
 		CKTDXDeviceSound*				m_pAvatarEmotionSound;
-#endif
 
 		CKTDXTimer m_TimerResetWeaponTraceFrame;
 		float		m_fScale;
@@ -360,18 +368,26 @@
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqUpgradeWeapon3;
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqUpgradeWeapon4;
 #endif ADD_UPGRADE_WEAPON_PARTICLE
-
-		//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
-#ifdef SERV_UNIT_WAIT_DELETE
-	public: 
-		CKTDGUIDialog*		m_pNewDeleteDlg;
-#endif SERV_UNIT_WAIT_DELETE
-		//}}
 		
 #ifdef TAKE_OFF_ALL_ITEM
 		bool												m_bShowInvenEquip;
 #endif // TAKE_OFF_ALL_ITEM
 
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqHandFireSBH1;
+		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqHandFireSBH2;
+		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqHandFireSBH3;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 		UNIT_VIEWER_STATE									m_eUnitViewerState;
+		
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		bool												m_bIsPlayAvatarEmotionSoundWithoutEmotion;
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqHandElectricALP1;
+		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqHandElectricALP2;
+#endif //SERV_ADD_LUNATIC_PSYKER
 
 };

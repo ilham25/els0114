@@ -50,6 +50,10 @@ public:
 
 		ATI_IDENTIFY_STONE	= 130054, // 감정석
 		ATI_UNKNOWN_STONE	= 130055, // 복구석
+
+//#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+		ATI_ESSENCE			= 130208, // 엘의 정수
+//#endif // SERV_FINALITY_SKILL_SYSTEM
 	};
 
 	enum ATTRIB_ENCHANT_TYPE
@@ -132,6 +136,10 @@ public:
 	bool	GetAttribAttachInfo( IN int iAttachItemID, OUT KItemAttributeEnchantInfo& kInfo );
 #endif SERV_ATTRIBUTE_CHARM
 	//}}
+
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+	static	bool	IsExtractItem( const int iItemID );
+#endif // SERV_FINALITY_SKILL_SYSTEM
 
 private:
 	typedef std::map< std::pair< int, int >, std::map< int, int > > MapEnchantRequire;

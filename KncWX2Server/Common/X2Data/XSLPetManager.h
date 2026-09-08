@@ -57,6 +57,13 @@ public:
 		PUI_STINKO_HATS_ON,			/// 스팅코 햇츠온
 		PUI_EBONY_HATS_ON,			/// 에보니 햇츠온
 
+		PUI_PPORU_HOLLOWEEN_EVENT,		/// 할로윈 이벤트 펫 마녀 뽀루
+
+		PUI_GRIM_REAPER_DEATH				= 38, //그림 리퍼-데스(사신 펫)
+		PUI_GRIM_REAPER_REBIRTH				= 39, //그림 리퍼-리버스(사신 펫)
+		PUI_RAINCOAT_CAT_BLACK_KR           = 40, /// 우비 입은 고양이 블랙
+		PUI_RAINCOAT_CAT_YELLOW_KR          = 41, /// 우비 입은 고양이 엘로우
+		PUI_PPORU_NAVER_EVENT				= 42, /// 네이버 채널링 이벤트 뽀루
 
 		// 해외팀 pet
 		PUI_PANDA_STICK_RED					= 96,
@@ -97,6 +104,8 @@ public:
 		PUI_PETIT_DARKBRINGER_UNIRING_F		= 138,	/// 유니링(완전체)
 		PUI_PET_BLOOD_EATER_EVENT			= 139,	/// 대만 이벤트용 블러드 이터
 		PUI_HATCHLING_BLUE_F                = 140,	///	유럽 영국 CBT기념 야생 해츨링 완전체
+		PUI_PETTE_BERTHE					= 141,  /// 베르드 Jr.		
+		PUI_PETTE_BERTHE_F					= 142,  /// 베르드 Jr. 완전체
 
 		PUI_PET_SILVERFOX_MIHO_F            = 30000, /// 은여우 미호 완전체
 		PUI_PET_FIREFOX_SHIHO_F             = 30001, /// 불여우 시호 완전체
@@ -120,13 +129,15 @@ public:
 		PUI_HALLOWEEN_PUMPKIN_LOJETA_F		= 30019, /// 할로윈 호박 요정 로제타 완전체
 		PUI_HALLOWEEN_PUMPKIN_NARENEA_F		= 30020, /// 할로윈 호박 요정 나르네아 완전체
 		PUI_HALLOWEEN_PUMPKIN_ELDENA_F		= 30021, /// 할로윈 호박 요정 엘데나 (레어) 완전체
-
+		PUI_SONOKONG						= 30022, /// 손오공
+		PUI_SONOKONG_F						= 30023, /// 손오공 완전체
 		PUI_FIREWORK_PPORU					= 30024, /// 연말 이벤트 불꽃 뽀루
 		PUI_PET_SNOWBUMP					= 30025, /// 눈사람
 		PUI_PET_HUNTER_PENGUIN				= 30026, /// 팽귄
 		PUI_TREE_KNIGHT_EVENT_F				= 30027, /// 트리 나이트 완전체 기간제 ( 7일 )
 		PUI_HATCHLING_NORM_EVENT_F			= 30028, /// 해츨링 완전체 15일
 		PUI_MYSTIC_EVENT_NORM_F				= 30029, /// 미스틱 완전체 15일
+
 	};
 
 	//{{ 2010. 7. 26  최육사	펫 시스템
@@ -275,7 +286,9 @@ public:
 	bool	CheckEmotion( IN int iPetID, IN short sCurEmotion, IN int iCumulativeSatiety, IN int iFeedCount, OUT short& sChangeEmotion ) const;
 
 	bool	MakeNewPetInfo( IN PET_UNIT_ID ePetID, IN const std::wstring& wstrPetName, OUT KPetInfo& kNewPetInfo ) const;
-
+#ifdef SERV_EVENT_PET_INVENTORY
+	bool    IsEventFoodPetID( IN int iPetID ) const;
+#endif SERV_EVENT_PET_INVENTORY
 	//{{ 2010. 10. 18	최육사	펫 오라 스킬
 #ifdef SERV_PET_AURA_SKILL		
 	//{{ 2011. 07. 25    김민성    아이템 옵션ID 데이터 사이즈 증가
@@ -358,7 +371,9 @@ private:
 	std::map< int, KLottery >				m_mapRandomPetCreateItem;
 	std::map< int, TransformPetInfo >		m_mapTransformPetItem;
 #endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
-
 };
 
 DefRefreshSingletonInline( CXSLPetManager );
+
+
+

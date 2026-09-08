@@ -45,11 +45,7 @@ CX2TrainingGameUI::CX2TrainingGameUI( CX2State* pNowState )
 	// 자유 훈련
 	m_eFTNPCID		= CX2UnitManager::NUI_MUSHROOM_WOODEN;
 	m_iFTNPCCount 	= 1;
-#ifdef ADD_TRAININGGAME_NPC
 	m_iFTNPCLevel = g_pData->GetSelectUnitLevel();
-#else
-	m_iFTNPCLevel 	= 1;
-#endif
 	m_bFTEnableNPCAttack = true;
 
 	m_pDLGFreeTrainingMenu = NULL;
@@ -103,8 +99,8 @@ void CX2TrainingGameUI::OnFrameMove( double fTime, float fElapsedTime )
 					{
 						if( -1 != waitState.iIsRight )
 						{
-							if( (waitState.iIsRight == 0 && pMyUnit->GetSyncData()->bIsRight == true) ||
-								(waitState.iIsRight == 1 && pMyUnit->GetSyncData()->bIsRight == false) )
+							if( (waitState.iIsRight == 0 && pMyUnit->GetSyncData().bIsRight == true) ||
+								(waitState.iIsRight == 1 && pMyUnit->GetSyncData().bIsRight == false) )
 							{
 								continue;
 							}
@@ -451,7 +447,7 @@ void CX2TrainingGameUI::AddText( const WCHAR* wszMsg, wstring wstrColor /*= L""*
 	wstring nextLineString = L"\n";
 	wstring chatContent = wszMsg;
 
-	CKTDGUIStatic* pStatic_Speech	= (CKTDGUIStatic*) m_pDLGSlideShot->GetControl( L"Talk" );
+	CKTDGUIStatic* pStatic_Speech	= (CKTDGUIStatic*) m_pDLGSlideShot->GetControl( L"Talk" );	// 해외팀 위치 변경
 	
 #ifdef CLIENT_GLOBAL_LINEBREAK
 	CKTDGFontManager::CUKFont* pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( pStatic_Speech->GetString(0)->fontIndex );
@@ -1486,7 +1482,6 @@ void CX2TrainingGameUI::OpenFreeTrainingMainMenu( bool bOpen )
 
 		m_pDLGFreeTrainingMenu->SetShowEnable( true, true );
 
-#ifdef ADD_TRAININGGAME_NPC
 		CKTDGUIComboBox* pCombo = (CKTDGUIComboBox*)m_pDLGFreeTrainingMenu->GetControl(L"TNpcList");
 		if( pCombo != NULL )
 		{
@@ -1507,7 +1502,7 @@ void CX2TrainingGameUI::OpenFreeTrainingMainMenu( bool bOpen )
 			for(int iItem=0; iItem<ARRAY_SIZE(NPC_CARD); ++iItem)
 			{
 				//CX2Inventory *pInven = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( NPC_CARD[iItem] );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( NPC_CARD[iItem] );
 				if( pItem == NULL )
 					continue;
 
@@ -1553,7 +1548,11 @@ void CX2TrainingGameUI::OpenFreeTrainingMainMenu( bool bOpen )
 					continue;
 
 				WCHAR wszText[64] = L"";
+#ifdef HARDCODING_STRING_BR
+				StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"Nivel. %d", iNpcLv );
+#else // HARDCODING_STRING_BR
 				StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"Lv. %d", iNpcLv );
+#endif // HARDCODING_STRING_BR
 				pCombo->AddItem(wszText, NULL);
 
 				if( iNpcLv == iLevel )
@@ -1562,9 +1561,7 @@ void CX2TrainingGameUI::OpenFreeTrainingMainMenu( bool bOpen )
 				++iCount;
 			}			
 			pCombo->SetSelectedByIndex(iSelectedIndex);
-		}		
-		
-#endif
+		}	
 
 	}	
 	else

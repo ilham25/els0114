@@ -9,7 +9,7 @@ class CXSLItem
 {
 	//{{ dmlee 2008.11.29 
 	public: 
-		static const int		MAX_MODEL_COUNT_A_ITEM = 2;
+		static const int		MAX_MODEL_COUNT_A_ITEM = 6;
 	//}} dmlee 2008.11.29 
 
 	public:
@@ -29,6 +29,10 @@ class CXSLItem
 			//{{ 2010. 03. 23  최육사	기술의 노트
 			IT_SKILL_MEMO,		//기술의노트
 			//}}
+			//#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			IT_PET,				//펫
+			IT_RIDING,			//탈것
+			//#endif //SERV_UPGRADE_TRADE_SYSTEM
 		};
 		
 		enum ITEM_GRADE
@@ -144,9 +148,7 @@ class CXSLItem
             SAT_SUPERARMOR,                    /// 슈퍼아머    
             SAT_SUMMON_SPIRIT,                /// 정령소환
             //#endif //DUNGEON_ITEM
-            //#ifdef ADD_SA_FORZEN
             SAT_REMOVE_FROZEN,                // 냉기제거
-            //#endif //ADD_SA_FORZEN
             SAT_TRANSFORM_MONSTER,            // 몬스터 변신            
             SAT_WAY_OF_SWORD_GAUGE_UP,        // 검의길 게이지 증가                
             //#ifdef SUMMON_MONSTER_CARD_SYSTEM
@@ -157,7 +159,12 @@ class CXSLItem
             //#ifdef ARA_FORCE_POWER_ITEM
             SAT_ARA_FORCE_POWER_PERCENT_UP,    // 해외 아라 기력 증가 (%)
             //#endif ARA_FORCE_POWER_ITEM
-
+			//#ifdef RETURN_TO_BASE_AT_PVE
+			SAT_RETURN_TO_BASE_AT_PVE,			// PVE 귀환석
+			//#endif // RETURN_TO_BASE_AT_PVE
+			//#ifdef RIDINGPET_STAMINA_ITEM
+			SAT_RIDINGPET_STAMINA_PERCENT_UP,    // 해외 라이딩펫 스테미너 증가 (%)
+			//#endif RIDINGPET_STAMINA_ITEM
             SAT_END,
         };
 
@@ -183,26 +190,36 @@ class CXSLItem
 			CI_CASH_SKILL_POINT_30_30		= 271078,	// 30SP 30일권
 			CI_CASH_SKILL_POINT_60_30		= 271079,	// 60SP 30일권
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
+/*
 			CI_CASH_SKILL_POINT_5			= 211340, // 캐시 스킬 포인트 5
 			CI_CASH_SKILL_POINT_10			= 211330, // 캐시 스킬 포인트 10
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 			CI_SKILL_RESET_ITEM				= 200730, // 스킬 한개 초기화
 			CI_SKILL_RESET_EVENT_ITEM		= 130808, // 스킬 한개 초기화
+			CI_SKILL_RESET_EVENT_ITEM2		= 160947, // 스킬 한개 초기화
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
 			EI_SKILL_RESET_EVENT_ITEM2		= 67003592, // 망각의 알약(스킬 한개 초기화)
+			EI_SKILL_RESET_EVENT_ITEM3		= 67006745, // 망각의 알약(스킬 한개 초기화)
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+
 			CI_SKILL_INIT_ITEM				= 203800, // 스킬 전체 초기화
 			CI_SKILL_INIT_EVENT_ITEM		= 130633, // 스킬 전체 초기화 이벤트 아이템
 
 #ifdef SERV_NEW_SKILL_INIT_EVENT_ITEM// 작업날짜: 2013-06-25	// 박세훈
 			CI_SKILL_INIT_EVENT_ITEM2		= 135416, // 스킬 전체 초기화 이벤트 아이템2
 			CI_SKILL_INIT_EVENT_ITEM3		= 135417, // 스킬 전체 초기화 이벤트 아이템3
+			CI_SKILL_INIT_EVENT_ITEM4		= 160946, // 스킬 전체 초기화 이벤트 아이템4
 #endif // SERV_NEW_SKILL_INIT_EVENT_ITEM
 
-#ifdef SERV_COUNTRY_JP
+#ifdef SERV_GLOBAL_DEFINE
 			CI_SKILL_INIT_EVENT_ITEM_JP		= 65000430, // 스킬 전체 초기화 이벤트 아이템 국내 130633
-#endif //SERV_COUNTRY_JP
+#endif //SERV_GLOBAL_DEFINE
+
+#ifdef SERV_UNLIMITED_SKILL_RESET_ITEM
+			CI_UNLIMITED_SKILL_RESET_ITEM	= 60008069, // 무제한 선택 스킬 초기화 메달
+#endif //SERV_UNLIMITED_SKILL_RESET_ITEM
 
 			CI_EXPAND_CHAR_SLOT_1 			= 206820, // 캐릭터 슬롯 확장 1
 			CI_EXPAND_CHAR_SLOT_2 			= 206830, // 캐릭터 슬롯 확장 2
@@ -257,6 +274,7 @@ class CXSLItem
 #else //SERV_COUNTRY_JP
 			CI_EVENT_SEAL_ITEM_NORMAL				= 160372, // 코보 뽀루의 발 도장(하얀색)
 			CI_EVENT_SEAL_ITEM_ELITE				= 160373, // 코보 뽀루의 발 도장(보라색)
+
 #ifdef SERV_EVENT_SEAL_ITEM_UNIQUE// 작업날짜: 2013-05-08	// 박세훈
 			CI_EVENT_SEAL_ITEM_UNIQUE		= 160794, // [코보]뽀루의 발 도장 (황금색)
 #endif // SERV_EVENT_SEAL_ITEM_UNIQUE
@@ -308,7 +326,6 @@ class CXSLItem
 			CI_CHANGE_JOB_IRON_PALADIN		= 235120,	/// 아이언 팔라딘의
 			CI_CHANGE_JOB_DEADLY_CHASER		= 235130,	/// 데들리 체이서의
 			//}}
-
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
 			CI_UNLIMITED_CHANGE_SECOND_JOB			= 153000168,	//무제한 2차 전직 아이템
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
@@ -357,8 +374,8 @@ class CXSLItem
 			CI_CHANGE_JOB_TACTICAL_TROOPER	= 252690,
 #endif
 #ifdef SERV_ARA_CHANGE_CLASS_FIRST
-			CI_CHANGE_JOB_LITTLE_HSIEN		= 264380,		/// 아라 소선 전직 아이템
-			CI_CHANGE_JOB_SAKRA_DEVANAM		= 264390,		/// 아라 제천 전직 아이템
+			CI_CHANGE_JOB_LITTLE_HSIEN		= 264380,			/// 아라 소선 전직 아이템
+			CI_CHANGE_JOB_SAKRA_DEVANAM		= 264390,			/// 아라 제천 전직 아이템
 #endif //SERV_ARA_CHANGE_CLASS_FIRST
 
 #ifdef SERV_NEW_CHARACTER_EL
@@ -368,8 +385,22 @@ class CXSLItem
 
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 			CI_CHANGE_JOB_LITTLE_DEVIL		= 264393,			/// 아라 소마 전직 아이템
-			CI_CHANGE_JOB_YAMA_RAJA				= 264394,			/// 아라 명왕 전직 아이템
+			CI_CHANGE_JOB_YAMA_RAJA			= 264394,			/// 아라 명왕 전직 아이템
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한 
+			CI_CHANGE_JOB_GRAND_MASTER		= 272169,			/// 엘리시스 그랜드 마스터 전직 아이템
+			CI_CHANGE_JOB_BLAZING_HEART		= 272170,			/// 엘리시스 블레이징 하트 전직 아이템
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+			CI_CHANGE_JOB_PSYCHIC_TRACER	= 272810,			/// 애드 사이킥 트레이서 전직 아이템
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+			CI_CHANGE_JOB_LUNATIC_PSYKER	= 273232,			/// 애드 루나틱 사이커 전직 아이템
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 
 			//{{ 2011. 11. 30	최육사	패키지 상품 추가
 #ifdef SERV_ADD_PACKAGE_PRODUCT
@@ -378,9 +409,11 @@ class CXSLItem
 			CI_SKILL_POINT_60_USE_INVEN		= 241790,	// 인벤토리에서 클릭해서 사용하는 그노시스 축복
 			CI_SKILL_POINT_60_USE_INVEN_ARA	= 261660,	// 그노시스 축복(아라전용)
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
+			/*
 			CI_SKILL_POINT_5_USE_INVEN		= 241780,	// 인벤토리에서 클릭해서 사용하는 그노시스 축복
 			CI_SKILL_POINT_10_USE_INVEN		= 241790,	// 인벤토리에서 클릭해서 사용하는 그노시스 축복
 			CI_SKILL_POINT_10_USE_INVEN_ARA	= 261660,	// 그노시스 축복(아라전용)
+			*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013			
 			CI_EXPAND_SKILL_SLOT_IN_PACKAGE	= 241800,	// 스킬 슬롯 체인지 메달
 #endif SERV_ADD_PACKAGE_PRODUCT
@@ -466,16 +499,27 @@ class CXSLItem
 			CI_CLASS_CHANGE_ELESIS_PYRO_KNIGHT		= 252755,
 #endif	// SERV_NEW_CHARACTER_EL
 
+#endif SERV_UNIT_CLASS_CHANGE_ITEM
+
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 			CI_CLASS_CHANGE_UC_ARA_LITTLE_HSIEN		= 252757,	/// 아라 1차 전직 소선 전직 변경권
 			CI_CLASS_CHANGE_ARA_LITTLE_DEVIL		= 252756,	/// 아라 1차 전직 소마 전직 변경권
-
+			
 			CI_CLASS_CHANGE_ARA_SAKRA_DEVANAM		= 252751,	/// 아라 2차 전직 제천 전직 변경권
-			CI_CLASS_CHANGE_ARA_YAMA_RAJA				= 252752,	/// 아라 2차 전직 명왕 전직 변경권
+			CI_CLASS_CHANGE_ARA_YAMA_RAJA			= 252752,	/// 아라 2차 전직 명왕 전직 변경권
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-
-#endif SERV_UNIT_CLASS_CHANGE_ITEM
 			//}}
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+			CI_CLASS_CHANGE_ELESIS_GRAND_MASTER		= 272171,	/// 엘리시스 2차 전직 그랜드 마스터 전직 변경권
+			CI_CLASS_CHANGE_ELESIS_BLAZING_HEART	= 272172,	/// 엘리시스 2차 전직 블레이징 하트 전직 변경권
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+			CI_CLASS_CHANGE_PSYCHIC_TRACER			= 999992,	/// 애드 1차 전직 사이킥 트레이서 전직 변경권
+#endif //SERV_9TH_NEW_CHARACTER
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+			CI_CLASS_CHANGE_LUNATIC_PSYKER			= 999993,	/// 애드 2차 전직 루나틱 사이커 전직 변경권
+#endif //SERV_ADD_LUNATIC_PSYKER
 
 			//{{ 2012. 02. 22	박세훈	펫 이름 변경권
 #ifdef SERV_PET_CHANGE_NAME
@@ -494,6 +538,24 @@ class CXSLItem
 			CI_PET_TOY								= 500580,
 #endif SERV_PET_TOY
 			//}}
+			//{{ 2013. 2. 28	박세훈	 빙고 이벤트
+#ifdef SERV_EVENT_BINGO
+			CI_BINGO_MIX_ITEM						= 257280,
+			CI_BINGO_RESET_ITEM						= 257290,
+#endif SERV_EVENT_BINGO
+			//}}
+
+#ifdef SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT// 작업날짜: 2013-05-12	// 박세훈
+			CI_REQUEST_OF_LOVE						= 135404,	// 사랑의 리퀘스트
+#endif // SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			CI_EXPAND_SKILL_PAGE					= 127273,	// 스킬 페이지 확장권
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+#ifdef SERV_CASH_ITEM_FOR_ADD
+			CI_EXPAND_SKILL_SLOT_ADD				= 272738,	// 스킬 슬롯 B확장 엘리시스 전용 판매 캐시템
+#endif // SERV_CASH_ITEM_FOR_ADD
 
 //----------------------------------------------------------------------------------//
 #ifdef EVENT_GUILD_ITEM
@@ -539,6 +601,11 @@ class CXSLItem
 			CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY_TYPE2 = 80001372, //(중국) 이벤트용 그노시스의 축복 ( 5 SP, 7일권) // 2012.07.02 lygan_조성욱 // 이건 리얼 들어가면 절대 삭제 하지 않는 아이템
 			CI_EVENT_SKILL_POINT_10_USE_INVEN_15_DAY	 = 80001367, //(중국) 이벤트용 그노시스의 축복 ( 10 SP, 15일권) // 2012.07.02 lygan_조성욱
 #endif SERV_CN_GNOSIS
+#ifdef SERV_GNOSIS_BR
+			CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY = 90000690, // 그노시스의 축복 (5 SP, 7일권)
+			CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY = 90000691, // 그노시스의 축복 (5 SP, 15일권)
+#endif SERV_GNOSIS_BR
+
 #ifdef SERV_EVENT_VIP_SYSTEM			
 			CI_CASH_REWARD_EVENT_VIP_OPEN			= 83000170,	// (중국) VIP 인증아이템 //2012.11.06 lygan_조성욱 // 중국 전용 던전 보상창 2번 탭 오픈용 (이벤트)
 #endif //SERV_EVENT_VIP_SYSTEM
@@ -551,19 +618,12 @@ class CXSLItem
 			CI_OFFICER_EVE_ICE_BURNER				= 120003200,
 			CI_OFFICER_CHUNG_ICE_BURNER				= 90001070,
 			CI_MAGIC_NECKLACE						= 75000600,
+			CI_ICE_BURNER_LURIAL					= 210000226,
 #endif SERV_CASHITEM_PURCHASE_RESTRICTION
 
 //----------------------------------------------------------------------------------//
-
-			//{{ 2013. 2. 28	박세훈	 빙고 이벤트
-#ifdef SERV_EVENT_BINGO
-			CI_BINGO_MIX_ITEM						= 257280,
-			CI_BINGO_RESET_ITEM						= 257290,
-#endif SERV_EVENT_BINGO
-			//}}
-#ifdef SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT// 작업날짜: 2013-05-12	// 박세훈
-			CI_REQUEST_OF_LOVE						= 135404,	// 사랑의 리퀘스트
-#endif // SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT
+// 해외팀 전용 이벤트 아이템
+#ifdef SERV_GLOBAL_EVENT_ITEM
 
 #ifdef SERV_EVENT_INIT_SKILL_TREE_ITEM
 			CI_INIT_SKILL_TREE_ITEM					= 60001727,	// 망각의 드링크
@@ -581,11 +641,6 @@ class CXSLItem
 #ifdef SERV_2ND_CLASS_SKILL_RESET
 			CI_SKILL_RESET_2ND_CLASS_EVENT_ITEM		= 141000036, // 스킬 한개 초기화
 #endif SERV_2ND_CLASS_SKILL_RESET
-		
-
-//----------------------------------------------------------------------------------//
-// 해외팀 전용 이벤트 아이템
-#ifdef SERV_GLOBAL_EVENT_ITEM
 
 #ifdef SERV_EVENT_BUY_FAKE_ITEM
 			CI_BUY_FAKE_ITEM						= 67005900, //만우절 이벤트용 아크엔젤 패키지
@@ -611,14 +666,8 @@ class CXSLItem
 			CI_ARIEL_EVENT_SEAL_ITEM_UNIQUE			= 82214400,	 //아리엘의 뽀루의 발 도장 (황금색)
 #endif //SERV_ARIEL_EVENT_ITEM
 
-#ifdef SERV_READY_TO_SOSUN_EVENT
-			EI_READY_TO_SOSUN_EVENT_ITEM			= 60007092,	// 아라 1차 전직 이름맞추기 실행권
-			EI_READY_TO_SOSUN_EVENT_WIN_ITEM		= 60007112,	// 아라 1차 전직 이름맞추기 당첨 보상
-#endif SERV_READY_TO_SOSUN_EVENT
-
 #endif //SERV_GLOBAL_EVENT_ITEM
 //----------------------------------------------------------------------------------//
-
 		};
 		//}}
 
@@ -643,6 +692,7 @@ class CXSLItem
 			EI_PRELIMINARY_TICKET		= 130843, // 예선 대회 참여권
 			EI_OFFLINE_TICKET			= 135304, // 온라인 토너먼트 참가 신청권 130844, // 오프라인 대회 참여권
 			EI_TREE_SUMMON_ITEM			= 131857, // 자연의 정수 ( 나무수호신 소환 )
+
 			//{{ 2010. 12. 8	최육사	이벤트용 그노시스 축복
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM
 #ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
@@ -655,22 +705,27 @@ class CXSLItem
 			EI_SKILL_POINT_30_1DAY_USE_INVEN		= 67006500, // 이벤트용 그노시스 축복 30sp 1일
 			EI_SKILL_POINT_60_1DAY_USE_INVEN		= 67006501, // 이벤트용 그노시스 축복 60sp 1일
 #endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
-#else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-			EI_SKILL_POINT_5_USE_INVEN	= 133131, // 이벤트용 그노시스 축복
-#endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+			EI_SKILL_POINT_30_USE_INVEN_JP			= 67000382,	// 이벤트용 그노시스 축복(2일)	133131
+			EI_SKILL_POINT_10_30DAY_USE_INVEN_JP	= 67005710, // 이벤트용 그노시스 축복 10sp 30일
+			EI_SKILL_POINT_10_15DAY_USE_INVEN_JP	= 70007020, // 이벤트용 그노시스 축복 10sp 15일
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 			EI_SKILL_POINT_30_7DAY_USE_INVEN	= 60003758, // 이벤트용 그노시스 축복 30SP 7일
 			EI_SKILL_POINT_60_7DAY_USE_INVEN	= 60003759, // 이벤트용 그노시스 축복 60SP 7일
 			EI_SKILL_POINT_60_15DAY_USE_INVEN	= 60004280, // 이벤트용 그노시스 축복 60SP 15일
 			EI_SKILL_POINT_60_30DAY_USE_INVEN	= 60005011, // 이벤트용 그노시스 축복 60SP 30일
+			EI_SKILL_POINT_60_7DAY_USE_INVEN_2	= 60008007, // 이벤트용 그노시스 축복 60SP 7일	
+			EI_SKILL_POINT_30_7DAY_USE_INVEN_2	= 70007030, // 이벤트용 그노시스 축복 30SP 7일
 #endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
-#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-			EI_SKILL_POINT_30_USE_INVEN_JP			= 67000382,	// 이벤트용 그노시스 축복(2일)	133131
-			EI_SKILL_POINT_10_30DAY_USE_INVEN_JP	= 67005710, // 이벤트용 그노시스 축복 10sp 30일
-			EI_SKILL_POINT_10_15DAY_USE_INVEN_JP	= 70007020, // 이벤트용 그노시스 축복 10sp 15일
-			EI_SKILL_POINT_5_7DAY_USE_INVEN_JP		= 70007030, // 이벤트용 그노시스 축복 5sp 7일
-#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-			EI_SKILL_POINT_60_7DAY_USE_INVEN_2		= 60008007, // 이벤트용 그노시스 축복 60SP 7일
+#else	// SERV_UPGRADE_SKILL_SYSTEM_2013
+			/*
+			EI_SKILL_POINT_5_USE_INVEN	= 133131, // 이벤트용 그노시스 축복
+			*/
+#endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+			EI_SKILL_POINT_30_7DAY_USE_INVEN_INT	= 70007030, // 이벤트용 그노시스 축복 30SP 7일
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 #endif SERV_EVENT_CASH_SKILL_POINT_ITEM
 			//}}
 
@@ -702,12 +757,6 @@ class CXSLItem
 			EI_EXPAND_SKILL_SLOT_EVENT	= 200880, // 이벤트 스킬 슬롯B (기간제)
 #endif SERV_SKILL_SLOT_CHANGE_INVENTORY
 			//}}
-			//{{ 2011. 01. 26	최육사	전직시 망각 드링크 지급 이벤트
-#ifdef SERV_CHANGE_CLASS_REWARD_EVENT
-			EI_SKILL_RESET_EVENT_CUBE	= 132696, // 망각의 드링크 큐브 (7일권)
-			EI_TITLE_EVENT_ITEM			= 160228, // Rebirth’칭호 획득 아이템
-#endif SERV_CHANGE_CLASS_REWARD_EVENT
-			//}}
 			//{{ 2011. 08. 26	최육사	캐릭터 레벨업 아이템
 #ifdef SERV_CHAR_LEVEL_UP_ITEM
 			EI_CHAR_LEVEL_UP_ITEM		= 160267, // 현자의 주문서
@@ -724,26 +773,9 @@ class CXSLItem
 #endif SERV_SERVER_GROUP_EVENT_SYSTEM
 			//}}
 
-			//{{ 2012. 06. 28	김민성       이벤트 재화(천사의 깃털)
-#ifdef SERV_EVENT_MONEY
-			//{{ 2012. 10. 12	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-			//{{ 2012. 11. 04	박세훈	필드 런칭 이벤트 ( 천사의 깃털, 필드 전야 이벤트 재활용 )
-#ifdef SERV_FIELD_LAUNCHING_EVENT
-			EI_ANGEL_FEATHER		= 135292	, // 필드 기념 주화
-#else
-			EI_ANGEL_FEATHER		= 135246	, // 폭발한 엘의 파편
-#endif SERV_FIELD_LAUNCHING_EVENT
-			//}}
-#else
-			EI_ANGEL_FEATHER		= 135183	, // 천사의 깃털
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-			//}}
-			
-			EI_EVENT_MONEY_ITEM		= 135426	, // 붉은 기사단 출석 인증		
-			
-#endif SERV_EVENT_MONEY
-			//}}
+#ifdef SERV_EVENT_MONEY	// 김민성 // 적용날짜: 2013-07-04
+			EI_EVENT_MONEY_ITEM		= 135465, // 뮤의 출석도장
+#endif // SERV_EVENT_MONEY
 
 			//{{ 2012. 07. 09	김민성       현자의 마법석
 //#ifdef SERV_DUNGEON_CLEAR_PAYMENT_STONE_EVENT
@@ -768,18 +800,14 @@ class CXSLItem
 #endif SERV_ITEM_EXCHANGE_LIMIT_COUNT
 			//}}
 
-//----------------------------------------------------------------------------------//
-#ifdef SERV_CHAR_LEVEL_UP_ITEM_EVENT_RENA
-			EL_CHAR_LEVEL_UP_ITEM2		= 60004276,	// 시공간의 주문서
-#endif SERV_CHAR_LEVEL_UP_ITEM_EVENT_RENA
-//----------------------------------------------------------------------------------//
-
 			//{{ 2013. 03. 27	 그노시스의 축복 5point 7일 추가 - 김민성
 #ifdef SERV_EVENT_CASH_SKILL_5_POINT_7_DAY
 #ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 			EI_SKILL_POINT_30_DAY_7_USE_INVEN		= 268562,	// 인벤토리에서 클릭해서 사용하는 그노시스 축복 30포인트 7일제
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
+			/*
 			EI_SKILL_POINT_5_DAY_7_USE_INVEN		= 268562,	// 인벤토리에서 클릭해서 사용하는 그노시스 축복 5포인트 7일제
+			*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 #endif SERV_EVENT_CASH_SKILL_5_POINT_7_DAY
 			//}
@@ -792,13 +820,73 @@ class CXSLItem
 // 해외팀 전용 이벤트 아이템
 #ifdef SERV_GLOBAL_EVENT_ITEM
 		// 추후 추가되는 경우 이곳에 넣어주시기 바랍니다.
+
+#ifdef SERV_CHAR_LEVEL_UP_ITEM_EVENT_RENA
+			EL_CHAR_LEVEL_UP_ITEM2		= 60004276,	// 시공간의 주문서
+#endif SERV_CHAR_LEVEL_UP_ITEM_EVENT_RENA
+		
+#ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
+		// 복귀 유저를 위한 특별 패키지 판매(7.4)
+		EI_SERVICE_COUPON_TYPE_A				= 60007075,	// 맞춤 서비수 쿠폰 Type A
+		EI_SERVICE_COUPON_TYPE_A_PACKAGE		= 60007078,	// 맞춤 서비수 쿠폰 Type A 패키지
+
+		EI_SERVICE_COUPON_TYPE_B				= 60007076,	// 맞춤 서비수 쿠폰 Type B
+		EI_SERVICE_COUPON_TYPE_B_PACKAGE		= 60007079,	// 맞춤 서비수 쿠폰 Type B 패키지
+
+		EI_SERVICE_COUPON_TYPE_C				= 60007077,	// 맞춤 서비수 쿠폰 Type C
+		EI_SERVICE_COUPON_TYPE_C_PACKAGE		= 60007080,	// 맞춤 서비수 쿠폰 Type C 패키지
+
+		EI_ARA_SPECIAL_COUPON					= 60007091,	// 아라 스페셜 쿠폰
+		EI_ARA_SPECIAL_ATTRACTION_PACKAGE		= 60007113,	// 아라 스페셜 가열기 패키지
+		EI_ARA_SPECIAL_AVATAR1_PACKAGE			= 60007114,	// 아라 스페셜 아바타 패키지1
+		EI_ARA_SPECIAL_AVATAR2_PACKAGE			= 60007115,	// 아라 스페셜 아바타 패키지2
+		EI_ARA_SPECIAL_PET_PACKAGE				= 60007116,	// 아라 스페셜 펫 패키지
+
+		EI_ARIEL_SPECIAL_PRESENT_CUBE_LV12		= 60007062, // 아리엘 특별 선물 큐브 Lv.12
+		EI_ARIEL_SPECIAL_PRESENT_CUBE_LV18		= 60007064, // 아리엘 특별 선물 큐브 Lv.18
+		EI_ARIEL_SPECIAL_PRESENT_CUBE_LV20		= 60007066, // 아리엘 특별 선물 큐브 Lv.20
+		EI_SPECIAL_PRESENT_COPPER_KEY			= 60007069, // 스페셜 선물 열쇠(동)
+		EI_SPECIAL_PRESENT_SILVER_KEY			= 60007070, // 스페셜 선물 열쇠(은)
+		EI_SPECIAL_PRESENT_GOLD_KEY				= 60007071, // 스페셜 선물 열쇠(금)
+
+		EI_SPECIAL_HEAVENLY_BOSS_RARE			= 70007203, // 천상의 지배자(레어)
+#endif //SERV_KEEP_ITEM_SHOW_CASHSHOP
+
+#ifdef SERV_READY_TO_SOSUN_EVENT
+		EI_READY_TO_SOSUN_EVENT_ITEM			= 60007092,	// 아라 1차 전직 이름맞추기 실행권
+		EI_READY_TO_SOSUN_EVENT_WIN_ITEM		= 60007112,	// 아라 1차 전직 이름맞추기 당첨 보상
+#endif SERV_READY_TO_SOSUN_EVENT
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		EI_EVENT_PROPOSE_ITEM					= 60007791,	// 가상 결혼 신청서
+		EI_EVENT_DIVORCE_ITEM					= 60007792, // 가상 결혼 계약서
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 #ifdef SERV_RECRUIT_EVENT_BASE
-			EI_RECRUIT_CUBE							= 90002350, // 신규유저 지원 큐브
+		EI_RECRUIT_CUBE							= 90002350, // 신규유저 지원 큐브
 #endif SERV_RECRUIT_EVENT_BASE
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		EI_INFINITY_EL_ESSENCE_ITEM_EVENT		= 60008064,		// 엘의 정수 공급기
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+		EI_SKILL_POINT_30_14DAY_USE_INVEN	= 141000896, //춘절 그노시스 
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+		EI_LURIEL_GNOSIS_30_15DAY				= 210000270, // 루리엘의 그노시스의 축복 (30SP/15일)
+		EI_LURIEL_GNOSIS_30_30DAY				= 210000271, // 루리엘의 그노시스의 축복 (30SP/30일)
+		EI_LURIEL_GNOSIS_30_60DAY				= 210000272, // 루리엘의 그노시스의 축복 (30SP/60일)
+		EI_LURIEL_GNOSIS_30_7DAY				= 210000273, // 루리엘의 그노시스의 축복 (30SP/7일)
+		EI_LURIEL_GNOSIS_60_15DAY				= 210000280, // 루리엘의 그노시스의 축복 (60SP/15일)
+		EI_LURIEL_GNOSIS_60_30DAY				= 210000281, // 루리엘의 그노시스의 축복 (60SP/30일)
+		EI_LURIEL_GNOSIS_60_60DAY				= 210000282, // 루리엘의 그노시스의 축복 (60SP/60일)
+		EI_LURIEL_GNOSIS_60_7DAY				= 210000283, // 루리엘의 그노시스의 축복 (60SP/7일)
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+		EI_TEAR_OF_ELWOMAN		= 85001550	, // 엘의 여인의 눈물
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 
 #endif //SERV_GLOBAL_EVENT_ITEM
 //----------------------------------------------------------------------------------//
-
 		};
 		//}}
 
@@ -822,6 +910,9 @@ class CXSLItem
             EDI_BRONZE_ED				= 127000, // 브론즈ED
 			EDI_SILVER_ED				= 127010, // 실버ED
 			EDI_GOLD_ED					= 127020, // 골드ED
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-15	// 박세훈
+			EDI_GOLD_BAR				= 127041, // 금괴
+#endif // SERV_BATTLE_FIELD_BOSS
 		};
 		//}}
 
@@ -889,6 +980,10 @@ class CXSLItem
 			SI_PSHOP_AGENCY_10_DAYS		= 160065, // 대리 판매 보증서(10일권)
 			SI_PSHOP_AGENCY_15_DAYS		= 160066, // 대리 판매 보증서(15일권)
 			SI_PSHOP_AGENCY_30_DAYS		= 160067, // 대리 판매 보증서(30일권)
+
+            SI_PSHOP_AGENCY_7_DAYS_ED   = 160904, // 대리 판매 보증서 (7일권, ED)
+            SI_PSHOP_AGENCY_15_DAYS_ED  = 160905,//             대리 판매 보증서
+            SI_PSHOP_AGENCY_30_DAYS_ED  = 160906,//             대리 판매 보증서
 #endif SERV_PSHOP_AGENCY
 			//}}
 			
@@ -899,9 +994,11 @@ class CXSLItem
 			SI_COME_BACK_REWARD_SKILL_30_POINT_30_DAY		= 127190, // 그노시스의 축복(30일권)
 			SI_COME_BACK_REWARD_SKILL_30_POINT_60_DAY		= 127200, // 그노시스의 축복(60일권)
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
+/*
 			SI_COME_BACK_REWARD_SKILL_5_POINT_15_DAY		= 127180, // 그노시스의 축복(15일권)
 			SI_COME_BACK_REWARD_SKILL_5_POINT_30_DAY		= 127190, // 그노시스의 축복(30일권)
 			SI_COME_BACK_REWARD_SKILL_5_POINT_60_DAY		= 127200, // 그노시스의 축복(60일권)
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 #endif SERV_COME_BACK_USER_REWARD
 //}} 
@@ -947,12 +1044,11 @@ class CXSLItem
 			//{{ 2012. 12. 24	박세훈	펫 오토 루팅 기능 추가
 #ifdef SERV_PET_AUTO_LOOTING
 			SI_PET_AUTO_LOOTING_ITEM				= 500720,	// 펫 오토 루팅
+#ifdef SERV_PET_AUTO_LOOTING_ITEM_CN
+			SI_PET_AUTO_LOOTING_ITEM_CN				= 100000120,	// 펫 오토 루팅 중국용(기존 아이템도 사용합니다)
+#endif // SERV_PET_AUTO_LOOTING_ITEM_CN
 #endif SERV_PET_AUTO_LOOTING
 			//}}
-
-#ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
-			SI_HALLOWEEN_TRANSFORM_POSION_ITEM		= 90002300, // 펫 변신 물약
-#endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 
 			//{{ 2013. 04. 01	 인연 시스템 - 김민성
 #ifdef SERV_RELATIONSHIP_SYSTEM
@@ -970,9 +1066,25 @@ class CXSLItem
 #endif SERV_RELATIONSHIP_SYSTEM
 			//}
 
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+			SI_FINALITY_SKILL_ITEM					= 271310,	// 궁극의 비전서
+#endif // SERV_FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+			SI_FINALITY_SKILL_BOOK					= 271311,	// 궁극의 비전서
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+
 //----------------------------------------------------------------------------------//
 // 해외팀 전용 이벤트 아이템
 #ifdef SERV_GLOBAL_EVENT_ITEM
+
+#ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
+			SI_HALLOWEEN_TRANSFORM_POSION_ITEM		= 90002300, // 펫 변신 물약
+#endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
+
+#ifdef SERV_EVENT_GUILD_SKILL_GLOBAL
+			SI_EVENT_GUILD_SKILL_5_POINT_15_DAY	= 67005930, // 일본 그노시스 15일,5SP, 거래불가
+#endif //SERV_EVENT_GUILD_SKILL_GLOBAL
 
 #ifdef NEW_YEAR_2013_EVENT
 			SI_EXP_10_PERCENT_MEDAL					= 60005596,	// 아리엘의 경험치 10% 메달
@@ -1017,17 +1129,23 @@ class CXSLItem
 			SI_EXP_200_PERCENT_MEDAL_TWHK	= 64000012, // 성장의 메달  경험치 200% 메달(대만)
 			SI_EXP_50_PERCENT_MEDAL_TWHK	= 60007081,	// 경험치 50% 메달
 #endif SERV_EXP_MEDAL_TW
+#ifdef SERV_TOUR_TICKET_EVENT
+			SI_TOUR_TICKET_ITEM				= 60007447,
+#endif SERV_TOUR_TICKET_EVENT
+#ifdef SERV_EVENT_VC
+			SI_EVENT_VC_BATTLE_FOOD			= 85003041,	// 전투 식량. 사용하면 용병 뽀루 친밀도 상승
+#endif //SERV_EVENT_VC
 #ifdef SERV_RECRUIT_EVENT_BASE
 			SI_RECRUIT_TICKET				= 90000600,
 #endif SERV_RECRUIT_EVENT_BASE
 
 #ifdef SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
-			SI_INVENTORY_SLOT_ADD_ITEM_EQUIP_EVENT			= 60002281,// 인벤 확장 이벤트용
-			SI_INVENTORY_SLOT_ADD_ITEM_ACCESSORY_EVENT		= 60002282,
-			SI_INVENTORY_SLOT_ADD_ITEM_QUICK_SLOT_EVENT		= 60002283,
-			SI_INVENTORY_SLOT_ADD_ITEM_MATERIAL_EVENT		= 60002284,
-			SI_INVENTORY_SLOT_ADD_ITEM_QUEST_EVENT			= 60002285,
-			SI_INVENTORY_SLOT_ADD_ITEM_SPECIAL_EVENT		= 60002286,
+			SI_INVENTORY_SLOT_ADD_ITEM_EQUIP_EVENT			= 141000900,// 인벤 확장 이벤트용
+			SI_INVENTORY_SLOT_ADD_ITEM_ACCESSORY_EVENT		= 141000901,
+			SI_INVENTORY_SLOT_ADD_ITEM_QUICK_SLOT_EVENT		= 141000902,
+			SI_INVENTORY_SLOT_ADD_ITEM_MATERIAL_EVENT		= 141000903,
+			SI_INVENTORY_SLOT_ADD_ITEM_QUEST_EVENT			= 141000904,
+			SI_INVENTORY_SLOT_ADD_ITEM_SPECIAL_EVENT		= 141000905,
 #endif //SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
 
 #ifdef SERV_EVENT_ARA_NEW_CHAR_THE_ESSENCE_OF_HERETIC
@@ -1039,8 +1157,6 @@ class CXSLItem
 #endif SERV_EVENT_RURIEL_MANA_ENERGIZE_POTION
 #endif //SERV_GLOBAL_EVENT_ITEM
 //----------------------------------------------------------------------------------//
-
-
 		};
 		//}}
 
@@ -1058,7 +1174,8 @@ class CXSLItem
 #ifdef	SERV_CHANGE_QUICK_SLOT_COOL_TIME_DB_SP 	// 적용날짜: 2013-06-20
 		enum COOLTIME_ITEM_GROUP
 		{
-			CIG_HP_POTION			= 0,
+			CIG_NONE				= 0,
+			CIG_HP_POTION,
 			CIG_FOOD,
 			CIG_AP_POTION,
 			CIG_MP_POTION,
@@ -1113,19 +1230,17 @@ class CXSLItem
 		};
 #endif	// SERV_RIDING_PET_SYSTM
 
-//#ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27	// 해외팀 주석 처리
+#ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		enum CASH_SKILL_POINT
 		{
 			CSP_NONE = 0,
-			CSP_5_POINT = 5,
-			CSP_10_POINT = 10,
 			CSP_30_POINT = 30,
 			CSP_60_POINT = 60,
 #ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 			CSP_130_POINT = 130,
 #endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 		};
-//#endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+#endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 		struct SpecialAbility
 		{
@@ -1362,7 +1477,6 @@ class CXSLItem
 				m_iBuffFactorID		= 0;
 #endif SERV_SERVER_BUFF_SYSTEM
 				//}
-
 #ifdef SERV_RESTRICTED_TO_MOVE_TO_BANK
 				m_bInventoryOnly	= false;
 #endif SERV_RESTRICTED_TO_MOVE_TO_BANK
@@ -1453,13 +1567,34 @@ class CXSLItem
 		//{{ 2010. 04. 26  최육사	PC방 전용 캐쉬템
 		static	bool	IsPcBangOnlyCashItem( const int iItemID );
 		//}}
+
+#ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
+		static	bool	IsKeepItemShowItem( const int iItemID );
+		static	bool	IsKeepItemShowItem2( const int iItemID );
+		static	bool	IsKeepItemShowItem3( const int iItemID );
+		static	bool	IsKeepItemShowItem4( const int iItemID );
+		static	bool	IsKeepItemShowItem5( const int iItemID );
+		static	bool	IsKeepItemShowItem6( const int iItemID );
+#endif //SERV_KEEP_ITEM_SHOW_CASHSHOP
+
+#ifndef DELETE_EXCEPTION_WISHLIST_CHANGEJOBITEM //캐시샾 찜하기에서 전직 아이템에 대해 예외처리 해제.
 		//{{ 2010. 03. 30  김정협 전직아이템인지 확인하는 함수
 		static	bool	IsChangeJobItem( const int iItemID );
+#endif //DELETE_EXCEPTION_WISHLIST_CHANGEJOBITEM
+
 		static	bool	IsBankExpandItem( const int iItemID );
 		//}}
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		static	bool	IsItemToMakeSkillPageExpanded( const int iItemID_ );
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+
 		//{{ 2011. 05. 11	최육사	대리상인
 #ifdef SERV_PSHOP_AGENCY
 		static	int		GetPShopAgencyDays( IN const int iItemID );
+        static  int     GetPShopAgencyType( IN const int iItemID_ );
+
 #endif SERV_PSHOP_AGENCY
 		//}}
 		//{{ 2011. 06. 01	최육사	강화된 아이템 보상 큐브
@@ -1476,13 +1611,13 @@ class CXSLItem
 
 #ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 		//{{ 2011. 05. 27    김민성    휴면 복귀 유저 보상
 #ifdef SERV_COME_BACK_USER_REWARD
 		static	int		GetComeBackRewardSkillPointDays( IN const int iItemID );
 #endif SERV_COME_BACK_USER_REWARD
 		//}}
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 		
 		//{{ 2011. 11. 21  김민성	전직 변경 아이템

@@ -1,5 +1,4 @@
 #include "StdAfx.h"
-#include ".\x2serverprotocol.h"
 
 bool	g_bIsSERVICE = false;
 CX2ServerProtocol::CX2ServerProtocol( SEND_MSG_FUNC pSendGameMessage, HWND hWnd, UINT serverMsgID, const WCHAR** ppEventIDStrList, int eventIDEnd, bool bIsSERVICE )
@@ -322,6 +321,8 @@ bool CX2ServerProtocol::ConnectedToCollectServer( const WCHAR* pIP, const int po
 		return false;
 	}
 #ifdef  X2OPTIMIZE_X2SERVERPROTOCOL_MULTITHREAD_CRASH_BUG_FIX
+	// connection 열자마자 바로 끊기게 만드는 버그!!! - robobeg, 2014.1.31
+    //boost::atomic_store( &m_pkCSUserProxy, KUserProxyPtr() );
     boost::atomic_store( &m_pkCSUserProxy, spProxy );
 #else   X2OPTIMIZE_X2SERVERPROTOCOL_MULTITHREAD_CRASH_BUG_FIX
 	m_pkCSUserProxy = spProxy;

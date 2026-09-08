@@ -11,16 +11,11 @@
 #include "GameServer.h"
 #include "NetError.h"
 
-//{{ 2010.11.26   ï¿½ï¿½È¿ï¿½ï¿½    SQL_Injection ï¿½ï¿½ï¿½ï¿½ ï¿½Ø°ï¿½ 
+//{{ 2010.11.26   Á¶È¿Áø    SQL_Injection ¹®Á¦ ÇØ°á 
 #include <boost/algorithm/string/replace.hpp>
 //}}
 
-//{{ Iruha : 2026-08-27 // VS2010 port: ImplementDBThread is undefined everywhere in this tree.
-// VC7.1 silently parsed it as an implicit-int prototype (harmless, unused); VC10 makes that
-// a hard error (C4430). DeclareDBThread already implements the constructor inline, so this
-// pairing macro never did anything. Most sibling *DBThread.cpp files already comment it out.
-//ImplementDBThread( KGSIDPcbangDBThread );
-//}}
+ImplementDBThread( KGSIDPcbangDBThread );
 ImplPfID( KGSIDPcbangDBThread, PI_GS_ID_PUBLISHER_PCBANG_DB );
 
 #define CLASS_TYPE KGSIDPcbangDBThread
@@ -42,7 +37,7 @@ void KGSIDPcbangDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		
 
 	default:
-		START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½. " << spEvent_->GetIDStr() );
+		START_LOG( cerr, L"ÀÌº¥Æ® ÇÚµé·¯°¡ Á¤ÀÇµÇÁö ¾Ê¾ÒÀ½. " << spEvent_->GetIDStr() );
 	}
 }
 
@@ -65,12 +60,12 @@ IMPL_ON_FUNC( DBE_ID_PCBANG_CEHCK_AUTH_REQ )
 
 	KDBE_ID_PCBANG_CEHCK_AUTH_ACK kPacket;
 
-	DO_QUERY_NO_PROFILE( L"exec dbo.up_get_check_macaddr_inGame", L"%d, %d",
+	DO_QUERY_NO_PROFILE( L"exec dbo.up_get_check_macaddr_RS", L"N\'%s\', N\'%s\'",
 		% kPacket_.m_wstrMacAdress
 		% kPacket_.m_wstrPublicIP
 		);
 
-	int iRet = -1;
+	int iRet = -2;
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( iRet );						
@@ -81,7 +76,7 @@ IMPL_ON_FUNC( DBE_ID_PCBANG_CEHCK_AUTH_REQ )
 	kPacket.m_iIsGameBangType = kPacket_.m_iIsGameBangType;
 	kPacket.m_iIsNetmarbleGameBangType = iRet;
 
-	START_LOG( clog, L"ï¿½Ý¸ï¿½ï¿½ï¿½ PC ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½" )
+	START_LOG( clog, L"³Ý¸¶ºí PC ¹æ ÀÎÁõ °á°ú" )
 		<< BUILD_LOG( kPacket_.m_wstrMacAdress )
 		<< BUILD_LOG( kPacket_.m_wstrPublicIP )
 		<< BUILD_LOG( iRet )

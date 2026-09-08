@@ -16,7 +16,7 @@
 #ifdef SERV_COUNTRY_BR
 
 #define MAX_PACKET_SIZE_PLB 13312
-#define HEADER_IN_PACKET_LENGTH_PLB 10
+#define HEADER_IN_PACKET_LENGTH_PLB 6
 #define HEADER_NOT_IN_PACKET_LENGTH_PLB 0
 #define MAX_PACKET_CONTENT_SIZE_PLB MAX_PACKET_SIZE_PLB - ( HEADER_IN_PACKET_LENGTH_PLB + HEADER_NOT_IN_PACKET_LENGTH_PLB )
 
@@ -49,8 +49,10 @@ public:
 	//}}
 	bool Read4Byte( unsigned long& ulData, int& iCP );
 	bool Read8Byte( __int64& iData, int& iCP );
+	
 	bool ReadString( std::wstring& wstrData, int& iCP );
 	bool ReadString( std::wstring& wstrData, int size, int& iCP );
+	bool ReadString( char* cpData, int size, int& iCP );
 
 	bool WriteByte( BYTE byteData, int& iCP );
 	bool Write2Byte( unsigned short usData, int& iCP );
@@ -64,31 +66,18 @@ public:
 	// 숫자를 스트링으로~
 	std::string toString(int iSource);
 
-	bool Read( KEPL_BR_HEALTH_CHECK_ACK& kPacket );
-	bool Write( const KEPL_BR_HEALTH_CHECK_REQ& kPacket );
-
 	bool Read( KEPL_BR_BALANCE_CHECK_ACK& kPacket );
 	bool Write( const KEPL_BR_BALANCE_CHECK_REQ& kPacket );
 
 	// 아이템 구매 : 보낼때는 KEBILL_BUY_PRODUCT_REQ 에서 정보를 뽑아내서 보내고,
 	//				 올때는 KEPL_BR_PURCHASEITEM_ACK 패킷으로 받는다. 이상한가?
 	bool Read( KEPL_BR_PURCHASEITEM_ACK& kPacket );
-	
 	bool Write( const KEBILL_BUY_PRODUCT_REQ& kPacket );
-
-	bool Read( KEPL_BR_REGCOUPON_ACK& kPacket );
-	bool Write( const KEBILL_USE_COUPON_REQ& kPacket );
-
-	// 선물하기 기능
-	bool Read( KEPL_BR_GIFTITEM_ACK& kPacket );
-	//bool Write( const KEPL_BR_GIFTITEM_REQ& kPacket );
-	bool Write( const KEBILL_GIFT_ITEM_REQ& kPacket );
 
 protected:
 	
 	unsigned short  m_usReqLen;
 	unsigned short  m_usReqType;
-	unsigned long   m_ulReqKey;
 	unsigned short	m_usRetCode;
 	BYTE			m_abytePacketContent[MAX_PACKET_CONTENT_SIZE_PLB];
 };

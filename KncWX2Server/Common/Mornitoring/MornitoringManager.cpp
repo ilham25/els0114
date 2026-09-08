@@ -666,9 +666,11 @@ void KMornitoringManager::GetCheckExistModule( std::map< std::wstring, bool >& m
 	mapModule = m_mapExistModule;
 }
 
-void KMornitoringManager::AddCheckModuleList_LUA( const char*  pszModule )
+void KMornitoringManager::AddCheckModuleList_LUA( const char* pszModule )
 {
-	m_mapExistModule.insert( std::make_pair( KncUtil::toWideString( pszModule ), false ) );
+	std::wstring wstrModule = KncUtil::toWideString( pszModule );
+	MakeUpperCase( wstrModule );
+	m_mapExistModule.insert( std::make_pair( wstrModule, false ) );
 }
 
 void KMornitoringManager::CheckModuleList_X2Module_LUA( bool bRet )

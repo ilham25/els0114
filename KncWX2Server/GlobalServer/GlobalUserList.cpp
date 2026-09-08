@@ -297,7 +297,6 @@ int KGlobalUserList::RegUnit( IN const KRegUnitInfo& kUnitInfo )
 	m_mapUserUID.insert( std::make_pair( kUnitInfo.m_iUserUID, spGSUserInfo ) );
 #endif SERV_BLOCK_LIST
 	//}}
-
 #ifdef	SERV_HERO_PVP_MANAGE_LIST // 적용날짜: 2013-04-04
 	if( kUnitInfo.m_cAuthLevel <= SEnum::UAL_DEVELOPER )
 	{
@@ -354,7 +353,6 @@ bool KGlobalUserList::UnRegUnit( IN const UidType iUnitUID )
 	//}}
 
 #ifdef	SERV_GLOBAL_USER_LIST_NICKNAME_STORAGE // 적용날짜: 2013-04-04
-
 #ifdef EXTEND_SERVER_GROUP_MASK
 	const int iServerGroupID = KncUid::ExtractServerGroupID( iUnitUID );
 #else EXTEND_SERVER_GROUP_MASK

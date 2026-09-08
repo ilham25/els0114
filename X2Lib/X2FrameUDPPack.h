@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 class   CX2FrameUDPPack
 {
@@ -11,7 +11,7 @@ public:
         m_wUDPMaxSize = CKTDNUDP_MTU_MAX;
         m_pidUnitUID = 0;
         m_dwFrameMoveCount = 0;
-        ResetFrameUDPPack();
+        ResetFrameUDPPack( false );
     }
 
     void           SetUnitUID( UidType uidUnitUID )    { m_pidUnitUID = uidUnitUID; }
@@ -29,7 +29,7 @@ public:
     //bool           AddFrameUDPPack_IDInfoPack( const char ID, const void* pData, WORD wSize, const void* pInfo, WORD wInfoSize );
 
     bool           FlushFrameUDPPack();
-    void           ResetFrameUDPPack();
+    void           ResetFrameUDPPack( bool bUpdateUDPMaxSize );
 
 private:
     //std::vector<UidType>    m_vecSyncUserList;
@@ -46,4 +46,4 @@ private:
 };//struct CX2FrameUDPPack
 
 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK

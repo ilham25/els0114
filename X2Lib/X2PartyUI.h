@@ -135,6 +135,7 @@ public:
 
 	void OnChangeState();	 
 	void OnJoinParty();
+	void UpdatePartyMenu();
 
 	void OpenPartyDLG( bool bOpen );
 	void UpdatePartyDLG( bool bRenamePartyTitle = false );
@@ -289,15 +290,14 @@ public:
 	void UpdateDungeonThumbnailQuestMark();
 
 
-	void UpdateBossItemList(const CX2Dungeon::DungeonData::mapBossDropItem& BossDropItemList_);
+	void UpdateBossItemList(const CX2Dungeon::DungeonData::mapBossDropItem& BossDropItemList_, bool bIsHenirChallenge = false );
 
 	void SetCurrentWaitUserCount( int iWaitUserCount_, bool bShow_ = true );
 	void GameStartCurrentMember();
 	
 #ifdef SERV_NEW_EVENT_TYPES
 	void ClearLocalMapDLGs();
-#endif SERV_NEW_EVENT_TYPES	
-	
+#endif SERV_NEW_EVENT_TYPES		
 private:
 	void ShortCutKeyProcess();
 	void UpdateMatchingUI(float fElapsedTime_);

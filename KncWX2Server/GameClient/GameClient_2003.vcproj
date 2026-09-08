@@ -542,7 +542,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release_EU|Win32"
+			Name="Release_TW|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -590,7 +590,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release_US|Win32"
+			Name="Release_HK|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -638,7 +638,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release_CN|Win32"
+			Name="Release_JP|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -686,20 +686,16 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug_EU|Win32"
+			Name="Release_TH|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="../GameServer;../Common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;"
-				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				BufferSecurityCheck="TRUE"
+				AdditionalIncludeDirectories="../GameServer,../Common"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;"
+				RuntimeLibrary="0"
 				TreatWChar_tAsBuiltInType="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -709,11 +705,12 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/$(ProjectName)D.exe"
-				LinkIncremental="2"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/GameClient.pdb"
 				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -737,20 +734,16 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug_CN|Win32"
+			Name="Release_ID|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="../GameServer;../Common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;"
-				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				BufferSecurityCheck="TRUE"
+				AdditionalIncludeDirectories="../GameServer,../Common"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;"
+				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -760,11 +753,60 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/$(ProjectName)D.exe"
-				LinkIncremental="2"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/GameClient.pdb"
 				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_IN|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../GameServer,../Common"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;"
+				RuntimeLibrary="0"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				GenerateDebugInformation="TRUE"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -1053,27 +1095,32 @@
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
@@ -1136,27 +1183,32 @@
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
@@ -1233,31 +1285,37 @@
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -1332,31 +1390,37 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -1423,27 +1487,32 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32">
+						Name="Release_TW|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32">
+						Name="Release_HK|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32">
+						Name="Release_JP|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32">
+						Name="Release_TH|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32">
+						Name="Release_ID|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
@@ -1517,31 +1586,37 @@
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -1616,31 +1691,37 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -1711,27 +1792,32 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32">
+						Name="Release_TW|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32">
+						Name="Release_HK|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32">
+						Name="Release_JP|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32">
+						Name="Release_TH|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32">
+						Name="Release_ID|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
@@ -1797,27 +1883,32 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32">
+						Name="Release_TW|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32">
+						Name="Release_HK|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32">
+						Name="Release_JP|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32">
+						Name="Release_TH|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32">
+						Name="Release_ID|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
@@ -1895,31 +1986,37 @@
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -1994,31 +2091,37 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -2093,31 +2196,37 @@
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -2192,31 +2301,37 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -2295,31 +2410,37 @@
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -2394,31 +2515,37 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -2493,31 +2620,37 @@
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -2592,31 +2725,37 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_EU|Win32"
+						Name="Release_TW|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_US|Win32"
+						Name="Release_HK|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release_CN|Win32"
+						Name="Release_JP|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_EU|Win32"
+						Name="Release_TH|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug_CN|Win32"
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -2656,16 +2795,6 @@
 				RelativePath=".\Lib\KTDGLineMap.h">
 				<FileConfiguration
 					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_EU|Win32">
-					<Tool
-						Name="VCCustomBuildTool"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug_CN|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
@@ -2738,27 +2867,32 @@
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release_EU|Win32">
+				Name="Release_TW|Win32">
 				<Tool
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release_US|Win32">
+				Name="Release_HK|Win32">
 				<Tool
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release_CN|Win32">
+				Name="Release_JP|Win32">
 				<Tool
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Debug_EU|Win32">
+				Name="Release_TH|Win32">
 				<Tool
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Debug_CN|Win32">
+				Name="Release_ID|Win32">
+				<Tool
+					Name="VCCustomBuildTool"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release_IN|Win32">
 				<Tool
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
@@ -2832,31 +2966,37 @@
 					Name="VCCLCompilerTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release_EU|Win32"
+				Name="Release_TW|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCLCompilerTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release_US|Win32"
+				Name="Release_HK|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCLCompilerTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release_CN|Win32"
+				Name="Release_JP|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCLCompilerTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Debug_EU|Win32"
+				Name="Release_TH|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCLCompilerTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Debug_CN|Win32"
+				Name="Release_ID|Win32"
+				ExcludedFromBuild="TRUE">
+				<Tool
+					Name="VCCLCompilerTool"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release_IN|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCLCompilerTool"/>
@@ -2931,31 +3071,37 @@
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release_EU|Win32"
+				Name="Release_TW|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release_US|Win32"
+				Name="Release_HK|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release_CN|Win32"
+				Name="Release_JP|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Debug_EU|Win32"
+				Name="Release_TH|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCustomBuildTool"/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Debug_CN|Win32"
+				Name="Release_ID|Win32"
+				ExcludedFromBuild="TRUE">
+				<Tool
+					Name="VCCustomBuildTool"/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release_IN|Win32"
 				ExcludedFromBuild="TRUE">
 				<Tool
 					Name="VCCustomBuildTool"/>

@@ -78,7 +78,6 @@ public:
 	std::string GetStrPvpNpcDataLua();
 #endif SERV_UNITED_SERVER_EU
 	//}}
-
 protected:
 	//{{ 2012. 10. 31	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM

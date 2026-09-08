@@ -50,6 +50,28 @@ class CKTDGUICheckBox : public CKTDGUIControl
 		const CKTDGUIControl::UIPointData* GetBGPoint()    const { return m_pBGPoint; }
 		const CKTDGUIControl::UIPointData* GetCheckPoint() const { return m_pCheckedPoint; }
 
+#ifdef DLL_BUILD
+		virtual bool IsSelectByEditGui( POINT pt ) override { return ContainsPoint(pt); }
+
+		virtual void MoveControl( float fx, float fy ) override;
+		virtual void MoveSubControl( float fx, float fy, wstring subControlName ) override;
+
+		virtual void SetEditGUI( bool bEdit ) override;		// GUI 에디트 모드 설정
+
+		virtual void ShowSubView( wstring name, bool bView ) override;
+
+		virtual D3DXVECTOR2 GetPos() override;		/// 컨트롤의 위치
+
+		virtual vector<D3DXVECTOR2> GetPosList() override;		// 컨트롤 내에 pictures의 위치 정보
+
+		void DrawEditEdge( CKTDGUIControl::UIPointData*	m_pEditEdgePoint );		// UITool에서 편집용으로 사용된다.
+
+protected:
+		bool m_bEditEdge;
+		CKTDXDeviceTexture * m_pCheckedEdgeTexture;
+#endif
+
+
 	protected:
 		void	SetCheckedInternal( bool bChecked, bool bFromInput = false );
 
@@ -73,8 +95,8 @@ class CKTDGUICheckBox : public CKTDGUIControl
 		int								m_CustomMsgChecked;
 		int								m_CustomMsgUnChecked;
 
-		wstring							m_CustomFuncChecked;
-		wstring							m_CustomFuncUnChecked;
+		string							m_CustomFuncChecked;
+		string							m_CustomFuncUnChecked;
 
 		
 };

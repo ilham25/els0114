@@ -8,7 +8,6 @@
 	@desc	: 팝업에 사용되는 리소스 및 기능을 가진다.
 	@date	: 2012/04/12
 */
-#ifdef REFORM_UI_CHARACTER_INFO
 
 #pragma region CX2PopupUIBase
 class CX2PopupUIBase
@@ -57,4 +56,3 @@ protected:
 };
 #pragma endregion
 
-#endif

@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 
 //{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
@@ -22,10 +22,10 @@ CX2TitleManager::CX2TitleManager(void)
     m_pDlgTitle = new CX2TitleSystem(g_pMain->GetNowState());
     m_bInit = false;
     m_iSelTitleId = 0;
-#if 0 // 칭호 프리뷰
-    m_hSeqEmblem = INVALID_PARTICLE_HANDLE;
-    m_pPart_Emblem_200 = NULL;
-#endif
+//#if 0 // 칭호 프리뷰
+//    m_hSeqEmblem = INVALID_PARTICLE_SEQUENCE_HANDLE;
+//    m_pPart_Emblem_200 = NULL;
+//#endif
 
     m_strDesc = GET_STRING( STR_ID_5378 );
 	m_strImgName = L"";
@@ -48,12 +48,12 @@ CX2TitleManager::~CX2TitleManager(void)
 		SAFE_DELETE( mit->second );
 	}
 
-#if 0 // 칭호 프리뷰
-    if(m_hSeqEmblem != INVALID_PARTICLE_HANDLE)
-        g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
-    m_hSeqEmblem = INVALID_PARTICLE_HANDLE;
-    m_pPart_Emblem_200 = NULL;
-#endif
+//#if 0 // 칭호 프리뷰
+//    if(m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE)
+//        g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
+//    m_hSeqEmblem = INVALID_PARTICLE_SEQUENCE_HANDLE;
+//    m_pPart_Emblem_200 = NULL;
+//#endif
 
     SAFE_DELETE(m_pDlgTitle);
 }
@@ -169,25 +169,12 @@ bool CX2TitleManager::OpenScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "TitleManager", this );	
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR8, strFileName.c_str() );
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR9, pFileName );
 
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR9, strFileName.c_str() );
-
-		return false;
-	}
+    }
 
 	return true;
 }
@@ -195,27 +182,29 @@ bool CX2TitleManager::OpenScriptFile( const WCHAR* pFileName )
 bool CX2TitleManager::AddTitleInfo_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	TitleInfo* pTitleInfo = new TitleInfo();
 
 	
-	LUA_GET_VALUE_RETURN(	luaManager, L"m_iTitleID",				pTitleInfo->m_iTitleID,					0,				goto end_proc );
-	LUA_GET_VALUE(			luaManager, L"m_iSortNum",				pTitleInfo->m_iSortNum,					0 );
+	LUA_GET_VALUE_RETURN(	luaManager, "m_iTitleID",				pTitleInfo->m_iTitleID,					0,				goto end_proc );
+	LUA_GET_VALUE(			luaManager, "m_iSortNum",				pTitleInfo->m_iSortNum,					0 );
 
-	LUA_GET_VALUE_ENUM(		luaManager, L"m_eTitleType",			pTitleInfo->m_eTitleType,				TITLE_TYPE,		CX2TitleManager::TT_NONE );
+	LUA_GET_VALUE_ENUM(		luaManager, "m_eTitleType",			pTitleInfo->m_eTitleType,				TITLE_TYPE,		CX2TitleManager::TT_NONE );
 	
 	//09. 05. 14 김정협 머지를 위해서 인덱스 읽는 부분 막음
-	LUA_GET_VALUE(			luaManager, L"m_TitleName",			    pTitleInfo->m_wstrTitleName,			L"" );
-	//LUA_GET_VALUE(	luaManager, L"m_iTitleName_Index",			m_nString_Index,		0);
+	LUA_GET_VALUE(			luaManager, "m_TitleName",			    pTitleInfo->m_wstrTitleName,			L"" );
+	//LUA_GET_VALUE(	luaManager, "m_iTitleName_Index",			m_nString_Index,		0);
 	//pTitleInfo->m_wstrTitleName = GET_SCRIPT_STRING(m_nString_Index);
 
 	//09. 05. 14 김정협 머지를 위해서 인덱스 읽는 부분 막음
-    LUA_GET_VALUE(			luaManager, L"m_Description",			pTitleInfo->m_wstrDescription,			L"" );
-	//LUA_GET_VALUE(	luaManager, L"m_iDescription_Index",			m_nString_Index,		0);
+    LUA_GET_VALUE(			luaManager, "m_Description",			pTitleInfo->m_wstrDescription,			L"" );
+	//LUA_GET_VALUE(	luaManager, "m_iDescription_Index",			m_nString_Index,		0);
 	//pTitleInfo->m_wstrDescription = GET_SCRIPT_STRING(m_nString_Index);
 
-    LUA_GET_VALUE(			luaManager, L"m_ParticleName",			pTitleInfo->m_wstrParticleName,			L"" );
+    LUA_GET_VALUE(			luaManager, "m_ParticleName",			pTitleInfo->m_wstrParticleName,			L"" );
 
 #ifdef SERV_GROW_UP_TITLE
 	if( pTitleInfo->m_wstrParticleName.find( L"," ) != -1 )
@@ -243,21 +232,20 @@ bool CX2TitleManager::AddTitleInfo_LUA()
 		pTitleInfo->m_wstrParticleName = pTitleInfo->m_mapGrowUpParticleName[1];
 	}
 #endif //SERV_GROW_UP_TITLE
-
-	LUA_GET_VALUE_ENUM(		luaManager, L"m_eUnitType",				pTitleInfo->m_eUnitType,				CX2Unit::UNIT_TYPE,		CX2Unit::UT_NONE );
-	LUA_GET_VALUE_ENUM(		luaManager, L"m_eUnitClass",			pTitleInfo->m_eUnitClass,				CX2Unit::UNIT_CLASS,	CX2Unit::UC_NONE );
-	LUA_GET_VALUE(			luaManager, L"m_iOpenLevel",			pTitleInfo->m_iOpenLevel,				0 );
-	LUA_GET_VALUE(			luaManager, L"m_bIsSecretTitle",		pTitleInfo->m_bIsSecretTitle,			false );
+	LUA_GET_VALUE_ENUM(		luaManager, "m_eUnitType",				pTitleInfo->m_eUnitType,				CX2Unit::UNIT_TYPE,		CX2Unit::UT_NONE );
+	LUA_GET_VALUE_ENUM(		luaManager, "m_eUnitClass",			pTitleInfo->m_eUnitClass,				CX2Unit::UNIT_CLASS,	CX2Unit::UC_NONE );
+	LUA_GET_VALUE(			luaManager, "m_iOpenLevel",			pTitleInfo->m_iOpenLevel,				0 );
+	LUA_GET_VALUE(			luaManager, "m_bIsSecretTitle",		pTitleInfo->m_bIsSecretTitle,			false );
     
-	LUA_GET_VALUE(			luaManager, L"m_iBaseHP",				pTitleInfo->m_iBaseHP,					0 );
-	LUA_GET_VALUE(			luaManager, L"m_iAtkPhysic",			pTitleInfo->m_iAtkPhysic,				0 );
-	LUA_GET_VALUE(			luaManager, L"m_iAtkMagic",				pTitleInfo->m_iAtkMagic,				0 );
-	LUA_GET_VALUE(			luaManager, L"m_iDefPhysic",			pTitleInfo->m_iDefPhysic,				0 );
-	LUA_GET_VALUE(			luaManager, L"m_iDefMagic",				pTitleInfo->m_iDefMagic,				0 );
+	LUA_GET_VALUE(			luaManager, "m_iBaseHP",				pTitleInfo->m_iBaseHP,					0 );
+	LUA_GET_VALUE(			luaManager, "m_iAtkPhysic",			pTitleInfo->m_iAtkPhysic,				0 );
+	LUA_GET_VALUE(			luaManager, "m_iAtkMagic",				pTitleInfo->m_iAtkMagic,				0 );
+	LUA_GET_VALUE(			luaManager, "m_iDefPhysic",			pTitleInfo->m_iDefPhysic,				0 );
+	LUA_GET_VALUE(			luaManager, "m_iDefMagic",				pTitleInfo->m_iDefMagic,				0 );
 
-	LUA_GET_VALUE(			luaManager, L"m_bVisible",				pTitleInfo->m_bVisible,					true );
+	LUA_GET_VALUE(			luaManager, "m_bVisible",				pTitleInfo->m_bVisible,					true );
 
-	if( luaManager.BeginTable( L"SOCKET_OPTION" ) == true )
+	if( luaManager.BeginTable( "SOCKET_OPTION" ) == true )
 	{
 		int index = 1;
 		int iSocketOption	= -1;
@@ -290,12 +278,14 @@ end_proc:
 bool CX2TitleManager::AddTitleInfoTrans_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	TitleInfo* pTitleInfo = new TitleInfo();
-	LUA_GET_VALUE(	luaManager, L"m_iTitleID",				pTitleInfo->m_iTitleID,					0);
-	LUA_GET_VALUE(	luaManager, L"m_TitleName",			    pTitleInfo->m_wstrTitleName,			L"" );
-	LUA_GET_VALUE(	luaManager, L"m_Description",			pTitleInfo->m_wstrDescription,			L"" );
+	LUA_GET_VALUE(	luaManager, "m_iTitleID",				pTitleInfo->m_iTitleID,					0);
+	LUA_GET_VALUE(	luaManager, "m_TitleName",			    pTitleInfo->m_wstrTitleName,			L"" );
+	LUA_GET_VALUE(	luaManager, "m_Description",			pTitleInfo->m_wstrDescription,			L"" );
 
 	// 여기서 치환 해주어야 함.
 	std::map< int, TitleInfo* >::iterator mit;
@@ -316,18 +306,18 @@ bool CX2TitleManager::AddTitleInfoTrans_LUA()
 	}
 
 	return true;
-
 }
 
 bool CX2TitleManager::AddTitleMissionInfoTrans_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	MissionTemplet kMissionTemplet;
-
-	LUA_GET_VALUE_RETURN(		luaManager, L"m_iMissionID",			kMissionTemplet.m_iMissionID,				0,			goto LoadFail );
-	LUA_GET_VALUE_RETURN(		luaManager, L"m_MissionName",			kMissionTemplet.m_wstrMissionName,			L"",		goto LoadFail );
+	LUA_GET_VALUE_RETURN(		luaManager, "m_iMissionID",			kMissionTemplet.m_iMissionID,				0,			goto LoadFail );
+	LUA_GET_VALUE_RETURN(		luaManager, "m_MissionName",			kMissionTemplet.m_wstrMissionName,			L"",		goto LoadFail );
 
 	// 여기서 치환 해주어야 함.
 	std::map< int, MissionTemplet >::iterator mit;
@@ -355,12 +345,13 @@ LoadFail:
 bool CX2TitleManager::AddSubTitleMissionInfoTrans_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	SubMissionTemplet kSubMissionTemplet;
-
-	LUA_GET_VALUE_RETURN(		luaManager, L"m_iID",				kSubMissionTemplet.m_iSubMissionID,		0,		goto LoadFail; );
-	LUA_GET_VALUE_RETURN(		luaManager, L"m_wstrDescription",	kSubMissionTemplet.m_wstrDescription,	L"",	goto LoadFail; );
+	LUA_GET_VALUE_RETURN(		luaManager, "m_iID",				kSubMissionTemplet.m_iSubMissionID,		0,		goto LoadFail; );
+	LUA_GET_VALUE_RETURN(		luaManager, "m_wstrDescription",	kSubMissionTemplet.m_wstrDescription,	L"",	goto LoadFail; );
 
 	// 여기서 치환 해주어야 함.
 	std::map< int, SubMissionTemplet >::iterator mit;
@@ -389,25 +380,27 @@ LoadFail:
 bool CX2TitleManager::AddTitleMissionInfo_LUA()
 {
     KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
     TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
     MissionTemplet kMissionTemplet;
 
-    LUA_GET_VALUE_RETURN(		luaManager, L"m_iMissionID",			kMissionTemplet.m_iMissionID,				0,			goto LoadFail );
-    LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eClearType",			kMissionTemplet.m_eClearType,				TITLE_MISSION_CLEAR_TYPE, TMCT_NONE, goto LoadFail; );
+    LUA_GET_VALUE_RETURN(		luaManager, "m_iMissionID",			kMissionTemplet.m_iMissionID,				0,			goto LoadFail );
+    LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eClearType",			kMissionTemplet.m_eClearType,				TITLE_MISSION_CLEAR_TYPE, TMCT_NONE, goto LoadFail; );
 	
 	//09. 05. 14 김정협 머지를 위해서 인덱스 읽는 부분 막음
-    LUA_GET_VALUE_RETURN(		luaManager, L"m_MissionName",			kMissionTemplet.m_wstrMissionName,			L"",		goto LoadFail );
-	//LUA_GET_VALUE_RETURN(	luaManager, L"m_iMissionName_Index",			m_nString_Index,		0,		goto LoadFail; );	
+    LUA_GET_VALUE_RETURN(		luaManager, "m_MissionName",			kMissionTemplet.m_wstrMissionName,			L"",		goto LoadFail );
+	//LUA_GET_VALUE_RETURN(	luaManager, "m_iMissionName_Index",			m_nString_Index,		0,		goto LoadFail; );	
 	//kMissionTemplet.m_wstrMissionName = GET_SCRIPT_STRING(m_nString_Index);
 
     // Load Mission Condition
-    LUA_GET_VALUE_RETURN(		luaManager, L"m_iConditionLv",			kMissionTemplet.m_kCondition.m_iLevel,		-1,			goto LoadFail; );
-    LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eConditionUnitType",	kMissionTemplet.m_kCondition.m_eUnitType,	CX2Unit::UNIT_TYPE,	CX2Unit::UT_NONE,	goto LoadFail; );
-    LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eConditionUnitClass",	kMissionTemplet.m_kCondition.m_eUnitClass,	CX2Unit::UNIT_CLASS,	CX2Unit::UC_NONE,	goto LoadFail; );
+    LUA_GET_VALUE_RETURN(		luaManager, "m_iConditionLv",			kMissionTemplet.m_kCondition.m_iLevel,		-1,			goto LoadFail; );
+    LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eConditionUnitType",	kMissionTemplet.m_kCondition.m_eUnitType,	CX2Unit::UNIT_TYPE,	CX2Unit::UT_NONE,	goto LoadFail; );
+    LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eConditionUnitClass",	kMissionTemplet.m_kCondition.m_eUnitClass,	CX2Unit::UNIT_CLASS,	CX2Unit::UC_NONE,	goto LoadFail; );
 
     int iClearMissionID = 0;
-    LUA_GET_VALUE_RETURN(		luaManager, L"m_iConditionClearMissionID", iClearMissionID,							-1,			goto LoadFail );
+    LUA_GET_VALUE_RETURN(		luaManager, "m_iConditionClearMissionID", iClearMissionID,							-1,			goto LoadFail );
 
 
 
@@ -416,7 +409,7 @@ bool CX2TitleManager::AddTitleMissionInfo_LUA()
         kMissionTemplet.m_kCondition.m_vecClearMissionID.push_back( iClearMissionID );
 
     // Load Sub Mission
-    if( luaManager.BeginTable( L"m_SubMission" ) == true )
+    if( luaManager.BeginTable( "m_SubMission" ) == true )
     {
         int index	= 1; 
         int buf		= -1;
@@ -431,8 +424,8 @@ bool CX2TitleManager::AddTitleMissionInfo_LUA()
     }
 
     // Load Reward
-    LUA_GET_VALUE(				luaManager, L"m_sPeriod",				kMissionTemplet.m_sPeriod,		0 );
-    LUA_GET_VALUE_RETURN(		luaManager, L"m_iTitleID",				kMissionTemplet.m_iTitleID,		0,		goto LoadFail );	
+    LUA_GET_VALUE(				luaManager, "m_sPeriod",				kMissionTemplet.m_sPeriod,		0 );
+    LUA_GET_VALUE_RETURN(		luaManager, "m_iTitleID",				kMissionTemplet.m_iTitleID,		0,		goto LoadFail );	
 
     m_mapTitleMission.insert( std::make_pair( kMissionTemplet.m_iMissionID, kMissionTemplet ) );
     return true;
@@ -455,20 +448,22 @@ const CX2TitleManager::MissionTemplet* CX2TitleManager::GetMissionInfo( int iMis
 bool CX2TitleManager::AddSubTitleMissionInfo_LUA()
 {
     KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
     TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
     SubMissionTemplet kSubMissionTemplet;
 
-    LUA_GET_VALUE_RETURN(		luaManager, L"m_iID",				kSubMissionTemplet.m_iSubMissionID,		0,		goto LoadFail; );
+    LUA_GET_VALUE_RETURN(		luaManager, "m_iID",				kSubMissionTemplet.m_iSubMissionID,		0,		goto LoadFail; );
     
 	//09. 05. 14 김정협 머지를 위해서 인덱스 읽는 부분 막음
-	LUA_GET_VALUE_RETURN(		luaManager, L"m_wstrDescription",	kSubMissionTemplet.m_wstrDescription,	L"",	goto LoadFail; );
-	//LUA_GET_VALUE_RETURN(	luaManager, L"m_iDescription_Index",			m_nString_Index,		0,		goto LoadFail; );	
+	LUA_GET_VALUE_RETURN(		luaManager, "m_wstrDescription",	kSubMissionTemplet.m_wstrDescription,	L"",	goto LoadFail; );
+	//LUA_GET_VALUE_RETURN(	luaManager, "m_iDescription_Index",			m_nString_Index,		0,		goto LoadFail; );	
 	//kSubMissionTemplet.m_wstrDescription = GET_SCRIPT_STRING(m_nString_Index);
 
-    LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eClearType",		kSubMissionTemplet.m_eClearType,	TITLE_MISSION_CLEAR_TYPE,	TMCT_NONE,	goto LoadFail; );
+    LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eClearType",		kSubMissionTemplet.m_eClearType,	TITLE_MISSION_CLEAR_TYPE,	TMCT_NONE,	goto LoadFail; );
 
-    LUA_GET_VALUE_RETURN(		luaManager, L"m_bAutomaticDescription",	kSubMissionTemplet.m_bAutomaticDescription,	true,		goto LoadFail; );
+    LUA_GET_VALUE_RETURN(		luaManager, "m_bAutomaticDescription",	kSubMissionTemplet.m_bAutomaticDescription,	true,		goto LoadFail; );
 
 
     if( LoadClearCondition( luaManager, kSubMissionTemplet ) == false )
@@ -496,25 +491,25 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
 {
     int iDifficulty;
 
-    if( luaManager.BeginTable( L"m_ClearCondition" ) == true )
+    if( luaManager.BeginTable( "m_ClearCondition" ) == true )
     {
         switch( kSubMissionTemplet.m_eClearType )
         {
         case TMCT_NPC_TALK:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eTalkNPCID",		kSubMissionTemplet.m_ClearCondition.m_eTalkNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );				
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eTalkNPCID",		kSubMissionTemplet.m_ClearCondition.m_eTalkNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );				
             }
             break;
 
         case TMCT_NPC_HUNT:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
                 kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
 				//{{ 2012. 1. 11	Merge 박세훈	2012.12.26 임규수 타이틀 미션 클리어 NPC 복수 적용
 #ifdef SERV_SUB_TITLE_MISSION_PLURAL_NPC
-				if( luaManager.BeginTable( L"m_eKillNPCID" ) == true )
+				if( luaManager.BeginTable( "m_eKillNPCID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= -1;
@@ -528,30 +523,34 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
 					luaManager.EndTable();
 				}
 #else
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eKillNPCID",		kSubMissionTemplet.m_ClearCondition.m_eKillNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eKillNPCID",		kSubMissionTemplet.m_ClearCondition.m_eKillNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );
 #endif SERV_SUB_TITLE_MISSION_PLURAL_NPC
 				//}}
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iKillNum",			kSubMissionTemplet.m_ClearCondition.m_iKillNum,			0, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iKillNum",			kSubMissionTemplet.m_ClearCondition.m_iKillNum,			0, goto error_proc; );
+
+#ifdef NEW_HENIR_DUNGEON
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		kSubMissionTemplet.m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,		CX2Dungeon::DM_INVALID );
+#endif NEW_HENIR_DUNGEON
 
             }
             break;
 
         case TMCT_ITEM_COLLECTION:
             {				
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iCollectionItemID",	kSubMissionTemplet.m_ClearCondition.m_iCollectionItemID,	0, goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iCollectionItemNum",kSubMissionTemplet.m_ClearCondition.m_iCollectionItemNum,	0, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iCollectionItemID",	kSubMissionTemplet.m_ClearCondition.m_iCollectionItemID,	0, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iCollectionItemNum",kSubMissionTemplet.m_ClearCondition.m_iCollectionItemNum,	0, goto error_proc; );
             }
             break;
 
         case TMCT_QUEST_ITEM_COLLECTION:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
                 kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
 				//{{ 2012. 1. 11	Merge 박세훈	2012.12.26 임규수 타이틀 미션 클리어 NPC 복수 적용
 #ifdef SERV_SUB_TITLE_MISSION_PLURAL_NPC
-				if( luaManager.BeginTable( L"m_eKillNPCID" ) == true )
+				if( luaManager.BeginTable( "m_eKillNPCID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= -1;
@@ -565,33 +564,25 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
 					luaManager.EndTable();
 				}
 #else
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eKillNPCID",		kSubMissionTemplet.m_ClearCondition.m_eKillNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eKillNPCID",		kSubMissionTemplet.m_ClearCondition.m_eKillNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );
 #endif SERV_SUB_TITLE_MISSION_PLURAL_NPC
 				//}}
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iCollectionItemID",	kSubMissionTemplet.m_ClearCondition.m_iCollectionItemID,	0,		goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iCollectionItemNum",kSubMissionTemplet.m_ClearCondition.m_iCollectionItemNum,	0,		goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_fQuestItemDropRate",kSubMissionTemplet.m_ClearCondition.m_fQuestItemDropRate,	0.0f,	goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iCollectionItemID",	kSubMissionTemplet.m_ClearCondition.m_iCollectionItemID,	0,		goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iCollectionItemNum",kSubMissionTemplet.m_ClearCondition.m_iCollectionItemNum,	0,		goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_fQuestItemDropRate",kSubMissionTemplet.m_ClearCondition.m_fQuestItemDropRate,	0.0f,	goto error_proc; );
             }
             break;
 
         case TMCT_DUNGEON_TIME:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		    CX2Dungeon::DI_NONE, goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		    SEnum::DI_NONE, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
                 kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
-				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty"
-				// flag here (CXSLTitleManager::LoadClearCondition) and the client never
-				// did. Titles have a real -1 "any" sentinel, which still works, so only
-				// "this difficulty or harder" was broken.
-#ifdef SERV_IRUHADEV_OFFLINE
-				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
-#endif SERV_IRUHADEV_OFFLINE
-				//}}
 
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearTime",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearTime,	0,		goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearTime",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearTime,	0,		goto error_proc; );
 				//{{ 2011. 05. 16  김민성	칭호 획득 조건 추가
 #ifdef SERV_ADD_TITLE_CONDITION
-				LUA_GET_VALUE(		luaManager, L"m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	1 );
+				LUA_GET_VALUE(		luaManager, "m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	1 );
 #endif SERV_ADD_TITLE_CONDITION
 				//}}
 
@@ -600,22 +591,14 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
 
         case TMCT_DUNGEON_RANK:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
                 kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
-				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty"
-				// flag here (CXSLTitleManager::LoadClearCondition) and the client never
-				// did. Titles have a real -1 "any" sentinel, which still works, so only
-				// "this difficulty or harder" was broken.
-#ifdef SERV_IRUHADEV_OFFLINE
-				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
-#endif SERV_IRUHADEV_OFFLINE
-				//}}
 
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonRank",		kSubMissionTemplet.m_ClearCondition.m_eDungeonRank,	CX2DungeonRoom::RANK_TYPE,		CX2DungeonRoom::RT_NONE, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonRank",		kSubMissionTemplet.m_ClearCondition.m_eDungeonRank,	CX2DungeonRoom::RANK_TYPE,		CX2DungeonRoom::RT_NONE, goto error_proc; );
 				//{{ 2011. 05. 16  김민성	칭호 획득 조건 추가
 #ifdef SERV_ADD_TITLE_CONDITION
-				LUA_GET_VALUE(		luaManager, L"m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	1 );
+				LUA_GET_VALUE(		luaManager, "m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	1 );
 #endif SERV_ADD_TITLE_CONDITION
 				//}}
             }
@@ -623,22 +606,14 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
 
         case TMCT_DUNGEON_DAMAGE:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
                 kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
-				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty"
-				// flag here (CXSLTitleManager::LoadClearCondition) and the client never
-				// did. Titles have a real -1 "any" sentinel, which still works, so only
-				// "this difficulty or harder" was broken.
-#ifdef SERV_IRUHADEV_OFFLINE
-				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
-#endif SERV_IRUHADEV_OFFLINE
-				//}}
 
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonDamage",	kSubMissionTemplet.m_ClearCondition.m_iDungeonDamage,	-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonDamage",	kSubMissionTemplet.m_ClearCondition.m_iDungeonDamage,	-1, goto error_proc; );
 				//{{ 2011. 05. 16  김민성	칭호 획득 조건 추가
 #ifdef SERV_ADD_TITLE_CONDITION
-				LUA_GET_VALUE(		luaManager, L"m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	1 );
+				LUA_GET_VALUE(		luaManager, "m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	1 );
 #endif SERV_ADD_TITLE_CONDITION
 				//}}
             }
@@ -646,59 +621,59 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
 
         case TMCT_DUNGEON_CLEAR_COUNT:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				//{{ 2010. 08. 23  최육사	비밀던전 헬모드
 #ifdef SERV_HELL_MODE_TITLE
-				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		kSubMissionTemplet.m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,		CX2Dungeon::DM_INVALID );
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		kSubMissionTemplet.m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,		CX2Dungeon::DM_INVALID );
 #endif SERV_HELL_MODE_TITLE
 				//}}
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
                 kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 				//{{ 2010. 08. 23  최육사	비밀던전 헬모드
 #ifdef SERV_HELL_MODE_TITLE
-				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
+				LUA_GET_VALUE(				luaManager, "m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
 #endif SERV_HELL_MODE_TITLE
 				//}}
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
             }
             break;
 
         case TMCT_PVP_PLAY:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPPlay",			kSubMissionTemplet.m_ClearCondition.m_iPVPPlay,		-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPPlay",			kSubMissionTemplet.m_ClearCondition.m_iPVPPlay,		-1, goto error_proc; );
             }
             break;
 
         case TMCT_PVP_WIN:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPWin",			kSubMissionTemplet.m_ClearCondition.m_iPVPWin,		-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPWin",			kSubMissionTemplet.m_ClearCondition.m_iPVPWin,		-1, goto error_proc; );
             }
             break;
 
         case TMCT_PVP_KILL:
             {
-                LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPKill",			kSubMissionTemplet.m_ClearCondition.m_iPVPKill,		-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePVPType",			kSubMissionTemplet.m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPKill",			kSubMissionTemplet.m_ClearCondition.m_iPVPKill,		-1, goto error_proc; );
             }
             break;
 
         case TMCT_QUEST:
             {
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iQuestID",			kSubMissionTemplet.m_ClearCondition.m_iQuestID,		-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iQuestID",			kSubMissionTemplet.m_ClearCondition.m_iQuestID,		-1, goto error_proc; );
             }
             break;
 
         case TMCT_COLLECT_TITLE:
             {
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iTitleID",			kSubMissionTemplet.m_ClearCondition.m_iTitleID,		-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iTitleID",			kSubMissionTemplet.m_ClearCondition.m_iTitleID,		-1, goto error_proc; );
             }
             break;
 
         case TMCT_USE_ITEM:
             {
-                LUA_GET_VALUE_RETURN(		luaManager, L"m_iItemID",			kSubMissionTemplet.m_ClearCondition.m_iItemID,		-1, goto error_proc; );
+                LUA_GET_VALUE_RETURN(		luaManager, "m_iItemID",			kSubMissionTemplet.m_ClearCondition.m_iItemID,		-1, goto error_proc; );
             }
             break;
 
@@ -712,11 +687,11 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
 #ifdef SERV_INTEGRATION
 		case TMCT_WITH_DIF_SERV_USER:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		kSubMissionTemplet.m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubMissionTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
 			}
 			break;
 #endif SERV_INTEGRATION
@@ -725,42 +700,65 @@ bool CX2TitleManager::LoadClearCondition( KLuaManager& luaManager, SubMissionTem
 #ifdef SERV_ADD_TITLE_CONDITION
 		case TMCT_GIVE_PET_FEED:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eItemGrade",		kSubMissionTemplet.m_ClearCondition.m_eItemGrade,		CX2Item::ITEM_GRADE,		CX2Item::IG_NONE, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPetFeedCount",		kSubMissionTemplet.m_ClearCondition.m_iPetFeedCount,	-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eItemGrade",		kSubMissionTemplet.m_ClearCondition.m_eItemGrade,		CX2Item::ITEM_GRADE,		CX2Item::IG_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPetFeedCount",		kSubMissionTemplet.m_ClearCondition.m_iPetFeedCount,	-1, goto error_proc; );
 			}
 			break;
 		case TMCT_PLAYER_WITH_DUNGEON_CLEAR:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",			kSubMissionTemplet.m_ClearCondition.m_eDungeonID,			CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",			iDifficulty,												-1,					goto error_proc; );
-				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPlayerCount",			kSubMissionTemplet.m_ClearCondition.m_iPlayerCount,			-1,					goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearTime",		kSubMissionTemplet.m_ClearCondition.m_iDungeonClearTime,	-1,					goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",			kSubMissionTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",			iDifficulty,												-1,					goto error_proc; );
+				LUA_GET_VALUE(				luaManager, "m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPlayerCount",			kSubMissionTemplet.m_ClearCondition.m_iPlayerCount,			-1,					goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearTime",		kSubMissionTemplet.m_ClearCondition.m_iDungeonClearTime,	-1,					goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
 			}
 			break;
 		case TMCT_RESURRECTION_STONE:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",			kSubMissionTemplet.m_ClearCondition.m_eDungeonID,			CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",			iDifficulty,												-1,					goto error_proc; );
-				LUA_GET_VALUE(				luaManager, L"m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
-				LUA_GET_VALUE(				luaManager, L"m_bCheckResurrectionStone",	kSubMissionTemplet.m_ClearCondition.m_bCheckResurrectionStone,	false );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",			kSubMissionTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",			iDifficulty,												-1,					goto error_proc; );
+				LUA_GET_VALUE(				luaManager, "m_bUpperDifficulty",	kSubMissionTemplet.m_ClearCondition.m_bUpperDifficulty,	false );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
+				LUA_GET_VALUE(				luaManager, "m_bCheckResurrectionStone",	kSubMissionTemplet.m_ClearCondition.m_bCheckResurrectionStone,	false );
 			}
 			break;
 		case TMCT_TOGETHER_MISSION_CLEAR:
 			{
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
 			}
 			break;
 		case TMCT_USER_UNIT_DIE:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDieReason",	kSubMissionTemplet.m_ClearCondition.m_eDieReason,	KEGS_USER_UNIT_DIE_REQ::USER_UNIT_DIE_REASON,	KEGS_USER_UNIT_DIE_REQ::UUDR_UNKNOWN,	goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDieCount",		kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDieReason",	kSubMissionTemplet.m_ClearCondition.m_eDieReason,	KEGS_USER_UNIT_DIE_REQ::USER_UNIT_DIE_REASON,	KEGS_USER_UNIT_DIE_REQ::UUDR_UNKNOWN,	goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDieCount",		kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
 			}
 			break;
 #endif SERV_ADD_TITLE_CONDITION
 			//}}
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08 //굳이 int형 변수를 하나 더 만들지 않고 m_iDungeonClearCount변수를 활용.
+		case TMCT_ITEM_SOCKET:
+			{
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iItemSocketCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
+			}
+			break;
+		case TMCT_ITEM_ENCHANT_COUNT:
+			{
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iItemEnchantCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
+			}
+			break;
+		case TMCT_ITEM_ATTRIB:
+			{
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iItemAttribCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
+			}
+			break;
+		case TMCT_ITEM_RESOLVE:
+			{
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iItemResolveCount",	kSubMissionTemplet.m_ClearCondition.m_iDungeonClearCount,	-1,					goto error_proc; );
+			}
+			break;
+#endif //SERV_ADD_TITLE_CONDITION_2013_08
+
         default:
             {
                 luaManager.EndTable();
@@ -805,19 +803,11 @@ bool CX2TitleManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 				{
 					m_pDlgTitle->ClearTitle();
 				}    
-#ifdef FIX_TITLE_ATTACH
 				if(iTitleId != m_iSelTitleId)
 				{
 					m_iSelTitleId = iTitleId;
 					SelectTitle(iTitleId);  
 				}
-#else
-			    else if(iTitleId != m_iSelTitleId)
-                {
-                    m_iSelTitleId = iTitleId;
-                    SelectTitle(iTitleId);  
-                }
-#endif	// FIX_TITLE_ATTACH
             }
             return true;
         case TMUI_ATTACH:
@@ -850,7 +840,6 @@ bool CX2TitleManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 
                 int iTitleId = m_pDlgTitle->GetSelectedTitle();
 
-#ifdef FIX_TITLE_ATTACH
 				if(iTitleId == 0)
 				{
 					m_pDlgTitle->ClearTitle();
@@ -860,13 +849,8 @@ bool CX2TitleManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 					m_iSelTitleId = iTitleId;
 					SelectTitle(iTitleId);  
 				}
-#else
-				SelectTitle(iTitleId);
-#endif //FIX_TITLE_ATTACH
 
-#ifdef FIX_TITLE_ATTACH
 				if( g_pData->GetMyUser()->GetSelectUnit()->GetTitleId() != iTitleId )
-#endif //FIX_TITLE_ATTACH
 				{
 					if(iTitleId > 0)
 					{
@@ -984,17 +968,17 @@ void CX2TitleManager::CloseTitle()
 {
     if(m_pDlgTitle != NULL)
     {
-#if 0 // 칭호 프리뷰
-        if(m_hSeqEmblem != INVALID_PARTICLE_HANDLE)
-        {            
-            CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
-            if(pSeq != NULL)
-                pSeq->SetShowObject(false);            
-
-            g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
-            m_pPart_Emblem_200 = NULL;
-        }        
-#endif
+//#if 0 // 칭호 프리뷰
+//        if(m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE)
+//        {            
+//            CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
+//            if(pSeq != NULL)
+//                pSeq->SetShowObject(false);            
+//
+//            g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
+//            m_pPart_Emblem_200 = NULL;
+//        }        
+//#endif
 
         m_bProcess = false;
 
@@ -1075,7 +1059,7 @@ bool CX2TitleManager::SelectTitle(int val)
 			// NULL 체크 할필요 없어 보이지만...
 			if( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
-				int iLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->GetGrowUpLevelByTitle( titleId );
+				int iLevel = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().GetGrowUpLevelByTitle( titleId );
 				titleName = g_pData->GetTitleManager()->GetTitleModel( titleId, iLevel );
 				if( titleName == L"")
 					titleName = L"Title_Empty";
@@ -1093,62 +1077,62 @@ bool CX2TitleManager::SelectTitle(int val)
 	}
 #endif
 
-#if 0 // // 칭호 파티클 프리뷰
-    if( titleId > 0 )
-    {   
-        if(m_hSeqEmblem != INVALID_PARTICLE_HANDLE)
-            g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
-        m_pPart_Emblem_200 = NULL;
-
-        if( m_hSeqEmblem == INVALID_PARTICLE_HANDLE )
-        {
-            wstring titleName;
-            
-            if(iState == 2)
-                titleName = L"TITLE_SECRET";
-            else
-                titleName = g_pData->GetTitleManager()->GetTitleModel(titleId);
-            m_hSeqEmblem = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  titleName.c_str(), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );            
-        }
-
-        if( m_hSeqEmblem != INVALID_PARTICLE_HANDLE )
-        {
-            if( m_pPart_Emblem_200 == NULL )
-            {
-                CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
-                if(pSeq != NULL)
-                    m_pPart_Emblem_200 = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-                //CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
-                //if(pSeq != NULL)
-                //    pSeq->SetShow(false);
-            }
-        }
-        
-        if(m_pPart_Emblem_200)
-            m_pPart_Emblem_200->m_vPos = D3DXVECTOR3(-90, 195, 1);
-        
-        
-        //m_pPart_Emblem_200->m_vSize = D3DXVECTOR3(1.3f, 1.3f, 1.0f);
-
-        CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
-        if(pSeq != NULL)
-        {		
-			pSeq->SetShowObject(true);        
-            pSeq->SetOverUI(true);
-        }
-    }
-    else
-    {
-        if(m_hSeqEmblem != INVALID_PARTICLE_HANDLE)
-        {
-            CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
-            if(pSeq != NULL)
-                pSeq->SetShowObject(false);          
-            g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
-            m_pPart_Emblem_200 = NULL;
-        }        
-    }
-#endif
+//#if 0 // // 칭호 파티클 프리뷰
+//    if( titleId > 0 )
+//    {   
+//        if(m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE)
+//            g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
+//        m_pPart_Emblem_200 = NULL;
+//
+//        if( m_hSeqEmblem == INVALID_PARTICLE_SEQUENCE_HANDLE )
+//        {
+//            wstring titleName;
+//            
+//            if(iState == 2)
+//                titleName = L"TITLE_SECRET";
+//            else
+//                titleName = g_pData->GetTitleManager()->GetTitleModel(titleId);
+//            m_hSeqEmblem = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  titleName.c_str(), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );            
+//        }
+//
+//        if( m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE )
+//        {
+//            if( m_pPart_Emblem_200 == NULL )
+//            {
+//                CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
+//                if(pSeq != NULL)
+//                    m_pPart_Emblem_200 = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+//                //CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
+//                //if(pSeq != NULL)
+//                //    pSeq->SetShow(false);
+//            }
+//        }
+//        
+//        if(m_pPart_Emblem_200)
+//            m_pPart_Emblem_200->SetPos( D3DXVECTOR3(-90, 195, 1) );
+//        
+//        
+//        //m_pPart_Emblem_200->SetSize( D3DXVECTOR3(1.3f, 1.3f, 1.0f) );
+//
+//        CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
+//        if(pSeq != NULL)
+//        {		
+//			pSeq->SetShowObject(true);        
+//            pSeq->SetOverUI(true);
+//        }
+//    }
+//    else
+//    {
+//        if(m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE)
+//        {
+//            CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
+//            if(pSeq != NULL)
+//                pSeq->SetShowObject(false);          
+//            g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
+//            m_pPart_Emblem_200 = NULL;
+//        }        
+//    }
+//#endif
 	
     return true;
 }
@@ -1183,7 +1167,7 @@ bool CX2TitleManager::AttachTitle(int val)
 			{
 #ifdef SERV_GROW_UP_TITLE
 				// 해당 타이틀이 갖고 있는 소켓의 타입을 이용하여 레벨을 찾아내도록 수정하였음 by 박진웅
-				int iLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->GetGrowUpLevelByTitle( iTitleID );
+				int iLevel = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().GetGrowUpLevelByTitle( iTitleID );
 				m_strImgName = g_pData->GetTitleManager()->GetTitleModel( iTitleID, iLevel );
 				if( m_strImgName == L"" )
 					m_strImgName = L"NoAlphaImage.dds";
@@ -1475,6 +1459,34 @@ wstring CX2TitleManager::GetSubMissionDesc(int subMissionId)
 		return wstrDesc;
 #endif SERV_ADD_TITLE_CONDITION
 			//}}
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+	case TMCT_ITEM_SOCKET:
+		{
+			StringCchPrintf(descBuf, 256, L" (%d/%d)", cd.m_nCount, cd.m_iDungeonClearCount );
+			wstrDesc += descBuf;
+		}
+		return wstrDesc;
+	case TMCT_ITEM_ENCHANT_LEVEL:
+		return wstrDesc;
+	case TMCT_ITEM_ENCHANT_COUNT:
+		{
+			StringCchPrintf(descBuf, 256, L" (%d/%d)", cd.m_nCount, cd.m_iDungeonClearCount );
+			wstrDesc += descBuf;
+		}
+		return wstrDesc;
+	case TMCT_ITEM_ATTRIB:
+		{
+			StringCchPrintf(descBuf, 256, L" (%d/%d)", cd.m_nCount, cd.m_iDungeonClearCount );
+			wstrDesc += descBuf;
+		}
+		return wstrDesc;
+	case TMCT_ITEM_RESOLVE:
+		{
+			StringCchPrintf(descBuf, 256, L" (%d/%d)", cd.m_nCount, cd.m_iDungeonClearCount );
+			wstrDesc += descBuf;
+		}
+		return wstrDesc;
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
     }
 
 
@@ -1666,7 +1678,7 @@ wstring CX2TitleManager::GetTitleAbilityDesc(int titleId)
     wstring socketDesc = L"\n \n[";
     socketDesc += GET_STRING( STR_ID_760 );
     socketDesc += L"]\n";
-    CX2SocketItem::SocketData* pSocketData;
+    const CX2SocketItem::SocketData* pSocketData = NULL;
 
     if(titleInfo->m_iBaseHP != 0)
     {
@@ -1706,9 +1718,7 @@ wstring CX2TitleManager::GetTitleAbilityDesc(int titleId)
     socketDesc += L"\n \n";
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	const int iLevel_ = g_pData->GetSelectUnitLevel();
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
     wstring tempSockDesc = L"";
@@ -1718,29 +1728,25 @@ wstring CX2TitleManager::GetTitleAbilityDesc(int titleId)
 	g_pData->GetSocketItem()->GetGrowUpSocketData( titleInfo->m_vecSocketOption, vecTempSocketOption );
 	BOOST_TEST_FOREACH( const int&, iSocketID, vecTempSocketOption )
 #else SERV_GROW_UP_SOCKET
-	for(int i=0; i<(int)titleInfo->m_vecSocketOption.size(); ++i)
+    for(int i=0; i<(int)titleInfo->m_vecSocketOption.size(); ++i)
 #endif SERV_GROW_UP_SOCKET
-	{
+    {
 #ifdef SERV_GROW_UP_SOCKET
 		pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
 #else SERV_GROW_UP_SOCKET
-		pSocketData = g_pData->GetSocketItem()->GetSocketData( titleInfo->m_vecSocketOption[i] );
+        pSocketData = g_pData->GetSocketItem()->GetSocketData( titleInfo->m_vecSocketOption[i] );
 #endif SERV_GROW_UP_SOCKET
         if ( pSocketData != NULL )
         {
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			tempSockDesc = pSocketData->GetSocketDesc( iLevel_ );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-			tempSockDesc = pSocketData->GetSocketDesc();
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
             tempSockDesc += L"\n";
 #ifdef CLIENT_GLOBAL_LINEBREAK
 			socketDesc += CWordLineHandler::GetStrByLineBreakInX2Main( tempSockDesc.c_str(), 260, XUF_DODUM_13_SEMIBOLD );            
 #else //CLIENT_GLOBAL_LINEBREAK
-			socketDesc += g_pMain->GetStrByLienBreak( tempSockDesc.c_str(), 260, XUF_DODUM_13_SEMIBOLD );            
+            socketDesc += g_pMain->GetStrByLienBreak( tempSockDesc.c_str(), 260, XUF_DODUM_13_SEMIBOLD );            
 #endif //CLIENT_GLOBAL_LINEBREAK  
         }
     }    
@@ -1764,18 +1770,6 @@ CX2Stat::Stat CX2TitleManager::GetSocketStat()
     tempStat.m_fDefPhysic += (float)pTitleInfo->m_iDefPhysic;
     tempStat.m_fDefMagic += (float)pTitleInfo->m_iDefMagic;
 	
-#ifndef	NOT_USE_PERCENT_IN_OPTION_DATA
-	const vector<int>& vecSocketOptions = pTitleInfo->m_vecSocketOption;
-	for ( int i = 0; i < (int)vecSocketOptions.size(); i++ )
-	{
-		int socketOptionID = vecSocketOptions[i];
-		CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
-		if( NULL == pSocketData )
-			continue;
-
-		tempStat.AddStat( pSocketData->m_Stat, true ); 
-	}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 
     return tempStat;
 }
@@ -1836,8 +1830,6 @@ void CX2TitleManager::EqipTitle(int titleid)
 		DetachTitle();
 	}
 }
-
-
 
 //{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
@@ -1951,7 +1943,6 @@ void CX2TitleManager::PrintTitleInfo_ToExcel()
 }
 #endif PRINT_INGAMEINFO_TO_EXCEL
 //}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
-
 
 // 타이틀 장착
 bool CX2TitleManager::Handler_EGS_EQUIP_TITLE_REQ(int titleId)
@@ -2127,7 +2118,4 @@ bool CX2TitleManager::Handler_EGS_TITLE_EXPIRATION_NOT( HWND hWnd, UINT uMsg, WP
 
 
 
-#endif
-
-
-
+//#endif

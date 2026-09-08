@@ -4,17 +4,53 @@
 #define D3DFVF_PARTICLE_RHW (D3DFVF_XYZRHW|D3DFVF_DIFFUSE|D3DFVF_TEX1)
 
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#include    "indexed_list.h"
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+struct  CKTDGParticleSystem_CParticleEventSequence_TAG {};
+struct  CKTDGParticleSystem_CParticle_TAG {};
+
+typedef KHandleType<int,CKTDGParticleSystem_CParticleEventSequence_TAG> CKTDGParticleSystem_CParticleEventSequenceHandle;
+#define INVALID_PARTICLE_SEQUENCE_HANDLE    (CKTDGParticleSystem_CParticleEventSequenceHandle::invalid_handle())
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+typedef KHandleType<int,CKTDGParticleSystem_CParticle_TAG>              CKTDGParticleSystem_CParticleHandle;
+#define INVALID_PARTICLE_HANDLE             (CKTDGParticleSystem_CParticleHandle::invalid_handle())
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 static const int  INVALID_PARTICLE_SEQUENCE_HANDLE = -1;
-static const int INVALID_PARTICLE_HANDLE = -1;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+static const int  INVALID_PARTICLE_HANDLE = -1;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+
 
 
 class CKTDGParticleSystem
 {
 	public:
-		typedef int	CParticleEventSequenceHandle;	
-		
+	
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+		typedef CKTDGParticleSystem_CParticleEventSequenceHandle    CParticleEventSequenceHandle;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        typedef CKTDGParticleSystem_CParticleHandle                 CParticleHandle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+		typedef int	CParticleEventSequenceHandle;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        typedef int CParticleHandle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 		class CParticleEvent;
 		class CParticleEventSequence;
@@ -141,19 +177,35 @@ class CKTDGParticleSystem
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 				bool IsApplyUnitScale(void)		{ return(m_strValue.compare("APPLYUNITSCALE")		== 0); }
 #endif
+#ifdef ADD_ALPHATESTENABLE
+				bool IsAlphaTest(void)		{ return(m_strValue.compare("ALPHATEST")			== 0); }
+#endif //ADD_ALPHATESTENABLE
 		};
 
+
 		class CParticle
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            : private boost::noncopyable
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			public:
-				CParticle()
-				{
+            private:
+
+                friend class    CParticleEventSequence;
+
+                void    Init()
+                {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    m_hHandle = INVALID_PARTICLE_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 					m_pMasterSeq		= NULL;
 					m_fLifetime			= 1.0f; 
 					m_fAge				= 0.0f; 
 					m_fEventTimer		= 0.0f;
 					m_fEventTimerOld	= 0.0f;
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                    m_fEventTimerVelocity = 0.0f;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 					m_Color				= D3DXCOLOR(1.0f,1.0f,1.0f,1.0f);
 					m_ColorFinal		= D3DXCOLOR(1.0f,1.0f,1.0f,1.0f);
 
@@ -174,6 +226,10 @@ class CKTDGParticleSystem
 //}} robobeg : 2008-10-28
 					INIT_VECTOR3( m_vPosOrg, 0.0f, 0.0f, 0.0f );
 					INIT_VECTOR3( m_vVelocity, 0.0f,0.0f,0.0f );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    m_bNoVelocityToAccumPos = false;
+                    INIT_VECTOR3( m_vVelocityToAccumPos, 0.f, 0.f, 0.f );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					INIT_VECTOR3( m_vVelocityFinal, 0.0f,0.0f,0.0f );
 
 					INIT_VECTOR3( m_vPositionGap, 0.0f,0.0f,0.0f );
@@ -192,45 +248,63 @@ class CKTDGParticleSystem
 					INIT_VECTOR3( m_vRotate, 0.0f,0.0f,0.0f );
 					INIT_VECTOR3( m_vRotateFinal, 0.0f,0.0f,0.0f );
 
-#ifdef LOCAL_ROTATE_EFFECT_P
+//#ifdef LOCAL_ROTATE_EFFECT_P
 					INIT_VECTOR3( m_vRotateLocal, 0.0f,0.0f,0.0f );
-#endif
+//#endif
 
 					m_fDirSpeed			= 0.0f;
 					m_fDirSpeedFinal	= 0.0f;
 
-					INIT_VECTOR3( m_BlackHoleSpeed, 0.0f,0.0f,0.0f );
-					m_BlackHoleTime		= 0.0f;
+					INIT_VECTOR3( m_vBlackHoleSpeed, 0.0f,0.0f,0.0f );
+					m_fBlackHoleTime		= 0.0f;
 
 					m_fResetCrash		= 0.01f;
 					m_fNowResetCrash	= 0.0f;
 
-					INIT_VECTOR3( m_Crash, 0.0f,0.0f,0.0f );
+					INIT_VECTOR3( m_vCrash, 0.0f,0.0f,0.0f );
+
+					m_TextureID		= 0;
 
 					m_ScrewValue	= -1;
 					m_ScrewRotateSpeed = 10;
 					m_fScrewAngle	= 0.0f;
 
-					m_TextureID		= 0;
+                    m_TraceSeqList.resize( 0 );
 
 #ifdef SKINMESH_PARTICLE_TEST
-					//m_pXSkinAnim			= NULL;
+					m_pXSkinAnim.reset();
 #endif SKINMESH_PARTICLE_TEST
+                }
 
-				}
-				~CParticle()
-				{
+                void    Finalize()
+                {
 #ifdef SKINMESH_PARTICLE_TEST
-                    //SAFE_DELETE_KTDGOBJECT( m_pXSkinAnim );
+					m_pXSkinAnim.reset();
 #endif SKINMESH_PARTICLE_TEST
 
 					ClearTraceSeqList();
-				}
+                }
 
+			public:
+
+				CParticle()
+				{
+                    Init();
+				}
+				~CParticle()
+				{
+					Finalize();
+				}
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				CParticle( const CParticle& rhs )
 				{					
 					*this = rhs;
 				}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                CParticleHandle GetHandle() const { return m_hHandle; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 				bool OnFrameMove( double fTime, float fElapsedTime )
 				{
@@ -239,8 +313,19 @@ class CKTDGParticleSystem
 					// age the particle
 					m_fAge				+= fElapsedTime;
 					m_fEventTimerOld	= m_fEventTimer;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                    m_fEventTimerVelocity = m_fEventTimer;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 					m_fEventTimer		+= fElapsedTime;
 					m_fNowResetCrash	+= fElapsedTime;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    if ( m_bNoVelocityToAccumPos == true )
+                    {
+                        m_bNoVelocityToAccumPos = false;
+                        m_vVelocityToAccumPos += m_vVelocity * fElapsedTime;
+                    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 					//m_vPos = m_vPosOrg;
 
@@ -261,11 +346,21 @@ class CKTDGParticleSystem
 
 					if( m_vAxisRotateDegree == D3DXVECTOR3(0.0f,0.0f,0.0f) )
 					{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                        m_vPos += m_vVelocityToAccumPos;
+                        ResetVelocityToAccumPos();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 						m_vPos += m_vVelocity * fElapsedTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					}
 					else
 					{
-						D3DXVECTOR3 tempMoveGap = m_vVelocity * fElapsedTime;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                        D3DXVECTOR3 tempMoveGap = m_vVelocityToAccumPos;
+                        ResetVelocityToAccumPos();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                        D3DXVECTOR3 tempMoveGap = m_vVelocity * fElapsedTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 						D3DXMatrixRotationYawPitchRoll( &mDir, D3DXToRadian(m_vAxisRotateDegree.y), D3DXToRadian(m_vAxisRotateDegree.x), D3DXToRadian(m_vAxisRotateDegree.z) );
 						D3DXVec3Transform( &dirVec4, &tempMoveGap, &mDir );
 						tempMoveGap.x	= dirVec4.x;
@@ -280,11 +375,11 @@ class CKTDGParticleSystem
 					if( m_fDirSpeed != 0.0f )
 					{
 						D3DXVECTOR3 dirVec( 1.0f, 0.0f, 0.0f );					
-#ifdef LOCAL_ROTATE_EFFECT_P
+//#ifdef LOCAL_ROTATE_EFFECT_P
 						D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(m_vRotate.x+m_vRotateLocal.x), D3DXToRadian(m_vRotate.y+m_vRotateLocal.y), D3DXToRadian(m_vRotate.z+m_vRotateLocal.z) );
-#else
-						D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(m_vRotate.x), D3DXToRadian(m_vRotate.y), D3DXToRadian(m_vRotate.z) );
-#endif
+//#else
+//						D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(m_vRotate.x), D3DXToRadian(m_vRotate.y), D3DXToRadian(m_vRotate.z) );
+//#endif
 
 						D3DXMatrixRotationYawPitchRoll( &mDir, vRot.y, vRot.x, vRot.z );
 						D3DXVec3Transform( &dirVec4, &dirVec, &mDir );
@@ -294,7 +389,7 @@ class CKTDGParticleSystem
 
 						m_vPos		+= dirVec * m_fDirSpeed * fElapsedTime;
 					}
-					m_vPos		+= m_BlackHoleSpeed		* fElapsedTime;
+					m_vPos		+= m_vBlackHoleSpeed		* fElapsedTime;
 
 					/*
 					if ( m_ScrewValue != -1 )
@@ -320,14 +415,14 @@ class CKTDGParticleSystem
 					if( NULL != m_pMasterSeq && 
 						m_pMasterSeq->GetParticleType() == PT_SKINMESH )
 					{
-#ifdef LOCAL_ROTATE_EFFECT_P
+//#ifdef LOCAL_ROTATE_EFFECT_P
 						D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(m_vRotate.x+m_vRotateLocal.x), D3DXToRadian(m_vRotate.y+m_vRotateLocal.y), D3DXToRadian(m_vRotate.z+m_vRotateLocal.z) );
-#else
-						D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(m_vRotate.x), D3DXToRadian(m_vRotate.y), D3DXToRadian(m_vRotate.z) );
-#endif LOCAL_ROTATE_EFFECT_P
+//#else
+//						D3DXVECTOR3 vRot = D3DXVECTOR3( D3DXToRadian(m_vRotate.x), D3DXToRadian(m_vRotate.y), D3DXToRadian(m_vRotate.z) );
+//#endif LOCAL_ROTATE_EFFECT_P
 
-						m_vPosCrash = m_vPos + m_Crash; 
-						m_Crash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
+						m_vPosCrash = m_vPos + m_vCrash; 
+						m_vCrash = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
 
 						ASSERT( NULL != m_pXSkinAnim );
 						if( NULL != m_pXSkinAnim )
@@ -390,10 +485,130 @@ class CKTDGParticleSystem
 
 					m_TraceSeqList.resize(0);
 				}	
+//{{ robobeg : 2013-11-06
+                CParticleEventSequence*     GetMasterSequence() const { return m_pMasterSeq; }
+                float                       GetAge() const  { return m_fAge; }
+                void                        SetAge( float fAge )    { m_fAge = fAge; }
+                float                       GetEventTimer() const   { return    m_fEventTimer; }
+                float                       GetEventTimerOld() const   { return    m_fEventTimerOld; }
+                void                        SetEventTimer( float fEventTime )   
+                                            { 
+                                                m_fEventTimer = fEventTime; 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                                                m_fEventTimerVelocity = fEventTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                                            }
 
-			public:
+
+                float                       GetStretchScale() const     { return m_fStretchScale; }
+                void                        SetStretchScale( float fValue )     { m_fStretchScale = fValue; }
+                float                       GetStretchScaleFinal() const     { return m_fStretchScaleFinal; }
+                void                        SetStretchScaleFinal( float fValue )     { m_fStretchScaleFinal = fValue; }
+
+
+                float                       GetDirSpeed() const     { return m_fDirSpeed; }
+                void                        SetDirSpeed( float fValue ) { m_fDirSpeed = fValue; }
+                float                       GetDirSpeedFinal() const     { return m_fDirSpeedFinal; }
+                void                        SetDirSpeedFinal( float fValue ) { m_fDirSpeedFinal = fValue; }
+                float                       GetBlackHoleTime() const     { return m_fBlackHoleTime; }
+                void                        SetBlackHoleTime( float fValue ) { m_fBlackHoleTime = fValue; }
+                float                       GetResetCrash() const     { return m_fResetCrash; }
+                void                        SetResetCrash( float fValue ) { m_fResetCrash = fValue; }
+                float                       GetNowResetCrash() const     { return m_fNowResetCrash; }
+                void                        SetNowResetCrash( float fValue ) { m_fNowResetCrash = fValue; }
+                float                       GetScrewAngle() const     { return m_fScrewAngle; }
+                void                        SetScrewAngle( float fValue ) { m_fScrewAngle = fValue; }
+
+                int                         GetTextureID() const    { return m_TextureID; }
+                void                        SetTextureID( char id ) { m_TextureID = id; }
+                int                         GetScrewValue() const   { return m_ScrewValue; }
+                int                         GetScrewRotateSpeed() const{    return m_ScrewRotateSpeed; }
+
+
+                const D3DXCOLOR&            GetColor() const        { return m_Color; }
+                void                        SetColor( const D3DXCOLOR& color )  { m_Color = color; }
+                const D3DXCOLOR&            GetColorFinal() const        { return m_ColorFinal; }
+                void                        SetColorFinal( const D3DXCOLOR& color )  { m_ColorFinal = color; }
+
+                const D3DXVECTOR3&          GetSize() const                     { return m_vSize; }
+                void                        SetSize( const D3DXVECTOR3& vSize ) { m_vSize = vSize; }
+                const D3DXVECTOR3&          GetSizeFinal() const                     { return m_vSizeFinal; }
+                void                        SetSizeFinal( const D3DXVECTOR3& vSizeFinal ) { m_vSizeFinal = vSizeFinal; }
+                const D3DXVECTOR3&          GetPos() const                      { return m_vPos; }
+                void                        SetPos( const D3DXVECTOR3& vPos )   { m_vPos = vPos; }
+                const D3DXVECTOR3&          GetPosOrg() const                      { return m_vPosOrg; }
+                void                        SetPosOrg( const D3DXVECTOR3& vPos )   { m_vPosOrg = vPos; }
+                const D3DXVECTOR3&          GetPosCrash() const                      { return m_vPosCrash; }
+                void                        SetPosCrash( const D3DXVECTOR3& vPos )   { m_vPosCrash = vPos; }
+
+                const D3DXVECTOR3&          GetVelocity() const                         { return m_vVelocity; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                void                        SetVelocity( const D3DXVECTOR3& vVelocity, bool bInvalidateAccumPos = true )         
+                                            { 
+                                                m_vVelocity = vVelocity; 
+                                                if ( bInvalidateAccumPos == true )
+                                                {
+                                                    INIT_VECTOR3( m_vVelocityToAccumPos, 0, 0, 0 );
+                                                    m_bNoVelocityToAccumPos = true;
+                                                }
+                                            }
+                void                        ResetVelocityToAccumPos()   { INIT_VECTOR3( m_vVelocityToAccumPos, 0, 0, 0 ); m_bNoVelocityToAccumPos = false; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                float                       GetEventTimerVelocity() const                   { return m_fEventTimerVelocity; }
+                void                        UpdateVelocityAccumPosAndEventTimer( float fTime )
+                                            {
+                                                if ( m_fEventTimerVelocity < fTime )    m_vVelocityToAccumPos += m_vVelocity * ( fTime - m_fEventTimerVelocity );
+                                                m_fEventTimerVelocity = fTime;
+                                            }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                void                        AddVelocityToAccumPos( float fElapsedTime ) { m_vVelocityToAccumPos += m_vVelocity * fElapsedTime; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                void                        SetVelocity( const D3DXVECTOR3& vVelocity )         { m_vVelocity = vVelocity; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                const D3DXVECTOR3&          GetVelocityFinal() const                         { return m_vVelocityFinal; }
+                void                        SetVelocityFinal( const D3DXVECTOR3& vVelocityFinal )         { m_vVelocityFinal = vVelocityFinal; }
+                const D3DXVECTOR3&          GetPositionGap() const                         { return m_vPositionGap; }
+                void                        SetPositionGap( const D3DXVECTOR3& vPositionGap )         { m_vPositionGap = vPositionGap; }
+                const D3DXVECTOR3&          GetPositionFinal() const                         { return m_vPositionFinal; }
+                void                        SetPositionFinal( const D3DXVECTOR3& vPositionFinal )         { m_vPositionFinal = vPositionFinal; }
+                const D3DXVECTOR3&          GetAxisRotateDegree() const                         { return m_vAxisRotateDegree; }
+                void                        SetAxisRotateDegree( const D3DXVECTOR3& vAxisRotateDegree )         { m_vAxisRotateDegree = vAxisRotateDegree; }
+                const D3DXVECTOR3&          GetRotate() const                         { return m_vRotate; }
+                void                        SetRotate( const D3DXVECTOR3& vRotate )         { m_vRotate = vRotate; }
+                const D3DXVECTOR3&          GetRotateFinal() const                         { return m_vRotateFinal; }
+                void                        SetRotateFinal( const D3DXVECTOR3& vRotateFinal )         { m_vRotateFinal = vRotateFinal; }
+                const D3DXVECTOR3&          GetBlackHoleSpeed() const                         { return m_vBlackHoleSpeed; }
+                void                        SetBlackHoleSpeed( const D3DXVECTOR3& vBlackHoleSpeed )         { m_vBlackHoleSpeed = vBlackHoleSpeed; }
+//#ifdef  LOCAL_ROTATE_EFFECT_P
+                const D3DXVECTOR3&          GetRotateLocal() const                         { return m_vRotateLocal; }
+                void                        SetRotateLocal( const D3DXVECTOR3& vRotateLocal )         { m_vRotateLocal = vRotateLocal; }
+//#endif  LOCAL_ROTATE_EFFECT_P
+                const D3DXVECTOR3&          GetCrash() const                         { return m_vCrash; }
+                void                        SetCrash( const D3DXVECTOR3& vCrash )         { m_vCrash = vCrash; }
+
+                const D3DXVECTOR2&          GetTexStage0UV() const             { return m_vTexStage0UV; }
+                void                        SetTexStage0UV( const D3DXVECTOR2& vText ) { m_vTexStage0UV = vText; }
+                const D3DXVECTOR2&          GetTexStage0UVFinal() const             { return m_vTexStage0UVFinal; }
+                void                        SetTexStage0UVFinal( const D3DXVECTOR2& vText ) { m_vTexStage0UVFinal = vText; }
+                const D3DXVECTOR2&          GetTexStage1UV() const             { return m_vTexStage1UV; }
+                void                        SetTexStage1UV( const D3DXVECTOR2& vText ) { m_vTexStage1UV = vText; }
+                const D3DXVECTOR2&          GetTexStage1UVFinal() const             { return m_vTexStage1UVFinal; }
+                void                        SetTexStage1UVFinal( const D3DXVECTOR2& vText ) { m_vTexStage1UVFinal = vText; }
+                const D3DXVECTOR2&          GetTexStage2UV() const             { return m_vTexStage2UV; }
+                void                        SetTexStage2UV( const D3DXVECTOR2& vText ) { m_vTexStage2UV = vText; }
+                const D3DXVECTOR2&          GetTexStage2UVFinal() const             { return m_vTexStage2UVFinal; }
+                void                        SetTexStage2UVFinal( const D3DXVECTOR2& vText ) { m_vTexStage2UVFinal = vText; }
+
+//}} robobeg : 2013-11-06
+
+            private:
 
 				//Variable
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                CParticleHandle             m_hHandle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				CParticleEventSequence*		m_pMasterSeq;
 				float						m_fLifetime;
 				float						m_fAge;
@@ -413,11 +628,18 @@ class CKTDGParticleSystem
 #endif PARTICLE_STRETCH_TEST
 				D3DXVECTOR3					m_vPos;				// current position of particle
 //{{ robobeg : 2008-10-28
-                // m_Crash 가 반영된 m_vPos, OnFrameRenderMesh_Draw 및 OnFrameRenderSkinMesh_Draw 에서 사용됨
+                // m_vCrash 가 반영된 m_vPos, OnFrameRenderMesh_Draw 및 OnFrameRenderSkinMesh_Draw 에서 사용됨
                 D3DXVECTOR3                 m_vPosCrash;
 //}} robobeg : 2008-10-28
 				D3DXVECTOR3					m_vPosOrg;
 				D3DXVECTOR3					m_vVelocity;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                bool                        m_bNoVelocityToAccumPos;
+                D3DXVECTOR3                 m_vVelocityToAccumPos;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                float                       m_fEventTimerVelocity;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				D3DXVECTOR3					m_vVelocityFinal;
 
 				D3DXVECTOR3					m_vPositionGap;
@@ -436,21 +658,22 @@ class CKTDGParticleSystem
 				D3DXVECTOR3					m_vRotate;
 				D3DXVECTOR3					m_vRotateFinal;
 
-#ifdef LOCAL_ROTATE_EFFECT_P
+//#ifdef LOCAL_ROTATE_EFFECT_P
 				D3DXVECTOR3					m_vRotateLocal;
-#endif
+//#endif
 
 				float						m_fDirSpeed;		//로테이션 방향으로 전진속도
 				float						m_fDirSpeedFinal;
 
-				D3DXVECTOR3					m_BlackHoleSpeed;
-				float						m_BlackHoleTime;
+				D3DXVECTOR3					m_vBlackHoleSpeed;
+				float						m_fBlackHoleTime;
 
 				float						m_fResetCrash;
 				float						m_fNowResetCrash;
-				D3DXVECTOR3					m_Crash;
+				D3DXVECTOR3					m_vCrash;
 
-				char						m_TextureID;
+				//char						m_TextureID;
+                int                         m_TextureID;
 
 				int							m_ScrewValue;
 				int							m_ScrewRotateSpeed;
@@ -464,7 +687,9 @@ class CKTDGParticleSystem
 
 		};//class CParticle
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		typedef std::list<CParticle*> CParticleList;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		enum EVENT_TYPE
 		{
@@ -548,7 +773,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Color(){ m_EventType = ET_COLOR; }
 				
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed() { return true; }
 				
 				CMinMax<D3DXCOLOR>	GetColor()									{ return m_Color; }
@@ -566,7 +791,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Size(){ m_EventType = ET_SIZE; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 				
 				CMinMax<D3DXVECTOR3>	GetSize(){ return m_Size; }
@@ -592,7 +817,7 @@ class CKTDGParticleSystem
 		public:
 			CParticleEvent_Scale(){ m_EventType = ET_SCALE; }
 
-			void OnFrameMove( CParticle &part, float fElapsedTime );
+			virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 			bool FadeAllowed(){ return true; }
 
 			CMinMax<float>			GetScale(){ return m_Scale; }
@@ -610,7 +835,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Velocity(){ m_EventType = ET_VELOCITY; }
 				
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 				
 				CMinMax<D3DXVECTOR3>	GetVelocity()									{ return m_Velocity; }
@@ -628,7 +853,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Position(){ m_EventType = ET_POSITION; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 
 				CMinMax<D3DXVECTOR3>	GetPosition()									{ return m_Position; }
@@ -646,7 +871,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Tex0UV(){ m_EventType = ET_TEX0UV; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 				
 				CMinMax<D3DXVECTOR2>	GetTexUV()									{ return m_TexUV; }
@@ -664,7 +889,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Tex1UV(){ m_EventType = ET_TEX1UV; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 
 				CMinMax<D3DXVECTOR2>	GetTexUV()									{ return m_TexUV; }
@@ -682,7 +907,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Tex2UV(){ m_EventType = ET_TEX2UV; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 
 				CMinMax<D3DXVECTOR2>	GetTexUV()									{ return m_TexUV; }
@@ -700,7 +925,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Rotate(){ m_EventType = ET_ROTATE; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 				
 				CMinMax<D3DXVECTOR3>	GetRotate()									{ return m_Rotate; }
@@ -718,7 +943,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_DirSpeed(){ m_EventType = ET_DIRSPEED; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 				
 				CMinMax<float>	GetValue()								{ return m_DirSpeed; }
@@ -736,7 +961,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_BlackHole(){ m_EventType = ET_BLACKHOLE; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return false; }
 				
 				CMinMax<float> GetEventTimer()					{ return m_BlackHole; }
@@ -754,17 +979,17 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Crash(){ m_EventType = ET_CRASH; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 				
-				CMinMax<D3DXVECTOR3>	GetCrash()									{ return m_Crash; }
-				void					SetCrash(const CMinMax<D3DXVECTOR3> &data)	{ m_Crash = data; }
+				CMinMax<D3DXVECTOR3>	GetCrash()									{ return m_vCrash; }
+				void					SetCrash(const CMinMax<D3DXVECTOR3> &data)	{ m_vCrash = data; }
 
 				virtual bool ProcessTokenStream(std::vector<CParticleEmitterToken>::iterator &TokenIter, 
 												std::vector<CParticleEmitterToken>::iterator &EndIter);
 
 			protected:
-				CMinMax<D3DXVECTOR3> m_Crash;
+				CMinMax<D3DXVECTOR3> m_vCrash;
 		};
 
 		class CParticleEvent_ResetCrash : public CParticleEvent
@@ -772,7 +997,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_ResetCrash(){ m_EventType = ET_RESETCRASH; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return true; }
 				
 				CMinMax<float>	GetResetCrash()								{ return m_ResetCrash; }
@@ -790,7 +1015,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_Texture(){ m_EventType = ET_TEXTURE; m_TextureID = 0; }
 
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return false; }
 				
 				const WCHAR*	GetTextureName()						{ return m_TexName.c_str(); }
@@ -811,7 +1036,7 @@ class CKTDGParticleSystem
 			public:
 				CParticleEvent_EventTimer(){ m_EventType = ET_EVENTTIMER; }
 				
-				void OnFrameMove( CParticle &part, float fElapsedTime );
+				virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 				bool FadeAllowed(){ return false; }
 				
 				CMinMax<float> GetEventTimer()					{ return m_EventTimer; }
@@ -831,7 +1056,7 @@ class CKTDGParticleSystem
 		public:
 			CParticleEvent_Stretch(){ m_EventType = ET_STRETCH; }
 
-			void OnFrameMove( CParticle &part, float fElapsedTime );
+			virtual void	OnFrameMove( CParticle &part, float fElapsedTime );
 			bool FadeAllowed(){ return true; }
 
 			CMinMax<float>	GetValue()								{ return m_StretchScale; }
@@ -1036,16 +1261,40 @@ class CKTDGParticleSystem
 //}} robobeg : 2008-10-28
 
 
-				void OnFrameRender( LPDIRECT3DVERTEXBUFFER9 pVB, int iVBSize );
-				void OnFrameRenderRHW( LPDIRECT3DVERTEXBUFFER9 pVB, int iVBSize );
-
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+				void OnFrameRender_VERTEX_PARTICLE();
+				void OnFrameRender_VERTEX_PARTICLE_RHW();
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//				void OnFrameRender( LPDIRECT3DVERTEXBUFFER9 pVB, int iVBSize );
+//				void OnFrameRenderRHW( LPDIRECT3DVERTEXBUFFER9 pVB, int iVBSize );
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
 
 				CParticle*	CreateNewParticle( D3DXVECTOR3 m_vPartSysPos );
 
-				void        ValidateParticlePointer( CParticle*& pParticle );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                CParticleHandle CreateNewParticleHandle( D3DXVECTOR3 m_vPartSysPos )
+                {
+                    CParticle* pParticle =	CreateNewParticle( m_vPartSysPos );
+                    return ( pParticle != NULL ) ? pParticle->GetHandle() : INVALID_PARTICLE_HANDLE;
+                }
+                CParticle*  GetParticle( CParticleHandle hParticle );
+                bool        IsLiveParticleHandle( CParticleHandle hParticle ) { return GetParticle( hParticle ) != NULL; }
+                CParticle*  ValidateParticleHandle( CParticleHandle& hParticle )
+                { 
+                    CParticle*  pParticle = GetParticle( hParticle );
+                    if ( pParticle == NULL )
+                        hParticle = INVALID_PARTICLE_HANDLE;
+                    return pParticle;
+                }
+				int			GetLiveParticleNum();
+                template< typename FUNCTION >
+                void        ApplyFunctionToParticles( FUNCTION fn );
 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+				void        ValidateParticlePointer( CParticle*& pParticle );
 				int			GetLiveParticleNum(){ return m_ParticleList.size(); }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				
 				void SetParticleType( PARTICLE_TYPE plarticleType ){ m_ParticleType = plarticleType; }
 				const PARTICLE_TYPE GetParticleType() const { return m_ParticleType; }
@@ -1229,10 +1478,17 @@ class CKTDGParticleSystem
 
 				void	SetCullCheck( bool cull ){ m_bCullingCheck = cull; }
 				bool	GetCullCheck() { return m_bCullingCheck; }
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+                void    SetRenderCullCheck( bool cull ) { m_bRenderCullCheck = cull; }
+                bool    GetRenderCullCheck() const { return m_bRenderCullCheck; }
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 				void	SetLatency( float latency ){ m_LatencyTime = latency; }
 				void	SetTriggerWait( bool bTriggerWait ){ m_bTriggerWait = bTriggerWait; }
 				bool	GetTriggerWait(){ return m_bTriggerWait; }
 				bool	GetDelete(){ return m_bDelete; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+                void    _SetDelete() { m_bDelete = true; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 				void	InChain();
 				void	OutChain();
 				void	SetDynamicChain( bool bDynamicChain ){ m_bDynamicChain = bDynamicChain; }
@@ -1247,8 +1503,8 @@ class CKTDGParticleSystem
 					ChangeTexForce( wstrTexName.c_str() );
 				}
 #ifdef ELSWORD_SHEATH_KNIGHT
-				void	ChangeSizeForce( D3DXVECTOR3& vSize_ );
-				void	ChangeColorForce( D3DXCOLOR& vColor_ );
+				void	ChangeSizeForce( const D3DXVECTOR3& vSize_ );
+				void	ChangeColorForce( const D3DXCOLOR& vColor_ );
 #endif ELSWORD_SHEATH_KNIGHT
 
 
@@ -1257,6 +1513,7 @@ class CKTDGParticleSystem
 
 				D3DXVECTOR3 GetVelocity() const { return m_vVelocity; }
 				void SetVelocity(D3DXVECTOR3 val) { m_vVelocity = val; }
+
 
 				
 				CKTDGParticleSystem::CParticleEventSequenceHandle GetHandle() const { return m_Handle; }
@@ -1267,7 +1524,10 @@ class CKTDGParticleSystem
 				bool GetApplyUnitScale() { return m_bApplyUnitScale; }
 #endif
 
-
+#ifdef ADD_ALPHATESTENABLE
+				bool GetAlphTest() const { return m_bAlphaTest; }
+				void SetAlphTest(bool val) { m_bAlphaTest = val; }
+#endif
 
 #ifdef STOP_UNIT_STOP_EFFECT_TEST
 
@@ -1314,17 +1574,31 @@ class CKTDGParticleSystem
 				const CMinMax<D3DXVECTOR3>& GetvSphericalEmitRotation_Origin() const { return m_vSphericalEmitRotation_Origin; }
 				void SetvSphericalEmitRotation_Origin( const CMinMax<D3DXVECTOR3>& val) { m_vSphericalEmitRotation_Origin = val; }
 #endif //EFFECT_TOOL
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                void    SetPerFrameSimulation( bool bSet )  { m_bPerFrameSimulation = bSet; }
+                bool    GetPerFrameSimulation() const       { return m_bPerFrameSimulation; }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                void    SetPerFrameSimulation( bool )       {}
+                bool    GetPerFrameSimulation() const       { return true; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                CParticle*                          GetFrontParticle();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+
 			public:
 				
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				CParticleList						m_ParticleList;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				CParticleEventList					m_EventList;
 				map<int,CKTDXDeviceTexture*>		m_TextureMap;
-				vector<wstring>						m_TraceSeqNameList;
-				vector<wstring>						m_FinalSeqNameList;
-
 				CParticleEventSequence* GetCloneSequence();
 
-			protected:
+            private:
+
 				void RunEvent( CParticle &part );
                 void OnFrameRenderMesh_Draw();
 
@@ -1334,14 +1608,18 @@ class CKTDGParticleSystem
 
 #endif SKINMESH_PARTICLE_TEST
 
+
+
+
 				CKTDGParticleSystem*			m_pParticleSystem;
 				CParticleEventSequence*			m_pTempletSequence;
+
+
 
 				int								m_Priority;
 				PARTICLE_TYPE					m_ParticleType;
 				wstring							m_strName;
 				vector<CKTDXDeviceXMesh*>		m_MeshList;
-				CKTDGMatrix*					m_pInitMatrix;
 				CKTDGMatrix*					m_pMathMatrix;
 				CKTDGMatrix::BILLBOARD_TYPE		m_BillBoardType;				
 
@@ -1369,7 +1647,7 @@ class CKTDGParticleSystem
 				CKTDXDeviceXET*					m_pChangeTexXET;
 				CKTDXDeviceXET*					m_pMultiTexXET;
 				CKTDXDeviceXET*					m_pAniXET;
-				CKTDXDeviceXET::AniData*		m_pAniData;
+				const CKTDXDeviceXET::AniData*	m_pAniData;
 
 
 #ifdef SKINMESH_PARTICLE_TEST
@@ -1432,6 +1710,9 @@ class CKTDGParticleSystem
 
 				float							m_LatencyTime;
 				bool							m_bCullingCheck;	
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+                bool							m_bRenderCullCheck;	
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 				bool							m_bTriggerWait;
 				bool							m_bDelete;
 				bool							m_bInChain;
@@ -1444,6 +1725,13 @@ class CKTDGParticleSystem
 
 				CParticleEventSequenceHandle	m_Handle;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                int                             m_iParticleList;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+				vector<wstring>					m_TraceSeqNameList;
+				vector<wstring>					m_FinalSeqNameList;
+
 
 #ifdef STOP_UNIT_STOP_EFFECT_TEST
 				TimeLimited m_StopTime;
@@ -1452,6 +1740,10 @@ class CKTDGParticleSystem
 
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 				bool						m_bApplyUnitScale;
+#endif
+
+#ifdef ADD_ALPHATESTENABLE
+				bool	m_bAlphaTest;
 #endif
 
 
@@ -1468,6 +1760,31 @@ class CKTDGParticleSystem
 				CMinMax<D3DXVECTOR3> m_vSphericalEmitRotation_Origin;	//m_vSphericalEmitRotation	
 #endif //EFFECT_TOOL
 				
+#ifdef X2OPTIMIZE_CULLING_PARTICLE
+			private:
+				//bool _CullingTest( const CKTDGFrustum& kFrustum, const D3DXVECTOR3& vCenter, float fRadius )
+				//{
+				//	if( kFrustum.CheckSphere( vCenter, fRadius ) )
+				//		return false;
+				//	return true;
+				//}
+
+				//void _DecideWorldMatrix_Normal( CKTDGCamera& kCamera, D3DXVECTOR3& vCenter, float fRadius, bool& bIdentityWorldMatrix );
+				//void _DecideWorldMatrix_Mesh( D3DXMATRIX& kMatrix, CKTDGCamera& kCamera, D3DXVECTOR3& vCenter, float fRadius );
+#endif//X2OPTIMIZE_CULLING_PARTICLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			private:
+				float                       m_fAccumElapsedTime;
+                bool                        m_bPerFrameSimulation;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+			private:
+				void _RenderBoundingSphere( const D3DXVECTOR3& vCenter, float fRadius );
+
+				CKTDXDeviceXMesh* m_pkBoundingSphere;
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
 		};
 
 
@@ -1560,7 +1877,11 @@ class CKTDGParticleSystem
 		};
 
 	public:
-		CKTDGParticleSystem( LPDIRECT3DDEVICE9 pd3dDevice );
+		CKTDGParticleSystem( LPDIRECT3DDEVICE9 pd3dDevice
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            , unsigned char ucSystemID = 0
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            );
 		~CKTDGParticleSystem();
 
 		HRESULT OnFrameMove( double fTime, float fElapsedTime );
@@ -1570,6 +1891,7 @@ class CKTDGParticleSystem
 
 		void OpenScriptFile( const WCHAR* pFilename );
 		bool Compile( const char *pScript, const int iLength = -1 );
+        bool DoMemoryNotEncrypt( const char* pBuffer, long nSize ) { return Compile( pBuffer, (int) nSize ); }
 
 		const map<wstring, CParticleEventSequence*>& GetTempletSequences() { return m_TempletSequences; }
 		const CParticleEventSequence* GetTempletSequencesByName( const wstring wstrName );
@@ -1613,7 +1935,7 @@ class CKTDGParticleSystem
 			if( NULL != pSeq )
 				return pSeq->GetHandle();
 			else
-				return -1;
+				return INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 
 		CParticleEventSequence* CreateSequence_LUA( const char* pSequenceName, D3DXVECTOR3 pos, D3DXVECTOR2 emitRate, D3DXVECTOR2 trigger )
@@ -1662,18 +1984,45 @@ class CKTDGParticleSystem
 
 #endif EVENT_SCENE
 		
-		void DestroyAllInstance();
+		void DestroyAllInstances();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        void DestroyInstance( CParticleEventSequence*& pSeq );
+        void DestroyInstance_LUA( CParticleEventSequence* pSeq );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		void DestroyInstance( CParticleEventSequence* pSeq );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		bool IsLiveInstance( CParticleEventSequence* pSeq );
 		void DestroyInstanceHandle( CParticleEventSequenceHandle& hSeq );
 		bool IsLiveInstanceHandle( CParticleEventSequenceHandle hSeq );
 		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+        CParticleEventSequence* GetInstanceSequence( CParticleEventSequenceHandle hSeq, bool bLiveOnly = true );
+        CParticleEventSequence* ValidateInstanceHandle( CParticleEventSequenceHandle& hSeq, bool bLiveOnly = true )
+        {
+            CParticleEventSequence* pSeq = GetInstanceSequence( hSeq, bLiveOnly );
+            if ( pSeq == NULL )
+                hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
+            return  pSeq;
+        }
+
+        CParticle*  GetParticle( CParticleHandle hParticle );
+        bool        IsLiveParticleHandle( CParticleHandle hParticle ) { return GetParticle( hParticle ) != NULL; }
+        CParticle*  ValidateParticleHandle( CParticleHandle& hParticle ) 
+        { 
+            CParticle*  pParticle = GetParticle( hParticle );
+            if ( pParticle == NULL )
+                hParticle = INVALID_PARTICLE_HANDLE;
+            return pParticle;
+        }
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CParticleEventSequence* GetInstanceSequence( CParticleEventSequenceHandle hSeq );
 
 		//{{ robobeg : 2010-11-17
 		void    ValidateParticlePointer( CParticleEventSequenceHandle hSeq, CParticle*& pParticle )
 		{
-			if ( pParticle == NULL || hSeq == INVALID_PARTICLE_HANDLE )
+			if ( pParticle == NULL || hSeq == INVALID_PARTICLE_SEQUENCE_HANDLE )
 			{
 				pParticle = NULL;
 				return;
@@ -1690,27 +2039,49 @@ class CKTDGParticleSystem
 		}
 		//}} robobeg : 2010-11-17
 
-		LPDIRECT3DVERTEXBUFFER9	GetVB(){ return m_vbParticles; }
-		LPDIRECT3DVERTEXBUFFER9	GetVBRHW(){ return m_vbParticlesRHW; }
-		int						GetVBSize(){ return	m_iVBSize; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-		bool					GetUseDynamicTexture() { return m_bUseDynamicTexture; }
 
-		int						GetOffsetSize() { return m_Offset; }
-		void					SetOffsetSize( int offset ) { m_Offset = offset; }
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+        static void         EnableParticleCulling( bool bEnable )   { ms_bParticleCullingEnabled = bEnable; }
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 
-		int						GetOffsetRHWSize() { return m_OffsetRHW; }
-		void					SetOffsetRHWSize( int offset ) { m_OffsetRHW = offset; }
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
-		int						GetBatchSize() { return m_BatchSize; }
+        std::vector<VERTEX_PARTICLE>&
+                                GetVecVERTEX_PARTICLE() { return m_vecVERTEX_PARTICLE; }
+        std::vector<VERTEX_PARTICLE_RHW>&
+                                GetVecVERTEX_PARTICLE_RHW() { return m_vecVERTEX_PARTICLE_RHW; }
+
+
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//
+//		LPDIRECT3DVERTEXBUFFER9	GetVB(){ return m_vbParticles; }
+//		LPDIRECT3DVERTEXBUFFER9	GetVBRHW(){ return m_vbParticlesRHW; }
+//		int						GetVBSize(){ return	m_iVBSize; }
+//
+//		bool					GetUseDynamicTexture() { return m_bUseDynamicTexture; }
+//
+//		int						GetOffsetSize() { return m_Offset; }
+//		void					SetOffsetSize( int offset ) { m_Offset = offset; }
+//
+//		int						GetOffsetRHWSize() { return m_OffsetRHW; }
+//		void					SetOffsetRHWSize( int offset ) { m_OffsetRHW = offset; }
+//
+//		int						GetBatchSize() { return m_BatchSize; }
+//
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
 		static CParticleEvent* CKTDGParticleSystem::EventFactory( std::string EventName );
 
 		void SetEnable( bool bEnable ){ m_bEnable = bEnable; }
 
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        UINT EstimateParticleSequenceNum();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CKTDGParticleSystem::CParticleEventSequence* GetParticleSequence( int index ) { return m_InstanceSequences[index]; }
 		UINT GetParticleSequenceNum() { return m_InstanceSequences.size(); } 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 //#ifdef	X2OPTIMIZE_REFACTORING_RESOURCE_BACKGROUND_LOAD
 		bool	AppendToDeviceList( CKTDXDeviceDataList& listInOut_, const WCHAR* pSequenceName, CKTDXDeviceManager::EPriority ePriority = CKTDXDeviceManager::PRIORITY_HIGH );
@@ -1720,6 +2091,43 @@ class CKTDGParticleSystem
 		bool GetRenderEffectMadeByGameUnit() const { return m_bRenderEffectMadeByGameUnit; }
 		void SetRenderEffectMadeByGameUnit(bool bVal_) { m_bRenderEffectMadeByGameUnit = bVal_; }
 #endif //NOT_RENDER_EFFECT_MADE_BY_GAME_UNIT
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        template< typename FUNCTION >
+        void                            ApplyFunctionToLiveInstanceSequences( FUNCTION fn );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+        DWORD   ComposeHandle( WORD wIndex, OUT WORD& wStamp )
+        {
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            wStamp &= 0x3fff;
+            return wIndex | ( wStamp << 16L ) | ( m_ucSystemID << 30L );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            return wIndex | ( wStamp << 16L );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        }
+        bool    DecomposeHandle( DWORD dwHandle, OUT WORD& wIndex, OUT WORD& wStamp )
+        {
+            wIndex = (WORD) dwHandle;
+            wStamp = (WORD) ( ( dwHandle & 0xffff0000 ) >> 16L );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            unsigned char ucSystemID = (unsigned char) ( wStamp >> 14L );
+            wStamp &= 0x3fff;
+            return ucSystemID == m_ucSystemID;
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            return true;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        }
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        unsigned char GetSystemID()                     { return m_ucSystemID; }
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+         bool   IsInCriticalLoop() const { return m_bInCriticalLoop; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+
+
 	protected:
 		bool ProcessParticleSystemBlock(
 					std::vector<CParticleEmitterToken>::iterator &TokenIter,
@@ -1729,15 +2137,21 @@ class CKTDGParticleSystem
 					std::vector<CParticleEmitterToken>::iterator &TokenIter,
 					std::vector<CParticleEmitterToken>::iterator &EndIter);
 		
-		LPDIRECT3DVERTEXBUFFER9			m_vbParticles;
-		LPDIRECT3DVERTEXBUFFER9			m_vbParticlesRHW;
-
-		bool							m_bUseDynamicTexture;
-
-		int								m_iVBSize;
-		DWORD							m_Offset;    // offset in vb to lock   
-		DWORD							m_OffsetRHW;
-		DWORD							m_BatchSize; // number of vertices to lock starting at _vbOffset
+//#ifdef  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+        std::vector<VERTEX_PARTICLE>    m_vecVERTEX_PARTICLE;
+        std::vector<VERTEX_PARTICLE_RHW>
+                                        m_vecVERTEX_PARTICLE_RHW;
+//#else   X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
+//		LPDIRECT3DVERTEXBUFFER9			m_vbParticles;
+//		LPDIRECT3DVERTEXBUFFER9			m_vbParticlesRHW;
+//
+//		bool							m_bUseDynamicTexture;
+//
+//		int								m_iVBSize;
+//		DWORD							m_Offset;    // offset in vb to lock   
+//		DWORD							m_OffsetRHW;
+//		DWORD							m_BatchSize; // number of vertices to lock starting at _vbOffset
+//#endif  X2OPTIMIZE_PARTICLE_SEQUENCE_DVB
 
 		string							m_strName;
 //{{ robobeg : 2008-10-13
@@ -1757,16 +2171,126 @@ class CKTDGParticleSystem
 		map< wstring, vector<CParticleEventSequence*> >	m_mapTempletSequences;
 		wstring									m_strCurrentFileName;
 #endif //EFFECT_TOOL
+
+
+#ifdef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        enum    ESequenceListType
+        {
+            SEQUENCELIST_LIVE = 0,
+            SEQUENCELIST_READY = 1,
+            SEQUENCELIST_FREE = 2,
+            SEQUENCELIST_NUM
+        };
+        struct  KSequenceHandleInfo
+        {
+            CParticleEventSequence*         m_pSequence;
+            WORD                            m_wStamp;
+            ESequenceListType               m_eType;
+            KSequenceHandleInfo()
+                : m_pSequence( NULL )
+                , m_wStamp(0)
+                , m_eType( SEQUENCELIST_FREE )
+            {
+            }
+        };
+        typedef kog::indexed_list<KSequenceHandleInfo> KSequenceHandleList;
+        KSequenceHandleList                     m_coParticleSequence;
+
+        enum    EParticleListType
+        {
+            PARTICLELIST_FREE = 0,
+            PARTICLELIST_NUM
+        };
+        struct  KParticleHandleInfo
+        {
+            CParticle*                      m_pParticle;
+            WORD                            m_wStamp;
+
+            KParticleHandleInfo()
+                : m_pParticle( NULL )
+                , m_wStamp(0) {}
+        };
+        typedef kog::indexed_list<KParticleHandleInfo> KParticleHandleList;
+        KParticleHandleList                     m_coParticleList;
+public:
+        KParticleHandleList&                    _AccessParticleList()   { return m_coParticleList; }
+private:
+
+#else//X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		vector<CParticleEventSequence*>			m_InstanceSequencesReady;
 		vector<CParticleEventSequence*>			m_InstanceSequences;
-
 		map< CParticleEventSequenceHandle, CParticleEventSequence* >	m_mapInstanceSequences;
-
+		static CParticleEventSequenceHandle		s_iNextParticleEventSequenceHandle;
 		CRITICAL_SECTION						m_csParticleLock;
+#endif//X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        bool                                    m_bInCriticalLoop;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 
 		string									m_strLastError;
-		static CParticleEventSequenceHandle		s_iNextParticleEventSequenceHandle;
+
 #ifdef NOT_RENDER_EFFECT_MADE_BY_GAME_UNIT
 		bool									m_bRenderEffectMadeByGameUnit;
 #endif //NOT_RENDER_EFFECT_MADE_BY_GAME_UNIT
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        unsigned char                           m_ucSystemID;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+        static bool                             ms_bParticleCullingEnabled;
+#endif  X2OPTIMIZE_CULLING_PARTICLE
+
 };
+
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+template< typename FUNCTION >
+void        CKTDGParticleSystem::ApplyFunctionToLiveInstanceSequences( FUNCTION fn )
+{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    bool bOldInCriticalLoop = m_bInCriticalLoop;
+    m_bInCriticalLoop = true;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+    KSequenceHandleList::iterator iterEnd = m_coParticleSequence.end(SEQUENCELIST_LIVE);
+    for( KSequenceHandleList::iterator iter = m_coParticleSequence.begin( SEQUENCELIST_LIVE );
+        iter != iterEnd;
+        ++iter )
+    {
+        KSequenceHandleInfo& info = *iter;
+        CParticleEventSequence* pSeq = info.m_pSequence;
+        if ( pSeq == NULL || pSeq->GetDelete() == true )
+            continue;
+        fn( *pSeq );
+    }
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    m_bInCriticalLoop = bOldInCriticalLoop;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+}
+
+
+template< typename FUNCTION >
+void        CKTDGParticleSystem::CParticleEventSequence::ApplyFunctionToParticles( FUNCTION fn )
+{
+    KParticleHandleList& coParticleList = m_pParticleSystem->_AccessParticleList();
+    int iParticleList = m_iParticleList;
+    if ( iParticleList >= 0 && iParticleList < (int) coParticleList.storage_size() )
+    {
+        KParticleHandleList::iterator iterEnd = coParticleList.end( iParticleList );
+        KParticleHandleList::iterator iterNext;
+        for( KParticleHandleList::iterator iter = coParticleList.begin( iParticleList );
+            iter != iterEnd;
+            iter = iterNext )
+        {
+            iterNext = iter; ++iterNext;
+            KParticleHandleInfo& info = *iter;
+            if ( info.m_pParticle != NULL )
+                fn( *info.m_pParticle );
+        }
+    }
+}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE

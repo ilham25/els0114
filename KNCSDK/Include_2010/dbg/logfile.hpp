@@ -26,13 +26,6 @@
 // want to change in there.
 
 #include  "KncUtil.h"
-//{{ Iruha : 2026-08-27 // VS2010 port: backported from KNCSDK/Include/dbg/logfile.hpp,
-// which has the log-statistics feature (KLogStat/GetLogStat/ClearLogStat/GetLogFileSize)
-// that Include_2010 never received. KncWX2Server/Common/LogManager.cpp calls these
-// unconditionally.
-#include <map>
-#include "../Thread/Locker.h"
-//}}
 namespace dbg
 {
     enum e_log_mode
@@ -71,26 +64,6 @@ namespace dbg
         short                   m_sLevel;
         static std::string      ms_strFileName;
         //}} florist
-
-		//{{ Iruha : 2026-08-27 // VS2010 port: backported from KNCSDK/Include/dbg/logfile.hpp
-	public:
-		struct KLogStat
-		{
-			std::wstring	m_wstrFunctionName;
-			std::wstring	m_wstrFileName;
-			std::wstring	m_wstrLineNum;
-			int				m_iCount;
-
-			KLogStat()
-			{
-				m_iCount = 0;
-			}
-		};
-
-	private:
-		std::map< unsigned int, KLogStat >	m_mapLogStat;
-		mutable KncCriticalSection			m_csLogStat;
-		//}}
 
     public:
 
@@ -194,11 +167,6 @@ namespace dbg
 	    friend logfile& tab( logfile& );
 	    friend logfile& lbreak( logfile& );
 
-		//{{ Iruha : 2026-08-27 // VS2010 port: backported from KNCSDK/Include/dbg/logfile.hpp
-		logfile& LogStat( const wchar_t* pStrFunctionName, const wchar_t* pStrFileName, const int iLineNum );
-		void GetLogStat( std::map< unsigned int, KLogStat >& mapLogStat ) const;
-		void ClearLogStat();
-		//}}
 
         //{{ florist.
         static void CloseFile();
@@ -207,12 +175,9 @@ namespace dbg
         static void SetLogFileTitle( const wchar_t* szFileTitle );
         static const char* GetLogFileName() { return ms_strFileName.c_str(); }
         //}} florist
-		//{{ Iruha : 2026-08-27 // VS2010 port: backported from KNCSDK/Include/dbg/logfile.hpp
-		static int GetLogFileSize();
-		//}}
 
     private:
-        void OpenLogFile(); // 050202. florist. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+        void OpenLogFile(); // 050202. florist. ¼³Á¤¿¡ ¸ÂÃç ·Î±×ÆÄÀÏÀ» »ý¼ºÇÑ´Ù.
 
     }; // logfile
 

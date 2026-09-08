@@ -266,7 +266,7 @@ void KLoginProxy::ProcbyNotExistUser( const KEventPtr& spEvent_, std::vector<Uid
 				KELG_GET_UNIT_INFO_REQ kData_;
 				if( !ks.Get(kData_) )
 				{
-					START_LOG( cerr, L"deserialze failed." )
+					START_LOG( cerr, L"deserialize failed." )
 						<< BUILD_LOG( KEvent::GetIDStr( spEvent_->m_usEventID ) )
 						<< BUILD_LOG( vecUID[i] )
 						<< END_LOG;
@@ -340,7 +340,7 @@ void KLoginProxy::ProcbyNotExistUser( const KEventPtr& spEvent_, std::vector<Uid
 				KERM_CHECK_ZOMBIE_USER_REQ kData_;
 				if( !ks.Get(kData_) )
 				{
-					START_LOG( cerr, L"deserialze failed." )
+					START_LOG( cerr, L"deserialize failed." )
 						<< BUILD_LOG( KEvent::GetIDStr( spEvent_->m_usEventID ) )
 						<< BUILD_LOG( vecUID[i] )
 						<< END_LOG;

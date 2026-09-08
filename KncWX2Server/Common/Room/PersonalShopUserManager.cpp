@@ -162,6 +162,14 @@ bool KPersonalShopUserManager::EnterPShopAgencyOwner( IN const KPersonalShopUser
 {
 	SET_ERROR( NET_OK );
 
+    {
+        KPersonalShopUserPtr spExistPersonalShopUser = GetUser( kInfo.m_iUnitUID );
+        if ( spExistPersonalShopUser ) 
+        {
+            DeleteUser( kInfo.m_iUnitUID );
+        }        
+    }
+    
 	KPersonalShopUserPtr spPersonalShopUser = MakeUser( kInfo, true );
 	if( !spPersonalShopUser )
 	{
@@ -189,6 +197,14 @@ bool KPersonalShopUserManager::EnterPShopAgencyOwner( IN const KPersonalShopUser
 bool KPersonalShopUserManager::EnterPShopAgencyCustomer( IN const KPersonalShopUserInfo& kInfo )
 {
 	SET_ERROR( NET_OK );
+
+    {
+        KPersonalShopUserPtr spExistPersonalShopUser = GetUser( kInfo.m_iUnitUID );
+        if ( spExistPersonalShopUser ) 
+        {
+            DeleteUser( kInfo.m_iUnitUID );
+        }        
+    }
 
 	KPersonalShopUserPtr spPersonalShopUser = MakeUser( kInfo );
 	if( !spPersonalShopUser )

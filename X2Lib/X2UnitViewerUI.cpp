@@ -23,12 +23,17 @@ static const CX2Item::ItemTemplet* _GetSafeEquipItemTemplet( CX2EqipPtr pX2Eqip 
 #else
 		if ( CX2Item* pX2Item = pX2Eqip->GetItem() )
 		{
-			if ( const CX2Item::ItemTemplet* pItemTemplet = pX2Item->GetItemTemplet() )
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+			if ( NULL != pX2Item ) 
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 			{
-				if ( pItemTemplet->GetEqipPosition() >= CX2Unit::EQIP_POSITION( 0 ) && pItemTemplet->GetEqipPosition() < CX2Unit::EP_END )
-					return pItemTemplet;
+				if ( const CX2Item::ItemTemplet* pItemTemplet = pX2Item->GetItemTemplet() )
+				{
+					if ( pItemTemplet->GetEqipPosition() >= CX2Unit::EQIP_POSITION( 0 ) && pItemTemplet->GetEqipPosition() < CX2Unit::EP_END )
+						return pItemTemplet;
+				}//if
 			}//if
-		}//if
+		}
 #endif //GET_ITEM_NULL_CHECK     
     }//if
     ASSERT( !"internal error" );
@@ -43,6 +48,10 @@ CX2UnitViewerUI::CX2UnitViewerUI(void)
 , m_bShowInvenEquip ( true )
 #endif // TAKE_OFF_ALL_ITEM
 , m_eUnitViewerState( UVS_NONE )
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+, m_bIsPlayAvatarEmotionSoundWithoutEmotion ( false )
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
 {
 	SetAlphaObject( false );
 
@@ -61,25 +70,26 @@ CX2UnitViewerUI::CX2UnitViewerUI(void)
 //}} robobeg : 2008-10-17
 
 	m_BillBoardType			= CKTDGMatrix::BT_NONE;
-	m_hSeqHandFire			= INVALID_PARTICLE_HANDLE;
+	m_hSeqHandFire			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #ifdef NEW_CHARACTER_EL
-	m_hSeqHandFireSPK1			= INVALID_PARTICLE_HANDLE;
-	m_hSeqHandFireSPK2			= INVALID_PARTICLE_HANDLE;
+	m_hSeqHandFireSPK1			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqHandFireSPK2			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif //NEW_CHARACTER_EL
 
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
-	m_hSeqEnergyBullet1			= INVALID_PARTICLE_HANDLE;
-	m_hSeqEnergyBullet2			= INVALID_PARTICLE_HANDLE;
-	m_hSeqEnergyBullet3			= INVALID_PARTICLE_HANDLE;
+	m_hSeqEnergyBullet1			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEnergyBullet2			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEnergyBullet3			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-	m_hSeqWeapon_Fire		= INVALID_PARTICLE_HANDLE;
-	m_hSeqWeapon_Fire2		= INVALID_PARTICLE_HANDLE;
-	m_hSeqWeapon_Fire3		= INVALID_PARTICLE_HANDLE;
 
-	m_hSeqWeapon_Wind		= INVALID_PARTICLE_HANDLE;
-	m_hSeqWeapon_Wind2		= INVALID_PARTICLE_HANDLE;
-	m_hSeqWeapon_Wind3		= INVALID_PARTICLE_HANDLE;
-	m_hSeqWeapon_Wind4		= INVALID_PARTICLE_HANDLE;
+	m_hSeqWeapon_Fire		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqWeapon_Fire2		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqWeapon_Fire3		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+
+	m_hSeqWeapon_Wind		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqWeapon_Wind2		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqWeapon_Wind3		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqWeapon_Wind4		= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 
 
@@ -95,11 +105,15 @@ CX2UnitViewerUI::CX2UnitViewerUI(void)
 	
 	m_ExtraDamageType		= 0;
 
-#ifdef TITLE_SYSTEM
-    m_hSeqEmblem		= INVALID_PARTICLE_HANDLE;
+//#ifdef TITLE_SYSTEM
+    m_hSeqEmblem		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hPart_Emblem_200 = INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
     m_pPart_Emblem_200 = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
     m_iTitleId              = 0;
-#endif
+//#endif
 #ifdef NEW_VILLAGE_UI
 	m_bFixed = false;
 #endif
@@ -113,11 +127,9 @@ CX2UnitViewerUI::CX2UnitViewerUI(void)
 	m_ePlayedEmotion = CX2Unit::ET_NONE;
 #endif
 
-#ifdef AVATAR_EMOTION
 	for(int i=0; i < AVATAR_EMOTION_NUM; ++i)
 		m_bMixedEmotion[i] = false;
 	m_pAvatarEmotionSound = NULL;
-#endif
 
 	m_fScale = 1.f;
 
@@ -144,19 +156,25 @@ CX2UnitViewerUI::CX2UnitViewerUI(void)
 #endif SERV_RENA_NIGHT_WATCHER
 
 #ifdef ADD_UPGRADE_WEAPON_PARTICLE		/// 강화 무기 이펙트 객체
-	m_hSeqUpgradeWeapon			= INVALID_PARTICLE_HANDLE;
-	m_hSeqUpgradeWeapon2		= INVALID_PARTICLE_HANDLE;
-	m_hSeqUpgradeWeapon3		= INVALID_PARTICLE_HANDLE;
-	m_hSeqUpgradeWeapon4		= INVALID_PARTICLE_HANDLE;
+	m_hSeqUpgradeWeapon			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqUpgradeWeapon2		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqUpgradeWeapon3		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqUpgradeWeapon4		= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	m_pFrame_ATTACK_LINE_START0_FRONT	= NULL;
 	m_pFrame_ATTACK_LINE_END0			= NULL;
 #endif ADD_UPGRADE_WEAPON_PARTICLE
-	//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
-#ifdef SERV_UNIT_WAIT_DELETE
-	m_pNewDeleteDlg = NULL;
-#endif SERV_UNIT_WAIT_DELETE
-	//}}
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	m_hSeqHandFireSBH1		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqHandFireSBH2		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqHandFireSBH3		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	m_hSeqHandElectricALP1	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqHandElectricALP2	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+#endif //SERV_ADD_LUNATIC_PSYKER
 }
 
 CX2UnitViewerUI::~CX2UnitViewerUI(void)
@@ -196,35 +214,50 @@ CX2UnitViewerUI::~CX2UnitViewerUI(void)
 	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEnergyBullet3 );
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandFireSBH1 );
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandFireSBH2 );
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandFireSBH3 );
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandElectricALP1 );
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandElectricALP2 );
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 	DeleteEnchantWeaponEffect();
 
-#ifdef TITLE_SYSTEM
-    if(m_hSeqEmblem != INVALID_PARTICLE_HANDLE)
+//#ifdef TITLE_SYSTEM
+    if(m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE)
         g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hPart_Emblem_200 = INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
     m_pPart_Emblem_200 = NULL;
-#endif
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+//#endif
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 	if( m_hChungMiniGunL != INVALID_MESH_INSTANCE_HANDLE )
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hChungMiniGunL );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hChungMiniGunL );
 	if( m_hChungMiniGunR != INVALID_MESH_INSTANCE_HANDLE )
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hChungMiniGunR );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hChungMiniGunR );
 #endif
 
 #ifdef ELSWORD_SHEATH_KNIGHT
 	if( m_hElswordSword != INVALID_MESH_INSTANCE_HANDLE )
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hElswordSword );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hElswordSword );
 #endif ELSWORD_SHEATH_KNIGHT
 
 #ifdef SERV_TRAPPING_RANGER_TEST
 	if( m_hInstLTrapSwordReady != INVALID_MESH_INSTANCE_HANDLE )
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hInstLTrapSwordReady );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hInstLTrapSwordReady );
 #endif SERV_TRAPPING_RANGER_TEST
 
 #ifdef SERV_RENA_NIGHT_WATCHER
 	if( m_hInstRNWTrapSwordReady != INVALID_MESH_INSTANCE_HANDLE )
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hInstRNWTrapSwordReady );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hInstRNWTrapSwordReady );
 #endif SERV_RENA_NIGHT_WATCHER
 
 #ifdef CRASH_LOG
@@ -239,24 +272,15 @@ CX2UnitViewerUI::~CX2UnitViewerUI(void)
 
 	SAFE_CLOSE( m_pSound_Eve_LevelUp );
 
-#ifdef AVATAR_EMOTION
 	if( m_pAvatarEmotionSound != NULL )
 	{
 		m_pAvatarEmotionSound->Stop();
 		SAFE_CLOSE( m_pAvatarEmotionSound );
 	}
-#endif
 
 #ifdef ADD_UPGRADE_WEAPON_PARTICLE
 	DeleteUpgradeWeaponParticle();
 #endif ADD_UPGRADE_WEAPON_PARTICLE
-
-	//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
-#ifdef SERV_UNIT_WAIT_DELETE
-	SAFE_DELETE(m_pNewDeleteDlg);
-#endif SERV_UNIT_WAIT_DELETE
-	//}}
-
 }
 
 
@@ -267,26 +291,27 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 	if ( m_pUnit == NULL )
 		return false;
 
-#ifdef UNIT_VIEWER_UI_ONFRAMEMOVE
-	if(NULL == m_pUnit->GetUnitData() || NULL == m_pUnit->GetInventory())
-		return false;
-#endif //UNIT_VIEWER_UI_ONFRAMEMOVE
-
 #ifdef UNIT_EMOTION
 	EmotionFrameMove();
 #endif
 
-#ifdef AVATAR_EMOTION
 	if( m_pAvatarEmotionSound != NULL && 
 		( m_pXSkinAnim->GetNowAnimName() != L"Emotion_BIGBANG" && 
 		m_pXSkinAnim->GetNowAnimName() != L"Emotion_APINK" && 
 		m_pXSkinAnim->GetNowAnimName() != L"Emotion_APINK_LOVE" &&
-		m_pXSkinAnim->GetNowAnimName() != L"Emotion_CRAYONPOP" ) )
+		m_pXSkinAnim->GetNowAnimName() != L"Emotion_CRAYONPOP" 
+#ifdef CRAYONPOP_SECOND_EMOTION
+		&& m_pXSkinAnim->GetNowAnimName() != L"Emotion_BbaBbaBba"
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		&& false == m_bIsPlayAvatarEmotionSoundWithoutEmotion 
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		))
 	{
 		m_pAvatarEmotionSound->Stop();
 		SAFE_CLOSE( m_pAvatarEmotionSound );
 	}
-#endif
 
 	m_pXSkinAnim->SetBillBoardType( m_BillBoardType );
 
@@ -325,30 +350,30 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
         {
             ASSERT( pItemTemplet->GetFashion() );
 
-			CX2Item* pTempItem = m_pUnit->GetInventory()->GetEquippingItemByEquipPos( ePos, false );
+			CX2Item* pTempItem = m_pUnit->GetInventory().GetEquippingItemByEquipPos( ePos, false );
 			
 			//{{ kimhc // 실시간 엘소드 중 실시간 내구도 감소
 #ifdef	REAL_TIME_ELSWORD
-			if( pTempItem != NULL && pTempItem->GetItemData() != NULL && 
-				pX2Eqip->GetEnchantLevel() != pTempItem->GetItemData()->m_EnchantLevel && 
-				//pTempItem->GetItemData()->m_Endurance > 0
-				( ( pTempItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && pTempItem->GetItemData()->m_Endurance > 0 ) ||
-					pTempItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY )	 )
+			if( pTempItem != NULL && 
+				pX2Eqip->GetEnchantLevel() != pTempItem->GetItemData().m_EnchantLevel && 
+				//pTempItem->GetItemData().m_Endurance > 0
+				( ( pTempItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && pTempItem->GetItemData().m_Endurance > 0 ) ||
+					pTempItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY )	 )
 			{
-				pX2Eqip->ChangeEnchantLevel( pTempItem->GetItemData()->m_EnchantLevel );
+				pX2Eqip->ChangeEnchantLevel( pTempItem->GetItemData().m_EnchantLevel );
 			}
 
 			if( pX2Eqip->GetEnchantLevel() != 0 )
 			{
 				if ( pTempItem == NULL || 
 					( pTempItem != NULL && 
-						pTempItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && pTempItem->GetItemData()->m_Endurance <= 0 ) )
+						pTempItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && pTempItem->GetItemData().m_Endurance <= 0 ) )
 					pX2Eqip->ChangeEnchantLevel( 0 );
 			}
 #else	REAL_TIME_ELSWORD
-			if( pTempItem != NULL && pTempItem->GetItemData() != NULL && pX2Eqip->GetEnchantLevel() != pTempItem->GetItemData()->m_EnchantLevel )
+			if( pTempItem != NULL && pX2Eqip->GetEnchantLevel() != pTempItem->GetItemData().m_EnchantLevel )
 			{
-				pX2Eqip->ChangeEnchantLevel( pTempItem->GetItemData()->m_EnchantLevel );
+				pX2Eqip->ChangeEnchantLevel( pTempItem->GetItemData().m_EnchantLevel );
 			}
 
 			if( pX2Eqip->GetEnchantLevel() != 0 && pTempItem == NULL )
@@ -383,11 +408,11 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 
 	pRenderParam->renderType		= CKTDGXRenderer::RT_CARTOON_BLACK_EDGE;
 
-	if( g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail == CX2GameOption::OL_MEDIUM )
+	if( g_pMain->GetGameOption().GetOptionList().m_UnitDetail == CX2GameOption::OL_MEDIUM )
 	{
 		pRenderParam->renderType = CKTDGXRenderer::RT_CARTOON;
 	}
-	else if( g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail == CX2GameOption::OL_LOW )
+	else if( g_pMain->GetGameOption().GetOptionList().m_UnitDetail == CX2GameOption::OL_LOW )
 	{
 		pRenderParam->renderType = CKTDGXRenderer::RT_REAL_COLOR;
 	}
@@ -395,7 +420,7 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 	//pRenderParam->worldMatrix		= GetMatrix().GetMatrix( m_BillBoardType );
 //}} robobeg : 2008-10-24
 		
-	if( g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail == CX2GameOption::OL_HIGH )
+	if( g_pMain->GetGameOption().GetOptionList().m_UnitDetail == CX2GameOption::OL_HIGH )
 	{
 		if(m_bPickUnit == true)
 		{
@@ -411,19 +436,27 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 		}	
 
 		pRenderParam->lightPos			= m_LightPos;
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+		pRenderParam->fOutLineWide		= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 		pRenderParam->fOutLineWide		= 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 		pRenderParam->bAlphaBlend		= false;
 	}
 	else
 	{
 		pRenderParam->cartoonTexType	= CKTDGXRenderer::CTT_NORMAL;
 		pRenderParam->lightPos			= m_LightPos;
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+		pRenderParam->fOutLineWide		= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 		pRenderParam->fOutLineWide		= 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 		pRenderParam->color				= 0xffffffff;
 		pRenderParam->bAlphaBlend		= false;
 	}	
 	
-	if( m_hSeqHandFire != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHandFire != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFire );
 		if( NULL != pSeq )
@@ -436,12 +469,12 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 		}
 		else
 		{
-			m_hSeqHandFire = INVALID_PARTICLE_HANDLE;
+			m_hSeqHandFire = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 #ifdef NEW_CHARACTER_EL
-	if( m_hSeqHandFireSPK1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHandFireSPK1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSPK1 );
 		if( NULL != pSeq )
@@ -453,10 +486,10 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 		}
 		else
 		{
-			m_hSeqHandFireSPK1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqHandFireSPK1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
-	if( m_hSeqHandFireSPK2 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHandFireSPK2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSPK2 );
 		if( NULL != pSeq )
@@ -468,7 +501,7 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 		}
 		else
 		{
-			m_hSeqHandFireSPK2 = INVALID_PARTICLE_HANDLE;
+			m_hSeqHandFireSPK2 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 #endif //NEW_CHARACTER_EL
@@ -514,6 +547,198 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 			m_hSeqEnergyBullet3 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	if ( m_pUnit->GetClass() == CX2Unit::UC_ELESIS_BLAZING_HEART )
+	{
+		if ( m_pXSkinAnim->GetNowAnimName() == L"SBH_LobbyWait" || m_pXSkinAnim->GetNowAnimName() == L"SBH_LobbyReadyAction" )
+		{
+			float fShowParticleSeqStartTime = 0.f;
+			float fShowParticleSeqEndTime = 0.f;
+			float fParticleSeqOffsetY = 0.f;
+			if ( m_pXSkinAnim->GetNowAnimName() ==  L"SBH_LobbyWait" )
+			{
+				fShowParticleSeqStartTime = 2.5; 
+				fShowParticleSeqEndTime = 2.95f;
+				fParticleSeqOffsetY = -10.f;
+			}
+			else if ( m_pXSkinAnim->GetNowAnimName() ==  L"SBH_LobbyReadyAction" ) 
+			{
+				fShowParticleSeqStartTime = 1.82f;
+				fShowParticleSeqEndTime = 2.19f;
+				fParticleSeqOffsetY = 0.f;
+			}
+
+			if ( (  fShowParticleSeqStartTime <= m_pXSkinAnim->GetNowAnimationTime () && m_pXSkinAnim->GetNowAnimationTime () <= fShowParticleSeqEndTime ) ) 
+			{
+				if ( m_hSeqHandFireSBH1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH1 );
+					if( NULL != pSeq )
+					{
+						D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Finger2" );
+						vBonePos.y += fParticleSeqOffsetY;
+						pSeq->SetPosition( vBonePos );
+						pSeq->SetShowObject( GetShowObject() );
+						pSeq->SetEmitRate( 300.0f, 300.0f );
+					}
+					else
+					{
+						m_hSeqHandFireSBH1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
+					}
+				}
+				if ( m_hSeqHandFireSBH2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH2 );
+					if( NULL != pSeq )
+					{
+						D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Finger2" );
+						vBonePos.y += fParticleSeqOffsetY;
+						pSeq->SetPosition( vBonePos );
+						pSeq->SetShowObject( GetShowObject() );
+						pSeq->SetEmitRate( 50.0f, 50.0f );
+					}
+					else
+					{
+						m_hSeqHandFireSBH2 = INVALID_PARTICLE_SEQUENCE_HANDLE;
+					}
+				}
+				if ( m_hSeqHandFireSBH3 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH3 );
+					if( NULL != pSeq )
+					{
+						D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Finger2" );
+						vBonePos.y += fParticleSeqOffsetY;
+						pSeq->SetPosition( vBonePos );
+						pSeq->SetShowObject( GetShowObject() );
+						pSeq->SetEmitRate( 300.0f, 300.0f );
+					}
+					else
+					{
+						m_hSeqHandFireSBH3 = INVALID_PARTICLE_SEQUENCE_HANDLE;
+					}
+				}
+			}
+			else
+			{
+				if ( m_hSeqHandFireSBH1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH1 );
+					if( NULL != pSeq )
+					{
+						pSeq->SetEmitRate( 0.0f, 0.0f );
+					}
+				}
+				if ( m_hSeqHandFireSBH2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH2 );
+					if( NULL != pSeq )
+					{
+						pSeq->SetShowObject( false );
+						pSeq->SetEmitRate( 0.0f, 0.0f );
+					}
+				}
+				if ( m_hSeqHandFireSBH3 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH3 );
+					if( NULL != pSeq )
+					{
+						pSeq->SetEmitRate( 0.0f, 0.0f );
+					}
+				}
+			}
+		}
+		else
+		{
+
+			if ( m_hSeqHandFireSBH1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+			{
+				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH1 );
+				if( NULL != pSeq )
+				{
+					pSeq->SetEmitRate( 0.0f, 0.0f );
+				}
+			}
+			if ( m_hSeqHandFireSBH2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+			{
+				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH2 );
+				if( NULL != pSeq )
+				{
+					pSeq->SetShowObject( false );
+					pSeq->SetEmitRate( 0.0f, 0.0f );
+				}
+			}
+			if ( m_hSeqHandFireSBH3 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+			{
+				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH3 );
+				if( NULL != pSeq )
+				{
+					pSeq->SetEmitRate( 0.0f, 0.0f );
+				}
+			}
+		}
+	}
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	if ( m_pUnit->GetClass() == CX2Unit::UC_ADD_LUNATIC_PSYKER &&
+		 m_pXSkinAnim->GetNowAnimName() == L"ALP_LobbyWait" &&
+		 3.6f <= m_pXSkinAnim->GetNowAnimationTime () && 
+		 4.5f > m_pXSkinAnim->GetNowAnimationTime () )
+	{
+		if( m_hSeqHandElectricALP1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP1 );
+			if( NULL != pSeq )
+			{
+				D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_R_Hand" );
+				vBonePos.y += 10.f;
+				pSeq->SetPosition( vBonePos );
+				pSeq->SetShowObject( true );
+				pSeq->SetEmitRate( 50.0f, 50.0f );
+			}
+			else
+				m_hSeqHandElectricALP1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
+		}
+		if( m_hSeqHandElectricALP2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP2 );
+			if( NULL != pSeq )
+			{
+				D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_R_Hand" );
+				vBonePos.y += 10.f;
+				pSeq->SetPosition( vBonePos );
+				pSeq->SetShowObject( true );
+				pSeq->SetEmitRate( 80.0f, 80.0f );
+			}
+			else
+				m_hSeqHandElectricALP2 = INVALID_PARTICLE_SEQUENCE_HANDLE;
+		}
+	}
+	else
+	{
+		if ( m_hSeqHandElectricALP1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP1 );
+			if( NULL != pSeq )
+			{
+				pSeq->SetShowObject( false );
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+		if ( m_hSeqHandElectricALP2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP2 );
+			if( NULL != pSeq )
+			{
+				pSeq->SetShowObject( false );
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+	}
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 	if ( m_hChungMiniGunL != INVALID_MESH_INSTANCE_HANDLE && m_hChungMiniGunR != INVALID_MESH_INSTANCE_HANDLE )
 	{
@@ -543,7 +768,8 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 		{
 			CKTDXDeviceXSkinMesh::MultiAnimFrame* pMultiAnimFrame = m_pXSkinAnim->GetCloneFrame( L"Dummy2_Lhand" );
 
-			pMeshInst->SetUseDXMatrix( pMultiAnimFrame->combineMatrix );
+			if( pMultiAnimFrame != NULL )
+				pMeshInst->SetUseDXMatrix( pMultiAnimFrame->combineMatrix );
 
 			pMeshInst->SetShowObject( m_bShowSword );
 		}
@@ -559,7 +785,8 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 		{
 			CKTDXDeviceXSkinMesh::MultiAnimFrame* pMultiAnimFrame = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Hand" );
 
-			pMeshInst->SetUseDXMatrix( pMultiAnimFrame->combineMatrix );
+			if( pMultiAnimFrame != NULL )
+				pMeshInst->SetUseDXMatrix( pMultiAnimFrame->combineMatrix );
 
 			pMeshInst->SetShowObject( m_bShowLTrapSword );
 		}
@@ -575,7 +802,8 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 		{
 			CKTDXDeviceXSkinMesh::MultiAnimFrame* pMultiAnimFrame = m_pXSkinAnim->GetCloneFrame( L"Dummy1_Rhand" );
 
-			pMeshInst->SetUseDXMatrix( pMultiAnimFrame->combineMatrix );
+			if( pMultiAnimFrame != NULL )
+				pMeshInst->SetUseDXMatrix( pMultiAnimFrame->combineMatrix );
 
 			pMeshInst->SetShowObject( m_bShowRNWTrapSword );
 		}
@@ -602,15 +830,13 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 					} break;
 
 				case CX2Unit::UT_LIRE:
+				case CX2Unit::UT_EVE:
 #ifdef ARA_CHARACTER_BASE
 				case CX2Unit::UT_ARA:
 #endif
-					{
-						InitEnchantWeaponEffectForBow();
-					} break;
-
-
-				case CX2Unit::UT_EVE:
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+				case CX2Unit::UT_ADD:
+#endif //SERV_9TH_NEW_CHARACTER
 					{
 						InitEnchantWeaponEffectForBow();
 					} break;
@@ -652,6 +878,12 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 				ProcessEnchantWeaponEffectForAra();
 			} break;
 #endif
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+	case CX2Unit::UT_ADD:
+			{
+				ProcessEnchantWeaponEffectForAdd();
+			} break;
+#endif //SERV_9TH_NEW_CHARACTER
 		}
 
 #ifdef ADD_UPGRADE_WEAPON_PARTICLE
@@ -659,65 +891,71 @@ HRESULT CX2UnitViewerUI::OnFrameMove( double fTime, float fElapsedTime )
 #endif ADD_UPGRADE_WEAPON_PARTICLE
 	}
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
     D3DXVECTOR3 markerPos, vHeadPos;
     GetFramePos( &vHeadPos, GetXSkinAnim()->GetCloneFrame( L"Bip01_Head" ) );
     markerPos = GetMatrix().GetPos(); //D3DXVECTOR3(0.f, 0.f, 0.f); // GetPos();
 
+    CKTDGParticleSystem::CParticleEventSequence* pSeq = ( m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE )
+        ? g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem ) : NULL;
+
 	if(g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_ROOM )
     {
-        if( NULL != m_pPart_Emblem_200 )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( CKTDGParticleSystem::CParticle* pPart_Emblem_200 = ( pSeq != NULL ) ? pSeq->ValidateParticleHandle( m_hPart_Emblem_200 ) : NULL )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( CKTDGParticleSystem::CParticle* pPart_Emblem_200 = m_pPart_Emblem_200 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
         {
-            m_pPart_Emblem_200->m_vPos = markerPos + D3DXVECTOR3( -75, 310, 0 );
-            m_pPart_Emblem_200->m_vSize = D3DXVECTOR3(0.6f, 0.6f, 1.0f);
-        }        
+            pPart_Emblem_200->SetPos( markerPos + D3DXVECTOR3( -75, 310, 0 ) );
+            pPart_Emblem_200->SetSize( D3DXVECTOR3(0.6f, 0.6f, 1.0f) );
+		}
     }
     else if(g_pMain->GetNowStateID() == CX2Main::XS_PVP_ROOM && m_bFixed == false)
     {
-        if( NULL != m_pPart_Emblem_200 )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( CKTDGParticleSystem::CParticle* pPart_Emblem_200 = ( pSeq != NULL ) ? pSeq->ValidateParticleHandle( m_hPart_Emblem_200 ) : NULL )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( CKTDGParticleSystem::CParticle* pPart_Emblem_200 = m_pPart_Emblem_200 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
         {
-            m_pPart_Emblem_200->m_vPos = markerPos + D3DXVECTOR3( -60, 250, 0 );
+            pPart_Emblem_200->SetPos( markerPos + D3DXVECTOR3( -60, 250, 0 ) );
 
-			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
 			float fSacleX = 0.7f;
 			float fSacleY = 0.7f;
 			float fSacleZ = 1.0f;
 
-			if(pSeq != NULL)
-			{
-				switch(pSeq->GetParticleType()) 
-				{
-				case CKTDGParticleSystem::PT_MESH: 
-				case CKTDGParticleSystem::PT_SKINMESH:
-					break;
-				case CKTDGParticleSystem::PT_3D_PLANE:
+            if ( pSeq != NULL )
+            {
+			    switch(pSeq->GetParticleType()) 
+			    {
+			    case CKTDGParticleSystem::PT_MESH: 
+			    case CKTDGParticleSystem::PT_SKINMESH:
+				    break;
+			    case CKTDGParticleSystem::PT_3D_PLANE:
 					
-					fSacleX = m_pPart_Emblem_200->m_vSize.x;
-					fSacleY = m_pPart_Emblem_200->m_vSize.y;
-					fSacleZ = m_pPart_Emblem_200->m_vSize.z;
-					break;
-				default:
-					break;
-				}
-			}			
-            m_pPart_Emblem_200->m_vSize = D3DXVECTOR3(fSacleX, fSacleY, fSacleZ);			
+				    fSacleX = pPart_Emblem_200->GetSize().x;
+				    fSacleY = pPart_Emblem_200->GetSize().y;
+				    fSacleZ = pPart_Emblem_200->GetSize().z;
+				    break;
+			    default:
+				    break;
+			    }
+            }
+            pPart_Emblem_200->SetSize( D3DXVECTOR3(fSacleX, fSacleY, fSacleZ) );
         }        
     }
     else //if(g_pMain->GetNowStateID() == CX2Main::XS_SERVER_SELECT)
     {
-		if( m_hSeqEmblem != INVALID_PARTICLE_HANDLE )
+		if( NULL != pSeq )
 		{
-			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
-			if( NULL != pSeq )
-			{
-				pSeq->SetShowObject( false );
-			}
+			pSeq->SetShowObject( false );
 		}
     }   
     
 
     UpdateTitle();
-#endif
+//#endif
 
 //#ifndef _SERVICE_
 //	if( m_pXSkinAnim != NULL && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV && g_pInstanceData->GetFrameScale() == true)
@@ -774,7 +1012,7 @@ void CX2UnitViewerUI::NotifyShowObjectChanged()
 
 
 
-	if( m_hSeqHandFire != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHandFire != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFire );
 		if( NULL != pSeq )
@@ -783,7 +1021,7 @@ void CX2UnitViewerUI::NotifyShowObjectChanged()
 		}
 	}
 #ifdef NEW_CHARACTER_EL
-	if( m_hSeqHandFireSPK1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHandFireSPK1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSPK1 );
 		if( NULL != pSeq )
@@ -791,7 +1029,7 @@ void CX2UnitViewerUI::NotifyShowObjectChanged()
 			pSeq->SetShowObject( bShow );
 		}
 	}
-	if( m_hSeqHandFireSPK2 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHandFireSPK2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSPK2 );
 		if( NULL != pSeq )
@@ -824,8 +1062,55 @@ void CX2UnitViewerUI::NotifyShowObjectChanged()
 			pSeq->SetShowObject( bShow );
 	}
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-#ifdef TITLE_SYSTEM
-    if( m_hSeqEmblem != INVALID_PARTICLE_HANDLE )
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	if( m_hSeqHandFireSBH1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+	{
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH1 );
+		if( NULL != pSeq )
+		{
+			pSeq->SetShowObject( bShow );
+		}
+	}
+	if( m_hSeqHandFireSBH2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+	{
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH2 );
+		if( NULL != pSeq )
+		{
+			pSeq->SetShowObject( bShow );
+		}
+	}
+	if( m_hSeqHandFireSBH3 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+	{
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH3 );
+		if( NULL != pSeq )
+		{
+			pSeq->SetShowObject( bShow );
+		}
+	}
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	if( m_hSeqHandElectricALP1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+	{
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP1 );
+		if( NULL != pSeq )
+		{
+			pSeq->SetShowObject( bShow );
+		}
+	}
+	if( m_hSeqHandElectricALP2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
+	{
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP2 );
+		if( NULL != pSeq )
+		{
+			pSeq->SetShowObject( bShow );
+		}
+	}
+#endif //SERV_ADD_LUNATIC_PSYKER
+
+//#ifdef TITLE_SYSTEM
+    if( m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
 		if( NULL != pSeq )
@@ -833,7 +1118,7 @@ void CX2UnitViewerUI::NotifyShowObjectChanged()
 			pSeq->SetShowObject( bShow );
 		}
 	}
-#endif
+//#endif
 
 	SetShowAttribEnchant( bShow );
 }
@@ -1116,6 +1401,43 @@ void    CX2UnitViewerUI::OnFrameRender_Draw()
 			pSeq->OnFrameRender_Draw();
 		}
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+		pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH1 );
+		if( pSeq != NULL )
+		{	
+			CKTDGStateManager::PushStates( pSeq->GetRenderStateID() );
+			pSeq->OnFrameRender_Draw();
+		}
+		pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH2 );
+		if( pSeq != NULL )
+		{	
+			CKTDGStateManager::PushStates( pSeq->GetRenderStateID() );
+			pSeq->OnFrameRender_Draw();
+		}
+		pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH3 );
+		if( pSeq != NULL )
+		{	
+			CKTDGStateManager::PushStates( pSeq->GetRenderStateID() );
+			pSeq->OnFrameRender_Draw();
+		}
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP1 );
+		if( pSeq != NULL )
+		{	
+			CKTDGStateManager::PushStates( pSeq->GetRenderStateID() );
+			pSeq->OnFrameRender_Draw();
+		}
+		pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP2 );
+		if( pSeq != NULL )
+		{	
+			CKTDGStateManager::PushStates( pSeq->GetRenderStateID() );
+			pSeq->OnFrameRender_Draw();
+		}
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 		pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Fire );
 		if( pSeq != NULL )
 		{	
@@ -1207,9 +1529,12 @@ void    CX2UnitViewerUI::OnFrameRender_Draw()
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstR = g_pData->GetUIMajorXMeshPlayer()->GetMeshInstance( m_hChungMiniGunR );
 
 			if ( pMeshInstL != NULL && pMeshInstR != NULL )
-			{			
-				pMeshInstL->OnFrameRender_Draw();
-				pMeshInstR->OnFrameRender_Draw();
+			{
+				if ( pMeshInstL->GetShowObject() )
+					pMeshInstL->OnFrameRender_Draw();
+
+				if ( pMeshInstR->GetShowObject() )
+					pMeshInstR->OnFrameRender_Draw();
 			}
 		}
 #endif
@@ -1222,7 +1547,8 @@ void    CX2UnitViewerUI::OnFrameRender_Draw()
 
 			if ( pMeshInst != NULL )
 			{
-				pMeshInst->OnFrameRender_Draw();
+				if ( pMeshInst->GetShowObject() )
+					pMeshInst->OnFrameRender_Draw();
 			}
 		}
 #endif ELSWORD_SHEATH_KNIGHT
@@ -1234,7 +1560,8 @@ void    CX2UnitViewerUI::OnFrameRender_Draw()
 
 			if ( pMeshInst != NULL )
 			{
-				pMeshInst->OnFrameRender_Draw();
+				if ( pMeshInst->GetShowObject() )
+					pMeshInst->OnFrameRender_Draw();
 			}
 		}
 #endif SERV_TRAPPING_RANGER_TEST
@@ -1246,7 +1573,8 @@ void    CX2UnitViewerUI::OnFrameRender_Draw()
 
 			if ( pMeshInst != NULL )
 			{
-				pMeshInst->OnFrameRender_Draw();
+				if ( pMeshInst->GetShowObject() )
+					pMeshInst->OnFrameRender_Draw();
 			}
 		}
 #endif SERV_RENA_NIGHT_WATCHER
@@ -1534,7 +1862,7 @@ void CX2UnitViewerUI::PlayAnim( const WCHAR* pName, CKTDGXSkinAnim::XSKIN_ANIM_P
 		m_pXSkinAnim->Play( playType );
 	}
 
-	if( m_hSeqHandFire != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHandFire != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFire );
 
@@ -1553,8 +1881,8 @@ void CX2UnitViewerUI::PlayAnim( const WCHAR* pName, CKTDGXSkinAnim::XSKIN_ANIM_P
 	}
 
 #ifdef NEW_CHARACTER_EL
-	if( m_hSeqHandFireSPK1 != INVALID_PARTICLE_HANDLE &&
-		m_hSeqHandFireSPK2 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHandFireSPK1 != INVALID_PARTICLE_SEQUENCE_HANDLE &&
+		m_hSeqHandFireSPK2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq1 = 
 			g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSPK1 );
@@ -1671,6 +1999,12 @@ void CX2UnitViewerUI::SetUnit( CX2Unit* pUnit, CX2UnitViewerUI::UNIT_VIEWER_STAT
 	m_eUnitViewerState = eState;
 	bool bIsEquipWeapone = true;
 	const CX2Unit::UnitTemplet *pTemplet = m_pUnit->GetUnitTemplet();
+	if( NULL == pTemplet )
+	{
+		ASSERT(!"UnitTemplet Is NULL!");
+		return;
+	}
+
 	std::vector<wstring> vecMotion;	
 	switch( eState )
 	{
@@ -1800,7 +2134,7 @@ void CX2UnitViewerUI::SetUnit( CX2Unit* pUnit, CX2UnitViewerUI::UNIT_VIEWER_STAT
 #endif
 	}
 
-	if ( m_hSeqHandFire != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqHandFire != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandFire );
 	}
@@ -1927,9 +2261,124 @@ void CX2UnitViewerUI::SetUnit( CX2Unit* pUnit, CX2UnitViewerUI::UNIT_VIEWER_STAT
 		}
 	}
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandFireSBH1 );
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandFireSBH2 );
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandFireSBH3 );
+
+	if( CX2Unit::UC_ELESIS_BLAZING_HEART == m_pUnit->GetClass() )
+	{
+		m_hSeqHandFireSBH1 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"SBH_LobbyWait01", 0,0,0 );
+		if(m_bFixed)
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH1 );
+			if ( pSeq  != NULL )
+			{
+				// DGManager Chain에서 안 그려지게 하기 위함. 직접 Render 해 준다.
+				pSeq->SetShowObject(false);
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+		else
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH1 );
+			if ( pSeq  != NULL )
+			{
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+		m_hSeqHandFireSBH2 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"SBH_LobbyWait02", 0,0,0 );
+		if(m_bFixed)
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH2 );
+			if ( pSeq  != NULL )
+			{
+				// DGManager Chain에서 안 그려지게 하기 위함. 직접 Render 해 준다.
+				pSeq->SetShowObject(false);
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+		else
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH2 );
+			if ( pSeq  != NULL )
+			{
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+		m_hSeqHandFireSBH3 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"SBH_LobbyWait03", 0,0,0 );
+		if(m_bFixed)
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH3 );
+			if ( pSeq  != NULL )
+			{
+				// DGManager Chain에서 안 그려지게 하기 위함. 직접 Render 해 준다.
+				pSeq->SetShowObject(false);
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+		else
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFireSBH3 );
+			if ( pSeq  != NULL )
+			{
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+	}
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandElectricALP1 );
+	g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqHandElectricALP2 );
+
+	if( CX2Unit::UC_ADD_LUNATIC_PSYKER == m_pUnit->GetClass() )
+	{
+		m_hSeqHandElectricALP1 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"ADD_LP_LobbyWait01", 0,0,0 );
+		if(m_bFixed)
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP1 );
+			if ( pSeq  != NULL )
+			{
+				// DGManager Chain에서 안 그려지게 하기 위함. 직접 Render 해 준다.
+				pSeq->SetShowObject(false);
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+		else
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP1 );
+			if ( pSeq  != NULL )
+			{
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+
+		m_hSeqHandElectricALP2 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"ADD_LP_LobbyWait02", 0,0,0 );
+		if(m_bFixed)
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP2 );
+			if ( pSeq  != NULL )
+			{
+				// DGManager Chain에서 안 그려지게 하기 위함. 직접 Render 해 준다.
+				pSeq->SetShowObject(false);
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+		else
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandElectricALP2 );
+			if ( pSeq  != NULL )
+			{
+				pSeq->SetEmitRate( 0.0f, 0.0f );
+			}
+		}
+	}
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-	if( true == bIsEquipWeapone &&
-		m_pUnit->GetClass() == CX2Unit::UC_CHUNG_DEADLY_CHASER )
+	if( true == bIsEquipWeapone && m_pUnit->GetClass() == CX2Unit::UC_CHUNG_DEADLY_CHASER )
 	{
 		if ( NULL != m_pXSkinAnim )
 		{
@@ -1937,9 +2386,9 @@ void CX2UnitViewerUI::SetUnit( CX2Unit* pUnit, CX2UnitViewerUI::UNIT_VIEWER_STAT
 			D3DXVECTOR3 vBonePosR = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_R_Hand" );
 
 			if( m_hChungMiniGunL != INVALID_MESH_INSTANCE_HANDLE )
-				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hChungMiniGunL );
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hChungMiniGunL );
 			if( m_hChungMiniGunR != INVALID_MESH_INSTANCE_HANDLE )
-				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hChungMiniGunR );
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hChungMiniGunR );
 
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstL = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( this, 
 				L"Mesh_UI_CSI_CDC_Start_Mini_Gun_L", vBonePosL, GetMatrix().GetRotate(), GetMatrix().GetRotate() );
@@ -1956,16 +2405,13 @@ void CX2UnitViewerUI::SetUnit( CX2Unit* pUnit, CX2UnitViewerUI::UNIT_VIEWER_STAT
 			{
 				m_hChungMiniGunR = pMeshInstR->GetHandle();
 				pMeshInstR->SetShowObject( false );
-			}
-			
-			
+			}			
 		}
 	}
 #endif
 
 #ifdef ELSWORD_SHEATH_KNIGHT
-	if( true == bIsEquipWeapone &&
-		(m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_SHEATH_KNIGHT 
+	if( true == bIsEquipWeapone && (m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_SHEATH_KNIGHT 
 	#ifdef SERV_ELSWORD_INFINITY_SWORD
 		|| m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_INFINITY_SWORD 
 	#endif //SERV_ELSWORD_INFINITY_SWORD
@@ -1976,9 +2422,10 @@ void CX2UnitViewerUI::SetUnit( CX2Unit* pUnit, CX2UnitViewerUI::UNIT_VIEWER_STAT
 			D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 
 			if( m_hElswordSword != INVALID_MESH_INSTANCE_HANDLE )
-				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hElswordSword );
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hElswordSword );
 
-			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( this, L"Mesh_UI_SheathKnight_SecondSword", vBonePos, GetMatrix().GetRotate(), GetMatrix().GetRotate() );
+			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( this, 
+				L"Mesh_UI_SheathKnight_SecondSword", vBonePos, GetMatrix().GetRotate(), GetMatrix().GetRotate() );
 
 			if( true == g_pData->GetUIMajorXMeshPlayer()->IsLiveInstance( pMeshInst ) )
 			{
@@ -1995,17 +2442,17 @@ void CX2UnitViewerUI::SetUnit( CX2Unit* pUnit, CX2UnitViewerUI::UNIT_VIEWER_STAT
 #endif ELSWORD_SHEATH_KNIGHT
 
 #ifdef	SERV_TRAPPING_RANGER_TEST
-	if( true == bIsEquipWeapone &&
-		m_pUnit->GetClass() == CX2Unit::UC_LIRE_TRAPPING_RANGER )
+	if( true == bIsEquipWeapone && m_pUnit->GetClass() == CX2Unit::UC_LIRE_TRAPPING_RANGER )
 	{
 		if ( m_pXSkinAnim != NULL )
 		{
 			D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
 			if( m_hInstLTrapSwordReady != INVALID_MESH_INSTANCE_HANDLE )
-				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hInstLTrapSwordReady );
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hInstLTrapSwordReady );
 
-			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( this, L"Mesh_RTR_Lire_Sword_Ready", vBonePos, GetMatrix().GetRotate(), GetMatrix().GetRotate() );
+			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( this, 
+				L"Mesh_RTR_Lire_Sword_Ready", vBonePos, GetMatrix().GetRotate(), GetMatrix().GetRotate() );
 
 			if ( g_pData->GetUIMajorXMeshPlayer()->IsLiveInstance( pMeshInst ) )
 			{
@@ -2022,17 +2469,17 @@ void CX2UnitViewerUI::SetUnit( CX2Unit* pUnit, CX2UnitViewerUI::UNIT_VIEWER_STAT
 #endif	SERV_TRAPPING_RANGER_TEST
 
 #ifdef	SERV_RENA_NIGHT_WATCHER
-	if( true == bIsEquipWeapone &&
-		m_pUnit->GetClass() == CX2Unit::UC_LIRE_NIGHT_WATCHER )
+	if( true == bIsEquipWeapone && m_pUnit->GetClass() == CX2Unit::UC_LIRE_NIGHT_WATCHER )
 	{
 		if ( m_pXSkinAnim != NULL )
 		{
 			D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 
 			if( m_hInstRNWTrapSwordReady != INVALID_MESH_INSTANCE_HANDLE )
-				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hInstRNWTrapSwordReady );
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hInstRNWTrapSwordReady );
 
-			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( this, L"Mesh_RNW_Lire_Sword_Ready", vBonePos, GetMatrix().GetRotate(), GetMatrix().GetRotate() );
+			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( this, 
+				L"Mesh_RNW_Lire_Sword_Ready", vBonePos, GetMatrix().GetRotate(), GetMatrix().GetRotate() );
 
 			if ( g_pData->GetUIMajorXMeshPlayer()->IsLiveInstance( pMeshInst ) )
 			{
@@ -2220,20 +2667,19 @@ void CX2UnitViewerUI::UpdateEqip( bool bEconomical /* = false */ )
 #endif // TAKE_OFF_ALL_ITEM
 
 		{
-			CX2Inventory* pInventory = m_pUnit->GetInventory();
+			const CX2Inventory& kInventory = m_pUnit->GetInventory();
 
-			for ( int i = 0; i < pInventory->GetItemMaxNum(CX2Inventory::ST_E_EQUIP); i++ )
+			for ( int i = 0; i < kInventory.GetItemMaxNum(CX2Inventory::ST_E_EQUIP); i++ )
 			{
-				CX2Item* pItem = pInventory->GetItem( CX2Inventory::ST_E_EQUIP, i );
+				CX2Item* pItem = kInventory.GetItem( CX2Inventory::ST_E_EQUIP, i );
 
 				//{{ kimhc // 실시간 엘소드 중 실시간 내구도 감소
 #ifdef	REAL_TIME_ELSWORD
-				if ( pItem == NULL ||
-					pItem->GetItemData() == NULL )
+				if ( pItem == NULL )
 					continue;
 
-				if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && 
-					pItem->GetItemData()->m_Endurance <= 0 )
+				if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && 
+					pItem->GetItemData().m_Endurance <= 0 )
 					continue;
 #else	REAL_TIME_ELSWORD
 
@@ -2285,19 +2731,18 @@ void CX2UnitViewerUI::UpdateEqip( bool bEconomical /* = false */ )
 #endif // TAKE_OFF_ALL_ITEM
 
 		{
-			CX2Inventory* pInventory = m_pUnit->GetInventory();
-			for ( int i = 0; i < pInventory->GetItemMaxNum(CX2Inventory::ST_E_EQUIP); i++ )
+			const CX2Inventory& kInventory = m_pUnit->GetInventory();
+			for ( int i = 0; i < kInventory.GetItemMaxNum(CX2Inventory::ST_E_EQUIP); i++ )
 			{
-				CX2Item* pItem = pInventory->GetItem( CX2Inventory::ST_E_EQUIP, i );
+				CX2Item* pItem = kInventory.GetItem( CX2Inventory::ST_E_EQUIP, i );
 
 				//{{ kimhc // 실시간 엘소드 중 실시간 내구도 감소
 #ifdef	REAL_TIME_ELSWORD
-				if ( pItem == NULL ||
-					pItem->GetItemData() == NULL )
+				if ( pItem == NULL )
 					continue;
 
-				if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && 
-					pItem->GetItemData()->m_Endurance <= 0 )
+				if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && 
+					pItem->GetItemData().m_Endurance <= 0 )
 					continue;
 #else	REAL_TIME_ELSWORD
 
@@ -2497,60 +2942,54 @@ void CX2UnitViewerUI::AddEquipByTID( int itemTID, bool bBasicItem  )
     if ( !( ePos >= CX2Unit::EQIP_POSITION( 0 ) && ePos < CX2Unit::EP_END ) )
         return;
 
-	
 
+    {
+	    CX2Item::ItemData kItemData;
 
-	CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-	ASSERT( pItemData != NULL );
-	if ( pItemData == NULL )
-		return;
+	    kItemData.m_ItemID = (int) itemTID;
 
-	pItemData->m_ItemID = (int) itemTID;
+	    // ViewEqipList 가 UID를 키로 하는 ViewEquipMap 으로 변경되어서 동일한 UID 가 중복 등록될 수 없게 되었다.
+	    // 따라서 - 값으로 unique 하게 결정한다.
+	    // by robobeg, 2008-10-18
 
-	// ViewEqipList 가 UID를 키로 하는 ViewEquipMap 으로 변경되어서 동일한 UID 가 중복 등록될 수 없게 되었다.
-	// 따라서 - 값으로 unique 하게 결정한다.
-	// by robobeg, 2008-10-18
+	    if ( m_ViewEquipMap.empty() )
+		    kItemData.m_ItemUID = -1;
+	    else
+		    kItemData.m_ItemUID = min( m_ViewEquipMap.begin()->first, -1 ) - 1;
 
-	if ( m_ViewEquipMap.empty() )
-		pItemData->m_ItemUID = -1;
-	else
-		pItemData->m_ItemUID = min( m_ViewEquipMap.begin()->first, -1 ) - 1;
+	    kItemData.m_Endurance = 1;
 
-	pItemData->m_Endurance = 1;
+	    // AddEquipByTID 를 ReplaceEmptyToBasic 에서도 사용할 수 있도록 수정
+	    if ( !bBasicItem )
+	    {
+		    kItemData.m_PeriodType = CX2Item::PT_QUANTITY;
+		    kItemData.m_Quantity = 1;
+	    }//if
 
-	// AddEquipByTID 를 ReplaceEmptyToBasic 에서도 사용할 수 있도록 수정
-	if ( !bBasicItem )
-	{
-		pItemData->m_PeriodType = CX2Item::PT_QUANTITY;
-		pItemData->m_Quantity = 1;
-	}//if
+	    pItem = new CX2Item( kItemData, m_pUnit );
+	    ASSERT( pItem != NULL );
+	    if ( pItem == NULL )
+	    {
+		    return;
+	    }//if
+    }
 
-	pItem = new CX2Item( pItemData, m_pUnit );
-	ASSERT( pItem != NULL );
-	if ( pItem == NULL )
-	{
-		SAFE_DELETE( pItemData );
-		return;
-	}//if
-
-
-
-	int enchantLevel = pItem->GetItemData()->m_EnchantLevel;
+	int enchantLevel = pItem->GetItemData().m_EnchantLevel;
 
 	/*
 	if( m_pUnit != NULL && pItem != NULL && pItem->GetItemTemplet() != NULL )
 	{
 		if( pItem->GetItemTemplet()->GetFashion() == true )
 		{
-			CX2Item* pTempItem = m_pUnit->GetInventory()->GetEquippingItemByEquipPos( pItem->GetItemTemplet()->GetEqipPosition(), false );
+			CX2Item* pTempItem = m_pUnit->GetInventory().GetEquippingItemByEquipPos( pItem->GetItemTemplet()->GetEqipPosition(), false );
 			if( pTempItem != NULL )
 			{
-				enchantLevel = pTempItem->GetItemData()->m_EnchantLevel;
+				enchantLevel = pTempItem->GetItemData().m_EnchantLevel;
 			}				 
 		}
 		else
 		{
-			enchantLevel = pItem->GetItemData()->m_EnchantLevel;
+			enchantLevel = pItem->GetItemData().m_EnchantLevel;
 		}
 	}
 	*/
@@ -2689,7 +3128,7 @@ void CX2UnitViewerUI::AddEqip( UidType itemUID )
     if ( m_ViewEquipMap.find( itemUID ) != m_ViewEquipMap.end() )
         return;
 
-	CX2Item* pItem = m_pUnit->GetInventory()->GetItem( itemUID );
+	CX2Item* pItem = m_pUnit->GetInventory().GetItem( itemUID );
 	if( pItem == NULL )
 		return;
 
@@ -2713,21 +3152,21 @@ void CX2UnitViewerUI::AddEqip( UidType itemUID )
     if ( !( ePos >= CX2Unit::EQIP_POSITION( 0 ) && ePos < CX2Unit::EP_END ) )
         return;
 	
-	int enchantLevel = pItem->GetItemData()->m_EnchantLevel;
+	int enchantLevel = pItem->GetItemData().m_EnchantLevel;
 	/*
 	if( m_pUnit != NULL && pItem != NULL && pItem->GetItemTemplet() != NULL )
 	{
 		if( pItem->GetItemTemplet()->GetFashion() == true )
 		{
-			CX2Item* pTempItem = m_pUnit->GetInventory()->GetEquippingItemByEquipPos( pItem->GetItemTemplet()->Get_EqipPosition(), false );
+			CX2Item* pTempItem = m_pUnit->GetInventory().GetEquippingItemByEquipPos( pItem->GetItemTemplet()->Get_EqipPosition(), false );
 			if( pTempItem != NULL )
 			{
-				enchantLevel = pTempItem->GetItemData()->m_EnchantLevel;
+				enchantLevel = pTempItem->GetItemData().m_EnchantLevel;
 			}				 
 		}
 		else
 		{
-			enchantLevel = pItem->GetItemData()->m_EnchantLevel;
+			enchantLevel = pItem->GetItemData().m_EnchantLevel;
 		}
 	}
 	*/
@@ -2910,7 +3349,6 @@ void CX2UnitViewerUI::UpdateEquipSlotVisibility()
 
 	InitEquipVisibility(); // fix!! 함수 이름 바꾸기
 
-
 #ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
 	bool bOnePieceAvatarWithNotRenderHairItem = false;
 	BOOST_TEST_FOREACH( const ViewEquipMap::value_type&, value2, m_ViewEquipMap )
@@ -2959,9 +3397,9 @@ void CX2UnitViewerUI::UpdateEquipSlotVisibility()
 					break;
 				}
 			}
-
 		}
 #endif SERV_NEW_ONE_PIECE_AVATAR_SLOT
+
 		if ( IsOnePieceAvatar( value.second->GetItemID() ) == true && NULL != value.second->GetItem() )
 		{
 			const CX2Item::ItemTemplet* pItemTemplet = value.second->GetItem()->GetItemTemplet();
@@ -3003,6 +3441,31 @@ void CX2UnitViewerUI::UpdateEquipSlotVisibility()
 				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAND ] = false;
 				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_FOOT ] = false;
 				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE1 ] = false;
+#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_BODY ] = false;
+#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
+				bOnePieceAvatarCheck = true;
+				break;
+			}
+		}
+		if ( IsOnePieceAvatarNotRenderFace1Face2( value.second->GetItemID() ) == true )
+		{
+			const CX2Item::ItemTemplet* pItemTemplet = value.second->GetItem()->GetItemTemplet();
+			if ( pItemTemplet == NULL )
+			{
+				ASSERT( L"Wrong Path!" );
+				return;
+			}
+
+			if ( pItemTemplet->GetFashion() == true ||	// 패션이거나
+				m_ViewEquipFashion[pItemTemplet->GetEqipPosition()] == 0 )	// 패션이 아닌데 패션 자리에 아무것도 없으면
+			{
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAIR ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_LEG ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAND ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_FOOT ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE1 ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE2 ] = false;
 #ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
 				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_BODY ] = false;
 #endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
@@ -3069,7 +3532,55 @@ void CX2UnitViewerUI::UpdateEquipSlotVisibility()
 				break;
 			}
 		}
+		if ( IsOnePieceAvatarRenderingHairAndFace1( value.second->GetItemID() ) == true && NULL != value.second->GetItem() )
+		{
+			const CX2Item::ItemTemplet* pItemTemplet = value.second->GetItem()->GetItemTemplet();
+			if ( pItemTemplet == NULL )
+			{
+				ASSERT( L"Wrong Path!" );
+				return;
+			}
 
+			if ( pItemTemplet->GetFashion() == true ||	// 패션이거나
+				m_ViewEquipFashion[pItemTemplet->GetEqipPosition()] == 0 )	// 패션이 아닌데 패션 자리에 아무것도 없으면
+			{
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_LEG ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAND ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_FOOT ] = false;
+				break;
+			}
+
+		}
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		/// 한벌 아바타 외에 모든 악세서리를 꺼야 하는 아이템
+		if ( IsOnePieceAvatarOnlyRenderFace1Face2Face3Equip( value.second->GetItemID() ) == true )
+		{
+			const CX2Item::ItemTemplet* pItemTemplet = value.second->GetItem()->GetItemTemplet();
+			if ( pItemTemplet == NULL )
+			{
+				ASSERT( L"Wrong Path!" );
+				return;
+			}
+
+			if ( pItemTemplet->GetFashion() == true ||	// 패션이거나
+				m_ViewEquipFashion[pItemTemplet->GetEqipPosition()] == 0 )	// 패션이 아닌데 패션 자리에 아무것도 없으면
+			{
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAIR ]	= false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_LEG ]	= false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAND ]	= false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_FOOT ]	= false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_BODY ]		= false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_LEG ]			= false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_ARM ]			= false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_NECKLESS ]	= false;
+				bOnePieceAvatarCheck = true;
+
+				break;
+			}
+		}
+
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
 		// 2012.12.02 darkstarbt_조성욱 // 한벌 아바타 인데 상의랑 하의가 비어 있어서 기존 입고 있는 아바타 들이 나와야 하는 경우
 		if ( IsOnePieceAvatarWithRenderBodyItem( value.second->GetItemID() ) == true )
 		{
@@ -3094,10 +3605,10 @@ void CX2UnitViewerUI::UpdateEquipSlotVisibility()
 				break;
 			}
 		}
+#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT		
 	}
 #endif ONE_PIECE_AVATAR
 
-#ifdef NOT_RENDERING_NASOD_HAND
 	BOOST_TEST_FOREACH( const ViewEquipMap::value_type&, value, m_ViewEquipMap )
 	{
 		if ( IsNoRenderNasodHand( value.second->GetItemID() ) == true && NULL != value.second->GetItem() )
@@ -3117,7 +3628,6 @@ void CX2UnitViewerUI::UpdateEquipSlotVisibility()
 			}
 		}
 	} 
-#endif NOT_RENDERING_NASOD_HAND
 
 #ifdef FACE_OFF_MONSTER_HEAD_TEST
 	BOOST_TEST_FOREACH( const ViewEquipMap::value_type&, value, m_ViewEquipMap )
@@ -3168,18 +3678,39 @@ void CX2UnitViewerUI::UpdateEquipSlotVisibility()
 				break;
 			}
 		}
+		else if ( IsNoRenderHairFace2Equip( value.second->GetItemID() ) == true && NULL != value.second->GetItem() )
+		{
+			const CX2Item::ItemTemplet* pItemTemplet = value.second->GetItem()->GetItemTemplet();
+			if ( pItemTemplet == NULL )
+			{
+				ASSERT( L"Wrong Path!" );
+				return;
+			}
+
+			if ( pItemTemplet->GetFashion() == true ||	// 패션이거나
+				m_ViewEquipFashion[pItemTemplet->GetEqipPosition()] == 0 )	// 패션이 아닌데 패션 자리에 아무것도 없으면
+				//m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAIR ] = false;
+			{
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAIR ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE2 ] = false;		
+				break;
+			}
+		} 
 		else if ( IsNoRenderHair( value.second->GetItemID() ) == true )
 		{
 #ifdef ONE_PIECE_AVATAR
 			if(bOnePieceAvatarCheck == true)
 			{
+#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
 				if(bOnePieceAvatarWithNotRenderHairItem)
 				{
 
 				}
 				else
+#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
 				{
 					m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE1 ] = false;
+					m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE2 ] = false;
 					break;
 				}
 			}
@@ -3226,6 +3757,35 @@ void CX2UnitViewerUI::UpdateEquipSlotVisibility()
 				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAIR ] = false;
 				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_FACE ] = false;
 				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE2 ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE3 ] = false;
+
+				break;
+			}
+		}
+		else if ( IsNoRenderHairFaceFace1Face3Equip( value.second->GetItemID() ) == true )
+		{
+#ifdef ONE_PIECE_AVATAR
+			if(bOnePieceAvatarCheck == true)
+			{
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE2 ] = false;
+				break;
+			}
+#endif ONE_PIECE_AVATAR
+
+			const CX2Item::ItemTemplet* pItemTemplet = value.second->GetItem()->GetItemTemplet();
+			if ( pItemTemplet == NULL )
+			{
+				ASSERT( L"Wrong Path!" );
+				return;
+			}
+
+			if ( pItemTemplet->GetFashion() == true ||	// 패션이거나
+				m_ViewEquipFashion[pItemTemplet->GetEqipPosition()] == 0 )	// 패션이 아닌데 패션 자리에 아무것도 없으면
+				//m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAIR ] = false;
+			{
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_HAIR ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_DEFENCE_FACE ] = false;
+				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE1 ] = false;
 				m_bViewEquipVisible[ (int) CX2Unit::EP_AC_FACE3 ] = false;
 
 				break;
@@ -3306,14 +3866,13 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 	m_eOldMotionType = motionType;	
 #endif
 	// note!! 전직 추가되면 수정
-	if ( m_pUnit != NULL &&
-		 m_pUnit->GetUnitData() != NULL)
+	if ( m_pUnit != NULL )
 	{
 		switch(motionType)
 		{
 		case CX2UnitViewerUI::UVUMT_WAIT:
 			{
-				switch( m_pUnit->GetUnitData()->m_UnitClass ) 
+				switch( m_pUnit->GetUnitData().m_UnitClass ) 
 				{
 				case CX2Unit::UC_ELSWORD_KNIGHT:
 					PlayAnim( L"Knight_LobbyWait", CKTDGXSkinAnim::XAP_LOOP, true );
@@ -3493,6 +4052,29 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 					PlayAnim( L"AYR_LobbyWait", CKTDGXSkinAnim::XAP_LOOP, true );
 					break;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+				case CX2Unit::UC_ELESIS_GRAND_MASTER:
+					PlayAnim( L"SGM_LobbyWait", CKTDGXSkinAnim::XAP_LOOP, true );
+					break;
+				case CX2Unit::UC_ELESIS_BLAZING_HEART:
+					PlayAnim( L"SBH_LobbyWait", CKTDGXSkinAnim::XAP_LOOP, true );
+
+					break;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+				case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+					PlayAnim( L"APT_LobbyWait", CKTDGXSkinAnim::XAP_LOOP, true );
+					break;
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+				case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+					PlayAnim( L"ALP_LobbyWait", CKTDGXSkinAnim::XAP_LOOP, true );
+					break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 				default:
 					{
 						PlayAnim( L"LobbyWait", CKTDGXSkinAnim::XAP_LOOP, true );
@@ -3502,7 +4084,7 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 
 		case CX2UnitViewerUI::UVUMT_WAIT1:
 			{
-				switch( m_pUnit->GetUnitData()->m_UnitClass ) 
+				switch( m_pUnit->GetUnitData().m_UnitClass ) 
 				{
 				case CX2Unit::UC_ELSWORD_KNIGHT:
 					{
@@ -3668,6 +4250,27 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 					PlayAnim( L"AYR_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
 					break;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+				case CX2Unit::UC_ELESIS_GRAND_MASTER:
+					PlayAnim( L"SGM_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+				case CX2Unit::UC_ELESIS_BLAZING_HEART:
+					PlayAnim( L"SBH_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+				case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+					PlayAnim( L"APT_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+				case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+					PlayAnim( L"ALP_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 				default:
 					{
 						PlayAnim( L"LobbyWait1", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
@@ -3677,7 +4280,7 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 
 		case CX2UnitViewerUI::UVVMT_WAIT2:
 			{
-				switch( m_pUnit->GetUnitData()->m_UnitClass ) 
+				switch( m_pUnit->GetUnitData().m_UnitClass ) 
 				{
 				case CX2Unit::UC_ELSWORD_KNIGHT:
 					{
@@ -3844,6 +4447,27 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 					PlayAnim( L"AYR_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
 					break;
 #endif //SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+				case CX2Unit::UC_ELESIS_GRAND_MASTER:
+					PlayAnim( L"SGM_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+				case CX2Unit::UC_ELESIS_BLAZING_HEART:
+					PlayAnim( L"SBH_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+				case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+					PlayAnim( L"APT_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+				case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+					PlayAnim( L"ALP_LobbyWait", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 				default:
 					{
 						PlayAnim( L"LobbyWait2", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
@@ -3852,7 +4476,7 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 			} break;
 		case CX2UnitViewerUI::UVVMT_DOWN_LANDING:
 			{
-				switch( m_pUnit->GetUnitData()->m_UnitClass ) 
+				switch( m_pUnit->GetUnitData().m_UnitClass ) 
 				{
 				case CX2Unit::UC_ELSWORD_KNIGHT:
 					{
@@ -4045,6 +4669,28 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 					PlayAnim( L"AYR_LobbyDownLanding", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
 					break;
 #endif //SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+				case CX2Unit::UC_ELESIS_GRAND_MASTER:
+					PlayAnim( L"SGM_LobbyDownLanding", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+				case CX2Unit::UC_ELESIS_BLAZING_HEART:
+					PlayAnim( L"SBH_LobbyDownLanding", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+				case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+					PlayAnim( L"APT_LobbyDownLanding", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+				case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+					PlayAnim( L"ALP_LobbyDownLanding", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 				default:
 					{
 						PlayAnim( L"LobbyDownLanding", CKTDGXSkinAnim::XAP_ONE_WAIT );
@@ -4056,7 +4702,7 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 
 		case CX2UnitViewerUI::UVUMT_READY:
 			{
-				switch( m_pUnit->GetUnitData()->m_UnitClass ) 
+				switch( m_pUnit->GetUnitData().m_UnitClass ) 
 				{
 				case CX2Unit::UC_ELSWORD_KNIGHT:
 					{
@@ -4249,6 +4895,29 @@ void CX2UnitViewerUI::PlayByMotionType( CX2UnitViewerUI::UNIT_VIEWER_UI_MOTION_T
 					PlayAnim( L"AYR_LobbyReadyAtcion", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
 					break;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+				case CX2Unit::UC_ELESIS_GRAND_MASTER:
+					PlayAnim( L"SGM_LobbyReadyAction", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break; 
+				case CX2Unit::UC_ELESIS_BLAZING_HEART:
+					PlayAnim( L"SBH_LobbyReadyAction", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+				case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+					PlayAnim( L"APT_LobbyReadyAction", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+				case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+					PlayAnim( L"ALP_LobbyReadyAction", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
+					break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 				default:
 					{
 						PlayAnim( L"LobbyReadyAction", CKTDGXSkinAnim::XAP_ONE_WAIT, true );
@@ -4290,7 +4959,7 @@ int CX2UnitViewerUI::GetEnchantExtraDamageType()
 
 
 
-	CX2Item* pItem = m_pUnit->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+	CX2Item* pItem = m_pUnit->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 	if ( pItem != NULL )
 	{
 
@@ -4298,8 +4967,7 @@ int CX2UnitViewerUI::GetEnchantExtraDamageType()
 #ifdef REAL_TIME_ELSWORD
 		if ( g_pData->GetMyUser()->GetSelectUnit() != NULL &&
 			g_pData->GetMyUser()->GetSelectUnit()->GetUID() == m_pUnit->GetUID() &&
-			pItem->GetItemData() != NULL && 
-			pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData()->m_Endurance <= 0  )
+			pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData().m_Endurance <= 0  )
 		{
 			return finalExtraDamageType;
 		}
@@ -4307,7 +4975,7 @@ int CX2UnitViewerUI::GetEnchantExtraDamageType()
 		//}} kimhc // 실시간 엘소드 중 실시간 장비교체, 실시간 내구도 감소
 		
 		
-		finalExtraDamageType = g_pData->GetEnchantItem()->GetExtraDamageType( pItem->GetItemData()->m_EnchantedAttribute );
+		finalExtraDamageType = g_pData->GetEnchantItem()->GetExtraDamageType( pItem->GetItemData().m_EnchantedAttribute );
 	}
 
 	return finalExtraDamageType;
@@ -4321,29 +4989,29 @@ void CX2UnitViewerUI::ReplaceEmptyToBasic( CX2Unit::EQIP_POSITION eqipPos, int i
 	//if( m_ViewEqipPos[eqipPos] == false
 	//	&& itemID != 0 )
 	//{
-	//	CX2Item::ItemData* pItemData	= new CX2Item::ItemData();
-	//	pItemData->m_ItemID				= itemID;
-	//	//pItemData->m_OwnerUnitUID		= m_pUnit->GetUID();
-	//	//pItemData->m_OwnerUserUID		= m_pUnit->GetOwnerUserUID();
-	//	pItemData->m_Endurance			= 1;
+	//	CX2Item::ItemData kItemData;
+	//	kItemData.m_ItemID				= itemID;
+	//	//kItemData.m_OwnerUnitUID		= m_pUnit->GetUID();
+	//	//kItemData.m_OwnerUserUID		= m_pUnit->GetOwnerUserUID();
+	//	kItemData.m_Endurance			= 1;
 
-	//	CX2Item* pX2Item				= new CX2Item( pItemData, m_pUnit );
+	//	CX2Item* pX2Item				= new CX2Item( kItemData, m_pUnit );
 
-	//	int enchantLevel = pX2Item->GetItemData()->m_EnchantLevel;
+	//	int enchantLevel = pX2Item->GetItemData().m_EnchantLevel;
 	//	/*
 	//	if( m_pUnit != NULL && pX2Item != NULL && pX2Item->GetItemTemplet() != NULL )
 	//	{
 	//		if( pX2Item->GetItemTemplet()->GetFashion() == true )
 	//		{
-	//			CX2Item* pTempItem = m_pUnit->GetInventory()->GetEquippingItemByEquipPos( pX2Item->GetItemTemplet()->GetEqipPosition(), false );
+	//			CX2Item* pTempItem = m_pUnit->GetInventory().GetEquippingItemByEquipPos( pX2Item->GetItemTemplet()->GetEqipPosition(), false );
 	//			if( pTempItem != NULL )
 	//			{
-	//				enchantLevel = pTempItem->GetItemData()->m_EnchantLevel;
+	//				enchantLevel = pTempItem->GetItemData().m_EnchantLevel;
 	//			}				 
 	//		}
 	//		else
 	//		{
-	//			enchantLevel = pX2Item->GetItemData()->m_EnchantLevel;
+	//			enchantLevel = pX2Item->GetItemData().m_EnchantLevel;
 	//		}
 	//	}
 	//	*/
@@ -4540,7 +5208,7 @@ void CX2UnitViewerUI::CreateEnchantedWeaponParticleAtWeapon( const WCHAR* pName1
 {
 	if( NULL != pName1 )
 	{
-		if ( m_hSeqWeapon_Fire == INVALID_PARTICLE_HANDLE )
+		if ( m_hSeqWeapon_Fire == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqWeapon_Fire = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  pName1, 0,0,0 );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Fire );
@@ -4554,7 +5222,7 @@ void CX2UnitViewerUI::CreateEnchantedWeaponParticleAtWeapon( const WCHAR* pName1
 
 	if( NULL != pName2 )
 	{
-		if ( m_hSeqWeapon_Fire2 == INVALID_PARTICLE_HANDLE )
+		if ( m_hSeqWeapon_Fire2 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqWeapon_Fire2 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  pName2, 0,0,0 );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Fire2 );
@@ -4567,7 +5235,7 @@ void CX2UnitViewerUI::CreateEnchantedWeaponParticleAtWeapon( const WCHAR* pName1
 
 	if( NULL != pName3 )
 	{
-		if ( m_hSeqWeapon_Fire3 == INVALID_PARTICLE_HANDLE )
+		if ( m_hSeqWeapon_Fire3 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqWeapon_Fire3 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  pName3, 0,0,0 );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Fire3 );
@@ -4586,7 +5254,7 @@ void CX2UnitViewerUI::CreateEnchantedWeaponParticleAtHand( const WCHAR* pName1, 
 {
 	if( NULL != pName1 )
 	{
-		if ( m_hSeqWeapon_Wind == INVALID_PARTICLE_HANDLE )
+		if ( m_hSeqWeapon_Wind == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqWeapon_Wind = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  pName1, 0,0,0 );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Wind );
@@ -4600,7 +5268,7 @@ void CX2UnitViewerUI::CreateEnchantedWeaponParticleAtHand( const WCHAR* pName1, 
 
 	if( NULL != pName2 )
 	{
-		if ( m_hSeqWeapon_Wind2 == INVALID_PARTICLE_HANDLE )
+		if ( m_hSeqWeapon_Wind2 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqWeapon_Wind2 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  pName2, 0,0,0 );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Wind2 );
@@ -4613,7 +5281,7 @@ void CX2UnitViewerUI::CreateEnchantedWeaponParticleAtHand( const WCHAR* pName1, 
 
 	if( NULL != pName3 )
 	{
-		if ( m_hSeqWeapon_Wind3 == INVALID_PARTICLE_HANDLE )
+		if ( m_hSeqWeapon_Wind3 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqWeapon_Wind3 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  pName3, 0,0,0 );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Wind3 );
@@ -4627,7 +5295,7 @@ void CX2UnitViewerUI::CreateEnchantedWeaponParticleAtHand( const WCHAR* pName1, 
 
 	if( NULL != pName4 )
 	{
-		if ( m_hSeqWeapon_Wind4 == INVALID_PARTICLE_HANDLE )
+		if ( m_hSeqWeapon_Wind4 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqWeapon_Wind4 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  pName4, 0,0,0 );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Wind4 );
@@ -4768,7 +5436,7 @@ void CX2UnitViewerUI::ProcessEnchantedWeaponEffectAtHand( CX2Unit::UNIT_TYPE uni
 	KTDXPROFILE();
 
 
-	if( INVALID_PARTICLE_HANDLE == m_hSeqWeapon_Wind )	// 이 파티클이 없으면 손에 붙는 파티클은 없다고 보면 됨
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqWeapon_Wind )	// 이 파티클이 없으면 손에 붙는 파티클은 없다고 보면 됨
 		return;
 
 	if( m_pXSkinAnim == NULL )
@@ -4814,7 +5482,6 @@ void CX2UnitViewerUI::ProcessEnchantedWeaponEffectAtHand( CX2Unit::UNIT_TYPE uni
 			aEmitRate[3] = 25.f;
 		} break;
 
-#ifdef ARA_CHARACTER_BASE
 	case CX2Unit::UT_ARA:
 		{
 			vHandPos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy3_Weapon" );
@@ -4823,7 +5490,17 @@ void CX2UnitViewerUI::ProcessEnchantedWeaponEffectAtHand( CX2Unit::UNIT_TYPE uni
 			aEmitRate[2] = 60.f;
 			aEmitRate[3] = 25.f;
 		} break;
-#endif
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UT_ADD:
+		{
+			vHandPos = m_pXSkinAnim->GetCloneFramePosition( L"Weapon02" );
+			aEmitRate[0] = 15.f;
+			aEmitRate[1] = 30.f;
+			aEmitRate[2] = 60.f;
+			aEmitRate[3] = 25.f;
+		} break;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 
 
@@ -4834,8 +5511,9 @@ void CX2UnitViewerUI::ProcessEnchantedWeaponEffectAtHand( CX2Unit::UNIT_TYPE uni
 
 #ifdef RIDING_SYSTEM
 	#ifdef FIX_UPGRADE_WEAPON_PARTICLE
-		if ( true == GetShowObject() &&	
-			 true == CanNotShowEnchantedWeaponEffectToRiding() )
+		if ( (true == GetShowObject() &&	
+			 true == CanNotShowEnchantedWeaponEffectToRiding() )||
+			 UVS_CHARINFO == m_eUnitViewerState )
 	#else
 		/// 탈것을 타고 있으면, 무기 인첸트 효과 모두 꺼주자.
 		if ( true == GetShowObject() &&	true == CanNotShowEnchantedWeaponEffectToRiding() || UVS_FIELD != m_eUnitViewerState )
@@ -4904,7 +5582,7 @@ void CX2UnitViewerUI::ProcessEnchantedWeaponEffectAtHand( CX2Unit::UNIT_TYPE uni
 
 void CX2UnitViewerUI::ProcessEnchantWeaponEffectForEve()
 {
-	if( INVALID_PARTICLE_HANDLE == m_hSeqWeapon_Fire )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqWeapon_Fire )
 		return;
 
 	if( m_pXSkinAnim == NULL )
@@ -4915,8 +5593,9 @@ void CX2UnitViewerUI::ProcessEnchantWeaponEffectForEve()
 	{
 #ifdef RIDING_SYSTEM
 	#ifdef FIX_UPGRADE_WEAPON_PARTICLE
-			if ( true == GetShowObject() &&	
-				 true == CanNotShowEnchantedWeaponEffectToRiding() )
+			if ( (true == GetShowObject() &&	
+				 true == CanNotShowEnchantedWeaponEffectToRiding()) ||
+				 UVS_CHARINFO == m_eUnitViewerState )
 	#else
 			/// 탈것을 타고 있으면, 무기 인첸트 효과 모두 꺼주자.
 			if ( true == GetShowObject() &&	true == CanNotShowEnchantedWeaponEffectToRiding() || UVS_FIELD != m_eUnitViewerState )
@@ -4940,7 +5619,7 @@ void CX2UnitViewerUI::ProcessEnchantWeaponEffectForEve()
 #ifdef ARA_CHARACTER_BASE
 void CX2UnitViewerUI::ProcessEnchantWeaponEffectForAra()
 {
-	if( INVALID_PARTICLE_HANDLE == m_hSeqWeapon_Fire )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqWeapon_Fire )
 		return;
 
 	if( m_pXSkinAnim == NULL )
@@ -4951,8 +5630,9 @@ void CX2UnitViewerUI::ProcessEnchantWeaponEffectForAra()
 	{
 #ifdef RIDING_SYSTEM
 	#ifdef FIX_UPGRADE_WEAPON_PARTICLE
-			if ( true == GetShowObject() && 
-				 true == CanNotShowEnchantedWeaponEffectToRiding() )
+			if ( (true == GetShowObject() && 
+				 true == CanNotShowEnchantedWeaponEffectToRiding())||
+				 UVS_CHARINFO == m_eUnitViewerState )
 	#else
 			/// 탈것을 타고 있으면, 무기 인첸트 효과 모두 꺼주자.
 			if ( true == GetShowObject() && true == CanNotShowEnchantedWeaponEffectToRiding() || UVS_FIELD != m_eUnitViewerState )
@@ -4977,12 +5657,52 @@ void CX2UnitViewerUI::ProcessEnchantWeaponEffectForAra()
 #endif
 
 
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+void CX2UnitViewerUI::ProcessEnchantWeaponEffectForAdd()
+{
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqWeapon_Fire )
+		return;
+
+	if( m_pXSkinAnim == NULL )
+		return;
+
+	CKTDGParticleSystem::CParticleEventSequence* pSeqWeaponFire1 = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Fire );
+	if ( pSeqWeaponFire1 != NULL )
+	{
+#ifdef RIDING_SYSTEM
+#ifdef FIX_UPGRADE_WEAPON_PARTICLE
+		if ( (true == GetShowObject() && 
+			true == CanNotShowEnchantedWeaponEffectToRiding())||
+			UVS_CHARINFO == m_eUnitViewerState )
+#else
+		/// 탈것을 타고 있으면, 무기 인첸트 효과 모두 꺼주자.
+		if ( true == GetShowObject() && true == CanNotShowEnchantedWeaponEffectToRiding() || UVS_FIELD != m_eUnitViewerState )
+#endif // FIX_UPGRADE_WEAPON_PARTICLE
+#else //RIDING_SYSTEM
+		if( GetShowObject() == true )
+#endif //RIDING_SYSTEM
+		{
+			D3DXVECTOR3 weaponPos = m_pXSkinAnim->GetCloneFramePosition( L"Weapon05" );
+
+			pSeqWeaponFire1->SetPosition( weaponPos );
+
+			pSeqWeaponFire1->SetEmitRate( 10, 10 );
+		}
+		else
+		{
+			pSeqWeaponFire1->SetEmitRate( 0, 0 );
+		}
+	}
+}
+#endif //SERV_9TH_NEW_CHARACTER
+
+
 void CX2UnitViewerUI::ProcessEnchantWeaponEffectForSword()
 {
 	KTDXPROFILE();
 
 
-	if( INVALID_PARTICLE_HANDLE == m_hSeqWeapon_Fire )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqWeapon_Fire )
 		return;
 
 	if( NULL == m_pFrame_TRACE_START[0] || 
@@ -5008,8 +5728,9 @@ void CX2UnitViewerUI::ProcessEnchantWeaponEffectForSword()
 	{
 #ifdef RIDING_SYSTEM
 	#ifdef FIX_UPGRADE_WEAPON_PARTICLE
-			if ( true == GetShowObject() &&	
-				 true == CanNotShowEnchantedWeaponEffectToRiding() )
+			if ( (true == GetShowObject() &&	
+				 true == CanNotShowEnchantedWeaponEffectToRiding() ) ||
+				 UVS_CHARINFO == m_eUnitViewerState )
 	#else
 			/// 탈것을 타고 있으면, 무기 인첸트 효과 모두 꺼주자.
 			if ( true == GetShowObject() &&	true == CanNotShowEnchantedWeaponEffectToRiding() || UVS_FIELD != m_eUnitViewerState )
@@ -5050,7 +5771,7 @@ void CX2UnitViewerUI::ProcessEnchantWeaponEffectForBow()
 {
 	KTDXPROFILE();
 
-	if( INVALID_PARTICLE_HANDLE == m_hSeqWeapon_Fire )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqWeapon_Fire )
 		return;
 
 	if( m_pXSkinAnim == NULL )
@@ -5061,8 +5782,9 @@ void CX2UnitViewerUI::ProcessEnchantWeaponEffectForBow()
 	{
 #ifdef RIDING_SYSTEM
 	#ifdef FIX_UPGRADE_WEAPON_PARTICLE
-			if ( true == GetShowObject() &&	
-				 true == CanNotShowEnchantedWeaponEffectToRiding() )
+			if ( (true == GetShowObject() &&	
+				 true == CanNotShowEnchantedWeaponEffectToRiding()) || 
+				 UVS_CHARINFO == m_eUnitViewerState )
 	#else
 			/// 탈것을 타고 있으면, 무기 인첸트 효과 모두 꺼주자.
 			if ( true == GetShowObject() &&	true == CanNotShowEnchantedWeaponEffectToRiding() || UVS_FIELD != m_eUnitViewerState )
@@ -5208,7 +5930,7 @@ void CX2UnitViewerUI::InitWeaponTrace()
 }
 //}} robobeg : 2008-10-18
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 void CX2UnitViewerUI::UpdateTitle()
 {
     int titleId = m_pUnit->GetTitleId();
@@ -5223,18 +5945,21 @@ void CX2UnitViewerUI::UpdateTitle()
 
     if(titleId > 0)
     {        
-        if(m_hSeqEmblem != INVALID_PARTICLE_HANDLE )
+        if(m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE )
             g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
 		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hPart_Emblem_200 = INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
         m_pPart_Emblem_200 = NULL;
-
-        if( m_hSeqEmblem == INVALID_PARTICLE_HANDLE )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( m_hSeqEmblem == INVALID_PARTICLE_SEQUENCE_HANDLE )
         {
 #ifdef SERV_GROW_UP_TITLE
 			// 해당 타이틀이 갖고 있는 소켓의 타입을 이용하여 레벨을 찾아내도록 수정하였음 by 박진웅
 			int iLevel = 0;
 			if( m_pUnit != NULL )
-				iLevel = m_pUnit->GetUnitData()->GetGrowUpLevelByTitle( titleId );
+				iLevel = m_pUnit->AccessUnitData().GetGrowUpLevelByTitle( titleId );
 			wstring titleName = g_pData->GetTitleManager()->GetTitleModel( titleId, iLevel );
 #else
 			wstring titleName = g_pData->GetTitleManager()->GetTitleModel(titleId);            
@@ -5242,16 +5967,17 @@ void CX2UnitViewerUI::UpdateTitle()
             m_hSeqEmblem = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  titleName.c_str(), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );            
         }
 
-        if( m_hSeqEmblem != INVALID_PARTICLE_HANDLE )
+        if( m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE )
         {
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
 			if( NULL != pSeq )
 			{
-				if( m_pPart_Emblem_200 == NULL )
-				{
-					m_pPart_Emblem_200 = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-					//pSeq->SetShow(false);
-				}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_hPart_Emblem_200 = pSeq->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+				m_pPart_Emblem_200 = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+				//pSeq->SetShow(false);
 				pSeq->SetShowObject( true );				
 			}
         }
@@ -5259,19 +5985,23 @@ void CX2UnitViewerUI::UpdateTitle()
     }
     else
     {
-		if( m_hSeqEmblem != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqEmblem != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
 			if( NULL != pSeq )
 			{
 				pSeq->SetShowObject(false);            
 				g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
-				m_pPart_Emblem_200 = NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_hPart_Emblem_200 = INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_pPart_Emblem_200 = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			}
 		}
     }
 }
-#endif
+//#endif
 
 
 // @bClearParticle : ClearAllParticle() 함수를 호출할지 말지
@@ -5280,7 +6010,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 	KTDXPROFILE();
 
 
-	if( m_hSeqWeapon_Fire != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqWeapon_Fire != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Fire );
 		if( NULL != pSeq )
@@ -5294,7 +6024,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 		}
 	}
 
-	if( m_hSeqWeapon_Fire2 != INVALID_PARTICLE_HANDLE ) 
+	if( m_hSeqWeapon_Fire2 != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Fire2 );
 		if( NULL != pSeq )
@@ -5308,7 +6038,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 		}
 	}
 
-	if( m_hSeqWeapon_Fire3 != INVALID_PARTICLE_HANDLE ) 
+	if( m_hSeqWeapon_Fire3 != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Fire3 );
 		if( NULL != pSeq )
@@ -5322,7 +6052,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 		}
 	}
 
-	if ( m_hSeqWeapon_Wind != INVALID_PARTICLE_HANDLE ) 
+	if ( m_hSeqWeapon_Wind != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Wind );
 		if( NULL != pSeq )
@@ -5337,7 +6067,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 	}
 
 
-	if ( m_hSeqWeapon_Wind2 != INVALID_PARTICLE_HANDLE ) 
+	if ( m_hSeqWeapon_Wind2 != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Wind2 );
 		if( NULL != pSeq )
@@ -5351,7 +6081,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 		}
 	}
 
-	if ( m_hSeqWeapon_Wind3 != INVALID_PARTICLE_HANDLE ) 
+	if ( m_hSeqWeapon_Wind3 != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Wind3 );
 		if( NULL != pSeq )
@@ -5365,7 +6095,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 		}
 	}
 
-	if ( m_hSeqWeapon_Wind4 != INVALID_PARTICLE_HANDLE ) 
+	if ( m_hSeqWeapon_Wind4 != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqWeapon_Wind4 );
 		if( NULL != pSeq )
@@ -5380,7 +6110,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 	}
 
 #ifdef ADD_UPGRADE_WEAPON_PARTICLE		/// 무기 강화 이펙트 표시 설정
-	if ( m_hSeqUpgradeWeapon != INVALID_PARTICLE_HANDLE ) 
+	if ( m_hSeqUpgradeWeapon != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon );
 		if( NULL != pSeq )
@@ -5394,7 +6124,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 		}
 	}
 
-	if ( m_hSeqUpgradeWeapon2 != INVALID_PARTICLE_HANDLE ) 
+	if ( m_hSeqUpgradeWeapon2 != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon2 );
 		if( NULL != pSeq )
@@ -5408,7 +6138,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 		}
 	}
 
-	if ( m_hSeqUpgradeWeapon3 != INVALID_PARTICLE_HANDLE ) 
+	if ( m_hSeqUpgradeWeapon3 != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon3 );
 		if( NULL != pSeq )
@@ -5422,7 +6152,7 @@ void CX2UnitViewerUI::SetShowAttribEnchant( bool bShow )
 		}
 	}
 
-	if ( m_hSeqUpgradeWeapon4 != INVALID_PARTICLE_HANDLE ) 
+	if ( m_hSeqUpgradeWeapon4 != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon4 );
 		if( NULL != pSeq )
@@ -5460,7 +6190,10 @@ void CX2UnitViewerUI::SetPositionOnScr(float x, float y, float z, float scale)	/
 	m_bFixed = true;
 	GetMatrix().Move( vScrPos.x, vScrPos.y, vScrPos.z );
 	GetMatrix().Scale( vScale );
-	m_pXSkinAnim->GetMatrix().Move( GetMatrix().GetPos() );
+#ifdef FIX_REFORM_ENTRY_POINT_3RD		// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+	if ( NULL != m_pXSkinAnim )
+#endif // FIX_REFORM_ENTRY_POINT_3RD	// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+		m_pXSkinAnim->GetMatrix().Move( GetMatrix().GetPos() );
 	
 }
 
@@ -5535,11 +6268,21 @@ void CX2UnitViewerUI::EmotionFrameMove()
 
 bool CX2UnitViewerUI::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId, wstring &wstrEmotionType)
 {
-#ifdef AVATAR_EMOTION
-	if( CX2Unit::IsAvatarEmotion( eEmotionId ) )
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+	if ( false == IsPlayAvatarEmotionSoundWithouEmotion( eEmotionId ) )
+		return false;
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
+
+	if( CX2Unit::IsAvatarEmotion( eEmotionId ) 
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		&& false == m_bIsPlayAvatarEmotionSoundWithoutEmotion
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력
+		)
 	{		
 		wstring wstrEmotionName = L"";
 		CX2Unit::EMOTION_TYPE eEmotion = CX2Unit::ET_NONE;
+
 		bool bMixEmotion = m_pUnit->GetAvatarEmotion(wstrEmotionName,eEmotion);
 		if( bMixEmotion == false )
 			return false;
@@ -5551,7 +6294,11 @@ bool CX2UnitViewerUI::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId, wstring &wst
 			(eEmotion == CX2Unit::ET_EMOTION_AVATAR2 && m_bMixedEmotion[1] == false) ||
 			(eEmotion == CX2Unit::ET_EMOTION_AVATAR3 && m_bMixedEmotion[2] == false) || 
 			(eEmotion == CX2Unit::ET_EMOTION_AVATAR4 && m_bMixedEmotion[3] == false) ||
-			(eEmotion == CX2Unit::ET_EMOTION_AVATAR5 && m_bMixedEmotion[4] == false) ) )
+			(eEmotion == CX2Unit::ET_EMOTION_AVATAR5 && m_bMixedEmotion[4] == false) 
+#ifdef CRAYONPOP_SECOND_EMOTION
+			|| (eEmotion == CX2Unit::ET_EMOTION_AVATAR6 && m_bMixedEmotion[5] == false) 
+#endif // CRAYONPOP_SECOND_EMOTION
+			) )
 		//if( bMixEmotion == true && m_bMixedEmotion == false && wstrEmotionName.empty() != true )
 		{		
 			CKTDXDeviceXSkinMesh *pMixMotion = g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( wstrEmotionName );
@@ -5575,11 +6322,15 @@ bool CX2UnitViewerUI::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId, wstring &wst
 			case CX2Unit::ET_EMOTION_AVATAR5:
 				m_bMixedEmotion[4] = true;
 				break;
+#ifdef CRAYONPOP_SECOND_EMOTION
+			case CX2Unit::ET_EMOTION_AVATAR6:
+				m_bMixedEmotion[5] = true;
+				break;
+#endif // CRAYONPOP_SECOND_EMOTION
 			}
 			SAFE_CLOSE( pMixMotion );
 		}
 	}	
-#endif //AVATAR_EMOTION
 
 	if(m_eOldMotionType == CX2UnitViewerUI::UVUMT_READY)
 		return false;
@@ -5594,32 +6345,33 @@ bool CX2UnitViewerUI::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId, wstring &wst
 	if( eEmotionId == CX2Unit::ET_STANDUP && m_ePlayedEmotion != CX2Unit::ET_SITWAIT )
 		return false;
 
+
+
 	if(m_pXSkinAnim != NULL)
 	{		
 		if(eEmotionId == CX2Unit::ET_SITWAIT)
 			PlayAnim( wstrEmotionType.c_str(), CKTDGXSkinAnim::XAP_LOOP, true );
 		else
 		{
-#ifdef AVATAR_EMOTION
 			if( CX2Unit::IsAvatarEmotion( eEmotionId ) )
 				PlayAnim( wstrEmotionType.c_str(), CKTDGXSkinAnim::XAP_ONE_WAIT, false );
 			else
 				PlayAnim( wstrEmotionType.c_str(), CKTDGXSkinAnim::XAP_ONE_WAIT, true );
-#else
-			PlayAnim( wstrEmotionType.c_str(), CKTDGXSkinAnim::XAP_ONE_WAIT, true );
-#endif
 		}
 		
 		m_ePlayedEmotion = eEmotionId;
 
-		if( NULL != g_pChatBox && NULL != m_pUnit )
-		{
-			g_pChatBox->PlayEmotionSound( m_pUnit->GetType(), eEmotionId, D3DXVECTOR3( 0, 0, 0 ), false );
-		}
-
-#ifdef AVATAR_EMOTION
 		if( eEmotionId == CX2Unit::ET_EMOTION_AVATAR1 || eEmotionId == CX2Unit::ET_EMOTION_AVATAR3  || 
-			eEmotionId == CX2Unit::ET_EMOTION_AVATAR4 || eEmotionId == CX2Unit::ET_EMOTION_AVATAR5 )
+			eEmotionId == CX2Unit::ET_EMOTION_AVATAR4 || eEmotionId == CX2Unit::ET_EMOTION_AVATAR5
+#ifdef CRAYONPOP_SECOND_EMOTION
+			|| eEmotionId == CX2Unit::ET_EMOTION_AVATAR6
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+			|| eEmotionId == CX2Unit::ET_EMOTION_AVATAR7
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
+			)
 		{
 			wstring wstrEmotionSoundName = L"";
 			switch( eEmotionId )
@@ -5636,6 +6388,18 @@ bool CX2UnitViewerUI::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId, wstring &wst
 			case CX2Unit::ET_EMOTION_AVATAR5:
 				wstrEmotionSoundName = L"DancingQueen_Music.ogg";
 				break;
+#ifdef CRAYONPOP_SECOND_EMOTION
+			case CX2Unit::ET_EMOTION_AVATAR6:
+				wstrEmotionSoundName = L"Emotion_Bbabbabba.ogg";
+				break;
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+			case CX2Unit::ET_EMOTION_AVATAR7:
+				wstrEmotionSoundName = L"Emotion_Crayonpop_NoMotion.ogg";
+				break;
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
 			default:
 				break;
 			}
@@ -5646,10 +6410,17 @@ bool CX2UnitViewerUI::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId, wstring &wst
 				SAFE_CLOSE( m_pAvatarEmotionSound );
 			}
 			const float MAGIC_NUMBER = 500.f;
-			const float fMaxDist = g_pKTDXApp->GetDGManager()->GetCamera()->GetCameraDistance() + MAGIC_NUMBER;
+			const float fMaxDist = g_pKTDXApp->GetDGManager()->GetCamera().GetCameraDistance() + MAGIC_NUMBER;
 			m_pAvatarEmotionSound = g_pKTDXApp->GetDeviceManager()->OpenSound( wstrEmotionSoundName, 10, true, fMaxDist );
 			if( m_pAvatarEmotionSound != NULL )
 				m_pAvatarEmotionSound->Play( false, false );
+		}
+		else
+		{
+			if( NULL != g_pChatBox && NULL != m_pUnit )
+			{
+				g_pChatBox->PlayEmotionSound( m_pUnit->GetType(), eEmotionId, D3DXVECTOR3( 0, 0, 0 ), false );
+			}
 		}
 
 		if ( eEmotionId == CX2Unit::ET_EMOTION_AVATAR4 )
@@ -5657,7 +6428,6 @@ bool CX2UnitViewerUI::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId, wstring &wst
 			D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_Head" );
 			g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, L"Emotion_APINK_LOVE_P01", vBonePos );
 		}
-#endif
 
 		return true;
 	}
@@ -5706,386 +6476,813 @@ void CX2UnitViewerUI::SetUnitReForm()
 	}
 #endif
 
-#ifdef MOVE_BONE
-	if( m_pUnit != NULL )
+#ifdef UNIT_SCALE_COMBINE_ONE
+	if ( m_pUnit != NULL )
 	{
-		switch( m_pUnit->GetType() )
+		#ifdef MOVE_BONE
+		switch ( m_pUnit->GetType() )
 		{
+		case CX2Unit::UT_ELSWORD:
+			{
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01" ), 10.f );
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01_Footsteps" ), -10.f );
+
+				D3DXVECTOR3 vHead	= D3DXVECTOR3( 0.93f, 0.9f, 0.93f );
+				D3DXVECTOR3 vThigh	= D3DXVECTOR3( 1.08f, 1.f, 0.98f );
+				D3DXVECTOR3 vCalf	= D3DXVECTOR3( 1.12f, 0.97f, 0.94f );
+				D3DXVECTOR3 vFoot	= D3DXVECTOR3( 0.895f, 0.94f, 0.94f );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame( L"Bip01_Head" );
+				if ( pFrameHead != NULL )
+					SetFrameScale( &vHead, true, pFrameHead );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Thigh" );
+				if ( pFrame_R_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_R_Leg );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Thigh" );
+				if ( pFrame_L_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_L_Leg );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Calf" );
+				if ( pFrame_R_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_R_Calf );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Calf" );
+				if ( pFrame_L_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_L_Calf );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Foot" );
+				if ( pFrame_R_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_R_Foot );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Foot" );
+				if ( pFrame_L_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_L_Foot );
+			} break;
+
+		case CX2Unit::UT_ARME:
+			{
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01" ), 4.f );
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01_Footsteps" ), -4.f );
+
+				D3DXVECTOR3 vHead		= D3DXVECTOR3( 0.95f, 0.93f, 0.93f );
+				D3DXVECTOR3 vThigh		= D3DXVECTOR3( 1.f, 1.f, 1.f );
+				D3DXVECTOR3 vCalf		= D3DXVECTOR3( 1.1f, 1.f, 1.f );
+				D3DXVECTOR3 vHand		= D3DXVECTOR3( 0.9f, 0.93f, 0.93f );
+				D3DXVECTOR3 vFoot		= D3DXVECTOR3( 0.9f, 1.f, 1.f );
+				D3DXVECTOR3 vDummyHand	= D3DXVECTOR3( 1.f, 1.f, 1.f );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame( L"Bip01_Head" );
+				if ( pFrameHead != NULL )
+					SetFrameScale( &vHead, true, pFrameHead );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Thigh" );
+				if ( pFrame_R_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_R_Leg );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Thigh" );
+				if ( pFrame_L_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_L_Leg );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Calf" );
+				if ( pFrame_R_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_R_Calf );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Calf" );
+				if ( pFrame_L_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_L_Calf );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Foot" );
+				if ( pFrame_R_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_R_Foot );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Foot" );
+				if ( pFrame_L_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_L_Foot );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Hand" );
+				if ( pFrame_R_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_R_Hand );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Hand" );
+				if ( pFrame_L_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_L_Hand );
+
+				vDummyHand.x = 1.f / vHand.x;
+				vDummyHand.y = 1.f / vHand.y;
+				vDummyHand.z = 1.f / vHand.z;
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy1_Rhand" );
+				if ( pFrame_R_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_R_Dummy );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy2_Lhand" );
+				if ( pFrame_L_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_L_Dummy );
+			}
+
 		case CX2Unit::UT_LIRE:
 			{
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 1.0f);
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -1.0f);
-			}
-			break;
-#ifdef RAVEN_SECOND_CLASS_CHANGE
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01" ), 1.0f );
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01_Footsteps" ), -1.0f );
+
+				D3DXVECTOR3 vHead = D3DXVECTOR3( 0.94f, 0.92f, 0.90f );
+				D3DXVECTOR3 vThigh = D3DXVECTOR3( 1.02f, 1.f, 1.f );
+				D3DXVECTOR3 vCalf = D3DXVECTOR3( 1.02f, 1.f, 1.f );
+				D3DXVECTOR3 vFoot = D3DXVECTOR3( 0.93f, 0.93f, 0.93f );
+				D3DXVECTOR3 vHand = D3DXVECTOR3( 0.9f, 0.9f, 0.9f );
+				D3DXVECTOR3 vDummyHand = D3DXVECTOR3( 1.f, 1.f, 1.f );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame( L"Bip01_Head" );
+				if ( pFrameHead != NULL )
+					SetFrameScale( &vHead, true, pFrameHead );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Thigh" );
+				if ( pFrame_R_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_R_Leg );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Thigh" );
+				if ( pFrame_L_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_L_Leg );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Calf" );
+				if ( pFrame_R_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_R_Calf );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Calf" );
+				if ( pFrame_L_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_L_Calf );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Foot" );
+				if ( pFrame_R_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_R_Foot );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Foot" );
+				if ( pFrame_L_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_L_Foot );		
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
+				if ( pFrame_R_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_R_Hand );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Hand" );
+				if ( pFrame_L_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_L_Hand );
+
+				vDummyHand.x = 1.f / vHand.x;
+				vDummyHand.y = 1.f / vHand.y;
+				vDummyHand.z = 1.f / vHand.z;
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy1_Rhand" );
+				if ( pFrame_R_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_R_Dummy );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy2_Lhand" );
+				if ( pFrame_L_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_L_Dummy );	
+			} break;
+
 		case CX2Unit::UT_RAVEN:
 			{
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 7.f);
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -7.f);
-			}
-			break;
-#endif
-#ifdef EVE_SECOND_CLASS_CHANGE
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01" ), 5.0f );
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01_Footsteps" ), -5.0f );
+
+				D3DXVECTOR3 vHead = D3DXVECTOR3( 0.88f, 0.9f, 0.92f );
+				D3DXVECTOR3 vThigh = D3DXVECTOR3( 1.05f, 0.94f, 0.92f );
+				D3DXVECTOR3 vCalf = D3DXVECTOR3( 1.065f, 0.93f, 0.9f );
+				D3DXVECTOR3 vFoot = D3DXVECTOR3( 0.93f, 0.85f, 0.83f );
+				D3DXVECTOR3 vDummyHand = D3DXVECTOR3( 1.f, 1.f, 1.f );
+				D3DXVECTOR3 vSpine = D3DXVECTOR3( 0.94f, 0.97f, 1.f );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame( L"Bip01_Head" );
+				if ( pFrameHead != NULL )
+					SetFrameScale( &vHead, true, pFrameHead );		
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Thigh" );
+				if ( pFrame_R_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_R_Leg );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Thigh" );
+				if ( pFrame_L_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_L_Leg );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Calf" );
+				if ( pFrame_R_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_R_Calf );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Calf" );
+				if ( pFrame_L_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_L_Calf );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Foot" );
+				if ( pFrame_R_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_R_Foot );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Foot" );
+				if ( pFrame_L_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_L_Foot );		
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameSpine = m_pXSkinAnim->GetCloneFrame( L"Bip01_Spine" );
+				if ( pFrameSpine != NULL )
+					SetFrameScale( &vSpine, false, pFrameSpine );
+			} break;
+
 		case CX2Unit::UT_EVE:
 			{
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), -0.8f);
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), 0.8f);
-			}
-			break;
-#endif
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01" ), -0.8f );
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01_Footsteps" ), 0.8f );
+
+				D3DXVECTOR3 vHead = D3DXVECTOR3( 0.94f, 0.97f, 0.98f );
+				D3DXVECTOR3 vThigh = D3DXVECTOR3( 1.0f, 0.98f, 0.98f );
+				D3DXVECTOR3 vCalf = D3DXVECTOR3( 1.0f, 0.98f, 0.98f );
+				D3DXVECTOR3 vFoot = D3DXVECTOR3( 0.95f, 0.95f, 0.95f );
+				D3DXVECTOR3 vHand = D3DXVECTOR3( 0.9f, 0.96f, 0.96f );		
+				D3DXVECTOR3 vDummyHand = D3DXVECTOR3( 1.f, 1.f, 1.f );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame( L"Bip01_Head" );
+				if ( pFrameHead != NULL )
+					SetFrameScale( &vHead, true, pFrameHead );		
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Thigh" );
+				if ( pFrame_R_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_R_Leg );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Thigh" );
+				if ( pFrame_L_Leg != NULL )
+					SetFrameScale( &vThigh, true, pFrame_L_Leg );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Calf" );
+				if ( pFrame_R_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_R_Calf );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Calf" );
+				if ( pFrame_L_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_L_Calf );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
+				if(pFrame_R_Foot != NULL)
+					SetFrameScale(&vFoot, true, pFrame_R_Foot);
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
+				if(pFrame_L_Foot != NULL)
+					SetFrameScale(&vFoot, true, pFrame_L_Foot);		
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Hand" );
+				if ( pFrame_R_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_R_Hand );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Hand" );
+				if ( pFrame_L_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_L_Hand );		
+
+				vDummyHand.x = 1.f;
+				vDummyHand.y = 1.f;
+				vDummyHand.z = 1.f;
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy1_Rhand" );
+				if ( pFrame_R_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_R_Dummy );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy2_Lhand" );
+				if ( pFrame_L_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_L_Dummy );
+			} break;
+
+		case CX2Unit::UT_CHUNG:
+			{
+				D3DXVECTOR3 vHead = D3DXVECTOR3( 0.93f, 0.93f, 0.93f );
+				D3DXVECTOR3 vDummyHand = D3DXVECTOR3( 0.92f, 0.92f, 0.92f );
+				m_fScale = 1.08f;
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame( L"Bip01_Head" );
+				if ( pFrameHead != NULL )
+					SetFrameScale( &vHead, true, pFrameHead );		
+
+				vDummyHand = vDummyHand / m_fScale;
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy1_Rhand" );
+				if ( pFrame_R_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_R_Dummy );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy2_Lhand" );
+				if ( pFrame_L_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_L_Dummy );
+			} break;
+
+		case CX2Unit::UT_ARA:
+			{
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01" ), 2.0f );
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01_Footsteps" ), -2.0f );
+
+				D3DXVECTOR3 vHead = D3DXVECTOR3( 0.96f, 0.96f, 0.96f );
+				D3DXVECTOR3 vCalf = D3DXVECTOR3( 1.02f, 1.f, 1.f );
+				D3DXVECTOR3 vFoot = D3DXVECTOR3( 1.0f, 0.96f, 0.96f );
+				D3DXVECTOR3 vHand = D3DXVECTOR3( 0.96f, 0.96f, 0.96f );	
+				D3DXVECTOR3 vDummyHand = D3DXVECTOR3( 1.f, 1.f, 1.f );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame( L"Bip01_Head" );
+				if ( pFrameHead != NULL )
+					SetFrameScale( &vHead, true, pFrameHead );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Calf" );
+				if ( pFrame_R_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_R_Calf );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Calf" );
+				if ( pFrame_L_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_L_Calf );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Foot" );
+				if ( pFrame_R_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_R_Foot );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Foot" );
+				if ( pFrame_L_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_L_Foot );		
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
+				if ( pFrame_R_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_R_Hand );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Hand" );
+				if ( pFrame_L_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_L_Hand );
+
+				vDummyHand.x = 1.f / vHand.x;
+				vDummyHand.y = 1.f / vHand.y;
+				vDummyHand.z = 1.f / vHand.z;
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy1_Rhand" );
+				if ( pFrame_R_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_R_Dummy );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy2_Lhand" );
+				if ( pFrame_L_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_L_Dummy );	
+			} break;
+
+		case CX2Unit::UT_ELESIS:
+			{
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01" ), 2.0f );
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01_Footsteps" ), -2.0f );
+
+				D3DXVECTOR3 vHead = D3DXVECTOR3( 0.96f, 0.96f, 0.96f );
+				D3DXVECTOR3 vCalf = D3DXVECTOR3( 1.02f, 1.f, 1.f );
+				D3DXVECTOR3 vFoot = D3DXVECTOR3( 1.0f, 0.96f, 0.96f );
+				D3DXVECTOR3 vHand = D3DXVECTOR3( 0.96f, 0.96f, 0.96f );	
+				D3DXVECTOR3 vDummyHand = D3DXVECTOR3( 1.f, 1.f, 1.f );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame( L"Bip01_Head" );
+				if ( pFrameHead != NULL )
+					SetFrameScale( &vHead, true, pFrameHead );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Calf" );
+				if ( pFrame_R_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_R_Calf );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Calf" );
+				if ( pFrame_L_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_L_Calf );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Foot" );
+				if ( pFrame_R_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_R_Foot );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Foot" );
+				if ( pFrame_L_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_L_Foot );		
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
+				if ( pFrame_R_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_R_Hand );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Hand" );
+				if ( pFrame_L_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_L_Hand );
+
+				vDummyHand.x = 1.f / vHand.x;
+				vDummyHand.y = 1.f / vHand.y;
+				vDummyHand.z = 1.f / vHand.z;
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy1_Rhand" );
+				if ( pFrame_R_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_R_Dummy );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy2_Lhand" );
+				if ( pFrame_L_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_L_Dummy );	
+			} break;
+
+		#ifdef SERV_9TH_NEW_CHARACTER // JHKang
+		case CX2Unit::UT_ADD:
+			{
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01" ), 2.0f );
+				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame( L"Bip01_Footsteps" ), -2.0f );
+
+				D3DXVECTOR3 vHead = D3DXVECTOR3( 0.93f, 0.93f, 0.93f );
+				D3DXVECTOR3 vCalf = D3DXVECTOR3( 1.02f, 1.f, 1.f );
+				D3DXVECTOR3 vFoot = D3DXVECTOR3( 1.0f, 0.96f, 0.96f );
+				D3DXVECTOR3 vHand = D3DXVECTOR3( 0.96f, 0.96f, 0.96f );	
+				D3DXVECTOR3 vDummyHand = D3DXVECTOR3( 1.f, 1.f, 1.f );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame( L"Bip01_Head" );
+				if ( pFrameHead != NULL )
+					SetFrameScale( &vHead, true, pFrameHead );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Calf" );
+				if ( pFrame_R_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_R_Calf );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Calf" );
+				if ( pFrame_L_Calf != NULL )
+					SetFrameScale( &vCalf, true, pFrame_L_Calf );
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_R_Foot" );
+				if ( pFrame_R_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_R_Foot );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Foot" );
+				if ( pFrame_L_Foot != NULL )
+					SetFrameScale( &vFoot, true, pFrame_L_Foot );		
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
+				if ( pFrame_R_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_R_Hand );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame( L"Bip01_L_Hand" );
+				if ( pFrame_L_Hand != NULL )
+					SetFrameScale( &vHand, true, pFrame_L_Hand );
+
+				vDummyHand.x = 1.f / vHand.x;
+				vDummyHand.y = 1.f / vHand.y;
+				vDummyHand.z = 1.f / vHand.z;
+
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy1_Rhand" );
+				if ( pFrame_R_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_R_Dummy );
+				CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame( L"Dummy2_Lhand" );
+				if ( pFrame_L_Dummy != NULL )
+					SetFrameScale( &vDummyHand, true, pFrame_L_Dummy );	
+			} break;
+		#endif
+
 		default:
 			break;
 		}
+		#endif //MOVE_BONE
+	}
+#else //UNIT_SCALE_COMBINE_ONE
 
-		switch( m_pUnit->GetClass() )
+#ifdef MOVE_BONE
+if( m_pUnit != NULL )
+{
+	switch( m_pUnit->GetType() )
+	{
+	case CX2Unit::UT_LIRE:
 		{
-#ifdef ELSWORD_SHEATH_KNIGHT
-		case CX2Unit::UC_ELSWORD_SWORDMAN:
-			{
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 2.f );
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -2.f );
-			}
-			break;
-		case CX2Unit::UC_ELSWORD_KNIGHT:
-		case CX2Unit::UC_ELSWORD_MAGIC_KNIGHT:
-		case CX2Unit::UC_ELSWORD_SHEATH_KNIGHT:
-#endif ELSWORD_SHEATH_KNIGHT
-		case CX2Unit::UC_ELSWORD_LORD_KNIGHT:
-		case CX2Unit::UC_ELSWORD_RUNE_SLAYER:
-#ifdef SERV_ELSWORD_INFINITY_SWORD
-		case CX2Unit::UC_ELSWORD_INFINITY_SWORD:
-#endif //SERV_ELSWORD_INFINITY_SWORD
-			{
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 10.f);
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -10.f);
-			}
-			break;
-		case CX2Unit::UC_ARME_ELEMENTAL_MASTER:
-		case CX2Unit::UC_ARME_VOID_PRINCESS:
-			{
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 3.f);
-				SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -3.f);
-			}
-			break;
-		default:
-			break;
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 1.0f);
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -1.0f);
 		}
-	}
-#endif
-
-#ifdef ELSWORD_SHEATH_KNIGHT
-	if( m_pUnit != NULL && 
-		( m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_SWORDMAN ) )
-	{
-		D3DXVECTOR3 vHead = D3DXVECTOR3(1.f, 0.95f, 0.97f);
-		D3DXVECTOR3 vThigh = D3DXVECTOR3(1.f, 1.f, 1.f);
-		D3DXVECTOR3 vCalf = D3DXVECTOR3(1.05f, 1.f, 1.f);
-		D3DXVECTOR3 vFoot = D3DXVECTOR3(0.9f, 1.f, 0.9f);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
-		if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
-			SetFrameScale(&vHead, true, pFrameHead);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
-		if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_R_Leg);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
-		if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_L_Leg);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
-		if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_R_Calf);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
-		if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_L_Calf);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
-		if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_R_Foot);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
-		if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_L_Foot);		
-	}
-	else if( m_pUnit != NULL && 
-		( m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_KNIGHT || 
-		m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_MAGIC_KNIGHT || 
-		m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_SHEATH_KNIGHT || 
-		m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_LORD_KNIGHT || 
-		m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_RUNE_SLAYER
-#ifdef SERV_ELSWORD_INFINITY_SWORD
-		|| m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_INFINITY_SWORD
-#endif //SERV_ELSWORD_INFINITY_SWORD
-		) )
-#else
-	if( m_pUnit != NULL && 
-		( m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_LORD_KNIGHT || m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_RUNE_SLAYER ) )
-#endif ELSWORD_SHEATH_KNIGHT
-	{
-		D3DXVECTOR3 vHead = D3DXVECTOR3(1.f, 0.95f, 0.97f);
-		D3DXVECTOR3 vThigh = D3DXVECTOR3(1.07f, 1.f, 1.f);
-		D3DXVECTOR3 vCalf = D3DXVECTOR3(1.12f, 1.f, 1.f);
-		D3DXVECTOR3 vFoot = D3DXVECTOR3(0.9f, 1.f, 1.f);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
-		if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
-			SetFrameScale(&vHead, true, pFrameHead);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
-		if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_R_Leg);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
-		if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_L_Leg);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
-		if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_R_Calf);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
-		if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_L_Calf);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
-		if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_R_Foot);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
-		if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_L_Foot);		
-	}
-	else if( m_pUnit != NULL && m_pUnit->GetType() == CX2Unit::UT_LIRE )
-	{
-		D3DXVECTOR3 vHead = D3DXVECTOR3(0.96f, 0.94f, 0.92f);
-		D3DXVECTOR3 vThigh = D3DXVECTOR3(1.02f, 1.f, 1.f);
-		D3DXVECTOR3 vCalf = D3DXVECTOR3(1.02f, 1.f, 1.f);
-		D3DXVECTOR3 vFoot = D3DXVECTOR3(0.93f, 0.93f, 0.93f);
-		D3DXVECTOR3 vHand = D3DXVECTOR3(0.9f, 0.9f, 0.9f);	
-		D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
-		if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
-			SetFrameScale(&vHead, true, pFrameHead);		
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
-		if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_R_Leg);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
-		if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_L_Leg);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
-		if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_R_Calf);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
-		if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_L_Calf);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
-		if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_R_Foot);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
-		if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_L_Foot);		
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
-		if(pFrame_R_Hand != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vHand, true, pFrame_R_Hand);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Hand");
-		if(pFrame_L_Hand != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vHand, true, pFrame_L_Hand);		
-
-		vDummyHand.x = 1.f / vHand.x;
-		vDummyHand.y = 1.f / vHand.y;
-		vDummyHand.z = 1.f / vHand.z;
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy1_Rhand");
-		if(pFrame_R_Dummy != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vDummyHand, true, pFrame_R_Dummy);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy2_Lhand");
-		if(pFrame_L_Dummy != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vDummyHand, true, pFrame_L_Dummy);	
-	}
-	else if( m_pUnit != NULL && 
-		(	m_pUnit->GetClass() == CX2Unit::UC_ARME_ELEMENTAL_MASTER || 
-			m_pUnit->GetClass() == CX2Unit::UC_ARME_VOID_PRINCESS 
-#ifdef SERV_ARME_DIMENSION_WITCH
-			|| m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH 
-#endif //SERV_ARME_DIMENSION_WITCH
-		) )
-	{
-		D3DXVECTOR3 vHead	= D3DXVECTOR3(0.97f, 0.95f, 0.95f);
-		D3DXVECTOR3 vThigh	= D3DXVECTOR3(1.f, 1.f, 1.f);
-		D3DXVECTOR3 vCalf	= D3DXVECTOR3(1.06f, 1.f, 1.f);
-		D3DXVECTOR3 vFoot	= D3DXVECTOR3(1.f, 1.f, 1.f);
-		D3DXVECTOR3 vHand	= D3DXVECTOR3(0.9f, 0.93f, 0.93f);	
-		D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
-		if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
-			SetFrameScale(&vHead, true, pFrameHead);		
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
-		if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_R_Leg);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
-		if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_L_Leg);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
-		if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_R_Calf);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
-		if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_L_Calf);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
-		if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_R_Foot);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
-		if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_L_Foot);		
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
-		if(pFrame_R_Hand != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vHand, true, pFrame_R_Hand);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Hand");
-		if(pFrame_L_Hand != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vHand, true, pFrame_L_Hand);		
-
-		vDummyHand.x = 1.f / vHand.x;
-		vDummyHand.y = 1.f / vHand.y;
-		vDummyHand.z = 1.f / vHand.z;
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy1_Rhand");
-		if(pFrame_R_Dummy != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vDummyHand, true, pFrame_R_Dummy);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy2_Lhand");
-		if(pFrame_L_Dummy != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vDummyHand, true, pFrame_L_Dummy);	
-	}
+		break;
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-	else if( m_pUnit != NULL && m_pUnit->GetType() == CX2Unit::UT_RAVEN )
-	{
-		D3DXVECTOR3 vHead = D3DXVECTOR3(0.9f, 0.92f, 0.94f);
-		D3DXVECTOR3 vThigh = D3DXVECTOR3(1.05f, 0.98f, 0.98f);
-		D3DXVECTOR3 vCalf = D3DXVECTOR3(1.05f, 1.f, 1.f);
-		D3DXVECTOR3 vFoot = D3DXVECTOR3(0.95f, 0.95f, 0.85f);
-		D3DXVECTOR3 vHand = D3DXVECTOR3(1.0f, 1.0f, 1.0f);	
-		D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);
-		D3DXVECTOR3 vSpine = D3DXVECTOR3(0.93f, 0.97f, 1.f);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
-		if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
-			SetFrameScale(&vHead, true, pFrameHead);		
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
-		if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_R_Leg);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
-		if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_L_Leg);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
-		if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_R_Calf);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
-		if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_L_Calf);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
-		if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_R_Foot);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
-		if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_L_Foot);		
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameSpine = m_pXSkinAnim->GetCloneFrame(L"Bip01_Spine");
-		if(pFrameSpine != NULL) // && pFrameHead->m_bScale == false)
-			SetFrameScale(&vSpine, false, pFrameSpine);			
-	}
+	case CX2Unit::UT_RAVEN:
+		{
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 7.f);
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -7.f);
+		}
+		break;
 #endif
 #ifdef EVE_SECOND_CLASS_CHANGE
-	else if( m_pUnit != NULL && m_pUnit->GetType() == CX2Unit::UT_EVE )
-	{
-		D3DXVECTOR3 vHead = D3DXVECTOR3(0.94f, 0.97f, 0.98f);
-		D3DXVECTOR3 vThigh = D3DXVECTOR3(1.0f, 0.98f, 0.98f);
-		D3DXVECTOR3 vCalf = D3DXVECTOR3(1.0f, 0.98f, 0.98f);
-		D3DXVECTOR3 vFoot = D3DXVECTOR3(0.95f, 0.95f, 0.95f);
-		D3DXVECTOR3 vHand = D3DXVECTOR3(0.9f, 0.96f, 0.96f);		
-		D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);		
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
-		if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
-			SetFrameScale(&vHead, true, pFrameHead);		
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
-		if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_R_Leg);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
-		if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
-			SetFrameScale(&vThigh, true, pFrame_L_Leg);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
-		if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_R_Calf);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
-		if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
-			SetFrameScale(&vCalf, true, pFrame_L_Calf);
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
-		if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_R_Foot);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
-		if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vFoot, true, pFrame_L_Foot);		
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
-		if(pFrame_R_Hand != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vHand, true, pFrame_R_Hand);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Hand");
-		if(pFrame_L_Hand != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vHand, true, pFrame_L_Hand);		
-
-		vDummyHand.x = 1.f;// / vHand.x;
-		vDummyHand.y = 1.f;// / vHand.y;
-		vDummyHand.z = 1.f;// / vHand.z;
-
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy1_Rhand");
-		if(pFrame_R_Dummy != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vDummyHand, true, pFrame_R_Dummy);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy2_Lhand");
-		if(pFrame_L_Dummy != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vDummyHand, true, pFrame_L_Dummy);
-
-	}
+	case CX2Unit::UT_EVE:
+		{
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), -0.8f);
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), 0.8f);
+		}
+		break;
 #endif
-#ifdef CHUNG_SECOND_CLASS_CHANGE
-#ifdef SERV_CHUNG_TACTICAL_TROOPER
-	else if( m_pUnit != NULL && 
-		( m_pUnit->GetClass() == CX2Unit::UC_CHUNG_IRON_PALADIN || m_pUnit->GetClass() == CX2Unit::UC_CHUNG_DEADLY_CHASER || m_pUnit->GetClass() == CX2Unit::UC_CHUNG_TACTICAL_TROOPER) )
-#else
-	else if( m_pUnit != NULL && 
-		( m_pUnit->GetClass() == CX2Unit::UC_CHUNG_IRON_PALADIN || m_pUnit->GetClass() == CX2Unit::UC_CHUNG_DEADLY_CHASER ) )
-#endif SERV_CHUNG_TACTICAL_TROOPER
-	{
-		D3DXVECTOR3 vHead = D3DXVECTOR3(0.93f, 0.96f, 0.96f);
-		D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);
-		//m_fScale = fScale;
-		m_fScale = 1.13f;
+	default:
+		break;
+	}
 
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
-		if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
-			SetFrameScale(&vHead, true, pFrameHead);		
+	switch( m_pUnit->GetClass() )
+	{
+#ifdef ELSWORD_SHEATH_KNIGHT
+	case CX2Unit::UC_ELSWORD_SWORDMAN:
+		{
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 2.f );
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -2.f );
+		}
+		break;
+	case CX2Unit::UC_ELSWORD_KNIGHT:
+	case CX2Unit::UC_ELSWORD_MAGIC_KNIGHT:
+	case CX2Unit::UC_ELSWORD_SHEATH_KNIGHT:
+#endif ELSWORD_SHEATH_KNIGHT
+	case CX2Unit::UC_ELSWORD_LORD_KNIGHT:
+	case CX2Unit::UC_ELSWORD_RUNE_SLAYER:
+#ifdef SERV_ELSWORD_INFINITY_SWORD
+	case CX2Unit::UC_ELSWORD_INFINITY_SWORD:
+#endif //SERV_ELSWORD_INFINITY_SWORD
+		{
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 10.f);
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -10.f);
+		}
+		break;
+	case CX2Unit::UC_ARME_ELEMENTAL_MASTER:
+	case CX2Unit::UC_ARME_VOID_PRINCESS:
+		{
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01"), 3.f);
+			SetFrameMoveBoneY( m_pXSkinAnim->GetCloneFrame(L"Bip01_Footsteps"), -3.f);
+		}
+		break;
+	default:
+		break;
+	}
+}
+#endif
+
+	#ifdef ELSWORD_SHEATH_KNIGHT
+		if( m_pUnit != NULL && 
+			( m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_SWORDMAN ) )
+		{
+			D3DXVECTOR3 vHead = D3DXVECTOR3(1.f, 0.95f, 0.97f);
+			D3DXVECTOR3 vThigh = D3DXVECTOR3(1.f, 1.f, 1.f);
+			D3DXVECTOR3 vCalf = D3DXVECTOR3(1.05f, 1.f, 1.f);
+			D3DXVECTOR3 vFoot = D3DXVECTOR3(0.9f, 1.f, 0.9f);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
+			if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
+				SetFrameScale(&vHead, true, pFrameHead);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
+			if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_R_Leg);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
+			if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_L_Leg);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
+			if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_R_Calf);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
+			if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_L_Calf);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
+			if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_R_Foot);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
+			if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_L_Foot);		
+		}
+		else if( m_pUnit != NULL && 
+			( m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_KNIGHT || 
+			m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_MAGIC_KNIGHT || 
+			m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_SHEATH_KNIGHT || 
+			m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_LORD_KNIGHT || 
+			m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_RUNE_SLAYER
+	#ifdef SERV_ELSWORD_INFINITY_SWORD
+			|| m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_INFINITY_SWORD
+	#endif //SERV_ELSWORD_INFINITY_SWORD
+			) )
+	#else
+		if( m_pUnit != NULL && 
+			( m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_LORD_KNIGHT || m_pUnit->GetClass() == CX2Unit::UC_ELSWORD_RUNE_SLAYER ) )
+	#endif ELSWORD_SHEATH_KNIGHT
+		{
+			D3DXVECTOR3 vHead = D3DXVECTOR3(1.f, 0.95f, 0.97f);
+			D3DXVECTOR3 vThigh = D3DXVECTOR3(1.07f, 1.f, 1.f);
+			D3DXVECTOR3 vCalf = D3DXVECTOR3(1.12f, 1.f, 1.f);
+			D3DXVECTOR3 vFoot = D3DXVECTOR3(0.9f, 1.f, 1.f);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
+			if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
+				SetFrameScale(&vHead, true, pFrameHead);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
+			if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_R_Leg);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
+			if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_L_Leg);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
+			if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_R_Calf);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
+			if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_L_Calf);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
+			if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_R_Foot);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
+			if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_L_Foot);		
+		}
+		else if( m_pUnit != NULL && m_pUnit->GetType() == CX2Unit::UT_LIRE )
+		{
+			D3DXVECTOR3 vHead = D3DXVECTOR3(0.96f, 0.94f, 0.92f);
+			D3DXVECTOR3 vThigh = D3DXVECTOR3(1.02f, 1.f, 1.f);
+			D3DXVECTOR3 vCalf = D3DXVECTOR3(1.02f, 1.f, 1.f);
+			D3DXVECTOR3 vFoot = D3DXVECTOR3(0.93f, 0.93f, 0.93f);
+			D3DXVECTOR3 vHand = D3DXVECTOR3(0.9f, 0.9f, 0.9f);	
+			D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
+			if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
+				SetFrameScale(&vHead, true, pFrameHead);		
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
+			if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_R_Leg);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
+			if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_L_Leg);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
+			if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_R_Calf);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
+			if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_L_Calf);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
+			if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_R_Foot);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
+			if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_L_Foot);		
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
+			if(pFrame_R_Hand != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vHand, true, pFrame_R_Hand);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Hand");
+			if(pFrame_L_Hand != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vHand, true, pFrame_L_Hand);		
+
+			vDummyHand.x = 1.f / vHand.x;
+			vDummyHand.y = 1.f / vHand.y;
+			vDummyHand.z = 1.f / vHand.z;
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy1_Rhand");
+			if(pFrame_R_Dummy != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vDummyHand, true, pFrame_R_Dummy);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy2_Lhand");
+			if(pFrame_L_Dummy != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vDummyHand, true, pFrame_L_Dummy);	
+		}
+		else if( m_pUnit != NULL && 
+			(	m_pUnit->GetClass() == CX2Unit::UC_ARME_ELEMENTAL_MASTER || 
+				m_pUnit->GetClass() == CX2Unit::UC_ARME_VOID_PRINCESS 
+	#ifdef SERV_ARME_DIMENSION_WITCH
+				|| m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH 
+	#endif //SERV_ARME_DIMENSION_WITCH
+			) )
+		{
+			D3DXVECTOR3 vHead	= D3DXVECTOR3(0.97f, 0.95f, 0.95f);
+			D3DXVECTOR3 vThigh	= D3DXVECTOR3(1.f, 1.f, 1.f);
+			D3DXVECTOR3 vCalf	= D3DXVECTOR3(1.06f, 1.f, 1.f);
+			D3DXVECTOR3 vFoot	= D3DXVECTOR3(1.f, 1.f, 1.f);
+			D3DXVECTOR3 vHand	= D3DXVECTOR3(0.9f, 0.93f, 0.93f);	
+			D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
+			if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
+				SetFrameScale(&vHead, true, pFrameHead);		
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
+			if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_R_Leg);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
+			if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_L_Leg);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
+			if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_R_Calf);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
+			if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_L_Calf);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
+			if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_R_Foot);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
+			if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_L_Foot);		
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
+			if(pFrame_R_Hand != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vHand, true, pFrame_R_Hand);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Hand");
+			if(pFrame_L_Hand != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vHand, true, pFrame_L_Hand);		
+
+			vDummyHand.x = 1.f / vHand.x;
+			vDummyHand.y = 1.f / vHand.y;
+			vDummyHand.z = 1.f / vHand.z;
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy1_Rhand");
+			if(pFrame_R_Dummy != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vDummyHand, true, pFrame_R_Dummy);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy2_Lhand");
+			if(pFrame_L_Dummy != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vDummyHand, true, pFrame_L_Dummy);	
+		}
+	#ifdef RAVEN_SECOND_CLASS_CHANGE
+		else if( m_pUnit != NULL && m_pUnit->GetType() == CX2Unit::UT_RAVEN )
+		{
+			D3DXVECTOR3 vHead = D3DXVECTOR3(0.9f, 0.92f, 0.94f);
+			D3DXVECTOR3 vThigh = D3DXVECTOR3(1.05f, 0.98f, 0.98f);
+			D3DXVECTOR3 vCalf = D3DXVECTOR3(1.05f, 1.f, 1.f);
+			D3DXVECTOR3 vFoot = D3DXVECTOR3(0.95f, 0.95f, 0.85f);
+			D3DXVECTOR3 vHand = D3DXVECTOR3(1.0f, 1.0f, 1.0f);	
+			D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);
+			D3DXVECTOR3 vSpine = D3DXVECTOR3(0.93f, 0.97f, 1.f);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
+			if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
+				SetFrameScale(&vHead, true, pFrameHead);		
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
+			if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_R_Leg);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
+			if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_L_Leg);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
+			if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_R_Calf);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
+			if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_L_Calf);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
+			if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_R_Foot);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
+			if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_L_Foot);		
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameSpine = m_pXSkinAnim->GetCloneFrame(L"Bip01_Spine");
+			if(pFrameSpine != NULL) // && pFrameHead->m_bScale == false)
+				SetFrameScale(&vSpine, false, pFrameSpine);			
+		}
+	#endif
+	#ifdef EVE_SECOND_CLASS_CHANGE
+		else if( m_pUnit != NULL && m_pUnit->GetType() == CX2Unit::UT_EVE )
+		{
+			D3DXVECTOR3 vHead = D3DXVECTOR3(0.94f, 0.97f, 0.98f);
+			D3DXVECTOR3 vThigh = D3DXVECTOR3(1.0f, 0.98f, 0.98f);
+			D3DXVECTOR3 vCalf = D3DXVECTOR3(1.0f, 0.98f, 0.98f);
+			D3DXVECTOR3 vFoot = D3DXVECTOR3(0.95f, 0.95f, 0.95f);
+			D3DXVECTOR3 vHand = D3DXVECTOR3(0.9f, 0.96f, 0.96f);		
+			D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);		
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
+			if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
+				SetFrameScale(&vHead, true, pFrameHead);		
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Thigh");
+			if(pFrame_R_Leg != NULL) // && pFrame_R_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_R_Leg);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Leg = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Thigh");
+			if(pFrame_L_Leg != NULL) // && pFrame_L_Leg->m_bScale == false)
+				SetFrameScale(&vThigh, true, pFrame_L_Leg);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Calf");
+			if(pFrame_R_Calf != NULL) // && pFrame_R_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_R_Calf);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Calf = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Calf");
+			if(pFrame_L_Calf != NULL) // && pFrame_L_Calf->m_bScale == false)
+				SetFrameScale(&vCalf, true, pFrame_L_Calf);
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Foot");
+			if(pFrame_R_Foot != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_R_Foot);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Foot = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Foot");
+			if(pFrame_L_Foot != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vFoot, true, pFrame_L_Foot);		
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_R_Hand");
+			if(pFrame_R_Hand != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vHand, true, pFrame_R_Hand);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Hand = m_pXSkinAnim->GetCloneFrame(L"Bip01_L_Hand");
+			if(pFrame_L_Hand != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vHand, true, pFrame_L_Hand);		
+
+			vDummyHand.x = 1.f;// / vHand.x;
+			vDummyHand.y = 1.f;// / vHand.y;
+			vDummyHand.z = 1.f;// / vHand.z;
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy1_Rhand");
+			if(pFrame_R_Dummy != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vDummyHand, true, pFrame_R_Dummy);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy2_Lhand");
+			if(pFrame_L_Dummy != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vDummyHand, true, pFrame_L_Dummy);
+
+		}
+	#endif
+	#ifdef CHUNG_SECOND_CLASS_CHANGE
+	#ifdef SERV_CHUNG_TACTICAL_TROOPER
+		else if( m_pUnit != NULL && 
+			( m_pUnit->GetClass() == CX2Unit::UC_CHUNG_IRON_PALADIN || m_pUnit->GetClass() == CX2Unit::UC_CHUNG_DEADLY_CHASER || m_pUnit->GetClass() == CX2Unit::UC_CHUNG_TACTICAL_TROOPER) )
+	#else
+		else if( m_pUnit != NULL && 
+			( m_pUnit->GetClass() == CX2Unit::UC_CHUNG_IRON_PALADIN || m_pUnit->GetClass() == CX2Unit::UC_CHUNG_DEADLY_CHASER ) )
+	#endif SERV_CHUNG_TACTICAL_TROOPER
+		{
+			D3DXVECTOR3 vHead = D3DXVECTOR3(0.93f, 0.96f, 0.96f);
+			D3DXVECTOR3 vDummyHand = D3DXVECTOR3(1.f, 1.f, 1.f);
+			//m_fScale = fScale;
+			m_fScale = 1.13f;
+
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameHead = m_pXSkinAnim->GetCloneFrame(L"Bip01_Head");
+			if(pFrameHead != NULL) // && pFrameHead->m_bScale == false)
+				SetFrameScale(&vHead, true, pFrameHead);		
 				
-		vDummyHand = vDummyHand / m_fScale;
+			vDummyHand = vDummyHand / m_fScale;
 
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy1_Rhand");
-		if(pFrame_R_Dummy != NULL) // && pFrame_R_Foot->m_bScale == false)
-			SetFrameScale(&vDummyHand, true, pFrame_R_Dummy);
-		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy2_Lhand");
-		if(pFrame_L_Dummy != NULL) // && pFrame_L_Foot->m_bScale == false)
-			SetFrameScale(&vDummyHand, true, pFrame_L_Dummy);		
-	}
-#endif
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_R_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy1_Rhand");
+			if(pFrame_R_Dummy != NULL) // && pFrame_R_Foot->m_bScale == false)
+				SetFrameScale(&vDummyHand, true, pFrame_R_Dummy);
+			CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame_L_Dummy = m_pXSkinAnim->GetCloneFrame(L"Dummy2_Lhand");
+			if(pFrame_L_Dummy != NULL) // && pFrame_L_Foot->m_bScale == false)
+				SetFrameScale(&vDummyHand, true, pFrame_L_Dummy);		
+		}
+	#endif
+
+#endif //UNIT_SCALE_COMBINE_ONE
 
 }
 #endif
@@ -6206,19 +7403,19 @@ void CX2UnitViewerUI::SetShowObjectMeshPlayer(CKTDGXMeshPlayer::CXMeshInstanceHa
 /// 강화 무기 이펙트 초기화
 void CX2UnitViewerUI::InitUpgradeWeaponParticle()
 {
-	CX2Inventory* pInventory = m_pUnit->GetInventory();
+    if ( m_pUnit == NULL )
+        return;
 
-	if( NULL != pInventory )
+	const CX2Inventory& kInventory = m_pUnit->GetInventory();
 	{
-		CX2Item* pItem = pInventory->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+		CX2Item* pItem = kInventory.GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 
 		if( NULL != m_pUnit->GetUnitTemplet() &&
 			NULL != pItem &&
-			NULL != pItem->GetItemData() &&
-			( (	pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData()->m_Endurance > 0) || 
-			pItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY ) )
+			( (	pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData().m_Endurance > 0) || 
+			pItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY ) )
 		{
-			const int			iUpgradeLevel	= pItem->GetItemData()->m_EnchantLevel;		/// 현재 무기의 강화 레벨
+			const int			iUpgradeLevel	= pItem->GetItemData().m_EnchantLevel;		/// 현재 무기의 강화 레벨
 			CX2Unit::UNIT_TYPE	eUnitType		= m_pUnit->GetUnitTemplet()->m_UnitType;	/// 현재 유저의 유닛 타입
 
 			if( iUpgradeLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_2 )		/// 11강화 이상
@@ -6233,15 +7430,18 @@ void CX2UnitViewerUI::InitUpgradeWeaponParticle()
 				case CX2Unit::UT_ARA:
 				case CX2Unit::UT_LIRE:
 		#ifdef NEW_CHARACTER_EL
-				case CX2Unit::UT_ELESIS:
+				case CX2Unit::UT_ELESIS:		
 		#endif // NEW_CHARACTER_EL
 					{
 						CreateUpgradeWeaponParticle( L"11Gang_Weapon_Effect_Lightning", L"11Gang_Weapon_Effect_Lightning02",
 													 L"11Gang_Weapon_Effect_Lightning03", L"11Gang_Weapon_Effect_Lightning04" );
 					} break;
 					
-				/// 무기가 2개인 이브의 기어
+				/// 2개인 이브의 기어
 				case CX2Unit::UT_EVE:
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+				case CX2Unit::UT_ADD:
+	#endif //SERV_9TH_NEW_CHARACTER
 					{
 						CreateUpgradeWeaponParticle( L"11Gang_Weapon_Effect_Lightning02", L"11Gang_Weapon_Effect_Lightning04",
 							L"11Gang_Weapon_Effect_Lightning02", L"11Gang_Weapon_Effect_Lightning04" );
@@ -6258,7 +7458,7 @@ void CX2UnitViewerUI::CreateUpgradeWeaponParticle( const WCHAR* pName1, const WC
 	if( NULL != g_pData && NULL != g_pData->GetUIMajorParticle() )
 	{
 		/// 1번 파티클
-		if( NULL != pName1 && m_hSeqUpgradeWeapon == INVALID_PARTICLE_HANDLE )
+		if( NULL != pName1 && m_hSeqUpgradeWeapon == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqUpgradeWeapon = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, pName1, 0.f, 0.f ,0.f );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon );
@@ -6268,7 +7468,7 @@ void CX2UnitViewerUI::CreateUpgradeWeaponParticle( const WCHAR* pName1, const WC
 		}
 
 		/// 2번 파티클
-		if( NULL != pName2 && m_hSeqUpgradeWeapon2 == INVALID_PARTICLE_HANDLE )
+		if( NULL != pName2 && m_hSeqUpgradeWeapon2 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqUpgradeWeapon2 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, pName2, 0.f, 0.f ,0.f );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon2 );
@@ -6278,7 +7478,7 @@ void CX2UnitViewerUI::CreateUpgradeWeaponParticle( const WCHAR* pName1, const WC
 		}
 
 		/// 3번 파티클
-		if( NULL != pName3 && m_hSeqUpgradeWeapon3 == INVALID_PARTICLE_HANDLE )
+		if( NULL != pName3 && m_hSeqUpgradeWeapon3 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqUpgradeWeapon3 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, pName3, 0.f, 0.f ,0.f );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon3 );
@@ -6288,7 +7488,7 @@ void CX2UnitViewerUI::CreateUpgradeWeaponParticle( const WCHAR* pName1, const WC
 		}
 
 		/// 4번 파티클
-		if( NULL != pName3 && m_hSeqUpgradeWeapon4 == INVALID_PARTICLE_HANDLE )
+		if( NULL != pName3 && m_hSeqUpgradeWeapon4 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqUpgradeWeapon4 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, pName3, 0.f, 0.f ,0.f );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon4 );
@@ -6471,6 +7671,30 @@ void CX2UnitViewerUI::ProcessUpgradeWeaponParticle()
 						pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
 					}
 				} break;
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			case CX2Unit::UT_ADD:
+				{
+					if ( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL )		/// 오른쪽
+					{
+						D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Weapon02" );
+						pSeqUpgradeWeapon->SetPosition( vBonePos );
+						pSeqUpgradeWeapon2->SetPosition( vBonePos );
+
+						pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
+						pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
+					}
+
+					if ( pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )		/// 왼쪽
+					{
+						D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Weapon05" );
+						pSeqUpgradeWeapon3->SetPosition( vBonePos );
+						pSeqUpgradeWeapon4->SetPosition( vBonePos );
+
+						pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
+						pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
+					}
+				} break;
+	#endif //SERV_9TH_NEW_CHARACTER
 			}
 		}
 	}
@@ -6499,3 +7723,36 @@ bool CX2UnitViewerUI::CanNotShowEnchantedWeaponEffectToRiding()
 		return false; // 탈 것 탑승 상태
 }
 #endif //RIDING_SYSTEM
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+bool CX2UnitViewerUI::IsPlayAvatarEmotionSoundWithouEmotion ( CX2Unit::EMOTION_TYPE eEmotionId )
+{
+	m_bIsPlayAvatarEmotionSoundWithoutEmotion = false;
+	switch ( eEmotionId )
+	{
+	case CX2Unit::ET_EMOTION_AVATAR7 :
+		for( int i=0; i<ARRAY_SIZE( ITEM_ID_EMOTION_AVATAR1 ); ++i )
+		{
+			const CX2Item::ItemTemplet* pItemTempet = g_pData->GetItemManager()->GetItemTemplet( ITEM_ID_EMOTION_AVATAR1[i] );
+
+			if( NULL != pItemTempet )
+			{
+				CX2Item* pEquipedItem = m_pUnit->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_DEFENCE_BODY, true ); 
+				if ( NULL != pEquipedItem && NULL != pEquipedItem->GetItemTemplet() )
+				{
+					if ( pEquipedItem->GetItemTemplet()->GetItemID () == pItemTempet->GetItemID() )
+					{
+						m_bIsPlayAvatarEmotionSoundWithoutEmotion = true;
+						return true;
+					}
+				}
+			}			
+		}
+		break;
+	default :
+		return true;
+	}
+
+	return false;
+}
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨

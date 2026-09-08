@@ -24,6 +24,9 @@ using boost::bind;
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 #include "sha1.h"
+	#ifdef ENCYPTE_CHECK_KOM_SHA1
+#include "X2SimpleEncryption.h"
+	#endif	//ENCYPTE_CHECK_KOM_SHA1
 #endif	CHECK_KOM_FILE_ON_LOAD
 
 #ifdef DLL_MANAGER
@@ -43,16 +46,14 @@ using boost::bind;
 #endif // DEBUG
 
 #ifndef NO_GAMEGUARD
-	//#pragma comment( lib, "NPGameLib.lib" )
 
-//[NOTE] ï¿½ß±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìºê·¯ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½Ìºê·¯ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
-#if defined CLIENT_COUNTRY_CN
-#pragma comment( lib, "NPGameLib_98_MD_DE.lib" )
-#elif defined SERV_COUNTRY_PH
-#pragma comment( lib, "NPGameLib.lib" )
-#else CLIENT_COUNTRY_CN
-#pragma comment( lib, "NPGameLib_96_MD.lib" )
-#endif CLIENT_COUNTRY_CN
+#if defined (SERV_COUNTRY_CN)
+	#pragma comment( lib, "NPGameLib_98_MD_DE.lib" )
+#elif defined (SERV_COUNTRY_PH) || defined (SERV_COUNTRY_JP) || defined (SERV_COUNTRY_BR) || defined (SERV_COUNTRY_ID) || defined (SERV_COUNTRY_TH)
+	#pragma comment( lib, "NPGameLib.lib" )
+#else //CLIENT_COUNTRY_XX
+	#pragma comment( lib, "NPGameLib_96_MD.lib" )
+#endif //CLIENT_COUNTRY_XX
 
 #endif //NO_GAMEGUARD
 
@@ -67,7 +68,7 @@ using boost::bind;
     #endif
 #endif
 
-//{{ kimhc // 2010.3.3 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½âµµ ï¿½ï¿½ï¿½ï¿½
+//{{ kimhc // 2010.3.3 // ±¤°í ³ëÃâµµ Àû¿ë
 #ifdef	IGA_TEST
 	#if defined(DEBUG) || defined(_DEBUG)
 		#pragma comment( lib, "IGALibD.lib" )
@@ -75,7 +76,7 @@ using boost::bind;
 		#pragma comment( lib, "IGALib.lib" )
 	#endif // defined(DEBUG) || defined(_DEBUG)
 #endif	IGA_TEST
-//}} kimhc // 2010.3.3 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½âµµ ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.3.3 // ±¤°í ³ëÃâµµ Àû¿ë
 
 
 
@@ -86,26 +87,25 @@ using boost::bind;
 #ifdef THEMIDA_BY_TOOL_TEAM
 
 #	ifdef APPLY_THEMIDA
-		THEMIDA_BY_TOOL_TEAM ï¿½ï¿½ APPLY_THEMIDA ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¸ï¿½ ï¿½ÈµË´Ï´ï¿½. 	
+		THEMIDA_BY_TOOL_TEAM ´Â APPLY_THEMIDA ¿Í °°ÀÌ »ç¿ëµÇ¸é ¾ÈµË´Ï´Ù. 	
 #	endif APPLY_THEMIDA
 
 #	ifdef VIRTUALIZER_CODE
-		THEMIDA_BY_TOOL_TEAM ï¿½ï¿½ VIRTUALIZER_CODE ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¸ï¿½ ï¿½ÈµË´Ï´ï¿½. 	
+		THEMIDA_BY_TOOL_TEAM ´Â VIRTUALIZER_CODE ¿Í °°ÀÌ »ç¿ëµÇ¸é ¾ÈµË´Ï´Ù. 	
 #	endif VIRTUALIZER_CODE
 
 #	ifdef DAMAGE_HISTORY
-		DAMAGE_HISTORY ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½Å¿ï¿½ NO_ALL_KILL_HACKING_TESTï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. 
+		DAMAGE_HISTORY ±â´ÉÀ» »ç¿ëÇÏÁö ¾Ê½À´Ï´Ù. ´ë½Å¿¡ NO_ALL_KILL_HACKING_TEST¸¦ »ç¿ëÇÕ´Ï´Ù. 
 #	endif DAMAGE_HISTORY
 
 #else THEMIDA_BY_TOOL_TEAM
 
-	// ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½Úµå°¡ ï¿½Æ¹ï¿½ ï¿½ï¿½ï¿½Ûµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Æ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
+	// ¾Æ·¡ÀÇ ÄÚµå°¡ ¾Æ¹« µ¿ÀÛµµ ÇÏÁö ¾Ê¾Æ¾ß Á¤»óÀÔ´Ï´Ù.
 	THEMIDA_VM_START				
 	THEMIDA_CODEREPLACE_START	
 	THEMIDA_ENCODE_START			
 
 #endif THEMIDA_BY_TOOL_TEAM
-
 
 
 #ifdef SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
@@ -137,7 +137,7 @@ HINTERNET			g_hInternet		= NULL;
 
 
 #ifdef _NEXON_KR_
-wstring				g_pNexonPassport;	// Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ ï¿½Ø½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ passport ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+wstring				g_pNexonPassport;	// Ã¼Çè ¾ÆÀÌµð´Â ³Ø½¼ ¸Þ½ÅÁ® »ç¿ë¸øÇÏ±â ¶§¹®¿¡ passport µû·Î ÀúÀå
 #endif
 extern		CX2SMTPMail*			g_pX2SMTPMail;
 
@@ -213,9 +213,11 @@ vector<THREAD_WND_INFO> GetThreadWnd( DWORD threadId )
 #endif // CHECK_THREAD_WND
 
 #if defined( SERV_HACKING_TOOL_LIST ) 
-BOOL CALLBACK EnumWindowsProc(HWND hwnd , LPARAM lp)
+BOOL CALLBACK EnumWindowsProc_Thread(HWND hwnd , LPARAM lp)
 {
-
+    CX2Main::CheckWindowInfo* pkCheckWindowInfo = (CX2Main::CheckWindowInfo*) lp;
+    if ( pkCheckWindowInfo == NULL )
+        return FALSE;
 
 #if defined( _SERVICE_ ) 
 	// checked 
@@ -239,7 +241,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd , LPARAM lp)
 	MakeUpperCase(textWindow);
 	MakeUpperCase(textClass);
 	
-	if( g_pMain != NULL && g_pMain->GetCheckWindowInfo() != NULL )
+	//if( g_pMain != NULL && g_pMain->GetCheckWindowInfo() != NULL )
 	{
 		KHackingToolInfo windowInfo;
 		if( hr1 > 0 )
@@ -251,7 +253,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd , LPARAM lp)
 		else
 			windowInfo.m_wstrWindowClassName = L"EMPTY";
 
-		g_pMain->GetCheckWindowInfo()->PushWindowInfo(windowInfo);
+		pkCheckWindowInfo->PushWindowInfo_Thread(windowInfo);
 	}
 
 	//THEMIDA_VM_END
@@ -269,7 +271,7 @@ BOOL CALLBACK EnumWindowsProc(HWND hwnd , LPARAM lp)
 BOOL Pesudo_IsDebuggerPresent()
 {
 
-	// TODO : ï¿½ï¿½ï¿½â¿¡ VM_START ï¿½Ç´ï¿½ ENCODE_START ï¿½ï¿½ï¿½ï¿½Ï´Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// TODO : ¿©±â¿¡ VM_START ¶Ç´Â ENCODE_START »ç¿ëÇÏ´Ï±î ´ÙÀ½°ú °°Àº ¿¡·¯°¡ ³­´Ù
 	// Error: There is at least a nested VM/CodeReplace macros. VM/CodeReplace macros cannot be nested.
 	//THEMIDA_VM_START
 	//THEMIDA_ENCODE_START
@@ -306,7 +308,7 @@ BOOL Pesudo_IsDebuggerPresent()
 }
 
 
-// NOTE : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½. 
+// NOTE : ÇöÀç ÀÌ ÇÔ¼ö´Â »ç¿ëÇÏ°í ÀÖÁö ¾Ê´Ù. 
 int CheckDebugger()
 {
 #if defined( _SERVICE_ )
@@ -343,21 +345,21 @@ void MakeScreenShot(std::string strfilename)
 		HDC hScrDC;
 		HBITMAP hOldBitmap;
 
-		//DCï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
+		//DC¸¦ ¾ò´Â´Ù.
 
 		HWND pDesktop = GetDesktopWindow();
 
-		// ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.      
+		// Æ÷Ä¿½º¸¦ °¡Áø À©µµ¿ìÀÇ ÁÂÇ¥¸¦ Á¶»çÇÑ´Ù.      
 		GetClientRect( pDesktop, &rect );
 
 
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ DCï¿½ï¿½ ï¿½Þ¸ï¿½ DCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+		// À©µµ¿ì È­¸é DC¿Í ¸Þ¸ð¸® DC¸¦ ¸¸µé°í ¸Þ¸ð¸® ºñÆ®¸ÊÀ» ¼±ÅÃÇÑ´Ù.
 		hScrDC = GetDC( pDesktop ); CreateDC( L"DISPLAY", NULL, NULL, NULL );
 		hMemDC = CreateCompatibleDC( hScrDC );
 		hBitmap = CreateCompatibleBitmap( hScrDC, rect.right - rect.left, rect.bottom - rect.top );
 		hOldBitmap = (HBITMAP)SelectObject( hMemDC, hBitmap );
 
-		// È­ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+		// È­¸éÀ» ¸Þ¸ð¸® ºñÆ®¸ÊÀ¸·Î º¹»çÇÑ´Ù.
 		BitBlt( hMemDC, 0, 0, rect.right - rect.left, rect.bottom - rect.top,
 			hScrDC, rect.left, rect.top, SRCCOPY );
 		SelectObject( hMemDC, hOldBitmap );
@@ -392,13 +394,11 @@ void CALLBACK CrashPreCallBack(INT_PTR nErrHandlerParam)
 		stringstream wstrstm;
 		if( g_pMain != NULL )
 		{	
-#ifdef	ADD_CRASH_INFO
 			g_pMain->AddMemoryInfo( wstrstm );
-#endif	ADD_CRASH_INFO			
 			g_pMain->AddSystemInfo( wstrstm );
-			// DLL ï¿½ï¿½ï¿½ï¿½
+			// DLL Á¤º¸
 			g_pMain->AddDLLInfo( wstrstm );
-			// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// ÇÁ·Î¼¼½º Á¤º¸
 			g_pMain->AddProcessInfo(wstrstm, false);
 		}
 		g_CKTDXLog.StateLogToFile( "ErrorLog.txt" );
@@ -436,7 +436,7 @@ void CALLBACK CrashPostCallBack(INT_PTR nErrHandlerParam)
 }
 #endif
 
-// crashreportï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½Ý¹ï¿½ï¿½Ô¼ï¿½
+// crashreport¿¡¼­ ¾²ÀÌ´Â ÄÝ¹éÇÔ¼ö
 inline BOOL WINAPI CrashReportCallback(LPVOID lpvState)
 {
 	SIZE_T currMemSize=0, peakMemSize=0;
@@ -489,7 +489,7 @@ inline BOOL WINAPI CrashReportCallback(LPVOID lpvState)
 
 
 //#ifndef _SERVICE_
-//	extern CX2SMTPMail* g_pX2SMTPMail; // x2.cppï¿½ï¿½ ï¿½ï¿½ï¿½ÇµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½
+//	extern CX2SMTPMail* g_pX2SMTPMail; // x2.cpp¿¡ Á¤ÀÇµÇ¾îÀÖÀ½
 //	LRESULT CALLBACK SendDebugMailDlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 //{
 //	switch (message)
@@ -498,11 +498,11 @@ inline BOOL WINAPI CrashReportCallback(LPVOID lpvState)
 //		{
 //			g_pX2SMTPMail->SetReceiverEMail( "carl79@kogstudios.com" ); 
 //
-//			g_pX2SMTPMail->SetSenderName( "ï¿½ç³»ï¿½ï¿½ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½" );
-//			g_pX2SMTPMail->SetSubject( "[ï¿½ç³» ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½]" );
+//			g_pX2SMTPMail->SetSenderName( "»ç³»¿¤¼ÒµåÀ¯Àú" );
+//			g_pX2SMTPMail->SetSubject( "[»ç³» °ÔÀÓ ÇÃ·¹ÀÌ µ¥ÀÌÅÍ]" );
 //			g_pX2SMTPMail->SetDesc( "^^" );
 //
-//			// ï¿½ï¿½ï¿½ï¿½ Ã·ï¿½ï¿½
+//			// ÆÄÀÏ Ã·ºÎ
 //			g_pX2SMTPMail->ClearFile();			
 //			std::vector< std::string > vecFiles;
 //
@@ -520,7 +520,7 @@ inline BOOL WINAPI CrashReportCallback(LPVOID lpvState)
 //			//strmFolder << buffer << "\\GameGuard";
 //			//free(buffer);
 //
-//			//// npgl.erlï¿½ï¿½ ï¿½á¿¡ Ã·ï¿½Î°ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ì°¡ ï¿½Ö¾î¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½
+//			//// npgl.erlÀÌ ¸á¿¡ Ã·ºÎ°¡ ¾ÈµÇ´Â °æ¿ì°¡ ÀÖ¾î¼­ ÆÄÀÏÀ» º¹»çÇØ¼­ º¸³»µµ·Ï ÇÑ´Ù
 //			//stringstream strmSrcNPGL;
 //			//strmSrcNPGL << strmFolder.str() << "\\npgl.erl";
 //			//stringstream strmDestNPGL;
@@ -592,7 +592,7 @@ m_pNoticeManager( NULL ),
 m_pCheckSumManager( NULL ),
 m_pLVUpEventMgr( NULL ),
 m_pTutorSystem( NULL ),
-#ifndef COUPON_SYSTEM // ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½
+#ifndef COUPON_SYSTEM // ÀÌÀü UI Á¦°Å
 m_pCouponBox( NULL ),
 #endif // COUPON_SYSTEM
 
@@ -624,45 +624,53 @@ m_pMemoryHolder( NULL )
 , m_fFileSizeCheckTime(2.f)
 #endif //BANDICAM_RECORDING
 #ifdef CHECK_PLAY_TIME_INFORMATION
-, m_iGameHour( 0 )							//Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½È¯
-, m_pDlgPlayTimeInformation( NULL )			//ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½È³ï¿½ï¿½ï¿½ Dialog
-, m_pDlgShutDownInformation( NULL )			//ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½È³ï¿½ï¿½ï¿½ Dialog
+, m_iGameHour( 0 )							//Å¬¶óÀÌ¾ðÆ® ½ÃÀÛ ÈÄ Áö³­ ½Ã°£ ¹ÝÈ¯
+, m_pDlgPlayTimeInformation( NULL )			//ÇÃ·¹ÀÌ ½Ã°£ ¾È³»¿ë Dialog
+, m_pDlgShutDownInformation( NULL )			//ÇÃ·¹ÀÌ ½Ã°£ ¾È³»¿ë Dialog
 
-, m_fPlayTimeInfoShowTime( 0.f )			//ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
-, m_fShutDownInfoShowTime( 0.f )			//ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
+, m_fPlayTimeInfoShowTime( 0.f )			//¾È³»Ã¢ À¯Áö ½Ã°£
+, m_fShutDownInfoShowTime( 0.f )			//¾È³»Ã¢ À¯Áö ½Ã°£
 
-, m_bProcessPlayTimeInformation( false )	//ï¿½È³ï¿½Ã¢ Fade ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-, m_bProcessShutDownInformation( false )	//ï¿½È³ï¿½Ã¢ Fade ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+, m_bProcessPlayTimeInformation( false )	//¾È³»Ã¢ Fade ±â´É Àû¿ë ¿©ºÎ
+, m_bProcessShutDownInformation( false )	//¾È³»Ã¢ Fade ±â´É Àû¿ë ¿©ºÎ
 
-, m_wstrShutDownString( L"" )				//ï¿½Ë´Ù¿ï¿½ ï¿½È³ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+, m_wstrShutDownString( L"" )				//¼Ë´Ù¿î ¾È³»Ã¢¿ë ¹®±¸
 #endif CHECK_PLAY_TIME_INFORMATION
 , m_bSurveyUser( false )
-//{{ ï¿½Ö¹ï¿½Ã¶ [2013/1/4]  ï¿½ï¿½ï¿½Ó³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½
+//{{ ÃÖ¹ÎÃ¶ [2013/1/4]  °ÔÀÓ³» Á¤º¸ ½ºÆ®¸µÀ» ¿¢¼¿ÆÄÀÏ·Î Ãâ·Â
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
 , m_bInGameInfoToExcel( false )
 #endif PRINT_INGAMEINFO_TO_EXCEL
 #ifdef FESTIVAL_UI
-, m_SeqFestivalUI( INVALID_PARTICLE_HANDLE )
+, m_SeqFestivalUI( INVALID_PARTICLE_SEQUENCE_HANDLE )
 #endif //FESTIVAL_UI
-#ifdef ADDED_EVENT_JUMPING_CHARACTER	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½
-, m_bIsJumpingCharacter ( false )		// ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
-#endif // ADDED_EVENT_JUMPING_CHARACTER	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½
+#ifdef ADDED_EVENT_JUMPING_CHARACTER	// ±èÁ¾ÈÆ, ¿©¸§¹æÇÐ ÀÌº¥Æ® Á¡ÇÎ Ä³¸¯ÅÍ
+, m_bIsJumpingCharacter ( false )		// Á¡ÇÎ Ä³¸¯ÅÍ °¡´É Ä³¸¯ÅÍÀÎ°¡?
+#endif // ADDED_EVENT_JUMPING_CHARACTER	// ±èÁ¾ÈÆ, ¿©¸§¹æÇÐ ÀÌº¥Æ® Á¡ÇÎ Ä³¸¯ÅÍ
 #ifdef ALWAYS_INTERNAL_NPGE_PACKING
 , ClientArg("")
 #endif ALWAYS_INTERNAL_NPGE_PACKING
 #ifdef SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
 , m_bIsValideCheckKomScript ( true )
 #endif // SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+, m_bPlayIntroMovie( true )
+#endif //PLAY_PROMOTION_MOVIE
 {
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	m_bUdpPacketOverlap = true;
 
     for( int i = 0; i < CX2Game::GT_NUMS; i++ )
     {
         m_aeUDPMode[ i ] = CKTDNUDP::FORCE_CONNECT_MODE_DEFAULT;
     }
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+
+
+#ifdef X2OPTIMIZE_DAMAGE_EFFECT_TEST
+	m_bEnableDamageEffectTest = true;
+#endif//X2OPTIMIZE_DAMAGE_EFFECT_TEST
 
 #ifdef IN_HOUSE_PLAY_LOG_TEST
 	DeleteFileA( "InHouse.log" );
@@ -675,14 +683,14 @@ m_pMemoryHolder( NULL )
 		g_pX2SMTPMail->SetSMTPAddress( m_strMailAddress.c_str() );
 #endif
 
-#ifdef	SERV_SERVER_TIME_GET
+#ifdef SERV_SERVER_TIME_GET
 	m_bMappingResult = false;
 	m_SumCount = 0;
 	m_GetTimeCount = 0.0f;
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾î¼­ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ì¸¦ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½Ø´ï¿½.ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ 
+	//¼­¹öÅë½ÅÀÌ ´Ê¾î¼­ ÆÐÅ¶À» ¹ÞÁö ¸øÇÏ´Â °æ¿ì¸¦ ´ëºñÇÏ¿© Ã³À½ ÆÐÄ¡½Ã°£À» ³Ö¾îÁØ´Ù.ÇÑ¹øÀº ÀÌº¥Æ® Ã³¸®°¡ µÇ°Ô 
 	m_TempTime = L"2013-04-26 00:00:00";
-	m_bOneChange = false; //ï¿½Ñ¹ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½
-#endif  SERV_SERVER_TIME_GET
+	m_bOneChange = false; //ÇÑ¹ø¸¸ Ã³¸®ÇÏ±â À§ÇØ¼­
+#endif SERV_SERVER_TIME_GET
 
 #ifdef BUG_TRAP    
 	wstring clientVersion;
@@ -767,24 +775,48 @@ m_pMemoryHolder( NULL )
 #ifndef WITHOUT_MASS_FILE_TEST
 	WCHAR wszKomFileName[256] = L"";
 
-	const int KOM_FILE_COUNT = 145;
-	for( int i=1; i<=KOM_FILE_COUNT; i++ )
-	{
-		if( i < 10 )
-		{
-			StringCchPrintfW( wszKomFileName, ARRAY_SIZE(wszKomFileName), L"data00%d.kom", i );
-		}
-		else if( i < 100 )
-		{
-			StringCchPrintfW( wszKomFileName, ARRAY_SIZE(wszKomFileName), L"data0%d.kom", i );
-		}
-		else
-		{
-			StringCchPrintfW( wszKomFileName, ARRAY_SIZE(wszKomFileName), L"data%d.kom", i );
-		}
+#ifdef ONLY_INT_KOM
+	WCHAR wszINTKomFileName[256] = L"dataINT.kom";
+	m_KOMList.push_back( wszINTKomFileName );
+#endif //ONLY_INT_KOM
 
-		m_KOMList.push_back( wszKomFileName );
-	}
+    const int KOM_FILE_COUNT = 150;
+    for( int i=1; i<=KOM_FILE_COUNT; i++ )
+    {
+        if( i < 10 )
+        {
+            StringCchPrintfW( wszKomFileName, ARRAY_SIZE(wszKomFileName), L"data00%d.kom", i );
+        }
+        else if( i < 100 )
+        {
+            StringCchPrintfW( wszKomFileName, ARRAY_SIZE(wszKomFileName), L"data0%d.kom", i );
+        }
+        else
+        {
+            StringCchPrintfW( wszKomFileName, ARRAY_SIZE(wszKomFileName), L"data%d.kom", i );
+        }
+
+        m_KOMList.push_back( wszKomFileName );
+    }
+
+    const int iKOM_FILE_COUNT = 23;
+    for( int i=1; i<=iKOM_FILE_COUNT; i++ )
+    {
+        if( i < 10 )
+        {
+            StringCchPrintfW( wszKomFileName, ARRAY_SIZE(wszKomFileName), L"datai00%d.kom", i );
+        }
+        else if( i < 100 )
+        {
+            StringCchPrintfW( wszKomFileName, ARRAY_SIZE(wszKomFileName), L"datai0%d.kom", i );
+        }
+        else
+        {
+            StringCchPrintfW( wszKomFileName, ARRAY_SIZE(wszKomFileName), L"datai%d.kom", i );
+        }
+
+        m_KOMList.push_back( wszKomFileName );
+    }
 #endif WITHOUT_MASS_FILE_TEST
 	
 	
@@ -797,9 +829,9 @@ m_pMemoryHolder( NULL )
 	m_DLLList.push_back( L"xactengine3_7.dll" );
 	m_DLLList.push_back( L"XAPOFX1_5.dll" );
 	m_DLLList.push_back( L"XAudio2_7.dll" );
-#if defined (_DEBUG) || defined(_IN_HOUSE_)
+#ifdef _DEBUG
 	m_DLLList.push_back( L"d3dx9d_43.dll");
-#endif //defined (_DEBUG) || defined(_IN_HOUSE_)
+#endif _DEBUG
 #else	CONVERSION_VS
 	m_DLLList.push_back( L"d3dx9_30.dll" );
 #endif // CONVERSION_VS
@@ -813,20 +845,20 @@ m_pMemoryHolder( NULL )
 #ifdef	CONVERSION_VS
 	m_DLLList.push_back( L"msvcp100.dll" );
 	m_DLLList.push_back( L"msvcr100.dll" );
-#if defined (_DEBUG) || defined(_IN_HOUSE_)
+#ifdef _DEBUG
 	m_DLLList.push_back( L"msvcp100d.dll" );
 	m_DLLList.push_back( L"msvcr100d.dll" );
-#endif //defined (_DEBUG) || defined(_IN_HOUSE_)
+#endif _DEBUG
 #else	CONVERSION_VS
  	m_DLLList.push_back( L"msvcp71.dll" );
  	m_DLLList.push_back( L"msvcr71.dll" );
 #endif // CONVERSION_VS
-	//m_DLLList.push_back( L"nmcogame.dll" );		// ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê¿ï¿½ dll ï¿½ï¿½ï¿½ï¿½
+	//m_DLLList.push_back( L"nmcogame.dll" );		// ÇØ¿ÜÆÀ ºÒÇÊ¿ä dll Á¦°Å
 	m_DLLList.push_back( L"usp10.dll" );
-	//m_DLLList.push_back( L"EndingFlash.DLL" );	// ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê¿ï¿½ dll ï¿½ï¿½ï¿½ï¿½
+	//m_DLLList.push_back( L"EndingFlash.DLL" );	// ÇØ¿ÜÆÀ ºÒÇÊ¿ä dll Á¦°Å
 	//m_DLLList.push_back( L"winhoard.dll" );
 
-	//{{ 081001.hoons.ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½î°¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¸ï¿½Ä±ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½.
+	//{{ 081001.hoons.¿ùµåÅø¿¡ µé¾î°¡´Â µ¿¿µ»ó Ä¸ÃÄ±â´É ¶§¹®¿¡ ÇÊ¿äÇÔ.
 	m_DLLList.push_back( L"bdcap32.dll" );
 	m_DLLList.push_back( L"bdcore32.dll" );
 	m_DLLList.push_back( L"vcomp90.dll" );
@@ -836,7 +868,7 @@ m_pMemoryHolder( NULL )
 	m_DLLList.push_back( L"BugTrap.dll" );
 	m_DLLList.push_back( L"fmodex.dll" );
 
-	//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/9/14] //	ï¿½Ù½ï¿½ï¿½ï¿½ dll ï¿½ß°ï¿½
+	//{{ Çã»óÇü : [2009/9/14] //	ÇÙ½¯µå dll Ãß°¡
 	m_DLLList.push_back( L"asc_com.dll" );
 	m_DLLList.push_back( L"asc_dh.dll" );
 	m_DLLList.push_back( L"asc_fse.dll" );
@@ -863,7 +895,16 @@ m_pMemoryHolder( NULL )
 	m_DLLList.push_back( L"V3Hunt.dll" );
 	m_DLLList.push_back( L"V3InetGS.dll" );		
 
-		//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/9/14] //	ï¿½Ù½ï¿½ï¿½ï¿½ dll ï¿½ß°ï¿½	
+		//}} Çã»óÇü : [2009/9/14] //	ÇÙ½¯µå dll Ãß°¡	
+
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh, MOVIE_TEST Áß »ç¿ë¿¡ ÇÊ¿äÇÑ Define À» MOVIE_TEST_BASE ·Î º¯°æ
+
+
+	m_DLLList.push_back( L"bdvid32.dll");
+
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh, MOVIE_TEST Áß »ç¿ë¿¡ ÇÊ¿äÇÑ Define À» MOVIE_TEST_BASE ·Î º¯°æ
 
 #ifdef SERV_EPAY_SYSTEM
 	m_DLLList.push_back( L"msvcr80.dll" );
@@ -893,7 +934,7 @@ m_pMemoryHolder( NULL )
 	m_DLLList.push_back( L"rsa.dll" );
 #endif //SERV_EPAY_SYSTEM
 
-	// ï¿½Ó±Ô¼ï¿½ ï¿½Ïºï¿½ ï¿½ß°ï¿½ 09.11.26 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ dll ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ÀÓ±Ô¼ö ÀÏº» Ãß°¡ 09.11.26 ÆÛÇÃ °ü·Ã dll »èÁ¦ ¸·À½
 #ifdef CLIENT_PURPLE_MODULE
 	m_DLLList.push_back( L"HanAuthForClient.dll" );
 	m_DLLList.push_back( L"HanGameInfoForClient.dll" );
@@ -907,17 +948,17 @@ m_pMemoryHolder( NULL )
 #endif // CLIENT_PURPLE_MODULE
 
 #ifdef HACKSHIELD_AUTO_UPDATE
-	//{{ 2010/10/27 ï¿½ï¿½È¿ï¿½ï¿½	ï¿½Ù½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ç¸é¼­ ï¿½ß°ï¿½ï¿½ï¿½ dll ï¿½ï¿½ï¿½ï¿½
+	//{{ 2010/10/27 Á¶È¿Áø	ÇÙ½¯µå ÀÚµ¿ ¾÷µ¥ÀÌÆ® ±â´É Ãß°¡µÇ¸é¼­ Ãß°¡µÈ dll ÆÄÀÏ
 	m_DLLList.push_back( L"AspINet.dll" );
 	m_DLLList.push_back( L"Bz32Ex.dll" );
 
-	// hshield/update ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ 
+	// hshield/update Æú´õ ³» 
 	m_DLLList.push_back( L"ahni2.dll" );
 	m_DLLList.push_back( L"v3bz32.dll" );
 	//}}
 #endif HACKSHIELD_AUTO_UPDATE
 
-	//{{ ï¿½ï¿½ï¿½ï¿½ : XTRAP - DLL ï¿½ß°ï¿½
+	//{{ ÁöÇå : XTRAP - DLL Ãß°¡
 #ifdef CLIENT_USE_XTRAP
 	m_DLLList.push_back( L"psapi.dll" );
 	m_DLLList.push_back( L"XTrapExt.dll" );
@@ -927,9 +968,9 @@ m_pMemoryHolder( NULL )
 
 #ifdef MASSFILE_MAPPING_FUNCTION
 	m_DLLList.push_back( L"mfc100u.dll" );
-#if defined (_DEBUG) || defined(_IN_HOUSE_)
+#ifdef _DEBUG
 	m_DLLList.push_back( L"mfc100ud.dll" );
-#endif //defined (_DEBUG) || defined(_IN_HOUSE_)
+#endif _DEBUG
 #endif
 
 #ifdef CLIENT_COUNTRY_ID
@@ -945,7 +986,7 @@ m_pMemoryHolder( NULL )
 	m_DLLList.push_back( L"sdkencryptedappticket.dll" );
 #endif //SERV_STEAM
 
-	//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/10/12] //	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½
+	//{{ Çã»óÇü : [2009/10/12] //	º§´õ °ü·Ã ¸®¼Ò½º »èÁ¦ÄÚµå
 #ifdef _SERVICE_
 	DeleteFile( L"1.docx" );
 	DeleteFile( L"unomap01.tga" );
@@ -957,7 +998,7 @@ m_pMemoryHolder( NULL )
 	DeleteFile( L"motion_unohound.x" );
 	DeleteFile( L"motion_elemental_kenaz.x" );
 #endif
-	//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/10/12] //	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½
+	//}} Çã»óÇü : [2009/10/12] //	º§´õ °ü·Ã ¸®¼Ò½º »èÁ¦ÄÚµå
 
 #ifdef BANDICAM_CAPTURE
 	DeleteFile( L"bdcap64.dll" );
@@ -1005,6 +1046,8 @@ m_pMemoryHolder( NULL )
 	m_X2Publisher			= XP_LEVELUP_BR;
 #elif defined CLIENT_COUNTRY_PH
 	m_X2Publisher			= XP_GARENA_PH;
+#elif defined CLIENT_COUNTRY_IN
+	m_X2Publisher			= XP_FUNIZEN_IN;
 #else
 	NO PUBLISHER NO COMPILE
 #endif
@@ -1019,7 +1062,7 @@ m_pMemoryHolder( NULL )
 
 	m_bAutoQuit			= false;
 	m_fAutoQuitTime		= 0.0f;
-	m_fAutoQuitCoolTime = (float)RandomNumber( 2, 5 );
+	m_fAutoQuitCoolTime = (float)RandomNumber( 5, 10 );
 	m_fTimeToUpdateProcessList = 0;
 
 	m_pPartyUI = NULL;
@@ -1080,7 +1123,7 @@ m_pMemoryHolder( NULL )
 #ifdef _NEXON_KR_
 		case XP_NEXON_KOREA:
 			{
-				ConvertCharToWCHAR( g_pNexonPassport, __argv[1] );	// Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½
+				ConvertCharToWCHAR( g_pNexonPassport, __argv[1] );	// Ã¼Çè ¾ÆÀÌµð¸¦ À§ÇØ¼­
 
 				char commandString[2000] = {0,};
 				char* tempArgv = __argv[1];
@@ -1095,15 +1138,15 @@ m_pMemoryHolder( NULL )
 
 
 				BOOL bNexonRetVal = TRUE;
-#ifndef NEW_MESSENGER	// ï¿½Ø½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
+#ifndef NEW_MESSENGER	// ³Ø½¼ ¸Þ½ÅÀú ¸ðµâÀ» ¾²Áö ¾Ê´Â´Ù.
 				StateLog( L"CNMManager::GetInstance().Init()" );
 				CNMManager::GetInstance().Init();
 #endif //#ifndef NEW_MESSENGER
 				StateLog( L"CNMCOClientObject::GetInstance().SetLocale( kLocaleID_KR )" );
 				bNexonRetVal = CNMCOClientObject::GetInstance().SetLocale( kLocaleID_KR );
-#ifndef _USE_NEXON_MSG_INHOUSE	// ï¿½ç³»ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ï¿½ï¿½ï¿½ï¿½
+#ifndef _USE_NEXON_MSG_INHOUSE	// »ç³»¿¡¼­ ³Ø½¼Á¢¼Ó
 #ifndef _SERVICE_
-				//ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö³ï¿½? 34ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ï´Ï±ï¿½
+				//¸Þ½ÅÀú Å×½ºÆ® ¼­¹ö ÄÚµå ³ªÁß¿¡ Áö¿öÁ®¾ßÇÔ ¿Ö³Ä? 34·Î Á¢¼ÓÇØ¾ßÇÏ´Ï±î
 				CNMConnConfig _config;
 				_config.bAutoPatch = false;
 				wcscpy( _config.szLoginServerIp, L"218.145.45.33" );
@@ -1121,13 +1164,27 @@ m_pMemoryHolder( NULL )
 				if( m_bManualLogin == false )
 				{
 					StateLog( L"CNMCOClientObject::GetInstance().AttachAuth( domainStr.c_str()" );
-					if( CNMCOClientObject::GetInstance().AttachAuth( domainStr.c_str() ) == kLoginAuth_OK )
+
+					const NMLoginAuthReplyCode nmLoginAuthReplyCode
+						= CNMCOClientObject::GetInstance().AttachAuth( domainStr.c_str() );
+
+					if ( nmLoginAuthReplyCode == kLoginAuth_OK )
 					{
 						StateLog( L"CNMCOClientObject::GetInstance().GetMyInfo()" );
 						CNMCOClientObject::GetInstance().GetMyInfo();
 					}
 					else
 					{
+#if defined(_OPEN_TEST_) || defined(_OPEN_TEST_2_)
+						wstringstream wstream;
+						wstream << L"ReplyCode: ";
+						wstream << static_cast<int>( nmLoginAuthReplyCode ) << L"\n";
+						wstream << L"Passport: ";
+						wstream << g_pNexonPassport;
+
+						MessageBox( g_pKTDXApp->GetHWND(), wstream.str().c_str(), L"AttachAuth", MB_OK );
+#endif // #if defined(_OPEN_TEST_) || defined(_OPEN_TEST_2_)
+
 						g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_NEXON_AUTH_FAILED );
 					}
 				}
@@ -1143,9 +1200,9 @@ m_pMemoryHolder( NULL )
 		case XP_GAMANIA_TW:
 		case XP_GAMANIA_HK:
 			{
-				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
-				// __argv[1]; <- ï¿½ï¿½ï¿½ï¿½ï¿½ ID
-				// __argv[2]; <- ï¿½ï¿½ï¿½ï¿½ï¿½ Pass ï¿½ï¿½ï¿½Â´ï¿½
+				// ÃÖÃÊ Á¢¼Ó ½Ã
+				// __argv[1]; <- ¿©±â·Î ID
+				// __argv[2]; <- ¿©±â·Î Pass µé¾î¿Â´Ù
 				
 
 				char* tempArgv = __argv[1];
@@ -1185,7 +1242,7 @@ m_pMemoryHolder( NULL )
 
 			} break;
 #endif CLIENT_COUNTRY_TWHK
-#ifdef _NHN_JP_	// ï¿½Ó±Ô¼ï¿½ ï¿½Ïºï¿½ ï¿½ß°ï¿½
+#ifdef _NHN_JP_	// ÀÓ±Ô¼ö ÀÏº» Ãß°¡
 		case XP_NHN_JP:
 			{		
 				m_bManualLogin = false;
@@ -1198,6 +1255,9 @@ m_pMemoryHolder( NULL )
 		case XP_GAMEFORGE_EU:
 		case XP_ASIASOFT_TH:
 		case XP_LEVELUP_BR:
+#ifdef SERV_COUNTRY_IN
+		case XP_FUNIZEN_IN:
+#endif SERV_COUNTRY_IN
 			{
 				m_bManualLogin = true;
 			}
@@ -1219,18 +1279,18 @@ m_pMemoryHolder( NULL )
 				
 				if( CX2Steam::GetSteamUserIDAndPass(m_wstrID, m_wstrPass) )
 					m_bManualLogin = false;
-#ifdef SERV_CHANNELING_AERIA // ï¿½Æ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef SERV_CHANNELING_AERIA // ¾Æ¸®¾Æ °ø¿ëºñ¹ø ¼ÂÆÃÀº ¿©±â¼­ ÇÏ°í ÀÖÀ½
 				else if( __argc == 3 )
 				{
 					m_bManualLogin = false;
-					// ï¿½ï¿½ï¿½ï¿½ID -> ï¿½ï¿½ï¿½ï¿½IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					// ¼¼¼ÇID -> À¯ÀúID·Î ¼ÂÆÃ
 					char* tempArgv = __argv[1];
 					wstring wstrID;
 					wstrID.clear();
 					char IDString[2000] = {0,};
 					strncpy( IDString, tempArgv , 1999 );
 					ConvertCharToWCHAR(m_wstrID, IDString, strlen(IDString));
-					// ï¿½Æ¸ï¿½ï¿½Æ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ -> ï¿½ï¿½ï¿½ï¿½ PWï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					// ¾Æ¸®¾Æ¿ë °ø¿ë ºñ¹ø -> À¯Àú PW·Î ¼ÂÆÃ
 					m_wstrPass = L"81621XZJ2380DE";
 				}
 #endif //SERV_CHANNELING_AERIA
@@ -1251,15 +1311,6 @@ m_pMemoryHolder( NULL )
 			break;
 	}
 #endif //X2TOOL
-
-//{{ Iruha : 2026-08-24 // static auto login : overrides whatever the publisher switch decided
-#ifdef STATIC_AUTO_LOGIN
-	m_bManualLogin	= false;
-	m_wstrID		= STATIC_AUTO_LOGIN_ID;
-	m_wstrPass		= STATIC_AUTO_LOGIN_PW;
-#endif STATIC_AUTO_LOGIN
-//}}
-
 	m_iChannelServerPort	= 9400;
 	m_iPickedChannelServerIPIndex = -1;
 	m_iDefaultChannelServerIPIndex = 0;
@@ -1282,15 +1333,15 @@ m_pMemoryHolder( NULL )
 	g_pData					= m_pData;
 	g_pInstanceData			= new CX2InstanceData;
 
-#if defined(ARGUMENT_LOGIN) || defined(SERV_STEAM) || defined(STATIC_AUTO_LOGIN)
+#if defined(ARGUMENT_LOGIN) || defined(SERV_STEAM)
 	if(m_bManualLogin == false)
 	{
 		g_pInstanceData->SetUserID( m_wstrID );
 		g_pInstanceData->SetUserPassword( m_wstrPass );
 		
-#ifdef SERV_CHANNELING_AERIA // ï¿½Æ¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef SERV_CHANNELING_AERIA // ¾Æ¸®¾Æ °ø¿ëºñ¹ø ¼ÂÆÃÀº ¿©±â¼­ ÇÏ°í ÀÖÀ½
 		if( __argc == 3 )
-			// ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ó´Ï´ï¿½.
+			// ¼¼¼Ç ID´Â °è¼Ó »ç¿ëÇØ¾ß ÇÏ´Ï ÀúÀåÇØ µÓ´Ï´Ù.
 			g_pInstanceData->SetUserSessionID(m_wstrID);
 #endif //SERV_CHANNELING_AERIA
 	}
@@ -1334,29 +1385,59 @@ m_pMemoryHolder( NULL )
 		wstring komFileName = L"./";
 		komFileName += m_KOMList[i];
 #ifdef _SERVICE_
+	#ifdef NEW_MAIL_LOG
+		bool bIsDuplictaionError = false;
+		if( NULL == g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->AddMassFile( komFileName.c_str(), bIsDuplictaionError ) )
+		{
+		#ifdef _OPEN_TEST_
+			MessageBox( g_pKTDXApp->GetHWND(), komFileName.c_str(), L"Error", MB_OK );
+		#endif	//_ OPEN_TEST_
+			// kom ÆÄÀÏÀ» ÀÐ¾î¿À´Âµ¥ ½ÇÆÐÇß´Ù. Å¬¶óÀÌ¾ðÆ® Á¾·áÇÏÀÚ.
+			int *x = NULL;
+			*x = 1;
+
+			if( true == bIsDuplictaionError )
+			{
+				// ÇØ¿ÜÆÀ Á¦°Å
+				//CX2MailLogManager::GetInstance()->AddLog(CX2MailLogManager::MLI_MASS_FILE_DUPLICATION, komFileName.c_str() );
+			}
+		}
+	#else
 		if( NULL == g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->AddMassFile( komFileName.c_str() ) )
 		{
-#ifdef _OPEN_TEST_
+		#ifdef _OPEN_TEST_
 			MessageBox( g_pKTDXApp->GetHWND(), komFileName.c_str(), L"Error", MB_OK );
-#endif	//_ OPEN_TEST_
-			// kom ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¾ï¿½ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´ï¿½. Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+		#endif	//_ OPEN_TEST_
+			// kom ÆÄÀÏÀ» ÀÐ¾î¿À´Âµ¥ ½ÇÆÐÇß´Ù. Å¬¶óÀÌ¾ðÆ® Á¾·áÇÏÀÚ.
 			int *x = NULL;
 			*x = 1;
 		}
+	#endif // NEW_MAIL_LOG
 #else
+
+	#ifdef NEW_MAIL_LOG
+		bool bIsDuplictaionError = false;
+		if( NULL == g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->AddMassFile( komFileName.c_str(), bIsDuplictaionError) &&
+			true == bIsDuplictaionError )
+		{
+			// ÇØ¿ÜÆÀ Á¦°Å
+			//CX2MailLogManager::GetInstance()->AddLog(CX2MailLogManager::MLI_MASS_FILE_DUPLICATION, komFileName.c_str() );
+		}
+	#else
 		g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->AddMassFile( komFileName.c_str() );
+	#endif // NEW_MAIL_LOG
 
 #endif _SERVICE_
 	}
 
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-	// ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ AddMassFile ï¿½Ò°ï¿½!
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+	// ÀÌ ÀÌÈÄ¿¡´Â AddMassFile ºÒ°¡!
 	g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LockMassFileMap();
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 #ifndef CHINA_PATH_SERVER_CONNECT
 #if defined(CHECK_KOM_EU)
-	//ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ ï¿½Ï°ï¿½ ï¿½Õ´Ï´ï¿½. 
+	//´õ ¾Æ·¡¼­ ÆÄ½Ì ÇÏ°Ô ÇÕ´Ï´Ù. 
 #else
 #ifdef	CHECK_KOM_FILE_ON_LOAD
 	ProcessSession();
@@ -1364,9 +1445,13 @@ m_pMemoryHolder( NULL )
 #endif
 #endif CHINA_PATH_SERVER_CONNECT
 
+#ifdef X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+	g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->AddNewFolderFile( ".\\New" );
+#endif//X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+
 #endif WITHOUT_MASS_FILE_TEST
 
-	//{{ ï¿½Ú±ï¿½ï¿½ï¿½ : [2010/05/05]	//	ï¿½Ù¹ï¿½ï¿½ï¿½ï¿½Úµï¿½ ï¿½Ê±ï¿½È­
+	//{{ ¹Ú±³Çö : [2010/05/05]	//	ÇÙ¹æÁöÄÚµå ÃÊ±âÈ­
 #ifdef DLL_MANAGER
 	SiCX2DLLManager()->Init();
 #endif DLL_MANAGER
@@ -1397,15 +1482,15 @@ m_pMemoryHolder( NULL )
 
 
 
-	// dmlee: 2008-11-3, ï¿½ï¿½ï¿½ï¿½ ktdxappï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Úµå¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å°ï¿½ï¿½ï¿½Ï´ï¿½
+	// dmlee: 2008-11-3, ¿ø·¡ ktdxapp¿¡ ÀÖ´ø ÄÚµå¸¦ ¿©±â·Î ¿Å°å½À´Ï´Ù
 	//{{ robobeg : 2008-10-28
 // 	HRESULT hr = g_pKTDXApp->LoadKLuaManagerTemplate();
 // 	ASSERT( SUCCEEDED( hr ) );
 	//}} robobeg : 2008-10-28
 
 
-	RegisterLuabind( g_pKTDXApp->GetLuaBinder() );
-	LoadLuaEnum( g_pKTDXApp->GetLuaBinder() );
+	RegisterLuabind();
+	LoadLuaEnum();
 
 //#ifndef SERV_MASSFILE_MAPPING_FUNCTION
 #ifdef MASSFILE_MAPPING_FUNCTION
@@ -1413,27 +1498,40 @@ m_pMemoryHolder( NULL )
 #endif MASSFILE_MAPPING_FUNCTION
 //#endif SERV_MASSFILE_MAPPING_FUNCTION
 
-	//{{ megagame / ï¿½Ú±ï¿½ï¿½ï¿½ / 2010.05.12 / ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ megagame / ¹Ú±³Çö / 2010.05.12 / ½Ã½ºÅÛ Á¤º¸
 #ifdef SYS_INFO
 	m_pSystemInfo = new CX2SystemInfo();
 #endif //SYS_INFO
-	//}} megagame / ï¿½Ú±ï¿½ï¿½ï¿½ / 2010.05.12 / ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//}} megagame / ¹Ú±³Çö / 2010.05.12 / ½Ã½ºÅÛ Á¤º¸
 
 #ifdef USE_FREE_TYPE
-	InstallFont( FT_DEFAULT_FONTNAME, "gulim.ttc" );
+	InstallFont( FT_DEFAULT_FONTNAME, "Gulim.ttc" ); 
+	//InstallFont( "2002L_KOG", "2002LKOG.ttf" );
 #endif //USE_FREE_TYPE
 
-	//{{ 2013.02.27 ï¿½ï¿½È¿ï¿½ï¿½	ï¿½Ø¿ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ (SERV_GLOBAL_BASE)
+	//{{ 2013.02.27 Á¶È¿Áø	ÇØ¿Ü ±âº» ±¸Á¶ ÀÛ¾÷ (SERV_GLOBAL_BASE)
 	std::wstring wstrBasicConfigFile = GetWstrBasicConfigFile();
 	OpenScriptFile(wstrBasicConfigFile.c_str());
 	//}}
 #if defined(CHECK_KOM_EU)
-//ï¿½×¼Å³ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ ï¿½ï¿½ ï¿½Ä¿ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ï°ï¿½ ï¿½Õ´Ï´ï¿½. 
+//³×¼Å³Î ÇÃ·¡±× ÆÄ½Ì ÇÑ ÈÄ¿¡ Ã¼Å©ÄÞ ·ÎµåÇÏ°Ô ÇÕ´Ï´Ù. 
 #ifdef	CHECK_KOM_FILE_ON_LOAD
 	ProcessSession();
 #endif	CHECK_KOM_FILE_ON_LOAD
 #endif
 
+#ifdef CLOSE_ON_START_FOR_GAMEGUARD
+	m_bCloseOnStart = false;
+	if(__argc == 2 && StrCmpA(__argv[1], "CloseOnStart") == 0)
+	{
+		m_vecChannelServerIP.clear();
+#ifdef SERVER_GROUP_UI_ADVANCED
+		m_DefaultChannelServerInfo.m_kServerIP = L"192.168.0.1";
+		m_DefaultChannelServerInfo.m_usMasterPort = 9400;
+#endif SERVER_GROUP_UI_ADVANCED
+		m_bCloseOnStart = true;
+	}
+#endif CLOSE_ON_START_FOR_GAMEGUARD
 
 #ifdef LAUNCHER_COMMAND_ARGUMENT
 	if(__argc >= 3)
@@ -1465,6 +1563,19 @@ m_pMemoryHolder( NULL )
 	ProcessSession();
 #endif CHINA_PATH_SERVER_CONNECT
 
+#ifdef CLOSE_ON_START_FOR_GAMEGUARD
+	m_bCloseOnStart = false;
+
+	if(__argc == 2 && StrCmpA(__argv[1], "CloseOnStart") == 0)
+	{
+		m_vecChannelServerIP.clear();
+		m_bCloseOnStart = true;
+#ifdef ALWAYS_INTERNAL_NPGE_PACKING
+		string Temp(__argv[1]);
+		SetClientArg(Temp);
+#endif ALWAYS_INTERNAL_NPGE_PACKING
+	}
+#endif CLOSE_ON_START_FOR_GAMEGUARD
 
 //#ifndef OPEN_TEST_1_NO_MESSENGER_CASHSHOP
 #if !defined(WORLD_TOOL) && !defined(X2TOOL)
@@ -1472,19 +1583,17 @@ m_pMemoryHolder( NULL )
 #endif
 //#endif OPEN_TEST_1_NO_MESSENGER_CASHSHOP
 
-
 #ifdef SERV_COUNTRY_PH
 #ifdef _SERVICE_
 	g_pInstanceData->SetAuthToken((std::string) __argv[1]);
 #endif //_SERVICE_
 #endif //SERV_COUNTRY_PH
 
-
-//{{ï¿½ï¿½ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
+//{{±èÁØÈ¯ ¼­¹ö½Ã°£ ¹Þ¾Æ¿À±â
 #ifdef	SERV_SERVER_TIME_GET
 	if(Handler_ECH_GET_SERVER_TIME_REQ()==false)
 	{
-		 KTDGUIMsgBox( D3DXVECTOR2(250,300), L"ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½", g_pMain->GetNowState() );
+		 KTDGUIMsgBox( D3DXVECTOR2(250,300), L"¼­¹ö½Ã°£ ¹Þ±â ¿À·ù", GetNowState() );
 	}
 #endif  SERV_SERVER_TIME_GET
 
@@ -1531,13 +1640,13 @@ m_pMemoryHolder( NULL )
 #endif BUG_TRAP
 
 	m_pStringFilter			= new CX2StringFilter();
-#ifndef WORLD_TOOL	// 090519 ï¿½Â¿ï¿½ ï¿½Ó½Ã¼ï¿½ï¿½ï¿½ï¿½Úµï¿½
+#ifndef WORLD_TOOL	// 090519 ÅÂ¿Ï ÀÓ½Ã¼öÁ¤ÄÚµå
 	m_pGameEdit				= new CX2GameEdit();
 #endif WORLD_TOOL
 	m_pTextManager			= new CX2TextManager();
 	m_pNoticeManager		= new CX2NoticeManager( 150 );
 
-#ifndef COUPON_SYSTEM // ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½
+#ifndef COUPON_SYSTEM // ÀÌÀü UI Á¦°Å
 	m_pCouponBox			= new CX2CouponBox( NULL );
 #endif // COUPON_SYSTEM
 
@@ -1549,7 +1658,7 @@ m_pMemoryHolder( NULL )
 
 
 
-#ifndef WORLD_TOOL	// 090519 ï¿½Â¿ï¿½ ï¿½Ó½Ã¼ï¿½ï¿½ï¿½ï¿½Úµï¿½
+#ifndef WORLD_TOOL	// 090519 ÅÂ¿Ï ÀÓ½Ã¼öÁ¤ÄÚµå
 	
 	m_pLVUpEventMgr			= new CX2LVUpEventMgr();
 
@@ -1561,9 +1670,7 @@ m_pMemoryHolder( NULL )
 	m_pSecurityPad			= new CX2SecurityPad();
 #endif SERV_SECOND_SECURITY
 
-#ifdef REFORM_UI_KEYPAD
 	m_pKeyPad		= new CX2KeyPad();
-#endif
 
 #endif // WORLD_TOOL
 
@@ -1581,12 +1688,14 @@ m_pMemoryHolder( NULL )
 #endif LOADING_ANIMATION_TEST
 	
 
-	
 #ifdef _SERVICE_
-	SetWindowText( g_pKTDXApp->GetHWND(), L"Elsword" );
-	//wstringstream wstrmWindowTitle;
-	//wstrmWindowTitle << L"Elsword - " << m_ClientVersion.c_str();
-	//SetWindowText( g_pKTDXApp->GetHWND(), wstrmWindowTitle.str().c_str() );
+	#ifdef ADD_VERSION_CAPTION_TO_SERVICE_BRANCHES		// kimjh, SERVICE Define ÀÌ ÄÑÁ®ÀÖÀ» ¶§, À©µµ¿ì Ä¸¼Ç¿¡ ¹öÀüÀ» Ãß°¡ÇÑ´Ù.
+		wstringstream wstrmWindowTitle;
+		wstrmWindowTitle << L"Elsword - " << m_ClientVersion.c_str() << L"_" << m_SubClientVersion.c_str();
+		SetWindowText( g_pKTDXApp->GetHWND(), wstrmWindowTitle.str().c_str() );
+	#else // ADD_VERSION_CAPTION_TO_SERVICE_BRANCHES		// kimjh, SERVICE Define ÀÌ ÄÑÁ®ÀÖÀ» ¶§, À©µµ¿ì Ä¸¼Ç¿¡ ¹öÀüÀ» Ãß°¡ÇÑ´Ù.
+		SetWindowText( g_pKTDXApp->GetHWND(), L"Elsword" );
+	#endif // ADD_VERSION_CAPTION_TO_SERVICE_BRANCHES	// kimjh, SERVICE Define ÀÌ ÄÑÁ®ÀÖÀ» ¶§, À©µµ¿ì Ä¸¼Ç¿¡ ¹öÀüÀ» Ãß°¡ÇÑ´Ù.
 #else
 	
 	
@@ -1646,6 +1755,11 @@ m_pMemoryHolder( NULL )
 
 	m_threadCheckWindowInfo = NULL;
 
+#ifdef ADD_COLLECT_CLIENT_INFO
+		m_pCollectHackInfo = NULL;
+		m_iSendHackInfo = 0;
+#endif
+
 #	ifdef REFACTORING_BY_TOOL_TEAM
 
 	#ifndef	CHECK_KOM_FILE_ON_LOAD
@@ -1655,18 +1769,17 @@ m_pMemoryHolder( NULL )
 #	else REFACTORING_BY_TOOL_TEAM
 
 	#if !defined(CHECK_KOM_FILE_ON_LOAD) && !defined(X2TOOL)
-		m_threadCheckWindowInfo = new CheckWindowInfo();
-		m_threadCheckWindowInfo->m_pKTDXApp			= g_pKTDXApp;
-		m_threadCheckWindowInfo->m_pInstanceData	= g_pInstanceData;
+		m_threadCheckWindowInfo = new CheckWindowInfo(g_pKTDXApp,g_pInstanceData
+#ifdef	CHECK_KOM_FILE_ON_LOAD
+            ,this
+#endif  CHECK_KOM_FILE_ON_LOAD
+            );
 		m_threadCheckWindowInfo->BeginThread();
 	#endif	CHECK_KOM_FILE_ON_LOAD
 	
 #	endif REFACTORING_BY_TOOL_TEAM
 
-#ifdef ADD_COLLECT_CLIENT_INFO
-		m_pCollectHackInfo = NULL;
-		m_iSendHackInfo = 0;
-#endif
+
 
 #	if defined( _SERVICE_ )
 	ELSWORD_VIRTUALIZER_END
@@ -1707,6 +1820,17 @@ g_pKTDXApp->GetDeviceManager()->ResumeThread();
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 	_InitKOGGamePerformanceCheck();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+	
+#ifdef _IN_HOUSE_
+	m_bUnlimitedSkillUse = true;
+#else //_IN_HOUSE_
+	m_bUnlimitedSkillUse = false;
+#endif //_IN_HOUSE_
+
+#endif //TOGGLE_UNLIMITED_SKILL_USE
+
 }
 
 
@@ -1714,6 +1838,20 @@ g_pKTDXApp->GetDeviceManager()->ResumeThread();
 
 CX2Main::~CX2Main(void)
 {
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh, MOVIE_TEST Áß »ç¿ë¿¡ ÇÊ¿äÇÑ Define À» MOVIE_TEST_BASE ·Î º¯°æ
+
+#ifdef SERV_HACKING_TOOL_LIST
+	if ( NULL != GetCheckWindowInfo() )
+	{
+		GetCheckWindowInfo()->SetNullToKtdxappAndInstanceData();
+		GetCheckWindowInfo()->SetForceExitThread( false );
+	}
+#endif // SERV_HACKING_TOOL_LISTs
+
+
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh, MOVIE_TEST Áß »ç¿ë¿¡ ÇÊ¿äÇÑ Define À» MOVIE_TEST_BASE ·Î º¯°æ
 
 #ifdef APPLY_THEMIDA
 	CODEREPLACE_START
@@ -1749,15 +1887,25 @@ CX2Main::~CX2Main(void)
 #endif IN_HOUSE_PLAY_LOG_TEST
 #endif WORLD_TOOL
 
-	//{{ 2011.9.16	ï¿½ï¿½ï¿½ï¿½È£  ï¿½Ýµï¿½Ä· ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ 2011.9.16	ÀÌÁØÈ£  ¹ÝµðÄ· µ¿¿µ»ó Ä¸ÃÄ Áö¿ø
 #ifdef BANDICAM_RECORDING
+
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh, MOVIE_TEST Áß »ç¿ë¿¡ ÇÊ¿äÇÑ Define À» MOVIE_TEST_BASE ·Î º¯°æ
+
+	if ( NULL != g_pData )
+		g_pData->DeleteUIManager();
+
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh, MOVIE_TEST Áß »ç¿ë¿¡ ÇÊ¿äÇÑ Define À» MOVIE_TEST_BASE ·Î º¯°æ
+
 	m_BandiCaptureLibrary.Destroy();
 #endif BANDICAM_RECORDING
 	//}}
 
 #ifdef CHECK_PLAY_TIME_INFORMATION
-	DeletePlayTimeInformation();		//ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½
-	DeleteShutDownInformation();		//ï¿½Ë´Ù¿ï¿½ ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½
+	DeletePlayTimeInformation();		//ÇÃ·¹ÀÌ ½Ã°£ ¾È³»Ã¢ »èÁ¦
+	DeleteShutDownInformation();		//¼Ë´Ù¿î ¾È³»Ã¢ »èÁ¦
 #endif CHECK_PLAY_TIME_INFORMATION
 
 
@@ -1786,7 +1934,7 @@ CX2Main::~CX2Main(void)
 
 	SAFE_DELETE( m_pTutorSystem );
 	
-#ifndef COUPON_SYSTEM // ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½
+#ifndef COUPON_SYSTEM // ÀÌÀü UI Á¦°Å
 	SAFE_DELETE( m_pCouponBox );
 #endif // COUPON_SYSTEM
 	
@@ -1805,9 +1953,7 @@ CX2Main::~CX2Main(void)
 	SAFE_DELETE( m_pSecurityPad	);
 #endif SERV_SECOND_SECURITY
 
-#ifdef REFORM_UI_KEYPAD
 	SAFE_DELETE( m_pKeyPad );
-#endif
 
 	g_pData->DeleteMessenger();
 
@@ -1834,7 +1980,7 @@ CX2Main::~CX2Main(void)
 				{
 #ifndef OPEN_TEST_1_NO_MESSENGER_CASHSHOP
 #ifndef NEW_MESSENGER
-					if ( g_pMain->GetNexonLoginMessenger() == true )
+					if ( GetNexonLoginMessenger() == true )
 					{
 						StateLog( L"CNMCOClientObject::GetInstance().LogoutMessenger()" );
 						bNexonRetVal = CNMCOClientObject::GetInstance().LogoutMessenger();
@@ -1849,7 +1995,7 @@ CX2Main::~CX2Main(void)
 	
 
 					//
-					//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±×¾Æ¿ï¿½
+					//	ÀÎÁõ¼­¹ö¿¡¼­ ·Î±×¾Æ¿ô
 					//
 					if ( m_bManualLogin == true )
 					{
@@ -1875,7 +2021,7 @@ CX2Main::~CX2Main(void)
 
 
 				//
-				//	ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				//	¸Þ½ÅÀú ÀÌº¥Æ® ÇÚµé·¯ µî·Ï Á¦°Å
 				//
 				StateLog( L"CNMCOClientObject::GetInstance().ResetCallbackMessage( g_pKTDXApp->GetHWND() )" );
 				bNexonRetVal = CNMCOClientObject::GetInstance().ResetCallbackMessage( g_pKTDXApp->GetHWND() );
@@ -1887,16 +2033,16 @@ CX2Main::~CX2Main(void)
 
 #ifndef NEW_MESSENGER
 				//
-				//	ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Å´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				//	¸Þ½ÅÀú ¸Å´ÏÀú Á¾·á
 				//
 				
 	
 				StateLog( L"CNMManager::GetInstance().Finalize()" );
 				CNMManager::GetInstance().Finalize();
 
-				// ï¿½Þ½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½ï¿½ï¿½ï¿½ .. Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½..?
-				//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ .. C:\Documents and Settings\All Users\Application Data\Nexon\Common\NMDATA
-				//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ .. C:\Documents and Settings\All Users\Application Data\Nexon\Common\nmservice.ini
+				// ¸Þ½ÅÀú Ä³½Ì µ¥ÀÌÅ¸ »èÁ¦ .. Æ¯º° À¯Àú±Þ ÀÌ»ó¸¸ Áö¿ì¸é ¹®Á¦ ¾øÀ» µí..?
+				//Àý´ë Æú´õ °æ·Î .. C:\Documents and Settings\All Users\Application Data\Nexon\Common\NMDATA
+				//Àý´ë ÆÄÀÏ °æ·Î .. C:\Documents and Settings\All Users\Application Data\Nexon\Common\nmservice.ini
 
 				if ( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_SPECIAL_USER )
 				{
@@ -1911,7 +2057,7 @@ CX2Main::~CX2Main(void)
 		case XP_GAMANIA_TW:
 		case XP_GAMANIA_HK:
 			{
-				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+				// °ÔÀÓ ³¡³¾ ¶§
 
 			} break;
 #endif CLIENT_COUNTRY_TWHK
@@ -1944,7 +2090,7 @@ CX2Main::~CX2Main(void)
 #ifdef SERV_TOONILAND_CHANNELING
 	if( NULL != g_pData && NULL != g_pData->GetMyUser() )
 	{
-		switch ( g_pData->GetMyUser()->GetUserData()->m_uChannelCode )
+		switch ( g_pData->GetMyUser()->GetUserData().m_uChannelCode )
 		{
 		case 0:		// NEXON User
 			{
@@ -1964,17 +2110,17 @@ CX2Main::~CX2Main(void)
 #endif //NX_ENDING_FLASH
 #endif //_SERVICE_
 
-	//{{ ï¿½Ú±ï¿½ï¿½ï¿½ : [2010/03/24]	//	ï¿½Ù¹ï¿½ï¿½ï¿½ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ ¹Ú±³Çö : [2010/03/24]	//	ÇÙ¹æÁöÄÚµå Á¾·á
 #ifdef DLL_MANAGER
 	SiCX2DLLManager()->ReleaseInstance();
 #endif
 	//}}
 
-//{{ megagame / ï¿½Ú±ï¿½ï¿½ï¿½ / 2010.05.12 / ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//{{ megagame / ¹Ú±³Çö / 2010.05.12 / ½Ã½ºÅÛ Á¤º¸
 #ifdef SYS_INFO
 	SAFE_DELETE( m_pSystemInfo );
 #endif //SYS_INFO
-//}} megagame / ï¿½Ú±ï¿½ï¿½ï¿½ / 2010.05.12 / ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//}} megagame / ¹Ú±³Çö / 2010.05.12 / ½Ã½ºÅÛ Á¤º¸
 
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 	KOGGamePerformanceCheck_CallbackFuncTable::DeleteInstance();
@@ -1985,6 +2131,19 @@ CX2Main::~CX2Main(void)
 	CX2EmblemManager::DestroyInstance();
 #endif // NEW_EMBLEM_MANAGER
 
+#ifdef NEW_MAIL_LOG
+	CX2MailLogManager::GetInstance()->SendMail();
+	CX2MailLogManager::DestroyInstance();
+#endif // NEW_MAIL_LOG
+
+#ifdef FIELD_BOSS_RAID
+	CX2BossRaidManager::DestroyInstance();
+#endif // FIELD_BOSS_RAID
+
+#ifdef REFORM_SKILL_NOTE_UI
+	CX2SkillNoteManager::DestroyInstance();
+#endif // REFORM_SKILL_NOTE_UI
+
 	g_pMain = NULL;
 	
 #ifdef CJ_ID_WEB_BILLING
@@ -1992,88 +2151,94 @@ CX2Main::~CX2Main(void)
 #endif //CJ_ID_WEB_BILLING
 }
 
-
-//{{ 2013.02.27 ï¿½ï¿½È¿ï¿½ï¿½	ï¿½Ø¿ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ (SERV_GLOBAL_BASE)
+//{{ 2013.02.27 Á¶È¿Áø	ÇØ¿Ü ±âº» ±¸Á¶ ÀÛ¾÷ (SERV_GLOBAL_BASE)
 std::wstring CX2Main::GetWstrBasicConfigFile()
 {
 	std::wstring wstrBasicConfigFile = L"Config_INTERNAL.lua";
+//	std::wstring wstrBasicConfigFile = L"Config.lua";
 
-#ifndef CLIENT_INT_INTERNAL // ï¿½ï¿½ï¿½ï¿½ ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½ Define
+#ifndef CLIENT_INT_INTERNAL // ÅëÇÕ ¼Ò½º ÄÄÆÄÀÏ¿¡¼­¸¸ ÄÑ´Â Define
 #ifdef _SERVICE_
 #ifdef _OPEN_TEST_
 	//{{ _OPEN_TEST_
 #ifdef CLIENT_COUNTRY_TW
-	wstrBasicConfigFile =  L"Config_TW_TEST.lua";
+	wstrBasicConfigFile = L"Config_TW_TEST.lua";
 #elif CLIENT_COUNTRY_HK
-	wstrBasicConfigFile =  L"Config_HK_TEST.lua";
+	wstrBasicConfigFile = L"Config_HK_TEST.lua";
 #elif CLIENT_COUNTRY_JP
-	wstrBasicConfigFile =  L"Config_JP_OPENTEST.lua";
+	wstrBasicConfigFile = L"Config_JP_OPENTEST.lua";
 #elif CLIENT_COUNTRY_CN
-	wstrBasicConfigFile =  L"Config_CN_TEST.lua";
+	wstrBasicConfigFile = L"Config_CN_TEST.lua";
 #elif CLIENT_COUNTRY_EU
-	wstrBasicConfigFile =  L"Config_EU_TEST.lua";
+	wstrBasicConfigFile = L"Config_EU_TEST.lua";
 #elif CLIENT_COUNTRY_TH
-	wstrBasicConfigFile =  L"Config_TH_TEST.lua";
+	wstrBasicConfigFile = L"Config_TH_TEST.lua";
 #elif CLIENT_COUNTRY_US
-	wstrBasicConfigFile =  L"Config_US_TEST.lua";
+	wstrBasicConfigFile = L"Config_US_TEST.lua";
 #elif CLIENT_COUNTRY_ID
-	wstrBasicConfigFile =  L"Config_ID_OPEN_TEST.lua";
+	wstrBasicConfigFile = L"Config_ID_OPEN_TEST.lua";
 #elif CLIENT_COUNTRY_BR
-	wstrBasicConfigFile =  L"Config_BR_OPEN_TEST.lua";
+	wstrBasicConfigFile = L"Config_BR_OPEN_TEST.lua";
 #elif CLIENT_COUNTRY_PH
-	wstrBasicConfigFile =  L"Config_PH_OPEN_TEST.lua";
+	wstrBasicConfigFile = L"Config_PH_OPEN_TEST.lua";
+#elif CLIENT_COUNTRY_IN
+	wstrBasicConfigFile = L"Config_IN_TEST.lua";
 #else
-	wstrBasicConfigFile =  L"Config_TEST.lua";
+	wstrBasicConfigFile = L"Config_TEST.lua";
 #endif
 	//}} _OPEN_TEST_
 #else _OPEN_TEST_
 #ifdef CLIENT_COUNTRY_TW
-	wstrBasicConfigFile =  L"Config_TW_SERVICE.lua";
+	wstrBasicConfigFile = L"Config_TW_SERVICE.lua";
 #elif CLIENT_COUNTRY_HK
-	wstrBasicConfigFile =  L"Config_HK_SERVICE.lua";
+	wstrBasicConfigFile = L"Config_HK_SERVICE.lua";
 #elif CLIENT_COUNTRY_JP
-	wstrBasicConfigFile =  L"Config_JP_OPENTEST.lua";
+	wstrBasicConfigFile = L"Config_JP_SERVICE.lua";
 #elif CLIENT_COUNTRY_CN
-	wstrBasicConfigFile =  L"Config_CN_SERVICE.lua";
+	wstrBasicConfigFile = L"Config_CN_SERVICE.lua";
 #elif CLIENT_COUNTRY_EU
-	wstrBasicConfigFile =  L"Config_EU.lua";	
+	wstrBasicConfigFile = L"Config_EU.lua";	
 #elif CLIENT_COUNTRY_US
-	wstrBasicConfigFile =  L"Config_US_SERVICE.lua";
+	wstrBasicConfigFile = L"Config_US_SERVICE.lua";
 #elif CLIENT_COUNTRY_ID
-	wstrBasicConfigFile =  L"Config_ID_SERVICE.lua";
+	wstrBasicConfigFile = L"Config_ID_SERVICE.lua";
 #elif CLIENT_COUNTRY_TH
-	wstrBasicConfigFile =  L"Config_TH_SERVICE.lua";
+	wstrBasicConfigFile = L"Config_TH_SERVICE.lua";
 #elif CLIENT_COUNTRY_BR
-	wstrBasicConfigFile =  L"Config_BR_SERVICE.lua";
+	wstrBasicConfigFile = L"Config_BR_SERVICE.lua";
 #elif CLIENT_COUNTRY_PH
-	wstrBasicConfigFile =  L"Config_PH_SERVICE.lua";
+	wstrBasicConfigFile = L"Config_PH_SERVICE.lua";
+#elif CLIENT_COUNTRY_IN
+	wstrBasicConfigFile = L"Config_IN_SERVICE.lua";
 #else
-	wstrBasicConfigFile =  L"Config_SERVICE.lua";
+	wstrBasicConfigFile = L"Config_SERVICE.lua";
 #endif
 #endif _OPEN_TEST_
 #else _SERVICE_	// INTERNAL
 #ifdef CLIENT_COUNTRY_TW
-	wstrBasicConfigFile =  L"Config_TW_INTERNAL.lua";
+	wstrBasicConfigFile = L"Config_TW_INTERNAL.lua";
 #elif CLIENT_COUNTRY_HK
-	wstrBasicConfigFile =  L"Config_HK_INTERNAL.lua";
+	wstrBasicConfigFile = L"Config_HK_INTERNAL.lua";
 #elif CLIENT_COUNTRY_JP
-	wstrBasicConfigFile =  L"Config_JP_TEST.lua";
+	wstrBasicConfigFile = L"Config_JP_INTERNAL.lua";
 #elif CLIENT_COUNTRY_CN
-	wstrBasicConfigFile =  L"Config_CN_INTERNAL.lua";
+	wstrBasicConfigFile = L"Config_CN_INTERNAL.lua";
 #elif CLIENT_COUNTRY_EU
-	wstrBasicConfigFile =  L"Config_EU_INTERNAL.lua";	
+	wstrBasicConfigFile = L"Config_EU_INTERNAL.lua";	
 #elif CLIENT_COUNTRY_US
-	wstrBasicConfigFile =  L"Config_US_INTERNAL.lua";
+	wstrBasicConfigFile = L"Config_US_INTERNAL.lua";
 #elif CLIENT_COUNTRY_ID
-	wstrBasicConfigFile =  L"Config_ID_INTERNAL.lua";
+	wstrBasicConfigFile = L"Config_ID_INTERNAL.lua";
 #elif CLIENT_COUNTRY_TH
-	wstrBasicConfigFile =  L"Config_TH_INTERNAL.lua";
+	wstrBasicConfigFile = L"Config_TH_INTERNAL.lua";
 #elif CLIENT_COUNTRY_BR
-	wstrBasicConfigFile =  L"Config_BR_INTERNAL.lua";
+	wstrBasicConfigFile = L"Config_BR_INTERNAL.lua";
 #elif CLIENT_COUNTRY_PH
-	wstrBasicConfigFile =  L"Config_PH_INTERNAL.lua";
+	wstrBasicConfigFile = L"Config_PH_INTERNAL.lua";
+#elif CLIENT_COUNTRY_IN
+	wstrBasicConfigFile = L"Config_IN_INTERNAL.lua";
 #else
-	wstrBasicConfigFile =  L"Config_INTERNAL.lua";
+	wstrBasicConfigFile = L"Config_INTERNAL.lua";
 #endif
 #endif _SERVICE_
 #endif //CLIENT_INT_INTERNAL	
@@ -2090,12 +2255,13 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 	// checked 
 	ELSWORD_VIRTUALIZER_START
 #endif
-#ifdef  SERV_SERVER_TIME_GET
+
+#ifdef SERV_SERVER_TIME_GET
 	if(m_bOneChange == false)
 	{
 		StateChangeTimeSleep( fElapsedTime );
 	}
-#endif  SERV_SERVER_TIME_GET
+#endif SERV_SERVER_TIME_GET
 
 #ifdef ADD_CHKOPT_ABNORMAL_FUNCTION_CALL_V2	
 		m_fCheckStatusTime += fElapsedTime;
@@ -2104,23 +2270,23 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 #ifdef ADD_COLLECT_CLIENT_INFO
 
 #ifdef _IN_HOUSE_
-			//	ï¿½Þ½ï¿½ï¿½ï¿½ È£ï¿½ï¿½
-			MessageBoxW( g_pKTDXApp->GetHWND(), L"ï¿½Ù½Çµå°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.", GET_STRING( STR_ID_4427 ), MB_OK );
+			//	¸Þ½ÃÁö È£Ãâ
+			MessageBoxW( g_pKTDXApp->GetHWND(), L"ÇÙ½Çµå°¡ Á¤»óµ¿ÀÛ ÇÏÁö ¾Ê½À´Ï´Ù.", GET_STRING( STR_ID_4427 ), MB_OK );
 #endif
 
-			g_pMain->SendHackInfo3( ANTIHACKING_ID::ANTIHACKING_GAME_13, "", false, true );
+			SendHackInfo3( ANTIHACKING_ID::ANTIHACKING_GAME_13, "", false, true );
 #else //ADD_COLLECT_CLIENT_INFO
 			static bool bSend = false;
 
 			if( bSend == false )
 			{
 #ifdef _IN_HOUSE_
-				//	ï¿½Þ½ï¿½ï¿½ï¿½ È£ï¿½ï¿½
-				MessageBoxW( g_pKTDXApp->GetHWND(), L"ï¿½Ù½Çµå°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.", GET_STRING( STR_ID_4427 ), MB_OK );
+				//	¸Þ½ÃÁö È£Ãâ
+				MessageBoxW( g_pKTDXApp->GetHWND(), L"ÇÙ½Çµå°¡ Á¤»óµ¿ÀÛ ÇÏÁö ¾Ê½À´Ï´Ù.", GET_STRING( STR_ID_4427 ), MB_OK );
 #endif
 
-				// ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-				g_pMain->SendHackMail_DamageHistory( "-- HS Status --" );
+				// ÇÙ¸ÞÀÏ Àü¼Û
+				SendHackMail_DamageHistory( "-- HS Status --" );
 				bSend = true;
 			}
 #endif //ADD_COLLECT_CLIENT_INFO
@@ -2142,8 +2308,8 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 					m_fCheckHackToolTime += fElapsedTime;
 					if(	m_fCheckHackToolTime > 60.f )
 					{
-#ifdef ADD_COLLECT_CLIENT_INFO // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
-						g_pMain->SendHackInfo4( ANTIHACKING_ID::ANTIHACKING_GAME_49, "", false, true );
+#ifdef ADD_COLLECT_CLIENT_INFO // ºôµå ¿À·ù·Î ÇØ¿ÜÆÀ Ãß°¡
+						SendHackInfo4( ANTIHACKING_ID::ANTIHACKING_GAME_49, "", false, true );
 #endif // ADD_COLLECT_CLIENT_INFO
 						m_fCheckHackToolTime = 0.f;
 					}
@@ -2175,17 +2341,17 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
 
-				if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL )
-					g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+				if( g_pData != NULL && g_pData->GetMyUser() != NULL )
+					g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 			}
 
 #ifdef ADD_COLLECT_CLIENT_INFO			
-			g_pMain->SendHackInfo5( ANTIHACKING_ID::ANTIHACKING_GAME_14, "", true, true );
+			SendHackInfo5( ANTIHACKING_ID::ANTIHACKING_GAME_14, "", true, true );
 #ifdef BROKEN_CODE
 			BrokenCode();
 #endif //BROKEN_CODE
 #else //ADD_COLLECT_CLIENT_INFO
-			g_pMain->SendHackMail_DamageHistory( ANTI_HACK_STRING_AntiHacking_IsDebuggerPresent );
+			SendHackMail_DamageHistory( ANTI_HACK_STRING_AntiHacking_IsDebuggerPresent );
 
 #ifdef	BROKEN_CODE
 			BrokenCode();
@@ -2212,15 +2378,14 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 #else REFACTORING_BY_TOOL_TEAM
 	//if( IsSamef(m_fCheckDebugeTimer) == true )
 	{
-		// 20ï¿½Ê¿ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¿ï¿½ï¿½ ï¿½Ë»ï¿½
+		// 20ÃÊ¿¡ ÇÑ¹ø¾¿ ÇÊÅÍ¸µ½º·¹µå À¯È¿¼º °Ë»ç
 		if( m_threadCheckWindowInfo == NULL )
 		{
-			m_threadCheckWindowInfo = new CheckWindowInfo();
-			m_threadCheckWindowInfo->m_pKTDXApp			= g_pKTDXApp;
-			m_threadCheckWindowInfo->m_pInstanceData	= g_pInstanceData;
+			m_threadCheckWindowInfo = new CheckWindowInfo(g_pKTDXApp,g_pInstanceData
 #ifdef	CHECK_KOM_FILE_ON_LOAD
-			m_threadCheckWindowInfo->m_pMain			= this;
-#endif	CHECK_KOM_FILE_ON_LOAD
+                ,this
+#endif  CHECK_KOM_FILE_ON_LOAD
+                );
 		}
 
 		bool bIsvalidCheckThread = true;	
@@ -2246,15 +2411,15 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 			m_threadCheckWindowInfo->BeginThread();
 
 #ifndef	CHECK_KOM_FILE_ON_LOAD
-			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+				g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );		
 			}
 #ifdef ADD_COLLECT_CLIENT_INFO			
-			g_pMain->SendHackInfo1( ANTIHACKING_ID::ANTIHACKING_GAME_15, "", false, false );
+			SendHackInfo1( ANTIHACKING_ID::ANTIHACKING_GAME_15, "", false, false );
 #else //ADD_COLLECT_CLIENT_INFO
-			g_pMain->SendHackMail_DamageHistory( ANTI_HACK_STRING_UserID_AntiHacking_CheckWindowInfo_Fail );
+			SendHackMail_DamageHistory( ANTI_HACK_STRING_UserID_AntiHacking_CheckWindowInfo_Fail );
 #endif //ADD_COLLECT_CLIENT_INFO
 
 #endif	CHECK_KOM_FILE_ON_LOAD
@@ -2335,8 +2500,8 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_SYSRQ) == TRUE )
 	{
-		if( CX2Main::XS_PVP_GAME == g_pMain->GetNowStateID() && 
-			KPVPChannelInfo::PCC_TOURNAMENT == g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) )
+		if( CX2Main::XS_PVP_GAME == GetNowStateID() && 
+			KPVPChannelInfo::PCC_TOURNAMENT == GetPVPChannelClass( GetConnectedChannelID() ) )
 		{
 			if ( g_pChatBox != NULL )
 				g_pChatBox->AddChatLog( GET_STRING( STR_ID_346 ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
@@ -2348,9 +2513,9 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
 			bool bSuccessCapture = false;
-			//{{ 2011.9.16	ï¿½ï¿½ï¿½ï¿½È£  ï¿½Ýµï¿½Ä· ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ Ä¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//{{ 2011.9.16	ÀÌÁØÈ£  ¹ÝµðÄ· ½ºÅ©¸°¼¦ Ä¸ÃÄ Áö¿ø
 #ifdef BANDICAM_CAPTURE
-			bSuccessCapture = g_pMain->Bandi_ScreenCapture();
+			bSuccessCapture = Bandi_ScreenCapture();
 #else BANDICAM_CAPTURE
 			bSuccessCapture = g_pKTDXApp->GetDGManager()->ScreenCapture();
 #endif BANDICAM_CAPTURE
@@ -2370,6 +2535,11 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 			KOGGamePerformanceCheck::GetInstance()->Resume();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+#ifdef  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+            if ( g_pData->GetGameUDP() != NULL )
+                g_pData->GetGameUDP()->RemoveAllPendingPingSends();
+#endif  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
 		}
 	}
 
@@ -2387,6 +2557,7 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 #endif
 
 
+#ifndef _DEBUG
 	if ( g_pKTDXApp->GetFindHacking() == true )
 	{
 		static bool staticExitCheck = false;
@@ -2400,6 +2571,7 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 			sprintf( buff, "FindH.dll %s", cmdString.c_str() );
 			WinExec( buff, SW_HIDE );
 			*/
+
 
 			//g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_FIND_HACKING );
 
@@ -2415,17 +2587,11 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 		if ( staticGameGuardExitCheck == false )
 		{
 			staticGameGuardExitCheck = true;
-
-			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_27366 ), NULL );
-
-			//g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_FIND_HACKING );
-
+			KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_27366 ), NULL );
 			m_bAutoQuit = true;
 		}
-
 	}
 #endif //GAMEGUARD_DETECTED_HACK_POPUP
-
 
 	if ( m_bAutoQuit == true )
 	{
@@ -2436,10 +2602,11 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 		if ( m_fAutoQuitTime >= m_fAutoQuitCoolTime )
 #endif
 		{
-			g_pMain->SetQuitType( NetError::ERR_CLIENT_QUIT_01 );
+			SetQuitType( NetError::ERR_CLIENT_QUIT_01 );
 			PostQuitMessage(0);
 		}
 	}
+#endif // _DEBUG
 
 
 #if defined( _SERVICE_ )
@@ -2449,26 +2616,24 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 #endif REFACTORING_BY_TOOL_TEAM
 
 #ifdef USER_REGULATION_NOTICE
-		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		//ÀÚÀ²±ÔÁ¦
 
-		// 2012.06.14 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½î°¡ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È®ï¿½Ï°ï¿½ 1ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´Ï¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½
-		if( m_TimerUserRegulationNotice.elapsed() > 3600.0f ) // lyagan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½Ñ½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+		// 2012.06.14 lygan_Á¶¼º¿í // ±¹³»¿¡ µé¾î°¡ÀÖ´Â »ç¿ë½Ã Á¤È®ÇÏ°Ô 1½Ã°£ ¸¶´Ù °øÁö°¡ ³ª°¡´Â°Ô ¾Æ´Ï¶ó¼­ µû·Î ÀÛ¾÷
+		if( m_TimerUserRegulationNotice.elapsed() > 3600.0f ) // lyagan_Á¶¼º¿í // ÇÑ½Ã°£ ¸¶´Ù °øÁö¸¦ ³»º¸³½´Ù.
 		{
 			if( g_pChatBox != NULL )
 			{
 				wstring wstrColor = L"#CFFFF00";				
 				D3DXCOLOR coTextColor(1.f, 1.f, 0.f, 1.f);	
 				g_pChatBox->AddChatLog( GET_STRING( STR_ID_350 ), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor );
-
 			}
 
 			m_TimerUserRegulationNotice.restart();
 		}
 
-		// ï¿½ï¿½Ä§ï¿½ï¿½ ï¿½Åºï¿½ï¿½ï¿½ï¿½ï¿½
+		// ¹æÄ§¹Ì ½ÅºÐÀÎÁõ
 #ifdef IDENTITY_CONFIRM
-
-		if( m_TimerIdentityConfirmChat.elapsed() > 3600.0f ) // lyagan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // ï¿½Ñ½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+		if( m_TimerIdentityConfirmChat.elapsed() > 3600.0f ) // lyagan_Á¶¼º¿í // ÇÑ½Ã°£ ¸¶´Ù °øÁö¸¦ ³»º¸³½´Ù.
 		{
 			if( g_pChatBox != NULL )
 			{
@@ -2479,17 +2644,16 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 			m_TimerIdentityConfirmChat.restart();
 		}
 #endif IDENTITY_CONFIRM
-
 #endif //USER_REGULATION_NOTICE
 
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 		if( NULL != g_pData->GetProfileManager() && true == g_pData->GetProfileManager()->GetShowRankup() )
 		{
-			switch( g_pMain->GetNowStateID() )
+			switch( GetNowStateID() )
 			{
 			case CX2Main::XS_DUNGEON_GAME:
 				{
-					if( NULL != g_pMain->GetGameOption() && false == g_pMain->GetGameOption()->GetShowRankUpInDungeon() )
+					if( false == GetGameOption().GetShowRankUpInDungeon() )
 					{
 						if( 5.0f > g_pData->GetProfileManager()->GetRankupTime() )
 						{
@@ -2499,7 +2663,7 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 					}
 				}
 				
-			case CX2Main::XS_VILLAGE_MAP: //ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½Êµå¿¡ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ rankup ui ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½.
+			case CX2Main::XS_VILLAGE_MAP: //¸¶À» ¶Ç´Â ÇÊµå¿¡ ÀÖ±â Àü¿¡´Â rankup ui Ãâ·ÂÀ» ¹Ì·é´Ù.
 			case CX2Main::XS_BATTLE_FIELD:
 				{
 					g_pData->GetProfileManager()->ShowRankUpFade( fElapsedTime );
@@ -2519,36 +2683,36 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 #endif //SERV_LOCAL_RANKING_SYSTEM
 
 #ifndef DISABLE_PLAY_TIME_INFORMATION
-#ifdef CHECK_PLAY_TIME_INFORMATION		//ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#ifdef CHECK_PLAY_TIME_INFORMATION		//ÇÃ·¹ÀÌ ½Ã°£¿¡ µû¸¥ ¾È³» ¹®±¸ ÀÏ°ý º¯°æ
+	//ÀÚÀ²±ÔÁ¦
 	if( static_cast<int>( g_pKTDXApp->GetTime() ) % 3600 == 0 )
 	{
 		int iGameHour = static_cast<int>( g_pKTDXApp->GetTime() ) / 3600;
 
 		if( NULL != g_pChatBox && iGameHour != m_iGameHour )
 		{
-			m_iGameHour = iGameHour;					//ï¿½Ø´ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½( ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ Doubleï¿½Ì¶ï¿½, intï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. )
-			m_bProcessPlayTimeInformation = true;		//ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Satetï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+			m_iGameHour = iGameHour;					//ÇØ´ç ½Ã°£¿¡ Áßº¹ ½ÇÇà ¹æÁö( ½Ã°£°ªÀÌ DoubleÀÌ¶ó¼­, int·Î º¯È¯ÇÒ ¶§ 0À¸·Î ¶³¾îÁú ¶§°¡ ¿©·¯¹ø »ý°Ü ¹ö¸°´Ù. )
+			m_bProcessPlayTimeInformation = true;		//ÇöÀç ÆË¾÷Ã¢ »ý¼º °¡´ÉÇÑ SatetÀÎÁö °Ë»ç
 
 			wstring wstrColor = L"#CFFFF00";				
 			D3DXCOLOR coTextColor(1.f, 1.f, 0.f, 1.f);
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ @1ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.\nï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï»ï¿½ ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.\nï¿½Þ½ï¿½ ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ï¿½Ö½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°Ú½ï¿½ï¿½Ï´ï¿½.
+			// °ÔÀÓ ÀÌ¿ë @1½Ã°£ÀÌ °æ°úÇß½À´Ï´Ù.\n°úµµÇÑ °ÔÀÓ ÀÌ¿ëÀº Á¤»óÀûÀÎ ÀÏ»ó »ýÈ°¿¡ ÁöÀåÀ» ÁÙ ¼ö ÀÖ½À´Ï´Ù.\nÈÞ½Ä ÈÄ ´Ù½Ã ÀÌ¿ëÇØÁÖ½Ã¸é °¨»çÇÏ°Ú½À´Ï´Ù.
 			g_pChatBox->AddChatLog( GET_REPLACED_STRING( ( STR_ID_17720, "i", m_iGameHour ) ), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor );
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹Îµï¿½Ï¹ï¿½È£ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ï½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
+			// ºÎÁ¤ÇÑ ¹æ¹ýÀ¸·Î Å¸ÀÎÀÇ ÁÖ¹Îµî·Ï¹øÈ£¸¦ ÀÌ¿ëÇÏ½Ç °æ¿ì ºÒÀÌÀÍÀ» ¹ÞÀ» ¼ö ÀÖ½À´Ï´Ù.
 			g_pChatBox->AddChatLog( GET_STRING( STR_ID_350 ), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor );
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.
+			// ¾ÈÀüÇÑ °³ÀÎÁ¤º¸ °ü¸®¸¦ À§ÇÏ¿© Á¤±âÀûÀ¸·Î ³Ø½¼ ¾ÆÀÌµð ¹× °ÔÀÓ °èÁ¤ÀÇ ºñ¹Ð¹øÈ£¸¦ º¯°æÇÏ¿© ÁÖ¼¼¿ä.
 			g_pChatBox->AddChatLog( GET_STRING( STR_ID_351 ), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor );
-			// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½Ì¿ë°¡ ï¿½Ô´Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¥ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ ï¿½Ú¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
+			// º» °ÔÀÓÀº ÀüÃ¼ ÀÌ¿ë°¡ ÀÔ´Ï´Ù. ³»¿ëµî±ÞÇ¥½Ã¿Í °ü·ÃµÈ ÀÚ¼¼ÇÑ ³»¿ëÀº ¸Þ´º¿¡¼­ È®ÀÎÇÒ ¼ö ÀÖ½À´Ï´Ù.
 			g_pChatBox->AddChatLog( GET_STRING( STR_ID_352 ), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor );
-			// ï¿½î¿µï¿½Ú´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ID, ï¿½ï¿½Ð¹ï¿½È£ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ä±¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¸ï¿½ ï¿½ï¿½Å¹ï¿½å¸³ï¿½Ï´ï¿½.
+			// ¿î¿µÀÚ´Â °í°´ÀÇ ³Ø½¼ID, ºñ¹Ð¹øÈ£ µî °³ÀÎÁ¤º¸¸¦ ¿ä±¸ÇÏÁö ¾ÊÀ¸´Ï ÁÖÀÇ¸¦ ºÎÅ¹µå¸³´Ï´Ù.
 			g_pChatBox->AddChatLog( GET_STRING( STR_ID_3700 ), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor );
-			// ï¿½ï¿½ï¿½Òµå¿¡ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ðµé²² ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, E-mail, ï¿½Ø½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ U-OTP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È£ È¤ï¿½ï¿½ U-OTP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ä±¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½.
+			// ¿¤¼Òµå¿¡¼­´Â È¸¿ø ¿©·¯ºÐµé²² ÇÚµåÆù ¹®ÀÚ, E-mail, ³Ø½¼ÂÊÁö µîÀ» ÅëÇØ¼­ U-OTP ÀÎÁõ¹øÈ£ È¤Àº U-OTP ÇØÁö¸¦ Àý´ë ¿ä±¸ÇÏÁö ¾Ê½À´Ï´Ù.
 			g_pChatBox->AddChatLog( GET_STRING( STR_ID_9710 ), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor );
 
 		}
 	}
 #else  CHECK_PLAY_TIME_INFORMATION
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//ÀÚÀ²±ÔÁ¦
 	if( g_pKTDXApp->GetFrameMoveCount() % 300000 == 0 )
 	{
 		int gameHour = g_pKTDXApp->GetFrameMoveCount() / 300000;
@@ -2581,38 +2745,38 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 
 			}
 		}
-		//- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹Îµï¿½Ï¹ï¿½È£ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ï½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
-		//- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö½Ã±ï¿½ ï¿½Ù¶ï¿½ï¿½Ï´ï¿½.
+		//- ºÎÁ¤ÇÑ ¹æ¹ýÀ¸·Î Å¸ÀÎÀÇ ÁÖ¹Îµî·Ï¹øÈ£¸¦ ÀÌ¿ëÇÏ½Ç °æ¿ì ºÒÀÌÀÍÀ» ¹ÞÀ» ¼ö ÀÖ½À´Ï´Ù.
+		//- ¾ÈÀüÇÑ °³ÀÎÁ¤º¸ °ü¸®¸¦ À§ÇÏ¿© Á¤±âÀûÀ¸·Î ³Ø½¼ ¾ÆÀÌµðÀÇ ºñ¹Ð¹øÈ£¸¦ º¯°æÇØ ÁÖ½Ã±â ¹Ù¶ø´Ï´Ù.
 	}
 #endif CHECK_PLAY_TIME_INFORMATION
 
 #ifdef CHECK_PLAY_TIME_INFORMATION
 	if( true == m_bProcessPlayTimeInformation || true == m_bProcessShutDownInformation )
 	{
-		switch(g_pMain->GetNowStateID())	//ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½.
+		switch(GetNowStateID())	//ÇØ´ç Áö¿ª¿¡ ÀÖ±â Àü¿¡´Â ¾È³»Ã¢ »ý¼ºÀ» ¹Ì·é´Ù.
 		{
-			//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//¸¶À» ¹× °Å·¡ ±¤Àå
 		case XS_VILLAGE_MAP:
 		case XS_SQUARE_GAME:
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 		case XS_WEDDING_GAME:
 #endif // ADDED_RELATIONSHIP_SYSTEM
 			{
-				if( 0.f >= m_fShutDownInfoShowTime && true == m_bProcessPlayTimeInformation )			//ï¿½Ë´Ù¿ï¿½ ï¿½È³ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½.
+				if( 0.f >= m_fShutDownInfoShowTime && true == m_bProcessPlayTimeInformation )			//¼Ë´Ù¿î ¾È³»Ã¢ÀÌ »ý¼ºµÇ¾î ÀÖÀ» ¶©, ÇÃ·¹ÀÌ ½Ã°£ ¾È³»Ã¢ »ý¼ºÀ» ¹Ì·é´Ù.
 					CreatePlayTimeInformation();
-				else if( 0.f >= m_fPlayTimeInfoShowTime && true == m_bProcessShutDownInformation )		//ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½È³ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½Ë´Ù¿ï¿½ ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½.
+				else if( 0.f >= m_fPlayTimeInfoShowTime && true == m_bProcessShutDownInformation )		//ÇÃ·¹ÀÌ ½Ã°£ ¾È³»Ã¢ÀÌ »ý¼ºµÇ¾î ÀÖÀ» ¶©, ¼Ë´Ù¿î ¾È³»Ã¢ »ý¼ºÀ» ¹Ì·é´Ù.
 					CreateShutDownInformation();
 			}break;
-			//X2Game ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//X2Game Àû¿ëµÇ´Â Áö¿ª
 		case XS_PVP_GAME:
 		case XS_DUNGEON_GAME:
 		case XS_TRAINING_GAME:
 			{
-				if( NULL != g_pX2Game && CX2Game::GS_PLAY == g_pX2Game->GetGameState() )				//ï¿½Îµï¿½ï¿½ß¿ï¿½ ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½.
+				if( NULL != g_pX2Game && CX2Game::GS_PLAY == g_pX2Game->GetGameState() )				//·ÎµùÁß¿£ ¾È³»Ã¢ »ý¼º ¹Ì·é´Ù.
 				{
-					if( 0.f >= m_fShutDownInfoShowTime && true == m_bProcessPlayTimeInformation )		//ï¿½Ë´Ù¿ï¿½ ï¿½È³ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½.
+					if( 0.f >= m_fShutDownInfoShowTime && true == m_bProcessPlayTimeInformation )		//¼Ë´Ù¿î ¾È³»Ã¢ÀÌ »ý¼ºµÇ¾î ÀÖÀ» ¶©, ÇÃ·¹ÀÌ ½Ã°£ ¾È³»Ã¢ »ý¼ºÀ» ¹Ì·é´Ù.
 						CreatePlayTimeInformation();
-					else if( 0.f >= m_fPlayTimeInfoShowTime && true == m_bProcessShutDownInformation )	//ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½È³ï¿½Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½Ë´Ù¿ï¿½ ï¿½È³ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½.
+					else if( 0.f >= m_fPlayTimeInfoShowTime && true == m_bProcessShutDownInformation )	//ÇÃ·¹ÀÌ ½Ã°£ ¾È³»Ã¢ÀÌ »ý¼ºµÇ¾î ÀÖÀ» ¶©, ¼Ë´Ù¿î ¾È³»Ã¢ »ý¼ºÀ» ¹Ì·é´Ù.
 						CreateShutDownInformation();
 				}
 
@@ -2622,13 +2786,13 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 
 	if( 0.f < m_fPlayTimeInfoShowTime )
 	{
-		FadePlayTimeInformation( m_fPlayTimeInfoShowTime );	//Fade È¿ï¿½ï¿½
+		FadePlayTimeInformation( m_fPlayTimeInfoShowTime );	//Fade È¿°ú
 
 		m_fPlayTimeInfoShowTime -= fElapsedTime;
 
 		if( 0.f >= m_fPlayTimeInfoShowTime )
 		{
-			DeletePlayTimeInformation();		//ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			DeletePlayTimeInformation();		//À¯Áö ½Ã°£ Á¾·á½Ã »èÁ¦
 
 			m_fPlayTimeInfoShowTime = 0.f;
 		}
@@ -2636,34 +2800,35 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 
 	if( 0.f < m_fShutDownInfoShowTime )
 	{
-		FadeShutDownInformation( m_fShutDownInfoShowTime );	//Fade È¿ï¿½ï¿½
+		FadeShutDownInformation( m_fShutDownInfoShowTime );	//Fade È¿°ú
 
 		m_fShutDownInfoShowTime -= fElapsedTime;
 
 		if( 0.f >= m_fShutDownInfoShowTime )
 		{
-			DeleteShutDownInformation();		//ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			DeleteShutDownInformation();		//À¯Áö ½Ã°£ Á¾·á½Ã »èÁ¦
 
 			m_fShutDownInfoShowTime = 0.f;
 		}
 	}
 #endif CHECK_PLAY_TIME_INFORMATION
-
 #endif DISABLE_PLAY_TIME_INFORMATION
 
-	//nProtect ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
+#ifndef _DEBUG
+	//nProtect °¡ ½ÇÇàµÇ¾î ÀÖÁö ¾Ê´Ù¸é °ÔÀÓÁ¾·á
+	if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
 		KNP_GetFindGameMon() == false )
 	{
-		g_pMain->SetQuitType( NetError::ERR_CLIENT_QUIT_01 );
+		SetQuitType( NetError::ERR_CLIENT_QUIT_01 );
 		g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_FIND_HACKING );
 		PostQuitMessage(0);
 	}
+#endif // _DEBUG
 
 #ifndef DISABLE_DISAGREE_HACK_USER
 	if ( g_pData != NULL && g_pData->GetMyUser() != NULL )
 	{
-		if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+		if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 		{
 			m_fTimeToUpdateProcessList += fElapsedTime;
 			if ( m_fTimeToUpdateProcessList >= 120.0f )
@@ -2682,7 +2847,7 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 		GetPartyUI()->OnFrameMove( fTime, fElapsedTime );
 	}
 
-	//{{ kimhc // 2010.01.22 // listï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ kimhc // 2010.01.22 // list·Î ¼öÁ¤
 	list<TimedMessagePopUp>::iterator ItrTimedPopUp = m_listTimedMessagePopUp.begin();
 
 	while ( ItrTimedPopUp != m_listTimedMessagePopUp.end() )
@@ -2720,7 +2885,7 @@ HRESULT CX2Main::OnFrameMove( double fTime, float fElapsedTime )
 // 
 // 		timedPopUp.OnFrameMove( fTime, fElapsedTime );
 // 	}
-	//}} kimhc // 2010.01.22 // listï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//}} kimhc // 2010.01.22 // list·Î ¼öÁ¤
 
 #ifdef SERV_SKILL_NOTE
 	if( m_pDlgInfoBox != NULL && m_fInfoBoxLifeTime > 0.f )
@@ -2811,12 +2976,23 @@ bool CX2Main::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 		case XGM_QUIT_GAME:
 			{
-			//{{ kimhc // 2010.3.10 //	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½âµµ ï¿½ï¿½ï¿½Ìºê·¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//{{ kimhc // 2010.3.10 //	±¤°í³ëÃâµµ ¶óÀÌºê·¯¸® Á¾·á
 		#ifdef	IGA_TEST
 				CX2IGA::GetInstance()->Clear();
 				CX2IGA::GetInstance()->ReleaseInstance();
 		#endif	IGA_TEST
-			//}} kimhc // 2010.3.10 //	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½âµµ ï¿½ï¿½ï¿½Ìºê·¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//}} kimhc // 2010.3.10 //	±¤°í³ëÃâµµ ¶óÀÌºê·¯¸® Á¾·á
+#ifdef TEMP_CRASH_LOG
+				KLOG("CrashLog.txt")  << L"XGM_QUIT_GAME Received" << fileout;
+#endif // TEMP_CRASH_LOG
+#ifdef FIX_CASH_SHOP_CRASH
+				if( NULL != g_pData && 
+					NULL != g_pData->GetCashShop() &&
+					true == g_pData->GetCashShop()->GetOpen() )
+				{
+					return true;
+				}
+#endif // FIX_CASH_SHOP_CRASH
 
 #ifdef CLIENT_PORT_CHANGE_REQUEST
 				if ( g_pInstanceData != NULL)
@@ -2832,39 +3008,13 @@ bool CX2Main::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 							g_pData->GetServerProtocol()->SendPacket( EGS_CLIENT_POPRT_CHANGE_REQUEST_INFO_NOT, kPacket );
 						}
 					}
-
 				}
-
 #endif //CLIENT_PORT_CHANGE_REQUEST
 
 				PostQuitMessage(0);
 				return true;
 			}
 			break;
-			//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2012-03-20 // UIï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±×¸ï¿½ UI ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½			
-#ifdef UI_RESOURCE_REALTIME_LOAD
-		case XGM_REAL_DELETE_DIALOG:
-			{
-#ifdef DIALOG_HANDLE_TEST
-				//CKTDGUIDialogType pDialog( CKTDGUIDialog::MakeValidHandle( wParam ) );
-				// added by wonpok. 20090820.
-				CKTDGUIDialogType pDialog( CKTDGUIDialog::MakeValidHandle( wParam, lParam ) );
-#else
-				CKTDGUIDialogType pDialog = (CKTDGUIDialogType)wParam;
-#endif // DIALOG_HANDLE_TEST
-
-				if ( pDialog == NULL || g_pKTDXApp->GetDGManager()->GetDialogManager()->CheckDlg( pDialog ) == false )
-				{
-					return true;
-				}
-
-				SAFE_DELETE_DIALOG(pDialog);
-
-				return true;
-			}
-			break;
-#endif //UI_RESOURCE_REALTIME_LOAD
-			//}} ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2012-03-20 // UIï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±×¸ï¿½ UI ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 		case WM_SYSCOMMAND:
 			if( wParam == SC_SCREENSAVE || wParam == SC_MONITORPOWER )
 			{
@@ -2874,9 +3024,9 @@ bool CX2Main::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 		case CKTDXApp::KM_WEB_BROWSER_KEY_EVENT:
 			{
-				if( NULL != g_pMain->GetBrowserWrapper() && false == g_pMain->GetBrowserWrapper()->IsClosed() )
+				if( NULL != GetBrowserWrapper() && false == GetBrowserWrapper()->IsClosed() )
 				{
-					g_pMain->GetBrowserWrapper()->OnKeyboardEvents( (LPMSG) lParam );
+					GetBrowserWrapper()->OnKeyboardEvents( (LPMSG) lParam );
 				}
 				return true;
 			}
@@ -2885,7 +3035,7 @@ bool CX2Main::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 	switch(wParam)
 	{
-		//{{ï¿½ï¿½ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
+		//{{±èÁØÈ¯ ¼­¹ö½Ã°£ ¹Þ¾Æ¿À±â
 #ifdef	SERV_SERVER_TIME_GET
 		case ECH_GET_SERVER_TIME_ACK:
 			{
@@ -2905,7 +3055,7 @@ bool CX2Main::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 	}
 
 #ifdef SERV_PVP_NEW_SYSTEM
-	if( g_pMain->GetPartyUI() != NULL && g_pMain->GetPartyUI()->GetShow() == true &&
+	if( GetPartyUI() != NULL && GetPartyUI()->GetShow() == true &&
 		GetPartyUI()->MsgProc(hWnd, uMsg, wParam, lParam) )
 	{
 		return true;
@@ -2913,26 +3063,38 @@ bool CX2Main::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 #endif
 
 #ifdef EVENT_SCENE
-// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.6.17] //  ï¿½×½ï¿½Æ®ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½Ú½ï¿½ï¿½Ï´ï¿½.
-	if(g_pData->GetEventScene() != NULL)
+// oasis907 : ±è»óÀ± [2010.6.17] //  Å×½ºÆ®¿ë ÀÓ½Ã À§Ä¡ Áö¿ì°Ú½À´Ï´Ù.
+	if( NULL != g_pData->GetEventScene() && 
+		true == g_pData->GetEventScene()->MsgProc(hWnd, uMsg, wParam, lParam ) )
 	{
-		return g_pData->GetEventScene()->MsgProc(hWnd, uMsg, wParam, lParam );
+		return true;
 	}
 #endif EVENT_SCENE
+	
+#ifdef	CHECK_KOM_FILE_ON_LOAD
+#ifdef SERV_KOM_FILE_CHECK_ADVANCED
+	switch(wParam)
+	{
+	case EGS_KOM_FILE_CHECK_LOG_ACK:
+		{
+			return Handler_EGS_KOM_FILE_CHECK_LOG_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+	}
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
+#endif //CHECK_KOM_FILE_ON_LOAD
 
 	return false;
 }
 
 
 
-void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
+void CX2Main::RegisterLuabind()
 {
 
-	lua_State* L= pKLuabinder->GetLuaState();
+	lua_State* L= g_pKTDXApp->GetLuaBinder()->GetLuaState();
 
 
-
-	lua_tinker::decl( pKLuabinder->GetLuaState(),  "g_pMain", this );
+	lua_tinker::decl( L,  "g_pMain", this );
 
 	lua_tinker::class_add<CX2Room>( L, "CX2Room" );
 	lua_tinker::class_def<CX2Room>( L, "GetSlotData",							&CX2Room::GetSlotData );
@@ -2973,18 +3135,23 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2SlideShot>( L, "IsTextSpreading",					&CX2SlideShot::IsTextSpreading );
 	lua_tinker::class_def<CX2SlideShot>( L, "GetElapsedTimeAfterTextSpread",	&CX2SlideShot::GetElapsedTimeAfterTextSpread );
 	lua_tinker::class_def<CX2SlideShot>( L, "IsPresentNow",						&CX2SlideShot::IsPresentNow);
-	//{{ 2010.04.28 / ï¿½Ú±ï¿½ï¿½ï¿½ / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ 2010.04.28 / ¹Ú±³Çö / º£½º¸¶ ºñ´ø °³Æí
 	lua_tinker::class_def<CX2SlideShot>( L, "SetNameTabShow",					&CX2SlideShot::SetNameTabShow);
 	lua_tinker::class_def<CX2SlideShot>( L, "SetSpeechBallonShow",				&CX2SlideShot::SetSpeechBallonShow);
 	lua_tinker::class_def<CX2SlideShot>( L, "SetEnterShow",						&CX2SlideShot::SetEnterShow);
 	//}}
-#ifdef REFORM_TUTORIAL
 	lua_tinker::class_def<CX2SlideShot>( L, "PlaySound2D_LUA",					&CX2SlideShot::PlaySound2D_LUA);
 	lua_tinker::class_def<CX2SlideShot>( L, "StopAllSound_LUA",					&CX2SlideShot::StopAllSound_LUA);
 	lua_tinker::class_def<CX2SlideShot>( L, "SetSlideBGM_LUA",					&CX2SlideShot::SetSlideBGM_LUA);
 	lua_tinker::class_def<CX2SlideShot>( L, "ResetBGM",							&CX2SlideShot::ResetBGM);
-#endif //REFORM_TUTORIAL
-
+#ifdef  X2OPTIMIZE_SLIDE_SHOT_NPC_SELF_CRASH_BUG_FIX
+    lua_tinker::class_def<CX2SlideShot>( L, "SetNPC",                           &CX2SlideShot::SetNPC);
+    lua_tinker::class_def<CX2SlideShot>( L, "ResetNPC",                         &CX2SlideShot::ResetNPC);
+    lua_tinker::class_def<CX2SlideShot>( L, "GetNPC",                           &CX2SlideShot::GetNPC);
+#endif  X2OPTIMIZE_SLIDE_SHOT_NPC_SELF_CRASH_BUG_FIX
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+	lua_tinker::class_def<CX2SlideShot>( L, "GetElapsedTimeAfterVoiceStopped",	&CX2SlideShot::GetElapsedTimeAfterVoiceStopped );
+#endif //CHECK_VOICE_IN_SLIDESHOT
 
 
 	lua_tinker::class_add<CX2TrainingGameUI>( L, "CX2TrainingGameUI" );
@@ -3115,13 +3282,13 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2State>( L, "Handler_EGS_ADMIN_SET_PC_BANG_REQ",			&CX2State::Handler_EGS_ADMIN_SET_PC_BANG_REQ );
 
 #ifdef SERV_HERO_PVP_MANAGE_LIST
-#ifdef ADD_HERO_MATCH_NOTICE		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½î¿µï¿½ï¿½ ï¿½ï¿½ï¿½
+#ifdef ADD_HERO_MATCH_NOTICE		/// ¿µ¿õ ´ëÀü ¿î¿µÀÚ ±â´É
 //	lua_tinker::class_def<CX2State>( L, "Handler_EGS_ADMIN_REMOVE_HERO_PVP_USER_REQ",		&CX2State::Handler_EGS_ADMIN_REMOVE_HERO_PVP_USER_REQ );
 	lua_tinker::class_def<CX2State>( L, "Handler_EGS_ADMIN_NOTIFY_HERO_PVP_USER_REQ_LUA",	&CX2State::Handler_EGS_ADMIN_NOTIFY_HERO_PVP_USER_REQ_LUA );
 #endif ADD_HERO_MATCH_NOTICE
 
 
-	//{{ 2012. 12. 5	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	//{{ 2012. 12. 5	ÃÖÀ°»ç		¿ÉÀú¹ö ´ëÀü ³­ÀÔ ¸ðµå
 #ifdef SERV_OBSERVER_PVP_INTRUDE_MODE
 	lua_tinker::class_def<CX2State>( L, "Handler_EGS_ADMIN_OBSERVER_MODE_REQ",			&CX2State::Handler_EGS_ADMIN_OBSERVER_MODE_REQ );
 #endif SERV_OBSERVER_PVP_INTRUDE_MODE
@@ -3190,57 +3357,57 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2Main>( L, "SetProjectionFov",				&CX2Main::SetProjectionFov );
 #endif KEYFRAME_CAMERA
 
-	//{{ 2008. 1. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ù¼ï¿½ï¿½ï¿½ Ä¡Æ®
+	//{{ 2008. 1. 2  ÃÖÀ°»ç  ±Ù¼ºµµ Ä¡Æ®
 	lua_tinker::class_def<CX2Main>( L, "ChangeSpirit",					&CX2Main::ChangeSpirit );
 	lua_tinker::class_def<CX2Main>( L, "ChangeVSPoint",					&CX2Main::ChangeVSPoint );
 	//}}
 	lua_tinker::class_def<CX2Main>( L, "SetShowUnitViewerUI",			&CX2Main::SetShowUnitViewerUI );
-	//{{ 2008. 2. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ Ä¡Æ®
+	//{{ 2008. 2. 18  ÃÖÀ°»ç  À¯´Ö Å¬·¡½º Ä¡Æ®
 	lua_tinker::class_def<CX2Main>( L, "ChangeUnitClass",				&CX2Main::ChangeUnitClass );
 	lua_tinker::class_def<CX2Main>( L, "ModifyChangeUnitClass",			&CX2Main::ModifyChangeUnitClass );
 	//}}
 
-	// kimhc // 2011-05-30 // ï¿½×³ï¿½Ã½ï¿½ ï¿½â°£ ï¿½ï¿½ï¿½ï¿½ Ä¡Æ®
+	// kimhc // 2011-05-30 // ±×³ë½Ã½º ±â°£ ¸¸·á Ä¡Æ®
 	lua_tinker::class_def<CX2Main>( L, "ChangeCashSkillPointDate",		&CX2Main::ChangeCashSkillPointDate );
 
 	lua_tinker::class_def<CX2Main>( L, "SetSquareMaxUserNum",			&CX2Main::SetSquareMaxUserNum );
-	//{{ 2008. 10. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å¸ï¿½ï¿½Æ² Ä¡Æ®
+	//{{ 2008. 10. 24  ÃÖÀ°»ç	Å¸ÀÌÆ² Ä¡Æ®
 	lua_tinker::class_def<CX2Main>( L, "GetTitleCheat",					&CX2Main::GetTitleCheat );
 	//}}
-	//{{ 09.07.03 ï¿½Â¿ï¿½ : ï¿½ç³»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½
+	//{{ 09.07.03 ÅÂ¿Ï : »ç³»¿¡¼­ ¾ÆÀÌµð »ý¼º ´Ù½Ã °¡´ÉÇÏ°Ô
 #if !defined(_SERVICE_) || defined (SERV_JOIN_IN_CLIENT_FOR_TW_TEST_SERVER)
 	lua_tinker::class_def<CX2Main>( L, "SetGameServerPortForCreateID",			&CX2Main::SetGameServerPortForCreateID );
 	lua_tinker::class_def<CX2Main>( L, "AddGameServerIPForCreateID_LUA",		&CX2Main::AddGameServerIPForCreateID_LUA );
 #endif //!defined(_SERVICE_) || defined (SERV_JOIN_IN_CLIENT_FOR_TW_TEST_SERVER)
 	lua_tinker::class_def<CX2Main>( L, "SetEnabledDeveloperCheatCode",			&CX2Main::SetEnabledDeveloperCheatCode );
 
-	//{{ 2009. 7. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	party fever cheat
+	//{{ 2009. 7. 26  ÃÖÀ°»ç	party fever cheat
 	lua_tinker::class_def<CX2Main>( L, "IncreasePartyFeverPoint",				&CX2Main::IncreasePartyFeverPoint );
 	//}}
-	//{{ 2009. 8. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ã¼ï¿½ï¿½IDÄ¡Æ®
+	//{{ 2009. 8. 5  ÃÖÀ°»ç		Ã¼ÇèIDÄ¡Æ®
 	lua_tinker::class_def<CX2Main>( L, "SetGuestUserMode",						&CX2Main::SetGuestUserMode );
 	//}}
 
-	//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/3/12/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ Ä¡Æ®
+	//{{ Çã»óÇü : [2010/3/12/] //	¸¶À» ÀÌµ¿ ¿öÇÁ Ä¡Æ®
 	lua_tinker::class_def<CX2Main>( L, "WarpByCommand",							&CX2Main::WarpByCommand );
-	//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/3/12/] //	
+	//}} Çã»óÇü : [2010/3/12/] //	
 	
 #ifdef CASH_CHARGE_URL_JP
 	lua_tinker::class_def<CX2Main>( L, "MSCashChargeURL_LUA",		&CX2Main::MSCashChargeURL_LUA );
 	lua_tinker::class_def<CX2Main>( L, "NHNCashChargeURL_LUA",		&CX2Main::NHNCashChargeURL_LUA );
 	lua_tinker::class_def<CX2Main>( L, "NICOCashChargeURL_LUA",		&CX2Main::NICOCashChargeURL_LUA );
 	lua_tinker::class_def<CX2Main>( L, "NEXONCashChargeURL_LUA",		&CX2Main::NEXONCashChargeURL_LUA );
-#endif 
+#endif CASH_CHARGE_URL_JP
 
 #ifdef SERV_ADMIN_CHEAT_GET_ALL_SKILL 
 	lua_tinker::class_def<CX2Main>( L, "FullMyUnitSkillTree",					&CX2Main::FullMyUnitSkillTree );
 #endif //SERV_ADMIN_CHEAT_GET_ALL_SKILL 
 
-#if defined(PRINT_INGAMEINFO_TO_EXCEL) && defined( _IN_HOUSE_ )
+#if defined( PRINT_INGAMEINFO_TO_EXCEL ) && defined( _IN_HOUSE_ )
 	lua_tinker::class_def<CX2Main>( L, "SetInGameInfoToExcel",					&CX2Main::SetInGameInfoToExcel );
 #endif
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	lua_tinker::class_def<CX2Main>( L, "FullMyUnitSkillTreeByLevel",			&CX2Main::FullMyUnitSkillTreeByLevel );
 	lua_tinker::class_def<CX2Main>( L, "SetMyUnitSkillLevel",					&CX2Main::SetMyUnitSkillLevel );
 #endif // UPGRADE_SKILL_SYSTEM_2013
@@ -3269,29 +3436,37 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2Main>( L, "UdpPacketAnalysisLog_LUA",		&CX2Main::UdpPacketAnalysisLog_LUA );
 #endif//UDP_PACKET_ANALYSIS_LOG
 
-#ifdef X2OPTIMIZE_UDP_RELAY_OVERHEAD_TEST
-	lua_tinker::class_def<CX2Main>( L, "UdpRelayOverHeadTest_LUA",		&CX2Main::UdpRelayOverHeadTest_LUA );
-#endif//X2OPTIMIZE_UDP_RELAY_OVERHEAD_TEST
-
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	lua_tinker::class_def<CX2Main>( L, "UdpPacketOverlapTest_LUA",		&CX2Main::UdpPacketOverlapTest_LUA );
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #ifdef X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
 	lua_tinker::class_def<CX2Main>( L, "OneSimulOneRenderTest_LUA",		&CX2Main::	OneSimulOneRenderTest_LUA );
 #endif//X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
 
+#ifdef X2OPTIMIZE_DAMAGE_EFFECT_TEST
+	lua_tinker::class_def<CX2Main>( L, "DamageEffectTest_LUA",		&CX2Main::	DamageEffectTest_LUA );
+#endif//X2OPTIMIZE_DAMAGE_EFFECT_TEST
+
+#ifdef X2OPTIMIZE_VIEWDISTANCE_TEST
+	lua_tinker::class_def<CX2Main>( L, "ViewDistanceTest_LUA",		&CX2Main::	ViewDistanceTest_LUA );
+#endif//X2OPTIMIZE_VIEWDISTANCE_TEST
+
 //#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     lua_tinker::class_def<CX2Main>( L, "SetUDPMode",       &CX2Main::SetUDPMode_LUA );
 //#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+	lua_tinker::class_def<CX2Main>( L, "ToggleUnlimitedSkillUse",       &CX2Main::ToggleUnlimitedSkillUse );
+#endif //TOGGLE_UNLIMITED_SKILL_USE
 
 
 	lua_tinker::class_add<CX2QuestManager>( L, "CX2QuestManager" );
 	lua_tinker::class_def<CX2QuestManager>( L, "AddQuestTemplet_LUA",			&CX2QuestManager::AddQuestTemplet_LUA );
 	lua_tinker::class_def<CX2QuestManager>( L, "AddSubQuestTemplet_LUA",		&CX2QuestManager::AddSubQuestTemplet_LUA );
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½//2012-12-17// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ð¸ï¿½ ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ AddQuestTemplet_LUA ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½Õ´Ï´ï¿½.
+	//¿ÀÇöºó//2012-12-17// °èÁ¤ °ø¿ë Äù½ºÆ®¸¦ ÀÏ¹Ý Äù½ºÆ®¿Í ºÐ¸® ÇÏ°Ô À§ÇØ Ãß°¡ÇÑ ÀÎÅÍÆäÀÌ½º
+						// ÇöÀç´Â ¿ÏÀüÈ÷ °°±â ¶§¹®¿¡ AddQuestTemplet_LUA ±×³É ¾²Áö¸¸, ÃßÈÄ °èÁ¤ °ø¿ë Äù½ºÆ®¸¸ÀÇ µ¶¸³ º¯¼ö°¡ Ãß°¡µÇ¸é º¯°æ ÇÊ¿äÇÕ´Ï´Ù.
 	lua_tinker::class_def<CX2QuestManager>( L, "AddAccountQuestTemplet_LUA",			&CX2QuestManager::AddQuestTemplet_LUA );
 #endif //SERV_ACCOUNT_MISSION_SYSTEM
 
@@ -3305,13 +3480,8 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 #endif //DAY_OF_THE_WEEK_QUEST
 
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
-	lua_tinker::class_add<CX2ItemManager::KProxy>( L, "CX2ItemManagerProxy" );
-	lua_tinker::class_def<CX2ItemManager::KProxy>( L, "AddItemTemplet",				&CX2ItemManager::KProxy::AddItemTemplet_LUA );
-	lua_tinker::class_def<CX2ItemManager::KProxy>( L, "AddSetItemData_LUA",				&CX2ItemManager::KProxy::AddSetItemData_LUA );
-	lua_tinker::class_add<CX2ItemManager::KProxy2>( L, "CX2ItemManagerProxy2" );
-	lua_tinker::class_def<CX2ItemManager::KProxy2>( L, "AddItemTemplet",			&CX2ItemManager::KProxy2::AddItemTemplet_LUA );
-	lua_tinker::class_def<CX2ItemManager::KProxy2>( L, "AddSetItemData_LUA",		&CX2ItemManager::KProxy2::AddSetItemData_LUA );
-
+    // ¾ÆÀÌÅÛ µ¥ÀÌÅ¸ ÀüÃ³¸®¿ë proxy ·ç¾ÆÇÔ¼ö ¹ÙÀÎµå, robobeg
+    CX2ItemManager::RegisterProxyLuabind( L );
 #endif	//X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 	lua_tinker::class_add<CX2ItemManager>( L, "CX2ItemManager" );
@@ -3329,29 +3499,29 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2ItemManager>( L, "AddPetPreViewData",			&CX2ItemManager::AddPetPreViewData_LUA);
 #endif // PET_PREVIEW
 
-//{{ 2013.01.26 ï¿½Ö¹ï¿½Ã¶ Å¥ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//{{ 2013.01.26 ÃÖ¹ÎÃ¶ Å¥ºêÆÐÅ°Áö¾ÆÀÌÅÛ ¹Ì¸®º¸±â±â´É
 #ifdef PACKAGE_IN_QUBE_PREVIEW
 	lua_tinker::class_def<CX2ItemManager>(  L, "AddCubePackageData",			&CX2ItemManager::AddCube_PackageData_LUA );
 #endif PACKAGE_IN_QUBE_PREVIEW
 //}}
-#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
-	lua_tinker::class_def<CX2ItemManager>( L, "AddItemTempletTrans",		&CX2ItemManager::AddItemTempletTrans_LUA );
-#endif SERV_ITEM_LUA_TRANS_DEVIDE
+#ifndef X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 #ifdef LUA_TRANS_DEVIDE
+	lua_tinker::class_def<CX2ItemManager>( L, "AddItemTempletTrans",		&CX2ItemManager::AddItemTempletTrans_LUA );
 	lua_tinker::class_def<CX2ItemManager>( L, "AddSetItemDataTrans_LUA",	&CX2ItemManager::AddSetItemDataTrans_LUA);
 #endif LUA_TRANS_DEVIDE
+#endif //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 #ifdef IN_ITEM_KIM_USE_HIDE_SET_DESC
 	lua_tinker::class_def<CX2ItemManager>( L, "AddHideSetDesc",				&CX2ItemManager::AddHideSetDesc_LUA);
 #endif //IN_ITEM_KIM_USE_HIDE_SET_DESC
 
-	//{{ 2008. 4. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  
+	//{{ 2008. 4. 24  ÃÖÀ°»ç  
 	lua_tinker::class_def<CX2ItemManager>( L, "AddPackageItemData",			&CX2ItemManager::AddPackageItemData_LUA);
 	//}}		
 #ifndef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	lua_tinker::class_def<CX2ItemManager>( L, "AddSetItemData_LUA",			&CX2ItemManager::AddSetItemData_LUA);
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
-	//{{ 2008. 11. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//{{ 2008. 11. 18  ÃÖÀ°»ç
 	lua_tinker::class_def<CX2ItemManager>( L, "AddItemExchangeGroup",		&CX2ItemManager::AddItemExchangeGroup_LUA);	
 	//}}
 #ifdef NEW_ITEM_EXCHANGE_TEST
@@ -3362,7 +3532,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2ItemManager>( L, "AddCoolTimeGroupItem",		&CX2ItemManager::AddCoolTimeGroupItem_LUA );	
 #endif COOLTIME_SHARE_GROUP_ITEM
 
-	//{{ 2011. 10. 18	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
+	//{{ 2011. 10. 18	ÃÖÀ°»ç	¹èÆ²ÇÊµå ¾ÆÀÌÅÛ ·¹º§ ½Ã½ºÅÛ
 #ifdef SERV_BATTLE_FIELD_ITEM_LEVEL
 	lua_tinker::class_def<CX2ItemManager>( L, "SetItemLevelEnchantData",	&CX2ItemManager::SetItemLevelEnchantData_LUA );
 #endif SERV_BATTLE_FIELD_ITEM_LEVEL
@@ -3370,24 +3540,26 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 #ifdef ICE_HEATER_PRE_VIEW
 	lua_tinker::class_def<CX2ItemManager>( L, "AddIceHeaterItemData",	&CX2ItemManager::AddIceHeaterItemData_LUA);
 #endif //ICE_HEATER_PRE_VIEW
-	
 
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05	
 	lua_tinker::class_def<CX2ItemManager>( L, "AddItemConvertGroup", &CX2ItemManager::AddItemConvertGroup_LUA);
 	lua_tinker::class_def<CX2ItemManager>( L, "AddItemConvertInfo",	&CX2ItemManager::AddItemConvertInfo_LUA);
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
-
-	//{{ 2009. 6. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
+	//{{ 2009. 6. 24  ÃÖÀ°»ç	º¸»óÅ×ÀÌºí
 	lua_tinker::class_add<CX2RewardTable>( L, "CX2RewardTable" );
 	lua_tinker::class_def<CX2RewardTable>( L, "AddRewardData",			&CX2RewardTable::AddRewardData_LUA );
 	//}}
-	//{{ 2011. 06. 22    ï¿½ï¿½Î¼ï¿½    ï¿½ï¿½Å» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ - NEXON ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+	
+	//{{ 2011. 06. 22    ±è¹Î¼º    ÀÌÅ» ¹æÁö ¸ðµ¨ - NEXON ¼¼¼Ç ½Ã½ºÅÛ ¼öÁ¤
 #ifdef SERV_NEXON_SESSION_PROTOCOL
 	lua_tinker::class_def<CX2RewardTable>( L, "SetOutUserRetainingRewardItemInfo",	&CX2RewardTable::SetOutUserRetainingRewardItemInfo_LUA );
 #endif SERV_NEXON_SESSION_PROTOCOL
 	//}} 
-	//{{ 2011. 10.26    ï¿½ï¿½Î¼ï¿½	Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ®
+	//{{ 2011. 10.26    ±è¹Î¼º	Ä³¸¯ÅÍ ·¹º§¾÷ ÀÌº¥Æ®
 #ifdef SERV_CHAR_LEVEL_UP_EVENT
 	lua_tinker::class_def<CX2RewardTable>( L, "AddLevelUpRewardData",	&CX2RewardTable::AddLevelUpRewardData_LUA );
 #endif SERV_CHAR_LEVEL_UP_EVENT
@@ -3401,6 +3573,9 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2UnitManager>( L, "AddNPCTemplet",			&CX2UnitManager::AddNPCTemplet_LUA );
 	lua_tinker::class_def<CX2UnitManager>( L, "AddNPCStat",				&CX2UnitManager::AddNPCStat_LUA );
 	lua_tinker::class_def<CX2UnitManager>( L, "AddNPCExtraAbility_LUA", &CX2UnitManager::AddNPCExtraAbility_LUA );
+#ifdef REFORM_SKILL_NOTE_UI
+	lua_tinker::class_def<CX2UnitManager>( L, "AddCorrelateUnitClass",	&CX2UnitManager::AddCorrelateUnitClass_LUA );
+#endif // REFORM_SKILL_NOTE_UI
 
 
 	lua_tinker::class_add<CX2UIUnitManager>( L, "CX2UIUnitManager" );
@@ -3459,7 +3634,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2World>( L, "AddWorldMonster_LUA",			&CX2World::AddWorldMonster_LUA );
 //#endif MARIO_LIKE_BLOCK_TEST
 
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.12.13] // ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// oasis907 : ±è»óÀ± [2010.12.13] // º»¼· ÆÄ½Ì À§ÇØ µðÆÄÀÎ ½ÎÁö ¾ÊÀ½
 	lua_tinker::class_def<CX2World>( L, "SetWorldCamera",				&CX2World::SetWorldCamera_LUA );
 #ifdef MODIFY_FRUSTUM
 	lua_tinker::class_def<CX2World>( L, "SetProjection",				&CX2World::SetProjection );	
@@ -3682,16 +3857,16 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 
 	lua_tinker::class_def<CX2Game>( L, "GetNearestUserUnit_LUA",	       		&CX2Game::GetNearestUserUnit );
 
-//{{oasis:ï¿½ï¿½ï¿½ï¿½ï¿½////2009-10-7////
+//{{oasis:±è»óÀ±////2009-10-7////
 	lua_tinker::class_def<CX2Game>( L, "IsNearNPCUnitUID_LUA",					&CX2Game::IsNearNPCUnitUID_LUA);
 	lua_tinker::class_def<CX2Game>( L, "GetNearestUserUnitUID_LUA",				&CX2Game::GetNearestUserUnitUID_LUA );
 	lua_tinker::class_def<CX2Game>( L, "GetFixedDistancePosition_LUA",			&CX2Game::GetFixedDistancePosition_LUA );
 	lua_tinker::class_def<CX2Game>( L, "GetDist_LUA",							&CX2Game::GetDist_LUA );
 	lua_tinker::class_def<CX2Game>( L, "GetNearestUserUnitPos_LUA",				&CX2Game::GetNearestUserUnitPos_LUA );
-//}}oasis:ï¿½ï¿½ï¿½ï¿½ï¿½////2009-10-7////
+//}}oasis:±è»óÀ±////2009-10-7////
 	lua_tinker::class_def<CX2Game>( L, "GetNearestNPCUnitPos_LUA",				&CX2Game::GetNearestNPCUnitPos_LUA );
 #ifdef VELDER_BOSS_5	
-	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.7.30] // 
+	//{{ oasis907 : ±è»óÀ± [2010.7.30] // 
 	lua_tinker::class_def<CX2Game>( L, "GetFarthestUserUnitPos_LUA",			&CX2Game::GetFarthestUserUnitPos_LUA );
 	lua_tinker::class_def<CX2Game>( L, "GetUserUnitNum_LUA",					&CX2Game::GetUserUnitNum );
 	//}}
@@ -3712,13 +3887,13 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2Game>( L, "EnableManualCameraPosition",			&CX2Game::EnableManualCameraPosition);
 #endif IN_GAME_MANUAL_CAMERA_POSITION_TEST
 
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.12.13] // ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// oasis907 : ±è»óÀ± [2010.12.13] // º»¼· ÆÄ½Ì À§ÇØ µðÆÄÀÎ ½ÎÁö ¾ÊÀ½
 	lua_tinker::class_def<CX2Game>( L, "PlayWorldCamera",						&CX2Game::PlayWorldCamera );
 
 #ifdef FIX_LINK_ATTACK
 	lua_tinker::class_def<CX2Game>( L, "GetNearestUserUnitInSpecificRange_LUA",		&CX2Game::GetNearestUserUnitInSpecificRange );
 #endif
-	//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/4/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+	//{{ Çã»óÇü : [2011/3/4/] //	¿ùµå ¹Ì¼Ç
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	lua_tinker::class_def<CX2Game>( L, "GetNPCUnitNum",							&CX2Game::GetNPCUnitNum );
 	lua_tinker::class_def<CX2Game>( L, "GetNPCUnitNumByNPCID",					&CX2Game::GetNPCUnitNumByNPCID );
@@ -3726,9 +3901,9 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 
 	lua_tinker::class_def<CX2Game>( L, "GetDungeonProgress",					&CX2Game::GetDungeonProgress );
 #endif SERV_INSERT_GLOBAL_SERVER
-	//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/4/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+	//}} Çã»óÇü : [2011/3/4/] //	¿ùµå ¹Ì¼Ç
 
-#ifdef SERV_INSERT_GLOBAL_SERVER	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.4.19]
+#ifdef SERV_INSERT_GLOBAL_SERVER	// oasis907 : ±è»óÀ± [2011.4.19]
 	lua_tinker::class_def<CX2Game>( L, "GetEliteKeyCodeNPCUnitNum",				&CX2Game::GetEliteKeyCodeNPCUnitNum );
 #endif SERV_INSERT_GLOBAL_SERVER
 
@@ -3745,9 +3920,10 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 #ifdef SECRET_VELDER
 	lua_tinker::class_def<CX2Game>( L, "GetNowStageIndex",	&CX2Game::GetNowStageIndex);
 #endif
-#ifdef DUNGEON_ALARM_SYSTEM
 	lua_tinker::class_def<CX2Game>( L, "ShowDangerAlarm_LUA",	&CX2Game::ShowDangerAlarm_LUA);	
-#endif
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+	lua_tinker::class_def<CX2Game>( L, "ShowTimerAlarm_LUA",	&CX2Game::ShowTimerAlarm_LUA );	
+#endif //SERV_HALLOWEEN_EVENT_2013
 #ifdef ADDITIONAL_MEMO
 	lua_tinker::class_def<CX2Game>( L, "GetNearestUnit_LUA",	&CX2Game::GetNearestUnit);	
 #endif
@@ -3776,9 +3952,9 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 #endif //NEXON_QA_CHEAT_REQ
 
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-02
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥: 2013-04-02
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ Å°ï¿½Úµå¸¦ ï¿½ï¿½ï¿½ï¿½ NPC ï¿½Ë»ï¿½
+	/// ÆÀ¿¡ Á¦ÇÑ ¾øÀÌ ÇØ´ç Å°ÄÚµå¸¦ °¡Áø NPC °Ë»ç
 	lua_tinker::class_def<CX2Game>( L, "LiveKeyCodeNPCNumFreeTeam",	&CX2Game::LiveKeyCodeNPCNumFreeTeam );
 
 #endif //SERV_NEW_DEFENCE_DUNGEON
@@ -3788,6 +3964,26 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2Game>( L, "GetNearestNPCUnitOnSameDirection_LUA",		&CX2Game::GetNearestNPCUnitOnSameDirection_LUA );
 #endif //NEAREST_NPC_ON_SAME_DIRECTION
 
+#ifdef ADDED_GET_SUBSTAGE_INDEX_IN_SCRIPT
+	lua_tinker::class_def<CX2Game>( L, "GetNowSubStageIndex",	&CX2Game::GetNowSubStageIndex);
+#endif // ADDED_GET_SUBSTAGE_NUMBER_IN_SCRIPT
+
+	// ÁöÁ¤µÈ ¹üÀ§ ¾ÈÀÇ UnitUID ¸¦ Á¦¿ÜÇÑ °¡Àå °¡±î¿î NPC ¸¦ °¡Á®¿È
+	// ÀÌÄí½º, ÀÎÄð·Îµå Ä«µå NPC Àû¿ë ÇÔ¼ö, kimjh
+	lua_tinker::class_def<CX2Game>( L, "GetNearestNpcInSpecificRangeAndExceptUnitUID_LUA",				&CX2Game::GetNearestNpcInSpecificRangeAndExceptUnitUID );
+	
+#ifdef NOT_RENDER_NPC_GAME_EDIT
+	// kimhc // 2013-10-11 // ¹è°æÆÀ ¿äÃ»¿¡ ÀÇÇØ¼­ Npc¸¦ º¸ÀÌ°ÔÇÏ°í, ¾È º¸ÀÌ°Ô ÇÏ°í¸¦ ÁöÁ¤ÇÏ´Â ÇÔ¼ö (true º¸ÀÓ, false ¾Èº¸ÀÓ)
+	lua_tinker::class_def<CX2Game>( L, "SetShowNpcByGameEdit",		&CX2Game::SetShowNpcByGameEdit );
+#endif // NOT_RENDER_NPC_GAME_EDIT
+
+#ifdef MODFIY_LOG_IN_NPC_SCRIPT_FUNCTION
+	lua_tinker::class_def<CX2Game>( L, "ChatBoxLog",				&CX2Game::ChatBoxLog );
+#endif // MODFIY_LOG_IN_NPC_SCRIPT_FUNCTION
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	lua_tinker::class_def<CX2Game>( L, "SetValentineEventTrigger_LUA",		&CX2Game::SetValentineEventTrigger_LUA );
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 
 	lua_tinker::class_add<CX2DungeonGame>( L, "CX2DungeonGame" );
 	lua_tinker::class_inh<CX2DungeonGame, CX2Game>( L );
@@ -3862,20 +4058,16 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GameUnit>( L, "SetExtraDamageDataTime",	&CX2GameUnit::SetExtraDamageDataTime);
 	lua_tinker::class_def<CX2GameUnit>( L, "DeleteEffectSetOnDie",		&CX2GameUnit::DeleteEffectSetOnDie);
 	lua_tinker::class_def<CX2GameUnit>( L, "SetLockOnNearTarget_LUA",	&CX2GameUnit::SetLockOnNearTarget_LUA);
-	//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/12/07 / ï¿½ë°¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ JHKang / °­Á¤ÈÆ / 2010/12/07 / ´ë°¢¼± °ø°Ý ÀÌÆåÆ® Å©±â ¹®Á¦ ¹× ¾ÆÅä¹Í ½¯µå Àû¿ë
 #ifdef NEW_SKILL_2010_11
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	lua_tinker::class_def<CX2GameUnit>( L, "GetScaleByUnit",			&CX2GameUnit::GetVec3ScaleByUnit);
 #else //UPGRADE_SKILL_SYSTEM_2013
-#ifdef INT_SKILL_BUG_FIX
-	lua_tinker::class_def<CX2GameUnit>( L, "GetScaleByUnit",			&CX2GameUnit::GetVec3ScaleByUnit);
-#else
 	lua_tinker::class_def<CX2GameUnit>( L, "GetScaleByUnit",			&CX2GameUnit::GetScaleByUnit);
-#endif INT_SKILL_BUG_FIX
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	lua_tinker::class_def<CX2GameUnit>( L, "SetShieldDamageReduce",		&CX2GameUnit::SetShieldDamageReduce);
 #endif NEW_SKILL_2010_11
-	//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/12/07 / ï¿½ë°¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//}} JHKang / °­Á¤ÈÆ / 2010/12/07 / ´ë°¢¼± °ø°Ý ÀÌÆåÆ® Å©±â ¹®Á¦ ¹× ¾ÆÅä¹Í ½¯µå Àû¿ë
 
 #ifdef NEW_CHARACTER_CHUNG
 	lua_tinker::class_def<CX2GameUnit>( L, "SetRemainHyperModeTime",	&CX2GameUnit::SetRemainHyperModeTime);
@@ -3916,7 +4108,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GameUnit>( L, "GetChangeUnitScaleByBuff",	&CX2GameUnit::GetChangeUnitScaleByBuff );
 #endif POSSIBLE_ADD_CHANGE_SCALE_BUFF_VALUE
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-12
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥: 2013-04-12
 	lua_tinker::class_def<CX2GameUnit>( L, "WriteTraceLog_LUA",			&CX2GameUnit::WriteTraceLog_LUA );
 
 	lua_tinker::class_def<CX2GameUnit>( L, "ShowIncreaseValue",			&CX2GameUnit::ShowIncreaseValue );
@@ -3926,8 +4118,12 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GameUnit>( L, "HaveThisBuff",				&CX2GameUnit::HaveThisBuff );
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
 
+#ifdef WRITE_SCRIPT_LOG_AT_CONSOLE_WINDOW // ±èÅÂÈ¯
+	lua_tinker::class_def<CX2GameUnit>( L, "WriteLogByConsoleWindow",	&CX2GameUnit::WriteLogByConsoleWindow_LUA );
+#endif // WRITE_SCRIPT_LOG_AT_CONSOLE_WINDOW
+
 #ifdef USER_LEVEL_IN_LUA
-	lua_tinker::class_def<CX2GameUnit>( L, "GetUnitLevel",					&CX2GameUnit::GetUnitLevel );
+	lua_tinker::class_def<CX2GameUnit>( L, "GetUnitLevel",				&CX2GameUnit::GetUnitLevel );
 #endif USER_LEVEL_IN_LUA
 
 	//{{ GUNPC Start
@@ -3937,6 +4133,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "AnimTimer_LUA",				&CX2GUNPC::AnimTimer_LUA);
 	lua_tinker::class_def<CX2GUNPC>( L, "GetNowAnimTime_LUA",			&CX2GUNPC::GetNowAnimTime_LUA);
 	lua_tinker::class_def<CX2GUNPC>( L, "EventTimer",					&CX2GUNPC::EventTimer);
+
 	lua_tinker::class_def<CX2GUNPC>( L, "GetLandPosition_LUA",			&CX2GUNPC::GetLandPosition_LUA);
 	lua_tinker::class_def<CX2GUNPC>( L, "SetPosition",					&CX2GUNPC::SetPosition);
 	lua_tinker::class_def<CX2GUNPC>( L, "GetPos",						&CX2GUNPC::GetPos);
@@ -4003,10 +4200,24 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "SetLockOnNearTarget",			&CX2GUNPC::SetLockOnNearTarget);	
 	lua_tinker::class_def<CX2GUNPC>( L, "SetLockOn",					&CX2GUNPC::SetLockOn);
 	lua_tinker::class_def<CX2GUNPC>( L, "SetLockOnPos",					&CX2GUNPC::SetLockOnPos);
+//2013-08-29ÆÐÄ¡ : <±èÃ¢ÇÑ> uid¸¦ ÁöÁ¤ÇØ¼­ À¯´ÖÀ» Å¸°ÙÇÏµµ·Ï ÇÏ´Â ÇÔ¼ö. ÇÏ¸á ºñ´ø¿¡¼­ »ç¿ëµÊ.
+	lua_tinker::class_def<CX2GUNPC>( L, "SetLockOnUnitUIDFix",			&CX2GUNPC::SetLockOnUnitUIDFix);
+
 	lua_tinker::class_def<CX2GUNPC>( L, "SetSiegeMode",					&CX2GUNPC::SetSiegeMode);
 	lua_tinker::class_def<CX2GUNPC>( L, "ReleaseSiegeMode",				&CX2GUNPC::ReleaseSiegeMode);
 	lua_tinker::class_def<CX2GUNPC>( L, "GetUID",						&CX2GUNPC::GetUID);
+	lua_tinker::class_def<CX2GUNPC>( L, "SetTimerRestart",				&CX2GUNPC::SetTimerRestart);
+	lua_tinker::class_def<CX2GUNPC>( L, "GetTimerElapsedTime",			&CX2GUNPC::GetTimerElapsedTime);
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	lua_tinker::class_def<CX2GUNPC>( L, "SetTimerResume",				&CX2GUNPC::SetTimerResume);
+    lua_tinker::class_def<CX2GUNPC>( L, "SetTimerPause",				&CX2GUNPC::SetTimerPause);
+    lua_tinker::class_def<CX2GUNPC>( L, "GetTimerResumed",				&CX2GUNPC::GetTimerResumed);
+    lua_tinker::class_def<CX2GUNPC>( L, "TimerEventTrigger",			&CX2GUNPC::TimerEventTrigger);
+    lua_tinker::class_def<CX2GUNPC>( L, "StateEventInterval_LUA",		&CX2GUNPC::StateEventInterval_LUA);
+    lua_tinker::class_def<CX2GUNPC>( L, "GetMotionEnd",		            &CX2GUNPC::GetMotionEnd);
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	lua_tinker::class_def<CX2GUNPC>( L, "ClearEventCheck",				&CX2GUNPC::ClearEventCheck);
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	lua_tinker::class_def<CX2GUNPC>( L, "GetFollowHitter",				&CX2GUNPC::GetFollowHitter);
 	lua_tinker::class_def<CX2GUNPC>( L, "GetFollowHitterLost",			&CX2GUNPC::GetFollowHitterLost);
 	lua_tinker::class_def<CX2GUNPC>( L, "GetLineGroupStartPos",			&CX2GUNPC::GetLineGroupStartPos);
@@ -4027,6 +4238,9 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "SetTargetUnitType",			&CX2GUNPC::SetTargetUnitType);
 	lua_tinker::class_def<CX2GUNPC>( L, "GetTargetUnitUID",				&CX2GUNPC::GetTargetUnitUID);	
 	lua_tinker::class_def<CX2GUNPC>( L, "GetTargetUser",				&CX2GUNPC::GetTargetUser);
+#ifdef FINALITY_SKILL_SYSTEM //±èÃ¢ÇÑ
+	lua_tinker::class_def<CX2GUNPC>( L, "GetTargetNPC",					&CX2GUNPC::GetTargetNPC);
+#endif //FINALITY_SKILL_SYSTEM
 	lua_tinker::class_def<CX2GUNPC>( L, "GetNearestUserPos",			&CX2GUNPC::GetNearestUserPos);
 	lua_tinker::class_def<CX2GUNPC>( L, "GetNearestNPCPos",				&CX2GUNPC::GetNearestNPCPos);
 	lua_tinker::class_def<CX2GUNPC>( L, "IsUnitID",			        	&CX2GUNPC::IsUnitID);        
@@ -4040,8 +4254,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "GetStateIDByKeyword",		&CX2GUNPC::GetStateIDByKeyword);
 #endif MONSTER_STATE_CHANGE_CHEAT
 	lua_tinker::class_def<CX2GUNPC>( L, "StateChange_LUA",				&CX2GUNPC::StateChange_LUA);
-	lua_tinker::class_def<CX2GUNPC>( L, "SetTimerRestart",				&CX2GUNPC::SetTimerRestart);
-	lua_tinker::class_def<CX2GUNPC>( L, "GetTimerElapsedTime",			&CX2GUNPC::GetTimerElapsedTime);
+
 	lua_tinker::class_def<CX2GUNPC>( L, "IsSelfDestructing",			&CX2GUNPC::IsSelfDestructing);
 	lua_tinker::class_def<CX2GUNPC>( L, "StartSelfDestruction",			&CX2GUNPC::StartSelfDestruction);
 	lua_tinker::class_def<CX2GUNPC>( L, "StopSelfDestruction",			&CX2GUNPC::StopSelfDestruction);
@@ -4058,10 +4271,8 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "SetUnitFadeScale",				&CX2GUNPC::SetUnitFadeScale);	
 	lua_tinker::class_def<CX2GUNPC>( L, "SetUnitColor",					&CX2GUNPC::SetUnitColor);
 	lua_tinker::class_def<CX2GUNPC>( L, "CreateArmagedonBlade",			&CX2GUNPC::CreateArmagedonBlade);
-#ifdef PVP_BOT
 	lua_tinker::class_def<CX2GUNPC>( L, "CreateArmagedonBladeByBot",	&CX2GUNPC::CreateArmagedonBladeByBot);
-	lua_tinker::class_def<CX2GUNPC>( L, "ActiveSkillShow_LUA",			&CX2GUNPC::ActiveSkillShow_LUA);	
-#endif
+	lua_tinker::class_def<CX2GUNPC>( L, "ActiveSkillShow_LUA",			&CX2GUNPC::ActiveSkillShow_LUA);
 	lua_tinker::class_def<CX2GUNPC>( L, "AddConsultNpc",				&CX2GUNPC::AddConsultNpc);	
 	lua_tinker::class_def<CX2GUNPC>( L, "GetConsultNpc",				&CX2GUNPC::GetConsultNpc);	
 	lua_tinker::class_def<CX2GUNPC>( L, "GetEntangleTrapAttackDuration",	&CX2GUNPC::GetEntangleTrapAttackDuration);	
@@ -4070,14 +4281,12 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "GetRealatedSkillLevel",		&CX2GUNPC::GetRealatedSkillLevel );
 	lua_tinker::class_def<CX2GUNPC>( L, "SetRealatedSkillLevel",		&CX2GUNPC::SetRealatedSkillLevel );
 
-	//{{ kimhc // 2010.8.7 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NPCï¿½ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
-#ifdef	FOCUS_CAMERA_NPC_FORCE
+	//{{ kimhc // 2010.8.7 // ¹«Á¶°Ç NPC¿¡°Ô Ä«¸Þ¶ó°¡ °¡µµ·Ï ÇÏ´Â ±â´É
 	lua_tinker::class_def<CX2GUNPC>( L, "GetFocusCameraForce",			&CX2GUNPC::GetFocusCameraForce);	
 	lua_tinker::class_def<CX2GUNPC>( L, "SetFocusCameraForce",			&CX2GUNPC::SetFocusCameraForce);
-#endif	FOCUS_CAMERA_NPC_FORCE
-	//}} kimhc // 2010.8.7 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NPCï¿½ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
+	//}} kimhc // 2010.8.7 // ¹«Á¶°Ç NPC¿¡°Ô Ä«¸Þ¶ó°¡ °¡µµ·Ï ÇÏ´Â ±â´É
 
-//{{oasis:ï¿½ï¿½ï¿½ï¿½ï¿½////2009-10-7////
+//{{oasis:±è»óÀ±////2009-10-7////
 	lua_tinker::class_def<CX2GUNPC>( L, "GetTargetUnitUID_LUA",						&CX2GUNPC::GetTargetUnitUID_LUA);	
 
 	lua_tinker::class_def<CX2GUNPC>( L, "SetGroupAICommand_LUA",							&CX2GUNPC::SetGroupAICommand_LUA);	
@@ -4102,10 +4311,10 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	
 	lua_tinker::class_def<CX2GUNPC>( L, "SetAItoMainAIData_LUA",							&CX2GUNPC::SetAItoMainAIData_LUA);	
 	lua_tinker::class_def<CX2GUNPC>( L, "SetAItoSubAIData_LUA",								&CX2GUNPC::SetAItoSubAIData_LUA);	
-//}}oasis:ï¿½ï¿½ï¿½ï¿½ï¿½////2009-10-7////
+//}}oasis:±è»óÀ±////2009-10-7////
 
 #ifdef MONSTER_REFLECT_DAMAGE_DATA
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.4.19] // 
+//{{ oasis907 : ±è»óÀ± [2010.4.19] // 
 	lua_tinker::class_def<CX2GUNPC>( L, "SetReflectDamageOnPhysicalDamage_LUA",				&CX2GUNPC::SetReflectDamageOnPhysicalDamage);	
 	lua_tinker::class_def<CX2GUNPC>( L, "SetReflectDamageOnMagicalDamage_LUA",				&CX2GUNPC::SetReflectDamageOnMagicalDamage);	
 //}}
@@ -4119,20 +4328,20 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 #endif RIDING_MONSTER
 
 #ifdef SERV_SECRET_HELL
-	//{{ megagame / ï¿½Ú±ï¿½ï¿½ï¿½ / [2010-04-06] ï¿½ï¿½Æ® Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+	//{{ megagame / ¹Ú±³Çö / [2010-04-06] È÷Æ® Ä«¿îÆ® ±â´É Ãß°¡
 	lua_tinker::class_def<CX2GUNPC>( L, "GetHitCount_LUA",									&CX2GUNPC::GetHitCount_LUA);	
 	lua_tinker::class_def<CX2GUNPC>( L, "SetHitCount_LUA",									&CX2GUNPC::SetHitCount_LUA);	
 
 	lua_tinker::class_def<CX2GUNPC>( L, "GetStateID_LUA",									&CX2GUNPC::GetStateID_LUA);	
 	lua_tinker::class_def<CX2GUNPC>( L, "GetNextStateID_LUA",								&CX2GUNPC::GetNextStateID_LUA);	
-	//}} megagame / ï¿½Ú±ï¿½ï¿½ï¿½ / [2010-04-06]
+	//}} megagame / ¹Ú±³Çö / [2010-04-06]
 
-	//{{ megagame / ï¿½Ú±ï¿½ï¿½ï¿½ / [2010-04-29] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµé¸µ ï¿½ß°ï¿½
+	//{{ megagame / ¹Ú±³Çö / [2010-04-29] ½ÃÁî¸ðµå ÇÚµé¸µ Ãß°¡
 	lua_tinker::class_def<CX2GUNPC>( L, "GetSiegeMode",										&CX2GUNPC::GetSiegeMode);	
 	lua_tinker::class_def<CX2GUNPC>( L, "SetSiegeMode",										&CX2GUNPC::SetSiegeMode);	
-	//}} megagame / ï¿½Ú±ï¿½ï¿½ï¿½ / [2010-04-29] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµé¸µ ï¿½ß°ï¿½
+	//}} megagame / ¹Ú±³Çö / [2010-04-29] ½ÃÁî¸ðµå ÇÚµé¸µ Ãß°¡
 
-	//{{ kimhc // 2010-04-16 // ï¿½ï¿½ï¿½Ý·ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Úµé¸µ ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½
+	//{{ kimhc // 2010-04-16 // °ø°Ý·Â, ¹æ¾î·Â µî ÇÚµé¸µ ÇÒ ¼ö ÀÖµµ·Ï ÇÔ
 	lua_tinker::class_def<CX2GUNPC>( L, "SetAtkPhysic_LUA",									&CX2GUNPC::SetAtkPhysic_LUA);
 	lua_tinker::class_def<CX2GUNPC>( L, "SetAtkMagic_LUA",									&CX2GUNPC::SetAtkMagic_LUA);
 	lua_tinker::class_def<CX2GUNPC>( L, "SetDefPhysic_LUA",									&CX2GUNPC::SetDefPhysic_LUA);
@@ -4152,30 +4361,30 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "SetDefaultAnimSpeed_LUA",							&CX2GUNPC::SetDefaultAnimSpeed_LUA);
 	lua_tinker::class_def<CX2GUNPC>( L, "GetDefaultAnimSpeed_LUA",							&CX2GUNPC::GetDefaultAnimSpeed_LUA);
 
-	//}} kimhc // 2010-04-16 // ï¿½ï¿½ï¿½Ý·ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Úµé¸µ ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½
+	//}} kimhc // 2010-04-16 // °ø°Ý·Â, ¹æ¾î·Â µî ÇÚµé¸µ ÇÒ ¼ö ÀÖµµ·Ï ÇÔ
 #endif SERV_SECRET_HELL
 
-	//{{ kimhc // 2010.6.29 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ß¿ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ kimhc // 2010.6.29 // µ¥¹ÌÁö ½ºÅ×ÀÌÆ®µé Áß¿¡¼­ Æ¯Á¤ µ¥¹ÌÁö ½ºÅ×ÀÌÆ®¸¦ ´Ù¸¥ ½ºÅ×ÀÌÆ®·Î º¯°æ
 	lua_tinker::class_def<CX2GUNPC>( L, "ChangeDamageStateID_LUA",							&CX2GUNPC::ChangeDamageStateID_LUA );
 	lua_tinker::class_def<CX2GUNPC>( L, "ChangeDyingStateID_LUA",							&CX2GUNPC::ChangeDyingStateID_LUA );
-	//}} kimhc // 2010.6.29 // small_front, big_back ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ß¿ï¿½ï¿½ï¿½ Aï¿½ï¿½ï¿½ stateIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Bï¿½ï¿½ï¿½ stateIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//}} kimhc // 2010.6.29 // small_front, big_back µîÀÇ ¿©·¯ ½ºÅ×ÀÌÆ® µé Áß¿¡¼­ A¶ó´Â stateID¸¦ °¡Áø°ÍÀ» B¶ó´Â stateID·Î º¯°æ
 
-//{{ kimhc // 2010.7.7 // ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½
+//{{ kimhc // 2010.7.7 // ¸ó½ºÅÍ°¡ »ý¼ºÇÑ ¶óÀÎ¸Ê
 #ifdef	LINE_MAP_CREATED_BY_MONSTER
 	lua_tinker::class_def<CX2GUNPC>( L, "InsertMonsterLineMapIndex_LUA",					&CX2GUNPC::InsertMonsterLineMapIndex_LUA );
 	lua_tinker::class_def<CX2GUNPC>( L, "GetNumOfMonsterLineMap_LUA",						&CX2GUNPC::GetNumOfMonsterLineMap_LUA );
 	lua_tinker::class_def<CX2GUNPC>( L, "GetMonsterLineMapIndex_LUA",						&CX2GUNPC::GetMonsterLineMapIndex_LUA );
 
 #endif	LINE_MAP_CREATED_BY_MONSTER
-//}} kimhc // 2010.7.7 // ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½
-	//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/12/20 / ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®(SetDie ï¿½ï¿½ï¿½ï¿½)
+//}} kimhc // 2010.7.7 // ¸ó½ºÅÍ°¡ »ý¼ºÇÑ ¶óÀÎ¸Ê
+	//{{ JHKang / °­Á¤ÈÆ / 2010/12/20 / ÇÇ Èí¼ö ÀÌÆåÆ®(SetDie Âü°í)
 #ifdef SEASON3_MONSTER_2010_12
 	lua_tinker::class_def<CX2GUNPC>( L,	"SetDrainHPSeq",									&CX2GUNPC::SetDrainHPSeq );
 	lua_tinker::class_def<CX2GUNPC>( L,	"GetReflectMagic_LUA",								&CX2GUNPC::GetReflectMagic );	
 	lua_tinker::class_def<CX2GUNPC>( L,	"GetDamageTypeThisFrame_LUA",						&CX2GUNPC::GetDamageTypeThisFrame );
 	lua_tinker::class_def<CX2GUNPC>( L,	"InitDamageTypeThisFrame_LUA",						&CX2GUNPC::InitDamageTypeThisFrame );
 #endif SEASON3_MONSTER_2010_12
-	//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/12/20 / ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®(SetDie ï¿½ï¿½ï¿½ï¿½)
+	//}} JHKang / °­Á¤ÈÆ / 2010/12/20 / ÇÇ Èí¼ö ÀÌÆåÆ®(SetDie Âü°í)
 
 #ifdef SECRET_VELDER
 	lua_tinker::class_def<CX2GUNPC>( L,	"SetCriticalRate",									&CX2GUNPC::SetCriticalRate );
@@ -4183,9 +4392,17 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "GetNearestUserLandPos",							&CX2GUNPC::GetNearestUserLandPos);
 #endif
 
+//#ifdef ADDED_GET_MONSTER_LAST_TOUCH_LINE_INDEX
+	lua_tinker::class_def<CX2GUNPC>( L, "GetLastTouchLineIndex",							&CX2GUNPC::GetLastTouchLineIndex);
+// #endif // 	ADDED_GET_MONSTER_LAST_TOUCH_LINEMAP_INDEX
+
 #ifdef USE_UNIT_FOG_RENDER_PARAM //JHKang
 	lua_tinker::class_def<CX2GUNPC>( L, "SetFogNPC_LUA",									&CX2GUNPC::SetFogNPC);
 #endif //USE_UNIT_FOG_RENDER_PARAM
+
+#ifdef ENTRY_MONSTER_MESSAGE // ±èÅÂÈ¯
+	lua_tinker::class_def<CX2GUNPC>( L, "SetEntryMonsterMessage",							&CX2GUNPC::SetEntryMonsterMessage );
+#endif // ENTRY_MONSTER_MESSAGE
 
 	//}} GUNPC End
 
@@ -4218,17 +4435,15 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "GetUserGrap",					&CX2GUNPC::GetUserGrap);
 #endif TEST_GROUP_GRAP
 
-//{{ kimhc // 2010.7.27 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ HOLD ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½
-#ifdef	USER_HOLD_EX
+//{{ kimhc // 2010.7.27 // ¿©·¯¸íÀÇ À¯Àú¸¦ HOLD ÇÒ ¼ö ÀÖµµ·Ï ÇÔ
 	lua_tinker::class_def<CX2GUNPC>( L, "SetUnHoldWhenRevenged",		&CX2GUNPC::SetUnHoldWhenRevenged);
-#endif	USER_HOLD_EX
-//}} kimhc // 2010.7.27 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ HOLD ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½
+//}} kimhc // 2010.7.27 // ¿©·¯¸íÀÇ À¯Àú¸¦ HOLD ÇÒ ¼ö ÀÖµµ·Ï ÇÔ
 	lua_tinker::class_def<CX2GUNPC>( L, "GetLastAttackGameUnit",		&CX2GUNPC::GetLastAttackGameUnit);	
 	lua_tinker::class_def<CX2GUNPC>( L, "GetLastAttackUnit",			&CX2GUNPC::GetLastAttackUnit);
 	lua_tinker::class_def<CX2GUNPC>( L, "GetHitter",					&CX2GUNPC::GetHitter);   
 
 #ifdef VELDER_BOSS_5
-	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.7.28] // 
+	//{{ oasis907 : ±è»óÀ± [2010.7.28] // 
 	lua_tinker::class_def<CX2GUNPC>( L, "SetRideToUnit_LUA",			&CX2GUNPC::SetRideToUnit );
 	lua_tinker::class_def<CX2GUNPC>( L, "StopRideToUnit_LUA",			&CX2GUNPC::StopRideToUnit );
 	lua_tinker::class_def<CX2GUNPC>( L, "SetPositionForce",				&CX2GUNPC::SetPositionForce);
@@ -4236,7 +4451,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUNPC>( L, "SetCloaking",					&CX2GUNPC::SetCloaking);
 	lua_tinker::class_def<CX2GUNPC>( L, "SetUnCloaking",				&CX2GUNPC::SetUnCloaking);
 
-	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.7.28] // 	
+	//}} oasis907 : ±è»óÀ± [2010.7.28] // 	
 #endif VELDER_BOSS_5
 
 #ifdef GUNPC_TOGGLE_APPLY_MOTION_OFFSET
@@ -4257,6 +4472,9 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 	lua_tinker::class_def<CX2GUNPC>( L, "GetOwnerUserUnitUID",		&CX2GUNPC::	GetOwnerGameUnitUID );
 #endif
+#ifdef FINALITY_SKILL_SYSTEM //±èÃ¢ÇÑ
+	lua_tinker::class_def<CX2GUNPC>( L, "GetOwnerGameUnit",		&CX2GUNPC::	GetOwnerGameUnit );
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef VELDER_SECRET_DUNGEON
 	lua_tinker::class_def<CX2GUNPC>( L, "IsOnSomething_LUA",		&CX2GUNPC::IsOnSomething);
@@ -4268,14 +4486,22 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 #endif //CREATE_ALLY_NPC_BY_MONSTER
 
 #ifdef SERV_CHUNG_TACTICAL_TROOPER
-	lua_tinker::class_def<CX2GUNPC>( L, "GetNearestUnitPosByOwnerUnit", &CX2GUNPC::GetNearestUnitPosByOwnerUnit );		/// NPCï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-	lua_tinker::class_def<CX2GUNPC>( L, "GetNearestActiveNPCPos",		&CX2GUNPC::GetNearestActiveNPCPos );			/// ï¿½ï¿½ï¿½ï¿½ Active ï¿½ï¿½ï¿½ï¿½ NPCï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½È¯
+	lua_tinker::class_def<CX2GUNPC>( L, "GetNearestUnitPosByOwnerUnit", &CX2GUNPC::GetNearestUnitPosByOwnerUnit );		/// NPC¸¦ ¼ÒÈ¯ÇÑ À¯Àú¿Í °¡Àå °¡±îÀÌ ÀÖ´Â Àû À¯´ÖÀ» ¹ÝÈ¯
+	lua_tinker::class_def<CX2GUNPC>( L, "GetNearestActiveNPCPos",		&CX2GUNPC::GetNearestActiveNPCPos );			/// ÇöÀç Active ÁßÀÎ NPCÀÇ À§Ä¡¸¦ ¹ÝÈ¯
 #endif SERV_CHUNG_TACTICAL_TROOPER
 
 #ifdef ADD_CHANGE_BACKGROUND_MUSIC
 	//lua_tinker::class_def<CX2GUNPC>( L, "ChangeBGM_LUA",				&CX2GUNPC::ChangeBGM_LUA	);
 #endif // ADD_CHANGE_BACKGROUND_MUSIC
+#ifdef FIELD_BOSS_RAID
+	lua_tinker::class_def<CX2GUNPC>( L, "SetFollowTargetUnitBone",		&CX2GUNPC::SetFollowTargetUnitBone);
+	lua_tinker::class_def<CX2GUNPC>( L, "ActiveFollowTargetUnitBone",	&CX2GUNPC::ActiveFollowTargetUnitBone);
+	lua_tinker::class_def<CX2GUNPC>( L, "CreateEltrionEvenlyLockonMissile",	&CX2GUNPC::CreateEltrionEvenlyLockonMissile);
+#endif // FIELD_BOSS_RAID
 
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	lua_tinker::class_def<CX2GUNPC>( L, "GetRandomInt",					&CX2GUNPC::GetRandomInt );
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 
 	lua_tinker::class_add<CX2GUUser>( L, "CX2GUUser" );
 	lua_tinker::class_inh<CX2GUUser, CX2GameUnit>( L );
@@ -4293,38 +4519,36 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUUser>( L, "GetHold",						&CX2GUUser::GetHold );	
 #endif
 	
-#ifdef TRANSFORMER_TEST
-	lua_tinker::class_def<CX2GUUser>( L, "TransformIntoMonster",		&CX2GUUser::TransformIntoMonster );	
-	lua_tinker::class_def<CX2GUUser>( L, "TransformIntoUser",			&CX2GUUser::TransformIntoUser );	
-#endif TRANSFORMER_TEST
+//#ifdef TRANSFORMER_TEST
+//	lua_tinker::class_def<CX2GUUser>( L, "TransformIntoMonster",		&CX2GUUser::TransformIntoMonster );	
+//	lua_tinker::class_def<CX2GUUser>( L, "TransformIntoUser",			&CX2GUUser::TransformIntoUser );	
+//#endif TRANSFORMER_TEST
 
 #ifdef VELDER_BOSS_5
-	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.8.2] // 
+	//{{ oasis907 : ±è»óÀ± [2010.8.2] // 
 	lua_tinker::class_def<CX2GUUser>( L, "GetLandPosition_LUA",			&CX2GUUser::GetLandPos );	
 	//}}
 #endif VELDER_BOSS_5
 
-	//{{ kimhc // 2010.8.10 // Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È° ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½
-#ifdef	USE_MONSTER_POS_FOR_REBIRTH
+	//{{ kimhc // 2010.8.10 // Æ¯Á¤ ¸ó½ºÅÍÀÇ À§Ä¡ °ªÀ» ºÎÈ° À§Ä¡·Î »ç¿ë
 	lua_tinker::class_def<CX2GUUser>( L, "InitPosByMonsterPos",			&CX2GUUser::InitPosByMonsterPos );
-#endif	USE_MONSTER_POS_FOR_REBIRTH
-	//}} kimhc // 2010.8.10 // Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È° ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½
-	//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/12/16 / ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
+	//}} kimhc // 2010.8.10 // Æ¯Á¤ ¸ó½ºÅÍÀÇ À§Ä¡ °ªÀ» ºÎÈ° À§Ä¡·Î »ç¿ë
+	//{{ JHKang / °­Á¤ÈÆ / 2010/12/16 / ÇöÀç ÇÇ°Ý »óÅÂÀÎ°¡?
 #ifdef SEASON3_MONSTER_2010_12
 	lua_tinker::class_def<CX2GUUser>( L, "GetNowHit",					&CX2GUUser::GetNowHit );
 	lua_tinker::class_def<CX2GUUser>( L, "SetNowHit",					&CX2GUUser::SetNowHit );
-#endif SEASON3_MONSTER_2010_12 // ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?
-	//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/12/16
+#endif SEASON3_MONSTER_2010_12 // ÇöÀç ÇÇ°Ý »óÅÂÀÎ°¡?
+	//}} JHKang / °­Á¤ÈÆ / 2010/12/16
 
-	//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/17 / ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+	//{{ JHKang / °­Á¤ÈÆ / 2011/01/17 / ÃÖÁ¾ µ¥¹ÌÁö °ªÀ» Àü´ÞÇÒ ¸â¹ö ÇÔ¼ö
 #ifdef SEASON3_MONSTER_2010_12
 	lua_tinker::class_def<CX2GUUser>( L, "GetRealDamage",		&CX2GUUser::GetRealDamage );
 	lua_tinker::class_def<CX2GUUser>( L, "SetAnimSpeed_LUA",	&CX2GUUser::SetAnimSpeed_LUA );
 #endif SEASON3_MONSTER_2010_12
-	//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/17 / ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+	//}} JHKang / °­Á¤ÈÆ / 2011/01/17 / ÃÖÁ¾ µ¥¹ÌÁö °ªÀ» Àü´ÞÇÒ ¸â¹ö ÇÔ¼ö
 
 #ifdef NEW_CHARACTER_CHUNG
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.12.21] // Ã» Æ©ï¿½ä¸®ï¿½ï¿½
+	// oasis907 : ±è»óÀ± [2010.12.21] // Ã» Æ©Åä¸®¾ó
 	lua_tinker::class_def<CX2GUUser>( L, "SetHyperModeCount",			&CX2GUUser::SetHyperModeCount );	
 #endif NEW_CHARACTER_CHUNG
 
@@ -4334,7 +4558,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	
 #ifdef NEW_HENIR_TEST
 	lua_tinker::class_def<CX2GUUser>( L, "StartHenirBuffFirst",			&CX2GUUser::StartHenirBuffFirst);
-#ifndef ADD_HENIR_BUFF		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¸é¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifndef ADD_HENIR_BUFF		/// ¹öÇÁ·Î º¯°æµÇ¸é¼­ ¾²ÀÌÁö ¾Ê°Ô µÈ ±¸¹®
 	lua_tinker::class_def<CX2GUUser>( L, "StartHenirBuffFire",			&CX2GUUser::StartHenirBuffFire);
 	lua_tinker::class_def<CX2GUUser>( L, "StartHenirBuffWater",			&CX2GUUser::StartHenirBuffWater);
 	lua_tinker::class_def<CX2GUUser>( L, "StartHenirBuffNature",		&CX2GUUser::StartHenirBuffNature);
@@ -4355,21 +4579,38 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GUUser>( L, "SetInvincibleAndNoMpConsume_Cheat",				&CX2GUUser::SetInvincibleAndNoMpConsume_Cheat);
 #endif //NEXON_QA_CHEAT_REQ
 
-#ifdef USER_LEVEL_IN_LUA
-	lua_tinker::class_def<CX2GUUser>( L, "GetUnitLevel",					&CX2GUUser::GetUnitLevel );
-#endif USER_LEVEL_IN_LUA
+#ifdef CHEAT_SELF_DAMAGE // ±èÅÂÈ¯
+	lua_tinker::class_def<CX2GUUser>( L, "SetSelfDamage",				&CX2GUUser::SetSelfDamage );
+#endif //CHEAT_SELF_DAMAGE
 
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯
+	lua_tinker::class_def<CX2GUUser>( L, "SetDPValue",					&CX2GUUser::SetDPValue );
+#endif //SERV_9TH_NEW_CHARACTER
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+	lua_tinker::class_def<CX2GUUser>( L, "SetMutationCount",			&CX2GUUser::SetMutationCount );
+#endif //SERV_ADD_LUNATIC_PSYKER
+
+#ifdef USER_LEVEL_IN_LUA
+	lua_tinker::class_def<CX2GUUser>( L, "GetUnitLevel",				&CX2GUUser::GetUnitLevel );
+#endif USER_LEVEL_IN_LUA
 
 
 	lua_tinker::class_add<CX2DamageEffect>( L, "CX2DamageEffect" );
 	lua_tinker::class_def<CX2DamageEffect>( L, "CreateInstance_LUA",		&CX2DamageEffect::CreateInstance_LUA );
 	lua_tinker::class_def<CX2DamageEffect>( L, "CreateInstance_LUA2",		&CX2DamageEffect::CreateInstance_LUA2 );	
+#ifdef CREATEINSTANCE_WITH_LIFETIME_IN_LUA
+	lua_tinker::class_def<CX2DamageEffect>( L, "CreateInstanceWithLifeTime_LUA",		&CX2DamageEffect::CreateInstanceWithLifeTime_LUA );
+#endif //CREATEINSTANCE_WITH_LIFETIME_IN_LUA
 #ifdef SERV_PET_SYSTEM
 	lua_tinker::class_def<CX2DamageEffect>( L, "CreateInstanceByPet_LUA",		&CX2DamageEffect::CreateInstanceByPet_LUA );
 #endif
 	lua_tinker::class_def<CX2DamageEffect>( L, "CreateInstanceParabolic_LUA",	&CX2DamageEffect::CreateInstanceParabolic_LUA );
 	lua_tinker::class_def<CX2DamageEffect>( L, "IsLiveInstance",			&CX2DamageEffect::IsLiveInstance );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    lua_tinker::class_def<CX2DamageEffect>( L, "DestroyInstance",			&CX2DamageEffect::DestroyInstance_LUA );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	lua_tinker::class_def<CX2DamageEffect>( L, "DestroyInstance",			&CX2DamageEffect::DestroyInstance );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	lua_tinker::class_add<CX2EffectSet>( L, "CX2EffectSet" );
 	lua_tinker::class_def<CX2EffectSet>( L, "AddEffectSetTemplet_LUA",		&CX2EffectSet::AddEffectSetTemplet_LUA );
@@ -4377,35 +4618,43 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2EffectSet>( L, "AddEffectSet_Description",		&CX2EffectSet::AddEffectSet_Description_LUA );
 	lua_tinker::class_def<CX2EffectSet>( L, "SetEffectSetVersion",			&CX2EffectSet::SetEffectSetVersion_LUA );
 #endif //EFFECT_TOOL
-	//{{ kimhc // 2010.4.19 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½
+	//{{ kimhc // 2010.4.19 // ºñ¹Ð´øÀü ÀÛ¾÷
 #ifdef SERV_SECRET_HELL
 	lua_tinker::class_def<CX2EffectSet>( L, "PlayEffectSet_LUA",				&CX2EffectSet::PlayEffectSet_LUA );
 	lua_tinker::class_def<CX2EffectSet>( L, "PlayEffectSetWithCustomPos_LUA",	&CX2EffectSet::PlayEffectSetWithCustomPos_LUA );
 	lua_tinker::class_def<CX2EffectSet>( L, "StopEffectSet_LUA",				&CX2EffectSet::StopEffectSet_LUA );
 #endif SERV_SECRET_HELL
-	//}} kimhc // 2010.4.19 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½
+#ifdef CREATEINSTANCE_WITH_LIFETIME_IN_LUA
+	lua_tinker::class_def<CX2EffectSet>( L, "PlayEffectSetWithLifetime_LUA",	&CX2EffectSet::PlayEffectSetWithLifetime_LUA );
+	lua_tinker::class_def<CX2EffectSet>( L, "PlayEffectSetWithLifetimePos_LUA",	&CX2EffectSet::PlayEffectSetWithLifetimePos_LUA );
+#endif //#ifdef CREATEINSTANCE_WITH_LIFETIME_IN_LUA
+	//}} kimhc // 2010.4.19 // ºñ¹Ð´øÀü ÀÛ¾÷
 	
-	//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/19
+	//{{ JHKang / °­Á¤ÈÆ / 2011/01/19
 #ifdef SEASON3_MONSTER_2010_12
 	lua_tinker::class_def<CX2EffectSet>( L, "PlayEffectSetTraceTarget_LUA",	&CX2EffectSet::PlayEffectSetTraceTarget_LUA );
 #endif SEASON3_MONSTER_2010_12
-	//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/19
+	//}} JHKang / °­Á¤ÈÆ / 2011/01/19
 
 #ifdef SERV_PET_SYSTEM
 	lua_tinker::class_def<CX2EffectSet>( L, "PlayEffectSetByPet_LUA",			&CX2EffectSet::PlayEffectSetByPet_LUA );	
 #endif
-#ifdef ADD_PET_UNICORN
 	lua_tinker::class_def<CX2EffectSet>( L, "SetEffectSetInstPos",			&CX2EffectSet::SetEffectSetInstPos );
-#endif
 	lua_tinker::class_def<CX2EffectSet>( L, "SetEffectScale_LUA",			&CX2EffectSet::SetEffectScale_LUA );
-
+	
 #ifdef GET_EFFECTSET_POSITION_IN_LUA
 	lua_tinker::class_def<CX2EffectSet>( L, "GetEffectPosition_LUA",		&CX2EffectSet::GetEffectPosition_LUA );
 #endif GET_EFFECTSET_POSITION_IN_LUA
-	
+
 //#ifdef SERV_HERO_PVP_MANAGE_LIST
 //	lua_tinker::class_def<CX2UIHeroMatch>( L, "AddHelperText_Hero",		&CX2UIHeroMatch::AddHelperText_Hero );
 //#endif //SERV_HERO_PVP_MANAGE_LIST
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+	lua_tinker::class_add<CX2EffectSet::Handle>( L, "CX2EffectSetHandle" );
+	lua_tinker::class_def<CX2EffectSet::Handle>( L, "IsEqual",					&CX2EffectSet::Handle::IsEqual );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
 
 	lua_tinker::class_add<CX2GameEdit>( L, "CX2GameEdit" );
 	lua_tinker::class_def<CX2GameEdit>( L, "AddCommandChange",			&CX2GameEdit::AddCommandChange );
@@ -4423,28 +4672,28 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GameEdit>( L, "SetLastCreatedMonster",		&CX2GameEdit::SetLastCreatedMonster  );
 	lua_tinker::class_def<CX2GameEdit>( L, "MonsterStateChange",		&CX2GameEdit::MonsterStateChange  );
 #endif MONSTER_STATE_CHANGE_CHEAT
-	//{{ 2010. 8. 10	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
+	//{{ 2010. 8. 10	ÃÖÀ°»ç	Æê ½Ã½ºÅÛ
 #ifdef SERV_PET_SYSTEM
 	lua_tinker::class_def<CX2GameEdit>( L, "PetCheat",					&CX2GameEdit::PetCheat_LUA );
 	lua_tinker::class_def<CX2GameEdit>( L, "PetActionCheat",					&CX2GameEdit::PetActionCheat_LUA );	
 #endif SERV_PET_SYSTEM
 	//}}
-	//{{ 2010. 9. 29	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ED ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ Ä¡Æ®
+	//{{ 2010. 9. 29	ÃÖÀ°»ç	ED ¸ð´ÏÅÍ¸µ Ä¡Æ®
 #ifdef SERV_ADMIN_SHOW_ED
 	lua_tinker::class_def<CX2GameEdit>( L, "UserEdCheat",				&CX2GameEdit::UserEdCheat_LUA );
 #endif SERV_ADMIN_SHOW_ED
 	//}}
-	//{{ 2011. 04. 16	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ë¸® ï¿½ï¿½ï¿½ï¿½
+	//{{ 2011. 04. 16	ÃÖÀ°»ç	´ë¸® »óÀÎ
 //#ifdef SERV_PSHOP_AGENCY
 	lua_tinker::class_def<CX2GameEdit>( L, "ShopCheat",					&CX2GameEdit::ShopCheat_LUA );
 //#endif SERV_PSHOP_AGENCY
 	//}}
-	//{{ 2011. 08. 11	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½Î¸ï¿½ 
+	//{{ 2011. 08. 11	ÃÖÀ°»ç	Åõ´Ï ·£µå Ã¤³Î¸µ 
 #ifdef SERV_TOONILAND_CHANNELING // SERV_JAPAN_CHANNELING
 	lua_tinker::class_def<CX2GameEdit>( L, "ChannelingCodeCheat",		&CX2GameEdit::ChannelingCodeCheat_LUA );
 #endif SERV_TOONILAND_CHANNELING // SERV_JAPAN_CHANNELING
 	//}}
-	//{{ 2011. 08. 12   ï¿½ï¿½Î¼ï¿½      ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ 
+	//{{ 2011. 08. 12   ±è¹Î¼º      Çì´Ï¸£ °³Æí 
 #ifdef SERV_NEW_HENIR_TEST
 	lua_tinker::class_def<CX2GameEdit>( L, "HenirRewardCountCheat",		&CX2GameEdit::HenirRewardCountCheat_LUA );
 #endif SERV_NEW_HENIR_TEST
@@ -4461,14 +4710,14 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GameEdit>( L, "RefreshDailyQuest",			&CX2GameEdit::RefreshDailyQuest );
 #endif SERV_RANDOM_DAY_QUEST
 
-	//{{ 2011. 09. 20  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½Ó³ï¿½ ED ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
+	//{{ 2011. 09. 20  ±è¹Î¼º	°ÔÀÓ³» ED °¨½Ã ¸ð´ÏÅÍ¸µ
 #ifdef SERV_ED_MONITORING_IN_GAME
 	lua_tinker::class_def<CX2GameEdit>( L, "EDMonitoringModeCheat",		&CX2GameEdit::EDMonitoringModeCheat_LUA );
 #endif SERV_ED_MONITORING_IN_GAME
 	//}}
 
 #ifdef GUILD_SKILL
-	//{{ 2009-11-30  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	//{{ 2009-11-30  ÃÖÀ°»ç
 	lua_tinker::class_def<CX2GameEdit>( L, "AdminGetGuildSPoint",		&CX2GameEdit::AdminGetGuildSPoint_LUA );
 	//}}
 #endif GUILD_SKILL
@@ -4488,14 +4737,22 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 
 #endif // ADDED_CHEAT_BATTLEFIELD_DANGEROUS_VALUE
 
-#ifdef UDP_CAN_NOT_SEND_USER_KICK // 2012.06.19 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // UDP ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½Å³ï¿½ IME ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å© ï¿½ï¿½Å¶ ï¿½Èºï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å± ï¿½Ï´ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UDP_CAN_NOT_SEND_USER_KICK // 2012.06.19 lygan_Á¶¼º¿í // UDP ÆÐÅ¶ ¸·°Å³ª IME ¹ö±× ÀÌ¿ëÇßÀ»¶§ ´ëÀü¿¡¼­ ½ÌÅ© ÆÐÅ¶ ¾Èº¸³»´Â À¯Àú Å± ÇÏ´Â ÄÚµå »ç¿ë À¯¹« ¼¼ÆÃ
 		lua_tinker::class_def<CX2GameEdit>( L, "PvpKickSet",		&CX2GameEdit::PvpKickSet_LUA );
 #endif //UDP_CAN_NOT_SEND_USER_KICK
 
 #ifdef SERV_DELETE_GUILD_ADD_CHEAT
 		lua_tinker::class_def<CX2GameEdit>( L, "DeleteGUildAdd",	&CX2GameEdit::DeleteGUildAdd_LUA );
 #endif // SERV_DELETE_GUILD_ADD_CHEAT
-		//{{ 2011.03.04 ï¿½Ó±Ô¼ï¿½ ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ Ä¡Æ® ( ï¿½î¿µï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		lua_tinker::class_def<CX2GameEdit>( L, "SetCoboEventItemGet",	&CX2GameEdit::SetCoboEventItemGet_LUA );
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		lua_tinker::class_def<CX2GameEdit>( L, "SetValenTineCountCheat",	&CX2GameEdit::SetValenTineCountCheat_LUA );
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		//{{ 2011.03.04 ÀÓ±Ô¼ö Çì´Ï¸£ ·©Å· »èÁ¦ Ä¡Æ® ( ¿î¿µÀÚ,°³¹ßÀÚ °èÁ¤ )
 #ifdef SERV_DELETE_HENIR_RANKING
 		lua_tinker::class_def<CX2GameEdit>( L, "DeleteHenirRankingRank",	&CX2GameEdit::DeleteHenirRankingRank_LUA );
 		lua_tinker::class_def<CX2GameEdit>( L, "DeleteHenirRankingNickName",	&CX2GameEdit::DeleteHenirRankingNickName_LUA );
@@ -4506,11 +4763,11 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 		lua_tinker::class_def<CX2GameEdit>( L, "ToggleInvisible",			&CX2GameEdit::ToggleInvisible_LUA );
 #endif SERV_INVISIBLE_GM
 
-		//{{ kimhc // 2012-10-16 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Úµï¿½
+		//{{ kimhc // 2012-10-16 // ÇÎÀÌ ºü¸¥ À¯Àú¸¦ È£½ºÆ®·Î º¯°æÇÏ´Â ÄÚµå
 #ifdef	SERV_CHOOSE_FASTEST_HOST
-		lua_tinker::class_def<CX2GameEdit>( L, "AveragePingTime",		&CX2GameEdit::AveragePingTime_LUA );	/// Hostï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		lua_tinker::class_def<CX2GameEdit>( L, "AveragePingTime",		&CX2GameEdit::AveragePingTime_LUA );	/// Host¸¦ °áÁ¤ÇÒ ÇÎ°ªÀ» Å×½ºÆ®°ªÀ¸·Î Á¶Á¤
 #endif	SERV_CHOOSE_FASTEST_HOST
-		//}} kimhc // 2012-10-16 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Úµï¿½
+		//}} kimhc // 2012-10-16 // ÇÎÀÌ ºü¸¥ À¯Àú¸¦ È£½ºÆ®·Î º¯°æÇÏ´Â ÄÚµå
 
 #ifdef SERV_DEVELOPER_RANDOM_OPEN_ITEM_LOG
 		lua_tinker::class_def<CX2GameEdit>( L, "RandomCubeOpen",	&CX2GameEdit::RandomCubeOpen );
@@ -4527,6 +4784,17 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2GameEdit>( L, "SetEffectLogLevel",	&CX2GameEdit::SetEffectLogLevel );
 #endif //EFFECT_USE_LOG
 
+#ifdef FIELD_BOSS_RAID
+	lua_tinker::class_def<CX2GameEdit>( L, "OpenRaidGate",	&CX2GameEdit::OpenRaidGate );
+	lua_tinker::class_def<CX2GameEdit>( L, "CloseRateGate",	&CX2GameEdit::CloseRateGate );
+	lua_tinker::class_def<CX2GameEdit>( L, "RequireGetTotalDangerousValue",	&CX2GameEdit::RequireGetTotalDangerousValue );
+	lua_tinker::class_def<CX2GameEdit>( L, "IncreaseTotalDangerousValue",	&CX2GameEdit::IncreaseTotalDangerousValue );
+#endif // FIELD_BOSS_RAID
+
+#ifdef SERV_EVENT_CHECK_POWER
+	lua_tinker::class_def<CX2GameEdit>( L, "SetMultiplyer",	&CX2GameEdit::SetMultiplyer );
+#endif SERV_EVENT_CHECK_POWER
+
 	lua_tinker::class_add<CX2TextManager::CX2Text>( L, "CX2Text" );
 	lua_tinker::class_def<CX2TextManager::CX2Text>( L, "Move",				&CX2TextManager::CX2Text::Move_LUA );
 	
@@ -4541,7 +4809,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2SlotManager>( L, "GetDummyValue",				&CX2SlotManager::GetDummyValue_LUA );
 	
 
-#ifndef COUPON_SYSTEM // ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½
+#ifndef COUPON_SYSTEM // ÀÌÀü UI Á¦°Å
 	lua_tinker::class_add<CX2CouponBox>( L, "CX2CouponBox" );
 	lua_tinker::class_inh< CX2CouponBox, CX2SlotManager>( L );
 #endif // COUPON_SYSTEM
@@ -4610,25 +4878,25 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_add<CX2SkillTree>( L, "CX2SkillTree" );
 	lua_tinker::class_def<CX2SkillTree>( L, "AddSkillTemplet_LUA",			&CX2SkillTree::AddSkillTemplet_LUA );
 	lua_tinker::class_def<CX2SkillTree>( L, "AddSkillTreeTemplet_LUA",		&CX2SkillTree::AddSkillTreeTemplet_LUA );
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	lua_tinker::class_def<CX2SkillTree>( L, "AddSkillPowerRate_LUA",		&CX2SkillTree::AddSkillPowerRate_LUA );
 	lua_tinker::class_def<CX2SkillTree>( L, "AddDefaultSkill_LUA",			&CX2SkillTree::AddDefaultSkill_LUA );
 
 	lua_tinker::class_def<CX2SkillTree>( L, "IsMyClassSkillID_LUA",			&CX2SkillTree::IsMyClassSkillID );
 	lua_tinker::class_def<CX2SkillTree>( L, "GetMaxLimitedSkillLevel_LUA",	&CX2SkillTree::GetMaxLimitedSkillLevel );
 #endif // UPGRADE_SKILL_SYSTEM_2013
-	//{{ 2009. 8. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		ï¿½ï¿½ï¿½Î½ï¿½Å³
+	//{{ 2009. 8. 5  ÃÖÀ°»ç		ºÀÀÎ½ºÅ³
 	lua_tinker::class_def<CX2SkillTree>( L, "AddSealSkillInfo",				&CX2SkillTree::AddSealSkillInfo_LUA );
 	//}}
 #ifdef LUA_TRANS_DEVIDE
 	lua_tinker::class_def<CX2SkillTree>( L, "AddSkillTempletTrans_LUA",		&CX2SkillTree::AddSkillTempletTrans_LUA );
 #endif LUA_TRANS_DEVIDE
 
-// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.1] // ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+// oasis907 : ±è»óÀ± [2009.12.1] // º»¼· ÆÄ½Ì À§ÇØ µðÆÄÀÎ ÇØÁ¦
 //#ifdef GUILD_SKILL
-	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+	//{{ oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 	lua_tinker::class_def<CX2SkillTree>( L, "AddGuildSkillTreeTemplet_LUA",		&CX2SkillTree::AddGuildSkillTreeTemplet_LUA );
-	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+	//}} oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 //#endif GUILD_SKILL
 
 
@@ -4649,8 +4917,21 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 
 #ifdef ADD_HALLOWEEN_PET_SYSTEM
 	lua_tinker::class_def<CX2DamageEffect::CEffect>( L, "GetDamageData",					&CX2DamageEffect::CEffect::GetDamageData );
+	lua_tinker::class_def<CX2DamageEffect::CEffect>( L, "GetDamageDataPtr",					&CX2DamageEffect::CEffect::GetDamageDataPtr );
 #endif ADD_HALLOWEEN_PET_SYSTEM
-	
+
+#ifdef SERV_BATTLEFIELD_MIDDLE_BOSS			// ±èÁ¾ÈÆ, 2013-10-24 ÇÊµå Áß°£ º¸½º 2Â÷
+	lua_tinker::class_def<CX2DamageEffect::CEffect>( L, "GetPos",					&CX2DamageEffect::CEffect::GetPos );
+#endif // SERV_BATTLEFIELD_MIDDLE_BOSS			// ±èÁ¾ÈÆ, 2013-10-24 ÇÊµå Áß°£ º¸½º 2Â÷
+
+#ifdef FIELD_BOSS_RAID	
+	lua_tinker::class_def<CX2DamageEffect::CEffect>( L, "SetLockOnNearstTarget",			&CX2DamageEffect::CEffect::SetLockOnNearstTarget );
+#endif // FIELD_BOSS_RAID
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+	lua_tinker::class_add<CX2DamageEffect::CEffectHandle>( L, "CX2DamageEffectHandle" );
+	lua_tinker::class_def<CX2DamageEffect::CEffectHandle>( L, "IsEqual",					&CX2DamageEffect::CEffectHandle::IsEqual );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 
 	lua_tinker::class_add<CX2TrainingCenterTable>( L, "KTrainingCenterTable" );
@@ -4662,7 +4943,11 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2DropItemManager>( L, "AddDropItem_LUA",						&CX2DropItemManager::AddDropItem_LUA );
 	lua_tinker::class_def<CX2DropItemManager>( L, "CountDropItemByID",						&CX2DropItemManager::CountDropItemByID );
 	lua_tinker::class_def<CX2DropItemManager>( L, "DeleteAllItem",							&CX2DropItemManager::DeleteAllItem );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    lua_tinker::class_def<CX2DropItemManager>( L, "GetDropItemPosition_LUA",					&CX2DropItemManager::GetDropItemPosition_LUA );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	lua_tinker::class_def<CX2DropItemManager>( L, "GetDropItemPosition",					&CX2DropItemManager::GetDropItemPosition );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 	
 
@@ -4673,7 +4958,6 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 
 	lua_tinker::class_add<CX2SocketItem>( L, "CX2SocketItem" );
 	lua_tinker::class_def<CX2SocketItem>( L, "AddSocketData_LUA",							&CX2SocketItem::AddSocketData_LUA );
-
 #ifdef LUA_TRANS_DEVIDE
 	lua_tinker::class_def<CX2SocketItem>( L, "AddSocketDataTrans_LUA",						&CX2SocketItem::AddSocketDataTrans_LUA );
 #endif LUA_TRANS_DEVIDE
@@ -4682,7 +4966,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2SocketItem>( L, "AddSocektGroupDataForCashAvatar_LUA",			&CX2SocketItem::AddSocketGroupDataForCashAvatar_LUA );
 #endif // SERV_CASH_ITEM_SOCKET_OPTION
 
-#ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // ¿ÀÇöºó
 	lua_tinker::class_def<CX2SocketItem>( L, "AddSkillLevelUpSocketGroup",					&CX2SocketItem::AddSkillLevelUpSocketGroup_LUA );
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
@@ -4704,8 +4988,8 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2EnchantItem>( L, "AddEnchantData_LUA",			&CX2EnchantItem::AddEnchantData_LUA);
 	lua_tinker::class_def<CX2EnchantItem>( L, "AddEnchantRequire_LUA",		&CX2EnchantItem::AddEnchantRequire_LUA);
 
-	//{{ 2008. 10. 1  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	
-#ifdef TITLE_SYSTEM
+	//{{ 2008. 10. 1  ÃÖÀ°»ç	
+//#ifdef TITLE_SYSTEM
 	lua_tinker::class_add<CX2TitleManager>( L, "CX2TitleManager" );
 	lua_tinker::class_def<CX2TitleManager>( L, "AddTitleInfo_LUA",			&CX2TitleManager::AddTitleInfo_LUA );	
     lua_tinker::class_def<CX2TitleManager>( L, "AddTitleMissionInfo_LUA",	&CX2TitleManager::AddTitleMissionInfo_LUA );
@@ -4715,10 +4999,10 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2TitleManager>( L, "AddTitleMissionInfoTrans_LUA",	&CX2TitleManager::AddTitleMissionInfoTrans_LUA );
 	lua_tinker::class_def<CX2TitleManager>( L, "AddSubTitleMissionInfoTrans_LUA",	&CX2TitleManager::AddSubTitleMissionInfoTrans_LUA );
 #endif LUA_TRANS_DEVIDE
-#endif
+//#endif
 	//}}
 
-	//{{ kimhc // 2009-10-31 // ï¿½ï¿½ï¿½ï¿½Ã¶
+	//{{ kimhc // 2009-10-31 // ±èÇöÃ¶
 #ifdef	GUILD_MANAGEMENT
 	lua_tinker::class_add< CX2GuildManager >( L, "CX2GuildManager" );
 	lua_tinker::class_def< CX2GuildManager >( L, "SetLimitGuildLevel",			&CX2GuildManager::SetLimitGuildLevel_LUA );
@@ -4728,7 +5012,7 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def< CX2GuildManager >( L, "SetPcBangFactor",				&CX2GuildManager::EmptyFuncUsedParsing_LUA );
 	lua_tinker::class_def< CX2GuildManager >( L, "SetPvpMemberFactor",			&CX2GuildManager::EmptyFuncUsedParsing_LUA );
 #endif	GUILD_MANAGEMENT
-	//}} kimhc // 2009-10-31 // ï¿½ï¿½ï¿½ï¿½Ã¶
+	//}} kimhc // 2009-10-31 // ±èÇöÃ¶
 
 #ifdef SERV_PET_SYSTEM
 	lua_tinker::class_add<CX2PET>( L, "CX2PET" );
@@ -4748,22 +5032,20 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2PET>( L, "SetIsRight",				&CX2PET::SetIsRight);     
 	lua_tinker::class_def<CX2PET>( L, "SetStateEffect",			&CX2PET::SetStateEffect);     	
 	lua_tinker::class_def<CX2PET>( L, "GetNowStateTimer",		&CX2PET::GetNowStateTimer);  
-#ifdef ADD_PET_UNICORN
 	lua_tinker::class_def<CX2PET>( L, "GetTargetUnit",			&CX2PET::GetTargetUnit);  
 	
-#endif
 #ifdef ADD_PET_NINE_TAIL_FOX
-	lua_tinker::class_def<CX2PET>( L, "SetLockOnDamageEffect",	&CX2PET::SetLockOnDamageEffect);	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ï¿ï¿½ ï¿½ï¿½Å²ï¿½ï¿½.
-	lua_tinker::class_def<CX2PET>( L, "GetRandomInt",			&CX2PET::GetRandomInt);				/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½Ô¼ï¿½
-	lua_tinker::class_def<CX2PET>( L, "GetDirVector",			&CX2PET::GetDirVector);				/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½Ô¼ï¿½
-	lua_tinker::class_def<CX2PET>( L, "GetIsRight",				&CX2PET::GetIsRight);				/// ï¿½ï¿½ ï¿½Â¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½Ô¼ï¿½
+	lua_tinker::class_def<CX2PET>( L, "SetLockOnDamageEffect",	&CX2PET::SetLockOnDamageEffect);	/// ÇöÀç ÆÖÀÌ ¸ñÇ¥·Î Á¤ÇÑ À¯´ÖÀ» µ¥¹ÌÁö ÀÌÆåÆ®¿¡ ·Ï¿Â ½ÃÅ²´Ù.
+	lua_tinker::class_def<CX2PET>( L, "GetRandomInt",			&CX2PET::GetRandomInt);				/// ³­¼ö ¹ÝÈ¯ ÇÔ¼ö
+	lua_tinker::class_def<CX2PET>( L, "GetDirVector",			&CX2PET::GetDirVector);				/// Æê ¹æÇâ º¤ÅÍ ¹ÝÈ¯ ÇÔ¼ö
+	lua_tinker::class_def<CX2PET>( L, "GetIsRight",				&CX2PET::GetIsRight);				/// Æê ÁÂ¿ìÃø ¹æÇâ ¹ÝÈ¯ ÇÔ¼ö
 #endif ADD_PET_NINE_TAIL_FOX
 
 #ifdef ADD_HALLOWEEN_PET_SYSTEM
-	lua_tinker::class_def<CX2PET>( L, "GetHitUnitListSize",		&CX2PET::GetHitUnitListSize);		/// ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½Ö¼ï¿½ ï¿½ï¿½È¯
-	lua_tinker::class_def<CX2PET>( L, "GetDamageData_LUA",		&CX2PET::GetDamageData_LUA);		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-	lua_tinker::class_def<CX2PET>( L, "SetDamageData_LUA",		&CX2PET::SetDamageData_LUA);		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	lua_tinker::class_def<CX2PET>( L, "ShowIncreaseValue",		&CX2PET::ShowIncreaseValue);		/// HP or MP È¸ï¿½ï¿½ ï¿½ï¿½Ä¡ Ç¥ï¿½ï¿½
+	lua_tinker::class_def<CX2PET>( L, "GetHitUnitListSize",		&CX2PET::GetHitUnitListSize);		/// ÇÇ°Ý À¯´Ö¼ö ¹ÝÈ¯
+	lua_tinker::class_def<CX2PET>( L, "GetDamageData_LUA",		&CX2PET::GetDamageData_LUA);		/// µ¥¹ÌÁö µ¥ÀÌÅÍ ¹ÝÈ¯
+	lua_tinker::class_def<CX2PET>( L, "SetDamageData_LUA",		&CX2PET::SetDamageData_LUA);		/// µ¥¹ÌÁö µ¥ÀÌÅÍ ¼³Á¤
+	lua_tinker::class_def<CX2PET>( L, "ShowIncreaseValue",		&CX2PET::ShowIncreaseValue);		/// HP or MP È¸º¹ ¼öÄ¡ Ç¥½Ã
 #endif ADD_HALLOWEEN_PET_SYSTEM
 
 #ifdef SET_IN_PET_LUA
@@ -4777,6 +5059,11 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CX2PET>( L, "GetNumber_LUA",			&CX2PET::GetNumber_LUA );
 #endif SET_IN_PET_LUA
 
+#ifdef ADD_2013_CHRISTMAS_PET // ±èÅÂÈ¯
+	lua_tinker::class_def<CX2PET>( L, "SetEffectSet_LUA",		&CX2PET::SetEffectSet_LUA);
+	lua_tinker::class_def<CX2PET>( L, "GetEffectSet_LUA",		&CX2PET::GetEffectSet_LUA);
+	lua_tinker::class_def<CX2PET>( L, "ClearEffectSet_LUA",		&CX2PET::ClearEffectSet_LUA);
+#endif //ADD_2013_CHRISTMAS_PET
 
 	lua_tinker::class_add<CX2PetManager>( L, "CX2PetManager" );
 	lua_tinker::class_def<CX2PetManager>( L, "AddPetTemplet",			&CX2PetManager::AddPetTemplet_LUA);	
@@ -4817,36 +5104,27 @@ void CX2Main::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_add<CX2UIInventory>( L, "CX2UIInventory" );
 	lua_tinker::class_def<CX2UIInventory>( L, "AddIceHeaterEventInfo",			&CX2UIInventory::AddIceHeaterEventInfo_LUA );
 #endif // FIX_ICE_HEATER_EVENT
+
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // ±èÁ¾ÈÆ, °³¹ßÀÚ ½ºÅ©¸³Æ® È®Àå ±â´É Ãß°¡
+	lua_tinker::class_add<DeveloperScriptSet>( L, "CX2DeveloperScriptSet" );
+	lua_tinker::class_def<DeveloperScriptSet>( L, "AddDeveloperScript",						&DeveloperScriptSet::AddDeveloperScript_LUA );
+	lua_tinker::class_def<DeveloperScriptSet>( L, "AddDamageEffectDevFileList_LUA",			&DeveloperScriptSet::AddDamageEffectDevFileList_LUA );
+	lua_tinker::class_def<DeveloperScriptSet>( L, "AddEffectSetDevFileList_LUA",			&DeveloperScriptSet::AddEffectSetDevFileList_LUA );
+	lua_tinker::class_def<DeveloperScriptSet>( L, "AddGameMajorXMeshPlayerDevFileList_LUA",	&DeveloperScriptSet::AddGameMajorXMeshPlayerDevFileList_LUA );
+#endif // EXPAND_DEVELOPER_SCRIPT  // ±èÁ¾ÈÆ, °³¹ßÀÚ ½ºÅ©¸³Æ® È®Àå ±â´É Ãß°¡
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // ±èÅÂÈ¯
+	lua_tinker::class_add<CX2UIPersonalShopBoard>( L, "CX2UIPersonalShopBoard" );
+	lua_tinker::class_def<CX2UIPersonalShopBoard>( L, "AddBanItemNameList",					&CX2UIPersonalShopBoard::AddBanItemNameList_LUA );
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
+#ifdef REFORM_SKILL_NOTE_UI
+	lua_tinker::class_add<CX2SkillNoteManager>( L, "CX2SkillNoteManager" );
+	lua_tinker::class_def<CX2SkillNoteManager>( L, "AddSkillNoteTemplet",						&CX2SkillNoteManager::AddSkillNoteTemplet_LUA);
+#endif // REFORM_SKILL_NOTE_UI
 }
 
-bool CX2Main::OpenScriptFile( const WCHAR* pFileName, KLuabinder* pKLuabinder )
-{
-	if ( pKLuabinder == NULL )
-		pKLuabinder = g_pKTDXApp->GetLuaBinder();
 
-	lua_tinker::decl( pKLuabinder->GetLuaState(),  "g_pMain", this );
-
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR13, strFileName.c_str() );
-		return false;
-	}
-
-	if( pKLuabinder->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR14, strFileName.c_str() );
-
-		return false;
-	}
-
-	return true;
-}
 
 bool CX2Main::StateChange( int stateID, int iDetailStateID )
 {
@@ -4866,10 +5144,10 @@ bool CX2Main::StateChange( int stateID, int iDetailStateID )
 		g_pKTDXApp->RemoveStage( m_pNowState, true );
 		m_pNowState = NULL; 
 
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 		if ( g_pKTDXApp->GetDeviceManager() != NULL )
 			g_pKTDXApp->GetDeviceManager()->ReleaseAllMemoryBuffers();
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
 		m_NowStateID = (X2_STATE)stateID;
 		StateInLog();
@@ -4880,14 +5158,12 @@ bool CX2Main::StateChange( int stateID, int iDetailStateID )
 		g_pKTDXApp->SetFrameRate( 75.f );
 #endif DOWN_FRAME_TEST
 
-		//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/7/21] //	ï¿½ï¿½ï¿½Òµï¿½ ï¿½Þ°ï¿½ï¿½ï¿½ Ã¢ ï¿½ï¿½È°ï¿½ï¿½È­
-#ifdef NASOD_SCOPE
+		//{{ Çã»óÇü : [2009/7/21] //	³ª¼Òµå ¸Þ°¡Æù Ã¢ ºñÈ°¼ºÈ­
 		if(g_pChatBox != NULL)
 		{
 			g_pChatBox->ShowNasodMessageDlg( false );
 		}
-#endif
-		//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/7/21] //	ï¿½ï¿½ï¿½Òµï¿½ ï¿½Þ°ï¿½ï¿½ï¿½ Ã¢ ï¿½ï¿½È°ï¿½ï¿½È­
+		//}} Çã»óÇü : [2009/7/21] //	³ª¼Òµå ¸Þ°¡Æù Ã¢ ºñÈ°¼ºÈ­
 
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
@@ -4939,7 +5215,16 @@ bool CX2Main::StateChange( int stateID, int iDetailStateID )
 #ifdef HEAP_BROKEN_BY_ROOM
 					g_pData->DeleteAllRooms();
 #endif // HEAP_BROKEN_BY_ROOM
-					m_pNowState = new CX2StateServerSelect;					
+					m_pNowState = new CX2StateServerSelect;		
+					
+#ifdef FIX_REFORM_ENTRY_POINT_8TH		// kimjh, ÁøÀÔ ±¸Á¶ °³Æí, 8Â÷ ¼öÁ¤ »çÇ× 
+										// ( À¯´Ö »ý¼º ½Ã Á¤·ÄÇÏ´Â Key °ªÀÎ ¸¶Áö¸· ·Î±×ÀÎ ½Ã°£ÀÌ ºÐ ´ÜÀ§·Î °»½ÅµÊ¿¡ µû¶ó »ý±â´Â ¹®Á¦ ¼öÁ¤
+										// Note, UidType ÀÌ ÀÛÁø ¾ÊÀ»±î?										
+					// iDetailStateID ÀÇ ±âº» °ªÀº NULL ÀÌ´Ù.
+					if ( iDetailStateID > 0 )
+						static_cast<CX2StateServerSelect * > ( m_pNowState )->SetUidCreatedUnit ( static_cast<UidType> ( iDetailStateID ) ); 
+#endif // FIX_REFORM_ENTRY_POINT_8TH	// kimjh, ÁøÀÔ ±¸Á¶ °³Æí, 8Â÷ ¼öÁ¤ »çÇ× 
+				
 				} 
 				break;
 #endif ELSWORD_NEW_BEGINNING
@@ -4981,12 +5266,12 @@ bool CX2Main::StateChange( int stateID, int iDetailStateID )
 					
 #ifdef HEAP_BROKEN_BY_ROOM
 					g_pData->DeleteBattleFieldRoom();
-					g_pData->DeleteDungeonRoom();	/// ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...
+					g_pData->DeleteDungeonRoom();	/// ÀÌ°Ç »ç½Ç ÇÊ¿ä ¾øÀ» °Í °°Áö¸¸...
 
 					if ( NULL == g_pData->GetPVPRoom() )
 						g_pData->ResetPVPRoom();
 					
-					if ( NULL != g_pX2Room && CX2Room::IsNewDataSet() )		/// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½
+					if ( NULL != g_pX2Room && CX2Room::IsNewDataSet() )		/// »õ·Î¿î µ¥ÀÌÅÍ°¡ ¼ÂÆÃ µÇ¾úÀ¸¸é
 						g_pX2Room->ApplyRoomPacketData();
 #endif // HEAP_BROKEN_BY_ROOM
 
@@ -5029,28 +5314,28 @@ bool CX2Main::StateChange( int stateID, int iDetailStateID )
 					D3DXVECTOR3 vPos;	
 
 // 					if(g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL)
-// 						iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_nMapID;
+// 						iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_nMapID;
 					
 					if(g_pData->GetLocationManager()->GetVillageMapTemplet((SEnum::VILLAGE_MAP_ID)iMapId) == NULL)
 					{
-						// ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+						// Àß¸øµÈ ¸¶À»·Î ÀÌµ¿½Ã ÃÊ±âÈ­
 						KEGS_STATE_CHANGE_FIELD_REQ kPacket;					
 
 						iMapId = SEnum::VMI_RUBEN;
 						kPacket.m_iMapID =  (int)iMapId;
 						
 
-						D3DXVECTOR3 vStartPos = g_pData->GetLocationManager()->GetStartPosLoc( 1 );	// ï¿½çº¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
+						D3DXVECTOR3 vStartPos = g_pData->GetLocationManager()->GetStartPosLoc( 1 );	// ·çº¥¸¶À»ÀÇ ÀÓÀÇÀÇ ½ÃÀÛ À§Ä¡
 						g_pData->GetLocationManager()->SetLastPos( vStartPos );
 
 
 						g_pData->GetLocationManager()->SetVillage( (SEnum::VILLAGE_MAP_ID)kPacket.m_iMapID, vStartPos );
 
 						g_pData->GetServerProtocol()->SendPacket( EGS_STATE_CHANGE_FIELD_REQ, kPacket );
-						g_pMain->AddServerPacket( EGS_STATE_CHANGE_FIELD_ACK );
+						AddServerPacket( EGS_STATE_CHANGE_FIELD_ACK );
 
 						//SAFE_DELETE_DIALOG( m_pDLGMsgBox );
-						//m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Ï°ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.", this );	
+						//m_pDLGMsgBox = KTDGUIMsgBox( D3DXVECTOR2(250,300), L"¸¶À»·Î ÀÌµ¿ÇÏ°í ÀÖ½À´Ï´Ù.", this );	
 					}	
 					else
 					{					
@@ -5099,12 +5384,12 @@ bool CX2Main::StateChange( int stateID, int iDetailStateID )
 
 #ifdef HEAP_BROKEN_BY_ROOM
 					g_pData->DeleteBattleFieldRoom();
-					g_pData->DeletePVPRoom();	/// ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...
+					g_pData->DeletePVPRoom();	/// ÀÌ°Ç »ç½Ç ÇÊ¿ä ¾øÀ» °Í °°Áö¸¸...
 
 					if ( NULL == g_pData->GetDungeonRoom() )
 						g_pData->ResetDungeonRoom();
 
-					if ( NULL != g_pX2Room && CX2Room::IsNewDataSet() )		/// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½
+					if ( NULL != g_pX2Room && CX2Room::IsNewDataSet() )		/// »õ·Î¿î µ¥ÀÌÅÍ°¡ ¼ÂÆÃ µÇ¾úÀ¸¸é
 						g_pX2Room->ApplyRoomPacketData();
 #endif // HEAP_BROKEN_BY_ROOM
 
@@ -5145,7 +5430,7 @@ bool CX2Main::StateChange( int stateID, int iDetailStateID )
 #ifdef HEAP_BROKEN_BY_ROOM
 					g_pData->DeleteAllRooms();
 					g_pData->ResetBattleFieldRoom();
-					if ( NULL != g_pX2Room && CX2Room::IsNewDataSet() )		/// ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½
+					if ( NULL != g_pX2Room && CX2Room::IsNewDataSet() )		/// »õ·Î¿î µ¥ÀÌÅÍ°¡ ¼ÂÆÃ µÇ¾úÀ¸¸é
 						g_pX2Room->ApplyRoomPacketData();
 #endif // HEAP_BROKEN_BY_ROOM
 
@@ -5155,7 +5440,7 @@ bool CX2Main::StateChange( int stateID, int iDetailStateID )
 					m_pNowState = new CX2StateBattleField();
 				} break;
 
-#ifdef ADDED_RELATIONSHIP_SYSTEM // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..È®ï¿½ï¿½ï¿½Ê¿ï¿½.
+#ifdef ADDED_RELATIONSHIP_SYSTEM // ¸¶À» °´Ã¼¸¦ ¾ø¾ÖÁà¾ßÇÒÁö..È®ÀÎÇÊ¿ä.
 			case XS_WEDDING_GAME:
 				{
 					g_pKTDXApp->SetFrameRate( 40.f );
@@ -5179,19 +5464,19 @@ bool CX2Main::StateChange( int stateID, int iDetailStateID )
 
 		CX2GageManager::StateChange( stateID );
         //{{ seojt // 2008-10-21, 18:08
-        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ g_pKTDXApp->PostChangeState()ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ñ´ï¿½.
+        // »óÅÂ º¯È­°¡ ³¡³­ ÈÄ g_pKTDXApp->PostChangeState()¸¦ È£ÃâÇÑ´Ù.
         //g_pKTDXApp->PostChangeState( m_pNowState );
         //}} seojt // 2008-10-21, 18:08
 
 		PostStateChange();
 
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 		if ( g_pKTDXApp->GetDeviceManager() != NULL )
 			g_pKTDXApp->GetDeviceManager()->ReleaseAllMemoryBuffers();
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
-#ifdef SEND_NEXON_WISE_LOG_BY_URL // ï¿½ï¿½ï¿½ï¿½È¯
-		if( false == m_BrowserWrapper.IsClosed() )	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½
+#ifdef SEND_NEXON_WISE_LOG_BY_URL // ±èÅÂÈ¯
+		if( false == m_BrowserWrapper.IsClosed() )	/// ºê¶ó¿ìÀú°¡ ÄÑÁ®ÀÖÀ¸¸é, ²ôÀÚ
 			m_BrowserWrapper.CloseBrowser();
 #endif // SEND_NEXON_WISE_LOG_BY_URL
 
@@ -5207,19 +5492,19 @@ void CX2Main::PostStateChange()
 {
 #ifdef NEW_VILLAGE_UI
 
-	// 08.12.14 ï¿½ï¿½ï¿½Â¿ï¿½ : State Changeï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½
+	// 08.12.14 ±èÅÂ¿Ï : State Change½Ã¿¡ ¿­·Á ÀÖ´Â ¸ðµç UI ´ÝÀ½
 	if ( NULL != g_pData->GetUIManager() )
 	{
 		CX2UIManager* pUIManager = g_pData->GetUIManager();
 		pUIManager->OnStateChange();
 
-		//{{ kimhc	// ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½Îºï¿½ï¿½ä¸®
+		//{{ kimhc	// ½Ç½Ã°£ ¿¤¼Òµå Áß ½Ç½Ã°£ ¾ÆÀÌÅÛ È¹µæ °ü·Ã ÀÓ½Ã ÀÎº¥Åä¸®
 #ifdef	REAL_TIME_ELSWORD
 		if ( pUIManager->GetUITempInventory() != NULL &&
 			pUIManager->GetUITempInventory()->GetNumberOfItem() > 0 )
 			pUIManager->ToggleUI( CX2UIManager::UI_TEMP_INVENTORY, true );
 #endif	REAL_TIME_ELSWORD
-		//}} kimhc	// ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½Îºï¿½ï¿½ä¸®
+		//}} kimhc	// ½Ç½Ã°£ ¿¤¼Òµå Áß ½Ç½Ã°£ ¾ÆÀÌÅÛ È¹µæ °ü·Ã ÀÓ½Ã ÀÎº¥Åä¸®
 	}
 #endif
 
@@ -5235,10 +5520,10 @@ void CX2Main::PostStateChange()
 
 	ReservedServerEventProc();
 
-	// ï¿½ï¿½Æ¼ UI ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½ï¿½ï¿½ï¿½
-	if( NULL != g_pMain->GetPartyUI() )
+	// ÆÄÆ¼ UI °ü·Ã µ¥ÀÌÅ¸ °»½Å
+	if( NULL != GetPartyUI() )
 	{
-		g_pMain->GetPartyUI()->OnChangeState();
+		GetPartyUI()->OnChangeState();
 	}
 
 #ifndef NEW_SKILL_TREE
@@ -5281,11 +5566,11 @@ void CX2Main::PostStateChange()
 	case CX2Main::XS_VILLAGE_MAP:
 	case CX2Main::XS_SQUARE_GAME:
 		{
-			g_pMain->GetMemoryHolder()->GetXMasDLG((CKTDXStage*) GetNowState())->SetShow(true);
+			GetMemoryHolder()->GetXMasDLG((CKTDXStage*) GetNowState())->SetShow(true);
 		} break;
 	default:
 		{
-			g_pMain->GetMemoryHolder()->GetXMasDLG((CKTDXStage*) GetNowState())->SetShow(false);
+			GetMemoryHolder()->GetXMasDLG((CKTDXStage*) GetNowState())->SetShow(false);
 		} break;
 	}
 #endif
@@ -5298,11 +5583,11 @@ void CX2Main::PostStateChange()
 	case CX2Main::XS_VILLAGE_MAP:
 	case CX2Main::XS_BATTLE_FIELD:
 		{
-			g_pMain->GetMemoryHolder()->GetUseSpiritEventDLG((CKTDXStage*) GetNowState(), true);
+			GetMemoryHolder()->GetUseSpiritEventDLG((CKTDXStage*) GetNowState(), true);
 		}break;
 	default:
 		{
-			g_pMain->GetMemoryHolder()->GetUseSpiritEventDLG((CKTDXStage*) GetNowState(), false);
+			GetMemoryHolder()->GetUseSpiritEventDLG((CKTDXStage*) GetNowState(), false);
 		}break;
 	}
 #endif SERV_CHINA_SPIRIT_EVENT
@@ -5313,17 +5598,36 @@ void CX2Main::PostStateChange()
 	case CX2Main::XS_VILLAGE_MAP:
 	case CX2Main::XS_BATTLE_FIELD:
 		{
-			g_pMain->GetMemoryHolder()->GetNewYear2014EventDLG( (CKTDXStage*)GetNowState() );
-			g_pMain->GetMemoryHolder()->SetShowNewYear2014Event( true );
-			g_pMain->GetMemoryHolder()->SetShowNewYear2014EventBoard( false );
+			GetMemoryHolder()->GetNewYear2014EventDLG( (CKTDXStage*)GetNowState() );
+			GetMemoryHolder()->SetShowNewYear2014Event( true );
+			GetMemoryHolder()->SetShowNewYear2014EventBoard( false );
 		}break;
 	default:
 		{
-			g_pMain->GetMemoryHolder()->GetNewYear2014EventDLG( (CKTDXStage*)GetNowState() );
-			g_pMain->GetMemoryHolder()->SetShowNewYear2014Event( false );
+			GetMemoryHolder()->GetNewYear2014EventDLG( (CKTDXStage*)GetNowState() );
+			GetMemoryHolder()->SetShowNewYear2014Event( false );
 		}break;
 	}
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+	GetMemoryHolder()->GetCheckPowerEventDLG( (CKTDXStage*)GetNowState() );
+	switch( GetNowStateID() )
+	{
+	case CX2Main::XS_VILLAGE_MAP:
+	case CX2Main::XS_BATTLE_FIELD:
+	case CX2Main::XS_DUNGEON_GAME:
+		{
+			GetMemoryHolder()->SetShowCheckPowerEvent( true );
+			GetMemoryHolder()->SetShowCheckPowerEventGuidePage( false );
+		}break;
+	default:
+		{
+			GetMemoryHolder()->SetShowCheckPowerEvent( false );
+		}break;
+	}
+	GetMemoryHolder()->UpdateCheckPowerEvent();
+#endif SERV_EVENT_CHECK_POWER
 }
 
 
@@ -5359,7 +5663,7 @@ void CX2Main::ReservedServerEventProc()
 				m_vecReservedServerPacket.erase( m_vecReservedServerPacket.begin() + i );
 				i--;
 			} break;
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.17] //
+//{{ oasis907 : ±è»óÀ± [2009.12.17] //
 		case EGS_INVITE_GUILD_NOT:
 			{
 				switch( GetNowStateID() )
@@ -5381,7 +5685,7 @@ void CX2Main::ReservedServerEventProc()
 				m_vecReservedServerPacket.erase( m_vecReservedServerPacket.begin() + i );
 				i--;
 			} break;
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.17] //
+//}} oasis907 : ±è»óÀ± [2009.12.17] //
 		}
 	}
 }
@@ -5405,7 +5709,15 @@ bool CX2Main::DeleteFile( const WCHAR* pFileName )
 
 
 #ifdef ADDED_MESSAGEBOX_USING_CUSTOM_LUA
-CKTDGUIDialogType CX2Main::KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, int iOKMsg /*= -1*/, float fTimeLeft /*= -1.f*/, wstring wstrFileName /* = L""  */ )
+	#ifdef GOOD_ELSWORD //±èÃ¢ÇÑ. Á¤ÈÆÀÌÇüÀÌ ¼öÁ¤ÇÏ½Å ±â´É okmsgbox¿¡µµ Àû¿ë.
+		#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh ÁøÀÔ ±¸Á¶ °³Æí
+			CKTDGUIDialogType CX2Main::KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, int iOKMsg /*= -1*/, float fTimeLeft /*= -1.f*/, wstring wstrFileName /* = L""  */, IN const D3DXVECTOR2 vSize_/* = D3DXVECTOR2( 0, 0 )*/, wstring wstrPopupSoundFileName /* = L"" */ )
+		#else  // REFORM_ENTRY_POINT		// 13-11-11, kimjh ÁøÀÔ ±¸Á¶ °³Æí
+			CKTDGUIDialogType CX2Main::KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, int iOKMsg /*= -1*/, float fTimeLeft /*= -1.f*/, wstring wstrFileName /*= L""*/, IN const D3DXVECTOR2 vSize_ )
+		#endif // REFORM_ENTRY_POINT		// 13-11-11, kimjh ÁøÀÔ ±¸Á¶ °³Æí	
+	#else //GOOD_ELSWORD
+		CKTDGUIDialogType CX2Main::KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, int iOKMsg /*= -1*/, float fTimeLeft /*= -1.f*/, wstring wstrFileName /* = L""  */ )
+	#endif //GOOD_ELSWORD
 #else // ADDED_MESSAGEBOX_USING_CUSTOM_LUA
 CKTDGUIDialogType CX2Main::KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, int iOKMsg /*= -1*/, float fTimeLeft /*= -1.f*/ )
 #endif // ADDED_MESSAGEBOX_USING_CUSTOM_LUA
@@ -5572,12 +5884,61 @@ CKTDGUIDialogType CX2Main::KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, 
 	}
 #endif // ADDED_MESSAGEBOX_USING_CUSTOM_LUA
 	
-	
+#pragma region ´ëÈ­ »óÀÚ Å©±â Á¶Àý
+#ifdef GOOD_ELSWORD //±èÃ¢ÇÑ. Á¤ÈÆÀÌÇüÀÌ ¼öÁ¤ÇÏ½Å ±â´É okmsgbox¿¡µµ Àû¿ë.
+	if ( !IsSamef( vSize_.x ) || !IsSamef( vSize_.y ) )
+	{
+		CKTDGUIStatic* pStatic = reinterpret_cast<CKTDGUIStatic*>( pDialog->GetControl( L"General_Popup_Window" ) );
+
+		if ( pStatic )
+		{
+			CKTDGUIControl::CPictureData* pPictureData = pStatic->GetPicture( 1 );
+			if ( pPictureData )
+				pPictureData->SetSize( pPictureData->GetOriginalSize() + vSize_ );
+
+			pPictureData = pStatic->GetPicture( 2 );
+			if ( pPictureData )
+			{
+				D3DXVECTOR2 vTemp = pPictureData->GetOriginalPos();
+				vTemp.y = vTemp.y + vSize_.y;
+				pPictureData->SetSizeX( pPictureData->GetOriginalSize().x + vSize_.x );
+				pPictureData->SetPos( vTemp );
+			}
+
+			pPictureData = pStatic->GetPicture( 3 );
+			if ( pPictureData )
+				pPictureData->SetSize( pPictureData->GetOriginalSize() + vSize_ );
+
+			pPictureData = pStatic->GetPicture( 4 );
+			if ( pPictureData )
+				pPictureData->SetSize( pPictureData->GetOriginalSize() + vSize_ );
+
+			pPictureData = pStatic->GetPicture( 5 );
+			if ( pPictureData )
+				pPictureData->SetSize( pPictureData->GetOriginalSize() + vSize_ );
+		}
+
+		CKTDGUIButton* pButton = reinterpret_cast<CKTDGUIButton*>( pDialog->GetControl( L"ButtonMsgBoxOK" ) );
+
+		if ( pButton )
+		{
+			D3DXVECTOR2 vTemp = pButton->GetOffsetPos();
+			vTemp = vTemp + vSize_;
+			pButton->SetOffsetPos( vTemp );
+		}
+	}
+#endif //GOOD_ELSWORD
+#pragma endregion XÀÇ Å©±â Á¶ÀýÀº °í·ÁÇÏÁö ¾ÊÀ½
+
 	if( fTimeLeft > 0.f )
 	{
 		pDialog->Move( pDialog->GetPos(), D3DXCOLOR( 1, 1, 1, 1 ), fTimeLeft, false, true );
 	}
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
+	if( wstrPopupSoundFileName != L"")
+		g_pKTDXApp->GetDeviceManager()->PlaySound( wstrPopupSoundFileName.c_str() );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
 	return pDialog;
 }
 
@@ -5648,7 +6009,7 @@ CKTDGUIDialogType CX2Main::KTDGUIOKMsgBoxPlus( D3DXVECTOR2 pos, const WCHAR* pTe
 	//	CKTDGUIUniBuffer uniBuffer;
 	//	uniBuffer.SetFontNode( pFont );
 
-	//{{ 2011/1/12	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	WordWrap(ï¿½Ù¹Ù²ï¿½) ï¿½ß°ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
+	//{{ 2011/1/12	ÀÌÁöÇå	WordWrap(ÁÙ¹Ù²Þ) Ãß°¡ - À¯·´ ¼Ò½º Âü°í 
 #ifdef CLIENT_GLOBAL_LINEBREAK
 	lineNum = CWordLineHandler::LineBreakInX2MainMsgBox( tempText, pFont, constTextMaxLen );
 #else
@@ -5727,11 +6088,18 @@ CKTDGUIDialogType CX2Main::KTDGUIOKMsgBoxPlus( D3DXVECTOR2 pos, const WCHAR* pTe
 	return pDialog;
 }
 
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
+CKTDGUIDialogType CX2Main::KTDGUIMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, wstring wstrFileName /* = L"" */, wstring wstrPopupSoundFileName /* = L"" */ )
+#else  // REFORM_ENTRY_POINT	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
 #ifdef ADDED_MESSAGEBOX_USING_CUSTOM_LUA
 CKTDGUIDialogType CX2Main::KTDGUIMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, wstring wstrFileName /* = L"" */ )
 #else // ADDED_MESSAGEBOX_USING_CUSTOM_LUA
 CKTDGUIDialogType CX2Main::KTDGUIMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState )
 #endif // ADDED_MESSAGEBOX_USING_CUSTOM_LUA
+#endif // REFORM_ENTRY_POINT	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
+
+
 {
 	if( pNowState == NULL )
 		pNowState = m_pNowState;
@@ -5804,7 +6172,7 @@ CKTDGUIDialogType CX2Main::KTDGUIMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CK
 
 #ifdef KTDGDEVICEFONT_SIMULATE_DIRECTX_FONT
 	CKTDGFontManager::CUKFont* pFont = NULL;
-	if(pStatic != NULL && pStatic->GetString(0) != NULL) //2011.11.23 lygan_ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ //Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÛµÇ´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½
+	if(pStatic != NULL && pStatic->GetString(0) != NULL) //2011.11.23 lygan_Á¶¼º¿í //Å©·¡½¬ ¿øÀÎÀ¸·Î ÁüÀÛµÇ´Â °÷ ¿¹¿ÜÃ³¸®
 	{
 		pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( pStatic->GetString(0)->fontIndex );
 	}
@@ -5879,12 +6247,29 @@ CKTDGUIDialogType CX2Main::KTDGUIMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CK
 	}
 
 	pStatic->GetString(0)->msg = tempText;
-
-
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
+	if( wstrPopupSoundFileName != L"")
+		g_pKTDXApp->GetDeviceManager()->PlaySound( wstrPopupSoundFileName.c_str() );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
 	return pDialog;
 }
+
+
+
 #ifdef ADDED_MESSAGEBOX_USING_CUSTOM_LUA
+	#ifdef GOOD_ELSWORD //JHKang
+		#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
+CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, int okMsg, CKTDXStage* pNowState, int cancelMsg /*= -1*/,
+													wstring wstrFileName /* = L"" */, IN const D3DXVECTOR2 vSize_ /*= D3DXVECTOR2( 0, 0 )*/, wstring wstrPopupSoundFileName /* = L"" */ )
+
+		#else  // REFORM_ENTRY_POINT	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
+CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, int okMsg, CKTDXStage* pNowState, int cancelMsg /*= -1*/,
+													wstring wstrFileName /* = L"" */, IN const D3DXVECTOR2 vSize_ /*= D3DXVECTOR2( 0, 0 )*/  )
+		#endif // REFORM_ENTRY_POINT	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
+
+	#else //GOOD_ELSWORD
 CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, int okMsg, CKTDXStage* pNowState, int cancelMsg /*= -1*/, wstring wstrFileName /* = L"" */  )
+	#endif //GOOD_ELSWORD
 #else // ADDED_MESSAGEBOX_USING_CUSTOM_LUA
 CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, int okMsg, CKTDXStage* pNowState, int cancelMsg /*= -1*/  )
 #endif // ADDED_MESSAGEBOX_USING_CUSTOM_LUA
@@ -5958,7 +6343,7 @@ CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR
 #endif // ADDED_MESSAGEBOX_USING_CUSTOM_LUA
 	
 	wstring tempText = pText;
-	//wstring tempText = L"ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½ ï¿½ï¿½Î»ï¿½ï¿½ï¿½";
+	//wstring tempText = L"µ¿ÇØ¹°°ú ¹éµÎ»êÀÌ";
 
 	const int constTextMaxLen = (int)(g_pKTDXApp->GetResolutionScaleX() * 366);
 	//bool checkEnterChar = false;
@@ -5976,7 +6361,6 @@ CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR
 #ifdef CLIENT_GLOBAL_LINEBREAK
 	int lineNum = CWordLineHandler::LineBreakInX2MainMsgBox( tempText, pFont, constTextMaxLen );
 #else //CLIENT_GLOBAL_LINEBREAK
-
 
 		int lineNum = 1;
 
@@ -6058,7 +6442,7 @@ CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR
 		pCancelButton->SetCustomMsgMouseUp( cancelMsg );
 	}
 
-	//{{ JHKang // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2010.10.04
+	//{{ JHKang // °­Á¤ÈÆ // 2010.10.04
 #ifdef ON_CHAT_REMAIN_FOCUS
 	if ( NULL != g_pChatBox && true == g_pChatBox->GetFocusChatEditBox() )
 	{
@@ -6068,7 +6452,67 @@ CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR
 		m_bIsPopUpOnChat = true;
 	}
 #endif ON_CHAT_REMAIN_FOCUS
-	//}} JHKang // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2010.10.04
+	//}} JHKang // °­Á¤ÈÆ // 2010.10.04
+
+#pragma region ´ëÈ­ »óÀÚ Å©±â Á¶Àý
+#ifdef GOOD_ELSWORD //JHKang
+	if ( !IsSamef( vSize_.x ) || !IsSamef( vSize_.y ) )
+	{
+		CKTDGUIStatic* pStatic = reinterpret_cast<CKTDGUIStatic*>( pDialog->GetControl( L"General_Popup_Window" ) );
+
+		if ( pStatic )
+		{
+			CKTDGUIControl::CPictureData* pPictureData = pStatic->GetPicture( 1 );
+			if ( pPictureData )
+				pPictureData->SetSize( pPictureData->GetOriginalSize() + vSize_ );
+			
+			pPictureData = pStatic->GetPicture( 2 );
+			if ( pPictureData )
+			{
+				D3DXVECTOR2 vTemp = pPictureData->GetOriginalPos();
+				vTemp.y = vTemp.y + vSize_.y;
+				pPictureData->SetSizeX( pPictureData->GetOriginalSize().x + vSize_.x );
+				pPictureData->SetPos( vTemp );
+			}
+
+			pPictureData = pStatic->GetPicture( 3 );
+			if ( pPictureData )
+				pPictureData->SetSize( pPictureData->GetOriginalSize() + vSize_ );
+
+			pPictureData = pStatic->GetPicture( 4 );
+			if ( pPictureData )
+				pPictureData->SetSize( pPictureData->GetOriginalSize() + vSize_ );
+
+			pPictureData = pStatic->GetPicture( 5 );
+			if ( pPictureData )
+				pPictureData->SetSize( pPictureData->GetOriginalSize() + vSize_ );
+		}
+
+		CKTDGUIButton* pButton = reinterpret_cast<CKTDGUIButton*>( pDialog->GetControl( L"MsgBoxOkAndCancelOkButton" ) );
+
+		if ( pButton )
+		{
+			D3DXVECTOR2 vTemp = pButton->GetOffsetPos();
+			vTemp = vTemp + vSize_;
+			pButton->SetOffsetPos( vTemp );
+		}
+
+		pButton = reinterpret_cast<CKTDGUIButton*>( pDialog->GetControl( L"MsgBoxOkAndCancelCancelButton" ) );
+
+		if ( pButton )
+		{
+			D3DXVECTOR2 vTemp = pButton->GetOffsetPos();
+			vTemp = vTemp + vSize_;
+			pButton->SetOffsetPos( vTemp );
+		}
+	}
+#endif //GOOD_ELSWORD
+#pragma endregion XÀÇ Å©±â Á¶ÀýÀº °í·ÁÇÏÁö ¾ÊÀ½
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
+	if( wstrPopupSoundFileName != L"")
+	g_pKTDXApp->GetDeviceManager()->PlaySound( wstrPopupSoundFileName.c_str() );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, ÁøÀÔ ±¸Á¶ °³Æí, kimjh
 
 	return pDialog;
 }
@@ -6131,18 +6575,18 @@ CKTDGUIDialogType	CX2Main::KTDGUIOkAndCancelEditBox( D3DXVECTOR2 vPos, const WCH
 		return NULL;
 	}
 	
-	if( true == bIsByte )	//	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	if( true == bIsByte )	//	¹ÙÀÌÆ® Á¦ÇÑ
 	{
 		pEditBox->SetByteLimit_LUA( iLimitLength );
 	}
-	else	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	else	//	±ÛÀÚÁ¦ÇÑ
 	{
 		pEditBox->SetLengthLimit_LUA( iLimitLength );
 	}
 
 	pEditBox->SetCustomMsgEnter( iOkMsg );
 
-	//	OK, Cancel ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	//	OK, Cancel ÀÌº¥Æ® ¿¬°á
 	CKTDGUIButton* pOkButton = (CKTDGUIButton*) pDialog->GetControl( L"Button_Check" );
 	if( pOkButton == NULL )
 	{
@@ -6222,18 +6666,18 @@ CKTDGUIDialogType	CX2Main::KTDGUIOkAndCancelEditBox_Hide( D3DXVECTOR2 vPos, cons
 		return NULL;
 	}
 
-	if( true == bIsByte )	//	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	if( true == bIsByte )	//	¹ÙÀÌÆ® Á¦ÇÑ
 	{
 //		pEditBox->SetByteLimit_LUA( iLimitLength );
 	}
-	else	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	else	//	±ÛÀÚÁ¦ÇÑ
 	{
 //		pEditBox->SetLengthLimit_LUA( iLimitLength );
 	}
 
 	pEditBox->SetCustomMsgEnter( iOkMsg );
 
-	//	OK, Cancel ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	//	OK, Cancel ÀÌº¥Æ® ¿¬°á
 	CKTDGUIButton* pOkButton = (CKTDGUIButton*) pDialog->GetControl( L"Button_Check" );
 	if( pOkButton == NULL )
 	{
@@ -6270,7 +6714,7 @@ CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelEditBox2( D3DXVECTOR2 vPos, const WC
 
 	if ( vPos.x == -999 && vPos.y == -999 )
 	{
-		vPos = g_pMain->GetWindowPos( D3DXVECTOR2( 430, 148 ), D3DXVECTOR2( 217, 71 ) );
+		vPos = GetWindowPos( D3DXVECTOR2( 430, 148 ), D3DXVECTOR2( 217, 71 ) );
 	}
 
 	vPos.y -= 50.f;
@@ -6292,18 +6736,18 @@ CKTDGUIDialogType CX2Main::KTDGUIOkAndCancelEditBox2( D3DXVECTOR2 vPos, const WC
 		return NULL;
 	}
 
-	if( true == bIsByte )	//	ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	if( true == bIsByte )	//	¹ÙÀÌÆ® Á¦ÇÑ
 	{
 		pEditBox->SetByteLimit_LUA( iLimitLength );
 	}
-	else	//	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	else	//	±ÛÀÚÁ¦ÇÑ
 	{
 		pEditBox->SetLengthLimit_LUA( iLimitLength );
 	}
 
 	pEditBox->SetCustomMsgEnter( iOkMsg );
 
-	//	OK, Cancel ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	//	OK, Cancel ÀÌº¥Æ® ¿¬°á
 	CKTDGUIButton* pOkButton = (CKTDGUIButton*) pDialog->GetControl( L"Button_Check" );
 	if( pOkButton == NULL )
 	{
@@ -6397,7 +6841,7 @@ void CX2Main::AddServerPacket( SERVER_EVENT_ID waitACK, float fReamainTimeOut /*
 		if( it->second > 0 )
 		{
 			WCHAR wszMsg[512] = L"";
-			swprintf( wszMsg, sizeof(wszMsg)/sizeof(WCHAR)-1, L"ï¿½ßºï¿½ %d.%d", it->first, it->second );
+			swprintf( wszMsg, sizeof(wszMsg)/sizeof(WCHAR)-1, L"Áßº¹ %d.%d", it->first, it->second );
 			StateLog( wszMsg );
 		}
 
@@ -6487,26 +6931,23 @@ void CX2Main::AddChannelServerIP_LUA( const char* pServerIP, int iServerPort /*=
 	m_vecChannelServerIP.push_back( wstrChannelServerIP );
 #endif	USE_CHANNEL_SERVER_IP_AT_SCRIPT
 
-
-	// Config Lua ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// Config Lua ¼¼ÆÃÀ¸·Î ¼­¹ö±º¿¡ ´ëÇÑ Ã¤³Î ±¸¼ºÇÔ
 #ifndef SERV_COUNTRY_CN
-	// ï¿½ï¿½ ï¿½ï¿½ï¿½Úµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
-	// AddChannelServerIP_LUA ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½Ç¾ï¿½ï¿½ ï¿½Ñ´Ù´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ ï¿½ï¿½
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¾ß±ï¿½ï¿½Ï¸ï¿½ ï¿½ë¸¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½
+	// ´Ü ÀÌÄÚµå´Â ¼­¹ö¼ÂÀÌ 0ºÎÅÍ ¼ø¼­´ë·Î Áõ°¡ÇÑ´Ù´Â °¡Á¤°ú 
+	// AddChannelServerIP_LUA ÇÔ¼ö°¡ ¼­¹ö±º ¼ø¼­´ë·Î È£ÃâµÇ¾î¾ß ÇÑ´Ù´Â °¡Á¤ÀÌ ÀÖ¾î¾ß ÇÔ
+	// °£´ÜÈ÷ ÀÌ¾ß±âÇÏ¸é ´ë¸¸¿ë ¶«»§ ÄÚµå
 	static int iServerSetID = 0;
 	
 	KServerGroupInfo kTmpServerGroupInfo;
 	kTmpServerGroupInfo.m_iOrder = iServerSetID;
 	kTmpServerGroupInfo.m_bEnable = true;
 	kTmpServerGroupInfo.m_iServerGroupUID = iServerSetID;
-	kTmpServerGroupInfo.m_kServerIP = wstrChannelServerIP;
+	kTmpServerGroupInfo.m_kServerIP = L"127.0.0.1";
 	kTmpServerGroupInfo.m_usMasterPort = iServerPort;
-
 	g_pInstanceData->m_mapServerGroupInfo.insert(std::make_pair(iServerSetID, kTmpServerGroupInfo));
 	
 	iServerSetID++;
 #endif //ndef SERV_COUNTRY_CN
-
 }
 #endif //SERV_GLOBAL_AUTH
 
@@ -6532,9 +6973,9 @@ void CX2Main::ChangeKoreanAndEnglishKey( bool bKorean )
 	ImmSetConversionStatus(haneng,bKorean,0);
 }
 
-//{{ kimhc // 2010.3.12 //	Ã¤ï¿½ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½
+//{{ kimhc // 2010.3.12 //	Ã¤ÆÃÃ¢ °³Æí
 #ifdef	CHAT_WINDOW_IMPROV
-bool CX2Main::GetNativeAndEnglisKeyState() //ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¿ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë¾Æ³ï¿½ï¿½ï¿½	// TRUE ï¿½ï¿½ ï¿½Ñ±ï¿½
+bool CX2Main::GetNativeAndEnglisKeyState() //ÇöÀç ÇÑ¿µ ¸ðµå ¾Ë¾Æ³»±â	// TRUE ¸é ÇÑ±Û
 {
 	bool bRet = false;  
 	HIMC hIMC = NULL;  
@@ -6555,9 +6996,9 @@ bool CX2Main::GetNativeAndEnglisKeyState() //ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¿ï¿½ ï¿½ï¿½ï¿½ ï¿½
 	return bRet;  
 }
 #endif	CHAT_WINDOW_IMPROV	
-//}} kimhc // 2010.3.12 //	Ã¤ï¿½ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.3.12 //	Ã¤ÆÃÃ¢ °³Æí
 
-//{{ kimhc // 2010.9.14 // È¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½Å¸ ï¿½Ì¹ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ Ä¸ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ®
+//{{ kimhc // 2010.9.14 // È¨ÆäÀÌÁö °³Æí¿¡¼­ ¾Æ¹ÙÅ¸ ÀÌ¹ÌÁö Ç¥ÇöÀ¸·Î »ç¿ëµÉ Ä³¸¯ÅÍ ÀÌ¹ÌÁö Ä¸ÃÄ ±â´É Å×½ºÆ®
 #ifdef	AVATAR_IMAGE_TEST
 bool	CX2Main::ScreenCaptureAndSendToWeb( IN double fTime, IN float fElapsedTime )
 {
@@ -6588,7 +7029,8 @@ bool	CX2Main::ScreenCaptureForWebAvatar( IN double fTime, IN float fElapsedTime,
 	pUnitViewerUI->SetFixed( true );
 
 	pUnitViewerUI->SetPositionOnScr( vPos.x, vPos.y );//, 200.0f, 1.15f );
-	pUnitViewerUI->SetLightPos( -250000, 50000, -500000 );	// Ä³ï¿½ï¿½ï¿½Íºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	//pUnitViewerUI->SetLightPos( -250000, 50000, -500000 );	// Ä³¸¯ÅÍºä¾î ¶óÀÌÆ® À§Ä¡ º¯°æ
+	m_pUnitViewerUI->SetLightPos( -250, 100, -600 );	// Ä³¸¯ÅÍºä¾î ¶óÀÌÆ® À§Ä¡ º¯°æ
 	pUnitViewerUI->GetMatrix().Rotate(D3DXToRadian(0),D3DXToRadian(0),D3DXToRadian(0));
 	pUnitViewerUI->GetXSkinAnim()->SetApplyMotionOffset( false );
 	pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_WAIT );
@@ -6597,8 +7039,8 @@ bool	CX2Main::ScreenCaptureForWebAvatar( IN double fTime, IN float fElapsedTime,
 	pUnitViewerUI->OnFrameMove( fTime, fElapsedTime );
 
 	RECT rect;
-	HWND pDesktop = g_pKTDXApp->GetHWND(); // ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½. 
-	GetClientRect( pDesktop, &rect ); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ DCï¿½ï¿½ ï¿½Þ¸ï¿½ DCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½. 
+	HWND pDesktop = g_pKTDXApp->GetHWND(); // ³»ÀÚ½ÅÀÇ À©µµ¿ìÀÇ ÁÂÇ¥¸¦ Á¶»çÇÑ´Ù. 
+	GetClientRect( pDesktop, &rect ); // À©µµ¿ì È­¸é DC¿Í ¸Þ¸ð¸® DC¸¦ ¸¸µé°í ¸Þ¸ð¸® ºñÆ®¸ÊÀ» ¼±ÅÃÇÑ´Ù. 
 
 	CKTDXDeviceRenderTargetTexture* pRenderTargetTextureAvatar 
 		= g_pKTDXApp->GetDeviceManager()->OpenRenderTargetTexture( L"Avatar", rect.right, rect.bottom, D3DFMT_A8R8G8B8  );
@@ -6622,15 +7064,15 @@ bool	CX2Main::ScreenCaptureForWebAvatar( IN double fTime, IN float fElapsedTime,
 	g_pKTDXApp->GetDevice()->GetTransform( D3DTS_PROJECTION, &matProj );
 
 
-	// World Matrixï¿½ï¿½ Identifyï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½
+	// World Matrix´Â Identify·Î ¸®¼ÂÇÏ°í
 	g_pKTDXApp->SetWorldTransform( &matIden );
 
-	// View Matrixï¿½ï¿½ 0,0,-1300ï¿½ï¿½ï¿½ï¿½ 0,0,0ï¿½ï¿½ ï¿½Ù¶óº¸´ï¿½ ï¿½ï¿½Ç¥ (PVPRoom, StateServerSelect ï¿½î¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ï¿½Ç¥)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// View Matrix´Â 0,0,-1300¿¡¼­ 0,0,0À» ¹Ù¶óº¸´Â ÁÂÇ¥ (PVPRoom, StateServerSelect µî¿¡¼­ ¾²ÀÌ´Â ÁÂÇ¥)·Î ¼³Á¤
 	D3DXMATRIX ViewMatrix;
 	D3DXMatrixLookAtLH( &ViewMatrix, &D3DXVECTOR3(0,0,-100), &D3DXVECTOR3(0,0,0), &D3DXVECTOR3(0,1.f,0) );
 	g_pKTDXApp->SetViewTransform( &ViewMatrix );
 
-	// Projection ï¿½ï¿½ï¿½ï¿½
+	// Projection ¼³Á¤
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), false );	// Ortho
 
 	CKTDGStateManager::PushStates( pUnitViewerUI->GetRenderStateID() );
@@ -6662,20 +7104,20 @@ bool	CX2Main::SendFileCapturedToWeb( IN const wstring& wstrFileName )
 	wstrFilePathAndName += L"\\";
 	wstrFilePathAndName += wstrFileName;
 	
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	//CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 	wstringstream wstrUrlStream;
 	wstrUrlStream << L"http://avatar.elsword.nexon.com/upload.aspx?";
 
-	// ï¿½Ø½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Å°
+	// ³Ø½¼ »ç¿ëÀÚ Å°
 	wstrUrlStream << "n4NexonSN=";
 	wstrUrlStream << g_pData->GetMyUser()->GetNexonSN();
 
-	// Ä³ï¿½ï¿½ï¿½ï¿½Å°
+	// Ä³¸¯ÅÍÅ°
 	wstrUrlStream << "&n8CharacterSN=";
 	wstrUrlStream << pUnitData->m_iNMKSerialNum;
 
-	// Ä³ï¿½ï¿½ï¿½Í¸ï¿½(ï¿½ï¿½ï¿½ï¿½)
+	// Ä³¸¯ÅÍ¸í(¹®ÀÚ)
 	wstrUrlStream << "&strCharacterName=";
 	wstrUrlStream << pUnitData->m_NickName;
 
@@ -6700,7 +7142,7 @@ bool	CX2Main::SendFileCapturedToWeb( IN const wstring& wstrFileName )
 	return true;
 }
 #endif	AVATAR_IMAGE_TEST
-//}} kimhc // 2010.9.14 // È¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½Å¸ ï¿½Ì¹ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ Ä¸ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½×½ï¿½Æ®
+//}} kimhc // 2010.9.14 // È¨ÆäÀÌÁö °³Æí¿¡¼­ ¾Æ¹ÙÅ¸ ÀÌ¹ÌÁö Ç¥ÇöÀ¸·Î »ç¿ëµÉ Ä³¸¯ÅÍ ÀÌ¹ÌÁö Ä¸ÃÄ ±â´É Å×½ºÆ®
 
 void CX2Main::ResetCrashReport( const WCHAR* wszAddMsg )
 {
@@ -6731,10 +7173,9 @@ void CX2Main::ResetCrashReport( const WCHAR* wszAddMsg )
 	clientVersion += ")_";
 
 	string userID = "";
-	if( NULL != g_pData && NULL != g_pData->GetMyUser() && 
-		NULL != g_pData->GetMyUser()->GetUserData() )
+	if( NULL != g_pData && NULL != g_pData->GetMyUser() )
 	{
-		ConvertWCHARToChar( userID, g_pData->GetMyUser()->GetUserData()->userID.c_str() );
+		ConvertWCHARToChar( userID, g_pData->GetMyUser()->GetUserData().userID.c_str() );
 	}
 
 	string unitName = "";
@@ -6767,7 +7208,7 @@ bool CX2Main::SendQuitMsgToServer()
 	char szErrorLogFileName[256] = "ErrorLog.txt";
 	KEGS_CLIENT_QUIT_REQ kPacket;
 
-#if 0 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#if 0 // ¼­¹öÂÊ ¿äÃ»¿¡ ÀÇÇØ »èÁ¦
 	if ( g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->GetPullPath( szErrorLogFileName ) != NULL )
 	{
 		
@@ -6894,9 +7335,9 @@ bool CX2Main::DeleteFile_LUA( const char* pFileName )
 
 void CX2Main::ResetFullScreenResolution(int iWidth, int iHeight)
 {
-	// DXUTSetFullscreenClientRectAtModeChange()ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DXUTï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½.
-	// fix! ï¿½ì¼± ï¿½Ç¼ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½Øµï¿½ï¿½ï¿½. ï¿½Æ¸ï¿½ createdevice() ï¿½Ç´ï¿½ changedevice()ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ fullscreenï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½ ï¿½Ò¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. winmainï¿½ï¿½ï¿½ï¿½ createdeviceï¿½ï¿½ ï¿½ï¿½ ï¿½Ø»óµµ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½.
+	// DXUTSetFullscreenClientRectAtModeChange()´Â ¿ø·¡ DXUT¿¡ ¾ø´Â ÇÔ¼öÀÓ. ÀÓÀÇ·Î Ãß°¡ÇßÀ½.
+	// fix! ¿ì¼± ²Ç¼ö·Î ÀÌ·¸°Ô ÇØµÎÀÚ. ¾Æ¸¶ createdevice() ¶Ç´Â changedevice()¸¦ »ç¿ëÇØ¾ß ÇÒ °Í °°À½.
+	// °ÔÀÓÀ» ½ÃÀÛÇÒ ¶§ fullscreenÀ¸·Î ½ÃÀÛÇÏ¸é ÀÌ ÇÔ¼ö°¡ ¾Æ¹« ¼Ò¿ëÀÌ ¾ø´Ù. winmain¿¡¼­ createdeviceÇÒ ¶§ ÇØ»óµµ¸¦ ÁöÁ¤ÇØ¾ß.
 
 	if( DXUTIsWindowed() )
 	{	
@@ -6914,32 +7355,32 @@ void CX2Main::ResetFullScreenResolution(int iWidth, int iHeight)
 bool CX2Main::IsValidPacket( int enumID )
 {
 	//////////////////////////////////////////////////////////////////////////
-	/// ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ý¿ï¿½ï¿½ï¿½ 
+	/// ¸Þ¼¼Áö ÆË¾÷ ¾øÀÌ Ã³¸®ÇÏ´Â ³Ý¿¡·¯ 
 	//////////////////////////////////////////////////////////////////////////
 	switch( enumID )
 	{
-	//// true ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½.
+	//// true ¸®ÅÏÇÏ´Â °æ¿ì.
 	case NetError::NET_OK:
 	case NetError::ERR_SLOT_07:
-	case NetError::NOT_LEAVE_FIELD_REASON_00: //ï¿½Ù¸ï¿½ ï¿½Êµï¿½ï¿½ ï¿½Ìµï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å»ï¿½Ô´Ï´ï¿½.
-	case NetError::NOT_LEAVE_ROOM_REASON_27: //ï¿½ï¿½Æ²ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å» ï¿½Ô´Ï´ï¿½.
+	case NetError::NOT_LEAVE_FIELD_REASON_00: //´Ù¸¥ ÇÊµå·Î ÀÌµ¿ÇÏ±â À§ÇÑ ÀÌÅ»ÀÔ´Ï´Ù.
+	case NetError::NOT_LEAVE_ROOM_REASON_27: //¹èÆ²ÇÊµå ÀÔÀåÀ» À§ÇÑ ¹æ ÀÌÅ» ÀÔ´Ï´Ù.
 		return true;
 		break;
 
-	//// false ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½
+	//// false ¸®ÅÏÇÏ´Â °æ¿ì
 	case NetError::ERR_REFRESH_01:
-	case NetError::ERR_PARTY_03:		// ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
-	case NetError::ERR_ROOM_04:			// ï¿½ï¿½Ð¹ï¿½È£ Æ²ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	case NetError::ERR_ROOM_21:			// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ NPC ï¿½Ë¾ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
-	case NetError::ERR_KNM_06:			// Ä£ï¿½ï¿½ï¿½Ê´ï¿½ ï¿½ÅºÎ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½ ï¿½È¶ï¿½ï¿½
-	case NetError::ERR_RESURRECT_01:	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 'ï¿½Ì¹ï¿½ ï¿½ï¿½È°ï¿½Ï¼Ì½ï¿½ï¿½Ï´ï¿½' ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½È¶ßµï¿½ï¿½ï¿½ï¿½ß°ï¿½
-	case NetError::ERR_WRONG_STATE_00:	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ : GSFSM ï¿½ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case NetError::ERR_ITEM_12:			// ï¿½Ó½ï¿½ ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ä¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+	case NetError::ERR_PARTY_03:		// ÆÄÆ¼Á¤º¸°¡ Àß¸øµÇ¾ú½À´Ï´Ù.
+	case NetError::ERR_ROOM_04:			// ºñ¹Ð¹øÈ£ Æ²·Á¼­ ¹æ Á¶ÀÎ ½ÇÆÐÇßÀ»¶§
+	case NetError::ERR_ROOM_21:			// ÀÌ¹Ì Á×Àº NPC ÆË¾÷Ã¢ ¶ç¿ìÁö ¾Ê´Â´Ù.
+	case NetError::ERR_KNM_06:			// Ä£±¸ÃÊ´ë °ÅºÎ´çÇßÀ»¶§´Â ÆË¾÷ ¾È¶ç¿ò
+	case NetError::ERR_RESURRECT_01:	// °ÔÀÓÁß 'ÀÌ¹Ì ºÎÈ°ÇÏ¼Ì½À´Ï´Ù' ¸Þ½ÃÁö ¾È¶ßµµ·ÏÃß°¡
+	case NetError::ERR_WRONG_STATE_00:	// »óÅÂ ¿À·ù Ã³¸® : GSFSM »óÅÂ°ª ¿À·ù
+	case NetError::ERR_ITEM_12:			// ÀÓ½Ã ÀÎº¥Åä¸® ¾ÆÀÌÅÛÀ» ÀÎº¥Åä¸®¿¡ ³ÖÀ» °ø°£ÀÌ ºÎÁ·ÇÕ´Ï´Ù.
 	case NetError::ERR_BUY_CASH_ITEM_42:
 	case NetError::ERR_TITLE_01:
 	case NetError::ERR_PERSONAL_SHOP_37:
 	case NetError::ERR_BUY_CASH_ITEM_67:
-	case NetError::ERR_FIELD_05:		//ï¿½Êµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ë¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	case NetError::ERR_FIELD_05:		//ÇÊµå ÀÔÀå °ü·Ã ¿¡·¯ÆË¾÷Àº µû·Î Ãâ·Â
 	case NetError::ERR_FIELD_06:
 	case NetError::ERR_BATTLEFIELD_13:
 	case NetError::ERR_BATTLEFIELD_14:
@@ -6950,7 +7391,7 @@ bool CX2Main::IsValidPacket( int enumID )
 #endif //SERV_UNIT_WAIT_DELETE	
 		return false;
 
-	case NetError::ERR_ROOM_27:			// ï¿½ï¿½ï¿½ï¿½ï¿½ë¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¢ ï¿½È¶ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½
+	case NetError::ERR_ROOM_27:			// ´øÀü·ë¿¡¼­ ³»Á¤º¸ º¼¶§ ¿¡·¯Ã¢ ¾È¶ç¿ì°Ô ÇÏ±â
 		{
 			if( NULL != g_pData &&
 				NULL != g_pData->GetMyUser() &&
@@ -6960,7 +7401,7 @@ bool CX2Main::IsValidPacket( int enumID )
 				return false;
 			}
 
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½ ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+			// ´øÀü·ëÀÌ ¾Æ´Ï¶ó¸é Á¤»óÀûÀ¸·Î ¿¡·¯ ÆË¾÷ Ãâ·ÂÇÏµµ·Ï ¼³Á¤.
 		}
 		break;
 	case NetError::ERR_SORT_CATEGORY_01:
@@ -6968,13 +7409,21 @@ bool CX2Main::IsValidPacket( int enumID )
 			g_pChatBox->AddChatLog( NetError::GetErrStrF( NetError::ERR_SORT_CATEGORY_01 ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 			return true;
 		} break;
-	// ï¿½Ë¾ï¿½ Ã³ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ defaultï¿½ï¿½ï¿½ï¿½ return ï¿½Ï¸ï¿½ ï¿½Èµï¿½.
+	// ÆË¾÷ Ã³¸®ÇÏ´Â ¸Þ¼¼Áö¿¡ ´ëÇØ ¾Æ·¡¼­ Ã³¸®ÇØÁà¾ß µÇ±â ¶§¹®¿¡ default¿¡¼­ return ÇÏ¸é ¾ÈµÊ.
+#ifdef SIMPLE_BUG_FIX
+	case NetError::ERR_VERIFY_00:
+	case NetError::ERR_VERIFY_01:
+		{
+			//¸Þ½ÃÁö ÆË¾÷À» º¸¿©ÁÖ´Â ¼Óµµº¸´Ù °ÔÀÓ Á¾·á ¼Óµµ°¡ »¡¶ó¼­ º¼¼ö ¾øÀ¸´Ï±î ¸Þ½ÃÁö Ã³¸®¸¦ ¹Û¿¡¼­ µû·Î ÇØÁÖÀÚ.
+			return false;
+		}break;
+#endif SIMPLE_BUG_FIX
 	default:
 		break;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	/// ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½ Ã³ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ý¿ï¿½ï¿½ï¿½ 
+	/// ¸Þ¼¼Áö ÆË¾÷ Ã³¸®ÇÏ´Â ³Ý¿¡·¯ 
 	//////////////////////////////////////////////////////////////////////////
 	std::wstringstream wstrStream;
 	wstrStream << L"IsValidPacket" << L"_" << NetError::GetErrStrF(enumID);
@@ -6989,7 +7438,7 @@ bool CX2Main::IsValidPacket( int enumID )
 
 	switch( enumID )
 	{
-		//// true ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½.
+		//// true ¸®ÅÏÇÏ´Â °æ¿ì.
 	case NetError::ERR_SHUT_DOWN_00:
 	case NetError::ERR_SHUT_DOWN_01:
 	case NetError::ERR_SHUT_DOWN_02:
@@ -7018,7 +7467,22 @@ bool CX2Main::IsValidPacket( int enumID )
 		} break;
 #endif //SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT
 
-		//// false ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½.
+#if defined( SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL )
+	case NetError::ERR_ACCOUNT_BLOCK_01:
+	case NetError::ERR_ACCOUNT_BLOCK_02:
+	case NetError::ERR_ACCOUNT_BLOCK_03:
+	case NetError::ERR_ACCOUNT_BLOCK_04:
+#elif defined( ACCOUNT_BLOCK_MESSAGE_RENEWAL_KR )
+	case NetError::ERR_VERIFY_11:
+#endif //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL // ACCOUNT_BLOCK_MESSAGE_RENEWAL_KR
+
+#if defined( SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL ) || defined( ACCOUNT_BLOCK_MESSAGE_RENEWAL_KR )
+		{
+			KTDGUIOKMsgBox( D3DXVECTOR2(250,300), NetError::GetErrStrF(enumID), m_pNowState,CX2State::SUCM_BLOCK_ACCOUNT_CONNECT );
+			return false;
+		} break;
+#endif //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL // ACCOUNT_BLOCK_MESSAGE_RENEWAL_KR
+		//// false ¸®ÅÏÇÏ´Â °æ¿ì.
 	case NetError::ERR_ROOM_09:
 		{
 			ErrorLogMsg( XEM_ERROR114, strErr.c_str() );
@@ -7033,7 +7497,7 @@ bool CX2Main::IsValidPacket( int enumID )
 				CKTDGUIDialogType pDLGOK = 
 					KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_16527 ), 
 					CX2UIInventory::UIM_ITEM_USE_DEFENCE_DUNGEON_POTION, 
-					g_pMain->GetNowState() );
+					GetNowState() );
 			}
 			return false;
 		} break;
@@ -7057,7 +7521,7 @@ bool CX2Main::IsValidPacket( int enumID )
 			userData.iMyUID			= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 			userData.iOpponentUID	= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 
-			g_pMain->RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
+			RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
 			KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING ( STR_ID_24603 ), m_pNowState );
 		}
 		break;
@@ -7074,7 +7538,7 @@ bool CX2Main::IsValidPacket( int enumID )
 			userData.iMyUID			= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 			userData.iOpponentUID	= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 
-			g_pMain->RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
+			RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
 			KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING ( STR_ID_24455 ), m_pNowState );
 
 		}
@@ -7085,7 +7549,7 @@ bool CX2Main::IsValidPacket( int enumID )
 			userData.iMyUID			= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 			userData.iOpponentUID	= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 
-			g_pMain->RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
+			RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
 			KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING ( STR_ID_24456 ), m_pNowState );
 		}
 		break;
@@ -7095,7 +7559,7 @@ bool CX2Main::IsValidPacket( int enumID )
 			userData.iMyUID			= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 			userData.iOpponentUID	= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 
-			g_pMain->RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
+			RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
 			KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING ( STR_ID_24458 ), m_pNowState );
 		}
 		break;
@@ -7114,7 +7578,7 @@ bool CX2Main::IsValidPacket( int enumID )
 			userData.iMyUID			= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 			userData.iOpponentUID	= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 			
-			g_pMain->RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
+			RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
 			KTDGUIOKMsgBox( D3DXVECTOR2(250,300), NetError::GetErrStrF(enumID), m_pNowState );
 			return false;
 		} break;
@@ -7125,14 +7589,35 @@ bool CX2Main::IsValidPacket( int enumID )
 			userData.iMyUID			= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 			userData.iOpponentUID	= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 
-			g_pMain->RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
+			RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
 			KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING ( STR_ID_26240 ), m_pNowState );
 		} break;
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef REFORM_ENTRY_POINT
+	case NetError::ERR_SECOND_SECURITY_DIFFER_PW:
+	case NetError::ERR_GUILD_35:
+		{
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), NetError::GetErrStrF(enumID), m_pNowState, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg" );
+			ErrorLogMsg( XEM_ERROR77, strErr.c_str() );
+		} break;
+		
+	case NetError::ERR_CONNECT_04 :
+		{
+			return false;
+		} break;
+#endif //REFORM_ENTRY_POINT
 
+#ifdef NET_ERROR_MESSAGE_STR_POPUP
+	case NetError::ERR_BLOCK_TRADE_07:
+	case NetError::ERR_BLOCK_TRADE_03:
+		KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_28366 ), m_pNowState );
+		break;
 
-
+	case NetError::ERR_TRADE_BLOCK_UNIT_01:
+		KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_28367 ), m_pNowState );
+		break;
+#endif //NET_ERROR_MESSAGE_STR_POPUP
 	default:
 		{
 #ifdef NETERROR_KOREAN_HELP
@@ -7284,7 +7769,7 @@ void CX2Main::BuyItemSuper_LUA( int itemID, int iQuantity /*= 1*/, short sPeriod
 		
 		switch( GetNowStateID() )
 		{
-		case CX2Main::XS_VILLAGE_MAP: // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		case CX2Main::XS_VILLAGE_MAP: // »õ±¤Àå¿ë
 		case CX2Main::XS_BATTLE_FIELD:
 			{
 				if( iQuantity <= 0 )
@@ -7295,14 +7780,14 @@ void CX2Main::BuyItemSuper_LUA( int itemID, int iQuantity /*= 1*/, short sPeriod
 				kEGS_BUY_GP_ITEM_REQ.m_sPeriod = sPeriod;
 				kEGS_BUY_GP_ITEM_REQ.m_mapItem.insert( std::make_pair( itemID, iQuantity ) );
 
-				// 09.07.03 ï¿½Â¿ï¿½ : ACK Ã³ï¿½ï¿½ï¿½Ï´ï¿½ Classï¿½ï¿½ UIShopï¿½Ì¹Ç·ï¿½ È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
+				// 09.07.03 ÅÂ¿Ï : ACK Ã³¸®ÇÏ´Â Class°¡ UIShopÀÌ¹Ç·Î È¤½Ã ¾øÀ¸¸é »ý¼ºÇØÁØ´Ù.
 				if(g_pData->GetUIManager()->GetUIShop() == NULL)
 				{
 					g_pData->GetUIManager()->CreateUIShop();
 				}
 
 				g_pData->GetServerProtocol()->SendPacket( EGS_BUY_ED_ITEM_REQ, kEGS_BUY_GP_ITEM_REQ );
-				g_pMain->AddServerPacket( EGS_BUY_ED_ITEM_ACK );
+				AddServerPacket( EGS_BUY_ED_ITEM_ACK );
 
 			} break;
 		}
@@ -7318,7 +7803,7 @@ void CX2Main::SetAuthLevel_LUA( const CHAR* userID, CX2User::X2_USER_AUTH_LEVEL 
 
 	wstring wstrUserID = L"";
 	ConvertUtf8ToWCHAR( wstrUserID, userID );
-	CX2State* pNowState = (CX2State*) g_pMain->GetNowState();
+	CX2State* pNowState = (CX2State*) GetNowState();
 	pNowState->Handler_EGS_ADMIN_CHANGE_AUTH_LEVEL_REQ( wstrUserID.c_str(), level );
 #endif
 }
@@ -7332,7 +7817,7 @@ void CX2Main::GetAuthUserList_LUA( CX2User::X2_USER_AUTH_LEVEL level )
 	}
 #endif LIGHT_OPERATOR_ACCOUNT
 
-	CX2State* pNowState = (CX2State*) g_pMain->GetNowState();
+	CX2State* pNowState = (CX2State*) GetNowState();
 	pNowState->Handler_EGS_ADMIN_GET_AUTH_LEVEL_LIST_REQ( level );
 
 }
@@ -7348,7 +7833,7 @@ void CX2Main::Handler_EGS_CHECK_SUM_REQ( bool bFileCheck /* = false */ )
 	if ( m_pCheckSumManager != NULL )
 		m_pCheckSumManager->Handler_EGS_CHECK_SUM_REQ( bFileCheck );
 }
-//{{ï¿½ï¿½ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Þ¾Æ¿ï¿½ï¿½ï¿½
+//{{±èÁØÈ¯ ¼­¹ö½Ã°£ ¹Þ¾Æ¿À±â
 #ifdef	SERV_SERVER_TIME_GET
 bool CX2Main::Handler_ECH_GET_SERVER_TIME_REQ()
 {
@@ -7356,7 +7841,7 @@ bool CX2Main::Handler_ECH_GET_SERVER_TIME_REQ()
 	{
 		g_pData->ResetServerProtocol();
 	}
-	if( g_pData->GetServerProtocol()->ConnectedToChannelServer( g_pMain->GetPickedChannelServer().m_kServerIP.c_str(), g_pMain->GetPickedChannelServer().m_usMasterPort ) == true )
+	if( g_pData->GetServerProtocol()->ConnectedToChannelServer( GetPickedChannelServer().m_kServerIP.c_str(), GetPickedChannelServer().m_usMasterPort ) == true )
 	{
 		if(g_pData->GetServerProtocol()->IsChConnected())
 		{
@@ -7366,6 +7851,7 @@ bool CX2Main::Handler_ECH_GET_SERVER_TIME_REQ()
 	}
 	return false;
 }
+
 bool CX2Main::Handler_ECH_GET_SERVER_TIME_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	SAFE_DELETE_DIALOG( m_pDLGStateChange );
@@ -7377,7 +7863,8 @@ bool CX2Main::Handler_ECH_GET_SERVER_TIME_ACK( HWND hWnd, UINT uMsg, WPARAM wPar
 	StateChangeTimeSleep(0.0f);
 	return true;
 }
-void CX2Main::StateChangeTimeSleep(float nSleepTime)
+
+void CX2Main::StateChangeTimeSleep( float nSleepTime )
 {
 	m_GetTimeCount = m_GetTimeCount + nSleepTime;
 	if(m_GetTimeCount > 0.5f)
@@ -7398,7 +7885,7 @@ void CX2Main::StateChangeTimeSleep(float nSleepTime)
 					g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_LOGIN, NULL, false );
 					m_bMappingResult = false;
 					m_bOneChange = true;
-					StateLog(L"ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ï¿½ï¿½..ï¿½ðµ©¾ï¿½ï¿½ï¿½??");
+					StateLog(L"¼­¹ö½Ã°£ ¹Þ±â ½ÇÆÐ..¸ðµ©¾²³Ä??");
 				}
 			}
 		}
@@ -7416,7 +7903,7 @@ void CX2Main::StateChangeTimeSleep(float nSleepTime)
 			g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_LOGIN, NULL, false );
 			m_bMappingResult = false;
 			m_bOneChange = true;
-			StateLog(L"ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½Þ¾Æ¼ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½!!");
+			StateLog(L"¼­¹ö½Ã°£ ¹Þ¾Æ¼­ ¸ÊÇÎ¼º°ø!!");
 		}
 	}
 }
@@ -7454,7 +7941,7 @@ wstring CX2Main::GetEDString( const WCHAR* pEDToChange )
 }
 
 
-// ED ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½Ù²ï¿½, ï¿½ß°ï¿½ï¿½ï¿½ ','ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+// ED ¹®ÀÚ¿­À» ¼ýÀÚ·Î ¹Ù²Þ, Áß°£¿¡ ','¸¦ Áö¿ò
 int CX2Main::GetEDFromString( const WCHAR* wszED )
 {
 	if( NULL == wszED )
@@ -7473,33 +7960,33 @@ int CX2Main::GetEDFromString( const WCHAR* wszED )
 	return (int) wcstol( wstrED.c_str(), NULL, 10 );
 }
 
-//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/11/5] //	ï¿½ï¿½ï¿½ï¿½ Ä®ï¿½ï¿½
+//{{ Çã»óÇü : [2009/11/5] //	»ö»ó Ä®¶ó
 #ifdef PRICE_COLOR
 D3DXCOLOR	CX2Main::GetPriceColor( __int64 iPrice )
 {
 	D3DXCOLOR color;
 
-	if( iPrice < 10000 )	//	ï¿½ï¿½
+	if( iPrice < 10000 )	//	³ë
 	{
 		color = D3DXCOLOR( 0.9f, 1.0f, 0.1f, 1.0f );
 	}
-	else if ( iPrice < 100000 )	//	ï¿½ï¿½
+	else if ( iPrice < 100000 )	//	³ì
 	{
 		color = D3DXCOLOR( 0.5f, 1.0f, 0.0f, 1.0f );
 	}
-	else if ( iPrice < 1000000 )	//	ï¿½ï¿½È²
+	else if ( iPrice < 1000000 )	//	ÁÖÈ²
 	{
 		color = D3DXCOLOR( 1.0f, 0.5f, 0.0f, 1.0f );
 	}
-	else if ( iPrice < 10000000 )	// ï¿½ï¿½
+	else if ( iPrice < 10000000 )	// ÆÄ
 	{
 		color = D3DXCOLOR( 0.0f, 1.0f, 1.0f, 1.0f );
 	}
-	else if ( iPrice < 100000000 )	// ï¿½ï¿½ï¿½ï¿½
+	else if ( iPrice < 100000000 )	// º¸¶ó
 	{
 		color = D3DXCOLOR( 0.55f, 0.55f, 0.96f, 1.0f );
 	}
-	else	//	ï¿½ï¿½ï¿½ï¿½
+	else	//	»¡°­
 	{
 		color = D3DXCOLOR( 1.0f, 0.0f, 0.0f, 1.0f );
 	}
@@ -7508,7 +7995,7 @@ D3DXCOLOR	CX2Main::GetPriceColor( __int64 iPrice )
 }
 
 #endif	//	PRICE_COLOR
-//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2009/11/5] //	ï¿½ï¿½ï¿½ï¿½ Ä®ï¿½ï¿½ ï¿½Ô¼ï¿½
+//}} Çã»óÇü : [2009/11/5] //	»ö»ó Ä®¶ó ÇÔ¼ö
 
 
 
@@ -7524,7 +8011,7 @@ void CX2Main::InitMyUnitSkillTree()
 
 	if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV )
 	{
-		CX2State* pState = (CX2State*) g_pMain->GetNowState();
+		CX2State* pState = (CX2State*) GetNowState();
 		pState->Handler_EGS_ADMIN_INIT_SKILL_TREE_REQ();
 	}
 }
@@ -7548,7 +8035,7 @@ void CX2Main::SetMyUnitSP( int iSP )
 	
 	if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR )
 	{
-		CX2State* pState = (CX2State*) g_pMain->GetNowState();
+		CX2State* pState = (CX2State*) GetNowState();
 		pState->Handler_EGS_ADMIN_CHANGE_SKILL_POINT_REQ( iSP );
 	}
 }
@@ -7566,15 +8053,15 @@ void CX2Main::FullMyUnitSkillTree()
 
 	if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV )
 	{
-		CX2State* pState = (CX2State*) g_pMain->GetNowState();
+		CX2State* pState = (CX2State*) GetNowState();
 		pState->Handler_EGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ();
 	}
 }
 #endif //SERV_ADMIN_CHEAT_GET_ALL_SKILL 
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 /** @function	: FullMyUnitSkillTree
-	@brief		: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ È°ï¿½ï¿½È­
+	@brief		: ÇöÀç ·¹º§¿¡ ¿Ã¸± ¼ö ÀÖ´Â ½ºÅ³ È°¼ºÈ­
 */
 void CX2Main::FullMyUnitSkillTreeByLevel()
 {
@@ -7587,13 +8074,13 @@ void CX2Main::FullMyUnitSkillTreeByLevel()
 
 	if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV )
 	{
-		CX2State* pState = (CX2State*) g_pMain->GetNowState();
+		CX2State* pState = (CX2State*) GetNowState();
 		pState->Handler_EGS_ADMIN_AUTO_GET_ALL_SKILL_REQ();
 	}
 }
 
 /** @function	: SetMyUnitSkillLevel
-	@brief		: Æ¯ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief		: Æ¯Á¤ ½ºÅ³ÀÇ ·¹º§À» ¼³Á¤
 */
 void CX2Main::SetMyUnitSkillLevel( const int iSkillID, const int iSkillLevel )
 {
@@ -7606,7 +8093,7 @@ void CX2Main::SetMyUnitSkillLevel( const int iSkillID, const int iSkillLevel )
 
 	if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV )
 	{
-		CX2State* pState = (CX2State*) g_pMain->GetNowState();
+		CX2State* pState = (CX2State*) GetNowState();
 		pState->Handler_EGS_ADMIN_GET_SKILL_REQ( iSkillID, iSkillLevel );
 	}
 }
@@ -7836,7 +8323,7 @@ void CX2Main::SetFreeCamera( bool bEnable )
 	}
 #endif LIGHT_OPERATOR_ACCOUNT
 
-	switch( g_pMain->GetNowStateID() )
+	switch( GetNowStateID() )
 	{
 	case XS_VILLAGE_MAP:
 		{
@@ -7879,7 +8366,7 @@ void CX2Main::SetFreeCamera( bool bEnable )
 }
 bool CX2Main::GetFreeCamera() const
 {
-	switch( g_pMain->GetNowStateID() )
+	switch( GetNowStateID() )
 	{
 	case XS_VILLAGE_MAP:
 		{
@@ -7926,7 +8413,7 @@ bool CX2Main::GetFreeCamera() const
 
 void CX2Main::SetWorldCameraEdit( bool bEnable)
 {
-	switch( g_pMain->GetNowStateID() )
+	switch( GetNowStateID() )
 	{
 	case XS_VILLAGE_MAP:
 		{
@@ -7965,7 +8452,7 @@ void CX2Main::SetWorldCameraEdit( bool bEnable)
 
 void CX2Main::PlayWorldCamera( int iWorldCameraID )
 {
-	switch( g_pMain->GetNowStateID() )
+	switch( GetNowStateID() )
 	{
 	case XS_VILLAGE_MAP:
 		{
@@ -8103,7 +8590,7 @@ D3DXVECTOR2 CX2Main::GetWindowPos( D3DXVECTOR2 windowSize, D3DXVECTOR2 wantMouse
 
 void CX2Main::OpenURL( WCHAR* pURL )
 {
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ URLï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
+	// ÆÄÀÏÀÌ ÀÖ´Â URLÀ» ¿­¾î³õ´Â´Ù.
 	HINTERNET hURLFile;
 	if ( NULL == ( hURLFile = ::InternetOpenUrl( m_hInternet,
 		pURL,
@@ -8119,11 +8606,31 @@ void CX2Main::OpenURL( WCHAR* pURL )
 
 	::InternetCloseHandle( hURLFile );
 }
-
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh ÁøÀÔ ±¸Á¶ °³Æí
+void CX2Main::CreateStateChangeDLG( const WCHAR* szExplanation, wstring wstrCustomLuaFileName/* = L""*/, wstring wstrPlaySoundFileName /*= L""*/ )
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh ÁøÀÔ ±¸Á¶ °³Æí
 void CX2Main::CreateStateChangeDLG( const WCHAR* szExplanation )
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh ÁøÀÔ ±¸Á¶ °³Æí
 {
 	SAFE_DELETE_DIALOG( m_pDLGStateChange );
-	m_pDLGStateChange = KTDGUIMsgBox( D3DXVECTOR2(250,300), szExplanation, g_pMain->GetNowState() );
+	
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh ÁøÀÔ ±¸Á¶ °³Æí
+	if ( wstrCustomLuaFileName != L"" )
+	{
+		if ( GetNowStateID() == CX2Main::XS_SERVER_SELECT ) // ¼­¹ö ¼±ÅÃÃ¢À¸·Î °¡¸é ¸ðµç ¸Þ¼¼Áö ÆË¾÷
+			m_pDLGStateChange = KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), szExplanation, GetNowState(), -1, -1.f, wstrCustomLuaFileName, D3DXVECTOR2 ( 0, 0 ), wstrPlaySoundFileName );
+		else if ( GetNowStateID() == CX2Main::XS_CREATE_UNIT ) // ¼­¹ö ¼±ÅÃÃ¢À¸·Î °¡¸é ¸ðµç ¸Þ¼¼Áö ÆË¾÷
+			m_pDLGStateChange = KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), szExplanation, GetNowState(), -1, -1.f, wstrCustomLuaFileName, D3DXVECTOR2 ( 0, 0 ), wstrPlaySoundFileName );
+		else
+			m_pDLGStateChange = KTDGUIOKMsgBox( D3DXVECTOR2(250,300), szExplanation, GetNowState(), -1, -1.f, wstrCustomLuaFileName );
+	}
+	else
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh ÁøÀÔ ±¸Á¶ °³Æí	
+	{
+		m_pDLGStateChange = KTDGUIMsgBox( D3DXVECTOR2(250,300), szExplanation, GetNowState() );
+	}
+	
+	
 	m_pDLGStateChange->MoveStop();
 	m_pDLGStateChange->SetColor( D3DXCOLOR( 1,1,1,1 ) );
 
@@ -8246,7 +8753,7 @@ void CX2Main::DeleteOtherFile( WCHAR* pExtention, vector<wstring>& fileList, WCH
 				wstring nowFileName = wstrFileName;
 				MakeUpperCase( nowFileName );
 
-				for ( int i = 0; i < (int)fileList.size(); i++ )	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+				for ( int i = 0; i < (int)fileList.size(); i++ )	//¾ÈÁö¿ö¾ßÇÒ ÆÄÀÏÀÎÁö °Ë»ç
 				{
 					wstring tempFileName = fileList[i];
 					MakeUpperCase( tempFileName );
@@ -8258,9 +8765,9 @@ void CX2Main::DeleteOtherFile( WCHAR* pExtention, vector<wstring>& fileList, WCH
 					}
 				}
 
-				if ( bCheck == false )	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½
+				if ( bCheck == false )	//Áö¿ö¾ßÇÒ ³ðÀÌ¶ó¸é
 				{
-					//ï¿½È¾ï¿½ï¿½ï¿½ komï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ö´Â°ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ ï¿½Ù²Ù´Â°ï¿½) ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½
+					//¾È¾²´Â komÆÄÀÏ ¾ø¾Ö´Â°Å(Áö±ÝÀº ÀÌ¸§ ¹Ù²Ù´Â°Å) ³ÖÀº ºÎºÐÀÓ
 					int strIndex = wstrFileName.rfind( L"." );
 
 					if ( strIndex != -1 )
@@ -8333,6 +8840,10 @@ wstring CX2Main::GetStrByLienBreak( const WCHAR* pOrgStr, int width, int fontInd
 
 			iUniCharSize = pFont->GetWidth( tempWchar );
 			nowTextLen += iUniCharSize;
+#ifdef FIX_LETTER_SPACE_CHARACTER_BUG
+			if( tempWchar == L' ')
+				iUniCharSize += iUniCharSize;
+#endif // FIX_LETTER_SPACE_CHARACTER_BUG
 
 			if ( nowTextLen >= constTextMaxLen )
 			{
@@ -8409,6 +8920,10 @@ wstring CX2Main::GetStrByLineBreakColor( const WCHAR* pOrgStr, int width, int fo
 
 			iUniCharSize = pFont->GetWidth( tempWchar );
 			nowTextLen += iUniCharSize;
+#ifdef FIX_LETTER_SPACE_CHARACTER_BUG
+			if( tempWchar == L' ')
+				iUniCharSize += iUniCharSize;
+#endif // FIX_LETTER_SPACE_CHARACTER_BUG
 
 			if ( nowTextLen >= constTextMaxLen )
 			{
@@ -8421,7 +8936,7 @@ wstring CX2Main::GetStrByLineBreakColor( const WCHAR* pOrgStr, int width, int fo
 					{
 						tempText.insert( tempText.begin() + i + 1, enterChar.begin(), enterChar.end() );
 
-						// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+						// ´ÙÀ½ ÁÙÀÇ Ã¹ ¹®ÀÚ°¡ °ø¹éÀÎ °æ¿ì Á¦°Å
 						if ( i + 2 < (int)tempText.size() && tempText[i + 2] == L' ' )
 						{
 							tempText.erase( i + 2, 1 );
@@ -8463,20 +8978,24 @@ wstring CX2Main::GetStrByLineBreakColor( const WCHAR* pOrgStr, int width, int fo
 #endif FIX_TOOLTIP
 
 
-void CX2Main::ResetLuaBinder( KLuabinder* pKLuabinder )
-{
-	if ( pKLuabinder == NULL )
-		return;
-
-	g_pKTDXApp->RegisterLuabind( pKLuabinder );
-	RegisterLuabind( pKLuabinder );
-	LoadLuaEnum( pKLuabinder );
-	
-}
+//void CX2Main::ResetLuaBinder( KLuabinder* pKLuabinder )
+//{
+//	if ( pKLuabinder == NULL )
+//		return;
+//
+//	g_pKTDXApp->RegisterLuabind( pKLuabinder );
+//	RegisterLuabind( pKLuabinder );
+//	LoadLuaEnum( pKLuabinder );
+//	
+//}
 
 
 void CX2Main::UpdateProcessList()
 {
+#ifdef  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+    set<wstring>    setProcessNameToFindHack;
+#endif  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+
 #ifdef PROCESSLIST
 	wstring wstrTemp;
 	DWORD aProcesses[1024], cbNeeded;
@@ -8524,8 +9043,11 @@ void CX2Main::UpdateProcessList()
 				
 				if(!sHide)
 					wstrTemp = wstrTemp + L" [Hidden] ";
-
+#ifdef  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+                setProcessNameToFindHack.insert( wstrTemp );	
+#else   X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 				m_setProcessNameToFindHack.insert( wstrTemp );				
+#endif  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 
 #ifndef _SERVICE_
 				fwprintf(fp, L"%-5d - %16s  %s\n", PidFor, szName, (sHide) ? L"" : L"--[Hidden]--");
@@ -8538,7 +9060,11 @@ void CX2Main::UpdateProcessList()
 				MakeUpperCase( wstrTemp );				
 
 				wstrTemp = L"[Zombie] " + wstrTemp + L" \r\n ";
-				m_setProcessNameToFindHack.insert( wstrTemp );						
+#ifdef  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+                setProcessNameToFindHack.insert( wstrTemp );
+#else   X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+				m_setProcessNameToFindHack.insert( wstrTemp );				
+#endif  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX				
 
 #ifndef _SERVICE_
 				fwprintf(fp, L"%-5d - %16s  %s\n", PidFor, szName, L"--[Zombie]--");
@@ -8553,6 +9079,8 @@ void CX2Main::UpdateProcessList()
 	fclose(fp);
 #endif
 
+
+
 #else
 	HANDLE hSnapShot;
 	PROCESSENTRY32W pEntry;
@@ -8563,21 +9091,35 @@ void CX2Main::UpdateProcessList()
 
 	wstring wstrTemp;
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½. 
+	// ½ÇÇàÁßÀÎ ÇÁ·Î¼¼½ºµéÀÇ Ã¹¹øÀç Á¤º¸¸¦ °¡Á®¿Â´Ù. 
 	BOOL hRes = Process32First( hSnapShot, &pEntry );
+
 
 	while(hRes)
 	{
 		wstrTemp = pEntry.szExeFile;
 		MakeUpperCase( wstrTemp );
 
+#ifdef  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+        setProcessNameToFindHack.insert( wstrTemp );					
+#else   X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 		if ( m_setSendedProcessList.find( wstrTemp ) == m_setSendedProcessList.end() )
-			m_setProcessNameToFindHack.insert( wstrTemp );		
+			m_setProcessNameToFindHack.insert( wstrTemp );					
+#endif  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 
-		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
+
+		//´ÙÀ½¹ø ÇÁ·Î¼¼½ºÀÇ Á¤º¸¸¦ °¡Á®¿Â´Ù.
 		hRes = Process32Next( hSnapShot, &pEntry );
 	}
 #endif
+
+#ifdef  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+    if ( setProcessNameToFindHack.empty() == false )
+    {
+        CSLock lock(m_csProcessNameToFindHack);
+        m_setProcessNameToFindHack_CS.insert( setProcessNameToFindHack.begin(), setProcessNameToFindHack.end() );
+    }
+#endif  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 
 }
 
@@ -8690,10 +9232,10 @@ void CX2Main::SendHackMail()
 //
 //
 //	char szMail[2][MAX_PATH];
-//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1  );		// ï¿½ï¿½ï¿½ï¿½
-//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ï¿½Ìµï¿½ï¿½ï¿½
-//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ï¿½ï¿½ï¿½ï¿½
-//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ï¿½Ìµï¿½ï¿½ï¿½
+//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1  );		// ÀåÈÆ
+//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ÀÌµ¿½Å
+//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ÀåÈÆ
+//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ÀÌµ¿½Å
 //
 //	char szID[MAX_PATH] = "";
 //	if( g_pInstanceData != NULL &&
@@ -8719,7 +9261,7 @@ void CX2Main::SendHackMail()
 //			if( strlen( szID ) > 0 )
 //				g_pX2SMTPMail->SetSenderName( szID );
 //			else
-//				g_pX2SMTPMail->SetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ); // TODO : ï¿½ï¿½ string always.h ï¿½ï¿½ ï¿½Å±ï¿½ï¿½
+//				g_pX2SMTPMail->SetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" ); // TODO : ÀÌ string always.h ·Î ¿Å±â±â
 //
 //			string mailName;
 //			ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
@@ -8740,7 +9282,7 @@ void CX2Main::SendHackMail()
 //		}
 //
 //
-////{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+////{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //		if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //		{
 //			// Unable to initialize winsock2
@@ -8752,24 +9294,24 @@ void CX2Main::SendHackMail()
 //#else
 //		g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//		g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//		g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //		g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //		if( strlen( szID ) > 0 )
 //			g_pX2SMTPMail->SMTPSetSenderName( szID );
 //		else
-//			g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ); // TODO : ï¿½ï¿½ string always.h ï¿½ï¿½ ï¿½Å±ï¿½ï¿½
+//			g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" ); // TODO : ÀÌ string always.h ·Î ¿Å±â±â
 //
 //
 //		g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//		g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//		g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //		string mailName;
 //		ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //		g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //		stringstream wstrstm;
 //
-//		// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//		// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //		//g_pX2SMTPMail->SMTPAddRecipient("demiahun@kogstudios.com");
 //		g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");	
 //		//g_pX2SMTPMail->SMTPAddRecipient("oasis907@naver.com");
@@ -8780,13 +9322,13 @@ void CX2Main::SendHackMail()
 //		g_pX2SMTPMail->SMTPSetXMailer("The Bat! (v3.02) Professional");
 //
 //#ifdef MORE_INFO_ABOUT_HACK
-//		// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//		// ½Ã½ºÅÛ Á¤º¸
 //		AddSystemInfo(wstrstm);
 //
-//		// DLL ï¿½ï¿½ï¿½ï¿½
+//		// DLL Á¤º¸
 //		AddDLLInfo(wstrstm);
 //
-//		// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//		// ÇÁ·Î¼¼½º Á¤º¸
 //		AddProcessInfo(wstrstm);
 //#endif // MORE_INFO_ABOUT_HACK
 //
@@ -8814,7 +9356,7 @@ void CX2Main::SendHackMail()
 //		wstrUserId = wstrUserId + L".jpg";
 //
 //		MakeHackScreenShot( strUserId.c_str() );
-//		// ï¿½ï¿½ï¿½â¿¡ Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//		// ¿©±â¿¡ Ã·ºÎ ÆÄÀÏ ³ª¿­
 //		//g_pX2SMTPMail->SMTPAddAttachment("c:\\mailtest2.exe");
 //		//g_pX2SMTPMail->SMTPAddAttachment("c:\\test2.jpg");	
 //		wchar_t szFilePath[1024] = _T("");
@@ -8835,13 +9377,13 @@ void CX2Main::SendHackMail()
 //		{
 //			//Unable to send the mail
 //		}
-//		// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//		// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //		g_pX2SMTPMail->SMTPClearRecipient();
 //
 //		
 //		DeleteFile( wstrUserId.c_str() );
 //
-////}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+////}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	}
 //
 //	m_setProcessNameToFindHack.clear();
@@ -8857,10 +9399,10 @@ void CX2Main::SendHackMail_DamageHistory(const char *strComm)
 //	THEMIDA_VM_START
 //
 //	char szMail[2][MAX_PATH];
-//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ï¿½ï¿½ï¿½ï¿½
-//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ï¿½Ìµï¿½ï¿½ï¿½
-//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ï¿½ï¿½ï¿½ï¿½
-//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ï¿½Ìµï¿½ï¿½ï¿½
+//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ÀåÈÆ
+//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ÀÌµ¿½Å
+//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ÀåÈÆ
+//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ÀÌµ¿½Å
 //
 //	char szID[MAX_PATH] = "";
 //	if( g_pInstanceData != NULL &&
@@ -8888,7 +9430,7 @@ void CX2Main::SendHackMail_DamageHistory(const char *strComm)
 //		if( strlen( szID ) > 0 )
 //			g_pX2SMTPMail->SetSenderName( szID );
 //		else
-//			g_pX2SMTPMail->SetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//			g_pX2SMTPMail->SetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //		string mailName;
 //		ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
@@ -8914,7 +9456,7 @@ void CX2Main::SendHackMail_DamageHistory(const char *strComm)
 //		g_pX2SMTPMail = new CX2SMTPMail;
 //	}
 //
-//	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //	{
 //		// Unable to initialize winsock2
@@ -8926,24 +9468,24 @@ void CX2Main::SendHackMail_DamageHistory(const char *strComm)
 //#else
 //	g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //	if( strlen( szID ) > 0 )
 //		g_pX2SMTPMail->SMTPSetSenderName( szID );
 //	else
-//		g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//		g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //
 //	g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //	string mailName;
 //	ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //	g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //	stringstream wstrstm;
 //
-//	// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddRecipient("demiahun@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("carl79@kog.co.kr");	
@@ -8966,17 +9508,17 @@ void CX2Main::SendHackMail_DamageHistory(const char *strComm)
 //	
 //
 //#ifdef MORE_INFO_ABOUT_HACK
-//	// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ½Ã½ºÅÛ Á¤º¸
 //	AddSystemInfo(wstrstm);
 //
 //	wstrstm << "- Loaded Dll -";
 //	const char *dlllist = SiCX2DLLManager()->GetPreLoadedDllList();
 //	wstrstm << dlllist;
 //
-//	// DLL ï¿½ï¿½ï¿½ï¿½
+//	// DLL Á¤º¸
 //	AddDLLInfo(wstrstm);
 //
-//	// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ÇÁ·Î¼¼½º Á¤º¸
 //	AddProcessInfo(wstrstm);
 //	
 //#endif // MORE_INFO_ABOUT_HACK
@@ -8995,7 +9537,7 @@ void CX2Main::SendHackMail_DamageHistory(const char *strComm)
 //	wstrUserId = wstrUserId + L".jpg";
 //
 //	MakeHackScreenShot( strUserId.c_str() );
-//	// ï¿½ï¿½ï¿½â¿¡ Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ Ã·ºÎ ÆÄÀÏ ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\mailtest2.exe");
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\test2.jpg");	
 //	wchar_t szFilePath[1024] = _T("");
@@ -9016,12 +9558,12 @@ void CX2Main::SendHackMail_DamageHistory(const char *strComm)
 //	{
 //		//Unable to send the mail
 //	}
-//	// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//	// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //	g_pX2SMTPMail->SMTPClearRecipient();
 //
 //	DeleteFile( wstrUserId.c_str() );
 //
-//	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //
 //	THEMIDA_VM_END
 //	ELSWORD_VIRTUALIZER_END
@@ -9035,10 +9577,10 @@ void CX2Main::SendHackMail_HackUserNot(const char *strComm)
 //	THEMIDA_VM_START
 //
 //	char szMail[2][MAX_PATH];
-//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ï¿½ï¿½ï¿½ï¿½
-//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ï¿½Ìµï¿½ï¿½ï¿½
-//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ï¿½ï¿½ï¿½ï¿½
-//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ï¿½Ìµï¿½ï¿½ï¿½
+//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ÀåÈÆ
+//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ÀÌµ¿½Å
+//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ÀåÈÆ
+//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ÀÌµ¿½Å
 //
 //	char szID[MAX_PATH] = "";
 //	if( g_pInstanceData != NULL &&
@@ -9054,7 +9596,7 @@ void CX2Main::SendHackMail_HackUserNot(const char *strComm)
 //		g_pX2SMTPMail = new CX2SMTPMail;
 //	}
 //
-//	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //	{
 //		// Unable to initialize winsock2
@@ -9066,24 +9608,24 @@ void CX2Main::SendHackMail_HackUserNot(const char *strComm)
 //#else
 //	g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //	if( strlen( szID ) > 0 )
 //		g_pX2SMTPMail->SMTPSetSenderName( szID );
 //	else
-//		g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//		g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //
 //	g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //	string mailName;
 //	ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //	g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //	stringstream wstrstm;
 //
-//	// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddRecipient("demiahun@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("carl79@kog.co.kr");
@@ -9101,14 +9643,14 @@ void CX2Main::SendHackMail_HackUserNot(const char *strComm)
 //	wstrstm << strComm <<"\n\n";
 //
 //#ifdef MORE_INFO_ABOUT_HACK
-//	// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ½Ã½ºÅÛ Á¤º¸
 //	AddSystemInfo(wstrstm);
 //
 //	wstrstm << "- Loaded Dll -";
 //	const char *dlllist = SiCX2DLLManager()->GetPreLoadedDllList();
 //	wstrstm << dlllist;
 //
-//	// DLL ï¿½ï¿½ï¿½ï¿½
+//	// DLL Á¤º¸
 //	wstring wstrDllInfo = SiCX2DLLManager()->GetReportEvent();
 //	string strDllInfo = "";
 //	ConvertWCHARToChar( strDllInfo, wstrDllInfo );
@@ -9116,7 +9658,7 @@ void CX2Main::SendHackMail_HackUserNot(const char *strComm)
 //
 //	AddDLLInfo(wstrstm);
 //
-//	// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ÇÁ·Î¼¼½º Á¤º¸
 //	AddProcessInfo(wstrstm);
 //#endif // MORE_INFO_ABOUT_HACK
 //
@@ -9134,7 +9676,7 @@ void CX2Main::SendHackMail_HackUserNot(const char *strComm)
 //	wstrUserId = wstrUserId + L".jpg";
 //
 //	MakeHackScreenShot( strUserId.c_str() );
-//	// ï¿½ï¿½ï¿½â¿¡ Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ Ã·ºÎ ÆÄÀÏ ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\mailtest2.exe");
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\test2.jpg");	
 //	wchar_t szFilePath[1024] = _T("");
@@ -9156,12 +9698,12 @@ void CX2Main::SendHackMail_HackUserNot(const char *strComm)
 //		DisplayErrorMessage( L"mail error" );
 //		//Unable to send the mail
 //	}
-//	// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//	// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //	g_pX2SMTPMail->SMTPClearRecipient();
 //
 //	DeleteFile( wstrUserId.c_str() );
 //
-//	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //
 //
 //	THEMIDA_VM_END
@@ -9172,7 +9714,11 @@ void CX2Main::SendHackMail_HackUserNot(const char *strComm)
 
 #ifdef HACK_USER_ATTACH_FILE
 
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+void CX2Main::SendHackMail_AttachFile(const char *strComm, const string& userId)
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 void CX2Main::SendHackMail_AttachFile(const char *strComm, wstring userId)
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 {
 //	ELSWORD_VIRTUALIZER_START
 //	THEMIDA_VM_START
@@ -9188,10 +9734,10 @@ void CX2Main::SendHackMail_AttachFile(const char *strComm, wstring userId)
 //		return;
 //
 //	char szMail[2][MAX_PATH];
-//	strncpy( szMail[0], "demiahun@gmail.com",  MAX_PATH - 1 );		// ï¿½ï¿½ï¿½ï¿½
-//	strncpy( szMail[1], "elswordmkt@gmail.com" ,  MAX_PATH - 1 );	// ï¿½Ìµï¿½ï¿½ï¿½
-//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ï¿½ï¿½ï¿½ï¿½
-//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ï¿½Ìµï¿½ï¿½ï¿½
+//	strncpy( szMail[0], "demiahun@gmail.com",  MAX_PATH - 1 );		// ÀåÈÆ
+//	strncpy( szMail[1], "elswordmkt@gmail.com" ,  MAX_PATH - 1 );	// ÀÌµ¿½Å
+//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ÀåÈÆ
+//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ÀÌµ¿½Å
 //
 //	char szID[MAX_PATH] = "";
 //	if( g_pInstanceData != NULL &&
@@ -9207,7 +9753,7 @@ void CX2Main::SendHackMail_AttachFile(const char *strComm, wstring userId)
 //		g_pX2SMTPMail = new CX2SMTPMail;
 //	}
 //
-//	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //	{
 //		// Unable to initialize winsock2
@@ -9219,24 +9765,24 @@ void CX2Main::SendHackMail_AttachFile(const char *strComm, wstring userId)
 //#else
 //	g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //	if( strlen( szID ) > 0 )
 //		g_pX2SMTPMail->SMTPSetSenderName( szID );
 //	else
-//		g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//		g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //
 //	g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //	string mailName;
 //	ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //	g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //	stringstream wstrstm;
 //
-//	// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddRecipient("demiahun@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("carl79@kog.co.kr");
@@ -9253,10 +9799,10 @@ void CX2Main::SendHackMail_AttachFile(const char *strComm, wstring userId)
 //	wstrstm << "Attach File" <<"\n\n";
 //
 //#ifdef MORE_INFO_ABOUT_HACK
-//	// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ½Ã½ºÅÛ Á¤º¸
 //	AddSystemInfo(wstrstm);
 //
-//	// DLL ï¿½ï¿½ï¿½ï¿½
+//	// DLL Á¤º¸
 //	wstring wstrDllInfo = SiCX2DLLManager()->GetReportEvent();
 //	string strDllInfo = "";
 //	ConvertWCHARToChar( strDllInfo, wstrDllInfo );
@@ -9264,7 +9810,7 @@ void CX2Main::SendHackMail_AttachFile(const char *strComm, wstring userId)
 //
 //	AddDLLInfo(wstrstm);
 //
-//	// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ÇÁ·Î¼¼½º Á¤º¸
 //	AddProcessInfo(wstrstm);
 //#endif // MORE_INFO_ABOUT_HACK
 //
@@ -9283,7 +9829,7 @@ void CX2Main::SendHackMail_AttachFile(const char *strComm, wstring userId)
 //	wstrUserId = wstrUserId + L".jpg";
 //
 //	MakeHackScreenShot( strUserId.c_str() );
-//	// ï¿½ï¿½ï¿½â¿¡ Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ Ã·ºÎ ÆÄÀÏ ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\mailtest2.exe");
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\test2.jpg");	
 //	wchar_t szFilePath[1024] = _T("");
@@ -9305,12 +9851,12 @@ void CX2Main::SendHackMail_AttachFile(const char *strComm, wstring userId)
 //	{
 //		//Unable to send the mail
 //	}
-//	// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//	// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //	g_pX2SMTPMail->SMTPClearRecipient();
 //
 //	//DeleteFile( wstrUserId.c_str() );
 //
-//	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //
 //	bSend = true;
 //
@@ -9323,7 +9869,11 @@ void CX2Main::SendHackMail_AttachFile(const char *strComm, wstring userId)
 
 #ifdef SERACH_FOLDER_FILE
 
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+void CX2Main::SendHackMail_FileList(const char *strComm, const string& userId)
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 void CX2Main::SendHackMail_FileList(const char *strComm, wstring userId)
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 {
 //	ELSWORD_VIRTUALIZER_START
 //	THEMIDA_VM_START
@@ -9339,10 +9889,10 @@ void CX2Main::SendHackMail_FileList(const char *strComm, wstring userId)
 //		return;
 //
 //	char szMail[2][MAX_PATH];
-//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ï¿½ï¿½ï¿½ï¿½
-//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ï¿½Ìµï¿½ï¿½ï¿½
-//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ï¿½ï¿½ï¿½ï¿½
-//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ï¿½Ìµï¿½ï¿½ï¿½
+//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ÀåÈÆ
+//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ÀÌµ¿½Å
+//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ÀåÈÆ
+//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ÀÌµ¿½Å
 //
 //	char szID[MAX_PATH] = "";
 //	if( g_pInstanceData != NULL &&
@@ -9358,7 +9908,7 @@ void CX2Main::SendHackMail_FileList(const char *strComm, wstring userId)
 //		g_pX2SMTPMail = new CX2SMTPMail;
 //	}
 //
-//	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //	{
 //		// Unable to initialize winsock2
@@ -9370,24 +9920,24 @@ void CX2Main::SendHackMail_FileList(const char *strComm, wstring userId)
 //#else
 //	g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //	if( strlen( szID ) > 0 )
 //		g_pX2SMTPMail->SMTPSetSenderName( szID );
 //	else
-//		g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//		g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //
 //	g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //	string mailName;
 //	ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //	g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //	stringstream wstrstm;
 //
-//	// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddRecipient("demiahun@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("carl79@kog.co.kr");
@@ -9413,12 +9963,12 @@ void CX2Main::SendHackMail_FileList(const char *strComm, wstring userId)
 //	{
 //		//Unable to send the mail
 //	}
-//	// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//	// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //	g_pX2SMTPMail->SMTPClearRecipient();
 //
 //	//DeleteFile( wstrUserId.c_str() );
 //
-//	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //
 //	bSend = true;
 //
@@ -9438,10 +9988,10 @@ void CX2Main::SendHackMail_VERIFYVALUE(const char *strComm)
 //	THEMIDA_VM_START
 //
 //	char szMail[2][MAX_PATH];
-//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ï¿½ï¿½ï¿½ï¿½
-//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ï¿½Ìµï¿½ï¿½ï¿½
-//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ï¿½ï¿½ï¿½ï¿½
-//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ï¿½Ìµï¿½ï¿½ï¿½
+//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ÀåÈÆ
+//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ÀÌµ¿½Å
+//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ÀåÈÆ
+//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ÀÌµ¿½Å
 //
 //	char szID[MAX_PATH] = "";
 //	if( g_pInstanceData != NULL &&
@@ -9456,7 +10006,7 @@ void CX2Main::SendHackMail_VERIFYVALUE(const char *strComm)
 //		g_pX2SMTPMail = new CX2SMTPMail;
 //	}
 //
-//	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //	{
 //		// Unable to initialize winsock2
@@ -9468,24 +10018,24 @@ void CX2Main::SendHackMail_VERIFYVALUE(const char *strComm)
 //#else
 //	g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //	if( strlen( szID ) > 0 )
 //		g_pX2SMTPMail->SMTPSetSenderName( szID );
 //	else
-//		g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//		g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //
 //	g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //	string mailName;
 //	ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //	g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //	stringstream wstrstm;
 //
-//	// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddRecipient("demiahun@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("itexpertkim@kog.co.kr");	
@@ -9503,17 +10053,17 @@ void CX2Main::SendHackMail_VERIFYVALUE(const char *strComm)
 //	wstrstm << strComm <<"\n\n";
 //
 //#ifdef MORE_INFO_ABOUT_HACK
-//	// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ½Ã½ºÅÛ Á¤º¸
 //	AddSystemInfo(wstrstm);
 //
 //	wstrstm << "- Loaded Dll -";
 //	const char *dlllist = SiCX2DLLManager()->GetPreLoadedDllList();
 //	wstrstm << dlllist;
 //
-//	// DLL ï¿½ï¿½ï¿½ï¿½
+//	// DLL Á¤º¸
 //	AddDLLInfo(wstrstm);
 //
-//	// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ÇÁ·Î¼¼½º Á¤º¸
 //	AddProcessInfo(wstrstm);
 //#endif // MORE_INFO_ABOUT_HACK
 //
@@ -9531,7 +10081,7 @@ void CX2Main::SendHackMail_VERIFYVALUE(const char *strComm)
 //	wstrUserId = wstrUserId + L".jpg";
 //
 //	MakeHackScreenShot( strUserId.c_str() );
-//	// ï¿½ï¿½ï¿½â¿¡ Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ Ã·ºÎ ÆÄÀÏ ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\mailtest2.exe");
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\test2.jpg");	
 //	wchar_t szFilePath[1024] = _T("");
@@ -9552,12 +10102,12 @@ void CX2Main::SendHackMail_VERIFYVALUE(const char *strComm)
 //	{
 //		//Unable to send the mail
 //	}
-//	// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//	// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //	g_pX2SMTPMail->SMTPClearRecipient();
 //
 //	DeleteFile( wstrUserId.c_str() );
 //
-//	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //
 //	THEMIDA_VM_END
 //
@@ -9603,10 +10153,10 @@ void CX2Main::SendHackMailGameStart(int iVal, bool bVal)
 //	
 //
 //	char szMail[2][MAX_PATH];
-//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ï¿½ï¿½ï¿½ï¿½
-//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ï¿½Ìµï¿½ï¿½ï¿½
-//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ï¿½ï¿½ï¿½ï¿½
-//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ï¿½Ìµï¿½ï¿½ï¿½
+//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ÀåÈÆ
+//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ÀÌµ¿½Å
+//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ÀåÈÆ
+//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ÀÌµ¿½Å
 //
 //	char szID[MAX_PATH] = "";
 //	if( g_pInstanceData != NULL &&
@@ -9621,7 +10171,7 @@ void CX2Main::SendHackMailGameStart(int iVal, bool bVal)
 //		g_pX2SMTPMail = new CX2SMTPMail;
 //	}
 //
-//	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //	{
 //		// Unable to initialize winsock2
@@ -9633,24 +10183,24 @@ void CX2Main::SendHackMailGameStart(int iVal, bool bVal)
 //#else
 //	g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //	if( strlen( szID ) > 0 )
 //		g_pX2SMTPMail->SMTPSetSenderName( szID );
 //	else
-//		g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//		g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //
 //	g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //	string mailName;
 //	ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //	g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //	stringstream wstrstm;
 //
-//	// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddRecipient("demiahun@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("itexpertkim@kog.co.kr");	
@@ -9668,17 +10218,17 @@ void CX2Main::SendHackMailGameStart(int iVal, bool bVal)
 //	wstrstm << strComm <<"\n\n";
 //
 //#ifdef MORE_INFO_ABOUT_HACK
-//	// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ½Ã½ºÅÛ Á¤º¸
 //	AddSystemInfo(wstrstm);
 //
 //	wstrstm << "- Loaded Dll -";
 //	const char *dlllist = SiCX2DLLManager()->GetPreLoadedDllList();
 //	wstrstm << dlllist;
 //
-//	// DLL ï¿½ï¿½ï¿½ï¿½
+//	// DLL Á¤º¸
 //	AddDLLInfo(wstrstm);
 //
-//	// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ÇÁ·Î¼¼½º Á¤º¸
 //	AddProcessInfo(wstrstm);
 //#endif // MORE_INFO_ABOUT_HACK
 //
@@ -9696,7 +10246,7 @@ void CX2Main::SendHackMailGameStart(int iVal, bool bVal)
 //	wstrUserId = wstrUserId + L".jpg";
 //
 //	MakeHackScreenShot( strUserId.c_str() );
-//	// ï¿½ï¿½ï¿½â¿¡ Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ Ã·ºÎ ÆÄÀÏ ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\mailtest2.exe");
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\test2.jpg");	
 //	wchar_t szFilePath[1024] = _T("");
@@ -9717,12 +10267,12 @@ void CX2Main::SendHackMailGameStart(int iVal, bool bVal)
 //	{
 //		//Unable to send the mail
 //	}
-//	// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//	// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //	g_pX2SMTPMail->SMTPClearRecipient();
 //
 //	DeleteFile( wstrUserId.c_str() );
 //
-//	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //
 //	THEMIDA_VM_END
 //
@@ -9731,7 +10281,6 @@ void CX2Main::SendHackMailGameStart(int iVal, bool bVal)
 //#endif
 }
 
-#ifdef	ADD_CRASH_INFO
 void CX2Main::AddMemoryInfo( stringstream& strstm )
 {
 	PROCESS_MEMORY_COUNTERS_EX pmcex;
@@ -9740,22 +10289,22 @@ void CX2Main::AddMemoryInfo( stringstream& strstm )
 	const UINT MEGA = 1024 * 1024;
 
 	string strNewLine = "\n";
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ÇöÀç ÇÁ·Î¼¼½º ¸Þ¸ð¸® Á¤º¸
 	strstm << "- Memory Information - " << strNewLine;
 	strstm << "PageFaultCount: " << pmcex.PageFaultCount << strNewLine;
-	strstm << "PeakWorkingSetSize(ï¿½Ö°ï¿½): " << pmcex.PeakWorkingSetSize / MEGA << strNewLine;
-	strstm << "WorkingSetSize(ï¿½ï¿½ï¿½ï¿½): " << pmcex.WorkingSetSize / MEGA << strNewLine;
+	strstm << "PeakWorkingSetSize(ÃÖ°í): " << pmcex.PeakWorkingSetSize / MEGA << strNewLine;
+	strstm << "WorkingSetSize(ÇöÀç): " << pmcex.WorkingSetSize / MEGA << strNewLine;
 	strstm << "QuotaPeakPagedPoolUsage: " << pmcex.QuotaPeakPagedPoolUsage << strNewLine;
 	strstm << "QuotaPagedPoolUsage: " << pmcex.QuotaPagedPoolUsage << strNewLine;
 	strstm << "QuotaPeakNonPagedPoolUsage: " << pmcex.QuotaPeakNonPagedPoolUsage << strNewLine;
 	strstm << "QuotaNonPagedPoolUsage: " << pmcex.QuotaNonPagedPoolUsage << strNewLine;
-	strstm << "PrivateUsage(ï¿½ï¿½ï¿½ï¿½): " << pmcex.PrivateUsage / MEGA << strNewLine;
+	strstm << "PrivateUsage(°¡»ó): " << pmcex.PrivateUsage / MEGA << strNewLine;
 	
 	MEMORYSTATUSEX MemStatusEx;
 	MemStatusEx.dwLength = sizeof( MEMORYSTATUSEX );
 	if ( GlobalMemoryStatusEx( &MemStatusEx ) )
 	{
-		/// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ½Ã½ºÅÛ ¸Þ¸ð¸® Á¤º¸
 		strstm << "dwMemoryLoad: " << MemStatusEx.dwMemoryLoad / MEGA << strNewLine;
 		strstm << "ullTotalPhys: " << MemStatusEx.ullTotalPhys / MEGA << strNewLine;
 		strstm << "ullAvailPhys: " << MemStatusEx.ullAvailPhys / MEGA << strNewLine;
@@ -9765,7 +10314,7 @@ void CX2Main::AddMemoryInfo( stringstream& strstm )
 		strstm << "ullAvailVirtual: " << MemStatusEx.ullAvailVirtual / MEGA << strNewLine;
 	}
 
-	/// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Ïµï¿½ ï¿½ë·®
+	/// ½Ã½ºÅÛ Æú´õ°¡ ÀÖ´Â ÇÏµå ¿ë·®
 	const UINT uiStrSize = MAX_PATH + 1;
 	char szSystemDirectory[uiStrSize] = { 0, };
 	const UINT uiReturnValue = GetSystemDirectoryA( szSystemDirectory, uiStrSize );
@@ -9789,7 +10338,7 @@ void CX2Main::AddMemoryInfo( stringstream& strstm )
 		}
 	}
 
-	/// ï¿½×·ï¿½ï¿½ï¿½Ä«ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ±×·¡ÇÈÄ«µå Á¾·ù
 	IDirect3D9* pD3D9 = DXUTGetD3DObject();
 	UINT dwAdapterCount = pD3D9->GetAdapterCount();
 
@@ -9805,7 +10354,6 @@ void CX2Main::AddMemoryInfo( stringstream& strstm )
 
 	strstm << strNewLine << strNewLine;
 }
-#endif	ADD_CRASH_INFO
 
 void CX2Main::AddSystemInfo(stringstream& strstm)
 {
@@ -9840,7 +10388,7 @@ void CX2Main::AddSystemInfo(stringstream& strstm)
 #endif // ADD_INFO_INPUT_LOCALE
 	
 #ifdef MACHINE_ID
-	strstm << strNewLine << g_pMain->GetMachineId().c_str() << strNewLine;	
+	strstm << strNewLine << GetMachineId().c_str() << strNewLine;	
 #endif
 
 #ifdef SERV_SERIAL_NUMBER_AVAILABILITY_CHECK
@@ -9891,16 +10439,14 @@ void CX2Main::AddDLLInfo(stringstream& strstm)
 		
 			strstm << boost::str(boost::format("[0x%08X] %s") % hMods[i] % szModName);
 
-#ifdef	ADD_CRASH_INFO
 			HANDLE hFile = CreateFileA( szModName, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL );
 			DWORD dwFileSize = GetFileSize( hFile, NULL );
 
-			// system32 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½î°¡ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ Ã£ï¿½Æºï¿½ï¿½ï¿½ï¿½ï¿½
+			// system32 ¾ÈÀÇ ÆÄÀÏµé »çÀÌÁî°¡ ¿Ö ½ÇÁ¦¿Í ´Ù¸¥Áö Ã£¾ÆºÁ¾ßÇÔ
 			if ( INVALID_FILE_SIZE != dwFileSize )
 				strstm << ", Size: " << dwFileSize << strNewLine;
 			else
 				strstm << strNewLine;
-#endif	ADD_CRASH_INFO
 	
 			CloseHandle( hFile );
 		}
@@ -9920,9 +10466,46 @@ void CX2Main::AddProcessInfo(stringstream& strstm, bool bThreadInfo)
 	strstm << "- Process Information -" << strNewLine;
 
 #ifdef PROCESSLIST
+#ifdef  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+    {
+        CSLock lock(m_csProcessNameToFindHack);
+        m_setProcessNameToFindHack_CS.clear();
+    }
+#else   X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 	m_setProcessNameToFindHack.clear();
+#endif  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 	UpdateProcessList();
-
+#ifdef  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+    set<wstring>    setSendedProcessList;
+    {
+        CSLock lock(m_csSendedProcessList);
+        setSendedProcessList = 			m_setSendedProcessList_CS;
+    }
+    BOOST_FOREACH( const std::wstring& wstrProcessName, setSendedProcessList )
+    {
+		string processName;
+		ConvertWCHARToChar( processName, wstrProcessName );
+		strstm << processName.c_str() << strNewLine;
+    }
+    setSendedProcessList.clear();
+    set<wstring>    setProcessNameToFindHack;
+    {
+        CSLock lock(m_csProcessNameToFindHack);
+        setProcessNameToFindHack = m_setProcessNameToFindHack_CS;				
+    }
+    BOOST_FOREACH( const std::wstring& wstrProcessName, setProcessNameToFindHack )
+    {
+		setSendedProcessList.insert( wstrProcessName );
+		string processName;
+		ConvertWCHARToChar( processName, wstrProcessName );
+		strstm << processName.c_str() << strNewLine;
+    }
+    if ( setSendedProcessList.empty() == false )
+    {
+        CSLock lock(m_csSendedProcessList);
+        m_setSendedProcessList_CS.insert( setSendedProcessList.begin(), setSendedProcessList.end() );
+    }
+#else   X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 	if( m_setSendedProcessList.empty() == false )
 	{
 		set<wstring>::iterator sit = m_setSendedProcessList.begin();
@@ -9933,7 +10516,6 @@ void CX2Main::AddProcessInfo(stringstream& strstm, bool bThreadInfo)
 			strstm << processName.c_str() << strNewLine;
 		}
 	}
-
 	if( m_setProcessNameToFindHack.empty() == false )
 	{
 		set<wstring>::iterator sit = m_setProcessNameToFindHack.begin();
@@ -9945,6 +10527,8 @@ void CX2Main::AddProcessInfo(stringstream& strstm, bool bThreadInfo)
 			strstm << processName.c_str() << strNewLine;
 		}
 	}
+#endif  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+
 #else
 	HANDLE hSnapShot;
 	hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPALL,NULL);
@@ -9959,7 +10543,7 @@ void CX2Main::AddProcessInfo(stringstream& strstm, bool bThreadInfo)
 		ConvertWCHARToChar(ExeFile, pEntry.szExeFile);
 		strstm << boost::str(boost::format("[0x%08X] %s \n") % pEntry.th32ProcessID % ExeFile );
 
-		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
+		//´ÙÀ½¹ø ÇÁ·Î¼¼½ºÀÇ Á¤º¸¸¦ °¡Á®¿Â´Ù.
 		hRes = Process32Next( hSnapShot, &pEntry );
 	}
 
@@ -10029,7 +10613,7 @@ void CX2Main::AddProcessInfo(stringstream& strstm, bool bThreadInfo)
 }
 
 
-//{{ ï¿½Ú±ï¿½ï¿½ï¿½ : [2010/05/05]	//	DLL ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½
+//{{ ¹Ú±³Çö : [2010/05/05]	//	DLL ÀÎÁ§¼Ç ÇÙ¸ÞÀÏ
 #ifdef DLL_MANAGER
 void CX2Main::SendHackMail_DLLInjection(const char *strComm)
 {
@@ -10045,12 +10629,12 @@ void CX2Main::SendHackMail_DLLInjection(const char *strComm)
 //		if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 //		{
 //			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-//				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+//				g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 //				return;
 //		}
 //#endif
 //
-//	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //	{
 //		// Unable to initialize winsock2
@@ -10071,23 +10655,23 @@ void CX2Main::SendHackMail_DLLInjection(const char *strComm)
 //#else
 //	g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //	if( strlen( szID ) > 0 )
 //		g_pX2SMTPMail->SMTPSetSenderName( szID );
 //	else
-//		g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//		g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //
 //	g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //	string mailName;
 //	ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //	g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //
-//	// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //	g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("carl79@kog.co.kr");
 //	//g_pX2SMTPMail->SMTPAddRecipient("wonpok@kog.co.kr");
@@ -10101,17 +10685,17 @@ void CX2Main::SendHackMail_DLLInjection(const char *strComm)
 //	stringstream strstm;
 //	strstm << ANTI_HACK_STRING_UserID_AntiHacking_Event_DLL_Injection << std::endl << std::endl;
 //
-//	// ï¿½ï¿½ï¿½ï¿½
+//	// ³»¿ë
 //	strstm << strComm <<"\n\n";
 //
 //#ifdef MORE_INFO_ABOUT_HACK
-//	// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ½Ã½ºÅÛ Á¤º¸
 //	AddSystemInfo(strstm);
 //
-//	// DLL ï¿½ï¿½ï¿½ï¿½
+//	// DLL Á¤º¸
 //	AddDLLInfo(strstm);
 //
-//	// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ÇÁ·Î¼¼½º Á¤º¸
 //	AddProcessInfo(strstm);
 //#endif // MORE_INFO_ABOUT_HACK
 //
@@ -10134,7 +10718,7 @@ void CX2Main::SendHackMail_DLLInjection(const char *strComm)
 //	wstrUserId = wstrUserId + L".jpg";
 //
 //	MakeHackScreenShot( strUserId.c_str() );
-//	// ï¿½ï¿½ï¿½â¿¡ Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ Ã·ºÎ ÆÄÀÏ ³ª¿­
 //	wchar_t szFilePath[1024] = _T("");
 //	wchar_t strHackImageBuffer[1024];
 //	GetCurrentDirectory( _MAX_PATH, szFilePath );
@@ -10153,12 +10737,12 @@ void CX2Main::SendHackMail_DLLInjection(const char *strComm)
 //	{
 //		//Unable to send the mail
 //	}
-//	// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//	// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //	g_pX2SMTPMail->SMTPClearRecipient();
 //
 //	DeleteFile( wstrUserId.c_str() );
 //
-//	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //
 //	THEMIDA_VM_END
 //	ELSWORD_VIRTUALIZER_END
@@ -10175,10 +10759,10 @@ void CX2Main::SendUserMonitoringMail(const char *strComm)
 //	THEMIDA_VM_START
 //
 //	char szMail[2][MAX_PATH];
-//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ï¿½ï¿½ï¿½ï¿½
-//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ï¿½Ìµï¿½ï¿½ï¿½
-//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ï¿½ï¿½ï¿½ï¿½
-//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ï¿½Ìµï¿½ï¿½ï¿½
+//	strncpy( szMail[0], "demiahun@gmail.com" , MAX_PATH - 1 );		// ÀåÈÆ
+//	strncpy( szMail[1], "elswordmkt@gmail.com" , MAX_PATH - 1 );	// ÀÌµ¿½Å
+//	//strcpy( szMail[0], "demiahun@gmail.com" );		// ÀåÈÆ
+//	//strcpy( szMail[1], "elswordmkt@gmail.com" );	// ÀÌµ¿½Å
 //
 //	char szID[MAX_PATH] = "";
 //	if( g_pInstanceData != NULL &&
@@ -10194,7 +10778,7 @@ void CX2Main::SendUserMonitoringMail(const char *strComm)
 //		g_pX2SMTPMail = new CX2SMTPMail;
 //	}
 //
-//	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //	{
 //		// Unable to initialize winsock2
@@ -10206,24 +10790,24 @@ void CX2Main::SendUserMonitoringMail(const char *strComm)
 //#else
 //	g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //	if( strlen( szID ) > 0 )
 //		g_pX2SMTPMail->SMTPSetSenderName( szID );
 //	else
-//		g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//		g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //
 //	g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //	string mailName;
 //	ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //	g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //	stringstream wstrstm;
 //
-//	// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddRecipient("demiahun@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("carl79@kog.co.kr");	
@@ -10261,13 +10845,13 @@ void CX2Main::SendUserMonitoringMail(const char *strComm)
 //
 //
 //#ifdef MORE_INFO_ABOUT_HACK
-//	// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ½Ã½ºÅÛ Á¤º¸
 //	AddSystemInfo(wstrstm);
 //
-//	// DLL ï¿½ï¿½ï¿½ï¿½
+//	// DLL Á¤º¸
 //	AddDLLInfo(wstrstm);
 //
-//	// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ÇÁ·Î¼¼½º Á¤º¸
 //	AddProcessInfo(wstrstm);
 //#endif // MORE_INFO_ABOUT_HACK
 //
@@ -10285,7 +10869,7 @@ void CX2Main::SendUserMonitoringMail(const char *strComm)
 //	wstrUserId = wstrUserId + L".jpg";
 //
 //	MakeHackScreenShot( strUserId.c_str() );
-//	// ï¿½ï¿½ï¿½â¿¡ Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ Ã·ºÎ ÆÄÀÏ ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\mailtest2.exe");
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\test2.jpg");	
 //	wchar_t szFilePath[1024] = _T("");
@@ -10306,12 +10890,12 @@ void CX2Main::SendUserMonitoringMail(const char *strComm)
 //	{
 //		//Unable to send the mail
 //	}
-//	// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//	// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //	g_pX2SMTPMail->SMTPClearRecipient();
 //
 //	DeleteFile( wstrUserId.c_str() );
 //
-//	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //
 //	THEMIDA_VM_END
 //	ELSWORD_VIRTUALIZER_END
@@ -10340,7 +10924,7 @@ void CX2Main::SendMail_MoneyMonitoring(const char *strComm)
 //		g_pX2SMTPMail = new CX2SMTPMail;
 //	}
 //
-//	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//{{ oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //	if(g_pX2SMTPMail->SMTPGetLastError() != CX2SMTPMail::CSMTP_NO_ERROR)
 //	{
 //		// Unable to initialize winsock2
@@ -10352,24 +10936,24 @@ void CX2Main::SendMail_MoneyMonitoring(const char *strComm)
 //#else
 //	g_pX2SMTPMail->SMTPSetServer( "mail.kog.co.kr", 25 );
 //#endif
-//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 //	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 //
 //	if( strlen( szID ) > 0 )
 //		g_pX2SMTPMail->SMTPSetSenderName( szID );
 //	else
-//		g_pX2SMTPMail->SMTPSetSenderName( "ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½Å· ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" );
+//		g_pX2SMTPMail->SMTPSetSenderName( "¿¤¼Òµå ÇØÅ· À¯Àú °¨½ÃÀÚ" );
 //
 //
 //	g_pX2SMTPMail->SMTPSetSenderMail("escrash@kog.co.kr");
-//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+//	g_pX2SMTPMail->SMTPSetReplyTo("escrash@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 //
 //	string mailName;
 //	ConvertWCHARToChar( mailName, m_MailNameToFindHack.c_str() );
 //	g_pX2SMTPMail->SMTPSetSubject( (char*)mailName.c_str() );
 //	stringstream wstrstm;
 //
-//	// ï¿½ï¿½ï¿½â¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ ¹Þ´Â »ç¶÷µé ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddRecipient("demiahun@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("eshack@kogstudios.com");
 //	//g_pX2SMTPMail->SMTPAddRecipient("carl79@kog.co.kr");	
@@ -10393,7 +10977,7 @@ void CX2Main::SendMail_MoneyMonitoring(const char *strComm)
 //	
 //
 //#ifdef MORE_INFO_ABOUT_HACK
-//	// ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ½Ã½ºÅÛ Á¤º¸
 //	AddSystemInfo(wstrstm);
 //
 //	string strIp;
@@ -10401,7 +10985,7 @@ void CX2Main::SendMail_MoneyMonitoring(const char *strComm)
 //	wstrstm << strComm << " : " << strIp << "\n\n";
 //
 //
-//	// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ÇÁ·Î¼¼½º Á¤º¸
 //	AddProcessInfo(wstrstm);
 //	
 //#endif // MORE_INFO_ABOUT_HACK
@@ -10420,7 +11004,7 @@ void CX2Main::SendMail_MoneyMonitoring(const char *strComm)
 //	wstrUserId = wstrUserId + L".jpg";
 //
 //	MakeHackScreenShot( strUserId.c_str() );
-//	// ï¿½ï¿½ï¿½â¿¡ Ã·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//	// ¿©±â¿¡ Ã·ºÎ ÆÄÀÏ ³ª¿­
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\mailtest2.exe");
 //	//g_pX2SMTPMail->SMTPAddAttachment("c:\\test2.jpg");	
 //	wchar_t szFilePath[1024] = _T("");
@@ -10441,12 +11025,12 @@ void CX2Main::SendMail_MoneyMonitoring(const char *strComm)
 //	{
 //		//Unable to send the mail
 //	}
-//	// ï¿½Þ´Â»ï¿½ï¿½ ï¿½Ö¼ï¿½, Ã·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+//	// ¹Þ´Â»ç¶÷ ÁÖ¼Ò, Ã·ºÎÆÄÀÏ ÃÊ±âÈ­
 //	g_pX2SMTPMail->SMTPClearRecipient();
 //
 //	DeleteFile( wstrUserId.c_str() );
 //
-//	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.21] // ï¿½ï¿½ CSmtp
+//	//}} oasis907 : ±è»óÀ± [2009.12.21] // »õ CSmtp
 //
 //	THEMIDA_VM_END
 //	ELSWORD_VIRTUALIZER_END
@@ -10473,7 +11057,6 @@ void CX2Main::PushPresentArrival( KEGS_PRESENT_MESSAGE_TO_RECEIVER_NOT& kEvent )
 #else
 	presentArrival.m_KNXBTProductInfo = kEvent.m_kNXBTProductInfo;
 #endif SERV_GLOBAL_BILLING
-
 	presentArrival.m_PresentMsg = kEvent.m_wstrMessage;
 	presentArrival.m_SenderNickName = kEvent.m_wstrSenderNickName;
 	
@@ -10529,26 +11112,27 @@ void CX2Main::DeleteNMCachData()
 	}
 }
 
-void CX2Main::LoadLuaEnum(  KLuabinder* pKLuabinder )
+void CX2Main::LoadLuaEnum()
 {
-	// luamanagerï¿½ï¿½ enum.lua ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Îµï¿½ï¿½ï¿½ CKTDXApp::loadkluamanagertemplate() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½
-	// luabinderï¿½ï¿½ enum.lua ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Îµï¿½ï¿½ï¿½ cx2main::loadluaenum() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	// luamanager¿¡ enum.lua µî Àü¿ª¿¡¼­ »ç¿ëµÇ´Â ½ºÅ©¸³Æ® ·ÎµùÀº CKTDXApp::loadkluamanagertemplate() ÇÔ¼ö¿¡¼­
+	// luabinder¿¡ enum.lua µî Àü¿ª¿¡¼­ »ç¿ëµÇ´Â ½ºÅ©¸³Æ® ·ÎµùÀº cx2main::loadluaenum() ÇÔ¼ö¿¡¼­
 
-	OpenScriptFile( L"Enum.lua", pKLuabinder );
+	OpenScriptFile( L"Enum.lua" );
+	OpenScriptFile( L"DungeonEnum.lua" );
 #ifdef MASSFILE_MAPPING_FUNCTION
-	lua_tinker::decl( pKLuabinder->GetLuaState(),  "KGCMassFileManager", g_pKTDXApp->GetDeviceManager()->GetMassFileManager() );
+	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "KGCMassFileManager", g_pKTDXApp->GetDeviceManager()->GetMassFileManager() );
 #if defined(CLIENT_COUNTRY_TW)
-	OpenScriptFile( L"MassFileMappingList_TW.lua", pKLuabinder );
+	OpenScriptFile( L"MassFileMappingList_TW.lua" );
 #elif defined(CLIENT_COUNTRY_HK)
-	OpenScriptFile( L"MassFileMappingList_HK.lua", pKLuabinder );
+	OpenScriptFile( L"MassFileMappingList_HK.lua" );
 #else
-	OpenScriptFile( L"MassFileMappingList.lua", pKLuabinder );
+	OpenScriptFile( L"MassFileMappingList.lua" );
 #endif
 #endif MASSFILE_MAPPING_FUNCTION
-    OpenScriptFile( L"StringID_def.lua", pKLuabinder );
+    OpenScriptFile( L"StringID_def.lua" );
 }
 
-//{{ 2008. 1. 2  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½Ù¼ï¿½ï¿½ï¿½ Ä¡Æ®
+//{{ 2008. 1. 2  ÃÖÀ°»ç  ±Ù¼ºµµ Ä¡Æ®
 void CX2Main::ChangeSpirit( int iChangeSpirit )
 {
 	if( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR &&
@@ -10570,7 +11154,7 @@ void CX2Main::ChangeSpirit( int iChangeSpirit )
 }
 //}}
 
-//{{ 2008. 1. 25  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  VP Ä¡Æ®
+//{{ 2008. 1. 25  ÃÖÀ°»ç  VP Ä¡Æ®
 #ifdef SERV_PVP_NEW_SYSTEM
 void CX2Main::ChangeVSPoint( int iRating, int iRPoint, int iAPoint )
 {
@@ -10610,7 +11194,7 @@ void CX2Main::ChangeVSPoint( int iChangeVSPoint, int iChangeVSPointMax )
 #endif
 //}}
 
-//{{ 2008. 2. 18  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ Ä¡Æ®
+//{{ 2008. 2. 18  ÃÖÀ°»ç  À¯´Ö Å¬·¡½º Ä¡Æ®
 void CX2Main::ChangeUnitClass( char cUnitClass )
 {
 	if( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR &&
@@ -10635,62 +11219,72 @@ void CX2Main::ModifyChangeUnitClass( const char* UnitClassName )
 	wstring wsUnitClassName;
 	ConvertCharToWCHAR( wsUnitClassName, UnitClassName );
 
-	if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½Òµï¿½" ) == 0 )		{ChangeUnitClass(CX2Unit::UC_ELSWORD_SWORDMAN);	}
-	else if ( wsUnitClassName.compare( L"ï¿½Òµå³ªï¿½ï¿½Æ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_KNIGHT);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_MAGIC_KNIGHT);}
-	else if ( wsUnitClassName.compare( L"ï¿½Ã½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_SHEATH_KNIGHT);}
-	else if ( wsUnitClassName.compare( L"ï¿½Îµå³ªï¿½ï¿½Æ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_LORD_KNIGHT);}
-	else if ( wsUnitClassName.compare( L"ï¿½é½½ï¿½ï¿½ï¿½Ì¾ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_RUNE_SLAYER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½Ç´ï¿½Æ¼ï¿½Òµï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_INFINITY_SWORD);}
+	if ( wsUnitClassName.compare( L"¿¤¼Òµå" ) == 0 )		{ChangeUnitClass(CX2Unit::UC_ELSWORD_SWORDMAN);	}
+	else if ( wsUnitClassName.compare( L"¼Òµå³ªÀÌÆ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_KNIGHT);}
+	else if ( wsUnitClassName.compare( L"¸ÅÁ÷³ªÀÌÆ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_MAGIC_KNIGHT);}
+	else if ( wsUnitClassName.compare( L"½Ã½º³ªÀÌÆ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_SHEATH_KNIGHT);}
+	else if ( wsUnitClassName.compare( L"·Îµå³ªÀÌÆ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_LORD_KNIGHT);}
+	else if ( wsUnitClassName.compare( L"·é½½·¹ÀÌ¾î" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_RUNE_SLAYER);}
+	else if ( wsUnitClassName.compare( L"ÀÎÇÇ´ÏÆ¼¼Òµå" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELSWORD_INFINITY_SWORD);}
 
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½Ì»ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_VIOLET_MAGE);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_HIGH_MAGICIAN);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_DARK_MAGICIAN);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½Æ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_BATTLE_MAGICIAN);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_ELEMENTAL_MASTER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_VOID_PRINCESS);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_DIMENSION_WITCH);}
+	else if ( wsUnitClassName.compare( L"¾ÆÀÌ»þ" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_VIOLET_MAGE);}
+	else if ( wsUnitClassName.compare( L"ÇÏÀÌ¸ÅÁö¼Ç" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_HIGH_MAGICIAN);}
+	else if ( wsUnitClassName.compare( L"´ÙÅ©¸ÅÁö¼Ç" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_DARK_MAGICIAN);}
+	else if ( wsUnitClassName.compare( L"¹èÆ²¸ÅÁö¼Ç" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_BATTLE_MAGICIAN);}
+	else if ( wsUnitClassName.compare( L"¿¤¸®¸àÅ»¸¶½ºÅÍ" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_ELEMENTAL_MASTER);}
+	else if ( wsUnitClassName.compare( L"º¸ÀÌµåÇÁ¸°¼¼½º" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_VOID_PRINCESS);}
+	else if ( wsUnitClassName.compare( L"µð¸à¼ÇÀ§Ä¡" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARME_DIMENSION_WITCH);}
 
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_ELVEN_RANGER);}
-	else if ( wsUnitClassName.compare( L"ï¿½Ä¹î·¹ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_COMBAT_RANGER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î·ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_SNIPING_RANGER);}
-	else if ( wsUnitClassName.compare( L"Æ®ï¿½ï¿½ï¿½Î·ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_TRAPPING_RANGER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½å½ºï¿½ï¿½Ä¿" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_WIND_SNEAKER);}
-	else if ( wsUnitClassName.compare( L"ï¿½×·ï¿½ï¿½ï¿½ï¿½Ã³" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_GRAND_ARCHER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½Ã³" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_NIGHT_WATCHER);}
+	else if ( wsUnitClassName.compare( L"·¹³ª" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_ELVEN_RANGER);}
+	else if ( wsUnitClassName.compare( L"ÄÄ¹î·¹ÀÎÀú" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_COMBAT_RANGER);}
+	else if ( wsUnitClassName.compare( L"½º³ªÀÌÇÎ·¡ÀÎÀú" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_SNIPING_RANGER);}
+	else if ( wsUnitClassName.compare( L"Æ®·¡ÇÎ·¹ÀÎÀú" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_TRAPPING_RANGER);}
+	else if ( wsUnitClassName.compare( L"À©µå½º´ÏÄ¿" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_WIND_SNEAKER);}
+	else if ( wsUnitClassName.compare( L"±×·£µå¾ÆÃ³" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_GRAND_ARCHER);}
+	else if ( wsUnitClassName.compare( L"³ªÀÌÆ®¿ÍÃ³" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_LIRE_NIGHT_WATCHER);}
 
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½Ìºï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_FIGHTER);}
-	else if ( wsUnitClassName.compare( L"ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½Ä¿" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_SOUL_TAKER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_OVER_TAKER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_WEAPON_TAKER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½ï¿½Ìµå¸¶ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_BLADE_MASTER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ï¿½Ç½ï¿½Æ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_RECKLESS_FIST);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½×¶ï¿½Ä¿ï¿½Ç´ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_VETERAN_COMMANDER);}
+	else if ( wsUnitClassName.compare( L"·¹ÀÌºì" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_FIGHTER);}
+	else if ( wsUnitClassName.compare( L"¼ÒµåÅ×ÀÌÄ¿" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_SOUL_TAKER);}
+	else if ( wsUnitClassName.compare( L"¿À¹öÅ×ÀÌÄ¿" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_OVER_TAKER);}
+	else if ( wsUnitClassName.compare( L"¿þÆùÅ×ÀÌÄ¿" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_WEAPON_TAKER);}
+	else if ( wsUnitClassName.compare( L"ºí·¹ÀÌµå¸¶½ºÅÍ" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_BLADE_MASTER);}
+	else if ( wsUnitClassName.compare( L"·¹Å©¸®½ºÇÇ½ºÆ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_RECKLESS_FIST);}
+	else if ( wsUnitClassName.compare( L"º£Å×¶ûÄ¿¸Ç´õ" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_RAVEN_VETERAN_COMMANDER);}
 
 
-	else if ( wsUnitClassName.compare( L"ï¿½Ìºï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_NASOD);}
-	else if ( wsUnitClassName.compare( L"ï¿½Úµï¿½ï¿½ï¿½ï¿½Æ½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_EXOTIC_GEAR);}
-	else if ( wsUnitClassName.compare( L"ï¿½Úµï¿½ï¿½Å°ï¿½ï¿½Ã³" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_ARCHITECTURE);}
-	else if ( wsUnitClassName.compare( L"ï¿½Úµï¿½ï¿½Ï·ï¿½Æ®ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_ELECTRA);}
-	else if ( wsUnitClassName.compare( L"ï¿½Úµï¿½×¸Þ½Ã½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_CODE_NEMESIS);}
-	else if ( wsUnitClassName.compare( L"ï¿½Úµå¿¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_CODE_EMPRESS);}
-	else if ( wsUnitClassName.compare( L"ï¿½Úµï¿½ï¿½Æ²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_BATTLE_SERAPH);}
+	else if ( wsUnitClassName.compare( L"ÀÌºê" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_NASOD);}
+	else if ( wsUnitClassName.compare( L"ÄÚµå¾×Á¶Æ½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_EXOTIC_GEAR);}
+	else if ( wsUnitClassName.compare( L"ÄÚµå¾ÆÅ°ÅØÃ³" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_ARCHITECTURE);}
+	else if ( wsUnitClassName.compare( L"ÄÚµåÀÏ·ºÆ®¶ó" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_ELECTRA);}
+	else if ( wsUnitClassName.compare( L"ÄÚµå³×¸Þ½Ã½º" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_CODE_NEMESIS);}
+	else if ( wsUnitClassName.compare( L"ÄÚµå¿¥ÇÁ·¹½º" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_CODE_EMPRESS);}
+	else if ( wsUnitClassName.compare( L"ÄÚµå¹èÆ²¼¼¶óÇÁ" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_EVE_BATTLE_SERAPH);}
 
 	else if ( wsUnitClassName.compare( L"Ã»" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_IRON_CANNON);}
-	else if ( wsUnitClassName.compare( L"Ç»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_FURY_GUARDIAN);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_SHELLING_GUARDIAN);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½È¶ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_IRON_PALADIN);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½ï¿½é¸®Ã¼ï¿½Ì¼ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_DEADLY_CHASER);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½Æ¼ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_TACTICAL_TROOPER);}
+	else if ( wsUnitClassName.compare( L"Ç»¸®°¡µð¾ð" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_FURY_GUARDIAN);}
+	else if ( wsUnitClassName.compare( L"½´ÆÃ°¡µð¾ð" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN);}
+	else if ( wsUnitClassName.compare( L"½©¸µ°¡µð¾ð" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_SHELLING_GUARDIAN);}
+	else if ( wsUnitClassName.compare( L"¾ÆÀÌ¾ðÆÈ¶óµò" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_IRON_PALADIN);}
+	else if ( wsUnitClassName.compare( L"µ¥µé¸®Ã¼ÀÌ¼­" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_DEADLY_CHASER);}
+	else if ( wsUnitClassName.compare( L"ÅÃÆ¼ÄÃÆ®·çÆÛ" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_CHUNG_TACTICAL_TROOPER);}
 
-	else if ( wsUnitClassName.compare( L"ï¿½Æ¶ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARA_MARTIAL_ARTIST);}
-	else if ( wsUnitClassName.compare( L"ï¿½Ò¼ï¿½" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARA_LITTLE_HSIEN);}
-	else if ( wsUnitClassName.compare( L"ï¿½ï¿½Ãµ" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARA_SAKRA_DEVANAM);}
+	else if ( wsUnitClassName.compare( L"¾Æ¶ó" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARA_MARTIAL_ARTIST);}
+	else if ( wsUnitClassName.compare( L"¼Ò¼±" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARA_LITTLE_HSIEN);}
+	else if ( wsUnitClassName.compare( L"Á¦Ãµ" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ARA_SAKRA_DEVANAM);}
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 1-2 ±×·£µå ¸¶½ºÅÍ
+	// Ä¡Æ® Ãß°¡
+	else if ( wsUnitClassName.compare( L"¿¤¸®½Ã½º" ) == 0 )		{ChangeUnitClass(CX2Unit::UC_ELESIS_KNIGHT);	}
+	else if ( wsUnitClassName.compare( L"±×·£µå¸¶½ºÅÍ" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELESIS_GRAND_MASTER);}
+	else if ( wsUnitClassName.compare( L"¼¼ÀÌ¹ö³ªÀÌÆ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELESIS_SABER_KNIGHT);}
+	else if ( wsUnitClassName.compare( L"ÆÄÀÌ·Î³ªÀÌÆ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELESIS_PYRO_KNIGHT);}
+	else if ( wsUnitClassName.compare( L"ºí·¹ÀÌÂ¡ÇÏÆ®" ) == 0 ) {ChangeUnitClass(CX2Unit::UC_ELESIS_BLAZING_HEART);}
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 2-2 ºí·¹ÀÌÂ¡ ÇÏÆ®
+
 }
 //}}
 
-//{{ 2008. 10. 24  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	Å¸ï¿½ï¿½Æ² Ä¡Æ®
+//{{ 2008. 10. 24  ÃÖÀ°»ç	Å¸ÀÌÆ² Ä¡Æ®
 void CX2Main::GetTitleCheat( int iTitleID, int iPeriod /*= 0*/ )
 {
 	if( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR &&
@@ -10724,26 +11318,26 @@ void CX2Main::PopupReservedMessage()
 		{
 			CX2Main::X2_STATE eState = reservedMsg.m_vecTargetState[j];
 #ifdef ELSWORD_NEW_BEGINNING
-			if( g_pMain->GetNowStateID() == CX2Main::XS_BEGINNING ) // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½
+			if( GetNowStateID() == CX2Main::XS_BEGINNING ) // ¼­¹ö ¼±ÅÃÃ¢À¸·Î °¡¸é ¸ðµç ¸Þ¼¼Áö ÆË¾÷
 #else
-			if( g_pMain->GetNowStateID() == CX2Main::XS_SERVER_SELECT ) // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Þ¼ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½
+			if( GetNowStateID() == CX2Main::XS_SERVER_SELECT ) // ¼­¹ö ¼±ÅÃÃ¢À¸·Î °¡¸é ¸ðµç ¸Þ¼¼Áö ÆË¾÷
 #endif ELSWORD_NEW_BEGINNING
 			{
 				if( vOffsetPos.x < 100 && vOffsetPos.y < 100 )
 					vOffsetPos += D3DXVECTOR2( 10, 10 );
 
-				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300) + vOffsetPos, reservedMsg.m_Message.c_str(), (CKTDXStage*) g_pMain->GetNowState(),
+				KTDGUIOKMsgBox( D3DXVECTOR2(250, 300) + vOffsetPos, reservedMsg.m_Message.c_str(), (CKTDXStage*) GetNowState(),
 					-1 );
 				m_vecReservedMessagePopUp.erase( m_vecReservedMessagePopUp.begin() + i );
 				i--;
 				break;
 			}
-			else if( g_pMain->GetNowStateID() == eState )		
+			else if( GetNowStateID() == eState )		
 			{
 				if( vOffsetPos.x < 100 && vOffsetPos.y < 100 )
 					vOffsetPos += D3DXVECTOR2( 10, 10 );
 				
-				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300) + vOffsetPos, reservedMsg.m_Message.c_str(), (CKTDXStage*) g_pMain->GetNowState(),
+				KTDGUIOKMsgBox( D3DXVECTOR2(250, 300) + vOffsetPos, reservedMsg.m_Message.c_str(), (CKTDXStage*) GetNowState(),
 					reservedMsg.m_iOKMsg );
 				m_vecReservedMessagePopUp.erase( m_vecReservedMessagePopUp.begin() + i );
 				i--;
@@ -10755,7 +11349,7 @@ void CX2Main::PopupReservedMessage()
 
 
 
-// @timeOutMsg : ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI custom message 
+// @timeOutMsg : ½Ã°£Á¦ÇÑÀÌ ´Ù µÇ¾úÀ» ¶§ ÀÚµ¿À¸·Î º¸³»Áú UI custom message 
 void CX2Main::AddTimedMessagePopup( TimedMessagePopUp::MESSAGE_TYPE eMessageType, TimedMessagePopUp::MESSAGE_BOX_TYPE eBoxType, 
 								   const TimedMessagePopUp::TimedPopupUserData& userData, const float fTime, const wstring& wstrMsg, 
 								   CKTDXStage* pStage, int okMsg, int cancelMsg, int timeOutMsg /*= -1*/ )
@@ -10767,7 +11361,7 @@ void CX2Main::AddTimedMessagePopup( TimedMessagePopUp::MESSAGE_TYPE eMessageType
 	timedPopup.m_wstrMsg		= wstrMsg;
 	timedPopup.m_iTimeOutMsg	= timeOutMsg;
 
-	//{{ kimhc // 2010.01.22 // listï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ kimhc // 2010.01.22 // list·Î ¼öÁ¤
 	m_listTimedMessagePopUp.insert( m_listTimedMessagePopUp.begin(), timedPopup );
 
 	list< TimedMessagePopUp >::iterator ItrTimedPopUp = m_listTimedMessagePopUp.begin();
@@ -10841,8 +11435,8 @@ void CX2Main::AddTimedMessagePopup( TimedMessagePopUp::MESSAGE_TYPE eMessageType
 // 	m_vecTimedMessagePopUp.push_back( timedPopup );
 // 
 // 	
-// 	// note!! TimedMessagePopUp ï¿½Ò¸ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ m_pDialogï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½Ã³ï¿½ï¿½ reference ï¿½ï¿½ ï¿½ï¿½ï¿½Í¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ò´ï¿½ ï¿½Ø¾ï¿½ï¿½ï¿½
-// 	// fix!!!! vectorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸é¼­ ï¿½Þ¸ð¸®°ï¿½ ï¿½Å°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½?????
+// 	// note!! TimedMessagePopUp ¼Ò¸êÀÚ¿¡¼­ m_pDialog¸¦ Áö¿ì±â ¶§¹®¿¡ ¾Æ·¡Ã³·³ reference ¸¦ ¾ò¾î¿Í¼­ Á÷Á¢ÇÒ´ç ÇØ¾ßÇÔ
+// 	// fix!!!! vector°¡ ¸®»çÀÌÁî µÇ¸é¼­ ¸Þ¸ð¸®°¡ ¿Å°ÜÁö¸é ¹®Á¦°¡ »ý±âÁö ¾ÊÀ»±î?????
 // 	TimedMessagePopUp& _timedPopup = m_vecTimedMessagePopUp[ m_vecTimedMessagePopUp.size() - 1 ];
 // 	switch( eBoxType )
 // 	{
@@ -10862,14 +11456,14 @@ void CX2Main::AddTimedMessagePopup( TimedMessagePopUp::MESSAGE_TYPE eMessageType
 // 			_timedPopup.m_pDialog = KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 250, 300 ), wstrMsg.c_str(), okMsg, pStage, cancelMsg );
 // 		} break;
 // 	}
-	//}} kimhc // 2010.01.22 // listï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//}} kimhc // 2010.01.22 // list·Î ¼öÁ¤
 }
 
 
 
 void CX2Main::RemoveTimedMessagePopup( TimedMessagePopUp::MESSAGE_TYPE eMessageType, const TimedMessagePopUp::TimedPopupUserData& userData )
 {
-	//{{ kimhc // 2010.01.22 // listï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ kimhc // 2010.01.22 // list·Î ¼öÁ¤
 	list< TimedMessagePopUp >::iterator ItrTimedPopUp = m_listTimedMessagePopUp.begin();
 	
 	while ( ItrTimedPopUp != m_listTimedMessagePopUp.end() )
@@ -10891,7 +11485,7 @@ void CX2Main::RemoveTimedMessagePopup( TimedMessagePopUp::MESSAGE_TYPE eMessageT
 // 			break;
 // 		}
 // 	}
-	//}} kimhc // 2010.01.22 // listï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//}} kimhc // 2010.01.22 // list·Î ¼öÁ¤
 }
 
 #ifdef MACHINE_ID
@@ -10942,11 +11536,11 @@ bool CX2Main::IsPcRoom()
 #ifdef	CHECK_KOM_FILE_ON_LOAD
 
 /** @function : ProcessSession
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief : ¼¼¼Ç »ý¼º ¹× ¿¬°á µîÀ» ´ã´ç
 */
 void CX2Main::ProcessSession()
 {
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
+	// ¼¼¼Ç °´Ã¼ »ý¼º
 	if ( CreateSession() )
 	{
 		if ( OpenSession( "KOM_CHECK" ) )
@@ -10956,7 +11550,7 @@ void CX2Main::ProcessSession()
 #elif defined (CHECK_KOM_EU)
 			string strLocationPatchPathData;
 #if defined (_SERVICE_) && !defined (_OPEN_TEST_)
-			switch(g_pMain->GetNationFlag())
+			switch(GetNationFlag())
 			{
 			case CX2Main::NF_DE:
 				strLocationPatchPathData = "http://dlcl.gfsrv.net/elsword/patches/de/";
@@ -10980,7 +11574,7 @@ void CX2Main::ProcessSession()
 				break;
 			}
 #elif defined (_SERVICE_) && defined (_OPEN_TEST_)
-			switch(g_pMain->GetNationFlag())
+			switch(GetNationFlag())
 			{
 			case CX2Main::NF_DE:
 				strLocationPatchPathData = "http://patch.dev.elsword.de/update/de/";
@@ -11004,7 +11598,7 @@ void CX2Main::ProcessSession()
 				break;
 			}
 #else
-			switch(g_pMain->GetNationFlag())
+			switch(GetNationFlag())
 			{
 			case CX2Main::NF_DE:
 				strLocationPatchPathData = "http://192.168.71.248/INTERNAL_DE/";
@@ -11029,16 +11623,14 @@ void CX2Main::ProcessSession()
 			}
 #endif
 			strLocationPatchPathData += PATCH_PATH_FILE;
-
-
 #else // CHECK_KOM_EU
-			// PatchPath.dat ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½
+			// PatchPath.dat °¡ ÀÖ´Â °æ·Î
 #if defined(_SERVICE_)
 			string strLocationPatchPathData = PATCH_ORG_SRC;
-			#pragma NOTE( "SERVICE ï¿½ï¿½ï¿½ Komï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½" )
+			#pragma NOTE( "SERVICE °æ·Î KomÆÄÀÏ °Ë»ç" )
 #else	//	defined(_SERVICE_)
 			string strLocationPatchPathData = PATCH_TEST_SRC;
-			#pragma NOTE( "TEST ï¿½ï¿½ï¿½ Komï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½" )
+			#pragma NOTE( "TEST °æ·Î KomÆÄÀÏ °Ë»ç" )
 #endif	//	defined(_SERVICE_)
 
 #if defined(BUILD_BY_HUDSON)
@@ -11049,19 +11641,19 @@ void CX2Main::ProcessSession()
 
 #endif // CHECK_KOM_EU
 
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½á¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			// ¼¼¼Ç ¿¬°á¿¡ ¼º°ø ÇÏ°í ÇÊ¿äÇÑ Á¤º¸°¡ ÀÖ´Â ÆÄÀÏÀ» ¿ÀÇÂ ÇßÀ¸¸é
 			if( ConnectAndOpen( strLocationPatchPathData.c_str() ) )
 			{
 #ifdef SERV_KOM_FILE_CHECK_ADVANCED
-				if( GetCheckInfoAndDisconnect() == false )	// CheckKom.xmlï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¾ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å´.
+				if( GetCheckInfoAndDisconnect() == false )	// CheckKom.xml¿¡¼­ Á¤º¸¸¦ ÀÐ¾î¿ÀÁö ¸øÇÏ¸é Å¬¶óÀÌ¾ðÆ®¸¦ Á¾·á½ÃÅ´.
 				{
 #ifdef SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
 					SetIsValideCheckKomScript(false);
 #endif // SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
 				}
-#else
-				GetCheckInfoAndDisconnect();	// checkkom.xml ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-#endif SERV_KOM_FILE_CHECK_ADVANCED
+#else // SERV_KOM_FILE_CHECK_ADVANCED
+				GetCheckInfoAndDisconnect();	// checkkom.xml Á¤º¸¸¦ ¾ò¾î¿È
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
 			}
 #ifdef SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
 			else
@@ -11070,21 +11662,21 @@ void CX2Main::ProcessSession()
 			}
 #endif // SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
 		}
-		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½Ò¸ï¿½
+		// ¼¼¼Ç °´Ã¼ ¼Ò¸ê
 		DestroySession();		
 	}
 }
 
 /** @function : CreateSession
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
+	@brief : ¼¼¼Ç °´Ã¼ »ý¼º
 	@param : void
-	@return : bool (ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ true, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ false)
+	@return : bool (»ý¼ºµÇ¾úÀ¸¸é true, »ý¼ºµÇÁö ¾Ê¾ÒÀ¸¸é false)
 */
 bool CX2Main::CreateSession()
 {
 #ifdef SERV_KOM_FILE_CHECK_ADVANCED
 	if(m_pSession == NULL)
-#endif SERV_KOM_FILE_CHECK_ADVANCED
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
 	{
 		m_pSession = new KHttpSession();
 	}
@@ -11096,36 +11688,36 @@ bool CX2Main::CreateSession()
 }
 
 /** @function : ConnectAndOpen
-	@brief : Checkkom.xmlï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
-	@param : szLocationPatchPathData_ (PatchPath.dat ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½)
-	@return : bool (ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½)
+	@brief : Checkkom.xmlÀÌ ÀÖ´Â °æ·Î¿¡ ¿¬°áÇÏ¿© ¿ÀÇÂ ÇÔ
+	@param : szLocationPatchPathData_ (PatchPath.dat °¡ ÀÖ´Â °æ·Î)
+	@return : bool (¼º°ø, ½ÇÆÐ)
 */
 bool CX2Main::ConnectAndOpen( const char* szLocationPatchPathData_ )
 {
-	// PatchPath.dat ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ server ï¿½ï¿½ pathï¿½ï¿½ ï¿½Ð¸ï¿½
+	// PatchPath.dat °¡ ÀÖ´Â À§Ä¡¸¦ server ¿Í path·Î ºÐ¸®
 	string strServer, PatchPathData;
 	if ( false == KHttpSession::SplitURL( szLocationPatchPathData_, strServer, PatchPathData ) )
 		return false;
 
-	// PatchPath.dat ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// PatchPath.dat °¡ Á¸ÀçÇÏ´Â ¼­¹ö¿¡ ¿¬°á
 	if ( false == m_pSession->Connect( strServer ) )
 		return false;
 
-	// PatchPath.dat ï¿½ï¿½ï¿½ï¿½
+	// PatchPath.dat ¿ÀÇÂ
 	int iPatchPathDataLength = 0;
 	if ( false == m_pSession->Open( PatchPathData, -1, -1, &iPatchPathDataLength ) )
 		return false;
 		
-	// PatchPath.datï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// PatchPath.datÀÇ ³»¿ëÀ» ¾ò¾î¿È
 	std::stringstream stream;
 	bool bResultWrite = m_pSession->Write( stream );
 	m_pSession->Disconnect();
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ¾ò¾î¿ÀÁö ¸øÇßÀ¸¸é ¹Ù·Î Á¾·á
 	if( false == bResultWrite )
 		return false;
 	
-	// PatchPath.dat ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð·ï¿½
+	// PatchPath.dat ¿¡¼­ ¾ò¾î¿Â ³»¿ëÀ» ºÐ·ù
 	const std::string& strPatchPath = stream.str();
 
 #ifdef CHINA_PATH_SERVER_CONNECT
@@ -11139,24 +11731,24 @@ bool CX2Main::ConnectAndOpen( const char* szLocationPatchPathData_ )
 
 	++iStart;
 
-	// checkkom.xml ï¿½ï¿½ï¿½
+	// checkkom.xml °æ·Î
 	std::string strLocationCheckKom = strPatchPath.substr( iStart,iEnd-iStart );
 	if ( strLocationCheckKom.find_last_of('/') + 1 != strLocationCheckKom.length() )
 		strLocationCheckKom.append("/");
 #endif //CHINA_PATH_SERVER_CONNECT
 	strLocationCheckKom += "checkkom.xml";
 
-	// checkkom.xml ï¿½ï¿½ ï¿½Ö´ï¿½ /ï¿½ï¿½Ä¡ï¿½ï¿½ server ï¿½ï¿½ pathï¿½ï¿½ ï¿½Ð¸ï¿½
+	// checkkom.xml ÀÌ ÀÖ´Â /À§Ä¡¸¦ server ¿Í path·Î ºÐ¸®
 	string strServerCheckKom, strPathCheckKom;
 
 	if ( false == KHttpSession::SplitURL( strLocationCheckKom, strServerCheckKom, strPathCheckKom ) )
 		return false;
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ¼­¹ö ¿¬°á
 	if ( false == m_pSession->Connect( strServerCheckKom ) )
 		return false;
 
-	// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ÇØ´ç ÆÄÀÏ ¿ÀÇÂ
 	int iPathCheckKomLength = 0;
 	if ( false == m_pSession->Open( strPathCheckKom, -1, -1, &iPathCheckKomLength ) )
 		return false;
@@ -11200,7 +11792,7 @@ string CX2Main::GetCheckKomLocation( string strSrvList )
 							}
 							attribute = attribute->next;
 						}
-						// ï¿½ï¿½ï¿½ï¿½
+						// ´ëÀÔ
 						mapTypeToAddr[ strType ] = strAddr;
 					}
 
@@ -11230,7 +11822,7 @@ string CX2Main::GetCheckKomLocation( string strSrvList )
 							}
 							attribute = attribute->next;
 						}
-						// ï¿½ï¿½ï¿½ï¿½
+						// ´ëÀÔ
 						mapAddrToPatch[ strAddr ] = strPatch;
 					}
 
@@ -11259,13 +11851,13 @@ string CX2Main::GetCheckKomLocation( string strSrvList )
 #endif CHINA_PATH_SERVER_CONNECT
 
 /** @function : GetCheckInfoAndDisconnect
-	@brief : CheckInfo ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, Disconnectï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : CheckInfo Á¤º¸¸¦ ¾ò¾î¿À°í, Disconnect¸¦ ½ÇÇà
 	@param : void
-	@return : bool (ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½)
+	@return : bool (¼º°ø, ½ÇÆÐ)
 */
 bool CX2Main::GetCheckInfoAndDisconnect()
 {
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ³»¿ëÀ» ¾ò¾î¿È
 	stringstream	strStreamDataPath;
 	const bool bResultWrite = m_pSession->Write( strStreamDataPath );
 	m_pSession->Disconnect();
@@ -11297,7 +11889,14 @@ bool CX2Main::GetCheckInfoAndDisconnect()
 					}
 					attribute = attribute->next;
 				}
-				m_vecCheckKom.push_back( make_pair( strFileName, strSha ) );
+				std::string checkSumEcrypted = strSha;
+#ifdef ENCYPTE_CHECK_KOM_SHA1 // ¾ÏÈ£È£È­		
+				CX2SimpleEncryption encryption;
+				size_t dataSize = strSha.size();
+				std::vector<char> ecrypteData = encryption.EncrypteData(strSha.c_str(), dataSize);
+				checkSumEcrypted = CX2SimpleEncryption::GetString(ecrypteData);
+#endif // ENCYPTE_CHECK_KOM_SHA1
+				m_vecCheckKom.push_back( make_pair( strFileName, checkSumEcrypted ) );
 			}
 			file = file->next;
 		}
@@ -11306,10 +11905,12 @@ bool CX2Main::GetCheckInfoAndDisconnect()
 #ifdef SERV_KOM_FILE_CHECK_ADVANCED
 	if( m_vecCheckKom.size() > 0 )
 	{
+#ifndef X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		m_fGetCheckKomTime = 0.0f;
-		m_wstrInvaildKomName = L"";
-		
-		// m_vecCheckKomï¿½ï¿½ï¿½ï¿½ 37ï¿½ï¿½ Komï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ m_vecCheckKomï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ m_vecChangeCheckKomï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+		//m_wstrInvaildKomName = L"";
+
+		// m_vecCheckKom¿¡¼­ 37¹ø Kom¿¡ ´ëÇÑ Á¤º¸¸¦ Ã£¾Æ ÀúÀåÇÏ°í m_vecCheckKom¿¡¼­ Á¦°ÅÇÑ ÈÄ m_vecChangeCheckKom¿¡ ÀúÀå
 		std::vector< pair<std::string, std::string> >::iterator vitCheckKom = find_if( m_vecCheckKom.begin(), m_vecCheckKom.end(), stCompareFirst("data037.kom") );
 		if( vitCheckKom != m_vecCheckKom.end() )
 		{
@@ -11322,7 +11923,7 @@ bool CX2Main::GetCheckInfoAndDisconnect()
 			return false;
 		}
 
-		// m_vecCheckKomï¿½ï¿½ï¿½ï¿½ 36ï¿½ï¿½ Komï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ m_vecCheckKomï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ m_vecChangeCheckKomï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// m_vecCheckKom¿¡¼­ 36¹ø Kom¿¡ ´ëÇÑ Á¤º¸¸¦ Ã£¾Æ ÀúÀåÇÏ°í m_vecCheckKom¿¡¼­ Á¦°ÅÇÑ ÈÄ m_vecChangeCheckKom¿¡ ÀúÀå
 		std::vector< pair<std::string, std::string> >::iterator vitCheckKom2 = find_if( m_vecCheckKom.begin(), m_vecCheckKom.end(), stCompareFirst("data036.kom") );
 		if( vitCheckKom2 != m_vecCheckKom.end() )
 		{
@@ -11334,9 +11935,10 @@ bool CX2Main::GetCheckInfoAndDisconnect()
 			xmlFreeDoc(doc);
 			return false;
 		}
-
+#ifndef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		m_vecChangeCheckKom.clear();
 		m_vecChangeCheckKom = m_vecCheckKom;
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 
 		xmlFreeDoc(doc);
 		return true;
@@ -11353,39 +11955,50 @@ bool CX2Main::GetCheckInfoAndDisconnect()
 }
 
 /** @function : CompareCheckKomList
-	@brief : checkkom.xml ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ kom ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SHA-1ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å²ï¿½ï¿½.
+	@brief : checkkom.xml ¿¡¼­ ¾ò¾î¿Â ³»¿ë°ú ½ÇÁ¦ kom ÆÄÀÏÀÇ SHA-1À» ºñ±³ÇÏ°í ´Ù¸£¸é Á¾·á ½ÃÅ²´Ù.
 	@param : void
 	@return : void
 */
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+void CX2Main::CompareCheckKomList_Thread( std::vector< std::pair<string, string> >& vecChangeCheckKom )
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 void CX2Main::CompareCheckKomList()
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 {
 #if defined( _SERVICE_ )
 	ELSWORD_VIRTUALIZER_START
 #endif
+
 #ifdef SERV_KOM_FILE_CHECK_ADVANCED
-	// 36ï¿½ï¿½, 37ï¿½ï¿½ Kom ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
-	std::vector< pair<string, string> >::iterator vit;
+		// 36¹ø, 37¹ø Kom ÆÄÀÏ¿¡ ´ëÇÑ º¯Á¶ °Ë»ç
+		std::vector< pair<string, string> >::iterator vit;
 	for( vit = m_vecImportantCheckKom.begin(); vit != m_vecImportantCheckKom.end(); ++vit )
 	{
 		if( false == CompareCheckKom( *vit ) )
 		{
-			ConvertCharToWCHAR( m_wstrInvaildKomName, (*vit).first );
+            std::wstring    wstrInvaildKomName;
+			//ConvertCharToWCHAR( m_wstrInvaildKomName, (*vit).first );
+            ConvertCharToWCHAR( wstrInvaildKomName, (*vit).first );
 
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
+			// °ÔÀÓ ¼­¹ö Á¢¼Ó ÁßÀÌ¸é DB¿¡ ±â·ÏÇÔ.
 			if( g_pData->GetServerProtocol() != NULL &&
 				g_pData->GetServerProtocol()->IsConnected() &&
-				CX2Main::XS_SERVER_SELECT < g_pMain->GetNowStateID() )
+				CX2Main::XS_SERVER_SELECT < g_pMain->GetNowStateID() &&
+				( NULL == g_pData->GetCashShop() || false == g_pData->GetCashShop()->GetOpen() ) )
 			{
-				Handler_EGS_KOM_FILE_CHECK_LOG_REQ( m_wstrInvaildKomName );
+				//Handler_EGS_KOM_FILE_CHECK_LOG_REQ( m_wstrInvaildKomName );
+                Handler_EGS_KOM_FILE_CHECK_LOG_REQ( wstrInvaildKomName );
 			}
 
 			return ;
 		}
 	}
-	
-	// 36ï¿½ï¿½, 37ï¿½ï¿½ ï¿½Ì¿ï¿½ Kom ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+
+	// 36¹ø, 37¹ø ÀÌ¿Ü Kom ÆÄÀÏ¿¡ ´ëÇÑ º¯Á¶ °Ë»ç
+#ifndef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 	std::vector< pair<string, string> > vecChangeCheckKom;
 	GetChangeCheckKom( vecChangeCheckKom );
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 	if( vecChangeCheckKom.empty() )
 	{
 		return ;
@@ -11393,14 +12006,18 @@ void CX2Main::CompareCheckKomList()
 
 	if( false == CompareCheckKom( vecChangeCheckKom.back() ) )
 	{
-		ConvertCharToWCHAR( m_wstrInvaildKomName, vecChangeCheckKom.back().first );
+        std::wstring    wstrInvaildKomName;
+		//ConvertCharToWCHAR( m_wstrInvaildKomName, vecChangeCheckKom.back().first );
+        ConvertCharToWCHAR( wstrInvaildKomName, vecChangeCheckKom.back().first );
 
-		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
+		// °ÔÀÓ ¼­¹ö Á¢¼Ó ÁßÀÌ¸é DB¿¡ ±â·ÏÇÔ.
 		if( g_pData->GetServerProtocol() != NULL &&
 			g_pData->GetServerProtocol()->IsConnected() &&
-			CX2Main::XS_SERVER_SELECT < g_pMain->GetNowStateID() )
+			CX2Main::XS_SERVER_SELECT < g_pMain->GetNowStateID() &&
+			( NULL == g_pData->GetCashShop() || false == g_pData->GetCashShop()->GetOpen() ) )
 		{
-			Handler_EGS_KOM_FILE_CHECK_LOG_REQ( m_wstrInvaildKomName );
+			//Handler_EGS_KOM_FILE_CHECK_LOG_REQ( m_wstrInvaildKomName );
+            Handler_EGS_KOM_FILE_CHECK_LOG_REQ( wstrInvaildKomName );
 		}
 
 		return ;
@@ -11408,54 +12025,38 @@ void CX2Main::CompareCheckKomList()
 	else
 	{
 		vecChangeCheckKom.pop_back();
+#ifndef X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		SetChangeCheckKom( vecChangeCheckKom );
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 	}
 #else // SERV_KOM_FILE_CHECK_ADVANCED
-	if ( m_vecCheckKom.empty() )
-		return;
-	else
-	{
-		if ( false == CompareCheckKom( m_vecCheckKom.back() ) )
-		{
-			g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, 0, 0, false );	
-			m_vecCheckKom.clear();
-		}
+		if ( m_vecCheckKom.empty() )
+			return;
 		else
 		{
-			m_vecCheckKom.pop_back();
-//#if defined(DEBUG) || defined(_DEBUG) || defined(_IN_HOUSE_)
-// 			if ( m_vecCheckKom.empty() )
-// 				MessageBoxA( g_pKTDXApp->GetHWND(), "Ã¼Å© ï¿½Ï·ï¿½!", NULL, MB_OK );	
-//#endif
+			if ( false == CompareCheckKom( m_vecCheckKom.back() ) )
+			{
+				g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, 0, 0, false );	
+				m_vecCheckKom.clear();
+			}
+			else
+			{
+				m_vecCheckKom.pop_back();
+			}
 		}
-	}
-	
-// 	UINT uiSize = m_vecCheckKom.size();
-// 
-// 	// xml ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
-// 	if ( 0 < uiSize )
-// 	{
-// 		for ( UINT i = 0; i < uiSize; ++i )
-// 		{
-// 			if ( false == CompareCheckKom( m_vecCheckKom[i] ) )
-// 			{
-// 				g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, 0, 0, false );	
-// 				break;
-// 			}
-// 		}
-// 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#endif SERV_KOM_FILE_CHECK_ADVANCED
+		// ¾øÀ¸¸é ±×³É Áö³ª°£´Ù
+#endif //SERV_KOM_FILE_CHECK_ADVANCED
+
 #if defined( _SERVICE_ )
 	ELSWORD_VIRTUALIZER_END
 #endif
 }
 
 /** @function : CompareCheckKom
-	@brief : ï¿½ï¿½ kom ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ SHA ï¿½Ë»ï¿½
-	@param : const pair<string, string>& pairCheckSum_ ï¿½ï¿½ firstï¿½ï¿½ kom ï¿½ï¿½ï¿½Ï¸ï¿½, secondï¿½ï¿½ SHA-1 ï¿½Ì´ï¿½.
-	@return : bool (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ true, ï¿½Ù¸ï¿½ï¿½ï¿½ false)
+	@brief : °¢ kom ÆÄÀÏµéÀÇ SHA °Ë»ç
+	@param : const pair<string, string>& pairCheckSum_ ·Î first´Â kom ÆÄÀÏ¸í, second´Â SHA-1 ÀÌ´Ù.
+	@return : bool (°°À¸¸é true, ´Ù¸£¸é false)
 */
 bool CX2Main::CompareCheckKom( const pair<string, string>& pairCheckSum_ ) const
 {
@@ -11472,29 +12073,42 @@ bool CX2Main::CompareCheckKom( const pair<string, string>& pairCheckSum_ ) const
 		Sha1.ReportHash( aReport, CSHA1::REPORT_HEX, true );
 
 		const string& strCheckSum = pairCheckSum_.second;
-		if ( 0 == strCheckSum.compare( aReport ) )
+		std::string checkSumDecrypted = strCheckSum;
+
+#ifdef ENCYPTE_CHECK_KOM_SHA1 // º¹È£È­		
+		CX2SimpleEncryption encryption;
+		size_t dataSize = strCheckSum.size();
+		std::vector<char> decrypteData = encryption.DencrypteData(strCheckSum.c_str(), strCheckSum.size());
+		checkSumDecrypted = CX2SimpleEncryption::GetString(decrypteData);
+#endif //ENCYPTE_CHECK_KOM_SHA1
+
+		if ( 0 == checkSumDecrypted.compare( aReport ) )
 			return true;
 		else
 		{
-#if defined(DEBUG) || defined(_DEBUG)
+//#if defined(DEBUG) || defined(_DEBUG)
+#ifndef _IN_HOUSE_
 			return true;
 #else
 
-//	//#if defined(_IN_HOUSE_)
-//			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-//			string strErrorLog = strKomFileName;
-//			strErrorLog += " is Invalid";
-//
-//#if defined(_OPEN_TEST_)
-//			strErrorLog += "(xml: ";
-//			strErrorLog += strCheckSum;
-//			strErrorLog += " )";
-//			strErrorLog += " (file: ";
-//			strErrorLog += aReport;
-//			strErrorLog += " )";
+	//#if defined(_IN_HOUSE_)
+			// º¯Á¶µÈ °æ¿ì, ÇØ´ç ÆÄÀÏ¸íÀ» Ãâ·Â
+			string strErrorLog = strKomFileName;
+			strErrorLog += " is Invalid";
+
+#if defined(_OPEN_TEST_)
+			strErrorLog += "(xml: ";
+			strErrorLog += strCheckSum;
+			strErrorLog += " )";
+			strErrorLog += " (file: ";
+			strErrorLog += aReport;
+			strErrorLog += " )";
+#endif
+
+			MessageBoxA( g_pKTDXApp->GetHWND(), strErrorLog.c_str(), strErrorLog.c_str(), MB_OK );
 //#endif
 			return false;
-#endif 
+#endif
 		}
 	}
 	else
@@ -11507,6 +12121,78 @@ bool CX2Main::CompareCheckKom( const pair<string, string>& pairCheckSum_ ) const
 	ELSWORD_VIRTUALIZER_END
 #endif
 };
+
+#ifdef SERV_KOM_FILE_CHECK_ADVANCED
+
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+void CX2Main::GetCheckKomFileList_Thread( std::vector< std::pair<string, string> >& vecChangeCheckKom, float& fGetCheckKomTime )
+{
+    if ( vecChangeCheckKom.empty() == true )
+    {
+        vecChangeCheckKom = m_vecCheckKom;
+        fGetCheckKomTime = 0.f;
+    }
+}
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+void CX2Main::GetCheckKomFileList()
+{
+	std::vector< pair<string, string> > vecChangeCheckKom;
+	GetChangeCheckKom( vecChangeCheckKom );
+	if( vecChangeCheckKom.empty() )
+	{
+		//vecChangeCheckKom.clear();
+		//SetChangeCheckKom( vecChangeCheckKom );
+		SetChangeCheckKom( m_vecCheckKom );
+		m_fGetCheckKomTime = 0.0f;
+	}
+}
+
+void CX2Main::SetChangeCheckKom( std::vector< pair<string, string> > vecChangeCheckKom )
+{
+	KLocker lock( m_csData_vec );
+	m_vecChangeCheckKom = vecChangeCheckKom;
+}
+
+void CX2Main::GetChangeCheckKom( std::vector< pair<string, string> >& vecChangeCheckKom )
+{
+	KLocker lock( m_csData_vec );
+	vecChangeCheckKom = m_vecChangeCheckKom;
+}
+
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+
+void CX2Main::Handler_EGS_KOM_FILE_CHECK_LOG_REQ( const std::wstring wstrInvalidKomName )
+{
+	KEGS_KOM_FILE_CHECK_LOG_REQ kPacket;
+	kPacket.m_wstrInvalidKomName = wstrInvalidKomName;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_KOM_FILE_CHECK_LOG_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_KOM_FILE_CHECK_LOG_ACK );
+}
+
+bool CX2Main::Handler_EGS_KOM_FILE_CHECK_LOG_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_KOM_FILE_CHECK_LOG_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if( g_pMain->DeleteServerPacket( EGS_KOM_FILE_CHECK_LOG_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			wstring wstrErrorMessage = GET_REPLACED_STRING( ( STR_ID_28981, "L", kEvent.m_wstrInvalidKomName ) );
+			g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), wstrErrorMessage.c_str() , g_pMain->GetNowState() );
+
+			// Å¬¶óÀÌ¾ðÆ® ¸Þ½ÃÁöÅ¥¿¡ Á¾·á ¸Þ½ÃÁö Ãß°¡
+			g_pMain->SetQuitType( NetError::ERR_CLIENT_QUIT_04 );
+			g_pMain->SendQuitMsgToServer();
+		}
+	}
+
+	return true;
+}
+#endif SERV_KOM_FILE_CHECK_ADVANCED
+
 #endif	CHECK_KOM_FILE_ON_LOAD
 
 #ifdef DLL_MANAGER
@@ -11559,7 +12245,7 @@ void CX2Main::BrokenCode()
 	DWORD dwProcesses[1024], dwNeeded = 0;   
 	::ZeroMemory( &dwProcesses, sizeof( DWORD ) * 1024 );   
 	
-	// 3ï¿½ï¿½Â° ï¿½è¿­ï¿½ï¿½ csrss   
+	// 3¹øÂ° ¹è¿­ÀÌ csrss   
 	fnEnumProcess( ( DWORD* ) &dwProcesses, sizeof( DWORD ) * 1024, &dwNeeded );   
 	//HANDLE hCsr = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwProcesses[3]);   
 	
@@ -11587,7 +12273,7 @@ void CX2Main::BrokenCode()
 		}		
 	}
 
-	// È¤ï¿½Ã¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ Å©ï¿½ï¿½ï¿½Ã¶ï¿½ ï¿½ï¿½Å²ï¿½ï¿½.
+	// È¤½Ã¶óµµ ¸®º×ÀÌ ½ÇÆÐÇÏ¸é Å©·¡½Ã¶óµµ ½ÃÅ²´Ù.
 	__asm
 	{
 		xor eax, eax
@@ -11605,7 +12291,7 @@ void CX2Main::BrokenCode()
 
 CX2Main::TimedMessagePopUp* CX2Main::GetTimedMessagePopup( CKTDGUIDialogType pDialog )
 {
-	//{{ kimhc // 2010.01.22 // listï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ kimhc // 2010.01.22 // list·Î ¼öÁ¤
 	list< TimedMessagePopUp >::iterator ItrTimedPopUp = m_listTimedMessagePopUp.begin();
 
 	while ( ItrTimedPopUp != m_listTimedMessagePopUp.end() )
@@ -11632,7 +12318,7 @@ bool CX2Main::KeyProcess()
 {
 
 
-	if( NULL == g_pMain->GetNowState() )
+	if( NULL == GetNowState() )
 	{
 		return false;
 	}
@@ -11640,10 +12326,10 @@ bool CX2Main::KeyProcess()
 #if defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
 #	ifdef THEMIDA_BY_TOOL_TEAM
 
-#pragma NOTE( "ï¿½×½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ *ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ÃµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ ï¿½ÈµË´Ï´ï¿½." )
+#pragma NOTE( "Å×½ºÆ®¸¦ À§ÇØ¼­ *¸¦ ´©¸£¸é Å©·¡½ÃµÇ´Â ±â´ÉÀÌ »ç¿ëµÇ°í ÀÖ½À´Ï´Ù. º»¼·¿¡ Àû¿ëµÇ¸é ¾ÈµË´Ï´Ù." )
 	if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_MULTIPLY) == TRUE )
 	{
-		// Å©ï¿½ï¿½ï¿½ï¿½
+		// Å©·¡½Ã
 		__asm
 		{
 			xor eax, eax
@@ -11657,7 +12343,7 @@ bool CX2Main::KeyProcess()
 
 
 
-	//{{ 2011.9.16	ï¿½ï¿½ï¿½ï¿½È£  ï¿½Ýµï¿½Ä· ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ 2011.9.16	ÀÌÁØÈ£  ¹ÝµðÄ· µ¿¿µ»ó Ä¸ÃÄ Áö¿ø
 #ifdef BANDICAM_RECORDING
 	if( g_pData != NULL )
 	{
@@ -11678,6 +12364,11 @@ bool CX2Main::KeyProcess()
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 				KOGGamePerformanceCheck::GetInstance()->Resume();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+#ifdef  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+                if ( g_pData->GetGameUDP() != NULL )
+                    g_pData->GetGameUDP()->RemoveAllPendingPingSends();
+#endif  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
 			}
 
 			return true;
@@ -11693,7 +12384,7 @@ bool CX2Main::KeyProcess()
 #endif
 
 	
-	// ï¿½ï¿½ï¿½ï¿½: stateoption Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ó¹ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ KeyProcessï¿½ï¿½ È£ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.	
+	// ÁÖÀÇ: stateoption Å¬·¡½º¸¦ »ó¼Ó¹ÞÀº °´Ã¼¸¸ KeyProcess¸¦ È£ÃâÇÏµµ·Ï ÇÑ´Ù.	
 	if( g_pData != NULL && g_pData->GetCashShop() != NULL && g_pData->GetCashShop()->GetOpen() == false 
 #ifdef ATTRACTION_ITEM_TEST
 		&& g_pData != NULL && g_pData->GetUIManager() != NULL && 
@@ -11708,19 +12399,23 @@ bool CX2Main::KeyProcess()
 
 
 #ifdef SERV_PVP_NEW_SYSTEM
-		if( g_pMain != NULL && g_pInstanceData != NULL &&
-			g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP ||
-			g_pMain->GetNowStateID() == CX2Main::XS_BATTLE_FIELD &&
+		if( g_pInstanceData != NULL &&
+			GetNowStateID() == CX2Main::XS_VILLAGE_MAP ||
+			GetNowStateID() == CX2Main::XS_BATTLE_FIELD &&
 			g_pInstanceData->GetIsDungeonLounge() == false )
 #endif
 		{
-			// ï¿½ï¿½Æ¼
-#ifdef REFORM_UI_KEYPAD
+			// ÆÄÆ¼
 			if ( bHideDialog == false && GET_KEY_STATE( GA_PVE ) == TRUE ) //DIK_P
-#else
-			if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_P) == TRUE )
-#endif
 			{			
+#ifdef FIELD_BOSS_RAID // ±èÅÂÈ¯
+				/// ·¹ÀÌµå ÇÊµåÀÏ °æ¿ì ÆÄÆ¼Ã¢ È°¼º ±ÝÁö
+				const UINT uiBattleFieldId = g_pData->GetBattleFieldManager().GetBattleFieldIdWhereIam();
+
+				if( true == g_pData->GetBattleFieldManager().GetIsBossRaidFieldByFieldID( uiBattleFieldId ) )
+					return true;
+#endif // FIELD_BOSS_RAID
+
 #ifdef SERV_PVP_NEW_SYSTEM
 				if( g_pData->GetPartyManager()->DoIHaveParty() == true && g_pData->GetPartyManager()->AmIPartyLeader() == false )
 					return true;
@@ -11732,29 +12427,33 @@ bool CX2Main::KeyProcess()
 					g_pData->GetPartyManager()->GetMyPartyData()->m_bPvpParty == true &&
 					g_pData->GetPartyManager()->GetProcessPvpMatch() == false  )
 				{
-					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					// ´øÀüÆÄÆ¼·Î º¯°æ
 					if( g_pData->GetPartyManager()->ChangePartyType(false) == false )
 					{
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½Ò°ï¿½
+						// ´øÀüÆÄÆ¼ º¯°æºÒ°¡
 						return true;
 					}
 				}
 
-				g_pMain->GetPartyUI()->SetDungeonPartyMenu(true);
+				GetPartyUI()->SetDungeonPartyMenu(true);
 #endif
 				g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_PARTY);
 				return true;
 			}
 #ifdef SERV_PVP_NEW_SYSTEM
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼
-#ifdef REFORM_UI_KEYPAD
+			// ´ëÀüÆÄÆ¼
 			if ( bHideDialog == false && GET_KEY_STATE( GA_PVP ) == TRUE ) // DIK_L
-#else
-			if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_L) == TRUE )
-#endif
 			{
-#ifdef BUFF_TEMPLET_SYSTEM		// mauntain : ï¿½ï¿½ï¿½ï¿½È¯ [2012.05.29] NPCï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼Ã¢ È£ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½. ( UpdatePartyDLG Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )     
-				if ( (NULL != g_pTFieldGame && false == g_pTFieldGame->GetJoinNpc()) || CX2Main::XS_BATTLE_FIELD == g_pMain->GetNowStateID())
+#ifdef FIELD_BOSS_RAID // ±èÅÂÈ¯
+				/// ·¹ÀÌµå ÇÊµåÀÏ °æ¿ì ´ëÀüÃ¢ È°¼º ±ÝÁö
+				const UINT uiBattleFieldId = g_pData->GetBattleFieldManager().GetBattleFieldIdWhereIam();
+
+				if( true == g_pData->GetBattleFieldManager().GetIsBossRaidFieldByFieldID( uiBattleFieldId ) )
+					return true;
+#endif // FIELD_BOSS_RAID
+
+#ifdef BUFF_TEMPLET_SYSTEM		// mauntain : ±èÅÂÈ¯ [2012.05.29] NPC¿Í ´ëÈ­ÁßÀÌ¸é ´ëÀü ÆÄÆ¼Ã¢ È£ÃâÀ» Á¦ÇÑÇÑ´Ù. ( UpdatePartyDLG Å©·¡½Ã ¹æÁö¿ë )     
+				if ( (NULL != g_pTFieldGame && false == g_pTFieldGame->GetJoinNpc()) || CX2Main::XS_BATTLE_FIELD == GetNowStateID())
 				{
 #endif BUFF_TEMPLET_SYSTEM
 
@@ -11770,69 +12469,61 @@ bool CX2Main::KeyProcess()
 						}
 						if( g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberCount() >= 4 )
 						{
-							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_12715 ), (CKTDXStage*)g_pMain->GetNowState() );					
+							KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_12715 ), (CKTDXStage*)GetNowState() );					
 							return true;
 						}
 						
-#ifndef SERV_FREE_PVP
 						for(int iParty=0; iParty<g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberCount(); ++iParty)
 						{
 							if( g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberData( iParty ) != NULL &&
 								g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberData( iParty )->m_iUnitLevel < 10 )
 							{
-								// 10ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ï¿½Õ´Ï´ï¿½.
-								g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_13548 ), (CKTDXStage*)g_pMain->GetNowState() );					
+								// 10·¾ ¹Ì¸¸ÀÎ ÆÄÆ¼¿øÀÌ ÀÖ¾î ´ëÀüÆÄÆ¼·Î º¯°æÀÌ ºÒ°¡ÇÕ´Ï´Ù.
+								KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_13548 ), (CKTDXStage*)GetNowState() );					
 								return true;
 							}
 						}
-#endif SERV_FREE_PVP
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+						// ´ëÀüÆÄÆ¼·Î º¯°æ
 						if( g_pData->GetPartyManager()->ChangePartyType(true) == false )
 						{
-							// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½Ò°ï¿½
+							// ´ëÀüÆÄÆ¼ º¯°æºÒ°¡
 							return true;
 						}
 					}
-#ifndef SERV_FREE_PVP
 					else if( g_pData->GetSelectUnitLevel() < 10 )
 					{
-						// 10ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
-						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_13549 ), (CKTDXStage*)g_pMain->GetNowState() );					
+						// 10·¾ ¹Ì¸¸Àº ´ëÀüÆÄÆ¼¸¦ ÀÌ¿ëÇÒ ¼ö ¾ø½À´Ï´Ù.
+						KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_13549 ), (CKTDXStage*)GetNowState() );					
 						return true;
 					}
-#endif SERV_FREE_PVP
 
-					g_pMain->GetPartyUI()->SetPvpPartyMenu(true);
+					GetPartyUI()->SetPvpPartyMenu(true);
 					g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_PARTY);
 					return true;
-#ifdef NEW_DEFENCE_DUNGEON		// mauntain : ï¿½ï¿½ï¿½ï¿½È¯ [2012.05.29] NPCï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼Ã¢ È£ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½. ( UpdatePartyDLG Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )     
+#ifdef NEW_DEFENCE_DUNGEON		// mauntain : ±èÅÂÈ¯ [2012.05.29] NPC¿Í ´ëÈ­ÁßÀÌ¸é ´ëÀü ÆÄÆ¼Ã¢ È£ÃâÀ» Á¦ÇÑÇÑ´Ù. ( UpdatePartyDLG Å©·¡½Ã ¹æÁö¿ë )     
 				}
 #endif NEW_DEFENCE_DUNGEON
 			}
 #endif
 		}
 
-		if( true == g_pMain->GetPartyUI()->GetShowDungeonMenu() )
-		{//ï¿½ï¿½ï¿½ï¿½ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å° ï¿½È¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		if( true == GetPartyUI()->GetShowDungeonMenu() )
+		{//´øÀü¸Þ´º ¿­·ÁÀÖÀ» ¶§´Â ´ÜÃàÅ° ¾È¸ÔÈ÷µµ·Ï º¯°æ
 			return true;
 		}
 		wstring wstrSystemMessageColor = L"#CFF3F4D";								// 255, 63, 77
 		D3DXCOLOR coSystemMessageTextColor(1.f, 0.24705f, 0.30196f, 1.f);			// 255, 63, 77
-		CX2StateOption *pStateOption = (CX2StateOption*)g_pMain->GetNowState();
+		CX2StateOption *pStateOption = (CX2StateOption*)GetNowState();
 
 #ifdef SERV_EPIC_QUEST
-		// ï¿½ï¿½ï¿½ï¿½Æ®
-#ifdef REFORM_UI_KEYPAD
+		// Äù½ºÆ®
 		if ( bHideDialog == false && GET_KEY_STATE( GA_QUEST ) == TRUE )
-#else
-		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_L) == TRUE )
-#endif
 		{
 			g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_QUEST_NEW);
 			return true;
 		}
 #else
-		// ï¿½ï¿½ï¿½ï¿½Æ®
+		// Äù½ºÆ®
 		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_Q) == TRUE )
 		{
 			g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_QUEST);
@@ -11847,21 +12538,15 @@ bool CX2Main::KeyProcess()
 				g_pInstanceData->SetFrameScale( !g_pInstanceData->GetFrameScale() );
 		}
 #endif
-		// ï¿½ï¿½ï¿½ï¿½ï¿½
+		// ¿ùµå¸Ê
 		/*
-#ifdef REFORM_UI_KEYPAD
 		if ( bHideDialog == false && GET_KEY_STATE( GA_MAP ) == TRUE ) //DIK_M
-#else
-		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_M) == TRUE )
-#endif
 		{
-			switch(g_pMain->GetNowStateID())
+			switch(GetNowStateID())
 			{
 			case CX2Main::XS_SQUARE_GAME:
 			case CX2Main::XS_VILLAGE_MAP:
-#ifdef REFORM_UI_WORLDMAP
 			case CX2Main::XS_BATTLE_FIELD:
-#endif
 				{
 					CX2WorldMapUI *pWorldMapUI = g_pInstanceData->GetMiniMapUI()->GetWorldMapUI();
 
@@ -11879,21 +12564,19 @@ bool CX2Main::KeyProcess()
 							pWorldMapUI->OpenWorldMap( true );
 							pWorldMapUI->UpdateWorldMap();
 
-							if(g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP)
+							if(GetNowStateID() == CX2Main::XS_VILLAGE_MAP)
 							{
 								int villageID = g_pData->GetLocationManager()->GetCurrentVillageID();
 								pWorldMapUI->OpenFieldMap( true, villageID );
 								pWorldMapUI->UpdateFieldMap();
 							}
-#ifdef REFORM_UI_WORLDMAP
-							else if( g_pMain->GetNowStateID() == CX2Main::XS_BATTLE_FIELD )
+							else if( GetNowStateID() == CX2Main::XS_BATTLE_FIELD )
 							{
 								CX2BattleFieldManager& battleFieldManager = g_pData->GetBattleFieldManager();
 								int iFiledID = battleFieldManager.GetBattleFieldIdWhereIam();
 								pWorldMapUI->OpenFieldMap( true, iFiledID );
 								pWorldMapUI->UpdateFieldMap();
 							}
-#endif
 						}
 					} 
 				} break;
@@ -11902,9 +12585,9 @@ bool CX2Main::KeyProcess()
 				{
 					if( NULL != g_pX2Game && g_pX2Game->GetOpenChatBox() == false )
 					{
-						if( g_pMain->GetIsPlayingTutorial() == false )
+						if( GetIsPlayingTutorial() == false )
 						{
-							CX2StateDungeonGame* pState = (CX2StateDungeonGame*) g_pMain->GetNowState();
+							CX2StateDungeonGame* pState = (CX2StateDungeonGame*) GetNowState();
 							pState->ToggleDungeonMapUI();
 						}
 						return true;
@@ -11917,24 +12600,16 @@ bool CX2Main::KeyProcess()
 			return true;
 		}
 		*/
-		// Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#ifdef REFORM_UI_KEYPAD
+		// Ä³¸¯ÅÍÁ¤º¸
 		if ( bHideDialog == false && GET_KEY_STATE( GA_INFO ) == TRUE )
 
-#else
-		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_U) == TRUE )
-#endif
 		{			
 			g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_CHARINFO);
 			return true;
 		}
 
-		// ï¿½Îºï¿½ï¿½ä¸®
-#ifdef REFORM_UI_KEYPAD
+		// ÀÎº¥Åä¸®
 		if ( bHideDialog == false && GET_KEY_STATE( GA_INVENTORY ) == TRUE )
-#else
-		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_I) == TRUE )
-#endif
 		{
 #ifdef CUBE_OPEN_IMAGE_MANAGER
 			if( g_pData->GetCubeOpenImageManager() != NULL && g_pData->GetCubeOpenImageManager()->IsNowResultEventCubePlaying() == true)
@@ -11945,15 +12620,11 @@ bool CX2Main::KeyProcess()
 		}
 
 #ifdef SERV_PET_SYSTEM
-		// ï¿½ï¿½
-#ifdef REFORM_UI_KEYPAD
+		// Æê
 		if ( bHideDialog == false && GET_KEY_STATE( GA_PET ) == TRUE )
-#else
-		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_J) == TRUE )
-#endif
 		{
-			// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.9.15] // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¢ ï¿½ï¿½ï¿½ï¿½
-			switch(g_pMain->GetNowStateID())
+			// oasis907 : ±è»óÀ± [2010.9.15] // Æê Á¤º¸ Ã¢ ¸·À½
+			switch(GetNowStateID())
 			{ 
 			case XS_SQUARE_GAME:
 			case XS_PVP_LOBBY:
@@ -11971,12 +12642,8 @@ bool CX2Main::KeyProcess()
 		}
 #endif
 
-		// ï¿½É¼ï¿½
-#ifdef REFORM_UI_KEYPAD
+		// ¿É¼Ç
 		if ( bHideDialog == false && GET_KEY_STATE( GA_OPTION ) == TRUE )
-#else
-		if ( bHideDialog == false && pStateOption != NULL && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_O) == TRUE )
-#endif
 		{			
 			//g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_OPTION);
 			if(pStateOption->GetOptionWindowOpen() == true)
@@ -11987,35 +12654,30 @@ bool CX2Main::KeyProcess()
 		}
 		
 #ifdef SERV_ADD_WARP_BUTTON
-		// ï¿½Îºï¿½ï¿½ä¸®
-#ifdef REFORM_UI_KEYPAD
+		// ÀÎº¥Åä¸®
 		if ( bHideDialog == false && GET_KEY_STATE( GA_WARP ) == TRUE )
-#else
-		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_B) == TRUE )
-#endif
 		{
 #ifdef CUBE_OPEN_IMAGE_MANAGER
 			if( g_pData->GetCubeOpenImageManager() != NULL && g_pData->GetCubeOpenImageManager()->IsNowResultEventCubePlaying() == true)
 				return true;
 #endif // CUBE_OPEN_IMAGE_MANAGER
-			// ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½Ø´ï¿½
+			// ¿öÇÁ UI ¶ç¿öÁØ´Ù
 			if( NULL != g_pData->GetMyUser() 
-				&& NULL != g_pData->GetMyUser()->GetSelectUnit() 
-				&& NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+				&& NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				CX2StateMenu* pStateMenu = (CX2StateMenu*) g_pMain->GetNowState();
+				CX2StateMenu* pStateMenu = (CX2StateMenu*) GetNowState();
 				if( pStateMenu != NULL )
 				{
 					if( pStateMenu->GetShowWarpDest() == false )
 					{
-						if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_bWarpVip )
+						if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_bWarpVip )
 							pStateMenu->ClickWarpButton( false );
 						else
 							pStateMenu->ClickWarpButton( true );
 					}
 					else
 					{
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+						// ²¨ÁÖÀÚ
 						pStateMenu->SetShowWarpDest( false );
 					}
 				}
@@ -12033,7 +12695,7 @@ bool CX2Main::KeyProcess()
 		)
 		{
 		
-			switch ( g_pMain->GetNowStateID() )
+			switch ( GetNowStateID() )
 			{
 			case CX2Main::XS_PVP_GAME:
 			case CX2Main::XS_DUNGEON_GAME:
@@ -12078,8 +12740,8 @@ bool CX2Main::KeyProcess()
 #endif
 #ifdef ITEM_CHEAT_POPUP_TEST
 		
-		if( CX2Main::XS_VILLAGE_MAP == g_pMain->GetNowStateID()
-			|| CX2Main::XS_BATTLE_FIELD == g_pMain->GetNowStateID()	)
+		if( CX2Main::XS_VILLAGE_MAP == GetNowStateID()
+			|| CX2Main::XS_BATTLE_FIELD == GetNowStateID()	)
 		{
 			if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_COMMA) == TRUE )
 			{
@@ -12098,11 +12760,11 @@ bool CX2Main::KeyProcess()
 
 
 #ifdef SERVER_PVP_BASE_DEFENCE_TEST
-		if( CX2Main::XS_PVP_ROOM == g_pMain->GetNowStateID() )
+		if( CX2Main::XS_PVP_ROOM == GetNowStateID() )
 		{
 			if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_COMMA) == TRUE )
 			{
-				CX2StatePVPRoom* pState = (CX2StatePVPRoom*) g_pMain->GetNowState();
+				CX2StatePVPRoom* pState = (CX2StatePVPRoom*) GetNowState();
 
 				if( true == pState->IsPVPGameOptionOpened() )
 				{
@@ -12118,16 +12780,12 @@ bool CX2Main::KeyProcess()
 
 
 		
-		// Ä¿ï¿½Â´ï¿½Æ¼(ï¿½ï¿½Ã¼ï¿½ï¿½)
-		// ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß¿ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
-		if(g_pMain->GetNowStateID() != CX2Main::XS_DUNGEON_GAME && g_pMain->GetNowStateID() != CX2Main::XS_PVP_GAME)
+		// Ä¿¹Â´ÏÆ¼(ÀüÃ¼ÅÇ)
+		// ´øÀü/´ëÀü °ÔÀÓÁß¿¡´Â ÀüÃ¼ÅÇÀ» ¿­Áö ¸øÇÏµµ·Ï ÇÑ´Ù.
+		if(GetNowStateID() != CX2Main::XS_DUNGEON_GAME && GetNowStateID() != CX2Main::XS_PVP_GAME)
 		{
 			if ( bHideDialog == false && 
-#ifdef REFORM_UI_KEYPAD
 				GET_KEY_STATE( GA_COMMUNITY ) == TRUE 
-#else
-				g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_T) == TRUE 
-#endif
 				)
 			{	
 				if( NULL != g_pData->GetMessenger() )
@@ -12140,12 +12798,8 @@ bool CX2Main::KeyProcess()
 		}		
 
 #ifndef OPEN_TEST_1_NO_MESSENGER_CASHSHOP
-		// Ä¿ï¿½Â´ï¿½Æ¼(Ä£ï¿½ï¿½ï¿½ï¿½)
-#ifdef REFORM_UI_KEYPAD
+		// Ä¿¹Â´ÏÆ¼(Ä£±¸ÅÇ)
 		if ( bHideDialog == false && GET_KEY_STATE( GA_FRIEND ) == TRUE )
-#else
-		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_M) == TRUE )
-#endif
 		{			
 			g_pData->GetMessenger()->SetFriendTab(true);
 			g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_COMMUNITY);
@@ -12156,60 +12810,52 @@ bool CX2Main::KeyProcess()
 #endif OPEN_TEST_1_NO_MESSENGER_CASHSHOP
 
 
-		//{{ kimhc // 2009-10-13 // ï¿½ï¿½ï¿½ ï¿½ï¿½UI ï¿½ï¿½ï¿½ï¿½Å° ï¿½ï¿½ï¿½ï¿½
+		//{{ kimhc // 2009-10-13 // ±æµå ÅÇUI ´ÜÃàÅ° ÁöÁ¤
 #ifdef	GUILD_MANAGEMENT
-		// Ä¿ï¿½Â´ï¿½Æ¼(ï¿½ï¿½ï¿½ï¿½ï¿½)
-#ifdef REFORM_UI_KEYPAD
+		// Ä¿¹Â´ÏÆ¼(±æµåÅÇ)
 		if ( bHideDialog == false && GET_KEY_STATE( GA_GUILD ) == TRUE )
-#else
-		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_G) == TRUE )
-#endif
 		{			
 			g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_GUILD);
 			return true;
 		}
 #endif	GUILD_MANAGEMENT
-		//}} kimhc // 2009-10-13 // ï¿½ï¿½ï¿½ ï¿½ï¿½UI ï¿½ï¿½ï¿½ï¿½Å° ï¿½ï¿½ï¿½ï¿½
+		//}} kimhc // 2009-10-13 // ±æµå ÅÇUI ´ÜÃàÅ° ÁöÁ¤
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 
-#ifdef REFORM_UI_KEYPAD		
 		if ( bHideDialog == false && GET_KEY_STATE( GA_RELATION ) == TRUE )
-#else
-		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_H) == TRUE )
-#endif
 		{	
-			switch ( g_pMain->GetNowStateID() )
+			switch ( GetNowStateID() )
 			{
 			case XS_PVP_GAME:
 			case XS_WEDDING_GAME:
 				break;
 
-			default:	/// pvp ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½
+			default:	/// pvp ¶Ç´Â ¿þµùÀÌ ¾Æ´Ñ °æ¿ì¿¡´Â Ã³¸® ÇÔ
 				g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_RELATION);
 				return true;
 				break;
 			}
 		}
 #endif //ADDED_RELATIONSHIP_SYSTEM
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°(ï¿½Þ´ï¿½)
+		// À©µµ¿ìÅ°(¸Þ´º)
 		if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_LWIN ) == TRUE )
 		{
-			//ToggleLobbyMenuWindow(); // ï¿½ï¿½È¹ï¿½ï¿½ï¿½ï¿½ï¿½Î´ï¿½ ï¿½ï¿½ï¿½ï¿½Å° ï¿½ï¿½ï¿½ï¿½
+			//ToggleLobbyMenuWindow(); // ±âÈ¹»óÀ¸·Î´Â À©µµÅ° ¾øÀ½
 			return true;
 		}		
 
-		// ï¿½ï¿½ï¿½Ì³ï¿½ï¿½ï¿½ Ä«ï¿½Þ¶ï¿½
+		// ´ÙÀÌ³ª¹Í Ä«¸Þ¶ó
 		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F9) == TRUE )
 		{
-			g_pMain->GetGameOption()->SetDynamicCamera( !g_pMain->GetGameOption()->GetOptionList()->m_bDynamicCamera );
-			g_pMain->GetGameOption()->SaveScriptFile();
+			GetGameOption().SetDynamicCamera( !GetGameOption().GetOptionList().m_bDynamicCamera );
+			GetGameOption().SaveScriptFile();
 			if( pStateOption != NULL && pStateOption->GetOptionWindowOpen() == true )
 			{
 				pStateOption->InitOtherOption();
 			}
 
-			if( true == g_pMain->GetGameOption()->GetOptionList()->m_bDynamicCamera )
+			if( true == GetGameOption().GetOptionList().m_bDynamicCamera )
 			{
 				if( NULL != g_pChatBox )
 				{
@@ -12228,17 +12874,17 @@ bool CX2Main::KeyProcess()
 			return true;
 		}
 
-		// È¿ï¿½ï¿½ï¿½ï¿½
+		// È¿°úÀ½
 		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F10) == TRUE )
 		{
-			g_pMain->GetGameOption()->SetSound( !g_pMain->GetGameOption()->GetOptionList()->m_bSound );
-			g_pMain->GetGameOption()->SaveScriptFile();
+			GetGameOption().SetSound( !GetGameOption().GetOptionList().m_bSound );
+			GetGameOption().SaveScriptFile();
 			if( pStateOption != NULL && pStateOption->GetOptionWindowOpen() == true )
 			{
 				pStateOption->InitOtherOption();
 			}
 
-			if( true == g_pMain->GetGameOption()->GetOptionList()->m_bSound )
+			if( true == GetGameOption().GetOptionList().m_bSound )
 			{
 				if( NULL != g_pChatBox )
 				{
@@ -12258,18 +12904,18 @@ bool CX2Main::KeyProcess()
 			}						
 		}
 
-		// ï¿½ï¿½ï¿½ï¿½ï¿½
+		// ¹è°æÀ½
 		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F11) == TRUE )
 		{
-			g_pMain->GetGameOption()->SetMusic( !g_pMain->GetGameOption()->GetOptionList()->m_bMusic );
-			g_pMain->GetGameOption()->SaveScriptFile();
+			GetGameOption().SetMusic( !GetGameOption().GetOptionList().m_bMusic );
+			GetGameOption().SaveScriptFile();
 			if( pStateOption != NULL && pStateOption->GetOptionWindowOpen() == true )
 			{
 				pStateOption->InitSoundOption();
 			}
 
 
-			if( true == g_pMain->GetGameOption()->GetOptionList()->m_bMusic )
+			if( true == GetGameOption().GetOptionList().m_bMusic )
 			{
 				if( NULL != g_pChatBox )
 				{
@@ -12288,6 +12934,19 @@ bool CX2Main::KeyProcess()
 			return true;
 		}
 
+
+#ifdef SERV_HERO_PVP_MANAGE_LIST //¿µ¿õ´ëÀü UI
+// ±è¼®±Ù, [2014.12.06] J Å° ´­·¶À» ¶§, ³ª¿À´Â UI Á¦°Å
+//		if( NULL != g_pData->GetMyUser() )
+//			if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_SPECIAL_USER )
+//			{
+//				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_J) == TRUE )
+//				{
+//					g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_HERO);
+//				}
+//			}
+#endif //SERV_HERO_PVP_MANAGE_LIST
+
 #ifdef HIDE_SET_DESCRIPTION
 		if( NULL != g_pData && NULL != g_pData->GetMyUser() && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR )
 		{
@@ -12298,17 +12957,6 @@ bool CX2Main::KeyProcess()
 			}
 		}
 #endif HIDE_SET_DESCRIPTION
-
-//#ifdef SERV_HERO_PVP_MANAGE_LIST //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI
-//		if( NULL != g_pData->GetMyUser() )
-//			if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_SPECIAL_USER )
-//			{
-//				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_HOME) == TRUE )
-//				{
-//					g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_HERO);
-//				}
-//			}
-//#endif //SERV_HERO_PVP_MANAGE_LIST
 
 	}
 
@@ -12321,8 +12969,8 @@ bool CX2Main::KeyProcess()
 
 
 
-// @wstrTextColor: ï¿½ï¿½ï¿½Ú¿ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ #Cxxxxxx ï¿½Ã·ï¿½ï¿½Úµï¿½
-// @bEnableColor : ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÔµÇ¾ï¿½ï¿½Ö´ï¿½ #Cxxxxxx ï¿½Ã·ï¿½ï¿½Úµå¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+// @wstrTextColor: ¹®ÀÚ¿­ ÀüÃ¼ÀÇ »ö»óÀ» ÁöÁ¤ÇÏ´Â #Cxxxxxx ÄÃ·¯ÄÚµå
+// @bEnableColor : ¹®ÀÚ¿­¿¡ Æ÷ÇÔµÇ¾îÀÖ´Â #Cxxxxxx ÄÃ·¯ÄÚµå¸¦ »ç¿ëÇÒÁö ¸»Áö
 /*static*/ int CX2Main::LineBreak( wstring& wstrText, const CKTDGFontManager::CUKFont* pFont, const int iTextWidth, const wstring& wstrTextColor, const bool bEnableColor, bool bCutRedundantEmptyLine /*= true*/)
 {
 	KTDXPROFILE();
@@ -12379,7 +13027,7 @@ bool CX2Main::KeyProcess()
 				}
 				else if( 0 == wstrCharBuf.compare( L"\n" ) )
 				{
-					// 09.05.30 ï¿½Â¿ï¿½ : 2ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ \nï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					// 09.05.30 ÅÂ¿Ï : 2ÁÙ ÀÌ»óÀÇ \nÀÌ ¿¬¼ÓÀ¸·Î ³ª¿Ã °æ¿ì Àß¸®´Â Çö»ó ¼öÁ¤
 					if( bIsFirstCharOfLine == false || bCutRedundantEmptyLine == false )
 					{
 						wstrLineBuf += wstrCharBuf;
@@ -12449,7 +13097,7 @@ bool CX2Main::KeyProcess()
 				}
 				else // RGB 
 				{
-					// note!! color codeï¿½ï¿½ ï¿½Ã¹Ù¸ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï´ï¿½ ï¿½Úµï¿½ ï¿½Ö¾ï¿½ï¿½ ï¿½ï¿½. ï¿½Ï´ï¿½ color codeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¹Ù¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					// note!! color code°¡ ¿Ã¹Ù¸¥Áö Ã¼Å©ÇÏ´Â ÄÚµå ÀÖ¾î¾ß µÊ. ÀÏ´Ü color code´Â ¹«Á¶°Ç ¿Ã¹Ù¸¥°ÍÀ¸·Î °¡Á¤
 					wstrColorCode = L"#C";
 					wstrColorCode += wstrText.substr( iNowCharIndex, 6 );
 					wstrLineBuf += wstrText.substr( iNowCharIndex, 6 );
@@ -12522,7 +13170,7 @@ bool CX2Main::KeyProcess()
 }
 
 
-//{{ 2009. 7. 26  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	party fever cheat
+//{{ 2009. 7. 26  ÃÖÀ°»ç	party fever cheat
 void CX2Main::IncreasePartyFeverPoint( int iCount )
 {
 #ifdef LIGHT_OPERATOR_ACCOUNT
@@ -12539,7 +13187,7 @@ void CX2Main::IncreasePartyFeverPoint( int iCount )
 }
 //}}
 
-//{{ 2009. 8. 5  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½		Ã¼ï¿½ï¿½IDÄ¡Æ®
+//{{ 2009. 8. 5  ÃÖÀ°»ç		Ã¼ÇèIDÄ¡Æ®
 void CX2Main::SetGuestUserMode( bool bVal )
 {
 #ifdef LIGHT_OPERATOR_ACCOUNT
@@ -12553,7 +13201,7 @@ void CX2Main::SetGuestUserMode( bool bVal )
 }
 //}}
 
-//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/3/12/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ Ä¡Æ®
+//{{ Çã»óÇü : [2010/3/12/] //	¸¶À» ÀÌµ¿ ¿öÇÁ Ä¡Æ®
 void CX2Main::WarpByCommand( int iPosition )
 {
 	int iWorldID;
@@ -12569,24 +13217,24 @@ void CX2Main::WarpByCommand( int iPosition )
 	case 6: iWorldID = SEnum::VMI_BATTLE_FIELD_ALTERA_REST_00;	break;
 	case 7: iWorldID = SEnum::VMI_PEITA;						break;
 	case 8: iWorldID = SEnum::VMI_BATTLE_FIELD_PEITA_REST_00;	break;
-	case 9: iWorldID = SEnum::VMI_VELDER;						break; // ï¿½ï¿½ï¿½ï¿½
-	case 10: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_REST_00;	break; // ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½Ã³
-	case 11: iWorldID = SEnum::VMI_HAMEL;						break; // ï¿½Ï¸ï¿½ 
-	case 12: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_REST_00;	break; // ï¿½Ï¸ï¿½ ï¿½Þ½ï¿½Ã³
-	case 13: iWorldID = SEnum::VMI_SANDER;						break; // ï¿½ï¿½ï¿½ï¿½
-	case 14: iWorldID = SEnum::VMI_BATTLE_FIELD_SANDER_REST_00; break; // ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½Ã³
+	case 9: iWorldID = SEnum::VMI_VELDER;						break; // º§´õ
+	case 10: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_REST_00;	break; // º§´õ ÈÞ½ÄÃ³
+	case 11: iWorldID = SEnum::VMI_HAMEL;						break; // ÇÏ¸á 
+	case 12: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_REST_00;	break; // ÇÏ¸á ÈÞ½ÄÃ³
+	case 13: iWorldID = SEnum::VMI_SANDER;						break; // »÷´õ
+	case 14: iWorldID = SEnum::VMI_BATTLE_FIELD_SANDER_REST_00; break; // »÷´õ ÈÞ½ÄÃ³
 	default: iWorldID = -1;							break;
 	}
 
-	//	ï¿½Å·ï¿½ï¿½ï¿½ï¿½å¿¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Èµï¿½
-	if( iWorldID != -1 && g_pMain->GetNowStateID() != CX2Main::XS_SQUARE_GAME )
+	//	°Å·¡±¤Àå¿¡¼­´Â ¿öÇÁ ¾ÈµÊ
+	if( iWorldID != -1 && GetNowStateID() != CX2Main::XS_SQUARE_GAME )
 	{
 		g_pData->SetStateArg( iWorldID );
-		CX2State* pState = (CX2State*) g_pMain->GetNowState();
+		CX2State* pState = (CX2State*) GetNowState();
 		pState->Handler_EGS_STATE_CHANGE_FIELD_REQ( iWorldID );
 	}
 }
-//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2010/3/12/] //	
+//}} Çã»óÇü : [2010/3/12/] //	
 
 #ifdef BATTLE_FIELD_WARP_EDIT
 void CX2Main::FieldWarpByCommand( int iPosition )
@@ -12594,42 +13242,45 @@ void CX2Main::FieldWarpByCommand( int iPosition )
 	int iWorldID = SEnum::VMI_INVALID;
 	switch( iPosition )
 	{
-	case 1: iWorldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;			break; //ï¿½çº¥ ï¿½Êµï¿½1
+	case 1: iWorldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;			break; //·çº¥ ÇÊµå1
 
-	case 2: iWorldID = SEnum::VMI_BATTLE_FIELD_ELDER_FIELD_01;			break; //ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½1
-	case 3: iWorldID = SEnum::VMI_BATTLE_FIELD_ELDER_FIELD_02;			break; //ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½2
+	case 2: iWorldID = SEnum::VMI_BATTLE_FIELD_ELDER_FIELD_01;			break; //¿¤´õ ÇÊµå1
+	case 3: iWorldID = SEnum::VMI_BATTLE_FIELD_ELDER_FIELD_02;			break; //¿¤´õ ÇÊµå2
 
-	case 4: iWorldID = SEnum::VMI_BATTLE_FIELD_BESMA_FIELD_01;			break; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½1
-	case 5: iWorldID = SEnum::VMI_BATTLE_FIELD_BESMA_FIELD_02;			break; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½2
-	case 6: iWorldID = SEnum::VMI_BATTLE_FIELD_BESMA_FIELD_03;			break; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½3
+	case 4: iWorldID = SEnum::VMI_BATTLE_FIELD_BESMA_FIELD_01;			break; //º£½º¸¶ ÇÊµå1
+	case 5: iWorldID = SEnum::VMI_BATTLE_FIELD_BESMA_FIELD_02;			break; //º£½º¸¶ ÇÊµå2
+	case 6: iWorldID = SEnum::VMI_BATTLE_FIELD_BESMA_FIELD_03;			break; //º£½º¸¶ ÇÊµå3
 
-	case 7: iWorldID = SEnum::VMI_BATTLE_FIELD_ALTERA_FIELD_01;			break; //ï¿½ï¿½ï¿½×¶ï¿½ ï¿½Êµï¿½1
-	case 8: iWorldID = SEnum::VMI_BATTLE_FIELD_ALTERA_FIELD_02;			break; //ï¿½ï¿½ï¿½×¶ï¿½ ï¿½Êµï¿½2
-	case 9: iWorldID = SEnum::VMI_BATTLE_FIELD_ALTERA_FIELD_03;			break; //ï¿½ï¿½ï¿½×¶ï¿½ ï¿½Êµï¿½3
+	case 7: iWorldID = SEnum::VMI_BATTLE_FIELD_ALTERA_FIELD_01;			break; //¾ËÅ×¶ó ÇÊµå1
+	case 8: iWorldID = SEnum::VMI_BATTLE_FIELD_ALTERA_FIELD_02;			break; //¾ËÅ×¶ó ÇÊµå2
+	case 9: iWorldID = SEnum::VMI_BATTLE_FIELD_ALTERA_FIELD_03;			break; //¾ËÅ×¶ó ÇÊµå3
 
-	case 10: iWorldID = SEnum::VMI_BATTLE_FIELD_PEITA_FIELD_01;			break; //ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½Êµï¿½1
-	case 11: iWorldID = SEnum::VMI_BATTLE_FIELD_PEITA_FIELD_02;			break; //ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½Êµï¿½2
-	case 12: iWorldID = SEnum::VMI_BATTLE_FIELD_PEITA_FIELD_03;			break; //ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½Êµï¿½3
+	case 10: iWorldID = SEnum::VMI_BATTLE_FIELD_PEITA_FIELD_01;			break; //ÆäÀÌÅ¸ ÇÊµå1
+	case 11: iWorldID = SEnum::VMI_BATTLE_FIELD_PEITA_FIELD_02;			break; //ÆäÀÌÅ¸ ÇÊµå2
+	case 12: iWorldID = SEnum::VMI_BATTLE_FIELD_PEITA_FIELD_03;			break; //ÆäÀÌÅ¸ ÇÊµå3
 
-	case 13: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_01;		break; //ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½1
-	case 14: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_02;		break; //ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½2
-	case 15: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_03;		break; //ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½3
-	case 16: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_04;		break; //ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½4
-	case 17: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_SHIP_STAGE;		break; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	case 13: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_01;		break; //º§´õ ÇÊµå1
+	case 14: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_02;		break; //º§´õ ÇÊµå2
+	case 15: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_03;		break; //º§´õ ÇÊµå3
+	case 16: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_04;		break; //º§´õ ÇÊµå4
+	case 17: iWorldID = SEnum::VMI_BATTLE_FIELD_VELDER_SHIP_STAGE;		break; // º§´õ ¹è
 
-	case 18: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_SHIP_STAGE;		break; // ï¿½Ï¸ï¿½ ï¿½ï¿½
-	case 19: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_01;			break; //ï¿½Ï¸ï¿½ ï¿½Êµï¿½1
-	case 20: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_02;			break; //ï¿½Ï¸ï¿½ ï¿½Êµï¿½2
-	case 21: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_03;			break; //ï¿½Ï¸ï¿½ ï¿½Êµï¿½3
-	case 22: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_04;			break; //ï¿½Ï¸ï¿½ ï¿½Êµï¿½4
+	case 18: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_SHIP_STAGE;		break; // ÇÏ¸á ¹è
+	case 19: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_01;			break; //ÇÏ¸á ÇÊµå1
+	case 20: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_02;			break; //ÇÏ¸á ÇÊµå2
+	case 21: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_03;			break; //ÇÏ¸á ÇÊµå3
+	case 22: iWorldID = SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_04;			break; //ÇÏ¸á ÇÊµå4
 
-	case 23: iWorldID = SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_01;		break; //ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¶ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-	case 24: iWorldID = SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_02;		break; //ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½2
-
+	case 23: iWorldID = SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_01;		break; //»÷´õ ¹Ù¶÷ÀÇ »ç¿ø
+	case 24: iWorldID = SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_02;		break; //»÷´õ ÇÊµå2
+#ifdef SANDER_DUNGEON_5_6
+	case 25: iWorldID = SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_03;		break; // »÷Æ¿·¯½º È£ÀÇ ¹«´ý
+	case 26: iWorldID = SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_04;		break; // º£È÷¸ð½º Å©·¹ÀÌÅÍ
+#endif //SANDER_DUNGEON_5_6
 	default: iWorldID = SEnum::VMI_INVALID;								break;
 	}
 
-	CX2State* pState = (CX2State*) g_pMain->GetNowState();
+	CX2State* pState = (CX2State*) GetNowState();
 	pState->Handler_EGS_JOIN_BATTLE_FIELD_REQ(iWorldID, 1 );
 	return;
 }
@@ -12646,21 +13297,21 @@ void CX2Main::MakeHackScreenShotTemp( const char *pFileName )
 		HDC hScrDC;
 		HBITMAP hOldBitmap;
 
-		//DCï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
+		//DC¸¦ ¾ò´Â´Ù.
 
 		HWND pDesktop = GetDesktopWindow();
 
-		// ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.      
+		// Æ÷Ä¿½º¸¦ °¡Áø À©µµ¿ìÀÇ ÁÂÇ¥¸¦ Á¶»çÇÑ´Ù.      
 		GetClientRect( pDesktop, &rect );
 
 
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ DCï¿½ï¿½ ï¿½Þ¸ï¿½ DCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+		// À©µµ¿ì È­¸é DC¿Í ¸Þ¸ð¸® DC¸¦ ¸¸µé°í ¸Þ¸ð¸® ºñÆ®¸ÊÀ» ¼±ÅÃÇÑ´Ù.
 		hScrDC = GetDC( pDesktop ); CreateDC( L"DISPLAY", NULL, NULL, NULL );
 		hMemDC = CreateCompatibleDC( hScrDC );
 		hBitmap = CreateCompatibleBitmap( hScrDC, rect.right - rect.left, rect.bottom - rect.top );
 		hOldBitmap = (HBITMAP)SelectObject( hMemDC, hBitmap );
 
-		// È­ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+		// È­¸éÀ» ¸Þ¸ð¸® ºñÆ®¸ÊÀ¸·Î º¹»çÇÑ´Ù.
 		BitBlt( hMemDC, 0, 0, rect.right - rect.left, rect.bottom - rect.top,
 			hScrDC, rect.left, rect.top, SRCCOPY );
 		SelectObject( hMemDC, hOldBitmap );
@@ -12690,24 +13341,24 @@ void CX2Main::MakeHackScreenShot(const char *pFileName)
 	try
 	{
 #ifdef MAKE_SCREENSHOT
-		// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ default ï¿½ï¿½ï¿½ï¿½ //
+		// ±âº» ÆÄÀÏ »ý¼º ½ÇÆÐ ¿¡·¯·Î default Á¤ÀÇ //
 		HRESULT hr = BCERR_FILE_CREATE; 
 
-		// Ä¸Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+		// Ä¸Ã³¸¦ ½ÃÀÛÇÕ´Ï´Ù.
 		if(m_BandiCaptureLibrary.IsCapturing()==FALSE)
 		{
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ DLL ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. 
+			// ÃÖÃÊ ½ÇÇà½Ã DLL À» ·ÎµåÇÏ°í ³»ºÎ ÀÎ½ºÅÏ½º¸¦ »ý¼ºÇÕ´Ï´Ù. 
 			if(m_BandiCaptureLibrary.IsCreated()==FALSE)
 			{
-				// ï¿½ï¿½ï¿½Ð½ï¿½ DLLï¿½ï¿½ .Hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã±ï¿½ ï¿½Ù¶ï¿½ï¿½Ï´ï¿½.
+				// ½ÇÆÐ½Ã DLL°ú .HÆÄÀÏÀÇ ¹öÀüÀÌ µ¿ÀÏÇÑÁö ¿©ºÎµîÀ» È®ÀÎÇØ º¸½Ã±â ¹Ù¶ø´Ï´Ù.
 				if(FAILED(m_BandiCaptureLibrary.Create(BANDICAP_RELEASE_DLL_FILE_NAME)))
 				{
 					MakeHackScreenShotTemp(pFileName);
 					return;
 				}
 
-				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ü¿ï¿½ ï¿½Î°ï¿½ï¿½ï¿½ Ç¥ï¿½ÃµË´Ï´ï¿½. 
-				// ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß±Þ¹ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°Å³ï¿½, È¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½Ï´ï¿½. 
+				// ÀÎÁõÀ» ¹ÞÁö ¾ÊÀ¸¸é ÀÎÄÚµùµÈ µ¿¿µ»ó »ó´Ü¿¡ ·Î°í°¡ Ç¥½ÃµË´Ï´Ù. 
+				// Á¤½Ä±¸¸ÅÈÄ ¹ß±Þ¹ÞÀº Å°¸¦ »ç¿ëÇÏ°Å³ª, È¨ÆäÀÌÁö¿¡¼­ µ¥¸ð¿ëÀ¸·Î °ø°³µÈ Å°¸¦ »ç¿ëÇØ¼­ ÀÎÁõÀ» ¹Þ½À´Ï´Ù. 
 				if(FAILED(m_BandiCaptureLibrary.Verify("KOG_ELSWORD_20110825", "675a5521")))
 				{
 					MakeHackScreenShotTemp(pFileName);
@@ -12736,21 +13387,21 @@ void CX2Main::MakeHackScreenShot(const char *pFileName)
 		HDC hScrDC;
 		HBITMAP hOldBitmap;
 
-		//DCï¿½ï¿½ ï¿½ï¿½Â´ï¿½.
+		//DC¸¦ ¾ò´Â´Ù.
 
 		HWND pDesktop = GetDesktopWindow();
 
-		// ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.      
+		// Æ÷Ä¿½º¸¦ °¡Áø À©µµ¿ìÀÇ ÁÂÇ¥¸¦ Á¶»çÇÑ´Ù.      
 		GetClientRect( pDesktop, &rect );
 
 
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ DCï¿½ï¿½ ï¿½Þ¸ï¿½ DCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+		// À©µµ¿ì È­¸é DC¿Í ¸Þ¸ð¸® DC¸¦ ¸¸µé°í ¸Þ¸ð¸® ºñÆ®¸ÊÀ» ¼±ÅÃÇÑ´Ù.
 		hScrDC = GetDC( pDesktop ); CreateDC( L"DISPLAY", NULL, NULL, NULL );
 		hMemDC = CreateCompatibleDC( hScrDC );
 		hBitmap = CreateCompatibleBitmap( hScrDC, rect.right - rect.left, rect.bottom - rect.top );
 		hOldBitmap = (HBITMAP)SelectObject( hMemDC, hBitmap );
 
-		// È­ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¸ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+		// È­¸éÀ» ¸Þ¸ð¸® ºñÆ®¸ÊÀ¸·Î º¹»çÇÑ´Ù.
 		BitBlt( hMemDC, 0, 0, rect.right - rect.left, rect.bottom - rect.top,
 			hScrDC, rect.left, rect.top, SRCCOPY );
 		SelectObject( hMemDC, hOldBitmap );
@@ -12883,7 +13534,7 @@ CKTDGUIDialogType CX2Main::KTDGUIInfoBox( D3DXVECTOR2 vPos, const WCHAR* pText, 
 	if( pPicture != NULL )
 	{
 		D3DXVECTOR2 vInfoPos = pPicture->GetPos();
-// ï¿½Ì±ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ Æ¯ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -9 ï¿½Õ´Ï´ï¿½.
+// ¹Ì±¹ ÆùÆ®ÀÇ Æ¯¼ö¼º ¶§¹®¿¡ -9 ÇÕ´Ï´Ù.
 #ifdef CLIENT_COUNTRY_US
 		vInfoPos.y = pStatic->GetString(0)->pos.y - 9;
 #else
@@ -12919,6 +13570,7 @@ void CX2Main::ExitClientIfHackingFound( const float fElapsedTime )
 	ELSWORD_VIRTUALIZER_START
 #endif
 
+#ifndef _DEBUG
 	if ( g_pKTDXApp->GetFindHacking() == true )
 	{
 		THEMIDA_VM_START
@@ -12942,7 +13594,7 @@ void CX2Main::ExitClientIfHackingFound( const float fElapsedTime )
 			m_bAutoQuit = true;
 
 
-			// NOTE: Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½
+			// NOTE: Å¬¶óÀÌ¾ðÆ®°¡ Á¾·áµÇ±â ±îÁö ½Ã°£À» Á¶±Ý ´õ ±æ°Ô º¯°æÇÕ´Ï´Ù
 			m_fAutoQuitCoolTime = RandomFloat( 20.f, 30.f );
 			
 
@@ -12962,12 +13614,13 @@ void CX2Main::ExitClientIfHackingFound( const float fElapsedTime )
 		if ( m_fAutoQuitTime >= m_fAutoQuitCoolTime )
 #endif
 		{
-			g_pMain->SetQuitType( NetError::ERR_CLIENT_QUIT_01 );
+			SetQuitType( NetError::ERR_CLIENT_QUIT_01 );
 			PostQuitMessage(0);
 		}
 
 		THEMIDA_VM_END
 	}
+#endif // _DEBUG
 
 #if defined( _SERVICE_ )
 	ELSWORD_VIRTUALIZER_END
@@ -13009,25 +13662,24 @@ void CX2Main::CreateCheckWindowInfoThreadIfNotExist()
 
 	//THEMIDA_VM_START
 
-	m_threadCheckWindowInfo = new CheckWindowInfo();
-	m_threadCheckWindowInfo->m_pKTDXApp			= g_pKTDXApp;
-	m_threadCheckWindowInfo->m_pInstanceData	= g_pInstanceData;
+	m_threadCheckWindowInfo = new CheckWindowInfo(g_pKTDXApp,g_pInstanceData
 #ifdef	CHECK_KOM_FILE_ON_LOAD
-	m_threadCheckWindowInfo->m_pMain			= this;
-#endif	CHECK_KOM_FILE_ON_LOAD
+        ,this
+#endif  CHECK_KOM_FILE_ON_LOAD
+        );
 	m_threadCheckWindowInfo->BeginThread();
 
 	THEMIDA_CHECK_PROTECTION( hackingCheckVariable, 0x164dc081 ) 
 
 
 #ifndef	CHECK_KOM_FILE_ON_LOAD
-		if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-			g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+		if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+			g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 		{
 #ifdef ADD_COLLECT_CLIENT_INFO			
-			g_pMain->SendHackInfo2( ANTIHACKING_ID::ANTIHACKING_GAME_15, "", false, false );
+			SendHackInfo2( ANTIHACKING_ID::ANTIHACKING_GAME_15, "", false, false );
 #else //ADD_COLLECT_CLIENT_INFO
-			g_pMain->SendHackMail_DamageHistory( ANTI_HACK_STRING_UserID_AntiHacking_CheckWindowInfo_Fail );
+			SendHackMail_DamageHistory( ANTI_HACK_STRING_UserID_AntiHacking_CheckWindowInfo_Fail );
 #endif //ADD_COLLECT_CLIENT_INFO
 			g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );		
 		}
@@ -13070,18 +13722,18 @@ void DebuggerChecker::OnFrameMove( const float elapsedTime )
 		{
 			g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
 
-			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL )
-				g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+			if( g_pData != NULL && g_pData->GetMyUser() != NULL )
+				g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 		}
 
 		if( NULL != g_pMain )
 		{
 #ifdef ADD_COLLECT_CLIENT_INFO			
-			g_pMain->SendHackInfo3( ANTIHACKING_ID::ANTIHACKING_GAME_14, "", true, false );
+			SendHackInfo3( ANTIHACKING_ID::ANTIHACKING_GAME_14, "", true, false );
 #else //ADD_COLLECT_CLIENT_INFO
-			g_pMain->SendHackMail_DamageHistory( ANTI_HACK_STRING_AntiHacking_IsDebuggerPresent );
+			SendHackMail_DamageHistory( ANTI_HACK_STRING_AntiHacking_IsDebuggerPresent );
 #endif //ADD_COLLECT_CLIENT_INFO
-			g_pMain->BrokenCode();
+			BrokenCode();
 		}
 
 #ifndef ADD_COLLECT_CLIENT_INFO
@@ -13106,7 +13758,7 @@ void DebuggerChecker::OnFrameMove( const float elapsedTime )
 
 
 
-//{{ ï¿½Ú±ï¿½ï¿½ï¿½ : [2010/03/24]	// ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ Ã¼Å© ï¿½ï¿½È­
+//{{ ¹Ú±³Çö : [2010/03/24]	// ÇÁ·Î¼¼½º Ã¼Å© °­È­
 struct PROCESS_INFO
 {
 	wstring			ProcessName;
@@ -13116,16 +13768,16 @@ struct PROCESS_INFO
 
 
 #ifdef ENUM_CHILD_WINDOW
-BOOL CALLBACK EnumChildProc(HWND hwnd , LPARAM lp)
+BOOL CALLBACK EnumChildProc_Thread(HWND hwnd , LPARAM lp)
 {
-	g_pMain->GetCheckWindowInfo()->SetChildWindow( true );
+	g_pMain->GetCheckWindowInfo()->SetChildWindow_Thread( true );
 	return FALSE;
 }
 #endif
 
 
 
-bool CX2Main::CheckWindowInfo::CheckProcess()
+bool CX2Main::CheckWindowInfo::CheckProcess_Thread()
 {	
 #if defined( _SERVICE_ ) 
 	ELSWORD_VIRTUALIZER_START
@@ -13139,13 +13791,13 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 #ifdef ENUM_CHILD_WINDOW
 	if( g_pKTDXApp != NULL && g_pKTDXApp->GetHWND() != NULL )		
 	{
-		m_bFindChild = false;
-		EnumChildWindows( g_pKTDXApp->GetHWND(), EnumChildProc, NULL );
-		if( m_bFindChild == true )
+		m_bFindChild_Thread = false;
+		EnumChildWindows( g_pKTDXApp->GetHWND(), EnumChildProc_Thread, NULL );
+		if( m_bFindChild_Thread == true )
 		{
-			// ï¿½Ú½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ì°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
-			m_bSendedMail = true;
-			if( m_bSendedMail == false )
+			// ÀÚ½Ä À©µµ¿ì°¡ Á¸ÀçÇÑ´Ù.
+			m_bSendedMail_Thread = true;
+			if( m_bSendedMail_Thread == false )
 			{
 #ifdef ADD_COLLECT_CLIENT_INFO			
 				g_pMain->SendHackInfo4( ANTIHACKING_ID::ANTIHACKING_GAME_16, "", false, true );
@@ -13170,15 +13822,15 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 	if( fCheckTime >= 3.f * 60.f)
 	{
 		fCheckTime = 0.f;
-		m_vecDeskThreadInfo.clear();
+		m_vecDeskThreadInfo_Thread.clear();
 	}
 
-	if( m_vecDeskThreadInfo.size() == 0 )
+	if( m_vecDeskThreadInfo_Thread.size() == 0 )
 	{
-		m_vecDeskThreadInfo = GetThreadWnd(ThreadId);
+		m_vecDeskThreadInfo_Thread = GetThreadWnd(ThreadId);
 
 #ifdef CHECK_ALL_WINDOW
-		m_vecTopWndInfo.clear();
+		m_vecTopWndInfo_Thread.clear();
 		{			
 			HWND hWnd = ::GetTopWindow(NULL);
 			while(hWnd)
@@ -13206,16 +13858,16 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 				{
 					if( strWndText.compare( "MSCTFIME UI") != 0 && strWndText.compare( "Default IME") != 0 )
 					{
-						m_vecTopWndInfo.push_back(threadWndInfo);
+						m_vecTopWndInfo_Thread.push_back(threadWndInfo);
 					}
 				}
 
 				hWnd = ::GetNextWindow(hWnd, GW_HWNDNEXT);
 			}
 
-			if( m_vecDeskThreadInfo.size() == 0 || m_vecTopWndInfo.size() == 0 )
+			if( m_vecDeskThreadInfo_Thread.size() == 0 || m_vecTopWndInfo_Thread.size() == 0 )
 			{
-#ifdef ADD_COLLECT_CLIENT_INFO // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+#ifdef ADD_COLLECT_CLIENT_INFO // ºôµå ¿À·ù·Î ÇØ¿ÜÆÀ Ãß°¡
 				g_pMain->SendHackInfo3( ANTIHACKING_ID::ANTIHACKING_GAME_57, "", false, true );
 #endif // ADD_COLLECT_CLIENT_INFO
 			}
@@ -13223,7 +13875,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 		
 #endif
 
-		// x2 ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ì½ºï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (formmain windowï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½)
+		// x2 ÇÁ·Î¼¼½º³» Æ¯Á¤ À©µµ¿ì½º·¹µå Á¶»ç (formmain window°¡ Á¸ÀçÇÒ °æ¿ì)
 		if( g_pKTDXApp->GetHWND() != NULL )
 		{
 			DWORD X2ThreadId = GetWindowThreadProcessId(g_pKTDXApp->GetHWND(),NULL);  
@@ -13241,7 +13893,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 
 				if( twi.m_wstrName.compare(wstrtwname) == 0 )
 				{
-#ifdef ADD_COLLECT_CLIENT_INFO // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+#ifdef ADD_COLLECT_CLIENT_INFO // ºôµå ¿À·ù·Î ÇØ¿ÜÆÀ Ãß°¡
 					g_pMain->SendHackInfo5( ANTIHACKING_ID::ANTIHACKING_GAME_52, "", false, true );
 #endif // ADD_COLLECT_CLIENT_INFO
 				}
@@ -13265,13 +13917,13 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 		{
 			string strForeGroundWndName = "";
 			ConvertWCHARToChar(strForeGroundWndName, wTextWindow);
-#ifdef ADD_COLLECT_CLIENT_INFO // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+#ifdef ADD_COLLECT_CLIENT_INFO // ºôµå ¿À·ù·Î ÇØ¿ÜÆÀ Ãß°¡
 			g_pMain->SendHackInfo1( ANTIHACKING_ID::ANTIHACKING_GAME_54, strForeGroundWndName.c_str(), false, true );
 #endif // ADD_COLLECT_CLIENT_INFO
 		}
 		else
 		{
-#ifdef ADD_COLLECT_CLIENT_INFO // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+#ifdef ADD_COLLECT_CLIENT_INFO // ºôµå ¿À·ù·Î ÇØ¿ÜÆÀ Ãß°¡
 			g_pMain->SendHackInfo2( ANTIHACKING_ID::ANTIHACKING_GAME_54, "", false, true );
 #endif // ADD_COLLECT_CLIENT_INFO
 		}		
@@ -13324,7 +13976,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 				tempProcessInfo.ProcessName = szName;
 				MakeUpperCase( tempProcessInfo.ProcessName );
 
-				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½
+				// ÇöÀç ÇÁ·Î¼¼½º¶ó¸é Ãß°¡ÇÏÁö ¾Ê´Â´Ù
 				if(tempProcessInfo.ProcessID != GetCurrentProcessId())
 				{
 #ifdef CONVERSION_VS
@@ -13347,7 +13999,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 				tempProcessInfo.ProcessName = szName;
 				MakeUpperCase( tempProcessInfo.ProcessName );
 
-				// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½
+				// ÇöÀç ÇÁ·Î¼¼½º¶ó¸é Ãß°¡ÇÏÁö ¾Ê´Â´Ù
 				if(tempProcessInfo.ProcessID != GetCurrentProcessId())
 				{
 #ifdef CONVERSION_VS
@@ -13378,7 +14030,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 
 	hSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPALL,NULL);
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½. 
+	// ½ÇÇàÁßÀÎ ÇÁ·Î¼¼½ºµéÀÇ Ã¹¹øÀç Á¤º¸¸¦ °¡Á®¿Â´Ù. 
 	PROCESSENTRY32W pEntry;
 	pEntry.dwSize =sizeof(pEntry);
 	BOOL hRes = Process32First( hSnapShot, &pEntry );
@@ -13389,7 +14041,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 		tempProcessInfo.ProcessName = pEntry.szExeFile;
 		MakeUpperCase( tempProcessInfo.ProcessName );
 
-		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½
+		// ÇöÀç ÇÁ·Î¼¼½º¶ó¸é Ãß°¡ÇÏÁö ¾Ê´Â´Ù
 		if(tempProcessInfo.ProcessID != GetCurrentProcessId())
 		{
 			// Find (_1.ProcessID == tempProcessInfo.ProcessID)
@@ -13399,7 +14051,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 				vecProcessInfo.push_back( tempProcessInfo );
 		}
 
-		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â´ï¿½.
+		//´ÙÀ½¹ø ÇÁ·Î¼¼½ºÀÇ Á¤º¸¸¦ °¡Á®¿Â´Ù.
 		hRes = Process32Next( hSnapShot, &pEntry );
 	}
 #endif PROCESSLIST
@@ -13414,7 +14066,12 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 	ConvertCharToWCHAR( wstrDeFilter, strDeFilter );
 	khti.m_cFlag = 1;
 	khti.m_wstrProcessName = wstrDeFilter;
+
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+    m_vecHackList_Thread.push_back( khti );
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	g_pInstanceData->PushHackList( khti );
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	SAFE_DELETE_ARRAY( strDeFilter );
 
 	char strNewFilter2[100] = { 76, -6, -68, -118, -112, -123, 35, 74, -125, 0, };
@@ -13422,13 +14079,17 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 	ConvertCharToWCHAR( wstrDeFilter, strDeFilter );
 	khti.m_cFlag = 7;
 	khti.m_wstrProcessName = wstrDeFilter;
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+    m_vecHackList_Thread.push_back( khti );
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	g_pInstanceData->PushHackList( khti );
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	SAFE_DELETE_ARRAY( strDeFilter );
 #endif
 
 	bool bFind = false;
-	ClearWindowInfo();
-	EnumWindows( (WNDENUMPROC)EnumWindowsProc, (LPARAM)NULL );
+	ClearWindowInfo_Thread();
+	EnumWindows( (WNDENUMPROC)EnumWindowsProc_Thread, (LPARAM)this );
 
 	//// Module
 	//X2AntiHackHelper::ModuleVector vecModuleName;
@@ -13438,13 +14099,24 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 
 	if( m_pInstanceData != NULL && m_pKTDXApp != NULL )
 	{
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+        if ( m_vecHackList_Thread.empty() == false )
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 		if( m_pInstanceData->GetHackListSize() > 0 )
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 		{
 			
-
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+            for(int i=0; i< (int) m_vecHackList_Thread.size(); ++i)
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 			for(int i=0; i<m_pInstanceData->GetHackListSize(); ++i)
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 			{
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+                KHackingToolInfo hackInfo = m_vecHackList_Thread[i];
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 				KHackingToolInfo hackInfo = m_pInstanceData->GetHackInfo(i);
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 				if( hackInfo.m_cFlag != 16 && hackInfo.m_cFlag != 25 && 
 					hackInfo.m_cFlag != 26 && hackInfo.m_cFlag != 27 && hackInfo.m_cFlag != 28 && hackInfo.m_cFlag != 29 &&
 					hackInfo.m_cFlag != 32 && hackInfo.m_cFlag != 33 && hackInfo.m_cFlag != 34 && hackInfo.m_cFlag != 35 )
@@ -13472,11 +14144,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 								if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 								{
 #ifdef FIX_HACKUSER_REG01
-									if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-										g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+									if( g_pData != NULL && g_pData->GetMyUser() != NULL && 
+										g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 									{
 										g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-										g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+										g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 									}
 #endif
 								}	
@@ -13502,10 +14174,13 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					break;
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_02: // WindowText
 					{
-						for(UINT j=0; j<m_vecWindowInfo.size(); ++j)
+						for(UINT j=0; j<m_vecWindowInfo_Thread.size(); ++j)
 						{
-							KHackingToolInfo windowInfo = m_vecWindowInfo[j];
-							if( StrStrW(windowInfo.m_wstrProcessName.c_str(), hackInfo.m_wstrProcessName.c_str()) )
+							KHackingToolInfo windowInfo = m_vecWindowInfo_Thread[j];
+
+							/// kimhc // 20130826 // WINDOWS INTERNET EXPLORER¸¦ »ç¿ëÇÏ¿© °Ë»ö ÁßÀÌ¸é Ã¼Å©ÇÏÁö ¾Êµµ·Ï ÇÔ
+							if( StrStrW(windowInfo.m_wstrProcessName.c_str(), hackInfo.m_wstrProcessName.c_str()) &&
+								NULL == StrStrW(windowInfo.m_wstrProcessName.c_str(), L"WINDOWS INTERNET EXPLORER" ) )
 							{
 #ifdef SEND_HACKING_PROCESS_CHECK_RESULT 
 								if( NULL != g_pMain )
@@ -13515,11 +14190,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 								if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 								{
 #ifdef FIX_HACKUSER_REG01
-									if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-										g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+									if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+										g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 									{
 										g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-										g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+										g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 									}
 #endif
 								}		
@@ -13547,11 +14222,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 								if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 								{
 #ifdef FIX_HACKUSER_REG01
-									if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-										g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+									if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+										g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 									{
 										g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-										g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+										g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 									}
 #endif
 								}		
@@ -13572,19 +14247,19 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					}					
 					break;
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_03: // WindowClass
-					for(UINT j=0; j<m_vecWindowInfo.size(); ++j)
+					for(UINT j=0; j<m_vecWindowInfo_Thread.size(); ++j)
 					{
-						KHackingToolInfo windowInfo = m_vecWindowInfo[j];
+						KHackingToolInfo windowInfo = m_vecWindowInfo_Thread[j];
 						if( StrStrW(windowInfo.m_wstrWindowClassName.c_str(), hackInfo.m_wstrWindowClassName.c_str()) )
 						{
 							if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 							{
 #ifdef FIX_HACKUSER_REG01
-								if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-									g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+								if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+									g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 								{
 									g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-									g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+									g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 								}
 #endif
 							}	
@@ -13609,20 +14284,20 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					break;
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_04: // WindowText & WindowClass
 					{
-						for(UINT j=0; j<m_vecWindowInfo.size(); ++j)
+						for(UINT j=0; j<m_vecWindowInfo_Thread.size(); ++j)
 						{
-							KHackingToolInfo windowInfo = m_vecWindowInfo[j];
+							KHackingToolInfo windowInfo = m_vecWindowInfo_Thread[j];
 							if( StrStrW(windowInfo.m_wstrProcessName.c_str(), hackInfo.m_wstrProcessName.c_str()) &&
 								StrStrW(windowInfo.m_wstrWindowClassName.c_str(), hackInfo.m_wstrWindowClassName.c_str()) )
 							{
 								if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 								{
 #ifdef FIX_HACKUSER_REG01
-									if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-										g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+									if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+										g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 									{
 										g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-										g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+										g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 									}
 #endif
 								}		
@@ -13650,19 +14325,19 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					break;
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_05: // Event
 					{
-						for(UINT j=0; j<m_vecWindowInfo.size(); ++j)
+						for(UINT j=0; j<m_vecWindowInfo_Thread.size(); ++j)
 						{
-							KHackingToolInfo windowInfo = m_vecWindowInfo[j];
+							KHackingToolInfo windowInfo = m_vecWindowInfo_Thread[j];
 							if(OpenEvent( EVENT_ALL_ACCESS, FALSE, hackInfo.m_wstrProcessName.c_str() ))
 							{							
 								if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 								{
 #ifdef FIX_HACKUSER_REG01
-									if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-										g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+									if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+										g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 									{
 										g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-										g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+										g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 									}
 #endif
 								}	
@@ -13688,20 +14363,20 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					break;
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_06: // Mutex
 					{
-						for(UINT j=0; j<m_vecWindowInfo.size(); ++j)
+						for(UINT j=0; j<m_vecWindowInfo_Thread.size(); ++j)
 						{
-							KHackingToolInfo windowInfo = m_vecWindowInfo[j];
+							KHackingToolInfo windowInfo = m_vecWindowInfo_Thread[j];
 							HANDLE hMutex = CreateMutex( NULL, FALSE, hackInfo.m_wstrProcessName.c_str() );
 							if(GetLastError() == ERROR_ALREADY_EXISTS)
 							{	
 								if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 								{
 #ifdef FIX_HACKUSER_REG01
-									if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-										g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+									if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+										g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 									{
 										g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-										g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+										g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 									}
 #endif
 								}								
@@ -13740,8 +14415,8 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 						//		if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 						//		{
 						//			g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );								
-						//			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL )
-						//				g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+						//			if( g_pData != NULL && g_pData->GetMyUser() != NULL )
+						//				g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 						//		}	
 
 						//		string strProcessName;
@@ -13755,7 +14430,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 						//	}
 						//}
 
-						// ï¿½ï¿½ï¿½Ë»ï¿½
+						// ¸ðµâ°Ë»ç
 						HMODULE hMod = GetModuleHandle( hackInfo.m_wstrProcessName.c_str() );
 						if( hMod )
 						{				
@@ -13767,11 +14442,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 							if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 							{
 #ifdef FIX_HACKUSER_REG01
-								if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-									g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+								if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+									g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 								{
 									g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-									g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+									g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 								}
 #endif
 							}								
@@ -13796,7 +14471,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					break;
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_08:	//	File
 					{
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+						// ÆÄÀÏÁ¸ÀçÀ¯¹« °Ë»ç
 						OFSTRUCT of;
 						string strFileName;
 						ConvertWCHARToChar( strFileName, hackInfo.m_wstrProcessName.c_str() );
@@ -13806,11 +14481,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 							if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 							{
 #ifdef FIX_HACKUSER_REG01
-								if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-									g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+								if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+									g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 								{
 									g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-									g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+									g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 								}
 #endif
 							}
@@ -13841,11 +14516,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 							if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 							{								
 #ifdef FIX_HACKUSER_REG01
-								if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-									g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+								if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+									g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 								{
 									g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-									g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+									g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 								}
 #endif
 							}		
@@ -13878,11 +14553,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 							if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 							{
 #ifdef FIX_HACKUSER_REG01
-								if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-									g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+								if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+									g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 								{
 									g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-									g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+									g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 								}
 #endif
 							}		
@@ -13924,11 +14599,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 
 								if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 								{
-									if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-										g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+									if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+										g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 									{
 										g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-										g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+										g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 									}
 								}	
 
@@ -13967,11 +14642,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 						{
 							if( StrStrA(info.MACAddress.c_str(), strBlockedMACAddr.c_str()) )
 							{
-								if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-									g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+								if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+									g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 								{
 									g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-									g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+									g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 								}
 							}
 
@@ -13993,17 +14668,23 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 #ifdef HACK_USER_ATTACH_FILE
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_13:
 					{
-						if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-							g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+						if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+							g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 						{
-							// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+							// ÆÄÀÏÁ¸ÀçÀ¯¹« °Ë»ç
 							OFSTRUCT of;
 							string strFileName;
-							ConvertWCHARToChar( strFileName, hackInfo.m_wstrProcessName.c_str() );
+							ConvertWCHARToChar( strFileName, hackInfo.m_wstrProcessName );
 
 							if( OpenFile(strFileName.c_str(), &of, OF_EXIST) != HFILE_ERROR )
-							{							
+							{
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+                                std::string strWindowClassName;
+                                ConvertWCHARToChar( strWindowClassName, hackInfo.m_wstrWindowClassName );
+                                g_pMain->SendHackMail_AttachFile(strFileName.c_str(), strWindowClassName );
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 								g_pMain->SendHackMail_AttachFile(strFileName.c_str(), hackInfo.m_wstrWindowClassName );
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 							}
 						}
 					}
@@ -14012,8 +14693,8 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 #ifdef SERACH_FOLDER_FILE
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_14:
 					{
-						if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-							g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+						if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+							g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 						{
 							bool			bFind = false;
 							HANDLE          hFind;
@@ -14049,8 +14730,14 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 							if( bFind == true )
 							{
 								string strMailTitle;
-								ConvertWCHARToChar( strMailTitle, wstrMailTitle.c_str() );
+								ConvertWCHARToChar( strMailTitle, wstrMailTitle );
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+                                string strWindowClassName;
+                                ConvertWCHARToChar( strWindowClassName, hackInfo.m_wstrWindowClassName );
+                                g_pMain->SendHackMail_FileList(strMailTitle.c_str(), strWindowClassName );
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 								g_pMain->SendHackMail_FileList(strMailTitle.c_str(), hackInfo.m_wstrWindowClassName);
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 							}							
 						}
 					}
@@ -14068,11 +14755,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 // 								if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 // 								{
 // #ifdef FIX_HACKUSER_REG01
-// 									if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-// 										g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+// 									if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+// 										g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 // 									{
 // 										g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-// 										g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+// 										g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 // 									}
 // #endif
 // 								}	
@@ -14095,12 +14782,12 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					}					
 					break;
 #ifdef USER_MONITORING_MAIL
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_16:	// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_16:	// Æ¯Á¤ À¯Àú ¸ð´ÏÅÍ¸µ
 					{
-						if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
+						if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
 							g_pInstanceData != NULL && g_pInstanceData->GetUserID() == hackInfo.m_wstrProcessName )
 						{
-							// ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½							
+							// ¸ð´ÏÅÍ¸µ ¸ÞÀÏ ¹ß¼Û							
 #ifdef ADD_COLLECT_CLIENT_INFO
 							g_pMain->SendHackInfo1( hackInfo.m_cFlag, "", false, false );		
 #else
@@ -14112,18 +14799,18 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 #endif
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_17: // find module & not exit
 					{						
-						// ï¿½ï¿½ï¿½Ë»ï¿½
+						// ¸ðµâ°Ë»ç
 						HMODULE hMod = GetModuleHandle( hackInfo.m_wstrProcessName.c_str() );
 						if( hMod )
 						{				
 // 							if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 // 							{
 // #ifdef FIX_HACKUSER_REG01
-// 								if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-// 									g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+// 								if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+// 									g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 // 								{
 // 									g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-// 									g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+// 									g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 // 								}
 // #endif
 // 							}								
@@ -14144,12 +14831,12 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					}
 					break;
 #ifdef USER_MONITORING_MAIL
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_18:	// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_18:	// Æ¯Á¤ À¯Àú ¸ð´ÏÅÍ¸µ
 					{
 #ifdef SERV_CLIENT_PUBLIC_IP
 						if( g_pMain->m_wstrPublicIp == hackInfo.m_wstrProcessName )
 						{
-							// ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½
+							// ¸ð´ÏÅÍ¸µ ¸ÞÀÏ ¹ß¼Û
 #ifdef ADD_COLLECT_CLIENT_INFO
 							g_pMain->SendHackInfo3( hackInfo.m_cFlag, "", false, false );
 #else
@@ -14169,11 +14856,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 // 							if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 // 							{
 // #ifdef FIX_HACKUSER_REG01
-// 								if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-// 									g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+// 								if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+// 									g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 // 								{
 // 									g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-// 									g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+// 									g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 // 								}
 // #endif
 // 							}		
@@ -14196,9 +14883,9 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 #endif	DLL_MANAGER
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_20: // WindowText & not Exit
 					{
-						for(UINT j=0; j<m_vecWindowInfo.size(); ++j)
+						for(UINT j=0; j<m_vecWindowInfo_Thread.size(); ++j)
 						{
-							KHackingToolInfo windowInfo = m_vecWindowInfo[j];
+							KHackingToolInfo windowInfo = m_vecWindowInfo_Thread[j];
 							if( StrStrW(windowInfo.m_wstrProcessName.c_str(), hackInfo.m_wstrProcessName.c_str()) )
 							{
 								string strProcessName;
@@ -14219,7 +14906,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					}
 					break;
 #ifdef FREE_MODULE
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_21: // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_21: // °­Á¦ ¸ðµâ Á¦°Å
 					{
 						HMODULE hMod = GetModuleHandle( hackInfo.m_wstrProcessName.c_str() );
 						if( hMod )
@@ -14230,7 +14917,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					break;
 
 #ifdef	DLL_MANAGER
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_22: // dll managerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_22: // dll manager¸¦ ÅëÇÑ ¸ðµâ Á¦°Å
 					{
 						SiCX2DLLManager()->ForceFreeModule( hackInfo.m_wstrProcessName );
 					}
@@ -14240,7 +14927,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 #endif
 
 #ifdef MACHINE_ID
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_23: // machine idï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_23: // machine id·Î ¸ð´ÏÅÍ¸µ
 					{
 						if( g_pInstanceData != NULL && g_pInstanceData->GetMachineId().empty() == false )
 						{
@@ -14249,7 +14936,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 							MakeUpperCase(wstrMachineId);
 							if( hackInfo.m_wstrProcessName == wstrMachineId )
 							{
-								// ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½
+								// ¸ð´ÏÅÍ¸µ ¸ÞÀÏ ¹ß¼Û
 #ifdef ADD_COLLECT_CLIENT_INFO
 								g_pMain->SendHackInfo1( hackInfo.m_cFlag, "", false, false );
 #else
@@ -14268,11 +14955,11 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 							if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 							{
 #ifdef FIX_HACKUSER_REG01
-								if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-									g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+								if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+									g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 								{
 									g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-									g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+									g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 								}
 #endif
 							}		
@@ -14296,7 +14983,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					}					
 					break;
 #ifdef SERV_SERIAL_NUMBER_AVAILABILITY_CHECK
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_25:	// Æ¯ï¿½ï¿½ SN ï¿½ï¿½ï¿½ï¿½Í¸ï¿½
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_25:	// Æ¯Á¤ SN ¸ð´ÏÅÍ¸µ
 					{
 						if( g_pInstanceData != NULL )
 						{
@@ -14306,7 +14993,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 														
 							if( strcmp(strSn.c_str(), strProcessName.c_str()) == 0 )
 							{
-								// ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß¼ï¿½
+								// ¸ð´ÏÅÍ¸µ ¸ÞÀÏ ¹ß¼Û
 #ifdef ADD_COLLECT_CLIENT_INFO
 								g_pMain->SendHackInfo3( hackInfo.m_cFlag, "", false, false );
 #else
@@ -14318,28 +15005,40 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					break;
 #endif
 #ifdef DESK_THREAD_WINDOW
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_26:	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½Ë»ï¿½ (not exit)
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_26:	// ½º·¹µå À©µµ¿ì Å¸ÀÌÆ² °Ë»ç (not exit)
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_27:	// exit
 					{
-						for( UINT iThreadWindow = 0; iThreadWindow<m_vecDeskThreadInfo.size(); ++iThreadWindow )
+						for( UINT iThreadWindow = 0; iThreadWindow<m_vecDeskThreadInfo_Thread.size(); ++iThreadWindow )
 						{
-							if( hackInfo.m_wstrProcessName.empty() == false && m_vecDeskThreadInfo[iThreadWindow].m_wstrName.empty() == false )
+							if( hackInfo.m_wstrProcessName.empty() == false && m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrName.empty() == false )
 							{
-								if( m_vecDeskThreadInfo[iThreadWindow].m_wstrName.compare( hackInfo.m_wstrProcessName.c_str()) == 0 )
+								if( m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrName.compare( hackInfo.m_wstrProcessName.c_str()) == 0 
+									&& ( hackInfo.m_wstrWindowClassName.empty() ||	/// ÇØÅ·À¸·Î µî·ÏÇÑ Å¬·¡½º¸íÀÌ ¾ø°Å³ª
+										/// ÀÖ´Â °æ¿ì¿¡´Â µî·ÏÇÑ Å¬·¡½º¸í°ú °°¾Æ¾ß ÇÔ
+									   ( m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrClass.compare( hackInfo.m_wstrWindowClassName.c_str() ) == 0 ) )
+								  )
 								{
 									string strProcessName;
-									ConvertWCHARToChar( strProcessName, m_vecDeskThreadInfo[iThreadWindow].m_wstrName.c_str() );
+									ConvertWCHARToChar( strProcessName, m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrName.c_str() );
 
 
 									string strMailTitle = ANTI_HACK_STRING_AntiHacking_TWindowText;
 									strMailTitle = strMailTitle + strProcessName;
+
+									if ( !hackInfo.m_wstrWindowClassName.empty() )
+									{
+										string strClassName;
+										ConvertWCHARToChar( strClassName, m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrClass.c_str() );
+
+										strMailTitle += strClassName;
+									}
 
 #ifdef ADD_COLLECT_CLIENT_INFO
 									if( hackInfo.m_cFlag == ANTIHACKING_ID::ANTIHACKING_FILGER_27 )
 									{
 #ifdef SEND_HACKING_PROCESS_CHECK_RESULT 
 										if( NULL != g_pMain )
-											g_pMain->Send_EGS_HACKING_USER_PROCESS_NAME_RECORD_NOT( hackInfo.m_cFlag, m_vecDeskThreadInfo[iThreadWindow].m_wstrName );
+											g_pMain->Send_EGS_HACKING_USER_PROCESS_NAME_RECORD_NOT( hackInfo.m_cFlag, m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrName );
 #endif // SEND_HACKING_PROCESS_CHECK_RESULT
 
 										g_pMain->SendHackInfo4( hackInfo.m_cFlag, strProcessName.c_str(), true, true );
@@ -14356,7 +15055,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 									{
 #ifdef SEND_HACKING_PROCESS_CHECK_RESULT 
 										if( NULL != g_pMain )
-											g_pMain->Send_EGS_HACKING_USER_PROCESS_NAME_RECORD_NOT( hackInfo.m_cFlag, m_vecDeskThreadInfo[iThreadWindow].m_wstrName );
+											g_pMain->Send_EGS_HACKING_USER_PROCESS_NAME_RECORD_NOT( hackInfo.m_cFlag, m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrName );
 #endif // SEND_HACKING_PROCESS_CHECK_RESULT
 										m_pKTDXApp->SetFindHacking( true );
 										return true;
@@ -14368,17 +15067,17 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 						}						
 					}
 					break;
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_28:	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ (not exit)
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_28:	// ½º·¹µå À©µµ¿ì Å¬·¡½º °Ë»ç (not exit)
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_29:	// exit
 					{
-						for( UINT iThreadWindow = 0; iThreadWindow<m_vecDeskThreadInfo.size(); ++iThreadWindow )
+						for( UINT iThreadWindow = 0; iThreadWindow<m_vecDeskThreadInfo_Thread.size(); ++iThreadWindow )
 						{
-							if( hackInfo.m_wstrWindowClassName.empty() == false && m_vecDeskThreadInfo[iThreadWindow].m_wstrClass.empty() == false )
+							if( hackInfo.m_wstrWindowClassName.empty() == false && m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrClass.empty() == false )
 							{
-								if( m_vecDeskThreadInfo[iThreadWindow].m_wstrClass.compare(hackInfo.m_wstrWindowClassName.c_str()) == 0 )
+								if( m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrClass.compare(hackInfo.m_wstrWindowClassName.c_str()) == 0 )
 								{
 									string strProcessName;
-									ConvertWCHARToChar( strProcessName, m_vecDeskThreadInfo[iThreadWindow].m_wstrClass.c_str() );
+									ConvertWCHARToChar( strProcessName, m_vecDeskThreadInfo_Thread[iThreadWindow].m_wstrClass.c_str() );
 
 
 									string strMailTitle = ANTI_HACK_STRING_AntiHacking_TWindowClass;
@@ -14410,17 +15109,17 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 					}
 					break;		
 #ifdef CHECK_ALL_WINDOW
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_32:	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½Ë»ï¿½ (not exit)
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_32:	// ½º·¹µå À©µµ¿ì Å¸ÀÌÆ² °Ë»ç (not exit)
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_33:	// exit
 					{
-						for( UINT iThreadWindow = 0; iThreadWindow<m_vecTopWndInfo.size(); ++iThreadWindow )
+						for( UINT iThreadWindow = 0; iThreadWindow<m_vecTopWndInfo_Thread.size(); ++iThreadWindow )
 						{
-							if( hackInfo.m_wstrProcessName.empty() == false && m_vecTopWndInfo[iThreadWindow].m_wstrName.empty() == false )
+							if( hackInfo.m_wstrProcessName.empty() == false && m_vecTopWndInfo_Thread[iThreadWindow].m_wstrName.empty() == false )
 							{
-								if( m_vecTopWndInfo[iThreadWindow].m_wstrName.compare( hackInfo.m_wstrProcessName.c_str()) == 0 )
+								if( m_vecTopWndInfo_Thread[iThreadWindow].m_wstrName.compare( hackInfo.m_wstrProcessName.c_str()) == 0 )
 								{
 									string strProcessName;
-									ConvertWCHARToChar( strProcessName, m_vecTopWndInfo[iThreadWindow].m_wstrName.c_str() );
+									ConvertWCHARToChar( strProcessName, m_vecTopWndInfo_Thread[iThreadWindow].m_wstrName.c_str() );
 
 
 									string strMailTitle = ANTI_HACK_STRING_AntiHacking_TWindowText;
@@ -14451,17 +15150,17 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 						}						
 					}
 					break;
-				case ANTIHACKING_ID::ANTIHACKING_FILGER_34:	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ (not exit)
+				case ANTIHACKING_ID::ANTIHACKING_FILGER_34:	// ½º·¹µå À©µµ¿ì Å¬·¡½º °Ë»ç (not exit)
 				case ANTIHACKING_ID::ANTIHACKING_FILGER_35:	// exit
 					{
-						for( UINT iThreadWindow = 0; iThreadWindow<m_vecTopWndInfo.size(); ++iThreadWindow )
+						for( UINT iThreadWindow = 0; iThreadWindow<m_vecTopWndInfo_Thread.size(); ++iThreadWindow )
 						{
-							if( hackInfo.m_wstrWindowClassName.empty() == false && m_vecTopWndInfo[iThreadWindow].m_wstrClass.empty() == false )
+							if( hackInfo.m_wstrWindowClassName.empty() == false && m_vecTopWndInfo_Thread[iThreadWindow].m_wstrClass.empty() == false )
 							{
-								if( m_vecTopWndInfo[iThreadWindow].m_wstrClass.compare(hackInfo.m_wstrWindowClassName.c_str()) == 0 )
+								if( m_vecTopWndInfo_Thread[iThreadWindow].m_wstrClass.compare(hackInfo.m_wstrWindowClassName.c_str()) == 0 )
 								{
 									string strProcessName;
-									ConvertWCHARToChar( strProcessName, m_vecTopWndInfo[iThreadWindow].m_wstrClass.c_str() );
+									ConvertWCHARToChar( strProcessName, m_vecTopWndInfo_Thread[iThreadWindow].m_wstrClass.c_str() );
 
 
 									string strMailTitle = ANTI_HACK_STRING_AntiHacking_TWindowClass;
@@ -14498,7 +15197,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 				default:
 					{
 #ifdef ADD_COLLECT_CLIENT_INFO
-						// ï¿½Ø´ï¿½ ï¿½Ã·ï¿½ï¿½×°ï¿½ ï¿½ï¿½ï¿½Âµï¿½?
+						// ÇØ´ç ÇÃ·¡±×°¡ ¾ø´Âµ¥?
 						g_pMain->SendHackInfo3( ANTIHACKING_ID::ANTIHACKING_FILGER_31, "", false, true );
 #endif
 					}
@@ -14511,7 +15210,7 @@ bool CX2Main::CheckWindowInfo::CheckProcess()
 		}
 		else
 		{
-			// ï¿½Ù¸ï¿½ï¿½ï¿½Æ® ï¿½Þ¸ï¿½ ï¿½ï¿½Å·ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
+			// ÇÙ¸®½ºÆ® ¸Þ¸ð¸® ÇØÅ·µÇ¾úÀ» ¼ÒÁö°¡ ÀÖÀ½!
 			// g_pMain->SendHackMail_DamageHistory("-- EmptyList --");
 #ifdef ADD_COLLECT_CLIENT_INFO
 			g_pMain->SendHackInfo4( ANTIHACKING_ID::ANTIHACKING_FILGER_30, "", false, true );
@@ -14534,7 +15233,7 @@ void CX2Main::TimedMessagePopUp::OnFrameMove( double fTime, float fElapsedTime )
 {
 	if( NULL == m_pDialog )
 	{
-		// ï¿½ï¿½ï¿½Ì¾ï¿½Î±×°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+		// ´ÙÀÌ¾ó·Î±×°¡ ¾øÀ¸¸é ½Ã°£ 0À¸·Î ÃÊ±âÈ­
 		m_fTimeLeft = 0.f;
 		return;
 	}
@@ -14576,18 +15275,18 @@ void CX2Main::TimedMessagePopUp::OnFrameMove( double fTime, float fElapsedTime )
 					StateLog( wszErrorMsg );
 					m_fTimeLeft = 0.f;
 
-					// m_pDialogï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ ï¿½ï¿½ dialogï¿½ï¿½ ï¿½Æ´Ï¹Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ NULLï¿½ï¿½ ï¿½Ù²Û´ï¿½.
+					// m_pDialog°¡ ¿ø·¡ °¡Áö°í ÀÖ¾î¾ß ÇÒ dialog°¡ ¾Æ´Ï¹Ç·Î »èÁ¦µÇÁö ¾Ê°Ô NULL·Î ¹Ù²Û´Ù.
 					m_pDialog = NULL;
 				}
 
 				if( NULL != pStatic )
 				{
 					WCHAR wszText[256] = L"";
-					//ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
+					//½ºÆ®¸µ ¼öÁ¤ ÇÊ¿ä
 					switch(m_eMessageType)
 					{
 #ifdef ADDED_RELATIONSHIP_SYSTEM
-						case MT_NONE :		/// ï¿½Ø´ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+						case MT_NONE :		/// ÇØ´ç Å¸ÀÔÀ¸·Î ¼³Á¤µÇ¾î ÀÖ´Ù¸é, ³²Àº ½Ã°£À» Ç¥½ÃÇÏÁö ¾ÊÀ½
 							{
 								StringCchPrintfW( wszText, ARRAY_SIZE(wszText), m_wstrMsg.c_str() );
 							}
@@ -14599,7 +15298,7 @@ void CX2Main::TimedMessagePopUp::OnFrameMove( double fTime, float fElapsedTime )
 									NULL != g_pData->GetRelationshipManager()->GetMyRelationshipInfo() )
 								{
 
-									wstring wstrText = GET_REPLACED_STRING( ( STR_ID_24447, "Li", m_wstrMsg, static_cast<int>( m_fTimeLeft ) ) );	/// %dï¿½ï¿½ ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½
+									wstring wstrText = GET_REPLACED_STRING( ( STR_ID_24447, "Li", m_wstrMsg, static_cast<int>( m_fTimeLeft ) ) );	/// %dÃÊ ÈÄ ÀÚµ¿ Ãë¼Ò
 									StringCchPrintfW( wszText, ARRAY_SIZE(wszText), wstrText.c_str() );
 								}
 							} break;
@@ -14612,14 +15311,14 @@ void CX2Main::TimedMessagePopUp::OnFrameMove( double fTime, float fElapsedTime )
 #endif // ADDED_RELATIONSHIP_SYSTEM
 							{
 
-								wstring wstrText = GET_REPLACED_STRING( ( STR_ID_24447, "Li", m_wstrMsg, static_cast<int>( m_fTimeLeft ) ) );	/// %dï¿½ï¿½ ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½
+								wstring wstrText = GET_REPLACED_STRING( ( STR_ID_24447, "Li", m_wstrMsg, static_cast<int>( m_fTimeLeft ) ) );	/// %dÃÊ ÈÄ ÀÚµ¿ Ãë¼Ò
 								StringCchPrintfW( wszText, ARRAY_SIZE(wszText), wstrText.c_str() );
 
 							} break;
-#ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-23
+#ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC // Àû¿ë³¯Â¥: 2013-04-23
 						case MT_ENTER_GATE_OF_DARKNESS:
 							{
-								wstring wstrText = GET_REPLACED_STRING( ( STR_ID_24446, "Li", m_wstrMsg, static_cast<int>( m_fTimeLeft ) ) );	/// %dï¿½ï¿½ ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
+								wstring wstrText = GET_REPLACED_STRING( ( STR_ID_24446, "Li", m_wstrMsg, static_cast<int>( m_fTimeLeft ) ) );	/// %dÃÊ ÈÄ ÀÚµ¿ ÀÔÀå
 								StringCchPrintfW( wszText, ARRAY_SIZE(wszText), wstrText.c_str() );
 							} break;
 #endif // SERV_NEW_DEFENCE_DUNGEON_ENTER_LOGIC
@@ -14628,10 +15327,10 @@ void CX2Main::TimedMessagePopUp::OnFrameMove( double fTime, float fElapsedTime )
 						case MT_WAIT_SUMMON_MARRIAGED_USER:
 						case MT_SELECT_SUMMON_TO_MARRIAGED_USER:
 							{
-								wstring wstrText = GET_REPLACED_STRING( ( STR_ID_24520, "Li", m_wstrMsg, static_cast<int>( m_fTimeLeft ) ) );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ : %dï¿½ï¿½
+								wstring wstrText = GET_REPLACED_STRING( ( STR_ID_24520, "Li", m_wstrMsg, static_cast<int>( m_fTimeLeft ) ) );	/// ³²Àº ½Ã°£ : %dÃÊ
 								StringCchPrintfW( wszText, ARRAY_SIZE(wszText), wstrText.c_str() );
 
-								if ( NULL != g_pMain )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½, ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+								if ( NULL != g_pMain )		/// ¸¸¾à ´øÀü ¹× ´ëÀü ÀÔÀå Ä«¿îÆ® ÁßÀÌ¶ó¸é, ¹Ù·Î Á¾·á Ã³¸®
 								{
 									CX2State* pNowState = static_cast<CX2State*>( g_pMain->GetNowState() );
 
@@ -14642,7 +15341,7 @@ void CX2Main::TimedMessagePopUp::OnFrameMove( double fTime, float fElapsedTime )
 #endif // ADDED_RELATIONSHIP_SYSTEM
 						default:
 							{
-								StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"%s (%d%s)", m_wstrMsg.c_str(), static_cast<int>( m_fTimeLeft ), GET_STRING( STR_ID_180 ) );	/// ï¿½ï¿½
+								StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"%s (%d%s)", m_wstrMsg.c_str(), static_cast<int>( m_fTimeLeft ), GET_STRING( STR_ID_180 ) );	/// ÃÊ
 							} break;
 					}
 					wstring tempText = wszText;
@@ -14658,7 +15357,6 @@ void CX2Main::TimedMessagePopUp::OnFrameMove( double fTime, float fElapsedTime )
 #ifdef CLIENT_GLOBAL_LINEBREAK
 						lineNum = CWordLineHandler::LineBreakInX2MainMsgBox( tempText, pFont, constTextMaxLen );
 #else //CLIENT_GLOBAL_LINEBREAK
-
 						for ( int i = 0; i < (int)tempText.size(); i++ )
 						{
 							WCHAR tempWchar = tempText[i];
@@ -14712,7 +15410,7 @@ void CX2Main::TimedMessagePopUp::OnFrameMove( double fTime, float fElapsedTime )
 }
 
 
-//{{ 2011.9.16	ï¿½ï¿½ï¿½ï¿½È£  ï¿½Ýµï¿½Ä· ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//{{ 2011.9.16	ÀÌÁØÈ£  ¹ÝµðÄ· µ¿¿µ»ó Ä¸ÃÄ Áö¿ø
 #ifdef BANDICAM_RECORDING
 bool CX2Main::Bandi_StartVideoCapture()
 {
@@ -14729,35 +15427,35 @@ bool CX2Main::Bandi_StartVideoCapture()
 
 	IDirect3DDevice9* pd3d9Device = DXUTGetD3DDevice();
 
-	// Ä¸Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+	// Ä¸Ã³¸¦ ½ÃÀÛÇÕ´Ï´Ù.
 	if(FALSE == m_BandiCaptureLibrary.IsCapturing())
 	{
-		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ DLL ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. 
+		// ÃÖÃÊ ½ÇÇà½Ã DLL À» ·ÎµåÇÏ°í ³»ºÎ ÀÎ½ºÅÏ½º¸¦ »ý¼ºÇÕ´Ï´Ù. 
 		if(FALSE ==m_BandiCaptureLibrary.IsCreated())
 		{
-			// ï¿½ï¿½ï¿½Ð½ï¿½ DLLï¿½ï¿½ .Hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã±ï¿½ ï¿½Ù¶ï¿½ï¿½Ï´ï¿½.
+			// ½ÇÆÐ½Ã DLL°ú .HÆÄÀÏÀÇ ¹öÀüÀÌ µ¿ÀÏÇÑÁö ¿©ºÎµîÀ» È®ÀÎÇØ º¸½Ã±â ¹Ù¶ø´Ï´Ù.
 			if(FAILED(m_BandiCaptureLibrary.Create(BANDICAP_RELEASE_DLL_FILE_NAME)))
 				return false;
 
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ü¿ï¿½ ï¿½Î°ï¿½ï¿½ï¿½ Ç¥ï¿½ÃµË´Ï´ï¿½. 
-			// ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß±Þ¹ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°Å³ï¿½, È¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½Ï´ï¿½. 
+			// ÀÎÁõÀ» ¹ÞÁö ¾ÊÀ¸¸é ÀÎÄÚµùµÈ µ¿¿µ»ó »ó´Ü¿¡ ·Î°í°¡ Ç¥½ÃµË´Ï´Ù. 
+			// Á¤½Ä±¸¸ÅÈÄ ¹ß±Þ¹ÞÀº Å°¸¦ »ç¿ëÇÏ°Å³ª, È¨ÆäÀÌÁö¿¡¼­ µ¥¸ð¿ëÀ¸·Î °ø°³µÈ Å°¸¦ »ç¿ëÇØ¼­ ÀÎÁõÀ» ¹Þ½À´Ï´Ù. 
 			if(FAILED(m_BandiCaptureLibrary.Verify("KOG_ELSWORD_20110825", "675a5521")))
 				return false;
 		}
 
-		if(m_BandiCaptureLibrary.IsCreated())//3.Ã³ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½Úµï¿½
+		if(m_BandiCaptureLibrary.IsCreated())//3.Ã³À½ÀÌ¸é ·¹ÄÚµù
 		{
 			BCAP_CONFIG cfg;
 
-			if(GetGameOption()->GetUserSetting()==false)
+			if(GetGameOption().GetUserSetting()==false)
 			{
-				int iVal=GetGameOption()->GetGeneralVideoType();
+				int iVal=GetGameOption().GetGeneralVideoType();
 				if(iVal>14)
-					iVal+=4;//ï¿½ß°ï¿½ ï¿½Ì³ï¿½ 4ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç³Ê¶Ù¸ï¿½ zoomï¿½ï¿½ ï¿½ï¿½ï¿½É´Ï´ï¿½
+					iVal+=4;//Áß°£ ÀÌ³Ñ 4°¡Áö¸¦ °Ç³Ê¶Ù¸é zoomÀÌ ³ª¿É´Ï´Ù
 
 				if(BCAP_PRESET_VIDEO_EDITING!=21)
 				{
-					ASSERT(false);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½î¼­ ï¿½ß°ï¿½ ï¿½Ì³ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ì¸¦ ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ Ã¼Å©ï¿½Úµï¿½
+					ASSERT(false);//¹öÀüÁ¤º¸°¡ ¹Ù²î¾î¼­ Áß°£ ÀÌ³ÑÀÌ ¹Ù²ð°æ¿ì¸¦ ´ëºñÇØ¼­ Ã¼Å©ÄÚµå
 				}
 				BCapConfigPreset(&cfg, (BCAP_PRESET)iVal);
 			}
@@ -14765,24 +15463,24 @@ bool CX2Main::Bandi_StartVideoCapture()
 			{
 				//BCAP_PRESET bp;
 				BCapConfigPreset(&cfg, (BCAP_PRESET)0);
-				cfg.VideoSizeH=GetGameOption()->GetVideoSizeH();
-				cfg.VideoSizeW=GetGameOption()->GetVideoSizeW();
-				cfg.VideoFPS=GetGameOption()->GetVideoFPS();
-				cfg.VideoQuality=GetGameOption()->GetVideoQuality();
-				cfg.AudioChannels=GetGameOption()->GetAudioChannels();
-				cfg.AudioSampleRate=GetGameOption()->GetAudioSampleRate();
-				cfg.VideoCodec=GetGameOption()->GetVideoFormat();
+				cfg.VideoSizeH=GetGameOption().GetVideoSizeH();
+				cfg.VideoSizeW=GetGameOption().GetVideoSizeW();
+				cfg.VideoFPS=GetGameOption().GetVideoFPS();
+				cfg.VideoQuality=GetGameOption().GetVideoQuality();
+				cfg.AudioChannels=GetGameOption().GetAudioChannels();
+				cfg.AudioSampleRate=GetGameOption().GetAudioSampleRate();
+				cfg.VideoCodec=GetGameOption().GetVideoFormat();
 			}
-			m_BandiCaptureLibrary.CheckConfig(&cfg);       // ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½
-			m_BandiCaptureLibrary.SetConfig(&cfg);         // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			m_BandiCaptureLibrary.CheckConfig(&cfg);       // Àß¸øµÈ ¼³Á¤ ¹Ù·Î Àâ±â
+			m_BandiCaptureLibrary.SetConfig(&cfg);         // ¼³Á¤ Àû¿ë
 
-			m_BandiCaptureLibrary.SetMinMaxFPS(30, 60);    // ï¿½Ö¼ï¿½, ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			m_BandiCaptureLibrary.SetMinMaxFPS(30, 60);    // ÃÖ¼Ò, ÃÖ´ë ÇÁ·¹ÀÓ ¼³Á¤
 
-			// ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. 
+			// ÇöÀç½Ã°£À» ÀÌ¿ëÇØ¼­ ÆÄÀÏ¸íÀ» ¸¸µì´Ï´Ù. 
 			TCHAR pathName[MAX_PATH];
 			m_BandiCaptureLibrary.MakePathnameByDate(_T("ScreenCapture\\"), _T("SC_"), _T("avi"), pathName, MAX_PATH);
 
-			// Ä¸Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
+			// Ä¸Ã³¸¦ ½ÃÀÛÇÕ´Ï´Ù.
 			HRESULT hr = m_BandiCaptureLibrary.Start(pathName, NULL, BCAP_MODE_D3D9_SCALE, (LONG_PTR)pd3d9Device);
 			if(FAILED(hr))
 			{
@@ -14792,12 +15490,12 @@ bool CX2Main::Bandi_StartVideoCapture()
 					break;
 				case BCERR_AUDIO_CAPTURE:
 					{						
-						m_BandiCaptureLibrary.GetConfig(&cfg);		   // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ï¿½ï¿½
-						cfg.AudioCodec = WAVETAG_NULL;				   // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-						m_BandiCaptureLibrary.CheckConfig(&cfg);       // ï¿½ß¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½
-						m_BandiCaptureLibrary.SetConfig(&cfg);         // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+						m_BandiCaptureLibrary.GetConfig(&cfg);		   // ±âÁ¸ ¼³Á¤°ª ºÒ·¯¿À±â
+						cfg.AudioCodec = WAVETAG_NULL;				   // »ç¿îµå ²ô±â
+						m_BandiCaptureLibrary.CheckConfig(&cfg);       // Àß¸øµÈ ¼³Á¤ ¹Ù·Î Àâ±â
+						m_BandiCaptureLibrary.SetConfig(&cfg);         // ¼³Á¤ Àû¿ë
 
-						//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½
+						//»ç¿îµå Á¦°Å ÈÄ µ¿¿µ»ó ÃÔ¿µ ½ÃÀÛ
 						HRESULT hr = m_BandiCaptureLibrary.Start(pathName, NULL, BCAP_MODE_D3D9_SCALE, (LONG_PTR)pd3d9Device);
 						if( FAILED(hr) )
 						{
@@ -14830,7 +15528,7 @@ bool CX2Main::Bandi_StartVideoCapture()
 
 void CX2Main::Bandi_Pause_Restart_VidieCapture(bool bPause)
 {
-	// ï¿½Ï½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½ (IsCapturing = true ï¿½ï¿½ï¿½ï¿½)
+	// ÀÏ½Ã Á¤Áö, Á¤Áö ÇØÁ¦´Â µ¿¿µ»ó ½ÃÀÛ ÈÄ¿¡ °¡´É (IsCapturing = true »óÅÂ)
 	if( TRUE == m_BandiCaptureLibrary.IsCapturing() )
 	{
 		if( true == bPause && NULL != g_pChatBox )
@@ -14855,14 +15553,14 @@ void CX2Main::Bandi_EndVidioCapture()
 
 void CX2Main::Bandi_EnoughDiskSpace(float fElapsedTime)
 {
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½Ä¾ï¿½ ï¿½Ï´ï¿½ ï¿½Ýµï¿½Ä¸ ï¿½ï¿½ï¿½Ìºê·¯ï¿½ï¿½ï¿½ï¿½ workï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½×·ï¿½ 
-	//ï¿½Ïµï¿½ï¿½Å© ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ó½Ã·ï¿½ ï¿½Ïµï¿½ï¿½Å© ï¿½ë·® Ã¼Å© ï¿½ß°ï¿½.
+	//µ¿¿µ»ó Ä¸ÃÄ ÁøÇà »óÅÂ¸¦ ÆÄ¾Ç ÇÏ´Â ¹ÝµðÄ¸ ¶óÀÌºê·¯¸®ÀÇ workÇÔ¼öÀÇ ¹ö±×·Î 
+	//ÇÏµåµð½ºÅ© ¿ë·® ºÎÁ·À» ÆÄ¾Ç ÇÒ ¼ö ¾ø±â ¶§¹®¿¡, ÀÓ½Ã·Î ÇÏµåµð½ºÅ© ¿ë·® Ã¼Å© Ãß°¡.
 
-	//ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+	//ÇöÀç ÃÔ¿µ ÁøÇàÁßÀÌ ¾Æ´Ï¶ó¸é Ã¼Å©ÇÏÁö ¾ÊÀ½.
 	if( IsCapturing() == false )
 		return;
 
-	//Ã¼Å© ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+	//Ã¼Å© µô·¹ÀÌ Ãß°¡
 	m_fFileSizeCheckTime -= fElapsedTime;
 	if( m_fFileSizeCheckTime < 0 )
 	{
@@ -14872,14 +15570,19 @@ void CX2Main::Bandi_EnoughDiskSpace(float fElapsedTime)
 			m_iOldCaptureFileSize = m_BandiCaptureLibrary.GetCaptureFileSize();
 		}
 		else
-		{	//2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½â°¡ ï¿½ï¿½ï¿½Ù¸ï¿½,
-			//ï¿½ï¿½Å©ï¿½ë·® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Ù°ï¿½ ï¿½Ç´ï¿½.
+		{	//2ÃÊÀüÀÇ µ¿¿µ»óÆÄÀÏÀÇ Å©±â¿Í, ÇöÀç µ¿¿µ»óÆÄÀÏÀÇ Å©±â°¡ °°´Ù¸é,
+			//µð½ºÅ©¿ë·® ºÎÁ·À¸·Î ÃÔ¿µÇÏÁö ¾Ê¾Ò´Ù°í ÆÇ´Ü.
 			g_pMain->Bandi_EndVidioCapture();
 			g_pChatBox->AddChatLog( GET_STRING(STR_ID_17540), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 			KOGGamePerformanceCheck::GetInstance()->Resume();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+#ifdef  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+            if ( g_pData->GetGameUDP() != NULL )
+                g_pData->GetGameUDP()->RemoveAllPendingPingSends();
+#endif  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
 
 		}
 	}
@@ -14889,7 +15592,7 @@ void CX2Main::Bandi_EnoughDiskSpace(float fElapsedTime)
 #endif BANDICAM_RECORDING
 //}}
 
-//{{ 2011.9.16	ï¿½ï¿½ï¿½ï¿½È£  ï¿½Ýµï¿½Ä· ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ Ä¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//{{ 2011.9.16	ÀÌÁØÈ£  ¹ÝµðÄ· ½ºÅ©¸°¼¦ Ä¸ÃÄ Áö¿ø
 #ifdef BANDICAM_CAPTURE
 bool CX2Main::Bandi_ScreenCapture()
 {
@@ -14898,7 +15601,7 @@ bool CX2Main::Bandi_ScreenCapture()
 
 	m_fCaptureDelay = 3.0f;
 
-	// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ default ï¿½ï¿½ï¿½ï¿½ //
+	// ±âº» ÆÄÀÏ »ý¼º ½ÇÆÐ ¿¡·¯·Î default Á¤ÀÇ //
 	HRESULT hr = BCERR_FILE_CREATE; 
 
 	IDirect3DDevice9* pd3d9Device = DXUTGetD3DDevice();
@@ -14906,16 +15609,16 @@ bool CX2Main::Bandi_ScreenCapture()
 	if( NULL == pd3d9Device )
 		return false;
 
-	// Ä¸Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.	
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ DLL ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½. 
+	// Ä¸Ã³¸¦ ½ÃÀÛÇÕ´Ï´Ù.	
+	// ÃÖÃÊ ½ÇÇà½Ã DLL À» ·ÎµåÇÏ°í ³»ºÎ ÀÎ½ºÅÏ½º¸¦ »ý¼ºÇÕ´Ï´Ù. 
 	if(m_BandiCaptureLibrary.IsCreated()==FALSE)
 	{
-		// ï¿½ï¿½ï¿½Ð½ï¿½ DLLï¿½ï¿½ .Hï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã±ï¿½ ï¿½Ù¶ï¿½ï¿½Ï´ï¿½.
+		// ½ÇÆÐ½Ã DLL°ú .HÆÄÀÏÀÇ ¹öÀüÀÌ µ¿ÀÏÇÑÁö ¿©ºÎµîÀ» È®ÀÎÇØ º¸½Ã±â ¹Ù¶ø´Ï´Ù.
 		if(FAILED(m_BandiCaptureLibrary.Create(BANDICAP_RELEASE_DLL_FILE_NAME)))
 			return false;
 
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ü¿ï¿½ ï¿½Î°ï¿½ï¿½ï¿½ Ç¥ï¿½ÃµË´Ï´ï¿½. 
-		// ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß±Þ¹ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°Å³ï¿½, È¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½Ï´ï¿½. 
+		// ÀÎÁõÀ» ¹ÞÁö ¾ÊÀ¸¸é ÀÎÄÚµùµÈ µ¿¿µ»ó »ó´Ü¿¡ ·Î°í°¡ Ç¥½ÃµË´Ï´Ù. 
+		// Á¤½Ä±¸¸ÅÈÄ ¹ß±Þ¹ÞÀº Å°¸¦ »ç¿ëÇÏ°Å³ª, È¨ÆäÀÌÁö¿¡¼­ µ¥¸ð¿ëÀ¸·Î °ø°³µÈ Å°¸¦ »ç¿ëÇØ¼­ ÀÎÁõÀ» ¹Þ½À´Ï´Ù. 
 		if(FAILED(m_BandiCaptureLibrary.Verify("KOG_ELSWORD_20110825", "675a5521")))
 			return false;
 
@@ -15181,7 +15884,7 @@ bool CX2Main::SendHackInfo5( unsigned short usType, const char *strHackInfo, boo
 #endif
 
 #ifdef CHECK_PLAY_TIME_INFORMATION
-void CX2Main::CreatePlayTimeInformation()						//ï¿½È³ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿½ß°ï¿½
+void CX2Main::CreatePlayTimeInformation()						//¾È³» ´ÙÀÌ¾ó·Î±× Ãß°¡
 {
 	if( NULL != m_pDlgPlayTimeInformation )
 		DeletePlayTimeInformation();
@@ -15196,12 +15899,12 @@ void CX2Main::CreatePlayTimeInformation()						//ï¿½È³ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿
 
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDlgPlayTimeInformation );
 
-	//ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ @1ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.\nï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï»ï¿½ ï¿½ï¿½È°ï¿½ï¿½\nï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.\nï¿½Þ½ï¿½ ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ï¿½Ö½Ã¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°Ú½ï¿½ï¿½Ï´ï¿½.
+	//°ÔÀÓ ÀÌ¿ë @1½Ã°£ÀÌ °æ°úÇß½À´Ï´Ù.\n°úµµÇÑ °ÔÀÓ ÀÌ¿ëÀº Á¤»óÀûÀÎ ÀÏ»ó »ýÈ°¿¡\nÁöÀåÀ» ÁÙ ¼ö ÀÖ½À´Ï´Ù.\nÈÞ½Ä ÈÄ ´Ù½Ã ÀÌ¿ëÇØÁÖ½Ã¸é °¨»çÇÏ°Ú½À´Ï´Ù.
 	CKTDGUIStatic* pStatic = ( CKTDGUIStatic*)m_pDlgPlayTimeInformation ->GetControl( L"SHUTDOWN_Text" );
 	pStatic->GetString(0)->msg = GET_REPLACED_STRING( ( STR_ID_17723, "i", m_iGameHour ) );
 }
 
-void CX2Main::CreateShutDownInformation()						//ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿½ß°ï¿½
+void CX2Main::CreateShutDownInformation()						//¼Ë´Ù¿î ´ÙÀÌ¾ó·Î±× Ãß°¡
 {
 	if( NULL != m_pDlgShutDownInformation )
 		DeleteShutDownInformation();
@@ -15216,14 +15919,14 @@ void CX2Main::CreateShutDownInformation()						//ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ 
 
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDlgShutDownInformation );
 
-	//È¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ 16ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ÎµÇ¾ï¿½ ï¿½ï¿½ 12ï¿½Ãºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 6ï¿½Ã±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ï½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ï¿½Ì¿ë¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¹ï¿½å¸³ï¿½Ï´ï¿½.
-	//È¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ 18ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½Ë´Ù¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ @1ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ï½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë´Ù¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ë¸®ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
-	//@1ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÜµË´Ï´ï¿½.
+	//È¸¿ø´ÔÀº ¸¸ 16¼¼ ¹Ì¸¸À¸·Î È®ÀÎµÇ¾î ¹ã 12½ÃºÎÅÍ ¿ÀÀü 6½Ã±îÁö °ÔÀÓÀ» ÀÌ¿ëÇÏ½Ç ¼ö ¾ø½À´Ï´Ù. ÀÌ¿ë¿¡ Âü°í¸¦ ºÎÅ¹µå¸³´Ï´Ù.
+	//È¸¿ø´ÔÀº ¸¸ 18¼¼ ¹Ì¸¸ÀÇ ¼Ë´Ù¿îÁ¦ Àû¿ë´ë»óÀ¸·Î @1ºÐ ÈÄºÎÅÍ Àá½Ã µ¿¾È °ÔÀÓÀ» ÀÌ¿ëÇÏ½Ç ¼ö ¾ø½À´Ï´Ù. ¼±ÅÃÀû ¼Ë´Ù¿îÁ¦´Â º»ÀÎ È¤Àº ¹ýÁ¤ ´ë¸®ÀÎ¿¡ ÀÇÇØ ½Ã°£À» Á¶Á¤ÇÏ½Ç ¼ö ÀÖ½À´Ï´Ù.
+	//@1ºÐ ÈÄ °ÔÀÓÀÌ¿ëÀÌ Â÷´ÜµË´Ï´Ù.
 	CKTDGUIStatic* pStatic = ( CKTDGUIStatic*)m_pDlgShutDownInformation ->GetControl( L"SHUTDOWN_Text" );
 	pStatic->GetString(0)->msg = m_wstrShutDownString;
 }
 
-void CX2Main::FadePlayTimeInformation( float fShowTime )		//ï¿½È³ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ Fade È¿ï¿½ï¿½
+void CX2Main::FadePlayTimeInformation( float fShowTime )		//¾È³» ´ÙÀÌ¾ó·Î±× Fade È¿°ú
 {
 	if( NULL != m_pDlgPlayTimeInformation )
 	{
@@ -15234,7 +15937,7 @@ void CX2Main::FadePlayTimeInformation( float fShowTime )		//ï¿½È³ï¿½ ï¿½ï¿½ï¿½Ì¾
 	}
 }
 
-void CX2Main::DeletePlayTimeInformation()						//ï¿½È³ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½
+void CX2Main::DeletePlayTimeInformation()						//¾È³» ´ÙÀÌ¾ó·Î±× »èÁ¦
 {
 	if( NULL == m_pDlgPlayTimeInformation )
 		return;
@@ -15243,7 +15946,7 @@ void CX2Main::DeletePlayTimeInformation()						//ï¿½È³ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿
 	m_pDlgPlayTimeInformation = NULL;
 }
 
-void CX2Main::FadeShutDownInformation( float fShowTime )		//ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ Fade È¿ï¿½ï¿½
+void CX2Main::FadeShutDownInformation( float fShowTime )		//¼Ë´Ù¿î ´ÙÀÌ¾ó·Î±× Fade È¿°ú
 {
 	if( NULL != m_pDlgShutDownInformation )
 	{
@@ -15254,7 +15957,7 @@ void CX2Main::FadeShutDownInformation( float fShowTime )		//ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½ï¿½
 	}
 }
 
-void CX2Main::DeleteShutDownInformation()						//ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½
+void CX2Main::DeleteShutDownInformation()						//¼Ë´Ù¿î ´ÙÀÌ¾ó·Î±× »èÁ¦
 {
 	if( NULL == m_pDlgShutDownInformation )
 		return;
@@ -15265,16 +15968,16 @@ void CX2Main::DeleteShutDownInformation()						//ï¿½Ë´Ù¿ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ 
 #endif CHECK_PLAY_TIME_INFORMATION
 
 /** @function : ChangeCashSkillPointDate
-	@brief : ï¿½×³ï¿½Ã½ï¿½ ï¿½àº¹ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Â¥ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½, ï¿½ï¿½, ï¿½Ã°ï¿½, ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ±×³ë½Ã½º Ãàº¹ ¸¸·á ³¯Â¥ º¯°æ
+	@param : ¸¸·áµÉ ³â, ¿ù, ÀÏ, ½Ã°£, ºÐ ÁöÁ¤
 */
 void CX2Main::ChangeCashSkillPointDate( const int iYear_, const int iMonth_, const int iDay_, const int iHour_, const int iMinute_ )
 {
 	g_pData->GetSkillTree()->Hander_EGS_ADMIN_CASH_SKILL_POINT_DATE_CHANGE_REQ( iYear_, iMonth_, iDay_, iHour_, iMinute_ );
 }
 /** @function : SendCheckMail
-	@brief : ï¿½Ç½ÉµÇ´ï¿½ ï¿½Úµï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ëµµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö¼ï¿½, ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½
+	@brief : ÀÇ½ÉµÇ´Â ÄÚµå ºÎºÐÀÌ ¼öÇà‰ç´ÂÁö¸¦ Ã¼Å©ÇÏ±â À§ÇÑ ¿ëµµÀÇ ¸ÞÀÏ Àü¼Û ÇÔ¼ö
+	@param : ¹Þ´Â »ç¶÷ ¸ÞÀÏÁÖ¼Ò, Á¦¸ñ, ³»¿ë
 */
 void CX2Main::SendCheckMail( const char* pRecipient_, const char* pSubject_, const char* pMessageBody_ )
 {
@@ -15288,11 +15991,11 @@ void CX2Main::SendCheckMail( const char* pRecipient_, const char* pSubject_, con
 	}
 
 	g_pX2SMTPMail->SMTPSetServer( m_strMailAddress.c_str(), 25 );
-	g_pX2SMTPMail->SMTPSetLogin("escrash");            // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	g_pX2SMTPMail->SMTPSetLogin("escrash");            // °èÁ¤ ÀÎÁõ
 	g_pX2SMTPMail->SMTPSetPassword("@Els.123");
 	g_pX2SMTPMail->SMTPSetSenderName( "Check Mail" );
 	g_pX2SMTPMail->SMTPSetSenderMail("itexpertkim@kog.co.kr");
-	g_pX2SMTPMail->SMTPSetReplyTo("itexpertkim@kog.co.kr"); // È¸ï¿½ï¿½ ï¿½Ö¼ï¿½
+	g_pX2SMTPMail->SMTPSetReplyTo("itexpertkim@kog.co.kr"); // È¸½Å ÁÖ¼Ò
 
 	string strSubject = "[ES_KR_CLIENT_CHECK_MAIL]";
 	strSubject += pSubject_;
@@ -15359,18 +16062,18 @@ void CX2Main::InventoryClear( int iSelect )
 
 	if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_SPECIAL_USER )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
-		for( int i = 0; i < pInventory->GetItemMaxNum( SortType ); i++ )
+		for( int i = 0; i < kInventory.GetItemMaxNum( SortType ); i++ )
 		{
-			CX2Item* pItem = pInventory->GetItem( SortType, i );
-			if( NULL == pItem || NULL == pItem->GetItemData() )
+			CX2Item* pItem = kInventory.GetItem( SortType, i );
+			if( NULL == pItem )
 				continue;
 
 			KEGS_DELETE_ITEM_REQ kEGS_DELETE_ITEM_REQ;
 
 			kEGS_DELETE_ITEM_REQ.m_iItemUID = pItem->GetUID();
-			kEGS_DELETE_ITEM_REQ.m_iQuantity = pItem->GetItemData()->m_Quantity;
+			kEGS_DELETE_ITEM_REQ.m_iQuantity = pItem->GetItemData().m_Quantity;
 
 			g_pData->GetServerProtocol()->SendPacket( EGS_DELETE_ITEM_REQ, kEGS_DELETE_ITEM_REQ );
 			g_pMain->AddServerPacket( EGS_DELETE_ITEM_ACK );
@@ -15403,7 +16106,7 @@ void CX2Main::OccurLag_LUA( float fLagTime, int iLagType )
 
 void CX2Main::_InitKOGGamePerformanceCheck()
 {
-	//ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//Æò±Õ ÇÁ·¹ÀÓ, ·¢ ÃøÁ¤ °øÅë
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_GetGameSpace( KOGGamePerformanceCheckPort_Function::GetGameSpace );
 
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_IsGameSpaceVillage( KOGGamePerformanceCheckPort_Function::IsGameSpaceVillage );
@@ -15448,20 +16151,23 @@ void CX2Main::_InitKOGGamePerformanceCheck()
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_SendServer_Dungeon( KOGGamePerformanceCheckPort_Function::SendServer_Dungeon );
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_SendServer_PvP( KOGGamePerformanceCheckPort_Function::SendServer_PvP );
 
-	//ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	//Æò±Õ ÇÁ·¹ÀÓ ¿ë
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_IsValidGameSpace_AvgFps( KOGGamePerformanceCheckPort_Function::IsValidGameSpace_AvgFps );
 
-	//ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	//·¢ ÃøÁ¤ ¿ë
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_IsUnKnownLagType_Lag( KOGGamePerformanceCheckPort_Function::IsUnKnownLagType_Lag );
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_IsValidGameSpace_Lag( KOGGamePerformanceCheckPort_Function::IsValidGameSpace_Lag );
 
-	//ping ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	//ping ÃøÁ¤ ¿ë
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_IsValidGameSpace_Ping( KOGGamePerformanceCheckPort_Function::IsValidGameSpace_Ping );
 
-	//UDP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	//UDP Àü¼ÛÃøÁ¤ ¿ë
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_IsValidGameSpace_UDPTrans( KOGGamePerformanceCheckPort_Function::IsValidGameSpace_UDPTrans );
 
-	//memory usage ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	//ºñÈ£½ºÆ® Æò±Õ NPC ¸®¾×¼Ç ÃøÁ¤ ¿ë
+	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_IsValidGameSpace_UDPTrans( KOGGamePerformanceCheckPort_Function::IsValidGameSpace_NonHostNpcReaction );
+
+	//memory usage ÃøÁ¤ ¿ë
 	KOGGamePerformanceCheck_CallbackFuncTable::GetInstance()->RegisterCallbackFunc_IsValidGameSpace_MemUsage( KOGGamePerformanceCheckPort_Function::IsValidGameSpace_MemUsage );
 
 	//
@@ -15487,6 +16193,36 @@ void CX2Main::SwitchConnect_LUA( int iMode )
 }
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
+#ifdef SEND_HACKING_PROCESS_CHECK_RESULT 
+/** @function : SetSendHackCheckResultInfo
+	@brief : ÇØÅ· ÇÁ·Î¼¼½º °Ë»ç¿¡ ÀÇÇØ °É·ÈÀ» °æ¿ì ¼­¹ö·Î Á¤º¸ Àü¼Û
+*/
+void CX2Main::Send_EGS_HACKING_USER_PROCESS_NAME_RECORD_NOT( char cHackInfoFlag_, const wstring& wstrHackingName )
+{
+	KEGS_HACKING_USER_PROCESS_NAME_RECORD_NOT kPacket;
+	kPacket.m_byteType = 0;
+	switch ( cHackInfoFlag_ )
+	{
+	case ANTIHACKING_ID::ANTIHACKING_FILGER_01:	kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_PROCESS; break;
+	case ANTIHACKING_ID::ANTIHACKING_FILGER_02: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_TEXT; break;
+	case ANTIHACKING_ID::ANTIHACKING_FILGER_07: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_MODULE; break;
+	case ANTIHACKING_ID::ANTIHACKING_FILGER_10: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_DLL_MANAGER; break;
+	case ANTIHACKING_ID::ANTIHACKING_FILGER_11: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_ZOMBIE_PROCESS; break;
+	case ANTIHACKING_ID::ANTIHACKING_FILGER_27: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_THREAD_TITLE; break;
+	default:  break;
+	}
+
+	if( 0 == kPacket.m_byteType )
+		return;
+	else
+	{
+		kPacket.m_wstrReason = wstrHackingName;
+		g_pData->GetServerProtocol()->SendPacket( EGS_HACKING_USER_PROCESS_NAME_RECORD_NOT, kPacket );
+	}
+
+}
+#endif // SEND_HACKING_PROCESS_CHECK_RESULT
+
 #ifdef UDP_PACKET_ANALYSIS_LOG
 void CX2Main::UdpPacketAnalysisLog_LUA( bool bEnable ) 
 { 
@@ -15496,28 +16232,14 @@ void CX2Main::UdpPacketAnalysisLog_LUA( bool bEnable )
 }
 #endif//UDP_PACKET_ANALYSIS_LOG
 
-#ifdef X2OPTIMIZE_UDP_RELAY_OVERHEAD_TEST
-void CX2Main::UdpRelayOverHeadTest_LUA( int iRoomNum )
-{
-#ifndef _SERVICE_
-	g_pData->GetGameUDP()->ClearUdpRelayTestRooms();
-	if( iRoomNum > 0 )
-	{
-		for( int i = 0; i < iRoomNum; i++ )
-			g_pData->GetGameUDP()->AddUdpRelayTestRooms( 7 );
-	}
-#endif//_SERVICE_
-}
-#endif//X2OPTIMIZE_UDP_RELAY_OVERHEAD_TEST
-
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 void CX2Main::UdpPacketOverlapTest_LUA( bool bEnable )
 {
 #ifndef _SERVICE_
 	m_bUdpPacketOverlap = bEnable;
 #endif//_SERVICE_
 }
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 
 #ifdef X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
@@ -15529,10 +16251,38 @@ void CX2Main::OneSimulOneRenderTest_LUA( bool bEnable )
 }
 #endif//X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
 
+#ifdef X2OPTIMIZE_DAMAGE_EFFECT_TEST
+void CX2Main::DamageEffectTest_LUA( bool bEnable )
+{
+#ifndef _SERVICE_
+	m_bEnableDamageEffectTest = bEnable;
+#endif//_SERVICE_
+}
+#endif//X2OPTIMIZE_DAMAGE_EFFECT_TEST
+
+#ifdef X2OPTIMIZE_VIEWDISTANCE_TEST
+void CX2Main::ViewDistanceTest_LUA( int iFar1, int iFar2 )
+{
+#ifndef _SERVICE_
+	//g_pKTDXApp->SetViewDistanceTest( iFar1, iFar2, iFar3 );
+	if( (CX2BattleFieldGame*)g_pX2Game || (CX2DungeonGame*)g_pX2Game )
+	{
+		if( g_pX2Game->GetWorld() )
+		{
+			g_pX2Game->GetWorld()->SetViewDistance_Low( iFar1 );
+			g_pX2Game->GetWorld()->SetViewDistance_Medium( iFar2 );
+
+			//world »ý¼ºÈÄ ½Ã¾ßÈ¿°ú¸¦ ÁØ´Ù.
+			g_pMain->GetGameOption().SetViewDistanceDetail( g_pMain->GetGameOption().GetOptionList().m_eViewDistance, true );
+		}
+	}
+#endif//_SERVICE_
+}
+#endif//X2OPTIMIZE_VIEWDISTANCE_TEST
 
 void    CX2Main::SetUDPMode_LUA( const char* pszGameType, const char* pszUDPMode )
 {
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     if ( false == ( pszGameType != NULL && pszGameType[0] != NULL
         && pszUDPMode != NULL && pszUDPMode[0] != NULL ) )
         return;
@@ -15579,10 +16329,10 @@ setmode:
 
     m_aeUDPMode[ eGameType ] = eUDPMode;
 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 }
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 CKTDNUDP::EForceConnectMode CX2Main::GetUDPMode( CX2Game::GAME_TYPE eGameType )
 {
@@ -15602,94 +16352,312 @@ void    CX2Main::SetUDPMode( CX2Game::GAME_TYPE eGameType, CKTDNUDP::EForceConne
     m_aeUDPMode[ eGameType ] = eUDPMode;
 }
 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
-#ifdef CHECK_KOM_FILE_ON_LOAD
-#ifdef SERV_KOM_FILE_CHECK_ADVANCED
-void CX2Main::GetCheckKomFileList()
+
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // ±èÁ¾ÈÆ, °³¹ßÀÚ ½ºÅ©¸³Æ® È®Àå ±â´É Ãß°¡
+// °³¹ßÀÚ ½ºÅ©¸³Æ® È®Àå ±â´É Ãß°¡
+// DevScriptTable.lua ÆÄÀÏÀ» ÀÐ¾î¿Â´Ù.
+
+bool CX2Main::ResetDeveloperScriptSet ( const WCHAR* pFileName )	// DevScriptTable.lua ÆÄ½Ì
 {
-	std::vector< pair<string, string> > vecChangeCheckKom;
-	GetChangeCheckKom( vecChangeCheckKom );
-	if( vecChangeCheckKom.empty() )
+	m_DeveloperScriptSet.Clear();
+	
+
+	if ( false == g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->IsValidFile ( pFileName ) )
+		return false;
+	
+	if ( false == m_DeveloperScriptSet.OpenScriptFile( pFileName ) )
+		return false;
+	
+	DeleteFile ( L"DevScriptTable_Log.txt");
+	KLOG("DevScriptTable_Log.txt")  << L"-----DevScriptTool ÀÛ¾÷ ³»¿ª ½ÃÀÛ-----" << fileout;
+	
+	
+	vector<DeveloperScriptSet::DeveloperScript> & pVecDeveloperScript = m_DeveloperScriptSet.GetDeveloperScriptSet();
+	
+	BOOST_FOREACH ( DeveloperScriptSet::DeveloperScript devScript, pVecDeveloperScript )
 	{
-		vecChangeCheckKom.clear();
-		SetChangeCheckKom( vecChangeCheckKom );
-		SetChangeCheckKom( m_vecCheckKom );
-		m_fGetCheckKomTime = 0.0f;
-	}
-}
-
-void CX2Main::SetChangeCheckKom( std::vector< pair<string, string> > vecChangeCheckKom )
-{
-	KLocker lock( m_csData_vec );
-	m_vecChangeCheckKom = vecChangeCheckKom;
-}
-
-void CX2Main::GetChangeCheckKom( std::vector< pair<string, string> >& vecChangeCheckKom )
-{
-	KLocker lock( m_csData_vec );
-	vecChangeCheckKom = m_vecChangeCheckKom;
-}
-
-void CX2Main::Handler_EGS_KOM_FILE_CHECK_LOG_REQ( const std::wstring wstrInvalidKomName )
-{
-	KEGS_KOM_FILE_CHECK_LOG_REQ kPacket;
-	kPacket.m_wstrInvalidKomName = wstrInvalidKomName;
-
-	g_pData->GetServerProtocol()->SendPacket( EGS_KOM_FILE_CHECK_LOG_REQ, kPacket );
-	g_pMain->AddServerPacket( EGS_KOM_FILE_CHECK_LOG_ACK );
-}
-
-bool CX2Main::Handler_EGS_KOM_FILE_CHECK_LOG_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
-{
-	KSerBuffer* pBuff = (KSerBuffer*)lParam;
-	KEGS_KOM_FILE_CHECK_LOG_ACK kEvent;
-	DeSerialize( pBuff, &kEvent );
-
-	if( g_pMain->DeleteServerPacket( EGS_KOM_FILE_CHECK_LOG_ACK ) == true )
-	{
-		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		if ( true == devScript.m_wstrDeveloperScriptFileName.empty() )
 		{
-			wstring wstrErrorMessage = GET_REPLACED_STRING( ( STR_ID_28981, "L", kEvent.m_wstrInvalidKomName ) );
-			g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), wstrErrorMessage.c_str() , g_pMain->GetNowState() );
-
-			// Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ® ï¿½Þ½ï¿½ï¿½ï¿½Å¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
-			g_pMain->SetQuitType( NetError::ERR_CLIENT_QUIT_04 );
-			g_pMain->SendQuitMsgToServer();
+			ASSERT (!L"Can't Find DevScriptSet Script Name" );
+			KLOG("DevScriptTable_Log.txt")  << L"Error : " << L" : NAME Å×ÀÌºíÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." << fileout;
 		}
-	}
+		switch ( devScript.m_eDeveloperScriptType )
+		{
+		case DeveloperScriptSet::DST_GAME_EFFECT_SET:
+			if ( false == ResetDeveloperScriptSet_GameEffectSet ( devScript ) )
+			{
+				ASSERT (!L"Can't Find DevScriptSet GameEffectSet Script" );
+			}
+			break;
+		case DeveloperScriptSet::DST_DAMAGE_EFFECT:
+			if ( false == ResetDeveloperScriptSet_DamageEffect( devScript ) )
+			{
+				ASSERT (!L"Can't Find DevScriptSet DamageEffect Script" );
+			}
+			break;
+		case DeveloperScriptSet::DST_GAME_MAJOR_XMESH_PLAYER:
+			if ( false == ResetDeveloperScriptSet_GameMajorXMeshPlayer( devScript ) )
+			{
+				ASSERT (!L"Can't Find DevScriptSet GameMajorXMeshPlayer Script" );
+			}	
+			break;
+		default :
+			ASSERT (!L"Can't Find DevScriptSet Type" );
+		}
+ 	}
+	KLOG("DevScriptTable_Log.txt")  << L"-----DevScriptTool ÀÛ¾÷ ³»¿ª ¿Ï·á-----" << fileout;
 
 	return true;
 }
-#endif SERV_KOM_FILE_CHECK_ADVANCED
-#endif CHECK_KOM_FILE_ON_LOAD
 
-#ifdef SEND_HACKING_PROCESS_CHECK_RESULT 
-/** @function : SetSendHackCheckResultInfo
-	@brief : ï¿½ï¿½Å· ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ ï¿½Ë»ç¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½É·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-*/
-void CX2Main::Send_EGS_HACKING_USER_PROCESS_NAME_RECORD_NOT( char cHackInfoFlag_, const wstring& wstrHackingName )
+bool CX2Main::ResetDeveloperScriptSet_GameEffectSet ( DeveloperScriptSet::DeveloperScript devScript ) // DevScriptTable.lua ÆÄ½Ì
 {
-	KEGS_HACKING_USER_PROCESS_NAME_RECORD_NOT kPacket;
-	kPacket.m_byteType = 0;
-	switch ( cHackInfoFlag_ )
-	{
-	case ANTIHACKING_ID::ANTIHACKING_FILGER_01:	kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_PROCESS; break;
-	case ANTIHACKING_ID::ANTIHACKING_FILGER_02: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_TEXT; break;
-	case ANTIHACKING_ID::ANTIHACKING_FILGER_07: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_MODULE; break;
-	case ANTIHACKING_ID::ANTIHACKING_FILGER_10: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_DLL_MANAGER; break;
-	case ANTIHACKING_ID::ANTIHACKING_FILGER_11: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_ZOMBIE_PROCESS; break;
-	case ANTIHACKING_ID::ANTIHACKING_FILGER_27: kPacket.m_byteType = SEnum::HUCT_CLIENT_HACKING_THREAD_TITLE; break;
-	default:  break;
+	/// ÃÊ±âÈ­ ¹× ¸Þ¸ð¸® ÇÒ´ç ºÎºÐ, Swap Àº ±³Ã¼, Merge ´Â ÇØ´ç ºÎºÐ °Ë»ö ÈÄ ±³Ã¼ÇÑ´Ù. 
+	vector<CX2EffectSet*> pVecGameEffectSet = g_pData->m_vecGameEFfectSet;
+	BOOST_FOREACH ( CX2EffectSet * pEffectSet, pVecGameEffectSet )
+	{	
+		SAFE_DELETE( pEffectSet );
 	}
-
-	if( 0 == kPacket.m_byteType )
-		return;
-	else
+	
+	if ( devScript.m_eDeveloperScriptRefreshType == DeveloperScriptSet::DSCRT_SWAP ) 
 	{
-		kPacket.m_wstrReason = wstrHackingName;
-		g_pData->GetServerProtocol()->SendPacket( EGS_HACKING_USER_PROCESS_NAME_RECORD_NOT, kPacket );
+		g_pData->GetGameEffectSet()->ClearTempletAndInstance();
+		if ( NULL == g_pData->ResetGameEffectSet( devScript.m_wstrDeveloperScriptFileName.c_str() ) )
+		{
+			KLOG("DevScriptTable_Log.txt")  << L"Error : " << devScript.m_wstrDeveloperScriptFileName.c_str() << L"\t: EffectSet ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." << fileout;
+			return false;
+		}
+		KLOG("DevScriptTable_Log.txt")  << L"Swap : " << devScript.m_wstrDeveloperScriptFileName.c_str() << L"\t: EffectSet ÆÄÀÏ ³»¿ªÀ» º¹»ç ÇÏ¿´½À´Ï´Ù." << fileout;
 	}
+	else if ( devScript.m_eDeveloperScriptRefreshType == DeveloperScriptSet::DSCRT_MERGE ) 
+	{
+		CX2EffectSet * pGameEffectSet = new CX2EffectSet ();
+		if ( false == pGameEffectSet->OpenScriptFile ( devScript.m_wstrDeveloperScriptFileName ) )
+		{
+			KLOG("DevScriptTable_Log.txt")  << L"Error : " << devScript.m_wstrDeveloperScriptFileName.c_str() << L"\t: EffectSet ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." << fileout;
+			return false;
+		}
+		pVecGameEffectSet.push_back ( pGameEffectSet );
+		
+		KLOG("DevScriptTable_Log.txt")  << L"Merge : " << devScript.m_wstrDeveloperScriptFileName.c_str() << L"\t: ÆÄÀÏ¿¡ ´ëÇÑ ÀÛ¾÷ ³»¿ª ½ÃÀÛ" << fileout;
 
+		CX2EffectSet::EffectSetDataMap & mapEffectSetTemplet = pGameEffectSet->GetMapEffectSetTemplet();		
+		// ¹Þ¾Æ¿Â °¢ ÀÌÆåÆ®¼Â ÅÛÇÃ¸´¿¡¼­ Ãß°¡µÈ »çÇ×À» ¸ÓÁöÇÑ´Ù.
+		BOOST_TEST_FOREACH( CX2EffectSet::EffectSetDataMap::value_type&, value, mapEffectSetTemplet )			
+		{
+			CX2EffectSet::EffectSetData * pEffectSetData = g_pData->GetGameEffectSet()->GetEffectSetTemplet(value.first);			
+			if ( false == g_pData->GetGameEffectSet()->MergeEffectSetTemplet( value.second, pEffectSetData) )
+			{
+				KLOG("DevScriptTable_Log.txt")  << L"Merge : " << value.second->m_wstrEffectSetName.c_str() << L"\t: EffectSetTemplet ¿¡ ÀÌ»óÀÌ ÀÖ½À´Ï´Ù." << fileout;
+			}
+		}
+
+		KLOG("DevScriptTable_Log.txt")  << L"Merge : " << devScript.m_wstrDeveloperScriptFileName.c_str() << L"\t: ÆÄÀÏ¿¡ ´ëÇÑ ÀÛ¾÷ ³»¿ª Á¾·á\n" << fileout;
+	}
+	return true;
 }
-#endif // SEND_HACKING_PROCESS_CHECK_RESULT
+bool CX2Main::ResetDeveloperScriptSet_DamageEffect ( DeveloperScriptSet::DeveloperScript devScript ) // DevScriptTable.lua ÆÄ½Ì
+{
+	if ( NULL != g_pX2Game ) 
+	{
+		CX2DamageEffect * pDamageEffect = g_pX2Game->GetDamageEffect();
+		if ( NULL != pDamageEffect ) 
+		{
+			/// Step 1. ÃÊ±âÈ­ ¹× ¸Þ¸ð¸® ÇÒ´ç ºÎºÐ, Swap Àº ±³Ã¼, Merge ´Â ÇØ´ç ºÎºÐ °Ë»ö ÈÄ ±³Ã¼ÇÑ´Ù. 
+			if ( devScript.m_eDeveloperScriptRefreshType == DeveloperScriptSet::DSCRT_SWAP ) 
+			{
+				SAFE_DELETE( pDamageEffect );
+				pDamageEffect	= new CX2DamageEffect();				
+				pDamageEffect->OpenScriptFile( devScript.m_wstrDeveloperScriptFileName.c_str() );
+			}
+			else if ( devScript.m_eDeveloperScriptRefreshType == DeveloperScriptSet::DSCRT_MERGE ) 
+			{
+				pDamageEffect->OpenScriptFile ( devScript.m_wstrDeveloperScriptFileName.c_str() );
+			}
+			return true;
+		}
+	}
+	return false;
+}
+bool CX2Main::ResetDeveloperScriptSet_GameMajorXMeshPlayer ( DeveloperScriptSet::DeveloperScript devScript ) // DevScriptTable.lua ÆÄ½Ì
+{
+	/// Step 1. ÃÊ±âÈ­ ¹× ¸Þ¸ð¸® ÇÒ´ç ºÎºÐ, Swap Àº ±³Ã¼, Merge ´Â ÇØ´ç ºÎºÐ °Ë»ö ÈÄ ±³Ã¼ÇÑ´Ù. 
+	vector<CKTDGXMeshPlayer*> m_vecGameMajorXMeshPlayer = g_pData->m_vecGameMajorXMeshPlayer;
+	BOOST_FOREACH ( CKTDGXMeshPlayer * pMeshPlayer, m_vecGameMajorXMeshPlayer )
+	{	
+		SAFE_DELETE( pMeshPlayer );
+	}
+
+	if ( devScript.m_eDeveloperScriptRefreshType == DeveloperScriptSet::DSCRT_SWAP ) 
+	{
+		if ( NULL == g_pData->ResetGameMajorXMeshPlayer ( devScript.m_wstrDeveloperScriptFileName.c_str() ) )
+		{
+			KLOG("DevScriptTable_Log.txt")  << L"Error : " << devScript.m_wstrDeveloperScriptFileName.c_str() << L"\t: GameMajorXMeshPlayer ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù." << fileout;
+			return false;
+		}
+		KLOG("DevScriptTable_Log.txt")  << L"Swap : " << devScript.m_wstrDeveloperScriptFileName.c_str() << L"\t: GameMajorXMeshPlayer ÆÄÀÏ ³»¿ªÀ» º¹»ç ÇÏ¿´½À´Ï´Ù." << fileout;
+	}
+	else if ( devScript.m_eDeveloperScriptRefreshType == DeveloperScriptSet::DSCRT_MERGE ) 
+	{
+		CKTDGXMeshPlayer* pGameMajorXMeshPlayer = new CKTDGXMeshPlayer();
+		pGameMajorXMeshPlayer->OpenScriptFile ( devScript.m_wstrDeveloperScriptFileName.c_str() );
+		m_vecGameMajorXMeshPlayer.push_back ( pGameMajorXMeshPlayer );
+		
+		// °¢ ÀÌÆåÆ®¼Â º°·Î ÅÛÇÃ¸´À» ¹Þ¾Æ¿Â´Ù.
+
+		KLOG("DevScriptTable_Log.txt")  << L"Merge : " << devScript.m_wstrDeveloperScriptFileName.c_str() << L"\t: ÆÄÀÏ¿¡ ´ëÇÑ ÀÛ¾÷ ³»¿ª ½ÃÀÛ" << fileout;
+		
+		CKTDGXMeshPlayer::XMeshTempletMap & mapXMeshTemplet = pGameMajorXMeshPlayer->GetTempletMap();
+
+		// ¹Þ¾Æ¿Â °¢ ÀÌÆåÆ®¼Â ÅÛÇÃ¸´¿¡¼­ Ãß°¡µÈ »çÇ×À» °Ë»çÇÑ´Ù.
+		BOOST_TEST_FOREACH( CKTDGXMeshPlayer::XMeshTempletMap::value_type&, value, mapXMeshTemplet )			
+		{
+			CKTDGXMeshPlayer::XMeshTemplet * pXMeshTemplet = const_cast<CKTDGXMeshPlayer::XMeshTemplet * > ( g_pData->GetGameMajorXMeshPlayer()->GetTempletByName( value.first ) );		
+			if ( false == g_pData->GetGameMajorXMeshPlayer()->MergeXMeshTemplet( value.second, pXMeshTemplet ) )
+			{
+				KLOG("DevScriptTable_Log.txt")  << L"Merge : " << value.second->templetName.c_str() << L"\t: XMeshPlayer Templet ¿¡ ÀÌ»óÀÌ ÀÖ½À´Ï´Ù." << fileout;
+			}
+		}
+		KLOG("DevScriptTable_Log.txt")  << L"Merge : " << devScript.m_wstrDeveloperScriptFileName.c_str() << L"\t: ÆÄÀÏ¿¡ ´ëÇÑ ÀÛ¾÷ ³»¿ª Á¾·á\n" << fileout;
+
+	}
+	return true;
+}
+
+#endif // EXPAND_DEVELOPER_SCRIPT  // ±èÁ¾ÈÆ, °³¹ßÀÚ ½ºÅ©¸³Æ® È®Àå ±â´É Ãß°¡
+
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+// ÅøÆÁ µî¿¡ ¾²ÀÌ´Â ½ºÆ®¸µµµ @1 ¿¬»êÀÌ °¡´ÉÇÏµµ·Ï Ãß°¡
+// ÀÛµ¿ µ¿ÀÛÀº GET_REPLACED_STRING ¸ÅÅ©·Î ¿Í µ¿ÀÏÇÔ
+wstring CX2Main::GetReplacedWstring( wstring & wstrModify, char* szParamTypeList, ... )
+{
+	wstring wstrReplacedString = wstrModify;
+	int iParamTypeListSize = strlen( szParamTypeList );
+
+	va_list marker;
+	va_start( marker, szParamTypeList );
+
+	for( int i = 0; i < iParamTypeListSize; i++ )
+	{
+		std::wstringstream wstmReplaceSymbol;
+		wstmReplaceSymbol << L"@" << ( i + 1 );
+
+		std::wstringstream wstmReplaceValue;
+
+		// ´ëÀÔµÉ °ªÀ» ½ºÆ®¸µÀ¸·Î ¸¸µç´Ù.
+		switch( szParamTypeList[i] )
+		{
+		case 'h':       // ºÎÈ£¸¦ Ç¥ÇöÇÏ´Â Á¤¼ö·Î º¯È¯
+			{
+				int iParam = va_arg( marker, int );
+				if( iParam > 0 )
+				{
+					wstmReplaceValue << L"+";
+				}
+				wstmReplaceValue << iParam;
+			}
+			break;
+		case 'i':       // Á¤¼ö·Î º¯È¯
+			{			
+				int iParam = va_arg( marker, int );
+				wstmReplaceValue << iParam;
+			}
+			break;
+		case 'e':       // ºÎÈ£¸¦ Ç¥ÇöÇÏ´Â ½Ç¼ö·Î º¯È¯
+			{
+				// ¼Ò¼öÁ¡ µÚ µÑÂ°ÀÚ¸®±îÁö¸¸ Ç¥ÇöÇÏ°í, ³¡ÀÌ 0ÀÌ¸é 0À» ÀÚ¸¥´Ù. 1.50 -> 1.5
+				double dParam = va_arg( marker, double );
+				wchar_t szNumber[64];
+				StringCchPrintfW( szNumber, ARRAY_SIZE( szNumber ), L"%.2f", dParam );
+				dParam = _wtof( szNumber );
+				if( dParam > 0.0 )
+				{
+					wstmReplaceValue << L"+";
+				}
+				wstmReplaceValue << dParam;
+			}
+			break;
+		case 'f':       // ½Ç¼ö·Î º¯È¯
+			{
+				// ¼Ò¼öÁ¡ µÚ µÑÂ°ÀÚ¸®±îÁö¸¸ Ç¥ÇöÇÏ°í, ³¡ÀÌ 0ÀÌ¸é 0À» ÀÚ¸¥´Ù. 1.50 -> 1.5
+				double dParam = va_arg( marker, double );
+				wchar_t szNumber[64];
+				StringCchPrintfW( szNumber, ARRAY_SIZE( szNumber ), L"%.2f", dParam );
+				dParam = _wtof( szNumber );
+				wstmReplaceValue << dParam;
+			}
+			break;
+
+		case 'I':       // IDÀÇ ¹®ÀÚ¿­·Î º¯È¯
+			{
+				int iParam = va_arg( marker, int );
+				wstmReplaceValue << GET_STRING ( iParam ); 
+			}
+			break;			
+		case 's':       // ¹®ÀÚ¿­·Î º¯È¯
+			{
+				std::string strValue = va_arg( marker, char* );
+				wstmReplaceValue << KncUtil::toWideString( strValue );
+			}
+			break;
+		case 'S':
+			{
+				wstmReplaceValue << va_arg( marker, wchar_t* );
+			}
+			break;
+		case 'l':       // std::string À¸·Î º¯È¯
+			{
+				std::string strValue = va_arg( marker, std::string );
+				wstmReplaceValue << KncUtil::toWideString( strValue );
+			}
+			break;
+		case 'L':       // std::wstring À¸·Î º¯È¯
+			{
+				wstmReplaceValue << va_arg( marker, std::wstring );
+			}
+			break;
+		case 'M':       // ¿µ¾î±Ç ±¹°¡ÀÇ ´Þ·Â Ç¥Çö
+		case 'm':
+			{
+			}
+			break;
+		case 'o':       // ¿µ¾î±Ç ±¹°¡ÀÇ ¼­¼ö Ç¥Çö
+		case 'O':
+			{
+			}
+			break;
+		case 'n':       // ¿µ¾î±Ç ±¹°¡ÀÇ ¼­¼ö Ç¥Çö
+		case 'N':
+			{
+			}
+			break;
+		}
+
+		std::wstring wstrReplaceSymbol = wstmReplaceSymbol.str().c_str();
+		std::wstring wstrReplaceValue = wstmReplaceValue.str().c_str();
+
+		size_t iFindPos = 0;
+		size_t iCurrentPos = 0;
+		while( ( iFindPos = wstrReplacedString.find( wstrReplaceSymbol, iCurrentPos ) ) != std::wstring::npos )
+		{
+			wstrReplacedString.replace( iFindPos, wstrReplaceSymbol.size(), wstrReplaceValue );
+			iCurrentPos = iFindPos + wstrReplaceValue.length();
+		}
+	}
+	va_end( marker );
+
+	return wstrReplacedString;
+}
+
+
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+bool CX2Main::ToggleUnlimitedSkillUse()
+{
+	m_bUnlimitedSkillUse = !m_bUnlimitedSkillUse;
+	return m_bUnlimitedSkillUse;
+}
+#endif //TOGGLE_UNLIMITED_SKILL_USE

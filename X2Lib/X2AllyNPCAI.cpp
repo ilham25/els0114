@@ -14,7 +14,7 @@ m_vFinalDest( 0, 0, 0 )
 , m_TargetData( TargetData() )
 #ifdef EVOKE_TARGETING_BUG_FIX		/// 메뉴얼 타겟팅 추가
 ,m_bEnableLuaTargetingFunc(false)
-,m_wstrLuaTargetingFunc(L"")
+,m_strLuaTargetingFunc("")
 #endif EVOKE_TARGETING_BUG_FIX
 {
 }
@@ -39,16 +39,16 @@ void CX2AllyNPCAI::OnFrameMove( double fTime, float fElapsedTime )
 	{
 #ifdef EVOKE_TARGETING_BUG_FIX		/// 메뉴얼 타겟팅 대상이 없으면, 스크립트내 메뉴얼 타겟 함수에서 타겟 찾아와서 업데이트
 		if( true == m_bEnableLuaTargetingFunc && 
-			false == m_wstrLuaTargetingFunc.empty() )
+			false == m_strLuaTargetingFunc.empty() )
 		{
 			m_fElapsedTimeAfterLastTargeting += fElapsedTime;
 			if( m_fElapsedTimeAfterLastTargeting > m_TargetData.targetInterval )
 			{
 				m_fElapsedTimeAfterLastTargeting = 0.f;
-				string func = "";
-				ConvertWCHARToChar( func, m_wstrLuaTargetingFunc.c_str() );
+				//string func = "";
+				//ConvertWCHARToChar( func, m_strLuaTargetingFunc.c_str() );
 
-				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  func.c_str(), g_pKTDXApp, g_pX2Game, m_pMasterNPC );
+				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  m_strLuaTargetingFunc.c_str(), g_pKTDXApp, g_pX2Game, m_pMasterNPC );
 			}
 			TargetUpdate();
 		}
@@ -83,11 +83,11 @@ void CX2AllyNPCAI::LoadAIDataFromLUA( KLuaManager& luaManager )
 		if( luaManager.BeginTable( "TARGET" ) == true )
 		{
 #ifdef EVOKE_TARGETING_BUG_FIX		/// 메뉴얼 타겟팅 함수 파싱
-			LUA_GET_VALUE( luaManager, "MANUAL_TARGETING_FUNC",	m_TargetData.wstrLuaTargetingFunc,		L"" );
+			LUA_GET_VALUE_UTF8( luaManager, "MANUAL_TARGETING_FUNC",	m_TargetData.strLuaTargetingFunc,		"" );
 
-			if( false == m_TargetData.wstrLuaTargetingFunc.empty() )
+			if( false == m_TargetData.strLuaTargetingFunc.empty() )
 			{
-				SetLuaTargetingFunc( m_TargetData.wstrLuaTargetingFunc );
+				SetLuaTargetingFunc( m_TargetData.strLuaTargetingFunc );
 				SetEnableLuaTargetingFunc( true );
 			}
 #endif EVOKE_TARGETING_BUG_FIX
@@ -108,6 +108,11 @@ void CX2AllyNPCAI::LoadAIDataFromLUA( KLuaManager& luaManager )
 			LUA_GET_VALUE( luaManager, "ATTACK_TARGET_RATE",		m_TargetData.targetAttakerRate,		0 );
 			LUA_GET_VALUE( luaManager, "PRESERVE_LAST_TARGET_RATE", m_TargetData.targetPreserveRate,	0 );
 
+#ifdef ADD_NPC_CONDITION_TABLE
+			LUA_GET_VALUE( luaManager, "TARGET_ONLY_OUR_TEAM",		m_TargetData.bTargetOnlyOurTeam,	false );
+#endif // ADD_NPC_CONDITION_TABLE
+
+
 			luaManager.EndTable(); // TARGET
 		}
 		
@@ -126,13 +131,16 @@ void CX2AllyNPCAI::LoadAIDataFromLUA( KLuaManager& luaManager )
 
 			LUA_GET_VALUE( luaManager, "ONLY_THIS_LINE_GROUP",	m_ChaseMoveData.bStayOnCurrentLineGroup,	false );
 
-
+#ifdef ADD_NPC_CONDITION_TABLE
+			LUA_GET_VALUE( luaManager, "IF_CANNOT_FIND_MOVE_STATE_DO_WAIT",		m_ChaseMoveData.bIfCannotFindMoveStateDoWait, false );
+#endif // ADD_NPC_CONDITION_TABLE
 
 			// random jump
 			LUA_GET_VALUE( luaManager, "RANDOM_JUMP_ENABLED",	m_RandomJumpData.bEnabled,		false );			// 추가된 것
 			LUA_GET_VALUE( luaManager, "JUMP_INTERVAL",			m_RandomJumpData.jumpInterval,		0 );
 			LUA_GET_VALUE( luaManager, "UP_JUMP_RATE",			m_RandomJumpData.jumpUpRate,		0 );
 			LUA_GET_VALUE( luaManager, "UP_DOWN_RATE",			m_RandomJumpData.jumpDownRate,		0 );
+
 
 
 			luaManager.EndTable(); // CHASE_MOVE
@@ -151,7 +159,7 @@ void CX2AllyNPCAI::SetMasterUnitData()
 	// todo!! 미리 한번만 계산해서 가지고 있어야, 아니면 대략 계산하거나
 	// t = v0/g
 	// l = v0*t - 1/2*g*t^2 = 1/2*v0^2/g
-	CX2GameUnit::PhysicParam& physicParam = m_pMasterNPC->GetPhysicParam();	
+	const CX2GameUnit::PhysicParam& physicParam = m_pMasterNPC->GetPhysicParam();	
 
 	float fHalfTimeOnAir;
 	if( physicParam.fGAccel != 0.f )
@@ -181,7 +189,7 @@ bool CX2AllyNPCAI::RallyToAlly()
 	if( m_optrAllyGameUnit->GetNowHp() <= 0.f )
 		return false;
 
-	if( NULL == m_pMasterNPC || NULL == m_pMasterNPC->GetNPCTemplet() )
+	if( NULL == m_pMasterNPC )
 		return false;
 
 	if( CX2UnitManager::NCT_BASIC != m_pMasterNPC->GetClassType() )
@@ -193,7 +201,7 @@ bool CX2AllyNPCAI::RallyToAlly()
 		return false;
 #endif // SERV_NEW_DEFENCE_DUNGEON
 
-	if( CX2UnitManager::NUI_EVOKE_TRAP_LIRE_MEMO == m_pMasterNPC->GetNPCTemplet()->m_nNPCUnitID )
+	if( CX2UnitManager::NUI_EVOKE_TRAP_LIRE_MEMO == m_pMasterNPC->GetNPCTemplet().m_nNPCUnitID )
 		return false;
 
 	float fDist = GetDistance( m_optrAllyGameUnit->GetPos(), m_pMasterNPC->GetPos() );
@@ -229,7 +237,12 @@ void CX2AllyNPCAI::Targeting( float fElapsedTime )
 
 	// 자신을 공격한 유닛을 타겟팅
 	if( m_optrAttackerGameUnit != null &&
-		RandomInt() < m_TargetData.targetAttakerRate )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_pMasterNPC->EstimateFrameAccumPercent( (float) m_TargetData.targetAttakerRate ) == true
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		RandomInt() < m_TargetData.targetAttakerRate
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        )
 	{
 		m_optrTargetGameUnit = m_optrAttackerGameUnit;
 		ResetAttackerGameUnit();
@@ -240,20 +253,22 @@ void CX2AllyNPCAI::Targeting( float fElapsedTime )
 	// 이전 타겟을 유지할까요?
 	if( null != m_optrTargetGameUnit )
 	{
-		if ( CX2GameUnit::GUSI_DIE == m_optrTargetGameUnit->GetGameUnitState() )
-			ResetTarget();
-		else
+		if ( CX2GameUnit::GUSI_DIE != m_optrTargetGameUnit->GetGameUnitState() )
 		{
 			// LostRange 거리 밖이면 타겟하던 것을 없앤다
 			const float fDistance3Sq = GetDistance3Sq( m_optrTargetGameUnit->GetPos(), m_pMasterNPC->GetPos() );
-			if( fDistance3Sq > m_TargetData.targetLostRange * m_TargetData.targetLostRange )
-				ResetTarget();
-			// 거리 내에 있으나 이전 타겟을 확률에 의해 유지 실패하면
-			else if ( RandomFloat( 0.f, 100.f ) > m_TargetData.targetPreserveRate )
-				ResetTarget();
-			else
-				return TargetUpdate();
+			if( fDistance3Sq <= m_TargetData.targetLostRange * m_TargetData.targetLostRange )
+            {
+			    // 거리 내에 있으나 이전 타겟을 확률에 의해 유지 실패하면
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                if ( m_pMasterNPC->EstimateFrameAccumPercent( (float) m_TargetData.targetPreserveRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+			    if ( RandomFloat( 0.f, 100.f ) <= m_TargetData.targetPreserveRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    return TargetUpdate();
+            }
 		}
+        ResetTarget();
 	}
 
 	if( null != m_optrTargetGameUnit )
@@ -270,7 +285,11 @@ void CX2AllyNPCAI::Targeting( float fElapsedTime )
 		}
 
 		// 타겟팅에 성공할 확률 계산
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if( CX2GUNPC::EstimateFrameOneshotPercent( (float) m_TargetData.targetSuccessRate ) == false )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( RandomInt() >= m_TargetData.targetSuccessRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			TargetUpdate();
 			return;
@@ -285,6 +304,10 @@ void CX2AllyNPCAI::Targeting( float fElapsedTime )
 	float			fTargetPickedDistance3Sq		= 0.f;
 	
 	bool			bFoundNearTargetGameUnit		= false;	// 무조건 타겟되는 거리내의 유저를 찾았는지
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_vecpTempGameUnit.resize( 0 );
+    float                       fRate = 0.f;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	for( int i = 0; i < g_pX2Game->GetUnitNum(); i++ )
 	{
@@ -292,7 +315,13 @@ void CX2AllyNPCAI::Targeting( float fElapsedTime )
 		if( NULL == pGameUnit ||
 			pGameUnit->GetNowHp() <= 0.f ||
 			pGameUnit->GetGameUnitState() == CX2GameUnit::GUSI_DIE ||
-			pGameUnit->GetTeam() == m_pMasterNPC->GetTeam() )
+#ifdef ADD_NPC_CONDITION_TABLE
+			( false == m_TargetData.bTargetOnlyOurTeam && pGameUnit->GetTeam() == m_pMasterNPC->GetTeam() ) || // bTargetOnlyOurTeam가 false 일 때 같은 팀이면 타겟 하지 않기.
+			( true == m_TargetData.bTargetOnlyOurTeam && pGameUnit->GetTeam() != m_pMasterNPC->GetTeam() ) // bTargetOnlyOurTeam가 true 일 때 같은 팀이 아니면 타겟 하지 않기.
+#else
+			pGameUnit->GetTeam() == m_pMasterNPC->GetTeam() 
+#endif // ADD_NPC_CONDITION_TABLE
+			)
 		{
 			continue;
 		}
@@ -302,7 +331,12 @@ void CX2AllyNPCAI::Targeting( float fElapsedTime )
 		case CX2GameUnit::GUT_NPC:
 			{
 				CX2GUNPC* pNPC = static_cast<CX2GUNPC*>( pGameUnit );
-				switch( pNPC->GetNPCTemplet()->m_ClassType )
+
+#ifdef ADD_NPC_CONDITION_TABLE
+				if( m_pMasterNPC == pNPC )
+					continue;
+#endif // ADD_NPC_CONDITION_TABLE
+				switch( pNPC->GetNPCTemplet().m_ClassType )
 				{
 				case CX2UnitManager::NCT_THING_GATE:
 				case CX2UnitManager::NCT_THING_BOX:
@@ -389,22 +423,46 @@ void CX2AllyNPCAI::Targeting( float fElapsedTime )
 			default:
 			case TP_RANDOM:
 				{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    m_vecpTempGameUnit.push_back( pGameUnit );
+                    fRate = fRate * 0.5f + 0.5f;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 					if( RandomFloat( 0.f, 100.f ) < 50.f || NULL == pTargetPickedGameUnit )
 					{
 						pTargetPickedGameUnit = pGameUnit;
 					}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				} break;
 
 #ifdef SEASON3_MONSTER_2010_12
 			case TP_ONLY_ONE:
 				{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    m_vecpTempGameUnit.push_back( pGameUnit );
+                    fRate = 1.f;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 					if( NULL == pTargetPickedGameUnit )
 						pTargetPickedGameUnit = pGameUnit;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				} break;
 #endif
 			}
 		}	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( pTargetPickedGameUnit == NULL && m_vecpTempGameUnit.empty() == false
+        && CX2GUNPC::EstimateFrameOneshotPercent( fRate * 100.f ) == true )
+    {
+        if ( m_vecpTempGameUnit.size() == 1 )
+            pTargetPickedGameUnit = m_vecpTempGameUnit.front();
+        else
+        {
+            int i = rand()% m_vecpTempGameUnit.size();
+            pTargetPickedGameUnit = m_vecpTempGameUnit[ i ];
+        }
+    }
+    m_vecpTempGameUnit.resize( 0 );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	m_optrTargetGameUnit = pTargetPickedGameUnit;
 
@@ -422,7 +480,7 @@ void CX2AllyNPCAI::TargetUpdate()
 
 	if ( null == m_optrTargetGameUnit )
 	{
-		m_iFinalDestLineIndex	= m_pMasterNPC->GetNPCFrameData()->syncData.lastTouchLineIndex;
+		m_iFinalDestLineIndex	= m_pMasterNPC->GetNPCFrameData().syncData.lastTouchLineIndex;
 		m_vFinalDest			= m_pMasterNPC->GetPos();
 	}
 	else
@@ -444,7 +502,7 @@ void CX2AllyNPCAI::Moving( float fElapsedTime )
 		return; 
 
 	bool bNewIsRight = m_pMasterNPC->GetIsRight();
-	const int iLastLineIndex = m_pMasterNPC->GetNPCFrameData()->syncData.lastTouchLineIndex;
+	const int iLastLineIndex = m_pMasterNPC->GetNPCFrameData().syncData.lastTouchLineIndex;
 
 
 	// 현재 라인그룹을 유지해야하는데 타겟이 다른 라인그룹에 있다면
@@ -487,7 +545,11 @@ void CX2AllyNPCAI::Moving( float fElapsedTime )
 		{
 			m_fElapsedTimeAfterLastRandomJump = 0.f;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            if ( CX2GUNPC::EstimateFrameOneshotPercent( (float) m_RandomJumpData.jumpUpRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if( RandomInt() < m_RandomJumpData.jumpUpRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			{
 				if( rand()%2 == 0 )
 				{
@@ -500,7 +562,11 @@ void CX2AllyNPCAI::Moving( float fElapsedTime )
 				
 				goto SEND_AI_MESSAGE;
 			}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            else if( CX2GUNPC::EstimateFrameOneshotPercent( (float) m_RandomJumpData.jumpDownRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			else if( RandomInt() < m_RandomJumpData.jumpDownRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			{
 				if( rand()%2 == 0 )
 				{
@@ -523,9 +589,13 @@ void CX2AllyNPCAI::Moving( float fElapsedTime )
 		m_vFinalDest, m_iFinalDestLineIndex, 
 		m_fMaxJumpUp, m_fMaxJumpRight, pLineMap, 
 		m_ChaseMoveData.destGap, m_ChaseMoveData.moveGap,
-		m_pMasterNPC->GetNPCFrameData()->unitCondition.bFootOnLine,
+		m_pMasterNPC->GetNPCFrameData().unitCondition.bFootOnLine,
 		m_ChaseMoveData.bStayOnCurrentLineGroup,  
-		bIsTargetOnRight, MAGIC_LINE_END_DETECT_RANGE );
+		bIsTargetOnRight, MAGIC_LINE_END_DETECT_RANGE 
+#ifdef ADD_NPC_CONDITION_TABLE
+		, m_ChaseMoveData.bIfCannotFindMoveStateDoWait		
+#endif // ADD_NPC_CONDITION_TABLE
+		);
 
 
 	// 타겟을 바라보고 서 있는지

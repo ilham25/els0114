@@ -2,13 +2,14 @@
 #include ".\x2camera.h"
 
 CX2Camera::CX2Camera(void)
+    : m_kCamera( g_pKTDXApp->GetDGManager()->GetCamera() )
 #ifdef IN_GAME_MANUAL_CAMERA_POSITION_TEST
-	: m_bEnabledManualCameraPosition( false )
+	, m_bEnabledManualCameraPosition( false )
 	, m_vManualCameraPosition( 0, 0, 0 )
 #endif IN_GAME_MANUAL_CAMERA_POSITION_TEST
 {  
 	m_CameraState		= CS_NORMAL;
-	m_pCamera			= g_pKTDXApp->GetDGManager()->GetCamera();
+	//m_pCamera			= g_pKTDXApp->GetDGManager()->GetCamera();
 	m_fLand				= 0.0f;
 	m_fAngleDegree		= 0.0f;
 	m_fSetAngleDegree	= 0.0f;
@@ -154,7 +155,7 @@ HRESULT CX2Camera::OnFrameMove( double fTime, float fElapsedTime )
 #endif KEYFRAME_CAMERA
 	m_LineScriptedCameraData.OnFrameMove( fTime, fElapsedTime );
 
-	m_pCamera->UpdateCamera( fElapsedTime );
+	m_kCamera.UpdateCamera( fElapsedTime );
 
 	return S_OK;
 }
@@ -167,27 +168,28 @@ void CX2Camera::PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger, 
 		luaManger.EndTable();
 	}
 }
-void CX2Camera::PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger, const WCHAR* pTableName )
+void CX2Camera::PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger, const char* pszTableNameUTF8 )
 {
-	if( luaManger.BeginTable( pTableName ) == true )
+	if( luaManger.BeginTable( pszTableNameUTF8 ) == true )
 	{
 		// 캐릭터 left, right 방향에 따른 카메라 셋팅 설정
 		bool bDirection = false;
 		LUA_GET_VALUE(		luaManger, "Direction",		bDirection,		false );		
 
-		wstring wstrDirectionCamera = L"";
+
 		if( bDirection == true )
 		{
+		    const char* pszDirectionCamera = "";
 			if( pFocusUnit->GetIsRight() == true )
 			{
-				wstrDirectionCamera = L"RightDirCamear";
+				pszDirectionCamera = "RightDirCamear";
 			}
 			else
 			{
-				wstrDirectionCamera = L"LeftDirCamear";
+				pszDirectionCamera = "LeftDirCamear";
 			}
 
-			if( luaManger.BeginTable( wstrDirectionCamera.c_str() ) == true )
+			if( luaManger.BeginTable( pszDirectionCamera ) == true )
 			{
 				PlayLuaCamera( pFocusUnit, luaManger );
 				luaManger.EndTable();
@@ -212,7 +214,7 @@ void CX2Camera::PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger )
 	LUA_GET_VALUE_ENUM( luaManger, "CAMERA_TYPE",		cameraType, CAMERA_TYPE, CT_NORMAL_TRACKING );
 	
 	float			distance;
-	LUA_GET_VALUE(		luaManger, "DISTANCE",			distance,		g_pMain->GetGameOption()->GetCameraDistance() );
+	LUA_GET_VALUE(		luaManger, "DISTANCE",			distance,		g_pMain->GetGameOption().GetCameraDistance() );
 
 	float			height;
 	LUA_GET_VALUE(		luaManger, "HEIGHT",			height,			200.0f );
@@ -244,8 +246,13 @@ void CX2Camera::PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger )
 				float			fTrackingTime;
 				LUA_GET_VALUE(		luaManger, "TRACKINGTIME",		fTrackingTime,	0.3f );
 
+				EYE_POS_RELATIVE_UNIT eEysPosRelativeUnit;
+				LUA_GET_VALUE_ENUM( luaManger, "EYE_POS_RELATIVE_UNIT",		eEysPosRelativeUnit, EYE_POS_RELATIVE_UNIT, EPRU_FOUCS_UNIT );
+
 				D3DXVECTOR3 vEyePos( 0.0f, 0.0f, 0.0f );
-				if ( ParsingEyeTypeAndPos( luaManger, pFocusUnit, vEyePos ) )
+				if( EPRU_MY_UNIT == eEysPosRelativeUnit && ParsingEyeTypeAndPos( luaManger, g_pX2Game->GetMyUnit(), vEyePos ) )
+					PartsLookTrackingCameraFromPartsEye( pFocusUnit, vLookPos, vEyePos, fTrackingTime );
+				else if ( ParsingEyeTypeAndPos( luaManger, pFocusUnit, vEyePos ) )
 					PartsLookTrackingCameraFromPartsEye( pFocusUnit, vLookPos, vEyePos, fTrackingTime );
 				else
 					PartsLookTrackingCamera( pFocusUnit, vLookPos, distance, height, angleDegree, eyeDistance, lookDistance, fTrackingTime );
@@ -265,8 +272,13 @@ void CX2Camera::PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger )
 			D3DXVECTOR3 vLookPos( 0.0f, 0.0f, 0.0f );
 			if ( ParsingLookTypeAndPos( luaManger, pFocusUnit, vLookPos ) )
 			{
+				EYE_POS_RELATIVE_UNIT eEysPosRelativeUnit;
+				LUA_GET_VALUE_ENUM( luaManger, "EYE_POS_RELATIVE_UNIT",		eEysPosRelativeUnit, EYE_POS_RELATIVE_UNIT, EPRU_FOUCS_UNIT );
+
 				D3DXVECTOR3 vEyePos( 0.0f, 0.0f, 0.0f );
-				if ( ParsingEyeTypeAndPos( luaManger, pFocusUnit, vEyePos ) )
+				if( EPRU_MY_UNIT == eEysPosRelativeUnit && ParsingEyeTypeAndPos( luaManger, g_pX2Game->GetMyUnit(), vEyePos ) )
+					PartsLookDirectCameraFromPartsEye( pFocusUnit, vLookPos, vEyePos );
+				else if ( ParsingEyeTypeAndPos( luaManger, pFocusUnit, vEyePos ) )
 					PartsLookDirectCameraFromPartsEye( pFocusUnit, vLookPos, vEyePos );
 				else
 					PartsLookDirectCamera( pFocusUnit, vLookPos, distance, height, angleDegree, eyeDistance, lookDistance );
@@ -365,7 +377,7 @@ void CX2Camera::ManualTrackingCamera( CX2GameUnit* pFocusUnit, float distance, c
 	if( lookAt.y < m_fLand + fCameraHeightCompensation )
 		lookAt.y = m_fLand + fCameraHeightCompensation;
 
-	m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, 0.3f );
+	m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, 0.3f );
 }
 
 #endif IN_GAME_MANUAL_CAMERA_POSITION_TEST
@@ -533,7 +545,7 @@ void CX2Camera::NomalTrackingCamera( CX2GameUnit* pFocusUnit, float distance, fl
 		eye.y = m_fLand + fCameraHeightCompensation;
 	if( lookAt.y < m_fLand + fCameraHeightCompensation )
 		lookAt.y = m_fLand + fCameraHeightCompensation;
-	m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime, trackingAtTime );
+	m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime, trackingAtTime );
 }
 #ifdef MODIFY_LINEMAP_JUMPUP_IN_VILLAGE
 void CX2Camera::NomalTrackingCamera( CX2SquareUnit* pFocusUnit, float distance, float height, float angleDegree, float eyeDistance, 
@@ -592,7 +604,7 @@ void CX2Camera::NomalTrackingCamera( CX2SquareUnit* pFocusUnit, float distance, 
 		eye.y = m_fLand + fCameraHeightCompensation;
 	if( lookAt.y < m_fLand + fCameraHeightCompensation )
 		lookAt.y = m_fLand + fCameraHeightCompensation;
-	m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime, trackingAtTime );
+	m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime, trackingAtTime );
 }
 #endif //MODIFY_LINEMAP_JUMPUP_IN_VILLAGE
 void CX2Camera::PartsLookTrackingCamera( CX2GameUnit* pFocusUnit, D3DXVECTOR3 look, float distance, float height, float angleDegree, float eyeDistance, float lookatDistance, float trackingTime )
@@ -623,7 +635,7 @@ void CX2Camera::PartsLookTrackingCamera( CX2GameUnit* pFocusUnit, D3DXVECTOR3 lo
 		eye.z	=	look.z + cosf( D3DXToRadian(pFocusUnit->GetYRotateDegree() + 180.0f - angleDegree) ) * -distance;
 		eye		+=	(pFocusUnit->GetDirVector() * -eyeDistance);
 	}
-	m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
+	m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
 }
 
 void CX2Camera::NomalDirectCamera( CX2GameUnit* pFocusUnit, float distance, float height, float angleDegree, float eyeDistance, float lookatDistance )
@@ -684,7 +696,7 @@ void CX2Camera::NomalDirectCamera( CX2GameUnit* pFocusUnit, float distance, floa
 		eye.y = m_fLand + fCameraHeightCompensation;
 	if( lookAt.y < m_fLand + fCameraHeightCompensation )
 		lookAt.y = m_fLand + fCameraHeightCompensation;
-	m_pCamera->Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
+	m_kCamera.Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
 }
 
 
@@ -724,7 +736,7 @@ void CX2Camera::PartsLookDirectCamera( CX2GameUnit* pFocusUnit, D3DXVECTOR3 look
 		eye.z = look.z + cosf( D3DXToRadian(pFocusUnit->GetYRotateDegree() + 180.0f - angleDegree) ) * -distance;
 		eye += (pFocusUnit->GetDirVector() * -eyeDistance);
 	}
-	m_pCamera->Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
+	m_kCamera.Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
 }
 
 void CX2Camera::FieldCamera( CX2SquareUnit* pFocusUnit, float distance, float lookatheight, float eyeHeight, float angleDegree, float trackingTime )
@@ -766,7 +778,7 @@ void CX2Camera::FieldCamera( CX2SquareUnit* pFocusUnit, float distance, float lo
 		eye.y = m_fLand + 200.0f;
 	if( lookAt.y < m_fLand + 200.0f )
 		lookAt.y = m_fLand + 200.0f;
-	m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
+	m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
 }
 
 
@@ -813,7 +825,7 @@ void CX2Camera::SquareCamera( CX2SquareUnit* pFocusUnit, float distance, float e
 		eye.y = m_fLand + 200.0f;
 	if( lookAt.y < m_fLand + 200.0f )
 		lookAt.y = m_fLand + 200.0f;
-	m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
+	m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
 }//CX2Camera::SquareCamera()
 
 void CX2Camera::SquareCamera( CX2SquareUnit* pFocusUnit, D3DXVECTOR3 vLookAt, float distance, float height, float angleDegree, float eyeDistance, float lookatDistance, float trackingTime )
@@ -855,13 +867,12 @@ void CX2Camera::SquareCamera( CX2SquareUnit* pFocusUnit, D3DXVECTOR3 vLookAt, fl
 		eye.y = m_fLand + 200.0f;
 	if( lookAt.y < m_fLand + 200.0f )
 		lookAt.y = m_fLand + 200.0f;
-	m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
+	m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
 }//CX2Camera::SquareCamera()
 
 //{{ seojt // 2008-10-23, 15:44
 void CX2Camera::SquareCameraUpdate( CX2SquareUnit* pFocusUnit, float distance, float height, float angleDegree, float eyeDistance, float lookatDistance )
 {
-	ASSERT( m_pCamera );
 	m_CameraState	= CS_NORMAL;
 
 	if( pFocusUnit == NULL )
@@ -902,15 +913,14 @@ void CX2Camera::SquareCameraUpdate( CX2SquareUnit* pFocusUnit, float distance, f
 	if( lookAt.y < m_fLand + 200.0f )
 		lookAt.y = m_fLand + 200.0f;
 
-	//m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
+	//m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
 
 	//D3DXVECTOR3 vUp( 0, 1, 0 );
-	m_pCamera->UpdateViewTransform( eye, lookAt );
+	m_kCamera.UpdateViewTransform( eye, lookAt );
 }//CX2Camera::SquareCameraUpdate()
 
 void CX2Camera::TFieldCameraUpdate( CX2SquareUnit* pFocusUnit, float distance, float lookatHeight, float height, float angleDegree, float eyeDistance, float lookatDistance )
 {
-	ASSERT( m_pCamera );
 	m_CameraState	= CS_NORMAL;
 
 	if( pFocusUnit == NULL )
@@ -945,10 +955,10 @@ void CX2Camera::TFieldCameraUpdate( CX2SquareUnit* pFocusUnit, float distance, f
 	if( lookAt.y < m_fLand + 200.0f )
 		lookAt.y = m_fLand + 200.0f;
 
-	//m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
+	//m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
 
 	//D3DXVECTOR3 vUp( 0, 1, 0 );
-	m_pCamera->UpdateViewTransform( eye, lookAt );
+	m_kCamera.UpdateViewTransform( eye, lookAt );
 }//CX2Camera::TFieldCameraUpdate()
 //}} seojt // 2008-10-23, 15:44
 
@@ -987,7 +997,7 @@ void CX2Camera::SquareLineCamera( CX2SquareUnit* pFocusUnit, const D3DXVECTOR3& 
 	if( lookAt.y < m_fLand + 200.0f )
 		lookAt.y = m_fLand + 200.0f;
 
-	m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
+	m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
 }
 
 #endif NEW_VILLAGE_RENDERING_TEST
@@ -1031,7 +1041,7 @@ void CX2Camera::GameLineCamera( CX2GUUser* pFocusUnit, const D3DXVECTOR3& vEye, 
 	if( lookAt.y < m_fLand + 200.0f )
 		lookAt.y = m_fLand + 200.0f;
 
-	m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
+	m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, trackingTime );
 }
 
 
@@ -1047,7 +1057,7 @@ void CX2Camera::FixedCamera( CX2GameUnit* pFocusUnit, D3DXVECTOR3 vLookAt, D3DXV
 	float fZoomScale = 1.f;
 
 	// note!! 아케이드 모드에서는 카메라 zoom in/out 안되게
-	//switch( g_pMain->GetGameOption()->GetOptionList()->m_iZoomLevel )
+	//switch( g_pMain->GetGameOption().GetOptionList().m_iZoomLevel )
 	//{
 	//default:
 	//case 0:
@@ -1110,7 +1120,7 @@ void CX2Camera::FixedCamera( CX2GameUnit* pFocusUnit, D3DXVECTOR3 vLookAt, D3DXV
 
 			m_vArcadeCameraLookAt	= lookAt;
 			m_vArcadeCameraEye		= eye;
-			m_pCamera->Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
+			m_kCamera.Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
 
 		} break;
 
@@ -1174,11 +1184,11 @@ void CX2Camera::FixedCamera( CX2GameUnit* pFocusUnit, D3DXVECTOR3 vLookAt, D3DXV
 			m_vArcadeCameraEye		= eye;
 			if( true == bDirect )
 			{
-				m_pCamera->Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
+				m_kCamera.Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
 			}
 			else
 			{
-				m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, fTrackingTime );
+				m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, fTrackingTime );
 			}
 
 		} break;
@@ -1229,11 +1239,11 @@ void CX2Camera::FixedCamera( CX2GameUnit* pFocusUnit, D3DXVECTOR3 vLookAt, D3DXV
 			m_vArcadeCameraEye		= eye;
 			if( true == bDirect )
 			{
-				m_pCamera->Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
+				m_kCamera.Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
 			}
 			else
 			{
-				m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, fTrackingTime );
+				m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, fTrackingTime );
 			}
 		} break;
 
@@ -1282,11 +1292,11 @@ void CX2Camera::FixedCamera( CX2GameUnit* pFocusUnit, D3DXVECTOR3 vLookAt, D3DXV
 			m_vArcadeCameraEye		= eye;
 			if( true == bDirect )
 			{
-				m_pCamera->Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
+				m_kCamera.Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
 			}
 			else
 			{
-				m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, fTrackingTime );
+				m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, fTrackingTime );
 			}
 
 
@@ -1329,11 +1339,11 @@ void CX2Camera::FixedCamera( CX2GameUnit* pFocusUnit, D3DXVECTOR3 vLookAt, D3DXV
 			m_vArcadeCameraEye		= eye;
 			if( true == bDirect )
 			{
-				m_pCamera->Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
+				m_kCamera.Point( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z );
 			}
 			else
 			{
-				m_pCamera->SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, fTrackingTime );
+				m_kCamera.SetTracking( eye.x, eye.y, eye.z, lookAt.x, lookAt.y, lookAt.z, fTrackingTime );
 			}
 
 		} break;
@@ -1352,8 +1362,8 @@ void CX2Camera::ManualDirectCamera( const D3DXVECTOR3& vEye, const D3DXVECTOR3& 
 {
 	m_CameraState = CS_EVENT;
 
-	m_pCamera->Point( vEye.x, vEye.y, vEye.z, vLookAt.x, vLookAt.y, vLookAt.z );
-	//m_pCamera->SetTracking( vEye.x, vEye.y, vEye.z, vLookAt.x, vLookAt.y, vLookAt.z, 0.3f );
+	m_kCamera.Point( vEye.x, vEye.y, vEye.z, vLookAt.x, vLookAt.y, vLookAt.z );
+	//m_kCamera.SetTracking( vEye.x, vEye.y, vEye.z, vLookAt.x, vLookAt.y, vLookAt.z, 0.3f );
 }
 
 
@@ -1529,12 +1539,12 @@ void CX2Camera::UpdateUIAngleInterpolation()
 
 void CX2Camera::SetViewNowKeyFrame()
 {
-	GetCamera()->SetTrackingTime(0.f);
+	m_kCamera.SetTrackingTime(0.f);
 
 	// 카메라 뷰 설정
 	D3DXVECTOR3 vEyePositionOut(0, 0, 0);
 	vEyePositionOut = m_vecWorldCameraData[0].m_vecKeyFrameCameraData[m_iEditKeyFrameIndex].m_vEyePosition;
-	GetCamera()->Move( vEyePositionOut.x, vEyePositionOut.y, vEyePositionOut.z );
+	m_kCamera.Move( vEyePositionOut.x, vEyePositionOut.y, vEyePositionOut.z );
 
 	D3DXVECTOR3 vLookAtOut(0, 0, 0);
 	D3DXVECTOR3 vLookAtPos(0, 0, 0);
@@ -1543,7 +1553,7 @@ void CX2Camera::SetViewNowKeyFrame()
 		WCHAR buff[256] = {0};
 
 		vLookAtPos = m_vecWorldCameraData[0].m_vecKeyFrameCameraData[m_iEditKeyFrameIndex].m_vLookAtPos;
-		GetCamera()->LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
+		m_kCamera.LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
 
 		int iCoordX = (int)vLookAtPos.x;
 		_itow( iCoordX, buff, 10 );
@@ -1564,16 +1574,16 @@ void CX2Camera::SetViewNowKeyFrame()
 	{
 		vLookAtOut = m_vecWorldCameraData[0].m_vecKeyFrameCameraData[m_iEditKeyFrameIndex].m_vLookAt;
 		vLookAtPos = vLookAtOut * 500.f + vEyePositionOut;
-		GetCamera()->LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
+		m_kCamera.LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
 	}
 
 
 
 	D3DXVECTOR3 vUpVecOut(0, 0, 0);
 	vUpVecOut = m_vecWorldCameraData[0].m_vecKeyFrameCameraData[m_iEditKeyFrameIndex].m_vUpVec;
-	GetCamera()->UpVec( vUpVecOut.x, vUpVecOut.y, vUpVecOut.z );
+	m_kCamera.UpVec( vUpVecOut.x, vUpVecOut.y, vUpVecOut.z );
 
-	GetCamera()->UpdateCamera( 0 );
+	m_kCamera.UpdateCamera( 0 );
 
 	GetFPSCamera()->SetViewParams( &vEyePositionOut, &vLookAtPos, &vUpVecOut );
 
@@ -2155,7 +2165,7 @@ bool CX2Camera::LoadWorldCamera( const WCHAR* pFileName )
 
 	m_wstrNowWorldCameraFilename = pFileName;
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pCamera", this );
-	if(true == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName ))
+	if(true == g_pKTDXApp->LoadLuaTinker( pFileName ))
 	{
 		PreProcessOnCurve(false);
 		return true;
@@ -2269,7 +2279,9 @@ void CX2Camera::PreProcessOnCurve( bool bWorldCameraEdit )
 bool CX2Camera::AddWorldCameraData_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	WorldCameraData kWorldCameraData;
 
@@ -2392,7 +2404,7 @@ void CX2Camera::WorldCameraFrameMove( double fTime, float fElapsedTime )
 	}
 
 	// 트래킹 카메라 끄기
-	GetCamera()->SetTrackingTime(0.f);
+	m_kCamera.SetTrackingTime(0.f);
 
 
 
@@ -2563,7 +2575,7 @@ void CX2Camera::WorldCameraFrameMove( double fTime, float fElapsedTime )
 
 	D3DXVec3CatmullRom( &vEyePositionOut, &vEyePosition0, &vEyePosition1, &vEyePosition2, &vEyePosition3, s );
 
-	GetCamera()->Move( vEyePositionOut.x, vEyePositionOut.y, vEyePositionOut.z );
+	m_kCamera.Move( vEyePositionOut.x, vEyePositionOut.y, vEyePositionOut.z );
 	*/	
 
 
@@ -2589,19 +2601,19 @@ void CX2Camera::WorldCameraFrameMove( double fTime, float fElapsedTime )
 	D3DXVECTOR3 vMoveTargetPos = m_pNowPlayingWorldCamera->m_vecKeyFrameCameraData[m_iNowKeyFrameIndex].m_vecEyeInterPosition[m_iNowEyeInterPositionIndex].m_vEyeInterPosition + 
 		vDirInterPosition * m_iNowEyeInterPositionMoveDistance;
 
-	GetCamera()->Move( vMoveTargetPos.x, vMoveTargetPos.y, vMoveTargetPos.z );
+	m_kCamera.Move( vMoveTargetPos.x, vMoveTargetPos.y, vMoveTargetPos.z );
 
 
 
 	if(AIT_FIXED == m_pNowPlayingWorldCamera->m_vecKeyFrameCameraData[m_iNowKeyFrameIndex].m_eAITType)
 	{
 		D3DXVECTOR3 vLookAtPos = m_pNowPlayingWorldCamera->m_vecKeyFrameCameraData[m_iNowKeyFrameIndex].m_vLookAtPos;
-		GetCamera()->LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
+		m_kCamera.LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
 		/*
 		D3DXVECTOR3 vUpVec1 = m_pNowPlayingWorldCamera->m_vecKeyFrameCameraData[IdxPos[1]].m_vUpVec;
 
 
-		GetCamera()->UpVec( vUpVec1.x, vUpVec1.y, vUpVec1.z );
+		m_kCamera.UpVec( vUpVec1.x, vUpVec1.y, vUpVec1.z );
 		*/
 	}
 	else if(AIT_TRACE == m_pNowPlayingWorldCamera->m_vecKeyFrameCameraData[m_iNowKeyFrameIndex].m_eAITType)
@@ -2619,7 +2631,7 @@ void CX2Camera::WorldCameraFrameMove( double fTime, float fElapsedTime )
 				vLookAtPos = pUser->GetPos() + vLookAtPosOffset;
 			}
 		}
-		GetCamera()->LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
+		m_kCamera.LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
 	}
 	else 
 	{
@@ -2691,7 +2703,7 @@ void CX2Camera::WorldCameraFrameMove( double fTime, float fElapsedTime )
 		vLookAtOut = (sinf((1.f - t)*fAngle)/sinf(fAngle))*vLookAt1 + (sinf(t*fAngle)/sinf(fAngle))*vLookAt2;
 
 		D3DXVECTOR3 vLookAtPos = vLookAtOut * 500.f + vMoveTargetPos;
-		GetCamera()->LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
+		m_kCamera.LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
 
 	}
 
@@ -2713,13 +2725,13 @@ void CX2Camera::WorldCameraFrameMove( double fTime, float fElapsedTime )
 
 	D3DXVECTOR3 vUpVecOut(qrtUpVecOut.x, qrtUpVecOut.y, qrtUpVecOut.z);
 
-	GetCamera()->UpVec( vUpVecOut.x, vUpVecOut.y, vUpVecOut.z );
+	m_kCamera.UpVec( vUpVecOut.x, vUpVecOut.y, vUpVecOut.z );
 
 
 
 	if(AIT_TRACE == m_pNowPlayingWorldCamera->m_vecKeyFrameCameraData[m_iNowKeyFrameIndex].m_eAITType)
 	{
-		GetCamera()->UpVec( 0.f, 1.f, 0.f );
+		m_kCamera.UpVec( 0.f, 1.f, 0.f );
 	}
 
 	return;
@@ -2739,7 +2751,7 @@ bool CX2Camera::StartWorldCamera(int iWorldCameraID )
 		//PreProcessOnCurve(true);
 	}
 
-	GetCamera()->SetFixedUpVec(false);
+	m_kCamera.SetFixedUpVec(false);
 
 	if(m_bWorldCameraEdit == true)
 	{
@@ -2763,9 +2775,9 @@ bool CX2Camera::StartWorldCamera(int iWorldCameraID )
 				D3DXVECTOR3 vLookAtPos = m_vecWorldCameraData[0].m_vecKeyFrameCameraData[0].m_vLookAtPos;
 				D3DXVECTOR3 vUpVecOut = m_vecWorldCameraData[0].m_vecKeyFrameCameraData[0].m_vUpVec;
 
-				GetCamera()->Move( vMoveTargetPos.x, vMoveTargetPos.y, vMoveTargetPos.z );
-				GetCamera()->LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
-				GetCamera()->UpVec( vUpVecOut.x, vUpVecOut.y, vUpVecOut.z );
+				m_kCamera.Move( vMoveTargetPos.x, vMoveTargetPos.y, vMoveTargetPos.z );
+				m_kCamera.LookAt( vLookAtPos.x, vLookAtPos.y, vLookAtPos.z );
+				m_kCamera.UpVec( vUpVecOut.x, vUpVecOut.y, vUpVecOut.z );
 
 				m_bHoldViewWorldCamera = true;
 
@@ -2798,7 +2810,7 @@ bool CX2Camera::StartWorldCamera(int iWorldCameraID )
 }
 void CX2Camera::EndWorldCamera()
 {
-	GetCamera()->SetFixedUpVec(true);
+	m_kCamera.SetFixedUpVec(true);
 
 	if(true == m_bWorldCameraEdit || true == m_bWorldCameraManualPlay)
 	{
@@ -2911,7 +2923,7 @@ void CX2Camera::PartsLookTrackingCameraFromPartsEye( CX2GameUnit* pFocusUnit, co
 	if ( NULL != pFocusUnit )
 	{
 		m_CameraState	= CS_EVENT;
-		m_pCamera->SetTracking( vEyePos_.x, vEyePos_.y, vEyePos_.z, vLookPos_.x, vLookPos_.y, vLookPos_.z, fTrackingTime_ );
+		m_kCamera.SetTracking( vEyePos_.x, vEyePos_.y, vEyePos_.z, vLookPos_.x, vLookPos_.y, vLookPos_.z, fTrackingTime_ );
 	}
 }
 
@@ -2925,11 +2937,11 @@ void CX2Camera::PartsLookDirectCameraFromPartsEye( CX2GameUnit* pFocusUnit, cons
 	if ( NULL != pFocusUnit )
 	{
 		m_CameraState	= CS_EVENT;
-		m_pCamera->Point( vEyePos_.x, vEyePos_.y, vEyePos_.z, vLookPos_.x, vLookPos_.y, vLookPos_.z );
+		m_kCamera.Point( vEyePos_.x, vEyePos_.y, vEyePos_.z, vLookPos_.x, vLookPos_.y, vLookPos_.z );
 	}
 }
 
-bool CX2Camera::ParsingLookTypeAndPos( KLuaManager& luaManger_, CX2GameUnit* pFocusUnit_, OUT D3DXVECTOR3& vLookPos_ )
+bool CX2Camera::ParsingLookTypeAndPos( KLuaManager& luaManger_, const CX2GameUnit* pFocusUnit_, OUT D3DXVECTOR3& vLookPos_ )
 {
 	LOOK_TYPE eLookType;
 	LUA_GET_VALUE_RETURN_ENUM( luaManger_, "LOOK_TYPE",		eLookType,		LOOK_TYPE, LT_BONE, return false );
@@ -2989,7 +3001,7 @@ bool CX2Camera::ParsingLookTypeAndPos( KLuaManager& luaManger_, CX2GameUnit* pFo
 	return true;
 }
 
-bool CX2Camera::ParsingEyeTypeAndPos( KLuaManager& luaManger_,CX2GameUnit* pFocusUnit_, OUT D3DXVECTOR3& vEyePos_ )
+bool CX2Camera::ParsingEyeTypeAndPos( KLuaManager& luaManger_, const CX2GameUnit* pFocusUnit_, OUT D3DXVECTOR3& vEyePos_ )
 {
 	EYE_TYPE eEyeType;
 	LUA_GET_VALUE_RETURN_ENUM( luaManger_, "EYE_TYPE",		eEyeType,		EYE_TYPE, ET_BONE, return false );

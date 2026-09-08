@@ -4,7 +4,26 @@ class CX2GameUnit;
 typedef KObserverPtr<CX2GameUnit>   CX2GameUnitoPtr;
 
 class CX2GUUser;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+struct  CX2DamageEffect_CEffect_TAG {};
+typedef KHandleType<int,CX2DamageEffect_CEffect_TAG>     CX2DamageEffect_CEffectHandle;
+#define INVALID_DAMAGE_EFFECT_HANDLE    (CX2DamageEffect_CEffectHandle::invalid_handle())
+
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+typedef int CX2DamageEffect_CEffectHandle;
+static const CX2DamageEffect_CEffectHandle INVALID_DAMAGE_EFFECT_HANDLE = CX2DamageEffect_CEffectHandle(-1);
+
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 class CX2DamageEffectBasic;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+
 class CX2DamageManager
 {
 	public:
@@ -21,6 +40,16 @@ class CX2DamageManager
 #ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
 			DTT_MARK_OF_COMMANDER,
 #endif SERV_ADD_CHUNG_SHELLING_GUARDIAN
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 레나 컴뱃 레인저, 날카로운 발차기의 일부 액티브 스킬 MP 회수율 증가를 시켜주는 Trigger Type
+			DTT_SHARP_KICK_RELATE_ACTIVE_SKILL_INCREASE_MP_RATE,					
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+			// 기동 코어 공격에 반응하지 않는 AT_SPECIAL 공격의 Trigger Type ( 이브만 해당 )
+			DTT_EVE_MANEUVER_ATTACK,
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 			DTT_END,
 		};
 #endif
@@ -32,10 +61,11 @@ class CX2DamageManager
 			DT_MAGIC,				/// 마법 타격
 			DT_MIX,					/// 물리,마법 공격
 
-			// kimhc // WEAPON_DAMAGE_WITHOUT_STAT 디파인과 같이 추가 함
 			DT_WEAPON_PHYSIC,		/// 무기의 물리공격력(스탯제외)
 			DT_WEAPON_MAGIC,		/// 무기의 마법공격력(스탯제외)
 			DT_WEAPON_MIX,			/// 무기의 물리, 마법 공격력(스탯제외)
+
+			DT_BUFF,				/// 버프용. 이 공격타입은 피*타격시 마나 + 증가치, 피*타격시 각성 + 증가치, 길드 스킬 값에 영향을 주지 않는다
 		};
 
 		/// 공격 형태
@@ -121,6 +151,22 @@ class CX2DamageManager
 #endif
 #pragma endregion 
 
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			HT_ELECTRIC_1,				/// 전기히트 1
+			HT_ELECTRIC_2,				/// 전기히트 2
+			HT_PLASMA_1,				/// 플라즈마히트 1
+			HT_PLASMA_2,				/// 플라즈마히트 2
+			HT_PRESSURE_1,				/// 기합/공기압히트 1
+			HT_PRESSURE_2,				/// 기합/공기압히트 2
+			HT_WATER_1,					/// 액체히트 1
+			HT_WATER_2,					/// 액체히트 2
+			HT_WATER_3,					/// 액체히트 3
+			HT_ICE,						/// 얼음히트
+			HT_METAL,					/// 쇳덩이히트
+			HT_WIND,					/// 바람히트
+			HT_STONE,					/// 돌덩이 히트
+#endif //SERV_9TH_NEW_CHARACTER
+
 			HIT_TYPE_COUNT,
 		};		
 		
@@ -184,6 +230,11 @@ class CX2DamageManager
 //#ifdef ARA_CHANGE_CLASS_FIRST
 			RT_AVOIDANCE,				/// 회피
 //#endif //ARA_CHANGE_CLASS_FIRST
+// #ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+			RT_FLIP_DIFF_DIR,					/// kimjh, 유저와 다른 방향을 바라보도록 ( 서로 마주보도록 ) 회전 // 도발에 사용
+			RT_FLIP_DIFF_DIR_DUMMY_DAMAGE,		/// kimjh, 유저와 다른 방향을 바라보도록 ( 서로 마주보도록 ) 회전 // 도발에 사용
+// #endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
 		};
 
 		enum REACTER_TYPE
@@ -252,9 +303,7 @@ class CX2DamageManager
 			EDT_WATER_HOLD,
 //#endif EDT_WATER_HOLD_TEST
 
-//#ifdef EXTRA_BIGHEAD
 			EDT_BIGHEAD,				// 유저에게 사용 불가 (user reform scale과 충돌남)
-//#endif
 			//{{ 2011-04 에 패치될 청 캐시 스킬
 //#ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 			EDT_PANIC,					/// 좌우키 반전이 몇초 간격으로 걸렸다 풀렸다를 반복 & 크리티컬에 당할 확률 증가
@@ -327,6 +376,11 @@ class CX2DamageManager
 			EDT_SPIRIT_SWORD,		
 			EDT_GHOST_SWORD,
 //#endif //ADD_SOCKET_OPTION_SANDER_SET
+
+//#ifdef HAMEL_SECRET_DUNGEON // 김태환
+			EDT_ACTIVE_DEBUFF,		/// 타격시 특정 디버프를 적용
+//#endif // HAMEL_SECRET_DUNGEON
+
 //#ifdef EDT_EVENT_SMASH_THIRD
 			EDT_EVENT_SMASH_3,
 //#endif EDT_EVENT_SMASH_THIRD
@@ -404,6 +458,38 @@ class CX2DamageManager
 		};
 #endif ELSWORD_WAY_OF_SWORD
 
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		/// 공격 타입에 따른 DP 배율 수치
+		/// 해당 타입은 Enum.lua에 정의 되어 있고, Add_NasodRuler.lua에 값이 매칭 되어 있다.
+		/// 코드는 CX2GUAdd::GetDPRateByType 함수 내에서 연결중이다.
+		enum DYNAMO_PARTICLE_RATE_TYPE
+		{
+			DPRT_NONE				= -1,
+			DPRT_SPECIAL_ACTIVE		= 0,	/// 스페셜 액티브
+			DPRT_ACTIVE				= 1,	/// 액티브 공격
+			DPRT_COMMAND			= 2,	/// 커맨드 공격
+			DPRT_NASOD_ARMOR		= 3,	/// 나소드 아머 공격
+		};
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef ADD_RENA_SYSTEM //김창한
+		enum NATURAL_FORCE_TYPE
+		{
+			NFT_NONE			= -1,	
+			NFT_COMBO			= 0,	// 평타 공격
+			NFT_COMBO_BOMB		= 1,	// 평타 막타 폭발 공격
+			NFT_ACTIVE			= 2,	// 액티브 공격
+			NFT_SPECIAL_ACTIVE	= 3,	// 스폐셜 액티브 공격
+			NFT_RESULT_BOMB		= 4,	// NF를 소모하여 발생한 폭발
+		};
+
+		enum FIRST_ATTACK_CHECK
+		{
+			FAC_NOT_CHECK		= -1,	// 첫번째 어택이라는 것을 체크 하지 않음
+			FAC_NONE			= 0,	// 아직 첫번째 어택이 되지 않음.
+			FAC_FIRST_ATTACK	= 1,	// 첫번째 어택 판정이 이루어 짐.
+		};
+#endif //ADD_RENA_SYSTEM
 
 #ifdef AREA_HIT
 		enum DAMAGE_AREA_TYPE
@@ -492,9 +578,7 @@ class CX2DamageManager
 			KProtectedType<float>	m_fAnimSpeedRate;	/// 애니메이션 속도
 #endif
 
-#ifdef FIXED_DAMAGE
 			bool					m_bFixedDamage;
-#endif
 
 			//{{ 2011-04 에 패치될 청 캐시 스킬
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
@@ -528,6 +612,15 @@ class CX2DamageManager
 			vector<float>				m_vecOverlapDamaage;	/// 치명상 중첩 데미지 정보
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+			CX2BuffFactorPtr			m_ptrBuffFactor;		/// 적용할 버프 정보
+#endif // HAMEL_SECRET_DUNGEON
+
+
+#ifdef  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+            bool                    m_bAttackedByMyUnit;        /// 내 유닛에 의해 공격당했는지
+#endif  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 			ExtraDamageData()
 			{
 				Init();
@@ -559,9 +652,7 @@ class CX2DamageManager
 				m_fRunJumpRate					= 0.f;
 				m_fAnimSpeedRate				= 0.f;
 #endif
-#ifdef FIXED_DAMAGE
 				m_bFixedDamage					= false;
-#endif
 				//{{ 2011-04 에 패치될 청 캐시 스킬
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 				/// ExtraDamage를 Map으로 바꾸게 되면 삭제
@@ -597,8 +688,13 @@ class CX2DamageManager
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
 				m_vecOverlapDamaage.erase( m_vecOverlapDamaage.begin(), m_vecOverlapDamaage.end() );	/// 치명상 중첩 데미지 정보 삭제
 #endif SERV_RAVEN_VETERAN_COMMANDER
+
+#ifdef  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+                m_bAttackedByMyUnit = false;
+#endif  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 			}
-			void Copy( ExtraDamageData& data )
+			void Copy( const ExtraDamageData& data )
 			{
 				m_fRate							= data.m_fRate;
 #ifdef EXTRADAMAGE_RATE_BUG_FIX					
@@ -624,9 +720,7 @@ class CX2DamageManager
 				m_fRunJumpRate					= data.m_fRunJumpRate;
 				m_fAnimSpeedRate				= data.m_fAnimSpeedRate;
 #endif
-#ifdef FIXED_DAMAGE
 				m_bFixedDamage					= data.m_bFixedDamage;
-#endif
 				//{{ 2011-04 에 패치될 청 캐시 스킬
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 				/// ExtraDamage를 Map으로 바꾸게 되면 삭제
@@ -650,8 +744,16 @@ class CX2DamageManager
 				m_bCured						= data.m_bCured;
 #endif ELSWORD_WAY_OF_SWORD
 
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+				m_ptrBuffFactor					= data.m_ptrBuffFactor;
+#endif // HAMEL_SECRET_DUNGEON
+
+#ifdef  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+                m_bAttackedByMyUnit = data.m_bAttackedByMyUnit;
+#endif  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 			}
-			bool Verify()
+			bool Verify() const
 			{
 				if( m_fTime.Verify() == false
 					|| m_DamagePerSec.Verify() == false 
@@ -689,7 +791,7 @@ class CX2DamageManager
 			}
 
 #ifdef NEW_EXTRA_DAMAGE
-			float GetCalcPerDamage(int iUnitLevel, float fResist);
+			float GetCalcPerDamage(int iUnitLevel, float fResist) const;
 #endif
 
 		};
@@ -698,7 +800,21 @@ class CX2DamageManager
 		{
 			float			fRemainGap; //0보다 작아지면 재차 공격가능
 			CX2GameUnitoPtr	optrHitGameUnit;
+
+            HitUnit()
+                : fRemainGap( 0.f )
+                , optrHitGameUnit()
+            {
+            }
 		};
+        typedef std::vector<HitUnit>    HitUnitVector;
+#ifdef  X2OPTIMIZE_STL_CONTAINER_USAGE
+        static inline void swap( HitUnit& lhs_, HitUnit& rhs_ )
+        {
+            std::swap( lhs_.fRemainGap, rhs_.fRemainGap );
+            lhs_.optrHitGameUnit.Swap( rhs_.optrHitGameUnit );
+        }
+#endif  X2OPTIMIZE_STL_CONTAINER_USAGE
 
 		struct Damage
 		{
@@ -737,13 +853,33 @@ class CX2DamageManager
 			}
 		};
 
+#ifdef ADD_RENA_SYSTEM //김창한
+		struct DamageRelateSkillData
+		{
+			Byte					m_byteSkillIndex;	// 스킬 구별을 위한 index
+			Byte					m_byteRelateData;	//최대로 소모하는 NF게이지 값을 저장
+
+			DamageRelateSkillData():m_byteSkillIndex(0), m_byteRelateData(0) {}
+
+			void Init()
+			{
+				m_byteSkillIndex = 0;
+				m_byteRelateData = 0;
+			}
+		};
+#endif //ADD_RENA_SYSTEM
+
 		struct DamageData
 		{
 			DAMAGE_TYPE						damageType;
 			REACTER_TYPE					attackerType;
 			ATTACK_TYPE						attackType;
 			CX2GameUnitoPtr					optrAttackerGameUnit;	/// 이것도 이거지만.. UID가 필요할 지도..
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect_CEffectHandle   hAttackerEffect;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CX2DamageEffectBasic*			pAttackerEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			//{{ seojt // 2009-1-12, 16:15
 			CKTDGXSkinAnim*	                pAttackerAnim;			/// 고민좀...
 			//CKTDGXSkinAnimPtr	            pAttackerAnim;
@@ -805,7 +941,9 @@ class CX2DamageManager
 
 			REACTER_TYPE			defenderType;
 			CX2GameUnitoPtr			optrDefenderGameUnit;
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CX2DamageEffectBasic*	pDefenderEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
             bool                    m_bGuard;
             bool                    m_bWBackSpeed;
@@ -858,9 +996,7 @@ class CX2DamageManager
 			float					m_fDecreaseForceDown;
 #endif
 
-#ifdef FIX_DUNGEON_ITEM
 			bool					m_bNoBuff;
-#endif
 
 #ifdef DAMAGEDATA_RATE_MODIFIER
 			float					m_fRateModifier;
@@ -871,9 +1007,7 @@ class CX2DamageManager
 			float					m_fHitDamageEffectInvokeRate;
 			float					m_fHitDamageEffectDamageRate;
 
-#ifdef NEW_MEMO_01
 			bool					m_bIgnoreDefence;
-#endif
 
 #ifdef WIDE_BUFF_ANI_SPEED_UP
 			bool	m_bAnimationSpeedUp;
@@ -893,6 +1027,14 @@ class CX2DamageManager
 #ifdef ELSWORD_WAY_OF_SWORD
 			WAY_OF_SWORD_TYPE		m_WayofSwordType;
 #endif ELSWORD_WAY_OF_SWORD
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			DYNAMO_PARTICLE_RATE_TYPE	m_DPRateType;		///	DP 변동 배율
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef ADD_RENA_SYSTEM //김창한
+			NATURAL_FORCE_TYPE		m_NaturalForceType;
+#endif //ADD_RENA_SYSTEM
 
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 			float					m_fDrainMpByReact;
@@ -929,13 +1071,27 @@ class CX2DamageManager
             bool                    m_bRelaxNPCReactionStateCheck;
 #endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			float					m_fApplyCriticalDamage;			/// 크리티컬 데미지 배율을 증가시킨다. ex> 기존 크리티컬 배율인 1.5에 해당 값의 배율이 곱해지고 데미지와 계산된다.
+			float					fHitAddHPbyAttackPower;			/// 공격 성공시 공격자에게 회복시킬 체력 배율 (공격자 물마공의 평균값에 비례하여 적용)
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef ADD_RENA_SYSTEM //김창한
+			FIRST_ATTACK_CHECK		m_eFirstAttack;					/// 첫번째 공격을 성공했는가?
+			DamageRelateSkillData	m_RelateSkillData;
+#endif //ADD_RENA_SYSTEM
+
 			void SimpleInit()
 			{
 				damageType			= DT_PHYSIC;
 				attackerType		= AT_UNIT;
 				attackType			= AT_NORMAL;
 				optrAttackerGameUnit.Reset();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                hAttackerEffect     = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				//{{ seojt // 2009-1-12, 16:15
 				pAttackerAnim		= NULL;
                 //pAttackerAnim.reset();
@@ -1038,9 +1194,7 @@ class CX2DamageManager
 				m_fDecreaseForceDown = 0.f;
 #endif
 
-#ifdef FIX_DUNGEON_ITEM
 				m_bNoBuff			= false;
-#endif
 
 #ifdef DAMAGEDATA_RATE_MODIFIER
 				m_fRateModifier		= 1.f;
@@ -1051,9 +1205,7 @@ class CX2DamageManager
 				m_fHitDamageEffectInvokeRate = 1.f;
 				m_fHitDamageEffectDamageRate = 1.f;
 
-#ifdef NEW_MEMO_01
 				m_bIgnoreDefence	= false;
-#endif
 
 #ifdef WIDE_BUFF_ANI_SPEED_UP
 				m_bAnimationSpeedUp = false;
@@ -1073,6 +1225,10 @@ class CX2DamageManager
 #ifdef ELSWORD_WAY_OF_SWORD
 				m_WayofSwordType	= WST_NONE;
 #endif ELSWORD_WAY_OF_SWORD
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+				m_DPRateType		= DPRT_NONE;
+#endif //SERV_9TH_NEW_CHARACTER
 
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 				m_fDrainMpByReact = 0.f;
@@ -1107,6 +1263,16 @@ class CX2DamageManager
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
                 m_bRelaxNPCReactionStateCheck = false;
 #endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				m_fApplyCriticalDamage = 0.f;
+				fHitAddHPbyAttackPower = 0.f;
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				m_eFirstAttack = FAC_NONE;
+				m_RelateSkillData.Init();
+#endif //ADD_RENA_SYSTEM
 			}
 
 			void Init()
@@ -1116,7 +1282,9 @@ class CX2DamageManager
 				impactPoint		= D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
 				defenderType	= AT_UNIT;
 				optrDefenderGameUnit.Reset();
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				pDefenderEffect	= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				
 				m_SocketExtraDamage.Init();
 				m_MultipleExtraDamage.resize(0);
@@ -1155,6 +1323,10 @@ class CX2DamageManager
 			{					
 				*this = rhs;
 			}
+
+//{{ robobeg : 2013-09-17
+            bool    IsAttackedByMyUnit();
+//}} robobeg : 2013-09-17
 
 		};
 
@@ -1245,12 +1417,17 @@ class CX2DamageManager
 
 		static void PushSocketAndTemporaryBuffFactor( DamageData* pDamageData_ );	/// 소켓 옵션, 일시적으로 걸린 버프에 의한 BuffFactor 적용
 		bool OpenDamageSoundScript( const WCHAR* wszFileName );
-		bool ParseDamageSoundBlock( KLuaManager& luaManager, HIT_TYPE eHitType, const wstring& tableName );
+		bool ParseDamageSoundBlock( KLuaManager& luaManager, HIT_TYPE eHitType, const char* pszTableNameUTF8 );
 		const WCHAR* GetDamageSound( HIT_TYPE hitType, HITTED_TYPE hittedType );		
 
 		void ParsingBuffFactor( KLuaManager& luaManager_, DamageData* pDamageData_ );
 
-		bool SetDamageDataFromLUA( DamageData* pDamageData, KLuaManager& luaManager, const WCHAR* pTableName = L"DAMAGE_DATA", float fPowerRate = 1.f );
+#ifdef ADD_MEMO_1ST_CLASS
+		bool SetDamageDataFromLUA( DamageData* pDamageData, KLuaManager& luaManager, const char* pTableName = "DAMAGE_DATA", float fPowerRate = 1.f, const bool IsEqippedMemo_ = false );
+#else //ADD_MEMO_1ST_CLASS
+		bool SetDamageDataFromLUA( DamageData* pDamageData, KLuaManager& luaManager, const char* pTableName = "DAMAGE_DATA", float fPowerRate = 1.f );
+#endif //ADD_MEMO_1ST_CLASS
+
 		bool DamageCheck( DamageData* pDamageData, bool bAttackOnlyThisUnit = false, UidType attackUnitUID = -1 );
 
 		wstring GetExtraDamageName( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType, bool bTwoLine = false );
@@ -1278,17 +1455,21 @@ class CX2DamageManager
 #endif ELSWORD_WAY_OF_SWORD
 
 #ifdef EVE_ELECTRA
-		void	AddHitUnit( DamageData* pDamageData, HitUnit _HitUnit ){ pDamageData->hitUnitList.push_back(_HitUnit); }
+		void	AddHitUnit( DamageData& kDamageData, HitUnit _HitUnit ){ kDamageData.hitUnitList.push_back(_HitUnit); }
 #endif EVE_ELECTRA
 		
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+		bool	GetIsPossibleProvokeExtraDamage ( DamageData * pDamageData );
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 	private:
 		bool CollisionDataCheckFromUnitToUnit( CX2GameUnit* pAttackerGameUnit_, 
 			const CKTDXCollision::CollisionDataListSet& setDefenderCollisionDataList_,
 			CKTDXCollision::CollisionType& collisionType_, D3DXVECTOR3* pImpactPos_ );
 
-		bool CollisionDataCheckFromUnitToEffect( CX2GameUnit* pAttackerGameUnit_, 
-			const CKTDXCollision::CollisionDataList& listDefenderCollisionData_,
-			CKTDXCollision::CollisionType& collisionType_, D3DXVECTOR3* pImpactPos_ );
+		//bool CollisionDataCheckFromUnitToEffect( CX2GameUnit* pAttackerGameUnit_, 
+		//	const CKTDXCollision::CollisionDataList& listDefenderCollisionData_,
+		//	CKTDXCollision::CollisionType& collisionType_, D3DXVECTOR3* pImpactPos_ );
 
 		bool UnitToUnit(DamageData* pDamageData, bool bAttackOnlyThisUnit = false, UidType attackUnitUID = -1 );	//유닛이 유닛 공격
 		bool MeshToUnit(DamageData* pDamageData );  //메시로 유닛 공격
@@ -1320,7 +1501,13 @@ class CX2DamageManager
 
 #ifdef DAMAGE_DATA_BUFF_FACTOR_RELATIVE_SKILL_LEVEL
 		bool SetBuffFactorToDamageDataByBuffFactorID( OUT DamageData* pDamageData_, IN const UINT uiBuffFactorId_, IN const UINT uiLevel_ = 1 );
+
+#ifdef ADD_MEMO_1ST_CLASS
+		void ParsingBuffFactorID( KLuaManager& luaManager_, DamageData* pDamageData_, const bool IsEqippedMemo_ = false );
+#else //ADD_MEMO_1ST_CLASS
 		void ParsingBuffFactorID( KLuaManager& luaManager_, DamageData* pDamageData_ );
+#endif //ADD_MEMO_1ST_CLASS
+
 #endif // DAMAGE_DATA_BUFF_FACTOR_RELATIVE_SKILL_LEVEL
 
 #ifdef ELSWORD_WAY_OF_SWORD

@@ -30,7 +30,7 @@ public:
 
 	void	UpdateblockList( IN const int iReleaseTick, IN const std::map< int, std::vector< KBlockInfo > >& mapBlockInfo, OUT std::vector< KBlockInfo >& vecNewBlock, OUT std::vector< KBlockInfo >& vecDelBlock );
 	void	UpdateTradeBlock( IN const std::vector< KBlockInfo >& vecBlockInfo, OUT std::vector< KBlockInfo >& vecNewBlock, OUT std::vector< KBlockInfo >& vecDelBlock );
-	void	UpdateAccountBlock( IN const std::vector< KBlockInfo >& vecBlockInfo );
+	void	UpdateAccountBlock( IN const std::vector< KBlockInfo >& vecBlockInfo, OUT std::vector< KBlockInfo >& vecNewBlock, OUT std::vector< KBlockInfo >& vecDelBlock );
 	void	UpdateIpBlock( IN const std::vector< KBlockInfo >& vecBlockInfo );
 
 	// for dll

@@ -49,7 +49,7 @@ public:
 		float				targetSuccessRate;	
 		float				attackTargetRate;	// ³ª¸¦ °ø°ÝÇÑ À¯´ÖÀ» Å¸°ÙÆÃÇÒ È®·ü
 		float				preserveLastTargetRate;
-		wstring				wstrLuaTargetingFunc;
+		string				strLuaTargetingFunc;
 
 		TargetData()
 		{
@@ -62,7 +62,7 @@ public:
 			targetSuccessRate		= 100;
 			attackTargetRate		= 100;
 			preserveLastTargetRate	= 100;
-			wstrLuaTargetingFunc	= L"";
+			strLuaTargetingFunc	= "";
 		}
 	};
 
@@ -131,8 +131,8 @@ public:
 	void SetAITargetNPC( bool bTargetNPC ) { m_pAIData->targetData.targetNPC = bTargetNPC; }
 	bool GetEnableLuaTargetingFunc() const { return m_bEnableLuaTargetingFunc; }
 	void SetEnableLuaTargetingFunc(bool val) { m_bEnableLuaTargetingFunc = val; }
-	wstring GetLuaTargetingFunc() const { return m_wstrLuaTargetingFunc; }
-	void SetLuaTargetingFunc(wstring val) { m_wstrLuaTargetingFunc = val; }
+	const std::string& GetLuaTargetingFunc() const { return m_strLuaTargetingFunc; }
+	void SetLuaTargetingFunc( const std::string& val) { m_strLuaTargetingFunc = val; }
 
 #ifdef AI_FLY
 	float GetFlyDestHieght() { return m_pAIData->flymovedata.fDestHeight; }
@@ -174,7 +174,7 @@ private:
 	bool			m_bMasterIsRight;
 
 	bool			m_bEnableLuaTargetingFunc;
-	wstring			m_wstrLuaTargetingFunc;
+	string			m_strLuaTargetingFunc;
 
 public:
 	bool GetEnabled() const { return m_bEnabled; }

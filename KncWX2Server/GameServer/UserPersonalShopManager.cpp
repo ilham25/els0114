@@ -31,7 +31,9 @@ void KUserPersonalShopManager::Init( IN OUT KUserPShopAgencyInfo& kUserPShopAgen
 {
 	// 대리 상인 만료일 세팅
 	SetPShopAgencyExpirationDate( kUserPShopAgency.m_wstrAgencyExpirationDate );
-
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+    SetPShopType( kUserPShopAgency.m_cShopType );
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	CTime tCurTime = CTime::GetCurrentTime();
 	if( tCurTime > m_tAgencyExpirationDate )
 	{
@@ -58,6 +60,11 @@ bool KUserPersonalShopManager::IsOpenPossiblePShopAgency() const
 	return ( CTime::GetCurrentTime() < m_tAgencyExpirationDate );
 }
 
-
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+void KUserPersonalShopManager::SetPShopType( IN const char cShopType_ )
+{
+    m_cShopType = cShopType_;
+}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 #endif SERV_PSHOP_AGENCY
 //}}

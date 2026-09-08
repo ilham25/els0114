@@ -784,11 +784,13 @@ GameEvent:AddReward( 2001, { fEventTime = 30, iRewardID = 2001, bGiveOnce = True
 GameEvent:AddReward( 2014, { fEventTime = 30, iRewardID = 2015, bGiveOnce = True, bAccountEvent = True } )  -- 포니 헤드 액세서리(3일권)
 
 
--- 2014 탈 것 이벤트
+-- 2014 탈 것 이벤트 2014-01-27 10:00 ~ 2014-02-05 09:59
+--1. 프로 라이더의 꿈 (2014-01-27 10:00 ~ 2014-02-05 09:59)
 GameEvent:AddReward( 2015, { fEventTime = 10, iRewardID = 2016, bGiveOnce = True, } )  -- 라이딩 체험 ( 돌진 전차 모비 RT (1일권) )
 GameEvent:AddReward( 2016, { fEventTime = 10, iRewardID = 2017, bGiveOnce = True, } )  -- 라이딩 체험 ( 바람의 코우시카 (1일권) )
 GameEvent:AddReward( 2017, { fEventTime = 10, iRewardID = 2018, bGiveOnce = True, } )  -- 라이딩 체험 ( 에이션트 라이딩 뽀루 (1일권) )
 GameEvent:AddReward( 2018, { fEventTime = 10, iRewardID = 2019, bGiveOnce = True, } )  -- 라이딩 체험 ( 3종류 (1일권) )
+-- 2. 프로 라이더를 위한 특별 선물 (2014-02-01 00:00 ~ 2014-02-02 23:59)
 GameEvent:AddReward( 2019, { fEventTime = 30, iRewardID = 2021, bAccountEvent = True, bGiveOnce = True, } )  -- 프로 라이더를 위한 특별 선물 (루리엘의 고대 화석 판별기)
 
 -- 2014 샌더던전 3,4 이벤트
@@ -809,16 +811,17 @@ GameEvent:AddReward( 2029, { fEventTime = 10, iRewardID = 2031, bGiveOnce = True
 GameEvent:AddReward( 2030, { fEventTime = 10, iRewardID = 2031, bGiveOnce = True, cUnitClass = UNIT_CLASS["UC_ARA_LITTLE_HSIEN"] } )	-- 아라 소선 캐릭터 '소마를 도우는 힘' 큐브 우편 지급(매일/캐릭터/10분)
 GameEvent:AddReward( 2031, { fEventTime = 10, iRewardID = 2031, bGiveOnce = True, cUnitClass = UNIT_CLASS["UC_ARA_SAKRA_DEVANAM"] } ) -- 아라 제천 캐릭터 '소마를 도우는 힘' 큐브 우편 지급(매일/캐릭터/10분)
 
--- 2014 아라2차전직(명왕) 이벤트
+-- 2014 아라2차전직(명왕) 이벤트 2014-01-22 10:00 ~ 2014-01-29 09:59
+--1. 아라 신규 2차 전직 오픈 기념 (2014-01-22 10:00 ~ 2014-01-29 09:59)
 GameEvent:AddReward( 2032, { fEXPRate = 0.5, iUnitLevel = 35, cUnitClass = UNIT_CLASS["UC_ARA_LITTLE_DEVIL"] } ) -- 35레벨 이하 소마 캐릭터 경험치 1.5배
-GameEvent:AddReward( 2033, { fEventTime = 35, iRewardID = 2034, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 2차 전직 캐릭터 World War 칭호(8일권) 우편 지급(매일/캐릭터/35분)
-GameEvent:AddReward( 2034, { fEventTime = 35, iRewardID = 2035, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 2차 전직 캐릭터 안티 포이즌 반지(3일권) 우편 지급(매일/캐릭터/35분)
-GameEvent:AddReward( 2035, { fEventTime = 35, iRewardID = 2036, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 2차 전직 캐릭터 소환석 : 돌진 전차 모비RT (3일권) 1개 우편 지급(매일/캐릭터/35분)
-GameEvent:AddReward( 2036, { fEventTime = 35, iRewardID = 2037, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 2차 전직 캐릭터 루리엘의 플루오르스톤 교환권 1개 우편 지급(매일/캐릭터/35분)
-GameEvent:AddReward( 2037, { fEventTime = 35, iRewardID = 2038, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 2차 전직 캐릭터 2차 전직 프로모션 아바타 무기(포이즈닝)(3일권) 우편 지급(매일/캐릭터/35분)
-GameEvent:AddReward( 2038, { fEventTime = 35, iRewardID = 2039, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 2차 전직 캐릭터 선택 스킬 초기화 3개 우편 지급(매일/캐릭터/35분)
-GameEvent:AddReward( 2039, { fEventTime = 35, iRewardID = 2040, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 2차 전직 캐릭터 루리엘의 활력의 포션 10개, 루리엘의 마나 에릭실 10개 우편 지급(매일/캐릭터/35분)
-GameEvent:AddReward( 2040, { fEventTime = 35, iRewardID = 2041, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 2차 전직 캐릭터 부활석 3개 큐브 1개 우편 지급(매일/캐릭터/35분)
+GameEvent:AddReward( 2033, { fEventTime = 35, iRewardID = 2034, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 1/22 2차 전직 캐릭터 World War 칭호(8일권) 우편 지급(매일/캐릭터/35분)
+GameEvent:AddReward( 2034, { fEventTime = 35, iRewardID = 2035, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 1/23 2차 전직 캐릭터 안티 포이즌 반지(3일권) 우편 지급(매일/캐릭터/35분)
+GameEvent:AddReward( 2035, { fEventTime = 35, iRewardID = 2036, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 1/24 2차 전직 캐릭터 소환석 : 돌진 전차 모비RT (3일권) 1개 우편 지급(매일/캐릭터/35분)
+GameEvent:AddReward( 2036, { fEventTime = 35, iRewardID = 2037, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 1/25 2차 전직 캐릭터 루리엘의 플루오르스톤 교환권 1개 우편 지급(매일/캐릭터/35분)
+GameEvent:AddReward( 2037, { fEventTime = 35, iRewardID = 2038, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 1/26 2차 전직 캐릭터 2차 전직 프로모션 아바타 무기(포이즈닝)(3일권) 우편 지급(매일/캐릭터/35분)
+GameEvent:AddReward( 2038, { fEventTime = 35, iRewardID = 2039, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 1/27 2차 전직 캐릭터 선택 스킬 초기화 3개 우편 지급(매일/캐릭터/35분)
+GameEvent:AddReward( 2039, { fEventTime = 35, iRewardID = 2040, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 1/28 2차 전직 캐릭터 루리엘의 활력의 포션 10개, 루리엘의 마나 에릭실 10개 우편 지급(매일/캐릭터/35분)
+GameEvent:AddReward( 2040, { fEventTime = 35, iRewardID = 2041, bGiveOnce = True, iUnitClassLevel = 2 } ) -- 2차 전직 캐릭터 부활석 3개 큐브 1개 우편 지급(매일/캐릭터/35분) ( 중국은 안줌 )
 
 -- 2014 아라 신전직 전야 이벤트
 GameEvent:AddReward( 2041, { fEventTime = 10, iRewardID = 2043, bGiveOnce = True} ) -- 미약한 사파의 정수 2개 우편 지급(매일/캐릭터/10분)
@@ -832,6 +835,52 @@ GameEvent:AddReward( 2045, { fEventTime = 10, iRewardID = 2047, bGiveOnce = True
 
 GameEvent:AddReward( 2046, { fEventTime = 1, iRewardID = 2048, bGiveOnce = True,} ) --금강야차 아바타(1일) 5세트 큐브
 
+-- ES_CN 춘절 이벤트 2014-01-27 10:00 ~ 2014-02-12 정기점검 이전
+--1. 2014년 새해 맞이 특별 접속 이벤트! (2014-01-27 10:00 ~ 2014-02-12 정기점검 이전)
+GameEvent:AddReward( 10311,	{ fEventTime =  30,	iRewardID = 1000308, bGiveOnce =  True, iMinLevel = 10 } ) ----01/31 ~ 02/02 30분 접속 폴라 베어 코스프레 큐브 1개
+GameEvent:AddReward( 10312,	{ fEventTime =  20,	iRewardID = 1000309, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) ----1/27 축복받은 방어구 강화석 14개
+GameEvent:AddReward( 10313,	{ fEventTime =  20,	iRewardID = 1000310, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) ---- 1/28 축복받은 무기 강화석 14개
+GameEvent:AddReward( 10314,	{ fEventTime =  20,	iRewardID = 1000311, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) --- 1/29루리엘의 마나 에릭실 14개
+GameEvent:AddReward( 10315,	{ fEventTime =  20,	iRewardID = 1000312, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) ---1/30루리엘의 활력의 포션 14개
+GameEvent:AddReward( 10316,	{ fEventTime =  20,	iRewardID = 1000313, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) ---1/31루리엘의 얼음 조각상 가열기 1개
+GameEvent:AddReward( 10317,	{ fEventTime =  20,	iRewardID = 1000314, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) --2/1루리엘의 축복받은 시공간의 주문서 교환권 1개
+GameEvent:AddReward( 10318,	{ fEventTime =  20,	iRewardID = 1000315, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) --2/2루리엘의 플루오르 스톤 교환권 1개
+GameEvent:AddReward( 10319,	{ fEventTime =  20,	iRewardID = 1000316, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) ---2/3루리엘의 완적 회복 포션 14개
+GameEvent:AddReward( 10320,	{ fEventTime =  20,	iRewardID = 1000317, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) ---2/4루리엘의 각성 포션 14개
+GameEvent:AddReward( 10321,	{ fEventTime =  20,	iRewardID = 1000318, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) ---- 2/5루리엘의 펫 시리얼 14개
+GameEvent:AddReward( 10322,	{ fEventTime =  20,	iRewardID = 1000319, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) --2/6고급 마법석 14개
+GameEvent:AddReward( 10323,	{ fEventTime =  20,	iRewardID = 1000320, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) --2/7엘의조각(불명) 14개
+GameEvent:AddReward( 10324,	{ fEventTime =  20,	iRewardID = 1000321, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) --- 2/8레어 아바타 풀셋 1일권 큐브
+GameEvent:AddReward( 10325,	{ fEventTime =  20,	iRewardID = 1000322, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) --- 2/9루리엘의 그노시스의 축복(30sp,14일)
+GameEvent:AddReward( 10326,	{ fEventTime =  20,	iRewardID = 1000323, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) --2/10마법석 14개
+GameEvent:AddReward( 10327,	{ fEventTime =  20,	iRewardID = 1000324, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) --- 2/11부활석 14개 큐브
+GameEvent:AddReward( 10328,	{ fEventTime =  20,	iRewardID = 1000325, bGiveOnce =  True, bAccountEvent = True, iMinLevel = 10 } ) -- 2/12루리엘의 망각의 알약 1개
+
+-- 2014-02-12 정기점검 이후 ~ 2014-02-26 정기점검 결혼 이벤트
+-- 1. 나의 반쪽을 찾아서 (2014-02-12 정기점검 이후 ~ 2014-02-26 정기점검 이전)
+GameEvent:AddReward( 2051, { fEventTime = 10, iRewardID = 2051, bGiveOnce = True, iMinLevel = 10 } )  -- 가상 결혼 신청서 (한번/캐릭터/10분)
+
+-- 스마트 밸런스! 2014-02-12 정기점검 이후 ~ 2014-02-18 23:59
+GameEvent:AddReward( 2052, { fEventTime = 10, iRewardID = 2053, bGiveOnce = True, iMinLevel = 10 } ) -- 스마트 밸런스 쿨타임 가속기 (1일), 루리엘의 망각의 알약 (1일권) 1개
+
+--2014원소절
+GameEvent:AddReward( 2066, { fEventTime = 15, iRewardID = 2066,  bGiveOnce =  True, bRepeatRewardEvent = True, iMinLevel = 10, iBeforeEventID = 0 } )			--소환석 : 돌진 전차 모비RT (3일권)
+GameEvent:AddReward( 2067, { fEventTime = 15, iRewardID = 2067,  bGiveOnce =  True, bRepeatRewardEvent = True, iMinLevel = 10, iBeforeEventID = 2066 } )		--어깨 망아지 인형(파랑) (3일권)
+GameEvent:AddReward( 2068, { fEventTime = 15, iRewardID = 2068,  bGiveOnce =  True, bRepeatRewardEvent = True, iMinLevel = 10, iBeforeEventID = 2067 } )		--어깨 망아지 인형(분홍) (3일권)
+GameEvent:AddReward( 2069, { fEventTime = 15, iRewardID = 2069,  bGiveOnce =  True, bRepeatRewardEvent = True, iMinLevel = 10, iBeforeEventID = 2068 } )		--레어 아바타 풀세트 (3일권) 큐브
+
+--*이벤트 제목 : 발렌타인 데이 초콜릿 운반 작전
+--*이벤트 기간 : 2014-02-12 업데이트 후 ~ 2014-02-26 업데이트 전
+--1) 헬렌의 발렌타인 데이 초콜릿
+GameEvent:AddReward( 2070,	{ fEventTime =  14,	iRewardID = 2070, bGiveOnce =  True, iMinLevel = 10 } ) -- 헬렌의 발렌타인데이 초콜릿 3개
+-- 1) 기적의 발렌타인 데이
+GameEvent:AddReward( 2071,	{ fEventTime =  14,	iRewardID = 2071, bGiveOnce =  True, iMinLevel = 10 } ) -- 기적의 발렌타인데이 반지(Lv.1)
+
+--*이벤트 제목 : 불길한 모래 폭풍
+--*이벤트 기간 : 2014-02-26 09:00 ~ 2014-03-12 08:59
+--1) 샌더 마을의 서신
+GameEvent:AddReward( 2053, { fEventTime = 60, iRewardID = 2054, bGiveOnce = True, iMinLevel = 10 } ) -- 풍화된 샌더 마을의 서신 조각 1개, 엘의 조각(윈드) 1개
+                                                                                                                                           
 -------------------------------------------------------------------------------------------------------------------------------------------
 --영구 VIP 티켓
 GameEvent:AddReward( 1494, { fEventTime = 0, iRewardID = 1434, bGiveOnce = False, iEventItemID = 84001750 } )	--VIP가열기

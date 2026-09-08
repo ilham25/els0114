@@ -100,14 +100,57 @@ IMPL_ON_FUNC( ERM_OPEN_PSHOP_AGENCY_BY_SERVER_NOT )
 IMPL_ON_FUNC( ERM_CHECK_MY_PSHOP_AGENCY_INFO_REQ )
 {
     KERM_CHECK_MY_PSHOP_AGENCY_INFO_ACK kPacket;
+    
+    KERM_OPEN_PSHOP_AGENCY_BY_SERVER_NOT kData;
+    kData.m_iUserUID = kPacket_.m_iUserUID;
+    kData.m_iUnitUID = kPacket_.m_iUnitUID;
+    kData.m_wstrNickName = kPacket_.m_wstrNickName;
+    kData.m_cPersonalShopType = kPacket_.m_cPersonalShopType;
+    kData.m_wstrAgencyExpirationDate = kPacket_.m_wstrAgencyExpirationDate;
+    kData.m_wstrAgencyOpenDate = kPacket_.m_wstrAgencyOpenDate;
+    kData.m_wstrPersonalShopName = kPacket_.m_wstrPersonalShopName;
+    kData.m_vecSellItemInfo = kPacket_.m_vecSellItemInfo;
+    kData.m_bOnSale = kPacket_.m_bOnSale;
 
+    
     if( GetKLoginRoomManager()->GetPShopAgencyUIDByUnitUID( kPacket_.m_iUnitUID, kPacket.m_iPShopAgencyUID ) == false )
 	{
+        // ERM_OPEN_PSHOP_AGENCY_BY_SERVER_NOT 과 동일.
+        UidType iRoomUID = GetKLoginRoomManager()->OpenRoom();
+        if( iRoomUID <= 0 )
+        {
+            START_LOG( cerr, L"서버에서 자동으로 대리상점 개설을 하려고하는데 빈 방이 없습니다! 일어나서는 안되는 에러!" )
+                << END_LOG;
+            return;
+        }
+
+        if ( kData.m_wstrAgencyExpirationDate.empty() )
+        {
+            START_LOG( cerr, L"서버에서 자동으로 대리상점 개설시도(복원)에서 만료일이 빈 문제 발생 " )
+                << BUILD_LOG( kPacket_.m_iUserUID )
+                << BUILD_LOG( kPacket_.m_iUnitUID )
+                << END_LOG;
+            return;
+        }
+
+        KEventPtr spEvent( new KEvent );
+        spEvent->SetData( PI_LOGIN_ROOM, NULL, ERM_OPEN_PSHOP_AGENCY_BY_SERVER_NOT, kData );
+        GetKLoginRoomManager()->QueueingEventToRoomByRoomUID( iRoomUID, spEvent );
+
 		START_LOG( cerr, L"DB에는 개설되었다고 되어있는데 실제로 대리상점 방은 개설 안되었다? 버그! 또는 예외상황!" )
-			<< BUILD_LOG( kPacket_.m_iUnitUID )
+            << BUILD_LOG( kPacket_.m_iUnitUID )
 			<< END_LOG;
+
+        kPacket.m_iPShopAgencyUID = iRoomUID;
+        SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_CHECK_MY_PSHOP_AGENCY_INFO_ACK, kPacket );
+
 		return;
 	}
+
+    KEventPtr spEvent( new KEvent );
+    spEvent->SetData( PI_LOGIN_ROOM, NULL, ERM_CHECK_MY_PSHOP_AGENCY_INFO_REQ, kPacket_ );
+
+    GetKLoginRoomManager()->QueueingEventToRoomByRoomUID( kPacket.m_iPShopAgencyUID, spEvent );
 
 	SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_CHECK_MY_PSHOP_AGENCY_INFO_ACK, kPacket );
 }

@@ -80,12 +80,6 @@
 #include "GameEvent/GameEventManager.h"
 #endif //SERV_GOLBAL_SERVER_EVENT_MANAGER
 
-//{{ 2013. 02. 19	최육사	로그 시스템 개선
-#ifdef SERV_LOG_SYSTEM_NEW
-	#include "LogManager.h"
-#endif SERV_LOG_SYSTEM_NEW
-//}}
-
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 #include "..\Common\OnlyGlobal\ProcessCommuniationModule\ProcessCommunicationManager.h"
 #include "GameSysVal/GameSysVal.h"
@@ -97,11 +91,27 @@
 #endif SERV_BLOCK_LIST
 //}}
 
+#ifdef SERV_ADD_EVENT_DB
+	#include "GlobalEventDBThread.h"
+#endif //SERV_ADD_EVENT_DB
+
 //{{ 2012. 09. 06	임홍락	글로벌 미션 매니저
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 #include "GlobalMissionManager.h"
 #endif SERV_GLOBAL_MISSION_MANAGER
 //}} 2012. 09. 06	임홍락	글로벌 미션 매니저
+
+//{{ 2013. 02. 19	최육사	로그 시스템 개선
+#ifdef SERV_LOG_SYSTEM_NEW
+	#include "LogManager.h"
+#endif SERV_LOG_SYSTEM_NEW
+//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-01	// 박세훈
+	#include "X2Data/XSLBattleFieldManager.h"
+	#include "X2Data/XSLFieldBossData.h"
+	#include "FieldBossManager.h"
+#endif // SERV_BATTLE_FIELD_BOSS
 
 //#include "vld.h"
 
@@ -188,6 +198,10 @@ KThread*        CreateDBThread( int iDBConnectionInfo, const wchar_t* szDSN, boo
 		return new KGlobalSMSDBThread( szDSN, bDBConnStr );
 #endif SERV_MORNITORING
 		//}}
+#ifdef SERV_ADD_EVENT_DB
+	case KDBLayer::DC_EVENT:
+		return new KGlobalEventDBThread( szDSN, bDBConnStr );
+#endif //SERV_ADD_EVENT_DB
 	default:
 		START_LOG( cerr, L"접속하려는 DB 종류가 이상함." )
 			<< BUILD_LOG( iDBConnectionInfo )
@@ -374,6 +388,11 @@ bool KGlobalServer::DestroyAllSession()
 
 void KGlobalServer::Tick()
 {
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-01	// 박세훈
+	// 현재 시간 기록
+	const CTime tCurrentTime = CTime::GetCurrentTime();
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	KBaseServer::Tick();
 
 	//{{ 2011. 04. 13  김민성  글로벌 서버 추가
@@ -471,16 +490,25 @@ void KGlobalServer::Tick()
 		m_kTimerGlobalMission.restart();
 	}
 #endif SERV_GLOBAL_MISSION_MANAGER
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-01	// 박세훈
+	CheckFieldBossSystem( tCurrentTime );
+#endif // SERV_BATTLE_FIELD_BOSS
 }
 
 //{{ 2010. 10. 19	최육사	SMS테스트
 #ifdef SERV_SMS_TEST
 void KGlobalServer::SMSTest_LUA()
 {
-	// 문자 전송!
-	KDBE_SEND_PHONE_MSG_NOT kPacketNot;
-	kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-8421-1075" ) );
-	kPacketNot.m_wstrSMSMessage = L"SMS 테스트 문자 전송!";
+    // 문자 전송!
+    KDBE_SEND_PHONE_MSG_NOT kPacketNot;
+#ifdef SERV_SMS_TOTAL_MANAGER
+    SiKSMSPhoneNumberManager()->GetPhoneNumberList( KSMSPhoneNumberManager::FS_TEST, kPacketNot.m_vecPhoneNum );
+#else
+    kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-8421-1075" ) );
+#endif SERV_SMS_TOTAL_MANAGER
+
+    kPacketNot.m_wstrSMSMessage = L"SMS 테스트 문자 전송!";
 	SendToSMSDB( DBE_SEND_PHONE_MSG_NOT, kPacketNot );
 
 	START_LOG( cout, L"SMS 테스트 문자 전송!" );
@@ -531,12 +559,17 @@ void KGlobalServer::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_JACKPOT_EVENT_UPDATE_ACK );
 #endif SERV_EVENT_JACKPOT
 		//}}
+		
+#ifdef SERV_GOLBAL_SERVER_EVENT_MANAGER
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		CASE( DBE_CHECK_EVENT_UPDATE_ACK );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK 
 		CASE( DBE_CHECK_EVENT_UPDATE_ACK );
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK	
-		
-#ifdef SERV_GOLBAL_SERVER_EVENT_MANAGER
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 		CASE( DBE_EVENT_UPDATE_ACK );
 #endif //SERV_GOLBAL_SERVER_EVENT_MANAGER	
 
@@ -665,6 +698,11 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 #endif SERV_LOG_SYSTEM_NEW
 		//}}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+		CASE_SCRIPT_REFRESH_SWAP_INSTANCE( OT_GB_BATTLE_FIELD_MANAGER, CXSLBattleFieldManager );
+		CASE_SCRIPT_REFRESH_SWAP_INSTANCE( OT_GB_FIELD_BOSS_DATA, CXSLFieldBossData );
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	default:
 		{
 			START_LOG( cerr, L"이쪽으로 오면 안되는 타입인데?" )
@@ -677,7 +715,6 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%") % 0 %L"GlobalServer 스크립트 실시간 패치 완료"));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
 }
 
 #endif SERV_REALTIME_SCRIPT
@@ -1006,6 +1043,57 @@ void KGlobalServer::CheckHeroPvpUserList( void )
 }
 #endif	// SERV_HERO_PVP_MANAGE_LIST
 
+#ifdef SERV_GOLBAL_SERVER_EVENT_MANAGER
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+IMPL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK )
+{
+
+	std::map<int , int>::const_iterator cmit;
+
+	cmit = kPacket_.m_mapReleaseTick.find( KGameEventManager::ERTT_EVENT_DB_SCRIPT_CHECK );
+
+	if( cmit !=  kPacket_.m_mapReleaseTick.end() )
+	{
+		int iOldReleaseTick = SiKGameEventManager()->GetEventDBScriptReleaseTick();
+		int iNewReleaseTick = cmit->second;
+		if( iOldReleaseTick != iNewReleaseTick )
+		{
+			START_LOG( cout2, L" 이벤트 DB 스크립트 데이터 변경 된 것을 새로 받아 옵니다." )
+				<< BUILD_LOG( iOldReleaseTick )
+				<< BUILD_LOG( iNewReleaseTick )
+				<< END_LOG;
+
+			SendToEventDB( DBE_EVENT_DB_SCRIPT_REQ );
+
+			SiKGameEventManager()->SetEventDBScriptReleaseTick( iNewReleaseTick );
+		}
+	}
+
+
+#ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
+	cmit = kPacket_.m_mapReleaseTick.find( KGameEventManager::ERTT_EVENT_CHECK );
+
+	if( cmit !=  kPacket_.m_mapReleaseTick.end() )
+	{
+		int iOldReleaseTick = SiKGameEventManager()->GetEventReleaseTick();
+		int iNewReleaseTick = cmit->second;
+		if( iOldReleaseTick != iNewReleaseTick )
+		{
+			START_LOG( cout2, L"이벤트 바뀐 것을 확인하였으므로 새로 받아옵니다." )
+				<< BUILD_LOG( iOldReleaseTick )
+				<< BUILD_LOG( iNewReleaseTick )
+				<< END_LOG;
+
+			SendToEventDB( DBE_EVENT_UPDATE_REQ );
+
+			SiKGameEventManager()->SetEventReleaseTick( iNewReleaseTick );
+		}
+	}
+#endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+}
+
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
 IMPL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK )
 {
@@ -1022,15 +1110,20 @@ IMPL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK )
 				<< BUILD_LOG( iNewReleaseTick )
 				<< END_LOG;
 
+#ifdef SERV_ADD_EVENT_DB
+			SendToEventDB( DBE_EVENT_UPDATE_REQ );
+#else //SERV_ADD_EVENT_DB
 			SendToLogDB( DBE_EVENT_UPDATE_REQ );
+#endif //SERV_ADD_EVENT_DB
+
 
 			SiKGameEventManager()->SetEventReleaseTick( iNewReleaseTick );
 		}
 	}
 }
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
-#ifdef SERV_GOLBAL_SERVER_EVENT_MANAGER
 IMPL_ON_FUNC( DBE_EVENT_UPDATE_ACK )
 {
 	if( kPacket_.m_vecEventList.size() > 0 )
@@ -1372,3 +1465,50 @@ IMPL_ON_FUNC( DBE_GET_GLOBAL_MISSION_INFO_ACK )
 	SiKGlobalMissionManager()->SetInitMissionInfo( kPacket_ );
 }
 #endif SERV_GLOBAL_MISSION_MANAGER
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-04	// 박세훈
+void KGlobalServer::CheckFieldBossSystem( IN const CTime tCurrentTime )
+{
+	if( SiKFieldBossManager()->CheckTerm( tCurrentTime.GetTime() ) == false )
+		return;
+
+	const bool bPortalOpen	= SiKFieldBossManager()->IsPortalOpen();
+	const bool bCoolTime	= SiKFieldBossManager()->IsCoolTime();
+
+	const CTime tPortalAppearanceTime( SiKFieldBossManager()->GetPortalAppearanceTime() );
+
+	// 포탈이 열려 있는지 확인
+	if( bPortalOpen == true )
+	{
+		const CTime tPortalHoldingTime = tPortalAppearanceTime + CTimeSpan( 0, 0, SiCXSLFieldBossData()->GetFieldBossPortalHoldingTime_M(), 0 );
+		if( tPortalHoldingTime <= tCurrentTime )
+		{
+			// 포탈 닫힘 처리
+			SiKFieldBossManager()->ClosePortal();
+		}
+	}
+
+	// 쿨 타임 체크
+	if( bCoolTime == true )
+	{
+		const CTime tFieldBossCoolTime = tPortalAppearanceTime + CTimeSpan( 0, 0, SiCXSLFieldBossData()->GetFieldBossCoolTime_M(), 0 );
+		if( tFieldBossCoolTime <= tCurrentTime )
+		{
+			// 쿨 타임 종료 처리
+			SiKFieldBossManager()->SetCoolTimeState( false );
+			SiKFieldBossManager()->ClearTotalDangerousValue();	// TotalDangerousValue를 처음부터 계산한다.
+		}
+	}
+
+	// 포탈이 닫히거나 쿨 타임이 종료되었다면 알림 패킷을 보내자
+	if( ( bPortalOpen != SiKFieldBossManager()->IsPortalOpen() ) || ( bCoolTime != SiKFieldBossManager()->IsCoolTime() ) )
+	{
+		KEGB_BATTLE_FIELD_BOSS_INFO_NOT kPacket;
+		kPacket.m_iPortalAppearanceMap	= SiKFieldBossManager()->GetPortalAppearanceMap();
+		kPacket.m_iPortalDestination	= SiKFieldBossManager()->GetPortalDestination();
+		kPacket.m_bPortalOpen			= SiKFieldBossManager()->IsPortalOpen();
+		kPacket.m_bCoolTime				= SiKFieldBossManager()->IsCoolTime();
+		BroadCastAllGS( EGB_BATTLE_FIELD_BOSS_INFO_NOT, kPacket );
+	}
+}
+#endif // SERV_BATTLE_FIELD_BOSS

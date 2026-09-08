@@ -1,9 +1,10 @@
 #include "StdAfx.h"
 #include ".\x2user.h"
 
-CX2User::CX2User( UserData* pUserData )
+CX2User::CX2User( const UserData& kUserData )
+    : m_UserData( kUserData )
 {
-	m_pUserData		= pUserData;
+	//m_pUserData		= pUserData;
 	m_pSelectUnit	= NULL;
 
 	m_Cash = 0;
@@ -30,6 +31,10 @@ CX2User::CX2User( UserData* pUserData )
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 	m_ulGlobalTotalCash = 0;
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
+
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+	m_iTearOfELWoman = 0;
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 }
 
 CX2User::~CX2User(void)
@@ -41,7 +46,7 @@ CX2User::~CX2User(void)
 	}
 	m_UnitList.clear();
 
-	SAFE_DELETE( m_pUserData );
+	//SAFE_DELETE( m_pUserData );
 }
 
 bool CX2User::AddUnit( CX2Unit* pUnit )
@@ -199,7 +204,6 @@ unsigned long CX2User::GetGlobalMainCash()
 
 	return m_GlobalCashInfo.m_ulCash[iCashType];
 }
-
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 
 #ifdef LIST_SORT_AT_CHARACTER_SELECT
@@ -220,7 +224,7 @@ bool CX2User::SortFirstByUID(UidType aUnitUID)
 		return true;
 	}
 }
-#endif LIST_SORT_AT_CHARACTER_SELECT
+#endif // LIST_SORT_AT_CHARACTER_SELECT
 
 #ifdef FIX_SKILL_SLOT_COOLTIME_IN_VILLAGE //2013.08.09
 void CX2User::ChangeEquippedSkillState( const int iSkillSlotId_, const int iSkillId_ )
@@ -228,10 +232,7 @@ void CX2User::ChangeEquippedSkillState( const int iSkillSlotId_, const int iSkil
 	if ( NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		return;
 
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-	ASSERT( NULL != pUnitData );
-	if ( NULL == pUnitData )
-		return;
+	CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 
 	// iSkillSlotId_가 B슬롯인지 아닌지..
 	bool bSlotB = false;
@@ -249,3 +250,16 @@ void CX2User::ChangeEquippedSkillState( const int iSkillSlotId_, const int iSkil
 	}
 }
 #endif //FIX_SKILL_SLOT_COOLTIME_IN_VILLAGE
+
+#ifdef SERV_UNIT_WAIT_DELETE
+int CX2User::GetIndexByUID( UidType unitUID )
+{
+	for( int i = 0; i < (int)m_UnitList.size(); i++ )
+	{
+		CX2Unit* pUnit = m_UnitList[i];
+		if( pUnit->GetUID() == unitUID )
+			return i;
+	}
+	return -1;
+}
+#endif SERV_UNIT_WAIT_DELETE

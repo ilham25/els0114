@@ -1,6 +1,6 @@
 #pragma once
 
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 #include "X2ItemSlotManager.h"
 
 class CX2CouponBox : public CX2ItemSlotManager
@@ -75,6 +75,7 @@ private:
 
 };
 #endif // COUPON_SYSTEM
+
 
 
 

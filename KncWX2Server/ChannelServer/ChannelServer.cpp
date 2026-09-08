@@ -34,6 +34,20 @@
 #include "ProxyManager.h"
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 
+#ifdef SERV_COUNTRY_JP
+#include "../Common/OnlyGlobal/AuthAndBilling/JP/HanAuthForSvr.h"
+#endif //SERV_COUNTRY_JP
+
+#ifdef SERV_GLOBAL_AUTH
+#ifdef SERV_COUNTRY_IN
+#include "..\Common\OnlyGlobal\AuthAndBilling\IN\ChannelFunizenAuthDBThread.h"
+#endif SERV_COUNTRY_IN
+#endif SERV_GLOBAL_AUTH
+
+#ifdef SERV_PROCESS_COMMUNICATION_KSMS
+#include "..\Common\OnlyGlobal\ProcessCommuniationModule\ProcessCommunicationManager.h"
+#endif //SERV_PROCESS_COMMUNICATION_KSMS
+
 //{{ 2011. 03. 29	최육사	TBB 메모리 관리자
 //#ifdef SERV_TBB_MALLOC_PROXY_TEST
 //	#include <tbb/tbbmalloc_proxy.h>
@@ -79,16 +93,6 @@
 	#include "LogManager.h"
 #endif SERV_LOG_SYSTEM_NEW
 //}}
-
-#ifdef SERV_COUNTRY_JP
-//{{ 2009. 11. 28  김정협	일본인증
-#include "../Common/OnlyGlobal/AuthAndBilling/JP/HanAuthForSvr.h"
-//}}
-#endif //SERV_COUNTRY_JP
-
-#ifdef SERV_PROCESS_COMMUNICATION_KSMS
-#include "..\Common\OnlyGlobal\ProcessCommuniationModule\ProcessCommunicationManager.h"
-#endif //SERV_PROCESS_COMMUNICATION_KSMS
 
 //#include "vld.h"
 
@@ -147,6 +151,12 @@ KThread*        CreateDBThread( int iDBConnectionInfo, const wchar_t* szDSN, boo
 		return new KChannelSMSDBThread( szDSN, bDBConnStr );
 #endif SERV_CHECK_DROP_CCU
 		//}}
+#ifdef SERV_GLOBAL_AUTH
+#ifdef SERV_COUNTRY_IN
+	case KDBLayer::DC_PUBLISHER_AUTH:
+		return new KChannelFunizenAuthDBThread( szDSN, bDBConnStr );
+#endif SERV_COUNTRY_IN
+#endif SERV_GLOBAL_AUTH
     default:
         START_LOG( cerr, L"접속하려는 DB 종류가 이상함." )
             << BUILD_LOG( iDBConnectionInfo )
@@ -182,7 +192,6 @@ bool KChannelServer::Init()
 #ifdef SERV_LOGIN_RESULT_INFO
 	InitLoginResultInfo();
 #endif SERV_LOGIN_RESULT_INFO
-
 
     _JIF( KBaseServer::Init(), return false );
 
@@ -220,7 +229,6 @@ bool KChannelServer::Init()
 			<< END_LOG;
 	}
 #endif //SERV_COUNTRY_JP
-
 
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 	SiKProxyManager()->ConnectAll();
@@ -294,7 +302,6 @@ void KChannelServer::OnServerReadyComplete()
 
 void KChannelServer::ShutDown()
 {
-
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	if (SiKGameSysVal()->GetProcessCommunication() == true)
 	{
@@ -416,7 +423,6 @@ void KChannelServer::Tick()
 		m_tTimeProcessCommunicationONOFF.restart();
 	}
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
 }
 
 #ifdef SERVER_GROUP_UI_ADVANCED
@@ -579,10 +585,6 @@ void KChannelServer::ProcessEvent( const KEventPtr& spEvent_ )
        _CASE( DBE_UPDATE_SERVER_INFO_ACK, KServerList );
 		CASE( DBE_CHANNEL_LIST_ACK );
 
-#ifdef SERVER_GROUP_UI_ADVANCED
-		CASE( DBE_SERVERGROUP_LIST_ACK );
-#endif SERVER_GROUP_UI_ADVANCED
-
 		//{{ 2010. 02. 16  최육사	해킹툴 리스트
 #ifdef SERV_HACKING_TOOL_LIST
 		CASE( DBE_CHECK_HACKING_TOOL_LIST_ACK );
@@ -604,7 +606,9 @@ void KChannelServer::ProcessEvent( const KEventPtr& spEvent_ )
 		_CASE( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT );
 #endif SERV_CHANNEL_SERVER_REALTIME_SCRIPT
 		//}}
-
+#ifdef SERVER_GROUP_UI_ADVANCED
+		CASE( DBE_SERVERGROUP_LIST_ACK );
+#endif SERVER_GROUP_UI_ADVANCED
     default:
         START_LOG( cerr, L"이벤트 핸들러가 정의되지 않았음. " << spEvent_->GetIDStr() );
     }
@@ -645,13 +649,6 @@ _IMPL_ON_FUNC( DBE_UPDATE_SERVER_INFO_ACK, KServerList )
 {
     SetServerList( kPacket_ );
 }
-
-#ifdef SERVER_GROUP_UI_ADVANCED
-IMPL_ON_FUNC( DBE_SERVERGROUP_LIST_ACK )
-{
-	UpdateServerGroupList( kPacket_.m_mapServerGroupList );
-}
-#endif SERVER_GROUP_UI_ADVANCED
 
 IMPL_ON_FUNC( DBE_CHANNEL_LIST_ACK )
 {
@@ -725,6 +722,12 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 #endif SERV_CHANNEL_SERVER_REALTIME_SCRIPT
 //}}
 
+#ifdef SERVER_GROUP_UI_ADVANCED
+IMPL_ON_FUNC( DBE_SERVERGROUP_LIST_ACK )
+{
+	UpdateServerGroupList( kPacket_.m_mapServerGroupList );
+}
+#endif SERVER_GROUP_UI_ADVANCED
 
 #ifdef SERV_LOGIN_RESULT_INFO
 void KChannelServer::InitLoginResultInfo()

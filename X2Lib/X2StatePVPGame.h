@@ -41,6 +41,11 @@ public:
 		LUI_EL_BLACK,
 //#endif // NEW_CHARACTER_EL
 
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+ 		LUI_ADD_COLOR,
+ 		LUI_ADD_BLACK,
+#endif //SERV_9TH_NEW_CHARACTER
+
 		LUI_EMPTY,
 
 #ifdef SERV_PVP_NEW_SYSTEM
@@ -138,9 +143,9 @@ public:
 				NULL == rhs.pSlotData->m_pUnit )
 				return false;
 
-			if( lhs.pSlotData->m_pUnit->GetUnitData()->m_Level < rhs.pSlotData->m_pUnit->GetUnitData()->m_Level )
+			if( lhs.pSlotData->m_pUnit->GetUnitData().m_Level < rhs.pSlotData->m_pUnit->GetUnitData().m_Level )
 				return true;
-			else if( lhs.pSlotData->m_pUnit->GetUnitData()->m_Level > rhs.pSlotData->m_pUnit->GetUnitData()->m_Level )
+			else if( lhs.pSlotData->m_pUnit->GetUnitData().m_Level > rhs.pSlotData->m_pUnit->GetUnitData().m_Level )
 				return false;
 
 			if( lhs.pSlotData->m_Index < rhs.pSlotData->m_Index )
@@ -281,9 +286,7 @@ protected:
 	bool Handler_EGS_CHANGE_PVP_ITEM_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 	bool Handler_EGS_CHANGE_PVP_ITEM_POS_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
-#ifdef MODIFY_PVP_ITEM	
 	bool Handler_EGS_CHANGE_PVP_ITEM_POS_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
-#endif MODIFY_PVP_ITEM
 #endif
 
 #ifdef SERV_PVP_NEW_SYSTEM

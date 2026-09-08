@@ -60,36 +60,22 @@ public:
 	void FirstConnectSucc() { m_bFirstConnectSucc = true; }
 	//}}
 
-
 	void QueueingSendPacket( const KBRPayletterBillingPacketPtr& spPacket );
 
 	bool GetSendPacket( KBRPayletterBillingPacketPtr& spPacket );
 	void MakeEventFromReceivedPacket();
 	void DumpBuffer( BYTE* buffer, bool bError );
 
-	void InsertPacketNoUserUID( unsigned long ulPacketNo, UidType iUserUID );
-	void DeletePacketNoUserUID( unsigned long ulPacketNo );
-	UidType GetCorrespondingUserUID( unsigned long ulPacketNo );
-
 	bool IsInitialized()									{ return m_bInitialized; }
 
-	unsigned long GetNextPacketNo();
-
 	// 넣고 빼는 함수
-	bool InsertBuyPacket( IN KEBILL_BUY_PRODUCT_REQ kPacket_ );
-	bool GetBuyPacket( IN const UidType iUserUID_, OUT KEBILL_BUY_PRODUCT_REQ& kPacket_ );
-	void EraseBuyPacket( IN const UidType iUserUID_ );
+	void InsertUniqueKeyUserUID( UidType iUniqueKey, UidType iUserUID );
+	void DeleteUniqueKeyUserUID( UidType iUniqueKey );
+	UidType GetUniqueKeyUserUID( UidType iUniqueKey );
 
-	// 넣고 빼는 함수-선물하기
-	bool InsertGiftPacket( IN const KEBILL_GIFT_ITEM_REQ kPacket_ );
-	bool GetGiftPacket( IN const UidType iUserUID_, OUT KEBILL_GIFT_ITEM_REQ& kPacket_ );
-	void EraseGiftPacket( IN const UidType iUserUID_ );
-
-	// 넣고 빼는 함수-쿠폰
-	bool InsertCouponPacket( IN KEBILL_USE_COUPON_REQ kPacket_ );
-	bool GetCouponPacket( IN const UidType iUserUID_, OUT KEBILL_USE_COUPON_REQ& kPacket_ );
-	void EraseCouponPacket( IN const UidType iUserUID_ );
-
+	void InsertBuyPacket( IN KEBILL_BUY_PRODUCT_REQ kPacket_, OUT bool& bRet_ );
+	void GetBuyPacket( IN const UidType iUniqueKey, OUT KEBILL_BUY_PRODUCT_REQ& kPacket_, OUT bool& bRet_ );
+	void EraseBuyPacket( IN const UidType iUniqueKey );
 
 protected:
 
@@ -124,20 +110,31 @@ protected:
 
 	bool														m_bSocketConnect;		// 지헌 : 처음 소켓 연결 됬는지 체크
 
-	KCSLOCK_DECLARE( unsigned long,								m_ulCurrentPacketNo );	// KeepConnectionThread, TCPBillingProcessThread, SimLayerThread
-	KCSLOCK_DECLARE( std::map< unsigned long KCOMMA() UidType >, m_mapPacketNoUserUID );// TCPBillingProcessThread
-
+	KCSLOCK_DECLARE( std::map< UidType KCOMMA() UidType >, m_mapUniqueKeyUserUID );// TCPBillingProcessThread
 	// 지헌 : 아이템 구매 시 사용될 패킷 넣어두는 곳.
 	//		  TCP 통신이라 한큐에 안끝나서, 구매 한 아이템 정보를 저장 해 둘 필요가 있는 듯.
 	//		  키는 유저UID 로 사용한다.
-	KCSLOCK_DECLARE( std::map<UidType KCOMMA() KEBILL_BUY_PRODUCT_REQ>,	m_mapBuyPacket );
-	KCSLOCK_DECLARE( std::map<UidType KCOMMA() KEBILL_GIFT_ITEM_REQ>,	m_mapGiftPacket );
-	KCSLOCK_DECLARE( std::map<UidType KCOMMA() KEBILL_USE_COUPON_REQ>,	m_mapCouponPacket );
 
-	typedef std::map<UidType, KEBILL_BUY_PRODUCT_REQ>::iterator MAP_BUYPACKET_ITOR;
-	typedef std::map<UidType, KEBILL_GIFT_ITEM_REQ>::iterator MAP_GIFTPACKET_ITOR;
-	typedef std::map<UidType, KEBILL_USE_COUPON_REQ>::iterator MAP_COUPONPACKET_ITOR;
+	struct KPayletterBuyPacket
+	{
+		CTime m_ctTime;
+		KEBILL_BUY_PRODUCT_REQ m_kPacket;
 
+		KPayletterBuyPacket( CTime ctTime_, KEBILL_BUY_PRODUCT_REQ kPacket_ )
+		{
+			m_ctTime = ctTime_;
+			m_kPacket = kPacket_;
+		}
+	};
+
+	enum PL_BILLING_ENUM
+	{
+		PLBE_PACKET_DELETE_MIN = 1,
+	};
+
+	KCSLOCK_DECLARE( std::map<UidType KCOMMA() KPayletterBuyPacket>,	m_mapBuyPacket );
+
+	typedef std::map<UidType, KPayletterBuyPacket>::iterator MAP_BUYPACKET_ITOR;
     
 };
 

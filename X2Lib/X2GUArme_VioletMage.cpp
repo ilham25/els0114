@@ -49,18 +49,22 @@ static const CX2GUUser::SkillCutInSet s_SkillCutInSet[] =
 namespace _CONST_AISHA_
 {
 
-	const std::wstring UFO_IDLE			= L"UFO_AISHA_IDLE";		
-	const std::wstring UFO_GO_LEFT		= L"UFO_AISHA_GO_LEFT";		
-	const std::wstring UFO_GO_RIGHT 	= L"UFO_AISHA_GO_RIGHT";	
-	const std::wstring UFO_GO_UP		= L"UFO_AISHA_GO_UP";		
-	const std::wstring UFO_GO_DOWN		= L"UFO_AISHA_GO_DOWN";		
+	const std::string UFO_IDLE			= "UFO_AISHA_IDLE";		
+	const std::string UFO_GO_LEFT		= "UFO_AISHA_GO_LEFT";		
+	const std::string UFO_GO_RIGHT 	= "UFO_AISHA_GO_RIGHT";	
+	const std::string UFO_GO_UP		= "UFO_AISHA_GO_UP";		
+	const std::string UFO_GO_DOWN		= "UFO_AISHA_GO_DOWN";		
 
-	const std::wstring UFO_GO_UP_LEFT		= L"UFO_AISHA_GO_UP_LEFT";		
-	const std::wstring UFO_GO_UP_RIGHT 		= L"UFO_AISHA_GO_UP_RIGHT";	
-	const std::wstring UFO_GO_DOWN_LEFT		= L"UFO_AISHA_GO_DOWN_LEFT";		
-	const std::wstring UFO_GO_DOWN_RIGHT 	= L"UFO_AISHA_GO_DOWN_RIGHT";	
+	const std::string UFO_GO_UP_LEFT		= "UFO_AISHA_GO_UP_LEFT";		
+	const std::string UFO_GO_UP_RIGHT 		= "UFO_AISHA_GO_UP_RIGHT";	
+	const std::string UFO_GO_DOWN_LEFT		= "UFO_AISHA_GO_DOWN_LEFT";		
+	const std::string UFO_GO_DOWN_RIGHT 	= "UFO_AISHA_GO_DOWN_RIGHT";	
 
-	const std::wstring UFO_FIRE			= L"UFO_AISHA_FIRE";
+	const std::string UFO_FIRE			= "UFO_AISHA_FIRE";
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 헬 드롭용 사망 State Parsing 을 위해 추가
+	const std::string UFO_DYING		= "UFO_AISHA_DYING";
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 
 	const D3DXCOLOR coSpecialActive( 0xff222222 );
@@ -77,6 +81,12 @@ namespace _CONST_AISHA_
 	const float AEM_MEDITATION_REDUCE_COOLTIME_VALUE( 15.f );			/// 메디테이션 메모 쿨타임 감소치
 	const float AHM_CHAIN_BURST_MEMO_INCREASE_POWER_RATE_VALUE( 1.1f );	/// 체인 버스트 메모 데미지 증감치
 #endif BALANCE_ELEMENTAL_MASTER_20130117
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	const float CREATE_HELL_DROP_DAMAGE_EFFECT_TIME_GAP ( 0.25f );		/// 헬 드롭, 떨어지는 시간 차
+	const float CREATE_HELL_DROP_DAMAGE_EFFECT_START_TIME ( 1.0f );		/// 헬 드롭, 떨어지기 시작하는 시간 
+	const float BIDING_CIRCLE_BASIC_DISTANCE ( 500.f );					/// 바인딩 서클, 기본 범위 ( 레벨 1 범위 )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 }
 
 
@@ -120,15 +130,20 @@ CX2GUArme_VioletMage::CX2GUArme_VioletMage( int unitIndex, int teamNum,
 , m_fUseMPConsume( 5.f )			/// 메테오 샤워 루프 스테이트에서 한발당 소모되는 MP량
 , m_fFireGap( 0.2f )				/// 메테오 샤워 한발당 발사되는 간격
 #endif BALANCE_ELEMENTAL_MASTER_20130117
+#ifdef BALANCE_PATCH_20131107				// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+, m_fHellDropCreateEffectCooltime ( 0.f )		/// 헬 드롭, 생성한 Effect 갯수
+, m_bIsHellDropTimerStart ( false )				// 헬 드롭 타이머가 켜졌는가?
+#endif // BALANCE_PATCH_20131107			// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 {
 	for( int i=0; i<EffSetID_END; i++ )
 	{
-		m_ahEffectSet[i] = CX2EffectSet::INVALID_HANDLE;
+		m_ahEffectSet[i] = INVALID_EFFECTSET_HANDLE;
 	}
 
 
-	m_hSeqArmeAirStepRight	= INVALID_PARTICLE_HANDLE;
-	m_hSeqArmeAirStepLeft	= INVALID_PARTICLE_HANDLE;
+	m_hSeqArmeAirStepRight	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqArmeAirStepLeft	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	m_pMPChargeA			= NULL;
 	m_pMPChargeB			= NULL;
@@ -136,13 +151,13 @@ CX2GUArme_VioletMage::CX2GUArme_VioletMage( int unitIndex, int teamNum,
 
 	m_pEvasionAttackAnim	= NULL;
 
-	m_hSeqMPEnergy				= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPEnergyCenter		= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPChargeWave			= INVALID_PARTICLE_HANDLE;
+	m_hSeqMPEnergy				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPEnergyCenter		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPChargeWave			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hSeqMPCharge2MagicCircle	= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPCharge2Up			= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPCharge2Up2			= INVALID_PARTICLE_HANDLE;
+	m_hSeqMPCharge2MagicCircle	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPCharge2Up			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPCharge2Up2			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	m_pComboX3Up1			= NULL;
 	m_pComboX3Up2			= NULL;
@@ -158,15 +173,25 @@ CX2GUArme_VioletMage::CX2GUArme_VioletMage( int unitIndex, int teamNum,
 
 
 	//m_pMeteoCall			= NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_hHellStoneEffect		    = INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hCatastropheLaser			= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hCatastropheLaser1		= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hCatastropheLaser2		= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hCatastropheLaser3		= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hCatastropheLaser4		= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pHellStoneEffect		= NULL;
-
-	m_bZ4up					= false;
-
 	m_pCatastropheLaser			= NULL;
 	m_pCatastropheLaser1		= NULL;
 	m_pCatastropheLaser2		= NULL;
 	m_pCatastropheLaser3		= NULL;
 	m_pCatastropheLaser4		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+	m_bZ4up					= false;
+
+
 
 	InitializeArmeMajorParticleArray();
 	InitializeArmeMinorParticleArray();
@@ -174,9 +199,9 @@ CX2GUArme_VioletMage::CX2GUArme_VioletMage( int unitIndex, int teamNum,
 	//메이져
 	
 #ifdef SKILL_CASH_10_TEST
-	m_hSeqLight_Arme_Aging1				= INVALID_PARTICLE_HANDLE;
-	m_hSeqLight_Arme_Aging2				= INVALID_PARTICLE_HANDLE;
-	m_hSeqLight_Arme_Aging3				= INVALID_PARTICLE_HANDLE;
+	m_hSeqLight_Arme_Aging1				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqLight_Arme_Aging2				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqLight_Arme_Aging3				= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif
 
 
@@ -202,7 +227,7 @@ CX2GUArme_VioletMage::CX2GUArme_VioletMage( int unitIndex, int teamNum,
 	m_iDrainEnergyTarget = -1;	
 #endif
 #ifdef SERV_ARME_DIMENSION_WITCH
-	m_hEffectMorningStar = CX2EffectSet::INVALID_HANDLE;
+	m_hEffectMorningStar = INVALID_EFFECTSET_HANDLE;
 	m_fMagicStaffExtraRate = 0.f;
 	m_fMagicStaffSize = 0.f;
 	m_hMagicalStaff	= INVALID_MESH_INSTANCE_HANDLE;
@@ -305,7 +330,7 @@ CX2GUArme_VioletMage::~CX2GUArme_VioletMage(void)
 #ifdef SERV_ARME_DIMENSION_WITCH
 	if( m_hMagicalStaff != INVALID_MESH_INSTANCE_HANDLE )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMagicalStaff );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMagicalStaff );
 		m_SubAttackListSet.clear();		
 	}
 #endif
@@ -344,7 +369,7 @@ void CX2GUArme_VioletMage::DamageReact( CX2DamageManager::DamageData* pDamageDat
 		if ( true == m_bInMeditation )
 		{
 			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = NULL;
-			CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& cUserSkillTree =  GetUnit()->GetUnitData().m_UserSkillTree;
 			bool bFindMeditation = false;
 
 			// 스킬 슬롯 A
@@ -563,7 +588,7 @@ void CX2GUArme_VioletMage::InitializeArmeMajorParticleArray()
 
 	for ( int index = 0; index < AISHA_PII_MAJOR_END; index++ )
 	{
-		m_ahAishaMajorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahAishaMajorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -769,7 +794,7 @@ void	CX2GUArme_VioletMage::AppendMajorParticleToDeviceList( CKTDXDeviceDataList&
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GUArme_VioletMage::SetAishaMajorParticleByEnum( AISHA_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleAishaMajorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleAishaMajorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), D3DXVECTOR3( 0.0f, 0.0f, 0.0f ) );
@@ -785,7 +810,7 @@ CKTDGParticleSystem::CParticleEventSequence* CX2GUArme_VioletMage::SetAishaMajor
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GUArme_VioletMage::SetAishaMajorParticleByEnum( AISHA_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleAishaMajorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleAishaMajorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), D3DXVECTOR3( 0.0f, 0.0f, 0.0f ), 0, 0, iDrawCount_ );
@@ -805,10 +830,10 @@ void CX2GUArme_VioletMage::InitializeArmeMinorParticleArray()
 
 	for ( int index = 0; index < AISHA_PII_MINOR_END; index++ )
 	{
-		m_ahAishaMinorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahAishaMinorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 
-	m_hSeqLight_Arme_Circle_Flame = INVALID_PARTICLE_HANDLE;
+	m_hSeqLight_Arme_Circle_Flame = INVALID_PARTICLE_SEQUENCE_HANDLE;
 }
 
 #ifdef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
@@ -857,7 +882,7 @@ void	CX2GUArme_VioletMage::AppendMinorParticleToDeviceList( CKTDXDeviceDataList&
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GUArme_VioletMage::SetAishaMinorParticleByEnum( AISHA_MINOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleAishaMinorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleAishaMinorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), D3DXVECTOR3( 0.0f, 0.0f, 0.0f ), 0, 0, iDrawCount_ );
@@ -875,43 +900,43 @@ void CX2GUArme_VioletMage::ParseCommonRandomState()
 {
 
 
-	if( true == m_LuaManager.BeginTable( L"INIT_COMMON_RANDOM_STATE" ) )
+	if( true == m_LuaManager.BeginTable( "INIT_COMMON_RANDOM_STATE" ) )
 	{
 
-		std::wstring tableName = L"";
-		switch( m_pUnit->GetClass() )
+		const char* tableName = "";
+		switch( GetUnit()->GetClass() )
 		{
 		case CX2Unit::UC_ARME_VIOLET_MAGE:
 			{
-				tableName = L"ARME_VIOLET_MAGE";
+				tableName = "ARME_VIOLET_MAGE";
 			} break;
 		case CX2Unit::UC_ARME_HIGH_MAGICIAN:
 			{
-				tableName = L"ARME_HIGH_MAGICIAN";
+				tableName = "ARME_HIGH_MAGICIAN";
 			} break;
 		case CX2Unit::UC_ARME_DARK_MAGICIAN:
 			{
-				tableName = L"ARME_DARK_MAGICIAN";
+				tableName = "ARME_DARK_MAGICIAN";
 			} break;
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 		case CX2Unit::UC_ARME_BATTLE_MAGICIAN:
 			{
-				tableName = L"ARME_BATTLE_MAGICIAN";
+				tableName = "ARME_BATTLE_MAGICIAN";
 			} break;
 #endif
 
 		case CX2Unit::UC_ARME_ELEMENTAL_MASTER:
 			{
-				tableName = L"ARME_ELEMENTAL_MASTER";
+				tableName = "ARME_ELEMENTAL_MASTER";
 			} break;
 		case CX2Unit::UC_ARME_VOID_PRINCESS:
 			{
-				tableName = L"ARME_VOID_PRINCESS";
+				tableName = "ARME_VOID_PRINCESS";
 			} break;
 #ifdef SERV_ARME_DIMENSION_WITCH
 		case CX2Unit::UC_ARME_DIMENSION_WITCH:
 			{
-				tableName = L"ARME_DIMENSION_WITCH";
+				tableName = "ARME_DIMENSION_WITCH";
 			} break;
 #endif
 
@@ -933,12 +958,9 @@ void CX2GUArme_VioletMage::ParseCommonRandomState()
 
 void CX2GUArme_VioletMage::InitState()
 {
-	ASSERT( NULL != m_pUnit );
-	ASSERT( NULL != m_pUnit->GetUnitData() );
+	ASSERT( NULL != GetUnit() );
 
-	CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
-
-
+	const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 
 	switch( pUnitData->m_UnitClass )
@@ -994,17 +1016,17 @@ void CX2GUArme_VioletMage::InitState()
 
 
 	// 공통으로 쓰는 랜덤한 상태 start, win, lose 상태 초기화
-	std::wstring tableNameStart	= L"";
-	std::wstring tableNameWin	= L"";
-	std::wstring tableNameLose	= L"";
-	InitStateCommonRandom( tableNameStart, tableNameWin, tableNameLose );
+	std::string tableNameStartUTF8;
+	std::string tableNameWinUTF8;
+	std::string tableNameLoseUTF8;
+	InitStateCommonRandom( tableNameStartUTF8, tableNameWinUTF8, tableNameLoseUTF8 );
 
 
 	UserUnitStateData stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_START;
-	m_LuaManager.MakeTableReference( tableNameStart.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameStartUTF8.c_str(), stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, StartEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -1012,7 +1034,7 @@ void CX2GUArme_VioletMage::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_WIN;
-	m_LuaManager.MakeTableReference( tableNameWin.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameWinUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, WinStateStart );	
 #endif
@@ -1021,7 +1043,7 @@ void CX2GUArme_VioletMage::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_LOSE;
-	m_LuaManager.MakeTableReference( tableNameLose.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameLoseUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, LoseStateStart );	
 #endif
@@ -1044,7 +1066,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"AVSI_COMBO_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_COMBO_X2", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX2FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX2EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1055,14 +1077,14 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"AVSI_HIGH_MAGICIAN_COMBO_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_HIGH_MAGICIAN_COMBO_X2", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_COMBO_X2_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_COMBO_X2_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X3back;
-			m_LuaManager.MakeTableReference( L"AVSI_HIGH_MAGICIAN_COMBO_X3back", stateData.stateID );				
+			m_LuaManager.MakeTableReference( "AVSI_HIGH_MAGICIAN_COMBO_X3back", stateData.stateID );				
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_COMBO_X3back_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_COMBO_X3back_EventProcess );
 			stateData.StateEndFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_COMBO_X3back_EndFuture );
@@ -1074,14 +1096,14 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"AVSI_DARK_MAGICIAN_COMBO_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DARK_MAGICIAN_COMBO_X2", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_COMBO_X2_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_COMBO_X2_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X3back;
-			m_LuaManager.MakeTableReference( L"AVSI_DARK_MAGICIAN_COMBO_X3back", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DARK_MAGICIAN_COMBO_X3back", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_COMBO_X3back_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_COMBO_X3back_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1098,14 +1120,14 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X3down;
-			m_LuaManager.MakeTableReference( L"AVSI_HIGH_MAGICIAN_COMBO_X3down", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_HIGH_MAGICIAN_COMBO_X3down", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_COMBO_X3down_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_COMBO_X3down_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X4down;
-			m_LuaManager.MakeTableReference( L"AVSI_HIGH_MAGICIAN_COMBO_X4down", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_HIGH_MAGICIAN_COMBO_X4down", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_COMBO_X4down_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_COMBO_X4down_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1125,7 +1147,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X3down;
-			m_LuaManager.MakeTableReference( L"AVSI_COMBO_X3down", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_COMBO_X3down", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX3downFrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX3downEventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1136,14 +1158,14 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X3down;
-			m_LuaManager.MakeTableReference( L"AVSI_DARK_MAGICIAN_COMBO_X3down", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DARK_MAGICIAN_COMBO_X3down", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_COMBO_X3down_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_COMBO_X3down_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X4down;
-			m_LuaManager.MakeTableReference( L"AVSI_DARK_MAGICIAN_COMBO_X4down", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DARK_MAGICIAN_COMBO_X4down", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_COMBO_X4down_Start );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_COMBO_X4down_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_COMBO_X4down_EventProcess );
@@ -1169,7 +1191,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_COMBO_Z2a;
-			m_LuaManager.MakeTableReference( L"AVSI_DASH_COMBO_Z2a", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DASH_COMBO_Z2a", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashComboZ2aStartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashComboZ2aFrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashComboZ2aEventProcess );
@@ -1181,7 +1203,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_EM_DASH_COMBO_Z2a;
-			m_LuaManager.MakeTableReference( L"AVSI_EM_DASH_COMBO_Z2a", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_EM_DASH_COMBO_Z2a", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_EM_DASH_COMBO_Z2a_StartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_EM_DASH_COMBO_Z2a_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_EM_DASH_COMBO_Z2a_EventProcess );
@@ -1195,7 +1217,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_COMBO_Z2a;
-			m_LuaManager.MakeTableReference( L"AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a_Start );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a_StartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a_FrameMove );
@@ -1204,7 +1226,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_COMBO_Z3up;
-			m_LuaManager.MakeTableReference( L"AVSI_DARK_MAGICIAN_DASH_COMBO_Z3up", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DARK_MAGICIAN_DASH_COMBO_Z3up", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_DASH_COMBO_Z3up_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		} break;
@@ -1217,7 +1239,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_ABM_DASH_COMBO_Z2a;
-			m_LuaManager.MakeTableReference( L"AVSI_ABM_DASH_COMBO_Z2a", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_ABM_DASH_COMBO_Z2a", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a_Start );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a_StartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_ABM_DASH_COMBO_Z2a_FrameMove );
@@ -1226,13 +1248,13 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ABM_DASH_COMBO_ZXX;
-			m_LuaManager.MakeTableReference( L"ABM_DASH_COMBO_ZXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ABM_DASH_COMBO_ZXX", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_ABM_DASH_COMBO_ZXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ABM_DASH_COMBO_ZXXX;
-			m_LuaManager.MakeTableReference( L"ABM_DASH_COMBO_ZXXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ABM_DASH_COMBO_ZXXX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_ABM_DASH_COMBO_ZXXX_FrameMove );			
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_ABM_DASH_COMBO_ZXXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1256,7 +1278,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"AVSI_DASH_ATTACK_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DASH_ATTACK_X", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashAttackXStartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashAttackXFrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashAttackXEventProcess );
@@ -1270,7 +1292,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"AVSI_HIGH_MAGICION_DASH_ATTACK_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_HIGH_MAGICION_DASH_ATTACK_X", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICION_DASH_ATTACK_X_StartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICION_DASH_ATTACK_X_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICION_DASH_ATTACK_X_EventProcess );
@@ -1279,7 +1301,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_ATTACK_X2;
-			m_LuaManager.MakeTableReference( L"AVSI_HIGH_MAGICION_DASH_ATTACK_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_HIGH_MAGICION_DASH_ATTACK_X2", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICION_DASH_ATTACK_X2_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICION_DASH_ATTACK_X2_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1290,7 +1312,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"AVSI_DIMENSION_WITCH_DASH_ATTACK_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DIMENSION_WITCH_DASH_ATTACK_X", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashAttackXStartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashAttackXFrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DIMENSION_WITCH_DASH_ATTACK_X_EventProcess );
@@ -1299,7 +1321,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_ATTACK_X2;
-			m_LuaManager.MakeTableReference( L"AVSI_DIMENSION_WITCH_DASH_ATTACK_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DIMENSION_WITCH_DASH_ATTACK_X2", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_DIMENSION_WITCH_DASH_ATTACK_X2_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		} break;
@@ -1313,7 +1335,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_JUMP_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"AVSI_DASH_JUMP_ATTACK_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DASH_JUMP_ATTACK_X", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackXFrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackXFrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackXEventProcess );
@@ -1322,7 +1344,7 @@ void CX2GUArme_VioletMage::InitState()
 #ifdef BALANCE_PATCH_20120329
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_JUMP_ATTACK_X2;
-			m_LuaManager.MakeTableReference( L"AVSI_DASH_JUMP_ATTACK_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DASH_JUMP_ATTACK_X2", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackX2FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackX2FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackX2EventProcess );
@@ -1337,7 +1359,7 @@ void CX2GUArme_VioletMage::InitState()
 #ifdef BALANCE_PATCH_20120329
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_JUMP_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"AVSI_DASH_JUMP_ATTACK_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DASH_JUMP_ATTACK_X", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackXFrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackXFrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackXEventProcess );
@@ -1345,7 +1367,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_JUMP_ATTACK_X2;
-			m_LuaManager.MakeTableReference( L"AVSI_DASH_JUMP_ATTACK_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_DASH_JUMP_ATTACK_X2", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackX2FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackX2FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackX2EventProcess );
@@ -1353,7 +1375,7 @@ void CX2GUArme_VioletMage::InitState()
 #else
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_JUMP_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X_EventProcess );
@@ -1361,7 +1383,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_JUMP_ATTACK_X2;
-			m_LuaManager.MakeTableReference( L"AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X2", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X2_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X2_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X2_EventProcess );
@@ -1375,7 +1397,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_JUMP_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"AVSI_AVP_DASH_JUMP_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_AVP_DASH_JUMP_X", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AVP_DASH_JUMP_X_Init );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackXFrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AVP_DASH_JUMP_X_FrameMove );
@@ -1393,7 +1415,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_DASH_JUMP_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"AVSI_ABM_DASH_JUMP_ATTACK_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_ABM_DASH_JUMP_ATTACK_X", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AVP_DASH_JUMP_X_Init );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackXFrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AVP_DASH_JUMP_X_FrameMove );
@@ -1424,7 +1446,7 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_Z4up;
-			m_LuaManager.MakeTableReference( L"AVSI_COMBO_Z4up", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_COMBO_Z4up", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ4upStart );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ4upFrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ4upFrameMove );
@@ -1438,13 +1460,13 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			//stateData.Init();
 			//stateData.stateID			= AVSI_COMBO_Z3up;
-			//m_LuaManager.MakeTableReference( L"AVSI_AEM_ZZupZ", stateData.stateID );
+			//m_LuaManager.MakeTableReference( "AVSI_AEM_ZZupZ", stateData.stateID );
 			//stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AEM_ZZupZ_EventProcess );
 			//m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_Z4up;
-			m_LuaManager.MakeTableReference( L"AVSI_AEM_ZZupZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_AEM_ZZupZZ", stateData.stateID );
 			//stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ4upStart );
 			//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ4upFrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AEM_ZZupZZ_FrameMove );
@@ -1472,7 +1494,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X3front;
-			m_LuaManager.MakeTableReference( L"AVSI_COMBO_X3front", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_COMBO_X3front", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX3frontStart );
 			stateData.OnFrameMoveFuture = SET_CB_FUNC( CX2GUArme_VioletMage, ComboX3frontFrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX3frontFrameMove );
@@ -1487,7 +1509,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_X3front;
-			m_LuaManager.MakeTableReference( L"AVSI_AEM_XXfrontX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_AEM_XXfrontX", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AEM_XXfrontX_Init );
 			//stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX3frontStart );
 			//stateData.OnFrameMoveFuture = SET_CB_FUNC( CX2GUArme_VioletMage, ComboX3frontFrameMoveFuture );
@@ -1515,7 +1537,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_AEM_XZ;
-			m_LuaManager.MakeTableReference( L"AVSI_AEM_XZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_AEM_XZ", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AEM_XZ_Init );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AEM_XZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AEM_XZ_EventProcess );
@@ -1524,7 +1546,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_AEM_XZZ;
-			m_LuaManager.MakeTableReference( L"AVSI_AEM_XZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_AEM_XZZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AEM_XZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AEM_XZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1532,7 +1554,7 @@ void CX2GUArme_VioletMage::InitState()
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117		/// XZZ 콤보 종료 스테이트 추가
 			stateData.Init();
 			stateData.stateID			= AVSI_AEM_XZZ_END;
-			m_LuaManager.MakeTableReference( L"AVSI_AEM_XZZ_END", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_AEM_XZZ_END", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AEM_XZZ_END_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 #endif BALANCE_ELEMENTAL_MASTER_20130117
@@ -1545,7 +1567,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_AVP_ZZfrontZ;
-			m_LuaManager.MakeTableReference( L"AVSI_AVP_ZZfrontZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_AVP_ZZfrontZ", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AVP_ZZfrontZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
@@ -1553,7 +1575,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_AVP_ZZfrontZZ;
-			m_LuaManager.MakeTableReference( L"AVSI_AVP_ZZfrontZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_AVP_ZZfrontZZ", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AVP_ZZfrontZZ_Init );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AVP_ZZfrontZZ_StateStartFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AVP_ZZfrontZZ_EventProcess );
@@ -1562,7 +1584,7 @@ void CX2GUArme_VioletMage::InitState()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_AVP_ZZfrontZZ_FALL;
-			m_LuaManager.MakeTableReference( L"AVSI_AVP_ZZfrontZZ_FALL", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_AVP_ZZfrontZZ_FALL", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_AVP_ZZfrontZZ_FALL_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
@@ -1573,13 +1595,13 @@ void CX2GUArme_VioletMage::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_ADW_COMBO_ADD_X;
-			m_LuaManager.MakeTableReference( L"AVSI_ADW_COMBO_ADD_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_ADW_COMBO_ADD_X", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_ADW_COMBO_ADD_X_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_ADW_COMBO_ADD_X2;
-			m_LuaManager.MakeTableReference( L"AVSI_ADW_COMBO_ADD_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_ADW_COMBO_ADD_X2", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_ADW_COMBO_ADD_X_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		} break;
@@ -1603,9 +1625,9 @@ void CX2GUArme_VioletMage::InitStateID()
 	m_CommonState.m_Wait	= USI_WAIT;
 	m_ChargeMpState			= AVSI_CHARGE_MP;
 
-#ifdef TRANSFORMER_TEST
-	m_CommonState.m_Transformed			= AVSI_TRANSFORMED;
-#endif TRANSFORMER_TEST
+//#ifdef TRANSFORMER_TEST
+//	m_CommonState.m_Transformed			= AVSI_TRANSFORMED;
+//#endif TRANSFORMER_TEST
 
 
 
@@ -1618,7 +1640,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_FRONT;
-	m_LuaManager.MakeTableReference( L"AVSI_DIE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DIE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DieFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, DieFrontStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DieFrontFrameMove );
@@ -1627,7 +1649,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_BACK;
-	m_LuaManager.MakeTableReference( L"AVSI_DIE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DIE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DieBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, DieBackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DieBackFrameMove );
@@ -1637,7 +1659,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_START_INTRUDE;
-	m_LuaManager.MakeTableReference( L"AVSI_START_INTRUDE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_START_INTRUDE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, StartIntrudeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, StartIntrudeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartIntrudeEventProcess );
@@ -1646,7 +1668,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WAIT;
-	m_LuaManager.MakeTableReference( L"AVSI_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, WaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, WaitStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, WaitFrameMoveFuture );
@@ -1655,34 +1677,34 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WALK;
-	m_LuaManager.MakeTableReference( L"AVSI_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_WALK", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser,			WalkFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, WalkEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_READY;
-	m_LuaManager.MakeTableReference( L"AVSI_JUMP_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_JUMP_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpReadyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"AVSI_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_JUMP_UP", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"AVSI_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_JUMP_DOWN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= AVSI_JUMP_LEVITATION;
-	m_LuaManager.MakeTableReference( L"AVSI_JUMP_LEVITATION", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_JUMP_LEVITATION", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpLevitationStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpLevitationFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, JumpLevitationFrameMove );
@@ -1692,14 +1714,14 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"AVSI_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_JUMP_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpLandingEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH;
-	m_LuaManager.MakeTableReference( L"AVSI_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -1708,7 +1730,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_END;
-	m_LuaManager.MakeTableReference( L"AVSI_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DASH_END", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, DashEndStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashEndFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashEndFrameMove );
@@ -1717,7 +1739,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"AVSI_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpFrameMoveFuture );
@@ -1727,7 +1749,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_DASH_JUMP_LEVITATION;
-	m_LuaManager.MakeTableReference( L"AVSI_DASH_JUMP_LEVITATION", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DASH_JUMP_LEVITATION", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpLevitationStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpLevitationFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpLevitationFrameMove );
@@ -1737,24 +1759,22 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"AVSI_DASH_JUMP_LANDING", stateData.stateID );
-#ifdef MODIFY_DASH_JUMP_LANDING_SPEED
+	m_LuaManager.MakeTableReference( "AVSI_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
-#endif
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpLandingEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= AVSI_DASH_JUMP_POWER_LANDING;
-	m_LuaManager.MakeTableReference( L"AVSI_DASH_JUMP_POWER_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DASH_JUMP_POWER_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpPowerLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpPowerLandingEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"AVSI_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_HYPER_MODE", stateData.stateID );
 	stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, HyperModeInit );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser,			 HyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, HyperModeFrameMove );
@@ -1768,7 +1788,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_CHARGE_MP;
-	m_LuaManager.MakeTableReference( L"AVSI_CHARGE_MP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_CHARGE_MP", stateData.stateID );
 	stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, ChargeMPInit );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, ChargeMPStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, ChargeMPStart );
@@ -1780,86 +1800,86 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_GROGGY;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_GROGGY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_GROGGY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DAMAGE_GROGGY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_FRONT;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_SMALL_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_SMALL_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DamageSmallFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_BACK;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_SMALL_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_SMALL_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DamageSmallBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_FRONT;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_BIG_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_BIG_FRONT", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, DamageBigFrontStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DamageBigFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_BACK;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_BIG_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_BIG_BACK", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, DamageBigBackStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DamageBigBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_FRONT;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_DOWN_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_DOWN_FRONT", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DamageDownFrontFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DamageDownFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_BACK;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_DOWN_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_DOWN_BACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DamageDownBackFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DamageDownBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_FRONT;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_STANDUP_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_STANDUP_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_BACK;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_STANDUP_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_STANDUP_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_SMALL;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_AIR_SMALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_AIR_SMALL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DamageAirSmallStartFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirSmallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_AIR_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_AIR_DOWN", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_INVINCIBLE;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownInvincibleEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_LANDING;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
 	stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, DamageAirDownLandingInit );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingFrameMove );
@@ -1868,31 +1888,31 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FALL;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_AIR_FALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_AIR_FALL", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_UP;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_AIR_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_AIR_UP", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_FRONT;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_BACK;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_REVENGE;
-	m_LuaManager.MakeTableReference( L"AVSI_DAMAGE_REVENGE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DAMAGE_REVENGE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageRevengeStart );
 	stateData.OnCameraMove		= SET_CB_FUNC( CX2GUUser, DamageRevengeCameraMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageRevengeEventProcess );
@@ -1905,10 +1925,10 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	stateData.Init();
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	stateData.stateID			= AVSI_TELEPORT_END;
-	m_LuaManager.MakeTableReference( L"AVSI_A_AV_TELEPORT_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_A_AV_TELEPORT_END", stateData.stateID );
 #else //UPGRADE_SKILL_SYSTEM_2013
 	stateData.stateID			= AVSI_EVASION_END;
-	m_LuaManager.MakeTableReference( L"AVSI_EVASION_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_EVASION_END", stateData.stateID );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, EvasionEndFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, EvasionEndEventProcess );
@@ -1917,10 +1937,10 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	stateData.Init();
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	stateData.stateID			= AVSI_TELEPORT_STAND_UP_START;
-	m_LuaManager.MakeTableReference( L"AVSI_TELEPORT_STAND_UP_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_TELEPORT_STAND_UP_START", stateData.stateID );
 #else //UPGRADE_SKILL_SYSTEM_2013
 	stateData.stateID			= AVSI_EVASION_STAND_UP_START;
-	m_LuaManager.MakeTableReference( L"AVSI_EVASION_STAND_UP_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_EVASION_STAND_UP_START", stateData.stateID );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	stateData.StateStart 		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_EVASION_STAND_UP_START_Start );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_EVASION_STAND_UP_START_FrameMoveFuture );
@@ -1930,10 +1950,10 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	stateData.Init();
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	stateData.stateID			= AVSI_TELEPORT_STAND_UP_END;
-	m_LuaManager.MakeTableReference( L"AVSI_TELEPORT_STAND_UP_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_TELEPORT_STAND_UP_END", stateData.stateID );
 #else //UPGRADE_SKILL_SYSTEM_2013
 	stateData.stateID			= AVSI_EVASION_STAND_UP_END;
-	m_LuaManager.MakeTableReference( L"AVSI_EVASION_STAND_UP_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_EVASION_STAND_UP_END", stateData.stateID );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_EVASION_STAND_UP_END_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_EVASION_STAND_UP_END_EventProcess );
@@ -1943,10 +1963,10 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	stateData.Init();
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	stateData.stateID			= AVSI_TELEPORT_STANDUP_ATTACK;
-	m_LuaManager.MakeTableReference( L"AVSI_TELEPORT_STANDUP_ATTACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_TELEPORT_STANDUP_ATTACK", stateData.stateID );
 #else //UPGRADE_SKILL_SYSTEM_2013
 	stateData.stateID			= AVSI_EVASION_STANDUP_ATTACK;
-	m_LuaManager.MakeTableReference( L"AVSI_EVASION_STANDUP_ATTACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_EVASION_STANDUP_ATTACK", stateData.stateID );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, EvasionStandupAttackInit );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, EvasionStandupAttackStart );
@@ -1956,7 +1976,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	m_StateList[stateData.stateID] = stateData;
 
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
-	switch( m_pUnit->GetClass() )
+	switch( GetUnit()->GetClass() )
 	{
 	case CX2Unit::UC_ARME_BATTLE_MAGICIAN:
 #ifdef SERV_ARME_DIMENSION_WITCH
@@ -1965,25 +1985,25 @@ void CX2GUArme_VioletMage::InitStateCommon()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_Z1;
-			m_LuaManager.MakeTableReference( L"AVSI_ABM_COMBO_Z1", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_ABM_COMBO_Z1", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ABM_ComboZ1EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_Z2;
-			m_LuaManager.MakeTableReference( L"AVSI_ABM_COMBO_Z2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_ABM_COMBO_Z2", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ABM_ComboZ2EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_Z3;
-			m_LuaManager.MakeTableReference( L"AVSI_ABM_COMBO_Z3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_ABM_COMBO_Z3", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ABM_ComboZ3EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_Z4;
-			m_LuaManager.MakeTableReference( L"AVSI_ABM_COMBO_Z4", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_ABM_COMBO_Z4", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ABM_ComboZ4EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		}
@@ -1992,14 +2012,14 @@ void CX2GUArme_VioletMage::InitStateCommon()
 		{
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_Z1;
-			m_LuaManager.MakeTableReference( L"AVSI_COMBO_Z1", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_COMBO_Z1", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ1FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ1EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_Z2;
-			m_LuaManager.MakeTableReference( L"AVSI_COMBO_Z2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_COMBO_Z2", stateData.stateID );
 			//stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ2FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ2EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -2007,7 +2027,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 			stateData.Init();
 			stateData.stateID			= AVSI_COMBO_Z3;
-			m_LuaManager.MakeTableReference( L"AVSI_COMBO_Z3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_COMBO_Z3", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ3EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		}
@@ -2016,14 +2036,14 @@ void CX2GUArme_VioletMage::InitStateCommon()
 #else
 	stateData.Init();
 	stateData.stateID			= AVSI_COMBO_Z1;
-	m_LuaManager.MakeTableReference( L"AVSI_COMBO_Z1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_COMBO_Z1", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ1EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= AVSI_COMBO_Z2;
-	m_LuaManager.MakeTableReference( L"AVSI_COMBO_Z2", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_COMBO_Z2", stateData.stateID );
 	//stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ2FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ2EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -2031,7 +2051,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	
 	stateData.Init();
 	stateData.stateID			= AVSI_COMBO_Z3;
-	m_LuaManager.MakeTableReference( L"AVSI_COMBO_Z3", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_COMBO_Z3", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ3EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 #endif
@@ -2039,7 +2059,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_COMBO_X1;
-	m_LuaManager.MakeTableReference( L"AVSI_COMBO_X1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_COMBO_X1", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX1EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -2051,7 +2071,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_COMBO_Z3up;
-	m_LuaManager.MakeTableReference( L"AVSI_COMBO_Z3up", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_COMBO_Z3up", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboZ3upEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
@@ -2062,7 +2082,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_COMBO_X3;
-	m_LuaManager.MakeTableReference( L"AVSI_COMBO_X3", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_COMBO_X3", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX3FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX3EventProcess );
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117		/// 차지 스테이트로 갈 수 있는지에 대한 변수 초기화를 위해 추가
@@ -2073,7 +2093,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117
 	stateData.Init();		/// 파이어볼 발사 직전 차지 스테이트
 	stateData.stateID			= AVSI_COMBO_X4_CHARGE;
-	m_LuaManager.MakeTableReference( L"AVSI_COMBO_X4_CHARGE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_COMBO_X4_CHARGE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX4ChargeStateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX4ChargeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX4ChargeEventProcess );
@@ -2082,7 +2102,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();		/// 차지 파이어볼 발사 스테이트
 	stateData.stateID			= AVSI_COMBO_X4_CHARGE_FIRE;
-	m_LuaManager.MakeTableReference( L"AVSI_COMBO_X4_CHARGE_FIRE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_COMBO_X4_CHARGE_FIRE", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX4ChargeFireFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX4ChargeFireEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -2091,7 +2111,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 #ifdef BALANCE_PATCH_20120329
 	stateData.Init();
 	stateData.stateID			= AVSI_COMBO_X4;
-	m_LuaManager.MakeTableReference( L"AVSI_COMBO_X4", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_COMBO_X4", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX4FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, ComboX4EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -2102,7 +2122,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_DASH_COMBO_Z1;
-	m_LuaManager.MakeTableReference( L"AVSI_DASH_COMBO_Z1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DASH_COMBO_Z1", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashComboZ1StartFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashComboZ1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashComboZ1EventProcess );
@@ -2110,7 +2130,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_DASH_COMBO_Z2;
-	m_LuaManager.MakeTableReference( L"AVSI_DASH_COMBO_Z2", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DASH_COMBO_Z2", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashComboZ2StartFuture );
 	//stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashComboZ2FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashComboZ2EventProcess );
@@ -2121,7 +2141,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"AVSI_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpAttackZFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, JumpAttackZFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpAttackZEventProcess );
@@ -2129,7 +2149,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_JUMP_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"AVSI_JUMP_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_JUMP_ATTACK_X", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpAttackXFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, JumpAttackXFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, JumpAttackXEventProcess );
@@ -2138,7 +2158,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= AVSI_DASH_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"AVSI_DASH_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_DASH_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackZFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackZFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, DashJumpAttackZEventProcess );
@@ -2150,7 +2170,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 #ifdef WALL_JUMP_TEST
 	stateData.Init();
 	stateData.stateID			= AVSI_WALL_LANDING;
-	m_LuaManager.MakeTableReference( L"AVSI_WALL_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_WALL_LANDING", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, WallLandingEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GUUser, WallLandingEndFuture );
 	m_StateList[stateData.stateID] = stateData;
@@ -2162,27 +2182,27 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_READY;
-	m_LuaManager.MakeTableReference( L"AVSI_PEPPER_RUN_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_PEPPER_RUN_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_READY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN;
-	m_LuaManager.MakeTableReference( L"AVSI_PEPPER_RUN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_PEPPER_RUN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_END;
-	m_LuaManager.MakeTableReference( L"AVSI_PEPPER_RUN_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_PEPPER_RUN_END", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"AVSI_PEPPER_RUN_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_PEPPER_RUN_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_EventProcess );
@@ -2190,7 +2210,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"AVSI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_EventProcess );
@@ -2199,7 +2219,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 #ifdef SPECIAL_USE_ITEM
 	stateData.Init();
 	stateData.stateID			= USI_THROW_ITEM;
-	m_LuaManager.MakeTableReference( L"AVSI_THROW_ITEM", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_THROW_ITEM", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_StateStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMove );
@@ -2213,7 +2233,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_START
 	stateData.Init();
 	stateData.stateID			= GetRidingStartStateID();
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_START", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingStartStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingStartStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingStartEventProcess );
@@ -2224,7 +2244,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_ON
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ON;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_ON", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_ON", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingOnStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingOnStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOnEventProcess );
@@ -2235,7 +2255,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_OFF
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_OFF;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_OFF", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_OFF", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOffEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, RidingOffEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -2244,7 +2264,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_WAIT_HABIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT_HABIT;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_WAIT_HABIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_WAIT_HABIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitEventProcess );
@@ -2254,7 +2274,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_WAIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitEventProcess );
@@ -2264,7 +2284,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_WALK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WALK;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_WALK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWalkStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWalkStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, WalkFrameMoveFuture );
@@ -2275,7 +2295,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_JUMP_UP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpUpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpUpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -2286,7 +2306,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_JUMP_DOWN
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpDownStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpDownStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -2297,7 +2317,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingEventProcess );
@@ -2307,7 +2327,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_DASH
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -2318,7 +2338,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_DASH_END
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_END;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_DASH_END", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashEndStart );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashEndStartFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingDashEndFrameMove );
@@ -2329,7 +2349,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_DASH_JUMP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpFrameMoveFuture );
@@ -2341,7 +2361,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_DASH_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingEventProcess );
@@ -2351,7 +2371,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_DAMAGE_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_FRONT;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_DAMAGE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_DAMAGE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontEventProcess );
@@ -2361,7 +2381,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_DAMAGE_BACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_BACK;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_DAMAGE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_DAMAGE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageBackStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageBackEventProcess );
@@ -2371,7 +2391,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_DIE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DIE;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_DIE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_DIE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, DieFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, DieFrontStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, DieFrontFrameMove );
@@ -2382,7 +2402,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackZStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackZEventProcess );
@@ -2392,7 +2412,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_JUMP_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZFrameMoveFuture );
@@ -2403,7 +2423,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_ATTACK_X
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_ATTACK_X", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackXStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackXStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackXEventProcess );
@@ -2413,7 +2433,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_SPECIAL_ATTACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_ATTACK;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_ATTACK_SPECIAL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_ATTACK_SPECIAL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackFrameMove );
@@ -2424,7 +2444,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	#pragma region AVSI_RIDING_SPECIAL_MOVE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_MOVE;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_SPECIAL_MOVE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_SPECIAL_MOVE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveFrameMoveFuture );
@@ -2439,7 +2459,7 @@ void CX2GUArme_VioletMage::InitStateCommon()
 #ifdef MODIFY_RIDING_PET_AWAKE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"AVSI_RIDING_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "AVSI_RIDING_HYPER_MODE", stateData.stateID );
 	stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, RidingHyperModeInit );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser,			 RidingHyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, RidingHyperModeFrameMove );
@@ -2452,31 +2472,31 @@ void CX2GUArme_VioletMage::InitStateCommon()
 	m_StateList[stateData.stateID] = stateData;
 #endif // MODIFY_RIDING_PET_AWAKE
 
-#ifdef PVP_BOSS_COMBAT_TEST
-
-	stateData.Init();
-	stateData.stateID			= AVSI_FROZEN;
-	m_LuaManager.MakeTableReference( L"AVSI_FROZEN", stateData.stateID );
-	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
-	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
-	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
-	m_StateList[stateData.stateID] = stateData;
-
-	m_FrozenState = AVSI_FROZEN;
-
-#endif PVP_BOSS_COMBAT_TEST
-
-
-
-#ifdef TRANSFORMER_TEST
-
-	stateData.Init();
-	stateData.stateID			= AVSI_TRANSFORMED;
-	m_LuaManager.MakeTableReference( L"AVSI_TRANSFORMED", stateData.stateID );
-	m_StateList[stateData.stateID] = stateData;
+//#ifdef PVP_BOSS_COMBAT_TEST
+//
+//	stateData.Init();
+//	stateData.stateID			= AVSI_FROZEN;
+//	m_LuaManager.MakeTableReference( "AVSI_FROZEN", stateData.stateID );
+//	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
+//	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
+//	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
+//	m_StateList[stateData.stateID] = stateData;
+//
+//	m_FrozenState = AVSI_FROZEN;
+//
+//#endif PVP_BOSS_COMBAT_TEST
 
 
-#endif TRANSFORMER_TEST
+
+//#ifdef TRANSFORMER_TEST
+//
+//	stateData.Init();
+//	stateData.stateID			= AVSI_TRANSFORMED;
+//	m_LuaManager.MakeTableReference( "AVSI_TRANSFORMED", stateData.stateID );
+//	m_StateList[stateData.stateID] = stateData;
+//
+//
+//#endif TRANSFORMER_TEST
 
 
 }
@@ -2495,15 +2515,15 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	if( NULL != pSkillTemplet )
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_AHM_BLAZE_STEP ) );	/// 스킬 레벨
-	
+#else // UPGRADE_SKILL_SYSTEM_2013	
 		m_sBlazeStepData.m_fPowerRate = pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
-#else // UPGRADE_SKILL_SYSTEM_2013
+
 		m_sBlazeStepData.m_fPowerRate = pSkillTemplet->m_fPowerRate;
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	}
@@ -2530,7 +2550,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 /*virtual*/ void CX2GUArme_VioletMage::InitPassiveSkillState()
 {
 	CX2GUUser::InitPassiveSkillState();
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 	// 마나 회복량 증가 값 초기화.
 	SetAdditionalMPChangeRateByPassive(0.f);
@@ -2719,27 +2739,6 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117		/// 풍요의 기운 MP 자연 회복 증가 효과 추가
 
-#ifdef INT_SKILL_BUG_FIX
-	iSkillLevel = userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AEM_ENERGY_OF_THE_PLENTY );
-	
-	if( iSkillLevel > 0 )
-	{
-		pSkillTemplet = userSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_AEM_ENERGY_OF_THE_PLENTY );
-		if( NULL != pSkillTemplet )
-		{
-			const float fAddMpChangeRate = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MP_REGENERATION_ABS );
-
-			SetAdditionalMPChangeRateByPassive( fAddMpChangeRate );
-
-#ifdef FIX_AISHA_MP_CHARGE
-			if ( GetNowStateID() != AVSI_CHARGE_MP )
-				ResetMPChangeRate( GetOriginalMPChangeRate());
-#else //FIX_AISHA_MP_CHARGE
-			ResetMPChangeRate( GetOriginalMPChangeRate());
-#endif //FIX_AISHA_MP_CHARGE
-		}
-	}
-#else
 #if 0 // 스킬 개편으로 마나 회복량 증가 제거
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 	iSkillLevel = userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AEM_ENERGY_OF_THE_PLENTY, true );
@@ -2769,7 +2768,6 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		}
 	}
 #endif
-#endif INT_SKILL_BUG_FIX
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
@@ -2865,11 +2863,11 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	{	
 	case CX2SkillTree::ST_BUFF:
 		{	// 버프 필살기
-			m_LuaManager.MakeTableReference( L"AVSI_SI_AV_COMMON_BUFF", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_AV_COMMON_BUFF", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, COMMON_BUFF_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_AV_COMMON_BUFF_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_AV_COMMON_BUFF_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, COMMON_BUFF_FrameMove);
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );
 
@@ -2877,6 +2875,9 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		} break;
 	case CX2SkillTree::ST_ACTIVE:
 	case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 		{
 			// ST_ACTIVE, ST_SPECIAL_ACTIVE는 아래 구문에서 수행
 		} break;
@@ -2887,11 +2888,11 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			{
 			case CX2SkillTree::SI_ETC_WS_COMMON_LOVE:
 				{
-					m_LuaManager.MakeTableReference( L"AVSI_THROW_ITEM", normalStateData.stateID );
+					m_LuaManager.MakeTableReference( "AVSI_THROW_ITEM", normalStateData.stateID );
 					normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_FrameMove );	
 					normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_EventProcess );	
 
-					m_LuaManager.MakeTableReference( L"AVSI_THROW_ITEM", hyperStateData.stateID );
+					m_LuaManager.MakeTableReference( "AVSI_THROW_ITEM", hyperStateData.stateID );
 					hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 					hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 				} break;
@@ -2912,10 +2913,10 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	{
 	default:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_AV_POWER_ATTACK1", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_AV_POWER_ATTACK1", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_AV_POWER_ATTACK_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_AV_POWER_ATTACK_EventProcess );
-			m_LuaManager.MakeTableReference( L"AVSI_SI_AV_POWER_ATTACK1", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_AV_POWER_ATTACK1", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_AV_POWER_ATTACK_HYPER_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_AV_POWER_ATTACK_HYPER_EventProcess );
 		} break;
@@ -2926,12 +2927,12 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		case CX2SkillTree::SI_SA_AV_CHAIN_FIRE_BALL:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI1_AV_CHAIN_FIRE_BALL", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI1_AV_CHAIN_FIRE_BALL", normalStateData.stateID );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_FIRE_BALL_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_FIRE_BALL_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_FIRE_BALL_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI1_AV_CHAIN_FIRE_BALL_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI1_AV_CHAIN_FIRE_BALL_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_FIRE_BALL_HYPER_FrameMove );
 			hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_FIRE_BALL_HYPER_CameraMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_FIRE_BALL_HYPER_EventProcess );
@@ -2943,13 +2944,13 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		case CX2SkillTree::SI_SA_AV_BINDING_CIRCLE:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI1_AV_BINDING_CIRCLE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI1_AV_BINDING_CIRCLE", normalStateData.stateID );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_BINDING_CIRCLE_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_BINDING_CIRCLE_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_BINDING_CIRCLE_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_BINDING_CIRCLE_End );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI1_AV_BINDING_CIRCLE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI1_AV_BINDING_CIRCLE_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_BINDING_CIRCLE_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_BINDING_CIRCLE_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_BINDING_CIRCLE_HYPER_EventProcess );
@@ -2961,14 +2962,14 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_SA_AV_GUST_SCREW:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_GUST_SCREW", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_GUST_SCREW", normalStateData.stateID );
 			normalStateData.StateInit				= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUST_SCREW_Init );
 			normalStateData.OnFrameMoveFuture		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUST_SCREW_FrameMoveFuture );
 			normalStateData.OnFrameMove				= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUST_SCREW_FrameMove );
 			normalStateData.OnCameraMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUST_SCREW_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUST_SCREW_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_GUST_SCREW_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_GUST_SCREW_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUST_SCREW_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUST_SCREW_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUST_SCREW_HYPER_CameraMove );
@@ -2978,13 +2979,13 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_SA_AV_LIGHTNING_BOLT:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_LIGHTNING_BOLT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_LIGHTNING_BOLT", normalStateData.stateID );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_LIGHTNING_BOLT_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_LIGHTNING_BOLT_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_LIGHTNING_BOLT_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_LIGHTNING_BOLT_End );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_LIGHTNING_BOLT_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_LIGHTNING_BOLT_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_LIGHTNING_BOLT_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_LIGHTNING_BOLT_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_LIGHTNING_BOLT_HYPER_EventProcess );
@@ -2994,14 +2995,14 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_SA_AV_GUST_STORM:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI3_AV_GUST_STORM", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI3_AV_GUST_STORM", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_GUST_STORM_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_GUST_STORM_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_GUST_STORM_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_GUST_STORM_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_GUST_STORM_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI3_AV_GUST_STORM_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI3_AV_GUST_STORM_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_GUST_STORM_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_GUST_STORM_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_GUST_STORM_HYPER_CameraMove );
@@ -3011,13 +3012,13 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 #ifndef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	case CX2SkillTree::SI_SA_AV_METEO_CALL:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI3_AV_METEO_CALL", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI3_AV_METEO_CALL", normalStateData.stateID );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_METEO_CALL_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_METEO_CALL_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_METEO_CALL_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_METEO_CALL_End );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI3_AV_METEO_CALL_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI3_AV_METEO_CALL_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_METEO_CALL_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_METEO_CALL_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_METEO_CALL_HYPER_EventProcess );
@@ -3028,26 +3029,26 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_A_AEM_CHAIN_BURST:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI1_AV_CHAIN_BURST", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI1_AV_CHAIN_BURST", normalStateData.stateID );
 			//normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_BURST_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_BURST_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_BURST_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI1_AV_CHAIN_BURST_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI1_AV_CHAIN_BURST_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_BURST_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_CHAIN_BURST_HYPER_EventProcess );
 		} break;
 
 	case CX2SkillTree::SI_SA_AHM_MAGIC_MISSILE:		//** Code 내의 이름과 사용되는 이름이 다름 : 함수명 수정 필요
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_GUIDE_FIRE_BALL", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_GUIDE_FIRE_BALL", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUIDE_FIRE_BALL_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUIDE_FIRE_BALL_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUIDE_FIRE_BALL_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUIDE_FIRE_BALL_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUIDE_FIRE_BALL_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_GUIDE_FIRE_BALL_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_GUIDE_FIRE_BALL_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUIDE_FIRE_BALL_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUIDE_FIRE_BALL_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_GUIDE_FIRE_BALL_HYPER_CameraMove );
@@ -3057,13 +3058,13 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 #ifndef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 		case CX2SkillTree::SI_SA_AHM_INFERNAL_WAVE:		//** Code 내의 이름과 사용되는 이름이 다름 : 함수명 수정 필요
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_BIND_ATTACK", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_BIND_ATTACK", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_BIND_ATTACK_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_BIND_ATTACK_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_BIND_ATTACK_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_BIND_ATTACK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_BIND_ATTACK_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_BIND_ATTACK_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_BIND_ATTACK_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_BIND_ATTACK_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_BIND_ATTACK_HYPER_EventProcess );
@@ -3077,14 +3078,14 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		case CX2SkillTree::SI_SA_ADM_HELL_STONE:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI1_AV_HELL_STONE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI1_AV_HELL_STONE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_HELL_STONE_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_HELL_STONE_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_HELL_STONE_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_HELL_STONE_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_HELL_STONE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI1_AV_HELL_STONE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI1_AV_HELL_STONE_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_HELL_STONE_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_HELL_STONE_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI1_AV_HELL_STONE_HYPER_CameraMove );
@@ -3093,12 +3094,12 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_SA_ADM_DARK_CLOUD:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_DARK_CLOUD", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_DARK_CLOUD", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_DARK_CLOUD_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_DARK_CLOUD_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_DARK_CLOUD_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI2_AV_DARK_CLOUD_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI2_AV_DARK_CLOUD_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_DARK_CLOUD_HYPER_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI2_AV_DARK_CLOUD_HYPER_EventProcess );
 
@@ -3106,14 +3107,14 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_SA_ADM_PLASMA_CUTTER:		//** Code 내의 이름과 사용되는 이름이 다름 : 함수명 수정 필요
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI3_AV_CATASTROPHE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI3_AV_CATASTROPHE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_CATASTROPHE_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_CATASTROPHE_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_CATASTROPHE_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_CATASTROPHE_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_CATASTROPHE_End );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI3_AV_CATASTROPHE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI3_AV_CATASTROPHE_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI3_AV_CATASTROPHE_HYPER_EventProcess );
@@ -3126,9 +3127,9 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	case CX2SkillTree::SI_A_AV_TELEPORT:
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-			m_LuaManager.MakeTableReference( L"AVSI_A_AV_TELEPORT_START", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AV_TELEPORT_START", normalStateData.stateID );
 #else //UPGRADE_SKILL_SYSTEM_2013
-			m_LuaManager.MakeTableReference( L"AVSI_EVASION_START", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_EVASION_START", normalStateData.stateID );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef SERV_SKILL_NOTE
@@ -3138,9 +3139,9 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_Teleport_EventProcess );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-			m_LuaManager.MakeTableReference( L"AVSI_A_AV_TELEPORT_START", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AV_TELEPORT_START", hyperStateData.stateID );
 #else //UPGRADE_SKILL_SYSTEM_2013
-			m_LuaManager.MakeTableReference( L"AVSI_EVASION_START", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_EVASION_START", hyperStateData.stateID );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef SERV_SKILL_NOTE
@@ -3151,10 +3152,10 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -3170,13 +3171,13 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_A_AV_CIRCLE_FLAME:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_A_AV_CIRCLE_FLAME_READY", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "AVSI_SI_A_AV_CIRCLE_FLAME_READY", normalStateData.stateID ); 				
 			normalStateData.StateStartFuture= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_READY_StartFuture );				
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_READY_FrameMove );				
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_READY_EventProcess );				
 			normalStateData.StateEndFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_READY_EndFuture );				
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_A_AV_CIRCLE_FLAME_READY", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "AVSI_SI_A_AV_CIRCLE_FLAME_READY", hyperStateData.stateID ); 
 			hyperStateData.StateStartFuture = SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_READY_StartFuture );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_READY_FrameMove );				
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_READY_EventProcess );
@@ -3191,18 +3192,21 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 #ifdef SERV_SKILL_NOTE
 				if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO7 ) == true )
 				{
-					m_LuaManager.MakeTableReference( L"AVSI_SI_A_AV_CIRCLE_FLAME_MEMO", stateData.stateID );
+					m_LuaManager.MakeTableReference( "AVSI_SI_A_AV_CIRCLE_FLAME_MEMO", stateData.stateID );
 				}
 				else
 				{
-					m_LuaManager.MakeTableReference( L"AVSI_SI_A_AV_CIRCLE_FLAME", stateData.stateID );
+					m_LuaManager.MakeTableReference( "AVSI_SI_A_AV_CIRCLE_FLAME", stateData.stateID );
 				}
 
 #else
-				m_LuaManager.MakeTableReference( L"AVSI_SI_A_AV_CIRCLE_FLAME", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_SI_A_AV_CIRCLE_FLAME", stateData.stateID );
 #endif
 				stateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_Init );
 				stateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_StartFuture );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_StateStart );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_FrameMove );
 				stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_FrameMoveFuture );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_AV_CIRCLE_FLAME_EventProcess );
@@ -3219,7 +3223,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_SA_AHM_BLIZZARDSHOWER:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_BLIZZARDSHOWER", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "AVSI_SA_AHM_BLIZZARDSHOWER", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLIZZARDSHOWER_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLIZZARDSHOWER_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLIZZARDSHOWER_FrameMove );				
@@ -3227,7 +3231,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLIZZARDSHOWER_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_BLIZZARDSHOWER_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "AVSI_SA_AHM_BLIZZARDSHOWER_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLIZZARDSHOWER_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLIZZARDSHOWER_HYPER_FrameMove );		
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLIZZARDSHOWER_HYPER_EventProcess );	
@@ -3238,7 +3242,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	case CX2SkillTree::SI_SA_ADM_DEATHFIELD:
 		{
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_ADM_DEATHFIELD", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "AVSI_SA_ADM_DEATHFIELD", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_DEATHFIELD_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_DEATHFIELD_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_DEATHFIELD_FrameMove );				
@@ -3246,7 +3250,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_DEATHFIELD_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_ADM_DEATHFIELD_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "AVSI_SA_ADM_DEATHFIELD_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_DEATHFIELD_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_DEATHFIELD_HYPER_FrameMove );		
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_DEATHFIELD_HYPER_EventProcess );	
@@ -3257,7 +3261,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_A_ADM_MANA_INTAKE:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_A_ADM_MANA_INTAKE", normalStateData.stateID ); 	
+			m_LuaManager.MakeTableReference( "AVSI_A_ADM_MANA_INTAKE", normalStateData.stateID ); 	
 
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADM_MANA_INTAKE_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADM_MANA_INTAKE_StateStart );
@@ -3265,7 +3269,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADM_MANA_INTAKE_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"AVSI_A_ADM_MANA_INTAKE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_ADM_MANA_INTAKE_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADM_MANA_INTAKE_HYPER_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADM_MANA_INTAKE_HYPER_StateStart );	
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADM_MANA_INTAKE_HYPER_FrameMove );
@@ -3277,14 +3281,14 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 #ifdef SKILL_CASH_10_TEST
 	case CX2SkillTree::SI_SA_AHM_BLAZE_STEP:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_BLAZE_STEP", normalStateData.stateID ); 	
+			m_LuaManager.MakeTableReference( "AVSI_SA_AHM_BLAZE_STEP", normalStateData.stateID ); 	
 
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLAZE_STEP_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLAZE_STEP_FrameMove );				
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLAZE_STEP_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_BLAZE_STEP_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AHM_BLAZE_STEP_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLAZE_STEP_HYPER_Init );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLAZE_STEP_HYPER_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_BLAZE_STEP_HYPER_EventProcess );	
@@ -3292,14 +3296,14 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 	case CX2SkillTree::SI_SA_ADM_AGING:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_ADM_AGING", normalStateData.stateID ); 	
+			m_LuaManager.MakeTableReference( "AVSI_SA_ADM_AGING", normalStateData.stateID ); 	
 
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_AGING_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_AGING_FrameMove );				
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_ADM_AGING_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_ADM_AGING_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_ADM_AGING_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 		} break;
@@ -3311,7 +3315,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 #ifdef AISHA_SECOND_CLASS_CHANGE
 	case CX2SkillTree::SI_A_AEM_STONE_WALL:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_A_AEM_STONE_WALL", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AEM_STONE_WALL", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AEM_STONE_WALL_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AEM_STONE_WALL_FrameMove );
 #ifdef CONVERSION_VS
@@ -3320,7 +3324,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, GenericActiveSkillEventProcess );
 #endif CONVERSION_VS
 
-			m_LuaManager.MakeTableReference( L"AVSI_A_AEM_STONE_WALL", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AEM_STONE_WALL", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AEM_STONE_WALL_FrameMove );
 #ifdef CONVERSION_VS
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
@@ -3336,7 +3340,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		case CX2SkillTree::SI_A_AVP_SUMMON_BAT:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_A_AVP_SUMMON_BAT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AVP_SUMMON_BAT", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AVP_SUMMON_BAT_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AVP_SUMMON_BAT_FrameMove );
 #ifdef CONVERSION_VS
@@ -3345,7 +3349,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, GenericActiveSkillEventProcess );
 #endif CONVERSION_VS
 
-			m_LuaManager.MakeTableReference( L"AVSI_A_AVP_SUMMON_BAT", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AVP_SUMMON_BAT", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AVP_SUMMON_BAT_FrameMove );
 #ifdef CONVERSION_VS
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
@@ -3361,7 +3365,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		case CX2SkillTree::SI_SA_AEM_CYCLONE:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AEM_CYCLONE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AEM_CYCLONE", normalStateData.stateID );
 			normalStateData.m_bHyperState = false;
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AEM_CYCLONE_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AEM_CYCLONE_FrameMove );
@@ -3371,7 +3375,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, GenericSpecialActiveSkillEventProcess );
 #endif CONVERSION_VS
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AEM_CYCLONE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AEM_CYCLONE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState = true;
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AEM_CYCLONE_FrameMove );
 #ifdef CONVERSION_VS
@@ -3389,7 +3393,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	case CX2SkillTree::SI_SA_AVP_HELL_DROP:		
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AVP_HELL_DROP", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AVP_HELL_DROP", normalStateData.stateID );
 			normalStateData.m_bHyperState = false;
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_HELL_DROP_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_HELL_DROP_Start );
@@ -3397,7 +3401,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_HELL_DROP_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_HELL_DROP_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AVP_HELL_DROP", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AVP_HELL_DROP", hyperStateData.stateID );
 			hyperStateData.m_bHyperState = true;
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_HELL_DROP_Start );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_HELL_DROP_FrameMove );
@@ -3409,78 +3413,127 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_IDLE;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_IDLE", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_IDLE", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_IDLE_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FrameMove );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_LEFT;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_LEFT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_LEFT", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_LEFT_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FrameMove );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_RIGHT;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_RIGHT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_RIGHT", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_RIGHT_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FrameMove );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_UP;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_UP", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_UP", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_UP_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FrameMove );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_DOWN;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_DOWN", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_DOWN", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_DOWN_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FrameMove );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_UP_LEFT;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_UP_LEFT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_UP_LEFT", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_UP_LEFT_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FrameMove );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_UP_RIGHT;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_UP_RIGHT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_UP_RIGHT", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_UP_RIGHT_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FrameMove );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_DOWN_LEFT;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_DOWN_LEFT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_DOWN_LEFT", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_DOWN_LEFT_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FrameMove );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_DOWN_RIGHT;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_DOWN_RIGHT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_DOWN_RIGHT", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_DOWN_RIGHT_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FrameMove );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				
 				stateData.Init();
 				stateData.stateID			= AVSI_HELL_DROP_CONTROL_FIRE;
-				m_LuaManager.MakeTableReference( L"AVSI_HELL_DROP_CONTROL_FIRE", stateData.stateID );
-				//stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FIRE_StateStart );
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 헬 드롭, 발사 이후 바로 사망 에서 발사 시간 지나면 사망으로 변경에 따라
+				// State 함수들 변경
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_FIRE", stateData.stateID );
+				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FIRE_StateStart );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FIRE_EventProcess );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_FIRE", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HELL_DROP_CONTROL_FIRE_FrameMove );
 #ifdef CONVERSION_VS
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
 #else CONVERSION_VS
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, GenericSpecialActiveSkillEventProcess );
 #endif CONVERSION_VS
+
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				m_StateList[stateData.stateID] = stateData;
+
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 헬 드랍 Dying State 추가
+				stateData.Init();
+				stateData.stateID			= AVSI_HELL_DROP_CONTROL_DYING;
+				m_LuaManager.MakeTableReference( "AVSI_HELL_DROP_CONTROL_DYING", stateData.stateID );
+				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+				m_StateList[stateData.stateID] = stateData;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			}
 
 		} break;
@@ -3490,7 +3543,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 #ifdef NEW_SKILL_2010_11
 	case CX2SkillTree::SI_SA_AEM_METEOR_SHOWER:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_METEOSHOWER", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "AVSI_SA_AHM_METEOSHOWER", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_FrameMove );				
@@ -3498,7 +3551,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_METEOSHOWER_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "AVSI_SA_AHM_METEOSHOWER_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -3511,7 +3564,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 				/// 일반
 				stateData.Init();
 				stateData.stateID			= AVSI_SA_AHM_METEOSHOWER_LOOP;
-				m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_METEOSHOWER_LOOP", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_SA_AHM_METEOSHOWER_LOOP", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_LOOP_StateStart );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_LOOP_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_LOOP_EventProcess );
@@ -3521,7 +3574,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 				/// 각성
 				stateData.Init();
 				stateData.stateID			= AVSI_SA_AHM_METEOSHOWER_HYPER_LOOP;
-				m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_METEOSHOWER_LOOP", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_SA_AHM_METEOSHOWER_LOOP", stateData.stateID );
 				stateData.m_bHyperState		= true;
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_LOOP_StateStart );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_LOOP_FrameMove );
@@ -3532,17 +3585,17 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 				/// 종료
 				stateData.Init();
 				stateData.stateID			= AVSI_SA_AHM_METEOSHOWER_END;
-				m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_METEOSHOWER_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_SA_AHM_METEOSHOWER_END", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_END_EventProcess );	
 				stateData.StateEnd			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_METEOSHOWER_END_StateEnd );	
 				m_StateList[stateData.stateID] = stateData;
 			}
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -3563,7 +3616,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		// 김상훈 2010.11.14 : 팬텀 브리딩
 	case CX2SkillTree::SI_SA_AVP_PHANTOM_BREATHING_DARK_FALL:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AVP_PHANTOM_BREATHING", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AVP_PHANTOM_BREATHING", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_PHANTOM_BREATHING_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_PHANTOM_BREATHING_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_PHANTOM_BREATHING_FrameMove );				
@@ -3571,7 +3624,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_PHANTOM_BREATHING_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AVP_PHANTOM_BREATHING_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "AVSI_SA_AVP_PHANTOM_BREATHING_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_PHANTOM_BREATHING_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_PHANTOM_BREATHING_HYPER_FrameMove );		
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_PHANTOM_BREATHING_HYPER_EventProcess );	
@@ -3586,23 +3639,23 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 	case CX2SkillTree::SI_A_AV_FIRE_ROAD:	
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_A_AV_FIRE_ROAD", normalStateData.stateID );				
+			m_LuaManager.MakeTableReference( "AVSI_A_AV_FIRE_ROAD", normalStateData.stateID );				
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_FIRE_ROAD_Start );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_FIRE_ROAD_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_FIRE_ROAD_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_A_AV_FIRE_ROAD", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AV_FIRE_ROAD", hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_FIRE_ROAD_Start );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_FIRE_ROAD_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_FIRE_ROAD_EventProcess );
 		} break;			
 	case CX2SkillTree::SI_A_ABM_ENERGY_DRAIN:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_A_ABM_ENERGY_DRAIN_READY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_ABM_ENERGY_DRAIN_READY", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_ENERGY_DRAIN_READY_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_ENERGY_DRAIN_READY_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"AVSI_A_ABM_ENERGY_DRAIN_READY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_ABM_ENERGY_DRAIN_READY", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_ENERGY_DRAIN_READY_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_ENERGY_DRAIN_READY_EventProcess );
 
@@ -3611,14 +3664,14 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 				stateData.Init();
 				stateData.stateID			= AVSI_A_ABM_ENERGY_DRAIN_SUCCESS;
-				m_LuaManager.MakeTableReference( L"AVSI_A_ABM_ENERGY_DRAIN_SUCCESS", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_A_ABM_ENERGY_DRAIN_SUCCESS", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_ENERGY_DRAIN_SUCCESS_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_ENERGY_DRAIN_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= AVSI_A_ABM_ENERGY_DRAIN_FAIL;
-				m_LuaManager.MakeTableReference( L"AVSI_A_ABM_ENERGY_DRAIN_FAIL", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_A_ABM_ENERGY_DRAIN_FAIL", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_ENERGY_DRAIN_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 			}
@@ -3629,33 +3682,33 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		case CX2SkillTree::SI_SA_ABM_HEAVY_PRESS:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_HEAVY_PRESS", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_HEAVY_PRESS", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_HEAVY_PRESS_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );			
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_HEAVY_PRESS", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_HEAVY_PRESS", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_HEAVY_PRESS_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 		}
 		break;
 	case CX2SkillTree::SI_SA_ABM_ENERGY_SPURT:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_ENERGY_SPURT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_ENERGY_SPURT", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_ENERGY_SPURT_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );			
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_ENERGY_SPURT", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_ENERGY_SPURT", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_ENERGY_SPURT_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );			
 		}
 		break;
 	case CX2SkillTree::SI_SA_ABM_GUILLOTINE_PRESS:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_GUILLOTINE_PRESS_START", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_GUILLOTINE_PRESS_START", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_GUILLOTINE_PRESS_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_GUILLOTINE_PRESS_START_EventProcess );			
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_GUILLOTINE_PRESS_START", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_GUILLOTINE_PRESS_START", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_GUILLOTINE_PRESS_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_GUILLOTINE_PRESS_START_EventProcess );
 
@@ -3664,37 +3717,37 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 				stateData.Init();
 				stateData.stateID			= AVSI_SI_SA_ABM_GUILLOTINE_PRESS_LOOP;
-				m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_GUILLOTINE_PRESS_LOOP", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_GUILLOTINE_PRESS_LOOP", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_GUILLOTINE_PRESS_LOOP_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= AVSI_SI_SA_ABM_GUILLOTINE_PRESS_END;
-				m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_GUILLOTINE_PRESS_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_GUILLOTINE_PRESS_END", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 				m_StateList[stateData.stateID] = stateData;
 			}
 		} break;	
 	case CX2SkillTree::SI_SA_ABM_SUPER_NOVA:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_SUPER_NOVA", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_SUPER_NOVA", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_SUPER_NOVA_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );			
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_SUPER_NOVA", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_SUPER_NOVA", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_SUPER_NOVA_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );			
 		}
 		break;
 	case CX2SkillTree::SI_SA_ABM_MAGICAL_MAKEUP:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_MAGICAL_MAKEUP", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_MAGICAL_MAKEUP", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_MAGICAL_MAKEUP_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_MAGICAL_MAKEUP_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );			
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_MAGICAL_MAKEUPR_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ABM_MAGICAL_MAKEUP", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ABM_MAGICAL_MAKEUP", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_MAGICAL_MAKEUP_Init );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ABM_MAGICAL_MAKEUP_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
@@ -3706,13 +3759,13 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 #ifdef SERV_ARME_DIMENSION_WITCH	// ADW_DISTORTION
 	case CX2SkillTree::SI_A_ADW_DISTORTION: // 공간 왜곡
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_A_ADW_DISTORTION", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_A_ADW_DISTORTION", normalStateData.stateID );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_ADW_DISTORTION_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_ADW_DISTORTION_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_ADW_DISTORTION_FrameMove );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_A_ADW_DISTORTION", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_A_ADW_DISTORTION", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_A_ADW_DISTORTION_Init );
@@ -3726,11 +3779,11 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		case CX2SkillTree::SI_SA_ADW_MORNING_STAR:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ADW_MORNING_STAR", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ADW_MORNING_STAR", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ADW_MORNING_STAR_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ADW_MORNING_STAR", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ADW_MORNING_STAR", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ADW_MORNING_STAR_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 		}
@@ -3741,11 +3794,11 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		case CX2SkillTree::SI_SA_ADW_SCREWDRIVER:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ADW_SCREWDRIVER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ADW_SCREWDRIVER", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ADW_SCREWDRIVER_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ADW_SCREWDRIVER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ADW_SCREWDRIVER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ADW_SCREWDRIVER_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 		}
@@ -3755,12 +3808,12 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_A_AV_ICICLE_WAVE
 	case CX2SkillTree::SI_A_AV_ICICLE_WAVE:
 		{
-			m_LuaManager.MakeTableReference( L"SI_A_AV_ICICLE_WAVE", normalStateData.stateID );		
+			m_LuaManager.MakeTableReference( "SI_A_AV_ICICLE_WAVE", normalStateData.stateID );		
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_Icicle_Wave_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_Icicle_Wave_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AV_Icicle_Wave_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"SI_A_AV_ICICLE_WAVE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "SI_A_AV_ICICLE_WAVE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
@@ -3770,12 +3823,12 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_SA_AV_ICE_STORM
 	case CX2SkillTree::SI_SA_AV_ICE_STORM:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AV_ICE_STORM", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AV_ICE_STORM", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AV_Ice_Storm_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AV_Ice_Storm_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AV_Ice_Storm_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AV_ICE_STORM", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AV_ICE_STORM", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -3785,12 +3838,12 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_A_AHM_AQUA_SHOWER
 	case CX2SkillTree::SI_A_AEM_AQUA_SHOWER:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_A_AHM_AQUA_SHOWER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AHM_AQUA_SHOWER", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AHM_Aqua_Shower_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AHM_Aqua_Shower_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AHM_Aqua_Shower_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_A_AHM_AQUA_SHOWER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AHM_AQUA_SHOWER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -3800,7 +3853,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_SA_AHM_LIGHTNING_SHOWER
 	case CX2SkillTree::SI_SA_AEM_LIGHTNING_SHOWER:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_AHM_LIGHTNING_SHOWER", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "AVSI_SA_AHM_AHM_LIGHTNING_SHOWER", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_FrameMove );				
@@ -3808,7 +3861,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_AHM_LIGHTNING_SHOWER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AHM_AHM_LIGHTNING_SHOWER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
@@ -3821,7 +3874,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 				/// 일반
 				stateData.Init();
 				stateData.stateID			= AVSI_SA_AHM_LIGHTNING_SHOWER_LOOP;
-				m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_LIGHTNING_SHOWER_LOOP", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_SA_AHM_LIGHTNING_SHOWER_LOOP", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_Loop_StateStart );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_Loop_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_Loop_EventProcess );
@@ -3831,7 +3884,7 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 				/// 각성
 				stateData.Init();
 				stateData.stateID			= AVSI_SA_AHM_LIGHTNING_SHOWER_HYPER_LOOP;
-				m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_LIGHTNING_SHOWER_LOOP", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_SA_AHM_LIGHTNING_SHOWER_LOOP", stateData.stateID );
 				stateData.m_bHyperState		= true;
 				stateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_Loop_StateStart );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_Loop_FrameMove );
@@ -3842,17 +3895,17 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 				/// 종료
 				stateData.Init();
 				stateData.stateID			= AVSI_SA_AHM_LIGHTNING_SHOWER_END;
-				m_LuaManager.MakeTableReference( L"AVSI_SA_AHM_LIGHTNING_SHOWER_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_SA_AHM_LIGHTNING_SHOWER_END", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_End_EventProcess );	
 				stateData.StateEnd			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AHM_Lightning_Shower_End_StateEnd );	
 				m_StateList[stateData.stateID] = stateData;
 			}
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -3872,13 +3925,21 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_SA_AEM_CHAIN_LIGHTNING
 	case CX2SkillTree::SI_SA_AHM_CHAIN_LIGHTNING:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AEM_CHAIN_LIGHTNING", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AEM_CHAIN_LIGHTNING", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AEM_Chain_Lightning_Init );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AEM_Chain_Lightning_StartFuture );
+			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AEM_Chain_Lightning_EndFuture );
+#endif //ADD_MEMO_1ST_CLASS
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AEM_Chain_Lightning_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AEM_Chain_Lightning_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AEM_CHAIN_LIGHTNING", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SA_AEM_CHAIN_LIGHTNING", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			hyperStateData.StateStartFuture		= normalStateData.StateStartFuture;
+			hyperStateData.StateEndFuture		= normalStateData.StateEndFuture;	
+#endif //ADD_MEMO_1ST_CLASS
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 		} break;
@@ -3887,12 +3948,12 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_A_AVP_SUMMON_BAT_HEAVY
 	case CX2SkillTree::SI_A_AVP_SUMMON_BAT_HEAVY_DOLL:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_A_AVP_SUMMON_BAT_HEAVY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AVP_SUMMON_BAT_HEAVY", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AVP_Summon_Bat_Heavy_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_AVP_Summon_Bat_Heavy_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_A_AVP_SUMMON_BAT_HEAVY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_AVP_SUMMON_BAT_HEAVY", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
@@ -3903,12 +3964,12 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_SA_AVP_PHANTOM_BREATHING_DARK_HOLE
 	case CX2SkillTree::SI_SA_AVP_PHANTOM_BREATHING_DARK_HOLE:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AVP_PHANTOM_BREATHING_DARK_HOLE", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "AVSI_SA_AVP_PHANTOM_BREATHING_DARK_HOLE", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_Phantom_Breathing_Dark_Hole_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_Phantom_Breathing_Dark_Hole_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SA_AVP_Phantom_Breathing_Dark_Hole_EventProcess );
 			
-			m_LuaManager.MakeTableReference( L"AVSI_SA_AVP_PHANTOM_BREATHING_DARK_HOLE", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "AVSI_SA_AVP_PHANTOM_BREATHING_DARK_HOLE", hyperStateData.stateID ); 
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
@@ -3919,11 +3980,11 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_A_ABM_VITAL_DRAIN
 	case CX2SkillTree::SI_A_ABM_VITAL_DRAIN:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_A_ABM_VITAL_DRAIN_READY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_ABM_VITAL_DRAIN_READY", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_Vital_Drain_Ready_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_Vital_Drain_Ready_FrameMove );
 
-			m_LuaManager.MakeTableReference( L"AVSI_A_ABM_VITAL_DRAIN_READY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_A_ABM_VITAL_DRAIN_READY", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 
@@ -3932,14 +3993,14 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 
 				stateData.Init();
 				stateData.stateID			= AVSI_A_ABM_VITAL_DRAIN_SUCCESS;
-				m_LuaManager.MakeTableReference( L"AVSI_A_ABM_VITAL_DRAIN_SUCCESS", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_A_ABM_VITAL_DRAIN_SUCCESS", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_Vital_Drain_Success_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_Vital_Drain_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= AVSI_A_ABM_VITAL_DRAIN_FAIL;
-				m_LuaManager.MakeTableReference( L"AVSI_A_ABM_VITAL_DRAIN_FAIL", stateData.stateID );
+				m_LuaManager.MakeTableReference( "AVSI_A_ABM_VITAL_DRAIN_FAIL", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ABM_Vital_Drain_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 			}
@@ -3949,13 +4010,13 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_A_ADW_WORM_HOLE
 	case CX2SkillTree::SI_A_ADW_WORM_HOLE:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_A_ADW_WORM_HOLE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_A_ADW_WORM_HOLE", normalStateData.stateID );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADW_Worm_Hole_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADW_Worm_Hole_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADW_Worm_Hole_FrameMove );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_A_ADW_WORM_HOLE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_A_ADW_WORM_HOLE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_A_ADW_Worm_Hole_Init );
@@ -3967,12 +4028,12 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma region SI_SA_ADW_SCREWDRIVER_DRILLER
 	case CX2SkillTree::SI_SA_ADW_SCREWDRIVER_DRILLER:
 		{
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ADW_SCREWDRIVER_DRILLER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ADW_SCREWDRIVER_DRILLER", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ADW_Screwdriver_Driller_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_SI_SA_ADW_Screwdriver_Driller_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
 
-			m_LuaManager.MakeTableReference( L"AVSI_SI_SA_ADW_SCREWDRIVER_DRILLER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "AVSI_SI_SA_ADW_SCREWDRIVER_DRILLER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
@@ -3982,16 +4043,57 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	#pragma endregion 스크류 드라이버 - 드릴러
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	#pragma region SI_SA_AEM_Elemental_Storm
+	case CX2SkillTree::SI_HA_AEM_ELEMENTAL_STORM:
+		{
+			m_LuaManager.MakeTableReference( "AVSI_HA_AEM_ELEMENTAL_STORM", normalStateData.stateID );
+			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HA_AEM_Elemental_Storm_Init );
+			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+
+			m_LuaManager.MakeTableReference( "AVSI_HA_AEM_ELEMENTAL_STORM", hyperStateData.stateID );
+			hyperStateData.m_bHyperState	= true;
+			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+		} break;
+	#pragma endregion 엘리멘탈 스톰 : 궁극기
+
+	#pragma region SI_FS_AVP_Abyss_Angor
+	case CX2SkillTree::SI_HA_AVP_ABYSS_ANGOR:
+		{
+			m_LuaManager.MakeTableReference( "AVSI_HA_AVP_ABYSS_ANGOR", normalStateData.stateID );
+			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HA_AVP_Abyss_Angor_Init );
+			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+
+			m_LuaManager.MakeTableReference( "AVSI_HA_AVP_ABYSS_ANGOR", hyperStateData.stateID );
+			hyperStateData.m_bHyperState	= true;
+			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+		} break;
+	#pragma endregion 어비스 앙고르 : 궁극기
+
+	#pragma region SI_FS_ADW_Fate_space
+		case CX2SkillTree::SI_HA_ADW_FATE_SPACE:
+		{
+			m_LuaManager.MakeTableReference( "AVSI_HA_ADW_FATE_SPACE", normalStateData.stateID );
+			normalStateData.StateInit		= SET_CB_FUNC( CX2GUArme_VioletMage, AVSI_HA_ADW_Fate_space_Init );
+			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+
+			m_LuaManager.MakeTableReference( "AVSI_HA_ADW_FATE_SPACE", hyperStateData.stateID );
+			hyperStateData.m_bHyperState	= true;
+			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+		} break;
+	#pragma endregion 페이트 스페이스 : 궁극기
+#endif //FINALITY_SKILL_SYSTEM
+
 	}
 }
 
 /*virtual*/ void CX2GUArme_VioletMage::SetEquippedSkillLevel( const CX2SkillTree::SKILL_ID eSkillID_, const bool bChangeAll_ )
 {
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+	if ( NULL == GetUnit() )
 		return;
 
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
 	if ( true == bChangeAll_ || CX2SkillTree::SI_A_AV_CIRCLE_FLAME == eSkillID_ )
@@ -4000,10 +4102,10 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_AV_CIRCLE_FLAME ) );	/// 스킬 레벨
 	
@@ -4042,10 +4144,10 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ABM_ENERGY_DRAIN ) );	/// 스킬 레벨
 	
@@ -4068,10 +4170,10 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4105,10 +4207,10 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_ABM_VITAL_DRAIN );
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4124,10 +4226,10 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_AEM_METEOR_SHOWER );
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -4152,10 +4254,10 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_AEM_LIGHTNING_SHOWER );
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -4176,6 +4278,92 @@ void CX2GUArme_VioletMage::InitEquippedActiveSkillState(bool bOnlySkillLevel /* 
 	}
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 헬 드롭 조준 State 추가
+	if ( true == bChangeAll_ || CX2SkillTree::SI_A_ADM_HELL_DROP == eSkillID_ )
+	{
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_ADM_HELL_DROP );
+		if( NULL != pSkillTemplet )
+		{
+			if ( NULL == GetUnit() )
+				return;
+
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_IDLE ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_LEFT ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_RIGHT ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_UP ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_DOWN ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_UP_LEFT ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_UP_RIGHT ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_DOWN_LEFT ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_DOWN_RIGHT ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& stateData = m_StateList[ AVSI_HELL_DROP_CONTROL_FIRE ];
+				stateData.m_SPLevel		= iSkillTempletLevel;
+				stateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				stateData.m_eSkillID	= pSkillTemplet->m_eID;
+			}
+		}
+	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 }
 
 #ifdef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
@@ -4280,6 +4468,33 @@ void CX2GUArme_VioletMage::CommonStateStartFuture()
 
 void CX2GUArme_VioletMage::CommonStateStart()
 {
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편 
+	switch ( GetNowStateID() )
+	{
+		case AVSI_HELL_DROP_CONTROL_IDLE :
+		case AVSI_HELL_DROP_CONTROL_LEFT :
+		case AVSI_HELL_DROP_CONTROL_RIGHT :
+		case AVSI_HELL_DROP_CONTROL_UP :
+		case AVSI_HELL_DROP_CONTROL_DOWN :
+		case AVSI_HELL_DROP_CONTROL_UP_LEFT :
+		case AVSI_HELL_DROP_CONTROL_UP_RIGHT :
+		case AVSI_HELL_DROP_CONTROL_DOWN_LEFT :
+		case AVSI_HELL_DROP_CONTROL_DOWN_RIGHT :
+			if ( false == m_bIsHellDropTimerStart )
+			{
+				// 헬 드롭 시전 중 난입한 유저의 경우, 타이머가 설정이 안되어 있다.
+				// 즉, 해당 State 인데 타이머 설정이 안되있는 경우에는 타이머를 켜주고
+				// 이펙트를 바로 생성하게 한다.
+				m_TimerUFOControl.restart();
+				m_bIsHellDropTimerStart = true;
+				m_fHellDropCreateEffectCooltime = _CONST_AISHA_::CREATE_HELL_DROP_DAMAGE_EFFECT_START_TIME;
+			}
+			break;
+		default:
+			break;
+	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 	CX2GUUser::CommonStateStart();
 }
 
@@ -4328,7 +4543,11 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 	}
 
 	//*
-	if( NULL != GetUFO() )
+	if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO21) == false &&
+#endif //ADD_MEMO_1ST_CLASS
+		NULL != GetUFO() )
 	{
 		//const double MAGIC_HELL_DROP_CHECK_TIME = 1.0;
 		//if( m_TimerCheckInvalidUFO.elapsed() > MAGIC_HELL_DROP_CHECK_TIME )
@@ -4348,6 +4567,10 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 				case AVSI_HELL_DROP_CONTROL_UP_RIGHT:
 				case AVSI_HELL_DROP_CONTROL_DOWN_LEFT:
 				case AVSI_HELL_DROP_CONTROL_DOWN_RIGHT:
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 헬 드롭, 발사 이후 바로 사망 에서 발사 시간 지나면 사망으로 변경에 따라 변경
+				case AVSI_HELL_DROP_CONTROL_FIRE:			
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				case USI_SPECIAL_ATTACK_1:				/// A슬롯의 첫번째 스킬슬롯(현재는A키)에 해당하는 스테이트
 				case USI_SPECIAL_ATTACK_HYPER_1:			/// A슬롯의 첫번째 스킬슬롯(현재는A키)에 해당하는 각성 스테이트
 				case USI_SPECIAL_ATTACK_2:				/// A슬롯의 두번째 스킬슬롯(현재는S키)에 해당하는 스테이트
@@ -4368,7 +4591,13 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 						// do nothing;
 					} break;
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 헬 드롭, 발사 이후 바로 사망 에서 발사 시간 지나면 사망으로 변경에 따라 변경
+				case AVSI_HELL_DROP_CONTROL_DYING:
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				case AVSI_HELL_DROP_CONTROL_FIRE:
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편				
+
 				default:
 					{
 						if( NULL != GetUFO()->GetNPCAI() && CX2NPCAI::NAT_ALLY == GetUFO()->GetNPCAI()->GetAIType() 
@@ -4382,7 +4611,12 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 						}
 						else
 						{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+							// 헬 드롭, 발사 이후 바로 사망 에서 발사 시간 지나면 사망으로 변경에 따라 변경
+							GetUFO()->StateChange( _CONST_AISHA_::UFO_DYING.c_str(), true );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 							GetUFO()->StateChange( _CONST_AISHA_::UFO_FIRE.c_str(), true );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 							ResetUFO();
 						}
 					} break;
@@ -4511,6 +4745,9 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 	}
 
 #ifdef SKILL_CASH_10_TEST
+	
+
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	if( m_sBlazeStepData.GetEnable() == true )
 	{
 		// 발 밑에 붙어있는 이펙트의 좌표를 유지시킨다.
@@ -4524,7 +4761,7 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 		if( NULL != pSeq )
 			pSeq->SetPosition(GetBonePos(L"Bip01_Footsteps"));
 		else
-			m_sBlazeStepData.m_ahMajorParticleInstance = INVALID_PARTICLE_HANDLE;
+			m_sBlazeStepData.m_ahMajorParticleInstance = INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 		// 화염 이펙트를 붙인다.
 		if( m_sBlazeStepData.CheckRefresh() == true )
@@ -4564,9 +4801,10 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 			m_sBlazeStepData.SetEnable(false);
 			m_sBlazeStepData.DestroyEffect();
 		}
-		// 끝났는지 체크하고 자동종료 처리.
 		m_sBlazeStepData.CheckEnd();
+
 	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편		
 #endif SKILL_CASH_10_TEST
 
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
@@ -4574,8 +4812,13 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 	{		
 		if( m_ptrTransformWeapon != NULL )
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+			m_ptrTransformWeapon->SetRenderParam( m_fTime, m_fElapsedTime, m_pXSkinAnim->GetRenderParam() );
+			m_ptrTransformWeapon->OnFrameMove( m_fTime, m_fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_ptrTransformWeapon->SetRenderParam( m_fTime, m_fElapsedTime * m_AdvanceTimeCount, m_pXSkinAnim->GetRenderParam() );
 			m_ptrTransformWeapon->OnFrameMove( m_fTime, m_fElapsedTime * m_AdvanceTimeCount );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		}
 	}
 
@@ -4607,6 +4850,9 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"aisha_P_magical_staff_M01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 			if( pMeshInst != NULL )
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				m_hMagicalStaff = pMeshInst->GetHandle();
 				pMeshInst->SetBoundingRadius( 0.0f );
 
@@ -4636,7 +4882,7 @@ void CX2GUArme_VioletMage::CommonFrameMove()
 	{
 		if( m_hMagicalStaff != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMagicalStaff );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMagicalStaff );
 			m_hMagicalStaff = INVALID_MESH_INSTANCE_HANDLE;
 			m_SubAttackListSet.clear();
 		}
@@ -4690,9 +4936,10 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 
 	int iPressedSkillSlotIndex = INVALID_SKILL_SLOT_INDEX;
 	const CX2UserSkillTree::SkillSlotData* pSkillSlotData = NULL;
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;	// 유저가 배운 스킬 트리
 
-	if ( false == CommonSpecialAttackEventProcess( cUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
+	CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;// 유저가 배운 스킬 트리
+
+	if ( false == CommonSpecialAttackEventProcess( accessUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
 		return false;
 
 	if( NULL == pSkillSlotData )
@@ -4702,9 +4949,18 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 	if( NULL == pSkillTemplet )
 		return false;
 
-	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTemplet ) )
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	const CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eActiveSkillUseConditionBySkillTemplet = GetSkillUseCondition( pSkillTemplet );
+
+	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, eActiveSkillUseConditionBySkillTemplet ) )
 		return false;	
 
+#else //ADD_MEMO_1ST_CLASS
+	{
+		if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTemplet ) )
+			return false;	
+	}
+#endif //ADD_MEMO_1ST_CLASS
 
 	//소환 필살기 종류는 게임이 끝난 상태에서 사용할 수 없다.
 	if( false == CheckSummonSpecialAttack( pSkillTemplet->m_eID ) )
@@ -4721,28 +4977,69 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 #endif // FIX_NO_STATE_SKILL_BUG
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+	const int iSkillTempletLevel = max( 1, accessUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 	float fMPConsume = GetActualMPConsume( pSkillTemplet->m_eID, iSkillTempletLevel );
 #else // UPGRADE_SKILL_SYSTEM_2013
 	float fMPConsume = GetActualMPConsume( pSkillTemplet->m_eID, pSkillTemplet->m_iSkillLevel );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+#if defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_OPERATOR ) || false == g_pMain->IsUnlimitedSkillUse() )
+#endif //defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+#else //TOGGLE_UNLIMITED_SKILL_USE
 #ifndef _SERVICE_
 	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
 #endif _SERVICE_
+#endif //TOGGLE_UNLIMITED_SKILL_USE
 	{
 		if( pSkillSlotData->m_fCoolTimeLeft > 0.f )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_226 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
 	
 		if ( GetNowMp() < fMPConsume )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		if ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+		{
+			const int iItemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+			if( iItemNum <= 0 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+				&& false == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence()
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+				)
+			{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
+				g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_26119 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+				return false;
+			}
+		}
+#endif //FINALITY_SKILL_SYSTEM
 	}
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -4765,7 +5062,27 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 	//}} JHKang / 강정훈 / 2011/02/14 / 던전 랭크 개선 관련
 
 	UpNowMp( -fMPConsume );
+
 #ifdef BALANCE_PATCH_20120329
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	if ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+	{
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		if ( true == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence() )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ();
+		else
+		{
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+		if ( NULL != pItem )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ( pItem->GetItemData().m_ItemUID );
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+	}
+#endif //FINALITY_SKILL_SYSTEM
 
 	if ( pSkillTemplet->m_eID == CX2SkillTree::SI_A_AHM_MEDITATION )
 	{
@@ -4777,31 +5094,32 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 		if ( 0.f < m_fElementalResearchRate )
-			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, ( pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - fReduceCoolTime ) * m_fElementalResearchRate );
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, ( pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - fReduceCoolTime ) * m_fElementalResearchRate );
 		else
-			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - fReduceCoolTime );
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - fReduceCoolTime );
 #else //UPGRADE_SKILL_SYSTEM_2013
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime - fReduceCoolTime );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime - fReduceCoolTime );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 #else  BALANCE_ELEMENTAL_MASTER_20130117
 		if ( IsInMeditation() )
-			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 	}
 	else
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 		if ( 0.f < m_fElementalResearchRate )
-			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) * m_fElementalResearchRate );
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) * m_fElementalResearchRate );
 		else
-			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) );
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) );
+
 #else //UPGRADE_SKILL_SYSTEM_2013
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	}
 
 #else
-	cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
+	accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
 #endif
 
 #ifdef SERV_SKILL_NOTE
@@ -4809,11 +5127,12 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 		if ( 0.f < m_fElementalResearchRate )
-			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) + 5.f - m_fElementalResearchRate );
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) + 5.f - m_fElementalResearchRate );
 		else
-			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) + 5.f );
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) + 5.f );
+
 #else //UPGRADE_SKILL_SYSTEM_2013
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime + 5.f );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime + 5.f );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	}
 #endif
@@ -4916,7 +5235,6 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 
 	m_iNowSpecialAttack = iPressedSkillSlotIndex + 1;
 	m_bSpecialAttackEventProcessedAtThisFrame = true;
-
 #ifdef SERV_SKILL_USE_SUBQUEST
 	Send_SKILL_USE_REQ( pSkillTemplet->m_eID );
 #endif SERV_SKILL_USE_SUBQUEST
@@ -4996,7 +5314,17 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 				const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_AV_MANA_SHIELD );
 				if( NULL != pSkillTemplet )
 				{
-					SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					// 마나 실드 메모 버프 팩터 추가
+					if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO6 ) == true )
+					{
+						SetBuffFactorToGameUnit( pSkillTemplet, 1 );
+					}
+					else
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					{
+						SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+					}
 					g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_ManaShield", this ); 
 					PlaySound( L"Aisha_ManaShield.ogg" );
 				}
@@ -5017,7 +5345,11 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 	case UAI_AHM_MEDITATION_START:
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_AHM_MEDITATION );
-			SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+
+			if ( g_pX2Game->GetGameType() == CX2Game::GT_PVP )
+				SetBuffFactorToGameUnit( pSkillTemplet, 2 );
+			else
+				SetBuffFactorToGameUnit( pSkillTemplet, 0 );
 
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117		///  메디테이션 바로 동작으로 수정 - 취소 기능 제거
 			m_bInMeditation = true;		/// 메디테이션 동작중 여부 설정
@@ -5045,10 +5377,9 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 
 	case UAI_ELEMENTAL_FRIENDSHIP_UP:
 		{
-			if ( NULL != GetUnit() &&
-				 GetUnit()->GetUnitData() )
+			if ( NULL != GetUnit()  )
 			{
-				const CX2SkillTree::SkillTemplet* pSkillTemplet = GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_AEM_ELEMENTAL_FRIENDSHIP );
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_AEM_ELEMENTAL_FRIENDSHIP );
 				SetBuffFactorToGameUnit( pSkillTemplet, 0 );
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 				SetBuffFactorToGameUnit( pSkillTemplet, 1 );
@@ -5092,7 +5423,7 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 	case CX2SkillTree::SI_SA_COMMON_AURA_SHIELD_ACCEL:	
 	case CX2SkillTree::SI_SA_COMMON_AURA_SPEED_ACCEL:
 		{
-			const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA );
+			const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA );
 			if ( iSkillLevel > 0 )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -5151,7 +5482,6 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 			}
 #endif
 		} break;
-#ifdef NEW_MEMO_01
 	case CX2SkillTree::SI_A_ADM_MANA_INTAKE:
 		{
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO12 ) == true )
@@ -5160,7 +5490,6 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 			}
 		}
 		break;
-#endif
 
 #ifdef ADDITIONAL_MEMO
 	case CX2SkillTree::SI_SA_ABM_ENERGY_SPURT:
@@ -5172,16 +5501,40 @@ RENDER_HINT CX2GUArme_VioletMage::CommonRender_Prepare()
 		}
 		break;
 #endif
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 체인 파이어볼이 파이어 볼 강화 패시브 영향을 받게 됨
+	case CX2SkillTree::SI_A_AV_CHAIN_FIRE_BALL :
+		{
+			// 파이어볼 강화 패시브 영향을 받게 됨, 파볼 MP 감소율의 절반을 받음
+			fMpConsumption -= fMpConsumption * (1 - m_fMPConsumeRateFireBall) / 2;
+		}
+		break;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	case CX2SkillTree::SI_SA_ADM_AGING:
+		{
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO22 ) == true )
+				fMpConsumption -= 20.f;
+		}
+		break;
+#endif //ADD_MEMO_1ST_CLASS
 	default:
 		break;
 	}
 
-#ifdef NEW_MEMO_01
 	if( fMpConsumption < 0.f )
 		fMpConsumption = 0.f;
-#endif
 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( eSkillID_ );
+	float fMpDecreaseRate = 1.0f;
+	if( NULL != pSkillTemplet )
+		fMpDecreaseRate  =  g_pData->GetMyUser()->GetSelectUnit()->GetSkillMpDecreaseRate(eSkillID_, pSkillTemplet->m_eType);
+
+	return fMpConsumption * fMpDecreaseRate;
+#else SERV_BALANCE_FINALITY_SKILL_EVENT
 	return fMpConsumption;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
 }
 
 void CX2GUArme_VioletMage::StartMeditation( bool bStartMeditation )
@@ -5209,16 +5562,16 @@ void CX2GUArme_VioletMage::StartMeditation( bool bStartMeditation )
 		/// 쿨타임 초기화
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_AHM_MEDITATION );
 
-		if( NULL != pSkillTemplet && NULL != m_pUnit && NULL != m_pUnit->GetUnitData() )
+		if( NULL != pSkillTemplet && NULL != GetUnit() )
 		{
-			CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+			CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID, true ) );	/// 스킬 레벨
+			const int iSkillTempletLevel = max( 1, accessUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID, true ) );	/// 스킬 레벨
 	
-			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) );
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) );
 	#else // UPGRADE_SKILL_SYSTEM_2013
-			cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 		}
 
@@ -5843,12 +6196,20 @@ void CX2GUArme_VioletMage::DashEndFrameMoveFuture()
 
 void CX2GUArme_VioletMage::DashEndFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.23f ) == true && EventCheck( 0.23f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 	}
@@ -6374,9 +6735,9 @@ void CX2GUArme_VioletMage::HyperModeFrameMove()
 #else
 	g_pX2Game->GetWorld()->SetWorldColor( 0xff222222 );
 
-
+	
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.47f ) == true && EventCheck(0.47f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -6385,7 +6746,7 @@ void CX2GUArme_VioletMage::HyperModeFrameMove()
 	}
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.63f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.63f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.63f ) == true && EventCheck(0.63f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -6394,11 +6755,11 @@ void CX2GUArme_VioletMage::HyperModeFrameMove()
 
 		UpDownCrashCamera( 20.0f, 0.3f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
-
+		
 		ShowMinorParticleHyperModeTrace();
 		ApplyHyperModeBuff();
 
-		//{{ 김상훈 2010.10.29 : 극한의 마나 운용
+//{{ 김상훈 2010.10.29 : 극한의 마나 운용
 #ifdef NEW_SKILL_2010_11
 #ifdef HYPER_MODE_FIX
 		m_fRateLimitManaManagement = GetLastStateHyperModeCount() * 0.33f;
@@ -6408,39 +6769,39 @@ void CX2GUArme_VioletMage::HyperModeFrameMove()
 		float rdf = GetRandomFloat();
 		if ( rdf <= m_fRateLimitManaManagement )
 		{
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AVP_LIMITED_MANA_MANAGEMENT, true  );
-#else // UPGRADE_SKILL_SYSTEM_2013
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AVP_LIMITED_MANA_MANAGEMENT, true  );
+	#else // UPGRADE_SKILL_SYSTEM_2013
 			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AVP_LIMITED_MANA_MANAGEMENT );
-#endif // UPGRADE_SKILL_SYSTEM_2013
-
-			if( iSkillLevel > 0 )
-			{
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
+	#endif // UPGRADE_SKILL_SYSTEM_2013
+			
+ 			if( iSkillLevel > 0 )
+ 			{
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_AVP_LIMITED_MANA_MANAGEMENT );
 
 				if( NULL != pSkillTemplet )
 				{
 					m_iHyperChargeMP = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_RECOVER_MP_ABS, iSkillLevel );
 					m_iHyperAddMP = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_MP_ABS, iSkillLevel );
-#else // UPGRADE_SKILL_SYSTEM_2013
+	#else // UPGRADE_SKILL_SYSTEM_2013
 				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_AVP_LIMITED_MANA_MANAGEMENT, iSkillLevel );
 
 				if( NULL != pSkillTemplet )
 				{
 					m_iHyperChargeMP = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_RECOVER_MP_ABS );
 					m_iHyperAddMP = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_MP_ABS );
-#endif // UPGRADE_SKILL_SYSTEM_2013
-
-#ifdef FIX_LIMITED_MANA_MANAGEMENT
+	#endif // UPGRADE_SKILL_SYSTEM_2013
+				
+	#ifdef FIX_LIMITED_MANA_MANAGEMENT
 					SetBuffFactorToGameUnit( pSkillTemplet, 0 );
-#else
+	#else
 					SetLimitManaManagement( true );
 					ResetMaxMP();
-#endif //FIX_LIMITED_MANA_MANAGEMENT
+	#endif //FIX_LIMITED_MANA_MANAGEMENT
 					//GetGageManager()->UpdateMyManaGuageUI();
 					UpNowMp( m_iHyperChargeMP );
-
+				
 
 
 					std::wstringstream strStream;
@@ -6451,16 +6812,16 @@ void CX2GUArme_VioletMage::HyperModeFrameMove()
 					if( NULL != g_pData->GetPicCharBlue() )
 						g_pData->GetPicCharBlue()->DrawText( strStream.str().c_str(), pos, GetDirVector(), CKTDGPicChar::AT_CENTER );
 
-
+								
 					pos.y += 30.0f; 
 					strStream2 <<  "MP+ " << static_cast< int >( m_iHyperChargeMP );
 					if( NULL != g_pData->GetPicCharBlue() )
 						g_pData->GetPicCharBlue()->DrawText( strStream2.str().c_str(), pos, GetDirVector(), CKTDGPicChar::AT_CENTER );
 				}
-			}
+ 			}
 		}
 #endif NEW_SKILL_2010_11
-		//}} 김상훈 2010.10.29 : 극한의 마나 운용
+//}} 김상훈 2010.10.29 : 극한의 마나 운용
 	}
 	CommonFrameMove();	
 #endif // MODIFY_RIDING_PET_AWAKE
@@ -6478,7 +6839,7 @@ void CX2GUArme_VioletMage::HyperModeCameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -6486,7 +6847,7 @@ void CX2GUArme_VioletMage::HyperModeCameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -6618,9 +6979,9 @@ void CX2GUArme_VioletMage::ChargeMPFrameMove()
 {
 	D3DXVECTOR3 pos = GetWeaponBonePos( 0, L"Center_Jewel", 0 );
 
-	if( m_hSeqMPEnergy != INVALID_PARTICLE_HANDLE &&
-		m_hSeqMPEnergyCenter != INVALID_PARTICLE_HANDLE &&
-		m_hSeqMPChargeWave != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqMPEnergy != INVALID_PARTICLE_SEQUENCE_HANDLE &&
+		m_hSeqMPEnergyCenter != INVALID_PARTICLE_SEQUENCE_HANDLE &&
+		m_hSeqMPChargeWave != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeqMPEnergy		= g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqMPEnergy );
 		CKTDGParticleSystem::CParticleEventSequence* pSeqMPEnergyCenter = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqMPEnergyCenter );
@@ -6705,7 +7066,7 @@ void CX2GUArme_VioletMage::ChargeMPFrameMove()
 	{
 		m_pMPChargeC->GetMatrix().Scale( alpha * 3.0f, alpha * 3.0f, alpha * 3.0f );
 		//if( GetDistance(GetPos(), g_pX2Game->GetMyUnit()->GetPos() ) < 500.0f )
-		//	g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCameraNoReset( 2.0f, 0.1f );
+		//	g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCameraNoReset( 2.0f, 0.1f );
 	}
 
 	if( m_FrameDataNow.unitCondition.fStateTime < 1.0f )
@@ -6717,7 +7078,7 @@ void CX2GUArme_VioletMage::ChargeMPFrameMove()
 	{
 		m_pMPChargeB->SetPlaySpeed( 1.5f );
 		m_pMPChargeC->SetPlaySpeed( 0.3f );
-		//g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( 5.0f, 0.2f );
+		//g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( 5.0f, 0.2f );
 		//g_pX2Game->GetWorld()->SetWorldColor( 0xff333333 );
 		//g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 2.0f );
 
@@ -6881,7 +7242,7 @@ void CX2GUArme_VioletMage::ChargeMPEnd()
 
 		g_pKTDXApp->GetDGManager()->ClearScreen();
 		m_pSoundBreak->Play();
-		g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( 5.0f, 0.2f );
+		g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( 5.0f, 0.2f );
 		g_pX2Game->GetWorld()->SetWorldColor( 0xff333333 );
 		g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 2.0f );
 	}
@@ -6995,7 +7356,11 @@ void CX2GUArme_VioletMage::DamageBigBackEventProcess()
 //AVSI_DAMAGE_DOWN_FRONT
 void CX2GUArme_VioletMage::DamageDownFrontFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.19f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.19f ) == true && EventCheck( 0.19f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//m_pSoundDown->Set3DPosition( m_FrameDataNow.syncData.position );
 
@@ -7103,7 +7468,11 @@ void CX2GUArme_VioletMage::DamageDownFrontEventProcess()
 //AVSI_DAMAGE_DOWN_BACK
 void CX2GUArme_VioletMage::DamageDownBackFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.32f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.32f ) == true && EventCheck( 0.32f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//m_pSoundDown->Set3DPosition( m_FrameDataFuture.syncData.position );
 
@@ -7288,15 +7657,13 @@ void CX2GUArme_VioletMage::AVSI_A_AV_Teleport_StateStart()
 
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO5 ) == true )
 	{
-#ifdef FIX_AISHA_MEMO5
-
 #ifdef UPGRADE_SKILL_SYSTEM_2013
 		D3DXVECTOR2 superArmorTime( 0.0f, 0.5f);
-#ifdef X2OPTIMIZE_NPC_NONHOST_SIMULATION
-		m_vecSuperArmorTime.push_back(superArmorTime);
-#else//X2OPTIMIZE_NPC_NONHOST_SIMULATION
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		AccessVecNowSuperArmorTime().push_back(superArmorTime);
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_FrameDataNow.stateParam.m_vecSuperArmorTime.push_back(superArmorTime);
-#endif//X2OPTIMIZE_NPC_NONHOST_SIMULATION
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_FrameDataNow.stateParam.bSuperArmorNotRed = false;
 #else // UPGRADE_SKILL_SYSTEM_2013
 		if( GetForceInvincible() < 0.5f )
@@ -7304,11 +7671,6 @@ void CX2GUArme_VioletMage::AVSI_A_AV_Teleport_StateStart()
 		if( GetShowInvincible() < 0.5f )
 			SetShowInvincible( 0.5f );
 #endif // UPGRADE_SKILL_SYSTEM_2013
-
-#else
-		SetForceInvincible( 0.5f );
-		SetShowInvincible( 0.5f );
-#endif
 	}
 
 #ifdef SERV_ARME_DIMENSION_WITCH
@@ -7317,12 +7679,12 @@ void CX2GUArme_VioletMage::AVSI_A_AV_Teleport_StateStart()
 
 #ifdef FIX_SKILL_BALANCE_AISHA_LENA //JHKang
 	const int iSkillLevel 
-		= GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_AV_TELEPORT, true );
+		= GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_AV_TELEPORT, true );
 
 	if ( iSkillLevel > 0 )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet 
-			= GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_A_AV_TELEPORT );
+			= GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_A_AV_TELEPORT );
 
 		if ( NULL != pSkillTemplet )
 			SetBuffFactorToGameUnit( pSkillTemplet, 0 );
@@ -7427,7 +7789,11 @@ void CX2GUArme_VioletMage::AVSI_A_AV_Teleport_EventProcess()
 //AVSI_EVASION_END
 void CX2GUArme_VioletMage::EvasionEndFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 		pos.y -= 200.0f;
@@ -7481,11 +7847,11 @@ void CX2GUArme_VioletMage::AVSI_EVASION_STAND_UP_START_Start()
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013
 	D3DXVECTOR2 superArmorTime( 0.0f, 0.6f + 0.5f);
-#ifdef X2OPTIMIZE_NPC_NONHOST_SIMULATION
-	m_vecSuperArmorTime.push_back(superArmorTime);
-#else//X2OPTIMIZE_NPC_NONHOST_SIMULATION
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	AccessVecNowSuperArmorTime().push_back(superArmorTime);
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_FrameDataNow.stateParam.m_vecSuperArmorTime.push_back(superArmorTime);
-#endif//X2OPTIMIZE_NPC_NONHOST_SIMULATION
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_FrameDataNow.stateParam.bSuperArmorNotRed = false;
 #else // UPGRADE_SKILL_SYSTEM_2013
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO5 ) == true )
@@ -7573,7 +7939,11 @@ void CX2GUArme_VioletMage::AVSI_EVASION_STAND_UP_START_EventProcess()
 //AVSI_EVASION_STAND_UP_END
 void CX2GUArme_VioletMage::AVSI_EVASION_STAND_UP_END_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 		pos.y -= 200.0f;
@@ -7655,7 +8025,11 @@ void CX2GUArme_VioletMage::EvasionStandupAttackFrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 		pos.y -= 200.0f;
@@ -7728,9 +8102,13 @@ void CX2GUArme_VioletMage::ComboZ1EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
-	else if( SpecialAttackEventProcess() == true )
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
+	else if( true == SpecialAttackEventProcess() )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.27f )
 	{
 		StateChange( AVSI_COMBO_Z2 );
@@ -7778,7 +8156,7 @@ void CX2GUArme_VioletMage::ComboZ2EventProcess()
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )		/// 스킬 캔슬 구간 추가
 	ELSE_IF_STATE_CHANGE_ON_( 1, 0.43f, 0.43f, m_InputData.oneX == true && 
-	( m_pUnit->GetClass() == CX2Unit::UC_ARME_HIGH_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_ELEMENTAL_MASTER ), AVSI_COMBO_X3 )	/// 파이어볼 연계기 추가
+	( GetUnit()->GetClass() == CX2Unit::UC_ARME_HIGH_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_ELEMENTAL_MASTER ), AVSI_COMBO_X3 )	/// 파이어볼 연계기 추가
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.47f )
@@ -7924,7 +8302,11 @@ void CX2GUArme_VioletMage::ComboZ4upFrameMove()
 {
 	if( m_bZ4up == true )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.2f ) && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
@@ -8000,7 +8382,11 @@ void CX2GUArme_VioletMage::ComboZ4upFrameMove()
 			m_bZ4up = false;
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 
@@ -8047,7 +8433,11 @@ void CX2GUArme_VioletMage::ComboZ4upEventProcess()
 void CX2GUArme_VioletMage::ComboX1FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_PATCH_20120329
 		if( FlushMp( 4.0f * m_fMPConsumeRateFireBall ) == true )
@@ -8059,10 +8449,10 @@ void CX2GUArme_VioletMage::ComboX1FrameMove()
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_ARME_DIMENSION_WITCH
-			if( (m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) && 
+			if( (GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) && 
 				IsTransformed() )
 #else
-			if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
+			if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
 #endif //SERV_ARME_DIMENSION_WITCH
 			{
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MAGICBALL_SHORT", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
@@ -8071,8 +8461,13 @@ void CX2GUArme_VioletMage::ComboX1FrameMove()
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 				if ( m_bIceBall )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Short", GetPowerRate() * m_fIceBallPower, posR, 
+					GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Small", GetPowerRate() * m_fIceBallPower, posR, 
 						GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				else
 					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_SHORT", GetPowerRate(), posR, GetRotateDegree(),
 						GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
@@ -8110,9 +8505,13 @@ void CX2GUArme_VioletMage::ComboX1EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
-	else if( SpecialAttackEventProcess() == true )
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
+	else if( true == SpecialAttackEventProcess() )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 #ifdef AISHA_SECOND_CLASS_CHANGE
 	ELSE_IF_STATE_CHANGE_ON_( 1, 0.43f, 0.43f, GetUnitClass() == CX2Unit::UC_ARME_ELEMENTAL_MASTER && m_InputData.oneZ == true, AVSI_AEM_XZ )
 #endif AISHA_SECOND_CLASS_CHANGE
@@ -8164,7 +8563,11 @@ void CX2GUArme_VioletMage::ComboX1EventProcess()
 //AVSI_COMBO_X2
 void CX2GUArme_VioletMage::ComboX2FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_PATCH_20120329
 		if( FlushMp( 4.0f * m_fMPConsumeRateFireBall ) == true )
@@ -8176,10 +8579,10 @@ void CX2GUArme_VioletMage::ComboX2FrameMove()
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_ARME_DIMENSION_WITCH
-			if( (m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) && 
+			if( (GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) && 
 				IsTransformed() )
 #else
-			if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
+			if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
 #endif //SERV_ARME_DIMENSION_WITCH
 			{
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MAGICBALL_SHORT", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
@@ -8188,8 +8591,13 @@ void CX2GUArme_VioletMage::ComboX2FrameMove()
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 				if ( m_bIceBall )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Short", GetPowerRate() * m_fIceBallPower, posR,
+					GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Small", GetPowerRate() * m_fIceBallPower, posR,
-						GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
+					GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				else
 					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_SHORT", GetPowerRate(), posR, GetRotateDegree(),
 						GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
@@ -8228,9 +8636,13 @@ void CX2GUArme_VioletMage::ComboX2EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
-	else if( SpecialAttackEventProcess() == true )
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
+	else if( true == SpecialAttackEventProcess() )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.9f )
 	{
 		if( m_InputData.pureDown == true )
@@ -8298,11 +8710,19 @@ void CX2GUArme_VioletMage::ComboX2EventProcess()
 void CX2GUArme_VioletMage::ComboX3FrameMove()
 {
 #ifdef BALANCE_PATCH_20120329
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 6.0f  * m_fMPConsumeRateFireBall ) == true )
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.27f ) == true && EventCheck( 0.27f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 10.0f  * m_fMPConsumeRateFireBall ) == true )
 #endif
@@ -8312,10 +8732,10 @@ void CX2GUArme_VioletMage::ComboX3FrameMove()
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 			bool bBattleMagician = false;
 #ifdef SERV_ARME_DIMENSION_WITCH
-			if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH )
+			if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH )
 				bBattleMagician = true;
 #else
-			if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN )
+			if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN )
 				bBattleMagician = true;
 #endif //SERV_ARME_DIMENSION_WITCH
 #ifdef BALANCE_PATCH_20120329
@@ -8478,7 +8898,11 @@ void CX2GUArme_VioletMage::ComboX4ChargeStateEnd()
 //AVSI_COMBO_X4_CHARGE_FIRE
 void CX2GUArme_VioletMage::ComboX4ChargeFireFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.166f ) == true && EventCheck( 0.166f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 6.0f  * m_fMPConsumeRateFireBall ) == true )
 		{	
@@ -8549,11 +8973,19 @@ void CX2GUArme_VioletMage::ComboX4ChargeFireEventProcess()
 void CX2GUArme_VioletMage::ComboX4FrameMove()
 {
 #ifdef BALANCE_PATCH_20120329
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.166f ) == true && EventCheck( 0.166f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 6.0f  * m_fMPConsumeRateFireBall ) == true )
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.169f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.169f ) == true && EventCheck( 0.169f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 10.0f  * m_fMPConsumeRateFireBall ) == true )
 #endif
@@ -8562,10 +8994,10 @@ void CX2GUArme_VioletMage::ComboX4FrameMove()
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_ARME_DIMENSION_WITCH
-			if( (m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) && 
+			if( (GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) && 
 				IsTransformed() )
 #else
-			if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
+			if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
 #endif //SERV_ARME_DIMENSION_WITCH
 			{
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MAGICBALL_BIG", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
@@ -8640,7 +9072,11 @@ void CX2GUArme_VioletMage::ComboX3frontFrameMove()
 {
 	if( m_bZ4up == true )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.47f ) && EventCheck( 0.47f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
@@ -8715,7 +9151,11 @@ void CX2GUArme_VioletMage::ComboX3frontFrameMove()
 			m_bZ4up = false;
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 		CreateNotEnoughMPEffect( pos, 0.f, 0.f, 0.f );
@@ -8764,16 +9204,20 @@ void CX2GUArme_VioletMage::ComboX3downFrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 10.0f ) == true )
 		{
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_ARME_DIMENSION_WITCH
-			if( (m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) && 
+			if( (GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) && 
 				IsTransformed() )
 #else
-			if(  m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
+			if(  GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
 #endif //SERV_ARME_DIMENSION_WITCH
 			{
 				m_pComboX3Up1->SetScale( D3DXVECTOR3(2.f, 1.f, 2.f) );
@@ -8825,7 +9269,7 @@ void CX2GUArme_VioletMage::ComboX3downFrameMove()
 void CX2GUArme_VioletMage::ComboX3downEventProcess()
 {
 #ifdef SERV_ARME_DIMENSION_WITCH
-	if( m_pUnit->GetUnitData()->m_UnitClass == CX2Unit::UC_ARME_DIMENSION_WITCH )
+	if( GetUnit()->GetUnitData().m_UnitClass == CX2Unit::UC_ARME_DIMENSION_WITCH )
 	{
 		if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.801f )
 		{
@@ -8865,7 +9309,11 @@ void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_COMBO_X3down_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 10.0f ) == true )
 		{
@@ -8946,7 +9394,11 @@ void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_COMBO_X4down_FrameMove()
 {
 	if( m_bZ4up == true )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.44f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.44f ) && EventCheck( 0.44f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
@@ -9022,7 +9474,11 @@ void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_COMBO_X4down_FrameMove()
 			m_bZ4up = false;
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 		CreateNotEnoughMPEffect( pos, 0.f, 0.f, 30.f );
@@ -9064,7 +9520,11 @@ void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_COMBO_X4down_EventProcess()
 //AVSI_HIGH_MAGICIAN_COMBO_X2
 void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_COMBO_X2_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_PATCH_20120329
 		if( FlushMp( 4.0f * m_fMPConsumeRateFireBall ) == true )
@@ -9076,8 +9536,13 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_COMBO_X2_FrameMove()
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			if ( m_bIceBall )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Short", GetPowerRate() * m_fIceBallPower, posR,
+				GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Small", GetPowerRate() * m_fIceBallPower, posR,
-					GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
+				GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			else
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_SHORT", GetPowerRate(), posR, GetRotateDegree(),
 					GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
@@ -9103,9 +9568,13 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_COMBO_X2_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
-	else if( SpecialAttackEventProcess() == true )
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
+	else if( true == SpecialAttackEventProcess() )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.9f )
 	{
 		if( m_InputData.pureDown == true )
@@ -9133,7 +9602,7 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_COMBO_X2_EventProcess()
 	}
 
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117		/// 번개를 3번까지 내리칠 수 있는 커맨드 추가
-	ELSE_IF_STATE_CHANGE_ON_( 1, 0.86f, 0.86f, true == m_InputData.oneZ && m_pUnit->GetClass() == CX2Unit::UC_ARME_ELEMENTAL_MASTER , AVSI_AEM_XZ )
+	ELSE_IF_STATE_CHANGE_ON_( 1, 0.86f, 0.86f, true == m_InputData.oneZ && GetUnit()->GetClass() == CX2Unit::UC_ARME_ELEMENTAL_MASTER , AVSI_AEM_XZ )
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 
 	ELSE_IF_KEY_PRESSED_AT_SKIP_POINT_C
@@ -9173,7 +9642,11 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_COMBO_X2_EventProcess()
 //AVSI_HIGH_MAGICIAN_COMBO_X3back
 void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_COMBO_X3back_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.34f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.34f ) == true && EventCheck( 0.34f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_PATCH_20120329
 		if( FlushMp( 6.0f * m_fMPConsumeRateFireBall ) == true )
@@ -9187,8 +9660,14 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_COMBO_X3back_FrameMove()
 			rot.y += 180.0f;
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			if ( m_bIceBall )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 데미지 이펙트 이름 변경 ( 중복된 데미지 이펙트 수정 )
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ICEBALL_BIG_AISHA_HIGH_MAGICIAN", GetPowerRate() * m_fIceBallPower, posR,
+				rot, rot, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );				
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Big1", GetPowerRate() * m_fIceBallPower, posR,
 					rot, rot, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			else
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_BIG_AISHA_HIGH_MAGICIAN", GetPowerRate(), posR,
 					rot, rot, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
@@ -9250,7 +9729,11 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_COMBO_X3back_EndFuture()
 //AVSI_DARK_MAGICIAN_COMBO_X2
 void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_COMBO_X2_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 7.0f * m_fMPConsumeRateFireBall ) == true )
 		{
@@ -9276,9 +9759,13 @@ void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_COMBO_X2_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
-	else if( SpecialAttackEventProcess() == true )
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
+	else if( true == SpecialAttackEventProcess() )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.9f )
 	{
 		if( m_InputData.pureDown == true )
@@ -9342,7 +9829,11 @@ void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_COMBO_X2_EventProcess()
 //AVSI_DARK_MAGICIAN_COMBO_X3back
 void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_COMBO_X3back_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.71f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.71f ) == true && EventCheck( 0.71f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef SKILL_BALANCE_20110728
 		if( FlushMp( 10.0f ) == true )
@@ -9401,10 +9892,10 @@ void CX2GUArme_VioletMage::DashComboZ1StartFuture()
 
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_ARME_DIMENSION_WITCH
-	if( (m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) &&
+	if( (GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) &&
 		IsTransformed() )
 #else	SERV_ARME_DIMENSION_WITCH
-	if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
+	if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
 #endif //SERV_ARME_DIMENSION_WITCH
 		m_PhysicParam.nowSpeed.x = 1000.f;
 #endif	SERV_ADD_ARME_BATTLE_MAGICIAN
@@ -9428,14 +9919,14 @@ void CX2GUArme_VioletMage::DashComboZ1EventProcess()
 	{
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_ARME_DIMENSION_WITCH
-		if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH )
+		if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH )
 #else	SERV_ARME_DIMENSION_WITCH
-		if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN )
+		if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN )
 #endif //SERV_ARME_DIMENSION_WITCH
 			StateChange( AVSI_ABM_DASH_COMBO_Z2a );
 
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117		/// 엘리멘탈 마스터 대시 콤보 ZX
-		else if( m_pUnit->GetClass() == CX2Unit::UC_ARME_ELEMENTAL_MASTER )
+		else if( GetUnit()->GetClass() == CX2Unit::UC_ARME_ELEMENTAL_MASTER )
 			StateChange( AVSI_EM_DASH_COMBO_Z2a );
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 
@@ -9556,7 +10047,7 @@ void CX2GUArme_VioletMage::DashComboZ2aStartFuture()
 			continue;
 	
 		//{{ oasis907 : 김상윤 [2011.3.21] 유저가 밟을 수 있는 라인 체크
-		CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( pUnit->GetLastTouchLineIndex() );
+		const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( pUnit->GetLastTouchLineIndex() );
 		if( NULL == pLineData )
 			continue;
 
@@ -9596,7 +10087,11 @@ void CX2GUArme_VioletMage::DashComboZ2aStartFuture()
 
 void CX2GUArme_VioletMage::DashComboZ2aFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 		pos.y -= 200.0f;
@@ -9647,7 +10142,7 @@ void CX2GUArme_VioletMage::AVSI_EM_DASH_COMBO_Z2a_StartFuture()
 			continue;
 
 		//{{ oasis907 : 김상윤 [2011.3.21] 유저가 밟을 수 있는 라인 체크
-		CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( pUnit->GetLastTouchLineIndex() );
+		const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( pUnit->GetLastTouchLineIndex() );
 		if( NULL == pLineData )
 			continue;
 
@@ -9687,7 +10182,11 @@ void CX2GUArme_VioletMage::AVSI_EM_DASH_COMBO_Z2a_StartFuture()
 
 void CX2GUArme_VioletMage::AVSI_EM_DASH_COMBO_Z2a_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 		pos.y -= 200.0f;
@@ -9756,7 +10255,7 @@ void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a_StartFuture()
 			continue;
 
 		//{{ oasis907 : 김상윤 [2011.3.21] 유저가 밟을 수 있는 라인 체크
-		CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( pUnit->GetLastTouchLineIndex() );
+		const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( pUnit->GetLastTouchLineIndex() );
 		if( NULL == pLineData )
 			continue;
 
@@ -9797,7 +10296,11 @@ void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a_StartFuture()
 
 void CX2GUArme_VioletMage::AVSI_DARK_MAGICIAN_DASH_COMBO_Z2a_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 		pos.y -= 200.0f;
@@ -9886,7 +10389,11 @@ void CX2GUArme_VioletMage::DashAttackXStartFuture()
 
 void CX2GUArme_VioletMage::DashAttackXFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파볼
 #ifdef BALANCE_PATCH_20120329
@@ -9900,7 +10407,7 @@ void CX2GUArme_VioletMage::DashAttackXFrameMove()
 			D3DXVECTOR3 angle = GetRotateDegree();
 			angle.y += 180.0f;
 
-			switch( m_pUnit->GetClass() )
+			switch( GetUnit()->GetClass() )
 			{
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 			case CX2Unit::UC_ARME_BATTLE_MAGICIAN:
@@ -9934,8 +10441,13 @@ void CX2GUArme_VioletMage::DashAttackXFrameMove()
 				{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 					if ( m_bIceBall )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+						g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Small", GetPowerRate() * m_fIceBallPower, posR, angle, angle,
+						m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 						g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Small_Down", GetPowerRate() * m_fIceBallPower, posR, angle, angle,
-							m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
+						m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 					else
 						g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_SMALL", GetPowerRate(), posR, angle, angle,
 							m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
@@ -10000,7 +10512,11 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICION_DASH_ATTACK_X_StartFuture()
 
 void CX2GUArme_VioletMage::AVSI_HIGH_MAGICION_DASH_ATTACK_X_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파볼
 		if( FlushMp( 5.0f * m_fMPConsumeRateFireBall ) == true )
@@ -10011,8 +10527,14 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICION_DASH_ATTACK_X_FrameMove()
 			angle.y += 180.0f;
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			if ( m_bIceBall )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Small", GetPowerRate() * m_fIceBallPower, posR, angle, angle,
+				m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Small_Down", GetPowerRate() * m_fIceBallPower, posR, angle, angle,
-					m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
+				m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
+
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			else
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_SMALL", GetPowerRate(), posR, angle, angle, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
 #else //UPGRADE_SKILL_SYSTEM_2013
@@ -10072,16 +10594,27 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICION_DASH_ATTACK_X_EndFuture()
 //AVSI_HIGH_MAGICION_DASH_ATTACK_X2
 void CX2GUArme_VioletMage::AVSI_HIGH_MAGICION_DASH_ATTACK_X2_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.27f ) == true && EventCheck( 0.27f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 10.0f * m_fMPConsumeRateFireBall ) == true )
 		{
 			//파이어볼쏘기
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
+
 			if ( m_bIceBall )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HIGH_MAGICIAN_DASH_COMBO_XX_ICEBALL", GetPowerRate() * m_fIceBallPower, posR,
+				GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_IceBall_Big2", GetPowerRate() * m_fIceBallPower, posR,
-					GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
+				GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 			else
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HIGH_MAGICIAN_DASH_COMBO_XX_FIREBALL", GetPowerRate(), posR,
 					GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
@@ -10194,7 +10727,11 @@ void CX2GUArme_VioletMage::JumpAttackXFrameMoveFuture()
 
 void CX2GUArme_VioletMage::JumpAttackXFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.16f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.16f ) == true && EventCheck( 0.16f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파볼
 #ifdef SKILL_BALANCE_20110728
@@ -10213,10 +10750,10 @@ void CX2GUArme_VioletMage::JumpAttackXFrameMove()
 			D3DXVECTOR3 angle = GetRotateDegree();
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_ARME_DIMENSION_WITCH
-			if( (m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) &&
+			if( (GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) &&
 				IsTransformed() )
 #else	SERV_ARME_DIMENSION_WITCH
-			if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
+			if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
 #endif //SERV_ARME_DIMENSION_WITCH
 			{
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MAGICBALL_SMALL_DOWN", GetPowerRate(), posR, angle, angle, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fFireBallRangeRate  );
@@ -10274,7 +10811,11 @@ void CX2GUArme_VioletMage::DashJumpAttackZFrameMoveFuture()
 		m_PhysicParam.nowSpeed.x = 0.0f;
 		m_PhysicParam.nowSpeed.y = 0.0f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 0.41f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 0.41f ) == true && EventCheck( 0.41f, true) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x -= GetDashSpeed();
 		m_PhysicParam.nowSpeed.y = GetJumpSpeed() / 2.0f;
@@ -10285,7 +10826,11 @@ void CX2GUArme_VioletMage::DashJumpAttackZFrameMoveFuture()
 
 void CX2GUArme_VioletMage::DashJumpAttackZFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.27f ) && EventCheck( 0.27f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 5.0f ) == true )
 		{
@@ -10375,7 +10920,11 @@ void CX2GUArme_VioletMage::DashJumpAttackXFrameMoveFuture()
 
 void CX2GUArme_VioletMage::DashJumpAttackXFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.16f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.16f ) == true && EventCheck( 0.16f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파볼쏘기
 #ifdef SKILL_BALANCE_20110728
@@ -10461,7 +11010,11 @@ void CX2GUArme_VioletMage::DashJumpAttackX2FrameMoveFuture()
 
 void CX2GUArme_VioletMage::DashJumpAttackX2FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.16f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.16f ) == true && EventCheck( 0.16f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파볼쏘기
 		if( FlushMp( 4.0f * m_fMPConsumeRateFireBall ) == true )
@@ -10519,7 +11072,11 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X_FrameMoveFuture
 
 void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.16f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.16f ) == true && EventCheck( 0.16f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파볼쏘기
 #ifdef SKILL_BALANCE_20110728
@@ -10585,7 +11142,11 @@ void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X2_FrameMoveFutur
 
 void CX2GUArme_VioletMage::AVSI_HIGH_MAGICIAN_DASH_JUMP_ATTACK_X2_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.16f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.16f ) == true && EventCheck( 0.16f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파볼쏘기
 #ifdef SKILL_BALANCE_20110728
@@ -10680,37 +11241,67 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_Spine1", 0.001f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 // 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_Spine1" );
 // 
 // 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 // 
- 		switch( m_NowStateData.m_SPLevel )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_A_AV_BINDING_CIRCLE );
+		if ( NULL != pSkillTemplet && NULL != g_pX2Game->GetEffectSet() )
+		{
+			const int iSkillTempletLevel = userSkillTree.GetSkillLevel( pSkillTemplet->m_eID );	/// 스킬 레벨
+			float m_fBindingCircleDistance				= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_SCOPE_ABS, iSkillTempletLevel );			/// 한발당 소비 엠피
+			CX2EffectSet::Handle hBindingCircleEffectSet = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_BINDING_CIRCLE_LEVEL_01", this );			
+			CX2EffectSet::EffectSetInstance * pBindingCircleEffectSetInst = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hBindingCircleEffectSet );
+			if ( NULL !=  pBindingCircleEffectSetInst )
+			{
+				float fScale = m_fBindingCircleDistance / _CONST_AISHA_::BIDING_CIRCLE_BASIC_DISTANCE;
+				D3DXVECTOR3 vScale ( fScale, fScale, fScale );
+				pBindingCircleEffectSetInst->SetEffectScale( vScale );
+			}			
+		}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		switch( m_NowStateData.m_SPLevel )
 		{
 		case 1:
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_BINDING_CIRCLE_LEVEL_01", this );
-// 			pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( GetHandleAishaMinorParticleByEnum( AISHA_PII_MINOR_TIME_STOP_01 ) );
-// 			PlaySequenceByTriggerCount( pSeq, pos, 20, 40, 5 );
+			// 			pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( GetHandleAishaMinorParticleByEnum( AISHA_PII_MINOR_TIME_STOP_01 ) );
+			// 			PlaySequenceByTriggerCount( pSeq, pos, 20, 40, 5 );
 			break;
 
 		case 2:
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_BINDING_CIRCLE_LEVEL_02", this );
-// 			pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( GetHandleAishaMinorParticleByEnum( AISHA_PII_MINOR_TIME_STOP_02 ) );
-// 
-// 			PlaySequenceByTriggerCount( pSeq, pos, 20, 40, 5 );
+			// 			pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( GetHandleAishaMinorParticleByEnum( AISHA_PII_MINOR_TIME_STOP_02 ) );
+			// 
+			// 			PlaySequenceByTriggerCount( pSeq, pos, 20, 40, 5 );
 			break;
 
 		default:
 		case 3:
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_BINDING_CIRCLE_LEVEL_03", this );
-// 			pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( GetHandleAishaMinorParticleByEnum( AISHA_PII_MINOR_TIME_STOP_03 ) );
-// 
-// 			PlaySequenceByTriggerCount( pSeq, pos, 20, 40, 5 );
+			// 			pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( GetHandleAishaMinorParticleByEnum( AISHA_PII_MINOR_TIME_STOP_03 ) );
+			// 
+			// 			PlaySequenceByTriggerCount( pSeq, pos, 20, 40, 5 );
 			break;
 		}		
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+
+	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 
@@ -10725,6 +11316,18 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_FrameMove()
 				continue;
 
 			float fLength = 0.0f;
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_A_AV_BINDING_CIRCLE );
+			if ( NULL != pSkillTemplet )
+			{
+				const int iSkillTempletLevel = userSkillTree.GetSkillLevel( pSkillTemplet->m_eID );	/// 스킬 레벨
+				fLength				= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_SCOPE_ABS, iSkillTempletLevel );			/// 한발당 소비 엠피
+				fLength *= fLength;
+			}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			switch( m_NowStateData.m_SPLevel )
 			{
 			case 1:
@@ -10741,7 +11344,9 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_FrameMove()
 				break;
 			}
 
-			if( GetDistance( pos, pUnit->GetPos() ) < fLength )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+			if( GetDistance3Sq( pos, pUnit->GetPos() ) < fLength )
 			{
 				nCount++;
 // 				pUnit->SetStopTime( 2.0f );
@@ -10782,7 +11387,7 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10790,7 +11395,7 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}		
@@ -10802,7 +11407,7 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10810,7 +11415,7 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}		
@@ -10844,18 +11449,60 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_Spine1", 0.001f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
+
+#ifdef BALANCE_PATCH_20131107
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_A_AV_BINDING_CIRCLE );
+		if ( NULL != pSkillTemplet && NULL != g_pX2Game->GetEffectSet() )
+		{
+			const int iSkillTempletLevel = userSkillTree.GetSkillLevel( pSkillTemplet->m_eID );
+			float m_fBindingCircleDistance				= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_SCOPE_ABS, iSkillTempletLevel );
+			CX2EffectSet::Handle hBindingCircleEffectSet = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_BINDING_CIRCLE_HYPER_LEVEL_01", this );			
+			CX2EffectSet::EffectSetInstance * pBindingCircleEffectSetInst = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hBindingCircleEffectSet );
+			if ( NULL !=  pBindingCircleEffectSetInst )
+			{
+				float fScale = m_fBindingCircleDistance / _CONST_AISHA_::BIDING_CIRCLE_BASIC_DISTANCE;
+				D3DXVECTOR3 vScale ( fScale, fScale, fScale );
+				pBindingCircleEffectSetInst->SetEffectScale( vScale );
+			}			
+		}
+#else // BALANCE_PATCH_20131107		
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_Spine1" );
 
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( GetHandleAishaMinorParticleByEnum( AISHA_PII_MINOR_TIME_STOP_RED ) );
 		PlaySequenceByTriggerCount( pSeq, pos, 20, 40, 5 );
+#endif // BALANCE_PATCH_20131107
+
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 
-		int nCount = 0;         		
+#ifdef BALANCE_PATCH_20131107
+		float fLength = 0.0f;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_A_AV_BINDING_CIRCLE );
+		if ( NULL != pSkillTemplet )
+		{
+			const int iSkillTempletLevel = userSkillTree.GetSkillLevel( pSkillTemplet->m_eID );	/// 스킬 레벨
+			fLength				= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_SCOPE_ABS, iSkillTempletLevel );			/// 한발당 소비 엠피
+			fLength *= fLength;
+		}
+#endif // BALANCE_PATCH_20131107		
+
+		int nCount = 0;   		
 		for( int i = 0; i < g_pX2Game->GetUnitNum(); i++ )
 		{
 			CX2GameUnit* pUnit = g_pX2Game->GetUnit( i );
@@ -10865,7 +11512,11 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_HYPER_FrameMove()
 			if( pUnit->GetInvincible() == true )
 				continue;
 
+#ifdef BALANCE_PATCH_20131107
+			if( GetDistance3Sq( pos, pUnit->GetPos() ) < fLength )
+#else // BALANCE_PATCH_20131107		
 			if( GetDistance( pos, pUnit->GetPos() ) < 700.0f )
+#endif // BALANCE_PATCH_20131107		
 			{
 				nCount++;
 				pUnit->SetStopTime( 3.0f );
@@ -10904,7 +11555,7 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10912,7 +11563,7 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}		
@@ -10924,7 +11575,7 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10932,7 +11583,7 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_BINDING_CIRCLE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}		
@@ -10968,12 +11619,15 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_LIGHTNING_BOLT_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.2f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 #ifdef NO_MORE_EFFECT_HARD_CODING_TEST
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO8 ) == true )
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_Lightning_Bolt_Memo", this );
@@ -10982,9 +11636,6 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_LIGHTNING_BOLT_FrameMove()
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_Lightning_Bolt", this );
 		}		
-#else	NEW_MEMO_01
-		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_Lightning_Bolt", this );
-#endif	NEW_MEMO_01
 
 #else NO_MORE_EFFECT_HARD_CODING_TEST
 //{{AFX
@@ -11193,7 +11844,7 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_LIGHTNING_BOLT_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11201,7 +11852,7 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_LIGHTNING_BOLT_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}		
@@ -11235,10 +11886,13 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_LIGHTNING_BOLT_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.2f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO8 ) == true )
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_Lightning_Bolt_Memo", this, NULL, true );
@@ -11247,9 +11901,6 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_LIGHTNING_BOLT_HYPER_FrameMove()
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_Lightning_Bolt", this, NULL, true );
 		}		
-#else	NEW_MEMO_01
-		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_Lightning_Bolt", this, NULL, true );
-#endif	NEW_MEMO_01
 
 		UpDownCrashCamera( 20.0f, 0.7f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
@@ -11446,7 +12097,7 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_LIGHTNING_BOLT_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11454,7 +12105,7 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_LIGHTNING_BOLT_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}		
@@ -11493,7 +12144,11 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01_L_Finger1Nub", 1.766f, 2, true );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.34f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.34f ) == true && EventCheck( 0.34f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = GetPos();
 		D3DXVECTOR3 degree = GetRotateDegree();
@@ -11515,7 +12170,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11523,7 +12178,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}	
@@ -11531,7 +12186,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11544,7 +12199,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11552,7 +12207,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}	
@@ -11560,7 +12215,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11596,7 +12251,11 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Bip01", 1.766f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.34f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.34f ) == true && EventCheck( 0.34f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = GetPos();
 		D3DXVECTOR3 degree = GetRotateDegree();
@@ -11631,7 +12290,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11639,7 +12298,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}	
@@ -11647,7 +12306,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11660,7 +12319,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11668,7 +12327,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}	
@@ -11676,7 +12335,7 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_METEO_CALL_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11706,22 +12365,107 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_FIRE_BALL_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.19f, 0 );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파이어볼쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
+		
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 빙점 연구 패시브를 습득했다면 이펙트 변경 추가
+		// 파이어 볼 강화 패시브를 습득했다면 데미지 배율 변경 추가
+		wstring wstrDamageEffectName = L"FIREBALL_CHAIN";			
+		if ( true == m_bIceBall )
+			wstrDamageEffectName = L"FIREBALL_CHAIN_Ice";
+		
+		if ( NULL != g_pX2Game->GetDamageEffect() )
+		{
+			CX2DamageEffect::CEffect * pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), GetPowerRate() * m_fIceBallPower, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+			if ( CKTDGXMeshPlayer::CXMeshInstance* pManiEffect = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			{
+				float fMaxLifeTime = pManiEffect->GetMaxLifeTime();
+				pManiEffect->SetMaxLifeTime( fMaxLifeTime * m_fFireBallRangeRate);
+			}
+		}
+#else	// BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_CHAIN", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파이어볼쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
+		
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 빙점 연구 패시브를 습득했다면 이펙트 변경 추가
+		// 파이어 볼 강화 패시브를 습득했다면 데미지 배율 변경 추가
+
+		wstring wstrDamageEffectName = L"FIREBALL_CHAIN";			
+		if ( true == m_bIceBall )
+			wstrDamageEffectName = L"FIREBALL_CHAIN_Ice";
+
+		if ( NULL != g_pX2Game->GetDamageEffect() )
+		{
+			CX2DamageEffect::CEffect * pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), GetPowerRate() * m_fIceBallPower, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+			if ( CKTDGXMeshPlayer::CXMeshInstance* pManiEffect = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			{
+				float fMaxLifeTime = pManiEffect->GetMaxLifeTime();
+				pManiEffect->SetMaxLifeTime( fMaxLifeTime * m_fFireBallRangeRate);
+			}
+		}
+#else	// BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_CHAIN", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파이어볼쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 빙점 연구 패시브를 습득했다면 이펙트 변경 추가
+		// 파이어 볼 강화 패시브를 습득했다면 데미지 배율 변경 추가
+
+		wstring wstrDamageEffectName = L"FIREBALL_CHAIN_DOWN_Ice";
+		if ( true == m_bIceBall )												// 빙점 연구를 배웠고
+		{
+			if ( true == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO1 ) )	// 체인 파이어 볼 메모가 있다면
+			{
+				wstrDamageEffectName =  L"FIREBALL_CHAIN_DOWN_Ice_MEMO";		
+			}
+		}
+		else																	// 빙점 연구를 배우지 않았고
+		{
+			wstrDamageEffectName = L"FIREBALL_CHAIN_DOWN";
+			if ( true == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO1 ) )	// 체인 파이어 볼 메모가 있다면
+			{
+				wstrDamageEffectName = L"FIREBALL_CHAIN_DOWN_MEMO";
+			}
+		}
+
+		if ( NULL != g_pX2Game->GetDamageEffect() )
+		{
+			CX2DamageEffect::CEffect * pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), GetPowerRate() * m_fIceBallPower, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+			if ( CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			{
+				float fMaxLifeTime = pMainEffect->GetMaxLifeTime();
+				pMainEffect->SetMaxLifeTime( fMaxLifeTime * m_fFireBallRangeRate);
+			}
+		}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 #ifdef SERV_SKILL_NOTE
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO1 ) == true )
 		{
@@ -11734,6 +12478,10 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_FIRE_BALL_FrameMove()
 #else
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_CHAIN_DOWN", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif	SERV_SKILL_NOTE
+
+
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 	}
 
 	CommonFrameMove();
@@ -11773,22 +12521,104 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_FIRE_BALL_HYPER_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.19f, 0 );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파이어볼쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 빙점 연구 패시브를 습득했다면 이펙트 변경 추가
+		// 파이어 볼 강화 패시브를 습득했다면 데미지 배율 변경 추가
+
+		wstring wstrDamageEffectName = L"FIREBALL_CHAIN";			
+		if ( true == m_bIceBall )
+			wstrDamageEffectName = L"FIREBALL_CHAIN_Ice";
+
+		if ( NULL != g_pX2Game->GetDamageEffect() )
+		{
+			CX2DamageEffect::CEffect * pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), GetPowerRate() * m_fIceBallPower, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+			if ( CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			{
+				float fMaxLifeTime = pMainEffect->GetMaxLifeTime();
+				pMainEffect->SetMaxLifeTime( fMaxLifeTime * m_fFireBallRangeRate);
+			}
+		}
+#else	// BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_CHAIN", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파이어볼쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 빙점 연구 패시브를 습득했다면 이펙트 변경 추가
+		// 파이어 볼 강화 패시브를 습득했다면 데미지 배율 변경 추가
+
+		wstring wstrDamageEffectName = L"FIREBALL_CHAIN";			
+		if ( true == m_bIceBall )
+			wstrDamageEffectName = L"FIREBALL_CHAIN_Ice";
+
+		if ( NULL != g_pX2Game->GetDamageEffect() )
+		{
+			CX2DamageEffect::CEffect * pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), GetPowerRate() * m_fIceBallPower, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+			if ( CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			{
+				float fMaxLifeTime = pMainEffect->GetMaxLifeTime();
+				pMainEffect->SetMaxLifeTime( fMaxLifeTime * m_fFireBallRangeRate);
+			}
+		}
+#else	// BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_CHAIN", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//파이어볼쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 빙점 연구 패시브를 습득했다면 이펙트 변경 추가
+		// 파이어 볼 강화 패시브를 습득했다면 데미지 배율 변경 추가
+
+		wstring wstrDamageEffectName = L"FIREBALL_CHAIN_DOWN_Ice";
+		if ( true == m_bIceBall )												// 빙점 연구를 배웠고
+		{
+			if ( true == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO1 ) )	// 체인 파이어 볼 메모가 있다면
+			{
+				wstrDamageEffectName =  L"FIREBALL_CHAIN_DOWN_Ice_MEMO";		
+			}
+		}
+		else																	// 빙점 연구를 배우지 않았고
+		{
+			wstrDamageEffectName = L"FIREBALL_CHAIN_DOWN";
+			if ( true == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO1 ) )	// 체인 파이어 볼 메모가 있다면
+			{
+				wstrDamageEffectName = L"FIREBALL_CHAIN_DOWN_MEMO";
+			}
+		}
+
+		if ( NULL != g_pX2Game->GetDamageEffect() )
+		{
+			CX2DamageEffect::CEffect * pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageEffectName.c_str(), GetPowerRate() * m_fIceBallPower, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+			if ( CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			{
+				float fMaxLifeTime = pMainEffect->GetMaxLifeTime();
+				pMainEffect->SetMaxLifeTime( fMaxLifeTime * m_fFireBallRangeRate);
+			}
+		}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 #ifdef SERV_SKILL_NOTE
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO1 ) == true )
 		{
@@ -11800,8 +12630,11 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_FIRE_BALL_HYPER_FrameMove()
 		}
 #else
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"FIREBALL_CHAIN_DOWN", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-
 #endif	SERV_SKILL_NOTE
+
+
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 	}
 
 	CommonFrameMove();
@@ -11844,10 +12677,16 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_HELL_STONE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.1f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
-#ifdef NEW_MEMO_01
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect*								m_pHellStoneEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO10 ) == true && GetRandomFloat() <= 0.3f )
 		{
 			m_pHellStoneEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HELL_STONE_MEMO", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -11856,9 +12695,9 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_HELL_STONE_FrameMove()
 		{
 			m_pHellStoneEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HELL_STONE", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		}
-#else	NEW_MEMO_01
-		m_pHellStoneEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HELL_STONE", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-#endif	NEW_MEMO_01
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hHellStoneEffect = ( m_pHellStoneEffect != NULL ) ? m_pHellStoneEffect->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
 	CommonFrameMove();
@@ -11895,11 +12734,16 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_HELL_STONE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.001f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
-
-#ifdef NEW_MEMO_01
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect*								m_pHellStoneEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO10 ) == true && GetRandomFloat() <= 0.3f )
 		{
 			m_pHellStoneEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HELL_STONE_HYPER_MEMO", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -11908,9 +12752,9 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_HELL_STONE_HYPER_FrameMove()
 		{
 			m_pHellStoneEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HELL_STONE_HYPER", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		}
-#else	NEW_MEMO_01
-		m_pHellStoneEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HELL_STONE_HYPER", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-#endif	NEW_MEMO_01
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hHellStoneEffect = ( m_pHellStoneEffect != NULL ) ? m_pHellStoneEffect->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
 	CommonFrameMove();
@@ -11956,7 +12800,11 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_GUIDE_FIRE_BALL_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.3f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.55f ) == true && EventCheck( 0.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = GetWeaponBonePos( 0, L"TRACE_START0", 0 );
 		D3DXVECTOR3 degree = GetRotateDegree();
@@ -12016,7 +12864,11 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_GUIDE_FIRE_BALL_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.3f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.55f ) == true && EventCheck( 0.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = GetWeaponBonePos( 0, L"TRACE_START0", 0 );
 		D3DXVECTOR3 degree = GetRotateDegree();
@@ -12082,19 +12934,35 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_GUST_SCREW_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.27f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.466f ) == true && EventCheck( 0.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"GUST_SCREW", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.51f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.51f ) == true && EventCheck( 0.51f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustScrew01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.46f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.46f ) == true && EventCheck( 0.46f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustScrew02", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.52f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.52f ) == true && EventCheck( 0.52f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 15.0f;
@@ -12134,19 +13002,35 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_GUST_SCREW_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.27f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.466f ) == true && EventCheck( 0.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"GUST_SCREW_HYPER", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.51f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.51f ) == true && EventCheck( 0.51f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustScrew01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.46f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.46f ) == true && EventCheck( 0.46f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustScrew02", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.52f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.52f ) == true && EventCheck( 0.52f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 15.0f;
@@ -12195,25 +13079,50 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_GUST_STORM_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.12f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm03", pos, GetRotateDegree(), GetRotateDegree() );
-
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm03", pos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        if ( pMeshInstance != NULL )    pMeshInstance->SetPerFrameSimulation( false);
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		pos.y += 2;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm02", pos, GetRotateDegree(), GetRotateDegree() );
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm04", pos, GetRotateDegree(), GetRotateDegree() );
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm02", pos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        if ( pMeshInstance != NULL )    pMeshInstance->SetPerFrameSimulation( false);
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm04", pos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        if ( pMeshInstance != NULL )    pMeshInstance->SetPerFrameSimulation( false);
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.666f ) == true && EventCheck( 0.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"GUST_STORM_LOW", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"GUST_STORM_TOWER", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.733f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.733f ) == true && EventCheck( 0.733f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm01", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm01", pos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        if ( pMeshInstance != NULL )    pMeshInstance->SetPerFrameSimulation( false);
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	}
 	
 	CommonFrameMove();
@@ -12250,25 +13159,38 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_GUST_STORM_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.12f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm03", pos, GetRotateDegree(), GetRotateDegree() );
-
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm03", pos, GetRotateDegree(), GetRotateDegree() );
 		pos.y += 2;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm02", pos, GetRotateDegree(), GetRotateDegree() );
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm04", pos, GetRotateDegree(), GetRotateDegree() );
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm02", pos, GetRotateDegree(), GetRotateDegree() );
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm04", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.666f ) == true && EventCheck( 0.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"GUST_STORM_LOW", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"GUST_STORM_TOWER_HYPER", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.733f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.733f ) == true && EventCheck( 0.733f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm01", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"GustStorm01", pos, GetRotateDegree(), GetRotateDegree() );
 	}
 
 	CommonFrameMove();
@@ -12326,30 +13248,50 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.3f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.587f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.587f ) == true && EventCheck( 0.587f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		m_pCatastropheLaser = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CATASTROPHE_LASER", GetPowerRate(), GetBonePos(L"Bip01_L_Finger0"), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		wstring wstrEffectName = L"CATASTROPHE_LASER";
+
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO23) == true )
+			wstrEffectName += L"_MEMO";
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hCatastropheLaser = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pCatastropheLaser = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			this, wstrEffectName.c_str(), GetPowerRate(), GetBonePos(L"Bip01_L_Finger0"), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#else //ADD_MEMO_1ST_CLASS
+            this, L"CATASTROPHE_LASER", GetPowerRate(), GetBonePos(L"Bip01_L_Finger0"), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif //ADD_MEMO_1ST_CLASS
 	}
 
-	if( m_pCatastropheLaser != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pCatastropheLaser = g_pX2Game->GetDamageEffect()->ValidateInstanceHandle( m_hCatastropheLaser ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pCatastropheLaser = g_pX2Game->GetDamageEffect()->ValidateLiveInstance( m_pCatastropheLaser ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
-		if( true == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pCatastropheLaser ) )
+		if( CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pCatastropheLaser->GetMainEffect() )
 		{
-			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pCatastropheLaser->GetMainEffect();
-			if( NULL != pMeshInst )
-			{
-				pMeshInst->SetPos( GetBonePos(L"Bip01_L_Finger0") );
-				pMeshInst->SetRotateDegree( GetRotateDegree() );
-			}
-		}
-		else
-		{
-			m_pCatastropheLaser = NULL;
+			pMeshInst->SetPos( GetBonePos(L"Bip01_L_Finger0") );
+			pMeshInst->SetRotateDegree( GetRotateDegree() );
 		}
 	}
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -12372,7 +13314,11 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_FrameMove()
 
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Catastrophe03", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -12382,7 +13328,11 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_FrameMove()
 
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Catastrophe01", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.566f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.566f ) == true && EventCheck( 0.566f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -12391,7 +13341,11 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_FrameMove()
 			pos = pos - GetDirVector() * -100.0f;
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Catastrophe02", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -12422,7 +13376,11 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_EventProcess()
 void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_End()
 {
 	CommonStateEnd();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hCatastropheLaser = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pCatastropheLaser = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
@@ -12449,11 +13407,35 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.3f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.587f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.587f ) == true && EventCheck( 0.587f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		m_pCatastropheLaser = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), GetBonePos(L"Bip01_L_Finger0"), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		wstring wstrEffectName = L"CATASTROPHE_LASER_HYPER";
+
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO23) == true )
+			wstrEffectName += L"_MEMO";
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hCatastropheLaser = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pCatastropheLaser = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			this, wstrEffectName.c_str(), GetPowerRate(), GetBonePos(L"Bip01_L_Finger0"), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#else //ADD_MEMO_1ST_CLASS
+            this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), GetBonePos(L"Bip01_L_Finger0"), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif //ADD_MEMO_1ST_CLASS
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
 
@@ -12465,9 +13447,30 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMove()
 
 		D3DXVECTOR3 angle = GetRotateDegree();
 		angle.x += 70.0f;
-		m_pCatastropheLaser1 = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		wstring wstrEffectName = L"CATASTROPHE_LASER_HYPER";
+
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO23) == true )
+			wstrEffectName += L"_MEMO";
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hCatastropheLaser1 = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pCatastropheLaser1 = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			this, wstrEffectName.c_str(), GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+#else //ADD_MEMO_1ST_CLASS
+            this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+#endif //ADD_MEMO_1ST_CLASS
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
 		if( GetIsRight() == true )
@@ -12479,9 +13482,30 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMove()
 		D3DXVECTOR3 angle = GetRotateDegree();
 		angle.x += 180.0f;
 		angle.z -= 30.0f;
-		m_pCatastropheLaser2 = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		wstring wstrEffectName = L"CATASTROPHE_LASER_HYPER";
+
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO23) == true )
+			wstrEffectName += L"_MEMO";
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hCatastropheLaser2 = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pCatastropheLaser2 = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			this, wstrEffectName.c_str(), GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+#else //ADD_MEMO_1ST_CLASS
+            this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+#endif //ADD_MEMO_1ST_CLASS
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
 		if( GetIsRight() == true )
@@ -12492,9 +13516,30 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMove()
 
 		D3DXVECTOR3 angle = GetRotateDegree();
 		angle.x += -70.0f;
-		m_pCatastropheLaser3 = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		wstring wstrEffectName = L"CATASTROPHE_LASER_HYPER";
+
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO23) == true )
+			wstrEffectName += L"_MEMO";
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hCatastropheLaser3 = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pCatastropheLaser3 = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			this, wstrEffectName.c_str(), GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+#else //ADD_MEMO_1ST_CLASS
+            this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+#endif //ADD_MEMO_1ST_CLASS
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.7f ) == true && EventCheck( 1.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
 		if( GetIsRight() == true )
@@ -12506,151 +13551,162 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMove()
 		D3DXVECTOR3 angle = GetRotateDegree();
 		angle.x += 180.0f;
 		angle.z += 20.0f;
-		m_pCatastropheLaser4 = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		wstring wstrEffectName = L"CATASTROPHE_LASER_HYPER";
+
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO23) == true )
+			wstrEffectName += L"_MEMO";
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hCatastropheLaser4 = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pCatastropheLaser4 = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			this, wstrEffectName.c_str(), GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+#else //ADD_MEMO_1ST_CLASS
+            this, L"CATASTROPHE_LASER_HYPER", GetPowerRate(), pos, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
+#endif //ADD_MEMO_1ST_CLASS
 	}
 
 	if( m_pXSkinAnimFuture->GetNowAnimationTime() < 2.6f )
 	{
-		if( m_pCatastropheLaser != NULL )
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pCatastropheLaser = g_pX2Game->GetDamageEffect()->ValidateInstanceHandle( m_hCatastropheLaser ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if ( CX2DamageEffect::CEffect* pCatastropheLaser = g_pX2Game->GetDamageEffect()->ValidateLiveInstance( m_pCatastropheLaser ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			if( g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pCatastropheLaser ) == true )
+			if( CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pCatastropheLaser->GetMainEffect() )
 			{
-				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pCatastropheLaser->GetMainEffect();
-				if( NULL != pMeshInst )
-				{
-					pMeshInst->SetPos( GetBonePos(L"Bip01_L_Finger0") );
-					pMeshInst->SetRotateDegree( GetRotateDegree() );
-				}
-			}
-			else
-			{
-				m_pCatastropheLaser = NULL;
+				pMeshInst->SetPos( GetBonePos(L"Bip01_L_Finger0") );
+				pMeshInst->SetRotateDegree( GetRotateDegree() );
 			}
 		}
 
-		if( m_pCatastropheLaser1 != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pCatastropheLaser1 = g_pX2Game->GetDamageEffect()->ValidateInstanceHandle( m_hCatastropheLaser1 ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pCatastropheLaser1 = g_pX2Game->GetDamageEffect()->ValidateLiveInstance( m_pCatastropheLaser1 ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			if( g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pCatastropheLaser1 ) == true )
+			if( CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pCatastropheLaser1->GetMainEffect() )
 			{
-				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pCatastropheLaser1->GetMainEffect();
+				D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
+				if( GetIsRight() == true )
+					pos = pos + GetDirVector() * 50.0f;
+				else
+					pos = pos - GetDirVector() * 50.0f;
+				pos.y += 50.0f;
 
-				if( NULL != pMeshInst )
-				{
-					D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
-					if( GetIsRight() == true )
-						pos = pos + GetDirVector() * 50.0f;
-					else
-						pos = pos - GetDirVector() * 50.0f;
-					pos.y += 50.0f;
+				D3DXVECTOR3 angle = GetRotateDegree();
+				angle.x += 70.0f;
 
-					D3DXVECTOR3 angle = GetRotateDegree();
-					angle.x += 70.0f;
-
-					pMeshInst->SetPos( pos );
-					pMeshInst->SetRotateDegree( angle );
-				}
-			}
-			else
-			{
-				m_pCatastropheLaser1 = NULL;
+				pMeshInst->SetPos( pos );
+				pMeshInst->SetRotateDegree( angle );
 			}
 		}
 
 
-		if( m_pCatastropheLaser2 != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pCatastropheLaser2 = g_pX2Game->GetDamageEffect()->ValidateInstanceHandle( m_hCatastropheLaser2 ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pCatastropheLaser2 = g_pX2Game->GetDamageEffect()->ValidateLiveInstance( m_pCatastropheLaser2 ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			if( g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pCatastropheLaser2 ) == true )
+			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pCatastropheLaser2->GetMainEffect();
+			if( NULL != pMeshInst )
 			{
-				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pCatastropheLaser2->GetMainEffect();
-				if( NULL != pMeshInst )
-				{
-					D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
-					if( GetIsRight() == true )
-						pos = pos + GetDirVector() * 100.0f;
-					else
-						pos = pos - GetDirVector() * 100.0f;
-					pos.y += 150.0f;
+				D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
+				if( GetIsRight() == true )
+					pos = pos + GetDirVector() * 100.0f;
+				else
+					pos = pos - GetDirVector() * 100.0f;
+				pos.y += 150.0f;
 
-					D3DXVECTOR3 angle = GetRotateDegree();
-					angle.x += 180.0f;
-					angle.z -= 30.0f;
+				D3DXVECTOR3 angle = GetRotateDegree();
+				angle.x += 180.0f;
+				angle.z -= 30.0f;
 
-					pMeshInst->SetPos( pos );
-					pMeshInst->SetRotateDegree( angle );
-				}
-			}
-			else
-			{
-				m_pCatastropheLaser2 = NULL;
+				pMeshInst->SetPos( pos );
+				pMeshInst->SetRotateDegree( angle );
 			}
 		}
 
-
-		if( m_pCatastropheLaser3 != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pCatastropheLaser3 = g_pX2Game->GetDamageEffect()->ValidateInstanceHandle( m_hCatastropheLaser3 ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pCatastropheLaser3 = g_pX2Game->GetDamageEffect()->ValidateLiveInstance( m_pCatastropheLaser3 ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			if( g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pCatastropheLaser3 ) == true )
+			if( CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pCatastropheLaser3->GetMainEffect() )
 			{
-				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pCatastropheLaser3->GetMainEffect();
-				if( NULL != pMeshInst )
-				{
-					D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
-					if( GetIsRight() == true )
-						pos = pos + GetDirVector() * 50.0f;
-					else
-						pos = pos - GetDirVector() * 50.0f;
-					pos.y -= 30.0f;
+				D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
+				if( GetIsRight() == true )
+					pos = pos + GetDirVector() * 50.0f;
+				else
+					pos = pos - GetDirVector() * 50.0f;
+				pos.y -= 30.0f;
 
-					D3DXVECTOR3 angle = GetRotateDegree();
-					angle.x += -70.0f;
+				D3DXVECTOR3 angle = GetRotateDegree();
+				angle.x += -70.0f;
 
-					pMeshInst->SetPos( pos );
-					pMeshInst->SetRotateDegree( angle );
-				}
-			}
-			else
-			{
-				m_pCatastropheLaser3 = NULL;
+				pMeshInst->SetPos( pos );
+				pMeshInst->SetRotateDegree( angle );
 			}
 		}
-		if( m_pCatastropheLaser4 != NULL  )
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pCatastropheLaser4 = g_pX2Game->GetDamageEffect()->ValidateInstanceHandle( m_hCatastropheLaser4 ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pCatastropheLaser4 = g_pX2Game->GetDamageEffect()->ValidateLiveInstance( m_pCatastropheLaser4 ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			if( g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pCatastropheLaser4 ) == true )
+			if( CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pCatastropheLaser4->GetMainEffect() )
 			{
-				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pCatastropheLaser4->GetMainEffect();
-				if( NULL != pMeshInst )
-				{
-					D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
-					if( GetIsRight() == true )
-						pos = pos + GetDirVector() * 100.0f;
-					else
-						pos = pos - GetDirVector() * 100.0f;
-					pos.y -= 80.0f;
+				D3DXVECTOR3 pos = GetBonePos(L"Bip01_L_Finger0");
+				if( GetIsRight() == true )
+					pos = pos + GetDirVector() * 100.0f;
+				else
+					pos = pos - GetDirVector() * 100.0f;
+				pos.y -= 80.0f;
 
-					D3DXVECTOR3 angle = GetRotateDegree();
-					angle.x += 180.0f;
-					angle.z += 20.0f;
+				D3DXVECTOR3 angle = GetRotateDegree();
+				angle.x += 180.0f;
+				angle.z += 20.0f;
 
-					pMeshInst->SetPos( pos );
-					pMeshInst->SetRotateDegree( angle );
-				}
-			}
-			else
-			{
-				m_pCatastropheLaser4 = NULL;
+				pMeshInst->SetPos( pos );
+				pMeshInst->SetRotateDegree( angle );
 			}
 		}
+
 	}
 #ifdef FIX_PLASMA_CUTTER_BUG
 	else
 	{
-		m_pCatastropheLaser = NULL;
-		m_pCatastropheLaser1 = NULL;
-		m_pCatastropheLaser2 = NULL;
-		m_pCatastropheLaser3 = NULL;
-		m_pCatastropheLaser4 = NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	    m_hCatastropheLaser			= INVALID_DAMAGE_EFFECT_HANDLE;
+	    m_hCatastropheLaser1		= INVALID_DAMAGE_EFFECT_HANDLE;
+	    m_hCatastropheLaser2		= INVALID_DAMAGE_EFFECT_HANDLE;
+	    m_hCatastropheLaser3		= INVALID_DAMAGE_EFFECT_HANDLE;
+	    m_hCatastropheLaser4		= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	    m_pCatastropheLaser			= NULL;
+	    m_pCatastropheLaser1		= NULL;
+	    m_pCatastropheLaser2		= NULL;
+	    m_pCatastropheLaser3		= NULL;
+	    m_pCatastropheLaser4		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 #endif FIX_PLASMA_CUTTER_BUG
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -12673,7 +13729,11 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMove()
 
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Catastrophe03", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -12683,7 +13743,11 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMove()
 
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Catastrophe01", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.566f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.566f ) == true && EventCheck( 0.566f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -12692,7 +13756,11 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_FrameMove()
 			pos = pos - GetDirVector() * -100.0f;
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Catastrophe02", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -12722,11 +13790,19 @@ void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_EventProcess()
 void CX2GUArme_VioletMage::AVSI_SI3_AV_CATASTROPHE_HYPER_End()
 {
 	CommonStateEnd();
-	m_pCatastropheLaser		= NULL;
-	m_pCatastropheLaser1	= NULL;
-	m_pCatastropheLaser2	= NULL;
-	m_pCatastropheLaser3	= NULL;
-	m_pCatastropheLaser4	= NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_hCatastropheLaser			= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hCatastropheLaser1		= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hCatastropheLaser2		= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hCatastropheLaser3		= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hCatastropheLaser4		= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_pCatastropheLaser			= NULL;
+	m_pCatastropheLaser1		= NULL;
+	m_pCatastropheLaser2		= NULL;
+	m_pCatastropheLaser3		= NULL;
+	m_pCatastropheLaser4		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
@@ -12750,11 +13826,19 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_BURST_FrameMove()
 	pos.y += 50.0f;
 	D3DXVECTOR3 rotate;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.13f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.13f ) == true && EventCheck( 0.13f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst01", GetBonePos( L"Dummy1_Rhand" ) );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.8f ) == true && EventCheck( 1.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst01", GetBonePos( L"Dummy1_Rhand" ) );
 	}
@@ -12766,7 +13850,6 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_BURST_FrameMove()
 	wstring wstrDamageName = L"AISHA_CHAIN_BURST_FIREBALL_SMALL";
 	wstring wstrDamageBigName = L"AISHA_CHAIN_BURST_FIREBALL_BIG";
 
-#ifdef NEW_MEMO_01
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO9 ) == true )
 	{
 		wstrDamageName = L"AISHA_CHAIN_BURST_FIREBALL_SMALL_MEMO";
@@ -12776,67 +13859,106 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_BURST_FrameMove()
 		fIncreasePowerRate = _CONST_AISHA_::AHM_CHAIN_BURST_MEMO_INCREASE_POWER_RATE_VALUE;
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 	}
-#endif	NEW_MEMO_01
 
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117	/// 모든 데미지 이펙트 생성에 디파인 달면 알아보기 힘들것 같아서, 로직 수정
 	bool bCreatFireBall = false;	/// 파이어볼 생성 여부
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst02", GetBonePos( L"Dummy1_Rhand" ) );
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst03", GetBonePos( L"Dummy1_Rhand" ) );
 		rotate = GetRotateDegree();
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 10.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 20.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 10.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.1f ) == true && EventCheck( 1.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 20.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 40.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.3f ) == true && EventCheck( 1.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 40.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 30.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		bCreatFireBall = true;
@@ -12854,43 +13976,71 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_BURST_FrameMove()
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst02", GetBonePos( L"Dummy1_Rhand" ) );
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst03", GetBonePos( L"Dummy1_Rhand" ) );
 		rotate = GetRotateDegree();
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 10.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 10.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 40.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 30.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		bCreatFireBall = true;
@@ -12904,43 +14054,71 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_BURST_FrameMove()
 	}
 #endif //UPGRADE_SKILL_SYSTEM_2013
 #else  BALANCE_ELEMENTAL_MASTER_20130117
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst02", GetBonePos( L"Dummy1_Rhand" ) );
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst03", GetBonePos( L"Dummy1_Rhand" ) );
 		rotate = GetRotateDegree();
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 10.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 10.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 40.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 30.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageBigName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
@@ -12980,11 +14158,19 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_BURST_HYPER_FrameMove()
 
 	D3DXVECTOR3 rotate;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.13f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.13f ) == true && EventCheck( 0.13f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst01", GetBonePos( L"Dummy1_Rhand" ) );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.8f ) == true && EventCheck( 1.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst01", GetBonePos( L"Dummy1_Rhand" ) );
 	}
@@ -12996,7 +14182,6 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_BURST_HYPER_FrameMove()
 	wstring wstrDamageName = L"AISHA_CHAIN_BURST_FIREBALL_SMALL";
 	wstring wstrDamageBigName = L"AISHA_CHAIN_BURST_FIREBALL_BIG";
 
-#ifdef NEW_MEMO_01
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO9 ) == true )
 	{
 		wstrDamageName = L"AISHA_CHAIN_BURST_FIREBALL_SMALL_MEMO";
@@ -13006,66 +14191,105 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_BURST_HYPER_FrameMove()
 		fIncreaseScale = _CONST_AISHA_::AHM_CHAIN_BURST_MEMO_INCREASE_POWER_RATE_VALUE;
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 	}
-#endif	NEW_MEMO_01
 
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117	/// 모든 데미지 이펙트 생성에 디파인 달면 알아보기 힘들것 같아서, 로직 수정
 	bool bCreatFireBall = false;	/// 파이어볼 생성 여부
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst02", GetBonePos( L"Dummy1_Rhand" ) );
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst03", GetBonePos( L"Dummy1_Rhand" ) );
 		rotate = GetRotateDegree();
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 10.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 20.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 10.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.1f ) == true && EventCheck( 1.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 20.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 40.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.3f ) == true && EventCheck( 1.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 40.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 30.0f;
 		bCreatFireBall = true;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		bCreatFireBall = true;
@@ -13083,61 +14307,101 @@ void CX2GUArme_VioletMage::AVSI_SI1_AV_CHAIN_BURST_HYPER_FrameMove()
 		}
 	}
 #else  BALANCE_ELEMENTAL_MASTER_20130117
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst02", GetBonePos( L"Dummy1_Rhand" ) );
 		g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_ChainBurst03", GetBonePos( L"Dummy1_Rhand" ) );
 		rotate = GetRotateDegree();
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 10.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 20.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 10.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.1f ) == true && EventCheck( 1.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 20.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z += 40.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.3f ) == true && EventCheck( 1.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 40.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		rotate.z -= 30.0f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		rotate = GetRotateDegree();
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrDamageBigName.c_str(), GetPowerRate(), pos, rotate, rotate, m_FrameDataNow.unitCondition.landPosition.y );
@@ -13177,8 +14441,8 @@ void CX2GUArme_VioletMage::SetSelfDestructSummonedNPC( CX2UnitManager::NPC_UNIT_
 
 
 		CX2GUNPC *pNPC = (CX2GUNPC*) pUnit;
-		if( CX2UnitManager::NUI_NONE != eNPCID && NULL != pNPC->GetNPCTemplet() &&
-			pNPC->GetNPCTemplet()->m_nNPCUnitID != eNPCID )
+		if( CX2UnitManager::NUI_NONE != eNPCID &&
+			pNPC->GetNPCTemplet().m_nNPCUnitID != eNPCID )
 		{
 			continue;
 		}
@@ -13221,21 +14485,29 @@ void CX2GUArme_VioletMage::SetSelfDestructSummonedNPC( CX2UnitManager::NPC_UNIT_
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.047f, 0 );
 #endif // UPGRADE_SKILL_SYSTEM_2013 // 공통 스킬 개편, 김종훈
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.63f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.63f ) == true && EventCheck( 0.63f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		PlayCommonBuffMinorParticle();
 		UpDownCrashCamera( 20.0f, 0.3f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.65f ) == true && EventCheck( 0.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		int	iSkillSlotIndex = 0;
 		bool bSlotB = false;
 
 		if ( true == GetSkillSlotIndexUsed( iSkillSlotIndex, bSlotB ) )
 		{
-			CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+			const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = pUnitData->m_UserSkillTree.GetSkillSlot( iSkillSlotIndex, bSlotB );
 			CX2SkillTree::SKILL_ID eSkillID = CX2SkillTree::SI_NONE;
@@ -13262,18 +14534,30 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_DARK_CLOUD_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.18f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy2_Lhand" );
 		pos.y += 30.0f;
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"DarkCloud_HandLight01", pos );		
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_DarkCloud03", pos );		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.65f ) == true && EventCheck( 0.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"DarkCloud_PowerBooster01", GetPos() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef SERV_SKILL_NOTE
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO4 ) == true )
@@ -13308,18 +14592,30 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_DARK_CLOUD_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.18f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy2_Lhand" );
 		pos.y += 30.0f;
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"DarkCloud_HandLight01", pos );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_DarkCloud03", pos );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.65f ) == true && EventCheck( 0.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"DarkCloud_PowerBooster01", GetPos() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef SERV_SKILL_NOTE
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO4 ) == true )
@@ -13356,12 +14652,20 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_BIND_ATTACK_Init()
 
 void CX2GUArme_VioletMage::AVSI_SI2_AV_BIND_ATTACK_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.17f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.17f ) == true && EventCheck( 0.17f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.7f;
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 0.51f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 0.51f ) == true && EventCheck( 0.51f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.2f;
 		m_DamageData.hitUnitList.resize(0);
@@ -13376,20 +14680,36 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_BIND_ATTACK_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.1f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.6f ) == true && EventCheck( 1.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef NO_MORE_EFFECT_HARD_CODING_TEST
 
@@ -13523,7 +14843,11 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_BIND_ATTACK_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 2.4f, 2 );
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.8f ) == true && EventCheck( 2.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 20.0f, 0.8f );
 		D3DXVECTOR3 pos = GetPos();
@@ -13554,11 +14878,19 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_BIND_ATTACK_EventProcess()
 //AVSI_SI2_AV_BIND_ATTACK_HYPER
 void CX2GUArme_VioletMage::AVSI_SI2_AV_BIND_ATTACK_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.17f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.17f ) == true && EventCheck( 0.17f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.7f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 0.51f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 0.51f ) == true && EventCheck( 0.51f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.2f;
 	}
@@ -13572,20 +14904,36 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_BIND_ATTACK_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.1f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.6f ) == true && EventCheck( 1.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_Bind_Attack_Lightning_Bolt", this );
 
@@ -13688,7 +15036,11 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_BIND_ATTACK_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 2.4f, 2 );
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.8f ) == true && EventCheck( 2.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 20.0f, 0.8f );
 		D3DXVECTOR3 pos = GetPos();
@@ -13788,6 +15140,8 @@ void CX2GUArme_VioletMage::AVSI_SI2_AV_BIND_ATTACK_HYPER_EventProcess()
 //
 //}
 
+#ifndef SERV_9TH_NEW_CHARACTER // 김태환
+/// 다른 캐릭터들 전부 똑같은 함수를 쓰고 있으니, X2GUUser로 옮기자.
 void CX2GUArme_VioletMage::CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ )
 {
 	CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleCommonMajorParticleByEnum( COMMON_MAJOR_PII_MAGIC_FAIL ) );
@@ -13801,6 +15155,7 @@ void CX2GUArme_VioletMage::CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDeg
 		pSeq->SetAddRotate( vAngle );
 	}
 }
+#endif // SERV_9TH_NEW_CHARACTER
 
 #ifdef AISHA_SECOND_CLASS_CHANGE
 
@@ -13826,13 +15181,17 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_READY_StartFuture()
 
 void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_READY_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetWeaponBonePos( 0, L"Center_Jewel", 0 );
 		m_hSeqLight_Arme_Circle_Flame = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Light_Arme_Circle_Flame01", vBonePos );
 		//CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqAssualtSlashRing );			
 	}		
-	if( m_hSeqLight_Arme_Circle_Flame != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqLight_Arme_Circle_Flame != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqLight_Arme_Circle_Flame );
 		if( NULL != pSeq )
@@ -13842,7 +15201,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_READY_FrameMove()
 		}
 		else
 		{
-			m_hSeqLight_Arme_Circle_Flame = INVALID_PARTICLE_HANDLE;
+			m_hSeqLight_Arme_Circle_Flame = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -13873,6 +15232,33 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_Init()
 	XSkinMeshReadyInBackground( L"Arme_SI_A_AV_Circle_Flame_CMesh02.X" );
 	XSkinMeshReadyInBackground( L"Arme_SI_A_AV_Circle_Flame_CMesh03.X" );
 }
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_StateStart()
+{
+	CommonStateStart();
+	wstring wstrEffectSetName = L"EffectSet_Aisha_Circle_Flame_Ice";
+	if ( true == m_bIceBall )
+	{
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO7 ) == true )
+		{
+			wstrEffectSetName = L"EffectSet_Aisha_Circle_Flame_Ice_Memo";
+		}
+	}
+	
+	else
+	{
+		wstrEffectSetName = L"EffectSet_Aisha_Circle_Flame";
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO7 ) == true )
+		{
+			wstrEffectSetName = L"EffectSet_Aisha_Circle_Flame_Memo";
+		}
+	}
+
+	if ( NULL != g_pX2Game->GetEffectSet() )
+		g_pX2Game->GetEffectSet()->PlayEffectSet( wstrEffectSetName.c_str(), this );
+}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_StartFuture()
 {
 	CommonStateStartFuture();
@@ -13884,7 +15270,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_StartFuture()
 
 void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_FrameMove()
 {		
-	if( m_hSeqLight_Arme_Circle_Flame != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqLight_Arme_Circle_Flame != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqLight_Arme_Circle_Flame );
 		if( NULL != pSeq )
@@ -13894,7 +15280,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_FrameMove()
 		}
 		else
 		{
-			m_hSeqLight_Arme_Circle_Flame = INVALID_PARTICLE_HANDLE;
+			m_hSeqLight_Arme_Circle_Flame = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -13958,7 +15344,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_BlizzardShowerNoDamage", this ); 
 
@@ -13969,7 +15359,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.93f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 0.93f ) == true && EventCheck( 0.93f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 
 			m_bDisableGravity = false;
@@ -13983,14 +15377,21 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 				const float MAGIC_MIN_RADIUS = 100.f;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
-	
+			#ifdef ADD_MEMO_1ST_CLASS //김창한
+				int iPlusFireCount = 0;
+				if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO19) == true )
+					iPlusFireCount = 5;
+
+				for( int i=0; i< (pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_FIRE_COUNT, iSkillTempletLevel ) + iPlusFireCount); i++ )
+			#else //ADD_MEMO_1ST_CLASS
 				for( int i=0; i< pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_FIRE_COUNT, iSkillTempletLevel ); i++ )
+			#endif //ADD_MEMO_1ST_CLASS
 	#else // UPGRADE_SKILL_SYSTEM_2013
 				for( int i=0; i< pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_FIRE_COUNT ); i++ )
 	#endif // UPGRADE_SKILL_SYSTEM_2013
@@ -14062,7 +15463,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_BlizzardShowerNoDamage", this ); 
 
@@ -14072,7 +15477,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_BLIZZARD_SHOWER_FROZEN_ATTACK", GetPowerRate(), posR, GetRotateDegree(), GetRotateDegree(),  GetLandPos().y );
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.93f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 0.93f ) == true && EventCheck( 0.93f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			m_bDisableGravity = false;
 
@@ -14084,14 +15493,22 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 				const float MAGIC_MIN_RADIUS = 100.f;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 		
+		#ifdef ADD_MEMO_1ST_CLASS //김창한
+				int iPlusFireCount = 0;
+				if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO19) == true )
+					iPlusFireCount = 5;
+
+				for( int i=0; i< (pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_FIRE_COUNT, iSkillTempletLevel ) + iPlusFireCount); i++ )
+		#else //ADD_MEMO_1ST_CLASS
 				for( int i=0; i< pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_FIRE_COUNT, iSkillTempletLevel ); i++ )
+		#endif //ADD_MEMO_1ST_CLASS
 	#else // UPGRADE_SKILL_SYSTEM_2013
 				for( int i=0; i< pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_FIRE_COUNT ); i++ )
 	#endif // UPGRADE_SKILL_SYSTEM_2013
@@ -14173,7 +15590,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.01f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 pos = GetPos();
   		
@@ -14186,7 +15607,14 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 				if( pUnit->GetInvincible() == true )
 					continue;
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				float MAGIC_RANGE = 160000.f;
+				if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO20) == true )
+					MAGIC_RANGE *= 1.3f;
+#else //ADD_MEMO_1ST_CLASS
 				const float MAGIC_RANGE = 160000.f;
+#endif //ADD_MEMO_1ST_CLASS
+
 				if( GetDistance3Sq( pos, pUnit->GetPos() ) < MAGIC_RANGE )
 				{
 					g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_DeathField_FirstImpact", this, pUnit, false, GetPowerRate() );
@@ -14211,20 +15639,21 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 					CX2EffectSet::Handle hEffectBomb = 	g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_DeathFieldBomb", this, pUnit, true, GetPowerRate() );
 
-					if( CX2EffectSet::INVALID_HANDLE != hEffectBomb )
+					if( INVALID_EFFECTSET_HANDLE != hEffectBomb )
 					{
-						CX2EffectSet::EffectSetInstance* pBomb = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectBomb );
-						if( NULL != pBomb )
-						{
+						if ( CX2EffectSet::EffectSetInstance* pBomb = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectBomb ) )
 							pBomb->m_fDelayTime = fDeathSentenceDurationTime;
-						}
 					}
 				}
 			}
 		}
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			m_bDisableGravity = false;
 		}
@@ -14270,7 +15699,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.06f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 pos = GetPos();
      		
@@ -14283,7 +15716,13 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 				if( pUnit->GetInvincible() == true )
 					continue;
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				float MAGIC_RANGE = 160000.f;
+				if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO20) == true )
+					MAGIC_RANGE *= 1.3f;
+#else //ADD_MEMO_1ST_CLASS
 				const float MAGIC_RANGE = 160000.f;
+#endif //ADD_MEMO_1ST_CLASS
 				if( GetDistance3Sq( pos, pUnit->GetPos() ) < MAGIC_RANGE )
 				{
 					g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_DeathField_FirstImpact", this, pUnit, true, GetPowerRate() );
@@ -14308,18 +15747,19 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 					CX2EffectSet::Handle hEffectBomb = 	g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_DeathFieldBomb", this, pUnit, true, GetPowerRate() );
 
-					if( CX2EffectSet::INVALID_HANDLE != hEffectBomb )
+					if( INVALID_EFFECTSET_HANDLE != hEffectBomb )
 					{
-						CX2EffectSet::EffectSetInstance* pBomb = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectBomb );
-						if( NULL != pBomb )
-						{
+						if ( CX2EffectSet::EffectSetInstance* pBomb = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectBomb ) )
 							pBomb->m_fDelayTime = fDeathSentenceDurationTime;
-						}
 					}		
 				}
 			}
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 1.4f ) == true && EventCheck( 1.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			m_bDisableGravity = false;
 		}
@@ -14359,17 +15799,21 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_A_ADM_MANA_INTAKE_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			float fPowerRate = 1.f;
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_A_ADM_MANA_INTAKE);
 			if( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -14422,7 +15866,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_A_ADM_MANA_INTAKE_HYPER_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			float fPowerRate = 1.f;			
 			
@@ -14430,10 +15878,10 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			if( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -14489,10 +15937,36 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Bip01_L_Finger1Nub", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.53f ) == true && EventCheck( 1.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
+
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_AHM_BLAZE_STEP );
+			if ( NULL != pSkillTemplet )
+			{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO18 ) == true )
+					SetBuffFactorToGameUnit( pSkillTemplet, 1 );
+				else
+#endif //ADD_MEMO_1ST_CLASS
+				SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+			}
+			
+			if ( NULL != GetUnit() )
+			{				
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+			}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			m_sBlazeStepData.Begin();
 
+
+			
 			CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_ARME_BLAZE_STEP_02", GetPowerRate(), 
 				GetBonePos(L"Bip01_Footsteps"), GetRotateDegree(), GetRotateDegree() );
 
@@ -14507,6 +15981,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			{
 				m_sBlazeStepData.m_ahMajorParticleInstance = pSeq->GetHandle();
 			}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
 
 		CommonFrameMove();
@@ -14538,10 +16013,26 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Bip01_L_Finger1Nub", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.53f ) == true && EventCheck( 1.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
+	
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_AHM_BLAZE_STEP );
+			if ( NULL != pSkillTemplet )
+			{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO18 ) == true )
+					SetBuffFactorToGameUnit( pSkillTemplet, 1 );
+				else
+#endif //ADD_MEMO_1ST_CLASS
+				SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+			}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			m_sBlazeStepData.Begin();
-
 			CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DE_ARME_BLAZE_STEP_02", GetPowerRate(), 
 				GetBonePos(L"Bip01_Footsteps"), GetRotateDegree(), GetRotateDegree() );
 
@@ -14556,6 +16047,8 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			{
 				m_sBlazeStepData.m_ahMajorParticleInstance = pSeq->GetHandle();
 			}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 		}
 
 		CommonFrameMove();
@@ -14589,20 +16082,32 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Bip01_L_Finger1Nub", 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.366f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.366f ) == true && EventCheck( 1.366f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vBonePos = GetWeaponBonePos( 0, L"Center_Jewel", 0 );
 			m_hSeqLight_Arme_Aging1 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Ring_Arme_SI_SA_Aging01", vBonePos );
 			m_hSeqLight_Arme_Aging2 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Ring_Arme_SI_SA_Aging02", vBonePos );			
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.37f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.37f ) == true && EventCheck( 1.37f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vBonePos = GetWeaponBonePos( 0, L"Center_Jewel", 0 );
 			m_hSeqLight_Arme_Aging3 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Impact_Arme_SI_SA_Aging01", vBonePos );
 		}		
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.266f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if ( m_pXSkinAnim->EventTimer( 0.266f ) == true && EventCheck( 0.266f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01" );
 
@@ -14619,23 +16124,34 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 			if ( NULL != pDamageEffect )
 			{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO22) == true )
+				{
+					CX2DamageEffect::DamageEffectDataInLua& DamageEffectData = pDamageEffect->GetDamageEffectDataInLua();
+					if( 0 < DamageEffectData.m_vecDieDamageEffect.size() )
+					{
+						DamageEffectData.m_vecDieDamageEffect[0]->damageEffectName = L"ADM_AGING_THROW_BALL_BROKEN_MEMO";
+					}
+				}
+#endif //ADD_MEMO_1ST_CLASS
+
 				const CX2SkillTree::SkillTemplet* pSkillTemplet 
 					= GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_ADM_AGING );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 				if ( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 				{
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit() )
 						return;
 
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 					const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-					pDamageEffect->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+					pDamageEffect->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 				}
 #else //UPGRADE_SKILL_SYSTEM_2013
 				if ( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
-					pDamageEffect->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+					pDamageEffect->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 			}			
 		}
@@ -14656,15 +16172,17 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 		CommonEventProcess();
 	}
 
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 블레이즈 스탭 구조체는 더 이상 사용되지 않습니다. ( 버프로 변경 )
 	void CX2GUArme_VioletMage::BLAZE_STEP_DATA::DestroyEffect()
 	{
 		if(m_ahMajorMeshInstance != INVALID_MESH_INSTANCE_HANDLE)
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(m_ahMajorMeshInstance);
-		
-		if(m_ahMajorParticleInstance != INVALID_PARTICLE_HANDLE)
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(m_ahMajorMeshInstance);
+
+		if(m_ahMajorParticleInstance != INVALID_PARTICLE_SEQUENCE_HANDLE)
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle(m_ahMajorParticleInstance);
-		
 	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	
 
 #endif SKILL_CASH_10_TEST
@@ -14692,7 +16210,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_A_AEM_STONE_WALL_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			// 새로운 몬스터 소환
 			if( true == g_pX2Game->IsHost() )
@@ -14734,7 +16256,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_A_AVP_SUMMON_BAT_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 		
 			D3DXVECTOR3 vPos = GetPos();
@@ -14755,10 +16281,10 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			if( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -14797,7 +16323,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Bip01_L_Finger1Nub", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.733f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.733f ) == true && EventCheck( 0.733f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_AHM_CYCLONE );
@@ -14807,10 +16337,10 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			if( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -14833,8 +16363,18 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 				}
 
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"AISHA_ELEMENTAL_MASTER_CYCLONE_OUTSIDE", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), GetLandPos().y, false, -1.f, 
+					1.f, fLifeTime, iHitCount );
+
+				if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO16) == true && pEffect != NULL )
+				{
+					pEffect->GetDamageData().fHitAddMP *= 1.25f;
+				}
+#else //ADD_MEMO_1ST_CLASS
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"AISHA_ELEMENTAL_MASTER_CYCLONE_OUTSIDE", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), GetLandPos().y, false, -1.f, 
 					1.f, fLifeTime, iHitCount );
+#endif //ADD_MEMO_1ST_CLASS
 
 			}
 		}
@@ -14876,6 +16416,10 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	{
 		CommonStateStart();
 		m_bIsSummoningUFO = true;
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		m_fHellDropCreateEffectCooltime = _CONST_AISHA_::CREATE_HELL_DROP_DAMAGE_EFFECT_START_TIME;		// 헬 드롭 생성 쿨타임, 1초부터 시작
+		m_bIsHellDropTimerStart = false;		// 헬 드롭 타이머가 켜졌는가?
+#endif // BALANCE_PATCH_20131107				// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	}
 
 
@@ -14888,7 +16432,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Bip01_L_Finger1Nub", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.45f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.45f ) == true && EventCheck( 0.45f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vPos = GetPos();
 			if( true == GetIsRight() )
@@ -14920,6 +16468,12 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 				if ( 0.f < GetRemainHyperModeTime() )
 					iHyperMode = 1;
 #endif	//FIX_HELL_DROP_DAMAGE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO21) == true )
+					g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_UFO_AISHA_DROPPER_MEMO, iHyperMode, true, vPos, 
+					GetIsRight(), 0.3f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
+				else
+#endif //ADD_MEMO_1ST_CLASS
 				g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_UFO_AISHA, iHyperMode, true, vPos, 
 					GetIsRight(), 0.3f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
 			}
@@ -14936,23 +16490,45 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_SA_AVP_HELL_DROP_EventProcess()
 	{
-		const float MAGIC_TIME = 5.f;
-		
-		if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( true == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) )
 		{
-			if( NULL != GetUFO() )
-			{
-				StateChange( AVSI_HELL_DROP_CONTROL_IDLE );
+			if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+			{	
 				m_TimerUFOControl.restart();
-			}
-			else if( m_FrameDataFuture.unitCondition.fStateTime > MAGIC_TIME ) // time out 되면 wait 상태로 일단 돌아가자
-			{
-				StateChange( USI_WAIT );
+				if( false == IsOnSomethingFuture() )
+					StateChange( USI_JUMP_DOWN );
+				else
+					StateChange( USI_WAIT );
 			}
 		}
+		else
+#endif //ADD_MEMO_1ST_CLASS
+		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			const float MAGIC_TIME = 3.f;		// 지속 시간 변경 5초 -> 3초
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			const float MAGIC_TIME = 5.f;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+			if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+			{
+				if( NULL != GetUFO() )
+				{
+					StateChange( AVSI_HELL_DROP_CONTROL_IDLE );
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					m_TimerUFOControl.restart();
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				}
+				else if( m_FrameDataFuture.unitCondition.fStateTime > MAGIC_TIME ) // time out 되면 wait 상태로 일단 돌아가자
+				{
+					StateChange( USI_WAIT );
+				}
+			}
 
 
-		m_InputData.Init(); // 캐릭터는 조작 할 수 없고 UFO만 조작할 수 있다
+			m_InputData.Init(); // 캐릭터는 조작 할 수 없고 UFO만 조작할 수 있다
+		}
 
 		CommonEventProcess();
 	}
@@ -14960,160 +16536,208 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_SA_AVP_HELL_DROP_StateEnd()
 	{
 		m_bIsSummoningUFO = false;
-
 		CommonStateEnd();
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		m_TimerUFOControl.restart();			// 헬 드롭 타이머를 시작한다.
+		m_bIsHellDropTimerStart = true;			// 헬 드롭 타이머가 켜졌는가?
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	}
+
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_FrameMove()
+	{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) )
+#endif //ADD_MEMO_1ST_CLASS
+		{
+			// 스킬 키를 누른 상태에서, 1초가 지났고 ( 생성 선 쿨타임 ), 생성 한 지 0.25초가 지났다면
+			// 헬 드롭을 발사한다.
+			if ( m_TimerUFOControl.elapsed() > m_fHellDropCreateEffectCooltime )
+			{
+				m_fHellDropCreateEffectCooltime = m_fHellDropCreateEffectCooltime + _CONST_AISHA_::CREATE_HELL_DROP_DAMAGE_EFFECT_TIME_GAP;
+				// StateChange( AVSI_HELL_DROP_CONTROL_FIRE );
+				g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_Hell_Drop_Stone", GetUFO(), NULL, IsHyperState(), GetPowerRate() );
+			}
+		}
+		CommonFrameMove();
+	}
+
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_EventProcess()
 	{
-		bool bSpecialAttackKeyPressed = true;
-		switch( m_eSpecialAttackKeyPressed )
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) )
+#endif //ADD_MEMO_1ST_CLASS
 		{
-		case SAKP_A:
+			bool bSpecialAttackKeyPressed = true;
+			switch( m_eSpecialAttackKeyPressed )
 			{
-				if( m_InputData.pureA == false )
+			case SAKP_A:
+				{
+					if( m_InputData.pureA == false )
+					{
+						bSpecialAttackKeyPressed = false;
+					}
+				} break;
+		
+			case SAKP_S:
+				{
+					if( m_InputData.pureS == false )
+					{
+						bSpecialAttackKeyPressed = false;
+					}
+				} break;
+		
+			case SAKP_D:
+				{
+					if( m_InputData.pureD == false )
+					{
+						bSpecialAttackKeyPressed = false;
+					}
+				} break;
+		
+			case SAKP_C:
+				{
+					if( m_InputData.pureC == false )
+					{
+						bSpecialAttackKeyPressed = false;
+						TRACE( L"HIT C\n" );
+					}
+				} break;
+			case SAKP_Q:
+				{
+					if( m_InputData.pureQ == false )
+					{
+						bSpecialAttackKeyPressed = false;
+					}
+				} break;
+		
+			case SAKP_W:
+				{
+					if( m_InputData.pureW == false )
+					{
+						bSpecialAttackKeyPressed = false;
+					}
+				} break;
+		
+			case SAKP_E:
+				{
+					if( m_InputData.pureE == false )
+					{
+						bSpecialAttackKeyPressed = false;
+					}
+				} break;
+		
+			case SAKP_R:
+				{
+					if( m_InputData.pureR == false )
+					{
+						bSpecialAttackKeyPressed = false;
+					}
+				} break;
+			default:
 				{
 					bSpecialAttackKeyPressed = false;
-				}
-			} break;
-
-		case SAKP_S:
+				} break;
+			}
+		
+		
+			const float MAGIC_CONTROL_RADIUS = 1500.f;
+	#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			const double MAGIC_CONTROL_TIME = 2.9;	// 지속 시간 변경 5초 -> 3.1초
+	#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			const double MAGIC_CONTROL_TIME = 5.0;
+	#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		
 			{
-				if( m_InputData.pureS == false )
+				if( ( true == bSpecialAttackKeyPressed &&
+					m_TimerUFOControl.elapsed() < MAGIC_CONTROL_TIME ) 
+	#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					|| m_TimerUFOControl.elapsed() < _CONST_AISHA_::CREATE_HELL_DROP_DAMAGE_EFFECT_START_TIME + 0.1f 
+	#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					)
 				{
-					bSpecialAttackKeyPressed = false;
+					D3DXVECTOR3 vDirection(0,0,0);
+					if( NULL != GetUFO() )
+					{
+						if( GetDistance( GetUFO()->GetPos(), GetPos() ) > MAGIC_CONTROL_RADIUS )
+						{
+							vDirection = GetUFO()->GetPos() - GetPos(); 
+						}
+					}
+					if( vDirection.x >= 0.f && vDirection.y <= 0.f && 
+						true == m_InputData.pureUp && true == m_InputData.pureLeft )
+					{
+						if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_UP_LEFT )
+							StateChange( AVSI_HELL_DROP_CONTROL_UP_LEFT );
+					}
+					else if( vDirection.x <= 0.f && vDirection.y <= 0.f && 
+						true == m_InputData.pureUp && true == m_InputData.pureRight )
+					{
+						if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_UP_RIGHT )
+							StateChange( AVSI_HELL_DROP_CONTROL_UP_RIGHT );
+					}
+					else if( vDirection.x >= 0.f && vDirection.y >= 0.f &&  
+						true == m_InputData.pureDown && true == m_InputData.pureLeft )
+					{
+						if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_DOWN_LEFT )
+							StateChange( AVSI_HELL_DROP_CONTROL_DOWN_LEFT );
+					}
+					else if( vDirection.x <= 0.f && vDirection.y >= 0.f &&  
+						true == m_InputData.pureDown && true == m_InputData.pureRight )
+					{
+						if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_DOWN_RIGHT )
+							StateChange( AVSI_HELL_DROP_CONTROL_DOWN_RIGHT );
+					}
+					else if( vDirection.x >= 0.f &&
+						true == m_InputData.pureLeft )
+					{
+						if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_LEFT )
+							StateChange( AVSI_HELL_DROP_CONTROL_LEFT );
+					}
+					else if( vDirection.x <= 0.f &&
+						true == m_InputData.pureRight )
+					{
+						if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_RIGHT )
+							StateChange( AVSI_HELL_DROP_CONTROL_RIGHT );
+					}
+					else if( vDirection.y <= 0.f &&
+						true == m_InputData.pureUp )
+					{
+						if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_UP )
+							StateChange( AVSI_HELL_DROP_CONTROL_UP );
+					}
+					else if( vDirection.y >= 0.f &&
+						true == m_InputData.pureDown )
+					{
+						if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_DOWN )
+							StateChange( AVSI_HELL_DROP_CONTROL_DOWN );
+					}
+					else if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_IDLE )
+					{
+						StateChange( AVSI_HELL_DROP_CONTROL_IDLE );
+					}
 				}
-			} break;
-
-		case SAKP_D:
-			{
-				if( m_InputData.pureD == false )
+				else
 				{
-					bSpecialAttackKeyPressed = false;
+		#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					// 기존 Fire 이후 사망 -> 일정 시간 혹은 조건에 따라 사망으로 변경
+					// 조건, 헬 드롭 타이머가 켜져있는가?
+					if ( true == m_bIsHellDropTimerStart )
+					{	
+						TRACE( L"AVSI_HELL_DROP_CONTROL_DYING\n" );
+						StateChange( AVSI_HELL_DROP_CONTROL_DYING, true );
+					}
+		#else  BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					TRACE( L"AVSI_HELL_DROP_CONTROL_FIRE\n" );
+					StateChange( AVSI_HELL_DROP_CONTROL_FIRE, true );
+		#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				}
-			} break;
-
-		case SAKP_C:
-			{
-				if( m_InputData.pureC == false )
-				{
-					bSpecialAttackKeyPressed = false;
-					TRACE( L"HIT C\n" );
-				}
-			} break;
-		case SAKP_Q:
-			{
-				if( m_InputData.pureQ == false )
-				{
-					bSpecialAttackKeyPressed = false;
-				}
-			} break;
-
-		case SAKP_W:
-			{
-				if( m_InputData.pureW == false )
-				{
-					bSpecialAttackKeyPressed = false;
-				}
-			} break;
-
-		case SAKP_E:
-			{
-				if( m_InputData.pureE == false )
-				{
-					bSpecialAttackKeyPressed = false;
-				}
-			} break;
-
-		case SAKP_R:
-			{
-				if( m_InputData.pureR == false )
-				{
-					bSpecialAttackKeyPressed = false;
-				}
-			} break;
-		default:
-			{
-				bSpecialAttackKeyPressed = false;
-			} break;
+			}
+			m_InputData.Init(); // 캐릭터는 조작 할 수 없고 UFO만 조작할 수 있다
 		}
-
-
-		const float MAGIC_CONTROL_RADIUS = 1500.f;
-		const double MAGIC_CONTROL_TIME = 5.0;
-		if( true == bSpecialAttackKeyPressed &&
-			m_TimerUFOControl.elapsed() < MAGIC_CONTROL_TIME )
-		{
-			D3DXVECTOR3 vDirection(0,0,0);
-			if( NULL != GetUFO() )
-			{
-				if( GetDistance( GetUFO()->GetPos(), GetPos() ) > MAGIC_CONTROL_RADIUS )
-				{
-					vDirection = GetUFO()->GetPos() - GetPos(); 
-				}
-			}
-
-
-			if( vDirection.x >= 0.f && vDirection.y <= 0.f && 
-				true == m_InputData.pureUp && true == m_InputData.pureLeft )
-			{
-				if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_UP_LEFT )
-					StateChange( AVSI_HELL_DROP_CONTROL_UP_LEFT );
-			}
-			else if( vDirection.x <= 0.f && vDirection.y <= 0.f && 
-				true == m_InputData.pureUp && true == m_InputData.pureRight )
-			{
-				if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_UP_RIGHT )
-					StateChange( AVSI_HELL_DROP_CONTROL_UP_RIGHT );
-			}
-			else if( vDirection.x >= 0.f && vDirection.y >= 0.f &&  
-				true == m_InputData.pureDown && true == m_InputData.pureLeft )
-			{
-				if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_DOWN_LEFT )
-					StateChange( AVSI_HELL_DROP_CONTROL_DOWN_LEFT );
-			}
-			else if( vDirection.x <= 0.f && vDirection.y >= 0.f &&  
-				true == m_InputData.pureDown && true == m_InputData.pureRight )
-			{
-				if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_DOWN_RIGHT )
-					StateChange( AVSI_HELL_DROP_CONTROL_DOWN_RIGHT );
-			}
-			else if( vDirection.x >= 0.f &&
-				true == m_InputData.pureLeft )
-			{
-				if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_LEFT )
-					StateChange( AVSI_HELL_DROP_CONTROL_LEFT );
-			}
-			else if( vDirection.x <= 0.f &&
-				true == m_InputData.pureRight )
-			{
-				if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_RIGHT )
-					StateChange( AVSI_HELL_DROP_CONTROL_RIGHT );
-			}
-			else if( vDirection.y <= 0.f &&
-				true == m_InputData.pureUp )
-			{
-				if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_UP )
-					StateChange( AVSI_HELL_DROP_CONTROL_UP );
-			}
-			else if( vDirection.y >= 0.f &&
-				true == m_InputData.pureDown )
-			{
-				if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_DOWN )
-					StateChange( AVSI_HELL_DROP_CONTROL_DOWN );
-			}
-			else if( GetNowStateID() != AVSI_HELL_DROP_CONTROL_IDLE )
-			{
-				StateChange( AVSI_HELL_DROP_CONTROL_IDLE );
-			}
-		}
-		else
-		{
-			TRACE( L"AVSI_HELL_DROP_CONTROL_FIRE\n" );
-			StateChange( AVSI_HELL_DROP_CONTROL_FIRE, true );
-		}
-
-		m_InputData.Init(); // 캐릭터는 조작 할 수 없고 UFO만 조작할 수 있다
 
 		CommonEventProcess();
 	}
@@ -15121,8 +16745,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_IDLE_StateStart()
 	{
 		CommonStateStart();
-
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_IDLE.c_str(), true );
 		}
@@ -15131,8 +16758,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_LEFT_StateStart()
 	{
 		CommonStateStart();
-
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_GO_LEFT.c_str(), true );
 		}
@@ -15141,7 +16771,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_RIGHT_StateStart()
 	{
 		CommonStateStart();
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_GO_RIGHT.c_str(), true );
 		}
@@ -15150,7 +16784,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_UP_StateStart()
 	{
 		CommonStateStart();
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_GO_UP.c_str(), true );
 		}
@@ -15159,7 +16797,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_DOWN_StateStart()
 	{
 		CommonStateStart();
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_GO_DOWN.c_str(), true );
 		}
@@ -15168,7 +16810,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_UP_LEFT_StateStart()
 	{
 		CommonStateStart();
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_GO_UP_LEFT.c_str(), true );
 		}
@@ -15177,7 +16823,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_UP_RIGHT_StateStart()
 	{
 		CommonStateStart();
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_GO_UP_RIGHT.c_str(), true );
 		}
@@ -15186,7 +16836,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_DOWN_LEFT_StateStart()
 	{
 		CommonStateStart();
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_GO_DOWN_LEFT.c_str(), true );
 		}
@@ -15195,7 +16849,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_DOWN_RIGHT_StateStart()
 	{
 		CommonStateStart();
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_GO_DOWN_RIGHT.c_str(), true );
 		}
@@ -15204,11 +16862,18 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_FIRE_StateStart()
 	{
 		CommonStateStart();
-		if( NULL != GetUFO() )
+		if( 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			false == GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO21 ) &&
+#endif //ADD_MEMO_1ST_CLASS
+			NULL != GetUFO() )
 		{
 			TRACE( L"Fire StateStart\n" );
 			GetUFO()->StateChange( _CONST_AISHA_::UFO_FIRE.c_str(), true );
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 기존 Fire 이후 사망 -> 일정 시간 혹은 조건에 따라 사망으로 변경
 			ResetUFO();
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
 	}
 
@@ -15227,7 +16892,13 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		CommonFrameMove();
 	}
-
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	void CX2GUArme_VioletMage::AVSI_HELL_DROP_CONTROL_FIRE_EventProcess()
+	{
+		StateChange ( AVSI_HELL_DROP_CONTROL_IDLE );
+		CommonEventProcess();
+	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	//void CX2GUArme_VioletMage::AVSI_AEM_ZZupZ_EventProcess()
 	//{
 	//	CANCEL_COMBO_ON_DIRECTION_CHANGE( 1 );
@@ -15258,7 +16929,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_AEM_ZZupZZ_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			if( FlushMp( 10.f ) == true )
 			{
@@ -15330,7 +17005,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_AEM_XXfrontX_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			if( FlushMp( 10.f ) == true )
 			{
@@ -15394,7 +17073,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_AEM_XZ_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117		/// 엠피 소모율 감소
 			if( FlushMp( 3.f ) == true )
@@ -15450,11 +17133,22 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	{
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117		/// 투명의 데미지 이펙트를 발사해서, 적에게 닿으면 번개 생성되는 구조로 변경 ( 닿지 않으면 Die Damage Effect로 발생 )
 		/// 3타 공격
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		if( m_pXSkinAnim->EventTimerOneshot( 0.333f ) == true ||
+			m_pXSkinAnim->EventTimerOneshot( 1.133f ) == true ||
+			m_pXSkinAnim->EventTimerOneshot( 1.933f ) == true )
+
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( ( m_pXSkinAnim->EventTimer( 0.333f ) == true && EventCheck( 0.333f, false ) == true ) ||
 			( m_pXSkinAnim->EventTimer( 1.133f ) == true && EventCheck( 1.133f, false ) == true ) ||
 			( m_pXSkinAnim->EventTimer( 1.933f ) == true && EventCheck( 1.933f, false ) == true ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #else  BALANCE_ELEMENTAL_MASTER_20130117
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 		{
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117
@@ -15634,7 +17328,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_AVP_DASH_JUMP_X_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.16f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.16f ) == true && EventCheck( 0.16f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			//파볼쏘기
 #ifdef SKILL_BALANCE_20110728
@@ -15649,9 +17347,9 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			{
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_ARME_DIMENSION_WITCH
-				if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH )
+				if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH )
 #else
-				if( m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN )
+				if( GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN )
 #endif //SERV_ARME_DIMENSION_WITCH
 				{
 					D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
@@ -15719,12 +17417,12 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		m_bIsOnSomethingStart =false;
 
-#ifdef STEP_ON_MONSTER_TEST
-		if (m_FrameDataNow.unitCondition.bFootOnLine == true || 
-			m_FrameDataNow.unitCondition.bFootOnUnit == true )
-#else STEP_ON_MONSTER_TEST
+//#ifdef STEP_ON_MONSTER_TEST
+//		if (m_FrameDataNow.unitCondition.bFootOnLine == true || 
+//			m_FrameDataNow.unitCondition.bFootOnUnit == true )
+//#else STEP_ON_MONSTER_TEST
 		if ( m_FrameDataNow.unitCondition.bFootOnLine == true )
-#endif STEP_ON_MONSTER_TEST
+//#endif STEP_ON_MONSTER_TEST
 			m_bIsOnSomethingStart = true;
 
 		m_bDisableGravity = true;
@@ -15742,7 +17440,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_METEOR_SHOWER_MOTION_EFFECT", this ); 
 		}
@@ -15807,7 +17509,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			pSeqArmeAirStepLeft->SetEmitRate(10,20); 
 		}
 #else  BALANCE_ELEMENTAL_MASTER_20130117
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.93f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 0.93f ) == true && EventCheck( 0.93f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_AEM_METEOR_SHOWER );
 			if( NULL != pSkillTemplet )
@@ -15853,7 +17559,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_SA_AHM_METEOSHOWER_EventProcess()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			m_PhysicParam.nowSpeed		= D3DXVECTOR2( 0, 0 );
 		}
@@ -15863,7 +17573,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			StateChange( AVSI_SA_AHM_METEOSHOWER_LOOP );
 		}
 #else  BALANCE_ELEMENTAL_MASTER_20130117
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if ( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if ( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			m_bDisableGravity = false;
 		}
@@ -16043,11 +17757,19 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 		ChangeWorldColorByHyperMode();
 		ShowActiveSkillCutInAndLight( L"Bip01_L_Finger1Nub", 0.04f, 0 );
 		
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if (m_pXSkinAnim->EventTimerOneshot( 0.25f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if (m_pXSkinAnim->EventTimer( 0.25f ) == true && EventCheck( 0.25f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_PHANTOM_BREATHING", this );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.815f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 0.815f ) == true && EventCheck( 0.815f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 degree = GetRotateDegree();
 			D3DXVECTOR3 pos = GetPos();
@@ -16070,27 +17792,27 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 			if( NULL != pDE )		/// 스킬 레벨에 따른 버프 펙터 삽입
 			{
-				CX2DamageManager::DamageData *pDamageData = pDE->GetDamageData();
+				CX2DamageManager::DamageData& damageData = pDE->GetDamageData();
 
-				if( NULL != pDamageData )
+				//if( NULL != pDamageData )
 				{
 					const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_AVP_PHANTOM_BREATHING_DARK_FALL );
-					//pDE->GetDamageData()->m_ExtraDamage.m_DamagePerSec = -1 * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_TARGET_MANA );
+					//pDE->GetDamageData().m_ExtraDamage.m_DamagePerSec = -1 * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_TARGET_MANA );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 					if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 					{
-						if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+						if ( NULL == GetUnit() )
 							return;
 
-						const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-						pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+						damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 					}
 #else //UPGRADE_SKILL_SYSTEM_2013
 					if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
-						pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+						damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 				}
 			}
@@ -16138,11 +17860,19 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Bip01_L_Finger1Nub", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if (m_pXSkinAnim->EventTimerOneshot( 0.25f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if (m_pXSkinAnim->EventTimer( 0.25f ) == true && EventCheck( 0.25f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{	
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_PHANTOM_BREATHING", this );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.815f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 0.815f ) == true && EventCheck( 0.815f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 degree = GetRotateDegree();
 			D3DXVECTOR3 pos = GetPos();
@@ -16165,27 +17895,27 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 			if( NULL != pDE )		/// 스킬 레벨에 따른 버프 펙터 삽입
 			{
-				CX2DamageManager::DamageData *pDamageData = pDE->GetDamageData();
+				CX2DamageManager::DamageData& damageData = pDE->GetDamageData();
 
-				if( NULL != pDamageData )
+				//if( NULL != pDamageData )
 				{
 					const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_AVP_PHANTOM_BREATHING_DARK_FALL );
-					//float ff = pDE->GetDamageData()->m_ExtraDamage.m_DamagePerSec = -1 * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_TARGET_MANA );
+					//float ff = pDE->GetDamageData().m_ExtraDamage.m_DamagePerSec = -1 * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_TARGET_MANA );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 					if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 					{
-						if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+						if ( NULL == GetUnit() )
 							return;
 
-						const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-						pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+						damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 					}
 #else //UPGRADE_SKILL_SYSTEM_2013
 					if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
-						pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+						damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 				}
 			}
@@ -16267,9 +17997,23 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 		m_AttackListSet.clear();
 				
  		CKTDXDeviceXET *pAnimXet = g_pKTDXApp->GetDeviceManager()->OpenXET( L"Mesh_Arme_ABM_Transform_Face.XET" );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if(GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO25 ) == true )
+		{
+			CKTDXDeviceXET *pChangeTextureXet = NULL;
+			if( GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH )
+				pChangeTextureXet = g_pKTDXApp->GetDeviceManager()->OpenXET( L"Mesh_Arme_ADW_Cash_M_A.xet");
+			else
+				pChangeTextureXet = g_pKTDXApp->GetDeviceManager()->OpenXET( L"Mesh_Arme_BM_Cash_M_A.xet");
+
+			m_pXSkinAnim->AddModelXSkinMesh( m_pMotion, pAnimXet, NULL, pChangeTextureXet );
+		}
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		m_pXSkinAnim->AddModelXSkinMesh( m_pMotion, pAnimXet, NULL, NULL );
+
  		m_pXSkinAnim->SetModelDetailPercent( g_pData->GetModelDetailPercent() );
-		
+
 		m_CollisionListSet.insert( &m_pXSkinAnim->GetCollisionDataList() );		
 		m_AttackListSet.insert( &m_pXSkinAnim->GetAttackDataList() );		
 
@@ -16327,9 +18071,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		m_pMotion = m_pOrgMotion;
 		m_pOrgMotion = NULL;
-#ifdef FIX_BATTLE_MAGICIAN
 		m_RenderParam.color = D3DXCOLOR( 1.f, 1.f, 1.f, 1.f );
-#endif	//FIX_BATTLE_MAGICIAN
 
 		if ( bChangeWeapon_ )
 		{
@@ -16355,7 +18097,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 		SetEnableAttackBox( L"Rfoot", false );
 		SetEnableAttackBox( L"Lfoot", false );
 		
-		if( m_ahEffectSet[EffSetID_Wing] != CX2EffectSet::INVALID_HANDLE )
+		if( m_ahEffectSet[EffSetID_Wing] != INVALID_EFFECTSET_HANDLE )
 		{
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_ahEffectSet[EffSetID_Wing] );
 		}
@@ -16407,10 +18149,14 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			StateChange( AVSI_COMBO_Z2 );
 			m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
 		}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+		SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 		else if( SpecialAttackEventProcess() == true )
 		{
 			m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
 		}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 		else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 		{	
 			m_fCanNotAttackTime = 0.1f;
@@ -16474,10 +18220,14 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			StateChangeDashIfPossible();
 			m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
 		}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+		SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 		else if( SpecialAttackEventProcess() == true )
 		{
 			m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
 		}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 		else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 		{	
 			m_fCanNotAttackTime = 0.1f;
@@ -16502,16 +18252,24 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 		{			
 			StateChange( USI_WALK );		
 		}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+		SKILL_CANCEL_AFTER( 1.345f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 		else if( m_pXSkinAnimFuture->GetNowAnimationTime() > 1.345f && SpecialAttackEventProcess() == true )
 		{
 		}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 
 		CommonEventProcess();
 	}
 
 	void CX2GUArme_VioletMage::AVSI_ABM_DASH_COMBO_Z2a_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 			pos.y -= 200.0f;
@@ -16531,11 +18289,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			{
 #ifdef UPGRADE_SKILL_SYSTEM_2013
 				D3DXVECTOR2 superArmorTime( 0.0f, 0.5f);
-#ifdef X2OPTIMIZE_NPC_NONHOST_SIMULATION
-				m_vecSuperArmorTime.push_back(superArmorTime);
-#else//X2OPTIMIZE_NPC_NONHOST_SIMULATION
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+				AccessVecNowSuperArmorTime().push_back(superArmorTime);
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				m_FrameDataNow.stateParam.m_vecSuperArmorTime.push_back(superArmorTime);
-#endif//X2OPTIMIZE_NPC_NONHOST_SIMULATION
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				m_FrameDataNow.stateParam.bSuperArmorNotRed = false;
 #else // UPGRADE_SKILL_SYSTEM_2013
 				if( GetForceInvincible() < 0.5f )
@@ -16627,16 +18385,20 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			}
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.833f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.833f ) == true && EventCheck( 0.833f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			if( FlushMp( 10.0f ) == true )
 			{
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_ARME_DIMENSION_WITCH
-				if( (m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) &&
+				if( (GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN || GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH) &&
 					IsTransformed() )
 #else
-				if(  m_pUnit->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
+				if(  GetUnit()->GetClass() == CX2Unit::UC_ARME_BATTLE_MAGICIAN && IsTransformed() )
 #endif //SERV_ARME_DIMENSION_WITCH
 				{
 					m_pComboX3Up1->SetScale( D3DXVECTOR3(2.f, 1.f, 2.f) );
@@ -16687,7 +18449,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_ABM_DASH_COMBO_ZXXX_EventProcess()
 	{
 #ifdef SERV_ARME_DIMENSION_WITCH
-		if( m_pUnit->GetUnitData()->m_UnitClass == CX2Unit::UC_ARME_DIMENSION_WITCH )
+		if( GetUnit()->GetUnitData().m_UnitClass == CX2Unit::UC_ARME_DIMENSION_WITCH )
 		{
 			if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 1.014f )
 			{
@@ -16747,7 +18509,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 	void CX2GUArme_VioletMage::AVSI_A_AV_FIRE_ROAD_FrameMove()
 	{		
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.24f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.24f ) == true && EventCheck( 0.24f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vPos = GetPos();
 			vPos.y += 70.f;
@@ -16757,10 +18523,10 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			if( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -16782,7 +18548,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_A_ABM_ENERGY_DRAIN_READY_FrameMove()
 	{
 		// To Do...
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.47f ) == true && EventCheck( 0.47f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			float fDistance = 2000.f;
 			m_iDrainEnergyTarget = -1;
@@ -16790,10 +18560,10 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			if( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -16823,7 +18593,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 					if(pUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC)
 					{
 						CX2GUNPC *pNpc = (CX2GUNPC*)pUnit;
-						if( pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+						if( pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 							continue;
 
 						fOffset = ( pNpc->GetOrgUnitSize().x + pNpc->GetOrgUnitSize().y ) / 4.f;
@@ -16876,7 +18646,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 	void CX2GUArme_VioletMage::AVSI_A_ABM_ENERGY_DRAIN_SUCCESS_FrameMove()
 	{
 		// To Do...
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			if( m_iDrainEnergyTarget >= 0 )
 			{
@@ -16888,10 +18662,10 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 					if( NULL != pSkillTemplet )
 					{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+						if ( NULL == GetUnit() )
 							return;
 	
-						const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -16959,7 +18733,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.1f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			ClearHitUnitList_LUA();
 		}		
@@ -17023,12 +18801,20 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 		ShowActiveSkillCutInAndLight( L"Bip01_Spine1", 0.02f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_ABM_SuperNova01", this );
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.8f ) == true && EventCheck( 1.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			int nCount = 0;
 			for( int i = 0; i < g_pX2Game->GetUnitNum(); ++i )
@@ -17046,7 +18832,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 				if(pUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC)
 				{
 					CX2GUNPC *pNpc = (CX2GUNPC*)pUnit;
-					if( pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+					if( pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 						continue;
 
 					fOffset = ( pNpc->GetUnitWidth(false) + pNpc->GetUnitHeight(false) ) / 2.f;
@@ -17078,10 +18864,9 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 				fDamageScale = 1.5f;
 
 			CX2EffectSet::Handle hSuperNova = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_ABM_SuperNova02", this );
- 			if( hSuperNova != CX2EffectSet::INVALID_HANDLE )
+ 			if( hSuperNova != INVALID_EFFECTSET_HANDLE )
  			{
- 				CX2EffectSet::EffectSetInstance* pSuperNova = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hSuperNova );
- 				if( pSuperNova != NULL )
+ 				if ( CX2EffectSet::EffectSetInstance* pSuperNova = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hSuperNova ) )
 				{
 					pSuperNova->SetPowerRateScale( fDamageScale );
  					pSuperNova->SetEffectScale( D3DXVECTOR3( fScale * GetScaleByUnit().x, fScale * GetScaleByUnit().y, fScale * GetScaleByUnit().z ), true );
@@ -17100,7 +18885,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 		XSkinMeshReadyInBackground(  L"Mesh_Arme_BM_Cash_Upbody_Transform_Sorted.X" );
 
 #ifdef SERV_ARME_DIMENSION_WITCH
-		if( m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
+		if( GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
 		{
 			XSkinMeshReadyInBackground(  L"Mesh_Arme_ADW_Cash_Upbody_Transforming_Sorted.X" );
 			XSkinMeshReadyInBackground(  L"Mesh_Arme_ADW_Cash_Upbody_Transform_Sorted.X" );
@@ -17113,7 +18898,7 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 		XSkinMeshReady(  L"Mesh_Arme_BM_Cash_Upbody_Transform_Sorted.X" );
 
 #ifdef SERV_ARME_DIMENSION_WITCH
-		if( m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
+		if( GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
 		{
 			XSkinMeshReady(  L"Mesh_Arme_ADW_Cash_Upbody_Transforming_Sorted.X" );
 			XSkinMeshReady(  L"Mesh_Arme_ADW_Cash_Upbody_Transform_Sorted.X" );
@@ -17129,13 +18914,17 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 		ChangeWorldColorByHyperMode();
 		ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.03f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			SetTransformTime( _CONST_AISHA_::MAGICAL_MAKEUP_TRANSFORMING_TIME );	/// 변신 동작을 수행하는 시간
 			SetUseWorldColor( true );
 
 #ifdef SERV_ARME_DIMENSION_WITCH
-			if( m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
+			if( GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
 				TransformStart(  L"Mesh_Arme_ADW_Cash_Upbody_Transforming_Sorted.X" );
 			else
 				TransformStart(  L"Mesh_Arme_BM_Cash_Upbody_Transforming_Sorted.X" );
@@ -17143,10 +18932,18 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 			TransformStart(  L"Mesh_Arme_BM_Cash_Upbody_Transforming_Sorted.X" );
 #endif
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 2.0f ) == true && EventCheck( 2.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet 
 				= GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_ABM_MAGICAL_MAKEUP );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if(GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO25 ) == true )
+				SetBuffFactorToGameUnit( pSkillTemplet, 1 );
+#endif //ADD_MEMO_1ST_CLASS
 			SetBuffFactorToGameUnit( pSkillTemplet, 0 );
 		}
 
@@ -17179,7 +18976,11 @@ void CX2GUArme_VioletMage::AVSI_SI_A_AV_CIRCLE_FLAME_EndFuture()
 
 void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName_, const float fTimeToShow_, const UINT uiCutInIndex_, const bool bOnlyLight_ /*= false */ )
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( fTimeToShow_ ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
  	if( m_pXSkinAnim->EventTimer( fTimeToShow_ ) == true && EventCheck( fTimeToShow_, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( GetShowCutInAndChangeWorldColor() && GetShowActiveSkillShow() )
 #ifdef SERV_APRIL_FOOLS_DAY
@@ -17202,7 +19003,11 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 			}
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			if( FlushMp( 10.0f ) == true )
 			{
@@ -17260,7 +19065,11 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 			}
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			if( FlushMp( 10.0f ) == true )
 			{
@@ -17381,7 +19190,11 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 
 	void CX2GUArme_VioletMage::AVSI_SI_A_ADW_DISTORTION_FrameMove()
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 #ifdef MODIFY_DISTORTION_DESTRUCTION
 			// 소환 유지시간은CX2Game::SetUserSummonedNPCInfo 에서 처리하도록 변경
@@ -17405,10 +19218,10 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 			if( NULL != pSkillTemplet )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -17456,28 +19269,38 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 
 		ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			m_hEffectMorningStar = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ADW_MORNING_STAR_HAMMER", this );
 			m_vecEffectSetToDeleteOnDamageReact.push_back( m_hEffectMorningStar );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.49f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 1.49f ) == true && EventCheck( 1.49f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
-			if( m_hEffectMorningStar != CX2EffectSet::INVALID_HANDLE )
+			if( m_hEffectMorningStar != INVALID_EFFECTSET_HANDLE )
 			{
-				CX2EffectSet::EffectSetInstance* pEffectSetInstance 
-					= g_pX2Game->GetEffectSet()->GetEffectSetInstance( m_hEffectMorningStar );
-
-				if ( NULL != pEffectSetInstance )
+				if ( CX2EffectSet::EffectSetInstance* pEffectSetInstance 
+					= g_pX2Game->GetEffectSet()->GetEffectSetInstance( m_hEffectMorningStar ) )
 				{
 					vector<CX2EffectSet::EffectInstance*>& vecEffectInstance = pEffectSetInstance->m_vecpEffectInstance;
 					for ( UINT i=0; i < vecEffectInstance.size(); ++i )
 					{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        CX2DamageEffect::CEffect *pDmageEffect = g_pX2Game->GetDamageEffect()->GetInstance( vecEffectInstance[i]->m_hDamageEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						CX2DamageEffect::CEffect *pDmageEffect = vecEffectInstance[i]->m_pDamageEffect;
-						if ( NULL != pDmageEffect && NULL != pDmageEffect->GetMainEffect() )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						if ( CKTDGXMeshPlayer::CXMeshInstance *pMeshInstance = ( pDmageEffect != NULL ) ? pDmageEffect->GetMainEffect() : NULL )
 						{
 							D3DXVECTOR3 vPos 
-								= pDmageEffect->GetMainEffect()->GetBonePos( L"effect_Dummy03" );
+								= pMeshInstance->GetBonePos( L"effect_Dummy03" );
 
 							CX2EffectSet::Handle hMorningStarHit = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ADW_MORNING_STAR_HIT", this, NULL, false, -1.f, -1.f, D3DXVECTOR3(1.f, 1.f, 1.f), true, vPos );
 
@@ -17485,8 +19308,8 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 								= g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_ADW_MORNING_STAR_HIT", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 							if ( NULL != pDmageHitEffect )
 							{
-								CX2DamageManager::DamageData *pDamageData = pDmageHitEffect->GetDamageData();
-								if ( NULL != pDamageData )
+								CX2DamageManager::DamageData& damageData = pDmageHitEffect->GetDamageData();
+								//if ( NULL != pDamageData )
 								{
 									const CX2SkillTree::SkillTemplet* pSkillTemplet 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
@@ -17494,19 +19317,19 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 
 									if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 									{
-										if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+										if ( NULL == GetUnit() )
 											return;
 
-										const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+										const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 										const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-										pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+										damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 									}
 #else //UPGRADE_SKILL_SYSTEM_2013
 										= GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_ADW_MORNING_STAR );
 
 									if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
-										pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+										damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 									break;
@@ -17535,16 +19358,16 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 {
 	CX2GUUser::HyperModeBuffEffectStart();
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRFoot )
 		m_hHyperBoostRFoot = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightViolet",	0,0,0, 0, 0 );
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLFoot )
 		m_hHyperBoostLFoot = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftViolet",	0,0,0, 0, 0 );
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRArm )
 		m_hHyperBoostRArm = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightViolet",	0,0,0, 0, 0 );
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLArm )
 		m_hHyperBoostLArm = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftViolet",	0,0,0, 0, 0 );
 }
 
@@ -17560,7 +19383,15 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 	/// 배메, 기력가속
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADW_SPIRIT_ACCELERATION );
+
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 기력 가속은 패시브 이므로 기본 레벨만 적용 받도록 수정
+		const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADW_SPIRIT_ACCELERATION, true );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADW_SPIRIT_ACCELERATION );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 
 		if ( iSkillLevel > 0 )
 		{
@@ -17572,7 +19403,7 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 			}
 		}
 #else //UPGRADE_SKILL_SYSTEM_2013
-		const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ABM_SPIRIT_ACCELERATION );
+		const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ABM_SPIRIT_ACCELERATION );
 
 		if ( iSkillLevel > 0 )
 		{
@@ -17588,7 +19419,7 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 
 	/// 하이매지션, 격려의 기운
 	{
-		const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA );
+		const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SUPPORT_AURA );
 		if ( iSkillLevel > 0 )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -17629,10 +19460,10 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 		if ( false == pSkillTemplet_->m_vecBuffFactorPtr.empty() )	/// 액셀러레이터검사
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet_->m_eID ) );	/// 스킬 레벨
 
 			CX2BuffFactorPtr ptrBuffFactorClone = pSkillTemplet_->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel );
@@ -17647,10 +19478,10 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 				ptrEnergyOfThePlentyFactor->SetGameUnitBuffFactor( this );	/// 풍요의 기운 버프팩터 셋팅
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet_->m_eID ) );	/// 스킬 레벨
 	
@@ -17703,9 +19534,9 @@ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName
 CX2BuffFactorPtr CX2GUArme_VioletMage::GetEnergyOfThePlentyBuffFactorClonePtr( const CX2SkillTree::SKILL_ID eSkillIdAccelerator_ ) const
 {
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevelEnergyOfThePlenty = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AEM_ENERGY_OF_THE_PLENTY, true );
+	const int iSkillLevelEnergyOfThePlenty = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AEM_ENERGY_OF_THE_PLENTY, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevelEnergyOfThePlenty = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AEM_ENERGY_OF_THE_PLENTY );
+	const int iSkillLevelEnergyOfThePlenty = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AEM_ENERGY_OF_THE_PLENTY );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevelEnergyOfThePlenty > 0 )
@@ -17786,14 +19617,24 @@ CX2BuffFactorPtr CX2GUArme_VioletMage::GetEnergyOfThePlentyBuffFactorClonePtr( c
 		{
 			SetUseWorldColor( true );
 
-			if( m_ahEffectSet[EffSetID_Wing] == CX2EffectSet::INVALID_HANDLE )
+			if( m_ahEffectSet[EffSetID_Wing] == INVALID_EFFECTSET_HANDLE )
 			{
-				if( m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
+				if( GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
 				{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+					if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO25) == true )
+						m_ahEffectSet[EffSetID_Wing] = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_ADW_MagicalMakeup_Wing_memo", this );
+					else
+#endif //ADD_MEMO_1ST_CLASS
 					m_ahEffectSet[EffSetID_Wing] = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_ADW_MagicalMakeup_Wing", this );
 				}
 				else
 				{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+					if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO25) == true )
+						m_ahEffectSet[EffSetID_Wing] = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_ABM_MagicalMakeup_Wing_memo", this );
+					else
+#endif //ADD_MEMO_1ST_CLASS
 					m_ahEffectSet[EffSetID_Wing] = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_ABM_MagicalMakeup_Wing", this );
 				}
 			}
@@ -17803,14 +19644,27 @@ CX2BuffFactorPtr CX2GUArme_VioletMage::GetEnergyOfThePlentyBuffFactorClonePtr( c
 			if ( NULL == m_ptrTransformWeapon )
 			{
 #ifdef SERV_ARME_DIMENSION_WITCH
-				if( m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH )
+				if( GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH )
+				{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+					if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO25) == true )
+						m_ptrTransformWeapon = CX2ItemManager::CreateDummyEquip( 41321, GetUnit(), m_pXSkinAnim );
+					else
+#endif //ADD_MEMO_1ST_CLASS
 					m_ptrTransformWeapon = CX2ItemManager::CreateDummyEquip( 41320, GetUnit(), m_pXSkinAnim );
+				}
 				else
+				{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+					if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO25) == true )
+						m_ptrTransformWeapon = CX2ItemManager::CreateDummyEquip( 40931, GetUnit(), m_pXSkinAnim );
+					else
+#endif //ADD_MEMO_1ST_CLASS
 					m_ptrTransformWeapon = CX2ItemManager::CreateDummyEquip( 40930, GetUnit(), m_pXSkinAnim );
+				}
 #else
 				m_ptrTransformWeapon = CX2ItemManager::CreateDummyEquip( 40930, GetUnit(), m_pXSkinAnim );
 #endif	//SERV_ARME_DIMENSION_WITCH
-
 				m_ptrTransformWeapon->SetManagerObject( this );
 				g_pKTDXApp->GetDGManager()->AddObjectChain( m_ptrTransformWeapon.get() );
 			}
@@ -17818,7 +19672,7 @@ CX2BuffFactorPtr CX2GUArme_VioletMage::GetEnergyOfThePlentyBuffFactorClonePtr( c
 			m_bIsTransformed = true;
 
 #ifdef SERV_ARME_DIMENSION_WITCH
-			if( m_pUnit->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
+			if( GetUnit()->GetClass() == CX2Unit::UC_ARME_DIMENSION_WITCH ) 
 				TransformStart(  L"Mesh_Arme_ADW_Cash_Upbody_Transform_Sorted.X" , true );
 			else
 				TransformStart(  L"Mesh_Arme_BM_Cash_Upbody_Transform_Sorted.X" , true );
@@ -17910,16 +19764,16 @@ void CX2GUArme_VioletMage::AdaptAdvancedTeleportationBuff()
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 		const int iSkillLevel 
-			= GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADW_ADVANCED_TELEPORTATION, true );
+			= GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADW_ADVANCED_TELEPORTATION, true );
 	#else // UPGRADE_SKILL_SYSTEM_2013
 		const int iSkillLevel 
-			= GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADW_ADVANCED_TELEPORTATION );
+			= GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADW_ADVANCED_TELEPORTATION );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 		
 		if ( iSkillLevel > 0 )
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet 
-				= GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_ADW_ADVANCED_TELEPORTATION );
+				= GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_ADW_ADVANCED_TELEPORTATION );
 
 			if ( NULL != pSkillTemplet )
 				SetBuffFactorToGameUnit( pSkillTemplet, 0 );
@@ -17940,9 +19794,9 @@ void CX2GUArme_VioletMage::SetDamageExceptionProcess( CX2DamageManager::DamageDa
 		CX2GUUser *pUser = static_cast<CX2GUUser*>( pDamageData_->optrAttackerGameUnit.GetObservable() );
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		int iSkillLevelFitness = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ABM_FITNESS, true );
+		int iSkillLevelFitness = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ABM_FITNESS, true );
 	#else // UPGRADE_SKILL_SYSTEM_2013
-		int iSkillLevelFitness = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ABM_FITNESS );
+		int iSkillLevelFitness = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ABM_FITNESS );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 		
 		if( iSkillLevelFitness > 0 )
@@ -18002,7 +19856,11 @@ void CX2GUArme_VioletMage::AVSI_A_AV_Icicle_Wave_Init()
 
 void CX2GUArme_VioletMage::AVSI_A_AV_Icicle_Wave_FrameMove()
 {		
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.24f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.24f ) == true && EventCheck( 0.24f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 70.f;
@@ -18012,10 +19870,10 @@ void CX2GUArme_VioletMage::AVSI_A_AV_Icicle_Wave_FrameMove()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -18075,7 +19933,11 @@ void CX2GUArme_VioletMage::AVSI_SA_AV_Ice_Storm_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.12f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		bool bHyper = false;
@@ -18129,7 +19991,11 @@ void CX2GUArme_VioletMage::AVSI_A_AHM_Aqua_Shower_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.13f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.13f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.13f ) == true && EventCheck( 0.13f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_AHM_AQUA_SHOWER", this, NULL );
 	}
@@ -18194,7 +20060,11 @@ void CX2GUArme_VioletMage::AVSI_SA_AHM_Lightning_Shower_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_AHM_LIGHTNING_SHOWER", this ); 
 	}
@@ -18292,7 +20162,11 @@ void CX2GUArme_VioletMage::AVSI_SA_AHM_Lightning_Shower_FrameMove()
 
 void CX2GUArme_VioletMage::AVSI_SA_AHM_Lightning_Shower_EventProcess()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed		= D3DXVECTOR2( 0, 0 );
 	}
@@ -18300,7 +20174,11 @@ void CX2GUArme_VioletMage::AVSI_SA_AHM_Lightning_Shower_EventProcess()
 	{
 		StateChange( AVSI_SA_AHM_LIGHTNING_SHOWER_LOOP );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if ( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if ( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -18481,20 +20359,51 @@ void CX2GUArme_VioletMage::AVSI_SA_AEM_Chain_Lightning_Init()
 	TextureReadyInBackground( L"eve_thousandsOfStars_gearLight02.dds" );
 	TextureReadyInBackground( L"Arme_LightningBolts2a2.tga" );
 }
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+void CX2GUArme_VioletMage::AVSI_SA_AEM_Chain_Lightning_StartFuture()
+{
+	CommonStateStartFuture();
 
+	if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO17 ) == true && false == IsOnSomethingFuture())
+	{
+		m_bDisableGravity = true;
+		m_PhysicParam.nowSpeed		= D3DXVECTOR2( 0, 0 );
+		m_PhysicParam.passiveSpeed	= D3DXVECTOR2( -1, -1 );
+	}
+}
+void CX2GUArme_VioletMage::AVSI_SA_AEM_Chain_Lightning_EndFuture()
+{
+	CommonStateEndFuture();
+
+	m_bDisableGravity = false;
+}
+#endif //ADD_MEMO_1ST_CLASS
 void CX2GUArme_VioletMage::AVSI_SA_AEM_Chain_Lightning_FrameMove()
 {
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.13f, 0 );
 
 	// 효과
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		 g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_AEM_CHAIN_LIGHTNING", this );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO17) == true )
+			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_AEM_CHAIN_LIGHTNING_MEMO", this );
+		else
+#endif //ADD_MEMO_1ST_CLASS
+		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_SA_AEM_CHAIN_LIGHTNING", this );
 	}
 
 	// 발사
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.55f ) == true && EventCheck( 0.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetWeaponBonePos( 0, L"TRACE_START0", 0 );
 		bool bHyper = false;
@@ -18536,29 +20445,52 @@ void CX2GUArme_VioletMage::AVSI_SA_AEM_Chain_Lightning_EventProcess()
 {
 	if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
 	{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if ( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS;
+		}
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		StateChange( USI_WAIT );
 		m_fCanNotAttackTime = 0.1f;
 	} // if
 
-	const float LOWER_BOUND_INPUT_TIME_CANCEL = 1.2f;
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	if( false == m_bDisableGravity )
+#endif //ADD_MEMO_1ST_CLASS
+	{
+		const float LOWER_BOUND_INPUT_TIME_CANCEL = 1.2f;
 
-	if (  LOWER_BOUND_INPUT_TIME_CANCEL <= m_pXSkinAnimFuture->GetNowAnimationTime() )
-	{		
-		if ( true == SpecialAttackEventProcess() )
-		{
-		}
-		else if ( CAN_WALK_CANCEL )
-		{
-			StateChange( USI_WALK );
-		}
-		else if ( CAN_DASH_CANCEL )
-		{
-			StateChangeDashIfPossible();
-		}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+		IF_SKILL_CANCEL_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
+		WALK_CANCEL_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
+		DASH_CANCEL_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
 		ELSE_IF_ARROW_ZXASDC_PRESSED_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
 		{
 			StateChange( USI_WALK );
 		}
+#else // SKILL_CANCEL_BY_HYPER_MODE
+		if (  LOWER_BOUND_INPUT_TIME_CANCEL <= m_pXSkinAnimFuture->GetNowAnimationTime() )
+		{		
+			if ( true == SpecialAttackEventProcess() )
+			{
+			}
+			else if ( CAN_WALK_CANCEL )
+			{
+				StateChange( USI_WALK );
+			}
+			else if ( CAN_DASH_CANCEL )
+			{
+				StateChangeDashIfPossible();
+			}
+			ELSE_IF_ARROW_ZXASDC_PRESSED_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
+			{
+				StateChange( USI_WALK );
+			}
+		}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	}
 
 	CommonEventProcess();
@@ -18574,7 +20506,11 @@ void CX2GUArme_VioletMage::AVSI_A_AVP_Summon_Bat_Heavy_Init()
 
 void CX2GUArme_VioletMage::AVSI_A_AVP_Summon_Bat_Heavy_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vPos = GetPos();
@@ -18586,10 +20522,10 @@ void CX2GUArme_VioletMage::AVSI_A_AVP_Summon_Bat_Heavy_FrameMove()
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_AVP_SUMMON_BAT_HEAVY_DOLL );
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 			float fLifeTime = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME, iSkillTempletLevel );
 			
@@ -18631,11 +20567,19 @@ void CX2GUArme_VioletMage::AVSI_SA_AVP_Phantom_Breathing_Dark_Hole_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLight( L"Bip01_L_Finger1Nub", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if (m_pXSkinAnim->EventTimerOneshot( 0.25f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if (m_pXSkinAnim->EventTimer( 0.25f ) == true && EventCheck( 0.25f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_PHANTOM_BREATHING", this );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.815f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.815f ) == true && EventCheck( 0.815f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 degree = GetRotateDegree();
 		D3DXVECTOR3 pos = GetPos();
@@ -18722,23 +20666,32 @@ void CX2GUArme_VioletMage::AVSI_A_ABM_Vital_Drain_Ready_Init()
 
 void CX2GUArme_VioletMage::AVSI_A_ABM_Vital_Drain_Ready_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.47f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.47f ) == true && EventCheck( 0.47f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		float fDistance = 2000.f;
 		m_iDrainEnergyTarget = -1;
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_ABM_VITAL_DRAIN );
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 			float fDistanceTemp = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_RANGE_REL, iSkillTempletLevel );
 	
 			fDistance = fDistanceTemp;
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_AISHA_MEMO26 ) == true )
+				fDistance *= 1.5f;
+#endif //ADD_MEMO_1ST_CLASS
 
 			CX2GameUnit *pFrontNearestUnit = NULL;
 			for( int i = 0; i < g_pX2Game->GetUnitNum(); ++i )
@@ -18759,7 +20712,7 @@ void CX2GUArme_VioletMage::AVSI_A_ABM_Vital_Drain_Ready_FrameMove()
 				if(pUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC)
 				{
 					CX2GUNPC *pNpc = (CX2GUNPC*)pUnit;
-					if( pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+					if( pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 						continue;
 
 					fOffset = ( pNpc->GetOrgUnitSize().x + pNpc->GetOrgUnitSize().y ) / 4.f;
@@ -18795,7 +20748,11 @@ void CX2GUArme_VioletMage::AVSI_A_ABM_Vital_Drain_Ready_FrameMove()
 
 void CX2GUArme_VioletMage::AVSI_A_ABM_Vital_Drain_Success_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_iDrainEnergyTarget >= 0 )
 		{
@@ -18806,10 +20763,10 @@ void CX2GUArme_VioletMage::AVSI_A_ABM_Vital_Drain_Success_FrameMove()
 				const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_ABM_VITAL_DRAIN );
 				if( NULL != pSkillTemplet )
 				{
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit() )
 						return;
 	
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 					const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 					float fDrainRate = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MP_INTAKE_ABS, iSkillTempletLevel );
 					
@@ -18876,16 +20833,20 @@ void CX2GUArme_VioletMage::AVSI_A_ADW_Worm_Hole_StateStart()
 
 void CX2GUArme_VioletMage::AVSI_A_ADW_Worm_Hole_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_ADW_WORM_HOLE );
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -18945,6 +20906,107 @@ void CX2GUArme_VioletMage::AVSI_SI_SA_ADW_Screwdriver_Driller_FrameMove()
 }
 #pragma endregion 스크류 드라이버 - 드릴러
 #endif //UPGRADE_SKILL_SYSTEM_2013_JHKang
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+#pragma region SI_SA_AEM_Elemental_Storm
+void CX2GUArme_VioletMage::AVSI_HA_AEM_Elemental_Storm_Init()
+{
+	TextureReadyInBackground(L"AHM_FREEZING_POINT_01.tga");
+	TextureReadyInBackground(L"Arme_ring2.dds");
+	TextureReadyInBackground(L"Bust_Wolf_P02.dds");
+	TextureReadyInBackground(L"CDC_Bullet_01.dds");
+	TextureReadyInBackground(L"ColorBallFire.dds");
+	TextureReadyInBackground(L"Colorballgray.dds");
+	TextureReadyInBackground(L"EL_FIRE_03.dds");
+	TextureReadyInBackground(L"EL_FIRE_05.dds");
+	TextureReadyInBackground(L"EL_FIRE_06.dds");
+	TextureReadyInBackground(L"EL_FIRE_09.dds");
+	XSkinMeshReadyInBackground(L"Elsword_SI_SA_Sonic_Blade_Mesh01.X");
+	TextureReadyInBackground(L"Explosion_Sphere.dds");
+	TextureReadyInBackground(L"Fire_Flower01.dds");
+	TextureReadyInBackground(L"GroundShockWave.dds");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	XSkinMeshReadyInBackground(L"GustStorm01.X");
+	XSkinMeshReadyInBackground(L"GustStorm01_1.X");
+	XSkinMeshReadyInBackground(L"GustStorm02.X");
+	XSkinMeshReadyInBackground(L"GustStorm03.X");
+	XSkinMeshReadyInBackground(L"GustStorm04.X");
+	XSkinMeshReadyInBackground(L"ICE_Storm02.X");
+	XSkinMeshReadyInBackground(L"ICE_Storm03.X");
+	XSkinMeshReadyInBackground(L"ICE_Storm04.X");
+	TextureReadyInBackground(L"Ice_Crystal_Ring01.dds");
+	TextureReadyInBackground(L"Ice_Particle01.dds");
+	TextureReadyInBackground(L"LIGHTNING_SHOWER_Emblem.tga");
+	TextureReadyInBackground(L"LIGHTNING_SHOWER_Square.tga");
+	XSkinMeshReadyInBackground(L"Lightning01.X");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	TextureReadyInBackground(L"Particle_blur.dds");
+	XSkinMeshReadyInBackground(L"SA_AEM_ELEMENTAL_STORM_FIRE01.X");
+	XSkinMeshReadyInBackground(L"SA_AEM_ELEMENTAL_STORM_FIRE02.X");
+	XSkinMeshReadyInBackground(L"SA_AEM_ELEMENTAL_STORM_ICE.X");
+	XSkinMeshReadyInBackground(L"SA_AEM_ELEMENTAL_STORM_ICE_DUMMY.X");
+	TextureReadyInBackground(L"SA_EL_MEGA_SLASH_FIRE04.dds");
+	TextureReadyInBackground(L"WhitePoint.dds");
+	TextureReadyInBackground(L"WhitePointSmall.dds");
+	XSkinMeshReadyInBackground(L"aisha_active_energySpurt_circle.X");
+	TextureReadyInBackground(L"soket_wind_stom_wind01.dds");
+	TextureReadyInBackground(L"steam_BP.dds");
+}
+#pragma endregion 엘리멘탈 스톰 : 궁극기
+
+#pragma region SI_FS_AVP_Abyss_Angor
+void CX2GUArme_VioletMage::AVSI_HA_AVP_Abyss_Angor_Init()
+{
+	TextureReadyInBackground(L"AeroTornado04.dds");
+	TextureReadyInBackground(L"Arme_Aging_Gate01.tga");
+	TextureReadyInBackground(L"Arme_Critical2.dds");
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Colorballgray.dds");
+	TextureReadyInBackground(L"Condense_Light01.dds");
+	TextureReadyInBackground(L"Condense_Pulse01.dds");
+	TextureReadyInBackground(L"Condense_Pulse02.dds");
+	TextureReadyInBackground(L"Explosion_Sphere.dds");
+	TextureReadyInBackground(L"Gear_Water.tga");
+	TextureReadyInBackground(L"Inspector_State_Shield.tga");
+	TextureReadyInBackground(L"Lire_Kick_Impact01.dds");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	TextureReadyInBackground(L"Sprriggan_Light_Ball_01.Tga");
+	TextureReadyInBackground(L"Steam_Bp.dds");
+	TextureReadyInBackground(L"WhiteImage.dds");
+	TextureReadyInBackground(L"WhitePoint.dds");
+	TextureReadyInBackground(L"WhitePointSmall.dds");
+	TextureReadyInBackground(L"blackImage.dds");
+	TextureReadyInBackground(L"secretVelder_Unohound_fire.dds");
+	TextureReadyInBackground(L"secretVelder_alchemystBoss_magicAttackE_light.dds");
+	TextureReadyInBackground(L"smoke.dds");
+	XSkinMeshReadyInBackground(L"Dullahan_Special_Laser_Mesh01.X");
+	XSkinMeshReadyInBackground(L"Lire_SI_SA_Gungnir_Mesh05.X");
+	XSkinMeshReadyInBackground(L"Mirror_Left_light.X");
+	XSkinMeshReadyInBackground(L"NEPHILIM_AttackB_02.X");
+	XSkinMeshReadyInBackground(L"SA_AVP_ABYSS_ANGOR_ANGOR.X");
+	XSkinMeshReadyInBackground(L"Taranvash_SpecialAttackA_Mesh01.X");
+}
+#pragma endregion 어비스 앙고르 : 궁극기
+
+#pragma region SI_FS_ADW_Fate_space
+void CX2GUArme_VioletMage::AVSI_HA_ADW_Fate_space_Init()
+{
+	TextureReadyInBackground(L"AeroTornado04.dds");
+	TextureReadyInBackground(L"Arme_Ring2.DDS");
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Colorballgray.dds");
+	TextureReadyInBackground(L"Explosion_Sphere.dds");
+	TextureReadyInBackground(L"Sudden_Buster_P05.dds");
+	TextureReadyInBackground(L"WhitePoint.dds");
+	TextureReadyInBackground(L"WhitePointSmall.dds");
+	TextureReadyInBackground(L"aisha_active_guillotinePress_lightBlur.dds");
+	TextureReadyInBackground(L"eve_A_blink_light.DDS");
+	TextureReadyInBackground(L"secretVelder_Unohound_fire.dds");
+}
+#pragma endregion 페이트 스페이스 : 궁극기
+#endif //FINALITY_SKILL_SYSTEM
 
 /*virtual*/ void CX2GUArme_VioletMage::ShowActiveSkillCutInAndLightByScript( float fTimeToShow_, bool bOnlyLight_ )
 {
@@ -19014,7 +21076,7 @@ void CX2GUArme_VioletMage::CommonHyperModeFrameMove( float fTime1_, float fTime2
 		if ( rdf <= m_fRateLimitManaManagement )
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AVP_LIMITED_MANA_MANAGEMENT, true  );
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AVP_LIMITED_MANA_MANAGEMENT, true  );
 #else // UPGRADE_SKILL_SYSTEM_2013
 			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AVP_LIMITED_MANA_MANAGEMENT );
 #endif // UPGRADE_SKILL_SYSTEM_2013
@@ -19103,3 +21165,22 @@ void CX2GUArme_VioletMage::RidingHyperModeCameraMove()
 	}
 }
 #endif // FIX_NO_STATE_SKILL_BUG
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+const CX2SkillTree::ACTIVE_SKILL_USE_CONDITION CX2GUArme_VioletMage::GetSkillUseCondition(const CX2SkillTree::SkillTemplet* pSkillTemplet_)
+{
+	CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eActiveSkillUseCondition = pSkillTemplet_->m_eActiveSkillUseCondtion;
+
+	switch (pSkillTemplet_->m_eID)
+	{
+	case CX2SkillTree::SI_SA_AHM_CHAIN_LIGHTNING:
+		{
+			if( GetEqippedSkillMemo(CX2SkillTree::SMI_AISHA_MEMO17) == true )
+				eActiveSkillUseCondition = CX2SkillTree::ASUT_AIR;
+		} break;
+	}
+
+
+	return eActiveSkillUseCondition;
+}
+#endif //ADD_MEMO_1ST_CLASS

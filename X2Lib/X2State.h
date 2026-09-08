@@ -69,7 +69,18 @@ class CX2State : public CKTDXStage
 // 			SUCM_JUMPING_CHARACTER_CLASS_FORCE_FOCUS_ON,
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
 
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+			SUCM_EVENT_CHARACTER_QUEST_RANKING_CLOSE = 3028,
+#endif SERV_EVENT_CHARACTER_QUEST_RANKING
 
+#ifdef SERV_ELESIS_UPDATE_EVENT
+			SUCM_EVENT_NOTE_VIEW_OK = 3029,
+			SUCM_EVENT_NOTE_VIEW_CANCLE = 3030,
+#endif SERV_ELESIS_UPDATE_EVENT
+
+//#if defined( SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL ) || defined( ACCOUNT_BLOCK_MESSAGE_RENEWAL_KR )
+			SUCM_BLOCK_ACCOUNT_CONNECT = 3031,
+//#endif //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL // ACCOUNT_BLOCK_MESSAGE_RENEWAL_KR
 		};
 
 	
@@ -141,6 +152,7 @@ class CX2State : public CKTDXStage
 #endif // COPY_STRING_FADE_IN_OUT_NOTICE	//// kimjh: Fade-In, Out 되는 공지 출력용 구조체 내용, 주소에서 복사해서 갖고 있도록 변경
 				,m_fFadeInOutNoticeTime( fFadeInOutNoticeTime_ )
 				,m_fFadeInOutNoticeMaxTime( fFadeInOutNoticeTime_ )
+				,m_vOffsetPos(D3DXVECTOR2(0.f,0.f))
 			{
 				if( 5.f > fFadeInOutNoticeTime_ )	/// 일단 최소 출력 시간을 5초로 설정
 				{
@@ -157,6 +169,9 @@ class CX2State : public CKTDXStage
 			float						GetFadeInOutNoticeTime() { return m_fFadeInOutNoticeTime; }
 			void						SetFadeInOutNoticeTime( float fFadeInOutNoticeTime_ ) { m_fFadeInOutNoticeTime = fFadeInOutNoticeTime_; }
 
+			const D3DXVECTOR2&			GetOffsetPos(){ return m_vOffsetPos;}
+			void						SetOffsetPosX( float fOffsetX_ ){ m_vOffsetPos.x = fOffsetX_; }
+			void						SetOffsetPosY( float fOffsetY_ ){ m_vOffsetPos.y = fOffsetY_; }
 		private:
 			float						m_fFadeInOutNoticeTime;		/// 출력될 텍스트 표시 시간
 			float						m_fFadeInOutNoticeMaxTime;	/// 출력될 텍스트 최대 표시 시간
@@ -165,6 +180,8 @@ class CX2State : public CKTDXStage
 #else // COPY_STRING_FADE_IN_OUT_NOTICE		//// kimjh: Fade-In, Out 되는 공지 출력용 구조체 내용, 주소에서 복사해서 갖고 있도록 변경
 			const WCHAR*				m_pFadeInOutNoticeText;		/// 어둠의 문 난이도 변경시 화면에 출력될 텍스트
 #endif // COPY_STRING_FADE_IN_OUT_NOTICE	//// kimjh: Fade-In, Out 되는 공지 출력용 구조체 내용, 주소에서 복사해서 갖고 있도록 변경
+
+			D3DXVECTOR2					m_vOffsetPos;
 
 		};
 
@@ -183,7 +200,7 @@ class CX2State : public CKTDXStage
 
 		virtual bool	MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
-		virtual void	SetLuaFrameMoveFunc_LUA( const char* pFuncName )  { ConvertCharToWCHAR( m_LuaFrameMoveFuncName, pFuncName ); }
+        virtual void	SetLuaFrameMoveFunc_LUA( const char* pFuncName )  { m_LuaFrameMoveFuncName = ( pFuncName ) ? pFuncName : ""; }
 
 
 
@@ -262,9 +279,11 @@ class CX2State : public CKTDXStage
 
 		virtual bool Handler_EGS_ADMIN_KICK_USER_REQ_LUA( const char* szUserNickName, bool bIsUserID = false );
 
-//#ifdef SERV_PC_BANG_TYPE // PCBangType 지정 int 형 추가되었음
+#ifdef SERV_PC_BANG_TYPE
 		virtual bool Handler_EGS_ADMIN_SET_PC_BANG_REQ( bool bEnable, int iPcBangType = 0 );
-//#endif //SERV_PC_BANG_TYPE
+#else
+		virtual bool Handler_EGS_ADMIN_SET_PC_BANG_REQ( bool bEnable );
+#endif SERV_PC_BANG_TYPE
 
 		virtual bool Handler_EGS_CHECK_BALANCE_REQ();
 
@@ -481,7 +500,7 @@ class CX2State : public CKTDXStage
 //#endif//X2OPTIMIZE_TCP_RELAY_TEST
 
 #ifdef FIX_NEW_DEFENCE_DUNGEON_LEVEL_NOTICE
-		void SetFadeInOutNotice( const WCHAR* wszMsg_, float fVisibleTime_ = 5.f );		/// 화면에 페이드 인 ~ 페이드 아웃 되는 공지 설정 함수
+		void SetFadeInOutNotice( const WCHAR* wszMsg_, float fVisibleTime_ = 5.f, float fOffsetPosX_ = 0.f , float fOffsetPosY_ = 0.f );		/// 화면에 페이드 인 ~ 페이드 아웃 되는 공지 설정 함수
 		void ProcessFadeInOutNotice();													/// 화면에 페이드 인 ~ 페이드 아웃 되는 공지 갱신 함수
 #endif FIX_NEW_DEFENCE_DUNGEON_LEVEL_NOTICE
 
@@ -529,9 +548,19 @@ class CX2State : public CKTDXStage
 
 		bool GetIsJumpingCharacterDlgPopup() const;		// 점핑 캐릭터 Dlg 가 등장 중인가?
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		wstring GetExpirationDataDesc( IN const SEnum::AGENCY_SHOP_TYPE eAgencyShopType_, IN const wstring& wstrAgencyShopExpirationDate_ );
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 #ifdef SERV_CATCH_HACKUSER_INFO
 		bool Handler_EGS_CATCH_HACKUSER_INFO_NOT( int iCrashType );
 #endif SERV_CATCH_HACKUSER_INFO
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		bool Handler_EGS_DIVORCE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 	protected:
 		virtual bool UIEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 		virtual bool UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
@@ -542,7 +571,7 @@ class CX2State : public CKTDXStage
 //		virtual bool TCPRelayEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 		virtual void LuaFrameMove( double fTime, float fElapsedTime );
-		void		 LuaFuncCall( const WCHAR* pFuncName );
+		//void		 LuaFuncCall( const WCHAR* pFuncName );
 
 		virtual bool RegisterLuaBind();
 
@@ -724,8 +753,12 @@ class CX2State : public CKTDXStage
 		virtual bool HandleMsgByESCImp();
 		virtual bool PutOffPopUpDialog();
 		virtual bool QuitGame();
-
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		virtual void OpenLastMsgPopUp( const WCHAR* pMsg, wstring wstrCustomLuaFileName = L"", wstring wstrPlaySoundFileName = L"" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		virtual void OpenLastMsgPopUp( const WCHAR* pMsg );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 
 		//ESC키 눌러서 게임 종료 말고 다른 메시지가 떠야 할 경우 상속해서 오버라이딩 해줘야할 함수들 =_=a
 		virtual bool LastMsgByESC();
@@ -808,16 +841,23 @@ class CX2State : public CKTDXStage
 		bool Handler_EGS_SHOW_DISCONNECT_REASON_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif SERV_BLOCK_LIST_SHOW_DISCONNECT_REASON
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		bool Handler_ESG_REWARD_DB_DATA_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 		virtual void UserAndPetListPopUpMenuProcess() {}
 #ifdef PLAY_EMOTION_BY_USER_SELECT
 		virtual void PlayEmotionByUserSelect(){}
 #endif // PLAY_EMOTION_BY_USER_SELECT
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        void CheckAndSendingPlayStatus( float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		void CheckAndSendingPlayStatus();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		
 		bool ProcessGameScoreAndPostEffect();
 		virtual void ProcessShowMiniMap( const bool bHide_ ) {};
-
 
 #ifdef SERV_ID_NETMARBLE_PCBANG
 		bool Handler_CC_KXPT_PUBLIC_IP_CHECK_REQ();
@@ -836,6 +876,7 @@ class CX2State : public CKTDXStage
 #ifdef FIX_NEW_DEFENCE_DUNGEON_LEVEL_NOTICE
 		vector<FadeInOutNotice*> m_vecFadeInOutNotice;	/// 페이드 인 ~ 페이드 아웃 공지 정보 저장용 컨테이너
 #endif FIX_NEW_DEFENCE_DUNGEON_LEVEL_NOTICE
+
 #ifdef _IN_HOUSE_
 #ifdef SERV_DEVELOPER_RANDOM_OPEN_ITEM_LOG
 		bool Handler_EGS_OPEN_RANDOM_ITEM_DEVELOPER_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
@@ -846,6 +887,36 @@ class CX2State : public CKTDXStage
 		virtual bool Handler_EGS_REGISTER_RECRUITER_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif SERV_RECRUIT_EVENT_BASE
 
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+		void Handler_EGS_EGS_GET_EVENT_INFO_REQ();
+		virtual bool Handler_EGS_GET_EVENT_INFO_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif SERV_EVENT_CHARACTER_QUEST_RANKING
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		void SetShowNoteUI( bool bShow ) { m_bShowNoteUI = bShow; }
+		void ProcessElesisEvent( UCHAR ucLevel, int iNoteViewCount );
+		void ReadyToShowEventNoteUI();
+		void Handler_EGS_EVENT_NOTE_VIEW_REQ();
+		bool Handler_EGS_EVENT_NOTE_VIEW_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif SERV_ELESIS_UPDATE_EVENT
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		bool Handler_EGS_EVENT_CHUNG_GIVE_ITEM_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		bool Handler_EGS_EVENT_COBO_DUNGEON_FIELD_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+		bool Handler_EGS_EVENT_COBO_DUNGEON_CLEAR_COUNT_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+		bool Handler_EGS_EVENT_COBO_FIELD_MONSTER_KILL_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		bool Handler_EGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+		bool Handler_EGS_CASH_DIRECT_CHARGE_CN_REQ();
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 	protected:
 
 		float			m_fTime;
@@ -861,7 +932,7 @@ class CX2State : public CKTDXStage
 		CKTDGUIDialogType	m_pMsgOkFailPCBANGAuth;
 		//}}
 #endif PC_BANG_SANG	
-		wstring			m_LuaFrameMoveFuncName;
+		string			m_LuaFrameMoveFuncName;
 
 		CKTDGUIDialogType	m_pMsgBoxQuitGame;		/// 게임 종료 대화 상자
 		bool			m_bOpenMsgBoxQuitGame;
@@ -960,12 +1031,10 @@ class CX2State : public CKTDXStage
 		CKTDGUIDialogType	m_pDlgAdvertisement;
 #endif SERV_ADVERTISEMENT_EVENT
 
-
 #ifdef CLIENT_PORT_CHANGE_REQUEST
 		int							m_iUDPRequestCount_X2State;		// 2013.05.10 lygan_조성욱 // X2State 에서만 사용하는 UDP 실패 카운트 체크 변수
 		boost::timer                m_TimerUDPRequestNotice;		// 2013.05.14 lygan_조성욱 // UDP 포트 오픈 된것을 찾고 있을때 유저에게 5초 주기로 알림을한다.
 #endif //CLIENT_PORT_CHANGE_REQUEST
-
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM		/// mauntain // 2013-05-03 // 결혼 시스템 배우자 소환 기능
 		/// 서버에서 사용하는 인자값 저장
@@ -983,7 +1052,26 @@ class CX2State : public CKTDXStage
 		CKTDGUIDialogType				m_pDlgJumpingCharacterClassChangeNotice;// 점핑 캐릭터를 선택 가능합니다! Dlg
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		bool							m_bReConnectChannelServer;		// 채널 접속 시, 실패하면 다른 채널을 찾아볼 것인가?
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
 #ifdef SERV_CHECK_TIME_QUEST
 		bool							m_bAlreadyShowErrorMessage;
 #endif //SERV_CHECK_TIME_QUEST
+
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+		CKTDGUIDialogType				m_pDlgEventCharacterRanking;
+#endif //SERV_EVENT_CHARACTER_QUEST_RANKING
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		bool						m_bShowNoteUI;
+		bool						m_bPlayNoteUI;
+		bool						m_bProcessNoteView;
+		CKTDGUIDialogType			m_pDlgEventElesisNote;
+		CKTDGXMeshPlayer::CXMeshInstanceHandle			m_hMeshInstEventNote;
+		CKTDGXMeshPlayer::CXMeshInstanceHandle			m_hMeshInstEventNoteStart;		
+		float						m_fPlayTime;
+		int							m_iRewardTitleIndex;
+#endif SERV_ELESIS_UPDATE_EVENT
 };

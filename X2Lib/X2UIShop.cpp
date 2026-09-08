@@ -88,8 +88,12 @@ CX2UIShop::~CX2UIShop(void)
 
 		if( m_SlotList.size() > 1000000 )
 		{
-			CX2State* pState = static_cast<CX2State*>( g_pMain->GetNowState() );
-			pState->Handler_EGS_CATCH_HACKUSER_INFO_NOT(2);
+			KEGS_CATCH_HACKUSER_INFO_NOT kPacket;
+			kPacket.m_iUserUID = g_pData->GetMyUser()->GetUID();
+			kPacket.m_iUnitUID = g_pData->GetMyUser()->GetSelectUnit()->GetUID();
+			kPacket.m_iCrashType = 2;
+
+			Handler_EGS_CATCH_HACKUSER_INFO_NOT(kPacket);
 		}		
 #endif SERV_CATCH_HACKUSER_INFO
 
@@ -106,7 +110,14 @@ CX2UIShop::~CX2UIShop(void)
 	SAFE_DELETE_DIALOG(m_pDLGSellItemNum);
 	SAFE_DELETE_DIALOG(m_pDLGSellItemConfirm);
 	SAFE_DELETE_DIALOG(m_pDLGRepairItemConfirm);
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	if( m_pDLGShop != NULL )
+	{
+		SAFE_DELETE_DIALOG(m_pDLGShop);
+	}
+#else
 	SAFE_DELETE_DIALOG(m_pDLGShop);
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	SAFE_DELETE_DIALOG(m_pDLGBuyItemNum);
 	SAFE_DELETE_DIALOG(m_pDLGBuyItemConfirm);
 	
@@ -214,6 +225,12 @@ bool CX2UIShop::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 bool CX2UIShop::MouseRButtonUp( D3DXVECTOR2 mousePos )
 {
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	if( (CX2LocationManager::HOUSE_ID)m_HouseID == CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+	{
+		return false;
+	}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	CX2SlotItem* pSlot = (CX2SlotItem*) GetSlotInMousePos( mousePos );
 	if(pSlot == NULL) return false;
 	
@@ -272,10 +289,33 @@ bool CX2UIShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 	case USCM_EXIT:
 		{			
 			SetShow(false);
-
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+			if( g_pInstanceData != NULL )
+			{
+				g_pInstanceData->SetAdamsEventShopUIShow(false); //상점 UI가 꺼짐!!!
+				g_pData->GetUIManager()->SetShowPartyMenu(true);
+				g_pData->GetUIManager()->SetShowQucikQuest(true);
+				CX2State* pNowState = static_cast<CX2State*>( g_pMain->GetNowState() );
+				if ( NULL != pNowState )
+					pNowState->SetEnableShortCutKey(true);
+			}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 			if(g_pTFieldGame != NULL)
 			{
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+				CX2TFieldNpc *pJoinNpc = NULL;
+				if( (CX2LocationManager::HOUSE_ID)m_HouseID != CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+				{
+					pJoinNpc = g_pTFieldGame->GetFieldNPC( g_pTFieldGame->GetJoinNpcIndex() );
+				}
+				else
+				{
+					int iTempHouseID = (int)CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP;
+					pJoinNpc = g_pTFieldGame->GetHouseFieldNPC(iTempHouseID);
+				}
+#else
 				CX2TFieldNpc *pJoinNpc = g_pTFieldGame->GetFieldNPC( g_pTFieldGame->GetJoinNpcIndex() );
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 				if(pJoinNpc != NULL)
 				{
 					pJoinNpc->GetNpcShop()->SetKeyEvent();
@@ -640,7 +680,7 @@ bool CX2UIShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 			if( true == m_bUseEnchantAdjuvant )
 			{
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnchantItemUID );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnchantItemUID );
 				if( NULL != pItem )
 				{
 					vector<int> vecAdjuvantItemIdList;
@@ -671,7 +711,7 @@ bool CX2UIShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 			if( true == m_bUseEnchantPlus )
 			{
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnchantItemUID );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnchantItemUID );
 				if( NULL != pItem )
 				{
 					vector<int> vecEnchantPlusItemIdList;
@@ -700,7 +740,7 @@ bool CX2UIShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 			if( true == m_bUseDestroyGuard )
 			{
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnchantItemUID );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnchantItemUID );
 				if( NULL != pItem )
 				{
 					vector<int> vecDestroyGuardItemIdList;
@@ -743,20 +783,20 @@ bool CX2UIShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 			//Send Packet gogo
 			CKTDGUIControl* pControlItem = (CKTDGUIControl*)lParam;
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_AttributeEnchantItemUID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_AttributeEnchantItemUID );
 			if ( pItem != NULL )
 			{
 
-				if( 0 == pItem->GetItemData()->m_EnchantedAttribute.m_aEnchantedType[0] )
+				if( 0 == pItem->GetItemData().m_EnchantedAttribute.m_aEnchantedType[0] )
 				{
 					m_AttribEnchantSlotID = CX2EnchantItem::ESI_SLOT_1;
 				}
-				else if( 0 == pItem->GetItemData()->m_EnchantedAttribute.m_aEnchantedType[1] )
+				else if( 0 == pItem->GetItemData().m_EnchantedAttribute.m_aEnchantedType[1] )
 				{
 					m_AttribEnchantSlotID = CX2EnchantItem::ESI_SLOT_2;
 				}
 #ifdef TRIPLE_ENCHANT_TEST
-				else if( 0 == pItem->GetItemData()->m_EnchantedAttribute.m_aEnchantedType[2] )
+				else if( 0 == pItem->GetItemData().m_EnchantedAttribute.m_aEnchantedType[2] )
 				{
 					m_AttribEnchantSlotID = CX2EnchantItem::ESI_SLOT_3;
 				}
@@ -779,7 +819,7 @@ bool CX2UIShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 						bWeapon = false;
 					}
 
-					g_pData->GetEnchantItem()->GetAttribEnchantRequireED( bWeapon, pItem->GetItemData()->GetAttribEnchantedCount(), 
+					g_pData->GetEnchantItem()->GetAttribEnchantRequireED( bWeapon, pItem->GetItemData().GetAttribEnchantedCount(), 
 						pItem->GetItemTemplet()->GetUseLevel(), pItem->GetItemTemplet()->GetItemGrade(), eDForEnchant );
 					m_pDLGAttribEnchantItemConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( -999, -999 ), GET_REPLACED_STRING( ( STR_ID_898, "i", eDForEnchant ) ), USCM_ENCHANT_ATTRIBUTE_ITEM_CONFIRM, g_pMain->GetNowState() );
 				}
@@ -811,7 +851,7 @@ bool CX2UIShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
 			bool bWeapon = false;
 			int eDForEnchant = 0;
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_AttributeEnchantItemUID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_AttributeEnchantItemUID );
 			if ( pItem != NULL )
 			{
 				if ( pItem->GetItemTemplet()->GetItemType() == CX2Item::IT_WEAPON )
@@ -823,7 +863,7 @@ bool CX2UIShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 					bWeapon = false;
 				}
 				
-				g_pData->GetEnchantItem()->GetAttribEnchantRequireED( bWeapon, pItem->GetItemData()->GetAttribEnchantedCount(), 
+				g_pData->GetEnchantItem()->GetAttribEnchantRequireED( bWeapon, pItem->GetItemData().GetAttribEnchantedCount(), 
 					pItem->GetItemTemplet()->GetUseLevel(), pItem->GetItemTemplet()->GetItemGrade(), eDForEnchant );
 
                 m_pDLGAttribEnchantItemConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( -999, -999 ), GET_REPLACED_STRING( ( STR_ID_899, "i", eDForEnchant ) ), USCM_ENCHANT_ATTRIBUTE_ITEM_REMOVE_CONFIRM, g_pMain->GetNowState() );
@@ -839,6 +879,69 @@ bool CX2UIShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 			return Handler_EGS_ATTRIB_ENCHANT_ITEM_REQ( m_AttribEnchantSlotID, m_AttribEnchantID, false );
 		}
 		return true;
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	case USCM_EVENT_EXCHANGE_ITEM:
+		{
+			//여기서 아이템 정보 얻어가지고 교환쪽으로 넘겨주자
+			//위험하다...이런거 안했으면 좋겠다.
+			// 커서 보통으로 바꿔주자
+			IF_EVENT_ENABLED( CEI_EVENT_ADAMS_SHOP )
+			{
+				CX2State* pState = (CX2State*)g_pMain->GetNowState();	// DownCast니까 안심
+				if(pState != NULL)
+				{
+					CX2Cursor* pCursor = pState->GetCursor();
+					if ( pCursor != NULL && pCursor->GetCurorState() != CX2Cursor::XCS_NORMAL )
+					{
+						pCursor->ChangeCursorState(CX2Cursor::XCS_NORMAL);
+					}
+				}
+				CKTDGUIControl* pBuyButton = (CKTDGUIControl*)lParam;
+				if ( pBuyButton != NULL && m_pDLGShop != NULL )
+				{
+					m_BuyItemSlotNum = pBuyButton->GetDummyInt(0);
+					BuySlot* pSlotInfo = m_vecBuySlot[m_BuyItemSlotNum];
+
+					//{{ kimhc // 2009-09-16 // 길드 창단 아이템 구입
+					if ( pSlotInfo->m_pItemTemplet == NULL )
+					{
+						ASSERT( !"ItemTemplet is NULL" );
+						return false;
+					}
+					///행운 코인 아이디를 박자
+					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().GetItemByTID(141000887);
+					int iGetItemNum = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().GetNumItemByTID(141000887);
+					if( pItem == NULL)
+					{
+						//아이템이 존재 하지 않을 때
+						//ASSERT( !"ItemTemplet is NULL" );
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING(STR_ID_30014) , g_pMain->GetNowState() );
+						return false;
+					}
+					else if( iGetItemNum < pSlotInfo->m_pItemTemplet->GetPrice() ) //보유하고 있는 아이템 갯수가 교환 갯수보다 적다
+					{
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING(STR_ID_836) , g_pMain->GetNowState() );
+						return false;
+					}
+					else
+					{
+						KEGS_ITEM_EXCHANGE_REQ kPacket;
+
+						kPacket.m_iSourceItemID			= 141000887;
+						kPacket.m_iSourceItemUID		= 0;//수량성의 경우 아이템 UID를 0으로 넣어준다.
+						kPacket.m_iSourceQuantity		= pSlotInfo->m_pItemTemplet->GetPrice();
+						kPacket.m_iHouseID				= (int)CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP;
+						kPacket.m_iDestItemID			= pSlotInfo->m_pItemTemplet->GetItemID();
+
+						g_pData->GetServerProtocol()->SendPacket( EGS_ITEM_EXCHANGE_REQ, kPacket ); 
+						g_pMain->AddServerPacket( EGS_ITEM_EXCHANGE_ACK, 60.f );
+						return true;
+					}
+				}
+			}
+		}
+		return true;
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	//////////////////////////////////////////////////////////////////////////
 	default:
 		break;
@@ -882,6 +985,12 @@ bool CX2UIShop::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 		}
 		break;
 #endif //SERV_SUPPORT_MATERIAL_ENCHANT_EVENT
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	case EGS_ITEM_EXCHANGE_ACK:
+			{
+				return Handler_EGS_ITEM_EXCHANGE_ACK(hWnd, uMsg, wParam, lParam );
+			}break;
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	default:
 		break;
 	}
@@ -930,16 +1039,52 @@ void CX2UIShop::SetShow(bool val)
 		if(m_HouseID == NULL) return;
 
 		RegisterLuaBind();
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		if( m_pDLGShop != NULL )
+		{
+			for( UINT iS = 0; iS < m_SlotList.size(); iS++ )
+			{
+				CX2SlotItem* pkSlotItem = (CX2SlotItem*)m_SlotList[iS];
+				if ( pkSlotItem != NULL )
+				{
+					pkSlotItem->DestroyItemUI();
+					pkSlotItem->SetShow(false);
+					SAFE_DELETE(pkSlotItem);
+				}
+			}
+			m_SlotList.clear();
+			SAFE_DELETE_DIALOG( m_pDLGShop );
+		}
+		if( (CX2LocationManager::HOUSE_ID)m_HouseID == CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+		{
+			m_pDLGShop = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Shop_AdamsEvent.lua" );
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGShop );
+		}
+		else
+		{
+			m_pDLGShop = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Shop.lua" );
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGShop );
+		}
+#else
 		if(m_pDLGShop == NULL)
 		{
 			m_pDLGShop = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Shop.lua" );
 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGShop );
 		}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 		m_pDLGShop->SetShowEnable(true, true);
-
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		if( (CX2LocationManager::HOUSE_ID)m_HouseID != CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+		{
+			CKTDGUICheckBox* pCheckBox = (CKTDGUICheckBox*)m_pDLGShop->GetControl( L"CheckBox_ShowAll" );
+			if ( pCheckBox != NULL )
+				pCheckBox->SetChecked( m_bShowAllCharItem );
+		}
+#else
 		CKTDGUICheckBox* pCheckBox = (CKTDGUICheckBox*)m_pDLGShop->GetControl( L"CheckBox_ShowAll" );
 		if ( pCheckBox != NULL )
 			pCheckBox->SetChecked( m_bShowAllCharItem );
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 		m_NowBuyItemCategory = CX2UIShop::BIC_WEAPON;
 
 		// 하우스 템플릿을 받자
@@ -952,7 +1097,29 @@ void CX2UIShop::SetShow(bool val)
 			ASSERT( !"null house templet" );
 			return;
 		}
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		if( (CX2LocationManager::HOUSE_ID)m_HouseID != CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+		{
+			// 상점 종류별로 할 수 있는 일이 다름 : 설정해 주자
+			CKTDGUIButton* pButton_Repair = (CKTDGUIButton*) m_pDLGShop->GetControl( L"Button_Repair" );
+			CKTDGUIButton* pButton_RepairAll = (CKTDGUIButton*) m_pDLGShop->GetControl( L"Button_RepairAll" );
+			CKTDGUIButton* pButton_Sell = (CKTDGUIButton*) m_pDLGShop->GetControl( L"Button_Sell" );
+			CKTDGUIButton* pButton_Enchant = (CKTDGUIButton*) m_pDLGShop->GetControl( L"Button_Enchant" );
+			CKTDGUIButton* pButton_AttributeEnchant = (CKTDGUIButton*) m_pDLGShop->GetControl( L"Button_EnchantAttribute" );
 
+// 			CKTDGUIStatic* pStatic_Repair = (CKTDGUIStatic*) m_pDLGShop->GetControl( L"Static_RepairButton" );
+// 			CKTDGUIStatic* pStatic_RepairAll = (CKTDGUIStatic*) m_pDLGShop->GetControl( L"Static_RepairAllButton" );
+// 			CKTDGUIStatic* pStatic_Sell = (CKTDGUIStatic*) m_pDLGShop->GetControl( L"Static_SellButton" );
+// 			CKTDGUIStatic* pStatic_Enchant = (CKTDGUIStatic*) m_pDLGShop->GetControl( L"Static_EnchantButton" );
+//	 		CKTDGUIStatic* pStatic_AttributeEnchant = (CKTDGUIStatic*) m_pDLGShop->GetControl( L"Static_EnchantAttributeButton" );
+
+			pButton_Repair->SetShowEnable(pHouseTemplet->m_bRepair, pHouseTemplet->m_bRepair);
+			pButton_RepairAll->SetShowEnable(pHouseTemplet->m_bRepair, pHouseTemplet->m_bRepair);
+			pButton_Sell->SetShowEnable(pHouseTemplet->m_bSell, pHouseTemplet->m_bSell);
+			pButton_Enchant->SetShowEnable(pHouseTemplet->m_bEnchant, pHouseTemplet->m_bEnchant);
+			pButton_AttributeEnchant->SetShowEnable(pHouseTemplet->m_bAttribute, pHouseTemplet->m_bAttribute);
+		}
+#else
 		// 상점 종류별로 할 수 있는 일이 다름 : 설정해 주자
 		CKTDGUIButton* pButton_Repair = (CKTDGUIButton*) m_pDLGShop->GetControl( L"Button_Repair" );
 		CKTDGUIButton* pButton_RepairAll = (CKTDGUIButton*) m_pDLGShop->GetControl( L"Button_RepairAll" );
@@ -971,6 +1138,7 @@ void CX2UIShop::SetShow(bool val)
 		pButton_Sell->SetShowEnable(pHouseTemplet->m_bSell, pHouseTemplet->m_bSell);
 		pButton_Enchant->SetShowEnable(pHouseTemplet->m_bEnchant, pHouseTemplet->m_bEnchant);
 		pButton_AttributeEnchant->SetShowEnable(pHouseTemplet->m_bAttribute, pHouseTemplet->m_bAttribute);
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 
 		// 카데고리 버튼 설정
 		// 일단 다 끄고
@@ -1061,8 +1229,21 @@ void CX2UIShop::SetShow(bool val)
 						bFlag = true;
 					}
 					pRadioButton->SetOffsetPos( D3DXVECTOR2( (float)MAGIC_CONTROL_WIDTH, 0 ) );
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+					if( (CX2LocationManager::HOUSE_ID)m_HouseID != CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+					{
+						pRadioButton->SetShow( true );
+						pRadioButton->SetEnable( true );
+					}
+					else
+					{
+						pRadioButton->SetShow( false );
+						pRadioButton->SetEnable( false );
+					}
+#else
 					pRadioButton->SetShow( true );
 					pRadioButton->SetEnable( true );
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 					MAGIC_CONTROL_WIDTH += pRadioButton->GetDummyInt(0);		// Width를 LUA에 AddDummyInt로 만들어 넣어 둘 것!
 				}
 			}
@@ -1154,7 +1335,19 @@ void CX2UIShop::BuyUISetting()
 	// g_pData->GetItemManager()->GetShopItemList( g_pMain->GetPrevVillageStateID(), vecShopItemList );
 	if(g_pTFieldGame != NULL)
 	{
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		int npcId = 0;
+		if( (CX2LocationManager::HOUSE_ID)m_HouseID != CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+		{
+			npcId = g_pTFieldGame->GetJoinNpcId();
+		}
+		else
+		{
+			npcId = (int)CX2UnitManager::NPC_UNIT_ID::NUI_EVENT_ADAMS_UI_SHOP;
+		}
+#else
 		int npcId = g_pTFieldGame->GetJoinNpcId();
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 		if( g_pData->GetItemManager()->GetNpcShopItemList( g_pData->GetLocationManager()->GetCurrentVillageID(), npcId, vecShopItemList ) == false)
 			g_pData->GetItemManager()->GetShopItemList( g_pData->GetLocationManager()->GetCurrentVillageID(), vecShopItemList );
 	}
@@ -1162,16 +1355,115 @@ void CX2UIShop::BuyUISetting()
 	{
 		g_pData->GetItemManager()->GetShopItemList( g_pData->GetLocationManager()->GetCurrentVillageID(), vecShopItemList );
 	}
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	std::set< int > setBanBuyItem;
+	if ( g_pData != NULL && g_pData->GetUIManager() != NULL )
+	{
+		setBanBuyItem = g_pData->GetUIManager()->GetBanBuyItemList();
+	}
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 	for( UINT i=0; i<vecShopItemList.size(); i++ )
 	{
         const CX2Item::ItemTemplet* pItemTemplet = vecShopItemList[i];
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING
+		if ( setBanBuyItem.find(pItemTemplet->GetItemID()) != setBanBuyItem.end())
+			continue;
+#endif SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 		if ( m_bShowAllCharItem == false )
 		{
 			if ( IsPossibleUsedByMyCharacter( pItemTemplet ) == false )
 				continue;
 		}
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		if( (CX2LocationManager::HOUSE_ID)m_HouseID == CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+		{
+			m_vecItemList[ BIC_QUICK_SLOT ].push_back( pItemTemplet );
+		}
+		else
+		{
+			switch( pItemTemplet->GetEqipPosition() ) 
+			{
+				//무기
+			case CX2Unit::EP_WEAPON_HAND:			//무기
+			case CX2Unit::EP_WEAPON_TEMP1:		//임시1
+			case CX2Unit::EP_WEAPON_TEMP2:		//임시2
+			case CX2Unit::EP_WEAPON_TEMP3:		//임시3
+				m_vecItemList[ BIC_WEAPON ].push_back( pItemTemplet );
+				break;
 
+				//방어구
+			case CX2Unit::EP_DEFENCE_HAIR:		//헤어스타일
+			case CX2Unit::EP_DEFENCE_FACE:		//얼굴
+			case CX2Unit::EP_DEFENCE_BODY:		//상의
+				m_vecItemList[ BIC_COAT ].push_back( pItemTemplet );
+				break;
+
+			case CX2Unit::EP_DEFENCE_LEG:			//하의
+				m_vecItemList[ BIC_TROUSERS ].push_back( pItemTemplet );
+				break;
+
+			case CX2Unit::EP_DEFENCE_HAND:		//장갑
+				m_vecItemList[ BIC_HAND ].push_back( pItemTemplet );
+				break;
+
+			case CX2Unit::EP_DEFENCE_FOOT:		//신발
+				m_vecItemList[ BIC_FOOTWEAR ].push_back( pItemTemplet );
+				break;
+
+			case CX2Unit::EP_QUICK_SLOT:
+				{
+					m_vecItemList[ BIC_QUICK_SLOT ].push_back( pItemTemplet );
+				}
+				break;
+
+#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT	// 여기 필요 없지 싶다.
+				//		case CX2Unit::EP_ONEPIECE_FASHION:
+				//			{
+				//				m_vecItemList[ BIC_COAT ].push_back( pItemTemplet );
+				//			}
+				//			break;
+#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
+
+				//액세서리
+			case CX2Unit::EP_AC_TITLE:			//칭호
+			case CX2Unit::EP_AC_HAIR:				//헤어
+			case CX2Unit::EP_AC_FACE1:				
+			case CX2Unit::EP_AC_FACE2:			
+			case CX2Unit::EP_AC_FACE3:			
+			case CX2Unit::EP_AC_BODY:				//상의
+			case CX2Unit::EP_AC_ARM:				//팔
+			case CX2Unit::EP_AC_LEG:				//다리
+			case CX2Unit::EP_AC_RING:				//반지
+			case CX2Unit::EP_AC_NECKLESS:			//목걸이
+			case CX2Unit::EP_AC_WEAPON:			//	무기 악세사리
+			case CX2Unit::EP_AC_TEMP2:			//임시2
+			case CX2Unit::EP_AC_TEMP3:			//임시3
+			case CX2Unit::EP_AC_TEMP4:			//임시4
+			case CX2Unit::EP_AC_TEMP5:			//임시5
+				m_vecItemList[ BIC_ACCESSORY ].push_back( pItemTemplet );
+				break;
+
+			case CX2Unit::EP_DEFENCE_TEMP1:		//임시1
+			case CX2Unit::EP_DEFENCE_TEMP2:		//임시2
+			case CX2Unit::EP_DEFENCE_TEMP3:		//임시3
+
+				//필살기
+			case CX2Unit::EP_SKILL_1:				//1단계 필살기
+			case CX2Unit::EP_SKILL_2:				//2단계 필살기
+			case CX2Unit::EP_SKILL_3:				//3단계 필살기
+			case CX2Unit::EP_SKILL_TEMP1:			//임시1
+			case CX2Unit::EP_SKILL_TEMP2:			//임시2
+			case CX2Unit::EP_SKILL_TEMP3:			//임시3
+			default:
+				m_vecItemList[ BIC_SPECIAL ].push_back( pItemTemplet );
+				break;
+			}
+		}
+#else
 		switch( pItemTemplet->GetEqipPosition() ) 
 		{
 
@@ -1207,14 +1499,6 @@ void CX2UIShop::BuyUISetting()
 				m_vecItemList[ BIC_QUICK_SLOT ].push_back( pItemTemplet );
 			}
 			break;
-
-#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT	// 여기 필요 없지 싶다.
-//		case CX2Unit::EP_ONEPIECE_FASHION:
-//			{
-//				m_vecItemList[ BIC_COAT ].push_back( pItemTemplet );
-//			}
-//			break;
-#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
 
 			//액세서리
 		case CX2Unit::EP_AC_TITLE:			//칭호
@@ -1253,6 +1537,7 @@ void CX2UIShop::BuyUISetting()
 			break;
 
 		}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	}
 
 	//{{ kimhc // 2009-12-08 // 판매 물품에 따라 탭 활성화하는 기능 추가
@@ -1274,11 +1559,20 @@ void CX2UIShop::ResetBuySlotList( int nPage )
 	const int MAGIC_MAX_NUM_BUY_ITEM_SLOT = m_SlotList.size();
 	m_nNowPage = nPage;
 	m_nMaxPage = (int)(m_vecItemList[m_NowBuyItemCategory].size()+MAGIC_MAX_NUM_BUY_ITEM_SLOT-1)/MAGIC_MAX_NUM_BUY_ITEM_SLOT;
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	if( (CX2LocationManager::HOUSE_ID)m_HouseID != CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+	{
+		CKTDGUIStatic* pStaticPageNum = (CKTDGUIStatic*) m_pDLGShop->GetControl( L"Static_PageNumber" );
+		wstringstream wstrmPageNum;
+		wstrmPageNum << m_nNowPage << L"/" << m_nMaxPage;
+		pStaticPageNum->GetString(0)->msg = wstrmPageNum.str();
+	}
+#else
 	CKTDGUIStatic* pStaticPageNum = (CKTDGUIStatic*) m_pDLGShop->GetControl( L"Static_PageNumber" );
 	wstringstream wstrmPageNum;
 	wstrmPageNum << m_nNowPage << L"/" << m_nMaxPage;
 	pStaticPageNum->GetString(0)->msg = wstrmPageNum.str();
-	
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP	
 	// 전체 상품의 인덱스
 	int iStartIndex = (m_nNowPage-1) * m_vecBuySlot.size();
 	int iEndIndex = min( m_nNowPage*m_vecBuySlot.size(), (int)m_vecItemList[m_NowBuyItemCategory].size() );
@@ -1326,8 +1620,17 @@ void CX2UIShop::ResetBuySlotList( int nPage )
 			pkSlotItem->SetEnable(true);
 		}
 
-		 
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		int tempMAGIC_STRING_WIDTH = 0;
+		if( (CX2LocationManager::HOUSE_ID)m_HouseID != CX2LocationManager::HOUSE_ID::HI_EVENT_ADAMS_UI_SHOP )
+			tempMAGIC_STRING_WIDTH = 147;
+		else
+			tempMAGIC_STRING_WIDTH = 118;
+
+		const int MAGIC_STRING_WIDTH = tempMAGIC_STRING_WIDTH;
+#else // ALWAYS_EVENT_ADAMS_UI_SHOP
 		const int MAGIC_STRING_WIDTH = 147;
+#endif // ALWAYS_EVENT_ADAMS_UI_SHOP
 
 		// 구매에 VP가 필요한지 아닌지 확인하고
 		if( pBuySlot->m_pItemTemplet->GetShopPriceType() == CX2Item::SPT_GP && pBuySlot->m_pItemTemplet->GetPricePvPPoint() > 0 ) // 필요하면
@@ -1359,11 +1662,8 @@ void CX2UIShop::ResetBuySlotList( int nPage )
 				}
 				
 			}
-#ifdef ELLIPSE_GLOBAL //조효진 VP 아이템 스트링 ... 처리 안되는 부분 수정 
+
 			pBuySlot->m_pEDVPStatic->GetString(0)->msg = wstrItemName;
-#else //ELLIPSE_GLOBAL
-            pBuySlot->m_pEDVPStatic->GetString(0)->msg = pBuySlot->m_pItemTemplet->GetFullName_();
-#endif //ELLIPSE_GLOBAL
 			wstringstream wstrmPrice;
 			wstrmPrice << pBuySlot->m_pItemTemplet->GetPrice() << L"\n " << pBuySlot->m_pItemTemplet->GetPricePvPPoint();
 			pBuySlot->m_pEDVPStatic->GetString(1)->msg = wstrmPrice.str();
@@ -1403,9 +1703,13 @@ void CX2UIShop::ResetBuySlotList( int nPage )
 			}
 
 			pBuySlot->m_pEDStatic->GetString(0)->msg = wstrItemName;
+#ifdef SIMPLE_BUG_FIX
+			pBuySlot->m_pEDStatic->GetString(1)->msg = g_pMain->GetEDString( pBuySlot->m_pItemTemplet->GetPrice() ).c_str();
+#else SIMPLE_BUG_FIX			
 			wstringstream wstrmPrice;
             wstrmPrice << pBuySlot->m_pItemTemplet->GetPrice();
 			pBuySlot->m_pEDStatic->GetString(1)->msg = wstrmPrice.str();
+#endif SIMPLE_BUG_FIX
 			pBuySlot->m_pEDStatic->SetShow(true);
 		
 		}
@@ -1426,8 +1730,14 @@ void CX2UIShop::SellItem( UidType sellItemUID, D3DXVECTOR2 pos )
 	
 	m_SellItemUID = sellItemUID;
 	
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	CX2Item* pSellItem = pInventory->GetItem( m_SellItemUID );
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Item* pSellItem = kInventory.GetItem( m_SellItemUID );
+//{{ robobeg : 2013-11-04
+    if ( pSellItem == NULL || pSellItem->GetItemTemplet() == NULL )
+    {
+        return;
+    }
+//}} robobeg : 2013-11-04
 
 	if ( pSellItem->GetItemTemplet()->GetShopPriceType() == CX2Item::SPT_NONE )
 	{
@@ -1438,23 +1748,18 @@ void CX2UIShop::SellItem( UidType sellItemUID, D3DXVECTOR2 pos )
 	}
 
 #ifdef SERV_IMPOSSIBLE_SELL_ITEM_ACCESSORY
-	if ( pSellItem->GetItemData() != NULL )
+	if ( pSellItem->GetItemTemplet()->GetPeriodType() == CX2Item::SPT_GP && pSellItem->GetItemTemplet()->GetItemType() == CX2Item::IT_ACCESSORY && pSellItem->GetItemData().m_Period != 0 )
 	{
-		if ( pSellItem->GetItemTemplet()->GetPeriodType() == CX2Item::SPT_GP && pSellItem->GetItemTemplet()->GetItemType() == CX2Item::IT_ACCESSORY && pSellItem->GetItemData()->m_Period != 0 )
-		{
-			CKTDGUIDialogType pMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_21663 ), g_pMain->GetNowState() );
-			pMsgBox->SetEnableMoveByDrag_LUA(false);
-			return;
-		}
+		CKTDGUIDialogType pMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_21663 ), g_pMain->GetNowState() );
+		pMsgBox->SetEnableMoveByDrag_LUA(false);
+		return;
 	}
 #endif // SERV_IMPOSSIBLE_SELL_ITEM_ACCESSORY
 
 	//{{ kimhc // 2009-09-08 // 봉인된 아이템 상점 판매 불가
 #ifdef	SEAL_ITEM
-	if ( pSellItem->GetItemData() == NULL )
-		return;
 
-	if ( pSellItem->GetItemData()->m_bIsSealed == true )
+	if ( pSellItem->GetItemData().m_bIsSealed == true )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4477 ), g_pMain->GetNowState() );
 		return; 
@@ -1471,7 +1776,7 @@ void CX2UIShop::SellItem( UidType sellItemUID, D3DXVECTOR2 pos )
 	}
 	else		// 수량성이면
 	{
-		m_SellItemNum = pSellItem->GetItemData()->m_Quantity;
+		m_SellItemNum = pSellItem->GetItemData().m_Quantity;
 
 		if(true == m_bQuickSell)	// 수량묻지않기
 		{			
@@ -1492,7 +1797,7 @@ void CX2UIShop::OpenSellItemConfirmDLG()
 	int popUpSizeX = 425;
 	int popUpSizeY = 147;
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SellItemUID );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SellItemUID );
 	if ( pItem != NULL )
 	{
 		if ( pItem->GetItemTemplet() != NULL )
@@ -1559,7 +1864,7 @@ void CX2UIShop::UpdateItemSellNumDLG( bool bReadIME, bool bTextSelected )
 		m_SellItemNum = g_pMain->GetEDFromString( pQuantity->GetText() );
 	}	
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SellItemUID );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SellItemUID );
 	int MaxItemNum = 100;
 	if(pItem != NULL)
 	{
@@ -1578,8 +1883,8 @@ void CX2UIShop::UpdateItemSellNumDLG( bool bReadIME, bool bTextSelected )
 			m_SellItemNum = MaxItemNum;
 	}
 	
-	if ( m_SellItemNum >= pItem->GetItemData()->m_Quantity )
-		m_SellItemNum = pItem->GetItemData()->m_Quantity;
+	if ( m_SellItemNum >= pItem->GetItemData().m_Quantity )
+		m_SellItemNum = pItem->GetItemData().m_Quantity;
 
 	if ( m_SellItemNum >= MaxItemNum )
 		m_SellItemNum = MaxItemNum;
@@ -1598,18 +1903,16 @@ void CX2UIShop::UpdateItemSellNumDLG( bool bReadIME, bool bTextSelected )
 
 bool CX2UIShop::Handler_EGS_SELL_ITEM_REQ()
 {
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	if( NULL == pInventory )
-		return false;
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
-	CX2Item* pItem = pInventory->GetItem( m_SellItemUID );
+	CX2Item* pItem = kInventory.GetItem( m_SellItemUID );
 	if( NULL == pItem )
 		return false;
 
 	// 아이템을 팔려고 시도했을 때, 결과가 20억이 넘는지 확인한다!
 	INT64 EDTotalAfterSell = 0;
 	EDTotalAfterSell += pItem->GetEDToSell() * m_SellItemNum;
-	EDTotalAfterSell += g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+	EDTotalAfterSell += g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 	if(EDTotalAfterSell < 0 || EDTotalAfterSell > MAX_ED_FOR_PLAYER)
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_2591 ), g_pMain->GetNowState() );
@@ -1618,7 +1921,7 @@ bool CX2UIShop::Handler_EGS_SELL_ITEM_REQ()
 
 
 	KEGS_SELL_ED_ITEM_REQ kPacket;
-	kPacket.m_iItemUID = pItem->GetItemData()->m_ItemUID;
+	kPacket.m_iItemUID = pItem->GetItemData().m_ItemUID;
 	kPacket.m_iQuantity = m_SellItemNum;
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_SELL_ED_ITEM_REQ, kPacket );
@@ -1647,8 +1950,8 @@ bool CX2UIShop::Handler_EGS_SELL_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, 
 		{
 			std::vector< KInventoryItemInfo > vecInventoryItemInfo;
 			vecInventoryItemInfo.push_back( kEvent.m_kInventorySlotInfo );
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( vecInventoryItemInfo );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED		= kEvent.m_iED;		
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( vecInventoryItemInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED		= kEvent.m_iED;		
 
 			if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 			{
@@ -1674,14 +1977,14 @@ bool CX2UIShop::Handler_EGS_SELL_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, 
 void CX2UIShop::RepairItem( UidType RepairItemUID )
 {
 	m_RepairItemUID = RepairItemUID;
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( RepairItemUID );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( RepairItemUID );
 	if(m_pDLGRepairItemConfirm != NULL) SAFE_DELETE_DIALOG(m_pDLGRepairItemConfirm);
 
 	if ( pItem != NULL )
 	{
 		if ( pItem->GetItemTemplet()->GetPeriodType() == CX2Item::PT_ENDURANCE )
 		{
-			if ( pItem->GetItemData()->m_Endurance >= pItem->GetItemTemplet()->GetEndurance() )
+			if ( pItem->GetItemData().m_Endurance >= pItem->GetItemTemplet()->GetEndurance() )
 			{
 				CKTDGUIDialogType pMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_902 ), g_pMain->GetNowState() );
 				pMsgBox->SetEnableMoveByDrag_LUA(false);
@@ -1756,7 +2059,7 @@ bool CX2UIShop::Handler_EGS_REPAIR_ITEM_REQ( UidType ItemUID )
 
 	m_pDLGRepairItemConfirm = NULL;
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( ItemUID );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( ItemUID );
 	if ( pItem != NULL )
 	{
 		int edToRepair = pItem->GetEDToRepair();
@@ -1772,19 +2075,19 @@ bool CX2UIShop::Handler_EGS_REPAIR_ITEM_REQ( UidType ItemUID )
 #endif // SERV_NEW_DEFENCE_DUNGEON
 		}
 
-		if ( edToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+		if ( edToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_908 ), g_pMain->GetNowState() );
 			return true;
 		}
 #ifdef SERV_PVP_NEW_SYSTEM
-		if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint )
+		if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_909 ), g_pMain->GetNowState() );
 			return true;
 		}
 #else
-		if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint )
+		if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_909 ), g_pMain->GetNowState() );
 			return true;
@@ -1831,13 +2134,12 @@ bool CX2UIShop::Handler_EGS_REPAIR_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam
 	//		StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"--EquipNormalCount: %d", pUnit->GetNormalEqipNum() );
 	//		StateLog( wszText );
 
-	//		CX2Inventory* pInventory = pUnit->GetInventory();
-	//		if( NULL != pInventory )
+	//		const CX2Inventory& kInventory = pUnit->GetInventory();
 	//		{
 	//			for( int i=0; i< pUnit->GetNormalEqipNum(); i++ )
 	//			{
 	//				UidType uidEquip = pUnit->GetNormalEqipUID( i );
-	//				CX2Item* pItem = pInventory->GetItem( uidEquip );
+	//				CX2Item* pItem = kInventory.GetItem( uidEquip );
 	//				if( NULL != pItem )
 	//				{
 	//					StateLog( pItem->GetFullName().c_str() );
@@ -1876,12 +2178,11 @@ bool CX2UIShop::Handler_EGS_REPAIR_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam
 
 	//	if( NULL != pUnit )
 	//	{
-	//		CX2Inventory* pInventory = pUnit->GetInventory();
-	//		if( NULL != pInventory )
+	//		const CX2Inventory& kInventory = pUnit->GetInventory();
 	//		{
 	//			BOOST_TEST_FOREACH( const KInventoryItemInfo&, kInventoryItemInfo, kEvent.m_vecInventorySlotInfo )
 	//			{
-	//				CX2Item* pItem = pInventory->GetItem( kInventoryItemInfo.m_iItemUID );
+	//				CX2Item* pItem = kInventory.GetItem( kInventoryItemInfo.m_iItemUID );
 	//				if( NULL != pItem )
 	//				{
 	//					StateLog( pItem->GetFullName().c_str() );
@@ -1908,11 +2209,11 @@ bool CX2UIShop::Handler_EGS_REPAIR_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam
 			CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
 			if ( pUnit != NULL )
 			{
-				pUnit->GetUnitData()->m_ED = kEvent.m_iED;
+				pUnit->AccessUnitData().m_ED = kEvent.m_iED;
 #ifdef SERV_PVP_NEW_SYSTEM
-				pUnit->GetUnitData()->m_iAPoint = kEvent.m_iAPoint;
+				pUnit->AccessUnitData().m_iAPoint = kEvent.m_iAPoint;
 #else
-				pUnit->GetUnitData()->m_VSPoint = kEvent.m_iVP;
+				pUnit->AccessUnitData().m_VSPoint = kEvent.m_iVP;
 #endif
 
 				if( NULL != g_pData->GetUIManager()->GetUIInventory() )
@@ -1946,17 +2247,17 @@ void CX2UIShop::RepairAllEquippedItem()
 	int vpToRepair = 0;
 	bool bAllfull = true;
 	m_vecAllEquippingItem.clear();
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
-	for ( int i = 0; i < pInventory->GetItemMaxNum( CX2Inventory::ST_E_EQUIP ); i++ )
+	for ( int i = 0; i < kInventory.GetItemMaxNum( CX2Inventory::ST_E_EQUIP ); i++ )
 	{
-		CX2Item* pItem = pInventory->GetItem( CX2Inventory::ST_E_EQUIP, i );
+		CX2Item* pItem = kInventory.GetItem( CX2Inventory::ST_E_EQUIP, i );
 		if ( pItem == NULL || 
             pItem->GetItemTemplet() == NULL || 
             pItem->GetItemTemplet()->GetPeriodType() != CX2Item::PT_ENDURANCE )
 			continue;
 
-		if(pItem->GetItemTemplet()->GetEndurance() != pItem->GetItemData()->m_Endurance) bAllfull = false;
+		if(pItem->GetItemTemplet()->GetEndurance() != pItem->GetItemData().m_Endurance) bAllfull = false;
 
 		edToRepair += pItem->GetEDToRepair();
 		vpToRepair += pItem->GetVPToRepair();
@@ -2022,7 +2323,7 @@ void CX2UIShop::AllEquippingItemRepairREQ()
 	for ( int i = 0; i < (int)m_vecAllEquippingItem.size(); i++ )
 	{
 		UidType itemUID = m_vecAllEquippingItem[i];
-		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( itemUID );
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( itemUID );
 		if ( pItem == NULL || 
             pItem->GetItemTemplet() == NULL || 
             pItem->GetItemTemplet()->GetPeriodType() != CX2Item::PT_ENDURANCE )
@@ -2044,19 +2345,19 @@ void CX2UIShop::AllEquippingItemRepairREQ()
 	}
 
 
-	if ( edToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+	if ( edToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_908 ), g_pMain->GetNowState() );
 		return;
 	}
 #ifdef SERV_PVP_NEW_SYSTEM
-	if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint )
+	if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_909 ), g_pMain->GetNowState() );
 		return;
 	}
 #else
-	if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint )
+	if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_909 ), g_pMain->GetNowState() );
 		return;
@@ -2121,14 +2422,13 @@ bool CX2UIShop::IsPossibleUsedByMyCharacter( const CX2Item::ItemTemplet* pItemTe
 //////////////////////////////////////////////////////////////////////////
 // 구매
 //////////////////////////////////////////////////////////////////////////
-#ifdef PRECHECK_SHOP_BUY_ITEM
 int CX2UIShop::PreCheckShopBuyItem()
 {
 	BuySlot* pSlotInfo = m_vecBuySlot[m_BuyItemSlotNum];
 	int price = pSlotInfo->m_pItemTemplet->GetPrice();
-	int myED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+	int myED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 	unsigned int iEmptyInvenSlot = 0;		// 인벤토리 빈 공간
 
 #ifdef SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
@@ -2137,11 +2437,10 @@ int CX2UIShop::PreCheckShopBuyItem()
 #endif SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
 	int iAddItemNum = 0;			// 아이템이 존재할 경우 추가적으로 더해질 아이템 수
 
-	if ( NULL != pInventory )
 	{
 		// 아이템 정보로 인벤토리의 정확한 탭(7개중) 빈 슬롯 개수 얻기
 		CX2Inventory::SORT_TYPE eInvenType = GetCurrInventoryType( pSlotInfo->m_pItemTemplet->GetItemType() );
-		iEmptyInvenSlot = pInventory->GetItemMaxNum( eInvenType ) - pInventory->GetUsedSlotNum( eInvenType );
+		iEmptyInvenSlot = kInventory.GetItemMaxNum( eInvenType ) - kInventory.GetUsedSlotNum( eInvenType );
 
 		//{{ mauntain : 김태환 [2012.07.16] 인벤토리 및 슬롯을 고려한 아이템 구입 갯수 연산
 #ifdef SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
@@ -2157,11 +2456,11 @@ int CX2UIShop::PreCheckShopBuyItem()
 				}
 			}
 		}
-        iCurrItemNum = pInventory->GetNumItemByTID( pSlotInfo->m_pItemTemplet->GetItemID() );	/// 해당 아이템 소지 갯수
-		iCurrSlotNum = pInventory->GetNumSlotByTID( pSlotInfo->m_pItemTemplet->GetItemID() );	/// 해당 아이템이 차지하고 있는 슬롯 갯수
+        iCurrItemNum = kInventory.GetNumItemByTID( pSlotInfo->m_pItemTemplet->GetItemID() );	/// 해당 아이템 소지 갯수
+		iCurrSlotNum = kInventory.GetNumSlotByTID( pSlotInfo->m_pItemTemplet->GetItemID() );	/// 해당 아이템이 차지하고 있는 슬롯 갯수
 #else  SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
 
-        int iCurrItemNum = pInventory->GetNumItemByTID( pSlotInfo->m_pItemTemplet->GetItemID() );
+        int iCurrItemNum = kInventory.GetNumItemByTID( pSlotInfo->m_pItemTemplet->GetItemID() );
 
 		// 인벤토리 내에 구입할 아이템과 동일한 아이템이 있을 경우 개수 파악 후 추가적으로 구입할 수 있는 개수 파악
 		// 구입할 아이템이 인벤토리에 있는 개수
@@ -2207,17 +2506,15 @@ int CX2UIShop::PreCheckShopBuyItem()
 	// Can Buy
 	return 0;
 }
-#endif
 // 이 코드는 앞으로 자주 쓰게 될 것이야
 void CX2UIShop::OpenItemBuyNumDLG( D3DXVECTOR2 pos )
 {
 
-#ifdef PRECHECK_SHOP_BUY_ITEM	
 	int iRet = PreCheckShopBuyItem();
 	if( iRet > 0 )
 	{
 		BuySlot* pSlotInfo = m_vecBuySlot[m_BuyItemSlotNum];
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 		if( iRet == 1 )
 		{
@@ -2227,9 +2524,8 @@ void CX2UIShop::OpenItemBuyNumDLG( D3DXVECTOR2 pos )
 		else if( iRet == 2 )
 		{
 			wstring invenSortTypeName = L"";
-			if( pInventory != NULL )
 			{
-				invenSortTypeName = pInventory->GetInvenSortTypeName( GetCurrInventoryType( pSlotInfo->m_pItemTemplet->GetItemType() ) );
+				invenSortTypeName = kInventory.GetInvenSortTypeName( GetCurrInventoryType( pSlotInfo->m_pItemTemplet->GetItemType() ) );
 			}
 
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_REPLACED_STRING( ( STR_ID_11373, "L", invenSortTypeName ) ), g_pMain->GetNowState() );
@@ -2237,7 +2533,6 @@ void CX2UIShop::OpenItemBuyNumDLG( D3DXVECTOR2 pos )
 		}
 	}
 	
-#endif
 
 	SAFE_DELETE_DIALOG(m_pDLGBuyItemNum);
 	m_pDLGBuyItemNum = new CKTDGUIDialog(g_pMain->GetNowState(), L"DLG_UI_An.lua" );
@@ -2286,17 +2581,17 @@ void CX2UIShop::UpdateItemBuyNumDLG( bool bReadIME, bool bTextSelected )
 	BuySlot* pSlotInfo = m_vecBuySlot[m_BuyItemSlotNum];
 	int price = pSlotInfo->m_pItemTemplet->GetPrice();
 	int priceVP = pSlotInfo->m_pItemTemplet->GetPricePvPPoint();
-	int myED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+	int myED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 #ifdef SERV_PVP_NEW_SYSTEM
-	int myVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint;
+	int myVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint;
 #else
-	int myVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint;
+	int myVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint;
 #endif
 	int MaxBuyItemNum = 0;
 	int MaxBuyItemVP = 0;
 	//{{ JHKang / 강정훈 / 2010/10/11 / 현재 아이템이 들어갈 인벤토리의 빈 슬롯 개수 구하기
 #ifdef MODIFY_SHOP_BUY_ITEM
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 	unsigned int iEmptyInvenSlot = 0;		// 인벤토리 빈 공간
 
 #ifdef SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
@@ -2306,11 +2601,10 @@ void CX2UIShop::UpdateItemBuyNumDLG( bool bReadIME, bool bTextSelected )
 	int iAddItemNum = 0;			// 아이템이 존재할 경우 추가적으로 더해질 아이템 수
 #endif SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
 	
-	if ( NULL != pInventory )
 	{
 		// 아이템 정보로 인벤토리의 정확한 탭(7개중) 빈 슬롯 개수 얻기
 		CX2Inventory::SORT_TYPE eInvenType = GetCurrInventoryType( pSlotInfo->m_pItemTemplet->GetItemType() );
-		iEmptyInvenSlot = pInventory->GetItemMaxNum( eInvenType ) - pInventory->GetUsedSlotNum( eInvenType );
+		iEmptyInvenSlot = kInventory.GetItemMaxNum( eInvenType ) - kInventory.GetUsedSlotNum( eInvenType );
 
 		//{{ mauntain : 김태환 [2012.07.16] 인벤토리 및 슬롯을 고려한 아이템 구입 갯수 연산
 #ifdef SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
@@ -2327,12 +2621,12 @@ void CX2UIShop::UpdateItemBuyNumDLG( bool bReadIME, bool bTextSelected )
 			}
 		}
 
-		iCurrItemNum = pInventory->GetNumItemByTID( pSlotInfo->m_pItemTemplet->GetItemID() );	/// 해당 아이템 소지 갯수
-		iCurrSlotNum = pInventory->GetNumSlotByTID( pSlotInfo->m_pItemTemplet->GetItemID() );	/// 해당 아이템이 차지하고 있는 슬롯 갯수
+		iCurrItemNum = kInventory.GetNumItemByTID( pSlotInfo->m_pItemTemplet->GetItemID() );	/// 해당 아이템 소지 갯수
+		iCurrSlotNum = kInventory.GetNumSlotByTID( pSlotInfo->m_pItemTemplet->GetItemID() );	/// 해당 아이템이 차지하고 있는 슬롯 갯수
 
 #else  SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
 
-        int iCurrItemNum = pInventory->GetNumItemByTID( pSlotInfo->m_pItemTemplet->GetItemID() );
+        int iCurrItemNum = kInventory.GetNumItemByTID( pSlotInfo->m_pItemTemplet->GetItemID() );
 
 		// 인벤토리 내에 구입할 아이템과 동일한 아이템이 있을 경우 개수 파악 후 추가적으로 구입할 수 있는 개수 파악
 		// 구입할 아이템이 인벤토리에 있는 개수
@@ -2478,14 +2772,14 @@ void CX2UIShop::OpenBuyItemConfirmDLG()
 				wstrstm << GET_REPLACED_STRING( ( STR_ID_915, "LLLL",
 					g_pMain->GetEDString( pSlotInfo->m_pItemTemplet->GetPricePvPPoint() * m_BuyItemNum ),
 					g_pMain->GetEDString( price * m_BuyItemNum ),
-					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint ),
-					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint ),
+					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #else
                 wstrstm << GET_REPLACED_STRING( ( STR_ID_915, "LLLL",
 				            g_pMain->GetEDString( pSlotInfo->m_pItemTemplet->GetPricePvPPoint() * m_BuyItemNum ),
                             g_pMain->GetEDString( price * m_BuyItemNum ),
-                            g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint ),
-                            g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+                            g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint ),
+                            g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #endif
 
 			}
@@ -2493,7 +2787,7 @@ void CX2UIShop::OpenBuyItemConfirmDLG()
 			{
 				wstrstm << GET_REPLACED_STRING( ( STR_ID_916, "LL",
                     g_pMain->GetEDString( price * m_BuyItemNum ),
-                    g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+                    g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 			}
 
 			m_pDLGBuyItemConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( -999, -999 ), 
@@ -2526,13 +2820,12 @@ bool CX2UIShop::Handler_EGS_BUY_ED_ITEM_REQ()
 
 	if( NULL == g_pData ||
 		NULL == g_pData->GetMyUser() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		NULL == g_pData->GetMyUser()->GetSelectUnit() )
 	{
 		return false;
 	}
 
-	int iCurGP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+	int iCurGP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 	if( m_BuyItemNum < 1)
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_917 ), g_pMain->GetNowState() );
@@ -2551,9 +2844,9 @@ bool CX2UIShop::Handler_EGS_BUY_ED_ITEM_REQ()
 	}
 
 #ifdef SERV_PVP_NEW_SYSTEM
-	int iCurVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint;
+	int iCurVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint;
 #else
-	int iCurVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint;
+	int iCurVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint;
 #endif
 	if ( iCurVP < (pkItemTemplet->GetPricePvPPoint()*m_BuyItemNum) )
 	{
@@ -2586,12 +2879,12 @@ bool CX2UIShop::Handler_EGS_BUY_ED_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED		= kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED		= kEvent.m_iED;
 #ifdef SERV_PVP_NEW_SYSTEM
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint = kEvent.m_iAPoint;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_iAPoint = kEvent.m_iAPoint;
 #else
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint = kEvent.m_iVSPoint;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_VSPoint = kEvent.m_iVSPoint;
 #endif
 			if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 			{		
@@ -2646,10 +2939,10 @@ void CX2UIShop::EnchantItem( UidType EnchantItemUID, D3DXVECTOR2 pos )
 
 	m_EnchantItemUID = EnchantItemUID;
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	CX2Item* pItem = pInventory->GetItem( m_EnchantItemUID );
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Item* pItem = kInventory.GetItem( m_EnchantItemUID );
 
-	if( NULL == pItem )
+    if( NULL == pItem || pItem->GetItemTemplet() == NULL )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_922 ), g_pMain->GetNowState() );
 		return; 
@@ -2685,10 +2978,7 @@ void CX2UIShop::EnchantItem( UidType EnchantItemUID, D3DXVECTOR2 pos )
 
 	//{{ kimhc // 2009-09-08 // 봉인된 아이템 강화 불가
 #ifdef	SEAL_ITEM
-	if ( pItem->GetItemData() == NULL )
-		return;
-
-	if ( pItem->GetItemData()->m_bIsSealed == true )
+	if ( pItem->GetItemData().m_bIsSealed == true )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4476 ), g_pMain->GetNowState() );
 		return; 
@@ -2718,13 +3008,11 @@ void CX2UIShop::EnchantItem( UidType EnchantItemUID, D3DXVECTOR2 pos )
 	{
 	case CX2Item::IT_WEAPON:
 		{
-			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
-
+			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
 #ifdef SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
-			normalStoneCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( 152000121 );
+			normalStoneCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( 152000121 );
 #endif // SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
-
-			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NEW_WEAPON_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
+			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NEW_WEAPON_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
 
 			if ( normalStoneCount <= 0 && newStoneCount <= 0 )
 			{
@@ -2738,13 +3026,11 @@ void CX2UIShop::EnchantItem( UidType EnchantItemUID, D3DXVECTOR2 pos )
 
 	case CX2Item::IT_DEFENCE:
 		{
-			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
-
+			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
 #ifdef SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
-			normalStoneCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( 152000122 );
+			normalStoneCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( 152000122 );
 #endif // SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
-
-			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NEW_DEFENCE_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
+			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NEW_DEFENCE_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
 
 			if ( normalStoneCount <= 0 && newStoneCount <= 0 )
 			{
@@ -2775,8 +3061,8 @@ void CX2UIShop::OpenEnchantDLG(D3DXVECTOR2 pos)
 		g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGEnchantItem, NULL, false );
 	}
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	CX2Item* pItem = pInventory->GetItem( m_EnchantItemUID );
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Item* pItem = kInventory.GetItem( m_EnchantItemUID );
 	//wstring normalButtonDesc	= L"";
 	//wstring newButtonDesc		= L"";
 	WCHAR wszEnchantED[256]		= L"";
@@ -2823,7 +3109,7 @@ void CX2UIShop::OpenEnchantDLG(D3DXVECTOR2 pos)
 	if ( pStaticItemName != NULL && pStaticItemName->GetString(0) != NULL )
 	{
 		wstringstream wstrstm;
-		wstrstm << L"+" << pItem->GetItemData()->m_EnchantLevel << L" " << 
+		wstrstm << L"+" << pItem->GetItemData().m_EnchantLevel << L" " << 
             pItem->GetItemTemplet()->GetFullName_()
             ;
 #ifdef FIX_TOOLTIP
@@ -2831,6 +3117,13 @@ void CX2UIShop::OpenEnchantDLG(D3DXVECTOR2 pos)
 		CKTDGFontManager::CUKFont* pItemDescFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( SLOT_MANAGER_FONT_INDEX );
 		int strWidth = (int)( pItemDescFont->GetWidth( wstrstm.str().c_str() ) / g_pKTDXApp->GetResolutionScaleX() );
 #ifdef CLIENT_GLOBAL_LINEBREAK
+
+#ifdef LINE_COUNT_FOR_BR
+		if ( strWidth > 140 )
+		{
+			wstrTemp = CWordLineHandler::GetStrByLineBreakColorInX2Main( wstrstm.str().c_str(), 140, pStaticItemName->GetString(0)->fontIndex );
+		}
+#else // LINE_COUNT_FOR_BR
 		if ( strWidth > 190 )	// 2011.01.03 조효진 140-> 190 으로 수정
 		{
 			//{{ 2010/10/28 조효진	LineBreak 정리 작업
@@ -2840,6 +3133,7 @@ void CX2UIShop::OpenEnchantDLG(D3DXVECTOR2 pos)
 			wstrTemp = CWordLineHandler::GetStrByLineBreakColorInX2Main( wstrstm.str().c_str(), 190, pStaticItemName->GetString(0)->fontIndex );
 #endif 	//UNIQUENESS_EU_ONLY			
 		}
+#endif // LINE_COUNT_FOR_BR			
 #else //CLIENT_GLOBAL_LINEBREAK
 		if ( strWidth > 140 )
 		{
@@ -2910,23 +3204,23 @@ void CX2UIShop::OpenEnchantDLG(D3DXVECTOR2 pos)
 	}
 
 
-	if( pItem->GetItemData()->m_EnchantLevel < 10)	// 현재 10렙 아래일 때 : 1자리 스태틱으로 해결 보자
+	if( pItem->GetItemData().m_EnchantLevel < 10)	// 현재 10렙 아래일 때 : 1자리 스태틱으로 해결 보자
 	{
 		pStaticNum = (CKTDGUIStatic*)m_pDLGEnchantItem->GetControl( L"Static_UpgradeLevel_SingleDigit" );
-		if( pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel ) != NULL )
-			pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel )->SetShow( true );		
+		if( pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel ) != NULL )
+			pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel )->SetShow( true );		
 	}
 	else
 	{
 		CKTDGUIStatic* pStaticNum1 = (CKTDGUIStatic*)m_pDLGEnchantItem->GetControl( L"Static_UpgradeLevel_DoubleDigit_1" );
 		CKTDGUIStatic* pStaticNum10 = (CKTDGUIStatic*)m_pDLGEnchantItem->GetControl( L"Static_UpgradeLevel_DoubleDigit_10" );
-		if( pStaticNum10->GetPicture( (pItem->GetItemData()->m_EnchantLevel)/10 ) != NULL )
-			pStaticNum10->GetPicture( (pItem->GetItemData()->m_EnchantLevel)/10 )->SetShow( true );
-		if( pStaticNum1->GetPicture( (pItem->GetItemData()->m_EnchantLevel)%10 ) != NULL )
-			pStaticNum1->GetPicture( (pItem->GetItemData()->m_EnchantLevel)%10 )->SetShow( true );
+		if( pStaticNum10->GetPicture( (pItem->GetItemData().m_EnchantLevel)/10 ) != NULL )
+			pStaticNum10->GetPicture( (pItem->GetItemData().m_EnchantLevel)/10 )->SetShow( true );
+		if( pStaticNum1->GetPicture( (pItem->GetItemData().m_EnchantLevel)%10 ) != NULL )
+			pStaticNum1->GetPicture( (pItem->GetItemData().m_EnchantLevel)%10 )->SetShow( true );
 	}
 	// 파괴를 대비(^^;)해서 몇레벨 템이었는지 적어두고
-	m_EnchantLevelBefore = pItem->GetItemData()->m_EnchantLevel;
+	m_EnchantLevelBefore = pItem->GetItemData().m_EnchantLevel;
 
 	// 개발자용 치트 체크박스
 	CKTDGUICheckBox* pCheckDev = (CKTDGUICheckBox*)m_pDLGEnchantItem->GetControl( L"CheckBox_DevCheat" );
@@ -3014,7 +3308,7 @@ void CX2UIShop::GetRequiredEnchantAdjuvantItemID( IN const int iItemLevel_, OUT 
 	{
 		// 현재는 순서 상관없음
 		vecAdjuvantIdList_.push_back( 206770 );	// 플루오르 스톤 레벨 5
-		vecAdjuvantIdList_.push_back( 160369 ); // 플루오르 스톤 이벤트용 레벨 5
+		vecAdjuvantIdList_.push_back( 160369 ); // 플루오르 스톤 이벤트용 레벨 4
 #ifdef SERV_EVENT_SUPPORT_MATERIAL_MULTI
 		vecAdjuvantIdList_.push_back( 60005560 );	// 이벤트용 플루오르 스톤 레벨 5
 		vecAdjuvantIdList_.push_back( 85001941 );	// 이벤트용 플루오르 스톤 레벨 5
@@ -3071,11 +3365,11 @@ void CX2UIShop::GetRequiredEnchantAdjuvantItemID( IN const int iItemLevel_, OUT 
 
 int CX2UIShop::GetNumOfRequiredEnchantAdjuvantItem( IN const vector<int>& vecAdjuvantIdList_ )
 {
-	CX2Inventory* pMyInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 	
 	int iSum = 0;
-	auto GetItemCountFunc = [&iSum, pMyInventory]( const int iItemId_ ) {
-		iSum += pMyInventory->GetNumItemByTID( iItemId_ );
+	auto GetItemCountFunc = [&iSum, &kInventory]( const int iItemId_ ) {
+		iSum += kInventory.GetNumItemByTID( iItemId_ );
 	};
 
 	std::for_each( vecAdjuvantIdList_.begin(), vecAdjuvantIdList_.end(), GetItemCountFunc );
@@ -3128,13 +3422,14 @@ void CX2UIShop::GetRequiredEnchantPlusItemID( const int iItemLevel, OUT vector<i
 		ASSERT( !"invalid item level" );
 	}
 }
+
 int CX2UIShop::GetNumOfRequiredEnchantPlusItem( IN const vector<int>& vecPlusIdList_ )
 {
-	CX2Inventory* pMyInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kMyInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 	int iSum = 0;
-	auto GetItemCountFunc = [&iSum, pMyInventory]( const int iItemId_ ) {
-		iSum += pMyInventory->GetNumItemByTID( iItemId_ );
+	auto GetItemCountFunc = [&iSum, &kMyInventory]( const int iItemId_ ) {
+		iSum += kMyInventory.GetNumItemByTID( iItemId_ );
 	};
 
 	std::for_each( vecPlusIdList_.begin(), vecPlusIdList_.end(), GetItemCountFunc );
@@ -3192,11 +3487,11 @@ void CX2UIShop::GetRequiredDestroyGuardItemID( const int iItemLevel, OUT vector<
 
 int CX2UIShop::GetNumOfRequiredDestroyGuardItem( IN const vector<int>& vecGuardIdList_ )
 {
-	CX2Inventory* pMyInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kMyInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 	int iSum = 0;
-	auto GetItemCountFunc = [&iSum, pMyInventory]( const int iItemId_ ) {
-		iSum += pMyInventory->GetNumItemByTID( iItemId_ );
+	auto GetItemCountFunc = [&iSum, &kMyInventory]( const int iItemId_ ) {
+		iSum += kMyInventory.GetNumItemByTID( iItemId_ );
 	};
 
 	std::for_each( vecGuardIdList_.begin(), vecGuardIdList_.end(), GetItemCountFunc );
@@ -3210,7 +3505,7 @@ void CX2UIShop::UpdateEnchantWindow()
 	if( m_pDLGEnchantItem == NULL )
 		return;
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnchantItemUID );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnchantItemUID );
 	if( NULL == pItem )
 		return;
 
@@ -3252,7 +3547,7 @@ void CX2UIShop::UpdateEnchantWindow()
 #ifdef SERV_ENCHANT_EVENT_USING_DB
 	IF_EVENT_ENABLED( CEI_11_ENCHANT_EVENT )
 	{
-		if( pItem->GetItemData()->m_EnchantLevel >= MAGIC_ENCHANT_LEVEL_LIMIT + 1 )
+		if( pItem->GetItemData().m_EnchantLevel >= MAGIC_ENCHANT_LEVEL_LIMIT + 1 )
 		{
 			pCheck->SetShowEnable(false, false);
 			CKTDGUIStatic* pStaticCheck = (CKTDGUIStatic*)m_pDLGEnchantItem->GetControl( L"Static_CheckBox" );
@@ -3263,9 +3558,9 @@ void CX2UIShop::UpdateEnchantWindow()
 	else
 #endif SERV_ENCHANT_EVENT_USING_DB
 #ifdef SERV_SUPPORT_MATERIAL_ENCHANT_EVENT	
-	if( pItem->GetItemData()->m_EnchantLevel >= ( MAGIC_ENCHANT_LEVEL_LIMIT + m_iAddEnchantLevel ) )
+	if( pItem->GetItemData().m_EnchantLevel >= ( MAGIC_ENCHANT_LEVEL_LIMIT + m_iAddEnchantLevel ) )
 #else
-	if( pItem->GetItemData()->m_EnchantLevel >= MAGIC_ENCHANT_LEVEL_LIMIT )
+	if( pItem->GetItemData().m_EnchantLevel >= MAGIC_ENCHANT_LEVEL_LIMIT )
 #endif //SERV_SUPPORT_MATERIAL_ENCHANT_EVENT
 	{ 
 		pCheck->SetShowEnable(false, false);
@@ -3331,13 +3626,11 @@ void CX2UIShop::UpdateEnchantWindow()
 	{
 	case CX2Item::IT_WEAPON:
 		{
-			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
-
+			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
 #ifdef SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
-			normalStoneCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( 152000121 );
+			normalStoneCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( 152000121 );
 #endif // SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
-
-			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NEW_WEAPON_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
+			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NEW_WEAPON_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
 
 			const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
 			if ( pItemTemplet != NULL )
@@ -3355,13 +3648,11 @@ void CX2UIShop::UpdateEnchantWindow()
 
 	case CX2Item::IT_DEFENCE:
 		{
-			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
-
+			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
 #ifdef SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
-			normalStoneCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( 152000122 );
+			normalStoneCount += g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( 152000122 );
 #endif // SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
-
-			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NEW_DEFENCE_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
+			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NEW_DEFENCE_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
 			const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
 			if ( pItemTemplet != NULL )
 			{
@@ -3647,7 +3938,7 @@ void CX2UIShop::UpdateEnchantWindow()
 #ifdef SERV_ENCHANT_PLUS_ITEM
 			if( true == m_bUseEnchantAdjuvant || true == m_bUseEnchantPlus || true == m_bUseDestroyGuard) 
 #else // SERV_ENCHANT_PLUS_ITEM
-			if( true == m_bUseEnchantAdjuvant )
+			if( true == m_bUseEnchantAdjuvant ) 
 #endif // SERV_ENCHANT_PLUS_ITEM
 			{
 				StringCchPrintfW( newButtonName, ARRAY_SIZE(newButtonName), L"Button_Def_High%d", iNewStoneLevel+1 );
@@ -3801,7 +4092,7 @@ void CX2UIShop::OpenEnchantResultWindow( KEGS_ENCHANT_ITEM_ACK& kEGS_ENCHANT_ITE
 	//업데이트 해주기전에..
 	//아이템 체크해서.. 업그레이드 됐는지, 초기화 됐는지, 변화없는지, 다운됐는지, 사라졌는지..
 
-	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEGS_ENCHANT_ITEM_ACK.m_iED;
+	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEGS_ENCHANT_ITEM_ACK.m_iED;
 
 	if(g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_CHARINFO))
 	{
@@ -3816,7 +4107,7 @@ void CX2UIShop::OpenEnchantResultWindow( KEGS_ENCHANT_ITEM_ACK& kEGS_ENCHANT_ITE
 	SAFE_DELETE_DIALOG( m_pDLGEnchantItemResult );
 
 	// 패킷 처리 : 결과를 보여주자
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
 
 	//강화 성공. 
 	if ( kEGS_ENCHANT_ITEM_ACK.m_iEnchantResult == NetError::ERR_ENCHANT_RESULT_00 )
@@ -3830,7 +4121,7 @@ void CX2UIShop::OpenEnchantResultWindow( KEGS_ENCHANT_ITEM_ACK& kEGS_ENCHANT_ITE
 			if ( pStaticComment != NULL && pStaticComment->GetString(0) != NULL )
 			{
 				wstringstream wstrstm;
-				wstrstm << GET_REPLACED_STRING( ( STR_ID_928, "i", pItem->GetItemData()->m_EnchantLevel ) );
+				wstrstm << GET_REPLACED_STRING( ( STR_ID_928, "i", pItem->GetItemData().m_EnchantLevel ) );
 				pStaticComment->GetString(0)->msg = wstrstm.str().c_str();
 			}
 		}
@@ -3901,7 +4192,7 @@ void CX2UIShop::OpenEnchantResultWindow( KEGS_ENCHANT_ITEM_ACK& kEGS_ENCHANT_ITE
 			{
                 const wchar_t* pwszFullName = pItemTemplet->GetFullName_();
 #ifdef FIXED_DIALOG_UPGRADE_ITEM_SPLIT_STRING	
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
 				if ( NULL != pItem )
 				{
 					wstringstream wstrstm;
@@ -3913,7 +4204,7 @@ void CX2UIShop::OpenEnchantResultWindow( KEGS_ENCHANT_ITEM_ACK& kEGS_ENCHANT_ITE
 					
 					else
 					{
-						wstrstm << L"+" << pItem->GetItemData()->m_EnchantLevel << L" " << pwszFullName;
+						wstrstm << L"+" << pItem->GetItemData().m_EnchantLevel << L" " << pwszFullName;
 					}		
 					
 					SplitEnchantDLGStringSet ( pStaticName, wstrstm.str().c_str( ) );
@@ -3933,11 +4224,11 @@ void CX2UIShop::OpenEnchantResultWindow( KEGS_ENCHANT_ITEM_ACK& kEGS_ENCHANT_ITE
 #endif //CLIENT_GLOBAL_LINEBREAK
 				}					
 			
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
 				if ( pItem != NULL )
 				{
 					wstringstream wstrstm;
-					wstrstm << L"+" << pItem->GetItemData()->m_EnchantLevel << L" " << pwszFullName;
+					wstrstm << L"+" << pItem->GetItemData().m_EnchantLevel << L" " << pwszFullName;
 #ifdef CLIENT_GLOBAL_LINEBREAK
 					int iLimitWidth = 190;
 					std::wstring wstr_tmp = CWordLineHandler::GetStrByLineBreakInX2Main( wstrstm.str().c_str(), iLimitWidth, pStaticName->GetString(0)->fontIndex );
@@ -4008,20 +4299,20 @@ void CX2UIShop::OpenEnchantResultWindow( KEGS_ENCHANT_ITEM_ACK& kEGS_ENCHANT_ITE
 					}
 				}
 			}
-			if( pItem->GetItemData()->m_EnchantLevel < 10)	// 현재 10렙 아래일 때 : 1자리 스태틱으로 해결 보자
+			if( pItem->GetItemData().m_EnchantLevel < 10)	// 현재 10렙 아래일 때 : 1자리 스태틱으로 해결 보자
 			{
 				pStaticNum = (CKTDGUIStatic*)m_pDLGEnchantItemResult->GetControl( L"Static_UpgradeLevel_SingleDigit" );
-				if( pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel ) != NULL )
-					pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel )->SetShow( true );		
+				if( pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel ) != NULL )
+					pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel )->SetShow( true );		
 			}
 			else
 			{
 				CKTDGUIStatic* pStaticNum1 = (CKTDGUIStatic*)m_pDLGEnchantItemResult->GetControl( L"Static_UpgradeLevel_DoubleDigit_1" );
 				CKTDGUIStatic* pStaticNum10 = (CKTDGUIStatic*)m_pDLGEnchantItemResult->GetControl( L"Static_UpgradeLevel_DoubleDigit_10" );
-				if( pStaticNum10->GetPicture( (pItem->GetItemData()->m_EnchantLevel)/10 ) != NULL )
-					pStaticNum10->GetPicture( (pItem->GetItemData()->m_EnchantLevel)/10 )->SetShow( true );
-				if( pStaticNum1->GetPicture( (pItem->GetItemData()->m_EnchantLevel)%10 ) != NULL )
-					pStaticNum1->GetPicture( (pItem->GetItemData()->m_EnchantLevel)%10 )->SetShow( true );
+				if( pStaticNum10->GetPicture( (pItem->GetItemData().m_EnchantLevel)/10 ) != NULL )
+					pStaticNum10->GetPicture( (pItem->GetItemData().m_EnchantLevel)/10 )->SetShow( true );
+				if( pStaticNum1->GetPicture( (pItem->GetItemData().m_EnchantLevel)%10 ) != NULL )
+					pStaticNum1->GetPicture( (pItem->GetItemData().m_EnchantLevel)%10 )->SetShow( true );
 			}
 
 		}
@@ -4092,8 +4383,8 @@ void CX2UIShop::EnchantAttributeItem( UidType AttributeEnchantItemUID, D3DXVECTO
 
 	m_AttributeEnchantItemUID = AttributeEnchantItemUID;
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	CX2Item* pItem = pInventory->GetItem( m_AttributeEnchantItemUID );
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Item* pItem = kInventory.GetItem( m_AttributeEnchantItemUID );
     const CX2Item::ItemTemplet* pItemTemplet = pItem->GetItemTemplet();
 
 	if( NULL == pItem )
@@ -4153,13 +4444,13 @@ void CX2UIShop::EnchantAttributeItem( UidType AttributeEnchantItemUID, D3DXVECTO
 	}
 #endif  //SERV_NEW_ITEM_SYSTEM_2013_05 
 
-	int UnknownStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
-	int RedStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_RED );
-	int BlueStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_BLUE );
-	int GreenStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_GREEN );
-	int WindStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_WIND );
-	int LightStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_LIGHT );
-	int DarkStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_DARK );
+	int UnknownStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
+	int RedStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_RED );
+	int BlueStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_BLUE );
+	int GreenStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_GREEN );
+	int WindStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_WIND );
+	int LightStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_LIGHT );
+	int DarkStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_DARK );
 	
 	// 속성석 하나도 없어여
 	if ( UnknownStone <= 0 &&
@@ -4204,8 +4495,8 @@ void CX2UIShop::ResetAtrribEnchantWindow()
 	if ( m_pDLGAttribEnchantItem == NULL )
 		return;
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_AttributeEnchantItemUID ); 
-	if ( pItem == NULL )
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_AttributeEnchantItemUID ); 
+	if ( pItem == NULL || pItem->GetItemTemplet() == NULL )
 		return;
 
 	// 무기/방어구에 상관없이 처리해야 하는 부분
@@ -4220,12 +4511,9 @@ void CX2UIShop::ResetAtrribEnchantWindow()
 
 	//{{ kimhc // 2009-09-08 // 봉인된 아이템 이미지 출력
 #ifdef	SEAL_ITEM
-	if ( pItem->GetItemData() == NULL )
-		return;
-
 	if ( pStaticItemImage->GetPicture( 1 ) != NULL )
 	{
-		if ( pItem->GetItemData()->m_bIsSealed == true )
+		if ( pItem->GetItemData().m_bIsSealed == true )
 			pStaticItemImage->GetPicture( 1 )->SetShow( true );
 		else
 			pStaticItemImage->GetPicture( 1 )->SetShow( false );
@@ -4238,7 +4526,7 @@ void CX2UIShop::ResetAtrribEnchantWindow()
 	if ( pStaticItemName != NULL )
 	{
 		wstringstream wstrstm;
-		wstrstm << L"+" << pItem->GetItemData()->m_EnchantLevel << L" " << 
+		wstrstm << L"+" << pItem->GetItemData().m_EnchantLevel << L" " << 
             pItem->GetItemTemplet()->GetFullName_()
             ;
 #ifdef FIX_TOOLTIP
@@ -4276,7 +4564,7 @@ void CX2UIShop::ResetAtrribEnchantWindow()
 
 
 	const int iMaxEnchantCount = pItem->GetItemTemplet()->GetMaxAttribEnchantCount();
-	const int iCurrEnchantedCount = pItem->GetItemData()->GetAttribEnchantedCount();
+	const int iCurrEnchantedCount = pItem->GetItemData().GetAttribEnchantedCount();
 	
 	bool bFullyEnchanted = true;
 	if( iMaxEnchantCount - iCurrEnchantedCount > 0 )
@@ -4285,7 +4573,7 @@ void CX2UIShop::ResetAtrribEnchantWindow()
 	}
 	
 
-	CX2DamageManager::EXTRA_DAMAGE_TYPE currExtraDamageType = g_pData->GetEnchantItem()->GetExtraDamageType( pItem->GetItemData()->m_EnchantedAttribute );
+	CX2DamageManager::EXTRA_DAMAGE_TYPE currExtraDamageType = g_pData->GetEnchantItem()->GetExtraDamageType( pItem->GetItemData().m_EnchantedAttribute );
 
 
 
@@ -4342,10 +4630,10 @@ void CX2UIShop::ResetAtrribEnchantWindow()
 	else
 		iAttributeLevel = pItem->GetItemTemplet()->GetUseLevel();
 
-	g_pData->GetEnchantItem()->GetAttribEnchantRequireMagicStoneCount( bIsWeapon, pItem->GetItemData()->GetAttribEnchantedCount(), 
+	g_pData->GetEnchantItem()->GetAttribEnchantRequireMagicStoneCount( bIsWeapon, pItem->GetItemData().GetAttribEnchantedCount(), 
 		iAttributeLevel, pItem->GetItemTemplet()->GetItemGrade(), needItemNum );
 #else
-	g_pData->GetEnchantItem()->GetAttribEnchantRequireMagicStoneCount( bIsWeapon, pItem->GetItemData()->GetAttribEnchantedCount(), 
+	g_pData->GetEnchantItem()->GetAttribEnchantRequireMagicStoneCount( bIsWeapon, pItem->GetItemData().GetAttribEnchantedCount(), 
 		pItem->GetItemTemplet()->GetUseLevel(), pItem->GetItemTemplet()->GetItemGrade(), needItemNum );
 #endif
 
@@ -4401,7 +4689,7 @@ void CX2UIShop::ResetAtrribEnchantWindow()
 		{
 			itemID = g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i );
 		}
-		int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( itemID );
+		int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( itemID );
 		
 
 
@@ -4409,12 +4697,12 @@ void CX2UIShop::ResetAtrribEnchantWindow()
 		// 버튼 켜고 꺼주고
 		if( itemNum >= needItemNum && 
 			false == bFullyEnchanted &&
-			true == CX2EnchantItem::CanEnchantAttribute( pItem->GetItemData()->m_EnchantedAttribute, (CX2EnchantItem::ENCHANT_TYPE)i ) )
+			true == CX2EnchantItem::CanEnchantAttribute( pItem->GetItemData().m_EnchantedAttribute, (CX2EnchantItem::ENCHANT_TYPE)i ) )
 		{
 			pButtonSlot->SetShowEnable( true, true );
 			wstrstm2 << needItemNum << L"(" << itemNum << L")";
 
-			CX2DamageManager::EXTRA_DAMAGE_TYPE eNewEnchantedExtraDamage = g_pData->GetEnchantItem()->GetExtraDamageType( pItem->GetItemData()->m_EnchantedAttribute, (CX2EnchantItem::ENCHANT_TYPE)i );
+			CX2DamageManager::EXTRA_DAMAGE_TYPE eNewEnchantedExtraDamage = g_pData->GetEnchantItem()->GetExtraDamageType( pItem->GetItemData().m_EnchantedAttribute, (CX2EnchantItem::ENCHANT_TYPE)i );
 
 			if( true == bIsWeapon )
 			{
@@ -4594,14 +4882,14 @@ void CX2UIShop::ResetAtrribEnchantWindow()
 		}		
 
 
-		if( pItem->GetItemData()->m_EnchantedAttribute.m_aEnchantedType[i] <= 0 )
+		if( pItem->GetItemData().m_EnchantedAttribute.m_aEnchantedType[i] <= 0 )
 		{
 			if ( pStaticEmptySlot[i] != NULL )
 				pStaticEmptySlot[i]->SetShow( true );
 		}
 		else
 		{
-			CX2EnchantItem::ENCHANT_TYPE enchantedType = (CX2EnchantItem::ENCHANT_TYPE) pItem->GetItemData()->m_EnchantedAttribute.m_aEnchantedType[i];
+			CX2EnchantItem::ENCHANT_TYPE enchantedType = (CX2EnchantItem::ENCHANT_TYPE) pItem->GetItemData().m_EnchantedAttribute.m_aEnchantedType[i];
 			CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType = g_pData->GetEnchantItem()->GetExtraDamageType( enchantedType );
 
 			if( NULL != pStaticNoticeSlot[i] )
@@ -4653,8 +4941,8 @@ bool CX2UIShop::Handler_EGS_ATTRIB_ENCHANT_ITEM_ACK( HWND hWnd, UINT uMsg, WPARA
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 			//특수 처리 고고싱
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
 			if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 			{		
@@ -4690,11 +4978,11 @@ void CX2UIShop::AuthAutoSellItem( CX2Inventory::SORT_TYPE SortType )
 			g_pData->GetUIManager()->CreateUIShop();
 		}
 
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
-		for ( int i = 0; i < pInventory->GetItemMaxNum( SortType ); i++ )
+		for ( int i = 0; i < kInventory.GetItemMaxNum( SortType ); i++ )
 		{
-			CX2Item* pItem = pInventory->GetItem( SortType, i );
+			CX2Item* pItem = kInventory.GetItem( SortType, i );
 			if ( pItem == NULL || 
                 pItem->GetItemTemplet() == NULL 
                 )
@@ -4703,7 +4991,7 @@ void CX2UIShop::AuthAutoSellItem( CX2Inventory::SORT_TYPE SortType )
 			if(pItem->GetItemTemplet()->GetShopPriceType() == CX2Item::SPT_GP)
 			{
 				m_SellItemUID = pItem->GetUID();
-				m_SellItemNum = pItem->GetItemData()->m_Quantity;
+				m_SellItemNum = pItem->GetItemData().m_Quantity;
 				g_pData->GetUIManager()->GetUIShop()->Handler_EGS_SELL_ITEM_REQ();	
 			}
 
@@ -4711,7 +4999,7 @@ void CX2UIShop::AuthAutoSellItem( CX2Inventory::SORT_TYPE SortType )
 			if ( CX2Item::SPT_NONE == pItem->GetItemTemplet()->GetShopPriceType() )
 			{
 				m_SellItemUID = pItem->GetUID();
-				m_SellItemNum = pItem->GetItemData()->m_Quantity;
+				m_SellItemNum = pItem->GetItemData().m_Quantity;
 				g_pData->GetUIManager()->GetUIInventory()->AuthDeleteItem( m_SellItemUID, m_SellItemNum );
 			}
 #endif
@@ -4738,17 +5026,11 @@ bool CX2UIShop::CanBuyItemToCreateGuild() const
 		return false;
 	}
 
-	CX2Inventory*	pInventory	= NULL;
-	pInventory		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
-	if ( pInventory == NULL )
-	{
-		ASSERT( !"GetInventory is fault" );
-		return false;
-	}
 
 	// 길드창단허가서가 이미 있지는 않은가?
-	if ( pInventory->GetItemByTID( GUILD_CREATE_ITEM_ID, true ) != NULL ) 
+	if ( kInventory.GetItemByTID( GUILD_CREATE_ITEM_ID, true ) != NULL ) 
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4497 ), g_pMain->GetNowState() );
 		return false;
@@ -4768,12 +5050,6 @@ bool CX2UIShop::CanBuyItemToCreateGuild() const
 
 bool CX2UIShop::CanBuyItemToExpandGuild() const
 {
-	if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
-	{
-		ASSERT( !L"UnitData is NULL" );
-		return false;
-	}
-
 	if ( g_pData->GetGuildManager() == NULL )
 	{
 		ASSERT( !L"GuildManager is NULL" );
@@ -4781,7 +5057,7 @@ bool CX2UIShop::CanBuyItemToExpandGuild() const
 	}
 
 	if ( g_pData->GetGuildManager()->DidJoinGuild() == false ||
-		 g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade != CX2GuildManager::GUG_MASTER )
+		 g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade != CX2GuildManager::GUG_MASTER )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4596 ), g_pMain->GetNowState() );
 		return false;
@@ -4793,17 +5069,17 @@ bool CX2UIShop::CanBuyItemToExpandGuild() const
 		return false;
 	}
 
-	CX2Inventory*	pInventory	= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 	// 이미 있지는 않은가?
-	if ( pInventory->GetItemByTID( GUILD_EXPANSION_ITEM_ID, true ) != NULL ) 
+	if ( kInventory.GetItemByTID( GUILD_EXPANSION_ITEM_ID, true ) != NULL ) 
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4614 ), g_pMain->GetNowState() );
 		return false;
 	}
 
 #ifdef EVENT_GUILD_ITEM
-	else if ( pInventory->GetItemByTID( EVENT_GUILD_EXPANSION_ITEM_ID, true ) != NULL ) 
+	else if ( kInventory.GetItemByTID( EVENT_GUILD_EXPANSION_ITEM_ID, true ) != NULL ) 
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4614 ), g_pMain->GetNowState() );
 		return false;
@@ -4876,4 +5152,52 @@ bool CX2UIShop::Handler_EGS_SUPPORT_MATERIAL_EVENT_TIME_ACK( HWND hWnd, UINT uMs
 
 	return true;
 }
-#endif // SERV_SUPPORT_MATERIAL_ENCHANT_EVENT
+#endif // SERV_SUPPORT_MATERIAL_ENCHANT_EVENT	
+
+#ifdef SERV_CATCH_HACKUSER_INFO
+bool CX2UIShop::Handler_EGS_CATCH_HACKUSER_INFO_NOT( KEGS_CATCH_HACKUSER_INFO_NOT& kEGS_CATCH_HACKUSER_INFO_NOT )
+{
+	g_pData->GetServerProtocol()->SendPacket( EGS_CATCH_HACKUSER_INFO_NOT, kEGS_CATCH_HACKUSER_INFO_NOT );
+
+	return true;
+}
+#endif SERV_CATCH_HACKUSER_INFO
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+bool CX2UIShop::Handler_EGS_ITEM_EXCHANGE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_ITEM_EXCHANGE_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if( g_pMain->DeleteServerPacket( EGS_ITEM_EXCHANGE_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			if ( g_pData->GetMyUser() != NULL &&
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
+			{
+				IF_EVENT_ENABLED( CEI_EVENT_ADAMS_SHOP )
+				{
+#ifdef SERV_GROW_UP_SOCKET
+					g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetGrowUpPoint( CX2Unit::GUT_EXCHANGE_COUNT, kEvent.m_iExchangeCount, g_pData->GetMyUser()->GetSelectUnit()->GetUID() );
+#endif SERV_GROW_UP_SOCKET
+					g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+
+					if ( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_INVEN ) == true )
+						g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlot();
+#ifdef RANDOM_EXCHANGE_RESULT_VIEW 
+					// 더미 : OpenDecompositionResultWindow 안에서 인벤토리 정리를 안 하기 위한 빈 벡터 
+					std::vector<KInventoryItemInfo> vecDummyInfo;
+					vecDummyInfo.clear();
+					g_pData->GetUIManager()->GetUIInventory()->SetItemObtainResultType(CX2UIInventory::IORT_RANDOM_EXCHANGE);
+					g_pData->GetUIManager()->GetUIInventory()->OpenResolveResultWindow( kEvent.m_mapResultItem, vecDummyInfo, false ); 
+#endif RANDOM_EXCHANGE_RESULT_VIEW
+				}
+			}
+		return true;
+		}
+	}
+	return false;
+}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP

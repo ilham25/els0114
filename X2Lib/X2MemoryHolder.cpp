@@ -23,10 +23,6 @@ CX2MemoryHolder::CX2MemoryHolder(void)
 	m_pLocalMapFrontDLG		= NULL;
 	m_bIsParsedLocalMapDLG	= false;
 
-//#ifdef FESTIVAL_UI   //2013.05.10 <2013 공존의 축제 : 스킬 슬롯 UI 부분은 제외됨>
-//	m_pFestivalDLG = NULL;
-//#endif FESTIVAL_UI
-
 #ifdef XMAS_UI
 	m_pXMasDLG = NULL;
 #endif
@@ -36,18 +32,40 @@ CX2MemoryHolder::CX2MemoryHolder(void)
 	m_bShow = false;
 #endif SERV_CHINA_SPIRIT_EVENT
 
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	m_pUseCoboEventDLG = NULL;
+	m_pCoboEventCountDLG = NULL;
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
 	m_pNewYear2014EventDLG = NULL;
 	m_bShowNewYear2014Event = false;
 	m_bShowNewYear2014EventBoard = false;
 #endif SERV_NEW_YEAR_EVENT_2014
 
+#ifdef SERV_EVENT_CHECK_POWER
+	m_pCheckPowerEventDLG = NULL;
+	m_bShowCheckPowerEvent = false;
+	m_bShowCheckPowerGuide = false;
+#endif SERV_EVENT_CHECK_POWER
+
 	m_pMenuDLG = NULL;
 	m_pCommonDLG = NULL;
 
 	m_pDLGOptionWindow = NULL;
 
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+	m_pChungGiveItem = NULL;
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
 
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	m_pUseAdamsEventShopDLG = NULL;
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	m_p4thYearEventDLG = NULL;
+	m_bShow4thYearEvent = false;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 }
 
 CX2MemoryHolder::~CX2MemoryHolder(void)
@@ -75,14 +93,25 @@ CX2MemoryHolder::~CX2MemoryHolder(void)
 
 	SAFE_DELETE_DIALOG( m_pDLGOptionWindow );
 
-//#ifdef FESTIVAL_UI    //2013.05.10 <2013 공존의 축제 : 스킬 슬롯 UI 부분은 제외됨>
-//	SAFE_DELETE_DIALOG( m_pFestivalDLG );
-//#endif FESTIVAL_UI
-
 #ifdef XMAS_UI
 	SAFE_DELETE_DIALOG( m_pXMasDLG );
 #endif
 
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+	if( m_pChungGiveItem != NULL )
+	{
+		SAFE_DELETE_DIALOG( m_pChungGiveItem );
+	}
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	SAFE_DELETE_DIALOG( m_pUseCoboEventDLG );
+	SAFE_DELETE_DIALOG( m_pCoboEventCountDLG );
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	SAFE_DELETE_DIALOG( m_pUseAdamsEventShopDLG );
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 	ClearEquip();
 }
 
@@ -91,7 +120,20 @@ CKTDGUIDialogType CX2MemoryHolder::GetOptionDLG( CKTDXStage* pStage )
 {
 	if ( m_pDLGOptionWindow == NULL )
 	{
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+#ifdef CLIENT_COUNTRY_TW
+		m_pDLGOptionWindow = new CKTDGUIDialog( pStage, L"DLG_UI_Option_Back_New_TW.lua", 0.07f, XDL_OPTION );
+#else
+		m_pDLGOptionWindow = new CKTDGUIDialog( pStage, L"DLG_UI_Option_Back_New.lua", 0.07f, XDL_OPTION );	
+#endif CLIENT_COUNTRY_TW
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+#ifdef CLIENT_COUNTRY_TW
+		m_pDLGOptionWindow = new CKTDGUIDialog( pStage, L"DLG_UI_Option_Back_TW.lua", 0.07f, XDL_OPTION );	
+#else //CLIENT_COUNTRY_TW
 		m_pDLGOptionWindow = new CKTDGUIDialog( pStage, L"DLG_UI_Option_Back.lua", 0.07f, XDL_OPTION );	
+#endif //CLIENT_COUNTRY_TW
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGOptionWindow );
 		m_pDLGOptionWindow->SetModal( true );
 
@@ -127,7 +169,7 @@ CKTDGUIDialogType CX2MemoryHolder::GetOptionDLG( CKTDXStage* pStage )
 			pCombo_Graphic_Resoultion->SetDropHeight( 10 * pCombo_Graphic_Resoultion->GetNumItems() );
 
 
-			CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList();
+			CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList();
 			if( NULL != pOptionList )
 			{
 				WCHAR strResolution[50] = { 0, };
@@ -379,20 +421,6 @@ CKTDGUIDialogType CX2MemoryHolder::GetMenuDLG( CKTDXStage* pStage )
 	return m_pMenuDLG;
 }
 
-//#ifdef FESTIVAL_UI   //2013.05.10 <2013 공존의 축제 : 스킬 슬롯 UI 부분은 제외됨>
-//CKTDGUIDialogType CX2MemoryHolder::GetFestivalDLG( CKTDXStage* pStage )
-//{
-//	if ( m_pFestivalDLG == NULL )
-//	{
-//		m_pFestivalDLG = new CKTDGUIDialog( pStage, L"DLG_UI_Festival.lua" );
-//		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pFestivalDLG );
-//	}
-//
-//	DefualtSettingDLG( m_pFestivalDLG, pStage );
-//	return m_pFestivalDLG;
-//}
-//#endif FESTIVAL_UI
-
 #ifdef XMAS_UI
 CKTDGUIDialogType CX2MemoryHolder::GetXMasDLG( CKTDXStage* pStage )
 {
@@ -406,6 +434,20 @@ CKTDGUIDialogType CX2MemoryHolder::GetXMasDLG( CKTDXStage* pStage )
 	return m_pXMasDLG;
 }
 #endif
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+CKTDGUIDialogType CX2MemoryHolder::GetChungGiveItemDLG( CKTDXStage* pStage )
+{
+	if( m_pChungGiveItem == NULL )
+	{
+		m_pChungGiveItem = new CKTDGUIDialog(pStage,L"DLG_UI_Chung_Give_Item.lua");
+		if( m_pChungGiveItem != NULL)
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pChungGiveItem );
+	}
+	DefualtSettingDLG( m_pChungGiveItem, pStage );
+	return m_pChungGiveItem;
+}
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
 
 CKTDGUIDialogType CX2MemoryHolder::GetCommonDLG( CKTDXStage* pStage )
 {
@@ -484,6 +526,14 @@ CKTDGUIDialogType CX2MemoryHolder::GetCommonDLG( CKTDXStage* pStage )
 				texName = L"DLG_Background_ELESIS.tga";
 			} break;
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		case CX2Unit::UT_ADD:
+			{
+				controlIndex = 8;								
+				texName = L"DLG_Background_Add.tga";
+			} break;
+#endif //SERV_9TH_NEW_CHARACTER
 
 		default:
 			{
@@ -575,11 +625,11 @@ void CX2MemoryHolder::ReleaseVillageMemory()
 
 void CX2MemoryHolder::LoadEquip( const WCHAR* pDeviceID )
 {
-#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
+//#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
     /** Unit이 사용하는 장비들을 로드할 때는 m_EqipDeviceList를 사용하지 않아야 한다.
         - jintaeks on 2008-12-13, 17:12 */
     return;
-#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
+//#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-13
 
 	if( NULL == pDeviceID )
 		return; 
@@ -652,9 +702,7 @@ CKTDXDeviceTexture* CX2MemoryHolder::TextureReady( const WCHAR* pFileName )
 	return pDevice;
 }
 
-
 #ifdef SERV_CHINA_SPIRIT_EVENT
-
 void CX2MemoryHolder::SetShowUseSpiritEvent( bool bShow )
 {
 	if( m_bShow == bShow )
@@ -697,7 +745,6 @@ void CX2MemoryHolder::GetUseSpiritEventDLG( CKTDXStage* pStage, bool b )
 	}
 
 	UpdateUseSpiritEvent();
-
 }
 
 void CX2MemoryHolder::UpdateUseSpiritEvent()
@@ -729,7 +776,7 @@ void CX2MemoryHolder::UpdateUseSpiritEvent()
 		m_pUseSpiritEventDLG->SetShow( false );
 		return;
 	}
-	int iSelectedChinaSpirit = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_arrChinaSpirit[ iSelectedLocationIndex ];
+	int iSelectedChinaSpirit = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_arrChinaSpirit[ iSelectedLocationIndex ];
 	
 	// 켜고
 	m_pUseSpiritEventDLG->SetShow( true );
@@ -779,7 +826,6 @@ void CX2MemoryHolder::SetUseSpiritEventToolTip( bool bShow )
 	}
 }
 
-
 void CX2MemoryHolder::ShowRedPicture(bool bShow)
 {
 	if( m_pUseSpiritEventDLG == NULL )
@@ -791,9 +837,36 @@ void CX2MemoryHolder::ShowRedPicture(bool bShow)
 		staticCtrol->SetShow(bShow);		
 	}
 }
-
 #endif SERV_CHINA_SPIRIT_EVENT
 
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+CKTDGUIDialogType CX2MemoryHolder::GetUseCoboEventDLG( CKTDXStage* pStage )
+{
+	if(m_pUseCoboEventDLG == NULL)
+	{
+		m_pUseCoboEventDLG = new CKTDGUIDialog(pStage,L"DLG_UI_Cobo_Event.lua"); 
+		if( m_pUseCoboEventDLG != NULL)
+		{
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pUseCoboEventDLG );
+		}
+	}
+	DefualtSettingDLG( m_pUseCoboEventDLG, pStage );
+	return m_pUseCoboEventDLG;
+}
+CKTDGUIDialogType CX2MemoryHolder::GetCoboEventCountDLG( CKTDXStage* pStage )
+{
+	if(m_pCoboEventCountDLG == NULL)
+	{
+		m_pCoboEventCountDLG = new CKTDGUIDialog(pStage,L"DLG_UI_COBO_COUNT.lua"); 
+		if( m_pCoboEventCountDLG != NULL )
+		{
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pCoboEventCountDLG );
+		}
+	}
+	DefualtSettingDLG( m_pCoboEventCountDLG, pStage );
+	return m_pCoboEventCountDLG;
+}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 
 #ifdef SERV_NEW_YEAR_EVENT_2014
 void CX2MemoryHolder::SetShowNewYear2014Event( bool bShow )
@@ -852,7 +925,7 @@ void CX2MemoryHolder::UpdateNewYear2014Event()
 	}
 
 	CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
-	int iCurrentLevel = pUnit->GetUnitData()->m_Level;
+	int iCurrentLevel = pUnit->GetUnitData().m_Level;
 
 	// 일단 켜고
 	m_pNewYear2014EventDLG->SetShow( true );
@@ -879,8 +952,8 @@ void CX2MemoryHolder::UpdateNewYear2014Event()
 		}
 		else
 		{
-			CX2Inventory* pInventory = pUnit->GetInventory();
-			CX2Item* pItem = pInventory->GetItemByTID( _CONST_SERV_NEW_YEAR_EVENT_2014_::iMaxLevelSpecialMissionItemID );
+			CX2Inventory& kInventory = pUnit->AccessInventory();
+			CX2Item* pItem = kInventory.GetItemByTID( _CONST_SERV_NEW_YEAR_EVENT_2014_::iMaxLevelSpecialMissionItemID );
 
 			// 특별 미션은 모든 유저에게 보여주지만 조건을 달성한 유저만 enable
 			if( pItem != NULL && iOldYearMissionRewardedLevel == g_pInstanceData->GetMaxLevel() )
@@ -1146,3 +1219,352 @@ void CX2MemoryHolder::UpdateNewYear2014Event()
 	}
 }
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+void CX2MemoryHolder::SetShowCheckPowerEvent( bool bShow )
+{
+	if( m_bShowCheckPowerEvent == bShow )
+	{
+		m_pCheckPowerEventDLG->SetShow( m_bShowCheckPowerEvent );
+		return;
+	}
+
+	m_bShowCheckPowerEvent = bShow;
+
+	if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
+	{
+		UpdateCheckPowerEvent();
+	}
+
+	m_pCheckPowerEventDLG->SetShow( m_bShowCheckPowerEvent );
+}
+
+CKTDGUIDialogType CX2MemoryHolder::GetCheckPowerEventDLG( CKTDXStage* pStage )
+{
+	// 게이지 바 설정
+	if ( m_pCheckPowerEventDLG == NULL )
+	{
+		m_pCheckPowerEventDLG = new CKTDGUIDialog( pStage, L"DLG_UI_Check_Power_Event.lua" );
+		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pCheckPowerEventDLG );
+
+		CKTDGUIStatic* pRecruitPage = static_cast<CKTDGUIStatic*>( m_pCheckPowerEventDLG->GetControl( L"RecruitPage" ) );
+		CKTDGUIStatic* pGuidePage = static_cast<CKTDGUIStatic*>( m_pCheckPowerEventDLG->GetControl( L"GuidePage" ) );
+
+#ifdef CLIENT_GLOBAL_LINEBREAK
+		pRecruitPage->GetString( 0 )->msg = CWordLineHandler::GetStrByLineBreakInX2Main( pRecruitPage->GetString( 0 )->msg.c_str(), 244, pRecruitPage->GetString(0)->fontIndex );
+		pGuidePage->GetString( 0 )->msg = CWordLineHandler::GetStrByLineBreakInX2Main( pGuidePage->GetString( 0 )->msg.c_str(), 244, pGuidePage->GetString(0)->fontIndex );
+#else //CLIENT_GLOBAL_LINEBREAK
+		pRecruitPage->GetString( 0 )->msg = g_pMain->GetStrByLienBreak( pRecruitPage->GetString( 0 )->msg.c_str(), 244, pRecruitPage->GetString(0)->fontIndex );
+		pGuidePage->GetString( 0 )->msg = g_pMain->GetStrByLienBreak( pGuidePage->GetString( 0 )->msg.c_str(), 244, pGuidePage->GetString(0)->fontIndex );
+#endif //CLIENT_GLOBAL_LINEBREAK
+	}
+
+	DefualtSettingDLG( m_pCheckPowerEventDLG, pStage );
+
+	return m_pCheckPowerEventDLG;
+}
+
+void CX2MemoryHolder::UpdateCheckPowerEvent()
+{
+	if( m_pCheckPowerEventDLG == NULL )
+		return;
+
+	// 캐릭터 없을 때 끈다
+	if( g_pData == NULL || g_pData->GetMyUser() == NULL || g_pData->GetMyUser()->GetSelectUnit() == NULL || m_bShowCheckPowerEvent == false )
+	{
+		m_pCheckPowerEventDLG->SetShow( false );
+		return;
+	}
+
+	CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
+	int iCurrentLevel = pUnit->GetUnitData().m_Level;
+
+	m_pCheckPowerEventDLG->SetShow( false );
+	IF_EVENT_ENABLED( CEI_CHECK_POWER )
+	{
+		if( pUnit->GetClassLevel() >= 1 )
+		{
+			m_pCheckPowerEventDLG->SetShow( true );
+
+			// 버튼 및 스태틱
+			CKTDGUIButton* pAllegroButton = static_cast<CKTDGUIButton*>( m_pCheckPowerEventDLG->GetControl( L"Allegro" ) );
+			CKTDGUIStatic* pStaticProgress = static_cast<CKTDGUIStatic*>( m_pCheckPowerEventDLG->GetControl( L"Progress" ) );
+
+			m_pCheckPowerEventDLG->SetShowEnableControlsWithDummyInt( 0, 1, false, false );
+			m_pCheckPowerEventDLG->SetShowEnableControlsWithDummyInt( 0, 2, false, false );
+			m_pCheckPowerEventDLG->SetShowEnableControlsWithDummyInt( 0, 3, false, false );
+
+			bool bShowTimePage = true;
+			{
+				__int64 iCurrentTime = g_pData->GetServerCurrentTime();
+				__int64 iStartTime = pUnit->GetCheckPowerTime();
+				CTimeSpan tPlayTime = CTime( iCurrentTime ) - CTime( iStartTime );
+
+				if( tPlayTime < CTimeSpan( 0, 0, 20, 0 ) )
+				{
+					pStaticProgress->SetShowEnable( true, true );
+				}
+				else
+				{
+					pStaticProgress->SetShowEnable( false, false );
+					bShowTimePage = false;
+				}
+			}
+
+			if( g_pMain->GetNowStateID() != CX2Main::XS_DUNGEON_GAME )
+			{
+				if( pUnit->IsShowCheckPowerPopUp() == true )
+				{
+					m_pCheckPowerEventDLG->SetShowEnableControlsWithDummyInt( 0, 1, true, true );
+				}
+				else
+				{
+					unsigned char ucMaxCount = 2;
+					if( g_pData->GetMyUser()->GetSelectUnit()->GetType() == CX2Unit::UT_ELESIS )
+					{
+						ucMaxCount = 3;
+					}
+
+					if( m_bShowCheckPowerGuide )
+					{
+						pAllegroButton->SetShowEnable( false, false );
+						m_pCheckPowerEventDLG->SetShowEnableControlsWithDummyInt( 0, 2, true, true );
+					}
+					else if( bShowTimePage )
+					{
+						pAllegroButton->SetShowEnable( false, false );
+					}
+					else
+					{
+						if( pUnit->GetCheckPowerCount() < ucMaxCount )
+							pAllegroButton->SetShowEnable( true, true );
+						else
+							pAllegroButton->SetShowEnable( true, false );
+					}
+				}
+			}
+		}
+	}
+}
+
+void CX2MemoryHolder::UpdateCheckPowerEventTimer()
+{
+	if( m_pCheckPowerEventDLG != NULL )
+	{
+		CKTDGUIStatic* pStaticProgress = static_cast<CKTDGUIStatic*>( m_pCheckPowerEventDLG->GetControl( L"Progress" ) );
+		if( pStaticProgress->GetShow() == true && g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
+		{
+			CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
+			__int64 iCurrentTime = g_pData->GetServerCurrentTime();
+			__int64 iStartTime = pUnit->GetCheckPowerTime();
+			CTimeSpan tPlayTime = CTime( iCurrentTime ) - CTime( iStartTime );
+
+			if( tPlayTime < CTimeSpan( 0, 0, 10, 0 ) )
+			{
+				CTimeSpan tRemainTime = CTimeSpan( 0, 0, 10, 0 ) - tPlayTime;
+				pStaticProgress->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_29775, "S", tRemainTime.Format( L"%M:%S" ) ) );
+			}
+			else
+			{
+				CTimeSpan tRemainTime = CTimeSpan( 0, 0, 20, 0 ) - tPlayTime;
+				pStaticProgress->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_29776, "S", tRemainTime.Format( L"%M:%S" ) ) );
+			}
+		}
+	}
+}
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+CKTDGUIDialogType CX2MemoryHolder::GetUseAdamsEventShop(CKTDXStage* pStage )
+{
+	if(m_pUseAdamsEventShopDLG == NULL)
+	{
+		m_pUseAdamsEventShopDLG = new CKTDGUIDialog(pStage,L"DLG_UI_Event_AdamsShop_Button.lua"); 
+		if( m_pUseAdamsEventShopDLG != NULL)
+		{
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pUseAdamsEventShopDLG );
+		}
+	}
+	DefualtSettingDLG( m_pUseAdamsEventShopDLG, pStage );
+	return m_pUseAdamsEventShopDLG;
+}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+void CX2MemoryHolder::SetShow4thEvent( bool bShow )
+{
+	if( m_bShow4thYearEvent == bShow )
+	{
+		m_p4thYearEventDLG->SetShow( m_bShow4thYearEvent );
+		return;
+	}
+
+	m_bShow4thYearEvent = bShow;
+	Update4thEvent();
+}
+
+CKTDGUIDialogType CX2MemoryHolder::Get4thEventDLG( CKTDXStage* pStage )
+{
+	if ( m_p4thYearEventDLG == NULL )
+	{
+		m_p4thYearEventDLG = new CKTDGUIDialog( pStage, L"DLG_UI_4th_Year_Event.lua" );
+		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_p4thYearEventDLG );
+	}
+
+	return m_p4thYearEventDLG;
+}
+
+void CX2MemoryHolder::Update4thEvent()
+{
+	if( Get4thEventDLG( (CKTDXStage*)g_pMain->GetNowState() ) == NULL )
+		return;
+
+	// 캐릭터가 없거나 꺼 놓은 상태
+	if( g_pData == NULL || g_pData->GetMyUser() == NULL || g_pData->GetMyUser()->GetSelectUnit() == NULL || m_bShow4thYearEvent == false )
+	{
+		m_p4thYearEventDLG->SetShow( false );
+		return;
+	}
+
+	// 켜도 되는 상태
+	m_p4thYearEventDLG->SetShow( true );
+	m_p4thYearEventDLG->SetDisableUnderWindow( true );
+
+	// 사용 정보 가져옴
+	for( int iRewardIndex = 0; iRewardIndex < 12; ++iRewardIndex )
+	{
+		std::wstringstream wstrstm;
+		wstrstm << L"Button" << ( iRewardIndex + 1 );
+		CKTDGUIButton* pButton = static_cast<CKTDGUIButton*>( m_p4thYearEventDLG->GetControl( wstrstm.str().c_str() ) );
+		if( pButton != NULL )
+		{
+			if( g_pInstanceData->Is4thRewarded( iRewardIndex ) == true )
+				pButton->SetShowEnable( false, false );
+			else
+				pButton->SetShowEnable( true, true );
+		}
+	}
+
+	// 유저 정보 가져옴
+	K4ThAnnivEventInfo k4ThAnnivEventInfo;
+	g_pInstanceData->GetK4ThAnnivEventInfo( k4ThAnnivEventInfo );
+
+	// 펫 생성일
+	CKTDGUIStatic* pStaticPic1 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic1" ) );
+	if( pStaticPic1 != NULL )
+	{
+		std::wstring wstrTime( CTime( k4ThAnnivEventInfo.m_tTimeFirstPet ).Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
+		pStaticPic1->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30415, "L", wstrTime ) );
+	}
+
+	// 퀘스트 완료수
+	CKTDGUIStatic* pStaticPic2 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic2" ) );
+	if( pStaticPic2 != NULL )
+	{
+		std::wstringstream wstrstm;
+		wstrstm << k4ThAnnivEventInfo.m_iCountQuestComplete;
+		pStaticPic2->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30420, "L", wstrstm.str() ) );
+	}
+
+	// 첫 엘소드 플레이날
+	CKTDGUIStatic* pStaticPic3 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic3" ) );
+	if( pStaticPic3 != NULL )
+	{
+		std::wstring wstrTime( CTime( k4ThAnnivEventInfo.m_tTimeFirstPlay ).Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
+		pStaticPic3->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30414, "L", wstrTime ) );
+	}
+
+	// 총부활 횟수
+	CKTDGUIStatic* pStaticPic4 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic4" ) );
+	if( pStaticPic4 != NULL )
+	{
+		std::wstringstream wstrstm;
+		wstrstm << k4ThAnnivEventInfo.m_iCountResurrect;
+		pStaticPic4->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30424, "L", wstrstm.str() ) );
+	}
+
+	// 최장 접속 시간
+	CKTDGUIStatic* pStaticPic5 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic5" ) );
+	if( pStaticPic5 != NULL )
+	{
+		std::wstringstream wstrstm;
+		int iHour = k4ThAnnivEventInfo.m_iLongestConnectTime / 3600;
+		int iMin = (k4ThAnnivEventInfo.m_iLongestConnectTime % 3600) / 60;
+		int iSec = k4ThAnnivEventInfo.m_iLongestConnectTime % 60;
+
+		wstrstm << iHour << L":";
+		if( iMin < 10 )
+			wstrstm << 0;
+		wstrstm << iMin << L":";
+		if( iSec < 10 )
+			wstrstm << 0;
+		wstrstm << iSec;
+
+		pStaticPic5->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30419, "L", wstrstm.str() ) );
+	}
+
+	// 첫 헤니르 플레이날
+	CKTDGUIStatic* pStaticPic6 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic6" ) );
+	if( pStaticPic6 != NULL )
+	{
+		std::wstring wstrTime( CTime( k4ThAnnivEventInfo.m_tTimeFirstHenir ).Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
+		pStaticPic6->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30416, "L", wstrTime ) );
+	}
+
+	// 계정 총 접속 일 수
+	CKTDGUIStatic* pStaticPic7 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic7" ) );
+	if( pStaticPic7 != NULL )
+	{
+		std::wstringstream wstrstm;
+		wstrstm << k4ThAnnivEventInfo.m_iDayTotalConnect;
+		pStaticPic7->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30422, "L", wstrstm.str() ) );
+	}
+
+	// 첫 캐릭터 삭제일
+	CKTDGUIStatic* pStaticPic8 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic8" ) );
+	if( pStaticPic8 != NULL )
+	{
+		std::wstring wstrTime( CTime( k4ThAnnivEventInfo.m_tTimeFirstDeleteChar ).Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
+		pStaticPic8->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30417, "L", wstrTime ) );
+	}
+
+	// 총 던전 클리어 횟수
+	CKTDGUIStatic* pStaticPic9 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic9" ) );
+	if( pStaticPic9 != NULL )
+	{
+		std::wstringstream wstrstm;
+		wstrstm << k4ThAnnivEventInfo.m_iCountDungeonClear;
+		pStaticPic9->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30425, "L", wstrstm.str() ) );
+	}
+
+	// 우편 받은 횟수
+	CKTDGUIStatic* pStaticPic10 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic10" ) );
+	if( pStaticPic10 != NULL )
+	{
+		std::wstringstream wstrstm;
+		wstrstm << k4ThAnnivEventInfo.m_iCountReceivedPost;
+		pStaticPic10->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30421, "L", wstrstm.str() ) );
+	}
+
+	// 대전 총 패배 횟수
+	CKTDGUIStatic* pStaticPic11 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic11" ) );
+	if( pStaticPic11 != NULL )
+	{
+		std::wstringstream wstrstm;
+		wstrstm << k4ThAnnivEventInfo.m_iCountPvpLose;
+		pStaticPic11->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30423, "L", wstrstm.str() ) );
+	}
+
+	// 첫 구매 아이템
+	CKTDGUIStatic* pStaticPic12 = static_cast<CKTDGUIStatic*>( m_p4thYearEventDLG->GetControl( L"pic12" ) );
+	if( pStaticPic12 != NULL )
+	{
+		const CX2Item::ItemTemplet* pItemTempet = g_pData->GetItemManager()->GetItemTemplet( k4ThAnnivEventInfo.m_iItemIDFirstBuy );
+
+		if( pItemTempet != NULL )
+			pStaticPic12->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30418, "L", pItemTempet->GetName() ) );
+		else
+			pStaticPic12->GetString( 0 )->msg = GET_REPLACED_STRING( ( STR_ID_30418, "L", std::wstring( GET_STRING( STR_ID_30428 ) ) ) );
+	}
+}
+#endif SERV_4TH_ANNIVERSARY_EVENT

@@ -43,7 +43,9 @@ protected:
 	{
 		CSRTT_NORMAL			= 0,	/// 캐시샵 목록 변경 tick
 		CSRTT_BONUS_EVENT	= 1,	/// 캐시샵 보너스 캐쉬 이벤트 tick
-
+#ifdef SERV_CONTENT_MANAGER_INT
+		CSRTT_CASHSHOP_ON_OFF	= 2,	// 캐시샵 OnOff Tick 
+#endif SERV_CONTENT_MANAGER_INT
 	};
 
 	int DoQuery_GetReleaseTick( OUT std::map<int, int> & mapReleaseTick );
@@ -57,6 +59,9 @@ protected:
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 	void DoQuery_GetCheckBonusEvent( OUT std::vector<std::wstring> &vecStartEvent,  OUT std::vector<std::wstring> &vecEndEvent);
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
+#ifdef SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
+	int DoQuery_GetProductSalePeriodList( OUT std::map< int, KBillProductInfo >& mapBillProductInfo );
+#endif SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
 
 	//{{ 2011. 03. 03	최육사	중국 서버 빌링. 사내 버전도 이거 사용함
 	int DoQuery_GetCashPointByUserUID( IN const UidType iUserUID, 
@@ -241,6 +246,14 @@ protected:
 	DECL_ON_FUNC( EBILL_REWARD_COUPON_JP_EVENT_REQ );
 #endif SERV_RELAY_DB_CONNECTION
 	//}}
+
+#ifdef SERV_CONTENT_MANAGER_INT
+	DECL_ON_FUNC( DBE_GET_CASHSHOP_ON_OFF_INFO_REQ );
+#endif SERV_CONTENT_MANAGER_INT
+
+#ifdef SERV_COUNTRY_PH
+	DECL_ON_FUNC( EBILL_GARENA_PREPARE_PRESENT_CHECK_REQ );
+#endif // SERV_COUNTRY_PH
 };
 
 template < class T >

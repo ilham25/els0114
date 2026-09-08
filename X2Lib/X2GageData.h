@@ -7,15 +7,17 @@ namespace _CONST_ELESIS_DETONATION_
 }
 
 class CX2GageData;
-
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2GageData> CX2GageDataPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2GageData> CX2GageDataPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 class CX2ElswordGageData;
 class CX2GageData {
 
 public:
 
-#ifdef GAGE_FACTOR
 	struct GageFactor
 	{
 		float	fTime;
@@ -27,7 +29,6 @@ public:
 			fFactor = 0.f;
 		}
 	};
-#endif
 
 	// TODO: Gage 구조체를 GageManager 클래스를 제외하고는 직접 참조할 수 없게 다 막자
 	struct Gage
@@ -38,9 +39,7 @@ public:
 		KProtectedType<float>	fMax;
 		KProtectedType<float>	fChangeRate;
 
-#ifdef GAGE_FACTOR
 		std::vector<GageFactor> vecFactor;
-#endif
 
 	public: 
 		Gage()
@@ -60,10 +59,8 @@ public:
 				fNow = pGage->fNow;
 				fMax = pGage->fMax;
 				fChangeRate = pGage->fChangeRate;
-#ifdef GAGE_FACTOR
 				vecFactor.clear();
 				vecFactor = pGage->vecFactor;
-#endif
 			}
 		}
 
@@ -93,12 +90,9 @@ public:
 			fNow		= 0.0f;
 			fMax		= 1.0f;
 			fChangeRate	= 1.0f;
-#ifdef GAGE_FACTOR
 			vecFactor.clear();
-#endif
 		}
 
-#ifdef GAGE_FACTOR
 		void AddFactor( const float fFactor_, const float fTime_ )
 		{
 			GageFactor gageFactor;
@@ -112,7 +106,6 @@ public:
 		{
 			vecFactor.clear();
 		}
-#endif
 		void Increase( const float fIncrement, const float fMinimum = 0.f );
 
 	};
@@ -129,6 +122,9 @@ public:
 		, m_bIsActivateDetonation(false)
 		, m_fNowChargeMpForDetonation(0.f)
 #endif //FIX_FORCE_DOWN_AND_DETONATION_BUG
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{
 		Init();
 		m_SoulGage.fMax = 100.0f;
@@ -150,6 +146,9 @@ public:
 		,m_bIsActivateDetonation( rhs_.m_bIsActivateDetonation )
 		,m_fNowChargeMpForDetonation( rhs_.m_fNowChargeMpForDetonation )
 #endif //FIX_FORCE_DOWN_AND_DETONATION_BUG
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{
 	}
 
@@ -455,10 +454,10 @@ public:
 	virtual void	UpdateDataFromGameUnit( const CX2GageData* pGageData_ );
 	virtual void	InitWhenGameIsOver();
 
-	virtual void GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus_ ) const;
+	virtual bool GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus_ ) const;
 	virtual void SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus_ );
 
-	void Veryfy();
+	bool Veryfy() const;
 
 	void UseSpecialAbilityInVillage( const CX2Item::ItemTemplet* pItemTemplet_ );
 
@@ -481,6 +480,11 @@ public:
 	bool UpdateDamageFlushMP();
 #endif // FIX_FORCE_DOWN_AND_DETONATION_BUG
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 protected:
 
 	float GetSwapGageTime() const { return m_fSwapGageTime; }
@@ -489,20 +493,17 @@ protected:
 
 private:
 
-#ifdef SWAP_GAGE
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	Gage*					m_pHpGage;
 	Gage*					m_pMpGage;
-#else
-	Gage					m_HPGage;
-	Gage					m_MPGage;
-#endif
 	Gage					m_SoulGage;
 	Gage					m_ForceDownGage;
 	Gage					m_ChargeMpGageForDetonation;
 
-#ifdef SWAP_GAGE
 	float					m_fSwapGageTime;
-#endif
 
 #ifdef DUNGEON_ITEM
 	KProtectedType<float>	m_fChangeRateByItem;		/// 소인의 비약 인듯.
@@ -533,6 +534,8 @@ private:
 	float					m_fNowChargeMpForDetonation;// 기폭 활성화 되었을 때 충전 량
 #endif //FIX_FORCE_DOWN_AND_DETONATION_BUG
 };
+
+IMPLEMENT_INTRUSIVE_PTR( CX2GageData );
 
 class CX2ChungGageData : public CX2GageData
 {
@@ -606,7 +609,7 @@ public:
 	virtual void	UpdateDataFromGameUnit( const CX2GageData* pGageData_ );
 	virtual void	InitWhenGameIsOver();
 	
-	virtual void	GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
+	virtual bool	GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
 	virtual void	SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus );
 
 	/// 현재 GageData의 복사본을 생성 (파생 클래스 마다 서로의 복사본을 생성 하도록 하기 위해 순수가상으로 만듦)
@@ -676,7 +679,7 @@ public:
 
 	virtual void	UpdateDataFromGameUnit( const CX2GageData* pGageData_ );
 	virtual void	InitWhenGameIsOver();
-	virtual void	GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
+	virtual bool	GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
 	virtual void	SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus );
 
 	/// 현재 GageData의 복사본을 생성 (파생 클래스 마다 서로의 복사본을 생성 하도록 하기 위해 순수가상으로 만듦)
@@ -738,7 +741,7 @@ public:
 	virtual void	UpdateDataFromGameUnit( const CX2GageData* pGageData_ );
 	virtual void	InitWhenGameIsOver();
 
-	virtual void	GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
+	virtual bool	GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
 	virtual void	SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus );
 
 	/// 현재 GageData의 복사본을 생성 (파생 클래스 마다 서로의 복사본을 생성 하도록 하기 위해 순수가상으로 만듦)
@@ -803,7 +806,7 @@ public:
 	virtual void	DetonationFrameMove( double fTime, float fElapsedTime );
 	virtual void	UpdateDataFromGameUnit( const CX2GageData* pGageData_ );
 	virtual void	InitWhenGameIsOver();
-	virtual void	GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
+	virtual bool	GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
 	virtual void	SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus );
 
 	/// 현재 GageData의 복사본을 생성 (파생 클래스 마다 서로의 복사본을 생성 하도록 하기 위해 순수가상으로 만듦)
@@ -817,3 +820,139 @@ private:
 
 };
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+class CX2AddGageData : public CX2GageData
+{
+public:
+	/// 기본 함수들
+	CX2AddGageData() : CX2GageData(), 
+		m_bIsFormationMode( false ), 
+		m_bChangedMutationCount( false ),
+		m_iMutationCount( 0 ),
+		m_fDPValue( 0.f ),
+		m_fMaxDPValue( MAX_DP_GAGE_VALUE ),
+		m_fChangeFormationCoolTime( 0.f )
+	{}
+
+	CX2AddGageData( const CX2AddGageData& rhs_ ) : CX2GageData( rhs_ ),
+		m_bIsFormationMode( rhs_.m_bIsFormationMode ),
+		m_bChangedMutationCount( rhs_.m_bChangedMutationCount ),
+		m_iMutationCount( rhs_.m_iMutationCount ),
+		m_fDPValue( rhs_.m_fDPValue ),
+		m_fMaxDPValue( rhs_.m_fMaxDPValue ),
+		m_fChangeFormationCoolTime( rhs_.m_fChangeFormationCoolTime )
+	{}
+
+	void operator=( const CX2AddGageData& rhs_ )
+	{
+		CX2GageData::operator		= ( rhs_ );
+		m_bIsFormationMode			= rhs_.m_bIsFormationMode;
+		m_bChangedMutationCount		= rhs_.m_bChangedMutationCount;
+		m_iMutationCount			= rhs_.m_iMutationCount;
+		m_fDPValue					= rhs_.m_fDPValue;
+		m_fMaxDPValue				= rhs_.m_fMaxDPValue;
+		m_fChangeFormationCoolTime	= rhs_.m_fChangeFormationCoolTime;
+	}
+
+	virtual void UpdateDataFromGameUnit( const CX2GageData* pGageData_ );
+
+	virtual bool GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
+	virtual void SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus );
+
+	/// 현재 GageData의 복사본을 생성 (파생 클래스 마다 서로의 복사본을 생성 하도록 하기 위해 순수가상으로 만듬)
+	virtual CX2GageData* GetCloneGageData();
+	virtual void CopyGageData( IN CX2GageData* pGageData_ );
+
+
+	/// 추가 함수들
+	bool GetIsFormationMode() const { return m_bIsFormationMode; }
+	void SetIsFormationMode( bool val_ ) { m_bIsFormationMode = val_; }
+
+	bool GetChangedMutationCount() const { return m_bChangedMutationCount; }
+	void SetChangedMutationCount( bool val_ ) { m_bChangedMutationCount = val_; }
+
+	int GetMutationCount() const { return min( max( m_iMutationCount, 0), MAX_MUTATION_COUNT_VALUE ); }
+	void SetMutationCount( int val_ ) { m_iMutationCount = min( max( val_, 0), MAX_MUTATION_COUNT_VALUE ); }
+
+	float GetDPValue() const { return min( max( m_fDPValue, 0.f ), MAX_DP_GAGE_VALUE ); }
+	void SetDPValue( float val_ ) { m_fDPValue = min( max( val_, 0.f ), MAX_DP_GAGE_VALUE ); }
+
+	float GetMaxDPValue() const { return m_fMaxDPValue; }
+	void SetMaxDPValue( float val_ ) { m_fMaxDPValue = val_; }		/// 최대치는 X2Define.h 에 정의 되어 있어요!
+
+	float GetChangeFormationCoolTime() const { return m_fChangeFormationCoolTime; }
+	void SetChangeFormationCoolTime( float val_ ) { m_fChangeFormationCoolTime = val_; }
+
+	virtual void OnFrameMove( double fTime, float fElapsedTime );
+private:
+	bool						m_bIsFormationMode;			/// 구성 모드 적용 여부
+	bool						m_bChangedMutationCount;	/// 변이 수치 갱신 여부
+	int							m_iMutationCount;			/// 변이 수치
+	float						m_fDPValue;					/// DP 수치
+	float						m_fMaxDPValue;				/// DP 최대 수치
+	float						m_fChangeFormationCoolTime;	/// 구성 모드 전환 쿨타임
+};
+#endif //SERV_9TH_NEW_CHARACTER
+
+
+#ifdef ADD_RENA_SYSTEM //김창한
+/** @class : CX2RenaGageData
+	@brief : 레나 자연의 기운 관련 게이지CX2RenaGageData
+*/
+class CX2RenaGageData : public CX2GageData
+{
+public:
+	CX2RenaGageData() : CX2GageData(), m_bNFBuffMode( false ), m_bNFBuffModeChange(false ), m_bNaturalForceChanged( false )
+		, m_iNowNaturalForceCount( 0 ), m_iMaxNaturalForceCount( MAX_NATURAL_FORCE_VALUE )
+	{}
+
+	CX2RenaGageData( const CX2RenaGageData& rhs_ ) : CX2GageData( rhs_ ), m_bNFBuffMode( rhs_.m_bNFBuffMode ), m_bNFBuffModeChange( rhs_.m_bNFBuffModeChange )
+		, m_bNaturalForceChanged( rhs_.m_bNaturalForceChanged ), m_iNowNaturalForceCount( rhs_.m_iNowNaturalForceCount), 
+		m_iMaxNaturalForceCount( rhs_.m_iMaxNaturalForceCount )
+	{}
+
+	void operator=( const CX2RenaGageData& rhs_ )
+	{
+		CX2GageData::operator =( rhs_ );
+		m_bNFBuffMode = rhs_.m_bNFBuffMode;
+		m_bNFBuffModeChange = rhs_.m_bNFBuffModeChange;
+		m_bNaturalForceChanged = rhs_.m_bNaturalForceChanged;
+		m_iNowNaturalForceCount = rhs_.m_iNowNaturalForceCount;
+		m_iMaxNaturalForceCount = rhs_.m_iMaxNaturalForceCount;
+	}
+		
+	bool GetNFBuffMode() const;
+	void SetNFBuffMode( const bool bNFBuffMode_ );
+
+	bool GetNaturalForceChanged() const;
+	void SetNaturalForceChanged( const bool bNaturalForceChanged_ );
+
+	int GetNowNaturalForce() const;
+	void SetNowNaturalForce( const int iNowNaturalForceCount_ );
+
+	int GetMaxNaturalForce() const;
+	void SetMaxNaturalForce( const int iMaxNaturalForceCount_ );
+
+	bool IsFullNaturalForce() const;
+	bool IsEmptyNaturalForce() const;
+	
+	virtual void	UpdateDataFromGameUnit( const CX2GageData* pGageData_ );
+	virtual void	InitWhenGameIsOver();
+
+	virtual bool	GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const;
+	virtual void	SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus );
+
+	/// 현재 GageData의 복사본을 생성 (파생 클래스 마다 서로의 복사본을 생성 하도록 하기 위해 순수가상으로 만듦)
+	virtual CX2GageData* GetCloneGageData();
+	virtual void CopyGageData( IN CX2GageData* pGageData_ );
+
+private:
+	bool	m_bNFBuffMode;				/// 자연의 기운 버프.rhs_
+	bool	m_bNFBuffModeChange;		/// 자연의 기운 버프가 적용되었는가?
+	bool	m_bNaturalForceChanged;		/// 자연의 기운이 변경되었는가?
+
+	KProtectedType<int>	m_iNowNaturalForceCount;	/// 현재 자연의 기운 수
+	KProtectedType<int>	m_iMaxNaturalForceCount;	/// 최대 자연의 기운 수
+};
+#endif //ADD_RENA_SYSTEM

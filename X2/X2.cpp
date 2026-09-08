@@ -24,6 +24,14 @@
 //#define DEBUG_VS   // Uncomment this line to debug vertex shaders 
 //#define DEBUG_PS   // Uncomment this line to debug pixel shaders 
 
+#if defined(DEBUG) || defined(_DEBUG)
+	#pragma comment( lib, "KTDXLIBD.lib" )
+	#pragma comment( lib, "X2LibD.lib" )
+#else
+	#pragma comment( lib, "KTDXLIB.lib" )
+	#pragma comment( lib, "X2Lib.lib" )
+#endif
+
 #ifdef CLIENT_PURPLE_MODULE	// 임규수 일본 추가
 #include "../X2Lib/OnlyGlobal/JP/Auth/PurpleForClient.h"
 #endif // CLIENT_PURPLE_MODULE
@@ -39,7 +47,6 @@
 #ifdef SERV_COUNTRY_PH
 #include "../KNCSDK/Include/cryptopp/rsa.h"
 #endif //SERV_COUNTRY_PH
-
 
 //--------------------------------------------------------------------------------------
 // Global variables
@@ -322,7 +329,7 @@ void CopyGameGuardFiles()
 #elif defined( CLIENT_COUNTRY_TH )
 	vecGameGuardFiles += L"ElswordTH.ini", L"ElswordTHTest.ini", L"GameGuard.des";
 #elif defined( CLIENT_COUNTRY_JP )
-	vecGameGuardFiles += L"ElswordJP.ini", L"GameGuard.des";
+	vecGameGuardFiles += L"ElswordJP.ini", L"ElswordJPTest.ini", L"GameGuard.des";
 #elif defined( CLIENT_COUNTRY_ID )
 	vecGameGuardFiles += L"ElswordID.ini", L"ElswordIDTest.ini", L"GameGuard.des";
 #elif defined( CLIENT_COUNTRY_BR )
@@ -351,11 +358,9 @@ void CopyGameGuardFiles()
 	ELSWORD_VIRTUALIZER_END
 #endif
 }
-#endif GAMEGUARD_AUTO_UPDATE
-
+#endif //GAMEGUARD_AUTO_UPDATE
 
 #ifdef SERV_EPAY_SYSTEM
-
 DWORD EpayCheckRunProces(LPCWSTR clientname)
 {
 
@@ -421,9 +426,6 @@ DWORD EpayCheckRunProcesCount(LPCWSTR clientname, OUT int& iCheckProcesCount)
 		}
 	} while (Process32Next(hnd, &Process32));
 
-
-
-
 	return TRUE;
 
 }
@@ -438,8 +440,6 @@ bool EPayPrepareUpdate() // epay 관련 업데이트 가능하도록 하는 함�
 
 	string tempNameFrome = "";
 	string tempNameTo = "";
-
-
 
 	//	실행파일 위치 얻어오기
 	GetModuleFileNameW( NULL, wszFullFilePath, MAX_PATH );
@@ -470,7 +470,6 @@ bool EPayPrepareUpdate() // epay 관련 업데이트 가능하도록 하는 함�
 		return false;
 	}
 
-
 	int ix2RunCount = 0;
 
 	EpayCheckRunProcesCount( L"x2.exe", ix2RunCount );
@@ -489,7 +488,6 @@ bool EPayPrepareUpdate() // epay 관련 업데이트 가능하도록 하는 함�
 		boost::filesystem::create_directory(wstrEpayFolderFullPath);
 	}
 
-
 	wstring wstrAutoUpdateProCheck = wstrEpayFolderFullPath + L"/autoupdate.exe";
 	wstring wstrAutoUpdateXmlCheck = wstrEpayFolderFullPath + L"/autoupdate.xml";
 
@@ -502,14 +500,12 @@ bool EPayPrepareUpdate() // epay 관련 업데이트 가능하도록 하는 함�
 	boost::filesystem::copy_file( wstrAutoUpdateProCheckSupport, wstrAutoUpdateProCheck );
 	boost::filesystem::copy_file( wstrAutoUpdateXmlCheckSupport, wstrAutoUpdateXmlCheck );
 
-
 	STARTUPINFO stif;
 	PROCESS_INFORMATION pi;
 	memset(&stif,0,sizeof(STARTUPINFO));
 	stif.cb=sizeof(STARTUPINFO);
 	stif.dwFlags= STARTF_USESHOWWINDOW;
 	stif.wShowWindow=SW_HIDE;
-
 
 	WCHAR	wszExeFilePath[MAX_PATH] = L"";
 	WCHAR	wszCommandLine[MAX_PATH] = L"";
@@ -526,9 +522,7 @@ bool EPayPrepareUpdate() // epay 관련 업데이트 가능하도록 하는 함�
 	return true;
 
 }
-
 #endif //SERV_EPAY_SYSTEM
-
 
 #ifdef GET_ELSWORD_FOCUS
 //--------------------------------------------------------------------------------
@@ -790,7 +784,6 @@ INT WINAPI VirtualWinMain( HINSTANCE hInst, HINSTANCE, LPSTR, INT )
 		
 		hgpshelp = LoadLibrary(_T("HGPSHELP.DLL"));
 	}
-	
 #endif // CLIENT_PURPLE_MODULE
 
 #ifdef _SERVICE_
@@ -801,36 +794,12 @@ INT WINAPI VirtualWinMain( HINSTANCE hInst, HINSTANCE, LPSTR, INT )
 
 #ifndef _SERVICE_MANUAL_LOGIN_
 
-//{{ Iruha : 2026-09-04 // launch without the patcher token in argv[1]
-#ifdef SERV_IRUHADEV_NO_PATCHER_TOKEN
-	// The value the two tests below want, supplied here instead of read out
-	// of argv. On a live install X2Patcher launched the client and passed
-	// this token; nothing launches it here, and a bare start arrives with
-	// __argc == 1 - so __argv[1] is the NULL terminator of the argv array,
-	// the first test takes it, and WinMain returns 0. No window, no message,
-	// no log: indistinguishable from a crash, and the reason the exe had to
-	// be started from start_offline.bat.
-	//
-	// The tests are left standing rather than compiled out, and the constant
-	// is used rather than the literal spelled again, so that this keeps
-	// agreeing with PATCHER_RUN_ONLY if that is ever changed. Passing the
-	// token still works - it is simply no longer required.
-#ifdef PATCHER_RUN_ONLY
-	char* tempArgv = (char*)PATCHER_RUN_ONLY;
-#else PATCHER_RUN_ONLY
-	// No token to satisfy in this configuration; the value is never read,
-	// it only has to be non-NULL.
-	char* tempArgv = (char*)"";
-#endif PATCHER_RUN_ONLY
-#else SERV_IRUHADEV_NO_PATCHER_TOKEN
 #ifdef SERV_CHANNELING_AERIA
 	// 패쳐에서는 arg 젤 마지막에 PATCHER_RUN_ONLY 를 붙이는데 여기선 젤 앞에걸로 비교를 하네...
 	char* tempArgv = __argv[__argc - 1];
 #else //SERV_CHANNELING_AERIA
 	char* tempArgv = __argv[1];
 #endif //SERV_CHANNELING_AERIA
-#endif SERV_IRUHADEV_NO_PATCHER_TOKEN
-//}}
 	if( tempArgv == NULL )
 	{
 		return 0;
@@ -845,7 +814,6 @@ INT WINAPI VirtualWinMain( HINSTANCE hInst, HINSTANCE, LPSTR, INT )
 	}
 #endif PATCHER_RUN_ONLY
 
-	
 #endif // _SERVICE_MANUAL_LOGIN_
 
 //#ifndef	_OPEN_TEST_		// 해외팀 제거
@@ -882,9 +850,18 @@ INT WINAPI VirtualWinMain( HINSTANCE hInst, HINSTANCE, LPSTR, INT )
 	
 #ifdef GAMEGUARD_INI_COUNTRY
 #if defined( CLIENT_COUNTRY_JP )	// 해외팀 각국가 전용 디파인
-	if (PreInitNPGameMon( L"elswordjp" ) != NPGAMEMON_SUCCESS )
+	std::wstring wstrTest;
+#ifdef _OPEN_TEST_
+	wstrTest = L"ElswordJPTest";
+#else _OPEN_TEST_
+	wstrTest = L"ElswordJP";
+#endif _OPEN_TEST_
+	DWORD dwCode = PreInitNPGameMon( wstrTest.c_str() );
+	if( dwCode != NPGAMEMON_SUCCESS )
 	{
-		MessageBox(NULL, L"Game Guardの更新に失敗しました。クライアントを終了します。", L"お知らせ", MB_ICONINFORMATION | MB_OK);
+		std::wstringstream wstrstm;
+		wstrstm << L"Game Guardの更新に失敗しました。クライアントを終了します。(" << wstrTest << L", " << dwCode << L")";
+		MessageBox( NULL, wstrstm.str().c_str(), L"お知らせ", MB_ICONINFORMATION | MB_OK );
 		return 0;
 	}
 #elif defined( CLIENT_COUNTRY_CN )
@@ -901,25 +878,59 @@ INT WINAPI VirtualWinMain( HINSTANCE hInst, HINSTANCE, LPSTR, INT )
 		return 0;
 	}
 #elif defined( CLIENT_COUNTRY_TH )
-#ifdef _SERVICE_
-	if (PreInitNPGameMon( L"ElswordTH" ) != NPGAMEMON_SUCCESS )
+#ifdef _OPEN_TEST_
+	DWORD dwCode;
+	if( strcmp( tempArgv, "CloseOnStart" ) == 0 )
+	{
+		dwCode = PreInitNPGameMon( L"ElswordTHINT" );
+	}
+	else
+	{
+		dwCode = PreInitNPGameMon( L"ElswordTHTest" );
+	}
+	if ( dwCode != NPGAMEMON_SUCCESS )
+	{
+		std::wstringstream wstrstm;
+		MessageBox(NULL, L"การเริ่มเกมส์การ์ดerror กรุณาดำเนินการหลังจากยกเลิกโปรแกรมอื่นๆที่ขัดแย้งหรือดำเนินการใหม่อีกครั้ง", L"TESTยืนยัน", MB_ICONINFORMATION | MB_OK);
+		return 0;
+	}
+#else _OPEN_TEST_
+	DWORD dwCode;
+	if( strcmp( tempArgv, "CloseOnStart" ) == 0 )
+	{
+		dwCode = PreInitNPGameMon( L"ElswordTHINT" );
+	}
+	else
+	{
+		dwCode = PreInitNPGameMon( L"ElswordTH" );
+	}
+	if ( dwCode != NPGAMEMON_SUCCESS )
 	{
 		MessageBox(NULL, L"การเริ่มเกมส์การ์ดerror กรุณาดำเนินการหลังจากยกเลิกโปรแกรมอื่นๆที่ขัดแย้งหรือดำเนินการใหม่อีกครั้ง", L"ยืนยัน", MB_ICONINFORMATION | MB_OK);
 		return 0;
 	}
-#else
-	if ( PreInitNPGameMon( L"ElswordTHTest" ) != NPGAMEMON_SUCCESS )
-	{
-		MessageBox(NULL, L"การเริ่มเกมส์การ์ดerror กรุณาดำเนินการหลังจากยกเลิกโปรแกรมอื่นๆที่ขัดแย้งหรือดำเนินการใหม่อีกครั้ง", L"ยืนยัน", MB_ICONINFORMATION | MB_OK);
-		return 0;
-	}
-#endif 
+#endif _OPEN_TEST_
 #elif defined( CLIENT_COUNTRY_ID )	
 #ifdef _OPEN_TEST_
-	DWORD dwCode = PreInitNPGameMon( L"ElswordIDTest" );
-	//DWORD dwCode = PreInitNPGameMon( L"ElswordID" );
+	DWORD dwCode;
+	if( strcmp( tempArgv, "CloseOnStart" ) == 0 )
+	{
+		dwCode = PreInitNPGameMon( L"ElswordIDINT" );
+	}
+	else
+	{
+		dwCode = PreInitNPGameMon( L"ElswordIDTest" );
+	}
 #else _OPEN_TEST_
-	DWORD dwCode = PreInitNPGameMon( L"ElswordID" );
+	DWORD dwCode;
+	if( strcmp( tempArgv, "CloseOnStart" ) == 0 )
+	{
+		dwCode = PreInitNPGameMon( L"ElswordIDINT" );
+	}
+	else
+	{
+		dwCode = PreInitNPGameMon( L"ElswordID" );
+	}
 #endif _OPEN_TEST_
 
 	if ( dwCode != NPGAMEMON_SUCCESS )
@@ -1035,14 +1046,13 @@ INT WINAPI VirtualWinMain( HINSTANCE hInst, HINSTANCE, LPSTR, INT )
 
 	HICON hIcon = ::LoadIcon( hInst, MAKEINTRESOURCE( IDI_ICON1 ) );
 
+	DXUTCreateWindow( L"X2", NULL, hIcon );
 #ifdef CLOSE_ON_START_FOR_GAMEGUARD
 	if(__argc == 2 && StrCmpA(__argv[1], "CloseOnStart") == 0)
 	{
 		return 0;
 	}
 #endif CLOSE_ON_START_FOR_GAMEGUARD
-
-	DXUTCreateWindow( L"X2", NULL, hIcon );
 	DXUTCreateDevice( D3DADAPTER_DEFAULT, true, 1024, 768, IsDeviceAcceptable, ModifyDeviceSettings );
 
 #ifdef CLIENT_USE_XTRAP	// XTRAP 클라이언트 - 정상 실행 됬는지 확인
@@ -1160,6 +1170,7 @@ bool CALLBACK IsDeviceAcceptable( D3DCAPS9* pCaps, D3DFORMAT AdapterFormat,
 {
 	// Skip backbuffer formats that don't support alpha blending
 	IDirect3D9* pD3D = DXUTGetD3DObject(); 
+
 	if( FAILED( pD3D->CheckDeviceFormat( pCaps->AdapterOrdinal, pCaps->DeviceType,
 		AdapterFormat, D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING, 
 		D3DRTYPE_TEXTURE, BackBufferFormat ) ) )
@@ -1236,7 +1247,9 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, const D
 //}} seojt // 2008-10-14, 15:13
 #endif DISABLE_DRIVER_MANAGEMENT_TEST
 
-
+#ifdef  _USE_LUAJIT_
+    pDeviceSettings->BehaviorFlags |= D3DCREATE_FPU_PRESERVE;
+#endif  _USE_LUAJIT_
 
 #ifndef CLIENT_USE_XTRAP	// xtrap 맵 파일을 만드는데 방해가 되므로 제거
 	// For the first device created if its a REF device, optionally display a warning dialog box
@@ -1516,51 +1529,6 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
 				peopleNum++;
 			}
 		}
-
-#ifdef UDP_PACKET_STANDARD_DEVIATION_LOG
-		if ( g_pData != NULL && g_pData->GetGameUDP() != NULL )
-		{
-			static int iGameSpace = CX2Main::XS_INVALID;
-			if( g_pMain->GetNowStateID() != iGameSpace )
-			{
-				//새로운 GameSpace라면 리셋...
-				g_pData->GetGameUDP()->ResetStandardDeviation_SendPacket();
-
-				iGameSpace = g_pMain->GetNowStateID();
-			}
-
-			float fStdDeviation_Num = 0.0f;
-			float fStdDeviation_Amount = 0.0f;
-			g_pData->GetGameUDP()->GetStandardDeviation_SendPacket( fStdDeviation_Num, fStdDeviation_Amount );
-
-			//로그파일로 출력
-			static FILE* pUdpSendPacketNumFile = NULL;
-			static FILE* pUdpSendPacketAmountFile = NULL;
-			if( g_pMain->IsEnableUdpPacketStandardDeviationLog() )
-			{
-				if( pUdpSendPacketNumFile == NULL )
-					pUdpSendPacketNumFile = fopen( "UdpPacketNum_StandardDeviationLog.txt", "w+");
-				fprintf( pUdpSendPacketNumFile, "%f\n", fStdDeviation_Num );
-
-				if( pUdpSendPacketAmountFile == NULL )
-					pUdpSendPacketAmountFile = fopen( "UdpPacketAmount_StandardDeviationLog.txt", "w+");
-				fprintf( pUdpSendPacketAmountFile, "%f\n", fStdDeviation_Amount );
-			}
-			else
-			{
-				if( pUdpSendPacketNumFile )
-				{
-					fclose( pUdpSendPacketNumFile );
-					pUdpSendPacketNumFile = NULL;
-				}
-				if( pUdpSendPacketAmountFile )
-				{
-					fclose( pUdpSendPacketAmountFile );
-					pUdpSendPacketAmountFile = NULL;
-				}
-			}
-		}
-#endif//UDP_PACKET_STANDARD_DEVIATION_LOG
 #endif
 		
 #ifdef BANDICAM_RECORDING
@@ -1643,7 +1611,7 @@ void RenderText(float fElapsedTime)
 	wcscat( appData, wszText );
 #endif //FRAME_MOVE_CULL	
 
-#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
 
     if ( g_pKTDXApp != NULL && g_pKTDXApp->GetDVBManager() != NULL )
     {
@@ -1664,10 +1632,25 @@ void RenderText(float fElapsedTime)
             break;
         }//switch
 
-	    swprintf( wszText, sizeof(wszText)/sizeof(WCHAR)-1, L", DynamicVBMode : %s", pDynamicVBMode );
+	    swprintf( wszText, sizeof(wszText)/sizeof(WCHAR)-1, L"\nDynamicVBMode : %s", pDynamicVBMode );
+		
+	    wcscat( appData, wszText );
+#ifdef X2OPTIMIZE_DYNAMICVB_DISCARDCOUNT_LOG
+		int iTemp = g_pKTDXApp->GetDVBManager()->GetAvgDiscardCount( CKTDGDynamicVBManager::DVB_TYPE_XYZ_DIFFUSE );
+		int iTemp2 = g_pKTDXApp->GetDVBManager()->GetAvgDiscardCount( CKTDGDynamicVBManager::DVB_TYPE_XYZ_DIFFUSE_TEX1 );
+		int iTemp3 = g_pKTDXApp->GetDVBManager()->GetAvgDiscardCount( CKTDGDynamicVBManager::DVB_TYPE_XYZ_TEX1 );
+		int iTemp4 = g_pKTDXApp->GetDVBManager()->GetAvgDiscardCount( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1 );
+
+		swprintf( wszText, sizeof(wszText)/sizeof(WCHAR)-1, L"\nDynamicVB DiscardCountPerSec - DVB_TYPE_XYZ_DIFFUSE: %d, DVB_TYPE_XYZ_DIFFUSE_TEX1: %d, DVB_TYPE_XYZ_TEX1: %d, DVB_TYPE_XYZRHW_DIFFUSE_TEX1: %d", 
+			iTemp,
+			iTemp2,
+			iTemp3,
+			iTemp4 );
+#endif//X2OPTIMIZE_DYNAMICVB_DISCARDCOUNT_LOG			
+			
 	    wcscat( appData, wszText );
     }//if
-#endif  DYNAMIC_VERTEX_BUFFER_OPT
+//#endif  DYNAMIC_VERTEX_BUFFER_OPT
 
 
 	wcscat( appData, L"\n" );
@@ -1817,7 +1800,7 @@ void RenderText(float fElapsedTime)
 	}
 #endif // SHOW_UDP_NETWORK_INFO_IN_ROOM
 
-	if( g_pX2Game != NULL && g_pX2Game->GetMyUnit() != NULL && g_pX2Game->GetMyUnit()->GetSyncData() != NULL )
+	if( g_pX2Game != NULL && g_pX2Game->GetMyUnit() != NULL )
 	{
 		if( g_pX2Game != NULL && g_pX2Game->GetHostGameUnit() != NULL )
 		{		
@@ -1847,6 +1830,41 @@ void RenderText(float fElapsedTime)
 				CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_LEFT );
 		}
 		
+#ifdef ADD_RAID_FIELD_LOG  // 기여도 확인하기
+		int iPosY = 300;
+		for( int i=0; i<g_pX2Game->GetNPCUnitListSize(); ++i )
+		{
+			CX2GUNPC* pGUNPC = g_pX2Game->GetNPCUnit(i);
+
+			if( NULL != pGUNPC &&
+				(true == pGUNPC->GetIsBosRaidNPC() ||
+				true == pGUNPC->GetIsMiddleBosRaidNPC())
+				 )
+			{
+				swprintf( timeBuf, L"%s", pGUNPC->GetUnitName().c_str());
+				if( g_pMain->GetFontForDebuf() != NULL )
+					g_pMain->GetFontForDebuf()->OutTextXY( 600, iPosY-20, timeBuf, D3DXCOLOR(1,1,0,1), 
+					CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_LEFT );
+
+				map<UidType,float> mapDamagedMap = pGUNPC->GetDamagedMap();
+				map<UidType,float>::const_iterator iter = mapDamagedMap.begin();
+				for ( ; iter != mapDamagedMap.end(); ++iter )
+				{
+					CX2GUUser* pUser = g_pX2Game->GetUserUnitByUID( iter->first );
+					if( NULL != pUser )
+					{
+						swprintf( timeBuf, L"%s, Damage : %d", pUser->GetUnitName().c_str(), static_cast<int>(iter->second) );
+						if( g_pMain->GetFontForDebuf() != NULL )
+							g_pMain->GetFontForDebuf()->OutTextXY( 600, iPosY, timeBuf, D3DXCOLOR(1,1,0,1), 
+							CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_LEFT );
+						iPosY += 20;
+					}
+				} 
+				break;
+			}
+		}
+#endif // ADD_RAID_FIELD_LOG
+
 		// 캐릭터 좌표
 		const D3DVECTOR vMyUnitPos = g_pX2Game->GetMyUnit()->GetPos();
 		swprintf( timeBuf, L"MyUnitPos X:%d Y:%d, Z:%d", static_cast<int>(vMyUnitPos.x), static_cast<int>(vMyUnitPos.y), static_cast<int>(vMyUnitPos.z) );
@@ -1904,10 +1922,9 @@ void RenderText(float fElapsedTime)
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 		//카메라 포커스 유닛
 		if (NULL != g_pX2Game->GetFocusUnit() &&
-			NULL != g_pX2Game->GetFocusUnit()->GetUnit() &&
-			NULL != g_pX2Game->GetFocusUnit()->GetUnit()->GetUnitData())
+			NULL != g_pX2Game->GetFocusUnit()->GetUnit())
 		{
-			swprintf( timeBuf, L"카메라 포커스 유닛 : %s",  g_pX2Game->GetFocusUnit()->GetUnit()->GetUnitData()->m_NickName.c_str());
+			swprintf( timeBuf, L"카메라 포커스 유닛 : %s",  g_pX2Game->GetFocusUnit()->GetUnit()->GetUnitData().m_NickName.c_str());
 			if( g_pMain->GetFontForDebuf() != NULL )
 				g_pMain->GetFontForDebuf()->OutTextXY( iPosX, iPosY, timeBuf, D3DXCOLOR(1,1,0,1), CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_LEFT ); 		
 		}
@@ -2012,14 +2029,14 @@ void RenderText(float fElapsedTime)
 			//카메라 위치
 			if( NULL != g_pX2Game->GetX2Camera()->GetCamera() )
 			{			
-				D3DXVECTOR3 vPos = g_pX2Game->GetX2Camera()->GetCamera()->GetEye();
+				D3DXVECTOR3 vPos = g_pX2Game->GetX2Camera()->GetCamera().GetEye();
 				swprintf( timeBuf, L"EYE = %.1f, %.1f, %.1f", vPos.x, vPos.y, vPos.z );
 
 				if( g_pMain->GetFontForDebuf() != NULL )
 					g_pMain->GetFontForDebuf()->OutTextXY( iPosX, iPosY, timeBuf, D3DXCOLOR(1,1,0,1), CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_LEFT ); 	
 				iPosY += 20;
 
-				vPos = g_pX2Game->GetX2Camera()->GetCamera()->GetLookAt();
+				vPos = g_pX2Game->GetX2Camera()->GetCamera().GetLookAt();
 				swprintf( timeBuf, L"LOOKAT = %.1f, %.1f, %.1f", vPos.x, vPos.y, vPos.z );
 
 				if( g_pMain->GetFontForDebuf() != NULL )
@@ -2104,9 +2121,9 @@ void RenderText(float fElapsedTime)
 		}
 	}
 
-	if( g_pX2Game != NULL && g_pX2Game->GetMyUnit() != NULL && g_pX2Game->GetMyUnit()->GetSyncData() != NULL )
+	if( g_pX2Game != NULL && g_pX2Game->GetMyUnit() != NULL )
 	{
-		int iLineIndex = (int)g_pX2Game->GetMyUnit()->GetSyncData()->lastTouchLineIndex;
+		int iLineIndex = (int)g_pX2Game->GetMyUnit()->GetSyncData().lastTouchLineIndex;
 
 		swprintf( timeBuf, L"line : %d", iLineIndex );
 		if( g_pMain->GetFontForDebuf() != NULL )
@@ -2133,7 +2150,11 @@ void RenderText(float fElapsedTime)
 	if( NULL != g_pData &&
 		NULL != g_pData->GetGameMajorParticle() )
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        int nMajorSeqNum =  g_pData->GetGameMajorParticle()->EstimateParticleSequenceNum();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		int nMajorSeqNum =  g_pData->GetGameMajorParticle()->GetParticleSequenceNum();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		swprintf( timeBuf, L"major p: %d", nMajorSeqNum );
 		if( g_pMain->GetFontForDebuf() != NULL )
@@ -2144,7 +2165,11 @@ void RenderText(float fElapsedTime)
 	if( NULL != g_pData &&
 		NULL != g_pData->GetGameMinorParticle() )
 	{		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        int nMinorSeqNum =  g_pData->GetGameMinorParticle()->EstimateParticleSequenceNum();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		int nMinorSeqNum =  g_pData->GetGameMinorParticle()->GetParticleSequenceNum();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		swprintf( timeBuf, L"minor p: %d", nMinorSeqNum );
 		if( g_pMain->GetFontForDebuf() != NULL )
@@ -2155,7 +2180,11 @@ void RenderText(float fElapsedTime)
 	if( NULL != g_pData &&
 		NULL != g_pData->GetGameMajorXMeshPlayer() )
 	{		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        int nMajorInstanceNum = g_pData->GetGameMajorXMeshPlayer()->EstimateInstanceNum();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		int nMajorInstanceNum = g_pData->GetGameMajorXMeshPlayer()->GetInstanceNum();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		swprintf( timeBuf, L"major m: %d", nMajorInstanceNum );
 		if( g_pMain->GetFontForDebuf() != NULL )
@@ -2166,7 +2195,11 @@ void RenderText(float fElapsedTime)
 	if( NULL != g_pData &&
 		NULL != g_pData->GetGameMinorXMeshPlayer() )
 	{		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        int nMinorInstanceNum =  g_pData->GetGameMinorXMeshPlayer()->EstimateInstanceNum();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		int nMinorInstanceNum =  g_pData->GetGameMinorXMeshPlayer()->GetInstanceNum();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		swprintf( timeBuf, L"minor m: %d", nMinorInstanceNum );
 		if( g_pMain->GetFontForDebuf() != NULL )
@@ -2274,7 +2307,7 @@ void CALLBACK KeyboardProc( UINT nChar, bool bKeyDown, bool bAltDown, void* pUse
 			//case VK_F1: g_bShowHelp = !g_bShowHelp; break;
 		case VK_HOME: 
 			{
-				if ( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR )
+				if ( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_SPECIAL_USER )
 				{
 					g_bRenderEtc = !g_bRenderEtc; 
 					g_pData->ToggleRenderEtc();

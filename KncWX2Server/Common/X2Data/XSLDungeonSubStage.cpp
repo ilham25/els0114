@@ -1,10 +1,16 @@
 #include "XSLDungeonSubStage.h"
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 #include <boost/foreach.hpp>
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
-bool CXSLDungeonSubStage::SubStageData::LoadData( IN bool bScriptCheck, KLuaManager& luaManager )
+#ifdef _CONVERT_VS_2010
+#define ARRAY_SIZE(a)       (sizeof(a)/sizeof((a)[0]))
+#endif _CONVERT_VS_2010
+
+bool CXSLDungeonSubStage::SubStageData::LoadData( IN bool bScriptCheck
+												, IN OUT KLuaManager& luaManager
+												)
 {
 	//이 서브 스테이지에 사용할 라인 그룹
 	LUA_GET_VALUE( luaManager, "MAIN_LINE_SET",			m_MainLineSet,			0	);
@@ -26,12 +32,19 @@ bool CXSLDungeonSubStage::SubStageData::LoadData( IN bool bScriptCheck, KLuaMana
 	}
 #endif SERV_CREATED_NPC_LIMITED_DROPS
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 	if( LoadClearCondition( luaManager ) == false )
 	{
 		return false;
 	}
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
+
+#ifdef SERV_DUNGEON_NPC_DATA_EXP_RATE		// 적용날짜: 2013-08-13
+	if( LoadCreatedNpcExpRateData( luaManager ) == false )
+	{
+		return false;
+	}
+#endif // SERV_DUNGEON_NPC_DATA_EXP_RATE
 
 	//이 서브 스테이지에 나올 NPC 데이타 로드
 	//{{ 2012. 12. 21  던전 몬스터 그룹 랜던 배치 - 김민성
@@ -84,6 +97,42 @@ bool CXSLDungeonSubStage::SubStageData::LoadCreatedNpcDropTimesData( KLuaManager
 	return bRet;
 }
 #endif SERV_CREATED_NPC_LIMITED_DROPS
+
+#ifdef SERV_DUNGEON_NPC_DATA_EXP_RATE		// 적용날짜: 2013-08-13
+float CXSLDungeonSubStage::SubStageData::GetNpcExpRate( int iUnitID )
+{
+	BOOST_TEST_FOREACH( NPCExpRateData, kNpcExpRateData, m_vecNPCExpRateDataList )
+	{
+		if( kNpcExpRateData.m_UnitID == iUnitID )
+			return kNpcExpRateData.m_fExpRate;
+	}
+
+	return 1.f;
+}
+bool CXSLDungeonSubStage::SubStageData::LoadCreatedNpcExpRateData( KLuaManager& luaManager )
+{
+	bool bRet = true;
+
+	if( luaManager.BeginTable( "NPC_EXP_RATE" ) != E_FAIL )
+	{
+		for( int i = 1; luaManager.BeginTable( i ) != E_FAIL; ++i )
+		{
+			NPCExpRateData kNpcExpRateData;
+			LUA_GET_VALUE_ENUM( luaManager, L"NPC_ID",	 		kNpcExpRateData.m_UnitID,			CXSLUnitManager::NPC_UNIT_ID, 	CXSLUnitManager::NUI_NONE	);
+			LUA_GET_VALUE( luaManager, L"EXP_RATE", 			kNpcExpRateData.m_fExpRate,		1.f		);
+
+			if( kNpcExpRateData.m_UnitID != CXSLUnitManager::NUI_NONE &&
+				kNpcExpRateData.m_fExpRate >= 0.f )
+				m_vecNPCExpRateDataList.push_back( kNpcExpRateData );
+
+			luaManager.EndTable();
+		}
+		luaManager.EndTable();
+	}
+
+	return bRet;
+}
+#endif // SERV_DUNGEON_NPC_DATA_EXP_RATE
 
 bool CXSLDungeonSubStage::SubStageData::FetchNPCData( IN bool bScriptCheck, KLuaManager& luaManager, CXSLDungeonSubStage::NPCData* pNPCData )
 {
@@ -222,7 +271,11 @@ bool CXSLDungeonSubStage::SubStageData::LoadNPCData( IN bool bScriptCheck, KLuaM
 			for( int j=0; ; j++ )
 			{
 				char szTable[128] = "";
+#ifdef _CONVERT_VS_2010
+				sprintf_s( szTable, ARRAY_SIZE(szTable), "SUB_NPC%d", j );
+#else
 				sprintf( szTable, "SUB_NPC%d", j );
+#endif _CONVERT_VS_2010
 				if( S_OK == luaManager.BeginTable( szTable ) )
 				{
 					NPCData* pNPCData = new NPCData();
@@ -328,7 +381,11 @@ bool CXSLDungeonSubStage::SubStageData::New_LoadNPCData( IN bool bScriptCheck, K
 
 	for( int iGroupRateID = 0; ; ++iGroupRateID )
 	{
+#ifdef _CONVERT_VS_2010
+		sprintf_s( strRateTable, ARRAY_SIZE(strRateTable), "NPC_GROUP_RATE%d", iGroupRateID );
+#else
 		sprintf( strRateTable, "NPC_GROUP_RATE%d", iGroupRateID );
+#endif _CONVERT_VS_2010
 
 		if( luaManager.BeginTable( strRateTable ) == E_FAIL )
 			break;
@@ -379,7 +436,11 @@ bool CXSLDungeonSubStage::SubStageData::New_LoadNPCData( IN bool bScriptCheck, K
 		// npc 데이터를 모아둘 컨테이너 - 나중에 GroupID랑 매칭시켜서 map에 추가함
 		std::vector<NPCData*> vecNPCDataList;
 
+#ifdef _CONVERT_VS_2010
+		sprintf_s( strTable, ARRAY_SIZE(strTable), "NPC_GROUP%d", iGroupID );
+#else
 		sprintf( strTable, "NPC_GROUP%d", iGroupID );
+#endif _CONVERT_VS_2010
 		if( luaManager.BeginTable( strTable ) == E_FAIL )
 			break;
 
@@ -390,7 +451,11 @@ bool CXSLDungeonSubStage::SubStageData::New_LoadNPCData( IN bool bScriptCheck, K
 			for( int j=0; ; j++ )
 			{
 				char szTable[128] = "";
+#ifdef _CONVERT_VS_2010
+				sprintf_s( szTable, ARRAY_SIZE(szTable), "SUB_NPC%d", j );
+#else
 				sprintf( szTable, "SUB_NPC%d", j );
+#endif _CONVERT_VS_2010
 				if( S_OK == luaManager.BeginTable( szTable ) )
 				{
 					NPCData* pNPCData = new NPCData();
@@ -471,10 +536,10 @@ int CXSLDungeonSubStage::SubStageData::GetRandomNpcGruopID()
 #endif SERV_DUNGEON_RANDOM_NPC_GROUP
 //}}
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 int CXSLDungeonSubStage::SubStageData::GetSecretStageEnteringEvent( IN int iClearConditionIndex )
 {
-	if( iClearConditionIndex >= m_vecClearCondData.size() || iClearConditionIndex < 0 )
+	if( ( iClearConditionIndex < 0 ) || ( m_vecClearCondData.size() <= static_cast<unsigned int>( iClearConditionIndex ) ) )
 	{
 		START_LOG( cerr, L"존재하지 않는 CLEAR_COND 인덱스. 해킹! 또는 서버/클라의 정보가 다름" )
 			<< BUILD_LOG( m_vecClearCondData.size() )
@@ -506,7 +571,7 @@ int CXSLDungeonSubStage::SubStageData::GetSecretStageEnteringEvent( IN int iClea
 
 bool CXSLDungeonSubStage::SubStageData::GetNextStage( OUT CXSLDungeonSubStage::NextStageData& kNextStageData, IN int iClearConditionIndex, IN int iSecretPadIndex )
 {
-	if( iClearConditionIndex >= m_vecClearCondData.size() || iClearConditionIndex < 0 )
+	if( ( iClearConditionIndex < 0 ) || ( m_vecClearCondData.size() <= static_cast<unsigned int>( iClearConditionIndex ) ) )
 	{
 		START_LOG( cerr, L"존재하지 않는 CLEAR_COND 인덱스. 해킹! 또는 서버/클라의 정보가 다름" )
 			<< BUILD_LOG( m_vecClearCondData.size() )
@@ -538,7 +603,7 @@ bool CXSLDungeonSubStage::SubStageData::GetNextStage( OUT CXSLDungeonSubStage::N
 				kNextStageData = vecNextStage[0];
 			} break;
 		}
-		
+
 		return true;
 	}
 
@@ -568,7 +633,11 @@ bool CXSLDungeonSubStage::SubStageData::LoadClearCondition( KLuaManager& luaMana
 	for( int iClearCondIndex = 0; ; ++iClearCondIndex )
 	{
 		char szTable[128] = "";
+#ifdef _CONVERT_VS_2010// 작업날짜: 2013-10-31	// 박세훈
+		sprintf_s( szTable, ARRAY_SIZE( szTable ), "CLEAR_COND%d", iClearCondIndex );
+#else // _CONVERT_VS_2010
 		sprintf( szTable, "CLEAR_COND%d", iClearCondIndex );
+#endif // _CONVERT_VS_2010
 		if( E_FAIL == luaManager.BeginTable( szTable ) )
 			break;
 
@@ -576,7 +645,11 @@ bool CXSLDungeonSubStage::SubStageData::LoadClearCondition( KLuaManager& luaMana
 		for( int iNextStageIndex = 0; ; ++iNextStageIndex )
 		{
 			char szTable[128] = "";
-			sprintf( szTable, "NEXT_STAGE%d", iNextStageIndex );			
+#ifdef _CONVERT_VS_2010// 작업날짜: 2013-10-31	// 박세훈
+			sprintf_s( szTable, ARRAY_SIZE( szTable ), "NEXT_STAGE%d", iNextStageIndex );
+#else // _CONVERT_VS_2010
+			sprintf( szTable, "NEXT_STAGE%d", iNextStageIndex );
+#endif // _CONVERT_VS_2010
 			if( E_FAIL == luaManager.BeginTable( szTable ) )
 				break;
 
@@ -593,7 +666,7 @@ bool CXSLDungeonSubStage::SubStageData::LoadClearCondition( KLuaManager& luaMana
 			luaManager.GetValue( 3, nextStageData.m_iSubStageIndex );
 			luaManager.GetValue( 4, nextStageData.m_iRate );
 			luaManager.GetValue( 5, nextStageData.m_iDungeonEndingSpeechTableIndex );
-					
+
 			clearCond.m_vecNextStage.push_back( nextStageData );
 			luaManager.EndTable(); // NEXT_STAGE(i)
 		}
@@ -603,4 +676,4 @@ bool CXSLDungeonSubStage::SubStageData::LoadClearCondition( KLuaManager& luaMana
 
 	return true;
 }
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER

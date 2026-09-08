@@ -805,10 +805,7 @@ void CX2UIManufacture::ChangeManufactureTab( int nPage )
 
                 itemName += pItemTemplet->GetFullName_();
 
-				
-#ifdef CLIENT_GLOBAL_LINEBREAK
-				//각 국가에 맞게 MAGIC_TEXT_WIDTH 수정 
-
+#ifdef CLIENT_GLOBAL_LINEBREAK //각 국가에 맞게 MAGIC_TEXT_WIDTH 수정 
 #ifdef COUNTRY_WORDWRAP_WIDTH_ID 
 				const int MAGIC_TEXT_WIDTH = 135;	
 				bool bEllipse = false;
@@ -822,7 +819,6 @@ void CX2UIManufacture::ChangeManufactureTab( int nPage )
 				const CKTDGFontManager::CUKFont* pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( pRecipeSlot->m_pStatic->GetString(0)->fontIndex );	
 				CWordLineHandler::LineBreakInX2Main( itemName, pFont, (int)((float)MAGIC_TEXT_WIDTH*g_pKTDXApp->GetResolutionScaleX()), L"", true );
 #endif //COUNTRY_WORDWRAP_WIDTH_ID
-
 				
 #else //#ifdef CLIENT_GLOBAL_LINEBREAK
 				const int MAGIC_TEXT_WIDTH = 110;
@@ -834,6 +830,30 @@ void CX2UIManufacture::ChangeManufactureTab( int nPage )
 				pRecipeSlot->m_pStatic->SetShow(true);
 				pRecipeSlot->m_pButton->SetShow(true);
 
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+				std::map< int, int >::iterator mit1;
+				mit1 = m_mapPeriodGroup.find( iManufactureID );
+				if( mit1 != m_mapPeriodGroup.end() )
+				{
+					wstringstream wstreamDesc;
+					//제조결과템이 여러 종류일때 '기간제 포함' 이라고만 남긴다.
+					if( mit1->second != -1)
+					{
+						wchar_t wszNumber[32];
+						::_itow( mit1->second, wszNumber, 10 );
+						wstreamDesc << " ( " << wszNumber << GET_STRING( STR_ID_14 ) << " ) ";
+						if( pRecipeSlot->m_pStatic->GetString(1)  != NULL)
+							pRecipeSlot->m_pStatic->GetString(1)->msg = wstreamDesc.str().c_str();
+					}
+					else
+					{
+						wstreamDesc << GET_STRING( STR_ID_24532 );
+						if( pRecipeSlot->m_pStatic->GetString(1)  != NULL)
+							pRecipeSlot->m_pStatic->GetString(1)->msg = wstreamDesc.str().c_str();
+					}
+
+				}
+#endif SERV_MANUFACTURE_PERIOD_FIX
 
 				for ( int slotListIter = 0; slotListIter < (int)m_SlotList.size(); slotListIter++ )
 				{
@@ -1006,7 +1026,7 @@ void CX2UIManufacture::ResetRecipeMaterial()
 			const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( materialData.m_MaterialItemID );
 			if ( pItemTemplet != NULL )
 			{
-				int itemQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( materialData.m_MaterialItemID );
+				int itemQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( materialData.m_MaterialItemID );
 
 				for ( int j = 0; j < (int)m_SlotList.size(); j++ )
 				{
@@ -1161,7 +1181,6 @@ bool CX2UIManufacture::Handler_EGS_ITEM_MANUFACTURE_ACK( HWND hWnd, UINT uMsg, W
 #ifdef CLIENT_GLOBAL_LINEBREAK
 					int lineNum = CWordLineHandler::LineBreakInX2MainMsgBox( itemName, pFont, constTextMaxLen );
 #else //CLIENT_GLOBAL_LINEBREAK
-
 					int nowTextLen = 0;
 					int lineNum = 1;
 
@@ -1229,8 +1248,8 @@ bool CX2UIManufacture::Handler_EGS_ITEM_MANUFACTURE_ACK( HWND hWnd, UINT uMsg, W
 			}
 
 
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 			
 			if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 			{		
@@ -1351,7 +1370,7 @@ bool CX2UIManufacture::CheckIsThereAllMaterial( int manufactureID, int nQuantity
 	for ( int j = 0; j < (int)pManufactureData->m_vecMaterials.size(); j++ )
 	{
 		CX2ItemManager::MaterialData& materialData = pManufactureData->m_vecMaterials[j];
-		int nowCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( materialData.m_MaterialItemID );
+		int nowCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( materialData.m_MaterialItemID );
 		if ( nowCount < materialData.m_MaterialCount * nQuantity )
 		{
 
@@ -1373,7 +1392,7 @@ bool CX2UIManufacture::CheckIsThereAllMaterial( int manufactureID )
 	for ( int j = 0; j < (int)pManufactureData->m_vecMaterials.size(); j++ )
 	{
 		CX2ItemManager::MaterialData& materialData = pManufactureData->m_vecMaterials[j];
-		int nowCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( materialData.m_MaterialItemID );
+		int nowCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( materialData.m_MaterialItemID );
 		if ( nowCount < materialData.m_MaterialCount )
 		{
 
@@ -1401,8 +1420,8 @@ bool CX2UIManufacture::CheckIsThereAllMaterialNoEquipped( int manufactureID )
 	for ( int j = 0; j < (int)pManufactureData->m_vecMaterials.size(); j++ )
 	{
 		CX2ItemManager::MaterialData& materialData = pManufactureData->m_vecMaterials[j];
-//		int TotalCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( materialData.m_MaterialItemID );
-		int NoEquipCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( materialData.m_MaterialItemID, true );
+//		int TotalCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( materialData.m_MaterialItemID );
+		int NoEquipCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( materialData.m_MaterialItemID, true );
 		if ( NoEquipCount < materialData.m_MaterialCount )
 		{
 			return false;
@@ -1426,7 +1445,7 @@ bool CX2UIManufacture::CheckIsEnoughED( int manufactureID, int nQuantity )
 	if ( pManufactureData != NULL )
 	{
 		int recipeFee = pManufactureData->m_Cost * nQuantity;
-		if ( recipeFee > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED)
+		if ( recipeFee > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED)
 		{
 			return false;
 		}
@@ -1447,7 +1466,7 @@ bool CX2UIManufacture::CheckIsEnoughED( int manufactureID )
 	if ( pManufactureData != NULL )
 	{
 		int recipeFee = pManufactureData->m_Cost;
-		if ( recipeFee > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+		if ( recipeFee > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 		{
 			return false;
 		}
@@ -1557,6 +1576,12 @@ wstring CX2UIManufacture::GetSlotItemDesc()
 									StringCchPrintfW( buff, ARRAY_SIZE(buff), GET_REPLACED_STRING( ( STR_ID_839, "I", STR_ID_25873 ) ) );
 								} break;
 					#endif // NEW_CHARACTER_EL
+					#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+							case CX2Unit::UT_ADD:
+								{
+									StringCchPrintfW( buff, ARRAY_SIZE(buff), GET_REPLACED_STRING( ( STR_ID_839, "I", STR_ID_29422 ) ) );
+								} break;
+					#endif //SERV_9TH_NEW_CHARACTER
 
 							}
 						} break;
@@ -1820,7 +1845,7 @@ bool CX2UIManufacture::CheckCanMake( int manufactureID, int nQuantity)
 	int iSortType = CX2Inventory::ST_EQUIP;
 	while( iSortType != CX2Inventory::ST_END )
 	{
-		if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->IsPossibleAddItem((CX2Inventory::SORT_TYPE)iSortType) == false )
+		if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().IsPossibleAddItem((CX2Inventory::SORT_TYPE)iSortType) == false )
 			return false;
 		iSortType++;
 	}
@@ -1917,7 +1942,7 @@ int CX2UIManufacture::GetMaxMakeNum( int manufactureID)
 	for ( int j = 0; j < (int)pManufactureData->m_vecMaterials.size(); j++ )
 	{
 		CX2ItemManager::MaterialData& materialData = pManufactureData->m_vecMaterials[j];
-		int nowCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( materialData.m_MaterialItemID );
+		int nowCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( materialData.m_MaterialItemID );
 		if( nMaxNum > (nowCount / materialData.m_MaterialCount) )
 			nMaxNum = (nowCount / materialData.m_MaterialCount);
 	}

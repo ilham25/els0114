@@ -4,7 +4,11 @@
 
 //{{ seojt // 2009-1-13, 17:11
 class CX2SquareUnit;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2SquareUnit>    CX2SquareUnitPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2SquareUnit>    CX2SquareUnitPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 //}} seojt // 2009-1-13, 17:11
 
 /** @class : CX2SquareUnit
@@ -43,6 +47,7 @@ class CX2SquareUnit : public CKTDGObject
 		};
 
 		/// 개인 상점 종류
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환
 		enum PERSONAL_SHOP_TYPE
 		{
 			PST_NONE = 0,
@@ -52,6 +57,7 @@ class CX2SquareUnit : public CKTDGObject
 
 			PST_END,
 		};
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 		/// Unit 상태 동기화 값
 		enum SYNC_UNIT_STATE
@@ -115,12 +121,12 @@ class CX2SquareUnit : public CKTDGObject
 		/// 상태 데이터
 		struct StateData
 		{
-			wstring				m_StateName;
+			string				m_StateName;
 			bool				m_bLandConnect;
-			wstring				m_FuncStateStart;
-			wstring				m_FuncFrameMove;
-			wstring				m_FuncEventProcess;
-			wstring				m_FuncStateEnd;
+			string				m_FuncStateStart;
+			string				m_FuncFrameMove;
+			string				m_FuncEventProcess;
+			string				m_FuncStateEnd;
 
 			StateData()
 			{
@@ -198,7 +204,10 @@ class CX2SquareUnit : public CKTDGObject
 																, cWeddingStatus
 															#endif //ADDED_RELATIONSHIP_SYSTEM
 																)
-                                                , CKTDGObject::KTDGObjectDeleter() );
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+                                                , CKTDGObject::KTDGObjectDeleter()
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR                                                
+                                                );
             return ptrSquareUnit;
 		}//CreateSquareUnit()
 		//}} seojt // 2009-1-14, 21:31
@@ -263,10 +272,10 @@ class CX2SquareUnit : public CKTDGObject
 		
 		bool		IsAnimationEnd_LUA();
 		void		StateChange( char stateID );
-		void		StateChange( const WCHAR* pStateName );
-		void		StateChange_LUA( char* pStateName );
+		void		StateChange( const char* pStateName );
+		void		StateChange_LUA( const char* pStateName );
 
-		u_char		GetStateID( const WCHAR* pStateName );		
+		u_char		GetStateID( const char* pStateName );		
 		u_char		GetNowState() { return m_SyncData.m_StateID; }
 		int			GetLastTouchLineIndex() { return m_SyncData.m_LastTouchLineIndex; }
 				
@@ -406,9 +415,13 @@ class CX2SquareUnit : public CKTDGObject
 		wstring GetPersonalShopName() { return m_PersonalShopName; }
 		void SetPersonalShopName( const WCHAR* wszShopName ) { m_PersonalShopName = wszShopName; } 
 
-
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		SEnum::AGENCY_SHOP_TYPE GetShopType() const { return m_eShopType; }
+		void SetShopType(SEnum::AGENCY_SHOP_TYPE val) { m_eShopType = val; }
+#else // SERV_UPGRADE_TRADE_SYSTEM
 		CX2SquareUnit::PERSONAL_SHOP_TYPE GetShopType() const { return m_eShopType; }
 		void SetShopType(CX2SquareUnit::PERSONAL_SHOP_TYPE val) { m_eShopType = val; }
+#endif // SERV_UPGRADE_TRADE_SYSTEM
 
 		void UpdateEquippedEmblem();
 				
@@ -462,7 +475,7 @@ class CX2SquareUnit : public CKTDGObject
 #endif HEAD_ATTACHED_CAMERA_TEST
 
 #ifdef SERV_PET_SYSTEM
-		CX2GameUnit::PhysicParam *GetPhysicParam() { return &m_PhysicParam; }
+		const CX2GameUnit::PhysicParam& GetPhysicParam() const { return m_PhysicParam; }
 #endif
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
@@ -476,6 +489,11 @@ class CX2SquareUnit : public CKTDGObject
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
 #endif //MODIFY_LINEMAP_JUMPUP_IN_VILLAGE
 
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		bool		IsPlayAvatarEmotionSoundWithouEmotion ( CX2Unit::EMOTION_TYPE eEmotionId );
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
+
 	protected:
 		void		PhysicProcess();
 
@@ -487,7 +505,9 @@ class CX2SquareUnit : public CKTDGObject
 
 		void		SetSyncEventId(u_char eventId);
 		void		SetSyncEventProcess();
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		bool		EventCheck( float fTime );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 
 #ifdef MODIFY_LINEMAP_JUMPUP_IN_VILLAGE
@@ -533,8 +553,8 @@ class CX2SquareUnit : public CKTDGObject
 		bool							m_bFootOnLine;	/// true 면 방향벡터의 Y값을 무시
 		D3DXVECTOR3						m_LandPosition;		/// 과연 랜드 포지션이란 정보가 그대로 필요한가...그냥 현재 POS에 Land Y값만 따로 가지고 있어도 될 듯 한데... 아니면 그 반대도 괜찮을 듯
 		
-		map<char,wstring>				m_StateNameMap;		/// 상태ID, 상태명
-		map<wstring,char>				m_StateIDMap;		/// 상태명, 상태 ID
+		map<char,string>				m_StateNameMap;		/// 상태ID, 상태명
+		map<string,char>				m_StateIDMap;		/// 상태명, 상태 ID
 
 		CommonState						m_StateID;			/// Wait, Walk, JumpUp, JumpDown, Dash, DashJumpUp, DashJumpDown에 대한 아이디를 가지고 있는 구조체
 		
@@ -553,26 +573,43 @@ class CX2SquareUnit : public CKTDGObject
 		CKTDXDeviceXSkinMesh*			m_pMesh;			/// SD 캐릭용 Skin mesh	
 
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hHeadMarkerMy;		/// 파티가 아닐때의 자신의 캐릭터를 나타내는 빨간줄 화살(?)표시
-		CKTDGParticleSystem::CParticle*					m_pHeadMarkerParticleMy;	/// 파티가 아닐때의 자신의 캐릭터를 나타내는 빨간줄 화살(?)표시
-
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hHeadMarkerPartyMy;	/// 파티일 때의 자신의 캐릭터를 나타내는 빠란 줄 화살(?) 표시
-		CKTDGParticleSystem::CParticle*					m_pHeadMarkerParticlePartyMy;	/// 파티일 때의 자신의 캐릭터를 나타내는 빠란 줄 화살(?) 표시
-
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hHeadMarkerParty;		/// 파티원을 나타내는 파란 화살(?) 표시
-		CKTDGParticleSystem::CParticle*					m_pHeadMarkerParticleParty;	/// 파티원을 나타내는 파란 화살(?) 표시
 
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqEmblem;			/// 칭호
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		CKTDGParticleSystem::CParticleHandle			m_hHeadMarkerParticleMy;	/// 파티가 아닐때의 자신의 캐릭터를 나타내는 빨간줄 화살(?)표시
+		CKTDGParticleSystem::CParticleHandle			m_hHeadMarkerParticlePartyMy;	/// 파티일 때의 자신의 캐릭터를 나타내는 빠란 줄 화살(?) 표시
+		CKTDGParticleSystem::CParticleHandle			m_hHeadMarkerParticleParty;	/// 파티원을 나타내는 파란 화살(?) 표시
+
+		CKTDGParticleSystem::CParticleHandle			m_hPart_Emblem_200;			/// 칭호
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		CKTDGParticleSystem::CParticle*					m_pHeadMarkerParticleMy;	/// 파티가 아닐때의 자신의 캐릭터를 나타내는 빨간줄 화살(?)표시
+		CKTDGParticleSystem::CParticle*					m_pHeadMarkerParticlePartyMy;	/// 파티일 때의 자신의 캐릭터를 나타내는 빠란 줄 화살(?) 표시
+		CKTDGParticleSystem::CParticle*					m_pHeadMarkerParticleParty;	/// 파티원을 나타내는 파란 화살(?) 표시
+
 		CKTDGParticleSystem::CParticle*					m_pPart_Emblem_200;			/// 칭호
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+
+
 
 		PERSONAL_SHOP_STATE				m_PersonalShopState;	/// 공통보다는 광장에서만 필요할 듯
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		SEnum::AGENCY_SHOP_TYPE			m_eShopType;			/// 공통보다는 광장에서만 필요할 듯
+#else // SERV_UPGRADE_TRADE_SYSTEM
 		PERSONAL_SHOP_TYPE				m_eShopType;			/// 공통보다는 광장에서만 필요할 듯
+#endif // SERV_UPGRADE_TRADE_SYSTEM
+		
 		wstring							m_PersonalShopName;		/// 공통보다는 광장에서만 필요할 듯
 
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hShop;		/// 공통보다는 광장에서만 필요할 듯
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPremiumShop;	/// 공통보다는 광장에서만 필요할 듯
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
         int m_iTitleId;	/// 현재 착용 중인 칭호의 아이디
-#endif
+//#endif
 
 		CKTDGParticleSystem *m_pParticleSystem;		/// 마을에서는 g_pTFieldGame->GetUiParticle(), 광장에서는 g_pSquareGame->GetMajorParticle()
 		
@@ -602,7 +639,10 @@ class CX2SquareUnit : public CKTDGObject
 		CKTDXDeviceTexture*				m_pTextureServer;		/// 던전 라운지의 경우에만 보여지는 캐릭터 명 옆의 서버군 아이콘
 		//}}
 #endif SERV_INTEGRATION
+
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		map<float,bool>							m_EventTimeStamp;	/// 사운드 플레이 데이터의 EventCheck를 위한 TimeStamp (SOUND_PLAY를 사용하는 곳이 없다면 이것도 사용할 이유가 없을듯...)
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		vector<CX2GameUnit::SoundPlayData>		m_vecSoundPlayData;	/// 각 스테이트 Start에서 로드한 SOUND_PLAY 에 대한 데이터 (사용하는 곳이 없음)
 
 		UidType							m_iPartyUID;		/// 파티 Unique 아이디
@@ -611,10 +651,8 @@ class CX2SquareUnit : public CKTDGObject
 		CX2Unit::EMOTION_TYPE			m_ePlayedEmotion;	/// 플레이된 이모션
 #endif
 
-#ifdef AVATAR_EMOTION
 		bool m_bMixedEmotion[AVATAR_EMOTION_NUM];		/// 이모션 X 파일 이미 Mix 되었는지 아닌지 판단
 		CKTDXDeviceSound*				m_pAvatarEmotionSound;	/// 특정 아바타 착용시 이모션 사용하면 나오는 사운드
-#endif
 
 #ifdef HEAD_ATTACHED_CAMERA_TEST
 		bool m_bOnRollerCoaster; 		
@@ -647,6 +685,10 @@ class CX2SquareUnit : public CKTDGObject
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 		SEnum::WEDDING_STATUS m_eWeddingStatus;
 #endif //ADDED_RELATIONSHIP_SYSTEM
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		bool		m_bIsPlayAvatarEmotionSoundWithoutEmotion;
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
 
 #ifdef SERV_GROW_UP_SOCKET
 		int		m_iTitleLevel;

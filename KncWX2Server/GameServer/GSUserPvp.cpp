@@ -27,6 +27,10 @@
 	#include "NewPartyListManager.h"
 #endif SERV_RECRUIT_EVENT_SUBQUEST
 
+#ifdef SERV_STRING_FILTER_USING_DB
+#include "StringFilterManager.h"
+#endif //SERV_STRING_FILTER_USING_DB
+
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GSUSER_CPP
 #pragma NOTE( "GSUserHandler.cpp 파일 컴파일 됩니당!" )
@@ -174,6 +178,16 @@ IMPL_ON_FUNC_NOPARAM( EGS_STATE_CHANGE_GAME_INTRUDE_REQ )
 #endif SERV_REPEAT_FILTER_REFAC
 	//}}    
 
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-10-08	// 박세훈
+	if( ( m_kUserCheatManager.IsObserverMode() == false ) && ( GetRoomListID() == SiKRoomListManager()->GetPvpOffcialRoomListID() ) )
+	{
+		KEGS_STATE_CHANGE_GAME_INTRUDE_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_ROOM_53;	// 공식 대전에는 난입할 수 없습니다.
+		SendPacket( EGS_STATE_CHANGE_GAME_INTRUDE_ACK, kPacket );
+		return;
+	}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
+
 	SendToCnRoom( ERM_STATE_CHANGE_GAME_INTRUDE_REQ );
 }
 
@@ -205,6 +219,16 @@ IMPL_ON_FUNC( EGS_INTRUDE_START_REQ )
 	//}}    
 
 	START_LOG_WITH_NAME( clog );
+
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-10-08	// 박세훈
+	if( ( m_kUserCheatManager.IsObserverMode() == false ) && ( GetRoomListID() == SiKRoomListManager()->GetPvpOffcialRoomListID() ) )
+	{
+		KEGS_INTRUDE_START_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_ROOM_53;	// 공식 대전에는 난입할 수 없습니다.
+		SendPacket( EGS_INTRUDE_START_ACK, kPacket );
+		return;
+	}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
 
 	SendToCnRoom( ERM_INTRUDE_START_REQ, kPacket_ );
 }
@@ -433,19 +457,19 @@ IMPL_ON_FUNC( ERM_CHANGE_READY_ACK )
 		{
 			switch( kPacket_.m_iDungeonID )
 			{
-			case CXSLDungeon::DI_ELDER_WALLY_CASTLE_LAB_NORMAL:
-			case CXSLDungeon::DI_ELDER_WALLY_CASTLE_LAB_HARD:
-			case CXSLDungeon::DI_ELDER_WALLY_CASTLE_LAB_EXPERT:
-			case CXSLDungeon::DI_BESMA_SECRET_NORMAL:
-			case CXSLDungeon::DI_BESMA_SECRET_HARD:
-			case CXSLDungeon::DI_BESMA_SECRET_EXPERT:
-			case CXSLDungeon::DI_ELDER_HALLOWEEN_NORMAL:
-			case CXSLDungeon::DI_ELDER_HALLOWEEN_HARD:
-			case CXSLDungeon::DI_ELDER_HALLOWEEN_EXPERT:
-			case CXSLDungeon::DI_ALTERA_SECRET_NORMAL:
-			case CXSLDungeon::DI_ALTERA_SECRET_HARD:
-			case CXSLDungeon::DI_ALTERA_SECRET_EXPERT:
-			case CXSLDungeon::DI_ELDER_NEWYEAR_NORMAL:
+			case SEnum::DI_ELDER_WALLY_CASTLE_LAB_NORMAL:
+			case SEnum::DI_ELDER_WALLY_CASTLE_LAB_HARD:
+			case SEnum::DI_ELDER_WALLY_CASTLE_LAB_EXPERT:
+			case SEnum::DI_BESMA_SECRET_NORMAL:
+			case SEnum::DI_BESMA_SECRET_HARD:
+			case SEnum::DI_BESMA_SECRET_EXPERT:
+			case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+			case SEnum::DI_ELDER_HALLOWEEN_HARD:
+			case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
+			case SEnum::DI_ALTERA_SECRET_NORMAL:
+			case SEnum::DI_ALTERA_SECRET_HARD:
+			case SEnum::DI_ALTERA_SECRET_EXPERT:
+			case SEnum::DI_ELDER_NEWYEAR_NORMAL:
 				{
 					// 입장필요 아이템검사.
 					if( !CheckRequiredItemToEnterDungeonRoom( kPacket_.m_iDungeonID, (CXSLDungeon::DUNGEON_MODE) kPacket_.m_cDungeonMode ) )
@@ -686,6 +710,20 @@ _IMPL_ON_FUNC( ERM_END_GAME_PVP_RESULT_DATA_NOT, KEGS_END_GAME_PVP_RESULT_DATA_N
 {
 	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
 
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+	bool bCouplePvp = false;
+
+	if( m_bCouple == true )
+	{
+		for( int i = 0; i < (int)kPacket_.m_vecPVPUnitInfo.size(); ++i )
+		{
+			if( kPacket_.m_vecPVPUnitInfo[i].m_UnitUID == m_iRelationTargetUserUid )
+			{
+				bCouplePvp = true;
+			}
+		}
+	}
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 	bool bHasFriend = false;
@@ -786,6 +824,37 @@ _IMPL_ON_FUNC( ERM_END_GAME_PVP_RESULT_DATA_NOT, KEGS_END_GAME_PVP_RESULT_DATA_N
 #endif SERV_2012_PVP_SEASON2
 			//}}
 
+#ifdef SERV_RECRUIT_EVENT_SUBQUEST
+			bool bHasFriend = false;
+
+			if( GetPartyUID() > 0 )
+			{
+				// 추천인 있는지 우선 찾고
+				std::vector< KRecommendUserInfo > vecRecruitUnitList;
+				std::vector< UidType > vecRecruitUnitUID;
+				m_kUserRecommendManager.GetRecruitUnitList( vecRecruitUnitList );
+
+				if( vecRecruitUnitList.empty() == true )
+				{
+					m_kUserRecommendManager.GetRecruiterUnitList( vecRecruitUnitList );
+				}
+
+				BOOST_TEST_FOREACH( KRecommendUserInfo&, kRecruitUnitList, vecRecruitUnitList )
+				{
+					vecRecruitUnitUID.push_back( kRecruitUnitList.m_iUnitUID );
+				}
+
+				BOOST_TEST_FOREACH( const UidType, iUnitUID, vecRecruitUnitUID )
+				{
+					if( SiKPartyListManager()->IsPartyMember( GetPartyUID(), iUnitUID ) )
+					{
+						bHasFriend = true;
+						break;
+					}
+				}
+			}
+#endif SERV_RECRUIT_EVENT_SUBQUEST
+
 			m_kUserQuestManager.Handler_OnPVPPlay( kPacket_.m_iGameType
 												 , GetThisPtr<KGSUser>()
 												 // 대전 플레이 퀘스트 조건 변경	- 김민성
@@ -796,6 +865,10 @@ _IMPL_ON_FUNC( ERM_END_GAME_PVP_RESULT_DATA_NOT, KEGS_END_GAME_PVP_RESULT_DATA_N
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 												 , kPacket_.m_bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+												 , bCouplePvp
+												 , kPacket_.m_bIsDrawn
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 												 , bHasFriend
 #endif SERV_RECRUIT_EVENT_SUBQUEST
@@ -1001,7 +1074,28 @@ IMPL_ON_FUNC( ERM_UPDATE_PVP_UNIT_INFO_NOT )
 		kPacketReq.m_cGetItemReason = SEnum::GIR_PVP_RESULT;
 #endif SERV_GET_ITEM_REASON
 		//}}
+#ifdef SERV_INT_ONLY
 		m_kInventory.PrepareInsert( kPacket_.m_mapItem, kPacketReq.m_mapInsertedItem, kPacketReq.m_vecUpdatedInventorySlot, kPacketReq.m_vecItemInfo );
+#else //SERV_INT_ONLY
+		if ( false == m_kInventory.PrepareInsert( kPacket_.m_mapItem, kPacketReq.m_mapInsertedItem, kPacketReq.m_vecUpdatedInventorySlot, kPacketReq.m_vecItemInfo, true ) ) 
+        {
+            typedef std::map< int, KItemInfo > KPVPItem;
+            BOOST_TEST_FOREACH( const KPVPItem::value_type& , kItem, kPacket_.m_mapItem )
+            {
+                KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+                kPacketToDB.m_iFromUnitUID = GetCharUID();
+                kPacketToDB.m_iToUnitUID   = GetCharUID();
+                kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+                kPacketToDB.m_iRewardID	   = 10613;
+                kPacketToDB.m_sQuantity    = kItem.second.m_iQuantity;
+                SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+
+                START_LOG( cwarn, L"카밀라 코인을 우편으로 지급")
+                    << BUILD_LOG( kPacket_.m_mapItem.size() )
+                    << END_LOG;
+            }
+        }
+#endif //SERV_INT_ONLY
 
 		//////////////////////////////////////////////////////////////////////////
 		// 통계 : 게임중 습득아이템 정보
@@ -1361,6 +1455,10 @@ _IMPL_ON_FUNC( ERM_CHANGE_PVP_ROOM_PUBLIC_NOT, KEGS_CHANGE_PVP_ROOM_PUBLIC_NOT )
 _IMPL_ON_FUNC( EGS_CHANGE_PVP_ROOM_NAME_REQ, KEGS_CHANGE_PVP_ROOM_NAME_REQ )
 {
 	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	kPacket_.m_wstrRoomName = SiKStringFilterManager()->FilteringChatString( kPacket_.m_wstrRoomName.c_str(), L'♡' );
+#endif //SERV_STRING_FILTER_USING_DB
 
 	START_LOG_WITH_NAME( clog );
 

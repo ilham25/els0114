@@ -71,10 +71,8 @@ public:
 	typedef std::vector<ResolveAddInfo> VecResolveInfo;
 
 	enum RESOLVE_RESULT { RESOLVE_SUCCESS = 1};
-
 #endif
 	//}}
-
 public:
 	CXSLCashItemManager(void);
 	~CXSLCashItemManager(void);
@@ -82,7 +80,6 @@ public:
 	bool OpenScriptFile( const char* pFileName );
 	bool AddPackageItemData_LUA( int iPackageItemID, int iItemID, unsigned short usProductPieces, bool bShowItem );
 	bool AddCashItemPrice_LUA( int iItemID, int iPrice );
-
 	//{{ 2011.2.27 지헌 : 캐쉬 아바타 분해시 추가 아이템 나오도록 하기
 #ifdef SERV_CASHITEM_RESOLVE_ADD
 	// 캐쉬 아이템 분해에 사용 할 그룹 등록
@@ -93,7 +90,6 @@ public:
 	bool GetCashItemResolveAddFromScript( int iItemID, VecResolveInfo& vecItem );
 #endif
 	//}}
-
 	//{{ 2009. 12. 19  최육사	서버군 확장
 	bool AddCashItemServerGroupData_LUA( int iServerGroupID, int iItemID );
 	//}}
@@ -129,9 +125,9 @@ public:
 #endif SERV_SERVER_DIVISION_CASHITEM_BY_PRODUCTNO	
 	//}}
 	
-private:
+private:	
 	std::map< int, std::vector< PackageItemData > > m_mapPackageData;
-	
+
 	//{{ 2008. 5. 15  최육사  판매중인 상품 리스트 ItemID
 	std::set< int >									m_setProductItemID;
 	bool											m_bIsUpdate;
@@ -155,7 +151,6 @@ private:
 	std::set< unsigned long >						m_setNotSellCashItemProductNo;
 #endif SERV_SERVER_DIVISION_CASHITEM_BY_PRODUCTNO	
 	//}}
-
 	//{{ 2011.2.27 지헌 : 캐쉬 아바타 분해시 추가 아이템 나오도록 하기
 #ifdef SERV_CASHITEM_RESOLVE_ADD
 	// 캐쉬 아이템 그룹 key 는 아이템ID, value 가 그룹ID
@@ -164,7 +159,6 @@ private:
 	std::map<int, VecResolveInfo>	m_mapCashItemResolveGroup;
 #endif
 	//}}
-
 };
 
 DefSingletonInline( CXSLCashItemManager );

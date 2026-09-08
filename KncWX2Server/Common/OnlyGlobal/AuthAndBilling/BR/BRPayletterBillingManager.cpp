@@ -47,8 +47,6 @@ m_bInitialized(false)
 
 	m_bSocketConnect = false;
 
-	KCSLOCK_SET_VALUE( m_ulCurrentPacketNo, 0 );
-
 	m_spEvent.reset( CreateEvent( NULL, false, false, NULL ), CloseHandle );
 }
 
@@ -62,14 +60,7 @@ using namespace lua_tinker;
 
 void KBRPayletterBillingManager::RegToLua()
 {
-	//class_< KPurpleAuthManager >( "KNexomBillingAuthManager" )
-	//	.def( "dump",						KPurpleAuthManager::Dump )
-	//	.def( "InitPurpleAuthInfo",	KPurpleAuthManager::InitPurpleAuthInfo )
-	//	.def( "SetNumThread",				KPurpleAuthManager::Init );
-
-	//decl( "NXBillingAuthManager", this );
 	lua_tinker::class_add<KBRPayletterBillingManager>( g_pLua, "KPayletterManager" );
-	//lua_tinker::class_def<KPurpleAuthManager>( g_pLua, "dump",					 &KPurpleAuthManager::Dump );	
 	lua_tinker::class_def<KBRPayletterBillingManager>( g_pLua, "InitPayletterBillingInfo",	&KBRPayletterBillingManager::InitPayletterBillingInfo );
 	lua_tinker::class_def<KBRPayletterBillingManager>( g_pLua, "SetNumThread",			 &KBRPayletterBillingManager::Init );
 
@@ -79,7 +70,7 @@ void KBRPayletterBillingManager::RegToLua()
 void KBRPayletterBillingManager::InitPayletterBillingInfo( const char* szNexonAuthIP, unsigned short usPort, int iDomain )
 {
 	m_kPayletterBillingInfo.m_strIP		= szNexonAuthIP;
-	m_kPayletterBillingInfo.m_usPort		= usPort;
+	m_kPayletterBillingInfo.m_usPort	= usPort;
 	m_kPayletterBillingInfo.m_iDomain	= iDomain;	
 }
 
@@ -105,12 +96,7 @@ void KBRPayletterBillingManager::Init( int nThreadNum )
 		( new KTThread< KBRPayletterBillingManager >( *this, &KBRPayletterBillingManager::KeepConnectionThread, 1000 ) );
 	//}}
 
-
-
 	KThreadManager::Init( nThreadNum );	
-
-	// 접속 테스트
-	//Connect();
 }
 
 	
@@ -154,7 +140,7 @@ void KBRPayletterBillingManager::EndThread()
 	{
 		m_spThreadKeepConnect->End( 3000 );
 
-		START_LOG( cout, L"넥슨 빌링 서버 접속 체크 스레드 종료!" );
+		START_LOG( cout, L"브라질 페이레터 빌링 서버 접속 체크 스레드 종료!" );
 	}
 	//}}
 
@@ -164,7 +150,7 @@ void KBRPayletterBillingManager::EndThread()
 	{
 		m_spThreadSend->End( 10000 );
 
-		START_LOG( cout, L"넥슨 빌링 서버 Send 스레드 종료!" );
+		START_LOG( cout, L"브라질 페이레터 빌링 서버 Send 스레드 종료!" );
 	}
 
 	// recv 스레드 죽이기 전에 소켓을 닫자!
@@ -174,7 +160,7 @@ void KBRPayletterBillingManager::EndThread()
 	{
 		m_spThreadRecv->End( 3000 );
 
-		START_LOG( cout, L"넥슨 빌링 서버 Recv 스레드 종료!" );
+		START_LOG( cout, L"브라질 페이레터 빌링 서버 Recv 스레드 종료!" );
 	}
 }
 
@@ -227,33 +213,7 @@ bool KBRPayletterBillingManager::Connect()
 	
 	// KENX_BR_INITIALIZE_REQ를 큐잉하기 전에 false 로 만들어야 한다.
 	// 지헌 : 테스트 - 이건 서버간 접속 개선 방식 때 사용 하는 것. 그러므로 지금은 true 로
-	m_bInitialized = false;
-
-	// 접속 되니까 패킷을 하나 보내 봅시다.
-	KEPL_BR_HEALTH_CHECK_REQ kPacketInit;
-
-	kPacketInit.m_usReqLen = sizeof(KEPL_BR_HEALTH_CHECK_REQ);
-	kPacketInit.m_usReqType = KBRPayletterBillingPacket::HEALTH_CHECK;
-	kPacketInit.m_ulReqKey = 0;
-	kPacketInit.m_usRetCode = 0;
-
-	boost::shared_ptr< KBRPayletterBillingPacket > spPacketInit( new KBRPayletterBillingPacket );
-	spPacketInit->Write( kPacketInit );
-	QueueingSendPacket( spPacketInit );
-
-	switch( ::WaitForSingleObject( m_spEvent.get(), 5000 ) )
-	{
-	case WAIT_OBJECT_0: // ack를 제대로 받은 경우.
-		START_LOG( cout, L"[빌링] Payletter 빌링 서버 Initialize." )
-			<< BUILD_LOG( m_bInitialized );
-		break;
-	case WAIT_TIMEOUT:  // 시간 초과
-		START_LOG( cerr, L"[빌링] 빌링 서버 Initialize 시간 초과." );
-		break;
-	default:
-		START_LOG( cerr, L"[빌링] 빌링 서버 Initialize 실패." );
-		break;
-	}
+	m_bInitialized = true;	// true 로 세팅
 
 	if( !m_bInitialized )
 	{
@@ -266,9 +226,6 @@ bool KBRPayletterBillingManager::Connect()
 
 void KBRPayletterBillingManager::Recv()
 {
-	// 지헌 : 처음 소켓접속이 성공하지 못했으면 작업 하지 않는다.
-	//if( !m_bSocketConnect )
-	//	return;
 
 	if( !IsConnected() )
 	{
@@ -301,9 +258,6 @@ void KBRPayletterBillingManager::Recv()
 
 		CLOSE_SOCKET( m_sock );
 
-		//{{ 2010. 10. 13	최육사	넥슨 빌링 접속 종료
-		//OnDisconnectBillingServer( std::wstring( L"유효 하지 않은 소켓" ) );
-		//}}
 		return;
 	}
 
@@ -311,22 +265,16 @@ void KBRPayletterBillingManager::Recv()
 	{
 		START_LOG( cerr, L"소켓 연결이 끊어짐." )
 			<< END_LOG;
-
-		//CLOSE_SOCKET( m_sock );
-
-		//{{ 2010. 10. 13	최육사	넥슨 빌링 접속 종료
-		//OnDisconnectBillingServer( std::wstring( L"원격지에서 접속 종료" ) );
-		//}}
 		return;
 	}
 
 	
 	m_ulRecvCP += ret;
 
-	while( m_ulRecvCP >= 10 )
+	while( m_ulRecvCP >= 6 )
 	{
-		// 헤더(9) + 타입(1) = 10
-		// 모든 패킷이 10바이트 이상임
+		// 헤더(9) + 타입(1) = 6
+		// 모든 패킷이 6바이트 이상임
 		unsigned short usLength;
 		::memcpy( &usLength, m_cRecvBuffer, sizeof( usLength ) );
 
@@ -367,11 +315,7 @@ void KBRPayletterBillingManager::Recv()
 }
 
 void KBRPayletterBillingManager::Send()
-{
-	// 지헌 : 처음 소켓접속이 성공하지 못했으면 작업 하지 않는다.
-	//if( !m_bSocketConnect )
-	//	return;
-	
+{	
 	if( !IsConnected() )
 	{
 		return;
@@ -440,8 +384,6 @@ void KBRPayletterBillingManager::KeepConnectionThread()
 
 	CheckConnection();
 
-	// 지헌 : 이부분이 필요한가?
-	//KeepConnection();
 }
 //}}
 
@@ -459,14 +401,6 @@ void KBRPayletterBillingManager::KeepConnection()
 		return;
 	//}}
 
-	// 허트빗 보내기
-	KEPL_BR_HEALTH_CHECK_REQ kPacketNot;
-	kPacketNot.m_ulReqKey = 0;
-	kPacketNot.m_usReqType = KBRPayletterBillingPacket::HEALTH_CHECK;
-	kPacketNot.m_usReqLen = sizeof(KEPL_BR_HEALTH_CHECK_REQ);
-	boost::shared_ptr< KBRPayletterBillingPacket > spPacket( new KBRPayletterBillingPacket );
-	spPacket->Write( kPacketNot );
-	QueueingSendPacket( spPacket );
 }
 
 
@@ -658,320 +592,160 @@ void KBRPayletterBillingManager::DumpBuffer( BYTE* buffer, bool bError )
 	}
 }
 
-void KBRPayletterBillingManager::InsertPacketNoUserUID( unsigned long ulPacketNo, UidType iUserUID )
+void KBRPayletterBillingManager::InsertUniqueKeyUserUID( UidType iUniqueKey, UidType iUserUID )
 {
-	//KLocker lock( m_csPacketNoUserUID );
-
-	if( iUserUID <= 0 )
+	if( iUniqueKey <= 0 || iUserUID <= 0 )
 	{
-		START_LOG( cerr, L"유저 UID 이상." )
-			<< BUILD_LOG( ulPacketNo )
+		START_LOG( cerr, L"UniqueKey 또는 유저 UID 이상 " )
+			<< BUILD_LOG( iUniqueKey )
 			<< BUILD_LOG( iUserUID )
 			<< END_LOG;
 
 		return;
 	}
 
-	KCSLOCK_BEGIN( m_mapPacketNoUserUID )
-		std::map< unsigned long, UidType >::iterator mit;
-		mit = m_mapPacketNoUserUID.find( ulPacketNo );
-		if( mit == m_mapPacketNoUserUID.end() )
-		{
-			// 없으면 삽입하고 있으면 덮어 쓴다.
-			m_mapPacketNoUserUID[ulPacketNo] = iUserUID;
-		}
-		else
-		{
-			START_LOG( cerr, L"패킷 번호에 해당하는 UserUID 가 이미 등록되어 있다." )
-				<< BUILD_LOG( mit->first )
-				<< BUILD_LOG( mit->second )
-				<< BUILD_LOG( ulPacketNo )
-				<< BUILD_LOG( iUserUID )
-				<< END_LOG;
-		}
+	KCSLOCK_BEGIN( m_mapUniqueKeyUserUID )
+	std::map< UidType, UidType >::iterator mit;
+	mit = m_mapUniqueKeyUserUID.find( iUniqueKey );
+	if( mit == m_mapUniqueKeyUserUID.end() )
+	{
+		// 없으면 삽입하고 있으면 덮어 쓴다.
+		m_mapUniqueKeyUserUID[iUniqueKey] = iUserUID;
+	}
+	else
+	{
+		START_LOG( cerr, L"퍼블리셔 유니크 키에 해당하는 UserUID 가 이미 등록되어 있다." )
+			<< BUILD_LOG( mit->first )
+			<< BUILD_LOG( mit->second )
+			<< BUILD_LOG( iUniqueKey )
+			<< BUILD_LOG( iUserUID )
+			<< END_LOG;
+	}
 	KCSLOCK_END()
 }
 
-void KBRPayletterBillingManager::DeletePacketNoUserUID( unsigned long ulPacketNo )
+void KBRPayletterBillingManager::DeleteUniqueKeyUserUID( UidType iUniqueKey )
 {
-	//KLocker lock( m_csPacketNoUserUID );
-
-	KCSLOCK_BEGIN( m_mapPacketNoUserUID )
-		std::map< unsigned long, UidType >::iterator mit;
-		mit = m_mapPacketNoUserUID.find( ulPacketNo );
-		if( mit != m_mapPacketNoUserUID.end() )
-		{
-			m_mapPacketNoUserUID.erase( mit );
-		}
-		else
-		{
-			START_LOG( cerr, L"패킷 번호에 해당하는 UserUID 가 등록되어 있지 않다." )
-				<< BUILD_LOG( ulPacketNo )
-				<< END_LOG;
-		}
+	KCSLOCK_BEGIN( m_mapUniqueKeyUserUID )
+	std::map< UidType, UidType >::iterator mit;
+	mit = m_mapUniqueKeyUserUID.find( iUniqueKey );
+	if( mit != m_mapUniqueKeyUserUID.end() )
+	{
+		m_mapUniqueKeyUserUID.erase( mit );
+	}
+	else
+	{
+		START_LOG( cerr, L"퍼블리셔 유니크 키에 해당하는 UserUID 가 등록되어 있지 않다." )
+			<< BUILD_LOG( iUniqueKey )
+			<< END_LOG;
+	}
 	KCSLOCK_END()
 }
 
-UidType KBRPayletterBillingManager::GetCorrespondingUserUID( unsigned long ulPacketNo )
+UidType KBRPayletterBillingManager::GetUniqueKeyUserUID( UidType iUniqueKey )
 {
-	//KLocker lock( m_csPacketNoUserUID );
-
 	UidType iUserUID = 0;
 
-	KCSLOCK_BEGIN( m_mapPacketNoUserUID )
-		std::map< unsigned long, UidType >::iterator mit;
-		mit = m_mapPacketNoUserUID.find( ulPacketNo );
-		if( mit != m_mapPacketNoUserUID.end() )
-		{
-			iUserUID = mit->second;
-		}
-		else
-		{
-			START_LOG( cerr, L"패킷 번호에 해당하는 UserUID 가 등록되어 있지 않다." )
-				<< BUILD_LOG( ulPacketNo )
-				<< END_LOG;
-		}
+	KCSLOCK_BEGIN( m_mapUniqueKeyUserUID )
+	std::map< UidType, UidType >::iterator mit;
+	mit = m_mapUniqueKeyUserUID.find( iUniqueKey );
+	if( mit != m_mapUniqueKeyUserUID.end() )
+	{
+		iUserUID = mit->second;
+	}
+	else
+	{
+		START_LOG( cerr, L"퍼블리셔 유니크 키에 해당하는 UserUID 가 등록되어 있지 않다." )
+			<< BUILD_LOG( iUniqueKey )
+			<< END_LOG;
+	}
 	KCSLOCK_END()
 
-	return iUserUID;
-}
-
-unsigned long KBRPayletterBillingManager::GetNextPacketNo()
-{
-	//KLocker lock( m_csCurrentPacketNo );
-
-	unsigned long ulCurrentPacketNo;
-
-	KCSLOCK_BEGIN( m_ulCurrentPacketNo )
-		m_ulCurrentPacketNo++;
-		if( m_ulCurrentPacketNo > 0xfffffff0 )
-		{
-			m_ulCurrentPacketNo = 1;
-		}
-		ulCurrentPacketNo = m_ulCurrentPacketNo;
-	KCSLOCK_END()
-
-	return ulCurrentPacketNo;
+		return iUserUID;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // 구매하기 
-bool KBRPayletterBillingManager::InsertBuyPacket( IN KEBILL_BUY_PRODUCT_REQ kPacket_ )
+void KBRPayletterBillingManager::InsertBuyPacket( IN KEBILL_BUY_PRODUCT_REQ kPacket_, OUT bool& bRet_ )
 {
-	bool bRet = false;
 	KCSLOCK_BEGIN( m_mapBuyPacket )
-		if( m_mapBuyPacket.find( kPacket_.m_iUserUID ) == m_mapBuyPacket.end() )
+		MAP_BUYPACKET_ITOR itor = m_mapBuyPacket.find( kPacket_.m_uiPublisherUID );
+		if( m_mapBuyPacket.end() == itor )
 		{
-			m_mapBuyPacket.insert(std::make_pair(kPacket_.m_iUserUID, kPacket_));
-			bRet = true;
+			KPayletterBuyPacket kBuyPacket(CTime::GetCurrentTime(), kPacket_);
+			m_mapBuyPacket.insert(std::make_pair(kPacket_.m_uiPublisherUID, kBuyPacket));
+			bRet_ = true;
 		}
 		else
 		{
-			START_LOG( cerr, L"[빌링] 보관중인 구매 패킷이 이미 있다. 처리 지연 중..." )
-				<< BUILD_LOG( kPacket_.m_iUserUID )
-				<< BUILD_LOG( kPacket_.m_iServerGroupID )
-				<< END_LOG;
-			bRet = false;
+			CTime ctDeleteTime = itor->second.m_ctTime + CTimeSpan(0,0,PLBE_PACKET_DELETE_MIN,0);
+			if( CTime::GetCurrentTime() < ctDeleteTime )
+			{
+				START_LOG( cerr, L"[빌링] 보관중인 구매 패킷이 이미 있다. 처리 지연 중..." )
+					<< BUILD_LOG( kPacket_.m_uiPublisherUID )
+					<< BUILD_LOG( kPacket_.m_iServerGroupID )
+					<< END_LOG;
+				bRet_ = false;
+			}
+			else
+			{
+				// 처리 지연 한계 시간이 지났다. 패킷을 지우고 새로 처리하자. 지운 패킷 정보는 로그로 남길까?
+				START_LOG( cout, L"[빌링] 보관중인 구매 패킷이 지우고 새로 넣는다" )
+					<< BUILD_LOG( kPacket_.m_uiPublisherUID )
+					<< BUILD_LOG( kPacket_.m_iServerGroupID )
+					<< END_LOG;
+
+				KPayletterBuyPacket kBuyPacket(CTime::GetCurrentTime(), kPacket_);
+				itor->second = kBuyPacket;
+
+				bRet_ = true;
+			}
 		}
 	KCSLOCK_END()
-
-	return bRet;
 }
 
-bool KBRPayletterBillingManager::GetBuyPacket( IN const UidType iUserUID_, OUT KEBILL_BUY_PRODUCT_REQ& kPacket_ )
+void KBRPayletterBillingManager::GetBuyPacket( IN const UidType iUniqueKey, OUT KEBILL_BUY_PRODUCT_REQ& kPacket_, OUT bool& bRet_ )
 {
 	bool bRet = false;
 	KCSLOCK_BEGIN( m_mapBuyPacket )
-		MAP_BUYPACKET_ITOR itor = m_mapBuyPacket.find(iUserUID_);
+		MAP_BUYPACKET_ITOR itor = m_mapBuyPacket.find(iUniqueKey);
 		if(itor != m_mapBuyPacket.end())
 		{
-			kPacket_ = (KEBILL_BUY_PRODUCT_REQ)itor->second;		
+			kPacket_ = (KEBILL_BUY_PRODUCT_REQ)itor->second.m_kPacket;	
 			m_mapBuyPacket.erase(itor);
-			
-			bRet = true;
+
+			bRet_ = true;
 		}
 		else
 		{
 			// 구매 패킷 보내기 전에 넣어뒀던 패킷이 사라졌다? 발생하면 안됨
 			START_LOG( cerr, L"[빌링] 구매 패킷 응답이 왔는데, 보관해뒀던 패킷이 사라졌다? 발생하면 안됨" )
-				<< BUILD_LOG( iUserUID_ )
+				<< BUILD_LOG( iUniqueKey )
 				<< END_LOG;
 
-			bRet = false;
+			bRet_ = false;
 		}
 	KCSLOCK_END()
-
-	return bRet;
 }
 
-void KBRPayletterBillingManager::EraseBuyPacket( IN const UidType iUserUID_ )
+void KBRPayletterBillingManager::EraseBuyPacket( IN const UidType iUniqueKey )
 {
 	KEBILL_BUY_PRODUCT_REQ tempPacket;
 
 	KCSLOCK_BEGIN( m_mapBuyPacket )
-		MAP_BUYPACKET_ITOR itor = m_mapBuyPacket.find(iUserUID_);
+		MAP_BUYPACKET_ITOR itor = m_mapBuyPacket.find(iUniqueKey);
 
 		if(itor != m_mapBuyPacket.end())
 		{
-			tempPacket = (KEBILL_BUY_PRODUCT_REQ)itor->second;		
 			m_mapBuyPacket.erase(itor);
 		}
 		else
 		{
 			START_LOG( cerr, L"[빌링] 구매 패킷을 삭제 하려는데, 패킷이 없다" )
-				<< BUILD_LOG( iUserUID_ )
+				<< BUILD_LOG( iUniqueKey )
 				<< END_LOG;
 		}
 	KCSLOCK_END()
 }
-
-
-
-//////////////////////////////////////////////////////////////////////////
-// 선물하기 
-bool KBRPayletterBillingManager::InsertGiftPacket( IN const KEBILL_GIFT_ITEM_REQ kPacket_ )
-{
-	bool bRet = false;
-	KCSLOCK_BEGIN( m_mapGiftPacket )
-		if( m_mapGiftPacket.find( kPacket_.m_iSenderUserUID ) == m_mapGiftPacket.end() )
-		{
-			m_mapGiftPacket.insert(std::make_pair(kPacket_.m_iSenderUserUID, kPacket_));
-			bRet = true;
-		}
-		else
-		{
-			START_LOG( cerr, L"[빌링] 보관중인 구매 패킷이 이미 있다. 처리 지연 중..." )
-				<< BUILD_LOG( kPacket_.m_iSenderUserUID )
-				<< BUILD_LOG( kPacket_.m_iServerGroupID )
-				<< END_LOG;
-			bRet = false;
-		}
-	KCSLOCK_END()
-
-	return bRet;
-}
-
-bool KBRPayletterBillingManager::GetGiftPacket( IN const UidType iUserUID_, OUT KEBILL_GIFT_ITEM_REQ& kPacket_ )
-{
-	bool bRet = false;
-	KCSLOCK_BEGIN( m_mapGiftPacket )
-		MAP_GIFTPACKET_ITOR itor = m_mapGiftPacket.find(iUserUID_);
-
-		if(itor != m_mapGiftPacket.end())
-		{
-			kPacket_ = (KEBILL_GIFT_ITEM_REQ)itor->second;		
-			m_mapGiftPacket.erase(itor);
-
-			bRet = true;
-		}
-		else
-		{
-			// 구매 패킷 보내기 전에 넣어뒀던 패킷이 사라졌다? 발생하면 안됨
-			START_LOG( cerr, L"[빌링] 선물 패킷 응답이 왔는데, 보관해뒀던 패킷이 사라졌다? 발생하면 안됨" )
-				<< BUILD_LOG( iUserUID_ )
-				<< END_LOG;
-
-			bRet = false;
-		}
-	KCSLOCK_END()
-
-	return bRet;
-
-}
-
-void KBRPayletterBillingManager::EraseGiftPacket( IN const UidType iUserUID_ )
-{
-	KEBILL_GIFT_ITEM_REQ tempPacket;
-
-	KCSLOCK_BEGIN( m_mapGiftPacket )
-		MAP_GIFTPACKET_ITOR itor = m_mapGiftPacket.find(iUserUID_);
-
-	if(itor != m_mapGiftPacket.end())
-	{
-		tempPacket = (KEBILL_GIFT_ITEM_REQ)itor->second;		
-		m_mapGiftPacket.erase(itor);
-	}
-	else
-	{
-		START_LOG( cerr, L"[빌링] 선물 패킷을 삭제 하려는데, 패킷이 없다" )
-			<< BUILD_LOG( iUserUID_ )
-			<< END_LOG;
-	}
-	KCSLOCK_END()
-}
-
-//////////////////////////////////////////////////////////////////////////
-// 쿠폰 사용하기 
-bool KBRPayletterBillingManager::InsertCouponPacket( IN KEBILL_USE_COUPON_REQ kPacket_ )
-{
-	bool bRet = false;
-
-	KCSLOCK_BEGIN( m_mapCouponPacket )
-	if( m_mapCouponPacket.find( kPacket_.m_PurchaserInfo.m_iUserUID ) == m_mapCouponPacket.end() )
-	{
-		m_mapCouponPacket.insert(std::make_pair(kPacket_.m_PurchaserInfo.m_iUserUID, kPacket_));
-		bRet = true;
-	}
-	else
-	{
-		START_LOG( cerr, L"[빌링] 보관중인 쿠폰사용 패킷이 이미 있다. 처리 지연 중..." )
-			<< BUILD_LOG( kPacket_.m_PurchaserInfo.m_iUserUID )
-			<< BUILD_LOG( kPacket_.m_PurchaserInfo.m_iServerGroupID )
-			<< END_LOG;
-		bRet = false;
-	}
-	KCSLOCK_END()
-
-	return bRet;
-}
-
-bool KBRPayletterBillingManager::GetCouponPacket( IN const UidType iUserUID_, OUT KEBILL_USE_COUPON_REQ& kPacket_ )
-{
-	bool bRet = false;
-
-	KCSLOCK_BEGIN( m_mapCouponPacket )
-	MAP_COUPONPACKET_ITOR itor = m_mapCouponPacket.find(iUserUID_);
-	if(itor != m_mapCouponPacket.end())
-	{
-		kPacket_ = (KEBILL_USE_COUPON_REQ)itor->second;		
-		m_mapCouponPacket.erase(itor);
-
-		bRet = true;
-	}
-	else
-	{
-		// 구매 패킷 보내기 전에 넣어뒀던 패킷이 사라졌다? 발생하면 안됨
-		START_LOG( cerr, L"[빌링] 쿠폰사용 패킷 응답이 왔는데, 보관해뒀던 패킷이 사라졌다? 발생하면 안됨" )
-			<< BUILD_LOG( iUserUID_ )
-			<< END_LOG;
-
-		bRet = false;
-	}
-	KCSLOCK_END()
-
-	return bRet;
-}
-
-void KBRPayletterBillingManager::EraseCouponPacket( IN const UidType iUserUID_ )
-{
-	KEBILL_USE_COUPON_REQ tempPacket;
-
-	KCSLOCK_BEGIN( m_mapCouponPacket )
-	MAP_COUPONPACKET_ITOR itor = m_mapCouponPacket.find(iUserUID_);
-
-	if(itor != m_mapCouponPacket.end())
-	{
-		tempPacket = (KEBILL_USE_COUPON_REQ)itor->second;		
-		m_mapCouponPacket.erase(itor);
-	}
-	else
-	{
-		START_LOG( cerr, L"[빌링] 쿠폰 패킷을 삭제 하려는데, 패킷이 없다" )
-			<< BUILD_LOG( iUserUID_ )
-			<< END_LOG;
-	}
-	KCSLOCK_END()
-}
-
 
 #endif //SERV_COUNTRY_BR

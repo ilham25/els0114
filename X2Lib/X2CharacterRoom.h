@@ -421,8 +421,10 @@
 //		int						m_NowInvenSortTypePageNum;
 //		int						m_NowInvenSortTypePageMaxNum;
 //
-//		CX2Stat*				m_pStat;
-//		CX2Stat*				m_pStatEqip;
+////		CX2Stat*				m_pStat;
+////		CX2Stat*				m_pStatEqip;
+////	CX2Stat				    m_Stat;
+////	CX2Stat				    m_StatEqip;
 //
 //		vector<CKTDXDevice*>	m_pReadyDeviceList;
 //

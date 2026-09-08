@@ -76,18 +76,19 @@ CKTDGUIScrollBar::CKTDGUIScrollBar()
     KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
 
-	if(  g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
+	if(  g_pKTDXApp->LoadAndDoMemory( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
 	{
 		return;
 	}
 
-	string checkSndFileName;
-	wstring sndFileName;
+	wstring checkSndFileName;
+	LUA_GET_VALUE( kLuaManager, "ScrollBar_Mouse_Down", checkSndFileName, L"" );
+	m_pSndMouseDown = g_pKTDXApp->GetDeviceManager()->OpenSound( checkSndFileName );
 
-	LUA_GET_VALUE( kLuaManager, "ScrollBar_Mouse_Down", checkSndFileName, "" );
-
-	ConvertCharToWCHAR( sndFileName, checkSndFileName.c_str() );
-	m_pSndMouseDown = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
+#ifdef DLL_BUILD
+	m_pCheckedEdgeTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"UIEdge.tga" );
+	m_bEditEdge = false;
+#endif
 
 }
 
@@ -96,6 +97,10 @@ CKTDGUIScrollBar::CKTDGUIScrollBar()
 CKTDGUIScrollBar::~CKTDGUIScrollBar()
 {
 	SAFE_CLOSE( m_pSndMouseDown );
+
+#ifdef DLL_BUILD
+	SAFE_CLOSE( m_pCheckedEdgeTexture );
+#endif
 }
 
 
@@ -212,13 +217,16 @@ bool CKTDGUIScrollBar::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM l
 			if( PtInRect( &m_rcUpButton, pt ) )
 			{
 				//MessageBox(NULL, L"UpButton", L"dd", MB_OK );
+#ifndef DLL_BUILD
 				SetCapture( DXUTGetHWND() );
+#endif
 				if( m_nPosition > m_nStart )
 					--m_nPosition;
 				UpdateThumbRect();
 				m_Arrow = CLICKED_UP;
+#ifndef DLL_BUILD
 				m_dArrowTS = DXUTGetTime();
-
+#endif
 				m_bIsUpButtonClicked = true;
 
 				//if ( m_pSndMouseDown != NULL )
@@ -232,12 +240,16 @@ bool CKTDGUIScrollBar::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM l
 			if( PtInRect( &m_rcDownButton, pt ) )
 			{
 				//MessageBox(NULL, L"DownButton", L"dd", MB_OK );
+#ifndef DLL_BUILD
 				SetCapture( DXUTGetHWND() );
+#endif
 				if( m_nPosition + m_nPageSize < m_nEnd )
 					++m_nPosition;
 				UpdateThumbRect();
 				m_Arrow = CLICKED_DOWN;
+#ifndef DLL_BUILD
 				m_dArrowTS = DXUTGetTime();
+#endif
 
 				m_bIsDownButtonClicked = true;
 
@@ -255,7 +267,9 @@ bool CKTDGUIScrollBar::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM l
 				if( PtInRect( &m_rcThumb, pt ) )
 				{
 					//MessageBox(NULL, L"Thumb", L"dd", MB_OK );
+#ifndef DLL_BUILD
 					SetCapture( DXUTGetHWND() );
+#endif
 					m_bDrag = true;
 					ThumbOffsetY = pt.y - m_rcThumb.top;
 					return true;
@@ -268,7 +282,9 @@ bool CKTDGUIScrollBar::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM l
 				if( m_rcThumb.left <= pt.x &&
 					m_rcThumb.right > pt.x &&  m_bShowThumb == true )
 				{
+#ifndef DLL_BUILD
 					SetCapture( DXUTGetHWND() );
+#endif
 					if( m_rcThumb.top > pt.y &&
 						m_rcTrack.top <= pt.y )
 					{
@@ -360,6 +376,11 @@ HRESULT	CKTDGUIScrollBar::OnFrameMove( double fTime, float fElapsedTime )
 		return S_OK;
 	}
 
+#ifdef DLL_BUILD
+	if( m_bUpdate == false )
+		return S_OK;
+#endif
+
 	CKTDGUIControl::OnFrameMove( fTime, fElapsedTime );
 
 	RECT tempRECT = m_rcTrack;
@@ -383,8 +404,10 @@ HRESULT CKTDGUIScrollBar::OnFrameRender()
 	{
 		return S_OK;
 	}
-
-
+#ifdef DLL_BUILD
+	DrawEditEdge();
+#endif
+#ifndef DLL_BUILD
 	if( m_Arrow != CLEAR )
 	{
 		double dCurrTime = DXUTGetTime();
@@ -431,6 +454,7 @@ HRESULT CKTDGUIScrollBar::OnFrameRender()
 				}
 			}
 	}
+#endif
 
 	if( true == m_bEnableTrack )
 	{
@@ -637,3 +661,92 @@ void CKTDGUIScrollBar::SetThumbTex( CKTDGUIControl::UITextureData* pThumbTex)
 	m_pThumbTex = pThumbTex;
 
 }
+
+#ifdef DLL_BUILD
+void CKTDGUIScrollBar::MoveControl( float fx, float fy )
+{
+	SetLocation( m_x + (int)fx, m_y + (int)fy );
+}
+
+void CKTDGUIScrollBar::SetEditGUI( bool bEdit )
+{
+	m_bUpdate = !bEdit;	
+
+	//m_bEditEdge = bEdit;
+	//SetColor(D3DXCOLOR(0xffffffff));	// 활성할때 Edge(외곽선) 생기므로 활성화 색깔을 초기화한다.
+}
+
+
+D3DXVECTOR2 CKTDGUIScrollBar::GetPos()
+{
+	return D3DXVECTOR2((float)m_x, (float)m_y);
+}
+
+void CKTDGUIScrollBar::ShowEdge( bool bShow )
+{
+	SetColor(D3DXCOLOR(0xffffffff));	// 활성할때 Edge(외곽선) 생기므로 활성화 색깔을 초기화한다.
+	m_bEditEdge = bShow;	
+}
+
+void CKTDGUIScrollBar::DrawEditEdge()
+{
+	if( false == m_bEditEdge )
+		return;	
+
+	if ( m_pCheckedEdgeTexture == NULL )
+		return;
+
+	RECT edgeRect;
+	edgeRect.left = m_rcUpButton.left;
+	edgeRect.top = m_rcUpButton.top;
+	edgeRect.right = m_rcDownButton.right;
+	edgeRect.bottom = m_rcDownButton.bottom;
+
+	//const CKTDGUIControl::UIPointData & point = *m_pEditEdgePoint;
+	D3DXCOLOR tempColor;
+
+	int edgeWidth = 4;
+	D3DXCOLOR edgeColor = D3DXCOLOR(0xffff0000);
+
+	tempColor.a = edgeColor.a * m_pDialog->GetColor().a * m_Color.a;
+	tempColor.r = edgeColor.r * m_pDialog->GetColor().r * m_Color.r;
+	tempColor.g = edgeColor.g * m_pDialog->GetColor().g * m_Color.g;
+	tempColor.b = edgeColor.b * m_pDialog->GetColor().b * m_Color.b;
+
+
+	int _width = (int)(edgeRect.right - edgeRect.left);
+	int _height = (int)(edgeRect.bottom - edgeRect.top);
+
+	//if ( m_bDrawEdgeOut == true )
+	{
+		// 좌 left/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth), 
+			edgeWidth , 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 하left/bottom
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.bottom ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+
+		// 우right/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.right ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top ), 
+			edgeWidth, 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 상left/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+	}
+}
+
+#endif

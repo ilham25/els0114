@@ -1,6 +1,11 @@
 #include "StdAfx.h"
 #include ".\x2gameoption.h"
 
+#ifdef X2OPTIMIZE_AUTOSETUP_GAMEOPTION
+#include "KBenchmark_SUM.h"
+#include "KBenchmark_LINPACK.h"
+#include "KBenchmark_MXM.h"
+#endif//X2OPTIMIZE_AUTOSETUP_GAMEOPTION
 
 CX2GameOption::CX2GameOption(void):
 m_bChangeFieldOption(false)
@@ -40,7 +45,12 @@ bool CX2GameOption::SetAutoOption( int index )
 	SetUnitDetail( optionList.m_UnitDetail );
 
 	SetMapDetail( optionList.m_MapDetail );
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	SetEffectDetail( optionList.m_eEffect );
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	SetEffectDetail( optionList.m_bEffect );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 
 	SetFieldDetail( optionList.m_FieldDetail );
 
@@ -298,16 +308,78 @@ void CX2GameOption::DownMapDetail()
 	}
 }
 
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+void CX2GameOption::SetEffectDetail( OptionLevel optionLevel, bool bForce /*= false*/ )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 void CX2GameOption::SetEffectDetail( bool bEffect, bool bForce /*= false*/ )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 {
 	if( false == bForce )
 	{
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		if( m_OptionList.m_eEffect == optionLevel )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		if( m_OptionList.m_bEffect == bEffect )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 			return;
 	}
 
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	m_OptionList.m_eEffect = optionLevel;
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	m_OptionList.m_bEffect = bEffect;
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 
+#ifdef X2OPTIMIZE_GAMEOPTION_BUGFIX
+	if( g_pData != NULL )
+	{
+		if( g_pData->GetGameMinorParticle() != NULL )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			g_pData->GetGameMinorParticle()->SetEnable( m_OptionList.m_eEffect != OL_LOW );
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			g_pData->GetGameMinorParticle()->SetEnable( m_OptionList.m_bEffect );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
+		if( g_pData->GetGameMinorXMeshPlayer() != NULL )
+		{
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			g_pData->GetGameMinorXMeshPlayer()->SetEnable( m_OptionList.m_eEffect != OL_LOW );
+			g_pData->GetGameMinorXMeshPlayer()->SetEnableSlashTrace( m_OptionList.m_eEffect != OL_LOW );
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			g_pData->GetGameMinorXMeshPlayer()->SetEnable( m_OptionList.m_bEffect );
+			g_pData->GetGameMinorXMeshPlayer()->SetEnableSlashTrace( m_OptionList.m_bEffect );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		}
+
+        if ( g_pX2Game != NULL )
+        {
+		    for( int i = 0; i < (int) g_pX2Game->GetUnitNum(); i++ )
+		    {
+			    CX2GameUnit* pCX2GameUnit = g_pX2Game->GetUnit(i);
+			    //if( true == g_pX2Game->IsValidUnit( pCX2GameUnit ) )
+			    if ( NULL != pCX2GameUnit )
+			    {
+				    pCX2GameUnit->InitEffect();
+#ifdef  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+                    if( m_OptionList.m_eEffect == OL_LOW )
+#else   X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+				    if( m_OptionList.m_bEffect == false )
+#endif  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+				    {
+					    pCX2GameUnit->DeleteMinorParticle();
+				    }
+			    }
+		    }
+        }
+//#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+//		//if( g_pData->GetGameMajorXMeshPlayer() != NULL )
+//			//g_pData->GetGameMajorXMeshPlayer()->SetEnableSlashTrace( m_OptionList.m_eEffect != OL_LOW );
+//#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+//		if( g_pData->GetGameMajorXMeshPlayer() != NULL )
+//			g_pData->GetGameMajorXMeshPlayer()->SetEnableSlashTrace( m_OptionList.m_bEffect );
+//#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	}
+#else//X2OPTIMIZE_GAMEOPTION_BUGFIX
 	if( g_pX2Game != NULL )
 	{
 		if( g_pX2Game->GetMinorParticle() != NULL )
@@ -344,22 +416,63 @@ void CX2GameOption::SetEffectDetail( bool bEffect, bool bForce /*= false*/ )
 		}
 		
 	}
+#endif//X2OPTIMIZE_GAMEOPTION_BUGFIX
 }
 
 void CX2GameOption::UpEffectDetail()
 {
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( m_OptionList.m_eEffect == OL_HIGH )
+		return;
+
+	switch( m_OptionList.m_eEffect )
+	{
+	case OL_MEDIUM:
+		{
+			SetEffectDetail( OL_HIGH );
+		}
+		break;
+
+	case OL_LOW:
+		{
+			SetEffectDetail( OL_MEDIUM );
+		}
+		break;
+	}
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	if( m_OptionList.m_bEffect == true )
 		return;
 
 	SetEffectDetail( true );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 }
 
 void CX2GameOption::DownEffectDetail()
 {
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( m_OptionList.m_eEffect == OL_LOW )
+		return;
+
+	switch( m_OptionList.m_eEffect )
+	{
+	case OL_HIGH:
+		{
+			SetEffectDetail( OL_MEDIUM );
+		}
+		break;
+
+	case OL_MEDIUM:
+		{
+			SetEffectDetail( OL_LOW );
+		}
+		break;
+	}
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	if( m_OptionList.m_MapDetail == false )
 		return;
 
 	SetEffectDetail( false );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 }
 
 void CX2GameOption::SetFieldDetail( FieldLevel optionLevel, bool bForce /*= false*/ )
@@ -408,7 +521,11 @@ void CX2GameOption::DownFieldDetail()
 	if( m_OptionList.m_FieldDetail == OL_LOW )
 		return;
 
+#ifdef X2OPTIMIZE_AUTOSETUP_GAMEOPTION
+	switch( m_OptionList.m_FieldDetail )
+#else//X2OPTIMIZE_AUTOSETUP_GAMEOPTION
 	switch( m_OptionList.m_MapDetail )
+#endif//X2OPTIMIZE_AUTOSETUP_GAMEOPTION
 	{
 	case FL_HIGH:
 		{
@@ -627,119 +744,135 @@ void CX2GameOption::SetResolution( DWORD dwWidth, DWORD dwHeight, int iColorBit 
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 	KOGGamePerformanceCheck::GetInstance()->Resume();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+#ifdef  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+    if ( g_pData->GetGameUDP() != NULL )
+        g_pData->GetGameUDP()->RemoveAllPendingPingSends();
+#endif  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
 }
 
 bool CX2GameOption::OpenScriptFile()
 {
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    const WCHAR pFileName[256] = L"GameOption.txt";			// X2/dat 폴더에 있는 default script
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	const WCHAR pFileName[256] = L"GameOption.lua";			// X2/dat 폴더에 있는 default script
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	const WCHAR pSaveFileName[256] = L"GameOptions.lua";	// 사용자가 설정을 바꾸고 게임을 끝냈을때 저장되는 script
 
-
 	// gameoptions.lua 파일을 읽어서 UTF-8 포맷이 아니면 변환한다
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	ConvertFileAnsiToUTF8( "GameOptions.lua", "GameOptions.lua" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 
+	bool bDoneParsingUserGameOptionFile = true;
+
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+
+    KLuaManagerProxy luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+    {
+        if ( g_pKTDXApp->LoadAndDoMemory_LocalFile( &luaManager, pSaveFileName ) == false )
+            bDoneParsingUserGameOptionFile = false;
+        if ( bDoneParsingUserGameOptionFile == false )
+        {
+            if ( g_pKTDXApp->LoadAndDoMemory( &luaManager, pFileName ) == false )
+            {
+                return false;
+            }
+        }
+    }
+
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
     KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 
-	bool bDoneParsingUserGameOptionFile = true;
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-#ifdef X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pSaveFileName, false, true, true ) )
+	if( false == g_pKTDXApp->LoadLuaTinker_LocalFile( pSaveFileName ) )
 		bDoneParsingUserGameOptionFile = false;
 
 	if( true == bDoneParsingUserGameOptionFile )
 	{
-		if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pSaveFileName, false, true, true ) )
+		if( false == g_pKTDXApp->LoadAndDoMemory_LocalFile( &luaManager, pSaveFileName ) )
 			bDoneParsingUserGameOptionFile = false;
 	}
-#else//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pSaveFileName );
-	if( Info != NULL )
-	{
-		if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pSaveFileName, false ) )
-			bDoneParsingUserGameOptionFile = false;
-				
-		if( true == bDoneParsingUserGameOptionFile )
-		{
-			if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pSaveFileName, false ) )
-				bDoneParsingUserGameOptionFile = false;
-		}
-	}
-	else
-	{
-		bDoneParsingUserGameOptionFile = false;
-	}
-#endif//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
-
 
 	if( false == bDoneParsingUserGameOptionFile )
 	{
-		if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName ) )
+		if( false == g_pKTDXApp->LoadLuaTinker( pFileName ) )
 			return false;
-		if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pFileName  ) )
+		if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, pFileName  ) )
 			return false;
 	}
 
-	
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
-	if( true == luaManager.BeginTable( L"GAME_OPTION_CURRENT" ) )
+
+	if( true == luaManager.BeginTable( "GAME_OPTION_CURRENT" ) )
 	{
-		LUA_GET_VALUE( luaManager, L"AUTOSET_LEVEL",				m_OptionList.m_iAutoSetLevel,		3 );
-		LUA_GET_VALUE_ENUM( luaManager, L"GRAPHIC_UNIT", 			m_OptionList.m_UnitDetail,			OptionLevel,		OL_HIGH	);
-		LUA_GET_VALUE_ENUM( luaManager, L"GRAPHIC_TEXTURE",			m_OptionList.m_TexDetail,			OptionLevel,		OL_HIGH	);
-		LUA_GET_VALUE_ENUM( luaManager, L"GRAPHIC_MAP",				m_OptionList.m_MapDetail,			OptionLevel,		OL_HIGH	);
-		LUA_GET_VALUE( luaManager, L"GRAPHIC_EFFECT",				m_OptionList.m_bEffect,				true );
-		LUA_GET_VALUE( luaManager, L"RESOLUTION_X",					m_OptionList.m_vResolution.x,		1024 );
-		LUA_GET_VALUE( luaManager, L"RESOLUTION_Y",					m_OptionList.m_vResolution.y,		768 );
+		LUA_GET_VALUE( luaManager, "AUTOSET_LEVEL",				m_OptionList.m_iAutoSetLevel,		3 );
+		LUA_GET_VALUE_ENUM( luaManager, "GRAPHIC_UNIT", 			m_OptionList.m_UnitDetail,			OptionLevel,		OL_HIGH	);
+		LUA_GET_VALUE_ENUM( luaManager, "GRAPHIC_TEXTURE",			m_OptionList.m_TexDetail,			OptionLevel,		OL_HIGH	);
+		LUA_GET_VALUE_ENUM( luaManager, "GRAPHIC_MAP",				m_OptionList.m_MapDetail,			OptionLevel,		OL_HIGH	);
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		//기존의 GRAPHIC_EFFECT를 GRAPHIC_EFFECT_VER2로 변경 시도
+		bool bEffect;
+		if( luaManager.GetValue( "GRAPHIC_EFFECT", bEffect ) == true ) 
+			m_OptionList.m_eEffect = ( bEffect ) ? CX2GameOption::OL_HIGH : CX2GameOption::OL_LOW;
+		else
+			LUA_GET_VALUE_ENUM( luaManager, "GRAPHIC_EFFECT_VER2",	m_OptionList.m_eEffect,		OptionLevel,		OL_HIGH	);
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		LUA_GET_VALUE( luaManager, "GRAPHIC_EFFECT",				m_OptionList.m_bEffect,				true );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		LUA_GET_VALUE( luaManager, "RESOLUTION_X",					m_OptionList.m_vResolution.x,		1024 );
+		LUA_GET_VALUE( luaManager, "RESOLUTION_Y",					m_OptionList.m_vResolution.y,		768 );
 #ifdef OPTIMIZED_DEFAULT_RESOLUTION
 		if( false == bDoneParsingUserGameOptionFile )
 			m_OptionList.m_vResolution = D3DXVECTOR2( GetSystemMetrics( SM_CXSCREEN ), GetSystemMetrics( SM_CYSCREEN ) );
 #endif OPTIMIZED_DEFAULT_RESOLUTION
 
-		LUA_GET_VALUE( luaManager, L"ENABLE_3D_SOUND",				m_OptionList.m_bEnable3DSound,		true );
-		LUA_GET_VALUE( luaManager, L"SOUND",						m_OptionList.m_bSound,				true );
-		LUA_GET_VALUE( luaManager, L"MUSIC",						m_OptionList.m_bMusic,				true );
-		LUA_GET_VALUE( luaManager, L"SOUND_VOLUME",					m_OptionList.m_fSoundVolume,		-800.f );
-		LUA_GET_VALUE( luaManager, L"MUSIC_VOLUME",					m_OptionList.m_fMusicVolume,		-2000.f );
+		LUA_GET_VALUE( luaManager, "ENABLE_3D_SOUND",				m_OptionList.m_bEnable3DSound,		true );
+		LUA_GET_VALUE( luaManager, "SOUND",						m_OptionList.m_bSound,				true );
+		LUA_GET_VALUE( luaManager, "MUSIC",						m_OptionList.m_bMusic,				true );
+		LUA_GET_VALUE( luaManager, "SOUND_VOLUME",					m_OptionList.m_fSoundVolume,		-800.f );
+		LUA_GET_VALUE( luaManager, "MUSIC_VOLUME",					m_OptionList.m_fMusicVolume,		-2000.f );
 
-		LUA_GET_VALUE( luaManager, L"DYNAMIC_CAMERA",				m_OptionList.m_bDynamicCamera,		true );
-		LUA_GET_VALUE( luaManager, L"CAMERA_ZOOM_LEVEL",			m_OptionList.m_iZoomLevel,			0 );
+		LUA_GET_VALUE( luaManager, "DYNAMIC_CAMERA",				m_OptionList.m_bDynamicCamera,		true );
+		LUA_GET_VALUE( luaManager, "CAMERA_ZOOM_LEVEL",			m_OptionList.m_iZoomLevel,			0 );
 
-		LUA_GET_VALUE_ENUM( luaManager, L"FIELD_LEVEL",				m_OptionList.m_FieldDetail,			FieldLevel,			FL_HIGH );
-		LUA_GET_VALUE( luaManager, L"FIELD_PARTY",					m_OptionList.m_bParty,				false );
-		LUA_GET_VALUE( luaManager, L"FIELD_SD",						m_OptionList.m_bSD,					false );
+		LUA_GET_VALUE_ENUM( luaManager, "FIELD_LEVEL",				m_OptionList.m_FieldDetail,			FieldLevel,			FL_HIGH );
+		LUA_GET_VALUE( luaManager, "FIELD_PARTY",					m_OptionList.m_bParty,				false );
+		LUA_GET_VALUE( luaManager, "FIELD_SD",						m_OptionList.m_bSD,					false );
 
 
-		LUA_GET_VALUE( luaManager, L"CHARINFO_LEVEL",				m_OptionList.m_bLevel,				true );
-		LUA_GET_VALUE( luaManager, L"CHARINFO_PVP",					m_OptionList.m_bPvpRank,			true );
-		LUA_GET_VALUE( luaManager, L"CHARINFO_GUILD",				m_OptionList.m_bGuild,				true );
-		LUA_GET_VALUE( luaManager, L"CHARINFO_NOTHING",				m_OptionList.m_bNothing,			true );
+		LUA_GET_VALUE( luaManager, "CHARINFO_LEVEL",				m_OptionList.m_bLevel,				true );
+		LUA_GET_VALUE( luaManager, "CHARINFO_PVP",					m_OptionList.m_bPvpRank,			true );
+		LUA_GET_VALUE( luaManager, "CHARINFO_GUILD",				m_OptionList.m_bGuild,				true );
+		LUA_GET_VALUE( luaManager, "CHARINFO_NOTHING",				m_OptionList.m_bNothing,			true );
 #ifdef SERV_LOCAL_RANKING_SYSTEM
-		LUA_GET_VALUE( luaManager, L"RANKUP_UI_SHOW",				m_OptionList.m_bShowRankUpInDungeon,true );
+		LUA_GET_VALUE( luaManager, "RANKUP_UI_SHOW",				m_OptionList.m_bShowRankUpInDungeon,true );
 #endif //SERV_LOCAL_RANKING_SYSTEM
-		//LUA_GET_VALUE( luaManager, L"FIELD_FRIEND",					m_OptionList.m_bFriend,				true );
+		//LUA_GET_VALUE( luaManager, "FIELD_FRIEND",					m_OptionList.m_bFriend,				true );
 
 #ifdef OPTIMIZED_DEFAULT_RESOLUTION
-		LUA_GET_VALUE( luaManager, L"FULLSCREEN",					m_OptionList.m_bFullScreen,			false );
+		LUA_GET_VALUE( luaManager, "FULLSCREEN",					m_OptionList.m_bFullScreen,			false );
 #else OPTIMIZED_DEFAULT_RESOLUTION
-		LUA_GET_VALUE( luaManager, L"FULLSCREEN",					m_OptionList.m_bFullScreen,			true );
+		LUA_GET_VALUE( luaManager, "FULLSCREEN",					m_OptionList.m_bFullScreen,			true );
 #endif OPTIMIZED_DEFAULT_RESOLUTION
 
 #ifdef VERTICAL_SYNC_OPTION
-		LUA_GET_VALUE( luaManager, L"FLASHEFFECT",					m_OptionList.m_bFlashEffect,		false );
+		LUA_GET_VALUE( luaManager, "FLASHEFFECT",					m_OptionList.m_bFlashEffect,		false );
 #endif
 
 		//{{ kimhc // 2010.3.12 //	채팅창 개편
 #ifdef	CHAT_WINDOW_IMPROV
-		LUA_GET_VALUE( luaManager, L"DISPLAY_OBTAINING_ED",			m_OptionList.m_bDisplayObtainingED,		true );
-		LUA_GET_VALUE( luaManager, L"DISPLAY_OBTAINING_EXP",		m_OptionList.m_bDisplayObtainingEXP,	true );
+		LUA_GET_VALUE( luaManager, "DISPLAY_OBTAINING_ED",			m_OptionList.m_bDisplayObtainingED,		true );
+		LUA_GET_VALUE( luaManager, "DISPLAY_OBTAINING_EXP",		m_OptionList.m_bDisplayObtainingEXP,	true );
 #endif	CHAT_WINDOW_IMPROV
 		//}} kimhc // 2010.3.12 //	채팅창 개편
 
-#ifdef KEY_MAPPING_INT
-		LUA_GET_VALUE( luaManager, L"JOY_ENABLE",					m_OptionList.m_bJoyEnable,			false );
-#endif // KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
+		LUA_GET_VALUE( luaManager, "JOY_ENABLE",					m_OptionList.m_bJoyEnable,			false );
+#endif // SERV_KEY_MAPPING_INT
 
 #ifdef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 		// 옵션 셋팅과 무관하게 조이스틱 켬
@@ -747,17 +880,17 @@ bool CX2GameOption::OpenScriptFile()
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 
 #ifdef VERTICAL_SYNC_OPTION
-		LUA_GET_VALUE( luaManager, L"VERTICALSYNC",					m_OptionList.m_bVerticalSync,		false );
+		LUA_GET_VALUE( luaManager, "VERTICALSYNC",					m_OptionList.m_bVerticalSync,		false );
 #endif
-		LUA_GET_VALUE_ENUM( luaManager, L"SKILL_CUTIN_SHOW", 		m_OptionList.m_eSkillCutinShowState,	SKILL_CUTIN_SHOW_STATE,		SCSS_ONESELF );
+		LUA_GET_VALUE_ENUM( luaManager, "SKILL_CUTIN_SHOW", 		m_OptionList.m_eSkillCutinShowState,	SKILL_CUTIN_SHOW_STATE,		SCSS_ONESELF );
 
 #ifdef SKILL_SLOT_UI_TYPE_B
-		LUA_GET_VALUE( luaManager, L"SKILL_SLOT_UI_TYPE_A",			m_OptionList.m_bIsSkillUITypeA,		true );
+		LUA_GET_VALUE( luaManager, "SKILL_SLOT_UI_TYPE_A",			m_OptionList.m_bIsSkillUITypeA,		true );
 #endif //SKILL_SLOT_UI_TYPE_B
 
 #ifdef SERV_PVP_NEW_SYSTEM
 		m_OptionList.m_vecPvpMap.clear();
-		if( luaManager.BeginTable( L"PVP_MAP" ) == true )
+		if( luaManager.BeginTable( "PVP_MAP" ) == true )
 		{  
 #ifdef LIMIT_PVP_MAPSETTING
 			for( int tableIndex = 1, iPvpMapId = -1; tableIndex <= 2 ; ++tableIndex )
@@ -780,39 +913,86 @@ bool CX2GameOption::OpenScriptFile()
 #endif
 
 #ifdef RULE_AGREEMENT
-		LUA_GET_VALUE( luaManager, L"HACKSHIELD_RULE_AGREE",		m_OptionList.m_bRuleAgree,	false );
+		LUA_GET_VALUE( luaManager, "HACKSHIELD_RULE_AGREE",		m_OptionList.m_bRuleAgree,	false );
 #ifdef NEW_RULE_AGREEMENT
-		LUA_GET_VALUE( luaManager, L"NEW_HACKSHIELD_RULE_AGREE",	m_OptionList.m_bNewRuleAgree, false );
+		LUA_GET_VALUE( luaManager, "NEW_HACKSHIELD_RULE_AGREE",	m_OptionList.m_bNewRuleAgree, false );
 #endif NEW_RULE_AGREEMENT
 #endif RULE_AGREEMENT
 		//{{ 2011.9.16 이준호 반디캠 작업
 #ifdef BANDICAM_RECORDING
-		LUA_GET_VALUE( luaManager, L"GENERAL_VIDEO_TYPE",		m_OptionList.m_GeneralVideoType,	0 );
+		LUA_GET_VALUE( luaManager, "GENERAL_VIDEO_TYPE",		m_OptionList.m_GeneralVideoType,	0 );
 
 		/*
 		사용자 세팅을 저장하지 않으므로 패스
-		LUA_GET_VALUE( luaManager, L"VIDEO_SIZE_W",		m_OptionList.m_VideoSizeW,	0 );
-		LUA_GET_VALUE( luaManager, L"VIDEO_SIZE_H",		m_OptionList.m_VideoSizeH,	0 );
-		LUA_GET_VALUE( luaManager, L"VIDEO_FPS",		m_OptionList.m_VideoFPS,	0 );
-		LUA_GET_VALUE( luaManager, L"VIDEO_QUAILTY",		m_OptionList.m_VideoQuality,	0 );
-		LUA_GET_VALUE( luaManager, L"VIDEO_CHANNELS",		m_OptionList.m_AudioChannels,	0 );
-		LUA_GET_VALUE( luaManager, L"VIDEO_SAMPLERATE",		m_OptionList.m_AudioSampleRate,	0 );
+		LUA_GET_VALUE( luaManager, "VIDEO_SIZE_W",		m_OptionList.m_VideoSizeW,	0 );
+		LUA_GET_VALUE( luaManager, "VIDEO_SIZE_H",		m_OptionList.m_VideoSizeH,	0 );
+		LUA_GET_VALUE( luaManager, "VIDEO_FPS",		m_OptionList.m_VideoFPS,	0 );
+		LUA_GET_VALUE( luaManager, "VIDEO_QUAILTY",		m_OptionList.m_VideoQuality,	0 );
+		LUA_GET_VALUE( luaManager, "VIDEO_CHANNELS",		m_OptionList.m_AudioChannels,	0 );
+		LUA_GET_VALUE( luaManager, "VIDEO_SAMPLERATE",		m_OptionList.m_AudioSampleRate,	0 );
 		*/
 #endif BANDICAM_RECORDING
+
+#ifdef SERVER_GROUP_ID_IN_GAME_OPTION
+		int iServerGroupID = 0;
+		LUA_GET_VALUE( luaManager, "SERVER_GROUP_ID",		iServerGroupID,	0 );
+		g_pInstanceData->SetServerGroupID( iServerGroupID );
+#endif // SERVER_GROUP_ID_IN_GAME_OPTION
+
+#ifdef PLAYER_ID_IN_GAME_OPTION
+		LUA_GET_VALUE( luaManager, "LOGIN_ID",		m_OptionList.m_wstrSavedLoginID,	L"" );
+#endif // PLAYER_ID_IN_GAME_OPTION
 
 		luaManager.EndTable();
 	}
 
-		//}}
-
-#ifdef KEY_MAPPING_INT
-	OpenJoyScript();
-#endif // KEY_MAPPING_INT
+#ifdef X2OPTIMIZE_AUTOSETUP_GAMEOPTION
+	if( false == bDoneParsingUserGameOptionFile )
+	{
+		//"최적의 게임 옵션을 자동으로 설정하려면 "예"를 그렇지 않으면 "아니요"를 눌러주세요." 메세지 출력
+		if( MessageBoxW( g_pKTDXApp->GetHWND(), GET_STRING( STR_ID_29006 ), GET_STRING( STR_ID_29042 ), MB_YESNO | MB_TOPMOST ) == IDYES )
+		{
+			_DecideProperGraphicOption();
+		}
+	}
+#endif//X2OPTIMIZE_AUTOSETUP_GAMEOPTION
 
 	m_eFieldLevelOld = m_OptionList.m_FieldDetail;
 	m_bPartyOld = m_OptionList.m_bParty;
 	//m_bFriendOld = m_OptionList.m_bFriend;
 
+#ifdef X2OPTIMIZE_AUTOSETUP_GAMEOPTION
+	//시스템 메모리가 256 이하이거나 비디오 램이 64 이하이면 
+	//텍스쳐, 이펙트 설정을 최하로 낮추고 해상도를 800/600 이하로 낮춘다.
+	DWORD totalTextureMem		= 0;
+	DWORD availableTextureMem	= 0;
+	g_pKTDXApp->GetVideoRam( totalTextureMem, availableTextureMem );
+	totalTextureMem = totalTextureMem/1024/1024;
+
+	DWORD totalPhysicMem		= 0;
+	DWORD availablePhysicMem	= 0;
+	g_pKTDXApp->GetPhysicRam( totalPhysicMem, availablePhysicMem );
+	totalPhysicMem = totalPhysicMem/1024/1024;
+
+	if( totalTextureMem <= 60 || totalPhysicMem < 300 )
+	{
+		// 비디오 메모리가 일정 크기 이하이면 unit설정을 medium을 최대로
+		m_OptionList.m_MaxUnitDetail	= OL_MEDIUM;
+		// 텍스쳐 설정도 최하로 바꾸도록 하자
+		m_OptionList.m_MaxTexDetail		= OL_MEDIUM;
+		m_OptionList.m_MaxMapDetail		= OL_MEDIUM;
+		m_OptionList.m_MaxFieldDetail	= FL_MEDIUM;
+	}
+
+	// depth buffer format이 16bit이면 unit의 외곽선을 그리지 않도록~	
+	DXUTDeviceSettings deviceSettings = DXUTGetDeviceSettings();
+	if( deviceSettings.pp.AutoDepthStencilFormat == D3DFMT_D16_LOCKABLE ||
+		deviceSettings.pp.AutoDepthStencilFormat == D3DFMT_D16 ||
+		deviceSettings.pp.AutoDepthStencilFormat == D3DFMT_D15S1 )
+	{
+		m_OptionList.m_MaxUnitDetail	= OL_MEDIUM;
+	}
+#else//X2OPTIMIZE_AUTOSETUP_GAMEOPTION
 	//시스템 메모리가 256 이하이거나 비디오 램이 64 이하이면 
 	//텍스쳐, 이펙트 설정을 최하로 낮추고 해상도를 800/600 이하로 낮춘다.
 	DWORD totalTextureMem		= 0;
@@ -844,7 +1024,11 @@ bool CX2GameOption::OpenScriptFile()
 		m_OptionList.m_bSD				= false;
 
 		// 이펙트 끔
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		m_OptionList.m_eEffect = OL_LOW;
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		m_OptionList.m_bEffect = false;
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 
 		//해상도 800 600
 		m_OptionList.m_vResolution.x = 800;
@@ -872,33 +1056,51 @@ bool CX2GameOption::OpenScriptFile()
 		m_OptionList.m_MaxUnitDetail	= OL_MEDIUM;
 		m_OptionList.m_UnitDetail		= OL_MEDIUM;
 	}
-
+#endif//X2OPTIMIZE_AUTOSETUP_GAMEOPTION
 
 	//ApplyAllOption();
 
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    const WCHAR pPresetFileName[256] = L"GameOptionPreset.txt";
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	const WCHAR pPresetFileName[256] = L"GameOptionPreset.lua";
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 //{{ robobeg : 2008-10-28
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pPresetFileName ) )
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    {
+        if ( g_pKTDXApp->LoadAndDoMemory( &luaManager, pPresetFileName ) == false )
+        {
+            return false;
+        }
+    }
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+	if( false == g_pKTDXApp->LoadLuaTinker( pPresetFileName ) )
 		return false;
-	//if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, L"Enum.lua" ) )
+	//if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, L"Enum.lua" ) )
 		//return false;
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pPresetFileName ) )
+	if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, pPresetFileName ) )
 		return false;
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 //}} robobeg : 2008-10-28
 
 	m_vecOptionListPreset.clear();
 	int iTableIndex = 0;
-	while( true == luaManager.BeginTable( L"GAME_OPTION_PRESET", iTableIndex ) )
+	while( true == luaManager.BeginTable( "GAME_OPTION_PRESET", iTableIndex ) )
 	{
 		OptionList optionList;
-		LUA_GET_VALUE( luaManager, L"AUTOSET_LEVEL",				optionList.m_iAutoSetLevel,		3 );
-		LUA_GET_VALUE_ENUM( luaManager, L"GRAPHIC_UNIT", 			optionList.m_UnitDetail,		OptionLevel,		OL_HIGH	);
-		LUA_GET_VALUE_ENUM( luaManager, L"GRAPHIC_TEXTURE",			optionList.m_TexDetail,			OptionLevel,		OL_HIGH	);
-		LUA_GET_VALUE_ENUM( luaManager, L"GRAPHIC_MAP",				optionList.m_MapDetail,			OptionLevel,		OL_HIGH	);
-		LUA_GET_VALUE( luaManager, L"GRAPHIC_EFFECT",				optionList.m_bEffect,			true );		
-		//LUA_GET_VALUE( luaManager, L"RESOLUTION_X",					optionList.m_vResolution.x,		640 );
-		//LUA_GET_VALUE( luaManager, L"RESOLUTION_Y",					optionList.m_vResolution.y,		480 );
+		LUA_GET_VALUE( luaManager, "AUTOSET_LEVEL",				optionList.m_iAutoSetLevel,		3 );
+		LUA_GET_VALUE_ENUM( luaManager, "GRAPHIC_UNIT", 			optionList.m_UnitDetail,		OptionLevel,		OL_HIGH	);
+		LUA_GET_VALUE_ENUM( luaManager, "GRAPHIC_TEXTURE",			optionList.m_TexDetail,			OptionLevel,		OL_HIGH	);
+		LUA_GET_VALUE_ENUM( luaManager, "GRAPHIC_MAP",				optionList.m_MapDetail,			OptionLevel,		OL_HIGH	);
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		LUA_GET_VALUE_ENUM( luaManager, "GRAPHIC_EFFECT_VER2",	optionList.m_eEffect,			OptionLevel,		OL_HIGH );
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		LUA_GET_VALUE( luaManager, "GRAPHIC_EFFECT",				optionList.m_bEffect,			true );		
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
+		//LUA_GET_VALUE( luaManager, "RESOLUTION_X",					optionList.m_vResolution.x,		640 );
+		//LUA_GET_VALUE( luaManager, "RESOLUTION_Y",					optionList.m_vResolution.y,		480 );
 
 		m_vecOptionListPreset.push_back( optionList );
 
@@ -983,10 +1185,26 @@ bool CX2GameOption::SaveScriptFile()
 		break;
 	}
 
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	switch( m_OptionList.m_eEffect )
+	{
+		case OL_HIGH:
+			fwprintf( file, L"\tGRAPHIC_EFFECT_VER2	= OPTION_LEVEL[\"OL_HIGH\"], \n" );
+			break;
+		case OL_MEDIUM:
+			fwprintf( file, L"\tGRAPHIC_EFFECT_VER2	= OPTION_LEVEL[\"OL_MEDIUM\"], \n" );
+			break;
+		case OL_LOW:
+			fwprintf( file, L"\tGRAPHIC_EFFECT_VER2	= OPTION_LEVEL[\"OL_LOW\"], \n" );
+			break;
+	}
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	if( true == m_OptionList.m_bEffect )
 		fwprintf( file, L"\tGRAPHIC_EFFECT		= TRUE, \n" );
 	else
 		fwprintf( file, L"\tGRAPHIC_EFFECT		= FALSE, \n" );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 
 	fwprintf( file, L"\tRESOLUTION_X		= %d, \n", (int)m_OptionList.m_vResolution.x );
 	fwprintf( file, L"\tRESOLUTION_Y		= %d, \n", (int)m_OptionList.m_vResolution.y );
@@ -1000,12 +1218,12 @@ bool CX2GameOption::SaveScriptFile()
 #endif	CHAT_WINDOW_IMPROV
 	//}} kimhc // 2010.3.12 //	채팅창 개편
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	if( true == m_OptionList.m_bJoyEnable )
 		fwprintf( file, L"\tJOY_ENABLE			= TRUE, \n" );
 	else
 		fwprintf( file, L"\tJOY_ENABLE			= FALSE, \n" );	
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
 #ifdef VERTICAL_SYNC_OPTION
 	if ( true == m_OptionList.m_bFlashEffect )
@@ -1161,13 +1379,17 @@ bool CX2GameOption::SaveScriptFile()
 	}	
 #endif
 
+#ifdef SERVER_GROUP_ID_IN_GAME_OPTION
+	fwprintf( file, L"\tSERVER_GROUP_ID		= %d, \n", g_pInstanceData->GetServerGroupID() );
+#endif // SERVER_GROUP_ID_IN_GAME_OPTION
+
+#ifdef PLAYER_ID_IN_GAME_OPTION
+	fwprintf( file, L"\tLOGIN_ID		= \"%s\", \n", m_OptionList.m_wstrSavedLoginID.c_str() );
+#endif // PLAYER_ID_IN_GAME_OPTION
+
 	fwprintf( file, L"} \n" );
 	
 	fclose(file);
-
-#ifdef KEY_MAPPING_INT
-	SaveJoyScript();
-#endif // KEY_MAPPING_INT
 
 	return true;
 }
@@ -1182,7 +1404,11 @@ void CX2GameOption::ApplyAllOption( bool bForce /*= false*/ )
 	SetUnitDetail( m_OptionList.m_UnitDetail, bForce );
 	SetTexDetail( m_OptionList.m_TexDetail, bForce );
 	SetMapDetail( m_OptionList.m_MapDetail, bForce );
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	SetEffectDetail( m_OptionList.m_eEffect, bForce);
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	SetEffectDetail( m_OptionList.m_bEffect, bForce);
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	SetFieldDetail( m_OptionList.m_FieldDetail, bForce );
 
 	SetResolution( (DWORD)m_OptionList.m_vResolution.x, (DWORD)m_OptionList.m_vResolution.y );
@@ -1208,10 +1434,9 @@ void CX2GameOption::ApplyAllOption( bool bForce /*= false*/ )
 	SetIsSkillUITypeA(m_OptionList.m_bIsSkillUITypeA);
 #endif //SKILL_SLOT_UI_TYPE_B
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	SetJoyEnable( m_OptionList.m_bJoyEnable );
-#endif // KEY_MAPPING_INT
-
+#endif // SERV_KEY_MAPPING_INT
 }
 
 
@@ -1359,6 +1584,29 @@ void CX2GameOption::SetRefuseRequestCouple(bool val)
 }
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환		/// 대전 초대 거부 추가
+
+void CX2GameOption::SetRefuseInvitePVP(CX2GameOption::BlackListDenyState val)
+{
+	switch(val)
+	{
+	case BL_ON:
+		SetRefuseInvitePVP(true);
+		break;
+	case BL_OFF:
+	default:
+		SetRefuseInvitePVP(false);	
+		break;
+	}
+}
+
+void CX2GameOption::SetRefuseInvitePVP(bool val)
+{
+	m_OptionList.m_bRefuseInvitePVP = val;
+}
+
+#endif // FIX_INVITE_PVP_PLAYER
+
 
 
 
@@ -1432,7 +1680,7 @@ void CX2GameOption::ToggleWindowFullScreen( bool bFullScreen )
 		// 윈도우 좌표 얻기
 		GetWindowRect( hwnd, &m_WindowPosition );
 		// 현재 해상도 얻기
-		D3DXVECTOR2 vOriginalResolution = g_pMain->GetGameOption()->GetOptionList()->m_vResolution;
+		D3DXVECTOR2 vOriginalResolution = GetOptionList().m_vResolution;
 		int iResX = static_cast<int>(vOriginalResolution.x);
 		int iResY = static_cast<int>(vOriginalResolution.y);
 #ifdef _IN_HOUSE_
@@ -1624,93 +1872,314 @@ void CX2GameOption::SetIsSkillUITypeA( bool bIsSkillUITypeA_, bool bShowBuffIcon
 }
 #endif //SKILL_SLOT_UI_TYPE_B
 
-
-#ifdef KEY_MAPPING_INT
-bool CX2GameOption::OpenJoyScript()
+#ifdef X2OPTIMIZE_AUTOSETUP_GAMEOPTION
+void CX2GameOption::_DecideProperGraphicOption()
 {
+	int iCpuScore = 0;
+	int iSystemMemScore = 0;
+	int iGpuMemScore = 0;
+
+	//Cpu Score 계산
+	iCpuScore = _CalcCpuScore();
+
+	//System Memory Score 계산
+	MEMORYSTATUS memStatus;
+	memStatus.dwLength = sizeof( MEMORYSTATUS );
+	GlobalMemoryStatus( &memStatus );
+	UINT uiTotalSystemMem = (UINT)( (float)memStatus.dwTotalPhys / 1024.0f / 1024.0f );//MB로...
+
+	//100점으로 환산...
+	iSystemMemScore = (int)( ( 100.0f / 4096.0f ) * (float)uiTotalSystemMem );
+
+	if( iSystemMemScore > 100 )
+		iSystemMemScore = 100;
+
+	//GPU Memory Score 계산(공유메모리 포함한 용량임)
+	UINT uiAvailableTextureMem = (UINT)( (float)g_pKTDXApp->GetDevice()->GetAvailableTextureMem() / 1024.0f / 1024.0f );//MB로...
+
+	//100점으로 환산...
+	iGpuMemScore = (int)( ( 100.0f / 4096.0f ) * (float)uiAvailableTextureMem );
+
+	if( iGpuMemScore > 100 )
+		iGpuMemScore = 100;
+
+	//FILE* fp = fopen( "AutoSetupGameOptionLog.txt", "w+" );
+	//fprintf( fp, "iCpuScore = %d, iSystemMemScore=%d, iGpuMemScore=%d\n", iCpuScore, iSystemMemScore, iGpuMemScore );
+	//fclose( fp );
+
+	//현재 pc에 맞는 가장 적합한 그래픽옵션 설정
+	_CalcBestGraphicOption( ( iCpuScore + iSystemMemScore ) / 2, iGpuMemScore );
+}
+
+int CX2GameOption::_CalcCpuScore()
+{
+	return ( KBenchMark_SUM::exec() + KBenchMark_LINPACK::exec() + KBenchMark_MXM::exec() ) / 3;
+}
+
+void CX2GameOption::_CalcBestGraphicOption( int iCpuTotalScore, int iGpuTotalScore )
+{
+	//AutoSetupGameOptionWeightConfig.xml를 읽기
 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	if( g_pKTDXApp->GetDIManager()->GetJoystic() != NULL )
+	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( "AutoSetupGameOptionWeightConfig.xml" );
+	if( Info == NULL )
+		return;
+
+	//AutoSetupGameOptionWeightConfig.xml를 로드
+	xmlDoc* doc = xmlReadMemory( Info->pRealData, Info->size, "AutoSetupGameOptionWeightConfig.xml", NULL, 0 );
+	if( doc == NULL )
+		return;
+
+	xmlNode* pkRoot = xmlDocGetRootElement(doc);
+	if( pkRoot == NULL )
 	{
-		const WCHAR pJoyConfigFileName[256] = L"GamePadConfig.lua";			// X2/dat 폴더에 있는 default script
-		Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pJoyConfigFileName );
-		if( Info != NULL )
+		xmlFreeDoc(doc);
+		return;
+	}
+
+	if(pkRoot->type == XML_ELEMENT_NODE && strcmp((char*)pkRoot->name,"AutoSetupGameOptionWeightConfig")==0)
+	{
+		xmlNode * pkElement = pkRoot->children;
+		while ( pkElement )
 		{
-			bool retval = false;
-			retval = g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pJoyConfigFileName, false );
-
-			if(retval)
-				retval = g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pJoyConfigFileName, false );
-
-			if(retval)
+			//Graphic Unit에 대한 사양 측정
+			if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name,"GRAPHIC_UNIT")==0 )
 			{
-				if( true == luaManager.BeginTable( "JOYSTICK_KEY_CONFIG" ) )
+				//best 값 설정
+				m_OptionList.m_UnitDetail = _CalcHighMiddleLow( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name,"GRAPHIC_TEXTURE")==0 )//Graphic Texture에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_TexDetail = _CalcHighMiddleLow( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "GRAPHIC_MAP" )==0 )//Graphic Map에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_MapDetail = _CalcHighMiddleLow( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "GRAPHIC_EFFECT" )==0 )//Graphic Effect에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_eEffect = _CalcHighMiddleLow( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			//else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "GRAPHIC_VIEWDISTANCE" )==0 )//시야에 대한 사양 측정
+			//{
+			//	//best 값 설정
+			//	m_OptionList.m_eViewDistance = _CalcHighMiddleLow( pkElement, iCpuTotalScore, iGpuTotalScore );
+			//}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "GRAPHIC_FIELD" )==0 )//Graphic Field에 대한 사양 측정
+			{
+				//best 값 설정
+				OptionLevel iOptionLevel = _CalcHighMiddleLow( pkElement, iCpuTotalScore, iGpuTotalScore );
+				switch( iOptionLevel )
 				{
-					int index = 1;
-					while( luaManager.BeginTable( index ) == true )
-					{
-						int GameActionCode;
-						int Key;
-						LUA_GET_VALUE( luaManager, 1,	GameActionCode,		-1 );
-						LUA_GET_VALUE( luaManager, 2,	Key,			0 );
+				case OL_HIGH:
+					m_OptionList.m_FieldDetail = FL_HIGH;
+					break;
+				case OL_MEDIUM:
+					m_OptionList.m_FieldDetail = FL_MEDIUM;
+					break;
+				case OL_LOW:
+					m_OptionList.m_FieldDetail = FL_LOW;
+					break;
+				}
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "ShowAllPlayer" )==0 )//Party에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_bParty = !_CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "NormalViewPlayer" )==0 )//SD에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_bSD = !_CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "NormalResolution" )==0 )//Resolution에 대한 사양 측정
+			{
+				//best 값 설정
+				if( _CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore ) == false )
+				{
+					m_OptionList.m_vResolution.x = 800;
+					m_OptionList.m_vResolution.y = 600;
+				}
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "ShowLevel" )==0 )//Level에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_bLevel = _CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "ShowPvPRank" )==0 )//PvPRank에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_bPvpRank = _CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "ShowGuild" )==0 )//Guild에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_bGuild = _CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "ShowMyInfo" )==0 )//Nothing에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_bNothing = !_CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "ThreeDimensionSound" )==0 )//3DSound에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_bEnable3DSound = _CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "FLASHEFFECT" )==0 )//화면번쩍임에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_bFlashEffect = !_CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
+			else if ( pkElement->type == XML_ELEMENT_NODE && strcmp((char*)pkElement->name, "DYNAMIC_CAMERA" )==0 )//다이나믹 카메라에 대한 사양 측정
+			{
+				//best 값 설정
+				m_OptionList.m_bDynamicCamera = _CalcOnOff( pkElement, iCpuTotalScore, iGpuTotalScore );
+			}
 
-						luaManager.EndTable(); // index
+			pkElement = pkElement->next;
+		}
+	}
 
-						if( GameActionCode == -1)
-							continue;
+	xmlFreeDoc(doc);
+}
 
-						g_pKTDXApp->GetDIManager()->GetJoystic()->SetAction( GameActionCode, (unsigned char)Key );
+CX2GameOption::OptionLevel CX2GameOption::_CalcHighMiddleLow( const xmlNode* pkElement, int iCpuTotalScore, int iGpuTotalScore )
+{
+	float fGpuWeight = 1.0f;
+	int iHighScore = 100;
+	int iMiddleScore = 100;
+	int iLowScore = 100;
 
-						index++;
-					}
+	xmlAttr * attribute =  pkElement->properties;
+	if( attribute )
+	{
+		if ( strcmp ( (char*)attribute->name,"GpuWeight" ) == 0 && attribute->children )
+		{
+			fGpuWeight = (float)atof( (char*)attribute->children->content );
+		}
+	}
 
-					luaManager.EndTable();
+	xmlNode * pkChildElement = pkElement->children;
+	while ( pkChildElement )
+	{
+		//Graphic Unit에 대한 사양 측정
+		if ( pkChildElement->type == XML_ELEMENT_NODE && strcmp((char*)pkChildElement->name,"High")==0 )
+		{
+			xmlAttr * attribute =  pkChildElement->properties;
+			if( attribute )
+			{
+				if ( strcmp ( (char*)attribute->name,"score" ) == 0 && attribute->children )
+				{
+					iHighScore = atoi( (char*)attribute->children->content );
 				}
 			}
 		}
-	}
-	return true;
-}
-
-bool CX2GameOption::SaveJoyScript()
-{
-	// 조이스틱이 없는 상태에서 해당 셋업 정보를 잃어버리지 않도록 따로따로 저장. 더 좋은 방법 없나?
-	if(g_pKTDXApp->GetDIManager()->GetJoystic() != NULL)
-	{
-		const string strFileName = "GamePadConfig.lua";
-		FILE* KeyConfigFile = NULL;
-		KeyConfigFile = fopen( strFileName.c_str(), "w" );		
-		if( NULL == KeyConfigFile )
+		else if ( pkChildElement->type == XML_ELEMENT_NODE && strcmp((char*)pkChildElement->name,"Middle")==0 )
 		{
-			ErrorLogMsg( XEM_ERROR7, strFileName.c_str() );
-			return false;
-		}
-
-		fputc( 0xEF, KeyConfigFile );
-		fputc( 0xBB, KeyConfigFile );
-		fputc( 0xBF, KeyConfigFile );
-
-		fwprintf( KeyConfigFile, L"\n\n" );
-		fwprintf( KeyConfigFile, L"JOYSTICK_KEY_CONFIG = \n" );
-		fwprintf( KeyConfigFile, L"{ \n" );
-
-		if(g_pKTDXApp->GetDIManager()->GetJoystic() != NULL)
-		{
-			for(int i=0; i<GAMEACTION_END; ++i)
+			xmlAttr * attribute =  pkChildElement->properties;
+			if( attribute )
 			{
-				fwprintf( KeyConfigFile, L"\t{ %d, %d, },\n", i, (int)g_pKTDXApp->GetDIManager()->GetJoystic()->GetActionKey(i) );
+				if ( strcmp ( (char*)attribute->name,"score" ) == 0 && attribute->children )
+				{
+					iMiddleScore = atoi( (char*)attribute->children->content );
+				}
 			}
 		}
-		fwprintf( KeyConfigFile, L"} \n" );
-		fclose(KeyConfigFile);
+		else if ( pkChildElement->type == XML_ELEMENT_NODE && strcmp((char*)pkChildElement->name,"Low")==0 )
+		{
+			xmlAttr * attribute =  pkChildElement->properties;
+			if( attribute )
+			{
+				if ( strcmp ( (char*)attribute->name,"score" ) == 0 && attribute->children )
+				{
+					iLowScore = atoi( (char*)attribute->children->content );
+				}
+			}
+		}
+
+		pkChildElement = pkChildElement->next;
 	}
-	return true;
+
+	//'높음', '보통', '낮음' 계산
+	float fCpuWeight = 1.0f - fGpuWeight;
+	int iMyScore = (int)( iCpuTotalScore * fCpuWeight + iGpuTotalScore * fGpuWeight );
+
+	if( iMyScore >= iHighScore )
+		return CX2GameOption::OL_HIGH;
+	else if( iMyScore >= iMiddleScore )
+		return CX2GameOption::OL_MEDIUM;
+	else if( iMyScore >= iLowScore )
+		return CX2GameOption::OL_LOW;
+
+	return CX2GameOption::OL_LOW;
 }
 
+bool CX2GameOption::_CalcOnOff( const xmlNode* pkElement, int iCpuTotalScore, int iGpuTotalScore )
+{
+	float fGpuWeight = 1.0f;
+	int iOnScore = 100;
+	int iOffScore = 100;
+
+	xmlAttr * attribute =  pkElement->properties;
+	if( attribute )
+	{
+		if ( strcmp ( (char*)attribute->name,"GpuWeight" ) == 0 && attribute->children )
+		{
+			fGpuWeight = (float)atof( (char*)attribute->children->content );
+		}
+	}
+
+	xmlNode * pkChildElement = pkElement->children;
+	while ( pkChildElement )
+	{
+		//Graphic Unit에 대한 사양 측정
+		if ( pkChildElement->type == XML_ELEMENT_NODE && strcmp((char*)pkChildElement->name,"On")==0 )
+		{
+			xmlAttr * attribute =  pkChildElement->properties;
+			if( attribute )
+			{
+				if ( strcmp ( (char*)attribute->name,"score" ) == 0 && attribute->children )
+				{
+					iOnScore = atoi( (char*)attribute->children->content );
+				}
+			}
+		}
+		else if ( pkChildElement->type == XML_ELEMENT_NODE && strcmp((char*)pkChildElement->name,"Off")==0 )
+		{
+			xmlAttr * attribute =  pkChildElement->properties;
+			if( attribute )
+			{
+				if ( strcmp ( (char*)attribute->name,"score" ) == 0 && attribute->children )
+				{
+					iOffScore = atoi( (char*)attribute->children->content );
+				}
+			}
+		}
+
+		pkChildElement = pkChildElement->next;
+	}
+
+	//'높음', '보통', '낮음' 계산
+	float fCpuWeight = 1.0f - fGpuWeight;
+	int iMyScore = (int)( iCpuTotalScore * fCpuWeight + iGpuTotalScore * fGpuWeight );
+
+	if( iMyScore >= iOnScore )
+		return true;
+	else if( iMyScore >= iOffScore )
+		return false;
+
+	return false;
+}
+#endif//X2OPTIMIZE_AUTOSETUP_GAMEOPTION
+
+#ifdef SERV_KEY_MAPPING_INT
 void CX2GameOption::SetJoyEnable( bool bEnable )
 {
 	m_OptionList.m_bJoyEnable = bEnable;
 	g_pKTDXApp->GetDIManager()->SetEnableJoyStick(bEnable);
 
 }
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT

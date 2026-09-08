@@ -25,13 +25,13 @@ public:
     virtual void Run();
     void ShutDown();
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	// derived from CKTDNUDP
 	void OnFrameMove();
-#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	// derived from CKTDNUDP
-	void OnFrameMove( double fTime, float fElapsedTime );
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	// derived from CKTDNUDP
+//	void OnFrameMove( double fTime, float fElapsedTime );
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 protected:
     inline void Loop();
@@ -39,10 +39,10 @@ protected:
 protected:
 	KUdpRelayChecker*	m_pUdpRelayChecker;
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 private:
 	void _ProcessRecvData();
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 };
 
 

@@ -241,6 +241,8 @@ CKTDGManager::CKTDGManager( HWND hWnd, LPDIRECT3DDEVICE9 pd3dDevice )
 , m_fMaxTimeFadeIn( 0.f )
 , m_fMaxTimeFadeOut( 0.f )
 , m_uNonAlphaObjectNum( 0 )
+, m_kCamera( g_pKTDXApp->GetDevice() )
+, m_kFrustum( g_pKTDXApp->GetDevice() )
 {
 	m_hWnd				= hWnd;
 
@@ -304,8 +306,8 @@ CKTDGManager::CKTDGManager( HWND hWnd, LPDIRECT3DDEVICE9 pd3dDevice )
 
 	BuildRenderStateID();
 
-	m_pCamera				= new CKTDGCamera( g_pKTDXApp->GetDevice() );
-	m_pFrustum				= new CKTDGFrustum( g_pKTDXApp->GetDevice() );
+	//m_pCamera				= new CKTDGCamera( g_pKTDXApp->GetDevice() );
+	//m_pFrustum				= new CKTDGFrustum( g_pKTDXApp->GetDevice() );
 	m_pDialogManager		= new CKTDGUIDialogManager();
 	//m_pGlow					= new CKTDGGlow( g_pKTDXApp->GetDevice() );
 	//m_pMotionBlur			= new CKTDGMotionBlur( g_pKTDXApp->GetDevice() );
@@ -366,8 +368,8 @@ CKTDGManager::CKTDGManager( HWND hWnd, LPDIRECT3DDEVICE9 pd3dDevice )
 CKTDGManager::~CKTDGManager(void)
 {
 	//SAFE_DELETE( m_pGrayScale );
-	SAFE_DELETE( m_pCamera );
-	SAFE_DELETE( m_pFrustum );
+	//SAFE_DELETE( m_pCamera );
+	//SAFE_DELETE( m_pFrustum );
 	SAFE_DELETE( m_pDialogManager );
 	//SAFE_DELETE( m_pGlow );
 	//SAFE_DELETE( m_pMotionBlur );
@@ -525,6 +527,7 @@ void    CKTDGManager::_RenderObjectRenderHintVector( const CKTDGManager::KObject
                     if ( iCount == 1 )
                     {
                         const KObjectRenderHint& prev = vecIn_[ iStart ];
+
                         if( prev.m_pObject->GetRenderStateID() != stateID )
 			            {
                             CKTDGStateManager::PopStates( iStackTop );
@@ -793,7 +796,7 @@ void CKTDGManager::ObjectChainAlphaRender()
 		}
 	}
 	else//기존 코드와 호환성을 위해 이런식으로 처리
-#endif
+#endif FIELD_CHARACTER_SCREEN_SHOT
 
     for(int iLayer=0; iLayer<m_ciNumLayerGroups; ++iLayer)
     {
@@ -982,8 +985,8 @@ HRESULT CKTDGManager::AddObjectChain( CKTDGObject* object )
 	KTDXPROFILE();
 	if ( object == NULL )
 		return E_FAIL;
-	ASSERT( CKTDGObject::CKTDGManagerAccess::_GetDGManagerHandle( *object ) == g_pKTDXApp->GetDGManager()->GetRenderObjectChainEnd() );
-	if ( CKTDGObject::CKTDGManagerAccess::_GetDGManagerHandle( *object ) != g_pKTDXApp->GetDGManager()->GetRenderObjectChainEnd() )
+	ASSERT( CKTDGObject::CKTDGManagerAccess::_GetDGManagerHandle( *object ) == GetRenderObjectChainEnd() );
+	if ( CKTDGObject::CKTDGManagerAccess::_GetDGManagerHandle( *object ) != GetRenderObjectChainEnd() )
 		return E_FAIL;
 	CKTDGObject::CKTDGManagerAccess::_SetDGManagerHandle( *object, m_RenderObjectChain.insert( m_RenderObjectChain.end(), object ) );
 	object->NotifyDGManagerChanged( *this );
@@ -996,10 +999,10 @@ HRESULT CKTDGManager::RemoveObjectChain( CKTDGObject* object )
 	ASSERT( object != NULL );
 	if ( object == NULL )
 		return E_FAIL;
-	if ( CKTDGObject::CKTDGManagerAccess::_GetDGManagerHandle( *object ) == g_pKTDXApp->GetDGManager()->GetRenderObjectChainEnd() )
+	if ( CKTDGObject::CKTDGManagerAccess::_GetDGManagerHandle( *object ) == GetRenderObjectChainEnd() )
 		return E_FAIL;
 	m_RenderObjectChain.erase( CKTDGObject::CKTDGManagerAccess::_GetDGManagerHandle( *object ) );
-	CKTDGObject::CKTDGManagerAccess::_SetDGManagerHandle( *object, g_pKTDXApp->GetDGManager()->GetRenderObjectChainEnd() );
+	CKTDGObject::CKTDGManagerAccess::_SetDGManagerHandle( *object, GetRenderObjectChainEnd() );
 	object->NotifyDGManagerChanged( *this );
 	return S_OK;
 }
@@ -1137,7 +1140,7 @@ void CKTDGManager::ObjectChainSort()
 
 	////CKTDXThread::CLocker locker( m_csRenderObjectChainLock );
 
-	m_pFrustum->Construct( g_pKTDXApp->GetDGManager()->GetFar() );
+	m_kFrustum.Construct( GetFar() );
 
     m_OverUIChain.resize( 0 );
 #ifdef OVER_UI_ALPHA_RENDER_FIX
@@ -1176,12 +1179,12 @@ void CKTDGManager::ObjectChainSort()
 		// 월드툴이 아닐 때는 IsInFrustum에서 처리되는 코드.
 		D3DXVECTOR3 center;
 		object->GetTransformCenter( &center );
-		object->SetDistanceToCamera( GetDistance( GetCamera()->GetEye(), center ) );
+		object->SetDistanceToCamera( GetDistance( GetCamera().GetEye(), center ) );
 #endif
 
         //{{ seojt
         // frustum안에 있으면 마지막 접근 시간을 갱신한다. - jintaeks on 2008-10-22, 16:39
-        object->SetLastAccessTime( g_NowTime );
+        //object->SetLastAccessTime( g_NowTime );
         //}} seojt
 
         kObjectRenderHint.m_pObject = object;
@@ -1312,15 +1315,22 @@ bool CKTDGManager::ScreenCaptureForAvatar( OUT wstring& wstrFileName, CKTDXDevic
 #else	CONVERSION_VS
 	struct tm *newtime;
 	newtime = _localtime64( &long_time ); /* Convert to local time. */
-	
 	std::stringstream strStream;
-	strStream << "SC_"
-		<< ( 1900 + newtime->tm_year ) << "_"
-		<< (newtime->tm_mon+1)	<< "_"
-		<< newtime->tm_mday		<< "_"
-		<< newtime->tm_hour		<< "_"
-		<< newtime->tm_min		<< "_"
-		<< newtime->tm_sec		<< "_";
+	if ( newtime != NULL )
+    {
+	    strStream << "SC_"
+		    << ( 1900 + newtime->tm_year ) << "_"
+		    << (newtime->tm_mon+1)	<< "_"
+		    << newtime->tm_mday		<< "_"
+		    << newtime->tm_hour		<< "_"
+		    << newtime->tm_min		<< "_"
+		    << newtime->tm_sec		<< "_";
+    }
+    else
+    {
+	    strStream << "SC_"
+    }
+
 #endif	CONVERSION_VS
 
 	srand( (unsigned)time( NULL ) );
@@ -1412,7 +1422,6 @@ bool CKTDGManager::ScreenCaptureOld()
 
 		std::stringstream stream;
 		stream << "ScreenCapture\\";
-
 		stream  << "SC_"
 			<< ( 1900 + newtime.tm_year ) << "_"
 			<< (newtime.tm_mon+1)	<< "_"
@@ -1427,15 +1436,21 @@ bool CKTDGManager::ScreenCaptureOld()
 
 		std::stringstream stream;
 		stream << "ScreenCapture\\";
-
-		stream  << "SC_"
-			<< ( 1900 + newtime->tm_year ) << "_"
-			<< (newtime->tm_mon+1)	<< "_"
-			<< newtime->tm_mday		<< "_"
-			<< newtime->tm_hour		<< "_"
-			<< newtime->tm_min		<< "_"
-			<< newtime->tm_sec		<< "_"
-			<< ".jpg";
+        if ( newtime != NULL )
+        {
+		    stream  << "SC_"
+			    << ( 1900 + newtime->tm_year ) << "_"
+			    << (newtime->tm_mon+1)	<< "_"
+			    << newtime->tm_mday		<< "_"
+			    << newtime->tm_hour		<< "_"
+			    << newtime->tm_min		<< "_"
+			    << newtime->tm_sec		<< "_"
+			    << ".jpg";
+        }
+        else
+        {
+		    stream  << "SC_.jpg";
+        }
 #endif	CONVERSION_VS
 
 		cimage.Save( stream.str().c_str(), CXIMAGE_FORMAT_JPG ); 
@@ -1471,14 +1486,21 @@ bool CKTDGManager::ScreenCapture()
 	IDirect3DSurface9* pBackBuffer = 0;
 	g_pKTDXApp->GetDevice()->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer );
 
-	stream  << L"SC_"
-		<< ( 1900 + newtime->tm_year ) << L"_"
-		<< (newtime->tm_mon+1)	<< L"_"
-		<< newtime->tm_mday		<< L"_"
-		<< newtime->tm_hour		<< L"_"
-		<< newtime->tm_min		<< L"_"
-		<< newtime->tm_sec		<< L"_"
-		<< L".jpg";
+    if ( newtime != NULL )
+    {
+	    stream  << L"SC_"
+		    << ( 1900 + newtime->tm_year ) << L"_"
+		    << (newtime->tm_mon+1)	<< L"_"
+		    << newtime->tm_mday		<< L"_"
+		    << newtime->tm_hour		<< L"_"
+		    << newtime->tm_min		<< L"_"
+		    << newtime->tm_sec		<< L"_"
+		    << L".jpg";
+    }
+    else
+    {
+	    stream  << L"SC_.jpg";
+    }
 	D3DXSaveSurfaceToFile( stream.str().c_str(), D3DXIFF_JPG, pBackBuffer, NULL, NULL );
 	pBackBuffer->Release();
 
@@ -1548,15 +1570,21 @@ bool CKTDGManager::ScreenCapture()
 
 		std::stringstream stream;
 		stream << "ScreenCapture\\";
-
-		stream  << "SC_"
-			<< ( 1900 + newtime->tm_year ) << "_"
-			<< (newtime->tm_mon+1)	<< "_"
-			<< newtime->tm_mday		<< "_"
-			<< newtime->tm_hour		<< "_"
-			<< newtime->tm_min		<< "_"
-			<< newtime->tm_sec		<< "_"
-			<< ".jpg";
+        if ( newtime != NULL )
+        {
+		    stream  << "SC_"
+			    << ( 1900 + newtime->tm_year ) << "_"
+			    << (newtime->tm_mon+1)	<< "_"
+			    << newtime->tm_mday		<< "_"
+			    << newtime->tm_hour		<< "_"
+			    << newtime->tm_min		<< "_"
+			    << newtime->tm_sec		<< "_"
+			    << ".jpg";
+        }
+        else
+        {
+		    stream  << "SC_.jpg";
+        }
 #endif	CONVERSION_VS
 
 		cimage.Save( stream.str().c_str(), CXIMAGE_FORMAT_JPG ); 
@@ -1702,26 +1730,39 @@ bool CKTDGManager::ScreenCapture_Png()
 	IDirect3DSurface9* pBackBuffer = 0;
 	g_pKTDXApp->GetDevice()->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer ); 
 	// mono 아니년, 테스트
-
-	stream  << L"ScreenCapture\\SC_"
-		<< ( 1900 + newtime->tm_year ) << L"_"
-		<< (newtime->tm_mon+1)	<< L"_"
-		<< newtime->tm_mday		<< L"_"
-		<< newtime->tm_hour		<< L"_"
-		<< newtime->tm_min		<< L"_"
-		<< newtime->tm_sec		<< L"_"
-		<< L".png";
+    if ( newtime != NULL )
+    {
+	    stream  << L"ScreenCapture\\SC_"
+		    << ( 1900 + newtime->tm_year ) << L"_"
+		    << (newtime->tm_mon+1)	<< L"_"
+		    << newtime->tm_mday		<< L"_"
+		    << newtime->tm_hour		<< L"_"
+		    << newtime->tm_min		<< L"_"
+		    << newtime->tm_sec		<< L"_"
+		    << L".png";
+    }
+    else
+    {
+	    stream  << L"ScreenCapture\\SC_.png";
+    }
 	pBackBuffer->UnlockRect();
 	//L_cBuf
 	std::stringstream mstream;
-	mstream  << "ScreenCapture\\SC_"
-		<< ( 1900 + newtime->tm_year ) << "_"
-		<< (newtime->tm_mon+1)	<< "_"
-		<< newtime->tm_mday		<< "_"
-		<< newtime->tm_hour		<< "_"
-		<< newtime->tm_min		<< "_"
-		<< newtime->tm_sec		<< "_"
-		<< ".png"; 
+    if ( newtime != NULL )
+    {
+	    mstream  << "ScreenCapture\\SC_"
+		    << ( 1900 + newtime->tm_year ) << "_"
+		    << (newtime->tm_mon+1)	<< "_"
+		    << newtime->tm_mday		<< "_"
+		    << newtime->tm_hour		<< "_"
+		    << newtime->tm_min		<< "_"
+		    << newtime->tm_sec		<< "_"
+		    << ".png"; 
+    }
+    else
+    {
+	    mstream  << "ScreenCapture\\SC_.png";
+    }
 
 	D3DXSaveSurfaceToFile( stream.str().c_str(), D3DXIFF_PNG, pBackBuffer, NULL, NULL ); //D3DXIFF_PNG
 	// 파일에 표면모습을 저장
@@ -1931,22 +1972,29 @@ bool CKTDGManager::IsInFrustum( CKTDGObject* object )
 	if ( object == NULL )
 		return false;
 
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+	return object->IsInFrustum( GetCamera().GetEye(), m_kFrustum );
+#else//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 	if( object->GetShowObject() == false )
 		return false;
 
 
     D3DXVECTOR3 center;
-    float fScale = 0.f;
+
 
 
 	object->GetTransformCenter( &center );
-	object->SetDistanceToCamera( GetDistance( GetCamera()->GetEye(), center ) );
+	object->SetDistanceToCamera( GetDistance( GetCamera().GetEye(), center ) );
 
     if ( object->GetBoundingRadius() <= 0 )
         return true;
 
 	//컬링
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+    float fScaledBoundingRadius = object->GetScaledBoundingRadius();
+#else   X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
+    float fScale = 0.f;
 	if( object->GetMatrix().GetXScale() > object->GetMatrix().GetYScale() )
 	{
 		if( object->GetMatrix().GetXScale() > object->GetMatrix().GetZScale() )
@@ -1973,8 +2021,10 @@ bool CKTDGManager::IsInFrustum( CKTDGObject* object )
 			fScale = object->GetMatrix().GetZScale();
 		}
 	}
+     float fScaledBoundingRadius = object->GetBoundingRadius() * fScale;
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
-	if( m_pFrustum->CheckSphere( center, object->GetBoundingRadius() * fScale ) == false )
+	if( m_kFrustum.CheckSphere( center, fScaledBoundingRadius ) == false )
 	{
 		//...... -_-a I want to use this code but............ T^T
 		object->SetIsCulled( true );
@@ -1985,6 +2035,7 @@ bool CKTDGManager::IsInFrustum( CKTDGObject* object )
 		object->SetIsCulled( false );
 	}
     return true;
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 }
 
 bool CKTDGManager::IsInFrustum( CKTDGObject* object, float& fFrameMoveUpdateTime )
@@ -1997,10 +2048,10 @@ bool CKTDGManager::IsInFrustum( CKTDGObject* object, float& fFrameMoveUpdateTime
 
 
     D3DXVECTOR3 center;
-    float fScale = 0.f;
+
 
 	object->GetTransformCenter( &center );
-	object->SetDistanceToCamera( GetDistance( GetCamera()->GetEye(), center ) );
+	object->SetDistanceToCamera( GetDistance( GetCamera().GetEye(), center ) );
 
     if ( object->GetBoundingRadius() <= 0 )
     {
@@ -2009,7 +2060,10 @@ bool CKTDGManager::IsInFrustum( CKTDGObject* object, float& fFrameMoveUpdateTime
     }//if
 
 	//컬링
-
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+    float   fScale = object->GetMaxScale();
+#else   X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+    float fScale = 0.f;
 	if( object->GetMatrix().GetXScale() > object->GetMatrix().GetYScale() )
 	{
 		if( object->GetMatrix().GetXScale() > object->GetMatrix().GetZScale() )
@@ -2036,10 +2090,11 @@ bool CKTDGManager::IsInFrustum( CKTDGObject* object, float& fFrameMoveUpdateTime
 			fScale = object->GetMatrix().GetZScale();
 		}
 	}
-
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+    float fScaledBoundingRadius = object->GetBoundingRadius() * fScale;
 
 	float fNeedDistance = 0.0f;
-	if( m_pFrustum->CheckSphere( center, object->GetBoundingRadius() * fScale, fNeedDistance ) == false )
+	if( m_kFrustum.CheckSphere( center, fScaledBoundingRadius, fNeedDistance ) == false )
 	{
 		//...... -_-a I want to use this code but............ T^T
 		object->SetIsCulled( true );
@@ -2068,5 +2123,4 @@ bool CKTDGManager::IsInFrustum( CKTDGObject* object, float& fFrameMoveUpdateTime
 }
 
 //}} robobeg : 2008-10-17
-
 

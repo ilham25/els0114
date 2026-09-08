@@ -115,7 +115,7 @@ m_pButtonRanking( NULL )
 	m_pButtonComplete = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Complete" );	
 
 #ifdef GUILD_BOARD // oasis907 : ±è»óÀ± [2009.11.24] // ±æµå °Ô½ÃÆÇ
-	m_pButtonGuild = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Guild" );
+	m_pButtonGuild = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Guild_ad" );
 #endif GUILD_BOARD
 
 	m_pButtonRanking = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Ranking" );
@@ -202,11 +202,11 @@ m_pButtonRanking( NULL )
 	m_vButtonNameList.push_back(L"making");
 	m_vButtonNameList.push_back(L"shop");
 	m_vButtonNameList.push_back(L"free_training");
+	m_vButtonNameList.push_back(L"Guild_ad");	// oasis907 : ±è»óÀ± [2010.1.29] //  ±æµå °Ô½ÃÆÇ ¹öÆ° Ãß°¡
 #ifdef DEF_TRADE_BOARD
 	m_vButtonNameList.push_back( L"PersonalShop" );	// oasis907 : ±è»óÀ± [2010.3.12] //  
 #endif DEF_TRADE_BOARD
-	m_vButtonNameList.push_back(L"Guild");	// oasis907 : ±è»óÀ± [2010.1.29] //  ±æµå °Ô½ÃÆÇ ¹öÆ° Ãß°¡
-	m_vButtonNameList.push_back(L"Ranking");	// 2009-07-29 // kimhc ·©Å· ¹öÆ° Ãß°¡
+	//m_vButtonNameList.push_back(L"Ranking");	// 2009-07-29 // kimhc ·©Å· ¹öÆ° Ãß°¡
 	m_vButtonNameList.push_back(L"Exchange");	// 2009-07-29 // kimhc ±³È¯ ¹öÆ° Ãß°¡
 	//{{ kimhc // 2009-08-03 // Ä³¸¯ÅÍº° ÀºÇà
 #ifdef	PRIVATE_BANK
@@ -219,7 +219,8 @@ m_pButtonRanking( NULL )
 	m_vButtonNameList.push_back(L"agent");
 	m_vButtonNameList.push_back(L"solditem");
 #endif
-	
+	m_vButtonNameList.push_back(L"Ranking");	// 2009-07-29 // kimhc ·©Å· ¹öÆ° Ãß°¡
+
 	m_iHouseID	= (int)CX2LocationManager::HI_INVALID;
 	m_iNpcID	= (int)CX2UnitManager::NUI_NONE;
 }
@@ -316,7 +317,7 @@ bool CX2TFieldNpcShop::GetShopType(NPC_SHOP_BUTTON_TYPE eType)
 	m_pButtonPersonalShop = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"PersonalShop" );
 #endif DEF_TRADE_BOARD
 #ifdef GUILD_BOARD // oasis907 : ±è»óÀ± [2009.11.24] // ±æµå °Ô½ÃÆÇ
-	m_pButtonGuild = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Guild" );
+	m_pButtonGuild = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Guild_ad" );
 #endif GUILD_BOARD
 
 	m_pButtonRanking = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Ranking" );
@@ -567,7 +568,7 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 	m_pButtonComplete = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Complete" );		
 
 #ifdef GUILD_BOARD // oasis907 : ±è»óÀ± [2009.11.24] // ±æµå °Ô½ÃÆÇ
-	m_pButtonGuild = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Guild" ); 
+	m_pButtonGuild = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Guild_ad" ); 
 #endif GUILD_BOARD
 
 	m_pButtonRanking = (CKTDGUIButton*) m_pDlgMessage->GetControl( L"Ranking" );
@@ -673,9 +674,18 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 		break;
 	case NSBT_PVP:
 #ifdef SERV_PVP_NEW_SYSTEM
-		m_pButtonFormalPvp->SetShowEnable(bShow, bShow);
-		if( bShow == true && bExist == false )
-			++m_nEnabledButton;
+
+	#ifdef FIX_JOIN_OFFICIAL_PVP_ROOM // ±èÅÂÈ¯
+		/// ´øÀü ¸ÅÄª Áß¿¡´Â °ø½Ä ´ëÀü ¹öÆ° ¼û±è
+		if ( NULL != g_pData &&
+		     NULL != g_pData->GetPartyManager() &&
+		 	 false == g_pData->GetPartyManager()->GetProcessDungeonMatch() )
+	#endif //FIX_JOIN_OFFICIAL_PVP_ROOM
+		{
+			m_pButtonFormalPvp->SetShowEnable(bShow, bShow);
+			if( bShow == true && bExist == false )
+				++m_nEnabledButton;
+		}
 #endif
 		m_pButtonPvp->SetShowEnable(bShow, bShow);		
 		if(bShow == true && bExist == false)
@@ -838,6 +848,14 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 	case NSBT_AGENCY_TRADER_REGISTER:
 		{
 			m_pButtonAgencyTraderRegister->SetShowEnable(bShow, bShow);
+
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // ±èÅÂÈ¯
+			if(m_bEnableButtonPersonalShop == false)
+			{
+				m_pButtonAgencyTraderRegister->SetEnable( false );
+			}
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 			if(bShow == true && bExist == false)
 				++m_nEnabledButton;		
 			break;
@@ -846,6 +864,14 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 	case NSBT_AGENCY_TRADER_RECEIVE:
 		{
 			m_pButtonAgencyTraderReceive->SetShowEnable(bShow, bShow);
+
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // ±èÅÂÈ¯
+			if(m_bEnableButtonPersonalShop == false)
+			{
+				m_pButtonAgencyTraderReceive->SetEnable( false );
+			}
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 			if(bShow == true && bExist == false)
 				++m_nEnabledButton;		
 			break;
@@ -973,6 +999,10 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 		m_pButtoenExchangeNewItem->SetShowEnable(false, false);
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
 
+#ifdef SERV_PSHOP_AGENCY
+		m_pButtonAgencyTraderRegister->SetShowEnable(false, false);
+		m_pButtonAgencyTraderReceive->SetShowEnable(false, false);
+#endif
 		SetShow(NSBT_ENCHANT, false);
 		SetShow(NSBT_ATTRIBUTE, false);
 
@@ -1215,6 +1245,12 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 		m_pButtonOut->SetOffsetPos_LUA(offsetX, 0.f);
 		offsetX -= buttonWidth;
 	}	
+	if(m_pButtonRanking->GetShow())
+	{
+		m_pButtonRanking->SetEdge( false, 1, D3DXCOLOR( 0.4f,0.6f,0.8f,1.f ) );
+		m_pButtonRanking->SetOffsetPos_LUA(offsetX, 0.f);
+		offsetX -= buttonWidth;
+	}
 
 #ifdef SERV_PSHOP_AGENCY
 	if( m_pButtonAgencyTraderReceive->GetShow())
@@ -1304,12 +1340,14 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 		m_pButtonTraining->SetOffsetPos_LUA(offsetX, 0.f);
 		offsetX -= buttonWidth;
 	}	
-	if(m_pButtonRanking->GetShow())
+#ifdef DEF_TRADE_BOARD
+	if(m_pButtonPersonalShop->GetShow())
 	{
-		m_pButtonRanking->SetEdge( false, 1, D3DXCOLOR( 0.4f,0.6f,0.8f,1.f ) );
-		m_pButtonRanking->SetOffsetPos_LUA(offsetX, 0.f);
+		m_pButtonPersonalShop->SetEdge( false, 1, D3DXCOLOR( 0.4f,0.6f,0.8f,1.f ) );
+		m_pButtonPersonalShop->SetOffsetPos_LUA(offsetX, 0.f);
 		offsetX -= buttonWidth;
 	}
+#endif DEF_TRADE_BOARD
 #ifdef GUILD_BOARD
 	//{{ oasis907 : ±è»óÀ± [2009.11.24] //
 	if(m_pButtonGuild->GetShow())
@@ -1319,15 +1357,6 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 		offsetX -= buttonWidth;
 	}
 #endif GUILD_BOARD
-#ifdef DEF_TRADE_BOARD
-	if(m_pButtonPersonalShop->GetShow())
-	{
-		m_pButtonPersonalShop->SetEdge( false, 1, D3DXCOLOR( 0.4f,0.6f,0.8f,1.f ) );
-		m_pButtonPersonalShop->SetOffsetPos_LUA(offsetX, 0.f);
-		offsetX -= buttonWidth;
-	}
-#endif DEF_TRADE_BOARD
-	
 	//{{ 2011.05.04   ÀÓ±Ô¼ö ¾Æ¹ÙÅ¸ ÇÕ¼º ½Ã½ºÅÛ
 #ifdef SERV_SYNTHESIS_AVATAR
 	if(m_pButtonSynthesis->GetShow())
@@ -1346,6 +1375,7 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 		offsetX -= buttonWidth;
 	}	
 #endif //EVENT_BUTTON_EU_ONLY_FIX
+
 #ifdef NPC_EVENT_BUTTON
 	if(m_pButtonEvent4->GetShow())
 	{
@@ -1378,6 +1408,7 @@ void CX2TFieldNpcShop::SetShopType(NPC_SHOP_BUTTON_TYPE eType, bool bShow)
 		offsetX -= buttonWidth;
 	}
 #endif NPC_EVENT_BUTTON
+
 #ifndef EVENT_BUTTON_EU_ONLY_FIX
 	if(m_pButtonQuest->GetShow())
 	{
@@ -1473,13 +1504,11 @@ void CX2TFieldNpcShop::SetNpcMessage(const wstring &npcMsg)
 		CKTDGFontManager::CUKFont* pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( pStaticShopmessage->GetString(0)->fontIndex );
 		if( NULL == pFont )
 			return; 
-
 		
 		D3DXVECTOR2 vTemp = g_pKTDXApp->ConvertByResolution( 650, 512 );
-
 		const int CHAT_LINE_WIDTH = (int)vTemp.x;
-		
 		int addRow = CWordLineHandler::LineBreakInX2Main(str, pFont, CHAT_LINE_WIDTH, L"", true, false);
+		
 		if( -1 == addRow)
 			return;
 		
@@ -1497,7 +1526,25 @@ void CX2TFieldNpcShop::SetNpcMessageWithEtc(const wstring &npcMsg, const wstring
 	{
 		wstring wstrNpcMsg;
 		wstrNpcMsg = npcMsg + L"\n\n" + npcMsgEtc;
+#ifdef CLIENT_GLOBAL_LINEBREAK
+		wstring str = wstrNpcMsg;
+
+		CKTDGFontManager::CUKFont* pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( pStaticShopmessage->GetString(0)->fontIndex );
+		if( NULL == pFont )
+			return; 
+
+		D3DXVECTOR2 vTemp = g_pKTDXApp->ConvertByResolution( 650, 512 );
+		const int CHAT_LINE_WIDTH = (int)vTemp.x;
+		int addRow = CWordLineHandler::LineBreakInX2Main(str, pFont, CHAT_LINE_WIDTH, L"", true, false);
+
+		if( -1 == addRow)
+			return;
+
+		pStaticShopmessage->GetString(0)->msg = str;
+#else //#ifdef CLIENT_GLOBAL_LINEBREAK
 		pStaticShopmessage->GetString(0)->msg = wstrNpcMsg;	
+#endif //CLIENT_GLOBAL_LINEBREAK
+		
 	}//if
 }
 #endif
@@ -1601,14 +1648,6 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 	switch(wParam)
 	{
 	case NMUM_CLOSE:
-
-//#ifdef SERV_SHARING_BANK_TEST
-//		if( g_pData != NULL && g_pData->GetUIManager() != NULL && g_pData->GetUIManager()->GetUIPrivateBank() != NULL )
-//		{
-//			g_pData->GetServerProtocol()->SendID( EGS_CLOSE_BANK_NOT );
-//		}
-//#endif SERV_SHARING_BANK_TEST
-
 		if( g_pData->GetUIManager()->GetShowNpcShop() == true )
 		{
 			//g_pData->GetUIManager()->CloseAll();			
@@ -1836,7 +1875,7 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 #ifdef SERV_PSHOP_AGENCY
 	case NMUM_AGENCY_TRADER_REGISTER:
 		{
-			if( g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser == true )
+			if( g_pData->GetMyUser()->GetUserData().m_bIsGuestUser == true )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 			}
@@ -1848,7 +1887,7 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 		return 2;
 	case NMUM_AGENCY_TRADER_RECEIVE:
 		{
-			if( g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser == true )
+			if( g_pData->GetMyUser()->GetUserData().m_bIsGuestUser == true )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 			}
@@ -1873,7 +1912,11 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 #ifdef PVP_UI_OVERLAP_CLOSE
 			if( g_pData->GetPartyManager()->GetProcessPvpMatch() == true )
 			{
+#ifdef CLIENT_COUNTRY_BR
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_25384 ), static_cast<CKTDXStage*>( g_pMain->GetNowState() ) );        
+#else //CLIENT_COUNTRY_BR
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_26851 ), static_cast<CKTDXStage*>( g_pMain->GetNowState() ) );        
+#endif //CLIENT_COUNTRY_BR
 				return 2;
 			}
 #endif //PVP_UI_OVERLAP_CLOSE
@@ -1886,7 +1929,6 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_12715 ), (CKTDXStage*)g_pMain->GetNowState() );	
 					return 2;
 				}
-#ifndef SERV_FREE_PVP
 				else
 				{
 					for(int iParty=0; iParty<g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberCount(); ++iParty)
@@ -1899,7 +1941,6 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 						}
 					}
 				}
-#endif SERV_FREE_PVP
 
 				if( g_pData->GetPartyManager()->GetMyPartyData()->m_bPvpParty == false && g_pData->GetPartyManager()->ChangePartyType(true) == false )
 				{
@@ -1907,7 +1948,6 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 					return 2;
 				}
 			}
-#ifndef SERV_FREE_PVP
 			else
 			{
 				if( g_pData->GetSelectUnitLevel() < 10 )
@@ -1916,7 +1956,6 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 					return 2;
 				}
 			}
-#endif SERV_FREE_PVP
 
 			if( g_pTFieldGame != NULL )
 			{
@@ -1933,16 +1972,19 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 #ifdef NPC_EVENT_BUTTON
 	case NMUM_EVENT1:
 		{
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+			CX2State* pNowState = (CX2State*)g_pMain->GetNowState();
+			pNowState->Handler_EGS_EGS_GET_EVENT_INFO_REQ();
+#endif //SERV_EVENT_CHARACTER_QUEST_RANKING
 #ifdef SERV_READY_TO_SOSUN_EVENT
 			if( g_pTFieldGame != NULL )
 			{
 				g_pData->GetUIManager()->CloseAllNPCDlg();
 
 				if( g_pData->GetMyUser() != NULL &&
-					g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-					g_pData->GetMyUser()->GetSelectUnit()->GetInventory() != NULL )
+					g_pData->GetMyUser()->GetSelectUnit() != NULL )
 				{
-					if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( EVENT_READY_TO_SOSUN_ITEM_ID, false ) != NULL )
+					if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( EVENT_READY_TO_SOSUN_ITEM_ID, false ) != NULL )
 					{
 						SAFE_DELETE_DIALOG( m_pDlgReadyToSosun );
 						m_pDlgReadyToSosun = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_Ready_To_Sosun_Event.lua" );
@@ -1988,9 +2030,8 @@ int CX2TFieldNpcShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 			{
 				CX2Item* pItem = NULL;
 				if( NULL != g_pData->GetMyUser() && 
-					NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-					NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
-					pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( 135404 );
+					NULL != g_pData->GetMyUser()->GetSelectUnit() )
+					pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( 135404 );
 
 				if( NULL != pItem )
 				{

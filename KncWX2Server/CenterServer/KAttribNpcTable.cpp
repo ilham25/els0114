@@ -22,7 +22,6 @@ ImplToStringW( KAttribNpcTable )
 		//{{ 2010. 04. 08  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
 		<< TOSTRINGW( m_mapDropNpcCount.size() )
-		<< TOSTRINGW( m_mapAttribNpc[AND_MAX].size() )
 #else
 		<< TOSTRINGW( m_mapDropNpcCount.size() )
 		<< TOSTRINGW( m_mapAttribNpc.size() )
@@ -32,6 +31,9 @@ ImplToStringW( KAttribNpcTable )
 		<< TOSTRINGW( m_mapAttribDropGroup.size() )
 		<< TOSTRINGW( m_setNoDropNpc.size() )
 		;
+
+	for( int i = 0; i < AND_MAX; ++i )
+		stm_ << TOSTRINGW( m_mapAttribNpc[i].size() );
 
 	return stm_;
 }
@@ -241,89 +243,89 @@ bool KAttribNpcTable::AddAttribNpcInfo_LUA()
 	// 싱글 속성
 	LUA_GET_VALUE(			luaManager, L"m_fBlazeRate",			fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_BLAZE, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_BLAZE, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fFrozenRate",			fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_FROZEN, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_FROZEN, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fPoisonRate",			fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_POISON, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_POISON, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fPiercingRate",			fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_PIERCING, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_PIERCING, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fShockRate",			fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_SHOCK, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_SHOCK, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fSnatchRate",			fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_SNATCH, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_SNATCH, fRateValue );
 
 	//////////////////////////////////////////////////////////////////////////
 	// 듀얼 속성
 	LUA_GET_VALUE(			luaManager, L"m_fBlazeMasterRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_BLAZE_MASTER, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_BLAZE_MASTER, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fFrozenMasterRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_FROZEN_MASTER, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_FROZEN_MASTER, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fPoisonMasterRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_POISON_MASTER, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_POISON_MASTER, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fMasterPiercingRate",	fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_MASTER_PIERCING, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_MASTER_PIERCING, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fMasterShockRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_MASTER_SHOCK, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_MASTER_SHOCK, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fMasterSnatchRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_MASTER_SNATCH, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_MASTER_SNATCH, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fBlazePiercingRate",	fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_BLAZE_PIERCING, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_BLAZE_PIERCING, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fBlazeShockRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_BLAZE_SHOCK, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_BLAZE_SHOCK, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fBlazeSnatchRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_BLAZE_SNATCH, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_BLAZE_SNATCH, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fFrozenPiercingRate",	fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_FROZEN_PIERCING, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_FROZEN_PIERCING, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fFrozenShockRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_FROZEN_SHOCK, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_FROZEN_SHOCK, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fFrozenSnatchRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_FROZEN_SNATCH, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_FROZEN_SNATCH, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fPoisonPiercingRate",	fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_POISON_PIERCING, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_POISON_PIERCING, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fPoisonShockRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_POISON_SHOCK, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_POISON_SHOCK, fRateValue );
 
 	LUA_GET_VALUE(			luaManager, L"m_fPoisonSnatchRate",		fRateValue,			0.0f );
 	if( fRateValue > 0.0f )
-		kAttribNpc.m_kAttribLot.AddCase( ATTRIB_TYPE::AT_POISON_SNATCH, fRateValue );
+		kAttribNpc.m_kAttribLot.AddCase( AT_POISON_SNATCH, fRateValue );
 
 	//////////////////////////////////////////////////////////////////////////
 	// Npc레벨별로 템플릿 데이터 만들기
@@ -739,101 +741,101 @@ void KAttribNpcTable::GetAttribEnchantValue( IN int iAttribType, OUT char& cAttr
 
 	switch( iAttribType )
 	{
-	case ATTRIB_TYPE::AT_BLAZE:
+	case AT_BLAZE:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_BLAZE;
 		break;
 
-	case ATTRIB_TYPE::AT_FROZEN:
+	case AT_FROZEN:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_WATER;
 		break;
 
-	case ATTRIB_TYPE::AT_POISON:
+	case AT_POISON:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_NATURE;
 		break;
 
-	case ATTRIB_TYPE::AT_PIERCING:
+	case AT_PIERCING:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_WIND;
 		break;
 
-	case ATTRIB_TYPE::AT_SHOCK:
+	case AT_SHOCK:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_LIGHT;
 		break;
 
-	case ATTRIB_TYPE::AT_SNATCH:
+	case AT_SNATCH:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_DARK;
 		break;
 
-	case ATTRIB_TYPE::AT_BLAZE_MASTER:
+	case AT_BLAZE_MASTER:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_BLAZE;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_BLAZE;
 		break;
 
-	case ATTRIB_TYPE::AT_FROZEN_MASTER:
+	case AT_FROZEN_MASTER:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_WATER;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_WATER;
 		break;
 
-	case ATTRIB_TYPE::AT_POISON_MASTER:
+	case AT_POISON_MASTER:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_NATURE;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_NATURE;
 		break;
 
-	case ATTRIB_TYPE::AT_MASTER_PIERCING:
+	case AT_MASTER_PIERCING:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_WIND;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_WIND;
 		break;
 
-	case ATTRIB_TYPE::AT_MASTER_SHOCK:
+	case AT_MASTER_SHOCK:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_LIGHT;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_LIGHT;
 		break;
 
-	case ATTRIB_TYPE::AT_MASTER_SNATCH:
+	case AT_MASTER_SNATCH:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_DARK;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_DARK;
 		break;
 
-	case ATTRIB_TYPE::AT_BLAZE_PIERCING:
+	case AT_BLAZE_PIERCING:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_BLAZE;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_WIND;
 		break;
 
-	case ATTRIB_TYPE::AT_BLAZE_SHOCK:
+	case AT_BLAZE_SHOCK:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_BLAZE;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_LIGHT;
 		break;
 
-	case ATTRIB_TYPE::AT_BLAZE_SNATCH:
+	case AT_BLAZE_SNATCH:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_BLAZE;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_DARK;
 		break;
 
-	case ATTRIB_TYPE::AT_FROZEN_PIERCING:
+	case AT_FROZEN_PIERCING:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_WATER;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_WIND;
 		break;
 
-	case ATTRIB_TYPE::AT_FROZEN_SHOCK:
+	case AT_FROZEN_SHOCK:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_WATER;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_LIGHT;
 		break;
 
-	case ATTRIB_TYPE::AT_FROZEN_SNATCH:
+	case AT_FROZEN_SNATCH:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_WATER;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_DARK;
 		break;
 
-	case ATTRIB_TYPE::AT_POISON_PIERCING:
+	case AT_POISON_PIERCING:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_NATURE;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_WIND;
 		break;
 
-	case ATTRIB_TYPE::AT_POISON_SHOCK:
+	case AT_POISON_SHOCK:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_NATURE;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_LIGHT;
 		break;
 
-	case ATTRIB_TYPE::AT_POISON_SNATCH:
+	case AT_POISON_SNATCH:
 		cAttribEnchant1 = CXSLAttribEnchantItem::ET_NATURE;
 		cAttribEnchant2 = CXSLAttribEnchantItem::ET_DARK;
 		break;
@@ -1240,7 +1242,13 @@ bool KAttribNpcTable::GetAttribNpcInfo( char cDifficulty, int iNpcID, char cNpcL
 #ifdef SERV_REFORM_ITEM_DROP
 //{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+bool KAttribNpcTable::AttribNpcDropItem( IN int iDifficulty, IN int iNpcLv, IN const float fUserContribution, IN float fDropRate, OUT std::vector< int >& vecDropItem )
+#else // SERV_DROP_EVENT_RENEWAL
 bool KAttribNpcTable::AttribNpcDropItem( IN int iDifficulty, IN int iNpcLv, IN const float fUserContribution, IN int iDropCount, OUT std::vector< int >& vecDropItem )
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #else
 bool KAttribNpcTable::AttribNpcDropItem( IN int iDifficulty, IN int iNpcLv, IN const float fUserContribution, OUT std::vector< int >& vecDropItem )
 #endif SERV_ITEM_DROP_EVENT
@@ -1294,6 +1302,37 @@ bool KAttribNpcTable::AttribNpcDropItem( IN int iDifficulty, IN int iNpcLv, IN c
 
 	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	while( 0.0f < fDropRate )
+	{
+		if( fDropRate < 100.0f )
+		{
+			kDropInfoCopy.AddMultiProbRate( fDropRate );
+			fDropRate = 0.0f;
+		}
+		else
+		{
+			fDropRate -= 100.0f;
+		}
+
+		int iDropTableGroupID = kDropInfoCopy.Decision();
+		if( iDropTableGroupID == KLottery::CASE_BLANK )   // 획득한 아이템 없음.
+			continue;
+
+		int iDropItemID = 0;
+
+		// 4. 드롭테이블[던전]을 참조하여 드롭아이템을 결정하자!
+		if( !SiKDropTable()->DropGroupItem( iDropTableGroupID, iDropItemID ) )
+			continue;		// 없을 수도 있다
+
+		// 아이템 드롭을 안 할 수도 있다. 에러가 아니다.
+		if( iDropItemID <= 0 )
+			continue;
+
+		vecDropItem.push_back( iDropItemID );
+	}
+#else // SERV_DROP_EVENT_RENEWAL
 	for( int iCount = 0 ; iCount < iDropCount ; ++iCount )
 	{
 		int iDropTableGroupID = kDropInfoCopy.Decision();
@@ -1309,6 +1348,8 @@ bool KAttribNpcTable::AttribNpcDropItem( IN int iDifficulty, IN int iNpcLv, IN c
 
 		vecDropItem.push_back( iDropItemID );
 	}
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #else
 	int iDropTableGroupID = kDropInfoCopy.Decision();
 	int iDropItemID = 0;

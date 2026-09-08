@@ -53,7 +53,7 @@ public:
 #endif	//	NEW_TERM_EVENT
 //}} 허상형 : [2009/8/21] //	신학기 이벤트 탭
 
-#ifdef SERV_LOCAL_RANKING_SYSTEM
+//#ifdef SERV_LOCAL_RANKING_SYSTEM
 		URICM_SELECT_WEEK_PVP_TAP			= 31014,
 		URICM_SELECT_DUNGEON_FIELD_TAP,
 		URICM_SELECT_AREA_RADIO_BUTTON,
@@ -74,10 +74,17 @@ public:
 // #ifdef ADDED_RELATIONSHIP_SYSTEM
 		URICM_INVITE_COUPLE,
 // #endif ADDED_RELATIONSHIP_SYSTEM
-#endif //SERV_LOCAL_RANKING_SYSTEM
+//#endif //SERV_LOCAL_RANKING_SYSTEM
+
+//#ifdef NEW_HENIR_DUNGEON
+		URICM_SELECT_HERO_BUTTON	= 31032,
+//#endif // NEW_HENIR_DUNGEON
+
 	};
 
-	enum RANKING_TYPE
+	////////////////////////////////////////////////////
+	// 오현빈 // 2013-09-23 // 값 추가 하려면 Enum.h의 RANKING_TYPE과 맞춰야 함
+	enum RANKING_TYPE 
 	{
 		RT_DAY_RANKING		= 0,
 		RT_WEEK_RANKING,
@@ -101,6 +108,9 @@ public:
 		RT_GUILD,
 #endif //SERV_LOCAL_RANKING_SYSTEM
 
+#ifdef NEW_HENIR_DUNGEON
+		RT_HERO_RANKING = 9,
+#endif // NEW_HENIR_DUNGEON
 		RT_MAX_NUM,
 	};
 
@@ -291,7 +301,9 @@ private:
 	CKTDGUIRadioButton*					m_pRadioButtonDaily;
 	CKTDGUIRadioButton*					m_pRadioButtonWeekly;
 	CKTDGUIRadioButton*					m_pRadioButtonMonthly;
-
+#ifdef NEW_HENIR_DUNGEON
+	CKTDGUIRadioButton*					m_pRadioButtonHero;
+#endif // NEW_HENIR_DUNGEON
 	//{{ 허상형 : [2009/8/20] //	신학기 이벤트 관련 컨트롤
 #ifdef NEW_TERM_EVENT
 	CKTDGUIStatic*						m_pStaticEventInfo;

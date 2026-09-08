@@ -30,7 +30,12 @@ public: // 구조체 선언
 	public:
 		wstring				m_wstrObjectName;
 		SCENE_OBJECT_TYPE	m_eSceneObjectType;
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        CKTDGParticleSystem::CParticleEventSequenceHandle   m_hSceneObjectParticleHandle;
+        CKTDGXMeshPlayer::CXMeshInstanceHandle              m_hSceneObjectMeshHandle;
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		int					m_iSceneObjectHandle; // CParticleEventSequenceHandle, CXMeshInstanceHandle 공용 핸들
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		CKTDGUIDialogType	m_DlgHandle;
 
 		SCENE_OBJECT_POSITION	m_eLastPosition;
@@ -54,7 +59,9 @@ public: // 구조체 선언
 			m_pXMeshTemplet = NULL;
 			m_wstrObjectName = L"";
 			m_eSceneObjectType = CX2EventScene::OT_NONE;
+#ifndef X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 			m_iSceneObjectHandle = -1;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 			m_DlgHandle = NULL;
 			m_eLastPosition = CX2EventScene::OP_NONE;
 			m_bMirrorVertical = false;

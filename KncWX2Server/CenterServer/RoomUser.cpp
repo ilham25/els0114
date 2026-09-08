@@ -126,9 +126,9 @@ KRoomUser::KRoomUser() :
 #endif SERV_PVP_REMATCH
 {
 
-#ifdef PVP_BOSS_COMBAT_TEST
-	m_bIsBoss = false;
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//	m_bIsBoss = false;
+//#endif PVP_BOSS_COMBAT_TEST
 
 	//{{ 2009. 7. 21  최육사	비밀스테이지
 	m_eAgreeEnterSecretStage = CXSLRoom::ESS_NONE;
@@ -562,6 +562,9 @@ bool KRoomUser::ZU_Tick( IN const CXSLRoom::ROOM_TYPE eRoomType )
 
 	return false;
 }
+
+
+
 #else
 bool KRoomUser::ZU_Tick()
 {
@@ -613,6 +616,9 @@ void KRoomUser::ZU_Refresh()
 {
 	m_TimerZU.restart();
 }
+
+
+
 
 bool KRoomUser::RequestTradeTo( UidType nCID )
 {
@@ -783,7 +789,7 @@ bool KRoomUser::GetQuestDropItem( IN const int iDungeonID,
 				if( pSubTemplet->m_ClearCondition.m_setDungeonID.size() > 0 )
 				{
 					// Dungeon 검색하자
-					std::set<CXSLDungeon::DUNGEON_ID>::const_iterator sit = pSubTemplet->m_ClearCondition.m_setDungeonID.find( static_cast<CXSLDungeon::DUNGEON_ID>(iDungeonID + static_cast<int>(cDifficulty)) );
+					std::set<SEnum::DUNGEON_ID>::const_iterator sit = pSubTemplet->m_ClearCondition.m_setDungeonID.find( static_cast<SEnum::DUNGEON_ID>(iDungeonID + static_cast<int>(cDifficulty)) );
 					if( sit == pSubTemplet->m_ClearCondition.m_setDungeonID.end() )
 					{
 						continue;							
@@ -813,7 +819,49 @@ bool KRoomUser::GetQuestDropItem( IN const int iDungeonID,
 					}
 				}
 			}
+#ifdef SERV_HENIR_EVENT_ITEM_NO_DROP
+			if( pQuestTemplet->m_iID == 121000 || pQuestTemplet->m_iID == 121010 || pQuestTemplet->m_iID == 121020 || pQuestTemplet->m_iID == 121120 || pQuestTemplet->m_iID == 121550)
+			{
+				//헤니르 던전이면 드랍 안되도록
+				if( CXSLDungeon::IsHenirDungeon( iDungeonID ) == true )
+				{
+					continue;
+				}
+			}
+			else if( pQuestTemplet->m_iID == 131100 || pQuestTemplet->m_iID == 131110 || 
+				pQuestTemplet->m_iID == 121020 || pQuestTemplet->m_iID == 131130 )
+			{
+				//헤니르 던전이 아니면 드랍 안되도록
+				if( CXSLDungeon::IsHenirDungeon( iDungeonID ) != true )
+				{
+					continue;
+				}
+			}
+#endif SERV_HENIR_EVENT_ITEM_NO_DROP
+#ifdef SERV_HENIR_EVENT_SORT_NORMAL_CHALLENGE
+			if( CXSLDungeon::IsHenirDungeon( iDungeonID ) == true )
+			{
+				//일반 모드 일때 
+				if( pSubTemplet->m_iID == 131140 )
+				{
+					//도전 모드이면 시마이
+					if( CXSLDungeon::IsHenirChallengeMode( static_cast<int>( cDungeonMode ) ) == true )
+					{
+						continue;
+					}
+				}
+				//도전 모드 일때
+				else if( pSubTemplet->m_iID == 131150 )
+				{
+					//일반 모드이면 시마이
+					if( CXSLDungeon::IsHenirPracticeMode( static_cast<int>( cDungeonMode) ) == true )
+					{
+						continue;
+					}
 
+				}
+			}
+#endif //SERV_HENIR_EVENT_SORT_NORMAL_CHALLENGE
 			//{{ 2009. 8. 3  최육사		퀘스트 조건 수정
 			if( pSubTemplet->m_ClearCondition.m_setKillNPCID.empty() == false  &&
 				pSubTemplet->m_ClearCondition.m_setKillNPCID.find( static_cast<CXSLUnitManager::NPC_UNIT_ID>(iNPCID) ) == pSubTemplet->m_ClearCondition.m_setKillNPCID.end() )
@@ -970,7 +1018,7 @@ bool KRoomUser::GetQuestDropItem( IN const int iDungeonID,
 			if( pSubTemplet->m_eClearType != CXSLQuestManager::SQT_QUEST_ITEM_COLLECTION )
 				continue;
 
-			if( pSubTemplet->m_ClearCondition.m_eDungeonID != CXSLDungeon::DI_NONE &&
+			if( pSubTemplet->m_ClearCondition.m_eDungeonID != SEnum::DI_NONE &&
 				pSubTemplet->m_ClearCondition.m_eDungeonID != iDungeonID )
 			{
 				continue;
@@ -983,7 +1031,7 @@ bool KRoomUser::GetQuestDropItem( IN const int iDungeonID,
 			if( CXSLDungeon::IsSecretDungeon( iDungeonID ) == true )
 			{
 				// 해당 비밀던전이 맞는지 검사
-				if( ( pSubTemplet->m_ClearCondition.m_eDungeonID != CXSLDungeon::DI_NONE ) && ( pSubTemplet->m_ClearCondition.m_eDungeonID / 10 ) != ( iDungeonID / 10 ) )
+				if( ( pSubTemplet->m_ClearCondition.m_eDungeonID != SEnum::DI_NONE ) && ( pSubTemplet->m_ClearCondition.m_eDungeonID / 10 ) != ( iDungeonID / 10 ) )
 					continue;
 
 				// 난이도 검사
@@ -1002,7 +1050,7 @@ bool KRoomUser::GetQuestDropItem( IN const int iDungeonID,
 			{
 				// m_eDungeonID 가 DI_NONE 일 경우 이벤트 퀘스트 이다.
 				// 헤니르, 루벤은 제외한다.
-				if( pSubTemplet->m_ClearCondition.m_eDungeonID == CXSLDungeon::DI_NONE )
+				if( pSubTemplet->m_ClearCondition.m_eDungeonID == SEnum::DI_NONE )
 				{
 					if( CXSLDungeon::IsHenirDungeon( iDungeonID ) == true || CXSLDungeon::IsRubenDungeon( iDungeonID ) == true )
 					{
@@ -1187,6 +1235,24 @@ bool KRoomUser::GetQuestDropItemInBattleField( IN const int iBattleFieldID, IN c
 					continue;
 			}
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_QUEST_DROP_ON_REASONABLE_LEVEL
+			if( pSubTemplet->m_iID == _CONST_SERV_EVENT_QUEST_DROP_ON_REASONABLE_LEVEL::iMaxLevelCertificationSubQuestID )
+			{
+				int iStandardMonsterLevel = SiCXSLBattleFieldManager()->GetStandardMonsterLevel( static_cast< SEnum::BATTLE_FIELD_ID >( iBattleFieldID ) );
+				if( GetLevel() < iStandardMonsterLevel - 10 || GetLevel() > iStandardMonsterLevel + 10 )
+					continue;
+			}
+#endif SERV_EVENT_QUEST_DROP_ON_REASONABLE_LEVEL
+
+#ifdef SERV_RNW_ELDRASIL_EVENT
+			if( pSubTemplet->m_iID == _CONST_SERV_RNW_ELDRASIL_EVENT::iMaxLevelCertificationSubQuestID )
+			{
+				int iStandardMonsterLevel = SiCXSLBattleFieldManager()->GetStandardMonsterLevel( static_cast< SEnum::BATTLE_FIELD_ID >( iBattleFieldID ) );
+				if( GetLevel() < iStandardMonsterLevel - 10 || GetLevel() > iStandardMonsterLevel + 10 )
+					continue;
+			}
+#endif SERV_RNW_ELDRASIL_EVENT
 
 			//{{ QUEST 개편 - 김민성
 #ifdef SERV_REFORM_QUEST
@@ -1665,6 +1731,49 @@ bool KRoomUser::HasSpecialItem( IN int iItemID ) const
 }
 #endif SERV_PAYMENT_ITEM_WITH_CONSUMING_OTHER_ITEM
 
+#ifdef SERV_PAYMENT_ITEM_WITH_ALLY_NPC
+bool KRoomUser::AddAllyNPC( IN const KNPCUnitReq& kNPCUnit )
+{
+	m_mapAllyNPCUnit.insert( std::make_pair( kNPCUnit.m_UID, kNPCUnit ) );
+
+	START_LOG( clog, L"친구NPC 목록에 추가되었습니다." )
+		<< BUILD_LOG( m_kRoomUserInfo.m_nUnitUID )
+		<< BUILD_LOG( kNPCUnit.m_UID );
+		;
+
+	return true;
+}
+
+bool KRoomUser::IsAllyNPC( IN const int iNPCID )
+{
+	std::map< UidType, KNPCUnitReq >::iterator mitAllyNPCUnit;
+
+	for( mitAllyNPCUnit = m_mapAllyNPCUnit.begin(); mitAllyNPCUnit != m_mapAllyNPCUnit.end(); ++mitAllyNPCUnit )
+	{
+		if( mitAllyNPCUnit->second.m_NPCID == iNPCID )
+			return true;
+	}
+
+	return false;
+}
+
+void KRoomUser::DeleteAllyNPC( IN const UidType iNPCUID )
+{
+	std::map< UidType, KNPCUnitReq >::iterator mitAllyNPCUnit = m_mapAllyNPCUnit.find( iNPCUID );
+
+	if( mitAllyNPCUnit != m_mapAllyNPCUnit.end() )
+	{
+		START_LOG( clog, L"친구NPC가 죽었습니다." )
+			<< BUILD_LOG( iNPCUID )
+			<< BUILD_LOG( mitAllyNPCUnit->second.m_NPCID );
+		;
+
+		m_mapAllyNPCUnit.erase( mitAllyNPCUnit );
+	}
+}
+
+#endif SERV_PAYMENT_ITEM_WITH_ALLY_NPC
+
 //{{ 2010. 12. 7	최육사	적정 레벨 장비 통계
 #ifdef SERV_APPROPRIATE_LEVEL_STAT
 void KRoomUser::GetAppropriateLevelInfo( OUT KUserAppropriateLevelInfo& kInfo )
@@ -2097,45 +2206,4 @@ void KRoomUser::SetPingScoreForForceHost( DWORD dwPingScore )
 }
 #endif//SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
-#ifdef SERV_PAYMENT_ITEM_WITH_ALLY_NPC
-bool KRoomUser::AddAllyNPC( IN const KNPCUnitReq& kNPCUnit )
-{
-	m_mapAllyNPCUnit.insert( std::make_pair( kNPCUnit.m_UID, kNPCUnit ) );
 
-	START_LOG( clog, L"친구NPC 목록에 추가되었습니다." )
-		<< BUILD_LOG( m_kRoomUserInfo.m_nUnitUID )
-		<< BUILD_LOG( kNPCUnit.m_UID );
-		;
-
-	return true;
-}
-
-bool KRoomUser::IsAllyNPC( IN const int iNPCID )
-{
-	std::map< UidType, KNPCUnitReq >::iterator mitAllyNPCUnit;
-
-	for( mitAllyNPCUnit = m_mapAllyNPCUnit.begin(); mitAllyNPCUnit != m_mapAllyNPCUnit.end(); ++mitAllyNPCUnit )
-	{
-		if( mitAllyNPCUnit->second.m_NPCID == iNPCID )
-			return true;
-	}
-
-	return false;
-}
-
-void KRoomUser::DeleteAllyNPC( IN const UidType iNPCUID )
-{
-	std::map< UidType, KNPCUnitReq >::iterator mitAllyNPCUnit = m_mapAllyNPCUnit.find( iNPCUID );
-
-	if( mitAllyNPCUnit != m_mapAllyNPCUnit.end() )
-	{
-		START_LOG( clog, L"친구NPC가 죽었습니다." )
-			<< BUILD_LOG( iNPCUID )
-			<< BUILD_LOG( mitAllyNPCUnit->second.m_NPCID );
-		;
-
-		m_mapAllyNPCUnit.erase( mitAllyNPCUnit );
-	}
-}
-
-#endif SERV_PAYMENT_ITEM_WITH_ALLY_NPC

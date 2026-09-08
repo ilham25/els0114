@@ -423,7 +423,7 @@ bool CX2TutorSystem::Handler_EGS_REQUEST_TUTORIAL_ACK( HWND hWnd, UINT uMsg, WPA
 bool CX2TutorSystem::Handler_EGS_REQUEST_TUTORIAL_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	// 체험 아이디 제한 
-	if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+	if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 	{
 		return true;
 	}
@@ -635,21 +635,25 @@ bool CX2TutorSystem::Handler_EGS_TUTORIAL_UPDATE_UNIT_INFO_NOT( HWND hWnd, UINT 
 
 bool CX2TutorSystem::OpenScriptFile( const WCHAR* pFileName ) 
 {
-	string strFileName = "";
-	ConvertWCHARToChar( strFileName, pFileName );
-
 
 	// TutorSystem.lua 파일을 읽어서 UTF-8 포맷이 아니면 변환한다
-	ConvertFileAnsiToUTF8( strFileName, strFileName );
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+
+    KLuaManagerProxy luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+    if ( g_pKTDXApp->LoadAndDoMemory_LocalFile( &luaManager, pFileName ) == false )
+        return false;
+
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
     KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-// 	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName, false ) )
+// 	if( false == g_pKTDXApp->LoadLuaTinker( pFileName, false ) )
 // 		return false;
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pFileName, false ) )
+	if( false == g_pKTDXApp->LoadAndDoMemory_LocalFile( &luaManager, pFileName ) )
 		return false;
 
 	if ( false == luaManager.ExportFunctionsToGlobalEnv() )
 		return false;
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	int iUnitIndex = 0;
 	while( luaManager.BeginTable( "UNIT", iUnitIndex ) == true )
@@ -920,7 +924,17 @@ void CX2TutorSystem::UpdateStudentCandidateListPage()
 bool CX2TutorSystem::Elapsed7DaysFromLastViewDate( wstring wstrNickName )
 {
 	time_t nowTime = time( NULL );
+#ifdef	CONVERSION_VS
+    struct tm nowDate;
+    struct tm* pnowDate = &nowDate;
+    bool bOK = localtime_s( pnowDate, &nowTime ) == 0;
+#else   CONVERSION_VS
 	tm* pnowDate = localtime( &nowTime );
+	bool bOK = ( pnowDate != NULL );
+#endif  CONVERSION_VS
+
+	if ( bOK == false )
+		return false;
 
 	if( m_mapTutorOption[wstrNickName].m_iLastViewYDayPossibleStudentList < 0 ||						// 저장된 last_view_date가 없거나
 		pnowDate->tm_yday - m_mapTutorOption[wstrNickName].m_iLastViewYDayPossibleStudentList < 0 ||	// 해(year)가 바뀌었거나
@@ -933,7 +947,18 @@ bool CX2TutorSystem::Elapsed7DaysFromLastViewDate( wstring wstrNickName )
 bool CX2TutorSystem::Elapsed1DaysFromLastViewDate( wstring wstrNickName )
 {
 	time_t nowTime = time( NULL );
+#ifdef	CONVERSION_VS
+    struct tm nowDate;
+    struct tm* pnowDate = &nowDate;
+    bool bOK = localtime_s( pnowDate, &nowTime ) == 0;
+#else   CONVERSION_VS
 	tm* pnowDate = localtime( &nowTime );
+	bool bOK = ( pnowDate != NULL );
+#endif  CONVERSION_VS
+
+	if ( bOK == false )
+		return false;
+
 
 	if( m_mapTutorOption[wstrNickName].m_iLastViewYDayPossibleStudentList < 0 ||						// 저장된 last_view_date가 없거나
 		pnowDate->tm_yday - m_mapTutorOption[wstrNickName].m_iLastViewYDayPossibleStudentList < 0 ||	// 해(year)가 바뀌었거나
@@ -947,7 +972,18 @@ bool CX2TutorSystem::Elapsed1DaysFromLastViewDate( wstring wstrNickName )
 bool CX2TutorSystem::Elapsed7DaysFromLastRefuseDate( wstring wstrNickName )
 {
 	time_t nowTime = time( NULL );
+#ifdef	CONVERSION_VS
+    struct tm nowDate;
+    struct tm* pnowDate = &nowDate;
+    bool bOK = localtime_s( pnowDate, &nowTime ) == 0;
+#else   CONVERSION_VS
 	tm* pnowDate = localtime( &nowTime );
+	bool bOK = ( pnowDate != NULL );
+#endif  CONVERSION_VS
+
+	if ( bOK == false )
+		return false;
+
 
 	if( m_mapTutorOption[wstrNickName].m_iLastRefuseYDay < 0 ||						// 저장된 last_view_date가 없거나
 		pnowDate->tm_yday - m_mapTutorOption[wstrNickName].m_iLastRefuseYDay < 0 ||	// 해(year)가 바뀌었거나
@@ -960,7 +996,18 @@ bool CX2TutorSystem::Elapsed7DaysFromLastRefuseDate( wstring wstrNickName )
 void CX2TutorSystem::SetLastViewDateToday( wstring wstrNickName )
 {
 	time_t nowTime = time( NULL );
+#ifdef	CONVERSION_VS
+    struct tm nowDate;
+    struct tm* pnowDate = &nowDate;
+    bool bOK = localtime_s( pnowDate, &nowTime ) == 0;
+#else   CONVERSION_VS
 	tm* pnowDate = localtime( &nowTime );
+	bool bOK = ( pnowDate != NULL );
+#endif  CONVERSION_VS
+
+	if ( bOK == false )
+		return;
+
 
 	m_mapTutorOption[wstrNickName].m_iLastViewYDayPossibleStudentList = pnowDate->tm_yday;
 }
@@ -969,7 +1016,18 @@ void CX2TutorSystem::SetLastViewDateToday( wstring wstrNickName )
 void CX2TutorSystem::SetLastRefuseDateToday( wstring wstrNickName )
 {
 	time_t nowTime = time( NULL );
+#ifdef	CONVERSION_VS
+    struct tm nowDate;
+    struct tm* pnowDate = &nowDate;
+    bool bOK = localtime_s( pnowDate, &nowTime ) == 0;
+#else   CONVERSION_VS
 	tm* pnowDate = localtime( &nowTime );
+	bool bOK = ( pnowDate != NULL );
+#endif  CONVERSION_VS
+
+	if ( bOK == false )
+		return;
+
 
 	m_mapTutorOption[wstrNickName].m_iLastRefuseYDay = pnowDate->tm_yday;
 }

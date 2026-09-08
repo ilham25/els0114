@@ -160,6 +160,21 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 			LESI_P_LE_AGILE_MOVEMENT_BACK_BACK,
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+			LESI_HA_LWS_SPIRAL_STIKE_SPINING,
+			LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK,
+			
+			LESI_HA_LGA_CRYOTRON_BOLT_CHARGE_SHOT,			
+			LESI_HA_LGA_CRYOTRON_BOLT_DOWNLANDING,
+
+			LESI_HA_LNW_INNOCENT_START,	//이노센트 기 모으며 공격 시작
+			LESI_HA_LNW_INNOCENT_END,	//이노센트 칼로 찌르며 마무리
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+#ifdef ADD_RENA_SYSTEM //김창한
+			LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX,
+#endif //ADD_RENA_SYSTEM
+
 			//////////////////////////////////////////////////////////////////////////
 			// 위쪽에 추가해주세요~ 이 아래는 테스트로 추가된 enum 입니다
 
@@ -168,9 +183,9 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-			LESI_FROZEN,
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//			LESI_FROZEN,
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 		};
@@ -309,19 +324,33 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
+
+        struct  RapidShotData;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        typedef boost::intrusive_ptr<RapidShotData> RapidShotDataPtr;	/// RapidShotData 구조체의 스마트 포인터 타입
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+		typedef boost::shared_ptr<RapidShotData> RapidShotDataPtr;	/// RapidShotData 구조체의 스마트 포인터 타입
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 		struct RapidShotData : boost::noncopyable
 		{
 		private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 			LIRE_ELVENRANGER_STATE_ID m_eSlotID_RapidShot;		/// 래피드 샷이 장착된 스킬슬롯을 알아내기 위한 용도( 스킬 슬롯이 스테이트중 하나로 로 구성 되어 있음 )
 			bool m_bSlotB;										/// 래피드 샷이 장착된 슬롯이 A인지, B인지 구분하기 위한용도
 			bool* m_pSkillKey;									/// 래피드 샷의 키가 눌려있는지 알아내기 위안 용도 (메모리를 생성하는 것이 아니므로 해제하지 않는다.)
 			float m_fTimeAfterStart;							/// 래피드 샷 스킬 시작 후 지난 시간.
 
 			RapidShotData() : m_eSlotID_RapidShot( LESI_BASE ), m_bSlotB( false ), m_pSkillKey( NULL ), m_fTimeAfterStart( 0.f )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+                , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 			{}
 
 		public:
-			typedef boost::shared_ptr<RapidShotData> RapidShotDataPtr;	/// RapidShotData 구조체의 스마트 포인터 타입
+
 			static RapidShotDataPtr  CreateRapidShotData() { return RapidShotDataPtr( new RapidShotData ); }
 			LIRE_ELVENRANGER_STATE_ID GetSlotID_RapidShot() const { return m_eSlotID_RapidShot; }
 			void SetSlotID_RapidShot(LIRE_ELVENRANGER_STATE_ID eStateID_) { m_eSlotID_RapidShot = eStateID_; }
@@ -334,6 +363,12 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 
 			bool GetSkillKey() const { return *m_pSkillKey; }
 			void SetSkillKeyPointer(bool* pSkillKey_) { m_pSkillKey = pSkillKey_; }
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            void    AddRef()    {   ++m_uRefCount; }
+            void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 		};
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
@@ -392,19 +427,19 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		
 		ParticleEventSequenceHandle	GetHandleRenaMajorParticleByEnum( RENA_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) const // 캐릭터만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		{
-			ASSERT( RENA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RENA_MAJOR_PII_END > eVal_ && RENA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahRenaMajorParticleInstance[eVal_];
 		}
 
 		ParticleEventSequenceHandle& GetHandleReferenceRenaMajorParticleByEnum( RENA_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) // 캐릭터만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		{
-			ASSERT( RENA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RENA_MAJOR_PII_END > eVal_ && RENA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahRenaMajorParticleInstance[eVal_];
 		}
 
 		void				SetHandleRenaMajorParticleByEnum( RENA_MAJOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ ) // 캐릭터만 쓰는 메이저 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함 // kimhc // 2010.11.5 
 		{
-			ASSERT( RENA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RENA_MAJOR_PII_END > eVal_ && RENA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			m_ahRenaMajorParticleInstance[eVal_] = hHandle_;
 		}
 		void				DeleteLireMajorParticle();
@@ -419,19 +454,19 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		
 		ParticleEventSequenceHandle	GetHandleRenaMinorParticleByEnum( RENA_MINOR_PARTICLE_INSTANCE_ID eVal_ ) const	// 캐릭터만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴	// kimhc // 2010.11.5 
 		{
-			ASSERT( RENA_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RENA_MINOR_PII_END > eVal_ && RENA_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahRenaMinorParticleInstance[eVal_];
 		}
 
 		ParticleEventSequenceHandle& GetHandleReferenceRenaMinorParticleByEnum( RENA_MINOR_PARTICLE_INSTANCE_ID eVal_ ) // 캐릭터만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴	// kimhc // 2010.11.5 
 		{
-			ASSERT( RENA_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RENA_MINOR_PII_END > eVal_ && RENA_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahRenaMinorParticleInstance[eVal_];
 		}
 
 		void				SetHandleRenaMinorParticleByEnum( RENA_MINOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ )	// 캐릭터만 쓰는 마이너 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함	// kimhc // 2010.11.5 
 		{
-			ASSERT( RENA_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RENA_MINOR_PII_END > eVal_ && RENA_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			m_ahRenaMinorParticleInstance[eVal_] = hHandle_;
 		}
 		void				DeleteLireMinorParticle();
@@ -458,6 +493,10 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 
 		virtual bool		SpecialAttackNoStageChange( const CX2SkillTree::SkillTemplet* pSkillTemplet );
 		virtual float		GetActualMPConsume( const CX2SkillTree::SKILL_ID eSkillID_, const int iSkillLevel_ ) const;
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		const CX2SkillTree::ACTIVE_SKILL_USE_CONDITION GetSkillUseCondition(const CX2SkillTree::SkillTemplet* pSkillTemplet_);
+#endif //ADD_MEMO_1ST_CLASS
 
 #ifdef NEW_SKILL_2010_11 // oasis907 : 김상윤 [2010.11.3] // 윈드 스니커 - 자연과의 친화(패시브)
 		FriendshipNatureData* GetFriendshipNatureData() { return m_pFriendshipNatureData; }
@@ -487,6 +526,27 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 
 		virtual int GetComboZStateID() const { return LESI_COMBO_Z1; }
 		virtual int GetComboXStateID() const { return LESI_COMBO_X1; }
+
+#ifdef ADD_RENA_SYSTEM //김창한
+		void	ConsumeNaturalForce( int iCount_ );				//자연의 기운 소모
+		__forceinline void	UpNaturalForce( int iUpCount_ );	//자연의 기운 획득
+		__forceinline bool	IsEmptyNaturalForce();				//자연의 기운이 하나도 없는지 체크
+		__forceinline int	GetNaturalForceCount();				//현재 자연의 기운 갯수 반환
+
+		virtual void	SetSpecificValueByBuffTempletID( const BUFF_TEMPLET_ID eBuffTempletId_ );
+		virtual void	UnSetSpecificValueByBuffTempletID( const BUFF_TEMPLET_ID eBuffTempletId_ );
+		virtual void	AdjustDamageDataBeforeDamageReact( CX2DamageManager::DamageData* pDamageData );
+
+		//인자로 들어온 값이 m_vecSaveData에 저장된 값 중에 일치하는 것이 있는지 체크하는 함수 
+		virtual bool CheckDamageRelateSkillData( const CX2DamageManager::DamageRelateSkillData sData_ );
+		//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리 2014.01.28
+		bool CheckDamageRelateComboData( const CX2DamageManager::DamageRelateSkillData sData_ );
+		//m_vecSaveData 값 중에 인자로 들어온 값과 일치하는 것을 삭제하는 함수
+		virtual void DeleteDamageRelateSkillData( const CX2DamageManager::DamageRelateSkillData sData_ );
+
+		const float GetNaturalForceChargeValue(){ return m_fNaturalForceValueCharge; }
+#endif //ADD_RENA_SYSTEM
+
 	protected:
 		virtual void ParseCommonRandomState();
 		void				InitComponent();
@@ -498,7 +558,23 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 
 		void				InitDevice();
 
+#ifdef ADD_RENA_SYSTEM //김창한
+		virtual void			AttackResultByType( CX2DamageManager::DamageData &pDamageData );
+		void					SetNaturalForceEffect();	//자연의 기운 이펙트 설정
+		void					UpdateNaturalForceEffect();	//자연의 기운 갯수가 달라진것을 체크해서 SetNaturalForceEffect함수 호출
 
+		virtual void Init( bool bUseTeamPos_, int iStartPosIndex_ );
+		virtual CX2GageData*	CreateGageData();
+		CX2RenaGageData*		GetRenaGageData() { return static_cast<CX2RenaGageData*>( GetGageData() ); }
+		const CX2RenaGageData*	GetRenaGageData() const { return static_cast<const CX2RenaGageData*>( GetGageData() ); }
+
+		void	SetNaturalForceCount( const int iNaturalForceCount_ );	//자연의 기운 갯수를 설정
+		void	SetNaturalForceBuff( const bool bBuffOn_ );				//자연의 기운 버프를 키고 끄는 함수
+		const bool	GetNaturalForceBuff();								//현재 자연의 기운 버프가 적용된 상태인지 반환
+		__forceinline bool	IsFullNaturalForce();						//자연의 기운이 최대치인지 체크
+
+		bool	IsHyperActiveSkill( CX2SkillTree::SKILL_ID eSkillId_ );	//하이퍼 액티브인지 체크하는 함수
+#endif //ADD_RENA_SYSTEM
 
 		virtual void		InitEquippedActiveSkillState( bool bOnlySkillLevel = false );
 		virtual void		InitPassiveSkillState();
@@ -522,7 +598,10 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		virtual bool		SpecialAttackEventProcess( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eActiveSkillUseCondition = CX2SkillTree::ASUT_GROUND );
 		virtual void		NoStateChangeActionFrameMove();
 
-		void				CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#ifndef SERV_9TH_NEW_CHARACTER // 김태환
+		/// 다른 캐릭터들 전부 똑같은 함수를 쓰고 있으니, X2GUUser로 옮기자.
+		virtual void		CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#endif // SERV_9TH_NEW_CHARACTER
 
 #ifdef NEW_SKILL_2010_11
 		// oasis907 : 김상윤 [2010.11.4] // 윈드 스니커 - 자연과의 친화(패시브)
@@ -547,6 +626,11 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		void CreateGuideArrow( bool bMemo_, bool bHyperMode_ = false);
 #endif //BALANCE_GRAND_ARCHER_20121213
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+		void SetInvisibility ( bool bVa_ );
+		virtual void		ApplyRenderParam( CKTDGXRenderer::RenderParam* pRenderParam_ );
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
 
 		bool											m_bDownForce;
 		float											m_fChangeMPTime;
@@ -615,13 +699,20 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqSpinningKick1;
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeqSpinningKick2;
 
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 다이브 킥 보밍 관련 소스 삭제 ( 캐릭터 스크립트 내 이펙트 셋으로 이관 )
 		CKTDGXMeshPlayer::CXMeshInstanceHandle				m_hMeshDiveKickBombing;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	
 
 
 
 		CX2EffectSet::Handle	m_hWindSneakerFoot;
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle   m_hDESlideKick;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect* m_pDESlideKick;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
 
@@ -636,8 +727,13 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 
 		CKTDGXMeshPlayer::CXMeshInstanceHandle				m_hTrapBlade;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		CX2DamageEffect::CEffectHandle							    m_hEffectTrapArrow;
+		CX2DamageEffect::CEffectHandle							    m_hEffectCallOfRuin;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*							m_pEffectTrapArrow;
 		CX2DamageEffect::CEffect*							m_pEffectCallOfRuin;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		float												m_fDamageDataChangeTime;
 #ifdef SERV_RENA_NIGHT_WATCHER
@@ -669,6 +765,9 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		float												m_fPriorPlannedBlowTime;				/// 계산된 일격 콤보 누적 값 초기화 시간( 콤보수가 누적되지 않으면 5초 후 콤보 수 초기화 )
 		CX2EffectSet::Handle								m_hPriorPlannedBlowEffect;				/// 계산된 일격 적용시 사용되는 이펙트
 		int													m_iNowPriorPlannedBlowLevel;			/// 현재 적용되어 있는 계산된 일격 이펙트 레벨
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		float												m_fPriorPlannedBlowIncreaseHPRate;		/// 계산된 일격 HP 회복량 ( 퍼센티지 )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 		bool												m_bActiveStartOfDelayedFiring;			/// 지연의 신호탄 활성 여부
 		float												m_fStartOfDelayedFiringIncreaseDamage;	/// 지연의 신호탄 추가 데미지
@@ -682,17 +781,45 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 #endif SERV_RENA_NIGHT_WATCHER
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
-		RapidShotData::RapidShotDataPtr						m_RapidShotDataPtr;						/// 래피드 샷 스킬 데이터
+		RapidShotDataPtr						            m_RapidShotDataPtr;						/// 래피드 샷 스킬 데이터
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle							    m_hEffectTrapArrowFungus;				/// 트래핑 애로우 - 펑거스
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*							m_pEffectTrapArrowFungus;				/// 트래핑 애로우 - 펑거스
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		bool												m_bAbleAgileMovement;					/// 재빠른 몸놀림을 배웠는가
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 	private:
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		wstring													m_wstrShootingMagumRandomArrow; //메모 작업. 슈팅 매그넘 랜덤 화살 이펙트 이름.
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef ADD_RENA_SYSTEM //김창한
+		KProtectedType<float>									m_fNaturalForceValueCharge;	//자연의 기운 충전 값(충전값이 5가 되면 자연의 기운 하나 생성)
+
+		CX2EffectSet::Handle									m_hNaturalForceEffect;		//자연의 기운 이펙트 핸들
+		int														m_iBeforeNaturalForceCount;	//이펙트 변경을 위하여, 이전 NF값 저장
+
+		CX2SkillTree::SKILL_ID									m_eSaveStateSkillId;	//여러 state로 이루어진 스킬인지 확인을 위해 skillid 저장
+#endif //ADD_RENA_SYSTEM
+
 		CKTDGParticleSystem::CParticleEventSequenceHandle		m_ahRenaMajorParticleInstance[RENA_MAJOR_PII_END];
 		CKTDGParticleSystem::CParticleEventSequenceHandle		m_ahRenaMinorParticleInstance[RENA_MINOR_PII_END];
 
-
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+		float		m_fSpiralStrikeRemainingTime;
+		float		m_fPreRenderParamColorA;		/// 렌더 끄기 전 임시 저장하는 기존 알파값		
+		float		m_fRenderParamColorA;			/// 렌더 끌 때 페이드 아웃 시키기 위한 알파값
+		CX2EffectSet::Handle		m_hSpiralStrikeMiddleEffect;			// 스파이럴 스트라이크, 미들 이펙트 핸들
+		CX2EffectSet::Handle		m_hSpiralStrikeMiddleLightEffect;		// 스파이럴 스트라이크, 미들 이펙트 핸들
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        vector<CX2DamageEffect::CEffectHandle>				m_vecCryotronBoltDamageEffect;				// 크레이오트론 볼트, 타켓 저장용
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		vector<CX2DamageEffect::CEffect*>				m_vecCryotronBoltDamageEffect;				// 크레이오트론 볼트, 타켓 저장용
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
 		///////////////////////////////////////////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -722,6 +849,9 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 
 		//LESI_WALK
 		void WalkEventProcess();
+#ifdef ADD_RENA_SYSTEM //김창한
+		void WalkStart();
+#endif //ADD_RENA_SYSTEM
 
 		//LESI_JUMP_READY
 		void JumpReadyEventProcess();
@@ -741,6 +871,9 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		void LESI_DASH_FrameMoveFuture();
 #endif SERV_RENA_NIGHT_WATCHER
 		void DashEventProcess();
+#ifdef ADD_RENA_SYSTEM //김창한
+		void DashStart();
+#endif //ADD_RENA_SYSTEM
 
 		//LESI_DASH_END
 		void DashEndStartFuture();
@@ -784,6 +917,11 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		void LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_FrameMoveFuture();
 		void LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_FrameMove();
 		void LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_EventProcess();
+#ifdef ADD_RENA_SYSTEM //김창한
+		void LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_StateStart();
+		void LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_FrameMove();
+		void LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_EventProcess();
+#endif //ADD_RENA_SYSTEM
 
 		//LESI_DOUBLE_JUMP_ATTACK_Z_LANDING
 		void DoubleJumpAttackZLandingStartFuture();
@@ -1039,6 +1177,9 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		void DashJumpComboX2EventProcess();
 
 		//LESI_DASH_JUMP_COMBO_X3
+#ifdef ADD_RENA_SYSTEM // 김태환
+		void DashJumpComboX3StateStart();
+#endif // ADD_RENA_SYSTEM
 		void DashJumpComboX3FrameMoveFuture();
 		void DashJumpComboX3FrameMove();
 		void DashJumpComboX3EventProcess();
@@ -1242,13 +1383,13 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		void LESI_SI_A_LE_REFLEX_MAGIC_Start();		
 		void LESI_SI_A_LE_REFLEX_MAGIC_EventProcess();		
 
-
 #ifdef SKILL_30_TEST
 		void LESI_SA_LCR_SHARPFALL_Init();
 		void LESI_SA_LCR_SHARPFALL_FrameMove();
 		void LESI_SA_LCR_SHARPFALL_EventProcess();
 		void LESI_SA_LCR_SHARPFALL_HYPER_FrameMove();
 		void LESI_SA_LCR_SHARPFALL_HYPER_EventProcess();
+
 
 		void LESI_SA_LCR_SHARPFALL_LANDING_FrameMove();	
 		void LESI_SA_LCR_SHARPFALL_LANDING_EventProcess();	
@@ -1269,9 +1410,7 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		
 		void LESI_SA_LSR_ENTANGLE_Init();
 		void LESI_SA_LSR_ENTANGLE_StateStart();
-#ifdef NEW_MEMO_01
 		void LESI_SA_LSR_ENTANGLE_StateStartFuture();
-#endif
 		void LESI_SA_LSR_ENTANGLE_FrameMove();
 		void LESI_SA_LSR_ENTANGLE_EventProcess();
 		void LESI_SA_LSR_ENTANGLE_StateEnd();
@@ -1297,7 +1436,7 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		void LESI_SA_LCR_VIOLENT_ATTACK_FrameMove();
 		void LESI_SA_LCR_VIOLENT_ATTACK_EventProcess();
 		void LESI_SA_LCR_VIOLENT_ATTACK_StateEnd();
-		
+
 		void LESI_SA_LCR_VIOLENT_ATTACK_LANDING_Init();
 		void LESI_SA_LCR_VIOLENT_ATTACK_LANDING_FrameMove();
 		void LESI_SA_LCR_VIOLENT_ATTACK_LANDING_EventProcess();
@@ -1348,6 +1487,9 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		void LESI_LGA_ZZX_FrameMove();
 		void LESI_LGA_ZZX_EventProcess();
 
+#ifdef ADD_RENA_SYSTEM //김창한
+		void LESI_LGA_ZZXX_StateStart();
+#endif //ADD_RENA_SYSTEM
 		void LESI_LGA_ZZXX_FrameMove();
 		void LESI_LGA_ZZXX_EventProcess();
 #else
@@ -1387,15 +1529,12 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		void LESI_SA_LGA_FREEZING_ARROW_FrameMove();			
 		void LESI_SA_LGA_FREEZING_ARROW_HYPER_FrameMove();		
 
-
-
 		void LESI_A_LWS_NATURE_FORCE_Init();
 		void LESI_A_LWS_NATURE_FORCE_StateStart();
 		void LESI_A_LWS_NATURE_FORCE_HYPER_StateStart();
-		
+
 		void LESI_A_LGA_STIGMA_ARROW_Init();
 		void LESI_A_LGA_STIGMA_ARROW_FrameMove();
-
 
 
 #ifdef NEW_SKILL_2010_11
@@ -1422,6 +1561,7 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		//{{ oasis907 : 김상윤 [2010.11.5] // 윈드 스니커 - 아이레린나
 		void LESI_SA_LWS_AIRELINNA_Init();
 		void LESI_SA_LWS_AIRELINNA_FrameMove();
+
 		//}}
 #endif NEW_SKILL_2010_11
 
@@ -1431,7 +1571,6 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		void LESI_SA_RTR_EVOKE_Init();
 		void LESI_SA_RTR_EVOKE_FrameMove();
 		void LESI_SA_RTR_EVOKE_StateEnd();
-
 		void LESI_SA_RTR_EVOKE_HYPER_FrameMove();
 
 		//LESI_A_RTR_EXPLOSION_TRAP
@@ -1759,6 +1898,48 @@ class CX2GULire_ElvenRanger : public CX2GUUser
 		void SetSkillLevelStateData( const CX2SkillTree::SkillTemplet* pSkillTemplet_, UserUnitStateData& stateData_ );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+		// 윈스 궁극기 스파이럴 스트라이크
+
+		// 공격 전 준비 모션
+		void LESI_HA_LWS_SPIRAL_STIKE_READY_Init();
+		void LESI_HA_LWS_SPIRAL_STIKE_READY_StateStart();
+		void LESI_HA_LWS_SPIRAL_STIKE_READY_EventProcess();
+
+		void LESI_HA_LWS_SPIRAL_STIKE_SPINING_StateStart();
+		void LESI_HA_LWS_SPIRAL_STIKE_SPINING_FrameMove();
+		void LESI_HA_LWS_SPIRAL_STIKE_SPINING_EventProcess();
+		void LESI_HA_LWS_SPIRAL_STIKE_SPINING_StateEnd();
+		// 이펙트 완료하고 난 후 마지막 모션
+		void LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK_Init();
+		void LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK_FrameMove();
+		void LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK_EventProcess();
+
+		// 그아 궁극기 크레이아트론 볼트
+		// 크레이아트론 볼트 에서 슈터 데스티니로 이름 변경되었습니다. 13.07.28, kimjh
+
+		void LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_Init();
+		void LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_StateStart();
+		void LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_FrameMove();
+		void LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_EventProcess();
+
+		void LESI_HA_LGA_CRYOTRON_BOLT_CHARGE_SHOT_EventProcess();
+
+		void LESI_HA_LGA_CRYOTRON_BOLT_DOWNLANDING_EventProcess();
+
+
+		// 나이트 와쳐 궁극기 - 이노센트
+		void LESI_HA_LNW_INNOCENT_START_Init();			//기모으며 시작
+		void LESI_HA_LNW_INNOCENT_START_EventProcess();
+		void LESI_HA_LNW_INNOCENT_END_Init();			//칼로 찌르며 마무리
+		void LESI_HA_LNW_INNOCENT_END_StateStart();
+		void LESI_HA_LNW_INNOCENT_END_EventProcess();
+		void LESI_HA_LNW_INNOCENT_END_StateEnd();
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템		
+		
 		typedef	srutil::delegate0<void>	DelegateFriendshipOfNature;
 		DelegateFriendshipOfNature		m_delegateFriendshipOfNature;
 };
+
+IMPLEMENT_INTRUSIVE_PTR( CX2GULire_ElvenRanger::RapidShotData );

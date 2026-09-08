@@ -38,11 +38,11 @@ public:
 
 	void Clear();
 	bool CheckUpdateTime( double fCheckTime = 1800.f );
-	void Check( const wchar_t* pQuery, unsigned int iDurationTime, bool bQueryFail );
+	void Check( std::wstring wstrQuery, unsigned int iDurationTime, bool bQueryFail );
 	void GetDump( std::vector< KSPInfo >& vecDump );
 
 private:
-	std::map< const wchar_t*, KSPInfo > m_mapProfileInfo;
+	std::map< std::wstring, KSPInfo >	m_mapProfileInfo;
 	boost::timer						m_tDBUpdateTimer;
 };
 

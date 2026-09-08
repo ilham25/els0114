@@ -100,6 +100,25 @@ bool CX2PageManager::PrevPage()
 	return true;
 }
 
+#ifdef COUPON_SYSTEM
+bool CX2PageManager::LastPage()
+{
+	m_NowPage = m_MaxPage;
+
+	ResetNowPage();
+
+	return true;
+}
+bool CX2PageManager::FirstPage()
+{
+	m_NowPage = 1;
+
+	ResetNowPage();
+
+	return true;
+}
+#endif // COUPON_SYSTEM
+
 CX2PageManager::CX2PageSlot* CX2PageManager::CreateSlot( CX2PageSlot* pPageSlot, int slotIndex, const WCHAR* pSlotDLGName )
 {
 	return pPageSlot->Clone( slotIndex, pSlotDLGName );

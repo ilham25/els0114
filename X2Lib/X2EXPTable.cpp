@@ -14,14 +14,16 @@ CX2EXPTable::~CX2EXPTable(void)
 bool CX2EXPTable::OpenScriptFile( const WCHAR* wstrFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pkExpTable", this );
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( wstrFileName );
+	return g_pKTDXApp->LoadLuaTinker( wstrFileName );
 }
 
 bool CX2EXPTable::AddExpTable_LUA()
 {
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	EXPData expData;
 

@@ -154,7 +154,7 @@ LUA_API lua_State *lua_newstate (lua_Alloc f, void *ud) {
   L->next = NULL;
   L->tt = LUA_TTHREAD;
 //{{ robobeg : 2008-06-16
-  g->encoding = LUA_ENCODING_UTF8;
+  g->encoding = LUA_ENCODING_UNKNOWN;
 //}} robobeg : 2008-06-16
   g->currentwhite = bit2mask(WHITE0BIT, FIXEDBIT);
   L->marked = luaC_white(g);

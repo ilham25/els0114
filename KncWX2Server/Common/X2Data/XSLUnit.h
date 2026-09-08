@@ -17,9 +17,12 @@ public:
 		UT_EVE,
 		UT_CHUNG,		// kimhc // 2010-12-23 에 추가될 신캐릭터 청
 		UT_ARA,			/// JHKang / 신 캐릭터 아라
-//#ifdef SERV_NEW_CHARACTER_EL // 추후 디파인 제거 할 예정
+#ifdef SERV_NEW_CHARACTER_EL // 추후 디파인 제거 할 예정
 		UT_ELESIS,
-//#endif // SERV_NEW_CHARACTER_EL
+#endif // SERV_NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		UT_ADD,
+#endif //SERV_9TH_NEW_CHARACTER
 		UT_END,			//  엘리시스가 추가되면 END를 엘리시스 아래로..
 	};
 
@@ -34,9 +37,12 @@ public:
 		UC_EVE_NASOD,
 		UC_CHUNG_IRON_CANNON,
 		UC_ARA_MARTIAL_ARTIST,		/// 7 아라 노전직, 무술가
-//#ifdef SERV_NEW_CHARACTER_EL // 추후 디파인 제거 할 예정
+#ifdef SERV_NEW_CHARACTER_EL // 추후 디파인 제거 할 예정
 		UC_ELESIS_KNIGHT = 8,
-//#endif // SERV_NEW_CHARACTER_EL
+#endif // SERV_NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		UC_ADD_NASOD_RULER = 9,
+#endif //SERV_9TH_NEW_CHARACTER
 
 
 		//일차전직
@@ -59,38 +65,34 @@ public:
 		UC_ARME_BATTLE_MAGICIAN,	// 23
 #endif SERV_ADD_ARME_BATTLE_MAGICIAN
 #ifdef SERV_TRAPPING_RANGER_TEST
-		UC_LIRE_TRAPPING_RANGER = 24,		// 24	레나 트래핑 레인저
+		UC_LIRE_TRAPPING_RANGER			= 24,	// 24	레나 트래핑 레인저
 #endif SERV_TRAPPING_RANGER_TEST
 #ifdef SERV_RAVEN_WEAPON_TAKER
-		UC_RAVEN_WEAPON_TAKER		= 25,
+		UC_RAVEN_WEAPON_TAKER			= 25,
 #endif SERV_RAVEN_WEAPON_TAKER
 #ifdef SERV_EVE_ELECTRA
-		UC_EVE_ELECTRA				= 26,
+		UC_EVE_ELECTRA					= 26,
 #endif SERV_EVE_ELECTRA
 #ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
-		UC_CHUNG_SHELLING_GUARDIAN	= 27,
+		UC_CHUNG_SHELLING_GUARDIAN		= 27,
 #endif
 #ifdef SERV_ARA_CHANGE_CLASS_FIRST
-		UC_ARA_LITTLE_HSIEN			= 28, // 소선 - 아라 1차 전직
+		UC_ARA_LITTLE_HSIEN				= 28,	// 소선 - 아라 1차 전직
 #endif //SERV_ARA_CHANGE_CLASS_FIRST
 
-//#ifdef SERV_NEW_CHARACTER_EL // 추후 디파인 제거 할 예정
+#ifdef SERV_NEW_CHARACTER_EL // 추후 디파인 제거 할 예정
 		UC_ELESIS_SABER_KNIGHT			= 29,	// 엘리시스 1-1차 세이버 나이트
 		UC_ELESIS_PYRO_KNIGHT			= 30,	// 엘리시스 1-2차 파이로 나이트
-//#endif // SERV_NEW_CHARACTER_EL
+#endif // SERV_NEW_CHARACTER_EL
 
-//#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 		UC_ARA_LITTLE_DEVIL				= 31,	// 소마 - 아라 1차 전직
-//#endif // SERV_ARA_CHANGE_CLASS_SECOND
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
 
-		// 해외팀 해외 신 전직 enum 값 추가 2013.07.03 김창한
-		UC_ELSWORD_SHIELD_KNIGHT   = 32,
-		UC_AISHA_SWORD_MAGICIAN    = 33,
-		UC_RENA_STRING_RANGER      = 34,
-		UC_RAVEN_GLOBAL_1          = 35,
-		UC_EVE_GLOBAL_1            = 36,
-		UC_CHUNG_PRINCESS_GUARDIAN = 37,
-		UC_ARA_GLOBAL_1            = 38,
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		UC_ADD_PSYCHIC_TRACER			= 32,	// 사이킥 트레이서 - 애드 1차 전직
+#endif //SERV_9TH_NEW_CHARACTER
+
 
 
 		// 2차 전직
@@ -102,8 +104,8 @@ public:
 		UC_ARME_VOID_PRINCESS,		// 105
 		UC_RAVEN_BLADE_MASTER,		// 106
 		UC_RAVEN_RECKLESS_FIST,		// 107
-		UC_EVE_CODE_NEMESIS,				// 108
-		UC_EVE_CODE_EMPRESS,				// 109
+		UC_EVE_CODE_NEMESIS,		// 108
+		UC_EVE_CODE_EMPRESS,		// 109
 		UC_CHUNG_IRON_PALADIN,		// 110
 		UC_CHUNG_DEADLY_CHASER,		// 111
 
@@ -121,19 +123,31 @@ public:
 #endif
 
 #ifdef SERV_EVE_BATTLE_SERAPH
-		UC_EVE_BATTLE_SERAPH,	// 116
+		UC_EVE_BATTLE_SERAPH,		// 116
 #endif
 
 #ifdef SERV_CHUNG_TACTICAL_TROOPER
 		UC_CHUNG_TACTICAL_TROOPER,	// 117
 #endif
+
 #ifdef SERV_ARA_CHANGE_CLASS_FIRST
-		UC_ARA_SAKRA_DEVANAM	= 118, // 제천 - 아라 2차 전직
+		UC_ARA_SAKRA_DEVANAM		= 118,	// 제천 - 아라 2차 전직
 #endif //SERV_ARA_CHANGE_CLASS_FIRST
 
-//#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 		UC_ARA_YAMA_RAJA			= 119,	// 명왕 - 아라 2차 전직
-//#endif // SERV_ARA_CHANGE_CLASS_SECOND
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	// 김종훈
+		UC_ELESIS_GRAND_MASTER		= 120,	// 김종훈 // 2013-09-04 // 엘리시스 1-2 그랜드 마스터
+		UC_ELESIS_BLAZING_HEART		= 121,	// 김종훈 // 2013-09-04 // 엘리시스 2-2 블레이징 하트
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		UC_ADD_LUNATIC_PSYKER		= 122,	// 루나틱 사이커 - 애드 2차 전직
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 
 		//{{ 2011. 11. 21  김민성	전직 변경 아이템
 #ifdef SERV_UNIT_CLASS_CHANGE_ITEM
@@ -402,14 +416,18 @@ public:
 #elif defined (SERV_COUNTRY_US)
 		CHAR_SLOT_MAX = 10,
 #elif defined (SERV_COUNTRY_JP)
-		CHAR_SLOT_MAX = 10,
+		CHAR_SLOT_MAX = 12,
 #elif defined (SERV_COUNTRY_CN)
 		CHAR_SLOT_MAX = 10,
 #elif defined (SERV_COUNTRY_TH)
 		CHAR_SLOT_MAX = 8,
 #elif defined (SERV_COUNTRY_ID)
 		CHAR_SLOT_MAX = 6,
+#elif defined (SERV_COUNTRY_BR)
+		CHAR_SLOT_MAX = 12,
 #elif defined (SERV_COUNTRY_PH)
+		CHAR_SLOT_MAX = 6,
+#elif defined (SERV_COUNTRY_IN)
 		CHAR_SLOT_MAX = 6,
 #else
 		CHAR_SLOT_MAX = 10, // 20313.06.04 lygan_조성욱 // 최대치 30개로 가는거 논의 안됨 혹시나 모를 참사를 위해 10개로 고정했음
@@ -419,7 +437,7 @@ public:
 	};
 	//}}
 
-	//{{ 2011.	07. 08    김민성    옵션 수치화
+	//{{ 2011. 07. 08    김민성    옵션 수치화
 //#ifdef SERV_USE_PERCENT_IN_OPTION_DATA
 	enum UNIT_PERCENT_HP
 	{

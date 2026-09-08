@@ -76,6 +76,7 @@ RoomManager:SetNumTrade( 300 )
 RoomManager:SetNumTrainingCenterRoom( 1500 )
 RoomManager:SetNumPersonalShop( 150 )
 RoomManager:SetNumBattleField( 1500 )
+RoomManager:SetNumWeddingHall( 300 )
 
 -- 좀비유저 체크 시간 설정 --
 RoomManager:SetZUTickTime( 300 )

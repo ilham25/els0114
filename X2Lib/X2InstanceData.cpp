@@ -67,7 +67,7 @@ m_bFirstJoinVillage(false)
 , m_bFirstSelect(false)	// kimhc // 로그인 후 처음 캐릭터 선택인가? // PC 방 인벤토리 디폴트 탭선택 작업
 , m_bReceiveGameStartNotPacket( false ) // kimhc // 2010-03-23 // STATE_CHANGE_GAME_START_NOT를 받았는가?	
 , m_bSendGameStartReqPacket( false ) // kimhc // 2010-03-25 // Change_state_Game_start_req를 전송하면 직후에는 던전 게임이 시작 할 때 까지 스킬슬롯을 바꿀수 없도록 함
-, m_fVerifyGageManagerTimer(0.f)
+, m_fRemainedTimeByForceQuitGame(0.f)
 #ifdef SERV_PSHOP_AGENCY
 , m_bIsPShopOpen(false)
 , m_wstrAgencyShopExpirationDate(L"")
@@ -101,6 +101,19 @@ m_bFirstJoinVillage(false)
 #ifdef SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
 , m_bRecruit( false )
 #endif SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+,m_bUIChungShow(false)
+,m_cGetCharClass(0)
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+,m_bAdamsShopShow(false)
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+,m_bScreenShotTest(false)
+#endif ALWAYS_SCREEN_SHOT_TEST
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT
+,m_iPreEventElesisUID(0)
+#endif // SERV_ELISIS_PREVIOUS_SIS_EVENT
 {
 
 #if defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ ) || defined( _OPEN_TEST_2_ )
@@ -117,27 +130,52 @@ m_bFirstJoinVillage(false)
 
 #endif
 
+
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+    m_vecHackList_MainThread.resize( 0 );
+    {
+        CSLock  lock( m_csHackList );
+	    m_bChangeHacklist = false;
+        m_vecHackList.clear();
+    }
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+
 #if 0
 	KHackingToolInfo hackInfo;
 	hackInfo.m_cFlag = 2;
 	hackInfo.m_wstrProcessName = L"OllyDbg";
 	hackInfo.m_wstrWindowClassName = L"";
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+    m_vecHackList_MainThread.push_back( hackInfo );
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	PushHackList(hackInfo);
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	hackInfo.m_cFlag = 2;
 	hackInfo.m_wstrProcessName = L"Ollyice";
 	hackInfo.m_wstrWindowClassName = L"";
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+    m_vecHackList_MainThread.push_back( hackInfo );
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	PushHackList(hackInfo);
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	hackInfo.m_cFlag = 7;
 	hackInfo.m_wstrProcessName = L"HanAier.dll";
 	hackInfo.m_wstrWindowClassName = L"";
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+    m_vecHackList_MainThread.push_back( hackInfo );
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	PushHackList(hackInfo);
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	hackInfo.m_cFlag = 7;
 	hackInfo.m_wstrProcessName = L"ppd.dll";
 	hackInfo.m_wstrWindowClassName = L"";
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+    m_vecHackList_MainThread.push_back( hackInfo );
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 	PushHackList(hackInfo);
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 #endif
 
-	m_bChangeHacklist = false;
 
 #ifdef VERIFY_NPC_HP
 	m_bVerifyNpcHp = false;
@@ -198,6 +236,28 @@ m_bFirstJoinVillage(false)
 	m_bCanDungeonPlay = false;
 	m_bChangeStage = false;
 #endif
+
+#ifdef SERV_NAVER_CHANNELING
+	m_strNaverAccessToken.clear();
+#endif // SERV_NAVER_CHANNELING
+
+#ifdef FIX_REFORM_ENTRY_POINT_10TH			//	kimjh,  캐릭터 리스트 못받으면 재접속 유도
+	m_vecTryConnectChannelID.clear();
+#endif // FIX_REFORM_ENTRY_POINT_10TH		//	kimjh,  캐릭터 리스트 못받으면 재접속 유도
+
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+	m_bChoicedItem = false;
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	m_bStartUI = false;
+	m_DungeonCountUI = false;
+	m_FieldCountUI = false;
+	m_DungeonCount = 0;
+	m_FieldMonsterKillCount = 0;
+	m_iRemaindTime = -1;
+	m_iTimeSecond = 0;
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 }
 
 CX2InstanceData::~CX2InstanceData(void)
@@ -216,10 +276,28 @@ void CX2InstanceData::OnFrameMove( double fTime, float fElapsedTime )
 	//}}
 
 #ifdef FIX_GAGEMANAGER01
-	m_fVerifyGageManagerTimer -= fElapsedTime;
+	// 강제 종료 까지 남은 시간 부분이 이상하게 조작 됬다면 바로 강제 종료
+	if ( !m_fRemainedTimeByForceQuitGame.Verify() )
+	{
+		g_pMain->SetQuitType( NetError::ERR_CLIENT_QUIT_01 );
+		PostQuitMessage(0);
+	}
 
-	if( m_fVerifyGageManagerTimer <= 0.f )
-		m_fVerifyGageManagerTimer = 0.f;
+	if ( GetVerifyGageManagerTimer() > 0.0f )
+	{
+		m_fRemainedTimeByForceQuitGame -= fElapsedTime;
+		if( m_fRemainedTimeByForceQuitGame <= 0.f )
+		{
+			m_fRemainedTimeByForceQuitGame = 0.f;
+			if ( NULL != g_pKTDXApp )
+			{
+				// kimhc // 김현철 // 안 나가지면 여기서 직접 처리 하자
+				// 전체 해킹 탐지 쪽 코드 리팩토링 좀 해야겠다...
+				g_pMain->SetQuitType( NetError::ERR_CLIENT_QUIT_01 );
+				PostQuitMessage(0);
+			}
+		}
+	}
 #endif
 }
 
@@ -535,7 +613,6 @@ wstring CX2InstanceData::GetChannelServerName( int ChannelID, int ServerID)
 	return wstrChannelName;
 }
 #else
-
 wstring CX2InstanceData::GetChannelServerName( int ChannelID, SERVER_GROUP_ID ServerID)
 {
 	wstring wstrChannelName = L"";
@@ -761,7 +838,6 @@ wstring CX2InstanceData::GetChannelServerName( int ChannelID )
 //{{ kimhc // 2009-12-15 // 서버군 추가 작업
 #ifdef	ADD_SERVER_GROUP
 
-#ifndef CHANNEL_CONGESTION_SCOPE_NO_CHEAT
 void CX2InstanceData::SetChannelDistributionByServerGroup( OUT float* pfChCongestionScopeTemp, IN const float* pfChCongestionScope, IN int iChannelIndex )
 {
 	// 채널 그룹에서 첫번째 채널인지를 판단하는 플래그 ex) 루벤01, 02, 03 채널중 루벤01이 첫번째 채널
@@ -821,7 +897,6 @@ void CX2InstanceData::SetChannelDistributionByServerGroup( OUT float* pfChConges
 		pfChCongestionScopeTemp[3] = pfChCongestionScope[3];
 	}
 }
-#endif // CHANNEL_CONGESTION_SCOPE_NO_CHEAT
 
 #ifdef SHOW_SERVERGROUP_NAME
 void CX2InstanceData::RefreshTitle()
@@ -866,7 +941,7 @@ void CX2InstanceData::SetServerGroupID( int iServerGroupID )
 #else
 void CX2InstanceData::SetServerGroupID( SERVER_GROUP_ID eServerGroupID ) 
 { 
-	m_eServerGroupID = eServerGroupID;
+	m_eServerGroupID = eServerGroupID; 
 #ifdef SHOW_SERVERGROUP_NAME
 	RefreshTitle();
 #endif SHOW_SERVERGROUP_NAME
@@ -874,6 +949,242 @@ void CX2InstanceData::SetServerGroupID( SERVER_GROUP_ID eServerGroupID )
 #endif // EXTEND_SERVER_GROUP_MASK
 #endif	ADD_SERVER_GROUP
 //}}  kimhc // 2009-12-15 // 서버군 추가 작업
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+// 채널 이름을 받아서 DLG_UI_Channel_Selection_New.lua 에 쓰이는 각 채널 버튼 이름을 반환함
+wstring CX2InstanceData::GetChannelButtonNameByChannelName( wstring wstrChannelName ) 
+{ 
+	if ( wstrChannelName.find ( GET_STRING(STR_ID_17731) ) == 0 )	//루벤
+	{
+		return L"Ruben";
+	}
+	else if ( wstrChannelName.find ( GET_STRING(STR_ID_17732) ) == 0)	//엘더
+	{
+		return L"Elder";
+	}
+	else if ( wstrChannelName.find ( GET_STRING(STR_ID_17733) ) == 0)	//베스마
+	{
+		return L"Besma";
+	}
+	else if ( wstrChannelName.find ( GET_STRING(STR_ID_17734) ) == 0)	//알테라
+	{
+		return L"Altera";
+	}
+	else if ( wstrChannelName.find ( GET_STRING(STR_ID_23098) ) == 0 )	//페이타  
+	{
+		return L"Peita";
+	}
+	else if ( wstrChannelName.find ( GET_STRING(STR_ID_17735) ) == 0 )	//벨더
+	{
+		return L"Velder";
+	}
+	else if ( wstrChannelName.find ( GET_STRING(STR_ID_17736) ) == 0 )	//하멜
+	{
+		return L"Hamel";
+	}
+
+	return L"Ruben";
+}
+void CX2InstanceData::AddUserUnitDataInServer( SEnum::SERVER_GROUP_ID eServerGroupID, int iNowUserUnitManyInServer, int iMaxUserUnitManyInServer )
+{
+	m_mapUserUnitDataInServer.insert ( std::make_pair( eServerGroupID, std::make_pair ( iNowUserUnitManyInServer, iMaxUserUnitManyInServer) ) );
+}
+
+void CX2InstanceData::ClearUserUnitDataInServer( ) 
+{
+	m_mapUserUnitDataInServer.clear();
+}
+
+
+int CX2InstanceData::GetMaxUserUnitManyInServer( SEnum::SERVER_GROUP_ID eServerGroupID ) 
+{
+#ifdef FIX_REFORM_ENTRY_POINT_CREATE_UNIT_UNLIMITED
+	return 500;
+#else // FIX_REFORM_ENTRY_POINT_CREATE_UNIT_UNLIMITED
+	map < SEnum::SERVER_GROUP_ID, pair< int, int > >::const_iterator cit = m_mapUserUnitDataInServer.find ( eServerGroupID );
+	if ( cit != m_mapUserUnitDataInServer.end() )
+	{
+		return cit->second.second;
+	}
+
+#ifdef FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+	{
+		eServerGroupID = SEnum::SGI_SOLES;
+		map < SEnum::SERVER_GROUP_ID, pair< int, int > >::const_iterator cit = m_mapUserUnitDataInServer.find ( eServerGroupID );
+		if ( cit != m_mapUserUnitDataInServer.end() )
+		{
+			return cit->second.second;
+		}
+	}
+#else
+	ASSERT ( ! L"Can't Find Server Group ID ! " );
+#endif // FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+
+#endif // FIX_REFORM_ENTRY_POINT_CREATE_UNIT_UNLIMITED 
+	return 0;
+}
+
+
+int CX2InstanceData::GetNowUserUnitManyInServer( SEnum::SERVER_GROUP_ID eServerGroupID ) 
+{
+	map < SEnum::SERVER_GROUP_ID, pair< int, int > >::const_iterator cit = m_mapUserUnitDataInServer.find ( eServerGroupID );
+	if ( cit != m_mapUserUnitDataInServer.end() )
+	{
+		return cit->second.first;
+	}
+
+#ifdef FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+	{
+		eServerGroupID = SEnum::SGI_SOLES;
+		map < SEnum::SERVER_GROUP_ID, pair< int, int > >::const_iterator cit = m_mapUserUnitDataInServer.find ( eServerGroupID );
+		if ( cit != m_mapUserUnitDataInServer.end() )
+		{
+			return cit->second.first;
+		}
+	}
+#else
+	ASSERT ( ! L"Can't Find Server Group ID ! " );	
+#endif // FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+
+	return 0;
+}
+
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
+#ifdef	ADD_SERVER_GROUP
+//{{ robobeg : 2013-12-19
+    // 여러 곳에 중복되어 있는 코드를 한 곳으로 모읍니다.
+bool CX2InstanceData::OpenScriptServerGroupFile()			// 이전에 플레이 했던 서버군 읽기
+{
+	string			strFileName;
+	SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
+	bool			bParsingOK		= false;
+
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    KLuaManagerProxy    luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+	if( g_pKTDXApp->LoadAndDoMemory_LocalFile( &luaManager, g_pData->GetSavedServerGroupFileName().c_str() ) == true )
+    {
+        LUA_GET_VALUE_ENUM( luaManager, "SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
+    }
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+	ConvertWCHARToChar( strFileName, g_pData->GetSavedServerGroupFileName() );
+	ConvertFileAnsiToUTF8( strFileName, strFileName );
+
+	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
+
+	if( g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->IsValidFile_LocalFile( g_pData->GetSavedServerGroupFileName() ) == true )
+	{
+		if( true == g_pKTDXApp->LoadLuaTinker_LocalFile( g_pData->GetSavedServerGroupFileName().c_str() ) )
+		{
+			if( true == g_pKTDXApp->LoadAndDoMemory_LocalFile( &luaManager, g_pData->GetSavedServerGroupFileName().c_str() ) )
+			{
+				LUA_GET_VALUE_ENUM( luaManager, "SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
+			}
+		}
+	}
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+
+	switch ( eServerGroupID )
+	{
+	case SGI_SOLES:
+	case SGI_GAIA:
+		{
+			g_pInstanceData->SetServerGroupID( eServerGroupID );
+			bParsingOK = true;
+		}
+		break;
+
+	default:
+		{
+#ifdef RANDOM_SERVER
+			if( g_pMain->GetDefaultChannelServerIPIndex() == SGI_INVALID )
+			{
+				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( (rand() % 2) ) );
+			}
+			else
+			{
+				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
+			}
+#else
+			g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
+#endif
+		}
+		break;
+
+	}
+
+	return bParsingOK;
+}
+//}} robobeg : 2013-12-19
+
+//{{ kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 저장
+bool    CX2InstanceData::SaveScriptServerGroupFile()
+{
+	string strFileName;
+
+	ConvertWCHARToChar( strFileName, g_pData->GetSavedServerGroupFileName() );
+
+
+	FILE* file = NULL;
+	file = fopen( strFileName.c_str(), "w" );		
+	
+	if( NULL == file )
+	{
+		ErrorLogMsg( XEM_ERROR7, strFileName.c_str() );
+		return false;
+	}
+
+	fputc( 0xEF, file );
+	fputc( 0xBB, file );
+	fputc( 0xBF, file );
+
+	fwprintf( file, L"  \n" );
+	fwprintf( file, L"  \n" );
+	fwprintf( file, L"SERVER_GROUP = " );
+
+	switch( g_pInstanceData->GetServerGroupID() )
+	{
+	case SGI_GAIA:
+		fwprintf( file, L"SERVER_GROUP_ID[\"SGI_GAIA\"]" );
+		break;
+
+	case SGI_SOLES:
+	default:
+		fwprintf( file, L"SERVER_GROUP_ID[\"SGI_SOLES\"]" );
+		break;
+	}
+
+	fclose( file );
+
+	return true;
+}
+
+#endif  ADD_SERVER_GROUP
+//}}  kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 저장		
+
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		//	kimjh,  캐릭터 리스트 못받으면 재접속 유도
+bool CX2InstanceData::IsConnectedChannel ( int iChannelID_ )
+{
+	// 채널에 접속했었는지 확인한다.
+	BOOST_FOREACH ( int iChannelID, m_vecTryConnectChannelID )
+	{
+		if ( iChannelID == iChannelID_ )
+			return true;
+	}
+	return false;
+}
+void CX2InstanceData::SetConnectedChannelID ( int iChannelID_ )
+{
+	// 접속 시도한 채널의 아이디를 남긴다.
+	m_vecTryConnectChannelID.push_back ( iChannelID_ );
+}
+void CX2InstanceData::ResetConnectedChannelID ()
+{
+	// 접속 시도한 채널의 아이디를 초기화 한다.
+	m_vecTryConnectChannelID.clear();
+}
+
+#endif // FIX_REFORM_ENTRY_POINT_10TH	//	kimjh,  캐릭터 리스트 못받으면 재접속 유도
 
 #ifdef SERVER_NAME
 const wstring CX2InstanceData::GetServerGroupName()
@@ -899,3 +1210,60 @@ const wstring CX2InstanceData::GetServerGroupName()
 #endif // EXTEND_SERVER_GROUP_MASK
 }
 #endif SERVER_NAME
+
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+void CX2InstanceData::SetNowSubCategoryList( IN const vector< CX2CashShop::CashShopCategory* >& m_vecCashShopCateList, IN const int iCategory_ )
+{
+	m_vecNowSubCategoryList.clear();
+
+	for ( int cateIndex = 0; cateIndex < (int)m_vecCashShopCateList.size(); cateIndex++ )
+	{
+		CX2CashShop::CashShopCategory* pCashShopCategory = m_vecCashShopCateList[cateIndex];
+		if ( pCashShopCategory != NULL )
+		{
+			if ( (int)pCashShopCategory->m_CategoryID.x == iCategory_ )
+			{
+				m_vecNowSubCategoryList = pCashShopCategory->m_vecSubCategoryID;
+			}
+		}
+	}
+}
+
+bool CX2InstanceData::IsCurrentSubCategoryInNowCatagory( IN const int iSubCategory_ )
+{
+	if( true == m_vecNowSubCategoryList.empty() )
+		// 섭 카테고리 비어있는경우는, 메인 페이지! 다 보여주자.
+		return true;
+
+	BOOST_TEST_FOREACH( const D3DXVECTOR2, v2Val, m_vecNowSubCategoryList)
+	{
+		if( v2Val.y == iSubCategory_ )
+			return true;
+	}
+
+	return false;
+}
+
+vector< KBillProductInfo > CX2InstanceData::GetCurrentProductInfoListInNowCatagory( vector< KBillProductInfo >& vecBillInfo_ )
+{
+	vector< KBillProductInfo > vecBillInfoTemp;
+
+	BOOST_TEST_FOREACH( const KBillProductInfo, kInfo, vecBillInfo_)
+	{
+		if( true == IsCurrentSubCategoryInNowCatagory(kInfo.m_cCategoryNo) )
+			vecBillInfoTemp.push_back(kInfo);
+	}
+
+	return vecBillInfoTemp;
+}
+
+void CX2InstanceData::SetChoicedItem(IN bool bVal_ )
+{
+	m_bChoicedItem = bVal_;
+}
+
+bool CX2InstanceData::IsChoicedItem()
+{
+	return m_bChoicedItem;
+}
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2

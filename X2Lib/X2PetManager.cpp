@@ -4,12 +4,10 @@
 
 #ifdef SERV_PET_SYSTEM
 
-//{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
 #include "BasicExcel.hpp"
 using namespace YExcel;
 #endif PRINT_INGAMEINFO_TO_EXCEL
-//}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 
 const float CX2PetManager::MAX_OF_SATIETY = 4800.0f;
 const float CX2PetManager::SATIETY_RATIO_TO_BE_ABLE_TO_APPLY_AURA = 0.4f;
@@ -319,10 +317,8 @@ bool CX2PetManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 			Handler_EGS_SUMMON_PET_REQ( 0 );
 			if( m_pDlgPetPopupMenu != NULL )
 				m_pDlgPetPopupMenu->SetShowEnable(false, false);
-#ifdef REFORM_UI_CHARACTER_INFO
 			if ( NULL != m_pDlgPopup )
 				m_pDlgPopup->SetShowEnable(false, false);
-#endif
 			return true;
 		}
 		break;
@@ -333,10 +329,8 @@ bool CX2PetManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 				g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_PET_LIST, true, 1);
 				if( m_pDlgPetPopupMenu != NULL )
 					m_pDlgPetPopupMenu->SetShowEnable(false, false);
-#ifdef REFORM_UI_CHARACTER_INFO
 				if ( NULL != m_pDlgPopup )
 					m_pDlgPopup->SetShowEnable(false, false);
-#endif
 				return true;
 			}			
 		}
@@ -348,10 +342,8 @@ bool CX2PetManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 				g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_PET_LIST, true, 2);
 				if( m_pDlgPetPopupMenu != NULL )
 					m_pDlgPetPopupMenu->SetShowEnable(false, false);
-#ifdef REFORM_UI_CHARACTER_INFO
 				if ( NULL != m_pDlgPopup )
 					m_pDlgPopup->SetShowEnable(false, false);
-#endif
 				return true;
 			}			
 		}
@@ -366,10 +358,8 @@ bool CX2PetManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
 				if( m_pDlgPetPopupMenu != NULL )
 					m_pDlgPetPopupMenu->SetShowEnable(false, false);
-#ifdef REFORM_UI_CHARACTER_INFO
 				if ( NULL != m_pDlgPopup )
 					m_pDlgPopup->SetShowEnable(false, false);
-#endif
 					return true;
 			}
 		}
@@ -383,10 +373,8 @@ bool CX2PetManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
 				if( m_pDlgPetPopupMenu != NULL )
 					m_pDlgPetPopupMenu->SetShowEnable(false, false);
-#ifdef REFORM_UI_CHARACTER_INFO
 				if ( NULL != m_pDlgPopup )
 					m_pDlgPopup->SetShowEnable(false, false);
-#endif
 				return true;
 			}
 		}
@@ -447,6 +435,10 @@ bool CX2PetManager::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 	case EGS_RELEASE_PET_NOT:
 		return Handler_EGS_RELEASE_PET_NOT( hWnd, uMsg, wParam, lParam );
 #endif SERV_PERIOD_PET
+#ifdef SERV_EVENT_VC
+	case EGS_USE_INTIMACY_UP_ITEM_ACK:
+		return Handler_EGS_USE_INTIMACY_UP_ITEM_ACK(hWnd, uMsg, wParam, lParam );
+#endif //SERV_EVENT_VC
 	default:
 		break;
 	}
@@ -886,6 +878,9 @@ bool CX2PetManager::ForceUpgradePet()
 	petInfo.m_Extroversion = pKPetInfo->m_sExtroversion;
 	petInfo.m_Emotion = pKPetInfo->m_sEmotion;
 	petInfo.m_bSummon = true;
+#ifdef SERV_PET_SYSTEM_EX1
+	petInfo.m_bAlwaysMaxSatiety = pKPetInfo->m_bAlwaysMaxSatiety;
+#endif //SERV_PET_SYSTEM_EX1
 
 	D3DXVECTOR3 vInitPosBackup = pPet->GetPos();
 
@@ -1249,25 +1244,13 @@ bool CX2PetManager::OpenScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pPetManager", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR68, strFileName.c_str() );
+
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR68, pFileName );
 
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR69, strFileName.c_str() );
-
-		return false;
-	}
+    }
 
 #ifdef	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 	LoadInitPetData();
@@ -1294,8 +1277,8 @@ void CX2PetManager::LoadInitPetData()
 				pPetTemplet->m_Evolution_Step_InitLuaTemplet[ uIV ].m_pInitTemplet = new PetInitTemplet;
 				pPetTemplet->m_Evolution_Step_InitLuaTemplet[ uIV ].m_pLuaManager 
 					= new KLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-				//g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pUnitTypeTemplet->m_wstrLuaScriptFile.c_str() );
-				if ( g_pKTDXApp->GetDeviceManager()->LoadLuaManager( 
+				//g_pKTDXApp->LoadLuaTinker( pUnitTypeTemplet->m_wstrLuaScriptFile.c_str() );
+				if ( g_pKTDXApp->LoadAndDoMemory( 
 					pPetTemplet->m_Evolution_Step_InitLuaTemplet[ uIV ].m_pLuaManager, 
 					pPetTemplet->m_Evolution_Step_ScriptName[ uIV ].c_str() ) == false )
 					continue;
@@ -1324,13 +1307,19 @@ bool CX2PetManager::AddPetTemplet_LUA()
 {
 	PetTemplet* pPetTemplet = new PetTemplet();
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
-	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"PET_ID",				pPetTemplet->m_PetId,				PET_UNIT_ID,	PUI_NONE,	SAFE_DELETE(pPetTemplet); return false; );
-	LUA_GET_VALUE(				luaManager, L"COMMON_NAME",			pPetTemplet->m_wstrCommonName ,		L"" );
-	LUA_GET_VALUE(				luaManager, L"CAPRICE",				pPetTemplet->m_caprice ,			1.f );
-	LUA_GET_VALUE(				luaManager, L"APPETITE",			pPetTemplet->m_appetite ,			1.f );
-	LUA_GET_VALUE(				luaManager, L"EVOLUTION_ALL_STEP",	pPetTemplet->m_Evolution_All_Step ,	4 );
+	LUA_GET_VALUE_RETURN_ENUM(	luaManager, "PET_ID",				pPetTemplet->m_PetId,				PET_UNIT_ID,	PUI_NONE,	SAFE_DELETE(pPetTemplet); return false; );
+	LUA_GET_VALUE(				luaManager, "COMMON_NAME",			pPetTemplet->m_wstrCommonName ,		L"" );
+	LUA_GET_VALUE(				luaManager, "CAPRICE",				pPetTemplet->m_caprice ,			1.f );
+	LUA_GET_VALUE(				luaManager, "APPETITE",			pPetTemplet->m_appetite ,			1.f );
+	LUA_GET_VALUE(				luaManager, "EVOLUTION_ALL_STEP",	pPetTemplet->m_Evolution_All_Step ,	4 );
+
+#ifdef SERV_PET_SYSTEM_EX1
+	LUA_GET_VALUE(				luaManager, "ALWAYS_MAX_SATIETY",	pPetTemplet->m_bAlwaysMaxSatiety,	false );
+#endif //SERV_PET_SYSTEM_EX1
 	
 	if( luaManager.BeginTable( "PET_STATUS" ) == true )
 	{
@@ -1692,10 +1681,8 @@ bool CX2PetManager::GetMyPetPick( bool bOpenPopup )
 {
 	if( g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP ||
 		g_pMain->GetNowStateID() == CX2Main::XS_PVP_ROOM 
-#ifdef REFORM_UI_CHARACTER_INFO
 		|| g_pMain->GetNowStateID() == CX2Main::XS_BATTLE_FIELD
 		|| g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_RESULT
-#endif
 		)
 	{
 		CX2PET *pMyPet = GetMyPet();
@@ -1731,26 +1718,7 @@ bool CX2PetManager::GetMyPetPick( bool bOpenPopup )
 }
 // }} 김상훈 : 2010.10.07 : 캐릭터 우클릭 팝업메뉴 UI 개선 
 
-//{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
-/*
-void CX2PetManager::Pet_Info(void)
-{
-	wofstream of(L"펫 정보.txt");
-	of.imbue(std::locale("kor",locale::ctype));
-	map<PET_UNIT_ID, PetTemplet*>::iterator iter;
-		
-	for( iter = m_PetTemplet.begin(); iter != m_PetTemplet.end(); ++iter )
-	{
-		PetTemplet *pPetTemplet = iter->second;
-		of << pPetTemplet->m_PetId << endl << endl << pPetTemplet->m_wstrCommonName << endl << endl 
-			<< pPetTemplet->m_caprice << endl << endl << pPetTemplet->m_appetite << endl << endl 
-			<< pPetTemplet->m_Evolution_All_Step << endl;
-		of << L"----------------------------------------------------------------------------------------"<< endl;
-	}
-	of.close();
-}
-*/
 void CX2PetManager::PrintPetInfo_ToExcel(void)
 {
 	BasicExcel e;
@@ -1864,7 +1832,7 @@ void CX2PetManager::PrintPetInfo_ToExcel(void)
 
 					// DESC 첫번째 개행으로 구분해서 스킬 Name과 Desc 구분해야 함 
 					std::wstring wstrTmpDesc = pPetTemplet->m_AttackSkill_Step[iIdx].m_wstrSkillDesc;
-					unsigned int iTmpIdx = wstrTmpDesc.find_first_of(L'\n', 0);
+					int iTmpIdx = wstrTmpDesc.find_first_of(L"\n", 0, wstrTmpDesc.size() -1);
 					std::wstring wstrTmpName = wstrTmpDesc.substr(0, iTmpIdx);
 					pSheet2->Cell(iSkillRow, 3)->SetWString(wstrTmpName.c_str());
 
@@ -1890,7 +1858,7 @@ void CX2PetManager::PrintPetInfo_ToExcel(void)
 
 					// DESC 첫번째 개행으로 구분해서 스킬 Name과 Desc 구분해야 함 
 					std::wstring wstrTmpDesc = pPetTemplet->m_CheerSkill[iIdx].m_wstrSkillDesc;
-					unsigned int iTmpIdx = wstrTmpDesc.find_first_of(L'\n', 0);
+					int iTmpIdx = wstrTmpDesc.find_first_of(L"\n", 0, wstrTmpDesc.size() -1);
 					std::wstring wstrTmpName = wstrTmpDesc.substr(0, iTmpIdx);
 					pSheet2->Cell(iSkillRow, 3)->SetWString(wstrTmpName.c_str());
 
@@ -1918,7 +1886,7 @@ void CX2PetManager::PrintPetInfo_ToExcel(void)
 
 					// DESC 첫번째 개행으로 구분해서 스킬 Name과 Desc 구분해야 함 
 					std::wstring wstrTmpDesc = pPetTemplet->m_AuraSkill[iIdx].m_wstrSkillDesc;
-					unsigned int iTmpIdx = wstrTmpDesc.find_first_of(L'\n', 0);
+					int iTmpIdx = wstrTmpDesc.find_first_of(L"\n", 0, wstrTmpDesc.size() -1);
 					std::wstring wstrTmpName = wstrTmpDesc.substr(0, iTmpIdx);
 					pSheet2->Cell(iSkillRow, 3)->SetWString(wstrTmpName.c_str());
 
@@ -1960,14 +1928,11 @@ void CX2PetManager::PrintPetInfo_ToExcel(void)
 
 }
 #endif PRINT_INGAMEINFO_TO_EXCEL
-//}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 
 void CX2PetManager::ClosePetPopupMenu()
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	if ( NULL != m_pDlgPopup )
 		m_pDlgPopup->SetShowEnable(false, false);
-#endif
 
 	if( m_pDlgPetPopupMenu != NULL )
 	{
@@ -1988,11 +1953,7 @@ void CX2PetManager::OpenPetPopupMenu()
 
 	if( m_pDlgPetPopupMenu == NULL )
 	{
-#ifdef REFORM_UI_CHARACTER_INFO
 		m_pDlgPetPopupMenu = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Pet_R_Menu_NEW.lua" );
-#else
-		m_pDlgPetPopupMenu = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Pet_R_Menu.lua" );
-#endif
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDlgPetPopupMenu );
 		m_pDlgPetPopupMenu->SetDisableUnderWindow(true);		
 	}	
@@ -2006,10 +1967,8 @@ void CX2PetManager::OpenPetPopupMenu()
 	// 팝업 메뉴가 화면 밖으로 벗어나지 않게 수정	
 	m_pDlgPetPopupMenu->SetPos( D3DXVECTOR2( (float)vMousePos.x-30.f, (float)vMousePos.y - 40.f ) );
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	m_pDlgPopup->SetPos( D3DXVECTOR2( (float)vMousePos.x-30.f, (float)vMousePos.y - 40.f ) );
 	m_pDlgPopup->SetShowEnable( true, true );
-#endif
 	m_pDlgPetPopupMenu->SetShowEnable(true, true);
 
 
@@ -2045,7 +2004,6 @@ void CX2PetManager::OpenPetPopupMenu()
 	int MyPetID = pPet->GetPetInfo().m_PetId;
 	int Invenslot_Size = g_pData->GetPetManager()->GetPetInventorySlotSize((CX2PetManager::PET_UNIT_ID) MyPetID, EvolutionStep);
 		
-#ifdef REFORM_UI_CHARACTER_INFO
 	float fButtonWidth = 60.f;
 	float fButtonHeight = 22.f;
 	D3DXVECTOR2 offsetPos = D3DXVECTOR2(0.f, 0.f);
@@ -2083,15 +2041,9 @@ void CX2PetManager::OpenPetPopupMenu()
 		pStaticText->GetString( 3 )->msg = GET_STRING( STR_ID_20843 );
 		pStaticText->GetString( 4 )->msg = GET_STRING( STR_ID_20844 );
 	}
-#else
-	CKTDGUIButton* pButtonThings = (CKTDGUIButton*)m_pDlgPetPopupMenu->GetControl( L"Pat_R_Things" );
-	CKTDGUIButton* pButtonFoodGive = (CKTDGUIButton*)m_pDlgPetPopupMenu->GetControl( L"Pat_R_Food_Give" );
-	CKTDGUIButton* pButtonFoodGive2 = (CKTDGUIButton*)m_pDlgPetPopupMenu->GetControl( L"Pat_R_Food_Give2" );
-#endif
 
 	if(Invenslot_Size == 0)
 	{
-#ifdef REFORM_UI_CHARACTER_INFO
 		float fStringYPos = 0.f;
 
 		if ( NULL != pButtonInven )
@@ -2110,18 +2062,9 @@ void CX2PetManager::OpenPetPopupMenu()
 			pStaticBar->GetPicture( 4 )->SetShow( false );
 
 		m_nMenuCount = 3;
-#else
-		if(pButtonThings != NULL)
-			pButtonThings->SetShowEnable(false, false);		
-		if(pButtonFoodGive != NULL)
-			pButtonFoodGive->SetShowEnable(false, false);
-		if(pButtonFoodGive2 != NULL)
-			pButtonFoodGive2->SetShowEnable(true, true);
-#endif
 	}
 	else
 	{
-#ifdef REFORM_UI_CHARACTER_INFO
 		float fStringYPos = 0.f;
 
 		if ( NULL != pButtonCancel )
@@ -2137,19 +2080,10 @@ void CX2PetManager::OpenPetPopupMenu()
 			//pStaticBar->GetPicture( 4 )->SetShow( true );
 
 		m_nMenuCount = 4;
-#else
-		if(pButtonThings != NULL)
-			pButtonThings->SetShowEnable(true, true);
-		if(pButtonFoodGive != NULL)
-			pButtonFoodGive->SetShowEnable(true, true);
-		if(pButtonFoodGive2 != NULL)
-			pButtonFoodGive2->SetShowEnable(false, false);
-#endif
 	}
 
 	//}}
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	m_pPicCenterTop->SetSizeX( fButtonWidth );
 	m_pPicLeftMiddle->SetSizeY( m_nMenuCount * fButtonHeight );
 	m_pPicCenterMiddle->SetSizeX( fButtonWidth );
@@ -2176,7 +2110,6 @@ void CX2PetManager::OpenPetPopupMenu()
 	offsetPos = m_pPicCenterBottom->GetPos();
 	offsetPos.x += fButtonWidth;
 	m_pPicRightBottom->SetPos( offsetPos );
-#endif
 }
 
 bool CX2PetManager::Handler_EGS_COMMANDS_FOR_PETS_REQ( CX2PET::PET_ACTION_COMMAND ePetAction )
@@ -2274,7 +2207,7 @@ bool CX2PetManager::Handler_EGS_SUMMON_PET_ACK( HWND hWnd, UINT uMsg, WPARAM wPa
 			int iInvenSlotSize = g_pData->GetPetManager()->GetPetInventorySlotSize((CX2PetManager::PET_UNIT_ID) kEvent.m_kSummonedPetInfo.m_cPetID, EvolutionStep);
 #endif //SERV_PETID_DATA_TYPE_CHANGE
 
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->SetPetInventory( kEvent.m_vecPetInventorySlotInfo, iInvenSlotSize );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().SetPetInventory( kEvent.m_vecPetInventorySlotInfo, iInvenSlotSize );
 			//}}
 
 			for(UINT i=0; i<m_vecNeverSummonPetList.size(); ++i)
@@ -2348,6 +2281,17 @@ bool CX2PetManager::Handler_EGS_SUMMON_PET_NOT( HWND hWnd, UINT uMsg, WPARAM wPa
 				if ( NULL != pUIManager->GetUIPetList() )
 					pUIManager->GetUIPetList()->UpdateView();
 
+#ifdef SIMPLE_BUG_FIX
+				CKTDGParticleSystem::CParticleEventSequenceHandle mhParticle = pUIManager->GetUIPetList()->GethParticle();
+				if( mhParticle != INVALID_PARTICLE_SEQUENCE_HANDLE )
+				{
+					g_pData->GetUIMajorParticle()->DestroyInstanceHandle(mhParticle);
+					mhParticle = INVALID_PARTICLE_SEQUENCE_HANDLE;
+
+					pUIManager->GetUIPetList()->SethParticle(mhParticle);
+				}
+#endif SIMPLE_BUG_FIX
+
 				CX2UIInventory* pUIInventory = pUIManager->GetUIInventory();
 
 				if ( NULL != pUIInventory && true == pUIInventory->GetShow() )
@@ -2400,8 +2344,18 @@ bool CX2PetManager::Handler_EGS_SUMMON_PET_NOT( HWND hWnd, UINT uMsg, WPARAM wPa
 #ifdef PET_DROP_ITEM_PICKUP
 		petInfo.m_bIsDropItemPickup = pPetInfo.m_bAutoLooting;
 #endif //PET_DROP_ITEM_PICKUP
+#ifdef SERV_PET_SYSTEM_EX1
+		petInfo.m_bAlwaysMaxSatiety = pPetInfo.m_bAlwaysMaxSatiety;
+#endif //SERV_PET_SYSTEM_EX1
 		petInfo.m_bSummon = true;
-
+#ifdef SERV_EVENT_PET_INVENTORY		
+		//여기서 이벤트 펫 인지 확인한다.
+		if( kEvent.m_vecPetInfo[0].m_bIsEventPetID ) //이벤트 펫이 맞다.
+		{			
+			petInfo.m_bEventFoodEat = kEvent.m_vecPetInfo[0].m_bEventFoodEat;
+			petInfo.m_bIsEventPetID = kEvent.m_vecPetInfo[0].m_bIsEventPetID;
+		}		
+#endif SERV_EVENT_PET_INVENTORY
 		bool InitFlag = false;
 		D3DXVECTOR3 vInitPosBackup = D3DXVECTOR3(0.f, 0.f, 0.f);
 		CX2PET *pPet = GetPet( uidMasterUser );
@@ -2428,6 +2382,10 @@ bool CX2PetManager::Handler_EGS_SUMMON_PET_NOT( HWND hWnd, UINT uMsg, WPARAM wPa
 
 				
 				//UpdateMasterUserSocketAndEnchantData( pMasterUser );
+
+				// 오현빈 // 2013-10-31 // 펫에 의한 공격력/방어력 증가분이 동기화 되지 않는 문제 수정
+				pMasterUser->UpdateSocketDataAndEnchantData();
+				pMasterUser->UpdatePassiveAndActiveSkillState();
 			}
 		}
 		else 
@@ -2587,8 +2545,7 @@ bool CX2PetManager::Handler_EGS_PET_EVOLUTION_ACK( HWND hWnd, UINT uMsg, WPARAM 
 		if( GetMyPet() != NULL && GetMyPet()->GetPetInfo().m_PetUid == kEvent.m_kEvolutionResultPetInfo.m_iPetUID )
 		{
 			// oasis907 : 김상윤 [2010.9.8] // 펫 인벤토리 확장
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-			if( pInventory != NULL )
+			CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 			{
 				KPetInfo kPetInfo = kEvent.m_kEvolutionResultPetInfo;
 				int EvolutionStep = kPetInfo.m_cEvolutionStep;
@@ -2598,7 +2555,7 @@ bool CX2PetManager::Handler_EGS_PET_EVOLUTION_ACK( HWND hWnd, UINT uMsg, WPARAM 
 				int iInvenSlotSize = g_pData->GetPetManager()->GetPetInventorySlotSize((CX2PetManager::PET_UNIT_ID) kPetInfo.m_cPetID, EvolutionStep);
 #endif //SERV_PETID_DATA_TYPE_CHANGE
 
-				pInventory->SetItemMaxNum(CX2Inventory::ST_PET, iInvenSlotSize);
+				kInventory.SetItemMaxNum(CX2Inventory::ST_PET, iInvenSlotSize);
 			}
 			//}}
 		}
@@ -2642,6 +2599,9 @@ bool CX2PetManager::Handler_EGS_PET_EVOLUTION_NOT( HWND hWnd, UINT uMsg, WPARAM 
 #ifdef PET_DROP_ITEM_PICKUP
 		petInfo.m_bIsDropItemPickup = kEvent.m_kPetInfo.m_bAutoLooting;
 #endif //PET_DROP_ITEM_PICKUP
+#ifdef SERV_PET_SYSTEM_EX1
+		petInfo.m_bAlwaysMaxSatiety = kEvent.m_kPetInfo.m_bAlwaysMaxSatiety;
+#endif //SERV_PET_SYSTEM_EX1
 		petInfo.m_bSummon = true;
 
 		D3DXVECTOR3 vInitPosBackup = pPet->GetPos();
@@ -2736,7 +2696,12 @@ bool CX2PetManager::ChangeSatiety(UidType iUnitUID, UidType iPetUID, short sCurr
 
 		CX2PET *pPet = GetPet( iMasterUid );
 		if( pPet != NULL && pPet->GetPetInfo().m_PetUid == iPetUid )
-		{
+		{		
+#ifdef SERV_PET_SYSTEM_EX1
+			if( true == pPet->GetPetInfo().m_bAlwaysMaxSatiety )
+				return true;
+#endif //SERV_PET_SYSTEM_EX1
+
 			float fOldSatiety = pPet->GetPetInfo().m_Satiety;
 			pPet->GetPetInfo().m_Satiety = (float)sCurrentSatiety;
 
@@ -3074,7 +3039,7 @@ bool CX2PetManager::Handler_EGS_CHANGE_PET_NAME_ACK( HWND hWnd, UINT uMsg, WPARA
 	
 	if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 	{		 
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 		// 켜져있는지 확인 후 업데이트 
 		if( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_INVEN ) == true )
 		{
@@ -3142,7 +3107,7 @@ bool CX2PetManager::Handler_EGS_CREATE_PET_ACK( HWND hWnd, UINT uMsg, WPARAM wPa
 	{		
 		// 펫 생성 성공
 
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 		// 켜져있는지 확인 후 업데이트 
 		if( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_INVEN ) == true )
 		{
@@ -3226,6 +3191,21 @@ bool CX2PetManager::Handler_EGS_FEED_PETS_ACK( HWND hWnd, UINT uMsg, WPARAM wPar
 		CX2PET *pPet = GetMyPet();
 		if( pPet != NULL )
 		{
+#ifdef SERV_EVENT_PET_INVENTORY
+			//여기서 이벤트 먹이의 사용 유무를 가져온다.
+			if( kEvent.m_EventFoodEat ) //먹이를 먹었다.인벤토리 열어주자.
+			{			
+				pPet->GetPetInfo().m_bEventFoodEat = kEvent.m_EventFoodEat;
+				g_pData->GetUIManager()->GetUIInventory()->UpdateButtonPetInventory();
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+				// 켜져있는지 확인 후 업데이트 
+				if( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_INVEN ) == true )
+				{
+					g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+				}
+				return true;
+			}
+#endif SERV_EVENT_PET_INVENTORY
 			float fOldSatiety = pPet->GetPetInfo().m_Satiety;
 			pPet->GetPetInfo().m_Satiety = (float)kEvent.m_sSatiety;
 			
@@ -3235,7 +3215,7 @@ bool CX2PetManager::Handler_EGS_FEED_PETS_ACK( HWND hWnd, UINT uMsg, WPARAM wPar
 				g_pData->GetUIManager()->GetUIPetList()->ChangeInfo();
 			}
 
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 			// 켜져있는지 확인 후 업데이트 
 			if( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_INVEN ) == true )
 			{
@@ -3264,10 +3244,9 @@ bool CX2PetManager::Handler_EGS_AUTO_FEED_NOT( HWND hWnd, UINT uMsg, WPARAM wPar
 	KEGS_AUTO_FEED_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
-	if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL
-		&& NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+	if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecPetInventorySlotInfo );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecPetInventorySlotInfo );
 		// 켜져있는지 확인 후 업데이트 
 		if( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_INVEN ) == true &&
 			g_pData->GetUIManager()->GetUIInventory()->GetUIPetInventory() != NULL &&
@@ -3395,8 +3374,7 @@ bool CX2PetManager::Handler_EGS_RELEASE_PET_NOT( HWND hWnd, UINT uMsg, WPARAM wP
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250,300 ), GET_REPLACED_STRING( ( STR_ID_195, "L", GetPetByUid(kEvent.m_iPetUID)->GetPetInfo().m_wstrPetName ) ), g_pMain->GetNowState() );
 	}
-	
-	
+		
 	const UidType uidMasterUser = kEvent.m_iUnitUID;
 
 	if ( 0 > uidMasterUser )
@@ -3460,11 +3438,75 @@ bool CX2PetManager::Handler_EGS_RELEASE_PET_NOT( HWND hWnd, UINT uMsg, WPARAM wP
 	}
 
 	// 펫리스트에서 제거
-
-
-
 	return true;
 }
 #endif SERV_PERIOD_PET
+
+#ifdef SERV_EVENT_VC
+void CX2PetManager::UseIntimacyUpItem( UidType itemUid_ )
+{
+	if( NULL == GetMyPet()  )
+	{
+		PetTemplet* pTemplet = GetPetTemplet(CX2PetManager::PUI_PET_MERCENARY_PPORU_EVENT_INT);
+		if( NULL != pTemplet )
+		{
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_26366 ), g_pMain->GetNowState() );
+		}
+	}
+	else
+	{
+		if( GetMyPet()->GetPetInfo().m_PetId == CX2PetManager::PUI_PET_MERCENARY_PPORU_EVENT_INT )
+		{
+			
+			if( GetMyPet()->GetPetInfo().m_Evolution_Step != 0 )
+				Handler_EGS_USE_INTIMACY_UP_ITEM_REQ( itemUid_ );
+			else
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_813 ), g_pMain->GetNowState() );
+		}
+		else
+		{
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_26366 ), g_pMain->GetNowState() );
+		}
+	}
+}
+
+void CX2PetManager::Handler_EGS_USE_INTIMACY_UP_ITEM_REQ( UidType itemUid_ )
+{
+	if ( g_pData->GetServerProtocol() == NULL || 
+		g_pData->GetServerProtocol()->GetUserProxy() == NULL )
+		return;
+
+	KEGS_USE_INTIMACY_UP_ITEM_REQ kPacket;
+	kPacket.m_iItemUID = itemUid_;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_USE_INTIMACY_UP_ITEM_REQ, kPacket );
+}
+
+bool CX2PetManager::Handler_EGS_USE_INTIMACY_UP_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_USE_INTIMACY_UP_ITEM_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+	{
+		g_pData->GetMyUser()->GetSelectUnit()->GetInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+		// 켜져있는지 확인 후 업데이트 
+		if( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_INVEN ) == true )
+		{
+			g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+		}
+
+		if( NULL != GetMyPet() )
+		{
+			// 친밀도 상승량이 유동적으로 되면, 2를 그 값으로 변경해주면 됩니다.
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ),  GET_REPLACED_STRING( ( STR_ID_26367, "i", kEvent.m_iUpPercent )), g_pMain->GetNowState() );			
+		}
+		
+		return true;	
+	}
+	return false;
+}  
+#endif //SERV_EVENT_VC
 
 #endif //SERV_PET_SYSTEM

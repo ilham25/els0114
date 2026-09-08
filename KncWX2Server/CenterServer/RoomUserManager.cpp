@@ -25,17 +25,20 @@ KRoomUserManager::KRoomUserManager()
 :
 //{{ 2011. 07. 25	최육사	대전 개편
 #ifdef SERV_PVP_NEW_SYSTEM
-m_iRedTeamRating( 0 ),
-m_iBlueTeamRating( 0 ),
+m_iRedTeamRating( 0 )
+, m_iBlueTeamRating( 0 )
 #endif SERV_PVP_NEW_SYSTEM
 //}}
-m_eRoomType( CXSLRoom::RT_TOTAL_NUM ),
+, m_eRoomType( CXSLRoom::RT_TOTAL_NUM )
 //{{ 2012. 06. 07	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
-m_iSendReturnToFieldUnitUID( 0 ),
+, m_iSendReturnToFieldUnitUID( 0 )
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
-m_bIsCheckZU( false )
+, m_bIsCheckZU( false )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+, m_byteStartPlayMemberNum( 0 )
+#endif // SERV_HENIR_RENEWAL_2013
 {
 #ifdef  SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
     m_uidForceHostCID = 0;
@@ -112,6 +115,10 @@ void KRoomUserManager::Reset( USERLIST_TYPE eType /* = UT_GAME  */)
 	//}}
 #endif SERV_NEVER_RETURN_TO_FIELD_BUG_FIX
 	//}}
+
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+	m_byteStartPlayMemberNum = 0;
+#endif // SERV_HENIR_RENEWAL_2013
 }
 
 KRoomSlotPtr KRoomUserManager::GetSlot( int iSlotID, USERLIST_TYPE eType /* = UT_GAME  */)
@@ -1599,7 +1606,7 @@ bool KRoomUserManager::IsReady( UidType nCID, bool& bReady )
 #ifdef SERV_OBSERVER_PVP_INTRUDE_MODE
 bool KRoomUserManager::SetReady( IN const UidType nCID, IN const bool bReady, IN const bool bObserver /*= false*/ )
 {
-	const USERLIST_TYPE eType = ( bObserver ? USERLIST_TYPE::UT_OBSERVER : USERLIST_TYPE::UT_GAME );
+	const USERLIST_TYPE eType = ( bObserver ? UT_OBSERVER : UT_GAME );
 
 	KRoomUserPtr spRoomUser = GetUser( nCID, eType );
 	if( !spRoomUser )
@@ -2825,6 +2832,10 @@ void KRoomUserManager::StartPlay()
     }
 
 	m_mapTeamNumKill.clear();
+
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+	m_byteStartPlayMemberNum = GetNumMember();
+#endif // SERV_HENIR_RENEWAL_2013
 }
 
 void KRoomUserManager::EndPlay()
@@ -2877,7 +2888,7 @@ void KRoomUserManager::EndGame()
 #ifdef SERV_OBSERVER_PVP_INTRUDE_MODE
 bool KRoomUserManager::StartGame( IN const UidType nCID, IN const bool bObserver /*= false*/ )
 {
-	const USERLIST_TYPE eType = ( bObserver ? USERLIST_TYPE::UT_OBSERVER : USERLIST_TYPE::UT_GAME );
+	const USERLIST_TYPE eType = ( bObserver ? UT_OBSERVER : UT_GAME );
 
 	KRoomUserPtr spRoomUser = GetUser( nCID, eType );
 	if( !spRoomUser )
@@ -2895,7 +2906,7 @@ bool KRoomUserManager::StartGame( IN const UidType nCID, IN const bool bObserver
 
 bool KRoomUserManager::StartPlay( IN const UidType nCID, IN const bool bObserver /*= false*/ )
 {
-	const USERLIST_TYPE eType = ( bObserver ? USERLIST_TYPE::UT_OBSERVER : USERLIST_TYPE::UT_GAME );
+	const USERLIST_TYPE eType = ( bObserver ? UT_OBSERVER : UT_GAME );
 
 	KRoomUserPtr spRoomUser = GetUser( nCID, eType );
 	if( !spRoomUser )
@@ -4036,177 +4047,177 @@ bool KRoomUserManager::IsAnyTeamReachObjectiveNumKill( int nKill )
 
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-	bool KRoomUserManager::GetIsBoss( UidType nCID, bool& bIsBoss )
-	{
-		USERLIST_TYPE eType = UT_GAME;
-		KRoomUserPtr spRoomUser = GetUser( nCID, eType );
-		if( !spRoomUser )
-		{
-			START_LOG( cerr, L"유저가 없음." )
-				<< BUILD_LOG( nCID )
-				<< END_LOG;
-
-			return false;
-		}
-
-		KRoomSlotPtr spRoomSlot = GetSlot( spRoomUser->GetSlotID(), eType );
-		if( !spRoomSlot )
-		{
-			START_LOG( cerr, L"슬롯 포인터 이상." )
-				<< BUILD_LOG( spRoomUser->GetSlotID() )
-				<< END_LOG;
-
-			return false;
-		}
-
-		bIsBoss = spRoomUser->GetIsBoss();
-		return true;
-	}
-
-
-	bool KRoomUserManager::SetIsBoss( UidType nCID, bool bIsBoss )
-	{
-		USERLIST_TYPE eType = UT_GAME;
-		KRoomUserPtr spRoomUser = GetUser( nCID, eType );
-		if( !spRoomUser )
-		{
-			START_LOG( cerr, L"유저가 없음." )
-				<< BUILD_LOG( nCID )
-				<< END_LOG;
-
-			return false;
-		}
-
-		KRoomSlotPtr spRoomSlot = GetSlot( spRoomUser->GetSlotID(), eType );
-		if( !spRoomSlot )
-		{
-			START_LOG( cerr, L"슬롯 포인터 이상." )
-				<< BUILD_LOG( spRoomUser->GetSlotID() )
-				<< END_LOG;
-
-			return false;
-		}
-
-		spRoomUser->SetIsBoss( bIsBoss );
-		return true;
-	}
-
-
-
-	bool KRoomUserManager::PickRandomBoss()
-	{
-		USERLIST_TYPE eType = UT_GAME;
-
-		std::vector< KRoomUserPtr > vecRedTeamUser;
-		std::vector< KRoomUserPtr > vecBlueTeamUser;
-
-		std::map< UidType, KRoomUserPtr >::iterator mit;
-		for( mit = m_mapRoomUser[eType].begin(); mit != m_mapRoomUser[eType].end(); ++mit )
-		{
-			KRoomUserPtr spRoomUser = mit->second;
-			if( !spRoomUser )
-			{
-				START_LOG( cerr, L"유저가 포인터가 잘못되었음." )
-					<< BUILD_LOG( mit->first )
-					<< END_LOG;
-
-				continue;
-			}
-
-
-			spRoomUser->SetIsBoss( false );
-
-			switch( (CXSLRoom::TEAM_NUM) spRoomUser->GetTeam() )
-			{
-			case CXSLRoom::TN_RED:
-				{
-					vecRedTeamUser.push_back( spRoomUser );
-				} break;
-
-			case CXSLRoom::TN_BLUE:
-				{
-					vecBlueTeamUser.push_back( spRoomUser );
-				} break;
-			}
-		}
-
-
-		if( true == vecRedTeamUser.empty() )
-			return false;
-
-		if( true == vecBlueTeamUser.empty() )
-			return false;
-
-		int iRedTeamBossIndex = rand() % (int) vecRedTeamUser.size();
-		int iBlueTeamBossIndex = rand() % (int) vecBlueTeamUser.size();
-
-
-		vecRedTeamUser[iRedTeamBossIndex]->SetIsBoss( true );
-		vecBlueTeamUser[iBlueTeamBossIndex]->SetIsBoss( true );
-
-
-		return true;
-	}
-	
-	bool KRoomUserManager::IsAnyTeamBossDead( OUT bool& bRedTeamBossDead, OUT bool& bBlueTeamBossDead )
-	{
-		USERLIST_TYPE eType = UT_GAME;
-
-		std::map< UidType, KRoomUserPtr >::iterator mit;
-		KRoomUserPtr spRoomUser;
-
-		bool bRedTeamBossAlive = false;
-		bool bBlueTeamBossAlive = false;
-
-
-		for( mit = m_mapRoomUser[eType].begin(); mit != m_mapRoomUser[eType].end(); ++mit )
-		{
-			spRoomUser = mit->second;
-
-			if( !spRoomUser )
-			{
-				START_LOG( cerr, L"유저가 포인터가 잘못되었음." )
-					<< BUILD_LOG( mit->first )
-					<< END_LOG;
-
-				continue;
-			}
-
-			if( true == spRoomUser->GetIsBoss() )
-			{
-				switch( (CXSLRoom::TEAM_NUM) spRoomUser->GetTeam() )
-				{
-				case CXSLRoom::TN_RED:
-					{
-						if( spRoomUser->GetNumDie() <= 0 && 
-							!spRoomUser->IsDie() )
-						{
-							bRedTeamBossAlive = true;
-						}	
-					} break;
-
-				case CXSLRoom::TN_BLUE:
-					{
-						if( spRoomUser->GetNumDie() <= 0 && 
-							!spRoomUser->IsDie() )
-						{
-							bBlueTeamBossAlive = true;
-						}	
-
-					} break;
-				}
-			}
-		}
-
-
-		bRedTeamBossDead = !bRedTeamBossAlive;
-		bBlueTeamBossDead = !bBlueTeamBossAlive;
-
-		return bRedTeamBossDead || bBlueTeamBossDead;
-
-	}
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//	bool KRoomUserManager::GetIsBoss( UidType nCID, bool& bIsBoss )
+//	{
+//		USERLIST_TYPE eType = UT_GAME;
+//		KRoomUserPtr spRoomUser = GetUser( nCID, eType );
+//		if( !spRoomUser )
+//		{
+//			START_LOG( cerr, L"유저가 없음." )
+//				<< BUILD_LOG( nCID )
+//				<< END_LOG;
+//
+//			return false;
+//		}
+//
+//		KRoomSlotPtr spRoomSlot = GetSlot( spRoomUser->GetSlotID(), eType );
+//		if( !spRoomSlot )
+//		{
+//			START_LOG( cerr, L"슬롯 포인터 이상." )
+//				<< BUILD_LOG( spRoomUser->GetSlotID() )
+//				<< END_LOG;
+//
+//			return false;
+//		}
+//
+//		bIsBoss = spRoomUser->GetIsBoss();
+//		return true;
+//	}
+//
+//
+//	bool KRoomUserManager::SetIsBoss( UidType nCID, bool bIsBoss )
+//	{
+//		USERLIST_TYPE eType = UT_GAME;
+//		KRoomUserPtr spRoomUser = GetUser( nCID, eType );
+//		if( !spRoomUser )
+//		{
+//			START_LOG( cerr, L"유저가 없음." )
+//				<< BUILD_LOG( nCID )
+//				<< END_LOG;
+//
+//			return false;
+//		}
+//
+//		KRoomSlotPtr spRoomSlot = GetSlot( spRoomUser->GetSlotID(), eType );
+//		if( !spRoomSlot )
+//		{
+//			START_LOG( cerr, L"슬롯 포인터 이상." )
+//				<< BUILD_LOG( spRoomUser->GetSlotID() )
+//				<< END_LOG;
+//
+//			return false;
+//		}
+//
+//		spRoomUser->SetIsBoss( bIsBoss );
+//		return true;
+//	}
+//
+//
+//
+//	bool KRoomUserManager::PickRandomBoss()
+//	{
+//		USERLIST_TYPE eType = UT_GAME;
+//
+//		std::vector< KRoomUserPtr > vecRedTeamUser;
+//		std::vector< KRoomUserPtr > vecBlueTeamUser;
+//
+//		std::map< UidType, KRoomUserPtr >::iterator mit;
+//		for( mit = m_mapRoomUser[eType].begin(); mit != m_mapRoomUser[eType].end(); ++mit )
+//		{
+//			KRoomUserPtr spRoomUser = mit->second;
+//			if( !spRoomUser )
+//			{
+//				START_LOG( cerr, L"유저가 포인터가 잘못되었음." )
+//					<< BUILD_LOG( mit->first )
+//					<< END_LOG;
+//
+//				continue;
+//			}
+//
+//
+//			spRoomUser->SetIsBoss( false );
+//
+//			switch( (CXSLRoom::TEAM_NUM) spRoomUser->GetTeam() )
+//			{
+//			case CXSLRoom::TN_RED:
+//				{
+//					vecRedTeamUser.push_back( spRoomUser );
+//				} break;
+//
+//			case CXSLRoom::TN_BLUE:
+//				{
+//					vecBlueTeamUser.push_back( spRoomUser );
+//				} break;
+//			}
+//		}
+//
+//
+//		if( true == vecRedTeamUser.empty() )
+//			return false;
+//
+//		if( true == vecBlueTeamUser.empty() )
+//			return false;
+//
+//		int iRedTeamBossIndex = rand() % (int) vecRedTeamUser.size();
+//		int iBlueTeamBossIndex = rand() % (int) vecBlueTeamUser.size();
+//
+//
+//		vecRedTeamUser[iRedTeamBossIndex]->SetIsBoss( true );
+//		vecBlueTeamUser[iBlueTeamBossIndex]->SetIsBoss( true );
+//
+//
+//		return true;
+//	}
+//	
+//	bool KRoomUserManager::IsAnyTeamBossDead( OUT bool& bRedTeamBossDead, OUT bool& bBlueTeamBossDead )
+//	{
+//		USERLIST_TYPE eType = UT_GAME;
+//
+//		std::map< UidType, KRoomUserPtr >::iterator mit;
+//		KRoomUserPtr spRoomUser;
+//
+//		bool bRedTeamBossAlive = false;
+//		bool bBlueTeamBossAlive = false;
+//
+//
+//		for( mit = m_mapRoomUser[eType].begin(); mit != m_mapRoomUser[eType].end(); ++mit )
+//		{
+//			spRoomUser = mit->second;
+//
+//			if( !spRoomUser )
+//			{
+//				START_LOG( cerr, L"유저가 포인터가 잘못되었음." )
+//					<< BUILD_LOG( mit->first )
+//					<< END_LOG;
+//
+//				continue;
+//			}
+//
+//			if( true == spRoomUser->GetIsBoss() )
+//			{
+//				switch( (CXSLRoom::TEAM_NUM) spRoomUser->GetTeam() )
+//				{
+//				case CXSLRoom::TN_RED:
+//					{
+//						if( spRoomUser->GetNumDie() <= 0 && 
+//							!spRoomUser->IsDie() )
+//						{
+//							bRedTeamBossAlive = true;
+//						}	
+//					} break;
+//
+//				case CXSLRoom::TN_BLUE:
+//					{
+//						if( spRoomUser->GetNumDie() <= 0 && 
+//							!spRoomUser->IsDie() )
+//						{
+//							bBlueTeamBossAlive = true;
+//						}	
+//
+//					} break;
+//				}
+//			}
+//		}
+//
+//
+//		bRedTeamBossDead = !bRedTeamBossAlive;
+//		bBlueTeamBossDead = !bBlueTeamBossAlive;
+//
+//		return bRedTeamBossDead || bBlueTeamBossDead;
+//
+//	}
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 //{{ 2012. 11. 21	최육사		난입자에게 캐쉬샵 유저 정보 보내기
@@ -4808,16 +4819,34 @@ bool KRoomUserManager::AddDungeonRewardED( IN int iED, IN UidType iUserUID, IN f
 
 	KRoomUserPtr spEDRewardRoomUser = mit->second;
 	if( spEDRewardRoomUser == NULL )
+	{
+		START_LOG( cerr, L"KRoomUserPtr이 NULL인 상태로 들어가 있다?" )
+			<< BUILD_LOG( mit->first )
+			<< END_LOG;
+
 		return false;
+	}
 
 	// 죽지 않은 유저에게만 보상
 	if( spEDRewardRoomUser->IsDie() == true )
+	{
+		START_LOG( cwarn, L"죽은 유저가 아이템을 획득을 시도함." )
+			<< BUILD_LOG( mit->first )
+			<< END_LOG;
+
 		return false;
+	}
 
 	if( CXSLDungeon::IsHenirDungeon( iDungeonID ) == true )
 	{
 		if( spEDRewardRoomUser->IsHenirRewardUser() == false )
+		{
+			START_LOG( cwarn, L"헤니르 시공 보상 기회가 없는 유저가 아이템을 획득을 시도함." )
+				<< BUILD_LOG( mit->first )
+				<< END_LOG;
+
 			return false;
+		}
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -5378,7 +5407,7 @@ int KRoomUserManager::GetKillNumber( UidType nCID )
 #ifdef SERV_OBSERVER_PVP_INTRUDE_MODE
 void KRoomUserManager::SetIsIntrude( IN const UidType nCID, IN const bool bIsIntrude, IN const bool bObserver /*= false*/ )
 {
-	const USERLIST_TYPE eType = ( bObserver ? USERLIST_TYPE::UT_OBSERVER : USERLIST_TYPE::UT_GAME );
+	const USERLIST_TYPE eType = ( bObserver ? UT_OBSERVER : UT_GAME );
 
 	KRoomUserPtr spRoomUser = GetUser( nCID, eType );
 	if( spRoomUser == NULL )
@@ -5481,22 +5510,6 @@ bool KRoomUserManager::IsGameBang( UidType nCID )
 
 	return spRoomUser->IsGameBang();
 }
-#ifdef SERV_PC_BANG_TYPE
-int KRoomUserManager::GetPcBangType( UidType nCID )
-{
-	KRoomUserPtr spRoomUser = GetUser( nCID );
-	if( spRoomUser == NULL )
-	{
-		START_LOG( cerr, L"GAME BANG 정보를 찾는데 유저가 없음." )
-			<< BUILD_LOG( nCID )
-			<< END_LOG;
-
-		return -1;
-	}
-
-	return spRoomUser->GetPcBangType();
-}
-#endif SERV_PC_BANG_TYPE
 
 bool KRoomUserManager::IsRingofpvprebirth( UidType nCID )
 {
@@ -5557,6 +5570,12 @@ void KRoomUserManager::ZU_CheckEnd()
 	//유령유저 체크 중지.
 	m_bIsCheckZU = false;
 }
+
+
+
+
+
+
 
 //{{ 2012. 09. 08	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
@@ -5751,6 +5770,7 @@ void KRoomUserManager::ZU_Refresh( UidType nCID, u_short usEventID )
 		}
 	}
 }
+
 
 bool KRoomUserManager::RequestTradeTo( UidType nCID, UidType nCIDTo )
 {
@@ -6951,25 +6971,6 @@ bool KRoomUserManager::SetUnitAllQuestInfo( UidType nCID, std::set< int >& setQu
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM
 //}}
 
-#ifdef SERV_PAYMENT_ITEM_ON_GOING_QUEST
-bool KRoomUserManager::SetUnitGoingQuestInfo( UidType nCID, std::set< int >& setQuestInfo )
-{
-	KRoomUserPtr spRoomUser = GetUser( nCID );
-	if( !spRoomUser )
-	{
-		START_LOG( cwarn, L"유저가 없음." )
-			<< BUILD_LOG( nCID )
-			<< END_LOG;
-
-		return false;
-	}
-
-	spRoomUser->SetUnitGoingQuestInfo( setQuestInfo  );
-
-	return true;
-}
-#endif SERV_PAYMENT_ITEM_ON_GOING_QUEST
-
 //{{ 2011. 05. 27    김민성    휴면 복귀 유저 보상
 #ifdef SERV_COME_BACK_USER_REWARD
 bool KRoomUserManager::IsComeBackUserInRoom()
@@ -7961,6 +7962,23 @@ void KRoomUserManager::SetUnitLevelBeforGameStart( IN const UidType iUnitUID, IN
 #endif SERV_SUITABLE_LEVEL_DUNGEON_CLEAR_SUB_QUEST
 //}}
 
+#ifdef SERV_PC_BANG_TYPE
+int KRoomUserManager::GetPcBangType( UidType nCID )
+{
+	KRoomUserPtr spRoomUser = GetUser( nCID );
+	if( spRoomUser == NULL )
+	{
+		START_LOG( cerr, L"GAME BANG 정보를 찾는데 유저가 없음." )
+			<< BUILD_LOG( nCID )
+			<< END_LOG;
+
+		return -1;
+	}
+
+	return spRoomUser->GetPcBangType();
+}
+#endif SERV_PC_BANG_TYPE
+
 #ifdef SERV_PVP_REMATCH
 bool KRoomUserManager::SetRematch( UidType nCID, bool bAcceptRematch )
 {
@@ -8034,6 +8052,116 @@ bool KRoomUserManager::IsAllPlayerWantRematch()
 	return false;
 }
 #endif SERV_PVP_REMATCH
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+bool KRoomUserManager::CheckCouplePVP()
+{
+	USERLIST_TYPE eType = UT_GAME;
+	
+	if( m_mapRoomUser[eType].size() != 2 )
+	{
+		return false;
+	}
+
+	std::vector<UidType> vecRelation;
+	std::map< UidType, KRoomUserPtr >::iterator mit;
+	for( mit = m_mapRoomUser[eType].begin(); mit != m_mapRoomUser[eType].end(); mit++ )
+	{
+		if( !mit->second )
+		{
+			START_LOG( cerr, L"룸 유저 포인터 이상." )
+				<< BUILD_LOG( mit->first )
+				<< END_LOG;
+			continue;
+		}
+
+		KRoomUserInfo kInfo;
+		mit->second->GetRoomUserInfo( kInfo );
+
+		if( kInfo.m_bCouple == true && kInfo.m_iRelationTargetUserUid > 0 )
+		{
+			vecRelation.push_back( kInfo.m_iRelationTargetUserUid );
+		}
+	}
+
+	std::map< UidType, KRoomUserPtr >::iterator mit2;
+	for( mit2 = m_mapRoomUser[eType].begin(); mit2 != m_mapRoomUser[eType].end(); mit2++ )
+	{
+		if( !mit2->second )
+		{
+			START_LOG( cerr, L"룸 유저 포인터 이상." )
+				<< BUILD_LOG( mit2->first )
+				<< END_LOG;
+			continue;
+		}
+
+		KRoomUserInfo kInfo;
+		mit2->second->GetRoomUserInfo( kInfo );
+
+		for( int i = 0; i < vecRelation.size(); i++ )
+		{
+			if( kInfo.m_nUnitUID == vecRelation[i] )
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+#endif SERV_RELATIONSHIP_EVENT_INT
+
+#ifdef SERV_PAYMENT_ITEM_ON_GOING_QUEST
+bool KRoomUserManager::SetUnitGoingQuestInfo( UidType nCID, std::set< int >& setQuestInfo )
+{
+	KRoomUserPtr spRoomUser = GetUser( nCID );
+	if( !spRoomUser )
+	{
+		START_LOG( cwarn, L"유저가 없음." )
+			<< BUILD_LOG( nCID )
+			<< END_LOG;
+
+		return false;
+	}
+
+	spRoomUser->SetUnitGoingQuestInfo( setQuestInfo  );
+
+	return true;
+}
+#endif SERV_PAYMENT_ITEM_ON_GOING_QUEST
+
+#ifdef SERV_PAYMENT_ITEM_WITH_ALLY_NPC
+bool KRoomUserManager::AddAllyNPC( IN const UidType iUnitUID, IN const KNPCUnitReq& kNPCUnit )
+{
+	KRoomUserPtr spRoomUser = GetUser( iUnitUID );
+	if( spRoomUser == NULL )
+	{
+		START_LOG( cwarn, L"이 유저가 소환을 요청한건데 없다?" )
+			<< BUILD_LOG( iUnitUID )
+			<< END_LOG;
+		return false;
+	}
+
+	spRoomUser->AddAllyNPC( kNPCUnit );
+	return true;
+}
+void KRoomUserManager::DeleteAllyNPC( IN const UidType iNPCUID )
+{
+	std::map< UidType, KRoomUserPtr >::const_iterator mit;
+	for( mit = m_mapRoomUser[UT_GAME].begin(); mit != m_mapRoomUser[UT_GAME].end(); ++mit )
+	{
+		if( IS_NULL( mit->second ) )
+		{
+			START_LOG( cerr, L"룸 유저 포인터 이상." )
+				<< BUILD_LOG( mit->first )
+				<< END_LOG;
+			continue;
+		}
+
+		mit->second->DeleteAllyNPC( iNPCUID );
+	}
+}
+#endif SERV_PAYMENT_ITEM_WITH_ALLY_NPC
 
 //{{ 2013. 04. 15	최육사	어둠의 문 개편
 #ifdef SERV_NEW_DEFENCE_DUNGEON
@@ -8275,35 +8403,14 @@ bool KRoomUserManager::SetRidingPetInfo( IN const UidType iUnitUID, IN const Uid
 }
 #endif	// SERV_RIDING_PET_SYSTM
 
-#ifdef SERV_PAYMENT_ITEM_WITH_ALLY_NPC
-bool KRoomUserManager::AddAllyNPC( IN const UidType iUnitUID, IN const KNPCUnitReq& kNPCUnit )
-{
-	KRoomUserPtr spRoomUser = GetUser( iUnitUID );
-	if( spRoomUser == NULL )
-	{
-		START_LOG( cwarn, L"이 유저가 소환을 요청한건데 없다?" )
-			<< BUILD_LOG( iUnitUID )
-			<< END_LOG;
-		return false;
-	}
 
-	spRoomUser->AddAllyNPC( kNPCUnit );
-	return true;
-}
-void KRoomUserManager::DeleteAllyNPC( IN const UidType iNPCUID )
-{
-	std::map< UidType, KRoomUserPtr >::const_iterator mit;
-	for( mit = m_mapRoomUser[UT_GAME].begin(); mit != m_mapRoomUser[UT_GAME].end(); ++mit )
-	{
-		if( IS_NULL( mit->second ) )
-		{
-			START_LOG( cerr, L"룸 유저 포인터 이상." )
-				<< BUILD_LOG( mit->first )
-				<< END_LOG;
-			continue;
-		}
 
-		mit->second->DeleteAllyNPC( iNPCUID );
-	}
+#ifdef SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+	//bool IsForceHost() { return m_bForceHost; }
+UidType KRoomUserManager::GetForceHostCID() 
+{ 
+    return m_uidForceHostCID; 
 }
-#endif SERV_PAYMENT_ITEM_WITH_ALLY_NPC
+
+#endif  SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK

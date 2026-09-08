@@ -12,7 +12,7 @@ g_pDungeonManager:AddExtraStageCondition( 11, 20, 0 )
 g_pDungeonManager:AddExtraStageCondition( 21, 30, 0.01 )
 g_pDungeonManager:AddExtraStageCondition( 31, 40, 0.03)
 g_pDungeonManager:AddExtraStageCondition( 41, 50, 0.04 )
-g_pDungeonManager:AddExtraStageCondition( 51, 65, 0.05 )
+g_pDungeonManager:AddExtraStageCondition( 51, 70, 0.05 )
 
 
 -- Extra Stage 상수값 : 

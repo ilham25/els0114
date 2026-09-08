@@ -15,24 +15,10 @@
 	#include "EventDataRefresh/EventDataRefreshManager.h"
 	#include "EventDataRefresh/EventNotifyMsgServerInfo.h"
 #else
-	#include "GameEventScriptManager.h"
-#endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
-//}}
-
-#endif SERV_EVENT_SCRIPT_REFRESH
-//}}
-
-//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-int KGameEventManager::m_iScriptID_SERV_EVENT_RETURN_USER_MARK = 500;
-#endif SERV_EVENT_RETURN_USER_MARK
-//}}
-
-//{{ 2012. 06. 05	박세훈	매일매일 선물 상자
-#ifdef SERV_EVENT_DAILY_GIFT_BOX
-	#include ".\GameEvent\DailyGiftBoxManager.h"
-#endif SERV_EVENT_DAILY_GIFT_BOX
-//}}
+	
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	#include "GameEventDBManager.h"
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 //{{ 2011. 7.29 조효진 반복 퀘스트 및 일일 퀘스트도 퀘스트 이벤트로 등록가능하도록 수정
 #ifdef SERV_QUEST_EVENT_EXTEND
@@ -42,6 +28,19 @@ int KGameEventManager::m_iScriptID_SERV_EVENT_RETURN_USER_MARK = 500;
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 #include "..\Common\OnlyGlobal\ProcessCommuniationModule\ProcessCommunicationManager.h"
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
+
+	#include "GameEventScriptManager.h"
+#endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
+//}}
+
+#endif SERV_EVENT_SCRIPT_REFRESH
+//}}
+
+//{{ 2012. 06. 05	박세훈	매일매일 선물 상자
+#ifdef SERV_EVENT_DAILY_GIFT_BOX
+	#include ".\GameEvent\DailyGiftBoxManager.h"
+#endif SERV_EVENT_DAILY_GIFT_BOX
+//}}
 
 ImplementSingleton( KGameEventManager );
 
@@ -70,16 +69,24 @@ ImplToStringW( KGameEventManager )
 
 void KGameEventManager::Tick()
 {
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	TickCheckEvent();
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
 	TickCheckEvent();
 #endif SERV_REFRESH_EVENT_USING_RELEASE_TICK
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 #ifndef SERV_REFRESH_EVENT_USING_RELEASE_TICK
 	//////////////////////////////////////////////////////////////////////////	
 	// 우선 2분마다 받아오자..
 	if( m_TimerRefreshEvent.elapsed() > 120.0 )
 	{
+#ifdef SERV_ADD_EVENT_DB
+		SendToEventDB( DBE_EVENT_UPDATE_REQ );
+#else //SERV_ADD_EVENT_DB
 		SendToLogDB( DBE_EVENT_UPDATE_REQ );
+#endif //SERV_ADD_EVENT_DB
 
 		m_TimerRefreshEvent.restart();
 	}
@@ -127,8 +134,8 @@ void KGameEventManager::Tick()
 					++m_iAppliedEventTick;
 #endif SERV_NEW_EVENT_TYPES
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-					std::wstring wstrEventBegin = (CStringW)(mit->second->GetBeginDate().Format(_T("%c")));
-					std::wstring wstrEventEnd = (CStringW)(mit->second->GetEndDate().Format(_T("%c")));
+					std::wstring wstrEventBegin = (CStringW)(mit->second->GetBeginDate().Format(_T("%Y-%m-%d %H:%M:%S")));
+					std::wstring wstrEventEnd = (CStringW)(mit->second->GetEndDate().Format(_T("%Y-%m-%d %H:%M:%S")));
 					SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 						% 2 %mit->second->GetUID() %mit->second->GetEventName() %mit->second->GetType() %mit->second->GetScriptID() %wstrEventBegin %wstrEventEnd %L"이벤트 종료" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -224,8 +231,8 @@ void KGameEventManager::Tick()
 						++m_iAppliedEventTick;
 #endif SERV_NEW_EVENT_TYPES
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-						std::wstring wstrEventBegin = (CStringW)(mit->second->GetBeginDate().Format(_T("%c")));
-						std::wstring wstrEventEnd = (CStringW)(mit->second->GetEndDate().Format(_T("%c")));
+						std::wstring wstrEventBegin = (CStringW)(mit->second->GetBeginDate().Format(_T("%Y-%m-%d %H:%M:%S")));
+						std::wstring wstrEventEnd = (CStringW)(mit->second->GetEndDate().Format(_T("%Y-%m-%d %H:%M:%S")));
 						SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 							% 2 %mit->second->GetUID() %mit->second->GetEventName() %mit->second->GetType() %mit->second->GetScriptID() %wstrEventBegin %wstrEventEnd %L"이벤트 시작" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -265,8 +272,18 @@ void KGameEventManager::Init()
 	InitEventReleaseTick();
 #endif SERV_REFRESH_EVENT_USING_RELEASE_TICK
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	InitEventDBScriptReleaseTick();
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 	// 이벤트 정보 얻기
+#ifdef SERV_ADD_EVENT_DB
+	// 이벤트 셋팅 정보 얻어 오기
+	SendToEventDB( DBE_EVENT_DB_SCRIPT_REQ );
+	SendToEventDB( DBE_EVENT_UPDATE_REQ );
+#else //SERV_ADD_EVENT_DB
 	SendToLogDB( DBE_EVENT_UPDATE_REQ );
+#endif //SERV_ADD_EVENT_DB
 }
 
 void KGameEventManager::SetEvent( IN const std::vector< KEventInfo >& vecEventList )
@@ -442,6 +459,11 @@ void KGameEventManager::GetRewardEvent( IN OUT KRoomUserInfo& kRoomUserInfo
 #ifdef SERV_PCBANG_USER_REWARD_EVENT// 작업날짜: 2013-07-02	// 박세훈
 									  , IN const bool isPcBang
 #endif // SERV_PCBANG_USER_REWARD_EVENT
+
+#ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP	// 작업날짜: 2014-01-08 // 김현철 // 특정 캐릭터와 플레이시 경험치 증가 이벤트가 적용 될 때 다른 경험치 증가가 적용되지 않는 문제 수정
+									  , IN const bool bHasPlayWithSpecificCharacterBuff_
+#endif // SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+
 									  )
 {
 	SGameEventBonusRate kBonusRateInfo;
@@ -481,13 +503,15 @@ void KGameEventManager::GetRewardEvent( IN OUT KRoomUserInfo& kRoomUserInfo
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_GEV_PARTY_ED, kBonusRateInfo.m_fPartyEDRate );
 	}
 	//{{ 2012. 12. 17	최육사	아라 파티 플레이 보너스 경험치
+	// 작업날짜: 2014-01-08 // 김현철 // 특정 캐릭터와 플레이시 경험치 증가 이벤트가 적용 될 때 다른 경험치 증가가 적용되지 않는 문제 수정
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
-	if( kBonusRateInfo.m_fWithCharEXPRate > 0.0f )
+ 	if( kBonusRateInfo.m_fWithCharEXPRate > 0.0f && bHasPlayWithSpecificCharacterBuff_ )
 	{
 		kRoomUserInfo.AddBonusRate( KRoomUserInfo::BT_GEV_WITH_CHAR_EXP, kBonusRateInfo.m_fWithCharEXPRate );
 	}
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 	//}}
+
 #ifdef	SERV_RANKING_POINT_EVENT // 적용날짜: 2013-03-26
 	if( 0.0f < kBonusRateInfo.m_fRankingPointRate )
 	{
@@ -587,7 +611,6 @@ void KGameEventManager::GetRewardEvent( OUT SGameEventBonusRate& kBonusRateInfo
 		if( pEvent->GetServerGroupID() != SEnum::SGI_INVALID  &&  pEvent->GetServerGroupID() != KBaseServer::GetKObj()->GetServerGroupID() )
 #endif EXTEND_SERVER_GROUP_MASK
 			continue;
-
 #endif SERV_SERVER_GROUP_EVENT_SYSTEM
 		//}}
 
@@ -680,7 +703,13 @@ void KGameEventManager::GetRewardEvent( OUT SGameEventBonusRate& kBonusRateInfo
 #ifdef DROPEVENT_RENEWAL
 bool KGameEventManager::CheckItemDropProbEvent(IN int iDungeonID, IN std::vector<char> vecUintClass, IN std::vector<char> vecUintType,IN std::vector<int> vecUintLevel, OUT int& iDropCount, OUT bool& bWithPlayPcBang )
 #else //DROPEVENT_RENEWAL
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+bool KGameEventManager::CheckItemDropProbEvent( OUT float& fDropRate, OUT bool& bWithPlayPcBang )
+#else // SERV_DROP_EVENT_RENEWAL
 bool KGameEventManager::CheckItemDropProbEvent( OUT int& iDropCount, OUT bool& bWithPlayPcBang )
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #endif //DROPEVENT_RENEWAL
 {
 	if( GetServerType() != ST_CENTER )
@@ -768,7 +797,13 @@ bool KGameEventManager::CheckItemDropProbEvent( OUT int& iDropCount, OUT bool& b
 			if(iDropCount <= pEvent->GetDropCount())
 				iDropCount = pEvent->GetDropCount();
 #else //DROPEVENT_RENEWAL
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+			fDropRate = pEvent->GetDropRate();
+#else // SERV_DROP_EVENT_RENEWAL
 			iDropCount = pEvent->GetDropCount();
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #endif //DROPEVENT_RENEWAL
 			bWithPlayPcBang = pEvent->IsWithPlayPcBang();
 			return true;
@@ -783,7 +818,11 @@ bool KGameEventManager::CheckItemDropProbEvent( OUT int& iDropCount, OUT bool& b
 
 //{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+bool KGameEventManager::CheckItemDropProbEvent( OUT float& fDropRate )
+#else // SERV_DROP_EVENT_RENEWAL
 bool KGameEventManager::CheckItemDropProbEvent( OUT int& iDropCount )
+#endif // SERV_DROP_EVENT_RENEWAL
 {
 	if( GetServerType() != ST_CENTER )
 		return false;
@@ -807,7 +846,11 @@ bool KGameEventManager::CheckItemDropProbEvent( OUT int& iDropCount )
 #endif //SERV_ALLOW_EVENT_ERASE	
 			)
 		{
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+			fDropRate = pEvent->GetDropRate();
+#else // SERV_DROP_EVENT_RENEWAL
 			iDropCount = pEvent->GetDropCount();
+#endif // SERV_DROP_EVENT_RENEWAL
 
 			return true;
 		}
@@ -1430,6 +1473,9 @@ bool KGameEventManager::GetConnectTimeEventReward( IN int iEventUID, OUT int& iR
 
 	KGameEventConnectTime* pEvent = static_cast<KGameEventConnectTime*>(mit->second);
 
+#ifdef SERV_CONNECT_EVENT_LEVEL_UP_CHECK
+	iRewardID = pEvent->GetRewardID();
+#else //SERV_CONNECT_EVENT_LEVEL_UP_CHECK
 	//{{ 2011. 05. 31	최육사	접속 이벤트 레벨 체크
 #ifdef SERV_CONNECT_EVENT_LEVEL_CHECK
 	if( pEvent->IsMinMaxReward() == true )
@@ -1444,6 +1490,8 @@ bool KGameEventManager::GetConnectTimeEventReward( IN int iEventUID, OUT int& iR
 	iRewardID = pEvent->GetRewardID();
 #endif SERV_CONNECT_EVENT_LEVEL_CHECK
 	//}}	
+#endif //SERV_CONNECT_EVENT_LEVEL_UP_CHECK
+
 	return true;
 }
 
@@ -1536,15 +1584,6 @@ void KGameEventManager::CheckEnableConnectTimeEvent( IN OUT ConnectEventFactorSe
 		// 3. 이벤트가 진행중인지..
 		if( mit->second->IsEnable() )
 		{
-			//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-			if( ( pEvent->GetEventID() == m_iScriptID_SERV_EVENT_RETURN_USER_MARK ) && ( bEventReturnUserMark == false ) )
-			{
-				continue;
-			}
-#endif SERV_EVENT_RETURN_USER_MARK
-			//}}
-
 			//{{ 2009. 10. 26  최육사	PC방이벤트
 			if( pEvent->IsPcBangEvent() == true  &&  kFactor.m_bIsPcBang == false )
 				continue;
@@ -1695,24 +1734,6 @@ void KGameEventManager::CheckEnableConnectTimeEvent( IN OUT ConnectEventFactorSe
 #endif SERV_EVENT_DAILY_GIFT_BOX
 			//}}
 
-			//{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-			// 복귀 유저만의 이벤트가 아닐 경우에는 복귀 유저를 포함한 모든 유저가 대상이다.
-			if( ( pEvent->GetComeBackUserEvent() == true ) && ( kFactor.m_bIsComeBackUser == false ) )
-				continue;
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-			//}}
-
-			//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-			// 해당 사항이 있는가?
-			if( CheckFixedDateEvent( pEvent, kFactor ) == false )
-			{
-				continue;
-			}
-#endif SERV_FIXED_DATE_EVENT
-			//}}
-
 			//{{ 2012. 12. 12	박세훈	겨울 방학 전야 이벤트( 임시, 하드 코딩 )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 			if( CheckWinterVacationEvent( iEventUID, pEvent->GetScriptID(), kFactor ) == false )
@@ -1750,7 +1771,6 @@ void KGameEventManager::CheckEnableConnectTimeEvent( IN OUT ConnectEventFactorSe
 				continue;
 			}
 #endif //SERV_STEAM_USER_CONNECT_EVENT
-
 
 #ifdef SERV_CONNECT_EVENT_CONSECUTIVELY_REWARD // 2013.01.23 lygan_조성욱 // 자동 연계 접속 이벤트 임으로 
 			if ( pEvent->IsRepeatRewardEvent() == true && ( pEvent->GetBeforeEventID())!= 0 ) // 2013.01.23 lygan_조성욱 // 자동 연계 접속 이벤트인데 선행 이벤트 가 0 이 아니면 이전 선행 이벤트를 완료 했는지 체크 해야 한다.
@@ -2004,7 +2024,11 @@ void KGameEventManager::CheckConnectTimeEvent( IN OUT ConnectEventFactorSet& kFa
 		}
 		else
 		{
+#ifdef SERV_INT_ONLY
 			tUpdateTime = CTime( tCurrentTime.GetYear(), tCurrentTime.GetMonth(), tCurrentTime.GetDay(), 23, 59, 59 ); // 다음날 되기전에는 받지 못함.
+#else //SERV_INT_ONLY
+			tUpdateTime = CTime( tCurrentTime.GetYear(), tCurrentTime.GetMonth(), tCurrentTime.GetDay(), 05, 59, 59 ) + CTimeSpan( 1, 0, 0, 0 ); // 다음날 되기전에는 받지 못함.
+#endif //SERV_INT_ONLY
 		}
 
 		//{{ 2012. 06. 29	김민성       접속 시간에 따라 아이템 반복 지급
@@ -2092,11 +2116,6 @@ void KGameEventManager::CheckEnableConnectTimeEventForCharInit( IN const u_char 
 
 																IN OUT std::map< int, std::pair< KUserConnectTimeEventInfo, KTimerManager > >& mapEventTime,
 																IN OUT std::set< int >& setCompletedEvent
-																//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-																, IN const bool bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-																//}}
 
 																//{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
@@ -2108,9 +2127,9 @@ void KGameEventManager::CheckEnableConnectTimeEventForCharInit( IN const u_char 
 															   , IN const int iEventItemID
 #endif SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 #ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
-															   ,IN bool bIsNewUnit
-															   ,IN bool bIsNewUnit2
-															   ,IN bool bIsCurrentUnit
+															   , IN bool bIsNewUnit
+															   , IN bool bIsNewUnit2
+															   , IN bool bIsCurrentUnit
 #endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 																)
 {
@@ -2144,12 +2163,6 @@ void KGameEventManager::CheckEnableConnectTimeEventForCharInit( IN const u_char 
 		vecDummy1,
 		vecDummy2,
 		true
-
-		//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-		, bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-		//}}
 
 		//{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
@@ -2211,12 +2224,6 @@ void KGameEventManager::CheckEnableConnectTimeEvent( IN const u_char ucLevel,
                                                      OUT std::vector< KTimeEventSimpleInfo >& vecBeginEvent,
                                                      OUT std::vector< KTimeEventSimpleInfo >& vecEndEvent,
                                                      IN const bool bDelFinishEvent
-													 //{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-													 , IN const bool bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-													 //}}
-
 													 //{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 													 , IN const UidType& iUnitUID
@@ -2265,15 +2272,6 @@ void KGameEventManager::CheckEnableConnectTimeEvent( IN const u_char ucLevel,
 #endif //SERV_ALLOW_EVENT_ERASE		
 			)
 		{
-			//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-			if( ( pEvent->GetEventID() == m_iScriptID_SERV_EVENT_RETURN_USER_MARK ) && ( bEventReturnUserMark == false ) )
-			{
-				continue;
-			}
-#endif SERV_EVENT_RETURN_USER_MARK
-			//}}
-
 			//{{ 2009. 10. 26  최육사	PC방이벤트
 			if( pEvent->IsPcBangEvent() == true  &&  bIsPcBang == false )
 				continue;
@@ -2561,23 +2559,11 @@ void KGameEventManager::CheckConnectTimeEvent( IN const u_char ucLevel,
 											   OUT std::vector< KConnectTimeEventInfo >& vecUpdatedTime, 
 											   OUT std::vector< KTimeEventSimpleInfo >& vecBeginEvent,
 											   OUT std::vector< KTimeEventSimpleInfo >& vecEndEvent
-											   //{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-											   , IN const bool bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-											   //}}
-
 											   //{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 											   , IN const UidType& iUnitUID
 											   , IN const std::multimap<int, KDailyGiftBoxInfo>& mmapDailyGiftBoxList
 #endif SERV_EVENT_DAILY_GIFT_BOX
-											   //}}
-
-											   //{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-											   , IN const bool bIsComeBackUser
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
 											   //}}
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 											   , IN const std::set< int >& setItemID
@@ -2608,13 +2594,6 @@ void KGameEventManager::CheckConnectTimeEvent( IN const u_char ucLevel,
 		vecBeginEvent,
 		vecEndEvent,
 		false
-
-		//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-		, bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-		//}}
-
 		//{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 		, iUnitUID
@@ -2912,11 +2891,6 @@ void KGameEventManager::CheckEnableAndCompleteCumulativeTimeEvent( IN const u_ch
 				kEventTime.first.m_bAccountEvent	= pEvent->IsAccountEvent();
 #endif SERV_ACC_TIME_EVENT
 				//}}
-				//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-				kEventTime.first.m_bRepeatEvent		= pEvent->GetRepeatEvent();
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-				//}}
 				kEventTime.second.restart(); // 타이머 초기화
 				mapEventTime.insert( std::make_pair( iEventUID, kEventTime ) );
 
@@ -2945,11 +2919,6 @@ void KGameEventManager::CheckEnableAndCompleteCumulativeTimeEvent( IN const u_ch
 					mitET->second.first.m_bAccountEvent	= pEvent->IsAccountEvent();
 #endif SERV_ACC_TIME_EVENT
 					//}}
-					//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-					mitET->second.first.m_bRepeatEvent	= pEvent->GetRepeatEvent();
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-					//}}
 				}
 				else
 				{
@@ -2972,12 +2941,12 @@ void KGameEventManager::CheckEnableAndCompleteCumulativeTimeEvent( IN const u_ch
 #ifdef SERV_ALLOW_EVENT_ERASE				
 				if ( pEvent->IsOn() == true ) // 2013.06.11 lygan_조성욱 // 접속 이벤트가 돌아가다가 문제 생겨서 바로 끌 경우 DB에서 off 처리 된건 완료쪽에 넣지 않는다. 문제 수정후 해당 이벤트를 다시 켜줘야 하기 때문. 수정 후 신규 등록하면 한번 더 받을수 있다.
 				{
-					// 완료 이벤트에 추가
+					// 완료된 이벤트에 추가
 					setCompleteEvent.insert( iEventUID );
 				}
 
 #else //SERV_ALLOW_EVENT_ERASE				
-				// 완료 이벤트에 추가
+				// 완료된 이벤트에 추가
 				setCompleteEvent.insert( iEventUID );
 #endif //SERV_ALLOW_EVENT_ERASE		
 
@@ -3058,21 +3027,6 @@ void KGameEventManager::CheckCumulativeTimeEvent( IN const u_char ucLevel,
 			continue;
 		}
 
-		//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		CTime tUpdateTime = CTime::GetCurrentTime();
-		if( vit->m_bRepeatEvent == true )
-		{
-			CTime tCurrentTime = CTime::GetCurrentTime();
-			tUpdateTime = CTime( tCurrentTime.GetYear(), tCurrentTime.GetMonth(), tCurrentTime.GetDay(), tCurrentTime.GetHour(), tCurrentTime.GetMinute(), 0 ); // 바로 받을 수 있다
-		}
-		else
-		{
-			tUpdateTime += CTimeSpan( 18250, 0, 0, 0 ); // 한번만 줘야 하므로 50년을 더한다.
-		}
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		//}}
-
 		// 보상 받을 정보
 		KCumulativeTimeEventInfo kCumulativeTimeEvent;
 		kCumulativeTimeEvent.m_iEventUID		= vit->m_iEventUID;
@@ -3082,54 +3036,13 @@ void KGameEventManager::CheckCumulativeTimeEvent( IN const u_char ucLevel,
 		kCumulativeTimeEvent.m_bAccountEvent	= vit->m_bAccountEvent;
 #endif SERV_ACC_TIME_EVENT
 		//}}
-		//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		kCumulativeTimeEvent.m_wstrEventTime	= ( CStringW )( tUpdateTime.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		//}}
 		vecUpdatedTime.push_back( kCumulativeTimeEvent );
 
-		//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		if( vit->m_bRepeatEvent == true )
-		{
-			KTimeEventSimpleInfo kRepeatEvent;
-			kRepeatEvent.m_iEventUID = vit->m_iEventUID;
-			kRepeatEvent.m_iEventID = vit->m_iEventID;
-			kRepeatEvent.m_wstrEventName = vit->m_wstrEventName;
-			kRepeatEvent.m_fEventTime = vit->m_fEventTime;
-
-			vecBeginEvent.push_back( kRepeatEvent );
-
-			std::map< int, std::pair< KUserCumulativeTimeEventInfo, KTimerManager > >::iterator it = mapEventTime.find( vit->m_iEventUID );
-			if( it != mapEventTime.end() )
-			{
-				it->second.second.restart();
-			}
-			else
-			{
-				START_LOG( cerr, L"이벤트 정보가 없을리가 있나? 코드 한번 살펴보자" )
-					<< BUILD_LOG( vit->m_iEventID )
-					<< BUILD_LOG( vit->m_wstrEventName )
-					<< END_LOG;
-			}
-		}
-		else
-		{
-			// 이벤트 삭제!
-			mapEventTime.erase( vit->m_iEventUID );
-
-			// 완료된 이벤트에 추가
-			setCompleteEvent.insert( vit->m_iEventUID );
-		}
-#else
 		// 이벤트 삭제!
 		mapEventTime.erase( vit->m_iEventUID );
 
 		// 완료된 이벤트에 추가
 		setCompleteEvent.insert( vit->m_iEventUID );
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		//}}
 
 		//{{ 2009. 12. 4  최육사	접속시간이벤트시스템개편
 		vecEndEvent.push_back( KTimeEventSimpleInfo( vit->m_iEventUID, vit->m_iEventID ) );
@@ -3287,6 +3200,13 @@ void KGameEventManager::RefreshEventScript()
 			continue;
 		}
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+#ifdef SERV_NEW_EVENT_TYPES
+		// 새로 이벤트의 상태가 변경 된 후 이후 작업을 진행하기 위한 코드
+		++m_iAppliedEventTick;
+#endif SERV_NEW_EVENT_TYPES
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 		std::map< int, KGameEvent* >::iterator mit;
 		for( mit = m_mapIngEventData[iGET].begin(); mit != m_mapIngEventData[iGET].end(); ++mit )
 		{
@@ -3305,7 +3225,12 @@ void KGameEventManager::RefreshEventScript()
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					const EVENT_DATA* pEventData = SiKEventDataRefreshManager()->GetEventData( pEvent->GetScriptID() );
 #else
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+					const EVENT_DATA* pEventData = GetTotalEventData( pEvent->GetScriptID() );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 					const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( pEvent->GetScriptID() );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					//}}
 					if( pEventData == NULL )
@@ -3319,6 +3244,21 @@ void KGameEventManager::RefreshEventScript()
 						break;
 					}
 
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+					if( pEvent->GetDropRate() != pEventData->m_fDropRate  ||
+						pEvent->IsWithPlayPcBang() != pEventData->m_bWithPlayPcBang )
+					{
+						pEvent->SetDropRate( pEventData->m_fDropRate );
+						pEvent->SetWithPlayPcBang( pEventData->m_bWithPlayPcBang );
+
+						START_LOG( cout, L"드롭 이벤트 스크립트 변경" )
+							<< BUILD_LOG( mit->second->GetUID() )
+							<< BUILD_LOG( pEvent->GetEventName() )
+							<< BUILD_LOG( pEvent->GetScriptID() )
+							<< BUILD_LOG( pEvent->GetDropRate() )
+							<< BUILD_LOG( pEvent->IsWithPlayPcBang() );
+					}
+#else // SERV_DROP_EVENT_RENEWAL
 					if( pEvent->GetDropCount() != pEventData->m_iDropCount  ||
 						pEvent->IsWithPlayPcBang() != pEventData->m_bWithPlayPcBang )
 					{
@@ -3332,6 +3272,7 @@ void KGameEventManager::RefreshEventScript()
 							<< BUILD_LOG( pEvent->GetDropCount() )
 							<< BUILD_LOG( pEvent->IsWithPlayPcBang() );
 					}
+#endif // SERV_DROP_EVENT_RENEWAL
 				}
 				break;
 #endif SERV_PC_BANG_DROP_EVENT
@@ -3345,7 +3286,12 @@ void KGameEventManager::RefreshEventScript()
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					const EVENT_DATA* pEventData = SiKEventDataRefreshManager()->GetEventData( pEvent->GetScriptID() );
 #else
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+					const EVENT_DATA* pEventData = GetTotalEventData( pEvent->GetScriptID() );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 					const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( pEvent->GetScriptID() );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					//}}
 					if( pEventData == NULL )
@@ -3470,7 +3416,12 @@ void KGameEventManager::RefreshEventScript()
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					const EVENT_DATA* pEventData = SiKEventDataRefreshManager()->GetEventData( pEvent->GetScriptID() );
 #else
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+					const EVENT_DATA* pEventData = GetTotalEventData( pEvent->GetScriptID() );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 					const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( pEvent->GetScriptID() );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					//}}
 					if( pEventData == NULL )
@@ -3507,12 +3458,6 @@ void KGameEventManager::RefreshEventScript()
 						|| pEvent->GetMinMaxRewardSize() != pEventData->m_mapMinMaxReward.size()
 #endif SERV_CONNECT_EVENT_LEVEL_CHECK
 						//}}
-						//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-						|| ( wcscmp( pEvent->GetFixedDate().c_str(), pEventData->m_wstrFixedDate.c_str() ) != 0 )
-						|| ( pEvent->GetEventUserType() != pEventData->m_iEventUserType )
-#endif SERV_FIXED_DATE_EVENT
-						//}}
 #ifdef SERV_CONNECT_EVENT_CONSECUTIVELY_REWARD
 						|| pEvent->IsRepeatRewardEvent() != pEventData->m_bRepeatRewardEvent
 						|| pEvent->GetBeforeEventID() != ( pEventData->m_iBeforeEventID )
@@ -3523,19 +3468,16 @@ void KGameEventManager::RefreshEventScript()
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 						|| pEvent->GetCustomEventID() != ( pEventData->m_iCustomEventID )
 #endif //SERV_CUSTOM_CONNECT_EVENT
-
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 						|| pEvent->IsOnlySteamUserEvent() != ( pEventData->m_bOnlySteamUser )
 						|| pEvent->IsOnlyNotSteamUserEvent() != ( pEventData->m_bOnlyNotSteamUser )
 #endif //SERV_STEAM_USER_CONNECT_EVENT
-
 #ifdef SERV_CRITERION_DATE_EVENT// 작업날짜: 2013-06-26	// 박세훈
 						|| ( pEvent->GetCriterionUserType() != pEventData->m_byteCriterionUserType )
 						|| ( pEvent->GetCriterionPresentUserType() != pEventData->m_byteCriterionPresentUserType )
 						|| ( pEvent->GetCriterionDateBegin() != pEventData->m_tCriterionDateBegin )
 						|| ( pEvent->GetCriterionDateEnd() != pEventData->m_tCriterionDateEnd )
 #endif // SERV_CRITERION_DATE_EVENT
-
 #ifdef SERV_UNIT_CLASS_LEVEL_EVENT
 						|| ( pEvent->GetUnitClassLevel() != pEventData->m_iUnitClassLevel )
 #endif SERV_UNIT_CLASS_LEVEL_EVENT
@@ -3567,12 +3509,6 @@ void KGameEventManager::RefreshEventScript()
 						pEvent->SetRepeatEvent( pEventData->m_bRepeatEvent );
 #endif SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
 						//}}
-						//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-						pEvent->SetFixedDate( pEventData->m_wstrFixedDate );
-						pEvent->SetEventUserType( pEventData->m_iEventUserType );
-#endif SERV_FIXED_DATE_EVENT
-						//}}
 						//{{ 2012. 12. 25	박세훈	특정 유저 전용 접속 이벤트
 #ifdef SERV_SPECIFIC_USER_CONNECT_EVENT
 						pEvent->SetEventGroupID( pEventData->m_iEventGroupID );
@@ -3585,23 +3521,19 @@ void KGameEventManager::RefreshEventScript()
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 						pEvent->SetEventItemID( pEventData->m_iEventItemID );
 #endif
-
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 						pEvent->SetCustomEventID(pEventData->m_iCustomEventID);
 #endif //SERV_CUSTOM_CONNECT_EVENT
-
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 						pEvent->SetOnlySteamUserEvent( pEventData->m_bOnlySteamUser );
 						pEvent->SetOnlyNotSteamUserEvent( pEventData->m_bOnlyNotSteamUser );
 #endif //SERV_STEAM_USER_CONNECT_EVENT
-
 #ifdef SERV_CRITERION_DATE_EVENT// 작업날짜: 2013-06-26	// 박세훈
 						pEvent->SetCriterionUserType( pEventData->m_byteCriterionUserType );
 						pEvent->SetCriterionPresentUserType( pEventData->m_byteCriterionPresentUserType );
 						pEvent->SetCriterionDateBegin( pEventData->m_tCriterionDateBegin );
 						pEvent->SetCriterionDateEnd( pEventData->m_tCriterionDateEnd );
 #endif // SERV_CRITERION_DATE_EVENT
-
 #ifdef SERV_UNIT_CLASS_LEVEL_EVENT
 						pEvent->SetUnitClassLevel( pEventData->m_iUnitClassLevel );
 #endif SERV_UNIT_CLASS_LEVEL_EVENT
@@ -3627,12 +3559,6 @@ void KGameEventManager::RefreshEventScript()
 							<< BUILD_LOG( pEvent->GetRepeatEvent() )
 #endif SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
 							//}}
-							//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-							<< BUILD_LOG( pEvent->GetFixedDate() )
-							<< BUILD_LOG( pEvent->GetEventUserType() )
-#endif SERV_FIXED_DATE_EVENT
-							//}}
 							//{{ 2012. 12. 25	박세훈	특정 유저 전용 접속 이벤트
 #ifdef SERV_SPECIFIC_USER_CONNECT_EVENT
 							<< BUILD_LOG( pEvent->GetEventGroupID() )
@@ -3648,19 +3574,16 @@ void KGameEventManager::RefreshEventScript()
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 							<< BUILD_LOG( pEvent->GetCustomEventID() )
 #endif //SERV_CUSTOM_CONNECT_EVENT
-
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 							<< BUILD_LOG( pEvent->IsOnlySteamUserEvent() )
 							<< BUILD_LOG( pEvent->IsOnlyNotSteamUserEvent() )
 #endif //SERV_STEAM_USER_CONNECT_EVENT
-
 #ifdef SERV_CRITERION_DATE_EVENT// 작업날짜: 2013-06-26	// 박세훈
 							<< BUILD_LOG( pEvent->GetCriterionUserType() )
 							<< BUILD_LOG( pEvent->GetCriterionPresentUserType() )
 							<< BUILD_LOG( pEvent->GetCriterionDateBegin().GetTime() )
 							<< BUILD_LOG( pEvent->GetCriterionDateEnd().GetTime() )
 #endif // SERV_CRITERION_DATE_EVENT
-
 #ifdef SERV_UNIT_CLASS_LEVEL_EVENT
 							<< BUILD_LOG( pEvent->GetUnitClassLevel() )
 #endif SERV_UNIT_CLASS_LEVEL_EVENT
@@ -3681,7 +3604,13 @@ void KGameEventManager::RefreshEventScript()
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					const EVENT_DATA* pEventData = SiKEventDataRefreshManager()->GetEventData( pEvent->GetScriptID() );
 #else
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+					const EVENT_DATA* pEventData = GetTotalEventData( pEvent->GetScriptID() );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 					const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( pEvent->GetScriptID() );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					//}}
 					if( pEventData == NULL )
@@ -3704,12 +3633,6 @@ void KGameEventManager::RefreshEventScript()
 						|| pEvent->IsAccountEvent() != pEventData->m_bAccountEvent
 #endif SERV_ACC_TIME_EVENT
 						//}}
-						//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-						|| ( wcscmp( pEvent->GetFixedDate().c_str(), pEventData->m_wstrFixedDate.c_str() ) != 0 )
-						|| ( pEvent->GetEventUserType() != pEventData->m_iEventUserType )
-#endif SERV_FIXED_DATE_EVENT
-						//}}
 						)
 					{
 						//이벤트 정보셋팅..
@@ -3726,12 +3649,6 @@ void KGameEventManager::RefreshEventScript()
 						pEvent->SetAccountEvent( pEventData->m_bAccountEvent );
 #endif SERV_ACC_TIME_EVENT
 						//}}
-						//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-						pEvent->SetFixedDate( pEventData->m_wstrFixedDate );
-						pEvent->SetEventUserType( pEventData->m_iEventUserType );
-#endif SERV_FIXED_DATE_EVENT
-						//}}
 
 						START_LOG( cout, L"누적 시간 이벤트 스크립트 변경" )
 							<< BUILD_LOG( mit->second->GetUID() )
@@ -3742,12 +3659,6 @@ void KGameEventManager::RefreshEventScript()
 							<< BUILD_LOG( pEvent->IsDirectReward() )
 							<< BUILD_LOG( pEvent->IsPcBangEvent() )
 							<< BUILD_LOG( pEvent->IsAccountEvent() )
-							//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-							<< BUILD_LOG( pEvent->GetFixedDate() )
-							<< BUILD_LOG( pEvent->GetEventUserType() )
-#endif SERV_FIXED_DATE_EVENT
-							//}}
 							<< END_LOG;
 					}
 				}
@@ -3764,7 +3675,13 @@ void KGameEventManager::RefreshEventScript()
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					const EVENT_DATA* pEventData = SiKEventDataRefreshManager()->GetEventData( pEvent->GetScriptID() );
 #else
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+					const EVENT_DATA* pEventData = GetTotalEventData( pEvent->GetScriptID() );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 					const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( pEvent->GetScriptID() );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 					//}}
 					if( pEventData == NULL )
@@ -3784,7 +3701,12 @@ void KGameEventManager::RefreshEventScript()
 						pEvent->GetServerGroupID() != pEventData->m_iServerGroup  ||
 #endif SERV_SERVER_GROUP_EVENT_SYSTEM
 						//}}
-						pEvent->GetHenirRewardUnLimited() != pEventData->m_bHenirRewardUnLimited)
+						pEvent->GetHenirRewardUnLimited() != pEventData->m_bHenirRewardUnLimited
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+						|| pEvent->GetPcBangEvent() != pEventData->m_bPcBangEvent
+						|| pEvent->GetAccumulate() != pEventData->m_bAccumulate
+#endif // SERV_HENIR_REWARD_EVENT
+						)
 					{
 						//이벤트 정보셋팅..
 						pEvent->SetHenirRewardEventCount( pEventData->m_iHenirRewardEventCount );
@@ -3794,6 +3716,11 @@ void KGameEventManager::RefreshEventScript()
 						pEvent->SetServerGroupID( pEventData->m_iServerGroup );
 #endif SERV_SERVER_GROUP_EVENT_SYSTEM
 						//}}
+
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+						pEvent->SetPcBangEvent( pEventData->m_bPcBangEvent );
+						pEvent->SetAccumulate( pEventData->m_bAccumulate );
+#endif // SERV_HENIR_REWARD_EVENT
 					
 						START_LOG( cout, L"누적 시간 이벤트 스크립트 변경" )
 							<< BUILD_LOG( mit->second->GetUID() )
@@ -3807,6 +3734,10 @@ void KGameEventManager::RefreshEventScript()
 							<< BUILD_LOG( pEvent->GetServerGroupID() )
 #endif SERV_SERVER_GROUP_EVENT_SYSTEM
 							//}}
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+							<< BUILD_LOG( pEvent->GetPcBangEvent() )
+							<< BUILD_LOG( pEvent->GetAccumulate() )
+#endif // SERV_HENIR_REWARD_EVENT
 							;
 					}
 				}
@@ -3820,7 +3751,12 @@ void KGameEventManager::RefreshEventScript()
 				{
 					KGameEventQuestItemDrop* pEvent = static_cast<KGameEventQuestItemDrop*>(mit->second);
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+					const EVENT_DATA* pEventData = GetTotalEventData( pEvent->GetScriptID() );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 					const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( pEvent->GetScriptID() );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 
 					if( pEventData == NULL )
 					{
@@ -3852,7 +3788,12 @@ void KGameEventManager::RefreshEventScript()
 			case KGameEvent::GET_DEFENSE_DUNGEON:
 				{
 					KGameEventDefenseDungeon* pEvent = static_cast<KGameEventDefenseDungeon*>( mit->second );
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+					const EVENT_DATA* pEventData = GetTotalEventData( pEvent->GetScriptID() );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM					
 					const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( pEvent->GetScriptID() );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM	
+					
 
 					if( pEventData == NULL )
 					{
@@ -4536,8 +4477,8 @@ void KGameEventManager::AddQuestEvent( IN const KEventInfo& kInfo )
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 		pEvent->SetScriptID(kInfo.m_iScriptID);
 
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID  %wstrEventBegin %wstrEventEnd %L"신규 Quest 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -4596,7 +4537,12 @@ void KGameEventManager::AddItemDropEvent( IN const KEventInfo& kInfo )
 #else
 		//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
 #ifdef SERV_EVENT_SCRIPT_REFRESH
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const EVENT_DATA* pEventData = GetTotalEventData( kInfo.m_iScriptID );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( kInfo.m_iScriptID );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 		if( pEventData == NULL )
 #endif SERV_EVENT_SCRIPT_REFRESH
 		//}}
@@ -4626,7 +4572,13 @@ void KGameEventManager::AddItemDropEvent( IN const KEventInfo& kInfo )
 		pEvent->SetEndDate( ctEnd );
 		//{{ 2010. 07. 09  최육사	드롭률 이벤트 확장
 #ifdef SERV_PC_BANG_DROP_EVENT
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+		pEvent->SetDropRate( pEventData->m_fDropRate );
+#else // SERV_DROP_EVENT_RENEWAL
 		pEvent->SetDropCount( pEventData->m_iDropCount );
+#endif // SERV_DROP_EVENT_RENEWAL
+
 		pEvent->SetWithPlayPcBang( pEventData->m_bWithPlayPcBang );
 #endif SERV_PC_BANG_DROP_EVENT
 		//}}
@@ -4647,8 +4599,8 @@ void KGameEventManager::AddItemDropEvent( IN const KEventInfo& kInfo )
 		m_mapIngEventData[KGameEvent::GET_ITEM_DROP].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID  %wstrEventBegin %wstrEventEnd %L"신규 드랍 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -4712,7 +4664,11 @@ void KGameEventManager::AddRewardEvent( IN const KEventInfo& kInfo )
 #else
 		//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
 #ifdef SERV_EVENT_SCRIPT_REFRESH
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const EVENT_DATA* pEventData = GetTotalEventData( kInfo.m_iScriptID );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( kInfo.m_iScriptID );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 #endif SERV_EVENT_SCRIPT_REFRESH
 		//}}
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
@@ -4789,10 +4745,9 @@ void KGameEventManager::AddRewardEvent( IN const KEventInfo& kInfo )
 
 		m_mapIngEventData[KGameEvent::GET_REWARD].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
-
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID  %wstrEventBegin %wstrEventEnd %L"신규 경험치&ED&VP 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -4861,11 +4816,10 @@ void KGameEventManager::AddMonsterEvent( IN const KEventInfo& kInfo )
 
 		m_mapIngEventData[KGameEvent::GET_MONSTER].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
-
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 		pEvent->SetScriptID( kInfo.m_iScriptID );
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID  %wstrEventBegin %wstrEventEnd %L"신규 몬스터 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -4991,11 +4945,11 @@ void KGameEventManager::AddSpiritEvent( IN const KEventInfo& kInfo )
 		pEvent->SetOn(kInfo.m_bOn);
 #endif //SERV_ALLOW_EVENT_ERASE
 
-
 		m_mapIngEventData[KGameEvent::GET_SPIRIT].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
+
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID  %wstrEventBegin %wstrEventEnd %L"신규 근성도 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -5051,7 +5005,11 @@ void KGameEventManager::AddConnectTimeEvent( IN const KEventInfo& kInfo )
 #else
 		//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
 #ifdef SERV_EVENT_SCRIPT_REFRESH
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const EVENT_DATA* pEventData = GetTotalEventData( kInfo.m_iScriptID );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( kInfo.m_iScriptID );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 #endif SERV_EVENT_SCRIPT_REFRESH
 		//}}
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
@@ -5121,17 +5079,6 @@ void KGameEventManager::AddConnectTimeEvent( IN const KEventInfo& kInfo )
 		pEvent->SetRepeatEvent( pEventData->m_bRepeatEvent );
 #endif SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
 		//}}
-		//{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-		pEvent->SetComeBackUserEvent( pEventData->m_bComeBackUserEvent );
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-		//}}
-		//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-		pEvent->SetFixedDate( pEventData->m_wstrFixedDate );
-		pEvent->SetEventUserType( pEventData->m_iEventUserType );
-#endif SERV_FIXED_DATE_EVENT
-		//}}
 		//{{ 2012. 12. 25	박세훈	특정 유저 전용 접속 이벤트
 #ifdef SERV_SPECIFIC_USER_CONNECT_EVENT
 		pEvent->SetEventGroupID( pEventData->m_iEventGroupID );
@@ -5173,10 +5120,9 @@ void KGameEventManager::AddConnectTimeEvent( IN const KEventInfo& kInfo )
 
 		m_mapIngEventData[KGameEvent::GET_CONNECT_TIME].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
-
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 접속시간 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -5194,6 +5140,8 @@ void KGameEventManager::AddConnectTimeEvent( IN const KEventInfo& kInfo )
 			<< BUILD_LOG( kInfo.m_wstrBeginDate )
 			<< BUILD_LOG( kInfo.m_wstrEndDate )
 			<< BUILD_LOG( kInfo.m_iScriptID )
+			<< BUILD_LOG( pEventData->m_iEventReward )
+			<< BUILD_LOG( pEventData->m_fEventTime )
 			<< BUILD_LOG( (int)kInfo.m_bEnable )
 			;
 	}
@@ -5239,7 +5187,11 @@ void KGameEventManager::AddSecretDungeonEvent( IN const KEventInfo& kInfo )
 #else
 		//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
 #ifdef SERV_EVENT_SCRIPT_REFRESH
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const EVENT_DATA* pEventData = GetTotalEventData( kInfo.m_iScriptID );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( kInfo.m_iScriptID );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 #endif SERV_EVENT_SCRIPT_REFRESH
 		//}}
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
@@ -5273,13 +5225,12 @@ void KGameEventManager::AddSecretDungeonEvent( IN const KEventInfo& kInfo )
 		pEvent->SetOn(kInfo.m_bOn);
 #endif //SERV_ALLOW_EVENT_ERASE
 
-
 		m_mapIngEventData[KGameEvent::GET_SECRET_DUNGEON].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 		pEvent->SetScriptID(kInfo.m_iScriptID);
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 비던 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -5348,12 +5299,11 @@ void KGameEventManager::AddNotifyMSGEvent( IN const KEventInfo& kInfo )
 		pEvent->SetOn(kInfo.m_bOn);
 #endif //SERV_ALLOW_EVENT_ERASE
 
-
 		m_mapIngEventData[KGameEvent::GET_NOTIFY_MSG].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 공지 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -5412,7 +5362,11 @@ void KGameEventManager::AddCumulativeTimeEvent( IN const KEventInfo& kInfo )
 #else
 		//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
 #ifdef SERV_EVENT_SCRIPT_REFRESH
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const EVENT_DATA* pEventData = GetTotalEventData( kInfo.m_iScriptID );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( kInfo.m_iScriptID );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 #endif SERV_EVENT_SCRIPT_REFRESH
 		//}}
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
@@ -5459,17 +5413,6 @@ void KGameEventManager::AddCumulativeTimeEvent( IN const KEventInfo& kInfo )
 		pEvent->SetChannelCode( pEventData->m_iChannelCode );
 #endif SERV_TOONILAND_CHANNELING_CONNECT_EVENT
 		//}}
-		//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-		pEvent->SetFixedDate( pEventData->m_wstrFixedDate );
-		pEvent->SetEventUserType( pEventData->m_iEventUserType );
-#endif SERV_FIXED_DATE_EVENT
-		//}}
-		//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		pEvent->SetRepeatEvent( pEventData->m_bRepeatEvent );
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		//}}
 
 #ifdef SERV_ALLOW_EVENT_ERASE // 2013.01.22 lygan_조성욱 // DB에서 값 on/off 부분 추가 작업
 		pEvent->SetOn(kInfo.m_bOn);
@@ -5482,8 +5425,8 @@ void KGameEventManager::AddCumulativeTimeEvent( IN const KEventInfo& kInfo )
 		m_mapIngEventData[KGameEvent::GET_CUMULATIVE_TIME].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 누적시간 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -5543,7 +5486,11 @@ void KGameEventManager::AddHenirRewardCountEvent( IN const KEventInfo& kInfo )
 #else
 		//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
 #ifdef SERV_EVENT_SCRIPT_REFRESH
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const EVENT_DATA* pEventData = GetTotalEventData( kInfo.m_iScriptID );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( kInfo.m_iScriptID );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 #endif SERV_EVENT_SCRIPT_REFRESH
 		//}}
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
@@ -5580,19 +5527,20 @@ void KGameEventManager::AddHenirRewardCountEvent( IN const KEventInfo& kInfo )
 		pEvent->SetServerGroupID( pEventData->m_iServerGroup );
 #endif SERV_SERVER_GROUP_EVENT_SYSTEM
 		//}}
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+		pEvent->SetPcBangEvent( pEventData->m_bPcBangEvent );
+		pEvent->SetAccumulate( pEventData->m_bAccumulate );
+#endif // SERV_HENIR_REWARD_EVENT
 
 #ifdef SERV_ALLOW_EVENT_ERASE // 2013.01.22 lygan_조성욱 // DB에서 값 on/off 부분 추가 작업
 		pEvent->SetOn(kInfo.m_bOn);
 #endif //SERV_ALLOW_EVENT_ERASE
 
-
-
 		m_mapIngEventData[KGameEvent::GET_HENIR_REWARD].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
-
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 헤니르 보상 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -5609,6 +5557,63 @@ void KGameEventManager::AddHenirRewardCountEvent( IN const KEventInfo& kInfo )
 	}
 }
 
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+void KGameEventManager::GetHenirRewardCountEvent( IN const bool bPcBangUser
+	, OUT bool& bUnLimited
+	, OUT int& iEventMax
+	)
+{
+	bUnLimited = false;
+	iEventMax = 0;
+
+	if( GetServerType() != ST_GAME )
+		return;
+
+	// 코드 파악을 쉽게 하기 위해서는 빈둥거리는 iEventMax 변수를 사용하기 보다는 따로 하나 만드는 것이 나을 듯 하다.
+	int iAccumulateMax = 0;
+	int iNonAccumulateMax = 0;
+	for( std::map< int, KGameEvent* >::const_iterator mit = m_mapIngEventData[KGameEvent::GET_HENIR_REWARD].begin(); mit != m_mapIngEventData[KGameEvent::GET_HENIR_REWARD].end(); ++mit )
+	{
+		if( mit->second == NULL )
+			continue;
+
+		if( mit->second->GetType() != KGameEvent::GET_HENIR_REWARD )
+			continue;
+
+		KGameEventHenirReward* pEvent = static_cast<KGameEventHenirReward*>(mit->second);
+
+		// 진행중인 헤니르 시공 보상 횟수 이벤트
+		if( mit->second->IsEnable() == true )
+		{
+			if( pEvent->GetServerGroupID() != SEnum::SGI_INVALID  &&  pEvent->GetServerGroupID() != KBaseServer::GetKObj()->GetServerGroupID() )
+				continue;
+
+			// PC방 전용 이벤트인가?
+			if( ( pEvent->GetPcBangEvent() == true ) && ( bPcBangUser == false ) )
+				continue;
+
+			if( pEvent->GetHenirRewardUnLimited() == true )
+			{
+				// 무제한이 걸려있다면, 횟수는 중요하지 않다.
+				bUnLimited = true;
+				return;
+			}
+
+			// 누적이 되는 이벤트인가?
+			if( pEvent->GetAccumulate() == true )
+			{
+				iAccumulateMax += pEvent->GetHenirRewardEventCount();
+			}
+			else if( iNonAccumulateMax < pEvent->GetHenirRewardEventCount() )
+			{
+				iNonAccumulateMax = pEvent->GetHenirRewardEventCount();
+			}
+		}
+	}
+
+	iEventMax = max( iAccumulateMax, iNonAccumulateMax );
+}
+#else // SERV_HENIR_REWARD_EVENT
 bool KGameEventManager::GetHenirRewardCountEvent( OUT bool& bUnLimited, OUT int& iEventMax  )
 {
 	bUnLimited = false;
@@ -5671,136 +5676,8 @@ bool KGameEventManager::GetHenirRewardCountEvent( OUT bool& bUnLimited, OUT int&
 #endif SERV_BUG_FIX_HENIR_REWARD_COUNT
 	//}}
 }
+#endif // SERV_HENIR_REWARD_EVENT
 #endif SERV_NEW_HENIR_TEST
-//}}
-
-//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-bool KGameEventManager::CheckFixedDateEvent( IN KGameEventConnectTime* pEvent, IN const ConnectEventFactorSet& kFactor )
-{
-	// 이벤트 유저 타입은 올바르게 설정되어 있는가?
-	if( ( pEvent->GetEventUserType() <= KGameEventScriptManager::EUT_NONE ) || ( KGameEventScriptManager::EUT_MAX <= pEvent->GetEventUserType() ) )
-	{
-		START_LOG( cerr, L"이벤트 유저 타입 설정이 잘못되었습니다.")
-			<< BUILD_LOG( pEvent->GetEventID() )
-			<< BUILD_LOG( pEvent->GetEventUserType() )
-			<< END_LOG;
-		return false;
-	}
-
-	// 이벤트 기준 일자가 정상적인 값인가?
-	if( pEvent->GetFixedDate().empty() == true )
-	{
-	}
-	else
-	{
-	}
-
-	CTime tFixedDate;
-	if( KncUtil::ConvertStringToCTime( pEvent->GetFixedDate(), tFixedDate ) == false )
-	{
-		START_LOG( cerr, L"이벤트 기준 일자 설정이 잘못되었습니다.")
-			<< BUILD_LOG( pEvent->GetEventID() )
-			<< BUILD_LOG( pEvent->GetFixedDate() )
-			<< END_LOG;
-		return false;
-	}
-
-	// 신규 유저 이벤트
-	if( pEvent->GetEventUserType() == KGameEventScriptManager::EUT_NEW )
-	{
-		if( _CheckFixedDateEvent_NEW( pEvent, kFactor, tFixedDate ) != 1 )
-		{
-			return false;
-		}
-	}
-	// 복귀 유저 이벤트
-	else if( pEvent->GetEventUserType() == KGameEventScriptManager::EUT_COMEBACK )
-	{
-		if( _CheckFixedDateEvent_COMEBACK( pEvent, kFactor, tFixedDate ) != 1 )
-		{
-			return false;
-		}
-	}
-	// 기존 유저 이벤트 ( 캐릭터 생성 일자, 로그 아웃 일자, 둘 다 체크 )
-	else if( pEvent->GetEventUserType() == KGameEventScriptManager::EUT_NEW_EXIST )
-	{
-		if( _CheckFixedDateEvent_NEW( pEvent, kFactor, tFixedDate ) != 0 )
-		{
-			return false;
-		}
-	}
-	else if( pEvent->GetEventUserType() == KGameEventScriptManager::EUT_COMEBACK_EXIST )
-	{
-		if( _CheckFixedDateEvent_COMEBACK( pEvent, kFactor, tFixedDate ) != 0 )
-		{
-			return false;
-		}
-	}
-	else if( pEvent->GetEventUserType() == KGameEventScriptManager::EUT_NEW_COMEBACK_EXIST )
-	{
-		if( ( _CheckFixedDateEvent_NEW( pEvent, kFactor, tFixedDate ) != 0 ) || ( _CheckFixedDateEvent_COMEBACK( pEvent, kFactor, tFixedDate ) != 0 ) )
-		{
-			return false;
-		}
-	}
-	else
-	{
-		START_LOG( cerr, L"이벤트 유저 타입의 설정이 이상합니다.")
-			<< BUILD_LOG( pEvent->GetEventID() )
-			<< BUILD_LOG( pEvent->GetEventUserType() )
-			<< END_LOG;
-		return false;
-	}
-
-	return true;
-}
-
-int KGameEventManager::_CheckFixedDateEvent_NEW( IN const KGameEventConnectTime* pEvent, IN const ConnectEventFactorSet& kFactor, IN const CTime& tFixedDate ) const
-{
-	CTime tRegDate;
-	if( KncUtil::ConvertStringToCTime( kFactor.m_kAccountInfo.m_wstrRegDate, tRegDate ) == false )
-	{
-		START_LOG( cerr, L"계정 생성일이 잘못되었습니다.")
-			<< BUILD_LOG( kFactor.m_iUnitUID )
-			<< BUILD_LOG( kFactor.m_kAccountInfo.m_wstrRegDate )
-			<< END_LOG;
-		return -1;
-	}
-
-	// 기준일 부터 쳐주자
-	if( tRegDate < tFixedDate )
-	{
-		return 0;
-	}
-	return 1;
-}
-int KGameEventManager::_CheckFixedDateEvent_COMEBACK( IN const KGameEventConnectTime* pEvent, IN const ConnectEventFactorSet& kFactor, IN const CTime& tFixedDate ) const
-{
-	// 신규 유저인걸까? 로그 아웃 정보가 없다니...
-	if( kFactor.m_kAccountInfo.m_wstrLogoutDate.empty() == true )
-	{
-		return 0;
-	}
-
-	CTime tLogoutDate;
-	if( KncUtil::ConvertStringToCTime( kFactor.m_kAccountInfo.m_wstrLogoutDate, tLogoutDate ) == false )
-	{
-		START_LOG( cerr, L"로그 아웃 일자가 잘못되었습니다.")
-			<< BUILD_LOG( kFactor.m_iUnitUID )
-			<< BUILD_LOG( kFactor.m_kAccountInfo.m_wstrLogoutDate )
-			<< END_LOG;
-		return -1;
-	}
-
-	// 기준일 부터 쳐주자
-	if( tFixedDate < tLogoutDate )
-	{
-		return 0;
-	}
-	return 1;
-}
-#endif SERV_FIXED_DATE_EVENT
 //}}
 
 //{{ 2012. 12. 12	박세훈	겨울 방학 전야 이벤트( 임시, 하드 코딩 )
@@ -5946,7 +5823,11 @@ void KGameEventManager::AddQuestItemDropEvent( IN const KEventInfo& kInfo )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 		const EVENT_DATA* pEventData = SiKEventDataRefreshManager()->GetEventData( kInfo.m_iScriptID );
 #else
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const EVENT_DATA* pEventData = GetTotalEventData( kInfo.m_iScriptID );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( kInfo.m_iScriptID );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 		//}}
 		if( pEventData == NULL )
@@ -5977,8 +5858,8 @@ void KGameEventManager::AddQuestItemDropEvent( IN const KEventInfo& kInfo )
 		m_mapIngEventData[KGameEvent::GET_QUEST_ITEM_DROP].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 퀘스트 아이템 드롭률 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -6066,7 +5947,11 @@ void KGameEventManager::AddAdvertisementEvent( IN const KEventInfo& kInfo )
 
 		//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
 #ifdef SERV_EVENT_SCRIPT_REFRESH
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const EVENT_DATA* pEventData = GetTotalEventData( kInfo.m_iScriptID );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetAdvertisementData( kInfo.m_iScriptID );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 #endif SERV_EVENT_SCRIPT_REFRESH
 		//}}
 		if( pEventData == NULL )
@@ -6101,8 +5986,8 @@ void KGameEventManager::AddAdvertisementEvent( IN const KEventInfo& kInfo )
 		m_mapIngEventData[KGameEvent::GET_ADVERTISEMENT_EVENT].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 URL광고 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -6347,8 +6232,8 @@ void KGameEventManager::AddDungeonEvent( IN const KEventInfo& kInfo )
 		m_mapIngEventData[KGameEvent::GET_DUNGEON].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 던전 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -6413,8 +6298,8 @@ void KGameEventManager::AddMaxLevelEvent( IN const KEventInfo& kInfo )
 
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 만렙 개방 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -6478,8 +6363,8 @@ void KGameEventManager::AddContents( IN const KEventInfo& kInfo )
 		m_mapIngEventData[KGameEvent::GET_CONTENTS].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 콘텐츠 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -6497,6 +6382,50 @@ void KGameEventManager::AddContents( IN const KEventInfo& kInfo )
 }
 #endif SERV_NEW_EVENT_TYPES
 
+
+#ifdef SERV_ADD_EVENT_DB
+
+#ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
+void KGameEventManager::InitEventReleaseTick()
+{
+	m_iEventReleaseTick = 0;
+#ifdef SERV_NEW_EVENT_TYPES
+	m_iAppliedEventTick = 0;
+#endif SERV_NEW_EVENT_TYPES
+}
+#endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+
+void KGameEventManager::InitEventDBScriptReleaseTick()
+{
+	m_iEventDBScriptReleaseTick = 0;
+
+}
+
+bool KGameEventManager::TickCheckEvent()
+{
+
+
+	if( m_tEventReleaseTickTimer.elapsed() > 60.0f )
+	{
+		int iReleaseTickCount = 0;
+
+		iReleaseTickCount = GetEventDBScriptReleaseTick();
+		if ( iReleaseTickCount == -1 )
+		{
+			m_tEventReleaseTickTimer.restart();
+			return false;
+		}
+
+		SendToEventDB( DBE_CHECK_EVENT_UPDATE_REQ );
+
+		m_tEventReleaseTickTimer.restart();
+
+	}
+
+	return true;
+}
+
+#else //SERV_ADD_EVENT_DB
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
 void KGameEventManager::InitEventReleaseTick()
 {
@@ -6508,6 +6437,7 @@ void KGameEventManager::InitEventReleaseTick()
 
 bool KGameEventManager::TickCheckEvent()
 {
+
 	if( m_tEventCheckTimer.elapsed() > 60.0f )
 	{
 		int iReleaseTickCount = 0;
@@ -6515,17 +6445,23 @@ bool KGameEventManager::TickCheckEvent()
 		iReleaseTickCount = GetEventReleaseTick();
 		if ( iReleaseTickCount == -1 )
 		{
+
 			m_tEventCheckTimer.restart();
+
 			return false;
 		}
 
 		SendToLogDB( DBE_CHECK_EVENT_UPDATE_REQ );
+
 		m_tEventCheckTimer.restart();
+
 	}
 
 	return true;
 }
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+#endif //SERV_ADD_EVENT_DB
+
 
 #ifdef SERV_CODE_EVENT
 void KGameEventManager::AddCodeEvent( IN const KEventInfo& kInfo )
@@ -6576,8 +6512,8 @@ void KGameEventManager::AddCodeEvent( IN const KEventInfo& kInfo )
 		m_mapIngEventData[KGameEvent::GET_CODE].insert( std::make_pair( kInfo.m_iEventUID, pEvent ) );
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
-		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%c")));
-		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%c")));
+		std::wstring wstrEventBegin = (CStringW)(ctBegin.Format(_T("%Y-%m-%d %H:%M:%S")));
+		std::wstring wstrEventEnd = (CStringW)(ctEnd.Format(_T("%Y-%m-%d %H:%M:%S")));
 		SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%_%3%_%4%_%5%_%6%_%7%_%8%")
 			% 1 %pEvent->GetUID() %pEvent->GetEventName() %pEvent->GetType() %kInfo.m_iScriptID %wstrEventBegin %wstrEventEnd %L"신규 코드 이벤트 등록" ));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -6649,6 +6585,100 @@ void KGameEventManager::CheckEnableCode( OUT std::map< int, bool >& mapCheckCode
 			;
 	}
 }
+
+#ifdef SERV_GLOBAL_EVENT_TABLE
+void KGameEventManager::CheckEnableCodeAndSetGlobalEventdata( OUT std::map< int, KGlobalEventTableData >& mapCheckCodeAndData )
+{
+	std::map< int, KGameEvent* >::iterator mitIngEventData = m_mapIngEventData[KGameEvent::GET_CODE].begin();
+	for( ; mitIngEventData != m_mapIngEventData[KGameEvent::GET_CODE].end(); ++mitIngEventData )
+	{
+		// 꺼져 있는 이벤트는 의미 없다.
+		if( mitIngEventData->second->IsEnable() == false )
+			continue;
+
+		// 2013.03.28 lygan_조성욱 // DB에서 기능 on / off 사항 바로 적용 되게
+		if ( mitIngEventData->second->IsOn() == false)
+			continue;
+
+
+		std::map< int, KGlobalEventTableData >::iterator mit = mapCheckCodeAndData.find(mitIngEventData->second->GetUID());
+
+		if ( mit == mapCheckCodeAndData.end())
+		{
+			KGlobalEventTableData kGlobalEventTableDataTemp;
+			kGlobalEventTableDataTemp.m_iEventID = mitIngEventData->second->GetUID();
+			kGlobalEventTableDataTemp.m_iEventScriptID = mitIngEventData->second->GetScriptID();
+			kGlobalEventTableDataTemp.m_iEventType = mitIngEventData->second->GetType();
+
+			switch( kGlobalEventTableDataTemp.m_iEventScriptID )
+			{
+				case CEI_CHRISTMAS_DISCOUNT_EVENT_2013:
+					{
+						kGlobalEventTableDataTemp.m_cEventAccountType = KGlobalEventTableData::EAE_ACCOUNT_NORMAL;
+					}
+					break;
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+				case CEI_4TH_ANNIVERSARY_EVENT:
+					{
+						kGlobalEventTableDataTemp.m_cEventAccountType = KGlobalEventTableData::EAE_ACCOUNT_SUM;
+					}
+					break;
+#endif // SERV_4TH_ANNIVERSARY_EVENT
+				default:
+					{
+						kGlobalEventTableDataTemp.m_cEventAccountType = KGlobalEventTableData::EAE_NONE;
+					}
+					break;
+			}
+
+			mapCheckCodeAndData.insert(std::make_pair(mitIngEventData->second->GetUID(), kGlobalEventTableDataTemp));
+		}
+
+	}
+
+}
+
+void KGameEventManager::CheckInGameDisableCodeEvent( IN std::map< int, KGlobalEventTableData >& mapCheckEnableCodeAndData, OUT std::map< int, KGlobalEventTableData >& mapCheckDisableCodeAndData ) // 2013.12.19 darkstarbt_조성욱 // 유저가 게임중에 종료된 코드 이벤트에 대해서 체크 하는 기능
+{
+
+	mapCheckDisableCodeAndData.clear();
+
+	std::map< int, KGameEvent* >::iterator mitIngEventData = m_mapIngEventData[KGameEvent::GET_CODE].begin();
+	for( ; mitIngEventData != m_mapIngEventData[KGameEvent::GET_CODE].end(); ++mitIngEventData )
+	{
+		if( mitIngEventData->second->IsEnable() == false )
+		{
+			std::map< int, KGlobalEventTableData >::iterator mit = mapCheckEnableCodeAndData.find(mitIngEventData->second->GetUID());
+			
+			if ( mit != mapCheckEnableCodeAndData.end() )
+			{
+				mapCheckDisableCodeAndData.insert(std::make_pair(mitIngEventData->second->GetUID(), mit->second));
+
+				mapCheckEnableCodeAndData.erase(mitIngEventData->second->GetUID());
+
+				continue;
+			}
+		}
+
+		if ( mitIngEventData->second->IsOn() == false)
+		{
+			std::map< int, KGlobalEventTableData >::iterator mit = mapCheckEnableCodeAndData.find(mitIngEventData->second->GetUID());
+
+			if ( mit != mapCheckEnableCodeAndData.end() )
+			{
+				mapCheckDisableCodeAndData.insert(std::make_pair(mitIngEventData->second->GetUID(), mit->second));
+
+				mapCheckEnableCodeAndData.erase(mitIngEventData->second->GetUID());
+
+				continue;
+			}
+		}
+		
+	}
+}
+
+#endif //SERV_GLOBAL_EVENT_TABLE
+
 #endif SERV_CODE_EVENT
 
 #ifdef SERV_ALLOW_EVENT_ERASE // 2013.06.10 lygan_조성욱 // DB에서 값 on/off 부분 추가 작업 // 국내 필드 들어가고 퀘스트 자동 수락 들어가면서 해당 기능 추가
@@ -6725,6 +6755,10 @@ void KGameEventManager::GetWarningEventQuest( OUT KEGS_EVENT_QUEST_CHECK_FOR_ADM
 		if( false == mit->second->IsOn() )
 			continue;
 
+		// 4. Enable 체크
+		if( false == mit->second->IsEnable() )
+			continue;
+
 		const int iEventUID = mit->first;
 		KGameEventQuest* pEvent = static_cast<KGameEventQuest*>(mit->second);
 
@@ -6793,7 +6827,11 @@ void KGameEventManager::AddDefenseDungeonOpenRateEvent( IN const KEventInfo& kIn
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 		const EVENT_DATA* pEventData = SiKEventDataRefreshManager()->GetEventData( kInfo.m_iScriptID );
 #else
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const EVENT_DATA* pEventData = GetTotalEventData( kInfo.m_iScriptID );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 		const KGameEventScriptManager::EVENT_DATA* pEventData = SiKGameEventScriptManager()->GetEventData( kInfo.m_iScriptID );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 		//}}
 		if( pEventData == NULL )
@@ -7297,3 +7335,64 @@ bool KGameEventManager::GetJumpingCharacterEvent( IN const char cUnitType
 	return false;
 }
 #endif // SERV_JUMPING_CHARACTER
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+void KGameEventManager::SetTotalEventData( IN const std::map< int,  EVENT_DATA > mapEventScriptData, IN const std::map< int,  EVENT_DATA > mapEventDBData )
+{	
+	m_mapTotalEventData.clear();
+
+	std::map< int,  EVENT_DATA >::const_iterator cmitEventScript = mapEventScriptData.begin();
+
+	for (; cmitEventScript != mapEventScriptData.end(); ++cmitEventScript )
+	{
+		m_mapTotalEventData.insert(std::make_pair(cmitEventScript->first, cmitEventScript->second));
+	}
+
+	std::map< int,  EVENT_DATA >::const_iterator cmitEventDB = mapEventDBData.begin();
+
+	for (; cmitEventDB != mapEventDBData.end(); ++cmitEventDB )
+	{
+		std::map< int,  EVENT_DATA >::const_iterator mitTotalEvent = m_mapTotalEventData.find(cmitEventDB->first);
+
+		if (mitTotalEvent == m_mapTotalEventData.end())
+		{
+			m_mapTotalEventData.insert(std::make_pair(cmitEventDB->first, cmitEventDB->second));
+		}
+		else
+		{
+			START_LOG( cerr, L"EventData.lua에서 사용된 ScriptID 가 DB 이벤트 정보 셋팅 하는 IndexID 와 중복되었습니다. 해당 DB 정보는 셋팅 되지 않았습니다." )
+				<< BUILD_LOG( cmitEventDB->first )
+				;
+		}
+	}
+}
+
+const EVENT_DATA* KGameEventManager::GetTotalEventData( IN int iEventID )  const
+{
+	std::map< int, EVENT_DATA >::const_iterator mit = m_mapTotalEventData.find( iEventID );
+	if( mit == m_mapTotalEventData.end() )
+	{
+		START_LOG( cerr, L"존재 하지 않는 이벤트입니다." )
+			<< BUILD_LOG( iEventID )
+			<< END_LOG;
+
+		return NULL;
+	}
+
+	return &mit->second;
+}
+
+bool KGameEventManager::CheckMapIngEventDataEmpty()
+{
+	for( int iGET = 0; iGET < KGameEvent::GET_MAX; ++iGET )
+	{
+		std::map< int, KGameEvent* >::iterator mit;
+		for( mit = m_mapIngEventData[iGET].begin(); mit != m_mapIngEventData[iGET].end(); ++mit )
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM

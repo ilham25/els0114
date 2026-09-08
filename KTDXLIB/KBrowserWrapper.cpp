@@ -209,7 +209,8 @@ void KBrowserWrapper::CloseBrowser( void )
 {
     m_bClosed = true;
 	m_bCheckClosed = false;
-    m_pPCHBrowser->Destroy();
+	if( NULL != m_pPCHBrowser )
+		m_pPCHBrowser->Destroy();
 
     DeleteBrowserObj();
 }

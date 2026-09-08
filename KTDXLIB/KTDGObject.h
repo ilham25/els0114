@@ -11,8 +11,6 @@ typedef CKTDGObjectList::iterator           CKTDGObjectHandle;
 //}} robobeg : 2008-10-13
 
 
-
-
 //
 //class CThreadSafeNewDelete
 //{
@@ -68,7 +66,12 @@ typedef CKTDGObjectList::iterator           CKTDGObjectHandle;
 	@date  : 2010/11/10
 */
 //{{ seojt // 2009-1-14, 21:25
-class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
+class CKTDGObject
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : public boost::enable_shared_from_this<CKTDGObject>
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 //}} seojt // 2009-1-14, 21:25
 {
     //{{ seojt // 2009-1-9, 10:39
@@ -97,6 +100,7 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
 //}} robobeg : 2008-10-17
 		virtual ~CKTDGObject(void);
 
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
         //{{ seojt // 2009-1-14, 21:24
         class KTDGObjectDeleter;
         friend class KTDGObjectDeleter;
@@ -113,6 +117,7 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
             void operator()( CKTDGObject* pObject_ );
         };//class KTDGObjectDeleter
         //}} seojt // 2009-1-14, 21:24
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
     public:
         //{{ seojt // 2009-1-14, 22:00
@@ -175,6 +180,35 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
         float	GetBoundingRadius() const { return ( m_pManagerObject != NULL ) ? m_pManagerObject->GetBoundingRadius() : m_Sphere.fRadius; }	
         const D3DXVECTOR3& GetCenter() const { return ( m_pManagerObject != NULL ) ? m_pManagerObject->GetCenter() : m_Sphere.center; }
 //}} robobeg : 2008-10-17
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+        __forceinline float   GetMaxScale() const
+        {
+            float   fScale = 0.f;
+		    D3DXVECTOR3 vScale = const_cast<CKTDGObject*>(this)->GetMatrix().GetScale();
+			if( vScale.x > vScale.y )
+            {
+				if( vScale.x > vScale.z ) 					//X가 제일 큼
+					fScale = vScale.x;
+				else                                        //Z가 제일 큼
+					fScale = vScale.z;
+			}
+			else
+			{
+				if( vScale.y > vScale.z )               //Y가 제일 큼
+					fScale = vScale.y;
+				else                                    //Z가 제일 큼
+					fScale = vScale.z;
+			}
+            return  fScale;
+        }
+        __forceinline float   GetScaledBoundingRadius() const
+        {
+            float   fBoundingRadius = GetBoundingRadius();
+            if ( fBoundingRadius <= 0.f )
+                return 0.f;
+            return  fBoundingRadius * GetMaxScale();
+        }
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
         __forceinline void GetTransformCenter( D3DXVECTOR3* pCenter )
         {
@@ -306,7 +340,7 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
 //}} robobeg : 2008-10-17
 
 //{{ robobeg :: 2008-10-17
-		void			SetScale( D3DXVECTOR3& vScale )
+		void			SetScale( const D3DXVECTOR3& vScale )
 		{
             if ( m_pManagerObject == NULL )
             {
@@ -323,8 +357,8 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
 		void			SetIsCulled( bool bCulled ) { m_bCulled = bCulled; }  
         bool            IsCulled() const { return ( m_pManagerObject != NULL ) ? m_pManagerObject->IsCulled() : m_bCulled; }
         //{{ seojt: 2008.10.23
-        double          GetLastAccessTime() const { return m_dwLastAccessTime; }
-        void            SetLastAccessTime(double dwTime_) { m_dwLastAccessTime = dwTime_; }
+        //double          GetLastAccessTime() const { return m_dwLastAccessTime; }
+        //void            SetLastAccessTime(double dwTime_) { m_dwLastAccessTime = dwTime_; }
         //}} seojt
 
 //{{ robobeg : 2008-10-17
@@ -349,6 +383,7 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
 		CKTDGObject::OBJECT_TYPE GetObjectType() const { return m_eObjectType; }		
 		void SetObjectType( const OBJECT_TYPE eObjectType_ ) { m_eObjectType = eObjectType_; }
 
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR        
         boost::weak_ptr<CKTDGObject> get_weak_ptr()
         {
             return shared_from_this();
@@ -361,6 +396,7 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
             return boost::static_pointer_cast<TARGET_TYPE>( shared_from_this() );
         }//get_shared_ptr()
         //}} seojt // 2009-1-12, 14:57
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
     public:
         class   CKTDGManagerAccess
@@ -372,13 +408,21 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
         };//class   CKTDGManagerAccess
 
 
-
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        void            AddRef()    { ++m_uRefCounter; }
+        void            Release()   { if ( (--m_uRefCounter) == 0 ) DeleteKTDGObject( this ); }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 	protected:
 		OBJECT_TYPE		m_eObjectType;		// ktdgobject를 상속받은 클래스를 구분하기 위해서
 
 
     private:
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        unsigned        m_uRefCounter;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 //{{ robobeg : 2008-10-17
         CKTDGObject*    m_pManagerObject;
         CKTDGMatrix*    m_pMatrix;
@@ -402,7 +446,7 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
 
         bool            m_bCulled;				// 디버깅 용도로 화면 출력 때에만 사용함 
         //{{ seojt: 2008.10.23
-        double          m_dwLastAccessTime;
+        //double          m_dwLastAccessTime;
         //}} seojt
 
 //{{ robobeg : 2008-10-13
@@ -418,4 +462,37 @@ class CKTDGObject : public boost::enable_shared_from_this<CKTDGObject>
 		D3DXVECTOR3		m_vScaleByUnit;		// 게임중에 캐릭터가 아이템을 먹고, 거인 혹은 소인이 되었을 때 이펙트의 크기도 줄여주기 위해서 처음 추가
 #endif // VERIFY_STAT_BY_BUFF
 
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+	public:
+		__forceinline virtual bool IsInFrustum( const D3DXVECTOR3& kEye, const CKTDGFrustum& kFrustum )
+		{
+			if( GetShowObject() == false )
+				return false;
+
+			D3DXVECTOR3 center;
+			float fScale = 0.f;
+
+
+			GetTransformCenter( &center );
+			SetDistanceToCamera( GetDistance( kEye, center ) );
+
+			if ( GetBoundingRadius() <= 0 )
+				return true;
+
+			if( kFrustum.CheckSphere( center, GetScaledBoundingRadius() ) == false )
+			{
+				//...... -_-a I want to use this code but............ T^T
+				SetIsCulled( true );
+				return false;
+			}
+			else
+			{
+				SetIsCulled( false );
+			}
+			return true;
+		}
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+
 };
+
+IMPLEMENT_INTRUSIVE_PTR( CKTDGObject );

@@ -11,7 +11,11 @@
 //{{ seojt // 2009-1-13, 15:47
 class CX2SubEquip;
 class CX2Eqip;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2Eqip>  CX2EqipPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2Eqip>  CX2EqipPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 //}} seojt // 2009-1-13, 15:47
 
 
@@ -43,7 +47,10 @@ class CX2Eqip : public CKTDGObject
             , CX2Unit::UNIT_TYPE eUnitType = CX2Unit::UT_NONE )
 		{
 			CX2EqipPtr  ptrEquip( new CX2Eqip( pItem, pUnitXSkinAnim, enchantLevel, bDummyBasic, bLoad, eUnitType )
-                                    , CKTDGObject::KTDGObjectDeleter() );
+#ifndef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+                                    , CKTDGObject::KTDGObjectDeleter()
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+                                    );
             
 			// 리소스 로딩을 CX2Eqip 생성자에서 하지않고 생성자 호출 이후에 하는 이유는 
 			// shared_ptr가 초기화된 이후에 백그라운드 로딩을 요청 해야하기 때문에
@@ -338,12 +345,12 @@ private:
 		CKTDXDeviceXET*				m_pNormalTexChangeXET;		
 		CKTDXDeviceXET*				m_pNormalMultiTexXET;
 		CKTDXDeviceXET*				m_pNormalAniXET;
-		CKTDXDeviceXET::AniData*	m_pNormalAniData;
+		const CKTDXDeviceXET::AniData*	m_pNormalAniData;
 
 		CKTDXDeviceXET*				m_pHyperTexChangeXET;
 		CKTDXDeviceXET*				m_pHyperMultiTexXET;
 		CKTDXDeviceXET*				m_pHyperAniXET;
-		CKTDXDeviceXET::AniData*	m_pHyperAniData;
+		const CKTDXDeviceXET::AniData*	m_pHyperAniData;
 
 		wstring						m_ChangeTexName;
 		wstring						m_AniXETName;

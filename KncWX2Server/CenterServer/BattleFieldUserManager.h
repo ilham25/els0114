@@ -127,7 +127,7 @@ public:
 
 	//{{ 2013. 02. 15   필드 중간 보스 - 김민성
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
-	void CalculatePartyRank( IN std::map< UidType, float >& mapDamageByUser, OUT std::map< UidType, bool >& mapBonusItem );
+	void CalculatePartyRank( IN const std::map< UidType, float >& mapDamageByUser, OUT std::map< UidType, bool >& mapBonusItem );
 	void GetPartyLevelFactor( IN const UidType iUnitUID, IN char cLevel, OUT float& fPartyLevelFactorMin, OUT float& fPartyLevelFactorMax );
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
@@ -140,6 +140,10 @@ public:
     bool ZombieAlert_CheckStart( IN const UidType nCID );
 
 #endif  SERV_OPTIMIZE_DETECT_ZOMBIE_HOST
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-15	// 박세훈
+	void	GetUnitListGroupdByParty( OUT std::vector< std::set< UidType > >& vecUnitListGroupdByParty ) const;
+#endif // SERV_BATTLE_FIELD_BOSS
 
 protected:
 	bool	AddRoomUserInBattleFieldPartyList( IN const UidType iUnitUID, IN const UidType iPartyUID, IN const std::vector< UidType >& vecPartyMemberList );

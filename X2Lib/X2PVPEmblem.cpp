@@ -84,13 +84,13 @@ CX2PVPEmblem::PVPEmblemData* CX2PVPEmblem::GetMyNowUnitPVPEmblem()
 
 #ifdef SERV_PVP_NEW_SYSTEM
 	#ifdef PVP_SEASON2
-		char cRank = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_cRank;
+		char cRank = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_cRank;
 		return  GetPVPEmblemData( static_cast<CX2PVPEmblem::PVP_RANK>( cRank ) );
 	#else
-		return GetPVPEmblemData( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iRating );
+		return GetPVPEmblemData( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iRating );
 	#endif
 #else
-	return GetPVPEmblemData( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_PVPEmblem );
+	return GetPVPEmblemData( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_PVPEmblem );
 #endif
 }
 
@@ -138,19 +138,11 @@ bool CX2PVPEmblem::OpenScript( const WCHAR* pFileName )
 	//바인더에 등록
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pX2PVPEmblem",	this );
 
-	//파일 로드
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
 		MessageBox( g_pKTDXApp->GetHWND(), pFileName, GET_STRING( STR_ID_436 ), MB_OK );
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		return false;
-	}
+    }
 
 	return true;
 }

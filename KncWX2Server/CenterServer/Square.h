@@ -21,7 +21,7 @@ class KSquare : public KCnBaseRoom
 #ifdef SERV_SQUARE_PLAYER_CONTROL
         SQUARE_MAX_SLOT = 60, // ±¹³» 70
 #else //SERV_SQUARE_PLAYER_CONTROL
-		SQUARE_MAX_SLOT = 70, 
+        SQUARE_MAX_SLOT = 70,
 #endif //SERV_SQUARE_PLAYER_CONTROL
 	};
 

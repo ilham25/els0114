@@ -11,11 +11,11 @@ public:
 
 	bool CreateTexture(DWORD dwWidth, DWORD dwHeight, D3DFORMAT d3dFormat);
 	
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	void SetChange( const RECT& rect );
-#else
-	void SetChange(bool bChange) { m_bUpdateTexture = bChange; }
-#endif
+//#else
+//	void SetChange(bool bChange) { m_bUpdateTexture = bChange; }
+//#endif
 	void ResetDevice();
 	void LostDevice();
 	void SetTexture(int iStage = 0);

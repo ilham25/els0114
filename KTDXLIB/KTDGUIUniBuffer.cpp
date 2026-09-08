@@ -434,7 +434,11 @@ bool CKTDGUIUniBuffer::InsertString( int nIndex, const WCHAR *pStr, int nCount )
 		ConvertWCHARToChar( tempString, m_pwszBuffer );
 		ConvertWCHARToChar( tempString2, InsertString.c_str() );
 
+#ifdef FIX_PASTE_ON_EDITBOX
+		if ( m_ByteLimit < (int)(tempString.size() + tempString2.size()) )
+#else //FIX_PASTE_ON_EDITBOX
 		if ( m_ByteLimit <= (int)(tempString.size() + tempString2.size()) )
+#endif //FIX_PASTE_ON_EDITBOX
 			return false;
 	}
 

@@ -67,7 +67,7 @@ void KGASHAuth::GetGashAuthenticationReqPacket( const KEPUBLISHER_AUTHENTICATION
 	strPacket += "\'";
 	strPacket += KncUtil::toNarrowString( kPacket_.m_wstrServicePassword );
 	strPacket += "\'";
-	strPacket += "0";	// m_strLockFlag 잔액 조회시 애러나는 경우가 발생하여 0으로 변경
+	strPacket += "1";	// m_strLockFlag 잔액 조회시 애러나는 경우가 발생하여 0으로 변경 // 김석근[14.03.04] 대만 요청으로 수정(0->1)
 	strPacket += "\'";
 	strPacket += strIPAddress;
 	strPacket += "\'";

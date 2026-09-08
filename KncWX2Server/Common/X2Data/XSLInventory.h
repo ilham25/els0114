@@ -76,7 +76,7 @@ private:
 
 		InvenSlotData()
 		{
-			m_SortType	= SORT_TYPE::ST_NONE;
+			m_SortType	= ST_NONE;
 			m_SlotID	= -1;
 			m_pItem		= 0;
 		}

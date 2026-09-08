@@ -18,7 +18,11 @@ class CX2DropItemManager : public CKTDXStage
 			
 			const CX2Item::ItemTemplet*	m_pItemTemplet;
 			CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeq;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CKTDGParticleSystem::CParticleHandle				m_hParticle;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CKTDGParticleSystem::CParticle*					m_pParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef SERV_ENCHANT_ITEM_DROP_EVENT ///드랍되는 아이템에 강화 수치 추가
 			char					m_cEnchantLevel;
@@ -38,8 +42,12 @@ class CX2DropItemManager : public CKTDXStage
 				m_fRemainTime	= 20.0f;
 
 				m_pItemTemplet	= NULL;
-				m_hSeq			= INVALID_PARTICLE_HANDLE;		
+				m_hSeq			= INVALID_PARTICLE_SEQUENCE_HANDLE;		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_hParticle		= INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				m_pParticle		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef SERV_ENCHANT_ITEM_DROP_EVENT ///드랍되는 아이템에 강화 수치 추가
 				m_cEnchantLevel	= 0;
@@ -75,6 +83,9 @@ class CX2DropItemManager : public CKTDXStage
 		int				CountDropItemByID( int iItemID );
 
 		bool			GetDropItemPosition( int iIndex, D3DXVECTOR3& vPos );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        const D3DXVECTOR3*  GetDropItemPosition_LUA( int iIndex );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 #ifdef DUNGEON_ITEM		
 		int				GetDropItemCount() { return m_DropItemDataList.size(); }

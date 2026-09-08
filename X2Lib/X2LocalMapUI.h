@@ -75,6 +75,15 @@ public:
 	void GetHenirDungeonIcnoDesc( OUT wstringstream& wstrStreamDungeonIconDesc_ );
 #endif NEW_HENIR_TEST
 
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+	// 김석근 [12.08.27] 엘의 여인의 눈물
+	void CreateLocalTearOfELWoman( CX2LocationManager::LOCAL_MAP_ID eLocalMapID, int dungeonID );
+	void UpdateLocalTearOfELWoman( CX2LocationManager::LOCAL_MAP_ID eLocalMapID, int dungeonID, bool bShow );
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	void GetEventValentineDungeonIconDesc( OUT wstringstream& wstrStreamDungeonIconDesc );
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+
 #ifdef DUNGEON_SELECT_ALL_CLOSE //던전선택화면이 활성화 되면 다른 UI들을 닫는다.
 	void CloseOtherUI();
 #endif //DUNGEON_SELECT_ALL_CLOSE

@@ -214,7 +214,7 @@ void CX2WorldMissionManager::RenderCrystal( int iPosX_, int iPosY_, const CX2GUN
 	int MAGIC_EL_HEIGHT = -10;
 
 	// 작은 수정의 경우 1/2
-	if ( CX2UnitManager::NUI_DEFENCE_CRYSTAL_SMALL == pCrystal_->GetNPCTemplet()->m_nNPCUnitID )
+	if ( CX2UnitManager::NUI_DEFENCE_CRYSTAL_SMALL == pCrystal_->GetNPCTemplet().m_nNPCUnitID )
 	{
 		iWidth /= 2;
 		iHeight /= 2;
@@ -233,7 +233,7 @@ void CX2WorldMissionManager::RenderCrystal( int iPosX_, int iPosY_, const CX2GUN
 	}
 	else
 	{
-		CKTDXDeviceTexture::TEXTURE_UV* pTextureUVForDamaged = pTexture->GetTexUV( L"ELL_OUT");
+		const CKTDXDeviceTexture::TEXTURE_UV* pTextureUVForDamaged = pTexture->GetTexUV( L"ELL_OUT");
 
 		//	깜빡이는 연출을한다. 어떻게?
 		int iTime = static_cast<int>( tTimer_.elapsed() * 10.0 );
@@ -244,7 +244,7 @@ void CX2WorldMissionManager::RenderCrystal( int iPosX_, int iPosY_, const CX2GUN
 			int iAddWidthHeightValue = 5;			
             
 			// 작은 수정의 경우 1/2
-			if ( CX2UnitManager::NUI_DEFENCE_CRYSTAL_SMALL == pCrystal_->GetNPCTemplet()->m_nNPCUnitID )
+			if ( CX2UnitManager::NUI_DEFENCE_CRYSTAL_SMALL == pCrystal_->GetNPCTemplet().m_nNPCUnitID )
 			{
 				iSubtractPosValue = -2;
 				iAddWidthHeightValue = 2;				
@@ -261,7 +261,7 @@ void CX2WorldMissionManager::RenderCrystal( int iPosX_, int iPosY_, const CX2GUN
 	const float fNowHP = pCrystal_->GetNowHp();
 	const float fPercentHP = fNowHP / fMaxHP * 100;
 	
-	CKTDXDeviceTexture::TEXTURE_UV* pTextureUV = NULL;
+	const CKTDXDeviceTexture::TEXTURE_UV* pTextureUV = NULL;
 	if( fPercentHP > 70.0f )
 	{
 		pTextureUV = pTexture->GetTexUV( L"ELL_GREEN");
@@ -556,7 +556,7 @@ void CX2WorldMissionManager::SetDefenceDungeonMiniMap( const wstring& wstrTextur
 
 	if ( NULL != GetTextureDefenceDungeonMiniMap() )
 	{
-		CKTDXDeviceTexture::TEXTURE_UV* pTexUV = GetTextureDefenceDungeonMiniMap()->GetTexUV( wstrKeyName );
+		const CKTDXDeviceTexture::TEXTURE_UV* pTexUV = GetTextureDefenceDungeonMiniMap()->GetTexUV( wstrKeyName );
 		SetUVDefenceDungeonMiniMap( pTexUV );
 	}
 }
@@ -854,12 +854,12 @@ bool CX2WorldMissionManager::Handler_EGS_EARTH_QUAKE_NOT( IN HWND hWnd, IN UINT 
 	if( NULL != g_pData && NULL != g_pData->GetCashShop() && false == g_pData->GetCashShop()->GetOpen() &&
 		NULL != g_pTFieldGame && false == g_pTFieldGame->GetJoinNpc() )					/// 캐시샵 및 대화중 예외 처리
 	{
-		if( NULL != g_pTFieldGame && NULL != g_pTFieldGame->GetCamera() && NULL != g_pTFieldGame->GetCamera()->GetCamera() )
+		if( NULL != g_pTFieldGame && NULL != g_pTFieldGame->GetCamera() )
 		{
 			if( NULL != g_pKTDXApp && NULL != g_pKTDXApp->GetDeviceManager() )			/// 지지진 사운드 재생
 				g_pKTDXApp->GetDeviceManager()->PlaySound( L"Event_Earthquake.ogg", false, false );
 
-			g_pTFieldGame->GetCamera()->GetCamera()->UpDownCrashCameraSmooth( 35.f, 10.f );	/// 카메라 크래시 설정
+			g_pTFieldGame->GetCamera()->GetCamera().UpDownCrashCameraSmooth( 35.f, 10.f );	/// 카메라 크래시 설정
 
 			if( NULL != g_pMain )
 			{

@@ -61,9 +61,9 @@ public:
 	virtual void DumpToLogFile();
 	//}}
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     CKTDNUDPPtr GetKTUDP()                      { return m_kLBSUdpEcho.GetKTUDP(); }
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 public: // lua access
     unsigned short m_usPortMaster;

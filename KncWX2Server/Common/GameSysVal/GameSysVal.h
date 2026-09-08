@@ -31,6 +31,10 @@ public:
 		GSVT_TOTAL_NUM,
 	};
 
+#ifdef SERV_EVENT_CHECK_POWER
+	float	m_fMultiplayer;
+#endif SERV_EVENT_CHECK_POWER
+
 	//{{ 2011. 05. 27    김민성    휴면 복귀 유저 보상
 #ifdef SERV_COME_BACK_USER_REWARD
 	enum COME_BACK_STEP_DURATION
@@ -125,14 +129,12 @@ public:
 	//}}
 
 #ifndef SERV_PC_BANG_TYPE
-
 	//{{ 2012. 07. 02	김민성       PC 방 유저 펫 추가 경험치
 #ifdef SERV_GAME_BANG_PET_ADD_EXP
 	float	GetGBPetEXPRate()				{ return m_fValue[GSVT_GB_PET_EXP]; }
 	void AddKNXGameBangPetEXP_LUA( float fEXPRate );
 #endif SERV_GAME_BANG_PET_ADD_EXP
 	//}}
-
 #endif SERV_PC_BANG_TYPE
 
 	//{{ 2013. 04. 10	최육사	어둠의 문 개편
@@ -306,14 +308,6 @@ public:
 #endif SERV_SUB_STAGE_NPC_DIE_CHECK
 	//}}
 
-	//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	void	SetDungeonClearStartTime_LUA( int iYear, int iMonth, int iDay, int iHour, int iMin, int iSec );
-	void	SetDungeonClearEndTime_LUA( int iYear, int iMonth, int iDay, int iHour, int iMin, int iSec );
-	CTime	GetDungeonClearEventStartTime()				{ return m_tDungeonClearStart; }
-	CTime	GetDungeonClearEventEndTime()				{ return m_tDungeonClearEnd; }
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	//}}
 
 #ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT_EX
 	void	SetDungeonClearPaymentItemID_LUA( int iItemID );
@@ -541,6 +535,13 @@ public:
 	void	ResetExchangeLimitInfo_Lua( void ) const;
 #endif // SERV_ITEM_EXCHANGE_LIMIT
 
+#ifdef SERV_FIX_AFTER_WORK_STORAGE_CLASS// 작업날짜: 2013-12-21	// 박세훈
+	void	AfterWorkStorageMessageDeleteTerm_Second_LUA( IN int iAwsCriterionNum, IN int iAwsUnderTerm, IN int iAwsAboveOrEqualTerm );
+	int		GetAwsCriterionNum( void )		const{	return m_iAwsCriterionNum;	}
+	int		GetAwsUnderTerm( void )			const{	return m_iAwsUnderTerm;	}
+	int		GetAwsAboveOrEqualTerm( void )	const{	return m_iAwsAboveOrEqualTerm;	}
+#endif // SERV_FIX_AFTER_WORK_STORAGE_CLASS
+
 protected:
 	//## Game System value..
 	//{{
@@ -655,12 +656,6 @@ protected:
 #endif SERV_SUB_STAGE_NPC_DIE_CHECK
 	//}}
 
-	//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	CTime							m_tDungeonClearStart;
-	CTime							m_tDungeonClearEnd;
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	//}}
 
 #ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT_EX
 	int								m_iPaymentItemID;
@@ -823,6 +818,12 @@ protected:
 #ifdef SERV_DUNGEON_STAGE_LOAD_LOG// 작업날짜: 2013-05-15	// 박세훈
 	bool						m_bDungeonStageLoadLog;
 #endif // SERV_DUNGEON_STAGE_LOAD_LOG
+
+#ifdef SERV_FIX_AFTER_WORK_STORAGE_CLASS// 작업날짜: 2013-12-21	// 박세훈
+	int		m_iAwsCriterionNum;		// 처리 시간을 변경할 기준 수량
+	int		m_iAwsUnderTerm;			// 기준 수량 미만일 경우의 처리 간격
+	int		m_iAwsAboveOrEqualTerm;	// 기준 수량 이상일 경우의 처리 간격
+#endif // SERV_FIX_AFTER_WORK_STORAGE_CLASS
 };
 
 DefRefreshSingletonInline( KGameSysVal );

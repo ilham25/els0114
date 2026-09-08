@@ -46,8 +46,8 @@ public:
 	CKTDXDeviceTexture* GetTextureDefenceDungeonMiniMap() const { return m_pTextureDefenceDungeonMiniMap; }
 	void SetTextureDefenceDungeonMiniMap( IN CKTDXDeviceTexture* pTextureDefenceDungeonMiniMap_ ) { m_pTextureDefenceDungeonMiniMap = pTextureDefenceDungeonMiniMap_; }
 
-	CKTDXDeviceTexture::TEXTURE_UV* GetUVDefenceDungeonMiniMap() const { return m_pUVDefenceDungeonMiniMap; }
-	void SetUVDefenceDungeonMiniMap( CKTDXDeviceTexture::TEXTURE_UV* pUVDefenceDungeonMiniMap_ ) { m_pUVDefenceDungeonMiniMap = pUVDefenceDungeonMiniMap_; }
+	const CKTDXDeviceTexture::TEXTURE_UV* GetUVDefenceDungeonMiniMap() const { return m_pUVDefenceDungeonMiniMap; }
+	void SetUVDefenceDungeonMiniMap( const CKTDXDeviceTexture::TEXTURE_UV* pUVDefenceDungeonMiniMap_ ) { m_pUVDefenceDungeonMiniMap = pUVDefenceDungeonMiniMap_; }
 
 	void SetDefenceDungeonMiniMap( const wstring& wstrTextureName, const wstring& wstrKeyName );
 
@@ -152,7 +152,7 @@ private:
 
 	// 아래 두개를 CX2UIWorldMission으로 넣는 방법도 고려해 보자
 	CKTDXDeviceTexture*	m_pTextureDefenceDungeonMiniMap;			/// 디펜스 던전 미니맵 텍스쳐 포인터
-	CKTDXDeviceTexture::TEXTURE_UV* m_pUVDefenceDungeonMiniMap;		/// 디펜스 던전 미니맵 텍스쳐 UV 포인터
+	const CKTDXDeviceTexture::TEXTURE_UV* m_pUVDefenceDungeonMiniMap;		/// 디펜스 던전 미니맵 텍스쳐 UV 포인터
 
 	const int m_iStartKeyNumberForCrystal;				/// 엘 크리스탈이 가지고 있는 키코드 중 제일 첫번째 KeyNumber
 	int m_iNumOfCrystals;								/// 난이도에 따라 달라지는 크리스탈의 갯수

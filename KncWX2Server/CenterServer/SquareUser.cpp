@@ -99,7 +99,11 @@ void KSquareUser::SetPersonalShopData( const KSquarePersonalShopInfo& kInfo, OUT
 	case KSquarePersonalShopInfo::UT_DATA_CLEAR:
 		{
 			m_kSquareUserInfo.m_cPersonalShopState = CXSLSquareUnit::PSS_NONE;
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+			m_kSquareUserInfo.m_cPersonalShopType = SEnum::AST_NONE;
+#else //SERV_UPGRADE_TRADE_SYSTEM
 			m_kSquareUserInfo.m_cPersonalShopType = CXSLSquareUnit::PST_NONE;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 			m_kSquareUserInfo.m_wstrPersonalShopName.clear();
 			m_iPersonalShopUID = 0;
 		}

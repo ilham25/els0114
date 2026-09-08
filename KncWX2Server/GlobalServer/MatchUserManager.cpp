@@ -847,7 +847,7 @@ bool KMatchUserManager::MakeTeamOptimalMatch( OUT std::vector< UidType >& vecRed
 
 	//////////////////////////////////////////////////////////////////////////	
 	// (2) 차례로 끊어서 2단계 또는 3단계를 만든다.
-	std::vector< int > vecIndex[RATING_ENUM::RE_MAX];
+	std::vector< int > vecIndex[RE_MAX];
 
 	{
 		// 정렬된 유저 수 만큼 구분해서 넣습니다!
@@ -855,7 +855,7 @@ bool KMatchUserManager::MakeTeamOptimalMatch( OUT std::vector< UidType >& vecRed
 		{
 			const bool bIsRed = ( ( ui % 2 ) == 0 );
 			const int iIndex = ( ui / 2 );
-			if( iIndex < 0  ||  iIndex >= RATING_ENUM::RE_MAX )
+			if( iIndex < 0  ||  iIndex >= RE_MAX )
 			{
 				START_LOG( cerr, L"이상한 인덱스 값이 나왔다! 일어나면 안되는 에러!" )
 					<< BUILD_LOG( vecSortedUserList.size() )
@@ -888,13 +888,13 @@ bool KMatchUserManager::MakeTeamOptimalMatch( OUT std::vector< UidType >& vecRed
 		{
 			// 첫번째 경우의 수
 			int iGapTeamRating = 0;
-			if( GetTeamRatingGapByRatingLevel( vecSortedUserList, vecIndex[RATING_ENUM::RE_HIGH], vecIndex[RATING_ENUM::RE_MIDDLE], vecIndex[RATING_ENUM::RE_LOW], iGapTeamRating, vecRedTeamTemp, vecBlueTeamTemp ) == false )
+			if( GetTeamRatingGapByRatingLevel( vecSortedUserList, vecIndex[RE_HIGH], vecIndex[RE_MIDDLE], vecIndex[RE_LOW], iGapTeamRating, vecRedTeamTemp, vecBlueTeamTemp ) == false )
 			{
 				START_LOG( cerr, L"팀 레이팅 차이값 구하기 실패!" )
 					<< BUILD_LOG( vecSortedUserList.size() )
-					<< BUILD_LOG( vecIndex[RATING_ENUM::RE_HIGH].size() )
-					<< BUILD_LOG( vecIndex[RATING_ENUM::RE_MIDDLE].size() )
-					<< BUILD_LOG( vecIndex[RATING_ENUM::RE_LOW].size() )
+					<< BUILD_LOG( vecIndex[RE_HIGH].size() )
+					<< BUILD_LOG( vecIndex[RE_MIDDLE].size() )
+					<< BUILD_LOG( vecIndex[RE_LOW].size() )
 					<< END_LOG;
 				return false;
 			}
@@ -908,18 +908,18 @@ bool KMatchUserManager::MakeTeamOptimalMatch( OUT std::vector< UidType >& vecRed
 			}
 		}
 
-		while( next_permutation( vecIndex[RATING_ENUM::RE_LOW].begin(), vecIndex[RATING_ENUM::RE_LOW].end() ) )
+		while( next_permutation( vecIndex[RE_LOW].begin(), vecIndex[RE_LOW].end() ) )
 		{
 			// 그 다음 경우의 수
 			int iGapTeamRating = 0;
 			std::vector< int > vecIndexResult;
-			if( GetTeamRatingGapByRatingLevel( vecSortedUserList, vecIndex[RATING_ENUM::RE_HIGH], vecIndex[RATING_ENUM::RE_MIDDLE], vecIndex[RATING_ENUM::RE_LOW], iGapTeamRating, vecRedTeamTemp, vecBlueTeamTemp ) == false )
+			if( GetTeamRatingGapByRatingLevel( vecSortedUserList, vecIndex[RE_HIGH], vecIndex[RE_MIDDLE], vecIndex[RE_LOW], iGapTeamRating, vecRedTeamTemp, vecBlueTeamTemp ) == false )
 			{
 				START_LOG( cerr, L"팀 레이팅 차이값 구하기 실패!" )
 					<< BUILD_LOG( vecSortedUserList.size() )
-					<< BUILD_LOG( vecIndex[RATING_ENUM::RE_HIGH].size() )
-					<< BUILD_LOG( vecIndex[RATING_ENUM::RE_MIDDLE].size() )
-					<< BUILD_LOG( vecIndex[RATING_ENUM::RE_LOW].size() )
+					<< BUILD_LOG( vecIndex[RE_HIGH].size() )
+					<< BUILD_LOG( vecIndex[RE_MIDDLE].size() )
+					<< BUILD_LOG( vecIndex[RE_LOW].size() )
 					<< END_LOG;
 				return false;
 			}
@@ -933,18 +933,18 @@ bool KMatchUserManager::MakeTeamOptimalMatch( OUT std::vector< UidType >& vecRed
 			}
 		}
 
-		while( next_permutation( vecIndex[RATING_ENUM::RE_MIDDLE].begin(), vecIndex[RATING_ENUM::RE_MIDDLE].end() ) )
+		while( next_permutation( vecIndex[RE_MIDDLE].begin(), vecIndex[RE_MIDDLE].end() ) )
 		{
 			// 그 다음 경우의 수
 			int iGapTeamRating = 0;
 			std::vector< int > vecIndexResult;
-			if( GetTeamRatingGapByRatingLevel( vecSortedUserList, vecIndex[RATING_ENUM::RE_HIGH], vecIndex[RATING_ENUM::RE_MIDDLE], vecIndex[RATING_ENUM::RE_LOW], iGapTeamRating, vecRedTeamTemp, vecBlueTeamTemp ) == false )
+			if( GetTeamRatingGapByRatingLevel( vecSortedUserList, vecIndex[RE_HIGH], vecIndex[RE_MIDDLE], vecIndex[RE_LOW], iGapTeamRating, vecRedTeamTemp, vecBlueTeamTemp ) == false )
 			{
 				START_LOG( cerr, L"팀 레이팅 차이값 구하기 실패!" )
 					<< BUILD_LOG( vecSortedUserList.size() )
-					<< BUILD_LOG( vecIndex[RATING_ENUM::RE_HIGH].size() )
-					<< BUILD_LOG( vecIndex[RATING_ENUM::RE_MIDDLE].size() )
-					<< BUILD_LOG( vecIndex[RATING_ENUM::RE_LOW].size() )
+					<< BUILD_LOG( vecIndex[RE_HIGH].size() )
+					<< BUILD_LOG( vecIndex[RE_MIDDLE].size() )
+					<< BUILD_LOG( vecIndex[RE_LOW].size() )
 					<< END_LOG;
 				return false;
 			}
@@ -957,18 +957,18 @@ bool KMatchUserManager::MakeTeamOptimalMatch( OUT std::vector< UidType >& vecRed
 				vecBlueTeam = vecBlueTeamTemp;
 			}
 
-			while( next_permutation( vecIndex[RATING_ENUM::RE_LOW].begin(), vecIndex[RATING_ENUM::RE_LOW].end() ) )
+			while( next_permutation( vecIndex[RE_LOW].begin(), vecIndex[RE_LOW].end() ) )
 			{
 				// 그 다음 경우의 수
 				int iGapTeamRating = 0;
 				std::vector< int > vecIndexResult;
-				if( GetTeamRatingGapByRatingLevel( vecSortedUserList, vecIndex[RATING_ENUM::RE_HIGH], vecIndex[RATING_ENUM::RE_MIDDLE], vecIndex[RATING_ENUM::RE_LOW], iGapTeamRating, vecRedTeamTemp, vecBlueTeamTemp ) == false )
+				if( GetTeamRatingGapByRatingLevel( vecSortedUserList, vecIndex[RE_HIGH], vecIndex[RE_MIDDLE], vecIndex[RE_LOW], iGapTeamRating, vecRedTeamTemp, vecBlueTeamTemp ) == false )
 				{
 					START_LOG( cerr, L"팀 레이팅 차이값 구하기 실패!" )
 						<< BUILD_LOG( vecSortedUserList.size() )
-						<< BUILD_LOG( vecIndex[RATING_ENUM::RE_HIGH].size() )
-						<< BUILD_LOG( vecIndex[RATING_ENUM::RE_MIDDLE].size() )
-						<< BUILD_LOG( vecIndex[RATING_ENUM::RE_LOW].size() )
+						<< BUILD_LOG( vecIndex[RE_HIGH].size() )
+						<< BUILD_LOG( vecIndex[RE_MIDDLE].size() )
+						<< BUILD_LOG( vecIndex[RE_LOW].size() )
 						<< END_LOG;
 					return false;
 				}

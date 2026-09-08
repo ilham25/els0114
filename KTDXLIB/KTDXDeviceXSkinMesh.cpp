@@ -90,7 +90,7 @@ CKTDXDeviceXSkinMesh::XSkinMeshProxy::XSkinMeshProxy( const std::wstring& wstrDe
 , m_pThis( pThis )
 , m_pFrameRoot( NULL )
 , m_dwFrameNum( 0L )
-, m_apFrameList()
+//, m_apFrameList()
 , m_vCenter( 0, 0, 0 )
 , m_fMaxBoundingRadius( 0.f )
 , m_pAC( NULL )
@@ -99,7 +99,7 @@ CKTDXDeviceXSkinMesh::XSkinMeshProxy::XSkinMeshProxy( const std::wstring& wstrDe
 , m_pXET( NULL )
 #endif  
 , m_dwDrawFrameNum( 0L )
-, m_apDrawFrameList()
+//, m_apDrawFrameList()
 , m_dwWorkingPaletteSize( 0L )
 , m_amxWorkingPalette( NULL )
 , m_dwMaxSkinningVertices( 0L )
@@ -196,9 +196,9 @@ CKTDXDeviceXSkinMesh::~CKTDXDeviceXSkinMesh(void)
 
 
 HRESULT CKTDXDeviceXSkinMesh::_Load( bool bSkipStateCheck /*= false*/
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD			
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD			
 	)
 {
 	KTDXPROFILE();
@@ -1419,63 +1419,63 @@ void    CKTDXDeviceXSkinMesh::XSkinMeshProxy::ReleaseUnusedInfo()
 
 
 
-#ifdef MONSTER_DIE_PARTICLE_TEST
-	bool CKTDXDeviceXSkinMesh::GetSurfaceVertices( std::vector<D3DXVECTOR3>& vecVertices )
-	{
-		vecVertices.resize(0);
-
-		for( DWORD i = 0; i < m_dwDrawFrameNum; i++ )
-		{
-			if ( m_apDrawFrameList[ i ]->pMeshContainer != NULL )
-			{
-				MultiAnimFrame* pFrame = m_apDrawFrameList[i];
-				MultiAnimMC* pMC = static_cast<MultiAnimMC*>( pFrame->pMeshContainer );
-				if( NULL == pMC )
-					continue;
-
-				DWORD dwSize = pMC->MeshData.pMesh->GetNumBytesPerVertex();
-				DWORD dwFVF = pMC->MeshData.pMesh->GetFVF();
-				DWORD dwNumVertices = pMC->MeshData.pMesh->GetNumVertices();
-
-				void* pVertex = NULL;
-				HRESULT hr = pMC->MeshData.pMesh->LockVertexBuffer( 0, &pVertex );
-				if ( FAILED( hr ) )
-				{
-					ErrorLog(KEM_ERROR266);
-					ASSERT( !"LockVertexBuffer failed" );
-					continue;
-				}
-				BYTE* pBVertex = (BYTE*) pVertex;
-
-
-				D3DXMATRIX matWorld = pFrame->combineMatrix;
-				if( pMC->m_dwNumAttrGroups > 0 &&
-					pMC->m_dwNumPaletteEntries > 0 )
-				{
-					DWORD dwMatrixIndex = pMC->GetBoneId( 0, 0 );
-					if( dwMatrixIndex != UINT_MAX )
-					{
-						D3DXMatrixMultiply( &matWorld, &( pMC->m_amxBoneOffsets[ dwMatrixIndex ] ), &pMC->m_ppBoneFrames[ dwMatrixIndex ]->combineMatrix );
-					}
-				}
-
-				for( DWORD dwVertex = 0; dwVertex < dwNumVertices; dwVertex++, pBVertex += dwSize )
-				{
-					float* pfVertex = (float*) ( pBVertex );
-					D3DXVECTOR3 vVertex( pfVertex[0], pfVertex[1], pfVertex[2] );
-
-					//D3DXVec3TransformCoord( &vVertex, &vVertex, &pFrame->combineMatrix );
-					D3DXVec3TransformCoord( &vVertex, &vVertex, &matWorld );
-
-					vecVertices.push_back( vVertex );
-				}
-
-				hr = pMC->MeshData.pMesh->UnlockVertexBuffer();
-			}
-		}
-		return true;
-	}
-#endif MONSTER_DIE_PARTICLE_TEST
+//#ifdef MONSTER_DIE_PARTICLE_TEST
+//	bool CKTDXDeviceXSkinMesh::GetSurfaceVertices( std::vector<D3DXVECTOR3>& vecVertices )
+//	{
+//		vecVertices.resize(0);
+//
+//		for( DWORD i = 0; i < m_dwDrawFrameNum; i++ )
+//		{
+//			if ( m_apDrawFrameList[ i ]->pMeshContainer != NULL )
+//			{
+//				MultiAnimFrame* pFrame = m_apDrawFrameList[i];
+//				MultiAnimMC* pMC = static_cast<MultiAnimMC*>( pFrame->pMeshContainer );
+//				if( NULL == pMC )
+//					continue;
+//
+//				DWORD dwSize = pMC->MeshData.pMesh->GetNumBytesPerVertex();
+//				DWORD dwFVF = pMC->MeshData.pMesh->GetFVF();
+//				DWORD dwNumVertices = pMC->MeshData.pMesh->GetNumVertices();
+//
+//				void* pVertex = NULL;
+//				HRESULT hr = pMC->MeshData.pMesh->LockVertexBuffer( 0, &pVertex );
+//				if ( FAILED( hr ) )
+//				{
+//					ErrorLog(KEM_ERROR266);
+//					ASSERT( !"LockVertexBuffer failed" );
+//					continue;
+//				}
+//				BYTE* pBVertex = (BYTE*) pVertex;
+//
+//
+//				D3DXMATRIX matWorld = pFrame->combineMatrix;
+//				if( pMC->m_dwNumAttrGroups > 0 &&
+//					pMC->m_dwNumPaletteEntries > 0 )
+//				{
+//					DWORD dwMatrixIndex = pMC->GetBoneId( 0, 0 );
+//					if( dwMatrixIndex != UINT_MAX )
+//					{
+//						D3DXMatrixMultiply( &matWorld, &( pMC->m_amxBoneOffsets[ dwMatrixIndex ] ), &pMC->m_ppBoneFrames[ dwMatrixIndex ]->combineMatrix );
+//					}
+//				}
+//
+//				for( DWORD dwVertex = 0; dwVertex < dwNumVertices; dwVertex++, pBVertex += dwSize )
+//				{
+//					float* pfVertex = (float*) ( pBVertex );
+//					D3DXVECTOR3 vVertex( pfVertex[0], pfVertex[1], pfVertex[2] );
+//
+//					//D3DXVec3TransformCoord( &vVertex, &vVertex, &pFrame->combineMatrix );
+//					D3DXVec3TransformCoord( &vVertex, &vVertex, &matWorld );
+//
+//					vecVertices.push_back( vVertex );
+//				}
+//
+//				hr = pMC->MeshData.pMesh->UnlockVertexBuffer();
+//			}
+//		}
+//		return true;
+//	}
+//#endif MONSTER_DIE_PARTICLE_TEST
 
 
 

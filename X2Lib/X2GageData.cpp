@@ -86,7 +86,10 @@ void CX2GageData::Gage::Increase( const float fIncrement, const float fMinimum /
 		}
 	}
 
-	Veryfy();
+	if ( g_pKTDXApp->GetIsNowVeryfy() == true
+		&& g_pInstanceData != NULL 
+		&& g_pInstanceData->GetVerifyGageManagerTimer() <= 0.f )
+		Veryfy();
 }
 
 bool CX2GageData::FlushMp( const float fFlushMp_ )
@@ -243,17 +246,24 @@ bool CX2GageData::FlushSoul( const float fFlushSoul_ )
 	SetHyperModeRemainTime( 0.0f );
 }
 
-/*virtual*/ void CX2GageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus_ ) const
+/*virtual*/ bool CX2GageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus_ ) const
 {
-	kGamePlayStatus_.m_cCurHyperCount	= max( static_cast<char>( 0 ), static_cast<char>( GetHyperModeCount() ) );
-	kGamePlayStatus_.m_iCurHP			= max( static_cast<int>( 0 ), static_cast<int>( GetNowHp() ) );
-	kGamePlayStatus_.m_iCurHyperGage	= max( static_cast<int>( 0 ), static_cast<int>( GetNowSoul() ) );
-	kGamePlayStatus_.m_iCurMP			= max( static_cast<int>( 0 ), static_cast<int>( GetNowMp() ) );
-	kGamePlayStatus_.m_iMaxHP			= max( static_cast<int>( 0 ), static_cast<int>( GetMaxHp() ) );
-	kGamePlayStatus_.m_iMaxMP			= max( static_cast<int>( 0 ), static_cast<int>( GetMaxMp() ) );
-	kGamePlayStatus_.m_mapPetMP;		// 생각 좀 해보자...
-	kGamePlayStatus_.m_mapQuickSlotCoolTime;	// 이것도 생각 좀 해보자...
-	kGamePlayStatus_.m_mapSkillCoolTime;	// 이것도 생각좀 해보자.
+	if ( Veryfy() )
+	{
+		kGamePlayStatus_.m_cCurHyperCount	= max( static_cast<char>( 0 ), static_cast<char>( GetHyperModeCount() ) );
+		kGamePlayStatus_.m_iCurHP			= max( static_cast<int>( 0 ), static_cast<int>( GetNowHp() ) );
+		kGamePlayStatus_.m_iCurHyperGage	= max( static_cast<int>( 0 ), static_cast<int>( GetNowSoul() ) );
+		kGamePlayStatus_.m_iCurMP			= max( static_cast<int>( 0 ), static_cast<int>( GetNowMp() ) );
+		kGamePlayStatus_.m_iMaxHP			= max( static_cast<int>( 0 ), static_cast<int>( GetMaxHp() ) );
+		kGamePlayStatus_.m_iMaxMP			= max( static_cast<int>( 0 ), static_cast<int>( GetMaxMp() ) );
+		kGamePlayStatus_.m_mapPetMP;		// 생각 좀 해보자...
+		kGamePlayStatus_.m_mapQuickSlotCoolTime;	// 이것도 생각 좀 해보자...
+		kGamePlayStatus_.m_mapSkillCoolTime;	// 이것도 생각좀 해보자.
+
+		return true;
+	}
+	else
+		return false;
 }
 
 /*virtual*/ void CX2GageData::SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus_ )
@@ -268,159 +278,137 @@ bool CX2GageData::FlushSoul( const float fFlushSoul_ )
 	
 }
 
-void CX2GageData::Veryfy()
+bool CX2GageData::Veryfy() const
 {
-	if( g_pKTDXApp->GetIsNowVeryfy() == true )
-	{
 #ifdef FIX_GAGEMANAGER01
-		bool bIsVerify = true;
-		bool bFindHacking = false;
-		string strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Verify;
+	bool bIsVerify = true;
+	bool bFindHacking = false;
+	string strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Verify;
 
-#ifdef SWAP_GAGE
-		if( m_pHpGage->fNow.Verify()						== false ||
-			m_pHpGage->fMax.Verify()						== false )
-#else
-		if( m_pHpGage.fNow.Verify()						== false ||
-			m_pHpGage.fMax.Verify()						== false )
-#endif
-		{
-			bIsVerify = false;
-			bFindHacking = true;
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Hp_Verify;
-		}
-#ifdef SWAP_GAGE
-		else if( m_pMpGage->fNow.Verify()					== false ||
-			m_pMpGage->fMax.Verify()					== false )
-#else
-		else if( m_MpGage.fNow.Verify()					== false ||
-			m_MpGage.fMax.Verify()					== false )
-#endif
-		{
-			bIsVerify = false;
-			bFindHacking = true;
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Mp_Verify;
-		}
-		else if( m_ForceDownGage.fNow.Verify()			== false ||
-			m_ForceDownGage.fMax.Verify()				== false )
-		{
-			bIsVerify = false;
+	if( m_pHpGage->fNow.Verify()						== false ||
+		m_pHpGage->fMax.Verify()						== false )
+	{
+		bIsVerify = false;
+		bFindHacking = true;
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Hp_Verify;
+	}
+	else if( m_pMpGage->fNow.Verify()					== false ||
+		m_pMpGage->fMax.Verify()					== false )
+	{
+		bIsVerify = false;
+		bFindHacking = true;
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Mp_Verify;
+	}
+	else if( m_ForceDownGage.fNow.Verify()			== false ||
+		m_ForceDownGage.fMax.Verify()				== false )
+	{
+		bIsVerify = false;
 
 
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_DownGage_Verify;
-		}
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_DownGage_Verify;
+	}
 #ifdef ATTACK_DELAY_GAGE
-		else if( m_AttackDelayGage.fNow.Verify()		== false ||
-			m_AttackDelayGage.fMax.Verify()		== false )
-		{
-			bIsVerify = false;
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_AttackDelay_Verify;
-		}
+	else if( m_AttackDelayGage.fNow.Verify()		== false ||
+		m_AttackDelayGage.fMax.Verify()		== false )
+	{
+		bIsVerify = false;
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_AttackDelay_Verify;
+	}
 #endif
-#ifdef SWAP_GAGE
-		else if( m_pHpGage->fChangeRate.Verify()			== false )
-#else
-		else if( m_HPGage.fChangeRate.Verify()			== false )
-#endif
-		{
-			bIsVerify = false;
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Hp_ChangeRate_Verify;
-		}		
-#ifdef SWAP_GAGE
-		else if( m_pMpGage->fChangeRate.Verify()			== false )
-#else
-		else if( m_MPGage.fChangeRate.Verify()			== false )
-#endif
-		{
-			bIsVerify = false;			
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Mp_ChangeRate_Verify;
-		}
-		else if( m_ChargeMpGageForDetonation.fNow.Verify()			== false ||
-			m_ChargeMpGageForDetonation.fMax.Verify()			== false )
-		{
-			bIsVerify = false;
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_MpChargeGage_Verify;
-		}
-		else if( m_ChargeMpGageForDetonation.fChangeRate.Verify()	== false )
-		{
-			bIsVerify = false;
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_MpChangeGage_ChangeRate_Verify;
-		}
-		else if( m_SoulGage.fNow.Verify()				== false ||
-			m_SoulGage.fMax.Verify()				== false )
-		{
-			bIsVerify = false;
-			bFindHacking = true;
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_SoulGage_Verify;
-		}
-		else if( m_SoulGage.fChangeRate.Verify()		== false)
-		{
-			bIsVerify = false;
-			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_SoulGage_ChangeRate_Verify;
-		}
+	else if( m_pHpGage->fChangeRate.Verify()			== false )
+	{
+		bIsVerify = false;
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Hp_ChangeRate_Verify;
+	}		
+	else if( m_pMpGage->fChangeRate.Verify()			== false )
+	{
+		bIsVerify = false;			
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Mp_ChangeRate_Verify;
+	}
+	else if( m_ChargeMpGageForDetonation.fNow.Verify()			== false ||
+		m_ChargeMpGageForDetonation.fMax.Verify()			== false )
+	{
+		bIsVerify = false;
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_MpChargeGage_Verify;
+	}
+	else if( m_ChargeMpGageForDetonation.fChangeRate.Verify()	== false )
+	{
+		bIsVerify = false;
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_MpChangeGage_ChangeRate_Verify;
+	}
+	else if( m_SoulGage.fNow.Verify()				== false ||
+		m_SoulGage.fMax.Verify()				== false )
+	{
+		bIsVerify = false;
+		bFindHacking = true;
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_SoulGage_Verify;
+	}
+	else if( m_SoulGage.fChangeRate.Verify()		== false)
+	{
+		bIsVerify = false;
+		strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_SoulGage_ChangeRate_Verify;
+	}
 
-		if( bIsVerify == false )
-		{			
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
-				g_pKTDXApp->GetFindHacking() == false )
-			{
-				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-			}			
+	if( bIsVerify == false )
+	{			
+		if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
+			g_pKTDXApp->GetFindHacking() == false )
+		{
+			g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+		}			
 
-			if( g_pInstanceData != NULL &&
-				g_pInstanceData->GetVerifyGageManagerTimer() <= 0.f )
-			{				
+
 #ifdef ADD_COLLECT_CLIENT_INFO
-				g_pMain->SendHackInfo1( ANTIHACKING_ID::ANTIHACKING_GAME_03, strAntiHackingDesc.c_str(), bFindHacking, false );
-				g_pInstanceData->SetVerifyGageManagerTimer(60.f);
+		g_pMain->SendHackInfo1( ANTIHACKING_ID::ANTIHACKING_GAME_03, strAntiHackingDesc.c_str(), bFindHacking, true );
+		g_pInstanceData->SetRemainedTimeByForceQuitGame( REMAINED_TIME_BY_FORCE_QUIT_GAME );
 #else
-				g_pMain->SendHackMail_DamageHistory(strAntiHackingDesc.c_str());
+		if ( g_pInstanceData != NULL &&
+			g_pInstanceData->GetVerifyGageManagerTimer() <= 0.f )
+		{
 
-				g_pInstanceData->SetVerifyGageManagerTimer(60.f);
 
-				if( bFindHacking == true )
-				{
-					g_pKTDXApp->SetFindHacking( true );
-				}
+			g_pMain->SendHackMail_DamageHistory(strAntiHackingDesc.c_str());
+
+			g_pInstanceData->SetRemainedTimeByForceQuitGame( REMAINED_TIME_BY_FORCE_QUIT_GAME );
+
+			if( bFindHacking == true )
+			{
+				g_pKTDXApp->SetFindHacking( true );
+			}
+		}			
 #endif
-			}			
-
-			//g_pKTDXApp->SetFindHacking( true );
-			return;
-		}
+	}
 #endif
 
 
 #ifdef DUNGEON_ITEM
-		if( m_fChangeRateByItem.Verify() == false )
-		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
-				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-			//g_pKTDXApp->SetFindHacking( true );
-			return;
-		}
-		if( m_fChangeRateTimeByItem.Verify() == false )
-		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
-				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-			//g_pKTDXApp->SetFindHacking( true );
-			return;
-		}
-		if( m_fHyperModeRemainTime.Verify() == false )
-		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
-				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-			//g_pKTDXApp->SetFindHacking( true );
-			return;
-		}
-#endif
+	if( m_fChangeRateByItem.Verify() == false )
+	{
+		if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+		
 	}
+	if( m_fChangeRateTimeByItem.Verify() == false )
+	{
+		if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+		
+	}
+	if( m_fHyperModeRemainTime.Verify() == false )
+	{
+		if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+		
+	}
+#endif
+
+	return bIsVerify;
 }
 
 void CX2GageData::UseSpecialAbilityInVillage( const CX2Item::ItemTemplet* pItemTemplet_ )
 {
 	const CX2Unit* pX2Unit = g_pData->GetMyUser()->GetSelectUnit();
-	const CX2Unit::UnitData* pUnitData = pX2Unit->GetUnitData();
+	const CX2Unit::UnitData* pUnitData = &pX2Unit->GetUnitData();
 	const CX2Unit::UNIT_CLASS eUnitClass = pX2Unit->GetClass();
 	
 	//길드 스킬 중 연금술의 달인(포션, 음식, 던전 회복 아이템의 효과가 X%증가)
@@ -428,7 +416,6 @@ void CX2GageData::UseSpecialAbilityInVillage( const CX2Item::ItemTemplet* pItemT
 	bool	bDoIHaveMasterOfAlchemistSkill			= false;
 	int		iSkillLvMasterOfAlchemist				= 0;
 
-	if ( pX2Unit->GetUnitData() != NULL )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = pUnitData->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_GP_COMMON_MASTER_OF_ALCHEMIST, pUnitData->m_byMemberShipGrade );
 
@@ -663,12 +650,12 @@ void CX2GageData::UseSpecialAbilityInVillage( const CX2Item::ItemTemplet* pItemT
 	SetBerserkModeChanged( true );
 }
 
-/*virtual*/ void CX2ChungGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
+/*virtual*/ bool CX2ChungGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
 {
-	CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
-
 	/// EXTRA_CANNON_BALL_COUNT_BITMASK_VALUE(7)을 곱해준 이유는 bitmask 처럼 생각하면 된다.
 	kGamePlayStatus.m_iCharAbilCount = static_cast<char>( GetNowCannonBallCountEx() * EXTRA_CANNON_BALL_COUNT_BITMASK_VALUE + GetNowCannonBallCount() ); // 청
+
+	return CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
 }
 
 /*virtual*/ void CX2ChungGageData::SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus )
@@ -706,6 +693,11 @@ void CX2ChungGageData::CopyGageData( IN CX2GageData* pGageData_ )
 
 /*virtual*/ void CX2ElswordGageData::UpdateDataFromGameUnit( const CX2GageData* pGageData_ )
 {
+#ifdef GAGEDATA_NULLCHECK
+	if ( NULL == pGageData_ )
+		return;
+#endif //GAGEDATA_NULLCHECK
+
 	CX2GageData::UpdateDataFromGameUnit( pGageData_ );
 
 	// 검의 길
@@ -729,11 +721,10 @@ void CX2ChungGageData::CopyGageData( IN CX2GageData* pGageData_ )
 	SetChangedWayOfSwordState( true );
 }
 
-void CX2ElswordGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
+bool CX2ElswordGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
 {
-	CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
-
 	kGamePlayStatus.m_iCharAbilCount = static_cast<int>( GetWayOfSwordPoint() );	// 엘소드
+	return CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
 }
 
 /*virtual*/ void CX2ElswordGageData::SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus )
@@ -922,11 +913,11 @@ bool CX2AraGageData::IsEmptyForcePower() const
 /** @function 	: GetMyPlayStatusToPacket
 	@brief 		: 패킷에서 나의 플레이 상태 얻기
 */
-/*virtual*/ void CX2AraGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
+/*virtual*/ bool CX2AraGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
 {
-	CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
-
 	kGamePlayStatus.m_iCharAbilCount = static_cast<char>( GetNowForcePower() );
+
+	return CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
 }
 #pragma endregion 패킷에서 나의 플레이 상태 얻기
 
@@ -1048,11 +1039,10 @@ void CX2AraGageData::CopyGageData( IN CX2GageData* pGageData_ )
 	SetChangedWayOfSwordState( true );
 }
 
-void CX2ElesisGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
+bool CX2ElesisGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
 {
-	CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
-
 	kGamePlayStatus.m_iCharAbilCount = static_cast<int>( GetWayOfSwordPoint() );	// 엘소드
+	return CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
 }
 
 /*virtual*/ void CX2ElesisGageData::SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus )
@@ -1101,3 +1091,262 @@ void CX2ElesisGageData::CopyGageData( IN CX2GageData* pGageData_ )
 }
 
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+CX2GageData* CX2AddGageData::GetCloneGageData()
+{
+	return new CX2AddGageData( *this );
+}
+
+void CX2AddGageData::CopyGageData( IN CX2GageData* pGageData_ )
+{
+	ASSERT( NULL != pGageData_ );
+	*this = *( static_cast<CX2AddGageData*>( pGageData_ ) );
+
+	SetChangedMutationCount( true );	/// 변이 게이지 갱신
+}
+
+/*virtual*/ void CX2AddGageData::UpdateDataFromGameUnit( const CX2GageData* pGageData_ )
+{
+	if( NULL == pGageData_ )
+		return;
+
+	CX2GageData::UpdateDataFromGameUnit( pGageData_ );
+
+	const CX2AddGageData* pAddrGageData = static_cast<const CX2AddGageData*>( pGageData_ );
+
+	if( NULL != pAddrGageData )
+	{
+		SetIsFormationMode( pAddrGageData->GetIsFormationMode() );
+		SetChangedMutationCount( pAddrGageData->GetChangedMutationCount() );
+		SetMutationCount( pAddrGageData->GetMutationCount() );
+		SetDPValue( pAddrGageData->GetDPValue() );
+		SetChangeFormationCoolTime( pAddrGageData->GetChangeFormationCoolTime() );
+		SetMaxDPValue( MAX_DP_GAGE_VALUE );
+	}
+}
+
+/*virtual*/ bool CX2AddGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
+{
+	if ( Veryfy() )
+	{
+		CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
+
+		int iSyncData = ( true == GetIsFormationMode() ) ? 1 : 0;				/// 구성 모드 적용 여부 설정
+
+		iSyncData = iSyncData << 4;												/// 구성 모드 전환 쿨타임을 넣기 위해, 4비트만 앞으로 옮기자
+
+		iSyncData |= static_cast<int>( GetChangeFormationCoolTime() ) & 0x000F;	/// 구성 모드 전환 쿨타임 설정
+
+		iSyncData = iSyncData << 4;												/// 변이 수치를 넣기 위해, 4비트만 앞으로 옮기자
+
+		iSyncData |= GetMutationCount() & 0x000F;								/// 변이 수치 설정
+
+		iSyncData =  iSyncData << 16;											/// DP 수치를 넣기 위해, 16비트만 앞으로 옮자
+
+		iSyncData |= static_cast<int>( GetDPValue() ) & 0xFFFF;					/// DP 수치 설정
+
+		kGamePlayStatus.m_iCharAbilCount = iSyncData;
+
+	return true;
+	}
+	else
+		return false;
+}
+
+/*virtual*/ void CX2AddGageData::SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus )
+{
+	CX2GageData::SetMyPlayStatusFromPacket( kGamePlayStatus );
+
+	int iSyncData = kGamePlayStatus.GetNPAndMutationAndFormationMode();
+
+	SetIsFormationMode( ( ( ( iSyncData >> 24 ) & 0x000F ) == 1 ) ? true : false  );		/// 구성 모드 적용 여부 대입
+
+	SetChangeFormationCoolTime( static_cast<float>( ( iSyncData  >> 20 ) & 0x000F ) );	/// 구성 모드 전환 쿨타임 대입
+
+	SetMutationCount( ( iSyncData  >> 16 ) & 0x000F  );									/// 변이 수치 대입
+
+	SetDPValue( static_cast<float>( iSyncData & 0xFFFF ) );								/// DP 수치 대입
+
+	SetMaxDPValue( MAX_DP_GAGE_VALUE );													/// DP 최대 수치 대입
+
+	SetChangedMutationCount( true );													/// 갱신
+}
+
+/*virtual*/ void CX2AddGageData::OnFrameMove( double fTime, float fElapsedTime )
+{
+	CX2GageData::OnFrameMove(fTime, fElapsedTime);
+
+	/// 각성 쿨타임 연산
+	if ( 0.f < m_fChangeFormationCoolTime ) 
+	{
+		m_fChangeFormationCoolTime -= fElapsedTime;
+
+		if ( 0.f >= m_fChangeFormationCoolTime )
+			m_fChangeFormationCoolTime = 0.f;
+	}
+}
+#endif //SERV_9TH_NEW_CHARACTER
+
+
+
+#ifdef ADD_RENA_SYSTEM //김창한
+/** @function 	: GetNFBuffMode
+	@brief 		: NF 버프 모드 설정
+*/
+bool CX2RenaGageData::GetNFBuffMode() const
+{
+	return m_bNFBuffMode;
+}
+
+/** @function 	: SetNFBuffMode
+	@brief 		: NF 버프 모드 설정
+*/
+void CX2RenaGageData::SetNFBuffMode( const bool bNFBuffMode_ )
+{
+	m_bNFBuffMode = bNFBuffMode_;
+}
+
+/** @function 	: GetNaturalForceChanged
+	@brief 		: NF 게이지 변화 설정
+*/
+bool CX2RenaGageData::GetNaturalForceChanged() const
+{
+	return m_bNaturalForceChanged;
+}
+
+/** @function 	: SetNaturalForceChanged
+	@brief 		: NF 게이지 변화 설정
+*/
+void CX2RenaGageData::SetNaturalForceChanged( const bool bNaturalForceChanged_ )
+{
+	m_bNaturalForceChanged = bNaturalForceChanged_;
+}
+
+/** @function 	: GetNowNaturalForce
+	@brief 		: 현재 NF 게이지
+*/
+int CX2RenaGageData::GetNowNaturalForce() const
+{
+	return m_iNowNaturalForceCount;
+}
+
+/** @function 	: SetNowNaturalForce
+	@brief 		: 현재 NF 게이지
+*/
+void CX2RenaGageData::SetNowNaturalForce( const int iNowNaturalForceCount_ )
+{
+	if( GetMaxNaturalForce() < iNowNaturalForceCount_ )
+		m_iNowNaturalForceCount = GetMaxNaturalForce();
+	else if( 0 > iNowNaturalForceCount_ )
+		m_iNowNaturalForceCount = 0;
+	else
+		m_iNowNaturalForceCount = iNowNaturalForceCount_;
+
+}
+
+/** @function 	: GetMaxNaturalForce
+	@brief 		: 최대 NF 게이지
+*/
+int CX2RenaGageData::GetMaxNaturalForce() const
+{
+	return m_iMaxNaturalForceCount;
+}
+
+/** @function 	: GetMaxNaturalForce
+	@brief 		: 최대 NF 게이지
+*/
+void CX2RenaGageData::SetMaxNaturalForce( const int iMaxNaturalForceCount_ )
+{
+	m_iMaxNaturalForceCount = iMaxNaturalForceCount_;
+}
+
+/** @function 	: IsFullNaturalForce
+	@brief 		: NF 게이지가 최대치인지 체크
+*/
+bool CX2RenaGageData::IsFullNaturalForce() const
+{
+	return GetNowNaturalForce() >= GetMaxNaturalForce();
+}
+
+/** @function 	: IsEmptyNaturalForce
+	@brief 		: NF 게이지가 비었는지 체크
+*/
+bool CX2RenaGageData::IsEmptyNaturalForce() const
+{
+	return GetNowNaturalForce() <= 0;
+}
+
+/** @function 	: UpdateDataFromGameUnit
+	@brief 		: GageDate 갱신
+*/
+/*virtual*/ void CX2RenaGageData::UpdateDataFromGameUnit( const CX2GageData* pGageData_ )
+{
+	CX2GageData::UpdateDataFromGameUnit( pGageData_ );
+	const CX2RenaGageData* pRenaGageData = static_cast<const CX2RenaGageData*>( pGageData_ );
+
+#ifdef GAGEDATA_NULLCHECK
+	if( NULL != pRenaGageData )
+#endif //GAGEDATA_NULLCHECK
+	{
+		SetNowNaturalForce( pRenaGageData->GetNowNaturalForce() );
+		SetMaxNaturalForce( MAX_NATURAL_FORCE_VALUE );
+
+		SetNFBuffMode( pRenaGageData->GetNFBuffMode() );
+		SetNaturalForceChanged( pRenaGageData->GetNaturalForceChanged() );
+	}
+}
+
+/** @function 	: InitWhenGameIsOver
+	@brief 		: 게임이 끝났을 때 초기화
+*/
+/*virtual*/ void CX2RenaGageData::InitWhenGameIsOver()
+{
+	CX2GageData::InitWhenGameIsOver();
+	SetNFBuffMode( false );
+}
+
+/** @function 	: GetMyPlayStatusToPacket
+	@brief 		: 패킷에서 나의 플레이 상태 얻기
+*/
+/*virtual*/ bool CX2RenaGageData::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus ) const
+{
+	kGamePlayStatus.m_iCharAbilCount = static_cast<char>( GetNowNaturalForce() );
+
+	return CX2GageData::GetMyPlayStatusToPacket( kGamePlayStatus );
+}
+
+/** @function 	: SetMyPlayStatusFromPacket
+	@brief 		: 패킷에 나의 플레이 상태 설정
+*/
+/*virtual*/ void CX2RenaGageData::SetMyPlayStatusFromPacket( IN const KGamePlayStatus& kGamePlayStatus )
+{
+	CX2GageData::SetMyPlayStatusFromPacket( kGamePlayStatus );
+
+	const int iNaturalForce = kGamePlayStatus.GetNaturalForce();
+	
+	SetMaxNaturalForce( MAX_NATURAL_FORCE_VALUE );
+	SetNowNaturalForce( iNaturalForce );
+	SetNaturalForceChanged(true);
+}
+
+/** @function 	: GetCloneGageData
+	@brief 		: Gage 복사 데이터 얻기
+*/
+/*virtual*/ CX2GageData* CX2RenaGageData::GetCloneGageData()
+{
+	return new CX2RenaGageData( *this );
+}
+
+/** @function 	: CopyGageData
+	@brief 		: GageDate 복사
+*/
+void CX2RenaGageData::CopyGageData( IN CX2GageData* pGageData_ )
+{
+	ASSERT( NULL != pGageData_ );
+	*this = *( static_cast<CX2RenaGageData*>( pGageData_ ) );
+	SetNaturalForceChanged( true );
+}
+
+
+#endif //ADD_RENA_SYSTEM

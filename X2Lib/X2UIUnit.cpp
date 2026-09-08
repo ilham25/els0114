@@ -56,10 +56,10 @@ void CX2UIUnit::Init()
 	//스크립트 파일을 로드한다
 	bool bResult = false;
 //{{ robobeg : 2008-10-28
-// 	bResult = g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( m_ScriptFileName.c_str() );
+// 	bResult = g_pKTDXApp->LoadLuaTinker( m_ScriptFileName.c_str() );
 // 	ASSERT( false != bResult );
-	//g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, L"Enum.lua" );
-	bResult = g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, m_ScriptFileName.c_str() );
+	//g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, L"Enum.lua" );
+	bResult = g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, m_ScriptFileName.c_str() );
 	ASSERT( false != bResult );
 
 	bResult = m_LuaManager.ExportFunctionsToGlobalEnv();
@@ -110,11 +110,11 @@ void CX2UIUnit::Init()
 		}
 
 
-		LUA_GET_VALUE( m_LuaManager, "WAIT_STATE_ID",		m_WaitStateID,		L"" );
-		LUA_GET_VALUE( m_LuaManager, "COME_IN_STATE_ID",	m_ComeInStateID,	L"" );
-		LUA_GET_VALUE( m_LuaManager, "BUY_IN_STATE_ID",		m_BuyInStateID,		L"" );
-		LUA_GET_VALUE( m_LuaManager, "QUEST_IN_STATE_ID",	m_QuestInStateID,	L"" );
-		LUA_GET_VALUE( m_LuaManager, "MENU_IN_STATE_ID",	m_MenuInStateID,	L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "WAIT_STATE_ID",		m_WaitStateID,		"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "COME_IN_STATE_ID",	m_ComeInStateID,	"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "BUY_IN_STATE_ID",		m_BuyInStateID,		"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "QUEST_IN_STATE_ID",	m_QuestInStateID,	"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "MENU_IN_STATE_ID",	m_MenuInStateID,	"" );
 		
 
 		m_pMesh			= g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( modelName, modelMoveBoneName.c_str() );
@@ -216,7 +216,7 @@ void    CX2UIUnit::OnFrameRender_Draw()
 	//return S_OK;
 }
 
-void CX2UIUnit::StateChange( wstring stateID )
+void CX2UIUnit::StateChange( string stateID )
 {
 	CommonStateEnd();
 	m_NowState.m_StateTable = stateID;
@@ -227,7 +227,7 @@ void CX2UIUnit::StateChange( wstring stateID )
 void CX2UIUnit::CommonStateStart()
 {
 	//테스트 할 때 이거 주석 풀어주면 쵝오!
-	//g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, m_ScriptFileName.c_str() );
+	//g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, m_ScriptFileName.c_str() );
 
 	if( m_LuaManager.BeginTable( m_NowState.m_StateTable.c_str() ) == true )
 	{
@@ -237,10 +237,10 @@ void CX2UIUnit::CommonStateStart()
 		LUA_GET_VALUE( m_LuaManager, "PLAY_COUNT",			m_NowState.m_PlayCount,			0 );
 		LUA_GET_VALUE( m_LuaManager, "STATE_TIME",			m_NowState.m_fStateTime,		0.0f );
 
-		LUA_GET_VALUE( m_LuaManager, "LUA_STATE_START",		m_NowState.m_Lua_StateStart,	L"" );
-		LUA_GET_VALUE( m_LuaManager, "LUA_FRAME_MOVE",		m_NowState.m_Lua_FrameMove,		L"" );
-		LUA_GET_VALUE( m_LuaManager, "LUA_EVENT_PROCESS",	m_NowState.m_Lua_EventProcess,	L"" );
-		LUA_GET_VALUE( m_LuaManager, "LUA_STATE_END",		m_NowState.m_Lua_StateEnd,		L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "LUA_STATE_START",		m_NowState.m_Lua_StateStart,	"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "LUA_FRAME_MOVE",		m_NowState.m_Lua_FrameMove,		"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "LUA_EVENT_PROCESS",	m_NowState.m_Lua_EventProcess,	"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "LUA_STATE_END",		m_NowState.m_Lua_StateEnd,		"" );
 
 		if( m_LuaManager.BeginTable( "POS" ) == true )
 		{
@@ -302,9 +302,9 @@ void CX2UIUnit::CommonStateStart()
 
 	if( false == m_NowState.m_Lua_StateStart.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_NowState.m_Lua_StateStart.c_str() );
-		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+		//string func;
+		//ConvertWCHARToChar( func, m_NowState.m_Lua_StateStart.c_str() );
+		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_NowState.m_Lua_StateStart.c_str(), g_pKTDXApp, g_pX2Game, this );
 	}
 }
 
@@ -328,9 +328,9 @@ void CX2UIUnit::CommonFrameMove()
 
 	if( false == m_NowState.m_Lua_FrameMove.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_NowState.m_Lua_FrameMove.c_str() );
-		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+		//string func;
+		//ConvertWCHARToChar( func, m_NowState.m_Lua_FrameMove.c_str() );
+		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_NowState.m_Lua_FrameMove.c_str(), g_pKTDXApp, g_pX2Game, this );
 	}
 }
 
@@ -341,34 +341,34 @@ void CX2UIUnit::CommonEventProcess()
 
 	if( m_NowState.m_fStateTime > 0.0f && m_fStateTime >= m_NowState.m_fStateTime )
 	{
-		wstring wstrNextStateID = PopNextStateID();
-		if( wstrNextStateID.length() == 0 )
+		string strNextStateID = PopNextStateID();
+		if( strNextStateID.length() == 0 )
 		{
 			StateChange( m_WaitStateID );
 		}
 		else
 		{
-			StateChange( wstrNextStateID );
+			StateChange( strNextStateID );
 		}
 	}
 	else if( m_NowState.m_PlayCount > 0 && m_StatePlayCount >= m_NowState.m_PlayCount )
 	{
-		wstring wstrNextStateID = PopNextStateID();
-		if( wstrNextStateID.length() == 0 )
+		string strNextStateID = PopNextStateID();
+		if( strNextStateID.length() == 0 )
 		{
 			StateChange( m_WaitStateID );
 		}
 		else
 		{
-			StateChange( wstrNextStateID );
+			StateChange( strNextStateID );
 		}
 	}
 
 	if( false == m_NowState.m_Lua_EventProcess.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_NowState.m_Lua_EventProcess.c_str() );
-		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+		//string func;
+		//ConvertWCHARToChar( func, m_NowState.m_Lua_EventProcess.c_str() );
+		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_NowState.m_Lua_EventProcess.c_str(), g_pKTDXApp, g_pX2Game, this );
 	}
 }
 
@@ -382,7 +382,7 @@ void CX2UIUnit::CommonStateEnd()
 
 	if( m_LuaManager.BeginTable( m_NowState.m_StateTable.c_str() ) == true )
 	{
-		if( m_LuaManager.BeginTable( L"END_TALK" ) == true )
+		if( m_LuaManager.BeginTable( "END_TALK" ) == true )
 		{
 			LoadTalkBox();
 			m_LuaManager.EndTable();
@@ -394,9 +394,9 @@ void CX2UIUnit::CommonStateEnd()
 
 	if( false == m_NowState.m_Lua_StateEnd.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_NowState.m_Lua_StateEnd.c_str() );
-		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+		//string func;
+		//ConvertWCHARToChar( func, m_NowState.m_Lua_StateEnd.c_str() );
+		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_NowState.m_Lua_StateEnd.c_str(), g_pKTDXApp, g_pX2Game, this );
 	}
 }
 
@@ -407,20 +407,20 @@ void CX2UIUnit::LoadTalkBox()
 	talkBox.m_GameUnitType		= CX2GameUnit::GUT_USER;
 	talkBox.m_bTraceUnit		= false;
 
-	if( m_LuaManager.BeginTable( L"POS" ) == true )
+	if( m_LuaManager.BeginTable( "POS" ) == true )
 	{
 		LUA_GET_VALUE( m_LuaManager, 1, talkBox.m_vPos.x, 0.0f );
 		LUA_GET_VALUE( m_LuaManager, 2, talkBox.m_vPos.y, 0.0f );
 		m_LuaManager.EndTable();
 	}
 
-	LUA_GET_VALUE_ENUM( m_LuaManager, L"TYPE", talkBox.m_TalkBoxType, CX2TalkBoxManagerImp::TALK_BOX_TYPE, CX2TalkBoxManagerImp::TBT_FROM_DOWN_LEFT );
+	LUA_GET_VALUE_ENUM( m_LuaManager, "TYPE", talkBox.m_TalkBoxType, CX2TalkBoxManagerImp::TALK_BOX_TYPE, CX2TalkBoxManagerImp::TBT_FROM_DOWN_LEFT );
 	
     int iStringIndex;
-    LUA_GET_VALUE( m_LuaManager, L"STRING", iStringIndex, STR_ID_EMPTY );
+    LUA_GET_VALUE( m_LuaManager, "STRING", iStringIndex, STR_ID_EMPTY );
     talkBox.m_wstrTalkContent = GET_STRING( iStringIndex );
 	
-    LUA_GET_VALUE( m_LuaManager, L"REMAIN_TIME", talkBox.m_fRemainTime, 1.0f );
+    LUA_GET_VALUE( m_LuaManager, "REMAIN_TIME", talkBox.m_fRemainTime, 1.0f );
 
 }
 
@@ -436,16 +436,16 @@ bool CX2UIUnit::IsComingIn()
 	return false;
 }
 
-wstring CX2UIUnit::PopNextStateID()
+string CX2UIUnit::PopNextStateID()
 {
 	if( m_vecNextStateID.size() > 0 )
 	{
-		wstring wstrNextStateID = m_vecNextStateID[0];
+		string strNextStateID = m_vecNextStateID[0];
 		m_vecNextStateID.erase( m_vecNextStateID.begin() );
-		return wstrNextStateID;
+		return strNextStateID;
 	}
 	else
 	{
-		return L"";
+		return "";
 	}
 }

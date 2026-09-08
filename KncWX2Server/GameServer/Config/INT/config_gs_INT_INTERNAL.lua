@@ -6,14 +6,14 @@
 Server:SetUseVersion( VE_INTERNAL )
 
 -- 크래쉬 리포트 메일링 리스트 --
-Server:SetMailingList( "kknd345@kog.co.kr, bowrain@kog.co.kr" )
+Server:SetMailingList( "honnak@kog.co.kr, bowrain@kog.co.kr" )
 
 -- 종료시 db 처리 대기시간 --
 Server:SetShutDownWait( 60 * 1000 )
 
 -- 스크립트 파싱 실패 리포트
 Server:SetScriptParsingErrReport( true )
-Server:AddScriptParsingErrReportMail( 'kknd345@kog.co.kr' )	-- 조효진
+Server:AddScriptParsingErrReportMail( 'honnak@kog.co.kr' )	-- 임홍락
 Server:AddScriptParsingErrReportMail( 'bowrain@kog.co.kr' ) -- 임규수
 
 -- Add moritoring server's IP for checking port of elsword's server ( SERV_PERMIT_PORT_CHECK )
@@ -86,6 +86,8 @@ SimLayer:SetBillingFlag( BF_INTERNAL )
 SimLayer:AddPath( "D:\\ProjectX2_SVN\\source\\ES_INT\\Trunk\\KncWX2Server\\ServerResource" ) -- server script
 SimLayer:AddPath( "D:\\ProjectX2_SVN\\resource\\ES_INT\\Trunk\\dat\\Script" ) -- client script
 
+-- Server Group 수 설정 --
+SimLayer:SetServerGroupNum( 1 ) -- 서버군의 수(진입구조 개편 관련하여 필요)
 
 ----------     DB Layer 설정     ----------
 

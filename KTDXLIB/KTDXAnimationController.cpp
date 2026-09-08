@@ -1089,7 +1089,7 @@ static void _OptimizeKeys( D3DXKEY_VECTOR3*& pScalesStart_, D3DXKEY_VECTOR3*& pS
 							}//if
 						}//if.. 
 					}//if
-	out:
+//	out:
 					pDestRotKey++;
 					pDestRotKey->Value = qPrev;
 					pDestRotKey->Time = (pSrcRotKey-1)->Time;
@@ -1616,7 +1616,7 @@ static HRESULT _ReadFromMemoryDeserializer( const KMemoryDeserializer& kInMemory
         DWORD dwOffsetAnim = dwInOffset_ + sizeof(KACKeyframedAnimationSet) + sizeof(DWORD) * dwNumAnims;
         DWORD dwSizeAnim;
 
-#if	defined(X2OPTIMIZE_ANIMATION_LOSSY_COMPRESSION) && defined(X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER)
+#if	defined(X2OPTIMIZE_ANIMATION_LOSSY_COMPRESSION) //&& defined(X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER)
 		DWORD	dwMaxNumKeys = 1;
 		DWORD	dwOffset = dwOffsetAnim;
 		for( DWORD dwAnim = 0; dwAnim < dwNumAnims; dwAnim++, dwOffset += dwSizeAnim )
@@ -1670,7 +1670,7 @@ static HRESULT _ReadFromMemoryDeserializer( const KMemoryDeserializer& kInMemory
 			LastErrorLog( proxy_.GetDeviceID().c_str() ); // GetFrame() 함수 안에서 파일 이름을 사용하기 위해.
             ASSERT( proxy_.GetFrame( pkcsAnim->m_iIndex_Frame ) != NULL );
 
-#if	defined(X2OPTIMIZE_ANIMATION_LOSSY_COMPRESSION) && defined(X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER)
+#if	defined(X2OPTIMIZE_ANIMATION_LOSSY_COMPRESSION) //&& defined(X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER)
 			D3DXKEY_VECTOR3*	pScalesStart = pScales;
 			D3DXKEY_VECTOR3*	pTranslationsStart = pTranslations;
 			D3DXKEY_QUATERNION*	pRotationsStart = pRotations;

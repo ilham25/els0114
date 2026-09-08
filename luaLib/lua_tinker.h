@@ -112,6 +112,38 @@ namespace lua_tinker
 	}; 
 	/////////////////////////////////
 
+//{{ robobeg : 2013-11-18
+    // from lua nil
+	template<typename T>
+	struct nil2val { static T invoke(lua_State*){ return T(); } };
+	template<typename T>
+	struct nil2ptr { static T* invoke(lua_State* L)
+        { 
+				lua_pushstring(L, "no class at first argument. (forgot ':' expression ?)");
+				lua_error(L);       
+                return (T*)0;
+        }
+    };
+	template<typename T>
+    struct nil2ref { static const T& invoke(lua_State*){ static const T s; return s; } };  
+
+	template<typename T>  
+	struct nil2type
+	{
+		static T invoke(lua_State* L)
+		{
+			return	if_<is_ptr<T>::value
+						,nil2ptr<base_type<T>::type>
+						,if_<is_ref<T>::value
+							,nil2ref<base_type<T>::type>
+							,nil2val<base_type<T>::type>
+						>::type
+					>::type::invoke(L);
+		}
+	};
+//}} robobeg : 2013-11-18
+
+
 	// from lua
 	template<typename T>
 	struct void2val { static T invoke(void* input){ return *(T*)input; } };
@@ -167,6 +199,14 @@ namespace lua_tinker
 		{ 
 			if(!lua_isuserdata(L,index))
 			{
+//{{ robobeg : 2013-11-18
+                // argument 가 nil 일 때는 기본 생성자로 호출하도록 한다.
+                if ( lua_isnil(L,index) )
+                {
+                    return nil2type<T>::invoke( L ); 
+                }//if
+//}} robobeg : 2013-11-18
+
 				lua_pushstring(L, "no class at first argument. (forgot ':' expression ?)");
 				lua_error(L);
 			}

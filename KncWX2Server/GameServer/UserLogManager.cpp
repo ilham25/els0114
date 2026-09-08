@@ -44,7 +44,7 @@ void KUserLogManager::DumpLogFile( IN KGSUserPtr spUser, IN USER_LOG_TYPE eUserL
 	if( !spUser )
 		return;
 
-	if( eUserLogType < 0  ||  eUserLogType >= USER_LOG_TYPE::ULT_MAX )
+	if( eUserLogType < 0  ||  eUserLogType >= ULT_MAX )
 		return;
 
 	std::wfstream& wfsUserLog = ms_wfsUserLog[eUserLogType];
@@ -56,11 +56,11 @@ void KUserLogManager::DumpLogFile( IN KGSUserPtr spUser, IN USER_LOG_TYPE eUserL
 
 		switch( eUserLogType )
 		{
-		case USER_LOG_TYPE::ULT_HEART_BEAT:
+		case ULT_HEART_BEAT:
 			strFilename += "Log\\HeartBeatLog_";
 			break;
 
-		case USER_LOG_TYPE::ULT_ABNORMAL_DICONNECT:
+		case ULT_ABNORMAL_DICONNECT:
 			strFilename += "Log\\AbnormalDisconnectLog_";
 			break;
 

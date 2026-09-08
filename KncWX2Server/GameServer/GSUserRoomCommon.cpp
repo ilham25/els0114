@@ -37,6 +37,9 @@
 #include "Enum/Enum.h"
 #include "GSWorldMissionManager.h"
 
+#ifdef SERV_STRING_FILTER_USING_DB
+#include "StringFilterManager.h"
+#endif //SERV_STRING_FILTER_USING_DB
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GSUSER_CPP
@@ -54,6 +57,10 @@ IMPL_ON_FUNC( EGS_CREATE_ROOM_REQ )
 //	VERIFY_STATE( ( 1, KGSFSM::S_FIELD_MAP ) );
 //#endif SERV_REPEAT_FILTER_REFAC
 	//}}    
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	kPacket_.m_RoomInfo.m_RoomName = SiKStringFilterManager()->FilteringChatString( kPacket_.m_RoomInfo.m_RoomName.c_str(), L'♡' );
+#endif //SERV_STRING_FILTER_USING_DB
 
 	KEGS_CREATE_ROOM_ACK kPacketAck;
 	u_short usEventID;
@@ -475,6 +482,15 @@ IMPL_ON_FUNC( EGS_JOIN_ROOM_REQ )
 		return;
 	}
 
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-10-08	// 박세훈
+	if( ( m_kUserCheatManager.IsObserverMode() == false ) && ( GetRoomListID() == SiKRoomListManager()->GetPvpOffcialRoomListID() ) )
+	{
+		kPacketAck.m_iOK = NetError::ERR_ROOM_53;	// 공식 대전에는 난입할 수 없습니다.
+		SendPacket( EGS_JOIN_ROOM_ACK, kPacketAck );
+		return;
+	}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
+
 	// 체험ID 기능 제한
 	if( IsGuestUser() )
 	{
@@ -706,6 +722,15 @@ IMPL_ON_FUNC( EGS_QUICK_JOIN_REQ )
 		{
 		case CXSLRoom::RT_PVP:
 			{
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-10-08	// 박세훈
+				if( ( m_kUserCheatManager.IsObserverMode() == false ) && ( GetRoomListID() == SiKRoomListManager()->GetPvpOffcialRoomListID() ) )
+				{
+					kPacketAck.m_iOK = NetError::ERR_ROOM_53;	// 공식 대전에는 난입할 수 없습니다.
+					SendPacket( EGS_QUICK_JOIN_ACK, kPacketAck );
+					return;
+				}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
+
 				//////////////////////////////////////////////////////////////////////////
 				// [이벤트] (2010-07-29 ~ 2010-08-11) 대회채널 입장 조건
 #ifdef SERV_TOURNAMENT_CONDITION
@@ -889,6 +914,10 @@ _IMPL_ON_FUNC( ERM_LEAVE_ROOM_ACK, KEGS_LEAVE_ROOM_ACK )
 	VERIFY_STATE_ACK( ( 1, KGSFSM::S_ROOM ), EGS_LEAVE_ROOM_ACK );
 	//}}
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.20 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	m_bTimeControlItemCheckDungeonPlay = false;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 	START_LOG_WITH_NAME( clog )
 		<< BUILD_LOG( kPacket_.m_iOK );
 
@@ -900,36 +929,46 @@ _IMPL_ON_FUNC( ERM_LEAVE_ROOM_ACK, KEGS_LEAVE_ROOM_ACK )
 	std::vector< int > vecDeleteBuff;
 	std::vector< KBuffInfo > vecActivateBuff;
 
-	if( eRoomType == CXSLRoom::RT_DUNGEON )
+	switch( eRoomType )
 	{
-		//{{ 2013. 01. 09 던전 강퇴 시스템 - 김민성
+#ifdef SERV_FIX_REVENGE_BUFF// 작업날짜: 2013-08-09	// 박세훈
+	case CXSLRoom::RT_PVP:
+		m_kUserBuffManager.OnLeavePVPRoom( GetThisPtr<KGSUser>(), vecActivateBuff, vecDeleteBuff );
+		break;
+#endif // SERV_FIX_REVENGE_BUFF
+
+	case CXSLRoom::RT_DUNGEON:
+		{
+			//{{ 2013. 01. 09 던전 강퇴 시스템 - 김민성
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
-		bool bBadAttitudeUser = false;
+			bool bBadAttitudeUser = false;
 
-		if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_34 )
-		{
-			bBadAttitudeUser = true;
-			kPacket_.m_iReason = NetError::NET_OK;
-		}
+			if( kPacket_.m_iReason == NetError::NOT_LEAVE_ROOM_REASON_34 )
+			{
+				bBadAttitudeUser = true;
+				kPacket_.m_iReason = NetError::NET_OK;
+			}
 
-		m_kUserBuffManager.OnLeaveDungeonRoom( GetThisPtr<KGSUser>(), vecActivateBuff, vecDeleteBuff, bBadAttitudeUser );
+			m_kUserBuffManager.OnLeaveDungeonRoom( GetThisPtr<KGSUser>(), vecActivateBuff, vecDeleteBuff, bBadAttitudeUser );
 #else
-		m_kUserBuffManager.OnLeaveDungeonRoom( GetThisPtr<KGSUser>(), vecDeleteBuff );
+			m_kUserBuffManager.OnLeaveDungeonRoom( GetThisPtr<KGSUser>(), vecDeleteBuff );
 
-		if( vecDeleteBuff.empty() == false )
-		{
-			// 로그인 서버 버프 매니저에 업데이트
-			KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
-			kReq.m_iUnitUID = GetCharUID();
-			kReq.m_vecDeActivateBuff = vecDeleteBuff;
-			SendToLoginServer( ELG_UPDATE_USER_UNIT_BUFF_INFO_REQ, kReq );
-		}
+			if( vecDeleteBuff.empty() == false )
+			{
+				// 로그인 서버 버프 매니저에 업데이트
+				KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
+				kReq.m_iUnitUID = GetCharUID();
+				kReq.m_vecDeActivateBuff = vecDeleteBuff;
+				SendToLoginServer( ELG_UPDATE_USER_UNIT_BUFF_INFO_REQ, kReq );
+			}
 #endif SERV_DUNGEON_FORCED_EXIT_SYSTEM
-		//}
-	}
-	else if( eRoomType == CXSLRoom::RT_BATTLE_FIELD )
-	{
+			//}
+		}
+		break;
+
+	case CXSLRoom::RT_BATTLE_FIELD:
 		m_kUserBuffManager.OnLeaveBattleField( GetThisPtr<KGSUser>(), vecActivateBuff, vecDeleteBuff );
+		break;
 	}
 
 	if( vecDeleteBuff.empty() == false || vecActivateBuff.empty() == false )
@@ -941,7 +980,6 @@ _IMPL_ON_FUNC( ERM_LEAVE_ROOM_ACK, KEGS_LEAVE_ROOM_ACK )
 		kReq.m_vecActivateBuff = vecActivateBuff;
 		SendToLoginServer( ELG_UPDATE_USER_UNIT_BUFF_INFO_REQ, kReq );
 	}
-
 #endif SERV_REFORM_THE_GATE_OF_DARKNESS
 	//}}
 
@@ -960,6 +998,7 @@ _IMPL_ON_FUNC( ERM_LEAVE_ROOM_ACK, KEGS_LEAVE_ROOM_ACK )
 	if( bIsSuccess == true )
 	{
 		SetRoomUID( 0 );
+		m_kUserDungeonManager.SetDungeonGameInfo( 0, 0, 0 );
 
 		StateTransition( KGSFSM::I_TO_FIELD_MAP );
 
@@ -1246,6 +1285,13 @@ IMPL_ON_FUNC( ERM_GAME_START_NOT )//, KEGS_STATE_CHANGE_GAME_START_NOT )
 
 		case CXSLRoom::RT_DUNGEON:
 			{
+#ifdef SERV_EVENT_CHECK_POWER
+				IF_EVENT_ENABLED( CEI_CHECK_POWER )
+				{
+					UpdateCheckPowerScore( kPacket_.m_iDungeonID, CXSLDungeon::RT_F, 1, false, CXSLDungeon::DL_NORMAL, false, false );
+				}
+#endif SERV_EVENT_CHECK_POWER
+
 				//{{ 2011. 01. 17	최육사	캐릭터 카운트 정보
 #ifdef SERV_CHAR_LOG
 				m_kUserStatistics.IncreaseCharacterCount( KUserStatistics::CGCT_DUNGEON_PLAY_COUNT );
@@ -1407,6 +1453,9 @@ _IMPL_ON_FUNC( ERM_PLAY_START_NOT, KEGS_PLAY_START_NOT )
 #endif SERV_CHAR_LOG
 	//}}
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.20 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	m_bTimeControlItemCheckDungeonPlay = true;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 #ifdef SERV_SERVER_BUFF_SYSTEM// 작업날짜: 2013-06-08	// 박세훈
 #else // SERV_SERVER_BUFF_SYSTEM
 	//{{ 2012. 04. 21	박세훈	어둠의 문 개편
@@ -1507,6 +1556,10 @@ _IMPL_ON_FUNC( ERM_END_GAME_NOT, KEGS_END_GAME_NOT )
 {
 	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.20 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	m_bTimeControlItemCheckDungeonPlay = false;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 	SendPacket( EGS_END_GAME_NOT, kPacket_ );
 }
 
@@ -1583,7 +1636,20 @@ IMPL_ON_FUNC( EGS_ROOM_LIST_REQ )
 	VERIFY_STATE_ACK( ( 1, KGSFSM::S_FIELD_MAP ), EGS_ROOM_LIST_ACK );
 
 	KEGS_ROOM_LIST_ACK kPacket;
-	kPacket.m_iOK = NetError::NET_OK;
+
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-10-08	// 박세훈
+	if( GetRoomListID() == SiKRoomListManager()->GetPvpOffcialRoomListID() )
+	{
+		START_LOG( cerr, L"공식 대전 방 리스트를 왜 요청하지?? 뭔가 꼬였나?" )
+			<< BUILD_LOG( GetCharName() )
+			<< BUILD_LOG( GetCharUID() )
+			<< END_LOG;
+
+		kPacket.m_iOK = NetError::ERR_UNKNOWN;
+		SendPacket( EGS_ROOM_LIST_ACK, kPacket );
+		return;
+	}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
 
 	// RoomListID값이 유효할때만 방리스트를 준다
 	if( GetRoomListID() > 0 )
@@ -1597,9 +1663,12 @@ IMPL_ON_FUNC( EGS_ROOM_LIST_REQ )
 
 			//06.12.08 특정오류체크가 없음.
 			kPacket.m_iOK = NetError::ERR_UNKNOWN;
+			SendPacket( EGS_ROOM_LIST_ACK, kPacket );
+			return;
 		}
 	}
 
+	kPacket.m_iOK = NetError::NET_OK;
 	SendPacket( EGS_ROOM_LIST_ACK, kPacket );
 }
 
@@ -1668,6 +1737,14 @@ IMPL_ON_FUNC( ERM_USER_UNIT_DIE_NOT )
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 											 , kPacket_.m_bHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+											, kPacket_.m_killedUserUnitType
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+											, kPacket_.m_killedUserUnitClass
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 											 );
 	}
 }
@@ -1771,42 +1848,6 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_NOT, KEGS_NPC_UNIT_CREATE_NOT )
 			return;
 	}
 
-	//{{ 2013. 3. 1	박세훈	 필드 이벤트 몬스터 테스트 로그
-#ifdef SERV_FIELD_EVENT_MONSTER_TEST_LOG
-	if( kPacket_.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01 )
-	{
-		BOOST_TEST_FOREACH( const KNPCUnitNot&, kNPCUnitNot, kPacket_.m_vecNPCUnitAck )
-		{
-			const KNPCUnitReq& kNPCUnitReq = kNPCUnitNot.m_kNPCUnitReq;
-			if( kNPCUnitReq.m_NPCID == CXSLUnitManager::NUI_EVENT_KIM_WALLY )
-			{
-				START_LOG( cout, L"TESTLOG - 02 : 루벤 필드의 김월리" )
-					<< BUILD_LOG( GetCharName() )
-					<< BUILD_LOG( GetPartyUID() )
-					<< BUILD_LOG( GetRoomUID() )
-					<< BUILD_LOG( kPacket_.m_vecNPCUnitAck.size() )
-					<< BUILD_LOG( kNPCUnitReq.m_nStartPos )
-					<< END_LOG;
-
-				BOOST_TEST_FOREACH( int, iPetrol, kNPCUnitReq.m_vecPetrolLineIndex )
-				{
-					START_LOG( cout2, L"m_vecPetrolLineIndex" )
-						<< BUILD_LOG( iPetrol )
-						<< END_LOG;
-				}
-
-				BOOST_TEST_FOREACH( int, iPlay, kNPCUnitReq.m_vecPlayLineIndex )
-				{
-					START_LOG( cout2, L"m_vecPlayLineIndex" )
-						<< BUILD_LOG( iPlay )
-						<< END_LOG;
-				}
-			}
-		}
-	}
-#endif SERV_FIELD_EVENT_MONSTER_TEST_LOG
-	//}}
-
 	SendPacket( EGS_NPC_UNIT_CREATE_NOT, kPacket_ );
 
 	//{{ QUEST 개편 - 김민성
@@ -1887,7 +1928,7 @@ IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_NOT )
 #ifdef SERV_PVP_NEW_SYSTEM
 	if( kPacket_.m_bIsPvpNpc )
 	{
-		m_kUserTitleManager.OnNpcUnitDie( 0, 0, kPacket_.m_iNPCID, GetThisPtr<KGSUser>() );
+		m_kUserTitleManager.OnNpcUnitDie( 0, 0, 0, kPacket_.m_iNPCID, GetThisPtr<KGSUser>() );
 
 		//{{ 2011. 07. 25    김민성    대전 퀘스트 조건 추가
 #ifdef SERV_NEW_PVP_QUEST
@@ -1904,12 +1945,32 @@ IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_NOT )
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 											   , kPacket_.m_bHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+											   , 0
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+											   , 0
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 											   );
 #endif SERV_NEW_PVP_QUEST
 		//}}
 	}
 #endif SERV_PVP_NEW_SYSTEM
 	//}}
+
+	//////////////////////////////////////////////////////////////////////////
+	// 퀘스트
+	{
+		m_kUserQuestManager.Handler_ERM_NPC_UNIT_DIE_NOT( kPacket_.m_iDungeonID, kPacket_.m_cDifficulty, kPacket_.m_iNPCID, GetThisPtr<KGSUser>(), kPacket_.m_cDungeonMode );
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// 칭호 미션
+	{
+		m_kUserTitleManager.OnNpcUnitDie( kPacket_.m_iDungeonID, kPacket_.m_cDifficulty, kPacket_.m_cDungeonMode, kPacket_.m_iNPCID, GetThisPtr<KGSUser>() );
+	}
 
 	// 1. NoDrop이면 아무 처리도 안함
 	if( kPacket_.m_bNoDrop )
@@ -1998,21 +2059,25 @@ IMPL_ON_FUNC( ERM_NPC_UNIT_DIE_NOT )
 		}
 	}
 
-	//////////////////////////////////////////////////////////////////////////
-	// 퀘스트
-	{
-		m_kUserQuestManager.Handler_ERM_NPC_UNIT_DIE_NOT( kPacket_.m_iDungeonID, kPacket_.m_cDifficulty, kPacket_.m_iNPCID, GetThisPtr<KGSUser>(), kPacket_.m_cDungeonMode );
-	}
-
-	//////////////////////////////////////////////////////////////////////////
-	// 칭호 미션
-	{
-		m_kUserTitleManager.OnNpcUnitDie( kPacket_.m_iDungeonID, kPacket_.m_cDifficulty, kPacket_.m_iNPCID, GetThisPtr<KGSUser>() );
-	}
-
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 #ifdef SERV_SECOND_CLASS_WORLD_WAR_EVENT
-	if(kPacket_.m_uiAttUnit == GetCharUID() && CXSLUnit::IsSecondChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) == true )
+	bool bSecondChangeJob = false;
+
+	if( CXSLUnit::IsSecondChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) == true )
+	{
+		bSecondChangeJob = true;
+	}
+	else if( _CONST_SECOND_CLASS_WORLD_WAR_EVENT::bWorldWarEventForElesis1stClass == true )
+	{
+		if( CXSLUnit::IsFirstChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) == true &&
+			static_cast<CXSLUnit::UNIT_CLASS>( GetUnitType() ) == CXSLUnit::UT_ELESIS &&
+			GetLevel() >= 35 )
+		{
+			bSecondChangeJob = true;
+		}
+	}
+
+	if(kPacket_.m_uiAttUnit == GetCharUID() && bSecondChangeJob == true )
 #else
 	if(kPacket_.m_uiAttUnit == GetCharUID())
 #endif SERV_SECOND_CLASS_WORLD_WAR_EVENT	
@@ -2317,10 +2382,23 @@ _IMPL_ON_FUNC( ERM_BATTLE_FIELD_NPC_UNIT_DIE_NOT, KERM_NPC_UNIT_DIE_NOT )
 	// 칭호 미션
 	if( kPacket_.m_bQuestComplete == true )
 	{
-		m_kUserTitleManager.OnNpcUnitDie( kPacket_.m_iDungeonID, kPacket_.m_cDifficulty, kPacket_.m_iNPCID, GetThisPtr<KGSUser>() );
+		m_kUserTitleManager.OnNpcUnitDie( kPacket_.m_iDungeonID, kPacket_.m_cDifficulty, kPacket_.m_cDungeonMode, kPacket_.m_iNPCID, GetThisPtr<KGSUser>() );
 	}
 	
 	//////////////////////////////////////////////////////////////////////////
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	IF_EVENT_ENABLED( CEI_EVENT_COBO_DUNGEON_AND_FIELD )
+	{
+		std::map< UidType, KEXPData >::iterator mit = kPacketNpcDie.m_EXPList.find( GetCharUID() );
+		if( mit != kPacketNpcDie.m_EXPList.end() )
+		{
+			if( mit->second.m_iEXP > 0 || mit->second.m_iEventBonusEXP > 0 || mit->second.m_iPartyEXP > 0 || mit->second.m_iSocketOptEXP > 0 )
+			{
+				FieldMonsterKillCountNot(kPacket_.m_iNPCID,kPacket_.m_uiAttUnit);
+			}
+		}
+	}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 	// 펫 포만도
 #ifdef SERV_PET_SYSTEM
 	// 펫 포만도 조건을 내구도 감소 조건이랑 동일하게 한다.
@@ -2530,7 +2608,7 @@ _IMPL_ON_FUNC( ERM_GET_ITEM_NOT, KEGS_GET_ITEM_NOT )
 					kKey.m_vecIntKey.push_back( 0 );
 					KSIManager.IncreaseCount( KStatistics::SI_ED, kKey, KStatistics::eSIColDB_ED_PDungeon, mit->second.SumED() );
 
-				// 유저 통계
+					// 유저 통계
 #ifdef SERV_USER_STATISTICS_RENEWAL
 					m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EDData, 0, KUserStatistics::US_ED_PDungeon, mit->second.SumED() );
 #else //SERV_USER_STATISTICS_RENEWAL
@@ -3881,7 +3959,7 @@ IMPL_ON_FUNC( EGS_CREATE_TC_ROOM_REQ )
 	kPacket.m_kTCInfo.m_fPlayTime	= SiKTrainingCenterTable()->GetPlayTime( kPacket_.m_iTCID );
 	kPacket.m_kTCInfo.m_cRoomType	= CXSLRoom::RT_TRAININGCENTER;
 
-	if( kPacket.m_kTCInfo.m_iDungeonID < 0 )
+	if( kPacket.m_kTCInfo.m_iDungeonID <= 0 )
 	{
 		START_LOG( cerr, L"해당 훈련소에 대한 던전아이디가 없음 허헉 +ㅁ+;" )
 			<< BUILD_LOG( kPacket_.m_iTCID )
@@ -4040,6 +4118,9 @@ IMPL_ON_FUNC( ERM_END_TC_GAME_ACK )
 		}
 	}
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.20 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	m_bTimeControlItemCheckDungeonPlay = false;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 	SetRoomUID( 0 );
 
 	//훈련소 종료는 실패해도 방은 사라지기 때문에 상태를 채널로 바꾼다.
@@ -4115,6 +4196,9 @@ _IMPL_ON_FUNC( ERM_LEAVE_TC_ROOM_ACK, KEGS_LEAVE_TC_ROOM_ACK )
 	}
 #endif SERV_SERVER_BUFF_SYSTEM
 	//}}
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.20 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	m_bTimeControlItemCheckDungeonPlay = false;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 	SendPacket( EGS_LEAVE_ROOM_ACK, kAck );
 }

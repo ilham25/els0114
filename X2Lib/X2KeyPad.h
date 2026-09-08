@@ -2,7 +2,6 @@
 #define X2KEY_PAD_H_
 #pragma once
 
-#ifdef REFORM_UI_KEYPAD
 #include <boost/unordered_map.hpp>
 #include <boost/bimap/bimap.hpp>
 
@@ -278,6 +277,5 @@ public:
 };
 #pragma endregion Å¬·¡½º
 
-#endif
 
 #endif

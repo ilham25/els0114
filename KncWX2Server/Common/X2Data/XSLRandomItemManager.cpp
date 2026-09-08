@@ -39,14 +39,12 @@ ImplementLuaScriptParser( CXSLRandomItemManager )
 	lua_tinker::class_def<CXSLRandomItemManager>( GetLuaState(), "AddRandomItemTemplet",	&CXSLRandomItemManager::AddRandomItemTemplet_LUA );
 	lua_tinker::class_def<CXSLRandomItemManager>( GetLuaState(), "AddRandomItemGroup",		&CXSLRandomItemManager::AddRandomItemGroup_LUA );
 
-
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
 #ifndef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 	lua_tinker::class_def<CXSLRandomItemManager>( GetLuaState(), "AddRandomItemMappingData",&CXSLRandomItemManager::AddRandomItemMappingData_LUA );
 	lua_tinker::class_def<CXSLRandomItemManager>( GetLuaState(), "AddRandomItemMappingTime",&CXSLRandomItemManager::AddRandomItemMappingTime_LUA );
 #endif SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 #endif SERV_CUBE_IN_ITEM_MAPPING
-
 
 	//{{ 2009. 6. 22  최육사	매력아이템 리스트
 	lua_tinker::class_def<CXSLRandomItemManager>( GetLuaState(), "SetNotifyMsg",			&CXSLRandomItemManager::SetNotifyMsg_LUA );
@@ -58,7 +56,6 @@ ImplementLuaScriptParser( CXSLRandomItemManager )
 	lua_tinker::class_def<CXSLRandomItemManager>( GetLuaState(), "AddNotifyResultItemInfo",	&CXSLRandomItemManager::AddNotifyResultItemInfo_LUA );
 #endif SERV_SEALED_RANDOM_ITEM
 	//}}
-
 	//{{ 2013. 3. 16	박세훈	매력 아이템 스크립트 처리
 #ifdef SERV_CHARM_ITEM_SCRIPT
 	lua_tinker::class_def<CXSLRandomItemManager>( GetLuaState(), "AddCharmItem",			&CXSLRandomItemManager::AddCharmItem_LUA );
@@ -379,7 +376,11 @@ bool CXSLRandomItemManager::AddRandomItemGroup_LUA( int iGroupID, int iItemID, f
 	if( mit != m_mapItemGroup.end() )
 	{
 		mit->second.m_vecItemData.push_back( itemData );
+#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+		if( mit->second.m_kLottery.AddDuplicateCaseIntegerCast( iItemID, fRate, iPeriod, iQuantity ) == false )
+#else
 		if( mit->second.m_kLottery.AddCaseIntegerCast( iItemID, fRate, iPeriod, iQuantity ) == false )
+#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP   
 		{
 			START_LOG( cerr, L"랜덤 아이템 확률 설정 실패!" )
 				<< BUILD_LOG( iGroupID )
@@ -395,7 +396,11 @@ bool CXSLRandomItemManager::AddRandomItemGroup_LUA( int iGroupID, int iItemID, f
 		ItemGroupDataList itemGDList;
 		itemGDList.m_iGroupID	= iGroupID;
 		itemGDList.m_vecItemData.push_back( itemData );
+#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+		if( itemGDList.m_kLottery.AddDuplicateCaseIntegerCast( iItemID, fRate, iPeriod, iQuantity ) == false )
+#else
 		if( itemGDList.m_kLottery.AddCaseIntegerCast( iItemID, fRate, iPeriod, iQuantity ) == false )
+#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 		{
 			START_LOG( cerr, L"랜덤 아이템 확률 설정 실패!" )
 				<< BUILD_LOG( iGroupID )
@@ -413,10 +418,13 @@ bool CXSLRandomItemManager::AddRandomItemGroup_LUA( int iGroupID, int iItemID, f
 }
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
-void CXSLRandomItemManager::ModifyMapItemGroup(RANDOMITEM_MAPPING_DATA randItemMappingData)
+bool CXSLRandomItemManager::ModifyMapItemGroup(RANDOMITEM_MAPPING_DATA randItemMappingData)
 {
 	RandomItemKey mitRandomItemKey( randItemMappingData.iCubeID, randItemMappingData.iKeyItemID );
 	std::map< RandomItemKey, RandomItemData >::iterator mit = m_mapRandomItem.find(mitRandomItemKey);
+
+	if( mit == m_mapRandomItem.end() )
+		return false;
 
 	std::vector< RandomUnitData >::iterator mitRUD = mit->second.m_vecUnitData.begin();
 	for(; mitRUD != mit->second.m_vecUnitData.end(); mitRUD++)
@@ -427,13 +435,16 @@ void CXSLRandomItemManager::ModifyMapItemGroup(RANDOMITEM_MAPPING_DATA randItemM
 			randItemMappingData.bCheckMapping = true;
 		}
 	}
-
+	return true;
 }
 
-void CXSLRandomItemManager::RestoreMapItemGroup(RANDOMITEM_MAPPING_DATA randItemMappingData)
+bool CXSLRandomItemManager::RestoreMapItemGroup(RANDOMITEM_MAPPING_DATA randItemMappingData)
 {
 	RandomItemKey mitRandomItemKey( randItemMappingData.iCubeID, randItemMappingData.iKeyItemID );
 	std::map< RandomItemKey, RandomItemData >::iterator mit = m_mapRandomItem.find(mitRandomItemKey);
+
+	if( mit == m_mapRandomItem.end() )
+		return false;
 
 	std::vector< RandomUnitData >::iterator mitRUD = mit->second.m_vecUnitData.begin();
 	for(; mitRUD != mit->second.m_vecUnitData.end(); mitRUD++)
@@ -444,8 +455,9 @@ void CXSLRandomItemManager::RestoreMapItemGroup(RANDOMITEM_MAPPING_DATA randItem
 			randItemMappingData.bCheckMapping = false;
 		}
 	}
-
+	return true;
 }
+
 bool CXSLRandomItemManager::AddRandomItemMappingData_LUA( int nIndex, int iCubeID, int iKeyItemID, int iBeforeGroupID, int iAfterGroupID )
 {
 	RANDOMITEM_MAPPING_DATA stMappingData;
@@ -474,6 +486,7 @@ bool CXSLRandomItemManager::AddRandomItemMappingData_LUA( int nIndex, int iCubeI
 
 	return true;
 }
+
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 bool CXSLRandomItemManager::AddRandomItemMappingTime_LUA( int nIndex,  std::wstring wstrScriptStartDate, std::wstring wstrScriptEndDate )
 #else SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
@@ -595,7 +608,6 @@ bool CXSLRandomItemManager::AddAttractionItemInfo_LUA( int iItemID, bool bNotify
 	return true;
 }
 #endif //SERV_RANDOM_CUBE_SPECIAL_ATTRACTION_NOT_SEAL
-
 //}}
 
 //{{ 2010. 7. 26  최육사	봉인 랜덤 큐브
@@ -862,8 +874,13 @@ bool CXSLRandomItemManager::GetResultItem( IN char cUnitClass, IN const RandomIt
 
 	//{{ 2008. 5. 27  최육사  랜덤 결과 인벤 공간 체크
 	{	
+#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+		std::multimap< int, KLottery::KCaseUnit >::const_iterator mitCase;
+		for( mitCase = mit->second.m_kLottery.m_multimapCase.begin(); mitCase != mit->second.m_kLottery.m_multimapCase.end(); ++mitCase )
+#else //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 		std::map< int, KLottery::KCaseUnit >::const_iterator mitCase;
 		for( mitCase = mit->second.m_kLottery.m_mapCase.begin(); mitCase != mit->second.m_kLottery.m_mapCase.end(); ++mitCase )
+#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 		{
 			mapCheckEmpty.insert( std::make_pair( mitCase->first, mitCase->second.m_nParam2 ) );
 		}
@@ -873,7 +890,13 @@ bool CXSLRandomItemManager::GetResultItem( IN char cUnitClass, IN const RandomIt
 	if( pRandomItemData->m_bGiveAll == false )
 	{
 		int iItemID = 0;
+
+#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+		KLottery::KDuplicateCaseResult kDuplicateCaseResult = mit->second.m_kLottery.DuplicateDecision();
+		iItemID = kDuplicateCaseResult.m_iItemID;
+#else //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 		iItemID = mit->second.m_kLottery.Decision();
+#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 
 		if( iItemID == KLottery::CASE_BLANK )
 		{
@@ -881,10 +904,14 @@ bool CXSLRandomItemManager::GetResultItem( IN char cUnitClass, IN const RandomIt
 		}
 		
 		// 기간제
+#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+		int iPeriod = kDuplicateCaseResult.m_nParam1;
+#else //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 		int iPeriod = mit->second.m_kLottery.GetParam1( iItemID );
+#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 		if( iPeriod == KLottery::PARAM_BLANK )
 		{
-			START_LOG( cerr, L"해당 케이스의 파라미터가 존재하지 않음. 큐브랜덤을 돌렸는데 기간제 정보가 없네..?" )
+			START_LOG( cerr, L"해당 케이스의 파라미터가 존재하지 않음. 큐브랜덤을 돌렸는데 기간제 정보가 없네? 확률 100프로 확인해보자" )
 				<< BUILD_LOG( iGroupID )
 				<< BUILD_LOG( iItemID )
 				<< BUILD_LOG( iPeriod )
@@ -894,10 +921,14 @@ bool CXSLRandomItemManager::GetResultItem( IN char cUnitClass, IN const RandomIt
 		}
 
 		// 수량
+#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+		int iQuantity = kDuplicateCaseResult.m_nParam2;
+#else //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 		int iQuantity = mit->second.m_kLottery.GetParam2( iItemID );
+#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 		if( iQuantity == KLottery::PARAM_BLANK )
 		{
-			START_LOG( cerr, L"해당 케이스의 파라미터가 존재하지 않음. 큐브랜덤을 돌렸는데 수량 정보가 없네..?" )
+			START_LOG( cerr, L"해당 케이스의 파라미터가 존재하지 않음. 큐브랜덤을 돌렸는데 수량 정보가 없네..?  확률 100프로 확인해보자" )
 				<< BUILD_LOG( iGroupID )
 				<< BUILD_LOG( iItemID )
 				<< BUILD_LOG( iPeriod )
@@ -941,53 +972,6 @@ bool CXSLRandomItemManager::GetResultItem( IN char cUnitClass, IN const RandomIt
 		}
 		//}}
 
-#ifdef SERV_BATTLEFIELD_COOKIE_PIECE
-		if( pRandomItemData->m_ItemID == RID_BATTLEFIELD_COOKIE )
-		{
-			const CXSLItem::ItemTemplet* pItemTempletBonus = SiCXSLItemManager()->GetItemTemplet( RID_BATTLEFIELD_COOKIE_PIECE );
-			if( pItemTempletBonus == NULL )
-			{
-				START_LOG( cerr, L"아이템 템플릿 정보를 찾을 수 없습니다." )
-					<< BUILD_LOG( RID_BATTLEFIELD_COOKIE_PIECE )
-					<< END_LOG;
-			}
-			else
-			{
-				KItemInfo kBonusItemInfo;
-				kBonusItemInfo.m_iItemID	= RID_BATTLEFIELD_COOKIE_PIECE;
-				kBonusItemInfo.m_cUsageType	= pItemTempletBonus->m_PeriodType;
-				kBonusItemInfo.m_iQuantity	= 1;
-				kBonusItemInfo.m_sEndurance	= pItemTempletBonus->m_Endurance;
-				kBonusItemInfo.m_sPeriod	= 0;
-
-				mapResultItem.insert( std::make_pair( RID_BATTLEFIELD_COOKIE_PIECE, kBonusItemInfo ) );
-			}
-		}
-		else if( pRandomItemData->m_ItemID == RID_BATTLEFIELD_GOLD_COOKIE )
-		{
-			const CXSLItem::ItemTemplet* pItemTempletBonus = SiCXSLItemManager()->GetItemTemplet( RID_BATTLEFIELD_GOLD_COOKIE_PIECE );
-			if( pItemTempletBonus == NULL )
-			{
-				START_LOG( cerr, L"아이템 템플릿 정보를 찾을 수 없습니다." )
-					<< BUILD_LOG( RID_BATTLEFIELD_GOLD_COOKIE_PIECE )
-					<< END_LOG;
-			}
-			else
-			{
-				KItemInfo kBonusItemInfo;
-				kBonusItemInfo.m_iItemID	= RID_BATTLEFIELD_GOLD_COOKIE_PIECE;
-				kBonusItemInfo.m_cUsageType	= pItemTempletBonus->m_PeriodType;
-				kBonusItemInfo.m_iQuantity	= 1;
-				kBonusItemInfo.m_sEndurance	= pItemTempletBonus->m_Endurance;
-				kBonusItemInfo.m_sPeriod	= 0;
-
-				mapResultItem.insert( std::make_pair( RID_BATTLEFIELD_GOLD_COOKIE_PIECE, kBonusItemInfo ) );
-			}
-		}
-			
-#endif SERV_BATTLEFIELD_COOKIE_PIECE
-
-
 #ifdef	SERV_CHARM_ITEM_SCRIPT// 적용날짜: 2013-04-26
 		const int iBonusItemID = SiCXSLRandomItemManager()->GetBonusCharmItem( pRandomItemData->m_ItemID );
 		if( 0 < iBonusItemID )
@@ -1018,7 +1002,11 @@ bool CXSLRandomItemManager::GetResultItem( IN char cUnitClass, IN const RandomIt
 		for( int i = 0; i < (int)mit->second.m_vecItemData.size(); ++i )
 		{
 			// 기간제
+#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+			int iPeriod = mit->second.m_kLottery.GetDuplicateParam1( mit->second.m_vecItemData[i].m_iItemID, mit->second.m_vecItemData[i].m_iPeriod, mit->second.m_vecItemData[i].m_iQuantity );
+#else //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 			int iPeriod = mit->second.m_kLottery.GetParam1( mit->second.m_vecItemData[i].m_iItemID );
+#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 			if( iPeriod == KLottery::PARAM_BLANK )
 			{
 				START_LOG( cerr, L"해당 케이스의 파라미터가 존재하지 않음. 큐브랜덤을 돌렸는데 기간제 정보가 없네..?" )
@@ -1031,7 +1019,11 @@ bool CXSLRandomItemManager::GetResultItem( IN char cUnitClass, IN const RandomIt
 			}
 			
 			// 수량
+#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+			int iQuantity = mit->second.m_kLottery.GetDuplicateParam2( mit->second.m_vecItemData[i].m_iItemID, mit->second.m_vecItemData[i].m_iPeriod, mit->second.m_vecItemData[i].m_iQuantity );
+#else //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 			int iQuantity = mit->second.m_kLottery.GetParam2( mit->second.m_vecItemData[i].m_iItemID );
+#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 			if( iQuantity == KLottery::PARAM_BLANK )
 			{
 				START_LOG( cerr, L"해당 케이스의 파라미터가 존재하지 않음. 큐브랜덤을 돌렸는데 수량 정보가 없네..?" )

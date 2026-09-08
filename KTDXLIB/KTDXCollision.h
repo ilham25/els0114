@@ -102,11 +102,19 @@ class CKTDXCollision
 				D3DXVECTOR3 scale;
 				if( m_pCombineMatrix != NULL )
 				{
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+					scale = GetDecomposeScaleXY( m_pCombineMatrix );
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 					scale = GetDecomposeScale( m_pCombineMatrix );
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 				}
 				else if( pWorldMat != NULL )
 				{
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+					scale = GetDecomposeScaleXY( pWorldMat );
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 					scale = GetDecomposeScale( pWorldMat );
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 				}
 
 				ASSERT( m_fRadiusScale > 0.f );
@@ -218,6 +226,27 @@ class CKTDXCollision
 				if( pColA->m_bEnable == false )
 					continue;
 
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+				D3DXVECTOR3 kPointStartColA = D3DXVECTOR3( 0, 0, 0 );
+				D3DXVECTOR3 kPointEndColA = D3DXVECTOR3( 0, 0, 0 );
+				float fLengthColA = 0.0f;
+				float fScaleRadiusColA = 0.0f;
+
+				//ColA의 타입에 따라 사용되는 변수들이 다르다.
+				if( pColA->m_CollisionType == CT_LINE )
+				{
+					kPointStartColA = pColA->GetPointStart();
+					kPointEndColA = pColA->GetPointEnd();
+					fLengthColA = GetDistance( kPointStartColA, kPointEndColA );
+					fScaleRadiusColA = pColA->GetScaleRadius();
+				}
+				else
+				{
+					kPointStartColA = pColA->GetPointStart();
+					fScaleRadiusColA = pColA->GetScaleRadius();
+				}
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+
                 BOOST_TEST_FOREACH( CollisionData*, pColB, dataListB )
 				{
                     ASSERT( pColB != NULL );
@@ -229,10 +258,17 @@ class CKTDXCollision
 						if( pColB->m_CollisionType == CT_LINE )
 						{
 							D3DXVECTOR3 pointA, pointB;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( LineToLine( kPointStartColA, kPointEndColA,
+								pColB->GetPointStart(), pColB->GetPointEnd(),
+								fScaleRadiusColA + pColB->GetScaleRadius(),
+								pointA, pointB ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
 								pColB->GetPointStart(), pColB->GetPointEnd(),
 								pColA->GetScaleRadius() + pColB->GetScaleRadius(),
 								pointA, pointB ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							{
 								if( impactPoint != NULL)
 								{               
@@ -242,7 +278,11 @@ class CKTDXCollision
                                         vCollObj2 = pointA;
                                     }
                          
-                                    D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									D3DXVECTOR3 vCenter = kPointEndColA + (kPointEndColA - kPointStartColA) * 3.0f;
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                     bool cType = CheckCollisionGuard(vCenter, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
                                     if(cType == true)
                                         collType = CT_GUARD;
@@ -259,9 +299,15 @@ class CKTDXCollision
 						else
 						{
 							D3DXVECTOR3 pointA;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( LineToSphere( kPointStartColA, kPointEndColA, fLengthColA,
+								fScaleRadiusColA, pColB->GetPointStart(),
+								pColB->GetScaleRadius(), &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
 								pColA->GetScaleRadius(), pColB->GetPointStart(),
 								pColB->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							{
 								if( impactPoint != NULL)
 								{
@@ -283,7 +329,11 @@ class CKTDXCollision
                                         vCollObj2 = pointA;
                                     }                                                             
                                     
-                                    D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									D3DXVECTOR3 vCenter = kPointEndColA + (kPointEndColA - kPointStartColA) * 3.0f;
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                     bool cType = CheckCollisionGuard(vCenter, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
                                     if(cType == true)
                                         collType = CT_GUARD;
@@ -303,9 +353,15 @@ class CKTDXCollision
 						if( pColB->m_CollisionType == CT_LINE )
 						{
 							D3DXVECTOR3 pointA;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+								pColB->GetScaleRadius(), kPointStartColA,
+								fScaleRadiusColA, &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
 								pColB->GetScaleRadius(), pColA->GetPointStart(),
 								pColA->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							{
 								if( impactPoint != NULL)
 								{
@@ -314,8 +370,12 @@ class CKTDXCollision
                                         bCollObj2 = true;
                                         vCollObj2 = pointA;
                                     }
-                                                                 
-                                    bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									bool cType = CheckCollisionGuard(kPointStartColA, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                     if(cType == true)
                                         collType = CT_GUARD;
                                     else
@@ -332,9 +392,15 @@ class CKTDXCollision
 						else
 						{
 							D3DXVECTOR3 pointA;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( SphereToSphere( kPointStartColA, fScaleRadiusColA,
+								pColB->GetPointStart(), pColB->GetScaleRadius(), 
+								&pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
 								pColB->GetPointStart(), pColB->GetScaleRadius(), 
 								&pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							{
 								if( impactPoint != NULL)
 								{
@@ -356,7 +422,11 @@ class CKTDXCollision
                                         vCollObj2 = pointA;
                                     }
                             
-                                    bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									bool cType = CheckCollisionGuard(kPointStartColA, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                     if(cType == true)
                                         collType = CT_GUARD;
                                     else
@@ -401,6 +471,27 @@ class CKTDXCollision
 				    if( pColA->m_bEnable == false )
 					    continue;
 
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+					D3DXVECTOR3 kPointStartColA = D3DXVECTOR3( 0, 0, 0 );
+					D3DXVECTOR3 kPointEndColA = D3DXVECTOR3( 0, 0, 0 );
+					float fLengthColA = 0.0f;
+					float fScaleRadiusColA = 0.0f;
+
+					//ColA의 타입에 따라 사용되는 변수들이 다르다.
+					if( pColA->m_CollisionType == CT_LINE )
+					{
+						kPointStartColA = pColA->GetPointStart();
+						kPointEndColA = pColA->GetPointEnd();
+						fLengthColA = GetDistance( kPointStartColA, kPointEndColA );
+						fScaleRadiusColA = pColA->GetScaleRadius();
+					}
+					else
+					{
+						kPointStartColA = pColA->GetPointStart();
+						fScaleRadiusColA = pColA->GetScaleRadius();
+					}
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+
                     BOOST_TEST_FOREACH( CollisionData*, pColB, dataListB )
 				    {
                         ASSERT( pColB != NULL );
@@ -412,10 +503,17 @@ class CKTDXCollision
 						    if( pColB->m_CollisionType == CT_LINE )
 						    {
 							    D3DXVECTOR3 pointA, pointB;
-							    if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
-								    pColB->GetPointStart(), pColB->GetPointEnd(),
-								    pColA->GetScaleRadius() + pColB->GetScaleRadius(),
-								    pointA, pointB ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToLine( kPointStartColA, kPointEndColA,
+									pColB->GetPointStart(), pColB->GetPointEnd(),
+									fScaleRadiusColA + pColB->GetScaleRadius(),
+									pointA, pointB ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
+									pColB->GetPointStart(), pColB->GetPointEnd(),
+									pColA->GetScaleRadius() + pColB->GetScaleRadius(),
+									pointA, pointB ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							    {
 								    if( impactPoint != NULL)
 								    {               
@@ -425,7 +523,11 @@ class CKTDXCollision
                                             vCollObj2 = pointA;
                                         }
                              
-                                        D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										D3DXVECTOR3 vCenter = kPointEndColA + (kPointEndColA - kPointStartColA) * 3.0f;
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                         bool cType = CheckCollisionGuard(vCenter, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
                                         if(cType == true)
                                             collType = CT_GUARD;
@@ -442,9 +544,15 @@ class CKTDXCollision
 						    else
 						    {
 							    D3DXVECTOR3 pointA;
-							    if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
-								    pColA->GetScaleRadius(), pColB->GetPointStart(),
-								    pColB->GetScaleRadius(), &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToSphere( kPointStartColA, kPointEndColA, fLengthColA,
+									fScaleRadiusColA, pColB->GetPointStart(),
+									pColB->GetScaleRadius(), &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
+									pColA->GetScaleRadius(), pColB->GetPointStart(),
+									pColB->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							    {
 								    if( impactPoint != NULL)
 								    {
@@ -466,7 +574,11 @@ class CKTDXCollision
                                             vCollObj2 = pointA;
                                         }                                                             
                                         
-                                        D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										D3DXVECTOR3 vCenter = kPointEndColA + (kPointEndColA - kPointStartColA) * 3.0f;
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                         bool cType = CheckCollisionGuard(vCenter, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
                                         if(cType == true)
                                             collType = CT_GUARD;
@@ -486,9 +598,15 @@ class CKTDXCollision
 						    if( pColB->m_CollisionType == CT_LINE )
 						    {
 							    D3DXVECTOR3 pointA;
-							    if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
-								    pColB->GetScaleRadius(), pColA->GetPointStart(),
-								    pColA->GetScaleRadius(), &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+									pColB->GetScaleRadius(), kPointStartColA,
+									fScaleRadiusColA, &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+									pColB->GetScaleRadius(), pColA->GetPointStart(),
+									pColA->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							    {
 								    if( impactPoint != NULL)
 								    {
@@ -498,7 +616,11 @@ class CKTDXCollision
                                             vCollObj2 = pointA;
                                         }
                                                                      
-                                        bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										bool cType = CheckCollisionGuard(kPointStartColA, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                         if(cType == true)
                                             collType = CT_GUARD;
                                         else
@@ -515,9 +637,15 @@ class CKTDXCollision
 						    else
 						    {
 							    D3DXVECTOR3 pointA;
-							    if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
-								    pColB->GetPointStart(), pColB->GetScaleRadius(), 
-								    &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( SphereToSphere( kPointStartColA, fScaleRadiusColA,
+									pColB->GetPointStart(), pColB->GetScaleRadius(), 
+									&pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
+									pColB->GetPointStart(), pColB->GetScaleRadius(), 
+									&pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							    {
 								    if( impactPoint != NULL)
 								    {
@@ -539,7 +667,11 @@ class CKTDXCollision
                                             vCollObj2 = pointA;
                                         }
                                 
-                                        bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										bool cType = CheckCollisionGuard(kPointStartColA, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                         if(cType == true)
                                             collType = CT_GUARD;
                                         else
@@ -582,6 +714,27 @@ class CKTDXCollision
 				if( pColA->m_bEnable == false )
 					continue;
 
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+				D3DXVECTOR3 kPointStartColA = D3DXVECTOR3( 0, 0, 0 );
+				D3DXVECTOR3 kPointEndColA = D3DXVECTOR3( 0, 0, 0 );
+				float fLengthColA = 0.0f;
+				float fScaleRadiusColA = 0.0f;
+
+				//ColA의 타입에 따라 사용되는 변수들이 다르다.
+				if( pColA->m_CollisionType == CT_LINE )
+				{
+					kPointStartColA = pColA->GetPointStart();
+					kPointEndColA = pColA->GetPointEnd();
+					fLengthColA = GetDistance( kPointStartColA, kPointEndColA );
+					fScaleRadiusColA = pColA->GetScaleRadius();
+				}
+				else
+				{
+					kPointStartColA = pColA->GetPointStart();
+					fScaleRadiusColA = pColA->GetScaleRadius();
+				}
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+
                 BOOST_TEST_FOREACH( const CollisionDataList*, pDataListB, dataListSetB )
                 {
                     ASSERT( pDataListB != NULL );
@@ -596,10 +749,17 @@ class CKTDXCollision
 						    if( pColB->m_CollisionType == CT_LINE )
 						    {
 							    D3DXVECTOR3 pointA, pointB;
-							    if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
-								    pColB->GetPointStart(), pColB->GetPointEnd(),
-								    pColA->GetScaleRadius() + pColB->GetScaleRadius(),
-								    pointA, pointB ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToLine( kPointStartColA, kPointEndColA,
+									pColB->GetPointStart(), pColB->GetPointEnd(),
+									fScaleRadiusColA + pColB->GetScaleRadius(),
+									pointA, pointB ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
+									pColB->GetPointStart(), pColB->GetPointEnd(),
+									pColA->GetScaleRadius() + pColB->GetScaleRadius(),
+									pointA, pointB ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							    {
 								    if( impactPoint != NULL)
 								    {               
@@ -609,7 +769,11 @@ class CKTDXCollision
                                             vCollObj2 = pointA;
                                         }
                              
-                                        D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										D3DXVECTOR3 vCenter = kPointEndColA + (kPointEndColA - kPointStartColA) * 3.0f;
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                         bool cType = CheckCollisionGuard(vCenter, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
                                         if(cType == true)
                                             collType = CT_GUARD;
@@ -626,9 +790,15 @@ class CKTDXCollision
 						    else
 						    {
 							    D3DXVECTOR3 pointA;
-							    if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
-								    pColA->GetScaleRadius(), pColB->GetPointStart(),
-								    pColB->GetScaleRadius(), &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToSphere( kPointStartColA, kPointEndColA, fLengthColA,
+									fScaleRadiusColA, pColB->GetPointStart(),
+									pColB->GetScaleRadius(), &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
+									pColA->GetScaleRadius(), pColB->GetPointStart(),
+									pColB->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							    {
 								    if( impactPoint != NULL)
 								    {
@@ -650,7 +820,11 @@ class CKTDXCollision
                                             vCollObj2 = pointA;
                                         }                                                             
                                         
-                                        D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										D3DXVECTOR3 vCenter = kPointEndColA + (kPointEndColA - kPointStartColA) * 3.0f;
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                         bool cType = CheckCollisionGuard(vCenter, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
                                         if(cType == true)
                                             collType = CT_GUARD;
@@ -670,9 +844,15 @@ class CKTDXCollision
 						    if( pColB->m_CollisionType == CT_LINE )
 						    {
 							    D3DXVECTOR3 pointA;
-							    if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
-								    pColB->GetScaleRadius(), pColA->GetPointStart(),
-								    pColA->GetScaleRadius(), &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+									pColB->GetScaleRadius(), kPointStartColA,
+									fScaleRadiusColA, &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+									pColB->GetScaleRadius(), pColA->GetPointStart(),
+									pColA->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							    {
 								    if( impactPoint != NULL)
 								    {
@@ -682,7 +862,11 @@ class CKTDXCollision
                                             vCollObj2 = pointA;
                                         }
                                                                      
-                                        bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										bool cType = CheckCollisionGuard(kPointStartColA, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                         if(cType == true)
                                             collType = CT_GUARD;
                                         else
@@ -699,9 +883,15 @@ class CKTDXCollision
 						    else
 						    {
 							    D3DXVECTOR3 pointA;
-							    if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
-								    pColB->GetPointStart(), pColB->GetScaleRadius(), 
-								    &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( SphereToSphere( kPointStartColA, fScaleRadiusColA,
+									pColB->GetPointStart(), pColB->GetScaleRadius(), 
+									&pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+								if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
+									pColB->GetPointStart(), pColB->GetScaleRadius(), 
+									&pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							    {
 								    if( impactPoint != NULL)
 								    {
@@ -723,7 +913,11 @@ class CKTDXCollision
                                             vCollObj2 = pointA;
                                         }
                                 
-                                        bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										bool cType = CheckCollisionGuard(kPointStartColA, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+										bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                         if(cType == true)
                                             collType = CT_GUARD;
                                         else
@@ -769,6 +963,27 @@ class CKTDXCollision
 				    if( pColA->m_bEnable == false )
 					    continue;
 
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+					D3DXVECTOR3 kPointStartColA = D3DXVECTOR3( 0, 0, 0 );
+					D3DXVECTOR3 kPointEndColA = D3DXVECTOR3( 0, 0, 0 );
+					float fLengthColA = 0.0f;
+					float fScaleRadiusColA = 0.0f;
+
+					//ColA의 타입에 따라 사용되는 변수들이 다르다.
+					if( pColA->m_CollisionType == CT_LINE )
+					{
+						kPointStartColA = pColA->GetPointStart();
+						kPointEndColA = pColA->GetPointEnd();
+						fLengthColA = GetDistance( kPointStartColA, kPointEndColA );
+						fScaleRadiusColA = pColA->GetScaleRadius();
+					}
+					else
+					{
+						kPointStartColA = pColA->GetPointStart();
+						fScaleRadiusColA = pColA->GetScaleRadius();
+					}
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+
                     BOOST_TEST_FOREACH( const CollisionDataList*, pDataListB, dataListSetB )
                     {
                         ASSERT( pDataListB != NULL );
@@ -783,10 +998,17 @@ class CKTDXCollision
 						        if( pColB->m_CollisionType == CT_LINE )
 						        {
 							        D3DXVECTOR3 pointA, pointB;
-							        if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
-								        pColB->GetPointStart(), pColB->GetPointEnd(),
-								        pColA->GetScaleRadius() + pColB->GetScaleRadius(),
-								        pointA, pointB ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									if( LineToLine( kPointStartColA, kPointEndColA,
+										pColB->GetPointStart(), pColB->GetPointEnd(),
+										fScaleRadiusColA + pColB->GetScaleRadius(),
+										pointA, pointB ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
+										pColB->GetPointStart(), pColB->GetPointEnd(),
+										pColA->GetScaleRadius() + pColB->GetScaleRadius(),
+										pointA, pointB ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							        {
 								        if( impactPoint != NULL)
 								        {               
@@ -795,8 +1017,12 @@ class CKTDXCollision
                                                 bCollObj2 = true;
                                                 vCollObj2 = pointA;
                                             }
-                                 
-                                            D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+											D3DXVECTOR3 vCenter = kPointEndColA + (kPointEndColA - kPointStartColA) * 3.0f;
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+											D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                             bool cType = CheckCollisionGuard(vCenter, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
                                             if(cType == true)
                                                 collType = CT_GUARD;
@@ -813,9 +1039,15 @@ class CKTDXCollision
 						        else
 						        {
 							        D3DXVECTOR3 pointA;
-							        if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
-								        pColA->GetScaleRadius(), pColB->GetPointStart(),
-								        pColB->GetScaleRadius(), &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									if( LineToSphere( kPointStartColA, kPointEndColA, fLengthColA,
+										fScaleRadiusColA, pColB->GetPointStart(),
+										pColB->GetScaleRadius(), &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
+										pColA->GetScaleRadius(), pColB->GetPointStart(),
+										pColB->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							        {
 								        if( impactPoint != NULL)
 								        {
@@ -837,7 +1069,11 @@ class CKTDXCollision
                                                 vCollObj2 = pointA;
                                             }                                                             
                                             
-                                            D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+											D3DXVECTOR3 vCenter = kPointEndColA + (kPointEndColA - kPointStartColA) * 3.0f;
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+											D3DXVECTOR3 vCenter = pColA->GetPointEnd() + (pColA->GetPointEnd() - pColA->GetPointStart()) * 3.0f;
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                             bool cType = CheckCollisionGuard(vCenter, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
                                             if(cType == true)
                                                 collType = CT_GUARD;
@@ -857,9 +1093,15 @@ class CKTDXCollision
 						        if( pColB->m_CollisionType == CT_LINE )
 						        {
 							        D3DXVECTOR3 pointA;
-							        if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
-								        pColB->GetScaleRadius(), pColA->GetPointStart(),
-								        pColA->GetScaleRadius(), &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+										pColB->GetScaleRadius(), kPointStartColA,
+										fScaleRadiusColA, &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+										pColB->GetScaleRadius(), pColA->GetPointStart(),
+										pColA->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							        {
 								        if( impactPoint != NULL)
 								        {
@@ -869,7 +1111,11 @@ class CKTDXCollision
                                                 vCollObj2 = pointA;
                                             }
                                                                          
-                                            bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+											bool cType = CheckCollisionGuard(kPointStartColA, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+											bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                             if(cType == true)
                                                 collType = CT_GUARD;
                                             else
@@ -886,9 +1132,15 @@ class CKTDXCollision
 						        else
 						        {
 							        D3DXVECTOR3 pointA;
-							        if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
-								        pColB->GetPointStart(), pColB->GetScaleRadius(), 
-								        &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									if( SphereToSphere( kPointStartColA, fScaleRadiusColA,
+										pColB->GetPointStart(), pColB->GetScaleRadius(), 
+										&pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+									if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
+										pColB->GetPointStart(), pColB->GetScaleRadius(), 
+										&pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 							        {
 								        if( impactPoint != NULL)
 								        {
@@ -910,7 +1162,11 @@ class CKTDXCollision
                                                 vCollObj2 = pointA;
                                             }
                                     
-                                            bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+											bool cType = CheckCollisionGuard(kPointStartColA, bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+											bool cType = CheckCollisionGuard(pColA->GetPointStart(), bCollObj1, vCollObj1, bCollObj2, vCollObj2, impactPoint);
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
                                             if(cType == true)
                                                 collType = CT_GUARD;
                                             else
@@ -955,15 +1211,43 @@ class CKTDXCollision
                 if( pColA->m_bEnable == false )
 					continue;
 
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+				D3DXVECTOR3 kPointStartColA = D3DXVECTOR3( 0, 0, 0 );
+				D3DXVECTOR3 kPointEndColA = D3DXVECTOR3( 0, 0, 0 );
+				float fLengthColA = 0.0f;
+				float fScaleRadiusColA = 0.0f;
+
+				//ColA의 타입에 따라 사용되는 변수들이 다르다.
+				if( pColA->m_CollisionType == CT_LINE )
+				{
+					kPointStartColA = pColA->GetPointStart();
+					kPointEndColA = pColA->GetPointEnd();
+					fLengthColA = GetDistance( kPointStartColA, kPointEndColA );
+					fScaleRadiusColA = pColA->GetScaleRadius();
+				}
+				else
+				{
+					kPointStartColA = pColA->GetPointStart();
+					fScaleRadiusColA = pColA->GetScaleRadius();
+				}
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+
 				if( pColA->m_CollisionType == CT_LINE )
 				{
 					if( pColB->m_CollisionType == CT_LINE )
 					{
 						D3DXVECTOR3 pointA, pointB;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+						if( LineToLine( kPointStartColA, kPointEndColA,
+							pColB->GetPointStart(), pColB->GetPointEnd(),
+							fScaleRadiusColA + pColB->GetScaleRadius(),
+							pointA, pointB ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
 							pColB->GetPointStart(), pColB->GetPointEnd(),
 							pColA->GetScaleRadius() + pColB->GetScaleRadius(),
 							pointA, pointB ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						{
 							if( impactPoint != NULL)
 							{
@@ -976,9 +1260,15 @@ class CKTDXCollision
 					else
 					{
 						D3DXVECTOR3 pointA;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+						if( LineToSphere( kPointStartColA, kPointEndColA, fLengthColA,
+							fScaleRadiusColA, pColB->GetPointStart(),
+							pColB->GetScaleRadius(), &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
 							pColA->GetScaleRadius(), pColB->GetPointStart(),
 							pColB->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						{
 							if( impactPoint != NULL )
 							{
@@ -994,9 +1284,15 @@ class CKTDXCollision
 					if( pColB->m_CollisionType == CT_LINE )
 					{
 						D3DXVECTOR3 pointA;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+						if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+							pColB->GetScaleRadius(), kPointStartColA,
+							fScaleRadiusColA, &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
 							pColB->GetScaleRadius(), pColA->GetPointStart(),
 							pColA->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						{
 							if( impactPoint != NULL)
 							{
@@ -1009,9 +1305,15 @@ class CKTDXCollision
 					else
 					{
 						D3DXVECTOR3 pointA;
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+						if( SphereToSphere( kPointStartColA, fScaleRadiusColA,
+							pColB->GetPointStart(), pColB->GetScaleRadius(), 
+							&pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
 							pColB->GetPointStart(), pColB->GetScaleRadius(), 
 							&pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						{
 							if( impactPoint != NULL)
 							{
@@ -1044,15 +1346,43 @@ class CKTDXCollision
                     if( pColA->m_bEnable == false )
 					    continue;
 
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+					D3DXVECTOR3 kPointStartColA = D3DXVECTOR3( 0, 0, 0 );
+					D3DXVECTOR3 kPointEndColA = D3DXVECTOR3( 0, 0, 0 );
+					float fLengthColA = 0.0f;
+					float fScaleRadiusColA = 0.0f;
+
+					//ColA의 타입에 따라 사용되는 변수들이 다르다.
+					if( pColA->m_CollisionType == CT_LINE )
+					{
+						kPointStartColA = pColA->GetPointStart();
+						kPointEndColA = pColA->GetPointEnd();
+						fLengthColA = GetDistance( kPointStartColA, kPointEndColA );
+						fScaleRadiusColA = pColA->GetScaleRadius();
+					}
+					else
+					{
+						kPointStartColA = pColA->GetPointStart();
+						fScaleRadiusColA = pColA->GetScaleRadius();
+					}
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+
 				    if( pColA->m_CollisionType == CT_LINE )
 				    {
 					    if( pColB->m_CollisionType == CT_LINE )
 					    {
 						    D3DXVECTOR3 pointA, pointB;
-						    if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
-							    pColB->GetPointStart(), pColB->GetPointEnd(),
-							    pColA->GetScaleRadius() + pColB->GetScaleRadius(),
-							    pointA, pointB ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( LineToLine( kPointStartColA, kPointEndColA,
+								pColB->GetPointStart(), pColB->GetPointEnd(),
+								fScaleRadiusColA + pColB->GetScaleRadius(),
+								pointA, pointB ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( LineToLine( pColA->GetPointStart(), pColA->GetPointEnd(),
+								pColB->GetPointStart(), pColB->GetPointEnd(),
+								pColA->GetScaleRadius() + pColB->GetScaleRadius(),
+								pointA, pointB ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						    {
 							    if( impactPoint != NULL)
 							    {
@@ -1065,9 +1395,15 @@ class CKTDXCollision
 					    else
 					    {
 						    D3DXVECTOR3 pointA;
-						    if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
-							    pColA->GetScaleRadius(), pColB->GetPointStart(),
-							    pColB->GetScaleRadius(), &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( LineToSphere( kPointStartColA, kPointEndColA, fLengthColA,
+								fScaleRadiusColA, pColB->GetPointStart(),
+								pColB->GetScaleRadius(), &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( LineToSphere( pColA->GetPointStart(), pColA->GetPointEnd(),
+								pColA->GetScaleRadius(), pColB->GetPointStart(),
+								pColB->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						    {
 							    if( impactPoint != NULL )
 							    {
@@ -1083,9 +1419,15 @@ class CKTDXCollision
 					    if( pColB->m_CollisionType == CT_LINE )
 					    {
 						    D3DXVECTOR3 pointA;
-						    if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
-							    pColB->GetScaleRadius(), pColA->GetPointStart(),
-							    pColA->GetScaleRadius(), &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+								pColB->GetScaleRadius(), kPointStartColA,
+								fScaleRadiusColA, &pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( LineToSphere( pColB->GetPointStart(), pColB->GetPointEnd(),
+								pColB->GetScaleRadius(), pColA->GetPointStart(),
+								pColA->GetScaleRadius(), &pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						    {
 							    if( impactPoint != NULL)
 							    {
@@ -1098,9 +1440,15 @@ class CKTDXCollision
 					    else
 					    {
 						    D3DXVECTOR3 pointA;
-						    if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
-							    pColB->GetPointStart(), pColB->GetScaleRadius(), 
-							    &pointA ) == true )
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( SphereToSphere( kPointStartColA, fScaleRadiusColA,
+								pColB->GetPointStart(), pColB->GetScaleRadius(), 
+								&pointA ) == true )
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+							if( SphereToSphere( pColA->GetPointStart(), pColA->GetScaleRadius(),
+								pColB->GetPointStart(), pColB->GetScaleRadius(), 
+								&pointA ) == true )
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 						    {
 							    if( impactPoint != NULL)
 							    {
@@ -1122,9 +1470,13 @@ class CKTDXCollision
 								const float& center2X, const float& center2Y, const float& center2Z, const float& radius2, 
 								D3DXVECTOR3* point = NULL )
 		{
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+			//자주사용됨으로 속도를 위해...
+			return SphereToSphere( D3DXVECTOR3( center1X, center1Y, center1Z ), radius1, D3DXVECTOR3( center2X, center2Y, center2Z ), radius2, point );
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 			D3DXVECTOR3 center1;
 			D3DXVECTOR3 center2;
-			
+
 			center1.x = center1X;
 			center1.y = center1Y;
 			center1.z = center1Z;
@@ -1134,6 +1486,7 @@ class CKTDXCollision
 			center2.z = center2Z;
 
 			return SphereToSphere( center1, radius1, center2, radius2, point );
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 		}
 		__forceinline bool SphereToSphere( const D3DXVECTOR3& center1, const float& radius1, 
 								const D3DXVECTOR3& center2, const float& radius2, 
@@ -1161,13 +1514,66 @@ class CKTDXCollision
 							const float& centerX,	const float& centerY,	const float& centerZ, 
 							const float& radius,	D3DXVECTOR3* point = NULL )
 		{
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+			//자주사용됨으로 속도를 위해...
+			return LineToSphere( D3DXVECTOR3( lineStartX, lineStartY, lineStartZ), 
+				D3DXVECTOR3( lineEndX, lineEndY, lineEndZ), 
+				lineRadius, 
+				D3DXVECTOR3( centerX, centerY, centerZ), 
+				radius, 
+				point );
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 			D3DXVECTOR3 lineStart = D3DXVECTOR3( lineStartX, lineStartY, lineStartZ);
 			D3DXVECTOR3 lineEnd = D3DXVECTOR3( lineEndX, lineEndY, lineEndZ);
 			D3DXVECTOR3 center = D3DXVECTOR3( centerX, centerY, centerZ);
 
 			return LineToSphere( lineStart, lineEnd, lineRadius, center, radius, point );
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 		}
 
+#ifdef X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+		__forceinline bool LineToSphere( const D3DXVECTOR3& lineStart, const D3DXVECTOR3& lineEnd, const float& lineRadius,
+			const D3DXVECTOR3& center, const float& radius,
+			D3DXVECTOR3* point = NULL )
+		{
+			return LineToSphere( lineStart, lineEnd, GetDistance( lineStart, lineEnd ), lineRadius, center, radius, point );
+		}
+
+		__forceinline bool LineToSphere( const D3DXVECTOR3& lineStart, const D3DXVECTOR3& lineEnd, const float& lineDistance, const float& lineRadius,
+			const D3DXVECTOR3& center, const float& radius,
+			D3DXVECTOR3* point = NULL )
+		{
+			KTDXPROFILE();
+
+			float sphereLength = GetDistance( lineStart, center ) - radius - lineRadius;
+
+			if( lineDistance < sphereLength )
+				return false;
+
+			D3DXVECTOR3 lineDir = lineEnd - lineStart;
+			D3DXVec3Normalize( &lineDir, &lineDir );
+
+			D3DXVECTOR3 sphereDir = center - lineStart;
+
+			float fProjectionLength	= D3DXVec3Dot( &lineDir, &sphereDir );
+			if( fProjectionLength < 0.0f )
+				return false;
+			D3DXVECTOR3 projectionPoint = lineDir * fProjectionLength + lineStart;
+			float finalLength = GetDistance( center, projectionPoint );
+
+			if( finalLength >= 0.0f && finalLength > (radius + lineRadius) )
+				return false;
+
+			//if( fProjectionLength > rayLength || fProjectionLength < 0.0f )
+			//	return false;
+
+			if( point != NULL )
+			{
+				*point = projectionPoint;
+			}
+			return true;
+		}
+#else//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 		__forceinline bool LineToSphere( const D3DXVECTOR3& lineStart, const D3DXVECTOR3& lineEnd, const float& lineRadius,
 							const D3DXVECTOR3& center, const float& radius,
 							D3DXVECTOR3* point = NULL )
@@ -1203,6 +1609,7 @@ class CKTDXCollision
 			}
 			return true;
 		}
+#endif//X2OPTIMIZE_DAMAGEEFFECT_COLLISION
 
 		__forceinline bool DXRayCheck( LPD3DXBASEMESH pDestMesh, D3DXVECTOR3 rayPos, const D3DXVECTOR3& rayDir, const D3DXVECTOR3& transform, float* distance )
 		{

@@ -1298,3 +1298,17 @@ GameEvent:AddReward( 2040, { fEventTime = 35, iRewardID = 2041, bGiveOnce = True
 GameEvent:AddReward( 2041, { fEventTime = 10, iRewardID = 2043, bGiveOnce = True} ) -- 미약한 사파의 정수 2개 우편 지급(매일/캐릭터/10분)
 GameEvent:AddReward( 2042, { fEventTime = 10, iRewardID = 2044, bGiveOnce = True, iEventItemID = 85003833 } )	-- 정파 비전 큐브 열쇠 1개 우편 지급(한번/캐릭터/10분/정파비전 큐브 보유시)
 GameEvent:AddReward( 2043, { fEventTime = 10, iRewardID = 2045, bGiveOnce = True, iEventItemID = 85003834 } )	-- 사파 비전 큐브 열쇠 1개 우편 지급(한번/캐릭터/10분/사파비전 큐브 보유시)
+
+-- 2014-02-12 정기점검 이후 ~ 2014-02-26 정기점검 결혼 이벤트
+-- 1. 나의 반쪽을 찾아서 (2014-02-12 정기점검 이후 ~ 2014-02-26 정기점검 이전)
+GameEvent:AddReward( 2051, { fEventTime = 10, iRewardID = 2051, bGiveOnce = True } )  -- 가상 결혼 신청서 (한번/캐릭터/10분)
+
+-- 스마트 밸런스! 2014-02-12 정기점검 이후 ~ 2014-02-18 23:59
+GameEvent:AddReward( 2052, { fEventTime = 10, iRewardID = 2053, bGiveOnce = True, iMinLevel = 10 } ) -- 스마트 밸런스 쿨타임 가속기 (1일), 루리엘의 망각의 알약 (1일권) 1개
+
+-- 샌더 5,6던전 이벤트  샌더 마을의 서신
+GameEvent:AddReward( 2053, { fEventTime = 60, iRewardID = 2054, bGiveOnce = True, iMinLevel = 10 } ) -- 풍화된 샌더 마을의 서신 조각 1개, 엘의 조각(윈드) 1개
+
+--진입구조 개편 ---------------------
+GameEvent:AddReward( 10410, { fEventTime =  10,	iRewardID = 10410, bGiveOnce =  True, iMinLevel = 10 } ) -- 대리 판매 보증서(VIP, 3일권)
+

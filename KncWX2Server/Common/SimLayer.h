@@ -65,9 +65,9 @@ public:
         CF_NPGG         = 0x00000001,   // nProtect Game Guard.
         CF_CHECK_IP     = 0x00000002,   // check IP
 		CF_HSHIELD		= 0x00000004,	// HackShield
-		// #ifdef SERV_USE_XTRAP
+// #ifdef SERV_USE_XTRAP
 		CF_XTRAP		= 0x00000008,	// X-Trap
-		// #endif SERV_USE_XTRAP
+// #endif SERV_USE_XTRAP
     };
 
     enum AuthFlag                       // 060411. 인증 방식. 한번에 하나의 방식만 설정할 수 있어야 한다.
@@ -111,10 +111,10 @@ public:
 		NF_ID			= 0x00000900,
 		NF_BR			= 0x00001000,
 		NF_PH			= 0x00001100,
+		NF_IN			= 0x00001200,
 	};
 #endif SERV_USE_NATION_FLAG
 	//}}
-
 #ifdef SERV_COUNTRY_JP
 	enum HanInitFlag
 	{
@@ -152,7 +152,7 @@ public:
 	//#endif SERV_VERSION_FLAG
 	//}}
 
-    void AddCommonFlag( DWORD dwFlag )              { KLocker lock( m_csCommonFlag ); m_dwCommonFlag |= dwFlag; }
+    void AddCommonFlag( DWORD dwFlag );
     void DeleteCommonFlag( DWORD dwFlag );
     bool CheckCommonFlag( DWORD dwFlag ) const      { KLocker lock( m_csCommonFlag ); return ( m_dwCommonFlag & dwFlag ) > 0; }
 
@@ -189,7 +189,8 @@ public:
 	//{{ 2009. 12. 15  최육사	서버관리
 	virtual void DumpToLogFile();
 	//}}
-
+    const std::wstring GetAuthTypeStr( DWORD dwFlag ) const;
+	
 #ifdef SERV_KOG_OTP_VERIFY
 	bool GetUseKogOTP() { return m_bUseKogOTP; }
 	void SetUseKogOTP(bool bUseKogOTP) { m_bUseKogOTP = bUseKogOTP; }
@@ -254,6 +255,9 @@ public:
 	
 	bool							m_bCheckCouponByPublisher;
 #endif // SERV_GLOBAL_BILLING
+
+    std::map< DWORD, std::wstring > m_mapAuthTypeStrings;   // 인증 타입의 문자열들.
+
 };
 
 //임시 로딩타임 계산용 구조체를 만든다.

@@ -27,9 +27,9 @@ CKTDGUIButton::CKTDGUIButton()
 	m_CustomMsgMouseRightUp = -1;
 	m_CustomMsgMouseDblClk	= -1;
 
-	m_CustomFuncMouseOver	= L"";
-	m_CustomFuncMouseDown	= L"";
-	m_CustomFuncMouseUp		= L"";
+	m_CustomFuncMouseOver	= "";
+	m_CustomFuncMouseDown	= "";
+	m_CustomFuncMouseUp		= "";
 
 	m_bIsSameNormalAndOverButton = false;
 
@@ -61,24 +61,19 @@ CKTDGUIButton::CKTDGUIButton()
     KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
 
-	if(  g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
+	if(  g_pKTDXApp->LoadAndDoMemory( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
 	{
 		return;
 	}
 
-	string MouseOverSndFileName = "";
-	string MouseUpSndFileName = "";
+	wstring MouseOverSndFileName;
+	wstring MouseUpSndFileName;
 
-	LUA_GET_VALUE( kLuaManager, "Button_Mouse_Over", MouseOverSndFileName, "" );
-	LUA_GET_VALUE( kLuaManager, "Button_Mouse_Up",	 MouseUpSndFileName, "" );
+	LUA_GET_VALUE( kLuaManager, "Button_Mouse_Over", MouseOverSndFileName, L"" );
+	LUA_GET_VALUE( kLuaManager, "Button_Mouse_Up",	 MouseUpSndFileName, L"" );
 
-	wstring sndFileName = L"";
-
-	ConvertCharToWCHAR( sndFileName, MouseOverSndFileName.c_str() );
-	m_pSndMouseOver = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
-
-	ConvertCharToWCHAR( sndFileName, MouseUpSndFileName.c_str()  );
-	m_pSndMouseUp = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
+	m_pSndMouseOver = g_pKTDXApp->GetDeviceManager()->OpenSound( MouseOverSndFileName );
+	m_pSndMouseUp = g_pKTDXApp->GetDeviceManager()->OpenSound( MouseUpSndFileName );
 }
 
 CKTDGUIButton::~CKTDGUIButton(void)
@@ -139,16 +134,20 @@ HRESULT CKTDGUIButton::OnFrameMove( double fTime, float fElapsedTime )
 	if( m_bShow == false )
 		return S_OK;
 
+#ifdef DLL_BUILD
+	if( m_bUpdate == false )
+		return S_OK;
+#endif
 	CKTDGUIControl::OnFrameMove( fTime, fElapsedTime );
 
 	if ( m_bHasFocus == true && m_EdgeWidth > 0 && 
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->CheckFrontModalDlg( m_pDialog ) == false )
 	{
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 		if ( GET_KEY_STATE(GA_RETURN) || g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_RETURN ) == TRUE )
-#else // KEY_MAPPING_INT
+#else // SERV_KEY_MAPPING_INT
 		if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_RETURN ) == TRUE )
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 		{			
 			LButtonMouseUp();						
 		}
@@ -173,6 +172,8 @@ HRESULT CKTDGUIButton::OnFrameMove( double fTime, float fElapsedTime )
 	{
 		case BCS_NORMAL:
 			{
+				
+				
 				if ( m_bOverStateAtNormal == true )
 				{
 					ChangeState( BCS_MOUSEOVER );
@@ -542,17 +543,17 @@ void CKTDGUIButton::ChangeState( BUTTON_CONTROL_STATE state, bool bForce )
 				else
 					SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_EVENT, BEM_BUTTON_MOUSEOVER, (LPARAM)this );
 
-				if ( m_CustomFuncMouseOver != L"" )
+				if ( m_CustomFuncMouseOver.empty() == false )
 					SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_FUNC, (WPARAM)m_CustomFuncMouseOver.c_str(), (LPARAM)this );
 /*
-				if ( m_CustomFuncMouseOver != L"" )
+				if ( m_CustomFuncMouseOver != "" )
 					SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_FUNC, (WPARAM)m_CustomFuncMouseOver.c_str(), (LPARAM)this );
 
-				if ( m_CustomFuncMouseOver != L"" )
+				if ( m_CustomFuncMouseOver != "" )
 				{
 					string func;
 					ConvertWCHARToChar( func, m_CustomFuncMouseOver.c_str() );
-					lua_tinker::call<void>(func.c_str(), g_pKTDXApp, g_pX2Game, this );
+					lua_tinker::call<void>(m_CustomFuncMouseOver.c_str(), g_pKTDXApp, g_pX2Game, this );
 				}
 				*/
 			}
@@ -572,11 +573,11 @@ void CKTDGUIButton::ChangeState( BUTTON_CONTROL_STATE state, bool bForce )
 				else
 					SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_EVENT, BEM_BUTTON_MOUSEDOWN, (LPARAM)this );
 
-				if ( m_CustomFuncMouseDown != L"" )
+				if ( m_CustomFuncMouseDown.empty() == false )
 					SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_FUNC, (WPARAM)m_CustomFuncMouseDown.c_str(), (LPARAM)this );
 
 				/*
-				if ( m_CustomFuncMouseDown != L"" )
+				if ( m_CustomFuncMouseDown.empty() == false )
 					SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_FUNC, (WPARAM)m_CustomFuncMouseDown.c_str(), (LPARAM)this );	
 					*/
 			}
@@ -600,6 +601,7 @@ void CKTDGUIButton::ChangeState( BUTTON_CONTROL_STATE state, bool bForce )
 			break;
 	}
 
+#ifndef DLL_BUILD
 	for ( int i = 0; i < CKTDGUIButton::BCS_END; i++ )
 	{	
 		CKTDGUIStatic* pTempStatic = m_StaticControls[i];
@@ -609,10 +611,11 @@ void CKTDGUIButton::ChangeState( BUTTON_CONTROL_STATE state, bool bForce )
 	CKTDGUIStatic* pStaticToShow = m_StaticControls[m_ButtonState];
 	if ( pStaticToShow != NULL )
 		pStaticToShow->SetShow( true );
+#endif
 
 	if( m_EndPoint.fChangeTime == 0.0f )
 	{
-		m_NowPoint = m_EndPoint;
+		m_edgePoint = m_NowPoint = m_EndPoint;
 	}
 }
 
@@ -1119,38 +1122,38 @@ void CKTDGUIButton::DrawEdge( bool bDrawOut )
 	tempColor.b = m_EdgeColor.b * m_pDialog->GetColor().b * m_Color.b;
 
 
-	int _width = (int)(m_NowPoint.rightBottomPoint.x - m_NowPoint.leftTopPoint.x);
-	int _height = (int)(m_NowPoint.rightBottomPoint.y - m_NowPoint.leftTopPoint.y);
+	int _width = (int)(m_edgePoint.rightBottomPoint.x - m_edgePoint.leftTopPoint.x);
+	int _height = (int)(m_edgePoint.rightBottomPoint.y - m_edgePoint.leftTopPoint.y);
 
 	if ( bDrawOut == true )
 	{
 		// 좌
-		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_NowPoint.leftTopPoint.x - m_EdgeWidth) + -m_EdgeEnlargeValue, 
-			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_NowPoint.leftTopPoint.y - m_EdgeWidth) - m_EdgeEnlargeValue, 
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_edgePoint.leftTopPoint.x - m_EdgeWidth) + -m_EdgeEnlargeValue, 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_edgePoint.leftTopPoint.y - m_EdgeWidth) - m_EdgeEnlargeValue, 
 			m_EdgeWidth, 
 			_height + m_EdgeWidth + (m_EdgeEnlargeValue*2), 
 			tempColor );
 
 		// 하
 
-		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_NowPoint.leftTopPoint.x - m_EdgeWidth) + -m_EdgeEnlargeValue, 
-			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_NowPoint.leftBottomPoint.y ) +m_EdgeEnlargeValue , 
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_edgePoint.leftTopPoint.x - m_EdgeWidth) + -m_EdgeEnlargeValue, 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_edgePoint.leftBottomPoint.y ) +m_EdgeEnlargeValue , 
 			_width + m_EdgeWidth +m_EdgeEnlargeValue , 
 			m_EdgeWidth , 
 			tempColor );
 
 		// 우
 
-		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_NowPoint.rightTopPoint.x ) + m_EdgeEnlargeValue, 
-			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_NowPoint.leftTopPoint.y ) , 
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_edgePoint.rightTopPoint.x ) + m_EdgeEnlargeValue, 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_edgePoint.leftTopPoint.y ) , 
 			m_EdgeWidth, 
 			_height + m_EdgeWidth + (m_EdgeEnlargeValue) ,
 			tempColor );
 
 		// 상
 
-		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_NowPoint.leftTopPoint.x ), 
-			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_NowPoint.leftTopPoint.y - m_EdgeWidth ) + -m_EdgeEnlargeValue, 
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_edgePoint.leftTopPoint.x ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_edgePoint.leftTopPoint.y - m_EdgeWidth ) + -m_EdgeEnlargeValue, 
 			_width + m_EdgeWidth + (m_EdgeEnlargeValue*2), 
 			m_EdgeWidth , 
 			tempColor );
@@ -1158,32 +1161,32 @@ void CKTDGUIButton::DrawEdge( bool bDrawOut )
 	else
 	{
 		// 좌
-		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_NowPoint.leftTopPoint.x ) + -m_EdgeEnlargeValue, 
-			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_NowPoint.leftTopPoint.y ) - m_EdgeEnlargeValue, 
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_edgePoint.leftTopPoint.x ) + -m_EdgeEnlargeValue, 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_edgePoint.leftTopPoint.y ) - m_EdgeEnlargeValue, 
 			m_EdgeWidth, 
 			_height + (m_EdgeEnlargeValue*2), 
 			tempColor );
 
 		// 하
 
-		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_NowPoint.leftTopPoint.x) + -m_EdgeEnlargeValue, 
-			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_NowPoint.leftBottomPoint.y - m_EdgeWidth ) + m_EdgeEnlargeValue, 
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_edgePoint.leftTopPoint.x) + -m_EdgeEnlargeValue, 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_edgePoint.leftBottomPoint.y - m_EdgeWidth ) + m_EdgeEnlargeValue, 
 			_width +m_EdgeEnlargeValue, 
 			m_EdgeWidth , 
 			tempColor );
 
 		// 우
 
-		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_NowPoint.rightTopPoint.x - m_EdgeWidth ) + m_EdgeEnlargeValue, 
-			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_NowPoint.leftTopPoint.y ), 
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_edgePoint.rightTopPoint.x - m_EdgeWidth ) + m_EdgeEnlargeValue, 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_edgePoint.leftTopPoint.y ), 
 			m_EdgeWidth, 
 			_height + (m_EdgeEnlargeValue), 
 			tempColor );
 
 		// 상
 
-		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_NowPoint.leftTopPoint.x ), 
-			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_NowPoint.leftTopPoint.y ) + -m_EdgeEnlargeValue, 
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + m_edgePoint.leftTopPoint.x ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + m_edgePoint.leftTopPoint.y ) + -m_EdgeEnlargeValue, 
 			_width + (m_EdgeEnlargeValue*2), 
 			m_EdgeWidth , 
 			tempColor );
@@ -1203,7 +1206,7 @@ void CKTDGUIButton::LButtonMouseUp()
 	else
 		g_pKTDXApp->SendGameMessage( CKTDXApp::KM_UI_CONTROL_EVENT, BEM_BUTTON_MOUSEUP, (LPARAM)this, true );
 
-	if ( m_CustomFuncMouseUp != L"" )
+	if ( m_CustomFuncMouseUp.empty() == false )
 		SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_FUNC, (WPARAM)m_CustomFuncMouseUp.c_str(), (LPARAM)this );
 
 	ChangeState( BCS_NORMAL );
@@ -1323,3 +1326,256 @@ void CKTDGUIButton::TexChange()
 		m_pDisablePoint->bUseTextureSize = false;
 	}
 }
+
+#ifdef DLL_BUILD
+vector<D3DXVECTOR2> CKTDGUIButton::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;	
+
+	if( NULL != m_pNormalPoint )
+		ret.push_back(m_pNormalPoint->leftTopPoint);
+
+
+	if( NULL != m_pMouseOverPoint )
+		ret.push_back(m_pMouseOverPoint->leftTopPoint);
+
+	if( NULL != m_pMouseDownPoint )
+		ret.push_back(m_pMouseDownPoint->leftTopPoint);
+
+	if( NULL != m_pDisablePoint && m_pDisablePoint->leftTopPoint.x != 0 && m_pDisablePoint->leftTopPoint.y != 0 )
+		// 버튼들 중에 Disable설정이 없는것도 있다.
+		ret.push_back(m_pDisablePoint->leftTopPoint);
+
+	return ret;
+}
+
+D3DXVECTOR2 CKTDGUIButton::GetPos(wstring name)
+{
+	if( NULL != m_pNormalPoint && name == L"Normal" )
+		return m_pNormalPoint->leftTopPoint;
+	else if( NULL != m_pMouseOverPoint && name == L"Over" )
+		return m_pMouseOverPoint->leftTopPoint;
+	else if( NULL != m_pMouseDownPoint && name == L"Down" )
+		return m_pMouseDownPoint->leftTopPoint;
+	else if( NULL != m_pDisablePoint && name == L"Disable" )
+		return m_pDisablePoint->leftTopPoint;
+
+	return D3DXVECTOR2();
+
+}
+
+void CKTDGUIButton::MoveSubControl( float fx, float fy, wstring subControlName )
+{
+	if( NULL != m_pNormalPoint && subControlName == L"Normal" )
+	{
+		m_pNormalPoint->Move( fx, fy );
+		m_NowPoint = *m_pNormalPoint;
+		//m_EndPoint = *m_pNormalPoint;
+	}
+	else if( NULL != m_pMouseOverPoint && subControlName == L"Over" )
+	{
+		m_pMouseOverPoint->Move( fx, fy );
+		m_NowPoint = *m_pMouseOverPoint;
+		//m_EndPoint = *m_pMouseOverPoint;
+	}
+	else if( NULL != m_pMouseDownPoint && subControlName == L"Down" )
+	{
+		m_pMouseDownPoint->Move( fx, fy );
+		m_NowPoint = *m_pMouseDownPoint;
+		//m_EndPoint = *m_pMouseDownPoint;
+	}
+
+	else if( NULL != m_pDisablePoint && subControlName == L"Disable" )
+	{
+		m_pDisablePoint->Move( fx, fy );
+		m_NowPoint = *m_pDisablePoint;
+		//m_EndPoint = *m_pDisablePoint;
+	}
+}
+
+void CKTDGUIButton::SetEditGUI( bool bEdit )
+{
+	m_bUpdate = !bEdit;
+}
+
+void CKTDGUIButton::ShowSubView( wstring name, bool bView )
+{
+	SetColor(D3DXCOLOR(0xffffffff));	
+
+	if( true == bView )
+	{
+		if( name == L"Normal" )
+			ChangeState( BCS_NORMAL );
+		else if( name == L"Over" )
+			ChangeState( BCS_MOUSEOVER );
+		else if( name == L"Down" )
+			ChangeState( BCS_MOUSEDOWN );
+		else if( name == L"Disable" )
+			ChangeState( BCS_DISABLE );
+	}
+
+	if( true == bView )
+	{		
+		OnFocusIn();
+		SetEdge(true, 1,  D3DXCOLOR(1,0,0,1) );
+		m_edgePoint = *m_pNormalPoint;
+	}
+	else
+	{
+		OnFocusOut();
+		SetEdge(true, 0,  D3DXCOLOR(1,1,1,1) );
+	}
+}
+
+CKTDGUIControl::UIPointData * CKTDGUIButton::_GetPointData( wstring name )
+{
+	if( NULL !=  m_pNormalPoint && name == L"Normal" )
+		return m_pNormalPoint;
+
+	else if( NULL != m_pMouseOverPoint && name == L"Over" )
+		return m_pMouseOverPoint;		
+
+	else if( NULL != m_pMouseDownPoint && name == L"Down" )
+		return m_pMouseDownPoint;
+
+	else if( NULL != m_pDisablePoint && name == L"Disable" )
+		return m_pDisablePoint;
+
+	return NULL;
+}
+
+wstring CKTDGUIButton::GetTextureName( wstring name )
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	if( NULL != pPoint && NULL != pPoint->pUITextureData )
+	{
+		return pPoint->pUITextureData->texName;
+	}
+
+	return L"";
+}
+
+RECT CKTDGUIButton::GetTextureUV(wstring name)
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	RECT rt;
+	if( NULL != pPoint && NULL != pPoint->pUITextureData )
+	{
+		D3DXVECTOR2 leftTop = pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_LEFT_TOP];
+		D3DXVECTOR2 rightBottom = pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_RIGHT_BOTTOM];
+
+		rt.left = leftTop.x;
+		rt.top = leftTop.y;
+		rt.right = rightBottom.x;
+		rt.bottom = rightBottom.y;
+	}
+
+	return rt;
+}
+
+wstring CKTDGUIButton::GetTextureKey( wstring name )
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	if( NULL != pPoint && NULL != pPoint->pUITextureData )
+	{
+		return pPoint->pUITextureData->keyName;
+	}
+
+	return L"";
+}
+
+vector<wstring> CKTDGUIButton::GetTextureKeyList( wstring name )
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	vector<wstring> ret;
+	if( NULL != pPoint && NULL != pPoint->pUITextureData && NULL != pPoint->pUITextureData->pTexture )
+	{
+		//GetMapTexUVRect
+		const CKTDXDeviceTexture::KeyTexUVMap & uvMap = pPoint->pUITextureData->pTexture->GetMapTexUVRect();
+
+		CKTDXDeviceTexture::KeyTexUVMap::const_iterator itor = uvMap.cbegin();
+		for( ; itor != uvMap.end() ; itor++)
+		{
+			ret.push_back(itor->first);
+		} 
+	}
+	
+	return ret;
+}
+
+void CKTDGUIButton::SetTexture( wstring name, wstring fileName )
+{		
+	CKTDXDeviceTexture* pTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( fileName );
+	if( NULL == pTexture)
+		return;
+
+	wstring key = L"NONE";
+	const CKTDXDeviceTexture::KeyTexUVMap & uvMap = pTexture->GetMapTexUVRect();				
+	CKTDXDeviceTexture::KeyTexUVMap::const_iterator itor = uvMap.cbegin();
+	if( itor != uvMap.cend() )
+		key = itor->first;
+
+	// todo : SetNoarmlTex 인자에 CKTDXDeviceTexture 추가가 필요할것 같다.
+
+	if( name == L"Normal" )
+		SetNormalTex( fileName.c_str(), key.c_str() );
+
+	else if( name == L"Over" )
+		SetOverTex( fileName.c_str(), key.c_str() );
+
+	else if( name == L"Down" )
+		SetDownTex( fileName.c_str(), key.c_str() );
+
+	else if( name == L"Disable" )
+		SetDisableTex( fileName.c_str(), key.c_str() );
+
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+	if( NULL != pPoint ) 
+		pPoint->SetAutoPointByTextureSize();
+
+	m_NowPoint = *pPoint;
+}
+
+void CKTDGUIButton::SetTextureKey( wstring name, wstring key )
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	if( NULL != pPoint && NULL != pPoint->pUITextureData && pPoint->pUITextureData->pTexture )
+	{
+		pPoint->pUITextureData->keyName	= key;
+		MakeUpperCase(key);
+		const CKTDXDeviceTexture::TEXTURE_UV* pTexUV = pPoint->pUITextureData->pTexture->GetTexUV( key );
+		if( pTexUV != NULL )
+		{
+			pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_LEFT_TOP]		= pTexUV->leftTop;
+			pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_RIGHT_TOP]		= pTexUV->rightTop;
+			pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_LEFT_BOTTOM]	= pTexUV->leftBottom;
+			pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_RIGHT_BOTTOM]	= pTexUV->rightBottom;
+
+			pPoint->pUITextureData->texSize = pTexUV->rectSize;
+
+			pPoint->pUITextureData->SetTextureUV();
+		}
+
+		pPoint->SetAutoPointByTextureSize();
+
+		m_NowPoint = *pPoint;
+	}
+}
+
+#endif
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+/* virtual */	void	CKTDGUIButton::SetCustomMouseOverSound ( wstring wstrSoundFileName )
+{
+	m_pSndMouseOver = g_pKTDXApp->GetDeviceManager()->OpenSound( wstrSoundFileName );
+}
+/* virtual */	void	CKTDGUIButton::SetCustomMouseUpSound  ( wstring wstrSoundFileName )
+{
+	m_pSndMouseUp = g_pKTDXApp->GetDeviceManager()->OpenSound( wstrSoundFileName );
+}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh

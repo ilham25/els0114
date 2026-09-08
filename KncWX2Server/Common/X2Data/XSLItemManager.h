@@ -46,11 +46,21 @@ public:
 			m_eExchangeType = IET_INVALID;
 		}
 
-		bool AddExchangeData( IN const ITEM_EXCHANGE_TYPE eExchangeType, IN const int iDestItemID, IN const float fDestItemRate, IN const int iDestQuantity );
+		bool AddExchangeData( IN const ITEM_EXCHANGE_TYPE eExchangeType,
+			IN const int iDestItemID,
+			IN const float fDestItemRate,
+			IN const int iDestQuantity
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+			, IN const short sPeriod
+#endif //SERV_EXCHANGE_PERIOD_ITEM
+			);
 
 		ITEM_EXCHANGE_TYPE					m_eExchangeType;
 		std::map< int, int >				m_mapDestItemID;
 		KLottery							m_kLottery;
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+		std::map< int, short >				m_mapDestItemPeriod;
+#endif //SERV_EXCHANGE_PERIOD_ITEM
 	};
 
 	//{{ 2011. 06. 18	최육사	ED아이템 구매 체크
@@ -92,6 +102,7 @@ public:
 		std::vector<int>	m_DisCountKeepItem;
 	};
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+
 public:
 	CXSLItemManager(void);
 	~CXSLItemManager(void);
@@ -123,7 +134,6 @@ public:
 	bool AddCoolTimeGroupItem_LUA( int iCoolTimeGroupEnum, int iItemID );
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
-
 	//{{ 2013. 04. 01	 인연 시스템 - 김민성
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	void AddWeddingHallItem_LUA( int iWeddinHallType, int iItemID );
@@ -144,9 +154,18 @@ public:
 	bool IsKeepItemShowItem( const int iItemID );
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
 
+#ifdef SERV_WISH_LIST_NO_ITEM
+	void AddWishListNoItem_LUA();
+	bool IsWishListNoItem( const int iItemID );
+#endif //SERV_WISH_LIST_NO_ITEM
+
 	// 아이템 정보
 	const CXSLItem::ItemTemplet* GetItemTemplet( const int itemID ) const;
 	const std::map< int, CXSLItem::ItemTemplet >& GetItemTempletContainer() const { return m_ItemTempletIDMap; }
+
+#ifdef SERV_USE_GM_TOOL_INFO
+	const std::map< int, KItemName >& GetItemNameContainer() const { return m_ItemTempletNameMap; }
+#endif //SERV_USE_GM_TOOL_INFO
 
 	// 아이템 교환	
 	//{{ 2013. 02. 19   교환 로그 추가 - 김민성
@@ -254,7 +273,6 @@ public:
 	bool IsBuffItem( IN int iItemID );
 #endif SERV_SERVER_BUFF_SYSTEM
 	//}}
-
 	//{{ 2013. 05. 20	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	void ItemSealProcess( IN const int iItemID
@@ -269,10 +287,10 @@ public:
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 	//}}
 
-//#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013// 작업날짜: 2013-06-25	// 박세훈	// 해외팀 주석 처리
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013// 작업날짜: 2013-06-25	// 박세훈
 	int	GetItemCSPoint( IN const int iItemID );
 	int	GetItemCSPointPeriod( IN const int iItemID );
-//#endif // SERV_UPGRADE_SKILL_SYSTEM_2013
+#endif // SERV_UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef SERV_RESTRICTED_TO_MOVE_TO_BANK
 	bool IsInventoryOnly( IN const int iItemID );
@@ -287,6 +305,11 @@ protected:
 
 private:
 	std::map< int, CXSLItem::ItemTemplet >			m_ItemTempletIDMap;		// 아이템 템플릿
+
+#ifdef SERV_USE_GM_TOOL_INFO
+	std::map< int, KItemName >						m_ItemTempletNameMap;
+#endif //SERV_USE_GM_TOOL_INFO
+
 	//{{ 2011. 08. 08	최육사	아이템 교환 시스템 개편
 #ifdef SERV_ITEM_EXCHANGE_NEW
 	typedef std::map< ItemExchangeKey, ItemExchangeData >	ItemExchangeTable;
@@ -320,7 +343,6 @@ private:
 	std::map< int, CXSLItem::COOLTIME_ITEM_GROUP >	m_mapCoolTimeItemGroup;
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
-
 	//{{ 2013. 04. 01	 인연 시스템 - 김민성
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	std::map<char, int>								m_mapWeddingHallTypeItem;	// [타입,itemid]
@@ -344,6 +366,10 @@ private:
 		std::map< int,std::vector< int > >	m_mapKeepShowItem;
 		std::map< int, kDisCountItemInfo > m_DisCountInfoMap;
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+
+#ifdef SERV_WISH_LIST_NO_ITEM
+		std::set< int >									m_setWishListNoItemList; 
+#endif SERV_WISH_LIST_NO_ITEM
 };
 
 DefRefreshSingletonInline( CXSLItemManager );

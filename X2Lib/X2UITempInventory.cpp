@@ -239,11 +239,11 @@ void CX2UITempInventory::AddItemToInventory( const std::vector< KInventoryItemIn
 {
 	BOOST_TEST_FOREACH( const KInventoryItemInfo&, kInventoryItemInfo, vecKInventoryItem )
 	{
-		CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventoryItemInfo );
+		CX2Item::ItemData kItemData( kInventoryItemInfo );
 		
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->AddItem( 
+		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().AddItem( 
 			static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ), 
-			kInventoryItemInfo.m_sSlotID, pItemData );
+			kInventoryItemInfo.m_sSlotID, kItemData );
 	}
 
 	// 켜져있는지 확인 후 업데이트 
@@ -603,7 +603,7 @@ bool CX2UITempInventory::Hander_EGS_GET_TEMP_ITEM_ACK( HWND hWnd, UINT uMsg, WPA
 
             const CX2Item::ItemTemplet* pItemTemplet	= 
                 g_pData->GetItemManager()->GetItemTemplet( kEvent.m_iItemID );
-			CX2Inventory::SORT_TYPE eSortType	= g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetSortTypeByItemTemplet( pItemTemplet );
+			CX2Inventory::SORT_TYPE eSortType	= g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetSortTypeByItemTemplet( pItemTemplet );
 			g_pData->GetUIManager()->GetUIInventory()->ChangeInventoryTab( eSortType );
 
 			if( g_pChatBox != NULL )

@@ -1301,8 +1301,8 @@ _ENUM( STR_ID_13793 )		// ±¾¾î!
 _ENUM( STR_ID_13794 )		// ¹ä¾ø¾î!
 _ENUM( STR_ID_13795 )		// °æ¹èÇÏ¶ó!
 _ENUM( STR_ID_13796 )		// °æ¹è!
-_ENUM( STR_ID_13797 )		// Á¦½Ä!
-_ENUM( STR_ID_13798 )		// ÈÆ·Ã!
+_ENUM( STR_ID_13797 )		// á¡÷«ë´ú¼!
+_ENUM( STR_ID_13798 )		// ÌÔõæÊ¢ï½!
 _ENUM( STR_ID_13799 )		// ³¯Æ²!
 _ENUM( STR_ID_13800 )		// ³¯¾Æ!
 _ENUM( STR_ID_13801 )		// ¼±¹°¾ø¾î!

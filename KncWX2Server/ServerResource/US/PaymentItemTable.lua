@@ -94,6 +94,9 @@ DropTable:AddPaymentDungeon(	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"]		, { 
 --DropTable:AddPaymentDungeon(	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"]		, { iItemID = 111383,	fRate = 100, iQuantity = 3, iMinLv = 35	} )
 --DropTable:AddPaymentDungeon(	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"]		, { iItemID = 78610,	fRate = 100, iQuantity = 1, iMinLv = 35	} )
 
+--발렌타인 던전 이벤트
+--DropTable:AddPaymentDungeon( DUNGEON_ID["DI_EVENT_VALENTINE_DUNGEON_INT"],		{ iItemID = 141000974, fRate = 100, iQuantity = 1  } )  
+
 -- 나와 이벤트 2013년 7월 31일 ~ 2013년 8월 6일
 --DropTable:AddPaymentDungeon( DUNGEON_ID["DI_EVENT_NIGHT_WATCHER"], { iItemID = 80002144, fRate = 100, iQuantity = 1, wstrBeginDate = '2013-07-31 00:00:00', wstrEndDate = '2013-08-06 23:59:00', } )
 
@@ -103,7 +106,7 @@ DropTable:AddPaymentDungeon(	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"]		, { 
 -- 베커 이벤트 신입 용병을 트레이닝하자!!  (2013년 08월 14일 ~ 2013년 08월 27일)
 --DropTable:AddPaymentDungeon(	DUNGEON_KINDS["EXP_DUNGEON"]	, { iItemID = 85003041, fRate = 100, iQuantity = 1, cUnitClass = UNIT_CLASS["UC_RAVEN_VETERAN_COMMANDER"], bPartyPay = True, wstrBeginDate = '2013-08-14 00:00:00', wstrEndDate = '2013-08-27 23:59:00',} )
 --DropTable:AddPaymentDungeon(	DUNGEON_KINDS["EXP_DUNGEON"]	, { iItemID = 85003047, fRate = 50, iQuantity = 1, iQuestID = 85600, iMinLv = 35, wstrBeginDate = '2013-08-14 00:00:00', wstrEndDate = '2013-08-27 23:59:00',} )
-
+--[[
 -- 2013년 크리스마스 이벤트
 DropTable:AddPaymentDungeon(	DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 153000084, fRate = 100, iGoingQuestID = 140190 } )  -- 경험치 받는 던전, 140190 퀘스트 보유 시, 펭귄산타의 잃어버린 선물 아이템을 100% 지급.
 DropTable:AddPaymentDungeon(	DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 153000084, fRate = 100, iGoingQuestID = 140200 } )  -- 경험치 받는 던전, 140200 퀘스트 보유 시, 펭귄산타의 잃어버린 선물 아이템을 100% 지급.
@@ -116,10 +119,10 @@ DropTable:AddPaymentDungeon(	DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 153000
 -- 아라 소선 이벤트
 DropTable:AddPaymentDungeon( ALL_DUNGEON,		{ iItemID = 60007341, fRate = 100, iQuestID = 63750, wstrBeginDate = '2013-11-26 14:00:00', wstrEndDate = '2013-12-17 23:59:00'  } )  -- 모든던전 -- ES_JP 13.07.24 아라 이벤트
 DropTable:AddPaymentDungeon( ALL_DUNGEON,		{ iItemID = 60007341, fRate = 100, iQuestID = 63750, wstrBeginDate = '2013-12-18 00:00:00', wstrEndDate = '2014-01-01 23:59:00'  } )  -- 모든던전 -- ES_JP 13.07.24 아라 이벤트
-
+--]]
 -- 아라 신 전직 전야 이벤트
-DropTable:AddPaymentDungeon( DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 85003832, fRate = 100, iQuestID = 85660, wstrBeginDate = '2014-01-06 00:00:00', wstrEndDate = '2014-01-14 23:59:00'  } )  
-DropTable:AddPaymentDungeon( DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 85003832, fRate = 100, iQuestID = 85660, wstrBeginDate = '2014-01-22 00:00:00', wstrEndDate = '2014-01-28 23:59:00'  } )  
+--DropTable:AddPaymentDungeon( DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 85003832, fRate = 100, iQuestID = 85660, wstrBeginDate = '2014-01-06 00:00:00', wstrEndDate = '2014-01-15 03:50:00'  } )  
+--DropTable:AddPaymentDungeon( DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 85003832, fRate = 100, iQuestID = 85660, wstrBeginDate = '2014-01-22 00:00:00', wstrEndDate = '2014-01-27 23:59:00'  } )  
 
 -- 코보 PC방 쿠폰 (2012-12-20 ~ 2013-02-28)
 --DropTable:AddPaymentDungeon(	DUNGEON_KINDS["EXP_DUNGEON"],	{ iItemID = 135093, fPcBangUserRate = 100, wstrBeginDate = '2012-12-20 00:00:00', wstrEndDate = '2013-02-28 07:00:00', iQuantity = 1 } )	-- 코보 PC방 쿠폰

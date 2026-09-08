@@ -233,23 +233,23 @@ bool CXSLMapData::CheckRequireData( IN const int iMapID, IN const u_char ucLevel
 		return false;
 	}
 
-// 마을 입장 선행 던전 조건 제거됨
-// 	std::map<int,KDungeonClearInfo>::iterator mit;
-// 	for( int i = 0; i < static_cast<int>(pMapData->m_vecRequireDungeonID.size()); ++i )
-// 	{
-// 		mit = mapClearInfo.find( pMapData->m_vecRequireDungeonID[i] );
-// 		if( mit == mapClearInfo.end() )
-// 		{
-// 			START_LOG( clog, L"클리어 해야할 던전이 부족함." )
-// 				<< BUILD_LOG( pMapData->m_vecRequireDungeonID[i] )
-// 				;
-// 
-// 			iRequireDungeonID = pMapData->m_vecRequireDungeonID[i];
-// 				 
-// 			SET_ERROR( ERR_FIELD_06 );
-// 			return false;
-// 		}
-// 	}
+// 마을 입장 선행 던전 조건
+	std::map<int,KDungeonClearInfo>::const_iterator mit;
+	for( int i = 0; i < static_cast<int>(pMapData->m_vecRequireDungeonID.size()); ++i )
+	{
+		mit = mapClearInfo.find( pMapData->m_vecRequireDungeonID[i] );
+		if( mit == mapClearInfo.end() )
+		{
+			START_LOG( clog, L"클리어 해야할 던전이 부족함." )
+				<< BUILD_LOG( pMapData->m_vecRequireDungeonID[i] )
+				;
+
+			iRequireDungeonID = pMapData->m_vecRequireDungeonID[i];
+				 
+			SET_ERROR( ERR_FIELD_06 );
+			return false;
+		}
+	}
 
 	return true;
 }

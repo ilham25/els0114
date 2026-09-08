@@ -4,18 +4,22 @@
 
 CX2NPCIndicator::CX2NPCIndicator(void):
 m_iIndicatorCount(0),
-m_hPortalQuestion(INVALID_PARTICLE_HANDLE),
+m_hPortalQuestion(INVALID_PARTICLE_SEQUENCE_HANDLE),
 m_fCheckDistance(0.f),
 m_pDLGParticle(NULL),
 m_bShow(false)
 {	
 	for( int i = 0; i < MAX_QUEST_INDICATOR_NUM; ++i )
 	{
-		m_hIndicator[i] = INVALID_PARTICLE_HANDLE;
-		m_hIndicatorMark[i] = INVALID_PARTICLE_HANDLE;
-
+		m_hIndicator[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
+		m_hIndicatorMark[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_hParticleIndicator[i] = INVALID_PARTICLE_HANDLE;
+		m_hParticleIndicatorMark[i] = INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pIndicator[i] = NULL;
 		m_pIndicatorMark[i] = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 }
 
@@ -32,8 +36,13 @@ void CX2NPCIndicator::Clear()
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle(m_hIndicator[i]);
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle(m_hIndicatorMark[i]);
-			m_pIndicator[i] = NULL;
-			m_pIndicatorMark[i] = NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		    m_hParticleIndicator[i] = INVALID_PARTICLE_HANDLE;
+		    m_hParticleIndicatorMark[i] = INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		    m_pIndicator[i] = NULL;
+		    m_pIndicatorMark[i] = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle(m_hPortalQuestion);
 	}
@@ -135,19 +144,19 @@ void CX2NPCIndicator::SetRotateParticle(int iParticleIndex,const D3DXVECTOR3& vM
 		return;
 
 	CKTDGParticleSystem::CParticleEventSequence* pSeqIndicator = NULL;
-	if( INVALID_PARTICLE_HANDLE != m_hIndicator[iParticleIndex] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hIndicator[iParticleIndex] )
 	{
 		pSeqIndicator = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hIndicator[iParticleIndex] );
 	}
 
 	CKTDGParticleSystem::CParticleEventSequence* pSeqMark = NULL;
-	if( INVALID_PARTICLE_HANDLE != m_hIndicatorMark[iParticleIndex] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hIndicatorMark[iParticleIndex] )
 	{
 		pSeqMark = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hIndicatorMark[iParticleIndex] );
 	}
 
 	CKTDGParticleSystem::CParticleEventSequence* pSeqPortal = NULL;
-	if( INVALID_PARTICLE_HANDLE != m_hPortalQuestion )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hPortalQuestion )
 	{
 		pSeqPortal = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hPortalQuestion );
 	}
@@ -214,15 +223,23 @@ void CX2NPCIndicator::SetRotateParticle(int iParticleIndex,const D3DXVECTOR3& vM
 			pSeqIndicator->SetAddRotate( vRot );
 			pSeqIndicator->SetAxisAngle( vRot );
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CKTDGParticleSystem::CParticle* pIndicator = pSeqIndicator->GetParticle( m_hParticleIndicator[iParticleIndex] ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			if( NULL !=  m_hIndicator[iParticleIndex] )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{				
-				m_pIndicator[iParticleIndex]->m_vRotate = vRot;
-				m_pIndicator[iParticleIndex]->m_vAxisRotateDegree = vRot;
-				m_pIndicator[iParticleIndex]->m_vPos = vGuidePos;			
+				pIndicator->SetRotate( vRot );
+				pIndicator->SetAxisRotateDegree( vRot );
+				pIndicator->SetPos( vGuidePos );			
 			}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if( CKTDGParticleSystem::CParticle* pIndicatorMark = pSeqMark->GetParticle( m_hParticleIndicatorMark[iParticleIndex] ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			if( NULL != m_pIndicatorMark[iParticleIndex] )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{
-				m_pIndicatorMark[iParticleIndex]->m_vPos = vGuidePos;
+				pIndicatorMark->SetPos( vGuidePos );
 			}
 		}
 
@@ -233,6 +250,13 @@ void CX2NPCIndicator::SetRotateParticle(int iParticleIndex,const D3DXVECTOR3& vM
 void CX2NPCIndicator::ResetGuideTargetInfo()
 {
 	Clear();
+
+#ifdef FIELD_BOSS_RAID
+	if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+	{
+		return;
+	}
+#endif // FIELD_BOSS_RAID
 
 	CX2QuestManager* pQuestManager = NULL;
 	
@@ -350,7 +374,7 @@ void CX2NPCIndicator::CreateIndicatorParticle()
 
 	for( int i = 0; i < m_iIndicatorCount; ++i )
 	{
-		if( INVALID_PARTICLE_HANDLE == m_hIndicator[i] )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hIndicator[i] )
 		{	//화살표 파티클 생성
 			if( true == m_GuideTargetInfo[i].bIsEpic )
 			{	//에픽퀘스트와 일반 퀘스트의 색깔 구분(빨강)
@@ -364,9 +388,17 @@ void CX2NPCIndicator::CreateIndicatorParticle()
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence(m_hIndicator[i]);
 			if( NULL != pSeq )
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                if( INVALID_PARTICLE_HANDLE == m_hParticleIndicator[i] )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				if( NULL == m_pIndicator[i] )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    m_hParticleIndicator[i] = pSeq->CreateNewParticleHandle( D3DXVECTOR3(70.f,408.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					m_pIndicator[i] = pSeq->CreateNewParticle( D3DXVECTOR3(70.f,408.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				}
 
 				if( NULL == m_pDLGParticle )
@@ -388,7 +420,7 @@ void CX2NPCIndicator::CreateIndicatorParticle()
 			if( false == m_GuideTargetInfo[i].bIsNPC 
 				&& CX2Main::XS_VILLAGE_MAP == g_pMain->GetNowStateID() )
 			{	//타겟이 NPC가 아닐 경우 ? 파티클 추가
-				if( INVALID_PARTICLE_HANDLE == m_hPortalQuestion )
+				if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hPortalQuestion )
 				{
 					m_hPortalQuestion = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"NpcCompleteQuest1", -200.0f, -200.0f, 0.0f);
 					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence(m_hPortalQuestion);
@@ -400,16 +432,24 @@ void CX2NPCIndicator::CreateIndicatorParticle()
 			}
 		}
 		
-		if( INVALID_PARTICLE_HANDLE == m_hIndicatorMark[i] )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hIndicatorMark[i] )
 		{	//퀘스트 마크 파티클 생성
 			m_hIndicatorMark[i] = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"NPCTargetQuestion", 70, 450, 0);	
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence(m_hIndicatorMark[i]);
 			if( NULL != pSeq )
 			{
 				pSeq->SetShowObject(false);
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                if ( INVALID_PARTICLE_HANDLE == m_hParticleIndicatorMark[i] )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				if( NULL == m_pIndicatorMark[i] )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    m_hParticleIndicatorMark[i] = pSeq->CreateNewParticleHandle( D3DXVECTOR3(70.f,408.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					m_pIndicatorMark[i] = pSeq->CreateNewParticle( D3DXVECTOR3(70.f,408.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				}
 
 				if( NULL == m_pDLGParticle )

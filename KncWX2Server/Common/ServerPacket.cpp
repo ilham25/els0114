@@ -260,7 +260,11 @@ SERIALIZE_DEFINE_PUT( KDBE_SELECT_UNIT_ACK, obj, ks )
 		&& PUT( m_vecCompletQuest )
 		&& PUT( m_vecMission )
 		&& PUT( m_vecTitle )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_vecUserSkillPageData )
+#else //SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_vecSkillAcquired )
+#endif //SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_vecSkillUnsealed )
 		//{{ 2010. 03. 13  최육사	기술의 노트
 #ifdef SERV_SKILL_NOTE
@@ -282,6 +286,9 @@ SERIALIZE_DEFINE_PUT( KDBE_SELECT_UNIT_ACK, obj, ks )
 		//}}
 		//{{ 2009. 7. 7  최육사		랭킹개편
 		&& PUT( m_vecHenirRanking )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+		&& PUT( m_vecHenirHeroRanking )
+#endif // SERV_HENIR_RENEWAL_2013
 		//}}
 		&& PUT( m_kMessengerInfo )
 		//{{ 2010. 7. 21  최육사	펫 시스템
@@ -317,11 +324,6 @@ SERIALIZE_DEFINE_PUT( KDBE_SELECT_UNIT_ACK, obj, ks )
 		&& PUT( m_bCashShopOpen )
 #endif SERV_CONTENT_MANAGER
 		//}}
-		//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		&& PUT( m_vecCriterionEvent )
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
 		//{{ 2012. 02. 21	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		&& PUT( m_kGamePlayStatus )
@@ -341,11 +343,6 @@ SERIALIZE_DEFINE_PUT( KDBE_SELECT_UNIT_ACK, obj, ks )
 		&& PUT( m_kBingoEvent )
 #endif SERV_EVENT_BINGO
 		//}}
-		//{{ 2012. 11. 1	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& PUT( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 		//{{ 2012. 12. 14  계정 미션 시스템 ( 계정단위 퀘스트 ) - 김민성
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 		&& PUT( m_vecAccountQuesting )
@@ -363,6 +360,14 @@ SERIALIZE_DEFINE_PUT( KDBE_SELECT_UNIT_ACK, obj, ks )
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		&& PUT( m_iCustomEventID )
 #endif //SERV_CUSTOM_CONNECT_EVENT
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+		&& PUT( m_iConnectExperienceAck )
+		&& PUT( m_iReward7DaysItem )
+#endif //SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+		&& PUT( m_iNewUnitE )
+#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+
 #ifdef	SERV_LOCAL_RANKING_SYSTEM // 적용날짜: 2013-03-31
 		&& PUT( m_kLocalRankingUserInfo )
 		&& PUT( m_wstrLocalRankingUserInfoUpdated )
@@ -371,17 +376,45 @@ SERIALIZE_DEFINE_PUT( KDBE_SELECT_UNIT_ACK, obj, ks )
 #ifdef SERV_RELATIONSHIP_SYSTEM
 		&& PUT( m_kRelationshipInfo )
 #endif SERV_RELATIONSHIP_SYSTEM
-#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
-		&& PUT( m_iNewUnitE )
-#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 		//}
+        && PUT( m_nWrongUnitUID )
+#ifdef SERV_BLESS_OF_GODDESS_EVENT
+		&& PUT( m_bMaxLevelUnitInAccount )
+#endif SERV_BLESS_OF_GODDESS_EVENT
+
+#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+		&& PUT( m_iGateOfDarknessSupportEventTime )
+#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		&& PUT( m_bCouple )
+		&& PUT( m_iRelationTargetUserUid )
+		&& PUT( m_wstrRelationTargetUserNickname )
+#endif SERV_RELATIONSHIP_EVENT_INT
 #ifdef SERV_RECRUIT_EVENT_BASE
 		&& PUT( m_vecRecruiterUnitInfo )
 		&& PUT( m_vecRecruitUnitInfo )
 #endif SERV_RECRUIT_EVENT_BASE
-#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-		&& PUT( m_iGateOfDarknessSupportEventTime )
-#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		&& PUT( m_iNoteViewCount )
+#endif SERV_ELESIS_UPDATE_EVENT
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		&& PUT( m_wstrGiveMeTheItemTime_One )
+		&& PUT( m_wstrGiveMeTheItemTime_Two )
+		&& PUT( m_wstrGiveMeTheItemTime_Tree )
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		&& PUT( m_wstrButtonClickTime_One )
+		&& PUT( m_bItemGive )
+		&& PUT( m_iDungeonClearCount )
+		&& PUT( m_iFieldMonsterKillCount )
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		&& PUT( m_iValentineGiveItemCount )
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+#ifdef SERV_GLOBAL_EVENT_TABLE
+		&& PUT( m_mapGlobalEventData )
+#endif //SERV_GLOBAL_EVENT_TABLE
 		;
 }
 
@@ -422,7 +455,11 @@ SERIALIZE_DEFINE_GET( KDBE_SELECT_UNIT_ACK, obj, ks )
 		&& GET( m_vecCompletQuest )		
 		&& GET( m_vecMission )
 		&& GET( m_vecTitle )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_vecUserSkillPageData )
+#else //SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_vecSkillAcquired )
+#endif //SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_vecSkillUnsealed )
 		//{{ 2010. 03. 13  최육사	기술의 노트
 #ifdef SERV_SKILL_NOTE
@@ -444,6 +481,9 @@ SERIALIZE_DEFINE_GET( KDBE_SELECT_UNIT_ACK, obj, ks )
 		//}}
 		//{{ 2009. 7. 7  최육사		랭킹개편
 		&& GET( m_vecHenirRanking )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+		&& GET( m_vecHenirHeroRanking )
+#endif // SERV_HENIR_RENEWAL_2013
 		//}}
 		&& GET( m_kMessengerInfo )
 		//{{ 2010. 7. 21  최육사	펫 시스템
@@ -478,11 +518,6 @@ SERIALIZE_DEFINE_GET( KDBE_SELECT_UNIT_ACK, obj, ks )
 		&& GET( m_bCashShopOpen )
 #endif SERV_CONTENT_MANAGER
 		//}}
-		//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		&& GET( m_vecCriterionEvent )
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
 		//{{ 2012. 02. 21	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		&& GET( m_kGamePlayStatus )
@@ -502,11 +537,6 @@ SERIALIZE_DEFINE_GET( KDBE_SELECT_UNIT_ACK, obj, ks )
 		&& GET( m_kBingoEvent )
 #endif SERV_EVENT_BINGO
 		//}}
-		//{{ 2012. 11. 1	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& GET( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 		//{{ 2012. 12. 14  계정 미션 시스템 ( 계정단위 퀘스트 ) - 김민성
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 		&& GET( m_vecAccountQuesting )
@@ -524,6 +554,15 @@ SERIALIZE_DEFINE_GET( KDBE_SELECT_UNIT_ACK, obj, ks )
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		&& GET( m_iCustomEventID )
 #endif //SERV_CUSTOM_CONNECT_EVENT
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+		&& GET( m_iConnectExperienceAck )
+		&& GET( m_iReward7DaysItem )
+#endif //SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+
+#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+		&& GET( m_iNewUnitE )
+#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+
 #ifdef	SERV_LOCAL_RANKING_SYSTEM // 적용날짜: 2013-03-31
 		&& GET( m_kLocalRankingUserInfo )
 		&& GET( m_wstrLocalRankingUserInfoUpdated )
@@ -532,17 +571,45 @@ SERIALIZE_DEFINE_GET( KDBE_SELECT_UNIT_ACK, obj, ks )
 #ifdef SERV_RELATIONSHIP_SYSTEM
 		&& GET( m_kRelationshipInfo )
 #endif SERV_RELATIONSHIP_SYSTEM
-#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
-		&& GET( m_iNewUnitE )
-#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 		//}
+        && GET( m_nWrongUnitUID )
+#ifdef SERV_BLESS_OF_GODDESS_EVENT
+		&& GET( m_bMaxLevelUnitInAccount )
+#endif SERV_BLESS_OF_GODDESS_EVENT
+
+#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+		&& GET( m_iGateOfDarknessSupportEventTime )
+#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		&& GET( m_bCouple )
+		&& GET( m_iRelationTargetUserUid )
+		&& GET( m_wstrRelationTargetUserNickname )
+#endif SERV_RELATIONSHIP_EVENT_INT
 #ifdef SERV_RECRUIT_EVENT_BASE
 		&& GET( m_vecRecruiterUnitInfo )
 		&& GET( m_vecRecruitUnitInfo )
 #endif SERV_RECRUIT_EVENT_BASE
-#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-		&& GET( m_iGateOfDarknessSupportEventTime )
-#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		&& GET( m_iNoteViewCount )
+#endif SERV_ELESIS_UPDATE_EVENT
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		&& GET( m_wstrGiveMeTheItemTime_One )
+		&& GET( m_wstrGiveMeTheItemTime_Two )
+		&& GET( m_wstrGiveMeTheItemTime_Tree )
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		&& GET( m_wstrButtonClickTime_One )
+		&& GET( m_bItemGive )
+		&& GET( m_iDungeonClearCount )
+		&& GET( m_iFieldMonsterKillCount )
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		&& GET( m_iValentineGiveItemCount )
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+#ifdef SERV_GLOBAL_EVENT_TABLE
+		&& GET( m_mapGlobalEventData )
+#endif //SERV_GLOBAL_EVENT_TABLE
 		;
 }
 #endif SERV_SELECT_UNIT_PACKET_DIVISION
@@ -845,7 +912,6 @@ SERIALIZE_DEFINE_GET( KDBE_GAME_SERVER_ON_ACK, obj, ks )
 		;
 }
 
-
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 SERIALIZE_DEFINE_PUT( KDBE_CHANNEL_SERVER_ON_ACK, obj, ks )
 {
@@ -865,7 +931,6 @@ SERIALIZE_DEFINE_GET( KDBE_CHANNEL_SERVER_ON_ACK, obj, ks )
 		;
 }
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
-
 
 SERIALIZE_DEFINE_PUT( KERM_END_GAME_NOT, obj, ks )
 {
@@ -2773,6 +2838,12 @@ SERIALIZE_DEFINE_PUT( KERM_USER_UNIT_DIE_NOT, obj, ks )
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 		&& PUT( m_bHeroNPC )
 #endif //PVP_QUEST_HERO_KILL_COUNT
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+		&& PUT( m_killedUserUnitType )
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+		&& PUT( m_killedUserUnitClass )
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 		;
 }
 
@@ -2791,6 +2862,12 @@ SERIALIZE_DEFINE_GET( KERM_USER_UNIT_DIE_NOT, obj, ks )
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 		&& GET( m_bHeroNPC )
 #endif //PVP_QUEST_HERO_KILL_COUNT
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+		&& GET( m_killedUserUnitType )
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+		&& GET( m_killedUserUnitClass )
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 		;
 }
 
@@ -3270,42 +3347,50 @@ SERIALIZE_DEFINE_GET( KENX_BT_PURCHASE_ITEM_ACK, obj, ks )
 
 SERIALIZE_DEFINE_PUT( KENX_BT_PURCHASE_GIFT_REQ, obj, ks )
 {
-    return  PUT( m_ulPacketNo ) &&
-            PUT( m_bytePacketType ) &&
-            PUT( m_ulRemoteIP ) &&
-            PUT( m_byteReason ) &&
-            PUT( m_wstrSenderGameID ) &&
-            PUT( m_wstrSenderUserID ) &&
-            PUT( m_ulSenderUserOID ) &&
-            PUT( m_wstrSenderUserName ) &&
-            PUT( m_byteSenderUserAge ) &&
-            PUT( m_byteReceiverServerNo ) &&
-            PUT( m_wstrReceiverGameID ) &&
-            PUT( m_wstrMessage ) &&
-            PUT( m_wstrOrderID ) &&
-			PUT( m_ulPaymentType ) &&
-            PUT( m_ulTotalAmount ) &&
-            PUT( m_vecNXBTPurchaseInfo );
+	return PUT( m_ulPacketNo )
+		&& PUT( m_bytePacketType )
+		&& PUT( m_ulRemoteIP )
+		&& PUT( m_byteReason )
+		&& PUT( m_wstrSenderGameID )
+		&& PUT( m_wstrSenderUserID )
+		&& PUT( m_ulSenderUserOID )
+		&& PUT( m_wstrSenderUserName )
+		&& PUT( m_byteSenderUserAge )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& PUT( m_byteIsCafe )
+#endif // SERV_NEXON_COUPON_SYSTEM
+		&& PUT( m_byteReceiverServerNo )
+		&& PUT( m_wstrReceiverGameID )
+		&& PUT( m_wstrMessage )
+		&& PUT( m_wstrOrderID )
+		&& PUT( m_ulPaymentType )
+		&& PUT( m_ulTotalAmount )
+		&& PUT( m_vecNXBTPurchaseInfo )
+		;
 }
 
 SERIALIZE_DEFINE_GET( KENX_BT_PURCHASE_GIFT_REQ, obj, ks )
 {
-    return  GET( m_ulPacketNo ) &&
-            GET( m_bytePacketType ) &&
-            GET( m_ulRemoteIP ) &&
-            GET( m_byteReason ) &&
-            GET( m_wstrSenderGameID ) &&
-            GET( m_wstrSenderUserID ) &&
-            GET( m_ulSenderUserOID ) &&
-            GET( m_wstrSenderUserName ) &&
-            GET( m_byteSenderUserAge ) &&
-            GET( m_byteReceiverServerNo ) &&
-            GET( m_wstrReceiverGameID ) &&
-            GET( m_wstrMessage ) &&
-            GET( m_wstrOrderID ) &&
-            GET( m_ulPaymentType ) &&
-            GET( m_ulTotalAmount ) &&
-            GET( m_vecNXBTPurchaseInfo );
+	return GET( m_ulPacketNo )
+		&& GET( m_bytePacketType )
+		&& GET( m_ulRemoteIP )
+		&& GET( m_byteReason )
+		&& GET( m_wstrSenderGameID )
+		&& GET( m_wstrSenderUserID )
+		&& GET( m_ulSenderUserOID )
+		&& GET( m_wstrSenderUserName )
+		&& GET( m_byteSenderUserAge )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& GET( m_byteIsCafe )
+#endif // SERV_NEXON_COUPON_SYSTEM
+		&& GET( m_byteReceiverServerNo )
+		&& GET( m_wstrReceiverGameID )
+		&& GET( m_wstrMessage )
+		&& GET( m_wstrOrderID )
+		&& GET( m_ulPaymentType )
+		&& GET( m_ulTotalAmount )
+		&& GET( m_vecNXBTPurchaseInfo )
+		;
 }
 
 SERIALIZE_DEFINE_PUT( KENX_BT_PURCHASE_GIFT_ACK, obj, ks )
@@ -4091,6 +4176,11 @@ SERIALIZE_DEFINE_PUT( KERM_JOIN_PERSONAL_SHOP_REQ, obj, ks )
 #ifdef SERV_PSHOP_AGENCY
 		&& PUT( m_cJoinType )
 #endif SERV_PSHOP_AGENCY
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+        && PUT( m_iUsedItemID ) // 상점 업그레이드 아이템(보증서)
+#endif SERV_UPGRADE_TRADE_SYSTEM
+
 		//}}
 		;
 }
@@ -4110,6 +4200,10 @@ SERIALIZE_DEFINE_GET( KERM_JOIN_PERSONAL_SHOP_REQ, obj, ks )
 		&& GET( m_cJoinType )
 #endif SERV_PSHOP_AGENCY
 		//}}
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+        && GET( m_iUsedItemID ) // 상점 업그레이드 아이템(보증서)
+#endif SERV_UPGRADE_TRADE_SYSTEM
+
 		;
 }
 
@@ -4291,15 +4385,13 @@ SERIALIZE_DEFINE_PUT( KDBE_CHANGE_UNIT_CLASS_REQ, obj, ks )
 	return PUT( m_iUnitUID )
 		&& PUT( m_usEventID )
 		&& PUT( m_cUnitClass )
-		//{{ 2012. 07. 12	김민성       전직권 구매 이벤트
-#ifdef SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-		&& PUT( m_iItemID )
-#endif SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-		//}}
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		&& PUT( m_iNewDefaultSkill1 )
 		&& PUT( m_iNewDefaultSkill2 )
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iTheNumberOfSkillPagesAvailable )
+#endif	// SERV_SKILL_PAGE_SYSTEM
 		;
 }
 
@@ -4308,15 +4400,13 @@ SERIALIZE_DEFINE_GET( KDBE_CHANGE_UNIT_CLASS_REQ, obj, ks )
 	return GET( m_iUnitUID )
 		&& GET( m_usEventID )
 		&& GET( m_cUnitClass )
-		//{{ 2012. 07. 12	김민성       전직권 구매 이벤트
-#ifdef SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-		&& GET( m_iItemID )
-#endif SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-		//}}
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		&& GET( m_iNewDefaultSkill1 )
 		&& GET( m_iNewDefaultSkill2 )
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iTheNumberOfSkillPagesAvailable )
+#endif	// SERV_SKILL_PAGE_SYSTEM
 		;
 }
 
@@ -4325,11 +4415,6 @@ SERIALIZE_DEFINE_PUT( KDBE_CHANGE_UNIT_CLASS_ACK, obj, ks )
 	return PUT( m_iOK )
 		&& PUT( m_usEventID )
 		&& PUT( m_cUnitClass )
-		//{{ 2012. 07. 12	김민성       전직권 구매 이벤트
-#ifdef SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-		&& PUT( m_iItemID )
-#endif SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-		//}}
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		&& PUT( m_iNewDefaultSkill1 )
 		&& PUT( m_iNewDefaultSkill2 )
@@ -4342,11 +4427,6 @@ SERIALIZE_DEFINE_GET( KDBE_CHANGE_UNIT_CLASS_ACK, obj, ks )
 	return GET( m_iOK )
 		&& GET( m_usEventID )
 		&& GET( m_cUnitClass )
-		//{{ 2012. 07. 12	김민성       전직권 구매 이벤트
-#ifdef SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-		&& GET( m_iItemID )
-#endif SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-		//}}
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		&& GET( m_iNewDefaultSkill1 )
 		&& GET( m_iNewDefaultSkill2 )
@@ -4730,6 +4810,9 @@ SERIALIZE_DEFINE_PUT( KDBE_SOCKET_ITEM_REQ, obj, ks )
 		&& PUT( m_iSocketUseCount )
 #endif SERV_QUEST_CLEAR_EXPAND
 		//}}
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세
+		&& PUT( m_byteExpandedSocketNum )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -4746,6 +4829,9 @@ SERIALIZE_DEFINE_GET( KDBE_SOCKET_ITEM_REQ, obj, ks )
 		&& GET( m_iSocketUseCount )
 #endif SERV_QUEST_CLEAR_EXPAND
 		//}}
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+		&& GET( m_byteExpandedSocketNum )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -4995,6 +5081,9 @@ SERIALIZE_DEFINE_GET( KELOG_RESOLVE_JACKPOT_LOG_NOT, obj, ks )
 SERIALIZE_DEFINE_PUT( KDBE_INIT_SKILL_TREE_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_iItemUID )
 		&& PUT( m_iSPoint )
 		&& PUT( m_iCSPoint )
@@ -5005,13 +5094,13 @@ SERIALIZE_DEFINE_PUT( KDBE_INIT_SKILL_TREE_REQ, obj, ks )
 		&& PUT( m_iDefaultSkillID4 )
 		&& PUT( m_iDefaultSkillID5 )
 		&& PUT( m_iDefaultSkillID6 )
-		&& PUT( m_iBeforSPoint )
-		&& PUT( m_iBeforCSPoint )
+		&& PUT( m_iBeforeSPoint )
+		&& PUT( m_iBeforeCSPoint )
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*	
 		&& PUT( m_iDefaultSkillID )
 		&& PUT( m_iDefaultSkillID2 )
-	
+*/		
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 		;
 }
@@ -5019,6 +5108,9 @@ SERIALIZE_DEFINE_PUT( KDBE_INIT_SKILL_TREE_REQ, obj, ks )
 SERIALIZE_DEFINE_GET( KDBE_INIT_SKILL_TREE_REQ, obj, ks )
 {
 	return GET( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_iItemUID )
 		&& GET( m_iSPoint )
 		&& GET( m_iCSPoint )
@@ -5029,13 +5121,13 @@ SERIALIZE_DEFINE_GET( KDBE_INIT_SKILL_TREE_REQ, obj, ks )
 		&& GET( m_iDefaultSkillID4 )
 		&& GET( m_iDefaultSkillID5 )
 		&& GET( m_iDefaultSkillID6 )
-		&& GET( m_iBeforSPoint )
-		&& GET( m_iBeforCSPoint )
+		&& GET( m_iBeforeSPoint )
+		&& GET( m_iBeforeCSPoint )
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*		
 		&& GET( m_iDefaultSkillID )
 		&& GET( m_iDefaultSkillID2 )
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 		;
 }
@@ -5043,6 +5135,9 @@ SERIALIZE_DEFINE_GET( KDBE_INIT_SKILL_TREE_REQ, obj, ks )
 SERIALIZE_DEFINE_PUT( KDBE_INIT_SKILL_TREE_ACK, obj, ks )
 {
 	return PUT( m_iOK )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_iItemUID )
 		&& PUT( m_iSPoint )
 		&& PUT( m_iCSPoint )
@@ -5053,13 +5148,13 @@ SERIALIZE_DEFINE_PUT( KDBE_INIT_SKILL_TREE_ACK, obj, ks )
 		&& PUT( m_iDefaultSkillID4 )
 		&& PUT( m_iDefaultSkillID5 )
 		&& PUT( m_iDefaultSkillID6 )
-		&& PUT( m_iBeforSPoint )
-		&& PUT( m_iBeforCSPoint )
+		&& PUT( m_iBeforeSPoint )
+		&& PUT( m_iBeforeCSPoint )
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 		&& PUT( m_iDefaultSkillID )
 		&& PUT( m_iDefaultSkillID2 )
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 		;
 }
@@ -5067,6 +5162,9 @@ SERIALIZE_DEFINE_PUT( KDBE_INIT_SKILL_TREE_ACK, obj, ks )
 SERIALIZE_DEFINE_GET( KDBE_INIT_SKILL_TREE_ACK, obj, ks )
 {
 	return GET( m_iOK )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_iItemUID )
 		&& GET( m_iSPoint )
 		&& GET( m_iCSPoint )
@@ -5077,13 +5175,13 @@ SERIALIZE_DEFINE_GET( KDBE_INIT_SKILL_TREE_ACK, obj, ks )
 		&& GET( m_iDefaultSkillID4 )
 		&& GET( m_iDefaultSkillID5 )
 		&& GET( m_iDefaultSkillID6 )
-		&& GET( m_iBeforSPoint )
-		&& GET( m_iBeforCSPoint )
+		&& GET( m_iBeforeSPoint )
+		&& GET( m_iBeforeCSPoint )
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*	
 		&& GET( m_iDefaultSkillID )
 		&& GET( m_iDefaultSkillID2 )
-
+*/		
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 		;
 }
@@ -5188,24 +5286,12 @@ SERIALIZE_DEFINE_GET( KDBE_INSERT_REWARD_TO_POST_ACK, obj, ks )
 SERIALIZE_DEFINE_PUT( KDBE_GET_POST_LETTER_LIST_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
-		//{{ 2012. 11. 08	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& PUT( m_bIsChannelChange )
-		&& PUT( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 		;
 }
 
 SERIALIZE_DEFINE_GET( KDBE_GET_POST_LETTER_LIST_REQ, obj, ks )
 {
 	return GET( m_iUnitUID )
-		//{{ 2012. 11. 08	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& GET( m_bIsChannelChange )
-		&& GET( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 		;
 }
 
@@ -5214,12 +5300,6 @@ SERIALIZE_DEFINE_PUT( KDBE_GET_POST_LETTER_LIST_ACK, obj, ks )
 	return PUT( m_iOK )
 		&& PUT( m_vecPostItem )
 		&& PUT( m_vecBlackList )
-		//{{ 2012. 11. 08	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& PUT( m_bIsChannelChange )
-		&& PUT( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 		;
 }
 
@@ -5228,12 +5308,6 @@ SERIALIZE_DEFINE_GET( KDBE_GET_POST_LETTER_LIST_ACK, obj, ks )
 	return GET( m_iOK )
 		&& GET( m_vecPostItem )
 		&& GET( m_vecBlackList )
-		//{{ 2012. 11. 08	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& GET( m_bIsChannelChange )
-		&& GET( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 		;
 }
 
@@ -5711,6 +5785,7 @@ SERIALIZE_DEFINE_PUT( KDBE_EXPAND_INVENTORY_SLOT_REQ, obj, ks )
     return PUT( m_iUnitUID )
 		&& PUT( m_usEventID )
 		&& PUT( m_mapExpandedSlot )
+        && PUT( m_iED )
 		;
 }
 
@@ -5719,6 +5794,7 @@ SERIALIZE_DEFINE_GET( KDBE_EXPAND_INVENTORY_SLOT_REQ, obj, ks )
 	return GET( m_iUnitUID )
 		&& GET( m_usEventID )
 		&& GET( m_mapExpandedSlot )
+        && GET( m_iED )
 		;
 }
 
@@ -5726,6 +5802,8 @@ SERIALIZE_DEFINE_PUT( KDBE_EXPAND_INVENTORY_SLOT_ACK, obj, ks )
 {
     return PUT( m_mapExpandedSlot )
 		&& PUT( m_usEventID )
+        && PUT( m_iED )
+        && PUT( m_iOK )
 		;
 }
 
@@ -5733,16 +5811,21 @@ SERIALIZE_DEFINE_GET( KDBE_EXPAND_INVENTORY_SLOT_ACK, obj, ks )
 {
     return GET( m_mapExpandedSlot )
 		&& GET( m_usEventID )
+        && GET( m_iED )
+        && GET( m_iOK )
 		;
 }
-
-
 
 //{{ 2008. 4. 21  최육사  스킬슬롯B
 SERIALIZE_DEFINE_PUT( KDBE_EXPAND_SKILL_SLOT_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
 		&& PUT( m_iPeriodExpire )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_usTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		//{{ 2011. 11. 30	최육사	패키지 상품 추가
 #ifdef SERV_ADD_PACKAGE_PRODUCT
 		&& PUT( m_usEventID )
@@ -5755,6 +5838,11 @@ SERIALIZE_DEFINE_GET( KDBE_EXPAND_SKILL_SLOT_REQ, obj, ks )
 {
 	return GET( m_iUnitUID )
 		&& GET( m_iPeriodExpire )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_usTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		//{{ 2011. 11. 30	최육사	패키지 상품 추가
 #ifdef SERV_ADD_PACKAGE_PRODUCT
 		&& GET( m_usEventID )
@@ -6044,6 +6132,9 @@ SERIALIZE_DEFINE_PUT( KELG_PRESENT_CASH_ITEM_REQ, obj, ks )
 		&& PUT( m_wstrReceiverNickName )
 		&& PUT( m_wstrMessage )
 		&& PUT( m_vecPurchaseReqInfo )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& PUT( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 
@@ -6054,6 +6145,9 @@ SERIALIZE_DEFINE_GET( KELG_PRESENT_CASH_ITEM_REQ, obj, ks )
 		&& GET( m_wstrReceiverNickName )
 		&& GET( m_wstrMessage )
 		&& GET( m_vecPurchaseReqInfo )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& GET( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 
@@ -6063,6 +6157,9 @@ SERIALIZE_DEFINE_PUT( KELG_PRESENT_CASH_ITEM_ACK, obj, ks )
 		&& PUT( m_wstrReceiverNickName )
 		&& PUT( m_wstrMessage )
 		&& PUT( m_vecPurchaseReqInfo )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& PUT( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 
@@ -6072,6 +6169,9 @@ SERIALIZE_DEFINE_GET( KELG_PRESENT_CASH_ITEM_ACK, obj, ks )
 		&& GET( m_wstrReceiverNickName )
 		&& GET( m_wstrMessage )
 		&& GET( m_vecPurchaseReqInfo )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& GET( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 
@@ -6083,6 +6183,9 @@ SERIALIZE_DEFINE_PUT( KDBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ, obj, ks )
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 		&& PUT( m_iUseCashType )
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& PUT( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 
@@ -6094,6 +6197,9 @@ SERIALIZE_DEFINE_GET( KDBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ, obj, ks )
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 		&& GET( m_iUseCashType )
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& GET( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 
@@ -7371,6 +7477,9 @@ SERIALIZE_DEFINE_PUT( KERM_CHAR_LEVEL_UP_NOT, obj, ks )
 {
 	return PUT( m_kBaseStat )
 		&& PUT( m_kRoomUserInfo )
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		&& PUT( m_iNoteViewCount )
+#endif SERV_ELESIS_UPDATE_EVENT
 		;
 }
 
@@ -7378,6 +7487,9 @@ SERIALIZE_DEFINE_GET( KERM_CHAR_LEVEL_UP_NOT, obj, ks )
 {
 	return GET( m_kBaseStat )
 		&& GET( m_kRoomUserInfo )
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		&& GET( m_iNoteViewCount )
+#endif SERV_ELESIS_UPDATE_EVENT
 		;
 }
 //}}
@@ -7448,6 +7560,40 @@ SERIALIZE_DEFINE_GET( KDBE_INSERT_CASH_SKILL_POINT_ACK, obj, ks )
 
 
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+
+//////////////////////////////////////////////////////////////////////////
+SERIALIZE_DEFINE_PUT( KDBE_EXPIRE_CASH_SKILL_POINT_REQ, obj, ks )
+{
+	return  PUT( m_iUnitUID )
+		&&	PUT( m_vecRetrievedSkillPageData )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_EXPIRE_CASH_SKILL_POINT_REQ, obj, ks )
+{
+	return  GET( m_iUnitUID )
+		&&	GET( m_vecRetrievedSkillPageData )
+		;
+}
+
+//////////////////////////////////////////////////////////////////////////
+SERIALIZE_DEFINE_PUT( KDBE_EXPIRE_CASH_SKILL_POINT_ACK, obj, ks )
+{
+	return  PUT( m_iOK )
+		&&	PUT( m_vecRetrievedSPoint )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_EXPIRE_CASH_SKILL_POINT_ACK, obj, ks )
+{
+	return  GET( m_iOK )
+		&&	GET( m_vecRetrievedSPoint )
+		;
+}
+
+#else // SERV_SKILL_PAGE_SYSTEM
+
 //////////////////////////////////////////////////////////////////////////
 SERIALIZE_DEFINE_PUT( KDBE_EXPIRE_CASH_SKILL_POINT_REQ, obj, ks )
 {
@@ -7480,6 +7626,9 @@ SERIALIZE_DEFINE_GET( KDBE_EXPIRE_CASH_SKILL_POINT_ACK, obj, ks )
 		&&	GET( m_iRetrievedSPoint )
 		;
 }
+
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -9687,6 +9836,10 @@ SERIALIZE_DEFINE_PUT( KDBE_GET_GUILD_BOARD_INFO_ACK, obj, ks )
 {
 	return PUT( m_vecGuildAdList )
 		&& PUT( m_vecApplyJoinGuildList )
+#ifdef SERV_GUILD_FIND_AD
+		&& PUT( m_vecGuildFindAdList )
+		&& PUT( m_vecGuildInviteMsgList )
+#endif SERV_GUILD_FIND_AD
 		;
 }
 
@@ -9694,6 +9847,10 @@ SERIALIZE_DEFINE_GET( KDBE_GET_GUILD_BOARD_INFO_ACK, obj, ks )
 {
 	return GET( m_vecGuildAdList )
 		&& GET( m_vecApplyJoinGuildList )
+#ifdef SERV_GUILD_FIND_AD
+		&& GET( m_vecGuildFindAdList )
+		&& GET( m_vecGuildInviteMsgList )
+#endif SERV_GUILD_FIND_AD
 		;
 }
 
@@ -10038,6 +10195,10 @@ SERIALIZE_DEFINE_PUT( KDBE_DELETE_GUILD_AD_LIST_NOT, obj, ks )
 {
 	return PUT( m_vecDeleteGuildAd )
 		&& PUT( m_vecDeleteApply )
+#ifdef SERV_GUILD_FIND_AD
+		&& PUT( m_vecDeleteGuildFindAd )
+		&& PUT( m_vecDeleteInvite )
+#endif SERV_GUILD_FIND_AD
 		;
 }
 
@@ -10045,6 +10206,10 @@ SERIALIZE_DEFINE_GET( KDBE_DELETE_GUILD_AD_LIST_NOT, obj, ks )
 {
 	return GET( m_vecDeleteGuildAd )
 		&& GET( m_vecDeleteApply )
+#ifdef SERV_GUILD_FIND_AD
+		&& GET( m_vecDeleteGuildFindAd )
+		&& GET( m_vecDeleteInvite )
+#endif SERV_GUILD_FIND_AD
 		;
 }
 
@@ -10496,11 +10661,7 @@ SERIALIZE_DEFINE_PUT( KEPM_CHECK_FOR_PARTY_GAME_START_REQ, obj, ks )
 	return PUT( m_iPartyUID )
 		&& PUT( m_usEventID )
 		&& PUT( m_sWorldID )
-		//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		&& PUT( m_iBuffType )
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		//}}
+		&& PUT( m_kDungeonGameInfo )
 		;
 }
 
@@ -10509,11 +10670,7 @@ SERIALIZE_DEFINE_GET( KEPM_CHECK_FOR_PARTY_GAME_START_REQ, obj, ks )
 	return GET( m_iPartyUID )
 		&& GET( m_usEventID )
 		&& GET( m_sWorldID )
-		//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		&& GET( m_iBuffType )
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		//}}
+		&& GET( m_kDungeonGameInfo )
 		;
 }
 
@@ -10526,11 +10683,6 @@ SERIALIZE_DEFINE_PUT( KEPM_CHECK_FOR_PARTY_GAME_START_ACK, obj, ks )
 		&& PUT( m_usEventID )
 		&& PUT( m_sWorldID )
 		&& PUT( m_vecUserInfo )
-		//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		&& PUT( m_iBuffType )
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		//}}
 		;
 }
 
@@ -10541,11 +10693,6 @@ SERIALIZE_DEFINE_GET( KEPM_CHECK_FOR_PARTY_GAME_START_ACK, obj, ks )
 		&& GET( m_usEventID )
 		&& GET( m_sWorldID )
 		&& GET( m_vecUserInfo )
-		//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		&& GET( m_iBuffType )
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		//}}
 		;
 }
 
@@ -11572,7 +11719,21 @@ SERIALIZE_DEFINE_GET( KE_LOCAL_LOG_SERVER_DISCONNECT_NOT, obj, ks )
 
 #endif SERV_SERVER_DISCONNECT_LOG
 //}}
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET
+SERIALIZE_DEFINE_PUT( KE_LOCAL_LOG_UNDEFINED_QUEST_TEMPLET_NOT, obj, ks )
+{
+	return PUT( m_iQuestID )
+		&& PUT( m_wstrRegDate )
+		;
+}
 
+SERIALIZE_DEFINE_GET( KE_LOCAL_LOG_UNDEFINED_QUEST_TEMPLET_NOT, obj, ks )
+{
+	return GET( m_iQuestID )
+		&& GET( m_wstrRegDate )
+		;
+}
+#endif // SERV_LOG_UNDEFINED_QUEST_TEMPLET
 
 //{{ 2010. 10. 11	최육사	넥슨 빌링 패킷 로그
 #ifdef SERV_BILLING_PACKET_LOG
@@ -12782,6 +12943,7 @@ SERIALIZE_DEFINE_PUT( KDBE_INSERT_PERIOD_PSHOP_AGENCY_REQ, obj, ks )
 	return PUT( m_iUnitUID )
 		&& PUT( m_sAgencyPeriod )
 		&& PUT( m_usEventID )
+        && PUT( m_cShopType )
 		;
 }
 
@@ -12790,6 +12952,7 @@ SERIALIZE_DEFINE_GET( KDBE_INSERT_PERIOD_PSHOP_AGENCY_REQ, obj, ks )
 	return GET( m_iUnitUID )
 		&& GET( m_sAgencyPeriod )
 		&& GET( m_usEventID )
+        && GET( m_cShopType )
 		;
 }
 
@@ -12799,6 +12962,7 @@ SERIALIZE_DEFINE_PUT( KDBE_INSERT_PERIOD_PSHOP_AGENCY_ACK, obj, ks )
 	return PUT( m_iOK )
 		&& PUT( m_wstrAgencyExpirationDate )
 		&& PUT( m_usEventID )
+        && PUT( m_cShopType )
 		;
 }
 
@@ -12807,6 +12971,7 @@ SERIALIZE_DEFINE_GET( KDBE_INSERT_PERIOD_PSHOP_AGENCY_ACK, obj, ks )
 	return GET( m_iOK )
 		&& GET( m_wstrAgencyExpirationDate )
 		&& GET( m_usEventID )
+        && GET( m_cShopType )
 		;
 }
 
@@ -12827,13 +12992,29 @@ SERIALIZE_DEFINE_GET( KERM_UPDATE_PERIOD_PSHOP_AGENCY_NOT, obj, ks )
 //////////////////////////////////////////////////////////////////////////
 SERIALIZE_DEFINE_PUT( KERM_CHECK_MY_PSHOP_AGENCY_INFO_REQ, obj, ks )
 {
-	return PUT( m_iUnitUID )
+	return PUT( m_iUserUID )
+        && PUT( m_iUnitUID )
+        && PUT( m_wstrNickName )
+        && PUT( m_cPersonalShopType )
+        && PUT( m_wstrAgencyExpirationDate )
+        && PUT( m_wstrAgencyOpenDate )
+        && PUT( m_wstrPersonalShopName )
+        && PUT( m_vecSellItemInfo )
+        && PUT( m_bOnSale )
 		;
 }
 
 SERIALIZE_DEFINE_GET( KERM_CHECK_MY_PSHOP_AGENCY_INFO_REQ, obj, ks )
 {
-	return GET( m_iUnitUID )
+    return GET( m_iUserUID )
+        && GET( m_iUnitUID )
+        && GET( m_wstrNickName )
+        && GET( m_cPersonalShopType )
+        && GET( m_wstrAgencyExpirationDate )
+        && GET( m_wstrAgencyOpenDate )
+        && GET( m_wstrPersonalShopName )
+        && GET( m_vecSellItemInfo )
+        && GET( m_bOnSale )
 		;
 }
 
@@ -13025,13 +13206,15 @@ SERIALIZE_DEFINE_GET( KERM_PREPARE_PICK_UP_FROM_PSHOP_AGENCY_REQ, obj, ks )
 
 SERIALIZE_DEFINE_PUT( KERM_PREPARE_PICK_UP_FROM_PSHOP_AGENCY_ACK, obj, ks )
 {
-	return PUT( m_vecPickUpItemList )
+	return PUT( m_cShopType )
+        && PUT( m_vecPickUpItemList )
 		;
 }
 
 SERIALIZE_DEFINE_GET( KERM_PREPARE_PICK_UP_FROM_PSHOP_AGENCY_ACK, obj, ks )
 {
-	return GET( m_vecPickUpItemList )
+	return GET( m_cShopType )
+        && GET( m_vecPickUpItemList )
 		;
 }
 
@@ -13101,6 +13284,7 @@ SERIALIZE_DEFINE_PUT( KERM_PICK_UP_FROM_PSHOP_AGENCY_ACK, obj, ks )
 		&& PUT( m_iTotalSellEDIn )
 		&& PUT( m_vecPickUpSuccessItemList )
 		&& PUT( m_vecSellItemInfo )
+        && PUT( m_bRemainSellItem )
 		;
 }
 
@@ -13110,6 +13294,7 @@ SERIALIZE_DEFINE_GET( KERM_PICK_UP_FROM_PSHOP_AGENCY_ACK, obj, ks )
 		&& GET( m_iTotalSellEDIn )
 		&& GET( m_vecPickUpSuccessItemList )
 		&& GET( m_vecSellItemInfo )
+        && GET( m_bRemainSellItem )
 		;
 }
 
@@ -13122,6 +13307,7 @@ SERIALIZE_DEFINE_PUT( KDBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_REQ, ob
 		&& PUT( m_vecUpdatedInventorySlot )
 		&& PUT( m_vecItemInfo )
 		&& PUT( m_vecSellItemInfo )
+        && PUT( m_bRemainSellItem )
 		;
 }
 
@@ -13133,6 +13319,7 @@ SERIALIZE_DEFINE_GET( KDBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_REQ, ob
 		&& GET( m_vecUpdatedInventorySlot )
 		&& GET( m_vecItemInfo )
 		&& GET( m_vecSellItemInfo )
+        && GET( m_bRemainSellItem )
 		;
 }
 
@@ -13145,6 +13332,7 @@ SERIALIZE_DEFINE_PUT( KDBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_ACK, ob
 		&& PUT( m_vecUpdatedInventorySlot )
 		&& PUT( m_mapItemInfo )
 		&& PUT( m_vecSellItemInfo )
+        && PUT( m_bRemainSellItem )
 		;
 }
 
@@ -13156,6 +13344,7 @@ SERIALIZE_DEFINE_GET( KDBE_INSERT_TO_INVENTORY_PICK_UP_FROM_PSHOP_AGENCY_ACK, ob
 		&& GET( m_vecUpdatedInventorySlot )
 		&& GET( m_mapItemInfo )
 		&& GET( m_vecSellItemInfo )
+        && GET( m_bRemainSellItem )
 		;
 }
 
@@ -13294,44 +13483,6 @@ SERIALIZE_DEFINE_GET( KDBE_GET_SECOND_SECURITY_INFO_REQ, obj, ks )
 		;
 }
 
-//{{ 2012. 04. 05	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-SERIALIZE_DEFINE_PUT( KDBE_GET_SECOND_SECURITY_INFO_REQ_FOR_GameDB, obj, ks )
-{
-	return PUT( m_wstrName )
-		&& PUT( m_iUserUID )
-		&& PUT( m_wstrLastConnectDate )
-		;
-}
-
-SERIALIZE_DEFINE_GET( KDBE_GET_SECOND_SECURITY_INFO_REQ_FOR_GameDB, obj, ks )
-{
-	return GET( m_wstrName )
-		&& GET( m_iUserUID )
-		&& GET( m_wstrLastConnectDate )
-		;
-}
-#else
-	//{{ 2012. 03. 27	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-	#ifdef SERV_EVENT_RETURN_USER_MARK
-	SERIALIZE_DEFINE_PUT( KDBE_GET_SECOND_SECURITY_INFO_REQ_FOR_GameDB, obj, ks )
-	{
-		return PUT( m_wstrName )
-			&& PUT( m_bEventMark )
-			;
-	}
-
-	SERIALIZE_DEFINE_GET( KDBE_GET_SECOND_SECURITY_INFO_REQ_FOR_GameDB, obj, ks )
-	{
-		return GET( m_wstrName )
-			&& GET( m_bEventMark )
-			;
-	}
-	#endif SERV_EVENT_RETURN_USER_MARK
-	//}}
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-//}}
-
 SERIALIZE_DEFINE_PUT( KDBE_GET_SECOND_SECURITY_INFO_ACK, obj, ks )
 {
 	return PUT( m_iOK )
@@ -13359,11 +13510,6 @@ SERIALIZE_DEFINE_PUT( KDBE_GET_SECOND_SECURITY_INFO_ACK, obj, ks )
 		&& PUT( m_mmapDailyGiftBoxList )
 #endif SERV_EVENT_DAILY_GIFT_BOX
 //}}
-//{{ 2012. 11. 1	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& PUT( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
-	//}}
 	//{{ 2012. 12. 12	박세훈	겨울 방학 전야 이벤트( 임시, 하드 코딩 )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 		&& PUT( m_wstrWinterVacationEventRegDate )
@@ -13403,11 +13549,6 @@ SERIALIZE_DEFINE_GET( KDBE_GET_SECOND_SECURITY_INFO_ACK, obj, ks )
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 		&& GET( m_mmapDailyGiftBoxList )
 #endif SERV_EVENT_DAILY_GIFT_BOX
-		//}}
-		//{{ 2012. 11. 1	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& GET( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
 		//}}
 		//{{ 2012. 12. 12	박세훈	겨울 방학 전야 이벤트( 임시, 하드 코딩 )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
@@ -14376,6 +14517,11 @@ SERIALIZE_DEFINE_PUT( KDBE_BUY_UNIT_CLASS_CHANGE_REQ, obj, ks )
 		&& PUT( m_iNewUnitClass )
 		&& PUT( m_iSPoint )
 		&& PUT( m_iCSPoint )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		&& PUT( m_iDefaultSkillID1 )
 		&& PUT( m_iDefaultSkillID2 )
@@ -14384,13 +14530,19 @@ SERIALIZE_DEFINE_PUT( KDBE_BUY_UNIT_CLASS_CHANGE_REQ, obj, ks )
 		&& PUT( m_iDefaultSkillID5 )
 		&& PUT( m_iDefaultSkillID6 )
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-	
+/*	
 		&& PUT( m_iDefaultSkillID )
 		&& PUT( m_iDefaultSkillID2 )
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 		&& PUT( m_mapChangeSkill )
+		
+#ifdef SERV_REFORM_SKILL_NOTE
+#else // SERV_REFORM_SKILL_NOTE
 		&& PUT( m_mapChangeMemo )
+#endif // SERV_REFORM_SKILL_NOTE
+
+		
 		&& PUT( m_mapChangeItem )
 		&& PUT( m_mapChangeCompleteQuest )
 		&& PUT( m_mapChangeInProgressQuest )
@@ -14410,6 +14562,11 @@ SERIALIZE_DEFINE_GET( KDBE_BUY_UNIT_CLASS_CHANGE_REQ, obj, ks )
 		&& GET( m_iNewUnitClass )
 		&& GET( m_iSPoint )
 		&& GET( m_iCSPoint )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		&& GET( m_iDefaultSkillID1 )
 		&& GET( m_iDefaultSkillID2 )
@@ -14418,13 +14575,18 @@ SERIALIZE_DEFINE_GET( KDBE_BUY_UNIT_CLASS_CHANGE_REQ, obj, ks )
 		&& GET( m_iDefaultSkillID5 )
 		&& GET( m_iDefaultSkillID6 )
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 		&& GET( m_iDefaultSkillID )
 		&& GET( m_iDefaultSkillID2 )
-
+*/	
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 		&& GET( m_mapChangeSkill )
+		
+#ifdef SERV_REFORM_SKILL_NOTE
+#else // SERV_REFORM_SKILL_NOTE
 		&& GET( m_mapChangeMemo )
+#endif // SERV_REFORM_SKILL_NOTE
+
 		&& GET( m_mapChangeItem )
 		&& GET( m_mapChangeCompleteQuest )
 		&& GET( m_mapChangeInProgressQuest )
@@ -14659,6 +14821,10 @@ SERIALIZE_DEFINE_PUT( KERM_OPEN_BATTLE_FIELD_REQ, obj, ks )
 		&& PUT( m_vecStudentUnitUID )
 		&& PUT( m_kBattleFieldJoinInfo )
 		&& PUT( m_kReturnToFieldInfo )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+		&& PUT( m_KBossFieldCreateInfo )
+		&& PUT( m_kBossFieldJoinInfo )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -14669,6 +14835,10 @@ SERIALIZE_DEFINE_GET( KERM_OPEN_BATTLE_FIELD_REQ, obj, ks )
 		&& GET( m_vecStudentUnitUID )
 		&& GET( m_kBattleFieldJoinInfo )
 		&& GET( m_kReturnToFieldInfo )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+		&& GET( m_KBossFieldCreateInfo )
+		&& GET( m_kBossFieldJoinInfo )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -14679,13 +14849,22 @@ SERIALIZE_DEFINE_PUT( KERM_OPEN_BATTLE_FIELD_ACK, obj, ks )
 		&& PUT( m_RoomInfo )
 		&& PUT( m_vecSlot )
 		&& PUT( m_wstrCNIP )
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+        && PUT( m_kBattleFieldJoinInfo )
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		&& PUT( m_StartPosIndex )
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		//{{ 핑 상태체크 호스트 변경 - 김민성
 #ifdef SERV_CHOOSE_FASTEST_HOST
 		&& PUT( m_wstrUDPRelayIP )
 		&& PUT( m_usUDPRelayPort )
 #endif SERV_CHOOSE_FASTEST_HOST
-	//}
+		//}
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+		&& PUT( m_tRemainFieldHoldingTime )
+		&& PUT( m_kBossFieldJoinInfo )
+		&& PUT( m_bBossField )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -14695,13 +14874,22 @@ SERIALIZE_DEFINE_GET( KERM_OPEN_BATTLE_FIELD_ACK, obj, ks )
 		&& GET( m_RoomInfo )
 		&& GET( m_vecSlot )
 		&& GET( m_wstrCNIP )
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+        && GET( m_kBattleFieldJoinInfo )
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		&& GET( m_StartPosIndex )
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		//{{ 핑 상태체크 호스트 변경 - 김민성
 #ifdef SERV_CHOOSE_FASTEST_HOST
 		&& GET( m_wstrUDPRelayIP )
 		&& GET( m_usUDPRelayPort )
 #endif SERV_CHOOSE_FASTEST_HOST
-	//}
+		//}
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+		&& GET( m_tRemainFieldHoldingTime )
+		&& GET( m_kBossFieldJoinInfo )
+		&& GET( m_bBossField )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -14712,6 +14900,9 @@ SERIALIZE_DEFINE_PUT( KERM_JOIN_BATTLE_FIELD_REQ, obj, ks )
 		&& PUT( m_vecStudentUnitUID )
 		&& PUT( m_kBattleFieldJoinInfo )
 		&& PUT( m_kReturnToFieldInfo )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		&& PUT( m_kBossFieldJoinInfo )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -14721,8 +14912,71 @@ SERIALIZE_DEFINE_GET( KERM_JOIN_BATTLE_FIELD_REQ, obj, ks )
 		&& GET( m_vecStudentUnitUID )
 		&& GET( m_kBattleFieldJoinInfo )
 		&& GET( m_kReturnToFieldInfo )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		&& GET( m_kBossFieldJoinInfo )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+SERIALIZE_DEFINE_PUT( KERM_JOIN_BATTLE_FIELD_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_kBattleFieldJoinInfo )
+		&& PUT( m_RoomInfo )
+		&& PUT( m_vecSlot )
+		&& PUT( m_wstrCNIP )
+#ifndef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		&& PUT( m_iLastTouchIndex )
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		&& PUT( m_iRequireLevel )
+		&& PUT( m_iRequireDungeonID )
+		//{{ 핑 상태체크 호스트 변경 - 김민성
+#ifdef SERV_CHOOSE_FASTEST_HOST
+		&& PUT( m_wstrUDPRelayIP )
+		&& PUT( m_usUDPRelayPort )
+#endif SERV_CHOOSE_FASTEST_HOST
+		//}
+		//{{ 2012. 11. 21	최육사		난입자에게 캐쉬샵 유저 정보 보내기
+#ifdef SERV_VIEW_CASH_SHOP_USER_LIST_IN_BATTLE_FIELD
+		&& PUT( m_vecEnterCashShopUser )
+#endif SERV_VIEW_CASH_SHOP_USER_LIST_IN_BATTLE_FIELD
+		//}}
+		&& PUT( m_tRemainFieldHoldingTime )
+		&& PUT( m_kBossFieldJoinInfo )
+		&& PUT( m_bBossField )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KERM_JOIN_BATTLE_FIELD_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_kBattleFieldJoinInfo )
+		&& GET( m_RoomInfo )
+		&& GET( m_vecSlot )
+		&& GET( m_wstrCNIP )
+#ifndef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		&& GET( m_iLastTouchIndex )
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		&& GET( m_iRequireLevel )
+		&& GET( m_iRequireDungeonID )
+		//{{ 핑 상태체크 호스트 변경 - 김민성
+#ifdef SERV_CHOOSE_FASTEST_HOST
+		&& GET( m_wstrUDPRelayIP )
+		&& GET( m_usUDPRelayPort )
+#endif SERV_CHOOSE_FASTEST_HOST
+		//}
+		//{{ 2012. 11. 21	최육사		난입자에게 캐쉬샵 유저 정보 보내기
+#ifdef SERV_VIEW_CASH_SHOP_USER_LIST_IN_BATTLE_FIELD
+		&& GET( m_vecEnterCashShopUser )
+#endif SERV_VIEW_CASH_SHOP_USER_LIST_IN_BATTLE_FIELD
+		//}}
+		&& GET( m_tRemainFieldHoldingTime )
+		&& GET( m_kBossFieldJoinInfo )
+		&& GET( m_bBossField )
+		;
+}
+#endif // SERV_BATTLE_FIELD_BOSS
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -15295,10 +15549,13 @@ SERIALIZE_DEFINE_PUT( KSOAP_CHECK_NEXON_ID_REQ, obj, ks )
 		&& PUT( m_iGameCode )
 		&& PUT( m_iNexonSN )
 		&& PUT( m_wstrLoginID )
-		&& PUT( m_wstrPassword )
+		&& PUT( m_strPassword )
 		&& PUT( m_wstrReceiverNickName )
 		&& PUT( m_wstrMessage )
 		&& PUT( m_vecPurchaseReqInfo )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& PUT( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 
@@ -15308,10 +15565,13 @@ SERIALIZE_DEFINE_GET( KSOAP_CHECK_NEXON_ID_REQ, obj, ks )
 		&& GET( m_iGameCode )
 		&& GET( m_iNexonSN )
 		&& GET( m_wstrLoginID )
-		&& GET( m_wstrPassword )
+		&& GET( m_strPassword )
 		&& GET( m_wstrReceiverNickName )
 		&& GET( m_wstrMessage )
 		&& GET( m_vecPurchaseReqInfo )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& GET( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 
@@ -15322,6 +15582,9 @@ SERIALIZE_DEFINE_PUT( KSOAP_CHECK_NEXON_ID_ACK, obj, ks )
 		&& PUT( m_wstrReceiverNickName )
 		&& PUT( m_wstrMessage )
 		&& PUT( m_vecPurchaseReqInfo )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& PUT( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 
@@ -15332,6 +15595,9 @@ SERIALIZE_DEFINE_GET( KSOAP_CHECK_NEXON_ID_ACK, obj, ks )
 		&& GET( m_wstrReceiverNickName )
 		&& GET( m_wstrMessage )
 		&& GET( m_vecPurchaseReqInfo )
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		&& GET( m_bUseCoupon )
+#endif // SERV_NEXON_COUPON_SYSTEM
 		;
 }
 #endif SERV_NEXON_AUTH_SOAP
@@ -15594,6 +15860,9 @@ SERIALIZE_DEFINE_GET( KDBE_GET_TOTAL_CCU_FOR_WAIT_QUEUE_ACK, obj, ks )
 SERIALIZE_DEFINE_PUT( KDBE_ADMIN_CHEAT_GET_ALL_SKILL_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_vecUnSealedSkill )
 		&& PUT( m_mapSkillInfo )
 		;
@@ -15602,6 +15871,9 @@ SERIALIZE_DEFINE_PUT( KDBE_ADMIN_CHEAT_GET_ALL_SKILL_REQ, obj, ks )
 SERIALIZE_DEFINE_GET( KDBE_ADMIN_CHEAT_GET_ALL_SKILL_REQ, obj, ks )
 {
 	return GET( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_vecUnSealedSkill )
 		&& GET( m_mapSkillInfo )
 		;
@@ -16669,21 +16941,21 @@ SERIALIZE_DEFINE_GET( KDBE_LOCAL_RANKING_RANKER_CHANGE_INFO_NOT, obj, ks )
 SERIALIZE_DEFINE_PUT( KSOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_READ_REQ, obj, ks )
 {
 	return PUT( m_iNexonSN )
-		&& PUT( m_wstrPassword )
+		&& PUT( m_strPassword )
 		;
 }
 
 SERIALIZE_DEFINE_GET( KSOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_READ_REQ, obj, ks )
 {
 	return GET( m_iNexonSN )
-		&& GET( m_wstrPassword )
+		&& GET( m_strPassword )
 		;
 }
 
 SERIALIZE_DEFINE_PUT( KSOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_WRITE_REQ, obj, ks )
 {
 	return PUT( m_iNexonSN )
-		&& PUT( m_wstrPassword )
+		&& PUT( m_strPassword )
 		&& PUT( m_kInfo )
 		;
 }
@@ -16691,7 +16963,7 @@ SERIALIZE_DEFINE_PUT( KSOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_WRITE_REQ, obj, ks 
 SERIALIZE_DEFINE_GET( KSOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_WRITE_REQ, obj, ks )
 {
 	return GET( m_iNexonSN )
-		&& GET( m_wstrPassword )
+		&& GET( m_strPassword )
 		&& GET( m_kInfo )
 		;
 }
@@ -18592,51 +18864,74 @@ SERIALIZE_DEFINE_GET( KDBE_ACCOUNT_BLOCK_NOT, obj, ks )
 SERIALIZE_DEFINE_PUT( KDBE_INSERT_SKILL_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		&& PUT( m_mapSkillList )
 		&& PUT( m_iCSPoint )
 		&& PUT( m_iTotalSpendSkillPoint )
-		&& PUT( m_iBeforCSPoint )
+		&& PUT( m_iBeforeCSPoint )
 		;
 }
 
 SERIALIZE_DEFINE_GET( KDBE_INSERT_SKILL_REQ, obj, ks )
 {
 	return GET( m_iUnitUID )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		&& GET( m_mapSkillList )
 		&& GET( m_iCSPoint )
 		&& GET( m_iTotalSpendSkillPoint )
-		&& GET( m_iBeforCSPoint )
+		&& GET( m_iBeforeCSPoint )
 		;
 }
 
 SERIALIZE_DEFINE_PUT( KDBE_INSERT_SKILL_ACK, obj, ks )
 {
 	return PUT( m_iOK ) 
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		&& PUT( m_mapSkillList )
 		&& PUT( m_iCSPoint )
 		&& PUT( m_iTotalSpendSkillPoint )
-		&& PUT( m_iBeforCSPoint )
+		&& PUT( m_iBeforeCSPoint )
 		;
 }
 
 SERIALIZE_DEFINE_GET( KDBE_INSERT_SKILL_ACK, obj, ks )
 {
 	return GET( m_iOK )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		&& GET( m_mapSkillList )
 		&& GET( m_iCSPoint )
 		&& GET( m_iTotalSpendSkillPoint )
-		&& GET( m_iBeforCSPoint )
+		&& GET( m_iBeforeCSPoint )
 		;
 }
 
 SERIALIZE_DEFINE_PUT( KDBE_RESET_SKILL_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_iDelSkillID )
 		&& PUT( m_iDelSkillLevel )
 		&& PUT( m_iCSPoint )
-		&& PUT( m_iBeforSPoint )
-		&& PUT( m_iBeforCSPoint )
+		&& PUT( m_iBeforeSPoint )
+		&& PUT( m_iBeforeCSPoint )
 		&& PUT( m_kItemQuantityUpdate )
 		&& PUT( m_vecUpdatedInventorySlot )
 		;
@@ -18645,11 +18940,14 @@ SERIALIZE_DEFINE_PUT( KDBE_RESET_SKILL_REQ, obj, ks )
 SERIALIZE_DEFINE_GET( KDBE_RESET_SKILL_REQ, obj, ks )
 {
 	return GET( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_iDelSkillID )
 		&& GET( m_iDelSkillLevel )
 		&& GET( m_iCSPoint )
-		&& GET( m_iBeforSPoint )
-		&& GET( m_iBeforCSPoint )
+		&& GET( m_iBeforeSPoint )
+		&& GET( m_iBeforeCSPoint )
 		&& GET( m_kItemQuantityUpdate )
 		&& GET( m_vecUpdatedInventorySlot )
 		;
@@ -18658,11 +18956,14 @@ SERIALIZE_DEFINE_GET( KDBE_RESET_SKILL_REQ, obj, ks )
 SERIALIZE_DEFINE_PUT( KDBE_RESET_SKILL_ACK, obj, ks )
 {
 	return PUT( m_iOK )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_iDelSkillID )
 		&& PUT( m_iDelSkillLevel )
 		&& PUT( m_iCSPoint )
-		&& PUT( m_iBeforSPoint )
-		&& PUT( m_iBeforCSPoint )
+		&& PUT( m_iBeforeSPoint )
+		&& PUT( m_iBeforeCSPoint )
 		&& PUT( m_kItemQuantityUpdate )
 		&& PUT( m_vecUpdatedInventorySlot )
 		;
@@ -18671,11 +18972,14 @@ SERIALIZE_DEFINE_PUT( KDBE_RESET_SKILL_ACK, obj, ks )
 SERIALIZE_DEFINE_GET( KDBE_RESET_SKILL_ACK, obj, ks )
 {
 	return GET( m_iOK )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_iDelSkillID )
 		&& GET( m_iDelSkillLevel )
 		&& GET( m_iCSPoint )
-		&& GET( m_iBeforSPoint )
-		&& GET( m_iBeforCSPoint )
+		&& GET( m_iBeforeSPoint )
+		&& GET( m_iBeforeCSPoint )
 		&& GET( m_kItemQuantityUpdate )
 		&& GET( m_vecUpdatedInventorySlot )
 		;
@@ -18738,6 +19042,9 @@ SERIALIZE_DEFINE_GET( KDBE_ADMIN_CHANGE_UNIT_CLASS_ACK, obj, ks )
 SERIALIZE_DEFINE_PUT( KDBE_ADMIN_AUTO_GET_ALL_SKILL_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_cUnitClass )
 		&& PUT( m_iSPoint )
 		&& PUT( m_iCSPoint )
@@ -18755,6 +19062,9 @@ SERIALIZE_DEFINE_PUT( KDBE_ADMIN_AUTO_GET_ALL_SKILL_REQ, obj, ks )
 SERIALIZE_DEFINE_GET( KDBE_ADMIN_AUTO_GET_ALL_SKILL_REQ, obj, ks )
 {
 	return GET( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_cUnitClass )
 		&& GET( m_iSPoint )
 		&& GET( m_iCSPoint )
@@ -18773,6 +19083,9 @@ SERIALIZE_DEFINE_PUT( KDBE_ADMIN_AUTO_GET_ALL_SKILL_ACK, obj, ks )
 {
 	return PUT( m_iOK )
 		&& PUT( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_cUnitClass )
 		&& PUT( m_iSPoint )
 		&& PUT( m_iCSPoint )
@@ -18791,6 +19104,9 @@ SERIALIZE_DEFINE_GET( KDBE_ADMIN_AUTO_GET_ALL_SKILL_ACK, obj, ks )
 {
 	return GET( m_iOK )
 		&& GET( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_cUnitClass )
 		&& GET( m_iSPoint )
 		&& GET( m_iCSPoint )
@@ -18808,6 +19124,9 @@ SERIALIZE_DEFINE_GET( KDBE_ADMIN_AUTO_GET_ALL_SKILL_ACK, obj, ks )
 SERIALIZE_DEFINE_PUT( KDBE_ADMIN_GET_SKILL_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_iSkillID )
 		&& PUT( m_iSkillLevel )
 		&& PUT( m_iCSPoint )
@@ -18818,6 +19137,9 @@ SERIALIZE_DEFINE_PUT( KDBE_ADMIN_GET_SKILL_REQ, obj, ks )
 SERIALIZE_DEFINE_GET( KDBE_ADMIN_GET_SKILL_REQ, obj, ks )
 {
 	return GET( m_iUnitUID )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_iSkillID )
 		&& GET( m_iSkillLevel )
 		&& GET( m_iCSPoint )
@@ -18828,6 +19150,9 @@ SERIALIZE_DEFINE_GET( KDBE_ADMIN_GET_SKILL_REQ, obj, ks )
 SERIALIZE_DEFINE_PUT( KDBE_ADMIN_GET_SKILL_ACK, obj, ks )
 {
 	return PUT( m_iOK )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_iSkillID )
 		&& PUT( m_iSkillLevel )
 		&& PUT( m_iCSPoint )
@@ -18838,6 +19163,9 @@ SERIALIZE_DEFINE_PUT( KDBE_ADMIN_GET_SKILL_ACK, obj, ks )
 SERIALIZE_DEFINE_GET( KDBE_ADMIN_GET_SKILL_ACK, obj, ks )
 {
 	return GET( m_iOK )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_iSkillID )
 		&& GET( m_iSkillLevel )
 		&& GET( m_iCSPoint )
@@ -18846,7 +19174,7 @@ SERIALIZE_DEFINE_GET( KDBE_ADMIN_GET_SKILL_ACK, obj, ks )
 }
 
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 SERIALIZE_DEFINE_PUT( KDBE_RESET_SKILL_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
@@ -18902,7 +19230,7 @@ SERIALIZE_DEFINE_GET( KDBE_RESET_SKILL_ACK, obj, ks )
 		&& GET( m_vecUpdatedInventorySlot )
 		;
 }
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-06-17	// 박세훈
@@ -18931,7 +19259,7 @@ SERIALIZE_DEFINE_PUT( KSOAP_COUPON_LIST_ACK, obj, ks )
 		&& PUT( m_sCouponBoxType )
 		&& PUT( m_iStartRowIndex )
 		&& PUT( m_iCouponCount )
-		&& PUT( m_vecUsedCouponList )
+		&& PUT( m_vecCouponList )
 		;
 }
 
@@ -18942,7 +19270,7 @@ SERIALIZE_DEFINE_GET( KSOAP_COUPON_LIST_ACK, obj, ks )
 		&& GET( m_sCouponBoxType )
 		&& GET( m_iStartRowIndex )
 		&& GET( m_iCouponCount )
-		&& GET( m_vecUsedCouponList )
+		&& GET( m_vecCouponList )
 		;
 }
 
@@ -19329,6 +19657,11 @@ SERIALIZE_DEFINE_PUT( KDBE_JUMPING_CHARACTER_UPDATE_REQ, obj, ks )
 		&& PUT( m_vecNewDefaultSkill )
 		&& PUT( m_vecUnSealedSkill )
 		&& PUT( m_wstrRegDate )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		;
 }
 
@@ -19341,6 +19674,11 @@ SERIALIZE_DEFINE_GET( KDBE_JUMPING_CHARACTER_UPDATE_REQ, obj, ks )
 		&& GET( m_vecNewDefaultSkill )
 		&& GET( m_vecUnSealedSkill )
 		&& GET( m_wstrRegDate )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		;
 }
 
@@ -19369,21 +19707,484 @@ SERIALIZE_DEFINE_GET( KDBE_JUMPING_CHARACTER_UPDATE_ACK, obj, ks )
 }
 #endif // SERV_JUMPING_CHARACTER
 
-#ifdef SERV_SHARING_BANK_EVENT
-SERIALIZE_DEFINE_PUT( KDBE_SHARING_BANK_EVENT_REQ, obj, ks )
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+SERIALIZE_DEFINE_PUT( KDBE_ITEM_EXTRACT_REQ, obj, ks )
 {
-	return PUT( m_iUserUID )
-		&& PUT( m_iUnitUID )
-		&& PUT( m_iItemID )
+	return PUT( m_iUnitUID )
+		&& PUT( m_kItemQuantityUpdate )
+		&& PUT( m_vecUpdatedInventorySlot )
+		&& PUT( m_vecItemInfo )
+		&& PUT( m_mapResultItem )
 		;
 }
 
-SERIALIZE_DEFINE_GET( KDBE_SHARING_BANK_EVENT_REQ, obj, ks )
+SERIALIZE_DEFINE_GET( KDBE_ITEM_EXTRACT_REQ, obj, ks )
 {
-	return GET( m_iUserUID )
-		&& GET( m_iUnitUID )
-		&& GET( m_iItemID )
+	return GET( m_iUnitUID )
+		&& GET( m_kItemQuantityUpdate )
+		&& GET( m_vecUpdatedInventorySlot )
+		&& GET( m_vecItemInfo )
+		&& GET( m_mapResultItem )
 		;
 }
+
+SERIALIZE_DEFINE_PUT( KDBE_ITEM_EXTRACT_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_kItemQuantityUpdate )
+		&& PUT( m_vecUpdatedInventorySlot )
+		&& PUT( m_mapItemInfo )
+		&& PUT( m_mapResultItem )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_ITEM_EXTRACT_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_kItemQuantityUpdate )
+		&& GET( m_vecUpdatedInventorySlot )
+		&& GET( m_mapItemInfo )
+		&& GET( m_mapResultItem )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KDBE_USE_FINALITY_SKILL_REQ, obj, ks )
+{
+	return PUT( m_iUnitUID )
+		&& PUT( m_kItemQuantityUpdate )
+		&& PUT( m_vecUpdatedInventorySlot )
+		&& PUT( m_vecItemInfo )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_USE_FINALITY_SKILL_REQ, obj, ks )
+{
+	return GET( m_iUnitUID )
+		&& GET( m_kItemQuantityUpdate )
+		&& GET( m_vecUpdatedInventorySlot )
+		&& GET( m_vecItemInfo )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KDBE_USE_FINALITY_SKILL_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_kItemQuantityUpdate )
+		&& PUT( m_vecUpdatedInventorySlot )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_USE_FINALITY_SKILL_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_kItemQuantityUpdate )
+		&& GET( m_vecUpdatedInventorySlot )
+		;
+}
+#endif // SERV_FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+SERIALIZE_DEFINE_PUT( KHenirHackUserData, obj, ks )
+{
+    return PUT ( m_iUserUID ) 
+        && PUT( m_iUnitUID )
+        && PUT( m_iPlayTime )
+        && PUT (m_iMemberNum )
+        ;
+}
+
+SERIALIZE_DEFINE_GET( KHenirHackUserData, obj, ks )
+{
+    return GET ( m_iUserUID ) 
+        && GET( m_iUnitUID )
+        && GET( m_iPlayTime )
+        && GET (m_iMemberNum )
+        ;
+}
+
+SERIALIZE_DEFINE_PUT( KELOG_HENIR_HACKING_LOG_NOT, obj, ks )
+{
+    return PUT ( m_vecHackUser );
+}
+
+SERIALIZE_DEFINE_GET( KELOG_HENIR_HACKING_LOG_NOT, obj, ks )
+{
+    return GET ( m_vecHackUser );
+}
 #endif
-//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-28	// 박세훈
+SERIALIZE_DEFINE_PUT( KEGB_UPDATE_TOTAL_DANGEROUS_VALUE_NOT, obj, ks )
+{
+	return PUT( m_iBattleFieldID ) 
+		&& PUT( m_byteIncreasedValue )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGB_UPDATE_TOTAL_DANGEROUS_VALUE_NOT, obj, ks )
+{
+	return GET( m_iBattleFieldID ) 
+		&& GET( m_byteIncreasedValue )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGB_BATTLE_FIELD_BOSS_INFO_NOT, obj, ks )
+{
+	return PUT( m_tRemainPortalTime )
+		&& PUT( m_tRemainCoolTime )
+		&& PUT( m_iPortalAppearanceMap )
+		&& PUT( m_iPortalDestination )
+		&& PUT( m_bPortalOpen )
+		&& PUT( m_bCoolTime )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGB_BATTLE_FIELD_BOSS_INFO_NOT, obj, ks )
+{
+	return GET( m_tRemainPortalTime )
+		&& GET( m_tRemainCoolTime )
+		&& GET( m_iPortalAppearanceMap )
+		&& GET( m_iPortalDestination )
+		&& GET( m_bPortalOpen )
+		&& GET( m_bCoolTime )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KDBE_SOCKET_EXPAND_ITEM_REQ, obj, ks )
+{
+	return PUT( m_iUnitUID )
+		&& PUT( m_iItemUID )
+		&& PUT( m_vecItemSocket )
+		&& PUT( m_byteExpandedSocketNum )
+		&& PUT( m_kItemQuantityUpdate )
+		&& PUT( m_vecUpdatedInventorySlot )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_SOCKET_EXPAND_ITEM_REQ, obj, ks )
+{
+	return GET( m_iUnitUID )
+		&& GET( m_iItemUID )
+		&& GET( m_vecItemSocket )
+		&& GET( m_byteExpandedSocketNum )
+		&& GET( m_kItemQuantityUpdate )
+		&& GET( m_vecUpdatedInventorySlot )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KDBE_SOCKET_EXPAND_ITEM_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iItemUID )
+		&& PUT( m_byteExpandedSocketNum )
+		&& PUT( m_kItemQuantityUpdate )
+		&& PUT( m_vecUpdatedInventorySlot )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_SOCKET_EXPAND_ITEM_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iItemUID )
+		&& GET( m_byteExpandedSocketNum )
+		&& GET( m_kItemQuantityUpdate )
+		&& GET( m_vecUpdatedInventorySlot )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KDBE_BOSS_FIELD_LOG_NOT, obj, ks )
+{
+	return PUT( m_kFieldLog )
+		&& PUT( m_mapUserLog )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_BOSS_FIELD_LOG_NOT, obj, ks )
+{
+	return GET( m_kFieldLog )
+		&& GET( m_mapUserLog )
+		;
+}
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_GOOD_ELSWORD
+SERIALIZE_DEFINE_PUT( KELOG_EXPAND_BANK_INVENTORY_NOT, obj, ks )
+{
+    return PUT( m_iUserUID )
+        && PUT( m_iUnitUID )
+        && PUT( m_iUnitLevel )
+        && PUT( m_iBeforeED )
+        && PUT( m_iUseED )
+        && PUT( m_iCategory )
+        && PUT( m_iNumSlot )
+        ;
+}
+
+SERIALIZE_DEFINE_GET( KELOG_EXPAND_BANK_INVENTORY_NOT, obj, ks )
+{
+    return GET( m_iUserUID )
+        && GET( m_iUnitUID )
+        && GET( m_iUnitLevel )
+        && GET( m_iBeforeED )
+        && GET( m_iUseED )
+        && GET( m_iCategory )
+        && GET( m_iNumSlot )
+        ;
+}
+#endif // SERV_GOOD_ELSWORD
+
+SERIALIZE_DEFINE_PUT( KFieldBossGenKillStat, obj, ks )
+{
+    return PUT( m_nFieldID )
+        //&& PUT( m_nNumGenBoss )
+        //&& PUT( m_nNumDieBoss )
+        //&& PUT( m_nNumDropItem )
+        && PUT( m_nNumUser )
+        //&& PUT( m_nDieNPCUID )
+        && PUT( m_nSpawnID )
+        ;
+}
+
+SERIALIZE_DEFINE_GET( KFieldBossGenKillStat, obj, ks )
+{
+    return GET( m_nFieldID )
+        //&& GET( m_nNumGenBoss )
+        //&& GET( m_nNumDieBoss )
+        //&& GET( m_nNumDropItem )
+        && GET( m_nNumUser )
+        //&& GET( m_nDieNPCUID )
+        && GET( m_nSpawnID )
+        ;
+}
+
+#ifdef SERV_KOM_FILE_CHECK_ADVANCED
+SERIALIZE_DEFINE_PUT( KELOG_KOM_FILE_CHECK_LOG_NOT, obj, ks )
+{
+	return PUT( m_wstrInvaildKomName )
+		&& PUT( m_iUserUID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KELOG_KOM_FILE_CHECK_LOG_NOT, obj, ks )
+{
+	return GET( m_wstrInvaildKomName )
+		&& GET( m_iUserUID )
+		;
+}
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+SERIALIZE_DEFINE_PUT( KDBE_EXPAND_SKILL_PAGE_REQ, obj, ks )
+{
+	return PUT( m_iUnitUID )
+		&& PUT( m_vecSkillPageNumberToBeAdded )
+		&& PUT( m_iSPoint )
+		&& PUT( m_iCSPoint )
+		&& PUT( m_iDefaultSkill[0] )
+		&& PUT( m_iDefaultSkill[1] )
+		&& PUT( m_iDefaultSkill[2] )
+		&& PUT( m_iDefaultSkill[3] )
+		&& PUT( m_iDefaultSkill[4] )
+		&& PUT( m_iDefaultSkill[5] )
+		&& PUT( m_cUnitClass )
+		&& PUT( m_usEventID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_EXPAND_SKILL_PAGE_REQ, obj, ks )
+{
+	return GET( m_iUnitUID )
+		&& GET( m_vecSkillPageNumberToBeAdded )
+		&& GET( m_iSPoint )
+		&& GET( m_iCSPoint )
+		&& GET( m_iDefaultSkill[0] )
+		&& GET( m_iDefaultSkill[1] )
+		&& GET( m_iDefaultSkill[2] )
+		&& GET( m_iDefaultSkill[3] )
+		&& GET( m_iDefaultSkill[4] )
+		&& GET( m_iDefaultSkill[5] )
+		&& GET( m_cUnitClass )
+		&& GET( m_usEventID )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KDBE_EXPAND_SKILL_PAGE_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iUnitUID )
+		&& PUT( m_iSkillPageNumberToBeAdded )
+		&& PUT( m_iSPoint )
+		&& PUT( m_iCSPoint )
+		&& PUT( m_iDefaultSkill[0] )
+		&& PUT( m_iDefaultSkill[1] )
+		&& PUT( m_iDefaultSkill[2] )
+		&& PUT( m_iDefaultSkill[3] )
+		&& PUT( m_iDefaultSkill[4] )
+		&& PUT( m_iDefaultSkill[5] )
+		&& PUT( m_cUnitClass )
+		&& PUT( m_usEventID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_EXPAND_SKILL_PAGE_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iUnitUID )
+		&& GET( m_iSkillPageNumberToBeAdded )
+		&& GET( m_iSPoint )
+		&& GET( m_iCSPoint )
+		&& GET( m_iDefaultSkill[0] )
+		&& GET( m_iDefaultSkill[1] )
+		&& GET( m_iDefaultSkill[2] )
+		&& GET( m_iDefaultSkill[3] )
+		&& GET( m_iDefaultSkill[4] )
+		&& GET( m_iDefaultSkill[5] )
+		&& GET( m_cUnitClass )
+		&& GET( m_usEventID )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KDBE_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ, obj, ks )
+{
+	return PUT( m_iUnitUID )
+		&& PUT( m_iSkillPagesNumberToBeActive )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ, obj, ks )
+{
+	return GET( m_iUnitUID )
+		&& GET( m_iSkillPagesNumberToBeActive )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KDBE_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iSkillPagesNumberToBeActive )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iSkillPagesNumberToBeActive )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KELOG_EXPAND_SKILL_PAGE_NOT, obj, ks )
+{
+	return PUT( m_iUnitUID )
+		&& PUT( m_ucLevel )
+		&& PUT( m_ucUnitClass )
+		&& PUT( m_ucBeforeTheNumberOfSkillPagesAvailable )
+		&& PUT( m_ucPaymentType )
+		&& PUT( m_wstrSenderNickName )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KELOG_EXPAND_SKILL_PAGE_NOT, obj, ks )
+{
+	return GET( m_iUnitUID )
+		&& GET( m_ucLevel )
+		&& GET( m_ucUnitClass )
+		&& GET( m_ucBeforeTheNumberOfSkillPagesAvailable )
+		&& GET( m_ucPaymentType )
+		&& GET( m_wstrSenderNickName )
+		;
+}
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+#ifdef SERV_ENTRY_POINT
+SERIALIZE_DEFINE_PUT( KDBE_GET_CREATE_UNIT_TODAY_COUNT_REQ, obj, ks )
+{
+    return PUT( m_iUserUID )
+        ;
+}
+
+SERIALIZE_DEFINE_GET( KDBE_GET_CREATE_UNIT_TODAY_COUNT_REQ, obj, ks )
+{
+    return GET( m_iUserUID )
+        ;
+}
+#endif SERV_ENTRY_POINT
+
+#ifdef SERV_NAVER_CHANNELING
+SERIALIZE_DEFINE_PUT( KNAVER_SOAP_GET_TOKEN_REQ, obj, ks )
+{
+    return PUT( m_iNaverSN )
+        && PUT( m_iGameCode )
+        ;
+}
+
+SERIALIZE_DEFINE_GET( KNAVER_SOAP_GET_TOKEN_REQ, obj, ks )
+{
+    return GET( m_iNaverSN )
+        && GET( m_iGameCode )
+        ;
+}
+
+SERIALIZE_DEFINE_PUT( KNAVER_SOAP_GET_TOKEN_ACK, obj, ks )
+{
+    return PUT( m_iOK )
+        && PUT( m_strAccessToken )
+        ;
+}
+
+SERIALIZE_DEFINE_GET( KNAVER_SOAP_GET_TOKEN_ACK, obj, ks )
+{
+    return GET( m_iOK )
+        && GET( m_strAccessToken )
+        ;
+}
+
+
+#endif SERV_NAVER_CHANNELING
+
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH
+SERIALIZE_DEFINE_PUT( KEGS_DEL_COMMON_FLAG_NOT, obj, ks )
+{
+	return PUT( dwFlag )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_DEL_COMMON_FLAG_NOT, obj, ks )
+{
+	return GET( dwFlag )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_ADD_COMMON_FLAG_NOT, obj, ks )
+{
+	return PUT( dwFlag )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_ADD_COMMON_FLAG_NOT, obj, ks )
+{
+	return GET( dwFlag )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KECN_DEL_COMMON_FLAG_NOT, obj, ks )
+{
+	return PUT( dwFlag )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KECN_DEL_COMMON_FLAG_NOT, obj, ks )
+{
+	return GET( dwFlag )
+		;
+}
+SERIALIZE_DEFINE_PUT( KECN_ADD_COMMON_FLAG_NOT, obj, ks )
+{
+	return PUT( dwFlag )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KECN_ADD_COMMON_FLAG_NOT, obj, ks )
+{
+	return GET( dwFlag )
+		;
+}
+#endif // SERV_MODFIY_FLAG_REALTIME_PATCH

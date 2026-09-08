@@ -201,6 +201,15 @@ void CX2GuildSkillTreeInfoSlotData::ShowSlotPicture(bool bShow, CKTDGUISlot* pSl
 						pPicture->SetTex( L"NoAlphaImage.dds" );
 					}
 					pPicture->pPoint->color = D3DXCOLOR( 1,1,1,1 );
+
+					/// 레벨 텍스처 위치 조정
+					D3DXVECTOR2 vecPos					= pPicture->GetPos();
+					pPicture->SetPos( D3DXVECTOR2( vecPos.x, vecPos.y + 33.f ) );
+
+					D3DXVECTOR2 vecPicturePos			= pPicture->pPoint->leftTopPoint;
+					pPicture->pPoint->leftBottomPoint	= D3DXVECTOR2( vecPicturePos.x, vecPicturePos.y + 14.f );
+					pPicture->pPoint->rightTopPoint		= D3DXVECTOR2( vecPicturePos.x + 25.f, vecPicturePos.y );
+					pPicture->pPoint->rightBottomPoint	= D3DXVECTOR2( vecPicturePos.x + 25.f, vecPicturePos.y + 14.f );
 				} break;
 			case STSAPT_EQUIPPED:
 				{
@@ -431,8 +440,7 @@ bool CX2UIGuildSkillTreeInfo::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wP
 			pos.y += pControl->GetHeight();
 						
 			if(g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
 				int iSPoint = 0;
 				int iCSPoint = 0;
@@ -1162,6 +1170,9 @@ void CX2UIGuildSkillTreeInfo::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillI
 					UISet.m_pStaticActiveMark->GetPicture(0)->SetShow(true);
 				} break;
 			case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+			case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 				{
 					UISet.m_pStaticBackGround->GetPicture(1)->SetShow(true);
 					UISet.m_pStaticActiveMark->GetPicture(0)->SetShow(true);
@@ -1642,6 +1653,13 @@ wstring CX2UIGuildSkillTreeInfo::GetSkillDesc( CX2SkillTree::SKILL_ID eSkillID, 
 			wstrm << GET_STRING(STR_ID_2672);		// 스페셜 액티브
 
 		} break;
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+		{
+			wstrm << GET_STRING( STR_ID_26134 );		// 하이퍼 액티브
+
+		} break;
+#endif //FINALITY_SKILL_SYSTEM
 	case CX2SkillTree::ST_ACTIVE:
 		{
 			wstrm << GET_STRING(STR_ID_2673);		// 액티브

@@ -610,6 +610,48 @@ int     KLuaManager::MakeFunctionReference( const char* funcName, bool bRawGloba
 
 ////}} robobeg : 2013-01-17
 
+//{{ robobeg : 2013-10-24
+int     KLuaManager::GetNumIndexedValues()
+{
+    int index = 1;
+    while( Get( index ) == true )
+    {
+        bool    bNil = lua_type(m_pkLuaState, -1 ) == LUA_TNIL;
+        lua_pop(m_pkLuaState, 1);
+        if ( bNil == true )
+            break;
+        index++;
+    }
+    return  index - 1;
+}
+
+int     KLuaManager::GetNumIndexedTables()
+{
+    int index = 1;
+    while( BeginTable( index ) == true )
+    {
+        EndTable();
+        index++;
+    }
+    return  index - 1;
+}
+
+int     KLuaManager::GetNumIndexedTables( const char* pszTableName )
+{
+    if ( pszTableName == NULL || pszTableName[0] == NULL )
+        return 0;
+
+    int index = 0;
+    while( BeginTable( pszTableName, index ) == true )
+    {
+        EndTable();
+        index++;
+    }
+    return  index;
+}
+//}} robobeg : 2013-10-24
+
+
 
 /** pszName의 이름을 가지는 숫자 변수의 값을 가져온다.
 @param pszName [in] 숫자 변수의 이름

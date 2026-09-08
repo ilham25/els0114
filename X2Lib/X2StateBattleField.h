@@ -1,5 +1,78 @@
 #pragma once
 
+#ifdef MONSTER_STATE_LIST_TEST
+class MonsterStateListDialog
+{
+public: 
+	MonsterStateListDialog() 
+		: m_pDLGMonsterStateList( NULL )
+		, m_NPCID( CX2UnitManager::NUI_NONE )
+	{
+		m_vecStateName.reserve( 1024 ); 
+	}
+
+	~MonsterStateListDialog()
+	{
+		SAFE_DELETE_DIALOG( m_pDLGMonsterStateList );
+	}
+
+	bool IsOpen()
+	{
+		if( m_pDLGMonsterStateList == NULL )
+			return false;
+
+		if( false == m_pDLGMonsterStateList->GetShow() )
+			return false;
+		else
+			return true;
+	}
+
+	void Close()
+	{
+		if( m_pDLGMonsterStateList != NULL )
+		{
+			m_pDLGMonsterStateList->SetShowEnable( false, false );
+		}
+	}
+
+	void Open( CKTDXStage* pStage )
+	{
+		if( m_pDLGMonsterStateList == NULL )
+		{
+			m_pDLGMonsterStateList = new CKTDGUIDialog( pStage, L"DLG_Monster_List_Window.lua" );
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGMonsterStateList );
+		}
+
+		if( m_pDLGMonsterStateList != NULL )
+		{
+			m_pDLGMonsterStateList->SetStage( pStage );
+			m_pDLGMonsterStateList->SetShowEnable( true, true );
+
+			Update();
+		}
+	}
+
+	void Update();
+
+	void KeyProcess( CKTDXStage* pStage );
+
+	void OnCommand( const std::string& monsterName );
+
+
+	CKTDGUIDialogType GetDialog() { return m_pDLGMonsterStateList; }
+
+
+
+protected:
+	CKTDGUIDialogType m_pDLGMonsterStateList;
+	std::vector< std::string > m_vecStateName; 
+	CX2UnitManager::NPC_UNIT_ID m_NPCID;
+
+}; // class MonsterStateListDialog
+
+#endif MONSTER_STATE_LIST_TEST
+
+
 class CX2StateBattleField : public CX2StateMenu
 {
 public:
@@ -38,6 +111,10 @@ public:
 	virtual void PopTalkBox( UidType iUnitUID_, const WCHAR* pWstrMsg_, 
 		const D3DXCOLOR& coTextColor_, const D3DXCOLOR& coOutColor_, const D3DXCOLOR& coBackColor_ );
 
+  
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+    void FlushSendFrameAverage();
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	void MoveFromBattleFieldToOtherBattleField();
 	void SetBattleFieldId( UINT uiBattleFieldId_ ) { m_pBattleFieldGame->SetBattleFieldId( uiBattleFieldId_ ); }
 
@@ -55,6 +132,13 @@ public:
 #ifdef PLAY_EMOTION_BY_USER_SELECT
 	virtual void PlayEmotionByUserSelect();
 #endif // PLAY_EMOTION_BY_USER_SELECT
+
+#ifdef FIELD_BOSS_RAID
+	void MoveToBeforePlaceAtRaidField();
+	void SwapWorld(){ if( NULL != m_pBattleFieldGame ) m_pBattleFieldGame->SwapWorld(); }
+#endif // FIELD_BOSS_RAID
+
+	void Handler_EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ();
 protected:
 
 	virtual bool UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
@@ -85,12 +169,15 @@ protected:
 
 	bool Handler_EGS_BATTLE_FIELD_NPC_LOAD_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
-	void Handler_EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ();
 	bool Handler_EGS_BATTLE_FIELD_NPC_LOAD_COMPLETE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 	bool Handler_EGS_BATTLE_FIELD_NPC_P2P_SYNC_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 	bool Handler_EGS_NPC_UNIT_CREATE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 	bool Handler_EGS_NPC_UNIT_CREATE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	bool Handler_EGS_USE_FINALITY_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
 
@@ -121,7 +208,11 @@ protected:
 
 
 	virtual bool ShortCutKeyProcess();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    FORCEINLINE void MoveToOtherPlace( float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	FORCEINLINE void MoveToOtherPlace();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	void CreateMovingSmallBar();
 	void DrawMovingSmallBar();
@@ -152,5 +243,8 @@ private:
 	SHORT								m_SumDelta;		/// 마우스 휠 저장값
 #endif //CAMERA_ZOOM_BY_MOUSE_WHEEL
 
+#ifdef MONSTER_STATE_LIST_TEST
+	MonsterStateListDialog m_MonsterStateListDialog;
+#endif MONSTER_STATE_LIST_TEST
 };
 

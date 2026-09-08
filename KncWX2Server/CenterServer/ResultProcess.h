@@ -153,7 +153,11 @@ public:
 								OUT int& iClearStageCount,
 								OUT KEGS_END_GAME_DUNGEON_RESULT_DATA_NOT& kUnitInfoNot,
 								OUT std::vector< KRoomUserPtr >& vecKRoomUserPtr,
-								OUT std::vector< KERM_UPDATE_DUNGEON_UNIT_INFO_NOT >& vecUpdateUnitInfo );
+								OUT std::vector< KERM_UPDATE_DUNGEON_UNIT_INFO_NOT >& vecUpdateUnitInfo
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+								,IN const int iTotalValentineTIme
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+								);
 
 	//{{ 2011. 04. 13  ±è¹Î¼º  ±Û·Î¹ú ¼­¹ö Ãß°¡
 #ifdef SERV_INSERT_GLOBAL_SERVER

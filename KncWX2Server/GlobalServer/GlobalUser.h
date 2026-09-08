@@ -31,6 +31,11 @@ protected:  // util function, Packet Handling
 	
 	bool AuthCheckPassword( const wchar_t* szPassword, UINT32 uiPwdHash );
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-09	// 박세훈
+	int		BossFieldOpenProcess( IN const int iVillageMapID, IN const __time64_t tCurrentTime ) const;
+	int		TotalDangerousValueUpdateProcess( IN const int iBattleFieldID, IN const byte byteValue, IN const __time64_t tCurrentTime ) const;
+#endif // SERV_BATTLE_FIELD_BOSS
+
     // packet send function
     template < typename T > bool SendPacket( unsigned short usEventID, T& data, bool bLogging = true, bool bCompress = false );
 
@@ -115,7 +120,13 @@ protected:  // util function, Packet Handling
    _DECL_ON_FUNC( EGB_MODULE_INFO_UPDATE_NOT, KEGS_MODULE_INFO_UPDATE_NOT );
 #endif SERV_BLOCK_LIST
 	//}}
-
+   //{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
+#ifdef SERV_GLOBAL_MISSION_MANAGER
+   DECL_ON_FUNC( EGB_GET_GLOBAL_MISSION_INFO_REQ );
+   _DECL_ON_FUNC( EGB_GLOBAL_MISSION_UPDATE_NOT, KEGB_GLOBAL_MISSION_UPDATE_NOT );
+#endif SERV_GLOBAL_MISSION_MANAGER
+   //}} 2012. 09. 03	임홍락	글로벌 미션 매니저
+   
 #ifdef SERV_TIME_ENCHANT_EVENT// 작업날짜: 2013-05-28	// 박세훈
    DECL_ON_FUNC_NOPARAM( EGB_TIME_ENCHANT_EVENT_INFO_REQ );
    DECL_ON_FUNC( EGB_TIME_ENCHANT_EVENT_NOT );
@@ -129,13 +140,16 @@ protected:  // util function, Packet Handling
    DECL_ON_FUNC( EGB_EXCHANGE_LIMIT_INFO_ROLLBACK_NOT );
 #endif // SERV_ITEM_EXCHANGE_LIMIT
 
-   //{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
-#ifdef SERV_GLOBAL_MISSION_MANAGER
-   DECL_ON_FUNC( EGB_GET_GLOBAL_MISSION_INFO_REQ );
-   _DECL_ON_FUNC( EGB_GLOBAL_MISSION_UPDATE_NOT, KEGB_GLOBAL_MISSION_UPDATE_NOT );
-#endif SERV_GLOBAL_MISSION_MANAGER
-   //}} 2012. 09. 03	임홍락	글로벌 미션 매니저
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-30	// 박세훈
+   DECL_ON_FUNC( EGB_UPDATE_TOTAL_DANGEROUS_VALUE_NOT );
+   DECL_ON_FUNC_NOPARAM( EGB_BATTLE_FIELD_BOSS_INFO_NOT );
 
+   DECL_ON_FUNC( EGB_ADMIN_BOSS_FIELD_GATE_OPEN_REQ );
+   DECL_ON_FUNC_NOPARAM( EGB_ADMIN_BOSS_FIELD_GATE_CLOSE_NOT );
+   DECL_ON_FUNC( EGB_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ );
+   DECL_ON_FUNC( EGB_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ );
+#endif // SERV_BATTLE_FIELD_BOSS
+	    
     bool RoutePacket( const KEvent* pkEvent );   // CnUser, GSUser가 같이 선언하지만 상속은 아님.
     //                          ^ KEvent가 수정되지 않아야 한다. (SmartPtr로는 불가능)
 

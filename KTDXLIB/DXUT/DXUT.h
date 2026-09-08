@@ -233,6 +233,11 @@ void DXUTSetVerticalSync( IN int iVal_ );
 #ifdef KTDGDEVICEFONT_SIZE_CACHE
 void                    DXUTSetDeviceLost( bool bLost );
 bool                    DXUTGetDeviceLost();
+#else
+#if defined(CLIENT_COUNTRY_TH)
+void                    DXUTSetDeviceLost( bool bLost );
+bool                    DXUTGetDeviceLost();
+#endif 
 #endif
 
 #ifdef DXUT_KTDXLIB_SAFE_ON_RESET
@@ -244,5 +249,6 @@ void DXUTSetWindow4Tool(HWND hWnd, LPDIRECT3D9 pd3d, LPDIRECT3DDEVICE9 pd3dDevic
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 void DXUTResetStatsUpdateFrame2();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+void DXUTResetStatsUpdateFrame();
 
 #endif

@@ -1142,26 +1142,26 @@ namespace { // 외부에서 참조당하지 못하도록 anonymous namespace 안에 선언.
 		//L"~",   // 물결
 		L"`",   // 그레이브
 		//{{ 2011. 07. 27    김민성    투니랜드 채널링
-//#ifdef SERV_TOONILAND_CHANNELING // SERV_JAPAN_CHANNELING
+//#ifdef SERV_TOONILAND_CHANNELING // SERV_JAPAN_CHANNELING //SERV_INT_ONLY
 		//L"@",   // 골뱅이								// 주석 처리
 //#endif SERV_TOONILAND_CHANNELING // SERV_JAPAN_CHANNELING
 		//}}
 		L"^",	// 서컴플렉트
 		L"&",	// 앰퍼센트
 		L"*",	// 곱셈부호
-		//L"-",	// 뺄셈부호	//SERV_EMAIL_ID
+		//L"-",	// 뺄셈부호	//SERV_EMAIL_ID //SERV_INT_ONLY
 		L"+",	// 덧셈부호
 		L"=",	// 이퀄
 		L"|",	// 바
 		L"{",	// 중괄호(좌)
 		L"}",	// 중괄호(우)
-		//L"[",	// 대괄호(좌)
-		//L"]",	// 대괄호(우)
+		//L"[",	// 대괄호(좌) //SERV_INT_ONLY
+		//L"]",	// 대괄호(우) //SERV_INT_ONLY
 		L":",	// 콜론
 		L"?",	// 물음표
 		L"<",	// 세모괄호(좌)
 		L">",	// 세모괄호(우)
-//#ifdef SERV_EMAIL_ID
+//#ifdef SERV_EMAIL_ID //SERV_INT_ONLY
 		//L".",	// 닷
 //#endif SERV_EMAIL_ID
 		L"♪"	// 음표

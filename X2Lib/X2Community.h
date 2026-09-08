@@ -905,6 +905,11 @@ class CX2Community
 		std::vector< KGuildMemberInfo >	m_vecGuildMemberInfo;
 #endif	GUILD_MANAGEMENT
 		//}} kimhc // 2009-09-17 // 길드 UI
+
+#ifdef FIX_INVITE_PVP_PLAYER /// 김태환
+		vector<UidType>			m_vecInviteRoomUID;				/// 초대한 룸 아이디 
+		float					m_fInviteCoolTime;				///	초대 룸 리스트 삭제 쿨타임
+#endif // FIX_INVITE_PVP_PLAYER
 		
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM

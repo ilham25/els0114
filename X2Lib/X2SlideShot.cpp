@@ -11,6 +11,9 @@ m_fScenTime(0.f),
 m_fElapsedTimeAfterTextSpread(0.f),
 m_pDLGSlideShot(NULL),
 m_bSetCursor(false)
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+, m_fElapsedTimeAfterVoiceStopped(0.f)
+#endif //CHECK_VOICE_IN_SLIDESHOT
 {
 	m_pDLGSlideShot		= new CKTDGUIDialog( (CKTDXStage*) m_pNowState, L"DLG_NewSlideShot.lua" );
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGSlideShot );
@@ -24,8 +27,35 @@ CX2SlideShot::~CX2SlideShot(void)
 	SAFE_DELETE_DIALOG( m_pDLGSlideShot );
 }
 
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+float CX2SlideShot::GetElapsedTimeAfterVoiceStopped()
+{
+	if( !m_vecSoundList.empty() )
+		return 0.0f;
+
+	return m_fElapsedTimeAfterVoiceStopped;
+}
+#endif //CHECK_VOICE_IN_SLIDESHOT
 void CX2SlideShot::OnFrameMove( float fElapsedTime )
 {
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+	vector<wstring>::iterator vitSoundList;
+	for( vitSoundList = m_vecSoundList.begin(); vitSoundList != m_vecSoundList.end(); )
+	{
+		if( g_pKTDXApp->GetDeviceManager()->IsPlaying( vitSoundList->c_str() ) == false )
+		{
+			m_vecSoundList.erase( vitSoundList );
+			if( m_vecSoundList.empty() )
+				m_fElapsedTimeAfterVoiceStopped = 0.0f;
+		}
+		else
+		{
+			++vitSoundList;
+		}
+	}
+	m_fElapsedTimeAfterVoiceStopped += fElapsedTime;
+#endif //CHECK_VOICE_IN_SLIDESHOT
+
 	if( m_bNowPresent == true )
 	{
 		if( NULL == g_pX2Game )
@@ -80,17 +110,17 @@ void CX2SlideShot::OnFrameMove( float fElapsedTime )
 			m_pDLGSlideShot->SetShowEnable( m_TextBoxShow, m_TextBoxShow );
 
 #ifdef SERV_CATCH_HACKUSER_INFO
-		{
-			std::wstringstream strstm;
-			strstm << " m_SceneName = " << m_ScenName.c_str() << m_NowScenNum;
-
-			if(g_pX2Game == NULL)
 			{
-				strstm << " g_pX2Game = NULL";
-			}
+				std::wstringstream strstm;
+				strstm << " m_SceneName = " << m_ScenName.c_str() << m_NowScenNum;
 
-			ErrorLogMsg( 0, strstm.str().c_str() );
-		}
+				if(g_pX2Game == NULL)
+				{
+					strstm << " g_pX2Game = NULL";
+				}
+
+				ErrorLogMsg( 0, strstm.str().c_str() );
+			}
 #endif SERV_CATCH_HACKUSER_INFO
 
 			m_fScenTimeBefore = m_fScenTime;
@@ -150,10 +180,8 @@ void CX2SlideShot::ScenEnd()
 		g_pX2Game->SetShowAllUnitGageBar( true );
 		g_pX2Game->SetRenderUserName( true );
 	}
-#ifdef REFORM_TUTORIAL
 	StopAllSound_LUA();
 	ResetBGM();
-#endif //REFORM_TUTORIAL
 
 	if( true == m_bSetCursor)
 	{
@@ -173,6 +201,10 @@ void CX2SlideShot::ScenEnd()
 
 void CX2SlideShot::GoNextScen()
 {
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+	m_fElapsedTimeAfterVoiceStopped = 0.0f;
+#endif //CHECK_VOICE_IN_SLIDESHOT
+
 	//ClearSeq();
 	ScenStart_LUA( (char*)m_ScenName.c_str(), m_NowScenNum+1 );	
 }
@@ -269,7 +301,6 @@ void CX2SlideShot::AddText( bool bNameLeft, const WCHAR* wszName, const WCHAR* w
 
 
 	CKTDGUIStatic* pStatic_Name		= (CKTDGUIStatic*) m_pDLGSlideShot->GetControl( L"Name" );
-	
 
 	pStatic_Name->GetString(0)->msg		= wszName;
 	pStatic_Speech->GetString(0)->msg	= chatContent;
@@ -434,13 +465,13 @@ void CX2SlideShot::CrashSeq_LUA( char* ID, float fTime, float fGap )
 			CKTDGParticleSystem::CParticleEvent_Crash* pCrash = new CKTDGParticleSystem::CParticleEvent_Crash();
 			pCrash->SetFade( true );
 			pCrash->SetCrash( CMinMax<D3DXVECTOR3>(D3DXVECTOR3(-fGap,-fGap,0),D3DXVECTOR3(fGap,fGap,0)) );
-
-			if ( pSeq->m_ParticleList.empty() == false )
-			{
-				const CKTDGParticleSystem::CParticle* pCParticle = pSeq->m_ParticleList.front();
-				if ( pCParticle != NULL )
-					pCrash->SetActualTime( CMinMax<float>(pCParticle->m_fEventTimer, pCParticle->m_fEventTimer + fTime) );
-			}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            const CKTDGParticleSystem::CParticle* pCParticle = pSeq->GetFrontParticle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			const CKTDGParticleSystem::CParticle* pCParticle = ( pSeq->m_ParticleList.empty() == false ) ? pSeq->m_ParticleList.front() : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			if ( pCParticle != NULL )
+				pCrash->SetActualTime( CMinMax<float>(pCParticle->GetEventTimer(), pCParticle->GetEventTimer() + fTime) );
 			pSeq->m_EventList.push_back( pCrash );
 		}
 	}
@@ -460,14 +491,15 @@ void CX2SlideShot::ChangeColor_LUA(char* ID, float fTime, D3DXCOLOR d3dColor)
 			pColor->SetFade( true );
  			pColor->SetColor( CMinMax<D3DXCOLOR>(d3dColor, d3dColor) );
 
-			if ( pSeq->m_ParticleList.empty() == false )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CKTDGParticleSystem::CParticle* pCParticle = pSeq->GetFrontParticle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			CKTDGParticleSystem::CParticle* pCParticle = ( pSeq->m_ParticleList.empty() == false ) ? pSeq->m_ParticleList.front() : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			if ( pCParticle != NULL )
 			{
-				CKTDGParticleSystem::CParticle* pCParticle = pSeq->m_ParticleList.front();
-				if ( pCParticle != NULL )
-				{
-					pColor->SetActualTime( CMinMax<float>(pCParticle->m_fEventTimer, pCParticle->m_fEventTimer + fTime) );
-					pCParticle->m_ColorFinal = d3dColor;	// ㅡㅡ;; 초기설정이 안되서 직접넣어줘본다. 아놔
-				}
+				pColor->SetActualTime( CMinMax<float>(pCParticle->GetEventTimer(), pCParticle->GetEventTimer() + fTime) );
+				pCParticle->SetColorFinal( d3dColor );	// ㅡㅡ;; 초기설정이 안되서 직접넣어줘본다. 아놔
 			}
 			//if( pSeq->m_Events.size() > 0 )
 			//{
@@ -492,20 +524,21 @@ void CX2SlideShot::ChangeTex_LUA( char* ID, char* pTexName )
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( iter->second );
 		if( NULL != pSeq )
 		{
-			if ( pSeq->m_ParticleList.empty() == false )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            const CKTDGParticleSystem::CParticle* pCParticle = pSeq->GetFrontParticle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			const CKTDGParticleSystem::CParticle* pCParticle = ( pSeq->m_ParticleList.empty() == false ) ? pSeq->m_ParticleList.front() : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			if( pCParticle != NULL )
 			{
-				 const CKTDGParticleSystem::CParticle* pCParticle = pSeq->m_ParticleList.front();
-				if( pCParticle != NULL )
-				{
-					map<int,CKTDXDeviceTexture*>::iterator iter;
-					iter = pSeq->m_TextureMap.find( pCParticle->m_TextureID );
-					CKTDXDeviceTexture* pTex = iter->second;
-					SAFE_CLOSE( pTex );
-					wstring texName;
-					ConvertUtf8ToWCHAR( texName, pTexName );
-					pTex = g_pKTDXApp->GetDeviceManager()->OpenTexture( texName.c_str() );
-					iter->second = pTex;
-				}
+				map<int,CKTDXDeviceTexture*>::iterator iter;
+				iter = pSeq->m_TextureMap.find( pCParticle->GetTextureID() );
+				CKTDXDeviceTexture* pTex = iter->second;
+				SAFE_CLOSE( pTex );
+				wstring texName;
+				ConvertUtf8ToWCHAR( texName, pTexName );
+				pTex = g_pKTDXApp->GetDeviceManager()->OpenTexture( texName.c_str() );
+				iter->second = pTex;
 			}
 		}
 	}
@@ -520,15 +553,15 @@ void CX2SlideShot::ChangeSize_LUA( char* ID, float fX, float fY )
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( iter->second );
 		if( NULL != pSeq )
 		{
-			if ( pSeq->m_ParticleList.empty() == false )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CKTDGParticleSystem::CParticle* pCParticle = pSeq->GetFrontParticle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			CKTDGParticleSystem::CParticle* pCParticle = ( pSeq->m_ParticleList.empty() == false ) ? pSeq->m_ParticleList.front() : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			if ( pCParticle != NULL )
 			{
-				CKTDGParticleSystem::CParticle* pCParticle = pSeq->m_ParticleList.front();
-				if ( pCParticle != NULL )
-				{
-					pCParticle->m_vSize.x = fX;
-					pCParticle->m_vSize.y = fY;
-				}//if
-			}
+				pCParticle->SetSize( D3DXVECTOR3(fX, fY, pCParticle->GetSize().z) );
+			}//if
 		}
 	}
 }
@@ -602,7 +635,6 @@ void CX2SlideShot::SetEnterShow( bool bShow )
 	}
 }
 //}}
-#ifdef REFORM_TUTORIAL
 void CX2SlideShot::PlaySound2D_LUA( char* pFileName )
 {
 	if( NULL != g_pKTDXApp && NULL != g_pKTDXApp->GetDeviceManager() )
@@ -655,4 +687,21 @@ void CX2SlideShot::ResetBGM()
 		m_preBGMName.clear();
 	}
 }
-#endif //REFORM_TUTORIAL
+
+
+#ifdef  X2OPTIMIZE_SLIDE_SHOT_NPC_SELF_CRASH_BUG_FIX
+void        CX2SlideShot::SetNPC( CX2GUNPC* pNPC )
+{
+    m_coNPC = pNPC;
+}
+
+void        CX2SlideShot::ResetNPC()
+{
+    m_coNPC.Reset();
+}
+
+CX2GUNPC*   CX2SlideShot::GetNPC()
+{
+    return  m_coNPC.GetObservable();
+}
+#endif  X2OPTIMIZE_SLIDE_SHOT_NPC_SELF_CRASH_BUG_FIX

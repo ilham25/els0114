@@ -7,6 +7,12 @@
 #include "X2Data/XSLUnitManager.h"
 #include "AutoPartyMakingManager.h"
 
+//{{ 2013. 09. 30	박세훈		자동파티 대기열 난이도 통합
+#ifdef SERV_AUTO_PARTY_DIFFICULTY_INTEGRATION
+	#include "X2Data/XSLDungeon.h"
+#endif SERV_AUTO_PARTY_DIFFICULTY_INTEGRATION
+//}}
+
 
 
 //{{ 2012. 02. 08	최육사	배틀필드 시스템
@@ -641,7 +647,28 @@ IMPL_ON_FUNC( EGB_GET_REGROUP_PARTY_INFO_ACK )
 
 		//////////////////////////////////////////////////////////////////////////
 		// 마지막으로 자동 파티가 성공했던 시간 정보를 각 자동파티 메이킹 프로세스에 처리하자!
+		
+		//{{ 2013. 09. 30	박세훈		자동파티 대기열 난이도 통합
+#ifdef SERV_AUTO_PARTY_DIFFICULTY_INTEGRATION
+		int iDungeonIDWithDif = m_kAutoPartyInfo.m_iDungeonID;
+		switch( m_kAutoPartyInfo.m_cDungeonMode )
+		{
+		case CXSLDungeon::DM_HENIR_PRACTICE:
+		case CXSLDungeon::DM_HENIR_CHALLENGE:
+		case CXSLDungeon::DM_SECRET_NORMAL:
+		case CXSLDungeon::DM_SECRET_HELL:
+			iDungeonIDWithDif += m_kAutoPartyInfo.m_cDifficultyLevel;	// 난이도 값 추가
+			break;
+
+		default:
+			break;
+		}
+
+		SiKAutoPartyMakingManager()->RefreshTimerAutoPartyGameStart( m_kAutoPartyInfo.m_cDungeonMode, iDungeonIDWithDif );
+#else
 		SiKAutoPartyMakingManager()->RefreshTimerAutoPartyGameStart( m_kAutoPartyInfo.m_cDungeonMode, m_kAutoPartyInfo.m_iDungeonID );
+#endif SERV_AUTO_PARTY_DIFFICULTY_INTEGRATION
+		//}}
 	}
 }
 

@@ -2,10 +2,6 @@
 #ifndef _KFILESERIALIZER_H
 #define _KFILESERIALIZER_H
 
-#ifdef  X2OPTIMIZE_SCRIPT_PREPROCESSING_TOOL
-#include    <KTDX.h>
-#endif  X2OPTIMIZE_SCRIPT_PREPROCESSING_TOOL
-
 class   KFileSerializer
 {
 public:

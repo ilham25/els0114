@@ -16,10 +16,8 @@ public:
 		SDT_NONE,
 		SDT_SKILL_TREE,
 		SDT_SKILL_EQUIP,
-#ifdef REFORM_UI_KEYPAD
 		SDT_USE_KEY,
 		SDT_DISUSE_KEY,
-#endif
 		SDT_END,
 	};
 
@@ -85,7 +83,7 @@ public:
 	void SetDragable( bool bDragable ){ m_bDragable = bDragable; }
 	bool GetDragable(){ return m_bDragable; }
 	D3DXVECTOR2 GetSize();
-	D3DXVECTOR2 GetPos();
+	virtual D3DXVECTOR2 GetPos() override;
 
 	virtual D3DXVECTOR2 GetGuideDescPos();
 
@@ -153,6 +151,28 @@ protected:
 		
 	//void ShowGuideDesc( bool bOpen );
 	void UpdateDraggingVertex( VERTEX_UI& vertexLT, VERTEX_UI& vertexRT, VERTEX_UI& vertexLB, VERTEX_UI& vertexRB, const UIPointData& pointData  );
+
+#ifdef DLL_BUILD
+	virtual bool IsSelectByEditGui( POINT pt ) override
+	{
+		return ContainsPoint(pt);
+	}
+
+	virtual void MoveControl( float fx, float fy ) override;
+	virtual void MoveSubControl( float fx, float fy, wstring subControlName ) override;
+
+	virtual void SetEditGUI( bool bEdit ) override;		// GUI 에디트 모드 설정
+
+	virtual void ShowSubView( wstring name, bool bView ) override;
+	virtual vector<D3DXVECTOR2> GetPosList() override;		// 컨트롤 내에 pictures의 위치 정보
+	virtual D3DXVECTOR2 GetPos(wstring name) override;
+
+	void DrawEditEdge();		// UITool에서 편집용으로 사용된다.
+
+protected:
+	bool m_bEditEdge;
+	CKTDXDeviceTexture * m_pCheckedEdgeTexture;
+#endif
 
 
 private:

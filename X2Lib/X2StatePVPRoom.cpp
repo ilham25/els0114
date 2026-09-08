@@ -48,9 +48,7 @@ CX2StatePVPRoom::CX2StatePVPRoom(void)
 
 #ifdef SERV_NEW_PVPROOM_PROCESS
 	m_pDLGSetPasswordRoom = new CKTDGUIDialog( this, L"DLG_UI_Pvp_Set_Password.lua" );
-
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGSetPasswordRoom );
-
 	m_pDLGSetPasswordRoom->SetShowEnable(false, false);
 #endif SERV_NEW_PVPROOM_PROCESS
 
@@ -119,7 +117,7 @@ CX2StatePVPRoom::CX2StatePVPRoom(void)
 	if( KPVPChannelInfo::PCC_TOURNAMENT == g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) )
 	{
 		if( m_bSendLeaveRoomReqByForce == false && 
-			NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
+			NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
 		{
 			m_bSendLeaveRoomReqByForce = true;
 			Handler_EGS_LEAVE_ROOM_REQ( NetError::NOT_LEAVE_ROOM_REASON_24 );
@@ -131,7 +129,7 @@ CX2StatePVPRoom::CX2StatePVPRoom(void)
 	if( KPVPChannelInfo::PCC_TOURNAMENT == g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) )
 	{
 		if( m_bSendLeaveRoomReqByForce == false && 
-			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
+			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
 		{
 			m_bSendLeaveRoomReqByForce = true;
 			Handler_EGS_LEAVE_ROOM_REQ( NetError::NOT_LEAVE_ROOM_REASON_24 );
@@ -160,7 +158,7 @@ CX2StatePVPRoom::CX2StatePVPRoom(void)
 
 	m_pFontForIPAndPort = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( XUF_DODUM_15_BOLD );
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), false );
 	g_pData->GetPVPRoom()->SetIntrudeGame( false );
 	g_pKTDXApp->SkipFrame();
@@ -193,8 +191,15 @@ CX2StatePVPRoom::CX2StatePVPRoom(void)
 #ifdef PET_DROP_ITEM_PICKUP
 				petInfo.m_bIsDropItemPickup = pPetInfo->m_bAutoLooting;
 #endif //PET_DROP_ITEM_PICKUP
-				petInfo.m_bSummon = true;
+#ifdef SERV_PET_SYSTEM_EX1
+				petInfo.m_bAlwaysMaxSatiety = pPetInfo->m_bAlwaysMaxSatiety;
+#endif //SERV_PET_SYSTEM_EX1
 
+				petInfo.m_bSummon = true;
+#ifdef SERV_EVENT_PET_INVENTORY
+				petInfo.m_bEventFoodEat		= pPetInfo->m_bEventFoodEat;
+				petInfo.m_bIsEventPetID		= pPetInfo->m_bIsEventPetID;
+#endif SERV_EVENT_PET_INVENTORY
 				g_pData->GetPetManager()->CreatePet( pSlot->m_pUnit->GetUID(), petInfo );
 			}
 		}
@@ -307,7 +312,7 @@ HRESULT CX2StatePVPRoom::OnFrameMove( double fTime, float fElapsedTime )
 	CX2StateMenu::OnFrameMove( fTime, fElapsedTime );
 
 
-	//g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( fElapsedTime );
+	//g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( fElapsedTime );
 	if( NULL != g_pX2Room )
 	{
 		g_pX2Room->OnFrameMove( fTime, fElapsedTime );
@@ -372,11 +377,11 @@ HRESULT CX2StatePVPRoom::OnFrameMove( double fTime, float fElapsedTime )
 			SetUserBox( pSlotData );
 		}
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 		if( GET_KEY_STATE( GA_PARTYREADY ) == TRUE || g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F8) == TRUE )
-#else // KEY_MAPPING_INT
+#else // SERV_KEY_MAPPING_INT
 		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F8) == TRUE )
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 		{
 			//{{ kimhc // 2011-03-02 // when skill window's been opened, you can't input the key, F8
 		#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -592,9 +597,9 @@ HRESULT CX2StatePVPRoom::OnFrameRender()
 				if ( pSlotData == NULL || pSlotData->m_pUnit == NULL )
 					continue;
 
-				wstring ipAndPort = pSlotData->m_pUnit->GetUnitData()->m_IP + L":";
+				wstring ipAndPort = pSlotData->m_pUnit->GetUnitData().m_IP + L":";
 				WCHAR szPort[256] = {0};
-				swprintf( szPort, L"%d", pSlotData->m_pUnit->GetUnitData()->m_Port );
+				swprintf( szPort, L"%d", pSlotData->m_pUnit->GetUnitData().m_Port );
 				ipAndPort += szPort;
 				swprintf( szPort, L"\n%d", (int)pSlotData->m_PingTime );
 				ipAndPort += szPort;
@@ -606,27 +611,27 @@ HRESULT CX2StatePVPRoom::OnFrameRender()
 					const CKTDNUDP::Peer* pPeer = g_pData->GetGameUDP()->GetPeer( pSlotData->m_UnitUID );
 					if( pPeer->GetUseRelay() )
 						ipAndPort += L" Relay";
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 					else if( pPeer->m_eP2PConnectType == CKTDNUDP::P2PCONNECT_INTERNAL )
 						ipAndPort += L" P2P using internal IP";
 					else
 						ipAndPort += L" P2P";
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-					else
-						ipAndPort += L" P2P";
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//					else
+//						ipAndPort += L" P2P";
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 					std::wstringstream wstrstm;
 					wstrstm << std::endl 
                         << CKTDNUDP::ConvertAddressToIP( pPeer->m_IPAddress )
                         << L":" << pPeer->m_Port << std::endl << L"Tried " << pPeer->m_ConnectTestCount << L" times" << std::endl;
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-					std::wstringstream wstrstm;
-					wstrstm << std::endl 
-                        << pPeer->m_InternalIP 
-                        << L":" << pPeer->m_InternalPort << std::endl << L"Tried " << pPeer->m_ConnectTestCount << L" times" << std::endl;
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//					std::wstringstream wstrstm;
+//					wstrstm << std::endl 
+//                        << pPeer->m_InternalIP 
+//                        << L":" << pPeer->m_InternalPort << std::endl << L"Tried " << pPeer->m_ConnectTestCount << L" times" << std::endl;
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 					ipAndPort += wstrstm.str();
 
@@ -634,7 +639,7 @@ HRESULT CX2StatePVPRoom::OnFrameRender()
 //#endif SERV_KTDX_RETRY_USING_INTERNAL_IP
 				//}}
 
-				if( true == pSlotData->m_pUnit->GetUnitData()->m_bMan )
+				if( true == pSlotData->m_pUnit->GetUnitData().m_bMan )
 				{
 					ipAndPort += L" ";
                     ipAndPort += GET_STRING( STR_ID_535 );
@@ -645,7 +650,7 @@ HRESULT CX2StatePVPRoom::OnFrameRender()
                     ipAndPort += GET_STRING( STR_ID_536 );
 				}
 
-				ipAndPort += GET_REPLACED_STRING( ( STR_ID_537, "i", pSlotData->m_pUnit->GetUnitData()->m_Age ) );
+				ipAndPort += GET_REPLACED_STRING( ( STR_ID_537, "i", pSlotData->m_pUnit->GetUnitData().m_Age ) );
 
 
 
@@ -1097,7 +1102,6 @@ bool CX2StatePVPRoom::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 
 			} break;
 #endif SERVER_PVP_BASE_DEFENCE_TEST
-
 
 #ifdef SERV_NEW_PVPROOM_PROCESS
 		case PRUCM_CHANGE_PVP_ROOM_PUBLIC:
@@ -2019,7 +2023,7 @@ bool CX2StatePVPRoom::Handler_EGS_STATE_CHANGE_GAME_START_NOT( HWND hWnd, UINT u
 	CX2PacketLog::PrintLog( &kEvent );
 	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
 
-	g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
 	if( m_pCX2PVPRoom == NULL )
 		return false;
@@ -2668,6 +2672,11 @@ bool CX2StatePVPRoom::UISetting()
 		pPVPRoomUserBox->pDialog = new CKTDGUIDialog( this, L"DLG_PVP_Room_UserInfo.lua" );
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( pPVPRoomUserBox->pDialog );
 
+#ifdef REMOVE_KR_SERVER_TEXTURE
+		CKTDGUIStatic* pStaticServerGroup = (CKTDGUIStatic*)pPVPRoomUserBox->pDialog->GetControl( L"Static_SERVER" );
+		if( pStaticServerGroup != NULL )
+			pStaticServerGroup->SetShow( false );
+#endif //REMOVE_KR_SERVER_TEXTURE
 
 		D3DXVECTOR3 offsetPos = m_pDLGPVPRoomBack->GetDummyPos( i + 8 );
 		D3DXVECTOR2 pos = D3DXVECTOR2( offsetPos.x,  offsetPos.y );
@@ -3481,7 +3490,7 @@ void CX2StatePVPRoom::UIFrameMove()
 			{
 				if ( pSlotData->m_pUnit != NULL )
 				{
-					if ( pSlotData->m_pUnit->GetUnitData()->m_bIsGameBang == true )
+					if ( pSlotData->m_pUnit->GetUnitData().m_bIsGameBang == true )
 					{
 						pStatic->GetPicture( i )->SetShow( true );
 					}
@@ -3515,7 +3524,7 @@ void CX2StatePVPRoom::UIFrameMove()
 				const CX2Item::ItemTemplet* pItemTempet = g_pData->GetItemManager()->GetItemTemplet( MAGIC_EMBLEM_ITEM_ID );
 				if( NULL != pItemTempet )
 				{
-					CX2Item* pEmblemItem = pSlotData->m_pUnit->GetInventory()->GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
+					CX2Item* pEmblemItem = pSlotData->m_pUnit->GetInventory().GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
 					if( NULL != pEmblemItem && NULL != pEmblemItem->GetItemTemplet() &&
                         pEmblemItem->GetItemTemplet()->GetItemID() == pItemTempet->GetItemID()
                         )
@@ -3529,7 +3538,7 @@ void CX2StatePVPRoom::UIFrameMove()
 					pItemTempet = g_pData->GetItemManager()->GetItemTemplet( MAGIC_EMBLEM_ITEM_ID_GOLD_MEDAL );
 					if( NULL != pItemTempet )
 					{
-						CX2Item* pEmblemItem = pSlotData->m_pUnit->GetInventory()->GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
+						CX2Item* pEmblemItem = pSlotData->m_pUnit->GetInventory().GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
 						if( NULL != pEmblemItem && NULL !=  pEmblemItem->GetItemTemplet() &&
                             pEmblemItem->GetItemTemplet()->GetItemID() == pItemTempet->GetItemID()
                             )
@@ -3723,7 +3732,8 @@ void CX2StatePVPRoom::UIFrameMove()
 void CX2StatePVPRoom::UnitViewerProcess( CX2UnitViewerUI* pViewer, int slotNum )
 {
 	//pViewer->SetLightPos( 1000, 1000, -200 );
-	pViewer->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+	//pViewer->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+	pViewer->SetLightPos( -250, 100, -600 );	// 캐릭터뷰어 라이트 위치 변경
 
 	pViewer->GetMatrix().Move( m_pDLGPVPRoomBack->GetDummyPos(slotNum) );
 
@@ -3829,7 +3839,7 @@ bool CX2StatePVPRoom::SetUserBox( CX2Room::SlotData* pSlotData )
 		// 길드명
 		CKTDGUIStatic* pStaticGuildName = static_cast< CKTDGUIStatic* >( pDialog->GetControl( L"Static_GuildName" ) );
 		if ( pStaticGuildName != NULL )
-			pStaticGuildName->SetString( 0, g_pData->GetGuildManager()->ConvertDisplayGuildName( pSlotData->m_pUnit->GetUnitData()->m_wstrGuildName ).c_str() );
+			pStaticGuildName->SetString( 0, g_pData->GetGuildManager()->ConvertDisplayGuildName( pSlotData->m_pUnit->GetUnitData().m_wstrGuildName ).c_str() );
 #endif	GUILD_MANAGEMENT
 		//}} kimhc // 2009-11-04 // 길드 명 추가
 		
@@ -3847,7 +3857,7 @@ bool CX2StatePVPRoom::SetUserBox( CX2Room::SlotData* pSlotData )
 
 
 		CKTDGUIStatic* pStaticUserInfo2 = (CKTDGUIStatic*)pDialog->GetControl( L"StaticPVP_Room_UserInfo" );
-		//_itow( (int)pSlotData->m_pUnit->GetUnitData()->m_Level, buf, 10 );
+		//_itow( (int)pSlotData->m_pUnit->GetUnitData().m_Level, buf, 10 );
 		//pStaticUserInfo->GetString( 1 )->msg = buf;
 		pStaticUserInfo2->GetString( 2 )->msg = pSlotData->m_pUnit->GetNickName();
 
@@ -3874,12 +3884,16 @@ bool CX2StatePVPRoom::SetUserBox( CX2Room::SlotData* pSlotData )
 		}
 		
 #ifdef SERV_INTEGRATION
-#ifndef REMOVE_KR_SERVER_TEXTURE
 		CKTDGUIStatic* pStaticServerGroup = (CKTDGUIStatic*)pDialog->GetControl( L"Static_SERVER" );
+
+#ifdef REMOVE_KR_SERVER_TEXTURE
+		if( pStaticServerGroup != NULL )
+			pStaticServerGroup->SetShow( false );
+#else REMOVE_KR_SERVER_TEXTURE
 	
 		SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
 
-		eServerGroupID = (SERVER_GROUP_ID) g_pMain->ExtractServerGroupID(pSlotData->m_pUnit->GetUnitData()->m_UnitUID);
+		eServerGroupID = (SERVER_GROUP_ID) g_pMain->ExtractServerGroupID(pSlotData->m_pUnit->GetUnitData().m_UnitUID);
 
 		if( eServerGroupID == SGI_SOLES)
 		{
@@ -4041,13 +4055,13 @@ bool CX2StatePVPRoom::CheckUnitLevelByChannelList()
 		KPVPChannelInfo kPVPChannel = g_pMain->GetChannelList().at(i);
 #ifdef SERV_PVP_NEW_SYSTEM
 		if ( kPVPChannel.m_iChannelID == g_pMain->GetConnectedChannelID() &&
-			( pNowUnit->GetUnitData()->m_iRating < kPVPChannel.m_iMinRating || 
-			pNowUnit->GetUnitData()->m_iRating > kPVPChannel.m_iMaxRating ) )
+			( pNowUnit->GetUnitData().m_iRating < kPVPChannel.m_iMinRating || 
+			pNowUnit->GetUnitData().m_iRating > kPVPChannel.m_iMaxRating ) )
 #else
 		//{{ 2007. 8. 28  최육사	level -> VP
 		if ( kPVPChannel.m_iChannelID == g_pMain->GetConnectedChannelID() &&
-			( pNowUnit->GetUnitData()->m_VSPointMax < kPVPChannel.m_nMinVSPoint || 
-			pNowUnit->GetUnitData()->m_VSPointMax > kPVPChannel.m_nMaxVSPoint ) )
+			( pNowUnit->GetUnitData().m_VSPointMax < kPVPChannel.m_nMinVSPoint || 
+			pNowUnit->GetUnitData().m_VSPointMax > kPVPChannel.m_nMaxVSPoint ) )
 		//}}
 #endif
 		{
@@ -4657,7 +4671,9 @@ void CX2StatePVPRoom::CX2MapSelectWindow::AddMapInfo_LUA()
 
 	CX2StatePVPRoom::MAP_INFO* pNew_MAP_INFO = new CX2StatePVPRoom::MAP_INFO();
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LUA_GET_VALUE( luaManager, "m_WorldID",				pNew_MAP_INFO->m_WorldID,			0 );
 
@@ -4740,25 +4756,12 @@ bool CX2StatePVPRoom::CX2MapSelectWindow::OpenScript( const WCHAR* pFileName )
 
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pMapSelectWindow", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR130, strFileName.c_str() );
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR131, pFileName );
 
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR131, strFileName.c_str() );
-
-		return false;
-	}
+    }
 
 	return true;
 }

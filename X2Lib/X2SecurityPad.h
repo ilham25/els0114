@@ -22,6 +22,10 @@ public:
 		SPUM_OK,
 		SPUM_CANCEL,
 		SPUM_DELETE_PASSWORD_VERIFY_OK,
+// #ifdef REFORM_ENTRY_POINT	 	// 13-11-11, A使見AO ╳取﹌／A﹌O ╳芋使帚“╳i, kimjh
+		SPUM_CHANGE_STATE_CHANGE_PASSWORD,
+		SPUM_CHANGE_STATE_RELEASE_PASSWORD,
+// #endif // REFORM_ENTRY_POINT	// 13-11-11, A使見AO ╳取﹌／A﹌O ╳芋使帚“╳i, kimjh
 	};
 
 	enum SECURITY_PAD_STATE
@@ -31,6 +35,9 @@ public:
 		SPS_CREATE_PASSWORD,
 		SPS_CHANGE_PASSWORD,
 		SPS_RELEASE_PASSWORD,
+// #ifdef REFORM_ENTRY_POINT	 	// 13-11-11, A使見AO ╳取﹌／A﹌O ╳芋使帚“╳i, kimjh
+		SPC_SELECT_STATE,
+// #endif // REFORM_ENTRY_POINT	// 13-11-11, A使見AO ╳取﹌／A﹌O ╳芋使帚“╳i, kimjh
 	};
 
 
@@ -39,7 +46,12 @@ public:
 	virtual ~CX2SecurityPad();
 
 	bool GetShow(){ return m_bShow; }
-	void SetShow(bool bShow, SECURITY_PAD_STATE eState = SPS_CLOSE);
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh A使見AO ╳取﹌／A﹌O ╳芋使帚“╳i
+	void SetShow(bool bShow, SECURITY_PAD_STATE eState = SPS_CLOSE, bool bIsDeleteOldDialog = true );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh A使見AO ╳取﹌／A﹌O ╳芋使帚“╳i
+	void SetShow(bool bShow, SECURITY_PAD_STATE eState = SPS_CLOSE );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh A使見AO ╳取﹌／A﹌O ╳芋使帚“╳i
+
 	void ShuffleNumber();
 
 	void ClearInputPassword();
@@ -78,6 +90,20 @@ public:
 
 	bool Handler_EGS_CHANGE_SECOND_SECURITY_PW_REQ(); // Phase Count 3
 	bool Handler_EGS_CHANGE_SECOND_SECURITY_PW_ACK(  HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, A帚AO ▽╱AＤ ﹉昆芋i, kimjh
+	void AutoAuthoritySecondSecurity ();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, A帚AO ▽╱AＤ ﹉昆芋i, kimjh
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // ▽eA取E芋, A帚AO ▽╱AＤ ﹉昆芋i 卹oA５ 2A㊣
+	bool GetIsAutoAuthoritySecondSecurityBegin() const { return m_bIsAutoAuthorityPassworBegin; }
+#endif // FIX_REFORM_ENTRY_POINT_2TH // ▽eA取E芋, A帚AO ▽╱AＤ ﹉昆芋i 卹oA５ 2A㊣
+
+#ifdef FIX_REFORM_ENTRY_POINT_7TH		// ▽eA取E芋, A帚AO ▽╱AＤ ﹉昆芋i 7A㊣, kimjh
+	bool Handler_EGS_CHECK_SECOND_SECURITY_PW_CHRACTER_LIST_REQ(); // Phase Count 3
+	bool Handler_EGS_CHECK_SECOND_SECURITY_PW_CHRACTER_LIST_ACK(  HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+	
+	bool Handler_EGS_GET_SECOND_SECURITY_INFO_REQ ();
+	bool Handler_EGS_GET_SECOND_SECURITY_INFO_ACK(  HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif // FIX_REFORM_ENTRY_POINT_7TH	// ▽eA取E芋, A帚AO ▽╱AＤ ﹉昆芋i 7A㊣, kimjh
 
 
 protected:
@@ -94,5 +120,13 @@ protected:
 	int							m_iPasswordIndex;
 	SECURITY_PAD_STATE			m_eState;
 	int							m_iPhase;
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, A帚AO ▽╱AＤ ﹉昆芋i, kimjh
+	wstring						m_wstrAutoAuthorityPassword;
+#endif // REFORM_ENTRY_POINT	// 13-11-11, A帚AO ▽╱AＤ ﹉昆芋i, kimjh
+
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // ▽eA取E芋, A帚AO ▽╱AＤ ﹉昆芋i 卹oA５ 2A㊣
+	bool						m_bIsAutoAuthorityPassworBegin;
+#endif // FIX_REFORM_ENTRY_POINT_2TH // ▽eA取E芋, A帚AO ▽╱AＤ ﹉昆芋i 卹oA５ 2A㊣	
+
 };
 #endif SERV_SECOND_SECURITY

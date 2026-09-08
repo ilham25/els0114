@@ -284,7 +284,7 @@ void KGarenaBillingUser::OnAcceptConnection()
 void KGarenaBillingUser::OnRecvCompleted( KGarenaBillingPacket& kPacket )
 {
 	//////////////////////////////////////////////////////////////////////////	
-	START_LOG( cout, L"[테스트로그] 패킷 받은 객체!" )
+	START_LOG( cwarn, L"[테스트로그] 패킷 받은 객체!" )
 		<< BUILD_LOG( GetUID() );
 	//////////////////////////////////////////////////////////////////////////	
 
@@ -318,7 +318,7 @@ void KGarenaBillingUser::OnRecvCompleted( KGarenaBillingPacket& kPacket )
 void KGarenaBillingUser::OnDestroy()
 {
 	//////////////////////////////////////////////////////////////////////////	
-	START_LOG( cout, L"[테스트로그] 세션 접속 종료!" )
+	START_LOG( cwarn, L"[테스트로그] 세션 접속 종료!" )
 		<< BUILD_LOG( GetUID() );
 	//////////////////////////////////////////////////////////////////////////	
 

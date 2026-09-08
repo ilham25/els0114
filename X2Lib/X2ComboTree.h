@@ -145,6 +145,20 @@ public:
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND
 		CTI_Z_WOLF_TOOTH,			/// ³¶¾Æ 1½Ä
 #endif //SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_9TH_NEW_CHARACTER
+		CTI_ICON_DYNAMO_Z			= 92,
+		CTI_ICON_DYNAMO_X			= 93,
+		CTI_ICON_DYNAMO_ROLLING		= 94,
+		CTI_ICON_DYNAMO_TELEPORT	= 95,
+		CTI_ICON_FIST_NA			= 96,
+		CTI_ICON_KICK_NA			= 97,
+		CTI_RIGHT_Z_PURPLE			= 98,
+		CTI_RIGHT_X_PURPLE			= 99,
+		CTI_RIGHT_Z_PURPLE_CONTINUE	= 100,
+		CTI_RIGHT_X_PURPLE_CHARGE	= 101,
+		CTI_ICON_NA					= 102,
+#endif //SERV_9TH_NEW_CHARACTER
 	};
 
 
@@ -156,6 +170,9 @@ public:
 		CC_JUMP,
 		CC_DASH,
 		CC_DASH_JUMP,
+//#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+		CC_SPECIAL,			/// Æ¯¼ö ÄÞº¸ Æ®¸®
+//#endif //SERV_ADD_LUNATIC_PSYKER
 	};
 
 
@@ -198,6 +215,9 @@ public:
 		std::vector<ComboIcon> m_vecJumpCombo;
 		std::vector<ComboIcon> m_vecDashCombo;
 		std::vector<ComboIcon> m_vecDashJumpCombo;
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+		std::vector<ComboIcon> m_vecSpecialCombo;		/// Æ¯¼ö ÄÞº¸ Æ®¸®
+#endif //SERV_ADD_LUNATIC_PSYKER
 
 		void Init()
 		{
@@ -205,6 +225,9 @@ public:
 			m_vecJumpCombo.resize(0);
 			m_vecDashCombo.resize(0);
 			m_vecDashJumpCombo.resize(0);
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+			m_vecSpecialCombo.resize(0);
+#endif //SERV_ADD_LUNATIC_PSYKER
 		}
 	};
 
@@ -215,12 +238,13 @@ private:
 	struct UnitClassName
 	{
 		CX2Unit::UNIT_CLASS m_eUnitClass;
-		std::wstring m_Name;
+		//std::wstring m_Name;
+        std::string m_Name;
 
-		UnitClassName( CX2Unit::UNIT_CLASS eUnitClass, const std::wstring& wstrName )
+		UnitClassName( CX2Unit::UNIT_CLASS eUnitClass, const std::string& strName )
 		{
 			m_eUnitClass = eUnitClass;
-			m_Name = wstrName;
+			m_Name = strName;
 		}
 	};
 

@@ -24,6 +24,8 @@
 #include "../Common/OnlyGlobal/AuthAndBilling/ID/CJBillingManager.h"
 #elif defined (SERV_COUNTRY_BR)
 #include "../Common/OnlyGlobal/AuthAndBilling/BR/BRPayletterBillingManager.h"
+#elif defined (SERV_COUNTRY_IN)
+#include "../Common/OnlyGlobal/AuthAndBilling/IN/NaunBillingManager.h"
 #endif // SERV_COUNTRY_XX
 
 #endif // SERV_GLOBAL_BILLING
@@ -113,7 +115,9 @@
 //}}
 //{{ 2011. 10. 12	최육사	컨텐츠 관리자
 #ifdef SERV_CONTENT_MANAGER
+#ifndef SERV_CONTENT_MANAGER_INT
 	#include "GSContentManager.h"
+#endif SERV_CONTENT_MANAGER_INT
 #endif SERV_CONTENT_MANAGER
 //}}
 
@@ -128,6 +132,9 @@
 	#include "NexonSOAPManager.h"
 #endif SERV_NEXON_AUTH_SOAP
 //}}
+#ifdef SERV_NAVER_CHANNELING
+    #include "NaverSoapManager.h"
+#endif SERV_NAVER_CHANNELING
 
 //{{ 2011.10.14     김민성    운영자 기능은 특정 IP 에서만 사용 가능
 #ifdef SERV_USE_GM_CHEAT_RESTRICTED_IP
@@ -226,6 +233,18 @@
 	#include "X2Data/XSLRidingPetManager.h"
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_GOOD_ELSWORD
+#include "X2Data/XSLEDInventoryExpand.h"
+#endif
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	#include "X2Data/XSLFieldBossData.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	#include "StringFilterManager.h"
+#endif //SERV_STRING_FILTER_USING_DB
+
 NiImplementRTTI( KGSSimLayer, KSimLayer );
 
 KGSSimLayer::KGSSimLayer(void) 
@@ -293,11 +312,17 @@ void KGSSimLayer::RegToLua()
 	//}}
 #ifdef SERV_USE_XTRAP
 	lua_tinker::class_def<KGSSimLayer>( g_pLua, "ReloadXTRAP_MAP",	&KGSSimLayer::ReloadXTRAP_MAP );
-#endif SERV_USE_XTRAP
+#endif //SERV_USE_XTRAP
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH
+	lua_tinker::class_def<KGSSimLayer>( g_pLua, "AddCommonFlag_AllGS",		&KGSSimLayer::AddCommonFlag_AllGS_LUA );
+	lua_tinker::class_def<KGSSimLayer>( g_pLua, "DeleteCommonFlag_AllGS",	&KGSSimLayer::DeleteCommonFlag_AllGS_LUA );
+#endif // SERV_MODFIY_FLAG_REALTIME_PATCH
+
+
+    lua_tinker::class_def<KGSSimLayer>( g_pLua, "SetServerGroupNum", &KGSSimLayer::SetServerGroupNum );
 
 	lua_tinker::decl( g_pLua, "SimLayer", this );
 
-	//////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GLOBAL_BILLING
 
 #if defined(SERV_COUNTRY_US)
@@ -312,21 +337,22 @@ void KGSSimLayer::RegToLua()
 	SiKCJBillingManager()->RegToLua();
 #elif defined(SERV_COUNTRY_BR)
 	SiKBRPayletterBillingManager()->RegToLua();
+#elif defined(SERV_COUNTRY_IN)
+	SiKNaunBillingManager()->RegToLua();
 #endif //SERV_COUNTRY_XX
 
 #else // SERV_GLOBAL_BILLING
     SiKNexonBillingTCPManager()->RegToLua();
 #endif // SERV_GLOBAL_BILLING
-	//////////////////////////////////////////////////////////////////////////
-	
 
 	//{{ 2012. 04. 02	김민성		넥슨 auth soap
 #ifdef SERV_NEXON_AUTH_SOAP
 	SiKNexonSOAPManager()->RegToLua();
 #endif SERV_NEXON_AUTH_SOAP
 	//}}
-	
-
+#ifdef SERV_NAVER_CHANNELING
+    SiKNaverSOAPManager()->RegToLua();
+#endif SERV_NAVER_CHANNELING
 }
 
 KActorProxy* CreateProxy( int iProxyType )
@@ -395,6 +421,25 @@ void KGSSimLayer::Init()
 		}
 	}
 
+	{
+		LoadingTimer lt( L"DungeonEnum.lua" );
+
+		//추후 ↓에서 이루어 지는 데이터 로딩이 실패할경우 서버를 종료 시켜야한다.
+		strFile = "DungeonEnum.lua";
+		kAutoPath.GetPullPath( strFile );
+		if( 0 != LUA_DOFILE( g_pLua, strFile.c_str() ) )
+		{
+			START_LOG( cerr, L"DungeonEnum 정보 로드 실패.!" )
+				<< BUILD_LOG( KncUtil::toWideString( strFile ) );
+			//{{ 2011. 02. 07	최육사	스크립트 파싱 오류 리포트
+			KBaseServer::GetKObj()->AddFailScriptFileName( L"DungeonEnum.lua" );
+		}
+		else
+		{
+			START_LOG( cout, L"DungeonEnum 정보 로드 성공.!" );
+		}
+	}
+
 	//{{ 2009. 12. 19  최육사	서버군 확장
 	{
 		LoadingTimer lt(L"CashItemData.lua");
@@ -418,8 +463,8 @@ void KGSSimLayer::Init()
 	}
 	//}}
 
-	//////////////////////////////////////////////////////////////////////////
-#ifdef SERV_GLOBAL_BILLING
+
+#ifdef SERV_GLOBAL_BILLING //-------------------------------------------------
 #if defined (SERV_COUNTRY_US)
 	m_vecpThreadMgr.push_back( SiKPayletterBillingManager()->GetInstance() );
 #elif defined (SERV_COUNTRY_EU)
@@ -432,17 +477,20 @@ void KGSSimLayer::Init()
 	m_vecpThreadMgr.push_back( SiKCJBillingManager()->GetInstance() );
 #elif defined (SERV_COUNTRY_BR)
 	m_vecpThreadMgr.push_back( SiKBRPayletterBillingManager()->GetInstance() );
+#elif defined (SERV_COUNTRY_IN)
+	m_vecpThreadMgr.push_back( SiKNaunBillingManager()->GetInstance() );
 #endif //SERV_COUNTRY_XX
 
-#else // SERV_GLOBAL_BILLING
+#else // SERV_GLOBAL_BILLING //-------------------------------------------------
 			m_vecpThreadMgr.push_back( SiKNexonBillingTCPManager()->GetInstance() );
 			//{{ 2012. 04. 02	김민성		넥슨 auth soap
 #ifdef SERV_NEXON_AUTH_SOAP
 			m_vecpThreadMgr.push_back( KNexonSOAPManager::GetInstance() );
 #endif SERV_NEXON_AUTH_SOAP
-#endif // SERV_GLOBAL_BILLING
-	//////////////////////////////////////////////////////////////////////////
-			
+#ifdef SERV_NAVER_CHANNELING
+            m_vecpThreadMgr.push_back( KNaverSOAPManager::GetInstance() );
+#endif SERV_NAVER_CHANNELING
+#endif // SERV_GLOBAL_BILLING //-------------------------------------------------
 
     KSimLayer::Init();
 
@@ -454,6 +502,12 @@ void KGSSimLayer::Init()
 		SiKGameEventManager()->SetServerType( KGameEventManager::ST_GAME );
 
 		KGameEventScriptManager::RegScriptName( "EventData.lua" );
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		KGameEventScriptManager::RegScriptName( "CoboEventData.lua" );
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef  SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		KGameEventScriptManager::RegScriptName( "ValenTineData.lua" );
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 		OPEN_SCRIPT_FILE( KGameEventScriptManager );
 #endif SERV_PC_BANG_DROP_EVENT
 		//}}
@@ -557,7 +611,6 @@ void KGSSimLayer::Init()
 		CXSLItemManager::RegScriptName( "CoolTimeGroupItem.lua" );
 #endif SERV_BATTLE_FIELD_SYSTEM
 		//}}
-
 		//{{ 2013. 04. 01	 인연 시스템 - 김민성
 #ifdef SERV_RELATIONSHIP_SYSTEM
 		CXSLItemManager::RegScriptName( "WeddingItemData.lua" );
@@ -571,6 +624,11 @@ void KGSSimLayer::Init()
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
 		CXSLItemManager::RegScriptName( "KeepItem.lua" );
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+
+#ifdef SERV_WISH_LIST_NO_ITEM
+		CXSLItemManager::RegScriptName( "WishListNoItem.lua" );
+#endif SERV_WISH_LIST_NO_ITEM
+
 		OPEN_SCRIPT_FILE( CXSLItemManager );
 	}
 
@@ -756,6 +814,11 @@ void KGSSimLayer::Init()
 		OPEN_SCRIPT_FILE( CXSLQuestManager );
 	}
 
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+	CXSLSkillTree::RegScriptName( "NewSkillTempletVer2.lua" );
+	CXSLSkillTree::RegScriptName( "SkillData.lua" );
+	OPEN_SCRIPT_FILE( CXSLSkillTree );
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	{
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		LoadingTimer lt(L"NewSkillTempletVer2.lua");
@@ -809,6 +872,7 @@ void KGSSimLayer::Init()
 			START_LOG( cout, L"SKILL DATA 정보 로드 성공.!" );
 		}
 	}
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 
 	//{ -- 안쓴다
 	//	LoadingTimer lt(L"NewVer.xml");
@@ -867,6 +931,9 @@ void KGSSimLayer::Init()
 		CXSLTitleManager::RegScriptName( "TitleTable.lua" );
 		CXSLTitleManager::RegScriptName( "TitleMission.lua" );
 		CXSLTitleManager::RegScriptName( "SubTitleMission.lua" );
+#ifdef SEPARATION_SUB_TITLE_SCRIPT
+		CXSLTitleManager::RegScriptName( "SubTitleOpenMission.lua" );
+#endif // SEPARATION_SUB_TITLE_SCRIPT
 		OPEN_SCRIPT_FILE( CXSLTitleManager );
 	}
 
@@ -994,10 +1061,12 @@ void KGSSimLayer::Init()
 
 	//{{ 2011. 10. 12	최육사	컨텐츠 관리자
 #ifdef SERV_CONTENT_MANAGER
+#ifndef SERV_CONTENT_MANAGER_INT
 	{
 		KGSContentManager::RegScriptName( "ContentData.lua" );
 		OPEN_SCRIPT_FILE( KGSContentManager );
 	}
+#endif SERV_CONTENT_MANAGER_INT
 #endif SERV_CONTENT_MANAGER
 	//}}
 
@@ -1129,6 +1198,13 @@ void KGSSimLayer::Init()
 	}
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_GOOD_ELSWORD
+    {
+        CXSLEDInventoryExpand::RegScriptName( "EDInventoryExpand.lua" );
+        OPEN_SCRIPT_FILE( CXSLEDInventoryExpand );
+    }
+#endif //SERV_GOOD_ELSWORD
+
 	//{{ 2013. 05. 20	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	{
@@ -1155,6 +1231,13 @@ void KGSSimLayer::Init()
 	}
 #endif SERV_CLIENT_SCRIPT
 	//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	{
+		CXSLFieldBossData::RegScriptName( "FieldBossData.lua" );
+		OPEN_SCRIPT_FILE( CXSLFieldBossData );
+	}
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	//{{ 2010. 01. 28  최육사	통합파티
 #ifdef SERV_CHANNEL_PARTY
@@ -1197,6 +1280,8 @@ void KGSSimLayer::Init()
 	m_bUDPKickUserOff = false;
 #endif UDP_CAN_NOT_SEND_USER_KICK
 	//}}
+	// 해외팀 주석 처리
+    //m_iServerGroupNum = DOUBLE_SERVER_GROUP;
 }
 
 void KGSSimLayer::Tick()
@@ -1208,10 +1293,13 @@ void KGSSimLayer::Tick()
 
 #if defined(SERV_COUNTRY_TW)
 	SiKGASHBillingTCPManager()->Tick();
+#elif defined(SERV_COUNTRY_IN)
+	SiKNaunBillingManager()->Tick();
+#else
+
 #endif //SERV_COUNTRY_XX
 
 #endif // SERV_GLOBAL_BILLING
-
 
 #ifdef SERV_USE_XTRAP
 #ifdef SERV_XTRAP_MAP_LOADING_AUTOMATION
@@ -1237,6 +1325,10 @@ void KGSSimLayer::Tick()
 
 	// 어뷰저 리스트 갱신
 	SiKAbuserLogManager()->Tick();
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	SiKStringFilterManager()->Tick();
+#endif //SERV_STRING_FILTER_USING_DB
 
 	//{{ 2010. 01. 28  최육사	통합파티
 #ifdef SERV_CHANNEL_PARTY	
@@ -1270,7 +1362,7 @@ void KGSSimLayer::Tick()
 #ifdef SERV_MORNITORING	
 	if( GetKGameServer()->IsConnectionMornitoringEnable() == true )
 	{
-		SiKMornitoringManager()->Tick_GSSImLayer();
+		SiKMornitoringManager()->Tick_GSSimLayer();
 	}
 #endif SERV_MORNITORING
 	//}}
@@ -1292,7 +1384,6 @@ void KGSSimLayer::ShutDown()
 {
     KSimLayer::ShutDown();
 
-	//////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GLOBAL_BILLING
 #if defined (SERV_COUNTRY_US)
 	SiKPayletterBillingManager()->ReleaseInstance();
@@ -1306,11 +1397,12 @@ void KGSSimLayer::ShutDown()
 	SiKCJBillingManager()->ReleaseInstance();
 #elif defined (SERV_COUNTRY_BR)
 	SiKBRPayletterBillingManager()->ReleaseInstance();
+#elif defined (SERV_COUNTRY_IN)
+	SiKNaunBillingManager()->ReleaseInstance();
 #endif // SERV_COUNTRY_XX
 #else // SERV_GLOBAL_BILLING
     SiKNexonBillingTCPManager()->ReleaseInstance();	
 #endif // SERV_GLOBAL_BILLING
-	//////////////////////////////////////////////////////////////////////////
 	
 	KGameEventManager::ReleaseInstance();
 	//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
@@ -1391,7 +1483,9 @@ void KGSSimLayer::ShutDown()
 	SiKNexonSOAPManager()->ReleaseInstance();
 #endif SERV_NEXON_AUTH_SOAP
 	//}}
-
+#ifdef SERV_NAVER_CHANNELING
+    SiKNaverSOAPManager()->ReleaseInstance();
+#endif SERV_NAVER_CHANNELING
 	//{{ 2011.10.14     김민성    운영자 기능은 특정 IP 에서만 사용 가능
 #ifdef SERV_USE_GM_CHEAT_RESTRICTED_IP
 	KCompanyIPTable::ReleaseInstance();
@@ -1452,11 +1546,13 @@ void KGSSimLayer::ShutDown()
 	CXSLSynthesisManager::ReleaseInstance();
 #endif SERV_SYNTHESIS_AVATAR
 	//}}
-	
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-21
 	CXSLRidingPetManager::ReleaseInstance();
 #endif	// SERV_RIDING_PET_SYSTM
-	
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	CXSLFieldBossData::ReleaseInstance();
+#endif // SERV_BATTLE_FIELD_BOSS
 }
 
 //{{ 임홍락 [2012.05.16] 서버 단일화 // SERV_USE_NATION_FLAG 필수 포함임
@@ -1503,7 +1599,6 @@ std::string KGSSimLayer::GetStrItemTransLuaName()
 
 	return strFile;
 }
-
 #endif // SERV_ITEM_LUA_TRANS_DEVIDE
 
 std::string KGSSimLayer::GetStrFilterLuaName()
@@ -1544,10 +1639,8 @@ std::string KGSSimLayer::GetStrPvpNpcDataLua()
 	
 	return strFile;
 }
-
 #endif SERV_UNITED_SERVER_EU
 //}}
-
 
 void KGSSimLayer::SendNotMSG( IN char cNotifyType, IN const std::wstring& wstrNotMSG, IN int iCount )
 {
@@ -1906,4 +1999,30 @@ void KGSSimLayer::ReloadXTRAP_MAP()
 		XTrap_S_Start( 600, m_setLoadedMaps.size(), &m_vecUsingMap[0], NULL );	// XTrap server 모듈 시작
 	}
 }
-#endif SERV_USE_XTRAP
+#endif //SERV_USE_XTRAP
+
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH // 단일 센터 서버로 보내기
+void KGSSimLayer::DeleteCommonFlag_AllGS_LUA( DWORD dwFlag )
+{
+	KECN_DEL_COMMON_FLAG_NOT kNot;
+	kNot.dwFlag = dwFlag;
+	KncSend( PI_GS_SERVER, KBaseServer::GetKObj()->GetUID(), PI_CN_SERVER, 0, NULL, ECN_DEL_COMMON_FLAG_NOT, kNot );
+}
+void KGSSimLayer::AddCommonFlag_AllGS_LUA( DWORD dwFlag )
+{
+	KECN_ADD_COMMON_FLAG_NOT kNot;
+	kNot.dwFlag = dwFlag;
+	KncSend( PI_GS_SERVER, KBaseServer::GetKObj()->GetUID(), PI_CN_SERVER, 0, NULL, ECN_ADD_COMMON_FLAG_NOT, kNot );
+}
+#endif // SERV_MODFIY_FLAG_REALTIME_PATCH
+
+void KGSSimLayer::SetServerGroupNum( int iGroupNum_ )
+{
+    m_iServerGroupNum = iGroupNum_;
+}
+
+int KGSSimLayer::GetServerGroupNum()
+{
+    return m_iServerGroupNum;
+}
+

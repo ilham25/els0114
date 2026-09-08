@@ -4,12 +4,6 @@
 #ifdef SERV_EPIC_QUEST
 #include ".\X2UIQuestNew.h"
 
-//{{ Iruha : 2026-09-04 // HUD portrait after a quest job change
-#ifdef SERV_IRUHADEV_JOBCHANGE_PORTRAIT
-#include "X2GageManager.h"
-#endif SERV_IRUHADEV_JOBCHANGE_PORTRAIT
-//}}
-
 CX2UIQuestNew::CX2UIQuestNew( CKTDXStage* pNowStage, const WCHAR* pFileName )
 : CX2ItemSlotManager( pNowStage, pFileName ),
 m_iQuestPerPage(0),
@@ -66,7 +60,7 @@ m_byNumOfItemThatICanGet( 0 )	// kimhc // 2009-12-18 // 가질수 있는 선택 보상 아
 , m_iShowQuickQuest(0) // 오현빈 // 2012-05-14 // 보여지는 퀵퀘스트 갯수
 #endif //GUIDE_QUICK_QUEST_COMPLETE
 #ifdef REFORM_QUEST
-, m_hQuestCompleteParticle(INVALID_PARTICLE_HANDLE)
+, m_hQuestCompleteParticle(INVALID_PARTICLE_SEQUENCE_HANDLE)
 #endif //REFORM_QUEST
 {
 	m_vecPrevNotAssignedQuestID.clear();		// 새로 갱신된 퀘스트 리스트가 있는지 확인하기 위해서
@@ -98,23 +92,27 @@ m_byNumOfItemThatICanGet( 0 )	// kimhc // 2009-12-18 // 가질수 있는 선택 보상 아
 		//wsprintf( buffer, L"Button_Category%d", i);
 		StringCchPrintf( buffer, 256, L"Button_Category%d", i);
 		m_vecUIQuestSlotInfo[i].m_pButtonCategory = (CKTDGUIButton*) m_pDLGUIQuestList->GetControl( buffer );
-		m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(false, false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(false, false);
 
 		//wsprintf( buffer, L"Static_Category%d", i);
 		StringCchPrintf( buffer, 256, L"Static_Category%d", i);
 		m_vecUIQuestSlotInfo[i].m_pStaticCategory = (CKTDGUIStatic*) m_pDLGUIQuestList->GetControl( buffer );
-		m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(false, false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+			m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(false, false);
 
 		
 		//wsprintf( buffer, L"RadioButton_List%d", i);
 		StringCchPrintf( buffer, 256, L"RadioButton_List%d", i);
 		m_vecUIQuestSlotInfo[i].m_pButtonQuest = (CKTDGUIRadioButton*) m_pDLGUIQuestList->GetControl( buffer );
-		m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetShowEnable(false, false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonQuest )
+			m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetShowEnable(false, false);
 
 		//wsprintf( buffer, L"Static_QuestList%d", i);
 		StringCchPrintf( buffer, 256, L"Static_QuestList%d", i);
 		m_vecUIQuestSlotInfo[i].m_pStaticQuest = (CKTDGUIStatic*) m_pDLGUIQuestList->GetControl( buffer );
-		m_vecUIQuestSlotInfo[i].m_pStaticQuest->SetShow(false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticQuest )
+			m_vecUIQuestSlotInfo[i].m_pStaticQuest->SetShow(false);
 
 		m_vecUIQuestSlotInfo[i].m_bIsCategory = false;
 		m_vecUIQuestSlotInfo[i].m_bIsCategoryOpen = false;
@@ -469,27 +467,19 @@ HRESULT CX2UIQuestNew::OnFrameMove( double fTime, float fElapsedTime )
 				m_eNowQuestUIMode == QUM_QUEST_RECEIVE||
 				m_eNowQuestUIMode == QUM_EPIC_QUEST)
 			{
-#ifdef REFORM_UI_KEYPAD
 				if ( GET_KEY_STATE( GA_UP ) == TRUE )
-#else
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_UP ) == TRUE )
-#endif
 				{
 					FocusQuest(false);
 				}
-#ifdef REFORM_UI_KEYPAD
 				else if ( GET_KEY_STATE( GA_DOWN ) == TRUE )
-#else
-				else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_DOWN ) == TRUE )
-#endif
 				{
 					FocusQuest(true);
 				}
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 				else if( GET_KEY_STATE( GA_RETURN ) == TRUE || g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_RETURN ) == TRUE )
-#else // KEY_MAPPING_INT
+#else // SERV_KEY_MAPPING_INT
 				else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_RETURN ) == TRUE )
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 				{
 					if(	m_iSelectedQuestSlotIndex != -1 &&
 						m_vecUIQuestSlotInfo[m_iSelectedQuestSlotIndex].m_QuestID != -1)
@@ -779,6 +769,9 @@ bool CX2UIQuestNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 		{
 			CKTDGUIButton* pButton = (CKTDGUIButton*) lParam;
 			m_iSelectedQuestSlotIndex = pButton->GetDummyInt(0);
+#ifdef MODIFY_ACCEPT_QUEST
+			bool bIsChangeReceiveTab = false;
+#endif // MODIFY_ACCEPT_QUEST
 
 			//pButton->SetNormalTex(wstrTextureName.c_str(), wstrTextureKey.c_str());
 			if(m_eNowQuestUIMode == QUM_QUEST_RECEIVE )
@@ -792,6 +785,9 @@ bool CX2UIQuestNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 					m_bIsOpenOngoingCategory = !m_bIsOpenOngoingCategory;
 				}
 				m_vecUIQuestSlotInfo[m_iSelectedQuestSlotIndex].m_bIsCategoryOpen = !m_vecUIQuestSlotInfo[m_iSelectedQuestSlotIndex].m_bIsCategoryOpen;
+#ifdef MODIFY_ACCEPT_QUEST
+				bIsChangeReceiveTab = true;
+#endif // MODIFY_ACCEPT_QUEST
 			}
 			else if(m_eNowQuestUIMode == QUM_QUEST )
 			{
@@ -821,7 +817,14 @@ bool CX2UIQuestNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 
 				m_vecUIQuestSlotInfo[m_iSelectedQuestSlotIndex].m_bIsCategoryOpen = m_bIsOpenEventCategory;
 			}
-			m_iTopQuestSlotIndex = 0;
+#ifdef MODIFY_ACCEPT_QUEST
+			// 수행 중 의뢰 카테고리를 열 때
+			// 스크롤 초기화되어, 사용이  불펺나 점 개선
+			if( false == bIsChangeReceiveTab )
+#endif // MODIFY_ACCEPT_QUEST
+			{
+				m_iTopQuestSlotIndex = 0;
+			}
 			ResetQuestUI();
 
 
@@ -1452,7 +1455,7 @@ bool CX2UIQuestNew::Handler_EGS_QUEST_COMPLETE_ACK( HWND hWnd, UINT uMsg, WPARAM
 			g_pData->GetQuestManager()->RemoveUnitQuest( kEvent.m_kCompleteQuestInfo.m_iQuestID, true );
 
 			g_pData->GetMyUser()->GetSelectUnit()->Reset( kEvent.m_kUpdateUnitInfo.m_kUnitInfo );
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
 			if( NULL != g_pData->GetUIManager()->GetUIInventory() )
 			{
 				g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
@@ -1512,37 +1515,6 @@ bool CX2UIQuestNew::Handler_EGS_QUEST_COMPLETE_ACK( HWND hWnd, UINT uMsg, WPARAM
 
 				CX2State* pState = (CX2State*) g_pMain->GetNowState();
 				pState->ResetUnitViewerInFieldSquare( g_pData->GetMyUser()->GetSelectUnit()->GetUID(), g_pData->GetMyUser()->GetSelectUnit()->GetClass() );
-				//{{ Iruha : 2026-09-04 // HUD portrait after a quest job change
-#ifdef SERV_IRUHADEV_JOBCHANGE_PORTRAIT
-				// ResetUnitViewerInFieldSquare above rebuilds the 3D square unit; the
-				// top-left gage portrait is a separate thing and nothing here touched
-				// it, so it kept drawing the old class until the gage was rebuilt -
-				// which only happens on a state change, i.e. re-selecting the
-				// character. This is a gap in the shipped client, not in the server:
-				// the GameServer sends only EGS_QUEST_COMPLETE_ACK for a quest-driven
-				// class change (UserQuestManager.cpp:5038-5142), and every OTHER
-				// class-change path in the client refreshes the portrait itself -
-				// EGS_CHANGE_MY_UNIT_INFO_NOT (X2State.cpp:12958), the admin change
-				// (:5083), and the jumping character (:13174), whose comment there is
-				// literally "refresh the character portrait".
-				//
-				// GetMyGageData() is the probe, not GetInstance() on its own:
-				// CX2GageManager::SetCharacterImage dereferences m_ptrMyGageSet with
-				// no null check, unlike almost every neighbour in that same header,
-				// and there is no gage at all in some states.
-				if( NULL != CX2GageManager::GetInstance() &&
-					NULL != CX2GageManager::GetInstance()->GetMyGageData() )
-				{
-					const CX2Unit::UNIT_CLASS eNewClass =
-						g_pData->GetMyUser()->GetSelectUnit()->GetClass();
-				
-					CX2GageManager::GetInstance()->SetCharacterImage( eNewClass );
-#ifdef FIX_CHUNG_GAGE_UI_UPDATE_BUG
-					CX2GageManager::GetInstance()->ResetGageUIEtc( eNewClass );
-#endif // FIX_CHUNG_GAGE_UI_UPDATE_BUG
-				}
-#endif SERV_IRUHADEV_JOBCHANGE_PORTRAIT
-//}}
 			}
 			 //도움말 입력
 			{
@@ -1592,7 +1564,7 @@ bool CX2UIQuestNew::Handler_EGS_QUEST_COMPLETE_ACK( HWND hWnd, UINT uMsg, WPARAM
 			g_pData->GetQuestManager()->RemoveUnitQuest( kEvent.m_iQuestID, true );
 
 			g_pData->GetMyUser()->GetSelectUnit()->Reset( kEvent.m_kUpdateUnitInfo.m_kUnitInfo );
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
 			if( NULL != g_pData->GetUIManager()->GetUIInventory() )
 			{
 				g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
@@ -1774,6 +1746,11 @@ bool CX2UIQuestNew::Handler_EGS_NEW_QUEST_REQ( int iQuestID )
 {
 	KEGS_NEW_QUEST_REQ kPacket;
 	kPacket.m_iTalkNPCID	= (int) m_eNPCID;
+#ifdef MODIFY_ACCEPT_QUEST // 기본 수락 NPC를 게시판으로 설정
+	if( kPacket.m_iTalkNPCID == CX2UnitManager::NUI_NONE )
+		kPacket.m_iTalkNPCID = CX2UnitManager::NUI_BILLBOARD;
+#endif // MODIFY_ACCEPT_QUEST
+
 	kPacket.m_iQuestID		= iQuestID;
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_NEW_QUEST_REQ, kPacket );
@@ -1881,7 +1858,7 @@ bool CX2UIQuestNew::Handler_EGS_NEW_QUEST_NOT( HWND hWnd, UINT uMsg, WPARAM wPar
 
 	//{{ 2010. 10. 26	최육사	퀘스트 조건 추가
 #ifdef SERV_QUEST_CLEAR_EXPAND
-	g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );
 	if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 	{
 		g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );
@@ -1993,7 +1970,7 @@ bool CX2UIQuestNew::Handler_EGS_ALL_COMPLETED_QUEST_COMPLETE_ACK( HWND hWnd, UIN
 				g_pData->GetQuestManager()->RemoveUnitQuest( kEvent.m_vecQuestCompleteAck[i].m_kCompleteQuestInfo.m_iQuestID, true );
 
 				g_pData->GetMyUser()->GetSelectUnit()->Reset( kEvent.m_vecQuestCompleteAck[i].m_kUpdateUnitInfo.m_kUnitInfo );
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecQuestCompleteAck[i].m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecQuestCompleteAck[i].m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
 				if( NULL != g_pData->GetUIManager()->GetUIInventory() )
 				{
 					g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecQuestCompleteAck[i].m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
@@ -2039,37 +2016,6 @@ bool CX2UIQuestNew::Handler_EGS_ALL_COMPLETED_QUEST_COMPLETE_ACK( HWND hWnd, UIN
 
 					CX2State* pState = (CX2State*) g_pMain->GetNowState();
 					pState->ResetUnitViewerInFieldSquare( g_pData->GetMyUser()->GetSelectUnit()->GetUID(), g_pData->GetMyUser()->GetSelectUnit()->GetClass() );
-					//{{ Iruha : 2026-09-04 // HUD portrait after a quest job change
-#ifdef SERV_IRUHADEV_JOBCHANGE_PORTRAIT
-					// ResetUnitViewerInFieldSquare above rebuilds the 3D square unit; the
-					// top-left gage portrait is a separate thing and nothing here touched
-					// it, so it kept drawing the old class until the gage was rebuilt -
-					// which only happens on a state change, i.e. re-selecting the
-					// character. This is a gap in the shipped client, not in the server:
-					// the GameServer sends only EGS_QUEST_COMPLETE_ACK for a quest-driven
-					// class change (UserQuestManager.cpp:5038-5142), and every OTHER
-					// class-change path in the client refreshes the portrait itself -
-					// EGS_CHANGE_MY_UNIT_INFO_NOT (X2State.cpp:12958), the admin change
-					// (:5083), and the jumping character (:13174), whose comment there is
-					// literally "refresh the character portrait".
-					//
-					// GetMyGageData() is the probe, not GetInstance() on its own:
-					// CX2GageManager::SetCharacterImage dereferences m_ptrMyGageSet with
-					// no null check, unlike almost every neighbour in that same header,
-					// and there is no gage at all in some states.
-					if( NULL != CX2GageManager::GetInstance() &&
-						NULL != CX2GageManager::GetInstance()->GetMyGageData() )
-					{
-						const CX2Unit::UNIT_CLASS eNewClass =
-							g_pData->GetMyUser()->GetSelectUnit()->GetClass();
-					
-						CX2GageManager::GetInstance()->SetCharacterImage( eNewClass );
-#ifdef FIX_CHUNG_GAGE_UI_UPDATE_BUG
-						CX2GageManager::GetInstance()->ResetGageUIEtc( eNewClass );
-#endif // FIX_CHUNG_GAGE_UI_UPDATE_BUG
-					}
-#endif SERV_IRUHADEV_JOBCHANGE_PORTRAIT
-//}}
 				}
 			}
 				return true;
@@ -2139,6 +2085,31 @@ void CX2UIQuestNew::SetShow(bool val)
 			g_pTFieldGame->GetNoviceGuide()->GetIsPlayGuide() == true )
 			g_pTFieldGame->GetNoviceGuide()->SetMouseClickIndex(0);
 #endif //REFORM_NOVICE_GUIDE
+
+#ifdef MODIFY_ACCEPT_QUEST // 퀘스트 메뉴 New표기 갱신
+		switch(g_pMain->GetNowStateID())
+		{
+		case CX2Main::XS_VILLAGE_MAP:
+		case CX2Main::XS_BATTLE_FIELD:
+			{
+				if( true == g_pMain->IsInheritStateMenu() )
+				{
+					CX2StateMenu* pStateMenu = static_cast<CX2StateMenu*>(g_pMain->GetNowState());
+					if( NULL != pStateMenu &&
+						NULL != g_pData && 
+						NULL != g_pData->GetQuestManager() )
+					{
+						vector<int> vecAvailQuestID;
+						g_pData->GetQuestManager()->GetAvailableQuest( CX2UnitManager::NUI_BILLBOARD, vecAvailQuestID );
+						pStateMenu->SetShowNewQuest( !vecAvailQuestID.empty() );
+					}
+				}
+			} break;
+		default:
+			break;
+		}
+#endif // MODIFY_ACCEPT_QUEST
+
 	}
 
 }
@@ -2202,7 +2173,7 @@ wstring CX2UIQuestNew::GetSlotItemDesc()
 		}
 		else
 		{	
-			CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( 
+			CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( 
 				m_pNowOverItemSlot->GetItemUID() );
 			if ( pkItem != NULL )
 				itemDesc = GetSlotItemDescByUID( m_pNowOverItemSlot->GetItemUID() );
@@ -2213,49 +2184,41 @@ wstring CX2UIQuestNew::GetSlotItemDesc()
 				mit = m_mapItemIDAndSocketID.find( m_pNowOverItemSlot->GetItemTID() );
 				if ( mit != m_mapItemIDAndSocketID.end() )
 				{
-					bool bDeletedItemData = false;
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
 					const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( m_pNowOverItemSlot->GetItemTID() );
 					if ( pItemTemplet != NULL )
 					{
-						pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-						pItemData->m_Endurance = pItemTemplet->GetEndurance();
+					    CX2Item::ItemData kItemData;
+						kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+						kItemData.m_Endurance = pItemTemplet->GetEndurance();
 						int socketID = mit->second; 
-						pItemData->m_SocketOption.push_back( socketID );
-						pItemData->m_ItemID = m_pNowOverItemSlot->GetItemTID();
+						kItemData.m_SocketOption.push_back( socketID );
+						kItemData.m_ItemID = m_pNowOverItemSlot->GetItemTID();
 #ifdef QUEST_REWARD_PERIOD
 						if(m_pNowOverItemSlot->GetPeriod() != 0)
 						{
-							pItemData->m_Period = m_pNowOverItemSlot->GetPeriod();
+							kItemData.m_Period = m_pNowOverItemSlot->GetPeriod();
 						}
 #endif QUEST_REWARD_PERIOD
-						CX2Item* pItem = new CX2Item( pItemData, NULL );
+						CX2Item* pItem = new CX2Item( kItemData, NULL );
 						itemDesc = GetSlotItemDescByTID( pItem, m_pNowOverItemSlot->GetItemTID() );
 						SAFE_DELETE( pItem );
-						bDeletedItemData = true;
 					}
-					if( bDeletedItemData == false )
-						SAFE_DELETE( pItemData );
 				}
 #ifdef QUEST_REWARD_PERIOD	
 				else if(m_pNowOverItemSlot->GetPeriod() != 0)
 				{
-					bool bDeletedItemData = false;
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
 					const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( m_pNowOverItemSlot->GetItemTID() );
 					if ( pItemTemplet != NULL )
 					{
-						pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-						pItemData->m_Period = m_pNowOverItemSlot->GetPeriod();
-						pItemData->m_Endurance = pItemTemplet->GetEndurance();
-						pItemData->m_ItemID = m_pNowOverItemSlot->GetItemTID();
-						CX2Item* pItem = new CX2Item( pItemData, NULL );
+					    CX2Item::ItemData kItemData;
+						kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+						kItemData.m_Period = m_pNowOverItemSlot->GetPeriod();
+						kItemData.m_Endurance = pItemTemplet->GetEndurance();
+						kItemData.m_ItemID = m_pNowOverItemSlot->GetItemTID();
+						CX2Item* pItem = new CX2Item( kItemData, NULL );
 						itemDesc = GetSlotItemDescByTID( pItem, m_pNowOverItemSlot->GetItemTID() );
 						SAFE_DELETE( pItem );
-						bDeletedItemData = true;
 					}
-					if( bDeletedItemData == false )
-						SAFE_DELETE( pItemData );
 				}
 #endif QUEST_REWARD_PERIOD
 				else
@@ -2548,17 +2511,17 @@ void CX2UIQuestNew::OpenRewardItemInfoPopup( bool bOpen, D3DXVECTOR2 vPos, int i
 		const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( iItemID );
 		if ( pItemTemplet != NULL )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-			pItemData->m_Endurance = pItemTemplet->GetEndurance();
-			pItemData->m_ItemID = iItemID;
+			CX2Item::ItemData kItemData;
+			kItemData.m_Endurance = pItemTemplet->GetEndurance();
+			kItemData.m_ItemID = iItemID;
 #ifdef QUEST_REWARD_PERIOD
 			if( Period != 0 )
 			{
-				pItemData->m_Period = Period;
+				kItemData.m_Period = Period;
 			}
 #endif QUEST_REWARD_PERIOD
-			pItemData->m_SocketOption.push_back( socketID );
-			pItem = new CX2Item( pItemData, NULL );
+			kItemData.m_SocketOption.push_back( socketID );
+			pItem = new CX2Item( kItemData, NULL );
 		}
 	}
 #ifdef QUEST_REWARD_PERIOD
@@ -2567,11 +2530,11 @@ void CX2UIQuestNew::OpenRewardItemInfoPopup( bool bOpen, D3DXVECTOR2 vPos, int i
 		const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( iItemID );
 		if ( pItemTemplet != NULL )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-			pItemData->m_Endurance = pItemTemplet->GetEndurance();
-			pItemData->m_ItemID = iItemID;
-			pItemData->m_Period = Period;
-			pItem = new CX2Item( pItemData, NULL );
+			CX2Item::ItemData kItemData;
+			kItemData.m_Endurance = pItemTemplet->GetEndurance();
+			kItemData.m_ItemID = iItemID;
+			kItemData.m_Period = Period;
+			pItem = new CX2Item( kItemData, NULL );
 		}
 	}
 #endif QUEST_REWARD_PERIOD
@@ -2786,7 +2749,7 @@ void CX2UIQuestNew::UpdateNewQuestNotice()
 	std::map<CX2UnitManager::NPC_UNIT_ID, SEnum::VILLAGE_MAP_ID> mapNPCID;
 	mapNPCID.clear();
 	
-	for(int LID = (int)CX2LocationManager::LMI_VELDER_NORTH; 
+	for(int LID = (int)CX2LocationManager::LMI_RUBEN; 
 		g_pData->GetLocationManager()->GetLocalMapTemplet((CX2LocationManager::LOCAL_MAP_ID)LID) != NULL; 
 		++LID)
 	{
@@ -2950,9 +2913,6 @@ void CX2UIQuestNew::UpdateNewQuestNotice()
 	}
 
 	// 8. 미니맵 쪽으로 쏴준다.	(포인터 유효성은 시작할 때 검사)
-#ifndef REFORM_UI_MINIMAP
-	g_pInstanceData->GetMiniMapUI()->UpdateQuestNotice( iQuestNum, TopQuestID, (int)VID );
-#endif
 
 }
 
@@ -2991,7 +2951,7 @@ bool CX2UIQuestNew::CanIAcceptQuest( int iQuestID )
 
 	if( -1 != pQuestTemplet->m_Condition.m_iConditionItemID && pQuestTemplet->m_Condition.m_iConditionItemNum > 0 )
 	{
-		int iItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( pQuestTemplet->m_Condition.m_iConditionItemID );
+		int iItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( pQuestTemplet->m_Condition.m_iConditionItemID );
 		if( iItemCount < pQuestTemplet->m_Condition.m_iConditionItemNum )
 		{
 			return false;
@@ -3161,13 +3121,13 @@ void CX2UIQuestNew::UpdateRewardItemSlot()
 				}
 				if(pItemTemplet != NULL)
 				{
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-					pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-					pItemData->m_SocketOption.push_back(itemData.m_iSocketOption1);
-					pItemData->m_ItemID = itemData.m_iItemID;
-					pItemData->m_Period = itemData.m_iPeriod;
-					pItemData->m_Endurance = pItemTemplet->GetEndurance();
-					CX2Item* pItem = new CX2Item(pItemData, NULL);
+					CX2Item::ItemData kItemData;
+					kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+					kItemData.m_SocketOption.push_back(itemData.m_iSocketOption1);
+					kItemData.m_ItemID = itemData.m_iItemID;
+					kItemData.m_Period = itemData.m_iPeriod;
+					kItemData.m_Endurance = pItemTemplet->GetEndurance();
+					CX2Item* pItem = new CX2Item( kItemData, NULL);
 					if ( pItem != NULL )
 					{
 						if ( pSlotItem != NULL )
@@ -3233,13 +3193,13 @@ void CX2UIQuestNew::UpdateRewardItemSlot()
 				}
 				if(pItemTemplet != NULL)
 				{
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-					pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-					pItemData->m_SocketOption.push_back(itemData.m_iSocketOption1);
-					pItemData->m_ItemID = itemData.m_iItemID;
-					pItemData->m_Period = itemData.m_iPeriod;
-					pItemData->m_Endurance = pItemTemplet->GetEndurance();
-					CX2Item* pItem = new CX2Item(pItemData, NULL);
+					CX2Item::ItemData kItemData;
+					kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+					kItemData.m_SocketOption.push_back(itemData.m_iSocketOption1);
+					kItemData.m_ItemID = itemData.m_iItemID;
+					kItemData.m_Period = itemData.m_iPeriod;
+					kItemData.m_Endurance = pItemTemplet->GetEndurance();
+					CX2Item* pItem = new CX2Item(kItemData, NULL);
 					if ( pItem != NULL )
 					{
 						if ( pSlotItem != NULL )
@@ -3287,7 +3247,7 @@ bool CX2UIQuestNew::GetPartyUIQuestIcon( int iDungeonID, int iDungeonDifficulty,
 	bool bAvailableEpicQuest = false;
 	bool bAvailableNormalQuest = false;
 	
-	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) iDungeonID );
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) iDungeonID );
 
 	if( NULL == pDungeonData )
 	{
@@ -3433,7 +3393,7 @@ bool CX2UIQuestNew::GetLocalMapQuestDesc(int iDungeonID, OUT wstring& QuestDesc)
 {
 	//영웅모집공고에 대한 정보를 퀘스트 정보와 같이 알려주기 위해 변경.
 
-	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) iDungeonID );
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) iDungeonID );
 	if( NULL == pDungeonData )
 		return L"";
 
@@ -3445,6 +3405,11 @@ bool CX2UIQuestNew::GetLocalMapQuestDesc(int iDungeonID, OUT wstring& QuestDesc)
 	{ // 영웅 주화 보너스 알림
 	case CX2Dungeon::DT_NORMAL:
 		{
+#ifdef SERV_DUNGEON_OPTION_IN_LUA
+			if( pDungeonData->m_bEventDungeon == true)
+				break;
+#endif SERV_DUNGEON_OPTION_IN_LUA
+
 			if( NULL != g_pData && NULL != g_pData->GetPartyManager() )
 			{		
 				if( true == g_pData->GetPartyManager()->IsHeroRecruitDungeon(iDungeonID + CX2Dungeon::DL_NORMAL ) )
@@ -4156,11 +4121,6 @@ wstring CX2UIQuestNew::GetNPCFaceTextureKey(CX2UnitManager::NPC_UNIT_ID NpcID)
 	case CX2UnitManager::NUI_VAPOR:		wstrKey = L"VAPOR";		break;
 	case CX2UnitManager::NUI_DAPPAR:	wstrKey = L"DAPPAR";	break;
 #endif VILLAGE_SANDER
-
-#ifdef EVENT_NPC_IN_VILLAGE
-//	case CX2UnitManager::NUI_EVENT_BENDERS:	wstrKey = L"Andre_Benders"; break;
-#endif //EVENT_NPC_IN_VILLAGE
-
 	default:							wstrKey = L"Default"; break;
 	}
 	return wstrKey;
@@ -4212,7 +4172,7 @@ void CX2UIQuestNew::UpdateDetailQuestTitle()
 #endif ELLIPSE_GLOBAL
 
 #ifdef SHOW_DAILY_REPEAT_MARK_ON_EVENT_QUEST_FOR_DEVELOPER
-	if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR )
+	if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV )
 	{
 		wstringstream wstrstm;
 #ifdef ELLIPSE_GLOBAL
@@ -4311,11 +4271,6 @@ void CX2UIQuestNew::UpdateDetailQuestTitle()
 	pStaticQuestTitle->GetPicture(iQuestStatePictureNumber)->SetShow(true);
 
 	wstring wstrKey = GetNPCFaceTextureKey(pQuestTemplet->m_eStartNPCID);
-#ifdef EVENT_NPC_IN_VILLAGE
-//	if( wstrKey == L"Andre_Benders" )
-//		pStaticQuestTitle->GetPicture(13)->SetTex(L"DLG_UI_Npc_Face01.TGA", wstrKey.c_str());
-//	else
-#endif //EVENT_NPC_IN_VILLAGE
 	pStaticQuestTitle->GetPicture(13)->SetTex(L"DLG_UI_Npc_Face01.TGA", wstrKey.c_str());
 	return;
 }
@@ -4499,7 +4454,26 @@ void CX2UIQuestNew::UpdateAvailQuestInfo( CX2UnitManager::NPC_UNIT_ID eNPCID )
 {
 	if( CX2UnitManager::NUI_NONE == eNPCID )
 	{
+#ifdef MODIFY_ACCEPT_QUEST // 기본 수락 NPC를 게시판으로 설정
+		switch(g_pMain->GetNowStateID())
+		{
+		case CX2Main::XS_VILLAGE_MAP:
+		case CX2Main::XS_BATTLE_FIELD:
+			{
+				if( CX2UnitManager::NUI_NONE == m_eNPCID )
+					eNPCID = CX2UnitManager::NUI_BILLBOARD;
+				else
+					eNPCID = m_eNPCID;
+			} break;
+		default:
+			{
+				eNPCID = m_eNPCID;
+			} break;
+		}
+#else
 		eNPCID = m_eNPCID;
+#endif // MODIFY_ACCEPT_QUEST
+
 	}
 
 	vector<int> vecAvailQuestID;
@@ -4591,7 +4565,23 @@ bool CX2UIQuestNew::GetUnitQuest( std::vector<int>& vecQuestID )
 			pQuestTemplet == NULL )
 			continue;
 		
+#ifdef SHOW_ONLY_MY_EVENT_QUEST
+		switch( pQuestTemplet->m_eQuestType )
+		{
+		// 이벤트 타입은 유닛타입 검사하여, 자기 유닛의 퀘스트일 경우만 받기
+		case CX2QuestManager::QT_EVENT:
+			{
+				if( CX2Unit::UT_NONE == pQuestTemplet->m_Condition.m_eUnitType ||
+					g_pData->GetSelectUnitType() == pQuestTemplet->m_Condition.m_eUnitType )
+					vecQuestID.push_back(questID);		
+			} break;
+		default:
+			vecQuestID.push_back(questID);
+			break;
+		}
+#else
 		vecQuestID.push_back(questID);
+#endif // SHOW_ONLY_MY_EVENT_QUEST
 
 	}
 	return true;
@@ -4927,8 +4917,11 @@ void CX2UIQuestNew::SetUIQuestSlotInfoToCategory( UINT iQuestSlotInfoIndex,  Que
 	{
 		m_vecUIQuestSlotInfo[i].m_QuestID = QuestInfo.m_iEpicGroupID;
 
-		m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(true, true);
-		m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(true, true);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(true, true);
+		
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+			m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(true, true);
 
 
 		wstring wstrEpicGroupTitle = g_pData->GetQuestManager()->GetEpicGroupTitle(QuestInfo.m_iEpicGroupID);
@@ -4939,8 +4932,11 @@ void CX2UIQuestNew::SetUIQuestSlotInfoToCategory( UINT iQuestSlotInfoIndex,  Que
 		//wstrm << L"EP." << QuestInfo.m_iEpicGroupID << L" " << wstrEpicGroupTitle;
 		wstrm << wstrEpicGroupTitle;
 
-		m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = wstrm.str();
-		m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(1)->msg = L"";
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+		{
+			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = wstrm.str();
+			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(1)->msg = L"";
+		}
 
 		m_vecUIQuestSlotInfo[i].m_bIsCategory = true;
 
@@ -4948,14 +4944,20 @@ void CX2UIQuestNew::SetUIQuestSlotInfoToCategory( UINT iQuestSlotInfoIndex,  Que
 		if(m_iOpenEpicCategory == QuestInfo.m_iEpicGroupID)
 		{
 			m_vecUIQuestSlotInfo[i].m_bIsCategoryOpen = true;
-			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureOpenKey.c_str());
-			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName2.c_str(), wstrTextureOverKey2.c_str());
+			if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+			{
+				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureOpenKey.c_str());
+				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName2.c_str(), wstrTextureOverKey2.c_str());
+			}
 		}
 		else
 		{
 			m_vecUIQuestSlotInfo[i].m_bIsCategoryOpen = false;
-			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureCloseKey.c_str());
-			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName.c_str(), wstrTextureOverKey.c_str());
+			if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+			{
+				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureCloseKey.c_str());
+				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName.c_str(), wstrTextureOverKey.c_str());
+			}
 		}
 #ifdef REFORM_QUEST
 		std::map<int, bool>::iterator mit = m_mapEpicQuestProgressInfo.find( QuestInfo.m_iEpicGroupID );
@@ -4963,61 +4965,87 @@ void CX2UIQuestNew::SetUIQuestSlotInfoToCategory( UINT iQuestSlotInfoIndex,  Que
 		{//m_mapEpicQuestProgressInfo에는 진행중인 카테고리일때만 삽입됨.
 			if( true == mit->second )
 			{
-				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(0)->SetShow(false); //완료
-				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(1)->SetShow(true);//진행중
+				if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+				{
+					m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(0)->SetShow(false); //완료
+					m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(1)->SetShow(true);//진행중
+				}
 			}
 			else
 			{
-				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(0)->SetShow(true); //완료
-				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(1)->SetShow(false);//진행중
+				if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+				{
+					m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(0)->SetShow(true); //완료
+					m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(1)->SetShow(false);//진행중
+				}
 			}
 		}
 		else
 		{
-			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(0)->SetShow(true); //완료
-			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(1)->SetShow(false);//진행중
+			if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+			{
+				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(0)->SetShow(true); //완료
+				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(1)->SetShow(false);//진행중
+			}
 		}
 #endif //REFORM_QUEST
 	}
 	else
 	{
 #ifdef REFORM_QUEST
-		m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(0)->SetShow(false);
-		m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(1)->SetShow(false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+		{
+			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(0)->SetShow(false);
+			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetPicture(1)->SetShow(false);
+		}
 #endif //REFORM_QUEST
 		if(QuestInfo.m_iID == 0) // 수행 가능한 의뢰
 		{
 			m_vecUIQuestSlotInfo[i].m_QuestID = 0;
 			
-			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(true, true);
-			m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(true, true);
-			//m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = L"수행 가능 의뢰";
-			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = GET_STRING(STR_ID_9618);
-			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(1)->msg = L"";
+			if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(true, true);
+			if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+			{
+				m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(true, true);
+				//m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = L"수행 가능 의뢰";
+				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = GET_STRING(STR_ID_9618);
+				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(1)->msg = L"";
+			}
 
 			m_vecUIQuestSlotInfo[i].m_bIsCategory = true;
 			if(m_bIsOpenAvailCategory)
 			{
 				m_vecUIQuestSlotInfo[i].m_bIsCategoryOpen = true;
-				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureOpenKey.c_str());
-				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName2.c_str(), wstrTextureOverKey2.c_str());
+				if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+				{
+					m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureOpenKey.c_str());
+					m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName2.c_str(), wstrTextureOverKey2.c_str());
+				}
 
 			}
 			else
 			{
 				m_vecUIQuestSlotInfo[i].m_bIsCategoryOpen = false;
-				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureCloseKey.c_str());
-				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName.c_str(), wstrTextureOverKey.c_str());
+				if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+				{
+					m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureCloseKey.c_str());
+					m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName.c_str(), wstrTextureOverKey.c_str());
+				}
 			}
 		}
 		else if(QuestInfo.m_iID == 1) // 수행 중인 의뢰
 		{
 			m_vecUIQuestSlotInfo[i].m_QuestID = 1;
 
-			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(true, true);
-			m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(true, true);
-			//m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = L"수행 중 의뢰";
-			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = GET_STRING(STR_ID_9619);
+			if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(true, true);
+			if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+			{
+				m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(true, true);
+				//m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = L"수행 중 의뢰";
+				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(0)->msg = GET_STRING(STR_ID_9619);
+			}
 
 			
 			WCHAR buff[64] = {0,};
@@ -5029,21 +5057,32 @@ void CX2UIQuestNew::SetUIQuestSlotInfoToCategory( UINT iQuestSlotInfoIndex,  Que
 				StringCchPrintf( buff, 64, L"%d/%d", m_vecOnGoingQuestInfo.size(), MY_QUEST_LIST_MAX_SIZE );
 			}
 
-			m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(1)->msg = buff;
+			if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+				m_vecUIQuestSlotInfo[i].m_pStaticCategory->GetString(1)->msg = buff;
 			m_vecUIQuestSlotInfo[i].m_bIsCategory = true;
 			
 			if( (true == m_bIsOpenOngoingCategory && QUM_QUEST == m_eNowQuestUIMode) ||
-				(true == m_bIsOpenEventCategory && QUM_EVENT_QUEST == m_eNowQuestUIMode))
+				(true == m_bIsOpenEventCategory && QUM_EVENT_QUEST == m_eNowQuestUIMode)
+#ifdef MODIFY_ACCEPT_QUEST
+				|| (true == m_bIsOpenOngoingCategory && QUM_QUEST_RECEIVE == m_eNowQuestUIMode)				
+#endif // MODIFY_ACCEPT_QUEST
+				)
 			{
 				m_vecUIQuestSlotInfo[i].m_bIsCategoryOpen = true;
-				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureOpenKey.c_str());
-				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName2.c_str(), wstrTextureOverKey2.c_str());
+				if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+				{
+					m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureOpenKey.c_str());
+					m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName2.c_str(), wstrTextureOverKey2.c_str());
+				}
 			}
 			else
 			{
 				m_vecUIQuestSlotInfo[i].m_bIsCategoryOpen = false;
-				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureCloseKey.c_str());
-				m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName.c_str(), wstrTextureOverKey.c_str());
+				if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+				{
+					m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetNormalTex(wstrTextureName.c_str(), wstrTextureCloseKey.c_str());
+					m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetOverTex(wstrTextureName.c_str(), wstrTextureOverKey.c_str());
+				}
 			}
 
 		}
@@ -5072,129 +5111,130 @@ void CX2UIQuestNew::UpdateUIQuestSlotInfo( UINT iQuestSlotInfoIndex,  QuestInfo&
 
 	m_vecUIQuestSlotInfo[i].m_bIsCategory = false;
 	m_vecUIQuestSlotInfo[i].m_bIsCategoryOpen = false;
-	m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetShowEnable(true, true);
 
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->SetShow(true);
+	if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticQuest )
+		m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetShowEnable(true, true);
 
+	if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticQuest )
+	{
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->SetShow(true);
 
 #ifdef ELLIPSE_GLOBAL
-	bool bEllipse = false;
+		bool bEllipse = false;
 
-	#ifdef QUEST_LIST_TITLE_CUT_STRING
-	const int MAGIC_STRING_WIDTH = 208;
-	#else //QUEST_LIST_TITLE_CUT_STRING
-	const int MAGIC_STRING_WIDTH = 230;
-	#endif//QUEST_LIST_TITLE_CUT_STRING
+		#ifdef QUEST_LIST_TITLE_CUT_STRING
+		const int MAGIC_STRING_WIDTH = 208;
+		#else //QUEST_LIST_TITLE_CUT_STRING
+		const int MAGIC_STRING_WIDTH = 230;
+		#endif//QUEST_LIST_TITLE_CUT_STRING
 
-	wstring tempName = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(pQuestTemplet->m_wstrTitle.c_str(), MAGIC_STRING_WIDTH, m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->fontIndex, 1, bEllipse);
+		wstring tempName = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(pQuestTemplet->m_wstrTitle.c_str(), MAGIC_STRING_WIDTH, m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->fontIndex, 1, bEllipse);
 
-	if(bEllipse == true)
-	{
-		m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetGuideDesc(pQuestTemplet->m_wstrTitle.c_str());
-		m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetGuideDescOffsetPos(D3DXVECTOR2(150,50));
-	}
-	else
-	{
-		m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetGuideDesc(L"");
-	}
+		if(bEllipse == true)
+		{
+			m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetGuideDesc(pQuestTemplet->m_wstrTitle.c_str());
+			m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetGuideDescOffsetPos(D3DXVECTOR2(150,50));
+		}
+		else
+		{
+			m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetGuideDesc(L"");
+		}
 
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->msg = tempName;
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->msg = tempName;
 #else
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->msg = pQuestTemplet->m_wstrTitle;
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->msg = pQuestTemplet->m_wstrTitle;
 #endif ELLIPSE_GLOBAL
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->color = g_pData->GetQuestManager()->GetQuestColor( QuestInfo.m_iID, g_pData->GetSelectUnitLevel() );
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(1)->msg = L"";
 
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->color = g_pData->GetQuestManager()->GetQuestColor( QuestInfo.m_iID, g_pData->GetSelectUnitLevel() );
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(1)->msg = L"";
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(0)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(1)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(2)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(3)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(4)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(5)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(6)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(7)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(8)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(9)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(10)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(11)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(12)->SetShow(false);
 
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(0)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(1)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(2)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(3)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(4)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(5)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(6)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(7)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(8)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(9)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(10)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(11)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(12)->SetShow(false);
-
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(15)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(15)->SetShow(false);
 
 #ifdef SHOW_DAILY_REPEAT_MARK_ON_EVENT_QUEST_FOR_DEVELOPER
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(16)->SetShow(false);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(17)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(16)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(17)->SetShow(false);
 #endif SHOW_DAILY_REPEAT_MARK_ON_EVENT_QUEST_FOR_DEVELOPER
 
 #ifdef REFORM_QUEST
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(18)->SetShow(false);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(18)->SetShow(false);
 #endif //REFORM_QUEST
-	
-	if(m_vecUIQuestSlotInfo[i].m_eQuestState == QSS_COMPLETE_EPIC)
-	{
-		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(15)->SetShow(true);
-		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->color = D3DXCOLOR( 0.7058f, 0.7058f, 0.7058f, 1 );
-	}
 
-	if(m_vecUIQuestSlotInfo[i].m_eQuestState == QSS_WAIT_EPIC)
-	{
-		WCHAR buff[64] = {0,};
-		//wsprintf( buff, L"Lv.%d", m_vecUIQuestSlotInfo[i].m_iPlayLevel);
-		StringCchPrintf( buff, 64, L"Lv.%d", m_vecUIQuestSlotInfo[i].m_iPlayLevel);
-		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(1)->msg = buff;
-	}
+		if(m_vecUIQuestSlotInfo[i].m_eQuestState == QSS_COMPLETE_EPIC)
+		{
+			m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(15)->SetShow(true);
+			m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(0)->color = D3DXCOLOR( 0.7058f, 0.7058f, 0.7058f, 1 );
+		}
 
-	int iQuestTypePictureNumber = GetQuestPictureNumber(QuestInfo.m_eQuestType, QuestInfo.m_eRepeatType);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(iQuestTypePictureNumber)->SetShow(true);
+		if(m_vecUIQuestSlotInfo[i].m_eQuestState == QSS_WAIT_EPIC)
+		{
+			WCHAR buff[64] = {0,};
+			//wsprintf( buff, L"Lv.%d", m_vecUIQuestSlotInfo[i].m_iPlayLevel);
+			StringCchPrintf( buff, 64, L"Lv.%d", m_vecUIQuestSlotInfo[i].m_iPlayLevel);
+			m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetString(1)->msg = buff;
+		}
+
+		int iQuestTypePictureNumber = GetQuestPictureNumber(QuestInfo.m_eQuestType, QuestInfo.m_eRepeatType);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(iQuestTypePictureNumber)->SetShow(true);
 
 #ifdef SHOW_DAILY_REPEAT_MARK_ON_EVENT_QUEST_FOR_DEVELOPER
-	if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV )
-	{
-		if( QuestInfo.m_eRepeatType == RTS_REPEAT )
+		if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV )
 		{
-			m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture( 16 )->SetShow( true );
+			if( QuestInfo.m_eRepeatType == RTS_REPEAT )
+			{
+				m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture( 16 )->SetShow( true );
+			}
+			else if( QuestInfo.m_eRepeatType == RTS_DAY )
+			{
+				m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture( 17 )->SetShow( true );
+			}
 		}
-		else if( QuestInfo.m_eRepeatType == RTS_DAY )
-		{
-			m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture( 17 )->SetShow( true );
-		}
-	}
 #endif SHOW_DAILY_REPEAT_MARK_ON_EVENT_QUEST_FOR_DEVELOPER
 
 #ifdef REFORM_QUEST
-	if ( false == m_setNewEventQuestIDList.empty() )
-	{
-		std::set<int>::iterator sit = m_setNewEventQuestIDList.find(m_vecUIQuestSlotInfo[i].m_QuestID);
-		if( sit != m_setNewEventQuestIDList.end() )
+		if ( false == m_setNewEventQuestIDList.empty() )
 		{
-			m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(18)->SetShow(true);
-		}		
-	}
+			std::set<int>::iterator sit = m_setNewEventQuestIDList.find(m_vecUIQuestSlotInfo[i].m_QuestID);
+			if( sit != m_setNewEventQuestIDList.end() )
+			{
+				m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(18)->SetShow(true);
+			}		
+		}
 #endif //REFORM_QUEST
 
-	int iQuestStatePictureNumber = GetQuestPictureNumber(QuestInfo.m_eQuestState);
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(iQuestStatePictureNumber)->SetShow(true);
+		int iQuestStatePictureNumber = GetQuestPictureNumber(QuestInfo.m_eQuestState);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(iQuestStatePictureNumber)->SetShow(true);
 
-	wstring wstrKey = GetNPCFaceTextureKey(pQuestTemplet->m_eStartNPCID);
-#ifdef EVENT_NPC_IN_VILLAGE
-//	if( wstrKey == L"Andre_Benders" )
-//		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(13)->SetTex(L"DLG_UI_Npc_Face01.TGA", wstrKey.c_str());
-//	else
-#endif //EVENT_NPC_IN_VILLAGE
-	m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(13)->SetTex(L"DLG_UI_Npc_Face01.TGA", wstrKey.c_str());
-
-
-	if(m_vecUIQuestSlotInfo[i].m_QuestID == m_iSelectedQuestID && m_iSelectedQuestID != -1 )
-	{
-		m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetChecked(true);
-		m_iSelectedQuestSlotIndex = i;
-
+		wstring wstrKey = GetNPCFaceTextureKey(pQuestTemplet->m_eStartNPCID);
+		m_vecUIQuestSlotInfo[i].m_pStaticQuest->GetPicture(13)->SetTex(L"DLG_UI_Npc_Face01.TGA", wstrKey.c_str());
 	}
-	else if(true == m_vecUIQuestSlotInfo[i].m_pButtonQuest->GetChecked())
+
+
+	if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticQuest )
 	{
-		m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetChecked(false);
-		m_iSelectedQuestSlotIndex = -1;
+		if(m_vecUIQuestSlotInfo[i].m_QuestID == m_iSelectedQuestID && m_iSelectedQuestID != -1 )
+		{
+			m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetChecked(true);
+			m_iSelectedQuestSlotIndex = i;
+
+		}
+		else if(true == m_vecUIQuestSlotInfo[i].m_pButtonQuest->GetChecked())
+		{
+			m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetChecked(false);
+			m_iSelectedQuestSlotIndex = -1;
+		}
 	}
 	
 	return;
@@ -5205,10 +5245,15 @@ void CX2UIQuestNew::InitUIQuestSlotInfo()
 {
 	for(int i=0; i<_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage; i++)
 	{
-		m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(false, false);
-		m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(false, false);
-		m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetShowEnable(false, false);
-		m_vecUIQuestSlotInfo[i].m_pStaticQuest->SetShow(false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(false, false);
+		
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+			m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(false, false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticQuest )
+			m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetShowEnable(false, false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticQuest )
+			m_vecUIQuestSlotInfo[i].m_pStaticQuest->SetShow(false);
 
 		m_vecUIQuestSlotInfo[i].m_bIsCategory = false;
 		m_vecUIQuestSlotInfo[i].m_bIsCategoryOpen = false;
@@ -5226,10 +5271,14 @@ void CX2UIQuestNew::HideUIQuestSlotInfo()
 {
 	for(int i=0; i<_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage; i++)
 	{
-		m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(false, false);
-		m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(false, false);
-		m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetShowEnable(false, false);
-		m_vecUIQuestSlotInfo[i].m_pStaticQuest->SetShow(false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pButtonCategory )
+			m_vecUIQuestSlotInfo[i].m_pButtonCategory->SetShowEnable(false, false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticCategory )
+			m_vecUIQuestSlotInfo[i].m_pStaticCategory->SetShowEnable(false, false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticQuest )
+			m_vecUIQuestSlotInfo[i].m_pButtonQuest->SetShowEnable(false, false);
+		if( NULL != m_vecUIQuestSlotInfo[i].m_pStaticQuest )
+			m_vecUIQuestSlotInfo[i].m_pStaticQuest->SetShow(false);
 	}
 	return;
 }
@@ -5284,6 +5333,16 @@ void CX2UIQuestNew::ResetQuestList(QUEST_UI_MODE eQuestUIMode)
 			}
 			m_iSizeQuestInfoList = m_vecQuestInfoList.size();
 
+#ifdef MODIFY_ACCEPT_QUEST
+			if(m_iTopQuestSlotIndex > m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage)
+			{
+				m_iTopQuestSlotIndex = m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage;
+			}
+			if(m_iTopQuestSlotIndex < 0)
+			{
+				m_iTopQuestSlotIndex = 0;
+			}
+#endif // MODIFY_ACCEPT_QUEST
 			// 업데이트
 			for(UINT i=0; i<_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage; i++)
 			{
@@ -5329,6 +5388,16 @@ void CX2UIQuestNew::ResetQuestList(QUEST_UI_MODE eQuestUIMode)
 
 			m_iSizeQuestInfoList = m_vecQuestInfoList.size();
 
+#ifdef MODIFY_ACCEPT_QUEST
+			if(m_iTopQuestSlotIndex > m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage)
+			{
+				m_iTopQuestSlotIndex = m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage;
+			}
+			if(m_iTopQuestSlotIndex < 0)
+			{
+				m_iTopQuestSlotIndex = 0;
+			}
+#endif // MODIFY_ACCEPT_QUEST
 			// 업데이트
 			for(UINT i=0; i<_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage; i++)
 			{
@@ -5380,6 +5449,16 @@ void CX2UIQuestNew::ResetQuestList(QUEST_UI_MODE eQuestUIMode)
 
 			m_iSizeQuestInfoList = m_vecQuestInfoList.size();
 
+#ifdef MODIFY_ACCEPT_QUEST
+			if(m_iTopQuestSlotIndex > m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage)
+			{
+				m_iTopQuestSlotIndex = m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage;
+			}
+			if(m_iTopQuestSlotIndex < 0)
+			{
+				m_iTopQuestSlotIndex = 0;
+			}
+#endif // MODIFY_ACCEPT_QUEST
 			// 업데이트
 			for(UINT i=0; i<_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage; i++)
 			{
@@ -5479,6 +5558,16 @@ void CX2UIQuestNew::ResetQuestList(QUEST_UI_MODE eQuestUIMode)
 
 			m_iSizeQuestInfoList = m_vecQuestInfoList.size();
 
+#ifdef MODIFY_ACCEPT_QUEST
+			if(m_iTopQuestSlotIndex > m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage)
+			{
+				m_iTopQuestSlotIndex = m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage;
+			}
+			if(m_iTopQuestSlotIndex < 0)
+			{
+				m_iTopQuestSlotIndex = 0;
+			}
+#endif // MODIFY_ACCEPT_QUEST
 			// 업데이트
 			for(UINT i=0; i<_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage; i++)
 			{
@@ -5539,6 +5628,16 @@ void CX2UIQuestNew::ResetQuestList(QUEST_UI_MODE eQuestUIMode)
 
 			m_iSizeQuestInfoList = m_vecQuestInfoList.size();
 
+#ifdef MODIFY_ACCEPT_QUEST
+			if(m_iTopQuestSlotIndex > m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage)
+			{
+				m_iTopQuestSlotIndex = m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage;
+			}
+			if(m_iTopQuestSlotIndex < 0)
+			{
+				m_iTopQuestSlotIndex = 0;
+			}
+#endif // MODIFY_ACCEPT_QUEST
 			// 업데이트
 			for(UINT i=0; i<_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage; i++)
 			{
@@ -5589,7 +5688,7 @@ CX2UIQuestNew::QUEST_UI_MODE CX2UIQuestNew::DetermineUIModeWithTabPriority()
 	}
 	else if(m_bCompleteQuestInNormalTab)
 	{
-		if(IsTalkingQuestNPC() && m_bAvailableQuestNPCHas)
+		if(IsTalkingQuestNPC() )
 		{
 			eQuestUIMode = QUM_QUEST_RECEIVE;
 		}
@@ -5599,7 +5698,7 @@ CX2UIQuestNew::QUEST_UI_MODE CX2UIQuestNew::DetermineUIModeWithTabPriority()
 		}
 		m_bIsOpenOngoingCategory = true;
 	}
-	else if(IsTalkingQuestNPC() && m_bAvailableQuestNPCHas)
+	else if(IsTalkingQuestNPC() )
 	{
 		eQuestUIMode = QUM_QUEST_RECEIVE;
 		m_bIsOpenAvailCategory = true;
@@ -5625,6 +5724,9 @@ void CX2UIQuestNew::ResetQuestUI( bool bUpdateNavi, bool bResetExpand, bool bIgn
 {
 
 	// 
+#ifndef MODIFY_ACCEPT_QUEST
+	// m_iSizeQuestInfoList 값이 변경되기 전m_iTopQuestSlotIndex 변경했을 때 문제점 때문에 위치 변경.
+	// 문제점 : m_iSizeQuestInfoList이 커져도 , m_iTopQuestSlotIndex 값은 커지기 전 값으로 값이 제한 됨.
 	if(m_iTopQuestSlotIndex > m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage)
 	{
 		m_iTopQuestSlotIndex = m_iSizeQuestInfoList - (int)_CONST_UIQUESTNEW_INFO_::g_iNumQuestSlotPerPage;
@@ -5633,7 +5735,7 @@ void CX2UIQuestNew::ResetQuestUI( bool bUpdateNavi, bool bResetExpand, bool bIgn
 	{
 		m_iTopQuestSlotIndex = 0;
 	}
-
+#endif // MODIFY_ACCEPT_QUEST
 	
 	UpdateOngoingQuestInfo();
 #ifdef GUIDE_QUEST_MONSTER
@@ -5801,7 +5903,12 @@ void CX2UIQuestNew::MouseOverUIQuickQuest(int iSelectedUIQuickQuestIndex)
 	//보여지는 퀘스트 개수를 초과하는 경우 말풍선 가이드 보여주지 않도록 수정
 	if( iSelectedUIQuickQuestIndex < m_iShowQuickQuest )
 	{
-		ShowUIDesc( true, GET_STRING(STR_ID_19197), vPos ); 
+		if( NULL != g_pData &&
+			NULL != g_pData->GetMessenger() &&
+			false == g_pData->GetMessenger()->GetOpen() )
+		{
+			ShowUIDesc( true, GET_STRING(STR_ID_19197), vPos ); 
+		}
 	}
 #endif //GUIDE_QUICK_QUEST_COMPLETE
 
@@ -5865,7 +5972,7 @@ bool CX2UIQuestNew::GetSubQuestDungeonIDList( IN int iSubQuestID, OUT vector<int
 				// 따라서 그냥 10자리를 자른 값을 넣어 준다.
 				// 해당 던전이 존재하는 던전이면 던전 ID로 묶어주고
 				int iDungeonID = 0;
-				std::set<CX2Dungeon::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
+				std::set<SEnum::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
 				for( ; sit != pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end(); ++sit)
 				{
 					//iDungeonID = static_cast<int>( *sit / 10 ) * 10;
@@ -5919,14 +6026,14 @@ int CX2UIQuestNew::GetSubQuestDungeonID( int iSubQuestID )
 				// DID는 normal-hard-expert가 붙어 있고, 30000부터 시작하고, 각 던전마다 10단위로 분류되어 있다.
 				// 따라서 그냥 10자리를 자른 값을 넣어 준다.
 				// 해당 던전이 존재하는 던전이면 던전 ID로 묶어주고
-				if( NULL != g_pData->GetDungeonManager()->GetDungeonData((CX2Dungeon::DUNGEON_ID)pSubQuestTemplet->m_ClearCondition.m_eDungeonID) )
+				if( NULL != g_pData->GetDungeonManager()->GetDungeonData((SEnum::DUNGEON_ID)pSubQuestTemplet->m_ClearCondition.m_eDungeonID) )
 				{
 					return (int)(pSubQuestTemplet->m_ClearCondition.m_eDungeonID / 10) * 10;
 				}
 				else
 				{
 					// 아니면 일반으로 묶는다
-					return CX2Dungeon::DI_END;
+					return SEnum::DI_END;
 				}				
 			}
 			break;
@@ -5948,14 +6055,14 @@ int CX2UIQuestNew::GetSubQuestDungeonID( int iSubQuestID )
 		default:
 			{
 				// 없다
-				return CX2Dungeon::DI_END;
+				return SEnum::DI_END;
 			} break;
 		}
 	}
 	else
 	{
 		// 아예 해당 서브퀘스트가 없다
-		return CX2Dungeon::DI_END;
+		return SEnum::DI_END;
 	}
 
 }
@@ -6005,7 +6112,7 @@ bool CX2UIQuestNew::IsStateSubQuestCanClear( int iSubQuestID, int iNowDungeonID 
 #ifdef REFORM_QUEST
 				if( false == pSubQuestTemplet->m_ClearCondition.m_setDungeonID.empty() )
 				{
-					std::set<CX2Dungeon::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
+					std::set<SEnum::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
 					for( ; sit != pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end(); ++sit)
 					{
 						int SubQuestDungeonID = ( static_cast<int>(*sit) / 10 ) * 10;
@@ -6020,7 +6127,7 @@ bool CX2UIQuestNew::IsStateSubQuestCanClear( int iSubQuestID, int iNowDungeonID 
 					bAnswer = true;
 				}
 #else
-				if(pSubQuestTemplet->m_ClearCondition.m_eDungeonID != CX2Dungeon::DI_NONE)
+				if(pSubQuestTemplet->m_ClearCondition.m_eDungeonID != SEnum::DI_NONE)
 				{
 					int SubQuestDungeonID = (int)(pSubQuestTemplet->m_ClearCondition.m_eDungeonID / 10) * 10;
 					if(SubQuestDungeonID / 10 == iNowDungeonID / 10)
@@ -6520,6 +6627,10 @@ void CX2UIQuestNew::SetTalkingQuestNPC(bool bVal, CX2UnitManager::NPC_UNIT_ID Np
 
 bool CX2UIQuestNew::IsTalkingQuestNPC()
 {
+#ifdef MODIFY_ACCEPT_QUEST
+	return true;
+#endif // MODIFY_ACCEPT_QUEST
+
 	if(m_bIsTalkingQuestNPC && m_bAvailableQuestNPCHas)
 	{
 		return true;
@@ -6622,15 +6733,18 @@ void CX2UIQuestNew::PlayQuestCompleteSound( bool bIsEverySubQuestInQuestComplete
 			strQuestCompleteSound = L"QuestComplete_Chung.ogg";
 			break;
 		case CX2Unit::UT_ARA:
-#ifndef REMOVE_ARA_VOICE_TEMP
 			strQuestCompleteSound = L"QuestComplete_Ara.ogg";
-#endif //REMOVE_ARA_VOICE_TEMP
 			break;
 #ifdef NEW_CHARACTER_EL
 		case CX2Unit::UT_ELESIS:
 			strQuestCompleteSound = L"QuestComplete_Elesis.ogg";
 			break;
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		case CX2Unit::UT_ADD:		/// 변경이 필요 하다.
+			strQuestCompleteSound = L"QuestComplete_Add.ogg";
+			break;
+#endif //SERV_9TH_NEW_CHARACTER
 
 		default:
 			ASSERT( !L"Unit Type Is Invalid" );
@@ -6782,7 +6896,7 @@ void CX2UIQuestNew::SetNoviceGuideStep()
 */
 void CX2UIQuestNew::ClearQuestCompleteParticle()
 {
-	if( INVALID_PARTICLE_HANDLE == m_hQuestCompleteParticle )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hQuestCompleteParticle )
 		return;
 
 	if( NULL != g_pData && NULL != g_pData->GetUIMajorParticle() )
@@ -6860,7 +6974,7 @@ void CX2UIQuestNew::SetQuestMonsterByQuestInfo( const vector<QuestInfo>& vecQues
 			{
 				bool bPossibleQuest = false;
 
-				const CX2Dungeon::DUNGEON_ID eDungeonID = g_pData->GetDungeonRoom()->GetDungeonID(); //난이도가 포함되지 않은 던전ID
+				const SEnum::DUNGEON_ID eDungeonID = g_pData->GetDungeonRoom()->GetDungeonID(); //난이도가 포함되지 않은 던전ID
 				const CX2Dungeon::DIFFICULTY_LEVEL eCurrentDifficultyLevel =  g_pData->GetDungeonRoom()->GetDifficulty();//난이도
 
 				if( true == pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty ) //~이상 난이도 체크 true라면
@@ -6868,7 +6982,7 @@ void CX2UIQuestNew::SetQuestMonsterByQuestInfo( const vector<QuestInfo>& vecQues
 					for( int iDifficultyLevel = CX2Dungeon::DL_NORMAL ;	iDifficultyLevel <= eCurrentDifficultyLevel; ++iDifficultyLevel )
 					{//난이도별로 체크
 						if( pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end() != 
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.find( static_cast<CX2Dungeon::DUNGEON_ID>(eDungeonID+iDifficultyLevel)) )
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.find( static_cast<SEnum::DUNGEON_ID>(eDungeonID+iDifficultyLevel)) )
 						{
 							bPossibleQuest = true;
 							break;
@@ -6878,7 +6992,7 @@ void CX2UIQuestNew::SetQuestMonsterByQuestInfo( const vector<QuestInfo>& vecQues
 				else //~이상 난이도 체크 false 라면
 				{
 					if( pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end() !=  
-						pSubQuestTemplet->m_ClearCondition.m_setDungeonID.find( static_cast<CX2Dungeon::DUNGEON_ID>(eDungeonID+eCurrentDifficultyLevel)) )
+						pSubQuestTemplet->m_ClearCondition.m_setDungeonID.find( static_cast<SEnum::DUNGEON_ID>(eDungeonID+eCurrentDifficultyLevel)) )
 					{//단일 대상만 체크
 						bPossibleQuest = true;
 					}
@@ -7009,6 +7123,7 @@ bool CX2UIQuestNew::GetIsValidDayTheWeekQuest( int iQuestID_ )
 	return false;
 }
 #endif //DAY_OF_THE_WEEK_QUEST
+
 #ifdef SERV_POINT_COUNT_SYSTEM
 bool CX2UIQuestNew::Handler_EGS_QUEST_POINT_COUNT_SYSTEM_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
@@ -7016,12 +7131,10 @@ bool CX2UIQuestNew::Handler_EGS_QUEST_POINT_COUNT_SYSTEM_NOT( HWND hWnd, UINT uM
 	KEGS_QUEST_POINT_COUNT_SYSTEM_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
-
 	if ( g_pData != NULL && g_pData->GetQuestManager() != NULL  )
 	{
 		g_pData->GetQuestManager()->SetUpdataQuestInstance(kEvent.m_mapQuestInstance);
 	}
-
 
 	return true;
 }

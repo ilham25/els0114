@@ -11,6 +11,9 @@
 	#include "X2Data/XSLRidingPetManager.h"
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_STRING_FILTER_USING_DB
+#include "StringFilterManager.h"
+#endif //SERV_STRING_FILTER_USING_DB
 
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GSUSER_CPP
@@ -24,6 +27,16 @@
 IMPL_ON_FUNC( EGS_CREATE_PET_REQ )
 {
 	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_CREATE_PET_REQ, EGS_CREATE_PET_ACK );
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrPetName ) == false )
+	{
+		KEGS_CREATE_PET_ACK kAck;
+		kAck.m_iOK = NetError::ERR_STRING_FILTER_01;
+		SendPacket( EGS_CREATE_PET_ACK, kAck );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
 
 	//////////////////////////////////////////////////////////////////////////
 	// 예외처리
@@ -671,6 +684,10 @@ IMPL_ON_FUNC( EGS_FEED_PETS_REQ )
 #endif SERV_ADD_KEWPIEL_JELLY
 	//}}
 	{
+#ifdef SERV_EVENT_PET_INVENTORY
+//먹이 먹이기가 실패 했거나 이미 먹었던 먹이는 안먹으니까 체크 해서 알려주자
+//이벤트 펫 먹이가 실패 한건지 체크해서 다른 넷에러를 추가해 주자.
+#endif SERV_EVENT_PET_INVENTORY
 		kPacket.m_iOK = NetError::GetLastError();
 		SendPacket( EGS_FEED_PETS_ACK, kPacket );
 
@@ -694,7 +711,37 @@ IMPL_ON_FUNC( EGS_FEED_PETS_REQ )
 		SendPacket( EGS_FEED_PETS_ACK, kPacket );
 		return;
 	}
+#ifdef SERV_EVENT_PET_INVENTORY
+	///여기까지 왔다 그럼 먹이 먹이기 성공이다. 근데 이벤트 먹이는 친밀도와 관계 없이 펫을 영구로 만들고
+	//인벤토리를 활성화 시키기 위함 이기 때문에 여기서 먹이 ID로 조건문 걸고 리턴 시킨다.
+	//패킷에는 먹이를 먹었다는 정보를 날려준다. 또 한 DB에 정보를 업데이트 한다.
+	if( iFeedItemID == 141000440 )
+	{
+		// 소환된 펫 정보얻기!
+		KUserPetPtr spSummonedPet = m_kUserPetManager.GetSummonedPet();
+		if( spSummonedPet == NULL )
+		{
+			START_LOG( cerr, L"소환 펫의 PetUID값은 있는데 펫 정보는 없네?" )
+				<< BUILD_LOG( m_kUserPetManager.GetSummonedPet() )
+				<< END_LOG;
 
+			kPacket.m_iOK = NetError::ERR_PET_11;
+			SendPacket( EGS_FEED_PETS_ACK, kPacket );
+			return;
+		}
+		//여기서 DB에 값 저장해 주자.
+		KDBE_EVENT_PET_EVENT_FOOD_EAT_REQ kPacketDB;
+		kPacketDB.m_bEventFoodEat = spSummonedPet->IsEventFoodEat();
+		kPacketDB.m_iPetID		  = spSummonedPet->GetPetID();
+		kPacketDB.m_iPetUID		  = spSummonedPet->GetPetUID();
+		kPacketDB.m_wstrPetName	  = spSummonedPet->GetPetName();
+		kPacketDB.m_iUnitUID      = GetCharUID();
+		kPacketDB.m_vecInventorySlotInfo = kPacket.m_vecInventorySlotInfo;
+
+		SendToGameDB( DBE_EVENT_PET_EVENT_FOOD_EAT_REQ, kPacketDB );
+		return;
+	}	
+#endif SERV_EVENT_PET_INVENTORY
 	kPacket.m_iOK = NetError::NET_OK;
 	kPacket.m_sSatiety = kNotSatiety.m_sCurrentSatiety;
 	SendPacket( EGS_FEED_PETS_ACK, kPacket );
@@ -889,6 +936,33 @@ IMPL_ON_FUNC( EGS_PET_EVOLUTION_REQ )
 	// 펫 진화 성공 했다면 인벤토리 크기 변경하자!
 	m_kInventory.ResetPetInventorySize( iPetCategorySlotSize );
 
+#ifdef SERV_EVENT_VC
+	// 용병 뽀루가 진화했다면 우편으로 아이템 지급
+	if( kPacket.m_kEvolutionResultPetInfo.m_iPetID == CXSLPetManager::PUI_PET_MERCENARY_PPORU_EVENT_INT )
+	{
+		// 성체 진화 보상
+		if( kPacket.m_kEvolutionResultPetInfo.m_cEvolutionStep == 2 )
+		{
+			// 이벤트 보상을 주자!
+			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+			kPacketToDB.m_iFromUnitUID = GetCharUID();
+			kPacketToDB.m_iToUnitUID   = GetCharUID();
+			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+			kPacketToDB.m_iRewardID	   = 51417, //듀얼 마법석 랜덤 큐브		
+			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+		}
+		else if( kPacket.m_kEvolutionResultPetInfo.m_cEvolutionStep == 3 )
+		{
+			// 이벤트 보상을 주자!
+			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+			kPacketToDB.m_iFromUnitUID = GetCharUID();
+			kPacketToDB.m_iToUnitUID   = GetCharUID();
+			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+			kPacketToDB.m_iRewardID	   = 51418, //아리엘이 플루오르 스톤 교환권	
+			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+		}
+	}
+#endif //SERV_EVENT_VC
 
 	//////////////////////////////////////////////////////////////////////////
 	// 필드이거나 방이면 알리자!
@@ -972,6 +1046,16 @@ IMPL_ON_FUNC( ERM_PET_EVOLUTION_NOT )
 IMPL_ON_FUNC( EGS_CHANGE_PET_NAME_REQ )
 {
 	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_CHANGE_PET_NAME_REQ, EGS_CHANGE_PET_NAME_ACK );
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrPetName ) == false )
+	{
+		KEGS_CHANGE_PET_NAME_ACK kAck;
+		kAck.m_iOK = NetError::ERR_STRING_FILTER_01;
+		SendPacket( EGS_CHANGE_PET_NAME_ACK, kAck );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
 
 	//////////////////////////////////////////////////////////////////////////
 	// 예외처리
@@ -1148,6 +1232,24 @@ IMPL_ON_FUNC( DBE_CHANGE_PET_NAME_ACK )
 
 #endif SERV_PET_CHANGE_NAME
 //}}
+#ifdef SERV_EVENT_PET_INVENTORY
+IMPL_ON_FUNC( DBE_EVENT_PET_EVENT_FOOD_EAT_ACK )
+{
+	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
+	KEGS_FEED_PETS_ACK kPacket;
+	kPacket.m_iOK = kPacket_.m_iOK;
+	if( kPacket.m_iOK != NetError::NET_OK )
+	{
+		SendPacket( EGS_FEED_PETS_ACK, kPacket );
+	}
+	else
+	{
+		kPacket.m_EventFoodEat = kPacket_.m_bEventFoodEat;
+		kPacket.m_vecInventorySlotInfo = kPacket_.m_vecInventorySlotInfo;
+		SendPacket( EGS_FEED_PETS_ACK, kPacket );
+	}
+}
+#endif SERV_EVENT_PET_INVENTORY
 
 #ifdef SERV_PERIOD_PET
 _IMPL_ON_FUNC( DBE_RELEASE_PET_ACK, KEGS_RELEASE_PET_ACK )
@@ -1669,7 +1771,9 @@ IMPL_ON_FUNC( DBE_GET_RIDING_PET_LIST_ACK )
 		if( kPacket_.m_iAfterWorkStorageKey != 0 )
 		{
 			KEventPtr spEvent = KEventPtr();
-			if( m_kAfterWorkStorage.RetrieveData( kPacket_.m_iAfterWorkStorageKey, spEvent ) != KAfterWorkStorage::AWS_SUCCEED )
+			if( ( m_kAfterWorkStorage.RetrieveData( kPacket_.m_iAfterWorkStorageKey, spEvent ) != KAfterWorkStorage::AWS_SUCCEED )
+				|| ( spEvent == NULL )
+				)
 			{
 				START_LOG( cerr, L"After Work Storage: 꺼내오기 실패" )
 					<< BUILD_LOG( GetCharName() )
@@ -1692,7 +1796,9 @@ IMPL_ON_FUNC( DBE_GET_RIDING_PET_LIST_ACK )
 		else
 		{
 			KEventPtr spEvent = KEventPtr();
-			if( m_kAfterWorkStorage.RetrieveData( kPacket_.m_iAfterWorkStorageKey, spEvent ) != KAfterWorkStorage::AWS_SUCCEED )
+			if( ( m_kAfterWorkStorage.RetrieveData( kPacket_.m_iAfterWorkStorageKey, spEvent ) != KAfterWorkStorage::AWS_SUCCEED )
+				|| ( spEvent == NULL )
+				)
 			{
 				START_LOG( cerr, L"After Work Storage: 꺼내오기 실패" )
 					<< BUILD_LOG( GetCharName() )
@@ -1941,6 +2047,163 @@ IMPL_ON_FUNC( EGS_UPDATE_RIDING_PET_NOT )
 }
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_EVENT_VC
+IMPL_ON_FUNC( EGS_USE_INTIMACY_UP_ITEM_REQ )
+{
+	VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_USE_INTIMACY_UP_ITEM_ACK );
+
+	//////////////////////////////////////////////////////////////////////////
+	// 예외처리
+	{
+		KEGS_USE_INTIMACY_UP_ITEM_ACK kAck;
+
+		//{{ 2012. 03. 29	최육사	Inventory Lock 기능
+#ifdef SERV_INVENTORY_LOCK
+		if( m_kInventory.IsLocked() == true )
+		{
+			START_LOG( cout, L"인벤토리 락이 걸려있는 상태입니다!" )
+#ifndef SERV_PRIVACY_AGREEMENT			
+				<< BUILD_LOG( GetUID() )
+				<< BUILD_LOG( GetName() )
+				<< BUILD_LOG( GetCharName() )
+#endif SERV_PRIVACY_AGREEMENT
+				<< BUILD_LOG( GetCharUID() );
+
+			kAck.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
+			SendPacket( EGS_USE_INTIMACY_UP_ITEM_ACK, kAck );
+			return;
+		}
+#endif SERV_INVENTORY_LOCK
+		//}}
+
+		// 펫 관련 동작 제한
+		if( GetStateID() == KGSFSM::S_ROOM )
+		{
+			if( CXSLRoom::GetRoomType( GetRoomUID() ) == CXSLRoom::RT_SQUARE  &&  GetRoomUID() > 0 )
+			{
+				START_LOG( cerr, L"거래 광장에서는 친밀 상승아이템을 줄 수 없습니다!" )
+					<< BUILD_LOG( GetCharUID() )
+					<< END_LOG;
+
+				kAck.m_iOK = NetError::ERR_PET_05;
+				SendPacket( EGS_USE_INTIMACY_UP_ITEM_ACK, kAck );
+				return;
+			}
+		}
+		else if( GetStateID() == KGSFSM::S_FIELD_MAP )
+		{
+			if( GetRoomListID() != 0 )
+			{
+				START_LOG( cerr, L"대전 로비에서는 친밀 상승아이템을 줄 수 없습니다!" )
+					<< BUILD_LOG( GetCharUID() )
+					<< END_LOG;
+
+				kAck.m_iOK = NetError::ERR_PET_05;
+				SendPacket( EGS_USE_INTIMACY_UP_ITEM_ACK, kAck );
+				return;
+			}
+		}
+
+		// 먹이를 주려고 하는 아이템이 실제로 존재하는 아이템인지 체크!
+		if( m_kInventory.IsExist( kPacket_.m_iItemUID ) == false )
+		{
+			START_LOG( cerr, L"존재하지 않는 아이템을 친밀 상승아이템으로 주려고 했다!" )
+				<< BUILD_LOG( GetCharUID() )
+				<< BUILD_LOG( kPacket_.m_iItemUID )
+				<< END_LOG;
+
+			kAck.m_iOK = NetError::ERR_ITEM_04;
+			SendPacket( EGS_USE_INTIMACY_UP_ITEM_ACK, kAck );
+			return;
+		}
+	}
+	//////////////////////////////////////////////////////////////////////////
+
+	KEGS_USE_INTIMACY_UP_ITEM_ACK kPacket;
+	KEGS_CHANGED_PET_INTIMACY_NOT kNotIntimacy;
+
+	// 펫 먹이 ItemID얻기
+	const int iFeedItemID = m_kInventory.GetItemID( kPacket_.m_iItemUID );
+
+	if( m_kUserPetManager.Handler_EGS_USE_INTIMACY_UP_ITEM_REQ( kNotIntimacy, kPacket.m_iUpPercent ) == false )
+	{
+		kPacket.m_iOK = NetError::GetLastError();
+		SendPacket( EGS_USE_INTIMACY_UP_ITEM_ACK, kPacket );
+
+		return;
+	}
+
+	// 해당 아이템 삭제!
+	if( m_kInventory.FeedPetInInventory( kPacket_.m_iItemUID, kPacket.m_vecInventorySlotInfo ) == false )
+	{
+		START_LOG( cerr, L"위에서 아이템이 있는지 체크 했는데 먹이 아이템 삭제 실패했다? 절대 일어나면 안되는 에러!" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iItemUID )
+			<< END_LOG;
+
+		kPacket.m_iOK = NetError::ERR_PET_11;
+		SendPacket( EGS_USE_INTIMACY_UP_ITEM_ACK, kPacket );
+		return;
+	}
+
+	kPacket.m_iOK = NetError::NET_OK;
+	SendPacket( EGS_USE_INTIMACY_UP_ITEM_ACK, kPacket );
+
+	// 나를 포함한 주변 유저들에게 액션 정보를 날리자!
+	SendPetAction( CXSLPetManager::PAC_EAT );
+
+	//////////////////////////////////////////////////////////////////////////
+	// 방이라면 포만도와 친밀도를 알리자!
+	if( GetStateID() == KGSFSM::S_FIELD_MAP )
+	{
+		kNotIntimacy.m_iUnitUID = GetCharUID();
+		SendPacket( EGS_CHANGED_PET_INTIMACY_NOT, kNotIntimacy );
+
+	}
+	else if( GetStateID() == KGSFSM::S_ROOM )
+	{
+		if( GetRoomUID() <= 0 )
+		{
+			START_LOG( cerr, L"룸 UID 이상." )
+				<< BUILD_LOG( GetRoomUID() )
+				<< BUILD_LOG( GetCharUID() )
+				<< END_LOG;
+
+			return;
+		}
+
+		switch( CXSLRoom::GetRoomType( GetRoomUID() ) )
+		{
+		case CXSLRoom::RT_PVP:
+		case CXSLRoom::RT_DUNGEON:
+		case CXSLRoom::RT_TRAININGCENTER:
+			//{{ 2012. 10. 23	최육사	배틀필드 시스템
+#ifdef SERV_BATTLE_FIELD_SYSTEM
+		case CXSLRoom::RT_BATTLE_FIELD:
+#endif SERV_BATTLE_FIELD_SYSTEM
+			//}}
+			{
+				kNotIntimacy.m_iUnitUID = GetCharUID();
+				SendToCnRoom( ERM_CHANGED_PET_INTIMACY_NOT, kNotIntimacy );
+			}
+			break;
+
+		case CXSLRoom::RT_SQUARE:
+			// 광장이면 안보낸다!
+			break;
+
+		default:
+			{
+				START_LOG( cerr, L"이상한 방 타입." )
+					<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
+					<< BUILD_LOG( GetCharUID() )
+					<< END_LOG;
+			}
+			break;
+		}
+	}
+}
+#endif //SERV_EVENT_VC
 //////////////////////////////////////////////////////////////////////////
 #endif SERV_GSUSER_CPP
 //////////////////////////////////////////////////////////////////////////

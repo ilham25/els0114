@@ -81,10 +81,10 @@ m_pDLGGetAttractionItemBG(NULL),
 m_pDLGAttractionResult(NULL),
 m_hMeshInstMeltMachine(INVALID_MESH_INSTANCE_HANDLE),
 m_hMeshInstMeltMachineStart(INVALID_MESH_INSTANCE_HANDLE),
-m_hSeqSpreadLight(INVALID_PARTICLE_HANDLE),
-m_hSeqEndLight(INVALID_PARTICLE_HANDLE),
-m_hSeqEndLight2(INVALID_PARTICLE_HANDLE),
-m_hSeqEndLight3(INVALID_PARTICLE_HANDLE),
+m_hSeqSpreadLight(INVALID_PARTICLE_SEQUENCE_HANDLE),
+m_hSeqEndLight(INVALID_PARTICLE_SEQUENCE_HANDLE),
+m_hSeqEndLight2(INVALID_PARTICLE_SEQUENCE_HANDLE),
+m_hSeqEndLight3(INVALID_PARTICLE_SEQUENCE_HANDLE),
 m_CouponTargetUid(0),
 m_CouponUid(0),
 m_fPlayTime(0)
@@ -127,12 +127,10 @@ m_EnrollItemUid( 0 )
 , m_iSelectedWarpDest(0)
 , m_SumDelta(0)
 #endif
-
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
 , m_pDLGUSCJob( NULL )
 , m_iSelectedUSCJob(0)
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
-
 #ifdef SERV_SOCKET_NEW
 // oasis907 : 김상윤 [2010.4.19] // 
 , m_pUISocketItem(NULL)
@@ -170,16 +168,28 @@ m_EnrollItemUid( 0 )
 #endif //SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
 #ifdef FIX_ICE_HEATER_EVENT
 , m_pNowIceHeaterEventData( NULL )
-, m_hUIEffectSetWait ( CX2EffectSet::INVALID_HANDLE )
-, m_hUIEffectSetPlay ( CX2EffectSet::INVALID_HANDLE )
+, m_hUIEffectSetWait ( INVALID_EFFECTSET_HANDLE )
+, m_hUIEffectSetPlay ( INVALID_EFFECTSET_HANDLE )
 #endif FIX_ICE_HEATER_EVENT
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05//미라클큐브
 , m_iConsumeItemUID ( 0 )
 , m_iTargetItemUID ( 0 )
+, m_iConsumeItemQuantity ( -1 )
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 #ifdef RIDING_ITEM_POPUP_CHECK
 , m_iRidingItemUid( 0 )
 #endif //RIDING_ITEM_POPUP_CHECK
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+, m_pDLGElBreak( NULL )
+, m_ElBreakItemCount( 0 )
+#endif //FINALITY_SKILL_SYSTEM
+#ifdef GOOD_ELSWORD //JHKang
+, m_iConfirmED( 0 )
+, m_pDLGBuyConfirm( NULL )
+#endif //GOOD_ELSWORD
+#ifdef CAMERA_ZOOM_BY_MOUSE_WHEEL
+, m_fLeftMouseWhellCoolTime (-1.f)
+#endif // CAMERA_ZOOM_BY_MOUSE_WHEEL
 #ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 ,m_UseTransformdItemUID( 0 )
 ,m_UseTransformItemPetUID( 0 )
@@ -264,6 +274,13 @@ CX2UIInventory::~CX2UIInventory(void)
 	SAFE_DELETE_DIALOG(m_pDLGCubeCheck);
 	SAFE_DELETE_DIALOG(m_pDLGElChanger);
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	SAFE_DELETE_DIALOG( m_pDLGElBreak );
+#endif //FINALITY_SKILL_SYSTEM
+#ifdef GOOD_ELSWORD //JHKang
+	SAFE_DELETE_DIALOG( m_pDLGBuyConfirm );
+#endif //GOOD_ELSWORD
+
 	SAFE_DELETE_DIALOG(m_pDLGResolveItem);
 	SAFE_DELETE_DIALOG(m_pDLGResolveItemResult);
 
@@ -290,20 +307,20 @@ CX2UIInventory::~CX2UIInventory(void)
 
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstMeltMachineStart )
 	{
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachineStart );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachineStart );
 	}
 
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstMeltMachine )
 	{
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 	}
 
-	if ( m_hSeqSpreadLight != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqSpreadLight != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqSpreadLight );
 	}
 
-	if ( m_hSeqEndLight != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqEndLight != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEndLight );
 	}
@@ -340,10 +357,10 @@ CX2UIInventory::~CX2UIInventory(void)
 		mIt = m_mapIceHeaterEventData.erase( mIt );
 	}
 
-	if ( CX2EffectSet::INVALID_HANDLE != m_hUIEffectSetWait )
+	if ( INVALID_EFFECTSET_HANDLE != m_hUIEffectSetWait )
 		g_pData->GetUIEffectSet()->StopEffectSet( m_hUIEffectSetWait );
 
-	if ( CX2EffectSet::INVALID_HANDLE != m_hUIEffectSetPlay )
+	if ( INVALID_EFFECTSET_HANDLE != m_hUIEffectSetPlay )
 		g_pData->GetUIEffectSet()->StopEffectSet( m_hUIEffectSetPlay );
 
 #endif // FIX_ICE_HEATER_EVENT
@@ -355,7 +372,6 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 {
 	KTDXPROFILE();
 		
-#ifdef FIX_DRAGITEM
 	POINT point;
 	RECT rt;
 		
@@ -376,7 +392,6 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 			}
 		}
 	}
-#endif
 
 #ifdef SERV_SOCKET_NEW
 	// oasis907 : 김상윤 [2010.4.5] // 
@@ -604,7 +619,7 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 	else
 	{
 		/// 해당 가열기의 가동 전 이펙트 해제
-		if ( CX2EffectSet::INVALID_HANDLE != m_hUIEffectSetWait )
+		if ( INVALID_EFFECTSET_HANDLE != m_hUIEffectSetWait )
 			g_pData->GetUIEffectSet()->StopEffectSet( m_hUIEffectSetWait );
 	}
 
@@ -629,7 +644,11 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 		}
 		else if( NULL == g_pData->GetUIEffectSet()->GetEffectSetInstance( m_hUIEffectSetWait ) )
 		{
-			m_hUIEffectSetWait = INVALID_PARTICLE_HANDLE;
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            m_hUIEffectSetWait = INVALID_EFFECTSET_HANDLE;
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+			m_hUIEffectSetWait = INVALID_PARTICLE_SEQUENCE_HANDLE;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		}
 
 		/// 가열기 재생 이펙트 설정
@@ -658,7 +677,7 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 				m_pDLGGetAttractionItemBG = NULL;
 			}
 
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachineStart );
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachineStart );
 			if( NULL != m_pDLGOpenAttraction )
 			{
 				m_pDLGOpenAttraction->SetHasUnit(NULL);
@@ -726,7 +745,7 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 	else
 	{
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqSpreadLight );
-		m_hSeqSpreadLight = INVALID_PARTICLE_HANDLE;
+		m_hSeqSpreadLight = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 
 
@@ -759,11 +778,11 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 	else
 	{
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEndLight );
-		m_hSeqEndLight = INVALID_PARTICLE_HANDLE;
+		m_hSeqEndLight = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEndLight2 );
-		m_hSeqEndLight2 = INVALID_PARTICLE_HANDLE;
+		m_hSeqEndLight2 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEndLight3 );
-		m_hSeqEndLight3 = INVALID_PARTICLE_HANDLE;
+		m_hSeqEndLight3 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 
 
@@ -781,7 +800,7 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 			}
 			else if( g_pData->GetUIMajorParticle()->IsLiveInstanceHandle( m_hSeqSpreadLight ) == false )
 			{
-				m_hSeqSpreadLight = INVALID_PARTICLE_HANDLE;
+				m_hSeqSpreadLight = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 
@@ -1101,7 +1120,7 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 
 			if ( m_hMeshInstMeltMachineStart != INVALID_MESH_INSTANCE_HANDLE )
 			{
-				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachineStart );
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachineStart );
 				if( NULL != m_pDLGOpenAttraction )
 				{
 					m_pDLGOpenAttraction->SetHasUnit(NULL);
@@ -1126,6 +1145,13 @@ HRESULT CX2UIInventory::OnFrameMove( double fTime, float fElapsedTime )
 #endif // FIX_ICE_HEATER_EVENT
 
 #endif ATTRACTION_ITEM_TEST
+
+#ifdef CAMERA_ZOOM_BY_MOUSE_WHEEL
+	if( m_fLeftMouseWhellCoolTime > 0.f )
+	{
+		m_fLeftMouseWhellCoolTime -= fElapsedTime;
+	}
+#endif // CAMERA_ZOOM_BY_MOUSE_WHEEL
 
 	// 현재 마우스의 위치가 자신의 UI에 있을경우에만 처리한다.
 	// 가열기는 무조건 돌도록 가열기 코드 아래로
@@ -1322,6 +1348,13 @@ bool CX2UIInventory::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 		}
 		break;
+#ifdef CHANGE_INVENTORY_TAB_BY_WHEEL
+	case WM_MOUSEWHEEL:
+		{ 
+			return OnMouseWheel(hWnd, uMsg, wParam,lParam);
+		} break;
+#endif // CHANGE_INVENTORY_TAB_BY_WHEEL
+
 	}
 
 	return bFlag;
@@ -1447,7 +1480,6 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			}
 		} break;
 #endif
-
 #ifdef RANDOM_CUBE_UI_NEW
 	case UIM_EXIT_RANDOM_ITEM_NEW:
 		{
@@ -1571,26 +1603,22 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 	case UIM_PAGE_1:
 	case UIM_PAGE_2:
 	case UIM_PAGE_3:
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
 	case UIM_PAGE_4:
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
 		{
 			/// 인벤토리 카테고리 범위가 아니면 패스
 			if( CX2Inventory::ST_AVARTA < m_NowInventorySortType || CX2Inventory::ST_NONE >= m_NowInventorySortType )
 				return false;
 
 			/// 현재 지정된 인벤토리 페이지 수 저장
-			const int m_NowInvenPageNum = wParam - UIM_PAGE_1+1;
-			SetNowInventoryPageNum( m_NowInventorySortType, m_NowInvenPageNum );
-			SetInventorySort( m_NowInventorySortType, m_NowInvenPageNum );
+			const int iNowInvenPageNum = wParam - UIM_PAGE_1+1;
+			SetNowInventoryPageNum( m_NowInventorySortType, iNowInvenPageNum );
+			SetInventorySort( m_NowInventorySortType, iNowInvenPageNum );
 			return true;
 		}
 	case UIM_OVER_PAGE_1:
 	case UIM_OVER_PAGE_2:
 	case UIM_OVER_PAGE_3:
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
 	case UIM_OVER_PAGE_4:
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
 		{
 			/// 인벤토리 카테고리 범위가 아니면 패스
 			if( CX2Inventory::ST_AVARTA < m_NowInventorySortType || CX2Inventory::ST_NONE >= m_NowInventorySortType )
@@ -1735,9 +1763,9 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				return true;
 			}
 
-			if( g_pData->GetUIManager()->GetUISynthesisItem() !=NULL )
+			if( g_pData->GetUIManager()->GetUIResolveItem() !=NULL )
 			{
-				if(g_pData->GetUIManager()->GetUISynthesisItem()->GetShow() ==false)
+				if(g_pData->GetUIManager()->GetUIResolveItem()->GetShow() ==false)
 				{
 					OpenResolveWindow();
 				}
@@ -1850,7 +1878,7 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				}
 				else
 				{
-					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID );
+					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID );
 					if ( pItem != NULL )
 					{
 						wstringstream wstrstm;
@@ -1881,7 +1909,7 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			}
 			else
 			{
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID );
 				if ( pItem != NULL )
 				{
 					m_pDLGSocketItemPushOk = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999, -999), GET_REPLACED_STRING( ( STR_ID_791, "L", g_pMain->GetEDString( pItem->GetEDToSocketPush() ) ) ), UIM_SOCKET_FEE_OK, g_pMain->GetNowState() );
@@ -1902,7 +1930,7 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			m_bSocketRareMagicStone = false;
 			m_bSocketRemove = true;
 
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID );
 			if ( pItem != NULL )
 			{
 				wstringstream wstrstm;
@@ -1965,11 +1993,10 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			int iUnUseSlot = 0;  
 
 			if ( g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
-				iMaxSlot = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum( CX2Inventory::ST_SPECIAL );
-				iUnUseSlot = iMaxSlot - g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetUsedSlotNum(CX2Inventory::ST_SPECIAL );
+				iMaxSlot = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum( CX2Inventory::ST_SPECIAL );
+				iUnUseSlot = iMaxSlot - g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetUsedSlotNum(CX2Inventory::ST_SPECIAL );
 			}			
 
 			if( m_ElChangerItemCount < 6 )
@@ -2103,7 +2130,7 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 
 			if( m_hMeshInstMeltMachine != INVALID_MESH_INSTANCE_HANDLE )
 			{
-				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 				if( NULL != m_pDLGOpenAttraction )
 				{
 					m_pDLGOpenAttraction->SetHasUnit( NULL );
@@ -2234,11 +2261,10 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			if( true == m_bIsSptNoneItem)
 			{
 				CX2Item* pItem		= NULL;
-				pItem				= g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnrollItemUid );
+				pItem				= g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnrollItemUid );
 
 				if ( pItem == NULL || 
-					pItem->GetItemTemplet() == NULL || 
-					pItem->GetItemData() == NULL )
+					pItem->GetItemTemplet() == NULL )
 					return false;
 #ifdef CLIENT_GLOBAL_LINEBREAK
 				std::wstring wstrMsg = GET_REPLACED_STRING( (STR_ID_23495, "Li", pItem->GetFullName(), m_iItemEnrollNum ) );
@@ -2384,10 +2410,9 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGSealItemConfirm, NULL, false );
 
 			if ( g_pData->GetMyUser() == NULL ||
-				 g_pData->GetMyUser()->GetSelectUnit() == NULL ||
-				 g_pData->GetMyUser()->GetSelectUnit()->GetInventory() == NULL )
+				 g_pData->GetMyUser()->GetSelectUnit() == NULL )
 			{
-				ASSERT( !"GetMyuser or GetSelectUnit or GetInventory is NULL" );
+				ASSERT( !"GetMyuser or GetSelectUnit is NULL" );
 				m_pSlotItemToBeSealed	= NULL;
 				ResetItemIDForSealAndCursorState();
 				return true;
@@ -2564,7 +2589,7 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			//전직 요청 한다 여러가지 체크를 해야한다. 아이템이 인벤에있는지 레벨 2차 전직인지,unit등을 체크하자
 			
 			if( 2 == g_pData->GetMyUser()->GetSelectUnit()->GetClassLevel() &&
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( UNLIMITED_SECOND_CHANGE_JOB_ITEM_ID ) != NULL )
+				g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( UNLIMITED_SECOND_CHANGE_JOB_ITEM_ID ) != NULL )
 			{
 				KEGS_UNLIMITED_SECOND_CHANGE_JOB_NOT kPacket;
 				kPacket.m_iUnlimitedSecondChangeJob = m_iSelectedUSCJob;
@@ -2772,8 +2797,9 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 		} break;
 	case UIM_EXCHANGE_NEW_ITEM_OK:
 		{
-			Handler_EGS_ITEM_CONVERT_REQ( m_iTargetItemUID );
+			Handler_EGS_ITEM_CONVERT_REQ( m_iTargetItemUID, m_iConsumeItemQuantity );
 			m_iTargetItemUID = -1;
+			m_iConsumeItemQuantity = -1;
 
 			CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
 			if ( NULL != pControl )
@@ -2784,6 +2810,9 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 		break;
 	case UIM_EXCHANGE_NEW_ITEM_CANCEL:
 		{
+			m_iTargetItemUID = -1;
+			m_iConsumeItemQuantity = -1;
+
 			CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
 			if ( NULL != pControl )
 				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
@@ -2808,6 +2837,266 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 		} break;
 #endif //RIDING_ITEM_POPUP_CHECK
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case UIM_EL_BREAK_EXIT:
+		{
+			if( m_pDLGElBreak != NULL )
+			{	
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGElBreak, NULL, false );
+			}
+			m_pDLGElBreak = NULL;
+			return true;
+		} break;
+	case UIM_EL_BREAK_NUM_PLUS:
+		{
+			++m_ElBreakItemCount;
+			UpdateElBreakDLG( false );
+			return true;
+		} break;
+	case UIM_EL_BREAK_NUM_MINUS:
+		{
+			--m_ElBreakItemCount;
+			UpdateElBreakDLG( false );
+			return true;
+		} break;
+	case UIM_EL_BREAK_NUM_UPDATE:
+		{
+			UpdateElBreakDLG( true );
+			return true;
+		} break;
+	case UIM_EL_BREAK_OK:
+		{
+			if( m_pDLGElBreak != NULL )
+			{	
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGElBreak, NULL, false );
+			}
+			m_pDLGElBreak = NULL;
+
+			// 엘조각과 특스탭 인벤 공간 검사
+			int iMaxSlot = 0;
+			int iUnUseSlot = 0;  
+
+			if ( g_pData->GetMyUser() != NULL &&
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
+			{
+				iMaxSlot = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum( CX2Inventory::ST_SPECIAL );
+				iUnUseSlot = iMaxSlot - g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetUsedSlotNum(CX2Inventory::ST_SPECIAL );
+			}			
+
+			if( m_ElBreakItemCount < 300 )
+			{
+				if( iUnUseSlot >= 1 )
+				{
+					return Handler_EGS_ITEM_EXTRACT_REQ();
+				}
+				else
+				{
+					// 인벤토리 특수 탭의 빈 공간을 X 개 확보 해야 합니다.
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_REPLACED_STRING( ( STR_ID_5058, "i", 1 ) ), g_pMain->GetNowState() );
+					return true;
+				}
+			}
+			else
+			{
+				if( iUnUseSlot >= 1 )
+				{
+					return Handler_EGS_ITEM_EXTRACT_REQ();
+				}
+				else
+				{
+					// 인벤토리 특수 탭의 빈 공간을 X 개 확보 해야 합니다.
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_REPLACED_STRING( ( STR_ID_5058, "i", 6 ) ), g_pMain->GetNowState() );
+					return true;
+				}
+			}
+
+			return true;
+		} break;
+	case UIM_EL_BREAK_RESULT_OK:
+		{
+			return true;
+		}
+		break;
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef GOOD_ELSWORD //JHKang
+	case UIM_EXPAND_INVENTORY_CASH:
+		{
+			CX2StateField*	pStateField	=	NULL;
+			pStateField		=  static_cast< CX2StateField* >( g_pMain->GetNowState() );
+
+			if ( pStateField != NULL )
+			{
+				if ( g_pTFieldGame != NULL )
+				{
+					g_pTFieldGame->CloseFieldName( 0.0f );
+				}
+
+				g_pData->GetCashShop()->SetMenuTypeCallingCashShop( CX2UIManager::UI_MENU_PRIVATE_BANK );
+				pStateField->ToggleCashShop();
+			}
+
+			return true;
+		} break;
+#ifndef NO_GOOD_ELSWORD_INT
+	case UIM_EXPAND_INVENTORY_ED:
+		{
+			Handler_EGS_GET_NEXT_INVENTORY_ED_REQ();
+			return true;
+		} break;
+	case UIM_EXPAND_INVENTORY_ED_BUY_CONFIRM:
+		{
+			if ( m_pDLGBuyConfirm != NULL )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGBuyConfirm, NULL, false );
+
+			m_pDLGBuyConfirm = NULL;
+
+			m_bShow = false;
+			SetShow( m_bShow );
+
+			if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED >= m_iConfirmED )
+			{
+				m_iConfirmED = 0;
+				return Handler_EGS_EXPAND_INVENTORY_ED_REQ();
+			}
+			else
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28961 ), g_pMain->GetNowState() );
+				m_iConfirmED = 0;
+				m_bShow = true;
+				SetShow( m_bShow );
+				return false;
+			}
+		} break;
+
+	case UIM_EXPAND_INVENTORY_ED_BUY_CANCEL:
+		{
+			if ( m_pDLGBuyConfirm != NULL )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGBuyConfirm, NULL, false );
+
+			m_pDLGBuyConfirm = NULL;
+
+			return true;
+		} break;
+#endif NO_GOOD_ELSWORD_INT
+#endif //GOOD_ELSWORD
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+	case UIM_USE_ADD_SOCKET_SLOT_OK:
+		{
+			Handler_EGS_SOCKET_EXPAND_ITEM_REQ();
+
+			m_iTargetItemUID = -1;
+			m_iConsumeItemQuantity = -1;
+
+			CX2State* pState = static_cast<CX2State*>(g_pMain->GetNowState());
+			if( NULL != pState && NULL != pState->GetCursor() )
+				pState->GetCursor()->ChangeCursorState( CX2Cursor::XCS_NORMAL );
+
+			CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
+			if ( NULL != pControl )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+
+			return true;
+		} break;
+	case UIM_USE_ADD_SOCKET_SLOT_CANCEL:
+		{
+			m_iTargetItemUID = -1;
+			m_iConsumeItemQuantity = -1;
+
+			CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
+			if ( NULL != pControl )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+
+			return true;
+		} break;
+#endif // ADD_SOCKET_SLOT
+
+#ifdef REFORM_SKILL_NOTE_UI // 기술의 노트 버튼 제거하지 않고 비활성화로 변경
+	case UIM_BUY_SKILL_NOTE_GUIDE_MOUSE_UP:
+		{
+			//던전/대전 게임중에는 캐쉬샵 열지 않기.
+			if( g_pX2Game != NULL && g_pMain->GetNowStateID() != CX2Main::XS_BATTLE_FIELD )
+			{
+				g_pChatBox->AddChatLog(  GET_STRING( STR_ID_16478 ), KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
+				return true;
+			}
+			if( NULL != g_pData->GetCashShop() )
+			{
+				g_pData->GetCashShop()->SetMenuTypeCallingCashShop( CX2UIManager::UI_SKILL_NOTE );
+				g_pData->GetCashShop()->SetItemIDShowBuyUIAfterEnter(CASH_SKILL_NOTE_ITEM_ID);
+			}
+			if( g_pMain->IsInheritStateMenu() )
+			{
+				CX2StateMenu* pStateMenu = static_cast<CX2StateMenu*>( g_pMain->GetNowState() );
+				if( NULL != pStateMenu)
+					pStateMenu->ToggleCashShop();
+			}
+
+			return true;
+		}
+#endif // REFORM_SKILL_NOTE_UI
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	case UIM_USE_PROPOSE_ITEM:
+		{
+			CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
+			if ( pControl != NULL )
+			{
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+			}
+
+			SAFE_DELETE_DIALOG(m_pDLGMarryEventNickName);
+			m_pDLGMarryEventNickName = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_MarryEvent_Nickname.lua" );
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGMarryEventNickName );			
+
+			return true;
+		} break;
+	case UIM_USE_PROPOSE_ITEM_OK:
+		{
+			if( m_pDLGMarryEventNickName != NULL )
+			{
+				CKTDGUIIMEEditBox* pIMEEditID = (CKTDGUIIMEEditBox*)m_pDLGMarryEventNickName->GetControl( L"IMEEditBoxName" );
+
+				if( pIMEEditID != NULL )
+				{
+					CX2State* pState = (CX2State*)(g_pMain->GetNowState());
+					if( pState != NULL )
+					{
+						wstring wstrNickName = pIMEEditID->GetText();
+						Handler_EGS_USE_PROPOSE_ITEM_REQ( m_UsedItemUID, wstrNickName );
+					}
+				}
+
+				CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
+				if ( pControl != NULL )
+				{
+					g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+				}
+			}
+			return true;
+		} break;
+	case UIM_USE_PROPOSE_ITEM_CANCLE:
+		{
+			CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
+			if ( pControl != NULL )
+			{
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+			}
+
+			return true;
+		} break;
+	case UIM_USE_DIVORCE_ITEM:
+		{
+			CKTDGUIControl* pControl = reinterpret_cast<CKTDGUIControl*>(lParam);
+			if ( pControl != NULL )
+			{
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+			}
+
+			Handler_EGS_USE_DIVORCE_ITEM_REQ();
+			return true;
+		} break;
+#endif SERV_RELATIONSHIP_EVENT_INT
 
 #ifdef SERV_RECRUIT_EVENT_BASE
 	case UIM_RECOMMEND_OK:
@@ -2827,6 +3116,7 @@ bool CX2UIInventory::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 		}
 		break;
 #endif SERV_RECRUIT_EVENT_BASE
+
 #ifdef SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
 	case UIM_USE_EXPAND_INVENTORY_OK:
 		{
@@ -3007,6 +3297,43 @@ bool CX2UIInventory::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			return Handler_EGS_ITEM_CONVERT_ACK( hWnd, uMsg, wParam, lParam );
 		} break;
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case EGS_ITEM_EXTRACT_ACK:
+		{
+			return Handler_EGS_ITEM_EXTRACT_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+
+#endif //FINALITY_SKILL_SYSTEM
+#ifdef GOOD_ELSWORD //JHKang
+#ifndef NO_GOOD_ELSWORD_INT
+	case EGS_GET_NEXT_INVENTORY_ED_ACK:
+		{
+			return Handler_EGS_GET_NEXT_INVENTORY_ED_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+
+	case EGS_EXPAND_INVENTORY_ED_ACK:
+		{
+			return Handler_EGS_EXPAND_INVENTORY_ED_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+#endif //GOOD_ELSWORD
+#endif NO_GOOD_ELSWORD_INT
+#ifdef ADD_SOCKET_SLOT
+	case EGS_SOCKET_EXPAND_ITEM_ACK:
+		{
+			return Handler_EGS_SOCKET_EXPAND_ITEM_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+#endif // ADD_SOCKET_SLOT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	case EGS_USE_PROPOSE_ITEM_ACK:
+		{
+			return Handler_EGS_USE_PROPOSE_ITEM_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+	case EGS_USE_DIVORCE_ITEM_ACK:
+		{
+			return Handler_EGS_USE_DIVORCE_ITEM_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+#endif SERV_RELATIONSHIP_EVENT_INT
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
 	case EGS_CUBE_IN_ITEM_MAPPING_NOT:
@@ -3108,8 +3435,8 @@ void CX2UIInventory::SetShow(bool val)
 			g_pData->GetUIManager()->GetUIQuestNew()->ClearQuestCompleteParticle();
 		}
 #endif //REFORM_QUEST
-		SetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED );
-		SetAPString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint );
+		SetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED );
+		SetAPString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint );
 	}
 	else	// 꺼질 때 처리해야 할 부분
 	{
@@ -3177,6 +3504,10 @@ void CX2UIInventory::SetShow(bool val)
 		SAFE_DELETE_DIALOG( m_pDLGCheckPShop );
 #endif
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		SAFE_DELETE_DIALOG( m_pDLGElBreak );
+#endif //FINALITY_SKILL_SYSTEM
+
 #ifdef SERV_SOCKET_NEW
 		// oasis907 : 김상윤 [2010.4.5] // 
 		SAFE_DELETE(m_pUISocketItem);
@@ -3215,6 +3546,10 @@ void CX2UIInventory::SetShow(bool val)
 		if( NULL != m_pDLGItemHighLight )
 			m_pDLGItemHighLight->SetShow(false);
 #endif //NEW_ITEM_NOTICE
+
+#ifdef GOOD_ELSWORD //JHKang
+		SAFE_DELETE_DIALOG( m_pDLGBuyConfirm )
+#endif //GOOD_ELSWORD
 	}
 
 	m_pDLGUIInventory->SetShowEnable(m_bShow, m_bShow);	
@@ -3243,41 +3578,33 @@ bool CX2UIInventory::Handler_EGS_EXPAND_BANK_SLOT_NOT( HWND hWnd, UINT uMsg, WPA
 		return false;
 	}
 
-	CX2Inventory* pInventory = pUnit->GetInventory();
-	if ( pInventory == NULL )
-	{
-		ASSERT( !"Inventory is NULL(X2UIIventory)" );
-		return false;
-	}
+	CX2Inventory& kInventory = pUnit->AccessInventory();
 
 	map< int, int >::iterator mit;
 	for ( mit = kEvent.m_mapExpandedCategorySlot.begin(); mit != kEvent.m_mapExpandedCategorySlot.end(); mit++ )
 	{
-		if ( pInventory != NULL )
-		{
-			pInventory->SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
-				pInventory->GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
+		kInventory.SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
+			kInventory.GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
 
-			switch( static_cast< CX2Inventory::SORT_TYPE >( mit->first ) )
-			{
+		switch( static_cast< CX2Inventory::SORT_TYPE >( mit->first ) )
+		{
 #ifdef	REALTIME_EXPAND_QUICK_SLOT  
-			case CX2Inventory::ST_E_QUICK_SLOT:
-				if( NULL != g_pData->GetUIManager()->GetUIQuickSlot() )
-				{
-					g_pData->GetUIManager()->GetUIQuickSlot()->SetExpandQuickSlot( pInventory->GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );	// 맥스 슬롯 올리고
-				}  
-				g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_16083 ),g_pMain->GetNowState() );
-				break;
+		case CX2Inventory::ST_E_QUICK_SLOT:
+			if( NULL != g_pData->GetUIManager()->GetUIQuickSlot() )
+			{
+				g_pData->GetUIManager()->GetUIQuickSlot()->SetExpandQuickSlot( kInventory.GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );	// 맥스 슬롯 올리고
+			}  
+			g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_16083 ),g_pMain->GetNowState() );
+			break;
 #endif  REALTIME_EXPAND_QUICK_SLOT
 #ifdef SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
-			case CX2Inventory::ST_SPECIAL:
-				ChangeInventoryTab( CX2Inventory::ST_SPECIAL );
-				break;
+		case CX2Inventory::ST_SPECIAL:
+			ChangeInventoryTab( CX2Inventory::ST_SPECIAL );
+			break;
 #endif SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
-			case CX2Inventory::ST_BANK:
-				g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_3868 ),g_pMain->GetNowState() );
-				break;
-			}
+		case CX2Inventory::ST_BANK:
+			g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_3868 ),g_pMain->GetNowState() );
+			break;
 		}
 	}
 
@@ -3303,9 +3630,9 @@ bool CX2UIInventory::Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2SlotItem* pFromCX
 	if( ( pFromCX2SlotItem->GetSortType() == CX2Inventory::ST_E_EQUIP && pToCX2SlotItem->GetSortType() != CX2Inventory::ST_E_EQUIP ) || 
 		( pFromCX2SlotItem->GetSortType() != CX2Inventory::ST_E_EQUIP && pToCX2SlotItem->GetSortType() == CX2Inventory::ST_E_EQUIP ) )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-		CX2Item* pFromItem = pInventory->GetItem( pFromCX2SlotItem->GetItemUID(), true );
-		CX2Item* pToItem = pInventory->GetItem( pToCX2SlotItem->GetItemUID(), true );
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		CX2Item* pFromItem = kInventory.GetItem( pFromCX2SlotItem->GetItemUID(), true );
+		CX2Item* pToItem = kInventory.GetItem( pToCX2SlotItem->GetItemUID(), true );
 		if(pFromItem != NULL && pToItem != NULL )
 		{
 			const CX2Item::ItemTemplet* pFromItemTemplet = pFromItem->GetItemTemplet();
@@ -3331,13 +3658,12 @@ bool CX2UIInventory::Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2SlotItem* pFromCX
 
 
 					// 장착된 아이템을 벗긴다
-					if ( pInventory != NULL )
 					{
-						CX2Inventory::SORT_TYPE NowInventorySortType = pInventory->GetSortTypeByID( pEquippedItemSlot->GetItemTID() );
-						for ( int i = 0; i < pInventory->GetItemMaxNum( NowInventorySortType ); i++ )
+						CX2Inventory::SORT_TYPE NowInventorySortType = kInventory.GetSortTypeByID( pEquippedItemSlot->GetItemTID() );
+						for ( int i = 0; i < kInventory.GetItemMaxNum( NowInventorySortType ); i++ )
 						{
 							// 빈자리 찾아서
-							CX2Item* pItem = pInventory->GetItem( NowInventorySortType, i );
+							CX2Item* pItem = kInventory.GetItem( NowInventorySortType, i );
 							if ( pItem == NULL )
 							{
 								Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( pEquippedItemSlot->GetSortType(), pEquippedItemSlot->GetSlotID(),
@@ -3399,20 +3725,29 @@ bool CX2UIInventory::Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2SlotItem* pFromCX
 	{
 		kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iToSlotID		= pToCX2SlotItem->GetSlotID();
 	}
-#ifdef	SERV_SHARING_BANK_TEST
-	if(  (kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cFromSlotType == CX2Inventory::ST_SHARE_BANK && kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cToSlotType != CX2Inventory::ST_SHARE_BANK) || 
+#ifdef SERV_SHARING_BANK_TEST
+	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = -1;
+	if( g_pData->GetUIManager() != NULL && g_pData->GetUIManager()->GetUIPrivateBank() != NULL )
+	{
+		kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = g_pData->GetUIManager()->GetUIPrivateBank()->GetShareUnitUID();
+	}
+	if( (kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cFromSlotType == CX2Inventory::ST_SHARE_BANK && kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cToSlotType != CX2Inventory::ST_SHARE_BANK) || 
 		(kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cFromSlotType != CX2Inventory::ST_SHARE_BANK && kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cToSlotType == CX2Inventory::ST_SHARE_BANK) )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-		CX2Item* pFromItem = pInventory->GetItem( pFromCX2SlotItem->GetItemUID(), true );
-		CX2Item* pToItem = pInventory->GetItem( pToCX2SlotItem->GetItemUID(), true );
+		CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
+		CX2Item* pFromItem = kInventory.GetItem( pFromCX2SlotItem->GetItemUID(), true );
+		CX2Item* pToItem = kInventory.GetItem( pToCX2SlotItem->GetItemUID(), true );
 
 		// 거래 가능한지 체크 합시다.
 		if(pFromItem != NULL || pToItem != NULL)
+		{
 			if(CheckCanMoveShareItem(pFromItem, pToItem, kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ) == false)
+			{
 				return false;
+			}
+		}
 	}
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 	g_pData->GetServerProtocol()->SendPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ, kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ );
 	g_pMain->AddServerPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK );
 
@@ -3432,19 +3767,29 @@ bool CX2UIInventory::Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2Inventory::SORT_T
 	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cToSlotType	= toSortType;
 	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iToSlotID		= toSlotID;
 
-#ifdef	SERV_SHARING_BANK_TEST
-	if(  (kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cFromSlotType == CX2Inventory::ST_SHARE_BANK && kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cToSlotType != CX2Inventory::ST_SHARE_BANK) || 
+#ifdef SERV_SHARING_BANK_TEST
+	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = -1;
+	if( g_pData->GetUIManager() != NULL && g_pData->GetUIManager()->GetUIPrivateBank() != NULL )
+	{
+		kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = g_pData->GetUIManager()->GetUIPrivateBank()->GetShareUnitUID();
+	}
+	if( (kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cFromSlotType == CX2Inventory::ST_SHARE_BANK && kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cToSlotType != CX2Inventory::ST_SHARE_BANK) || 
 		(kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cFromSlotType != CX2Inventory::ST_SHARE_BANK && kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cToSlotType == CX2Inventory::ST_SHARE_BANK) )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-		CX2Item* pFromItem = pInventory->GetItem( fromSortType, fromSlotID );
-		CX2Item* pToItem = pInventory->GetItem( toSortType, toSlotID );
+		CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
+		CX2Item* pFromItem = kInventory.GetItem( fromSortType, fromSlotID );
+		CX2Item* pToItem = kInventory.GetItem( toSortType, toSlotID );
+		
 		// 거래 가능한지 체크 합시다.
 		if(pFromItem != NULL || pToItem != NULL)
+		{
 			if(CheckCanMoveShareItem(pFromItem, pToItem, kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ) == false)
+			{
 				return false;
+			}
+		}
 	}
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ, kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ );
 	g_pMain->AddServerPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK );
@@ -3474,8 +3819,7 @@ bool CX2UIInventory::Handler_EGS_CHANGE_INVENTORY_SLOT_ACK(  HWND hWnd, UINT uMs
 				CX2GUUser* pMyUser = g_pX2Game->GetMyUnit();
 
 				if ( NULL == pMyUser || 
-					 NULL == pMyUser->GetUnit() ||
-					 NULL == pMyUser->GetUnit()->GetInventory() )
+					 NULL == pMyUser->GetUnit() )
 					 return false;
 
 				bool bWeaponChanged = false;
@@ -3484,8 +3828,8 @@ bool CX2UIInventory::Handler_EGS_CHANGE_INVENTORY_SLOT_ACK(  HWND hWnd, UINT uMs
 					if ( kInventoryItemInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
 					{
 						CX2GUUser*	pUser			= g_pX2Game->GetMyUnit();
-						CX2Item*	pItemToAdd		= pUser->GetUnit()->GetInventory()->GetItem( kInventoryItemInfo.m_iItemUID );	// 장착한 장비
-						CX2Item*	pItemToRemove	= pUser->GetUnit()->GetInventory()->GetItem( 
+						CX2Item*	pItemToAdd		= pUser->GetUnit()->GetInventory().GetItem( kInventoryItemInfo.m_iItemUID );	// 장착한 장비
+						CX2Item*	pItemToRemove	= pUser->GetUnit()->GetInventory().GetItem( 
 							static_cast< CX2Inventory::SORT_TYPE >( kInventoryItemInfo.m_cSlotCategory ), 
 							kInventoryItemInfo.m_sSlotID );
 
@@ -3630,14 +3974,14 @@ bool CX2UIInventory::Handler_EGS_ITEM_EXPIRATION_NOT( HWND hWnd, UINT uMsg, WPAR
 			for ( int i = 0; i < (int)kEvent.m_vecItemUID.size(); i++ )
 			{
 				UidType		itemUID = kEvent.m_vecItemUID[i];
-				CX2Item*	pItem	= pUnit->GetInventory()->GetItem( itemUID );
+				CX2Item*	pItem	= pUnit->GetInventory().GetItem( itemUID );
 
 				if ( pItem == NULL ||
 					 pItem->GetItemTemplet() == NULL 
                      )
 					continue;
 
-				if ( pUnit->GetInventory()->CheckEquippingItem( 
+				if ( pUnit->GetInventory().CheckEquippingItem( 
                     pItem->GetItemTemplet()->GetItemID()
 #ifdef ITEM_EXPIRE_USING_ITEM_UID
 					, pItem->GetUID()
@@ -3678,7 +4022,7 @@ bool CX2UIInventory::Handler_EGS_ITEM_EXPIRATION_NOT( HWND hWnd, UINT uMsg, WPAR
 
 
 		// 1. 아이템을 지우기전에 어떤 아이템이 지워지는지 이름 먼저~
-		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( itemUID, true );
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( itemUID, true );
 		if( NULL != pItem )
 		{
 			wstrExpirationMessage += L"[";
@@ -3756,7 +4100,7 @@ bool CX2UIInventory::Handler_EGS_ITEM_EXPIRATION_NOT( HWND hWnd, UINT uMsg, WPAR
 
 		// 3. 맨 마지막으로 유닛 정보와 인벤토리에서 아이템을 제거한다.
 		g_pData->GetMyUser()->GetSelectUnit()->RemoveEqip( itemUID );
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->RemoveItem( itemUID );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().RemoveItem( itemUID );
 
 
 
@@ -3819,16 +4163,17 @@ bool CX2UIInventory::Handler_EGS_ITEM_EXPIRATION_NOT( HWND hWnd, UINT uMsg, WPAR
 #endif SERV_PET_SYSTEM
 
 #ifdef QUEST_UPDATE_ITEM_EXPIRATION
-	if ( g_pData->GetUIManager() == NULL ||
-		g_pData->GetUIManager()->GetUIQuestNew() == NULL )
+	if( g_pData->GetUIManager() == NULL || g_pData->GetUIManager()->GetUIQuestNew() == NULL )
+	{
 		return true;
+	}
 
-	if ( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_QUEST_NEW ) == true )
+	if( g_pData->GetUIManager()->GetShow( CX2UIManager::UI_MENU_QUEST_NEW ) == true )
 	{
 		g_pData->GetUIManager()->GetUIQuestNew()->ResetQuestUI();
 	}
 
-	if ( g_pData->GetUIManager()->GetUIQuestNew()->GetShowQuickQuestDLG() == true )
+	if( g_pData->GetUIManager()->GetUIQuestNew()->GetShowQuickQuestDLG() == true )
 	{
 		g_pData->GetUIManager()->GetUIQuestNew()->UpdateQuickQuestDLG();
 	}
@@ -3862,29 +4207,21 @@ bool CX2UIInventory::UpdateInventorySlotList( std::vector< KInventoryItemInfo >&
 {
 
 	CX2Unit*		pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
-	CX2Inventory*	pMyInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-
-	//{{ mauntain : 김태환 [2012.07.10] 장착중인 소비성 아이템 획득시 퀵슬롯 갱신
-#ifdef SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
-	bool			bUpdateQuickSlot = false;		/// 퀵슬롯 갱신 여부
-#endif SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
-	//}}
 
 	ASSERT( pMyUnit != NULL );
-	ASSERT( pMyInventory != NULL );
-
 	if( pMyUnit == NULL )
 	{
 		StateLog( L"updating inven failed - null unit" );		
 		return false;
 	}
 
-	if( pMyInventory == NULL )
-	{
-		StateLog( L"updating inven failed - null inven" );		
-		return false;
-	}
+	CX2Inventory&	kMyInventory = pMyUnit->AccessInventory();
 
+	//{{ mauntain : 김태환 [2012.07.10] 장착중인 소비성 아이템 획득시 퀵슬롯 갱신
+#ifdef SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
+	bool			bUpdateQuickSlot = false;		/// 퀵슬롯 갱신 여부
+#endif SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
+	//}}
 
 
 
@@ -3893,7 +4230,7 @@ bool CX2UIInventory::UpdateInventorySlotList( std::vector< KInventoryItemInfo >&
 		if( invenItemInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
 		{
 			// 장착 장비 제거
-			CX2Item* pItem = pMyInventory->GetItem( (CX2Inventory::SORT_TYPE)invenItemInfo.m_cSlotCategory, invenItemInfo.m_sSlotID );
+			CX2Item* pItem = kMyInventory.GetItem( (CX2Inventory::SORT_TYPE)invenItemInfo.m_cSlotCategory, invenItemInfo.m_sSlotID );
 			if ( pItem != NULL )
 			{
 				pMyUnit->RemoveEqip( pItem->GetUID() );
@@ -3901,7 +4238,7 @@ bool CX2UIInventory::UpdateInventorySlotList( std::vector< KInventoryItemInfo >&
 		}
 
 		// 인벤에서 아이템 제거
-		pMyInventory->RemoveItem( (CX2Inventory::SORT_TYPE) invenItemInfo.m_cSlotCategory, invenItemInfo.m_sSlotID );
+		kMyInventory.RemoveItem( (CX2Inventory::SORT_TYPE) invenItemInfo.m_cSlotCategory, invenItemInfo.m_sSlotID );
 	}
 
 #ifdef SERV_REFORM_INVENTORY_TEST
@@ -3914,8 +4251,10 @@ bool CX2UIInventory::UpdateInventorySlotList( std::vector< KInventoryItemInfo >&
 			continue;
 
 		// 인벤에 아이템 다시 추가
-		CX2Item::ItemData* pItemData = new CX2Item::ItemData( invenItemInfo );
-		pMyInventory->AddItem( (CX2Inventory::SORT_TYPE)invenItemInfo.m_cSlotCategory, invenItemInfo.m_sSlotID, pItemData );
+        {
+		    CX2Item::ItemData kItemData( invenItemInfo );
+		    kMyInventory.AddItem( (CX2Inventory::SORT_TYPE)invenItemInfo.m_cSlotCategory, invenItemInfo.m_sSlotID, kItemData );
+        }
 
 #ifdef SERV_REFORM_INVENTORY_TEST
 		if( (CX2Inventory::SORT_TYPE)invenItemInfo.m_cSlotCategory == m_NowInventorySortType )
@@ -3928,7 +4267,7 @@ bool CX2UIInventory::UpdateInventorySlotList( std::vector< KInventoryItemInfo >&
 		// 장착 장비 다시 추가
 		if ( invenItemInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
 		{
-			CX2Item* pItem = pMyInventory->GetItem( (CX2Inventory::SORT_TYPE)invenItemInfo.m_cSlotCategory, invenItemInfo.m_sSlotID );
+			CX2Item* pItem = kMyInventory.GetItem( (CX2Inventory::SORT_TYPE)invenItemInfo.m_cSlotCategory, invenItemInfo.m_sSlotID );
 			if ( pItem != NULL )
 			{
 				pMyUnit->AddEqip( pItem->GetUID() );
@@ -4037,13 +4376,11 @@ bool CX2UIInventory::SetInventorySort( CX2Inventory::SORT_TYPE sortType, int pag
 	m_NowInventorySortType = sortType;	
 
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	if ( pInventory == NULL )
-		return false;
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 #ifndef	SERV_REFORM_INVENTORY_TEST
-	int maxPageNum = pInventory->GetItemMaxNum( m_NowInventorySortType )/MY_INVENTORY_SHOW_MAX_SLOT_NUM;
-	if ( pInventory->GetItemMaxNum( m_NowInventorySortType )%MY_INVENTORY_SHOW_MAX_SLOT_NUM > 0 )
+	int maxPageNum = kInventory.GetItemMaxNum( m_NowInventorySortType )/MY_INVENTORY_SHOW_MAX_SLOT_NUM;
+	if ( kInventory.GetItemMaxNum( m_NowInventorySortType )%MY_INVENTORY_SHOW_MAX_SLOT_NUM > 0 )
 		maxPageNum++;
 
 	ResetInvenPage( pageNum, maxPageNum );
@@ -4129,7 +4466,7 @@ bool CX2UIInventory::SetInventorySort( CX2Inventory::SORT_TYPE sortType, int pag
 	// slotID : Inventory 상의 실제 ID
 	// slotIndex : UI상의 슬롯
 	for ( int slotID = ((pageNum-1)*MY_INVENTORY_SHOW_SLOT_NUM_PER_PAGE), slotIndex = 0; 
-		slotID < pInventory->GetItemMaxNum( m_NowInventorySortType ) && slotIndex < MY_INVENTORY_SHOW_SLOT_NUM_PER_PAGE;
+		slotID < kInventory.GetItemMaxNum( m_NowInventorySortType ) && slotIndex < MY_INVENTORY_SHOW_SLOT_NUM_PER_PAGE;
 		slotID++, slotIndex++ )
 	{
 		//CX2SlotItem* pItemSlot = (CX2SlotItem*)GetSlot(slotIndex);
@@ -4157,12 +4494,12 @@ bool CX2UIInventory::SetInventorySort( CX2Inventory::SORT_TYPE sortType, int pag
 		}
 
 #ifdef NEW_ITEM_NOTICE 
-		CX2Item* pItem = pInventory->GetItem( m_NowInventorySortType, slotID );
+		CX2Item* pItem = kInventory.GetItem( m_NowInventorySortType, slotID );
 
-		if( NULL != pItem && NULL != pItem->GetItemData() )
+		if( NULL != pItem )
 		{
-			UidType iItemUID = pItem->GetItemData()->m_ItemUID;
-			bool	bNewItem = pInventory->IsNewItem(m_NowInventorySortType, iItemUID );
+			UidType iItemUID = pItem->GetItemData().m_ItemUID;
+			bool	bNewItem = kInventory.IsNewItem(m_NowInventorySortType, iItemUID );
 
 			if( true == bNewItem && NULL != pStatic &&  NULL != pStatic->GetPicture(slotIndex) )
 			{//위에서 모두 초기화 시켜 주기 때문에, true일때만 수정
@@ -4175,7 +4512,7 @@ bool CX2UIInventory::SetInventorySort( CX2Inventory::SORT_TYPE sortType, int pag
 
 	for ( int slotIndex = 0; slotIndex < MY_INVENTORY_SHOW_MAX_SLOT_NUM; slotIndex++ )
 	{
-		CX2Item* pItem = pInventory->GetItem( m_NowInventorySortType, slotIndex );
+		CX2Item* pItem = kInventory.GetItem( m_NowInventorySortType, slotIndex );
 		for ( int j = 0; j < (int)m_SlotList.size(); j++ )
 		{
 			CX2SlotItem* pItemSlot = (CX2SlotItem*)GetSlot(j);
@@ -4255,7 +4592,7 @@ bool CX2UIInventory::SetInventorySort( CX2Inventory::SORT_TYPE sortType, int pag
 	// slotID : Inventory 상의 실제 ID
 	// slotIndex : UI상의 슬롯
 	for ( int slotID = ((pageNum-1)*MY_INVENTORY_SHOW_MAX_SLOT_NUM), slotIndex = 0; 
-		slotID < pInventory->GetItemMaxNum( m_NowInventorySortType ) && slotIndex < MY_INVENTORY_SHOW_MAX_SLOT_NUM;
+		slotID < kInventory.GetItemMaxNum( m_NowInventorySortType ) && slotIndex < MY_INVENTORY_SHOW_MAX_SLOT_NUM;
 		slotID++, slotIndex++ )
 	{
 
@@ -4302,16 +4639,16 @@ bool CX2UIInventory::SetInventorySort( CX2Inventory::SORT_TYPE sortType, int pag
 
 
 	for ( int slotID = ((pageNum-1)*MY_INVENTORY_SHOW_MAX_SLOT_NUM), slotIndex = 0; 
-		slotID < pInventory->GetItemMaxNum( m_NowInventorySortType ) && slotIndex < MY_INVENTORY_SHOW_MAX_SLOT_NUM; 
+		slotID < kInventory.GetItemMaxNum( m_NowInventorySortType ) && slotIndex < MY_INVENTORY_SHOW_MAX_SLOT_NUM; 
 		slotID++, slotIndex++ )
 	{
-		CX2Item* pItem = pInventory->GetItem( m_NowInventorySortType, slotID );
+		CX2Item* pItem = kInventory.GetItem( m_NowInventorySortType, slotID );
 
 #ifdef NEW_ITEM_NOTICE 
-		if( NULL != pItem && NULL != pItem->GetItemData() )
+		if( NULL != pItem )
 		{
-			UidType iItemUID = pItem->GetItemData()->m_ItemUID;
-			bool	bNewItem = pInventory->IsNewItem(m_NowInventorySortType, iItemUID );
+			UidType iItemUID = pItem->GetItemData().m_ItemUID;
+			bool	bNewItem = kInventory.IsNewItem(m_NowInventorySortType, iItemUID );
 
 			if( true == bNewItem && NULL != pStatic &&  NULL != pStatic->GetPicture(slotIndex) )
 			{//위에서 모두 초기화 시켜 주기 때문에, true일때만 수정
@@ -4359,13 +4696,13 @@ bool CX2UIInventory::SetInventorySort( CX2Inventory::SORT_TYPE sortType, int pag
 
 bool CX2UIInventory::ChangeInventoryTabByUid( UidType iItemUID )
 {
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	CX2Item* pItem = pInventory->GetItem( iItemUID, true );
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Item* pItem = kInventory.GetItem( iItemUID, true );
 
-	if(pInventory == NULL || pItem == NULL)
+	if( pItem == NULL)
 		return false;
 
-	if( pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) == m_NowInventorySortType &&
+	if( kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) == m_NowInventorySortType &&
 		*m_pSlotBeforeDragging != NULL &&
 		CX2SlotItem::CX2Slot::ST_INVENTORY == ((*m_pSlotBeforeDragging)->GetSlotType()) )
 	{
@@ -4374,9 +4711,9 @@ bool CX2UIInventory::ChangeInventoryTabByUid( UidType iItemUID )
 
 	int invenPage = 1;
 
-	for ( int i = 0; i < pInventory->GetItemMaxNum( pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) ); i++ )
+	for ( int i = 0; i < kInventory.GetItemMaxNum( kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) ); i++ )
 	{
-		CX2Item* pItemTemp = pInventory->GetItem( pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() ), i );
+		CX2Item* pItemTemp = kInventory.GetItem( kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() ), i );
 		if ( pItemTemp == NULL )
 		{
 			int showPage = i / MY_INVENTORY_SHOW_MAX_SLOT_NUM;
@@ -4389,7 +4726,7 @@ bool CX2UIInventory::ChangeInventoryTabByUid( UidType iItemUID )
 	}
 
 #ifdef SERV_REFORM_INVENTORY_TEST
-	CX2Inventory::SORT_TYPE eSortType = pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() );
+	CX2Inventory::SORT_TYPE eSortType = kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() );
 
 	if( eSortType == GetSortType() )
 	{
@@ -4401,15 +4738,15 @@ bool CX2UIInventory::ChangeInventoryTabByUid( UidType iItemUID )
 		return SetInventorySort( eSortType, GetNowInventoryPageNum( eSortType ) );		
 	}
 #else SERV_REFORM_INVENTORY_TEST
-	return SetInventorySort( pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() ), invenPage );
+	return SetInventorySort( kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() ), invenPage );
 #endif SERV_REFORM_INVENTORY_TEST
 
-	//	if ( pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) != m_NowInventorySortType 
+	//	if ( kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) != m_NowInventorySortType 
 	//		|| invenPage != m_NowInvenSortTypePageNum )
 	//	{
 	//		if ( pItem != NULL && pItem->GetItemTemplet() != NULL )
 	//		{
-	//			wstring radioButtonName = GetRadioButtonNameByInvenSortType( pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) );
+	//			wstring radioButtonName = GetRadioButtonNameByInvenSortType( kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) );
 	//			CKTDGUIRadioButton* pRadioButtonInvenSortType = (CKTDGUIRadioButton*)m_pDLGMyInfoInventory->GetControl( radioButtonName.c_str() );
 	//			if ( pRadioButtonInvenSortType != NULL )
 	//			{
@@ -4418,7 +4755,7 @@ bool CX2UIInventory::ChangeInventoryTabByUid( UidType iItemUID )
 	//
 	//
 	//
-	//				SetInventorySort( pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() ), invenPage );
+	//				SetInventorySort( kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() ), invenPage );
 	//			}
 	//		}
 	//	}
@@ -4437,7 +4774,7 @@ void CX2UIInventory::ResetInvenPage( int nowPage, int maxPage )
 
 void CX2UIInventory::ResetInvenPageUI()
 {
-	//m_NowInvenSortTypePageMaxNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetInvenSlot() m_NowInventorySortType
+	//m_NowInvenSortTypePageMaxNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetInvenSlot() m_NowInventorySortType
 	//int invenMaxSize = GetInvenMaxSize( m_NowInventorySortType );
 
 	if ( m_pDLGUIInventory != NULL )
@@ -4570,7 +4907,7 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 		if ( pCursor != NULL && pCursor->GetCurorState() != CX2Cursor::XCS_NORMAL )
 		{
 			UidType ItemUID = pSlot->GetItemUID();
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( ItemUID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( ItemUID );
 
 			if(pItem == NULL )
 				return false;
@@ -4703,8 +5040,8 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 					if( pSlot->GetSortType() == CX2Inventory::ST_EQUIP )
 					{
 						m_CouponTargetUid = pSlot->GetItemUID();
-						CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_CouponUid );
-						CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_CouponTargetUid );
+						CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_CouponUid );
+						CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_CouponTargetUid );
 
 						//{{ kimhc // 2010-01-06 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
@@ -4721,7 +5058,7 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 						if(pCouponItem != NULL || pTargetItem != NULL)
 						{
 #ifdef SERV_ATTRIBUTE_CHARM
-							if( IsAttributeItem( pCouponItem->GetItemData()->m_ItemID ) )
+							if( IsAttributeItem( pCouponItem->GetItemData().m_ItemID ) )
 							{
 								if(pTargetItem->GetItemTemplet()->GetItemType() != CX2Item::IT_WEAPON)
 								{
@@ -4729,17 +5066,17 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 								}
 								else
 								{
-									wstring wstrMsg = GET_REPLACED_STRING( ( STR_ID_10283, "SSL", pTargetItem->GetItemTemplet()->GetFullName_(), pCouponItem->GetItemTemplet()->GetFullName_(), GetAttributeItemExtraDamageName(pCouponItem->GetItemData()->m_ItemID) ) );
+									wstring wstrMsg = GET_REPLACED_STRING( ( STR_ID_10283, "SSL", pTargetItem->GetItemTemplet()->GetFullName_(), pCouponItem->GetItemTemplet()->GetFullName_(), GetAttributeItemExtraDamageName(pCouponItem->GetItemData().m_ItemID) ) );
 									g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrMsg.c_str(), UIM_USE_ATTRIBUTE_CHARM_COUPON_ITEM_OK, g_pMain->GetNowState(), UIM_USE_COUPON_ITEM_CANCLE );
 								}
 							}
 							else
 							{
-								wstring wstrMsg = GET_REPLACED_STRING( ( STR_ID_797, "iSS", pTargetItem->GetItemData()->m_EnchantLevel, pTargetItem->GetItemTemplet()->GetFullName_(), pCouponItem->GetItemTemplet()->GetFullName_() ) );
+								wstring wstrMsg = GET_REPLACED_STRING( ( STR_ID_797, "iSS", pTargetItem->GetItemData().m_EnchantLevel, pTargetItem->GetItemTemplet()->GetFullName_(), pCouponItem->GetItemTemplet()->GetFullName_() ) );
 								g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrMsg.c_str(), UIM_USE_COUPON_ITEM_OK, g_pMain->GetNowState(), UIM_USE_COUPON_ITEM_CANCLE );
 							}
 #else
-                            wstring wstrMsg = GET_REPLACED_STRING( ( STR_ID_797, "iSS", pTargetItem->GetItemData()->m_EnchantLevel, pTargetItem->GetItemTemplet()->GetFullName_(), pCouponItem->GetItemTemplet()->GetFullName_() ) );
+                            wstring wstrMsg = GET_REPLACED_STRING( ( STR_ID_797, "iSS", pTargetItem->GetItemData().m_EnchantLevel, pTargetItem->GetItemTemplet()->GetFullName_(), pCouponItem->GetItemTemplet()->GetFullName_() ) );
 
 							g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrMsg.c_str(), UIM_USE_COUPON_ITEM_OK, g_pMain->GetNowState(), UIM_USE_COUPON_ITEM_CANCLE );
 #endif SERV_ATTRIBUTE_CHARM
@@ -4774,11 +5111,10 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 #ifdef REAL_TIME_ELSWORD
 						CX2Item* pItem		= NULL;
 						m_EnrollItemUid		= pSlot->GetItemUID();
-						pItem				= g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnrollItemUid );
+						pItem				= g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnrollItemUid );
 
 						if ( pItem == NULL || 
-							pItem->GetItemTemplet() == NULL || 
-							pItem->GetItemData() == NULL )
+							pItem->GetItemTemplet() == NULL )
 							return false;
 						
 						if ( g_pData->GetMyUser()->GetAuthLevel() != CX2User::XUAL_DEV )
@@ -4788,7 +5124,7 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 #else
 
 #ifndef SPT_NONE_ITEM_DELETE
-							if ( pItem->GetItemData()->m_Period > 0 )
+							if ( pItem->GetItemData().m_Period > 0 )
 							{
 								CKTDGUIDialogType pMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_2629 ), g_pMain->GetNowState() );
 								pMsgBox->SetEnableMoveByDrag_LUA(false);
@@ -4810,7 +5146,7 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 
 			//{{ kimhc // 2009-09-08 // 봉인된 아이템 버리기 불가
 #ifdef	SEAL_ITEM
-							if ( pItem->GetItemData()->m_bIsSealed == true )
+							if ( pItem->GetItemData().m_bIsSealed == true )
 							{
 								g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4477 ), g_pMain->GetNowState() );
 								return true; 
@@ -4847,7 +5183,7 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 							Pos.x = static_cast< float >( g_pKTDXApp->GetDIManager()->GetMouse()->GetXPos() );
 							Pos.y = static_cast< float >( g_pKTDXApp->GetDIManager()->GetMouse()->GetYPos() );
 							
-							m_iItemEnrollNum	= pItem->GetItemData()->m_Quantity;
+							m_iItemEnrollNum	= pItem->GetItemData().m_Quantity;
 
 							OpenRegisterQuantityDLG( Pos );
 						}
@@ -4858,7 +5194,7 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 							if( true == m_bIsSptNoneItem)
 							{
 #ifdef CLIENT_GLOBAL_LINEBREAK
-								std::wstring wstrMsg = GET_REPLACED_STRING( (STR_ID_23495, "Li", pItem->GetFullName(), pItem->GetItemData()->m_Quantity) );
+								std::wstring wstrMsg = GET_REPLACED_STRING( (STR_ID_23495, "Li", pItem->GetFullName(), pItem->GetItemData().m_Quantity) );
 								std::wstring tempName = CWordLineHandler::GetStrByLineBreakInX2Main( wstrMsg.c_str(), 257, 0 );
 
 								m_pSptNoneItemDelete = 
@@ -4867,7 +5203,7 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 #else //CLIENT_GLOBAL_LINEBREAK
 								m_pSptNoneItemDelete = 
 									g_pMain->KTDGUIOkAndCancelEditBox2( D3DXVECTOR2( -999, -999 ), 
-									GET_REPLACED_STRING( (STR_ID_23495, "Li", pItem->GetFullName(), pItem->GetItemData()->m_Quantity) ), 
+									GET_REPLACED_STRING( (STR_ID_23495, "Li", pItem->GetFullName(), pItem->GetItemData().m_Quantity) ), 
 									UIM_SPTNONE_ITEM_DELETE_OK, g_pMain->GetNowState(), 10, false, UIM_SPTNONE_ITEM_DELETE_CANCEL );
 #endif //CLIENT_GLOBAL_LINEBREAK
 							}
@@ -4934,7 +5270,7 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 				}
 				return true;					
 #endif
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 			case CX2Cursor::XCS_ITEM_EXCHANGE:
 				{
 					if( GetUISocketItem() != NULL && GetUISocketItem()->GetShow() == true)
@@ -4983,13 +5319,12 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 #endif // SERV_SOCKET_NEW
 
 					if( NULL != g_pData->GetMyUser() &&
-						NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-						NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+						NULL != g_pData->GetMyUser()->GetSelectUnit() )
 					{
 						m_iTargetItemUID = pSlot->GetItemUID();
 						
-						const CX2Item* pConsumeItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iConsumeItemUID );
-						const CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iTargetItemUID );
+						const CX2Item* pConsumeItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iConsumeItemUID );
+						const CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iTargetItemUID );
 
 						if( NULL != pConsumeItem && NULL != pConsumeItem->GetItemTemplet() &&
 							NULL != pTargetItem && NULL != pTargetItem->GetItemTemplet() )
@@ -5032,14 +5367,37 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 								const CX2Item::ItemTemplet* pResultItem = g_pData->GetItemManager()->GetItemTemplet( iResultItemID );
 								if( NULL != pResultItem )
 								{
-									wstring wstrMsg = 
-										GET_REPLACED_STRING( ( STR_ID_25009, "SiSi", pTargetItem->GetFullName_(), pTargetItem->GetUseLevel(),
-										pResultItem->GetFullName_(), pResultItem->GetUseLevel() ));
+									m_iTargetItemUID = pSlot->GetItemUID();
+									m_iConsumeItemQuantity = 1;
+									if( NULL != g_pData->GetMyUser() &&
+										NULL != g_pData->GetMyUser()->GetSelectUnit() )
+									{
+										CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iTargetItemUID );
+										if( NULL != pTargetItem )
+										{
+											m_iConsumeItemQuantity = pTargetItem->GetItemData().m_Quantity;
+										}
+									}
+
+									wstring wstrMsg = L"";
+
+									if( 1 < m_iConsumeItemQuantity || 
+										CX2UnitManager::NUI_LUTO_VILLAGE == g_pTFieldGame->GetJoinNpcId() )
+									{ // 수량성 아이템 문구
+										wstrMsg = 
+											GET_REPLACED_STRING( ( STR_ID_26940, "SiSi", pTargetItem->GetFullName_(), m_iConsumeItemQuantity,
+											pResultItem->GetFullName_(), m_iConsumeItemQuantity ));
+									}
+									else
+									{
+										wstrMsg = 
+											GET_REPLACED_STRING( ( STR_ID_25009, "SiSi", pTargetItem->GetFullName_(), pTargetItem->GetUseLevel(),
+											pResultItem->GetFullName_(), pResultItem->GetUseLevel() ));
+									}
 
 									g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrMsg.c_str(), 
 										UIM_EXCHANGE_NEW_ITEM_OK, g_pMain->GetNowState(), UIM_EXCHANGE_NEW_ITEM_CANCEL );
 
-									m_iTargetItemUID = pSlot->GetItemUID();
 								}
 							}
 						}
@@ -5047,7 +5405,57 @@ bool CX2UIInventory::MouseUp( D3DXVECTOR2 mousePos )
 					return true;
 				} break;
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+			case CX2Cursor::XCS_ADD_SOCKET_SLOT:
+				{
+#ifdef SERV_SOCKET_NEW
+					// 소켓 작업 중 처리 하지 않기
+					if( NULL != GetUISocketItem() && true == GetUISocketItem()->GetShow() )
+					{
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_5111 ), g_pMain->GetNowState() );
+						return true;
+					}
+#endif // SERV_SOCKET_NEW
 
+					if( NULL != g_pData->GetMyUser() &&
+						NULL != g_pData->GetMyUser()->GetSelectUnit() )
+					{
+						m_iTargetItemUID = pSlot->GetItemUID();
+
+						CX2Item* pConsumeItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iConsumeItemUID );
+						CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iTargetItemUID );
+
+						if( NULL != pConsumeItem && NULL != pTargetItem )
+						{
+							if( NULL != pConsumeItem->GetItemTemplet() && NULL != pTargetItem->GetItemTemplet() )
+							{
+								// 방어구 / 무기 타입 검사
+								if( ITEM_ID_ADD_WEAPON_SOCKET_SLOT == pConsumeItem->GetItemData().m_ItemID && 
+									CX2Item::IT_WEAPON != pTargetItem->GetItemTemplet()->GetItemType() )
+								{
+									g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28329 ), g_pMain->GetNowState() );
+									return true;
+								}
+								else if( ITEM_ID_ADD_DEFENCE_SOCKET_SLOT == pConsumeItem->GetItemData().m_ItemID &&
+									     CX2Item::IT_DEFENCE != pTargetItem->GetItemTemplet()->GetItemType() )
+								{
+									g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28330 ), g_pMain->GetNowState() );
+									return true;
+								}
+
+								// 사용에 문제 없으면, 실제 사용 여부 묻기
+								wstring wstrMsg = 
+									GET_REPLACED_STRING( ( STR_ID_24613, "SS", 
+									pTargetItem->GetItemTemplet()->GetFullName_(), 
+									pConsumeItem->GetItemTemplet()->GetFullName_() ) );
+
+								g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrMsg.c_str(), 
+									UIM_USE_ADD_SOCKET_SLOT_OK, g_pMain->GetNowState(), UIM_USE_ADD_SOCKET_SLOT_CANCEL );
+							}
+						}
+					}
+				} break;				
+#endif // ADD_SOCKET_SLOT
 			default:
 				break;
 			}
@@ -5126,7 +5534,7 @@ void CX2UIInventory::OpenDeleteItemConfirmDLG()
 	int popUpSizeX = 425;		// 개인 거래시에 뜨는 팝업의 위치를 가져다 씀
 	int popUpSizeY = 147;
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnrollItemUid );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnrollItemUid );
 	if ( pItem != NULL )
 	{
 		if ( pItem->GetItemTemplet() != NULL )
@@ -5213,7 +5621,7 @@ void CX2UIInventory::UpdateRegisterQuantityDLG( bool bReadIME )
 		m_iItemEnrollNum = g_pMain->GetEDFromString( pQuantity->GetText() );
 	}	
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnrollItemUid );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnrollItemUid );
 	
 	if ( m_iItemEnrollNum <= 0 )
 	{
@@ -5223,8 +5631,8 @@ void CX2UIInventory::UpdateRegisterQuantityDLG( bool bReadIME )
 			m_iItemEnrollNum = pItem->GetItemTemplet()->GetQuantity();	
 	}
 
-	if ( m_iItemEnrollNum >= pItem->GetItemData()->m_Quantity )
-		m_iItemEnrollNum = pItem->GetItemData()->m_Quantity;
+	if ( m_iItemEnrollNum >= pItem->GetItemData().m_Quantity )
+		m_iItemEnrollNum = pItem->GetItemData().m_Quantity;
 
 	WCHAR buff[256] = {0};
 	_itow( m_iItemEnrollNum, buff, 10 );
@@ -5257,9 +5665,9 @@ bool CX2UIInventory::OnDropAnyItem( D3DXVECTOR2 mousePos )
 	//*m_DraggingItemUID = ((CX2SlotItem*)(*m_pSlotBeforeDragging))->GetItemUID();
 	//}}
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 	CX2Item* pItem = NULL;
-	pItem = pInventory->GetItem( *m_DraggingItemUID, true );
+	pItem = kInventory.GetItem( *m_DraggingItemUID, true );
 
 	if ( pItem == NULL )
 	{
@@ -5268,7 +5676,7 @@ bool CX2UIInventory::OnDropAnyItem( D3DXVECTOR2 mousePos )
 	}
 	
 	// 같은 아이템 분류 타입인지 보고..
-	if ( m_NowInventorySortType != pInventory->GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) ) return false;
+	if ( m_NowInventorySortType != kInventory.GetSortTypeByItemTemplet( pItem->GetItemTemplet() ) ) return false;
 
 	switch((*m_pSlotBeforeDragging)->GetSlotType())
 	{
@@ -5465,11 +5873,9 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 	if(pUnit == NULL)
 		return false;
 
-	CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
-	if(pUnitData == NULL)
-		return false;
+	const CX2Unit::UnitData* pUnitData = &pUnit->GetUnitData();
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlot->GetItemUID() );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlot->GetItemUID() );
 	if( NULL == pItem )
 		return false;
 
@@ -5510,7 +5916,18 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			return false;
 		}	
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN //pItemSlot->GetSlotType()
+		// 펫인벤토리와 유저인벤토리, 은행과 유저 인벤토리 시, 엘의 여인의 눈물 이동 차단
+		if( NULL == pkItemTemplet->GetItemID() )
+			return false;
 
+		if( pkItemTemplet->GetItemID() == TEAR_OF_ELWOMAN_ITEM_ID )
+		{
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_18422 ), g_pMain->GetNowState() ); //18422
+			SetNowDragItemReturn();
+			return true;
+		}	
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 		//{{ kimhc // 2010-01-05 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
 		if ( pkItemTemplet->GetIsPcBang() == true )
@@ -5522,11 +5939,11 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 		//}} kimhc // 2010-01-05 // PC방 프리미엄 서비스
 
 		// 은행에 아이템을 집어 넣는 처리
-		CX2Inventory* pInventory	=	g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory	=	g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 		CX2Item*		pEmptySlot	=	NULL;
 #ifdef SERV_SHARING_BANK_TEST_EME
-		int				iItemMaxNum = pInventory->GetItemMaxNum( CX2Inventory::ST_BANK );
+		int				iItemMaxNum = kInventory.GetItemMaxNum( CX2Inventory::ST_BANK );
 		CX2Inventory::SORT_TYPE	eType = CX2Inventory::ST_BANK;
 
 #ifdef	SERV_SHARING_BANK_TEST
@@ -5540,11 +5957,11 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 		// SERV_REFORM_INVENTORY_TEST
 		for ( int i = 0; i < iItemMaxNum; i++ )
 		{
-			pEmptySlot		=	pInventory->GetItem( eType, i );
+			pEmptySlot		=	kInventory.GetItem( eType, i );
 #else // SERV_SHARING_BANK_TEST_EME
-		for ( int i = 0; i < pInventory->GetItemMaxNum( CX2Inventory::ST_BANK ); i++ )
+		for ( int i = 0; i < kInventory.GetItemMaxNum( CX2Inventory::ST_BANK ); i++ )
 		{
-			pEmptySlot		=	pInventory->GetItem( CX2Inventory::ST_BANK, i );
+			pEmptySlot		=	kInventory.GetItem( CX2Inventory::ST_BANK, i );
 #endif // SERV_SHARING_BANK_TEST_EME
 
 			if ( pEmptySlot == NULL )
@@ -5585,9 +6002,9 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 	// 은행을 확장 시켜주는 퀘스트 아이템 사용시
 	if ( pItemSlot->GetItemTID() == _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID )	
 	{
-		CX2Inventory* pInventory	=	g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory	=	g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 		
-		int iNumOfBankSlot	= pInventory->GetItemMaxNum( CX2Inventory::ST_BANK );
+		int iNumOfBankSlot	= kInventory.GetItemMaxNum( CX2Inventory::ST_BANK );
 		
 		if ( iNumOfBankSlot	== CX2Inventory::MPB_PLATINUM )		// 이미 플래티넘 등급 이면
 		{
@@ -5740,8 +6157,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 
 	//{{ kimhc // 2009-09-03 // 봉인된 아이템을 우클릭 했을 때 처리
 #ifdef	SEAL_ITEM
-	if ( pItem->GetItemData() != NULL &&
-		 pItem->GetItemData()->m_bIsSealed == true )
+	if ( pItem != NULL && pItem->GetItemData().m_bIsSealed == true )
 	{
 		g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), 
             GET_REPLACED_STRING( ( STR_ID_4472, "S", pkItemTemplet->GetFullName_() ) ), 
@@ -5811,9 +6227,9 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 
 				if ( pItem != NULL )
 				{
-					if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE )
+					if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE )
 					{
-						if ( pItem->GetItemData()->m_Endurance <= 0 )
+						if ( pItem->GetItemData().m_Endurance <= 0 )
 						{
 							continue;
 						}
@@ -5912,6 +6328,41 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 	}
 #endif //RIDING_SYSTEM
 
+#ifdef SERV_EVENT_VC
+	if( pkItemTemplet->GetItemID() == ITEM_ID_EVENT_VC_BATTLE_FOOD )
+	{
+		if( g_pData->GetPetManager() != NULL )
+		{
+			g_pData->GetPetManager()->UseIntimacyUpItem( pItem->GetUID() );
+		}		
+		return true;
+	}
+#endif //SERV_EVENT_VC
+
+#ifdef RIDINGPET_STAMINA_ITEM
+	if(pkItemTemplet->GetItemID() == RIDINGPET_STAMINA_30_PER_ITEM_ID)
+	{
+		int iPecValue = 0;
+		switch(pkItemTemplet->GetItemID())
+		{
+		case RIDINGPET_STAMINA_30_PER_ITEM_ID:
+			iPecValue = 30;
+			break;
+		}
+
+		if(CX2RidingPetManager::GetInstance()->SetRidingPetStaminaPercentUP(iPecValue))
+		{
+			Handler_EGS_USE_ITEM_IN_INVENTORY_REQ( pItemSlot->GetItemUID() );
+			return true;
+		}
+		else
+		{
+			// 실패 메세지 처리 장소.
+			return false;
+		}
+	}
+#endif RIDINGPET_STAMINA_ITEM
+
 	// ** 사용가능 아이템 및 랜덤템 우클릭 처리
 	// 인벤내 사용가능 아이템에 대한 처리
 	if( pItem->GetItemTemplet()->GetCanUseInventory() == true )
@@ -5923,6 +6374,9 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #ifdef SERV_SKILL_NOTE
 			if( pItem != NULL && pItem->GetItemTemplet()->GetItemType() == CX2Item::IT_SKILL_MEMO )
 			{
+#ifdef REFORM_SKILL_NOTE_UI
+				RegisterMemo( pkItemTemplet, pItem->GetUID() );
+#else
 				if( g_pData == NULL || 
 					g_pData->GetMyUser() == NULL || 
 					g_pData->GetMyUser()->GetSelectUnit() == NULL || 
@@ -5981,7 +6435,9 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 					}
 
 					return true;					
-				}				
+				}			
+#endif // REFORM_SKILL_NOTE_UI
+	
 
 				// 메모사용 불가
 				return true;
@@ -6000,13 +6456,14 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				case WARP_ITEM_PEITA_DUNGEON_GATE_ITEM_ID:		// 페이타 던전 게이트 이동 티켓
 				case WARP_ITEM_VELDER_ITEM_ID:					// 벨더 마을 귀환서
 				case NICKNAME_CHANGE_CARD_ITEM_ID:				// 캐릭터 닉네임 변경 카드 ID
-				case INIT_SKILL_TREE_ITEM_ID:					// 스킬 초기화 메달
+				case INIT_SKILL_TREE_ITEM:					// 스킬 초기화 메달
 				case INIT_SKILL_TREE_EVENT_ITEM_ID:				// 망각의 드링크
-				case INIT_SKILL_TREE_EVENT_ITEM_REMAINING_ONE_DAY_FROM_QUEST_ID:				// 망각의 드링크 1일권, 퀘스트 보상용
-				case INIT_SKILL_TREE_EVENT_ITEM_REMAINING_THREE_DAY_FROM_QUEST_ID :				// 망각의 드링크 3일권, 퀘스트 보상용
-#ifdef SERV_COUNTRY_JP
+				case CI_SKILL_INIT_EVENT_ITEM2:				// 망각의 드링크 1일권, 퀘스트 보상용
+				case CI_SKILL_INIT_EVENT_ITEM3:				// 망각의 드링크 3일권, 퀘스트 보상용
+				case CI_SKILL_INIT_EVENT_ITEM4:				// 망각의 드링크 밸런스 개편
+#ifdef SERV_GLOBAL_DEFINE
 				case INIT_SKILL_TREE_EVENT_ITEM_ID_JP:			// 망각의 드링크(국내)
-#endif //SERV_COUNTRY_JP
+#endif //SERV_GLOBAL_DEFINE
 #ifdef SERV_EVENT_RURIEL_RESET_SKILL_ITEM
 				case RURIEL_RESET_SKILL_ITEM:					// 루리엘의 스킬 초기화 메달
 #endif SERV_EVENT_RURIEL_RESET_SKILL_ITEM
@@ -6053,15 +6510,15 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				case SKILL_PLUS_ITEM_ID_JP:
 				case SKILL_POINT_10_30DAY_USE_INVEN_JP:
 				case SKILL_POINT_10_15DAY_USE_INVEN_JP:
-				case SKILL_POINT_5_7DAY_USE_INVEN_JP:
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 				case SKILL_POINT_30_7DAY_USE_INVEN:
 				case SKILL_POINT_60_7DAY_USE_INVEN:
 				case SKILL_POINT_60_15DAY_USE_INVEN:
 				case SKILL_POINT_60_30DAY_USE_INVEN:
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 				case SKILL_POINT_60_7DAY_USE_INVEN_2:
+				case SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 #ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 				case SKILL_POINT_130_1DAY_USE_INVEN:
 #endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
@@ -6094,7 +6551,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				case GOLD_TICKET_2000_ID:
 #endif SERV_GOLD_TICKET
 #ifdef SERV_EVENT_INIT_SKILL_TREE_ITEM
-				case INIT_SKILL_TREE_ITEM:
+				case INIT_SKILL_TREE_ITEM_TW:
 #endif SERV_EVENT_INIT_SKILL_TREE_ITEM
 #ifdef SERV_CN_GNOSIS
 				case EVENT_SKILL_POINT_10_USE_INVEN_7_DAY:
@@ -6103,9 +6560,19 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				case EVENT_SKILL_POINT_5_USE_INVEN_7_DAY_TYPE2:
 				case EVENT_SKILL_POINT_10_USE_INVEN_15_DAY:
 #endif SERV_CN_GNOSIS
+#ifdef SERV_GNOSIS_BR
+				case EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+				case EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
 #ifdef SERV_US_GNOSIS
 				case EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
 #endif SERV_US_GNOSIS
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+				case SKILL_POINT_30_14DAY_USE_INVEN:	
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+				case SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 					{
 						g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_2646 ),g_pMain->GetNowState() );
 						return true;
@@ -6194,7 +6661,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 					return false;
 
 				wstring wstrMsg = L"";
-				if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.IsSkillUnsealed( (CX2SkillTree::SKILL_ID) iSkillID ) )
+				if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.IsSkillUnsealed( (CX2SkillTree::SKILL_ID) iSkillID ) )
 				{
 					wstrMsg = GET_REPLACED_STRING( (STR_ID_3855, "L", pSkillTemplet->m_wstrName) );
 				}
@@ -6257,16 +6724,17 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 					return true;
 				} break;
 
-			case INIT_SKILL_TREE_ITEM_ID:			// 스킬 초기화 메달
+			case INIT_SKILL_TREE_ITEM:			// 스킬 초기화 메달
 			case INIT_SKILL_TREE_EVENT_ITEM_ID:		// 망각의 드링크
-#ifdef SERV_COUNTRY_JP
+			case CI_SKILL_INIT_EVENT_ITEM2: // 망각의 드링크 1일권, 퀘스트 보상용
+			case CI_SKILL_INIT_EVENT_ITEM3: // 망각의 드링크 3일권, 퀘스트 보상용
+			case CI_SKILL_INIT_EVENT_ITEM4: // 망각의 드링크 밸런스 개편
+#ifdef SERV_GLOBAL_DEFINE
 			case INIT_SKILL_TREE_EVENT_ITEM_ID_JP:			// 망각의 드링크(국내)
-#endif //SERV_COUNTRY_JP
+#endif //SERV_GLOBAL_DEFINE
 #ifdef SERV_EVENT_INIT_SKILL_TREE_ITEM
-			case INIT_SKILL_TREE_ITEM:	// 망각의 드링크
+			case INIT_SKILL_TREE_ITEM_TW:	// 망각의 드링크
 #endif SERV_EVENT_INIT_SKILL_TREE_ITEM			
-			case INIT_SKILL_TREE_EVENT_ITEM_REMAINING_ONE_DAY_FROM_QUEST_ID : // 망각의 드링크 1일권, 퀘스트 보상용
-			case INIT_SKILL_TREE_EVENT_ITEM_REMAINING_THREE_DAY_FROM_QUEST_ID : // 망각의 드링크 3일권, 퀘스트 보상용
 #ifdef SERV_EVENT_RURIEL_RESET_SKILL_ITEM
 			case RURIEL_RESET_SKILL_ITEM:	// 루리엘의 스킬 초기화 메달
 #endif SERV_EVENT_RURIEL_RESET_SKILL_ITEM
@@ -6274,7 +6742,16 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 					if( true == pUnitData->m_UserSkillTree.CanIInitSkillTree() )
 					{
 						m_UsedItemUID = pItem->GetUID();
+					#ifdef SKILL_PAGE_SYSTEM //JHKang
+						#ifdef NO_SKILL_PAGE_SYSTEM_INT
 						g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_478 ), UIM_SKILL_INIT_OK, g_pMain->GetNowState() );
+						#else //NO_SKILL_PAGE_SYSTEM_INT
+						wstring wstrTextNotice= GET_REPLACED_STRING( ( STR_ID_29930, "i", pUnitData->m_UserSkillTree.GetUsingPage() + 1 ) );
+						g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrTextNotice.c_str(), UIM_SKILL_INIT_OK, g_pMain->GetNowState() );
+						#endif //NO_SKILL_PAGE_SYSTEM_INT
+					#else //SKILL_PAGE_SYSTEM
+						g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_478 ), UIM_SKILL_INIT_OK, g_pMain->GetNowState() );
+					#endif //SKILL_PAGE_SYSTEM
 					}
 					else
 					{
@@ -6319,18 +6796,16 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 							// 결혼 반지 소지 여부 체크
 							if ( NULL != g_pData->GetMyUser() &&
 								NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-								NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() &&
-								NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID ( WEDDING_RING_ITEM_ID) )
+								NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID ( WEDDING_RING_ITEM_ID) )
 							{	
-								CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+								const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 								// 초대권 소지 개수 체크
 								int iWeddingLetterMany = 0;
-								CX2Item * pInviteLetterItem = pInventory->GetItemByTID ( INVITE_WEDDING_ITEM_ID);
-								if( NULL != pInviteLetterItem &&
-									NULL != pInviteLetterItem->GetItemData() )
+								CX2Item * pInviteLetterItem = kInventory.GetItemByTID ( INVITE_WEDDING_ITEM_ID);
+								if( NULL != pInviteLetterItem )
 								{
-									iWeddingLetterMany = pInviteLetterItem->GetItemData()->m_Quantity;
+									iWeddingLetterMany = pInviteLetterItem->GetItemData().m_Quantity;
 								}
 
 								// 소지중엔 예약권으로 예식장 선택
@@ -6397,7 +6872,6 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #endif // ADDED_RELATIONSHIP_SYSTEM
 				
 				//{{ 허상형 : [2009/7/14] //	나소드 메가폰 관련
-#ifdef NASOD_SCOPE
 			case NASOD_SCOPE_ITEM_ID:
 			case NASOD_SCOPE_HIGH_ITEM_ID:
 #ifdef SERV_VIP_SYSTEM
@@ -6410,7 +6884,6 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 					g_pChatBox->ShowNasodMessageDlg( true );
 					return true;
 				} break;
-#endif				
 				//}} 허상형 : [2009/7/14] //	나소드 메가폰 관련
 #ifdef CHANGE_PET_NAME 
 			case CHANGE_PET_NAME_ITEM_ID:
@@ -6447,6 +6920,9 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 
 	#ifdef PET_DROP_ITEM_PICKUP 
 			case ACTIVATION_DROP_ITEM_PICKUP_SKILL:
+	#ifdef SERV_PET_AUTO_LOOTING_ITEM_CN
+			case ACTIVATION_DROP_ITEM_PICKUP_SKILL_CN:
+	#endif // SERV_PET_AUTO_LOOTING_ITEM_CN
 				{
 					if( NULL != g_pData && NULL != g_pData->GetPetManager() )						
 					{
@@ -6455,7 +6931,14 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 						if( NULL != pMyPet )
 						{				
 							CX2PET::PetInfo& pMyPetInfo = pMyPet->GetPetInfo();
-
+#ifdef SERV_EVENT_VC
+							// 용병 뽀루에게는 아이템 사용 안되도록
+							if( pMyPetInfo.m_PetId == CX2PetManager::PUI_PET_MERCENARY_PPORU_EVENT_INT )
+							{
+								g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_813 ) ,g_pMain->GetNowState() );
+								return true;
+							}
+#endif //SERV_EVENT_VC
 							//아이템 사용 불가 예외처리
 							//1. 펫의 진화단계가 유체 이상 일 때만 사용 가능
 							//2. 아이템 줍기 스킬이 봉인되어 있는 상태 일 때만 사용 가능
@@ -6645,9 +7128,12 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #ifdef EVENT_GUILD_ITEM
 			case EVENT_GUILD_CASH_SKILL_ITEM_ID:
 #endif //EVENT_GUILD_ITEM
+#ifdef SERV_EVENT_GUILD_SKILL_GLOBAL
+			case EVENT_GUILD_SKILL_5_POINT_15_DAY_JP:
+#endif //SERV_EVENT_GUILD_SKILL_GLOBAL
 				{
 					//{{ oasis907 : 김상윤 [2009.11.19] // 길드마스터가 아닌 경우 막음
-					if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
+					if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
 					{
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(300, 250), GET_STRING( STR_ID_4801 ), g_pMain->GetNowState() );
 						return true;
@@ -6666,15 +7152,15 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			case SKILL_PLUS_ITEM_ID_JP:
 			case SKILL_POINT_10_30DAY_USE_INVEN_JP:
 			case SKILL_POINT_10_15DAY_USE_INVEN_JP:
-			case SKILL_POINT_5_7DAY_USE_INVEN_JP:
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 			case SKILL_POINT_30_7DAY_USE_INVEN:
 			case SKILL_POINT_60_7DAY_USE_INVEN:
 			case SKILL_POINT_60_15DAY_USE_INVEN:
 			case SKILL_POINT_60_30DAY_USE_INVEN:
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 			case SKILL_POINT_60_7DAY_USE_INVEN_2:
+			case SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 #ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 			case SKILL_POINT_130_1DAY_USE_INVEN:
 #endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
@@ -6713,6 +7199,26 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #ifdef SERV_US_GNOSIS
 			case EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
 #endif SERV_US_GNOSIS
+#ifdef SERV_GNOSIS_BR
+			case EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+			case EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+			case SKILL_POINT_30_14DAY_USE_INVEN:	
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+			case LURIEL_GNOSIS_30_15DAY:
+			case LURIEL_GNOSIS_30_30DAY:
+			case LURIEL_GNOSIS_30_60DAY:
+			case LURIEL_GNOSIS_60_15DAY:
+			case LURIEL_GNOSIS_60_30DAY:
+			case LURIEL_GNOSIS_60_60DAY:
+			case LURIEL_GNOSIS_30_7DAY:
+			case LURIEL_GNOSIS_60_7DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+			case SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 				{
 					m_UsedItemUID = pItemSlot->GetItemUID();
 					g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_9835 ), UIM_SKILL_PLUS_ITEM_USE, g_pMain->GetNowState() );
@@ -6799,20 +7305,12 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				break;
 #endif //SERV_GOLD_TICKET
 				//}}
-
-
-#ifdef SERV_RECRUIT_EVENT_BASE
-			case RECOMMEND_TICKET_ID:
-				{					
-					Handler_EGS_USE_RECRUIT_TICKET_REQ( pItemSlot->GetItemUID() );
-				} break;
-#endif SERV_RECRUIT_EVENT_BASE
 #ifdef SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
 			case INVENTORY_SLOT_ADD_ITEM_EQUIP_EVENT:
 				{
 
 					// 지헌 : 사용 전 인벤 확장이 가능 한가 테스트를 하자.
-					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum(CX2Inventory::ST_EQUIP) < INVENTORY_SLOT_MAX_NUM)
+					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum(CX2Inventory::ST_EQUIP) < INVENTORY_SLOT_MAX_NUM)
 					{
 						// 지헌 : 번역 - 스트링 넣어야 한다.
 						m_UsedItemUID = pItemSlot->GetItemUID();
@@ -6825,7 +7323,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				{
 
 					// 지헌 : 사용 전 인벤 확장이 가능 한가 테스트를 하자.
-					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum(CX2Inventory::ST_ACCESSORY) < INVENTORY_SLOT_MAX_NUM)
+					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum(CX2Inventory::ST_ACCESSORY) < INVENTORY_SLOT_MAX_NUM)
 					{
 						// 지헌 : 번역 - 스트링 넣어야 한다.
 						m_UsedItemUID = pItemSlot->GetItemUID();
@@ -6838,7 +7336,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				{
 
 					// 지헌 : 사용 전 인벤 확장이 가능 한가 테스트를 하자.
-					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum(CX2Inventory::ST_QUICK_SLOT) < INVENTORY_SLOT_MAX_NUM)
+					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum(CX2Inventory::ST_QUICK_SLOT) < INVENTORY_SLOT_MAX_NUM)
 					{
 						// 지헌 : 번역 - 스트링 넣어야 한다.
 						m_UsedItemUID = pItemSlot->GetItemUID();
@@ -6851,7 +7349,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				{
 
 					// 지헌 : 사용 전 인벤 확장이 가능 한가 테스트를 하자.
-					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum(CX2Inventory::ST_MATERIAL) < INVENTORY_SLOT_MAX_NUM)
+					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum(CX2Inventory::ST_MATERIAL) < INVENTORY_SLOT_MAX_NUM)
 					{
 						// 지헌 : 번역 - 스트링 넣어야 한다.
 						m_UsedItemUID = pItemSlot->GetItemUID();
@@ -6864,7 +7362,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				{
 
 					// 지헌 : 사용 전 인벤 확장이 가능 한가 테스트를 하자.
-					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum(CX2Inventory::ST_QUEST) < INVENTORY_SLOT_MAX_NUM)
+					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum(CX2Inventory::ST_QUEST) < INVENTORY_SLOT_MAX_NUM)
 					{
 						// 지헌 : 번역 - 스트링 넣어야 한다.
 						m_UsedItemUID = pItemSlot->GetItemUID();
@@ -6877,7 +7375,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				{
 
 					// 지헌 : 사용 전 인벤 확장이 가능 한가 테스트를 하자.
-					if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemMaxNum(CX2Inventory::ST_SPECIAL) < INVENTORY_SLOT_MAX_NUM)
+										if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum(CX2Inventory::ST_SPECIAL) < INVENTORY_SLOT_MAX_NUM)
 					{
 						// 지헌 : 번역 - 스트링 넣어야 한다.
 						m_UsedItemUID = pItemSlot->GetItemUID();
@@ -6887,6 +7385,54 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), NetError::GetErrStrF( NetError::ERR_BUY_CASH_ITEM_19 ), g_pMain->GetNowState() );
 				} break;
 #endif //SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+			case EVENT_PROPOSE_ITEM:
+				{
+					switch( g_pMain->GetNowStateID() )
+					{
+					case CX2Main::XS_VILLAGE_MAP:
+						{
+							m_UsedItemUID = pItemSlot->GetItemUID();
+							g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_REPLACED_STRING( ( STR_ID_3712, "L", pItem->GetFullName()) ), UIM_USE_PROPOSE_ITEM, g_pMain->GetNowState() );
+						}
+						break;
+					default:
+						{
+							g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_24660 ),g_pMain->GetNowState() );
+							return true;
+						}
+						break;
+					}
+				}
+				break;
+			case EVENT_DIVORCE_ITEM:
+				{
+					switch( g_pMain->GetNowStateID() )
+					{
+					case CX2Main::XS_VILLAGE_MAP:
+						{
+							m_UsedItemUID = pItemSlot->GetItemUID();
+							g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_REPLACED_STRING( ( STR_ID_3712, "L", pItem->GetFullName()) ), UIM_USE_DIVORCE_ITEM, g_pMain->GetNowState() );
+						}
+						break;
+					default:
+						{
+							g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_24660 ),g_pMain->GetNowState() );
+							return true;
+						}
+						break;
+					}
+				}
+				break;
+#endif SERV_RELATIONSHIP_EVENT_INT
+
+#ifdef SERV_RECRUIT_EVENT_BASE
+			case RECOMMEND_TICKET_ID:
+				{					
+					Handler_EGS_USE_RECRUIT_TICKET_REQ( pItemSlot->GetItemUID() );
+				} break;
+#endif SERV_RECRUIT_EVENT_BASE
 
 #ifdef SERV_SKILL_NOTE
 			case SKILL_NOTE_ITEM_ID:
@@ -6905,12 +7451,11 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 
 
 	//{{ 2007. 10. 8  최육사  인벤에서 랜덤템을 오른쪽 클릭했을 경우 [임시 테스트]
-	CX2Item::ItemData* pItemData = pItem->GetItemData();
-	if ( pItemData != NULL )
+	const CX2Item::ItemData& kItemData = pItem->GetItemData();
 	{
 #ifdef SERV_OPEN_RANDOM_ITEM_LEVEL_CHECK 
         // 랜덤아이템의 사용레벨제한 보다 유저레벨이 낮다면.
-		if (g_pData->GetSelectUnitLevel() < g_pData->GetItemManager()->GetItemTemplet( pItemData->m_ItemID )->GetUseLevel() && g_pData->GetItemManager()->GetItemTemplet( pItemData->m_ItemID )->GetItemType() == CX2Item::IT_SPECIAL )
+		if (g_pData->GetSelectUnitLevel() < g_pData->GetItemManager()->GetItemTemplet( kItemData.m_ItemID )->GetUseLevel() && g_pData->GetItemManager()->GetItemTemplet( kItemData.m_ItemID )->GetItemType() == CX2Item::IT_SPECIAL )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ),  GET_STRING(STR_ID_5014) , g_pMain->GetNowState() );
             return true;
@@ -6924,7 +7469,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 		
 		//{{ kimhc // 2009-12-22 // 랜덤 아이템에 같은 키값 쓸수있도록 추가
 #ifdef	MULTI_KEY_RANDOM_ITEM
-		std::pair< CX2ItemManager::RandomItemItr, CX2ItemManager::RandomItemItr > pairRandomItem = g_pData->GetItemManager()->GetRandomItemData( pItemData->m_ItemID );
+		std::pair< CX2ItemManager::RandomItemItr, CX2ItemManager::RandomItemItr > pairRandomItem = g_pData->GetItemManager()->GetRandomItemData( kItemData.m_ItemID );
 
 		if ( g_pData->GetItemManager()->IsRandomItem( pairRandomItem ) == true
 #ifdef FIX_RANDOM_CUBE_OPEN_RESULT_BUG
@@ -6954,19 +7499,18 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				bool bEnoughRequiredItem = true;  // 개봉 요구 아이템이 충분한지 여부				
 
 				wstring wstrMsg = L"";//키, 또는 ED가 충분하지 않을 때 출력하는 에러 팝업 메세지
-				const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( pItemData->m_ItemID );
+				const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( kItemData.m_ItemID );
 				if( NULL != pItemTemplet )	
 					wstrMsg = GET_REPLACED_STRING( ( STR_ID_21083, "S", pItemTemplet->GetFullName_() )); 
 								
 				//개봉 조건 키 아이템 체크
 				if( 0 < pRandomItem->m_RequiredKeyCount ) 
 				{					
-					int keyItemNum = pUnit->GetInventory()->GetNumItemByTID( pRandomItem->m_KeyItemID );					
+					int keyItemNum = pUnit->GetInventory().GetNumItemByTID( pRandomItem->m_KeyItemID );					
 					if ( keyItemNum < pRandomItem->m_RequiredKeyCount )
 					{
-
 #ifdef SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
-						if( ONE_THIRD_MINI_ATTRACTION_ITEM == pItemData->m_ItemID)
+						if( ONE_THIRD_MINI_ATTRACTION_ITEM == kItemData.m_ItemID)
 						{
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_24516 ), g_pMain->GetNowState() );
 							return false;
@@ -6992,7 +7536,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				
 				//개봉 조건 ED 체크
 				iRequiredED = pRandomItem->m_iRequiredED;	//개봉에 필요한 ED
-				int iMyED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED; //보유 ED
+				int iMyED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED; //보유 ED
 				if( 0 < iRequiredED )					
 				{
 					bOpenRequiredED = true;
@@ -7011,7 +7555,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				}
 #else
 				CX2ItemManager::RandomItemData* pRandomItem = startItr->second;
-				int keyItemNum = pUnit->GetInventory()->GetNumItemByTID( pRandomItem->m_KeyItemID );
+				int keyItemNum = pUnit->GetInventory().GetNumItemByTID( pRandomItem->m_KeyItemID );
 				if ( keyItemNum < pRandomItem->m_RequiredKeyCount )
 				{
 					const CX2Item::ItemTemplet* pItemTemplet =
@@ -7033,7 +7577,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				while ( startItr != endItr )
 				{
 					CX2ItemManager::RandomItemData* pRandomItem = startItr->second;
-					int keyItemNum = pUnit->GetInventory()->GetNumItemByTID( pRandomItem->m_KeyItemID );
+					int keyItemNum = pUnit->GetInventory().GetNumItemByTID( pRandomItem->m_KeyItemID );
 							
 					if ( keyItemNum >= pRandomItem->m_RequiredKeyCount )
 					{
@@ -7056,7 +7600,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 					if( mapNotEnoughItemIDAndCount.size() >= 1 )
 					{
 						wstring wstrMsg = L"";
-						const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( pItemData->m_ItemID );
+						const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( kItemData.m_ItemID );
 						if( pItemTemplet != NULL ) // 개봉하려고 하는 큐브 아이템
 						{
 							wstrMsg += GET_REPLACED_STRING( ( STR_ID_21083, "S", pItemTemplet->GetFullName_() )); 
@@ -7085,12 +7629,11 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 							bIsFirst = false;
 						}
 						wstrMsg += GET_STRING(STR_ID_23474); //위 아이템이 필요합니다.
-
-						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), wstrMsg.c_str(), g_pMain->GetNowState() );
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), wstrMsg.c_str(), g_pMain->GetNowState(), -1, -1.f, L"DLG_UI_OKMsgBoxPlus.lua" );
 					}
 #else
 	#ifdef GUIDE_ATTRACTION_ITEM_USE_WITHOUT_ICE_HEATER
-					if( 108900 == pItemData->m_ItemID )
+					if( 108900 == kItemData.m_ItemID )
 					{
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_17700 ), g_pMain->GetNowState() );						
 	
@@ -7099,10 +7642,10 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 	#endif //GUIDE_ATTRACTION_ITEM_USE_WITHOUT_ICE_HEATER
 					{
 #ifdef CUBE_OPEN_IMAGE_MANAGER
-						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), g_pData->GetCubeOpenImageManager()->GetEventCubeNoKeyString(pItemData->m_ItemID), g_pMain->GetNowState() );
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), g_pData->GetCubeOpenImageManager()->GetEventCubeNoKeyString( kItemData.m_ItemID ), g_pMain->GetNowState() );
 #else
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_4834 ), g_pMain->GetNowState() );
-#endif
+#endif CUBE_OPEN_IMAGE_MANAGER
 					}
 #endif //MODIFY_SERV_CUBE_OPEN_ED_CONDITION	
 					return false;
@@ -7136,7 +7679,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #endif
 			//}}
 
-			m_RandomItemID = pItemData->m_ItemID;
+			m_RandomItemID = kItemData.m_ItemID;
 			m_iRandomItemUID = pItemSlot->GetItemUID();
 
 #ifdef CUBE_OPEN_IMAGE_MANAGER
@@ -7150,7 +7693,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			bool bAttractionItemCheck = false;
 			for(int i=0; i<ARRAY_SIZE(ATTRACTION_ITEM_ID); ++i)
 			{
-				if( pItemData->m_ItemID == ATTRACTION_ITEM_ID[i] )
+				if( kItemData.m_ItemID == ATTRACTION_ITEM_ID[i] )
 				{
 					bAttractionItemCheck = true;
 
@@ -7166,7 +7709,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #ifdef SERV_SERV_MINI_RANDOM_CUBE_REWARD		/// 미니 가열기 조각상인지 검사
 			for(int i=0; i<ARRAY_SIZE(MINI_ATTRACTION_ITEM_ID); ++i)
 			{
-				if( pItemData->m_ItemID == MINI_ATTRACTION_ITEM_ID[i] )
+				if( kItemData.m_ItemID == MINI_ATTRACTION_ITEM_ID[i] )
 				{
 					bAttractionItemCheck = true;
 					bMiniAttractionItemCheck = true;
@@ -7182,7 +7725,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 
 #ifdef SERV_ALL_IN_ONE_RANDOM_CUBE_REWARD		//올인원 가열기 검사
 			m_bIsAllInOne = false;
-			if( pItemData->m_ItemID == ALL_IN_ONE_ATTRACTION_ITEM_ID )
+			if( kItemData.m_ItemID == ALL_IN_ONE_ATTRACTION_ITEM_ID )
 			{
 				bAttractionItemCheck = true;
 				m_bIsAllInOne = true;
@@ -7196,7 +7739,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 
 #ifdef RIDING_SYSTEM
 			m_bIsRidingGacha = false;
-			if( pItemData->m_ItemID == ANCIENT_FOSSIL_RIDING_PET )
+			if( kItemData.m_ItemID == ANCIENT_FOSSIL_RIDING_PET )
 			{
 				bAttractionItemCheck = true;
 				m_bIsRidingGacha = true;
@@ -7212,7 +7755,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			m_bIsHalloweenIceHeater = false;
 			for(int i=0; i<ARRAY_SIZE(HALLOWEEN_ATTRACTION_ITEM_ID); ++i)
 			{
-				if( pItemData->m_ItemID == HALLOWEEN_ATTRACTION_ITEM_ID[i] )
+				if( kItemData.m_ItemID == HALLOWEEN_ATTRACTION_ITEM_ID[i] )
 				{
 					bAttractionItemCheck = true;
 					m_bIsHalloweenIceHeater = true;
@@ -7228,7 +7771,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			bool bGoldAttractionItemCheck = false;
 			for(int i=0; i<ARRAY_SIZE(GOLD_ATTRACTION_ITEM_ID); ++i)
 			{
-				if( pItemData->m_ItemID == GOLD_ATTRACTION_ITEM_ID[i] )
+				if( kItemData.m_ItemID == GOLD_ATTRACTION_ITEM_ID[i] )
 				{
 					bGoldAttractionItemCheck = true;
 
@@ -7289,8 +7832,11 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 						int iCautionStringID					= m_pNowIceHeaterEventData->m_iCautionStringNum;
 
 						if( NULL != pStaticHeaterTitle->GetPicture(0) )							/// 타이틀명 텍스처 설정
+						{
 							pStaticHeaterTitle->GetPicture(0)->SetTex( wstrMainDialogTitleTexture.c_str(), wstrMainDialogTitleTextureKey.c_str() );
-
+							pStaticHeaterTitle->GetPicture(0)->SetSizeAsTextureSize();			/// 텍스쳐 변경되면 변경된 텍스쳐 크기로 맞춤 해외팀 코드 추가
+						}
+						
 						pStaticHeaterTitle->SetShow( true );		
 						pStaticHelperString->SetString( 0, GET_STRING( iCautionStringID ) );	/// 안내 스트링 변경
 						pStaticHelperString->SetOffsetPos(vecStringOffSetPosition );			/// 안내 스트링 위치 이동
@@ -7433,18 +7979,14 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 					g_pChatBox->HideChatEditBox();
 
 #ifdef SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
-				if ( pItemData != NULL )
-				{
-					m_iUseOpenRandomItemID = pItemData->m_ItemID;
-				}
+					m_iUseOpenRandomItemID = kItemData.m_ItemID;
 #endif //SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
-
 			}
 			else
 #endif ATTRACTION_ITEM_TEST
 			{
 #ifdef APRIL_5TH_TREE_DAY_EVENT
-				if( IsAprilEventRandomItem(pItemData->m_ItemID) )
+				if( IsAprilEventRandomItem(kItemData.m_ItemID) )
 				{
 					m_eRandomItemEventType = RIOET_APRIL_5TH_TREE_DAY_EVENT;
 					m_pDLGRandomItem = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_809 ), UIM_OPEN_RANDOM_ITEM, g_pMain->GetNowState(), UIM_OPEN_RANDOM_ITEM_CANCLE );
@@ -7452,11 +7994,11 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 				else
 #endif APRIL_5TH_TREE_DAY_EVENT
 #ifdef 	SERV_TREASURE_BOX_ITEM
-					if( IsTreasureBoxRandomItem(pItemData->m_ItemID) )
+					if( IsTreasureBoxRandomItem(kItemData.m_ItemID) )
 					{
 						m_eRandomItemEventType = RIOET_TREASURE_BOX_ITEM;
 #ifdef TREASURE_BOX_ITEM_THIN
-						m_TreasureBoxSPItemID = pItemData->m_ItemID;
+						m_TreasureBoxSPItemID = kItemData.m_ItemID;
 #endif TREASURE_BOX_ITEM_THIN
 						m_pDLGRandomItem = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_809 ), UIM_OPEN_RANDOM_ITEM, g_pMain->GetNowState(), UIM_OPEN_RANDOM_ITEM_CANCLE );
 					} 
@@ -7464,16 +8006,15 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #endif 	SERV_TREASURE_BOX_ITEM
 
 #ifdef CUBE_OPEN_IMAGE_MANAGER
-					if( g_pData->GetCubeOpenImageManager()->IsEventCube(pItemData->m_ItemID) == true)
+					if( g_pData->GetCubeOpenImageManager()->IsEventCube(kItemData.m_ItemID) == true)
 					{
 						m_eRandomItemEventType = RIOET_EVENT_CUBE;
-						m_bHideCubeOpneBar = g_pData->GetCubeOpenImageManager()->IsHideBarCube(pItemData->m_ItemID);
-						m_pDLGRandomItem = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), g_pData->GetCubeOpenImageManager()->GetEventCubeOpenString(pItemData->m_ItemID), UIM_OPEN_RANDOM_ITEM_NEW, g_pMain->GetNowState(), UIM_OPEN_RANDOM_ITEM_CANCLE );
+						m_bHideCubeOpneBar = g_pData->GetCubeOpenImageManager()->IsHideBarCube(kItemData.m_ItemID);
+						m_pDLGRandomItem = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), g_pData->GetCubeOpenImageManager()->GetEventCubeOpenString(kItemData.m_ItemID), UIM_OPEN_RANDOM_ITEM_NEW, g_pMain->GetNowState(), UIM_OPEN_RANDOM_ITEM_CANCLE );
 					}
 					else
 #endif CUBE_OPEN_IMAGE_MANAGER
-
-					if ( IsMonsterCardSetItem( pItemData->m_ItemID ) == true )
+					if ( IsMonsterCardSetItem( kItemData.m_ItemID ) == true )
 					{
 						m_eRandomItemEventType = RIOET_MONSTER_CARD_SET;
 						m_pDLGRandomItem = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_809 ), UIM_OPEN_RANDOM_ITEM, g_pMain->GetNowState(), UIM_OPEN_RANDOM_ITEM_CANCLE );
@@ -7482,18 +8023,14 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 					{
 						m_eRandomItemEventType = RIOET_NONE;
 #ifdef SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
-						if ( pItemData != NULL )
-						{
-							m_iUseOpenRandomItemID = pItemData->m_ItemID;
-						}
-
+						m_iUseOpenRandomItemID = kItemData.m_ItemID;
 #endif //SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
 
 #ifdef SERV_CUBE_OPEN_ED_CONDITION
 						bool bNoCubeOpenItemCheck = false;
 						for(int i=0; i<ARRAY_SIZE(NO_CUBE_OPEN_ITEM_ID); ++i)
 						{
-							if( pItemData->m_ItemID == NO_CUBE_OPEN_ITEM_ID[i] )
+							if( kItemData.m_ItemID == NO_CUBE_OPEN_ITEM_ID[i] )
 							{
 								bNoCubeOpenItemCheck = true;
 								break;
@@ -7506,7 +8043,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 						//ED오픈 아이템일 경우 사용 전 소모 ED알림 추가
 						if( true == bOpenRequiredED )
 						{
-							const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( pItemData->m_ItemID );
+							const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( kItemData.m_ItemID );
 							if( NULL != pItemTemplet )			
 							{
 								m_pDLGRandomItem = 	g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), 
@@ -7527,7 +8064,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 						bool bNoCubeOpenItemCheck = false;
 						for(int i=0; i<ARRAY_SIZE(NO_CUBE_OPEN_ITEM_ID); ++i)
 						{
-							if( pItemData->m_ItemID == NO_CUBE_OPEN_ITEM_ID[i] )
+							if( kItemData.m_ItemID == NO_CUBE_OPEN_ITEM_ID[i] )
 							{
 								bNoCubeOpenItemCheck = true;
 								break;
@@ -7535,7 +8072,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 						}
 						if( bNoCubeOpenItemCheck == true )
 #else
-						if(pItemData->m_ItemID == SPIRIT_POTION_ITEM_ID)
+						if(kItemData.m_ItemID == SPIRIT_POTION_ITEM_ID)
 #endif SPECIAL_USE_ITEM
 							m_pDLGRandomItem = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_809 ), UIM_OPEN_RANDOM_ITEM, g_pMain->GetNowState(), UIM_OPEN_RANDOM_ITEM_CANCLE );
 						else
@@ -7548,7 +8085,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			}
 		}
 #else	MULTI_KEY_RANDOM_ITEM
-		CX2ItemManager::RandomItemData* pRandomItem = g_pData->GetItemManager()->GetRandomItemData( pItemData->m_ItemID );
+		CX2ItemManager::RandomItemData* pRandomItem = g_pData->GetItemManager()->GetRandomItemData( kItemData.m_ItemID );
 		if( pRandomItem != NULL )
 		{		
 			// 랜덤 아이템이다~
@@ -7576,10 +8113,10 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			//}}
 
 
-			m_RandomItemID = pItemData->m_ItemID;
+			m_RandomItemID = kItemData.m_ItemID;
 			m_iRandomItemUID = pItemSlot->GetItemUID();
 
-			int keyItemNum = pUnit->GetInventory()->GetNumItemByTID( pRandomItem->m_KeyItemID );
+			int keyItemNum = pUnit->GetInventory().GetNumItemByTID( pRandomItem->m_KeyItemID );
 
 			if ( keyItemNum < pRandomItem->m_RequiredKeyCount )
 			{
@@ -7596,7 +8133,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			bool bAttractionItemCheck = false;
 			for(int i=0; i<ARRAY_SIZE(ATTRACTION_ITEM_ID); ++i)
 			{
-				if( pItemData->m_ItemID == ATTRACTION_ITEM_ID[i] )
+				if( kItemData.m_ItemID == ATTRACTION_ITEM_ID[i] )
 				{
 					bAttractionItemCheck = true;
 					break;
@@ -7606,7 +8143,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			bool bGoldAttractionItemCheck = false;
 			for(int i=0; i<ARRAY_SIZE(GOLD_ATTRACTION_ITEM_ID); ++i)
 			{
-				if( pItemData->m_ItemID == GOLD_ATTRACTION_ITEM_ID[i] )
+				if( kItemData.m_ItemID == GOLD_ATTRACTION_ITEM_ID[i] )
 				{
 					bGoldAttractionItemCheck = true;
 					break;
@@ -7657,14 +8194,14 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #endif ATTRACTION_ITEM_TEST
 			{
 #ifdef APRIL_5TH_TREE_DAY_EVENT
-				if( IsAprilEventRandomItem(pItemData->m_ItemID) )
+				if( IsAprilEventRandomItem(kItemData.m_ItemID) )
 				{
 					m_eRandomItemEventType = RIOET_APRIL_5TH_TREE_DAY_EVENT;
 					m_pDLGRandomItem = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_809 ), UIM_OPEN_RANDOM_ITEM, g_pMain->GetNowState(), UIM_OPEN_RANDOM_ITEM_CANCLE );
 				} 
 				else
 #endif APRIL_5TH_TREE_DAY_EVENT
-					if ( IsMonsterCardSetItem( pItemData->m_ItemID ) == true )
+					if ( IsMonsterCardSetItem( kItemData.m_ItemID ) == true )
 					{
 						m_eRandomItemEventType = RIOET_MONSTER_CARD_SET;
 						m_pDLGRandomItem = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_809 ), UIM_OPEN_RANDOM_ITEM, g_pMain->GetNowState(), UIM_OPEN_RANDOM_ITEM_CANCLE );
@@ -7678,7 +8215,6 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 						{
 							m_iUseOpenRandomItemID = pItemData->m_ItemID;
 						}
-
 #endif //SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
 					}
 			}
@@ -7687,14 +8223,20 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 		//}} kimhc // 2009-12-22 // 랜덤 아이템에 같은 키값 쓸수있도록 추가
 		else // 랜덤 큐브가 아니면
 		{
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+			if( true == IsAddSocketSlotItem( kItemData.m_ItemID ) )
+			{
+				UseAddSocketSlotItem( pItemSlot->GetItemUID() );
+			}
+#endif // ADD_SOCKET_SLOT
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // 미라클 큐브( 미감정 상태로 되돌리는 아이템 )
-			if( true == IsRestoreEvaluateItem( pItemData->m_ItemID ) )
+			if( true == IsRestoreEvaluateItem( kItemData.m_ItemID ) )
 			{
 				UseRestoreEvaluteItem( pItemSlot->GetItemUID() );
 			}
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
 #ifdef ATTRACTION_ITEM_TEST
-			if( IsAttachItem( pItemData->m_ItemID ) )
+			if( IsAttachItem( kItemData.m_ItemID ) )
 			{
 				// 강화권 쓰는 곳
 				CX2State* pState = (CX2State*)g_pMain->GetNowState();
@@ -7709,7 +8251,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #endif ATTRACTION_ITEM_TEST
 
 #ifdef SERV_ATTRIBUTE_CHARM
-			if( IsAttributeItem( pItemData->m_ItemID ) )
+			if( IsAttributeItem( kItemData.m_ItemID ) )
 			{
 				CX2State* pState = (CX2State*)g_pMain->GetNowState();
 				if(pState->GetCursor() != NULL)
@@ -7722,7 +8264,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 #endif SERV_ATTRIBUTE_CHARM
 
 
-			switch( pItemData->m_ItemID )
+			switch( kItemData.m_ItemID )
 			{
 			case CX2EnchantItem::ATI_RED: 
 			case CX2EnchantItem::ATI_BLUE: 
@@ -7731,8 +8273,11 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			case CX2EnchantItem::ATI_LIGHT:
 			case CX2EnchantItem::ATI_DARK: 
 				{
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+					OpenElBreakWindow( pItem );
+#else //FINALITY_SKILL_SYSTEM
 					//엘 속성 환원기가 있는지 확인
-					if ( pUnit->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE ) > 0 )
+					if ( pUnit->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE ) > 0 )
 					{
 						OpenElChangerWindow( false, pItem );
 					}
@@ -7740,6 +8285,7 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 					{
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_810 ), g_pMain->GetNowState() );
 					}
+#endif //FINALITY_SKILL_SYSTEM
 
 					return true;
 				} break;
@@ -7749,11 +8295,11 @@ bool CX2UIInventory::OnRClickedItem( D3DXVECTOR2 mousePos )
 			case CX2EnchantItem::ATI_UNKNOWN:
 				{
 					//엘 속성 판별기가 있는지 확인
-					if ( pUnit->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE ) > 0 )
+					if ( pUnit->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE ) > 0 )
 					{
 						OpenElChangerWindow( true, pItem );
 						
-						//m_ElChangerItemUID	= pItem->GetItemData()->m_ItemUID;
+						//m_ElChangerItemUID	= pItem->GetItemData().m_ItemUID;
 						//m_ElChangerItemCount = 1;
 						//if( m_pDLGIdentifyStone == NULL )
 						//{
@@ -7856,23 +8402,21 @@ void CX2UIInventory::RClickItemForSeal( UidType itemUID )
 
 bool CX2UIInventory::CanSealUpThisItem( CX2Item* pItem ) const
 {
-
- 
-	const CX2Item::ItemData*		pItemData		= pItem->GetItemData();
-    const CX2Item::ItemTemplet*		pItemTemplet	= pItem->GetItemTemplet();
-		
-
-	if ( pItemData == NULL )
-	{
-		ASSERT( !"GetItemData is NULL" );
+    if ( pItem == NULL )
+    {
+		ASSERT( !"pItem is NULL" );
 		return false;
-	}
-
+    }
+ 
+    const CX2Item::ItemTemplet*		pItemTemplet	= pItem->GetItemTemplet();
 	if ( pItemTemplet == NULL )
 	{
 		ASSERT( !"GetItemTemplet is NULL" );
 		return false;
 	}
+
+	const CX2Item::ItemData&		kItemData		= pItem->GetItemData();
+
 	//{{ kimhc // 2010-01-05 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
 	if ( pItemTemplet->GetIsPcBang() == true )
@@ -7884,7 +8428,7 @@ bool CX2UIInventory::CanSealUpThisItem( CX2Item* pItem ) const
 	//}} kimhc // 2010-01-05 // PC방 프리미엄 서비스
 
 	// 기간제 아이템은 봉인할 수 없습니다.
-	if ( pItemData->m_Period > 0 )
+	if ( kItemData.m_Period > 0 )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4394 ), g_pMain->GetNowState() );		
 		return false;
@@ -7922,14 +8466,14 @@ bool CX2UIInventory::CanSealUpThisItem( CX2Item* pItem ) const
 	
 	// 유저간의 거래가 이미 가능한(귀속되지 않은) 아이템은 아이템은 봉인 불가
 	if ( pItemTemplet->GetVested() == false ||
-		pItemData->m_bIsSealed == true )
+		kItemData.m_bIsSealed == true )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4396 ), g_pMain->GetNowState() );		
 		return false;
 	}
 
 	// 봉인 횟수
-	if ( pItemData->m_ucTimesToBeSealed >= pItemTemplet->GetMaxSealCount() 
+	if ( kItemData.m_ucTimesToBeSealed >= pItemTemplet->GetMaxSealCount() 
 #ifdef SERV_REMOVE_SEAL_COUNT_DECREASE
 		&& pItemTemplet->GetMaxSealCount() != CX2Inventory::SEAL_COUNT_MAX
 #endif // SERV_REMOVE_SEAL_COUNT_DECREASE
@@ -7942,7 +8486,7 @@ bool CX2UIInventory::CanSealUpThisItem( CX2Item* pItem ) const
 	// 무기나 방어구의 경우 내구도가 100% 미만인 경우 봉인 불가
 	if ( pItemTemplet->GetItemType() == CX2Item::IT_WEAPON || pItemTemplet->GetItemType() == CX2Item::IT_DEFENCE )
 	{
-		if ( pItemTemplet->GetPeriodType() == CX2Item::PT_ENDURANCE && pItemData->m_Endurance != pItemTemplet->GetEndurance() )
+		if ( pItemTemplet->GetPeriodType() == CX2Item::PT_ENDURANCE && kItemData.m_Endurance != pItemTemplet->GetEndurance() )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4393 ), g_pMain->GetNowState() );		
 			return false;
@@ -7968,18 +8512,11 @@ bool CX2UIInventory::IsSealItem( CX2Item* pItem, int &iCanSealCount )
 		return false;
 	}
 
-	const CX2Item::ItemData*		pItemData		=	NULL;
+	const CX2Item::ItemData&		kItemData		=	pItem->GetItemData();
 	const CX2Item::ItemTemplet*		pItemTemplet	=	NULL;
 	iCanSealCount = 0;
 
-	pItemData				= pItem->GetItemData();
 	pItemTemplet			= pItem->GetItemTemplet();
-
-	if ( pItemData == NULL )
-	{
-		ASSERT( !"GetItemData is NULL" );
-		return false;
-	}
 
 	if ( pItemTemplet == NULL )
 	{
@@ -8018,13 +8555,13 @@ bool CX2UIInventory::IsSealItem( CX2Item* pItem, int &iCanSealCount )
 	}
 
 	// 유저간의 거래가 이미 가능한(귀속되지 않은) 아이템은 아이템은 봉인 불가
-	if ( pItemTemplet->GetVested() == false ||
-		pItemData->m_bIsSealed == true )
+	if( pItemTemplet->GetVested() == false ||
+		kItemData.m_bIsSealed == true )
 	{
 		return false;
 	}
 
-	iCanSealCount = pItemTemplet->GetMaxSealCount() - pItemData->m_ucTimesToBeSealed;
+	iCanSealCount = pItemTemplet->GetMaxSealCount() - kItemData.m_ucTimesToBeSealed;
 	
 	return true;
 }
@@ -8035,13 +8572,12 @@ bool CX2UIInventory::Handler_EGS_UPDATE_ITEM_POSITION_NOT( HWND hWnd, UINT uMsg,
 	KEGS_UPDATE_ITEM_POSITION_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
-	CX2Inventory* pInventory = NULL; 
-	pInventory	= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 	
 	std::vector< KTradeShareItemResult >::iterator vit;
 	for(vit = kEvent.m_vecShareItemResult.begin(); vit != kEvent.m_vecShareItemResult.end(); vit++ )
 	{
-		pInventory->UpdateItemUID( vit->m_iBeforeItemUID, vit->m_iNewItemUID );
+		kInventory.UpdateItemUID( vit->m_iBeforeItemUID, vit->m_iNewItemUID );
 	}
 	//{{ kimhc // 2009-08-07 // 캐릭터별 은행
 #ifdef	PRIVATE_BANK
@@ -8070,7 +8606,7 @@ bool CX2UIInventory::CheckCanMoveShareItem( CX2Item* pFromItem, CX2Item* pToItem
 	if(pFromItem != NULL)
 	{
 		// 1. 기간제 아이템 거래 불가
-		if( pFromItem->GetItemData()->m_Period > 0 )
+		if( pFromItem->GetItemData().m_Period > 0 )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_14855 ), g_pMain->GetNowState() );
 			return false;
@@ -8092,7 +8628,7 @@ bool CX2UIInventory::CheckCanMoveShareItem( CX2Item* pFromItem, CX2Item* pToItem
 			}
 		}
 		// 3. 거래 불가 아이템 체크
-		else if( pFromItem->GetItemData()->m_bIsSealed == false && pFromItem->GetItemTemplet()->GetVested() == true )
+		else if( pFromItem->GetItemData().m_bIsSealed == false && pFromItem->GetItemTemplet()->GetVested() == true )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_14851 ), g_pMain->GetNowState() );
 			return false;
@@ -8103,7 +8639,7 @@ bool CX2UIInventory::CheckCanMoveShareItem( CX2Item* pFromItem, CX2Item* pToItem
 	if(pToItem != NULL)
 	{
 		// 1. 기간제 아이템 거래 불가
-		if( pToItem->GetItemData()->m_Period > 0 )
+		if( pToItem->GetItemData().m_Period > 0 )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_14855 ), g_pMain->GetNowState() );
 			return false;
@@ -8125,7 +8661,7 @@ bool CX2UIInventory::CheckCanMoveShareItem( CX2Item* pFromItem, CX2Item* pToItem
 			}
 		}
 		// 3. 거래 불가 아이템 체크
-		else if( pToItem->GetItemData()->m_bIsSealed == false && pToItem->GetItemTemplet()->GetVested() == true )
+		else if( pToItem->GetItemData().m_bIsSealed == false && pToItem->GetItemTemplet()->GetVested() == true )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_14851 ), g_pMain->GetNowState() );
 			return false;
@@ -8153,7 +8689,6 @@ bool CX2UIInventory::CheckCanMoveShareItem( CX2Item* pFromItem, CX2Item* pToItem
 	return true;
 }
 //}}
-
 #endif	SERV_SHARING_BANK_TEST
 
 void CX2UIInventory::ResetItemIDForSealAndCursorState()
@@ -8177,23 +8712,17 @@ void CX2UIInventory::ResetItemIDForSealAndCursorState()
 
 bool CX2UIInventory::Handler_EGS_SEAL_ITEM_REQ( UidType itemUID )
 {
-	CX2Inventory*			pInventory	 		= NULL;
-	CX2Item*				pItemToBeSealed		= NULL;
-	const CX2Item::ItemTemplet*	pItemTemplet		= NULL;
-	CX2Item::ItemData*		pItemData			= NULL;
-
-	pInventory						= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	pItemToBeSealed					= pInventory->GetItem( itemUID );
-	pItemTemplet					= pItemToBeSealed->GetItemTemplet();
-	pItemData						= pItemToBeSealed->GetItemData();
-
-	if ( pInventory == NULL )
-	{
-		ASSERT( !"Inventory is NULL" );
+    if ( g_pData->GetMyUser() == NULL || g_pData->GetMyUser()->GetSelectUnit() == NULL )
+    {
+		ASSERT( !"MyUser is NULL" );
 		m_pSlotItemToBeSealed	= NULL;
 		ResetItemIDForSealAndCursorState();
 		return true;
-	}
+    }
+
+	CX2Item*				pItemToBeSealed		= NULL;
+	const CX2Inventory&			kInventory	 		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	pItemToBeSealed					= kInventory.GetItem( itemUID );
 
 	if ( pItemToBeSealed == NULL )
 	{
@@ -8203,24 +8732,28 @@ bool CX2UIInventory::Handler_EGS_SEAL_ITEM_REQ( UidType itemUID )
 		return true;
 	}
 
+    const CX2Item::ItemTemplet*	pItemTemplet		= pItemToBeSealed->GetItemTemplet();
+
 	if ( pItemTemplet == NULL )
 	{
 		ASSERT( !"GetItemTemplet is NULL" );
 		m_pSlotItemToBeSealed	= NULL;
 		ResetItemIDForSealAndCursorState();
 		return true;
-	}			
+	}		
 
-	if ( pItemData	== NULL )
-	{
-		ASSERT( !"GetItemData is NULL" );
-		m_pSlotItemToBeSealed	= NULL;
-		ResetItemIDForSealAndCursorState();
-		return true;
-	}
+    const CX2Item::ItemData& kItemData = pItemToBeSealed->GetItemData();
 
-	if ( pInventory->GetItem( m_itemUIDForSeal ) == NULL ||
-		 pInventory->GetItem( m_itemUIDForSeal )->GetItemTemplet() == NULL 
+	//if ( pItemData	== NULL )
+	//{
+	//	ASSERT( !"GetItemData is NULL" );
+	//	m_pSlotItemToBeSealed	= NULL;
+	//	ResetItemIDForSealAndCursorState();
+	//	return true;
+	//}
+
+	if ( kInventory.GetItem( m_itemUIDForSeal ) == NULL ||
+		 kInventory.GetItem( m_itemUIDForSeal )->GetItemTemplet() == NULL 
          )
 	{
 		ASSERT( !"m_itemUIDForSeal is wrong!" );
@@ -8228,6 +8761,7 @@ bool CX2UIInventory::Handler_EGS_SEAL_ITEM_REQ( UidType itemUID )
 		ResetItemIDForSealAndCursorState();
 		return true;
 	}		
+
 #ifdef SERV_SHARING_BANK_EVENT
 	if( pItemTemplet->GetItemID() == _CONST_SHARING_BANK_EVENT_ITEM_::iKeyItem )
 	{
@@ -8241,11 +8775,12 @@ bool CX2UIInventory::Handler_EGS_SEAL_ITEM_REQ( UidType itemUID )
 		return true;
 	}
 #endif SERV_SHARING_BANK_EVENT
+
 	bool					bCanBeSealed			= true;
 	int						iItemIDForSeal			= 0;
     const CX2Item::ItemTemplet*	pItemTempletForSeal = NULL;	// 어떤 고양이 발인지 알기위한 itemTemplet
 
-    iItemIDForSeal			= pInventory->GetItem( m_itemUIDForSeal )->GetItemTemplet()->GetItemID();
+    iItemIDForSeal			= kInventory.GetItem( m_itemUIDForSeal )->GetItemTemplet()->GetItemID();
 
 	// 봉인할 아이템의 등급과 봉인에 쓰이는 아이템이 서로 등급이 일치하는지 검사
 	switch ( pItemTemplet->GetItemGrade() )
@@ -8333,7 +8868,7 @@ bool CX2UIInventory::Handler_EGS_SEAL_ITEM_REQ( UidType itemUID )
 	case CX2Item::IG_UNIQUE:								// 고양이 발 도장(황금색)
 		{
 #if defined(SERV_COUNTRY_JP) || defined(SERV_RURIEL_EVENT_ITEM)
-			switch ( iItemIDForSeal )
+			switch( iItemIDForSeal )
 			{
 			default:
 				{
@@ -8463,7 +8998,7 @@ void CX2UIInventory::OpenElChangerWindow( bool bIdentify, CX2Item* pItem )
         )
 		return;
 
-	m_ElChangerItemUID		= pItem->GetItemData()->m_ItemUID;
+	m_ElChangerItemUID		= pItem->GetItemData().m_ItemUID;
 	m_ElChangerItemCount	= 1;
 
 	m_pDLGElChanger = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_El_Changer_Window.lua" );
@@ -8499,7 +9034,7 @@ void CX2UIInventory::OpenElChangerWindow( bool bIdentify, CX2Item* pItem )
 		if ( pControl != NULL )
 			pControl->SetShow( true );
 
-		itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE );
+		itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE );
 
 		pStaticItemNum2 = (CKTDGUIStatic*)m_pDLGElChanger->GetControl( L"Identify_Window_Num2" );
 	}
@@ -8509,7 +9044,7 @@ void CX2UIInventory::OpenElChangerWindow( bool bIdentify, CX2Item* pItem )
 		if ( pControl != NULL )
 			pControl->SetShow( true );
 
-		itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE );
+		itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE );
 
 		pStaticItemNum2 = (CKTDGUIStatic*)m_pDLGElChanger->GetControl( L"Identify_Window_Num2" );
 
@@ -8532,7 +9067,7 @@ void CX2UIInventory::UpdateElChangerDLG( bool bReadIME )
 {
 	//before, we must check the type if It is an Identifier or an returner.
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_ElChangerItemUID );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_ElChangerItemUID );
 	if ( pItem == NULL || 
         pItem->GetItemTemplet() == NULL 
         )
@@ -8544,17 +9079,17 @@ void CX2UIInventory::UpdateElChangerDLG( bool bReadIME )
     if ( pItem->GetItemTemplet()->GetItemID() == CX2EnchantItem::ATI_UNKNOWN )
 	{
 		//identifier
-		needStoneQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE );
+		needStoneQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE );
 	}
 	else
 	{
 		//returner
-		needStoneQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE );
+		needStoneQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE );
 	}
 	const int MAGIC_MAX_EL_CHANGE_ONCE = 50;
 	int nowQuantity;
 	nowQuantity = min( needStoneQuantity, MAGIC_MAX_EL_CHANGE_ONCE );
-	nowQuantity = min( pItem->GetItemData()->m_Quantity, nowQuantity );
+	nowQuantity = min( pItem->GetItemData().m_Quantity, nowQuantity );
 
 
 	// IME에서 값 받아오고
@@ -8729,25 +9264,24 @@ void CX2UIInventory::DrawSlotMouseOverImage()
 
 			//*m_DraggingItemUID = ((CX2SlotItem*)(*m_pSlotBeforeDragging))->GetItemUID();			
 
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+			const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 			// 예외처리 추가
-			if( pInventory == NULL || 
-				pInventory->GetItem( *m_DraggingItemUID, true ) == NULL || 
-				pInventory->GetItem( *m_DraggingItemUID, true )->GetItemTemplet() == NULL 
+			if( kInventory.GetItem( *m_DraggingItemUID, true ) == NULL || 
+				kInventory.GetItem( *m_DraggingItemUID, true )->GetItemTemplet() == NULL 
                 )
 				return;
 
-			CX2Item::ITEM_TYPE itemType = pInventory->GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetItemType();
+			CX2Item::ITEM_TYPE itemType = kInventory.GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetItemType();
 			if (  itemType == CX2Item::IT_WEAPON || itemType == CX2Item::IT_DEFENCE || itemType == CX2Item::IT_ACCESSORY )
 			{
-				CX2Unit::EQIP_POSITION equipPosition = pInventory->GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetEqipPosition();
+				CX2Unit::EQIP_POSITION equipPosition = kInventory.GetItem( *m_DraggingItemUID, true )->GetItemTemplet()->GetEqipPosition();
 
 				for ( int i = 0; i < (int)m_SlotList.size(); i++ )
 				{
 					CX2SlotItem* pItemSlot = (CX2SlotItem*)GetSlot(i);
 					if ( pItemSlot->GetSlotType() == CX2Slot::ST_EQUIPPED && pItemSlot->GetEquipPos() == equipPosition && 
-						( itemType == CX2Item::IT_ACCESSORY || pItemSlot->GetFashion() == pInventory->GetItem( *m_DraggingItemUID )->GetItemTemplet()->GetFashion() ))
+						( itemType == CX2Item::IT_ACCESSORY || pItemSlot->GetFashion() == kInventory.GetItem( *m_DraggingItemUID )->GetItemTemplet()->GetFashion() ))
 					{
 						m_pDLGSelectedItem->SetPos( pItemSlot->GetPos() );
 						m_pDLGSelectedItem->GetStatic_LUA( "SelectedItem" )->GetPicture(0)->SetSize( pItemSlot->GetSize() );
@@ -8817,13 +9351,11 @@ wstring CX2UIInventory::GetSlotItemDesc()
 #ifdef NEW_ITEM_NOTICE
 			//마우스 오버 시 NewItem 하이라이트 꺼지도록 수정
 
-			if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit()
-				&& NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+			if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-				if( NULL != pInventory )
+				CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 				{
-					if( true == pInventory->EraseNewItem(m_pNowOverItemSlot->GetItemUID()) )
+					if( true == kInventory.EraseNewItem(m_pNowOverItemSlot->GetItemUID()) )
 					{
 #ifdef SERV_REFORM_INVENTORY_TEST
 						SetInventorySort(m_NowInventorySortType, GetNowInvenSortTypePageNum());
@@ -8874,6 +9406,9 @@ bool CX2UIInventory::Handler_EGS_USE_ITEM_IN_INVENTORY_REQ(UidType iUid, UidType
 #ifdef SERV_EVENT_RURIEL_MANA_ENERGIZE_POTION
 	case BUFF_RURIEL_MANA_ENERGIZE_POTION:
 #endif SERV_EVENT_RURIEL_MANA_ENERGIZE_POTION
+#ifdef RIDINGPET_STAMINA_ITEM
+	case RIDINGPET_STAMINA_30_PER_ITEM_ID:
+#endif RIDINGPET_STAMINA_ITEM
 		{
 			//비약, 영약 사용시 막 클릭할 때 여러개 사용되는 것 방지용
 			kPacket.m_iTempCode = iTempCode;
@@ -8916,8 +9451,8 @@ bool CX2UIInventory::Handler_EGS_USE_ITEM_IN_INVENTORY_ACK( HWND hWnd, UINT uMsg
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED		= kEvent.m_iED;
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED		= kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
 			UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
@@ -8984,7 +9519,11 @@ bool CX2UIInventory::Handler_EGS_USE_ITEM_IN_INVENTORY_ACK( HWND hWnd, UINT uMsg
 #endif
 
 #ifdef PET_DROP_ITEM_PICKUP
-			if( kEvent.m_iUsedItemID == ACTIVATION_DROP_ITEM_PICKUP_SKILL )
+			if( kEvent.m_iUsedItemID == ACTIVATION_DROP_ITEM_PICKUP_SKILL
+#ifdef SERV_PET_AUTO_LOOTING_ITEM_CN
+				|| kEvent.m_iUsedItemID == ACTIVATION_DROP_ITEM_PICKUP_SKILL_CN
+#endif // SERV_PET_AUTO_LOOTING_ITEM_CN
+				)
 			{
 				SetPetAutoLooting( kEvent.m_iTempCode );
 			}
@@ -8996,7 +9535,6 @@ bool CX2UIInventory::Handler_EGS_USE_ITEM_IN_INVENTORY_ACK( HWND hWnd, UINT uMsg
 
 	return false;
 }
-
 
 #ifdef SERV_GOLD_TICKET
 bool CX2UIInventory::handler_EGS_CHARGE_POINT_NOT(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
@@ -9032,7 +9570,7 @@ bool CX2UIInventory::handler_EGS_CHARGE_POINT_NOT(HWND hWnd, UINT uMsg, WPARAM w
 
 bool CX2UIInventory::CheckUseItem(CX2Item *pItem)
 {
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 	for(int i=0; i<ARRAY_SIZE(TITLE_ITEM); ++i)
 	{
         if( pItem->GetItemTemplet()->GetItemID() == TITLE_ITEM[i] )
@@ -9045,7 +9583,7 @@ bool CX2UIInventory::CheckUseItem(CX2Item *pItem)
 			}
 		}
 	}
-#endif
+//#endif
 
 	return true;
 }
@@ -9058,10 +9596,10 @@ bool CX2UIInventory::Handler_EGS_OPEN_RANDOM_ITEM_REQ()
 	if ( m_iRandomItemUID == 0 )
 		return false;
 	/*
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 	for ( int i = CX2Inventory::ST_EQUIP; i <= CX2Inventory::ST_AVARTA; i++ )
 	{
-	if ( pInventory->GetUsedSlotNum( (CX2Inventory::SORT_TYPE)i ) >= pInventory->GetItemMaxNum( (CX2Inventory::SORT_TYPE)i ) )
+	if ( kInventory.GetUsedSlotNum( (CX2Inventory::SORT_TYPE)i ) >= kInventory.GetItemMaxNum( (CX2Inventory::SORT_TYPE)i ) )
 	{
 	g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_814 ), g_pMain->GetNowState() );
 	return false;
@@ -9117,9 +9655,8 @@ bool CX2UIInventory::Handler_EGS_OPEN_RANDOM_ITEM_ACK( HWND hWnd, UINT uMsg, WPA
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 #ifdef SERV_CUBE_OPEN_ED_CONDITION
-			if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
+			if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
 #endif //SERV_CUBE_OPEN_ED_CONDITION
 
 			m_TempOpenRandomItemAck = kEvent;
@@ -9265,7 +9802,6 @@ bool CX2UIInventory::Handler_EGS_OPEN_RANDOM_ITEM_ACK( HWND hWnd, UINT uMsg, WPA
 								g_pData->GetCubeOpenImageManager()->SetNowResultEventCubePlaying( true );
 
 								// 결과 큐브 재생 중에는 esc 안먹히게 해야 한다...
-
 								m_pDLGEventCubeResultImage = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Event_Cube_Result.lua", 0.0f  );
 								CKTDGUIStatic* pStaticCubeOpenLoading = (CKTDGUIStatic*) m_pDLGEventCubeResultImage->GetControl( L"Event_Cube_Result" );
 								CKTDGUIControl::CPictureData *pPicture = pStaticCubeOpenLoading->GetPicture(0);
@@ -9415,24 +9951,19 @@ bool CX2UIInventory::Handler_EGS_OPEN_RANDOM_ITEM_ACK( HWND hWnd, UINT uMsg, WPA
 					float fDecreaseTime = 0.5f;
 					float fDecreaseNum = 0.0f;
 
-
 					m_pDLGTreasureBox1->Move( m_pDLGTreasureBox1->GetPos(), D3DXCOLOR(1,1,1,1), fDecreaseTime, false, false, false, 1, false);
 					m_pDLGTreasureBox2->Move( m_pDLGTreasureBox2->GetPos(), D3DXCOLOR(1,1,1,0), fDecreaseTime, false, false, false, 1, false);
 					m_pDLGTreasureBox3->Move( m_pDLGTreasureBox3->GetPos(), D3DXCOLOR(1,1,1,0), fDecreaseTime * 2, false, false, false, 1, false);
 					m_pDLGTreasureBox4->Move( m_pDLGTreasureBox4->GetPos(), D3DXCOLOR(1,1,1,0), fDecreaseTime * 3, false, false, false, 1, false);
 
-
 					m_pDLGTreasureBox1->Move( m_pDLGTreasureBox1->GetPos(), D3DXCOLOR(1,1,1,0), fDecreaseTime * 3, false, false, false, 1, false);
 					m_pDLGTreasureBox2->Move( m_pDLGTreasureBox2->GetPos(), D3DXCOLOR(1,1,1,1), fDecreaseTime, false, false, false, 1, false);
-
 
 					m_pDLGTreasureBox2->Move( m_pDLGTreasureBox2->GetPos(), D3DXCOLOR(1,1,1,0), fDecreaseTime * 3 - 0.2f, false, false, false, 1, false);
 					m_pDLGTreasureBox3->Move( m_pDLGTreasureBox3->GetPos(), D3DXCOLOR(1,1,1,1), fDecreaseTime, false, false, false, 1, false);
 
-
 					m_pDLGTreasureBox3->Move( m_pDLGTreasureBox3->GetPos(), D3DXCOLOR(1,1,1,0), fDecreaseTime * 3 - 0.4f, false, false, false, 1, false);
 					m_pDLGTreasureBox4->Move( m_pDLGTreasureBox4->GetPos(), D3DXCOLOR(1,1,1,1), fDecreaseTime, false, false, false, 1, false);						
-
 
 					m_pDLGTreasureBox4->Move( m_pDLGTreasureBox4->GetPos(), D3DXCOLOR(1,1,1,0), fDecreaseTime * 3 - 0.6f, false, false, false, 1, false);
 
@@ -9450,9 +9981,6 @@ bool CX2UIInventory::Handler_EGS_OPEN_RANDOM_ITEM_ACK( HWND hWnd, UINT uMsg, WPA
 					m_pDLGTreasureBox4->Move( m_pDLGTreasureBox4->GetPos(), D3DXCOLOR(1,1,1,1), fDecreaseTime, false, false, false, 1, false);
 
 					m_pDLGTreasureBox4->Move( m_pDLGTreasureBox4->GetPos(), D3DXCOLOR(1,1,1,0), fDecreaseTime, false, false, false, 1, false);
-
-
-
 
 					m_pDLGTreasureBox5->Move( m_pDLGTreasureBox5->GetPos(), D3DXCOLOR(1,1,1,0), 3.3f, false, false, false, 1, false);	
 					m_pDLGTreasureBox6->Move( m_pDLGTreasureBox6->GetPos(), D3DXCOLOR(1,1,1,0), 3.3f + fDecreaseTime, false, false, false, 1);
@@ -9506,7 +10034,6 @@ bool CX2UIInventory::Handler_EGS_OPEN_RANDOM_ITEM_ACK( HWND hWnd, UINT uMsg, WPA
 						m_pDLGTreasureBox8->Move( m_pDLGTreasureBox8->GetPos(), D3DXCOLOR(0,0,0,0), fDecreaseTime * 3 - 0.1f, false, false, false, 1, false);
 					}
 
-
 					g_pKTDXApp->GetDGManager()->GetDialogManager()->ChangeSequence( m_pDLGTreasureBox_White, true );
 					m_pDLGTreasureBox_White->Move( m_pDLGTreasureBox_White->GetPos(), D3DXCOLOR(1,1,1,0), 7.0f, true );	// 최초 1.2초간은 가만히 있고
 					m_pDLGTreasureBox_White->Move( m_pDLGTreasureBox_White->GetPos(), D3DXCOLOR(1,1,1,1), 0.3f );			// 1번이 사라질 동안 나타나서 (1.2~1.7)
@@ -9518,12 +10045,10 @@ bool CX2UIInventory::Handler_EGS_OPEN_RANDOM_ITEM_ACK( HWND hWnd, UINT uMsg, WPA
 					m_pDLGTreasureBox9->Move( m_pDLGTreasureBox9->GetPos(), D3DXCOLOR(1,1,1,1), 0.1f );			// 1번이 사라질 동안 나타나서 (1.2~1.7)
 					m_pDLGTreasureBox9->Move( m_pDLGTreasureBox9->GetPos(), D3DXCOLOR(1,1,1,1), 1.5f );			// 1초 유지 후 끝 (1.7~2.7)
 
-
 					// 시간에 맞춰서 사운드 켜주기 위함
 					m_bTreasureBoxSoundPlayed = false;
 					m_fPlayTime = 0.0f;
 					//g_pKTDXApp->GetDeviceManager()->PlaySound( L"TreeDay_Event.ogg", false, false );
-
 				} break;
 #endif	SERV_TREASURE_BOX_ITEM
 
@@ -9585,7 +10110,7 @@ bool CX2UIInventory::Handler_EGS_OPEN_RANDOM_ITEM_ACK( HWND hWnd, UINT uMsg, WPA
 			// 실패시 창을 없애자~
 			if( m_hMeshInstMeltMachine != INVALID_MESH_INSTANCE_HANDLE )
 			{
-				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 
 				if( NULL != m_pDLGOpenAttraction )
 				{
@@ -9611,7 +10136,6 @@ bool CX2UIInventory::Handler_EGS_OPEN_RANDOM_ITEM_ACK( HWND hWnd, UINT uMsg, WPA
 #ifdef SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
 void CX2UIInventory::UpdateOpenMiniRandomItemAckNew()
 {
-
 	// 예전 창을 지우고..
 	if ( m_pDLGOpenAttraction != NULL )
 		g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGOpenAttraction, NULL, false );
@@ -9652,7 +10176,6 @@ void CX2UIInventory::UpdateOpenMiniRandomItemAckNew()
 
 		m_mapCubeItemGet.insert( std::make_pair(127030, getStoneNum));
 
-
 		g_pData->GetMyUser()->GetSelectUnit()->SetResurrectionStoneNum( m_TempOpenRandomItemAck.m_iRessurectionCount );
 
 		//{{ kimhc // 2009-07-21 // 던전 내에서 부활석 큐브 사용시에 메인UI(왼쪽 상단)의 부활석 갯수가 변경 안되는 문제
@@ -9672,12 +10195,8 @@ void CX2UIInventory::UpdateOpenMiniRandomItemAckNew()
 		bCheck = true;
 	}
 
-
-
-
 	if ( bCheck == true )
 	{
-
 		// 더미 : OpenDecompositionResultWindow 안에서 인벤토리 정리를 안 하기 위한 빈 벡터 =3=
 		std::vector<KInventoryItemInfo> vecDummyInfo;
 		vecDummyInfo.clear();
@@ -9685,16 +10204,22 @@ void CX2UIInventory::UpdateOpenMiniRandomItemAckNew()
 
 		OpenResolveResultWindow( m_mapCubeItemGet, vecDummyInfo, false );
 		m_mapCubeItemGet.clear();
-
 	}
 	else if ( m_TempOpenRandomItemAck.m_iRestoreSpirit != 0 )
 	{
 		wstringstream tempString;
-		int getSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit;
-		getSpirit = (int)(getSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpiritMax * 100.0f);
+#ifdef RESTORE_SPIRIT_VALUE_BUG_FIX
+		float fGetSpirit = static_cast<float>( m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit );
+		fGetSpirit = fGetSpirit / static_cast<float>( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax ) * 100.0f;
+		fGetSpirit = floor(fGetSpirit * 10.0f + 0.5f) / 10.0f;
+		tempString << GET_REPLACED_STRING( ( STR_ID_819, "f", fGetSpirit ) );
+#else
+		int getSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit;
+		getSpirit = (int)(getSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax * 100.0f);
 		tempString << GET_REPLACED_STRING( ( STR_ID_819, "i", getSpirit ) );
+#endif RESTORE_SPIRIT_VALUE_BUG_FIX
 
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit;
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_iSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit;
 		// 근성도 변경시의 UI 업뎃은 StateMenu에서 처리된다
 
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), tempString.str().c_str(), g_pMain->GetNowState() );
@@ -9703,7 +10228,6 @@ void CX2UIInventory::UpdateOpenMiniRandomItemAckNew()
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_820 ), g_pMain->GetNowState() );
 	}
-
 
 	UpdateInventorySlotList( m_TempOpenRandomItemAck.m_vecKInventorySlotInfo );
 
@@ -9715,6 +10239,7 @@ void CX2UIInventory::UpdateOpenMiniRandomItemAckNew()
 
 }
 #endif //SERV_ONE_THIRD_MINI_ATTRACTION_ITEM
+
 void CX2UIInventory::UpdateOpenRandomItemAckNew()
 {
 
@@ -9792,11 +10317,18 @@ void CX2UIInventory::UpdateOpenRandomItemAckNew()
 	else if ( m_TempOpenRandomItemAck.m_iRestoreSpirit != 0 )
 	{
 		wstringstream tempString;
-		int getSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit;
-		getSpirit = (int)(getSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpiritMax * 100.0f);
+#ifdef RESTORE_SPIRIT_VALUE_BUG_FIX
+		float fGetSpirit = static_cast<float>( m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit );
+		fGetSpirit = fGetSpirit / static_cast<float>( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax ) * 100.0f;
+		fGetSpirit = floor(fGetSpirit * 10.0f + 0.5f) / 10.0f;
+		tempString << GET_REPLACED_STRING( ( STR_ID_819, "f", fGetSpirit ) );
+#else
+		int getSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit;
+		getSpirit = (int)(getSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax * 100.0f);
 		tempString << GET_REPLACED_STRING( ( STR_ID_819, "i", getSpirit ) );
+#endif RESTORE_SPIRIT_VALUE_BUG_FIX
 
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit;
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_iSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit;
 		// 근성도 변경시의 UI 업뎃은 StateMenu에서 처리된다
 
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), tempString.str().c_str(), g_pMain->GetNowState() );
@@ -9930,11 +10462,18 @@ void CX2UIInventory::UpdateOpenRandomItemAck()
 	else if ( m_TempOpenRandomItemAck.m_iRestoreSpirit != 0 )
 	{
 		wstringstream tempString;
-		int getSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit;
-		getSpirit = (int)(getSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpiritMax * 100.0f);
+#ifdef RESTORE_SPIRIT_VALUE_BUG_FIX
+		float fGetSpirit = static_cast<float>( m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit );
+		fGetSpirit = fGetSpirit / static_cast<float>( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax ) * 100.0f;
+		fGetSpirit = floor(fGetSpirit * 10.0f + 0.5f) / 10.0f;
+		tempString << GET_REPLACED_STRING( ( STR_ID_819, "f", fGetSpirit ) );
+#else
+		int getSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit;
+		getSpirit = (int)(getSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax * 100.0f);
 		tempString << GET_REPLACED_STRING( ( STR_ID_819, "i", getSpirit ) );
+#endif RESTORE_SPIRIT_VALUE_BUG_FIX
 
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit;
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_iSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit;
 		// 근성도 변경시의 UI 업뎃은 StateMenu에서 처리된다
 
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), tempString.str().c_str(), g_pMain->GetNowState() );
@@ -10012,7 +10551,7 @@ void CX2UIInventory::OpenResolveWindow( CX2SlotItem* pSlot )
 
 	if ( pSlot->GetSlotType() == CX2Slot::ST_INVENTORY )
 	{
-		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlot->GetItemUID() );
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlot->GetItemUID() );
 
 #ifdef ENABLE_RESOLVE_FASHION
 
@@ -10038,10 +10577,8 @@ void CX2UIInventory::OpenResolveWindow( CX2SlotItem* pSlot )
 
 		//{{ kimhc // 2009-09-08 // 봉인된 아이템 분해 불가
 #ifdef	SEAL_ITEM
-		if ( pItem->GetItemData() == NULL )
-			return;
 
-		if ( pItem->GetItemData()->m_bIsSealed == true )
+		if ( pItem->GetItemData().m_bIsSealed == true )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4477 ), g_pMain->GetNowState() );
 			return; 
@@ -10056,8 +10593,8 @@ void CX2UIInventory::OpenResolveWindow( CX2SlotItem* pSlot )
 			{
 				if ( pItem->GetItemTemplet()->GetFashion() == true )
 				{
-					if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY &&
-						pItem->GetItemData()->m_Period > 0 )
+					if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY &&
+						pItem->GetItemData().m_Period > 0 )
 					{
 						//기간제로 판명.
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
@@ -10077,8 +10614,8 @@ void CX2UIInventory::OpenResolveWindow( CX2SlotItem* pSlot )
 					return;
 				}
 				
-				if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY &&
-					pItem->GetItemData()->m_Period > 0 )
+				if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY &&
+					pItem->GetItemData().m_Period > 0 )
 				{
 					//기간제로 판명.
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
@@ -10193,7 +10730,7 @@ bool CX2UIInventory::Handler_EGS_RESOLVE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM 
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 #ifdef SERV_MULTI_RESOLVE
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
 
 			if(g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_CHARINFO))
 			{
@@ -10232,7 +10769,16 @@ void CX2UIInventory::OpenResolveResultWindow( std::map< int, int >& mapInsertedI
 				return;
 			}
 			if( g_pData->GetCubeOpenImageManager() != NULL && g_pData->GetCubeOpenImageManager()->IsShowResultCustom(m_RandomItemID) == true )
+			{
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+				if( m_RandomItemID == 130825 )
+				{
+					InitItemObtainResult2( L"DLG_UI_Event_Cube_Result_Custom.lua", mapInsertedItem, 1 );
+				}
+				else
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 				InitItemObtainResult( L"DLG_UI_Event_Cube_Result_Custom.lua", mapInsertedItem);
+			}
 			else
 #endif CUBE_OPEN_IMAGE_MANAGER
 			InitItemObtainResult( L"DLG_UI_Cube_Result.lua", mapInsertedItem);
@@ -10286,7 +10832,6 @@ void CX2UIInventory::OpenResolveResultWindow( std::map< int, int >& mapInsertedI
 		return;
 	}
 #endif // CUBE_OPEN_IMAGE_MANAGER
-
 
 #ifdef RANDOM_CUBE_UI_NEW
 	if(m_bCubeOpen == true)
@@ -10409,11 +10954,9 @@ void CX2UIInventory::OpenResolveResultWindow( std::map< int, int >& mapInsertedI
 					wstring wstrFullName = CWordLineHandler::GetStrByLineBreakInX2Main( pItemTemplet->GetFullName().c_str(), 145, XUF_DODUM_13_SEMIBOLD );
 #else //CLIENT_GLOBAL_LINEBREAK
 				wstring wstrFullName = g_pMain->GetStrByLienBreak( 
-					pItemTemplet->GetFullName_(),
-					145, XUF_DODUM_13_SEMIBOLD );
+                    pItemTemplet->GetFullName_(),
+                    145, XUF_DODUM_13_SEMIBOLD );
 #endif //CLIENT_GLOBAL_LINEBREAK
-
-				
 				if ( wstrFullName.find( L"\n") != -1 )
 					bCheckTwoLine = true;
 
@@ -10579,8 +11122,8 @@ void CX2UIInventory::ChangeResolveResultPage( bool bNextPage )
 						wstring wstrFullName = CWordLineHandler::GetStrByLineBreakInX2Main( pItemTemplet->GetFullName_(), 145, XUF_DODUM_13_SEMIBOLD );
 #else //CLIENT_GLOBAL_LINEBREAK
 						wstring wstrFullName = g_pMain->GetStrByLienBreak( 
-							pItemTemplet->GetFullName_(), 
-							145, XUF_DODUM_13_SEMIBOLD );
+                            pItemTemplet->GetFullName_(), 
+                            145, XUF_DODUM_13_SEMIBOLD );
 #endif //CLIENT_GLOBAL_LINEBREAK
 						if ( wstrFullName.find( L"\n") != -1 )
 							bCheckTwoLine = true;
@@ -10757,8 +11300,8 @@ void CX2UIInventory::ChangeResolveResultPage( bool bNextPage )
 					wstring wstrFullName = CWordLineHandler::GetStrByLineBreakInX2Main( pItemTemplet->GetFullName().c_str(), 145, XUF_DODUM_13_SEMIBOLD );
 #else //CLIENT_GLOBAL_LINEBREAK
 					wstring wstrFullName = g_pMain->GetStrByLienBreak( 
-						pItemTemplet->GetFullName_(),
-						145, XUF_DODUM_13_SEMIBOLD );
+                        pItemTemplet->GetFullName_(),
+                        145, XUF_DODUM_13_SEMIBOLD );
 #endif //CLIENT_GLOBAL_LINEBREAK
 					if ( wstrFullName.find( L"\n") != -1 )
 						bCheckTwoLine = true;
@@ -10785,7 +11328,7 @@ void CX2UIInventory::ChangeResolveResultPage( bool bNextPage )
 						wstring wstrFullName = CWordLineHandler::GetStrByLineBreakInX2Main( pItemTemplet->GetFullName().c_str(), 145, XUF_DODUM_13_SEMIBOLD );
 						pStaticName->GetString(j)->msg = wstrFullName;
 #else //CLIENT_GLOBAL_LINEBREAK
-						pStaticName->GetString(j)->msg = pItemTemplet->GetFullName_();
+                        pStaticName->GetString(j)->msg = pItemTemplet->GetFullName_();
 #endif //CLIENT_GLOBAL_LINEBREAK
 					}
 				}
@@ -10828,10 +11371,10 @@ void CX2UIInventory::OpenSocketWindow( CX2SlotItem* pSlot )
 		return;
 	}
 
-	int normalStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_MAGIC_STONE_ITEM_ID );
-	int specialStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( SPECIAL_MAGIC_STONE_ITEM_ID );
+	int normalStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_MAGIC_STONE_ITEM_ID );
+	int specialStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( SPECIAL_MAGIC_STONE_ITEM_ID );
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlot->GetItemUID() );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlot->GetItemUID() );
 
 	//{{ kimhc // 2010-01-06 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
@@ -10863,11 +11406,11 @@ void CX2UIInventory::OpenSocketWindow( CX2SlotItem* pSlot )
 
 
 	bool bCheckHaveOption = false;
-	if ( pItem != NULL && pItem->GetItemData() != NULL )
+	if ( pItem != NULL )
 	{
-		for ( UINT i = 0; i < pItem->GetItemData()->m_SocketOption.size(); i++ )
+		for ( UINT i = 0; i < pItem->GetItemData().m_SocketOption.size(); i++ )
 		{
-			int socketOption = pItem->GetItemData()->m_SocketOption[i];
+			int socketOption = pItem->GetItemData().m_SocketOption[i];
 			if ( socketOption != 0 )
 				bCheckHaveOption = true;
 		}
@@ -10944,7 +11487,7 @@ bool CX2UIInventory::OpenNewSocketWindow( CX2SlotItem* pSlot )
 		return false;
 	}
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlot->GetItemUID() );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlot->GetItemUID() );
 
 	//{{ kimhc // 2010-01-06 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
@@ -11035,7 +11578,7 @@ void CX2UIInventory::ResetSocketWindow()
 	if ( m_pDLGSocketItem == NULL )
 		return;
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID ); 
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID ); 
 
 	if ( pItem == NULL )
 		return;
@@ -11050,12 +11593,10 @@ void CX2UIInventory::ResetSocketWindow()
 
 	//{{ kimhc // 2009-09-08 // 봉인된 아이템 이미지 출력
 #ifdef	SEAL_ITEM
-	if ( pItem->GetItemData() == NULL )
-		return;
 
 	if ( pStaticSlotImage->GetPicture( 1 ) != NULL )
 	{
-		if ( pItem->GetItemData()->m_bIsSealed == true )
+		if ( pItem->GetItemData().m_bIsSealed == true )
 			pStaticSlotImage->GetPicture( 1 )->SetShow( true );
 		else
 			pStaticSlotImage->GetPicture( 1 )->SetShow( false );
@@ -11072,8 +11613,8 @@ void CX2UIInventory::ResetSocketWindow()
 
 	int slotNum = pItem->GetItemTemplet()->GetSocketSlotNum();
 
-	int normalStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_MAGIC_STONE_ITEM_ID );
-	int specialStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( SPECIAL_MAGIC_STONE_ITEM_ID );
+	int normalStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_MAGIC_STONE_ITEM_ID );
+	int specialStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( SPECIAL_MAGIC_STONE_ITEM_ID );
 
 
 	CKTDGUIStatic* pStaticMagicStoneNum = (CKTDGUIStatic*)m_pDLGSocketItem->GetControl( L"g_pStatic_Normal_Magic_Stone_Num" );
@@ -11223,10 +11764,10 @@ void CX2UIInventory::ResetSocketWindow()
 	{
 		bool bCheckEmpty = true;
 
-		if ( i < (int)pItem->GetItemData()->m_SocketOption.size() )
+		if ( i < (int)pItem->GetItemData().m_SocketOption.size() )
 		{
 			//0으로 채워져 있으면 비어있는거고 다른값으로 채워져 있는거면 있는거다..
-			int socketOption = pItem->GetItemData()->m_SocketOption[i];
+			int socketOption = pItem->GetItemData().m_SocketOption[i];
 			if ( socketOption != 0 )
 			{
 				bCheckEmpty = false;
@@ -11249,7 +11790,7 @@ void CX2UIInventory::ResetSocketWindow()
 					pControl->SetShowEnable( true, true );
 				}
 
-				CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
+				const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
 				if ( pSocketData != NULL )
 				{
 					//여기다가.. 소켓 옵션 설명 가져와서 한줄 짜리인지 두줄짜리인지 보고.. 넣자잉..
@@ -11460,20 +12001,20 @@ bool CX2UIInventory::Handler_EGS_SOCKET_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM w
 			vector< int > vecOrgSocketOption;
 			bool bCheckNewElementOption = false;
 
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEvent.m_iSocketItemUID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEvent.m_iSocketItemUID );
 			if ( pItem != NULL )
 			{
-				vecOrgSocketOption = pItem->GetItemData()->m_SocketOption;
+				vecOrgSocketOption = pItem->GetItemData().m_SocketOption;
 			}
 
 			//특수 처리 고고싱
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
-			pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEvent.m_iSocketItemUID );
+			pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEvent.m_iSocketItemUID );
 			if ( pItem != NULL )
 			{
-				vector< int > vecNewSocketOption = pItem->GetItemData()->m_SocketOption;
+				vector< int > vecNewSocketOption = pItem->GetItemData().m_SocketOption;
 				for ( int i = 0; i < (int)vecNewSocketOption.size(); i++ )
 				{
 					int newSocketOption = vecNewSocketOption[i];
@@ -11488,7 +12029,7 @@ bool CX2UIInventory::Handler_EGS_SOCKET_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM w
 					}
 					if ( bCheck == true )
 					{
-						CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( newSocketOption );
+						const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( newSocketOption );
 						if ( pSocketData != NULL )
 						{
 							if ( pSocketData->m_SocketExtraDamage.m_fRate > 0.f )
@@ -11531,7 +12072,7 @@ bool CX2UIInventory::Handler_EGS_SORT_CATEGORY_ITEM_ACK( HWND hWnd, UINT uMsg, W
 	{
 		if( g_pMain->IsValidPacket( kEGS_SORT_CATEGORY_ITEM_ACK.m_iOK ) == true )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateCategorySlotList((CX2Inventory::SORT_TYPE)kEGS_SORT_CATEGORY_ITEM_ACK.m_iCategoryType, kEGS_SORT_CATEGORY_ITEM_ACK.m_vecUpdatedInventorySlot);
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateCategorySlotList((CX2Inventory::SORT_TYPE)kEGS_SORT_CATEGORY_ITEM_ACK.m_iCategoryType, kEGS_SORT_CATEGORY_ITEM_ACK.m_vecUpdatedInventorySlot);
 			g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlot();
 			return true;
 		}
@@ -11587,7 +12128,7 @@ void CX2UIInventory::GetRequiredRecoveryStoneID( IN const int iItemLevel_, OUT v
 		vecRecoveryItemIdList_.push_back( 206880 );	// 복원석 lv1
 #ifdef CHILDRENS_DAY_EVENT_ITEM
 		vecRecoveryItemIdList_.push_back( 160790 ); // 이벤트 : [코보]축복받은 복원의 주문서 Lv.1
-#endif //CHILDRENS_DAY_EVENT_ITEM		
+#endif //CHILDRENS_DAY_EVENT_ITEM
 #ifdef SERV_EVENT_RESTORE_SCROLL_MULTI
 		vecRecoveryItemIdList_.push_back( 85002096 );	// 복원석 lv1
 		vecRecoveryItemIdList_.push_back( 70001910 );	// 복원석(이벤트) lv1 JP
@@ -11612,7 +12153,7 @@ void CX2UIInventory::GetRequiredRecoveryStoneID( IN const int iItemLevel_, OUT v
 		vecRecoveryItemIdList_.push_back( 206900 );	// 복원석 lv3
 #ifdef CHILDRENS_DAY_EVENT_ITEM
 		vecRecoveryItemIdList_.push_back( 160792 ); // 이벤트 : [코보]축복받은 복원의 주문서 Lv.3
-#endif //CHILDRENS_DAY_EVENT_ITEM		
+#endif //CHILDRENS_DAY_EVENT_ITEM
 #ifdef SERV_EVENT_RESTORE_SCROLL_MULTI
 		vecRecoveryItemIdList_.push_back( 85002098 );	// 복원석 lv1
 		vecRecoveryItemIdList_.push_back( 70002802 );	// 복원석(이벤트) lv3 JP
@@ -11649,7 +12190,7 @@ void CX2UIInventory::GetRequiredRecoveryStoneID( IN const int iItemLevel_, OUT v
 		vecRecoveryItemIdList_.push_back( 206930 );	// 복원석 lv6
 #ifdef CHILDRENS_DAY_EVENT_ITEM
 		vecRecoveryItemIdList_.push_back( 160793 ); // 이벤트 : [코보]축복받은 복원의 주문서 Lv.6
-#endif //CHILDRENS_DAY_EVENT_ITEM		
+#endif //CHILDRENS_DAY_EVENT_ITEM
 #ifdef SERV_EVENT_RESTORE_SCROLL_MULTI
 		vecRecoveryItemIdList_.push_back( 67006183 );	// 아리엘의 축복받은 복원의 주문서 Lv.6
 		vecRecoveryItemIdList_.push_back( 70002805 );	// 복원석(이벤트) lv6 JP
@@ -11695,12 +12236,12 @@ void CX2UIInventory::CheckRequiredRecoveryStoneInInventory( IN OUT vector<int>& 
 {
 	if ( false == vecRecoveryItemIdList_.empty() )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 		vector<int>::const_iterator vItr = vecRecoveryItemIdList_.begin();
 		
 		do 
 		{
-			if ( 0 == pInventory->GetNumItemByTID( *vItr ) )
+			if ( 0 == kInventory.GetNumItemByTID( *vItr ) )
 				vItr = vecRecoveryItemIdList_.erase( vItr );
 			else
 				++vItr;
@@ -11712,7 +12253,7 @@ void CX2UIInventory::CheckRequiredRecoveryStoneInInventory( IN OUT vector<int>& 
 bool CX2UIInventory::Handler_EGS_RESTORE_ITEM_REQ( UidType RecoveryItemUid )
 {
 	// 일단 아이템 있는지 다시 확인해주고
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( RecoveryItemUid );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( RecoveryItemUid );
 	if(pItem == NULL) 
 		return false;
 
@@ -11738,7 +12279,7 @@ bool CX2UIInventory::Handler_EGS_RESTORE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM 
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
 			UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
@@ -11767,16 +12308,13 @@ bool CX2UIInventory::Handler_EGS_RESTORE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM 
 bool CX2UIInventory::Handler_EGS_DELETE_ITEM_REQ( UidType DeleteItemUid, int Quantity )
 {
 	// 일단 아이템 있는지 다시 확인해주고
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( DeleteItemUid );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( DeleteItemUid );
 	if(pItem == NULL) 
-		return false;
-
-	if ( pItem->GetItemData() == NULL )
 		return false;
 	
 	// 수량성인 경우 버리려는 갯수가 가지고 있는 것보다 많으면
-	if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_QUANTITY &&
-		pItem->GetItemData()->m_Quantity < m_iItemEnrollNum ) 
+	if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_QUANTITY &&
+		pItem->GetItemData().m_Quantity < m_iItemEnrollNum ) 
 	{
 		return false;
 	}
@@ -11799,7 +12337,7 @@ bool CX2UIInventory::Handler_EGS_DELETE_ITEM_REQ( UidType DeleteItemUid )
 	if( CX2User::XUAL_DEV == g_pData->GetMyUser()->GetAuthLevel() )
 	{
 		// 일단 아이템 있는지 다시 확인해주고
-		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( DeleteItemUid );
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( DeleteItemUid );
 		if(pItem == NULL) 
 			return false;
 
@@ -11832,7 +12370,7 @@ bool CX2UIInventory::Handler_EGS_DELETE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM w
 			std::vector< KInventoryItemInfo > veckInventoryItemInfo;
 			veckInventoryItemInfo.push_back(kEvent.m_kInventoryItemInfo);
 
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( veckInventoryItemInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( veckInventoryItemInfo );
 
 			UpdateInventorySlotList( veckInventoryItemInfo );
 
@@ -11965,8 +12503,7 @@ std::wstring CX2UIInventory::GetSlotItemDescExtra_RBtn( int itemTID, CX2Item* pI
 
 				    //{{ kimhc // 2009-08-26 // 아이템 봉인 시 디스크립션 변경
     #ifdef	SEAL_ITEM
-				    if ( pItem->GetItemData() != NULL &&
-					    pItem->GetItemData()->m_bIsSealed == true )
+				    if ( pItem->GetItemData().m_bIsSealed == true )
 				    {
 					    slotItemDesc += GET_STRING( STR_ID_4422 );
 				    }
@@ -11985,8 +12522,7 @@ std::wstring CX2UIInventory::GetSlotItemDescExtra_RBtn( int itemTID, CX2Item* pI
 
 				//{{ kimhc // 2009-08-26 // 아이템 봉인 시 디스크립션 변경
 #ifdef	SEAL_ITEM
-				if ( pItem->GetItemData() != NULL &&
-					pItem->GetItemData()->m_bIsSealed == true )
+				if ( pItem->GetItemData().m_bIsSealed == true )
 				{
 					slotItemDesc += GET_STRING( STR_ID_4422 );
 				}
@@ -12085,8 +12621,10 @@ void CX2UIInventory::UpdateOpenAttractionItemAck()
 	if( NULL != pStatic )
 	{
 		if( NULL != pStatic->GetPicture(0) )
+		{
 			pStatic->GetPicture(0)->SetTex( wstrResultDialogTitle.c_str(), wstrResultDialogTitleKey.c_str() );
-
+			pStatic->GetPicture(0)->SetSizeAsTextureSize();		// 해외팀 코드 추가
+		}
 		if( NULL != pStatic->GetPicture(1) )
 			pStatic->GetPicture(1)->SetShow(false);
 	}
@@ -12166,14 +12704,7 @@ void CX2UIInventory::UpdateOpenAttractionItemAck()
 				WCHAR buf[256] = {0};
 				wstring itemName = L"";
 				pStatic = (CKTDGUIStatic*) m_pDLGAttractionResult->GetControl( L"Static_Item" );
-#ifdef ELLIPSE_GLOBAL
-				// [NOTE] 결과창에 아이탬 이름이 다이얼로그를 넘어가는 경우가 있어서 말줄임(...) 적용
-				bool bEllipse = false;
-				wstring wstrItemName = CWordLineHandler::CutStringWithEllipse(pItemTemplet->GetFullName_(), 290, pStatic->GetString(0)->fontIndex, 1, bEllipse);
-				itemName = wstrItemName.c_str();
-#else //ELLIPSE_GLOBAL
-				itemName = pItemTemplet->GetFullName_();
-#endif //ELLIPSE_GLOBAL
+                itemName = pItemTemplet->GetFullName_();
 
 				if( resultNum == 1)
 				{
@@ -12217,7 +12748,7 @@ void CX2UIInventory::PlayGetAttractionItem()
 		D3DXVECTOR3 boxPos = m_pDLGOpenAttraction->GetDummyPos( 0 );
 		if( m_hMeshInstMeltMachine != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 			if( NULL != m_pDLGOpenAttraction )
 			{
 				m_pDLGOpenAttraction->SetHasUnit( NULL );
@@ -12231,6 +12762,7 @@ void CX2UIInventory::PlayGetAttractionItem()
 
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst_MeltMachineStart = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( NULL, wstrPlayMeshPlayerName.c_str(), 
 			boxPos.x, boxPos.y, boxPos.z , 0,0,0, 0,0,0 );
+
 #else // FIX_ICE_HEATER_EVENT
 
 	#ifdef SERV_SERV_MINI_RANDOM_CUBE_REWARD
@@ -12264,13 +12796,19 @@ void CX2UIInventory::PlayGetAttractionItem()
 
 #endif // FIX_ICE_HEATER_EVENT
 
-		g_pKTDXApp->GetDGManager()->RemoveObjectChain(pMeshInst_MeltMachineStart);
-		if( NULL != m_pDLGOpenAttraction )
-		{
-			m_pDLGOpenAttraction->SetHasUnit(pMeshInst_MeltMachineStart);
+        if ( pMeshInst_MeltMachineStart != NULL )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            pMeshInst_MeltMachineStart->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+		    g_pKTDXApp->GetDGManager()->RemoveObjectChain(pMeshInst_MeltMachineStart);
+		    if( NULL != m_pDLGOpenAttraction )
+		    {
+			    m_pDLGOpenAttraction->SetHasUnit(pMeshInst_MeltMachineStart);
 			
-		}
-		m_hMeshInstMeltMachineStart = pMeshInst_MeltMachineStart->GetHandle();
+		    }
+		    m_hMeshInstMeltMachineStart = pMeshInst_MeltMachineStart->GetHandle();
+        }
 
 #ifdef FIX_ICE_HEATER_EVENT
 		/// 가열기 재생 사운드 설정
@@ -12299,7 +12837,7 @@ void CX2UIInventory::PlayGetAttractionItem()
 		// 		}
 		// 		else
 		// 		{
-		// 			m_hSeqKeyTrace = INVALID_PARTICLE_HANDLE;
+		// 			m_hSeqKeyTrace = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		// 		}
 
 	}
@@ -12319,7 +12857,7 @@ void CX2UIInventory::PlayGetAttractionItemGold()
 		D3DXVECTOR3 boxPos = m_pDLGOpenAttraction->GetDummyPos( 0 );
 		if( m_hMeshInstMeltMachine != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 			if( NULL != m_pDLGOpenAttraction )
 			{
 				m_pDLGOpenAttraction->SetHasUnit( NULL );
@@ -12327,13 +12865,19 @@ void CX2UIInventory::PlayGetAttractionItemGold()
 		}
 
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst_MeltMachineStart = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( NULL,  L"GoldFireMachineStart", boxPos.x, boxPos.y, boxPos.z , 0,0,0, 0,0,0 );
-		g_pKTDXApp->GetDGManager()->RemoveObjectChain(pMeshInst_MeltMachineStart);
-		if( NULL != m_pDLGOpenAttraction )
-		{
-			m_pDLGOpenAttraction->SetHasUnit(pMeshInst_MeltMachineStart);
+        if ( pMeshInst_MeltMachineStart != NULL )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            pMeshInst_MeltMachineStart->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+		    g_pKTDXApp->GetDGManager()->RemoveObjectChain(pMeshInst_MeltMachineStart);
+		    if( NULL != m_pDLGOpenAttraction )
+		    {
+			    m_pDLGOpenAttraction->SetHasUnit(pMeshInst_MeltMachineStart);
 
-		}
-		m_hMeshInstMeltMachineStart = pMeshInst_MeltMachineStart->GetHandle();
+		    }
+		    m_hMeshInstMeltMachineStart = pMeshInst_MeltMachineStart->GetHandle();
+        }
 
 		g_pKTDXApp->GetDeviceManager()->PlaySound( L"Fire_Machine_Start.ogg", false, false );
 
@@ -12346,7 +12890,7 @@ void CX2UIInventory::PlayGetAttractionItemGold()
 		// 		}
 		// 		else
 		// 		{
-		// 			m_hSeqKeyTrace = INVALID_PARTICLE_HANDLE;
+		// 			m_hSeqKeyTrace = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		// 		}
 
 	}
@@ -12356,13 +12900,12 @@ void CX2UIInventory::PlayGetAttractionItemGold()
 bool CX2UIInventory::Handler_EGS_ENCHANT_ATTACH_ITEM_REQ( UidType CouponItemUID, UidType TargetItemUID )
 {
 	// 일단 아이템 있는지 다시 확인해주고
-	CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( CouponItemUID );
-	CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( TargetItemUID );
+	CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( CouponItemUID );
+	CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( TargetItemUID );
 
 	// 사용가능한지도 확인한다
 	if ( pCouponItem == NULL || pTargetItem == NULL ||
-		pCouponItem->GetItemTemplet() == NULL || 
-        pTargetItem->GetItemData() == NULL )
+		pCouponItem->GetItemTemplet() == NULL )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_833 ), g_pMain->GetNowState() );
 		return false;
@@ -12387,7 +12930,7 @@ bool CX2UIInventory::Handler_EGS_ENCHANT_ATTACH_ITEM_REQ( UidType CouponItemUID,
 
 	if( IsEnchantCouponUseable( 	
 		pCouponItem->GetItemTemplet()->GetItemID(), 
-		pTargetItem->GetItemData()->m_EnchantLevel ) )
+		pTargetItem->GetItemData().m_EnchantLevel ) )
 	
 	{
 		KEGS_ENCHANT_ATTACH_ITEM_REQ kEGS_ATTACH_ITEM_REQ;
@@ -12417,7 +12960,7 @@ bool CX2UIInventory::Handler_EGS_ENCHANT_ATTACH_ITEM_ACK( HWND hWnd, UINT uMsg, 
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
 			UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_835 ), g_pMain->GetNowState() );
@@ -12435,13 +12978,12 @@ bool CX2UIInventory::Handler_EGS_ENCHANT_ATTACH_ITEM_ACK( HWND hWnd, UINT uMsg, 
 bool CX2UIInventory::Handler_EGS_ATTRIB_ATTACH_ITEM_REQ( UidType CouponItemUID, UidType TargetItemUID )
 {
 	// 일단 아이템 있는지 다시 확인해주고
-	CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( CouponItemUID );
-	CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( TargetItemUID );
+	CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( CouponItemUID );
+	CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( TargetItemUID );
 
 	// 사용가능한지도 확인한다
 	if ( pCouponItem == NULL || pTargetItem == NULL ||
-		pCouponItem->GetItemTemplet() == NULL || 
-        pTargetItem->GetItemData() == NULL )
+		pCouponItem->GetItemTemplet() == NULL )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_833 ), g_pMain->GetNowState() );
 		return false;
@@ -12468,7 +13010,7 @@ bool CX2UIInventory::Handler_EGS_ATTRIB_ATTACH_ITEM_ACK( HWND hWnd, UINT uMsg, W
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
 			UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_835 ), g_pMain->GetNowState() );
@@ -12519,7 +13061,6 @@ bool CX2UIInventory::IsEnchantCouponUseable(int CouponItemID, int TargetEnchantL
 	}
 
 	//{{ kimhc // 2010.6.7 // 거래가 불가능한 강화권 추가
-#ifdef	NO_TRADE_ATTACH_ITEM
 	if ( CouponLevel == 0 )
 	{
 		for ( UINT i = 0; i < ENCHANT_COUPON_ITEM_TO_NOT_TRADE_ID.size(); i++ )
@@ -12531,7 +13072,6 @@ bool CX2UIInventory::IsEnchantCouponUseable(int CouponItemID, int TargetEnchantL
 			}
 		}
 	}
-#endif	NO_TRADE_ATTACH_ITEM
 
 #ifdef ADDED_ENCHANT_COUPON_HAVE_LEVEL_LIMIT						// 김종훈 / 13-07-03 / 레벨 제한을 가진 강화의 부적
 	if ( CouponLevel == 0 )
@@ -12626,14 +13166,7 @@ void CX2UIInventory::UpdateOpenTreeDayItemAck()
 			{
 				// 첫 번째 아이템
 				pStatic = (CKTDGUIStatic*) m_pDLGAttractionResult->GetControl( L"Static_Item" );
-#ifdef ELLIPSE_GLOBAL
-				// [NOTE] 결과창에 아이탬 이름이 다이얼로그를 넘어가는 경우가 있어서 말줄임(...) 적용
-				bool bEllipse = false;
-				wstring wstrItemName = CWordLineHandler::CutStringWithEllipse(pItemTemplet->GetFullName_(), 290, pStatic->GetString(0)->fontIndex, 1, bEllipse);
-				const wchar_t* pwszitemName = wstrItemName.c_str();
-#else //ELLIPSE_GLOBAL
-				const wchar_t* pwszitemName = pItemTemplet->GetFullName_();
-#endif //ELLIPSE_GLOBAL
+                const wchar_t* pwszitemName = pItemTemplet->GetFullName_();
 
 				if( resultNum == 1)
 				{
@@ -12693,7 +13226,6 @@ bool CX2UIInventory::IsAprilEventRandomItem( int ItemID )
 #endif
 
 #ifdef SERV_TREASURE_BOX_ITEM			// 트레져 박스 추가
-
 void CX2UIInventory::UpdateOpenTreasureBoxItemAck()
 {
 	m_eRandomItemEventType = RIOET_NONE;
@@ -12740,14 +13272,7 @@ void CX2UIInventory::UpdateOpenTreasureBoxItemAck()
 				// 첫 번째 아이템
 				wstring itemName = L"";
 				pStatic = (CKTDGUIStatic*) m_pDLGAttractionResult->GetControl( L"Static_Item" );
-#ifdef ELLIPSE_GLOBAL
-				// [NOTE] 결과창에 아이탬 이름이 다이얼로그를 넘어가는 경우가 있어서 말줄임(...) 적용
-				bool bEllipse = false;
-				wstring wstrItemName = CWordLineHandler::CutStringWithEllipse(pItemTemplet->GetFullName_(), 290, pStatic->GetString(0)->fontIndex, 1, bEllipse);
-				itemName = wstrItemName.c_str();
-#else //ELLIPSE_GLOBAL
 				itemName = pItemTemplet->GetFullName_();
-#endif //ELLIPSE_GLOBAL
 
 				if( resultNum == 1)
 				{
@@ -12775,13 +13300,13 @@ void CX2UIInventory::UpdateOpenTreasureBoxItemAck()
 			{
 				pStatic->GetPicture(0)->SetTex( L"HQ_Shop_Ui_Noimage.dds" );
 			}
-
 		}
 	}
 
 	UpdateInventorySlotList( m_TempOpenRandomItemAck.m_vecKInventorySlotInfo );
 
 }
+
 bool CX2UIInventory::IsTreasureBoxRandomItem( int ItemID )
 {
 	switch(ItemID)
@@ -12793,6 +13318,9 @@ bool CX2UIInventory::IsTreasureBoxRandomItem( int ItemID )
 	case 70000069:		// 트레저박스 (이브) ItemID
 	case 70001800:		// 트레저박스 (라셰) ItemID
 #ifdef SERV_TREASURE_BOX_EVENT
+	case 67006709:		// 트레저박스 (엘리시스) ItemID
+	case 67006710:		// 트레저박스 (엘리시스) ItemID
+	case 70006020:		// 트레저박스 (아라) ItemID
 	case 70005650:
 	case 67004670:
 	case 250000260:
@@ -12809,6 +13337,8 @@ bool CX2UIInventory::IsTreasureBoxRandomItem( int ItemID )
 	case 67005039:		// 골드 트래져 박스(이브):TYPE2
 	case 67005040:		// 골드 트래져 박스(라셰):TYPE2
 	case 67005380:		// 유카타 트레져 박스(청)
+	case 70007190:		// 아라 런칭기념 트레저 박스
+	case 67006285:		// 달나라에서 가져온 트레져 박스
 #endif SERV_TREASURE_BOX_EVENT
 #ifdef TREASURE_BOX_ITEM_THIN
 	case 67004400:
@@ -12823,7 +13353,6 @@ bool CX2UIInventory::IsTreasureBoxRandomItem( int ItemID )
 	}
 	return false;
 }
-
 #endif SERV_TREASURE_BOX_ITEM			// 트레져 박스 추가
 
 // kimhc // 2009-08-12 // 몬스터 카드 셋트인지?
@@ -12965,6 +13494,7 @@ void CX2UIInventory::UpdateUIButton()
 	if( m_bShow == false || m_pDLGUIInventory == NULL )
 		return;
 
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환			/// 이제 개인 상점 버튼 열 일이 없다.
 	//{{ kimhc // 실시간 엘소드 중 던전내에서 아이템 소켓, 상점 개설 버튼 비활성화
 	// 상점을 못 여는 상황이면
 	CKTDGUIButton* pShopButton		= static_cast< CKTDGUIButton* >( m_pDLGUIInventory->GetControl( L"shop_open" ) );
@@ -12984,6 +13514,7 @@ void CX2UIInventory::UpdateUIButton()
 	{
 		pShopButton->SetShowEnable(true, true);
 	}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	
 
 #ifdef SERV_SKILL_NOTE
@@ -13011,11 +13542,21 @@ void CX2UIInventory::UpdateUIButton()
 #ifdef SERV_SOCKET_NEW
 			}
 #endif SERV_SOCKET_NEW
+#ifdef REFORM_SKILL_NOTE_UI // 기술의 노트 버튼 제거하지 않고 비활성화로 변경
+			SetEnableBuySkillNote( false );
+#endif // REFORM_SKILL_NOTE_UI
 		}
 		else
 		{
+#ifdef REFORM_SKILL_NOTE_UI // 기술의 노트 버튼 제거하지 않고 비활성화로 변경
+			HideSkillNote(false);
+			SetEnableSkillNote(false);
+			SetEnableBuySkillNote( true );
+#else
 			// 기술의 노트 사용불가
 			HideSkillNote(true);
+#endif // REFORM_SKILL_NOTE_UI
+
 		}
 	}
 #else
@@ -13083,6 +13624,9 @@ void CX2UIInventory::UpdateUIButton()
 #ifdef SERV_PET_SYSTEM
 			SetEnableFeedPet( false );
 #endif
+#ifdef REFORM_SKILL_NOTE_UI // 기술의 노트 버튼 제거하지 않고 비활성화로 변경
+			SetEnableBuySkillNote( false );
+#endif // REFORM_SKILL_NOTE_UI 
 		}
 #ifdef SERV_SOCKET_NEW
 		// oasis907 : 김상윤 [2010.4.6] // 
@@ -13107,7 +13651,20 @@ void CX2UIInventory::UpdateUIButton()
 			pTrashButtton->SetShowEnable(true, true);
 
 #ifdef SERV_SKILL_NOTE
+	#ifdef REFORM_SKILL_NOTE_UI // 기술의 노트 버튼 제거하지 않고 비활성화로 변경
+			if( g_pData != NULL && 
+				g_pData->GetMyUser() != NULL && 
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
+			{
+				if( g_pData->GetMyUser()->GetSelectUnit()->GetMaxSkillNoteSlot() > 0 )
+				{
+					SetEnableSkillNote(true);
+					SetEnableBuySkillNote( false );
+				}
+			}
+	#else
 			SetEnableSkillNote(true);
+	#endif // REFORM_SKILL_NOTE_UI
 #endif
 #ifdef SERV_PET_SYSTEM
 			SetEnableFeedPet( true );
@@ -13185,7 +13742,6 @@ void CX2UIInventory::UpdateUIButton()
 	}
 
 #ifdef SERV_SYNTHESIS_AVATAR // SERV_MULTI_RESOLVE 인벤 정렬 버튼
-
 	CKTDGUIButton* pPCButtton	= static_cast< CKTDGUIButton* >( m_pDLGUIInventory->GetControl( L"Inventory_Menu_PC" ) );	
 	CKTDGUIButton* pSortButtton	= static_cast< CKTDGUIButton* >( m_pDLGUIInventory->GetControl( L"Button_SortItem" ) );	
 	if(pPCButtton != NULL)
@@ -13217,7 +13773,6 @@ void CX2UIInventory::UpdateUIButton()
 			pSortButtton->SetShowEnable(true, true);
 		}
 	}
-
 #endif SERV_SYNTHESIS_AVATAR // SERV_MULTI_RESOLVE
 
 #ifdef ADD_PET_INVENTORY_BUTTON
@@ -13226,6 +13781,53 @@ void CX2UIInventory::UpdateUIButton()
 
 #endif
 
+#ifdef GOOD_ELSWORD //JHKang
+	CKTDGUIButton* pCashShopButton = NULL;
+	CKTDGUIButton* pEDButton = NULL;
+
+	pCashShopButton = reinterpret_cast< CKTDGUIButton* >( m_pDLGUIInventory->GetControl( L"g_pButton_Upgrade_Inven" ) );
+
+	if ( pCashShopButton == NULL )
+	{
+		ASSERT( !"Cashshop Button error" );
+		return;
+	}
+#ifndef NO_GOOD_ELSWORD_INT
+	pEDButton = reinterpret_cast< CKTDGUIButton* >( m_pDLGUIInventory->GetControl( L"g_pButton_Upgrade_Inven_ED" ) );
+
+	if ( pEDButton == NULL )
+	{
+		ASSERT( !"ED Button error" );
+		return;
+	}
+#endif NO_GOOD_ELSWORD_INT
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+
+
+	if ( kInventory.IsAbleToExpandSlot() == true && 
+		 ( g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP || g_pMain->GetNowStateID() == CX2Main::XS_BATTLE_FIELD ) )
+	{
+		pCashShopButton->SetShowEnable( true, true );
+#ifndef NO_GOOD_ELSWORD_INT
+		pEDButton->SetShowEnable( true, true );
+#endif NO_GOOD_ELSWORD_INT
+		pCashShopButton->SetGuideDesc( GET_STRING( STR_ID_28665 ) );
+		pCashShopButton->SetGuideDescOffsetPos( D3DXVECTOR2( 100, 0 ) );
+#ifndef NO_GOOD_ELSWORD_INT
+		pEDButton->SetGuideDesc( GET_STRING( STR_ID_28666 ) );
+		pEDButton->SetGuideDescOffsetPos( D3DXVECTOR2( 100, 0 ) );
+#endif NO_GOOD_ELSWORD_INT
+	}
+	else
+	{
+		pCashShopButton->SetShowEnable( false, false );
+#ifndef NO_GOOD_ELSWORD_INT
+		pEDButton->SetShowEnable( false, false );
+#endif NO_GOOD_ELSWORD_INT
+	}
+
+#endif //GOOD_ELSWORD
+
 
 	// 운영자 기능들
 	if( CX2User::XUAL_DEV == g_pData->GetMyUser()->GetAuthLevel() )
@@ -13233,7 +13835,6 @@ void CX2UIInventory::UpdateUIButton()
 		CKTDGUICheckBox* pCheckBox = (CKTDGUICheckBox*)m_pDLGUIInventory->GetControl( L"CheckBox_Auth" );
 		pCheckBox->SetChecked(false);
 		pCheckBox->SetShow(true);
-
 		CKTDGUIButton* pButton_AllSell = (CKTDGUIButton*)m_pDLGUIInventory->GetControl( L"Admin_SellAll" );
 		pButton_AllSell->SetShow(true);
 
@@ -13251,7 +13852,6 @@ void CX2UIInventory::UpdateUIButton()
 
 		CKTDGUIButton* pButton_AllSell = (CKTDGUIButton*)m_pDLGUIInventory->GetControl( L"Admin_SellAll" );
 		pButton_AllSell->SetShow(true);
-
 	}
 #endif // CUBE_AUTO_OPEN_AND_ALL_ITEM_DELETE_UI_FOR_GM
 	else
@@ -13262,7 +13862,6 @@ void CX2UIInventory::UpdateUIButton()
 		pCheckBox->SetEnable(false);
 		CKTDGUIButton* pButton_AllSell = (CKTDGUIButton*)m_pDLGUIInventory->GetControl( L"Admin_SellAll" );
 		pButton_AllSell->SetShowEnable(false, false);
-
 #ifndef CUBE_AUTO_OPEN_AND_ALL_ITEM_DELETE_UI_FOR_GM
 		CKTDGUIButton* pButton_Delete = (CKTDGUIButton*)m_pDLGUIInventory->GetControl( L"Admin_Delete" );
 		pButton_Delete->SetShowEnable(false, false);
@@ -13356,7 +13955,7 @@ void CX2UIInventory::InitWarpList()
 	pControl->SetShow(false);
 	pControl = (CKTDGUIStatic*)m_pDLGWarpDestination->GetControl(L"Village_1005");	//VMI_BATTLE_FIELD_HAMEL_REST_00
 	pControl->SetShow(false);
-#ifdef VILLAGE_SANDER
+#ifdef VILLAGE_SANDER	
 #ifndef NO_SANDER_VILLIAGE
 	pControl = (CKTDGUIStatic*)m_pDLGWarpDestination->GetControl(L"Village_20007");	//VMI_SANDER
 	pControl->SetShow(false);
@@ -13402,7 +14001,7 @@ void CX2UIInventory::CreateWarpDest()
 
 			// 엘더지역
 			const int iMyUnitLevel = g_pData->GetSelectUnitLevel();
-			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_VELDER_EAST );
+			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_ELDER );
 			if( pLocalMapTemplet != NULL )
 			{
 				if( iMyUnitLevel >= pLocalMapTemplet->m_RequireUnitLevel )
@@ -13422,7 +14021,7 @@ void CX2UIInventory::CreateWarpDest()
 			}
 
 			// 베스마지역
-			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_VELDER_SOUTH );
+			pLocalMapTemplet = g_pData->GetLocationManager()->GetLocalMapTemplet( CX2LocationManager::LMI_BESMA );
 			if( pLocalMapTemplet != NULL )
 			{
 				if( iMyUnitLevel >= pLocalMapTemplet->m_RequireUnitLevel )
@@ -13611,16 +14210,6 @@ void CX2UIInventory::InitSecondJobList()
 {
 	CKTDGUIStatic *pControl = NULL;
 
-// 	for( int i == static_cast<int>(CXSLUnit::UC_ELSWORD_LORD_KNIGHT); 
-// #ifdef SERV_ARA_CHANGE_CLASS_SECOND
-// 		i <= static_cast<int>(CXSLUnit::UC_ARA_YAMA_RAJA);
-// #else
-// 		i <= static_cast<int>(CXSLUnit::UC_ARA_SAKRA_DEVANAM);
-// #endif //SERV_ARA_CHANGE_CLASS_SECOND
-// 		++i )
-// 	{
-
-
 	pControl = (CKTDGUIStatic*)m_pDLGUSCJob->GetControl(L"Class_100");	//VMI_RUBEN
 	pControl->SetShow(false);
 	pControl = (CKTDGUIStatic*)m_pDLGUSCJob->GetControl(L"Class_101");	//VMI_ELDER
@@ -13667,8 +14256,10 @@ void CX2UIInventory::InitSecondJobList()
 	pControl = (CKTDGUIStatic*)m_pDLGUSCJob->GetControl(L"Class_119");	//VMI_BATTLE_FIELD_BESMA_REST_00
 	pControl->SetShow(false);
 
-
-
+	pControl = (CKTDGUIStatic*)m_pDLGUSCJob->GetControl(L"Class_120");
+	pControl->SetShow(false);
+	pControl = (CKTDGUIStatic*)m_pDLGUSCJob->GetControl(L"Class_121");
+	pControl->SetShow(false);
 }
 
 void CX2UIInventory::CreateSecondJobDest()
@@ -13688,8 +14279,9 @@ void CX2UIInventory::CreateSecondJobDest()
 		}
 		
 		if( g_pKTDXApp != NULL )
+		{
 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGUSCJob );
-
+		}
 	}
 
 	if( m_pDLGUSCJob != NULL )
@@ -13841,9 +14433,15 @@ void CX2UIInventory::CreateSecondJobDest()
 
 			case CX2Unit::UT_ELESIS:
 				{
-
+					pControl = (CKTDGUIStatic*)m_pDLGUSCJob->GetControl(L"Class_120");
+					pControl->SetShow(false);
+					if( AddSecondJobList( pControlList, row, CX2Unit::UC_ELESIS_GRAND_MASTER ) )
+						++row;
+					pControl = (CKTDGUIStatic*)m_pDLGUSCJob->GetControl(L"Class_121");
+					pControl->SetShow(false);
+					if( AddSecondJobList( pControlList, row, CX2Unit::UC_ELESIS_BLAZING_HEART ) )
+						++row;
 				} break;
-			
 			}
 			
 			pControlList->SetIndex(0, 0);				
@@ -13854,17 +14452,22 @@ void CX2UIInventory::CreateSecondJobDest()
 void CX2UIInventory::SetShowSecondJobDest(bool val)
 {
 	if( m_pDLGUSCJob != NULL )
+	{
 		m_pDLGUSCJob->SetShowEnable(val, val);
+	}
 }
 
 bool CX2UIInventory::GetShowSecondJobDest()
 {
 	if( m_pDLGUSCJob != NULL )
+	{
 		return m_pDLGUSCJob->GetShow();
+	}
 
 	return false;
 }
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
+
 bool CX2UIInventory::CheckRadioButtonBySortType( CX2Inventory::SORT_TYPE eType )
 {
 	CKTDGUIRadioButton* pEquipButton = NULL;
@@ -13948,6 +14551,19 @@ void CX2UIInventory::FeedPet()
 
 	if( g_pData->GetPetManager() != NULL )
 	{
+#ifdef SERV_PET_SYSTEM_EX1
+		CX2PET *pPet = g_pData->GetPetManager()->GetMyPet();
+		if( NULL != pPet && true == pPet->GetPetInfo().m_bAlwaysMaxSatiety )
+		{
+			CX2PetManager::PetTemplet* pTemplet = g_pData->GetPetManager()->GetPetTemplet(CX2PetManager::PUI_PET_MERCENARY_PPORU_EVENT_INT);
+			if( NULL != pTemplet )
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ),  GET_STRING( STR_ID_26365 ), g_pMain->GetNowState() );			
+			}
+			return;
+		}
+#endif //SERV_PET_SYSTEM_EX1
+
 		CX2State*	pState	= static_cast< CX2State* >( g_pMain->GetNowState() );
 		CX2Cursor*	pCursor = pState->GetCursor();
 
@@ -14033,7 +14649,7 @@ void CX2UIInventory::SetEnableSkillNote(bool bVal)
 {
 	if( m_pDLGUIInventory == NULL )
 		return;
-
+	
 	bool bShow = true;
 	CKTDGUIStatic *pStatic = (CKTDGUIStatic*)m_pDLGUIInventory->GetControl(L"Noactive");
 	if( pStatic != NULL )
@@ -14084,6 +14700,19 @@ bool CX2UIInventory::IsPetInventoryExist()
 	{
 		return false;
 	}
+#ifdef SERV_EVENT_PET_INVENTORY
+///여기서 펫 ID를 확인 한다. 그래서 펫 ID가 이벤트 ID이고 이벤트 먹이를 먹지 않았다면 인벤토리를 활성화 시켜주지 않는다.
+///이벤트 먹이를 먹이는 순간 부터 이 펫은 영구 펫이 되기 때문에 여기서 체크를 계속 해줘야 겠네.
+	bool EventFoodPetID = g_pData->GetPetManager()->GetMyPet()->GetPetInfo().m_bIsEventPetID;
+	if( EventFoodPetID )
+	{
+		bool EventFoodEat = g_pData->GetPetManager()->GetMyPet()->GetPetInfo().m_bEventFoodEat;
+		if( EventFoodEat == false ) //이벤트 아이템을 먹지 않았다.
+		{
+			return false;
+		}
+	}
+#endif SERV_EVENT_PET_INVENTORY
 	return true;
 }
 
@@ -14167,8 +14796,8 @@ void CX2UIInventory::InitItemObtainResult(const WCHAR* pFileName, std::map< int,
 			wstring wstrFullName = CWordLineHandler::GetStrByLineBreakInX2Main( pItemTemplet->GetFullName_(), 145, XUF_DODUM_13_SEMIBOLD );
 #else //CLIENT_GLOBAL_LINEBREAK
 			wstring wstrFullName = g_pMain->GetStrByLienBreak( 
-				pItemTemplet->GetFullName_(), 
-				145, XUF_DODUM_13_SEMIBOLD );
+                pItemTemplet->GetFullName_(), 
+                145, XUF_DODUM_13_SEMIBOLD );
 #endif //CLIENT_GLOBAL_LINEBREAK
 			if ( wstrFullName.find( L"\n") != -1 )
 				bCheckTwoLine = true;
@@ -14237,7 +14866,7 @@ void CX2UIInventory::InitItemResolveResult(const WCHAR* pFileName, std::map< int
 		{
 			pStaticNum->GetString(slotNum)->msg = L"";
 		}
-#ifdef ELLIPSE_GLOBAL
+#ifdef INTEGRATE_TOOLTIP
 		pStaticToolTip[slotNum] = 
 			static_cast< CKTDGUIButton* >( m_pDLGResolveItemResult->GetControl( GET_REPLACED_STRING( ( STR_ID_3738, "Li", std::wstring( L"DungeonDescriptionToolTip" ), slotNum + 1 ) ) ) );
 			
@@ -14245,7 +14874,7 @@ void CX2UIInventory::InitItemResolveResult(const WCHAR* pFileName, std::map< int
 		{
 			pStaticToolTip[slotNum]->SetShowEnable( false, false );
 		}
-#endif //ELLIPSE_GLOBAL
+#endif //INTEGRATE_TOOLTIP
 	}
 
 	//획득한 아이템으로 아이템 슬롯 설정
@@ -14269,7 +14898,7 @@ void CX2UIInventory::InitItemResolveResult(const WCHAR* pFileName, std::map< int
 
 			if ( pStaticName != NULL && pStaticName->GetString(index) != NULL )
 			{
-#ifdef ELLIPSE_GLOBAL			
+#ifdef INTEGRATE_TOOLTIP			
 				bool bEllipse = false;
 				wstring wstrName = CWordLineHandler::CutStringWithEllipse(pItemTemplet->GetFullName_(), 140, XUF_DODUM_13_SEMIBOLD, 1, bEllipse);
 				pStaticName->GetString(index)->msg = wstrName;
@@ -14285,9 +14914,9 @@ void CX2UIInventory::InitItemResolveResult(const WCHAR* pFileName, std::map< int
 					pStaticToolTip[index]->SetShowEnable(false, false);
 				}
                 pStaticName->GetString(index)->msg = wstrName;
-#else //ELLIPSE_GLOBAL
-				pStaticName->GetString(index)->msg = pItemTemplet->GetFullName_();
-#endif //ELLIPSE_GLOBAL			
+#else //INTEGRATE_TOOLTIP
+                pStaticName->GetString(index)->msg = pItemTemplet->GetFullName_();
+#endif //INTEGRATE_TOOLTIP			
 			}
 			if ( pStaticNum != NULL && pStaticNum->GetString(index) != NULL )
 			{
@@ -14353,6 +14982,16 @@ void CX2UIInventory::UseWarpItem( CX2SlotItem* pItemSlot_, bool bIsEdConsumption
 	case CX2Main::XS_VILLAGE_MAP:
 	case CX2Main::XS_BATTLE_FIELD:
 		{
+#ifdef FIELD_BOSS_RAID // 김태환
+			/// 보스 레이드 필드 안에서는 사용할 수 없다.
+			if ( NULL != g_pData && g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+			{
+				m_WarpItem = 0;
+				g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_4495 ),g_pMain->GetNowState() );
+				break;
+			}
+#endif // FIELD_BOSS_RAID
+
 			m_WarpItem = pItemSlot_->GetItemUID();
 			m_bIsEdConsumptionWarp = bIsEdConsumption_;
 			CreateWarpDest();
@@ -14381,8 +15020,7 @@ void CX2UIInventory::UseWarpPopup(bool bIsEdConsumption_)
 			int iWarpDistance = abs(m_iSelectedWarpDestIndex - m_iCurrentVillageWarpIndex);
 			int iBasePrice = 6000;
 			float fDecreaseFactor = 0.6f;
-			if( NULL !=  g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData())
+			if( NULL !=  g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit())
 			{				
 				float fLevel = static_cast<float>(g_pData->GetSelectUnitLevel());
 				if( fLevel > 0 )
@@ -14420,6 +15058,7 @@ void CX2UIInventory::UseUSCJobItem( CX2SlotItem* pItemSlot_ )
 		} break;
 	}
 }
+
 void CX2UIInventory::UseUSCJobPopup()
 {
 	//전직 작업 한다. 이 클래스로 전직 하시겠습니까? 물어봅니다.
@@ -14456,64 +15095,45 @@ void CX2UIInventory::SetShowInventoryPageUI( int iMaxPageNum /*= 0*/ )
 	CKTDGUIRadioButton* pRadio_Page1	= static_cast<CKTDGUIRadioButton*>( m_pDLGUIInventory->GetControl( L"Inventory_page1" ) );	/// 페이지 1
 	CKTDGUIRadioButton* pRadio_Page2	= static_cast<CKTDGUIRadioButton*>( m_pDLGUIInventory->GetControl( L"Inventory_page2" ) );	/// 페이지 2
 	CKTDGUIRadioButton* pRadio_Page3	= static_cast<CKTDGUIRadioButton*>( m_pDLGUIInventory->GetControl( L"Inventory_page3" ) );	/// 페이지 3
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
 	CKTDGUIRadioButton* pRadio_Page4	= static_cast<CKTDGUIRadioButton*>( m_pDLGUIInventory->GetControl( L"Inventory_page4" ) );	/// 페이지 4
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
 
-	if( NULL != pRadio_Page1 && NULL != pRadio_Page2 && NULL != pRadio_Page3 
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-		&& NULL != pRadio_Page4
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-		)
+	if( NULL != pRadio_Page1 && 
+		NULL != pRadio_Page2 && 
+		NULL != pRadio_Page3 && 
+		NULL != pRadio_Page4 )
 	{
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-		if( 4 <= iMaxPageNum )		/// 페이지 수 4개 표시
+
+		pRadio_Page1->SetShow( true );
+		pRadio_Page2->SetShow( true );
+		pRadio_Page3->SetShow( true );
+		pRadio_Page4->SetShow( true );
+
+		switch( iMaxPageNum )
 		{
-			pRadio_Page1->SetShow( true );
-			pRadio_Page2->SetShow( true );
-			pRadio_Page3->SetShow( true );
-			pRadio_Page4->SetShow( true );
-		}
-		else
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-		if( 3 <= iMaxPageNum )		/// 페이지 수 3개 표시
-		{
-			pRadio_Page1->SetShow( true );
-			pRadio_Page2->SetShow( true );
-			pRadio_Page3->SetShow( true );
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-			pRadio_Page4->SetShow( false );
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-		}
-		else if( 2 <= iMaxPageNum )	/// 페이지 수 2개 표시
-		{
-			pRadio_Page1->SetShow( true );
-			pRadio_Page2->SetShow( true );
-			pRadio_Page3->SetShow( false );
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-			pRadio_Page4->SetShow( false );
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-		}
-		else						/// 페이지 수 1개 -> 표시 않함
-		{
-			pRadio_Page1->SetShow( false );
-			pRadio_Page2->SetShow( false );
-			pRadio_Page3->SetShow( false );
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-			pRadio_Page4->SetShow( false );
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
+		case 1:
+			{
+				pRadio_Page1->SetShow( false );
+				pRadio_Page2->SetShow( false );
+			} 
+		case 2:
+			{
+				pRadio_Page3->SetShow( false );
+			} 
+		case 3: 
+			{
+				pRadio_Page4->SetShow( false );
+			} break;
+		default: break;
 		}
 	}
 }
 
 bool CX2UIInventory::UpdatePageUI( int iPage /*= 1*/ )
 {
-	CKTDGUIRadioButton* pButtonPage1 = (CKTDGUIRadioButton*) m_pDLGUIInventory->GetRadioButton_LUA( "Inventory_page1" );
-	CKTDGUIRadioButton* pButtonPage2 = (CKTDGUIRadioButton*) m_pDLGUIInventory->GetRadioButton_LUA( "Inventory_page2" );
-	CKTDGUIRadioButton* pButtonPage3 = (CKTDGUIRadioButton*) m_pDLGUIInventory->GetRadioButton_LUA( "Inventory_page3" );
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
-	CKTDGUIRadioButton* pButtonPage4 = (CKTDGUIRadioButton*) m_pDLGUIInventory->GetRadioButton_LUA( "Inventory_page4" );
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
+	CKTDGUIRadioButton* pButtonPage1 = static_cast<CKTDGUIRadioButton*>(m_pDLGUIInventory->GetRadioButton_LUA( "Inventory_page1" ));
+	CKTDGUIRadioButton* pButtonPage2 = static_cast<CKTDGUIRadioButton*>(m_pDLGUIInventory->GetRadioButton_LUA( "Inventory_page2" ));
+	CKTDGUIRadioButton* pButtonPage3 = static_cast<CKTDGUIRadioButton*>(m_pDLGUIInventory->GetRadioButton_LUA( "Inventory_page3" ));
+	CKTDGUIRadioButton* pButtonPage4 = static_cast<CKTDGUIRadioButton*>(m_pDLGUIInventory->GetRadioButton_LUA( "Inventory_page4" ));
 
 	switch( iPage )
 	{
@@ -14526,11 +15146,9 @@ bool CX2UIInventory::UpdatePageUI( int iPage /*= 1*/ )
 	case 3:
 		if( pButtonPage3 != NULL ) pButtonPage3->SetChecked( true );
 		break;
-#ifdef SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
 	case 4:
 		if( pButtonPage4 != NULL ) pButtonPage4->SetChecked( true );
 		break;
-#endif // SERV_REFORM_INVENTORY_AVATAR_CHARTER_FOUR
 	}
 
 	return true;
@@ -14643,20 +15261,11 @@ void CX2UIInventory::OpenScriptFile( const WCHAR* szScriptFileName_ )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUIInventory", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szScriptFileName_ );
-
-	if( Info == NULL )
-	{
-		ASSERT( !"LoadDataFile doesn't work!" );
-		ErrorLogMsg( XEM_ERROR1, szScriptFileName_ );
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
+    if ( g_pKTDXApp->LoadLuaTinker( szScriptFileName_ ) == false )
+    {
 		ASSERT( !"DoMemory doesn't work!" );
 		ErrorLogMsg( XEM_ERROR2, szScriptFileName_ );
-	}
+    }
 }
 
 /** @function	: AddIceHeaterEventInfo_LUA
@@ -14665,62 +15274,64 @@ void CX2UIInventory::OpenScriptFile( const WCHAR* szScriptFileName_ )
 void CX2UIInventory::AddIceHeaterEventInfo_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	IceHeaterEventData* pIceHeaterEventData = new IceHeaterEventData;
 
 	/// 디폴트 인자는 기본 가열기 정보로 설정
 	RANDOM_ITEM_OPEN_EVENT_TYPE eIceHeaterEnum = RIOET_NONE;			/// 가열기 아이디
 
-	LUA_GET_VALUE_ENUM( luaManager, L"ICE_HEATER_ID",					eIceHeaterEnum,	
+	LUA_GET_VALUE_ENUM( luaManager, "ICE_HEATER_ID",					eIceHeaterEnum,	
 						RANDOM_ITEM_OPEN_EVENT_TYPE,					RIOET_ICE_HEATER										);
 
 	/// 가열기 동작 전 이펙트			( UIMajorParticle.txt )
-	LUA_GET_VALUE(		luaManager, L"WAIT_UI_EFFECT_SET_NAME",			pIceHeaterEventData->m_wstrWaitUIEffectSetName,			L"EffectSet_Ice_Heater_Wait"	);
+	LUA_GET_VALUE(		luaManager, "WAIT_UI_EFFECT_SET_NAME",			pIceHeaterEventData->m_wstrWaitUIEffectSetName,			L"EffectSet_Ice_Heater_Wait"	);
 	/// 가열기 동작 이펙트				( UIEffectSet.lua )
-	LUA_GET_VALUE(		luaManager, L"PLAY_UI_EFFECT_SET_NAME",			pIceHeaterEventData->m_wstrPlayUIEffectSetName,			L"EffectSet_Ice_Heater_Start"	);
+	LUA_GET_VALUE(		luaManager, "PLAY_UI_EFFECT_SET_NAME",			pIceHeaterEventData->m_wstrPlayUIEffectSetName,			L"EffectSet_Ice_Heater_Start"	);
 
 	/// 사용할 대기용 가열기 매시 플레이어		( UIMajorXMeshPlayer.txt )
-	LUA_GET_VALUE(		luaManager, L"WAIT_MESH_PLAYER_NAME",			pIceHeaterEventData->m_wstrWaitMeshPlayerName,			L"FireMachineWait"				);
+	LUA_GET_VALUE(		luaManager, "WAIT_MESH_PLAYER_NAME",			pIceHeaterEventData->m_wstrWaitMeshPlayerName,			L"FireMachineWait"				);
 	/// 사용할 재생용 가열기 매시 플레이어		( UIMajorXMeshPlayer.txt )
-	LUA_GET_VALUE(		luaManager, L"PLAY_MESH_PLAYER_NAME",			pIceHeaterEventData->m_wstrPlayMeshPlayerName,			L"FireMachineStart"				);
+	LUA_GET_VALUE(		luaManager, "PLAY_MESH_PLAYER_NAME",			pIceHeaterEventData->m_wstrPlayMeshPlayerName,			L"FireMachineStart"				);
 
 	/// 가열기 다이얼로그에 표시될 가열기 이름 텍스처
 #ifdef UNIQUENESS_EU_ONLY
-	LUA_GET_VALUE(		luaManager, L"MAIN_DIALOG_TITLE_TEXTURE",		pIceHeaterEventData->m_wstrMainDialogTitleTexture,		L"DLG_UI_Title02_A.tga"			);
+	LUA_GET_VALUE(		luaManager, "MAIN_DIALOG_TITLE_TEXTURE",		pIceHeaterEventData->m_wstrMainDialogTitleTexture,		L"DLG_UI_Title02_A.tga"			);
 #else //UNIQUENESS_EU_ONLY
-	LUA_GET_VALUE(		luaManager, L"MAIN_DIALOG_TITLE_TEXTURE",		pIceHeaterEventData->m_wstrMainDialogTitleTexture,		L"DLG_UI_Title02.tga"			);
+	LUA_GET_VALUE(		luaManager, "MAIN_DIALOG_TITLE_TEXTURE",		pIceHeaterEventData->m_wstrMainDialogTitleTexture,		L"DLG_UI_Title02.tga"			);
 #endif 	//UNIQUENESS_EU_ONLY
 	/// 가열기 다이얼로그에 표시될 가열기 이름 텍스처 키
-	LUA_GET_VALUE(		luaManager, L"MAIN_DIALOG_TITLE_TEXTURE_KEY",	pIceHeaterEventData->m_wstrMainDialogTitleTextureKey,	L"heater_title"					);
+	LUA_GET_VALUE(		luaManager, "MAIN_DIALOG_TITLE_TEXTURE_KEY",	pIceHeaterEventData->m_wstrMainDialogTitleTextureKey,	L"heater_title"					);
 
 	/// 가열기 결과창 다이얼로그에 표시될 가열기 이름 텍스처
 #ifdef UNIQUENESS_EU_ONLY
-	LUA_GET_VALUE(		luaManager, L"RESULT_DIALOG_TITLE_TEXTURE",		pIceHeaterEventData->m_wstrResultDialogTitleTexture,	L"DLG_UI_Title02_A.tga"			);
+	LUA_GET_VALUE(		luaManager, "RESULT_DIALOG_TITLE_TEXTURE",		pIceHeaterEventData->m_wstrResultDialogTitleTexture,	L"DLG_UI_Title02_A.tga"			);
 #else //UNIQUENESS_EU_ONLY
-	LUA_GET_VALUE(		luaManager, L"RESULT_DIALOG_TITLE_TEXTURE",		pIceHeaterEventData->m_wstrResultDialogTitleTexture,	L"DLG_UI_Title02.tga"			);
+	LUA_GET_VALUE(		luaManager, "RESULT_DIALOG_TITLE_TEXTURE",		pIceHeaterEventData->m_wstrResultDialogTitleTexture,	L"DLG_UI_Title02.tga"			);
 #endif 	//UNIQUENESS_EU_ONLY
 	/// 가열기 결과창 다이얼로그에 표시될 가열기 이름 텍스처 키
-	LUA_GET_VALUE(		luaManager, L"RESULT_DIALOG_TITLE_TEXTURE_KEY",	pIceHeaterEventData->m_wstrResultDialogTitleTextureKey,	L"heater_title"					);
+	LUA_GET_VALUE(		luaManager, "RESULT_DIALOG_TITLE_TEXTURE_KEY",	pIceHeaterEventData->m_wstrResultDialogTitleTextureKey,	L"heater_title"					);
 
 	/// 가열기 다이얼로그에 표시될 느낌표 아이콘의 오프셋 X 위치
-	LUA_GET_VALUE(		luaManager, L"CAUTION_ICON_POSITION_X",			pIceHeaterEventData->m_fCautionIconOffSetPositionX,		-20.f							);
+	LUA_GET_VALUE(		luaManager, "CAUTION_ICON_POSITION_X",			pIceHeaterEventData->m_fCautionIconOffSetPositionX,		-20.f							);
 	/// 가열기 다이얼로그에 표시될 느낌표 아이콘의 오프셋 Y 위치
-	LUA_GET_VALUE(		luaManager, L"CAUTION_ICON_POSITION_Y",			pIceHeaterEventData->m_fCautionIconOffSetPositionY,		0.f								);
+	LUA_GET_VALUE(		luaManager, "CAUTION_ICON_POSITION_Y",			pIceHeaterEventData->m_fCautionIconOffSetPositionY,		0.f								);
 
 	/// 가열기 다이얼로그의 느낌표 아이콘 옆에 표시될 스트링의 오프셋 X 위치
-	LUA_GET_VALUE(		luaManager, L"CAUTION_STRING_POSITION_X",		pIceHeaterEventData->m_fCautionStringOffSetPositionX,	0.f								);
+	LUA_GET_VALUE(		luaManager, "CAUTION_STRING_POSITION_X",		pIceHeaterEventData->m_fCautionStringOffSetPositionX,	0.f								);
 	/// 가열기 다이얼로그의 느낌표 아이콘 옆에 표시될 스트링의 오프셋 Y 위치
-	LUA_GET_VALUE(		luaManager, L"CAUTION_STRING_POSITION_Y",		pIceHeaterEventData->m_fCautionStringOffSetPositionY,	0.f								);
+	LUA_GET_VALUE(		luaManager, "CAUTION_STRING_POSITION_Y",		pIceHeaterEventData->m_fCautionStringOffSetPositionY,	0.f								);
 
 	// 가열기 다이얼로그의 느낌표 아이콘 옆에 표시될 스트링
-	LUA_GET_VALUE(		luaManager, L"CAUTION_STRING_NUM",				pIceHeaterEventData->m_iCautionStringNum,				STR_ID_EMPTY					);
+	LUA_GET_VALUE(		luaManager, "CAUTION_STRING_NUM",				pIceHeaterEventData->m_iCautionStringNum,				STR_ID_EMPTY					);
 
 	/// 가열기 가동 재생음
-	LUA_GET_VALUE(		luaManager, L"ICE_HEATER_PLAY_SOUND",			pIceHeaterEventData->m_wstrIceHeaterPlaySound,			L"Fire_Machine_Start.ogg"		);
+	LUA_GET_VALUE(		luaManager, "ICE_HEATER_PLAY_SOUND",			pIceHeaterEventData->m_wstrIceHeaterPlaySound,			L"Fire_Machine_Start.ogg"		);
 
 	/// 재생 시간 ( 가열기 가동 ~ 종료까지 시간 )
-	LUA_GET_VALUE(		luaManager, L"PLAY_TIME",						pIceHeaterEventData->m_fPlayTime,						10.f							);
+	LUA_GET_VALUE(		luaManager, "PLAY_TIME",						pIceHeaterEventData->m_fPlayTime,						10.f							);
 
 	/// 위의 내용들을 삽입
 	m_mapIceHeaterEventData.insert( std::make_pair( eIceHeaterEnum, pIceHeaterEventData ) );
@@ -14766,11 +15377,10 @@ bool CX2UIInventory::Handler_EGS_RESTORE_ITEM_EVALUATE_REQ()
 {
 	if( NULL != g_pData &&
 		NULL != g_pData->GetMyUser() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+		NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		const CX2Item* pConsumeItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iConsumeItemUID );
-		const CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iTargetItemUID );
+		const CX2Item* pConsumeItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iConsumeItemUID );
+		const CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iTargetItemUID );
 
 		if ( pConsumeItem == NULL || pConsumeItem->GetItemTemplet() == NULL || 
 			pTargetItem == NULL || pTargetItem->GetItemTemplet() == NULL )
@@ -14818,10 +15428,9 @@ bool CX2UIInventory::Handler_EGS_RESTORE_ITEM_EVALUATE_ACK( HWND hWnd, UINT uMsg
 		{
 			if( NULL != g_pData && 
 				NULL != g_pData->GetMyUser() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
- 				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kPacket.m_vecInventorySlotInfo);
+ 				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kPacket.m_vecInventorySlotInfo);
 			}
 
 			UpdateInventorySlotList( kPacket.m_vecInventorySlotInfo );
@@ -14836,10 +15445,9 @@ bool CX2UIInventory::Handler_EGS_ITEM_EVALUATE_REQ()
 {
 	if( NULL != g_pData &&
 		NULL != g_pData->GetMyUser() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+		NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		const CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iTargetItemUID );
+		const CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iTargetItemUID );
 
 		if( pTargetItem == NULL || pTargetItem->GetItemTemplet() == NULL )
 		{
@@ -14876,10 +15484,9 @@ bool CX2UIInventory::Handler_EGS_ITEM_EVALUATE_ACK( HWND hWnd, UINT uMsg, WPARAM
 		{
 			if( NULL != g_pData && 
 				NULL != g_pData->GetMyUser() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kPacket.m_vecInventorySlotInfo);
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kPacket.m_vecInventorySlotInfo);
 			}
 			UpdateInventorySlotList( kPacket.m_vecInventorySlotInfo );
 			g_pData->SetSelectUnitED( kPacket.m_iED );
@@ -14890,13 +15497,14 @@ bool CX2UIInventory::Handler_EGS_ITEM_EVALUATE_ACK( HWND hWnd, UINT uMsg, WPARAM
 	}
 	return true;
 }
-void CX2UIInventory::Handler_EGS_ITEM_CONVERT_REQ( UidType iItemUID )
+void CX2UIInventory::Handler_EGS_ITEM_CONVERT_REQ( UidType iItemUID, int iQuantity  )
 {
 	if( iItemUID < 0 )
 		return;
 
 	KEGS_ITEM_CONVERT_REQ kPacket;
 	kPacket.m_iItemUID = iItemUID;
+	kPacket.m_iQuantity = iQuantity;
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_ITEM_CONVERT_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_ITEM_CONVERT_ACK );
@@ -14912,10 +15520,9 @@ bool CX2UIInventory::Handler_EGS_ITEM_CONVERT_ACK( HWND hWnd, UINT uMsg, WPARAM 
 		if( true == g_pMain->IsValidPacket( kPacket.m_iOK ) )
 		{
 			if( NULL != g_pData->GetMyUser() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kPacket.m_vecInventorySlotInfo);
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kPacket.m_vecInventorySlotInfo);
 			}
 			UpdateInventorySlotList( kPacket.m_vecInventorySlotInfo );
 		}
@@ -14934,14 +15541,14 @@ bool CX2UIInventory::CheckLevelIfLevelLimitEnchantCoupon ( const int iCouponItem
 	{
 		if ( iCouponItemID_ == HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_ID[i] )
 		{
-			if ( i + 1 >= ARRAY_SIZE (HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_LIMIT_LEVEL) )
+			if ( i * 2 >= ARRAY_SIZE (HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_LIMIT_LEVEL) )
 			{
 				ASSERT ( L"HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_ID Array Size Over !" );
 				return true;
 			}
 
-			else if ( iTargetItemLevel_ > HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_LIMIT_LEVEL[i] &&
-				 iTargetItemLevel_ <= HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_LIMIT_LEVEL[i+1] )
+			else if ( iTargetItemLevel_ > HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_LIMIT_LEVEL[2*i] &&
+				 iTargetItemLevel_ <= HAVE_LIMIT_LEVEL_ENCHANT_COUPON_ITEM_LIMIT_LEVEL[2*i+1] )
 			{
 				return false;
 			}
@@ -14957,6 +15564,475 @@ bool CX2UIInventory::CheckLevelIfLevelLimitEnchantCoupon ( const int iCouponItem
 	return false;
 }
 #endif // ADDED_ENCHANT_COUPON_HAVE_LEVEL_LIMIT // 김종훈 / 13-07-03 / 레벨 제한을 가진 강화의 부적
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+void CX2UIInventory::OpenElBreakWindow( IN CX2Item* pItem_ )
+{
+	SAFE_DELETE_DIALOG( m_pDLGElBreak );
+
+	if ( pItem_ == NULL )
+		return;
+
+	m_ElBreakItemUID	= pItem_->GetItemData().m_ItemUID;
+	m_ElBreakItemCount	= 1;
+
+	m_pDLGElBreak = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_El_Break_Window.lua" );
+	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGElBreak );
+
+	//아이템 이미지 셋팅해주고.
+	CKTDGUIStatic* pStaticItemImage = (CKTDGUIStatic*)m_pDLGElBreak->GetControl( L"ItemImage" );
+	if ( pStaticItemImage != NULL && pStaticItemImage->GetPicture(0) != NULL )
+	{
+		pStaticItemImage->GetPicture(0)->SetTex( g_pData->GetItemManager()->GetItemTemplet( pItem_->GetItemData().m_ItemID )->GetShopImage() );
+	}
+
+	//아이템 이름 셋팅해주고.
+	CKTDGUIStatic* pStaticItemName = (CKTDGUIStatic*)m_pDLGElBreak->GetControl( L"Identify_Window_Price" );
+	if ( pStaticItemName != NULL )
+	{
+		pStaticItemName->SetString( 0, g_pData->GetItemManager()->GetItemTemplet( pItem_->GetItemData().m_ItemID )->GetName() );
+	}
+
+	CKTDGUIControl* pControl = m_pDLGElBreak->GetControl( L"Break_Tool" );
+	if ( pControl != NULL )
+		pControl->SetShow( true );
+		
+	UpdateElBreakDLG( false );
+}
+
+void CX2UIInventory::UpdateElBreakDLG( IN const bool bReadIME_ )
+{
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_ElBreakItemUID );
+	
+	if ( pItem == NULL || pItem->GetItemTemplet() == NULL )
+		return;
+
+	if ( m_pDLGElBreak == NULL )
+		return;
+
+	const int MAGIC_MAX_EL_CHANGE_ONCE = 100;
+	int nowQuantity = 0;
+	nowQuantity = min( pItem->GetItemData().m_Quantity, MAGIC_MAX_EL_CHANGE_ONCE );
+	
+	// IME에서 값 받아오고
+	CKTDGUIIMEEditBox* pQuantity = (CKTDGUIIMEEditBox*) m_pDLGElBreak->GetControl( L"IME_Identify_Window" );
+	if( bReadIME_ )
+	{
+		m_ElBreakItemCount = g_pMain->GetEDFromString( pQuantity->GetText() );
+	}	
+
+	if ( m_ElBreakItemCount > nowQuantity )
+		m_ElBreakItemCount = nowQuantity;
+
+	// 확인해주고
+	if ( m_ElBreakItemCount <= 0 )
+	{
+		if( bReadIME_ )				// 입력창으로 받아온 경우
+			m_ElBreakItemCount = 0;
+		else						// << 를 누른 경우 : 0 아래면 max로 순환시킨다.
+			m_ElBreakItemCount = nowQuantity;	
+	}
+
+	WCHAR buff[256] = {0};
+	_itow( m_ElBreakItemCount, buff, 10 );
+	wstring wstrNum = buff;
+	pQuantity->SetText( wstrNum.c_str() );
+}
+
+bool CX2UIInventory::Handler_EGS_ITEM_EXTRACT_REQ()
+{
+	KEGS_ITEM_EXTRACT_REQ kPacket;
+
+	kPacket.m_iItemUID = m_ElBreakItemUID;
+	kPacket.m_iQuantity = m_ElBreakItemCount;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_ITEM_EXTRACT_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_ITEM_EXTRACT_ACK );
+
+	return true;
+}
+
+bool CX2UIInventory::Handler_EGS_ITEM_EXTRACT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_ITEM_EXTRACT_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if ( g_pMain->DeleteServerPacket( EGS_ITEM_EXTRACT_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			wstring itemName = g_pData->GetItemManager()->GetItemTemplet( CX2EnchantItem::ATI_HYPER_SKILL_STONE )->GetFullName_();
+			itemName += L" ";
+			itemName += g_pMain->GetEDString( m_ElBreakItemCount * 3 );
+			itemName += GET_STRING( STR_ID_24 );
+			itemName += GET_STRING( STR_ID_426 );
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), itemName.c_str(), g_pMain->GetNowState() );
+			UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+		}
+
+		return true;
+	}
+
+	return false;
+}
+#endif //FINALITY_SKILL_SYSTEM
+
+#pragma region Good Elsword
+#ifdef GOOD_ELSWORD //JHKang
+#ifndef NO_GOOD_ELSWORD_INT
+bool CX2UIInventory::Handler_EGS_GET_NEXT_INVENTORY_ED_REQ()
+{
+	if( true == g_pMain->IsWaitingServerPacket( EGS_GET_NEXT_INVENTORY_ED_ACK ) )
+		return false;
+
+	g_pData->GetServerProtocol()->SendID( EGS_GET_NEXT_INVENTORY_ED_REQ );
+	g_pMain->AddServerPacket( EGS_GET_NEXT_INVENTORY_ED_ACK );
+
+	return true;
+}
+
+bool CX2UIInventory::Handler_EGS_GET_NEXT_INVENTORY_ED_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>( lParam );
+	KEGS_GET_NEXT_INVENTORY_ED_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	g_pMain->DeleteServerPacket( EGS_GET_NEXT_INVENTORY_ED_ACK );
+	{
+		if (g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			wstringstream	wstrstm;
+
+			m_iConfirmED = kEvent.m_iED;
+
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_28667, "LL", g_pMain->GetEDString( kEvent.m_iED ),
+											g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
+
+			if ( m_pDLGUIInventory->GetShow() )
+			{
+				m_pDLGBuyConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrstm.str().c_str(), UIM_EXPAND_INVENTORY_ED_BUY_CONFIRM, 
+					g_pMain->GetNowState(), UIM_EXPAND_INVENTORY_ED_BUY_CANCEL, L"", D3DXVECTOR2( 0, 20 ) );
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CX2UIInventory::Handler_EGS_EXPAND_INVENTORY_ED_REQ()
+{
+	if( true == g_pMain->IsWaitingServerPacket( EGS_EXPAND_INVENTORY_ED_ACK ) )
+		return false;
+
+	g_pData->GetServerProtocol()->SendID( EGS_EXPAND_INVENTORY_ED_REQ );
+	g_pMain->AddServerPacket( EGS_EXPAND_INVENTORY_ED_ACK );
+
+	return true;
+}
+
+bool CX2UIInventory::Handler_EGS_EXPAND_INVENTORY_ED_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>( lParam );
+	KEGS_EXPAND_INVENTORY_ED_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	CX2User*	  pUser		 = g_pData->GetMyUser();
+	if( pUser == NULL )
+	{
+		ASSERT( !"User is NULL(X2User)" );
+		return false;
+	}
+
+	CX2Unit*	  pUnit		 = pUser->GetSelectUnit();
+	if( pUnit == NULL)
+	{
+		ASSERT( !"Unit is NULL(X2Unit)" );
+		return false;
+	}
+
+    CX2Inventory& kInventory = pUnit->AccessInventory();
+
+	g_pMain->DeleteServerPacket( EGS_EXPAND_INVENTORY_ED_ACK );
+	{
+		if (g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			map< int, int >::iterator mit;
+			for ( mit = kEvent.m_mapExpandedCategorySlot.begin(); mit != kEvent.m_mapExpandedCategorySlot.end(); mit++ )
+			{
+				kInventory.SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
+					kInventory.GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
+
+				switch( static_cast< CX2Inventory::SORT_TYPE >( mit->first ) )
+				{
+				case CX2Inventory::ST_EQUIP:
+					g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_28668 ),g_pMain->GetNowState() );
+					break;
+				}
+			}
+
+			if( NULL != g_pData->GetQuestManager() )
+			{
+				g_pData->GetQuestManager()->GiveUpForbiddenQuest(); 
+			}
+
+			m_bShow = true;
+			SetShow( m_bShow );
+
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
+
+			return true;
+		}
+	}
+
+	return false;
+}
+#endif NO_GOOD_ELSWORD_INT
+#endif //GOOD_ELSWORD
+#pragma endregion 확장 관련 처리 패킷
+
+#ifdef CAMERA_ZOOM_BY_MOUSE_WHEEL
+bool CX2UIInventory::OnMouseWheel( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	// 마우스 커서가 인벤토리 범위 안에 있을 때만 처리하기 
+	if( false == CX2UIInventory::GetIsMouseOver() )
+		return true;
+
+	if( NULL != g_pKTDXApp->GetDGManager()->GetDialogManager()->GetFirstFrontModalDlg() )
+		return true;
+
+	if( NULL != g_pData->GetUIManager() &&
+		NULL != g_pData->GetUIManager()->GetUISkillNote() &&
+		true == g_pData->GetUIManager()->GetUISkillNote()->GetShow() )
+		return true;
+
+	// 불편함 느끼지 않는 선에서 쿨타임 추가
+	if( m_fLeftMouseWhellCoolTime > 0.f )
+		return true;
+
+	short zDelta = static_cast<short>(HIWORD(wParam));
+	m_SumDelta += zDelta;
+	while (abs(m_SumDelta) >= WHEEL_DELTA)
+	{
+		m_fLeftMouseWhellCoolTime = 0.2f;
+		const int iNowPageNum = GetNowInventoryPageNum( m_NowInventorySortType );
+
+		int iChangePageNum = 1;
+		// 휠 업
+		if(m_SumDelta>0)
+		{
+			iChangePageNum = max( (iNowPageNum - 1), 1 );
+			m_SumDelta -= WHEEL_DELTA;
+		}
+		// 휠 다운
+		else
+		{
+			/// 인벤토리 최대 페이지 수 연산
+			int iMaxPageNum = GetMaxLineNumPerCategory( m_NowInventorySortType ) / MY_INVENTORY_MAX_SLOT_HEIGHT;	/// 슬롯( 56개 )으로 꽉 찬 페이지 수 연산
+			if( 0 < GetMaxLineNumPerCategory( m_NowInventorySortType ) % MY_INVENTORY_MAX_SLOT_HEIGHT )				/// 이외의 꽉 채우지 못한 페이지가 있는지 연산
+				++iMaxPageNum;	/// 페이지 수 추가
+
+			iChangePageNum = min( (iNowPageNum + 1) , iMaxPageNum );
+			m_SumDelta += WHEEL_DELTA;
+		}
+
+		// 페이지 같다면 처리하지 않기
+		if( iNowPageNum == iChangePageNum )
+			return true;
+
+		WCHAR wBuf[32];
+		StringCchPrintfW( wBuf, ARRAY_SIZE(wBuf), L"Inventory_page%d", iChangePageNum );
+		CKTDGUIRadioButton* pRadioButton = 
+			static_cast<CKTDGUIRadioButton*>( m_pDLGUIInventory->GetControl( wBuf ) );	/// 페이지 1
+		if( NULL != pRadioButton )
+			pRadioButton->SetChecked(true);
+
+		SetNowInventoryPageNum( m_NowInventorySortType, iChangePageNum );
+		SetInventorySort( m_NowInventorySortType, iChangePageNum );
+
+		break;
+	}
+	return true;
+}
+bool CX2UIInventory::GetIsMouseOver()
+{
+	if( false == GetShow() )
+		return false;
+
+	if( NULL != m_pDLGUIInventory ) 
+		return m_pDLGUIInventory->GetIsMouseOver(); 
+
+	return false; 
+}
+#endif //CAMERA_ZOOM_BY_MOUSE_WHEEL
+
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+/** @function : IsAddSocketSlotItem
+	@brief : 소켓 슬롯 확장 아이템 여부 확인
+*/
+bool CX2UIInventory::IsAddSocketSlotItem( const int ItemID_ ) const
+{
+	switch( ItemID_ )
+	{
+	case ITEM_ID_ADD_WEAPON_SOCKET_SLOT:
+	case ITEM_ID_ADD_DEFENCE_SOCKET_SLOT:
+		{
+			return true;
+		} break;
+	default:
+		return false;
+		break;
+	}
+	return false;
+}
+/** @fucntion : UseAddSocketSlotItem
+	@brief : 소켓 슬롯 확장 아이템 사용
+*/
+void CX2UIInventory::UseAddSocketSlotItem( UidType iConsumeItemUID_ )
+{
+	if( iConsumeItemUID_ > 0 ) 
+	{
+		m_iConsumeItemUID = iConsumeItemUID_;
+
+		// 마우스 커서 변경
+		CX2State* pState = static_cast<CX2State*>(g_pMain->GetNowState());
+		if( NULL != pState && NULL != pState->GetCursor() )
+		{
+			pState->GetCursor()->ChangeCursorState( CX2Cursor::XCS_ADD_SOCKET_SLOT );
+		}
+
+		ChangeInventoryTab( CX2Inventory::ST_EQUIP );
+
+		return;
+	}
+}
+void CX2UIInventory::Handler_EGS_SOCKET_EXPAND_ITEM_REQ()
+{
+	KEGS_SOCKET_EXPAND_ITEM_REQ kPacket;
+	kPacket.m_iMaterialItemUID = m_iConsumeItemUID;
+	kPacket.m_iTargetItemUID = m_iTargetItemUID;
+
+	m_iConsumeItemUID = -1;
+	m_iTargetItemUID = -1;
+ 	
+	g_pData->GetServerProtocol()->SendPacket( EGS_SOCKET_EXPAND_ITEM_REQ, kPacket );
+ 	g_pMain->AddServerPacket( EGS_SOCKET_EXPAND_ITEM_ACK );
+}
+bool CX2UIInventory::Handler_EGS_SOCKET_EXPAND_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>(lParam);
+	KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+	DeSerialize( pBuff, &kPacket );
+	
+	if( true == g_pMain->DeleteServerPacket( EGS_SOCKET_EXPAND_ITEM_ACK ) )
+	{
+		if( true == g_pMain->IsValidPacket( kPacket.m_iOK ) )
+		{
+			if( NULL != g_pData && 
+				NULL != g_pData->GetMyUser() &&
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
+			{
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList(kPacket.m_vecUpdatedInventorySlot);
+			}
+			UpdateInventorySlotList( kPacket.m_vecUpdatedInventorySlot );
+
+ 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_835 ), g_pMain->GetNowState() );
+			return true;
+		}		
+	}
+	return false;
+}
+#endif // ADD_SOCKET_SLOT
+
+#ifdef REFORM_SKILL_NOTE_UI // 기술의 노트 버튼 제거하지 않고 비활성화로 변경
+void CX2UIInventory::SetEnableBuySkillNote( bool bVal )
+{
+	if( m_pDLGUIInventory == NULL )
+		return;
+
+	CKTDGUIButton *pButton = (CKTDGUIButton*)m_pDLGUIInventory->GetControl(L"Button_Buy_Skill_Note");
+	if( pButton != NULL )
+	{
+		pButton->SetEnable(bVal);
+	}
+}
+void CX2UIInventory::RegisterMemo( const CX2Item::ItemTemplet* pItemTemplet_, UidType uiMemoItemUID_ )
+{
+	if( NULL == pItemTemplet_ )
+		return;;
+
+	if( 0 >= uiMemoItemUID_ )
+		return;
+
+	if( NULL != g_pData &&
+		NULL != g_pData->GetMyUser() &&
+		NULL != g_pData->GetMyUser()->GetSelectUnit() )
+	{
+		const CX2Unit* pSelectUnit = g_pData->GetMyUser()->GetSelectUnit();
+
+		if( GetX2UnitClassCompatibility( pSelectUnit->GetClass(), pItemTemplet_->GetUnitClass() ) == false )
+		{
+			// 메모 사용 유닛이 맞지 않음
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_5013), g_pMain->GetNowState() );
+			return;
+		}
+
+		if( pItemTemplet_->GetUseLevel() > g_pData->GetSelectUnitLevel() )
+		{
+			// 메모 사용레벨이 맞지 않음
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_5014), g_pMain->GetNowState() );
+			return;
+		}
+
+		if( pSelectUnit->GetMaxSkillNoteSlot() <= 0)
+		{
+			// 기술의 노트 사용 불가상태
+			g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_4988 ),g_pMain->GetNowState() );
+			return;
+		}
+
+		if( g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME || 
+			g_pMain->GetNowStateID() == CX2Main::XS_TRAINING_GAME )
+		{		
+			// 게임중 메모사용 불가
+			g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_4989 ),g_pMain->GetNowState() );
+			return;
+		}
+	}
+
+
+	if( g_pData->GetUIManager() != NULL )
+	{
+#ifndef REFORM_SKILL_NOTE_UI// 메모 즉시 등록되도록 변경
+		if( g_pData->GetUIManager()->GetUISkillNote() != NULL &&
+			g_pData->GetUIManager()->GetUISkillNote()->GetUpdateMemo() == true )
+		{						
+			g_pData->GetUIManager()->GetUISkillNote()->UpdateMemoSlot( (int)g_pData->GetUIManager()->GetUISkillNote()->GetUpdatePage() );
+			g_pData->GetUIManager()->GetUISkillNote()->ResetSkillNote();
+
+			return;
+		}
+#endif // REFORM_SKILL_NOTE_UI
+
+		// 메모등록					
+		g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_SKILL_NOTE, true);
+		if( g_pData->GetUIManager()->GetUISkillNote() != NULL )
+		{
+			CX2State* pState = static_cast<CX2State*>(g_pMain->GetNowState());
+			if( NULL != pState && NULL != pState->GetCursor())
+				pState->GetCursor()->ChangeCursorState( CX2Cursor::XCS_REGISTER_MEMO );
+
+			g_pData->GetUIManager()->GetUISkillNote()->RegisterMemo( uiMemoItemUID_ );
+		}
+
+		return;					
+	}				
+
+	// 메모사용 불가
+}
+#endif // REFORM_SKILL_NOTE_UI
 
 #ifdef EXCHANGE_OPEN_IMAGE
 void CX2UIInventory::OpenRandomItem( int iItemID, ITEM_OBTAIN_RESULT_TYPE eIORT )
@@ -15029,7 +16105,6 @@ void CX2UIInventory::UpdateOpenHalloWeenItemAck()
 	// 메시지 (완료시의 CustomMsg)등도 가열기 결과창의 그것을 따른다.
 	// 제목이랑 보너스 아이템 스태틱만 안 보이게 지워주면 될 듯.
 
-
 	// 예전 창을 지우고..
 	if ( m_pDLGOpenAttraction != NULL )
 		g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGOpenAttraction, NULL, false );
@@ -15038,7 +16113,6 @@ void CX2UIInventory::UpdateOpenHalloWeenItemAck()
 	// 새로 열려라
 	m_pDLGAttractionResult = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_Charm_Item_Result_1slot.lua" );
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGAttractionResult );
-
 
 #ifdef UNIQUENESS_EU_ONLY
 	const wstring wstrResultDialogTitle		= 
@@ -15054,7 +16128,6 @@ void CX2UIInventory::UpdateOpenHalloWeenItemAck()
 
 	const wstring wstrResultDialogTitleKey	= 
 		NULL != m_pNowIceHeaterEventData ? m_pNowIceHeaterEventData->m_wstrResultDialogTitleTextureKey : L"heater_title";
-
 
 	CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>( m_pDLGAttractionResult->GetControl( L"Static_Title" ) );
 	if( NULL != pStatic )
@@ -15126,14 +16199,106 @@ void CX2UIInventory::UpdateOpenHalloWeenItemAck()
 			{
 				pStatic->GetPicture(0)->SetTex( L"HQ_Shop_Ui_Noimage.dds" );
 			}
-
 		}
 	}
 
 	UpdateInventorySlotList( m_TempOpenRandomItemAck.m_vecKInventorySlotInfo );
-
 }
 #endif SERV_HALLOWEEN_ICE_HEATER
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+void CX2UIInventory::Handler_EGS_USE_PROPOSE_ITEM_REQ( UidType iItemUID, wstring wstrNickName )
+{
+	KEGS_USE_PROPOSE_ITEM_REQ kPacket;
+	kPacket.m_iUsedItemUID = iItemUID;
+	kPacket.m_wstrNickName = wstrNickName;
+
+	CX2Main::TimedMessagePopUp::TimedPopupUserData userData;
+	userData.iMyUID			= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
+	userData.iOpponentUID	= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
+	
+	wstring wstrTextNotice= GET_REPLACED_STRING( ( STR_ID_24459, "L", wstrNickName ) );
+	
+	IF_EVENT_ENABLED( CEI_RELATIONSHIP_CODE_EVENT )
+	{
+		g_pMain->AddTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE,
+			CX2Main::TimedMessagePopUp::MBT_NO_BUTTON, userData, 10.0f,
+			wstrTextNotice.c_str(),
+			(CKTDXStage*) g_pMain->GetNowState(), -1, -1 );
+	}
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_USE_PROPOSE_ITEM_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_USE_PROPOSE_ITEM_ACK );
+}
+
+bool CX2UIInventory::Handler_EGS_USE_PROPOSE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>(lParam);
+	KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+	DeSerialize( pBuff, &kPacket );
+
+	if( true == g_pMain->DeleteServerPacket( EGS_USE_PROPOSE_ITEM_ACK ) )
+	{		
+		if( true == g_pMain->IsValidPacket( kPacket.m_iOK ) )
+		{
+			if( NULL != g_pData->GetMyUser() &&
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
+			{
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kPacket.m_vecKInventorySlotInfo );
+			}
+			UpdateInventorySlotList( kPacket.m_vecKInventorySlotInfo );
+		}
+
+		return true;
+	}
+
+	return true;
+}
+
+void CX2UIInventory::Handler_EGS_USE_DIVORCE_ITEM_REQ()
+{
+	if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().GetCouple() == true )
+	{
+		g_pData->GetServerProtocol()->SendID( EGS_USE_DIVORCE_ITEM_REQ );
+		g_pMain->AddServerPacket( EGS_USE_DIVORCE_ITEM_ACK );
+	}
+	else
+	{
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_28094 ), g_pMain->GetNowState() );
+	}
+}
+
+bool CX2UIInventory::Handler_EGS_USE_DIVORCE_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>(lParam);
+	KEGS_USE_DIVORCE_ITEM_ACK kPacket;
+	DeSerialize( pBuff, &kPacket );
+
+	if( true == g_pMain->DeleteServerPacket( EGS_USE_DIVORCE_ITEM_ACK ) )
+	{		
+		if( true == g_pMain->IsValidPacket( kPacket.m_iOK ) )
+		{
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetCouple( false );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetRelationTargetUserUID( 0 );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetRelationTargetUserNickname( L"" );
+
+			if( NULL != g_pData->GetMyUser() &&
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
+			{
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kPacket.m_vecUpdatedInventorySlot );
+			}
+			UpdateInventorySlotList( kPacket.m_vecUpdatedInventorySlot );
+
+			OpenRandomItem( 60007792, IORT_CUBE_OPEN );
+
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_28093 ), g_pMain->GetNowState() );
+			return true;
+		}		
+	}
+
+	return true;
+}
+#endif SERV_RELATIONSHIP_EVENT_INT
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
 bool CX2UIInventory::Handler_EGS_CUBE_IN_ITEM_MAPPING_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
@@ -15239,7 +16404,7 @@ bool CX2UIInventory::Handler_EGS_REGISTER_RECRUITER_ACK( HWND hWnd, UINT uMsg, W
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 			// Handler_EGS_USE_ITEM_IN_INVENTORY_ACK
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->GetInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
 			UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
@@ -15262,3 +16427,101 @@ bool CX2UIInventory::Handler_EGS_REGISTER_RECRUITER_ACK( HWND hWnd, UINT uMsg, W
 	return false;
 }
 #endif SERV_RECRUIT_EVENT_BASE
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+void CX2UIInventory::InitItemObtainResult2( const WCHAR* pFileName, std::map< int, int >& mapInsertedItem, int iSlotNum /* = RESOLVE_RESULT_ITEM_LIST_MAX_SLOT_NUM */ )
+{
+	m_pDLGResolveItemResult = new CKTDGUIDialog( g_pMain->GetNowState(), pFileName );
+	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGResolveItemResult );
+
+	//아이템 획득 결과창의 위치 설정
+	m_pDLGResolveItemResult->SetPos( D3DXVECTOR2( 320, 230 ) );
+
+	CKTDGUIButton* pControl = (CKTDGUIButton*) m_pDLGResolveItemResult->GetControl( L"Button_OK" );
+	if ( pControl != NULL )
+	{
+		pControl->RequestFocus();
+	}
+
+	CKTDGUIStatic* pStaticSlot = (CKTDGUIStatic*)m_pDLGResolveItemResult->GetControl( L"Static_Slot_Pic" );
+	CKTDGUIStatic* pStaticName = (CKTDGUIStatic*)m_pDLGResolveItemResult->GetControl( L"Static_SlotName" );
+	CKTDGUIStatic* pStaticNum = (CKTDGUIStatic*)m_pDLGResolveItemResult->GetControl( L"Static_SlotNum" );
+
+	//아이템 획득 결과창의 아이템 이미지와 스트링 초기화
+	for ( int slotNum = 0; slotNum < iSlotNum; ++slotNum )
+	{
+		if ( pStaticSlot != NULL && pStaticSlot->GetPicture(slotNum) != NULL )
+		{
+			pStaticSlot->GetPicture(slotNum)->SetTex( L"DLG_Common_New_Texture02.dds", L"item_slot1" );
+		}
+
+		pStaticName->GetString(slotNum*2)->msg = L"";
+		pStaticName->GetString(slotNum*2 + 1)->msg = L"";
+
+		if ( pStaticNum != NULL && pStaticNum->GetString(slotNum) != NULL )
+		{
+			pStaticNum->GetString(slotNum)->msg = L"";
+		}
+	}
+
+	//획득한 아이템으로 아이템 슬롯 설정
+	int index = 0;
+	std::map< int, int >::iterator it = mapInsertedItem.begin(); 
+	while( it != mapInsertedItem.end() )
+	{
+		int resultItemID = it->first;
+
+		const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( resultItemID );
+		if ( pItemTemplet != NULL )
+		{
+			if ( pStaticSlot != NULL && pStaticSlot->GetPicture(index) != NULL )
+			{
+				const wchar_t* pwszShopImage = pItemTemplet->GetShopImage();
+				if ( pwszShopImage[0] != NULL )
+					pStaticSlot->GetPicture(index)->SetTex( pwszShopImage );
+				else
+					pStaticSlot->GetPicture(index)->SetTex( L"HQ_Shop_Ui_Noimage.dds" );
+			}
+
+			bool bCheckTwoLine = false;
+#ifdef CLIENT_GLOBAL_LINEBREAK
+			wstring wstrFullName = CWordLineHandler::GetStrByLineBreakInX2Main( pItemTemplet->GetFullName_(), 145, XUF_DODUM_13_SEMIBOLD );
+#else //CLIENT_GLOBAL_LINEBREAK
+			wstring wstrFullName = g_pMain->GetStrByLienBreak( 
+				pItemTemplet->GetFullName_(), 
+				145, XUF_DODUM_13_SEMIBOLD );
+#endif //CLIENT_GLOBAL_LINEBREAK
+			if ( wstrFullName.find( L"\n") != -1 )
+				bCheckTwoLine = true;
+
+			if(pStaticName->GetString(index*2) != NULL)
+			{
+				if ( bCheckTwoLine == false )
+				{
+					pStaticName->GetString(index*2)->msg = wstrFullName;
+					pStaticName->GetString(index*2+1)->msg = L"";
+				}
+				else
+				{
+					pStaticName->GetString(index*2)->msg = L"";
+					pStaticName->GetString(index*2+1)->msg = wstrFullName;
+				}
+			}
+			if ( pStaticNum != NULL && pStaticNum->GetString(index) != NULL )
+			{
+				wstring wstrCount = GET_REPLACED_STRING( ( STR_ID_865, "i", it->second) );
+				pStaticNum->GetString(index)->msg = wstrCount.c_str();
+			}
+		}
+		// 아이템이 없는 경우
+		else
+		{
+			pStaticSlot->GetPicture(index)->SetTex( L"HQ_Shop_Ui_Noimage.dds" );
+			pStaticName->GetString(index)->msg = L"";
+			pStaticNum->GetString(index)->msg = L"";
+		}
+		++it;
+		++index;
+	}
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT

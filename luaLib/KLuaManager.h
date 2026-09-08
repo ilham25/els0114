@@ -665,8 +665,14 @@ public:
 	int MakeFunctionReference( const std::wstring& funcName, bool bRawGlobal = false );
 	int MakeFunctionReference( const wchar_t* funcName, bool bRawGlobal = false );
 	int MakeFunctionReference( const char* funcName, bool bRawGlobal = false );
-
 //}} robobeg : 2013-01-17
+
+//{{ robobeg : 2013-10-24
+    int GetNumIndexedValues();
+    int GetNumIndexedValues( const char* pszName );
+    int GetNumIndexedTables();
+    int GetNumIndexedTables( const char* pszTableName );
+//}} robobeg : 2013-10-24
 
     // GET BOOL-TYPE VALUE *********************************************
 

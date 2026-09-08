@@ -22,9 +22,9 @@ public:
 	bool	XSkinMeshReadyInBackground( const WCHAR* pFileName, int iPriority = 2 );
 	bool	XMeshReadyInBackground( const WCHAR* pFileName, int iPriority = 2 );
 	bool	SoundReadyInBackground( const WCHAR* pFileName
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD		
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD		
 		, int iPriority = 2
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD		
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD		
 		);
 
 	bool 	DeviceReady( CKTDXDevice* pDevice );

@@ -259,7 +259,7 @@ m_spSockObj(new KSkTRUser),
 m_iUnitUID(-1),
 m_bDestroyReserved( false )
 {
-	for( int i = 0; i < ENUM_TICKS::TICKS_NUM; i++ )
+	for( int i = 0; i < TICKS_NUM; i++ )
 	{
 		m_adwTickCount[i] = ::GetTickCount();
 	}
@@ -294,11 +294,11 @@ void KTRUser::Tick()
 	{
 	case KTRUserFSM::STATE_CONNECTED:
 
-		if( ::GetTickCount() - GetTick( ENUM_TICKS::CONNECT_TICK ) > 15000) // Connect 이후 15초간 UID등록이 없다.
+		if( ::GetTickCount() - GetTick( CONNECT_TICK ) > 15000) // Connect 이후 15초간 UID등록이 없다.
 		{
 			START_LOG( cwarn, L"Reguard " << m_iUnitUID 
 				<< L" as a Zombie.(Reason : Not Regist UID) (tick: " 
-				<< ::GetTickCount() - GetTick( ENUM_TICKS::CONNECT_TICK ) 
+				<< ::GetTickCount() - GetTick( CONNECT_TICK ) 
 				<< L" )" );
 
 			ReserveDestroy();
@@ -323,11 +323,11 @@ void KTRUser::Tick()
 
 	case KTRUserFSM::STATE_REGISTERED:
 		//로봇 테스트에서는 뺀다.
-		if( ::GetTickCount() - GetTick( ENUM_TICKS::HB_TICK ) > 600000 ) // 60s 단위로 heart-bit check
+		if( ::GetTickCount() - GetTick( HB_TICK ) > 600000 ) // 60s 단위로 heart-bit check
 		{
 			START_LOG( cwarn, L"Reguard " << m_iUnitUID 
 				<< L" as a Zombie.(TRUser) (tick: " 
-				<< ::GetTickCount() - GetTick( ENUM_TICKS::HB_TICK ) 
+				<< ::GetTickCount() - GetTick( HB_TICK ) 
 				<< L")" );
 
 			ReserveDestroy(); 
@@ -359,7 +359,7 @@ void KTRUser::OnSocketError()
 
 void KTRUser::OnAcceptConnection()
 {
-	SetTick( ENUM_TICKS::CONNECT_TICK );
+	SetTick( CONNECT_TICK );
 }
 
 void KTRUser::OnRecvCompleted( IN KSerBuffer& buff_ )
@@ -520,7 +520,7 @@ void KTRUser::OnRecvCompleted( IN KSerBuffer& buff_ )
 	//}}AFX
 
 	// renew m_dwHBRecvTick
-	SetTick( ENUM_TICKS::HB_TICK );
+	SetTick( HB_TICK );
 }
 
 void KTRUser::OnDestroy()

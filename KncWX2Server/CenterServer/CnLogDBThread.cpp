@@ -22,7 +22,7 @@ IMPL_PROFILER_DUMP( KCnLogDBThread )
 		unsigned int iAvg = 0;
 		if( vecDump[ui].m_iQueryCount > 0 )	iAvg = vecDump[ui].m_iTotalTime / vecDump[ui].m_iQueryCount;		
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 		DO_QUERY_NO_PROFILE( L"exec dbo.P_QueryStats_INS", L"%d, N\'%s\', %d, %d, %d, %d, %d, %d",
 			% KBaseServer::GetKObj()->GetServerGroupID()
 			% vecDump[ui].m_wstrQuery
@@ -33,7 +33,7 @@ IMPL_PROFILER_DUMP( KCnLogDBThread )
 			% vecDump[ui].m_iQueryCount
 			% vecDump[ui].m_iQueryFail
 			);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 		DO_QUERY_NO_PROFILE( L"exec dbo.lup_insert_querystats", L"N\'%s\', %d, %d, %d, %d, %d, %d",
 			% vecDump[ui].m_wstrQuery
 			% vecDump[ui].m_iMinTime
@@ -43,7 +43,7 @@ IMPL_PROFILER_DUMP( KCnLogDBThread )
 			% vecDump[ui].m_iQueryCount
 			% vecDump[ui].m_iQueryFail
 			);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 		continue;
 
@@ -82,7 +82,11 @@ void KCnLogDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( ELOG_INSERT_TRADE_LOG_NOT );
 		CASE( ELOG_INSERT_PERSONAL_SHOP_LOG_NOT );
 	   _CASE( ELOG_STAT_RES_STONE, KStatisticsData );
-		CASE_NOPARAM( DBE_EVENT_UPDATE_REQ );
+#ifdef SERV_ADD_EVENT_DB
+#else //SERV_ADD_EVENT_DB
+	   CASE_NOPARAM( DBE_EVENT_UPDATE_REQ );
+#endif //SERV_ADD_EVENT_DB
+		
 		//{{ 2008. 3. 4  최육사  어뷰저 로그
 		CASE( ELOG_INSERT_ABUSER_LOG_NOT );
 		//}}
@@ -164,7 +168,10 @@ void KCnLogDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 	   //}}
 	  
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
+#ifdef SERV_ADD_EVENT_DB
+#else //SERV_ADD_EVENT_DB
 	   CASE_NOPARAM( DBE_CHECK_EVENT_UPDATE_REQ );
+#endif //SERV_ADD_EVENT_DB
 #endif SERV_REFRESH_EVENT_USING_RELEASE_TICK  
 	   
 	   //{{ 2013. 2. 26	박세훈	랜선렉 방지 코드2
@@ -181,6 +188,17 @@ void KCnLogDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 #ifdef SERV_DUNGEON_STAGE_LOAD_LOG// 작업날짜: 2013-05-15	// 박세훈
 	   CASE( DBE_DUNGEON_STAGE_LOAD_LOG_NOT );
 #endif // SERV_DUNGEON_STAGE_LOAD_LOG
+
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+       CASE( ELOG_HENIR_HACKING_LOG_NOT );
+#endif // SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+
+       _CASE( ELOG_GEN_FIELD_MIDDLE_BOSS_STAT_NOT, KFieldBossGenKillStat );
+       _CASE( ELOG_KILL_FIELD_MIDDLE_BOSS_STAT_NOT, KFieldBossGenKillStat );
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-12-03	// 박세훈
+	   CASE( DBE_BOSS_FIELD_LOG_NOT );
+#endif // SERV_BATTLE_FIELD_BOSS
 
     default:
         START_LOG( cerr, L"이벤트 핸들러가 정의되지 않았음. " << spEvent_->GetIDStr() );
@@ -213,7 +231,7 @@ IMPL_ON_FUNC( ELOG_CHAT_LOG_NOT )
     // injection 공격 가능성 제거.
     KODBC::RemoveInvalidMark( kPacket_.m_strMsg );
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_ChatLog_INS", L"%d, %d, %d, %d, %d, N\'%s\'",
 		% KBaseServer::GetKObj()->GetServerGroupID()
 		% kPacket_.m_nRoomUID
@@ -221,14 +239,14 @@ IMPL_ON_FUNC( ELOG_CHAT_LOG_NOT )
 		% kPacket_.m_nUserUID
 		% (int)kPacket_.m_cChatType
 		% kPacket_.m_strMsg );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
     DO_QUERY( L"exec dbo.lup_insert_chat_log", L"%d, %d, %d, %d, N\'%s\'",
         % kPacket_.m_nRoomUID
         % kPacket_.m_nCharUID
         % kPacket_.m_nUserUID
         % (int)kPacket_.m_cChatType
         % kPacket_.m_strMsg );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 end_proc:
     __noop; // doing nothing.
@@ -241,31 +259,47 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
 
 	//{{ 2013. 01. 17	최육사	서버간 통신 사설IP 적용
 #ifdef SERV_PRIVATE_IP_SERVER_NETWORKING
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_LServerList_SEL_ByPublicIP", L"%d, %d, N\'%s\'", 
+		% KBaseServer::GetKObj()->GetServerGroupID() 
+		% KBaseServer::ESC_CENTER 
+		% kPacket_.m_wstrIP 
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LServerList_By_PublicIP_SEL", L"%d, %d, N\'%s\'", 
 		% KBaseServer::GetKObj()->GetServerGroupID() 
 		% KBaseServer::ESC_CENTER 
 		% kPacket_.m_wstrIP 
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_ALL_RENEWAL_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LServerList_GET_verify_PublicIP", L"%d, N\'%s\'", 
 		% KBaseServer::ESC_CENTER 
 		% kPacket_.m_wstrIP 
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
-#else
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
+#else //SERV_PRIVATE_IP_SERVER_NETWORKING
+#ifdef SERV_RENEWAL_SP
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_LServerList_SEL", L"%d, %d, N\'%s\'", 
+		% KBaseServer::GetKObj()->GetServerGroupID()
+		% KBaseServer::ESC_CENTER 
+		% kPacket_.m_wstrIP 
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LServerList_Verify_On_SEL", L"%d, %d, N\'%s\'", 
 		% KBaseServer::GetKObj()->GetServerGroupID()
 		% KBaseServer::ESC_CENTER 
 		% kPacket_.m_wstrIP 
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_ALL_RENEWAL_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_verify_server_on", L"%d, N\'%s\'", 
 		% KBaseServer::ESC_CENTER 
 		% kPacket_.m_wstrIP 
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 #endif SERV_PRIVATE_IP_SERVER_NETWORKING
 	//}}	
 
@@ -327,12 +361,17 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
 
 	//{{ 2011. 07. 22	최육사	모든 쿼리 SP사용
 #ifdef SERV_ALL_DB_QUERY_USE_SP
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_LCenterProxy_SEL_ByServerUID", L"%d, %d",	% KBaseServer::GetKObj()->GetServerGroupID() 
+																		% kPacket.m_kServerInfo.m_iUID	);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LCenterProxy_By_ServerUID_SEL", L"%d, %d",	% KBaseServer::GetKObj()->GetServerGroupID() 
 																		% kPacket.m_kServerInfo.m_iUID	);
-#else //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_ALL_RENEWAL_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_get_center_proxy_id_by_serveruid", L"%d", % kPacket.m_kServerInfo.m_iUID );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 #else
 	// ProxyID를 받아온다.
 	//DO_QUERY_NO_PROFILE( L"SELECT ProxyID FROM dbo.LCenterProxy(NOLOCK)", L"WHERE ServerUID = %d", % kPacket.m_kServerInfo.m_iUID );
@@ -368,12 +407,12 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
 #else
 	//{{ 2011. 07. 22	최육사	모든 쿼리 SP사용
 #ifdef SERV_ALL_DB_QUERY_USE_SP
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LSquareTable_SEL", L"%d, N\'%s\'", % KBaseServer::GetKObj()->GetServerGroupID() 
 															  % kPacket_.m_wstrIP );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_get_square_list", L"N\'%s\'", % kPacket_.m_wstrIP );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 #else
 	//광장 생성 데이터를 받아온다.
 	//DO_QUERY_NO_PROFILE( L"SELECT Type, Name FROM dbo.LSquareTable(NOLOCK)", L"WHERE IP = N\'%s\' ", % kPacket_.m_wstrIP );
@@ -392,11 +431,15 @@ _IMPL_ON_FUNC( DBE_SERVER_ON_REQ, KNetAddress )
 	//}}	
 
     //서버가 켜졌다고 표시한다.
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_LServerList_UPD_Enable", L"%d, %d, 1", % KBaseServer::GetKObj()->GetServerGroupID() % kPacket.m_kServerInfo.m_iUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LServerList_UPD", L"%d, %d, 1", % KBaseServer::GetKObj()->GetServerGroupID() % kPacket.m_kServerInfo.m_iUID );
-#else //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_ALL_RENEWAL_SP
+#else //SERV_RENEWAL_SP
     DO_QUERY( L"exec dbo.lup_set_server_enable_flag", L"%d, 1", % kPacket.m_kServerInfo.m_iUID );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
     if( m_kODBC.BeginFetch() )
     {
@@ -429,7 +472,7 @@ _IMPL_ON_FUNC( DBE_VERIFY_SERVER_CONNECT_REQ, KECN_VERIFY_SERVER_CONNECT_REQ )
 	kPacket.m_iServerUID = KBaseServer::GetKObj()->GetUID();
 	kPacket.m_iLocalServerGroupID = kPacket_.m_iServerGroupID;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 //////////////////////////////////////////////////////////////////////////
 	int iServerSetID = KBaseServer::GetKObj()->GetServerGroupID();
 	bool bUsePrivateIP = false;
@@ -443,14 +486,23 @@ _IMPL_ON_FUNC( DBE_VERIFY_SERVER_CONNECT_REQ, KECN_VERIFY_SERVER_CONNECT_REQ )
 	iServerType = 0;	// 중국의 경우 Login Server에 ChannelServer, GameServer 다 붙을수 있음.
 #endif // SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_PROFILE( L"exec dbo.P_LServerList_SEL_VerifyConnect", L"%d, %d, N\'%s\', %d, %d", 
+		% iServerSetID
+		% iServerType
+		% kPacket_.m_kNetAddress.m_wstrIP 
+		% kPacket_.m_kNetAddress.m_usPort
+		% (int)bUsePrivateIP );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_PROFILE( L"exec dbo.P_LServerList_Verify_Connect_SEL", L"%d, %d, N\'%s\', %d, %d", 
 		% iServerSetID
 		% iServerType
 		% kPacket_.m_kNetAddress.m_wstrIP 
 		% kPacket_.m_kNetAddress.m_usPort
 		% (int)bUsePrivateIP );
+#endif //SERV_ALL_RENEWAL_SP
 //////////////////////////////////////////////////////////////////////////
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	//{{ 2013. 01. 21	최육사	서버간 통신 사설IP 적용
 #ifdef SERV_PRIVATE_IP_SERVER_NETWORKING
 	DO_QUERY( L"exec dbo.P_LServerList_GET_verify_connect", L"%d, N\'%s\', %d", % KBaseServer::ESC_GAME % kPacket_.m_kNetAddress.m_wstrIP % kPacket_.m_kNetAddress.m_usPort );
@@ -458,7 +510,7 @@ _IMPL_ON_FUNC( DBE_VERIFY_SERVER_CONNECT_REQ, KECN_VERIFY_SERVER_CONNECT_REQ )
 	DO_QUERY( L"exec dbo.lup_verify_server_connect", L"%d, N\'%s\', %d", % KBaseServer::ESC_GAME % kPacket_.m_kNetAddress.m_wstrIP % kPacket_.m_kNetAddress.m_usPort );
 #endif SERV_PRIVATE_IP_SERVER_NETWORKING
 	//}}
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -574,11 +626,15 @@ end_proc:
 IMPL_ON_FUNC_NOPARAM( DBE_SERVER_OFF_NOT )
 {
     //서버 Enable을 끈다
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_LServerList_UPD_Enable", L"%d, %d, 0", % KBaseServer::GetKObj()->GetServerGroupID() % KBaseServer::GetKObj()->GetUID() );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LServerList_UPD", L"%d, %d, 0", % KBaseServer::GetKObj()->GetServerGroupID() % KBaseServer::GetKObj()->GetUID() );
-#else //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_ALL_RENEWAL_SP
+#else //SERV_RENEWAL_SP
     DO_QUERY( L"exec dbo.lup_set_server_enable_flag", L"%d, 0", % GetKCnServer()->GetUID() );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
     int iOK;
     if( m_kODBC.BeginFetch() )
@@ -604,7 +660,7 @@ IMPL_ON_FUNC( ELOG_INSERT_TRADE_LOG_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LTrade_INS", L"%d, %d, %d, %d, %d, %d, %d, %d",
 		% KBaseServer::GetKObj()->GetServerGroupID()
 		% kPacket_.m_iFromUserUID
@@ -614,7 +670,7 @@ IMPL_ON_FUNC( ELOG_INSERT_TRADE_LOG_NOT )
 		% kPacket_.m_iItemUID
 		% kPacket_.m_iItemID
 		% kPacket_.m_iQuantity );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_insert_trade_log", L"%d, %d, %d, %d, %d, %d, %d",
 		% kPacket_.m_iFromUserUID
 		% kPacket_.m_iFromUnitUID
@@ -623,7 +679,7 @@ IMPL_ON_FUNC( ELOG_INSERT_TRADE_LOG_NOT )
 		% kPacket_.m_iItemUID
 		% kPacket_.m_iItemID
 		% kPacket_.m_iQuantity );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -650,7 +706,7 @@ IMPL_ON_FUNC( ELOG_INSERT_PERSONAL_SHOP_LOG_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_STrade_INS", L"%d, %d, %d, %d, %d, %d, %d, %d, %d",
 		% KBaseServer::GetKObj()->GetServerGroupID() 
 		% kPacket_.m_iFromUnitUID
@@ -662,7 +718,7 @@ IMPL_ON_FUNC( ELOG_INSERT_PERSONAL_SHOP_LOG_NOT )
 		% kPacket_.m_bIsSquare
 		% (int)kPacket_.m_cPShopType );
 
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	//{{ 2011. 05. 11	최육사	대리상인
 #ifdef SERV_PSHOP_AGENCY
 	DO_QUERY( L"exec dbo.lup_insert_store_log", L"%d, %d, %d, %d, %d, %d, %d, %d",
@@ -685,7 +741,7 @@ IMPL_ON_FUNC( ELOG_INSERT_PERSONAL_SHOP_LOG_NOT )
 		% kPacket_.m_bIsSquare );
 #endif SERV_PSHOP_AGENCY
 	//}}
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -748,18 +804,26 @@ _IMPL_ON_FUNC( ELOG_STAT_RES_STONE, KStatisticsData )
             }
         }
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_StatsStoneCnt_MER", L"%d, %d, %d",
+			% KBaseServer::GetKObj()->GetServerGroupID()
+			% aiCount[KStatistics::eSIColResStone_PlayerCount]
+			% aiCount[KStatistics::eSIColResStone_UseCount]
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_StatsStoneCnt_SET", L"%d, %d, %d",
 			% KBaseServer::GetKObj()->GetServerGroupID()
 			% aiCount[KStatistics::eSIColResStone_PlayerCount]
 			% aiCount[KStatistics::eSIColResStone_UseCount]
 			);
-#else //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_ALL_RENEWAL_SP
+#else //SERV_RENEWAL_SP
 		DO_QUERY( L"exec dbo.StatsStoneCntUpdate", L"%d, %d",
 			% aiCount[KStatistics::eSIColResStone_PlayerCount]
 			% aiCount[KStatistics::eSIColResStone_UseCount]
 			);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
         if( m_kODBC.BeginFetch() )
         {
@@ -777,16 +841,18 @@ end_proc:
 }
 //}}
 
+#ifdef SERV_ADD_EVENT_DB
+#else //SERV_ADD_EVENT_DB
 IMPL_ON_FUNC_NOPARAM( DBE_EVENT_UPDATE_REQ )
 {
 	KDBE_EVENT_UPDATE_ACK kPacket;
 
 	// DB로부터 이벤트 리스트 데이터를 받아온다
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_EventInfo_SEL", L"%d", % KBaseServer::GetKObj()->GetServerGroupID() );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.lup_get_event" );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	while( m_kODBC.Fetch() )
 	{
@@ -823,6 +889,7 @@ end_proc:
 #endif SERV_EVENT_SCRIPT_REFRESH
 	//}}
 }
+#endif //SERV_ADD_EVENT_DB
 
 //{{ 2012. 02. 03	박세훈	이벤트 관련정보 처리방법 변경 ( Script -> DB )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
@@ -834,11 +901,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_RELEASE_TICK_UPDATE_REQ )
 	int iReleaseTick = 0;
 
 	// ReleaseTick 얻기
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_ReleaseTick_SEL", L"%d", % KBaseServer::GetKObj()->GetServerGroupID() );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.lup_get_release_tick" );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	while( m_kODBC.Fetch() )
 	{
@@ -858,7 +925,7 @@ IMPL_ON_FUNC( ELOG_INSERT_ABUSER_LOG_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_StatsAbusingLog_INS", L"%d, %d, %d, N\'%s\', %d, %d, %d, %d, N\'%s\', %d, %d, "
 		L"%d, %d, %d",
 		% KBaseServer::GetKObj()->GetServerGroupID()
@@ -876,7 +943,7 @@ IMPL_ON_FUNC( ELOG_INSERT_ABUSER_LOG_NOT )
 		% kPacket_.m_iKillCount				// @iKillCnt		tinyint
 		% kPacket_.m_iDeathCount			// @iDeathCnt		tinyint
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.StatsAbusingLogInsert", L"%d, %d, N\'%s\', %d, %d, %d, %d, N\'%s\', %d, %d, "
 		L"%d, %d, %d",
 		% kPacket_.m_iUserUID				// @iUserUID		bigint
@@ -893,7 +960,7 @@ IMPL_ON_FUNC( ELOG_INSERT_ABUSER_LOG_NOT )
 		% kPacket_.m_iKillCount				// @iKillCnt		tinyint
 		% kPacket_.m_iDeathCount			// @iDeathCnt		tinyint
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -929,12 +996,12 @@ IMPL_ON_FUNC( DBE_ABUSER_LIST_REQ )
 	KDBE_ABUSER_LIST_ACK ackPacket;
 
 	// Abuser List 얻기
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_AbuserList_SEL", L"%d, %d",	% KBaseServer::GetKObj()->GetServerGroupID()
 														% kPacket_.m_iRtt );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_get_abuser_list", L"%d", % kPacket_.m_iRtt );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	ackPacket.m_iRtt = kPacket_.m_iRtt;
 
@@ -961,11 +1028,11 @@ IMPL_ON_FUNC( DBE_ABUSER_LIST_REQ )
 	std::map< int, KAbuserList >::iterator mitAL;
 
 	// Release Tick 얻기
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_ReleaseTick_SEL", L"%d", % KBaseServer::GetKObj()->GetServerGroupID() );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.lup_get_release_tick" );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	while( m_kODBC.Fetch() )
 	{
@@ -996,12 +1063,12 @@ IMPL_ON_FUNC( DBE_ABUSER_LIST_REQ )
 	// Abuser List 얻기
 	for( mitAL = kPacket.m_mapAbuserList.begin(); mitAL != kPacket.m_mapAbuserList.end(); ++mitAL )
 	{
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_AbuserList_SEL", L"%d, %d",	% KBaseServer::GetKObj()->GetServerGroupID()
 															% mitAL->first );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 		DO_QUERY( L"exec dbo.lup_get_abuser_list", L"%d", % mitAL->first );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 		while( m_kODBC.Fetch() )
 		{
@@ -1037,11 +1104,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_GET_TIME_DROP_INFO_REQ )
 	KDBE_GET_TIME_DROP_INFO_ACK kPacket;
 
 	// Release Tick 얻기
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_DropEvent_SEL", L"%d", % KBaseServer::GetKObj()->GetServerGroupID() );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.lup_get_drop_event" );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	while( m_kODBC.Fetch() )
 	{
@@ -1082,18 +1149,12 @@ IMPL_ON_FUNC( DBE_CHECK_TIME_DROP_RESULT_REQ )
 	kPacket.m_iDropItemUID	= kPacket_.m_iDropItemUID;
 	
 	// 보상 받아도 되는 유저인지 검사
-#ifdef SERV_RENEWAL_STATISTICS_SP
-	DO_QUERY( L"exec dbo.P_DropEvent_UPD", L"%d, %d, %d", 
-		% KBaseServer::GetKObj()->GetServerGroupID() 
-		% kPacket_.m_iTimeDropID 
-		% kPacket_.m_iUserUID 
+#ifdef SERV_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_DropEvent_UPD", L"%d, %d, %d", % KBaseServer::GetKObj()->GetServerGroupID() % kPacket_.m_iTimeDropID % kPacket_.m_iUserUID 
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
-	DO_QUERY( L"exec dbo.lup_update_drop_event", L"%d, %d", 
-		% kPacket_.m_iTimeDropID 
-		% kPacket_.m_iUserUID 
-		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
+	DO_QUERY( L"exec dbo.lup_update_drop_event", L"%d, %d", % kPacket_.m_iTimeDropID % kPacket_.m_iUserUID );
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1139,18 +1200,18 @@ IMPL_ON_FUNC( ELOG_HENIR_DUNGEON_CLEAR_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_StatsTimeSpaceTop100_INS", L"%d, %d, %d, %d",
 		% KBaseServer::GetKObj()->GetServerGroupID()
 		% kPacket_.m_iUserUID
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_iPlayTime );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_insert_timespacetop100", L"%d, %d, %d",
 		% kPacket_.m_iUserUID
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_iPlayTime );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1176,14 +1237,16 @@ _IMPL_ON_FUNC( DBE_DB_LOG_DUNGEON_NOT, KE_LOCAL_LOG_DUNGEON_NOT )
 
 	int iOK = NetError::ERR_ODBC_01;
 		
-#ifdef SERV_RENEWAL_STATISTICS_SP
+	int iAPoint = 0; // PVE에서 추가되지만 SP를 변경하지 않기 위해 무조건 남기도록 함.
+
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LDungeonLog_INS",
 		L"%d, "
 		L"N\'%s\', %d, %d, N\'%s\', %d, %d, %d, %d, %d, %d, "
 		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
 		L"%d, %d, %d, %d, %d, %d, N\'%s\', %d, %d, %d, "
 		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
-		L"%d, %d, N\'%s\',%d, %d, %d, %d, %d, %d",
+		L"%d, %d, N\'%s\',%d, %d, %d, %d, %d, %d, %d",
 		% KBaseServer::GetKObj()->GetServerGroupID()
 		% wstrIP
 		% kPacket_.m_iDungeonID
@@ -1217,7 +1280,7 @@ _IMPL_ON_FUNC( DBE_DB_LOG_DUNGEON_NOT, KE_LOCAL_LOG_DUNGEON_NOT )
 		% kPacket_.m_iAttackDamage							// 30번
 		% kPacket_.m_sUsingSkillKind
 		% kPacket_.m_iTotalEXP
-		% kPacket_.m_iPetID									// SERV_PETID_DATA_TYPE_CHANGE
+		% kPacket_.m_iPetID
 		% static_cast<int>(kPacket_.m_cPetEvoStep)
 		% kPacket_.m_iDashCount
 		% kPacket_.m_iEndHP
@@ -1234,12 +1297,72 @@ _IMPL_ON_FUNC( DBE_DB_LOG_DUNGEON_NOT, KE_LOCAL_LOG_DUNGEON_NOT )
 		% kPacket_.m_iLeaveReason
 		% static_cast<int>(kPacket_.m_cRoomState)
 		% kPacket_.m_bSkillSlotType
+		% iAPoint
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	//{{ 2012. 12. 12  스킬 슬롯 사용 타입 로그 - 김민성
 #ifdef SERV_USE_SKILL_SLOT_TYPE_LOG
 	//{{ 2012. 12. 12	최육사	배틀필드 시스템
 	//#ifdef SERV_CHECK_USER_NEVER_RETURN_TO_FIELD
+#ifdef SERV_PETID_DATA_TYPE_CHANGE //2013.07.02
+	DO_QUERY( L"exec dbo.lup_insert_Dungeon_Log", 
+		L"N\'%s\', %d, %d, N\'%s\', %d, %d, %d, %d, %d, %d, "
+		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
+		L"%d, %d, %d, %d, %d, %d, N\'%s\', %d, %d, %d, "
+		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
+		L"%d, %d, N\'%s\',%d, %d, %d, %d, %d, %d, %d",
+		% wstrIP
+		% kPacket_.m_iDungeonID
+		% kPacket_.m_nUnitUID
+		% kPacket_.m_wstrNickName
+		% kPacket_.m_iDifficultyLevel
+		% kPacket_.m_iIsChallenge
+		% kPacket_.m_iUnitClass
+		% kPacket_.m_iClear
+		% kPacket_.m_iStartNumMember
+		% kPacket_.m_iEndNumMember							// 10번
+		% static_cast<int>(kPacket_.m_ucLevel)
+		% kPacket_.m_iPlayTime
+		% kPacket_.m_iEXP
+		% kPacket_.m_iED
+		% static_cast<int>(kPacket_.m_cComboRank)
+		% kPacket_.m_iComboScore
+		% static_cast<int>(kPacket_.m_cTechnicalRank)
+		% kPacket_.m_iTechnicalScore
+		% static_cast<int>(kPacket_.m_cTimeRank)
+		% static_cast<int>(kPacket_.m_cDamagedRank)			// 20번
+		% kPacket_.m_iDamageNum
+		% static_cast<int>(kPacket_.m_cTotalRank)
+		% kPacket_.m_iRessurectionStoneCount
+		% kPacket_.m_iPassedStageCount
+		% kPacket_.m_iPassedSubStageCount
+		% kPacket_.m_bIsWithPet
+		% kPacket_.m_wstrRegDate
+		% kPacket_.m_sNpcDieCount
+		% kPacket_.m_iGivenDamage
+		% kPacket_.m_iAttackDamage							// 30번
+		% kPacket_.m_sUsingSkillKind
+		% kPacket_.m_iTotalEXP
+		% kPacket_.m_iPetID
+		% static_cast<int>(kPacket_.m_cPetEvoStep)
+		% kPacket_.m_iDashCount
+		% kPacket_.m_iEndHP
+		% kPacket_.m_iStartContinue
+		% kPacket_.m_iContinueUseStage
+		% kPacket_.m_iContinueUseSub
+		% kPacket_.m_iFrame									// 40번
+		% kPacket_.m_iBaseHP
+		% kPacket_.m_iRecovHP
+		% kPacket_.m_wstrChannelIP
+		% kPacket_.m_iUserUID
+		% static_cast<int>(kPacket_.m_cAutoPartyPlay)
+		% kPacket_.m_iAutoPartyWaitTime
+		% kPacket_.m_iLeaveReason
+		% static_cast<int>(kPacket_.m_cRoomState)
+		% kPacket_.m_bSkillSlotType
+		% iAPoint
+		);
+#else //SERV_PETID_DATA_TYPE_CHANGE
 	DO_QUERY( L"exec dbo.lup_insert_Dungeon_Log", 
 		L"N\'%s\', %d, %d, N\'%s\', %d, %d, %d, %d, %d, %d, "
 		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
@@ -1278,7 +1401,7 @@ _IMPL_ON_FUNC( DBE_DB_LOG_DUNGEON_NOT, KE_LOCAL_LOG_DUNGEON_NOT )
 		% kPacket_.m_iAttackDamage							// 30번
 		% kPacket_.m_sUsingSkillKind
 		% kPacket_.m_iTotalEXP
-		% kPacket_.m_iPetID									// SERV_PETID_DATA_TYPE_CHANGE
+		% static_cast<int>(kPacket_.m_cPetID)
 		% static_cast<int>(kPacket_.m_cPetEvoStep)
 		% kPacket_.m_iDashCount
 		% kPacket_.m_iEndHP
@@ -1296,6 +1419,7 @@ _IMPL_ON_FUNC( DBE_DB_LOG_DUNGEON_NOT, KE_LOCAL_LOG_DUNGEON_NOT )
 		% static_cast<int>(kPacket_.m_cRoomState)
 		% kPacket_.m_bSkillSlotType
 		);
+#endif //SERV_PETID_DATA_TYPE_CHANGE
 	//#endif SERV_CHECK_USER_NEVER_RETURN_TO_FIELD
 	//}}
 #else
@@ -1339,7 +1463,7 @@ _IMPL_ON_FUNC( DBE_DB_LOG_DUNGEON_NOT, KE_LOCAL_LOG_DUNGEON_NOT )
 		% kPacket_.m_iAttackDamage							// 30번
 		% kPacket_.m_sUsingSkillKind
 		% kPacket_.m_iTotalEXP
-		% kPacket_.m_iPetID									// SERV_PETID_DATA_TYPE_CHANGE
+		% static_cast<int>(kPacket_.m_cPetID)
 		% static_cast<int>(kPacket_.m_cPetEvoStep)
 		% kPacket_.m_iDashCount
 		% kPacket_.m_iEndHP
@@ -1360,7 +1484,7 @@ _IMPL_ON_FUNC( DBE_DB_LOG_DUNGEON_NOT, KE_LOCAL_LOG_DUNGEON_NOT )
 	//}}
 #endif SERV_USE_SKILL_SLOT_TYPE_LOG
 	//}}
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1433,6 +1557,7 @@ end_proc:
 #ifdef SERV_USE_SKILL_SLOT_TYPE_LOG
 		<< BUILD_LOG( kPacket_.m_bSkillSlotType )
 #endif SERV_USE_SKILL_SLOT_TYPE_LOG
+		<< BUILD_LOG( iAPoint )
 		//}}
 		<< END_LOG;
 }
@@ -1447,12 +1572,12 @@ IMPL_ON_FUNC_NOPARAM( DBE_GET_DUNGEON_EVENT_INFO_REQ )
 	KDBE_GET_DUNGEON_EVENT_INFO_ACK kPacket;
 
 	// 특정 시각 몬스터 출현 이벤트 정보 얻기
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LExpo_Event_SEL", L"%d, %d", % KBaseServer::GetKObj()->GetServerGroupID() 
 														% KBaseServer::GetKObj()->GetUID() );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_get_expo_event", L"%d", % KBaseServer::GetKObj()->GetUID() );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	while( m_kODBC.Fetch() )
 	{
@@ -1487,20 +1612,20 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_MONSTER_KILL_INFO_NOT )
 	CTime tDieDate = CTime( kPacket_.m_tNpcDieDate );
 	const std::wstring wstrDieDate = (const wchar_t*)tDieDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LExpo_Event_UPD", L"%d, %d, %d, N\'%s\'", 
 		% KBaseServer::GetKObj()->GetServerGroupID() 
 		% kPacket_.m_iEventUID
 		% kPacket_.m_iKillUnitUID
 		% wstrDieDate
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_update_expo_event", L"%d, %d, N\'%s\'", 
 		% kPacket_.m_iEventUID
 		% kPacket_.m_iKillUnitUID
 		% wstrDieDate
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1531,7 +1656,7 @@ IMPL_ON_FUNC( ELOG_APPROPRIATE_LEVEL_STATISTICS_NOT )
 	{
 		int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_LEquipmentLog_INS", L"%d, %d, %d, %d, %d, %d, %d, %d, %d, N\'%s\'", 
 			% KBaseServer::GetKObj()->GetServerGroupID()
 			% kInfo.m_iUnitUID
@@ -1544,7 +1669,7 @@ IMPL_ON_FUNC( ELOG_APPROPRIATE_LEVEL_STATISTICS_NOT )
 			% kInfo.m_iStartedAtkMagic
 			% wstrDungeonStartTime
 			);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 		DO_QUERY( L"exec dbo.lup_insert_Equipment_Log", L"%d, %d, %d, %d, %d, %d, %d, %d, N\'%s\'", 
 			% kInfo.m_iUnitUID
 			% static_cast<int>(kInfo.m_ucLevel)
@@ -1556,7 +1681,7 @@ IMPL_ON_FUNC( ELOG_APPROPRIATE_LEVEL_STATISTICS_NOT )
 			% kInfo.m_iStartedAtkMagic
 			% wstrDungeonStartTime
 			);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 		if( m_kODBC.BeginFetch() )
 		{
@@ -1586,18 +1711,18 @@ end_proc:
 #ifdef SERV_DUNGEON_CLEAR_TIME_HACK_USER_CHECK
 IMPL_ON_FUNC( DBE_REG_DUNGEON_CLEAR_TIME_HACK_USER_NOT )
 {
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LDungeonTimeHackUser_INS", L"%d, %d, N\'%s\'", 
 		% KBaseServer::GetKObj()->GetServerGroupID() 
 		% kPacket_.m_iUserUID
 		% kPacket_.m_wstrRegDate
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_insert_DGT_HackUser", L"%d, N\'%s\'", 
 		% kPacket_.m_iUserUID
 		% kPacket_.m_wstrRegDate
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 end_proc:
 	return;
@@ -1611,7 +1736,7 @@ IMPL_ON_FUNC( DBE_DB_TEMP_LOG_DUNGEON_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LDungeonTempLog_INS", 
 		L"%d, "
 		L"%d, %d, N\'%s\', %d, %d, %d, %d, %d, %d, %d, N\'%s\',  "		// 11개
@@ -1654,7 +1779,7 @@ IMPL_ON_FUNC( DBE_DB_TEMP_LOG_DUNGEON_NOT )
 		% kPacket_.m_wstrRegDate
 		% kPacket_.m_bComeBackParty
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_insert_Dungeon_Temp_Log",
 		L"%d, %d, N\'%s\', %d, %d, %d, %d, %d, %d, %d, N\'%s\',  "		// 11개
 		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "				// 10개
@@ -1695,7 +1820,7 @@ IMPL_ON_FUNC( DBE_DB_TEMP_LOG_DUNGEON_NOT )
 		% kPacket_.m_wstrRegDate
 		% kPacket_.m_bComeBackParty
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 		if( m_kODBC.BeginFetch() )
 		{
@@ -1751,7 +1876,7 @@ IMPL_ON_FUNC( ELOG_DUNGEON_STAGE_LOG_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LDungeonStageLog_INS", L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, N\'%s\'", 
 		% KBaseServer::GetKObj()->GetServerGroupID() 
 		% kPacket_.m_iDungeonID
@@ -1766,7 +1891,7 @@ IMPL_ON_FUNC( ELOG_DUNGEON_STAGE_LOG_NOT )
 		% kPacket_.m_iResurrectionCount
 		% kPacket_.m_wstrRegDate
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.lup_insert_dungeon_stage", 
 		L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, N\'%s\'", 
 		% kPacket_.m_iDungeonID
@@ -1781,7 +1906,7 @@ IMPL_ON_FUNC( ELOG_DUNGEON_STAGE_LOG_NOT )
 		% kPacket_.m_iResurrectionCount
 		% kPacket_.m_wstrRegDate
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1818,11 +1943,11 @@ IMPL_ON_FUNC( DBE_PVP_MATCH_RESULT_LOG_NOT )
 	//////////////////////////////////////////////////////////////////////////
 	// 로그 기록을 위한 준비 작업
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LArenaUIDCreate_SEL", L"%d",	% KBaseServer::GetKObj()->GetServerGroupID() );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.lup_get_ArenaUID" );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1847,7 +1972,7 @@ IMPL_ON_FUNC( DBE_PVP_MATCH_RESULT_LOG_NOT )
 	{
 		iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_LUnitPVPLog_INS", 
 			L"%d, "
 			L"%d, %d, %d, %d, N\'%s\', %d, %d, %d, %d, %d, "
@@ -1881,7 +2006,7 @@ IMPL_ON_FUNC( DBE_PVP_MATCH_RESULT_LOG_NOT )
 			% kUserLog.m_iEXPearned
 			% kPacket_.m_wstrRegDate
 			);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 		DO_QUERY( L"exec dbo.lup_insert_unitpvp_log", 
 			L"%d, %d, %d, %d, N\'%s\', %d, %d, %d, %d, %d, "
 			L"%d, %d, %d, %d, N\'%s\', %d, %d, %d, %d, %d, "
@@ -1913,7 +2038,7 @@ IMPL_ON_FUNC( DBE_PVP_MATCH_RESULT_LOG_NOT )
 			% kUserLog.m_iEXPearned
 			% kPacket_.m_wstrRegDate
 			);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 		if( m_kODBC.BeginFetch() )
 		{
@@ -2002,7 +2127,7 @@ IMPL_ON_FUNC( ELOG_COLLECTION_OF_RELAY_AND_P2P_INFO_NOT )
 	{
 		int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_LP2P_RelayLog_INS ", 
 			L"%d, %d, %d, %d, %d, N\'%s\', N\'%s\'",
 			% KBaseServer::GetKObj()->GetServerGroupID()
@@ -2013,7 +2138,7 @@ IMPL_ON_FUNC( ELOG_COLLECTION_OF_RELAY_AND_P2P_INFO_NOT )
 			% kInfo.m_wstrRelayServerIP
 			% kInfo.m_wstrRegDate
 			);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_LP2P_RelayLog_INT ", 
 			L"%d, %d, %d, %d, N\'%s\', N\'%s\'",
 			% kInfo.m_iGameType
@@ -2023,7 +2148,7 @@ IMPL_ON_FUNC( ELOG_COLLECTION_OF_RELAY_AND_P2P_INFO_NOT )
 			% kInfo.m_wstrRelayServerIP
 			% kInfo.m_wstrRegDate
 			);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 		if( m_kODBC.BeginFetch() )
 		{
@@ -2110,7 +2235,7 @@ IMPL_ON_FUNC( ELOG_BATTLE_FIELD_LEAVE_LOG_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LFieldLog_INS", 
 		L"%d, "
 		L"N\'%s\', %d, %d, %d, %d, N\'%s\', %d, %d, %d, %d, "
@@ -2133,7 +2258,7 @@ IMPL_ON_FUNC( ELOG_BATTLE_FIELD_LEAVE_LOG_NOT )
 		% kPacket_.m_sNpcDieCount
 //#endif SERV_ADD_FIELD_LOG_COLUMN
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LFieldLog_INT", 
 		L"N\'%s\', %d, %d, %d, %d, N\'%s\', %d, %d, %d, %d, "
 		L"%d, N\'%s\', %d",
@@ -2151,7 +2276,7 @@ IMPL_ON_FUNC( ELOG_BATTLE_FIELD_LEAVE_LOG_NOT )
 		% kPacket_.m_wstrRegDate
 		% kPacket_.m_iFieldFrame
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -2188,7 +2313,7 @@ IMPL_ON_FUNC( ELOG_BATTLE_FIELD_LEAVE_LOG_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LFieldLog_INS",
 		L"%d, "
 		L"N\'%s\', %d, %d, %d, %d, N\'%s\', %d, %d, %d, %d, "
@@ -2207,7 +2332,7 @@ IMPL_ON_FUNC( ELOG_BATTLE_FIELD_LEAVE_LOG_NOT )
 		% kPacket_.m_iGetED
 		% kPacket_.m_wstrRegDate
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LFieldLog_INT", 
 		L"N\'%s\', %d, %d, %d, %d, N\'%s\', %d, %d, %d, %d, "
 		L"%d, N\'%s\'",
@@ -2224,7 +2349,7 @@ IMPL_ON_FUNC( ELOG_BATTLE_FIELD_LEAVE_LOG_NOT )
 		% kPacket_.m_iGetED
 		% kPacket_.m_wstrRegDate
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -2263,7 +2388,7 @@ IMPL_ON_FUNC( DBE_DUNGEON_RESULT_LEAVE_LOG_NOT )
 {
 	int iOK = NetError::ERR_ODBC_01;
 
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LDungeonLeaveLog_INS", L"%d, %d, N\'%s\', N\'%s\', N\'%s\'", 
 		% KBaseServer::GetKObj()->GetServerGroupID() 
 		% kPacket_.m_iUnitUID
@@ -2271,14 +2396,15 @@ IMPL_ON_FUNC( DBE_DUNGEON_RESULT_LEAVE_LOG_NOT )
 		% kPacket_.m_wstrRoomState
 		% kPacket_.m_wstrRegDate
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
-	DO_QUERY( L"exec dbo.P_LDungeonLeaveLog_INT", L"%d, N\'%s\', N\'%s\', N\'%s\'",
+#else //SERV_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_LDungeonLeaveLog_INT", 
+		L"%d, N\'%s\', N\'%s\', N\'%s\'",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_wstrLeaveReason
 		% kPacket_.m_wstrRoomState
 		% kPacket_.m_wstrRegDate
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -2308,7 +2434,7 @@ IMPL_ON_FUNC( DBE_TICK_PERFORMANCE_LOG_NOT )
 	int iOK = NetError::ERR_ODBC_01;
 
 	// SimLayer Tick 퍼포먼스 기록
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LServerSimLayerTickLog_INS", L"%d, %d, %d, %d, N\'%s\', N\'%s\'", 
 		% KBaseServer::GetKObj()->GetServerGroupID()
 		% kPacket_.m_iServerUID
@@ -2317,7 +2443,7 @@ IMPL_ON_FUNC( DBE_TICK_PERFORMANCE_LOG_NOT )
 		% kPacket_.m_wstrMaxTickRegDate
 		% kPacket_.m_wstrRegDate
 		);
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_LServerSimLayerTickLog_INS", L"%d, %d, %d, N\'%s\', N\'%s\'", 
 		% kPacket_.m_iServerUID
 		% kPacket_.m_iServerType
@@ -2325,7 +2451,7 @@ IMPL_ON_FUNC( DBE_TICK_PERFORMANCE_LOG_NOT )
 		% kPacket_.m_wstrMaxTickRegDate
 		% kPacket_.m_wstrRegDate
 		);
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( iOK );
@@ -2392,6 +2518,8 @@ end_proc:
 //}}
 
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
+#ifdef SERV_ADD_EVENT_DB
+#else //SERV_ADD_EVENT_DB
 IMPL_ON_FUNC_NOPARAM( DBE_CHECK_EVENT_UPDATE_REQ )
 {
 	KDBE_CHECK_EVENT_UPDATE_ACK		AckPacket;
@@ -2399,11 +2527,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_CHECK_EVENT_UPDATE_REQ )
 	int iReleaseTick = 0;
 
 	// ReleaseTick 얻기
-#ifdef SERV_RENEWAL_STATISTICS_SP
+#ifdef SERV_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_ReleaseTick_SEL", L"%d", % KBaseServer::GetKObj()->GetServerGroupID() );
-#else //SERV_RENEWAL_STATISTICS_SP
+#else //SERV_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.lup_get_release_tick" );
-#endif //SERV_RENEWAL_STATISTICS_SP
+#endif //SERV_RENEWAL_SP
 
 	while( m_kODBC.Fetch() )
 	{
@@ -2415,6 +2543,7 @@ IMPL_ON_FUNC_NOPARAM( DBE_CHECK_EVENT_UPDATE_REQ )
 end_proc:
 	SendToServer( DBE_CHECK_EVENT_UPDATE_ACK, AckPacket );
 }
+#endif //SERV_ADD_EVENT_DB
 #endif SERV_REFRESH_EVENT_USING_RELEASE_TICK
 
 //{{ 2013. 2. 26	박세훈	랜선렉 방지 코드2
@@ -2519,3 +2648,160 @@ end_proc:
 	return;
 }
 #endif // SERV_DUNGEON_STAGE_LOAD_LOG
+
+
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK // 2013-09-10 우상혁
+IMPL_ON_FUNC( ELOG_HENIR_HACKING_LOG_NOT )
+{
+    /*프로시저 명: [dbo].[P_LHenirHackUserLog_INS]
+
+    전달 인자:
+               @UserUID     bigint
+        ,      @UnitUID     bigint
+        ,      @StartMember tinyint
+        ,      @PlayTime    int
+        ,      @RegDate     smalldatetime
+
+        반환 값: Result (인설트 실패 시 -1 반환)*/
+    std::wstring wstrTime = (LPCTSTR)CTime::GetCurrentTime().Format( _T("%y%m%d %H:%M:%S") );
+    BOOST_TEST_FOREACH( const KHenirHackUserData&, sData, kPacket_.m_vecHackUser )
+    {
+        DO_QUERY( L"exec dbo.P_LHenirHackUserLog_INS",
+            L"%d, %d, %d, %d, N\'%s\' ",
+            % sData.m_iUserUID
+            % sData.m_iUnitUID
+            % sData.m_iMemberNum
+            % sData.m_iPlayTime
+            % wstrTime );
+
+        int iOK = NetError::ERR_ODBC_01;
+        if( m_kODBC.BeginFetch() )
+        {
+            FETCH_DATA( iOK );
+            m_kODBC.EndFetch();
+        }
+    }
+
+end_proc:
+    return;
+}
+#endif // SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+
+_IMPL_ON_FUNC( ELOG_GEN_FIELD_MIDDLE_BOSS_STAT_NOT, KFieldBossGenKillStat )
+{
+    DO_QUERY( L"exec dbo.P_StatsFieldBossSpawn_INS",
+        L"%d, %d",
+        % kPacket_.m_nFieldID 
+        % kPacket_.m_nSpawnID
+        );
+
+    int iOK = NetError::ERR_ODBC_01;
+    if( m_kODBC.BeginFetch() )
+    {
+        FETCH_DATA( iOK );
+        m_kODBC.EndFetch();
+       
+    }
+end_proc:
+    LOG_SUCCESS( iOK == 0 )
+        << BUILD_LOG( kPacket_.m_nFieldID )
+        << BUILD_LOG( kPacket_.m_nSpawnID )
+        << END_LOG;
+
+    return;
+}
+
+_IMPL_ON_FUNC( ELOG_KILL_FIELD_MIDDLE_BOSS_STAT_NOT, KFieldBossGenKillStat )
+{
+    DO_QUERY( L"exec dbo.P_StatsFieldBossKill_INS",
+        L"%d, %d, %d",
+        % kPacket_.m_nFieldID 
+        % kPacket_.m_nSpawnID
+        % kPacket_.m_nNumUser
+        );
+
+    int iOK = NetError::ERR_ODBC_01;
+    if( m_kODBC.BeginFetch() )
+    {
+        FETCH_DATA( iOK );
+        m_kODBC.EndFetch();
+
+    }
+end_proc:
+    LOG_SUCCESS( iOK == 0 )
+        << BUILD_LOG( kPacket_.m_nFieldID )
+        << BUILD_LOG( kPacket_.m_nSpawnID )
+        << END_LOG;
+
+    return;
+}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-12-03	// 박세훈
+IMPL_ON_FUNC( DBE_BOSS_FIELD_LOG_NOT )
+{
+	// 방에 대한 로그 쓰기
+	DO_QUERY( L"exec dbo.P_LBossFieldLog_INS",
+		L"%d, %d, N\'%s\', %d, %d, %d",
+		% kPacket_.m_kFieldLog.m_iBossFieldID
+		% kPacket_.m_kFieldLog.m_iPortalMapID
+		% kPacket_.m_kFieldLog.m_wstrPortalOpenTime
+		% kPacket_.m_kFieldLog.m_bSucceed
+		% kPacket_.m_kFieldLog.m_iPlayTime
+		% kPacket_.m_kFieldLog.m_byteRemainUserCount
+		);
+
+	int iOK = NetError::ERR_ODBC_01;
+	int iLogUID;
+
+	if( m_kODBC.BeginFetch() )
+	{
+		FETCH_DATA( iOK
+			>> iLogUID
+			);
+		m_kODBC.EndFetch();
+	}
+
+	if( iOK != NetError::NET_OK )
+	{
+		LOG_SUCCESS( iOK == NetError::NET_OK )
+			<< END_LOG;
+
+		goto end_proc;
+	}
+
+	// 방에 있었던 유저들의 로그 쓰기
+	for( KDBE_BOSS_FIELD_LOG_NOT::TYPE_BOSS_FIELD_USER_LOG::const_iterator it = kPacket_.m_mapUserLog.begin(); it != kPacket_.m_mapUserLog.end(); ++it )
+	{
+		const std::vector<KBossFieldUserLog>& vecUserLog = it->second;
+
+		BOOST_TEST_FOREACH( const KBossFieldUserLog&, kData, vecUserLog )
+		{
+			DO_QUERY( L"exec dbo.P_LBossFieldLog_Unit_INS",
+				L"%d, %d, N\'%s\', %d, %d, %d, %d, %d, %d, %d, "
+				L"%d, %d",
+				% iLogUID
+				% kData.m_iUnitUID
+				% kData.m_wstrNickName
+				% kData.m_byteLevel
+				% kData.m_byteClass
+				% kData.m_byteCompletionType
+				% kData.m_byteContributionRank
+				% kData.m_iEXP
+				% kData.m_iED
+				% kData.m_iGivenDamage
+				% kData.m_iAttackDamage
+				% kData.m_sNumResurrectionStone
+				);
+
+			if( m_kODBC.BeginFetch() )
+			{
+				FETCH_DATA( iOK );
+				m_kODBC.EndFetch();
+			}
+		}
+	}
+
+end_proc:
+	return;
+}
+#endif // SERV_BATTLE_FIELD_BOSS

@@ -55,11 +55,6 @@ KRoom::KRoom()
 	m_bIsItemMode = false;
 #endif DUNGEON_ITEM
 
-	//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	m_iBuffType = KRoomInfo::RBT_NONE;
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	//}}
 	//{{ 2012. 05. 23	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	m_usEventIDForTimeCount = 0;
@@ -294,11 +289,6 @@ void KRoom::GetRoomInfo( OUT KRoomInfo& kInfo )
 	kInfo.m_bIsItemMode		= m_bIsItemMode;
 #endif DUNGEON_ITEM
 
-	//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	kInfo.m_iBuffType = m_iBuffType;
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	//}}
 #ifdef SERV_PVP_REMATCH
 	kInfo.m_mapAllPlayersSelectedMap = m_mapAllPlayersSelectedMap;
 #endif SERV_PVP_REMATCH
@@ -1265,6 +1255,15 @@ IMPL_ON_FUNC( ERM_JOIN_ROOM_REQ )
 				return;
 			}
 		}
+
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-10-08	// 박세훈
+		if( IsOfficialMatch() == true )
+		{
+			kPacket.m_iOK = NetError::ERR_ROOM_53;	// 공식 대전에는 난입할 수 없습니다.
+			SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, usEventID, kPacket );
+			return;
+		}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
 	}
 
     // 입장한 유저를 슬롯에 넣는다.
@@ -2306,14 +2305,14 @@ IMPL_ON_FUNC( ERM_SET_QUEST_ITEM_INFO_NOT )
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM
 	//}}
 
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM
+#ifdef SERV_PAYMENT_ITEM_ON_GOING_QUEST
 	if( m_spRoomUserManager->SetUnitGoingQuestInfo( FIRST_SENDER_UID, kPacket_.m_setGoingQuestInfo ) == false )
 	{
 		START_LOG( cerr, L"진행중 퀘스트 정보 실패.!" )
 			<< BUILD_LOG( FIRST_SENDER_UID )
 			<< END_LOG;
 	}
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM
+#endif SERV_PAYMENT_ITEM_ON_GOING_QUEST
 }
 
 //{{ 2008. 4. 2  최육사  근성도 회복 아이템
@@ -2338,6 +2337,9 @@ IMPL_ON_FUNC( ERM_CHAR_LEVEL_UP_NOT )
 	kPacketNot.m_ucLevel = kPacket_.m_kRoomUserInfo.m_ucLevel;
 	kPacketNot.m_kBaseStat = kPacket_.m_kBaseStat;
 	kPacketNot.m_kGameStat = kPacket_.m_kRoomUserInfo.m_kGameStat;
+#ifdef SERV_ELESIS_UPDATE_EVENT
+	kPacketNot.m_iNoteViewCount = kPacket_.m_iNoteViewCount;
+#endif SERV_ELESIS_UPDATE_EVENT
 	BroadCast( ERM_CHAR_LEVEL_UP_NOT, kPacketNot );
 }
 //}}
@@ -2643,7 +2645,7 @@ _IMPL_ON_FUNC( ERM_UPDATE_BUFF_INFO_IN_ROOM_NOT, KEGS_UPDATE_BUFF_INFO_IN_ROOM_N
 	spRoomUser->UpdateGameStat( kPacket_.m_kGameStat );
 	//{{ 2012. 12. 18	최육사	아라 파티 플레이 보너스 경험치
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
-	//spRoomUser->SetBonusRate( kPacket_.m_mapBonusRate );
+	spRoomUser->SetBonusRate( kPacket_.m_mapBonusRate );
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 	//}}
 
@@ -2779,7 +2781,7 @@ _IMPL_ON_FUNC( ERM_UPDATE_NPC_UNIT_BUFF_INFO_NOT, KEGS_UPDATE_NPC_UNIT_BUFF_INFO
 	KEGS_UPDATE_NPC_UNIT_BUFF_INFO_BROAD_NOT kPacketNot;
 	kPacketNot.m_vecNpcUnitBuff = kPacket_.m_vecNpcUnitBuff;
 
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
 	// ToUnitUID값이 0이면 브로드 캐스팅
 	if( kPacket_.m_vecToUnitUID.empty() == true )
@@ -2810,30 +2812,30 @@ _IMPL_ON_FUNC( ERM_UPDATE_NPC_UNIT_BUFF_INFO_NOT, KEGS_UPDATE_NPC_UNIT_BUFF_INFO
 	}
 
 
-#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-
-	// ToUnitUID값이 0이면 브로드 캐스팅
-	if( kPacket_.m_iToUnitUID == 0 )
-	{
-		BroadCast( ERM_UPDATE_NPC_UNIT_BUFF_INFO_BROAD_NOT, kPacketNot );
-	}
-	else
-	{
-		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( kPacket_.m_iToUnitUID );
-		if( IS_NULL( spRoomUser ) )
-		{
-			START_LOG( cerr, L"존재하지 않는 유저에게 버프정보를 보내려고 했다!" )
-				<< BUILD_LOG( GetUID() )
-				<< BUILD_LOG( FIRST_SENDER_UID )
-				<< BUILD_LOG( kPacket_.m_iToUnitUID )
-				<< END_LOG;
-			return;
-		}
-
-		SendToGSCharacter( spRoomUser->GetGSUID(), spRoomUser->GetCID(), ERM_UPDATE_NPC_UNIT_BUFF_INFO_BROAD_NOT, kPacketNot );
-	}
-
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//
+//	// ToUnitUID값이 0이면 브로드 캐스팅
+//	if( kPacket_.m_iToUnitUID == 0 )
+//	{
+//		BroadCast( ERM_UPDATE_NPC_UNIT_BUFF_INFO_BROAD_NOT, kPacketNot );
+//	}
+//	else
+//	{
+//		KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( kPacket_.m_iToUnitUID );
+//		if( IS_NULL( spRoomUser ) )
+//		{
+//			START_LOG( cerr, L"존재하지 않는 유저에게 버프정보를 보내려고 했다!" )
+//				<< BUILD_LOG( GetUID() )
+//				<< BUILD_LOG( FIRST_SENDER_UID )
+//				<< BUILD_LOG( kPacket_.m_iToUnitUID )
+//				<< END_LOG;
+//			return;
+//		}
+//
+//		SendToGSCharacter( spRoomUser->GetGSUID(), spRoomUser->GetCID(), ERM_UPDATE_NPC_UNIT_BUFF_INFO_BROAD_NOT, kPacketNot );
+//	}
+//
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
 }
 #endif SERV_SERVER_BUFF_SYSTEM

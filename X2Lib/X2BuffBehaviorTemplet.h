@@ -6,7 +6,11 @@
 
 class CX2BuffTemplet;
 class CX2BuffBehaviorTemplet;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2BuffBehaviorTemplet> CX2BuffBehaviorTempletPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2BuffBehaviorTemplet> CX2BuffBehaviorTempletPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 /** @class : CX2BuffBehaviorTemplet
 	@brief : 버프의 행동 방식을 정의하는 클래스
@@ -18,10 +22,17 @@ public:
 	static bool ParsingCombinationBehavior( KLuaManager& luaManager_, OUT vector<CX2BuffBehaviorTempletPtr>& vecBuffBehaviorTempletPtr_ );
 	
 	CX2BuffBehaviorTemplet( const CX2BuffBehaviorTemplet& rhs_ ) : m_eType( rhs_.m_eType ), m_bStart( rhs_.m_bStart )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{}
 	virtual ~CX2BuffBehaviorTemplet() {}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ ) {}
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ ) {}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ ) = NULL;
 	virtual CX2BuffBehaviorTempletPtr GetClonePtr() const = NULL;
 	virtual void GetFactor( OUT vector<KBuffBehaviorFactor>& vecFactors_ ) const = NULL;
@@ -31,20 +42,44 @@ public:
 	bool DidStart() const { return m_bStart; }
 	void SetStart(bool val) { m_bStart = val; }
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 해당 BBT 타입을 받아와야 할 경우가 있어서 추가, GetType 과 동일
+	BUFF_BEHAVIOR_TYPE GetBuffBehaviorType() const { return m_eType; }
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
+
 protected:
-	CX2BuffBehaviorTemplet() : m_eType( BBT_NONE ), m_bStart( false ) {}
+	CX2BuffBehaviorTemplet() : m_eType( BBT_NONE ), m_bStart( false )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR    
+    {}
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    CX2BuffBehaviorTemplet& operator = ( const CX2BuffBehaviorTemplet& );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 	BUFF_BEHAVIOR_TYPE GetType() const { return m_eType; }
 	void SetType(BUFF_BEHAVIOR_TYPE val) { m_eType = val; }
 
-	bool		ParsingBehaviorTemplateMethod( KLuaManager& luaManager_, const WCHAR* pwszTableName_ );
+	bool		ParsingBehaviorTemplateMethod( KLuaManager& luaManager_, const char* pszTableName_ );
 	virtual bool ParsingBehavior( KLuaManager& luaManager_ ) { return true; }
 	virtual void SetFactorFromPacket( const KBuffFactor& kBuffFactor_, const KBuffBehaviorFactor& kFactor_, CX2GameUnit* pGameUnit_ ) {};
 
 private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	BUFF_BEHAVIOR_TYPE		m_eType;
 	bool					m_bStart;
 };
+
+IMPLEMENT_INTRUSIVE_PTR( CX2BuffBehaviorTemplet );
+
 
 /** @class : CX2BuffChangeNowHpPerSecondBehaviorTemplet
 	@brief : 초당 HP가 변경 되는 행동을 정의 하는 클래스
@@ -72,7 +107,12 @@ public:
 
 	static CX2BuffBehaviorTempletPtr	CreateBuffBehaviorTempletPtr() { return CX2BuffBehaviorTempletPtr( new CX2BuffChangeNowHpPerSecondBehaviorTemplet ); }
 
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffBehaviorTempletPtr GetClonePtr() const;
 	virtual void GetFactor( OUT vector<KBuffBehaviorFactor>& vecFactors_ ) const;
@@ -123,7 +163,11 @@ public:
 
 	static CX2BuffBehaviorTempletPtr	CreateBuffBehaviorTempletPtr() { return CX2BuffBehaviorTempletPtr( new CX2BuffChangeNowMpPerSecondBehaviorTemplet ); }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffBehaviorTempletPtr GetClonePtr() const;
 	virtual void GetFactor( OUT vector<KBuffBehaviorFactor>& vecFactors_ ) const;
@@ -164,7 +208,11 @@ public:
 
 	static CX2BuffBehaviorTempletPtr	CreateBuffBehaviorTempletPtr() { return CX2BuffBehaviorTempletPtr( new CX2BuffReverseLeftRightBehaviorTemplet ); }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffBehaviorTempletPtr GetClonePtr() const;
 	virtual void GetFactor( OUT vector<KBuffBehaviorFactor>& vecFactors_ ) const;
@@ -387,7 +435,11 @@ public:
 
 	static CX2BuffBehaviorTempletPtr	CreateBuffBehaviorTempletPtr() { return CX2BuffBehaviorTempletPtr( new CX2BuffChangeHyperModeBehaviorTemplet ); }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffBehaviorTempletPtr GetClonePtr() const;
 	virtual void GetFactor( OUT vector<KBuffBehaviorFactor>& vecFactors_ ) const;
@@ -422,7 +474,11 @@ public:
 
 	static CX2BuffBehaviorTempletPtr	CreateBuffBehaviorTempletPtr() { return CX2BuffBehaviorTempletPtr( new CX2BuffResetSkillCoolTimeBehaviorTemplet ); }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffBehaviorTempletPtr GetClonePtr() const;
 	virtual void GetFactor( OUT vector<KBuffBehaviorFactor>& vecFactors_ ) const;
@@ -605,7 +661,11 @@ public:
 	virtual void GetFactor( OUT vector<KBuffBehaviorFactor>& vecFactors_ ) const;
 	virtual void SetFactorFromPacket( const KBuffFactor& kBuffFactor_, const KBuffBehaviorFactor& kFactor_, CX2GameUnit* pGameUnit_ );
 	virtual void DoFinish( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 protected:
 	CX2BuffFreezeBehaviorTemplet() : CX2BuffBehaviorTemplet()
@@ -632,7 +692,11 @@ public:
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffBehaviorTempletPtr GetClonePtr() const;
 	virtual void GetFactor( OUT vector<KBuffBehaviorFactor>& vecFactors_ ) const;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual void OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 protected:
 	CX2BuffCanPassUnitBehaviorTemplet() 
@@ -744,6 +808,10 @@ public:
 protected:
 	CX2BuffChangeEncahntAttackRateBehaviorTemplet() : CX2BuffBehaviorTemplet(),
 		m_eChangeType( BCT_SWAP_VALUE ), m_fRate( 0.f )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 기본 값은 모든 속성 강화
+		, m_eEnchantAttributeType ( BEAT_ALL )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	{}
 
 	virtual bool ParsingBehavior( KLuaManager& luaManager_ );
@@ -751,6 +819,9 @@ protected:
 private:
 	BUFF_CHANGE_TYPE				m_eChangeType;
 	float							m_fRate;
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	BUFF_ENCHANT_ATTRIBUTE_TYPE		m_eEnchantAttributeType;	// 인챈트 속성 타입
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 };
 
 /** @class : CX2BuffChangeEncahntAttackRateBehaviorTemplet

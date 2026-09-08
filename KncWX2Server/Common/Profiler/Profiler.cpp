@@ -98,7 +98,11 @@ void KProfiler::Begin( wchar_t* lpwName )
 	}
 
 	// 3. 처음 기록시 초기화
+#ifdef _CONVERT_VS_2010
+	wcscpy_s( m_oSample[i].m_wszName, lpwName );
+#else
 	wcscpy( m_oSample[i].m_wszName, lpwName );
+#endif _CONVERT_VS_2010
 
 	m_oSample[i].m_bValid = true;
 	m_oSample[i].m_iOpenProfiles = 1;
@@ -243,7 +247,24 @@ void KProfiler::DumpProfileOutput( std::wostream& stm_ )
 		wchar_t Total[16] = {0};
 
 		// 출력
-		_snwprintf( Average, 16, L"%2.5f", m_oSample[i].m_dwAvgTime );
+#ifdef _CONVERT_VS_2010
+		_snwprintf_s( Average, 16, L"%2.5f", m_oSample[i].m_dwAvgTime );
+		_snwprintf_s( Minimum, 16, L"%2.5f", m_oSample[i].m_dwMinTime );
+		_snwprintf_s( Maximum, 16, L"%2.5f", m_oSample[i].m_dwMaxTime );
+		_snwprintf_s( Number, 16, L"%9d", m_oSample[i].m_uiProfileInstance );
+		_snwprintf_s( Total, 16, L"%2.5f", m_oSample[i].m_dAccumulator );
+
+		wcsncpy_s( IndentedName, m_oSample[i].m_wszName, 256 );
+
+		//for( Indent = 0; Indent < m_oSample[i].m_uiNumberOfParents; ++Indent )
+		//{
+		//	_snwprintf( Name, 256, L"  %s", IndentedName );
+		//	wcsncpy( IndentedName, Name, 256 );
+		//}
+
+		_snwprintf_s( Line, 256, L"%9s : %9s : %9s : %9s : %9s : %s\n", Average, Minimum, Maximum, Number, Total, IndentedName );
+#else
+_snwprintf( Average, 16, L"%2.5f", m_oSample[i].m_dwAvgTime );
 		_snwprintf( Minimum, 16, L"%2.5f", m_oSample[i].m_dwMinTime );
 		_snwprintf( Maximum, 16, L"%2.5f", m_oSample[i].m_dwMaxTime );
 		_snwprintf( Number, 16, L"%9d", m_oSample[i].m_uiProfileInstance );
@@ -258,6 +279,7 @@ void KProfiler::DumpProfileOutput( std::wostream& stm_ )
 		//}
 
 		_snwprintf( Line, 256, L"%9s : %9s : %9s : %9s : %9s : %s\n", Average, Minimum, Maximum, Number, Total, IndentedName );
+#endif _CONVERT_VS_2010
 		stm_ << Line;
 
 		++i;
@@ -307,6 +329,22 @@ void KProfiler::DumpProfileOutput( std::wostream& stm_ )
 		}
 
 		// 3. 출력
+#ifdef _CONVERT_VS_2010
+		_snwprintf_s( Average, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dAverage );
+		_snwprintf_s( Minimum, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dMinimun );
+		_snwprintf_s( Maximum, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dMaximum );
+		_snwprintf_s( Number, 16, L"%9d", m_oHistories[uiHistoryIndex].m_uiProfileInstance );
+
+		wcsncpy_s( IndentedName, m_oHistories[uiHistoryIndex].m_wszName, 256 );
+
+		//for( Indent = 0; Indent < m_oSample[i].m_uiNumberOfParents; ++Indent )
+		//{
+		//	_snwprintf( Name, 256, L"  %s", IndentedName );
+		//	wcsncpy( IndentedName, Name, 256 );
+		//}
+
+		_snwprintf_s( Line, 256, L"%9s : %9s : %9s : %9s : %s\n", Average, Minimum, Maximum, Number, IndentedName );
+#else
 		_snwprintf( Average, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dAverage );
 		_snwprintf( Minimum, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dMinimun );
 		_snwprintf( Maximum, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dMaximum );
@@ -321,6 +359,7 @@ void KProfiler::DumpProfileOutput( std::wostream& stm_ )
 		//}
 
 		_snwprintf( Line, 256, L"%9s : %9s : %9s : %9s : %s\n", Average, Minimum, Maximum, Number, IndentedName );
+#endif _CONVERT_VS_2010
 		stm_ << Line;
 
 		++i;
@@ -399,6 +438,23 @@ void KProfiler::DumpToLogFile()
 		wchar_t Total[16] = {0};
 
 		// 출력
+#ifdef _CONVERT_VS_2010
+		_snwprintf_s( Average, 16, L"%2.5f", m_oSample[i].m_dwAvgTime );
+		_snwprintf_s( Minimum, 16, L"%2.5f", m_oSample[i].m_dwMinTime );
+		_snwprintf_s( Maximum, 16, L"%2.5f", m_oSample[i].m_dwMaxTime );
+		_snwprintf_s( Number, 16, L"%9d", m_oSample[i].m_uiProfileInstance );
+		_snwprintf_s( Total, 16, L"%2.5f", m_oSample[i].m_dAccumulator );
+
+		wcsncpy_s( IndentedName, m_oSample[i].m_wszName, 256 );
+
+		//for( Indent = 0; Indent < m_oSample[i].m_uiNumberOfParents; ++Indent )
+		//{
+		//	_snwprintf( Name, 256, L"  %s", IndentedName );
+		//	wcsncpy( IndentedName, Name, 256 );
+		//}
+
+		_snwprintf_s( Line, 256, L"%9s : %9s : %9s : %9s : %9s : %s\n", Average, Minimum, Maximum, Number, Total, IndentedName );
+#else
 		_snwprintf( Average, 16, L"%2.5f", m_oSample[i].m_dwAvgTime );
 		_snwprintf( Minimum, 16, L"%2.5f", m_oSample[i].m_dwMinTime );
 		_snwprintf( Maximum, 16, L"%2.5f", m_oSample[i].m_dwMaxTime );
@@ -414,6 +470,7 @@ void KProfiler::DumpToLogFile()
 		//}
 
 		_snwprintf( Line, 256, L"%9s : %9s : %9s : %9s : %9s : %s\n", Average, Minimum, Maximum, Number, Total, IndentedName );
+#endif _CONVERT_VS_2010
 		dbg::cout << Line;
 
 		++i;
@@ -463,6 +520,22 @@ void KProfiler::DumpToLogFile()
 		}
 
 		// 3. 출력
+#ifdef _CONVERT_VS_2010
+		_snwprintf_s( Average, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dAverage );
+		_snwprintf_s( Minimum, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dMinimun );
+		_snwprintf_s( Maximum, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dMaximum );
+		_snwprintf_s( Number, 16, L"%9d", m_oHistories[uiHistoryIndex].m_uiProfileInstance );
+
+		wcsncpy_s( IndentedName, m_oHistories[uiHistoryIndex].m_wszName, 256 );
+
+		//for( Indent = 0; Indent < m_oSample[i].m_uiNumberOfParents; ++Indent )
+		//{
+		//	_snwprintf( Name, 256, L"  %s", IndentedName );
+		//	wcsncpy( IndentedName, Name, 256 );
+		//}
+
+		_snwprintf_s( Line, 256, L"%9s : %9s : %9s : %9s : %s\n", Average, Minimum, Maximum, Number, IndentedName );
+#else
 		_snwprintf( Average, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dAverage );
 		_snwprintf( Minimum, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dMinimun );
 		_snwprintf( Maximum, 16, L"%2.5f", m_oHistories[uiHistoryIndex].m_dMaximum );
@@ -477,6 +550,7 @@ void KProfiler::DumpToLogFile()
 		//}
 
 		_snwprintf( Line, 256, L"%9s : %9s : %9s : %9s : %s\n", Average, Minimum, Maximum, Number, IndentedName );
+#endif _CONVERT_VS_2010
 		dbg::cout << Line;
 
 		++i;
@@ -525,7 +599,11 @@ bool KProfiler::StoreProfileInHistory( wchar_t* lpwName, const PROFILE_SAMPLE& o
 
 	if( i < MAX_PROFILE_SAMPLE )
 	{
+#ifdef _CONVERT_VS_2010
+		wcsncpy_s( m_oHistories[i].m_wszName, lpwName, MAX_PATH );
+#else
 		wcsncpy( m_oHistories[i].m_wszName, lpwName, MAX_PATH );
+#endif _CONVERT_VS_2010
 
 		m_oHistories[i].m_bValid = true;
 		m_oHistories[i].m_dAverage = oSample.m_dwAvgTime;

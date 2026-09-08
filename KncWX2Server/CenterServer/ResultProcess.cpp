@@ -27,7 +27,9 @@
 	#include "KPVPResultTable.h"
 #endif SERV_PVP_NEW_SYSTEM
 //}}
-
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+#include "GameEvent/GameEventScriptManager.h"
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 
 NiImplementRootRTTI( KResultProcess );
 ImplementRefreshSingleton( KResultProcess );
@@ -1374,7 +1376,11 @@ bool KResultProcess::Result_DUNGEON( IN OUT KRoomUserManagerPtr spRoomUserManage
 									OUT int& iClearStageCount,
 									OUT KEGS_END_GAME_DUNGEON_RESULT_DATA_NOT& kUnitInfoNot,
 									OUT std::vector< KRoomUserPtr >& vecKRoomUserPtr,
-									OUT std::vector< KERM_UPDATE_DUNGEON_UNIT_INFO_NOT >& vecUpdateUnitInfo )
+									OUT std::vector< KERM_UPDATE_DUNGEON_UNIT_INFO_NOT >& vecUpdateUnitInfo
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+									,IN const int iTotalValentineTIme
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+									)
 {
 	//공통으로 들어갈 결과정보를 셋팅한다..
 	kUnitInfoNot.m_bIsWin		= bIsWin;
@@ -1548,7 +1554,11 @@ bool KResultProcess::Result_DUNGEON( IN OUT KRoomUserManagerPtr spRoomUserManage
 			if( spRoomUser->IsHenirRewardUser() == true )
 			{
 				// 성공했든 실패했든 상관없이 보상주자! 도전 보상!!
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-23	// 박세훈
+				if( SiKHenirResultTable()->GetHenirChallangeRewardItem( cDungeonMode, iStageID, kUpdateUnitInfo.m_mapResultItem ) == true )
+#else // SERV_HENIR_RENEWAL_2013
 				if( SiKHenirResultTable()->GetHenirChallangeRewardItem( iStageID, kUpdateUnitInfo.m_mapResultItem ) == true )
+#endif // SERV_HENIR_RENEWAL_2013
 				{
 					std::map< int, KItemInfo >::const_iterator mitHR;
 					for( mitHR = kUpdateUnitInfo.m_mapResultItem.begin(); mitHR != kUpdateUnitInfo.m_mapResultItem.end(); ++mitHR )
@@ -1581,92 +1591,6 @@ bool KResultProcess::Result_DUNGEON( IN OUT KRoomUserManagerPtr spRoomUserManage
 		//}}
 		//////////////////////////////////////////////////////////////////////////
 
-		//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-		if( bIsWin == true )
-		{
-			CTime tCurr = CTime::GetCurrentTime();
-			CTime tStartEvent = SiKGameSysVal()->GetDungeonClearEventStartTime();
-			CTime tEndEvent = SiKGameSysVal()->GetDungeonClearEventEndTime();
-
-			if( tStartEvent <= tCurr && tCurr <= tEndEvent )
-			{
-				if( eDungeonType == CXSLDungeon::DT_NORMAL || eDungeonType == CXSLDungeon::DT_SECRET )
-				{
-					const CXSLItem::ItemTemplet *pItemTemplet = SiCXSLItemManager()->GetItemTemplet( CXSLItem::EI_CHAR_LEVEL_UP_ITEM );
-					if( pItemTemplet == NULL )
-					{
-						START_LOG( cerr, L"아이템 정보가 존재하지 않습니다!" )
-							<< BUILD_LOG( CXSLItem::EI_CHAR_LEVEL_UP_ITEM )
-							<< END_LOG;
-					}
-					else
-					{
-						KItemInfo kInfo;
-						kInfo.m_iItemID		  = CXSLItem::EI_CHAR_LEVEL_UP_ITEM; // 현자의 주문서
-						kInfo.m_cUsageType	  = pItemTemplet->m_PeriodType;
-						kInfo.m_iQuantity	  = 1;
-						kInfo.m_sEndurance	  = pItemTemplet->m_Endurance;
-						kUpdateUnitInfo.m_mapResultItem.insert( std::make_pair( CXSLItem::EI_CHAR_LEVEL_UP_ITEM, kInfo ) );
-
-						// 해당 룸유저에 받은 보상 정보를 추가한다. (결과창에서 표시하기 위해서)
-						spRoomUser->AddItem( CXSLItem::EI_CHAR_LEVEL_UP_ITEM, 1 );
-					}
-					//////////////////////////////////////////////////////////////////////////
-					START_LOG( clog, L"도전 보상!" )
-						<< BUILD_LOG( spRoomUser->GetNickName() )
-						<< BUILD_LOG( CXSLItem::EI_CHAR_LEVEL_UP_ITEM )
-						<< END_LOG;
-					//////////////////////////////////////////////////////////////////////////
-				}
-			}
-		}
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-		//}}
-
-		//{{ 2012. 07. 09	김민성       현자의 마법석
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_STONE_EVENT
-		if( bIsWin == true )
-		{
-			CTime tCurr = CTime::GetCurrentTime();
-			CTime tStartEvent = SiKGameSysVal()->GetDungeonClearEventStartTime();
-			CTime tEndEvent = SiKGameSysVal()->GetDungeonClearEventEndTime();
-
-			if( tStartEvent <= tCurr && tCurr <= tEndEvent )
-			{
-				if( eDungeonType == CXSLDungeon::DT_NORMAL || eDungeonType == CXSLDungeon::DT_SECRET )
-				{
-					const CXSLItem::ItemTemplet *pItemTemplet = SiCXSLItemManager()->GetItemTemplet( CXSLItem::EI_WISE_MAN_STONE_ITEM );
-					if( pItemTemplet == NULL )
-					{
-						START_LOG( cerr, L"아이템 정보가 존재하지 않습니다!" )
-							<< BUILD_LOG( CXSLItem::EI_CHAR_LEVEL_UP_ITEM )
-							<< END_LOG;
-					}
-					else
-					{
-						KItemInfo kInfo;
-						kInfo.m_iItemID		  = CXSLItem::EI_WISE_MAN_STONE_ITEM; // 현자의 마법석
-						kInfo.m_cUsageType	  = pItemTemplet->m_PeriodType;
-						kInfo.m_iQuantity	  = 1;
-						kInfo.m_sEndurance	  = pItemTemplet->m_Endurance;
-						kUpdateUnitInfo.m_mapResultItem.insert( std::make_pair( CXSLItem::EI_WISE_MAN_STONE_ITEM, kInfo ) );
-
-						// 해당 룸유저에 받은 보상 정보를 추가한다. (결과창에서 표시하기 위해서)
-						spRoomUser->AddItem( CXSLItem::EI_WISE_MAN_STONE_ITEM, 1 );
-					}
-					//////////////////////////////////////////////////////////////////////////
-					START_LOG( clog, L"도전 보상!" )
-						<< BUILD_LOG( spRoomUser->GetNickName() )
-						<< BUILD_LOG( CXSLItem::EI_WISE_MAN_STONE_ITEM )
-						<< END_LOG;
-					//////////////////////////////////////////////////////////////////////////
-				}
-			}
-		}
-#endif SERV_DUNGEON_CLEAR_PAYMENT_STONE_EVENT
-		//}}
-
 		//{{ 2011. 12. 06	최육사	PC방 유저 던전 클리어 시 추가 아이템 지급 이벤트
 #ifdef SERV_PC_BANG_USER_DUNGEON_CLEAR_PAYMENT_ITEM
 		if( bIsWin == true )
@@ -1697,7 +1621,75 @@ bool KResultProcess::Result_DUNGEON( IN OUT KRoomUserManagerPtr spRoomUserManage
 		}
 #endif SERV_PC_BANG_USER_DUNGEON_CLEAR_PAYMENT_ITEM
 		//}}
-		
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		if( bIsWin == true )
+		{
+			//던전 클리어시 해당 던전 인것 체크해서 여기서 보상 지급하자
+			//발렌타인 던전일때만 체크해서 보상 주자
+			if( iDungeonID == SEnum::DI_EVENT_VALENTINE_DUNGEON_INT )
+			{	
+				KRoomUserInfo kInfo;
+				spRoomUser->GetRoomUserInfo(kInfo);
+				START_LOG( clog, L"발렌타인 던전 보상 카운트" )
+					<< BUILD_LOG( kInfo.m_iValentineItemCount )
+					<< END_LOG;
+				if( kInfo.m_iValentineItemCount < SiKGameEventScriptManager()->GetValenTinePlayCount() )
+				{
+					//보상 받을 수 있다.시간 계산 하자
+					const CXSLItem::ItemTemplet *pItemTemplet = SiCXSLItemManager()->GetItemTemplet( SiKGameEventScriptManager()->GetValenItemID() );
+					if( pItemTemplet == NULL )
+					{
+						START_LOG( cerr, L"아이템 정보가 존재하지 않습니다!" )
+							<< BUILD_LOG( SiKGameEventScriptManager()->GetValenItemID() )
+							<< END_LOG;
+					}
+					else
+					{
+						if( iTotalValentineTIme >= SiKGameEventScriptManager()->GetIntermediateTime() ) ///최대 시간 수치 
+						{
+							KItemInfo kInfo;
+							kInfo.m_iItemID		  = pItemTemplet->m_ItemID; //헬렌의 감사 스탬프
+							kInfo.m_cUsageType	  = pItemTemplet->m_PeriodType;
+							kInfo.m_iQuantity	  = SiKGameEventScriptManager()->GetValenItemNum_1();
+							kInfo.m_sEndurance	  = pItemTemplet->m_Endurance;
+							kUpdateUnitInfo.m_mapResultItem.insert( std::make_pair( pItemTemplet->m_ItemID, kInfo ) );
+							// 해당 룸유저에 받은 보상 정보를 추가한다. (결과창에서 표시하기 위해서)
+							spRoomUser->AddItem( pItemTemplet->m_ItemID, kInfo.m_iQuantity );
+						}
+						else if( iTotalValentineTIme < SiKGameEventScriptManager()->GetIntermediateTime() && iTotalValentineTIme >= SiKGameEventScriptManager()->GetExpertTime() )
+						{
+							KItemInfo kInfo;
+							kInfo.m_iItemID		  = pItemTemplet->m_ItemID; //헬렌의 감사 스탬프
+							kInfo.m_cUsageType	  = pItemTemplet->m_PeriodType;
+							kInfo.m_iQuantity	  = SiKGameEventScriptManager()->GetValenItemNum_2();
+							kInfo.m_sEndurance	  = pItemTemplet->m_Endurance;
+							kUpdateUnitInfo.m_mapResultItem.insert( std::make_pair( pItemTemplet->m_ItemID, kInfo ) );
+							// 해당 룸유저에 받은 보상 정보를 추가한다. (결과창에서 표시하기 위해서)
+							spRoomUser->AddItem( pItemTemplet->m_ItemID, kInfo.m_iQuantity );
+						}
+						else if( iTotalValentineTIme < SiKGameEventScriptManager()->GetExpertTime() )
+						{
+							KItemInfo kInfo;
+							kInfo.m_iItemID		  = pItemTemplet->m_ItemID; //헬렌의 감사 스탬프
+							kInfo.m_cUsageType	  = pItemTemplet->m_PeriodType;
+							kInfo.m_iQuantity	  = SiKGameEventScriptManager()->GetValenItemNum_3();
+							kInfo.m_sEndurance	  = pItemTemplet->m_Endurance;
+							kUpdateUnitInfo.m_mapResultItem.insert( std::make_pair( pItemTemplet->m_ItemID, kInfo ) );
+							// 해당 룸유저에 받은 보상 정보를 추가한다. (결과창에서 표시하기 위해서)
+							spRoomUser->AddItem( pItemTemplet->m_ItemID, kInfo.m_iQuantity );
+						}
+					}
+				}
+				START_LOG( clog, L" 발렌타인 보상 받기 위한 정보" )
+					<< BUILD_LOG( iTotalValentineTIme )
+					<< BUILD_LOG( SiKGameEventScriptManager()->GetBeginnerTime() )
+					<< BUILD_LOG( SiKGameEventScriptManager()->GetIntermediateTime() )
+					<< BUILD_LOG( SiKGameEventScriptManager()->GetExpertTime() )
+					<< BUILD_LOG( SiKGameEventScriptManager()->GetValenItemID() )
+					<< END_LOG;
+			}
+		}
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 		//////////////////////////////////////////////////////////////////////////
 		// 죽었을 때  보상     헤니르의 시공 보상 처리
 		//////////////////////////////////////////////////////////////////////////
@@ -1738,6 +1730,10 @@ bool KResultProcess::Result_DUNGEON( IN OUT KRoomUserManagerPtr spRoomUserManage
 #ifdef SERV_INTEGRATION
 				kDungeonUnitInfo.m_nEventEXP = (int)((kDungeonUnitInfo.m_nEXP+kDungeonUnitInfo.m_nPartyBonusEXP) * spRoomUser->GetBonusRate( KRoomUserInfo::BT_GEV_EXP ) );
 				kDungeonUnitInfo.m_nEventEXP += (int)(kDungeonUnitInfo.m_nPartyBonusEXP * spRoomUser->GetBonusRate( KRoomUserInfo::BT_GEV_PARTY_EXP ) );
+	#ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+				kDungeonUnitInfo.m_nEventEXP += (int)((kDungeonUnitInfo.m_nEXP+kDungeonUnitInfo.m_nPartyBonusEXP) * spRoomUser->GetBonusRate( KRoomUserInfo::BT_GEV_WITH_CHAR_EXP ) );
+	#endif // SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+
 #else
 				//kDungeonUnitInfo.m_nEventEXP = (int)((kDungeonUnitInfo.m_nEXP+kDungeonUnitInfo.m_nPartyBonusEXP) * m_fGameEvent[GEV_EXP]);
 				//kDungeonUnitInfo.m_nEventEXP += (int)(kDungeonUnitInfo.m_nPartyBonusEXP * m_fGameEvent[GEV_PARTY_EXP]);
@@ -1789,7 +1785,14 @@ bool KResultProcess::Result_DUNGEON( IN OUT KRoomUserManagerPtr spRoomUserManage
 		//{{ 2012. 03. 15	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		// 자동 파티 보너스
+#ifdef SERV_DO_NOT_SUPPLY_AUTO_PARTY_BONUS_AT_EVENT_DUNGEON// 작업날짜: 2013-10-23	// 박세훈
+		if( ( bIsWin == true )
+			&& ( spRoomUser->IsActivatedAutoPartyBonus() == true )
+			&& ( CXSLDungeon::IsEventDungeon( iDungeonID ) == false )
+			)
+#else
 		if( bIsWin  &&  spRoomUser->IsActivatedAutoPartyBonus() )
+#endif // SERV_DO_NOT_SUPPLY_AUTO_PARTY_BONUS_AT_EVENT_DUNGEON
 		{
 			bool bCheckLevelForAutoPartyBonus = false;
 			switch( eDungeonType )
@@ -1903,6 +1906,9 @@ bool KResultProcess::Result_DUNGEON( IN OUT KRoomUserManagerPtr spRoomUserManage
 				kRankingInfo.m_ucLevel		= spRoomUser->GetLevel();
 				kRankingInfo.m_ulPlayTime	= nTotalPlayTime; // nTotalPlayTime : 로딩 시간 뺀걸로 랭킹 시간 넣어야함!
 				kRankingInfo.m_tRegDate		= static_cast<__int64>( CTime::GetCurrentTime().GetTime() );
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+				kRankingInfo.m_bytePlayStartedUserNum	= spRoomUserManager->GetPlayStartedUserNum();
+#endif // SERV_HENIR_RENEWAL_2013
 
 				kUpdateUnitInfo.m_kHenirRankingInfo.push_back( kRankingInfo );
 			}
@@ -2088,7 +2094,6 @@ bool KResultProcess::Result_DUNGEON( IN OUT KRoomUserManagerPtr spRoomUserManage
 			}
 #endif SERV_GAME_BANG_PET_ADD_EXP
 			//}}			
-
 #endif SERV_PC_BANG_TYPE
 		}
 
@@ -2100,6 +2105,10 @@ bool KResultProcess::Result_DUNGEON( IN OUT KRoomUserManagerPtr spRoomUserManage
 			kDungeonUnitInfo.m_nEventEXP = (int)((kDungeonUnitInfo.m_nEXP+kDungeonUnitInfo.m_nPartyBonusEXP) * spRoomUser->GetBonusRate( KRoomUserInfo::BT_GEV_EXP ) );
 
 			kDungeonUnitInfo.m_nEventEXP += (int)(kDungeonUnitInfo.m_nPartyBonusEXP * spRoomUser->GetBonusRate( KRoomUserInfo::BT_GEV_PARTY_EXP ) );
+	#ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+			kDungeonUnitInfo.m_nEventEXP += (int)((kDungeonUnitInfo.m_nEXP+kDungeonUnitInfo.m_nPartyBonusEXP) * spRoomUser->GetBonusRate( KRoomUserInfo::BT_GEV_WITH_CHAR_EXP ) );
+	#endif // SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+
 #else
 			//kDungeonUnitInfo.m_nED		+= (int)(spRoomUser->GetRewardED() * m_fGameEvent[GEV_ED]);
 			//kDungeonUnitInfo.m_nEventEXP = (int)((kDungeonUnitInfo.m_nEXP+kDungeonUnitInfo.m_nPartyBonusEXP) * m_fGameEvent[GEV_EXP]);
@@ -3254,9 +3263,18 @@ bool KResultProcess::Result_DefenceDUNGEON( IN OUT KRoomUserManagerPtr spRoomUse
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 		switch( cDifficulty )
 		{
-		case CXSLDungeon::DL_NORMAL:	kDungeonUnitInfo.m_nEXP	= static_cast<int>( SiKDropTable()->GetNpcExp( spRoomUser->GetLevel() ) * 47 * 1.5f );	break;
-		case CXSLDungeon::DL_HARD:		kDungeonUnitInfo.m_nEXP	= static_cast<int>( SiKDropTable()->GetNpcExp( spRoomUser->GetLevel() ) * 47 * 1.8f );	break;
-		case CXSLDungeon::DL_EXPERT:	kDungeonUnitInfo.m_nEXP	= static_cast<int>( SiKDropTable()->GetNpcExp( spRoomUser->GetLevel() ) * 47 * 3.0f );	break;
+		/// itexpertkim // 김현철 // 2014-01-14 
+		/// 기획자(김대일)의 요청에 의해 공식 변경
+		/// 노말 모드에서 익스퍼트 모드에서의 경험치 공식을 사용하도록 변경
+		/// 물론, 현재 어둠의 문은 노말 모드 밖에 없음
+// 		case CXSLDungeon::DL_NORMAL:	kDungeonUnitInfo.m_nEXP	= static_cast<int>( SiKDropTable()->GetNpcExp( spRoomUser->GetLevel() ) * 47 * 1.5f );	break;
+// 		case CXSLDungeon::DL_HARD:		kDungeonUnitInfo.m_nEXP	= static_cast<int>( SiKDropTable()->GetNpcExp( spRoomUser->GetLevel() ) * 47 * 1.8f );	break;
+// 		case CXSLDungeon::DL_EXPERT:	kDungeonUnitInfo.m_nEXP	= static_cast<int>( SiKDropTable()->GetNpcExp( spRoomUser->GetLevel() ) * 47 * 3.0f );	break;
+		case CXSLDungeon::DL_NORMAL:
+		case CXSLDungeon::DL_HARD:
+		case CXSLDungeon::DL_EXPERT:
+			kDungeonUnitInfo.m_nEXP	= static_cast<int>( SiKDropTable()->GetNpcExp( spRoomUser->GetLevel() ) * 47 * 3.0f );
+			break;
 		}
 #else
 		kDungeonUnitInfo.m_nEXP	= SiKDropTable()->GetNpcExp( spRoomUser->GetLevel() ) * 47 * iProtectedCrystalCount;
@@ -3304,6 +3322,9 @@ bool KResultProcess::Result_DefenceDUNGEON( IN OUT KRoomUserManagerPtr spRoomUse
 			kDungeonUnitInfo.m_nEventEXP = (int)((kDungeonUnitInfo.m_nEXP+kDungeonUnitInfo.m_nPartyBonusEXP) * spRoomUser->GetBonusRate( KRoomUserInfo::BT_GEV_EXP ) );
 
 			kDungeonUnitInfo.m_nEventEXP += (int)(kDungeonUnitInfo.m_nPartyBonusEXP * spRoomUser->GetBonusRate( KRoomUserInfo::BT_GEV_PARTY_EXP ) );
+	#ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+			kDungeonUnitInfo.m_nEventEXP += (int)((kDungeonUnitInfo.m_nEXP+kDungeonUnitInfo.m_nPartyBonusEXP) * spRoomUser->GetBonusRate( KRoomUserInfo::BT_GEV_WITH_CHAR_EXP ) );
+	#endif // SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 #else
 			//kDungeonUnitInfo.m_nED		+= (int)(spRoomUser->GetRewardED() * m_fGameEvent[GEV_ED]);
 			//kDungeonUnitInfo.m_nEventEXP = (int)((kDungeonUnitInfo.m_nEXP+kDungeonUnitInfo.m_nPartyBonusEXP) * m_fGameEvent[GEV_EXP]);

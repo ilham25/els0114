@@ -630,6 +630,9 @@ bool KUserLetterBox::GetItemInfo( UidType iPostNo, KItemInfo& kNewItemInfo )
 	kNewItemInfo.m_cEnchantLevel   = kPostItemInfo.m_cEnchantLevel;
 	kNewItemInfo.m_kAttribEnchantInfo = kPostItemInfo.m_kAttribEnchantInfo;
 	kNewItemInfo.m_vecItemSocket   = kPostItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+	kNewItemInfo.m_byteExpandedSocketNum	= kPostItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 	//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	kNewItemInfo.m_vecRandomSocket = kPostItemInfo.m_vecRandomSocket;

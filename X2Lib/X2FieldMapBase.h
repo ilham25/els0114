@@ -61,13 +61,11 @@ protected:
 
 	D3DXVECTOR3 m_vEyePos;
 	D3DXVECTOR3 m_vLookAt;
-#ifdef REFORM_UI_WORLDMAP
 	float	m_fFov;		/// 시야각 값, 라디안 값임(아트에서 Degree 값을 주면 라디안으로 계산해서 넣어야됨)
 	float	m_fAspect;	/// 종횡비
 	
 	CKTDGUIButton*	m_pMyChar;
 	CKTDGUIButton*	m_pPartyMember[4];
-#endif
 
 	D3DXMATRIX		m_matWorld;
 	D3DXMATRIX		m_matView;

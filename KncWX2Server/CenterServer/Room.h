@@ -214,7 +214,6 @@ protected:
 	void	CheckPingScore();
 #endif SERV_CHOOSE_FASTEST_HOST
 	//}
-
 #ifdef SERV_PVP_REMATCH
 	virtual void	Rematch() {}
 	virtual bool	CanRematch() { return false; }
@@ -439,7 +438,6 @@ protected:
 	bool								m_bEnableRemainingPlayTime;
 
     boost::timer                        m_kTimer[TM_TOTAL_NUM];
-
 	//{{ 2011. 11. 7	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	KRoomUserManagerPtr					m_spRoomUserManager;
@@ -457,11 +455,6 @@ protected:
 	bool								m_bIsItemMode;
 #endif DUNGEON_ITEM
 
-	//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	int									m_iBuffType;
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	//}}
 	//{{ 2012. 05. 23	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	u_short								m_usEventIDForTimeCount;

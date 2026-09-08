@@ -442,10 +442,10 @@ bool CX2PVPRoom::GetItemMode()
 	if ( !RoomPacketData.m_mapPvpNpcInfo.empty() )
 		Set_KRoomSlotInfoNpc( RoomPacketData.m_mapPvpNpcInfo );
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
         g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_PVP ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 }
 #endif // HEAP_BROKEN_BY_ROOM

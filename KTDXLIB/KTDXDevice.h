@@ -7,11 +7,15 @@
 
 
 class CKTDXDevice;
+class CKTDXDeviceManager;
 typedef std::list<CKTDXDevice*> CKTDXDevicePtrList;
 
 class CKTDXDevice
 {
 	public:
+
+        friend class    CKTDXDeviceManager;
+
 		enum DEVICETYPE
 		{
 			DT_TEXTURE,
@@ -47,33 +51,32 @@ class CKTDXDevice
 			, m_eDeviceState( DEVICE_STATE_INIT )
 			, m_RefCount( 0 )
 		{}
-	virtual ~CKTDXDevice(void){ _UnLoad(); }
+
 
 
 		virtual HRESULT OnResetDevice(){ return S_OK; }
 		virtual HRESULT OnLostDevice(){ return S_OK; }
 
     bool    LoadDevice(
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				bool bBackgroundQueueing = false
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 		);
 
 #ifdef CHECK_SOUND_LOADING_TIME
 	bool    CheckLoadDevice(
 		bool& bCreateSound,
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 		bool bBackgroundQueueing = false
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 		);
 #endif // CHECK_SOUND_LOADING_TIME
 
 	void    RefDevice();
-    EDeviceState    PendDevice();
-    bool    UnrefDevice();
+
 	int GetRefCount() const     { return m_RefCount; }
 		int GetSize() { return m_Size; }
-		wstring& GetDeviceID(){ return m_DeviceID; }
+		const wstring& GetDeviceID(){ return m_DeviceID; }
 		DEVICETYPE GetDeviceType(){ return m_DeviceType; }
 
 	//bool IsLoading(){ return m_bLoading; }
@@ -84,7 +87,7 @@ class CKTDXDevice
     bool    IsFailed() const            { return m_eDeviceState == DEVICE_STATE_FAILED; }
 
 	bool GetWithoutFile() const { return m_bWithoutFile; }
-	void SetWithoutFile(bool val) { m_bWithoutFile = val; }
+
 
 //#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
     //public:
@@ -111,18 +114,24 @@ class CKTDXDevice
 
 protected:
 
+	virtual ~CKTDXDevice(void){ _UnLoad(); }
+    EDeviceState    PendDevice();
+    bool    UnrefDevice();
+    bool    UnrefDeviceIfReferedOnce();
+	void SetWithoutFile(bool val) { m_bWithoutFile = val; }
+
 	virtual HRESULT     _Load( bool bSkipStateCheck = false
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool bBackgroundQueueing = false
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 		)         { return S_OK; }
 
 #ifdef CHECK_SOUND_LOADING_TIME
 	virtual HRESULT _CheckLoad( bool& bCreateSound,
 		bool bSkipStateCheck = false
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 		, bool bBackgroundQueueing = false
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD		
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD		
 		)		{ return S_OK; }
 #endif // CHECK_SOUND_LOADING_TIME
 

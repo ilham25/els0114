@@ -81,7 +81,6 @@ class CX2Stat
 			}
 
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			void ConvertAndAddStat( const Stat& baseStat_, const int iHpIncrementValue_ )
 			{
 				m_fBaseHP			+= baseStat_.m_fBaseHP;
@@ -102,7 +101,6 @@ class CX2Stat
 				m_ExtraStat.m_fIncreaseDefMagicRate += baseStat_.m_ExtraStat.m_fIncreaseDefMagicRate;
 	#endif
 			}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 			void DecStat( const Stat& baseStat, bool bIncludeExtra = false )
@@ -174,18 +172,15 @@ class CX2Stat
 				LimitMaximum();
 			}
 
-			void SetStat( const Stat* kStat )
+			void SetStat( const Stat& kStat )
 			{
-				if ( kStat == NULL )
-					return;
+				m_fBaseHP			= (float)kStat.m_fBaseHP;
 
-				m_fBaseHP			= (float)kStat->m_fBaseHP;
+				m_fAtkPhysic		= (float)kStat.m_fAtkPhysic;
+				m_fAtkMagic			= (float)kStat.m_fAtkMagic;
 
-				m_fAtkPhysic		= (float)kStat->m_fAtkPhysic;
-				m_fAtkMagic			= (float)kStat->m_fAtkMagic;
-
-				m_fDefPhysic		= (float)kStat->m_fDefPhysic;
-				m_fDefMagic			= (float)kStat->m_fDefMagic;
+				m_fDefPhysic		= (float)kStat.m_fDefPhysic;
+				m_fDefMagic			= (float)kStat.m_fDefMagic;
 
 				m_ExtraStat.m_fIncreaseHPRate		= 0.f;	// warning!!!
 #ifdef PET_AURA_SKILL
@@ -314,14 +309,25 @@ class CX2Stat
 		~CX2Stat(void);
 
 		void	InitStat(){ m_Stat.Init(); }
-		Stat*	GetStat(){ return &m_Stat; }
+//{{ robobeg : 2013-11-04
+		//Stat*	GetStat(){ return &m_Stat; }
+        const Stat&	GetStat() const { return m_Stat; }
+        Stat&	AccessStat() { return m_Stat; }
+//}} robobeg : 2013-11-04
+
 		void	AddStat( const Stat& baseStat, bool bIncludeExtra = false )
 		{ 
 			m_Stat.AddStat( baseStat, bIncludeExtra ); 
 		}
 
-		Stat*		GetAddOnStat(){ return &m_AddOnStat; }
-		AddOnTime*	GetAddOnTime(){ return &m_AddOnTime; }
+//{{ robobeg : 2013-11-04
+		//Stat*		GetAddOnStat(){ return &m_AddOnStat; }
+		//AddOnTime*	GetAddOnTime(){ return &m_AddOnTime; }
+		const Stat&		GetAddOnStat() const { return m_AddOnStat; }
+        Stat&		AccessAddOnStat(){ return m_AddOnStat; }
+		const AddOnTime&	GetAddOnTime() const { return m_AddOnTime; }
+        AddOnTime&	AccessAddOnTime(){ return m_AddOnTime; }
+//}} robobeg : 2013-11-04
 
 		bool		Verify() const { return m_Stat.Verify(); }
 

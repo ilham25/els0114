@@ -132,6 +132,26 @@ class CKTDGUIComboBox : public CKTDGUIControl
 		void	SetDrawTextLimit(int nLen) { m_iTextLimit = nLen; }
 
 		bool	GetOpenedDrowdown() { return m_bOpened; }
+
+
+#ifdef DLL_BUILD
+		virtual bool IsSelectByEditGui( POINT pt ) override;
+
+		virtual void MoveControl( float fx, float fy ) override;
+
+		virtual void SetEditGUI( bool bEdit ) override;		// GUI 에디트 모드 설정
+
+
+		virtual D3DXVECTOR2 GetPos() override;		/// 컨트롤의 위치
+		virtual vector<D3DXVECTOR2> GetPosList() override;		// 컨트롤 내에 pictures의 위치 정보
+
+		void DrawEditEdge( D3DXCOLOR edgeColor );		// UITool에서 편집용으로 사용된다.
+
+protected:
+		bool m_bEditEdge;
+		D3DXCOLOR m_colorEdge;
+		CKTDXDeviceTexture * m_pCheckedEdgeTexture;
+#endif
 		
 	protected:
 

@@ -39,8 +39,13 @@ private:
 	CKTDGParticleSystem::CParticleEventSequenceHandle m_hIndicatorMark[MAX_QUEST_INDICATOR_NUM];		//Q마크 파티클
 	CKTDGParticleSystem::CParticleEventSequenceHandle m_hPortalQuestion;								//포탈에 붙는 퀘스트 완료 파티클	
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CKTDGParticleSystem::CParticleHandle		      m_hParticleIndicator[MAX_QUEST_INDICATOR_NUM];			//화살표 파티클
+	CKTDGParticleSystem::CParticleHandle			  m_hParticleIndicatorMark[MAX_QUEST_INDICATOR_NUM];		//Q마크 파티클
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CKTDGParticleSystem::CParticle*					  m_pIndicator[MAX_QUEST_INDICATOR_NUM];			//화살표 파티클
 	CKTDGParticleSystem::CParticle*					  m_pIndicatorMark[MAX_QUEST_INDICATOR_NUM];		//Q마크 파티클
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	CKTDGUIDialogType m_pDLGParticle;					//파티클의 레이어를 관리 하기 위해, 파티클을 멤버로 가지는 다이얼로그 생성
 	

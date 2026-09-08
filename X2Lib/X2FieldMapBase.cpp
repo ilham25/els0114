@@ -5,11 +5,9 @@
 
 CX2FieldMapBase::CX2FieldMapBase(void) :
 m_pTextureWholeMap( NULL )
-#ifdef REFORM_UI_WORLDMAP
 	, m_fFov( 0.785f )
 	, m_fAspect( 1.f )
 	, m_pMyChar( NULL )
-#endif
 {
 
 	for( int i=0; i<ARRAY_SIZE(m_pTextureIcon); i++ )
@@ -41,10 +39,8 @@ m_pTextureWholeMap( NULL )
 
 #pragma region 
 
-#ifdef REFORM_UI_WORLDMAP
 	for ( int i = 0; i < ARRAY_SIZE( m_pPartyMember ); ++i )
 		m_pPartyMember[i] = NULL;
-#endif
 
 	m_ViewPort.X 		= 0;
 	m_ViewPort.Y 		= 0;
@@ -63,12 +59,10 @@ CX2FieldMapBase::~CX2FieldMapBase(void)
 		SAFE_CLOSE( m_pTextureIcon[i] );
 	}
 
-#ifdef REFORM_UI_WORLDMAP
 	m_pMyChar = NULL;
 
 	for ( int i = 0; i < ARRAY_SIZE( m_pPartyMember ); ++i )
 		m_pPartyMember[i] = NULL;
-#endif
 }
 
 
@@ -183,8 +177,11 @@ void CX2FieldMapBase::ResetCameraMatrix( int iMapID )
 #pragma region 베스마 월드맵 카메라
 	case SEnum::VMI_BESMA:
 		{
-			m_vEyePos	= D3DXVECTOR3( 1472.159f, 7698.483f, -16419.963f );
-			m_vLookAt	= D3DXVECTOR3( 2091.424f, 5407.994f,  -2236.412f );
+			m_vEyePos	= D3DXVECTOR3( 3291.935f, 6791.385f, -12993.682f );
+			m_vLookAt	= D3DXVECTOR3( 4709.893f, 5789.633f,  1064.364f );
+			//2013.11.7 김창한 마을 동선 수정 작업.
+			/*m_vEyePos	= D3DXVECTOR3( 1472.159f, 7698.483f, -16419.963f );
+			m_vLookAt	= D3DXVECTOR3( 2091.424f, 5407.994f,  -2236.412f );*/
 			m_fFov		= D3DXToRadian( 35.978f );
 			m_fAspect	= 2.f;
 		} break;
@@ -221,8 +218,11 @@ void CX2FieldMapBase::ResetCameraMatrix( int iMapID )
 #pragma region 알테라 월드맵 카메라
 	case SEnum::VMI_ALTERA:
 		{
-			m_vEyePos	= D3DXVECTOR3( -23.610f, 4109.580f, -10304.420f );
-			m_vLookAt	= D3DXVECTOR3(  21.532f, 1805.671f,     84.281f );
+			m_vEyePos	= D3DXVECTOR3( 29419.719f, 3525.825f, -10963.555f );
+			m_vLookAt	= D3DXVECTOR3( 29543.623f, 1385.362f,  -1053.433f );
+			//2013.11.7 김창한 마을 동선 수정 작업.
+			/*m_vEyePos	= D3DXVECTOR3( -23.610f, 4109.580f, -10304.420f );
+			m_vLookAt	= D3DXVECTOR3(  21.532f, 1805.671f,     84.281f );*/
 			m_fFov		= D3DXToRadian( 35.978f );
 			m_fAspect	= 2.f;
 		} break;
@@ -421,6 +421,22 @@ void CX2FieldMapBase::ResetCameraMatrix( int iMapID )
 			m_fFov		= D3DXToRadian( 35.978f );
 			m_fAspect	= 2.f;
 		} break;
+#ifdef SANDER_DUNGEON_5_6
+		case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_03: // 샌틸러스 호의 무덤
+		{
+			m_vEyePos	= D3DXVECTOR3( 2330.28f,	5955.543f,	-12782.739f );
+			m_vLookAt	= D3DXVECTOR3( 2330.28f,	3469.856f,	103.025f );
+			m_fFov		= D3DXToRadian( 35.978f );
+			m_fAspect	= 2.f;
+		} break;
+		case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_04: // 베히모스 크레이터
+		{
+			m_vEyePos	= D3DXVECTOR3( -8960.431f,	4163.422f,	-10446.534f );
+			m_vLookAt	= D3DXVECTOR3( -441.546f,	2070.409f,	-379.415f );
+			m_fFov		= D3DXToRadian( 35.978f );
+			m_fAspect	= 2.f;
+		} break;
+#endif //SANDER_DUNGEON_5_6
 #endif //VILLAGE_SANDER
 #pragma endregion ( 마을, 바람의 사원 )
 	}
@@ -504,6 +520,10 @@ void CX2FieldMapBase::ResetMapPosAndSize( int iMapID )
 	case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_01:
 	case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_02:
 	case SEnum::VMI_BATTLE_FIELD_SANDER_REST_00: /// 윈드스톤 유적지
+#ifdef SANDER_DUNGEON_5_6
+	case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_03: // 샌틸러스 호의 무덤
+	case SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_04: // 베히모스 크레이터
+#endif //SANDER_DUNGEON_5_6
 #endif
 		{
 			m_vMiniMapWindowPos		= D3DXVECTOR2( 0, 0 );

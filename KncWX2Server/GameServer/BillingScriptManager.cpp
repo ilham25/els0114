@@ -40,6 +40,16 @@ bool KBillingScriptManager::OpenScriptFile( IN const char* pszFileName )
 		return false;
 	}
 
+	strFile = "DungeonEnum.lua";
+	kautoPaht.GetPullPath( strFile );
+	if( luaManager.DoFile( strFile.c_str() ) == E_FAIL )
+	{
+		START_LOG( cerr, strFile )
+			<< BUILD_LOG( pszFileName )
+			<< END_LOG;
+		return false;
+	}
+	 
 	strFile = "DLG_Map_Enum.lua";
 	kautoPaht.GetPullPath( strFile );
 

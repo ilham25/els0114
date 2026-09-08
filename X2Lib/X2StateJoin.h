@@ -36,7 +36,7 @@ class CX2StateJoin : public CX2State
 		wstring			m_UserID;
 		wstring			m_UserPassword;
 		wstring			m_UserName;
-		wstring			m_UserNickName;
+		//wstring			m_UserNickName;
 #ifdef SERV_JOIN_IN_CLIENT_FOR_TW_TEST_SERVER
 		bool			m_bServerG;
 		bool			m_bServerS;

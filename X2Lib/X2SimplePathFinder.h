@@ -44,13 +44,16 @@ public:
 	~CX2SimplePathFinder();
 	CX2SimplePathFinder();
 
-	void FollowTargetPathInBattleField( const CX2BattleFieldNpcAi* pBattleFieldNpcAi_, IN CKTDGLineMap* pLineMap_, OUT bool& bTargetOnRight_ );
-
+	void FollowTargetPathInBattleField( const CX2BattleFieldNpcAi* pBattleFieldNpcAi_, IN const CKTDGLineMap* pLineMap_, OUT bool& bTargetOnRight_ );
 	void FollowTargetPath( /*float fElapsedTime,*/ const D3DXVECTOR3& vCurrPos, const int iCurrLineDataIndex,
 		const D3DXVECTOR3& vFinalDestPos, const int iFinalDestLineDataIndex, 
 		const float fMaxJumpUp, const float fMaxJumpRight,
 		IN CKTDGLineMap* pLineMap, const float fDestArriveGap, const float fDestLeaveGap, const bool bFootOnLine,
-		const bool bStayOnCurrLineGroup, OUT bool& bTargetOnRight, const float fLineEndDetectRange );
+		const bool bStayOnCurrLineGroup, OUT bool& bTargetOnRight, const float fLineEndDetectRange 
+#ifdef ADD_NPC_CONDITION_TABLE
+		, bool bIfCannotFindMoveStateDoWait = false
+#endif // ADD_NPC_CONDITION_TABLE
+		);
 
 	void EscapeTargetPath( /*float fElapsedTime,*/ const D3DXVECTOR3& vCurrPos, const int iCurrLineDataIndex,
 		const D3DXVECTOR3& vFinalDestPos, const int iFinalDestLineDataIndex, 

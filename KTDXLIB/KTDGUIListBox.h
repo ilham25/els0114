@@ -45,13 +45,11 @@ class CKTDGUIListBox : public CKTDGUIControl
             bool    m_bColor;
 
 			//{{ 허상형 : [2009/7/20] //	메가폰 체크 확인 변수
-#ifdef NASOD_SCOPE
             bool	m_bMegaSelect;
 			bool	m_bMegaOver;
 			bool	m_bMyMessage;
 			wstring	m_wstrData;
 			int		m_iMessageID;
-#endif
 			//}} 허상형 : [2009/7/20] //	메가폰 체크 확인 변수
 
 			ListBoxItem()
@@ -71,13 +69,11 @@ class CKTDGUIListBox : public CKTDGUIControl
                 m_bColor = false;
 
 				//{{ 허상형 : [2009/7/20] //	메가폰 체크 확인 변수 초기화
-#ifdef NASOD_SCOPE
 				m_bMegaSelect = false;
 				m_bMegaOver = false;
 				m_bMyMessage = false;
 				m_wstrData = L"";
 				m_iMessageID = -1;
-#endif
 				//}} 허상형 : [2009/7/20] //	메가폰 체크 확인 변수 초기화
 			}
 
@@ -90,13 +86,11 @@ class CKTDGUIListBox : public CKTDGUIControl
 			void	SetSpreadCount( int iCount )	{ iSpreadCount = iCount; }
 
 			//{{ 허상형 : [2009/7/20] //	메가폰 함수들
-#ifdef NASOD_SCOPE
 			void	SetMegaSelect( bool bSelect )	{ m_bMegaSelect = bSelect; }
 			void	SetMyMessage( bool bMine )		{ m_bMyMessage = bMine; }
 
 			int		GetMessageID()					{ return m_iMessageID; }
 			wstring *GetSenderName()				{ return &m_wstrData; }
-#endif
 			//}} 허상형 : [2009/7/20] //	메가폰 함수들
 
 			void OnFrameMove( double fTime, float fElapsedTime )
@@ -167,10 +161,8 @@ class CKTDGUIListBox : public CKTDGUIControl
 		HRESULT AddItem( const WCHAR *wszText, void *pData, int itemDepth = 0, LIST_BOX_ITEM_TYPE itemType = LBIT_DEFAULT, bool bSpread = false, float fSpreadTime = 0.f );
 
 		//{{ 허상형 : [2009/7/20] //	메가폰 형식으로 Item 추가할수 있게 함수 재정의
-#ifdef NASOD_SCOPE
 		HRESULT AddItem( const WCHAR *wszText, void *pData, int iMessageID, wstring wstrName, bool bIsMine = false );
 		void	ClearSelect() ;
-#endif
 		//}} 허상형 : [2009/7/20] //	메가폰 형식으로 Item 추가할수 있게 함수 재정의
 
 		void	AddItem_LUA( const char* pName );
@@ -187,7 +179,12 @@ class CKTDGUIListBox : public CKTDGUIControl
 		ListBoxItem* GetItem( int nIndex );
 		int GetSelectedIndex( int nPreviousSelected = -1 );
 		ListBoxItem* GetSelectedItem( int nPreviousSelected = -1 ) { return GetItem( GetSelectedIndex( nPreviousSelected ) ); }
+
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+		void SelectItem( IN int nNewIndex, IN bool bSendMessage = true );
+#else // UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 		void SelectItem( int nNewIndex );
+#endif // UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 
 		void SetShowAllItems( bool bShow = true );
 		void SetShowTimeAllItems( float fTimeLeft );
@@ -258,7 +255,7 @@ class CKTDGUIListBox : public CKTDGUIControl
 		//bool OpenItemScript( const WCHAR* pFileName );
 		HRESULT AddControl(  CKTDGUIItem* pItem );
 
-		const D3DXVECTOR2 GetPos() const { return D3DXVECTOR2( (float)m_x, (float)m_y ); }
+		virtual D3DXVECTOR2 GetPos() { return D3DXVECTOR2( (float)m_x, (float)m_y ); }
 		const int GetWidth() const { return m_width; }
 		const int GetHeight() const { return m_height; }
 		const CKTDGUIControl::UITextureData* GetBoundingBoxTexData() const				{ return m_pBoudingBoxTex; }
@@ -285,14 +282,34 @@ class CKTDGUIListBox : public CKTDGUIControl
 		void SetUpdateScrollBarOnUpdate(bool val) { m_bUpdateScrollBarOnUpdate = val; }
 		void SetScrollToEndOnUpdateRects(bool val) { m_bScrollToEndOnUpdateRects = val; }
 
-
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+		void SetSelectItemAtMouseMove( bool bIsSelectItemAtMouseMove_ ) { m_bIsSelectItemAtMouseMove = bIsSelectItemAtMouseMove_; }
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 
 	protected:
 
 		void FromRectToPoint( RECT& rect, CKTDGUIControl::UIPointData& point );
-		
+
+#ifdef DLL_BUILD
+		virtual bool IsSelectByEditGui( POINT pt ) override
+		{
+			return ContainsPoint(pt);
+		}
+
+		virtual void MoveControl( float fx, float fy ) override;
+
+		virtual void SetEditGUI( bool bEdit ) override;		// GUI 에디트 모드 설정
 
 
+		virtual vector<D3DXVECTOR2> GetPosList() override;		// 컨트롤 내에 pictures의 위치 정보
+		void DrawEditEdge();		// UITool에서 편집용으로 사용된다.
+
+protected:
+	bool m_bEditEdge;
+	CKTDXDeviceTexture * m_pCheckedEdgeTexture;
+#endif
+
+protected:
 		RECT m_rcText;      // Text rendering bound
 		RECT m_rcSelection; // Selection box bound
 
@@ -363,6 +380,7 @@ class CKTDGUIListBox : public CKTDGUIControl
 		bool					m_bScrollToEndOnUpdateRects;
 		
 		
-		
-		
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+		bool					m_bIsSelectItemAtMouseMove;			/// 마우스 오버를 통해 아이템 선택 가능하게 할 지 여부
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 };

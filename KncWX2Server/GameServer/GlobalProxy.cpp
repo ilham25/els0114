@@ -129,6 +129,14 @@ void KGlobalProxy::OnDestroy()
 		//}}
 	}
 	//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	{
+		KEventPtr spEvent( new KEvent );
+		spEvent->SetData( PI_GS_SERVER, NULL, EGB_VERIFY_SERVER_DISCONNECT_NOT );
+		KBaseServer::GetKObj()->QueueingEvent( spEvent );
+	}
+#endif // SERV_BATTLE_FIELD_BOSS
 }
 
 //{{ 2011. 07. 19	최육사	서버간 접속 코드 리팩토링
@@ -147,6 +155,14 @@ _IMPL_ON_FUNC( EGB_VERIFY_SERVER_CONNECT_ACK, KECN_VERIFY_SERVER_CONNECT_ACK )
 
 		START_LOG( cout2, L"글로벌서버와 정상적으로 접속하였습니다!" )
 			<< BUILD_LOG( kPacket_.m_iServerUID );
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+		{
+			KEventPtr spEvent( new KEvent );
+			spEvent->SetData( PI_GS_SERVER, NULL, EGB_VERIFY_SERVER_CONNECT_NOT );
+			KBaseServer::GetKObj()->QueueingEvent( spEvent );
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 
 #ifdef SERV_TIME_ENCHANT_EVENT// 작업날짜: 2013-05-28	// 박세훈
 		{

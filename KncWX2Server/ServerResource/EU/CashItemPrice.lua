@@ -3694,7 +3694,7 @@ g_pCashItemManager:AddCashItemPrice(	81114	,	2400	)	--	금강야차 신발(아�
 g_pCashItemManager:AddCashItemPrice(	81115	,	5000	)	--	금강야차 머리 장식(아이샤)
 g_pCashItemManager:AddCashItemPrice(	81120	,	7000	)	--	금강야차 화령궁(레나)
 g_pCashItemManager:AddCashItemPrice(	81121	,	5000	)	--	금강야차 상의(레나)
-g_pCashItemManager:AddCashItemPrice(	81122	,	2400	)	--	금강야차 하의(레나)
+g_pCashItemManager:AddCashItemPrice(	81122	,	5000	)	--	금강야차 하의(레나)
 g_pCashItemManager:AddCashItemPrice(	81123	,	2400	)	--	금강야차 장갑(레나)
 g_pCashItemManager:AddCashItemPrice(	81124	,	2400	)	--	금강야차 신발(레나)
 g_pCashItemManager:AddCashItemPrice(	81125	,	5000	)	--	금강야차 머리 장식(레나)
@@ -11243,3 +11243,18 @@ g_pCashItemManager:AddCashItemPrice(	67006343	,	5000	)	--	베스트 라이딩 �
 g_pCashItemManager:AddCashItemPrice(	67006344	,	5000	)	--	베스트 라이딩 헬멧 (이브)
 g_pCashItemManager:AddCashItemPrice(	67006345	,	5000	)	--	베스트 라이딩 헬멧 (청)
 g_pCashItemManager:AddCashItemPrice(	67006346	,	5000	)	--	베스트 라이딩 헬멧 (아라)
+
+
+-- 140219/박필홍/결혼 이벤트
+
+g_pCashItemManager:AddCashItemPrice(	80002065	,	5000	)	--	웨딩뽀루
+g_pCashItemManager:AddCashItemPrice(	80002067	,	5000	)	--	하트뿅뿅 뽀뽀 웨딩뽀루
+
+
+--140219/엘리시스전야 이벤트
+g_pCashItemManager:AddCashItemPrice(	100000100	,	200	)	--	엘리시스 견습 기사단 클레이모어 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000101	,	200	)	--	엘리시스 견습 기사단 상의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000102	,	200	)	--	엘리시스 견습 기사단 하의 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000103	,	200	)	--	엘리시스 견습 기사단 장갑 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000104	,	200	)	--	엘리시스 견습 기사단 신발 (Ver.A)
+g_pCashItemManager:AddCashItemPrice(	100000105	,	200	)	--	엘리시스 견습 기사단 헤어 (Ver.A)

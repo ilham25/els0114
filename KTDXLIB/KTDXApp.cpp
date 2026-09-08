@@ -24,10 +24,22 @@
 #pragma comment( lib, "Imm32.lib")
 
 #if defined(DEBUG) || defined(_DEBUG)
-	#pragma comment( lib, "luaLibD.lib" )
+#ifdef  _USE_LUAJIT_
+    #pragma comment( lib, "luajitLibD.lib" )
+#else   _USE_LUAJIT_
+    #pragma comment( lib, "luaLibD.lib" )
+#endif  _USE_LUAJIT_
 	#pragma comment( lib, "ProfilerD.lib" )
 #else
-	#pragma comment( lib, "luaLib.lib" )
+#ifdef  _USE_LUAJIT_
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+    #pragma comment( lib, "luajitLib_NoInterpreter.lib" )
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+    #pragma comment( lib, "luajitLib.lib" )
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+#else   _USE_LUAJIT_
+    #pragma comment( lib, "luaLib.lib" )
+#endif  _USE_LUAJIT_
 	#pragma comment( lib, "Profiler.lib" )
 #endif
 
@@ -50,8 +62,12 @@
 double		g_NowTime;
 CKTDXApp*	g_pKTDXApp = NULL;
 
+#ifdef  X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
+KLuabinder* CKTDXApp::ms_pLuaBinder = NULL;
+#else   X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
 __declspec(thread) /*static*/
 	KLuabinder* CKTDXApp::ms_pLuaBinder = NULL;
+#endif  X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
 
 HMODULE hUnicowsModule;
 HMODULE hMsvcp71Module;
@@ -107,7 +123,7 @@ bool IncludeLua_( const char* pFileName )
 	wstring fileName;
 	ConvertUtf8ToWCHAR( fileName, pFileName );
 
-	if( g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( fileName.c_str() ) == false )
+	if( g_pKTDXApp->LoadLuaTinker( fileName.c_str() ) == false )
 	{
 		ErrorLogMsg( KEM_ERROR68, pFileName );
 		return false;
@@ -136,7 +152,7 @@ void PreEndThreadCallback(DWORD dwUserParam_, void* pFileVerifierObject_)
 		pFileVerifier->Debug_DumpHackFiles();	// 오류있는 파일 리스팅
 #endif 
 		
-		SendMessage( g_pKTDXApp->GetHWND(), WM_CLOSE, 0, 0 );	// 클라이언트 종료
+		SendMessage( GetHWND(), WM_CLOSE, 0, 0 );	// 클라이언트 종료
 	}
 	else
 	{
@@ -150,6 +166,7 @@ void PreEndThreadCallback(DWORD dwUserParam_, void* pFileVerifierObject_)
 
 CKTDXApp::CKTDXApp( HWND hWnd, HINSTANCE hInstance, IDirect3DDevice9* pd3dDevice )
 {
+
 
    // 090416. jseop. 스트링 테이블 초기화.
 #if defined(WORLD_TOOL) || defined(X2TOOL)		// 090519 태완 : 월드툴 실행하기 위한 땜빵코드. g_csGameMessage의 초기화 위치와 g_pKTDXApp의 설정 위치를 바꾼다. 아래쪽 참조.
@@ -202,6 +219,29 @@ CKTDXApp::CKTDXApp( HWND hWnd, HINSTANCE hInstance, IDirect3DDevice9* pd3dDevice
 #ifndef INACTIVATION_MINIMIZE_ALL_WINDOW_AT_START		/// X2.exe 실행시 화면 전체 최소화 되는 기능 해제
 #ifdef _SERVICE_
 	
+#ifdef INACTIVEATION_MINIMIZE_TEST
+	{
+		// 최소화 동작을 제거 한 후 발생하는 버그로 인해, 최소화를 다시 활성화 시켜둔 상태.
+		// 이미 활성화 되어 정상적인 테스트가 어렵기 때문에 Mimize.txt가 파일이 있으면 최소화 시키지 않도록 예외처리.
+		const string strFileName = "Inactivation_Mimize.txt";
+		FILE* file = NULL;
+		file = fopen( strFileName.c_str(), "r" );		
+		if( NULL == file )
+		{
+			IShellDispatch *pDisp;
+			hr = CoCreateInstance(CLSID_Shell,NULL,CLSCTX_INPROC_SERVER ,IID_IShellDispatch,(void**)&pDisp);
+			if( SUCCEEDED(hr) )
+			{
+				pDisp->MinimizeAll();
+				pDisp->Release();
+			}
+		}
+		else
+		{
+			fclose(file);
+		}	
+	}	
+#else
 	IShellDispatch *pDisp;
 	hr = CoCreateInstance(CLSID_Shell,NULL,CLSCTX_INPROC_SERVER ,IID_IShellDispatch,(void**)&pDisp);
 	if( SUCCEEDED(hr) )
@@ -209,9 +249,10 @@ CKTDXApp::CKTDXApp( HWND hWnd, HINSTANCE hInstance, IDirect3DDevice9* pd3dDevice
 		pDisp->MinimizeAll();
 		pDisp->Release();
 	}
+#endif // INACTIVEATION_MINIMIZE_TEST
 
-#endif
-#endif INACTIVATION_MINIMIZE_ALL_WINDOW_AT_START
+#endif // _SERVICE_
+#endif // INACTIVATION_MINIMIZE_ALL_WINDOW_AT_START
 
 #if defined(WORLD_TOOL) || defined(X2TOOL)	// 090519 태완 : 월드툴 실행하기 위한 땜빵코드. g_csGameMessage의 초기화 위치와 g_pKTDXApp의 설정 위치를 바꾼다.
 	g_pKTDXApp = this;
@@ -313,6 +354,9 @@ CKTDXApp::CKTDXApp( HWND hWnd, HINSTANCE hInstance, IDirect3DDevice9* pd3dDevice
 #ifdef	X2OPTIMIZE_INFORM_FIRST_FRAME_OF_SIMULATION_LOOP
 	m_bFirstFrame = false;
 #endif	X2OPTIMIZE_INFORM_FIRST_FRAME_OF_SIMULATION_LOOP
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_bFinalFrame = false;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	m_FrameMoveCount	= 0;
 	m_RenderCount		= 0;
@@ -347,9 +391,9 @@ CKTDXApp::CKTDXApp( HWND hWnd, HINSTANCE hInstance, IDirect3DDevice9* pd3dDevice
 #endif CONVERSION_VS
 #endif
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	m_pDVBManager       = new CKTDGDynamicVBManager();
-#endif
+//#endif
 
 #ifdef CHECKSUM_THREAD_TEST
 	m_pFileVerifier = NULL;
@@ -366,7 +410,7 @@ CKTDXApp::CKTDXApp( HWND hWnd, HINSTANCE hInstance, IDirect3DDevice9* pd3dDevice
 	{
 		// 버전 파일 읽기 실패하면 클라이언트 종료
 		//PostQuitMessage(0);
-		SendMessage( g_pKTDXApp->GetHWND(), WM_CLOSE, 0, 0 );	
+		SendMessage( GetHWND(), WM_CLOSE, 0, 0 );	
 	}
 
 #ifndef _SERVICE_
@@ -382,17 +426,17 @@ CKTDXApp::CKTDXApp( HWND hWnd, HINSTANCE hInstance, IDirect3DDevice9* pd3dDevice
 
 	m_pDIManager->CreateKeyboard();
 	m_pDIManager->CreateMouse(TRUE);
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	m_pDIManager->CreateJoystic();
-#endif // KEY_MAPPING_INT
-#ifdef REFORM_UI_KEYPAD
+	m_pDIManager->SetGamePadDefaultMap();
+#endif // SERV_KEY_MAPPING_INT
+
 	m_pDIManager->SetDefaultMap();
-#endif
 	InsertStage( m_pDSManager );
 
-#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
 	InsertStage( m_pDVBManager );
-#endif
+//#endif
 
 	InsertStage( m_pDeviceManager );
 	InsertStage( m_pDGManager );
@@ -442,9 +486,14 @@ CKTDXApp::CKTDXApp( HWND hWnd, HINSTANCE hInstance, IDirect3DDevice9* pd3dDevice
     m_iLuaThreadCounter = 0;
 //}} robobeg : 2008-10-28
 
+#ifdef X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
+	m_bOneSimulOneRender = false;
+#endif//X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
 }
 
 //{{ robobeg : 2011-01-19
+#ifndef X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
+
 void    CKTDXApp::InitializePerThread()
 {
 	ASSERT( ms_pLuaBinder == NULL );
@@ -460,6 +509,8 @@ void    CKTDXApp::FinalizePerThread()
 {
 	SAFE_DELETE( ms_pLuaBinder );
 }//CKTDXApp::FinalizePerThread()
+
+#endif  X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
 //}} robobeg : 2011-01-19
 
 CKTDXApp::~CKTDXApp(void)
@@ -485,7 +536,7 @@ CKTDXApp::~CKTDXApp(void)
 	int i = (int)m_vecStageChain.size() - 1;
 	for( ; i >= 0; i-- )
 	{
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		if ( m_pDeviceManager != NULL && m_vecStageChain[i] == m_pDeviceManager )
 		{
 			if ( m_pDSManager != NULL )
@@ -494,10 +545,10 @@ CKTDXApp::~CKTDXApp(void)
 			if ( m_pDVBManager != NULL )
 				m_pDVBManager->ClearAllDevice();
 		}
-#endif
+//#endif
 		SAFE_DELETE( m_vecStageChain[i] );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		if ( m_vecStageChain[i] == m_pDSManager )
 			m_pDSManager = NULL;
 		else if ( m_vecStageChain[i] == m_pDVBManager )
@@ -508,7 +559,7 @@ CKTDXApp::~CKTDXApp(void)
 			m_pDGManager = NULL;
 		else if ( m_vecStageChain[i] == m_pDIManager )
 			m_pDIManager = NULL;
-#endif
+//#endif
 		m_vecStageChain[i] = NULL;
 	}
 	m_vecStageChain.clear();
@@ -563,11 +614,11 @@ void    CKTDXApp::ExitLuaThread()
 //     KLuaManager kLuaManager( m_LuaBinder.GetLuaState(), 0, true );
 //     luaopen_base( kLuaManager.GetLuaState() );
 //     bool bLoaded;
-//     bLoaded = GetDeviceManager()->LoadLuaManager( &kLuaManager, L"Enum.lua" );
+//     bLoaded = LoadAndDoMemory( &kLuaManager, L"Enum.lua" );
 //     ASSERT( bLoaded );
 //     if ( !bLoaded )
 //         hr = E_FAIL;
-//     bLoaded = GetDeviceManager()->LoadLuaManager( &kLuaManager, L"StringID_def.lua" );
+//     bLoaded = LoadAndDoMemory( &kLuaManager, L"StringID_def.lua" );
 //     ASSERT( bLoaded );
 //     if ( !bLoaded )
 //         hr = E_FAIL;
@@ -584,20 +635,22 @@ void    CKTDXApp::ExitLuaThread()
 // 
 //void CKTDXApp::OnPrePresent()
 //{
-//	g_pKTDXApp->GetDeviceManager()->OnPrePresent();
+//	GetDeviceManager()->OnPrePresent();
 //}//CKTDXApp::OnPrePresent()
 // 
 // 
 //void CKTDXApp::OnPostPresent()
 //{
-//	g_pKTDXApp->GetDeviceManager()->OnPostPresent();
+//	GetDeviceManager()->OnPostPresent();
 //}//CKTDXApp::OnPostPresent()
 // 
 // #endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 HRESULT CKTDXApp::OnFrameMove( double dTime, float fElapsedTime )
 {
+#ifndef X2VIEWER //JHKang
 	KLagCheck( eUnKnown_LagCheckType_Simulation );
+#endif //X2VIEWER
 	KTDXPROFILE();
 	m_fElapsedTimeAdd += fElapsedTime;
 
@@ -635,15 +688,15 @@ HRESULT CKTDXApp::OnFrameMove( double dTime, float fElapsedTime )
 	if( lElapsedTimestamp < 0L )
 	{
 		//남는 시간 만큼 기다린다.
-		#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
+		//#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
 					//OnPrePresent();
-		#endif // BACKGROUND_LOADING_TEST // 2008-10-20
+		//#endif // BACKGROUND_LOADING_TEST // 2008-10-20
 
 		Sleep( (DWORD) (-lElapsedTimestamp) );
 
-		#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
+		//#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
 				//OnPostPresent();
-		#endif // BACKGROUND_LOADING_TEST // 2008-10-20
+		//#endif // BACKGROUND_LOADING_TEST // 2008-10-20
 
 		//m_dwActualCurrentFrameMoveTimestamp = 
 		m_dwCurrentFrameMoveTimestamp = KSystemTimer::GetSystemTimeInMilisecond();
@@ -757,6 +810,9 @@ HRESULT CKTDXApp::OnFrameMove( double dTime, float fElapsedTime )
 // 			Sleep( (DWORD)(fWaitTime*1000.0f) );
 // 			OnPostPresent();
 // #else // BACKGROUND_LOADING_TEST // 2008-10-20
+#ifdef X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
+			if( !m_bOneSimulOneRender )
+#endif//X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
 			Sleep( (DWORD)(fWaitTime*1000.0f) );
 //#endif // BACKGROUND_LOADING_TEST // 2008-10-20
 		}
@@ -777,6 +833,9 @@ HRESULT CKTDXApp::OnFrameMove( double dTime, float fElapsedTime )
 		}
 		else
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+			m_bFinalFrame = true;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			FrameProcess();
 #ifdef	X2OPTIMIZE_INFORM_FIRST_FRAME_OF_SIMULATION_LOOP
 			m_bFirstFrame = false;
@@ -813,6 +872,13 @@ HRESULT CKTDXApp::OnFrameMove( double dTime, float fElapsedTime )
 			}
 			else
 			{
+				//마지막 시뮬레이션 프레임이라면...
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+				if( fRealElapsedTime - m_fConstElapsedTime < m_fConstElapsedTime )
+					m_bFinalFrame = true;
+				else
+					m_bFinalFrame = false;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				FrameProcess();
 #ifdef	X2OPTIMIZE_INFORM_FIRST_FRAME_OF_SIMULATION_LOOP
 				m_bFirstFrame = false;
@@ -823,6 +889,11 @@ HRESULT CKTDXApp::OnFrameMove( double dTime, float fElapsedTime )
 			m_FrameMoveCountAdd++;
 
 			fRealElapsedTime -= m_fConstElapsedTime;
+
+#ifdef X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
+			if( m_bOneSimulOneRender )
+				break;
+#endif//X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
 		}
 		m_RemainTime = fRealElapsedTime;
 	}
@@ -838,14 +909,14 @@ HRESULT CKTDXApp::OnFrameMove( double dTime, float fElapsedTime )
 #ifdef CHECK_OPENED_DEVICE // 200 frame마다 한번씩 열려있는 리소스 목록을 ResourceTool 윈도우로 보낸다
 	if( 0 == m_FrameMoveCount % 200 )
 	{
-		g_pKTDXApp->GetDeviceManager()->CheckOpenedDeviceList();
+		GetDeviceManager()->CheckOpenedDeviceList();
 	}
 #endif CHECK_OPENED_DEVICE
 	
 #ifndef	X2OPTIMIZE_INFORM_FIRST_FRAME_OF_SIMULATION_LOOP
-	if ( g_pKTDXApp->GetDeviceManager() != NULL )
+	if ( GetDeviceManager() != NULL )
 	{
-		g_pKTDXApp->GetDeviceManager()->ProcessForegroundQueue( fElapsedTime );
+		GetDeviceManager()->ProcessForegroundQueue( fElapsedTime );
 	}//if
 #endif	X2OPTIMIZE_INFORM_FIRST_FRAME_OF_SIMULATION_LOOP
 
@@ -1002,6 +1073,12 @@ void CKTDXApp::FrameProcess()
 			m_GameMsgQ.pop();
 			LeaveCriticalSection( &g_csGameMessage );
 
+#ifdef TEMP_CRASH_LOG
+			if( gameMessage.uMsg == XGM_QUIT_GAME )
+			{
+				KLOG("CrashLog.txt")  << L"[FrameProcess]XGM_QUIT_GAME Send" << fileout;
+			}
+#endif // TEMP_CRASH_LOG
 
 			bool bMsgHandle = false;
 			for( UINT i = 0; i < m_vecStageChain.size(); i++ )
@@ -1085,7 +1162,9 @@ void    CKTDXApp::LuaPerFrameGarbageCollection( int iNumSteps )
 
 HRESULT CKTDXApp::OnFrameRender()
 {
+#ifndef X2VIEWER //JHKang
 	KLagCheck( eUnKnown_LagCheckType_Rendering );
+#endif //X2VIEWER
 	KTDXPROFILE();
 
 	
@@ -1135,6 +1214,13 @@ bool CKTDXApp::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		gameMessage.wParam		= wParam;
 		gameMessage.lParam		= lParam;
 
+#ifdef TEMP_CRASH_LOG
+		if( gameMessage.uMsg == XGM_QUIT_GAME )
+		{
+			KLOG("CrashLog.txt")  << L"[MsgProc]XGM_QUIT_GAME Send" << fileout;
+		}
+#endif // TEMP_CRASH_LOG
+
 		m_GameMsgQ.push( gameMessage );
 		retval = true;
 	}
@@ -1161,6 +1247,42 @@ bool CKTDXApp::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 bool CKTDXApp::SendGameMessage( UINT uMsg, WPARAM wParam, LPARAM lParam, bool bDirectProcess )
 {
+#ifdef TEMP_CRASH_LOG
+	switch ( uMsg )
+	{	
+	case XGM_STATE_CHANGE:
+		KLOG("CrashLog.txt")  << L"[Send]XGM_STATE_CHANGE " << fileout;
+		break;
+	case XGM_DELETE_DIALOG:
+		KLOG("CrashLog.txt")  << L"[Send]XGM_DELETE_DIALOG" << fileout;
+		break;
+	case XGM_REQUEST_FOCUS_CONTROL:
+		KLOG("CrashLog.txt")  << L"[Send]XGM_REQUEST_FOCUS_CONTROL" << fileout;
+		break;
+	case XGM_RECEIVE_FROM_SERVER:
+		KLOG("CrashLog.txt")  << L"[Send]XGM_RECEIVE_FROM_SERVER" << fileout;
+		break;
+	case XGM_SERVER_PACKET_TIMEOUT:
+		KLOG("CrashLog.txt")  << L"[Send]XGM_SERVER_PACKET_TIMEOUT" << fileout;
+		break;
+	case XGM_NEXON_CALLBACK:
+		KLOG("CrashLog.txt")  << L"[Send]XGM_NEXON_CALLBACK" << fileout;
+		break;
+	case XGM_QUIT_GAME:
+		KLOG("CrashLog.txt")  << L"[Send]XGM_QUIT_GAME" << fileout;
+		break;
+	case XGM_RECEIVE_FROM_COLLECTSERVER:
+		KLOG("CrashLog.txt")  << L"[Send]XGM_RECEIVE_FROM_COLLECTSERVER" << fileout;
+		break;
+	case KM_WEB_BROWSER_KEY_EVENT:
+		KLOG("CrashLog.txt")  << L"[Send]KM_WEB_BROWSER_KEY_EVENT" << fileout;
+		break;
+	default:
+		KLOG("CrashLog.txt")  << L"[Send]Other Message :" << uMsg << fileout;
+		break;
+	}
+#endif // TEMP_CRASH_LOG
+
 	//CKTDXThread::CLocker locker( g_csGameMessage );
 	CSLock CriticalSectionLock( g_csGameMessage );
 
@@ -1305,7 +1427,7 @@ HRESULT CKTDXApp::OnResetDevice( const D3DSURFACE_DESC* pBackBufferSurfaceDesc )
 		0.f, 1.f );
 
 #ifdef BUBBLE_BOBBLE_TEST
-	m_pDGManager->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), m_pDGManager->GetPerspective(), m_pDGManager->GetOrthoScale() );
+	m_pDGManager->SetProjection( GetDGManager()->GetNear(), GetDGManager()->GetFar(), m_pDGManager->GetPerspective(), m_pDGManager->GetOrthoScale() );
 #else
 	m_pDGManager->SetProjection( 1.0f, 50000.0f, m_pDGManager->GetPerspective() );
 #endif BUBBLE_BOBBLE_TEST
@@ -1495,11 +1617,16 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CKTDXCollision::CollisionData>( L, "SetPoint1",			&CKTDXCollision::CollisionData::SetPoint1_LUA );
 	lua_tinker::class_def<CKTDXCollision::CollisionData>( L, "SetPoint2",			&CKTDXCollision::CollisionData::SetPoint2_LUA );
 
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+
+    CKTDXDeviceTET_Preprocessing::RegisterLuabind( L );
+    CKTDXDeviceXET_Preprocessing::RegisterLuabind( L );
+
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
+
 	lua_tinker::class_add<CKTDXDeviceTexture::TETProxy>( L, "TETProxy" );
 	lua_tinker::class_def<CKTDXDeviceTexture::TETProxy>( L, "AddRect",					&CKTDXDeviceTexture::TETProxy::AddRect_LUA );
 	lua_tinker::class_def<CKTDXDeviceTexture::TETProxy>( L, "RotateRect",				&CKTDXDeviceTexture::TETProxy::RotateRect_LUA );
-
-
 
 	lua_tinker::class_add<CKTDXDeviceXET::XETProxy>( L, "CKTDXDeviceXET" );
 	lua_tinker::class_def<CKTDXDeviceXET::XETProxy>( L, "AddChangeTexture",				&CKTDXDeviceXET::XETProxy::AddChangeTexture_LUA );
@@ -1509,9 +1636,14 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CKTDXDeviceXET::XETProxy>( L, "AddAniDataByFrame",			&CKTDXDeviceXET::XETProxy::AddAniDataByFrame_LUA );
 	//lua_tinker::class_def<CKTDXDeviceXET>( L, "CreateCollisionData",			&CKTDXDeviceXET::CreateCollisionData_LUA );
 
-
 	lua_tinker::class_add<CKTDXDeviceXET::AniData>( L, "AniData" );
 	lua_tinker::class_def<CKTDXDeviceXET::AniData>( L, "SetTexChangeEvent",		&CKTDXDeviceXET::AniData::SetTexChangeEvent_LUA );
+
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
+
+
+
+
 
 
 
@@ -1619,6 +1751,16 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CKTDGUIDialog>( L, "SetPos",							&CKTDGUIDialog::SetPos_LUA );
 	lua_tinker::class_def<CKTDGUIDialog>( L, "SetModal",						&CKTDGUIDialog::SetModal );
 	lua_tinker::class_def<CKTDGUIDialog>( L, "CreatePicture",					&CKTDGUIDialog::CreatePicture );
+
+
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+	lua_tinker::class_def<CKTDGUIDialog>( L, "CreateMovie",						&CKTDGUIDialog::CreateMovie );
+
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
 	lua_tinker::class_def<CKTDGUIDialog>( L, "CreateButton",					&CKTDGUIDialog::CreateButton );
 	lua_tinker::class_def<CKTDGUIDialog>( L, "CreateCheckBox",					&CKTDGUIDialog::CreateCheckBox );
 	lua_tinker::class_def<CKTDGUIDialog>( L, "CreateEditBox",					&CKTDGUIDialog::CreateEditBox );
@@ -1678,10 +1820,13 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 
 	lua_tinker::class_def<CKTDGUIDialog>( L, "SetTimeForSelfDelete",			&CKTDGUIDialog::SetTimeForSelfDelete );	
 
-#ifdef REFORM_UI_WORLDMAP
 	lua_tinker::class_def<CKTDGUIDialog>( L, "SetCustomMsgRMouseUp",			&CKTDGUIDialog::SetCustomMsgRMouseUp );	
-#endif
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	// 해당하는 Dialog 에 해당하는 버튼의 사운드 파일들을 변경한다.
+	lua_tinker::class_def<CKTDGUIDialog>( L, "SetCustomButtonMouseOverSndFile",			&CKTDGUIDialog::SetCustomButtonMouseOverSndFile_LUA );	
+	lua_tinker::class_def<CKTDGUIDialog>( L, "SetCustomButtonMouseUpSndFile",			&CKTDGUIDialog::SetCustomButtonMouseUpSndFile_LUA );	
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 
 
@@ -1741,7 +1886,20 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
     lua_tinker::class_def<CKTDGUIControl::CPictureData>( L, "SetIndex",			&CKTDGUIControl::CPictureData::SetIndex );
     lua_tinker::class_def<CKTDGUIControl::CPictureData>( L, "GetIndex",			&CKTDGUIControl::CPictureData::GetIndex );
     
-	
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+	lua_tinker::class_add<CKTDGUIControl::CMovieData>( L, "CMovieData" );
+	lua_tinker::class_def<CKTDGUIControl::CMovieData>( L, "SetMovieFileName",		&CKTDGUIControl::CMovieData::SetMovieFileName_LUA );
+	lua_tinker::class_def<CKTDGUIControl::CMovieData>( L, "SetRect",				&CKTDGUIControl::CMovieData::SetRect_LUA );
+	lua_tinker::class_def<CKTDGUIControl::CMovieData>( L, "SetShow",				&CKTDGUIControl::CMovieData::SetShow );
+	//lua_tinker::class_def<CKTDGUIControl::CMovieData>( L, "SetMoivePoint",			&CKTDGUIControl::CMovieData::SetMoivePoint_LUA );
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+	lua_tinker::class_def<CKTDGUIControl::CMovieData>( L, "SetLoop",				&CKTDGUIControl::CMovieData::SetLoop );
+#endif //PLAY_PROMOTION_MOVIE
+
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
 
 	lua_tinker::class_add<CKTDGUIButton>( L, "CKTDGUIButton" );
 	lua_tinker::class_inh< CKTDGUIButton, CKTDGUIControl>( L );
@@ -1784,6 +1942,15 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_inh< CKTDGUIStatic, CKTDGUIControl>( L );
 	lua_tinker::class_def<CKTDGUIStatic>( L, "AddPicture",					&CKTDGUIStatic::AddPicture );
 	lua_tinker::class_def<CKTDGUIStatic>( L, "AddString",					&CKTDGUIStatic::AddString_LUA );
+
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+	lua_tinker::class_def<CKTDGUIStatic>( L, "AddMovieData",				&CKTDGUIStatic::AddMovieData_LUA );
+
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
 	lua_tinker::class_def<CKTDGUIStatic>( L, "GetPicture",					&CKTDGUIStatic::GetPicture );
 	lua_tinker::class_def<CKTDGUIStatic>( L, "GetString",					&CKTDGUIStatic::GetString );
 	lua_tinker::class_def<CKTDGUIStatic>( L, "SetCustomMsgMouseDblClk",		&CKTDGUIStatic::SetCustomMsgMouseDblClk ); // static 더블클릭
@@ -1847,6 +2014,9 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 #ifdef NUMBER_TO_LANGUAGE
 	lua_tinker::class_def<CKTDGUIIMEEditBox>( L, "SetCustomMsgFocusIn",			&CKTDGUIIMEEditBox::SetCustomMsgFocusIn );
 #endif NUMBER_TO_LANGUAGE
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+	lua_tinker::class_def<CKTDGUIIMEEditBox>( L, "SetForceSendCustomMsgChange",	&CKTDGUIIMEEditBox::SetForceSendCustomMsgChange );
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 	lua_tinker::class_def<CKTDGUIIMEEditBox>( L, "SetTextColor",				&CKTDGUIIMEEditBox::SetTextColor_LUA );
 	lua_tinker::class_def<CKTDGUIIMEEditBox>( L, "SetSelectedTextColor",		&CKTDGUIIMEEditBox::SetSelectedTextColor_LUA );
 	lua_tinker::class_def<CKTDGUIIMEEditBox>( L, "SetSelectedBackColor",		&CKTDGUIIMEEditBox::SetSelectedBackColor_LUA );
@@ -1862,9 +2032,7 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CKTDGUIIMEEditBox>( L, "SetOnlyNumAndEnglishMode",	&CKTDGUIIMEEditBox::SetOnlyNumAndEnglishMode_LUA );
 	lua_tinker::class_def<CKTDGUIIMEEditBox>( L, "SetByteLimit",				&CKTDGUIIMEEditBox::SetByteLimit_LUA );
 	lua_tinker::class_def<CKTDGUIIMEEditBox>( L, "SetAutoChangeBigEnglish", 	&CKTDGUIIMEEditBox::SetAutoChangeBigEnglish );
-#ifdef POSTBOX_FILTER
 	lua_tinker::class_def<CKTDGUIIMEEditBox>( L, "SetEnablePaste", 				&CKTDGUIIMEEditBox::SetEnablePaste );	
-#endif
 
 	lua_tinker::class_add<CKTDGUIRadioButton>( L, "CKTDGUIRadioButton" );
 	lua_tinker::class_inh< CKTDGUIRadioButton, CKTDGUIControl>( L );
@@ -1971,6 +2139,10 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CKTDGUIListBox>( L, "SetUseItemDisappear",				&CKTDGUIListBox::SetUseItemDisappear );
 	lua_tinker::class_def<CKTDGUIListBox>( L, "SetUpdateScrollBarOnUpdate",			&CKTDGUIListBox::SetUpdateScrollBarOnUpdate );
 	lua_tinker::class_def<CKTDGUIListBox>( L, "SetScrollToEndOnUpdateRects",		&CKTDGUIListBox::SetScrollToEndOnUpdateRects );
+
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+	lua_tinker::class_def<CKTDGUIListBox>( L, "SetSelectItemAtMouseMove",			&CKTDGUIListBox::SetSelectItemAtMouseMove );
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 	
 
 	lua_tinker::class_add<CKTDGUIScrollBar>( L, "CKTDGUIScrollBar" );
@@ -2076,7 +2248,11 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_add<CKTDGParticleSystem>( L, "CKTDGParticleSystem" );
 	lua_tinker::class_def<CKTDGParticleSystem>( L, "CreateSequence_LUA",			&CKTDGParticleSystem::CreateSequence_LUA );
 	lua_tinker::class_def<CKTDGParticleSystem>( L, "GameUnitCreateSequence_LUA",	&CKTDGParticleSystem::GameUnitCreateSequence_LUA );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    lua_tinker::class_def<CKTDGParticleSystem>( L, "DestroyInstance",				&CKTDGParticleSystem::DestroyInstance_LUA );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	lua_tinker::class_def<CKTDGParticleSystem>( L, "DestroyInstance",				&CKTDGParticleSystem::DestroyInstance );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	lua_tinker::class_def<CKTDGParticleSystem>( L, "IsLiveInstance",				&CKTDGParticleSystem::IsLiveInstance );
 
 	
@@ -2101,10 +2277,17 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 	lua_tinker::class_def<CKTDGParticleSystem::CParticleEventSequence>( L, "SetDrawCount",		    &CKTDGParticleSystem::CParticleEventSequence::SetDrawCount);
 #endif SEASON3_MONSTER_2010_12
 	//}} JHKang / 강정훈 / 2010/12/15
-
+//#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+	lua_tinker::class_def<CKTDGParticleSystem::CParticleEventSequence>( L, "SetPerFrameSimulation",		    &CKTDGParticleSystem::CParticleEventSequence::SetPerFrameSimulation);
+	lua_tinker::class_def<CKTDGParticleSystem::CParticleEventSequence>( L, "GetPerFrameSimulation",		    &CKTDGParticleSystem::CParticleEventSequence::GetPerFrameSimulation);
+//endf  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 	lua_tinker::class_add<CKTDGParticleSystem::CParticleEventSequenceHandle>( L, "CParticleEventSequenceHandle" );
-
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+	lua_tinker::class_def<CKTDGParticleSystem::CParticleEventSequenceHandle>( L, "IsEqual", &CKTDGParticleSystem::CParticleEventSequenceHandle::IsEqual );
+	lua_tinker::class_add<CKTDGParticleSystem::CParticleHandle>( L, "CParticleHandle" );
+	lua_tinker::class_def<CKTDGParticleSystem::CParticleHandle>( L, "IsEqual", &CKTDGParticleSystem::CParticleHandle::IsEqual );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 
 	lua_tinker::class_add<CKTDGXMeshPlayer>( L, "CKTDGXMeshPlayer" );
@@ -2131,14 +2314,15 @@ void CKTDXApp::RegisterLuabind( KLuabinder* pKLuabinder )
 #ifdef NEW_HENIR_TEST
 	lua_tinker::class_def<CKTDGXMeshPlayer::CXMeshInstance>( L, "ChangeAnim_LUA",		&CKTDGXMeshPlayer::CXMeshInstance::ChangeAnim_LUA );
 #endif NEW_HENIR_TEST
-
+//#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    lua_tinker::class_def<CKTDGXMeshPlayer::CXMeshInstance>( L, "SetPerFrameSimulation",		&CKTDGXMeshPlayer::CXMeshInstance::SetPerFrameSimulation );
+    lua_tinker::class_def<CKTDGXMeshPlayer::CXMeshInstance>( L, "GetPerFrameSimulation",		&CKTDGXMeshPlayer::CXMeshInstance::GetPerFrameSimulation );
+//#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 	lua_tinker::class_add<CKTDGXMeshPlayer::CXMeshInstanceHandle>( L, "CXMeshInstanceHandle" );
-
-	
-
-
-
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+	lua_tinker::class_def<CKTDGXMeshPlayer::CXMeshInstanceHandle>( L, "IsEqual", &CKTDGXMeshPlayer::CXMeshInstanceHandle::IsEqual );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 
 	lua_tinker::class_add<CKTDGCamera>( L, "CKTDGCamera" );
@@ -2207,129 +2391,136 @@ const wstring& CKTDXApp::GetEnumToString( wstring wstrType, int enumIndex )
 
 void CKTDXApp::InitEnumToString()
 {
-	g_pKTDXApp->SetEnumToString( L"SLOT_STATE", 1, L"SS_EMPTY" );
-	g_pKTDXApp->SetEnumToString( L"SLOT_STATE", 2, L"SS_CLOSE" );
-	g_pKTDXApp->SetEnumToString( L"SLOT_STATE", 3, L"SS_WAIT" );
-	g_pKTDXApp->SetEnumToString( L"SLOT_STATE", 4, L"SS_LOADING" );
-	g_pKTDXApp->SetEnumToString( L"SLOT_STATE", 5, L"SS_PLAY" );
+	SetEnumToString( L"SLOT_STATE", 1, L"SS_EMPTY" );
+	SetEnumToString( L"SLOT_STATE", 2, L"SS_CLOSE" );
+	SetEnumToString( L"SLOT_STATE", 3, L"SS_WAIT" );
+	SetEnumToString( L"SLOT_STATE", 4, L"SS_LOADING" );
+	SetEnumToString( L"SLOT_STATE", 5, L"SS_PLAY" );
 
 
-	g_pKTDXApp->SetEnumToString( L"GAME_UNIT_TYPE", 0, L"GUT_USER" );
-	g_pKTDXApp->SetEnumToString( L"GAME_UNIT_TYPE", 1, L"GUT_NPC" );
+	SetEnumToString( L"GAME_UNIT_TYPE", 0, L"GUT_USER" );
+	SetEnumToString( L"GAME_UNIT_TYPE", 1, L"GUT_NPC" );
 
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 0, L"UC_NONE" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 1, L"엘소드 노전직" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 2, L"아이샤 노전직" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 3, L"레나 노전직" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 4, L"게이 노전직" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 5, L"이브 노전직" );
+	SetEnumToString( L"UNIT_CLASS", 0, L"UC_NONE" );
+	SetEnumToString( L"UNIT_CLASS", 1, L"엘소드 노전직" );
+	SetEnumToString( L"UNIT_CLASS", 2, L"아이샤 노전직" );
+	SetEnumToString( L"UNIT_CLASS", 3, L"레나 노전직" );
+	SetEnumToString( L"UNIT_CLASS", 4, L"레이븐 노전직" );
+	SetEnumToString( L"UNIT_CLASS", 5, L"이브 노전직" );
 #ifdef CHEAT_CLASS_CHANGE //JHKang
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 6, L"젠더 노전직" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 7, L"아라 노전직" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 8, L"엘리시스 노전직" );
+	SetEnumToString( L"UNIT_CLASS", 6, L"청 노전직" );
+	SetEnumToString( L"UNIT_CLASS", 7, L"아라 노전직" );
+	SetEnumToString( L"UNIT_CLASS", 8, L"엘리시스 노전직" );
+	SetEnumToString( L"UNIT_CLASS", 9, L"애드 노전직" );
 	
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 10, L"소드 나이트" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 11, L"매직 나이트" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 12, L"컴뱃 레인저" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 13, L"스나이핑 레인저" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 14, L"하이 메지션" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 15, L"다크 메지션" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 16, L"소드 테이커" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 17, L"오버 테이커" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 18, L"엑조틱 기어" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 19, L"아키텍처" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 20, L"퓨리 가디언" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 21, L"슈팅 가디언" );
+	SetEnumToString( L"UNIT_CLASS", 10, L"소드 나이트" );
+	SetEnumToString( L"UNIT_CLASS", 11, L"매직 나이트" );
+	SetEnumToString( L"UNIT_CLASS", 12, L"컴뱃 레인저" );
+	SetEnumToString( L"UNIT_CLASS", 13, L"스나이핑 레인저" );
+	SetEnumToString( L"UNIT_CLASS", 14, L"하이 메지션" );
+	SetEnumToString( L"UNIT_CLASS", 15, L"다크 메지션" );
+	SetEnumToString( L"UNIT_CLASS", 16, L"소드 테이커" );
+	SetEnumToString( L"UNIT_CLASS", 17, L"오버 테이커" );
+	SetEnumToString( L"UNIT_CLASS", 18, L"엑조틱 기어" );
+	SetEnumToString( L"UNIT_CLASS", 19, L"아키텍처" );
+	SetEnumToString( L"UNIT_CLASS", 20, L"퓨리 가디언" );
+	SetEnumToString( L"UNIT_CLASS", 21, L"슈팅 가디언" );
 
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 22, L"시스 나이트" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 23, L"배틀 메지션" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 24, L"트레기" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 25, L"웨폰 테이커" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 26, L"일렉트라" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 27, L"쉘링 가디언" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 28, L"소선" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 29, L"세이버 나이트" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 30, L"파이로 나이트" );
+	SetEnumToString( L"UNIT_CLASS", 22, L"시스 나이트" );
+	SetEnumToString( L"UNIT_CLASS", 23, L"배틀 메지션" );
+	SetEnumToString( L"UNIT_CLASS", 24, L"트레핑 레인져" );
+	SetEnumToString( L"UNIT_CLASS", 25, L"웨폰 테이커" );
+	SetEnumToString( L"UNIT_CLASS", 26, L"일렉트라" );
+	SetEnumToString( L"UNIT_CLASS", 27, L"쉘링 가디언" );
+	SetEnumToString( L"UNIT_CLASS", 28, L"소선" );
+	SetEnumToString( L"UNIT_CLASS", 29, L"세이버 나이트" );
+	SetEnumToString( L"UNIT_CLASS", 30, L"파이로 나이트" );
+	SetEnumToString( L"UNIT_CLASS", 31, L"소마" );
+	SetEnumToString( L"UNIT_CLASS", 32, L"사이킥 트레이서" );
 
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 100, L"로드 나이트" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 101, L"룬 슬레이어" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 102, L"윈드 스니커" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 103, L"그랜드 아처" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 104, L"엘리멘탈 마스터" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 105, L"보이드 프린세스" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 106, L"블레이드 마스터" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 107, L"레크리스 피스트" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 108, L"네메시스" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 109, L"엠프레스" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 110, L"아이언 팔라딘" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 111, L"데들리 체이서" );
+	SetEnumToString( L"UNIT_CLASS", 100, L"로드 나이트" );
+	SetEnumToString( L"UNIT_CLASS", 101, L"룬 슬레이어" );
+	SetEnumToString( L"UNIT_CLASS", 102, L"윈드 스니커" );
+	SetEnumToString( L"UNIT_CLASS", 103, L"그랜드 아처" );
+	SetEnumToString( L"UNIT_CLASS", 104, L"엘리멘탈 마스터" );
+	SetEnumToString( L"UNIT_CLASS", 105, L"보이드 프린세스" );
+	SetEnumToString( L"UNIT_CLASS", 106, L"블레이드 마스터" );
+	SetEnumToString( L"UNIT_CLASS", 107, L"레크리스 피스트" );
+	SetEnumToString( L"UNIT_CLASS", 108, L"네메시스" );
+	SetEnumToString( L"UNIT_CLASS", 109, L"엠프레스" );
+	SetEnumToString( L"UNIT_CLASS", 110, L"아이언 팔라딘" );
+	SetEnumToString( L"UNIT_CLASS", 111, L"데들리 체이서" );
 
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 112, L"인피니티 소드" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 113, L"디멘션 위치" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 114, L"나이트 와처" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 115, L"베터랑 게이" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 116, L"배틀 세라프" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 117, L"택티컬 트루퍼" );
-	g_pKTDXApp->SetEnumToString( L"UNIT_CLASS", 118, L"제천" );
+	SetEnumToString( L"UNIT_CLASS", 112, L"인피니티 소드" );
+	SetEnumToString( L"UNIT_CLASS", 113, L"디멘션 위치" );
+	SetEnumToString( L"UNIT_CLASS", 114, L"나이트 와처" );
+	SetEnumToString( L"UNIT_CLASS", 115, L"베터랑 커맨더" );
+	SetEnumToString( L"UNIT_CLASS", 116, L"배틀 세라프" );
+	SetEnumToString( L"UNIT_CLASS", 117, L"택티컬 트루퍼" );
+	SetEnumToString( L"UNIT_CLASS", 118, L"제천" );
+	SetEnumToString( L"UNIT_CLASS", 119, L"명왕" );
+	SetEnumToString( L"UNIT_CLASS", 120, L"그랜드 마스터" );
+	SetEnumToString( L"UNIT_CLASS", 121, L"블레이징 하트" );
+	SetEnumToString( L"UNIT_CLASS", 122, L"루나틱 사이커" );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
-	g_pKTDXApp->SetEnumToString( L"WORLD_ID", 0, L"WI_NONE" );
-	g_pKTDXApp->SetEnumToString( L"WORLD_ID", 1, L"WI_FOREST_OF_EL" );
-	g_pKTDXApp->SetEnumToString( L"WORLD_ID", 2, L"WI_TREE_OF_LIGHT_TOP" );
-	g_pKTDXApp->SetEnumToString( L"WORLD_ID", 3, L"WI_EL_FOREST_MAIN_STAGE2" );
-	g_pKTDXApp->SetEnumToString( L"WORLD_ID", 4, L"WI_EL_FOREST_MAIN_STAGE3" );
-	g_pKTDXApp->SetEnumToString( L"WORLD_ID", 5, L"WI_EL_FOREST_MAIN_STAGE4" );
-	g_pKTDXApp->SetEnumToString( L"WORLD_ID", 6, L"WI_END" );
+	SetEnumToString( L"WORLD_ID", 0, L"WI_NONE" );
+	SetEnumToString( L"WORLD_ID", 1, L"WI_FOREST_OF_EL" );
+	SetEnumToString( L"WORLD_ID", 2, L"WI_TREE_OF_LIGHT_TOP" );
+	SetEnumToString( L"WORLD_ID", 3, L"WI_EL_FOREST_MAIN_STAGE2" );
+	SetEnumToString( L"WORLD_ID", 4, L"WI_EL_FOREST_MAIN_STAGE3" );
+	SetEnumToString( L"WORLD_ID", 5, L"WI_EL_FOREST_MAIN_STAGE4" );
+	SetEnumToString( L"WORLD_ID", 6, L"WI_END" );
 
-	g_pKTDXApp->SetEnumToString( L"DUNGEON_ID", 0,	L"DI_NONE" );
-	g_pKTDXApp->SetEnumToString( L"DUNGEON_ID", 30000, L"DI_EL_FOREST_MAIN_NORMAL" );
-	g_pKTDXApp->SetEnumToString( L"DUNGEON_ID", 30001, L"DI_EL_FOREST_MAIN_HARD" );
-	g_pKTDXApp->SetEnumToString( L"DUNGEON_ID", 30002, L"DI_EL_FOREST_MAIN_EXPERT" );
-	g_pKTDXApp->SetEnumToString( L"DUNGEON_ID", 30003, L"DI_END" );
+	SetEnumToString( L"DUNGEON_ID", 0,	L"DI_NONE" );
+	SetEnumToString( L"DUNGEON_ID", 30000, L"DI_EL_FOREST_MAIN_NORMAL" );
+	SetEnumToString( L"DUNGEON_ID", 30001, L"DI_EL_FOREST_MAIN_HARD" );
+	SetEnumToString( L"DUNGEON_ID", 30002, L"DI_EL_FOREST_MAIN_EXPERT" );
+	SetEnumToString( L"DUNGEON_ID", 30003, L"DI_END" );
 
-	g_pKTDXApp->SetEnumToString( L"DIFFICULTY_LEVEL", 0, L"DL_NORMAL" );
-	g_pKTDXApp->SetEnumToString( L"DIFFICULTY_LEVEL", 1, L"DL_HARD" );
-	g_pKTDXApp->SetEnumToString( L"DIFFICULTY_LEVEL", 2, L"DL_EXPERT" );
-
-
-	g_pKTDXApp->SetEnumToString( L"ROOM_STATE", 1, L"RS_INIT" );		
-	g_pKTDXApp->SetEnumToString( L"ROOM_STATE", 2, L"RS_CLOSED" );
-	g_pKTDXApp->SetEnumToString( L"ROOM_STATE", 3, L"RS_WAIT" );
-	g_pKTDXApp->SetEnumToString( L"ROOM_STATE", 4, L"RS_LOADING" );
-	g_pKTDXApp->SetEnumToString( L"ROOM_STATE", 5, L"RS_PLAY" );
-
-	g_pKTDXApp->SetEnumToString( L"ROOM_TYPE", 0, L"RT_NONE" );		
-	g_pKTDXApp->SetEnumToString( L"ROOM_TYPE", 1, L"RT_PVP" );
-	g_pKTDXApp->SetEnumToString( L"ROOM_TYPE", 2, L"RT_DUNGEON" );
-
-	g_pKTDXApp->SetEnumToString( L"TEAM_NUM", 0, L"TN_RED" );		
-	g_pKTDXApp->SetEnumToString( L"TEAM_NUM", 1, L"TN_BLUE" );
-	g_pKTDXApp->SetEnumToString( L"TEAM_NUM", 2, L"TN_MONSTER" );
+	SetEnumToString( L"DIFFICULTY_LEVEL", 0, L"DL_NORMAL" );
+	SetEnumToString( L"DIFFICULTY_LEVEL", 1, L"DL_HARD" );
+	SetEnumToString( L"DIFFICULTY_LEVEL", 2, L"DL_EXPERT" );
 
 
+	SetEnumToString( L"ROOM_STATE", 1, L"RS_INIT" );		
+	SetEnumToString( L"ROOM_STATE", 2, L"RS_CLOSED" );
+	SetEnumToString( L"ROOM_STATE", 3, L"RS_WAIT" );
+	SetEnumToString( L"ROOM_STATE", 4, L"RS_LOADING" );
+	SetEnumToString( L"ROOM_STATE", 5, L"RS_PLAY" );
+
+	SetEnumToString( L"ROOM_TYPE", 0, L"RT_NONE" );		
+	SetEnumToString( L"ROOM_TYPE", 1, L"RT_PVP" );
+	SetEnumToString( L"ROOM_TYPE", 2, L"RT_DUNGEON" );
+
+	SetEnumToString( L"TEAM_NUM", 0, L"TN_RED" );		
+	SetEnumToString( L"TEAM_NUM", 1, L"TN_BLUE" );
+	SetEnumToString( L"TEAM_NUM", 2, L"TN_MONSTER" );
 
 
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  0, L"NUI_NONE" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  1, L"NUI_BEE" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  2, L"NUI_BEEBOMB" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  3, L"NUI_BEEBOMBHOUSE" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  4, L"NUI_BEEHOUSE" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  5, L"NUI_BENDERS_NORMAL" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  6, L"NUI_BENDERS_HARD" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  7, L"NUI_BENDERS_EXPERT" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  8, L"NUI_CHAINGATE_GREEN" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID",  9, L"NUI_CHAINGATE_RED" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 10, L"NUI_CHAINGATE_YELLOW" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 11, L"NUI_CHAINGATE_POST" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 12, L"NUI_MONKEY_A" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 13, L"NUI_MONKEY_B" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 14, L"NUI_MONKEY_APPLE" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 15, L"NUI_SMALLGATE_GREEN" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 16, L"NUI_SMALLGATE_RED" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 17, L"NUI_SMALLGATE_YELLOW" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 18, L"NUI_SMALLGATE_POST" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 19, L"NUI_CHEST" );
-	g_pKTDXApp->SetEnumToString( L"NPC_UNIT_ID", 20, L"NUI_BOX" );
+
+
+	SetEnumToString( L"NPC_UNIT_ID",  0, L"NUI_NONE" );
+	SetEnumToString( L"NPC_UNIT_ID",  1, L"NUI_BEE" );
+	SetEnumToString( L"NPC_UNIT_ID",  2, L"NUI_BEEBOMB" );
+	SetEnumToString( L"NPC_UNIT_ID",  3, L"NUI_BEEBOMBHOUSE" );
+	SetEnumToString( L"NPC_UNIT_ID",  4, L"NUI_BEEHOUSE" );
+	SetEnumToString( L"NPC_UNIT_ID",  5, L"NUI_BENDERS_NORMAL" );
+	SetEnumToString( L"NPC_UNIT_ID",  6, L"NUI_BENDERS_HARD" );
+	SetEnumToString( L"NPC_UNIT_ID",  7, L"NUI_BENDERS_EXPERT" );
+	SetEnumToString( L"NPC_UNIT_ID",  8, L"NUI_CHAINGATE_GREEN" );
+	SetEnumToString( L"NPC_UNIT_ID",  9, L"NUI_CHAINGATE_RED" );
+	SetEnumToString( L"NPC_UNIT_ID", 10, L"NUI_CHAINGATE_YELLOW" );
+	SetEnumToString( L"NPC_UNIT_ID", 11, L"NUI_CHAINGATE_POST" );
+	SetEnumToString( L"NPC_UNIT_ID", 12, L"NUI_MONKEY_A" );
+	SetEnumToString( L"NPC_UNIT_ID", 13, L"NUI_MONKEY_B" );
+	SetEnumToString( L"NPC_UNIT_ID", 14, L"NUI_MONKEY_APPLE" );
+	SetEnumToString( L"NPC_UNIT_ID", 15, L"NUI_SMALLGATE_GREEN" );
+	SetEnumToString( L"NPC_UNIT_ID", 16, L"NUI_SMALLGATE_RED" );
+	SetEnumToString( L"NPC_UNIT_ID", 17, L"NUI_SMALLGATE_YELLOW" );
+	SetEnumToString( L"NPC_UNIT_ID", 18, L"NUI_SMALLGATE_POST" );
+	SetEnumToString( L"NPC_UNIT_ID", 19, L"NUI_CHEST" );
+	SetEnumToString( L"NPC_UNIT_ID", 20, L"NUI_BOX" );
 
 
 }
@@ -2384,7 +2575,6 @@ D3DXVECTOR3 CKTDXApp::GetUnProj3DPos( D3DXVECTOR3 pos )
 
 void CKTDXApp::NoticeQuitType( KTDX_QUIT_TYPE quitType )
 {
-
 #ifndef _SERVICE_
 
 	if ( quitType == KQT_CLOSE_WINDOW )
@@ -2398,7 +2588,7 @@ void CKTDXApp::NoticeQuitType( KTDX_QUIT_TYPE quitType )
 	else if ( quitType == KQT_ESC_GAME )
 	{
 #ifndef REMOVE_EXIT_MESSAGE_BOX
-		MessageBox( GetHWND(), L"esc누르고 종료 버튼", L"종료 타입", MB_OK );		
+		MessageBox( GetHWND(), L"esc누르고 종료 버튼", L"종료 타입", MB_OK );
 #endif REMOVE_EXIT_MESSAGE_BOX
 	}
 	else if ( quitType == KQT_ALREADY_GAME_PLAY )
@@ -2501,7 +2691,7 @@ bool CKTDXApp::FindProcess( wstring wstrExeFile )
 
 void CKTDXApp::OnWebBrowserKeyEvents( LPMSG pMsg )
 {
-	g_pKTDXApp->SendGameMessage( KM_WEB_BROWSER_KEY_EVENT, pMsg->wParam, (LPARAM) pMsg, true );
+	SendGameMessage( KM_WEB_BROWSER_KEY_EVENT, pMsg->wParam, (LPARAM) pMsg, true );
 }
 
 
@@ -2526,7 +2716,7 @@ void CKTDXApp::GetVideoRam( DWORD& dwTotal, DWORD& dwFree )
 		// directdraw7을 생성 못했다면 dx9device를 이용해서 대충 계산해보자
 		// note!! 이 함수의 리턴값에 의해 저사양에서의 해상도를 제한하고 있는데
 		// 이렇게 수정했을 때 저사양에서 문제 없는지 확인 필요.
-		if( NULL != g_pKTDXApp->GetDevice() )
+		if( NULL != GetDevice() )
 		{
 			UINT texMem = GetDevice()->GetAvailableTextureMem();
 

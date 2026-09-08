@@ -145,7 +145,7 @@ bool CX2UserListPopUp::SetPopupMenu()
 				if ( NULL != pStaticUserName )
 					pStaticUserName->GetString(0)->msg = pUnit->GetNickName();
 				
-				const int iUnitLevel = pUnit->GetUnitData()->m_Level;
+				const int iUnitLevel = pUnit->GetUnitData().m_Level;
 				int tenL = iUnitLevel / 10;
 				int oneL = iUnitLevel % 10;
 
@@ -190,15 +190,22 @@ bool CX2UserListPopUp::SetPopupMenu()
 			if ( NULL != pPicture )
 			{
 				CX2PetManager::PetTemplet *pTemplet = g_pData->GetPetManager()->GetPetTemplet( (CX2PetManager::PET_UNIT_ID)pPet->GetPetInfo().m_PetId );
-				CX2PetManager::PetStepImage petStepImage = pTemplet->m_Evolution_Step_Image[ pPet->GetPetInfo().m_Evolution_Step ];
-				wstring wstrImageName = petStepImage.m_wstrImageName;
-				
-				if( petStepImage.m_wstrKeyName == L"" )
-					pPicture->SetTex( wstrImageName.c_str() );
-				else
-					pPicture->SetTex( wstrImageName.c_str(), petStepImage.m_wstrKeyName.c_str() );
+	#ifdef DEFENCE_CODE_FOR_CRASH
+				if( pPet->GetPetInfo().m_Evolution_Step < pTemplet->m_Evolution_Step_Image.size() )
+				{
+	#endif //DEFENCE_CODE_FOR_CRASH
+					CX2PetManager::PetStepImage petStepImage = pTemplet->m_Evolution_Step_Image[ pPet->GetPetInfo().m_Evolution_Step ];
+					wstring wstrImageName = petStepImage.m_wstrImageName;
 
-				pPicture->SetShow(true);
+					if( petStepImage.m_wstrKeyName == L"" )
+						pPicture->SetTex( wstrImageName.c_str() );
+					else
+						pPicture->SetTex( wstrImageName.c_str(), petStepImage.m_wstrKeyName.c_str() );
+
+					pPicture->SetShow(true);
+	#ifdef DEFENCE_CODE_FOR_CRASH
+				}
+	#endif //DEFENCE_CODE_FOR_CRASH
 			}
 		}
 #endif SERV_PET_SYSTEM
@@ -361,10 +368,8 @@ void CX2UserListPopUp::OpenPopupMenu( bool bNotOpen )
 				vMousePos.y = 0.f;
 			}
 
-#ifdef REFORM_UI_CHARACTER_INFO
 			m_pDlgPopup->SetPos( D3DXVECTOR2( (float)vMousePos.x-30.f, (float)vMousePos.y - 40.f ) );
 			m_pDlgPopup->SetShowEnable( true, true );
-#endif
 
 			m_pDlgMenu->SetPos( D3DXVECTOR2( (float)vMousePos.x-30.f, (float)vMousePos.y - 40.f ) );
 
@@ -376,7 +381,6 @@ void CX2UserListPopUp::OpenPopupMenu( bool bNotOpen )
 			}
 		}
 
-#ifdef REFORM_UI_CHARACTER_INFO
 		float fButtonWidth = 103.f;
 		float fButtonHeight = 22.f;
 		D3DXVECTOR2 offsetPos = D3DXVECTOR2(0.f, 0.f);
@@ -408,7 +412,6 @@ void CX2UserListPopUp::OpenPopupMenu( bool bNotOpen )
 		offsetPos = m_pPicCenterBottom->GetPos();
 		offsetPos.x += fButtonWidth;
 		m_pPicRightBottom->SetPos( offsetPos );
-#endif
 
 		m_pDlgMenu->SetShowEnable( true, true );
 		
@@ -418,10 +421,8 @@ void CX2UserListPopUp::OpenPopupMenu( bool bNotOpen )
 
 void CX2UserListPopUp::ClosePopupMenu()
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	if ( NULL != m_pDlgPopup )
 		m_pDlgPopup->SetShowEnable(false, false);
-#endif
 
 	m_pDlgMenu->SetShowEnable( false, false );
 	m_bShow = false;

@@ -149,6 +149,25 @@ class CKTDGUIScrollBar : public CKTDGUIControl
 
 		void FromRectToPoint( RECT& rect, CKTDGUIControl::UIPointData& point );
 
+#ifdef DLL_BUILD
+public:
+		virtual void MoveControl( float fx, float fy ) override;
+
+		virtual void SetEditGUI( bool bEdit ) override;
+
+		virtual D3DXVECTOR2 GetPos() override;
+
+		void ShowEdge( bool bShow );
+protected:
+		
+		void DrawEditEdge();
+
+protected:
+		bool m_bEditEdge;
+		CKTDXDeviceTexture * m_pCheckedEdgeTexture;
+
+#endif
+protected:
 		bool m_bShowThumb;
 		bool m_bDrag;
 

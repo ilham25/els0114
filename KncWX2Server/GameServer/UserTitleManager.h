@@ -33,7 +33,7 @@ public:
 	KMissionInstance* GetMissionInstance( IN int iMissionID );
 
 	// 클리어 조건별 체크함수
-	void	OnNpcUnitDie( IN int iDungeonID, IN char cDifficulty, IN int iMonsterID, IN KGSUserPtr spUser );
+	void	OnNpcUnitDie( IN const int iDungeonID, IN const char cDifficulty, IN const char cDungeonMode, IN const int iMonsterID, IN KGSUserPtr spUser );
 	void	OnTalkWithNpc( IN int iNPCID, IN KGSUserPtr spUser );
 	//{{ 2010. 8. 23	최육사	헬모드 칭호
 #ifdef SERV_HELL_MODE_TITLE
@@ -112,6 +112,13 @@ public:
 	int		GetUseResurrectionStoneCount()								{ return m_iUseResurrectionStoneCount; }
 #endif SERV_ADD_TITLE_CONDITION_SANDER
 	//}
+
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+	void	OnSocketItem( IN KGSUserPtr spUser, IN int iItemLevel, IN int iSocketUseCount );								// 마법석 사용
+	void	OnEnchantItemLevel( IN KGSUserPtr spUser, IN int iItemLevel, IN int iEnchantLevel, IN bool bEnchantResult );	// 강화 레벨, 강화 횟수
+	void	OnAttribItem( IN KGSUserPtr spUser, IN int iItemLevel );								// 속성 부여
+	void	OnResolveItem( IN KGSUserPtr spUser );		
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
 
 private:
 	KCacheData< int >					m_iEquippedTitle;

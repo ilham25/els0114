@@ -55,8 +55,8 @@ m_vOldLookAtPt(0.0f,0.0f,0.0f)				// D3DXVECTOR3
 	//    //}} seojt // 2008-10-22, 17:22
 	//}} dmlee 2009.3.25 거래광장과 마을을 왔다갔다 할 때 크래시 나는 문제때문에 일단 comment out
 
-	//g_pKTDXApp->GetDGManager()->GetCamera()->Point( 6705, 1164, 4121, 6701, 1013, 4907 ); 
-	//g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( 1.0f );
+	//g_pKTDXApp->GetDGManager()->GetCamera().Point( 6705, 1164, 4121, 6701, 1013, 4907 ); 
+	//g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( 1.0f );
 
 
 	// 광장 제목 다이얼로그 
@@ -100,6 +100,10 @@ m_vOldLookAtPt(0.0f,0.0f,0.0f)				// D3DXVECTOR3
 #ifdef NEW_CHARACTER_EL
 	XSkinMeshReady( L"Mesh_EL_Base_SD.x" );
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	XSkinMeshReady( L"Mesh_Add_Base_SD.x" );
+#endif //SERV_9TH_NEW_CHARACTER
 
 }//CX2StateSquareGame::CX2StateSquareGame()
 
@@ -206,11 +210,11 @@ HRESULT CX2StateSquareGame::OnFrameMove( double fTime, float fElapsedTime )
 // 	}
 	//}}
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	if( GET_KEY_STATE( GAMEACTION_ATTACK_FAST ) == TRUE )
-#else // KEY_MAPPING_INT
+#else // SERV_KEY_MAPPING_INT
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_Z) == TRUE )
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 	{
 		if( g_pChatBox->GetFocus() == false && g_pSquareGame->ExitMarket() == true)
 		{
@@ -252,10 +256,15 @@ HRESULT CX2StateSquareGame::OnFrameRender()
 	else
 	{
 //{{ robobeg : 2008-10-18
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+    CKTDGParticleSystem::EnableParticleCulling( true );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 		g_pKTDXApp->GetDGManager()->ObjectChainSort();
         g_pKTDXApp->GetDGManager()->ObjectChainNonAlphaRender();
         g_pKTDXApp->GetDGManager()->ObjectChainAlphaRender();
-
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+    CKTDGParticleSystem::EnableParticleCulling( false );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 //}} robobeg : 2008-10-18
 	}
 
@@ -272,6 +281,9 @@ HRESULT CX2StateSquareGame::OnFrameRender()
 		g_pInstanceData->GetMiniMapUI() != NULL )
 	{
 		g_pInstanceData->GetMiniMapUI()->UpdateEventNotice();
+#ifdef EVENT_CARNIVAL_DECORATION
+		g_pInstanceData->GetMiniMapUI()->UpdateCarnivalDeco();
+#endif //EVENT_CARNIVAL_DECORATION
 	}
 	//RenderMarketingEventTimer();
 	//}}
@@ -332,7 +344,7 @@ bool CX2StateSquareGame::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 				g_pSquareGame->GetTalkBoxManagerPShop()->CheckMousePointInTalkbox( mousePos, unitUIDToFind ) == true )
 			{
 				// 체험 아이디 제한 
-				if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+				if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 				{
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 					return true;
@@ -607,8 +619,8 @@ void CX2StateSquareGame::SetShowStateDLG( bool bShow )
 // 		if ( m_pDLGSquareTitle != NULL )
 // 			m_pDLGSquareTitle->SetShowEnable( true, true );
 
-		g_pKTDXApp->GetDGManager()->GetCamera()->Move( m_vOldEyePt.x, m_vOldEyePt.y, m_vOldEyePt.z );
-		g_pKTDXApp->GetDGManager()->GetCamera()->LookAt( m_vOldLookAtPt.x, m_vOldLookAtPt.y, m_vOldLookAtPt.z );
+		g_pKTDXApp->GetDGManager()->GetCamera().Move( m_vOldEyePt.x, m_vOldEyePt.y, m_vOldEyePt.z );
+		g_pKTDXApp->GetDGManager()->GetCamera().LookAt( m_vOldLookAtPt.x, m_vOldLookAtPt.y, m_vOldLookAtPt.z );
 
 		g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), true );
 
@@ -619,7 +631,7 @@ void CX2StateSquareGame::SetShowStateDLG( bool bShow )
 	
 
 		g_pSquareGame->GetWorld()->SetShowObject( true ); 
-		g_pSquareGame->GetWorld()->SetMapDetail( g_pMain->GetGameOption()->GetOptionList()->m_MapDetail );
+		g_pSquareGame->GetWorld()->SetMapDetail( g_pMain->GetGameOption().GetOptionList().m_MapDetail );
 
 		g_pSquareGame->SetShowUserUnit( true );
 
@@ -642,10 +654,10 @@ void CX2StateSquareGame::SetShowStateDLG( bool bShow )
 //		if ( m_pDLGSquareTitle != NULL )
 //			m_pDLGSquareTitle->SetShowEnable( false, false );
 
-		m_vOldEyePt		= g_pKTDXApp->GetDGManager()->GetCamera()->GetEye();
-		m_vOldLookAtPt	= g_pKTDXApp->GetDGManager()->GetCamera()->GetLookAt();
+		m_vOldEyePt		= g_pKTDXApp->GetDGManager()->GetCamera().GetEye();
+		m_vOldLookAtPt	= g_pKTDXApp->GetDGManager()->GetCamera().GetLookAt();
 
-		g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+		g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 		g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), false );
 
 		if( NULL != g_pChatBox )

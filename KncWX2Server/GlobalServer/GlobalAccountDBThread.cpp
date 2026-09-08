@@ -22,7 +22,17 @@ IMPL_PROFILER_DUMP( KGlobalAccountDBThread )
 	{
 		unsigned int iAvg = 0;
 		if( vecDump[ui].m_iQueryCount > 0 )	iAvg = vecDump[ui].m_iTotalTime / vecDump[ui].m_iQueryCount;		
-
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY_NO_PROFILE( L"exec dbo.P_QueryStats_INS", L"N\'%s\', %d, %d, %d, %d, %d, %d",
+			% vecDump[ui].m_wstrQuery
+			% vecDump[ui].m_iMinTime
+			% iAvg
+			% vecDump[ui].m_iMaxTime
+			% vecDump[ui].m_iOver1Sec
+			% vecDump[ui].m_iQueryCount
+			% vecDump[ui].m_iQueryFail
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY_NO_PROFILE( L"exec dbo.mup_insert_querystats", L"N\'%s\', %d, %d, %d, %d, %d, %d",
 			% vecDump[ui].m_wstrQuery
 			% vecDump[ui].m_iMinTime
@@ -32,7 +42,7 @@ IMPL_PROFILER_DUMP( KGlobalAccountDBThread )
 			% vecDump[ui].m_iQueryCount
 			% vecDump[ui].m_iQueryFail
 			);
-
+#endif //SERV_ALL_RENEWAL_SP
 		continue;
 
 end_proc:
@@ -96,7 +106,11 @@ IMPL_ON_FUNC( DBE_CHECK_BLOCK_LIST_REQ )
 	int iReleaseTick = 0;
 	
 	// ReleaseTick 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_ReleaseTick_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_ReleaseTick_SEL", L"%d", % KBaseServer::GetKObj()->GetServerGroupID() );
+#endif //SERV_ALL_RENEWAL_SP	
 
 	while( m_kODBC.Fetch() )
 	{
@@ -116,8 +130,11 @@ IMPL_ON_FUNC( DBE_CHECK_BLOCK_LIST_REQ )
 	// releasetick값이 증가되었다면 테이블 전체를 가져온다.
 	if( bGetBlockList )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY_NO_ARG( L"exec dbo.P_MPenalty_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY_NO_ARG( L"exec dbo.P_MPenalty_GET" );
-
+#endif //SERV_ALL_RENEWAL_SP
 		while( m_kODBC.Fetch() )
 		{
 			KBlockInfo kInfo;
@@ -151,5 +168,3 @@ end_proc:
 }
 #endif SERV_BLOCK_LIST
 //}}
-
-

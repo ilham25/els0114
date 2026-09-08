@@ -55,6 +55,15 @@ void KUserQuestManager::SetUnitQuest( IN OUT std::vector< KQuestInstance >& vecQ
 		const CXSLQuestManager::QuestTemplet* pQuestTemplet = SiCXSLQuestManager()->GetQuestTemplet( kQuestInstance.m_iID );
 		if( pQuestTemplet == NULL )
 		{
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET // 퀘스트 템플릿 부재
+			CTime kRegDate = CTime::GetCurrentTime();
+			KE_LOCAL_LOG_UNDEFINED_QUEST_TEMPLET_NOT kNot;
+			kNot.m_iQuestID	= kQuestInstance.m_iID;
+			kNot.m_wstrRegDate = (const wchar_t*)kRegDate.Format(_T("%Y-%m-%d %H:%M:%S"));
+			KSIManager.QueueingEvent( E_LOCAL_LOG_UNDEFINED_QUEST_TEMPLET_NOT, kNot );
+			continue;
+#endif // SERV_LOG_UNDEFINED_QUEST_TEMPLET 
+
 			START_LOG( cerr, L"QUEST TEMPLET가 없음." )
 				<< BUILD_LOG( kQuestInstance.m_iID )
 				<< BUILD_LOG( kQuestInstance.m_OwnorUnitUID )
@@ -68,7 +77,6 @@ void KUserQuestManager::SetUnitQuest( IN OUT std::vector< KQuestInstance >& vecQ
 			continue; // 2013.06.10 lygan_조성욱 // 어차피 활성화 되지 않은 퀘스트는 AfterQuest 를 찾을 필요가 없다
 		}
 #endif //SERV_ALLOW_EVENT_ERASE
-
 
 		KQuestInstance kQuest;
 		kQuest.m_iID			= kQuestInstance.m_iID;
@@ -446,7 +454,6 @@ bool KUserQuestManager::Handler_EGS_NEW_QUEST_REQ( IN const KEGS_NEW_QUEST_REQ& 
 		}
 	}
 
-	
 #ifdef SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
 	int iRecruitEventQuestIDForNewUserSize = sizeof( arriRecruitEventQuestIDForNewUser ) / sizeof( arriRecruitEventQuestIDForNewUser[0] );
 	for( int iRecruitEventQuestIDForNewUserIndex = 0; iRecruitEventQuestIDForNewUserIndex < iRecruitEventQuestIDForNewUserSize; ++iRecruitEventQuestIDForNewUserIndex )
@@ -552,7 +559,6 @@ bool KUserQuestManager::Handler_EGS_NEW_QUEST_REQ( IN const KEGS_NEW_QUEST_REQ& 
 				SET_ERROR( ERR_QUEST_04 );
 				goto error_proc;
 			}
-
 #ifdef SERV_DAILY_CONSECUTIVE_QUEST_FIX
 			BOOST_TEST_FOREACH( const int, iBeforeQuestID, pQuestTemplet->m_Condition.m_vecBeforeQuestID )
 			{
@@ -568,7 +574,6 @@ bool KUserQuestManager::Handler_EGS_NEW_QUEST_REQ( IN const KEGS_NEW_QUEST_REQ& 
 				}
 			}
 #endif //SERV_DAILY_CONSECUTIVE_QUEST_FIX	
-
 		}
 	}
 
@@ -594,7 +599,7 @@ bool KUserQuestManager::Handler_EGS_NEW_QUEST_REQ( IN const KEGS_NEW_QUEST_REQ& 
 		//유닛과 맞지 않는 퀘스트로 체크하여 시작할수 없음.
 		if( pQuestTemplet->m_Condition.m_setUnitClass.find( static_cast<CXSLUnit::UNIT_CLASS>(spUser->GetUnitClass()) ) == pQuestTemplet->m_Condition.m_setUnitClass.end() )
 		{
-			START_LOG( cwarn, L"QUEST 수행가능 유닛이 아님.! 누구냐.. 넌." )
+			START_LOG( cerr, L"QUEST 수행가능 유닛이 아님.! 누구냐.. 넌." )
 				<< BUILD_LOG( pQuestTemplet->m_Condition.m_setUnitClass.size() )
 				<< BUILD_LOGc( spUser->GetUnitClass() );
 
@@ -883,7 +888,6 @@ bool KUserQuestManager::Handler_EGS_NEW_QUEST_REQ( IN const KEGS_NEW_QUEST_REQ& 
 				SET_ERROR( ERR_QUEST_21 );
 				goto error_proc;
 			}
-
 			break;
 		}
 	}
@@ -1024,7 +1028,7 @@ bool KUserQuestManager::Handler_EGS_NEW_QUEST_REQ( IN const KEGS_NEW_QUEST_REQ& 
 		//유닛과 맞지 않는 퀘스트로 체크하여 시작할수 없음.
 		if( pQuestTemplet->m_Condition.m_setUnitClass.find( static_cast<CXSLUnit::UNIT_CLASS>(spUser->GetUnitClass()) ) == pQuestTemplet->m_Condition.m_setUnitClass.end() )
 		{
-			START_LOG( cwarn, L"QUEST 수행가능 유닛이 아님.! 누구냐.. 넌." )
+			START_LOG( cerr, L"QUEST 수행가능 유닛이 아님.! 누구냐.. 넌." )
 				<< BUILD_LOG( pQuestTemplet->m_Condition.m_setUnitClass.size() )
 				<< BUILD_LOGc( spUser->GetUnitClass() );
 
@@ -1428,11 +1432,52 @@ void KUserQuestManager::Handler_ERM_NPC_UNIT_DIE_NOT( IN const int iDungeonID,
 				{
 					// SubQuest 에 있는 배틀 필드을 플레이 한 것이 아니라면
 					if( SiCXSLQuestManager()->IsExistBattleFiledIInSubQuest( pQuestTemplet->m_vecSubQuest[iIndexSub], spUser->GetMapID() ) == false )
+					{
+#ifdef SERV_BATTLE_FIELD_BOSS_QUEST_LOG// 작업날짜: 2013-11-28	// 박세훈
+						if( iMonsterID == CXSLUnitManager::NUI_FIELD_BOSS_IRON_ELTRION )
+						{
+							START_LOG( cerr, L"필드 보스 시스템 퀘스트 로그: 엘트리온을 잡았는데 보스 필드가 아니다?" )
+								<< BUILD_LOG( spUser->GetCharUID() )
+								<< BUILD_LOG( spUser->GetCharName() )
+								<< BUILD_LOG( spUser->GetRoomUID() )
+								<< BUILD_LOG( CXSLRoom::GetRoomType( spUser->GetRoomUID() ) )
+								<< BUILD_LOG( spUser->GetMapID() )
+								<< END_LOG;
+						}
+#endif // SERV_BATTLE_FIELD_BOSS_QUEST_LOG
 						continue;
+					}
 				}
+#ifdef SERV_BATTLE_FIELD_BOSS_QUEST_LOG// 작업날짜: 2013-11-28	// 박세훈
+				else if( iMonsterID == CXSLUnitManager::NUI_FIELD_BOSS_IRON_ELTRION )
+				{
+					START_LOG( cerr, L"필드 보스 시스템 퀘스트 로그: 엘트리온을 잡았는데 보스 필드가 아니다?" )
+						<< BUILD_LOG( spUser->GetCharUID() )
+						<< BUILD_LOG( spUser->GetCharName() )
+						<< BUILD_LOG( spUser->GetRoomUID() )
+						<< BUILD_LOG( CXSLRoom::GetRoomType( spUser->GetRoomUID() ) )
+						<< BUILD_LOG( spUser->GetMapID() )
+						<< END_LOG;
+				}
+#endif // SERV_BATTLE_FIELD_BOSS_QUEST_LOG
 			}
 			else
 			{
+#ifdef SERV_BATTLE_FIELD_BOSS_QUEST_LOG// 작업날짜: 2013-11-28	// 박세훈
+				if( iMonsterID == CXSLUnitManager::NUI_FIELD_BOSS_IRON_ELTRION )
+				{
+					START_LOG( cerr, L"필드 보스 시스템 퀘스트 로그: 엘트리온을 잡았는데 보스 필드가 아니다?" )
+						<< BUILD_LOG( spUser->GetCharUID() )
+						<< BUILD_LOG( spUser->GetCharName() )
+						<< BUILD_LOG( spUser->GetRoomUID() )
+						<< BUILD_LOG( CXSLRoom::GetRoomType( spUser->GetRoomUID() ) )
+						<< BUILD_LOG( spUser->GetMapID() )
+						<< END_LOG;
+				}
+#endif // SERV_BATTLE_FIELD_BOSS_QUEST_LOG
+				if( ( pSubQuestTemplet->m_ClearCondition.m_eDungeonMode != CXSLDungeon::DM_INVALID ) && ( pSubQuestTemplet->m_ClearCondition.m_eDungeonMode != cDungeonMode ) )
+					continue;
+				
 				// 유효한 던전이라면
 				if( SiCXSLQuestManager()->CheckValidDungeonID( pQuestTemplet->m_vecSubQuest[iIndexSub] ) == true )
 				{
@@ -1444,14 +1489,62 @@ void KUserQuestManager::Handler_ERM_NPC_UNIT_DIE_NOT( IN const int iDungeonID,
 			
 			// 하위 그룹의 sub Quest 가 모두 완료 된 상태가 아니라면
 			if( CheckCompleteSubQuest_BeforGroup( pQuestTemplet->m_iID, pQuestTemplet->m_vecSubQuest[iIndexSub], spUser ) == false )
+			{
+#ifdef SERV_BATTLE_FIELD_BOSS_QUEST_LOG// 작업날짜: 2013-11-28	// 박세훈
+				if( iMonsterID == CXSLUnitManager::NUI_FIELD_BOSS_IRON_ELTRION )
+				{
+					START_LOG( cerr, L"필드 보스 시스템 퀘스트 로그: 엘트리온을 잡았는데 하위 그룹 sub quest가 완료되지 않았다?" )
+						<< BUILD_LOG( spUser->GetCharUID() )
+						<< BUILD_LOG( spUser->GetCharName() )
+						<< BUILD_LOG( spUser->GetRoomUID() )
+						<< BUILD_LOG( CXSLRoom::GetRoomType( spUser->GetRoomUID() ) )
+						<< BUILD_LOG( spUser->GetMapID() )
+						<< END_LOG;
+				}
+#endif // SERV_BATTLE_FIELD_BOSS_QUEST_LOG
 				continue;
+			}
 
+#ifdef SERV_HENIR_EVENT_SORT_NORMAL_CHALLENGE
+			//일반 모드만
+			if( pSubQuestTemplet->m_iID == 131141 || pSubQuestTemplet->m_iID == 131190 ||
+				pSubQuestTemplet->m_iID == 131200 || pSubQuestTemplet->m_iID == 131210  )
+			{
+				if( CXSLDungeon::IsHenirChallengeMode( static_cast<int>( cDungeonMode ) ) == true )
+				{
+					continue;
+				}
+			} 
+			//도전 모드만
+			else if( pSubQuestTemplet->m_iID == 131151 || pSubQuestTemplet->m_iID == 131160 ||
+				pSubQuestTemplet->m_iID == 131170 || pSubQuestTemplet->m_iID == 131180 || pSubQuestTemplet->m_iID == 131220 )
+			{
+				if( CXSLDungeon::IsHenirPracticeMode( static_cast<int>( cDungeonMode ) ) == true )
+				{
+					continue;
+				}
+			}
+#endif SERV_HENIR_EVENT_SORT_NORMAL_CHALLENGE
 			if( pSubQuestTemplet->m_ClearCondition.m_iKillNum > kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_ucClearData )
 			{
 				++kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_ucClearData;
 
 				if( pSubQuestTemplet->m_ClearCondition.m_iKillNum <= kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_ucClearData )
 					kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_bIsSuccess = true;
+#ifdef SERV_BATTLE_FIELD_BOSS_QUEST_LOG// 작업날짜: 2013-11-28	// 박세훈
+				else if( iMonsterID == CXSLUnitManager::NUI_FIELD_BOSS_IRON_ELTRION )
+				{
+					START_LOG( cerr, L"필드 보스 시스템 퀘스트 로그: 엘트리온을 잡았는데 1회가 아니다?" )
+						<< BUILD_LOG( spUser->GetCharUID() )
+						<< BUILD_LOG( spUser->GetCharName() )
+						<< BUILD_LOG( spUser->GetRoomUID() )
+						<< BUILD_LOG( CXSLRoom::GetRoomType( spUser->GetRoomUID() ) )
+						<< BUILD_LOG( spUser->GetMapID() )
+						<< BUILD_LOG( pSubQuestTemplet->m_ClearCondition.m_iKillNum )
+						<< BUILD_LOG( kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_ucClearData )
+						<< END_LOG;
+				}
+#endif // SERV_BATTLE_FIELD_BOSS_QUEST_LOG
 
 				kNot.m_vecQuestInst.push_back( kQuestInstance );
 
@@ -1464,6 +1557,20 @@ void KUserQuestManager::Handler_ERM_NPC_UNIT_DIE_NOT( IN const int iDungeonID,
 					<< BUILD_LOGc( kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_ucClearData )
 					<< BUILD_LOG( kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_bIsSuccess );
 			}
+#ifdef SERV_BATTLE_FIELD_BOSS_QUEST_LOG// 작업날짜: 2013-11-28	// 박세훈
+			else if( iMonsterID == CXSLUnitManager::NUI_FIELD_BOSS_IRON_ELTRION )
+			{
+				START_LOG( cerr, L"필드 보스 시스템 퀘스트 로그: 퀘스트 완료하지 않으시고 엘트리온 잡으신 듯" )
+					<< BUILD_LOG( spUser->GetCharUID() )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< BUILD_LOG( spUser->GetRoomUID() )
+					<< BUILD_LOG( CXSLRoom::GetRoomType( spUser->GetRoomUID() ) )
+					<< BUILD_LOG( spUser->GetMapID() )
+					<< BUILD_LOG( pSubQuestTemplet->m_ClearCondition.m_iKillNum )
+					<< BUILD_LOG( kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_ucClearData )
+					<< END_LOG;
+			}
+#endif // SERV_BATTLE_FIELD_BOSS_QUEST_LOG
 		}			
 	}
 
@@ -1729,6 +1836,27 @@ void KUserQuestManager::Handler_EGS_TALK_WITH_NPC_REQ( IN int iNPCID, IN KGSUser
 							continue;
 #endif SERV_REFORM_QUEST
 						//}}
+
+#ifdef SERV_BURNING_CHAR_EVENT_SUB_QUEST
+						// 1차전직이 아니면
+						if( pSubQuestTemplet->m_iID == _CONST_BURNING_CHAR_EVENT_SUB_QUEST_::iBadCharQuestLevel1 )
+						{
+							if( CXSLUnit::IsFirstChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(spUser->GetUnitClass()) ) == false && CXSLUnit::IsSecondChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(spUser->GetUnitClass()) ) == false)
+								continue;
+						}
+						// 2차전직이 아니면
+						else if( pSubQuestTemplet->m_iID == _CONST_BURNING_CHAR_EVENT_SUB_QUEST_::iBadCharQuestLevel2 )
+						{
+							if( CXSLUnit::IsSecondChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(spUser->GetUnitClass()) ) == false )
+								continue;
+						}
+						// 50레벨이 아니면
+						else if( pSubQuestTemplet->m_iID == _CONST_BURNING_CHAR_EVENT_SUB_QUEST_::iBadCharQuestLevel3 )
+						{
+							if( spUser->GetLevel() <= 49)
+								continue;
+						}
+#endif //SERV_BURNING_CHAR_EVENT_SUB_QUEST
 					
 						if( pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData == 0 )
 						{
@@ -1806,9 +1934,15 @@ void KUserQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUser,
 											   ,IN const bool bSChar1
 											   ,IN const bool bSChar2
 #endif //SERV_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+											   ,IN const std::vector<UidType> vecRelation
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
-											   , IN const bool bHasFriend /*= false*/
+											   ,IN const bool bHasFriend /*= false*/
 #endif SERV_RECRUIT_EVENT_SUBQUEST
+#ifdef SERV_THREE_COLOR_EVENT
+											   ,IN const std::set< int >& setEquippedTitle
+#endif SERV_THREE_COLOR_EVENT
 											   )
 #else
 											   IN const std::map< UidType, bool >& mapHaveExpInDungeon )
@@ -1997,9 +2131,8 @@ void KUserQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUser,
 											bRVal = true;
 										}
 #else //SERV_EVENT_TITLE_SUBQUEST
-										bRVal = true;
+									bRVal = true;
 #endif SERV_EVENT_TITLE_SUBQUEST
-
 								}
 							}
 							else
@@ -2048,8 +2181,22 @@ void KUserQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUser,
 #else //SERV_EVENT_TITLE_SUBQUEST
 								bRVal = true;
 #endif SERV_EVENT_TITLE_SUBQUEST
-
 							}
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+							if( pQuestTemplet->m_iID == 63780 )
+							{
+								bRVal = false;
+
+								for(int i = 0; i < vecRelation.size(); i++ )
+								{
+									if( vecRelation[i] == spUser->GetCharUID() )
+									{
+										bRVal = true;
+										break;
+									}
+								}					
+							}
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 							START_LOG( cout, L"추천인 같이 돌기 서브퀘스트다!" )
@@ -2063,19 +2210,30 @@ void KUserQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUser,
 								bRVal = bHasFriend;
 							}
 #endif SERV_RECRUIT_EVENT_SUBQUEST
+
+#ifdef SERV_THREE_COLOR_EVENT
+							if( pQuestTemplet->m_iID == 63900 )
+							{
+								bRVal = false;
+								
+								if( setEquippedTitle.size() == 3 && setPartyMembers.size() >= 3 )
+								{
+									bRVal = true;
+								}
+							}
+#endif SERV_THREE_COLOR_EVENT
 						}
 					}				
 					else
 					{
 						//던전 클리어 서브는 승리만 하면 되기때문에 이곳에서 처리
 						//## 초심자의 숲만 예외처리한다.
-						if( iDungeonID != CXSLDungeon::DI_EL_FOREST_GATE_NORMAL && 
+						if( iDungeonID != SEnum::DI_EL_FOREST_GATE_NORMAL && 
 							CXSLDungeon::IsTutorialDungeon( iDungeonID ) == false )
 						{
 							bRVal = true;
 						}
 					}
-
 #ifdef SERV_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT
 					for( int i = 0; i < _CONST_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT_::iSubQuestMaxNum; ++i )
 					{
@@ -2100,8 +2258,7 @@ void KUserQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUser,
 						KPetInfo kPetInfo;
 						const UidType iSummonedPetUID = spUser->GetSummonedPetUID();
 						kPetInfo = spUser->GetPetInfo();
-						
-					
+											
 						if( iSummonedPetUID != 0 && kPetInfo.m_iPetID == 30004 && kPetInfo.m_cEvolutionStep == 3 )
 						{
 							bRVal = true;
@@ -2158,6 +2315,59 @@ void KUserQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUser,
 							//<<END_LOG;
 					}
 #endif //SERV_EVENT_RIDING_WITH_SUB_QUEST
+#ifdef SERV_RIDING_PET_WITH_SUB_QUEST
+					// 특정 라이딩 펫 타고 던전 클리어
+					if( pSubQuestTemplet->m_iID == _CONST_RIDING_PET_WITH_SUB_QUEST::RIDING_SET_1::iHaveSubQuestID || pSubQuestTemplet->m_iID == _CONST_RIDING_PET_WITH_SUB_QUEST::RIDING_SET_2::iHaveSubQuestID )
+					{
+						// 라이딩 펫 타고 있으면
+						int iOnRidingPetID = spUser->GetiRidingSummonedPetID();
+						bool bOnRidingPet = false;
+
+						if( CXSLDungeon::IsTutorialDungeon( iDungeonID ) == false  &&
+							CXSLDungeon::IsHenirDungeon( iDungeonID ) == false  &&								
+							CXSLDungeon::IsTCDungeon( iDungeonID ) == false && 
+							CXSLDungeon::IsRubenDungeon( iDungeonID ) == false )
+						{
+							if( ExistHaveExpInDungeon( spUser->GetCharUID(), mapHaveExpInDungeon ) )
+							{
+								if( pSubQuestTemplet->m_iID == _CONST_RIDING_PET_WITH_SUB_QUEST::RIDING_SET_1::iHaveSubQuestID )
+								{
+									if(_CONST_RIDING_PET_WITH_SUB_QUEST::RIDING_SET_1::bAllRidingPet == true)
+									{
+										bOnRidingPet = true;
+									}
+									else
+									{
+										if( _CONST_RIDING_PET_WITH_SUB_QUEST::RIDING_SET_1::iRidingPetID == iOnRidingPetID)
+											bOnRidingPet = true;
+									}
+									
+								}
+								else if(pSubQuestTemplet->m_iID == _CONST_RIDING_PET_WITH_SUB_QUEST::RIDING_SET_2::iHaveSubQuestID)
+								{
+									if(_CONST_RIDING_PET_WITH_SUB_QUEST::RIDING_SET_2::bAllRidingPet == true)
+									{
+										bOnRidingPet = true;
+									}
+									else
+									{
+										if( _CONST_RIDING_PET_WITH_SUB_QUEST::RIDING_SET_2::iRidingPetID == iOnRidingPetID)
+											bOnRidingPet = true;
+									}
+								}
+							}
+						}
+
+						bRVal = bOnRidingPet;
+
+						//START_LOG( clog2, L"김석근_라이딩펫 이벤트 서브 퀘스트!" )
+						//<<BUILD_LOG( pSubQuestTemplet->m_iID )
+						//<<BUILD_LOG( iOnRidingPetID )
+						//<<BUILD_LOG( bRVal )
+						//<<BUILD_LOG( iDungeonID )
+						//<<END_LOG;
+					}
+#endif //SERV_RIDING_PET_WITH_SUB_QUEST
 				}
 				break;
 				//{{ 2012. 12. 21  서브 퀘스트 타입 추가 (적정 레벨 던전 클리어) - 김민성
@@ -2172,13 +2382,48 @@ void KUserQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUser,
 						CXSLDungeon::IsValentineDungeon( iDungeonID ) == false &&
 #endif SERV_EVENT_VALENTINE_DUNGEON
 						//}
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+						CXSLDungeon::IsValentineDungeonInt( iDungeonID ) == false &&
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / 강정훈
+						CXSLDungeon::IsHalloweenDungeon( iDungeonID ) == false &&
+#endif //SERV_HALLOWEEN_EVENT_2013
 						CXSLDungeon::IsRubenDungeon( iDungeonID ) == false )
 					{
 
 						// 적정 레벨 던전을 플레이 한 것이 맞는가?
 						if( IsSuitableLevelUser( spUser->GetCharUID(), mapSuitableLevelInfo ) == true )
 						{
+#ifdef SERV_THREE_COLOR_EVENT
+							if( pQuestTemplet->m_iID == 63870 )
+							{
+								if( setPartyMembers.size() == 1 && spUser->GetEquippedTitleID() == 5470 )
+								{
+									bRVal = true;
+								}
+							}	
+							else if( pQuestTemplet->m_iID == 63880 )
+							{
+								if( setPartyMembers.size() == 1 && spUser->GetEquippedTitleID() == 5480 )
+								{
+									bRVal = true;
+								}			
+							}
+							else if( pQuestTemplet->m_iID == 63890 )
+							{
+								if( setPartyMembers.size() == 1 && spUser->GetEquippedTitleID() == 5490 )
+								{
+									bRVal = true;
+								}			
+							}
+							else
+							{
+								bRVal = true;
+							}
+#else
 							bRVal = true;
+#endif SERV_THREE_COLOR_EVENT
 						}
 					}
 				}
@@ -2191,7 +2436,7 @@ void KUserQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUser,
 					if( pQuestTemplet->m_eQuestType == CXSLQuestManager::QT_EVENT  ||
 						pQuestTemplet->m_eQuestType == CXSLQuestManager::QT_PCBANG )
 					{
-						if( iDungeonID != CXSLDungeon::DI_ELDER_HALLOWEEN_NORMAL  &&
+						if( iDungeonID != SEnum::DI_ELDER_HALLOWEEN_NORMAL  &&
 							CXSLDungeon::IsTutorialDungeon( iDungeonID ) == false  &&
 							CXSLDungeon::IsHenirDungeon( iDungeonID ) == false  &&
 							CXSLDungeon::IsTCDungeon( iDungeonID ) == false )
@@ -2216,7 +2461,7 @@ void KUserQuestManager::Handler_OnDungeonClear( IN const KGSUserPtr spUser,
 					{
 						//던전 클리어 서브는 승리만 하면 되기때문에 이곳에서 처리
 						//## 초심자의 숲만 예외처리한다.
-						if( iDungeonID != CXSLDungeon::DI_EL_FOREST_GATE_NORMAL && 							
+						if( iDungeonID != SEnum::DI_EL_FOREST_GATE_NORMAL && 							
 							CXSLDungeon::IsTutorialDungeon( iDungeonID ) == false )
 						{
 							bRVal = true;
@@ -2363,6 +2608,10 @@ void KUserQuestManager::Handler_OnPVPPlay( IN int iGameType
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 										 , IN bool bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+										 , IN bool bCouplePvp
+										 , IN bool bIsDrawn
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 										 , IN const bool bHasFriend /*= false*/
 #endif SERV_RECRUIT_EVENT_SUBQUEST
@@ -2379,7 +2628,7 @@ void KUserQuestManager::Handler_OnPVPPlay( IN int iGameType
 #endif SERV_INTEGRATION
 	//}}
 
-	OnPVP( CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_PLAY
+	OnPVP( CXSLQuestManager::SQT_PVP_PLAY
 		 , iGameType
 		 , spUser
 		 //{{ 2011. 07. 25    김민성    대전 퀘스트 조건 추가
@@ -2396,13 +2645,28 @@ void KUserQuestManager::Handler_OnPVPPlay( IN int iGameType
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 		 , bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+		 , iPvpChannelClass
+		 , bCouplePvp
+		 , bIsDrawn
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
+
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 		 , bHasFriend
 #endif SERV_RECRUIT_EVENT_SUBQUEST
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+		 , 0
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+		 , 0
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 		 );
 
 #ifdef SERV_PVP_NPC_HUNT_QUEST_EXTEND
-	OnPVP( CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_HERO_NPC_PLAY
+	OnPVP( CXSLQuestManager::SQT_PVP_HERO_NPC_PLAY
 		 , iGameType
 		 , spUser
 		 //{{ 2011. 07. 25    김민성    대전 퀘스트 조건 추가
@@ -2422,6 +2686,14 @@ void KUserQuestManager::Handler_OnPVPPlay( IN int iGameType
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 		 , bHasFriend
 #endif SERV_RECRUIT_EVENT_SUBQUEST
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+		 , 0
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+		 , 0
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 		 );
 #endif //SERV_PVP_NPC_HUNT_QUEST_EXTEND
 }
@@ -2484,7 +2756,7 @@ void KUserQuestManager::Handler_OnPVPPlay_AccumulatedOfficialMatchCount( IN KGSU
 				continue;
 			}
 
-			if( pSubQuestTemplet->m_eClearType != CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_PLAY_ARRANGE )	//클리언 조건이 같은지..
+			if( pSubQuestTemplet->m_eClearType != CXSLQuestManager::SQT_PVP_PLAY_ARRANGE )	//클리언 조건이 같은지..
 				continue;
 
 			if( pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_bIsSuccess == true )
@@ -2554,21 +2826,36 @@ void KUserQuestManager::Handler_OnPVPWin( IN int iGameType
 #ifdef SERV_NEW_PVP_QUEST
 //{{ 2012. 02. 22	김민성	대전 퀘스트, PVP NPC 관련 퀘스트	오류 수정
 #ifdef SERV_NEW_PVP_QUEST_ERROR_MODIFY
-	OnPVP( CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_WIN
+	OnPVP( CXSLQuestManager::SQT_PVP_WIN
 		   , iGameType
 		   , spUser
 		   , bOfficialMatch
 #ifdef PVP_QUEST_HERO_KILL_COUNT	// 2013.02.08 lygan_조성욱 //( SERV_PVP_NPC_HUNT_QUEST_EXTEND 머지 해야 함 ) 기획 툴에서 뽑히는 조건이랑 여기에 걸리는 조건이랑 차이가 있다 기획툴은 win쪽 변수에 값이 있는데 실제 체크는 kill 쪽에서 하고있어서 의미를 하나로 통일 시킨다.
 		   , bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+		   , 0
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+		   , 0
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 		   );
 
 #ifdef PVP_QUEST_HERO_KILL_COUNT	// 2013.02.08 lygan_조성욱 //( SERV_PVP_NPC_HUNT_QUEST_EXTEND 머지 해야 함 ) 기획 툴에서 뽑히는 조건이랑 여기에 걸리는 조건이랑 차이가 있다 기획툴은 win쪽 변수에 값이 있는데 실제 체크는 kill 쪽에서 하고있어서 의미를 하나로 통일 시킨다.
-	OnPVP( CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_NPC_HUNT
+	OnPVP( CXSLQuestManager::SQT_PVP_NPC_HUNT
 		 , iGameType
 		 , spUser
 		 , bOfficialMatch
 		 , bIsHeroNPC
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+		 , 0
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+		 , 0
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 		 );
 #endif //PVP_QUEST_HERO_KILL_COUNT
 
@@ -2599,6 +2886,14 @@ void KUserQuestManager::Handler_OnPVPKill( IN int iGameType
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 										 , IN bool bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+										 , IN char killedUserUnitType
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+										 , IN char killedUserUnitClass
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 										 )
 {
 	//{{ 2010. 05. 19  최육사	대전 던전 서버군 통합
@@ -2612,7 +2907,7 @@ void KUserQuestManager::Handler_OnPVPKill( IN int iGameType
 #endif SERV_INTEGRATION
 	//}}
 
-	OnPVP( CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_KILL
+	OnPVP( CXSLQuestManager::SQT_PVP_KILL
 		 , iGameType
 		 , spUser
 		 //{{ 2011. 07. 25    김민성    대전 퀘스트 조건 추가
@@ -2623,6 +2918,14 @@ void KUserQuestManager::Handler_OnPVPKill( IN int iGameType
 #ifdef PVP_QUEST_HERO_KILL_COUNT // 2013.02.08 lygan_조성욱 // SERV_PVP_NPC_HUNT_QUEST_EXTEND 머지 해야 함 
 		 , bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+		 , killedUserUnitType
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+		 , killedUserUnitClass
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 		 );
 
 	//{{ 2012. 02. 22	김민성	대전 퀘스트, PVP NPC 관련 퀘스트	오류 수정
@@ -2630,9 +2933,9 @@ void KUserQuestManager::Handler_OnPVPKill( IN int iGameType
 	OnPVP(
 		//{{ 2013. 2. 14	Merge	박세훈	 대전 SQT_PVP_NPC_HUNT 퀘스트 타입에 에픽 NPC 와 플래이, 에픽 NPC 승리조건도 추가
 #ifdef SERV_PVP_NPC_HUNT_QUEST_EXTEND
-		   CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_HERO_NPC_KILL
+		   CXSLQuestManager::SQT_PVP_HERO_NPC_KILL
 #else
-		   CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_NPC_HUNT
+		   CXSLQuestManager::SQT_PVP_NPC_HUNT
 #endif SERV_PVP_NPC_HUNT_QUEST_EXTEND
 		   //}}
 		 , iGameType
@@ -2645,6 +2948,14 @@ void KUserQuestManager::Handler_OnPVPKill( IN int iGameType
 #ifdef PVP_QUEST_HERO_KILL_COUNT // 2013.02.08 lygan_조성욱 // SERV_PVP_NPC_HUNT_QUEST_EXTEND 머지 해야 함 
 		 , bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+		 , 0
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+		 , 0
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 		 );
 #endif SERV_NEW_PVP_QUEST_ERROR_MODIFY
 	//}}
@@ -2661,9 +2972,24 @@ void KUserQuestManager::OnPVP( IN CXSLQuestManager::SUB_QUEST_TYPE eSubQuestType
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 							 , IN bool bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+							 , IN int iPvpChannelClass
+							 , IN bool bCouplePvp
+							 , IN bool bIsDrawn
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
+
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 							 , IN bool bHasFriend /*= false*/
 #endif SERV_RECRUIT_EVENT_SUBQUEST
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+							 , IN char killedUserUnitType
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+							 , IN char killedUserUnitClass
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 							 )
 {
 	SET_ERROR( NET_OK );
@@ -2729,7 +3055,7 @@ void KUserQuestManager::OnPVP( IN CXSLQuestManager::SUB_QUEST_TYPE eSubQuestType
 			if( pSubQuestTemplet->m_eClearType != eSubQuestType )	//클리언 조건이 같은지..
 				continue;
 
-			if( pSubQuestTemplet->m_ClearCondition.m_ePVPType != CXSLRoom::PVP_GAME_TYPE::PGT_NULL )
+			if( pSubQuestTemplet->m_ClearCondition.m_ePVPType != CXSLRoom::PGT_NULL )
 			{
 				if( pSubQuestTemplet->m_ClearCondition.m_ePVPType != iGameType )	//대전타입이 같은지..
 					continue;
@@ -2737,7 +3063,7 @@ void KUserQuestManager::OnPVP( IN CXSLQuestManager::SUB_QUEST_TYPE eSubQuestType
 
 			//{{ 2011. 07. 25    김민성    대전 퀘스트 조건 추가
 #ifdef SERV_NEW_PVP_QUEST
-			if( pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass == KPVPChannelInfo::PVP_CHANNEL_CLASS::PCC_OFFICIAL )
+			if( pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass == KPVPChannelInfo::PCC_OFFICIAL )
 			{
 				if( bMatch != true )
 					continue;
@@ -2765,19 +3091,31 @@ void KUserQuestManager::OnPVP( IN CXSLQuestManager::SUB_QUEST_TYPE eSubQuestType
 
 			switch( eSubQuestType )
 			{
-			case CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_PLAY:
+			case CXSLQuestManager::SQT_PVP_PLAY:
 				{
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+					if( pQuestTemplet->m_iID == 63790 )
+					{
+						if( bCouplePvp == true && iPvpChannelClass == KPVPChannelInfo::PCC_TOURNAMENT && bIsDrawn == false )
+							++pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData;
+					}
+					else
+					{
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 					//{{ 2013. 2. 21	박세훈	대전 NPC 퀘스트에 에픽 NPC 만 카운트 되게 수정
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 					++pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData;
 #endif PVP_QUEST_HERO_KILL_COUNT
 					//}}
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+					}
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 
 					if( pSubQuestTemplet->m_ClearCondition.m_iPVPPlay <= pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData )
 						pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_bIsSuccess = true;									
 				}
 				break;
-			case CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_WIN:
+			case CXSLQuestManager::SQT_PVP_WIN:
 				{
 					//{{ 2013. 2. 21	박세훈	대전 NPC 퀘스트에 에픽 NPC 만 카운트 되게 수정
 #ifdef PVP_QUEST_HERO_KILL_COUNT
@@ -2789,13 +3127,77 @@ void KUserQuestManager::OnPVP( IN CXSLQuestManager::SUB_QUEST_TYPE eSubQuestType
 						pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_bIsSuccess = true;
 				}
 				break;
-			case CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_KILL:
+			case CXSLQuestManager::SQT_PVP_KILL:
 				{
-					//{{ 2013. 2. 21	박세훈	대전 NPC 퀘스트에 에픽 NPC 만 카운트 되게 수정
-#ifdef PVP_QUEST_HERO_KILL_COUNT
-					++pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData;
-#endif PVP_QUEST_HERO_KILL_COUNT
-					//}}
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL	// 레이븐을 킬할때 횟수와 레이븐이 아닌 캐릭터를 킬할때 횟수 퀘스트
+					CXSLUnit::UNIT_TYPE killUserUnitType = (CXSLUnit::UNIT_TYPE)spUser->GetUnitType();
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+					CXSLUnit::UNIT_CLASS killUserUnitClass = static_cast<CXSLUnit::UNIT_CLASS>(spUser->GetUnitClass());
+					int ikillUserUnitClass = static_cast<int>(killUserUnitClass);
+					int ikilledUserUnitClass = static_cast<int>(killedUserUnitClass);
+					if (pSubQuestTemplet->m_iID == 121210 ) //청에 관한 퀘스트 아이디
+#else //SERV_EVENT_QUEST_CHUNG_PVP_KILL
+					if (pSubQuestTemplet->m_iID == 130641 )
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
+					{	
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+						// 내가 청 2차전직이 아니고 나머지 2차전직 중에 하나이고 죽인게 청2차이다.
+						if( ikillUserUnitClass >= 100 && 118 >= ikillUserUnitClass ) //이안에 있으면 2차 전직
+						{
+							if( killUserUnitClass != CXSLUnit::UC_CHUNG_IRON_PALADIN &&  killUserUnitClass != CXSLUnit::UC_CHUNG_DEADLY_CHASER )
+							{
+								if( CXSLUnit::UNIT_CLASS::UC_CHUNG_IRON_PALADIN == killedUserUnitClass || killedUserUnitClass == CXSLUnit::UNIT_CLASS::UC_CHUNG_DEADLY_CHASER )
+								{
+									++pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData;
+								}
+							}
+							
+						}
+#else SERV_EVENT_QUEST_CHUNG_PVP_KILL
+						// 내가 레이븐이 아니고, 킬 상대가 레이븐이면,
+						if( CXSLUnit::UT_RAVEN != killUserUnitType
+							 && CXSLUnit::UT_RAVEN == killedUserUnitType
+							)
+						{
+							++pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData;
+						}
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
+					}
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+					else if (pSubQuestTemplet->m_iID == 121220) //내가 청 2차 전직이고 킬 상대가 청 2차 전직이 아니면 퀘스트 클리어 
+#else //SERV_EVENT_QUEST_CHUNG_PVP_KILL
+					else if (pSubQuestTemplet->m_iID == 130640)
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
+					{
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+						if( killUserUnitClass == CXSLUnit::UC_CHUNG_IRON_PALADIN  ||  killUserUnitClass == CXSLUnit::UC_CHUNG_DEADLY_CHASER ) //난 청 2차이다
+						{
+							if( ikilledUserUnitClass >= 100 && 118 >= ikilledUserUnitClass ) //2차 전직 캐릭을 죽였냐?
+							{
+								if( killedUserUnitClass != CXSLUnit::UC_CHUNG_IRON_PALADIN  &&  killedUserUnitClass != CXSLUnit::UC_CHUNG_DEADLY_CHASER ) //2차 전직중에서 죽인게 청2차가 아니냐?
+								{
+									++pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData;
+								}
+							}
+						}
+#else //SERV_EVENT_QUEST_CHUNG_PVP_KILL
+						// 내가 레이븐이고, 킬 상대가 레이븐아니면,
+						if(CXSLUnit::UT_RAVEN == killUserUnitType
+							&& CXSLUnit::UT_RAVEN != killedUserUnitType)
+							++pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData;
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
+					}
+					else
+					{
+						++pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData;
+					}
+#else
+						//{{ 2013. 2. 21	박세훈	대전 NPC 퀘스트에 에픽 NPC 만 카운트 되게 수정
+	#ifdef PVP_QUEST_HERO_KILL_COUNT
+						++pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData;
+	#endif PVP_QUEST_HERO_KILL_COUNT
+						//}}
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
 
 					if( pSubQuestTemplet->m_ClearCondition.m_iPVPKill <= pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_ucClearData )
 						pkQuestInstance->m_vecSubQuestInstance[iIndexSub].m_bIsSuccess = true;
@@ -2803,11 +3205,11 @@ void KUserQuestManager::OnPVP( IN CXSLQuestManager::SUB_QUEST_TYPE eSubQuestType
 				break;
 				//{{ 2011. 07. 25    김민성    대전 퀘스트 조건 추가
 #ifdef SERV_NEW_PVP_QUEST
-			case CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_NPC_HUNT:
+			case CXSLQuestManager::SQT_PVP_NPC_HUNT:
 				//{{ 2013. 2. 22	Merge	박세훈	 대전 SQT_PVP_NPC_HUNT 퀘스트 타입에 에픽 NPC 와 플래이, 에픽 NPC 승리조건도 추가
 #ifdef SERV_PVP_NPC_HUNT_QUEST_EXTEND
-			case CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_HERO_NPC_KILL:
-			case CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_HERO_NPC_PLAY:
+			case CXSLQuestManager::SQT_PVP_HERO_NPC_KILL:
+			case CXSLQuestManager::SQT_PVP_HERO_NPC_PLAY:
 #endif SERV_PVP_NPC_HUNT_QUEST_EXTEND
 				//}}
 				{
@@ -3750,7 +4152,16 @@ void KUserQuestManager::Handler_OnEnterTheBattleField( IN KGSUserPtr spUser )
 				continue;
 #endif SERV_REFORM_QUEST
 			//}}
-
+#ifdef  SERV_EVENT_TITLE_SUBQUEST
+			if( pSubQuestTemplet->m_ClearCondition.m_iUseTitleID != -1 ) //칭호에 관련된게 있다.
+			{
+				//현재 입장할때 착용한 칭호가 퀘스트 클리어 칭호가 아니라면....
+				if( spUser->GetEquippedTitleID() !=  pSubQuestTemplet->m_ClearCondition.m_iUseTitleID )
+				{
+					continue;
+				}
+			}
+#endif  SERV_EVENT_TITLE_SUBQUEST
 			// 4. 이미 완료한 퀘스트 인지 확인!
 			if( kQuestInstance.m_vecSubQuestInstance[uiIndexSub].m_ucClearData != 0 )
 				continue;
@@ -4018,6 +4429,11 @@ void KUserQuestManager::Handler_EGS_QUEST_COMPLETE_REQ( IN const KEGS_QUEST_COMP
 		kDBReq.m_bIsRepeat	= ( pQuestTemplet->m_eRepeatType != CXSLQuestManager::QRT_NORMAL );	
 		kDBReq.m_bIsNew		= false;
 		kDBReq.m_bIsChangeJob = false;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		kDBReq.m_iTheNumberOfSkillPagesAvailable 
+			= spUser->GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 		if( pQuestTemplet->m_eQuestType == CXSLQuestManager::QT_CHANGE_JOB &&
 			pQuestTemplet->m_Reward.m_eChangeUnitClass != CXSLUnit::UC_NONE &&
@@ -4578,6 +4994,10 @@ void KUserQuestManager::Handler_EGS_QUEST_COMPLETE_REQ( IN const KEGS_QUEST_COMP
 		kDBReq.m_bIsNew		= false;
 		kDBReq.m_bIsChangeJob = false;
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		kDBReq.m_iTheNumberOfSkillPagesAvailable = spUser->GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		if( pQuestTemplet->m_eQuestType == CXSLQuestManager::QT_CHANGE_JOB &&
 			pQuestTemplet->m_Reward.m_eChangeUnitClass != CXSLUnit::UC_NONE &&
 			spUser->GetUnitClass() != pQuestTemplet->m_Reward.m_eChangeUnitClass )
@@ -5102,9 +5522,9 @@ void KUserQuestManager::Handler_DBE_QUEST_COMPLETE_ACK( IN const KDBE_QUEST_COMP
 		spUser->CheckCharLevelUp();
 
 #ifdef SERV_POINT_COUNT_SYSTEM	
-		if (spUser != NULL && pQuestTemplet != NULL )
+		if(spUser != NULL && pQuestTemplet != NULL )
 		{			
-					SetUpdateQuestInstance(spUser);
+			SetUpdateQuestInstance(spUser);
 		}
 #endif //SERV_POINT_COUNT_SYSTEM
 
@@ -5215,199 +5635,6 @@ end_proc:
 		spUser->SendPacket( EGS_QUEST_COMPLETE_ACK, kPacket );
 	}
 }
-
-//#else
-//
-//void KUserQuestManager::Handler_DBE_QUEST_COMPLETE_ACK( IN const KDBE_QUEST_COMPLETE_ACK& kAck, IN KGSUserPtr spUser )
-//{
-//	//DB에서 결과처리 실패한 경우
-//	if( kAck.m_iOK != NetError::NET_OK )
-//	{
-//		KEGS_QUEST_COMPLETE_ACK	kPacket;
-//		kPacket.m_iOK = kAck.m_iOK;
-//		spUser->SendPacket( EGS_QUEST_COMPLETE_ACK, kPacket );
-//		return;
-//	}
-//	//DB처리 성공한 경우
-//	else
-//	{
-//		SET_ERROR( NET_OK );
-//
-//		KEGS_QUEST_COMPLETE_ACK	kPacket;		
-//		kPacket.m_iQuestID = kAck.m_iQuestID;
-//
-//		if( IsQuest( kAck.m_iQuestID ) == false )
-//		{
-//			START_LOG( cerr, L"+ㅁ+;; 완료한 퀘스트가 진행중 퀘스트에 없네." )
-//				<< BUILD_LOG( kAck.m_iQuestID )
-//				<< BUILD_LOG( NetError::GetLastErrMsg() )
-//				<< END_LOG;
-//
-//			SET_ERROR( ERR_QUEST_02 );
-//		}
-//		else
-//		{
-//			START_LOG( clog, L"퀘스트 완료 ::::" )
-//				<< BUILD_LOG( spUser->GetCharUID() )
-//				<< BUILD_LOG( spUser->GetCharName() )
-//				<< BUILD_LOG( spUser->GetUserName() )
-//				<< BUILD_LOG( kAck.m_iOK )
-//				<< BUILD_LOG( kAck.m_iQuestID )
-//				<< BUILD_LOG( SiCXSLQuestManager()->GetQuestTemplet( kAck.m_iQuestID )->m_wstrTitle )
-//				;
-//
-//			if( RemoveQuest( kAck.m_iQuestID ) == true )
-//			{
-//				std::map<int,int>::iterator mit;
-//				mit = m_mapCompleteQuest.find( kAck.m_iQuestID);
-//
-//				if( mit == m_mapCompleteQuest.end() )
-//				{
-//					m_mapCompleteQuest[kAck.m_iQuestID] = 1;
-//				}
-//				else
-//				{
-//					++(mit->second);
-//				}				
-//
-//				const CXSLQuestManager::QuestTemplet* pQuestTemplet = SiCXSLQuestManager()->GetQuestTemplet( kAck.m_iQuestID );
-//
-//				if( pQuestTemplet != NULL )
-//				{
-//					kPacket.m_iOK		= NetError::GetLastError();
-//					//spUser->SendPacket( EGS_QUEST_COMPLETE_ACK, kPacket );
-//
-//					//전직처리.
-//					if( kAck.m_bIsChangeJob == true )
-//					{
-//						spUser->SetUnitClass( kAck.m_cChangeUnitClass );
-//						spUser->ResetStat();
-//					}
-//
-//					int iBeforeED = spUser->GetED();
-//
-//					//캐릭터 속성 보상처리
-//					spUser->m_iED	+= pQuestTemplet->m_Reward.m_iED;
-//
-//					// ED 어뷰저
-//					if( spUser->IsEDAbuserLog() )
-//					{
-//						KELOG_ED_ABUSER_LOG_NOT kPacketEDLog;
-//						kPacketEDLog.m_iUnitUID  = spUser->GetCharUID();
-//						kPacketEDLog.m_iState	 = KAbuserLogManager::ELS_QUEST_REWARD;
-//						kPacketEDLog.m_iBeforeED = iBeforeED;
-//						kPacketEDLog.m_iAfterED	 = spUser->GetED();
-//						kPacketEDLog.m_iED		 = pQuestTemplet->m_Reward.m_iED;
-//						spUser->SendToLogDB( ELOG_ED_ABUSER_LOG_NOT, kPacketEDLog );
-//					}
-//
-//					//{{ 2009. 1. 20  최육사	만렙경험치 예외처리
-//					if( spUser->GetLevel() < SiKGameSysVal()->GetLimitsLevel() )
-//					{						
-//						spUser->m_kEXP.AddExp( pQuestTemplet->m_Reward.m_iEXP );
-//					}
-//					//}}
-//
-//					spUser->m_iSPoint += pQuestTemplet->m_Reward.m_iSP;
-//					spUser->CheckCharLevelUp();
-//
-//					//아이템 보상처리
-//					if( kAck.m_bIsNew == true )
-//					{
-//						spUser->m_kInventory.InsertItem( kAck.m_mapItemInfo, kPacket.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
-//						kPacket.m_kUpdateUnitInfo.m_vecKInventorySlotInfo.insert( kPacket.m_kUpdateUnitInfo.m_vecKInventorySlotInfo.end(), kAck.m_vecUpdatedInventorySlot.begin(), kAck.m_vecUpdatedInventorySlot.end() );						
-//					}
-//					else
-//					{						
-//						kPacket.m_kUpdateUnitInfo.m_vecKInventorySlotInfo	= kAck.m_vecUpdatedInventorySlot;
-//					}
-//
-//					//획득한 아이템 정보를 클라이언트용으로 전환하여 준다.
-//					std::map< int, KItemInfo >::const_iterator mit;
-//					for( mit = kAck.m_mapInsertedItem.begin(); mit != kAck.m_mapInsertedItem.end(); ++mit )
-//					{
-//						kPacket.m_kUpdateUnitInfo.m_mapItemObtained.insert( std::make_pair( mit->second.m_iItemID, mit->second.m_iQuantity ) );
-//					}
-//
-//					spUser->GetUnitInfo( kPacket.m_kUpdateUnitInfo.m_kUnitInfo );
-//					kPacket.m_kUpdateUnitInfo.m_kUnitInfo.m_nNowBaseLevelEXP	= SiKExpTable()->GetRequireTotalExpbyLevel( (int)spUser->GetLevel() );
-//					kPacket.m_kUpdateUnitInfo.m_kUnitInfo.m_nNextBaseLevelEXP	= SiKExpTable()->GetRequireTotalExpbyLevel( (int)(spUser->GetLevel() + 1) );
-//
-//					spUser->SendPacket( EGS_QUEST_COMPLETE_ACK, kPacket );
-//
-//					// 통계 : Character Info, Quest
-//					{
-//						// DB통계 ED
-//						KStatisticsKey kKey;
-//						kKey.m_vecIntKey.push_back( 0 );
-//						KSIManager.IncreaseCount( KStatistics::SI_ED, kKey, KStatistics::eSIColDB_ED_PQuest, pQuestTemplet->m_Reward.m_iED );
-//
-//						//{{ 2007. 12. 26  최육사  유저 통계
-//						spUser->UserStatisticsIncreaseCount( KUserStatistics::USTable_EtcData, 0, KUserStatistics::US_Etc_PQuestED, pQuestTemplet->m_Reward.m_iED );
-//						//}}
-//
-//						int iCount = 0;
-//						std::map< int, int >::iterator iO;
-//						for ( iO = kPacket.m_kUpdateUnitInfo.m_mapItemObtained.begin(); iO != kPacket.m_kUpdateUnitInfo.m_mapItemObtained.end(); ++iO )
-//						{
-//							iCount += (*iO).second;
-//						}
-//
-//						// 유저 통계 퀘스트 보상 아이템 카운트
-//						m_iRewardItemCount += iCount;
-//					}
-//
-//					//{{ 2008. 5. 21  최육사  아이템 어뷰저
-//					if( spUser->IsItemAbuserLog() )
-//					{
-//						KELOG_ITEM_ABUSER_LOG_NOT kPacketToLog;
-//						std::map< int, int >::const_iterator mitAL;
-//						for( mitAL = kPacket.m_kUpdateUnitInfo.m_mapItemObtained.begin(); mitAL != kPacket.m_kUpdateUnitInfo.m_mapItemObtained.end(); ++mitAL )
-//						{
-//							KItemAbuserLogInfo kAbuserLogInfo;
-//							kAbuserLogInfo.m_iRewardState = KAbuserLogManager::RS_QUEST;
-//							kAbuserLogInfo.m_iItemID	  = mitAL->first;
-//							kAbuserLogInfo.m_iQuantity	  = mitAL->second;
-//
-//							kPacketToLog.m_vecItemAbuserLog.push_back( kAbuserLogInfo );
-//						}
-//
-//						kPacketToLog.m_iUnitUID = spUser->GetCharUID();
-//						spUser->SendToLogDB( ELOG_ITEM_ABUSER_LOG_NOT, kPacketToLog );
-//					}
-//					//}}
-//
-//					return;
-//				}
-//				else
-//				{
-//					START_LOG( cerr, L"QUEST TEMPLET 얻어오기 실패.!" )
-//						<< BUILD_LOG( kAck.m_iQuestID )
-//						<< BUILD_LOG( spUser->GetCharUID() )
-//						<< BUILD_LOG( spUser->GetCharName() )
-//						<< END_LOG;
-//
-//					SET_ERROR( ERR_QUEST_08 );
-//				}
-//			}
-//		}
-//
-//		kPacket.m_iOK		= NetError::GetLastError();
-//		spUser->SendPacket( EGS_QUEST_COMPLETE_ACK, kPacket );
-//
-//		return;
-//	}
-//
-//	START_LOG( cerr, L"Handler_DBE_QUEST_COMPLETE_ACK() 에서 어떤 처리도 되지 않았네.?ㅁ?" )
-//		<< BUILD_LOG( spUser->GetCharUID() )
-//		<< BUILD_LOG( spUser->GetCharName() )
-//		<< BUILD_LOG( spUser->GetUserName() )
-//		<< BUILD_LOG( kAck.m_iOK )
-//		<< BUILD_LOG( kAck.m_iQuestID )
-//		<< BUILD_LOG( SiCXSLQuestManager()->GetQuestTemplet( kAck.m_iQuestID )->m_wstrTitle )
-//		<< END_LOG
-//		;
-//}
 
 #endif SERV_DAILY_QUEST
 //}}
@@ -5620,6 +5847,7 @@ void KUserQuestManager::GetOngoingQuestForRoom( IN KGSUserPtr spUser, OUT std::m
 
 			switch( pSubTemplet->m_eClearType )
 			{
+			case CXSLQuestManager::SQT_ITEM_COLLECTION:
 			case CXSLQuestManager::SQT_QUEST_ITEM_COLLECTION:
 				{
 					std::map< int, KSubQuestInfo >::iterator mitQ;
@@ -5698,7 +5926,6 @@ void KUserQuestManager::GetOngoingQuestForRoom( IN KGSUserPtr spUser, OUT std::m
 
 			case CXSLQuestManager::SQT_NPC_HUNT:
 			case CXSLQuestManager::SQT_NPC_TALK:
-			case CXSLQuestManager::SQT_ITEM_COLLECTION:
 			case CXSLQuestManager::SQT_DUNGEON_TIME:
 			case CXSLQuestManager::SQT_DUNGEON_RANK:
 			case CXSLQuestManager::SQT_DUNGEON_DAMAGE:
@@ -5874,19 +6101,15 @@ void KUserQuestManager::CheckQuestEvent( IN KGSUserPtr spUser )
 			if( IsQuest( iEndQuestID ) == true )
 			{
 #ifdef SERV_TIME_EVENT_QUEST_AUTO_ACCEPT
-
 				KEGS_GIVE_UP_QUEST_REQ kPacket;
 				kPacket.m_iQuestID = iEndQuestID;
 				Handler_EGS_GIVE_UP_QUEST_REQ( kPacket, spUser );
-
 #else // SERV_TIME_EVENT_QUEST_AUTO_ACCEPT
-
 				// 삭제처리
 				RemoveQuest( iEndQuestID );
 
 				// DB에서 삭제 예약
 				m_vecReservedGiveUpQuest.push_back( iEndQuestID );
-
 #endif // SERV_TIME_EVENT_QUEST_AUTO_ACCEPT
 
 				// 방상태라면 드롭 퀘스트 정보 업데이트 하기 - 퀘스트중에 드롭 아이템 퀘스트는 없으므로 아직은 필요없음.
@@ -5901,7 +6124,6 @@ void KUserQuestManager::CheckQuestEvent( IN KGSUserPtr spUser )
 	// 새로 시작되는 이벤트가 있다면 클라이언트에 알리고
 	if( !kPacketNotBegin.m_vecQuestID.empty() )
 	{
-
 #ifdef SERV_TIME_EVENT_QUEST_AUTO_ACCEPT
 		BOOST_TEST_FOREACH( const int&, iQuestID, kPacketNotBegin.m_vecQuestID )
 		{
@@ -6429,7 +6651,6 @@ bool KUserQuestManager::CheckIsGoingComplete( IN const int iQuestID, IN KGSUserP
 }
 #endif SERV_PAYMENT_ITEM_ON_GOING_QUEST
 
-
 #ifdef SERV_SUB_QUEST_USE_ITEM
 void KUserQuestManager::CountUseItem( IN KGSUserPtr spUser, IN const int iDungeonID, IN const char cDifficulty, IN const int iItemID )
 {
@@ -6884,7 +7105,6 @@ void KUserQuestManager::CheckEventQuest( IN KGSUserPtr spUser )
 				}
 #endif //SERV_ALLOW_EVENT_ERASE
 
-
 				if( Handler_EGS_NEW_QUEST_REQ( kTempReq, spUser, true, true ) == false )
 				{
 					START_LOG( cwarn, L"신규 이벤트 퀘스트 수락 실패!" )
@@ -6922,7 +7142,6 @@ void KUserQuestManager::CheckResetDayEventQuest_AutoAccept( IN KGSUserPtr spUser
 #endif // SERV_TIME_EVENT_QUEST_AUTO_ACCEPT
 
 #ifdef SERV_ALLOW_EVENT_ERASE // 2013.06.10 lygan_조성욱 // DB에서 값 on/off 부분 추가 작업 // 국내 필드 들어가고 퀘스트 자동 수락 들어가면서 해당 기능 추가
-		
 		if ( SiKGameEventManager()->IsEnableEventQuest(mit->first) == false )
 			continue; // 2013.06.10 lygan_조성욱 // 어차피 활성화 되지 않은 퀘스트는 AfterQuest 를 찾을 필요가 없다
 #endif //SERV_ALLOW_EVENT_ERASE
@@ -7400,7 +7619,6 @@ void KUserQuestManager::CheckEpicQuest_EnterDungeon( IN int iDungeonID, IN KGSUs
 			continue; // 2013.06.10 lygan_조성욱 // 어차피 활성화 되지 않은 퀘스트는 AfterQuest 를 찾을 필요가 없다
 #endif //SERV_ALLOW_EVENT_ERASE
 
-
 		if( pTemplet->m_Condition.m_setEnableDungeon.size() > 0 )
 		{
 			std::set<int>::const_iterator sit = pTemplet->m_Condition.m_setEnableDungeon.find( iDungeonID );
@@ -7465,7 +7683,6 @@ void KUserQuestManager::CheckEpicQuest_EnterBattleField( IN int iMapID, IN KGSUs
 			continue; // 2013.06.10 lygan_조성욱 // 어차피 활성화 되지 않은 퀘스트는 AfterQuest 를 찾을 필요가 없다
 #endif //SERV_ALLOW_EVENT_ERASE
 
-
 		if( pTemplet->m_Condition.m_setEnableBattleField.size() > 0 )
 		{
 			std::set<int>::const_iterator sit = pTemplet->m_Condition.m_setEnableBattleField.find( iMapID );
@@ -7511,11 +7728,9 @@ bool KUserQuestManager::IsSuitableLevelUser( IN UidType CharUID, IN const std::m
 #endif SERV_SUITABLE_LEVEL_DUNGEON_CLEAR_SUB_QUEST
 //}}
 
-
 #ifdef SERV_POINT_COUNT_SYSTEM
 void KUserQuestManager::SetUpdateQuestInstance( IN KGSUserPtr spUser )
 {
-
 	if ( spUser != NULL)
 	{
 		std::map< int, KQuestInstance >::iterator mit = m_mapQuesting.begin();
@@ -7550,10 +7765,8 @@ void KUserQuestManager::SetUpdateQuestInstance( IN KGSUserPtr spUser )
 
 		}
 	}
-
 }
 #endif //SERV_POINT_COUNT_SYSTEM
-
 
 #ifdef SERV_SKILL_USE_SUBQUEST
 void KUserQuestManager::Handler_EGS_SKILL_USE_REQ( IN int iSkillID, IN KGSUserPtr spUser )
@@ -7750,3 +7963,78 @@ void KUserQuestManager::Handler_OnLearnNewSkill( IN KGSUserPtr spUser, IN std::v
 	}
 }
 #endif SERV_SUB_QUEST_LEARN_NEW_SKILL
+
+#ifdef SERV_EVENT_LEVEL_UP_QUEST_CLEAR
+bool KUserQuestManager::Handler_OnCheckLevelUpQuest(IN const KGSUserPtr spUser)
+{
+	SET_ERROR( NET_OK );
+
+	if( m_mapQuesting.empty() == true )
+		return false;
+
+	KEGS_UPDATE_QUEST_NOT kNot;
+
+	std::map< int, KQuestInstance >::iterator mit;
+	for( mit = m_mapQuesting.begin(); mit != m_mapQuesting.end(); ++mit )
+	{
+		KQuestInstance& kQuestInstance = mit->second;
+
+		const CXSLQuestManager::QuestTemplet* pQuestTemplet = SiCXSLQuestManager()->GetQuestTemplet( kQuestInstance.m_iID );
+		if( pQuestTemplet == NULL )
+		{
+			START_LOG( cerr, L"QUEST TEMPLET 얻어오기 실패.!" )
+				<< BUILD_LOG( kQuestInstance.m_iID )
+				<< BUILD_LOG( spUser->GetCharUID() )
+				<< BUILD_LOG( spUser->GetCharName() )
+				<< END_LOG;
+
+			SET_ERROR( ERR_QUEST_08 );
+			continue;
+		}
+
+		if( pQuestTemplet->m_vecSubQuest.empty() )
+			continue;
+
+		// 에픽 퀘스트 는 레벨이 안되면 진행이 안됨.
+		if( CXSLQuestManager::QT_EPIC == pQuestTemplet->m_eQuestType 
+			&&	pQuestTemplet->m_iPlayLevel > spUser->GetLevel()	)
+			continue;
+
+		for( int iIndexSub = 0; iIndexSub < (int)pQuestTemplet->m_vecSubQuest.size(); ++iIndexSub )
+		{
+			const CXSLQuestManager::SubQuestTemplet* pSubQuestTemplet = SiCXSLQuestManager()->GetSubQuestTemplet( pQuestTemplet->m_vecSubQuest[iIndexSub] );
+			if( pSubQuestTemplet == NULL )
+			{
+				START_LOG( cerr, L"SUB QUEST TEMPLET 얻어오기 실패.!" )
+					<< BUILD_LOG( pQuestTemplet->m_vecSubQuest[iIndexSub] )
+					<< BUILD_LOG( spUser->GetCharUID() )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< END_LOG;
+
+				SET_ERROR( ERR_QUEST_08 );
+				continue;
+			}
+
+			if( pSubQuestTemplet->m_iID == 121340 || pSubQuestTemplet->m_iID == 121350 )
+			{
+				++kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_ucClearData;
+				kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_bIsSuccess = true;
+				kNot.m_vecQuestInst.push_back( kQuestInstance );
+			}
+
+			START_LOG( clog, L"퀘스트 SQT_NPC_HUNT 수행" )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< BUILD_LOG( spUser->GetUserName() )
+					<< BUILD_LOG( pSubQuestTemplet->m_wstrDescription )
+					<< BUILD_LOG( kQuestInstance.m_vecSubQuestInstance[iIndexSub].m_bIsSuccess )
+					<< END_LOG;
+		}
+	}
+	
+	if( kNot.m_vecQuestInst.empty() == false )
+	{
+		spUser->SendPacket( EGS_UPDATE_QUEST_NOT, kNot );
+	}
+	return false;
+}
+#endif SERV_EVENT_LEVEL_UP_QUEST_CLEAR

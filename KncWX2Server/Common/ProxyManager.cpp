@@ -391,6 +391,12 @@ bool KProxyManager::SendPacket( UidType nFrom, KEvent& kEvent_ )
 #ifdef SERV_ID_NETMARBLE_PCBANG
 	case PC_ID_PCBANG_AUTH_DB:
 #endif //SERV_ID_NETMARBLE_PCBANG
+#ifdef SERV_ADD_EVENT_DB
+	case PC_EVENT_DB:
+#endif //SERV_ADD_EVENT_DB
+#ifdef SERV_ADD_SCRIPT_DB
+	case PC_SCRIPT_DB:
+#endif //SERV_ADD_SCRIPT_DB
 		switch( GetServerClass( kEvent_.m_kDestPerformer.m_dwPerformerID ) )
 		{
 		case SC_CENTER:

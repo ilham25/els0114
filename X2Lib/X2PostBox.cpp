@@ -224,9 +224,12 @@ void CX2PostBox::InitPostBox()
             
             for(int i=0; i<g_pData->GetMyUser()->GetUnitNum(); ++i)
             {
-                //m_vecMyUserName.push_back(GetUserName(i));
-                if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NickName != GetUserName(i))                    
+				wstring wstrOtherUserName = GetUserName(i);
+                if( false == wstrOtherUserName.empty() &&
+					g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName != wstrOtherUserName )
+				{
                     pComboBox->AddItem(GetUserName(i).c_str(), NULL);
+				}
             }
         }        
     }
@@ -562,6 +565,10 @@ void CX2PostBox::InitPostSend()
         pEdPic2->SetColor(D3DXCOLOR(1.0f, 1.0f, 1.0f,1.0f));
 
     WCHAR bufFee[20];
+#ifdef SERV_FREE_MAIL_TICKET
+	int attachFee = GetPostFee( 0, NULL );
+	StringCchPrintf( bufFee,20, L"%d", attachFee );
+#else //SERV_FREE_MAIL_TICKET
 #ifdef FREE_FEE
 	StringCchPrintf(bufFee,20, L"%d", 0);
     //wsprintf(bufFee, L"%d", 0);
@@ -569,15 +576,12 @@ void CX2PostBox::InitPostSend()
 	StringCchPrintf(bufFee,20, L"%d", 200);
     //wsprintf(bufFee, L"%d", 200);
 #endif
+#endif //SERV_FREE_MAIL_TICKET
     CKTDGUIStatic *pDlgFee = m_pDLGMailSend->GetStatic_LUA("g_pStaticpost_window_Font");
     pDlgFee->GetString(0)->msg = bufFee;
 
-    m_pPostSlot = NULL;        
-#ifdef FIX_SEND_LETTER
+    m_pPostSlot = NULL;
 	m_iItemUid = -1;
-#else
-	m_pItemData = NULL;
-#endif
 	
     m_bRegisteredTrade = false;
     m_nQuantity = 0;
@@ -637,7 +641,7 @@ void CX2PostBox::AddNewLetter( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 #else
 		const int iTempEventIndex = 10135;
 #endif
-		
+
 		if ( kEvent.m_iScriptIndex == iTempEventIndex)
 		{
 			wstring wstrBuff = GET_STRING( STR_ID_12546 );
@@ -731,28 +735,15 @@ bool CX2PostBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 			//{{ kimhc // 2009-09-03 // 봉인된 아이템 보낼때 확인 창 뜨도록 처리
 #ifdef	SEAL_ITEM
 
-	#ifdef FIX_SEND_LETTER
-			CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iItemUid );
+			CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iItemUid );
 			if ( pItemData != NULL && 
-				pItemData->GetItemData() != NULL &&
 				pItemData->GetItemTemplet() != NULL &&
-				pItemData->GetItemData()->m_bIsSealed == true )
+				pItemData->GetItemData().m_bIsSealed == true )
 			{
 				m_pDLGQuery = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), 
                     GET_REPLACED_STRING( ( STR_ID_4471, "SL", pItemData->GetItemTemplet()->GetFullName_(), m_strNickName ) ), 
 					PBQM_SEAL_ITEM_SEND_ACCEPT, (CKTDXStage*) m_pNowState, PBQM_SEAL_ITEM_SEND_CANCEL ); 			
 			}
-	#else
-			if ( m_pItemData != NULL && 
-				 m_pItemData->GetItemData() != NULL &&
-				 m_pItemData->GetItemTemplet() != NULL &&
-				 m_pItemData->GetItemData()->m_bIsSealed == true )
-			{
-				m_pDLGQuery = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), 
-                    GET_REPLACED_STRING( ( STR_ID_4471, "SL", m_pItemData->GetItemTemplet()->GetFullName_(), m_strNickName ) ), 
-					PBQM_SEAL_ITEM_SEND_ACCEPT, (CKTDXStage*) m_pNowState, PBQM_SEAL_ITEM_SEND_CANCEL ); 			
-			}
-	#endif //FIX_SEND_LETTER
 			else		
 #endif	SEAL_ITEM
 			//}} kimhc // 2009-09-03 // 봉인된 아이템 보낼때 확인 창 뜨도록 처리
@@ -808,7 +799,7 @@ bool CX2PostBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         break;
     case PBMUM_SEND:        
         m_nCurrentPage = 1;
-        if(g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser == true)
+        if(g_pData->GetMyUser()->GetUserData().m_bIsGuestUser == true)
         {
             g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), (CKTDXStage*) m_pNowState );
             return false;
@@ -896,7 +887,7 @@ bool CX2PostBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         CX2ItemSlotManager::SetShow(CX2Slot::ST_POST_RECEIVE, false);
         CX2ItemSlotManager::SetEnable(CX2Slot::ST_POST_RECEIVE, false);
         m_nCurrentPage = 1;
-        if(g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser == true)
+        if(g_pData->GetMyUser()->GetUserData().m_bIsGuestUser == true)
         {
             g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), (CKTDXStage*) m_pNowState );
             return false;
@@ -915,7 +906,7 @@ bool CX2PostBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 		CX2ItemSlotManager::SetShow(CX2Slot::ST_POST_RECEIVE, false);
 		CX2ItemSlotManager::SetEnable(CX2Slot::ST_POST_RECEIVE, false);
 		m_nCurrentPage = 1;
-		if(g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser == true)
+		if(g_pData->GetMyUser()->GetUserData().m_bIsGuestUser == true)
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), (CKTDXStage*) m_pNowState );
 			return false;
@@ -1179,11 +1170,11 @@ bool CX2PostBox::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 			}
 		}
 #else FIX_MISSING_MAIL
-		if(m_bNewLetterNotify == true && g_pData != NULL && g_pData->GetCashShop() != NULL && g_pData->GetCashShop()->GetOpen() == false)
-		{            
-			m_iNewLetter = 0;
-			return Handler_EGS_RECEIVE_LETTER_NOT( hWnd, uMsg, wParam, lParam );
-		}
+        if(m_bNewLetterNotify == true && g_pData != NULL && g_pData->GetCashShop() != NULL && g_pData->GetCashShop()->GetOpen() == false)
+        {            
+            m_iNewLetter = 0;
+            return Handler_EGS_RECEIVE_LETTER_NOT( hWnd, uMsg, wParam, lParam );
+        }
 #endif FIX_MISSING_MAIL
         break;
 #endif
@@ -1231,26 +1222,18 @@ void CX2PostBox::AttachItem()
         //m_pDLGMailSend->SetModal(false);
         m_pDLGMyTradeWindow->SetShowEnable(false, false);
 
-#ifdef FIX_SEND_LETTER
-		CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iItemUid );
-#endif
+		CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iItemUid );
 
         // 미리보기 아이템 셋팅
         CX2SlotItem* pSlotItem = (CX2SlotItem*)GetSlot( CX2SlotItem::ST_POST_SEND, 100 );
         if ( pSlotItem != NULL )
         {
             pSlotItem->DestroyItemUI();
-#ifdef FIX_SEND_LETTER			
+
 			if( pItemData != NULL )
 			{
 				pSlotItem->CreateItemUI( pItemData, m_nQuantity );
 			}
-#else
-            if ( m_pItemData != NULL )
-            {
-                pSlotItem->CreateItemUI( m_pItemData, m_nQuantity );
-            }
-#endif
         }
 
 		if( pItemData != NULL )
@@ -1267,11 +1250,12 @@ void CX2PostBox::AttachItem()
 			if(pEdPic2 != NULL)
 				pEdPic2->SetColor(D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.3f));
 
-#ifdef FIX_SEND_LETTER
+#ifdef SERV_FREE_MAIL_TICKET
+			int attachFee = GetPostFee( 0, pItemData );
+			WCHAR bufFee[20];
+			StringCchPrintf( bufFee, 20, L"%d", attachFee );
+#else //SERV_FREE_MAIL_TICKET
 			int price = (int)(pItemData->GetItemTemplet()->GetPrice() * 0.2f);
-#else
-			int price = (int)(m_pItemData->GetItemTemplet()->GetPrice() * 0.2f);
-#endif
 			int quantity = m_nQuantity;
 			int attachFee = (int)((price * quantity) * 0.05f);
 
@@ -1283,6 +1267,8 @@ void CX2PostBox::AttachItem()
 			StringCchPrintf(bufFee, 20, L"%d", 200 + attachFee);
 			//wsprintf(bufFee, L"%d", 200 + attachFee);
 #endif
+#endif //SERV_FREE_MAIL_TICKET
+
 			CKTDGUIStatic *pDlgFee = m_pDLGMailSend->GetStatic_LUA("g_pStaticpost_window_Font");
 			pDlgFee->GetString(0)->msg = bufFee;
 
@@ -1310,9 +1296,9 @@ void CX2PostBox::CheckEdChange()
         bChange = true;
     }
 
-    if(m_nED >= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED)
+    if(m_nED >= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED)
     {
-        m_nED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+        m_nED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
         bChange = true;
     }
 
@@ -1344,11 +1330,16 @@ void CX2PostBox::CheckEdChange()
             pItemPic2->SetColor(D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.3f));
 
 		wstring wstrFee = L"";
+#ifdef SERV_FREE_MAIL_TICKET
+		wstrFee = g_pMain->GetEDString( GetPostFee( m_nED, NULL ) );
+#else //SERV_FREE_MAIL_TICKET
 #ifdef FREE_FEE
 		wstrFee = L"0";
 #else
 		wstrFee = g_pMain->GetEDString( 200 + (int)(m_nED*0.05) );
 #endif
+#endif //SERV_FREE_MAIL_TICKET
+
 		CKTDGUIStatic *pDlgFee = m_pDLGMailSend->GetStatic_LUA("g_pStaticpost_window_Font");
         pDlgFee->GetString(0)->msg = wstrFee;
     }
@@ -1366,19 +1357,20 @@ void CX2PostBox::CheckEdChange()
         if(pItemPic2 != NULL)
             pItemPic2->SetColor(D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f));
 
-#ifdef FIX_SEND_LETTER
-		CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iItemUid );
+		CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iItemUid );
 		if( pItemData == NULL && m_nED == 0 )
-#else
-        if(m_pItemData == NULL && m_nED == 0)
-#endif
         {
 			wstring wstrFee = L"";
+#ifdef SERV_FREE_MAIL_TICKET
+			wstrFee = g_pMain->GetEDString( GetPostFee( 0, NULL ) );
+#else //SERV_FREE_MAIL_TICKET
 #ifdef FREE_FEE
 			wstrFee = L"0";
 #else
 			wstrFee = L"200";
 #endif
+#endif //SERV_FREE_MAIL_TICKET
+
 			CKTDGUIStatic *pDlgFee = m_pDLGMailSend->GetStatic_LUA("g_pStaticpost_window_Font");
             pDlgFee->GetString(0)->msg = wstrFee;
         }
@@ -1463,11 +1455,7 @@ bool CX2PostBox::OnRClickedItemInInven( D3DXVECTOR2 mousePos )
             {
                 pSlotItem->DestroyItemUI();     
                 
-#ifdef FIX_SEND_LETTER
 				m_iItemUid = -1;
-#else
-				m_pItemData = NULL;
-#endif
                 g_pKTDXApp->GetDeviceManager()->PlaySound( L"Post_ItemDrop.ogg", false, false );  
 
                 CKTDGUIIMEEditBox *pDialogEd = (CKTDGUIIMEEditBox*)m_pDLGMailSend->GetControl(L"IME_Add_Ed");
@@ -1540,7 +1528,7 @@ void CX2PostBox::RegisterItem(CX2SlotItem* pItemSlot)
 	if(pItemSlot == NULL)
 		return;
 
-    CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlot->GetItemUID() );
+    CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlot->GetItemUID() );
     if ( pkItem == NULL || 
         NULL == pkItem->GetItemTemplet() 
         )
@@ -1548,15 +1536,12 @@ void CX2PostBox::RegisterItem(CX2SlotItem* pItemSlot)
 
 	//{{ kimhc // 2009-09-03 // 봉인 아이템 우편 전송 가능하도록
 #ifdef	SEAL_ITEM
-	if ( pkItem->GetItemData() == NULL )
-		return;
 
-	if ( pkItem->GetItemData()->m_Period > 0 ||
-		 ( pkItem->GetItemTemplet()->GetVested() == true && pkItem->GetItemData()->m_bIsSealed == false ) )
+	if ( pkItem->GetItemData().m_Period > 0 ||
+		 ( pkItem->GetItemTemplet()->GetVested() == true && pkItem->GetItemData().m_bIsSealed == false ) )
 #else	SEAL_ITEM
 	if( true == pkItem->GetItemTemplet()->GetVested() ||
-		( NULL != pkItem->GetItemData() &&
-		pkItem->GetItemData()->m_Period > 0 ) )
+		( pkItem->GetItemData().m_Period > 0 ) )
 #endif	SEAL_ITEM
 	//}} kimhc // 2009-09-03 // 봉인 아이템 우편 전송 가능하도록
     
@@ -1587,7 +1572,7 @@ void CX2PostBox::RegisterItem(CX2SlotItem* pItemSlot)
 		} break;
 	case CX2Item::PT_ENDURANCE:
 		{
-			if( pkItem->GetItemData()->m_Endurance < pkItem->GetItemTemplet()->GetEndurance() )
+			if( pkItem->GetItemData().m_Endurance < pkItem->GetItemTemplet()->GetEndurance() )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_STRING( STR_ID_395 ), (CKTDXStage*) m_pNowState );
 				return;
@@ -1614,11 +1599,7 @@ void CX2PostBox::UnRegisterItem()
 		{
 			pSlotItem->DestroyItemUI();     
 			
-#ifdef FIX_SEND_LETTER
 			m_iItemUid = -1;
-#else
-			m_pItemData = NULL;
-#endif
 			g_pKTDXApp->GetDeviceManager()->PlaySound( L"Post_ItemDrop.ogg", false, false );  
 
 			CKTDGUIIMEEditBox *pDialogEd = (CKTDGUIIMEEditBox*)m_pDLGMailSend->GetControl(L"IME_Add_Ed");
@@ -1670,24 +1651,20 @@ void CX2PostBox::SetSlotItem(CX2Item *pkItem)
         bChange = true;
     }
 
-    if(m_nED >= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED)
+    if(m_nED >= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED)
     {
-        m_nED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+        m_nED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
         bChange = true;
     }
 
     if(m_nED > 0)
         return;
 
-    m_bRegisteredTrade = true;        
-#ifdef FIX_SEND_LETTER
+    m_bRegisteredTrade = true;
 	m_iItemUid = pkItem->GetUID();
-#else
-	m_pItemData = pkItem;
-#endif
 	
     
-    if(pkItem->GetItemData()->m_PeriodType == CX2Item::PT_QUANTITY)
+    if(pkItem->GetItemData().m_PeriodType == CX2Item::PT_QUANTITY)
     {
 		//{{ 허상형 : [2010/8/25/] //	우편 수량 UI 개편
 #ifdef POST_QUANTITY_NEW
@@ -1695,8 +1672,8 @@ void CX2PostBox::SetSlotItem(CX2Item *pkItem)
 		Pos.x = static_cast< float >( g_pKTDXApp->GetDIManager()->GetMouse()->GetXPos() );
 		Pos.y = static_cast< float >( g_pKTDXApp->GetDIManager()->GetMouse()->GetYPos() );
 
-		m_nQuantity	= pkItem->GetItemData()->m_Quantity;
-		m_EnrollItemUid = pkItem->GetItemData()->m_ItemUID;
+		m_nQuantity	= pkItem->GetItemData().m_Quantity;
+		m_EnrollItemUid = pkItem->GetItemData().m_ItemUID;
 
 		OpenRegisterQuantityDLG( Pos );
 #else	//	POST_QUANTITY_NEW
@@ -1786,7 +1763,7 @@ bool CX2PostBox::MouseUp( D3DXVECTOR2 mousePos )
 			//else
 			{
 				bool bCheck = true;
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlotItem->GetItemUID() );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlotItem->GetItemUID() );
 
 				switch( pItem->GetItemTemplet()->GetPeriodType() )
 				{
@@ -1801,7 +1778,7 @@ bool CX2PostBox::MouseUp( D3DXVECTOR2 mousePos )
 					} break;
 				case CX2Item::PT_ENDURANCE:
 					{
-						if( pItem->GetItemData()->m_Endurance < pItem->GetItemTemplet()->GetEndurance() )
+						if( pItem->GetItemData().m_Endurance < pItem->GetItemTemplet()->GetEndurance() )
 						{
 							bCheck = false;
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_STRING( STR_ID_395 ), (CKTDXStage*) m_pNowState );
@@ -1814,15 +1791,11 @@ bool CX2PostBox::MouseUp( D3DXVECTOR2 mousePos )
                 {
 	//{{ kimhc // 2009-09-03 // 봉인 아이템 우편 전송 가능하도록
 #ifdef	SEAL_ITEM
-					if ( pItem->GetItemData() == NULL )
-						return false;
-
-					if ( pItem->GetItemData()->m_Period > 0 ||
-						( pItem->GetItemTemplet()->GetVested() == true && pItem->GetItemData()->m_bIsSealed == false ) )
+					if ( pItem->GetItemData().m_Period > 0 ||
+						( pItem->GetItemTemplet()->GetVested() == true && pItem->GetItemData().m_bIsSealed == false ) )
 #else	SEAL_ITEM
 					if( pItem->GetItemTemplet()->GetVested() == true ||
-						( NULL != pItem->GetItemData() &&
-						pItem->GetItemData()->m_Period > 0 ) )
+						( pItem->GetItemData().m_Period > 0 ) )
 #endif	SEAL_ITEM
 	//}} kimhc // 2009-09-03 // 봉인 아이템 우편 전송 가능하도록
 					{
@@ -1869,12 +1842,8 @@ bool CX2PostBox::MouseUp( D3DXVECTOR2 mousePos )
 					CX2SlotItem* pSlotItem = (CX2SlotItem*)GetSlot( CX2SlotItem::ST_POST_SEND, 100 );
 					if ( pSlotItem != NULL )
 					{
-						pSlotItem->DestroyItemUI();    						
-#ifdef FIX_SEND_LETTER
+						pSlotItem->DestroyItemUI();
 						m_iItemUid = -1;
-#else
-						m_pItemData = NULL;
-#endif
 						g_pKTDXApp->GetDeviceManager()->PlaySound( L"Post_ItemDrop.ogg", false, false );  
 						CheckEdChange();
 					}
@@ -1975,7 +1944,7 @@ bool CX2PostBox::DrawSlotMouseOverImageInEquipRect()
             return false;
         }
         const CX2Item::ItemTemplet* pkItemTemplet = 
-            g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( *m_DraggingItemUID )->GetItemTemplet();
+            g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( *m_DraggingItemUID )->GetItemTemplet();
         if ( pkItemTemplet == NULL )
             return false;
        
@@ -1987,7 +1956,7 @@ bool CX2PostBox::DrawSlotMouseOverImageInEquipRect()
 		}
 
         const CX2Item::ItemTemplet* pkItemTemplet =
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_DraggingItemUID )->GetItemTemplet();
+			g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_DraggingItemUID )->GetItemTemplet();
 		if ( pkItemTemplet == NULL )
 			return false;
 
@@ -2278,7 +2247,7 @@ void CX2PostBox::SetDialogShow( bool bShow, int flag )
             //CKTDGUIStatic* pStatic_ED = (CKTDGUIStatic*)m_pDLGMailSend->GetControl( L"Static_ED" );
             //if ( pStatic_ED != NULL && pStatic_ED->GetString(0) != NULL)
             //{
-            //    pStatic_ED->GetString(0)->msg = g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED );
+            //    pStatic_ED->GetString(0)->msg = g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED );
             //}
 			//}} 허상형 : [2009/7/31] //	없는 컨트롤 부름으로 인한 주석처리
 
@@ -2525,7 +2494,7 @@ void CX2PostBox::ResetInvenPage( int nowPage, int maxPage )
 
 void CX2PostBox::ResetInvenPageUI()
 {
-    //m_NowInvenSortTypePageMaxNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetInvenSlot() m_NowInventorySortType
+    //m_NowInvenSortTypePageMaxNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetInvenSlot() m_NowInventorySortType
     //int invenMaxSize = GetInvenMaxSize( m_NowInventorySortType );
 
     /*if ( m_pDLGMailSend != NULL )
@@ -2547,7 +2516,7 @@ wstring CX2PostBox::GetSlotItemDesc()
 
     if ( m_pNowOverItemSlot != NULL )
     {
-        CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_pNowOverItemSlot->GetItemUID() );
+        CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_pNowOverItemSlot->GetItemUID() );
         if ( m_CurrentState == 1 && pkItem != NULL )
             itemDesc = GetSlotItemDescByUID( m_pNowOverItemSlot->GetItemUID() );
         else if(m_CurrentState != 1)
@@ -2680,7 +2649,7 @@ bool CX2PostBox::OnDropAnyItem( D3DXVECTOR2 mousePos )
 			//else
 			{
 				bool bCheck = true;
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlotItem->GetItemUID() );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlotItem->GetItemUID() );
 
 				switch( pItem->GetItemTemplet()->GetPeriodType() )
 				{
@@ -2695,7 +2664,7 @@ bool CX2PostBox::OnDropAnyItem( D3DXVECTOR2 mousePos )
 					} break;
 				case CX2Item::PT_ENDURANCE:
 					{
-						if( pItem->GetItemData()->m_Endurance < pItem->GetItemTemplet()->GetEndurance() )
+						if( pItem->GetItemData().m_Endurance < pItem->GetItemTemplet()->GetEndurance() )
 						{
 							bCheck = false;
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_STRING( STR_ID_395 ), (CKTDXStage*) m_pNowState );
@@ -2706,14 +2675,8 @@ bool CX2PostBox::OnDropAnyItem( D3DXVECTOR2 mousePos )
 
 	//{{ kimhc // 2009-09-03 // 봉인된 아이템 우편 전송 가능 하도록
 #ifdef	SEAL_ITEM
-				if ( pItem->GetItemData() == NULL )
-				{
-					ASSERT( !"Wrong path" );
-					return false;
-				}
-
 				if ( bCheck == true && pItem->GetItemTemplet()->GetVested() == true 
-					&& pItem->GetItemData()->m_bIsSealed == false )
+					&& pItem->GetItemData().m_bIsSealed == false )
 #else	SEAL_ITEM
 				if ( bCheck == true && pItem->GetItemTemplet()->GetVested() == true )
 #endif	SEAL_ITEM
@@ -2746,12 +2709,8 @@ bool CX2PostBox::OnDropAnyItem( D3DXVECTOR2 mousePos )
 					CX2SlotItem* pSlotItem = (CX2SlotItem*)GetSlot( CX2SlotItem::ST_POST_SEND, 100 );
 					if ( pSlotItem != NULL )
 					{
-						pSlotItem->DestroyItemUI();    						
-#ifdef FIX_SEND_LETTER
+						pSlotItem->DestroyItemUI();
 						m_iItemUid = -1;
-#else
-						m_pItemData = NULL;
-#endif
 						g_pKTDXApp->GetDeviceManager()->PlaySound( L"Post_ItemDrop.ogg", false, false );  
 						CheckEdChange();
 					}
@@ -2818,7 +2777,7 @@ bool CX2PostBox::UpdateInventorySlotList( std::vector< KInventoryItemInfo >& vec
         KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
         if ( kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
         {
-            CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+            CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
             if ( pItem != NULL )
             {				
                 RemoveEqip( pItem->GetUID() );
@@ -2829,7 +2788,7 @@ bool CX2PostBox::UpdateInventorySlotList( std::vector< KInventoryItemInfo >& vec
     for ( int i = 0; i < (int)vecInventorySlotInfo.size(); i++ )
     {
         KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
-        g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+        g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
     }
 
     for ( int i = 0; i < (int)vecInventorySlotInfo.size(); i++ )
@@ -2837,12 +2796,12 @@ bool CX2PostBox::UpdateInventorySlotList( std::vector< KInventoryItemInfo >& vec
         KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
         if ( kInventorySlotInfo.m_iItemUID > 0 )
         {
-            CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
-            g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, pItemData );
+            CX2Item::ItemData kItemData( kInventorySlotInfo );
+            g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, kItemData );
 
             if ( kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
             {
-                CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+                CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
                 if ( pItem != NULL )
                 {
                     AddEqip( pItem->GetUID() );
@@ -2882,7 +2841,7 @@ void CX2PostBox::OpenItemQuantityDLG( UidType sellItemUID )
 {   
     m_nQuantity	= 1;   
 
-    CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( sellItemUID );
+    CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( sellItemUID );
     if ( pItem != NULL )
     {
         WCHAR buff[256] = {0};
@@ -2915,19 +2874,11 @@ void CX2PostBox::OpenItemQuantityDLG( UidType sellItemUID )
 
 
 void CX2PostBox::SetItemNumChange( int iNum )
-{    
-#ifdef FIX_SEND_LETTER
-	CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iItemUid );
+{
+	CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iItemUid );
 	if( pItemData != NULL )
-#else
-    if ( m_pItemData != NULL )
-#endif
     {
-#ifdef FIX_SEND_LETTER
-        int maxItemSellNum = pItemData->GetItemData()->m_Quantity;
-#else
-		int maxItemSellNum = m_pItemData->GetItemData()->m_Quantity;
-#endif
+        int maxItemSellNum = pItemData->GetItemData().m_Quantity;
         m_nQuantity += iNum;
 
         if ( m_nQuantity <= 1 )
@@ -3166,7 +3117,6 @@ void CX2PostBox::SetListSlot(int inx)
 	}
 #endif
 	//}}
-
 
     WCHAR strDate[256] = {0,};
 	StringCchPrintf( strDate, 256, L"%s %s", m_listSlot[inx].m_strDate.c_str(), m_listSlot[inx].m_strNickName.c_str() );
@@ -3491,9 +3441,9 @@ void CX2PostBox::SetMailView(int inx)
     if(m_listSlot[inx].m_ItemId > 0)
     {
 #ifdef SERV_RELATIONSHIP_SYSTEM
-		if(IsSystemMail() == true && m_listSlot[inx].m_pItem->GetItemData()->m_ItemID == 127050)
+		if(IsSystemMail() == true && m_listSlot[inx].m_pItem->GetItemData().m_ItemID == 127050)
 #else  // SERV_RELATIONSHIP_SYSTEM
-		if(m_bSystemMail == true && m_listSlot[inx].m_pItem->GetItemData()->m_ItemID == 127050)
+		if(m_bSystemMail == true && m_listSlot[inx].m_pItem->GetItemData().m_ItemID == 127050)
 
 #endif // SERV_RELATIONSHIP_SYSTEM    
         {            
@@ -3507,10 +3457,10 @@ void CX2PostBox::SetMailView(int inx)
             {
                 itemName = GET_STRING( STR_ID_407 );
             }
-            else if(m_listSlot[inx].m_pItem != NULL && m_listSlot[inx].m_pItem->GetItemData()->m_EnchantLevel > 0)
+            else if(m_listSlot[inx].m_pItem != NULL && m_listSlot[inx].m_pItem->GetItemData().m_EnchantLevel > 0)
             {
                 wstringstream wstrstm;
-                wstrstm << L"+" << m_listSlot[inx].m_pItem->GetItemData()->m_EnchantLevel << L" ";
+                wstrstm << L"+" << m_listSlot[inx].m_pItem->GetItemData().m_EnchantLevel << L" ";
 
                 itemName = wstrstm.str().c_str() + itemName;
             }
@@ -3531,7 +3481,11 @@ void CX2PostBox::SetMailView(int inx)
 #ifdef CLIENT_GLOBAL_LINEBREAK
 		wstring wstrMessage = CWordLineHandler::GetStrByLineBreakInX2Main( m_listSlot[inx].m_strMessage.c_str(), 320, XUF_DODUM_13_SEMIBOLD );
 #else //CLIENT_GLOBAL_LINEBREAK
-		wstring wstrMessage = g_pMain->GetStrByLienBreak( m_listSlot[inx].m_strMessage.c_str(), 280, XUF_DODUM_13_SEMIBOLD );
+#ifdef SIMPLE_BUG_FIX
+		wstring wstrMessage = g_pMain->GetStrByLienBreak( m_listSlot[inx].m_strMessage.c_str(), 260, XUF_DODUM_13_SEMIBOLD );
+#else // SIMPLE_BUG_FIX
+        wstring wstrMessage = g_pMain->GetStrByLienBreak( m_listSlot[inx].m_strMessage.c_str(), 280, XUF_DODUM_13_SEMIBOLD );
+#endif // SIMPLE_BUG_FIX
 #endif //CLIENT_GLOBAL_LINEBREAK
         pMessageDlg->SetText(wstrMessage.c_str());
     }
@@ -3559,7 +3513,7 @@ void CX2PostBox::SetMailView(int inx)
             pSlotItem->DestroyItemUI();        
             if ( m_listSlot[inx].m_pItem != NULL )
             {
-                if(m_listSlot[inx].m_bAttachItem == true && m_listSlot[inx].m_pItem->GetItemData()->m_ItemID != 127050)                
+                if(m_listSlot[inx].m_bAttachItem == true && m_listSlot[inx].m_pItem->GetItemData().m_ItemID != 127050)                
                     pSlotItem->CreateItemUI( m_listSlot[inx].m_pItem );                
                 else
                     pSlotItem->CreateItemUI( m_listSlot[inx].m_pItem->GetItemTemplet() );
@@ -3733,7 +3687,7 @@ void CX2PostBox::GetItemLetter(int inx)
 	if(m_listSlot[inx].m_ItemId == 127000 || m_listSlot[inx].m_ItemId == 127040)
 	{
 		INT64 EDTotalAfterGet = 0;
-		EDTotalAfterGet += g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+		EDTotalAfterGet += g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 		EDTotalAfterGet += m_listSlot[inx].m_nAttachMoney;
 		if(EDTotalAfterGet < 0 || EDTotalAfterGet > MAX_ED_FOR_PLAYER)
 		{
@@ -3791,11 +3745,7 @@ void CX2PostBox::ReplyMail(int inx)
         pDialogTitle->SetText(replyTitle.c_str());
     }
 
-#ifdef FIX_SEND_LETTER
-	m_iItemUid = -1;
-#else
-	m_pItemData = NULL;
-#endif    
+	m_iItemUid = -1;   
     m_pPostSlot = NULL;
     CX2SlotItem* pSlotItem = (CX2SlotItem*)GetSlot( CX2SlotItem::ST_POST_SEND, 100 );
     if ( pSlotItem != NULL )
@@ -3824,11 +3774,9 @@ void CX2PostBox::SendMail()
     CKTDGUIIMEEditBox *pDialogTo = (CKTDGUIIMEEditBox*)m_pDLGMailSend->GetControl(L"IME_EditMail_To");
     CKTDGUIIMEEditBox *pDialogTitle = (CKTDGUIIMEEditBox*)m_pDLGMailSend->GetControl(L"IME_EditMail_Name");
 
-#ifdef POSTBOX_FILTER
 	CKTDGUIIMEEditBox *pDialogBody = (CKTDGUIIMEEditBox*)m_pDLGMailSend->GetControl(L"IME_Edit_Message");
 	if( pDialogBody != NULL )
 	{
-
 #ifdef SERV_POST_BAN_WORD_FILTER
 		wstring wstrPostBody = pDialogBody->GetText();
 		wstring wstrBanPostBodyWord = L"";
@@ -3838,7 +3786,6 @@ void CX2PostBox::SendMail()
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_REPLACED_STRING( ( STR_ID_17230, "L", wstrBanPostBodyWord ) ), (CKTDXStage*) m_pNowState ); 
 			return;
 		}
-
 #else //SERV_POST_BAN_WORD_FILTER
 		wstring wstrFilterName[31] = 
 		{
@@ -3885,10 +3832,9 @@ void CX2PostBox::SendMail()
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_REPLACED_STRING( ( STR_ID_17230, "L", wstrFilterName[i] ) ), (CKTDXStage*) m_pNowState ); 
 				return;
 			}
-		}
+		}		
 #endif //SERV_POST_BAN_WORD_FILTER
 	}
-#endif
 
     m_strNickName = pDialogTo->GetText();    
     m_strTitle = pDialogTitle->GetText();
@@ -3908,32 +3854,32 @@ void CX2PostBox::SendMail()
         return;
     }
 
-#ifdef FIX_SEND_LETTER
-	CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iItemUid );
-#endif
+	CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iItemUid );
 
+#ifdef SERV_FREE_MAIL_TICKET
+	int attachFee = GetPostFee( m_nED, pItemData );
+	wstring wstrText;
+	if( attachFee <= 200 )
+	{
+		wstrText = GET_REPLACED_STRING( ( STR_ID_415, "Li", m_strNickName, attachFee ) );
+	}
+	else
+	{
+		wstrText = GET_REPLACED_STRING( ( STR_ID_416, "Lii", m_strNickName, 200, attachFee - 200 ) );
+	}
+#else //SERV_FREE_MAIL_TICKET
     int attachFee = 0;
     if(m_nED > 0)
     {
         attachFee = (int)(m_nED * 0.05f);
     }
-#ifdef FIX_SEND_LETTER
 	else if(pItemData != NULL)
 	{
 		int price = (int)(pItemData->GetItemTemplet()->GetPrice() * 0.2f);
-		int quantity = m_nQuantity; //pItemData->GetItemData()->m_Quantity;
+		int quantity = m_nQuantity; //pItemData->GetItemData().m_Quantity;
 
 		attachFee = (int)((price * quantity) * 0.05f);
 	}
-#else
-    else if(m_pItemData != NULL)
-    {
-        int price = (int)(m_pItemData->GetItemTemplet()->GetPrice() * 0.2f);
-        int quantity = m_nQuantity; //m_pItemData->GetItemData()->m_Quantity;
-
-        attachFee = (int)((price * quantity) * 0.05f);
-    }
-#endif //FIX_SEND_LETTER
 
     wstring wstrText;
 #ifdef FREE_FEE
@@ -3948,6 +3894,7 @@ void CX2PostBox::SendMail()
         wstrText = GET_REPLACED_STRING( ( STR_ID_416, "Li", m_strNickName, attachFee ) );
     }
 #endif
+#endif //SERV_FREE_MAIL_TICKET
 
     m_pDLGQuery = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), wstrText.c_str(), 
         PBQM_SEND_ACCEPT, (CKTDXStage*) m_pNowState, PBQM_SEND_CANCEL ); 
@@ -3985,7 +3932,10 @@ bool CX2PostBox::SetMailHeader(int inx, KPostItemTitleInfo mailHeader)
         m_listSlot[inx].m_ItemId = 0;
         m_listSlot[inx].m_nAttachMoney = 0;
     }
-    else if(mailHeader.m_iScriptIndex == 127000 || mailHeader.m_iScriptIndex == 127010 || mailHeader.m_iScriptIndex == 127020)
+    else if(mailHeader.m_iScriptIndex == 127000 || 
+		    mailHeader.m_iScriptIndex == 127010 || 
+			mailHeader.m_iScriptIndex == 127020 || 
+			mailHeader.m_iScriptIndex == 127041 )
     {
         m_listSlot[inx].m_bAttachItem = false;
         m_listSlot[inx].m_ItemId = mailHeader.m_iScriptIndex;
@@ -4061,7 +4011,10 @@ int CX2PostBox::SetMailBody( KPostItemInfo& mailBody)
     m_listSlot[index].m_ItemId = mailBody.m_iScriptIndex;
     m_listSlot[index].m_nAttachMoney = mailBody.m_iQuantity; // 액수
 
-    if(mailBody.m_iScriptIndex == 127000 || mailBody.m_iScriptIndex == 127010 || mailBody.m_iScriptIndex == 127020)
+    if(mailBody.m_iScriptIndex == 127000 || 
+	   mailBody.m_iScriptIndex == 127010 || 
+	   mailBody.m_iScriptIndex == 127020 || 
+	   mailBody.m_iScriptIndex == 127041 )
     {
         // 돈첨부        
         m_listSlot[index].m_bAttachItem = false;        
@@ -4095,13 +4048,19 @@ int CX2PostBox::SetMailBody( KPostItemInfo& mailBody)
 			if(m_listSlot[index].m_bAttachItem == false)
 				mailBody.m_iScriptIndex = 127040;
 
-            m_listSlot[index].m_pItem = new CX2Item( CX2Item::CreateItemData(mailBody), NULL );
+            //m_listSlot[index].m_pItem = new CX2Item( CX2Item::CreateItemData(mailBody), NULL );
+            CX2Item::ItemData kItemData;
+            kItemData.Initialize( mailBody );
+            m_listSlot[index].m_pItem = new CX2Item( kItemData, NULL );
         }
         else
         {
             if(m_listSlot[index].m_bAttachItem == false)
                 mailBody.m_iScriptIndex = 127040;
-            m_listSlot[index].m_pItem = new CX2Item( CX2Item::CreateItemData(mailBody), NULL );
+            //m_listSlot[index].m_pItem = new CX2Item( CX2Item::CreateItemData(mailBody), NULL );
+            CX2Item::ItemData kItemData;
+            kItemData.Initialize( mailBody );
+            m_listSlot[index].m_pItem = new CX2Item( kItemData, NULL );
         }        
     }
     else
@@ -4159,7 +4118,8 @@ wstring CX2PostBox::GetUserName(int inx)
     CX2Unit *pUnit = g_pData->GetMyUser()->GetUnitByIndex(inx);
     if(pUnit != NULL)
     {
-        return pUnit->GetUnitData()->m_NickName;;
+		if( g_pData->GetSelectUnitServerGroupID() == pUnit->GetServerGroupID() )
+			return pUnit->GetUnitData().m_NickName;;
     }
 
     return L"";
@@ -4174,10 +4134,7 @@ wstring CX2PostBox::GetSelectedUserName()
 	if( g_pData->GetMyUser()->GetSelectUnit() == NULL )
 		return L"";
 
-	if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
-		return L"";
-
-	return g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NickName;
+	return g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName;
 }
 //}}
 
@@ -4236,20 +4193,12 @@ bool CX2PostBox::Handler_EGS_SEND_LETTER_REQ()
 
     kPacket.m_iED = m_nED;
 
-#ifdef FIX_SEND_LETTER
-	CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_iItemUid );
+	CX2Item* pItemData = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_iItemUid );
 	if(m_nED == 0 && pItemData != NULL)
 	{
 		kPacket.m_iItemUID = pItemData->GetUID(); // 없을경우 0으로 넣으면 되는지 확인필요!
 		kPacket.m_iQuantity = m_nQuantity;
 	}
-#else
-	if(m_nED == 0 && m_pItemData != NULL)
-	{
-		kPacket.m_iItemUID = m_pItemData->GetUID(); // 없을경우 0으로 넣으면 되는지 확인필요!
-		kPacket.m_iQuantity = m_nQuantity;
-	}
-#endif //FIX_SEND_LETTER
 	else
 	{
 		kPacket.m_iItemUID = 0; // 없을경우 0으로 넣으면 되는지 확인필요!
@@ -4305,8 +4254,8 @@ bool CX2PostBox::Handler_EGS_SEND_LETTER_ACK( HWND hWnd, UINT uMsg, WPARAM wPara
     {
         if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
         {
-            g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
-            g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED		= kEvent.m_iED;
+            g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+            g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED		= kEvent.m_iED;
 
             UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
@@ -4624,8 +4573,8 @@ bool CX2PostBox::Handler_EGS_GET_ITEM_FROM_LETTER_ACK( HWND hWnd, UINT uMsg, WPA
     {
         if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
         {
-            g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );  
-            g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED		= kEvent.m_iED;
+            g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );  
+            g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED		= kEvent.m_iED;
 
 			if ( NULL != g_pData && NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUIInventory() )
 			{
@@ -5101,7 +5050,7 @@ void CX2PostBox::UpdateRegisterQuantityDLG( bool bReadIME )
 		m_nQuantity = g_pMain->GetEDFromString( pQuantity->GetText() );
 	}	
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnrollItemUid );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnrollItemUid );
 
 	if ( m_nQuantity <= 0 )
 	{
@@ -5111,8 +5060,8 @@ void CX2PostBox::UpdateRegisterQuantityDLG( bool bReadIME )
 			m_nQuantity = pItem->GetItemTemplet()->GetQuantity();	
 	}
 
-	if ( m_nQuantity >= pItem->GetItemData()->m_Quantity )
-		m_nQuantity = pItem->GetItemData()->m_Quantity;
+	if ( m_nQuantity >= pItem->GetItemData().m_Quantity )
+		m_nQuantity = pItem->GetItemData().m_Quantity;
 
 	WCHAR buff[256] = {0};
 	_itow( m_nQuantity, buff, 10 );
@@ -5143,3 +5092,41 @@ void CX2PostBox::LimitPostStringLength( OUT wstring& wstrTitle_, OUT wstring& ws
 		wstrFromNickName_ += L"...";
 	}
 }
+
+#ifdef SERV_FREE_MAIL_TICKET
+int CX2PostBox::GetPostFee( IN int iED, IN const CX2Item* pItemData )
+{
+	int iFee = 0;
+
+	if( NULL != g_pData && NULL != g_pData->GetMyUser() )
+	{
+		CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
+		if( NULL != pMyUnit )
+		{
+			for( int iFreeMailTicketIDIndex = 0; iFreeMailTicketIDIndex < ARRAY_SIZE( _CONST_FREE_MAIL_TICKET_::arriFreeMailTicketID ); ++iFreeMailTicketIDIndex )
+			{
+				if( NULL != pMyUnit->GetInventory().GetItemByTID( _CONST_FREE_MAIL_TICKET_::arriFreeMailTicketID[iFreeMailTicketIDIndex] ) )
+				{
+					return iFee;
+				}
+			}
+		}
+	}
+
+	if( iED > 0 )
+	{
+		iFee = (int)( iED * 0.05f );
+	}
+	else if( pItemData != NULL )
+	{
+		int price = (int)( pItemData->GetItemTemplet()->GetPrice() * 0.2f );
+		int quantity = m_nQuantity; //pItemData->GetItemData().m_Quantity;
+
+		iFee = (int)( ( price * quantity ) * 0.05f );
+	}
+
+	iFee += 200;
+
+	return iFee;
+}
+#endif //SERV_FREE_MAIL_TICKET

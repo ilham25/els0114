@@ -9,8 +9,11 @@
 #ifndef _KHandle_h
 #define _KHandle_h
 
-//#include "KJohnGen.h"
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#include    <lua_tinker.h>
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
+//#include "KJohnGen.h"
 
 ///-----------------------------------------------------------------------------
 /// @class	KHandle
@@ -25,7 +28,7 @@ struct KHandle
 public:
     enum KHANDLE_VALUES
     {
-        KHANDLE_INVALID_HANDLE  = -1,
+        KHandleType_Invalid_HANDLE  = -1,
     };//enum KHANDLE_VALUES
 
 private:
@@ -141,6 +144,96 @@ public:
     //}//operator!=()
 
 };//class KHandle
+
+
+
+
+template<typename TYPE, typename TAG>
+class   KHandleType;
+
+template<typename TYPE, typename TAG>
+struct  KHandleType_Invalid
+{
+    typedef TYPE        value_type;
+    static const TYPE   value = TYPE(-1);
+
+    bool                operator == ( const KHandleType<TYPE,TAG>& rhs_ ) const;
+    bool                operator != ( const KHandleType<TYPE,TAG>& rhs_ ) const;
+};
+
+template<typename TYPE, typename TAG>
+class   KHandleType
+{
+public:
+
+    typedef TYPE        value_type;
+    typedef KHandleType_Invalid<TYPE,TAG>
+                        invalid_handle;
+
+    explicit            KHandleType(const TYPE& value )
+                            : m_value( value )                      {}
+    /*CONSTRUCTOR*/     KHandleType()
+                            : m_value( invalid_handle::value )                   {}
+    /*CONSTRUCTOR*/     KHandleType( invalid_handle )
+                            : m_value( invalid_handle::value )                   {}
+    /*CONSTRUCTOR*/     KHandleType( const KHandleType& rhs_ ) 
+                            : m_value( rhs_.m_value )               {}
+
+    KHandleType&        operator = ( const KHandleType& rhs_ )          { m_value = rhs_.m_value; return *this; }
+    KHandleType&        operator = ( invalid_handle )              { m_value = invalid_handle::value; return *this; }
+    const TYPE&         GetValue() const                            { return m_value; }
+    void                SetValue( const TYPE& value )               { m_value = value; }
+    bool                IsValid() const                             { return m_value != invalid_handle::value; }
+    bool                operator == ( const KHandleType& rhs_ ) const   { return m_value == rhs_.m_value; }
+    bool                operator != ( const KHandleType& rhs_ ) const   { return m_value != rhs_.m_value; }
+    bool                operator == ( invalid_handle ) const       { return m_value == invalid_handle::value; }
+    bool                operator != ( invalid_handle ) const       { return m_value != invalid_handle::value; }
+
+    // map 등에 넣을 수 있도록
+    bool                operator < ( const KHandleType& rhs_ ) const   { return m_value < rhs_.m_value; }
+    bool                operator <= ( const KHandleType& rhs_ ) const   { return m_value <= rhs_.m_value; }
+    bool                operator > ( const KHandleType& rhs_ ) const   { return m_value > rhs_.m_value; }
+    bool                operator >= ( const KHandleType& rhs_ ) const   { return m_value >= rhs_.m_value; }
+
+    // lua 에 export 하는 용도로 사용
+    bool                IsEqual( const KHandleType& rhs_ ) const { return this->operator == (rhs_); }
+
+private:
+
+    TYPE                m_value;
+};
+
+template<typename TYPE, typename TAG>
+inline bool             KHandleType_Invalid<TYPE,TAG>::operator == ( const KHandleType<TYPE,TAG>& rhs_ ) const   
+{ 
+    return rhs_.operator == ( *this ); 
+}
+template<typename TYPE, typename TAG>
+inline bool            KHandleType_Invalid<TYPE,TAG>:: operator != ( const KHandleType<TYPE,TAG>& rhs_ ) const   
+{ 
+    return rhs_.operator != ( *this ); 
+}
+
+
+namespace   lua_tinker
+{
+    template<typename TYPE, typename TAG>
+	void push(lua_State *L, KHandleType<TYPE,TAG> ret)					
+    { 
+        if ( ret.IsValid() == true )
+            type2lua<TYPE>(L, ret.GetValue()); 
+        else
+            lua_pushnil(L);		
+    }
+
+    template<typename TYPE, typename TAG>
+	void push(lua_State *L, KHandleType_Invalid<TYPE,TAG> ret)					
+    { 
+        lua_pushnil(L);		
+    }
+}
+
+
 
 #endif // _KHandle_h
 

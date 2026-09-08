@@ -94,6 +94,12 @@ class CKTDGUIRadioButton : public CKTDGUIControl
 		void	SetDisableTex_LUA( const char* pFileName, const char* key );
 		void	SetCheckedTex_LUA( const char* pFileName, const char* key );
 
+#ifdef DLL_BUILD
+		void	SetNarmalTex( wstring fileName, wstring key );
+		void	SetOverTex( wstring fileName, wstring key );
+		void	SetDisableTex( wstring fileName, wstring key );
+		void	SetCheckedTex( wstring fileName, wstring key );
+#endif
 
 		void	SetDisabledPoint_LUA();
 		void	SetBGPoint_LUA();
@@ -154,13 +160,41 @@ class CKTDGUIRadioButton : public CKTDGUIControl
 		D3DXVECTOR2		GetGuideDescPos();
 
 		virtual void	MoveControl( float fx, float fy );
-		virtual void	ScaleControl( float fx, float fy );;
+		virtual void	ScaleControl( float fx, float fy );
 
+#ifdef DLL_BUILD
+		virtual void    MoveSubControl( float fx, float fy, wstring subControlName ) override;
+		virtual void	SetEditGUI( bool bEdit ) override;
+		virtual void	ShowSubView( wstring name, bool bView ) override;
 
+		virtual vector<D3DXVECTOR2> GetPosList() override;
+		virtual D3DXVECTOR2 GetPos(wstring name) override;			
+
+		virtual bool IsSelectByEditGui( POINT pt ) override { return ContainsPoint(pt); }
+		void DrawEditEdge( CKTDGUIControl::UIPointData*	m_pEditEdgePoint );		// UITool에서 편집용으로 사용된다.
+
+		// texture
+		CKTDGUIControl::UIPointData * _GetPointData( wstring name );
+		virtual wstring GetTextureName( wstring name ) override;
+		virtual RECT GetTextureUV( wstring name ) override;
+		virtual wstring GetTextureKey( wstring name ) override;
+		virtual vector<wstring> GetTextureKeyList( wstring name ) override;
+
+		virtual void SetTexture( wstring name, wstring fileName ) override;
+		virtual void SetTextureKey( wstring name, wstring key ) override;
+#endif
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		virtual	void	SetCustomMouseOverSound ( wstring wstrSoundFileName );
+		virtual	void	SetCustomMouseUpSound  ( wstring wstrSoundFileName ); 
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 	protected:
 
 		void							DrawCheckedEdge( bool bDrawOut );
+#ifdef DLL_BUILD		
+		bool							m_bEditEdge;
+#endif
 		bool							m_bChecked;
 		bool							m_bPressed;
 		bool							m_bRButtonDown;

@@ -25,7 +25,7 @@ public:
 	};
 	typedef map<int, PageData>::iterator PageDataIterator;
 
-	CX2Book( const WCHAR* bookTableName );
+	CX2Book( const char* bookTableName );
 	CX2Book();
 	virtual ~CX2Book(void);
 	
@@ -36,7 +36,7 @@ public:
 	bool GetShow() { return m_bShow; }
 	void SetShow(bool bOpen);
 
-	bool SetBookTable( const WCHAR* bookTableName );
+	bool SetBookTable( const char* bookTableName );
 
 	void NextPage();
 	void PrevPage();

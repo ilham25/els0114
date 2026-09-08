@@ -12,6 +12,9 @@ public:
 	{
 		MIT_DEFAULT = 0,				// 기본, 몬스터 얼굴만 있는 것
 		MIT_FIELD_MIDDLE_BOSS = 1,		// 중간 보스, MiddleBoss_Monster_Icon.dds
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+		MIT_FIELD_EVENT_BOSS = 2,		// 이벤트 보스, MiddleBoss_Monster_Icon.dds
+#endif //SERV_BATTLEFIELD_EVENT_BOSS_INT
 	};
 	typedef KObserverPtr<CX2GUNPC> CX2GUNPCoPtr;
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
@@ -38,10 +41,16 @@ public:
 
 private:
 	CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hMonsterIndicator;
-	CKTDGParticleSystem::CParticle*						m_pMonsterIndicatorParticle;
+
 
 	CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hMonsterIndicatorFace;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CKTDGParticleSystem::CParticleHandle				m_hMonsterIndicatorParticle;
+	CKTDGParticleSystem::CParticleHandle				m_hMonsterIndicatorFaceParticle;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CKTDGParticleSystem::CParticle*						m_pMonsterIndicatorParticle;
 	CKTDGParticleSystem::CParticle*						m_pMonsterIndicatorFaceParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef MODIFY_DUNGEON_STAGING
 	bool												m_bShow;

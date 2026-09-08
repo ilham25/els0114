@@ -1,12 +1,6 @@
 #include "stdafx.h"
 #include ".\x2game.h"
 
-//{{ Iruha : 2026-09-05 // AI party members in offline dungeons
-#ifdef SERV_IRUHADEV_OFFLINE
-#include "Offline/X2OfflineLog.h"
-#endif SERV_IRUHADEV_OFFLINE
-//}}
-
 
 
 
@@ -30,6 +24,10 @@
 #ifdef NEW_CHARACTER_EL
 #include "./X2GUEl.h"
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+#include "./X2GUAdd.h"
+#endif //SERV_9TH_NEW_CHARACTER
 
 #endif REDUCED_PRECOMPILED_HEADER_TEST
 
@@ -82,8 +80,8 @@ void CX2Game::Debug_RenderHelp( int ix_, int iy_ )
 	if( NULL != GetFocusUnit() )
 	{
 
-		D3DXVECTOR3 vOriginalCameraPosition = GetX2Camera()->CalcNormalCameraPosition( GetFocusUnit(), g_pMain->GetGameOption()->GetCameraDistance(), 0.f, 0.f, 200.f, 0.f );
-		D3DXVECTOR3 vCurrentCameraPosition = GetX2Camera()->GetCamera()->GetEye();
+		D3DXVECTOR3 vOriginalCameraPosition = GetX2Camera()->CalcNormalCameraPosition( GetFocusUnit(), g_pMain->GetGameOption().GetCameraDistance(), 0.f, 0.f, 200.f, 0.f );
+		D3DXVECTOR3 vCurrentCameraPosition = GetX2Camera()->GetCamera().GetEye();
 		D3DXVECTOR3 vCameraPositionDesplace = vCurrentCameraPosition - vOriginalCameraPosition;
 
 		D3DXVECTOR3 vDirVector = GetFocusUnit()->GetDirVector();
@@ -142,16 +140,18 @@ void CX2Game::Debug_RenderHelp( int ix_, int iy_ )
 		if( NULL == pNPC )
 			continue;
 
+        std::wstring    wstrTemp;
+
 		wstrm << L"idx: " << i << ", "
-			<< pNPC->GetNPCTemplet()->m_Name << L", " 
-			<< L"id: " << pNPC->GetNPCTemplet()->m_nNPCUnitID << L", " 
+			<< pNPC->GetNPCTemplet().m_Name << L", " 
+			<< L"id: " << pNPC->GetNPCTemplet().m_nNPCUnitID << L", " 
 			<< L"uid: " << pNPC->GetUID() << L", "
 			<< L"pos: (" 
 			<< (int)pNPC->GetPos().x << ", " 
 			<< (int)pNPC->GetPos().y << ", " 
 			<< (int)pNPC->GetPos().z << "), "
 			<< L"HP: " << pNPC->GetNowHp() << ", " 
-			<< L"상태:" << pNPC->GetStateNameByStateID( static_cast<int>(pNPC->GetGameUnitState()) ) << ", " 
+			<< L"상태:" << ConvertUtf8ToWCHAR( wstrTemp, pNPC->GetStateNameByStateID( static_cast<int>(pNPC->GetGameUnitState() ) ) ) << ", " 
 			<< std::endl;
 	}
 
@@ -169,12 +169,12 @@ m_bCanUseESC( false ),
 //}} kimhc // 게임 로딩이 끝날때 까지 ESC 처리 안되게 하는 작업
 m_GameType( GT_NONE ),
 m_GameState( GS_INIT ),
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 m_uidMySlotUID( 0 ),
 m_uidHostSlotUID( 0 ),
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-m_bHost( false ),
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//m_bHost( false ),
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 m_pRoom( NULL ),
 m_fTime( 0.f ),
 m_fElapsedTime( 0.f ),
@@ -192,25 +192,18 @@ m_pDamageEffect( NULL ),
 //m_pMinorXMeshPlayer( NULL ),
 m_bBGMOn( true ), 
 m_bLastKillCheck( false ),
-#ifdef SERV_IRUHADEV_OFFLINE
-m_fOfflineBotSpawnCooldown( 0.f ),		///< AI_PARTY_PLAN.md phase 2 - stagger the party spawn
-m_bOfflinePartyOver( false ),			///< AI_PARTY_PLAN.md phase 4b - the party leaves at the reward screen
-#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
-m_bOfflineKeepPartyBots( false ),		///< AI_PARTY_PLAN.md phase 2 - keep the party across a stage change
-#endif SERV_IRUHADEV_AIPARTY_PERSIST
-#endif SERV_IRUHADEV_OFFLINE
 m_fLastKillWaitTime( 0.05f ),
 m_fLastKillWaitTimeAfterRebirth( 1.f ), 
 m_bEnableCommandKeyProcess( true ),
 m_bEnableAllKeyProcess( true ),		
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 m_iPacketSendFrameMoveCount( 0 ),
 m_iNPCRobustPacketSendIndex( 0 ), 
 m_dwNPCRobustPacketSendBaseFrameMoveCount( 0 ),
-#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-m_NPCPacketSendInterval( 0.f ),
-m_NPCPacketSendIntervalNow( 0.f ),
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//m_NPCPacketSendInterval( 0.f ),
+//m_NPCPacketSendIntervalNow( 0.f ),
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 m_LoadingPercent( 0 ),
 m_pDropItemManager( NULL ),
 m_pFontForUnitName( NULL ),
@@ -234,7 +227,7 @@ m_GameScoreBack( -1 ),
 m_fTechPointViewTime( 0.f ),
 m_TechPoint( 0 ),
 m_TechPointFull( 0 ),
-m_hSeqTech( INVALID_PARTICLE_HANDLE ),
+m_hSeqTech( INVALID_PARTICLE_SEQUENCE_HANDLE ),
 m_pTextGuideHelp( NULL ),
 m_fTimePauseNPCAI( 0.f ),
 m_bFreeCamera( false ),
@@ -272,9 +265,7 @@ m_bSkillSlotJustChanged(true)
 , m_bWorldCameraEdit(false)
 #endif KEYFRAME_CAMERA
 //{{ kimhc // 2011-07-28 // 옵션수치화
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 , m_bIsDamageFreeGame( false ) // 1레벨 보정 던전인가?
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 //}} kimhc // 2011-07-28 // 옵션수치화
 #ifdef	BATTLE_FIELD_TEST
 , m_optrHostGameUnit()
@@ -305,6 +296,12 @@ m_bSkillSlotJustChanged(true)
 
 #endif	// SERV_DUNGEON_FORCED_EXIT_SYSTEM
 
+#ifdef NOT_RENDER_NPC_GAME_EDIT
+, m_bShowNpcByGameEdit( true )
+#endif // NOT_RENDER_NPC_GAME_EDIT
+#ifdef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+, m_bIsAlreadySendingFrame ( false )
+#endif // SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 {	
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION_REDUCE_OVERHEAD
     CX2GUNPC::ResetReactionSimulationCounter();
@@ -314,9 +311,9 @@ m_bSkillSlotJustChanged(true)
 // 	g_pData->GetUnitManager()->OpenNPCStatScriptFile( L"NPCStat.lua" );
 // #endif	
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-    m_kFrameUDPPack.ResetFrameUDPPack();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+    m_kFrameUDPPack.ResetFrameUDPPack( false );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #ifdef	ELOG_STATISTICS_NEW_DATA
 	m_kGameStatistics.Init();
@@ -350,14 +347,14 @@ m_bSkillSlotJustChanged(true)
 
 	// variable assign
 	g_pX2Game					= this;
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
     m_iPacketSendFrameMoveCount = 0;
     m_iNPCRobustPacketSendIndex = 0;
     m_dwNPCRobustPacketSendBaseFrameMoveCount = 0;
-#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-	m_NPCPacketSendInterval		= (1.0f/8.0f);
-	m_NPCPacketSendIntervalNow	= 0.0f;
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//	m_NPCPacketSendInterval		= (1.0f/8.0f);
+//	m_NPCPacketSendIntervalNow	= 0.0f;
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
 	m_fLastKillWaitTime				= 0.05f;	//FieldFix: 이 코드는 필요 없음
 	m_fLastKillWaitTimeAfterRebirth	= 1.f;
@@ -394,11 +391,7 @@ m_bSkillSlotJustChanged(true)
 		{
 			if ( g_pX2Room->GetMySlot()->m_bObserver == false )
 			{
-#ifdef REFORM_UI_SCORE
 				m_pDLGMyScore			= new CKTDGUIDialog( this, L"DLG_Game_My_Score_NEW.lua" );
-#else
-				m_pDLGMyScore			= new CKTDGUIDialog( this, L"DLG_Game_My_Score.lua" );
-#endif
 				g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGMyScore );
 #ifdef REFORM_UI_SKILLSLOT
 				//마을에서도 스킬창을 보여 주기 위해 UI매니져에서 관리하도록 수정
@@ -418,9 +411,6 @@ m_bSkillSlotJustChanged(true)
 			}
 		}
 	}
-#ifndef REFORM_UI_SCORE // 오현빈 2012-09-7 // 스코어 UI 작업 이전에 UI 숨기도록 임시 처리
-	SAFE_DELETE_DIALOG(m_pDLGMyScore);
-#endif //REFORM_UI_SCORE
 	ResetReBirthStoneNumUI();
 
 	m_pNPCFunc = new CX2GUNPCFunc();
@@ -454,7 +444,7 @@ m_bSkillSlotJustChanged(true)
 		g_pMain->GetInformerManager()->ClearAllInfo();
 
 	//g_pMain->SendHackMail();
-	//if( g_pData != NULL && g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+	//if( g_pData != NULL && g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 	//	g_pMain->SendHackMail_DamageHistory("Game Start");
 
 	// variable init
@@ -478,15 +468,11 @@ m_bSkillSlotJustChanged(true)
 	}
 #endif
 
-#ifdef ADD_CHECK_NPC_DIE_PACKET
 	m_iNpcDiePacket = 0;
-#endif
 
-#ifdef DUNGEON_ALARM_SYSTEM
 	m_fShowAlarmTime = 0.f;
 	m_pShowAlarm = NULL;
-	m_hDangerAlarm = INVALID_PARTICLE_HANDLE;
-#endif
+	m_hDangerAlarm = INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 #ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
 	m_vecRemoveDamageEffect.clear();
@@ -540,6 +526,11 @@ m_bSkillSlotJustChanged(true)
 	{
 		g_pData->GetUIManager()->GetUIQuickSlot()->SetWaiting_EGS_USE_QUICK_SLOT_ACK( false );
 	}
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+	/// 해로운 효과라고 정의된 공식적인 디버프 리스트 설정
+	SetOfficiallyDebuffList();
+#endif // HAMEL_SECRET_DUNGEON
 }
 
 
@@ -575,16 +566,11 @@ CX2Game::~CX2Game()
 	::LeaveCriticalSection( &m_csGameIntruder );
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 
-#ifdef	ELOG_STATISTICS_NEW_DATA
-	if ( m_kGameStatistics.m_kAverageFps.m_uNumOfFps > 0 )
-		m_kGameStatistics.Send_EGS_FRAME_AVERAGE_REQ( GetGameType() );
-#else	ELOG_STATISTICS_NEW_DATA
-	KEGS_FRAME_AVERAGE_REQ kPacket;
-	kPacket.m_cGameType		= GetGameType();
-	kPacket.m_iFrameAverage = m_AverageRenderFrameRate;
-
-	g_pData->GetServerProtocol()->SendPacket( EGS_FRAME_AVERAGE_REQ, kPacket );
-#endif	ELOG_STATISTICS_NEW_DATA
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+    FlushSendFrameAverage();
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+	SendFrameAverage();
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 #ifdef UDP_CAN_NOT_SEND_USER_KICK
 	if (m_pRoom != NULL)
@@ -620,10 +606,31 @@ CX2Game::~CX2Game()
 		CX2GameUnit* pCX2GameUnit = m_UnitList[i];
 		if ( NULL != pCX2GameUnit )
 			pCX2GameUnit->FinishAndClearAllBuff();
-
-		SAFE_DELETE_KTDGOBJECT( pCX2GameUnit );
-
+#ifdef  X2OPTIMIZE_X2GAME_RELEASE_CRASH_BUG_FIX
+		if ( pCX2GameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
+		{
+			CX2GUUser* pCX2GUUser = static_cast<CX2GUUser*>( pCX2GameUnit );
+			if ( pCX2GUUser->GetUnitIndex() >= 0 && pCX2GUUser->GetUnitIndex() < (int) m_UserUnitList.size()
+				&& m_UserUnitList[ pCX2GUUser->GetUnitIndex() ] == pCX2GUUser )
+			{
+				m_UserUnitList[ pCX2GUUser->GetUnitIndex() ] = NULL;
+			}
+		}
+		else
+		{
+			CX2GUNPC* pCX2GUNPC = static_cast<CX2GUNPC*>( pCX2GameUnit );
+			if ( pCX2GUNPC->GetUnitIndex() >= 0 && pCX2GUNPC->GetUnitIndex() < (int) m_NPCUnitList.size()
+				&& m_NPCUnitList[ pCX2GUNPC->GetUnitIndex() ] == pCX2GUNPC )
+			{
+				m_NPCUnitList[ pCX2GUNPC->GetUnitIndex() ] = NULL;
+			}
+		}
 		m_UnitList[i] = NULL;	// note!! 이브는 GUEve객체가 지워질 때 자신이 소환한 몬스터를 참조해서 자폭하도록 하는데, 이때 m_UnitList에서 검색하기 때문에 이미 지워진 unit은 NULL로 설정해준다.
+		SAFE_DELETE_KTDGOBJECT( pCX2GameUnit );
+#else   X2OPTIMIZE_X2GAME_RELEASE_CRASH_BUG_FIX
+		SAFE_DELETE_KTDGOBJECT( pCX2GameUnit );
+		m_UnitList[i] = NULL;	// note!! 이브는 GUEve객체가 지워질 때 자신이 소환한 몬스터를 참조해서 자폭하도록 하는데, 이때 m_UnitList에서 검색하기 때문에 이미 지워진 unit은 NULL로 설정해준다.
+#endif  X2OPTIMIZE_X2GAME_RELEASE_CRASH_BUG_FIX
 	}
 	m_UnitList.clear();
 	m_UserUnitList.clear();
@@ -660,14 +667,12 @@ CX2Game::~CX2Game()
 	SAFE_DELETE_DIALOG( m_pDLGResurrect );
 	SAFE_DELETE_DIALOG( m_pDLGCheckResurrectByUseCash );
 	ZeroMemory( &m_ReservedPacket, sizeof(KEGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ) );
-#ifdef DUNGEON_ALARM_SYSTEM
 	ClearDangerAlarm();
 	if( NULL != GetMajorParticle() )
 	{
 		GetMajorParticle()->DestroyInstanceHandle( m_hSeqTech ); 
 		GetMajorParticle()->DestroyInstanceHandle( m_hDangerAlarm ); 
 	}
-#endif
 
 	SAFE_DELETE( m_pWorld );
 	SAFE_DELETE( m_pCamera );
@@ -753,7 +758,7 @@ CX2Game::~CX2Game()
 
 
 	//g_pMain->SendHackMail();
-	//if( g_pData != NULL && g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+	//if( g_pData != NULL && g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 	//	g_pMain->SendHackMail_DamageHistory("Game End");
 #ifdef CHECK_FROM_DLLMANAGER
 	if( g_pMain != NULL )
@@ -762,12 +767,10 @@ CX2Game::~CX2Game()
 	}
 #endif
 
-#ifdef FIX_DUNGEON_CHANGESTART
 	if( g_pData->GetPartyManager() != NULL )
 	{
 		g_pData->GetPartyManager()->SetGameStartFlag(false);
 	}
-#endif
 
 #ifdef MODIFY_DUNGEON_STAGING
 	SAFE_DELETE(m_pCinematicUI);	
@@ -775,10 +778,10 @@ CX2Game::~CX2Game()
 
 	CX2GageManager::GetInstance()->ClearPvpMemberUI();
 
-	GetMajorParticle()->DestroyAllInstance();
-	GetMinorParticle()->DestroyAllInstance();
-	GetMajorXMeshPlayer()->DestroyAllInstance();
-	GetMinorXMeshPlayer()->DestroyAllInstance();
+	GetMajorParticle()->DestroyAllInstances();
+	GetMinorParticle()->DestroyAllInstances();
+	GetMajorXMeshPlayer()->DestroyAllInstances();
+	GetMinorXMeshPlayer()->DestroyAllInstances();
 
 #ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 	::DeleteCriticalSection( &m_csGameIntruder );
@@ -800,7 +803,7 @@ CX2Game::~CX2Game()
 #endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION_REDUCE_OVERHEAD
 }
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 WORD    CX2Game::Handler_P2P_UnitUserSyncPack( const BYTE* pbyData, BYTE byNumPacks, WORD wMaxSize, UidType unitUID, DWORD dwFrameMoveCount )
 {
@@ -834,6 +837,7 @@ WORD    CX2Game::Handler_P2P_UnitUserSyncPack( const BYTE* pbyData, BYTE byNumPa
 				// 2012.06.17 lygan_조성욱 // 두번째 싱크 지연시간이 5초 이상이다 이상하다
 				// 2012.06.17 lygan_조성욱 // 내가 지연 된게 아닌지 체크
 				if( mit->second.elapsed() > 1.0f &&
+					NULL != GetMyUnit() &&
 					mit->first != GetMyUnit()->GetUnitUID() )
 				{
 					// 해당 유저가 현재 게임내에 존재하고,유저의 상태가 USI_LOSE 상태 값 보다 큰 경우면(p2p 패킷을 정상적으로 보내야 하는 상태들) 랙 유발 의심유저로 등록해 달라고 요청함
@@ -869,9 +873,9 @@ WORD    CX2Game::Handler_P2P_UnitUserSyncPack( const BYTE* pbyData, BYTE byNumPa
         const BYTE* pbyEnd = pbyData + wMaxSize;
         KDYNAMIC_UNIT_USER_SYNC kUserSync;
         kUserSync.Reset();
-#ifdef  X2OPTIMIZE_USER_USER_PUSH_PASS_SYNC
+//#ifdef  X2OPTIMIZE_USER_USER_PUSH_PASS_SYNC
         kUserSync.m_usDataFieldFlag = KDYNAMIC_UNIT_USER_SYNC::eUnitUserSync_DataField_All;
-#endif  X2OPTIMIZE_USER_USER_PUSH_PASS_SYNC
+//#endif  X2OPTIMIZE_USER_USER_PUSH_PASS_SYNC
         for( unsigned u = 0; u != byNumPacks; ++u )
         {
             if ( kUserSync.Deserialize( pbyData, pbyEnd ) == false )
@@ -980,62 +984,62 @@ WORD    CX2Game::Handler_P2P_UnitPetSyncPack( const BYTE* pbyData, BYTE byNumNPC
     return  (WORD) ( sizeof(KXPT_UNIT_PET_SYNC) * byNumNPCs );
 }
 
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-/*virtual*/ void CX2Game::Handler_P2P_UnitNpcSyncPack( CKTDNUDP::RecvData* pRecvData, bool bFirst_ /*= false*/ )
-{
-	KSerBuffer ksBuff;
-	ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-	KXPT_UNIT_NPC_SYNC_PACK kXPT_UNIT_NPC_SYNC_PACK;
-	DeSerialize( &ksBuff, &kXPT_UNIT_NPC_SYNC_PACK );
-
-	for( UINT i = 0; i < kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size(); ++i )
-	{
-		KXPT_UNIT_NPC_SYNC* pXPT_UNIT_NPC_SYNC = &kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList[i];
-		CX2GUNPC* pCX2GUNPC = GetNPCUnitByUID( pXPT_UNIT_NPC_SYNC->unitUID );
-		if( pCX2GUNPC != NULL )
-		{
-			pCX2GUNPC->ReceiveFrameData( pXPT_UNIT_NPC_SYNC );						
-
-			if ( bFirst_ )
-			{
-#ifdef FIX_NPC_SHOW_OBJECT
-				if( true == pCX2GUNPC->GetShowObjectCurrentState() )
-					pCX2GUNPC->SetShowObject( true );
-#endif //FIX_NPC_SHOW_OBJECT
-			}
-		}
-// 		else
-// 		{
-// 			if ( bFirst_ )
-// 				DISPLAY_ERROR( L"NPC doesn't exist" );
-// 		}
-	}
-}
-
-/*virtual*/ void CX2Game::Handler_P2P_UnitPetSyncPack( CKTDNUDP::RecvData* pRecvData )
-{
-	KSerBuffer ksBuff;
-	ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-	KXPT_UNIT_PET_SYNC_PACK kXPT_UNIT_PET_SYNC_PACK;
-	DeSerialize( &ksBuff, &kXPT_UNIT_PET_SYNC_PACK );
-
-	for( UINT i = 0; i < kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.size(); i++ )
-	{
-		KXPT_UNIT_PET_SYNC* pXPT_UNIT_PET_SYNC = &kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList[i];
-
-		if( g_pData != NULL && g_pData->GetPetManager() != NULL )
-		{
-			CX2PET *pPet = g_pData->GetPetManager()->GetPet( pXPT_UNIT_PET_SYNC->unitUID );
-			if( pPet != NULL )
-			{
-				pPet->ReceiveFrameData( pXPT_UNIT_PET_SYNC );
-			}
-		}
-	}
-}
-
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+///*virtual*/ void CX2Game::Handler_P2P_UnitNpcSyncPack( CKTDNUDP::RecvData* pRecvData, bool bFirst_ /*= false*/ )
+//{
+//	KSerBuffer ksBuff;
+//	ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//	KXPT_UNIT_NPC_SYNC_PACK kXPT_UNIT_NPC_SYNC_PACK;
+//	DeSerialize( &ksBuff, &kXPT_UNIT_NPC_SYNC_PACK );
+//
+//	for( UINT i = 0; i < kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size(); ++i )
+//	{
+//		KXPT_UNIT_NPC_SYNC* pXPT_UNIT_NPC_SYNC = &kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList[i];
+//		CX2GUNPC* pCX2GUNPC = GetNPCUnitByUID( pXPT_UNIT_NPC_SYNC->unitUID );
+//		if( pCX2GUNPC != NULL )
+//		{
+//			pCX2GUNPC->ReceiveFrameData( pXPT_UNIT_NPC_SYNC );						
+//
+//			if ( bFirst_ )
+//			{
+//#ifdef FIX_NPC_SHOW_OBJECT
+//				if( true == pCX2GUNPC->GetShowObjectCurrentState() )
+//					pCX2GUNPC->SetShowObject( true );
+//#endif //FIX_NPC_SHOW_OBJECT
+//			}
+//		}
+//// 		else
+//// 		{
+//// 			if ( bFirst_ )
+//// 				DISPLAY_ERROR( L"NPC doesn't exist" );
+//// 		}
+//	}
+//}
+//
+///*virtual*/ void CX2Game::Handler_P2P_UnitPetSyncPack( CKTDNUDP::RecvData* pRecvData )
+//{
+//	KSerBuffer ksBuff;
+//	ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//	KXPT_UNIT_PET_SYNC_PACK kXPT_UNIT_PET_SYNC_PACK;
+//	DeSerialize( &ksBuff, &kXPT_UNIT_PET_SYNC_PACK );
+//
+//	for( UINT i = 0; i < kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.size(); i++ )
+//	{
+//		KXPT_UNIT_PET_SYNC* pXPT_UNIT_PET_SYNC = &kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList[i];
+//
+//		if( g_pData != NULL && g_pData->GetPetManager() != NULL )
+//		{
+//			CX2PET *pPet = g_pData->GetPetManager()->GetPet( pXPT_UNIT_PET_SYNC->unitUID );
+//			if( pPet != NULL )
+//			{
+//				pPet->ReceiveFrameData( pXPT_UNIT_PET_SYNC );
+//			}
+//		}
+//	}
+//}
+//
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 
 
@@ -1072,7 +1076,7 @@ bool CX2Game::P2PPacketHandler( CKTDNUDP::RecvData* pRecvData )
 	AbuserUserReport(); //랜선렉 악용 유저 신고
 #endif //UDP_DOWNLOAD_BLOCK_CHECK
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	switch( pRecvData->m_ID )
     {
@@ -1160,7 +1164,7 @@ bool CX2Game::P2PPacketHandler( CKTDNUDP::RecvData* pRecvData )
 #else   SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
                 bValidPingTime = true;
 				pSlotData->m_PingTime = dwPingTime;
-#endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
+#endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE			
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
                 if ( bValidPingTime == true )
                 {
@@ -1187,7 +1191,7 @@ bool CX2Game::P2PPacketHandler( CKTDNUDP::RecvData* pRecvData )
 				if( pkAck->m_UnitUID == m_uidHostSlotUID )
 				{
 					//비호스트  NPC리액션 측정시 PingTime은 왕복 기준이다.
-					KOGGamePerformanceCheck::GetInstance()->GetNonHostNpcReactionCheckMgr()->UpdateHostUdpPingTime( pSlotData->m_PingTime );
+					KOGGamePerformanceCheck::GetInstance()->GetNonHostNpcReactionCheckMgr()->UpdateHostUdpPingTime( dwPingTime );
 				}
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 			}
@@ -1339,190 +1343,184 @@ bool CX2Game::P2PPacketHandler( CKTDNUDP::RecvData* pRecvData )
         }
 
     }//for
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-	switch( pRecvData->m_ID )
-	{
-	case XPT_UNIT_USER_SYNC_PACK:
-		{
-			KSerBuffer ksBuff;
-			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-			KXPT_UNIT_USER_SYNC_PACK kXPT_UNIT_USER_SYNC_PACK;
-			DeSerialize( &ksBuff, &kXPT_UNIT_USER_SYNC_PACK );
-			CX2GUUser* pUserUnit = GetUserUnitByUID( kXPT_UNIT_USER_SYNC_PACK.m_iUnitUID );
-
-			if( pUserUnit != NULL )
-			{
-				//{{ 2013. 2. 1	박세훈	랜선렉 방지 코드2
-#ifdef SERV_FIX_SYNC_PACKET_USING_RELAY
-				if ( GetGameType() == GT_PVP )
-					AbuserUserCheck( pUserUnit );
-#endif SERV_FIX_SYNC_PACKET_USING_RELAY
-				//}}
-
-#ifdef UDP_CAN_NOT_SEND_USER_KICK
-				AbuserUserCheck( kXPT_UNIT_USER_SYNC_PACK.m_iUnitUID ); //랜선렉 악용 유저 체크
-#endif //UDP_CAN_NOT_SEND_USER_KICK
-
-#ifdef SHOW_UDP_NETWORK_INFO_IN_ROOM
-				IncreaseUserPacketCountToReceive( kXPT_UNIT_USER_SYNC_PACK.m_iUnitUID );
-#endif // SHOW_UDP_NETWORK_INFO_IN_ROOM
-
-				// 검사 후 정상 처리
-				pUserUnit->ReceiveFrameData( &kXPT_UNIT_USER_SYNC_PACK );
-			}
-		} break;
-
-#ifdef UNIT_SYNC_PACKET_DUNGEON_FOR_TEST
-		//case XPT_UNIT_USER_SYNC_PACK_FOR_DUNGEON:
-		//	{
-		//		KSerBuffer ksBuff;
-		//		ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-		//		KXPT_UNIT_USER_SYNC_PACK_FOR_DUNGEON kXPT_UNIT_USER_SYNC_PACK;
-		//		DeSerialize( &ksBuff, &kXPT_UNIT_USER_SYNC_PACK );
-		//		CX2GUUser* pUserUnit = GetUserUnitByUID( kXPT_UNIT_USER_SYNC_PACK.unitUID );
-		//		if( pUserUnit != NULL )
-		//			pUserUnit->ReceiveFrameData( &kXPT_UNIT_USER_SYNC_PACK );
-		//	} break;
-#endif UNIT_SYNC_PACKET_DUNGEON_FOR_TEST
-
-	case XPT_UNIT_NPC_FIRST_SYNC_PACK_BY_BATTLE_FIELD:
-		{
-			if ( false == IsHost() )
-			{
-				Handler_P2P_UnitNpcSyncPack( pRecvData, true );
-
-				g_pData->GetServerProtocol()->SendID( EGS_BATTLE_FIELD_NPC_P2P_SYNC_COMPLETE_NOT );
-			}
-		} break;
-
-	case XPT_UNIT_NPC_SYNC_PACK:
-		{
-			Handler_P2P_UnitNpcSyncPack( pRecvData );
-		} break;
-
-
-	case XPT_UNIT_NPC_SYNC:
-		{
-			KSerBuffer ksBuff;
-			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-			KXPT_UNIT_NPC_SYNC kXPT_UNIT_NPC_SYNC;
-			DeSerialize( &ksBuff, &kXPT_UNIT_NPC_SYNC );
-
-			CX2GUNPC* pCX2GUNPC = GetNPCUnitByUID( kXPT_UNIT_NPC_SYNC.unitUID );
-			if( pCX2GUNPC != NULL )
-				pCX2GUNPC->ReceiveFrameData( &kXPT_UNIT_NPC_SYNC );						
-		} break;
-
-	case XPT_PING_TEST_REQ:
-		{
-			KSerBuffer ksBuff;
-			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-			KXPT_PING_TEST_REQ kKXPT_PING_TEST_REQ;
-			DeSerialize( &ksBuff, &kKXPT_PING_TEST_REQ );
-
-			KXPT_PING_TEST_ACK kKXPT_PING_TEST_ACK;
-			if( GetMyUnit() != NULL )
-				kKXPT_PING_TEST_ACK.m_UnitUID	=  GetMyUnit()->GetUnitUID();
-			else
-			{
-				kKXPT_PING_TEST_ACK.m_UnitUID	=  g_pData->GetMyUser()->GetSelectUnit()->GetUID(); 
-			}
-			kKXPT_PING_TEST_ACK.m_SendTime	=  kKXPT_PING_TEST_REQ.m_SendTime;
-#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
-			kKXPT_PING_TEST_ACK.m_bRelay = kKXPT_PING_TEST_REQ.m_bRelay;
-			kKXPT_PING_TEST_ACK.m_uiSendCounter	=  kKXPT_PING_TEST_REQ.m_uiSendCounter;
-#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
-#ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
-            kKXPT_PING_TEST_ACK.m_bIgnoreAck = g_pX2Room != NULL && g_pX2Room->GetSkipPingSendCheck();
-#endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
-			KSerBuffer buff;
-			Serialize( &buff, &kKXPT_PING_TEST_ACK );
-			g_pData->GetGameUDP()->Send( kKXPT_PING_TEST_REQ.m_UnitUID, XPT_PING_TEST_ACK, (char*)buff.GetData(), buff.GetLength() );
-		} break;
-
-	case XPT_PING_TEST_ACK:
-		{
-			KSerBuffer ksBuff;
-			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-			KXPT_PING_TEST_ACK kKXPT_PING_TEST_ACK;
-			DeSerialize( &ksBuff, &kKXPT_PING_TEST_ACK );
-
-			CX2Room::SlotData* pSlotData = g_pX2Room->GetSlotDataByUnitUID( kKXPT_PING_TEST_ACK.m_UnitUID );
-			if( pSlotData != NULL )
-			{
-                LONG    lTimeDiff = (LONG) ( timeGetTime() - kKXPT_PING_TEST_ACK.m_SendTime );
-                DWORD   dwPingTime = ( lTimeDiff >= 0 ) ? lTimeDiff : 0;
-                if ( dwPingTime > 5000 )
-                    dwPingTime = 5000;
-				pSlotData->m_PingTime = dwPingTime;
-#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-                float   fInvWeight = 1.f/(float) ( pSlotData->m_dwPingCount + 1 );
-                float   fCutPingTime = __min(pSlotData->m_PingTime,2000) * 0.001f;
-                pSlotData->m_fAvgPingTime = ( pSlotData->m_dwPingCount * pSlotData->m_fAvgPingTime + fCutPingTime ) * fInvWeight;
-#ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
-                pSlotData->m_fAvgPingTimeSqr = ( pSlotData->m_dwPingCount * pSlotData->m_fAvgPingTimeSqr + fCutPingTime * fCutPingTime ) * fInvWeight;
-                float fPingStd = pSlotData->m_fAvgPingTimeSqr - pSlotData->m_fAvgPingTime * pSlotData->m_fAvgPingTime;
-                pSlotData->m_fAvgPingStd = ( fPingStd <= 0.f ) ? 0.f : sqrtf( fPingStd );
-#endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
-                if ( pSlotData->m_dwPingCount < 12 )
-                    pSlotData->m_dwPingCount++;
-#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-
-#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
-				if( !kKXPT_PING_TEST_ACK.m_bRelay )
-					KOGGamePerformanceCheck::GetInstance()->GetP2PPingCheckMgr()->ReceivePingCheckPacket( dwPingTime, kKXPT_PING_TEST_ACK.m_uiSendCounter );
-				else
-					KOGGamePerformanceCheck::GetInstance()->GetRelayPingCheckMgr()->ReceivePingCheckPacket( dwPingTime, kKXPT_PING_TEST_ACK.m_uiSendCounter );
-
-				KOGGamePerformanceCheck::GetInstance()->GetUdpPingCheckMgr()->ReceivePingCheckPacket( dwPingTime, kKXPT_PING_TEST_ACK->m_uiSendCounter );
-
-				if( pkAck->m_UnitUID == m_uidHostSlotUID )
-				{
-					//비호스트  NPC리액션 측정시 PingTime은 왕복 기준이다.
-					KOGGamePerformanceCheck::GetInstance()->GetNonHostNpcReactionCheckMgr()->UpdateHostUdpPingTime( pSlotData->m_PingTime );
-				}
-#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
-			}
-		} break;
-
-
-#ifdef SERV_PET_SYSTEM
-	case XPT_UNIT_PET_SYNC:
-		{
-			KSerBuffer ksBuff;
-			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-			KXPT_UNIT_PET_SYNC kXPT_UNIT_PET_SYNC;
-			DeSerialize( &ksBuff, &kXPT_UNIT_PET_SYNC );
-
-			if( g_pData != NULL && g_pData->GetPetManager() != NULL )
-			{
-				CX2PET *pPet = g_pData->GetPetManager()->GetPet( kXPT_UNIT_PET_SYNC.unitUID );
-				if( pPet != NULL )
-				{
-					pPet->ReceiveFrameData( &kXPT_UNIT_PET_SYNC );
-				}
-			}				
-		} break;
-
-	case XPT_UNIT_PET_SYNC_PACK:
-		{
-			if ( false == IsHost() )
-				Handler_P2P_UnitPetSyncPack( pRecvData );			
-		} break;
-
-	case XPT_UNIT_PET_FIRST_SYNC_PACK_BY_BATTLE_FIELD:
-		{
-			Handler_P2P_UnitPetSyncPack( pRecvData );
-		} break;
-#endif
-	default:
-		break;
-
-	}
-
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+//	switch( pRecvData->m_ID )
+//	{
+//	case XPT_UNIT_USER_SYNC_PACK:
+//		{
+//			KSerBuffer ksBuff;
+//			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//			KXPT_UNIT_USER_SYNC_PACK kXPT_UNIT_USER_SYNC_PACK;
+//			DeSerialize( &ksBuff, &kXPT_UNIT_USER_SYNC_PACK );
+//			CX2GUUser* pUserUnit = GetUserUnitByUID( kXPT_UNIT_USER_SYNC_PACK.m_iUnitUID );
+//
+//			if( pUserUnit != NULL )
+//			{
+//				//{{ 2013. 2. 1	박세훈	랜선렉 방지 코드2
+//#ifdef SERV_FIX_SYNC_PACKET_USING_RELAY
+//				if ( GetGameType() == GT_PVP )
+//					AbuserUserCheck( pUserUnit );
+//#endif SERV_FIX_SYNC_PACKET_USING_RELAY
+//				//}}
+//
+//#ifdef UDP_CAN_NOT_SEND_USER_KICK
+//				AbuserUserCheck( kXPT_UNIT_USER_SYNC_PACK.m_iUnitUID ); //랜선렉 악용 유저 체크
+//#endif //UDP_CAN_NOT_SEND_USER_KICK
+//
+//#ifdef SHOW_UDP_NETWORK_INFO_IN_ROOM
+//				IncreaseUserPacketCountToReceive( kXPT_UNIT_USER_SYNC_PACK.m_iUnitUID );
+//#endif // SHOW_UDP_NETWORK_INFO_IN_ROOM
+//
+//				// 검사 후 정상 처리
+//				pUserUnit->ReceiveFrameData( &kXPT_UNIT_USER_SYNC_PACK );
+//			}
+//		} break;
+//
+//#ifdef UNIT_SYNC_PACKET_DUNGEON_FOR_TEST
+//		//case XPT_UNIT_USER_SYNC_PACK_FOR_DUNGEON:
+//		//	{
+//		//		KSerBuffer ksBuff;
+//		//		ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//		//		KXPT_UNIT_USER_SYNC_PACK_FOR_DUNGEON kXPT_UNIT_USER_SYNC_PACK;
+//		//		DeSerialize( &ksBuff, &kXPT_UNIT_USER_SYNC_PACK );
+//		//		CX2GUUser* pUserUnit = GetUserUnitByUID( kXPT_UNIT_USER_SYNC_PACK.unitUID );
+//		//		if( pUserUnit != NULL )
+//		//			pUserUnit->ReceiveFrameData( &kXPT_UNIT_USER_SYNC_PACK );
+//		//	} break;
+//#endif UNIT_SYNC_PACKET_DUNGEON_FOR_TEST
+//
+//	case XPT_UNIT_NPC_FIRST_SYNC_PACK_BY_BATTLE_FIELD:
+//		{
+//			if ( false == IsHost() )
+//			{
+//				Handler_P2P_UnitNpcSyncPack( pRecvData, true );
+//
+//				g_pData->GetServerProtocol()->SendID( EGS_BATTLE_FIELD_NPC_P2P_SYNC_COMPLETE_NOT );
+//			}
+//		} break;
+//
+//	case XPT_UNIT_NPC_SYNC_PACK:
+//		{
+//			Handler_P2P_UnitNpcSyncPack( pRecvData );
+//		} break;
+//
+//
+//	case XPT_UNIT_NPC_SYNC:
+//		{
+//			KSerBuffer ksBuff;
+//			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//			KXPT_UNIT_NPC_SYNC kXPT_UNIT_NPC_SYNC;
+//			DeSerialize( &ksBuff, &kXPT_UNIT_NPC_SYNC );
+//
+//			CX2GUNPC* pCX2GUNPC = GetNPCUnitByUID( kXPT_UNIT_NPC_SYNC.unitUID );
+//			if( pCX2GUNPC != NULL )
+//				pCX2GUNPC->ReceiveFrameData( &kXPT_UNIT_NPC_SYNC );						
+//		} break;
+//
+//	case XPT_PING_TEST_REQ:
+//		{
+//			KSerBuffer ksBuff;
+//			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//			KXPT_PING_TEST_REQ kKXPT_PING_TEST_REQ;
+//			DeSerialize( &ksBuff, &kKXPT_PING_TEST_REQ );
+//
+//			KXPT_PING_TEST_ACK kKXPT_PING_TEST_ACK;
+//			if( GetMyUnit() != NULL )
+//				kKXPT_PING_TEST_ACK.m_UnitUID	=  GetMyUnit()->GetUnitUID();
+//			else
+//			{
+//				kKXPT_PING_TEST_ACK.m_UnitUID	=  g_pData->GetMyUser()->GetSelectUnit()->GetUID(); 
+//			}
+//			kKXPT_PING_TEST_ACK.m_SendTime	=  kKXPT_PING_TEST_REQ.m_SendTime;
+//#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//			kKXPT_PING_TEST_ACK.m_bRelay = kKXPT_PING_TEST_REQ.m_bRelay;
+//			kKXPT_PING_TEST_ACK.m_uiSendCounter	=  kKXPT_PING_TEST_REQ.m_uiSendCounter;
+//#ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
+//           kKXPT_PING_TEST_ACK.m_bIgnoreAck = g_pX2Room != NULL && g_pX2Room->GetSkipPingSendCheck();
+//#endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
+//#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//
+//			KSerBuffer buff;
+//			Serialize( &buff, &kKXPT_PING_TEST_ACK );
+//			g_pData->GetGameUDP()->Send( kKXPT_PING_TEST_REQ.m_UnitUID, XPT_PING_TEST_ACK, (char*)buff.GetData(), buff.GetLength() );
+//		} break;
+//
+//	case XPT_PING_TEST_ACK:
+//		{
+//			KSerBuffer ksBuff;
+//			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//			KXPT_PING_TEST_ACK kKXPT_PING_TEST_ACK;
+//			DeSerialize( &ksBuff, &kKXPT_PING_TEST_ACK );
+//
+//			CX2Room::SlotData* pSlotData = g_pX2Room->GetSlotDataByUnitUID( kKXPT_PING_TEST_ACK.m_UnitUID );
+//			if( pSlotData != NULL )
+//			{
+//              LONG    lTimeDiff = (LONG) ( timeGetTime() - kKXPT_PING_TEST_ACK.m_SendTime );
+//               DWORD   dwPingTime = ( lTimeDiff >= 0 ) ? lTimeDiff : 0;
+//                if ( dwPingTime > 5000 )
+//                    dwPingTime = 5000;
+//				pSlotData->m_PingTime = dwPingTime;
+//#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
+//                float   fInvWeight = 1.f/(float) ( pSlotData->m_dwPingCount + 1 );
+//               float   fCutPingTime = __min(pSlotData->m_PingTime,2000) * 0.001f;
+//                pSlotData->m_fAvgPingTime = ( pSlotData->m_dwPingCount * pSlotData->m_fAvgPingTime + fCutPingTime ) * fInvWeight;
+//#ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
+//                pSlotData->m_fAvgPingTimeSqr = ( pSlotData->m_dwPingCount * pSlotData->m_fAvgPingTimeSqr + fCutPingTime * fCutPingTime ) * fInvWeight;
+//                float fPingStd = pSlotData->m_fAvgPingTimeSqr - pSlotData->m_fAvgPingTime * pSlotData->m_fAvgPingTime;
+//                pSlotData->m_fAvgPingStd = ( fPingStd <= 0.f ) ? 0.f : sqrtf( fPingStd );
+//#endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
+//                if ( pSlotData->m_dwPingCount < 12 )
+//                    pSlotData->m_dwPingCount++;
+//#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
+//
+//#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//				if( !kKXPT_PING_TEST_ACK.m_bRelay )
+//					KOGGamePerformanceCheck::GetInstance()->GetP2PPingCheckMgr()->ReceivePingCheckPacket( dwPingTime, kKXPT_PING_TEST_ACK.m_uiSendCounter );
+//				else
+//					KOGGamePerformanceCheck::GetInstance()->GetRelayPingCheckMgr()->ReceivePingCheckPacket( dwPingTime, kKXPT_PING_TEST_ACK.m_uiSendCounter );
+//
+//				KOGGamePerformanceCheck::GetInstance()->GetUdpPingCheckMgr()->ReceivePingCheckPacket( dwPingTime, kKXPT_PING_TEST_ACK->m_uiSendCounter );
+//#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//			}
+//		} break;
+//
+//
+//#ifdef SERV_PET_SYSTEM
+//	case XPT_UNIT_PET_SYNC:
+//		{
+//			KSerBuffer ksBuff;
+//			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//			KXPT_UNIT_PET_SYNC kXPT_UNIT_PET_SYNC;
+//			DeSerialize( &ksBuff, &kXPT_UNIT_PET_SYNC );
+//
+//			if( g_pData != NULL && g_pData->GetPetManager() != NULL )
+//			{
+//				CX2PET *pPet = g_pData->GetPetManager()->GetPet( kXPT_UNIT_PET_SYNC.unitUID );
+//				if( pPet != NULL )
+//				{
+//					pPet->ReceiveFrameData( &kXPT_UNIT_PET_SYNC );
+//				}
+//			}				
+//		} break;
+//
+//	case XPT_UNIT_PET_SYNC_PACK:
+//		{
+//			if ( false == IsHost() )
+//				Handler_P2P_UnitPetSyncPack( pRecvData );			
+//		} break;
+//
+//	case XPT_UNIT_PET_FIRST_SYNC_PACK_BY_BATTLE_FIELD:
+//		{
+//			Handler_P2P_UnitPetSyncPack( pRecvData );
+//		} break;
+//#endif
+//	default:
+//		break;
+//
+//	}
+//
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	return true;
 }
 
@@ -1563,8 +1561,7 @@ void CX2Game::GameLoading( CX2Room* pRoom )
 	wstringstream wstrmText;
 	if( NULL != m_pRoom )
 		wstrmText << L"Room User: " << m_pRoom->GetUserNum() << std::endl;
-	if( NULL != g_pX2Game )
-		wstrmText << L"Game User: " << g_pX2Game->GetUserUnitNum() << std::endl;
+	wstrmText << L"Game User: " << GetUserUnitNum() << std::endl;
 	StateLog( wstrmText.str().c_str() );
 }
 
@@ -1621,9 +1618,11 @@ void CX2Game::SystemLoading()
 			g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle18.txt" );
 			g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle19.txt" );
 			g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle20.txt" );
+			g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle21.txt" );
+			g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle22.txt" );
+			g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle23.txt" );
 
 			g_pData->ResetGameMinorParticle( L"GameMinorParticle.txt" );
-
 #ifdef INT_RESOURCE_DEVIDE
 			g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle_INT.txt" );
 			g_pData->GetGameMinorParticle()->OpenScriptFile( L"GameMinorParticle_INT.txt" );
@@ -1660,19 +1659,13 @@ void CX2Game::SystemLoading()
 	if( NULL != g_pData->GetPicCharTechPoint() )
 		g_pData->GetPicCharTechPoint()->Clear();
 
-#ifndef REFORM_UI_SCORE // 오현빈 // 2012-09-17 // 사용하지 않는 파티클 생성하고 있어서 제거.
-	m_hSeqTech = GetMajorParticle()->CreateSequenceHandle( NULL, L"TechBonus", 0.0f, 0.0f, 0.0f,  0.0f, 0.0f );
-	SetGameScore( 0 );
-#endif //REFORM_UI_SCORE
 
-#ifdef DUNGEON_ALARM_SYSTEM
 	m_hDangerAlarm = GetMajorParticle()->CreateSequenceHandle( NULL, L"danger_alarm_01", 0.0f, 0.0f, 0.0f );
 	CKTDGParticleSystem::CParticleEventSequence* pSeq = GetMajorParticle()->GetInstanceSequence( m_hDangerAlarm );
 	if( pSeq != NULL && pSeq->GetShowObject() == true )
 	{
 		pSeq->SetShowObject(false);
 	}
-#endif
 
 	//P2PSetPeer();
 	//P2PConnectTest();
@@ -1681,11 +1674,9 @@ void CX2Game::SystemLoading()
 void CX2Game::UnitLoading()
 {
 	//{{ kimhc // 2011-07-28 // 옵션수치화
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	// 여기에는 필요 없는듯...
 	if ( true == CX2Dungeon::IsDamageFreeGame() ) 
 		SetIsDamageFreeGame( true ); // 1레벨 보정 던전인가?
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-28 // 옵션수치화
 
 	AddUserUnit();
@@ -1748,7 +1739,7 @@ void CX2Game::EtcLoading()
 		break;
 
 	default:
-		m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption()->GetCameraDistance() );
+		m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption().GetCameraDistance() );
 		break;
 	}
 
@@ -1765,22 +1756,6 @@ void CX2Game::EtcLoading()
 	TextureReady( L"MagicSquare_2.dds" );
 	TextureReady( L"Blocking_Net2.dds" );
 	
-#ifndef REFORM_UI_MINIMAP	
-	if( NULL != g_pInstanceData->GetMiniMapUI() )
-	{
-		if( NULL == g_pInstanceData->GetMiniMapUI()->GetDungeonMiniMap() )
-		{
-			g_pInstanceData->GetMiniMapUI()->CreateDungeonMiniMap();
-		}
-
-		if( NULL != g_pInstanceData->GetMiniMapUI() )
-		{
-			g_pInstanceData->GetMiniMapUI()->SetShowMiniMap( CX2MiniMapUI::MMT_FIELD, false );
-			g_pInstanceData->GetMiniMapUI()->SetShowMiniMap( CX2MiniMapUI::MMT_DUNGEON, false );
-			g_pInstanceData->GetMiniMapUI()->GetDungeonMiniMap()->SetEyeDistance( 2000.f );
-		}
-	}
-#endif
 
 	if( NULL == GetMyUnit() )
 		return;
@@ -1801,8 +1776,8 @@ void CX2Game::EtcLoading()
 // 	}
 // #endif
 
-	D3DXVECTOR3 vEye = m_pCamera->GetCamera()->GetEye();
-	D3DXVECTOR3 vLookAt = m_pCamera->GetCamera()->GetLookAt();
+	D3DXVECTOR3 vEye = m_pCamera->GetCamera().GetEye();
+	D3DXVECTOR3 vLookAt = m_pCamera->GetCamera().GetLookAt();
 	m_FPSCamera.SetViewParams( &vEye, &vLookAt );
 	m_FPSCamera.SetProjParams( D3DX_PI/4, 1.f, g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar() );
 	m_FPSCamera.SetRotateButtons( false, false, true, false );
@@ -1838,7 +1813,6 @@ void CX2Game::EtcLoading()
 	XMeshReady( L"Explosion_Light_Mesh01.Y" );
 
 	XSkinMeshReady( L"Motion_WilliamPPoru.X" );
-	XSkinMeshReady( L"item_Summon_Dummy_Mesh01.X" );
 	XSkinMeshReady( L"Summon_Dryad_Effect_Vine.X" );
 	XSkinMeshReady( L"Summon_Dryad_Effect_Vine_Bottom.X" );		
 	//XSkinMeshReady( L"Summon_Oread_Effect_Bottom.X" );
@@ -1899,8 +1873,7 @@ void CX2Game::AddUserUnit()
 
 				if ( NULL != pGageManager )
 				{
-					CX2GameUnit* pGameUnitMember 
-						= ( NULL != g_pX2Game ? g_pX2Game->GetUserUnitByUID( pSlotData->m_UnitUID ) : NULL );
+					CX2GUUser* pGameUnitMember = GetUserUnitByUID( pSlotData->m_UnitUID );
 
 					pGageManager->InsertPvpMemberUI( *pSlotData, pGameUnitMember );
 					pGageManager->UpdatePvpMemberGageData( pSlotData->m_UnitUID, pGameUnitMember );
@@ -1936,12 +1909,12 @@ void CX2Game::AddUserUnit()
 	//UpdateUnitPointer();
 	if ( pSlotData->IsMyUnit() )
 	{
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         UpdateMyGameUnit( pSlotData, pCX2UserUnit );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		m_optrMyUnit = pCX2UserUnit;
-		CheckAmIHost();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		m_optrMyUnit = pCX2UserUnit;
+//		CheckAmIHost();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	}
 
 	CX2GageManager::GetInstance()->SetPartyMemberGameUnit( pCX2UserUnit );
@@ -1953,7 +1926,13 @@ void CX2Game::AddUserUnit()
 	g_pKTDXApp->GetDGManager()->AddObjectChain( pCX2UserUnit );
 	
 
-
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	if ( g_pMain->GetNowStateID() == CX2Main::XS_PVP_GAME &&
+		true == pCX2UserUnit->IsMyUnit() ) // 오현빈 // 2013-08-22 // 쿨타임은 자기 캐릭터일 때만 갱신하도록 적용
+	{
+		pCX2UserUnit->ResetLeftSkillCoolTimeBySkillType( CX2SkillTree::ST_HYPER_ACTIVE_SKILL, 180.f, true, BCT_FIX_VALUE );
+	}
+#endif //FINALITY_SKILL_SYSTEM
 
 }
 
@@ -2030,6 +2009,14 @@ CX2GUUser* CX2Game::AddUserUnitIntruder( CX2Room::SlotData* pSlotData, int slotI
 		}
 		break;
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UT_ADD:
+		{
+			pCX2UserUnit = CX2GUAdd::CreateGUAdd( slotIndex, pSlotData->m_TeamNum, script_info, g_pMain->GetFrameBufferNum(),
+				pSlotData->m_pUnit );
+		}
+		break;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 
 
@@ -2230,7 +2217,7 @@ void CX2Game::IntruderStart( UidType unitUID, int startPosIndex )
 }
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 void    CX2Game::UpdateMyGameUnit( const CX2Room::SlotData* pSlotData_, CX2GUUser* pUser )
 {
@@ -2276,34 +2263,34 @@ void    CX2Game::UpdateHostGameUnit()
     }
 }
 
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-void CX2Game::CheckAmIHost()
-{
-	if( m_pRoom == NULL )
-		return;
-
-
-	if( m_pRoom->GetMySlot() == NULL )
-		return;
-
-	// Unit의 UID가 아닌 User 계정의 UID 이다.
-	
-	m_bHost = m_pRoom->GetMySlot()->GetIsHost();
-
-}
-
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+//void CX2Game::CheckAmIHost()
+//{
+//	if( m_pRoom == NULL )
+//		return;
+//
+//
+//	if( m_pRoom->GetMySlot() == NULL )
+//		return;
+//
+//	// Unit의 UID가 아닌 User 계정의 UID 이다.
+//	
+//	m_bHost = m_pRoom->GetMySlot()->GetIsHost();
+//
+//}
+//
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 /*virtual*/ void CX2Game::UpdateUnitPointer()
 {
 	KTDXPROFILE();
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     UpdateHostGameUnit();
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	CheckAmIHost();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	CheckAmIHost();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 // 	::EnterCriticalSection( &m_csGameIntruder );
 // 	for( int i = 0; i < (int)m_UserUnitList.size(); i++ )
@@ -2352,7 +2339,7 @@ void CX2Game::GameStart()
 	}
 
 	g_pData->GetGameUDP()->ClearRecvBuffer();
-	m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption()->GetCameraDistance() );
+	m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption().GetCameraDistance() );
 
 	m_GameState = GS_PLAY;
 
@@ -2437,7 +2424,7 @@ void CX2Game::GameEnd()
 	{
 		KTDXPROFILE();
 
-		CKTDGLineMap::LineData* pLineData = GetLineMap()->GetAnyEnabledNormalLine();
+		const CKTDGLineMap::LineData* pLineData = GetLineMap()->GetAnyEnabledNormalLine();
 		ASSERT( NULL != pLineData );
 		if( NULL == pLineData )
 			return; 
@@ -2478,12 +2465,12 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 	m_fTime			= (float)fTime;
 	m_fElapsedTime	= fElapsedTime;
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     m_kFrameUDPPack.IncreaseFrameMoveCount();
 
 
 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	Verify();
 
@@ -2558,7 +2545,7 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 
 	//		D3DXVECTOR3 vRayStart, vRayEnd;
 	//		g_pKTDXApp->Make2DPosToRay( (int)ptMouse.x, (int)ptMouse.y, 5000.f, vRayStart, vRayEnd );
-	//		vRayStart = GetX2Camera()->GetCamera()->GetEye();
+	//		vRayStart = GetX2Camera()->GetCamera().GetEye();
 	//		vRayStart.y -= 100.f;
 	//		vRayStart.z += 20.f;
 	//		vRayStart += D3DXVECTOR3( (float) (rand() % 200 - 100), (float) (rand() % 200 - 100), (float) (rand() % 200 - 100) );
@@ -2612,10 +2599,10 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 			m_FPSCamera.SetEnablePositionMovement( true );
 
 			m_FPSCamera.FrameMove( fElapsedTime * 300.f );			
-			m_pCamera->GetCamera()->Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
+			m_pCamera->GetCamera().Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
 			D3DXVECTOR3 vLookAt = *m_FPSCamera.GetWorldAhead() * 500.f + *m_FPSCamera.GetEyePt();
-			m_pCamera->GetCamera()->LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
-			m_pCamera->GetCamera()->UpdateCamera( fElapsedTime );
+			m_pCamera->GetCamera().LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
+			m_pCamera->GetCamera().UpdateCamera( fElapsedTime );
 
 #ifdef KEYFRAME_CAMERA
 			m_pCamera->WorldCameraKeyProcess();
@@ -2695,22 +2682,21 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 	{		
 		m_fGameTime += m_fElapsedTime;
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
         if ( m_pRoom != NULL )
         {
             m_kFrameUDPPack.SetUnitUID( GetMySlotUID() );
         }
-        m_kFrameUDPPack.ResetFrameUDPPack();
-        m_kFrameUDPPack.UpdateUDPMaxSize();
+        m_kFrameUDPPack.ResetFrameUDPPack( true );
 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
         m_iPacketSendFrameMoveCount++;
         if ( m_iPacketSendFrameMoveCount >= g_pMain->GetFrameBufferNum() )
             m_iPacketSendFrameMoveCount = 0;
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
 
 #if 0
@@ -2735,12 +2721,12 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 		if( true == g_pKTDXApp->GetDSManager()->GetCapable3DSound() &&
 			true == g_pKTDXApp->GetDSManager()->GetEnable3DSound() )
 		{
-			D3DXVECTOR3 vLookVec = m_pCamera->GetCamera()->GetLookVec();
+			D3DXVECTOR3 vLookVec = m_pCamera->GetCamera().GetLookVec();
 			D3DXVec3Normalize( &vLookVec, &vLookVec );
-			D3DXVECTOR3 vUpVec = m_pCamera->GetCamera()->GetUpVec();
+			D3DXVECTOR3 vUpVec = m_pCamera->GetCamera().GetUpVec();
 			D3DXVec3Normalize( &vUpVec, &vUpVec );
 
-			g_pKTDXApp->GetDSManager()->SetListenerData( m_pCamera->GetCamera()->GetEye(), vLookVec, vUpVec );
+			g_pKTDXApp->GetDSManager()->SetListenerData( m_pCamera->GetCamera().GetEye(), vLookVec, vUpVec );
 		}
 
 		switch ( g_pMain->GetNowStateID() )
@@ -2777,63 +2763,63 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 				// observer인 경우에 카메라
 				if( m_InputData.oneLCtr == true )
 				{
-					g_pX2Game->ChangeFocusUnit();
+					ChangeFocusUnit();
 				}
 
 				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_1 ) == TRUE )
 				{
-					if( NULL != g_pX2Game->GetUserUnit(0) )
+					if( NULL != GetUserUnit(0) )
 					{
-						g_pX2Game->SetTimerFocusUnit( g_pX2Game->GetUserUnit(0) );
+						SetTimerFocusUnit( GetUserUnit(0) );
 					}
 				}
 				else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_2 ) == TRUE )
 				{
-					if( NULL != g_pX2Game->GetUserUnit(1) )
+					if( NULL != GetUserUnit(1) )
 					{
-						g_pX2Game->SetTimerFocusUnit( g_pX2Game->GetUserUnit(1) );
+						SetTimerFocusUnit( GetUserUnit(1) );
 					}
 				}
 				else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_3 ) == TRUE )
 				{
-					if( NULL != g_pX2Game->GetUserUnit(2) )
+					if( NULL != GetUserUnit(2) )
 					{
-						g_pX2Game->SetTimerFocusUnit( g_pX2Game->GetUserUnit(2) );
+						SetTimerFocusUnit( GetUserUnit(2) );
 					}
 				}
 				else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_4 ) == TRUE )
 				{
-					if( NULL != g_pX2Game->GetUserUnit(3) )
+					if( NULL != GetUserUnit(3) )
 					{
-						g_pX2Game->SetTimerFocusUnit( g_pX2Game->GetUserUnit(3) );
+						SetTimerFocusUnit( GetUserUnit(3) );
 					}
 				}
 				else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_5 ) == TRUE )
 				{
-					if( NULL != g_pX2Game->GetUserUnit(4) )
+					if( NULL != GetUserUnit(4) )
 					{
-						g_pX2Game->SetTimerFocusUnit( g_pX2Game->GetUserUnit(4) );
+						SetTimerFocusUnit( GetUserUnit(4) );
 					}
 				}
 				else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_6 ) == TRUE )
 				{
-					if( NULL != g_pX2Game->GetUserUnit(5) )
+					if( NULL != GetUserUnit(5) )
 					{
-						g_pX2Game->SetTimerFocusUnit( g_pX2Game->GetUserUnit(5) );
+						SetTimerFocusUnit( GetUserUnit(5) );
 					}
 				}
 				else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_7 ) == TRUE )
 				{
-					if( NULL != g_pX2Game->GetUserUnit(6) )
+					if( NULL != GetUserUnit(6) )
 					{
-						g_pX2Game->SetTimerFocusUnit( g_pX2Game->GetUserUnit(6) );
+						SetTimerFocusUnit( GetUserUnit(6) );
 					}
 				}
 				else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_8 ) == TRUE )
 				{
-					if( NULL != g_pX2Game->GetUserUnit(7) )
+					if( NULL != GetUserUnit(7) )
 					{
-						g_pX2Game->SetTimerFocusUnit( g_pX2Game->GetUserUnit(7) );
+						SetTimerFocusUnit( GetUserUnit(7) );
 					}
 				}
 
@@ -2850,7 +2836,7 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 						{
 							if( m_InputData.oneX == true )
 							{
-								g_pX2Game->ChangeFocusUnit();
+								ChangeFocusUnit();
 							}
 						} break;
 
@@ -2859,7 +2845,7 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 							if( m_InputData.oneZ == true ||
 								m_InputData.oneX == true )
 							{
-								g_pX2Game->ChangeFocusUnit();
+								ChangeFocusUnit();
 							}
 						} break;
 					
@@ -2925,8 +2911,8 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 									pGageManager->UpdatePvpMemberGageData( pSlotData->m_UnitUID, pAddGameUser );
 								}
 
-								g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"INTRUDE_NOT", 0,0,0, 1000,1000, -1, 1 );
-								g_pX2Game->GetMinorParticle()->CreateSequence( NULL,  L"INTRUDE_NOT_ADD", 0,0,0, 1000,1000, -1, 1 );
+								GetMinorParticle()->CreateSequence( NULL,  L"INTRUDE_NOT", 0,0,0, 1000,1000, -1, 1 );
+								GetMinorParticle()->CreateSequence( NULL,  L"INTRUDE_NOT_ADD", 0,0,0, 1000,1000, -1, 1 );
 							}
 							break;
 
@@ -2953,46 +2939,46 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 
 
 		// user, npc sync packet을 전송할 User uid 리스트 갱신
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		m_vecUserUIDforSyncPacket.resize(0);
-#ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
-		::EnterCriticalSection( &m_csGameIntruder );
-#endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
-		for( int i = 0; i < (int)m_UserUnitList.size(); i++ )
-		{
-			CX2GUUser* pCX2GUUser = m_UserUnitList[i];
-			if( pCX2GUUser != NULL )
-			{
-				m_vecUserUIDforSyncPacket.push_back( pCX2GUUser->GetUnitUID() );
-			}
-		}
-#ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
-		::LeaveCriticalSection( &m_csGameIntruder );
-#endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
-
-		if( g_pX2Room != NULL )
-		{
-			for( int i = 0; i < (int)g_pX2Room->GetObserverSlotNum(); i++ )
-			{
-				CX2Room::SlotData* pSlotData = g_pX2Room->GetObserverSlotData( i );
-				if( pSlotData != NULL 
-					&& pSlotData->m_SlotState != CX2Room::SS_CLOSE
-					&& pSlotData->m_SlotState != CX2Room::SS_EMPTY )
-				{
-					m_vecUserUIDforSyncPacket.push_back( pSlotData->m_UnitUID );
-				}
-			}
-		}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		m_vecUserUIDforSyncPacket.resize(0);
+//#ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
+//		::EnterCriticalSection( &m_csGameIntruder );
+//#endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
+//		for( int i = 0; i < (int)m_UserUnitList.size(); i++ )
+//		{
+//			CX2GUUser* pCX2GUUser = m_UserUnitList[i];
+//			if( pCX2GUUser != NULL )
+//			{
+//				m_vecUserUIDforSyncPacket.push_back( pCX2GUUser->GetUnitUID() );
+//			}
+//		}
+//#ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
+//		::LeaveCriticalSection( &m_csGameIntruder );
+//#endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
+//
+//		if( g_pX2Room != NULL )
+//		{
+//			for( int i = 0; i < (int)g_pX2Room->GetObserverSlotNum(); i++ )
+//			{
+//				CX2Room::SlotData* pSlotData = g_pX2Room->GetObserverSlotData( i );
+//				if( pSlotData != NULL 
+//					&& pSlotData->m_SlotState != CX2Room::SS_CLOSE
+//					&& pSlotData->m_SlotState != CX2Room::SS_EMPTY )
+//				{
+//					m_vecUserUIDforSyncPacket.push_back( pSlotData->m_UnitUID );
+//				}
+//			}
+//		}
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 
 		if( m_bStopUnitChain == false )
 		{
 			//////////////////////////////////////////////////////////////////////////
 			// GUSI_DIE 상태인 NPC 객체 삭제, 몬스터가 죽었다는 sync packet 전송
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-			m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//			m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 			for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
 			{
 				CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
@@ -3005,16 +2991,16 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 #ifndef X2OPTIMIZE_ROBUST_NPC_FINAL_STATE
 				if( IsHost() == true )
 				{
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 					pCX2GUNPC->SendPacketImmediateForce( m_kFrameUDPPack );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-					pCX2GUNPC->SendPacketImmediateForce( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
-
-					if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
-					{
-						BroadCast_XPT_UNIT_NPC_SYNC_PACK();
-					}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//					pCX2GUNPC->SendPacketImmediateForce( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
+//
+//					if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
+//					{
+//						BroadCast_XPT_UNIT_NPC_SYNC_PACK();
+//					}
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 				}
 #endif  X2OPTIMIZE_ROBUST_NPC_FINAL_STATE
 
@@ -3026,19 +3012,19 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 #endif				
 			}
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-			if( IsHost() == true )
-			{
-				if( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > 0 )
-				{
-					BroadCast_XPT_UNIT_NPC_SYNC_PACK();
-				}
-			}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//			if( IsHost() == true )
+//			{
+//				if( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > 0 )
+//				{
+//					BroadCast_XPT_UNIT_NPC_SYNC_PACK();
+//				}
+//			}
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #ifdef PVP_ZOOM_CAMERA
 			bool bZoomOut = false;
-			g_pMain->GetGameOption()->DoSubZoomCameraTimer( fElapsedTime );
+			g_pMain->GetGameOption().DoSubZoomCameraTimer( fElapsedTime );
 #endif
 
 #ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
@@ -3071,7 +3057,7 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 						    if( pCX2GameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 						    {
 							    CX2GUUser *pUser = GetUserUnitByUID( pCX2GameUnit->GetUnitUID() );
-							    if( pUser == NULL || pUser->GetUnit() == NULL || pUser->GetUnit()->GetUnitData() == NULL )
+							    if( pUser == NULL || pUser->GetUnit() == NULL )
 							    {
 								    bCanDoFrameMove = false;
 							    }
@@ -3087,10 +3073,10 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 	    // 						}
 #ifdef PVP_ZOOM_CAMERA
 							    if( null != m_optrFocusUnit &&
-								    g_pMain->GetGameOption()->GetAutoCamera() == true && 
-								    g_pMain->GetGameOption()->GetSubZoomCameraTimer() <= 0.f)
+								    g_pMain->GetGameOption().GetAutoCamera() == true && 
+								    g_pMain->GetGameOption().GetSubZoomCameraTimer() <= 0.f)
 							    {
-								    if( g_pX2Game->IsValidUnit(pCX2GameUnit) == false )
+								    if( IsValidUnit(pCX2GameUnit) == false )
 									    continue;
 								    if( pCX2GameUnit->GetNowHp() <= 0.f )
 									    continue;
@@ -3099,7 +3085,7 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 								    if( pCX2GameUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 								    {
 									    CX2GUNPC *pNpc = (CX2GUNPC *)pCX2GameUnit;
-									    if( pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+									    if( pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 										    continue;
 								    }
 
@@ -3115,31 +3101,37 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 						    }
 					    }
 				    }
-#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-#ifndef X2OPTIMIZE_PUSH_PASS_BUG_FIX
-
-				    for( UINT i = 0; i < m_UnitList.size(); i++ )
-				    {
-					    CX2GameUnit* pCX2GameUnit = m_UnitList[i];
-					    if ( pCX2GameUnit != NULL )
-                            pCX2GameUnit->BackupPosition();
-                    }
-
-#endif  X2OPTIMIZE_PUSH_PASS_BUG_FIX
-#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
+//#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
+//#ifndef X2OPTIMIZE_PUSH_PASS_BUG_FIX
+//
+//				    for( UINT i = 0; i < m_UnitList.size(); i++ )
+//				    {
+//					    CX2GameUnit* pCX2GameUnit = m_UnitList[i];
+//					    if ( pCX2GameUnit != NULL )
+//                            pCX2GameUnit->BackupPosition();
+//                    }
+//
+//#endif  X2OPTIMIZE_PUSH_PASS_BUG_FIX
+//#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
                 }
 
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-#ifdef  X2OPTIMIZE_PUSH_PASS_BUG_FIX
+//#ifdef  X2OPTIMIZE_PUSH_PASS_BUG_FIX
 
 				for( UINT i = 0; i < m_UnitList.size(); i++ )
 				{
 					CX2GameUnit* pCX2GameUnit = m_UnitList[i];
 					if ( pCX2GameUnit != NULL )
+                    {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                        pCX2GameUnit->OnFrameMove_PostProcess();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
                         pCX2GameUnit->BackupPosition();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    }
                 }
 
-#endif  X2OPTIMIZE_PUSH_PASS_BUG_FIX
+//#endif  X2OPTIMIZE_PUSH_PASS_BUG_FIX
 #endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
 
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
@@ -3160,15 +3152,15 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 #endif
 
 #ifdef PVP_ZOOM_CAMERA
-			if( g_pMain->GetGameOption()->GetAutoCamera() == true && g_pMain->GetGameOption()->GetSubZoomCameraTimer() <= 0.f )
+			if( g_pMain->GetGameOption().GetAutoCamera() == true && g_pMain->GetGameOption().GetSubZoomCameraTimer() <= 0.f )
 			{
 				if( bZoomOut == true)
 				{
-					g_pMain->GetGameOption()->SetSubZoomCameraLv(1);
+					g_pMain->GetGameOption().SetSubZoomCameraLv(1);
 				}	
 				else
 				{
-					g_pMain->GetGameOption()->SetSubZoomCameraLv(0);
+					g_pMain->GetGameOption().SetSubZoomCameraLv(0);
 				}
 			}			
 #endif
@@ -3237,22 +3229,22 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 			m_FPSCamera.SetEnablePositionMovement( true );
 
 			m_FPSCamera.FrameMove( fElapsedTime * 300.f );			
-			m_pCamera->GetCamera()->Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
+			m_pCamera->GetCamera().Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
 			D3DXVECTOR3 vLookAt = *m_FPSCamera.GetWorldAhead() * 500.f + *m_FPSCamera.GetEyePt();
-			m_pCamera->GetCamera()->LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
+			m_pCamera->GetCamera().LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
 #ifdef KEYFRAME_CAMERA
-			m_pCamera->GetCamera()->UpVec( m_FPSCamera.GetWorldUp()->x, m_FPSCamera.GetWorldUp()->y, m_FPSCamera.GetWorldUp()->z);
+			m_pCamera->GetCamera().UpVec( m_FPSCamera.GetWorldUp()->x, m_FPSCamera.GetWorldUp()->y, m_FPSCamera.GetWorldUp()->z);
 			if(true == GetWorldCameraEdit())
-				m_pCamera->GetCamera()->SetTrackingTime(0.f);
+				m_pCamera->GetCamera().SetTrackingTime(0.f);
 #endif KEYFRAME_CAMERA
-			m_pCamera->GetCamera()->UpdateCamera( fElapsedTime );
+			m_pCamera->GetCamera().UpdateCamera( fElapsedTime );
 
 #ifdef KEYFRAME_CAMERA
 			m_pCamera->WorldCameraKeyProcess();
 #endif KEYFRAME_CAMERA
 		}
 
-		//g_pKTDXApp->GetDSManager()->SetListenerData( m_pCamera->GetCamera()->GetEye(), m_pCamera->GetCamera()->GetLookVec(), m_pCamera->GetCamera()->GetUpVec() );
+		//g_pKTDXApp->GetDSManager()->SetListenerData( m_pCamera->GetCamera().GetEye(), m_pCamera->GetCamera().GetLookVec(), m_pCamera->GetCamera().GetUpVec() );
 
 		if( g_pData->GetPicChar() != NULL )
 			g_pData->GetPicChar()->OnFrameMove( fElapsedTime );
@@ -3264,10 +3256,6 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 			g_pData->GetPicCharGreen()->OnFrameMove( fElapsedTime );
 		if( g_pData->GetPicCharYellow() != NULL )
 			g_pData->GetPicCharYellow()->OnFrameMove( fElapsedTime );
-#ifndef REFORM_UI_SCORE
-		if( g_pData->GetPicCharGameScore() != NULL )
-			g_pData->GetPicCharGameScore()->OnFrameMove( fElapsedTime );
-#endif
 		if( g_pData->GetPicCharTechPoint() != NULL )
 			g_pData->GetPicCharTechPoint()->OnFrameMove( fElapsedTime );
 
@@ -3289,13 +3277,6 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 			m_fTechPointViewTime -= m_fElapsedTime;
 			if( m_fTechPointViewTime <= 0.0f )
 			{
-#ifndef REFORM_UI_SCORE
-				CKTDGParticleSystem::CParticleEventSequence* pSeq = GetMajorParticle()->GetInstanceSequence( m_hSeqTech );
-				if( NULL != pSeq )
-				{
-					pSeq->ClearAllParticle();
-				}
-#endif
 
 				AddGameScore( m_TechPoint, 0.4f );
 				m_TechPoint = 0;
@@ -3309,33 +3290,27 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 
 		if( IsHost() == true )
 		{
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-#ifdef X2OPTIMIZE_UDP_RELAY_OVERHEAD_TEST
-			if( g_pData->GetGameUDP()->GetNonRelayUIDs().empty() == false
-				|| g_pData->GetGameUDP()->GetRelayUIDs().empty() == false 
-				|| g_pData->GetGameUDP()->GetTestRooms().empty() == false )
-#else//X2OPTIMIZE_UDP_RELAY_OVERHEAD_TEST
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 			if( g_pData->GetGameUDP()->GetNonRelayUIDs().empty() == false
 				|| g_pData->GetGameUDP()->GetRelayUIDs().empty() == false )
-#endif//X2OPTIMIZE_UDP_RELAY_OVERHEAD_TEST
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 			{
 				KLagCheck( eKnown_LagCheckType_UDPProcess_Host );
 
 				bool bRegularSend = false;
 
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 				bRegularSend = IsPacketSendFrame();
-#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-				m_NPCPacketSendIntervalNow += m_fElapsedTime;
-				if( m_NPCPacketSendIntervalNow >= m_NPCPacketSendInterval )	// 1.0/8.0 == ( 0.125 )
-				{
-					m_NPCPacketSendIntervalNow = 0.0f;
-					bRegularSend = true;
-				}//if
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//				m_NPCPacketSendIntervalNow += m_fElapsedTime;
+//				if( m_NPCPacketSendIntervalNow >= m_NPCPacketSendInterval )	// 1.0/8.0 == ( 0.125 )
+//				{
+//					m_NPCPacketSendIntervalNow = 0.0f;
+//					bRegularSend = true;
+//				}//if
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 				if ( bRegularSend == true )
 				{
@@ -3347,9 +3322,9 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 					}//if
 				}//if
 
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 				bool    bRegularNPCSent = false;
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
 				for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
 				{
@@ -3357,15 +3332,15 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 					if( NULL == pCX2GUNPC
 						|| pCX2GUNPC->GetGameUnitState() == CX2GameUnit::GUSI_DIE )
 					{
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 						if ( bRegularSend == true && bRegularNPCSent == false && m_iNPCRobustPacketSendIndex == i )
 						{
 							m_iNPCRobustPacketSendIndex++;
 						}
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 						continue;
 					}
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 					if ( bRegularSend == true && bRegularNPCSent == false && m_iNPCRobustPacketSendIndex == i )
 					{
 						if( g_pMain->IsEnableUdpPacketOverlap() )
@@ -3373,7 +3348,7 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 						m_iNPCRobustPacketSendIndex++;
 						bRegularNPCSent = true;
 					}
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 					pCX2GUNPC->SendPacket( m_kFrameUDPPack, ( bRegularSend == true ) ? false : true );
 				}
 
@@ -3391,58 +3366,58 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
                 }
 #endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
 
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-				// 일정시간 간격으로 sync 패킷 전송
-				m_NPCPacketSendIntervalNow += m_fElapsedTime;
-				if( m_NPCPacketSendIntervalNow >= m_NPCPacketSendInterval )	// 1.0/8.0 == ( 0.125 )
-				{
-					m_NPCPacketSendIntervalNow = 0.0f;
-
-					m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
-					for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
-					{
-						CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
-						if( NULL == pCX2GUNPC )
-							continue;
-
-						pCX2GUNPC->SendPacket( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
-
-						if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
-						{
-							BroadCast_XPT_UNIT_NPC_SYNC_PACK();
-						}
-					}
-
-					if( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > 0 )
-					{
-						BroadCast_XPT_UNIT_NPC_SYNC_PACK();
-					}
-				}
-
-
-
-				// 즉시 보내야 하는 데이터인 경우 즉시 sync 패킷 전송
-				m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
-				for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
-				{
-					CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
-					if( NULL == pCX2GUNPC )
-						continue;
-
-					pCX2GUNPC->SendPacketImmediate( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
-
-					if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
-					{
-						BroadCast_XPT_UNIT_NPC_SYNC_PACK();
-					}
-				}
-
-				if( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > 0 )
-				{
-					BroadCast_XPT_UNIT_NPC_SYNC_PACK();
-				}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+//				// 일정시간 간격으로 sync 패킷 전송
+//				m_NPCPacketSendIntervalNow += m_fElapsedTime;
+//				if( m_NPCPacketSendIntervalNow >= m_NPCPacketSendInterval )	// 1.0/8.0 == ( 0.125 )
+//				{
+//					m_NPCPacketSendIntervalNow = 0.0f;
+//
+//					m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
+//					for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
+//					{
+//						CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
+//						if( NULL == pCX2GUNPC )
+//							continue;
+//
+//						pCX2GUNPC->SendPacket( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
+//
+//						if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
+//						{
+//							BroadCast_XPT_UNIT_NPC_SYNC_PACK();
+//						}
+//					}
+//
+//					if( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > 0 )
+//					{
+//						BroadCast_XPT_UNIT_NPC_SYNC_PACK();
+//					}
+//				}
+//
+//
+//
+//				// 즉시 보내야 하는 데이터인 경우 즉시 sync 패킷 전송
+//				m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
+//				for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
+//				{
+//					CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
+//					if( NULL == pCX2GUNPC )
+//						continue;
+//
+//					pCX2GUNPC->SendPacketImmediate( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
+//
+//					if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
+//					{
+//						BroadCast_XPT_UNIT_NPC_SYNC_PACK();
+//					}
+//				}
+//
+//				if( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > 0 )
+//				{
+//					BroadCast_XPT_UNIT_NPC_SYNC_PACK();
+//				}
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #ifdef SERV_PET_SYSTEM			
 				for( UINT i=0; i<g_pData->GetPetManager()->GetPetNum(); ++i )
@@ -3450,27 +3425,27 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 					CX2PET *pPet = g_pData->GetPetManager()->GetPetInx(i);
 					if( pPet != NULL )
 					{						
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 						pPet->SendPacketImmediateForce( m_kFrameUDPPack );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-						pPet->SendPacketImmediateForce( m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//						pPet->SendPacketImmediateForce( m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 					}
 
-#ifndef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-					if( m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.size() > 0 )
-					{
-						KSerBuffer buff;
-						Serialize( &buff, &m_kXPT_UNIT_PET_SYNC_PACK );
-						g_pData->GetGameUDP()->BroadCast( m_vecUserUIDforSyncPacket, XPT_UNIT_PET_SYNC_PACK, (char*)buff.GetData(), buff.GetLength() );
-
-						m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.resize(0);
-					}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//					if( m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.size() > 0 )
+//					{
+//						KSerBuffer buff;
+//						Serialize( &buff, &m_kXPT_UNIT_PET_SYNC_PACK );
+//						g_pData->GetGameUDP()->BroadCast( m_vecUserUIDforSyncPacket, XPT_UNIT_PET_SYNC_PACK, (char*)buff.GetData(), buff.GetLength() );
+//
+//						m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.resize(0);
+//					}
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 				}			
 #endif//SERV_PET_SYSTEM
 			}
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 			else
 			{
 #ifdef SERV_PET_SYSTEM	
@@ -3484,45 +3459,45 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 				}			
 #endif//SERV_PET_SYSTEM	
 			}
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		}
 
 
 
 
-#ifdef TRANSFORMER_TEST
-
-		if( NULL != GetMyUnit() &&
-			true == GetMyUnit()->GetTransformed() &&
-			NULL != GetMyUnit()->GetTransformer() &&
-			true == GetMyUnit()->GetTransformer()->IsLocalUnit() )
-		{
-			KLagCheck( eKnown_LagCheckType_UDPProcess_Transformer );
-
-			CX2GUNPC* pNPC = GetMyUnit()->GetTransformer();
-
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-			pNPC->SendPacket( m_kFrameUDPPack );
-			pNPC->SendPacketImmediate( m_kFrameUDPPack );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-			pNPC->SendPacket( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
-
-			if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
-			{
-				BroadCast_XPT_UNIT_NPC_SYNC_PACK();
-			}
-
-			pNPC->SendPacketImmediate( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
-
-			if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
-			{
-				BroadCast_XPT_UNIT_NPC_SYNC_PACK();
-			}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		}
-
-#endif TRANSFORMER_TEST
-
+//#ifdef TRANSFORMER_TEST
+//
+//		if( NULL != GetMyUnit() &&
+//			true == GetMyUnit()->GetTransformed() &&
+//			NULL != GetMyUnit()->GetTransformer() &&
+//			true == GetMyUnit()->GetTransformer()->IsLocalUnit() )
+//		{
+//			KLagCheck( eKnown_LagCheckType_UDPProcess_Transformer );
+//
+//			CX2GUNPC* pNPC = GetMyUnit()->GetTransformer();
+//
+////#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//			pNPC->SendPacket( m_kFrameUDPPack );
+//			pNPC->SendPacketImmediate( m_kFrameUDPPack );
+////#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+////			pNPC->SendPacket( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
+////
+////			if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
+////			{
+////				BroadCast_XPT_UNIT_NPC_SYNC_PACK();
+////			}
+////
+////			pNPC->SendPacketImmediate( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
+////
+////			if( sizeof(KXPT_UNIT_NPC_SYNC) * m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() > MTU_SIZE )
+////			{
+////				BroadCast_XPT_UNIT_NPC_SYNC_PACK();
+////			}
+////#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		}
+//
+//#endif TRANSFORMER_TEST
+//
 
 
 		if( m_bLastKillCheck == false )
@@ -3567,13 +3542,38 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 		if( m_fLastkillShotTime != 0.0f )
 		{
 			m_fLastkillShotTime -= m_fElapsedTime;
+			
+#ifdef SET_LAST_KILL_SHOT_HIDE_UI // 김태환
+			/// m_fLastkillShotTime이 완료 되었을 때, UI가 제거된 스크린샷을 찍도록 수정
+			if( m_fLastkillShotTime < 0.0f )
+			{
+				m_fLastkillShotTime = 0.0f;
+				if( NULL != m_pRenderTargetLastkillShot && 
+					true == m_pRenderTargetLastkillShot->IsOk() )
+				{
+					g_pKTDXApp->GetDevice()->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x32323232, 1.0f, 0);
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+                    CKTDGParticleSystem::EnableParticleCulling( true );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
+					g_pKTDXApp->GetDGManager()->ObjectChainSort();
+					g_pKTDXApp->GetDGManager()->ObjectChainNonAlphaRender(); 
+					g_pKTDXApp->GetDGManager()->ObjectChainAlphaRender();
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+                    CKTDGParticleSystem::EnableParticleCulling( false );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
+					m_pRenderTargetLastkillShot->CopyBackBufferToSurface();
+				}
+			}
+#else // SET_LAST_KILL_SHOT_HIDE_UI
 			if( m_fLastkillShotTime < 0.0f )
 				m_fLastkillShotTime = 0.0f;
+
 			if( NULL != m_pRenderTargetLastkillShot && 
 				true == m_pRenderTargetLastkillShot->IsOk() )
 			{
 				m_pRenderTargetLastkillShot->CopyBackBufferToSurface();
 			}
+#endif // SET_LAST_KILL_SHOT_HIDE_UI
 		}
 
 		m_fElapsedTimeAfterLastKeyboardInput += fElapsedTime;
@@ -3597,13 +3597,12 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 			}
 		}
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         m_kFrameUDPPack.FlushFrameUDPPack();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	}
 	
-#ifdef DUNGEON_ALARM_SYSTEM
 	if( m_pShowAlarm != NULL )
 	{
 		m_fShowAlarmTime += fElapsedTime;
@@ -3618,8 +3617,7 @@ HRESULT	CX2Game::OnFrameMove( double fTime, float fElapsedTime )
 				pSeq->SetShowObject(false);
 			}
 		}
-	}	
-#endif
+	}
 
 #ifdef MODIFY_DUNGEON_STAGING
 	m_pCinematicUI->OnFrameMove(fTime, fElapsedTime);
@@ -3633,6 +3631,9 @@ HRESULT	CX2Game::OnFrameRender()
 
 	if( m_GameState == GS_PLAY )
 	{
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+        CKTDGParticleSystem::EnableParticleCulling( true );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 		if( m_pWorld != NULL )
 		{
 			m_pWorld->OnFrameRender();
@@ -3642,7 +3643,9 @@ HRESULT	CX2Game::OnFrameRender()
 
 		g_pKTDXApp->GetDGManager()->ObjectChainNonAlphaRender();
 		g_pKTDXApp->GetDGManager()->ObjectChainAlphaRender();
-		
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+        CKTDGParticleSystem::EnableParticleCulling( false );
+#endif  X2OPTIMIZE_CULLING_PARTICLE		
 		
 
 		switch( GetGameType() )
@@ -3709,7 +3712,7 @@ HRESULT	CX2Game::OnFrameRender()
 			CX2GameUnit* pGameUnit = m_UnitList[i];			
 
 			if ( pGameUnit == NULL || 
-				( g_pX2Game->GetGameType() == CX2Game::GT_BATTLE_FIELD && false == pGameUnit->DidReceiveFirstSyncPacket() ) )
+				( GetGameType() == CX2Game::GT_BATTLE_FIELD && false == pGameUnit->DidReceiveFirstSyncPacket() ) )
 			{
 				continue;
 			}
@@ -3719,7 +3722,18 @@ HRESULT	CX2Game::OnFrameRender()
 			if( pGameUnit->GetGameUnitState() == CX2GameUnit::GUSI_DIE )
 				continue;
 
+#ifdef NOT_RENDER_NPC_GAME_EDIT
+			if ( CX2GameUnit::GUT_USER == pGameUnit->GetGameUnitType() 
+				 || true == GetShowNpcByGameEdit() )
+#endif // NOT_RENDER_NPC_GAME_EDIT
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == false)
+			{
+				pGameUnit->RenderGageUI();
+			}
+#else
 			pGameUnit->RenderGageUI();
+#endif ALWAYS_SCREEN_SHOT_TEST
 
 			//pGameUnit->GetGageManager()->OnFrameRender();
 
@@ -3733,7 +3747,12 @@ HRESULT	CX2Game::OnFrameRender()
 			else if( pGameUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 			{
 				// 원형맵상의 먼거리에 있는 유닛 이름은 랜더하지 않는다.
-				if( true == m_sbRenderNPCName && pGameUnit->GetDistanceToCamera() < 4800)
+				if( true == m_sbRenderNPCName && 
+					(pGameUnit->GetDistanceToCamera() < 4800 
+#ifdef FIELD_BOSS_RAID // 렌더 거리 체크
+						|| true == pGameUnit->GetIsBosRaidNPC() // 레이드 몬스터는 예외처리
+#endif // FIELD_BOSS_RAID
+					))
 					pGameUnit->RenderName();
 
 				//#ifdef MAKE_GGOBONG_TEST
@@ -3747,11 +3766,6 @@ HRESULT	CX2Game::OnFrameRender()
 					pGameUnit->RenderName();
 			}
 		}
-
-#ifdef SERV_PET_SYSTEM
-		if( g_pData != NULL && g_pData->GetPetManager() != NULL )
-			g_pData->GetPetManager()->RenderName();
-#endif
 
 #ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 		::LeaveCriticalSection( &m_csGameIntruder );
@@ -3794,11 +3808,11 @@ HRESULT	CX2Game::OnFrameRender()
 		{
 			if( m_StateString.size() > 1 )
 			{	//스킬 사용 시 출력되는 스트링
+			// 해외팀 수정
 				g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( XUF_DODUM_15_BOLD )->OutTextXY( 8, 689-20, m_StateString.c_str(), 0xffffffff,  CKTDGFontManager::FS_SHADOW, 0x00000000 );
 			}
 		}		
 
-#ifdef DUNGEON_ALARM_SYSTEM
 #ifdef DIALOG_SHOW_TOGGLE	
 		if( g_pKTDXApp->GetDGManager()->GetDialogManager()->GetHideDialog() == false && 
 			g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
@@ -3813,18 +3827,32 @@ HRESULT	CX2Game::OnFrameRender()
 				if( GT_DUNGEON == GetGameType() )
 				{
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
-					CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(g_pX2Game);
+					CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(this);
 					if(	NULL != pDungeonGame &&
 						NULL != pDungeonGame->GetDungeon() &&
 						NULL != pDungeonGame->GetDungeon()->GetDungeonData() )
 					{
 
-						if( CX2Dungeon::DI_EVENT_VALENTINE_DAY == pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID )
+						if( SEnum::DI_EVENT_VALENTINE_DAY == pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID )
 						{
 							iAlarmY = 230;
 						}
 					}	
 #endif //SERV_EVENT_VALENTINE_DUNGEON
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+					CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(this);
+					if(	NULL != pDungeonGame &&
+						NULL != pDungeonGame->GetDungeon() &&
+						NULL != pDungeonGame->GetDungeon()->GetDungeonData() )
+					{
+
+						if( SEnum::DI_EVENT_HALLOWEEN_DAY == pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID )
+						{
+							iAlarmY = 60;
+						}
+					}	
+#endif //SERV_HALLOWEEN_EVENT_2013
 					if( m_pShowAlarm->m_bDanger == true )
 					{
 						iAlarmY += 20; 
@@ -3856,25 +3884,85 @@ HRESULT	CX2Game::OnFrameRender()
 
 					RECT rt;
 					rt.left = 0;
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 					// OutTextMultiline안에서 GetResolutionScaleX 곱해주므로 여기서 곱해서 넘길 필요 없다.
 					rt.right =  (LONG)1024;
-#else
-					rt.right =  (LONG)(1024 * g_pKTDXApp->GetResolutionScaleX());
-#endif
+//#else
+//					rt.right =  (LONG)(1024 * g_pKTDXApp->GetResolutionScaleX());
+//#endif
 
 #ifdef USE_DT_VCENTER
 					rt.top = iAlarmY;
 					rt.bottom = (LONG)(iAlarmY + 40);
 #endif // USE_DT_VCENTER
 
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+					g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( m_pShowAlarm->m_eFontType )->OutTextMultiline( iAlarmX, iAlarmY, 
+						m_pShowAlarm->m_wstrMessage.c_str(), cColor, CKTDGFontManager::FS_SHELL, D3DXCOLOR( 0, 0, 0, 1 ),
+						1.f, &rt, DT_CENTER|DT_TOP);
+#else //SERV_HALLOWEEN_EVENT_2013
 					g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( XUF_DODUM_20_BOLD )->OutTextMultiline( iAlarmX, iAlarmY, 
 						m_pShowAlarm->m_wstrMessage.c_str(), cColor, CKTDGFontManager::FS_SHELL, D3DXCOLOR( 0, 0, 0, 1 ),
-						1.f, &rt, DT_CENTER|DT_TOP);			
+						1.f, &rt, DT_CENTER|DT_TOP);
+#endif //SERV_HALLOWEEN_EVENT_2013
 				}
+#ifdef FIELD_BOSS_RAID
+				else if( GT_BATTLE_FIELD == GetGameType() )
+				{
+					if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+					{
+						if( m_pShowAlarm->m_bDanger == true )
+						{
+							iAlarmY += 20; 
+						}
+						switch( m_pShowAlarm->m_eColor )
+						{
+						case ACT_BLACK:
+							cColor = D3DXCOLOR(0.f, 0.f, 0.f, 1.f);
+							break;
+						case ACT_RED:
+							cColor = D3DXCOLOR(1.f, 0.f, 0.f, 1.f);
+							break;
+						case ACT_BLUE:
+							cColor = D3DXCOLOR(0.f, 0.f, 1.f, 1.f);
+							break;
+						case ACT_YELLOW:
+							cColor = D3DXCOLOR(1.f, 1.f, 0.f, 1.f);
+							break;
+						case ACT_ORANGE:
+							cColor = D3DXCOLOR(1.f, 0.38f, 0.1059f, 1.f);
+							break;
+						case ACT_MAGENTA:
+							cColor = D3DXCOLOR(0.972f, 0.157f, 0.933f, 1.f);
+							break;
+						default:
+							break;
+						}
+
+
+						RECT rt;
+						rt.left = 0;
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+						// OutTextMultiline안에서 GetResolutionScaleX 곱해주므로 여기서 곱해서 넘길 필요 없다.
+						rt.right =  (LONG)1024;
+//#else
+//						rt.right =  (LONG)(1024 * g_pKTDXApp->GetResolutionScaleX());
+//#endif
+
+#ifdef USE_DT_VCENTER
+						rt.top = iAlarmY;
+						rt.bottom = (LONG)(iAlarmY + 40);
+#endif // USE_DT_VCENTER
+
+						g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( XUF_DODUM_20_BOLD )->OutTextMultiline( iAlarmX, iAlarmY, 
+							m_pShowAlarm->m_wstrMessage.c_str(), cColor, CKTDGFontManager::FS_SHELL, D3DXCOLOR( 0, 0, 0, 1 ),
+							1.f, &rt, DT_CENTER|DT_TOP);
+					}
+				}
+#endif // FIELD_BOSS_RAID
 			}
-		}		
-#endif
+		}
 
 		//WCHAR adBuf[200] = {0,};
 		//swprintf( adBuf, L"스테미너 %d", (int)GetMyUnit()->GetGageManager()->GetAttackDelayGage()->fNow );
@@ -3929,7 +4017,7 @@ bool CX2Game::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 
 			D3DXVECTOR3 vRayStart, vRayEnd;
 			g_pKTDXApp->Make2DPosToRay( (int)ptMouse.x, (int)ptMouse.y, 5000.f, vRayStart, vRayEnd );
-			vRayStart = GetX2Camera()->GetCamera()->GetEye();
+			vRayStart = GetX2Camera()->GetCamera().GetEye();
 			vRayStart.y -= 100.f;
 			vRayStart.z += 20.f;
 			vRayStart += D3DXVECTOR3( (float) (rand() % 200 - 100), (float) (rand() % 200 - 100), (float) (rand() % 200 - 100) );
@@ -4322,7 +4410,7 @@ void CX2Game::InitFocusUnit()
 	if ( NULL != GetMyUnit() )
 		m_optrFocusUnit = GetMyUnit();
 }
-#endif // INIT_FOCUS_UNIT
+#endif // INIT_FOCUS_UN
 
 void CX2Game::SetTimerFocusUnit( CX2GameUnit* pFocusUnit, float fFocusTime /*= 0.f*/, float fDistance /*= -1.f*/  )
 {
@@ -4338,7 +4426,7 @@ void CX2Game::SetTimerFocusUnit( CX2GameUnit* pFocusUnit, float fFocusTime /*= 0
 	}
 	else
 	{
-		m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption()->GetCameraDistance() );
+		m_pCamera->NomalDirectCamera( m_optrFocusUnit.GetObservable(), g_pMain->GetGameOption().GetCameraDistance() );
 	}
 
 	m_pCamera->OnFrameMove( 0.0f, 0.0f );
@@ -4380,8 +4468,8 @@ CX2GUNPC* CX2Game::GetNPCUnitByType( int iNPCID )
 	for( int i = 0; i < (int)m_NPCUnitList.size(); i++ )
 	{
 		CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
-		if( pCX2GUNPC != NULL && pCX2GUNPC->GetNPCTemplet() != NULL &&
-			(int)pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == iNPCID )
+		if( pCX2GUNPC != NULL && 
+			(int)pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == iNPCID )
 		{
 			return pCX2GUNPC;
 		}
@@ -4850,7 +4938,7 @@ bool CX2Game::DeleteNPCUnit( int index )
 	//	if ( pCX2GUNPC != NULL )
 	//	{
 	//		wstringstream tempLogStm;
-	//		tempLogStm << L"DeleteNPCUnit, NPC ID : " << pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID;  
+	//		tempLogStm << L"DeleteNPCUnit, NPC ID : " << pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID;  
 	//		StateLog( tempLogStm.str().c_str() );
 	//	}
 	//#endif HEAVY_LOG_TEST
@@ -4933,7 +5021,7 @@ bool CX2Game::DeleteNPCUnitByUID( const UINT uiNpcUid_ )
 	//	if ( pCX2NPCUnit != NULL )
 	//	{
 	//		wstringstream tempLogStm;
-	//		tempLogStm << L"DeleteNPCUnitByUID, NPC ID : " << pCX2NPCUnit->GetNPCTemplet()->m_nNPCUnitID;  
+	//		tempLogStm << L"DeleteNPCUnitByUID, NPC ID : " << pCX2NPCUnit->GetNPCTemplet().m_nNPCUnitID;  
 	//		StateLog( tempLogStm.str().c_str() );
 	//	}
 	//#endif HEAVY_LOG_TEST
@@ -4956,54 +5044,15 @@ bool CX2Game::DeleteAllNPCUnit()
 		if( NULL == pCX2GUNPC )
 			continue;
 
-#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
-		// A LIVING AI PARTY MEMBER SURVIVES A STAGE CHANGE, the way every
-		// real party member does. This is the whole of that change.
-		//
-		// The only caller of this in a shipped dungeon build is
-		// CX2DungeonGame::StageLoading (X2DungeonGame.cpp:685) - the other
-		// two are X2TOOL and the PvP/battlefield states - and it is what
-		// used to kill the party at every stage. The spawn then had to run
-		// again from SubStageStart, which costs a packet round trip plus
-		// three CX2GUNPC constructions and lands well after the loading
-		// curtain has lifted, so the player fights alone for a moment and
-		// then watches three heroes pop in.
-		//
-		// A multiplayer party never pays that: CX2GUUser units are built
-		// once in CX2Game::UnitLoading (X2Game.cpp:1677) and StageLoading
-		// merely walks m_UserUnitList calling InitPosition. Sparing the bot
-		// here and repositioning it in RepositionOfflinePartyBots gives it
-		// exactly that lifetime.
-		//
-		// Not a new idea in this engine and not a risky one: the block
-		// directly below already spares monster-card summons from the same
-		// sweep, and they are the same class with the same ally AI, so
-		// outliving m_pWorld is a path the studio already relies on. Nothing
-		// a unit holds across it is a raw pointer into the old stage - the
-		// AI's target and attacker are KObserverPtr (X2NPCAI.h:145) and so
-		// is the grab list, so the monsters being deleted around it null
-		// themselves out.
-		//
-		// Guarded by m_bOfflineKeepPartyBots rather than applied always, so
-		// this is an exemption for the stage-change sweep specifically and
-		// every other caller still means all of them. A DEAD bot is not
-		// spared: letting the corpse go lets the ordinary spawn path bring
-		// it back whole on the new stage, which is the cheapest possible
-		// revive and is free here because the stage is loading anyway.
-		if( true == m_bOfflineKeepPartyBots &&
-			true == pCX2GUNPC->IsPvpBot() &&
-			pCX2GUNPC->GetNowHp() > 0.f &&
-			true == IsOfflinePartyBotUID( (int)pCX2GUNPC->GetUnitUID() ) )
-		{
-			continue;
-		}
-#endif SERV_IRUHADEV_AIPARTY_PERSIST
-
 		//{{ mauntain : 김태환 [2012.06.14] 몬스터 카드 소환 기능 - 소환 몬스터에 한해 삭제 Pass
 #ifdef SUMMON_MONSTER_CARD_SYSTEM
 
 	#ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-12
-		if( CX2GUNPC::NCT_MONSTER_CARD == pCX2GUNPC->GetNPCCreateType() )
+		if( CX2GUNPC::NCT_MONSTER_CARD == pCX2GUNPC->GetNPCCreateType() 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+			|| CX2GUNPC::NCT_CHANGESTAGE_REMAIN == pCX2GUNPC->GetNPCCreateType() 
+#endif //FINALITY_SKILL_SYSTEM)
+			)
 	#else // SERV_NEW_DEFENCE_DUNGEON
 		if( true == pCX2GUNPC->GetIsMonsterCard() )
 	#endif // SERV_NEW_DEFENCE_DUNGEON
@@ -5082,6 +5131,11 @@ bool CX2Game::DeleteAllNPCUnit()
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION_REDUCE_OVERHEAD
     CX2GUNPC::ResetReactionSimulationCounter();
 #endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION_REDUCE_OVERHEAD
+
+#ifdef  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
+    if ( g_pKTDXApp->GetLuaBinder() != NULL )
+        g_pKTDXApp->GetLuaBinder()->FlushJitCompileMode();
+#endif  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
 
 	return true;
 }
@@ -5180,13 +5234,13 @@ void CX2Game::KeyProcess()
 
 	bool bEnableKeyProcessMisc = true;
 
-#ifdef PVP_BOSS_COMBAT_TEST
-	if( GetMyUnit()->GetNowStateID() == GetMyUnit()->GetFrozenState() ||
-		GetMyUnit()->GetTeam() != GetMyUnit()->GetTeamNumOriginal() )
-	{
-		bEnableKeyProcessMisc = false;
-	}
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//	if( GetMyUnit()->GetNowStateID() == GetMyUnit()->GetFrozenState() ||
+//		GetMyUnit()->GetTeam() != GetMyUnit()->GetTeamNumOriginal() )
+//	{
+//		bEnableKeyProcessMisc = false;
+//	}
+//#endif PVP_BOSS_COMBAT_TEST
 	
 #ifdef NO_P2P_NO_GAME
 	if( g_pX2Room->GetNumOfPlayers() > 1 ) 
@@ -5211,83 +5265,12 @@ void CX2Game::KeyProcess()
 	//}}AFX
 #endif NO_P2P_NO_GAME
 	{
-#ifdef REFORM_UI_KEYPAD
 		InputData( GA_LEFT, m_InputData.pureDoubleLeft, m_InputData.oneDoubleLeft, m_InputData.pureLeft, m_InputData.oneLeft );
 		InputData( GA_RIGHT, m_InputData.pureDoubleRight, m_InputData.oneDoubleRight, m_InputData.pureRight, m_InputData.oneRight );
 		InputData( GA_UP, m_InputData.pureDoubleUp, m_InputData.oneDoubleUp, m_InputData.pureUp, m_InputData.oneUp );
 		InputData( GA_DOWN, m_InputData.pureDoubleDown, m_InputData.oneDoubleDown, m_InputData.pureDown, m_InputData.oneDown );
-#else
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_LEFT) == TRUE )
-		{
-			m_InputData.pureDoubleLeft = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_LEFT) == TRUE )
-		{
-			m_InputData.oneDoubleLeft = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_LEFT) == TRUE )
-		{
-			m_InputData.pureLeft = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_LEFT) == TRUE )
-		{
-			m_InputData.oneLeft = true;
-		}
-
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_RIGHT) == TRUE )
-		{
-			m_InputData.pureDoubleRight = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_RIGHT) == TRUE )
-		{
-			m_InputData.oneDoubleRight = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_RIGHT) == TRUE )
-		{
-			m_InputData.pureRight = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_RIGHT) == TRUE )
-		{
-			m_InputData.oneRight = true;
-		}
-
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_UP) == TRUE )
-		{
-			m_InputData.pureDoubleUp = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_UP) == TRUE )
-		{
-			m_InputData.oneDoubleUp = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_UP) == TRUE )
-		{
-			m_InputData.pureUp = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_UP) == TRUE )
-		{
-			m_InputData.oneUp = true;
-		}
-
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_DOWN) == TRUE )
-		{
-			m_InputData.pureDoubleDown = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_DOWN) == TRUE )
-		{
-			m_InputData.oneDoubleDown = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_DOWN) == TRUE )
-		{
-			m_InputData.pureDown = true;
-		}
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_DOWN) == TRUE )
-		{
-			m_InputData.oneDown = true;
-		}
-#endif
 		if ( CheckEnableKeyProcess() == true )
 		{
-#ifdef ADD_TRAININGGAME_NPC
 			if( g_pMain->GetNowStateID() == CX2Main::XS_TRAINING_GAME )
 			{
 				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F5) == TRUE )
@@ -5314,15 +5297,12 @@ void CX2Game::KeyProcess()
 					}
 #endif // SHOW_ATTACK_BOX_DUMMY
 				}
-			}			
-#endif //ADD_TRAININGGAME_NPC
+			}
 
 #ifndef _SERVICE_
 			if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_SPECIAL_USER && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F6) == TRUE )
 			{
-#ifdef ADD_TRAININGGAME_NPC
-				if ( g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
-#endif //ADD_TRAININGGAME_NPC	
+				if ( g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )	
 				{
 					pMyGUUser->SetNowHp( pMyGUUser->GetMaxHp() );
 				}
@@ -5372,19 +5352,42 @@ void CX2Game::KeyProcess()
 						pAraGageData->SetNowForcePower( pAraGageData->GetMaxForcePower() );
 				}
 #endif
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				if( CX2Unit::UT_LIRE == pMyGUUser->GetUnit()->GetType() )
+				{
+					CX2GULire_ElvenRanger* pRena = static_cast<CX2GULire_ElvenRanger*>( pMyGUUser );
+					CX2RenaGageData* pRenaGageData = static_cast<CX2RenaGageData*>( pMyGUUser->GetGageData() );
+					if( NULL != pRenaGageData && NULL != pRena )
+					{
+						pRena->UpNaturalForce(pRenaGageData->GetMaxNaturalForce());
+					}
+				}
+#endif //ADD_RENA_SYSTEM
+
 			}
 
 			if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_SPECIAL_USER )				
 			{
 				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F8) == TRUE )
 				{
-					if ( pMyGUUser->GetHyperModeCount() == pMyGUUser->GetFrameData()->syncData.m_HyperModeCount )
+					if ( pMyGUUser->GetHyperModeCount() == pMyGUUser->GetFrameData().syncData.m_HyperModeCount )
 					{
-						int iHyperModeCount = pMyGUUser->GetHyperModeCount();
-						if ( static_cast<int>( CX2GageUI::PGUWO_ORB3 ) == ++iHyperModeCount )
-							iHyperModeCount = static_cast<int>( CX2GageUI::PGUWO_ORB3 );
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+						/// 애드일 때만, DP 게이지를 풀로 채워주자.
+						if ( CX2Unit::UT_ADD == pMyGUUser->GetUnit()->GetType() )
+						{
+							static_cast<CX2GUAdd*>( pMyGUUser )->SetDPValue( MAX_DP_GAGE_VALUE );
+						}
+						else
+#endif // SERV_9TH_NEW_CHARACTER
+						{
+							int iHyperModeCount = pMyGUUser->GetHyperModeCount();
+							if ( static_cast<int>( CX2GageUI::PGUWO_ORB3 ) == ++iHyperModeCount )
+								iHyperModeCount = static_cast<int>( CX2GageUI::PGUWO_ORB3 );
 
-						pMyGUUser->SetHyperModeCount( iHyperModeCount );
+							pMyGUUser->SetHyperModeCount( iHyperModeCount );
+						}
 					}
 				}
 	#ifdef REALTIME_SCRIPT_PATCH
@@ -5440,8 +5443,19 @@ void CX2Game::KeyProcess()
 								KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 
 #ifdef RIDING_SYSTEM
-							g_pData->ResetRidingPetManager();
+							if( true == GetMyUnit()->GetRidingOn() )
+							{
+								CX2RidingPetManager::GetInstance()->Handler_EGS_UNSUMMON_RIDING_PET_REQ(true);
+							}
+							CX2RidingPetManager::GetInstance()->RefreshRidingPetScript();
 #endif // RIDING_SYSTEM
+
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+							if ( g_pMain->ResetDeveloperScriptSet( L"DevScriptTable.lua" ) == true )
+							{
+								g_pChatBox->AddChatLog( L"DevScriptTable 세팅 완료", KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
+							}
+#endif // EXPAND_DEVELOPER_SCRIPT  // 김종훈, 개발자 스크립트 확장 기능 추가							
 						}
 					} break;
 				default:
@@ -5454,8 +5468,8 @@ void CX2Game::KeyProcess()
 #ifdef PVP_ZOOM_CAMERA
 			if( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_SPECIAL_USER && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F2) == TRUE )
 			{
-				g_pMain->GetGameOption()->ResetAutoCamera();
-				g_pMain->GetGameOption()->SetAutoCamera( !g_pMain->GetGameOption()->GetAutoCamera() );
+				g_pMain->GetGameOption().ResetAutoCamera();
+				g_pMain->GetGameOption().SetAutoCamera( !g_pMain->GetGameOption().GetAutoCamera() );
 			}
 #endif
 
@@ -5464,7 +5478,6 @@ void CX2Game::KeyProcess()
 				( bFocusEditBox == false ) 
 				)
 			{
-#ifdef REFORM_UI_KEYPAD
 				InputData( GA_ATTACK_FAST, m_InputData.pureDoubleZ, m_InputData.oneDoubleZ, m_InputData.pureZ, m_InputData.oneZ ); //DIK_Z
 				InputData( GA_ATTACK_STRONG, m_InputData.pureDoubleX, m_InputData.oneDoubleX, m_InputData.pureX, m_InputData.oneX ); //DIK_X
 
@@ -5533,312 +5546,14 @@ void CX2Game::KeyProcess()
 				}
 #endif //RIDING_SYSTEM
 
-#else
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_Z) == TRUE )
-				{
-					m_InputData.pureDoubleZ = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_Z) == TRUE )
-				{
-					m_InputData.oneDoubleZ = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_Z) == TRUE )
-				{
-					m_InputData.pureZ = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_Z) == TRUE )
-				{
-					m_InputData.oneZ = true;
-				}
-
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_X) == TRUE )
-				{
-					m_InputData.pureDoubleX = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_X) == TRUE )
-				{
-					m_InputData.oneDoubleX = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_X) == TRUE )
-				{
-					m_InputData.pureX = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_X) == TRUE )
-				{
-					m_InputData.oneX = true;
-				}
-#ifdef REFORM_UI_SKILLSLOT
-//스킬 입력키를 변경하기위해 임시로 C->F 수정
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_F) == TRUE )
-				{
-					m_InputData.pureDoubleC = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_F) == TRUE )
-				{
-					m_InputData.oneDoubleC = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_F) == TRUE )
-				{
-					m_InputData.pureC = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F) == TRUE )
-				{
-					m_InputData.oneC = true;
-				}
-#else
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_C) == TRUE )
-				{
-					m_InputData.pureDoubleC = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_C) == TRUE )
-				{
-					m_InputData.oneDoubleC = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_C) == TRUE )
-				{
-					m_InputData.pureC = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_C) == TRUE )
-				{
-					m_InputData.oneC = true;
-				}
-#endif //REFORM_UI_SKILLSLOT
-
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_A) == TRUE )
-				{
-					m_InputData.pureDoubleA = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_A) == TRUE )
-				{
-					m_InputData.oneDoubleA = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_A) == TRUE )
-				{
-					m_InputData.pureA = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_A) == TRUE )
-				{
-					m_InputData.oneA = true;
-				}
-
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_S) == TRUE )
-				{
-					m_InputData.pureDoubleS = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_S) == TRUE )
-				{
-					m_InputData.oneDoubleS = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_S) == TRUE )
-				{
-					m_InputData.pureS = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_S) == TRUE )
-				{
-					m_InputData.oneS = true;
-				}
-
-
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_D) == TRUE )
-				{
-					m_InputData.pureDoubleD = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_D) == TRUE )
-				{
-					m_InputData.oneDoubleD = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_D) == TRUE )
-				{
-					m_InputData.pureD = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_D) == TRUE )
-				{
-					m_InputData.oneD = true;
-				}
-
-//{{오현빈 // 2012-04-30 // 스킬슬롯 체인지 없이 확장 스킬 사용 할 수 있도록 수정
-				if( true == pMyGUUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() )
-				{
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_Q) == TRUE )
-					{
-						m_InputData.pureDoubleQ = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_Q) == TRUE )
-					{
-						m_InputData.oneDoubleQ = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_Q) == TRUE )
-					{
-						m_InputData.pureQ = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_Q) == TRUE )
-					{
-						m_InputData.oneQ = true;
-					}
-
-
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_W) == TRUE )
-					{
-						m_InputData.pureDoubleW = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_W) == TRUE )
-					{
-						m_InputData.oneDoubleW = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_W) == TRUE )
-					{
-						m_InputData.pureW = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_W) == TRUE )
-					{
-						m_InputData.oneW = true;
-					}
-
-
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_E) == TRUE )
-					{
-						m_InputData.pureDoubleE = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_E) == TRUE )
-					{
-						m_InputData.oneDoubleE = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_E) == TRUE )
-					{
-						m_InputData.pureE = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_E) == TRUE )
-					{
-						m_InputData.oneE = true;
-					}
-
-
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_R) == TRUE )
-					{
-						m_InputData.pureDoubleR = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_R) == TRUE )
-					{
-						m_InputData.oneDoubleR = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_R) == TRUE )
-					{
-						m_InputData.pureR = true;
-					}
-					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_R) == TRUE )
-					{
-						m_InputData.oneR = true;
-					}
-				}
-//}}오현빈 // 2012-04-30 // 스킬슬롯 체인지 없이 확장 스킬 사용 할 수 있도록 수정
-
-
-
-#ifdef GRAPPLING_TEST
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_F) == TRUE )
-				{
-					m_InputData.pureDoubleF = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_F) == TRUE )
-				{
-					m_InputData.oneDoubleF = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_F) == TRUE )
-				{
-					m_InputData.pureF = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F) == TRUE )
-				{
-					m_InputData.oneF = true;
-				}
-#endif GRAPPLING_TEST
-
-
-
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_LSHIFT) == TRUE )
-				{
-					m_InputData.pureDoubleLShift = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_LSHIFT) == TRUE )
-				{
-					m_InputData.oneDoubleLShift = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_LSHIFT) == TRUE )
-				{
-					m_InputData.pureLShift = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_LSHIFT) == TRUE )
-				{
-					m_InputData.oneLShift = true;
-				}
-
-
-
-
-				// fix!!! alt키 작동하는지 테스트 해봐야 함
-				//if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_LALT) == TRUE )
-				//{
-				//	m_InputData.pureDoubleLAlt = true;
-				//}
-				//if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_LALT) == TRUE )
-				//{
-				//	m_InputData.oneDoubleLAlt = true;
-				//}
-				//if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_LALT) == TRUE )
-				//{
-				//	m_InputData.pureLAlt = true;
-				//}
-				//if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_LALT) == TRUE )
-				//{
-				//	m_InputData.oneLAlt = true;
-				//}
-#endif
 			}
 			if( bFocusEditBox == false )
 			{
-#ifdef  REFORM_UI_KEYPAD
 				InputData( GA_SLOT_CHANGE, m_InputData.pureDoubleSpace, m_InputData.oneDoubleSpace, m_InputData.pureSpace, m_InputData.oneSpace );	 //DIK_SPACE		
-#else
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_SPACE) == TRUE )
-				{
-					m_InputData.pureDoubleSpace = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_SPACE) == TRUE )
-				{
-					m_InputData.oneDoubleSpace = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_SPACE) == TRUE )
-				{
-					m_InputData.pureSpace = true;
-				}
-				if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_SPACE) == TRUE )
-				{
-					m_InputData.oneSpace = true;
-				}
-#endif  //REFORM_UI_KEYPAD
 			}
 			
 
-#ifdef REFORM_UI_KEYPAD
 			InputData( GA_AWAKE, m_InputData.pureDoubleLCtr, m_InputData.oneDoubleLCtr, m_InputData.pureLCtr, m_InputData.oneLCtr ); //DIK_LCONTROL
-#else
-			if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_LCONTROL) == TRUE )
-			{
-				m_InputData.pureDoubleLCtr = true;
-			}
-			if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_LCONTROL) == TRUE )
-			{
-				m_InputData.oneDoubleLCtr = true;
-			}
-			if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_LCONTROL) == TRUE )
-			{
-				m_InputData.pureLCtr = true;
-			}
-			if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_LCONTROL) == TRUE )
-			{
-				m_InputData.oneLCtr = true;
-			}
-#endif
 		}
 	}
 #ifdef BANDICAM_RECORDING
@@ -5931,7 +5646,7 @@ int	CX2Game::LiveNPCNumType_LUA( CX2UnitManager::NPC_UNIT_ID unitID )
 		if( NULL == pNPC )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_nNPCUnitID == unitID )
+		if( pNPC->GetNPCTemplet().m_nNPCUnitID == unitID )
 		{
 			iCount++;
 		}
@@ -6200,7 +5915,14 @@ void CX2Game::PartyFeverAllUser( float fAddHyperModeTime )
 			if( pUser->GetNowHp() <= 0.f )
 				continue;
 
-			pUser->ForceChangeHyperModeWithoutMotion( fAddHyperModeTime );
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			/// 애드일 땐, DP 150 회복
+			if ( CX2Unit::UT_ADD == pUser->GetUnitType() )
+				pUser->UpNowDPValue( 3000.f );
+			else
+#endif //SERV_9TH_NEW_CHARACTER
+				pUser->ForceChangeHyperModeWithoutMotion( fAddHyperModeTime );
+
 			pUser->SetNowMp( pUser->GetMaxMp() );
 
 		}
@@ -6215,10 +5937,10 @@ void CX2Game::PartyFeverAllUser( float fAddHyperModeTime )
 
 
 
-	g_pX2Game->GetMajorParticle()->CreateSequence( NULL,  L"Fever_Mode", 0,0,0 );
-	g_pX2Game->GetMajorParticle()->CreateSequence( NULL,  L"Fever_Mode01", 0,0,0 );
-	g_pX2Game->GetMajorParticle()->CreateSequence( NULL,  L"Fever_Mode02", 0,0,0 );
-	g_pX2Game->GetMajorParticle()->CreateSequence( NULL,  L"Flare_Fever_Mode03", 512,384,0 );
+	GetMajorParticle()->CreateSequence( NULL,  L"Fever_Mode", 0,0,0 );
+	GetMajorParticle()->CreateSequence( NULL,  L"Fever_Mode01", 0,0,0 );
+	GetMajorParticle()->CreateSequence( NULL,  L"Fever_Mode02", 0,0,0 );
+	GetMajorParticle()->CreateSequence( NULL,  L"Flare_Fever_Mode03", 512,384,0 );
 	
 }
 
@@ -6235,22 +5957,20 @@ bool CX2Game::RebirthUserUnit( UidType unitUID, int startPosIndex )
 
 		//pNpc->ReInit(false, startPosIndex );
 		pNpc->CX2GameUnit::ReInit(false, startPosIndex);
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         pNpc->ReInitExtraWork();
-#endif SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		pNpc->InitPosition( false, startPosIndex );
 		pNpc->SetNowHp( pNpc->GetMaxHp() );
 		pNpc->SetShowObject( true );
 		
 		
-#ifdef PVP_BOT
 		pNpc->SetForceInvincible( 5.f, 5.f );
-#endif
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         pNpc->StateChangeForce( pNpc->GetStartState() );
-#else  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		pNpc->StateChange( pNpc->GetStartState() );
-#endif SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		pNpc->StateChange( pNpc->GetStartState() );
+//#endif SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		pNpc->SetAIEnable(true);
 
 		pNpc->PlaySound( L"Revival.ogg" );
@@ -6478,7 +6198,7 @@ CX2Game::CreateNPC( CX2UnitManager::NPC_UNIT_ID unitID, int level, bool bActive,
 
 				if( NULL != pDungeon )
 				{
-					map< int, wstring >::iterator mit;
+					map< int, string >::iterator mit;
 					if( NULL != pDungeon->GetNowStage() &&
 						NULL != pDungeon->GetNowStage()->GetNowSubStage() &&
 						NULL != pDungeon->GetNowStage()->GetNowSubStage()->GetSubStageData() )
@@ -6500,15 +6220,14 @@ CX2Game::CreateNPC( CX2UnitManager::NPC_UNIT_ID unitID, int level, bool bActive,
 					if ( NULL != pGageManager )
 					{
 						CX2GameUnit* pGameUnitMember 
-							= ( NULL != g_pX2Game ? g_pX2Game->GetNPCUnitByUID( static_cast<int>( pSlotData->m_iNpcUid ) ) : NULL );
+							= GetNPCUnitByUID( static_cast<int>( pSlotData->m_iNpcUid ) );
 						pGageManager->InsertPvpMemberUI( *pSlotData, pNPC );
 						pGageManager->UpdatePvpMemberGageData( pSlotData->m_iNpcUid, pNPC );
 					}
 				}
 			}
 			
-			if ( NULL != g_pX2Game )
-				g_pX2Game->SetNpcHardLevel( pNPC, level );
+			SetNpcHardLevel( pNPC, level );
 
 			pNPC->InitFullName();
 
@@ -6529,7 +6248,11 @@ CX2Game::CreateNPC( CX2UnitManager::NPC_UNIT_ID unitID, int level, bool bActive,
 #ifdef SUMMON_MONSTER_CARD_SYSTEM
 
 	#ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-12
-			if( CX2GUNPC::NCT_NONE == pNPC->GetNPCCreateType() )
+			if( CX2GUNPC::NCT_NONE == pNPC->GetNPCCreateType() 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+				|| CX2GUNPC::NCT_CHANGESTAGE_REMAIN == pNPC->GetNPCCreateType() 
+#endif //FINALITY_SKILL_SYSTEM
+				)
 	#else // SERV_NEW_DEFENCE_DUNGEON
 			if( true != pNPC->GetIsMonsterCard() )
 	#endif // SERV_NEW_DEFENCE_DUNGEON
@@ -6538,113 +6261,33 @@ CX2Game::CreateNPC( CX2UnitManager::NPC_UNIT_ID unitID, int level, bool bActive,
 				// 유저가 소환한 몬스터의 stat은 예외적으로 처리한다
 				SetUserSummonedNPCInfo(eAIType, iAllyUID, pNPC, level, unitID);
 
-#ifdef SERV_IRUHADEV_OFFLINE
-			// AI_PARTY_PLAN.md phase 1. Skip an AI party member's entrance.
-			//
-			// Every NPC is put into its lua START state when it is built
-			// (CX2GUNPC, X2GUNPC.cpp:2621), and for this cast that state is a
-			// card-summon entrance, and playing it reads as a summon rather
-			// than as a party member who was with you all along.
-			//
-			// This used to fire at every STAGE, because the world was torn
-			// down with every NPC in it and CreateOfflinePartyBots re-spawned
-			// the party at the next sub-stage start. Under
-			// SERV_IRUHADEV_AIPARTY_PERSIST a living bot survives that sweep,
-			// so a build now only happens at dungeon entry and after a death
-			// - which makes this matter less often and matter more, since the
-			// two occasions left are the ones the player is watching.
-			//
-			// Dropping straight into the wait state is the whole fix: the ally
-			// AI takes over from there on its next tick. Note the studio
-			// already exempts NAT_ALLY NPCs from the start state that
-			// SubStageStart forces on everything else
-			// (X2DungeonGame.cpp:1116), so this is the same intent applied at
-			// creation, which that exemption does not cover.
-			if( true == pNPC->IsPvpBot() &&
-				CX2Game::GT_DUNGEON == GetGameType() )
-			{
-				if( pNPC->GetCommonState().m_Wait != pNPC->GetStartState() )
-				{
-					pNPC->StateChangeForce( pNPC->GetCommonState().m_Wait, true );
-				}
-
-				// Phase 2. A brief grace period on arrival, matching the one the
-				// studio's own bot revive gives (RebirthUserUnit's bot branch
-				// does SetForceInvincible( 5.f, 5.f ), X2Game.cpp:6199). It
-				// matters because TickOfflinePartyBots respawns a dead party
-				// member AT THE PLAYER - which is very often exactly the
-				// spot, and the moment, that killed it. Without this a bot can
-				// respawn into the same boss attack and die again on the frame
-				// it arrives, forever. Shorter than the studio's five seconds
-				// because this also fires on the ordinary per-stage spawn,
-				// where nothing is threatening it yet.
-				pNPC->SetForceInvincible( 3.f, 3.f );
-
-				// AI_PARTY_PLAN.md phase 4 - gate 3, the HP/MP bar.
-				//
-				// The studio inserts this exactly once, in the GT_PVP arm of the
-				// if/else a hundred lines above (X2Game.cpp:6493), and a dungeon
-				// takes the GT_DUNGEON arm instead - so a bot fought with no bar.
-				// Unlike gates 1 and 2, this one really is on the dungeon path:
-				// CreateNPC is reached in a dungeon through the offline server's
-				// EGS_NPC_UNIT_CREATE_NOT, which is the same thing that gets the
-				// entrance-animation fix above to run at all. Being in CX2Game was
-				// never the evidence; this is.
-				//
-				// Placed here rather than in that arm because the condition is
-				// already tested here and because it is AFTER
-				// SetUserSummonedNPCInfo, so a bar drawn on its first frame is
-				// drawn from the stats the bot will actually fight with.
-				//
-				// The remove-first is what makes a respawn safe.
-				// TickOfflinePartyBots revives a dead party member by deleting its
-				// NPC and letting the ordinary spawn path rebuild it, and it
-				// deliberately leaves the emptied bar on screen for those eight
-				// seconds - a downed party member reads as down, not as gone.
-				// Without this line the rebuild would then stack a second bar on
-				// the same slot UID, and UpdatePvpMemberGageData updates every
-				// match it finds, so the duplicate would never even look wrong.
-				CX2Room::RoomNpcSlot* pBotSlot =
-					( NULL != g_pX2Room ? g_pX2Room->GetNpcSlotData( pNPC->GetUID() ) : NULL );
-
-				CX2GageManager* pBotGageManager = CX2GageManager::GetInstance();
-
-				if( NULL != pBotSlot && NULL != pBotGageManager )
-				{
-					pBotGageManager->RemovePvpMemberUIByUserUid( pBotSlot->m_iNpcUid );
-					pBotGageManager->InsertPvpMemberUI( *pBotSlot, pNPC );
-					pBotGageManager->UpdatePvpMemberGageData( pBotSlot->m_iNpcUid, pNPC );
-				}
-			}
-#endif SERV_IRUHADEV_OFFLINE
 
 
 
 
-
-#ifdef TRANSFORMER_TEST
-
-			if( CX2NPCAI::NAT_NO_BRAIN == eAIType )
-			{
-				CX2GUUser* pUser = GetUserUnitByUID( iAllyUID );
-				if( NULL != pUser )
-				{
-					pUser->SetTransformed( true );
-					pUser->SetTransformer( pNPC );
-					pUser->StateChange( pUser->GetCommonState().m_Transformed );
-					pUser->SetShowObject( false );
-
-					pNPC->SetTransformed( true );
-					pNPC->SetTransformerOwnerUID( iAllyUID );
-					pNPC->SetNowHp( pUser->GetNowHp() );
-
-				}
-				else
-				{
-					pNPC->SetNowHp( 0.f );
-				}
-			}
-#endif TRANSFORMER_TEST
+//#ifdef TRANSFORMER_TEST
+//
+//			if( CX2NPCAI::NAT_NO_BRAIN == eAIType )
+//			{
+//				CX2GUUser* pUser = GetUserUnitByUID( iAllyUID );
+//				if( NULL != pUser )
+//				{
+//					pUser->SetTransformed( true );
+//					pUser->SetTransformer( pNPC );
+//					pUser->StateChange( pUser->GetCommonState().m_Transformed );
+//					pUser->SetShowObject( false );
+//
+//					pNPC->SetTransformed( true );
+//					pNPC->SetTransformerOwnerUID( iAllyUID );
+//					pNPC->SetNowHp( pUser->GetNowHp() );
+//
+//				}
+//				else
+//				{
+//					pNPC->SetNowHp( 0.f );
+//				}
+//			}
+//#endif TRANSFORMER_TEST
 
 
 #ifdef SERV_INSERT_GLOBAL_SERVER
@@ -6667,32 +6310,42 @@ CX2Game::CreateNPC( CX2UnitManager::NPC_UNIT_ID unitID, int level, bool bActive,
 #ifdef  X2OPTIMIZE_UNITTYPE_BUG_FIX
                 CX2GUUser* pUser = pNPC->GetOwnerGameUnit();
 #else   X2OPTIMIZE_UNITTYPE_BUG_FIX
-				CX2GUUser* pUser = g_pX2Game->GetUserUnitByUID( pNPC->GetOwnerGameUnitUID() );
+				CX2GUUser* pUser = GetUserUnitByUID( pNPC->GetOwnerGameUnitUID() );
 #endif  X2OPTIMIZE_UNITTYPE_BUG_FIX
 
-				if( NULL != pUser )		//USer에게 소환된 NPC UID 저장
+#ifdef NO_COPY_CARD_MONSTER_DATA_SHASHA // 카드 몬스터로 제작된 하멜 비던 샤샤에 대한 예외 처리, 13-09-06 kimjh, 나중에 NPC Type 을 추가하거나 인자를 추가하여 변경할 것!
+				if ( pNPC->GetNPCTemplet().m_nNPCUnitID != CX2UnitManager::NUI_SHASHA_STAGE0 &&
+					 pNPC->GetNPCTemplet().m_nNPCUnitID != CX2UnitManager::NUI_SHASHA_STAGE1 &&
+					 pNPC->GetNPCTemplet().m_nNPCUnitID != CX2UnitManager::NUI_SHASHA_STAGE2 )
+#endif // NO_COPY_CARD_MONSTER_DATA_SHASHA // 카드 몬스터로 제작된 하멜 비던 샤샤에 대한 예외 처리, 13-09-06 kimjh, 나중에 NPC Type 을 추가하거나 인자를 추가하여 변경할 것!
 				{
+					if( NULL != pUser )		//USer에게 소환된 NPC UID 저장
+					{
 #ifdef EVENT_MONSTER_CARD_SUMMON_ENEMY
 					// 4마리를 동시에 삭제 시켜주기위해 벡터에 따로 담는다
 					if( static_cast<CX2UnitManager::NPC_UNIT_ID>( EVENT_MONSTER_CARD_ALLY_ID ) == unitID )
 					{
-						pUser->GetSummonMonsterCardData()->SetSummonMonsterUIDInVec( pNPC->GetUID() );
+						pUser->AccessSummonMonsterCardData().SetSummonMonsterUIDInVec( pNPC->GetUID() );
 					}				
 #endif //EVENT_MONSTER_CARD_SUMMON_ENEMY
-					pUser->GetSummonMonsterCardData()->SetSummonMonsterUID( pNPC->GetUID() );
+						pUser->AccessSummonMonsterCardData().SetSummonMonsterUID( pNPC->GetUID() );
 
-					pUser->GetSummonMonsterCardData()->SetSummonMonsterTime( pNPC->GetSummonTime() );
-					if( NULL != g_pData && NULL != g_pData->GetUIEffectSet() )
-					{
-						CX2EffectSet::Handle hEffect =  g_pData->GetUIEffectSet()->PlayEffectSet( L"EffectSet_Summon_Pet", (CX2GameUnit*)pNPC );
+						pUser->AccessSummonMonsterCardData().SetSummonMonsterTime( pNPC->GetSummonTime() );
+						if( NULL != g_pData && NULL != g_pData->GetUIEffectSet() )
+						{
+							CX2EffectSet::Handle hEffect =  g_pData->GetUIEffectSet()->PlayEffectSet( L"EffectSet_Summon_Pet", (CX2GameUnit*)pNPC );
 
-						if( hEffect != CX2EffectSet::INVALID_HANDLE )
-							g_pData->GetUIEffectSet()->GetEffectSetInstance( hEffect )->m_vPosition = pNPC->GetLandPos();
+							if( hEffect != INVALID_EFFECTSET_HANDLE )
+						    {
+                                if ( CX2EffectSet::EffectSetInstance* pEffectSetInst = g_pData->GetUIEffectSet()->GetEffectSetInstance( hEffect ) )
+                                    pEffectSetInst->m_vPosition = pNPC->GetLandPos();
+                            }
+						}
 					}
-				}
-				else	//소환 요청 후, NOT가 오기 전 User가 이탈했다면 해당 NPC 죽임
-				{
-					pNPC->SetNowHp( 0.f );
+					else	//소환 요청 후, NOT가 오기 전 User가 이탈했다면 해당 NPC 죽임
+					{
+						pNPC->SetNowHp( 0.f );
+					}
 				}
 			}
 #endif SUMMON_MONSTER_CARD_SYSTEM
@@ -6713,9 +6366,8 @@ CX2Game::CreateNPC( CX2UnitManager::NPC_UNIT_ID unitID, int level, bool bActive,
 				}
 			}
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-
-			g_pX2Game->AddUnit( (CX2GameUnit*)pNPC );
-			g_pX2Game->SetNPCUnit( index, pNPC );
+			AddUnit( (CX2GameUnit*)pNPC );
+			SetNPCUnit( index, pNPC );
 			g_pKTDXApp->GetDGManager()->AddObjectChain( pNPC );
 		}
 	}
@@ -6983,710 +6635,6 @@ void CX2Game::PushCreateNPCReq( CX2UnitManager::NPC_UNIT_ID unitID, int level, b
 	m_PushCreateNPCReqList.m_vecNPCUnitReq.push_back( kNPCUnitReq );
 }
 
-#ifdef SERV_IRUHADEV_OFFLINE
-//////////////////////////////////////////////////////////////////////////
-// Author: Iruha
-// Date: 2026-09-05
-// Description: AI_PARTY_PLAN.md phase 1. Spawn the AI party members the
-//              offline server put in this dungeon room's bot slots.
-//
-//              A "bot" here is the studio's own PvP-NPC mechanism: a room
-//              slot with KRoomUserInfo::m_bIsPvpNpc set, which
-//              CX2Room::DeleteNpcSlot() has already moved into m_vecNpcSlot
-//              by the time this runs. Using it rather than fake player slots
-//              is what makes the whole feature possible offline:
-//              CX2Room::NetworkProcess() skips m_bNpc slots, so a bot adds no
-//              UDP peer. Three ordinary occupied slots would add three
-//              unreachable peers and hang the dungeon at 80% forever.
-//
-//              WHERE THIS IS CALLED FROM MATTERS, and the plan got it
-//              wrong. The PvP arena spawn sits in
-//              CX2Game::Handler_EGS_PLAY_START_NOT, which is the base
-//              class - but in a DUNGEON that handler is never called at
-//              all: CX2StateDungeonGame routes EGS_PLAY_START_NOT to its
-//              own PlayStartNot(), which calls GameStart() directly
-//              (X2StateDungeonGame.cpp:1692). The real hook is
-//              CX2DungeonGame::SubStageStart(), which is where the studio
-//              itself fills a party out to four with ally NPCs
-//              (CreateAllyEventMonster, X2DungeonGame.cpp:1258). It also
-//              runs at the right MOMENT: at play start the first sub-stage
-//              has not loaded, so there is no placed player to spawn
-//              beside.
-//
-//              Being called once per sub-stage, this has to be idempotent,
-//              and is: a bot whose NPC is already in the world is skipped.
-//              In practice it spawns the party on the very first sub-stage
-//              of the dungeon and is skipped at every call thereafter - a
-//              sub-stage change never removed a bot, and under
-//              SERV_IRUHADEV_AIPARTY_PERSIST a stage change no longer does
-//              either. What is left for it is dungeon entry, a bot that
-//              died, and one that could not be placed on a new stage; the
-//              rest of its calls stand as the recovery path.
-//
-//              Four things here are load-bearing rather than tuning:
-//
-//              * TN_RED. CX2Game::LiveActiveNPCNum() - what
-//                CC_KILL_ALL_ACTIVE_NPC counts - only counts NPCs whose team
-//                is TN_MONSTER, so a bot on the player team does not block
-//                sub-stage clear. On any other team every room becomes
-//                uncompletable.
-//              * NAT_ALLY plus the player's unit UID. That selects
-//                CX2AllyNPCAI (X2GUNPC.cpp:1780), the follow-and-fight AI
-//                the client already has, and hands it the player as the unit
-//                to follow.
-//              * The NPC id comes from the slot's unit class, because no
-//                packet on the dungeon path carries one - m_iNpcId is 0 here.
-//                THIS TABLE IS THE TWIN OF BOT_CAST IN Handlers_Room.cpp.
-//                That one decides the bot's NAME, this one its MODEL, and the
-//                unit class is the only thing joining them. Change one
-//                without the other and a bot is named as someone it is not.
-//              * The position is the player's own, offset sideways. A dungeon
-//                line map has no team start positions to read.
-//////////////////////////////////////////////////////////////////////////
-
-/// How long a sent-but-not-yet-arrived bot spawn request suppresses
-/// another for the same slot. Comfortably longer than the few frames a
-/// create round-trip takes, short enough that a request that produced
-/// nothing is retried before the player notices fighting alone.
-///
-/// Was 3 s while defect 2 made the first request of every stage fail;
-/// now that the position it spawns at is a line-map start slot rather
-/// than an offset from a not-yet-placed player, this should never fire
-/// at all. It is a safety net, not part of the normal path - if
-/// "never arrived" shows up in the log again, something else regressed.
-static const float OFFLINE_BOT_SPAWN_GRACE = 1.5f;
-
-/// Gap between one AI party member's spawn and the next.
-///
-/// The party is spawned ONE AT A TIME rather than in a burst. Building a
-/// CX2GUNPC is not cheap - it loads the hero's skin meshes and runs its
-/// lua state machine, 74-101 states for this cast - and doing three of
-/// them on one frame is a visible hitch at every stage change.
-///
-/// Not done with CreateNPCReq's own fDelayTime, which really does defer
-/// the whole creation (CX2Game::CreateNPC's else branch queues a
-/// CreateNPCData and builds it later). That struct carries no ally-team
-/// and no bNoDrop field (X2Game.h:121), so a bot routed through it would
-/// come back out as an ordinary monster that drops loot and whose hits
-/// pass through every enemy - the same dropped-field failure as phase 1
-/// defect 2, and just as invisible.
-static const float OFFLINE_BOT_SPAWN_INTERVAL = 0.5f;
-
-void CX2Game::CreateOfflinePartyBots()
-{
-	if( false == IsHost() )
-		return;
-
-	// Move any bot slots the room still holds into m_vecNpcSlot. In PvP the
-	// PvP-channel branch of Handler_EGS_PLAY_START_NOT does this; a dungeon
-	// never reaches that handler, so it is done here. Idempotent - it
-	// iterates m_SlotDataList and finds no m_bNpc slot on every later call.
-	g_pX2Room->DeleteNpcSlot();
-
-	std::vector< CX2Room::RoomNpcSlot >& vecNpcSlot = g_pX2Room->GetNpcSlot();
-	if( true == vecNpcSlot.empty() )
-		return;			///< a solo room has no bot slots - the whole scope guard
-
-	// One party member per call, spaced by OFFLINE_BOT_SPAWN_INTERVAL - see
-	// that constant for why a burst is a visible hitch. The countdown lives
-	// in TickOfflinePartyBots, which is also what calls this again for the
-	// second and third bot; SubStageStart's call only starts the sequence.
-	if( m_fOfflineBotSpawnCooldown > 0.f )
-		return;
-
-	CX2GUUser* pMyUnit = GetMyUnit();
-	if( NULL == pMyUnit )
-	{
-		CX2OfflineLog::Server( L"AIPARTY  ERROR no player unit at play start - %u bot slot(s) not spawned",
-			(unsigned int)vecNpcSlot.size() );
-		return;
-	}
-
-	const UidType		myUID	= pMyUnit->GetUnitUID();
-
-	// Placement lives in GetOfflinePartyBotPos, because a stage change no
-	// longer comes through here: with SERV_IRUHADEV_AIPARTY_PERSIST a living
-	// bot survives StageLoading and is repositioned by
-	// RepositionOfflinePartyBots, which has to put it in exactly the place
-	// this function would have spawned it.
-
-	int numNpc = 0;
-
-	for( int i = 0; i < (int)vecNpcSlot.size(); ++i )
-	{
-		CX2Room::RoomNpcSlot& npcSlot = vecNpcSlot[i];
-
-		// Already in the world. This is the ordinary case from the second
-		// sub-stage onwards, and it is what makes calling this per sub-stage
-		// safe rather than a way to end up with four Lowes.
-		if( NULL != GetNPCUnitByUID( (int)npcSlot.m_iNpcUid ) )
-			continue;
-
-		// ALREADY ASKED FOR, AND NOT HERE YET. This is the other half of
-		// the idempotence and it is not optional once anything calls this
-		// more than once a second - phase 2 shipped without it and put SIX
-		// bots in the room, two of every hero.
-		//
-		// The check above is not enough on its own because a spawn is NOT
-		// synchronous. CreateNPCReq only sends EGS_NPC_UNIT_CREATE_REQ; the
-		// NPC is built later, in Handler_EGS_NPC_UNIT_CREATE_NOT, off the
-		// broadcast. The offline server answers the request inside the same
-		// call, but it answers by QUEUEING the NOT onto the session, so the
-		// unit does not exist until the client next pumps its packets -
-		// several frames. Every call landing in that window sees NULL and
-		// asks again. TickOfflinePartyBots, running per frame, made that
-		// window four requests wide; it is the same trap for any future
-		// caller, which is why the guard lives here and not there.
-		std::map< int, float >::iterator itGrace =
-			m_mapOfflineBotSpawnGrace.find( (int)npcSlot.m_iNpcUid );
-
-		if( itGrace != m_mapOfflineBotSpawnGrace.end() && itGrace->second > 0.f )
-			continue;
-
-		CX2UnitManager::NPC_UNIT_ID eNpcID = CX2UnitManager::NUI_NONE;
-
-		switch( (CX2Unit::UNIT_CLASS)npcSlot.m_cUnitClass )
-		{
-		case CX2Unit::UC_ELSWORD_SWORDMAN:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_LOW;				break;
-		case CX2Unit::UC_ARME_VIOLET_MAGE:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_LIME;				break;
-		case CX2Unit::UC_LIRE_ELVEN_RANGER:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_EDAN;				break;
-		case CX2Unit::UC_RAVEN_FIGHTER:			eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_PENENSIO;			break;
-		case CX2Unit::UC_EVE_NASOD:				eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_NOA;				break;
-		case CX2Unit::UC_CHUNG_IRON_CANNON:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_SPIKA;			break;
-		case CX2Unit::UC_ELSWORD_KNIGHT:		eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_AMELIA;			break;
-		case CX2Unit::UC_ELSWORD_MAGIC_KNIGHT:	eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_BALAK;			break;
-		case CX2Unit::UC_LIRE_COMBAT_RANGER:	eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_CODE_Q_PROTO_00;	break;
-		case CX2Unit::UC_LIRE_SNIPING_RANGER:	eNpcID = CX2UnitManager::NUI_CSM_PVP_HERO_APPLE;			break;
-		default:								break;
-		}
-
-		if( CX2UnitManager::NUI_NONE == eNpcID )
-		{
-			CX2OfflineLog::Server( L"AIPARTY  ERROR bot slot uid=%I64d has unit class %d, which maps to no hero - not spawned",
-				(__int64)npcSlot.m_iNpcUid, (int)npcSlot.m_cUnitClass );
-			continue;
-		}
-
-		// Kept on the slot so anything that later asks the room what this bot
-		// is - the PvP result screen already does - gets an answer rather than
-		// the 0 the dungeon path leaves here.
-		npcSlot.m_iNpcId = (int)eNpcID;
-
-		// Where this one goes. Shared with the stage-change reposition so the
-		// two cannot drift apart - see GetOfflinePartyBotPos.
-		D3DXVECTOR3	vPos;
-		bool		bSpawnRight;
-
-		if( false == GetOfflinePartyBotPos( i, vPos, bSpawnRight ) )
-			continue;
-
-		// CreateNPCReq, not PushCreateNPCReq, and the difference is the whole
-		// reason a bot could swing at a monster and take nothing off it.
-		// PushCreateNPCReq never sets KNPCUnitReq::m_cAllyTeam, so the field
-		// keeps its Init() default of 2 = TN_MONSTER (CommonPacket.h:3633) -
-		// and CX2DamageManager skips any hit whose NPC attacker has
-		// GetAllyTeam() == the defender's team (X2DamageManager.cpp:1347), so
-		// every monster in the game counted as the bot's own side. The attack
-		// animation still plays, which is what makes it look like an AI bug
-		// rather than a one-field packet default.
-		//
-		// CreateNPCReq takes eAllyTeam and defaults it to TN_NONE, which is
-		// why both of the studio's own ally spawns use it -
-		// CX2DungeonGame::CreateAllyEventMonster (X2DungeonGame.cpp:3531) and
-		// CX2GUNPC::CreateAllyNpcByMonster_LUA (X2GUNPC.cpp:25680) both pass
-		// TN_NONE explicitly. One packet per bot rather than a batch, which is
-		// what CreateAllyEventMonster does in its own loop too.
-		CreateNPCReq( eNpcID, npcSlot.m_iLevel, true, vPos, bSpawnRight, 0.f,
-			true,								///< bNoDrop - a party member drops nothing
-			-1,									///< no keycode
-			CX2Room::TN_RED,					///< the dungeon player team - see the header
-			CX2NPCAI::NAT_ALLY, myUID,
-			false,								///< not elite
-			CX2Room::TN_NONE );					///< THE FIX - see above
-
-		++numNpc;
-
-		// Arm the in-flight guard above. TickOfflinePartyBots counts it
-		// down and drops it the moment the NPC actually turns up, so a
-		// request that is simply lost is retried when it lapses rather than
-		// leaving the slot empty for the rest of the stage.
-		m_mapOfflineBotSpawnGrace[ (int)npcSlot.m_iNpcUid ] = OFFLINE_BOT_SPAWN_GRACE;
-
-		CX2OfflineLog::Server( L"AIPARTY  spawning bot \"%s\" npcID=%d level=%d slotUID=%I64d at (%.0f, %.0f, %.0f) ally of %I64d",
-			npcSlot.m_wstrNpcName.c_str(), (int)eNpcID, npcSlot.m_iLevel,
-			(__int64)npcSlot.m_iNpcUid, vPos.x, vPos.y, vPos.z, (__int64)myUID );
-
-		// THIS ONE AND NO MORE THIS CALL. The tick comes back for the next
-		// after the interval, so the three mesh-and-lua loads land on three
-		// well-separated frames instead of one.
-		m_fOfflineBotSpawnCooldown = OFFLINE_BOT_SPAWN_INTERVAL;
-		break;
-	}
-
-	// No FlushCreateNPCReq() - CreateNPCReq sends its own packet each time,
-	// and there is only ever one of them per call now.
-	if( numNpc > 0 )
-	{
-		CX2OfflineLog::Server( L"AIPARTY  bot spawn request sent, next in %.1fs if any slot is still empty",
-			OFFLINE_BOT_SPAWN_INTERVAL );
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Author: Iruha
-// Date: 2026-09-06
-// Description: Where AI party member iBotIndex_ belongs on the stage the
-//              client is standing in right now.
-//
-//              Shared by the spawn (CreateOfflinePartyBots) and by the
-//              stage-change reposition (RepositionOfflinePartyBots), which
-//              is the point of it being a function: a bot that is kept
-//              across a stage has to end up exactly where a freshly spawned
-//              one would, or the two paths produce visibly different
-//              parties on the same map.
-//
-//              THE LINE MAP'S OWN START SLOTS, and preferring them over an
-//              offset from the player is what stopped the bots being
-//              silently dropped at every stage change.
-//
-//              CX2Game::CreateNPC builds the unit, calls SetPosition, and
-//              if that cannot find ground under the point it DELETES the
-//              unit and returns - with no log and, in a release build, not
-//              even the assert (X2Game.cpp:6405). At SubStageStart the
-//              player has not been moved to the new stage yet, so GetPos()
-//              still answers with a point on the PREVIOUS stage's map;
-//              every bot offset from it lands nowhere and every one of them
-//              is thrown away. That is phase 2 defect 2.
-//
-//              A start slot is on the map by definition, so SetPosition
-//              cannot fail on it. Slots 1..3 are also exactly where a party
-//              of four is placed, which is a better answer than a
-//              hand-rolled fan-out anyway. The player holds slot 0.
-//
-//              Read through GetStartPosMap rather than GetStartPosition( i ):
-//              m_mapStartPos is a MAP, and GetStartPosition answers a
-//              missing key with (0,0,0) - which is a position SetPosition
-//              would reject, putting the bug straight back.
-//////////////////////////////////////////////////////////////////////////
-bool CX2Game::GetOfflinePartyBotPos( int iBotIndex_, D3DXVECTOR3& vPosOut_, bool& bRightOut_ )
-{
-	CX2GUUser* pMyUnit = GetMyUnit();
-	if( NULL == pMyUnit )
-		return false;
-
-	const D3DXVECTOR3	vMyPos	= pMyUnit->GetPos();
-	const bool			bRight	= pMyUnit->GetIsRight();
-
-	CKTDGLineMap* pLineMap = ( NULL != GetWorld() ? GetWorld()->GetLineMap() : NULL );
-
-	std::vector< int > vecStartKey;
-
-	if( NULL != pLineMap )
-	{
-		std::map< int, D3DXVECTOR3 >& mapStartPos = pLineMap->GetStartPosMap();
-		for( std::map< int, D3DXVECTOR3 >::iterator itStart = mapStartPos.begin();
-			 itStart != mapStartPos.end(); ++itStart )
-		{
-			vecStartKey.push_back( itStart->first );
-		}
-	}
-
-	if( (int)vecStartKey.size() > 1 )
-	{
-		const int iKey = vecStartKey[ ( iBotIndex_ + 1 ) % (int)vecStartKey.size() ];
-
-		vPosOut_	= pLineMap->GetStartPosition( iKey );
-		bRightOut_	= pLineMap->GetStartRight( iKey );
-		return true;
-	}
-
-	// No usable start slots. Fall back to a fan-out around the player:
-	// alternating sides at a widening step, so a party of three sits 60
-	// behind, 80 ahead and 100 behind the way the player faces, rather than
-	// queued up in a line as phase 1's single 60-unit step reads once there
-	// is more than one of them.
-	//
-	// Logged, because this is also the path that silently drops bots when
-	// the player position is stale. If the spawn retries ever come back,
-	// this line is what says whether the line map was the reason.
-	CX2OfflineLog::Server( L"AIPARTY  NOTE line map has %d start slot(s) - placing bots off the player instead",
-		(int)vecStartKey.size() );
-
-	D3DXVECTOR3 vPos = vMyPos;
-
-	vPos.x += ( true == bRight ? -1.f : 1.f ) *
-		( 0 == ( iBotIndex_ % 2 ) ? 1.f : -1.f ) * ( 60.f + 20.f * iBotIndex_ );
-
-	if( NULL != pLineMap )
-	{
-		int iLineIndex = 0;
-		const D3DXVECTOR3 vLanded =
-			pLineMap->GetLandPosition( vPos, LINE_RADIUS, &iLineIndex );
-
-		// Only if it found something NEAR the offset. With no line under the
-		// point, GetLandPosition answers with a far-away fallback - the same
-		// one for every input - and the fan-out collapses into a single
-		// stack of bots.
-		if( fabsf( vLanded.x - vPos.x ) < 200.f &&
-			fabsf( vLanded.y - vPos.y ) < 200.f )
-		{
-			vPos = vLanded;
-		}
-	}
-
-	vPosOut_	= vPos;
-	bRightOut_	= bRight;
-	return true;
-}
-
-#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
-bool CX2Game::IsOfflinePartyBotUID( int iUID_ )
-{
-	if( NULL == g_pX2Room )
-		return false;
-
-	std::vector< CX2Room::RoomNpcSlot >& vecNpcSlot = g_pX2Room->GetNpcSlot();
-
-	for( int i = 0; i < (int)vecNpcSlot.size(); ++i )
-	{
-		if( (int)vecNpcSlot[i].m_iNpcUid == iUID_ )
-			return true;
-	}
-
-	return false;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Author: Iruha
-// Date: 2026-09-06
-// Description: Put the AI party members that survived a stage change onto
-//              the new stage's line map.
-//
-//              This is the other half of the exemption in
-//              DeleteAllNPCUnit, and it is deliberately a mirror of the
-//              m_UserUnitList loop it is called beside
-//              (X2DungeonGame.cpp:814): a real party member is not rebuilt
-//              at a stage change either, it is repositioned and dropped
-//              into its wait state. A bot now costs the same.
-//
-//              Called from StageLoading AFTER the new world is created, so
-//              GetWorld()->GetLineMap() is the new stage's map and
-//              SetPosition re-derives the unit's line index from it. That
-//              ordering is load-bearing: called any earlier this would
-//              place the party on a map that is about to be deleted.
-//
-//              A bot that is NOT in the world here is one that died on the
-//              old stage (DeleteAllNPCUnit spares only living ones) or one
-//              whose spawn never landed. Both are left to
-//              CreateOfflinePartyBots at SubStageStart, which is the path
-//              that was carrying every stage change until now.
-//////////////////////////////////////////////////////////////////////////
-void CX2Game::RepositionOfflinePartyBots()
-{
-	if( NULL == g_pX2Room )
-		return;
-
-	std::vector< CX2Room::RoomNpcSlot >& vecNpcSlot = g_pX2Room->GetNpcSlot();
-	if( true == vecNpcSlot.empty() )
-		return;			///< a solo room has no bot slots - the whole scope guard
-
-	for( int i = 0; i < (int)vecNpcSlot.size(); ++i )
-	{
-		CX2Room::RoomNpcSlot& npcSlot = vecNpcSlot[i];
-
-		CX2GUNPC* pNpc = GetNPCUnitByUID( (int)npcSlot.m_iNpcUid );
-		if( NULL == pNpc )
-			continue;
-
-		D3DXVECTOR3	vPos;
-		bool		bBotRight = true;
-
-		if( false == GetOfflinePartyBotPos( i, vPos, bBotRight ) )
-			continue;
-
-		if( false == pNpc->SetPosition( vPos, bBotRight ) )
-		{
-			// Nowhere to stand on the new map. Leaving it alone is the one
-			// thing that must not happen - its position and line index are
-			// still the OLD stage's - so hand it back to the spawn path,
-			// which is what ran here before this change and is still
-			// correct, only slower.
-			CX2OfflineLog::Server( L"AIPARTY  bot \"%s\" (uid=%I64d) could not be placed at (%.0f, %.0f, %.0f) on the new stage - deleting, the spawn will rebuild it",
-				npcSlot.m_wstrNpcName.c_str(), (__int64)npcSlot.m_iNpcUid,
-				vPos.x, vPos.y, vPos.z );
-
-			DeleteNPCUnitByUID( (UINT)npcSlot.m_iNpcUid );
-			continue;
-		}
-
-		// Whatever it was doing on the old stage is over. The AI's target and
-		// attacker are observer pointers and have already nulled themselves
-		// as the stage's monsters were deleted, so this is about the
-		// animation state rather than about safety - a bot that changed stage
-		// mid-swing would otherwise finish the swing on arrival.
-		if( NULL != pNpc->GetNPCAI() )
-		{
-			pNpc->GetNPCAI()->ResetTarget();
-			pNpc->GetNPCAI()->ResetAttackerGameUnit();
-		}
-
-		if( pNpc->GetCommonState().m_Wait != pNpc->GetNowStateID() )
-			pNpc->StateChangeForce( pNpc->GetCommonState().m_Wait, true );
-
-		// The same arrival grace the spawn path gives (CreateNPC,
-		// X2Game.cpp:6519). A stage can open with the party standing in
-		// something's attack.
-		pNpc->SetForceInvincible( 3.f, 3.f );
-
-		CX2OfflineLog::Server( L"AIPARTY  bot \"%s\" (uid=%I64d) kept across the stage change, moved to (%.0f, %.0f, %.0f)",
-			npcSlot.m_wstrNpcName.c_str(), (__int64)npcSlot.m_iNpcUid,
-			vPos.x, vPos.y, vPos.z );
-	}
-}
-#endif SERV_IRUHADEV_AIPARTY_PERSIST
-
-//////////////////////////////////////////////////////////////////////////
-// Author: Iruha
-// Date: 2026-09-06
-// Description: AI_PARTY_PLAN.md phase 2 - bring a dead AI party member back.
-//
-//              NOTHING IN AN OFFLINE DUNGEON REVIVES A BOT, and the plan
-//              expected otherwise. CX2Game::RebirthUserUnit does have a bot
-//              branch (X2Game.cpp:6179), but the only two things that call it
-//              are CX2Game::Handler_EGS_RESURRECT_TO_CONTINUE_DUNGEON_NOT and
-//              the PvP state's rebirth handler (X2StatePVPGame.cpp:2375). The
-//              first is never sent offline - the offline server refuses
-//              EGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ with ERR_RESURRECT_00
-//              because there are no resurrection stones - and the second is
-//              not on the dungeon path. So the branch sits unreachable here.
-//
-//              Nor does a dead bot go away on its own and get re-spawned by
-//              CreateOfflinePartyBots: the per-frame cleanup that removes
-//              dead NPCs explicitly skips PvP bots (X2Game.cpp:3014), which is
-//              what the PvP revive relies on. The corpse therefore stays in
-//              the world with 0 HP, GetNPCUnitByUID keeps answering, and the
-//              idempotence check in CreateOfflinePartyBots skips it forever.
-//              Left alone a bot that dies is gone until the next STAGE change
-//              rebuilds the world.
-//
-//              This closes that: after RESPAWN_DELAY seconds dead, the bot's
-//              NPC is deleted and the ordinary spawn path re-creates it.
-//              Deliberately not RebirthUserUnit's branch, for two reasons:
-//              it calls InitPosition( false, -1 ), which in a dungeon picks a
-//              RANDOM line-map start position rather than somewhere near the
-//              player, and it forces GetStartState(), which for this cast is
-//              the card-summon entrance that phase 1 defect 3 removed. Delete
-//              and re-create reuses the path that already runs at every stage
-//              change, so the bot comes back at the player, at slot stats,
-//              with its UID handed back by the offline server, and in the
-//              wait state.
-//////////////////////////////////////////////////////////////////////////
-void CX2Game::TickOfflinePartyBots( float fElapsedTime )
-{
-	if( false == IsHost() )
-		return;
-
-	// The dungeon is over and the party has already been sent home. Nothing
-	// below this line has anything left to do - see EndOfflinePartyBots.
-	if( true == m_bOfflinePartyOver )
-		return;
-
-	std::vector< CX2Room::RoomNpcSlot >& vecNpcSlot = g_pX2Room->GetNpcSlot();
-	if( true == vecNpcSlot.empty() )
-		return;			///< a solo room has no bot slots - the whole scope guard
-
-	// The gap between one party member's spawn and the next. This is the
-	// only place it counts down, which is why the staggering needs the tick
-	// and cannot live in CreateOfflinePartyBots alone.
-	if( m_fOfflineBotSpawnCooldown > 0.f )
-		m_fOfflineBotSpawnCooldown -= fElapsedTime;
-
-	/// How long a party member stays down. Long enough to read as a death
-	/// rather than a stumble, short enough that a wiped party is not a solo
-	/// run for the rest of the stage.
-	const float RESPAWN_DELAY = 8.f;
-
-	bool bAnyDue = false;
-
-	for( int i = 0; i < (int)vecNpcSlot.size(); ++i )
-	{
-		CX2Room::RoomNpcSlot& npcSlot = vecNpcSlot[i];
-
-		CX2GUNPC* pNpc = GetNPCUnitByUID( (int)npcSlot.m_iNpcUid );
-		if( NULL == pNpc )
-		{
-			// Not in the world. Either a spawn is still in flight - the NPC
-			// is built several frames after the request, off the offline
-			// server's queued EGS_NPC_UNIT_CREATE_NOT - or it is genuinely
-			// missing and wants re-requesting. The grace timer is what tells
-			// those apart. Asking again while one is in flight is exactly how
-			// phase 2's first build produced six bots.
-			std::map< int, float >::iterator itGrace =
-				m_mapOfflineBotSpawnGrace.find( (int)npcSlot.m_iNpcUid );
-
-			if( itGrace != m_mapOfflineBotSpawnGrace.end() )
-			{
-				itGrace->second -= fElapsedTime;
-
-				if( itGrace->second > 0.f )
-					continue;			///< still on its way
-
-				CX2OfflineLog::Server( L"AIPARTY  bot \"%s\" (uid=%I64d) never arrived after %.0fs - asking again",
-					npcSlot.m_wstrNpcName.c_str(), (__int64)npcSlot.m_iNpcUid,
-					OFFLINE_BOT_SPAWN_GRACE );
-
-				m_mapOfflineBotSpawnGrace.erase( itGrace );
-			}
-
-			bAnyDue = true;
-			continue;
-		}
-
-		// It arrived. Drop the guard so a later death is free to respawn it
-		// the moment its own timer says so.
-		m_mapOfflineBotSpawnGrace.erase( (int)npcSlot.m_iNpcUid );
-
-		// AI_PARTY_PLAN.md phase 4. Keep the party member's HP/MP bar honest.
-		//
-		// A PvP gage set is NOT driven by the gage manager's own frame move:
-		// CX2GageManager::UpdateGageDataFromGameUnit walks only the my-gage and
-		// the party-member list, so a PvP bar is fed by whoever owns the game
-		// type. CX2PVPGame::OnFrameMove does it there, in a loop over the room's
-		// NPC slots (X2PVPGame.cpp:176); this is the same loop, and it lives
-		// here rather than in CX2DungeonGame::OnFrameMove because this function
-		// is already walking every bot slot and has the CX2GUNPC in hand.
-		//
-		// Not moved above the NULL check: a bot whose NPC is gone - dead and
-		// awaiting respawn, or a spawn still in flight - has nothing to read a
-		// percentage off, and UpdatePvpMemberGageData ignores a NULL unit
-		// anyway. The bar simply holds its last value, which for a dead party
-		// member is an empty one, and that is the honest picture.
-		CX2GageManager* pBotGageManager = CX2GageManager::GetInstance();
-
-		if( NULL != pBotGageManager )
-			pBotGageManager->UpdatePvpMemberGageData( npcSlot.m_iNpcUid, pNpc );
-
-		if( pNpc->GetNowHp() > 0.f )
-		{
-			m_mapOfflineBotDeadTime.erase( (int)npcSlot.m_iNpcUid );
-			continue;
-		}
-
-		float& fDead = m_mapOfflineBotDeadTime[ (int)npcSlot.m_iNpcUid ];
-		fDead += fElapsedTime;
-
-		if( fDead < RESPAWN_DELAY )
-			continue;
-
-		CX2OfflineLog::Server( L"AIPARTY  bot \"%s\" (uid=%I64d) was down %.0fs - respawning",
-			npcSlot.m_wstrNpcName.c_str(), (__int64)npcSlot.m_iNpcUid, fDead );
-
-		m_mapOfflineBotDeadTime.erase( (int)npcSlot.m_iNpcUid );
-		DeleteNPCUnitByUID( (UINT)npcSlot.m_iNpcUid );
-
-		bAnyDue = true;
-	}
-
-	// The cooldown is re-checked inside CreateOfflinePartyBots, which is the
-	// authoritative guard because SubStageStart calls it too. Testing it
-	// here as well just avoids the pointless call on most frames.
-	if( true == bAnyDue && m_fOfflineBotSpawnCooldown <= 0.f )
-	{
-		CreateOfflinePartyBots();
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Author: Iruha
-// Date: 2026-09-06
-// Description: AI_PARTY_PLAN.md phase 4b - send the AI party home when the
-//              run is paid out.
-//
-//              THE CLIENT KILLS ITS OWN ALLY NPCS AT DUNGEON CLEAR, and
-//              that is the fact this function exists around. The packet log
-//              of the 2026-09-06 run has it in three lines: the clear
-//              broadcast at 08:11:12.555, then three EGS_NPC_UNIT_DIE_REQ at
-//              .584 with reason KILL_SELF - one per party member. Nothing in
-//              this mod asked for that; it is the studio tidying the field
-//              once there is nothing left to fight.
-//
-//              Two things then went wrong, and they are the same bug seen
-//              from two sides. The bars stayed - empty, because
-//              TickOfflinePartyBots stops updating a bar whose NPC is dead,
-//              and present, because nothing removes a bar until ~CX2Game
-//              clears the lot at the state change several seconds later. And
-//              the tick did what it is built to do with a dead party member:
-//              waited RESPAWN_DELAY, deleted it, and asked for it again -
-//              nine times in four seconds, none of which ever arrived,
-//              because there is no longer a sub-stage to spawn into.
-//
-//              Both stop here. The party is deleted, its bars are removed,
-//              and m_bOfflinePartyOver latches the tick off.
-//
-//              WHY THE RESULT-DATA PACKET is the hook, out of the four
-//              moments available. EGS_DUNGEON_KILLALLNPC_CHECK_NOT (the
-//              clear) is too early - it is the start of a seven-second
-//              victory cinematic the party should still be standing in.
-//              EGS_STATE_CHANGE_RESULT_NOT is too late: it is the state
-//              change itself, and ~CX2Game already cleans up there.
-//              EGS_END_GAME_NOT and EGS_END_GAME_DUNGEON_RESULT_DATA_NOT
-//              arrive 19 ms apart, and of the two it is the second that
-//              fills the reward screen in (g_pData->ResetDungeonResultInfo).
-//              So the party leaves exactly as the rewards come up, which is
-//              where a party that had finished with you would leave.
-//
-//              Not every run reaches here - quitting a dungeon early, or
-//              dying out of one, never produces a result packet. That path
-//              needs nothing: the game object is destroyed on the way out
-//              and ~CX2Game calls ClearPvpMemberUI (X2Game.cpp:775).
-//////////////////////////////////////////////////////////////////////////
-void CX2Game::EndOfflinePartyBots()
-{
-	if( true == m_bOfflinePartyOver )
-		return;
-
-	// Latched before the work, not after, so that nothing this loop does can
-	// re-enter the tick and re-request a bot on the way out.
-	m_bOfflinePartyOver = true;
-
-	m_mapOfflineBotDeadTime.clear();
-	m_mapOfflineBotSpawnGrace.clear();
-	m_fOfflineBotSpawnCooldown = 0.f;
-
-	if( NULL == g_pX2Room )
-		return;
-
-	std::vector< CX2Room::RoomNpcSlot >& vecNpcSlot = g_pX2Room->GetNpcSlot();
-	if( true == vecNpcSlot.empty() )
-		return;			///< a solo room has no bot slots - the whole scope guard
-
-	CX2GageManager* pBotGageManager = CX2GageManager::GetInstance();
-
-	int iRemoved = 0;
-
-	for( int i = 0; i < (int)vecNpcSlot.size(); ++i )
-	{
-		CX2Room::RoomNpcSlot& npcSlot = vecNpcSlot[i];
-
-		// The bar first. It is removed whether or not the unit is still
-		// there, because by this point it usually is not - the corpses of a
-		// party killed at clear are the normal case, and a bar outliving its
-		// unit is the whole defect this closes.
-		if( NULL != pBotGageManager )
-			pBotGageManager->RemovePvpMemberUIByUserUid( npcSlot.m_iNpcUid );
-
-		if( NULL != GetNPCUnitByUID( (int)npcSlot.m_iNpcUid ) )
-		{
-			DeleteNPCUnitByUID( (UINT)npcSlot.m_iNpcUid );
-			++iRemoved;
-		}
-	}
-
-	CX2OfflineLog::Server( L"AIPARTY  dungeon paid out - party stood down (%d of %u still in the world)",
-		iRemoved, (unsigned int)vecNpcSlot.size() );
-}
-#endif SERV_IRUHADEV_OFFLINE
-
 void CX2Game::PushCreateNPCReq_Lua( int unitID, int level, bool bActive, 
 								   D3DXVECTOR3 vPos, bool bRight, float fDelayTime, bool bNoDrop, int iKeyCode )
 {
@@ -7876,6 +6824,81 @@ bool CX2Game::Handler_EGS_NPC_UNIT_CREATE_NOT( HWND hWnd, UINT uMsg, WPARAM wPar
 	return true;
 }
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+bool CX2Game::Handler_EGS_USE_FINALITY_SKILL_REQ()
+{
+	KEGS_USE_FINALITY_SKILL_REQ kPacket;
+
+	kPacket.m_iItemUID = 0;
+	kPacket.m_bNoConsume = true;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_USE_FINALITY_SKILL_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_USE_FINALITY_SKILL_ACK );
+
+	return true;
+}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+
+bool CX2Game::Handler_EGS_USE_FINALITY_SKILL_REQ( UidType itemUID_ )
+{
+	KEGS_USE_FINALITY_SKILL_REQ kPacket;
+
+	kPacket.m_iItemUID = itemUID_;
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+	kPacket.m_bNoConsume = false;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+	
+	g_pData->GetServerProtocol()->SendPacket( EGS_USE_FINALITY_SKILL_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_USE_FINALITY_SKILL_ACK );
+
+	return true;
+}
+
+bool CX2Game::Handler_EGS_USE_FINALITY_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_USE_FINALITY_SKILL_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if( g_pMain->DeleteServerPacket( EGS_USE_FINALITY_SKILL_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+			if( true == kEvent.m_bNoConsume )
+				return true;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+
+			g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+
+			const int iItemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+			switch ( iItemNum )
+			{
+			case 100:
+				g_pChatBox->AddChatLog( GET_STRING( STR_ID_26389 ), KEGS_CHAT_REQ::CPT_TOTAL, D3DXCOLOR(0,1,0,1), L"#C00FF00", false );
+				break;
+
+			case 50:
+				g_pChatBox->AddChatLog( GET_STRING( STR_ID_26390 ), KEGS_CHAT_REQ::CPT_TOTAL, D3DXCOLOR(0,1,0,1), L"#C00FF00", false );
+				break;
+
+			case 10:
+				g_pChatBox->AddChatLog( GET_STRING( STR_ID_26391 ), KEGS_CHAT_REQ::CPT_TOTAL, D3DXCOLOR(0,1,0,1), L"#C00FF00", false );
+				break;
+
+			default:
+				break;
+			}
+			return true;
+		}
+	}
+
+	return false;	
+}
+#endif //FINALITY_SKILL_SYSTEM
+
 #ifdef SERV_INSERT_GLOBAL_SERVER // oasis907 : 김상윤 [2011.4.20]
 bool CX2Game::Handler_EGS_CREATE_ATTRIB_NPC_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
@@ -7942,9 +6965,7 @@ ELSWORD_VIRTUALIZER_START
 		}
 	}
 
-#ifdef ADD_CHECK_NPC_DIE_PACKET
 	--m_iNpcDiePacket;
-#endif
 
 ELSWORD_VIRTUALIZER_END
 
@@ -7993,9 +7014,9 @@ ELSWORD_VIRTUALIZER_END
 #endif
 			
 #ifdef	SERV_TRAPPING_RANGER_TEST
-		if( pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == CX2UnitManager::NUI_EVOKE_TRAP_LIRE 
+		if( pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_EVOKE_TRAP_LIRE 
 #ifdef ADDITIONAL_MEMO
-			|| pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == CX2UnitManager::NUI_EVOKE_TRAP_LIRE_MEMO 
+			|| pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_EVOKE_TRAP_LIRE_MEMO 
 #endif
 			)
 		{
@@ -8009,8 +7030,8 @@ ELSWORD_VIRTUALIZER_END
 #endif	SERV_TRAPPING_RANGER_TEST
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
-		if( pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY 
-			||  pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == CX2UnitManager::NUI_RENA_ANGER_OF_ELF )
+		if( pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY 
+			||  pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_RENA_ANGER_OF_ELF )
 		{
 			CX2GUUser* pUser = static_cast<CX2GUUser*>( pCX2GUNPC->GetOwnerGameUnit() );
 			if( pUser != NULL && pUser->GetUnit()->GetType() == CX2Unit::UT_LIRE )
@@ -8023,7 +7044,7 @@ ELSWORD_VIRTUALIZER_END
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef	SERV_CHUNG_TACTICAL_TROOPER
-		if( pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == CX2UnitManager::NUI_REMOTE_MORTAR )
+		if( pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_REMOTE_MORTAR )
 		{
 			CX2GUUser* pUser = static_cast<CX2GUUser*>( pCX2GUNPC->GetOwnerGameUnit() );
 			if( pUser != NULL && pUser->GetUnit()->GetType() == CX2Unit::UT_CHUNG )
@@ -8040,6 +7061,21 @@ ELSWORD_VIRTUALIZER_END
 			}
 		}
 #endif	SERV_CHUNG_TACTICAL_TROOPER
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	//	ProcessSummonNPCDieEvent( kEvent );
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef ADD_RENA_SYSTEM //김창한
+		//유저가 소환한 npc가 죽었을 경우 공격을 성공하지 못했을 경우를 대비해
+		//스킬 관련 데이터를 체크해서 지워준다
+		CX2GUUser* pUser = static_cast<CX2GUUser*>( pCX2GUNPC->GetOwnerGameUnit() );
+		if( NULL != pUser)
+		{
+			if( true == pUser->CheckDamageRelateSkillData( pCX2GUNPC->GetRelateSkillData() ) )
+				pUser->DeleteDamageRelateSkillData( pCX2GUNPC->GetRelateSkillData() );
+		}
+#endif //ADD_RENA_SYSTEM
 	}
 
 	return true;
@@ -8118,9 +7154,7 @@ bool CX2Game::NPCUnitDieReq( char cAttUnitType, int iNPCUID, UidType uiAttUnit, 
 		return NPCUnitDieReq( cAttUnitType, iNPCUID, uiAttUnit, uiMDAttUnit, diePos, KEGS_NPC_UNIT_DIE_REQ::NDS_KILL_BY_USER );
 	}
 
-#ifdef ADD_CHECK_NPC_DIE_PACKET
 	++m_iNpcDiePacket;
-#endif
 
 	ELSWORD_VIRTUALIZER_END
 }
@@ -8154,9 +7188,7 @@ bool CX2Game::NPCUnitDieReq( char cAttUnitType, int iNPCUID, UidType uiAttUnit, 
 	g_pData->GetServerProtocol()->SendPacket( EGS_NPC_UNIT_DIE_REQ, kPacket );
 	//g_pMain->AddServerPacket( EGS_NPC_UNIT_DIE_ACK, 60.f );
 
-#ifdef ADD_CHECK_NPC_DIE_PACKET
 	++m_iNpcDiePacket;
-#endif
 
 	THEMIDA_ENCODE_END
 
@@ -8271,7 +7303,7 @@ bool CX2Game::Handler_EGS_UPDATE_UNIT_INFO_NOT( KEGS_UPDATE_UNIT_INFO_NOT& kEGS_
 			if ( pSlotData->m_pUnit->GetUID() == kEGS_UPDATE_UNIT_INFO_NOT.m_kUnitInfo.m_nUnitUID )
 			{
 				pSlotData->m_pUnit->Reset( kEGS_UPDATE_UNIT_INFO_NOT.m_kUnitInfo );
-				pSlotData->m_pUnit->GetInventory()->UpdateInventorySlotList( kEGS_UPDATE_UNIT_INFO_NOT.m_vecKInventorySlotInfo );
+				pSlotData->m_pUnit->AccessInventory().UpdateInventorySlotList( kEGS_UPDATE_UNIT_INFO_NOT.m_vecKInventorySlotInfo );
 
 
 				// 던전게임 끝나면서 경험치 업데이트되었기 때문에 게임중 실시간 경험치 임시로 저장하던 데이터를 초기화한다.
@@ -8316,7 +7348,7 @@ void CX2Game::ProcessExpListByNpcUnitDie( const KEGS_NPC_UNIT_DIE_NOT& kEvent )
 #else SERV_NEW_EVENT_TYPES
 			const int iMaxEXP = g_pData->GetEXPTable()->GetEXPData( _CONST_X2GAME_::g_iMaxLevel ).m_nTotalExp;
 #endif SERV_NEW_EVENT_TYPES
-			pMyUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+			pMyUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 
 			if ( pMyUnitData->m_EXP >= iMaxEXP )
 			{
@@ -8406,7 +7438,7 @@ void CX2Game::ProcessExpListByNpcUnitDie( const KEGS_NPC_UNIT_DIE_NOT& kEvent )
 			strstm << GET_STRING( STR_ID_4402 ) << L" ";
 #endif _LANGUAGE_FIX_TW_HK
 
-			strstm << pCX2GUNPC->GetNPCTemplet()->m_Name.c_str();
+			strstm << pCX2GUNPC->GetNPCTemplet().m_Name.c_str();
 
 
 			if( kEXPData.m_iEXP >= 0 )
@@ -8437,13 +7469,35 @@ void CX2Game::ProcessExpListByNpcUnitDie( const KEGS_NPC_UNIT_DIE_NOT& kEvent )
 			if( -1 != kEvent.m_uiAttUnit && 				
 				GetMyUnit()->GetUnitUID() == kEvent.m_uiAttUnit )
 			{
-				GetMyUnit()->GetUnit()->GetUnitData()->m_DailyAchievement.m_iKillCount += 1;
+				GetMyUnit()->GetUnit()->AccessUnitData().m_DailyAchievement.m_iKillCount += 1;
 			}
 		}
 #endif TODAY_RECORD_TEST
 	}
 
 }
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+//void CX2Game::ProcessSummonNPCDieEvent( const KEGS_NPC_UNIT_DIE_NOT& kEvent )
+//{
+//	CX2GUNPC* pCX2GUNPC = GetNPCUnitByUID( kEvent.m_nDieNPCUID );
+//	if( pCX2GUNPC != NULL )
+//	{
+//		if( pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_SI_HA_FERDINAND )
+//		{
+//			CX2GUUser* pUser = static_cast<CX2GUUser*>( pCX2GUNPC->GetOwnerGameUnit() );
+//			if( pUser != NULL && pUser->GetUnit()->GetType() == CX2Unit::UT_EVE )
+//			{
+//				CX2GUEve* pEve = static_cast<CX2GUEve*>( pUser );
+//				if( NULL != pEve )
+//				{
+//					pEve->ResetLinkOverChargeIllusion();
+//				}
+//			}
+//		}
+//	}
+//}
+#endif //FINALITY_SKILL_SYSTEM
 
 //bool CX2Game::Handler_EGS_NOTIFY_MSG_NOT( KEGS_NOTIFY_MSG_NOT& kEGS_NOTIFY_MSG_NOT )
 //{
@@ -8482,6 +7536,22 @@ bool CX2Game::Handler_EGS_JOIN_ROOM_NOT( KEGS_JOIN_ROOM_NOT& kEGS_JOIN_ROOM_NOT 
 		CX2Room::SlotData* pSlotData = g_pX2Room->GetSlotDataByUnitUID( kEGS_JOIN_ROOM_NOT.m_JoinSlot.m_kRoomUserInfo.m_nUnitUID );
 		if( pSlotData != NULL )
 		{
+#ifdef SETTING_BATTLE_FIELD_ENEMY_TEAM_FOR_TEST_PVE_SYSTEM
+			if( NULL != pSlotData->m_pUnit )
+			{
+				switch( pSlotData->m_pUnit->GetType() )
+				{
+				case CX2Unit::UT_ARA:
+				case CX2Unit::UT_ARME:
+				case CX2Unit::UT_LIRE:
+				case CX2Unit::UT_EVE:
+					pSlotData->m_TeamNum = 1;
+				default:
+					break;
+				}
+			}
+#endif // SETTING_BATTLE_FIELD_ENEMY_TEAM_FOR_TEST_PVE_SYSTEM
+
 			CX2Unit* pCX2Unit = pSlotData->m_pUnit;
 			if( pCX2Unit != NULL )
 			{
@@ -8573,8 +7643,7 @@ bool CX2Game::Handler_EGS_LEAVE_ROOM_REQ( int leaveRoomReason /* = NetError::NOT
 		kPacket.m_kResultInfo.m_iDashCount				= pCX2GUUser->GetUsingDashCount();
 #endif //DUNGEON_DASH_LOG
 #ifdef SERV_USE_SKILL_SLOT_TYPE_LOG 
-		if( NULL != g_pMain->GetGameOption() )
-			kPacket.m_kResultInfo.m_bSkillSlotType = g_pMain->GetGameOption()->GetIsSkillUITypeA();
+			kPacket.m_kResultInfo.m_bSkillSlotType = g_pMain->GetGameOption().GetIsSkillUITypeA();
 #endif //SERV_USE_SKILL_SLOT_TYPE_LOG 
 
 	}
@@ -8830,20 +7899,20 @@ bool CX2Game::Handler_EGS_LEAVE_GAME_NOT( KEGS_LEAVE_GAME_NOT& kEGS_LEAVE_GAME_N
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 
 	UpdateUnitPointer();
-#ifndef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-//#ifdef	BATTLE_FIELD_TEST
-	//FieldTest
-	BOOST_FOREACH( const KRoomSlotInfo& kRoomSlotInfo, kEGS_LEAVE_GAME_NOT.m_vecSlot )
-	{
-		if ( true == kRoomSlotInfo.m_bHost )
-		{
-			CX2GUUser* pHostGUUser = GetUserUnitByUID( kRoomSlotInfo.m_kRoomUserInfo.m_nUnitUID );
-			g_pX2Game->SetHostGameUnit( pHostGUUser );
-		}
-	}		
-//#endif	BATTLE_FIELD_TEST
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+////#ifdef	BATTLE_FIELD_TEST
+//	//FieldTest
+//	BOOST_FOREACH( const KRoomSlotInfo& kRoomSlotInfo, kEGS_LEAVE_GAME_NOT.m_vecSlot )
+//	{
+//		if ( true == kRoomSlotInfo.m_bHost )
+//		{
+//			CX2GUUser* pHostGUUser = GetUserUnitByUID( kRoomSlotInfo.m_kRoomUserInfo.m_nUnitUID );
+//			SetHostGameUnit( pHostGUUser );
+//		}
+//	}		
+////#endif	BATTLE_FIELD_TEST
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	return true;
 }
@@ -8883,33 +7952,12 @@ bool CX2Game::Handler_EGS_PLAY_START_NOT( KEGS_PLAY_START_NOT& kEGS_PLAY_START_N
 	g_pX2Room->Set_KRoomSlotInfoList( kEGS_PLAY_START_NOT.m_vecSlot );
 
 #ifdef SERV_PVP_NEW_SYSTEM
-#ifdef SERV_IRUHADEV_OFFLINE
-	// AI_PARTY_PLAN.md phase 1, gate 1 of 3. A dungeon room can now carry
-	// bot slots too (the auto-party button), so the slots have to reach
-	// m_vecNpcSlot on that path as well - otherwise they stay in
-	// m_SlotDataList as slots AddUserUnit() skips and nothing else claims,
-	// and no bot is ever spawned.
-	//
-	// The ESC branch below is deliberately NOT folded into the else: it is
-	// what every non-PvP-channel game, dungeons included, has always taken,
-	// and moving dungeons out of it would change ESC handling for the solo
-	// button as a side effect of adding bots. So the two conditions are
-	// separate here even though the studio's original was one if/else.
-	if( g_pMain->GetConnectedChannelID() == KPVPChannelInfo::PCC_OFFICIAL ||
-		CX2Game::GT_DUNGEON == GetGameType() )
-	{
-		g_pX2Room->DeleteNpcSlot();
-	}
-
-	if( g_pMain->GetConnectedChannelID() != KPVPChannelInfo::PCC_OFFICIAL )
-#else
 	if( g_pMain->GetConnectedChannelID() == KPVPChannelInfo::PCC_OFFICIAL )
 	{
 		g_pX2Room->DeleteNpcSlot();
 	}
-	else
-#endif SERV_IRUHADEV_OFFLINE
-	{	// 공식대전이 아닌 경우에만
+	else	// 공식대전이 아닌 경우에만
+	{
 		//{{ kimhc // 게임 로딩이 끝날때 까지 ESC 처리 안되게 하는 작업 // 2009-06-08
 		SetCanUseEscFlag( true );
 		//}} kimhc // 게임 로딩이 끝날때 까지 ESC 처리 안되게 하는 작업 // 2009-06-08
@@ -8934,12 +7982,12 @@ bool CX2Game::Handler_EGS_PLAY_START_NOT( KEGS_PLAY_START_NOT& kEGS_PLAY_START_N
 				if( true == pPVPRoom->GetPVPGameOption().m_bBaseDefence ) // 만약에 pvp base defence 이면 base monster 생성 패킷을 보낸다
 				{
 
-					D3DXVECTOR3 vRedTeamPosition = g_pX2Game->GetWorld()->GetLineMap()->GetRandomPosition( NULL, 0.f, false );
-					D3DXVECTOR3 vBlueTeamPosition = g_pX2Game->GetWorld()->GetLineMap()->GetRandomPosition( NULL, 0.f, false );
+					D3DXVECTOR3 vRedTeamPosition = GetWorld()->GetLineMap()->GetRandomPosition( NULL, 0.f, false );
+					D3DXVECTOR3 vBlueTeamPosition = GetWorld()->GetLineMap()->GetRandomPosition( NULL, 0.f, false );
 
-					g_pX2Game->PushCreateNPCReq( CX2UnitManager::NUI_STATUE_OF_RED, 10, true, vRedTeamPosition, true, 0.f, true, -1, CX2Room::TN_RED, CX2NPCAI::NAT_NORMAL, -1 );
-					g_pX2Game->PushCreateNPCReq( CX2UnitManager::NUI_STATUE_OF_BLUE, 10, true, vBlueTeamPosition, true, 0.f, true, -1, CX2Room::TN_BLUE, CX2NPCAI::NAT_NORMAL, -1 );
-					g_pX2Game->FlushCreateNPCReq();
+					PushCreateNPCReq( CX2UnitManager::NUI_STATUE_OF_RED, 10, true, vRedTeamPosition, true, 0.f, true, -1, CX2Room::TN_RED, CX2NPCAI::NAT_NORMAL, -1 );
+					PushCreateNPCReq( CX2UnitManager::NUI_STATUE_OF_BLUE, 10, true, vBlueTeamPosition, true, 0.f, true, -1, CX2Room::TN_BLUE, CX2NPCAI::NAT_NORMAL, -1 );
+					FlushCreateNPCReq();
 
 				}
 
@@ -8955,20 +8003,6 @@ bool CX2Game::Handler_EGS_PLAY_START_NOT( KEGS_PLAY_START_NOT& kEGS_PLAY_START_N
 	if( m_pWorld != NULL )
 		pLineMap = m_pWorld->GetLineMap();
 		
-#ifdef SERV_IRUHADEV_OFFLINE
-	// AI_PARTY_PLAN.md phase 1, gate 2 of 3. The loop below is built for a
-	// PvP arena: it places every bot at GetBlueTeamStartPosition() on
-	// TN_BLUE with NAT_NORMAL AI - the enemy side of a versus map. A dungeon
-	// line map has no blue team start, and TN_BLUE would make the bots
-	// hostile AND count them in LiveActiveNPCNum(), so no sub-stage would
-	// ever clear. A dungeon takes CreateOfflinePartyBots() instead; a PvP
-	// match still takes the studio's loop, untouched.
-	if( CX2Game::GT_DUNGEON == GetGameType() )
-	{
-		CreateOfflinePartyBots();
-	}
-	else
-#endif SERV_IRUHADEV_OFFLINE
 	if( pLineMap != NULL )
 	{
 		int numNpc = 0;
@@ -8985,14 +8019,14 @@ bool CX2Game::Handler_EGS_PLAY_START_NOT( KEGS_PLAY_START_NOT& kEGS_PLAY_START_N
 			bool bRight				= pLineMap->GetBlueTeamStartRight( index );
 			int lineIndex			= pLineMap->GetBlueTeamStartLineIndex( index );
 
-			g_pX2Game->PushCreateNPCReq( (CX2UnitManager::NPC_UNIT_ID)npcSlot.m_iNpcId, npcSlot.m_iLevel, true, 
-				startPos, bRight, 0.f, true, -1, (CX2Room::TEAM_NUM)CX2Room::TN_BLUE, CX2NPCAI::NAT_NORMAL, -1 );
+			PushCreateNPCReq( (CX2UnitManager::NPC_UNIT_ID)npcSlot.m_iNpcId, npcSlot.m_iLevel, true, 
+				startPos, bRight, 0.f, true, PVP_NPC_KEY_CODE, (CX2Room::TEAM_NUM)CX2Room::TN_BLUE, CX2NPCAI::NAT_NORMAL, -1 );
 			++numNpc;
 			
 		}
 
 		if( numNpc > 0 )
-			g_pX2Game->FlushCreateNPCReq();
+			FlushCreateNPCReq();
 	}	
 #endif
 
@@ -9004,11 +8038,11 @@ bool CX2Game::Handler_EGS_PLAY_START_NOT( KEGS_PLAY_START_NOT& kEGS_PLAY_START_N
 		std::vector< CX2World::WorldMonsterData >& vecWorldMonsterData = m_pWorld->GetVecWorldMonsterData();
 		BOOST_TEST_FOREACH( CX2World::WorldMonsterData&, worldMonsterData, vecWorldMonsterData )
 		{
-			g_pX2Game->PushCreateNPCReq( (CX2UnitManager::NPC_UNIT_ID) worldMonsterData.m_iNPCID, worldMonsterData.m_iLevel, true, worldMonsterData.m_vPosition, true, 0.f, true, -1, 
+			PushCreateNPCReq( (CX2UnitManager::NPC_UNIT_ID) worldMonsterData.m_iNPCID, worldMonsterData.m_iLevel, true, worldMonsterData.m_vPosition, true, 0.f, true, -1, 
 				(CX2Room::TEAM_NUM) worldMonsterData.m_iTeamNumber, CX2NPCAI::NAT_NORMAL, -1 );
 		}
 
-		g_pX2Game->FlushCreateNPCReq();
+		FlushCreateNPCReq();
 		vecWorldMonsterData.clear();
 	}
 	
@@ -9066,9 +8100,7 @@ bool CX2Game::Handler_EGS_INTRUDE_START_REQ()
 		kEGS_INTRUDE_START_REQ.m_StartPosIndex = 0;
 
 	if( GetMyUnit() != NULL )
-    {
 		GetMyUnit()->InitPosition( false, kEGS_INTRUDE_START_REQ.m_StartPosIndex );
-    }
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_INTRUDE_START_REQ, kEGS_INTRUDE_START_REQ );
 	g_pMain->AddServerPacket( EGS_INTRUDE_START_ACK );
@@ -9196,7 +8228,19 @@ bool CX2Game::Handler_EGS_DROP_ITEM_NOT( KEGS_DROP_ITEM_NOT& kEGS_DROP_ITEM_NOT 
 
 		const KDropItemData& dropData = kEGS_DROP_ITEM_NOT.m_DropItemDataList[i];
 #ifdef SERV_ENCHANT_ITEM_DROP_EVENT ///드랍되는 장비 아이템에 강화수치 추가
-		m_pDropItemManager->AddDropItem( dropData.m_iItemID, dropData.m_iDropItemUID, D3DXVECTOR3( kEGS_DROP_ITEM_NOT.m_CreatePos.x, kEGS_DROP_ITEM_NOT.m_CreatePos.y, kEGS_DROP_ITEM_NOT.m_CreatePos.z ), dropData.m_bLeft, dropData.m_fSpeed, 20.f, dropData.m_cEnchantLevel );
+
+#ifdef FIELD_BOSS_RAID // 드랍 아이템 유지 시간 변경
+		if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+		{
+			m_pDropItemManager->AddDropItem( dropData.m_iItemID, dropData.m_iDropItemUID, 
+				D3DXVECTOR3( kEGS_DROP_ITEM_NOT.m_CreatePos.x, kEGS_DROP_ITEM_NOT.m_CreatePos.y, kEGS_DROP_ITEM_NOT.m_CreatePos.z ), 
+				dropData.m_bLeft, dropData.m_fSpeed, 60.f, dropData.m_cEnchantLevel );
+		}
+		else
+#endif // FIELD_BOSS_RAID
+		{
+			m_pDropItemManager->AddDropItem( dropData.m_iItemID, dropData.m_iDropItemUID, D3DXVECTOR3( kEGS_DROP_ITEM_NOT.m_CreatePos.x, kEGS_DROP_ITEM_NOT.m_CreatePos.y, kEGS_DROP_ITEM_NOT.m_CreatePos.z ), dropData.m_bLeft, dropData.m_fSpeed, 20.f, dropData.m_cEnchantLevel );
+		}
 #else  SERV_ENCHANT_ITEM_DROP_EVENT
 		m_pDropItemManager->AddDropItem( dropData.m_iItemID, dropData.m_iDropItemUID, D3DXVECTOR3( kEGS_DROP_ITEM_NOT.m_CreatePos.x, kEGS_DROP_ITEM_NOT.m_CreatePos.y, kEGS_DROP_ITEM_NOT.m_CreatePos.z ), dropData.m_bLeft, dropData.m_fSpeed );
 #endif SERV_ENCHANT_ITEM_DROP_EVENT
@@ -9256,9 +8300,8 @@ bool CX2Game::Handler_EGS_GET_ITEM_REQ( UidType itemUID )
 	{
 #ifdef RECHECK_GETIETMREQ_OVERDIST
 		D3DXVECTOR3 vItemPos( 0.f, 0.f, 0.f );
-		if( g_pX2Game != NULL && 
-			g_pX2Game->IsHost() == true && 
-			g_pX2Game->GetUserUnitNum() == 1 &&
+		if( IsHost() == true && 
+			GetUserUnitNum() == 1 &&
 			m_pDropItemManager->GetDropItemPositionByUid( (int)itemUID, vItemPos ) == true )
 		{
 			D3DXVECTOR3 vDist = GetMyUnit()->GetPos() - vItemPos;
@@ -9269,8 +8312,8 @@ bool CX2Game::Handler_EGS_GET_ITEM_REQ( UidType itemUID )
 				{
 					g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
 
-					if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL )
-						g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+					if( g_pData != NULL && g_pData->GetMyUser() != NULL )
+						g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 				}		
 
 #ifdef ADD_COLLECT_CLIENT_INFO
@@ -9310,9 +8353,9 @@ bool CX2Game::Handler_EGS_GET_ITEM_ACK( KEGS_GET_ITEM_ACK& kEGS_GET_ITEM_ACK )
 
 bool CX2Game::Handler_EGS_GET_ITEM_NOT( KEGS_GET_ITEM_NOT& kEGS_GET_ITEM_NOT )
 {
-#ifndef NOT_USE_DICE_ROLL
-	bool bDiceRolling = false;
-#endif //NOT_USE_DICE_ROLL
+//#ifndef NOT_USE_DICE_ROLL
+//	bool bDiceRolling = false;
+//#endif //NOT_USE_DICE_ROLL
 	
 	int itemID = -1;
 	const CX2Item::ItemTemplet* pItemTemplet = NULL;
@@ -9326,50 +8369,50 @@ bool CX2Game::Handler_EGS_GET_ITEM_NOT( KEGS_GET_ITEM_NOT& kEGS_GET_ITEM_NOT )
 		m_pDropItemManager->GetDropItem( kEGS_GET_ITEM_NOT.m_iDropItemUID, kEGS_GET_ITEM_NOT.m_GetUnitUID,
 										itemID, pItemTemplet);// OUT인자로 ItemID와 pItemTemplet얻기
 
-#ifndef NOT_USE_DICE_ROLL
-
-		const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( itemID );
-		if( NULL == pItemTemplet )
-			return false;
-
-		if( NULL != g_pX2Room && 
-			false == CX2ItemManager::IsEDItem( itemID ) && 
-			//NULL != pItemTemplet &&
-			CX2Item::IT_OUTLAY != pItemTemplet->GetItemType() &&
-			LiveUserUnitNum() > 1 ) // user가 2명 이상이면
-		{
-			CX2DungeonRoom* pDungeonRoom = (CX2DungeonRoom*) g_pX2Room;
-			switch( pDungeonRoom->GetDungeonGetItemType() )
-			{
-			case CX2DungeonRoom::DGIT_RANDOM:
-				{
-#ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
-					CSLock locker( m_csGameIntruder );
-#endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
-					for( UINT i=0; i<m_UserUnitList.size(); i++ )
-					{
-						CX2GUUser* pGUUser = m_UserUnitList[i];
-						if( NULL != pGUUser && CX2GameUnit::GUSI_DIE != pGUUser->GetGameUnitState() )
-						{
-							if( NULL != pGUUser->GetDiceRoll() )
-							{
-								bDiceRolling = true;
-								if( pGUUser->GetUnitUID() == kEGS_GET_ITEM_NOT.m_GetUnitUID )
-								{
-									pGUUser->GetDiceRoll()->PushDiceRoll( true );
-								}
-								else
-								{
-									pGUUser->GetDiceRoll()->PushDiceRoll( false );
-								}
-							}
-						}
-					}
-
-				} break;
-			}
-		}
-#endif //NOT_USE_DICE_ROLL
+//#ifndef NOT_USE_DICE_ROLL
+//
+//		const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( itemID );
+//		if( NULL == pItemTemplet )
+//			return false;
+//
+//		if( NULL != g_pX2Room && 
+//			false == CX2ItemManager::IsEDItem( itemID ) && 
+//			//NULL != pItemTemplet &&
+//			CX2Item::IT_OUTLAY != pItemTemplet->GetItemType() &&
+//			LiveUserUnitNum() > 1 ) // user가 2명 이상이면
+//		{
+//			CX2DungeonRoom* pDungeonRoom = (CX2DungeonRoom*) g_pX2Room;
+//			switch( pDungeonRoom->GetDungeonGetItemType() )
+//			{
+//			case CX2DungeonRoom::DGIT_RANDOM:
+//				{
+//#ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
+//					CSLock locker( m_csGameIntruder );
+//#endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
+//					for( UINT i=0; i<m_UserUnitList.size(); i++ )
+//					{
+//						CX2GUUser* pGUUser = m_UserUnitList[i];
+//						if( NULL != pGUUser && CX2GameUnit::GUSI_DIE != pGUUser->GetGameUnitState() )
+//						{
+//							if( NULL != pGUUser->GetDiceRoll() )
+//							{
+//								bDiceRolling = true;
+//								if( pGUUser->GetUnitUID() == kEGS_GET_ITEM_NOT.m_GetUnitUID )
+//								{
+//									pGUUser->GetDiceRoll()->PushDiceRoll( true );
+//								}
+//								else
+//								{
+//									pGUUser->GetDiceRoll()->PushDiceRoll( false );
+//								}
+//							}
+//						}
+//					}
+//
+//				} break;
+//			}
+//		}
+//#endif //NOT_USE_DICE_ROLL
 	}
 	if( -1 == itemID )
 	{
@@ -9454,8 +8497,7 @@ bool CX2Game::Handler_EGS_MY_USER_UNIT_INFO_TO_SERVER_REQ()
 	kPacket.m_kMyPlayResult.m_iDashCount = pCX2GUUser->GetUsingDashCount();
 #endif DUNGEON_DASH_LOG
 #ifdef SERV_USE_SKILL_SLOT_TYPE_LOG 
-	if( NULL != g_pMain->GetGameOption() )
-		kPacket.m_kMyPlayResult.m_bSkillSlotType = g_pMain->GetGameOption()->GetIsSkillUITypeA();
+		kPacket.m_kMyPlayResult.m_bSkillSlotType = g_pMain->GetGameOption().GetIsSkillUITypeA();
 #endif //SERV_USE_SKILL_SLOT_TYPE_LOG 
 #ifdef SERV_ADD_DUNGEON_LOG_COLUMN_NUM_2
 	kPacket.m_kMyPlayResult.m_iFrame = static_cast<int>(m_kGameStatistics.m_kAverageFps.m_fAverageFps);
@@ -9543,9 +8585,7 @@ bool CX2Game::Handler_EGS_ADD_ON_STAT_NOT( KEGS_ADD_ON_STAT_NOT& kEGS_ADD_ON_STA
 #ifdef NEW_SKILL_2010_11
 		if ( NULL != pCX2GUNPC )
 		{
-			const CX2UnitManager::NPCUnitTemplet* pNpcTemplet = pCX2GUNPC->GetNPCTemplet();
-
-			if ( pNpcTemplet->m_ClassType == CX2UnitManager::NCT_THING_NOBUFF )
+			if ( pCX2GUNPC->GetNPCTemplet().m_ClassType == CX2UnitManager::NCT_THING_NOBUFF )
 				return true;
 		}
 #endif NEW_SKILL_2010_11
@@ -9719,11 +8759,11 @@ void CX2Game::Verify()
 		if( bVerify == false )
 		{
 			if( g_pData != NULL && g_pData->GetServerProtocol() != NULL &&
-				g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+				g_pData->GetMyUser() != NULL &&
+				g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-				g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+				g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 			}
 
 #ifdef ADD_COLLECT_CLIENT_INFO
@@ -9734,7 +8774,6 @@ void CX2Game::Verify()
 			//g_pKTDXApp->SetFindHacking( true );
 		}		
 
-#ifdef ADD_CHECK_NPC_DIE_PACKET
 		if( m_iNpcDiePacket.Verify() == false || m_iNpcDiePacket < 0 )
 		{
 #ifdef ADD_COLLECT_CLIENT_INFO
@@ -9749,7 +8788,6 @@ void CX2Game::Verify()
 			}
 #endif
 		}
-#endif
 	}
 }
 
@@ -9761,18 +8799,17 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 	bool	bDoIHaveMasterOfAlchemistSkill			= false;
 	int		iSkillLvMasterOfAlchemist				= 0;
 	
-	if ( pCX2GUUser->GetUnit() != NULL && 
-		 pCX2GUUser->GetUnit()->GetUnitData() != NULL )
+	if ( pCX2GUUser->GetUnit() != NULL )
 	{
-		BYTE byMemberShipGrade = pCX2GUUser->GetUnit()->GetUnitData()->m_byMemberShipGrade;
-		const CX2SkillTree::SkillTemplet* pSkillTemplet = pCX2GUUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_GP_COMMON_MASTER_OF_ALCHEMIST, byMemberShipGrade);
+		BYTE byMemberShipGrade = pCX2GUUser->GetUnit()->GetUnitData().m_byMemberShipGrade;
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = pCX2GUUser->GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_GP_COMMON_MASTER_OF_ALCHEMIST, byMemberShipGrade);
 
 		if ( pSkillTemplet != NULL )
 		{
 			bDoIHaveMasterOfAlchemistSkill  = true;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			const CX2UserSkillTree& userSkillTree = pCX2GUUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = pCX2GUUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID, true ) );	/// 스킬 레벨
 
@@ -9814,7 +8851,7 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 					// 퓨리가디언 신진대사 촉진
 					if ( CX2Unit::UC_CHUNG_FURY_GUARDIAN == pCX2GUUser->GetUnitClass() || CX2Unit::UC_CHUNG_IRON_PALADIN == pCX2GUUser->GetUnitClass() )
 					{
-						const CX2UserSkillTree& userSkillTree = pCX2GUUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pCX2GUUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 						int iSkillLv = userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_CFG_METABOLISM_BOOST, true );
@@ -9862,12 +8899,12 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 #ifdef	SERV_INSERT_GLOBAL_SERVER
 						if ( GT_DUNGEON == GetGameType() )
 						{
-							CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(g_pX2Game);
+							CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(this);
 							if( NULL != pDungeonGame &&
 								NULL != pDungeonGame->GetDungeon() &&
 								NULL != pDungeonGame->GetDungeon()->GetDungeonData())
 							{
-								const CX2Dungeon::DUNGEON_ID eDungeonId = pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID;
+								const SEnum::DUNGEON_ID eDungeonId = pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID;
 								if( CX2Dungeon::IsEventDungeon( eDungeonId ) )
 								{
 									const int iBasicHP = 10000;
@@ -9889,14 +8926,11 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 						//}} JHKang / 강정훈 / 2011/02/14 / 던전 랭크 개선 관련
 					}
 					std::wstringstream strStream;
-					//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 					strStream << GET_STRING( STR_ID_14353 ) << static_cast< int >( fValue );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 					strStream << L"HP+ " << static_cast< int >( fValue );
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-					//}}
-					
 					D3DXVECTOR3 pos = pCX2GUUser->GetPos();
 					pos.y += 50.0f + (i * 30.0f);
 					if( NULL != g_pData->GetPicCharGreen() )
@@ -9921,14 +8955,11 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 					pCX2GUUser->UpNowMp( fValue );
 				}
 				std::wstringstream strStream;
-				//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 				strStream << GET_STRING( STR_ID_14354 ) << static_cast< int >( fValue );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 				strStream << L"MP+ " << static_cast< int >( fValue );
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-				//}}
-				
 				D3DXVECTOR3 pos = pCX2GUUser->GetPos();
 				pos.y += 50.0f + (i * 30.0f);
 				if( NULL != g_pData->GetPicCharBlue() )
@@ -9941,9 +8972,14 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				if( pCX2GUUser->IsMyUnit() == true )
 				{
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-					pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_CURSE);
+					pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_CURSE);
+
+#ifdef ADJUST_DELETE_BUFF_ITEM
+					pCX2GUUser->EraseBuffTempletFromGameUnit( BTI_DEBUFF_CURSE );
+#endif //ADJUST_DELETE_BUFF_ITEM
+
 #else
-					pCX2GUUser->GetExtraDamagePack()->m_Curse.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_Curse.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
 				}
 				//std::wstringstream strStream;
@@ -9952,13 +8988,11 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				pos.y += 50.0f + (i * 30.0f);
 				if( NULL != g_pData->GetPicCharBlue() )
 				{
-					//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 					g_pData->GetPicCharBlue()->DrawText( GET_STRING( STR_ID_14358 ), pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 					g_pData->GetPicCharBlue()->DrawText( L"REMOVE CURSE", pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-					//}}
 				}
 			}
 			break;
@@ -9967,9 +9001,9 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				if( pCX2GUUser->IsMyUnit() == true )
 				{
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-					pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_SLOW);
+					pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_SLOW);
 #else
-					pCX2GUUser->GetExtraDamagePack()->m_Slow.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_Slow.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
 				}
 				//std::wstringstream strStream;
@@ -9978,13 +9012,11 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				pos.y += 50.0f + (i * 30.0f);
 				if( NULL != g_pData->GetPicCharBlue() )
 				{
-					//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 					g_pData->GetPicCharBlue()->DrawText( GET_STRING( STR_ID_14359 ), pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 					g_pData->GetPicCharBlue()->DrawText( L"REMOVE SLOW", pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-					//}}
 				}
 			}
 			break;
@@ -9993,11 +9025,16 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				if( pCX2GUUser->IsMyUnit() == true )
 				{
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-					pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_FIRE);
-					pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_ENCHANT_BLAZE);
+					pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_FIRE);
+					pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_ENCHANT_BLAZE);
+
+#ifdef ADJUST_DELETE_BUFF_ITEM
+					pCX2GUUser->EraseBuffTempletFromGameUnit( BTI_DEBUFF_FIRE );
+#endif //ADJUST_DELETE_BUFF_ITEM
+
 #else
-					pCX2GUUser->GetExtraDamagePack()->m_Fire.Init();
-					pCX2GUUser->GetExtraDamagePack()->m_EnchantBlaze.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_Fire.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_EnchantBlaze.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
 				}
 				//std::wstringstream strStream;
@@ -10006,13 +9043,11 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				pos.y += 50.0f + (i * 30.0f);
 				if( NULL != g_pData->GetPicCharBlue() )
 				{
-					//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 					g_pData->GetPicCharBlue()->DrawText( GET_STRING( STR_ID_14360 ), pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 					g_pData->GetPicCharBlue()->DrawText( L"REMOVE FIRE", pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-					//}}
 				}
 			}
 			break;
@@ -10021,11 +9056,16 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				if( pCX2GUUser->IsMyUnit() == true )
 				{
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-					pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_POISON);
-					pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_ENCHANT_POISON);
+					pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_POISON);
+					pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_ENCHANT_POISON);
+
+#ifdef ADJUST_DELETE_BUFF_ITEM
+					pCX2GUUser->EraseBuffTempletFromGameUnit( BTI_DEBUFF_POISON );
+#endif //ADJUST_DELETE_BUFF_ITEM
+
 #else
-					pCX2GUUser->GetExtraDamagePack()->m_Poison.Init();
-					pCX2GUUser->GetExtraDamagePack()->m_EnchantPoison.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_Poison.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_EnchantPoison.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
 				}
 				//std::wstringstream strStream;
@@ -10034,13 +9074,11 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				pos.y += 50.0f + (i * 30.0f);
 				if( NULL != g_pData->GetPicCharBlue() )
 				{
-					//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 					g_pData->GetPicCharBlue()->DrawText( GET_STRING( STR_ID_14361 ), pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 					g_pData->GetPicCharBlue()->DrawText( L"REMOVE POISON", pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-					//}}
 				}
 			}
 			break;
@@ -10057,43 +9095,49 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 
 		case CX2Item::SAT_SOUL_GAGE_UP:
 			{
-#ifdef HYPER_MODE_MAX_POTION
 				if( pCX2GUUser->IsMyUnit() == true )
 				{
-					int iNowSoul = static_cast<int>(pCX2GUUser->GetNowSoul()) + pSa->m_Value1;
-					int iNowHyper = pCX2GUUser->GetHyperModeCount();
-					int iPrevHyper = iNowHyper;
-					while( iNowSoul > 100 )
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+					/// 애드일 땐, DP 게이지를 올려 주세요
+					if ( NULL != pCX2GUUser->GetUnit() && CX2Unit::UT_ADD == pCX2GUUser->GetUnit()->GetType() )
+						pCX2GUUser->UpNowDPValue( 2000.f );
+					else
+	#endif // SERV_9TH_NEW_CHARACTER
+	#ifdef HYPER_MODE_MAX_POTION
 					{
-						iNowSoul -= 100;
-						++iNowHyper;
-					}
+						int iNowSoul = static_cast<int>(pCX2GUUser->GetNowSoul()) + pSa->m_Value1;
+						int iNowHyper = pCX2GUUser->GetHyperModeCount();
+						int iPrevHyper = iNowHyper;
+						while( iNowSoul >= 100 )
+						{
+							iNowSoul -= 100;
+							++iNowHyper;
+						}
 
-					if( iNowHyper > 3 )
-					{
-						iNowHyper = 3;
-					}
+						if( iNowHyper > 3 )
+						{
+							iNowHyper = 3;
+						}
 
-					if( iPrevHyper < iNowHyper )
-					{
-						iNowSoul = 0;
-					}
+						if( iPrevHyper < iNowHyper )
+						{
+							iNowSoul = 0;
+						}
 
-					pCX2GUUser->SetHyperModeCount( iNowHyper );
-					pCX2GUUser->SetNowSoul( iNowSoul );
+						pCX2GUUser->SetHyperModeCount( iNowHyper );
+						pCX2GUUser->SetNowSoul( iNowSoul );
+					}
+	#else
+						pCX2GUUser->UpNowSoul( static_cast<float>( pSa->m_Value1 ) );
+	#endif HYPER_MODE_MAX_POTION
 				}
-#else
-				if( pCX2GUUser->IsMyUnit() == true )
-					pCX2GUUser->UpNowSoul( static_cast<float>( pSa->m_Value1 ) );
-#endif HYPER_MODE_MAX_POTION				
+				
 				std::wstringstream strStream;
-				//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 				strStream << GET_STRING( STR_ID_14355 ) << pSa->m_Value1;
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 				strStream << L"SOUL+ " << pSa->m_Value1;
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-				//}}
 				D3DXVECTOR3 pos = pCX2GUUser->GetPos();
 				pos.y += 50.0f + (i * 30.0f);
 				if( NULL != g_pData->GetPicCharRed() )
@@ -10101,18 +9145,29 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 			}
 			break;
 
+#ifdef SPECIAL_ABILITY_WAY_OF_SWORD
+		case CX2Item::SAT_WAY_OF_SWORD_GAUGE_UP:
+			{
+				if( pCX2GUUser->IsMyUnit() == true )
+				{
+					pCX2GUUser->SetWayOfSwordPoint( pCX2GUUser->GetWayOfSwordPoint() + pSa->m_Value1 );
+				}
+			}
+			break;
+#endif SPECIAL_ABILITY_WAY_OF_SWORD
+
 		case CX2Item::SAT_SHOW_OPPONENT_MP:
 			{
 				if( pCX2GUUser->IsMyUnit() == true )
 				{
-					pCX2GUUser->GetCashItemAbility()->m_bShowOppnentMP = true;
+					pCX2GUUser->AccessCashItemAbility().m_bShowOppnentMP = true;
 				}
 			}
 			break;
 
 		case CX2Item::SAT_UP_MP_AT_ATTACK_OR_DAMAGE:
 			{
-				pCX2GUUser->GetCashItemAbility()->m_fUpMPAtAttackOrDamage = (float) pSa->m_Value1;	// 증가량, // fix!! 중첩이 안되는 문제가 있음. 
+				pCX2GUUser->AccessCashItemAbility().m_fUpMPAtAttackOrDamage = (float) pSa->m_Value1;	// 증가량, // fix!! 중첩이 안되는 문제가 있음. 
 			} 
 			break;
 
@@ -10130,7 +9185,7 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 					// 퓨리가디언 신진대사 촉진
 					if ( CX2Unit::UC_CHUNG_FURY_GUARDIAN == pCX2GUUser->GetUnitClass() || CX2Unit::UC_CHUNG_IRON_PALADIN == pCX2GUUser->GetUnitClass() )
 					{
-						const CX2UserSkillTree& userSkillTree = pCX2GUUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pCX2GUUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 		#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 						int iSkillLv = userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_CFG_METABOLISM_BOOST, true );
@@ -10178,7 +9233,14 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 					fValue *= fIncreateRateHpPercentUp;
 
 					if( pCX2GUUser->IsMyUnit() == true )
+					{
+#ifdef HP_PERCENT_DOWN_NO_DIE
+						if( pItemTemplet->GetItemID() == 152000194 )
+							pCX2GUUser->UpNowHp( pCX2GUUser->GetMaxHp() * fValue , 1.0f );
+						else
+#endif // HP_PERCENT_DOWN_NO_DIE
 						pCX2GUUser->UpNowHp( pCX2GUUser->GetMaxHp() * fValue );
+					}
 						//{{ JHKang / 강정훈 / 2011/02/14 / 던전 랭크 개선 관련
 #ifdef DUNGEON_RANK_NEW
 						// 상자에서 나온 HP 회복 템이 아닌 경우 적용
@@ -10188,13 +9250,11 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 						//}} JHKang / 강정훈 / 2011/02/14 / 던전 랭크 개선 관련
 
 					std::wstringstream strStream;
-					//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 					strStream << GET_STRING( STR_ID_14353 ) << static_cast< int >( fValue * 100 ) << GET_STRING( STR_ID_14356 );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 					strStream << L"HP+ " << static_cast< int >( fValue * 100 ) << L" PERCENT";
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-					//}}
 
 					D3DXVECTOR3 pos = pCX2GUUser->GetPos();
 					pos.y += 50.0f + (i * 30.0f);
@@ -10219,13 +9279,11 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 					pCX2GUUser->UpNowMp( pCX2GUUser->GetMaxMp() * fValue );
 
 				std::wstringstream strStream;
-				//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 				strStream << GET_STRING( STR_ID_14354 ) << static_cast< int >( pSa->m_Value1 * fIncreaseRateFromMasterOfAlchemistSkill ) << GET_STRING( STR_ID_14356 );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 				strStream << L"MP+ " << static_cast< int >( pSa->m_Value1 * fIncreaseRateFromMasterOfAlchemistSkill ) << L" PERCENT";
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-				//}}
 				D3DXVECTOR3 pos = pCX2GUUser->GetPos();
 				pos.y += 50.0f + (i * 30.0f);
 				if( NULL != g_pData->GetPicCharBlue() )
@@ -10252,17 +9310,24 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 								pGUUser->UpNowHp( static_cast<float>( pSa->m_Value1 ) );
 
 								std::wstringstream strStream;
-								//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 								strStream << GET_STRING( STR_ID_14353 ) << pSa->m_Value1 << GET_STRING( STR_ID_14356 );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 								strStream << L"HP+ " << pSa->m_Value1 << L" PERCENT";
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-								//}}
 								D3DXVECTOR3 pos = pGUUser->GetPos();
 								pos.y += 50.0f + (i * 30.0f);
 								if( NULL != g_pData->GetPicCharGreen() )
-									g_pData->GetPicCharGreen()->DrawText( strStream.str().c_str(), pos, pGUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
+								{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+									if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == false )
+									{
+										g_pData->GetPicCharGreen()->DrawText( strStream.str().c_str(), pos, pGUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
+									}
+#else
+										g_pData->GetPicCharGreen()->DrawText( strStream.str().c_str(), pos, pGUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
+#endif ALWAYS_SCREEN_SHOT_TEST
+								}
 							}
 						}
 					}
@@ -10288,17 +9353,24 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 								pGUUser->UpNowMp( static_cast<float>( pSa->m_Value1 ) );
 
 								std::wstringstream strStream;
-								//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 								strStream << GET_STRING( STR_ID_14354 ) << pSa->m_Value1 << GET_STRING( STR_ID_14356 );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
+#else
 								strStream << L"MP+ " << pSa->m_Value1 << L" PERCENT";
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-								//}}
 								D3DXVECTOR3 pos = pGUUser->GetPos();
 								pos.y += 50.0f + (i * 30.0f);
 								if( NULL != g_pData->GetPicCharGreen() )
+								{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+									if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == false )
+									{
+										g_pData->GetPicCharGreen()->DrawText( strStream.str().c_str(), pos, pGUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
+									}
+#else
 									g_pData->GetPicCharGreen()->DrawText( strStream.str().c_str(), pos, pGUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
+#endif ALWAYS_SCREEN_SHOT_TEST
+								}
 							}
 						}
 					}
@@ -10332,7 +9404,13 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 					&& pCX2GUUser->GetNowHp() > 0.0f 
 					&& pCX2GUUser->GetNowStateID() != CX2GameUnit::GUSI_DIE )
 				{
-					pCX2GUUser->ForceChangeHyperModeWithoutMotion( (float)pSa->m_Value1 );
+		#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+					/// 애드일 땐, DP 게이지를 올려 주세요
+					if ( NULL != pCX2GUUser->GetUnit() && CX2Unit::UT_ADD == pCX2GUUser->GetUnit()->GetType() )
+						pCX2GUUser->UpNowDPValue( 2000.f );
+					else
+		#endif //SERV_9TH_NEW_CHARACTER
+						pCX2GUUser->ForceChangeHyperModeWithoutMotion( (float)pSa->m_Value1 );
 
 					if( GetFocusUnit() != NULL )
 						GetFocusUnit()->PlaySound( L"Alarm_Fever.ogg" );
@@ -10358,10 +9436,10 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 					&& pCX2GUUser->GetNowStateID() != CX2GameUnit::GUSI_DIE )
 				{
 					// 정령소환시 타임스탑
-					//g_pX2Game->StopAllUnit(1.f, &m_vDropItemPos, 3000.f, pCX2GUUser, 1.f);					
+					//StopAllUnit(1.f, &m_vDropItemPos, 3000.f, pCX2GUUser, 1.f);					
 
 					wstring wstrSpiritName = SummonSpiritEffectName( pSa->m_Value1 );
-					CX2EffectSet::Handle hSpirit = g_pX2Game->GetEffectSet()->PlayEffectSet( wstrSpiritName.c_str(), (CX2GameUnit*) pCX2GUUser, NULL, false, -1.f, -1.f, D3DXVECTOR3(1.f, 1.f, 1.f), true, m_vDropItemPos ); 
+					CX2EffectSet::Handle hSpirit = GetEffectSet()->PlayEffectSet( wstrSpiritName.c_str(), (CX2GameUnit*) pCX2GUUser, NULL, false, -1.f, -1.f, D3DXVECTOR3(1.f, 1.f, 1.f), true, m_vDropItemPos ); 
 					m_vechEffectSetSpirit.push_back(hSpirit);
 
 					switch( pSa->m_Value1 )
@@ -10398,16 +9476,15 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 			}
 			break;			
 #endif // DUNGEON_ITEM
-#ifdef ADD_SA_FORZEN
 		case CX2Item::SAT_REMOVE_FROZEN:
 			{
 				if( pCX2GUUser->IsMyUnit() == true )
 				{
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-					pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_COLD);
-					//pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_FROZEN);
-					//pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_WATER_HOLD);
-					//pCX2GUUser->GetExtraDamagePack()->Init(CX2DamageManager::EDT_ENCHANT_FROZEN);
+					pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_COLD);
+					//pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_FROZEN);
+					//pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_WATER_HOLD);
+					//pCX2GUUser->AccessExtraDamagePack().Init(CX2DamageManager::EDT_ENCHANT_FROZEN);
 
 #ifdef ELSWORD_WAY_OF_SWORD
 					pCX2GUUser->CureExtraDamage( CX2DamageManager::EDT_FROZEN );
@@ -10416,25 +9493,18 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 #endif
 
 #else
-					pCX2GUUser->GetExtraDamagePack()->m_Cold.Init();
-					pCX2GUUser->GetExtraDamagePack()->m_Frozen.Init();
-					pCX2GUUser->GetExtraDamagePack()->m_EnchantFrozen.Init();
-					pCX2GUUser->GetExtraDamagePack()->m_WaterHold.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_Cold.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_Frozen.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_EnchantFrozen.Init();
+					pCX2GUUser->AccessExtraDamagePack().m_WaterHold.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
 				}
 				D3DXVECTOR3 pos = pCX2GUUser->GetPos();
 				pos.y += 50.0f + (i * 30.0f);
 				if( NULL != g_pData->GetPicCharBlue() )
-					//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
-#ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-					g_pData->GetPicCharBlue()->DrawText( GET_STRING( STR_ID_18710 ), pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
-#else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 					g_pData->GetPicCharBlue()->DrawText( L"REMOVE FROZEN", pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
-#endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-					//}}
 			}
 			break;
-#endif //ADD_SA_FROZEN
 #ifdef SPECIAL_USE_ITEM 
 		case CX2Item::SAT_SPECIAL_SKILL:
 			{
@@ -10456,15 +9526,15 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				{
 					if( pSa->m_Value1 == CX2Item::SST_FIRE_SPHERE )
 					{
-						g_pX2Game->GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_FIRE", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
+						GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_FIRE", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
 					}
 					else if( pSa->m_Value1 == CX2Item::SST_WATER_SPHERE )
 					{
-						g_pX2Game->GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_WATER", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
+						GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_WATER", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
 					}
 					else if( pSa->m_Value1 == CX2Item::SST_NATURE_SPHERE )
 					{
-						g_pX2Game->GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_NATURE", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
+						GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_NATURE", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
 					}
 					else if( pSa->m_Value1 == CX2Item::SST_WIND_SPHERE )
 					{
@@ -10476,16 +9546,26 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 						m_optrItemDamageEffectGameUnit = pCX2GUUser;
 						m_fItemDamageEffectTime = 0.1f;
 						m_iItemDamageEffectIndex = pSa->m_Value1;
-						//g_pX2Game->GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_WIND", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
+						//GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_WIND", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
 					}
 					else if( pSa->m_Value1 == CX2Item::SST_LIGHT_SPHERE )
 					{
-						g_pX2Game->GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_LIGHT", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
+						GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_LIGHT", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
 					}
 					else if( pSa->m_Value1 == CX2Item::SST_DARK_SPHERE )
 					{
-						g_pX2Game->GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_DARK", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
+						GetDamageEffect()->CreateInstance( pCX2GUUser, L"SPECIAL_ITEM_EFFECT_DARK", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
 					}
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+					else if( pSa->m_Value1 == CX2Item::SST_LOVE_LV1 )
+					{
+						GetDamageEffect()->CreateInstance( pCX2GUUser, L"RELATIONSHIP_SKILL_THROW_LV1", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
+					}
+					else if( pSa->m_Value1 == CX2Item::SST_LOVE_LV2 )
+					{
+						GetDamageEffect()->CreateInstance( pCX2GUUser, L"RELATIONSHIP_SKILL_THROW_LV2", 1, pCX2GUUser->GetPos(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetRotateDegree(), pCX2GUUser->GetPos().y );
+					}
+#endif SERV_RELATIONSHIP_EVENT_INT
 				}
 
 				SetEnableAllKeyProcess( true );
@@ -10500,7 +9580,9 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 				switch ( g_pMain->GetNowStateID() )
 				{
 				case CX2Main::XS_DUNGEON_GAME:
+#ifndef FIX_FIELD_SUMMON_MONSTER// 필드에서 몬스터 카드 소환 할 수 없도록 추가
 				case CX2Main::XS_BATTLE_FIELD:
+#endif // FIX_FIELD_SUMMON_MONSTER
                     CreateSummonMonsterCardNPC( pSa, pCX2GUUser );
 					break;
 
@@ -10533,11 +9615,29 @@ void CX2Game::UseItemSpecialAbility( const CX2Item::ItemTemplet* pItemTemplet, C
 						iNowForcePower = iMaxForcePower;
 					}
 
+					pAraGageData->SetForcePowerChanged( true );
 					pAraGageData->SetNowForcePower( iNowForcePower );
 				}
 			}
 			break;
 #endif ARA_FORCE_POWER_ITEM
+#ifdef RIDINGPET_STAMINA_ITEM
+		case CX2Item::SAT_RIDINGPET_STAMINA_PERCENT_UP:
+			{
+				if( pCX2GUUser != NULL &&
+					pCX2GUUser->GetNowHp() > 0.0f &&
+					pCX2GUUser->GetNowStateID() != CX2GameUnit::GUSI_DIE &&
+					pCX2GUUser->GetUnit() != NULL && 
+					pCX2GUUser->IsMyUnit() == true )					
+				{
+					if(!CX2RidingPetManager::GetInstance()->SetRidingPetStaminaPercentUP(pSa->m_Value1))
+					{
+						// 에러메시지 출력예정
+					}
+				}
+			}
+			break;
+#endif RIDINGPET_STAMINA_ITEM
 		}
 	}
 }
@@ -10576,11 +9676,11 @@ void CX2Game::UseItemPetAbility( const CX2Item::ItemTemplet* pItemTemplet, CX2GU
 bool CX2Game::RemoveSpecialAbilityInEquip( const CX2Item::ItemTemplet* const pItemTemplet, CX2GUUser* const pCXGUUser )
 {
 
-	if ( pItemTemplet == NULL )
+	if ( pItemTemplet == NULL || pCXGUUser == NULL )
 		return false;
 
-	if ( pCXGUUser->GetCashItemAbility() == NULL )
-		return false;
+	//if ( pCXGUUser->GetCashItemAbility() == NULL )
+	//	return false;
 
 	const CX2Item::SpecialAbility* pSa = NULL;
     unsigned    uNumSA = pItemTemplet->GetNumSpecialAbility();
@@ -10592,13 +9692,13 @@ bool CX2Game::RemoveSpecialAbilityInEquip( const CX2Item::ItemTemplet* const pIt
 		{
 		case CX2Item::SAT_SHOW_OPPONENT_MP:
 			{
-				pCXGUUser->GetCashItemAbility()->m_bShowOppnentMP = false;
+				pCXGUUser->AccessCashItemAbility().m_bShowOppnentMP = false;
 			}
 			break;
 
 		case CX2Item::SAT_UP_MP_AT_ATTACK_OR_DAMAGE:
 			{
-				pCXGUUser->GetCashItemAbility()->m_fUpMPAtAttackOrDamage = 0.0f;	// 증가량
+				pCXGUUser->AccessCashItemAbility().m_fUpMPAtAttackOrDamage = 0.0f;	// 증가량
 			} 
 			break;
 		}
@@ -10609,11 +9709,11 @@ bool CX2Game::RemoveSpecialAbilityInEquip( const CX2Item::ItemTemplet* const pIt
 
 bool CX2Game::SetSpecialAbilityInEquip( const CX2Item::ItemTemplet* const pItemTemplet, CX2GUUser* const pCXGUUser )
 {
-	if ( pItemTemplet == NULL )
+	if ( pItemTemplet == NULL || pCXGUUser == NULL )
 		return false;
 
-	if ( pCXGUUser->GetCashItemAbility() == NULL )
-		return false;
+	//if ( pCXGUUser->GetCashItemAbility() == NULL )
+	//	return false;
 
 	const CX2Item::SpecialAbility* pSa = NULL;
     unsigned    uNumSA = pItemTemplet->GetNumSpecialAbility();
@@ -10625,13 +9725,13 @@ bool CX2Game::SetSpecialAbilityInEquip( const CX2Item::ItemTemplet* const pItemT
 		{
 		case CX2Item::SAT_SHOW_OPPONENT_MP:
 			{
-				pCXGUUser->GetCashItemAbility()->m_bShowOppnentMP = true;
+				pCXGUUser->AccessCashItemAbility().m_bShowOppnentMP = true;
 			}
 			break;
 
 		case CX2Item::SAT_UP_MP_AT_ATTACK_OR_DAMAGE:
 			{
-				pCXGUUser->GetCashItemAbility()->m_fUpMPAtAttackOrDamage = static_cast< float >( pSa->m_Value1 );	// 증가량
+				pCXGUUser->AccessCashItemAbility().m_fUpMPAtAttackOrDamage = static_cast< float >( pSa->m_Value1 );	// 증가량
 			} 
 			break;
 		}
@@ -10646,16 +9746,8 @@ bool CX2Game::SetSpecialAbilityInEquip( const CX2Item::ItemTemplet* const pItemT
 #ifdef DIALOG_SHOW_TOGGLE
 void CX2Game::SetGameScore()
 {
-#ifndef REFORM_UI_SCORE
-	if( NULL != g_pData->GetPicCharGameScore() )
-	{
-		g_pData->GetPicCharGameScore()->Clear();
-	}
-#else
 	if ( g_pX2Room != NULL && g_pX2Room->GetMySlot() != NULL && g_pX2Room->GetMySlot()->m_bObserver == false &&
-#ifdef ADD_TRAININGGAME_NPC
 		g_pX2Room->GetRoomType() != CX2Room::RT_TRAININGCENTER
-#endif
 		)
 	{
 		WCHAR texBuf[30] = {0,};
@@ -10667,7 +9759,6 @@ void CX2Game::SetGameScore()
 			g_pData->GetPicCharGameScore()->DrawText( texBuf, D3DXVECTOR3(290,-40,0), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_LEFT, 0.03f );
 		}
 	}	
-#endif
 }
 #endif
 
@@ -10687,18 +9778,10 @@ void CX2Game::SetGameScore( int gameScore )
 	}
 #endif
 
-#ifndef REFORM_UI_SCORE
-	if( NULL != g_pData->GetPicCharGameScore() )
-	{
-		g_pData->GetPicCharGameScore()->Clear();
-	}
-#else
 	if( m_GameScoreBack != m_GameScore )
 	{
 		if ( g_pX2Room != NULL && g_pX2Room->GetMySlot() != NULL && g_pX2Room->GetMySlot()->m_bObserver == false &&
-#ifdef ADD_TRAININGGAME_NPC
 			g_pX2Room->GetRoomType() != CX2Room::RT_TRAININGCENTER
-#endif
 			)
 		{
 			WCHAR texBuf[30] = {0,};
@@ -10712,16 +9795,13 @@ void CX2Game::SetGameScore( int gameScore )
 			}
 		}		
 	}
-#endif
 }
 void CX2Game::AddGameScore( int gameScore )
 {
 	m_GameScoreBack = m_GameScore;
 	m_GameScore		+= gameScore; 
 
-#ifdef REFORM_UI_SCORE
 	return;
-#endif //REFORM_UI_SCORE
 
 #ifdef DIALOG_SHOW_TOGGLE	
 	if( g_pKTDXApp->GetDGManager()->GetDialogManager()->GetHideDialog() == true )
@@ -10737,9 +9817,7 @@ void CX2Game::AddGameScore( int gameScore )
 	if( m_GameScoreBack != m_GameScore )
 	{
 		if ( g_pX2Room != NULL && g_pX2Room->GetMySlot() != NULL && g_pX2Room->GetMySlot()->m_bObserver == false &&
-#ifdef ADD_TRAININGGAME_NPC
 			g_pX2Room->GetRoomType() != CX2Room::RT_TRAININGCENTER
-#endif
 			)
 		{
 			WCHAR texBuf[30] = {0,};
@@ -10799,14 +9877,6 @@ void CX2Game::SetTechPoint( int techPoint )
 
 	if( m_fTechPointViewTime <= 0.0f )
 	{
-#ifndef REFORM_UI_SCORE
-		CKTDGParticleSystem::CParticleEventSequence* pSeq = GetMajorParticle()->GetInstanceSequence( m_hSeqTech );
-		if( NULL != pSeq )
-		{
-			pSeq->ClearAllParticle();
-			pSeq->CreateNewParticle( D3DXVECTOR3(0,0,0) );
-		}
-#endif
 	}
 
 	m_fTechPointViewTime = 1.5f;
@@ -10826,28 +9896,6 @@ void CX2Game::AddTechPoint( int techPoint )
 	}
 #endif
 
-#ifndef REFORM_UI_SCORE
-	if( NULL != g_pData->GetPicCharTechPoint() )
-	{
-		g_pData->GetPicCharTechPoint()->Clear();
-		g_pData->GetPicCharTechPoint()->DrawText( m_TechPoint, D3DXVECTOR3(185,310,0), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_LEFT );
-	}
-
-	if( INVALID_PARTICLE_HANDLE != m_hSeqTech )
-	{
-		if( m_fTechPointViewTime <= 0.0f )
-		{
-
-			CKTDGParticleSystem::CParticleEventSequence* pSeq = GetMajorParticle()->GetInstanceSequence( m_hSeqTech );
-			if( NULL != pSeq )
-			{
-				pSeq->ClearAllParticle();
-				pSeq->CreateNewParticle( D3DXVECTOR3(0,0,0) );
-			}
-
-		}
-	}
-#endif
 
 	m_fTechPointViewTime = 1.5f;
 }
@@ -10875,7 +9923,7 @@ void CX2Game::KillAllNPC_LUA( bool bActiveOnly /* = true */ )
 	{
 		if( NULL != GetMyUnit() )
 		{
-			KillAllNPC( bActiveOnly, g_pX2Game->GetMyUnit(), true );
+			KillAllNPC( bActiveOnly, GetMyUnit(), true );
 		}
 		else
 		{
@@ -10889,24 +9937,22 @@ void CX2Game::KillAllNPC_LUA( bool bActiveOnly /* = true */ )
 void CX2Game::KillAllNPC( bool bActiveOnly /* = true */, CX2GameUnit* pAttackerGameUnit_ /*= NULL*/, bool bExceptGate /*= false*/ )
 {
 #ifndef _SERVICE_
-	if( g_pX2Game->IsHost() == true )
+	if( IsHost() == true )
 	{
-		for( int i=0; i<g_pX2Game->GetNPCUnitListSize(); i++ )
+		for( int i=0; i<GetNPCUnitListSize(); i++ )
 		{
-			CX2GUNPC* pCX2GUNPC = g_pX2Game->GetNPCUnit(i);
+			CX2GUNPC* pCX2GUNPC = GetNPCUnit(i);
 			if( pCX2GUNPC != NULL )
 			{				
 #if 1
-#ifdef DUNGEON_CHECKER_NPC
-				if( pCX2GUNPC->GetNPCTemplet()->m_ClassType == CX2UnitManager::NCT_THING_CHECKER )
+				if( pCX2GUNPC->GetNPCTemplet().m_ClassType == CX2UnitManager::NCT_THING_CHECKER )
 					continue;
-#endif
 
 				if( true == bExceptGate )
 				{
-					if( NULL != pCX2GUNPC->GetNPCTemplet() )
+					//if( NULL != pCX2GUNPC->GetNPCTemplet() )
 					{
-						if( CX2UnitManager::NCT_THING_GATE == pCX2GUNPC->GetNPCTemplet()->m_ClassType )
+						if( CX2UnitManager::NCT_THING_GATE == pCX2GUNPC->GetNPCTemplet().m_ClassType )
 						{
 							continue;
 						}
@@ -10943,7 +9989,7 @@ void CX2Game::KillNPC( const CX2UnitManager::NPC_UNIT_ID eNPCID, int nCount )
 {
 
 
-	if( false == g_pX2Game->IsHost() )
+	if( false == IsHost() )
 		return;
 
 	if( nCount == 0 )
@@ -10953,16 +9999,16 @@ void CX2Game::KillNPC( const CX2UnitManager::NPC_UNIT_ID eNPCID, int nCount )
 	THEMIDA_ENCODE_START
 
 	int iCount = 0;
-	for( int i=0; i<g_pX2Game->GetNPCUnitListSize(); i++ )
+	for( int i=0; i<GetNPCUnitListSize(); i++ )
 	{
-		CX2GUNPC* pCX2GUNPC = g_pX2Game->GetNPCUnit(i);
+		CX2GUNPC* pCX2GUNPC = GetNPCUnit(i);
 		if( NULL == pCX2GUNPC )
 			continue;
 
-		if( NULL == pCX2GUNPC->GetNPCTemplet() )
-			continue;
+		//if( NULL == pCX2GUNPC->GetNPCTemplet() )
+		//	continue;
 
-		if( eNPCID != pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID )
+		if( eNPCID != pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID )
 			continue;
 
 
@@ -10980,7 +10026,7 @@ void CX2Game::KillNPC( const CX2UnitManager::NPC_UNIT_ID eNPCID, int nCount )
 
 void CX2Game::EnableAllNPCAI( bool bEnable )
 {
-	if( g_pX2Game->IsHost() == true )
+	if( IsHost() == true )
 	{
 #ifdef LIGHT_OPERATOR_ACCOUNT
 		if( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetAuthLevel() == CX2User::XUAL_LIGHT_OPERATOR )
@@ -10989,9 +10035,9 @@ void CX2Game::EnableAllNPCAI( bool bEnable )
 		}
 #endif LIGHT_OPERATOR_ACCOUNT
 
-		for( int i=0; i<g_pX2Game->GetNPCUnitListSize(); i++ )
+		for( int i=0; i<GetNPCUnitListSize(); i++ )
 		{
-			CX2GUNPC* pNPC = (CX2GUNPC*) g_pX2Game->GetNPCUnit(i);
+			CX2GUNPC* pNPC = (CX2GUNPC*) GetNPCUnit(i);
 			if( NULL == pNPC )
 				continue;
 
@@ -11003,11 +10049,11 @@ void CX2Game::EnableAllNPCAI( bool bEnable )
 
 void CX2Game::EnableAllNPCEventProcess( bool bEnable )
 {
-	//if( g_pX2Game->IsHost() == true )
+	//if( IsHost() == true )
 	{
-		for( int i=0; i<g_pX2Game->GetNPCUnitListSize(); i++ )
+		for( int i=0; i<GetNPCUnitListSize(); i++ )
 		{
-			CX2GUNPC* pNPC = (CX2GUNPC*) g_pX2Game->GetNPCUnit(i);
+			CX2GUNPC* pNPC = (CX2GUNPC*) GetNPCUnit(i);
 			if( NULL == pNPC )
 				continue;
 
@@ -11029,11 +10075,11 @@ void CX2Game::SetAllNPCMPFull()
 	}
 #endif LIGHT_OPERATOR_ACCOUNT
 
-	if( g_pX2Game->IsHost() == true )
+	if( IsHost() == true )
 	{
-		for( int i=0; i<g_pX2Game->GetNPCUnitListSize(); i++ )
+		for( int i=0; i<GetNPCUnitListSize(); i++ )
 		{
-			CX2GUNPC* pNPC = (CX2GUNPC*) g_pX2Game->GetNPCUnit(i);
+			CX2GUNPC* pNPC = (CX2GUNPC*) GetNPCUnit(i);
 			if( NULL == pNPC )
 				continue;
 
@@ -11060,11 +10106,11 @@ void CX2Game::SetFreeCamera( bool bFreeCamera )
 #ifdef KEYFRAME_CAMERA
 	if(true == bFreeCamera)
 	{
-		GetX2Camera()->GetCamera()->SetFixedUpVec(false);
+		GetX2Camera()->GetCamera().SetFixedUpVec(false);
 	}
 	else
 	{
-		GetX2Camera()->GetCamera()->SetFixedUpVec(true);
+		GetX2Camera()->GetCamera().SetFixedUpVec(true);
 	}
 
 #endif KEYFRAME_CAMERA
@@ -11072,10 +10118,10 @@ void CX2Game::SetFreeCamera( bool bFreeCamera )
 
 	if( true == m_bFreeCamera )
 	{
-		D3DXVECTOR3 vEye	= m_pCamera->GetCamera()->GetEye();
-		D3DXVECTOR3 vLookAt = m_pCamera->GetCamera()->GetLookAt();
+		D3DXVECTOR3 vEye	= m_pCamera->GetCamera().GetEye();
+		D3DXVECTOR3 vLookAt = m_pCamera->GetCamera().GetLookAt();
 #ifdef KEYFRAME_CAMERA
-		D3DXVECTOR3 vUpVec	= m_pCamera->GetCamera()->GetUpVec();
+		D3DXVECTOR3 vUpVec	= m_pCamera->GetCamera().GetUpVec();
 		m_FPSCamera.SetViewParams( &vEye, &vLookAt, &vUpVec );
 #else
 		m_FPSCamera.SetViewParams( &vEye, &vLookAt );
@@ -11112,7 +10158,7 @@ void CX2Game::PlayWorldCamera( int iWorldCameraID )
 
 bool CX2Game::GoStage( int iStageIndex, int iSubStageIndex /*= 0*/  )
 {
-#ifndef _SERVICE_
+#ifdef NEXON_QA_CHEAT_REQ
 	if( GetGameType() != GT_DUNGEON )
 		return false;
 
@@ -11123,7 +10169,7 @@ bool CX2Game::GoStage( int iStageIndex, int iSubStageIndex /*= 0*/  )
 	}
 #endif LIGHT_OPERATOR_ACCOUNT
 	
-	CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(g_pX2Game);
+	CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(this);
 	if( NULL != pDungeonGame )
 	{
 		CX2Dungeon* pDungeon = pDungeonGame->GetDungeon();
@@ -11143,7 +10189,7 @@ bool CX2Game::GoStage( int iStageIndex, int iSubStageIndex /*= 0*/  )
 				return false;
 		}
 	}
-#endif
+#endif // NEXON_QA_CHEAT_REQ
 	return false;
 }
 
@@ -11153,7 +10199,7 @@ int CX2Game::GetNowStageIndex()
 	if( GetGameType() != GT_DUNGEON )
 		return false;
 
-	CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(g_pX2Game);
+	CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(this);
 	if( NULL != pDungeonGame )
 	{
 		CX2Dungeon* pDungeon = pDungeonGame->GetDungeon();
@@ -11186,13 +10232,6 @@ void CX2Game::UpdateSkillSlotUI(bool bUpdateEquipSkill /*= false*/)
 		return;
 	}
 
-	if( NULL == GetMyUnit()->GetUnit()->GetUnitData() )
-	{
-	#ifdef SERVICE_HEAVY_LOG
-		StateLog( L"upd skill unitdata null" );
-	#endif //SERVICE_HEAVY_LOG
-		return;
-	}
 	#ifdef REFORM_UI_SKILLSLOT
 	if( true == bUpdateEquipSkill )
 	{
@@ -11203,23 +10242,31 @@ void CX2Game::UpdateSkillSlotUI(bool bUpdateEquipSkill /*= false*/)
 	}
 	#endif //REFORM_UI_SKILLSLOT
 
-	#ifdef ELSWORD_WAY_OF_SWORD
+#ifdef ELSWORD_WAY_OF_SWORD
 	//검의길 스킬아이콘 이펙트
 	UpdateElswordSkillSlotEffect();
-	#endif //ELSWORD_WAY_OF_SWORD
+#endif //ELSWORD_WAY_OF_SWORD
 
-	#ifdef EVE_ELECTRA
+#ifdef EVE_ELECTRA
 	//코드일렉트라 스킬아이콘 갱신
 	UpdateEveElectraSkillSlotIcon();
-	#endif //EVE_ELECTRA
+#endif //EVE_ELECTRA
 
-	#ifdef SERV_RENA_NIGHT_WATCHER
+#ifdef SERV_RENA_NIGHT_WATCHER
 	UpdateNightWatcherSkillSlotIcon();
-	#endif //SERV_RENA_NIGHT_WATCHER
+#endif //SERV_RENA_NIGHT_WATCHER
 
-	#ifdef SERV_RAVEN_VETERAN_COMMANDER
+#ifdef SERV_RAVEN_VETERAN_COMMANDER
 	UpdateVeteranCommanderSkillSlotIcon();
-	#endif //SERV_RAVEN_VETERAN_COMMANDER
+#endif //SERV_RAVEN_VETERAN_COMMANDER
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	UpdateCodeEmpressSkillSlotIcon();
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_9TH_NEW_CHARACTER
+	UpdateAddNasodRulerSkillSlotIcon();
+#endif // SERV_9TH_NEW_CHARACTER
 }
 
 #ifndef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
@@ -11245,13 +10292,11 @@ void CX2Game::ResetReBirthStoneNumUI()
 	{
 		CKTDGUIStatic* pStatic = (CKTDGUIStatic*)m_pDLGMyScore->GetControl( L"Static_My_Stone" );
 
-#ifdef ADD_TRAININGGAME_NPC
 		if( pStatic != NULL && g_pMain->GetNowStateID() == CX2Main::XS_TRAINING_GAME )
 		{
 			pStatic->SetShow(false);
 			return;
 		}
-#endif
 
 		if ( pStatic != NULL && pStatic->GetString(0) != NULL )
 		{
@@ -11278,14 +10323,17 @@ void CX2Game::UpdateElswordSkillSlotEffect()
 {
 	if( NULL != g_pData->GetMyUser() &&
 		NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pX2Game->GetMyUnit() &&
+		NULL != GetMyUnit() &&
+#ifdef FIX_OBSERVER_MODE_CRASH
+		NULL != g_pX2Room && NULL != g_pX2Room->GetMySlot() && g_pX2Room->GetMySlot()->m_bObserver == false &&
+#endif //FIX_OBSERVER_MODE_CRASH
 		( CX2Unit::UT_ELSWORD == g_pData->GetMyUser()->GetSelectUnit()->GetType() 
 #ifdef NEW_CHARACTER_EL // 검의 길
 		|| CX2Unit::UT_ELESIS == g_pData->GetMyUser()->GetSelectUnit()->GetType() 
 #endif // NEW_CHARACTER_EL
 		) )
 	{
-		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 		if ( m_pDLGSkillSlot != NULL )
 		{
 			CKTDGUIStatic* pStatic_ElSkillVigor = (CKTDGUIStatic*) m_pDLGSkillSlot->GetControl( L"Static_EL_SKILL_B_B" );
@@ -11327,7 +10375,7 @@ void CX2Game::UpdateElswordSkillSlotEffect()
 				pStatic_ElSkillDest->GetPicture(iSlotIndex)->SetShow(false);
 
 				//슬롯 B가 활성화 되지 않으면 슬롯 A만 확인하도록 break;
-				if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() 
+				if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
 					&& bSlotB == true)
 				{
 					pStatic_ElSkillDest->SetShow(false);
@@ -11355,7 +10403,7 @@ void CX2Game::UpdateElswordSkillSlotEffect()
 
 						if( iWayOfSwordType == 2 )
 						{
-							if( g_pX2Game->GetMyUnit()->GetWayOfSwordState() == 2)  // CX2GUElsword_SwordMan::WSS_VIGOR
+							if( GetMyUnit()->GetWayOfSwordState() == 2)  // CX2GUElsword_SwordMan::WSS_VIGOR
 							{
 								pStatic_ElSkillVigor->GetPicture(iSlotIndex)->SetShow(true);
 								pStatic_ElSkillVigor->GetPicture(iSlotIndex)->SetFlicker( 0.4f, 1.0f, 0.1f );
@@ -11364,7 +10412,7 @@ void CX2Game::UpdateElswordSkillSlotEffect()
 						}
 						else if (iWayOfSwordType == 1)
 						{
-							if( g_pX2Game->GetMyUnit()->GetWayOfSwordState() == -2)  // CX2GUElsword_SwordMan::WSS_DESTRUCTION
+							if( GetMyUnit()->GetWayOfSwordState() == -2)  // CX2GUElsword_SwordMan::WSS_DESTRUCTION
 							{
 								pStatic_ElSkillDest->GetPicture(iSlotIndex)->SetShow(true);
 								pStatic_ElSkillDest->GetPicture(iSlotIndex)->SetFlicker( 0.4f, 1.0f, 0.1f );
@@ -11379,14 +10427,18 @@ void CX2Game::UpdateElswordSkillSlotEffect()
 	else
 	{
 		CKTDGUIStatic* pStatic_ElSkillVigor = (CKTDGUIStatic*) m_pDLGSkillSlot->GetControl( L"Static_EL_SKILL_B_B" );
+		if( NULL != pStatic_ElSkillVigor )
+			pStatic_ElSkillVigor->SetShow(false);
 		CKTDGUIStatic* pStatic_ElSkillDest = (CKTDGUIStatic*) m_pDLGSkillSlot->GetControl( L"Static_EL_SKILL_R_B" );
-		pStatic_ElSkillVigor->SetShow(false);
-		pStatic_ElSkillDest->SetShow(false);
+		if( NULL != pStatic_ElSkillDest )		
+			pStatic_ElSkillDest->SetShow(false);
 
 		pStatic_ElSkillVigor = (CKTDGUIStatic*) m_pDLGSkillSlot->GetControl( L"Static_EL_SKILL_B" );
+		if( NULL != pStatic_ElSkillVigor )
+			pStatic_ElSkillVigor->SetShow(false);
 		pStatic_ElSkillDest = (CKTDGUIStatic*) m_pDLGSkillSlot->GetControl( L"Static_EL_SKILL_R" );
-		pStatic_ElSkillVigor->SetShow(false);
-		pStatic_ElSkillDest->SetShow(false);
+		if( NULL != pStatic_ElSkillDest )
+			pStatic_ElSkillDest->SetShow(false);
 	}
 	return;
 }
@@ -11403,10 +10455,9 @@ void CX2Game::UpdateEveElectraSkillSlotIcon()
 #endif //SERV_EVE_BATTLE_SERAPH
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		GetMyUnit() != NULL &&
-		GetMyUnit()->GetUnit() != NULL && 
-		GetMyUnit()->GetUnit()->GetUnitData() != NULL )
+		GetMyUnit()->GetUnit() != NULL )
 	{
-		CX2UserSkillTree& refUserSkillTree = GetMyUnit()->GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& refUserSkillTree = GetMyUnit()->GetUnit()->GetUnitData().m_UserSkillTree;
 		//B슬롯도 같이 하기 위해서 EQUIPPED_SKILL_SLOT_COUNT*2
 		for(int i=0; i<EQUIPPED_SKILL_SLOT_COUNT * 2; ++i)
 		{
@@ -11414,7 +10465,7 @@ void CX2Game::UpdateEveElectraSkillSlotIcon()
 			int iSlotIndex = (i > 3) ? i-4 : i;
 
 			//슬롯 B가 활성화 되지 않으면 슬롯 A만 확인하도록 break;
-			if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() 
+			if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
 				&& bSlotB == true)
 			{
 				break;
@@ -11484,10 +10535,9 @@ void CX2Game::UpdateEveElectraSkillSlotIcon()
 void CX2Game::UpdateNightWatcherSkillSlotIcon()
 {
 	if(	g_pData->GetMyUser()->GetSelectUnit()->GetClass() == CX2Unit::UC_LIRE_NIGHT_WATCHER && 
-		g_pX2Game != NULL &&
-		g_pX2Game->GetMyUnit() != NULL )
+		GetMyUnit() != NULL )
 	{
-		CX2UserSkillTree& refUserSkillTree = GetMyUnit()->GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& refUserSkillTree = GetMyUnit()->GetUnit()->GetUnitData().m_UserSkillTree;
 		//B슬롯도 같이 하기 위해서 EQUIPPED_SKILL_SLOT_COUNT*2
 		for(int i=0; i<EQUIPPED_SKILL_SLOT_COUNT * 2; ++i)
 		{
@@ -11495,7 +10545,7 @@ void CX2Game::UpdateNightWatcherSkillSlotIcon()
 			int iSlotIndex = (i > 3) ? i-4 : i;
 
 			//슬롯 B가 활성화 되지 않으면 슬롯 A만 확인하도록 break;
-			if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() 
+			if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
 				&& bSlotB == true)
 			{
 				break;
@@ -11526,20 +10576,12 @@ void CX2Game::UpdateNightWatcherSkillSlotIcon()
 						if( pRena->GetActiveStartOfDelayedFiring() == true )			/// 전체 폭발 모드 아이콘
 						{
 							wstrTextureName = L"DLG_SKILL_LenaActive_03.tga";
-#ifdef INT_SKILL_BUG_FIX
-							wstrTexturePieceName = L"SI_A_RNW_DELAYED_FIRE_ACTIVE";
-#else
 							wstrTexturePieceName = L"SI_A_LNW_DELAYED_FIRE_ACTIVE";
-#endif INT_SKILL_BUG_FIX
 						}
 						else if( pRena->GetActiveStartOfDelayedFiring() == false )		/// 지연의 신호탄 모드 아이콘
 						{
 							wstrTextureName = L"DLG_SKILL_LenaActive_03.tga";
-#ifdef INT_SKILL_BUG_FIX
-							wstrTexturePieceName = L"SI_A_RNW_DELAYED_FIRE";
-#else
 							wstrTexturePieceName = L"SI_A_LNW_DELAYED_FIRE";
-#endif INT_SKILL_BUG_FIX
 						}
 
 						CKTDGUISlot* pSlot = g_pData->GetUIManager()->GetUISkillTree()->GetEquippedSlot(i);
@@ -11556,10 +10598,9 @@ void CX2Game::UpdateNightWatcherSkillSlotIcon()
 void CX2Game::UpdateVeteranCommanderSkillSlotIcon()
 {
 	if(	g_pData->GetMyUser()->GetSelectUnit()->GetClass() == CX2Unit::UC_RAVEN_VETERAN_COMMANDER && 
-		g_pX2Game != NULL &&
-		g_pX2Game->GetMyUnit() != NULL )
+		GetMyUnit() != NULL )
 	{
-		CX2UserSkillTree& refUserSkillTree = GetMyUnit()->GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& refUserSkillTree = GetMyUnit()->GetUnit()->GetUnitData().m_UserSkillTree;
 		//B슬롯도 같이 하기 위해서 EQUIPPED_SKILL_SLOT_COUNT*2
 		for(int i=0; i<EQUIPPED_SKILL_SLOT_COUNT * 2; ++i)
 		{
@@ -11567,7 +10608,7 @@ void CX2Game::UpdateVeteranCommanderSkillSlotIcon()
 			int iSlotIndex = (i > 3) ? i-4 : i;
 
 			//슬롯 B가 활성화 되지 않으면 슬롯 A만 확인하도록 break;
-			if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() 
+			if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
 				&& bSlotB == true)
 			{
 				break;
@@ -11612,16 +10653,171 @@ void CX2Game::UpdateVeteranCommanderSkillSlotIcon()
 }
 #endif //SERV_RAVEN_VETERAN_COMMANDER
 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+void CX2Game::UpdateCodeEmpressSkillSlotIcon()
+{
+	if(	g_pData->GetMyUser()->GetSelectUnit()->GetClass() == CX2Unit::UC_EVE_CODE_EMPRESS && 
+		GetMyUnit() != NULL )
+	{
+		const CX2UserSkillTree& refUserSkillTree = GetMyUnit()->GetUnit()->GetUnitData().m_UserSkillTree;
+		//B슬롯도 같이 하기 위해서 EQUIPPED_SKILL_SLOT_COUNT*2
+		for(int i=0; i<EQUIPPED_SKILL_SLOT_COUNT * 2; ++i)
+		{
+			bool bSlotB = (i > 3) ? true : false;
+			int iSlotIndex = (i > 3) ? i-4 : i;
+
+			//슬롯 B가 활성화 되지 않으면 슬롯 A만 확인하도록 break;
+			if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
+				&& bSlotB == true)
+			{
+				break;
+			}
+
+			const CX2UserSkillTree::SkillSlotData* pSkillData = refUserSkillTree.GetSkillSlot(iSlotIndex, bSlotB );
+			if( pSkillData != NULL && pSkillData->m_eID != CX2SkillTree::SI_NONE )
+			{
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( pSkillData->m_eID );
+#else // UPGRADE_SKILL_SYSTEM_2013
+				int iLevel = refUserSkillTree.GetSkillLevel( pSkillData->m_eID );
+
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( pSkillData->m_eID, iLevel );
+#endif // UPGRADE_SKILL_SYSTEM_2013
+				if(pSkillTemplet != NULL)
+				{
+					wstring wstrTextureName			= pSkillTemplet->m_wstrIconName;
+					wstring wstrTexturePieceName	= pSkillTemplet->m_wstrIconPieceName;
+					if( pSkillData->m_eID == CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION )
+					{
+						CX2GUEve* pEve = static_cast< CX2GUEve* >( GetMyUnit() );
+
+						if( pEve->GetActiveLinkOverChargeIllusion() == true )				/// 엠프레스 궁극기 - 링크 오버차지 썬더볼트 활성화
+						{
+							wstrTextureName = L"DLG_SKILL_Hyper_Active_02.tga";
+							wstrTexturePieceName = L"SI_HA_EEP_LINK_OVERCHARGE_ILLUSION_01";
+						}
+						else if( pEve->GetActiveLinkOverChargeIllusion() == false )			/// 엠프레스 궁극기 - 링크 오버차지 썬더볼트 비활성화
+						{
+							wstrTextureName = L"DLG_SKILL_Hyper_Active_01.tga";
+							wstrTexturePieceName = L"SI_HA_EEP_LINK_OVERCHARGE_ILLUSION";
+						}
+
+						CKTDGUISlot* pSlot = g_pData->GetUIManager()->GetUISkillTree()->GetEquippedSlot(i);
+						pSlot->SetItemTex(wstrTextureName.c_str(), wstrTexturePieceName.c_str() );
+					}
+				}	// if
+			}	//if
+		}//for
+	}
+}
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+void CX2Game::UpdateAddNasodRulerSkillSlotIcon()
+{
+	if(	NULL != g_pData &&
+		NULL != g_pData->GetMyUser() &&
+		NULL != g_pData->GetMyUser()->GetSelectUnit() &&
+		CX2Unit::UT_ADD == g_pData->GetMyUser()->GetSelectUnit()->GetType() &&
+		NULL != g_pData->GetSkillTree() )
+	{
+		CX2GUAdd* pAdd = static_cast< CX2GUAdd* >( GetMyUnit() );
+
+		if ( NULL == pAdd )
+			return;
+
+		const CX2UserSkillTree& refUserSkillTree = GetMyUnit()->GetUnit()->GetUnitData().m_UserSkillTree;
+
+		//B슬롯도 같이 하기 위해서 EQUIPPED_SKILL_SLOT_COUNT*2
+		for( int i = 0; i<EQUIPPED_SKILL_SLOT_COUNT * 2; ++i )
+		{
+			bool bSlotB = (i > 3) ? true : false;
+			int iSlotIndex = (i > 3) ? i-4 : i;
+
+			//슬롯 B가 활성화 되지 않으면 슬롯 A만 확인하도록 break;
+			if( false == refUserSkillTree.GetEnabledSkillSlotB() && bSlotB == true )
+				break;
+
+			const CX2UserSkillTree::SkillSlotData* pSkillData = refUserSkillTree.GetSkillSlot(iSlotIndex, bSlotB );
+
+			if( pSkillData == NULL || pSkillData->m_eID == CX2SkillTree::SI_NONE )
+				continue;
+			
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( pSkillData->m_eID );
+
+			if( pSkillTemplet == NULL)
+				continue;
+			
+			const wchar_t* pwstrTextureName			= pSkillTemplet->m_wstrIconName.c_str();
+			const wchar_t* pwstrTexturePieceName	= pSkillTemplet->m_wstrIconPieceName.c_str();
+			
+			switch( pSkillData->m_eID )
+			{
+			case CX2SkillTree::SI_SA_APT_STASIS_FIELD:
+				{
+					if( true == pAdd->GetIsActiveStasisfield() )		/// 스테이시스 필드 활성화
+					{
+						pwstrTextureName = L"DLG_SKILL_ADD_Active_01.tga";
+						pwstrTexturePieceName = L"SI_SA_APT_STASIS_FIELD_01";
+					}
+
+					CKTDGUISlot* pSlot = g_pData->GetUIManager()->GetUISkillTree()->GetEquippedSlot(i);
+					if( NULL != pSlot )
+						pSlot->SetItemTex(pwstrTextureName, pwstrTexturePieceName );
+				} break;
+			case CX2SkillTree::SI_A_AN_PHASE_SHIFT:
+				{
+					if( true == pAdd->GetIsActivePhaseShift() )
+					{
+						pwstrTextureName = L"DLG_SKILL_ADD_Active_01.tga";
+						pwstrTexturePieceName = L"SI_A_AN_PHASE_SHIFT_01";
+					}
+					else
+					{
+		#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+						/// 환상 추적자 활성 여부
+						if ( true == pAdd->GetIsFantasyTracerTargetSkillID( CX2SkillTree::SI_A_AN_PHASE_SHIFT ) )
+						{
+							pwstrTextureName = L"DLG_SKILL_Passive_07.tga";
+							pwstrTexturePieceName = L"SI_P_ALP_FANTASY_TRACER";
+						}
+		#endif //SERV_ADD_LUNATIC_PSYKER
+					}
+
+					CKTDGUISlot* pSlot = g_pData->GetUIManager()->GetUISkillTree()->GetEquippedSlot(i);
+					if( NULL != pSlot )
+						pSlot->SetItemTex(pwstrTextureName, pwstrTexturePieceName );
+				} break;
+		#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+			case CX2SkillTree::SI_A_AN_PULSE_BULLET:
+				{
+					if ( true == pAdd->GetIsFantasyTracerTargetSkillID( CX2SkillTree::SI_A_AN_PULSE_BULLET ) )
+					{
+						pwstrTextureName = L"DLG_SKILL_Passive_07.tga";
+						pwstrTexturePieceName = L"SI_P_ALP_FANTASY_TRACER";
+					}
+
+					CKTDGUISlot* pSlot = g_pData->GetUIManager()->GetUISkillTree()->GetEquippedSlot(i);
+					if( NULL != pSlot )
+						pSlot->SetItemTex(pwstrTextureName, pwstrTexturePieceName );
+				} break;
+		#endif //SERV_ADD_LUNATIC_PSYKER
+			default:
+				break;
+			}
+		}
+	}
+}
+#endif //SERV_9TH_NEW_CHARACTER
 
 void CX2Game::UpdateSkillCoolTime( float fElapsedTime )
 {
 	if( g_pData != NULL &&
 		g_pData->GetMyUser() != NULL &&
 		g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL &&
-		g_pX2Game->GetMyUnit() != NULL )
+		GetMyUnit() != NULL )
 	{
-		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;	
+		const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;	
 		if ( m_pDLGSkillSlot != NULL )
 		{
 			CKTDGUIStatic* pStaticCoolTime = (CKTDGUIStatic*)m_pDLGSkillSlot->GetControl( L"Static_Skill_Cool_Time" );
@@ -11636,10 +10832,9 @@ void CX2Game::UpdateSkillCoolTime( float fElapsedTime )
 
 			//슬롯 B 활성화 여부
 			bool bEnableSlotB = false;
-			if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+			if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() )
+				if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() )
 					bEnableSlotB = true;
 			}
 
@@ -11709,17 +10904,36 @@ void CX2Game::UpdateSkillCoolTime( float fElapsedTime )
 						}
 						CX2GageData* pMyGageData = GetMyUnit()->GetGageData();
 
+#ifdef SERV_9TH_NEW_CHARACTER
+						// 위상변화 MP변수 값이 설정되었다면
+						// 현재 슬롯은 위상변화 슬롯이며,  위상변화 위치 이동이 가능한 상태
+						bool bShowCoolTime = true;
+						float fRequiredMpForPhaseShift = 0.f;
+						if( pSlotData->m_eID == CX2SkillTree::SI_A_AN_PHASE_SHIFT )
+						{
+							CX2GUAdd* pAdd = static_cast< CX2GUAdd* >( GetMyUnit() );
+							if( NULL != pAdd )
+							{
+								if( pAdd->GetIsActivePhaseShift() )
+								{
+									fRequiredMpForPhaseShift = pAdd->GetPhaseShiftMPConsume();
+									bShowCoolTime = false;
+								}
+							}
+						}
+#endif // SERV_9TH_NEW_CHARACTER
+
 #ifdef ELSWORD_WAY_OF_SWORD
 						// 오현빈 // MP 소모량에 대한 예외처리를 위해  GetActualMPConsume로 MP 소모량 얻어오기 
 						float fRequiredMPConsumption = GetMyUnit()->GetActualMPConsume( pSlotData->m_eID, pSlotData->m_iSkillLevel + pSlotData->m_iSkillLevelPlus );
-						if( CX2Unit::UT_ELSWORD == g_pX2Game->GetMyUnit()->GetUnit()->GetType()
+						if( CX2Unit::UT_ELSWORD == GetMyUnit()->GetUnit()->GetType()
 							)
 						{
-							int iWayOfSwordState = g_pX2Game->GetMyUnit()->GetWayOfSwordState();
+							int iWayOfSwordState = GetMyUnit()->GetWayOfSwordState();
 
 							if( iWayOfSwordState == 2 ) // CX2GUElsword_SwordMan::WSS_VIGOR
 							{
-								const CX2SkillTree::SkillTemplet* pSkillTempletUsing = g_pX2Game->GetMyUnit()->GetEquippedActiveSkillTemplet( pSlotData->m_eID );
+								const CX2SkillTree::SkillTemplet* pSkillTempletUsing = GetMyUnit()->GetEquippedActiveSkillTemplet( pSlotData->m_eID );
 								if( pSkillTempletUsing != NULL )
 								{
 				#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -11736,6 +10950,18 @@ void CX2Game::UpdateSkillCoolTime( float fElapsedTime )
 							}
 						}
 #endif ELSWORD_WAY_OF_SWORD
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+						if( pSlotData->m_eID == CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION )		/// 링크 오버차지 일루젼 npc 페르디난도 피니쉬 공격
+						{
+							CX2GUEve* pEve = static_cast< CX2GUEve* >( GetMyUnit() );
+
+							if( true == pEve->GetActiveLinkOverChargeIllusion() )
+							{
+								fRequiredMPConsumption = 0.f;
+							}
+						}
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef EVE_ELECTRA
 						if( pSlotData->m_eID == CX2SkillTree::SI_A_EEL_SPECTRO_EL_CRYSTAL )
@@ -11793,15 +11019,84 @@ void CX2Game::UpdateSkillCoolTime( float fElapsedTime )
 						}
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
-						if( true == g_pX2Game->GetMyUnit()->GetEntangled() ||
-							g_pX2Game->GetMyUnit()->GetNoSkillTime() > 0.f )	// 스킬을 사용할 수 없는 silence 상태일 때
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+						/// 스테이시스 필드 동작 중
+						else if( pSlotData->m_eID == CX2SkillTree::SI_SA_APT_STASIS_FIELD )
+						{
+							CX2GUAdd* pAdd = static_cast< CX2GUAdd* >( GetMyUnit() );
+
+							if( NULL != pAdd && true == pAdd->GetIsActiveStasisfield() )
+							{
+								fRequiredMPConsumption = 0.f;
+								bShowCoolTime = false;
+							}
+						}
+
+						/// 위상 변화 동작 중
+						else if( 0.f < fRequiredMpForPhaseShift )
+						{
+							fRequiredMPConsumption = fRequiredMpForPhaseShift;
+						}
+
+						/// 파일런 연속 소환 가능한 조건이라면, 쿨타임 설정 않함
+						else if ( CX2Unit::UT_ADD == GetMyUnit()->GetUnit()->GetType() &&
+								  pSlotData->m_eID == CX2SkillTree::SI_A_APT_PYLON_DYNAMO &&
+								  true == static_cast< CX2GUAdd* >( GetMyUnit() )->GetPossibleNonstopSummonPylon() )
+						{
+							if (pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
+								pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex)->bShow = false;
+
+							bShowCoolTime = false;
+
+							pStaticCoolTime->SetString( iSlotIndex, L"" );	
+						}
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+						/// 환상 추적자 아이콘으로 변경시엔, 비활성 처리 해제
+						else if ( CX2Unit::UT_ADD == GetMyUnit()->GetUnit()->GetType() &&
+								  true == static_cast< CX2GUAdd* >( GetMyUnit() )->GetIsFantasyTracerTargetSkillID( pSlotData->m_eID ) )
+						{
+							if (pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
+								pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex)->bShow = false;
+
+							bShowCoolTime = false;
+
+							pStaticCoolTime->SetString( iSlotIndex, L"" );	
+						}
+
+						/// 퀵실버 액샐 동작중엔, 계속 활성 처리
+						else if ( CX2Unit::UT_ADD == GetMyUnit()->GetUnit()->GetType() &&
+								  pSlotData->m_eID == CX2SkillTree::SI_SA_ALP_QUICKSILVER_ACCEL &&
+								  CX2SkillTree::SI_SA_ALP_QUICKSILVER_ACCEL == static_cast< CX2GUAdd* >( GetMyUnit() )->GetFutureStateSkillID() )
+						{
+							if (pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
+								pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex)->bShow = false;
+
+							bShowCoolTime = false;
+
+							pStaticCoolTime->SetString( iSlotIndex, L"" );	
+						}
+#endif //SERV_ADD_LUNATIC_PSYKER
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+						const int iElEssence = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+						const CX2SkillTree::SkillTemplet* pSkillTemplet = refUserSkillTree.GetUserSkillTemplet( pSlotData->m_eID );
+#endif //FINALITY_SKILL_SYSTEM
+
+						if( true == GetMyUnit()->GetEntangled() ||
+							GetMyUnit()->GetNoSkillTime() > 0.f )	// 스킬을 사용할 수 없는 silence 상태일 때
 						{
 							if (pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
 								pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex)->bShow = true;
 
 							pStaticCoolTime->SetString( iSlotIndex, L"" );
 						}
-						else if(pSlotData->m_fCoolTimeLeft > 0.0f)
+						else if(pSlotData->m_fCoolTimeLeft > 0.0f
+#ifdef SERV_9TH_NEW_CHARACTER
+								&& true == bShowCoolTime 
+#endif // SERV_9TH_NEW_CHARACTER
+								)
 						{
 							if (pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
 								pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex)->bShow = true;
@@ -11824,9 +11119,9 @@ void CX2Game::UpdateSkillCoolTime( float fElapsedTime )
 				//{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 			#ifdef	NEW_CHARACTER_CHUNG
 						// 캐릭터가 청인데, 광폭화모드가 아닌 상태에서 캐논볼 보유량이 부족 하면
-						else if ( CX2Unit::UT_CHUNG == g_pX2Game->GetMyUnit()->GetUnit()->GetType()
-								  && ( false == g_pX2Game->GetMyUnit()->IsFullHyperMode() 
-								        && static_cast<CX2GUChung*>(g_pX2Game->GetMyUnit())->GetCannonBallCount() < pSlotData->m_usCBConsumption )
+						else if ( CX2Unit::UT_CHUNG == GetMyUnit()->GetUnit()->GetType()
+								  && ( false == GetMyUnit()->IsFullHyperMode() 
+								        && static_cast<CX2GUChung*>(GetMyUnit())->GetCannonBallCount() < pSlotData->m_usCBConsumption )
                                  )
 						{
 							if (pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
@@ -11862,7 +11157,42 @@ void CX2Game::UpdateSkillCoolTime( float fElapsedTime )
 						}
 		#endif // ADD_ARA_MEMO
 #endif // ARA_CHARACTER_BASE
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+						else if ( pSkillTemplet != NULL && pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL &&
+							iElEssence <= 0 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+							&& false == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence()
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+							)
+						{
+							if (pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
+								pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex)->bShow = true;
 
+							pStaticCoolTime->SetString( iSlotIndex, L"" );
+						}
+#endif //FINALITY_SKILL_SYSTEM
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+						/// DP 검사
+						else if ( CX2Unit::UT_ADD == GetMyUnit()->GetUnit()->GetType() &&
+								  static_cast< CX2GUAdd* >( GetMyUnit() )->GetDPValue() < 
+								  static_cast< CX2GUAdd* >( GetMyUnit() )->GetActualDPConsume( pSlotData )  )
+						{
+							if (pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
+								pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex)->bShow = true;
+
+							pStaticCoolTime->SetString( iSlotIndex, L"" );	
+						}
+						/// 변이 포인트 검사
+						else if ( CX2Unit::UT_ADD == GetMyUnit()->GetUnit()->GetType() &&
+								  static_cast< CX2GUAdd* >( GetMyUnit() )->GetMutationCount() < 
+								  static_cast< CX2GUAdd* >( GetMyUnit() )->GetMutationPointConsume( pSlotData ) )
+						{
+							if (pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
+								pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex)->bShow = true;
+
+							pStaticCoolTime->SetString( iSlotIndex, L"" );	
+						}
+#endif //SERV_9TH_NEW_CHARACTER
 						else
 						{
 							if ( pStatic_Skill_Cool_Time_Fade->GetPicture(iSlotIndex) != NULL )
@@ -12494,6 +11824,14 @@ bool CX2Game::Handler_EGS_RESURRECT_TO_CONTINUE_DUNGEON_ACK( KEGS_RESURRECT_TO_C
 			GetMyUnit()->SetBuffFactorToGameUnitByBuffFactorID( BFI_EMPTY_EXP_BUFF );
 		}
 #endif // EVENT_NEW_CHARACTER_EL
+#ifdef EVENT_NEW_HENIR
+// 		if( true == CX2EmblemManager::GetInstance()->IsBurningEventTime() && 
+// 			true == CX2EmblemManager::GetInstance()->HasEmblem(CX2EmblemManager::EI_WEEKEND_BURNING_EVENT) )
+// 		{		
+// 			GetMyUnit()->SetBuffFactorToGameUnitByBuffFactorID( BFI_EMPTY_EXP_BUFF );
+// 		}
+#endif // EVENT_NEW_HENIR
+
 
 	}
 
@@ -12517,8 +11855,7 @@ bool CX2Game::Handler_EGS_RESURRECT_TO_CONTINUE_DUNGEON_ACK( KEGS_RESURRECT_TO_C
 					}
 				}
 				//{{ oasis907 : 김상윤 [2011.5.23] 유저 부활시에 SPRIGGAN_LIGHT_BALL 제거
-				if( NULL != pCX2GUNPC->GetNPCTemplet() &&
-					CX2UnitManager::NUI_SPRIGGAN_LIGHT_BALL == pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID )
+				if( CX2UnitManager::NUI_SPRIGGAN_LIGHT_BALL == pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID )
 				{
 					pCX2GUNPC->ResetGameUnitWhoAttackedMe();
 					pCX2GUNPC->SetNowHp( 0.f );
@@ -12566,13 +11903,16 @@ UidType CX2Game::GetLockOnNearstTarget( CX2Room::TEAM_NUM eTeamNum_, IN const D3
 
 		if( CX2GameUnit::GUT_NPC == pCX2GameUnit->GetGameUnitType() )
 		{
+#ifdef FIELD_BOSS_RAID // 유도 / 타겟 지정에 대한 예외
+			if( true == pCX2GameUnit->GetIsBosRaidNPC() )
+				continue;
+#endif // FIELD_BOSS_RAID
+
 			const CX2GUNPC* pNPC = static_cast<const CX2GUNPC*>( pCX2GameUnit );
-			switch( pNPC->GetNPCTemplet()->m_ClassType )
+			switch( pNPC->GetNPCTemplet().m_ClassType )
 			{
 			case CX2UnitManager::NCT_THING_TRAP:
-#ifdef DUNGEON_CHECKER_NPC
 			case CX2UnitManager::NCT_THING_CHECKER:
-#endif
 				{
 					continue;
 				} break;
@@ -12651,13 +11991,16 @@ UidType CX2Game::GetLockOnNearstTargetInRange( CX2Room::TEAM_NUM eTeamNum_, IN c
 
 		if( CX2GameUnit::GUT_NPC == pCX2GameUnit->GetGameUnitType() )
 		{
+#ifdef FIELD_BOSS_RAID // 유도 / 타겟 지정에 대한 예외
+			if( true == pCX2GameUnit->GetIsBosRaidNPC() )
+				continue;
+#endif // FIELD_BOSS_RAID
+
 			const CX2GUNPC* pNPC = static_cast<const CX2GUNPC*>( pCX2GameUnit );
-			switch( pNPC->GetNPCTemplet()->m_ClassType )
+			switch( pNPC->GetNPCTemplet().m_ClassType )
 			{
 			case CX2UnitManager::NCT_THING_TRAP:
-#ifdef DUNGEON_CHECKER_NPC
 			case CX2UnitManager::NCT_THING_CHECKER:
-#endif
 				{
 					continue;
 				} break;
@@ -12746,8 +12089,13 @@ UidType CX2Game::GetLockOnNearstTargetOnlyBasic( CX2Room::TEAM_NUM eTeamNum_, IN
 
 		if( CX2GameUnit::GUT_NPC == pCX2GameUnit->GetGameUnitType() )
 		{
+#ifdef FIELD_BOSS_RAID // 유도 / 타겟 지정에 대한 예외
+			if( true == pCX2GameUnit->GetIsBosRaidNPC() )
+				continue;
+#endif // FIELD_BOSS_RAID
+
 			const CX2GUNPC* pNPC = static_cast<const CX2GUNPC*>( pCX2GameUnit );
-			if( pNPC->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+			if( pNPC->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 				continue;
 		} // if
 
@@ -12814,13 +12162,16 @@ UidType	CX2Game::GetLockOnTarget( CX2Room::TEAM_NUM teamNum, int seedNum, bool& 
 
 		if( pCX2GameUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 		{
+#ifdef FIELD_BOSS_RAID // 유도 / 타겟 지정에 대한 예외
+			if( true == pCX2GameUnit->GetIsBosRaidNPC() )
+				continue;
+#endif // FIELD_BOSS_RAID
+
 			CX2GUNPC* pNPC = (CX2GUNPC*) pCX2GameUnit;
-			switch( pNPC->GetNPCTemplet()->m_ClassType )
+			switch( pNPC->GetNPCTemplet().m_ClassType )
 			{
 			case CX2UnitManager::NCT_THING_TRAP:
-#ifdef DUNGEON_CHECKER_NPC
 			case CX2UnitManager::NCT_THING_CHECKER:
-#endif
 				{
 					continue;
 				} break;
@@ -12862,13 +12213,17 @@ UidType	CX2Game::GetLockOnTarget( CX2Room::TEAM_NUM teamNum, int seedNum, bool& 
 
 			if( pCX2GameUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 			{
+
+#ifdef FIELD_BOSS_RAID // 유도 / 타겟 지정에 대한 예외
+				if( true == pCX2GameUnit->GetIsBosRaidNPC() )
+					continue;
+#endif // FIELD_BOSS_RAID
+
 				CX2GUNPC* pNPC = (CX2GUNPC*) pCX2GameUnit;
-				switch( pNPC->GetNPCTemplet()->m_ClassType )
+				switch( pNPC->GetNPCTemplet().m_ClassType )
 				{
 				case CX2UnitManager::NCT_THING_TRAP:
-#ifdef DUNGEON_CHECKER_NPC
 				case CX2UnitManager::NCT_THING_CHECKER:
-#endif
 					{
 						continue;
 					} break;
@@ -13009,8 +12364,8 @@ bool CX2Game::IsThereAnyUserUnitOnLine( int iLineIndex )
 		if( pCX2GUUser->GetNowHp() <= 0.f )
 			continue;
 
-		if( iLineIndex == pCX2GUUser->GetSyncData()->lastTouchLineIndex &&
-			true == pCX2GUUser->GetUnitCondition()->bFootOnLine )
+		if( iLineIndex == pCX2GUUser->GetSyncData().lastTouchLineIndex &&
+			true == pCX2GUUser->GetUnitCondition().bFootOnLine )
 		{
 			return true;
 		}
@@ -13088,8 +12443,8 @@ void CX2Game::CreateStageLoadingTeleportEffectForAllUser( bool bEnterPortal )
 		if( true == bEnterPortal )
 		{
 			pCX2GUUser->SetCanNotInputTime_LUA( 5.f );
-			pCX2GUUser->GetPhysicParam().nowSpeed		= D3DXVECTOR2( 0, 0 );
-			pCX2GUUser->GetPhysicParam().passiveSpeed	= D3DXVECTOR2( 0, 0 );
+			pCX2GUUser->AccessPhysicParam().nowSpeed		= D3DXVECTOR2( 0, 0 );
+			pCX2GUUser->AccessPhysicParam().passiveSpeed	= D3DXVECTOR2( 0, 0 );
 		}
 		else
 		{
@@ -13111,7 +12466,7 @@ bool CX2Game::IsNearNPCUnitUID_LUA( D3DXVECTOR3 pos, CX2UnitManager::NPC_UNIT_ID
 		if( pNPC == NULL )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_nNPCUnitID == unitID && pNPC->GetGroupAICommand_LUA() == CX2GUNPC::GAI_CMD_OFF)
+		if( pNPC->GetNPCTemplet().m_nNPCUnitID == unitID && pNPC->GetGroupAICommand_LUA() == CX2GUNPC::GAI_CMD_OFF)
 		{
 			float fTempDist = GetDistance( pos, pNPC->GetPos() );
 			if( fTempDist < fDistance )
@@ -13135,7 +12490,7 @@ CX2GUNPC* CX2Game::GetNearNoneAINPCUnitUID( D3DXVECTOR3 pos, CX2UnitManager::NPC
 		if( pNPC == NULL )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_nNPCUnitID == unitID && 
+		if( pNPC->GetNPCTemplet().m_nNPCUnitID == unitID && 
 			pNPC->GetNowHp() > 0.f && CX2GameUnit::GUSI_DIE != pNPC->GetGameUnitState() &&
 			pNPC->GetGroupAICommand_LUA() == CX2GUNPC::GAI_CMD_OFF) /*!pNPC->GetDyingStart())*/
 		{
@@ -13263,7 +12618,7 @@ D3DXVECTOR3 CX2Game::GetNearestNPCUnitPos_LUA( D3DXVECTOR3 pos, float fMinRange,
 		if( 0.f >= pNPC->GetNowHp() )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+		if( pNPC->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 			continue;
 	
 		float fTempDist = GetDistance( pos, pNPC->GetPos() );
@@ -13345,7 +12700,7 @@ int CX2Game::GetNearNPCUnitUIDInStart_LUA( D3DXVECTOR3 pos, CX2UnitManager::NPC_
 		if( pNPC == NULL )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_nNPCUnitID == unitID && pNPC->GetNPCSyncData()->nowState == pNPC->GetStartState() )
+		if( pNPC->GetNPCTemplet().m_nNPCUnitID == unitID && pNPC->GetNPCSyncData().nowState == pNPC->GetStartState() )
 		{
 			float fTempDist = GetDistance( pos, pNPC->GetPos() );
 			if( fTempDist < fDistance )
@@ -13370,7 +12725,7 @@ CX2GUNPC*	CX2Game::GetNearNPCUnitInStart( const D3DXVECTOR3 vPos_, const CX2Unit
 		if( pNPC == NULL )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_nNPCUnitID == eUnitID_ && pNPC->GetNPCSyncData()->nowState == pNPC->GetStartState() )
+		if( pNPC->GetNPCTemplet().m_nNPCUnitID == eUnitID_ && pNPC->GetNPCSyncData().nowState == pNPC->GetStartState() )
 		{
 			float fTempDistance3Sq = GetDistance3Sq( vPos_, pNPC->GetPos() );
 			if( fTempDistance3Sq < fDistance3Sq )
@@ -13396,7 +12751,7 @@ int CX2Game::GetNearNPCUnitUID_LUA( D3DXVECTOR3 pos, CX2UnitManager::NPC_UNIT_ID
 		if( pNPC == NULL )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_nNPCUnitID == unitID && 
+		if( pNPC->GetNPCTemplet().m_nNPCUnitID == unitID && 
 			pNPC->GetNowHp() > 0.f && CX2GameUnit::GUSI_DIE != pNPC->GetGameUnitState() ) /*!pNPC->GetDyingStart())*/
 		{
 			float fTempDist = GetDistance( pos, pNPC->GetPos() );
@@ -13422,7 +12777,7 @@ CX2GUNPC*	CX2Game::GetNearestNpcInSpecificRangeByNpcId( const D3DXVECTOR3& vPos_
 		if( NULL == pNPC )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_nNPCUnitID == eUnitID_ && 
+		if( pNPC->GetNPCTemplet().m_nNPCUnitID == eUnitID_ && 
 			pNPC->GetNowHp() > 0.f && CX2GameUnit::GUSI_DIE != pNPC->GetGameUnitState() ) /*!pNPC->GetDyingStart())*/
 		{
 			float fTempDistance3Sq = GetDistance3Sq( vPos_, pNPC->GetPos() );
@@ -13451,7 +12806,7 @@ int CX2Game::GetNearNPCUnitUIDEx( D3DXVECTOR3 pos, CX2UnitManager::NPC_UNIT_ID u
 		if ( pNPC->GetUID() == npcUIDToExcept )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_nNPCUnitID == unitID && 
+		if( pNPC->GetNPCTemplet().m_nNPCUnitID == unitID && 
 			pNPC->GetNowHp() > 0.f && CX2GameUnit::GUSI_DIE != pNPC->GetGameUnitState() ) /*!pNPC->GetDyingStart())*/
 		{
 			float fTempDist = GetDistance( pos, pNPC->GetPos() );
@@ -13480,7 +12835,7 @@ int CX2Game::GetNearNPCUnitUIDEx( D3DXVECTOR3 pos, const vector< CX2UnitManager:
 		if ( pNPC->GetUID() == npcUIDToExcept )
 			continue;
 
-		if ( std::find( vecUnitID.begin(), vecUnitID.end(), pNPC->GetNPCTemplet()->m_nNPCUnitID ) != vecUnitID.end() )
+		if ( std::find( vecUnitID.begin(), vecUnitID.end(), pNPC->GetNPCTemplet().m_nNPCUnitID ) != vecUnitID.end() )
 		{
 			if( pNPC->GetNowHp() > 0.f && CX2GameUnit::GUSI_DIE != pNPC->GetGameUnitState() ) /*!pNPC->GetDyingStart())*/
 			{
@@ -13617,7 +12972,7 @@ CX2GameUnit* CX2Game::GetFrontNearestEnemyUnit( CX2GameUnit* pMyUnit, float& fDi
 
 bool CX2Game::ChangeRebirthStateNPCUnit_LUA( int NPCUID )
 {
-	CX2GUNPC* pCX2GUNPC = g_pX2Game->GetNPCUnitByUID( NPCUID );
+	CX2GUNPC* pCX2GUNPC = GetNPCUnitByUID( NPCUID );
 	if( pCX2GUNPC != NULL && pCX2GUNPC->GetNowHp() > 0.0f )
 	{
 		pCX2GUNPC->StateChange( pCX2GUNPC->GetRebirthState() );
@@ -13636,7 +12991,7 @@ int CX2Game::GetNPCCountAt( D3DXVECTOR3 vPosition, float fRadius /*= 30.f*/, CX2
 		if( NULL == pGUNPC )
 			continue;
 
-		if( eNPCID != CX2UnitManager::NUI_NONE && eNPCID != pGUNPC->GetNPCTemplet()->m_nNPCUnitID )
+		if( eNPCID != CX2UnitManager::NUI_NONE && eNPCID != pGUNPC->GetNPCTemplet().m_nNPCUnitID )
 			continue;
 
 		if( GetDistance( vPosition, pGUNPC->GetPos() ) < fRadius )
@@ -13658,13 +13013,34 @@ D3DXVECTOR3 CX2Game::GetEmptyStartPos()
 
 	CKTDGLineMap* pLineMap = m_pWorld->GetLineMap();
 
+#ifdef	X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+    const CKTDGLineMap::StartInfoMap& mapStartInfo = pLineMap->GetStartInfoMap();
+	CKTDGLineMap::StartInfoMap::const_iterator it;
+	for( it = mapStartInfo.begin(); it != mapStartInfo.end(); it++ )
+	{
+		const D3DXVECTOR3& vPos = it->second.m_vStartPos;
+		int nNpcCount = GetNPCCountAt( vPos, 500.f );
+		if( nNpcCount == 0 )
+		{
+			return vPos;
+		}
+	}
 
+	if( mapStartInfo.empty() == false )
+	{
+        return  mapStartInfo.begin()->second.m_vStartPos;
+	}
+	else
+	{
+		return pLineMap->GetLineData(0)->startPos;
+	}
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 	map<int, D3DXVECTOR3>& mapStartPos = pLineMap->GetStartPosMap();
 	map<int, D3DXVECTOR3>::iterator it;
 	for( it = mapStartPos.begin(); it != mapStartPos.end(); it++ )
 	{
 		D3DXVECTOR3& vPos = it->second;
-		int nNpcCount = g_pX2Game->GetNPCCountAt( vPos, 500.f );
+		int nNpcCount = GetNPCCountAt( vPos, 500.f );
 		if( nNpcCount == 0 )
 		{
 			return vPos;
@@ -13680,7 +13056,7 @@ D3DXVECTOR3 CX2Game::GetEmptyStartPos()
 	{
 		return pLineMap->GetLineData(0)->startPos;
 	}
-
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 }
 
 
@@ -13701,11 +13077,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 #endif	SERV_TRAPPING_RANGER_TEST 
 	{
 		CX2GUUser* pUser = GetUserUnitByUID( iAllyUID );
-		if( NULL != pUser &&
-			NULL != pUser->GetStat() )
+		if( NULL != pUser )
 		{
 			// 소환 몬스터 레벨은 소환사의 레벨과 같게
-			pNPC->SetHardLevel( pUser->GetUnit()->GetUnitData()->m_Level, false );
+			pNPC->SetHardLevel( pUser->GetUnit()->GetUnitData().m_Level, false );
 			
 			float fStatAtkRate = 1.f;
 #ifdef NEW_SKILL_TREE
@@ -13719,13 +13094,8 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 			pNPC->GetNPCStat(NPCStat);
 
 			//{{ kimhc // 2011-07-28 // 옵션수치화
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			NPCStat.m_fPercentCritical = pUser->GetCriticalRate();
 			NPCStat.m_fAccuracy = pUser->GetAccuracyPercent();			
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-			NPCStat.m_fPercentCritical = pUser->GetSocketData()->m_fPercentCritical;
-			NPCStat.m_fAccuracy = pUser->GetSocketData()->m_fAntiEvadePercent;
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 				//}} kimhc // 2011-07-28 // 옵션수치화
 
 			
@@ -13735,16 +13105,15 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 			//}}
 
 			// 유저의 스탯으로 npc 스탯을 설정한다.
-			CX2Stat::Stat npcStat = *pUser->GetStat()->GetStat();
+			CX2Stat::Stat npcStat = pUser->GetStat().GetStat();
 			npcStat.m_fAtkPhysic	= pUser->GetPhysicAttackValue();
 			npcStat.m_fAtkMagic		= pUser->GetMagicAttackValue();
 			npcStat.m_fDefPhysic	= pUser->GetPhysicDefenceValue();
 			npcStat.m_fDefMagic		= pUser->GetMagicDefenceValue();
 #ifdef FIX_SUMMON_NPC_SKILL_DAMAGE		/// 소환류 공격에 물공, 마공 증가 적용 않되던 사항에 대한 수정
-			if( NULL != pUser->GetSocketData() )
 			{
-				npcStat.m_fAtkPhysic += npcStat.m_fAtkPhysic * pUser->GetSocketData()->m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate;
-				npcStat.m_fAtkMagic += npcStat.m_fAtkMagic * pUser->GetSocketData()->m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate;
+				npcStat.m_fAtkPhysic += npcStat.m_fAtkPhysic * pUser->GetSocketData().m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate;
+				npcStat.m_fAtkMagic += npcStat.m_fAtkMagic * pUser->GetSocketData().m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate;
 							
 #ifdef FIXED_APPLYING_ADDITINAL_DAMAGE_FOR_SUMMON_MONSTER
 				pNPC->SetAdditionalAttack ( pUser->GetAdditionalAttack() );			
@@ -13754,14 +13123,14 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 			}
 #endif FIX_SUMMON_NPC_SKILL_DAMAGE
 
-// 			if( pUser->GetStat()->GetAddOnTime()->m_fAtkPhysic > 0.f )
-// 				npcStat.m_fAtkPhysic += pUser->GetStat()->GetAddOnStat()->m_fAtkPhysic;
-// 			if( pUser->GetStat()->GetAddOnTime()->m_fAtkMagic > 0.f )
-// 				npcStat.m_fAtkMagic += pUser->GetStat()->GetAddOnStat()->m_fAtkMagic;
-// 			if( pUser->GetStat()->GetAddOnTime()->m_fDefPhysic > 0.f )
-// 				npcStat.m_fDefPhysic += pUser->GetStat()->GetAddOnStat()->m_fDefPhysic;
-// 			if( pUser->GetStat()->GetAddOnTime()->m_fDefMagic > 0.f )
-// 				npcStat.m_fDefMagic += pUser->GetStat()->GetAddOnStat()->m_fDefMagic;
+// 			if( pUser->GetStat().GetAddOnTime().m_fAtkPhysic > 0.f )
+// 				npcStat.m_fAtkPhysic += pUser->GetStat().GetAddOnStat().m_fAtkPhysic;
+// 			if( pUser->GetStat().GetAddOnTime().m_fAtkMagic > 0.f )
+// 				npcStat.m_fAtkMagic += pUser->GetStat().GetAddOnStat().m_fAtkMagic;
+// 			if( pUser->GetStat().GetAddOnTime().m_fDefPhysic > 0.f )
+// 				npcStat.m_fDefPhysic += pUser->GetStat().GetAddOnStat().m_fDefPhysic;
+// 			if( pUser->GetStat().GetAddOnTime().m_fDefMagic > 0.f )
+// 				npcStat.m_fDefMagic += pUser->GetStat().GetAddOnStat().m_fDefMagic;
 
 
 
@@ -13773,7 +13142,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 				fHyperModeStatScale = 1.2f;
 			}
 
-
+#ifdef ADD_RENA_SYSTEM //김창한
+			//npc가 소환될때 유저에게서 스킬 관련데이터를 받아와 저장
+			pNPC->SetRelateSkillData( pUser->GetNowDamageRelateSkillData() );
+#endif //ADD_RENA_SYSTEM
 
 			switch( unitID )
 			{
@@ -13782,62 +13154,12 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 				{
 					fStatScale *= fHyperModeStatScale;
 
-//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 5 - AI party member difficulty.
-//
-//   This is the LAST word on an AI party member's stats and therefore the
-//   only place the difficulty knob can go. The RoomNpcSlot override in
-//   CX2GUNPC (X2GUNPC.cpp:3915) has already run by the time we get here and
-//   the SetNPCStat below overwrites it, which is why the knob the plan
-//   originally described - scaling the five slot stats - would have changed
-//   nothing visible. See AI_PARTY_PLAN.md phase 1 correction 2.
-//
-//   Tested with IsPvpBot() rather than with a unitID case, the way the Nasod
-//   Watch and Wally entries below are, because the same ten
-//   NUI_CSM_PVP_HERO_* ids are also summonable by monster card: the id alone
-//   does not mean "AI party member", the id PLUS a claimed bot slot does, and
-//   IsPvpBot() is exactly that test (X2GUNPC.cpp:2153). A monster-card summon
-//   never reaches this function anyway - the call site skips it for anything
-//   but NCT_NONE - so this is belt and braces, but it is the honest condition
-//   and it is the one phase 1 correction 5 already settled on.
-#ifdef SERV_IRUHADEV_OFFLINE
-					float fBotHPRate  = 1.f;
-					float fBotAtkRate = 1.f;
-					float fBotDefRate = 1.f;
-
-					if( true == pNPC->IsPvpBot() )
-					{
-						fBotHPRate  = SERV_IRUHADEV_PARTY_BOT_HP_RATE;
-						fBotAtkRate = SERV_IRUHADEV_PARTY_BOT_ATK_RATE;
-						fBotDefRate = SERV_IRUHADEV_PARTY_BOT_DEF_RATE;
-
-						// The stat line the party actually fought with, in the log
-						// beside everything else the party does. Without it the only
-						// way to answer "did the rate apply?" is another build.
-						CX2OfflineLog::Server( L"AIPARTY  bot uid=%I64d stats hp=%.0f atkP=%.0f atkM=%.0f defP=%.0f defM=%.0f (rates hp=%.2f atk=%.2f def=%.2f)",
-										pNPC->GetUnitUID(),
-										npcStat.m_fBaseHP		* fStatScale	* fBotHPRate,
-										npcStat.m_fAtkPhysic	* fStatScale	* fBotAtkRate,
-										npcStat.m_fAtkMagic		* fStatScale	* fBotAtkRate,
-										npcStat.m_fDefPhysic	* fStatScale	* fBotDefRate,
-										npcStat.m_fDefMagic		* fStatScale	* fBotDefRate,
-										fBotHPRate, fBotAtkRate, fBotDefRate );
-					}
-
-					pNPC->SetNPCStat( 
-						npcStat.m_fBaseHP		* fStatScale	* fBotHPRate,
-						npcStat.m_fAtkPhysic	* fStatScale	* fBotAtkRate,
-						npcStat.m_fAtkMagic		* fStatScale	* fBotAtkRate,
-						npcStat.m_fDefPhysic	* fStatScale	* fBotDefRate,
-						npcStat.m_fDefMagic		* fStatScale	* fBotDefRate );
-#else
 					pNPC->SetNPCStat( 
 						npcStat.m_fBaseHP		* fStatScale	* 1.f,
 						npcStat.m_fAtkPhysic	* fStatScale	* 1.f,
 						npcStat.m_fAtkMagic		* fStatScale	* 1.f,
 						npcStat.m_fDefPhysic	* fStatScale	* 1.f,
 						npcStat.m_fDefMagic		* fStatScale	* 1.f );
-#endif SERV_IRUHADEV_OFFLINE
-//}} Iruha : 2026-09-06
 				} break;
 
 
@@ -13855,10 +13177,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					if( NULL != pSkillTemplet )
 					{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+						if ( NULL == pUser->GetUnit() )
 							return;
 	
-						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 	
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_EN_DIMENSION_LINK ) );	/// 스킬 레벨
 	
@@ -13870,9 +13192,9 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 
 					fStatScale *= fHyperModeStatScale;
 #ifdef FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
-					if( NULL != pUser && NULL != pUser->GetSocketData())
+					if( NULL != pUser )
 					{
-						fStatScale *= (1.f + pUser->GetSocketData()->m_fSkillDamageUpRate);
+						fStatScale *= (1.f + pUser->GetSocketData().m_fSkillDamageUpRate);
 					}
 #endif FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
 #endif NEW_SKILL_TREE
@@ -13886,6 +13208,51 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 						npcStat.m_fDefMagic		* fStatScale	* 0.8f );
 				} break;
 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+			case CX2UnitManager::NUI_SI_HA_FERDINAND:
+				{
+					if( NULL != pUser->GetUnit() && CX2Unit::UT_EVE == pUser->GetUnit()->GetType() )
+					{
+						float fPowerRate = 1.f;
+						const int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION );	//엠프레스 궁극기 - 링크 오버차지 썬더볼트
+						if( iSkillLevel > 0 )
+						{	
+							const CX2SkillTree::SkillTemplet* pSkillTemplet = pUser->GetEquippedActiveSkillTemplet( CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION ); 
+
+							if( NULL != pSkillTemplet )
+							{
+								if ( NULL == pUser->GetUnit() )
+									return;
+
+								const int iSkillTempletLevel = max( 1, iSkillLevel );	/// 스킬 레벨
+
+								fPowerRate *= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+							}
+						}
+#ifdef ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE
+						/// AT_SPECIAL 공격 배율 증가 버프 적용
+						fPowerRate *= pUser->GetAdditionalAttackByType( CX2DamageManager::AT_SPECIAL );
+#endif ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE
+
+						fStatScale *= fHyperModeStatScale;
+
+						pNPC->SetNPCStat( 
+							npcStat.m_fBaseHP		* fStatScale	* 1.f,
+							npcStat.m_fAtkPhysic	* fStatScale	* 1.f,
+							npcStat.m_fAtkMagic		* fStatScale	* 1.f,
+							npcStat.m_fDefPhysic	* fStatScale	* 1.f,
+							npcStat.m_fDefMagic		* fStatScale	* 1.f );
+
+						pNPC->SetDefaultPowerRate( fPowerRate );
+						pNPC->SetNearestGUUser(pUser);
+						const int iNpcUid = pNPC->GetUID();
+						CX2GUEve* pEve = static_cast<CX2GUEve*>( pUser );
+						if( NULL != pEve )
+							pEve->SaveFerdinandNPCUID(iNpcUid);
+					}
+				} break;
+#endif //FINALITY_SKILL_SYSTEM
+
 			case CX2UnitManager::NUI_WALLY_9TH_EVE:
 				{
 #ifdef NEW_SKILL_TREE
@@ -13893,10 +13260,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					if( NULL != pSkillTemplet )
 					{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+						if ( NULL == pUser->GetUnit() )
 							return;
 	
-						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 	
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -13908,9 +13275,9 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 
 					fStatScale *= fHyperModeStatScale;
 #ifdef FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
-					if( NULL != pUser && NULL != pUser->GetSocketData())
+					if( NULL != pUser )
 					{
-						fStatScale *= (1.f + pUser->GetSocketData()->m_fSkillDamageUpRate);
+						fStatScale *= (1.f + pUser->GetSocketData().m_fSkillDamageUpRate);
 					}
 #endif FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
 #endif NEW_SKILL_TREE
@@ -13939,10 +13306,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					if( NULL != pSkillTemplet )
 					{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+						if ( NULL == pUser->GetUnit() )
 							return;
 
-						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_EN_DIMENSION_LINK_GUARDIAN ) );	/// 스킬 레벨
 
@@ -13955,9 +13322,9 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 
 					fStatScale *= fHyperModeStatScale;
 #ifdef FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
-					if( NULL != pUser && NULL != pUser->GetSocketData())
+					if( NULL != pUser )
 					{
-						fStatScale *= (1.f + pUser->GetSocketData()->m_fSkillDamageUpRate);
+						fStatScale *= (1.f + pUser->GetSocketData().m_fSkillDamageUpRate);
 					}
 #endif FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
 #endif NEW_SKILL_TREE
@@ -13981,9 +13348,7 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 #ifdef EVE_FIRST_CHANGE_JOB 
 				//case CX2UnitManager::NUI_GUARDIAN_EVE:
 			case CX2UnitManager::NUI_GUARDIAN_SP1_EVE:
-#ifdef NEW_MEMO_01
 			case CX2UnitManager::NUI_GUARDIAN_SP1_EVE_MEMO:
-#endif
 				{
 #ifdef NEW_SKILL_TREE
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
@@ -13994,10 +13359,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					if( NULL != pSkillTemplet )
 					{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+						if ( NULL == pUser->GetUnit() )
 							return;
 
-						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -14009,9 +13374,9 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 
 					fStatScale *= fHyperModeStatScale;
 #ifdef FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
-					if( NULL != pUser && NULL != pUser->GetSocketData())
+					if( NULL != pUser )
 					{
-						fStatScale *= (1.f + pUser->GetSocketData()->m_fSkillDamageUpRate);
+						fStatScale *= (1.f + pUser->GetSocketData().m_fSkillDamageUpRate);
 					}
 #endif FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
 #endif NEW_SKILL_TREE
@@ -14044,10 +13409,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					if( NULL != pSkillTemplet )
 					{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+						if ( NULL == pUser->GetUnit() )
 							return;
 
-						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_EAT_SONIC_WAVE ) );	/// 스킬 레벨
 
@@ -14059,9 +13424,9 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 
 					fStatScale *= fHyperModeStatScale;
 #ifdef FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
-					if( NULL != pUser && NULL != pUser->GetSocketData())
+					if( NULL != pUser )
 					{
-						fStatScale *= (1.f + pUser->GetSocketData()->m_fSkillDamageUpRate);
+						fStatScale *= (1.f + pUser->GetSocketData().m_fSkillDamageUpRate);
 					}
 #endif FIX_SUMMON_NPC_SKILL_DAMAGE_BY_USE_PROTECTION_OF_LAHELL
 #endif NEW_SKILL_TREE
@@ -14093,10 +13458,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
  					if( NULL != pSkillTemplet )
  					{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+						if ( NULL == pUser->GetUnit() )
 						return;
 	
-						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 	
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -14115,7 +13480,12 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 						case CX2Main::XS_DUNGEON_GAME:
 						case CX2Main::XS_BATTLE_FIELD:
 							{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+								// 기존 HP 배율 1.5배 증가에서 2.0배 증가로 변경
+								fMaxHpRel *= 2.0f;
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 								fMaxHpRel *= 1.5f;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 							} break;
 						default:
 							break;
@@ -14154,9 +13524,9 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 	#ifdef BALANCE_CODE_NEMESIS_20121213
 						// 스킬레벨에 따라 다른 버프팩터를 적용하기 위해 레벨값 추가
 		#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD );
+						int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD );
 		#else // UPGRADE_SKILL_SYSTEM_2013
-						int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD );
+						int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ENS_ATOMIC_SHIELD );
 		#endif // UPGRADE_SKILL_SYSTEM_2013
 						pNPC->SetRealatedSkillLevel(iSkillLevel);
 	#endif //BALANCE_CODE_NEMESIS_20121213
@@ -14200,7 +13570,7 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					if( CX2Unit::UT_LIRE == pUser->GetUnit()->GetType() )
 					{
 						float fPowerRate = 1.f;
-						int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
+						int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
 						if( iSkillLevel > 0 )
 						{
 							const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
@@ -14212,14 +13582,14 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 						}
 
 
-						iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_RNW_ANGER_OF_ELF );	// 엘드랏실의 분노
+						iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_RNW_ANGER_OF_ELF );	// 엘드랏실의 분노
 						if( iSkillLevel > 0 )
 						{
 							const CX2SkillTree::SkillTemplet* pSkillTemplet = pUser->GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_RNW_ANGER_OF_ELF ); 
 
 							if( NULL != pSkillTemplet )
 							{
-								if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+								if ( NULL == pUser->GetUnit() )
 									return;
 
 								const int iSkillTempletLevel = max( 1, iSkillLevel );	/// 스킬 레벨
@@ -14271,10 +13641,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 #ifdef ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-							if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+							if ( NULL == pUser->GetUnit() )
 								return;
 
-							const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+							const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 							const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ADM_HELL_DROP ) );	/// 스킬 레벨
 
@@ -14307,6 +13677,63 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					}
 				} break;
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			case CX2UnitManager::NUI_UFO_AISHA_DROPPER_MEMO:
+				{
+					fStatScale *= fHyperModeStatScale;
+
+					pNPC->SetNPCStat( 
+						npcStat.m_fBaseHP		* fStatScale	* 1.f,
+						npcStat.m_fAtkPhysic	* fStatScale	* 1.f,
+						npcStat.m_fAtkMagic		* fStatScale	* 1.f,
+						npcStat.m_fDefPhysic	* fStatScale	* 1.f,
+						npcStat.m_fDefMagic		* fStatScale	* 1.f );
+
+
+					ASSERT( CX2Unit::UT_ARME == pUser->GetUnit()->GetType() );
+					if( CX2Unit::UT_ARME == pUser->GetUnit()->GetType() )
+					{
+#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
+						const CX2SkillTree::SkillTemplet* pSkillTemplet = pUser->GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_ADM_HELL_DROP );
+#else //UPGRADE_SKILL_SYSTEM_2013
+						const CX2SkillTree::SkillTemplet* pSkillTemplet = pUser->GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_AVP_HELL_DROP );
+#endif //UPGRADE_SKILL_SYSTEM_2013
+						if( NULL != pSkillTemplet )
+						{
+#ifdef ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE
+
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
+							if ( NULL == pUser->GetUnit() )
+								return;
+
+							const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
+
+							const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ADM_HELL_DROP ) );	/// 스킬 레벨
+
+							float fSummonMonsterPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );		/// 스킬 레벨에 따른 공격 배율
+#else // UPGRADE_SKILL_SYSTEM_2013
+							float fSummonMonsterPowerRate	= pSkillTemplet->m_fPowerRate;		/// 스킬 레벨에 따른 공격 배율
+#endif // UPGRADE_SKILL_SYSTEM_2013
+
+							fSummonMonsterPowerRate			*= pUser->GetAdditionalAttackByType( CX2DamageManager::AT_SPECIAL );	/// AT_SPECIAL 공격 배율 증가 버프 적용
+							pNPC->SetDefaultPowerRate( fSummonMonsterPowerRate );
+#else ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE
+							pNPC->SetDefaultPowerRate( pSkillTemplet->m_fPowerRate );
+#endif ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE
+
+							CX2GUArme_VioletMage* pAisha = (CX2GUArme_VioletMage*) pUser;
+							pAisha->SetUFO( pNPC );	
+							CX2EffectSet::Handle hUfoEffect = GetEffectSet()->PlayEffectSet( L"EffectSet_Aisha_Hell_Drop_Ring_And_Light", pNPC );
+							pNPC->MakeEffectSetBeDeletedWhenDie( hUfoEffect );
+						}
+					}
+					else
+					{
+						pNPC->SetNowHp( 0.f );
+					}
+				} break;
+#endif //ADD_MEMO_1ST_CLASS
+
 			//case CX2UnitManager::NUI_PIG_BAT_AISHA:
 			//	{
 			//		ASSERT( CX2Unit::UT_ARME == pUser->GetUnit()->GetType() );
@@ -14334,49 +13761,35 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					if( NULL != pSkillTemplet )
 					{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+						if ( NULL == pUser->GetUnit() )
 						return;
 	
-						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 	
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_AEM_STONE_WALL ) );	/// 스킬 레벨
 	
 						fHPScale = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_HP_ABS, iSkillTempletLevel );
-		#ifdef FIX_STONE_WALL
 						fStatScale = pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
-		#endif
 	#else // UPGRADE_SKILL_SYSTEM_2013
 						fHPScale = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_HP_ABS );
-		#ifdef FIX_STONE_WALL
 						fStatScale = pSkillTemplet->m_fPowerRate;
-		#endif
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 
 						fHPScale *= fHyperModeStatScale;
 						fStatScale *= fHyperModeStatScale;
 
-#ifdef FIX_PVP_NPC
 						float fNpcHp = pUser->GetUnitLevel()	* fHPScale;
 						if( GetGameType() == GT_PVP )
 						{
-							fNpcHp = pNPC->GetStat()->GetStat()->m_fBaseHP;
+							fNpcHp = pNPC->GetStat().GetStat().m_fBaseHP;
 						}	
 
 						pNPC->SetNPCStat( 
 							fNpcHp,
 							npcStat.m_fAtkPhysic	* fStatScale	* 1.f,
 							npcStat.m_fAtkMagic		* fStatScale	* 1.f,
-							pNPC->GetStat()->GetStat()->m_fDefPhysic	* 1.f,
-							pNPC->GetStat()->GetStat()->m_fDefMagic		* 1.f );
-					
-#else
-						pNPC->SetNPCStat( 
-							pUser->GetUnitLevel()	* fHPScale, 
-							npcStat.m_fAtkPhysic	* fStatScale	* 1.f,
-							npcStat.m_fAtkMagic		* fStatScale	* 1.f,
-							pNPC->GetStat()->GetStat()->m_fDefPhysic	* 1.f,
-							pNPC->GetStat()->GetStat()->m_fDefMagic		* 1.f );
-#endif
+							pNPC->GetStat().GetStat().m_fDefPhysic	* 1.f,
+							pNPC->GetStat().GetStat().m_fDefMagic		* 1.f );
 
 						ASSERT( CX2Unit::UT_ARME == pUser->GetUnit()->GetUnitTemplet()->m_UnitType );
 						if( CX2Unit::UT_ARME == pUser->GetUnit()->GetUnitTemplet()->m_UnitType )
@@ -14423,10 +13836,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 
 						if( NULL != pSkillTemplet )
 						{
-							if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+							if ( NULL == pUser->GetUnit() )
 								return;
 
-							const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+							const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 							const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_CSG_ARTILLERY_STRIKE_QUANTUM_BALLISTA ) );
 							float fSummonMonsterPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
 							fSummonMonsterPowerRate			*= pUser->GetAdditionalAttackByType( CX2DamageManager::AT_SPECIAL );
@@ -14464,10 +13877,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 #ifdef ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-							if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+							if ( NULL == pUser->GetUnit() )
 								return;
 
-							const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+							const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 							const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_CTT_ARTILLERY_STRIKE ) );	/// 스킬 레벨
 
@@ -14521,7 +13934,7 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					if( CX2Unit::UT_LIRE == pUser->GetUnit()->GetType() )
 					{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-						int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
+						int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
 
 						float fPowerRate = 1.f;
 
@@ -14535,7 +13948,7 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 							}
 						}
 
-						iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LTR_EVOKE );	//	이보크
+						iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LTR_EVOKE );	//	이보크
 
 						if( iSkillLevel > 0 )
 						{
@@ -14546,10 +13959,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 		#endif //FIX_EVOKE_SKILLING
 							if( NULL != pSkillTemplet )
 							{
-								if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+								if ( NULL == pUser->GetUnit() )
 									return;
 
-								const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+								const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 								const int iSkillLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LTR_EVOKE ) );	/// 스킬 레벨
 
@@ -14557,7 +13970,7 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 							}
 						}
 #else //UPGRADE_SKILL_SYSTEM_2013
-						int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
+						int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
 
 						float fPowerRate = 1.f;
 
@@ -14571,7 +13984,7 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 							}
 						}
 
-						iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_RTR_EVOKE );	//	이보크
+						iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_RTR_EVOKE );	//	이보크
 
 						if( iSkillLevel > 0 )
 						{
@@ -14623,10 +14036,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 						if( NULL != pSkillTemplet )
 						{
 		#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-							if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+							if ( NULL == pUser->GetUnit() )
 								return;
 	
-							const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+							const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 	
 							const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ADW_DISTORTION ) );	/// 스킬 레벨
 	
@@ -14664,17 +14077,17 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 
 					/// 공격력만 유저의 능력치를 받아옴
 					pNPC->SetNPCStat( 
-						pNPC->GetStat()->GetStat()->m_fBaseHP,
+						pNPC->GetStat().GetStat().m_fBaseHP,
 						npcStat.m_fAtkPhysic * fStatScale	* 1.f,
 						npcStat.m_fAtkMagic * fStatScale	* 1.f,
-						pNPC->GetStat()->GetStat()->m_fDefPhysic,
-						pNPC->GetStat()->GetStat()->m_fDefMagic);
+						pNPC->GetStat().GetStat().m_fDefPhysic,
+						pNPC->GetStat().GetStat().m_fDefMagic);
 
 					ASSERT( CX2Unit::UT_CHUNG == pUser->GetUnit()->GetType() );
 					if( CX2Unit::UT_CHUNG == pUser->GetUnit()->GetType() )
 					{
 						float fPowerRate = 1.f;
-						int   iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_CTT_AUTOMATIC_MORTAR );
+						int   iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_CTT_AUTOMATIC_MORTAR );
 
 						if( iSkillLevel > 0 )
 						{
@@ -14683,10 +14096,10 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 							if( NULL != pSkillTemplet )
 							{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-								if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+								if ( NULL == pUser->GetUnit() )
 									return;
 	
-								const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+								const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 	
 								const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_CTT_AUTOMATIC_MORTAR ) );	/// 스킬 레벨
 	
@@ -14715,6 +14128,78 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 					}
 				} break;
 #endif SERV_CHUNG_TACTICAL_TROOPER
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+			case CX2UnitManager::NUI_ELESIS_FIRE_BLOSSOM:		/// 블레이징 하트 - 불꽃 개화.
+				{
+					if( NULL != pUser->GetUnit() && pUser->GetUnitClass() == CX2Unit::UC_ELESIS_BLAZING_HEART )
+					{
+						const int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_SBH_FIRE_BLOSSOMS, true );
+						pNPC->SetRealatedSkillLevel(iSkillLevel);
+					}
+				} break;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+#ifdef SERV_9TH_NEW_CHARACTER
+			case CX2UnitManager::NUI_PARTICLE_PRISM_START: // 파티클 프리즘
+			case CX2UnitManager::NUI_PARTICLE_PRISM_END:
+				{
+					float fHPScale = 1.f;
+					const CX2SkillTree::SkillTemplet* pSkillTemplet = 
+						pUser->GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_AN_PARTICLE_PRISM );
+					if( NULL != pSkillTemplet )
+					{
+						if ( NULL == pUser->GetUnit() )
+							return;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
+						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_AN_PARTICLE_PRISM ) );
+
+						// 스탯 설정
+						{
+							/*fHPScale = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_HP_ABS, iSkillTempletLevel );
+							if( 0 <= fHPScale )
+							fHPScale = 1.f;
+
+							fStatScale = pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+							fHPScale *= fHyperModeStatScale;
+							fStatScale *= fHyperModeStatScale;
+							float fNpcHp = pUser->GetUnitLevel() * fHPScale;
+							if( GetGameType() == GT_PVP )
+							{
+								fNpcHp = pNPC->GetStat().GetStat().m_fBaseHP;
+							}	*/
+
+							const float fHPRate = 0.25f;	/// 시전자 체력의 25%
+
+							pNPC->SetNPCStat( 
+								pUser->GetMaxHp() * fHPRate,	
+								npcStat.m_fAtkPhysic	* fStatScale	* 1.f,
+								npcStat.m_fAtkMagic		* fStatScale	* 1.f,
+								pNPC->GetStat().GetStat().m_fDefPhysic	* 1.f,
+								pNPC->GetStat().GetStat().m_fDefMagic		* 1.f );
+						}
+
+
+						// 몬스터 유지 시간 설정
+						{
+							const float fNpcDurationTime = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME, iSkillTempletLevel );
+							pNPC->StartSelfDestruction( fNpcDurationTime );
+
+
+							if( NULL != pNPC->GetOwnerGameUnit() &&
+								CX2Unit::UT_ADD == pNPC->GetOwnerGameUnit()->GetUnitType() )
+							{
+								CX2GUAdd* pGUAdd = static_cast<CX2GUAdd*>(pNPC->GetOwnerGameUnit());
+								if( NULL != pGUAdd )
+								{
+									// 이펙트 유지시간 설정
+									pNPC->PushEffectSetToDeleteOnDie(pGUAdd->GetParticlePrismHandle());
+								}
+							}
+						}
+
+					}
+				} break;
+#endif // SERV_9TH_NEW_CHARACTER
 			}
 		}
 	}
@@ -14890,14 +14375,14 @@ void CX2Game::SetUserSummonedNPCInfo( CX2NPCAI::NPC_AI_TYPE eAIType, UidType iAl
 // 던전의 몬스터에만 적용된다. 
 void CX2Game::BuffAllNPC( int statType, float fStatVal, float fStatTime )
 {
-	if( false == g_pX2Game->IsHost() )
+	if( false == IsHost() )
 		return;
 
 
 
-	for( int i=0; i<g_pX2Game->GetNPCUnitListSize(); i++ )
+	for( int i=0; i<GetNPCUnitListSize(); i++ )
 	{
-		CX2GUNPC* pCX2GUNPC = g_pX2Game->GetNPCUnit(i);
+		CX2GUNPC* pCX2GUNPC = GetNPCUnit(i);
 		if( NULL == pCX2GUNPC )
 			continue;
 
@@ -14915,9 +14400,9 @@ void CX2Game::BuffAllNPC( int statType, float fStatVal, float fStatTime )
 		}
 
 
-		if( NULL != pCX2GUNPC->GetNPCTemplet() )
+		//if( NULL != pCX2GUNPC->GetNPCTemplet() )
 		{
-			switch( pCX2GUNPC->GetNPCTemplet()->m_ClassType )
+			switch( pCX2GUNPC->GetNPCTemplet().m_ClassType )
 			{
 			case CX2UnitManager::NCT_THING_GATE:
 			case CX2UnitManager::NCT_THING_BOX:
@@ -14925,9 +14410,7 @@ void CX2Game::BuffAllNPC( int statType, float fStatVal, float fStatTime )
 			case CX2UnitManager::NCT_THING_DEVICE:
 			case CX2UnitManager::NCT_THING_HOUSE:
 			case CX2UnitManager::NCT_THING_WORLD_BLOCK:
-#ifdef DUNGEON_CHECKER_NPC
 			case CX2UnitManager::NCT_THING_CHECKER:
-#endif
 			//{{ JHKang / 강정훈 / 2010/12/07 / 버프 및 디버프 받지 않는 NPC TYPE
 #ifdef NEW_SKILL_2010_11
 			case CX2UnitManager::NCT_THING_NOBUFF:		/// 버프/디버프에 영향을 받지 않음()
@@ -14960,7 +14443,7 @@ void CX2Game::BuffAllNPC( int statType, float fStatVal, float fStatTime )
 					D3DXVECTOR3 mypos = pCX2GUNPC->GetPos();
 					mypos.y += 100.0f;
 					mypos.z -= 20.f;
-					CKTDGParticleSystem::CParticleEventSequence* pBuffPart = g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pCX2GUNPC ),  L"BuffAttackCore", mypos );
+					CKTDGParticleSystem::CParticleEventSequence* pBuffPart = GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pCX2GUNPC ),  L"BuffAttackCore", mypos );
 					pBuffPart->SetBlackHolePosition( mypos );
 
 				} break;
@@ -14969,7 +14452,7 @@ void CX2Game::BuffAllNPC( int statType, float fStatVal, float fStatTime )
 					D3DXVECTOR3 mypos = pCX2GUNPC->GetPos();
 					mypos.y += 100.0f;
 					mypos.z -= 20.f;
-					CKTDGParticleSystem::CParticleEventSequence* pBuffPart = g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pCX2GUNPC ),  L"BuffMagickCore", mypos );
+					CKTDGParticleSystem::CParticleEventSequence* pBuffPart = GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pCX2GUNPC ),  L"BuffMagickCore", mypos );
 					pBuffPart->SetBlackHolePosition( mypos );
 
 				} break;
@@ -14980,7 +14463,7 @@ void CX2Game::BuffAllNPC( int statType, float fStatVal, float fStatTime )
 					D3DXVECTOR3 mypos = pCX2GUNPC->GetPos();
 					mypos.y += 100.0f;
 					mypos.z -= 20.f;
-					CKTDGParticleSystem::CParticleEventSequence* pBuffPart = g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pCX2GUNPC ),  L"ShieldBuffCore", mypos );
+					CKTDGParticleSystem::CParticleEventSequence* pBuffPart = GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pCX2GUNPC ),  L"ShieldBuffCore", mypos );
 					pBuffPart->SetBlackHolePosition( mypos );
 
 				} break;
@@ -14994,18 +14477,18 @@ void CX2Game::BuffAllNPC( int statType, float fStatVal, float fStatTime )
 	}
 }
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-void CX2Game::BroadCast_XPT_UNIT_NPC_SYNC_PACK()
-{
-	KSerBuffer buff;
-	Serialize( &buff, &m_kXPT_UNIT_NPC_SYNC_PACK );
-	g_pData->GetGameUDP()->BroadCast( m_vecUserUIDforSyncPacket, XPT_UNIT_NPC_SYNC_PACK, (char*)buff.GetData(), buff.GetLength() );
-
-	m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
-}
-
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+//void CX2Game::BroadCast_XPT_UNIT_NPC_SYNC_PACK()
+//{
+//	KSerBuffer buff;
+//	Serialize( &buff, &m_kXPT_UNIT_NPC_SYNC_PACK );
+//	g_pData->GetGameUDP()->BroadCast( m_vecUserUIDforSyncPacket, XPT_UNIT_NPC_SYNC_PACK, (char*)buff.GetData(), buff.GetLength() );
+//
+//	m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
+//}
+//
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #ifdef IN_GAME_MANUAL_CAMERA_POSITION_TEST
 	void CX2Game::EnableManualCameraPosition( bool bEnabled )
@@ -15023,7 +14506,7 @@ void CX2Game::BroadCast_XPT_UNIT_NPC_SYNC_PACK()
 			}
 			else
 			{
-				GetX2Camera()->CalcManualCameraPosition( GetFocusUnit(), GetX2Camera()->GetCamera()->GetEye() );
+				GetX2Camera()->CalcManualCameraPosition( GetFocusUnit(), GetX2Camera()->GetCamera().GetEye() );
 			}
 		}
 	}
@@ -15056,7 +14539,11 @@ void CX2Game::BroadCast_XPT_UNIT_NPC_SYNC_PACK()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    bool CX2Game::IsInReverseGravityRegion( float fElapsedTime, const D3DXVECTOR3& vPos, float& fSpeedYDelta, D3DXVECTOR3& vSpeedRotateDelta, int iTeamNumber )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	bool CX2Game::IsInReverseGravityRegion( const D3DXVECTOR3& vPos, float& fSpeedYDelta, D3DXVECTOR3& vSpeedRotateDelta, int iTeamNumber )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		fSpeedYDelta = 0.f;
 
@@ -15065,7 +14552,11 @@ void CX2Game::BroadCast_XPT_UNIT_NPC_SYNC_PACK()
 			if( reverseGravity.m_fTimeLeft <= 0.f )
 				continue;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            reverseGravity.IsInRange( fElapsedTime, vPos, fSpeedYDelta, vSpeedRotateDelta, iTeamNumber );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			reverseGravity.IsInRange( vPos, fSpeedYDelta, vSpeedRotateDelta, iTeamNumber );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		}
 
 		if( fSpeedYDelta > 0.f )
@@ -15090,7 +14581,11 @@ void CX2Game::BroadCast_XPT_UNIT_NPC_SYNC_PACK()
 
 
 
-	bool CX2Game::ReverseGravityData::IsInRange( const D3DXVECTOR3& vPos, float& fSpeeYDelta, D3DXVECTOR3& vSpeedRotateDelta, int iTeamNumber )
+	bool CX2Game::ReverseGravityData::IsInRange( 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        float fElapsedTime,
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        const D3DXVECTOR3& vPos, float& fSpeeYDelta, D3DXVECTOR3& vSpeedRotateDelta, int iTeamNumber )
 	{
 		if( m_fTimeLeft <= 0.f )
 			return false;
@@ -15105,7 +14600,11 @@ void CX2Game::BroadCast_XPT_UNIT_NPC_SYNC_PACK()
 		// oasis907 : 김상윤 [2011.6.29] 
 		vSpeedRotateDelta.y = vSpeedRotateDelta.y * 0.995f; 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        fSpeeYDelta += m_fGravity * fElapsedTime;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		fSpeeYDelta += m_fGravity * g_pKTDXApp->GetElapsedTime();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		return true;
 	}
 
@@ -15260,15 +14759,15 @@ CX2Game::ProcSpecialItem(
 	{	
 	case DUNGEON_ITEM4_1:	// 몬스터 소환( 식목일 이벤트 )
 		{
-			if( g_pX2Game->IsHost() == true )
+			if( IsHost() == true )
 			{
-				for( int i=0; i<g_pX2Game->GetNPCUnitListSize(); i++ )
+				for( int i=0; i<GetNPCUnitListSize(); i++ )
 				{
-					CX2GUNPC* pCX2GUNPC = g_pX2Game->GetNPCUnit(i);
-					if( pCX2GUNPC != NULL && pCX2GUNPC->GetNPCTemplet() != NULL && 
-						( pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == CX2UnitManager::NUI_TREE_KNIGHT_EVENT ||
-						pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == CX2UnitManager::NUI_ENT_SMALL_EVENT ||
-						pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == CX2UnitManager::NUI_ENT_EVENT ) )
+					CX2GUNPC* pCX2GUNPC = GetNPCUnit(i);
+					if( pCX2GUNPC != NULL && 
+						( pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_TREE_KNIGHT_EVENT ||
+						pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_ENT_SMALL_EVENT ||
+						pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == CX2UnitManager::NUI_ENT_EVENT ) )
 					{					
 						pCX2GUNPC->SetNowHp(0.f);
 
@@ -15276,14 +14775,14 @@ CX2Game::ProcSpecialItem(
 				}
 			}				
 
-			if( pCX2GUUser != NULL && g_pX2Game != NULL && g_pX2Game->GetWorld() != NULL && g_pX2Game->GetWorld()->GetLineMap() != NULL )
+			if( pCX2GUUser != NULL && GetWorld() != NULL && GetWorld()->GetLineMap() != NULL )
 			{
 				const D3DXVECTOR3& vPos = pCX2GUUser->GetPos();
-				D3DXVECTOR3 vPos1 = g_pX2Game->GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 500.f, true );
-				D3DXVECTOR3 vPos2 = g_pX2Game->GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 500.f, true );
-				D3DXVECTOR3 vPos3 = g_pX2Game->GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 500.f, true );
-				D3DXVECTOR3 vPos4 = g_pX2Game->GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 300.f, true );
-				D3DXVECTOR3 vPos5 = g_pX2Game->GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 200.f, true );
+				D3DXVECTOR3 vPos1 = GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 500.f, true );
+				D3DXVECTOR3 vPos2 = GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 500.f, true );
+				D3DXVECTOR3 vPos3 = GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 500.f, true );
+				D3DXVECTOR3 vPos4 = GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 300.f, true );
+				D3DXVECTOR3 vPos5 = GetWorld()->GetLineMap()->GetRandomPosition( &vPos, 200.f, true );
 
 				SummonMonster(pCX2GUUser, CX2UnitManager::NUI_TREE_KNIGHT_EVENT, vPos1 );
 				SummonMonster(pCX2GUUser, CX2UnitManager::NUI_TREE_KNIGHT_EVENT, vPos2 );
@@ -15300,7 +14799,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM4_2:	// 팀장 레인저
 		if( GetGameType() == GT_DUNGEON )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_A, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_A, 1, false, m_vDropItemPos, 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER );
 
 		#ifdef ADD_VELDER_ACADEMY_EVENT_MONSTER
@@ -15311,7 +14810,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM4_3:	// 기획 레인저
 		if( GetGameType() == GT_DUNGEON )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_B, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_B, 1, false, m_vDropItemPos, 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER );
 
 		#ifdef ADD_VELDER_ACADEMY_EVENT_MONSTER
@@ -15322,7 +14821,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM4_4:	// 프로그램 레인저
 		if( GetGameType() == GT_DUNGEON )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_C, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_C, 1, false, m_vDropItemPos, 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER );
 
 		#ifdef ADD_VELDER_ACADEMY_EVENT_MONSTER
@@ -15333,7 +14832,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM4_5:	// 마케팅 레인저
 		if( GetGameType() == GT_DUNGEON )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_D, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_D, 1, false, m_vDropItemPos, 
 				true, 0.f, false, -1, CX2Room::TN_MONSTER );
 
 		#ifdef ADD_VELDER_ACADEMY_EVENT_MONSTER
@@ -15344,7 +14843,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM4_6:	// 아티스트 레인저
 		if( GetGameType() == GT_DUNGEON )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_E, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_DEVELOPER_E, 1, false, m_vDropItemPos, 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER );
 
 		#ifdef ADD_VELDER_ACADEMY_EVENT_MONSTER
@@ -15358,7 +14857,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM5_1:	/// 교장 선생님 하거스
 		if( GetGameType() == GT_DUNGEON || GetGameType() == GT_BATTLE_FIELD )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_HAGERS, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_HAGERS, 1, false, m_vDropItemPos, 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER, CX2NPCAI::NAT_ALLY, pCX2GUUser->GetUnitUID() );
 
 			return true;
@@ -15367,7 +14866,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM5_2:	/// 학생주임 선생님 애미리트
 		if( GetGameType() == GT_DUNGEON || GetGameType() == GT_BATTLE_FIELD )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_EMIRATE, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_EMIRATE, 1, false, m_vDropItemPos, 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER, CX2NPCAI::NAT_ALLY, pCX2GUUser->GetUnitUID() );
 
 			return true;
@@ -15376,7 +14875,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM5_3:	/// 잉글리쉬 티처 리치앙
 		if( GetGameType() == GT_DUNGEON || GetGameType() == GT_BATTLE_FIELD )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_RICHANG, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_RICHANG, 1, false, m_vDropItemPos, 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER, CX2NPCAI::NAT_ALLY, pCX2GUUser->GetUnitUID() );
 
 			return true;
@@ -15385,7 +14884,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM5_4:	/// 수학 선생님 에코
 		if( GetGameType() == GT_DUNGEON || GetGameType() == GT_BATTLE_FIELD )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_ECHO, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_ECHO, 1, false, m_vDropItemPos, 
 				true, 0.f, false, -1, CX2Room::TN_MONSTER, CX2NPCAI::NAT_ALLY, pCX2GUUser->GetUnitUID() );
 
 			return true;
@@ -15394,7 +14893,7 @@ CX2Game::ProcSpecialItem(
 	case DUNGEON_ITEM5_5:	/// 국어 선생님 호프만
 		if( GetGameType() == GT_DUNGEON || GetGameType() == GT_BATTLE_FIELD )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_HOFMANN, 1, false, m_vDropItemPos, 
+			CreateNPCReq( CX2UnitManager::NUI_EVENT_TEACHER_HOFMANN, 1, false, m_vDropItemPos, 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER, CX2NPCAI::NAT_ALLY, pCX2GUUser->GetUnitUID() );
 
 			return true;
@@ -15500,7 +14999,7 @@ void CX2Game::ClearSpirit()
 	for(UINT i=0; i<m_vechEffectSetSpirit.size(); ++i)
 	{
 		CX2EffectSet::Handle hHandle = m_vechEffectSetSpirit[i];
-		if( hHandle != CX2EffectSet::INVALID_HANDLE )
+		if( hHandle != INVALID_EFFECTSET_HANDLE )
 			GetEffectSet()->StopEffectSet( hHandle );
 	}
 
@@ -15517,28 +15016,28 @@ void CX2Game::SideEffectGenius(CX2GUUser* pCX2GUUser)
 	if( pCX2GUUser == NULL )
 		return;
 
-	g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effect_Marker_SideEffect_Posion01", (CX2GameUnit*) pCX2GUUser );
+	GetEffectSet()->PlayEffectSet( L"Effect_Marker_SideEffect_Posion01", (CX2GameUnit*) pCX2GUUser );
 
 	// 뽀루 소환
 	int iTeam = pCX2GUUser->GetTeam();
 
-	int iNpcLv = pCX2GUUser->GetUnit()->GetUnitData()->m_Level;
+	int iNpcLv = pCX2GUUser->GetUnit()->GetUnitData().m_Level;
 	
 	if( GetGameType() == GT_DUNGEON )
 	{
-		CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(g_pX2Game);
+		CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(this);
 		if( NULL != pDungeonGame &&
 			NULL != pDungeonGame->GetDungeon() &&
 			NULL != pDungeonGame->GetDungeon()->GetDungeonData() )
 		{
-			const CX2Dungeon::DUNGEON_ID eDungeonId = pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID;
+			const SEnum::DUNGEON_ID eDungeonId = pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID;
 
 			//{{ oasis907 : 김상윤 [2010.10.21] // 이벤트 던전에서는 사이드 이펙트 소환 몹 레벨 1로
 			if ( CX2Dungeon::IsEventDungeon( eDungeonId ) )
 				iNpcLv = 1;
 			//}} oasis907 : 김상윤 [2010.10.21] // 	이벤트 던전에서는 사이드 이펙트 소환 몹 레벨 1로
 
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_PPORU_WILLIAM_GENIUS, iNpcLv, false, pCX2GUUser->GetPos(), 
+			CreateNPCReq( CX2UnitManager::NUI_PPORU_WILLIAM_GENIUS, iNpcLv, false, pCX2GUUser->GetPos(), 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER );
 		}
 	}
@@ -15547,7 +15046,7 @@ void CX2Game::SideEffectGenius(CX2GUUser* pCX2GUUser)
 		if( g_pData->GetPVPRoom() != NULL && g_pData->GetPVPRoom()->GetPVPGameType() == CX2PVPRoom::PGT_SURVIVAL )
 		{
 			//서바이벌 모드에서는 몬스터 팀으로 생성
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_PPORU_WILLIAM_GENIUS, iNpcLv, false, pCX2GUUser->GetPos(), 
+			CreateNPCReq( CX2UnitManager::NUI_PPORU_WILLIAM_GENIUS, iNpcLv, false, pCX2GUUser->GetPos(), 
 				true, 0.f, true, -1, CX2Room::TN_MONSTER );
 		}
 		else
@@ -15557,7 +15056,7 @@ void CX2Game::SideEffectGenius(CX2GUUser* pCX2GUUser)
 			else if(iTeam == 1)
 				iTeam = 0; // 레드 팀
 
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_PPORU_WILLIAM_GENIUS, iNpcLv, false, pCX2GUUser->GetPos(), 
+			CreateNPCReq( CX2UnitManager::NUI_PPORU_WILLIAM_GENIUS, iNpcLv, false, pCX2GUUser->GetPos(), 
 				true, 0.f, true, -1, (CX2Room::TEAM_NUM)iTeam, CX2NPCAI::NAT_ALLY );
 		}		
 	}	
@@ -15598,10 +15097,10 @@ void CX2Game::SummonSpiritEffect(int iEffectIndex)
 			if( pNPC == NULL )
 				continue;
 
-			if( pNPC->GetNPCTemplet() == NULL )
-				continue;
+			//if( pNPC->GetNPCTemplet() == NULL )
+			//	continue;
 
-			if( pNPC->GetNPCTemplet() != NULL && pNPC->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+			if( pNPC->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 				continue;
 			if( pNPC->GetInvincible() == true || pNPC->GetTeam() == m_optrItemDamageEffectGameUnit->GetTeam() )
 				continue;
@@ -15685,11 +15184,11 @@ void CX2Game::SummonMonster(CX2GUUser* pCX2GUUser, CX2UnitManager::NPC_UNIT_ID n
 	// 몬스터 소환
 	int iTeam = pCX2GUUser->GetTeam();
 
-	int iNpcLv = 1; //pCX2GUUser->GetUnit()->GetUnitData()->m_Level;
+	int iNpcLv = 1; //pCX2GUUser->GetUnit()->GetUnitData().m_Level;
 	if( GetGameType() == GT_DUNGEON )
 	{
-		//g_pX2Game->PushCreateNPCReq( npcId, iNpcLv, false, vPos, true, 1.f, true, -1, (CX2Room::TEAM_NUM)iTeam, CX2NPCAI::NAT_ALLY );
-		g_pX2Game->CreateNPCReq( npcId, iNpcLv, false, vPos, 
+		//PushCreateNPCReq( npcId, iNpcLv, false, vPos, true, 1.f, true, -1, (CX2Room::TEAM_NUM)iTeam, CX2NPCAI::NAT_ALLY );
+		CreateNPCReq( npcId, iNpcLv, false, vPos, 
 			true, 0.1f, true, -1, (CX2Room::TEAM_NUM)iTeam, CX2NPCAI::NAT_ALLY );
 
 		g_pData->GetUIEffectSet()->PlayEffectSet( L"EffectSet_LevelUp_LandPosition", (CX2GameUnit*)pCX2GUUser, NULL, false, -1.f, -1.f, D3DXVECTOR3(1.f, 1.f, 1.f), true, vPos );		
@@ -15776,7 +15275,7 @@ int	CX2Game::GetNPCUnitNumByNPCID( int iNPCID )
 		if( m_NPCUnitList[i] != NULL )
 		{
 			CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
-			if( pCX2GUNPC != NULL && pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID == iNPCID )
+			if( pCX2GUNPC != NULL && pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID == iNPCID )
 			{
 				num++;
 			}
@@ -15843,7 +15342,7 @@ void CX2Game::SendNpcUnitFirstSyncPacketImmediateForce( vector<UidType>& vecNonN
 		// 전체 NPC의 패킷을 보내고... (pLastUnit만 보내면 되는거 아닌가??)
 		//KXPT_UNIT_NPC_SYNC_PACK kXPT_UNIT_NPC_SYNC_PACK;
 
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
 		for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
 		{
@@ -15854,86 +15353,86 @@ void CX2Game::SendNpcUnitFirstSyncPacketImmediateForce( vector<UidType>& vecNonN
 			}
 		}
 
-#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-        CX2FrameUDPPack   kFrameUDPPack;
-        if ( GetMyUnit() != NULL )
-            kFrameUDPPack.SetUnitUID( GetMyUnit()->GetUnitUID() );
-        kFrameUDPPack.SetFrameMoveCount( m_kFrameUDPPack.GetFrameMoveCount() );
-		kFrameUDPPack.ResetFrameUDPPack();
-        kFrameUDPPack.UpdateSyncUserListAndUDPMaxSize( vecNonNpcSyncUserList_ );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-		for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
-		{
-			CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
-			if( pCX2GUNPC != NULL )
-			{
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				pCX2GUNPC->SendPacketImmediateForce( kFrameUDPPack );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				pCX2GUNPC->SendPacketImmediateForce( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				pCX2GUNPC->GetBuffInfo( kPacket_.m_vecNpcUnitBuff );
-			}
-
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-			if ( sizeof(KXPT_UNIT_NPC_SYNC) * (m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() + 1) > 500 )
-			{
-				KSerBuffer buff;
-				Serialize( &buff, &m_kXPT_UNIT_NPC_SYNC_PACK );
-				g_pData->GetGameUDP()->BroadCast( vecNonNpcSyncUserList_, XPT_UNIT_NPC_FIRST_SYNC_PACK_BY_BATTLE_FIELD, (char*)buff.GetData(), buff.GetLength() );
-
-				m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
-			}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		}
-
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-        kFrameUDPPack.FlushFrameUDPPack();
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		KSerBuffer buff;
-		Serialize( &buff, &m_kXPT_UNIT_NPC_SYNC_PACK );
-		g_pData->GetGameUDP()->BroadCast( vecNonNpcSyncUserList_, XPT_UNIT_NPC_FIRST_SYNC_PACK_BY_BATTLE_FIELD, (char*)buff.GetData(), buff.GetLength() );
-		m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//
+////#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//        CX2FrameUDPPack   kFrameUDPPack;
+//        if ( GetMyUnit() != NULL )
+//            kFrameUDPPack.SetUnitUID( GetMyUnit()->GetUnitUID() );
+//        kFrameUDPPack.SetFrameMoveCount( m_kFrameUDPPack.GetFrameMoveCount() );
+//		kFrameUDPPack.ResetFrameUDPPack( true );
+//        kFrameUDPPack.UpdateSyncUserListAndUDPMaxSize( vecNonNpcSyncUserList_ );
+////#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+//		for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
+//		{
+//			CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
+//			if( pCX2GUNPC != NULL )
+//			{
+////#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//				pCX2GUNPC->SendPacketImmediateForce( kFrameUDPPack );
+////#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+////				pCX2GUNPC->SendPacketImmediateForce( m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList );
+////#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//				pCX2GUNPC->GetBuffInfo( kPacket_.m_vecNpcUnitBuff );
+//			}
+//
+////#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+////			if ( sizeof(KXPT_UNIT_NPC_SYNC) * (m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.size() + 1) > 500 )
+////			{
+////				KSerBuffer buff;
+////				Serialize( &buff, &m_kXPT_UNIT_NPC_SYNC_PACK );
+////				g_pData->GetGameUDP()->BroadCast( vecNonNpcSyncUserList_, XPT_UNIT_NPC_FIRST_SYNC_PACK_BY_BATTLE_FIELD, (char*)buff.GetData(), buff.GetLength() );
+////
+////				m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
+////			}
+////#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		}
+//
+////#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//        kFrameUDPPack.FlushFrameUDPPack();
+////#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+////		KSerBuffer buff;
+////		Serialize( &buff, &m_kXPT_UNIT_NPC_SYNC_PACK );
+////		g_pData->GetGameUDP()->BroadCast( vecNonNpcSyncUserList_, XPT_UNIT_NPC_FIRST_SYNC_PACK_BY_BATTLE_FIELD, (char*)buff.GetData(), buff.GetLength() );
+////		m_kXPT_UNIT_NPC_SYNC_PACK.unitNPCSyncList.resize(0);
+////#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+//
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 	}
 }
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-void CX2Game::SetPetFirstSyncPacketImmediateForce( vector<UidType>& vecNonNpcSyncUserList_ )
-{
-	// 호스트인 경우
-	if( IsHost() == true )
-	{
-#ifdef SERV_PET_SYSTEM			
-		for( UINT i=0; i<g_pData->GetPetManager()->GetPetNum(); ++i )
-		{
-			CX2PET *pPet = g_pData->GetPetManager()->GetPetInx(i);
-			if( pPet != NULL )
-			{						
-				pPet->SetSendReserveStateChange( true );
-				pPet->SendPacketImmediateForce( m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList );
-			}
-
-			if( m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.size() > 0 )
-			{
-				KSerBuffer buff;
-				Serialize( &buff, &m_kXPT_UNIT_PET_SYNC_PACK );
-				g_pData->GetGameUDP()->BroadCast( vecNonNpcSyncUserList_, XPT_UNIT_PET_FIRST_SYNC_PACK_BY_BATTLE_FIELD, (char*)buff.GetData(), buff.GetLength() );
-
-				m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.resize(0);
-			}
-		}			
-#endif
-
-	}
-}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//void CX2Game::SetPetFirstSyncPacketImmediateForce( vector<UidType>& vecNonNpcSyncUserList_ )
+//{
+//	// 호스트인 경우
+//	if( IsHost() == true )
+//	{
+//#ifdef SERV_PET_SYSTEM			
+//		for( UINT i=0; i<g_pData->GetPetManager()->GetPetNum(); ++i )
+//		{
+//			CX2PET *pPet = g_pData->GetPetManager()->GetPetInx(i);
+//			if( pPet != NULL )
+//			{						
+//				pPet->SetSendReserveStateChange( true );
+//				pPet->SendPacketImmediateForce( m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList );
+//			}
+//
+//			if( m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.size() > 0 )
+//			{
+//				KSerBuffer buff;
+//				Serialize( &buff, &m_kXPT_UNIT_PET_SYNC_PACK );
+//				g_pData->GetGameUDP()->BroadCast( vecNonNpcSyncUserList_, XPT_UNIT_PET_FIRST_SYNC_PACK_BY_BATTLE_FIELD, (char*)buff.GetData(), buff.GetLength() );
+//
+//				m_kXPT_UNIT_PET_SYNC_PACK.unitPetSyncList.resize(0);
+//			}
+//		}			
+//#endif
+//
+//	}
+//}
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #ifdef ADDITIONAL_MEMO
 CX2GameUnit* CX2Game::GetNearestUnit( CX2GameUnit* pGameUnit, int iFlag )
@@ -15945,6 +15444,7 @@ CX2GameUnit* CX2Game::GetNearestUnit( CX2GameUnit* pGameUnit, int iFlag )
 	CX2GameUnit *pNearestUnit = NULL;
 
 	CX2GameUnit *pMyUnit = pGameUnit;
+	
 	if( pGameUnit == NULL )
 	{	
 		if ( NULL != GetMyUnit() )
@@ -15978,8 +15478,8 @@ CX2GameUnit* CX2Game::GetNearestUnit( CX2GameUnit* pGameUnit, int iFlag )
 				continue;
 
 			CX2GUNPC *pNpc = (CX2GUNPC*)pUnit;
-			if( pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC && 
-				pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_THING_GATE )
+			if( pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC && 
+				pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_THING_GATE )
 				continue;
 
 			if( pNpc->GetInvincible() == true )
@@ -16002,7 +15502,6 @@ CX2GameUnit* CX2Game::GetNearestUnit( CX2GameUnit* pGameUnit, int iFlag )
 
 #endif
 
-#ifdef DUNGEON_ALARM_SYSTEM
 void CX2Game::ShowDangerAlarm_LUA( int iAlarmId, float fShowTime, ALARM_COLOR_TYPE eColor, bool bDanger, int iStringIndex )
 {
 	if( g_pMain->GetNowStateID() == CX2Main::XS_TRAINING_GAME )
@@ -16117,7 +15616,77 @@ int CX2Game::GetDangerAlarm( UidType iUid, int iStateId )
 
 	return -1;
 }
-#endif 
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+void CX2Game::ShowTimerAlarm_LUA( int iAlarmId, float fShowTime, ALARM_COLOR_TYPE eColor, bool bDanger, float fValue_ )
+{
+	if( g_pMain->GetNowStateID() == CX2Main::XS_TRAINING_GAME )
+		return;
+
+	int iAlarmIndex = GetDangerAlarm( -1, iAlarmId );
+	if( iAlarmIndex < 0 )
+	{
+		DangerAlarm *pAlarm = new DangerAlarm();
+		pAlarm->m_uid = -1;
+		pAlarm->m_iStateId = iAlarmId;
+		pAlarm->m_fDelayTime = 0.f;
+		pAlarm->m_fShowTime = fShowTime;
+		pAlarm->m_eColor = eColor;
+		pAlarm->m_bDanger = bDanger;
+		pAlarm->m_bRepeat = true;
+		pAlarm->m_eFontType = XUF_HEADLINE_30_NORMAL;
+
+		wstring wstrComment = g_pMain->GetEDString( static_cast<int>( fValue_ ) );
+		pAlarm->m_wstrMessage = wstrComment;
+
+		m_vecDangerAlarm.push_back( pAlarm );
+		iAlarmIndex = m_vecDangerAlarm.size() - 1;
+	}
+
+	ShowTimerAlarm( iAlarmIndex, fValue_ );
+}
+
+void CX2Game::ShowTimerAlarm( int iIndex, float fValue_ )
+{
+	if( g_pMain->GetNowStateID() == CX2Main::XS_TRAINING_GAME )
+		return;
+
+	if( iIndex < 0 )
+		return;	
+	DangerAlarm *pAlarm = m_vecDangerAlarm[iIndex];
+	if( pAlarm == NULL )
+		return;
+
+	wstring wstrComment = g_pMain->GetEDString( static_cast<int>( fValue_ ) );
+	pAlarm->m_wstrMessage = wstrComment;
+
+	CKTDGParticleSystem::CParticleEventSequence* pSeq = GetMajorParticle()->GetInstanceSequence( m_hDangerAlarm );
+	if( pSeq != NULL )
+	{
+		pSeq->SetShowObject(false);
+	}
+
+	m_fShowAlarmTime = 0.f;
+	m_pShowAlarm = pAlarm;
+
+#ifdef DIALOG_SHOW_TOGGLE	
+	if( g_pKTDXApp->GetDGManager()->GetDialogManager()->GetHideDialog() == false )
+#endif
+	{
+		if( m_pShowAlarm->m_bDanger == true )
+		{
+			if( pSeq != NULL )
+			{
+				pSeq->SetShowObject(true);
+			}
+			else
+			{
+				m_hDangerAlarm = GetMajorParticle()->CreateSequenceHandle( NULL, L"danger_alarm_01", 0.0f, 0.0f, 0.0f );
+			}
+		}
+	}
+}
+#endif //SERV_HALLOWEEN_EVENT_2013
 
 #ifdef	ELOG_STATISTICS_NEW_DATA
 
@@ -16151,8 +15720,12 @@ void        CX2Game::KGAME_STATISTICS::GatherPeriodicStatistics()
 
 void    CX2Game::KGAME_STATISTICS::Send_EGS_FRAME_AVERAGE_REQ( int iGameType  )
 {
+	if ( m_kAverageFps.m_uNumOfFps == 0 )
+        return;
+
 	KEGS_FRAME_AVERAGE_REQ kPacket;
-	kPacket.m_cGameType		= iGameType;
+
+    kPacket.m_cGameType = iGameType;
 	kPacket.m_iFrameAverage = static_cast<int>( m_kAverageFps.m_fAverageFps );
 
 	if( g_pData != NULL && g_pData->GetServerProtocol() != NULL )
@@ -16301,12 +15874,18 @@ int CX2Game::GetSummonMonsterCardNPCLevel( CX2GUNPC* pNPC, int iLevel )
 		return 1;	//어둠의 문은 1레벨 보정
 	}
 	
+#ifndef NEW_HENIR_DUNGEON // 1레벨 보정 -> 연동 레벨 던전으로 변경
 	if( CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode )
 	{
 		return 1;	//헤니르 도전 모드는 1레벨 보정
 	}
+#endif // NEW_HENIR_DUNGEON
 
-	if( CX2Dungeon::DM_SECRET_HELL == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode )
+	if( CX2Dungeon::DM_SECRET_HELL == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode 
+#ifdef NEW_HENIR_DUNGEON // 1레벨 보정 -> 연동 레벨 던전으로 변경
+		|| CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode		
+#endif // NEW_HENIR_DUNGEON
+		)
 	{
 #ifdef  X2OPTIMIZE_UNITTYPE_BUG_FIX
         CX2GUUser* pUser = pNPC->GetOwnerGameUnit();
@@ -16318,7 +15897,7 @@ int CX2Game::GetSummonMonsterCardNPCLevel( CX2GUNPC* pNPC, int iLevel )
 	}
 
 #ifdef SET_SUMMON_CARD_MONSTER_EVENT_DUNGEON_LEVEL
-	if( true == CX2Dungeon::IsEventDungeon( static_cast<CX2Dungeon::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ) )
+	if( true == CX2Dungeon::IsEventDungeon( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ) )
 	{
 		return 1;	/// 이벤트 던전에 대한 레벨 보정
 	}
@@ -16329,7 +15908,12 @@ int CX2Game::GetSummonMonsterCardNPCLevel( CX2GUNPC* pNPC, int iLevel )
 
 void CX2Game::CreateSummonMonsterCardNPC( const CX2Item::SpecialAbility* pSa, CX2GUUser* pCX2GUUser )
 {
-	if( -1 != pCX2GUUser->GetSummonMonsterCardData()->GetSummonMonsterUID() )	//만약 소환중인 NPCID를 가지고 있을 땐 소환 불가
+#ifdef FIX_FIELD_SUMMON_MONSTER
+	if( GT_DUNGEON != GetGameType() )
+		return;
+#endif // FIX_FIELD_SUMMON_MONSTER
+
+	if( -1 != pCX2GUUser->GetSummonMonsterCardData().GetSummonMonsterUID() )	//만약 소환중인 NPCID를 가지고 있을 땐 소환 불가
 		return;
 
 	wstring wstrGroupMonsterInfo = pSa->GetStringValue1();		
@@ -16480,13 +16064,14 @@ void CX2Game::CreateSummonMonsterCardNPC( const CX2Item::SpecialAbility* pSa, CX
 			}
 		}
 #endif//EVENT_MONSTER_CARD_SUMMON_ENEMY
-		g_pX2Game->CreateNPCReq( static_cast<CX2UnitManager::NPC_UNIT_ID>( iMonsterID ), iMonsterLevel, true, 
+
+		CreateNPCReq( static_cast<CX2UnitManager::NPC_UNIT_ID>( iMonsterID ), iMonsterLevel, true, 
 		vSummonPos, bIsRight, 0.f, true, -1, static_cast<CX2Room::TEAM_NUM>( iMonsterTeam ), 
 		CX2NPCAI::NAT_ALLY, pCX2GUUser->GetUnitUID(),false, CX2Room::TN_NONE, eCreateNPCType );
 
 	#else // SERV_NEW_DEFENCE_DUNGEON
 
-		g_pX2Game->CreateNPCReq( static_cast<CX2UnitManager::NPC_UNIT_ID>( iMonsterID ), iMonsterLevel, true, 
+		CreateNPCReq( static_cast<CX2UnitManager::NPC_UNIT_ID>( iMonsterID ), iMonsterLevel, true, 
 			pCX2GUUser->GetPos(), pCX2GUUser->GetIsRight(), 0.f, true, -1, static_cast<CX2Room::TEAM_NUM>( iMonsterTeam ), 
 			CX2NPCAI::NAT_ALLY, pCX2GUUser->GetUnitUID(),false, CX2Room::TN_NONE, true );
 
@@ -16726,7 +16311,8 @@ void CX2Game::AbuserUserReport()
 			{
 				KEGS_UDP_CHECK_KICK_USER_NOT kPacket;
 				kPacket.m_bNowKickOut = true;
-				kPacket.m_iMyUnitUID = GetMyUnit()->GetUnitUID();
+				if( NULL != GetMyUnit() )
+					kPacket.m_iMyUnitUID = GetMyUnit()->GetUnitUID();
 			
 				if( false == bConnectCheckResult ) 
 				{//UDP릴레이 체크 실패 시 팅벅 유저로 판단
@@ -16861,10 +16447,10 @@ bool CX2Game::CheckAndWarningBusyStateNow( const bool bCheckDead_ /*= true*/ )
 		else
 		{
 #ifdef CLIENT_COUNTRY_EU
-			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_15_BOLD, 
+			GetInfoTextManager().PushText( XUF_DODUM_15_BOLD, 
 				wstrWarning.c_str(), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 #else //CLIENT_COUNTRY_EU
-			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, 
+			GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, 
 				wstrWarning.c_str(), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 #endif //CLIENT_COUNTRY_EU
 			if ( g_pChatBox != NULL )
@@ -16980,9 +16566,19 @@ CX2GUUser* CX2Game::CreateGUUser( const CX2Room::SlotData* pSlotData_, int iSlot
 				pSlotData_->m_pUnit );
 		} break;
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UT_ADD:
+		{
+			return CX2GUAdd::CreateGUAdd( iSlotIndex_, pSlotData_->m_TeamNum, script_info, g_pMain->GetFrameBufferNum(),
+				pSlotData_->m_pUnit );
+		} break;
+#endif //SERV_9TH_NEW_CHARACTER
 
 	default:
-		return NULL;
+		{
+			ASSERT( !"Create User Object is Fail!! ( Unknown User Type )" );
+			return NULL;
+		}
 		break;
 	}
 }
@@ -17052,7 +16648,7 @@ void CX2Game::WriteBroadCastUser()
 	ZeroMemory( wLog, sizeof(WCHAR) * 512 );
 	wsprintf( wLog, L"UIDForSyncPacket: " );
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	BOOST_FOREACH( UidType uid, g_pData->GetGameUDP()->GetNonRelayUIDs() )
 	{
@@ -17069,17 +16665,17 @@ void CX2Game::WriteBroadCastUser()
 		StringCchCat( wLog, sizeof(WCHAR) * 512, wBuffer );
 	}
 
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-	BOOST_FOREACH( UidType uid, m_vecUserUIDforSyncPacket )
-	{
-		WCHAR wBuffer[50];
-		ZeroMemory( wBuffer, sizeof(WCHAR) * 50 );
-		wsprintf( wBuffer, L"%lld ", uid );
-		StringCchCat( wLog, sizeof(WCHAR) * 512, wBuffer );
-	}
-
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//
+//	BOOST_FOREACH( UidType uid, m_vecUserUIDforSyncPacket )
+//	{
+//		WCHAR wBuffer[50];
+//		ZeroMemory( wBuffer, sizeof(WCHAR) * 50 );
+//		wsprintf( wBuffer, L"%lld ", uid );
+//		StringCchCat( wLog, sizeof(WCHAR) * 512, wBuffer );
+//	}
+//
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	StateLog( wLog );
 }
@@ -17123,10 +16719,15 @@ void CX2Game::SetBuffInfoPacketToGUUser( const KEGS_UPDATE_USER_UNIT_BUFF_INFO_B
 #ifdef MODIFY_DUNGEON_STAGING
 
 CX2Game::CinematicUI::CinematicUI():
-m_pCinematicTopParticle( NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hCinematicTopParticle( INVALID_PARTICLE_HANDLE )
+	,m_hCinematicBottomParticle( INVALID_PARTICLE_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_pCinematicTopParticle( NULL )
 	,m_pCinematicBottomParticle( NULL )
-	,m_hCinematicTop(INVALID_PARTICLE_HANDLE)
-	,m_hCinematicBottom(INVALID_PARTICLE_HANDLE)
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	,m_hCinematicTop(INVALID_PARTICLE_SEQUENCE_HANDLE)
+	,m_hCinematicBottom(INVALID_PARTICLE_SEQUENCE_HANDLE)
 	,m_bStart (false )
 	,m_bEnd ( false )
 	,m_fTimer ( 0.f )
@@ -17137,23 +16738,31 @@ m_pCinematicTopParticle( NULL )
 	if( NULL != g_pData->GetUIMajorParticle() )
 	{
 		m_hCinematicTop = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"JoinNpcTop", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
-		if( INVALID_PARTICLE_HANDLE != m_hCinematicTop)
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicTop)
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hCinematicTop );
 			if( pSeq != NULL )
 			{		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_hCinematicTopParticle = pSeq->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				m_pCinematicTopParticle = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				pSeq->SetShowObject(false);
 			}
 		}
 
 		m_hCinematicBottom = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL,  L"JoinNpcBottom", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
-		if( INVALID_PARTICLE_HANDLE != m_hCinematicBottom )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicBottom )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hCinematicBottom );
 			if( pSeq != NULL )
 			{		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_hCinematicBottomParticle = pSeq->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				m_pCinematicBottomParticle = pSeq->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				pSeq->SetShowObject(false);
 			}
 		}
@@ -17175,40 +16784,54 @@ HRESULT CX2Game::CinematicUI::OnFrameMove( double fTime, float fElapsedTime )
 
 	if( true == m_bStart )
 	{
+        CKTDGParticleSystem::CParticle* pCinematicTopParticle = NULL;
+        CKTDGParticleSystem::CParticle* pCinematicBottomParticle = NULL;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( NULL != g_pData->GetUIMajorParticle() )
+        {
+            if( INVALID_PARTICLE_HANDLE != m_hCinematicTopParticle )
+                pCinematicTopParticle = g_pData->GetUIMajorParticle()->ValidateParticleHandle( m_hCinematicTopParticle );
+            if( INVALID_PARTICLE_HANDLE != m_hCinematicBottomParticle )
+                pCinematicBottomParticle = g_pData->GetUIMajorParticle()->ValidateParticleHandle( m_hCinematicBottomParticle );
+        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( NULL != g_pData->GetUIMajorParticle() )
 		{
-			if( INVALID_PARTICLE_HANDLE != m_hCinematicTop && NULL != m_pCinematicTopParticle )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicTop && NULL != m_pCinematicTopParticle )
 			{
 				g_pData->GetUIMajorParticle()->ValidateParticlePointer( m_hCinematicTop, m_pCinematicTopParticle );
 			}
-			if( INVALID_PARTICLE_HANDLE != m_hCinematicBottom && NULL != m_pCinematicBottomParticle )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicBottom && NULL != m_pCinematicBottomParticle )
 			{
 				g_pData->GetUIMajorParticle()->ValidateParticlePointer( m_hCinematicBottom, m_pCinematicBottomParticle );    
 			}
 		}
-
+        pCinematicTopParticle = m_pCinematicTopParticle;
+        pCinematicBottomarticle = m_pCinematicBottomParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		
 		if(m_fTimer <= 1.0f)
 		{
 			float fAlpha = m_fTimer;
-			if ( NULL != m_pCinematicTopParticle )
+			if ( NULL != pCinematicTopParticle )
 			{
-				m_pCinematicTopParticle->m_Color = D3DXCOLOR(1.f, 1.f, 1.f, fAlpha);
+				pCinematicTopParticle->SetColor( D3DXCOLOR(1.f, 1.f, 1.f, fAlpha) );
 			}
-			if ( NULL != m_pCinematicBottomParticle )
+			if ( NULL != pCinematicBottomParticle )
 			{
-				m_pCinematicBottomParticle->m_Color = D3DXCOLOR(1.f, 1.f, 1.f, fAlpha);
+				pCinematicBottomParticle->SetColor( D3DXCOLOR(1.f, 1.f, 1.f, fAlpha) );
 			}
 		}
 		else
 		{		
-			if ( NULL != m_pCinematicTopParticle )
+			if ( NULL != pCinematicTopParticle )
 			{
-				m_pCinematicTopParticle->m_Color = D3DXCOLOR(1.f, 1.f, 1.f, 1.f);
+				pCinematicTopParticle->SetColor( D3DXCOLOR(1.f, 1.f, 1.f, 1.f) );
 			}
-			if ( NULL != m_pCinematicBottomParticle )
+			if ( NULL != pCinematicBottomParticle )
 			{
-				m_pCinematicBottomParticle->m_Color = D3DXCOLOR(1.f, 1.f, 1.f, 1.f);
+				pCinematicBottomParticle->SetColor( D3DXCOLOR(1.f, 1.f, 1.f, 1.f) );
 			}
 
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
@@ -17234,31 +16857,46 @@ HRESULT CX2Game::CinematicUI::OnFrameMove( double fTime, float fElapsedTime )
 
 	if( true == m_bEnd )
 	{
+        CKTDGParticleSystem::CParticle* pCinematicTopParticle = NULL;
+        CKTDGParticleSystem::CParticle* pCinematicBottomParticle = NULL;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( NULL != g_pData->GetUIMajorParticle() )
+        {
+            if( INVALID_PARTICLE_HANDLE != m_hCinematicTopParticle )
+                pCinematicTopParticle = g_pData->GetUIMajorParticle()->ValidateParticleHandle( m_hCinematicTopParticle );
+            if( INVALID_PARTICLE_HANDLE != m_hCinematicBottomParticle )
+                pCinematicBottomParticle = g_pData->GetUIMajorParticle()->ValidateParticleHandle( m_hCinematicBottomParticle );
+        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( NULL != g_pData->GetUIMajorParticle() )
 		{
-			if( INVALID_PARTICLE_HANDLE != m_hCinematicTop && NULL != m_pCinematicTopParticle )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicTop && NULL != m_pCinematicTopParticle )
 			{
 				g_pData->GetUIMajorParticle()->ValidateParticlePointer( m_hCinematicTop, m_pCinematicTopParticle );
 			}
-
-			if( INVALID_PARTICLE_HANDLE != m_hCinematicBottom && NULL != m_pCinematicBottomParticle )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicBottom && NULL != m_pCinematicBottomParticle )
 			{
 				g_pData->GetUIMajorParticle()->ValidateParticlePointer( m_hCinematicBottom, m_pCinematicBottomParticle );    
 			}
 		}
+        pCinematicTopParticle = m_pCinematicTopParticle;
+        pCinematicBottomarticle = m_pCinematicBottomParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS 
 		if ( -1.f != m_fDeleteTime  )							// DeleteTime 이 존재한다면
 		{
 			if ( m_fTimer >= ( m_fDeleteTime - 1.f ) )		// Fade-Out 시간을 1초로..
 			{
 				float fAlpha = m_fDeleteTime - m_fTimer;
-				if ( NULL != m_pCinematicTopParticle )
+				if ( NULL != pCinematicTopParticle )
 				{
-					m_pCinematicTopParticle->m_Color = D3DXCOLOR(1.f, 1.f, 1.f, fAlpha);
+					pCinematicTopParticle->SetColor( D3DXCOLOR(1.f, 1.f, 1.f, fAlpha) );
 				}
-				if ( NULL != m_pCinematicBottomParticle )
+				if ( NULL != pCinematicBottomParticle )
 				{
-					m_pCinematicBottomParticle->m_Color = D3DXCOLOR(1.f, 1.f, 1.f, fAlpha);
+					pCinematicBottomParticle->SetColor( D3DXCOLOR(1.f, 1.f, 1.f, fAlpha) );
 				}
 
 				if ( m_fTimer >= m_fDeleteTime )			// Fade-Out 시간을 넘으면
@@ -17273,35 +16911,49 @@ HRESULT CX2Game::CinematicUI::OnFrameMove( double fTime, float fElapsedTime )
 			if(m_fTimer <= 0.5f)
 			{
 				float fAlpha = 1.f - (m_fTimer * 2.f);
-				if ( NULL != m_pCinematicTopParticle )
+				if ( NULL != pCinematicTopParticle )
 				{
-					m_pCinematicTopParticle->m_Color = D3DXCOLOR(1.f, 1.f, 1.f, fAlpha);
+					pCinematicTopParticle->SetColor( D3DXCOLOR(1.f, 1.f, 1.f, fAlpha) );
 				}
-				if ( NULL != m_pCinematicBottomParticle )
+				if ( NULL != pCinematicBottomParticle )
 				{
-					m_pCinematicBottomParticle->m_Color = D3DXCOLOR(1.f, 1.f, 1.f, fAlpha);
+					pCinematicBottomParticle->SetColor( D3DXCOLOR(1.f, 1.f, 1.f, fAlpha) );
 				}
 			}
 			else
 			{
 				if( NULL != g_pData->GetUIManager() )
 				{
-					if( INVALID_PARTICLE_HANDLE != m_hCinematicTop )
+					if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicTop )
 					{
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hCinematicTop );
 						if( pSeq != NULL )
 						{
 							pSeq->SetShowObject(false);
 						}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        else
+                        {
+                            m_hCinematicTop = INVALID_PARTICLE_SEQUENCE_HANDLE;
+                            m_hCinematicTopParticle = INVALID_PARTICLE_HANDLE;
+                        }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					}
 
-					if( INVALID_PARTICLE_HANDLE != m_hCinematicBottom)
+					if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicBottom)
 					{
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hCinematicBottom );
 						if( pSeq != NULL )
 						{
 							pSeq->SetShowObject(false);
 						}	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        else
+                        {
+                            m_hCinematicBottom = INVALID_PARTICLE_SEQUENCE_HANDLE;
+                            m_hCinematicBottomParticle = INVALID_PARTICLE_HANDLE;
+                        }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					}
 				}
 				m_bEnd = false;
@@ -17329,7 +16981,7 @@ void CX2Game::CinematicUI::SetCinematicUI(bool bVal)
 		if( NULL != g_pData->GetUIMajorParticle() )
 		{
 			// 던전 중간 보스에서 가져온 Danger 연출
-			if( INVALID_PARTICLE_HANDLE != m_hCinematicTop )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicTop )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hCinematicTop );
 				if( pSeq != NULL )
@@ -17337,7 +16989,7 @@ void CX2Game::CinematicUI::SetCinematicUI(bool bVal)
 					pSeq->SetShowObject(bVal);
 				}
 			}
-			if( INVALID_PARTICLE_HANDLE != m_hCinematicBottom )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicBottom )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hCinematicBottom );
 				if( pSeq != NULL )
@@ -17360,7 +17012,7 @@ void CX2Game::CinematicUI::SetCinematicUI(bool bVal)
 
 				if( NULL != g_pData->GetUIMajorParticle() )
 				{
-					if( INVALID_PARTICLE_HANDLE != m_hCinematicTop )
+					if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicTop )
 					{
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hCinematicTop );
 						if( pSeq != NULL )
@@ -17368,7 +17020,7 @@ void CX2Game::CinematicUI::SetCinematicUI(bool bVal)
 							pSeq->SetShowObject(bVal);
 						}
 					}
-					if( INVALID_PARTICLE_HANDLE != m_hCinematicBottom )
+					if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCinematicBottom )
 					{
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hCinematicBottom );
 						if( pSeq != NULL )
@@ -17452,9 +17104,9 @@ void CX2Game::SetQuestMonster( CX2UnitManager::NPC_UNIT_ID eNPCUnitID_ , bool bS
 {
 	BOOST_TEST_FOREACH( CX2GUNPC*, pNPC, m_NPCUnitList )
 	{
-		if( NULL != pNPC && NULL != pNPC->GetNPCTemplet() )
+		if( NULL != pNPC )
 		{
-			if( eNPCUnitID_ == pNPC->GetNPCTemplet()->m_nNPCUnitID )
+			if( eNPCUnitID_ == pNPC->GetNPCTemplet().m_nNPCUnitID )
 			{
 				pNPC->SetQuestMonster( bShow );
 			}
@@ -17470,7 +17122,7 @@ void CX2Game::SetQuestMonster( CX2UnitManager::NPC_UNIT_ID eNPCUnitID_ , bool bS
 			OUT std::map<float, UidType> mapNearUnitUid_(정렬된 UID 맵)
 	@return : bool 성공 true, 실패 false
 */
-bool CX2Game::GetNearUnitUidList( IN CX2Room::TEAM_NUM eMyTeamNum_, IN const D3DXVECTOR3& vMyPos_, OUT std::map<float, UidType>& mapNearUnitUid_)
+bool CX2Game::GetNearUnitUidList( IN CX2Room::TEAM_NUM eMyTeamNum_, IN const D3DXVECTOR3& vMyPos_, OUT std::map<float, UidType>& mapNearUnitUid_, bool bIgnoreDistanceLimit /*= false*/)
 {
 	mapNearUnitUid_.clear();
 	const float fLimitNearDistance = 16000000.f;	// 거리 제한 값 4000 * 4000 
@@ -17494,12 +17146,10 @@ bool CX2Game::GetNearUnitUidList( IN CX2Room::TEAM_NUM eMyTeamNum_, IN const D3D
 		if( CX2GameUnit::GUT_NPC == pCX2GameUnit->GetGameUnitType() )
 		{
 			const CX2GUNPC* pNPC = static_cast<const CX2GUNPC*>( pCX2GameUnit );
-			switch( pNPC->GetNPCTemplet()->m_ClassType )
+			switch( pNPC->GetNPCTemplet().m_ClassType )
 			{
 			case CX2UnitManager::NCT_THING_TRAP:
-	#ifdef DUNGEON_CHECKER_NPC
 			case CX2UnitManager::NCT_THING_CHECKER:
-	#endif //DUNGEON_CHECKER_NPC
 				{
 					continue;
 				} break;
@@ -17508,7 +17158,8 @@ bool CX2Game::GetNearUnitUidList( IN CX2Room::TEAM_NUM eMyTeamNum_, IN const D3D
 
 		float fDistance = GetDistance3Sq( vMyPos_, pCX2GameUnit->GetPos() );
 
-		if( fLimitNearDistance < fDistance )
+		if( fLimitNearDistance < fDistance &&
+			false == bIgnoreDistanceLimit)
 			continue;
 
 		mapNearUnitUid_.insert( std::make_pair( fDistance, pCX2GameUnit->GetUnitUID()) );
@@ -17542,7 +17193,7 @@ void CX2Game::SetNpcHardLevel( CX2GUNPC* pNpcUnit_, const int iLevel_ )
 	#ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-12
 				if( NULL != pDungeonRoom && CX2GUNPC::NCT_NONE == pNpcUnit_->GetNPCCreateType()
 #ifdef EVENT_MONSTER_CARD_SUMMON_ENEMY
-					&& pNpcUnit_->GetNPCTemplet()->m_nNPCUnitID != EVENT_MONSTER_CARD_ENEMY_ID
+					&& pNpcUnit_->GetNPCTemplet().m_nNPCUnitID != EVENT_MONSTER_CARD_ENEMY_ID
 #endif EVENT_MONSTER_CARD_SUMMON_ENEMY
 					)
 	#else // SERV_NEW_DEFENCE_DUNGEON
@@ -17640,7 +17291,7 @@ void CX2Game::SetNpcHardLevel( CX2GUNPC* pNpcUnit_, const int iLevel_ )
 					const int iLevelMonsterCard 
 						= ( CX2GUNPC::NCT_MONSTER_CARD == pNpcUnit_->GetNPCCreateType() 
 #ifdef EVENT_MONSTER_CARD_SUMMON_ENEMY
-						|| pNpcUnit_->GetNPCTemplet()->m_nNPCUnitID == EVENT_MONSTER_CARD_ENEMY_ID
+						|| pNpcUnit_->GetNPCTemplet().m_nNPCUnitID == EVENT_MONSTER_CARD_ENEMY_ID
 #endif EVENT_MONSTER_CARD_SUMMON_ENEMY
 						) ? GetSummonMonsterCardNPCLevel( pNpcUnit_, iLevel_ ) : iLevel_;
 	#else // SERV_NEW_DEFENCE_DUNGEON
@@ -17771,8 +17422,8 @@ void CX2Game::ProcessGetOutlayItem(
 	if( eType == CX2Item::SIT_NOSTRUM || eType == CX2Item::SIT_GENIUS || eType == CX2Item::SIT_CREST )
 	{
 		// 습득 이펙트
-		g_pX2Game->GetEffectSet()->PlayEffectSet( L"TakeSpecialItem1", (CX2GameUnit*) pCX2GUUser );
-		g_pX2Game->GetEffectSet()->PlayEffectSet( L"TakeSpecialItem2", (CX2GameUnit*) pCX2GUUser, NULL, false, -1.f, -1.f, D3DXVECTOR3(1.f, 1.f, 1.f), true, m_vDropItemPos ); 
+		GetEffectSet()->PlayEffectSet( L"TakeSpecialItem1", (CX2GameUnit*) pCX2GUUser );
+		GetEffectSet()->PlayEffectSet( L"TakeSpecialItem2", (CX2GameUnit*) pCX2GUUser, NULL, false, -1.f, -1.f, D3DXVECTOR3(1.f, 1.f, 1.f), true, m_vDropItemPos ); 
 
 		// 성공여부를 검사
 		bNormalItem = bIsItemSuccess;
@@ -17842,7 +17493,7 @@ void CX2Game::ProcessGetEDItem( CX2GUUser* pCX2GUUser, bool bIsEDItem,
 	{
 		if( g_pChatBox != NULL && GetMyUnit() != NULL && GetMyUnit()->GetNowHp() > 0 )
 		{
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 			std::wstringstream strStream;
 
 			if ( pUnitData->m_ED >= _CONST_X2GAME_::g_iMaxED )
@@ -17876,20 +17527,24 @@ void CX2Game::ProcessGetEDItem( CX2GUUser* pCX2GUUser, bool bIsEDItem,
 				if ( iSumED > 0 && GetMyUnit()->GetUnitUID() == uiGetUnitUID )
 				{
 					std::wstringstream strStreamED;
-					
-					//{{ 2011.09.16 조효진  던전내 일부 스트링 그래픽 하드 코딩 된거 STR_ID로 빼는 작업
 #ifdef SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 					strStreamED << GET_STRING( STR_ID_14352 ) << iSumED;
 #else SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
 					strStreamED << L"ED +" << iSumED;
 #endif SUPPORT_STRID_IN_DUNGEON_STR_GRAPHIC
-					//}}
 
 					D3DXVECTOR3 pos = pCX2GUUser->GetPos();
 					pos.y += 50.0f;
-
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+					if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() ==  false )
+					{
+						if( NULL != g_pData->GetPicCharYellow() )
+							g_pData->GetPicCharYellow()->DrawText( strStreamED.str().c_str(), pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
+					}
+#else
 					if( NULL != g_pData->GetPicCharYellow() )
 						g_pData->GetPicCharYellow()->DrawText( strStreamED.str().c_str(), pos, pCX2GUUser->GetDirVector(), CKTDGPicChar::AT_CENTER );
+#endif ALWAYS_SCREEN_SHOT_TEST
 				}
 				if ( NULL != g_pData && NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUIInventory() )
 				{
@@ -17956,14 +17611,14 @@ void CX2Game::AddChatLogByGetItem(
 			wstring wstrColor = L"#CECEC88";							// (236, 236, 136)
 			D3DXCOLOR coTextColor(0.92549f, 0.92549f, 0.53333f, 1.f);	// (236, 236, 136)
 
-#ifndef NOT_USE_DICE_ROLL
-			if( true == bDiceRolling )
-			{
-				const float MAGIC_DICE_ROLLING_TIME = 1.6f;
-				g_pChatBox->AddChatLog( wstrMsg.c_str(), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor, true, false, MAGIC_DICE_ROLLING_TIME );
-			}
-			else
-#endif //NOT_USE_DICE_ROLL
+//#ifndef NOT_USE_DICE_ROLL
+//			if( true == bDiceRolling )
+//			{
+//				const float MAGIC_DICE_ROLLING_TIME = 1.6f;
+//				g_pChatBox->AddChatLog( wstrMsg.c_str(), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor, true, false, MAGIC_DICE_ROLLING_TIME );
+//			}
+//			else
+//#endif //NOT_USE_DICE_ROLL
 			{
 				g_pChatBox->AddChatLog( wstrMsg.c_str(), KEGS_CHAT_REQ::CPT_SYSTEM, coTextColor, wstrColor );
 			}
@@ -17988,18 +17643,15 @@ void CX2Game::NotfiyCreateValentimeCupCake()
 #ifdef SERV_SHARING_BANK_TEST
 wstring CX2Game::GetUserName(int inx)
 {
-	//g_pData->GetMyUser()->GetUnitNum()
 	CX2Unit *pUnit = g_pData->GetMyUser()->GetUnitByIndex(inx);
 	if(pUnit != NULL)
 	{
-		return pUnit->GetUnitData()->m_NickName;;
+		return pUnit->GetUnitData().m_NickName;;
 	}
 
 	return L"";
 }
 #endif SERV_SHARING_BANK_TEST
-
-#if ( defined( _SERVICE_ ) && defined( _OPEN_TEST_ ) ) || defined( _IN_HOUSE_ )
 
 #ifdef NEXON_QA_CHEAT_REQ
 // /wakeup 입력시 각성 구슬이 하나씩 채워짐
@@ -18012,7 +17664,7 @@ void CX2Game::AddHyperModeCount()
 	if( NULL != g_pData->GetMyUser() && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_SPECIAL_USER )				
 	{
 		int iGetHyperModeCount =  pMyGUUser->GetHyperModeCount();
-		if ( NULL != pMyGUUser->GetFrameData() && iGetHyperModeCount == pMyGUUser->GetFrameData()->syncData.m_HyperModeCount )
+		if ( iGetHyperModeCount == pMyGUUser->GetFrameData().syncData.m_HyperModeCount )
 		{
 			int iHyperModeCount = iGetHyperModeCount;
 			if ( static_cast<int>( CX2GageUI::PGUWO_ORB3 ) == ++iHyperModeCount )
@@ -18090,7 +17742,6 @@ void CX2Game::AddChungExtraCannonBall()
 }
 #endif //NEXON_QA_CHEAT_REQ
 
-#endif
 
 
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
@@ -18129,6 +17780,70 @@ void CX2Game::Handler_EGS_TCP_PING(  KEGS_TCP_PING& kEvent )
 }
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
+#ifdef ADDED_GET_SUBSTAGE_INDEX_IN_SCRIPT
+int CX2Game::GetNowSubStageIndex()
+{
+	if( GetGameType() != GT_DUNGEON )
+		return false;
+
+	CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(this);
+	if( NULL != pDungeonGame )
+	{
+		CX2Dungeon* pDungeon = pDungeonGame->GetDungeon();
+
+		if( NULL != pDungeon && NULL != pDungeon->GetNowStage() &&
+		    NULL != pDungeon->GetNowStage()->GetNowSubStage() )
+		{
+			return pDungeon->GetNowStage()->GetNowSubStageIndex();
+		}
+	}
+
+	return -1;
+}
+#endif // ADDED_GET_SUBSTAGE_NUMBER_IN_SCRIPT
+
+
+#ifdef ADDED_NPC_REMAINING_WHEN_SUBSTAGE_CLEAR
+
+void CX2Game::DeleteRemainingNpcWhenSubStageClear ()
+{
+	if( GetGameType() != GT_DUNGEON )
+		return ;
+
+	for( int i = 0; i < static_cast<int>(m_NPCUnitList.size()); ++i )
+	{
+		CX2GUNPC* pCX2GUNPC = m_NPCUnitList[i];
+		if( NULL == pCX2GUNPC )
+			continue;
+
+		if ( true == pCX2GUNPC->GetIsRemainingNpcWhenStageCleard() )
+		{
+			pCX2GUNPC->SetUserGrapReset();
+
+			vector<CX2GameUnit*>::iterator vItrGameUnit = m_UnitList.begin();
+			while ( m_UnitList.end() != vItrGameUnit )
+			{
+				CX2GameUnit* pGameUnit = *vItrGameUnit;
+				if ( pCX2GUNPC == pGameUnit )
+				{
+					pCX2GUNPC->ResetGameUnitWhoAttackedMe();
+					DeleteNPCUnitByUID( static_cast<const UINT> ( pCX2GUNPC->GetUnitUID() ) );
+					break;
+				}
+				else
+					++vItrGameUnit;
+			}
+
+			m_NPCUnitList[i] = NULL;
+
+			if ( null == m_optrFocusUnit )
+				ChangeFocusUnit();
+
+		}
+	}
+}
+#endif // ADDED_NPC_REMAINING_WHEN_SUBSTAGE_CLEAR
+
 #ifdef NEW_CHARACTER_EL
 /** @function : GetIsExsitancePartyMemberHPLessThanPer
 	@brief : 체력 @1 % 이하인 파티원이 존재 여부 체크
@@ -18156,6 +17871,241 @@ bool CX2Game::GetIsExsitancePartyMemberHPLessThanPer( const float fHPRate_, cons
 	return false;
 }
 #endif // NEW_CHARACTER_EL
+
+
+#ifdef EFFECT_TOOL
+void CX2Game::RefreshDamageEffectScript()
+{
+	//DamageEffect
+	SAFE_DELETE( m_pDamageEffect );
+	m_pDamageEffect	= new CX2DamageEffect();
+	m_pDamageEffect->OpenScriptFile( L"DamageEffect.lua" );
+}
+#endif //EFFECT_TOOL
+
+// 지정된 범위 안의 UnitUID 를 제외한 가장 가까운 NPC 를 가져옴
+// 범위를 -1 로 지정하면 범위 체크를 하지 않고 모든 NPC 를 검색함
+// MyTeam 을 지정하면 해당 Team 과 같으면 검색하지 않음
+// Check Invincible 을 지정하면 무적 상태를 검색하지 않음
+// 이쿠스, 인쿨로드 카드 NPC 적용 함수, kimjh
+CX2GUNPC*	CX2Game::GetNearestNpcInSpecificRangeAndExceptUnitUID( const D3DXVECTOR3& vPos_, const UidType UnitUid_, const float fMaxRange_ = 1000, const int iMyTeam_ = -1, const bool bCheckInvincible_ = false )
+{
+	CX2GUNPC* pNearestNpc = NULL;
+	float fDistance3Sq = fMaxRange_ * fMaxRange_;
+
+	for( UINT i = 0; i < m_NPCUnitList.size(); i++ )
+	{
+		CX2GUNPC* pNPC = m_NPCUnitList[i];
+		if( NULL == pNPC )
+			continue;
+		
+		if ( true == bCheckInvincible_ && true == pNPC->GetInvincible() )
+			continue;
+
+		if ( 0 <= iMyTeam_ && pNPC->GetTeam() == iMyTeam_ )
+			continue;
+
+		if( pNPC->GetUnitUID() != static_cast<UidType> ( UnitUid_) && 
+			pNPC->GetNowHp() > 0.f && CX2GameUnit::GUSI_DIE != pNPC->GetGameUnitState() ) /*!pNPC->GetDyingStart())*/
+		{
+			float fTempDistance3Sq = GetDistance3Sq( vPos_, pNPC->GetPos() );
+			if( fTempDistance3Sq < fDistance3Sq )
+			{
+				pNearestNpc		= pNPC;
+				fDistance3Sq	= fTempDistance3Sq;
+			}
+		}
+	}
+
+	return pNearestNpc;
+}
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+/** @function	: SetOfficiallyDebuffList
+	@brief		: 해로운 효과라고 정의된 공식적인 디버프 리스트 ( 기획 파트에서 제공 )
+*/
+void CX2Game::SetOfficiallyDebuffList()
+{
+	m_vecPossibleOfficiallyDebuffList.clear();
+
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_FIRE );					/// 화상
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_POISON );				/// 중독
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_SHOCK );				/// 단죄 ( 쇼크 )
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_STUN );					/// 스턴
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_COLD );					/// 동상
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_FROZEN );				/// 빙결
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_WOUND );				/// 상처 (컷텐던)
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_BLEEDING );				/// 출혈
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_MOTION_SLOWDOWN );		/// 동작 둔화 (로우킥 따위)
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_MOVE_JUMP_SLOWDOWN );	/// 이동 둔화
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_BLIND );				/// 시야 방해 (명중률 감소, 샌드 스톰 따위)
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_FLASH_BANG );			/// 섬광탄 (일렉트라 포톤 플레어)
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_PRESS );				/// 압착
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_BLIND_SMOKE );			/// 연무 (회피 감소)
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_BIND );					/// 동작 정지
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_CURSE );				/// 저주
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_CONFUSION );			/// 혼란
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_PANIC );				/// 공황 (판데모니움)
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_ARMOR_BREAK );			/// 무기 파괴
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_MAGIC_DEFFENCE_DROP );	/// 마력의 사슬
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_WEAPON_BREAK );			/// 방어구 파괴
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_ENTANGLE );				/// 인탱글
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_LEG_SPASM );			/// 다리 부상
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_DEATH_SENTENCE );		/// 죽음의 선고
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_AGING );				/// 노화
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_STIGMA );				/// 낙인의 사격
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_MARK_OF_COMMANDER );	/// 지휘관의 표식
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_WATER_HOLD );			/// 물의 결계
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_SIDE_EFFECT_MEDICINE );	/// 대두 ( 물약 부작용 )
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_SIDE_EFFECT_CREST );	/// 쇠약의 문장 ( 문장 부작용 )
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_ANGER_OF_DRYAD );		/// 드라이어드의 분노
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_SUPPRESSION );			/// 제압
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_STIGMA_OF_FIRE );		/// 엘리시스(블레이징 하트) - 불꽃의 낙인 디버프
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_CHANGE_PHYSIC_DEFENCE_AND_PHYSIC_DAMAGE );		/// 엘리시스(그랜드 마스터) - 도발 디버프, 물리 공격력 증가 / 물리 방어력 감소 
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_UNEXTINGUISHABLE_FIRE );/// 엘리시스(블레이징 하트) - 꺼지지 않는 불꽃 디버프
+	m_vecPossibleOfficiallyDebuffList.push_back( BTI_DEBUFF_HIGH_FEVER );			/// 불속성 저항을 감소시키는 디버프.
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+}
+
+/** @function	: DisplayAddHPInformation
+	@brief		: HP 회복량 표시
+	@param		: HP 회복량, 유닛 위치, 유닛 방향 벡터, 퍼센트 표기 여부
+*/
+void CX2Game::DisplayAddHPInformation( IN const float fAddHPValue_, IN const D3DXVECTOR3 vPos_, IN const D3DXVECTOR3 vDirVector_, IN bool bDisplayPercent/*= true*/ )
+{
+	/// HP 회복 표기는 좀 더 위로 표시한다.
+	D3DXVECTOR3 vPos = vPos_;
+	vPos.y += 50.f;
+
+	/// 회복량 표시
+	WCHAR wszText[64] = L"";
+
+	if ( true == bDisplayPercent )	/// 퍼센트 표기
+		StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"HP+ %d PERCENT", static_cast<int>( fAddHPValue_ ) );
+	else							/// 회복량 표기
+		StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"HP+ %d", static_cast<int>( fAddHPValue_ ) );
+
+	if( NULL != g_pData && NULL != g_pData->GetPicCharBlue() )
+		g_pData->GetPicCharBlue()->DrawText( wszText, vPos, vDirVector_, CKTDGPicChar::AT_CENTER );
+} 
+
+/** @function	: DisplayAddHPInformation
+	@brief		: MP 회복량 표시
+	@param		: MP 회복량, 유닛 위치, 유닛 방향 벡터
+*/
+void CX2Game::DisplayAddMPInformation( IN const float fAddMPValue_, IN const D3DXVECTOR3 vPos_, IN const D3DXVECTOR3 vDirVector_ )
+{
+	/// 회복량 표시
+	WCHAR wszText[64] = L"";
+	StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"MP+ %d", static_cast<int>( fAddMPValue_ ) );
+
+	if( NULL != g_pData && NULL != g_pData->GetPicCharBlue() )
+		g_pData->GetPicCharBlue()->DrawText( wszText, vPos_, vDirVector_, CKTDGPicChar::AT_CENTER );
+}
+#endif // HAMEL_SECRET_DUNGEON
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+/** @function	: DisplayDamageInformation
+	@brief		: 데미지 표시
+	@param		: 데미지량, 유닛 위치, 유닛 방향 벡터
+*/
+void CX2Game::DisplayDamageInformation( IN const float fDamageValue_, IN const D3DXVECTOR3 vHeadBonePos_, IN const D3DXVECTOR3 vDirVector_ )
+{
+	/// 데미지 출력 위치 설정
+	D3DXVECTOR3 vPos = vHeadBonePos_;
+	//vPos.y += 70.0f;
+
+	/// 회복량 표시
+	if( NULL != g_pData && NULL != g_pData->GetPicChar() )
+		g_pData->GetPicChar()->DrawText( static_cast<int>( fDamageValue_ ), vPos, vDirVector_, CKTDGPicChar::AT_CENTER );
+}
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef MODFIY_LOG_IN_NPC_SCRIPT_FUNCTION
+void CX2Game::ChatBoxLog( const CHAR* pLog, float fLog)
+{
+#ifdef _IN_HOUSE_
+	if( NULL != g_pChatBox )
+	{
+		wstring wstrStateName = L"";
+		ConvertUtf8ToWCHAR( wstrStateName, pLog );
+
+		g_pChatBox->AddChatLog( wstrStateName.c_str(), KEGS_CHAT_REQ::CPT_TOTAL, D3DXCOLOR(0.5882f, 1, 0, 1), L"#C96ff00", false );
+
+		if( false == IsSamef(0.f,fLog))
+		{
+			WCHAR wBuf1[10];
+			StringCchPrintfW( wBuf1, 10, L"%f", fLog );
+			g_pChatBox->AddChatLog( wBuf1, KEGS_CHAT_REQ::CPT_TOTAL, D3DXCOLOR(0.5882f, 1, 0, 1), L"#C96ff00", false );
+		}
+	}
+#else
+	g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"사내서버 전용 함수가 설정되어있습니다.\nNPC스크립트의 ChatBoxLog()을 제거해주세요", g_pMain->GetNowState() );
+#endif _IN_HOUSE_
+}
+#endif // MODFIY_LOG_IN_NPC_SCRIPT_FUNCTION
+
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+
+void CX2Game::FlushSendFrameAverage()
+{
+#ifdef	ELOG_STATISTICS_NEW_DATA
+
+    int iGameType = GetGameType();
+#ifdef FIELD_BOSS_RAID // 레이드보스는 프레임 통계 던전으로 남기기
+	if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+	{
+		iGameType = GT_DUNGEON;
+	}
+#endif  // FIELD_BOSS_RAID
+
+	m_kGameStatistics.Send_EGS_FRAME_AVERAGE_REQ( iGameType );
+    m_kGameStatistics.Init();
+#else	ELOG_STATISTICS_NEW_DATA
+	KEGS_FRAME_AVERAGE_REQ kPacket;
+	kPacket.m_cGameType		= iGameType;
+	kPacket.m_iFrameAverage = m_AverageRenderFrameRate;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_FRAME_AVERAGE_REQ, kPacket );
+#endif	ELOG_STATISTICS_NEW_DATA
+}
+
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+
+void CX2Game::SendFrameAverage()
+{
+#ifdef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+	// 이미 프레임 전송 했다면, 더이상 보내지 않기
+	if( true == GetAlreadySendingFrame() )
+		return;
+#endif // SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+
+    int iGameType = GetGameType();
+#ifdef FIELD_BOSS_RAID // 레이드보스는 프레임 통계 던전으로 남기기
+	if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+	{
+		iGameType = GT_DUNGEON;
+	}
+#endif  // FIELD_BOSS_RAID
+
+#ifdef	ELOG_STATISTICS_NEW_DATA
+	m_kGameStatistics.Send_EGS_FRAME_AVERAGE_REQ( iGameType );
+#else	ELOG_STATISTICS_NEW_DATA
+	KEGS_FRAME_AVERAGE_REQ kPacket;
+	kPacket.m_cGameType		= iGameType;
+	kPacket.m_iFrameAverage = m_AverageRenderFrameRate;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_FRAME_AVERAGE_REQ, kPacket );
+#endif	ELOG_STATISTICS_NEW_DATA
+
+#ifdef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+	// EGS_FRAME_AVERAGE_ACK에 대한 처리가 없기 때문에 REQ전송 시 true로 변경
+	SetAlreadySendingFrame(true);
+#endif // SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+}
+
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 #ifdef SERV_CODE_EVENT
 bool CX2Game::IsEnableCodeEvent_LUA( int iScriptID )
@@ -18190,7 +18140,7 @@ D3DXVECTOR3 CX2Game::GetNearestNPCUnitPosOnSameDirection_LUA( D3DXVECTOR3 pos, f
 		if( 0.f >= pNPC->GetNowHp() )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+		if( pNPC->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 			continue;
 
 		// 방향이 안 맞으면 컨티뉴
@@ -18231,7 +18181,11 @@ CX2GameUnit* CX2Game::GetNearestNPCUnitOnSameDirection_LUA( D3DXVECTOR3 pos, flo
 		if( 0.f >= pNPC->GetNowHp() )
 			continue;
 
-		if( pNPC->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+		if( pNPC->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
+			continue;
+
+		// 실질적으로 적NPC 만을 타겟하기 위한 기능이므로 추가합니다. by 박진웅 2014.01.27
+		if( pNPC->GetTeam() != CX2Room::TN_MONSTER )
 			continue;
 
 		// 방향이 안 맞으면 컨티뉴
@@ -18253,3 +18207,28 @@ CX2GameUnit* CX2Game::GetNearestNPCUnitOnSameDirection_LUA( D3DXVECTOR3 pos, flo
 	return retUnit;
 }
 #endif //NEAREST_NPC_ON_SAME_DIRECTION
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+void CX2Game::SetValentineEventTrigger_LUA( D3DXVECTOR3 vPos )
+{
+	//주어진 좌표로부터 가장 가까운 라인 인덱스를 찾아 해당 라인에 이동 속성을 부여하는 함수
+
+	CKTDGLineMap* pLineMap = m_pWorld->GetLineMap();
+
+	if( pLineMap != NULL )
+	{
+		int iLineIndex = pLineMap->GetNearestLine( vPos );
+	
+		if( iLineIndex >= 0 )
+		{
+			CKTDGLineMap::LineData* pLineData = pLineMap->AccessLineData( iLineIndex );	// 원래는 이렇게 쓰면 안되는데 ㅠㅠ 이 코드 보고 따라하지 마세요.
+
+			ASSERT( NULL != pLineData );
+			if( NULL == pLineData )
+				return; 
+
+			pLineData->m_fSpeed = 470;
+		}
+	}
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT

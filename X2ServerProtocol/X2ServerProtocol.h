@@ -1,9 +1,14 @@
 #pragma once
 
-#define ADD_COLLECT_CLIENT_INFO_PROTOCOL
+//#ifdef X2OPTIMIZE_TCP_RELAY_TEST
+//#include "../KncWX2Server/Common/ClientPacket.h"
+//#endif//X2OPTIMIZE_TCP_RELAY_TEST
 
-// X2ServerProtocol 쪽에서 multithread safety 문제로 크래쉬 발생하는 오류 수정
+
+#define ADD_COLLECT_CLIENT_INFO_PROTOCOL
 #define X2OPTIMIZE_X2SERVERPROTOCOL_MULTITHREAD_CRASH_BUG_FIX
+#define X2OPTIMIZE_SESSION_THREAD_SAFETY
+
 
 class CX2ServerProtocol
 {
@@ -23,7 +28,7 @@ public:
 	~CX2ServerProtocol(void);
 
 #ifdef  X2OPTIMIZE_X2SERVERPROTOCOL_MULTITHREAD_CRASH_BUG_FIX
-	bool IsConnected()          
+	bool IsConnected()
     { 
         if ( m_pkUserProxy )
         {
@@ -219,6 +224,21 @@ public:
 		return m_pkUserProxy->SendPacket( PI_GS_USER, 0, NULL, usEventID, data, bLogging, bCompress ); 
 #endif  X2OPTIMIZE_X2SERVERPROTOCOL_MULTITHREAD_CRASH_BUG_FIX
 	}
+
+//#ifdef X2OPTIMIZE_TCP_RELAY_TEST
+//	bool SendPacket_TcpRelayTest( char* pBuffer, int iBufferSize )
+//	{ 
+//		if( m_pkUserProxy == NULL )
+//			return false;
+//
+//		KEGS_TCP_RELAY_TEST kPacket;
+//		for( int i = 0; i < iBufferSize; i++ )
+//			kPacket.m_vecData.push_back( pBuffer[i] );
+//
+//		return SendPacket( 999, kPacket );
+//	}
+//#endif//X2OPTIMIZE_TCP_RELAY_TEST
+
 	bool SendID( IN const unsigned short usEventID )
 	{ 
 #ifdef  X2OPTIMIZE_X2SERVERPROTOCOL_MULTITHREAD_CRASH_BUG_FIX
@@ -333,3 +353,4 @@ protected:
 	UINT			m_ServerMsgID;
 	SEND_MSG_FUNC	m_pSendGameMessage;
 };
+

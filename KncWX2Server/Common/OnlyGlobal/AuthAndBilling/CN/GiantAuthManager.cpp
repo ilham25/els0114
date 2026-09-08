@@ -89,6 +89,11 @@ void KGiantAuthManager::MakeEventFromReceivedPacket()
 	case KGiantAuthPacket::GAP_ACT_LOGIN:
 		Handle_OnLoginPacket(kReceivedPacket);
 		return;
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	case KGiantAuthPacket::GAP_ACT_SESSION:
+		Handle_OnDirectChargePacket(kReceivedPacket);
+		return;
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 	default:
 		START_LOG( cerr, L"패킷 타입 이상." )
 			<< BUILD_LOG( kReceivedPacket.GetTotalLength() )
@@ -307,6 +312,41 @@ bool KGiantAuthManager::UnregisterRequest(int iRequestID, RequestInfo& info)
 		return false;
 	}
 }
+
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+void KGiantAuthManager::Handle_OnDirectChargePacket(KGiantAuthPacket& kReceivedPacket)
+{
+	START_LOG( cout, L"[TEST] Token 패킷 응답이 왔다!" )
+		<< END_LOG;
+
+	if( kReceivedPacket.GetCommand() != KGiantAuthPacket::GAP_ACT_SESSION )
+		goto end_proc;
+
+	switch( kReceivedPacket.GetParaCommand() )
+	{
+	case KGiantAuthPacket::GAS_PCT_SESSION_GETTOKEN:
+		{
+			KEGIANT_AUTH_DIRECT_CHARGE_ACK kPacket;
+			kReceivedPacket.Read( kPacket );
+
+			KEventPtr spEvent( new KEvent );
+			spEvent->SetData(PI_NULL, NULL, EGIANT_AUTH_DIRECT_CHARGE_ACK, kPacket );
+			QueueingEvent( spEvent );
+		}
+		return;
+	}
+
+end_proc:
+	START_LOG( cerr, L"패킷 타입 이상." )
+		<< BUILD_LOG( kReceivedPacket.GetTotalLength() )
+		<< BUILD_LOG( kReceivedPacket.GetCommand() )
+		<< BUILD_LOG( kReceivedPacket.GetParaCommand() )
+		<< END_LOG;
+
+	DumpBuffer( ( BYTE* )m_cRecvBuffer, true );
+}
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 
 
 #endif // SERV_COUNTRY_CN

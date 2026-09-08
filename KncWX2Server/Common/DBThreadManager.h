@@ -24,7 +24,9 @@ public:
 
 	// FileDSN
     std::wstring GetFileDSN() { return m_wstrDSN; }
-    void SetFileDSN( const char* szDSN );
+    //void SetFileDSN( const char* szDSN );
+    void SetFileDSN( const std::string& strDSN_ );
+
 
 	// DB Connection String
 	KSecurityString< std::wstring > GetDBConnString() { return m_SecConnStr; }

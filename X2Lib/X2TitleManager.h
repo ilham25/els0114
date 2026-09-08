@@ -18,9 +18,7 @@ public:
 		//{{ 2011. 01. 25	최육사	하멜 추가
 		TT_HAMEL,
 		//}}
-//#ifdef SERV_GROW_UP_TITLE
-		TT_GROW_UP,
-//#endif SERV_GROW_UP_TITLE
+		TT_GROW_UP, // 해외. 이름 수정(2013.09.03 김창한)
 		//{{ 2012. 01. 02	김태환  샌더 추가
 		TT_SANDER,
 		//}}
@@ -56,7 +54,13 @@ public:
 		TMCT_USER_UNIT_DIE,			// 산소 부족으로 사망
 #endif SERV_ADD_TITLE_CONDITION
 		//}}
-
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+		TMCT_ITEM_SOCKET,
+		TMCT_ITEM_ENCHANT_LEVEL,
+		TMCT_ITEM_ENCHANT_COUNT,
+		TMCT_ITEM_ATTRIB,
+		TMCT_ITEM_RESOLVE,
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
 	};
 
     enum TITLE_MANAGER_UI_MSG
@@ -149,7 +153,7 @@ public:
 
         //::공용 데이터
         //::1. Dungeon ID
-        CX2Dungeon::DUNGEON_ID			m_eDungeonID;
+        SEnum::DUNGEON_ID			m_eDungeonID;
         //::2. Dungeon Difficulty
         char							m_cDifficulty;
 		//{{ 2010. 08. 23  최육사	비밀던전 헬모드
@@ -233,7 +237,7 @@ public:
             m_iKillNum				= 0;
             m_iCollectionItemID		= -1;
             m_iCollectionItemNum	= 0;
-            m_eDungeonID			= CX2Dungeon::DI_NONE;
+            m_eDungeonID			= SEnum::DI_NONE;
             m_cDifficulty			= -1;
 			//{{ 2010. 08. 23  최육사	비밀던전 헬모드
 #ifdef SERV_HELL_MODE_TITLE
@@ -322,8 +326,8 @@ public:
     wstring GetTitleModel(int val);
 #ifdef SERV_GROW_UP_TITLE
 	wstring GetTitleModel( int val_, int iLevel_ );
-#endif
-	wstring GetTitleName() { return m_strDesc; }
+#endif SERV_GROW_UP_TITLE
+    wstring GetTitleName() { return m_strDesc; }
 	wstring GetTitleImgName() { return m_strImgName; }
     wstring GetMIssionDesc(int missionId);
     wstring GetSubMissionDesc(int subMissionId);
@@ -334,17 +338,6 @@ public:
 
     const CX2TitleManager::MissionTemplet* GetMissionInfo( int iMissionID );
     const CX2TitleManager::SubMissionTemplet* GetSubMissionInfo( int iSubMissionID );
-
-//{{ Iruha : 2026-09-03 // offline mode needs to walk every mission templet
-#ifdef SERV_IRUHADEV_OFFLINE
-    // CX2OfflineTitle has to ask "which missions has this character become
-    // eligible for?", which the GameServer answers by walking its whole
-    // mission list (KUserTitleManager::CheckNewMission). GetMissionInfo can
-    // only answer for an ID that is already known, so the map itself has to
-    // be reachable. Read-only, and compiled out with the offline build.
-    const std::map< int, MissionTemplet >& GetMapTitleMission() const { return m_mapTitleMission; }
-#endif SERV_IRUHADEV_OFFLINE
-//}}
 
     void TakeTitle(std::vector<KTitleInfo> vecTitleInfo);
     bool UpdateTitle(KTitleInfo ktitleInfo, int iState);
@@ -382,10 +375,10 @@ private:
 	wstring m_strNewTitle;
 #endif //SHOW_NEW_TITLE_NAME
 
-#if 0 // 칭호 프리뷰
-    CKTDGParticleSystem::CParticleEventSequenceHandle	m_hSeqEmblem;
-    CKTDGParticleSystem::CParticle*						m_pPart_Emblem_200;    
-#endif
+//#if 0 // 칭호 프리뷰
+//    CKTDGParticleSystem::CParticleEventSequenceHandle	m_hSeqEmblem;
+//    CKTDGParticleSystem::CParticle*						m_pPart_Emblem_200;    
+//#endif
 
 private:
     bool Handler_EGS_EQUIP_TITLE_REQ(int titleId);

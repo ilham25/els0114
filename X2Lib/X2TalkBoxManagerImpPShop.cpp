@@ -72,12 +72,12 @@ void CX2TalkBoxManagerImpPShop::DrawBalloon( int iType, float fX, float fY, floa
 		*/
 	}
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	DrawBalloonBodyAndTip( iType, _fX, _fY, fX, fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
-#else
-	DrawBalloonBody( _fX, _fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
-	DrawBalloonTip( iType, fX, fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
-#endif
+//#else
+//	DrawBalloonBody( _fX, _fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
+//	DrawBalloonTip( iType, fX, fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
+//#endif
 
 //{{ robobeg : 2008-10-24
 	//g_pKTDXApp->SetNULLTexture( 0 );

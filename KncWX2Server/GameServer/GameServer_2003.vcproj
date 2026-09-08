@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect;../../XTRAP/Server"
 				PreprocessorDefinitions="_WIN32;_DEBUG;_WINDOWS;SERV_INT_INTERNAL"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -74,7 +74,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -126,7 +126,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -178,7 +178,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -230,7 +230,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_IN_HOUSE_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -282,7 +282,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_OPEN_TEST_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -334,7 +334,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_SERVICE_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -386,7 +386,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -438,7 +438,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -490,7 +490,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -542,7 +542,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_IN_HOUSE_SERVICE_READY_QA_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -588,7 +588,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect;../../XTRAP\Server"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_INT_INTERNAL"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -640,7 +640,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect;../../XTRAP\Server"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_TW;"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -692,7 +692,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect;../../XTRAP\Server"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_HK;"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -744,7 +744,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_EU"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -796,7 +796,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\Libs\ExternalLib\DXSDK\Include&quot;;&quot;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0&quot;;&quot;$(SolutionDir)KNCSDK\Include&quot;;&quot;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include&quot;;&quot;$(SolutionDir)XTRAP\Server&quot;;&quot;$(SolutionDir)KncWX2Server\GameServer\nProtect&quot;;..\Common;.\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_US"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -811,7 +811,7 @@
 				ShowProgress="0"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\ia32\vc7.1\lib;$(SolutionDir)KNCSDK\lib"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86&quot;;&quot;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs&quot;;&quot;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\ia32\vc7.1\lib&quot;;&quot;$(SolutionDir)KNCSDK\lib&quot;"
 				IgnoreDefaultLibraryNames="libc"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
@@ -849,7 +849,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_CN"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -902,7 +902,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect;../../XTRAP/Server"
 				PreprocessorDefinitions="_WIN32;_DEBUG;_WINDOWS;SERV_COUNTRY_EU"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -956,7 +956,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect;../../XTRAP/Server"
 				PreprocessorDefinitions="_WIN32;_DEBUG;_WINDOWS;SERV_COUNTRY_CN"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -978,6 +978,267 @@
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/$(ProjectName)D.pdb"
 				SubSystem="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_JP|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_JP"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_TH|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect;../../XTRAP\Server"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_TH"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_ID|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_ID"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\Common\OnlyGlobal\AuthAndBilling\ID"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_PH|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_PH"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_IN|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./;../CenterServer;./X2Data;../../X2/dat/Script;./nProtect;../../XTRAP\Server"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_IN"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -1311,6 +1572,12 @@
 					RelativePath="..\Common\NetError_def.h">
 				</File>
 				<File
+					RelativePath="..\Common\Neterror\NetError_def_BR.h">
+				</File>
+				<File
+					RelativePath="..\Common\Neterror\NetError_def_CN.h">
+				</File>
+				<File
 					RelativePath="..\Common\NetError_def_DE.h">
 				</File>
 				<File
@@ -1323,10 +1590,31 @@
 					RelativePath="..\Common\NetError_def_FR.h">
 				</File>
 				<File
+					RelativePath="..\Common\Neterror\NetError_def_ID.h">
+				</File>
+				<File
+					RelativePath="..\Common\Neterror\NetError_def_IN.h">
+				</File>
+				<File
 					RelativePath="..\Common\NetError_def_IT.h">
 				</File>
 				<File
+					RelativePath="..\Common\Neterror\NetError_def_JP.h">
+				</File>
+				<File
+					RelativePath="..\Common\Neterror\NetError_def_PH.h">
+				</File>
+				<File
 					RelativePath="..\Common\NetError_def_PL.h">
+				</File>
+				<File
+					RelativePath="..\Common\Neterror\NetError_def_TH.h">
+				</File>
+				<File
+					RelativePath="..\Common\Neterror\NetError_def_TW.h">
+				</File>
+				<File
+					RelativePath="..\Common\Neterror\NetError_def_US.h">
 				</File>
 			</Filter>
 			<Filter
@@ -1365,6 +1653,12 @@
 				</File>
 				<File
 					RelativePath="..\Common\Odbc\Odbc.h">
+				</File>
+				<File
+					RelativePath="..\Common\ODBC\StoredProcedure.cpp">
+				</File>
+				<File
+					RelativePath="..\Common\ODBC\StoredProcedure.h">
 				</File>
 			</Filter>
 			<Filter
@@ -1637,10 +1931,22 @@
 					RelativePath="..\Common\X2Data\XSLDungeonSubStage.h">
 				</File>
 				<File
+					RelativePath="..\Common\X2Data\XSLEDInventoryExpand.cpp">
+				</File>
+				<File
+					RelativePath="..\Common\X2Data\XSLEDInventoryExpand.h">
+				</File>
+				<File
 					RelativePath="..\Common\X2Data\XSLEnchantItemManager.cpp">
 				</File>
 				<File
 					RelativePath="..\Common\X2Data\XSLEnchantItemManager.h">
+				</File>
+				<File
+					RelativePath="..\Common\X2Data\XSLFieldBossData.cpp">
+				</File>
+				<File
+					RelativePath="..\Common\X2Data\XSLFieldBossData.h">
 				</File>
 				<File
 					RelativePath="..\Common\X2Data\XSLGame.cpp">
@@ -1829,6 +2135,12 @@
 			<Filter
 				Name="GameEvent"
 				Filter="">
+				<File
+					RelativePath="..\Common\GameEvent\GameEventDBManager.cpp">
+				</File>
+				<File
+					RelativePath="..\Common\GameEvent\GameEventDBManager.h">
+				</File>
 				<File
 					RelativePath="..\Common\GameEvent\GameEventManager.cpp">
 				</File>
@@ -2159,6 +2471,36 @@
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JP|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\Base64\base64.h">
@@ -2326,6 +2668,36 @@
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JP|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\EventDataRefresh\ReleaseTickManager.h">
@@ -2379,6 +2751,9 @@
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\ServerDefine\ServerDefine_ID.h">
+					</File>
+					<File
+						RelativePath="..\Common\OnlyGlobal\ServerDefine\ServerDefine_IN.h">
 					</File>
 					<File
 						RelativePath="..\Common\OnlyGlobal\ServerDefine\ServerDefine_JP.h">
@@ -2612,6 +2987,36 @@
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\config_gs_KR_INTERNAL.lua">
@@ -2636,6 +3041,9 @@
 			</File>
 			<File
 				RelativePath="..\ServerResource\ExpandPeriodItemData.lua">
+			</File>
+			<File
+				RelativePath="..\ServerResource\FieldBossData.lua">
 			</File>
 			<File
 				RelativePath="..\ServerResource\FieldData.lua">
@@ -2751,16 +3159,34 @@
 				RelativePath=".\GSChatLogDBThread.h">
 			</File>
 			<File
+				RelativePath=".\GSEventDBThread.cpp">
+			</File>
+			<File
+				RelativePath=".\GSEventDBThread.h">
+			</File>
+			<File
 				RelativePath=".\GSGameDBThread.cpp">
 			</File>
 			<File
 				RelativePath=".\GSGameDBThread.h">
 			</File>
 			<File
+				RelativePath=".\GSGameDBThread2nd.cpp">
+			</File>
+			<File
+				RelativePath=".\GSGameDBThread2nd.h">
+			</File>
+			<File
 				RelativePath=".\GSLogDBThread.cpp">
 			</File>
 			<File
 				RelativePath=".\GSLogDBThread.h">
+			</File>
+			<File
+				RelativePath=".\GSLogDBThread2nd.cpp">
+			</File>
+			<File
+				RelativePath=".\GSLogDBThread2nd.h">
 			</File>
 			<File
 				RelativePath=".\GSNXWebDBThread.cpp">
@@ -2773,6 +3199,12 @@
 			</File>
 			<File
 				RelativePath=".\GSRelayDBThread.h">
+			</File>
+			<File
+				RelativePath=".\GSScriptDBThread.cpp">
+			</File>
+			<File
+				RelativePath=".\GSScriptDBThread.h">
 			</File>
 			<File
 				RelativePath=".\GSSMSDBThread.cpp">
@@ -2788,10 +3220,25 @@
 				</File>
 				<File
 					RelativePath=".\GSBillingDBThread.h">
+					<FileConfiguration
+						Name="Release_ID|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<Filter
-					Name="TH"
+					Name="NetCafe"
 					Filter="">
+					<Filter
+						Name="ID"
+						Filter="">
+						<File
+							RelativePath="..\Common\OnlyGlobal\NetCafe\ID\GSIDPcbangDBThread.cpp">
+						</File>
+						<File
+							RelativePath="..\Common\OnlyGlobal\NetCafe\ID\GSIDPcbangDBThread.h">
+						</File>
+					</Filter>
 				</Filter>
 			</Filter>
 		</Filter>
@@ -3365,6 +3812,36 @@
 					<Tool
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\NexonBilling.h">
@@ -3472,6 +3949,36 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug_CN|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCustomBuildTool"/>
@@ -3587,6 +4094,36 @@
 					<Tool
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\NexonBillingManager.h">
@@ -3698,6 +4235,36 @@
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\NexonBillingOrder_def.h">
@@ -3797,6 +4364,31 @@
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\NexonBillingTCP_def.h">
@@ -3887,6 +4479,31 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug_CN|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
@@ -3986,6 +4603,31 @@
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\NexonBillingTCPPacket.cpp">
@@ -4079,6 +4721,31 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug_CN|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_JP|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
@@ -4428,6 +5095,30 @@
 					<Tool
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\NexonSOAP.h">
@@ -4456,7 +5147,36 @@
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release_CN|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug_EU|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCustomBuildTool"/>
@@ -4489,7 +5209,36 @@
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release_CN|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug_EU|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCustomBuildTool"/>
@@ -4527,6 +5276,30 @@
 					<Tool
 						Name="VCCLCompilerTool"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\NexonSOAPManager.h">
@@ -4555,7 +5328,36 @@
 						Name="VCCustomBuildTool"/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Release_CN|Win32">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug_EU|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_TH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_ID|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_PH|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32"
 					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCustomBuildTool"/>
@@ -4567,6 +5369,12 @@
 				<File
 					RelativePath="..\Common\Soap\ElswordGameSoap.nsmap">
 					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="INT_TEST|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
@@ -4591,7 +5399,36 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release_CN|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_EU|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -4600,6 +5437,12 @@
 				<File
 					RelativePath="..\Common\Soap\ElswordGameSoap12.nsmap">
 					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="INT_TEST|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
@@ -4624,7 +5467,36 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release_CN|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_EU|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -4633,6 +5505,12 @@
 				<File
 					RelativePath="..\Common\Soap\nx_soap.h">
 					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="INT_TEST|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
@@ -4657,7 +5535,36 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release_CN|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_EU|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -4666,6 +5573,12 @@
 				<File
 					RelativePath="..\Common\Soap\soapC.c">
 					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="INT_TEST|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
@@ -4690,7 +5603,49 @@
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release_US|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_CN|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_EU|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -4699,6 +5654,12 @@
 				<File
 					RelativePath="..\Common\Soap\soapClient.c">
 					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="INT_TEST|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
@@ -4723,7 +5684,49 @@
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release_US|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_CN|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_EU|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -4732,6 +5735,12 @@
 				<File
 					RelativePath="..\Common\Soap\soapH.h">
 					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="INT_TEST|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
@@ -4756,7 +5765,36 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release_CN|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_EU|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -4765,6 +5803,12 @@
 				<File
 					RelativePath="..\Common\Soap\soapStub.h">
 					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="INT_TEST|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
@@ -4789,7 +5833,36 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release_CN|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_EU|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -4798,6 +5871,12 @@
 				<File
 					RelativePath="..\Common\Soap\stdsoap2.c">
 					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="INT_TEST|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
@@ -4822,7 +5901,49 @@
 							Name="VCCLCompilerTool"/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release_US|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_CN|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_EU|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -4831,6 +5952,12 @@
 				<File
 					RelativePath="..\Common\Soap\stdsoap2.h">
 					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="INT_TEST|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
@@ -4855,7 +5982,36 @@
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
 					<FileConfiguration
+						Name="Release_CN|Win32">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug_EU|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCustomBuildTool"/>
@@ -4972,21 +6128,57 @@
 				Filter="">
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GashBillingTCP.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GashBillingTCP.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GashBillingTCPManager.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GashBillingTCPManager.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GSGASHBillingThread.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Tw\GSGASHBillingThread.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
@@ -5020,6 +6212,30 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Debug_CN|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -5062,6 +6278,30 @@
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Eu\GameForgeBilling_def.h">
@@ -5100,6 +6340,30 @@
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Eu\GameForgeBillingManager.cpp">
@@ -5129,6 +6393,30 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Debug_CN|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
 						ExcludedFromBuild="TRUE">
 						<Tool
 							Name="VCCLCompilerTool"/>
@@ -5171,6 +6459,30 @@
 						<Tool
 							Name="VCCustomBuildTool"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<Filter
 					Name="SOAP"
@@ -5202,12 +6514,42 @@
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
+							Name="Release_US|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
 							Name="Debug_EU|Win32">
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Debug_CN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -5240,12 +6582,42 @@
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
+							Name="Release_US|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
 							Name="Debug_EU|Win32">
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Debug_CN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -5278,7 +6650,37 @@
 								Name="VCCLCompilerTool"/>
 						</FileConfiguration>
 						<FileConfiguration
+							Name="Release_US|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
 							Name="Debug_CN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCLCompilerTool"/>
@@ -5311,7 +6713,37 @@
 								Name="VCCLCompilerTool"/>
 						</FileConfiguration>
 						<FileConfiguration
+							Name="Release_US|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
 							Name="Debug_CN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCLCompilerTool"/>
@@ -5344,12 +6776,42 @@
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
+							Name="Release_US|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
 							Name="Debug_EU|Win32">
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Debug_CN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -5382,12 +6844,42 @@
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
+							Name="Release_US|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
 							Name="Debug_EU|Win32">
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Debug_CN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -5420,7 +6912,37 @@
 								Name="VCCLCompilerTool"/>
 						</FileConfiguration>
 						<FileConfiguration
+							Name="Release_US|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
 							Name="Debug_CN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCLCompilerTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCLCompilerTool"/>
@@ -5453,12 +6975,42 @@
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
+							Name="Release_US|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
 							Name="Debug_EU|Win32">
 							<Tool
 								Name="VCCustomBuildTool"/>
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Debug_CN|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32"
+							ExcludedFromBuild="TRUE">
+							<Tool
+								Name="VCCustomBuildTool"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32"
 							ExcludedFromBuild="TRUE">
 							<Tool
 								Name="VCCustomBuildTool"/>
@@ -5471,27 +7023,75 @@
 				Filter="">
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Us\_GameProtocol.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Us\PayletterBilling.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Us\PayletterBilling.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Us\PayletterBilling_def.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Us\PayletterBillingManager.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Us\PayletterBillingManager.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Us\PayletterBillingPacket.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Us\PayletterBillingPacket.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
@@ -5499,27 +7099,75 @@
 				Filter="">
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanBillingForSvr.dll">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanBillingForSvr.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanBillingForSvr.lib">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\HanBillingForSvrD.lib">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\PURPLEBilling.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\PURPLEBilling.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\PURPLEBillingManager.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Jp\PURPLEBillingManager.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
@@ -5546,9 +7194,21 @@
 				Filter="">
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\GSASBillingDBThread.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Th\GSASBillingDBThread.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
@@ -5556,27 +7216,226 @@
 				Filter="">
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Br\_BRGameProtocol.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Br\BRPayletterBilling.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Br\BRPayletterBilling.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Br\BRPayletterBilling_def.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Br\BRPayletterBillingManager.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Br\BRPayletterBillingManager.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Br\BRPayletterBillingPacket.cpp">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\Br\BRPayletterBillingPacket.h">
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="IN"
+				Filter="">
+				<File
+					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\In\bxIPGClient.dll">
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\In\NaunBilling.cpp">
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\In\NaunBilling.h">
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\In\NaunBillingManager.cpp">
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\In\NaunBillingManager.h">
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\In\NaunBillingPacket.cpp">
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCLCompilerTool"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\Common\OnlyGlobal\AuthAndBilling\In\NaunBillingPacket.h">
+					<FileConfiguration
+						Name="Release_JP|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32"
+						ExcludedFromBuild="TRUE">
+						<Tool
+							Name="VCCustomBuildTool"/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>
@@ -5633,6 +7492,12 @@
 		</File>
 		<File
 			RelativePath=".\GSContentManager.h">
+		</File>
+		<File
+			RelativePath=".\GSFieldBossManager.cpp">
+		</File>
+		<File
+			RelativePath=".\GSFieldBossManager.h">
 		</File>
 		<File
 			RelativePath=".\GSGlobalMissionManager.cpp">

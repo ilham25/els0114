@@ -49,6 +49,18 @@ void KCnScriptRefreshManager::Init()
 		}
 	}
 
+	{
+		// enum.lua 파싱
+		std::string strFile = "DungeonEnum.lua";
+		KAutoPath kAutoPath;
+		kAutoPath.GetPullPath( strFile );
+		if( 0 != LUA_DOFILE( m_pRefreshLuaState, strFile.c_str() ) )
+		{
+			START_LOG( cerr, L"CnScriptRefreshManager : DungeonEnum 정보 로드 실패.!" );
+			return;
+		}
+	}
+
 	// 스레드는 무조건 1개만 생성!
 	KThreadManager::Init( 1 );
 

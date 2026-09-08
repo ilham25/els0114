@@ -35,6 +35,10 @@ CX2UnitManager::NPCUnitInfo::NPCUnitInfo()
 CX2UnitManager::FileNPCInitData::~FileNPCInitData()
 {
 	SAFE_DELETE( m_pInitData );
+//#ifdef  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
+//    if ( m_pLuaManager != NULL )
+//        m_pLuaManager->SetJitCompileMode( KLuaManager::JIT_COMPILE_MODE_OFF );
+//#endif  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
 	SAFE_DELETE( m_pLuaManager );
 }
 //#endif	X2OPTIMIZE_NPC_LUASPACE_SHARING
@@ -128,25 +132,13 @@ bool CX2UnitManager::OpenScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUnitManager", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR66, strFileName.c_str() );
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR67, pFileName );
 
 		return false;
-	}
+    }
 
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR67, strFileName.c_str() );
-
-		return false;
-	}
 
 	m_UnitClassNameMap[ CX2Unit::UC_ELSWORD_SWORDMAN ] = "ELSWORD_SWORDMAN";
 	m_UnitClassNameMap[ CX2Unit::UC_ARME_VIOLET_MAGE ] = "ARME_VIOLET_MAGE";
@@ -180,7 +172,19 @@ bool CX2UnitManager::OpenScriptFile( const WCHAR* pFileName )
 
 	return true;
 }
+bool CX2UnitManager::OpenDataScriptFile( const WCHAR* pFileName )
+{
+	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUnitManager", this );
 
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR69, pFileName );
+
+		return false;
+    }
+
+	return true;
+}
 //{{ robobeg : 2011-01-24
 void    CX2UnitManager::CreateUnitLuaSpace()
 {
@@ -200,6 +204,11 @@ void    CX2UnitManager::CreateUnitLuaSpace()
 			, L"CHUNG_IRON_CANNON.LUA"
 			, L"ARA_MARTIAL_ARTIST.LUA"
 			, L"ELESIS_KNIGHT.LUA"
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+			, L"ADD_NASODRULER.LUA"
+#else       SERV_9TH_NEW_CHARACTER
+            , NULL
+	#endif //SERV_9TH_NEW_CHARACTER
         };//apszScript[]
 
 		ASSERT( ARRAY_SIZE( apszScript ) == CX2Unit::UT_END );
@@ -234,8 +243,8 @@ void    CX2UnitManager::CreateUnitLuaSpace()
 #else	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 				KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
-				//g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pUnitTypeTemplet->m_wstrLuaScriptFile.c_str() );
-				if ( g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pUnitTypeTemplet->m_wstrLuaScriptFile.c_str() ) == false )
+				//g_pKTDXApp->LoadLuaTinker( pUnitTypeTemplet->m_wstrLuaScriptFile.c_str() );
+				if ( g_pKTDXApp->LoadAndDoMemory( &luaManager, pUnitTypeTemplet->m_wstrLuaScriptFile.c_str() ) == false )
 				{
 					ASSERT( !"gameunit lua script Parsing failed" );
 				}
@@ -270,22 +279,20 @@ bool    CX2UnitManager::OpenNPCFiles( const WCHAR* pTempletFile, const WCHAR* pS
             continue;
 
         KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-        int iRet = g_pKTDXApp->GetDeviceManager()->LoadLuaManager_ErrorCode( &kLuaManager, info.m_templet.m_LuaFileName.c_str() );
-        switch( iRet )
+        HRESULT hr = g_pKTDXApp->GetDeviceManager()->LoadAndDoMemory_ErrorCode( &kLuaManager, info.m_templet.m_LuaFileName.c_str() );
+        if ( SUCCEEDED( hr ) )
         {
-        case 0: 
-            {
-                CX2GUNPC::InitData  initData;
-				CX2GUNPC::InitState( initData, kLuaManager, pLog, info.m_templet.m_LuaFileName.c_str() );
-            }
-            break;
-        case 1:
-            fprintf( pLog, "LOADING ERROR \"%S\"\n", info.m_templet.m_LuaFileName.c_str() );
-            break;
-        case 2:
+            CX2GUNPC::InitData  initData;
+			CX2GUNPC::InitState( initData, kLuaManager, pLog, info.m_templet.m_LuaFileName.c_str() );
+        }
+        else if ( hr == HRESULT_FROM_WIN32( ERROR_INVALID_DATA ) )
+        {
             fprintf( pLog, "SCRIPT EXECUTION ERROR \"%S\"\n", info.m_templet.m_LuaFileName.c_str() );
-            break;
-        }//switch
+        }
+        else
+        {
+            fprintf( pLog, "LOADING ERROR \"%S\"\n", info.m_templet.m_LuaFileName.c_str() );
+        }
     }
     fclose( pLog );
 
@@ -300,25 +307,12 @@ bool CX2UnitManager::_OpenNPCScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUnitManager", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR68, strFileName.c_str() );
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR69, pFileName );
 
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR69, strFileName.c_str() );
-
-		return false;
-	}
+    }
 
 	return true;
 }
@@ -327,30 +321,17 @@ bool CX2UnitManager::_OpenNPCStatScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUnitManager", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR68, strFileName.c_str() );
-
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR69, pFileName );
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR69, strFileName.c_str() );
-
-		return false;
-	}
-
+    }
 
 
 #ifndef _SERVICE_
 
+#ifndef DELETE_ERROR_LOG
+// 마을 NPC, 사용하지 않는 NPC등 Stat설정 안 된 NPC가 많아서 정상적인 로그로써 사용이 불가능하다 판단되어 임시 제거.
 	bool bCheckEmpty = false;
 	wstringstream wstrstm;
 	//for ( int i = 1; i < (int)NUI_NPC_END; i++ )
@@ -369,6 +350,7 @@ bool CX2UnitManager::_OpenNPCStatScriptFile( const WCHAR* pFileName )
 		ErrorLogMsg( XEM_ERROR126, wstrstm.str().c_str() );
 		//MessageBox( g_pKTDXApp->GetHWND(), wstrstm.str().c_str(), L"NPCStat Error", MB_OK );
 	}
+#endif // DELETE_ERROR_LOG
 
 #endif _SERVICE_	
 
@@ -379,25 +361,13 @@ bool CX2UnitManager::_OpenNPCEAScripFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pCX2NpcExtraAbility", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR68, strFileName.c_str() );
+
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR69, pFileName );
 
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR69, strFileName.c_str() );
-
-		return false;
-	}
+    }
 
 	return true;
 }
@@ -482,13 +452,16 @@ const CX2UnitManager::NPCUnitInfo*      CX2UnitManager::GetNPCUnitInfo( NPC_UNIT
 			info.m_pLuaState = NULL;
 			KLuaManager* pLuaManager = new KLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 			ASSERT( pLuaManager );
-			if ( g_pKTDXApp->GetDeviceManager()->LoadLuaManager( pLuaManager, info.m_templet.m_LuaFileName.c_str() ) == true )
+			if ( g_pKTDXApp->LoadAndDoMemory( pLuaManager, info.m_templet.m_LuaFileName.c_str() ) == true )
 			{
 				CX2GUNPC::InitInit( kFileNPCInitData.m_pInitData->m_init, *pLuaManager );
 				if ( kFileNPCInitData.m_pInitData->m_init.m_bLuaShareable == true )
 				{
 					kFileNPCInitData.m_pLuaManager = pLuaManager;
 					info.m_pLuaState = pLuaManager->GetLuaState();
+#ifdef  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
+                    pLuaManager->SetJitCompileMode( KLuaManager::JIT_COMPILE_MODE_ON );
+#endif  X2OPTIMIZE_ACCELERATE_SHARED_NPC_LUA_BY_LUAJIT
 					pLuaManager = NULL;
 				}
 			}//if
@@ -499,8 +472,8 @@ const CX2UnitManager::NPCUnitInfo*      CX2UnitManager::GetNPCUnitInfo( NPC_UNIT
 //			info.m_pInitData = &ret.first->second;
 //
 //			KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-//			//g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pUnitTypeTemplet->m_wstrLuaScriptFile.c_str() );
-//			if ( g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, info.m_templet.m_LuaFileName.c_str() ) == true )
+//			//g_pKTDXApp->LoadLuaTinker( pUnitTypeTemplet->m_wstrLuaScriptFile.c_str() );
+//			if ( g_pKTDXApp->LoadAndDoMemory( &luaManager, info.m_templet.m_LuaFileName.c_str() ) == true )
 //				CX2GUNPC::InitInit( ret.first->second.m_init, luaManager ); 				
 //
 //#endif	X2OPTIMIZE_NPC_LUASPACE_SHARING
@@ -534,6 +507,8 @@ void	CX2UnitManager::UnloadAllNPCInitData()
 
 	m_mapFileNPCInitData.clear();
 }//CX2UnitManager::UnloadAllNPCInitData()
+
+
 
 #ifdef X2TOOL
 CX2UnitManager::NPCUnitTemplet*	CX2UnitManager::GetNPCUnitTemplet( NPC_UNIT_ID nNPCUnitID )
@@ -585,15 +560,15 @@ bool CX2UnitManager::AddUnitTemplet_LUA()
 
 	// 09.08.11 태완 : 스트링 추출
 	int stringid = -1;
-	LUA_GET_VALUE_RETURN(	luaManager, L"name",			stringid,			STR_ID_EMPTY, SAFE_DELETE(pUnitTemplet); return false; );
+	LUA_GET_VALUE_RETURN(	luaManager, "name",			stringid,			STR_ID_EMPTY, SAFE_DELETE(pUnitTemplet); return false; );
 	pUnitTemplet->m_Name = GET_STRING( stringid );
-	LUA_GET_VALUE_RETURN(	luaManager, L"description",			stringid,			STR_ID_EMPTY, SAFE_DELETE(pUnitTemplet); return false; );
+	LUA_GET_VALUE_RETURN(	luaManager, "description",			stringid,			STR_ID_EMPTY, SAFE_DELETE(pUnitTemplet); return false; );
 	pUnitTemplet->m_Description = GET_STRING( stringid );
 	
 #ifndef SEPARATION_MOTION
-	LUA_GET_VALUE_RETURN(	luaManager, L"m_MotionFile",	pUnitTemplet->m_MotionFile,		L"", SAFE_DELETE(pUnitTemplet); return false; );
+	LUA_GET_VALUE_RETURN(	luaManager, "m_MotionFile",	pUnitTemplet->m_MotionFile,		L"", SAFE_DELETE(pUnitTemplet); return false; );
 #ifdef UNIT_NEW_MOTION
-	LUA_GET_VALUE_RETURN(	luaManager, L"m_FieldMotionFile", pUnitTemplet->m_FieldMotionFile, pUnitTemplet->m_MotionFile, SAFE_DELETE(pUnitTemplet); return false; );
+	LUA_GET_VALUE_RETURN(	luaManager, "m_FieldMotionFile", pUnitTemplet->m_FieldMotionFile, pUnitTemplet->m_MotionFile, SAFE_DELETE(pUnitTemplet); return false; );
 #endif
 #endif
 
@@ -619,6 +594,15 @@ bool CX2UnitManager::AddUnitTemplet_LUA()
 	LUA_GET_VALUE( luaManager, "m_GameMotion2",		pUnitTemplet->m_GameMotion2,		L"" );	
 #endif
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	LUA_GET_VALUE_RETURN( luaManager, "promotionWeaponItemID",	pUnitTemplet->m_PromotionWeaponItemID,		0, SAFE_DELETE(pUnitTemplet); return false; );
+	LUA_GET_VALUE_RETURN( luaManager, "promotionBodyItemID",	pUnitTemplet->m_PromotionBodyItemID,		0, SAFE_DELETE(pUnitTemplet); return false; );
+	LUA_GET_VALUE_RETURN( luaManager, "promotionLegItemID",		pUnitTemplet->m_PromotionLegItemID,			0, SAFE_DELETE(pUnitTemplet); return false; );
+	LUA_GET_VALUE_RETURN( luaManager, "promotionHandItemID",	pUnitTemplet->m_PromotionHandItemID,		0, SAFE_DELETE(pUnitTemplet); return false; );
+	LUA_GET_VALUE_RETURN( luaManager, "promotionFootItemID",	pUnitTemplet->m_PromotionFootItemID,		0, SAFE_DELETE(pUnitTemplet); return false; );
+	
+	LUA_GET_VALUE( luaManager, "introMovieFIleName",	pUnitTemplet->m_IntroMovieFileName,					L"" );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 	if( m_UnitTempletMap.find(pUnitTemplet->m_UnitClass) != m_UnitTempletMap.end() )
 	{
 		SAFE_DELETE(pUnitTemplet); 
@@ -644,13 +628,13 @@ bool CX2UnitManager::AddNPCTemplet_LUA()
 	NPC_CLASS_TYPE	nClassType = NCT_BASIC;
     bool            bIsNPC = false;
 
-	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"NPC_ID",			nNPCUnitID,		NPC_UNIT_ID,	NUI_NONE,	return false; );
+	LUA_GET_VALUE_RETURN_ENUM(	luaManager, "NPC_ID",			nNPCUnitID,		NPC_UNIT_ID,	NUI_NONE,	return false; );
 
 	if( m_mapNPCUnitInfo.find( nNPCUnitID ) != m_mapNPCUnitInfo.end() )
         return false;
 
-	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"CLASS_TYPE",		nClassType,		NPC_CLASS_TYPE,	NCT_BASIC,	return false; );
-	LUA_GET_VALUE_RETURN(	luaManager, L"IS_NPC",				bIsNPC,			false, return false; );
+	LUA_GET_VALUE_RETURN_ENUM(	luaManager, "CLASS_TYPE",		nClassType,		NPC_CLASS_TYPE,	NCT_BASIC,	return false; );
+	LUA_GET_VALUE_RETURN(	luaManager, "IS_NPC",				bIsNPC,			false, return false; );
 
     std::pair<NPCUnitInfoMap::iterator, bool > ret = m_mapNPCUnitInfo.insert( NPCUnitInfoMap::value_type( nNPCUnitID, NPCUnitInfo() ) );
     ASSERT( ret.second == true );
@@ -663,32 +647,31 @@ bool CX2UnitManager::AddNPCTemplet_LUA()
     npcUnitTemplet.m_bIsNPC = bIsNPC;
 
 #ifdef CHANGE_NPC_TEMPLET_STRING_ID //2013.07.19
-	LUA_GET_VALUE( luaManager, L"NAME", npcUnitTemplet.m_Name,	L""	);
-	LUA_GET_VALUE( luaManager, L"DESC", npcUnitTemplet.m_Description,	L""	);
+	LUA_GET_VALUE( luaManager, "NAME", npcUnitTemplet.m_Name,	L""	);
+	LUA_GET_VALUE( luaManager, "DESC", npcUnitTemplet.m_Description,	L""	);
 #else //CHANGE_NPC_TEMPLET_STRING_ID
 	int iIndex;
-	//LUA_GET_VALUE_RETURN(	luaManager, L"NAME",				iIndex, 	STR_ID_EMPTY, SAFE_DELETE(pNPCUnitTemplet); return false; );
-	LUA_GET_VALUE(	luaManager, L"NAME",				iIndex, 	STR_ID_EMPTY);
+	//LUA_GET_VALUE_RETURN(	luaManager, "NAME",				iIndex, 	STR_ID_EMPTY, SAFE_DELETE(pNPCUnitTemplet); return false; );
+	LUA_GET_VALUE(	luaManager, "NAME",				iIndex, 	STR_ID_EMPTY);
 
 	npcUnitTemplet.m_Name = GET_STRING( iIndex );
-	//LUA_GET_VALUE_RETURN(	luaManager, L"DESC",				iIndex,		STR_ID_EMPTY, SAFE_DELETE(pNPCUnitTemplet); return false; );
-	LUA_GET_VALUE(	luaManager, L"DESC",				iIndex, 	STR_ID_EMPTY);
+	//LUA_GET_VALUE_RETURN(	luaManager, "DESC",				iIndex,		STR_ID_EMPTY, SAFE_DELETE(pNPCUnitTemplet); return false; );
+	LUA_GET_VALUE(	luaManager, "DESC",				iIndex, 	STR_ID_EMPTY);
 	npcUnitTemplet.m_Description = GET_STRING( iIndex );
 #endif //CHANGE_NPC_TEMPLET_STRING_ID
 
-	LUA_GET_VALUE(			luaManager, L"LUA_FILE_NAME",		npcUnitTemplet.m_LuaFileName,		L"" );
-	LUA_GET_VALUE(			luaManager, L"LUA_FILE_NAME_UI",	npcUnitTemplet.m_LuaFileNameUI ,	L"" );
+	LUA_GET_VALUE(			luaManager, "LUA_FILE_NAME",		npcUnitTemplet.m_LuaFileName,		L"" );
+	LUA_GET_VALUE(			luaManager, "LUA_FILE_NAME_UI",	npcUnitTemplet.m_LuaFileNameUI ,	L"" );
 
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
 	// TODO: I have to uncomment this?
-	LUA_GET_VALUE(	luaManager, L"NPC_FACE_TEXTURE",	npcUnitTemplet.m_NPCFaceTexture,			L"" );
-	LUA_GET_VALUE(	luaManager, L"NPC_FACE_TEXTURE_KEY", npcUnitTemplet.m_NPCFaceTextureKey,		L"" );
+	LUA_GET_VALUE(	luaManager, "NPC_FACE_TEXTURE",	npcUnitTemplet.m_NPCFaceTexture,			L"" );
+	LUA_GET_VALUE(	luaManager, "NPC_FACE_TEXTURE_KEY", npcUnitTemplet.m_NPCFaceTextureKey,		L"" );
 #endif //PRINT_INGAMEINFO_TO_EXCEL
 
 #if defined (X2TOOL) || defined (PRINT_INGAMEINFO_TO_EXCEL)
-	//LUA_GET_VALUE(			luaManager, L"MOTION",	pNPCUnitTemplet->m_wstrMotionName ,	L"" );
-	LUA_GET_VALUE(			luaManager, L"MOTION",	npcUnitTemplet.m_wstrMotionName ,	L"" );
-	LUA_GET_VALUE(			luaManager, L"MODEL0",	npcUnitTemplet.m_wstrModel ,	L"" );
+	//LUA_GET_VALUE(			luaManager, "MOTION",	pNPCUnitTemplet->m_wstrMotionName ,	L"" );
+	LUA_GET_VALUE(			luaManager, "MOTION",	npcUnitTemplet.m_wstrMotionName ,	L"" );
 #endif
 	return true;
 }
@@ -699,7 +682,7 @@ bool CX2UnitManager::AddNPCStat_LUA()
 	//TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
 
     NPC_UNIT_ID		nNPCUnitID = NUI_NONE;
-	LUA_GET_VALUE_ENUM(	luaManager, L"NPC_ID", nNPCUnitID, CX2UnitManager::NPC_UNIT_ID, CX2UnitManager::NUI_NONE );
+	LUA_GET_VALUE_ENUM(	luaManager, "NPC_ID", nNPCUnitID, CX2UnitManager::NPC_UNIT_ID, CX2UnitManager::NUI_NONE );
 
 #ifndef _SERVICE_
 // 	if ( m_setNPCStatCheck.find( nNPCUnitID ) != m_setNPCStatCheck.end() )
@@ -718,46 +701,46 @@ bool CX2UnitManager::AddNPCStat_LUA()
     stat.m_nNPCUnitID = nNPCUnitID;
 
 	
-	LUA_GET_VALUE(		luaManager, L"MAX_HP",			stat.m_fMaxHP,					0.0f );
-	LUA_GET_VALUE(		luaManager, L"ATK_PHYSIC",		stat.m_fAtkPhysic,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"ATK_MAGIC",		stat.m_fAtkMagic,					0.0f );
-	LUA_GET_VALUE(		luaManager, L"DEF_PHYSIC",		stat.m_fDefPhysic,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"DEF_MAGIC",		stat.m_fDefMagic,					0.0f );
+	LUA_GET_VALUE(		luaManager, "MAX_HP",			stat.m_fMaxHP,					0.0f );
+	LUA_GET_VALUE(		luaManager, "ATK_PHYSIC",		stat.m_fAtkPhysic,				0.0f );
+	LUA_GET_VALUE(		luaManager, "ATK_MAGIC",		stat.m_fAtkMagic,					0.0f );
+	LUA_GET_VALUE(		luaManager, "DEF_PHYSIC",		stat.m_fDefPhysic,				0.0f );
+	LUA_GET_VALUE(		luaManager, "DEF_MAGIC",		stat.m_fDefMagic,					0.0f );
 
 
-	if( true == luaManager.BeginTable( L"HARD_LEVEL" ) )
+	if( true == luaManager.BeginTable( "HARD_LEVEL" ) )
 	{
-		LUA_GET_VALUE(		luaManager, L"HP",				stat.m_HardLevel.m_fHP,			0.0f );
-		LUA_GET_VALUE(		luaManager, L"ATK_PHYSIC",		stat.m_HardLevel.m_fAtkPhysic,	0.0f );
-		LUA_GET_VALUE(		luaManager, L"ATK_MAGIC",		stat.m_HardLevel.m_fAtkMagic,		0.0f );
-		LUA_GET_VALUE(		luaManager, L"DEF_PHYSIC",		stat.m_HardLevel.m_fDefPhysic,	0.0f );
-		LUA_GET_VALUE(		luaManager, L"DEF_MAGIC",		stat.m_HardLevel.m_fDefMagic,		0.0f );
-		LUA_GET_VALUE(		luaManager, L"EXP",				stat.m_HardLevel.m_fExp,			0.0f );
+		LUA_GET_VALUE(		luaManager, "HP",				stat.m_HardLevel.m_fHP,			0.0f );
+		LUA_GET_VALUE(		luaManager, "ATK_PHYSIC",		stat.m_HardLevel.m_fAtkPhysic,	0.0f );
+		LUA_GET_VALUE(		luaManager, "ATK_MAGIC",		stat.m_HardLevel.m_fAtkMagic,		0.0f );
+		LUA_GET_VALUE(		luaManager, "DEF_PHYSIC",		stat.m_HardLevel.m_fDefPhysic,	0.0f );
+		LUA_GET_VALUE(		luaManager, "DEF_MAGIC",		stat.m_HardLevel.m_fDefMagic,		0.0f );
+		LUA_GET_VALUE(		luaManager, "EXP",				stat.m_HardLevel.m_fExp,			0.0f );
 
 		luaManager.EndTable();
 	}
 
-	LUA_GET_VALUE_ENUM(	luaManager, L"DAMAGE_TYPE",			stat.m_DamageType,	CX2DamageManager::DAMAGE_TYPE,	CX2DamageManager::DT_PHYSIC );
+	LUA_GET_VALUE_ENUM(	luaManager, "DAMAGE_TYPE",			stat.m_DamageType,	CX2DamageManager::DAMAGE_TYPE,	CX2DamageManager::DT_PHYSIC );
 	
-	LUA_GET_VALUE(		luaManager, L"DEF_RED",			stat.m_DefenseRed,					0 );
-	LUA_GET_VALUE(		luaManager, L"DEF_BLUE",		stat.m_DefenseBlue,					0 );
-	LUA_GET_VALUE(		luaManager, L"DEF_GREEN",		stat.m_DefenseGreen,					0 );
-	LUA_GET_VALUE(		luaManager, L"DEF_WIND",		stat.m_DefenseWind,					0 );
-	LUA_GET_VALUE(		luaManager, L"DEF_LIGHT",		stat.m_DefenseLight,					0 );
-	LUA_GET_VALUE(		luaManager, L"DEF_DARK",		stat.m_DefenseDark,					0 );
+	LUA_GET_VALUE(		luaManager, "DEF_RED",			stat.m_DefenseRed,					0 );
+	LUA_GET_VALUE(		luaManager, "DEF_BLUE",		stat.m_DefenseBlue,					0 );
+	LUA_GET_VALUE(		luaManager, "DEF_GREEN",		stat.m_DefenseGreen,					0 );
+	LUA_GET_VALUE(		luaManager, "DEF_WIND",		stat.m_DefenseWind,					0 );
+	LUA_GET_VALUE(		luaManager, "DEF_LIGHT",		stat.m_DefenseLight,					0 );
+	LUA_GET_VALUE(		luaManager, "DEF_DARK",		stat.m_DefenseDark,					0 );
 
 	// 클러킹 스캔 확율 및 100%스캔 거리
-	LUA_GET_VALUE(		luaManager, L"SCAN_RATE",		stat.m_fScanRate,						0.f );
-	LUA_GET_VALUE(		luaManager, L"SCAN_NEAR_RANGE",	stat.m_fScanNearRange,				0.f );
+	LUA_GET_VALUE(		luaManager, "SCAN_RATE",		stat.m_fScanRate,						0.f );
+	LUA_GET_VALUE(		luaManager, "SCAN_NEAR_RANGE",	stat.m_fScanNearRange,				0.f );
 
 	// 명중 및 회피
-	LUA_GET_VALUE(		luaManager, L"ACCURACY",		stat.m_fAccuracy,						0.f );
-	LUA_GET_VALUE(		luaManager, L"AVOIDANCE",		stat.m_fAvoidance,					0.f );
+	LUA_GET_VALUE(		luaManager, "ACCURACY",		stat.m_fAccuracy,						0.f );
+	LUA_GET_VALUE(		luaManager, "AVOIDANCE",		stat.m_fAvoidance,					0.f );
 
 	//{{ megagame / 박교현 / 2010.04.30 / NPC 스탯 추가
 #ifdef SUMMONED_NPC_ADDITIONAL_STAT
 	// 크리티컬율
-	LUA_GET_VALUE(		luaManager, L"CRITICAL_PERCENT",	stat.m_fPercentCritical,			0.f );
+	LUA_GET_VALUE(		luaManager, "CRITICAL_PERCENT",	stat.m_fPercentCritical,			0.f );
 #endif SUMMONED_NPC_ADDITIONAL_STAT
 	//}} megagame / 박교현 / 2010.04.30 / NPC 스탯 추가
 
@@ -771,26 +754,28 @@ bool CX2UnitManager::AddNPCStat_LUA()
 bool CX2UnitManager::AddNPCExtraAbility_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	NPCExtraAbility* pNpcExtraAbility = new NPCExtraAbility;
 
-	LUA_GET_VALUE_ENUM(	luaManager, L"m_AbilityID",						pNpcExtraAbility->m_AbilityID,							CX2UnitManager::NPC_ABILITY_ID,	CX2UnitManager::NAI_NONE );
+	LUA_GET_VALUE_ENUM(	luaManager, "m_AbilityID",						pNpcExtraAbility->m_AbilityID,							CX2UnitManager::NPC_ABILITY_ID,	CX2UnitManager::NAI_NONE );
 	int StrID = STR_ID_EMPTY;
-	LUA_GET_VALUE(		luaManager, L"m_AbilityName",					StrID,						STR_ID_EMPTY );
+	LUA_GET_VALUE(		luaManager, "m_AbilityName",					StrID,						STR_ID_EMPTY );
 	pNpcExtraAbility->m_AbilityName = GET_STRING( StrID );
 
-	LUA_GET_VALUE(		luaManager, L"m_bFront",						pNpcExtraAbility->m_bFront,								false );
+	LUA_GET_VALUE(		luaManager, "m_bFront",						pNpcExtraAbility->m_bFront,								false );
 
-	LUA_GET_VALUE(		luaManager, L"m_fPhysicAttackPercentUp",		pNpcExtraAbility->m_fPhysicAttackPercentUp,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fMagicAttackPercentUp",			pNpcExtraAbility->m_fMagicAttackPercentUp,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fAllSpeedUpPercentUp",			pNpcExtraAbility->m_fAllSpeedUpPercentUp,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fCriticalPercent",				pNpcExtraAbility->m_fCriticalPercent,					0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fPhysicAttackPercentUp",		pNpcExtraAbility->m_fPhysicAttackPercentUp,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fMagicAttackPercentUp",			pNpcExtraAbility->m_fMagicAttackPercentUp,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fAllSpeedUpPercentUp",			pNpcExtraAbility->m_fAllSpeedUpPercentUp,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fCriticalPercent",				pNpcExtraAbility->m_fCriticalPercent,					0.0f );
 
-	LUA_GET_VALUE(		luaManager, L"m_fPhysicDefensePercentUp",		pNpcExtraAbility->m_fPhysicDefensePercentUp,			0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_fMagicDefensePercentUp",		pNpcExtraAbility->m_fMagicDefensePercentUp,				0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_bAlwaysSuperArmor",				pNpcExtraAbility->m_bAlwaysSuperArmor,					false );
-	LUA_GET_VALUE(		luaManager, L"m_bHeavy",						pNpcExtraAbility->m_bHeavy,								false );
+	LUA_GET_VALUE(		luaManager, "m_fPhysicDefensePercentUp",		pNpcExtraAbility->m_fPhysicDefensePercentUp,			0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fMagicDefensePercentUp",		pNpcExtraAbility->m_fMagicDefensePercentUp,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_bAlwaysSuperArmor",				pNpcExtraAbility->m_bAlwaysSuperArmor,					false );
+	LUA_GET_VALUE(		luaManager, "m_bHeavy",						pNpcExtraAbility->m_bHeavy,								false );
 
 	m_mapNPCExtraAbility.insert( std::make_pair( pNpcExtraAbility->m_AbilityID, pNpcExtraAbility ) );
 	
@@ -815,32 +800,79 @@ const std::string&      CX2UnitManager::GetUnitClassName( CX2Unit::UNIT_CLASS un
     return s_strDummyUnitClassName;
 }//CX2UnitManager::GetUnitClassName()
 
+
+#ifdef REFORM_SKILL_NOTE_UI
+/** @function : GetLowRankUnitClass
+	@brief : 지정한 클래스의 하위 클래스 얻기
+*/
+void CX2UnitManager::GetLowRankUnitClass( OUT vector<CX2Unit::UNIT_CLASS>& vecUnitClass_, IN CX2Unit::UNIT_CLASS eUnitClass_ )
+{
+	// #1 전체 유닛클래스 구조 순회
+	BOOST_FOREACH( const vector<CX2Unit::UNIT_CLASS>& vecCorrelateUnitClass,  m_vecCorrelateUnitClass )
+	{
+		bool bIsCorrelateClass = false;
+		BOOST_FOREACH( const CX2Unit::UNIT_CLASS& eCorrelateUnitClass, vecCorrelateUnitClass )
+		{
+		// #2 연관된 클래스내에 타겟 클래스(eUnitClass_)가 있는지 검사
+			if( false == bIsCorrelateClass &&
+				eCorrelateUnitClass == eUnitClass_ )
+			{
+				bIsCorrelateClass = true;
+			}
+			else if( true == bIsCorrelateClass )
+			{
+				// #3 하위 클래스 등록
+				vecUnitClass_.push_back( eCorrelateUnitClass );
+			}
+		}
+		
+		if( true == bIsCorrelateClass )
+			return;
+	}
+}
+void CX2UnitManager::AddCorrelateUnitClass_LUA()
+{
+	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+
+	int iTableIndex = 1;
+	CX2Unit::UNIT_CLASS eUnitClass = CX2Unit::UC_NONE;
+	vector<CX2Unit::UNIT_CLASS> vecUnitClass;
+	while( true == luaManager.BeginTable( iTableIndex++  ) )
+	{
+		vecUnitClass.clear();
+		int iTableIndex2nd = 1;
+		while( iTableIndex2nd <= 3 )
+		{
+			LUA_GET_VALUE_ENUM( luaManager, iTableIndex2nd++, eUnitClass, CX2Unit::UNIT_CLASS, CX2Unit::UC_NONE );
+			if( CX2Unit::UC_NONE != eUnitClass )
+			{				
+				vecUnitClass.push_back( eUnitClass );
+			}
+		}
+
+		if( false == vecUnitClass.empty() )
+			m_vecCorrelateUnitClass.push_back( vecUnitClass );
+		luaManager.EndTable();
+	}
+
+	return;
+}
+#endif // REFORM_SKILL_NOTE_UI
+
 #ifdef USE_DIFFERENT_SOUND_WHEN_IN_SPECIAL
 bool CX2UnitManager::OpenDifferentSoundScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUnitManager", this );
 
-
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR66, strFileName.c_str() );
+	if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR67, pFileName );
 
 		return false;
-	}
-
-	// 이부분 확인
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR67, strFileName.c_str() );
-
-		return false;
-	}
+    }
 
 	return true;
 }
@@ -848,15 +880,17 @@ bool CX2UnitManager::OpenDifferentSoundScriptFile( const WCHAR* pFileName )
 bool CX2UnitManager::AddCharSoundChange_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	UseSpecialSoundData ChangeSoundData;
 	std::wstring BeforeSound = L"";
 
-	LUA_GET_VALUE(	luaManager, L"beforeSound",		BeforeSound,								L"" );
-	LUA_GET_VALUE(	luaManager, L"afterSound",		ChangeSoundData.wstrChangeSound,			L"" );
-	LUA_GET_VALUE(	luaManager, L"iChangeEnum",		ChangeSoundData.iUseSpecialSoundType,		0 );
-	LUA_GET_VALUE(	luaManager, L"iChangeSubEnum",	ChangeSoundData.iUseSpecialSoundSubType,	0 );
+	LUA_GET_VALUE(	luaManager, "beforeSound",		BeforeSound,								L"" );
+	LUA_GET_VALUE(	luaManager, "afterSound",		ChangeSoundData.wstrChangeSound,			L"" );
+	LUA_GET_VALUE(	luaManager, "iChangeEnum",		ChangeSoundData.iUseSpecialSoundType,		0 );
+	LUA_GET_VALUE(	luaManager, "iChangeSubEnum",	ChangeSoundData.iUseSpecialSoundSubType,	0 );
 
 	// 변환값이 0 미만이면
 	if( ChangeSoundData.iUseSpecialSoundType < 0)
@@ -871,15 +905,13 @@ bool CX2UnitManager::AddCharSoundChange_LUA()
 		return false;
 	}
 
-	m_mapDifferentSoundMappingData.insert(std::make_pair(BeforeSound,ChangeSoundData));
+	m_mapDifferentSoundMappingData.insert( std::make_pair(BeforeSound,ChangeSoundData) );
 	return true;
 }
 #endif //USE_DIFFERENT_SOUND_WHEN_IN_SPECIAL
 
-
 //{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
-
 void CX2UnitManager::PrintNpcInfo_ToExcel()
 {
 	BasicExcel e;
@@ -895,15 +927,11 @@ void CX2UnitManager::PrintNpcInfo_ToExcel()
 	sheet->Cell(0,3)->SetWString(L"DESC");	
 	sheet->Cell(0,4)->SetWString(L"LUA_FILE_NAME");	
 	sheet->Cell(0,5)->SetWString(L"LUA_FILE_NAME_UI");	
-	
-	sheet->Cell(0,6)->SetWString(L"IS_NPC");	
-
+	sheet->Cell(0,6)->SetWString(L"IS_NPC");
 	sheet->Cell(0,7)->SetWString(L"NPC_FACE_TEXTURE");	
 	sheet->Cell(0,8)->SetWString(L"NPC_FACE_TEXTURE_KEY");	
-
 	sheet->Cell(0,9)->SetWString(L"MOTION");	
 	//sheet->Cell(0,10)->SetWString(L"MODEL0");	
-
 
 	// 내용 출력
 	NPCUnitInfoMap::iterator iter;
@@ -931,7 +959,6 @@ void CX2UnitManager::PrintNpcInfo_ToExcel()
 	}
 
 	e.SaveAs("NPC_Templet.xls");
-
 }
 #endif PRINT_INGAMEINFO_TO_EXCEL
 //}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력

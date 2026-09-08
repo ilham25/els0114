@@ -12,10 +12,8 @@ m_pDLGPartyQuickJoin(NULL)
 , m_iMatchUID(0)
 , m_pDlgPvpPartyMsg(NULL)
 #endif
-#ifdef FIX_DUNGEON_CHANGESTART
 , m_bChangeMap(false)
 , m_bStartGame(false)
-#endif
 , m_bProcessDungeonMatch(false)
 , m_iCurrentDungeonIDWithDifficulty(0)
 {	
@@ -360,11 +358,15 @@ bool CX2PartyManager::Handler_EGS_CLOSE_PARTY_NOT( HWND hWnd, UINT uMsg, WPARAM 
 #endif
 	CX2GageManager::GetInstance()->ClearPartyMemberUI();
 
+#ifdef NEW_MAIL_LOG
+	AddClosePartyLog( "EGS_CLOSE_PARTY_NOT", kEvent.m_iReason );
+#endif // NEW_MAIL_LOG
+
 	Handler_EGS_CANCEL_MATCH_MAKING_REQ();
 	Handler_EGS_CANCEL_AUTO_PARTY_MAKING_REQ();
 #ifdef HENIR_TEST
 	const CX2Dungeon::DungeonData* pDungeonData = 
-		g_pData->GetDungeonManager()->GetDungeonData( static_cast<CX2Dungeon::DUNGEON_ID>( GetMyPartyData()->m_iDungeonID ) );
+		g_pData->GetDungeonManager()->GetDungeonData( static_cast<SEnum::DUNGEON_ID>( GetMyPartyData()->m_iDungeonID ) );
 
 	if ( pDungeonData != NULL )
 	{
@@ -524,10 +526,10 @@ bool CX2PartyManager::Handler_EGS_JOIN_PARTY_NOT( HWND hWnd, UINT uMsg, WPARAM w
 					NULL != g_pData->GetMyUser()->GetSelectUnit() )
 				{
 					const int iLastClearDungeonID = g_pData->GetMyUser()->GetSelectUnit()->GetLastClearDungeonID();
-					GetMyPartyData()->m_iDungeonID = (iLastClearDungeonID > 0 ? iLastClearDungeonID : CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL);
+					GetMyPartyData()->m_iDungeonID = (iLastClearDungeonID > 0 ? iLastClearDungeonID : SEnum::DI_RUBEN_EL_TREE_NORMAL);
 				}
 				else
-					GetMyPartyData()->m_iDungeonID = CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL;
+					GetMyPartyData()->m_iDungeonID = SEnum::DI_RUBEN_EL_TREE_NORMAL;
 			}
 
 			for( UINT i=0; i< kEvent.m_vecPartyUserInfo.size(); i++ )
@@ -574,6 +576,9 @@ bool CX2PartyManager::Handler_EGS_JOIN_PARTY_NOT( HWND hWnd, UINT uMsg, WPARAM w
 
 			g_pMain->GetPartyUI()->SetDungeonButton(CX2PartyUI::BUTTON_START);
 			g_pMain->GetPartyUI()->SetPVPButton(CX2PartyUI::BUTTON_START);
+#ifdef SIMPLE_BUG_FIX
+			g_pMain->GetPartyUI()->OpenPartyDLG(false);
+#endif//SIMPLE_BUG_FIX
 		}
 		
 		if( g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberCount() >= 2 )
@@ -626,10 +631,10 @@ bool CX2PartyManager::Handler_EGS_LEAVE_PARTY_ACK( HWND hWnd, UINT uMsg, WPARAM 
 				NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
 				const int iLastClearDungeonID = g_pData->GetMyUser()->GetSelectUnit()->GetLastClearDungeonID();
-				GetMyPartyData()->m_iDungeonID = (iLastClearDungeonID > 0 ? iLastClearDungeonID : CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL);
+				GetMyPartyData()->m_iDungeonID = (iLastClearDungeonID > 0 ? iLastClearDungeonID : SEnum::DI_RUBEN_EL_TREE_NORMAL);
 			}
 			else
-				GetMyPartyData()->m_iDungeonID = CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL;
+				GetMyPartyData()->m_iDungeonID = SEnum::DI_RUBEN_EL_TREE_NORMAL;
 				
 			GetMyPartyData()->m_iPartyMemberCount = 0;
 			// 파티 탈퇴 성공
@@ -690,6 +695,14 @@ bool CX2PartyManager::Handler_EGS_LEAVE_PARTY_NOT( HWND hWnd, UINT uMsg, WPARAM 
 
 	g_pData->GetPartyManager()->GetMyPartyData()->RemovePartyMemberData( kEvent.m_iLeaveUnitUID );
 	CX2GageManager::GetInstance()->RemovePartyMemberUIByUserUid( kEvent.m_iLeaveUnitUID );
+
+#ifdef NEW_MAIL_LOG
+	#ifdef LOG_PARTY_BREAK
+		AddClosePartyLog( "EGS_LEAVE_PARTY_NOT", kEvent.m_iReason );
+	#else
+		AddClosePartyLog( "EGS_LEAVE_PARTY_NOT", 0 );
+	#endif // LOG_PARTY_BREAK
+#endif // NEW_MAIL_LOG
 
 	CX2PartyManager::PartyMemberData* pNewPartyLeader = g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberData( kEvent.m_iNewHostUID );
 	if( NULL != pNewPartyLeader )
@@ -797,6 +810,11 @@ bool CX2PartyManager::Handler_EGS_INVITE_PARTY_REQ( UidType inviteUID , const ws
 		return false;
 	}
 
+	if ( wstrInviteName_.length() == 0 )	// 해외팀 버그 수정
+	{
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300),GET_STRING( STR_ID_29349 ), g_pMain->GetNowState() );
+		return false;
+	}
 
 	KEGS_INVITE_PARTY_REQ kPacket;
 	kPacket.m_iReceiverUID = inviteUID;
@@ -830,6 +848,7 @@ bool CX2PartyManager::Handler_EGS_INVITE_PARTY_REQ( UidType inviteUID , const ws
 			g_pChatBox->AddChatLog( GET_REPLACED_STRING( ( STR_ID_20324, "L", kPacket.m_wstrNickName ) ), 
 				KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 		} break;
+
 	}
 #endif EXTEND_SERVER_GROUP_MASK
 
@@ -867,6 +886,13 @@ bool CX2PartyManager::Handler_EGS_INVITE_PARTY_REQ( const wstring& wstrInviteNam
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300),GET_STRING( STR_ID_13569 ), g_pMain->GetNowState() );
 		return false;
 	}
+
+	if ( wstrInviteName_.length() == 0 )	// 해외팀 버그 수정
+	{
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300),GET_STRING( STR_ID_29349 ), g_pMain->GetNowState() );
+		return false;
+	}
+
 	KEGS_INVITE_PARTY_REQ kPacket;
 	kPacket.m_wstrNickName = wstrInviteName_;
 	kPacket.m_iServerGroupID = iServerGroupID_;
@@ -898,6 +924,7 @@ bool CX2PartyManager::Handler_EGS_INVITE_PARTY_REQ( const wstring& wstrInviteNam
 			g_pChatBox->AddChatLog( GET_REPLACED_STRING( ( STR_ID_20324, "L", kPacket.m_wstrNickName ) ), 
 				KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 		} break;
+
 	}
 #endif EXTEND_SERVER_GROUP_MASK
 
@@ -985,7 +1012,7 @@ bool CX2PartyManager::Handler_EGS_INVITE_PARTY_NOT( HWND hWnd, UINT uMsg, WPARAM
 			wstrText = GET_REPLACED_STRING( ( STR_ID_12784, "L", kEvent.m_wstrHostNickName ) );	
 		}
 #else
-		wstring wstrDungeonName = g_pData->GetDungeonManager()->MakeDungeonNameString( ( CX2Dungeon::DUNGEON_ID )kEvent.m_iDungeonID, 
+		wstring wstrDungeonName = g_pData->GetDungeonManager()->MakeDungeonNameString( ( SEnum::DUNGEON_ID )kEvent.m_iDungeonID, 
 			(CX2Dungeon::DIFFICULTY_LEVEL) kEvent.m_cDifficultyLevel, 
 			(CX2Dungeon::DUNGEON_MODE) kEvent.m_cDungeonMode );
 
@@ -1076,13 +1103,11 @@ bool CX2PartyManager::Handler_EGS_INVITE_PARTY_DENY_NOT( HWND hWnd, UINT uMsg, W
 
 bool CX2PartyManager::Handler_EGS_PARTY_CHANGE_DUNGEON_REQ( int iDungeonID, int iDifficultyLevel, int iDungeonMode )
 {
-#ifdef FIX_DUNGEON_CHANGESTART
 	if( m_bStartGame == true )
 	{
 		m_bChangeMap = false;
 		return true;
 	}
-#endif
 
 	KEGS_PARTY_CHANGE_DUNGEON_REQ kPacket;
 	kPacket.m_iDungeonID		= iDungeonID;
@@ -1094,9 +1119,7 @@ bool CX2PartyManager::Handler_EGS_PARTY_CHANGE_DUNGEON_REQ( int iDungeonID, int 
 	g_pData->GetServerProtocol()->SendPacket( EGS_PARTY_CHANGE_DUNGEON_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_PARTY_CHANGE_DUNGEON_ACK ); 
 
-#ifdef FIX_DUNGEON_CHANGESTART
 	m_bChangeMap = true;
-#endif
 
 	return true;
 }
@@ -1122,13 +1145,11 @@ bool CX2PartyManager::Handler_EGS_PARTY_CHANGE_DUNGEON_ACK( HWND hWnd, UINT uMsg
 bool CX2PartyManager::Handler_EGS_PARTY_CHANGE_DUNGEON_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 
-#ifdef FIX_DUNGEON_CHANGESTART
 	if( m_bStartGame == true )
 	{
 		m_bChangeMap = false;
 		return true;
 	}
-#endif
 
 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
 	KEGS_PARTY_CHANGE_DUNGEON_NOT kEvent;
@@ -1146,10 +1167,9 @@ bool CX2PartyManager::Handler_EGS_PARTY_CHANGE_DUNGEON_NOT( HWND hWnd, UINT uMsg
 	CX2PartyUI* pPartyUI = g_pMain->GetPartyUI();
 	if ( NULL != pPartyUI )
 		pPartyUI->UpdatePartyDLG();
-#ifdef FIX_DUNGEON_CHANGESTART
 	m_bChangeMap = false;
 	m_bStartGame = false;
-#endif
+
 	return true;
 }
 
@@ -1209,9 +1229,7 @@ bool CX2PartyManager::Handler_EGS_UPDATE_PARTY_USER_INFO_NOT( HWND hWnd, UINT uM
 #endif	SERV_TOONILAND_CHANNELING_EVENT
 		//}} kimhc // 2011-08-08 // 투니 랜드 채널링 이벤트
 
-#ifdef REFORM_UI_CHARACTER_INFO //오현빈//파티원 레벨업 정보 갱신되지 않는 오류 수정
 		CX2GageManager::GetInstance()->UpdatePartyMemberLevel( kEvent.m_iUnitUID, kEvent.m_ucLevel );
-#endif //REFORM_UI_CHARACTER_INFO
 	}
 
 	return true;
@@ -1230,8 +1248,6 @@ void CX2PartyManager::Handler_EGS_QUICK_START_DUNGEON_GAME_REQ( const CX2PartyMa
 //	kPacket.m_bCheckLowLevel	= false;
 	kPacket.m_cGetItemType		= 0;
 	
-	dbg::cout << L"EGS_QUICK_START_DUNGEON_GAME_REQ : " << pPartyData_->m_iDungeonID << dbg::endl;
-
 	g_pData->GetServerProtocol()->SendPacket( EGS_QUICK_START_DUNGEON_GAME_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_QUICK_START_DUNGEON_GAME_ACK ); 
 
@@ -1284,19 +1300,17 @@ bool CX2PartyManager::Handler_EGS_QUICK_START_DUNGEON_GAME_ACK( HWND hWnd, UINT 
 
 bool CX2PartyManager::Handler_EGS_PARTY_GAME_START_REQ()
 {
-#ifdef FIX_DUNGEON_CHANGESTART
 	if( m_bChangeMap == true )
 	{
 		// 현재 맵 변경중이라 게임 시작할 수 없다.
 		return false;
 	}
-#endif
 	KEGS_PARTY_GAME_START_REQ kPacket;
 	//kPacket.m_sWorldID = (short) iWorldID;
 
 
 #ifndef _IN_HOUSE_
-	if( CX2Dungeon::DI_MONSTER_TEST_NORMAL == GetMyPartyData()->m_iDungeonID )
+	if( SEnum::DI_MONSTER_TEST_NORMAL == GetMyPartyData()->m_iDungeonID )
 	{
 		return false;
 	}
@@ -1346,10 +1360,7 @@ bool CX2PartyManager::Handler_EGS_PARTY_GAME_START_REQ()
 	g_pData->GetServerProtocol()->SendPacket( EGS_PARTY_GAME_START_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_PARTY_GAME_START_ACK ); 
 
-#ifdef FIX_DUNGEON_CHANGESTART
 	m_bStartGame = true;
-#endif
-
 
 
 	return true;
@@ -1368,9 +1379,7 @@ bool CX2PartyManager::Handler_EGS_PARTY_GAME_START_ACK( HWND hWnd, UINT uMsg, WP
 		if( kEvent.m_iOK == NetError::ERR_DUNGEON_REQUIRE_ITEM_00)
 		{
 			// nothing - 에러메시지는 EGS_ERROR_POPUP_NOT에서 처리 
-#ifdef FIX_DUNGEON_CHANGESTART
 			m_bStartGame = false;
-#endif
 		}
 		//}}
 		else if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
@@ -1382,9 +1391,7 @@ bool CX2PartyManager::Handler_EGS_PARTY_GAME_START_ACK( HWND hWnd, UINT uMsg, WP
 		else
 		{
 			g_pInstanceData->SetSendGameStartReqPacket( false );
-#ifdef FIX_DUNGEON_CHANGESTART
 			m_bStartGame = false;
-#endif
 		}
 #endif MODIFY_INFINITE_SKILL_BUG
 		//}} kimhc // 2010.3.26 // 무한 스킬 버그 수정
@@ -1402,18 +1409,15 @@ bool CX2PartyManager::Handler_EGS_PARTY_GAME_START_NOT( HWND hWnd, UINT uMsg, WP
 
 
 	// 비밀 던전 입장권 소모 관련 인벤토리 갱신
-	if( NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+	if( NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 	}
 	
 
 	//if( true == DoIHaveParty() )
 	{
-#ifdef FIX_DUNGEON_CHANGESTART
 		m_bStartGame = true;
-#endif
 
 #ifdef HEAP_BROKEN_BY_ROOM
 		CX2Room::InitializeRoomPacketData();
@@ -1429,10 +1433,11 @@ bool CX2PartyManager::Handler_EGS_PARTY_GAME_START_NOT( HWND hWnd, UINT uMsg, WP
 		pDungeonRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 #endif // HEAP_BROKEN_BY_ROOM
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
             g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_DUNGEON ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+
 
 		RememberComeBackInfoBeforeInstanceGameStart();
 
@@ -1449,7 +1454,7 @@ bool CX2PartyManager::Handler_EGS_PARTY_GAME_START_NOT( HWND hWnd, UINT uMsg, WP
 #endif // SERV_NEW_DEFENCE_DUNGEON
 
 		const CX2Dungeon::DungeonData* pDungeonData 
-			= g_pData->GetDungeonManager()->GetDungeonData( static_cast<CX2Dungeon::DUNGEON_ID>( kEvent.m_RoomInfo.m_iDungeonID ) );
+			= g_pData->GetDungeonManager()->GetDungeonData( static_cast<SEnum::DUNGEON_ID>( kEvent.m_RoomInfo.m_iDungeonID ) );
 
 		ASSERT( NULL != pDungeonData );
 		g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_DUNGEON_GAME, NULL, false );
@@ -1474,18 +1479,15 @@ bool CX2PartyManager::Handler_EGS_DEFENCE_DUNGEON_GAME_START_NOT( HWND hWnd, UIN
 	DeSerialize( pBuff, &kEvent );
 
 	/// 몬스터 소환 카드용 6 ~ 9 번째 퀵슬롯 아이템 설정
-	if( NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+	if( NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 	}
 	
 
 	//if( true == DoIHaveParty() )
 	{
-#ifdef FIX_DUNGEON_CHANGESTART
 		m_bStartGame = true;
-#endif
 
 #ifdef HEAP_BROKEN_BY_ROOM
 		CX2Room::InitializeRoomPacketData();
@@ -1501,10 +1503,10 @@ bool CX2PartyManager::Handler_EGS_DEFENCE_DUNGEON_GAME_START_NOT( HWND hWnd, UIN
 		pDungeonRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 #endif // HEAP_BROKEN_BY_ROOM
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
             g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_DUNGEON ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 		/// 입장 위치는 이전 던전에서 설정하였으므로, 갱신해 줄 필요가 없다.
 		//RememberComeBackInfoBeforeInstanceGameStart();
@@ -1516,7 +1518,7 @@ bool CX2PartyManager::Handler_EGS_DEFENCE_DUNGEON_GAME_START_NOT( HWND hWnd, UIN
 	#endif HENIR_TEST
 
 		const CX2Dungeon::DungeonData* pDungeonData 
-			= g_pData->GetDungeonManager()->GetDungeonData( static_cast<CX2Dungeon::DUNGEON_ID>( kEvent.m_RoomInfo.m_iDungeonID ) );
+			= g_pData->GetDungeonManager()->GetDungeonData( static_cast<SEnum::DUNGEON_ID>( kEvent.m_RoomInfo.m_iDungeonID ) );
 
 		ASSERT( NULL != pDungeonData );
 
@@ -1692,6 +1694,17 @@ bool CX2PartyManager::Handler_EGS_PARTY_BAN_USER_REQ( UidType unitUID )
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_PARTY_BAN_USER_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_PARTY_BAN_USER_ACK ); 
+
+#ifdef NEW_MAIL_LOG
+	if( CX2Main::XS_DUNGEON_GAME == g_pMain->GetNowStateID() )
+	{
+		CTime NowTime = CTime::GetCurrentTime();
+		char Buf1[256];
+		StringCchPrintfA( Buf1, 256, "%d:%d:%d, %s", NowTime.GetHour(), NowTime.GetMinute(), NowTime.GetSecond(), "PARTY_BAN_USER_REQ" );
+		//CX2MailLogManager::GetInstance()->AddMailLog( CX2MailLogManager::MLI_CLOSE_PARTY_BUG, Buf1 );
+	}
+#endif // NEW_MAIL_LOG
+
 	return true;
 }
 
@@ -1735,6 +1748,10 @@ bool CX2PartyManager::Handler_EGS_PARTY_BAN_USER_NOT( HWND hWnd, UINT uMsg, WPAR
 		}
 
 		CX2GageManager::GetInstance()->ClearPartyMemberUI();
+
+#ifdef NEW_MAIL_LOG
+		AddClosePartyLog( "EGS_PARTY_BAN_USER_NOT", 2);
+#endif // NEW_MAIL_LOG
 	}
 
 
@@ -2057,6 +2074,14 @@ bool CX2PartyManager::Handler_EGS_MATCH_MAKING_SUCCESS_NOT( HWND hWnd, UINT uMsg
 	KEGS_MATCH_MAKING_SUCCESS_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
+#ifdef FIELD_BOSS_RAID // 레이드 필드에서는 던전/대전 시작 불가
+	if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+	{
+		Handler_EGS_MATCH_MAKING_SUCCESS_REPLY_NOT(false);
+		return true;
+	}
+#endif // FIELD_BOSS_RAID
+
 	SetMatchUid( kEvent.m_iMatchUID );
 
 	if( g_pMain->GetPartyUI() != NULL )
@@ -2110,7 +2135,7 @@ bool CX2PartyManager::Handler_EGS_UNREG_MATCH_WAIT_LIST_NOT( HWND hWnd, UINT uMs
 		{
 			if( GetProcessPvpMatch() == true && 
 				kEvent.m_wstrCancelUnitNickName.empty() == false &&
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NickName != kEvent.m_wstrCancelUnitNickName )
+				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName != kEvent.m_wstrCancelUnitNickName )
 			{	
 				wstring wstrLeavePartyMember = GET_REPLACED_STRING( ( STR_ID_12713, "L", kEvent.m_wstrCancelUnitNickName ) ); 
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), wstrLeavePartyMember.c_str(), g_pMain->GetNowState() );
@@ -2250,10 +2275,10 @@ bool CX2PartyManager::Handler_EGS_GAME_START_PVP_MATCH_NOT( HWND hWnd, UINT uMsg
 	pCX2PVPRoom->Set_KRoomSlotInfoNpc( kEvent.m_mapPvpNpcInfo );
 #endif // HEAP_BROKEN_BY_ROOM
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
         g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_PVP ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 
 
@@ -2389,7 +2414,7 @@ bool CX2PartyManager::IsDungeonInLocal( int iLocalMapID, int iDungeonID )
 bool CX2PartyManager::IsRankableArcadeDungeon( int iDungeonID )
 {
 	const CX2Dungeon::DungeonData* pDungeonData = 
-		g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) iDungeonID );
+		g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) iDungeonID );
 
 	if( NULL == pDungeonData )
 		return false;
@@ -2478,6 +2503,13 @@ bool CX2PartyManager::Handler_EGS_PARTY_GAME_START_OPINION_CHECK_NOT( HWND hWnd,
 	DeSerialize( pBuff, &kEvent );
 #endif //SERV_FIX_MANUAL_PARTY_DUNGEON_POPUP_BUG 
 
+#ifdef FIELD_BOSS_RAID // 레이드 필드에서는 던전/대전 시작 불가
+	if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+	{
+		Send_EGS_PARTY_GAME_START_OPINION_CHECK_REPLY_NOT( false );
+		return true;
+	}
+#endif // FIELD_BOSS_RAID
 	if ( !AmIPartyLeader() )
 	{
 		CX2Main::TimedMessagePopUp::TimedPopupUserData userData;
@@ -2486,11 +2518,11 @@ bool CX2PartyManager::Handler_EGS_PARTY_GAME_START_OPINION_CHECK_NOT( HWND hWnd,
 		g_pKTDXApp->GetDeviceManager()->PlaySound( L"Battle_Atena_Success.ogg", false, false ); 
 
 #ifdef SERV_FIX_MANUAL_PARTY_DUNGEON_POPUP_BUG
-		CX2Dungeon::DUNGEON_ID eDungeonID				= static_cast<CX2Dungeon::DUNGEON_ID>(kEvent.m_iDungeonID);
+		SEnum::DUNGEON_ID eDungeonID				= static_cast<SEnum::DUNGEON_ID>(kEvent.m_iDungeonID);
 		CX2Dungeon::DIFFICULTY_LEVEL eDifficultyLevel	= static_cast<CX2Dungeon::DIFFICULTY_LEVEL>(kEvent.m_cDifficultyLevel);
 		CX2Dungeon::DUNGEON_MODE eDungeonMode			= static_cast<CX2Dungeon::DUNGEON_MODE>(kEvent.m_cDungeonMode);
 #else
-		CX2Dungeon::DUNGEON_ID eDungeonID				= (CX2Dungeon::DUNGEON_ID )m_MyPartyData.m_iDungeonID;
+		SEnum::DUNGEON_ID eDungeonID				= (SEnum::DUNGEON_ID )m_MyPartyData.m_iDungeonID;
 		CX2Dungeon::DIFFICULTY_LEVEL eDifficultyLevel	= (CX2Dungeon::DIFFICULTY_LEVEL) m_MyPartyData.m_iDungeonDifficulty;
 		CX2Dungeon::DUNGEON_MODE eDungeonMode			= (CX2Dungeon::DUNGEON_MODE) m_MyPartyData.m_iDungeonMode;
 #endif //SERV_FIX_MANUAL_PARTY_DUNGEON_POPUP_BUG
@@ -2567,7 +2599,7 @@ void CX2PartyManager::RememberComeBackInfoBeforeInstanceGameStart()
 			pLocationManager->SetX2StateBeforeDungeonStart( static_cast<const UINT>( g_pMain->GetNowStateID() ) );
 
 
-			CX2Unit::UnitData* pUnitData = 	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+			const CX2Unit::UnitData* pUnitData = 	&g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 			if ( SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01 <= pUnitData->m_nMapID && 
 				SEnum::VMI_BATTLE_FIELD_END > pUnitData->m_nMapID )
@@ -2581,7 +2613,7 @@ void CX2PartyManager::RememberComeBackInfoBeforeInstanceGameStart()
 #ifdef REMEMBER_LOGOUT_POSITION_TEST
 				int iMapId = 0;
 				if(g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL)
-					iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_nMapID;				
+					iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_nMapID;				
 
 				int startPos = 0;
 				startPos = g_pData->GetLocationManager()->GetLoginPos( iMapId );
@@ -2598,10 +2630,10 @@ void CX2PartyManager::RememberComeBackInfoBeforeInstanceGameStart()
 						CKTDGLineMap* pLineMap = pWorld->GetLineMap();
 						if( NULL != pLineMap )
 						{
-							CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ucLastTouchLineIndex );
+							const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ucLastTouchLineIndex );
 							if( NULL != pLineData )
 							{
-								float fLastPosValue = halfToFloat( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_usLastPosValue );
+								float fLastPosValue = halfToFloat( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_usLastPosValue );
 								if( fLastPosValue < 0.f )
 									fLastPosValue = 0.f;
 								if( fLastPosValue > 1.f )
@@ -2611,7 +2643,7 @@ void CX2PartyManager::RememberComeBackInfoBeforeInstanceGameStart()
 								vStartPos = pLineMap->GetLandPosition( vStartPos, LINE_RADIUS, (int*) NULL );
 
 								pLocationManager->SetVillageIdBeforeDungeonStart( iMapId );
-								pLocationManager->SetLastTouchedIndexInVillageBeforeDungeonStart( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ucLastTouchLineIndex );
+								pLocationManager->SetLastTouchedIndexInVillageBeforeDungeonStart( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ucLastTouchLineIndex );
 								pLocationManager->SetPositionInVillageBeforeDungeonStart( vStartPos );
 							}
 						}
@@ -2831,7 +2863,15 @@ bool CX2PartyManager::Handler_EGS_AUTO_PARTY_MAKING_SUCCESS_NOT( HWND hWnd, UINT
 	KEGS_AUTO_PARTY_MAKING_SUCCESS_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
-	CX2Dungeon::DUNGEON_ID eDungeonID				= static_cast<CX2Dungeon::DUNGEON_ID>( kEvent.m_iDungeonID );
+#ifdef FIELD_BOSS_RAID // 레이드 필드에서는 던전/대전 시작 불가
+	if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+	{
+		Handler_EGS_AUTO_PARTY_MAKING_SUCCESS_REPLY_NOT( false );
+		return true;
+	}
+#endif // FIELD_BOSS_RAID
+
+	SEnum::DUNGEON_ID eDungeonID				= static_cast<SEnum::DUNGEON_ID>( kEvent.m_iDungeonID );
 	CX2Dungeon::DIFFICULTY_LEVEL eDifficultyLevel	= static_cast<CX2Dungeon::DIFFICULTY_LEVEL>(kEvent.m_cDifficultyLevel);
 #ifdef SERV_FIX_MANUAL_PARTY_DUNGEON_POPUP_BUG
 	CX2Dungeon::DUNGEON_MODE eDungeonMode			= static_cast<CX2Dungeon::DUNGEON_MODE>( kEvent.m_cDungeonMode );
@@ -2945,10 +2985,10 @@ bool CX2PartyManager::Handler_EGS_REGROUP_PARTY_NOT( HWND hWnd, UINT uMsg, WPARA
 	GetMyPartyData()->Init();
 	GetMyPartyData()->Set_KPartyInfo( kEvent.m_kPartyInfo );
 
-	ASSERT( CX2Dungeon::DI_NONE != GetMyPartyData()->m_iDungeonID );
+	ASSERT( SEnum::DI_NONE != GetMyPartyData()->m_iDungeonID );
 
-	if ( CX2Dungeon::DI_NONE == GetMyPartyData()->m_iDungeonID )
-		GetMyPartyData()->m_iDungeonID = CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL;
+	if ( SEnum::DI_NONE == GetMyPartyData()->m_iDungeonID )
+		GetMyPartyData()->m_iDungeonID = SEnum::DI_RUBEN_EL_TREE_NORMAL;
 
 	const UidType uidMine = g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 
@@ -3061,7 +3101,7 @@ std::map<wstring, bool> CX2PartyManager::GetHeroRecruitDungeonList()
 	{
 		if( NULL != g_pData && NULL != g_pData->GetDungeonManager() )
 		{
-			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( static_cast<CX2Dungeon::DUNGEON_ID>((it->second.m_iDungeonID) ));
+			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( static_cast<SEnum::DUNGEON_ID>((it->second.m_iDungeonID) ));
 
 			if( NULL != pDungeonData )
 			{
@@ -3103,48 +3143,101 @@ void CX2PartyManager::NetworkProcess( IN const float fElapsedTime )
 {
 	KTDXPROFILE();
 
-#ifndef X2OPTIMIZE_PARTY_UDP_CONNECTION_BUG_FIX
-
-	if( true == m_MyPartyData.m_vecPartyMemberData.empty() )
-		return;
-
-	//방 유저들을 피어로 유지시킨다.
-	bool bAddNewPeer = false;
-	BOOST_TEST_FOREACH( const PartyMemberData&, sPartyMemberData, m_MyPartyData.m_vecPartyMemberData )
-	{
-		//슬롯에 있는 유저를 피어에 등록한다
-		const CKTDNUDP::Peer* pPeer = g_pData->GetGameUDP()->GetPeer( sPartyMemberData.m_iUnitUID );
-		if( pPeer == NULL )
-		{
-			bAddNewPeer = true;
-			g_pData->GetGameUDP()->AddPeer( sPartyMemberData.m_iUnitUID, 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				CKTDNUDP::ConvertIPToAddress( sPartyMemberData.m_IP.c_str() ),
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				sPartyMemberData.m_IP.c_str(), 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				sPartyMemberData.m_Port, 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				CKTDNUDP::ConvertIPToAddress( sPartyMemberData.m_InternalIP.c_str() ),
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				sPartyMemberData.m_InternalIP.c_str(), 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-				sPartyMemberData.m_InternalPort );
-		}
-	}
-
-	//파티가 없으면서 룸이 있는 경우(대전)도 있기 때문에 아래 부분 주석. 안 그러면 매번 udp 연결을 지우게 되는 문제가 생긴다. by 박진웅
-	//g_pData->GetGameUDP()->RemoveOtherPeer( slotUIDList );
-
-	if( bAddNewPeer == true )
-	{
-		g_pData->GetGameUDP()->ConnectTestToPeer();
-	}
-
-#endif  X2OPTIMIZE_PARTY_UDP_CONNECTION_BUG_FIX
+//#ifndef X2OPTIMIZE_PARTY_UDP_CONNECTION_BUG_FIX
+//
+//	if( true == m_MyPartyData.m_vecPartyMemberData.empty() )
+//		return;
+//
+//	//방 유저들을 피어로 유지시킨다.
+//	bool bAddNewPeer = false;
+//	BOOST_TEST_FOREACH( const PartyMemberData&, sPartyMemberData, m_MyPartyData.m_vecPartyMemberData )
+//	{
+//		//슬롯에 있는 유저를 피어에 등록한다
+//		const CKTDNUDP::Peer* pPeer = g_pData->GetGameUDP()->GetPeer( sPartyMemberData.m_iUnitUID );
+//		if( pPeer == NULL )
+//		{
+//			bAddNewPeer = true;
+//			g_pData->GetGameUDP()->AddPeer( sPartyMemberData.m_iUnitUID, 
+////#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//				CKTDNUDP::ConvertIPToAddress( sPartyMemberData.m_IP.c_str() ),
+////#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+////				sPartyMemberData.m_IP.c_str(), 
+////#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//				sPartyMemberData.m_Port, 
+////#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//				CKTDNUDP::ConvertIPToAddress( sPartyMemberData.m_InternalIP.c_str() ),
+////#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+////				sPartyMemberData.m_InternalIP.c_str(), 
+////#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//				sPartyMemberData.m_InternalPort );
+//		}
+//	}
+//
+//	//파티가 없으면서 룸이 있는 경우(대전)도 있기 때문에 아래 부분 주석. 안 그러면 매번 udp 연결을 지우게 되는 문제가 생긴다. by 박진웅
+//	//g_pData->GetGameUDP()->RemoveOtherPeer( slotUIDList );
+//
+//	if( bAddNewPeer == true )
+//	{
+//		g_pData->GetGameUDP()->ConnectTestToPeer();
+//	}
+//
+//#endif  X2OPTIMIZE_PARTY_UDP_CONNECTION_BUG_FIX
 }
 //#endif SERV_KTDX_RETRY_USING_INTERNAL_IP
 //}}
+
+#ifdef NEW_MAIL_LOG
+/** @function : AddClosePartyLog
+	@brief : 파티 해제가 정상적이지 않은 경우에 대한 확인을 위해 남기는 로그
+*/
+void CX2PartyManager::AddClosePartyLog( const string& strPacketName_, int iReason_ )
+{
+	if( NULL == g_pX2Game || CX2Game::GT_DUNGEON != g_pX2Game->GetGameType() )
+		return;
+
+	if( true == g_pX2Game->GetGameEnd() )
+		return;
+
+	if( NULL == GetMyPartyData() )
+		return;
+
+	int iUserUnitNum = g_pX2Game->GetUserUnitNum();
+
+	// 현재 인원 수가 1명이하라면 체크 할 필요 없음.
+	if( 1 < iUserUnitNum )
+	{
+		int iPartyUnitNum = static_cast<int>(GetMyPartyData()->m_vecPartyMemberData.size());
+
+		if( iUserUnitNum > iPartyUnitNum )
+		{// 게임 내 유저 수가 파티원 수 보다 많다면 오류!! 로그 전송
+
+			// 패킷 명
+			{
+				CTime NowTime = CTime::GetCurrentTime();
+				char Buf1[256];
+				StringCchPrintfA( Buf1, 256, "%d:%d:%d, %s", NowTime.GetHour(), NowTime.GetMinute(), NowTime.GetSecond(), strPacketName_.c_str() );
+
+#ifdef LOG_PARTY_BREAK
+				// 현재 로그를 통해 알 수 있는 정보가 없어서 주석 처리 함
+				// 문제를 찾기 위한 코드 분석 새로 해야 함.
+				//CX2MailLogManager::GetInstance()->AddMailLog( CX2MailLogManager::MLI_CLOSE_PARTY_BUG, Buf1 );
+#endif // LOG_PARTY_BREAK
+			}
+			
+			// 인원 정보
+			{
+				char Buf1[256];
+				StringCchPrintfA( Buf1, 256, "%d(유저 인원:%d, 파티 인원:%d, 현재 스테이트 : %d)\n", iReason_, iUserUnitNum, iPartyUnitNum, g_pMain->GetNowStateID() );
+#ifdef LOG_PARTY_BREAK
+				// 현재 로그를 통해 알 수 있는 정보가 없어서 주석 처리 함
+				// 문제를 찾기 위한 코드 분석 새로 해야 함.
+				//CX2MailLogManager::GetInstance()->AddMailLog( CX2MailLogManager::MLI_CLOSE_PARTY_BUG, Buf1 );
+#endif // LOG_PARTY_BREAK
+			}
+		}
+	}
+}
+#endif // NEW_MAIL_LOG
 
 #ifdef SERV_NEW_EVENT_TYPES
 bool CX2PartyManager::Handler_EGS_UPDATE_DUNGEON_STATUS_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )

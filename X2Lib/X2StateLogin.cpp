@@ -44,7 +44,7 @@ m_pDLGLoginFront( NULL )
 {
 	
 #ifdef NEW_LOGIN_PROCESS
-#ifdef	ADD_SERVER_GROUP
+#ifdef ADD_SERVER_GROUP
 #ifdef EXTEND_SERVER_GROUP_MASK
 	#ifdef CLIENT_COUNTRY_US
 		// 미국은 여기서 파일을 읽어야 합니다. 이전 접속 서버를 알아야 하기 때문에...
@@ -57,9 +57,8 @@ m_pDLGLoginFront( NULL )
 		OpenScriptServerGroupFile();
 	g_pMain->SetPickedChannelServerIPIndex( g_pInstanceData->GetServerGroupID() );
 #endif EXTEND_SERVER_GROUP_MASK
-#endif  //ADD_SERVER_GROUP
+#endif //ADD_SERVER_GROUP
 #endif //NEW_LOGIN_PROCESS
-
 
 #ifndef _SERVICE_
 	if( g_pMain->GetManualLogin() == false )
@@ -89,7 +88,7 @@ m_pDLGLoginFront( NULL )
 			} break;
 #endif //SERV_COUNTRY_PH
 		}
-#endif 	NEW_LOGIN_PROCESS	
+#endif NEW_LOGIN_PROCESS	
 	}
 	else
 	{
@@ -103,8 +102,7 @@ m_pDLGLoginFront( NULL )
 	}
 	#else
 	{
-	//Service 모드일 때 들어오는 라인
-
+		//Service 모드일 때 들어오는 라인
 		if( g_pMain->GetManualLogin() )
 		{
 			InitManualLogin();
@@ -119,7 +117,6 @@ m_pDLGLoginFront( NULL )
 			StateChangeLoading();
 #endif NEW_LOGIN_PROCESS
 		}
-		
 	}
 	#endif _SERVICE_MANUAL_LOGIN_
 
@@ -132,8 +129,8 @@ m_pDLGLoginFront( NULL )
 		g_pKTDXApp->GetDGManager()->GetNear(),
 		g_pKTDXApp->GetDGManager()->GetFar(), false );
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
-	g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( 1.0f );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( 1.0f );
 	*/
 
 	//CKTDGXMeshPlayer::CXMeshInstance* m_pMeshInstRandomBox = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( NULL,  L"RewardItemBox", 0.0f, -100.0f, 0.0f , 0,0,0, 0,0,0 );
@@ -225,7 +222,6 @@ m_pDLGLoginFront( NULL )
 	m_bRotate = false;
 	m_nInput = 0;
 #endif SERV_PUBLISHER_MATRIXKEY
-
 }
 
 CX2StateLogin::~CX2StateLogin(void)
@@ -276,13 +272,12 @@ void CX2StateLogin::InitManualLogin()
 	LoadID();
 #endif SAVE_LOGIN_ID
 
-
 #ifdef RULE_AGREEMENT
 #ifdef NEW_RULE_AGREEMENT
-	if( false == g_pMain->GetGameOption()->GetNewRuleAgree() )
+	if( false == g_pMain->GetGameOption().GetNewRuleAgree() )
 	{
 #endif NEW_RULE_AGREEMENT
-		if( false == g_pMain->GetGameOption()->GetRuleAgree() )
+		if( false == g_pMain->GetGameOption().GetRuleAgree() )
 		{
 			OpenRuleAgreementDlg();
 		}
@@ -330,7 +325,6 @@ void CX2StateLogin::InitManualLogin()
 	Handler_SLUCM_OTP_ON( NULL, 0, NULL, NULL );
 #endif SERV_PUBLISHER_OTP
 }
-
 
 #ifdef SERV_LOGIN_MAC_ADDRESS
 std::wstring CX2StateLogin::GetMACAddress() const
@@ -381,20 +375,26 @@ HRESULT CX2StateLogin::OnFrameMove( double fTime, float fElapsedTime )
 	FrameMoveMatrixPopup(fElapsedTime);
 #endif SERV_PUBLISHER_MATRIXKEY
 
+#ifdef CLOSE_ON_START_FOR_GAMEGUARD
+#if !defined( CLIENT_COUNTRY_JP )
+	if(g_pMain->IsCloseOnStart())
+	{
+		Handler_EGS_CLIENT_QUIT_REQ();
+		g_pMain->SetCloseOnStart(false);
+	}
+#endif 
+#endif CLOSE_ON_START_FOR_GAMEGUARD
 
 #ifdef _US_LOGIN_ONLY_TAB_
-	if( NULL != m_pDLGLoginBack )
+	if(m_pDLGLoginBack->GetControl(L"IMELoginID")->GetHaveFocusIn() && 
+		g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_TAB))
+	{			
+		m_pDLGLoginBack->RequestFocus(m_pDLGLoginBack->GetControl(L"EditBoxLoginPassword"));
+	}
+	else if(m_pDLGLoginBack->GetControl(L"EditBoxLoginPassword")->GetHaveFocusIn() && 
+		g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_TAB))
 	{
-		if( m_pDLGLoginBack->GetControl(L"IMELoginID")->GetHaveFocusIn() && 
-			g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_TAB))
-		{			
-			m_pDLGLoginBack->RequestFocus(m_pDLGLoginBack->GetControl(L"EditBoxLoginPassword"));
-		}
-		else if(m_pDLGLoginBack->GetControl(L"EditBoxLoginPassword")->GetHaveFocusIn() && 
-			g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_TAB))
-		{
-			m_pDLGLoginBack->RequestFocus(m_pDLGLoginBack->GetControl(L"IMELoginID"));		
-		}
+		m_pDLGLoginBack->RequestFocus(m_pDLGLoginBack->GetControl(L"IMELoginID"));		
 	}
 #endif _US_LOGIN_ONLY_TAB_
 
@@ -435,7 +435,6 @@ bool CX2StateLogin::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 		case SLUCM_LOGIN:
 			{
 				RetrieveUserIDnPassword();
-
 #ifdef NEW_LOGIN_PROCESS
 				TryVerifyAccount();
 #else NEW_LOGIN_PROCESS
@@ -453,11 +452,9 @@ bool CX2StateLogin::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 #elif defined( CLIENT_COUNTRY_ID )
 				wstrURL = L"http://elsword.netmarble.co.id";
 #elif defined( CLIENT_COUNTRY_BR )
-				wstrURL = L"http://www.elswordonline.com";
+				wstrURL = L"http://levelup.com.br/elsword";
 #endif
 				ShellExecuteW( GetDesktopWindow(), L"open", wstrURL.c_str(), L"dwmApi #102", NULL, SW_SHOWNORMAL); 
-
-
 			}
 			break;
 		case SLUCM_REGISTER_MOVE :
@@ -468,12 +465,11 @@ bool CX2StateLogin::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 #elif defined( CLIENT_COUNTRY_ID )
 				wstrURL = L"https://member.netmarble.co.id/join/index.asp";
 #elif defined( CLIENT_COUNTRY_BR )
-				wstrURL = L"https://myaccount.elswordonline.com/registration";
+				wstrURL = L"https://minhaconta.levelupgames.com.br";
 #endif
 				ShellExecuteW( GetDesktopWindow(), L"open", wstrURL.c_str(), L"dwmApi #102", NULL, SW_SHOWNORMAL); 
 			}
 			break;
-
 #if defined( CLIENT_COUNTRY_US )
 		case SLUCM_FACEBOOK_MOVE :
 			{
@@ -481,7 +477,6 @@ bool CX2StateLogin::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 				ShellExecuteW( GetDesktopWindow(), L"open", wstrURL.c_str(), L"dwmApi #102", NULL, SW_SHOWNORMAL); 
 			}
 			break;
-
 		case SLUCM_STEAM_COMMUNITY_MOVE :
 			{
 				wstring wstrURL = L"http://steamcommunity.com/sharedfiles/filedetails/?id=93245387";
@@ -489,9 +484,7 @@ bool CX2StateLogin::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 			}
 			break;
 #endif
-
 #endif _HOMEPAGE_MOVE_
-
 		case SLUCM_CHANGE_STATE_MEMBER_JOIN:
 			{
 #ifdef SERV_JOIN_IN_CLIENT_FOR_TW_TEST_SERVER
@@ -561,7 +554,7 @@ bool CX2StateLogin::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 				SAFE_DELETE_DIALOG(m_pDLGBackGround);
 				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGRuleAggrement, NULL, false );
 				m_pDLGRuleAggrement = NULL;
-				g_pMain->GetGameOption()->SetRuleAgree(true);		// 동의 하고나면 이후에는 뜨지않음.
+				g_pMain->GetGameOption().SetRuleAgree(true);		// 동의 하고나면 이후에는 뜨지않음.
 #ifdef SAVE_LOGIN_ID
 				CKTDGUICheckBox* pCheckBox = (CKTDGUICheckBox*)m_pDLGLoginBack->GetControl( L"CheckBoxRememberID" );
 				if( pCheckBox != NULL && pCheckBox->GetChecked() )
@@ -580,7 +573,7 @@ bool CX2StateLogin::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 				SAFE_DELETE_DIALOG(m_pDLGNewBackGround);
 				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGNewRuleAggrement, NULL, false );
 				m_pDLGNewRuleAggrement = NULL;
-				g_pMain->GetGameOption()->SetNewRuleAgree(true);	// 동의 하고나면 이후에는 뜨지않음.
+				g_pMain->GetGameOption().SetNewRuleAgree(true);	// 동의 하고나면 이후에는 뜨지않음.
 			} break;
 #endif NEW_RULE_AGREEMENT
 #endif RULE_AGREEMENT
@@ -816,13 +809,7 @@ void CX2StateLogin::RetrieveUserIDnPassword()
 #ifdef CLIENT_USE_XTRAP	 // XTRAP - 클라 유저정보 획득(캐릭터 선택 전)
 	char szServer[2];
 	_itoa(g_pInstanceData->GetServerGroupID(), szServer, 10);
-	XTrap_C_SetUserInfoEx(
-		(LPCSTR)g_pInstanceData->GetUserID().c_str(),
-		szServer,
-		NULL, 
-		NULL,
-		NULL,
-		NULL);
+	XTrap_C_SetUserInfoEx( (LPCSTR)g_pInstanceData->GetUserID().c_str(), szServer, NULL, NULL, NULL, NULL);
 #endif	// CLIENT_USE_XTRAP
 
 }
@@ -831,19 +818,43 @@ void CX2StateLogin::RetrieveUserIDnPassword()
 void CX2StateLogin::ReadIDAndPassword()
 {
 	const wstring wstrFileName( L"LoginKey.lua" );
-	string	strFileName;
 
-	ConvertWCHARToChar( strFileName, wstrFileName );
-	ConvertFileAnsiToUTF8( strFileName, strFileName );
-
-	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( strFileName );
-	
-	if( Info != NULL )
+	if( true == g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->IsValidFile( wstrFileName ) )
 	{
-		if( luaManager.DoMemory( Info->pRealData, Info->size ) == true )
+		KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
+
+        if ( g_pKTDXApp->LoadAndDoMemory( &luaManager, wstrFileName.c_str() ) == true )
+		{
+			if ( luaManager.BeginTable( "LOGIN" ) == true )
+			{
+				wstring wstrID, wstrPassword;
+
+				LUA_GET_VALUE(	luaManager, "ID", wstrID,	L"" );
+				LUA_GET_VALUE(	luaManager, "PASSWORD", wstrPassword,	L"" );
+
+				if ( wstrID.empty() == false && wstrPassword.empty() == false )
+				{
+					g_pInstanceData->SetUserID( wstrID );
+					g_pInstanceData->SetUserPassword( wstrPassword );
+
+					// 일단 OTP 넣지 않음
+
+					StateChangeLoading();					
+
+					luaManager.EndTable();
+					return;
+				}
+				luaManager.EndTable();
+			}
+		}
+	}
+
+	const wstring wstrFileNameEx( L"LoginKeyEx.lua" );
+	if( true == g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->IsValidFile( wstrFileNameEx ) )
+	{
+		KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
+
+        if ( g_pKTDXApp->LoadAndDoMemory( &luaManager, wstrFileNameEx.c_str() ) == true )
 		{
 			if ( luaManager.BeginTable( "LOGIN" ) == true )
 			{
@@ -856,6 +867,9 @@ void CX2StateLogin::ReadIDAndPassword()
 					return;
 				else
 				{
+					if( 1 != MessageBox( g_pKTDXApp->GetHWND(), L"자동 로그인 기능 사용하시겠습니까?", L"!", MB_OKCANCEL ) )
+						return;
+
 					g_pInstanceData->SetUserID( wstrID );
 					g_pInstanceData->SetUserPassword( wstrPassword );
 
@@ -871,58 +885,17 @@ void CX2StateLogin::ReadIDAndPassword()
 #endif AUTO_LOGIN_IN_HOUSE
 //}} kimhc // 2010.5.11 // 사내에서 자동 로그인 할 수 있는 기능
 
-
 #ifdef NEW_LOGIN_PROCESS
-
-#ifdef	ADD_SERVER_GROUP
+#ifdef ADD_SERVER_GROUP
 bool CX2StateLogin::OpenScriptServerGroupFile()
 {
+#ifdef SERVER_GROUP_ID_IN_GAME_OPTION
+	return true;
+#endif // SERVER_GROUP_ID_IN_GAME_OPTION
+
 #ifdef EXTEND_SERVER_GROUP_MASK
-#ifdef CLIENT_COUNTRY_US
-	string			strFileName;
-	int				iServerGroupID	= -1;
-	bool			bParsingOK		= false;
-
-	ConvertWCHARToChar( strFileName, g_pData->GetSavedServerGroupFileName() );
-
-	ConvertFileAnsiToUTF8( strFileName, strFileName );
-
-	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( g_pData->GetSavedServerGroupFileName() );
-	if( Info != NULL )
-	{
-		if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-		{
-			if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-			{
-				LUA_GET_VALUE( luaManager, L"SERVER_GROUP", 			iServerGroupID, -1 );
-			}
-		}
-	}
-
-	switch ( iServerGroupID )
-	{
-	case 0:
-	case 1:
-		{
-			g_pInstanceData->SetServerGroupID( iServerGroupID );
-			bParsingOK = true;
-		}
-		break;
-
-	default:
-		{
-			g_pInstanceData->SetServerGroupID( g_pMain->GetDefaultChannelServerIPIndex() );
-		}
-		break;
-
-	}
-#else //CLIENT_COUNTRY_US
 	g_pInstanceData->SetServerGroupID( 0 );
 	bool bParsingOK = true;
-#endif //CLIENT_COUNTRY_US
 #else  EXTEND_SERVER_GROUP_MASK
 	string			strFileName;
 	SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
@@ -934,17 +907,14 @@ bool CX2StateLogin::OpenScriptServerGroupFile()
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( g_pData->GetSavedServerGroupFileName() );
-	if( Info != NULL )
+	if ( g_pKTDXApp->LoadLuaTinker( g_pData->GetSavedServerGroupFileName().c_str() ) == false )
 	{
-		if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-		{
-			if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-			{
-				LUA_GET_VALUE_ENUM( luaManager, L"SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
-			}
-		}
+		ErrorLogMsg( XEM_ERROR9, strFileName.c_str() );
+		return false;
+	}
+	else
+	{
+		LUA_GET_VALUE_ENUM( luaManager, "SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
 	}
 
 	switch ( eServerGroupID )
@@ -956,7 +926,6 @@ bool CX2StateLogin::OpenScriptServerGroupFile()
 			bParsingOK = true;
 		}
 		break;
-
 	default:
 		{
 #ifdef RANDOM_SERVER
@@ -973,12 +942,10 @@ bool CX2StateLogin::OpenScriptServerGroupFile()
 #endif		
 		}
 		break;
-
 	}
 #endif EXTEND_SERVER_GROUP_MASK
 
 	return bParsingOK;
-
 }
 #endif	//ADD_SERVER_GROUP
 
@@ -1006,7 +973,6 @@ bool CX2StateLogin::TryVerifyAccount()
 	}
 #endif // CLIENT_COUNTRY_ID
 
-	
 #ifdef SERVER_GROUP_UI_ADVANCED
 	std::wstring wstrChannelServerIP = g_pMain->GetPickedChannelServer().m_kServerIP;
 	int iChannelServerPort = g_pMain->GetPickedChannelServer().m_usMasterPort;
@@ -1129,7 +1095,6 @@ bool CX2StateLogin::VerifyPublisherAccoutByDirect(OUT std::string& strUserToken)
 		}
 	}
 
-
 	strUserToken = std::string( "userToken=" ) + kNMRunParam.GetParam( "servers", "userToken" ) + "|extraInfo=";
 #endif _SERVICE_
 	return true;
@@ -1146,7 +1111,6 @@ bool CX2StateLogin::Handler_ECH_VERIFY_ACCOUNT_REQ()
 	}
 #endif //CLIENT_DIRECT_CONNECT_AUTH_SERVER
 
-
 	KECH_VERIFY_ACCOUNT_REQ kPacket;
 	kPacket.m_wstrID = g_pInstanceData->GetUserID();
 	kPacket.m_wstrPassword = g_pInstanceData->GetUserPassword();
@@ -1162,7 +1126,6 @@ bool CX2StateLogin::Handler_ECH_VERIFY_ACCOUNT_REQ()
 	kPacket.m_wstrMACAddress = GetMACAddress();
 #endif // SERV_LOGIN_MAC_ADDRESS
 
-
 #ifdef CLIENT_DIRECT_CONNECT_AUTH_SERVER
 	kPacket.m_strUserToken = strUserToken;
 #endif // CLIENT_DIRECT_CONNECT_AUTH_SERVER
@@ -1176,7 +1139,6 @@ bool CX2StateLogin::Handler_ECH_VERIFY_ACCOUNT_REQ()
 	if( CX2Steam::IsValidSteamUser( kPacket.m_wstrPassword ) == false )
 		g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, NULL, NULL, false );
 #endif //SERV_STEAM
-
 
 	g_pData->GetServerProtocol()->SendChPacket( ECH_VERIFY_ACCOUNT_REQ, kPacket );
 	g_pMain->AddServerPacket( ECH_VERIFY_ACCOUNT_ACK );
@@ -1196,11 +1158,12 @@ bool CX2StateLogin::Handler_ECH_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg, WPARAM
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
+#ifndef SERV_SERVER_TIME_GET
 #ifdef SERV_MASSFILE_MAPPING_FUNCTION
 			g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->SetServerCurrentTime( kEvent.m_wstrCurrentTime );
 			g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->MassFileMapping();
 #endif SERV_MASSFILE_MAPPING_FUNCTION
-
+#endif SERV_SERVER_TIME_GET
 #ifdef SERV_KOG_OTP_VERIFY
 			// 메뉴얼 로그인(클라이언트 로그인) 시  최초 성공 부분 (퍼블리셔 인증 성공)
 			if( false == kEvent.m_wstrPassport.empty() )
@@ -1292,6 +1255,10 @@ bool CX2StateLogin::Handler_ECH_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg, WPARAM
 #endif SERV_KOG_OTP_VERIFY		
 
 			StateChangeLoading();
+			
+#if defined(PLAYER_ID_IN_GAME_OPTION) || defined(SERVER_GROUP_ID_IN_GAME_OPTION)
+			g_pMain->GetGameOption().SaveScriptFile();
+#endif // PLAYER_ID_IN_GAME_OPTION || SERVER_GROUP_ID_IN_GAME_OPTION
 		}
 		else
 		{	
@@ -1333,11 +1300,8 @@ bool CX2StateLogin::Handler_ECH_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg, WPARAM
 	}
 
 	return false;
-
 }
 #endif NEW_LOGIN_PROCESS
-
-
 
 #ifdef RULE_AGREEMENT
 void CX2StateLogin::OpenRuleAgreementDlg()
@@ -1394,7 +1358,6 @@ void CX2StateLogin::OpenRuleAgreementDlg()
 	{
 		pListBox->AddItem( (*tok_iter).c_str(), NULL );
 	}
-
 }
 #ifdef NEW_RULE_AGREEMENT
 void CX2StateLogin::OpenNewRuleAgreementDlg()
@@ -1452,6 +1415,48 @@ void CX2StateLogin::OpenNewRuleAgreementDlg()
 #ifdef SERV_PUBLISHER_OTP
 bool CX2StateLogin::Handler_SLUCM_OTP_ON( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
+#ifdef ALWAYS_PUBLISTHER_OPT_TH
+	CKTDGUIEditBox* pIDEditBox = (CKTDGUIEditBox*)m_pDLGLoginBack->GetControl( L"IMELoginID" );
+	if( pIDEditBox != NULL)
+		pIDEditBox->SetPrevTabControlName( L"EditBoxLoginOTP" );
+
+	CKTDGUIEditBox* pPasswordEditBox = (CKTDGUIEditBox*)m_pDLGLoginBack->GetControl( L"EditBoxLoginPassword" );
+	if( pPasswordEditBox != NULL)
+		pPasswordEditBox->SetTabControlName( L"EditBoxLoginOTP" );
+#ifdef LOGIN_KEYBOARD_SECURITY
+	if(m_bKeyBoardUse == true)
+	{
+		if(m_pDLGKeyboard != NULL)
+		{
+			CKTDGUIStatic* pStaticKeyboard = (CKTDGUIStatic*)m_pDLGKeyboard->GetControl(L"g_pStaticKeyboard");	
+			ASSERT(pStaticKeyboard);
+			CKTDGUIControl::CPictureData* pPicture = (CKTDGUIControl::CPictureData*)pStaticKeyboard->GetPictureIndex(1);
+			ASSERT(pPicture);
+			pPicture->SetShow(false);
+
+			CKTDGUIEditBox* pOTPEditBox	= (CKTDGUIEditBox*)m_pDLGKeyboard->GetControl( L"EditBoxLoginOTP" );
+			pOTPEditBox->ClearText();
+			pOTPEditBox->SetEnable(true);
+		}
+	}
+	else
+#else //LOGIN_KEYBOARD_SECURITY
+	{
+		/*
+		CKTDGUIStatic* pStaticLogin = (CKTDGUIStatic*)m_pDLGLoginBack->GetControl(L"StaticLogin");
+		ASSERT(pStaticLogin);
+		CKTDGUIControl::CPictureData* pPicture = (CKTDGUIControl::CPictureData*)pStaticLogin->GetPictureIndex(1);
+		ASSERT(pPicture);
+		pPicture->SetShow(false);
+
+		CKTDGUIEditBox* pOTPEditBox	= (CKTDGUIEditBox*)m_pDLGLoginBack->GetControl( L"EditBoxLoginOTP" );
+		pOTPEditBox->ClearText();
+		pOTPEditBox->SetText(L"");
+		pOTPEditBox->SetEnable(true);
+		*/
+	}
+#endif LOGIN_KEYBOARD_SECURITY
+#else
 	if(m_bKeyBoardUse == true)
 	{
 		if(m_pDLGKeyboard != NULL)
@@ -1474,7 +1479,6 @@ bool CX2StateLogin::Handler_SLUCM_OTP_ON( HWND hWnd, UINT uMsg, WPARAM wParam, L
 			pOTPEditBox->ClearText();
 			pOTPEditBox->SetEnable(true);
 		}
-		
 	}
 	else
 	{
@@ -1496,13 +1500,15 @@ bool CX2StateLogin::Handler_SLUCM_OTP_ON( HWND hWnd, UINT uMsg, WPARAM wParam, L
 		pOTPEditBox->ClearText();
 		pOTPEditBox->SetEnable(true);
 	}
+#endif ALWAYS_PUBLISTHER_OPT_TH
 
-	return false;
-	
+	return false;	
 }
 
 bool CX2StateLogin::Handler_SLUCM_OTP_OFF( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
+#ifdef ALWAYS_PUBLISTHER_OPT_TH
+#else
 	CKTDGUIEditBox* pIDEditBox = (CKTDGUIEditBox*)m_pDLGLoginBack->GetControl( L"IMELoginID" );
 	if( pIDEditBox != NULL)
 		pIDEditBox->SetPrevTabControlName( L"EditBoxLoginPassword" );
@@ -1541,7 +1547,7 @@ bool CX2StateLogin::Handler_SLUCM_OTP_OFF( HWND hWnd, UINT uMsg, WPARAM wParam, 
 		}
 		
 	}
-	
+#endif ALWAYS_PUBLISTHER_OPT_TH	
 
 	return false;
 }
@@ -1574,7 +1580,7 @@ void CX2StateLogin::CreateMatrixPopup()
 	}
 
 	m_bRotate = true;
-};
+}
 
 void CX2StateLogin::ResetMatrix(const std::wstring& wstrCoordinate)
 {
@@ -1835,6 +1841,10 @@ bool CX2StateLogin::SaveID()
 	if(wstrID.empty())
 		return false;
 
+#ifdef PLAYER_ID_IN_GAME_OPTION
+	g_pMain->GetGameOption().GetOptionList().m_wstrSavedLoginID = wstrID;
+#else // PLAYER_ID_IN_GAME_OPTION
+
 	const wstring strFileName = L"PlayerID.lua";
 
 	FILE* file = NULL;
@@ -1855,12 +1865,29 @@ bool CX2StateLogin::SaveID()
 #endif	USE_ACCOUNT_DOMAIN
 
 	fclose(file);
+#endif // PLAYER_ID_IN_GAME_OPTION
 	return true;
-
 }
 
 bool CX2StateLogin::LoadID()
 {
+#ifdef PLAYER_ID_IN_GAME_OPTION
+	if( L"" != g_pMain->GetGameOption().GetOptionList().m_wstrSavedLoginID && m_pDLGLoginBack != NULL)
+	{
+		CKTDGUIIMEEditBox* pIDEditBox = (CKTDGUIIMEEditBox*)m_pDLGLoginBack->GetControl( L"IMELoginID" );
+		if(pIDEditBox == NULL)
+			return false;
+		pIDEditBox->SetText( g_pMain->GetGameOption().GetOptionList().m_wstrSavedLoginID.c_str() );
+
+		CKTDGUICheckBox* pCheckBox = (CKTDGUICheckBox*)m_pDLGLoginBack->GetControl( L"CheckBoxRememberID" );
+		if(pCheckBox != NULL)
+		{
+			pCheckBox->SetChecked( true );
+		}
+
+		return true;
+	}
+#else // PLAYER_ID_IN_GAME_OPTION
 	const WCHAR pFileName[256] = L"PlayerID.lua";			// X2/dat 폴더에 있는 default script
 	// gameoptions.lua 파일을 읽어서 UTF-8 포맷이 아니면 변환한다
 	ConvertFileAnsiToUTF8( "GameOptions.lua", "GameOptions.lua" );
@@ -1872,13 +1899,17 @@ bool CX2StateLogin::LoadID()
 	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
 	if( Info != NULL )
 	{
-		if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName, false ) )
+		if( false == g_pKTDXApp->LoadLuaTinker( pFileName, false ) )
+		{
 			bDoneParsingUserGameOptionFile = false;
+		}
 
 		if( true == bDoneParsingUserGameOptionFile )
 		{
-			if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, pFileName, false ) )
+			if( false == g_pKTDXApp->LoadAndDoMemory( &kLuamanager, pFileName ) )
+			{
 				bDoneParsingUserGameOptionFile = false;
+			}
 		}
 	}
 	else
@@ -1888,10 +1919,15 @@ bool CX2StateLogin::LoadID()
 
 	if( false == bDoneParsingUserGameOptionFile )
 	{
-		if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName ) )
+		if( false == g_pKTDXApp->LoadLuaTinker( pFileName ) )
+		{
 			return false;
-		if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, pFileName  ) )
+		}
+
+		if( false == g_pKTDXApp->LoadAndDoMemory( &kLuamanager, pFileName  ) )
+		{
 			return false;
+		}
 	}
 
 	wstring wstrID;
@@ -1938,6 +1974,7 @@ bool CX2StateLogin::LoadID()
 		return true;
 	}
 	return false;
+#endif // PLAYER_ID_IN_GAME_OPTION
 
 }
 
@@ -2209,7 +2246,7 @@ std::wstring CX2StateLogin::GetStrMemberJoinWeb()
 }
 #endif MEMBER_JOIN_FROM_WEB
 //}}
-#ifdef	USE_ACCOUNT_DOMAIN
+#ifdef USE_ACCOUNT_DOMAIN
 bool CX2StateLogin::Handler_SLUCM_DOMAIN_TYPE_PLAYID( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	CKTDGUIRadioButton* pRadio = (CKTDGUIRadioButton*)lParam;
@@ -2233,4 +2270,4 @@ bool CX2StateLogin::Handler_SLUCM_DOMAIN_TYPE_TCG( HWND hWnd, UINT uMsg, WPARAM 
 
 	return true;
 }
-#endif	USE_ACCOUNT_DOMAIN
+#endif USE_ACCOUNT_DOMAIN

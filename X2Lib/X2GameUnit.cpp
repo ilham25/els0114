@@ -18,20 +18,20 @@ m_fNoSkillTime( 0 )
 #ifdef UNIT_SLASH_TRACE_MANAGER_TEST
 , m_pUnitSlashTraceManager( NULL )
 #endif UNIT_SLASH_TRACE_MANAGER_TEST
-#ifdef HEAD_INVERSE_KINEMATICS_TEST
-, m_bEnableHeadIK( false )
-, m_fHeadIKAngleChangeRate( 0.f )
-, m_fHeadIKAngleMax( 0.f )
-, m_fHeadIKAngle( 0.f )
-, m_fHeadIKRadius( 0.f )
-#endif HEAD_INVERSE_KINEMATICS_TEST
-#ifdef STEP_ON_MONSTER_TEST
-, m_bCanBeSteppedOn( false )
-#endif STEP_ON_MONSTER_TEST
+//#ifdef HEAD_INVERSE_KINEMATICS_TEST
+//, m_bEnableHeadIK( false )
+//, m_fHeadIKAngleChangeRate( 0.f )
+//, m_fHeadIKAngleMax( 0.f )
+//, m_fHeadIKAngle( 0.f )
+//, m_fHeadIKRadius( 0.f )
+//#endif HEAD_INVERSE_KINEMATICS_TEST
+//#ifdef STEP_ON_MONSTER_TEST
+//, m_bCanBeSteppedOn( false )
+//#endif STEP_ON_MONSTER_TEST
 
-#ifdef STEP_ON_MONSTER_COLLISION_BOX_TEST
-, m_bCanBeSteppedOnCollsionBox( false )
-#endif STEP_ON_MONSTER_COLLISION_BOX_TEST
+//#ifdef STEP_ON_MONSTER_COLLISION_BOX_TEST
+//, m_bCanBeSteppedOnCollsionBox( false )
+//#endif STEP_ON_MONSTER_COLLISION_BOX_TEST
 
 //#ifdef HEAD_ATTACHED_CAMERA_TEST
 //, m_vBoneAttachedCameraOffset( 0, 0, 0)
@@ -59,7 +59,7 @@ m_fNoSkillTime( 0 )
 
 #ifdef REVERSE_GRAVITY_TEST
 , m_fReverseGravitySpeedDeltaY( 0.f )
-, m_vReverseGravityRotateSpeedDelta( D3DXVECTOR3(0.f, 0.f, 0.f) ) // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.6.29]
+, m_vReverseGravityRotateSpeedDelta( D3DXVECTOR3(0.f, 0.f, 0.f) ) // oasis907 : ±è»óÀ± [2011.6.29]
 #endif REVERSE_GRAVITY_TEST
 
 #ifdef BOUNDING_COMBO_TEST
@@ -71,18 +71,20 @@ m_fNoSkillTime( 0 )
 , m_vTransScale( m_vBasicScale )
 , m_vOrgUnitSize( 1.0f, 1.0f )
 
-#ifdef TRANSFORMER_TEST
-, m_bIsTransformed( false )
-, m_TransformerOwnerUID( -1 )
-#endif TRANSFORMER_TEST
+//#ifdef TRANSFORMER_TEST
+//, m_bIsTransformed( false )
+//, m_TransformerOwnerUID( -1 )
+//#endif TRANSFORMER_TEST
 //{{ kimhc // 2010.2.17 //
 #ifdef	APPLY_MOTION_OFFSET
 , m_bApplyMotionOffset( true )
 #endif	APPLY_MOTION_OFFSET
 //}} kimhc // 2010.2.17 //
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #ifdef SKILL_BALANCE_PATCH
 , m_bCanPassUnit( false )
 #endif
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #ifdef SERV_SKILL_NOTE
 , m_fRevengeDefenceTime(0.f)
 , m_fEnduranceAttackTime(0.f)
@@ -91,39 +93,37 @@ m_fNoSkillTime( 0 )
 //, m_fRemainHyperModeTime(  0.0f )
 #endif
 
-//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/11/29
+//{{ JHKang / °­Á¤ÈÆ / 2010/11/29
 #ifdef NEW_SKILL_2010_11
 , m_fAtomicShieldDamageRate ( 1.0f )
 #endif NEW_SKILL_2010_11
-//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/11/29
-#ifdef UNDERWATER_LINEMAP
+//}} JHKang / °­Á¤ÈÆ / 2010/11/29
 , m_bCheckChangeUnderWater(false)
 , m_bUnderWaterHead(false) 
 , m_bChangeUnderWater(false)
 , m_bForceChagneColor(false)
 , m_cLineUnitColor( D3DXCOLOR(0.f, 0.f, 0.f, 0.f) )
-#endif
-//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/13
+//{{ JHKang / °­Á¤ÈÆ / 2011/01/13
 #ifdef SEASON3_MONSTER_2010_12
 , m_BasicRenderType( CKTDGXRenderer::RT_CARTOON_BLACK_EDGE )
 #endif SEASON3_MONSTER_2010_12
-//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/13
-#ifdef APAPPLY_EFFECTSCALE_BY_NPC
+//}} JHKang / °­Á¤ÈÆ / 2011/01/13
 , m_bScaleEffectSetByNpc( false )
-#endif
-//{{ kimhc // 2011.1.21 // Ã» 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+//{{ kimhc // 2011.1.21 // Ã» 1Â÷ ÀüÁ÷
 #ifdef	CHUNG_FIRST_CLASS_CHANGE
-, m_eHittedTypeAtState( CX2DamageManager::HTD_NO_SOUND )	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ HittedType ï¿½ï¿½ï¿½ï¿½
+, m_eHittedTypeAtState( CX2DamageManager::HTD_NO_SOUND )	// ½ºÅ×ÀÌÆ® º° HittedType ÁöÁ¤
 #endif	CHUNG_FIRST_CLASS_CHANGE
-//}} kimhc // 2011.1.21 // Ã» 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2011.1.21 // Ã» 1Â÷ ÀüÁ÷
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #ifdef BALANCE_PATCH_20110303
 , m_fMaxDownForce(-9999.f)
 #endif
-//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» ï¿½Þ¸ï¿½ ï¿½ï¿½å¼¦
+//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» ¸Þ¸ð Çìµå¼¦
 #ifdef	CHUNG_MEMO_01				
-, m_bHittedExtraDamageHeadShot( false )	// ï¿½ï¿½å¼¦ ExtraDamageï¿½ï¿½ ï¿½ï¿½ï¿½ß´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ö´ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½
+, m_bHittedExtraDamageHeadShot( false )	// Çìµå¼¦ ExtraDamage¿¡ ´çÇß´ÂÁö¸¦ ¾Ë·ÁÁÖ´Â ÇÃ·¡±×
 #endif	CHUNG_MEMO_01				
-//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» ï¿½Þ¸ï¿½ ï¿½ï¿½å¼¦
+//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» ¸Þ¸ð Çìµå¼¦
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 , m_fAntiCriticalRate( 0.f )
 , m_bEnableWeaponRenderEffect( false )
@@ -150,9 +150,6 @@ m_fNoSkillTime( 0 )
 , m_pGageUI( NULL )
 , m_pGageData( NULL )
 , m_iDieCount(0)
-#ifdef ADDITIONAL_MEMO
-, m_iMemoId( 0 )
-#endif
 , m_pFrame_Bip01( NULL )
 , m_pFrame_Bip01_Head( NULL )
 , m_pFrame_Bip01_R_Foot( NULL )
@@ -161,10 +158,10 @@ m_fNoSkillTime( 0 )
 , m_pFrame_Bip01_L_UpperArm( NULL )
 
 , m_fForceHyperModeTime( 0.0f )
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-, m_dwFrameMoveCountNow( 0 )
-, m_dwFrameMoveCountFuture( 0 )
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//, m_dwFrameMoveCountNow( 0 )
+//, m_dwFrameMoveCountFuture( 0 )
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 , m_ucHittedCount( 0 )
 , m_ucHitCount( 0 )
 , m_ucNumOfDeBuff( 0 )
@@ -177,18 +174,29 @@ m_fNoSkillTime( 0 )
 , m_fHitCreateDamageEffectPowerRate(1.f)
 #endif
 #ifdef SERV_RENA_NIGHT_WATCHER
-, m_hSeqEnchant_ArrowOfExplosion( INVALID_PARTICLE_HANDLE )			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ ï¿½Úµï¿½
-, m_hStartOfDelayedFiringOverlap( INVALID_PARTICLE_HANDLE )			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åº ï¿½ï¿½Ã¸ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½
-, m_hActiveStartOfDelayedFiringEDT( CX2EffectSet::INVALID_HANDLE )	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åº ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+, m_hSeqEnchant_ArrowOfExplosion( INVALID_PARTICLE_SEQUENCE_HANDLE )			/// Æø¹ßÀÇ È­»ì ÀÌ¸ðÆ¼ÄÜ ÇÚµé
+, m_hStartOfDelayedFiringOverlap( INVALID_PARTICLE_SEQUENCE_HANDLE )			/// Áö¿¬ÀÇ ½ÅÈ£Åº ÁßÃ¸¼ö Ãâ·Â ÀÌ¸ðÆ¼ÄÜ
+, m_hActiveStartOfDelayedFiringEDT( INVALID_EFFECTSET_HANDLE )	/// Áö¿¬ÀÇ ½ÅÈ£Åº Àû¿ëÁß È®ÀÎ ÀÌÆåÆ®
 #endif SERV_RENA_NIGHT_WATCHER
 #ifdef SERV_CHUNG_TACTICAL_TROOPER
-, m_fTacticalFieldDecreaseDamageValue( 1.f )						/// ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½Êµå¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÒµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
+, m_fTacticalFieldDecreaseDamageValue( 1.f )						/// ÅÃÆ¼ÄÃ ÇÊµå¿¡ ÀÇÇØ °¨¼ÒµÇ´Â µ¥¹ÌÁö ¼öÄ¡
 #endif SERV_CHUNG_TACTICAL_TROOPER
 , m_fRunJumpSpeedRate( 1.0f )
 #ifdef RIDING_SYSTEM
 , m_bPassDash( false )
 #endif //RIDING_SYSTEM
+#ifndef X2OPTIMIZE_NPC_NONHOST_SIMULATION
 , m_fCommonDamageChangeTime ( -1.f )
+#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
+#ifdef MODIFY_DUNGEON_STAGING
+, m_bCanNotInput( false )
+#endif //MODIFY_DUNGEON_STAGING
+//{{ robobeg : 2013-11-04
+, m_Stat()
+//}} robobeg : 2013-11-04
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+, m_fFlickerElapsedTime( 0.f )
+#endif //SERV_ADD_LUNATIC_PSYKER
 {
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
     m_bPositionBackup = false;
@@ -201,9 +209,9 @@ m_fNoSkillTime( 0 )
 	
 	m_UnitIndex					= unitIndex;
 	m_TeamNum					= teamNum;
-#ifdef PVP_BOSS_COMBAT_TEST
-	m_TeamNumOriginal			= teamNum;
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//	m_TeamNumOriginal			= teamNum;
+//#endif PVP_BOSS_COMBAT_TEST
 
 #ifdef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 	if ( pScriptFileName != NULL && pScriptFileName[0] != NULL )
@@ -223,26 +231,26 @@ m_fNoSkillTime( 0 )
 
 	
 
-	m_hHyperBoostRFoot			= INVALID_PARTICLE_HANDLE;
-	m_hHyperBoostLFoot			= INVALID_PARTICLE_HANDLE;
-	m_hHyperBoostRArm			= INVALID_PARTICLE_HANDLE;
-	m_hHyperBoostLArm			= INVALID_PARTICLE_HANDLE;
+	m_hHyperBoostRFoot			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hHyperBoostLFoot			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hHyperBoostRArm			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hHyperBoostLArm			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hQuestionMark				= INVALID_PARTICLE_HANDLE;
-	m_hExclamationMark			= INVALID_PARTICLE_HANDLE;
+	m_hQuestionMark				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hExclamationMark			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 
 	m_bInvisibility				= false;
 	m_bAbsoluteInvisibility		= false;
 
-	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+	//À¯´Ö ÄÄÆ÷³ÍÆ®
 	m_pUnitShadow				= NULL;
 	m_fRevengeAddDamage			= 0.0f;
 	m_DamageReducePercent		= 0;
     m_DamageGuardPercent        = 0;
 
 	m_pComboManager				= new CX2ComboManager(1.3f);
-	m_pStat						= new CX2Stat();
+	//m_pStat						= new CX2Stat();
 
 	m_DamageLightTime			= 0.0f;
 	m_bAttackedByUserUnit		= true;
@@ -278,105 +286,102 @@ m_fNoSkillTime( 0 )
 
 	m_fGroggyTime					= 0.0f;
 
-#ifdef EXTRA_BIGHEAD
 	m_fExtraBigHead				= 0.f;
-#endif
 
 	m_fScale					= 1.0f;
 	m_bUseWorldColor			= true;
 
-	m_hSeqPoisonBody				= INVALID_PARTICLE_HANDLE;
-	m_hSeqFireBody1					= INVALID_PARTICLE_HANDLE;
-	m_hSeqFireBody2					= INVALID_PARTICLE_HANDLE;
-	m_hSeqCurseBody					= INVALID_PARTICLE_HANDLE;
-	m_hSeqSlowBodyRight				= INVALID_PARTICLE_HANDLE;
-	m_hSeqSlowBodyLeft				= INVALID_PARTICLE_HANDLE;
-	m_hSeqCold1						= INVALID_PARTICLE_HANDLE;
-	m_hSeqCold2						= INVALID_PARTICLE_HANDLE;
-	m_hSeqCold1_Right				= INVALID_PARTICLE_HANDLE;
-	m_hSeqCold2_Right				= INVALID_PARTICLE_HANDLE;
-	m_hSeqCold_Head					= INVALID_PARTICLE_HANDLE;
+	m_hSeqPoisonBody				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqFireBody1					= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqFireBody2					= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqCurseBody					= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqSlowBodyRight				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqSlowBodyLeft				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqCold1						= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqCold2						= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqCold1_Right				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqCold2_Right				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqCold_Head					= INVALID_PARTICLE_SEQUENCE_HANDLE;
 	
-	m_hSeqPepperBody1				= INVALID_PARTICLE_HANDLE;
-	m_hSeqPepperBody2				= INVALID_PARTICLE_HANDLE;
+	m_hSeqPepperBody1				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqPepperBody2				= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hSeqStun						= INVALID_PARTICLE_HANDLE;
+	m_hSeqStun						= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hSeqHPUp						= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPUp						= INVALID_PARTICLE_HANDLE;
+	m_hSeqHPUp						= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPUp						= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	
-	m_hSeqEnchant_Stun				= INVALID_PARTICLE_HANDLE;
-	m_hSeqEnchant_Exclamation		= INVALID_PARTICLE_HANDLE;
-	m_hSeqEnchant_Exclamation2		= INVALID_PARTICLE_HANDLE;
-	m_hSeqEnchant_Exclamation3		= INVALID_PARTICLE_HANDLE;
-	m_hSeqEnchant_Blaze_Second		= INVALID_PARTICLE_HANDLE;
-	m_hSeqEnchant_Frozen_Second		= INVALID_PARTICLE_HANDLE;
-	m_hSeqEnchant_Poison_Second		= INVALID_PARTICLE_HANDLE;
-	m_hSeqEnchant_Stun_Second		= INVALID_PARTICLE_HANDLE;
+	m_hSeqEnchant_Stun				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEnchant_Exclamation		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEnchant_Exclamation2		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEnchant_Exclamation3		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEnchant_Blaze_Second		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEnchant_Frozen_Second		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEnchant_Poison_Second		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEnchant_Stun_Second		= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 
 
 
 
 
-	m_hSeqBleeding		= INVALID_PARTICLE_HANDLE;
-	m_hSeqSkeletonHead	= INVALID_PARTICLE_HANDLE;
-	m_hSeqStunAbnormality = INVALID_PARTICLE_HANDLE;
+	m_hSeqBleeding		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqSkeletonHead	= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqStunAbnormality = INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 
-	m_hSeqAging			= INVALID_PARTICLE_HANDLE;
+	m_hSeqAging			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hStigma = INVALID_PARTICLE_HANDLE;
+	m_hStigma = INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 #ifdef SERV_SKILL_NOTE
-	m_hRevengeDefence = INVALID_PARTICLE_HANDLE;
-	m_hPoisonDeBuff = INVALID_PARTICLE_HANDLE;
+	m_hRevengeDefence = INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hPoisonDeBuff = INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif
 
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
-	m_hSeqBlind			= INVALID_PARTICLE_HANDLE;
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
+	m_hSeqBlind			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif NEW_SKILL_2010_11
 
 #ifdef EDT_WATER_HOLD_TEST
-	m_hSeqWaterHold1			= INVALID_PARTICLE_HANDLE;
-	m_hSeqWaterHold2			= INVALID_PARTICLE_HANDLE;
+	m_hSeqWaterHold1			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqWaterHold2			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif EDT_WATER_HOLD_TEST
 
-	//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
-	m_hSeqPanic					= INVALID_PARTICLE_HANDLE;
+	m_hSeqPanic					= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
-	//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-	m_hSeqLegShot				= INVALID_PARTICLE_HANDLE;
+	m_hSeqLegShot				= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif
 #ifdef HAMEL_NEW_SETOPTION_EXTRADAMAGE
-	m_hSeqEarthQuakeLeft		= INVALID_PARTICLE_HANDLE;
-	m_hSeqEarthQuakeRight		= INVALID_PARTICLE_HANDLE;
+	m_hSeqEarthQuakeLeft		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqEarthQuakeRight		= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif HAMEL_NEW_SETOPTION_EXTRADAMAGE
 
-	m_hEffSetStateAbnormalityFrozen = CX2EffectSet::INVALID_HANDLE;
+	m_hEffSetStateAbnormalityFrozen = INVALID_EFFECTSET_HANDLE;
 
 #ifdef RAVEN_WEAPON_TAKER
-	m_hSeqSmokeBlind			= INVALID_PARTICLE_HANDLE;
+	m_hSeqSmokeBlind			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif RAVEN_WEAPON_TAKER
 
-	m_hEffSetDryad			= CX2EffectSet::INVALID_HANDLE;
+	m_hEffSetDryad			= INVALID_EFFECTSET_HANDLE;
 
 
 	m_eWeaponEnchantExtraDamageType = CX2DamageManager::EDT_NONE;
 
 
 	m_bIgnoreLineSpeed			= false;
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_bDisableGravity			= false;
 	m_bDisableGravityInScript	= false;
 	m_vDisableGravityInScriptTime = D3DXVECTOR2( 0, 0 );
-
 	m_vIgnoreLineTime = D3DXVECTOR2( 0, 0 );
-
-
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	for( int i=0; i<ARRAY_SIZE(m_hMajorMeshPlayerList); ++i )
 	{
@@ -388,9 +393,7 @@ m_fNoSkillTime( 0 )
 		m_hMinorMeshPlayerList[i] = INVALID_MESH_INSTANCE_HANDLE;
 	}
 
-#ifdef FIX_BONE_SCALE
 	m_fBasicBoneScale			= 1.f;
-#endif
 
 	m_fTimeDirectToReturnBasicScale	 = 0.0f;
 	m_fTimeToReturnBasicScale = 0.0f;
@@ -413,23 +416,36 @@ m_fNoSkillTime( 0 )
 	m_vFixedUnitPosition = D3DXVECTOR3( 0, 0, 0 );
 
 
-#ifdef LINEMAP_FAST_WIND_TEST
-	m_bEnableUpsideWind	= true;
-	m_bWaitInTheAir		= false;
-	m_fTimeInTheAir		= 0.f;
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	m_bEnableUpsideWind	= true;
+//	m_bWaitInTheAir		= false;
+//	m_fTimeInTheAir		= 0.f;
+//#endif LINEMAP_FAST_WIND_TEST
 	
+#ifndef  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	m_bDoubleAttack = false;
+#endif  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	m_wstrHitSound = L"";
 	m_fFinalDamage = 0.f;
 	m_fDoubleAttackTime = 0.f;	
 
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_bDeleteEffectSetOnStateEnd = false;
 	m_bDeleteEffectSetOnDamageReact = false;
 	m_bDeleteEffectSetOnDie = false;
-
 	m_bHyperEffectSet = false;
 	m_fEffectSetLifeTime = 0.f;
+#ifdef ADDITIONAL_MEMO
+    m_iMemoId = 0;
+
+	m_bIsCustomStateDeleteEffectOnDamageReact = false;
+#endif // CUSTOM_DELETE_EFFECT_ON_DAMAGE_REACT
+
+#ifdef DELETE_EFFECTSET_ON_CUSTOM_STATE
+	m_bDeleteEffectSetOnCustomState = false;
+#endif
+
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	InitEnableDash();
 	m_bEntangled = false;
@@ -451,14 +467,14 @@ m_fNoSkillTime( 0 )
 
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.6.20] Ã» 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½È¶ï¿½ï¿½
+	// oasis907 : ±è»óÀ± [2011.6.20] Ã» 2Â÷ ÀüÁ÷ - ¾ÆÀÌ¾ð ÆÈ¶óµò
 	m_ExtraDamagePack.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
 
 
-	//{{ kimhc // 2010.4.6 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½)
+	//{{ kimhc // 2010.4.6 // ºñ¹Ð´øÀü ÀÛ¾÷(¼ÂÆ®¾ÆÀÌÅÛÈ¿°ú)
 #ifdef SERV_SECRET_HELL
-	// ï¿½ï¿½ï¿½ß¿ï¿½ ExtraDamagePackï¿½ï¿½ mapï¿½ï¿½ï¿½ï¿½ ï¿½Ù²Ü¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½!! ï¿½Ù²ï¿½ï¿½ï¿½ï¿½
+	// ³ªÁß¿¡ ExtraDamagePackÀ» mapÀ¸·Î ¹Ù²Ü¶§ °°ÀÌ ²À!! ¹Ù²ã¾ßÇÔ
 	for( int i = 0; i < NUM_OF_EXTRA_DAMAGE_PACK_MEMBER; ++i )
 		m_pExtraDamageDataList[i] = 0;
 
@@ -470,7 +486,7 @@ m_fNoSkillTime( 0 )
 	m_pExtraDamageDataList[15] = &m_ExtraDamagePack.m_Stun;				  m_pExtraDamageDataList[16] = &m_ExtraDamagePack.m_Aging;			m_pExtraDamageDataList[17] = &m_ExtraDamagePack.m_EnchantBlaze;
 	m_pExtraDamageDataList[18] = &m_ExtraDamagePack.m_EnchantFrozen;	  m_pExtraDamageDataList[19] = &m_ExtraDamagePack.m_EnchantPoison;	m_pExtraDamageDataList[20] = &m_ExtraDamagePack.m_EnchantShock;
 	m_pExtraDamageDataList[21] = &m_ExtraDamagePack.m_MagicDefenceDebuff; m_pExtraDamageDataList[22] = &m_ExtraDamagePack.m_StigmaDebuff;	m_pExtraDamageDataList[23] = &m_ExtraDamagePack.m_Dryad;
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 	m_pExtraDamageDataList[24] = &m_ExtraDamagePack.m_Blind;
 #endif NEW_SKILL_2010_11
 
@@ -478,12 +494,12 @@ m_fNoSkillTime( 0 )
 	m_pExtraDamageDataList[25] = &m_ExtraDamagePack.m_WaterHold;
 #endif EDT_WATER_HOLD_TEST
 
-	//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 	m_pExtraDamageDataList[26] = &m_ExtraDamagePack.m_Panic;
 	m_pExtraDamageDataList[27] = &m_ExtraDamagePack.m_Pain;
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
-	//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 	m_pExtraDamageDataList[28] = &m_ExtraDamagePack.m_LegShot;
@@ -508,7 +524,7 @@ m_fNoSkillTime( 0 )
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
 #endif SERV_SECRET_HELL
-	//}} kimhc // 2010.4.6 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½)
+	//}} kimhc // 2010.4.6 // ºñ¹Ð´øÀü ÀÛ¾÷(¼ÂÆ®¾ÆÀÌÅÛÈ¿°ú)
 
 
 #ifdef SERV_PVP_NEW_SYSTEM
@@ -517,7 +533,7 @@ m_fNoSkillTime( 0 )
 
 #ifdef NEW_HENIR_TEST
 
-#ifndef ADD_HENIR_BUFF		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¸é¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifndef ADD_HENIR_BUFF		/// ¹öÇÁ·Î º¯°æµÇ¸é¼­ ¾²ÀÌÁö ¾Ê°Ô µÈ ±¸¹®
 	m_fTimeHenirBuff_Fire		= 0.f;
 	m_fTimeHenirBuff_Water		= 0.f;
 	m_fTimeHenirBuff_Nature		= 0.f;
@@ -536,21 +552,21 @@ m_fNoSkillTime( 0 )
 #ifdef SERV_SECRET_HELL
 	m_StatUpType = CX2SocketItem::SUT_NONE;
 #endif
-#ifdef DELETE_EFFECTSET_ON_CUSTOM_STATE
-	m_bDeleteEffectSetOnCustomState = false;
-#endif
-#ifdef APPLY_EFFECTSCALE_BY_NPC
+
 	m_bScaleEffectSetByNpc = false;
-#endif
 #ifdef SPECIAL_USE_ITEM
 	m_fSpecialItemBuff_Wind = 0.f;
 #endif
+
+#ifdef SERV_DROP_FOR_FINISHER_ONLY
+	m_iFinisherUID = 0;
+#endif SERV_DROP_FOR_FINISHER_ONLY
 }
 
 CX2GameUnit::~CX2GameUnit(void)
 {
 
-	//FinishAndClearAllBuff();	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//FinishAndClearAllBuff();	/// ¹öÇÁ Á¾·á ¹× »èÁ¦
 
 #ifdef UNIT_SLASH_TRACE_MANAGER_TEST
 	if( NULL != m_pUnitSlashTraceManager )
@@ -593,7 +609,7 @@ CX2GameUnit::~CX2GameUnit(void)
 	m_HitUnitList.clear();
 
 	SAFE_DELETE( m_pComboManager );
-	SAFE_DELETE( m_pStat );
+	//SAFE_DELETE( m_pStat );
 	m_DamagedMap.clear();
 
 
@@ -603,7 +619,7 @@ CX2GameUnit::~CX2GameUnit(void)
 	{
 		if( m_hMajorMeshPlayerList[i] != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMajorMeshPlayerList[i] );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMajorMeshPlayerList[i] );
 		}
 		m_hMajorMeshPlayerList[i] = INVALID_MESH_INSTANCE_HANDLE;
 	}
@@ -612,19 +628,20 @@ CX2GameUnit::~CX2GameUnit(void)
 	{
 		if( m_hMinorMeshPlayerList[i] != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			g_pX2Game->GetMinorXMeshPlayer()->DestroyInstance( m_hMinorMeshPlayerList[i] );
+			g_pX2Game->GetMinorXMeshPlayer()->DestroyInstanceHandle( m_hMinorMeshPlayerList[i] );
 		}
 		m_hMinorMeshPlayerList[i] = INVALID_MESH_INSTANCE_HANDLE;
 	}
 
 
-
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	for( int i =0; i < (int)m_ParticleEffData.size(); ++i )
 	{
 		ParticleEffectData* pParticleEffectData = m_ParticleEffData[i];
 		SAFE_DELETE( pParticleEffectData );
 	}
 	m_ParticleEffData.clear();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 #ifdef DAMAGE_HISTORY
 	SAFE_DELETE( m_fDamageHistory );
@@ -633,14 +650,14 @@ CX2GameUnit::~CX2GameUnit(void)
 #ifdef SERV_RENA_NIGHT_WATCHER
 	ClearStartOfDelayedFiringData();
 
-	g_pX2Game->GetEffectSet()->StopEffectSet( m_hActiveStartOfDelayedFiringEDT );	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åº ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	g_pX2Game->GetEffectSet()->StopEffectSet( m_hActiveStartOfDelayedFiringEDT );	/// Áö¿¬ÀÇ ½ÅÈ£Åº Àû¿ëÁß È®ÀÎ ÀÌÆåÆ®
 #endif SERV_RENA_NIGHT_WATCHER
 
 	SAFE_DELETE( m_pGageData );
 	SAFE_DELETE( m_pGageUI );
 	SAFE_DELETE_KTDGOBJECT( m_pAfterImage );
 
-#ifdef DAMAGE_EFFECT_GROUP_DAMAGE		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef DAMAGE_EFFECT_GROUP_DAMAGE		/// µ¥¹ÌÁö ±×·ì µ¥ÀÌÅÍ ÇØÁ¦
 	m_vecDamageEffectGroupDataPtr.resize(0);
 #endif DAMAGE_EFFECT_GROUP_DAMAGE
 }
@@ -666,7 +683,7 @@ void CX2GameUnit::ReInit( bool bUseTeamPos, int startPosIndex )
 #endif DEEP_WATER_DUNGEON_TEST
 
 	
-	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+	//À¯´Ö ÄÄÆ÷³ÍÆ®
 	m_DamageData.Init();
 	m_DamageData.m_SocketExtraDamage	= m_SocketData.m_SocketExtraDamage;
 	m_DamageData.m_MultipleExtraDamage	= m_SocketData.m_MultipleSocketExtraDamage;
@@ -705,16 +722,20 @@ void CX2GameUnit::ReInit( bool bUseTeamPos, int startPosIndex )
 	if( m_LuaManager.BeginTable( "INIT_SYSTEM" ) == true )
 	{
 		LUA_GET_VALUE_ENUM( m_LuaManager, "RENDER_PARAM", m_stOriginBuffRenderParam.m_eRenderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_CARTOON_BLACK_EDGE );
+#ifdef UNIT_SCALE_COMBINE_ONE		// ÇØ¿ÜÆÀ ¿À·ù ¼öÁ¤
+		m_stOriginBuffRenderParam.m_fOutLineWide	= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 		m_stOriginBuffRenderParam.m_fOutLineWide	= 1.7f;
+#endif //UNIT_SCALE_COMBINE_ONE
 
 		if( g_pX2Game->GetWorld() != NULL )
 			m_RenderParam.lightPos	= g_pX2Game->GetWorld()->GetLightPos();
 
-		//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/13 / ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+		//{{ JHKang / °­Á¤ÈÆ / 2011/01/13 / ÀüÃ¼ ·»´õ Å¸ÀÔ º¯°æ È®ÀÎ(À¯ÁöÇÒ ·»´õ Å¸ÀÔÀÌ ÁöÁ¤)
 #ifdef SEASON3_MONSTER_2010_12
 		m_BasicRenderType = m_RenderParam.renderType;
 #endif SEASON3_MONSTER_2010_12
-		//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/13
+		//}} JHKang / °­Á¤ÈÆ / 2011/01/13
 
 		LUA_GET_VALUE( m_LuaManager, "ALPHA_BLEND", m_stOriginBuffRenderParam.m_bAlphaBlend, false );
 		SetAlphaObject( m_stOriginBuffRenderParam.m_bAlphaBlend );
@@ -727,7 +748,7 @@ void CX2GameUnit::ReInit( bool bUseTeamPos, int startPosIndex )
 		}
 
 		LUA_GET_VALUE( m_LuaManager, "Z_ENABLE", m_RenderParam.bZEnable, true );
-		m_RenderParam.bZWriteEnable = m_RenderParam.bZEnable;			// fix!! ï¿½Ï´ï¿½ ï¿½ä·¸ï¿½ï¿½
+		m_RenderParam.bZWriteEnable = m_RenderParam.bZEnable;			// fix!! ÀÏ´Ü ¿ä·¸°Ô
 
 		m_LuaManager.EndTable();
 	}
@@ -745,7 +766,7 @@ void CX2GameUnit::ReInit( bool bUseTeamPos, int startPosIndex )
 		m_LuaManager.EndTable();
 	}
 
-	
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE	
 	m_AttackTimeList.resize(0);
 	m_AttackProjSeqName.resize(0);
 	m_StopAllList.resize(0);
@@ -755,16 +776,14 @@ void CX2GameUnit::ReInit( bool bUseTeamPos, int startPosIndex )
 	m_Stop2OtherList.resize(0);
 	m_Stop2MyList.resize(0);
 	m_vecSoundPlayData.resize(0);
-
-#ifdef SOUND_LOOP
 	m_vecSoundPlayLoop.resize(0);
 	m_vecLoopSound.resize(0);
-#endif
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
-#ifdef UNDERWATER_LINEMAP
+
+
 	m_bChangeUnderWater = false;
 	m_bCheckChangeUnderWater = false;
-#endif
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 	m_vecKDebuffFactorListToTransit.clear();
@@ -778,101 +797,101 @@ void CX2GameUnit::ReInit( bool bUseTeamPos, int startPosIndex )
 
 void CX2GameUnit::InitEffect()
 {
-	//{{ dmlee 2009.1.19 ï¿½ï¿½Æ¼Å¬ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Ä¡ ï¿½Å±ï¿½, ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ØµÎ´Ï±ï¿½ performanceï¿½ï¿½ ï¿½Î´ï¿½ï¿½ï¿½
+	//{{ dmlee 2009.1.19 ÆÄÆ¼Å¬ÀÌ ÇÊ¿äÇÑ ½ÃÁ¡¿¡ »ý¼ºÇÏµµ·Ï ÄÚµåÀ§Ä¡ ¿Å±è, ¹Ì¸® »ý¼º ÇØµÎ´Ï±î performance¿¡ ºÎ´ãÀÌ
 
-	//if( m_hSeqPoisonBody == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqPoisonBody == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqPoisonBody = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitPoison", 0,0,0 );
 
 
-	//if( m_hSeqFireBody1 == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqFireBody1 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqFireBody1 = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"SwordFireTip", 0,0,0 );
-	//if( m_hSeqFireBody2 == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqFireBody2 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqFireBody2 = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"SwordFireTip", 0,0,0 );
 
 
 
-	//if( m_hSeqCurseBody == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqCurseBody == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqCurseBody = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitCurse", 0,0,0 );
 
 
-	//if( m_hSeqSlowBodyRight == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqSlowBodyRight == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqSlowBodyRight = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitSlow", 0,0,0 );
-	//if( m_hSeqSlowBodyLeft == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqSlowBodyLeft == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqSlowBodyLeft = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitSlow", 0,0,0 );
 
 
 
-	//if( m_hSeqReverseLeftRight == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqReverseLeftRight == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqReverseLeftRight = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitReverseLeftRight", 0, 0, 0 ); 
 
 
-	//if( m_hSeqCold1 == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqCold1 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqCold1 = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Ice_Status_Error01", 0, 0, 0 );	
-	//if( m_hSeqCold2 == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqCold2 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqCold2 = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Ice_Status_Error02", 0, 0, 0 );	
-	//if( m_hSeqCold1_Right == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqCold1_Right == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqCold1_Right = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Ice_Status_Error01", 0, 0, 0 );	
-	//if( m_hSeqCold2_Right == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqCold2_Right == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqCold2_Right = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Ice_Status_Error02", 0, 0, 0 );	
 
-	//if( m_hSeqCold_Head == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqCold_Head == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqCold_Head = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitCold", 0, 0, 0 );	
 
 
-	//if( m_hSeqEmoticon_Pressed == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqEmoticon_Pressed == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqEmoticon_Pressed = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitPressed", 0, 0, 0 );	
 
 
 
-	//if( m_hSeqPepperBody1 == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqPepperBody1 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqPepperBody1 = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"SwordFireTip", 0,0,0 );
-	//if( m_hSeqPepperBody2 == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqPepperBody2 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqPepperBody2 = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"SwordFireTip", 0,0,0 );
 
 
 
-	//if( m_hSeqStun == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqStun == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqStun = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitStun", 0,0,0 );
 
 
 
 
-	//if( m_hSeqEnchant_Stun == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqEnchant_Stun == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqEnchant_Stun = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Enchant_Stun_Emoticon", 0,0,0 );
 
-	//if( m_hSeqEnchant_Stun_Second == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqEnchant_Stun_Second == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqEnchant_Stun_Second = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Enchant_Stun_Emoticon_Second", 0,0,0 );
 
 
-	//if( m_hSeqEnchant_Blaze_Second == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqEnchant_Blaze_Second == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqEnchant_Blaze_Second = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Enchant_Blaze_Emoticon_Second", 0,0,0 );
 
-	//if( m_hSeqEnchant_Frozen_Second == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqEnchant_Frozen_Second == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqEnchant_Frozen_Second = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Enchant_Frozen_Emoticon_Second", 0,0,0 );
 
-	//if( m_hSeqEnchant_Poison_Second == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqEnchant_Poison_Second == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqEnchant_Poison_Second = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Enchant_Poison_Emoticon_Second", 0,0,0 );
 
 
-	//if( m_hSeqEnchant_Exclamation == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqEnchant_Exclamation == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqEnchant_Exclamation = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Enchant_Exclamation_Emoticon", 0,0,0 );
 
-	//if( m_hSeqEnchant_Exclamation2 == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqEnchant_Exclamation2 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqEnchant_Exclamation2 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Enchant_Exclamation_Emoticon2", 0,0,0 );
 
-	//if( m_hSeqEnchant_Exclamation3 == INVALID_PARTICLE_HANDLE )
+	//if( m_hSeqEnchant_Exclamation3 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqEnchant_Exclamation3 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Enchant_Exclamation_Emoticon3", 0,0,0 );
 
 
-	//if ( m_hSeqAddOnStatDefPhysic == INVALID_PARTICLE_HANDLE )
+	//if ( m_hSeqAddOnStatDefPhysic == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqAddOnStatDefPhysic = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"BuffShield", 0,0,0, 0, 0 );
 
-	//if ( m_hSeqAddOnStatAtkPhysic == INVALID_PARTICLE_HANDLE )
+	//if ( m_hSeqAddOnStatAtkPhysic == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqAddOnStatAtkPhysic = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"BuffAttack", 0,0,0, 0, 0 );
 
-	//if ( m_hSeqAddOnStatAtkMagic == INVALID_PARTICLE_HANDLE )
+	//if ( m_hSeqAddOnStatAtkMagic == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	//	m_hSeqAddOnStatAtkMagic = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"BuffAttack", 0,0,0, 0, 0 );
-	//}} dmlee 2009.1.19 ï¿½ï¿½Æ¼Å¬ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½Ä¡ ï¿½Å±ï¿½, ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ØµÎ´Ï±ï¿½ performanceï¿½ï¿½ ï¿½Î´ï¿½ï¿½ï¿½
+	//}} dmlee 2009.1.19 ÆÄÆ¼Å¬ÀÌ ÇÊ¿äÇÑ ½ÃÁ¡¿¡ »ý¼ºÇÏµµ·Ï ÄÚµåÀ§Ä¡ ¿Å±è, ¹Ì¸® »ý¼ºÇØµÎ´Ï±î performance¿¡ ºÎ´ãÀÌ
 
 }
 
@@ -923,7 +942,7 @@ void CX2GameUnit::DeleteGameUnitMajorParticle()
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hPoisonDeBuff );	
 #endif
 
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeqBlind );	
 #endif NEW_SKILL_2010_11
 
@@ -932,11 +951,11 @@ void CX2GameUnit::DeleteGameUnitMajorParticle()
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeqWaterHold2 );	
 #endif EDT_WATER_HOLD_TEST
 
-	//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeqPanic );	
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
-	//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeqLegShot );
@@ -946,19 +965,18 @@ void CX2GameUnit::DeleteGameUnitMajorParticle()
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeqSmokeBlind );
 #endif RAVEN_WEAPON_TAKER
 
-//{{ kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+//{{ kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 #ifdef SERV_SECRET_HELL
 	ClearAnimSpeedFactor();
 #endif SERV_SECRET_HELL
-//}} kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+//}} kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 
 #ifdef HIT_PARTICLE_TRACE_UNIT
-	std::list<CKTDGParticleSystem::CParticleEventSequenceHandle>::iterator lit;
-	for( lit = m_listSeqHitParticleTraceUnit.begin() ; lit != m_listSeqHitParticleTraceUnit.end(); lit++)
+    BOOST_FOREACH( CKTDGParticleSystem::CParticleEventSequenceHandle hParticle, m_listSeqHitParticleTraceUnit )
 	{
-		CKTDGParticleSystem::CParticleEventSequenceHandle hParticle = *lit;
 		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( hParticle );
 	}
+    m_listSeqHitParticleTraceUnit.resize( 0 );
 #endif HIT_PARTICLE_TRACE_UNIT
 
 
@@ -994,8 +1012,7 @@ void CX2GameUnit::DeleteGameUnitMinorParticle()
 
 void CX2GameUnit::MultiplyStat( float fFactor )
 {
-	if ( m_pStat != NULL )
-		m_pStat->GetStat()->MultiplyStat( fFactor );
+    m_Stat.AccessStat().MultiplyStat( fFactor );
 }
 
 
@@ -1006,11 +1023,15 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 	m_fTime			= (float)fTime;
 	m_fElapsedTime	= fElapsedTime;
 
-	OnFrameMoveBuff();	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FrameMove ï¿½ï¿½ï¿½ï¿½
-	CheckAndUpdateAdditionalStat();		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    OnFrameMoveBuff( fElapsedTime );	/// ¹öÇÁµéÀÇ FrameMove ½ÇÇà
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	OnFrameMoveBuff();	/// ¹öÇÁµéÀÇ FrameMove ½ÇÇà
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	CheckAndUpdateAdditionalStat();		/// ½ºÅÈÀÌ º¯°æµÇ¾î¾ßÇÏ´ÂÁö Ã¼Å©ÇÏ°í ¾÷µ¥ÀÌÆ®
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.6.20] Ã» 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½È¶ï¿½ï¿½
+	// oasis907 : ±è»óÀ± [2011.6.20] Ã» 2Â÷ ÀüÁ÷ - ¾ÆÀÌ¾ð ÆÈ¶óµò
 	if ( !m_vecKDebuffFactorListToTransit.empty() )
 	{
 		BOOST_FOREACH( const KBuffFactor& kBuffFactor, m_vecKDebuffFactorListToTransit )
@@ -1027,10 +1048,8 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 #ifdef SERV_SKILL_NOTE
 	CommonFrameMoveAnimSpeedFactor();	
 #endif
-#ifdef UPGRADE_SPEED_FACTOR
 	CommonFrameMoveMoveSpeedFactor();
 	CommonFrameMoveJumpSpeedFactor();
-#endif
 
 #ifdef UNIT_SLASH_TRACE_MANAGER_TEST
 	if( NULL != m_pUnitSlashTraceManager )
@@ -1061,7 +1080,7 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 	CommonFrameMovePoisonDeBuff();
 #endif
 	
-//{{ kimhc // 2010.4.3 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½)
+//{{ kimhc // 2010.4.3 // ºñ¹Ð´øÀü ÀÛ¾÷(¼ÂÆ®¾ÆÀÌÅÛÈ¿°ú)
 #ifdef SERV_SECRET_HELL
 	if( m_StatUpBufferBySocketItem.m_fBufferTime > 0.f )
 	{
@@ -1072,9 +1091,8 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 		}
 	}
 #endif SERV_SECRET_HELL
-//}} kimhc // 2010.4.3 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½)
+//}} kimhc // 2010.4.3 // ºñ¹Ð´øÀü ÀÛ¾÷(¼ÂÆ®¾ÆÀÌÅÛÈ¿°ú)
 
-#ifdef EXTRA_BIGHEAD
 	if( m_fExtraBigHead > 0.f )
 	{
 		m_fExtraBigHead -= fElapsedTime;
@@ -1084,24 +1102,20 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 		}
 	}
 	DoScaleHeadBone();
-#endif
 
 #ifdef GIANT_UNIT_GIANT_EFFECT_TEST
 
-	if( CX2GameUnit::GUT_USER == GetGameUnitType() ) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ scalingï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾î¼­ ï¿½Ó½Ã·ï¿½ userï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½Íµï¿½ ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ UNIT_SCALEï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½ï¿½Ø¼ï¿½ Ã³ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½
+	if( CX2GameUnit::GUT_USER == GetGameUnitType() ) // ¸ó½ºÅÍÀÇ °æ¿ì ½ºÅ©¸³Æ®¿¡¼­ scalingÀ» Á¶Á¤ÇÑ °ÍÀÌ Àû¿ëµÇ´Â ¹®Á¦°¡ ÀÖ¾î¼­ ÀÓ½Ã·Î user¸¸ Àû¿ëµÇµµ·Ï ¼öÁ¤, ¸ó½ºÅÍµµ Àû¿ëµÇ°Ô ÇÏ·Á¸é ¸ó½ºÅÍ ½ºÅ©¸³Æ®¿¡¼­ »ç¿ëÇÏ´Â UNIT_SCALEº¯¼ö¸¦ µû·Î ºÐ¸®ÇØ¼­ Ã³¸®ÇØ¾ßÇÔ
 	{
 		SetScaleByUnit( m_vTransScale );
 	}
-#ifdef APPLY_EFFECTSCALE_BY_NPC
 	else
 	{
 		if( m_bScaleEffectSetByNpc == true )
 			SetScaleByUnit( m_vTransScale );
 	}
-#endif
 #endif GIANT_UNIT_GIANT_EFFECT_TEST
 
-#ifdef UNDERWATER_LINEMAP
 	if( CX2GameUnit::GUT_USER == GetGameUnitType() &&
 		m_bChangeUnderWater == true && 
 		g_pX2Game != NULL && g_pX2Game->GetEffectSet() != NULL )
@@ -1109,7 +1123,6 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_UnderWater_Change", this );
 		PlaySound( L"Water_Diving.ogg" );
 	}
-#endif
 
 	//GetGageManager()->OnFrameMove( fTime, fElapsedTime );
 	UpdateVisibilitySmallGageAndName();
@@ -1117,18 +1130,22 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 	if ( false == IsNullGageUI() )
 	{
 		m_pGageUI->SetShow( GetShowSmallGageAndName() );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_pGageUI->OnFrameMove( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_pGageUI->OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 
-#ifdef DAMAGE_EFFECT_GROUP_DAMAGE		/// ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef DAMAGE_EFFECT_GROUP_DAMAGE		/// ±×·ì µ¥¹ÌÁö Á¤º¸ °»½Å
 	if( false == m_vecDamageEffectGroupDataPtr.empty() )
 	{
 		ProcessGroupDamageData( m_fElapsedTime );
 	}
 #endif DAMAGE_EFFECT_GROUP_DAMAGE
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09
-	if ( !m_vecEffectSetImpactPointByBuffPtr.empty() )	/// Å¸ï¿½Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09
+	if ( !m_vecEffectSetImpactPointByBuffPtr.empty() )	/// Å¸°Ý½Ã ÀÌÆåÆ® ¼Â »ý¼º½ÃÅ°´Â ¹öÇÁ¿¡ ´ëÇÑ »ý¼º °£°Ý °»½Å
 	{
 		BOOST_FOREACH( CX2EffectSetImpactPointByBuffPtr ptr, m_vecEffectSetImpactPointByBuffPtr )
 		{
@@ -1137,7 +1154,7 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 		}
 	}
 
-	if ( !m_vecEffectSetHittedByBuffPtr.empty() )		/// ï¿½Ç°Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if ( !m_vecEffectSetHittedByBuffPtr.empty() )		/// ÇÇ°Ý½Ã ÀÌÆåÆ® ¼Â »ý¼º½ÃÅ°´Â ¹öÇÁ¿¡ ´ëÇÑ »ý¼º °£°Ý °»½Å
 	{
 		BOOST_FOREACH( CX2EffectSetImpactPointByBuffPtr ptr, m_vecEffectSetHittedByBuffPtr )
 		{
@@ -1146,7 +1163,7 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 		}
 	}
 
-	if ( !m_vecEffectSetNormalAttackByBuffPtr.empty() )	/// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if ( !m_vecEffectSetNormalAttackByBuffPtr.empty() )	/// ÀÏ¹Ý °ø°Ý Å¸°Ý½Ã ÀÌÆåÆ® ¼Â »ý¼º½ÃÅ°´Â ¹öÇÁ¿¡ ´ëÇÑ »ý¼º °£°Ý °»½Å
 	{
 		BOOST_FOREACH( CX2EffectSetImpactPointByBuffPtr ptr, m_vecEffectSetNormalAttackByBuffPtr )
 		{
@@ -1164,7 +1181,7 @@ void CX2GameUnit::MultiplyStat( float fFactor )
 HRESULT CX2GameUnit::OnCameraMove()
 {
 	KTDXPROFILE();
-	g_pX2Game->GetX2Camera()->NomalTrackingCamera( this, g_pMain->GetGameOption()->GetCameraDistance() );
+	g_pX2Game->GetX2Camera()->NomalTrackingCamera( this, g_pMain->GetGameOption().GetCameraDistance() );
 	return S_OK;
 }
 
@@ -1222,7 +1239,7 @@ void CX2GameUnit::NotifyShowObjectChanged()
 			SetShowGage( true );
 	}
 
-	//{{ kimhc // 2010.6.16 // ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Îºï¿½ï¿½ï¿½ virtualï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½î¼­ GUUserï¿½ï¿½ NotifyShowObjectChangedï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½
+	//{{ kimhc // 2010.6.16 // ÇØ´ç ±â´ÉÀ» ÇÏ´Â ºÎºÐÀ» virtualÇÔ¼ö·Î ¸¸µé¾î¼­ GUUserÀÇ NotifyShowObjectChanged¿¡¼­ È£ÃâÇÏµµ·Ï ÇÔ
 	//{{AFX
 #ifndef	ENCHANT_BUG_TEST
 	//{{ robobeg : 2008-10-28
@@ -1234,7 +1251,7 @@ void CX2GameUnit::NotifyShowObjectChanged()
 	//}} robobeg : 2008-10-28
 #endif	ENCHANT_BUG_TEST
 	//}}AFX
-	//}} kimhc // 2010.6.16 // ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Îºï¿½ï¿½ï¿½ virtualï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½î¼­ GUUserï¿½ï¿½ NotifyShowObjectChangedï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½
+	//}} kimhc // 2010.6.16 // ÇØ´ç ±â´ÉÀ» ÇÏ´Â ºÎºÐÀ» virtualÇÔ¼ö·Î ¸¸µé¾î¼­ GUUserÀÇ NotifyShowObjectChanged¿¡¼­ È£ÃâÇÏµµ·Ï ÇÔ
 
 
 #ifdef UNIT_SLASH_TRACE_MANAGER_TEST
@@ -1313,7 +1330,7 @@ void CX2GameUnit::SetEnableAttackBox( const WCHAR* pName, bool bEnable )
 		return;
 	else if ( SetEnableAttackBox( m_SubAttackListSet, pName, bEnable ) )
 		return;
-	else if ( !m_vecPairSubAttackListSet.empty() )	/// EFFECT_SETï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ï´ï¿½ SUB_ATTACK_LIST
+	else if ( !m_vecPairSubAttackListSet.empty() )	/// EFFECT_SET¿¡¼­ Á÷Á¢ Ãß°¡ÇÏ´Â SUB_ATTACK_LIST
 	{
 		vector<PairSubAttackListSet>::iterator vItr = m_vecPairSubAttackListSet.begin();
 		while ( m_vecPairSubAttackListSet.end()	!= vItr )
@@ -1386,13 +1403,6 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 	if( NULL == pAttacker )
 		return 0.f;
 
-//{{ kimhc // 2010.7.30 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#ifndef	WEAPON_DAMAGE_WITHOUT_STAT
-	if( NULL == pItem )
-		return 0.f;
-#endif	WEAPON_DAMAGE_WITHOUT_STAT
-//}} kimhc // 2010.7.30 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-
 	float fItemAttackPower = 0.f;
 
 	switch( pAttacker->GetGameUnitType() )
@@ -1405,15 +1415,15 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 		{
 			CX2GUUser* pGUUSer = (CX2GUUser*)pAttacker;
 
-//{{ kimhc // 2010.7.30 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//{{ kimhc // 2010.7.30 // ½ºÅÈÀ» Á¦¿ÜÇÑ ¹«±â¸¸ÀÇ µ¥¹ÌÁö
 			if ( NULL == pItem )
 			{
-				pItem = pGUUSer->GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+				pItem = pGUUSer->GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 
 				if ( NULL == pItem )
 					return 0.0f;
 			}
-			// 2008. 11. 07 ï¿½ï¿½ï¿½Â¿ï¿½ : ï¿½Ç¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// 2008. 11. 07 ±èÅÂ¿Ï : ÇÇ¾î½Ì º¸Á¤µ¥¹ÌÁö ±âÈ¹´ë·Î ¼öÁ¤
 			//fExtraAttackPower += pItem->GetItemTemplet()->GetStat().m_fAtkPhysic + pItem->GetItemTemplet()->GetStat().m_fAtkMagic;
 			//fExtraAttackPower = fExtraAttackPower * 0.3f;
 
@@ -1432,7 +1442,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 				if( 0 == socketOption )
 					continue;
 
-				CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
+				const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
 				if( pSocketData == NULL )
 					continue;
 
@@ -1452,7 +1462,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 				{
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+						// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 						CX2Item::KItemFormatStatData kCalculateStat;
 						g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUSer->GetUnitType(), pGUUSer->GetUnitClass() );
 						const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -1469,7 +1479,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 #else
 					fWeaponPhysicAtk	= stat.m_fAtkPhysic;
 #endif
-					fStatPhysicAtk		= pGUUSer->GetStat()->GetStat()->m_fAtkPhysic;
+					fStatPhysicAtk		= pGUUSer->GetStat().GetStat().m_fAtkPhysic;
 				} break;
 
 			case CX2DamageManager::DT_MAGIC:
@@ -1477,7 +1487,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 				{
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+						// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 						CX2Item::KItemFormatStatData kCalculateStat;
 						g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUSer->GetUnitType(), pGUUSer->GetUnitClass() );
 						const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -1494,7 +1504,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 #else
 					fWeaponMagicAtk		= stat.m_fAtkMagic;
 #endif
-					fStatMagicAtk		= pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+					fStatMagicAtk		= pGUUSer->GetStat().GetStat().m_fAtkMagic;
 
 				} break;
 
@@ -1506,7 +1516,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 					{
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-							// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+							// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 							CX2Item::KItemFormatStatData kCalculateStat;
 							g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUSer->GetUnitType(), pGUUSer->GetUnitClass() );
 							const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -1519,12 +1529,12 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 						fWeaponPhysicAtk = stat.m_fAtkPhysic;
 						fWeaponMagicAtk = stat.m_fAtkMagic;
 					}
-					fStatPhysicAtk		= pGUUSer->GetStat()->GetStat()->m_fAtkPhysic;
-					fStatMagicAtk		= pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+					fStatPhysicAtk		= pGUUSer->GetStat().GetStat().m_fAtkPhysic;
+					fStatMagicAtk		= pGUUSer->GetStat().GetStat().m_fAtkMagic;
 #else
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+						// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 						CX2Item::KItemFormatStatData kCalculateStat;
 						g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUSer->GetUnitType(), pGUUSer->GetUnitClass() );
 						const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -1536,13 +1546,13 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 					fWeaponPhysicAtk = stat.m_fAtkPhysic;
 					fWeaponMagicAtk = stat.m_fAtkMagic;
-					fStatPhysicAtk		= pGUUSer->GetStat()->GetStat()->m_fAtkPhysic;
-					fStatMagicAtk		= pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+					fStatPhysicAtk		= pGUUSer->GetStat().GetStat().m_fAtkPhysic;
+					fStatMagicAtk		= pGUUSer->GetStat().GetStat().m_fAtkMagic;
 #endif
 
 				} break;
 
-				// ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½ß±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ defaultï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				// ÃÊ±âÈ­¸¦ Çß±â ¶§¹®¿¡ default´Â ÀÖÀ» ¼ö ¾øÀ½
 			}
 #ifdef PVP_SEASON2_SOCKET
 			if ( true == bLevelLinkedStat && g_pMain->GetNowStateID() == CX2Main::XS_PVP_GAME )
@@ -1557,12 +1567,12 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 			{
 			case CX2Main::XS_DUNGEON_GAME:
 				{
-					// ï¿½Â¿ï¿½ : Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¦Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½. NEW_YEAR_EVENT_DUNGEON ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½. (ï¿½ï¿½ 4ï¿½ï¿½)
-					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ß°ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+					// ÅÂ¿Ï : Æ¯Á¤ ´øÀü¿¡¼­ÀÇ ÀÎÃ¦Æ® º¸Á¤ ÄÚµå. NEW_YEAR_EVENT_DUNGEON µîÀ¸·Î °Ë»öÇØ¼­ ³ª¿À´Â °÷¿¡ ¸ðµÎ ÀÛ¾÷ÇØÁà¾ß ÇÑ´Ù. (ÃÑ 4°÷)
+					// º¸Á¤´øÀüÀÌ ´õ ¸¹¾ÆÁø´Ù¸é ´øÀüµ¥ÀÌÅ¸ ½ºÅ©¸³Æ®¿¡ º¸Á¤¿©ºÎ¸¦ Ãß°¡ÇÏ´Â ¹æ¹ýÀÌ ´õ ³ªÀ» °Í °°´Ù.
 
 
 #ifdef HENIR_TEST
-					if( true == g_pData->GetDungeonManager()->IsHenirDungeon( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) &&
+					if( true == CX2Dungeon::IsHenirDungeon( static_cast<const SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ) &&
 						CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode )
 					{
 						if(	g_pData->GetUIManager() != NULL && 
@@ -1574,9 +1584,9 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 					}
 #endif HENIR_TEST
 
-					//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½
+					//{{ Çã»óÇü : [2011/3/29/] //	¿ùµå¹Ì¼Ç
 #ifdef SERV_INSERT_GLOBAL_SERVER
-					//	ï¿½ï¿½Ï¸ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+					//	Çì´Ï¸£½Ã°ø°ú °°Àº ¼Ó¼ºÀ» °¡Áø´Ù.
 					if( NULL != g_pData->GetDungeonRoom() && g_pData->GetDungeonRoom()->IsDefenceDungeon( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID) == true )
 					{
 						if(	g_pData->GetUIManager() != NULL && 
@@ -1587,7 +1597,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 						}
 					}
 #endif SERV_INSERT_GLOBAL_SERVER
-					//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½
+					//}} Çã»óÇü : [2011/3/29/] //	¿ùµå¹Ì¼Ç
 
 
 					if(g_pData->GetDungeonRoom() != NULL )
@@ -1601,42 +1611,43 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 #endif SERV_DUNGEON_OPTION_IN_LUA
 						switch( g_pData->GetDungeonRoom()->GetDungeonID() )
 						{
-							//{{ 2009.01.20 ï¿½ï¿½ï¿½Â¿ï¿½
+							//{{ 2009.01.20 ±èÅÂ¿Ï
 			#ifdef NEW_YEAR_EVENT_DUNGEON
-						case CX2Dungeon::DI_ELDER_NEWYEAR_NORMAL:
+						case SEnum::DI_ELDER_NEWYEAR_NORMAL:
 							{
 								fItemAttackPower = fStatPhysicAtk + fStatMagicAtk;
 							} break;
 			#endif
 							//}}
 			#ifdef HALLOWEEN_EVENT
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_HARD:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT:
-							// ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½Úµï¿½ : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½Ïµï¿½ï¿½Úµï¿½
+						case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+						case SEnum::DI_ELDER_HALLOWEEN_HARD:
+						case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
+							// ÇÒ·ÎÀ© ´øÀü °ü·Ã ÀÓ½Ã ÄÚµå : °ø°Ý µ¥¹ÌÁö º¸Á¤, ÇÏµåÄÚµù
 							{
 								fItemAttackPower = fStatPhysicAtk + fStatMagicAtk;
 							} break;
 			#endif
-							//{{ 2009.04.24 ï¿½ï¿½ï¿½Â¿ï¿½ : ï¿½î¸°ï¿½Ì³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
+							//{{ 2009.04.24 ±èÅÂ¿Ï : ¾î¸°ÀÌ³¯ ´øÀüº¸Á¤ ¹× º¸Á¤ÄÚµå Á¤¸®
 			#ifdef CHILDRENS_DAY_EVENT_DUNGEON
-						case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-						case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:
-						case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:
-						case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+						case SEnum::DI_EVENT_KIDDAY_RUBEN:
+						case SEnum::DI_EVENT_KIDDAY_ELDER:
+						case SEnum::DI_EVENT_KIDDAY_BESMA:
+						case SEnum::DI_EVENT_KIDDAY_ALTERA:
 
-						case CX2Dungeon::DI_EVENT_TREE_DAY_ELDER:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_BESMA:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_ALTERA:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_PEITA:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_VELDER:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_HAMEL:
-							//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_HARD:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT:
-							//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
-						case CX2Dungeon::DI_EVENT_VALENTINE_DAY:
+						case SEnum::DI_EVENT_TREE_DAY_ELDER:
+						case SEnum::DI_EVENT_TREE_DAY_BESMA:
+						case SEnum::DI_EVENT_TREE_DAY_ALTERA:
+						case SEnum::DI_EVENT_TREE_DAY_PEITA:
+						case SEnum::DI_EVENT_TREE_DAY_VELDER:
+						case SEnum::DI_EVENT_TREE_DAY_HAMEL:
+							//{{ oasis907 : ±è»óÀ± [2010.10.21] // 
+						case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+						case SEnum::DI_ELDER_HALLOWEEN_HARD:
+						case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
+							//}} oasis907 : ±è»óÀ± [2010.10.21] // 
+						case SEnum::DI_EVENT_VALENTINE_DAY:
+						case SEnum::DI_EVENT_HALLOWEEN_DAY:
 							{
 								fItemAttackPower = fStatPhysicAtk + fStatMagicAtk;
 							} break;
@@ -1651,7 +1662,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 				
 			case CX2Main::XS_PVP_GAME:
 				{
-					// PVP ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					// PVP ÀÚÀ¯Ã¤³Î ÇÇ¾î½Ì µ¥¹ÌÁö º¸Á¤
 					if ( g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) == KPVPChannelInfo::PCC_FREE )
 					{
 						fItemAttackPower = fStatPhysicAtk + fStatMagicAtk;
@@ -1673,7 +1684,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 					// nothing 
 				} break;
 			}
-//}} kimhc // 2010.7.30 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.7.30 // ½ºÅÈÀ» Á¦¿ÜÇÑ ¹«±â¸¸ÀÇ µ¥¹ÌÁö
 			
 		} break;
 	}
@@ -1684,7 +1695,7 @@ float CX2GameUnit::GetItemAttackPower( CX2GameUnit* pAttacker, CX2Item* pItem /*
 
 
 
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½
+// µ¥¹ÌÁö °è»ê½Ã¿¡ ·¹º§Â÷ÀÌ¿¡ µû¸¥ º¸Á¤¼öÄ¡¸¦ °è»êÇÑ´Ù
 float CX2GameUnit::CalcLevelFactorForFinalDamage( CX2GameUnit* pAttacker )
 {
 	if( NULL == pAttacker )
@@ -1717,54 +1728,59 @@ float CX2GameUnit::CalcLevelFactorForFinalDamage( CX2GameUnit* pAttacker )
 
 				switch( pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID )
 				{
-				case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:	
-				case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:	
-				case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:	
-				case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+				case SEnum::DI_EVENT_KIDDAY_RUBEN:	
+				case SEnum::DI_EVENT_KIDDAY_ELDER:	
+				case SEnum::DI_EVENT_KIDDAY_BESMA:	
+				case SEnum::DI_EVENT_KIDDAY_ALTERA:
 
-				case CX2Dungeon::DI_EVENT_TREE_DAY_ELDER:
-				case CX2Dungeon::DI_EVENT_TREE_DAY_BESMA:
-				case CX2Dungeon::DI_EVENT_TREE_DAY_ALTERA:
-				case CX2Dungeon::DI_EVENT_TREE_DAY_PEITA:
-				case CX2Dungeon::DI_EVENT_TREE_DAY_VELDER:
-				case CX2Dungeon::DI_EVENT_TREE_DAY_HAMEL:
-					//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
-				case CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL:
-				case CX2Dungeon::DI_ELDER_HALLOWEEN_HARD:
-				case CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT:
-					//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
+				case SEnum::DI_EVENT_TREE_DAY_ELDER:
+				case SEnum::DI_EVENT_TREE_DAY_BESMA:
+				case SEnum::DI_EVENT_TREE_DAY_ALTERA:
+				case SEnum::DI_EVENT_TREE_DAY_PEITA:
+				case SEnum::DI_EVENT_TREE_DAY_VELDER:
+				case SEnum::DI_EVENT_TREE_DAY_HAMEL:
+					//{{ oasis907 : ±è»óÀ± [2010.10.21] // 
+				case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+				case SEnum::DI_ELDER_HALLOWEEN_HARD:
+				case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
+					//}} oasis907 : ±è»óÀ± [2010.10.21] // 
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+				case SEnum::DI_EVENT_HALLOWEEN_DAY:
+#endif //SERV_HALLOWEEN_EVENT_2013
 					{
 						return 1.f;
 					} break;
 
-				case CX2Dungeon::DI_ELDER_HENIR_SPACE:
-					// 			case CX2Dungeon::DI_BESMA_HENIR_SPACE:
-					// 			case CX2Dungeon::DI_ALTERA_HENIR_SPACE:
-					// 			case CX2Dungeon::DI_FEITA_HENIR_SPACE:
-					// 				// kimhc // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ï¸ï¿½ // 2009-10-27
-					// 			case CX2Dungeon::DI_VELDER_HENIR_SPACE:
-					// 			case CX2Dungeon::DI_HAMEL_HENIR_SPACE:
-					//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/3/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
-				case CX2Dungeon::DI_EVENT_VALENTINE_DAY:
+				case SEnum::DI_ELDER_HENIR_SPACE:
+					// 			case SEnum::DI_BESMA_HENIR_SPACE:
+					// 			case SEnum::DI_ALTERA_HENIR_SPACE:
+					// 			case SEnum::DI_FEITA_HENIR_SPACE:
+					// 				// kimhc // º§´õ Çì´Ï¸£ // 2009-10-27
+					// 			case SEnum::DI_VELDER_HENIR_SPACE:
+					// 			case SEnum::DI_HAMEL_HENIR_SPACE:
+					//{{ Çã»óÇü : [2011/3/3/] //	¿ùµå ¹Ì¼Ç
+				case SEnum::DI_EVENT_VALENTINE_DAY:
 #ifdef SERV_INSERT_GLOBAL_SERVER
 					CASE_DEFENCE_DUNGEON
 #endif SERV_INSERT_GLOBAL_SERVER
-						//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/3/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+						//}} Çã»óÇü : [2011/3/3/] //	¿ùµå ¹Ì¼Ç
 					{
-						// ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifndef NEW_HENIR_DUNGEON // 1·¹º§ º¸Á¤ -> ¿¬µ¿ ·¹º§ ´øÀüÀ¸·Î º¯°æ
+						// Çì´Ï¸£ ½Ã°ø µµÀü ¸ðµå¿¡¼­ µ¥¹ÌÁö º¸Á¤ ¾ø°Ô
 						if( CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode )
 							return 1.f;
+#endif // NEW_HENIR_DUNGEON
 
-						//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+						//{{ Çã»óÇü : [2011/3/29/] //	¿ùµå ¹Ì¼Ç
 #ifdef SERV_INSERT_GLOBAL_SERVER
 						if( NULL != g_pData->GetDungeonRoom() && g_pData->GetDungeonRoom()->IsDefenceDungeon( g_pData->GetDungeonRoom()->GetDungeonID() ) == true )
 						{
 							return 1.f;
 						}
 #endif SERV_INSERT_GLOBAL_SERVER
-						//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+						//}} Çã»óÇü : [2011/3/29/] //	¿ùµå ¹Ì¼Ç
 
-						// ï¿½ï¿½Ï¸ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+						// Çì´Ï¸£ ½Ã°ø¿¡¼­ ¸ó½ºÅÍ°¡ ¸ó½ºÅÍ °ø°ÝÇÒ ¶§´Â µ¥¹ÌÁö º¸Á¤ ¾ø°Ô
 						if( GUT_NPC == pAttacker->GetGameUnitType() && GUT_NPC == GetGameUnitType() )
 						{
 							return 1.f;
@@ -1794,10 +1810,10 @@ float CX2GameUnit::CalcLevelFactorForFinalDamage( CX2GameUnit* pAttacker )
 				CX2GUUser* pUser = (CX2GUUser*) pAttacker;
 				CX2GUNPC* pMonster = (CX2GUNPC*) this;
 
-				iAttackerLevel = pUser->GetUnit()->GetUnitData()->m_Level;
+				iAttackerLevel = pUser->GetUnit()->GetUnitData().m_Level;
 				iDefencerLevel = pMonster->GetHardLevel();
 			}
-			else if( GUT_NPC == pAttacker->GetGameUnitType() && GUT_NPC == GetGameUnitType() ) // ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½Í¶ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Î¿ï¶§
+			else if( GUT_NPC == pAttacker->GetGameUnitType() && GUT_NPC == GetGameUnitType() ) // ÀÌºêÀÇ ¼ÒÈ¯ ¸ó½ºÅÍ¶û ´Ù¸¥ ¸ó½ºÅÍ°¡ ½Î¿ï¶§
 			{
 				CX2GUNPC* pMonster1 = (CX2GUNPC*) pAttacker;
 				CX2GUNPC* pMonster = (CX2GUNPC*) this;
@@ -1809,7 +1825,7 @@ float CX2GameUnit::CalcLevelFactorForFinalDamage( CX2GameUnit* pAttacker )
 
 	case CX2Game::GT_PVP:
 		{
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			// ´ëÀü °ÔÀÓ¿¡¼­´Â ·¹º§ º¸Á¤¾øÀ½
 		} break;
 	}
 
@@ -1849,25 +1865,25 @@ float CX2GameUnit::CalcExtraAttackPower( CX2DamageManager::DamageData* pAttDamag
 	if( pAttDamageData->attackType == CX2DamageManager::AT_SPECIAL )
 		return 0.f;
 
-	// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Å¸ï¿½Ý½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ damage dataï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
-	CX2DamageManager::DamageData* pDamageData = pAttacker->GetDamageData(); // pAttDamageData
-	if( pDamageData == NULL )
-		return 0.f;
+	// ÀÌÆåÆ®·Î Å¸°Ý½Ã Ãß°¡ µ¥¹ÌÁö Àû¿ë¾ÈµÇ´Â ¹®Á¦ ¼öÁ¤À» À§ÇØ
+	// °ø°ÝÀÚÀÇ damage data¸¦ Á÷Á¢ µé°í¿Í °è»êÇÑ´Ù.
+	CX2DamageManager::DamageData& damageData = pAttacker->GetDamageData(); // pAttDamageData
+	//if( pDamageData == NULL )
+	//	return 0.f;
 
 	float fExtraAttackPower = 0.f;
-	// È­ï¿½ï¿½ï¿½ï¿½Å¸, ï¿½Ã±ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
-	if( false == pDamageData->m_MultipleExtraDamage.empty() )
+	// È­¿°°­Å¸, ³Ã±â Ãæ°Ý µ¥¹ÌÁö Ãß°¡
+	if( false == damageData.m_MultipleExtraDamage.empty() )
 	{
-		for( int i=0; i<(int)pDamageData->m_MultipleExtraDamage.size(); ++i )
+		for( int i=0; i<(int)damageData.m_MultipleExtraDamage.size(); ++i )
 		{
-			const CX2DamageManager::ExtraDamageData& multipleExtraDamageData = pDamageData->m_MultipleExtraDamage[i];
-			// ï¿½ï¿½ï¿½ï¿½!!! ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½è¿­ï¿½ï¿½ ï¿½ï¿½ï¿½ SRO_ATTACK_EXTRA_DAMAGE_MULTIPLE ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½, ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ extra damageï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ ï¿½Û¾ï¿½ ï¿½ï¿½ï¿½ï¿½
+			const CX2DamageManager::ExtraDamageData& multipleExtraDamageData = damageData.m_MultipleExtraDamage[i];
+			// ÁÖÀÇ!!! ÇöÀç´Â °­Å¸°è¿­Àº ¸ðµÎ SRO_ATTACK_EXTRA_DAMAGE_MULTIPLE ·£´ý³Ñ¹ö¸¦ »ç¿ëÇÏ´Â µ¥, ´Ù¸¥ ·£´ý ³Ñ¹ö¸¦ »ç¿ëÇÏ´Â extra damage°¡ Ãß°¡µÉ °æ¿ì¿¡ ÀÛ¾÷ ÁÖÀÇ
 			if( GetRandomFloat( CKTDXRandomNumbers::SRO_ATTACK_EXTRA_DAMAGE_MULTIPLE + i ) >= multipleExtraDamageData.m_fRate )
 				continue;
 
 
-			// ï¿½ï¿½Å¸ï¿½è¿­ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+			// °­Å¸°è¿­ Ãß°¡µ¥¹ÌÁö ÀÖ´ÂÁö °è»ê
 			float fSmashAttackPower = 0.f;
 			switch( multipleExtraDamageData.m_ExtraDamageType )
 			{
@@ -1889,13 +1905,13 @@ float CX2GameUnit::CalcExtraAttackPower( CX2DamageManager::DamageData* pAttDamag
 					case CX2GameUnit::GUT_USER:
 						{
 							CX2GUUser* pGUUser = (CX2GUUser*)pAttacker;
-							CX2Item* pItem = pGUUser->GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+							CX2Item* pItem = pGUUser->GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 							fSmashAttackPower = GetItemAttackPower( pAttacker, pItem );
 						} break;
 
 					case CX2GameUnit::GUT_NPC:
 						{
-							fSmashAttackPower = pAttackerStat->GetStat()->m_fAtkPhysic + pAttackerStat->GetStat()->m_fAtkMagic;
+							fSmashAttackPower = pAttackerStat->GetStat().m_fAtkPhysic + pAttackerStat->GetStat().m_fAtkMagic;
 						} break;
 					}
 				} break;
@@ -1904,7 +1920,7 @@ float CX2GameUnit::CalcExtraAttackPower( CX2DamageManager::DamageData* pAttDamag
 
 
 
-			// ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// ¼Ó¼º ÀúÇ× Àû¿ë
 			switch( multipleExtraDamageData.m_ExtraDamageType )
 			{
 			case CX2DamageManager::EDT_FIRE_SMASH:
@@ -1932,7 +1948,7 @@ float CX2GameUnit::CalcExtraAttackPower( CX2DamageManager::DamageData* pAttDamag
 
 
 
-			// ï¿½ï¿½È¹ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+			// ±âÈ¹ µ¥¹ÌÁö ¹èÀ² ¼öÄ¡ Àû¿ë
 			const float MAGIC_ATTACK_POWER_RATE			= 0.2f;
 			const float MAGIC_EVENT_ATTACK_POWER_RATE	= 0.4f;
 			switch( multipleExtraDamageData.m_ExtraDamageType )
@@ -1967,11 +1983,11 @@ float CX2GameUnit::CalcExtraAttackPower( CX2DamageManager::DamageData* pAttDamag
 }
 
 
-// ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ damageï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½
+// ÀÚ½ÅÀÌ ¹ÞÀ» damage¸¦ °è»êÇØÁØ´Ù
 float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData )
 {
 #if defined( _SERVICE_ ) 
-	// NOTE: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å·ï¿½ï¿½ ï¿½È´Ù¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¦ themidaï¿½ï¿½ ï¿½ï¿½È£ï¿½ï¿½ï¿½ï¿½
+	// NOTE: µ¥¹ÌÁö ÇØÅ·ÀÌ µÈ´Ù¸é ±× ¶§ ¿©±â¸¦ themida·Î º¸È£ÇÏÀÚ
 	// checked 
 	ELSWORD_VIRTUALIZER_START
 #endif
@@ -2008,21 +2024,21 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 	float fPhysicDefence = pDefender->GetPhysicDefenceValue();
 	float fMagicDefence = pDefender->GetMagicDefenceValue();
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ç°ï¿½ï¿½ï¿½ stat ï¿½ï¿½ï¿½
+	// °ø°ÝÀÚ, ÇÇ°ÝÀÚ stat °è»ê
 	CX2Stat attackerStat;	
 	CX2Stat defenderStat;	
-	attackerStat.GetStat()->SetStat( (pAttacker->GetStat()->GetStat()) );
-	defenderStat.GetStat()->SetStat( (GetStat()->GetStat()) );
+	attackerStat.AccessStat().SetStat( (pAttacker->GetStat().GetStat()) );
+	defenderStat.AccessStat().SetStat( (GetStat().GetStat()) );
 
 #ifdef	SERV_TRAPPING_RANGER_TEST
-	float	fSharpenDamageRate = 1.0f;	//	ï¿½ï¿½Ä«ï¿½Î¿ï¿½ È­ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½î¹«ï¿½ï¿½
+	float	fSharpenDamageRate = 1.0f;	//	³¯Ä«·Î¿î È­»ì·Î ÀÎÇÑ ¹æ¾î¹«½Ã
 #endif	SERV_TRAPPING_RANGER_TEST
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ý·ï¿½ stat ï¿½ï¿½ï¿½ï¿½
+	// °ø°ÝÀÚÀÇ ½ºÅ³¿¡ ÀÇÇÑ °ø°ÝÀÚÀÇ °ø°Ý·Â stat Áõ°¡
 	if( CX2GameUnit::GUT_USER == pAttacker->GetGameUnitType() )
 	{
 		CX2GUUser* pUser = (CX2GUUser*) pAttacker;
-		const CX2UserSkillTree& cUserSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& cUserSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 		int iSkillLevel = cUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RRF_CONFIDENCE_VICTORY, true );
@@ -2072,7 +2088,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 		int iSkillLevelOverddrive = cUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ABM_MANAFLOW_OVERDRIVE );
 		if( iSkillLevelOverddrive > 0 )
 		{
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_ABM_MANAFLOW_OVERDRIVE );
 
 			if( NULL != pSkillTemplet )
@@ -2132,12 +2148,12 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 #endif	SERV_TRAPPING_RANGER_TEST
 	}
 
-	//{{ kimhc // 2011.4.24 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2ï¿½Ü°ï¿½, ï¿½å·¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ & ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 3ï¿½Ü°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½àº¹
+	//{{ kimhc // 2011.4.24 // ¿ùµå¹öÇÁ 2´Ü°è, µå·¡°ïÀÇ ¼û°á & ¿ùµå ¹öÇÁ 3´Ü°è ¿¤ÀÇ Ãàº¹
 #ifdef	SERV_INSERT_GLOBAL_SERVER
-	// PVPï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ì¿¡ ï¿½ï¿½ï¿½ï¿½
+	// PVP°¡ ¾Æ´Ñ °æ¿ì¿¡ Àû¿ë
 	if ( NULL != g_pData->GetWorldMissionManager() && CX2Game::GT_PVP != g_pX2Game->GetGameType() )
 	{
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2ï¿½Ü°ï¿½, ï¿½å·¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ USERï¿½ï¿½ ï¿½ï¿½ï¿½
+		// ¿ùµå¹öÇÁ 2´Ü°è, µå·¡°ïÀÇ ¼û°áÀÌ Àû¿ë ÁßÀÌ°í °ø°ÝÀÚ°¡ USERÀÎ °æ¿ì
 		if ( false == g_pData->GetWorldMissionManager()->IsNullWorldBuffDragonBreath() &&
 			 CX2GameUnit::GUT_USER == pAttacker->GetGameUnitType() )
 		{
@@ -2146,7 +2162,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 			fMagicAttack += fMagicAttack * fIncreaseRateAtk;
 		}
 
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 3ï¿½Ü°ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½àº¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½Ç°ï¿½ï¿½Ú°ï¿½ USERï¿½ï¿½ ï¿½ï¿½ï¿½
+		// ¿ùµå¹öÇÁ 3´Ü°è, ¿¤ÀÇ Ãàº¹ÀÌ Àû¿ë ÁßÀÌ°í ÇÇ°ÝÀÚ°¡ USERÀÎ °æ¿ì
 		if ( false == g_pData->GetWorldMissionManager()->IsNULLWorldBuffElBless() &&
 			 CX2GameUnit::GUT_USER == GetGameUnitType() )
 		{
@@ -2156,7 +2172,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 		}		
 	}
 #endif	SERV_INSERT_GLOBAL_SERVER
-	//}} kimhc // 2011.4.24 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2ï¿½Ü°ï¿½, ï¿½å·¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ & ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 3ï¿½Ü°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½àº¹
+	//}} kimhc // 2011.4.24 // ¿ùµå¹öÇÁ 2´Ü°è, µå·¡°ïÀÇ ¼û°á & ¿ùµå ¹öÇÁ 3´Ü°è ¿¤ÀÇ Ãàº¹
 
 
 #ifdef PET_AURA_SKILL
@@ -2171,16 +2187,16 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 				CX2GUUser* pUser = (CX2GUUser*) pAttacker;
 				CX2Unit* pUnit = pUser->GetUnit();
 #ifdef FIX_SOCKET_OPTION_INCREASE_ATK_AND_DEF
-				if( 0.f != pUser->GetSocketData()->m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate )
-					fPhysicAttack += fPhysicAttack * pUser->GetSocketData()->m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate;
+				if( 0.f != pUser->GetSocketData().m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate )
+					fPhysicAttack += fPhysicAttack * pUser->GetSocketData().m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate;
 
-				if( 0.f != pUser->GetSocketData()->m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate )
-					fMagicAttack += fMagicAttack * pUser->GetSocketData()->m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate;
+				if( 0.f != pUser->GetSocketData().m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate )
+					fMagicAttack += fMagicAttack * pUser->GetSocketData().m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate;
 #else
 				if( pUnit != NULL && pUnit->GetPetInfo() != NULL && (float)pUnit->GetPetInfo()->m_sSatiety / CX2PetManager::MAX_OF_SATIETY >= CX2PetManager::SATIETY_RATIO_TO_BE_ABLE_TO_APPLY_AURA )
 				{
-					fPhysicAttack += fPhysicAttack * pUser->GetSocketData()->m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate;
-					fMagicAttack += fMagicAttack * pUser->GetSocketData()->m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate;
+					fPhysicAttack += fPhysicAttack * pUser->GetSocketData().m_Stat.m_ExtraStat.m_fIncreaseAtkPhysicRate;
+					fMagicAttack += fMagicAttack * pUser->GetSocketData().m_Stat.m_ExtraStat.m_fIncreaseAtkMagicRate;
 				}
 #endif //FIX_SOCKET_OPTION_INCREASE_ATK_AND_DEF
 			}
@@ -2224,33 +2240,36 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 #endif
 
 #ifndef DUNGEON_ITEM
-	attackerStat.GetStat()->MultiplyStat( pAttacker->GetStatTimesByScaleTransform() );
-	defenderStat.GetStat()->MultiplyStat( GetStatTimesByScaleTransform() );
+	attackerStat.AccessStat().MultiplyStat( pAttacker->GetStatTimesByScaleTransform() );
+	defenderStat.AccessStat().MultiplyStat( GetStatTimesByScaleTransform() );
 #endif
 
-	attackerStat.GetAddOnStat()->SetStat( pAttacker->GetStat()->GetAddOnStat() );
-	defenderStat.GetAddOnStat()->SetStat( GetStat()->GetAddOnStat() );
+	attackerStat.AccessAddOnStat().SetStat( pAttacker->GetStat().GetAddOnStat() );
+	defenderStat.AccessAddOnStat().SetStat( GetStat().GetAddOnStat() );
 
-//{{ kimhc // 2010.4.3 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½)
+//{{ kimhc // 2010.4.3 // ºñ¹Ð´øÀü ÀÛ¾÷(¼ÂÆ®¾ÆÀÌÅÛÈ¿°ú)
 #ifdef SERV_SECRET_HELL
 	ProcessStatPercentUpBuffer( pAttacker, attackerStat, defenderStat );
 #endif SERV_SECRET_HELL
-//}} kimhc // 2010.4.3 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½)
+//}} kimhc // 2010.4.3 // ºñ¹Ð´øÀü ÀÛ¾÷(¼ÂÆ®¾ÆÀÌÅÛÈ¿°ú)
 
 	CX2Stat* pAttackerStat = &attackerStat;
 	CX2Stat* pDefenderStat = &defenderStat;
 
 
 
-	float fLvFactor			= CalcLevelFactorForFinalDamage( pAttacker );	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½		
-	float fExtraAttackPower = CalcExtraAttackPower( pAttDamageData, pAttacker, pAttackerStat );		// È­ï¿½ï¿½ï¿½ï¿½Å¸, ï¿½Ã±ï¿½ ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½Ý·ï¿½ 
+	float fLvFactor			= CalcLevelFactorForFinalDamage( pAttacker );	// ·¹º§ º¸Á¤Ä¡ °è»ê		
+	float fExtraAttackPower = CalcExtraAttackPower( pAttDamageData, pAttacker, pAttackerStat );		// È­¿°°­Å¸, ³Ã±â Ãæ°Ý Ãß°¡ °ø°Ý·Â 
 
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½îµµ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ÇÁ·ÎÁð ¹æ¾îµµ µð¹öÇÁ ¹èÀ²
 	float fFronzenDebuffDefenceRate = 1.f;				
-	if( GetExtraDamagePack()->m_EnchantFrozen.m_fTime > 0.f )
+	if( GetExtraDamagePack().m_EnchantFrozen.m_fTime > 0.f )
 	{
-		CX2EnchantItem::EnchantData* pEnchantData = NULL;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+		const CX2EnchantItem::EnchantData* pEnchantData = GetWeaponEnchantData( CX2DamageManager::EDT_ENCHANT_FROZEN );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+        const CX2EnchantItem::EnchantData* pEnchantData = NULL;
 		switch( GetGameUnitType() )
 		{
 		case CX2GameUnit::GUT_USER:
@@ -2263,12 +2282,13 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 				pEnchantData = g_pData->GetEnchantItem()->GetNPCEnchantData( CX2DamageManager::EDT_ENCHANT_FROZEN );
 			} break;
 		}
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 
 
 		if( NULL != pEnchantData )
 		{
 
-			switch( GetExtraDamagePack()->m_EnchantFrozen.m_Accumulation )
+			switch( GetExtraDamagePack().m_EnchantFrozen.m_Accumulation )
 			{
 			default:
 				{
@@ -2293,28 +2313,24 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 
 
 	
-	// ï¿½Ç¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0
+	// ÇÇ¾î½Ì µ¥¹ÌÁöÀÇ °æ¿ì ¹æ¾î·ÂÀÌ 0
 	float fPiercingDefenceFactor = 1.f;
-#ifdef NEW_MEMO_01
 	if( pAttDamageData->m_bPenetrate == true || pAttDamageData->m_bIgnoreDefence == true )
-#else
-	if( true == pAttDamageData->m_bPenetrate )
-#endif
 	{
 		fPiercingDefenceFactor = 0.f;
 	}
 
 
 #ifdef ENCHANT_BALANCE_101014 
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.5] // ï¿½Ó¼ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	// oasis907 : ±è»óÀ± [2010.10.5] // ¼Ó¼º ¼îÅ©½Ã ÇÇÇØÀÚ ¹æ¾î·Â Çâ»ó
 	float fShockDebuffDefenceRate = 0.f;				
-	if( GetExtraDamagePack()->m_EnchantShock.m_fTime > 0.f )
+	if( GetExtraDamagePack().m_EnchantShock.m_fTime > 0.f )
 	{
 		fShockDebuffDefenceRate = 0.1f;
 	}
 #endif ENCHANT_BALANCE_101014
 
-	// ï¿½ï¿½ï¿½Ý·ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	// °ø°Ý·Â, ¹æ¾î·Â °è»ê
 	float fAttackPower	= 0.f;
 	float fDefencePower = 0.f;
 
@@ -2337,38 +2353,37 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 	{
 	case CX2DamageManager::DT_PHYSIC:
 		{
-			fAttackPower = fPhysicAttack + pAttackerStat->GetAddOnStat()->m_fAtkPhysic + fExtraAttackPower;
+			fAttackPower = fPhysicAttack + pAttackerStat->GetAddOnStat().m_fAtkPhysic + fExtraAttackPower;
 
-			fDefencePower = fPhysicDefence + pDefenderStat->GetAddOnStat()->m_fDefPhysic;
+			fDefencePower = fPhysicDefence + pDefenderStat->GetAddOnStat().m_fDefPhysic;
 			fDefencePower *= fPiercingDefenceFactor;
 		} break;
 
 	case CX2DamageManager::DT_MAGIC:
 		{
-			fAttackPower = fMagicAttack + pAttackerStat->GetAddOnStat()->m_fAtkMagic + fExtraAttackPower;
+			fAttackPower = fMagicAttack + pAttackerStat->GetAddOnStat().m_fAtkMagic + fExtraAttackPower;
 
-			fDefencePower = fMagicDefence + pDefenderStat->GetAddOnStat()->m_fDefMagic;
+			fDefencePower = fMagicDefence + pDefenderStat->GetAddOnStat().m_fDefMagic;
 			fDefencePower *= fPiercingDefenceFactor;
 		} break;
 	case CX2DamageManager::DT_MIX:
 		{
-			fAttackPowerPhysic = fPhysicAttack + pAttackerStat->GetAddOnStat()->m_fAtkPhysic + fExtraAttackPower;
-			fAttackPowerMagic = fMagicAttack + pAttackerStat->GetAddOnStat()->m_fAtkMagic + fExtraAttackPower;
-			fDefencePowerPhysic = fPhysicDefence + pDefenderStat->GetAddOnStat()->m_fDefPhysic;
-			fDefencePowerMagic = fMagicDefence + pDefenderStat->GetAddOnStat()->m_fDefMagic;;			           
+			fAttackPowerPhysic = fPhysicAttack + pAttackerStat->GetAddOnStat().m_fAtkPhysic + fExtraAttackPower;
+			fAttackPowerMagic = fMagicAttack + pAttackerStat->GetAddOnStat().m_fAtkMagic + fExtraAttackPower;
+			fDefencePowerPhysic = fPhysicDefence + pDefenderStat->GetAddOnStat().m_fDefPhysic;
+			fDefencePowerMagic = fMagicDefence + pDefenderStat->GetAddOnStat().m_fDefMagic;;			           
 			
 			fDefencePower = (fDefencePowerPhysic + fDefencePowerMagic) * 0.5f;
 			fDefencePower *= fPiercingDefenceFactor;
 		}
 		break;
 
-//{{ kimhc // 2010.7.30 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#ifdef	WEAPON_DAMAGE_WITHOUT_STAT
+//{{ kimhc // 2010.7.30 // ½ºÅÈÀ» Á¦¿ÜÇÑ ¹«±â¸¸ÀÇ µ¥¹ÌÁö
 	case CX2DamageManager::DT_WEAPON_PHYSIC:
 		{
 			fAttackPower = GetItemAttackPower( pAttacker, NULL, CX2DamageManager::DT_PHYSIC ) + fExtraAttackPower;
 
-			fDefencePower = fPhysicDefence + pDefenderStat->GetAddOnStat()->m_fDefPhysic;
+			fDefencePower = fPhysicDefence + pDefenderStat->GetAddOnStat().m_fDefPhysic;
 			fDefencePower *= fPiercingDefenceFactor;
 		} break;
 
@@ -2376,7 +2391,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 		{
 			fAttackPower = GetItemAttackPower( pAttacker, NULL, CX2DamageManager::DT_MAGIC ) + fExtraAttackPower;
 
-			fDefencePower = fMagicDefence + pDefenderStat->GetAddOnStat()->m_fDefMagic;
+			fDefencePower = fMagicDefence + pDefenderStat->GetAddOnStat().m_fDefMagic;
 			fDefencePower *= fPiercingDefenceFactor;
 		} break;
 	case CX2DamageManager::DT_WEAPON_MIX:
@@ -2384,46 +2399,44 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 			fAttackPowerPhysic	= GetItemAttackPower( pAttacker, NULL, CX2DamageManager::DT_PHYSIC ) + fExtraAttackPower;
 			fAttackPowerMagic	= GetItemAttackPower( pAttacker, NULL, CX2DamageManager::DT_MAGIC ) + fExtraAttackPower;
 
-			fDefencePowerPhysic = fPhysicDefence + pDefenderStat->GetAddOnStat()->m_fDefPhysic;
-			fDefencePowerMagic	= fMagicDefence + pDefenderStat->GetAddOnStat()->m_fDefMagic;			           
+			fDefencePowerPhysic = fPhysicDefence + pDefenderStat->GetAddOnStat().m_fDefPhysic;
+			fDefencePowerMagic	= fMagicDefence + pDefenderStat->GetAddOnStat().m_fDefMagic;			           
 
 			fDefencePower = (fDefencePowerPhysic + fDefencePowerMagic) * 0.5f;
 			fDefencePower *= fPiercingDefenceFactor;
 		}
 		break;
-#endif	WEAPON_DAMAGE_WITHOUT_STAT
-//}} kimhc // 2010.7.30 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.7.30 // ½ºÅÈÀ» Á¦¿ÜÇÑ ¹«±â¸¸ÀÇ µ¥¹ÌÁö
 	}
 
 #ifdef	SERV_TRAPPING_RANGER_TEST
-	fDefencePower *= fSharpenDamageRate;	//	ï¿½ï¿½Ä«ï¿½Î¿ï¿½ È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	fDefencePower *= fSharpenDamageRate;	//	³¯Ä«·Î¿î È­»ì Àû¿ë
 #endif	SERV_TRAPPING_RANGER_TEST
 
 
 
-	// ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ 100% ï¿½ï¿½ï¿½ï¿½ & ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ·¹º§ 1¿¡ ÇØ´çÇÏ´Â 100% ¹æ¾î·Â & ·¹º§´ç ¹æ¾î·Â Áõ°¡·®
 	const float MAGIC_DEFENCE_POWER_DELTA	= 62.f;
 	const float MAGIC_DEFENCE_POWER_LV1		= 410.f - MAGIC_DEFENCE_POWER_DELTA; 
 
 
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// °ø°ÝÀÚ ·¹º§
 	int iAttackerLevel = 1;
 	switch( pAttacker->GetGameUnitType() )
 	{
 	case CX2GameUnit::GUT_USER:
 		{
 			CX2GUUser* pUser = (CX2GUUser*) pAttacker;
-			if( NULL != pUser->GetUnit() &&
-				NULL != pUser->GetUnit()->GetUnitData() )
+			if( NULL != pUser->GetUnit() )
 			{
 #ifdef CORRECTION_DAMAGE_FREE_CHANNEL
 				if ( NULL != g_pX2Game && NULL != g_pX2Game->IsDamageFreeGame() )
 					iAttackerLevel = 1;
 				else
-					iAttackerLevel = pUser->GetUnit()->GetUnitData()->m_Level;
+					iAttackerLevel = pUser->GetUnit()->GetUnitData().m_Level;
 #else
-				iAttackerLevel = pUser->GetUnit()->GetUnitData()->m_Level;
+				iAttackerLevel = pUser->GetUnit()->GetUnitData().m_Level;
 #endif
 			}
 		} break;
@@ -2436,12 +2449,12 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 	}
 
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ 100% ï¿½ï¿½ï¿½ï¿½
+	// °ø°ÝÀÚ ·¹º§¿¡ ÇØ´çÇÏ´Â 100% ¹æ¾î·Â
 	const float fFullDefencePowerByAttackerLevel = MAGIC_DEFENCE_POWER_LV1 + MAGIC_DEFENCE_POWER_DELTA * (float) iAttackerLevel;
 
 
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ï¿½ï¿½ ï¿½ï¿½îµµ ï¿½ï¿½ï¿½ï¿½
+	// °ø°ÝÀÚÀÇ ½ºÅ³¿¡ ÀÇÇÑ ÇÇ°ÝÀÚ ¹æ¾îµµ °¨¼Ò
 	float fDefenceRateBySkill = 1.f; 
 #ifdef NEW_SKILL_TREE
 	if( CX2GameUnit::GUT_USER == pAttacker->GetGameUnitType() )
@@ -2449,7 +2462,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 		CX2GUUser* pUser = (CX2GUUser*) pAttacker;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADM_SHADOW_DATH, true );
+		int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADM_SHADOW_DATH, true );
 
 		if( iSkillLevel > 0 )
 		{
@@ -2460,7 +2473,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 			}
 		}
 	#else //UPGRADE_SKILL_SYSTEM_2013
-		int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SHADOW_DATH );
+		int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_SHADOW_DATH );
 
 		if( iSkillLevel > 0 )
 		{
@@ -2477,7 +2490,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 
 
 
-	// ï¿½ï¿½ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½îµµ ï¿½ï¿½ï¿½
+	// ¹æ¾î·Â¿¡ ÀÇÇÑ ¹æ¾îµµ °è»ê
 	float fDefencePowerRate = 0.f;
 	switch( g_pX2Game->GetGameType() )
 	{
@@ -2489,7 +2502,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 
 	case CX2Game::GT_PVP:
 		{
-			//ï¿½Ç°ï¿½ï¿½Ú¹ï¿½îµµ = ï¿½Ç°ï¿½ï¿½Ú¹ï¿½ï¿½ï¿½ / ( ï¿½âº»1ï¿½ï¿½ï¿½ï¿½100%ï¿½ï¿½ï¿½ï¿½ + ( ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½100%ï¿½ï¿½ï¿½ï¿½ - ï¿½âº»1ï¿½ï¿½ï¿½ï¿½100%ï¿½ï¿½ï¿½ï¿½ ) / 10 ) )
+			//ÇÇ°ÝÀÚ¹æ¾îµµ = ÇÇ°ÝÀÚ¹æ¾î·Â / ( ±âº»1·¹º§100%¹æ¾î·Â + ( ( °ø°ÝÀÚÀÇ·¹º§100%¹æ¾î·Â - ±âº»1·¹º§100%¹æ¾î·Â ) / 10 ) )
 			fDefencePowerRate = fDefencePower / ( MAGIC_DEFENCE_POWER_LV1 + (fFullDefencePowerByAttackerLevel-MAGIC_DEFENCE_POWER_LV1) * 0.1f );
 
 		} break;
@@ -2548,18 +2561,30 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 		switch( pAttDamageData->damageType )
 		{
 		case CX2DamageManager::DT_PHYSIC:
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+			// ¿¡³ÊÁö ½ºÆÛÆ®, ¸¶°ø -> ¹°°øÀ¸·Î º¯°æ
+			fFixDamage = pAttacker->GetStat().GetStat().m_fAtkPhysic * 6.16f;
+#else // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 			fFixDamage = fAttackerPhysicDamage;
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 			break;
 		case CX2DamageManager::DT_MAGIC:
+
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+			// ¿¡³ÊÁö ½ºÆÛÆ®, ¸¶°ø -> ¹°°øÀ¸·Î º¯°æ
+			fFixDamage = fAttackerMagicDamage;
+#else // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 #ifdef BALANCE_PATCH_20120329
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-			fFixDamage = pAttacker->GetStat()->GetStat()->m_fAtkMagic * 7.68f;
+			fFixDamage = pAttacker->GetStat().GetStat().m_fAtkMagic * 7.68f;
 #else //UPGRADE_SKILL_SYSTEM_2013
-			fFixDamage = pAttacker->GetStat()->GetStat()->m_fAtkMagic * 10.f;
+			fFixDamage = pAttacker->GetStat().GetStat().m_fAtkMagic * 10.f;
 #endif //UPGRADE_SKILL_SYSTEM_2013
 #else
 			fFixDamage = fAttackerMagicDamage;
 #endif
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+
 			break;
 		default:
 			fFixDamage = 2000.f;
@@ -2577,7 +2602,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 				fFinalDamage * ( pAttacker->GetAdditionalFinalDamageMultiplierMeleeAttack() - 1.0f ) :
 				fFinalDamage * ( pAttacker->GetAdditionalFinalDamageMultiplierRangeAttack() - 1.0f ) );
 		
-		fFinalDamage += fIncreaseDamage;	/// ï¿½ï¿½ï¿½ï¿½ï¿½
+		fFinalDamage += fIncreaseDamage;	/// ¾ç¼ö°ª
 
 		if( fFinalDamage <= 1.f )
 			fFinalDamage = 1.f;
@@ -2595,10 +2620,9 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 #endif ENCHANT_BALANCE_101014
 		
 	float fFinalDamage = 0.f;
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç»ï¿½ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ý·ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// °ø°ÝÀÚÀÇ ¸ð¼Ç»óÅÂ¿¡ µû¶ó ÁöÁ¤µÈ °ø°Ý·Â ¹èÀ²
 	float fAttackerPowerRateByMotion = 0.f;
-//{{ kimhc // 2010.8.2 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#ifdef	WEAPON_DAMAGE_WITHOUT_STAT
+//{{ kimhc // 2010.8.2 // ½ºÅÈÀ» Á¦¿ÜÇÑ ¹«±â¸¸ÀÇ µ¥¹ÌÁö
 	switch( pAttDamageData->damageType )
 	{
 	case CX2DamageManager::DT_PHYSIC:
@@ -2621,36 +2645,14 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 		}
 		break;
 	}
-#else	WEAPON_DAMAGE_WITHOUT_STAT
-	switch( pAttDamageData->damageType )
-	{
-	case CX2DamageManager::DT_PHYSIC:
-		{
-			ASSERT( 0.f != pAttDamageData->damage.fPhysic );
-			fAttackerPowerRateByMotion = pAttDamageData->damage.fPhysic;
-		} break;
-
-	case CX2DamageManager::DT_MAGIC:
-		{
-			ASSERT( 0.f != pAttDamageData->damage.fMagic );
-			fAttackerPowerRateByMotion = pAttDamageData->damage.fMagic;
-
-		} break;
-	case CX2DamageManager::DT_MIX:
-		{			
-			bMixAttack = true;
-		}
-		break;
-	}
-#endif	WEAPON_DAMAGE_WITHOUT_STAT
-//}} kimhc // 2010.8.2 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.8.2 // ½ºÅÈÀ» Á¦¿ÜÇÑ ¹«±â¸¸ÀÇ µ¥¹ÌÁö
 	
 	
-	// 1. ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ 
+	// 1. ±âº»ÀûÀÎ µ¥¹ÌÁö °è»ê 
 	fFinalDamage = fAttackerPowerRateByMotion * fDamageRateByDefencePowerRate;
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //ï¿½ï¿½Ã¢ï¿½ï¿½
-	//ï¿½ï¿½ï¿½Òµï¿½ ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 //±èÃ¢ÇÑ
+	//¿¤¼Òµå ·Îµå ³ªÀÌÆ® °­·ÄÇÑ ÀÏ°Ý
 	if( pAttacker->GetGameUnitType() == GUT_USER )
 	{
 		CX2GUUser* pUser = static_cast<CX2GUUser*>(pAttacker);
@@ -2663,14 +2665,14 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 	}
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
-	// 2. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ dungeon rateï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½
+	// 2. ´øÀü°ÔÀÓÀÌ¸é dungeon rate¸¦ °öÇØÁØ´Ù
 	if( g_pX2Game->GetGameType() == CX2Game::GT_DUNGEON || g_pX2Game->GetGameType() == CX2Game::GT_BATTLE_FIELD )
 	{
 		fFinalDamage *= pAttDamageData->m_fDungeonRate;
 	}
 
 #ifdef SKILL_BALANCE_20110728
-	// 2.1 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ PVP rateï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½
+	// 2.1 ´ëÀü°ÔÀÓÀÌ¸é PVP rate¸¦ °öÇØÁØ´Ù
 	if( g_pX2Game->GetGameType() == CX2Game::GT_PVP )
 	{
 		fFinalDamage *= pAttDamageData->m_fPvpRate;
@@ -2678,12 +2680,12 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 #endif
 
 #ifdef ELSWORD_WAY_OF_SWORD
-	// 2.2 ï¿½ï¿½ï¿½Ç±æ¿¡ ï¿½ï¿½ï¿½ï¿½ damageï¿½ï¿½ï¿½ï¿½
+	// 2.2 °ËÀÇ±æ¿¡ µû¸¥ damageÁõ°¡
 	ASSERT( GetFinalDamage_WayOfSword(pAttDamageData->m_WayofSwordType) > 0.f );
 	fFinalDamage *= pAttacker->GetFinalDamage_WayOfSword( pAttDamageData->m_WayofSwordType );
 #endif ELSWORD_WAY_OF_SWORD
 
-	// 3. ï¿½ï¿½ï¿½ï¿½ï¿½ß´Ù¸ï¿½ 1.2ï¿½ï¿½
+	// 3. °¢¼ºÇß´Ù¸é 1.2¹è
 	//if( pAttacker->GetRemainHyperModeTime() > 0.f )
 	const float fDecreaseDamage = fFinalDamage * ( pDefender->GetAdditionalFinalDefenceMultiplier() - 1.0f );
 		const float fIncreaseDamage 
@@ -2691,12 +2693,12 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 				fFinalDamage * ( pAttacker->GetAdditionalFinalDamageMultiplierMeleeAttack() - 1.0f ) :
 				fFinalDamage * ( pAttacker->GetAdditionalFinalDamageMultiplierRangeAttack() - 1.0f ) );
 
-		fFinalDamage += fDecreaseDamage;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		fFinalDamage += fIncreaseDamage;	/// ï¿½ï¿½ï¿½ï¿½ï¿½
+		fFinalDamage += fDecreaseDamage;	/// À½¼ö°ª
+		fFinalDamage += fIncreaseDamage;	/// ¾ç¼ö°ª
 
-	// 3.1 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ %ï¿½ï¿½Å­ ï¿½Ù¿ï¿½ï¿½Ø´ï¿½
+	// 3.1 ¹æ¾î»óÅÂÀÌ¸é µ¥¹ÌÁö¸¦ %¸¸Å­ ÁÙ¿©ÁØ´Ù
 	float fDamageReduceRate = 0.f;
-	float fFinalDamageBeforeReduce = fFinalDamage;	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	float fFinalDamageBeforeReduce = fFinalDamage;	// µ¥¹ÌÁö °¨¼Ò ÀÌÀüÀÇ µ¥¹ÌÁö¸¦ ÀúÀå
 
 #ifdef UPGRADE_RAVEN
 	if( pAttDamageData->m_bPenetrate == false && pAttDamageData->m_bIgnoreStateDefence == false )
@@ -2717,7 +2719,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.7.6] Ã»ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, m_DamageReducePercent ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// oasis907 : ±è»óÀ± [2011.7.6] Ã»°¡µå, ±»°ÇÇÑÀÇÁöµî, m_DamageReducePercent ÁßÃ¸À¸·Î ÀÎÇÑ ¿Àµ¿ÀÛ ¹æÁö
 	if(fDamageReduceRate > 100.f)
 		fDamageReduceRate = 100.f;
 #endif CHUNG_SECOND_CLASS_CHANGE
@@ -2725,7 +2727,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 	fFinalDamage *= fDamageReduceRate;
 
 #ifdef DAMAGE_DOUBLE_AT_DOWN_STATE
-	// 3.2 ï¿½Ù¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// 3.2 ´Ù¿î »óÅÂÀÇ Àû °ø°Ý½Ã µ¥¹ÌÁö Áõ°¡
 	if( GetGameUnitType() == CX2GameUnit::GUT_NPC )
 	{
 		CX2GUNPC* pGUNPC = (CX2GUNPC*)this;
@@ -2738,9 +2740,9 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 				fFinalDamage *= fDamageUpRateAtDownState;
 			}
 
-			// kimhc // 2010-11-23 // ï¿½Ù¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¿ï¿½
-			// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½
-			// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+			// kimhc // 2010-11-23 // ´Ù¿î»óÅÂÀÇ ÀûÀ» °ø°ÝÇÏ¿© µ¥¹ÌÁö°¡ Áõ°¡µÉ ½Ã¿¡
+			// ÇØ´ç µ¥¹ÌÁö°¡ ±âº» µ¥¹ÌÁö(¼­ÀÖ´Â »óÅÂ¿¡¼­ ¶§¸° µ¥¹ÌÁö) º¸´Ù Å©¸é
+			// ±âº» µ¥¹ÌÁö·Î º¸Á¤ÇÑ´Ù.
 			if ( fFinalDamageBeforeReduce < fFinalDamage )
 				fFinalDamage = fFinalDamageBeforeReduce;
 
@@ -2749,7 +2751,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 #endif DAMAGE_DOUBLE_AT_DOWN_STATE
 
 
-	//3.3 Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ã¶ó°¡´ï¿½ ï¿½ï¿½ï¿½.. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¸¸ ï¿½ï¿½ï¿½ï¿½ï¿½Øºï¿½ï¿½ï¿½..
+	//3.3 Æ¯Á¤ ¸ó½ºÅÍ¿¡ ÇÑÇØ¼­ µ¥¹ÌÁö°¡ ´õ ¿Ã¶ó°¡´Â °æ¿ì.. À¯Àú°¡ ¸ó½ºÅÍ¸¦ ¶§·ÈÀ» °æ¿ì¸¸ »ý°¢ÇØº¸ÀÚ..
 	if( GetGameUnitType() == CX2GameUnit::GUT_NPC )
 	{
 		CX2GUNPC* pGUNPC = (CX2GUNPC*)this;
@@ -2758,7 +2760,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 //		case CX2DamageManager::AT_UNIT:
 //		case CX2DamageManager::AT_EFFECT:
 //			{
-				float fIncreasePercent = pAttacker->GetDamageUpPercentBySMA( pGUNPC->GetNPCTemplet()->m_nNPCUnitID );
+				float fIncreasePercent = pAttacker->GetDamageUpPercentBySMA( pGUNPC->GetNPCTemplet().m_nNPCUnitID );
 				fFinalDamage += fFinalDamage * fIncreasePercent;
 		//	} break;
 		//}
@@ -2766,8 +2768,8 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 
 
 
-	// 4. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ë·±ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-#ifndef PVP_SEASON2 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â·ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// 4. ´ëÀü°ÔÀÓÀÌ¶ó¸é ÆÀ¹ë·±½º Àû¿ë
+#ifndef PVP_SEASON2 // ¼­¹ö ¹öÇÁ ÇüÅÂ·Î º¯°æ
 	if( g_pX2Game->GetGameType() == CX2Game::GT_PVP )
 	{
 		switch( GetTeam() )
@@ -2794,7 +2796,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 	}
 #endif
 
-	// 5. ï¿½Ç¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ý·ï¿½ï¿½ï¿½ 0.3ï¿½ï¿½
+	// 5. ÇÇ¾î½Ì °ø°ÝÀÏ °æ¿ì¿¡ Ãß°¡ µ¥¹ÌÁö, ¹«±â °ø°Ý·ÂÀÇ 0.3¹è
 	if( true == pAttDamageData->m_bPenetrate )
 	{
 		float fPiercingDamage = 0.f;
@@ -2803,7 +2805,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 		case CX2GameUnit::GUT_USER:
 			{
 				CX2GUUser* pGUUSer = (CX2GUUser*)pAttacker;
-				CX2Item* pItem = pGUUSer->GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+				CX2Item* pItem = pGUUSer->GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 				fPiercingDamage = GetItemAttackPower( pAttacker, pItem );
 
 			} break;
@@ -2822,7 +2824,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 		fFinalDamage += fPiercingDamage;
 	}
 
-	// SocketOptionï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SuperArmor ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 30% ï¿½ï¿½ï¿½ï¿½
+	// SocketOption¿¡ ÀÇÇÑ SuperArmor ½Ã¿¡ µ¥¹ÌÁö 30% °¨¼Ò
 	if ( pDefender->GetGameUnitType() == GUT_USER )
 	{
 		const CX2GUUser* pUser = static_cast<CX2GUUser*>( pDefender );
@@ -2832,14 +2834,14 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 
 
 #ifdef RENA_SECOND_CLASS_CHANGE
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ý¿ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½
+	// ·¹³ª ³«ÀÎÀÇ »ç°Ý¿¡ ÇÇÇØ¸¦ ¹ÞÀº »óÅÂÀÎ °æ¿ì¿¡ ¹Þ´Â µ¥¹ÌÁö°¡ Áõ°¡ÇÑ´Ù
 	if( m_ExtraDamagePack.m_StigmaDebuff.m_fTime > 0.f )
 	{
-		fFinalDamage *= m_ExtraDamagePack.m_StigmaDebuff.m_Damage;	// ï¿½Ï¹ï¿½ ï¿½Þºï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ´ï¿½
+		fFinalDamage *= m_ExtraDamagePack.m_StigmaDebuff.m_Damage;	// ÀÏ¹Ý ÄÞº¸ µ¥¹ÌÁö Áõ°¡ ºñÀ²À» °öÇÑ´Ù
 	}
 #endif RENA_SECOND_CLASS_CHANGE
 
-	//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/11/29 / ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ JHKang / °­Á¤ÈÆ / 2010/11/29 / ¾ÆÅä¹Í ½¯µå µ¥¹ÌÁö °¨¼Ò
 #ifdef NEW_SKILL_2010_11
 	if ( m_fAtomicShieldDamageRate < 1.f )
 	{
@@ -2849,7 +2851,13 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 		case CX2Main::XS_DUNGEON_GAME:
 		case CX2Main::XS_BATTLE_FIELD:
 			{
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+				// ±âÁ¸ ´ø/´ëÀü¿¡¼­ÀÇ µ¥¹ÌÁö °¨¼ÒÀ² ±âÁ¸ 20% Áõ°¡ ->  50% Áõ°¡
+				fFinalDamage *= m_fAtomicShieldDamageRate - (1.f - m_fAtomicShieldDamageRate) * 0.5f;
+#else // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 				fFinalDamage *= m_fAtomicShieldDamageRate - (1.f - m_fAtomicShieldDamageRate) * 0.2f;
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+
 			} break;
 		default:
 			{
@@ -2861,12 +2869,12 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 #endif
 	}
 #endif NEW_SKILL_2010_11
-	//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2010/11/29 / ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//}} JHKang / °­Á¤ÈÆ / 2010/11/29 / ¾ÆÅä¹Í ½¯µå µ¥¹ÌÁö °¨¼Ò
 
 
 #ifdef NEW_HENIR_TEST
 
-#ifndef ADD_HENIR_BUFF		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¸é¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifndef ADD_HENIR_BUFF		/// ¹öÇÁ·Î º¯°æµÇ¸é¼­ ¾²ÀÌÁö ¾Ê°Ô µÈ ±¸¹®
 	if( m_fTimeHenirBuff_Nature > 0.f)
 	{
 		const float MAGIC_DAMAGE_REDUCE_RATE_HENIR_BUFF_NATURE = 0.5f;
@@ -2881,13 +2889,21 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 
 #endif NEW_HENIR_TEST
 
-#ifdef ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ï¿½Ï´ï¿½ ï¿½ÎºÐ¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±â¿¡, GetFinalDamageï¿½ï¿½ ï¿½Ìµï¿½
-	fFinalDamage *= GetAdditionalAttackPowerRateByType( pAttDamageData );		/// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½Ý¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( AT_SPECIAL, AT_NORMAL )
+#ifdef ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE		/// µ¥¹ÌÁö µ¥ÀÌÅÍ ÆÄ½ÌÇÏ´Â ºÎºÐ¿¡¼­´Â µ¥¹ÌÁö ¹èÀ²À» Á¶ÀÛÇÏ´Â µ¿ÀÛÀ» ÇÏÁö ¾Ê±â¿¡, GetFinalDamage·Î ÀÌµ¿
+	fFinalDamage *= GetAdditionalAttackPowerRateByType( pAttDamageData );		/// Æ¯Á¤ °ø°Ý¿¡ µû¸¥ µ¥¹ÌÁö ¹èÀ² ¼³Á¤ ( AT_SPECIAL, AT_NORMAL )
 #endif ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE
 
 	fFinalDamage = pDefender->GetFinalDamageToBeChangedBySkill( fFinalDamage );
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Û´Ù¸ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef SERV_9TH_NEW_CHARACTER
+	// ¿ÀÇöºó // °ø°ÝÀÚ ½ºÅ³¿¡ ÀÇÇÑ ÃÖÁ¾ µ¥¹ÌÁö º¯°æ Ã³¸®
+	{
+		const float fAtkDamageRateBySkill = pAttacker->GetChangeDamageRateByAttackerSkill( pAttDamageData );
+		fFinalDamage *= fAtkDamageRateBySkill;
+	}
+#endif // SERV_9TH_NEW_CHARACTER
+
+	// ÃÖÁ¾µ¥¹ÌÁö°¡ 0º¸´Ù ÀÛ´Ù¸é 0À¸·Î º¸Á¤
 	if( fFinalDamage <= 0.f )
 		fFinalDamage = 0.f;
 	
@@ -2896,7 +2912,7 @@ float CX2GameUnit::GetFinalDamage( CX2DamageManager::DamageData* pAttDamageData 
 #endif
 
 
-	// Å©ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½ ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½Úµï¿½ï¿½ ï¿½ï¿½ ï¿½Ô¼ï¿½ ï¿½Û¿ï¿½ ï¿½Ö´ï¿½
+	// Å©¸®Æ¼ÄÃÀÎ °æ¿ì µ¥¹ÌÁö¸¦ 2¹è ÇØÁÖ´Â ÄÚµå´Â ÀÌ ÇÔ¼ö ¹Û¿¡ ÀÖ´Ù
 
 #if defined( _SERVICE_ ) 
 	ELSWORD_VIRTUALIZER_END
@@ -3017,7 +3033,7 @@ void    CX2GameUnit::InitDevice( InitDeviceData& OutDevice_, KLuaManager& luaMan
 
 
 /** @function InitDevice
-	@brief ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ TEXTURE, XMESH, SKINMESH, SOUND Pre-Loading
+	@brief À¯´Ö °ü·Ã TEXTURE, XMESH, SKINMESH, SOUND Pre-Loading
 */
 void CX2GameUnit::InitDevice()
 {
@@ -3062,7 +3078,7 @@ void CX2GameUnit::InitDevice()
  			m_LuaManager.EndTable();
  		}
  
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
  		if( m_LuaManager.BeginTable( "READY_SOUND" ) == true )
  		{
  			wstring soundName;
@@ -3074,7 +3090,7 @@ void CX2GameUnit::InitDevice()
  			}
  			m_LuaManager.EndTable();
  		}
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
  
  		m_LuaManager.EndTable(); // INIT_DEVICE
  	}
@@ -3086,12 +3102,12 @@ void CX2GameUnit::InitSystem()
 	if ( m_ScriptFileName.empty() == false )
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 	{
-		//ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½Ñ´ï¿½
+		//½ºÅ©¸³Æ® ÆÄÀÏÀ» ·ÎµåÇÑ´Ù
 	//{{ robobeg : 2008-10-28
-		g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( m_ScriptFileName.c_str() );
-		//g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, L"Enum.lua" );
-		//g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, L"Unit_Common_Device.lua" );
-		if ( g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, m_ScriptFileName.c_str() ) == false )
+		g_pKTDXApp->LoadLuaTinker( m_ScriptFileName.c_str() );
+		//g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, L"Enum.lua" );
+		//g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, L"Unit_Common_Device.lua" );
+		if ( g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, m_ScriptFileName.c_str() ) == false )
 		{
 			ASSERT( !"gameunit lua script Parsing failed" );
 		}
@@ -3111,19 +3127,32 @@ void CX2GameUnit::InitSystem()
 //}} robobeg : 2008-10-17
 
 		LUA_GET_VALUE_ENUM( m_LuaManager, "RENDER_PARAM", m_stOriginBuffRenderParam.m_eRenderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_CARTOON_BLACK_EDGE );
+#ifdef UNIT_SCALE_COMBINE_ONE		// ÇØ¿ÜÆÀ ¿À·ù ¼öÁ¤
+		m_stOriginBuffRenderParam.m_fOutLineWide	= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 		m_stOriginBuffRenderParam.m_fOutLineWide	= 1.7f;
+#endif //UNIT_SCALE_COMBINE_ONE
 		
 		if( g_pX2Game != NULL && g_pX2Game->GetWorld() != NULL )
 			m_RenderParam.lightPos	= g_pX2Game->GetWorld()->GetLightPos();
 
-		//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/13 / ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+		//{{ JHKang / °­Á¤ÈÆ / 2011/01/13 / ÀüÃ¼ ·»´õ Å¸ÀÔ º¯°æ È®ÀÎ(À¯ÁöÇÒ ·»´õ Å¸ÀÔÀÌ ÁöÁ¤)
 #ifdef SEASON3_MONSTER_2010_12
 		m_BasicRenderType = m_RenderParam.renderType;
 #endif SEASON3_MONSTER_2010_12
-		//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/13
+		//}} JHKang / °­Á¤ÈÆ / 2011/01/13
 
 		LUA_GET_VALUE( m_LuaManager, "ALPHA_BLEND", m_stOriginBuffRenderParam.m_bAlphaBlend, false );
 		SetAlphaObject( m_stOriginBuffRenderParam.m_bAlphaBlend );
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 //JHKang
+		D3DBLEND srcBlend = D3DBLEND_SRCALPHA;
+		D3DBLEND destBlend = D3DBLEND_INVSRCALPHA;
+		LUA_GET_VALUE_ENUM( m_LuaManager, "SRC_BLEND", srcBlend, D3DBLEND, D3DBLEND_SRCALPHA );
+		LUA_GET_VALUE_ENUM( m_LuaManager, "DEST_BLEND", destBlend, D3DBLEND, D3DBLEND_INVSRCALPHA );
+		m_RenderParam.srcBlend = srcBlend;
+		m_RenderParam.destBlend = destBlend;
+#endif //HALLOWEEN_EVENT_2013
 
 		bool bCullMode;
 		LUA_GET_VALUE( m_LuaManager, "CULL_MODE", bCullMode, true );
@@ -3132,7 +3161,7 @@ void CX2GameUnit::InitSystem()
 			m_RenderParam.cullMode = D3DCULL_NONE;
 		}
 		LUA_GET_VALUE( m_LuaManager, "Z_ENABLE", m_RenderParam.bZEnable, true );
-		m_RenderParam.bZWriteEnable = m_RenderParam.bZEnable;			// fix!! ï¿½Ï´ï¿½ ï¿½ä·¸ï¿½ï¿½
+		m_RenderParam.bZWriteEnable = m_RenderParam.bZEnable;			// fix!! ÀÏ´Ü ¿ä·¸°Ô
 
 
 		m_LuaManager.EndTable();
@@ -3171,7 +3200,7 @@ void CX2GameUnit::InitStat()
 	m_PhysicParam	= m_OrgPhysicParam;
 
 #ifdef RIDING_SYSTEM
-	/// Å»ï¿½Í¿ï¿½ Å¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// Å»°Í¿¡ Å¾½ÂÇßÀ» ¶§, ¹°¸® ¼³Á¤°ª °»½Å
 	if ( NULL != m_ptrRidingPet && true == GetRidingOn() )
 	{
 		m_PhysicParam.fWalkSpeed = m_ptrRidingPet->GetPhysicParam().fWalkSpeed;
@@ -3232,7 +3261,7 @@ void CX2GameUnit::InitStat()
 		{
 			LUA_GET_VALUE( m_LuaManager, "SMALL_HP_BAR_RED", wstrSmallHPbar, L"" );
 		}
-		else	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+		else	// ¸ó½ºÅÍÀÇ °æ¿ì
 		{
 			LUA_GET_VALUE( m_LuaManager, "SMALL_HP_BAR_YELLOW", wstrSmallHPbar, L"" );
 		}
@@ -3293,13 +3322,13 @@ void CX2GameUnit::InitComponent()
 		LUA_GET_VALUE( m_LuaManager, "QUESTION_MARK_SEQ", seqName, L"" );
 		if( seqName.length() > 0 )
 		{
-			if ( m_hQuestionMark == INVALID_PARTICLE_HANDLE )
+			if ( m_hQuestionMark == INVALID_PARTICLE_SEQUENCE_HANDLE )
 				m_hQuestionMark		= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  seqName.c_str(), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
 		}		
 		LUA_GET_VALUE( m_LuaManager, "EXCLAMATION_MARK_SEQ", seqName, L"" );
 		if( seqName.length() > 0 )
 		{
-			if ( m_hExclamationMark == INVALID_PARTICLE_HANDLE )
+			if ( m_hExclamationMark == INVALID_PARTICLE_SEQUENCE_HANDLE )
 				m_hExclamationMark	= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  seqName.c_str(), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
 		}
 
@@ -3331,24 +3360,24 @@ void CX2GameUnit::InitComponent()
 
 
 
-#ifdef HEAD_INVERSE_KINEMATICS_TEST
-		LUA_GET_VALUE( m_LuaManager, "HEAD_IK_ANGLE_CHANGE_RATE",	m_fHeadIKAngleChangeRate,	1.f );
-		LUA_GET_VALUE( m_LuaManager, "HEAD_IK_MAX_ANGLE",			m_fHeadIKAngleMax,			45.f );
-		m_fHeadIKAngleMax *= D3DX_PI / 180.f;
+//#ifdef HEAD_INVERSE_KINEMATICS_TEST
+//		LUA_GET_VALUE( m_LuaManager, "HEAD_IK_ANGLE_CHANGE_RATE",	m_fHeadIKAngleChangeRate,	1.f );
+//		LUA_GET_VALUE( m_LuaManager, "HEAD_IK_MAX_ANGLE",			m_fHeadIKAngleMax,			45.f );
+//		m_fHeadIKAngleMax *= D3DX_PI / 180.f;
+//
+//		LUA_GET_VALUE( m_LuaManager, "HEAD_IK_RADIUS",				m_fHeadIKRadius,			2000.f );
+//#endif HEAD_INVERSE_KINEMATICS_TEST
+//
 
-		LUA_GET_VALUE( m_LuaManager, "HEAD_IK_RADIUS",				m_fHeadIKRadius,			2000.f );
-#endif HEAD_INVERSE_KINEMATICS_TEST
-
-
-#ifdef STEP_ON_MONSTER_TEST
-		LUA_GET_VALUE( m_LuaManager, "CAN_BE_STEPPED_ON",			m_bCanBeSteppedOn,			false );
-#endif STEP_ON_MONSTER_TEST
+//#ifdef STEP_ON_MONSTER_TEST
+//		LUA_GET_VALUE( m_LuaManager, "CAN_BE_STEPPED_ON",			m_bCanBeSteppedOn,			false );
+//#endif STEP_ON_MONSTER_TEST
 
 
 
-#ifdef STEP_ON_MONSTER_COLLISION_BOX_TEST
-		LUA_GET_VALUE( m_LuaManager, "CAN_BE_STEPPED_ON_COLLISION_BOX",			m_bCanBeSteppedOnCollsionBox,			false );
-#endif STEP_ON_MONSTER_COLLISION_BOX_TEST
+//#ifdef STEP_ON_MONSTER_COLLISION_BOX_TEST
+//		LUA_GET_VALUE( m_LuaManager, "CAN_BE_STEPPED_ON_COLLISION_BOX",			m_bCanBeSteppedOnCollsionBox,			false );
+//#endif STEP_ON_MONSTER_COLLISION_BOX_TEST
 
 
 //#ifdef HEAD_ATTACHED_CAMERA_TEST
@@ -3369,82 +3398,95 @@ void CX2GameUnit::InitComponent()
 }
 
 
-void CX2GameUnit::SetDamageData_LUA( char* szTableName )
+void CX2GameUnit::SetDamageData_LUA( const char* szTableNameUTF8 )
 {
-	wstring wstrTableName = L"";
-	ConvertUtf8ToWCHAR( wstrTableName, szTableName );
-	g_pData->GetDamageManager()->SetDamageDataFromLUA( &m_DamageData, m_LuaManager, wstrTableName.c_str() );
+	g_pData->GetDamageManager()->SetDamageDataFromLUA( &m_DamageData, m_LuaManager, szTableNameUTF8 );
 }
 
 void CX2GameUnit::Verify()
 {
 	if ( IsMyUnit() )
 	{
-#ifdef USER_STAT_VERIFY
-		if( m_pStat->Verify() == false )
+		if ( g_pInstanceData != NULL 
+			&& g_pInstanceData->GetVerifyGageManagerTimer() <= 0.f )
 		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
-				g_pKTDXApp->GetFindHacking() == false )
+#ifdef USER_STAT_VERIFY
+			if ( GetStat().Verify() == false )
 			{
-				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-			}
+				if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
+					g_pKTDXApp->GetFindHacking() == false )
+				{
+					g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+				}
 
 #ifdef ADD_COLLECT_CLIENT_INFO
-			g_pMain->SendHackInfo5( ANTIHACKING_ID::ANTIHACKING_GAME_07, "", true, false );
+				g_pMain->SendHackInfo5( ANTIHACKING_ID::ANTIHACKING_GAME_07, ANTI_HACK_STRING_AntiHacking_Stat_Verify, true, true );
+				g_pInstanceData->SetRemainedTimeByForceQuitGame( REMAINED_TIME_BY_FORCE_QUIT_GAME );
 #else
-			g_pMain->SendHackMail_DamageHistory( ANTI_HACK_STRING_USER_STAT_VERIFY );
-			g_pKTDXApp->SetFindHacking( true );
+				g_pMain->SendHackMail_DamageHistory( ANTI_HACK_STRING_USER_STAT_VERIFY );
+				g_pKTDXApp->SetFindHacking( true );
 #endif
-		}
+			}
 #endif
 
 #ifdef VERIFY_STAT_BY_BUFF
-		if ( VerifyStatByBuff() == false 
-			|| VerifyScaleByUnit() == false
-			|| m_vBasicScale.Verify() == false
-			|| m_vTransScale.Verify() == false 
-			|| VerifyVector<CX2ChangeAttackByTypePtr>( m_AdditionalAttackByType ) == false
-			|| VerifyVector<CX2ChangeEnchantAttackRatePtr>( m_AdditionalChangeEnchantAttackRate ) == false
-			|| VerifyVector<CX2DoubleAttackPtr>( m_vecDoubleAttack ) == false
-			|| VerifyVector<CX2ChangeUnitScaleByBuffPtr>( m_vecChangeUnitScaleByBuffPtr ) == false
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-14 // ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
-			|| VerifyVector<CX2AddSkillLevelByBuffPtr>( m_vecAddSkillLevelByBuffPtr ) == false
-#endif // SERV_NEW_DEFENCE_DUNGEON
-	#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
-			|| VerifyVector<CX2ReflectMagicByBuffPtr>( m_vecReflectMagicByBuffPtr ) == false
-	#endif // SERV_ARA_CHANGE_CLASS_SECOND
-			)
-		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
-				g_pKTDXApp->GetFindHacking() == false )
+			if ( VerifyStatByBuff() == false 
+				|| VerifyScaleByUnit() == false
+				|| m_vBasicScale.Verify() == false
+				|| m_vTransScale.Verify() == false 
+				|| VerifyVector<CX2ChangeAttackByTypePtr>( m_AdditionalAttackByType ) == false
+				|| VerifyVector<CX2ChangeEnchantAttackRatePtr>( m_AdditionalChangeEnchantAttackRate ) == false
+				|| VerifyVector<CX2DoubleAttackPtr>( m_vecDoubleAttack ) == false
+				|| VerifyVector<CX2ChangeUnitScaleByBuffPtr>( m_vecChangeUnitScaleByBuffPtr ) == false
+				|| VerifyVector<CX2AddSkillLevelByBuffPtr>( m_vecAddSkillLevelByBuffPtr ) == false
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
+				|| VerifyVector<CX2ReflectMagicByBuffPtr>( m_vecReflectMagicByBuffPtr ) == false
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
+				)
 			{
-				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-			}
+				if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
+					g_pKTDXApp->GetFindHacking() == false )
+				{
+					g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+				}
 
 #ifdef ADD_COLLECT_CLIENT_INFO
-			g_pMain->SendHackInfo5( ANTIHACKING_ID::ANTIHACKING_GAME_07, "", true, false );
+				g_pMain->SendHackInfo5( ANTIHACKING_ID::ANTIHACKING_GAME_07, ANTI_HACK_STRING_AntiHacking_Buff_Verify, true, true );
+				g_pInstanceData->SetRemainedTimeByForceQuitGame( REMAINED_TIME_BY_FORCE_QUIT_GAME );
 #endif	// ADD_COLLECT_CLIENT_INFO
 
-			g_pKTDXApp->SetFindHacking( true );
-		}
+				//g_pKTDXApp->SetFindHacking( true );
+			}
 #endif // VERIFY_STAT_BY_BUFF
 
-		if( m_TeamNum.Verify()					== false 
-			|| VerifyMaxHyperModeTime()		== false 
-			|| VerifyRemainHyperModeTime()		== false
-			|| m_fForceInvincibleTime.Verify()	== false
-			|| m_fShowInvincibleTime.Verify()	== false
-			|| m_ExtraDamagePack.Verify()		== false )
-		{
-			g_pKTDXApp->SetFindHacking( true );
+			if( m_TeamNum.Verify()					== false 
+				|| VerifyMaxHyperModeTime()		== false 
+				|| VerifyRemainHyperModeTime()		== false
+				|| m_fForceInvincibleTime.Verify()	== false
+				|| m_fShowInvincibleTime.Verify()	== false
+				|| m_ExtraDamagePack.Verify()		== false )
+			{
+				if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
+					g_pKTDXApp->GetFindHacking() == false )
+				{
+					g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+				}
+
+#ifdef ADD_COLLECT_CLIENT_INFO		// ÇØ¿ÜÆÀ ¿À·ù ¼öÁ¤
+				g_pMain->SendHackInfo5( ANTIHACKING_ID::ANTIHACKING_GAME_07, ANTI_HACK_STRING_AntiHacking_Extra_Info_Verify, true, true );
+				g_pInstanceData->SetRemainedTimeByForceQuitGame( REMAINED_TIME_BY_FORCE_QUIT_GAME );
+#endif //ADD_COLLECT_CLIENT_INFO
+			}
 		}
 	}
 }
 
-//{{ kimhc // 2010.12.07 // ï¿½Å½ï¿½Å³
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
+//{{ kimhc // 2010.12.07 // ½Å½ºÅ³
 #ifdef	NEW_SKILL_2010_11
 /** @function : LoadImmunityAtThisStateFromScript
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Immune ï¿½ï¿½Å³ ExtraDamageï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¾ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½Ô¼ï¿½ 
+	@brief : ÇöÀç ½ºÅ×ÀÌÆ®¿¡¼­¸¸ Immune ½ÃÅ³ ExtraDamage¸¦ ½ºÅ©¸³Æ®¿¡¼­ ÀÐ¾îµéÀÌ´Â ÇÔ¼ö 
 */
 void CX2GameUnit::LoadImmunityAtThisStateFromScript( IN KLuaManager& luaManager_ )
 {
@@ -3466,26 +3508,30 @@ void CX2GameUnit::LoadImmunityAtThisStateFromScript( IN KLuaManager& luaManager_
 	}
 }
 #endif	NEW_SKILL_2010_11
-//}} kimhc // 2010.12.07 // ï¿½Å½ï¿½Å³
+//}} kimhc // 2010.12.07 // ½Å½ºÅ³
+
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 
 bool CX2GameUnit::ProcessEnchantExtraDamage( CX2DamageManager::DamageData* pDamageData, 
 											CX2DamageManager::EXTRA_DAMAGE_TYPE basicExtraDamageType, CX2DamageManager::EXTRA_DAMAGE_TYPE miscExtraDamageType, 
 											float fRandomValue )
 {
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ßµï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½
+	// °ø°ÝÀÚÀÇ ¹ßµ¿ È®·ü °è»ê
+    CX2GameUnit*  pAttackerGameUnit = NULL;
+    const CX2EnchantItem::EnchantData*	pWeaponEnchantData = NULL;
 	if( NULL != pDamageData &&
-		null != pDamageData->optrAttackerGameUnit &&
-		NULL != pDamageData->optrAttackerGameUnit->GetWeaponEnchantData( miscExtraDamageType ) )
+		NULL != ( pAttackerGameUnit = pDamageData->optrAttackerGameUnit.GetObservable() ) &&
+		NULL != ( pWeaponEnchantData = pAttackerGameUnit->GetWeaponEnchantData( miscExtraDamageType ) ) )
 	{
 #ifdef PET_AURA_SKILL
-		float fRate = pDamageData->optrAttackerGameUnit->GetWeaponEnchantData( miscExtraDamageType )->m_fRate;
+		float fRate = pWeaponEnchantData->m_fRate;
 #ifdef ENCHANT_ACCUMULATION_RATE_MODIFIER
 		fRate = EnchantAccumulationRateModifier(basicExtraDamageType, miscExtraDamageType, fRate);
 #endif ENCHANT_ACCUMULATION_RATE_MODIFIER
 
 
-		fRate += pDamageData->optrAttackerGameUnit->GetEnchantAttack( miscExtraDamageType );
+		fRate += pAttackerGameUnit->GetEnchantAttack( miscExtraDamageType );
 
 #ifdef DAMAGEDATA_RATE_MODIFIER
 #ifndef CHUNG_MEMO_01
@@ -3494,9 +3540,17 @@ bool CX2GameUnit::ProcessEnchantExtraDamage( CX2DamageManager::DamageData* pDama
 			fRate *= pDamageData->m_fRateModifier;
 #endif DAMAGEDATA_RATE_MODIFIER
 
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É·ï¿½ï¿½Ö´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½
-		const float fIncreaseRate = pDamageData->optrAttackerGameUnit->GetChangeEnchantAttackRate();
+		/// °ø°ÝÀÚ¿¡°Ô ¼ÒÄÏ ¼Ó¼º °ø°Ý È®·ü Áõ°¡ ¹öÇÁ°¡ °É·ÁÀÖ´Ù¸é, Àû¿ë
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+		// ±âÁ¸ ¿¬»ê ¹æ½Ä °ö ¿¬»ê ¿¡¼­ °ö ¿¬»ê + ÇÕ ¿¬»ê À¸·Î º¯°æ
+		// ÀÎÃ¦Æ® °ø°Ý È®·ü = ( ÀÎÃ¦Æ® ±âº» È®·ü * °ö ¿¬»ê ÃÖÁ¾ °ª ) + ÇÕ ¿¬»ê ÃÖÁ¾ °ª À¸·Î º¯°æ
+		EnchantAttackRate sEnchantAttackRate = pAttackerGameUnit->GetChangeEnchantAttackRate( basicExtraDamageType );
+		fRate *= sEnchantAttackRate.fIncreaseAttackRate;
+		fRate += sEnchantAttackRate.fIncreaseAttackRateFixValue;
+#else // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+		const float fIncreaseRate = pAttackerGameUnit->GetChangeEnchantAttackRate();
 		fRate *= fIncreaseRate;
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 
 		if( fRandomValue > fRate )
 		{
@@ -3505,7 +3559,7 @@ bool CX2GameUnit::ProcessEnchantExtraDamage( CX2DamageManager::DamageData* pDama
 #else
 
 #ifdef DAMAGEDATA_RATE_MODIFIER
-		float fRate = pDamageData->optrAttackerGameUnit->GetWeaponEnchantData( miscExtraDamageType )->m_fRate;
+		float fRate = pWeaponEnchantData->m_fRate;
 
 #ifndef CHUNG_MEMO_01
 		if(pDamageData->m_fRateModifier < 1.f)
@@ -3517,7 +3571,7 @@ bool CX2GameUnit::ProcessEnchantExtraDamage( CX2DamageManager::DamageData* pDama
 			return false;
 		}
 #else
-		if( fRandomValue > pDamageData->optrAttackerGameUnit->GetWeaponEnchantData( miscExtraDamageType )->m_fRate )
+		if( fRandomValue > pWeaponEnchantData->m_fRate )
 		{
 			return false;
 		}
@@ -3572,7 +3626,11 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
 		return false;
 	}
 
-	CX2EnchantItem::EnchantData* pEnchantData = NULL;
+	const CX2EnchantItem::EnchantData* pEnchantData = NULL;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    if ( null != pDamageData->optrAttackerGameUnit )
+        pEnchantData = pDamageData->optrAttackerGameUnit->GetWeaponEnchantData( damageType );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if ( null != pDamageData->optrAttackerGameUnit && pDamageData->optrAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 	{
 		pEnchantData = g_pData->GetEnchantItem()->GetEnchantData( damageType );
@@ -3581,6 +3639,7 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
 	{
 		pEnchantData = g_pData->GetEnchantItem()->GetNPCEnchantData( damageType );
 	}
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 
 	if ( pEnchantData == NULL )
 		return false;
@@ -3606,7 +3665,9 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
 	m_ExtraDamagePack.m_EnchantBlaze.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
 	m_ExtraDamagePack.m_EnchantBlaze.m_fTime = (float)pEnchantData->m_Time;
-
+#ifdef  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+    m_ExtraDamagePack.m_EnchantBlaze.m_bAttackedByMyUnit = pDamageData->IsAttackedByMyUnit();
+#endif  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	
 	
 
@@ -3616,7 +3677,7 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
 	{
 		CX2GUUser* pGUUSer = static_cast<CX2GUUser*>( pDamageData->optrAttackerGameUnit.GetObservable() );
 		float fFinalDamage = 0;
-		CX2Item* pItem = pGUUSer->GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+		CX2Item* pItem = pGUUSer->GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 		if ( pItem != NULL )
 		{
 #ifdef PVP_SEASON2_SOCKET
@@ -3633,7 +3694,7 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
 				if( 0 == socketOption )
 					continue;
 
-				CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
+				const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
 				if( pSocketData == NULL )
 					continue;
 
@@ -3652,7 +3713,7 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
             {
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+					// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 					CX2Item::KItemFormatStatData kCalculateStat;
 					g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUSer->GetUnitType(), pGUUSer->GetUnitClass() );
 					const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -3667,7 +3728,7 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
 #else
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+				// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 				CX2Item::KItemFormatStatData kCalculateStat;
 				g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUSer->GetUnitType(), pGUUSer->GetUnitClass() );
 				const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -3680,17 +3741,17 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
             fFinalDamage = stat.m_fAtkPhysic + stat.m_fAtkMagic;
 #endif
 
-			// PVP ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ ï¿½ï¿½Ã¾Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// PVP ÀÚÀ¯Ã¤³Î ÀÎÃ¾Æ® µ¥¹ÌÁö º¸Á¤
 			if ( g_pMain->GetNowStateID() == CX2Main::XS_PVP_GAME )
 			{
 				if ( g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) == KPVPChannelInfo::PCC_FREE )
 				{
-					fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+					fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 				}
 #ifdef TEMP_HERO_MATCH_LIKE_FREE_CHANNEL
 				else if ( g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) == KPVPChannelInfo::PCC_TOURNAMENT )
 				{
-					fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+					fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 				}
 #endif TEMP_HERO_MATCH_LIKE_FREE_CHANNEL
 				else
@@ -3705,29 +3766,31 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
 
 
 #ifdef HENIR_TEST
-				if( true == g_pData->GetDungeonManager()->IsHenirDungeon( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) &&
+#ifndef NEW_HENIR_DUNGEON // 1·¹º§ º¸Á¤ -> ¿¬µ¿ ·¹º§ ´øÀüÀ¸·Î º¯°æ
+				if( true == CX2Dungeon::IsHenirDungeon( static_cast<const SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ) &&
 					CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode )
 				{
 					if(	g_pData->GetUIManager() != NULL && 
 						g_pData->GetUIManager()->GetUIQuickSlot() != NULL )
 					{
-						fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+						fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 					}
 				}
+#endif // NEW_HENIR_DUNGEON
 #endif HENIR_TEST
 
-				//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+				//{{ Çã»óÇü : [2011/3/29/] //	¿ùµå ¹Ì¼Ç
 #ifdef SERV_INSERT_GLOBAL_SERVER
-				if( NULL != g_pData->GetDungeonRoom() && g_pData->GetDungeonRoom()->IsDefenceDungeon( (CX2Dungeon::DUNGEON_ID)g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) == true )
+				if( NULL != g_pData->GetDungeonRoom() && g_pData->GetDungeonRoom()->IsDefenceDungeon( (SEnum::DUNGEON_ID)g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) == true )
 				{
 					if(	g_pData->GetUIManager() != NULL && 
 						g_pData->GetUIManager()->GetUIQuickSlot() != NULL )
 					{
-						fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+						fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 					}
 				}
 #endif SERV_INSERT_GLOBAL_SERVER
-				//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+				//}} Çã»óÇü : [2011/3/29/] //	¿ùµå ¹Ì¼Ç
 
 
 				if(g_pData->GetDungeonRoom() != NULL )
@@ -3735,53 +3798,56 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
 #ifdef SERV_DUNGEON_OPTION_IN_LUA
 					if( g_pData->GetDungeonManager()->GetDungeonData( g_pData->GetDungeonRoom()->GetDungeonID() )->m_bDamageEqualized == true )
 					{
-						fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+						fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 					}
 					else
 #endif SERV_DUNGEON_OPTION_IN_LUA
-					// ï¿½Â¿ï¿½ : Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¦Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½. NEW_YEAR_EVENT_DUNGEON ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½. (ï¿½ï¿½ 4ï¿½ï¿½)
-					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ß°ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+					// ÅÂ¿Ï : Æ¯Á¤ ´øÀü¿¡¼­ÀÇ ÀÎÃ¦Æ® º¸Á¤ ÄÚµå. NEW_YEAR_EVENT_DUNGEON µîÀ¸·Î °Ë»öÇØ¼­ ³ª¿À´Â °÷¿¡ ¸ðµÎ ÀÛ¾÷ÇØÁà¾ß ÇÑ´Ù. (ÃÑ 4°÷)
+					// º¸Á¤´øÀüÀÌ ´õ ¸¹¾ÆÁø´Ù¸é ´øÀüµ¥ÀÌÅ¸ ½ºÅ©¸³Æ®¿¡ º¸Á¤¿©ºÎ¸¦ Ãß°¡ÇÏ´Â ¹æ¹ýÀÌ ´õ ³ªÀ» °Í °°´Ù.
 					switch(g_pData->GetDungeonRoom()->GetDungeonID())
 					{
-//{{ 2009.01.20 ï¿½ï¿½ï¿½Â¿ï¿½
+//{{ 2009.01.20 ±èÅÂ¿Ï
 #ifdef NEW_YEAR_EVENT_DUNGEON
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¦Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½
+						// ¿ù¸®¼º »õÇØ¸ÂÀÌ ´øÀü ÀÎÃ¦Æ® º¸Á¤ÄÚµå
 
-						case CX2Dungeon::DI_ELDER_NEWYEAR_NORMAL:
+						case SEnum::DI_ELDER_NEWYEAR_NORMAL:
 						{
-							fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+							fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 						} break;
 #endif
 //}}
 #ifdef HALLOWEEN_EVENT
-						// ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½Úµï¿½ : ï¿½ï¿½Ã¦Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_HARD:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT:
+						// ÇÒ·ÎÀ© ´øÀü °ü·Ã ÀÓ½Ã ÄÚµå : ÀÎÃ¦Æ® µ¥¹ÌÁö º¸Á¤
+						case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+						case SEnum::DI_ELDER_HALLOWEEN_HARD:
+						case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
 						{
-							fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+							fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 						} break;
 #endif
 #ifdef CHILDRENS_DAY_EVENT_DUNGEON
-						case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-						case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:
-						case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:
-						case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+						case SEnum::DI_EVENT_KIDDAY_RUBEN:
+						case SEnum::DI_EVENT_KIDDAY_ELDER:
+						case SEnum::DI_EVENT_KIDDAY_BESMA:
+						case SEnum::DI_EVENT_KIDDAY_ALTERA:
 						
-						case CX2Dungeon::DI_EVENT_TREE_DAY_ELDER:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_BESMA:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_ALTERA:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_PEITA:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_VELDER:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_HAMEL:
-							//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_HARD:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT:
-							//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
-						case CX2Dungeon::DI_EVENT_VALENTINE_DAY:
+						case SEnum::DI_EVENT_TREE_DAY_ELDER:
+						case SEnum::DI_EVENT_TREE_DAY_BESMA:
+						case SEnum::DI_EVENT_TREE_DAY_ALTERA:
+						case SEnum::DI_EVENT_TREE_DAY_PEITA:
+						case SEnum::DI_EVENT_TREE_DAY_VELDER:
+						case SEnum::DI_EVENT_TREE_DAY_HAMEL:
+							//{{ oasis907 : ±è»óÀ± [2010.10.21] // 
+						case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+						case SEnum::DI_ELDER_HALLOWEEN_HARD:
+						case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
+							//}} oasis907 : ±è»óÀ± [2010.10.21] // 
+						case SEnum::DI_EVENT_VALENTINE_DAY:
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+						case SEnum::DI_EVENT_HALLOWEEN_DAY:
+#endif //SERV_HALLOWEEN_EVENT_2013
 						{
-							fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+							fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 						} break;
 #endif
 						default:
@@ -3814,7 +3880,7 @@ bool CX2GameUnit::ProcessEnchantBlaze( CX2DamageManager::DamageData* pDamageData
 		CX2GUNPC* pGUNpc = static_cast<CX2GUNPC*>( pDamageData->optrAttackerGameUnit.GetObservable() );
 		float fFinalDamage = 0;
 		
-		fFinalDamage = pGUNpc->GetStat()->GetStat()->m_fAtkPhysic + pGUNpc->GetStat()->GetStat()->m_fAtkMagic;
+		fFinalDamage = pGUNpc->GetStat().GetStat().m_fAtkPhysic + pGUNpc->GetStat().GetStat().m_fAtkMagic;
 
 		if ( m_ExtraDamagePack.m_EnchantBlaze.m_Accumulation == 0 )
 		{
@@ -3853,7 +3919,11 @@ bool CX2GameUnit::ProcessEnchantFrozen( CX2DamageManager::DamageData* pDamageDat
 		return false;
 	}
 
-	CX2EnchantItem::EnchantData* pEnchantData = NULL;
+	const CX2EnchantItem::EnchantData* pEnchantData = NULL;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    if ( null != pDamageData->optrAttackerGameUnit )
+        pEnchantData = pDamageData->optrAttackerGameUnit->GetWeaponEnchantData( damageType );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if ( null != pDamageData->optrAttackerGameUnit && pDamageData->optrAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 	{
 		pEnchantData = g_pData->GetEnchantItem()->GetEnchantData( damageType );
@@ -3862,6 +3932,7 @@ bool CX2GameUnit::ProcessEnchantFrozen( CX2DamageManager::DamageData* pDamageDat
 	{
 		pEnchantData = g_pData->GetEnchantItem()->GetNPCEnchantData( damageType );
 	}
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if ( pEnchantData == NULL )
 		return false;
 
@@ -3906,7 +3977,11 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 		return false;
 	}
 
-	CX2EnchantItem::EnchantData* pEnchantData = NULL;
+	const CX2EnchantItem::EnchantData* pEnchantData = NULL;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    if ( null != pDamageData->optrAttackerGameUnit )
+        pEnchantData = pDamageData->optrAttackerGameUnit->GetWeaponEnchantData( damageType );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if ( null != pDamageData->optrAttackerGameUnit && pDamageData->optrAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 	{
 		pEnchantData = g_pData->GetEnchantItem()->GetEnchantData( damageType );
@@ -3915,6 +3990,7 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 	{
 		pEnchantData = g_pData->GetEnchantItem()->GetNPCEnchantData( damageType );
 	}
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if ( pEnchantData == NULL )
 		return false;
 
@@ -3941,7 +4017,9 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 	m_ExtraDamagePack.m_EnchantPoison.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
 	m_ExtraDamagePack.m_EnchantPoison.m_fTime = (float)pEnchantData->m_Time;
-
+#ifdef  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+    m_ExtraDamagePack.m_EnchantPoison.m_bAttackedByMyUnit = pDamageData->IsAttackedByMyUnit();
+#endif  X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 
 	m_ExtraDamagePack.m_EnchantPoison.m_Accumulation = finalAccumulation;
 
@@ -3949,7 +4027,7 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 	{
 		CX2GUUser* pGUUSer = static_cast<CX2GUUser*>( pDamageData->optrAttackerGameUnit.GetObservable() );
 		float fFinalDamage = 0;
-		CX2Item* pItem = pGUUSer->GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+		CX2Item* pItem = pGUUSer->GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 		if ( pItem != NULL )
 		{
 #ifdef PVP_SEASON2_SOCKET
@@ -3965,7 +4043,7 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 				if( 0 == socketOption )
 					continue;
 
-				CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
+				const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
 				if( pSocketData == NULL )
 					continue;
 
@@ -3984,7 +4062,7 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
             {
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+					// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 					CX2Item::KItemFormatStatData kCalculateStat;
 					g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUSer->GetUnitType(), pGUUSer->GetUnitClass() );
 					const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -3999,7 +4077,7 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 #else
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+				// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 				CX2Item::KItemFormatStatData kCalculateStat;
 				g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUSer->GetUnitType(), pGUUSer->GetUnitClass() );
 				const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -4012,17 +4090,17 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
             fFinalDamage = stat.m_fAtkPhysic + stat.m_fAtkMagic;
 #endif
 
-			// PVP ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ ï¿½ï¿½Ã¾Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// PVP ÀÚÀ¯Ã¤³Î ÀÎÃ¾Æ® µ¥¹ÌÁö º¸Á¤
 			if ( g_pMain->GetNowStateID() == CX2Main::XS_PVP_GAME )
 			{
 				if ( g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) == KPVPChannelInfo::PCC_FREE )
 				{
-					fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+					fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 				}
 #ifdef TEMP_HERO_MATCH_LIKE_FREE_CHANNEL
 				else if ( g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) == KPVPChannelInfo::PCC_TOURNAMENT )
 				{
-					fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+					fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 				}
 #endif TEMP_HERO_MATCH_LIKE_FREE_CHANNEL
 				else
@@ -4033,29 +4111,31 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 			else if( g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME)
 			{
 #ifdef HENIR_TEST
-				if( true == g_pData->GetDungeonManager()->IsHenirDungeon( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) &&
+#ifndef NEW_HENIR_DUNGEON // 1·¹º§ º¸Á¤ -> ¿¬µ¿ ·¹º§ ´øÀüÀ¸·Î º¯°æ
+				if( true == CX2Dungeon::IsHenirDungeon( static_cast<const SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ) &&
 					CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode )
 				{
 					if(	g_pData->GetUIManager() != NULL && 
 						g_pData->GetUIManager()->GetUIQuickSlot() != NULL )
 					{
-						fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+						fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 					}
 				}
+#endif // NEW_HENIR_DUNGEON
 #endif HENIR_TEST
 
-				//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½
+				//{{ Çã»óÇü : [2011/3/29/] //	¿ùµå¹Ì¼Ç
 #ifdef SERV_INSERT_GLOBAL_SERVER
 				if( NULL != g_pData->GetDungeonRoom() && g_pData->GetDungeonRoom()->IsDefenceDungeon( g_pData->GetDungeonRoom()->GetDungeonID() ) == true )
 				{
 					if(	g_pData->GetUIManager() != NULL && 
 						g_pData->GetUIManager()->GetUIQuickSlot() != NULL )
 					{
-						fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+						fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 					}
 				}
 #endif SERV_INSERT_GLOBAL_SERVER
-				//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½Ì¼ï¿½
+				//}} Çã»óÇü : [2011/3/29/] //	¿ùµå¹Ì¼Ç
 
 
 
@@ -4064,57 +4144,60 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 #ifdef SERV_DUNGEON_OPTION_IN_LUA
 					if( g_pData->GetDungeonManager()->GetDungeonData( g_pData->GetDungeonRoom()->GetDungeonID() )->m_bDamageEqualized == true )
 					{
-						fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+						fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 					}
 					else
 #endif SERV_DUNGEON_OPTION_IN_LUA
-					// ï¿½Â¿ï¿½ : Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¦Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½. NEW_YEAR_EVENT_DUNGEON ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½. (ï¿½ï¿½ 4ï¿½ï¿½)
-					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ß°ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+					// ÅÂ¿Ï : Æ¯Á¤ ´øÀü¿¡¼­ÀÇ ÀÎÃ¦Æ® º¸Á¤ ÄÚµå. NEW_YEAR_EVENT_DUNGEON µîÀ¸·Î °Ë»öÇØ¼­ ³ª¿À´Â °÷¿¡ ¸ðµÎ ÀÛ¾÷ÇØÁà¾ß ÇÑ´Ù. (ÃÑ 4°÷)
+					// º¸Á¤´øÀüÀÌ ´õ ¸¹¾ÆÁø´Ù¸é ´øÀüµ¥ÀÌÅ¸ ½ºÅ©¸³Æ®¿¡ º¸Á¤¿©ºÎ¸¦ Ãß°¡ÇÏ´Â ¹æ¹ýÀÌ ´õ ³ªÀ» °Í °°´Ù.
 					switch(g_pData->GetDungeonRoom()->GetDungeonID())
 					{
-						//{{ 2009.01.20 ï¿½ï¿½ï¿½Â¿ï¿½
+						//{{ 2009.01.20 ±èÅÂ¿Ï
 #ifdef NEW_YEAR_EVENT_DUNGEON
-						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¦Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½
+						// ¿ù¸®¼º »õÇØ¸ÂÀÌ ´øÀü ÀÎÃ¦Æ® º¸Á¤ÄÚµå
 
-						case CX2Dungeon::DI_ELDER_NEWYEAR_NORMAL:
+						case SEnum::DI_ELDER_NEWYEAR_NORMAL:
 							{
-								fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+								fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 							} break;
 #endif
 							//}}
 #ifdef HALLOWEEN_EVENT
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_HARD:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT:
+						case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+						case SEnum::DI_ELDER_HALLOWEEN_HARD:
+						case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
 							{
-								fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+								fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 							} break;
 #endif
 #ifdef CHILDRENS_DAY_EVENT_DUNGEON
-						case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-						case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:
-						case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:
-						case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+						case SEnum::DI_EVENT_KIDDAY_RUBEN:
+						case SEnum::DI_EVENT_KIDDAY_ELDER:
+						case SEnum::DI_EVENT_KIDDAY_BESMA:
+						case SEnum::DI_EVENT_KIDDAY_ALTERA:
 						
-						case CX2Dungeon::DI_EVENT_TREE_DAY_ELDER:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_BESMA:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_ALTERA:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_PEITA:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_VELDER:
-						case CX2Dungeon::DI_EVENT_TREE_DAY_HAMEL:
-							//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_HARD:
-						case CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT:
-							//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
-						case CX2Dungeon::DI_EVENT_VALENTINE_DAY:
-							//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/3/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+						case SEnum::DI_EVENT_TREE_DAY_ELDER:
+						case SEnum::DI_EVENT_TREE_DAY_BESMA:
+						case SEnum::DI_EVENT_TREE_DAY_ALTERA:
+						case SEnum::DI_EVENT_TREE_DAY_PEITA:
+						case SEnum::DI_EVENT_TREE_DAY_VELDER:
+						case SEnum::DI_EVENT_TREE_DAY_HAMEL:
+							//{{ oasis907 : ±è»óÀ± [2010.10.21] // 
+						case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+						case SEnum::DI_ELDER_HALLOWEEN_HARD:
+						case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
+							//}} oasis907 : ±è»óÀ± [2010.10.21] // 
+						case SEnum::DI_EVENT_VALENTINE_DAY:
+							//{{ Çã»óÇü : [2011/3/3/] //	¿ùµå ¹Ì¼Ç
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+						case SEnum::DI_EVENT_HALLOWEEN_DAY:
+#endif //SERV_HALLOWEEN_EVENT_2013
 #ifdef SERV_INSERT_GLOBAL_SERVER
 						CASE_DEFENCE_DUNGEON
 #endif SERV_INSERT_GLOBAL_SERVER
-							//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/3/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+							//}} Çã»óÇü : [2011/3/3/] //	¿ùµå ¹Ì¼Ç
 							{
-								fFinalDamage = pGUUSer->GetStat()->GetStat()->m_fAtkPhysic + pGUUSer->GetStat()->GetStat()->m_fAtkMagic;
+								fFinalDamage = pGUUSer->GetStat().GetStat().m_fAtkPhysic + pGUUSer->GetStat().GetStat().m_fAtkMagic;
 							} break;
 #endif
 						default:
@@ -4146,7 +4229,7 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 		CX2GUNPC* pGUNpc = static_cast<CX2GUNPC*>( pDamageData->optrAttackerGameUnit.GetObservable() );
 		float fFinalDamage = 0;
 
-		fFinalDamage = pGUNpc->GetStat()->GetStat()->m_fAtkPhysic + pGUNpc->GetStat()->GetStat()->m_fAtkMagic;
+		fFinalDamage = pGUNpc->GetStat().GetStat().m_fAtkPhysic + pGUNpc->GetStat().GetStat().m_fAtkMagic;
 
 		if ( m_ExtraDamagePack.m_EnchantPoison.m_Accumulation == 0 )
 		{
@@ -4174,8 +4257,8 @@ bool CX2GameUnit::ProcessEnchantPoison( CX2DamageManager::DamageData* pDamageDat
 bool CX2GameUnit::ProcessEnchantPiercing( CX2DamageManager::DamageData* pDamageData, CX2DamageManager::EXTRA_DAMAGE_TYPE damageType /*= CX2DamageManager::EDT_ENCHANT_PIERCING */ )
 {
 
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!!
-	//ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å²ï¿½ï¿½!!
+	//´ë»óÀÇ ¹æ¾î·Â¿¡ ¿µÇâÀ» ¹ÞÁö ¾Ê°í µ¥¹ÌÁö¸¦ ÀÔÈù´Ù!!
+	//¸ðµç ¹æ¾î È¿°ú ¹«½Ã ÇØÁ¦ È¿°ú¸¦ ÀÏÀ¸Å²´Ù!!
 
 	if ( IsImmuneToEnchant( CX2EnchantItem::ET_WIND ) == true )
 	{
@@ -4225,8 +4308,12 @@ bool CX2GameUnit::ProcessEnchantShock( CX2DamageManager::DamageData* pDamageData
 		return false;
 	}
 
-	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½..
-	CX2EnchantItem::EnchantData* pEnchantData = NULL;
+	//½ºÅÏ »óÅÂ..
+	const CX2EnchantItem::EnchantData* pEnchantData = NULL;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    if ( null != pDamageData->optrAttackerGameUnit )
+        pEnchantData = pDamageData->optrAttackerGameUnit->GetWeaponEnchantData( damageType );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if ( null != pDamageData->optrAttackerGameUnit && pDamageData->optrAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 	{
 		pEnchantData = g_pData->GetEnchantItem()->GetEnchantData( damageType );
@@ -4235,6 +4322,7 @@ bool CX2GameUnit::ProcessEnchantShock( CX2DamageManager::DamageData* pDamageData
 	{
 		pEnchantData = g_pData->GetEnchantItem()->GetNPCEnchantData( damageType );
 	}
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if ( pEnchantData == NULL )
 		return false;
 
@@ -4244,9 +4332,9 @@ bool CX2GameUnit::ProcessEnchantShock( CX2DamageManager::DamageData* pDamageData
 	m_ExtraDamagePack.m_EnchantShock.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
 
-	// kimhc // 2010.02.23 // ï¿½Æ·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ï¿½
-	// ï¿½Ñ°ï¿½ ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¿ï¿½ Å¸ï¿½ÝµÉ¶ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ú·ï¿½ ï¿½Ð¸ï¿½ï¿½ï¿½ 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½
+	// kimhc // 2010.02.23 // ¾Æ·¡ ÇÑÁÙÀÇ ÄÚµå´Â
+	// ÇÑ°³ ÀÌ»óÀÇ ¸÷ÀÌ µ¿½Ã¿¡ Å¸°ÝµÉ¶§ ¼îÅ©¿¡ °É¸®Áö ¾ÊÀº ¸÷ÀÌ µÚ·Î ¹Ð¸®´Â 
+	// Çö»ó ¶§¹®¿¡ ÁÖ¼® Ã³¸®ÇÔ
 	//pDamageData->backSpeed.x		= GetDashSpeed() * 1.5f;
 
 	pDamageData->fCameraCrashGap	= 15.0f;
@@ -4261,7 +4349,7 @@ bool CX2GameUnit::ProcessEnchantShock( CX2DamageManager::DamageData* pDamageData
 	m_ExtraDamagePack.m_EnchantShock.m_fTime = fTempTime;
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-	// ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½Ã¦Æ®ï¿½ï¿½ packï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ÈµÇ°ï¿½, Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½.
+	// ¹Ù·Î À§¿¡¼­ Å¸ÀÔ ¼³Á¤µÊ. ÀÎÃ¦Æ®¸¦ pack¿¡ ³ÖÀ»¶§´Â ¾Æ·¡¿Í °°ÀÌ ÇÏ¸é ¾ÈµÇ°í, Å¸ÀÔÀ» ÅëÀÏÇØ¾ßÇÔ.
 #else
 	m_ExtraDamagePack.m_EnchantShock.m_ExtraDamageType = pEnchantData->m_ExtraDamageType;
 #endif CHUNG_SECOND_CLASS_CHANGE
@@ -4291,18 +4379,26 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 		return false;
 	}
 
-	
+    CX2GameUnit*    pAttackerGameUnit = pDamageData->optrAttackerGameUnit.GetObservable();	
+    if ( pAttackerGameUnit == NULL )
+        return true;    // ÀÌ»óÇÏ´Ù. false ¿©¾ß ÇÏÁö ¾Ê³ª?
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    const CX2EnchantItem::EnchantData* pEnchantData = pAttackerGameUnit->GetWeaponEnchantData( damageType );
+	if ( pEnchantData == NULL )
+		return false;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 
-
-	if ( null != pDamageData->optrAttackerGameUnit && pDamageData->optrAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
+    if ( pAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 	{
-		CX2EnchantItem::EnchantData* pEnchantData = g_pData->GetEnchantItem()->GetEnchantData( damageType );
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+		const CX2EnchantItem::EnchantData* pEnchantData = g_pData->GetEnchantItem()->GetEnchantData( damageType );
 		if ( pEnchantData == NULL )
 			return false;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 
-		CX2GUUser* pGUUser = static_cast<CX2GUUser*>( pDamageData->optrAttackerGameUnit.GetObservable() );
+		CX2GUUser* pGUUser = static_cast<CX2GUUser*>( pAttackerGameUnit );
 
-		CX2Item* pItem = pGUUser->GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+		CX2Item* pItem = pGUUser->GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 		if ( pItem == NULL )
 			return false;
 
@@ -4320,7 +4416,7 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 			if( 0 == socketOption )
 				continue;
 
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
 			if( pSocketData == NULL )
 				continue;
 
@@ -4339,7 +4435,7 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
         {
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+				// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 				CX2Item::KItemFormatStatData kCalculateStat;
 				g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUser->GetUnitType(), pGUUser->GetUnitClass() );
 				const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -4354,7 +4450,7 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 #else
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+			// ½ºÅÈÅ×ÀÌºíÀ» ÅëÇØ ½ºÅÈ °è»ê
 			CX2Item::KItemFormatStatData kCalculateStat;
 			g_pData->GetItemStatCalculator().CalculateItemStat(kCalculateStat, pItem->GetItemTemplet(), pGUUSer->GetUnitType(), pGUUSer->GetUnitClass() );
 			const CX2Item::KItemFormatStatData& stat = kCalculateStat;
@@ -4366,12 +4462,12 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
         fOrgDamage = stat.m_fAtkPhysic + stat.m_fAtkMagic;
 #endif
-		// 2008.11.7 ï¿½ï¿½ï¿½Â¿ï¿½ : ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½
+		// 2008.11.7 ±èÅÂ¿Ï : ½º³»Ä¡ º¸Á¤ ±âÈ¹´ë·Î ¼öÁ¤
+		// ÀÌ ÁÙÀº ¾Æ·¡ÂÊÀ¸·Î ÀÌµ¿
 		//float fFinalDamage = fOrgDamage * pEnchantData->m_HPDrainPercent / 100.0f;
 
-		// PVP ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ ï¿½ï¿½Ã¾Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		// if ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ switch ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½ 08.11.7
+		// PVP ÀÚÀ¯Ã¤³Î ÀÎÃ¾Æ® µ¥¹ÌÁö º¸Á¤
+		// if ¹®¿¡¼­ switch ¹®À¸·Î ÄÚµå Á¤¸® 08.11.7
 		switch( g_pMain->GetNowStateID() )
 		{
 		case CX2Main::XS_DUNGEON_GAME:
@@ -4379,31 +4475,33 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 
 
 #ifdef HENIR_TEST
-				if( true == g_pData->GetDungeonManager()->IsHenirDungeon( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) &&
+#ifndef NEW_HENIR_DUNGEON // 1·¹º§ º¸Á¤ -> ¿¬µ¿ ·¹º§ ´øÀüÀ¸·Î º¯°æ
+				if( true == CX2Dungeon::IsHenirDungeon( static_cast<const SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ) &&
 					CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode )
 				{
 					if(	g_pData->GetUIManager() != NULL && 
 						g_pData->GetUIManager()->GetUIQuickSlot() != NULL )
 					{
-						fOrgDamage = pGUUser->GetStat()->GetStat()->m_fAtkPhysic + pGUUser->GetStat()->GetStat()->m_fAtkMagic;
+						fOrgDamage = pGUUser->GetStat().GetStat().m_fAtkPhysic + pGUUser->GetStat().GetStat().m_fAtkMagic;
 
 					}
 				}
+#endif // NEW_HENIR_DUNGEON
 #endif HENIR_TEST
 
-				//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+				//{{ Çã»óÇü : [2011/3/29/] //	¿ùµå ¹Ì¼Ç
 #ifdef SERV_INSERT_GLOBAL_SERVER
 				if( NULL != g_pData->GetDungeonRoom() && g_pData->GetDungeonRoom()->IsDefenceDungeon( g_pData->GetDungeonRoom()->GetDungeonID() ) == true )
 				{
 					if(	g_pData->GetUIManager() != NULL && 
 						g_pData->GetUIManager()->GetUIQuickSlot() != NULL )
 					{
-						fOrgDamage = pGUUser->GetStat()->GetStat()->m_fAtkPhysic + pGUUser->GetStat()->GetStat()->m_fAtkMagic;
+						fOrgDamage = pGUUser->GetStat().GetStat().m_fAtkPhysic + pGUUser->GetStat().GetStat().m_fAtkMagic;
 
 					}
 				}
 #endif SERV_INSERT_GLOBAL_SERVER
-				//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/29/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+				//}} Çã»óÇü : [2011/3/29/] //	¿ùµå ¹Ì¼Ç
 
 
 				if(g_pData->GetDungeonRoom() != NULL )
@@ -4411,56 +4509,59 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 #ifdef SERV_DUNGEON_OPTION_IN_LUA
 					if( g_pData->GetDungeonManager()->GetDungeonData( g_pData->GetDungeonRoom()->GetDungeonID() )->m_bDamageEqualized == true )
 					{
-						fOrgDamage = pGUUser->GetStat()->GetStat()->m_fAtkPhysic + pGUUser->GetStat()->GetStat()->m_fAtkMagic;
+						fOrgDamage = pGUUser->GetStat().GetStat().m_fAtkPhysic + pGUUser->GetStat().GetStat().m_fAtkMagic;
 					}
 					else
 #endif SERV_DUNGEON_OPTION_IN_LUA
-					// ï¿½Â¿ï¿½ : Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¦Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½. NEW_YEAR_EVENT_DUNGEON ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½. (ï¿½ï¿½ 4ï¿½ï¿½)
-					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ß°ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+					// ÅÂ¿Ï : Æ¯Á¤ ´øÀü¿¡¼­ÀÇ ÀÎÃ¦Æ® º¸Á¤ ÄÚµå. NEW_YEAR_EVENT_DUNGEON µîÀ¸·Î °Ë»öÇØ¼­ ³ª¿À´Â °÷¿¡ ¸ðµÎ ÀÛ¾÷ÇØÁà¾ß ÇÑ´Ù. (ÃÑ 4°÷)
+					// º¸Á¤´øÀüÀÌ ´õ ¸¹¾ÆÁø´Ù¸é ´øÀüµ¥ÀÌÅ¸ ½ºÅ©¸³Æ®¿¡ º¸Á¤¿©ºÎ¸¦ Ãß°¡ÇÏ´Â ¹æ¹ýÀÌ ´õ ³ªÀ» °Í °°´Ù.
 					switch(g_pData->GetDungeonRoom()->GetDungeonID())
 					{
-//{{ 2009.01.20 ï¿½ï¿½ï¿½Â¿ï¿½
+//{{ 2009.01.20 ±èÅÂ¿Ï
 #ifdef NEW_YEAR_EVENT_DUNGEON
-					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¦Æ® ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½
-					case CX2Dungeon::DI_ELDER_NEWYEAR_NORMAL:
+					// ¿ù¸®¼º »õÇØ¸ÂÀÌ ´øÀü ÀÎÃ¦Æ® º¸Á¤ÄÚµå
+					case SEnum::DI_ELDER_NEWYEAR_NORMAL:
 						{
-							fOrgDamage = pGUUser->GetStat()->GetStat()->m_fAtkPhysic + pGUUser->GetStat()->GetStat()->m_fAtkMagic;
+							fOrgDamage = pGUUser->GetStat().GetStat().m_fAtkPhysic + pGUUser->GetStat().GetStat().m_fAtkMagic;
 						} break;
 #endif
 			//}}
 #ifdef HALLOWEEN_EVENT
-					case CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL:
-					case CX2Dungeon::DI_ELDER_HALLOWEEN_HARD:
-					case CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT:
+					case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+					case SEnum::DI_ELDER_HALLOWEEN_HARD:
+					case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
 						{
-							fOrgDamage = pGUUser->GetStat()->GetStat()->m_fAtkPhysic + pGUUser->GetStat()->GetStat()->m_fAtkMagic;
+							fOrgDamage = pGUUser->GetStat().GetStat().m_fAtkPhysic + pGUUser->GetStat().GetStat().m_fAtkMagic;
 						} break;
 #endif
 #ifdef CHILDRENS_DAY_EVENT_DUNGEON
-					case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-					case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:
-					case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:
-					case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+					case SEnum::DI_EVENT_KIDDAY_RUBEN:
+					case SEnum::DI_EVENT_KIDDAY_ELDER:
+					case SEnum::DI_EVENT_KIDDAY_BESMA:
+					case SEnum::DI_EVENT_KIDDAY_ALTERA:
 					
-					case CX2Dungeon::DI_EVENT_TREE_DAY_ELDER:
-					case CX2Dungeon::DI_EVENT_TREE_DAY_BESMA:
-					case CX2Dungeon::DI_EVENT_TREE_DAY_ALTERA:
-					case CX2Dungeon::DI_EVENT_TREE_DAY_PEITA:
-					case CX2Dungeon::DI_EVENT_TREE_DAY_VELDER:
-					case CX2Dungeon::DI_EVENT_TREE_DAY_HAMEL:
-						//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
-					case CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL:
-					case CX2Dungeon::DI_ELDER_HALLOWEEN_HARD:
-					case CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT:
-						//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.10.21] // 
-					case CX2Dungeon::DI_EVENT_VALENTINE_DAY:
-						//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/3/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+					case SEnum::DI_EVENT_TREE_DAY_ELDER:
+					case SEnum::DI_EVENT_TREE_DAY_BESMA:
+					case SEnum::DI_EVENT_TREE_DAY_ALTERA:
+					case SEnum::DI_EVENT_TREE_DAY_PEITA:
+					case SEnum::DI_EVENT_TREE_DAY_VELDER:
+					case SEnum::DI_EVENT_TREE_DAY_HAMEL:
+						//{{ oasis907 : ±è»óÀ± [2010.10.21] // 
+					case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+					case SEnum::DI_ELDER_HALLOWEEN_HARD:
+					case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
+						//}} oasis907 : ±è»óÀ± [2010.10.21] // 
+					case SEnum::DI_EVENT_VALENTINE_DAY:
+						//{{ Çã»óÇü : [2011/3/3/] //	¿ùµå ¹Ì¼Ç
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+					case SEnum::DI_EVENT_HALLOWEEN_DAY:
+#endif //SERV_HALLOWEEN_EVENT_2013
 #ifdef SERV_INSERT_GLOBAL_SERVER
 					CASE_DEFENCE_DUNGEON
 #endif SERV_INSERT_GLOBAL_SERVER
-						//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2011/3/3/] //	ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¼ï¿½
+						//}} Çã»óÇü : [2011/3/3/] //	¿ùµå ¹Ì¼Ç
 						{
-							fOrgDamage = pGUUser->GetStat()->GetStat()->m_fAtkPhysic + pGUUser->GetStat()->GetStat()->m_fAtkMagic;
+							fOrgDamage = pGUUser->GetStat().GetStat().m_fAtkPhysic + pGUUser->GetStat().GetStat().m_fAtkMagic;
 						} break;
 #endif
 					default:
@@ -4473,12 +4574,12 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 			{
 				if ( g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) == KPVPChannelInfo::PCC_FREE )
 				{
-					fOrgDamage = pGUUser->GetStat()->GetStat()->m_fAtkPhysic + pGUUser->GetStat()->GetStat()->m_fAtkMagic;
+					fOrgDamage = pGUUser->GetStat().GetStat().m_fAtkPhysic + pGUUser->GetStat().GetStat().m_fAtkMagic;
 				}
 #ifdef TEMP_HERO_MATCH_LIKE_FREE_CHANNEL
 				else if ( g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) == KPVPChannelInfo::PCC_TOURNAMENT )
 				{
-					fOrgDamage = pGUUser->GetStat()->GetStat()->m_fAtkPhysic + pGUUser->GetStat()->GetStat()->m_fAtkMagic;
+					fOrgDamage = pGUUser->GetStat().GetStat().m_fAtkPhysic + pGUUser->GetStat().GetStat().m_fAtkMagic;
 				}
 #endif TEMP_HERO_MATCH_LIKE_FREE_CHANNEL
 				else
@@ -4502,17 +4603,17 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 		ApplyEnchantResist( CX2EnchantItem::ET_DARK, fUpMP );
 
 
-		pDamageData->optrAttackerGameUnit->UpNowHp( fUpHP );
-		pDamageData->optrAttackerGameUnit->UpNowMp( fUpMP );
+		pAttackerGameUnit->UpNowHp( fUpHP );
+		pAttackerGameUnit->UpNowMp( fUpMP );
 
 
 		std::wstringstream strStream;
 		strStream << L"HP +" << (int)fUpHP;
 		strStream << L" MP +" << (int)fUpMP;
-		D3DXVECTOR3 pos = pDamageData->optrAttackerGameUnit->GetPos();
+		D3DXVECTOR3 pos = pAttackerGameUnit->GetPos();
 		pos.y += 50.0f + (0 * 30.0f);
 		if( NULL != g_pData->GetPicCharGreen() )
-			g_pData->GetPicCharGreen()->DrawText( strStream.str().c_str(), pos, pDamageData->optrAttackerGameUnit->GetDirVector(), CKTDGPicChar::AT_CENTER );
+			g_pData->GetPicCharGreen()->DrawText( strStream.str().c_str(), pos, pAttackerGameUnit->GetDirVector(), CKTDGPicChar::AT_CENTER );
 
 
 
@@ -4545,21 +4646,23 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 		UpNowMp( -fUpMP );
 #endif REFACTORING_BY_TOOL_TEAM
 
-		pDamageData->optrAttackerGameUnit->ShowSnatchCureEffect();
+		pAttackerGameUnit->ShowSnatchCureEffect();
 
 		
 		
 	}
-	else if ( null != pDamageData->optrAttackerGameUnit && pDamageData->optrAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
+	else if ( pAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 	{
-		CX2EnchantItem::EnchantData* pEnchantData = g_pData->GetEnchantItem()->GetNPCEnchantData( damageType );
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+		const CX2EnchantItem::EnchantData* pEnchantData = g_pData->GetEnchantItem()->GetNPCEnchantData( damageType );
 		if ( pEnchantData == NULL )
 			return false;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 
-		CX2GUNPC* pGUNpc = static_cast<CX2GUNPC*>( pDamageData->optrAttackerGameUnit.GetObservable() );
+		CX2GUNPC* pGUNpc = static_cast<CX2GUNPC*>( pAttackerGameUnit );
 
 		
-		float fOrgDamage = pGUNpc->GetStat()->GetStat()->m_fAtkPhysic + pGUNpc->GetStat()->GetStat()->m_fAtkMagic;
+		float fOrgDamage = pGUNpc->GetStat().GetStat().m_fAtkPhysic + pGUNpc->GetStat().GetStat().m_fAtkMagic;
 		float fFinalDamage = fOrgDamage * pEnchantData->m_HPDrainPercent / 100.0f;
 
 
@@ -4574,8 +4677,8 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 
 
 
-		pDamageData->optrAttackerGameUnit->UpNowHp( fUpHP );
-		pDamageData->optrAttackerGameUnit->UpNowMp( fUpMP );
+		pAttackerGameUnit->UpNowHp( fUpHP );
+		pAttackerGameUnit->UpNowMp( fUpMP );
 
 
 
@@ -4583,10 +4686,10 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 		std::wstringstream strStream;
 		strStream << L"HP +" << (int)fUpHP;
 		strStream << L" MP +" << (int)fUpMP;
-		D3DXVECTOR3 pos = pDamageData->optrAttackerGameUnit->GetPos();
+		D3DXVECTOR3 pos = pAttackerGameUnit->GetPos();
 		pos.y += 50.0f + (0 * 30.0f);
 		if( NULL != g_pData->GetPicCharGreen() )
-			g_pData->GetPicCharGreen()->DrawText( strStream.str().c_str(), pos, pDamageData->optrAttackerGameUnit->GetDirVector(), CKTDGPicChar::AT_CENTER );
+			g_pData->GetPicCharGreen()->DrawText( strStream.str().c_str(), pos, pAttackerGameUnit->GetDirVector(), CKTDGPicChar::AT_CENTER );
 
 
 
@@ -4614,7 +4717,7 @@ bool CX2GameUnit::ProcessEnchantSnatch( CX2DamageManager::DamageData* pDamageDat
 
 
 
-		pDamageData->optrAttackerGameUnit->ShowSnatchCureEffect();
+		pAttackerGameUnit->ShowSnatchCureEffect();
 	}
 
 	return true;
@@ -4689,7 +4792,7 @@ CX2EnchantItem::ENCHANT_TYPE CX2GameUnit::GetEnchantTypeFromExtraDamageType( CX2
 
 
 
-		// ï¿½ï¿½Â¥ ï¿½Ó¼ï¿½ ï¿½ï¿½Ã¦Æ®
+		// ÁøÂ¥ ¼Ó¼º ÀÎÃ¦Æ®
 	case CX2DamageManager::EDT_ENCHANT_BLAZE:
 	case CX2DamageManager::EDT_ENCHANT_BLAZE_MASTER:
 	case CX2DamageManager::EDT_ENCHANT_BLAZE_DOUBLE_MASTER:
@@ -4794,10 +4897,10 @@ void CX2GameUnit::SetAddOnStat( KEGS_ADD_ON_STAT_REQ::ADD_ON_STAT statType, floa
 	case KEGS_ADD_ON_STAT_REQ::AOS_ATK_PHYSIC:
 		{
 
-// 			m_pStat->GetAddOnStat()->m_fAtkPhysic = fStatVal * m_pStat->GetStat()->m_fAtkPhysic;
-// 			m_pStat->GetAddOnTime()->m_fAtkPhysic = fTime;
+// 			m_Stat.AccessAddOnStat().m_fAtkPhysic = fStatVal * m_Stat.GetStat().m_fAtkPhysic;
+// 			m_Stat.AccessAddOnTime().m_fAtkPhysic = fTime;
 // 
-// 			if ( m_hSeqAddOnStatAtkPhysic == INVALID_PARTICLE_HANDLE )
+// 			if ( m_hSeqAddOnStatAtkPhysic == INVALID_PARTICLE_SEQUENCE_HANDLE )
 // 				m_hSeqAddOnStatAtkPhysic = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"BuffAttack", 0,0,0, 0, 0 );
 // 
 // 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqAddOnStatAtkPhysic );
@@ -4807,10 +4910,10 @@ void CX2GameUnit::SetAddOnStat( KEGS_ADD_ON_STAT_REQ::ADD_ON_STAT statType, floa
 		break;
 	case KEGS_ADD_ON_STAT_REQ::AOS_ATK_MAGIC:
 		{
-// 			m_pStat->GetAddOnStat()->m_fAtkMagic = fStatVal * m_pStat->GetStat()->m_fAtkMagic;
-// 			m_pStat->GetAddOnTime()->m_fAtkMagic = fTime;
+// 			m_Stat.AccessAddOnStat().m_fAtkMagic = fStatVal * m_Stat.GetStat().m_fAtkMagic;
+// 			m_Stat.AccessAddOnTime().m_fAtkMagic = fTime;
 // 
-// 			if ( m_hSeqAddOnStatAtkMagic == INVALID_PARTICLE_HANDLE )
+// 			if ( m_hSeqAddOnStatAtkMagic == INVALID_PARTICLE_SEQUENCE_HANDLE )
 // 				m_hSeqAddOnStatAtkMagic = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"BuffMagic", 0,0,0, 0, 0 );
 // 
 // 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqAddOnStatAtkMagic );
@@ -4821,10 +4924,10 @@ void CX2GameUnit::SetAddOnStat( KEGS_ADD_ON_STAT_REQ::ADD_ON_STAT statType, floa
 
 	case KEGS_ADD_ON_STAT_REQ::AOS_DEF_PHYSIC:
 		{
-// 			m_pStat->GetAddOnStat()->m_fDefPhysic = fStatVal * m_pStat->GetStat()->m_fDefPhysic;
-// 			m_pStat->GetAddOnTime()->m_fDefPhysic = fTime;
+// 			m_Stat.AccessAddOnStat().m_fDefPhysic = fStatVal * m_Stat.GetStat().m_fDefPhysic;
+// 			m_Stat.AccessAddOnTime().m_fDefPhysic = fTime;
 // 
-// 			if ( m_hSeqAddOnStatDefPhysic == INVALID_PARTICLE_HANDLE )
+// 			if ( m_hSeqAddOnStatDefPhysic == INVALID_PARTICLE_SEQUENCE_HANDLE )
 // 				m_hSeqAddOnStatDefPhysic = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"BuffShield", 0,0,0, 0, 0 );
 // 
 // 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqAddOnStatDefPhysic );
@@ -4835,10 +4938,10 @@ void CX2GameUnit::SetAddOnStat( KEGS_ADD_ON_STAT_REQ::ADD_ON_STAT statType, floa
 
 	case KEGS_ADD_ON_STAT_REQ::AOS_DEF_MAGIC:
 		{
-// 			m_pStat->GetAddOnStat()->m_fDefMagic = fStatVal * m_pStat->GetStat()->m_fDefMagic;
-// 			m_pStat->GetAddOnTime()->m_fDefMagic = fTime;
+// 			m_Stat.AccessAddOnStat().m_fDefMagic = fStatVal * m_Stat.GetStat().m_fDefMagic;
+// 			m_Stat.AccessAddOnTime().m_fDefMagic = fTime;
 // 
-// 			// fix!!! ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½??
+// 			// fix!!! ¾ê´Â ÀÌÆåÆ®°¡ ¾ø³×??
 		}
 		break;
 	}
@@ -4855,7 +4958,7 @@ void CX2GameUnit::SetSubAttackList( CKTDGXSkinAnim* pXSkinAnim )
 }
 
 
-CX2EnchantItem::EnchantData* CX2GameUnit::GetWeaponEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType )
+const CX2EnchantItem::EnchantData* CX2GameUnit::GetWeaponEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType ) const
 {
 	if ( GetGameUnitType() == CX2GameUnit::GUT_USER )
 		return g_pData->GetEnchantItem()->GetEnchantData( extraDamageType );
@@ -4967,19 +5070,15 @@ float CX2GameUnit::EnchantAccumulationRateModifier( CX2DamageManager::EXTRA_DAMA
 #endif ENCHANT_ACCUMULATION_RATE_MODIFIER
 
 
-// fix!! to do: b3DSound ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
-// fix!! to do: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½ ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ sound ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½
-#ifdef SOUND_LOOP
+// fix!! to do: b3DSound ¼³Á¤ÇÒ ¼ö ÀÖ°Ô ¼öÁ¤ÇÏ±â
+// fix!! to do: ¿ÀºêÁ§Æ®°¡ ¿òÁ÷ÀÌ´Â Áß¿¡ °è¼ÓÇØ¼­ sound À§Ä¡ ¾÷µ¥ÀÌÆ® ÇÒ ¼ö ÀÖ°Ô ¼öÁ¤ÇÏ±â
 CKTDXDeviceSound* CX2GameUnit::PlaySound( const WCHAR* pName, bool b3DSound, bool bLoop )
-#else
-CKTDXDeviceSound* CX2GameUnit::PlaySound( const WCHAR* pName, bool b3DSound )
-#endif
 {
 	if( NULL == pName )
 		return NULL; 
 
 #ifdef NEW_CHARACTER_CHUNG
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.12.20] // ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½
+	// oasis907 : ±è»óÀ± [2010.12.20] // ½½¶óÀÌµå ¼¦ ÁøÇàÁßÀÏ¶§ Ä³¸¯ÅÍ »ç¿îµå ÇÃ·¹ÀÌ ¾ÈÇÏ±â
  	if(g_pData->GetSlideShot() != NULL &&
  		g_pData->GetSlideShot()->IsPresentNow() == true)
  		return NULL;
@@ -4991,31 +5090,19 @@ CKTDXDeviceSound* CX2GameUnit::PlaySound( const WCHAR* pName, bool b3DSound )
 		if( b3DSound == true )
 		{
 			pSound->Set3DPosition( GetPos() );
-#ifdef SOUND_LOOP
 			pSound->Play(bLoop);
-#else
-			pSound->Play();
-#endif
 		}
 		else
 		{
-#ifdef SOUND_LOOP
 			pSound->Play(bLoop, false);
-#else
-			pSound->Play(false, false);
-#endif
 		}
 		
 
 
 #ifdef CLOSE_SOUND_TEST
 
-#ifdef SOUND_LOOP
 		if( bLoop == false )
 			m_SoundCloseManager.AddSound( pName );
-#else
-		m_SoundCloseManager.AddSound( pName );
-#endif
 
 #endif CLOSE_SOUND_TEST
 	}
@@ -5023,69 +5110,22 @@ CKTDXDeviceSound* CX2GameUnit::PlaySound( const WCHAR* pName, bool b3DSound )
 	return pSound;
 }
 
-#ifdef CHECK_SOUND_LOADING_TIME
-#ifdef SOUND_LOOP
-CKTDXDeviceSound* CX2GameUnit::CheckPlaySound( bool& bCreateSound, const WCHAR* pName, bool b3DSound, bool bLoop )
-#else
-CKTDXDeviceSound* CX2GameUnit::PlaySound( const WCHAR* pName, bool b3DSound )
-#endif
-{
-	if( NULL == pName )
-		return NULL; 
-
-#ifdef NEW_CHARACTER_CHUNG
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.12.20] // ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½
- 	if(g_pData->GetSlideShot() != NULL &&
- 		g_pData->GetSlideShot()->IsPresentNow() == true)
- 		return NULL;
-#endif NEW_CHARACTER_CHUNG
-	
-
-
-	CKTDXDeviceSound* pSound = g_pKTDXApp->GetDeviceManager()->CheckOpenSound( bCreateSound, pName, 10, b3DSound );
-	if( NULL != pSound )
-	{
-		if( b3DSound == true )
-		{
-			pSound->Set3DPosition( GetPos() );
-#ifdef SOUND_LOOP
-			pSound->CheckPlay(bCreateSound, bLoop);
-#else
-			pSound->Play();
-#endif
-		}
-		else
-		{
-#ifdef SOUND_LOOP
-			pSound->CheckPlay(bCreateSound, bLoop, false);
-#else
-			pSound->Play(false, false);
-#endif
-		}
-		
-
-
-#ifdef CLOSE_SOUND_TEST
-
-#ifdef SOUND_LOOP
-		if( bLoop == false )
-			m_SoundCloseManager.AddSound( pName );
-#else
-		m_SoundCloseManager.AddSound( pName );
-#endif
-
-#endif CLOSE_SOUND_TEST
-	}
-
-	return pSound;
-}
-#endif // CHECK_SOUND_LOADING_TIME
 
 void CX2GameUnit::PlaySound_LUA( const char* pName )
 {
 	if( NULL == pName )
 		return; 
 
+#ifdef X2OPTIMIZE_NPC_DIELIGHT_SOUND_BY_GAMEOPTION
+	//DieLight.wav´Â °ÔÀÓ¿É¼Ç¿¡ µû¶ó »ý¼º¿©ºÎ°¡ °áÁ¤µÈ´Ù.
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_LOW && stricmp( pName, "DieLight.ogg" ) == 0 )
+		return;
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_bEffect == false && stricmp( pName, "DieLight.ogg" ) == 0 )
+		return;
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+#endif//X2OPTIMIZE_NPC_DIELIGHT_SOUND_BY_GAMEOPTION
 
 	wstring wName = L"";
 	ConvertUtf8ToWCHAR( wName, pName );
@@ -5111,7 +5151,7 @@ void CX2GameUnit::DyingStart()
 
 	DeleteEffectSetOnDie();
 
-	FinishAndClearAllBuff();	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	FinishAndClearAllBuff();	/// ¹öÇÁ Á¾·á ¹× »èÁ¦
 	++m_iDieCount;
 }
 
@@ -5168,7 +5208,7 @@ D3DXVECTOR3 CX2GameUnit::GetWeaponBoneRot( int iWeaponIndex, int iModelIndex )
 		} break;
 	case CX2GameUnit::GUT_USER:
 		{
-			// fix!! hyper ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ GetHyperAnim()ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ 
+			// fix!! hyper ¸ðµå »óÅÂÀÇ ¹«±â GetHyperAnim()À» È£ÃâÇØ¾ßÇÔ 
 			//vPos = pWeapon->m_pUserWeaponEquip->GetNormalAnim()->GetCloneFramePosition( pBoneName );			
 			GetFrameRotateDegree(&vRot, pWeapon->m_pFrame_TRACE_START[0]);		
 		} break;
@@ -5207,7 +5247,7 @@ D3DXVECTOR3 CX2GameUnit::GetWeaponBonePos( int iWeaponIndex, const WCHAR* pBoneN
 		} break;
 	case CX2GameUnit::GUT_USER:
 		{
-			// fix!! hyper ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ GetHyperAnim()ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ 
+			// fix!! hyper ¸ðµå »óÅÂÀÇ ¹«±â GetHyperAnim()À» È£ÃâÇØ¾ßÇÔ 
 			//vPos = pWeapon->m_pUserWeaponEquip->GetNormalAnim()->GetCloneFramePosition( pBoneName );
 			vPos = pWeapon->GetBonePos( pBoneName, iModelIndex );
 		} break;
@@ -5222,10 +5262,9 @@ D3DXVECTOR3 CX2GameUnit::GetWeaponBonePos( int iWeaponIndex, const WCHAR* pBoneN
 	return vPos;
 }
 
-//{{ kimhc // 2011.1.17 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Boneï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Trace ï¿½ï¿½ (chung ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½)
-#ifdef	TRACE_MAXTRIX_TEST
+//{{ kimhc // 2011.1.17 // ÁöÁ¤ÇÑ BoneÀÇ ¸ÞÆ®¸¯½º °ªÀ» Trace ÇÔ (chung ÄÚµå Âü°í)
 /** @function : GetCombineMatrixFromWeaponBoneName
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ CombineMatrix ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹«±â ÀÌ¸§¿¡ ÇØ´çÇÏ´Â CombineMatrix Æ÷ÀÎÅÍ¸¦ ¾ò¾î¿È
 	@param : int iWeaponIndex, const wstring& wstrWeaponBoneName, int iModelIndex
 	@return : const D3DXMATRIX* 
 */
@@ -5247,8 +5286,7 @@ const D3DXMATRIX* CX2GameUnit::GetCombineMatrixFromWeaponBoneName( int iWeaponIn
 
 	return pWeapon->GetCombineMatrix( wstrWeaponBoneName.c_str(), iModelIndex );
 }
-#endif	TRACE_MAXTRIX_TEST
-//}} kimhc // 2011.1.17 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Boneï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Trace ï¿½ï¿½ (chung ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½)
+//}} kimhc // 2011.1.17 // ÁöÁ¤ÇÑ BoneÀÇ ¸ÞÆ®¸¯½º °ªÀ» Trace ÇÔ (chung ÄÚµå Âü°í)
 
 D3DXVECTOR3 CX2GameUnit::GetWeaponBonePos_LUA( int iWeaponIndex, const char* pBoneName )
 {
@@ -5258,7 +5296,7 @@ D3DXVECTOR3 CX2GameUnit::GetWeaponBonePos_LUA( int iWeaponIndex, const char* pBo
 	wstring wBoneName = L"";
 	ConvertUtf8ToWCHAR( wBoneName, pBoneName );
 
-	// fix!!! ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½Â° ï¿½Þ½Ã¸ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ïµï¿½ ï¿½Úµï¿½
+	// fix!!! ÀÏ´Ü ¹«±âÀÇ 0¹øÂ° ¸Þ½Ã¸¸ µÇµµ·Ï ÇÏµå ÄÚµù
 	return GetWeaponBonePos( iWeaponIndex, wBoneName.c_str(), 0 );
 }
 
@@ -5295,7 +5333,7 @@ void CX2GameUnit::AttachWeaponParticle_LUA( int iWeaponIndex, bool bIsMajorParti
 
 
 
-//{{ kimhc // ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼
+//{{ kimhc // ½Ç½Ã°£ ¿¤¼Òµå Áß ½Ç½Ã°£ Àåºñ ±³Ã¼
 #ifdef REAL_TIME_ELSWORD
 void CX2GameUnit::DeleteEnchantWeaponEffectUnitSpecific( int index )
 {
@@ -5304,7 +5342,7 @@ void CX2GameUnit::DeleteEnchantWeaponEffectUnitSpecific( int index )
 	pWeapon->DeleteEnchantParticle();		
 }
 #endif REAL_TIME_ELSWORD
-//}} kimhc // ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼
+//}} kimhc // ½Ç½Ã°£ ¿¤¼Òµå Áß ½Ç½Ã°£ Àåºñ ±³Ã¼
 
 
 
@@ -5345,7 +5383,7 @@ void CX2GameUnit::ClearMajorMeshPlayer_LUA( int index )
 	m_hMajorMeshPlayerList[index] = INVALID_MESH_INSTANCE_HANDLE;
 }
 
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+// ´õºí¾îÅÃ
 void CX2GameUnit::SetDoubleAttack(wstring wstrHitSound, float fDamage, D3DXVECTOR3 vimpactPoint)
 {
 	m_wstrHitSound = wstrHitSound;
@@ -5438,12 +5476,16 @@ CKTDGXMeshPlayer::CXMeshInstanceHandle CX2GameUnit::GetMinorMeshPlayerHandle( in
 
 
 
-
-
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+#ifdef ADD_MEMO_1ST_CLASS
+void CX2GameUnit::LoadEffectSetFromScript( IN KLuaManager& luaManager, IN const bool IsEqippedMemo_ /*= false*/ )
+#else //ADD_MEMO_1ST_CLASS
 void CX2GameUnit::LoadEffectSetFromScript( IN KLuaManager& luaManager )
+#endif //ADD_MEMO_1ST_CLASS
 {
 	m_vecEffectSetToPlay.resize(0);
 
+#ifndef ADD_MEMO_1ST_CLASS
 #ifdef ADDITIONAL_MEMO
 	LUA_GET_VALUE( m_LuaManager, "APPLY_MEMO",		m_iMemoId,		0 );
 #endif
@@ -5457,11 +5499,45 @@ void CX2GameUnit::LoadEffectSetFromScript( IN KLuaManager& luaManager )
 			bApplyMemo = true;
 	}
 #endif
+#endif //ADD_MEMO_1ST_CLASS
 
-	if( true == luaManager.BeginTable( "EFFECT_SET_LIST" ) )
+#ifdef ADD_MEMO_1ST_CLASS
+	bool bIsEffectSetMemo = false;
+
+	if( true == IsEqippedMemo_ )
 	{
-		std::wstring wstrEffectSetName = L"";
-		float fStartAnimationTime = 0.f;
+		if( true == luaManager.BeginTable( "EFFECT_SET_LIST_MEMO" ) )
+		{
+			std::wstring wstrEffectSetName = L"";
+			float fStartAnimationTime = 0.f;
+
+			for( int iValueIndex = 1; iValueIndex < 100; iValueIndex += 2 )
+			{
+				if( false == luaManager.GetValue( iValueIndex, wstrEffectSetName ) )
+					break;
+
+				if( false == luaManager.GetValue( iValueIndex+1, fStartAnimationTime ) )
+					break;
+
+				m_vecEffectSetToPlay.push_back( EffectSetToPlay( wstrEffectSetName, fStartAnimationTime ) );
+			}
+
+
+			luaManager.EndTable(); //EFFECT_SET_LIST_MEMO
+
+			bIsEffectSetMemo = true;
+		}
+	}
+
+	//APPLY_MEMO°¡ Á¤ÀÇµÇ¾î ÀÖÁö ¾Ê°Å³ª 
+	//APPLY_MEMO°¡ Á¤ÀÇµÇ¾î ÀÖÁö¸¸ EFFECT_SET_LIST_MEMO°¡ Á¤ÀÇµÇ¾î ÀÖÁö ¾ÊÀº °æ¿ì EFFECT_SET_LIST_MEMO¸¦ ÆÄ½ÌÇÑ´Ù.(DAMAGE_DATA_MEMO¸¦ À§ÇØ APPLY_MEMO¸¦ Á¤ÀÇÇÑ °æ¿ì)
+	if( false == IsEqippedMemo_ || ( true == IsEqippedMemo_ && false == bIsEffectSetMemo ) )
+#endif //ADD_MEMO_1ST_CLASS
+	{
+		if( true == luaManager.BeginTable( "EFFECT_SET_LIST" ) )
+		{
+			std::wstring wstrEffectSetName = L"";
+			float fStartAnimationTime = 0.f;
 
 		for( int iValueIndex = 1; iValueIndex < 100; iValueIndex += 2 )
 		{
@@ -5471,28 +5547,118 @@ void CX2GameUnit::LoadEffectSetFromScript( IN KLuaManager& luaManager )
 			if( false == luaManager.GetValue( iValueIndex+1, fStartAnimationTime ) )
 				break;
 
+#ifndef ADD_MEMO_1ST_CLASS
+				//µ¿ÀÛ ¹æ½Ä ¼öÁ¤. ±âÁ¸¿¡ ÀÌ ¿É¼ÇÀ» »ç¿ëÇÏ´ø ¾Æ¾ß½Ã(2°³), Ã»(4°³) state´Â ¼öÁ¤µÈ ¹æ¹ýÀ¸·Î ½ºÅ©¸³Æ®¿¡ Àû¿ëÇÔ.
 #ifdef ADDITIONAL_MEMO
 			if( bApplyMemo == true )
 				wstrEffectSetName = wstrEffectSetName + L"_MEMO";
 #endif
+#endif //ADD_MEMO_1ST_CLASS
+				m_vecEffectSetToPlay.push_back( EffectSetToPlay( wstrEffectSetName, fStartAnimationTime ) );
+			}
 
-			m_vecEffectSetToPlay.push_back( EffectSetToPlay( wstrEffectSetName, fStartAnimationTime ) );
+
+			luaManager.EndTable(); //EFFECT_SET_LIST
 		}
-
-
-		luaManager.EndTable(); //EFFECT_SET_LIST
 	}
 	
 
-#ifdef MODIFY_EFFECT_SET_DELETE
-	if( true == luaManager.BeginTable( "EFFECT_SET_LIST_EX" ) )
+#ifdef ADD_MEMO_1ST_CLASS
+	bIsEffectSetMemo = false;
+	if( true == IsEqippedMemo_ )
 	{
-		std::wstring wstrEffectSetName = L"";
-		float fStartAnimationTime = 0.f;
+		if( true == luaManager.BeginTable( "EFFECT_SET_LIST_EX_MEMO" ) )
+		{
+			std::wstring wstrEffectSetName = L"";
+			float fStartAnimationTime = 0.f;
 
+
+
+
+#ifdef ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+			vector<DELETE_CONDITION_EFFECT_SET> vecDeleteCondition;		// Á¾·á Á¶°Ç º¤ÅÍ
+#else // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+			DELETE_CONDITION_EFFECT_SET eDeleteCondition = DCES_NONE;
+#endif // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+
+			int iTableIndex = 1;
+
+			while( true == luaManager.BeginTable( iTableIndex++  ) )
+			{
+				LUA_GET_VALUE( luaManager, 1, wstrEffectSetName,	 L"" );
+				if( L"" == wstrEffectSetName )
+					break;
+
+				LUA_GET_VALUE( luaManager, 2, fStartAnimationTime, 0.f);
+
+
+#ifdef ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+				int iTableCount = 3;			// Å×ÀÌºí Ä«¿îÅÍ, 3¹ø Å×ÀÌºíºÎÅÍ ÀÐ¾î¿À±â ½ÃÀÛÇÔ
+				UINT uiDeleteConditionType = 0;	// Á¾·á Á¶°Ç
+				vecDeleteCondition.clear();
+
+				while ( luaManager.GetValue( iTableCount, uiDeleteConditionType ) == true )
+				{	// °ªÀÌ ÀÖ´Ù¸é, Å×ÀÌºí Ä«¿îÅÍ Áõ°¡½ÃÅ°°í Á¾·á Á¶°ÇÀ» º¤ÅÍ¿¡ ³Ö¾îÁØ´Ù.
+					// ¾ò¾î¿Â °ªÀÌ ¹üÀ§¿¡ ¹þ¾î³­´Ù¸é, ASSERT ¸¦ ¶ç¿î´Ù.
+#ifdef _IN_HOUSE_
+					// »ç³» ÀÏ °æ¿ì, ÇØ´ç Á¾·á Á¶°ÇÀÌ Áßº¹µÇ´ÂÁö Ã¼Å©ÇÑ´Ù.
+					ASSERT( vecDeleteCondition.end() == find ( vecDeleteCondition.begin(), vecDeleteCondition.end(), static_cast<CX2GameUnit::DELETE_CONDITION_EFFECT_SET> (uiDeleteConditionType) ) );
+#endif // _IN_HOUSE_
+
+					iTableCount++;		
+					vecDeleteCondition.push_back( static_cast<CX2GameUnit::DELETE_CONDITION_EFFECT_SET> (uiDeleteConditionType) );	
+				}
+#else // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+				LUA_GET_VALUE_ENUM( luaManager, 3 , eDeleteCondition, CX2GameUnit::DELETE_CONDITION_EFFECT_SET, CX2GameUnit::DCES_NONE );
+#endif // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+
+				luaManager.EndTable();
+
+#ifndef ADD_MEMO_1ST_CLASS
+				//µ¿ÀÛ ¹æ½Ä ¼öÁ¤. ±âÁ¸¿¡ ÀÌ ¿É¼ÇÀ» »ç¿ëÇÏ´ø ¾Æ¾ß½Ã(2°³), Ã»(4°³) state´Â ¼öÁ¤µÈ ¹æ¹ýÀ¸·Î ½ºÅ©¸³Æ®¿¡ Àû¿ëÇÔ.
+#ifdef ADDITIONAL_MEMO
+				if( bApplyMemo == true )
+					wstrEffectSetName = wstrEffectSetName + L"_MEMO";
+#endif
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+				m_vecEffectSetToPlay.push_back( EffectSetToPlay( wstrEffectSetName, fStartAnimationTime, vecDeleteCondition ) );
+#else // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+				m_vecEffectSetToPlay.push_back( EffectSetToPlay( wstrEffectSetName, fStartAnimationTime, eDeleteCondition ) );
+#endif // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+
+			}
+
+
+			luaManager.EndTable(); //EFFECT_SET_LIST_EX_MEMO
+
+			bIsEffectSetMemo = true;
+		}
+	}
+	
+	//APPLY_MEMO°¡ Á¤ÀÇµÇ¾î ÀÖÁö ¾Ê°Å³ª 
+	//APPLY_MEMO°¡ Á¤ÀÇµÇ¾î ÀÖÁö¸¸ EFFECT_SET_LIST_EX_MEMO°¡ Á¤ÀÇµÇ¾î ÀÖÁö ¾ÊÀº °æ¿ì EFFECT_SET_LIST_EX¸¦ ÆÄ½ÌÇÑ´Ù.(DAMAGE_DATA_MEMO¸¦ À§ÇØ APPLY_MEMO¸¦ Á¤ÀÇÇÑ °æ¿ì)
+	if( false == IsEqippedMemo_ || ( true == IsEqippedMemo_ && false == bIsEffectSetMemo ) )
+#endif //ADD_MEMO_1ST_CLASS
+#ifdef MODIFY_EFFECT_SET_DELETE
+	{
+		if( true == luaManager.BeginTable( "EFFECT_SET_LIST_EX" ) )
+		{
+			std::wstring wstrEffectSetName = L"";
+			float fStartAnimationTime = 0.f;
+
+		
+
+
+#ifdef ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+		vector<DELETE_CONDITION_EFFECT_SET> vecDeleteCondition;		// Á¾·á Á¶°Ç º¤ÅÍ
+#else // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
 		DELETE_CONDITION_EFFECT_SET eDeleteCondition = DCES_NONE;
+#endif // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
 
 		int iTableIndex = 1;
+		
 		while( true == luaManager.BeginTable( iTableIndex++  ) )
 		{
 			LUA_GET_VALUE( luaManager, 1, wstrEffectSetName,	 L"" );
@@ -5500,18 +5666,47 @@ void CX2GameUnit::LoadEffectSetFromScript( IN KLuaManager& luaManager )
 				break;
 
 			LUA_GET_VALUE( luaManager, 2, fStartAnimationTime, 0.f);
+
+			
+#ifdef ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+			int iTableCount = 3;			// Å×ÀÌºí Ä«¿îÅÍ, 3¹ø Å×ÀÌºíºÎÅÍ ÀÐ¾î¿À±â ½ÃÀÛÇÔ
+			UINT uiDeleteConditionType = 0;	// Á¾·á Á¶°Ç
+			vecDeleteCondition.clear();
+
+			while ( luaManager.GetValue( iTableCount, uiDeleteConditionType ) == true )
+			{	// °ªÀÌ ÀÖ´Ù¸é, Å×ÀÌºí Ä«¿îÅÍ Áõ°¡½ÃÅ°°í Á¾·á Á¶°ÇÀ» º¤ÅÍ¿¡ ³Ö¾îÁØ´Ù.
+				// ¾ò¾î¿Â °ªÀÌ ¹üÀ§¿¡ ¹þ¾î³­´Ù¸é, ASSERT ¸¦ ¶ç¿î´Ù.
+#ifdef _IN_HOUSE_
+				// »ç³» ÀÏ °æ¿ì, ÇØ´ç Á¾·á Á¶°ÇÀÌ Áßº¹µÇ´ÂÁö Ã¼Å©ÇÑ´Ù.
+				ASSERT( vecDeleteCondition.end() == find ( vecDeleteCondition.begin(), vecDeleteCondition.end(), static_cast<CX2GameUnit::DELETE_CONDITION_EFFECT_SET> (uiDeleteConditionType) ) );
+#endif // _IN_HOUSE_
+				
+				iTableCount++;		
+				vecDeleteCondition.push_back( static_cast<CX2GameUnit::DELETE_CONDITION_EFFECT_SET> (uiDeleteConditionType) );	
+			}
+#else // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
 			LUA_GET_VALUE_ENUM( luaManager, 3 , eDeleteCondition, CX2GameUnit::DELETE_CONDITION_EFFECT_SET, CX2GameUnit::DCES_NONE );
+#endif // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
 
 			luaManager.EndTable();
 
+#ifndef ADD_MEMO_1ST_CLASS
 #ifdef ADDITIONAL_MEMO
 			if( bApplyMemo == true )
 				wstrEffectSetName = wstrEffectSetName + L"_MEMO";
 #endif
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+			m_vecEffectSetToPlay.push_back( EffectSetToPlay( wstrEffectSetName, fStartAnimationTime, vecDeleteCondition ) );
+#else // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
 			m_vecEffectSetToPlay.push_back( EffectSetToPlay( wstrEffectSetName, fStartAnimationTime, eDeleteCondition ) );
+#endif // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+			
 		}
 
-		luaManager.EndTable(); //EFFECT_SET_LIST
+			luaManager.EndTable(); //EFFECT_SET_LIST
+		}
 	}
 #endif // MODIFY_EFFECT_SET_DELETE
 
@@ -5524,11 +5719,15 @@ void CX2GameUnit::LoadEffectSetFromScript( IN KLuaManager& luaManager )
 	LUA_GET_VALUE( m_LuaManager, "DELETE_EFFECT_SET_ON_CUSTOM_STATE",	m_bDeleteEffectSetOnCustomState,	false );
 #endif DELETE_EFFECTSET_ON_CUSTOM_STATE
 
+#ifdef CUSTOM_DELETE_EFFECT_ON_DAMAGE_REACT
+	LUA_GET_VALUE( m_LuaManager, "CUSTOM_STATE_DELETE_EFFECT_SET_ON_DAMAGE_REACT",	m_bIsCustomStateDeleteEffectOnDamageReact,	false );
+#endif // CUSTOM_DELETE_EFFECT_ON_DAMAGE_REACT
+
 	LUA_GET_VALUE( m_LuaManager, "HYPER_EFFECT_SET",		m_bHyperEffectSet,		false );
 	LUA_GET_VALUE( m_LuaManager, "EFFECT_SET_LIFE_TIME",	m_fEffectSetLifeTime,	-1.f );
 
 }
-
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 
 void CX2GameUnit::DeleteEffectSetOnStateEnd()
@@ -5552,12 +5751,12 @@ void CX2GameUnit::DeleteEffectSetOnDamageReact()
 }
 
 /** @function : MakeEffectSetBeDeletedWhenDie
-	@brief : GameUnitï¿½ï¿½ ï¿½×¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Úµï¿½(hEffectSet_)
+	@brief : GameUnitÀÌ Á×¾úÀ»¶§ »ç¶óÁ®¾ßÇÒ ÀÌÆåÆ®¼Â ¸®½ºÆ®¿¡ µî·ÏÇÏµµ·Ï ¸¸µå´Â ÇÔ¼ö
+	@param : ÀÌÆåÆ®¼Â ÇÚµé(hEffectSet_)
 */
 void CX2GameUnit::MakeEffectSetBeDeletedWhenDie( const CX2EffectSet::Handle& hEffectSet_ )
 {
-	if ( CX2EffectSet::INVALID_HANDLE != hEffectSet_ )
+	if ( INVALID_EFFECTSET_HANDLE != hEffectSet_ )
 		m_vecEffectSetToDeleteOnDie.push_back( hEffectSet_ );
 }
 
@@ -5582,6 +5781,9 @@ void CX2GameUnit::DeleteEffectSetOnCustomState()
 #endif DELETE_EFFECTSET_ON_CUSTOM_STATE
 
 
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
+
 void CX2GameUnit::CommonFrameMove_EffectSet( float fNowAnimationTime )
 {
 
@@ -5595,16 +5797,13 @@ void CX2GameUnit::CommonFrameMove_EffectSet( float fNowAnimationTime )
 		if( 0.f == effectSetToPlay.m_fStartAnimationTime ||
 			fNowAnimationTime >= effectSetToPlay.m_fStartAnimationTime )
 		{
-			CX2EffectSet::Handle hEffectSetInst = g_pX2Game->GetEffectSet()->PlayEffectSet( effectSetToPlay.m_wstrEffectSetName, this, NULL, m_bHyperEffectSet, GetPowerRate(), m_fEffectSetLifeTime );
+			CX2EffectSet::Handle hEffectSetInst = g_pX2Game->GetEffectSet()->PlayEffectSet( effectSetToPlay.m_wstrEffectSetName, this, NULL, m_bHyperEffectSet, GetPowerRate(), m_fEffectSetLifeTime);
 			
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ effectSetToPlay.m_fStartAnimationTimeï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ç¸é¼­ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½
+			// ±âÁ¸¿¡ ¾Ö´Ï¸ÞÀÌ¼Ç ½Ã°£À» ±âÁØÀ¸·Î ÀÌÆåÆ®¸¦ »ý¼ºÇÏ´ø °ÍÀ» effectSetToPlay.m_fStartAnimationTimeÀÌ Ãß°¡µÇ¸é¼­ ¾Ö´Ï¸ÞÀÌ¼ÇÀ» ±âÁØÀ¸·Î ÇÏÁö ¾Êµµ·Ï º¯°æÇØÁØ´Ù
 			if( 0.f != effectSetToPlay.m_fStartAnimationTime )
 			{
-				CX2EffectSet::EffectSetInstance* pEffectSetInst = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectSetInst );
-				if( NULL != pEffectSetInst )
-				{
+				if ( CX2EffectSet::EffectSetInstance* pEffectSetInst = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectSetInst ) )
 					pEffectSetInst->SetUseAnimationTiming( false );
-				}
 			}
 			
 
@@ -5631,7 +5830,13 @@ void CX2GameUnit::CommonFrameMove_EffectSet( float fNowAnimationTime )
 #endif DELETE_EFFECTSET_ON_CUSTOM_STATE
 
 #ifdef MODIFY_EFFECT_SET_DELETE
+#ifdef ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+			AddEffectSetDeleteCondition( hEffectSetInst, effectSetToPlay.m_vecDeleteCondition );
+#else // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
 			AddEffectSetDeleteCondition( hEffectSetInst, effectSetToPlay.m_eDeleteCondition );
+#endif // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+
+			
 #endif // MODIFY_EFFECT_SET_DELETE
 
 			m_vecEffectSetToPlay.erase( m_vecEffectSetToPlay.begin() + i );
@@ -5640,26 +5845,43 @@ void CX2GameUnit::CommonFrameMove_EffectSet( float fNowAnimationTime )
 	}
 }
 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 
 
 
-
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+void CX2GameUnit::AddEffectiveBlackHoleDamageEffect( CX2DamageEffect::CEffectHandle hDamageEffect )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 void CX2GameUnit::AddEffectiveBlackHoleDamageEffect( CX2DamageEffect::CEffect* pDamageEffect )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( hDamageEffect == INVALID_DAMAGE_EFFECT_HANDLE )
+        return;
+	m_setEffectiveBlackHoleDamageEffect.insert( hDamageEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL == pDamageEffect )
 		return; 
-
 	m_setEffectiveBlackHoleDamageEffect.insert( pDamageEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+void CX2GameUnit::RemoveEffectiveBlackHoleDamageEffect( CX2DamageEffect::CEffectHandle hDamageEffect )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 void CX2GameUnit::RemoveEffectiveBlackHoleDamageEffect( CX2DamageEffect::CEffect* pDamageEffect )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( hDamageEffect == INVALID_DAMAGE_EFFECT_HANDLE )
+        return;
+    m_setEffectiveBlackHoleDamageEffect.erase( hDamageEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL == pDamageEffect )
 		return; 
-
 	m_setEffectiveBlackHoleDamageEffect.erase( pDamageEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 void CX2GameUnit::ClearEffectiveBlackHoleDamageEffect()
@@ -5667,8 +5889,22 @@ void CX2GameUnit::ClearEffectiveBlackHoleDamageEffect()
 	m_setEffectiveBlackHoleDamageEffect.clear();
 }
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+bool CX2GameUnit::IsEffectiveBlackHoleDamageEffect( CX2DamageEffect::CEffectHandle hDamageEffect )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 bool CX2GameUnit::IsEffectiveBlackHoleDamageEffect( CX2DamageEffect::CEffect* pDamageEffect )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( hDamageEffect == INVALID_DAMAGE_EFFECT_HANDLE )
+        return false;
+
+	if( true == m_setEffectiveBlackHoleDamageEffect.empty() )
+		return false;
+
+	if( m_setEffectiveBlackHoleDamageEffect.find( hDamageEffect ) == m_setEffectiveBlackHoleDamageEffect.end() )
+		return false;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL == pDamageEffect )
 		return false;
 
@@ -5677,6 +5913,7 @@ bool CX2GameUnit::IsEffectiveBlackHoleDamageEffect( CX2DamageEffect::CEffect* pD
 
 	if( m_setEffectiveBlackHoleDamageEffect.find( pDamageEffect ) == m_setEffectiveBlackHoleDamageEffect.end() )
 		return false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	return true;
 }
@@ -5689,7 +5926,7 @@ bool CX2GameUnit::IsThereEffectiveBlackHoleDamageEffect()
 		return false;
 }
 
-//{{ kimhc // 2010.4.2 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½)
+//{{ kimhc // 2010.4.2 // ºñ¹Ð´øÀü ÀÛ¾÷(¼ÂÆ®¾ÆÀÌÅÛÈ¿°ú)
 #ifdef SERV_SECRET_HELL
 float	CX2GameUnit::GetStatUpBufferBySocketItem() const
 {
@@ -5707,19 +5944,19 @@ void	CX2GameUnit::ProcessStatPercentUpBuffer( CX2GameUnit* pAttacker, OUT CX2Sta
 		{
 		case CX2SocketItem::SUT_PHYSIC_DEF:
 			{
-				DefenderStat.GetAddOnStat()->m_fDefPhysic += fDefenderUpRate;
+				DefenderStat.AccessAddOnStat().m_fDefPhysic += fDefenderUpRate;
 			} break;
 		
 		case CX2SocketItem::SUT_MAGIC_DEF:
 			{
-				DefenderStat.GetAddOnStat()->m_fDefMagic +=	fDefenderUpRate;
+				DefenderStat.AccessAddOnStat().m_fDefMagic +=	fDefenderUpRate;
 			} break;
 
 		case CX2SocketItem::SUT_BOTH_DEF:
 		case CX2SocketItem::SUT_ALL:
 			{
-				DefenderStat.GetAddOnStat()->m_fDefPhysic += fDefenderUpRate;
-				DefenderStat.GetAddOnStat()->m_fDefMagic += fDefenderUpRate;
+				DefenderStat.AccessAddOnStat().m_fDefPhysic += fDefenderUpRate;
+				DefenderStat.AccessAddOnStat().m_fDefMagic += fDefenderUpRate;
 			} break;
 
 		default:
@@ -5733,17 +5970,17 @@ void	CX2GameUnit::ProcessStatPercentUpBuffer( CX2GameUnit* pAttacker, OUT CX2Sta
 		{
 		case CX2SocketItem::SUT_PHYSIC_ATT:
 			{
-				AttackerStat.GetAddOnStat()->m_fAtkPhysic +=	fAttackerUpRate;
+				AttackerStat.AccessAddOnStat().m_fAtkPhysic +=	fAttackerUpRate;
 			} break;
 		case CX2SocketItem::SUT_MAGIC_ATT:
 			{
-				AttackerStat.GetAddOnStat()->m_fAtkMagic += fAttackerUpRate;
+				AttackerStat.AccessAddOnStat().m_fAtkMagic += fAttackerUpRate;
 			} break;
 		case CX2SocketItem::SUT_BOTH_ATT:
 		case CX2SocketItem::SUT_ALL:
 			{
-				AttackerStat.GetAddOnStat()->m_fAtkPhysic += fAttackerUpRate;
-				AttackerStat.GetAddOnStat()->m_fAtkMagic += fAttackerUpRate;					
+				AttackerStat.AccessAddOnStat().m_fAtkPhysic += fAttackerUpRate;
+				AttackerStat.AccessAddOnStat().m_fAtkMagic += fAttackerUpRate;					
 			} break;
 		}
 	}
@@ -5751,7 +5988,7 @@ void	CX2GameUnit::ProcessStatPercentUpBuffer( CX2GameUnit* pAttacker, OUT CX2Sta
 
 
 #endif SERV_SECRET_HELL
-//}} kimhc // 2010.4.2 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½)
+//}} kimhc // 2010.4.2 // ºñ¹Ð´øÀü ÀÛ¾÷(¼ÂÆ®¾ÆÀÌÅÛÈ¿°ú)
 
 #ifdef SKILL_30_TEST
 bool CX2GameUnit::GetEnableDash( ENABLE_DASH_STATE eState /*= EDS_END */ )
@@ -5873,7 +6110,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormality()
 		ASSERT( m_ExtraDamagePack.m_TimeBomb.m_fTime <= 0.f );
 		ASSERT( m_ExtraDamagePack.m_Aging.m_fTime <= 0.f );
 		ASSERT( m_ExtraDamagePack.m_StigmaDebuff.m_fTime <= 0.f );
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 		ASSERT( m_ExtraDamagePack.m_Blind.m_fTime <= 0.f );
 #endif NEW_SKILL_2010_11
 
@@ -5881,12 +6118,12 @@ void CX2GameUnit::CommonFrameMoveStateAbnormality()
 		ASSERT( m_ExtraDamagePack.m_WaterHold.m_fTime <= 0.f );
 #endif EDT_WATER_HOLD_TEST
 
-		//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+		//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 		ASSERT( m_ExtraDamagePack.m_Panic.m_fTime <= 0.f );
 		ASSERT( m_ExtraDamagePack.m_Pain.m_fTime <= 0.f );
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
-		//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+		//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 		ASSERT( m_ExtraDamagePack.m_LegShot.m_fTime <= 0.f );
@@ -5904,7 +6141,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormality()
 			m_ExtraDamagePack.m_TimeBomb.m_fTime > 0.f ||
 			m_ExtraDamagePack.m_Aging.m_fTime > 0.f ||
 			m_ExtraDamagePack.m_StigmaDebuff.m_fTime > 0.f ||
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 			m_ExtraDamagePack.m_Blind.m_fTime > 0.f ||
 #endif NEW_SKILL_2010_11
 #ifdef CHUNG_SECOND_CLASS_CHANGE
@@ -5919,14 +6156,14 @@ void CX2GameUnit::CommonFrameMoveStateAbnormality()
 #endif EVE_ELECTRA
 			)
 		{
-			InHouseLog( "CX2GameUnit::CommonFrameMoveStateAbnormality()ï¿½ï¿½ï¿½ï¿½ IsImmuneToExtraDamage() ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½É¸ï¿½ ï¿½ï¿½ì°¡ ï¿½Ö¾ï¿½ï¿½ï¿½." );
+			InHouseLog( "CX2GameUnit::CommonFrameMoveStateAbnormality()¿¡¼­ IsImmuneToExtraDamage() ÀÎµ¥ »óÅÂÀÌ»ó¿¡ °É¸° °æ¿ì°¡ ÀÖ¾úÀ½." );
 
 			m_ExtraDamagePack.m_Frozen.m_fTime = 0.f;
 			m_ExtraDamagePack.m_Entangled.m_fTime = 0.f;
 			m_ExtraDamagePack.m_TimeBomb.m_fTime = 0.f;
 			m_ExtraDamagePack.m_Aging.m_fTime = 0.f;
 			m_ExtraDamagePack.m_StigmaDebuff.m_fTime = 0.f;
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 			m_ExtraDamagePack.m_Blind.m_fTime = 0.f;
 #endif NEW_SKILL_2010_11
 
@@ -5934,12 +6171,12 @@ void CX2GameUnit::CommonFrameMoveStateAbnormality()
 			m_ExtraDamagePack.m_WaterHold.m_fTime = 0.f;
 #endif EDT_WATER_HOLD_TEST
 
-			//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+			//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 			m_ExtraDamagePack.m_Panic.m_fTime = 0.f;
 			m_ExtraDamagePack.m_Pain.m_fTime = 0.f;
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
-			//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+			//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 			m_ExtraDamagePack.m_LegShot.m_fTime = 0.f;
@@ -5965,7 +6202,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormality()
 	CommonFrameMoveStateAbnormalityTimeBomb();
 	CommonFrameMoveStateAbnormalityAging();
 	CommonFrameMoveStateAbnormalityStigmaDebuff();
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 	CommonFrameMoveStateAbnormalityBlind();
 #endif NEW_SKILL_2010_11
 
@@ -5973,12 +6210,12 @@ void CX2GameUnit::CommonFrameMoveStateAbnormality()
 	CommonFrameMoveStateAbnormalityWaterHold();
 #endif EDT_WATER_HOLD_TEST
 
-	//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04
 	CommonFrameMoveStateAbnormalityPanic();
 	CommonFrameMoveStateAbnormalityPain();
 #endif	CASH_SKILL_FOR_CHUNG_2011_04
-	//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 	CommonFrameMoveStateAbnormalityLegShot();
@@ -6059,12 +6296,12 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityTimeBomb()
 
 	if( m_ExtraDamagePack.m_TimeBomb.m_fTime > 0.f )
 	{
-		if( INVALID_PARTICLE_HANDLE == m_hSeqSkeletonHead )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqSkeletonHead )
 		{
 			m_hSeqSkeletonHead = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Death_State_Deathnote01", 0,0,0 );
 		}
 
-		if( INVALID_PARTICLE_HANDLE != m_hSeqSkeletonHead )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqSkeletonHead )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqSkeletonHead );
 			ASSERT( NULL != pSeq );
@@ -6078,7 +6315,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityTimeBomb()
 	}
 	else
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hSeqSkeletonHead )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqSkeletonHead )
 		{
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeqSkeletonHead );
 		}
@@ -6102,12 +6339,12 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityAging()
 
 	if( m_ExtraDamagePack.m_Aging.m_fTime > 0.f )
 	{
-		if( INVALID_PARTICLE_HANDLE == m_hSeqAging )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqAging )
 		{
 			m_hSeqAging = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Emoticon_State_Abnormality_Aging", 0,0,0 );
 		}
 
-		if( INVALID_PARTICLE_HANDLE != m_hSeqAging )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqAging )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqAging );
 			ASSERT( NULL != pSeq );
@@ -6120,13 +6357,13 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityAging()
 			}
 			else
 			{
-				m_hSeqAging = INVALID_PARTICLE_HANDLE;
+				m_hSeqAging = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
 	else
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hSeqAging )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqAging )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqAging );
 			ASSERT( NULL != pSeq );
@@ -6137,7 +6374,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityAging()
 			}
 			else
 			{
-				m_hSeqAging = INVALID_PARTICLE_HANDLE;
+				m_hSeqAging = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
@@ -6163,12 +6400,12 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityStigmaDebuff()
 
 	if( m_ExtraDamagePack.m_StigmaDebuff.m_fTime > 0.f )
 	{
-		if( INVALID_PARTICLE_HANDLE == m_hStigma )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hStigma )
 		{
 			m_hStigma = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Emoticon_State_Abnormality_Stigma", 0,0,0 );
 		}
 
-		if( INVALID_PARTICLE_HANDLE != m_hStigma )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hStigma )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hStigma );
 			ASSERT( NULL != pSeq );
@@ -6181,13 +6418,13 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityStigmaDebuff()
 			}
 			else 
 			{
-				m_hStigma = INVALID_PARTICLE_HANDLE;
+				m_hStigma = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
 	else
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hStigma )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hStigma )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hStigma );
 			ASSERT( NULL != pSeq );
@@ -6198,14 +6435,14 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityStigmaDebuff()
 			}
 			else
 			{
-				m_hStigma = INVALID_PARTICLE_HANDLE;
+				m_hStigma = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
 }
 
 #ifdef NEW_SKILL_2010_11
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+//{{ oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 void CX2GameUnit::CommonFrameMoveStateAbnormalityBlind()
 {
 	KTDXPROFILE();
@@ -6221,12 +6458,12 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityBlind()
 
 	if( m_ExtraDamagePack.m_Blind.m_fTime > 0.f )
 	{
-		if( INVALID_PARTICLE_HANDLE == m_hSeqBlind )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqBlind )
 		{
 			m_hSeqBlind = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Emoticon_State_Abnormality_Blind", 0,0,0 );
 		}
 
-		if( INVALID_PARTICLE_HANDLE != m_hSeqBlind )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqBlind )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqBlind );
 			ASSERT( NULL != pSeq );
@@ -6239,13 +6476,13 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityBlind()
 			}
 			else
 			{
-				m_hSeqBlind = INVALID_PARTICLE_HANDLE;
+				m_hSeqBlind = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
 	else
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hSeqBlind )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqBlind )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqBlind );
 			ASSERT( NULL != pSeq );
@@ -6256,40 +6493,40 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityBlind()
 			}
 			else
 			{
-				m_hSeqBlind = INVALID_PARTICLE_HANDLE;
+				m_hSeqBlind = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+//}} oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 #endif NEW_SKILL_2010_11
 
-//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04
 /** @function : CommonFrameMoveStateAbnormalityPanic
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ EDT_PANIC ï¿½ï¿½ FRAMEMOVEï¿½ï¿½ ExtraDamageï¿½ï¿½ ï¿½É·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Æ¼Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°Å³ï¿½, ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Æ¼Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
+	@brief : »óÅÂÀÌ»ó Áß ÀÏÁ¤½Ã°£ ¸¶´Ù ÁÂ¿ì ¹ÝÀüÀÌ ¹Ù²î´Â EDT_PANIC ÀÇ FRAMEMOVE·Î ExtraDamage¿¡ °É·ÈÀ» ¶§ ÆÄÆ¼Å¬À» »ý¼º ÇÏ°Å³ª, ½Ã°£ÀÌ Á¾·á‰çÀ» ¶§ ÆÄÆ¼Å¬À» »èÁ¦ ÇÑ´Ù.
 */
 void CX2GameUnit::CommonFrameMoveStateAbnormalityPanic()
 {
-	// PANICï¿½ï¿½ ï¿½Ûµï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½
+	// PANICÀÌ ÀÛµ¿ ÁßÀÌ¸é
 	if( m_ExtraDamagePack.m_Panic.m_fTime > 0.f )
 	{
-		// ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½ï¿½Å­ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// °æ°ú½Ã°£ ¸¸Å­ ½Ã°£À» °¨¼Ò
 		m_ExtraDamagePack.m_Panic.m_fTime -= m_fElapsedTime;
-		// 0ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ï¿½ï¿½ 
+		// 0º¸´Ù ÀÛ¾ÆÁö¸é 
 		if( m_ExtraDamagePack.m_Panic.m_fTime <= 0.f )
-			m_ExtraDamagePack.m_Panic.m_fTime = 0.f;	// ï¿½Ûµï¿½ ï¿½ï¿½ï¿½ï¿½
+			m_ExtraDamagePack.m_Panic.m_fTime = 0.f;	// ÀÛµ¿ ÁßÁö
 	}
 
-	// PANICï¿½ï¿½ ï¿½Ûµï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½
+	// PANICÀÌ ÀÛµ¿ ÁßÀÌ¸é
 	if( m_ExtraDamagePack.m_Panic.m_fTime > 0.f )
 	{
-		// ï¿½Ûµï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½Æ¼Å¬ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		if( INVALID_PARTICLE_HANDLE == m_hSeqPanic )
+		// ÀÛµ¿ ÁßÀÎµ¥ ÆÄÆ¼Å¬ÀÇ ÇÚµéÀÌ ¾øÀ¸¸é »ý¼º
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqPanic )
 			m_hSeqPanic = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Emoticon_State_Abnormality_Panic", 0,0,0 );
 		
-		// ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Å³ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
-		if( INVALID_PARTICLE_HANDLE != m_hSeqPanic )
+		// ÇÚµéÀÌ »ý¼ºµÇ¾ú°Å³ª, ÀÖÀ¸¸é À§Ä¡ Á¶Àý
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqPanic )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqPanic );
 			ASSERT( NULL != pSeq );
@@ -6302,17 +6539,17 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityPanic()
 			}
 			else
 			{
-				m_hSeqPanic = INVALID_PARTICLE_HANDLE;
+				m_hSeqPanic = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
-	// PANICï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½
+	// PANICÀÌ ÁßÁö µÇ¾úÀ¸¸é
 	else
 	{
-		// ï¿½Ð´ï¿½ ï¿½ï¿½Æ¼Å¬ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		if( INVALID_PARTICLE_HANDLE != m_hSeqPanic )
+		// ÆÐ´Ð ÆÄÆ¼Å¬ÀÇ ÇÚµéÀÌ ÀÖÀ¸¸é
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqPanic )
 		{
-			// ï¿½ï¿½ï¿½ï¿½
+			// »èÁ¦
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqPanic );
 			ASSERT( NULL != pSeq );
 			if( NULL != pSeq )
@@ -6322,41 +6559,41 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityPanic()
 			}
 			else
 			{
-				m_hSeqPanic = INVALID_PARTICLE_HANDLE;
+				m_hSeqPanic = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
 }
 
 /** @function : CommonFrameMoveStateAbnormalityPain
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ ExtraDamageï¿½ï¿½ ï¿½É¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¾ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸é¼­ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ EDT_PAINï¿½ï¿½ FRAMEMOVEï¿½ï¿½ ï¿½Ñ¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ È½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½.
+	@brief : »óÅÂÀÌ»ó Áß ExtraDamage¿¡ °É¸° À¯´ÖÀÇ ¸öÀÌ ÇÏ¾é°Ô º¯ÇÏ¸é¼­ Æø¹ßÇÏ´Â EDT_PAINÀÇ FRAMEMOVE·Î ÇÑ¹ø Æø¹ß ÇÏ¸é Æø¹ß ÇÒ ¼ö ÀÖ´Â È½¼ö°¡ °¨¼Ò ÇÑ´Ù.
 */
 void CX2GameUnit::CommonFrameMoveStateAbnormalityPain()
 {
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ È½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ )
+	// Æø¹ßÇÒ ¼ö ÀÖ´Â È½¼ö°¡ 0º¸´Ù Å©¸é (Æø¹ß °¡´ÉÇÏ¸é )
 	if( 0 < m_ExtraDamagePack.m_Pain.m_Accumulation )
 	{
-		// Ä³ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ï¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ RENDER_TYPEï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// Ä³¸¯ÅÍ¸¦ ÇÏ¾é°Ô º¯°æ ½ÃÅ°±â À§ÇØ RENDER_TYPEÀ» º¯°æ
 		m_RenderParam.renderType = CKTDGXRenderer::RT_CARTOON_FADE;
 		
-		// ï¿½Ï¾ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ç¸é¼­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´Âµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ÇÏ¾é°Ô º¯ÇÏ°Ô µÇ¸é¼­ Æø¹ß ÇÏ´Âµ¥ ±îÁö °É¸®´Â ½Ã°£ ÃàÀû
 		m_ExtraDamagePack.m_Pain.m_fElapsedTimeToEffectDamage += m_fElapsedTime;
 
 		m_RenderParam.color.a -= m_fElapsedTime * 0.5f;
 
-		// ï¿½Ï¾ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸é¼­ 2.0ï¿½Ê°ï¿½ ï¿½Ç¸ï¿½
+		// ÇÏ¾é°Ô º¯ÇÏ¸é¼­ 2.0ÃÊ°¡ µÇ¸é
 #ifdef SKILL_BALANCE_20110728
 		if( 3.0f < m_ExtraDamagePack.m_Pain.m_fElapsedTimeToEffectDamage )
 #else
 		if( 2.0f < m_ExtraDamagePack.m_Pain.m_fElapsedTimeToEffectDamage )
 #endif
 		{
-			// Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			// Ä«¿îÆ® °¨¼ÒÈÄ
 			--m_ExtraDamagePack.m_Pain.m_Accumulation;
 			m_ExtraDamagePack.m_Pain.m_fElapsedTimeToEffectDamage = 0.0f;
 			m_RenderParam.color.a = 1.0f;
 
-			// ï¿½ï¿½ï¿½ï¿½
+			// Æø¹ß
 			if ( null != m_ExtraDamagePack.m_Pain.m_optrGameUnit )
 			{
 #ifdef BALANCE_PATCH_20120329
@@ -6366,12 +6603,12 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityPain()
 #endif
 
 				if ( 0 < m_ExtraDamagePack.m_Pain.m_Accumulation &&
-					NULL != pDamageEffect && NULL != pDamageEffect->GetDamageData() )
-					pDamageEffect->GetDamageData()->m_ExtraDamage = m_ExtraDamagePack.m_Pain;			
+					NULL != pDamageEffect )
+					pDamageEffect->GetDamageData().m_ExtraDamage = m_ExtraDamagePack.m_Pain;			
 			}
 		}
 
-		// Ä«ï¿½ï¿½Æ®ï¿½ï¿½ 0 ï¿½Ì¸ï¿½ extraDamageï¿½ï¿½ï¿½ï¿½
+		// Ä«¿îÆ®°¡ 0 ÀÌ¸é extraDamageÇØÁ¦
 		if ( 0 == m_ExtraDamagePack.m_Pain.m_Accumulation )
 		{
 #ifdef CHUNG_SECOND_CLASS_CHANGE
@@ -6379,14 +6616,14 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityPain()
 #else
 			m_ExtraDamagePack.m_Pain.Init();
 #endif CHUNG_SECOND_CLASS_CHANGE
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½ ï¿½Ï´Âµï¿½... (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ RT_CARTOON_BLACK_EDGE ï¿½Æ´Ï¶ï¿½ï¿½..)
+			// ¿ø·¡ÀÇ ·»´õ Å¸ÀÔÀ¸·Î µ¹¾Æ°¡¾ß ÇÏ´Âµ¥... (¿ø·¡ÀÇ ·»´õ Å¸ÀÔÀÌ RT_CARTOON_BLACK_EDGE ¾Æ´Ï¶ó¸é..)
 			m_RenderParam.renderType = CKTDGXRenderer::RT_CARTOON_BLACK_EDGE;
 		}
 	}
 	
 }
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
-//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 /** @function 	: CommonFrameMoveStateAbnormalityLegShot
 	@brief 		: 
@@ -6396,12 +6633,12 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityLegShot()
 {
 	if( m_ExtraDamagePack.m_LegShot.m_fTime > 0.f )
 	{
-		// ï¿½Ûµï¿½ ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½Æ¼Å¬ï¿½ï¿½ ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		if( INVALID_PARTICLE_HANDLE == m_hSeqLegShot )
+		// ÀÛµ¿ ÁßÀÎµ¥ ÆÄÆ¼Å¬ÀÇ ÇÚµéÀÌ ¾øÀ¸¸é »ý¼º
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqLegShot )
 			m_hSeqLegShot = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Emoticon_State_Leg_Shot", 0,0,0 );
 
-		// ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Å³ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
-		if( INVALID_PARTICLE_HANDLE != m_hSeqLegShot )
+		// ÇÚµéÀÌ »ý¼ºµÇ¾ú°Å³ª, ÀÖÀ¸¸é À§Ä¡ Á¶Àý
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqLegShot )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqLegShot );
 			ASSERT( NULL != pSeq );
@@ -6414,7 +6651,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityLegShot()
 			}
 			else
 			{
-				m_hSeqLegShot = INVALID_PARTICLE_HANDLE;
+				m_hSeqLegShot = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 
@@ -6430,7 +6667,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityLegShot()
 	}
 	else
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hSeqLegShot )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqLegShot )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqLegShot );
 			ASSERT( NULL != pSeq );
@@ -6441,7 +6678,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityLegShot()
 			}
 			else
 			{
-				m_hSeqLegShot = INVALID_PARTICLE_HANDLE;
+				m_hSeqLegShot = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
@@ -6453,13 +6690,21 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityEarthQuake()
 {
 	if( m_ExtraDamagePack.m_EarthQuake.m_fTime > 0.f )
 	{
+#ifdef X2OPTIMIZE_GAMEOPTION_BUGFIX
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		if( g_pMain->GetGameOption().GetOptionList().m_bEffect == true )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+#endif  X2OPTIMIZE_GAMEOPTION_BUGFIX
+		{
+			if( m_hSeqEarthQuakeRight == INVALID_PARTICLE_SEQUENCE_HANDLE )
+				m_hSeqEarthQuakeRight = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitSlow", 0,0,0 );
+			if( m_hSeqEarthQuakeLeft == INVALID_PARTICLE_SEQUENCE_HANDLE )
+				m_hSeqEarthQuakeLeft = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitSlow", 0,0,0 );
+		}
 
-		if( m_hSeqEarthQuakeRight == INVALID_PARTICLE_HANDLE )
-			m_hSeqEarthQuakeRight = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitSlow", 0,0,0 );
-		if( m_hSeqEarthQuakeLeft == INVALID_PARTICLE_HANDLE )
-			m_hSeqEarthQuakeLeft = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"UnitSlow", 0,0,0 );
-
-		if( m_hSeqEarthQuakeRight != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqEarthQuakeRight != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq 	= g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqEarthQuakeRight );
 			D3DXVECTOR3 vEffectPos = GetPos();
@@ -6472,11 +6717,11 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityEarthQuake()
 			}
 			else
 			{
-				m_hSeqEarthQuakeRight = INVALID_PARTICLE_HANDLE;
+				m_hSeqEarthQuakeRight = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 
-		if( m_hSeqEarthQuakeLeft != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqEarthQuakeLeft != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq  	= g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqEarthQuakeLeft  );
 			D3DXVECTOR3 vEffectPos = GetPos();
@@ -6489,7 +6734,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityEarthQuake()
 			}
 			else
 			{
-				m_hSeqEarthQuakeLeft = INVALID_PARTICLE_HANDLE;
+				m_hSeqEarthQuakeLeft = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 
@@ -6503,7 +6748,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityEarthQuake()
 	}
 	else
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hSeqEarthQuakeRight )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqEarthQuakeRight )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqEarthQuakeRight );
 			ASSERT( NULL != pSeq );
@@ -6514,10 +6759,10 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityEarthQuake()
 			}
 			else
 			{
-				m_hSeqEarthQuakeRight = INVALID_PARTICLE_HANDLE;
+				m_hSeqEarthQuakeRight = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
-		if( INVALID_PARTICLE_HANDLE != m_hSeqEarthQuakeLeft )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqEarthQuakeLeft )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqEarthQuakeLeft );
 			ASSERT( NULL != pSeq );
@@ -6528,7 +6773,7 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityEarthQuake()
 			}
 			else
 			{
-				m_hSeqEarthQuakeLeft = INVALID_PARTICLE_HANDLE;
+				m_hSeqEarthQuakeLeft = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
@@ -6538,25 +6783,25 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityEarthQuake()
 #ifdef SERV_RENA_NIGHT_WATCHER
 void CX2GameUnit::CommonFrameMoveStateAbnormalityStartOfDelayedFiring()
 {
-	bool bIsDeleteData = false;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	bool bIsDeleteData = false;		/// »èÁ¦ ¿©ºÎ
 
-	for( UINT i = 0; i < GetStartOfDelayedFiringData().size(); ++i )
+	for( UINT i = 0; i < m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData.size(); ++i )
 	{
-		vector<CX2DamageManager::StartOfDelayedFiringData*> pArrowData = GetStartOfDelayedFiringData();
-
-		if( 0.f < pArrowData[i]->m_fCoolTime )			/// ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+        CX2DamageManager::StartOfDelayedFiringData* pArrowData = m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData[ i ];
+        ASSERT( pArrowData != NULL );
+		if( 0.f < pArrowData->m_fCoolTime )			/// Àû¿ëµÈ È­»ìµéÀÇ ÄðÅ¸ÀÓ ¼³Á¤
 		{
-			pArrowData[i]->m_fCoolTime -= m_fElapsedTime;
+			pArrowData->m_fCoolTime -= m_fElapsedTime;
 
-			if( 0.f >= pArrowData[i]->m_fCoolTime )		/// ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½( ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ì¿¡ ï¿½ï¿½ï¿½Ø¼ï¿½ )
+			if( 0.f >= pArrowData->m_fCoolTime )		/// ÄðÅ¸ÀÓ Á¾·á½Ã Æø¹ß µ¿ÀÛ ½ÇÇà( ÀüÃ¼ Æø¹ß µ¿ÀÛ Àû¿ëµÈ È­»ì¿¡ ÇÑÇØ¼­ )
 			{
-				CX2GameUnit* pAttacker = GetGameUnitByUnitIndex( pArrowData[i]->m_iAttackerIndex );
+				CX2GameUnit* pAttacker = GetGameUnitByUnitIndex( pArrowData->m_iAttackerIndex );
 
 				if( NULL != pAttacker )
 				{
-					/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
-					D3DXVECTOR3 vPos	   = GetPos();		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
-					D3DXVECTOR3 vPosOffSet = pArrowData[i]->m_vExplosionOffSet;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+					/// Æø¹ß À§Ä¡ ¼³Á¤
+					D3DXVECTOR3 vPos	   = GetPos();		/// ÇöÀç À¯´Ö À§Ä¡
+					D3DXVECTOR3 vPosOffSet = pArrowData->m_vExplosionOffSet;		/// ÆøÆÄ À§Ä¡ ¿ÀÇÁ¼Â
 
 					vPos.x += ( vPosOffSet.x + ( ( 0.5f - GetRandomFloat() ) * 50.f ) );
 					vPos.y += ( ( vPosOffSet.y + ( ( 0.5f - GetRandomFloat() ) * 50.f ) ) + 100.f );
@@ -6564,24 +6809,24 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityStartOfDelayedFiring()
 
 					CX2DamageEffect::CEffect* pCEffect = NULL;
 
-					if( CX2DamageEffect::DET_ARROW_OF_EXPLOSION_READY == pArrowData[i]->m_iType )			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½
+					if( CX2DamageEffect::DET_ARROW_OF_EXPLOSION_READY == pArrowData->m_iType )			/// Æø¹ßÀÇ È­»ì
 					{
-						/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ )
+						/// Æø¹ß ÀÌÆåÆ® »ý¼º( Æø¹ßÀÇ È­»ì )
 						pCEffect = g_pX2Game->GetDamageEffect()->CreateInstance( pAttacker, L"ARROW_OF_EXPLOSION_BOOM_DELAY", 
 							pAttacker->GetPowerRate(),vPos, D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0) );
 					}
-					else if( CX2DamageEffect::DET_START_OF_DELAYED_FIRING_READY == pArrowData[i]->m_iType )	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åº
+					else if( CX2DamageEffect::DET_START_OF_DELAYED_FIRING_READY == pArrowData->m_iType )	/// Áö¿¬ÀÇ ½ÅÈ£Åº
 					{
-						/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åº )
+						/// Æø¹ß ÀÌÆåÆ® »ý¼º( Áö¿¬ÀÇ ½ÅÈ£Åº )
 						pCEffect = g_pX2Game->GetDamageEffect()->CreateInstance( pAttacker, L"START_OF_DELAYED_FIRING_BOOM", 
-							pArrowData[i]->m_fSkillPowerRate, vPos, D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0) );
+							pArrowData->m_fSkillPowerRate, vPos, D3DXVECTOR3(0, 0, 0), D3DXVECTOR3(0, 0, 0) );
 					}
 
 					if( NULL != pCEffect )
-						pCEffect->GetDamageData()->damage.fPhysic += pArrowData[i]->m_fIncreaseDamage;
+						pCEffect->GetDamageData().damage.fPhysic += pArrowData->m_fIncreaseDamage;
 				}
 
-				SAFE_DELETE( m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData[i] );
+				SAFE_DELETE( pArrowData );
 				m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData.erase( m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData.begin() + i );
 
 				bIsDeleteData = true;
@@ -6591,11 +6836,11 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityStartOfDelayedFiring()
 		}
 	}
 
-	if( true == bIsDeleteData )		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+	if( true == bIsDeleteData )		/// »èÁ¦ÇÑ Á¤º¸°¡ ÀÖ´Ù¸é, °»½Å Ã³¸®
 	{
 		SetStartOfDelayedFiringEmoticon();
 
-		if( true == GetStartOfDelayedFiringData().empty() )		/// ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åº ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+		if( true == GetStartOfDelayedFiringData().empty() )		/// Àû¿ëµÈ È­»ì ¸ðµÎ »èÁ¦µÉ ¶§, Áö¿¬ÀÇ ½ÅÈ£Åº Àû¿ëÁß È®ÀÎ ÀÌÆåÆ® ÇØÁ¦
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_hActiveStartOfDelayedFiringEDT );
 	}
 }
@@ -6604,15 +6849,15 @@ void CX2GameUnit::CommonFrameMoveStateAbnormalityStartOfDelayedFiring()
 
 void CX2GameUnit::ClearAnimSpeedFactor()
 {
-//{{ kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+//{{ kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 // #ifdef SERV_SECRET_HELL
 // 	BOOST_TEST_FOREACH( SPEED_FACTOR&, val, m_PhysicParam.m_vecAnimSpeedFactor )
 // 	{
-// 		if ( CX2EffectSet::INVALID_HANDLE != val.m_hEffectSet )
+// 		if ( INVALID_EFFECTSET_HANDLE != val.m_hEffectSet )
 // 			g_pX2Game->GetEffectSet()->StopEffectSet( val.m_hEffectSet );
 // 	}
 // #endif SERV_SECRET_HELL
-	//}} kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+	//}} kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 
 //	m_PhysicParam.m_vecAnimSpeedFactor.clear();
 }
@@ -6621,21 +6866,21 @@ void CX2GameUnit::SetAnimSpeedFactor( float fSpeedRate, float fDuration, SPEED_F
 {
 // 	switch ( eSetType )
 // 	{
-// 	case SFST_ONLY:		// vectorï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½Ò°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ set ï¿½Ï´ï¿½ factorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¸ï¿½ï¿½
+// 	case SFST_ONLY:		// vector³»¿¡ °°Àº ¾ÆÀÌµð ¿ä¼Ò°¡ ÀÖ´Â °æ¿ì »õ·Î set ÇÏ´Â factor¸¦ ¹«½ÃÇÏ´Â Å¸ÀÔ
 // 		{
 // 			BOOST_TEST_FOREACH ( SPEED_FACTOR&, val, m_PhysicParam.m_vecAnimSpeedFactor )
 // 			{
-// 				if ( val.m_eId == eId )		// ï¿½ßºï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+// 				if ( val.m_eId == eId )		// Áßº¹ µÇ´Â °Ô ÀÖÀ¸¸é ¹«½Ã
 // 					return;
 // 			}
 // 		}
 // 		break;
 // 
-// 	case SFST_UPDATE:	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ vector ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ Å¸ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Set ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¿ï¿½ vectorï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½)
+// 	case SFST_UPDATE:	// ±âÁ¸¿¡ vector ³»¿¡ ÀÖ´Â ¿ä¼Ò¸¦ °»½Å ½ÃÄÑÁÖ´Â Å¸ÀÔ (¸¸ÀÏ ÀÌ Å¸ÀÔÀ¸·Î Set ½ÇÇà ½Ã¿¡ vector³»¿¡ ÇØ´ç ¿ä¼Ò °¡ ¾øÀ¸¸é Ãß°¡ ÇÔ)
 // 		{
 // 			BOOST_TEST_FOREACH ( SPEED_FACTOR&, val, m_PhysicParam.m_vecAnimSpeedFactor )
 // 			{
-// 				if ( val.m_eId == eId )		// ï¿½ßºï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+// 				if ( val.m_eId == eId )		// Áßº¹ µÇ´Â °Ô ÀÖÀ¸¸é °»½Å, ¾øÀ¸¸é Ãß°¡
 // 				{
 // 					val.m_fDuration		= fDuration;
 // 					val.m_fSpeedRate	= fSpeedRate;
@@ -6647,7 +6892,7 @@ void CX2GameUnit::SetAnimSpeedFactor( float fSpeedRate, float fDuration, SPEED_F
 // 		break;
 // 
 // 	default:
-// 	case SFST_MULTY:	// vectorï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾îµµ ï¿½Ç´ï¿½ Å¸ï¿½ï¿½
+// 	case SFST_MULTY:	// vector³»¿¡ °°Àº ¾ÆÀÌµð ¿ä¼Ò°¡ ¿©·¯°³ ÀÖ¾îµµ µÇ´Â Å¸ÀÔ
 // 		break;
 // 	}
 // 
@@ -6678,12 +6923,12 @@ void CX2GameUnit::CommonFrameMoveAnimSpeedFactorEffect(SPEED_FACTOR speedFactor)
 {
 // 	if(speedFactor.m_fDuration <= 0.f)
 // 	{
-// 		// ï¿½ï¿½ï¿½ï¿½
+// 		// »èÁ¦
 // 		switch(speedFactor.m_eId)
 // 		{
 // 		case SFI_SPEED_1:
 // 			{
-// 				if( INVALID_PARTICLE_HANDLE != m_hSpeedFactor1 )
+// 				if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSpeedFactor1 )
 // 				{
 // 					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSpeedFactor1 );
 // 					ASSERT( NULL != pSeq );
@@ -6694,13 +6939,13 @@ void CX2GameUnit::CommonFrameMoveAnimSpeedFactorEffect(SPEED_FACTOR speedFactor)
 // 					}
 // 					else
 // 					{
-// 						m_hSpeedFactor1 = INVALID_PARTICLE_HANDLE;
+// 						m_hSpeedFactor1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 // 					}
 // 				}
 // 			}
 // 			break;
 // 
-// 			//{{ kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+// 			//{{ kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 // #ifdef SERV_SECRET_HELL
 // 		case SFI_SPEED_2:
 // 			{
@@ -6717,12 +6962,12 @@ void CX2GameUnit::CommonFrameMoveAnimSpeedFactorEffect(SPEED_FACTOR speedFactor)
 // 			}
 // 			break;
 // #endif SERV_SECRET_HELL
-// 			//}} kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+// 			//}} kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 // 
 // #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
 // 		case SFI_SPEED_10:
 // 			{
-// 				if( INVALID_PARTICLE_HANDLE != m_hSeqAuraSpeedAccelerator )
+// 				if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqAuraSpeedAccelerator )
 // 				{
 // 					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqAuraSpeedAccelerator );
 // 					ASSERT( NULL != pSeq );
@@ -6733,7 +6978,7 @@ void CX2GameUnit::CommonFrameMoveAnimSpeedFactorEffect(SPEED_FACTOR speedFactor)
 // 					}
 // 					else
 // 					{
-// 						m_hSeqAuraSpeedAccelerator = INVALID_PARTICLE_HANDLE;
+// 						m_hSeqAuraSpeedAccelerator = INVALID_PARTICLE_SEQUENCE_HANDLE;
 // 					}
 // 				}
 // 			}
@@ -6745,17 +6990,17 @@ void CX2GameUnit::CommonFrameMoveAnimSpeedFactorEffect(SPEED_FACTOR speedFactor)
 // 	}
 // 	else
 // 	{
-// 		// ï¿½ï¿½ï¿½ï¿½ È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+// 		// »ý¼º È¤Àº À¯Áö
 // 		switch(speedFactor.m_eId)
 // 		{
 // 		case SFI_SPEED_1:
 // 			{
-// 				if( INVALID_PARTICLE_HANDLE == m_hSpeedFactor1 )
+// 				if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSpeedFactor1 )
 // 				{
 // 					m_hSpeedFactor1 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Emoticon_State_BindingCircle_Memo_DeBuff", 0,0,0 );
 // 				}
 // 
-// 				if( INVALID_PARTICLE_HANDLE != m_hSpeedFactor1 )
+// 				if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSpeedFactor1 )
 // 				{
 // 					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSpeedFactor1 );
 // 					ASSERT( NULL != pSeq );
@@ -6768,13 +7013,13 @@ void CX2GameUnit::CommonFrameMoveAnimSpeedFactorEffect(SPEED_FACTOR speedFactor)
 // 					}
 // 					else 
 // 					{
-// 						m_hSpeedFactor1 = INVALID_PARTICLE_HANDLE;
+// 						m_hSpeedFactor1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 // 					}
 // 				}
 // 			}
 // 			break;
 // 
-// 			//{{ kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+// 			//{{ kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 // #ifdef SERV_SECRET_HELL
 // 		case SFI_SPEED_2:
 // 			{
@@ -6792,7 +7037,7 @@ void CX2GameUnit::CommonFrameMoveAnimSpeedFactorEffect(SPEED_FACTOR speedFactor)
 // 			}
 // 			break;
 // #endif SERV_SECRET_HELL
-// 			//}} kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+// 			//}} kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 // 
 // 		default:
 // 			break;
@@ -6819,12 +7064,12 @@ void CX2GameUnit::CommonFrameMovePoisonDeBuff()
 
 	if( m_fPoisonDeBuff > 0.f )
 	{
-		if( INVALID_PARTICLE_HANDLE == m_hPoisonDeBuff )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hPoisonDeBuff )
 		{
 			m_hPoisonDeBuff = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Emoticon_State_DarkCloud_Memo_DeBuff", 0,0,0 );
 		}
 
-		if( INVALID_PARTICLE_HANDLE != m_hPoisonDeBuff )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hPoisonDeBuff )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hPoisonDeBuff );
 			ASSERT( NULL != pSeq );
@@ -6837,13 +7082,13 @@ void CX2GameUnit::CommonFrameMovePoisonDeBuff()
 			}
 			else
 			{
-				m_hPoisonDeBuff = INVALID_PARTICLE_HANDLE;
+				m_hPoisonDeBuff = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
 	else
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hPoisonDeBuff )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hPoisonDeBuff )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hPoisonDeBuff );
 			ASSERT( NULL != pSeq );
@@ -6854,7 +7099,7 @@ void CX2GameUnit::CommonFrameMovePoisonDeBuff()
 			}
 			else
 			{
-				m_hPoisonDeBuff = INVALID_PARTICLE_HANDLE;
+				m_hPoisonDeBuff = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
@@ -6875,7 +7120,7 @@ void CX2GameUnit::CommonFrameMoveRevengeDefence()
 
 	if( m_fRevengeDefenceTime > 0.f )
 	{
-		if( INVALID_PARTICLE_HANDLE == m_hRevengeDefence )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hRevengeDefence )
 		{			
 			m_hRevengeDefence = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"BuffShield", 0,0,0, 0, 0 );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hRevengeDefence );
@@ -6883,7 +7128,7 @@ void CX2GameUnit::CommonFrameMoveRevengeDefence()
 				pSeq->SetEmitRate( CMinMax<float>(1000,1000) );
 		}
 		
-		if( INVALID_PARTICLE_HANDLE != m_hRevengeDefence )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hRevengeDefence )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hRevengeDefence );
 			ASSERT( NULL != pSeq );
@@ -6896,23 +7141,23 @@ void CX2GameUnit::CommonFrameMoveRevengeDefence()
 			}
 			else
 			{
-				m_hRevengeDefence = INVALID_PARTICLE_HANDLE;
+				m_hRevengeDefence = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
 	else
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hRevengeDefence )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hRevengeDefence )
 		{
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hRevengeDefence );
-			m_hRevengeDefence = INVALID_PARTICLE_HANDLE;
+			m_hRevengeDefence = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 }
 
 #endif
 
-void CX2GameUnit::PhysicProcessSyncLine( CKTDGLineMap::LineData* pLineData, D3DXVECTOR3& position )
+void CX2GameUnit::PhysicProcessSyncLine( const CKTDGLineMap::LineData* pLineData, D3DXVECTOR3& position )
 {
 	KTDXPROFILE();
 
@@ -6934,7 +7179,7 @@ void CX2GameUnit::PhysicProcessSyncLine( CKTDGLineMap::LineData* pLineData, D3DX
 }
 
 
-void CX2GameUnit::CalcLastPositionValueOnAnimatedLine( CKTDGLineMap::LineData* pLineData, D3DXVECTOR3& position )
+void CX2GameUnit::CalcLastPositionValueOnAnimatedLine( const CKTDGLineMap::LineData* pLineData, D3DXVECTOR3& position )
 {
 	KTDXPROFILE();
 
@@ -6950,6 +7195,7 @@ void CX2GameUnit::CalcLastPositionValueOnAnimatedLine( CKTDGLineMap::LineData* p
 	}
 }
 
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2GameUnit::ParseAnimNameFromList( wstring &animName, int iRandRate )
 {
 	int iAccumulatedRate = 0;
@@ -6983,6 +7229,7 @@ void CX2GameUnit::ParseAnimNameFromList( wstring &animName, int iRandRate )
 		m_LuaManager.EndTable(); // ANIM_NAMES
 	}
 }
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamageData )
 {
@@ -6994,7 +7241,7 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 	case CX2DamageManager::RT_NO_DAMAGE:
 	case CX2DamageManager::RT_SENSOR:
 	case CX2DamageManager::RT_REVENGE:
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.1] // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.11.1] // ·é ½½·¹ÀÌ¾î - ¸¶¹ýÀúÇ× ¼ö·Ã
 	case CX2DamageManager::RT_REFLECT:
 #endif NEW_SKILL_2010_11
 	//case CX2DamageManager::RT_GRAPPLE:
@@ -7016,49 +7263,79 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 	void CX2GameUnit::SetEffectStopTime( float fTime, float fRangeSq /*= 1000.f*/ )
 	{
 
+#pragma DMLEE_NOTE( "effect set µµ ¸ØÃç ÀÖµµ·Ï ¼öÁ¤ÇØ¾ß" )
 
-#pragma DMLEE_NOTE( "effect set ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½" )
+        D3DXVECTOR vPos = GetPos();
+        CX2GameUnit* pThis = this;
+#ifdef  LAMBDA_RETURN_OR_LOOP_CONTINUE      
+#undef  LAMBDA_RETURN_OR_LOOP_CONTINUE      
+#endif  LAMBDA_RETURN_OR_LOOP_CONTINUE     
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    #define LAMBDA_RETURN_OR_LOOP_CONTINUE return
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    #define LAMBDA_RETURN_OR_LOOP_CONTINUE continue
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        auto DamageEffect_StopWithinRangeCB = [fTime, &vPos, fRangeSq, pThis]( CX2DamageEffect::CEffect& kEffect )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		for( int i=0; i< (int)g_pX2Game->GetDamageEffect()->GetInstanceNum() ; ++i )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->GetInstance(i);
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			CX2DamageEffect::CEffect*   pEffect = g_pX2Game->GetDamageEffect()->GetInstance(i);
 			if( NULL == pEffect )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
+            CX2DamageEffect::CEffect& kEffect = *pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-			if( this != pEffect->GetOwnerUnit() )
-				continue;
+			if( pThis != kEffect.GetOwnerUnit() )
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
 
-			D3DXVECTOR3 vDistance = GetPos() - pEffect->GetPos();
+			D3DXVECTOR3 vDistance = vPos - kEffect.GetPos();
 			float fDistanceSq = D3DXVec3LengthSq( &vDistance );
 
 			if( fDistanceSq > fRangeSq )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
 
-			if( pEffect->GetStopTime() < fTime )
-				pEffect->SetStopTime( fTime );
-		}
+			if( kEffect.GetStopTime() < fTime )
+				kEffect.SetStopTime( fTime );
+		};
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        g_pX2Game->GetDamageEffect()->ApplyFunctionToLiveInstances( DamageEffect_StopWithinRangeCB );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        auto MeshPlayer_StopWithinRangeCB = [fTime, &vPos, fRangeSq]( CKTDGXMeshPlayer::CXMeshInstance& kMeshInstance )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		for( int i=0; i< (int)g_pX2Game->GetMajorXMeshPlayer()->GetInstanceNum(); ++i )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->GetInstance( i );
 			if( NULL == pMeshInstance )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
+            CKTDGXMeshPlayer::CXMeshInstance& kMeshInstance = *pMeshInstance;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 			//if( this != pMeshInstance->_internal_element_type )
 
-			D3DXVECTOR3 vDistance = GetPos() - pMeshInstance->GetPos();
+			D3DXVECTOR3 vDistance = vPos - kMeshInstance.GetPos();
 			float fDistanceSq = D3DXVec3LengthSq( &vDistance );
 
 			if( fDistanceSq > fRangeSq )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
 
-			if( pMeshInstance->GetStopTime() < fTime )
-				pMeshInstance->SetStopTime( fTime );
-		}
+			if( kMeshInstance.GetStopTime() < fTime )
+				kMeshInstance.SetStopTime( fTime );
+		};
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        g_pX2Game->GetMajorXMeshPlayer()->ApplyFunctionToLiveInstances( MeshPlayer_StopWithinRangeCB );
+        g_pX2Game->GetMinorXMeshPlayer()->ApplyFunctionToLiveInstances( MeshPlayer_StopWithinRangeCB );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		for( int i=0; i< (int)g_pX2Game->GetMinorXMeshPlayer()->GetInstanceNum(); ++i )
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = g_pX2Game->GetMinorXMeshPlayer()->GetInstance( i );
@@ -7076,29 +7353,36 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 			if( pMeshInstance->GetStopTime() < fTime )
 				pMeshInstance->SetStopTime( fTime );
 		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-
-
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        auto ParticleSystem_StopWithinRangesSq = [ fTime, &vPos, fRangeSq ]( CKTDGParticleSystem::CParticleEventSequence& kSequence )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		for( int i=0; i< (int)g_pX2Game->GetMajorParticle()->GetParticleSequenceNum(); ++i )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetParticleSequence( i );
 			if( NULL == pSeq )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
+            CKTDGParticleSystem::CParticleEventSequence& kSequence = *pSeq;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-			D3DXVECTOR3 vDistance = GetPos() - pSeq->GetPosition();
+			D3DXVECTOR3 vDistance = vPos - kSequence.GetPosition();
 			float fDistanceSq = D3DXVec3LengthSq( &vDistance );
 
 			if( fDistanceSq > fRangeSq )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
 
-			if( pSeq->GetStopTime() < fTime )
-				pSeq->SetStopTime( fTime );
+			if( kSequence.GetStopTime() < fTime )
+				kSequence.SetStopTime( fTime );
+		};
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        g_pX2Game->GetMajorParticle()->ApplyFunctionToLiveInstanceSequences( ParticleSystem_StopWithinRangesSq );
+        g_pX2Game->GetMinorParticle()->ApplyFunctionToLiveInstanceSequences( ParticleSystem_StopWithinRangesSq );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-
-		}
-
-
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		for( int i=0; i< (int)g_pX2Game->GetMinorParticle()->GetParticleSequenceNum(); ++i )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetParticleSequence( i );
@@ -7113,25 +7397,24 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 
 			if( pSeq->GetStopTime() < fTime )
 				pSeq->SetStopTime( fTime );
-
 		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
 #endif STOP_UNIT_STOP_EFFECT_TEST
 
 
-#ifdef UPGRADE_SPEED_FACTOR
 	void CX2GameUnit::ClearMoveSpeedFactor()
 	{		
-		//{{ kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+		//{{ kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 // #ifdef SERV_SECRET_HELL
 // 		BOOST_TEST_FOREACH( SPEED_FACTOR&, val, m_PhysicParam.m_vecAnimSpeedFactor )
 // 		{
-// 			if ( CX2EffectSet::INVALID_HANDLE != val.m_hEffectSet )
+// 			if ( INVALID_EFFECTSET_HANDLE != val.m_hEffectSet )
 // 				g_pX2Game->GetEffectSet()->StopEffectSet( val.m_hEffectSet );
 // 		}
 // #endif SERV_SECRET_HELL
-		//}} kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+		//}} kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 
 //		m_PhysicParam.m_vecMoveSpeedFactor.clear();
 	}
@@ -7140,21 +7423,21 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 	{
 // 		switch ( eSetType )
 // 		{
-// 		case SFST_ONLY:		// vectorï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½Ò°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ set ï¿½Ï´ï¿½ factorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¸ï¿½ï¿½
+// 		case SFST_ONLY:		// vector³»¿¡ °°Àº ¾ÆÀÌµð ¿ä¼Ò°¡ ÀÖ´Â °æ¿ì »õ·Î set ÇÏ´Â factor¸¦ ¹«½ÃÇÏ´Â Å¸ÀÔ
 // 			{
 // 				BOOST_TEST_FOREACH ( SPEED_FACTOR&, val, m_PhysicParam.m_vecMoveSpeedFactor )
 // 				{
-// 					if ( val.m_eId == eId )		// ï¿½ßºï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+// 					if ( val.m_eId == eId )		// Áßº¹ µÇ´Â °Ô ÀÖÀ¸¸é ¹«½Ã
 // 						return;
 // 				}
 // 			}
 // 			break;
 // 
-// 		case SFST_UPDATE:	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ vector ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ Å¸ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Set ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¿ï¿½ vectorï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½)
+// 		case SFST_UPDATE:	// ±âÁ¸¿¡ vector ³»¿¡ ÀÖ´Â ¿ä¼Ò¸¦ °»½Å ½ÃÄÑÁÖ´Â Å¸ÀÔ (¸¸ÀÏ ÀÌ Å¸ÀÔÀ¸·Î Set ½ÇÇà ½Ã¿¡ vector³»¿¡ ÇØ´ç ¿ä¼Ò °¡ ¾øÀ¸¸é Ãß°¡ ÇÔ)
 // 			{
 // 				BOOST_TEST_FOREACH ( SPEED_FACTOR&, val, m_PhysicParam.m_vecMoveSpeedFactor )
 // 				{
-// 					if ( val.m_eId == eId )		// ï¿½ßºï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+// 					if ( val.m_eId == eId )		// Áßº¹ µÇ´Â °Ô ÀÖÀ¸¸é °»½Å, ¾øÀ¸¸é Ãß°¡
 // 					{
 // 						val.m_fDuration		= fDuration;
 // 						val.m_fSpeedRate	= fSpeedRate;
@@ -7166,7 +7449,7 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 // 			break;
 // 
 // 		default:
-// 		case SFST_MULTY:	// vectorï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾îµµ ï¿½Ç´ï¿½ Å¸ï¿½ï¿½
+// 		case SFST_MULTY:	// vector³»¿¡ °°Àº ¾ÆÀÌµð ¿ä¼Ò°¡ ¿©·¯°³ ÀÖ¾îµµ µÇ´Â Å¸ÀÔ
 // 			break;
 // 		}
 // 
@@ -7195,20 +7478,20 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 
 	void CX2GameUnit::CommonFrameMoveMoveSpeedFactorEffect(SPEED_FACTOR speedFactor)
 	{
-		// ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ / ï¿½Ò¸ï¿½ Ã³ï¿½ï¿½
+		// ÀÌÆåÆ® »ý¼º / ¼Ò¸ê Ã³¸®
 	}
 
 	void CX2GameUnit::ClearJumpSpeedFactor()
 	{		
-		//{{ kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+		//{{ kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 // #ifdef SERV_SECRET_HELL
 // 		BOOST_TEST_FOREACH( SPEED_FACTOR&, val, m_PhysicParam.m_vecJumpSpeedFactor )
 // 		{
-// 			if ( CX2EffectSet::INVALID_HANDLE != val.m_hEffectSet )
+// 			if ( INVALID_EFFECTSET_HANDLE != val.m_hEffectSet )
 // 				g_pX2Game->GetEffectSet()->StopEffectSet( val.m_hEffectSet );
 // 		}
 // #endif SERV_SECRET_HELL
-		//}} kimhc // 2010.4.28 // ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½)
+		//}} kimhc // 2010.4.28 // ºñ¹Ð´øÀü ÀÛ¾÷(¿¤´õ ¹«±â È¿°ú)
 
 //		m_PhysicParam.m_vecJumpSpeedFactor.clear();
 	}
@@ -7217,21 +7500,21 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 	{
 // 		switch ( eSetType )
 // 		{
-// 		case SFST_ONLY:		// vectorï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½Ò°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ set ï¿½Ï´ï¿½ factorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¸ï¿½ï¿½
+// 		case SFST_ONLY:		// vector³»¿¡ °°Àº ¾ÆÀÌµð ¿ä¼Ò°¡ ÀÖ´Â °æ¿ì »õ·Î set ÇÏ´Â factor¸¦ ¹«½ÃÇÏ´Â Å¸ÀÔ
 // 			{
 // 				BOOST_TEST_FOREACH ( SPEED_FACTOR&, val, m_PhysicParam.m_vecJumpSpeedFactor )
 // 				{
-// 					if ( val.m_eId == eId )		// ï¿½ßºï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+// 					if ( val.m_eId == eId )		// Áßº¹ µÇ´Â °Ô ÀÖÀ¸¸é ¹«½Ã
 // 						return;
 // 				}
 // 			}
 // 			break;
 // 
-// 		case SFST_UPDATE:	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ vector ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ Å¸ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Set ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¿ï¿½ vectorï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½)
+// 		case SFST_UPDATE:	// ±âÁ¸¿¡ vector ³»¿¡ ÀÖ´Â ¿ä¼Ò¸¦ °»½Å ½ÃÄÑÁÖ´Â Å¸ÀÔ (¸¸ÀÏ ÀÌ Å¸ÀÔÀ¸·Î Set ½ÇÇà ½Ã¿¡ vector³»¿¡ ÇØ´ç ¿ä¼Ò °¡ ¾øÀ¸¸é Ãß°¡ ÇÔ)
 // 			{
 // 				BOOST_TEST_FOREACH ( SPEED_FACTOR&, val, m_PhysicParam.m_vecJumpSpeedFactor )
 // 				{
-// 					if ( val.m_eId == eId )		// ï¿½ßºï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+// 					if ( val.m_eId == eId )		// Áßº¹ µÇ´Â °Ô ÀÖÀ¸¸é °»½Å, ¾øÀ¸¸é Ãß°¡
 // 					{
 // 						val.m_fDuration		= fDuration;
 // 						val.m_fSpeedRate	= fSpeedRate;
@@ -7243,7 +7526,7 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 // 			break;
 // 
 // 		default:
-// 		case SFST_MULTY:	// vectorï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾îµµ ï¿½Ç´ï¿½ Å¸ï¿½ï¿½
+// 		case SFST_MULTY:	// vector³»¿¡ °°Àº ¾ÆÀÌµð ¿ä¼Ò°¡ ¿©·¯°³ ÀÖ¾îµµ µÇ´Â Å¸ÀÔ
 // 			break;
 // 		}
 // 
@@ -7284,17 +7567,16 @@ bool CX2GameUnit::IsDamagedReaction( const CX2DamageManager::DamageData* pDamage
 
 	void CX2GameUnit::CommonFrameMoveJumpSpeedFactorEffect(SPEED_FACTOR speedFactor)
 	{
-		// ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ / ï¿½Ò¸ï¿½ Ã³ï¿½ï¿½
+		// ÀÌÆåÆ® »ý¼º / ¼Ò¸ê Ã³¸®
 	}
-#endif
 
 
 //{{ kimhc // 2010.6.16 
-// 1. GameUnit::Weapon::SetEnchantParticleShow() ï¿½ï¿½ GUUser::SetShowEnchantedWeaponEffectAtHand()ï¿½ï¿½
-// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½Ñµï¿½ ï¿½ï¿½ï¿½ï¿½
-// 2. NotifyShowObjectChanged()ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½Ö´Â°ï¿½ï¿½ï¿½ ï¿½Ñ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-// 3. virtualï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½î¼­ GameUnitï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ GameUnit::Weapon::SetEnchantParticleShow()ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ï°ï¿½
-// GUUserï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ SetShowEnchantedWeaponEffectAtHand()ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+// 1. GameUnit::Weapon::SetEnchantParticleShow() °ú GUUser::SetShowEnchantedWeaponEffectAtHand()À»
+// °°ÀÌ ¾²´Â °æ¿ì°¡ ¸¹À¸¹Ç·Î ÇÑµ¥ ¹­À½
+// 2. NotifyShowObjectChanged()¿¡¼­´Â ¼­·Î µû·Î È£ÃâÇÏµµ·Ï µÇ¾îÀÖ´Â°ÍÀ» ÇÑ°÷¿¡¼­¸¸ È£ÃâÇÏµµ·Ï ¼öÁ¤
+// 3. virtual·Î ¸¸µé¾î¼­ GameUnit¿¡¼­´Â GameUnit::Weapon::SetEnchantParticleShow()¸¦ È£ÃâÇÏ°í
+// GUUser¿¡¼­´Â SetShowEnchantedWeaponEffectAtHand()¸¦ È£ÃâÇÏµµ·Ï º¯°æ
 #ifdef	ENCHANT_BUG_TEST
 
 /*virtual*/	void CX2GameUnit::SetShowEnchantWeaponParticle( bool bShow )
@@ -7332,7 +7614,7 @@ void CX2GameUnit::SetNowHp( float fHPNow )
 
 	THEMIDA_ENCODE_END
 }
-//{{ kimhc // 2010.11.1 // ï¿½Îµå³ªï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//{{ kimhc // 2010.11.1 // ·Îµå³ªÀÌÆ® - °íÅë ¾ïÁ¦
 bool CX2GameUnit::GreaterExtraDamageTime( CX2DamageManager::ExtraDamageData* pFirst, CX2DamageManager::ExtraDamageData *pSecond )
 {
 	return pFirst->m_fTime > pSecond->m_fTime;
@@ -7340,7 +7622,7 @@ bool CX2GameUnit::GreaterExtraDamageTime( CX2DamageManager::ExtraDamageData* pFi
 
 void CX2GameUnit::CureExtraDamage( int iNumOfExtraDamageToBeCure_ /*= 1*/ )
 {
-	// 0.0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ extra damage ï¿½ï¿½ï¿½ï¿½ 0.0ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµå¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ï¿½ï¿½
+	// 0.0À¸·Î ÇÏÁö ¾ÊÀº ÀÌÀ¯´Â °¢ extra damage ¸¶´Ù 0.0µÇ¾úÀ» °æ¿ì¿¡ Ã³¸®ÇØÁà¾ß ÇÏ´Â ±âÁ¸ÀÇ ÄÚµå¸¦ ¼öÇàÇÏ±â À§ÇØ¼­ÀÓ
 	
 	if ( false == m_vecBuffTempletPtr.empty() )
 	{
@@ -7377,7 +7659,7 @@ void CX2GameUnit::CureExtraDamage( int iNumOfExtraDamageToBeCure_ /*= 1*/ )
 		}
 	}
 }
-//}} kimhc // 2010.11.1 // ï¿½Îµå³ªï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.11.1 // ·Îµå³ªÀÌÆ® - °íÅë ¾ïÁ¦
 #ifdef ELSWORD_WAY_OF_SWORD
 void CX2GameUnit::CureExtraDamage( CX2DamageManager::EXTRA_DAMAGE_TYPE eExtraDamageTypeToCure_ )
 {
@@ -7394,16 +7676,16 @@ void CX2GameUnit::CureExtraDamage( CX2DamageManager::EXTRA_DAMAGE_TYPE eExtraDam
 	}
 }
 #endif ELSWORD_WAY_OF_SWORD
-//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» ï¿½Þ¸ï¿½ ï¿½ï¿½å¼¦
+//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» ¸Þ¸ð Çìµå¼¦
 #ifdef	CHUNG_MEMO_01				
 
 /** @function : ApplyHeadShotDamage
-	@brief : ï¿½ï¿½å¼¦ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ï¿½Ï°ï¿½, ï¿½ï¿½å¼¦ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : float* pfFinalDamage_ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
+	@brief : Çìµå¼¦ÀÌ Àû¿ëµÉÁö¸¦ ÆÇ´ÜÇÏ°í, Çìµå¼¦ÀÌ Àû¿ëµÈ °æ¿ì ÀÌÆåÆ® Ãâ·Â ¹× µ¥¹ÌÁö Áõ°¡¸¦ ¼öÇà
+	@param : float* pfFinalDamage_ (µ¥¹ÌÁöÀÇ Æ÷ÀÎÅÍ)
 */
 void CX2GameUnit::ApplyHeadShotDamage( float* pfFinalDamage_ )
 {
-	// EDT_HEAD_SHOT ï¿½ï¿½ ï¿½Â¾Ò°ï¿½, È®ï¿½ï¿½ 30% ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ô´Ù¸ï¿½ ï¿½ï¿½å¼¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// EDT_HEAD_SHOT ¿¡ ¸Â¾Ò°í, È®·ü 30% ¾ÈÀ¸·Î µé¾î¿Ô´Ù¸é Çìµå¼¦ µ¥¹ÌÁö Àû¿ë
 	if ( GetHittedExtraDamageHeadShot() )
 	{
 		D3DXVECTOR3 vPos( GetHeadBonePos() );
@@ -7413,16 +7695,16 @@ void CX2GameUnit::ApplyHeadShotDamage( float* pfFinalDamage_ )
 
 		UpDownCrashCamera( 30.0f, 0.5f );			
 
-		// ï¿½ï¿½å¼¦ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ 2ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// Çìµå¼¦ÀÌ Àû¿ëµÇ´Â °æ¿ì 2¹èÀÇ µ¥¹ÌÁö·Î Áõ°¡
 		*pfFinalDamage_ *= 2;		
 	}
 
-	// ï¿½ï¿½å¼¦ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Ù´ï¿½ ï¿½Ã·ï¿½ï¿½×¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½Çµï¿½ï¿½ï¿½
+	// Çìµå¼¦ÀÌ Àû¿ëµÇ¾ú´Ù´Â ÇÃ·¡±×¸¦ ¿ø·¡µÇ·Î µÇµ¹¸²
 	SetHittedExtraDamageHeadShot( false );
 }
 
 #endif	CHUNG_MEMO_01				
-//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» ï¿½Þ¸ï¿½ ï¿½ï¿½å¼¦
+//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» ¸Þ¸ð Çìµå¼¦
 
 //{{ robobeg : 2008-10-28
 //CX2GameUnit::Weapon::Weapon()
@@ -7435,8 +7717,9 @@ CX2GameUnit::Weapon::Weapon( CX2GameUnit& refInOwnerUnit_ ) : CKTDGObject( &refI
 //}} kimhc // 2010.12.14 //  2010-12-23 New Character CHUNG
 {
 #ifdef ARA_CHARACTER_BASE
-	if( NULL != refInOwnerUnit_.GetUnit() )
-		InitWeapon( refInOwnerUnit_.GetUnit()->GetType() );
+	if( refInOwnerUnit_.GetGameUnitType() == CX2GameUnit::GUT_USER
+        && NULL != static_cast<CX2GUUser&>(refInOwnerUnit_).GetUnit() )
+		InitWeapon( static_cast<CX2GUUser&>(refInOwnerUnit_).GetUnit()->GetType() );
 	else
 #endif //ARA_CHARACTER_BASE
 	{
@@ -7447,8 +7730,8 @@ CX2GameUnit::Weapon::Weapon( CX2GameUnit& refInOwnerUnit_ ) : CKTDGObject( &refI
 //{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
 /** @function : Constructor
-	@brief : SlashTraceData, EnchantData ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ pItemTempletOringin_ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½, \n
-	m_pUserWeaponEquipï¿½ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ (Ã» ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¼)
+	@brief : SlashTraceData, EnchantData µîÀ» ÂüÁ¶ÇÒ pItemTempletOringin_À» Àü´ÞÇÏ¿©, \n
+	m_pUserWeaponEquipÀº ´Ù¸¥ ¾ÆÀÌÅÛÀÇ ¸Þ½Ã Á¤º¸µîÀ» ÂüÁ¶ÇÒ ¼ö ÀÖµµ·Ï ÇÔ (Ã» ±¤ÆøÈ­ ½Ã Àåºñ±³Ã¼)
 	@param : CX2GameUnit& refInOwnerUnit_, CX2Item::ItemTemplet* pItemTempletOrigin_
 */
 CX2GameUnit::Weapon::Weapon( CX2GameUnit& refInOwnerUnit_, 
@@ -7457,8 +7740,9 @@ CX2GameUnit::Weapon::Weapon( CX2GameUnit& refInOwnerUnit_,
 , m_pItemTempletOrigin( NULL )
 {
 #ifdef ARA_CHARACTER_BASE
-	if( NULL != refInOwnerUnit_.GetUnit() )
-		InitWeapon( refInOwnerUnit_.GetUnit()->GetType() );
+	if( refInOwnerUnit_.GetGameUnitType() == CX2GameUnit::GUT_USER
+        && NULL != static_cast<CX2GUUser&>(refInOwnerUnit_).GetUnit() )
+		InitWeapon( static_cast<CX2GUUser&>(refInOwnerUnit_).GetUnit()->GetType() );
 	else
 #endif //ARA_CHARACTER_BASE
 	{
@@ -7482,11 +7766,11 @@ CX2GameUnit::Weapon::~Weapon()
 
 	for( int i=0; i<3; ++i )
 	{
-		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_ahEnchantWeapon[i] );		// weapon enchant particleï¿½ï¿½ majorï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_ahEnchantWeapon[i] );		// weapon enchant particleÀº majorÀÓÀ» °¡Á¤ÇÑ´Ù.
 	}
 
 
-	SAFE_DELETE_KTDGOBJECT( m_pXSkinWeapon );		// NPCï¿½ï¿½ ï¿½ï¿½ì¿¡ ï¿½ï¿½ï¿½ï¿½
+	SAFE_DELETE_KTDGOBJECT( m_pXSkinWeapon );		// NPCÀÎ °æ¿ì¿¡ ¾²ÀÓ
 	
 
 
@@ -7503,9 +7787,9 @@ CX2GameUnit::Weapon::~Weapon()
 #endif // CUSTOM_SLASH_TRACE_TEXTURE
 	}
 
-	// m_pUserWeaponEquipï¿½ï¿½ ï¿½ï¿½ï¿½â¼­ deleteï¿½Ï¸ï¿½ ï¿½Èµï¿½, CX2Gameunitï¿½Ê¿ï¿½ï¿½ï¿½ deleteï¿½ï¿½.
+	// m_pUserWeaponEquipÀº ¿©±â¼­ deleteÇÏ¸é ¾ÈµÊ, CX2GameunitÂÊ¿¡¼­ deleteµÊ.
 
-#ifdef ADD_UPGRADE_WEAPON_PARTICLE		/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½
+#ifdef ADD_UPGRADE_WEAPON_PARTICLE		/// ¹«±â ¼Ò¸ê½Ã °­È­ ÀÌÆåÆ®µµ °°ÀÌ ¼Ò¸ê
 	DeleteUpgradeWeaponParticle();
 #endif ADD_UPGRADE_WEAPON_PARTICLE
 }
@@ -7513,7 +7797,7 @@ CX2GameUnit::Weapon::~Weapon()
 
 //{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 /** @function : InitWeapon
-	@brief : ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ Init ï¿½Ô¼ï¿½
+	@brief : °¢ »ý¼ºÀÚ¿¡¼­ ºÒ·¯ÁÙ Init ÇÔ¼ö
 */
 #ifdef ARA_CHARACTER_BASE
 void CX2GameUnit::Weapon::InitWeapon( CX2Unit::UNIT_TYPE eUnitType_ /*= CX2Unit::UT_NONE */)
@@ -7586,34 +7870,34 @@ void CX2GameUnit::Weapon::InitWeapon()
 	//}} robobeg : 2008-10-28
 	m_bEnable = true;
 
-	//{{ kimhc // NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Z_ENABLE ï¿½ï¿½ï¿½ï¿½ // 2009-07-07
+	//{{ kimhc // NPCÀÇ ¿þÆù¿¡ Z_ENABLE Àû¿ë // 2009-07-07
 	SetZEnable( false );
-	//}} kimhc // NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Z_ENABLE ï¿½ï¿½ï¿½ï¿½ // 2009-07-07
+	//}} kimhc // NPCÀÇ ¿þÆù¿¡ Z_ENABLE Àû¿ë // 2009-07-07
 
 	for( int i=0; i<3; ++i )
 	{
-		m_ahEnchantWeapon[i] = INVALID_PARTICLE_HANDLE;
+		m_ahEnchantWeapon[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 
 	m_bTraceColor = false;
 	m_vTraceColor = 0xcc5555ff;
 	m_vTraceTipColor = 0xff5555ff;
 
-	//{{ JHKang / 2011.03.23 / Blend ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ JHKang / 2011.03.23 / Blend °ª ÁöÁ¤
 #ifdef ADD_WEAPON_BLEND_VALUE
 	m_d3dSrcBlend = D3DBLEND_SRCALPHA;
 	m_d3dDestBlend = D3DBLEND_DESTALPHA;
 #endif
 	//}}
 
-#ifdef ADD_UPGRADE_WEAPON_PARTICLE			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½Ã¼
+#ifdef ADD_UPGRADE_WEAPON_PARTICLE			/// ¹«±â °­È­ ÀÌÆåÆ® °´Ã¼
 	m_pFrame_ATTACK_LINE_END0	= NULL;
 	m_pFrame_ATTACK_LINE_START0_FRONT = NULL;
 
-	m_hSeqUpgradeWeapon	 = INVALID_PARTICLE_HANDLE;
-	m_hSeqUpgradeWeapon2 = INVALID_PARTICLE_HANDLE;
-	m_hSeqUpgradeWeapon3 = INVALID_PARTICLE_HANDLE;
-	m_hSeqUpgradeWeapon4 = INVALID_PARTICLE_HANDLE;
+	m_hSeqUpgradeWeapon	 = INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqUpgradeWeapon2 = INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqUpgradeWeapon3 = INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqUpgradeWeapon4 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 #endif ADD_UPGRADE_WEAPON_PARTICLE
 }
 //}} kimhc // 2010.12.14 //  2010-12-23 New Character CHUNG
@@ -7639,7 +7923,7 @@ void CX2GameUnit::Weapon::EnchantParticleFrameMoveForEve()
 {
 	KTDXPROFILE();
 
-	if( INVALID_PARTICLE_HANDLE == m_ahEnchantWeapon[0] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_ahEnchantWeapon[0] )
 		return; 
 
 	if( GetOwnerUnit().GetGameUnitType() != CX2GameUnit::GUT_USER )
@@ -7651,7 +7935,7 @@ void CX2GameUnit::Weapon::EnchantParticleFrameMoveForEve()
 	if ( pSeqEnchant1 != NULL )
 	{
 #ifdef RIDING_SYSTEM
-		/// Å»ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¾Æ® È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+		/// Å»°ÍÀ» Å¸°í ÀÖÀ¸¸é, ¹«±â ÀÎÃ¾Æ® È¿°ú ¸ðµÎ ²¨ÁÖÀÚ.
 		if ( true == GetShowObject() && true == GetOwnerUnit().CanNotShowEnchantedWeaponEffectToRiding() )
 #else RIDING_SYSTEM
 		if( true == GetShowObject() )
@@ -7675,7 +7959,7 @@ void CX2GameUnit::Weapon::EnchantParticleFrameMoveForBow()
 {
 	KTDXPROFILE();
 
-	if( INVALID_PARTICLE_HANDLE == m_ahEnchantWeapon[0] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_ahEnchantWeapon[0] )
 		return; 
 
 	if( GetOwnerUnit().GetGameUnitType() != CX2GameUnit::GUT_USER )
@@ -7686,7 +7970,7 @@ void CX2GameUnit::Weapon::EnchantParticleFrameMoveForBow()
 	if( NULL != pSeqEnchant1 )
 	{
 #ifdef RIDING_SYSTEM
-		/// Å»ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¾Æ® È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+		/// Å»°ÍÀ» Å¸°í ÀÖÀ¸¸é, ¹«±â ÀÎÃ¾Æ® È¿°ú ¸ðµÎ ²¨ÁÖÀÚ.
 		if ( true == GetShowObject() && true == GetOwnerUnit().CanNotShowEnchantedWeaponEffectToRiding() )
 #else RIDING_SYSTEM
 		if( true == GetShowObject() )
@@ -7707,7 +7991,7 @@ void CX2GameUnit::Weapon::EnchantParticleFrameMoveForSword()
 {
 	KTDXPROFILE();
 
-	if( INVALID_PARTICLE_HANDLE == m_ahEnchantWeapon[0] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_ahEnchantWeapon[0] )
 		return;
 
 	if( GetOwnerUnit().GetGameUnitType() != CX2GameUnit::GUT_USER )
@@ -7723,7 +8007,7 @@ void CX2GameUnit::Weapon::EnchantParticleFrameMoveForSword()
 		pSeqEnchant3 != NULL )
 	{
 #ifdef RIDING_SYSTEM
-		/// Å»ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¾Æ® È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+		/// Å»°ÍÀ» Å¸°í ÀÖÀ¸¸é, ¹«±â ÀÎÃ¾Æ® È¿°ú ¸ðµÎ ²¨ÁÖÀÚ.
 		if ( true == GetShowObject() && true == GetOwnerUnit().CanNotShowEnchantedWeaponEffectToRiding() )
 #else RIDING_SYSTEM
 		if( true == GetShowObject() )
@@ -7764,7 +8048,7 @@ void CX2GameUnit::Weapon::EnchantParticleFrameMoveForAra()
 {
 	KTDXPROFILE();
 
-	if( INVALID_PARTICLE_HANDLE == m_ahEnchantWeapon[0] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_ahEnchantWeapon[0] )
 		return; 
 
 	if( GetOwnerUnit().GetGameUnitType() != CX2GameUnit::GUT_USER )
@@ -7775,7 +8059,7 @@ void CX2GameUnit::Weapon::EnchantParticleFrameMoveForAra()
 	if( NULL != pSeqEnchant1 )
 	{
 #ifdef RIDING_SYSTEM
-		/// Å»ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¾Æ® È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+		/// Å»°ÍÀ» Å¸°í ÀÖÀ¸¸é, ¹«±â ÀÎÃ¾Æ® È¿°ú ¸ðµÎ ²¨ÁÖÀÚ.
 		if ( true == GetShowObject() && true == GetOwnerUnit().CanNotShowEnchantedWeaponEffectToRiding() )
 #else RIDING_SYSTEM
 		if( true == GetShowObject() )
@@ -7793,6 +8077,45 @@ void CX2GameUnit::Weapon::EnchantParticleFrameMoveForAra()
 }
 #endif
 
+
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯
+void CX2GameUnit::Weapon::EnchantParticleFrameMoveForAdd()
+{
+	KTDXPROFILE();
+
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_ahEnchantWeapon[0] )
+		return; 
+
+	if( GetOwnerUnit().GetGameUnitType() != CX2GameUnit::GUT_USER )
+		return;
+
+
+	CKTDGParticleSystem::CParticleEventSequence* pSeqEnchant1 = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_ahEnchantWeapon[0] );
+
+	if ( pSeqEnchant1 != NULL )
+	{
+#ifdef RIDING_SYSTEM
+		/// Å»°ÍÀ» Å¸°í ÀÖÀ¸¸é, ¹«±â ÀÎÃ¾Æ® È¿°ú ¸ðµÎ ²¨ÁÖÀÚ.
+		if ( true == GetShowObject() && true == GetOwnerUnit().CanNotShowEnchantedWeaponEffectToRiding() )
+#else RIDING_SYSTEM
+		if( true == GetShowObject() )
+#endif RIDING_SYSTEM
+		{
+			D3DXVECTOR3 vBonePos1 = GetOwnerUnit().GetBonePos( L"Weapon05" );
+			pSeqEnchant1->SetPosition( vBonePos1 );
+			pSeqEnchant1->SetEmitRate( 10, 10 );
+		}
+		else
+		{
+
+			pSeqEnchant1->SetEmitRate( 0, 0 );
+		}
+	}
+
+}
+#endif //SERV_9TH_NEW_CHARACTER
+
+
 void CX2GameUnit::Weapon::CreateEnchantParticle( const WCHAR* pName1, const WCHAR* pName2, const WCHAR* pName3 )
 {
 	if( GetOwnerUnit().GetGameUnitType() != CX2GameUnit::GUT_USER )
@@ -7802,7 +8125,7 @@ void CX2GameUnit::Weapon::CreateEnchantParticle( const WCHAR* pName1, const WCHA
 
 	if( NULL != pName1 )
 	{
-		if ( m_ahEnchantWeapon[0] == INVALID_PARTICLE_HANDLE )
+		if ( m_ahEnchantWeapon[0] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_ahEnchantWeapon[0] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  pName1, 0,0,0 );
 			pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_ahEnchantWeapon[0] );
@@ -7812,7 +8135,7 @@ void CX2GameUnit::Weapon::CreateEnchantParticle( const WCHAR* pName1, const WCHA
 	}
 	if( NULL != pName2 )
 	{
-		if ( m_ahEnchantWeapon[1] == INVALID_PARTICLE_HANDLE )
+		if ( m_ahEnchantWeapon[1] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_ahEnchantWeapon[1] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  pName2, 0,0,0 );
 			pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_ahEnchantWeapon[1] );
@@ -7823,7 +8146,7 @@ void CX2GameUnit::Weapon::CreateEnchantParticle( const WCHAR* pName1, const WCHA
 
 	if( NULL != pName3 )
 	{
-		if ( m_ahEnchantWeapon[2] == INVALID_PARTICLE_HANDLE )
+		if ( m_ahEnchantWeapon[2] == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_ahEnchantWeapon[2] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  pName3, 0,0,0 );
 			pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_ahEnchantWeapon[2] );
@@ -7835,10 +8158,10 @@ void CX2GameUnit::Weapon::CreateEnchantParticle( const WCHAR* pName1, const WCHA
 
 
 
-// ï¿½ï¿½ï¿½Òµï¿½, ï¿½ï¿½ï¿½Ì»ï¿½, ï¿½ï¿½ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Õ¿ï¿½ ï¿½ï¿½ï¿½ Ä® ï¿½ï¿½ï¿½ï¿½ï¿½Ì´ï¿½
+// ¿¤¼Òµå, ¾ÆÀÌ»þ, ·¹ÀÌºìÀÇ °æ¿ì ¹«±â¸¦ ¿À¸¥¼Õ¿¡ µé°í Ä® ÇüÅÂÀÌ´Ù
 void CX2GameUnit::Weapon::InitEnchantParticleForSword()
 {
-	// attribute prefix ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	// attribute prefix ¿¡ ´ëÇÑ ÀÌÆåÆ® »ý¼º
 
 	if( GetOwnerUnit().GetGameUnitType() != CX2GameUnit::GUT_USER )
 		return;
@@ -7998,7 +8321,7 @@ void	CX2GameUnit::Weapon::AppendEnchantParticleForSwordToDeviceList( CKTDXDevice
 
 void CX2GameUnit::Weapon::AppendEnchantParticleForBowToDeviceList( CKTDXDeviceDataList& listInOut_, CX2DamageManager::EXTRA_DAMAGE_TYPE eDamageType_ )
 {
-	// attribute prefix ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	// attribute prefix ¿¡ ´ëÇÑ ÀÌÆåÆ® »ý¼º
 
 	if ( g_pData->GetGameMajorParticle() == NULL )
 		return;
@@ -8071,10 +8394,10 @@ void CX2GameUnit::Weapon::AppendEnchantParticleForBowToDeviceList( CKTDXDeviceDa
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 
 
-// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â¸¦ ï¿½Þ¼Õ¿ï¿½ ï¿½ï¿½ï¿½ È°ï¿½Ì´ï¿½
+// ·¹³ª´Â ¹«±â¸¦ ¿Þ¼Õ¿¡ µé°í È°ÀÌ´Ù
 void CX2GameUnit::Weapon::InitEnchantParticleForBow()
 {
-	// attribute prefix ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	// attribute prefix ¿¡ ´ëÇÑ ÀÌÆåÆ® »ý¼º
 
 
 	if( GetOwnerUnit().GetGameUnitType() != CX2GameUnit::GUT_USER )
@@ -8167,21 +8490,21 @@ void CX2GameUnit::Weapon::SetEnchantParticleShow(bool bShow)
 		pSeqWeapon->SetShowObject(bShow);
 }
 
-//{{ kimhc // ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼
+//{{ kimhc // ½Ç½Ã°£ ¿¤¼Òµå Áß ½Ç½Ã°£ Àåºñ ±³Ã¼
 #ifdef REAL_TIME_ELSWORD
 void CX2GameUnit::Weapon::DeleteEnchantParticle()
 {
 	for( int i = 0; i < 3; ++i )
 	{
-		if ( m_ahEnchantWeapon[i] != INVALID_PARTICLE_HANDLE )
+		if ( m_ahEnchantWeapon[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_ahEnchantWeapon[i] );
-			m_ahEnchantWeapon[i] = INVALID_PARTICLE_HANDLE;
+			m_ahEnchantWeapon[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}		
 	}
 }
 #endif REAL_TIME_ELSWORD
-//}} kimhc // ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½Òµï¿½ ï¿½ï¿½ ï¿½Ç½Ã°ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼
+//}} kimhc // ½Ç½Ã°£ ¿¤¼Òµå Áß ½Ç½Ã°£ Àåºñ ±³Ã¼
 
 void CX2GameUnit::Weapon::UpdateSlashTraceTextureName()
 {
@@ -8197,7 +8520,7 @@ void CX2GameUnit::Weapon::UpdateSlashTraceTextureName()
 	bool bFashion = false;
 //{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
-	// m_pItemTempletOriginï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ bFashionï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Templetï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// m_pItemTempletOriginÀÌ ÀÖÀ¸¸é bFashionÁ¤º¸¸¦ Templet¿¡¼­ ÂüÁ¶ÇÔ
 	if ( NULL != m_pItemTempletOrigin )
 		bFashion = m_pItemTempletOrigin->GetFashion();
 	else
@@ -8229,23 +8552,22 @@ void CX2GameUnit::Weapon::UpdateSlashTraceTextureName()
 
 	for( int i=0; i<CX2Item::MAX_MODEL_COUNT_A_ITEM; ++i )
 	{
-		// ï¿½ï¿½ï¿½ï¿½ slash trace ï¿½ï¿½ï¿½ï¿½
+		// ¹«±â slash trace »ý¼º
 		if( NULL == m_pSlashTrace[i] )
 			continue;
 
 		CX2EnchantItem::ItemEnchantedAttribute enchantedAttribute;
 		if( true == bFashion )
 		{
-			CX2Item* pItemNotFashion = pUser->GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
-			if( NULL != pItemNotFashion &&
-				NULL != pItemNotFashion->GetItemData() )
+			CX2Item* pItemNotFashion = pUser->GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+			if( NULL != pItemNotFashion )
 			{
-				enchantedAttribute = pItemNotFashion->GetItemData()->m_EnchantedAttribute;
+				enchantedAttribute = pItemNotFashion->GetItemData().m_EnchantedAttribute;
 			}
 		}
 		else
 		{
-			enchantedAttribute = m_pUserWeaponEquip->GetItem()->GetItemData()->m_EnchantedAttribute;
+			enchantedAttribute = m_pUserWeaponEquip->GetItem()->GetItemData().m_EnchantedAttribute;
 		}
 
 		CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType = g_pData->GetEnchantItem()->GetExtraDamageType( enchantedAttribute );
@@ -8307,7 +8629,7 @@ bool CX2GameUnit::Weapon::LoadDataForUser( KLuaManager& luaManager )
 	
 
 
-	// ï¿½ï¿½ï¿½ï¿½ slash trace ï¿½âº» ï¿½ï¿½ï¿½ï¿½Å¸
+	// ¹«±â slash trace ±âº» µ¥ÀÌÅ¸
 
 	float fTexturedSlashTraceDisableTime;
 	LUA_GET_VALUE( luaManager, "TEXTURED_SLASH_TRACE_DISABLE_TIME",		fTexturedSlashTraceDisableTime,		0.3f );
@@ -8331,16 +8653,16 @@ bool CX2GameUnit::Weapon::LoadDataForUser( KLuaManager& luaManager )
 #endif // CUSTOM_SLASH_TRACE_TEXTURE
 	for( int i=0; i<CX2Item::MAX_MODEL_COUNT_A_ITEM; ++i )
 	{
-		// ï¿½ï¿½ï¿½ï¿½ after image ï¿½ï¿½ï¿½ï¿½
+		// ¹«±â after image »ý¼º
 		if( NULL != m_pUserWeaponEquip->GetNormalModel(i) )
 		{
-			// ï¿½Ø¿ï¿½ NULLï¿½ï¿½ ï¿½Æ´Ò°ï¿½ì¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½î¾ºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Úµï¿½ ï¿½ß°ï¿½
+			// ¹Ø¿¡ NULLÀÌ ¾Æ´Ò°æ¿ì¿¡µµ »õ·Î»ý¼ºÇØ¼­ µ¤¾î¾º¿ì´Â Çö»ó¿¡ ´ëÇÑ ¹æ¾îÄÚµå Ãß°¡
 			if( m_pAfterImage[i] != NULL )
 			{
 				SAFE_DELETE_KTDGOBJECT( m_pAfterImage[i] );
 			}
 
-			// fix!! hyper modeï¿½ï¿½ ï¿½ï¿½ï¿½ hyper modelï¿½ï¿½ after imageï¿½ï¿½ ï¿½ï¿½ï¿½Í¾ï¿½ ï¿½ï¿½
+			// fix!! hyper modeÀÏ °æ¿ì hyper modelÀÇ after image°¡ ³ª¿Í¾ß ÇÔ
             ASSERT( m_pAfterImage[i] == NULL );
 
 			m_pAfterImage[i] = CKTDGXSkinAfterImage::CreateSkinAfterImage( m_pUserWeaponEquip->GetNormalAnim(i), 10, XL_EFFECT_0 );
@@ -8353,17 +8675,17 @@ bool CX2GameUnit::Weapon::LoadDataForUser( KLuaManager& luaManager )
 
 		if ( NULL != m_pUserWeaponEquip->GetNormalAnim(i) )
 		{
-			bool bTexturedSlashTrace = false;		// SlashTraceï¿½ï¿½ Textureï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î°ï¿½?
-			wstring slashTraceTextureName = L"";	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ï¿½ï¿½ ï¿½ï¿½
-			float slashTraceTextureStride = 0.f;	// 2010-12-13 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			bool bTexturedSlashTrace = false;		// SlashTrace¿¡ Texture¸¦ »ç¿ëÇÒ °ÍÀÎ°¡?
+			wstring slashTraceTextureName = L"";	// »ç¿ëÇÒ ÅØ½ºÃÄ ¸í
+			float slashTraceTextureStride = 0.f;	// 2010-12-13 // ÇöÀç »ç¿ëµÇ°í ÀÖÁö ¾ÊÀ½
 
 			//{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
 
-			// Traceï¿½ï¿½ ï¿½Ø½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// Trace¿¡ ÅØ½ºÃÄ ºÙÀÓ
 		#ifdef	TEXTURED_SLASH_TRACE_TEST
 
-			bool bFashion = false; // ï¿½Ð¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½?(ï¿½Æ¹ï¿½Å¸ ï¿½ï¿½)
+			bool bFashion = false; // ÆÐ¼Ç ¾ÆÀÌÅÛÀÎ°¡?(¾Æ¹ÙÅ¸ µî)
 			if ( NULL != m_pItemTempletOrigin )
 				bFashion = m_pItemTempletOrigin->GetFashion();
 			else
@@ -8372,37 +8694,36 @@ bool CX2GameUnit::Weapon::LoadDataForUser( KLuaManager& luaManager )
 			CX2EnchantItem::ItemEnchantedAttribute enchantedAttribute;
 #ifdef FIX_ENCHANT_FROZEN_TRACE_BUG_BY_MAGICAL_MAKEUP
 
-			bool	   bUseChangeWeapon = false;	/// ï¿½ï¿½ï¿½Ì»ï¿½ï¿½ï¿½ Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			bool	   bUseChangeWeapon = false;	/// ¾ÆÀÌ»þ³ª Ã»ÀÇ ¹«±â º¯°æ ¿©ºÎ
 			CX2GUUser* pUserUnit		= NULL;
 
-			if( NULL != &GetOwnerUnit() && CX2GameUnit::GUT_USER == GetOwnerUnit().GetGameUnitType() )
+			if( CX2GameUnit::GUT_USER == GetOwnerUnit().GetGameUnitType() )
 			{
 				pUserUnit = static_cast<CX2GUUser*>( &GetOwnerUnit() );
 				if( NULL != pUserUnit && true == g_pX2Game->IsValidUnit( pUserUnit ) )
-					bUseChangeWeapon = pUserUnit->GetUseChangeWeapon();			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+					bUseChangeWeapon = pUserUnit->GetUseChangeWeapon();			/// ¹«±â º¯°æ ¿©ºÎ ¹ÝÈ¯
 			}
 
-			if( true == bUseChangeWeapon || true == bFashion )		/// ï¿½ï¿½ï¿½Ì»ï¿½ï¿½ï¿½ Ã»ï¿½ï¿½ ï¿½ï¿½ï¿½â°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½( Æ¯ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½Ì½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ÊµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ )
+			if( true == bUseChangeWeapon || true == bFashion )		/// ¾ÆÀÌ»þ³ª Ã»ÀÇ ¹«±â°¡ º¯°æµÉ °æ¿ì ÇØ´ç ±¸¹® ¹«Á¶°Ç Àû¿ë( Æ¯Á¤ Æ®·¹ÀÌ½º Àû¿ë ¾ÊµÇ´Â ¹ö±× ¶§¹®¿¡ )
 #else  FIX_ENCHANT_FROZEN_TRACE_BUG_BY_MAGICAL_MAKEUP
 			if( true == bFashion )
 #endif FIX_ENCHANT_FROZEN_TRACE_BUG_BY_MAGICAL_MAKEUP
 			{
-				CX2Item* pItemNotFashion = pUser->GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+				CX2Item* pItemNotFashion = pUser->GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 
-				if( NULL != pItemNotFashion &&
-					NULL != pItemNotFashion->GetItemData() )
+				if( NULL != pItemNotFashion )
 				{
-					enchantedAttribute = pItemNotFashion->GetItemData()->m_EnchantedAttribute;
+					enchantedAttribute = pItemNotFashion->GetItemData().m_EnchantedAttribute;
 				}
 
 #ifdef FIX_ENCHANT_FROZEN_TRACE_BUG_BY_MAGICAL_MAKEUP
 				if( NULL != pUserUnit && true == g_pX2Game->IsValidUnit( pUserUnit ) )
-					pUserUnit->SetUseChangeWeapon( false );		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+					pUserUnit->SetUseChangeWeapon( false );		/// ¹«±â º¯°æ ¿©ºÎ ÃÊ±âÈ­
 #endif FIX_ENCHANT_FROZEN_TRACE_BUG_BY_MAGICAL_MAKEUP
 			}
 			else
 			{
-				enchantedAttribute = m_pUserWeaponEquip->GetItem()->GetItemData()->m_EnchantedAttribute;
+				enchantedAttribute = m_pUserWeaponEquip->GetItem()->GetItemData().m_EnchantedAttribute;
 			}
 
 
@@ -8424,24 +8745,22 @@ bool CX2GameUnit::Weapon::LoadDataForUser( KLuaManager& luaManager )
 
 		#ifdef TEXTURED_SLASH_TRACE_TEST
 			if( 0 != m_pUserWeaponEquip->GetItemUID() &&
-				NULL != m_pUserWeaponEquip->GetItem() &&
-				NULL != m_pUserWeaponEquip->GetItem()->GetItemData() )
+				NULL != m_pUserWeaponEquip->GetItem() )
 			{
 
 				CX2EnchantItem::ItemEnchantedAttribute enchantedAttribute;
 				if( true == m_pUserWeaponEquip->GetItem()->GetItemTemplet()->GetFashion() )
 				{
-					CX2Item* pItemNotFashion = pUser->GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+					CX2Item* pItemNotFashion = pUser->GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
 
-					if( NULL != pItemNotFashion &&
-						NULL != pItemNotFashion->GetItemData() )
+					if( NULL != pItemNotFashion )
 					{
-						enchantedAttribute = pItemNotFashion->GetItemData()->m_EnchantedAttribute;
+						enchantedAttribute = pItemNotFashion->GetItemData().m_EnchantedAttribute;
 					}
 				}
 				else
 				{
-					enchantedAttribute = m_pUserWeaponEquip->GetItem()->GetItemData()->m_EnchantedAttribute;
+					enchantedAttribute = m_pUserWeaponEquip->GetItem()->GetItemData().m_EnchantedAttribute;
 				}
 
 
@@ -8551,18 +8870,18 @@ bool CX2GameUnit::Weapon::LoadDataForUser( KLuaManager& luaManager )
 				g_pKTDXApp->GetDGManager()->AddObjectChain( m_pSlashTraceCustomTexture[i] );
 			}
 #endif // CUSTOM_SLASH_TRACE_TEXTURE
-		}	// ï¿½ï¿½ï¿½ï¿½ slash trace ï¿½ï¿½ï¿½ï¿½
+		}	// ¹«±â slash trace »ý¼º
 
 	} // for(i)
 
-#ifdef ADD_UPGRADE_WEAPON_PARTICLE		/// ï¿½Æ¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Þ¶ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½
-	if( NULL != &GetOwnerUnit() && 
-		NULL != GetOwnerUnit().GetUnit() && 
-		NULL != GetOwnerUnit().GetUnit()->GetUnitTemplet() &&
+#ifdef ADD_UPGRADE_WEAPON_PARTICLE		/// ¾Æ¶ó´Â ÀÌÆåÆ® Àû¿ë À§Ä¡°¡ ´Þ¶ó¼­, µû·Î ÁöÁ¤ÇØ ÁØ´Ù
+	if( GetOwnerUnit().GetGameUnitType() == CX2GameUnit::GUT_USER &&
+        NULL != static_cast<CX2GUUser&>( GetOwnerUnit() ).GetUnit() &&
+		NULL != static_cast<CX2GUUser&>( GetOwnerUnit() ).GetUnit()->GetUnitTemplet() &&
 		NULL != m_pUserWeaponEquip && 
 		NULL != m_pUserWeaponEquip->GetNormalAnim(0) )
 	{
-		switch ( GetOwnerUnit().GetUnit()->GetUnitTemplet()->m_UnitType )
+		switch ( static_cast<CX2GUUser&>( GetOwnerUnit() ).GetUnit()->GetUnitTemplet()->m_UnitType )
 		{
 		case CX2Unit::UT_ARA:
 			if( NULL != m_pUserWeaponEquip && NULL != m_pUserWeaponEquip->GetNormalAnim(0) )
@@ -8608,9 +8927,9 @@ bool CX2GameUnit::Weapon::LoadDataForNPC( KLuaManager& luaManager )
 
 
 
-	//{{ dmlee 2009.1.15 ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½Ç¼ï¿½ï¿½ç¸® ï¿½ï¿½ï¿½Â·ï¿½ ï¿½Þ½Ã¸ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½ ï¿½ï¿½ï¿½ï¿½ weapon ï¿½Úµå¸¦ ï¿½ï¿½ï¿½ï¿½Ï¸é¼­ ï¿½Ó½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ç¼ï¿½ï¿½ç¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½Ì¿ï¿½ syncï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
+	//{{ dmlee 2009.1.15 ¸ó½ºÅÍ¿¡ ¾Ç¼¼»ç¸® ÇüÅÂ·Î ¸Þ½Ã¸¦ ºÙÀÌ±â À§ÇØ weapon ÄÚµå¸¦ »ç¿ëÇÏ¸é¼­ ÀÓ½Ã·Î ·£´ýÇÏ°Ô ¾Ç¼¼»ç¸®¸¦ ºÙÀÏ ¼ö ÀÖ°Ô ±â´ÉÁ¦ÀÛ, °¢ Å¬¶óÀÌ¾ðÆ®»çÀÌ¿¡ sync°¡ ¸ÂÁö ¾Ê´Â´Ù.
 	int iRate = 0;
-	LUA_GET_VALUE( luaManager, "SAFE_RATE", 	iRate,		-1 );		// SAFE_RATEï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â°¡ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½Ýµï¿½ï¿½ ï¿½Îµï¿½ï¿½Ç°ï¿½, ï¿½ï¿½ï¿½â°¡ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½È´ï¿½.
+	LUA_GET_VALUE( luaManager, "SAFE_RATE", 	iRate,		-1 );		// SAFE_RATE¿¡ ÀÇÇØ ¹«±â°¡ ÇÏ³ªµµ ¾øÀ» °æ¿ì¿¡´Â ¹Ýµå½Ã ·ÎµùµÇ°í, ¹«±â°¡ ÇÏ³ª¶óµµ ÀÖÀ» °æ¿ì È®·ü¿¡ ÀÇÇØ ·ÎµùµÈ´Ù.
 	if( iRate > 0 )
 	{
 		if( 0 != pNPC->GetWeaponCount() )
@@ -8623,7 +8942,7 @@ bool CX2GameUnit::Weapon::LoadDataForNPC( KLuaManager& luaManager )
 	}
 	else 
 	{
-		LUA_GET_VALUE( luaManager, "RATE",		iRate,		-1 );		// RATEï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½â°¡ ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½, 
+		LUA_GET_VALUE( luaManager, "RATE",		iRate,		-1 );		// RATE¿¡ ÀÇÇØ ¹«±â°¡ ·ÎµùµÉÁö ¸»Áö ·£´ýÇÏ°Ô °áÁ¤, 
 		if( iRate > 0 )
 		{
 			if( rand() % 101 > iRate )
@@ -8632,7 +8951,7 @@ bool CX2GameUnit::Weapon::LoadDataForNPC( KLuaManager& luaManager )
 			}
 		}
 	}
-	//}} dmlee 2009.1.15 ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½Ç¼ï¿½ï¿½ç¸® ï¿½ï¿½ï¿½Â·ï¿½ ï¿½Þ½Ã¸ï¿½ ï¿½ï¿½ï¿½Ì±ï¿½ ï¿½ï¿½ï¿½ï¿½ weapon ï¿½Úµå¸¦ ï¿½ï¿½ï¿½ï¿½Ï¸é¼­ ï¿½Ó½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ç¼ï¿½ï¿½ç¸®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½Ì¿ï¿½ syncï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
+	//}} dmlee 2009.1.15 ¸ó½ºÅÍ¿¡ ¾Ç¼¼»ç¸® ÇüÅÂ·Î ¸Þ½Ã¸¦ ºÙÀÌ±â À§ÇØ weapon ÄÚµå¸¦ »ç¿ëÇÏ¸é¼­ ÀÓ½Ã·Î ·£´ýÇÏ°Ô ¾Ç¼¼»ç¸®¸¦ ºÙÀÏ ¼ö ÀÖ°Ô ±â´ÉÁ¦ÀÛ, °¢ Å¬¶óÀÌ¾ðÆ®»çÀÌ¿¡ sync°¡ ¸ÂÁö ¾Ê´Â´Ù.
 
 
 
@@ -8679,7 +8998,7 @@ bool CX2GameUnit::Weapon::LoadDataForNPC( KLuaManager& luaManager )
 		LUA_GET_VALUE( luaManager, "WEAPON_SCALE_Y", m_WeaponScale.y, 1.0 );
 		LUA_GET_VALUE( luaManager, "WEAPON_SCALE_Z", m_WeaponScale.z, 1.0 );
 
-		//{{ JHKang / 2011.03.23 / Blend ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		//{{ JHKang / 2011.03.23 / Blend °ª ÁöÁ¤
 #ifdef ADD_WEAPON_BLEND_VALUE
 		LUA_GET_VALUE_ENUM( luaManager, "WEAPON_SRC_BLEND", m_d3dSrcBlend, D3DBLEND, D3DBLEND_SRCALPHA );
 		LUA_GET_VALUE_ENUM( luaManager, "WEAPON_DEST_BLEND", m_d3dDestBlend, D3DBLEND, D3DBLEND_DESTALPHA );
@@ -8693,14 +9012,14 @@ bool CX2GameUnit::Weapon::LoadDataForNPC( KLuaManager& luaManager )
         SetAlphaObject( bAlpha );
 //}} robobeg : 2008-10-28
 
-		//{{ kimhc // NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Z_ENABLE ï¿½ï¿½ï¿½ï¿½ // 2009-07-07
+		//{{ kimhc // NPCÀÇ ¿þÆù¿¡ Z_ENABLE Àû¿ë // 2009-07-07
 		bool bZEnable	= false;
 		LUA_GET_VALUE( luaManager, "Z_ENABLE_FOR_THIS_WEAPON", bZEnable, false );
 		SetZEnable( bZEnable );
-		//}} kimhc // NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Z_ENABLE ï¿½ï¿½ï¿½ï¿½ // 2009-07-07
+		//}} kimhc // NPCÀÇ ¿þÆù¿¡ Z_ENABLE Àû¿ë // 2009-07-07
 
 
-		// fix!! ï¿½Ï´ï¿½ npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½
+		// fix!! ÀÏ´Ü npc´Â ¹«±â ÇÏ³ª¿¡ ¸Þ½Ã ÇÏ³ª¸¸ µÇµµ·Ï ÇÏµåÄÚµù
 		if( NULL == m_pAfterImage[0] )
 		{
 			m_pAfterImage[0] = CKTDGXSkinAfterImage::CreateSkinAfterImage( m_pXSkinWeapon, 10, XL_EFFECT_0 );
@@ -8735,7 +9054,7 @@ bool CX2GameUnit::Weapon::LoadDataForNPC( KLuaManager& luaManager )
 		LUA_GET_VALUE( luaManager, "SLASH_TRACE_BOTTOM_BONE",			slashTraceBottomBone,		L"" );
 
 
-		// fix!! ï¿½Ï´ï¿½ npcï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½
+		// fix!! ÀÏ´Ü npc´Â ¹«±â ÇÏ³ª¿¡ ¸Þ½Ã ÇÏ³ª¸¸ µÇµµ·Ï ÇÏµåÄÚµù
 		m_pFrame_TRACE_START[0]		= m_pXSkinWeapon->GetCloneFrame( slashTraceTopBone.c_str() );
 		m_pFrame_TRACE_END[0]		= m_pXSkinWeapon->GetCloneFrame( slashTraceBottomBone.c_str() );
 
@@ -8764,7 +9083,7 @@ bool CX2GameUnit::Weapon::LoadDataForNPC( KLuaManager& luaManager )
 		}
 	}
 
-	GetOwnerUnit().AddWeaponAttackCollisionBoxForNPC( this ); // fix!!! ï¿½ï¿½...
+	GetOwnerUnit().AddWeaponAttackCollisionBoxForNPC( this ); // fix!!! À½...
 
 	return true;
 }
@@ -8814,7 +9133,7 @@ HRESULT CX2GameUnit::Weapon::OnFrameMove( double fTime, float fElapsedTime )
 			continue;
 		}
 
-		// fix!! ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Þ½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½ï¿½
+		// fix!! ¹«±âÀÇ ¸î¹ø ¸Þ½Ã¿¡ ºÙÀ»Áö ÁöÁ¤ÇÒ ¼ö ÀÖ°Ô ¹Ù²ã¾ßÇÔ
 		D3DXVECTOR3 vWeaponBonePos = GetBonePos( pWeaponParticle->m_wstrBoneName.c_str(), 0 );
 		pSeq->SetPosition( vWeaponBonePos );
 		pSeq->SetAddRotate( vRotateDegree );
@@ -8823,8 +9142,8 @@ HRESULT CX2GameUnit::Weapon::OnFrameMove( double fTime, float fElapsedTime )
 	
 
 
-	// fix!! gunpcï¿½ï¿½ ï¿½ä·¸ï¿½ï¿½ Ã³ï¿½ï¿½, 
-	// fix!! guuserï¿½ï¿½ eqipï¿½Ê¿ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï°Å³ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½
+	// fix!! gunpc¸¸ ¿ä·¸°Ô Ã³¸®, 
+	// fix!! guuser´Â eqipÂÊ¿¡¼­ Ã³¸®ÇÏ°Å³ª ´Ù¸£°Ô Ã³¸®ÇÏ´Â ºÎºÐÀÌ ÇÊ¿ä
 	if( NULL != m_pXSkinWeapon )
 	{
 		// weapon 
@@ -8861,7 +9180,7 @@ HRESULT CX2GameUnit::Weapon::OnFrameMove( double fTime, float fElapsedTime )
 #ifdef SECRET_VELDER
 			if ( GUT_USER == GetOwnerUnit().GetGameUnitType() )
 			{
-				// ï¿½ï¿½ï¿½ï¿½ after image ï¿½ï¿½ï¿½ï¿½
+				// ¹«±â after image »ý¼º
 				if( NULL != m_pUserWeaponEquip && NULL != m_pUserWeaponEquip->GetNormalAnim(i) )
 				{
 					CKTDGXRenderer::RenderParam* pRenderParam = m_pUserWeaponEquip->GetNormalAnim(i)->GetRenderParam();
@@ -8873,7 +9192,7 @@ HRESULT CX2GameUnit::Weapon::OnFrameMove( double fTime, float fElapsedTime )
 			}
 
 #else
-			// ï¿½ï¿½ï¿½ï¿½ after image ï¿½ï¿½ï¿½ï¿½
+			// ¹«±â after image »ý¼º
 			if( NULL != m_pUserWeaponEquip->GetNormalAnim(i) )
 			{
 				CKTDGXRenderer::RenderParam* pRenderParam = m_pUserWeaponEquip->GetNormalAnim(i)->GetRenderParam();
@@ -8968,7 +9287,7 @@ void CX2GameUnit::Weapon::NotifyShowObjectChanged()
 		}
 	}
 
-//{{ kimhc // 2010.6.16 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+//{{ kimhc // 2010.6.16 // °°Àº ±â´ÉÀ» ÇÏ´Â ÇÔ¼ö°¡ Á¸ÀçÇÏ¿© ÇÔ¼ö¸¦ »ç¿ëÇÔ
 #ifdef	ENCHANT_BUG_TEST
 	SetEnchantParticleShow( bShow );
 #else	ENCHANT_BUG_TEST
@@ -8992,7 +9311,7 @@ void CX2GameUnit::Weapon::NotifyShowObjectChanged()
 		}
 	//}}AFX
 #endif	ENCHANT_BUG_TEST
-//}} kimhc // 2010.6.16 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.6.16 // °°Àº ±â´ÉÀ» ÇÏ´Â ÇÔ¼ö°¡ Á¸ÀçÇÏ¿© ÇÔ¼ö¸¦ »ç¿ëÇÔ
 	              
 }//void CX2GameUnit::Weapon::SetShow( bool bShow )
 
@@ -9003,6 +9322,11 @@ void CX2GameUnit::Weapon::NotifyShowObjectChanged()
 /*virtual*/ 
 RENDER_HINT CX2GameUnit::Weapon::OnFrameRender_Prepare()
 {
+#ifdef NOT_RENDER_NPC_GAME_EDIT
+	if ( NULL != g_pX2Game && false == g_pX2Game->GetShowNpcByGameEdit() )
+		return RENDER_HINT_NORENDER;
+#endif // NOT_RENDER_NPC_GAME_EDIT
+
     if ( m_pXSkinWeapon != NULL  )
     {
         m_pXSkinWeapon->SetInstantShow( false );
@@ -9020,7 +9344,7 @@ RENDER_HINT CX2GameUnit::Weapon::OnFrameRender_Prepare()
 		    pRenderParam->outLineColor		= 0xffff5511;
 	    }
 
-	    // todo!! ï¿½Ï´ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½î°¥ï¿½ï¿½ render paramï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ô·ï¿½ ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù²ï¿½ï¿½ï¿½
+	    // todo!! ÀÏ´Ü ÀÌ·¸°Ô ÀÛ¾÷ÇÏ°í ³ªÁß¿¡ ´Ù¸¥ Á¾·ù ¹«±â µé¾î°¥¶§ render paramÀ» ¸ðµÎ ´Ù ÀÔ·Â ¹Þ´Â ¹æ½ÄÀ¸·Î ¹Ù²ÙÀÚ
     //{{ robobeg : 2008-10-28
 	    //if( true == m_bAlphaObject ) 
         if ( IsAlphaObject() )
@@ -9029,13 +9353,13 @@ RENDER_HINT CX2GameUnit::Weapon::OnFrameRender_Prepare()
 		    pRenderParam->bAlphaBlend = true;
 		    pRenderParam->renderType = CKTDGXRenderer::RT_REAL_COLOR; 
 
-			//{{ kimhc // NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Z_ENABLE ï¿½ï¿½ï¿½ï¿½ // 2009-07-07
+			//{{ kimhc // NPCÀÇ ¿þÆù¿¡ Z_ENABLE Àû¿ë // 2009-07-07
 			pRenderParam->bZEnable		= GetZEnable();
-			// pRenderParam->bZEnable = false;		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½
-			//}} kimhc // NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Z_ENABLE ï¿½ï¿½ï¿½ï¿½ // 2009-07-07
+			// pRenderParam->bZEnable = false;		// ±âÁ¸ÀÇ ÄÚµå
+			//}} kimhc // NPCÀÇ ¿þÆù¿¡ Z_ENABLE Àû¿ë // 2009-07-07
 
 			pRenderParam->cullMode = D3DCULL_NONE;
-			//{{ JHKang / 2011.03.23 / Blend ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//{{ JHKang / 2011.03.23 / Blend °ª ÁöÁ¤
 #ifdef ADD_WEAPON_BLEND_VALUE
 			pRenderParam->srcBlend = m_d3dSrcBlend;
 			pRenderParam->destBlend = m_d3dDestBlend;
@@ -9077,7 +9401,9 @@ void CX2GameUnit::Weapon::OnFrameRender_Draw()
 		return;
 
     if ( m_pXSkinWeapon != NULL && m_pXSkinWeapon->GetShowObject() && m_pXSkinWeapon->IsInstantShow() )
-	    m_pXSkinWeapon->OnFrameRender_Draw();
+	{
+		m_pXSkinWeapon->OnFrameRender_Draw();
+	}
 }
 
 void CX2GameUnit::Weapon::CommonStateEnd()
@@ -9104,22 +9430,31 @@ void CX2GameUnit::Weapon::CommonFrameMoveForUser( double fTime, float fElapsedTi
 		return;
 
 
-	// ï¿½ï¿½ï¿½ï¿½ after image Ã³ï¿½ï¿½
+	// ¹«±â after image Ã³¸®
 	for( int i=0; i<CX2Item::MAX_MODEL_COUNT_A_ITEM; ++i )
 	{
-		const CX2GUUser::FrameData* pFrameDataNow = pUser->GetNowFrameData();
+		const CX2GUUser::FrameData& kFrameDataNow = pUser->GetNowFrameData();
 
 		if( NULL != m_pAfterImage[i] )
 		{
-			if( pFrameDataNow->stateParam.afterImage.x != -1.0f
-				&& pFrameDataNow->stateParam.afterImage.y != -1.0f )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            const D3DXVECTOR2&  v2AfterImage = pUser->GetNowAfterImageTime();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            const D3DXVECTOR2&  v2AfterImage = kFrameDataNow.stateParam.afterImage;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+			if( v2AfterImage.x != -1.0f
+				&& v2AfterImage.y != -1.0f )
 			{
-				if( pFrameDataNow->stateParam.afterImage.x <= pUser->GetXSkinAnim()->GetNowAnimationTime()
-					&& pFrameDataNow->stateParam.afterImage.y > pUser->GetXSkinAnim()->GetNowAnimationTime() )
+				if( v2AfterImage.x <= pUser->GetXSkinAnim()->GetNowAnimationTime()
+					&& v2AfterImage.y > pUser->GetXSkinAnim()->GetNowAnimationTime() )
 				{
 					if( false == pUser->GetAbsoluteInvisibility() )
 					{
-						if( g_pMain->GetGameOption()->GetOptionList()->m_bEffect == true )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+						if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+						if( g_pMain->GetGameOption().GetOptionList().m_bEffect == true )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 						{
 							m_pAfterImage[i]->Enable();
 						}
@@ -9135,7 +9470,7 @@ void CX2GameUnit::Weapon::CommonFrameMoveForUser( double fTime, float fElapsedTi
 		}
 
 
-		// ï¿½ï¿½ï¿½ï¿½ slash trace Ã³ï¿½ï¿½
+		// ¹«±â slash trace Ã³¸®
 		if( m_bUseSlashTrace == true )
 		{
 			if( NULL != m_pSlashTrace[i] )
@@ -9177,17 +9512,24 @@ void CX2GameUnit::Weapon::CommonFrameMoveForUser( double fTime, float fElapsedTi
 				{
 					D3DXVECTOR3 dirTip	= down - up;
 					D3DXVec3Normalize( &dirTip, &dirTip );
-					D3DXVECTOR3 tipDown = up + dirTip * pFrameDataNow->stateParam.fSlashTraceTipWide;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    D3DXVECTOR3 tipDown = up + dirTip * pUser->GetNowSlashTraceTipWide();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+					D3DXVECTOR3 tipDown = up + dirTip * kFrameDataNow.stateParam.fSlashTraceTipWide;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 
 					D3DXVECTOR3 vSlashTraceTime( -1.f, -1.f, 0.f );
-					std::map< int, D3DXVECTOR3 >::const_iterator it;
-					it = pFrameDataNow->stateParam.m_mapAddSlashTrace.find( m_iWeaponIndex );
-					if( it != pFrameDataNow->stateParam.m_mapAddSlashTrace.end() )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    pUser->FindNowSlashTraceTimeWithWeaponIndex( m_iWeaponIndex, OUT vSlashTraceTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    std::map< int, D3DXVECTOR3 >::const_iterator it;
+					it = kFrameDataNow.stateParam.m_mapAddSlashTrace.find( m_iWeaponIndex );
+					if( it != kFrameDataNow.stateParam.m_mapAddSlashTrace.end() )
 					{
 						vSlashTraceTime = it->second;
 					}
-
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 					if( vSlashTraceTime.x <= pUser->GetXSkinAnim()->GetNowAnimationTime()
 						&& vSlashTraceTime.y > pUser->GetXSkinAnim()->GetNowAnimationTime() )
@@ -9234,9 +9576,15 @@ void CX2GameUnit::Weapon::CommonFrameMoveForUser( double fTime, float fElapsedTi
 			EnchantParticleFrameMoveForAra();
 		} break;
 #endif
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯
+	case CX2Unit::UT_ADD:
+		{
+			EnchantParticleFrameMoveForAdd();
+		} break;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 
-#ifdef ADD_UPGRADE_WEAPON_PARTICLE		/// ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® Ã³ï¿½ï¿½
+#ifdef ADD_UPGRADE_WEAPON_PARTICLE		/// °­È­ ¹«±â ÀÌÆåÆ® Ã³¸®
 	ProcessUpgradeWeaponParticle();
 #endif ADD_UPGRADE_WEAPON_PARTICLE
 }
@@ -9257,19 +9605,28 @@ void CX2GameUnit::Weapon::CommonFrameMoveForNPC( double fTime, float fElapsedTim
 
 
 
-	// fix!! npcï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½Ï³ï¿½ï¿½Î¸ï¿½ Ã³ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½
-	const CX2GUNPC::NPCFrameData* pFrameData = pNPC->GetNPCFrameData();
+	// fix!! npc¹«±â ÇÏ³ª´ç ¸Þ½Ã ÇÏ³ª·Î¸¸ Ã³¸®µÇµµ·Ï ÇÏµåÄÚµù
+	const CX2GUNPC::NPCFrameData& frameData = pNPC->GetNPCFrameData();
 	if( NULL != m_pAfterImage[0] )
 	{
-		if( pFrameData->stateParam.afterImage.x != -1.0f
-			&& pFrameData->stateParam.afterImage.y != -1.0f )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        const D3DXVECTOR2&  v2AfterImage = pNPC->GetAfterImageTime();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        const D3DXVECTOR2&  v2AfterImage = frameData.stateParam.afterImage;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		if( v2AfterImage.x != -1.0f
+			&& v2AfterImage.y != -1.0f )
 		{
-			if( pFrameData->stateParam.afterImage.x <= pNPC->GetXSkinAnimPtr()->GetNowAnimationTime()
-				&& pFrameData->stateParam.afterImage.y > pNPC->GetXSkinAnimPtr()->GetNowAnimationTime() )
+			if( v2AfterImage.x <= pNPC->GetXSkinAnimPtr()->GetNowAnimationTime()
+				&& v2AfterImage.y > pNPC->GetXSkinAnimPtr()->GetNowAnimationTime() )
 			{
 				if( false == pNPC->GetAbsoluteInvisibility() )
 				{
-					if( g_pMain->GetGameOption()->GetOptionList()->m_bEffect == true )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+					if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+					if( g_pMain->GetGameOption().GetOptionList().m_bEffect == true )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 					{
 						m_pAfterImage[0]->Enable();
 					}
@@ -9313,15 +9670,23 @@ void CX2GameUnit::Weapon::CommonFrameMoveForNPC( double fTime, float fElapsedTim
 			{
 				D3DXVECTOR3 dirTip = down - up;
 				D3DXVec3Normalize( &dirTip, &dirTip );
-				D3DXVECTOR3 tipDown = up + dirTip * pFrameData->stateParam.fSlashTraceTipWide;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                D3DXVECTOR3 tipDown = up + dirTip * pNPC->GetSlashTraceTipWide();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+				D3DXVECTOR3 tipDown = up + dirTip * frameData.stateParam.fSlashTraceTipWide;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 				D3DXVECTOR3 vSlashTraceTime( -1.f, -1.f, 0.f );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                pNPC->FindAddSlashTraceWithWeaponIndex( m_iWeaponIndex, OUT vSlashTraceTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				std::map< int, D3DXVECTOR3 >::const_iterator it;
-				it = pFrameData->stateParam.m_mapAddSlashTrace.find( m_iWeaponIndex );
-				if( it != pFrameData->stateParam.m_mapAddSlashTrace.end() )
+				it = frameData.stateParam.m_mapAddSlashTrace.find( m_iWeaponIndex );
+				if( it != frameData.stateParam.m_mapAddSlashTrace.end() )
 				{
 					vSlashTraceTime = it->second;
 				}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 				if( vSlashTraceTime.x <= pNPC->GetXSkinAnimPtr()->GetNowAnimationTime()
 					&& vSlashTraceTime.y > pNPC->GetXSkinAnimPtr()->GetNowAnimationTime() )
@@ -9347,8 +9712,8 @@ void CX2GameUnit::Weapon::AddSlashTraceByType( int iType, D3DXVECTOR3 up, D3DXVE
 
 	
 #ifdef CUSTOM_SLASH_TRACE_TEXTURE
-	// ï¿½âº» Æ®ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ï¿½Ä°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Ù¸ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½.
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ó¼ï¿½ Æ®ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ì¼±ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½
+	// ±âº» Æ®·¹ÀÌ½º¿¡ ÅØ½ºÃÄ°¡ ÁöÁ¤µÇ¾ú´Ù¸é Ä¿½ºÅÒ ÅØ½ºÃÄ »ç¿ëÇÏÁö ¾Ê±â.
+	// ÇÁ·ÎÁð, ºí·¹ÀÌÁî µî ¼Ó¼º Æ®·¹ÀÌ½º¸¦ ¿ì¼±½Ã ÇÏ±â À§ÇÑ ÀÛ¾÷
 	if( CKTDGSlashTrace::STT_CUSTOM_TEXTURE == static_cast<CKTDGSlashTrace::SLASH_TRACE_TYPE>(iType) &&
 		true == m_pSlashTrace[iModelIndex]->GetEnabledSlashTraceTexture() )
 	{
@@ -9404,7 +9769,7 @@ void CX2GameUnit::Weapon::AddSlashTraceByType( int iType, D3DXVECTOR3 up, D3DXVE
 
 	case CKTDGSlashTrace::STT_NONE:
 		{
-			// slash traceï¿½ï¿½ ï¿½Èºï¿½ï¿½Ì´ï¿½ ï¿½ï¿½ï¿½È¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ slash trace ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ´ï¿½
+			// slash trace°¡ ¾Èº¸ÀÌ´Â µ¿¾È¿¡µµ Áö¼ÓÀûÀ¸·Î slash trace µ¥ÀÌÅÍ¸¦ ¾÷µ¥ÀÌÆ® ÇØÁà¾ß ÇÑ´Ù
 			if( NULL != m_pSlashTrace[iModelIndex] )
 			{
 				m_pSlashTrace[iModelIndex]->AddSlashData( up, down, D3DXCOLOR( 0, 0, 0, 0 ) );
@@ -9531,7 +9896,7 @@ void CX2GameUnit::Weapon::AddSlashTraceByType( int iType, D3DXVECTOR3 up, D3DXVE
 		{
 			ASSERT( NULL != m_pSlashTraceCustomTexture );
 
-			// ï¿½âº» Æ®ï¿½ï¿½ï¿½Ì½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+			// ±âº» Æ®·¹ÀÌ½º ¼û±â±â
 			if( NULL != m_pSlashTrace[iModelIndex] )
 			{
 				m_pSlashTrace[iModelIndex]->AddSlashData( up, down, D3DXCOLOR( 0, 0, 0, 0 ) );
@@ -9560,7 +9925,7 @@ D3DXVECTOR3 CX2GameUnit::Weapon::GetBonePos( const WCHAR* pBoneName, int iModelI
 	}
 	else if( m_pUserWeaponEquip != NULL )
 	{
-		// warning!! hyperï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, hyperï¿½ï¿½å°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ eqipï¿½ï¿½ ï¿½ï¿½ï¿½, GetHyperAnim()ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ 
+		// warning!! hyper¸ðµå »óÅÂÀÎ °æ¿ì, hyper¸ðµå°¡ °¡´ÉÇÑ eqipÀÎ °æ¿ì, GetHyperAnim()À» È£ÃâÇØ¾ßÇÔ 
 		if( NULL != m_pUserWeaponEquip->GetNormalAnim( iModelIndex ) )
 		{
 			return m_pUserWeaponEquip->GetNormalAnim( iModelIndex )->GetCloneFramePosition( pBoneName );
@@ -9576,12 +9941,11 @@ D3DXVECTOR3 CX2GameUnit::Weapon::GetBonePos( const WCHAR* pBoneName, int iModelI
 	}
 }
 
-//{{ kimhc // 2011.1.17 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Boneï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Trace ï¿½ï¿½ (chung ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½)
-#ifdef	TRACE_MAXTRIX_TEST
+//{{ kimhc // 2011.1.17 // ÁöÁ¤ÇÑ BoneÀÇ ¸ÞÆ®¸¯½º °ªÀ» Trace ÇÔ (chung ÄÚµå Âü°í)
 /** @function : GetBoneMatrix
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½Ã¿ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ boneNameï¿½ï¿½ Matrix ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ return
+	@brief : ¹«±âÀÇ ¸Þ½Ã¿¡¼­ ÇØ´çÇÏ´Â boneNameÀÇ Matrix Æ÷ÀÎÅÍ¸¦ return
 	@param : const WCHAR* pBoneName, int iModelIndex
-	@return : const D3DXMATRIX* (ï¿½Ø´ï¿½ï¿½Ï´ï¿½ Boneï¿½ï¿½ Matrixï¿½ï¿½ï¿½ï¿½ï¿½ï¿½), ï¿½ï¿½ï¿½Ð½ï¿½ NULL
+	@return : const D3DXMATRIX* (ÇØ´çÇÏ´Â BoneÀÇ MatrixÆ÷ÀÎÅÍ), ½ÇÆÐ½Ã NULL
 */
 const D3DXMATRIX* CX2GameUnit::Weapon::GetCombineMatrix( const WCHAR* pBoneName, int iModelIndex ) const
 {
@@ -9596,7 +9960,7 @@ const D3DXMATRIX* CX2GameUnit::Weapon::GetCombineMatrix( const WCHAR* pBoneName,
 	} // if
 	else if ( m_pUserWeaponEquip != NULL )
 	{
-		// warning!! hyperï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½, hyperï¿½ï¿½å°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ eqipï¿½ï¿½ ï¿½ï¿½ï¿½, GetHyperAnim()ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ 
+		// warning!! hyper¸ðµå »óÅÂÀÎ °æ¿ì, hyper¸ðµå°¡ °¡´ÉÇÑ eqipÀÎ °æ¿ì, GetHyperAnim()À» È£ÃâÇØ¾ßÇÔ 
 		CKTDGXSkinAnim* pSkinAnim = m_pUserWeaponEquip->GetNormalAnim( iModelIndex );
 		if( NULL != pSkinAnim )
 		{
@@ -9612,10 +9976,9 @@ const D3DXMATRIX* CX2GameUnit::Weapon::GetCombineMatrix( const WCHAR* pBoneName,
 		return NULL;
 	}
 }
-#endif	TRACE_MAXTRIX_TEST
-//}} kimhc // 2011.1.17 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Boneï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Trace ï¿½ï¿½ (chung ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½)
+//}} kimhc // 2011.1.17 // ÁöÁ¤ÇÑ BoneÀÇ ¸ÞÆ®¸¯½º °ªÀ» Trace ÇÔ (chung ÄÚµå Âü°í)
 
-//{{ kimhc // NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Z_ENABLE ï¿½ï¿½ï¿½ï¿½ // 2009-07-07
+//{{ kimhc // NPCÀÇ ¿þÆù¿¡ Z_ENABLE Àû¿ë // 2009-07-07
 bool CX2GameUnit::Weapon::GetZEnable() const
 {
 	return m_bZEnable;
@@ -9625,13 +9988,14 @@ void CX2GameUnit::Weapon::SetZEnable( bool bEnable )
 {
 	m_bZEnable	=	bEnable;
 }
-//}} kimhc // NPCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Z_ENABLE ï¿½ï¿½ï¿½ï¿½ // 2009-07-07
+//}} kimhc // NPCÀÇ ¿þÆù¿¡ Z_ENABLE Àû¿ë // 2009-07-07
 
 
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 CX2GameUnit::ParticleEffectData::~ParticleEffectData()
 {
-	if( m_hSeq != INVALID_PARTICLE_HANDLE )
+	if( m_hSeq != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		if( m_bMajor == true )
 		{
@@ -9650,14 +10014,15 @@ CX2GameUnit::MeshPlayerEffectData::~MeshPlayerEffectData()
 	{
 		if( m_bMajor == true )
 		{
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMeshInst );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInst );
 		}
 		else
 		{
-			g_pX2Game->GetMinorXMeshPlayer()->DestroyInstance( m_hMeshInst );
+			g_pX2Game->GetMinorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInst );
 		}
 	}
 }
+
 
 
 
@@ -9693,6 +10058,7 @@ CX2GameUnit::MeshPlayerEffectData::~MeshPlayerEffectData()
 #endif BOOST_SINGLETON_POOL_TEST
 
 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 //////////////////////////////////////////////////////////////////////////
 void CX2GameUnit::ExtraDamagePack::Init()
@@ -9759,11 +10125,11 @@ void CX2GameUnit::ExtraDamagePack::Init()
 #endif SERV_ADD_CHUNG_SHELLING_GUARDIAN
 
 #ifdef SERV_RENA_NIGHT_WATCHER
-	Init(CX2DamageManager::EDT_START_OF_DELAYED_FIRING );	/// mauntain : ï¿½ï¿½ï¿½ï¿½È¯ [2012.05.21] ï¿½ï¿½ï¿½ï¿½ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½
+	Init(CX2DamageManager::EDT_START_OF_DELAYED_FIRING );	/// mauntain : ±èÅÂÈ¯ [2012.05.21] ·¹³ª 2Â÷ ÀüÁ÷ ³ªÀÌÆ® ¿ÍÃÄ - Æø¹ßÀÇ È­»ì
 #endif SERV_RENA_NIGHT_WATCHER
 
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-	Init(CX2DamageManager::EDT_BLEEDING );				/// mauntain : ï¿½ï¿½ï¿½ï¿½È¯ [2012.07.16] ï¿½ï¿½ï¿½Ìºï¿½ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½×¶ï¿½ Ä¿ï¿½Ç´ï¿½ - Ä¡ï¿½ï¿½ï¿½ï¿½
+	Init(CX2DamageManager::EDT_BLEEDING );				/// mauntain : ±èÅÂÈ¯ [2012.07.16] ·¹ÀÌºì 2Â÷ ÀüÁ÷ º£Å×¶û Ä¿¸Ç´õ - Ä¡¸í»ó
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
 #else CHUNG_SECOND_CLASS_CHANGE
@@ -9798,7 +10164,7 @@ void CX2GameUnit::ExtraDamagePack::Init()
 	m_StigmaDebuff.Init();
 	
 	m_Dryad.Init();
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 	m_Blind.Init();
 #endif NEW_SKILL_2010_11
 
@@ -9806,12 +10172,12 @@ void CX2GameUnit::ExtraDamagePack::Init()
 	m_WaterHold.Init();
 #endif EDT_WATER_HOLD_TEST
 
-	//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 	m_Panic.Init();
 	m_Pain.Init();
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
-	//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 	m_LegShot.Init();
@@ -10051,7 +10417,7 @@ bool CX2GameUnit::ExtraDamagePack::Verify()
 		|| m_MagicDefenceDebuff.Verify() == false 
 		|| m_StigmaDebuff.Verify() == false
 		|| m_Dryad.Verify() == false
-#ifdef NEW_SKILL_2010_11 // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.12.7] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+#ifdef NEW_SKILL_2010_11 // oasis907 : ±è»óÀ± [2010.12.7] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 		|| m_Blind.Verify() == false
 #endif NEW_SKILL_2010_11
 
@@ -10059,12 +10425,12 @@ bool CX2GameUnit::ExtraDamagePack::Verify()
 		|| m_WaterHold.Verify() == false
 #endif EDT_WATER_HOLD_TEST
 
-	//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 		|| m_Panic.Verify() == false
 		|| m_Pain.Verify() == false
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
-	//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+	//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 		|| m_LegShot.Verify() == false
@@ -10072,8 +10438,8 @@ bool CX2GameUnit::ExtraDamagePack::Verify()
 #ifdef HAMEL_NEW_SETOPTION_EXTRADAMAGE
 		|| m_EarthQuake.Verify() == false
 #endif HAMEL_NEW_SETOPTION_EXTRADAMAGE
-		// edit verify ï¿½Ê¹ï¿½ ï¿½ï¿½ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
-		// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!
+		// edit verify ³Ê¹« ¸¹¾Æ¼­ ¼º´É ÀúÇÏ ¿ì·ÁµÊ
+		// ´õÀÌ»ó Ãß°¡ÇÏÁö ¾ÊÀ½!
 		)
 	{
 		return false;
@@ -10102,7 +10468,7 @@ void CX2GameUnit::SetLockOnNearTarget_LUA( CX2DamageEffect::CEffect* pCEffect, i
 }	
 
 #ifdef NEW_SKILL_2010_11
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2010.11.8] // ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - EDT_BLIND
+//{{ oasis907 : ±è»óÀ± [2010.11.8] // ·Îµå ³ªÀÌÆ® - »÷µå ½ºÅè - EDT_BLIND
 float CX2GameUnit::GetAttackRateByAbnormalityBlind()
 {
 	if(m_ExtraDamagePack.m_Blind.m_fTime > 0)
@@ -10114,20 +10480,20 @@ float CX2GameUnit::GetAttackRateByAbnormalityBlind()
 //}}
 #endif NEW_SKILL_2010_11
 
-//{{ 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+//{{ 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04				
 
 /** @function : GetCriticalValueFromDefender
-	@brief : ï¿½Ç°ï¿½ï¿½Ú°ï¿½ Å©ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief : ÇÇ°ÝÀÚ°¡ Å©¸®Æ¼ÄÃÀ» ´çÇÒ ±âÁØ È®·ü °è»ê
 	@param : void
-	@return : È®ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½Æ¼ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½Ì°Íºï¿½ï¿½ï¿½ Å©ï¿½ï¿½ Å©ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ´Â´ï¿½.)
+	@return : È®·ü (°ø°ÝÀÚÀÇ Å©¸®Æ¼ÄÃ È®·üÀÌ ÀÌ°Íº¸´Ù Å©¸é Å©¸®Æ¼ÄÃ µ¥¹ÌÁö¸¦ ¹Þ´Â´Ù.)
 */
 const float CX2GameUnit::GetCriticalValueFromDefender()
 {
-	// ï¿½ï¿½ï¿½ï¿½ï¿½Ú·Îºï¿½ï¿½ï¿½ Critical ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+	// °ø°ÝÀÚ·ÎºÎÅÍ Critical µ¥¹ÌÁö¸¦ ¹ÞÀ» È®·ü
 	float fCriticalRateToGetFromAttacker = GetRandomFloat( CKTDXRandomNumbers::SRO_ATTACK_CRITICAL );
 	
-	// ï¿½Ð´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	// ÆÐ´Ð »óÅÂÀÎ °æ¿ì
 	if ( 0.0f < m_ExtraDamagePack.m_Panic.m_fTime )
 	{
 		fCriticalRateToGetFromAttacker -= m_ExtraDamagePack.m_Panic.m_fCriticalRateToDefender;
@@ -10138,7 +10504,7 @@ const float CX2GameUnit::GetCriticalValueFromDefender()
 	return fCriticalRateToGetFromAttacker;
 }
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
-//}} 2011-04 ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã» Ä³ï¿½ï¿½ ï¿½ï¿½Å³
+//}} 2011-04 ¿¡ ÆÐÄ¡µÉ Ã» Ä³½Ã ½ºÅ³
 
 #ifdef GRAPPLING_TEST
 //////////////////////////////////////////////////////////////////////////
@@ -10251,7 +10617,7 @@ void CX2GameUnit::GrapplingState::CalcGrappledPosition()
 #endif GRAPPLING_TEST
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2011.6.20] Ã» 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½Ì¾ï¿½ ï¿½È¶ï¿½ï¿½
+// oasis907 : ±è»óÀ± [2011.6.20] Ã» 2Â÷ ÀüÁ÷ - ¾ÆÀÌ¾ð ÆÈ¶óµò
 void CX2GameUnit::ProcessTransitDebuff( const CX2DamageManager::DamageData* pDamageData_, CX2GameUnit* pTargetUnit_ )
 {
 	if ( NULL != pTargetUnit_ && pTargetUnit_->GetNowHp() > 0.0f )
@@ -10264,7 +10630,7 @@ void CX2GameUnit::ProcessTransitDebuff( const CX2DamageManager::DamageData* pDam
 		if( NULL != pDamageData_ )
 			iMaxAccumulation = pDamageData_->m_ExtraDamage.m_Accumulation;
 
-		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ÀüÀÌ °¡´ÉÇÑ ÃÖ´ë °³¼ö Á¦ÇÑ
 		if( static_cast<int>(m_vecKDebuffFactorListToTransit.size()) > iMaxAccumulation )
 			m_vecKDebuffFactorListToTransit.resize( iMaxAccumulation );
 		
@@ -10275,15 +10641,18 @@ void CX2GameUnit::ProcessTransitDebuff( const CX2DamageManager::DamageData* pDam
 			pTargetUnit_->SetKBuffFactorPacketToGameUnit( m_vecKDebuffFactorListToTransit );
 
 #ifdef FIX_EDT_ENCHANT
-		auto ExtraDamageCheck = [&iTransitDebuffNum, iMaxAccumulation]
-		( CX2DamageManager::ExtraDamageData& DefenderExtraDamage, 
-			CX2DamageManager::ExtraDamageData& AttackerExtraDamage)->bool
+		/** @function : TransitExtraDamage
+			@brief : °ø°ÝÇÑ À¯ÀúÀÇ µð¹öÇÁ¸¦ ÇÇ°Ý´çÇÑ À¯Àú¿¡°Ô·Î ÀüÀÌ
+			@return : ÀüÀÌ ¼º°ø : true, ÀüÀÌ ½ÇÆÐ : false
+		*/
+		auto TransitExtraDamage = [OUT &iTransitDebuffNum, IN iMaxAccumulation]
+		( OUT CX2DamageManager::ExtraDamageData& DefenderExtraDamage, OUT CX2DamageManager::ExtraDamageData& AttackerExtraDamage)->bool
 		{
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½ï¿½ß´Ù¸ï¿½ Ã¼Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+			// ÀüÀÌ °¡´ÉÇÑ ÃÖ´ë °³¼ö °Ë»ç
 			if( iTransitDebuffNum >= iMaxAccumulation )
 				return false;
 
-			// ï¿½Ø´ï¿½ EDTï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ 0.f ï¿½Ê°ï¿½ï¿½ß´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// EDT Á¸Àç ¿©ºÎ °Ë»ç
 			if( AttackerExtraDamage.m_fTime > 0.f )
 			{
 				++iTransitDebuffNum;
@@ -10293,17 +10662,17 @@ void CX2GameUnit::ProcessTransitDebuff( const CX2DamageManager::DamageData* pDam
 
 			return true;
 		};
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
- 		if( false == ExtraDamageCheck( pTargetUnit_->m_ExtraDamagePack.m_EnchantBlaze, m_ExtraDamagePack.m_EnchantBlaze) )
+		// ºí·¹ÀÌÁî
+ 		if( false == TransitExtraDamage( pTargetUnit_->m_ExtraDamagePack.m_EnchantBlaze, m_ExtraDamagePack.m_EnchantBlaze) )
  			return;
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		if( false == ExtraDamageCheck( pTargetUnit_->m_ExtraDamagePack.m_EnchantFrozen, m_ExtraDamagePack.m_EnchantFrozen) )
+		// ÇÁ·ÎÁð
+		if( false == TransitExtraDamage( pTargetUnit_->m_ExtraDamagePack.m_EnchantFrozen, m_ExtraDamagePack.m_EnchantFrozen) )
 			return;
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		if( false == ExtraDamageCheck( pTargetUnit_->m_ExtraDamagePack.m_EnchantPoison, m_ExtraDamagePack.m_EnchantPoison) )
+		// Æ÷ÀÌÁð
+		if( false == TransitExtraDamage( pTargetUnit_->m_ExtraDamagePack.m_EnchantPoison, m_ExtraDamagePack.m_EnchantPoison) )
 			return;
-		// ï¿½ï¿½Å©
-		if( false == ExtraDamageCheck( pTargetUnit_->m_ExtraDamagePack.m_EnchantShock, m_ExtraDamagePack.m_EnchantShock) )
+		// ¼îÅ©
+		if( false == TransitExtraDamage( pTargetUnit_->m_ExtraDamagePack.m_EnchantShock, m_ExtraDamagePack.m_EnchantShock) )
 			return;
 #endif // FIX_EDT_ENCHANT
 	}
@@ -10421,30 +10790,40 @@ void CX2GameUnit::UpdateVisibilitySmallGageAndName()
 		CX2GUUser* pMyUser = g_pX2Game->GetMyUnit();
 
 		if ( NULL != pMyUser && false == pMyUser->GetWhiteOut() 
-			 && GetNowHp() > 0.0f && GetColor().a > 0.5f && g_pX2Game->GetFocusUnit() )
+			&& GetNowHp() > 0.0f && GetColor().a > 0.5f && g_pX2Game->GetFocusUnit() )
 		{
-			const D3DXVECTOR3& vFocusGameUnitPosition = g_pX2Game->GetFocusUnit()->GetPos();
-			const float fDistance3Sq = GetDistance3Sq( vFocusGameUnitPosition, GetPos() );
-
-			if ( fDistance3Sq < 1000000.0f )
+#ifdef FIELD_BOSS_RAID // ·»´õ °Å¸® Ã¼Å©
+			if( true == GetIsBosRaidNPC() )
 			{
-				CX2Camera* pCX2Camera = g_pX2Game->GetX2Camera();
-				const CKTDGCamera* pCamera = pCX2Camera->GetCamera();
-				const D3DXVECTOR3 lookVec = pCamera->GetLookVec();
-				const D3DXVECTOR3& vEyePos = pCamera->GetEye();
+				SetShowSmallGageAndName( false );
+				return;
+			}
+			else
+#endif // FIELD_BOSS_RAID
+			{
+				const D3DXVECTOR3& vFocusGameUnitPosition = g_pX2Game->GetFocusUnit()->GetPos();
+				const float fDistance3Sq = GetDistance3Sq( vFocusGameUnitPosition, GetPos() );
 
-				const D3DXVECTOR3 vFromCameraToOwnerUnitDirection = GetPos() - vEyePos;
-				const float fDelta = D3DXVec3Dot( &lookVec, &vFromCameraToOwnerUnitDirection );
-
-				if ( fDelta >= 0 )
+				if ( fDistance3Sq < 1000000.0f )
 				{
-					SetShowSmallGageAndName( true );
-					return;
+					CX2Camera* pCX2Camera = g_pX2Game->GetX2Camera();
+					const CKTDGCamera& kCamera = pCX2Camera->GetCamera();
+					const D3DXVECTOR3 lookVec = kCamera.GetLookVec();
+					const D3DXVECTOR3& vEyePos = kCamera.GetEye();
+
+					const D3DXVECTOR3 vFromCameraToOwnerUnitDirection = GetPos() - vEyePos;
+					const float fDelta = D3DXVec3Dot( &lookVec, &vFromCameraToOwnerUnitDirection );
+
+					if ( fDelta >= 0 )
+					{
+						SetShowSmallGageAndName( true );
+						return;
+					}
 				}
 			}
 		}
 		
-		// ï¿½Ì°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ô´Âµï¿½ ï¿½ï¿½ï¿½ï¿½ fDelta >= 0 ï¿½ï¿½ ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ false
+		// ÀÌ°÷¿¡ µé¾î¿Ô´Âµ¥ À§ÀÇ fDelta >= 0 ¿¡ Æ÷ÇÔµÇÁö ¸øÇßÀ¸¸é false
 		SetShowSmallGageAndName( false );
 	}
 	else
@@ -10499,7 +10878,7 @@ void CX2GameUnit::DownCrashCamera( const float fSpeed_ /*= -100.0f*/, const floa
 	if ( IsMyUnit() || GetDistance3Sq( g_pX2Game->GetMyUnit()->GetPos(), GetPos() ) < LIMIT_DISTANCE_SQ )
 #endif FIX_OBSERVER_MODE_CRASH
 	{
-		g_pX2Game->GetX2Camera()->GetCamera()->DownCrashCamera( fSpeed_, fAccel_ );
+		g_pX2Game->GetX2Camera()->GetCamera().DownCrashCamera( fSpeed_, fAccel_ );
 	}
 }
 
@@ -10512,7 +10891,7 @@ void CX2GameUnit::UpCrashCamera( const float fSpeed_ /*= 100.0f*/, const float f
 	if ( IsMyUnit() || GetDistance3Sq( g_pX2Game->GetMyUnit()->GetPos(), GetPos() ) < LIMIT_DISTANCE_SQ )
 #endif FIX_OBSERVER_MODE_CRASH
 	{
-		g_pX2Game->GetX2Camera()->GetCamera()->UpCrashCamera( fSpeed_, fAccel_ );
+		g_pX2Game->GetX2Camera()->GetCamera().UpCrashCamera( fSpeed_, fAccel_ );
 	}
 }
 
@@ -10525,7 +10904,7 @@ void CX2GameUnit::UpDownCrashCamera( const float fGap_ /*= 10.0f*/, const float 
 	if ( IsMyUnit() || GetDistance3Sq( g_pX2Game->GetMyUnit()->GetPos(), GetPos() ) < LIMIT_DISTANCE_SQ )
 #endif FIX_OBSERVER_MODE_CRASH
 	{
-		g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( fGap_, fTime_ );
+		g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( fGap_, fTime_ );
 	}
 }
 
@@ -10538,7 +10917,7 @@ void CX2GameUnit::UpDownCrashCameraNoReset( const float fGap_ /*= 10.0f*/, const
 	if ( IsMyUnit() || GetDistance3Sq( g_pX2Game->GetMyUnit()->GetPos(), GetPos() ) < LIMIT_DISTANCE_SQ )
 #endif FIX_OBSERVER_MODE_CRASH
 	{
-		g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCameraNoReset( fGap_, fTime_ );
+		g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCameraNoReset( fGap_, fTime_ );
 	}
 }
 
@@ -10551,7 +10930,7 @@ void CX2GameUnit::LeftRightCrashCameraNoReset( const float fGap_ /*= 10.0f*/, co
 	if ( IsMyUnit() || GetDistance3Sq( g_pX2Game->GetMyUnit()->GetPos(), GetPos() ) < LIMIT_DISTANCE_SQ )
 #endif FIX_OBSERVER_MODE_CRASH
 	{
-		g_pX2Game->GetX2Camera()->GetCamera()->LeftRightCrashCameraNoReset( fGap_, fTime_ );
+		g_pX2Game->GetX2Camera()->GetCamera().LeftRightCrashCameraNoReset( fGap_, fTime_ );
 	}
 }
 
@@ -10564,7 +10943,7 @@ void CX2GameUnit::ShakeLeftRight( const float fGap_ /*= 10.f*/, const float fTim
 	if ( IsMyUnit() || GetDistance3Sq( g_pX2Game->GetMyUnit()->GetPos(), GetPos() ) < LIMIT_DISTANCE_SQ )
 #endif FIX_OBSERVER_MODE_CRASH
 	{
-		g_pX2Game->GetX2Camera()->GetCamera()->ShakeLeftRight( fGap_, fTime_, fTimeGap_ );
+		g_pX2Game->GetX2Camera()->GetCamera().ShakeLeftRight( fGap_, fTime_, fTimeGap_ );
 	}
 }
 
@@ -10595,31 +10974,53 @@ void CX2GameUnit::UpNowMpPerHitOthersWithDamageEffect( const float fHitAddMp_, c
 	CX2GameUnit::UpNowMpPerHitOthers( fHitAddMp_, iAddValueByTeam_, fRel_ );
 }
 
-#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
 /** @function	: UpNowHpPerHitOthers
-	@brief		: HIT_ADD_HP_PERCENT ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½ È¸ï¿½ï¿½ ( ï¿½ï¿½ HPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
-	@param		: È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief		: HIT_ADD_HP_PERCENT ¸¦ ÅëÇÑ °ø°Ý ¼º°ø½Ã, °ø°ÝÀÚÀÇ Ã¼·Â È¸º¹ ( ÃÑ HPÀÇ ¹èÀ² )
+	@param		: È¸º¹ ¹èÀ²
 */
 void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 {
-	const float fAddHPRate = max( GetMaxHp() * fHitAddHpPer_, 1.f );	/// È¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	const float fAddHPRate = max( GetMaxHp() * fHitAddHpPer_, 1.f );	/// È¸º¹ ¹èÀ²
 
 	UpNowHp( fAddHPRate );
 
-	D3DXVECTOR3 pos	= GetPos();		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	D3DXVECTOR3 pos	= GetPos();		/// ¹®±¸ À§Ä¡ ¼³Á¤
 	pos.y += 50.0f;
 
-	WCHAR wszBuf[256] = {0,};		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	WCHAR wszBuf[256] = {0,};		/// ¹®±¸ ¼³Á¤
 	StringCchPrintf( wszBuf, 256, L"HP +%d", static_cast<int>( fAddHPRate ) );
 
 	g_pData->GetPicCharGreen()->DrawText( wszBuf, pos, GetDirVector(), CKTDGPicChar::AT_CENTER );
 }
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
+#ifdef ADD_MEMO_1ST_CLASS //±èÃ¢ÇÑ
+/** @function	: UpNowHpPerHitbyAttackPower
+	@brief		: HIT_ADD_HP_PERCENT_ATTACKPOWER ¸¦ ÅëÇÑ °ø°Ý ¼º°ø½Ã, °ø°ÝÀÚÀÇ Ã¼·Â È¸º¹ ( ¹°¸¶°ø Æò±Õ¿¡ ºñ·Ê )
+	@param		: È¸º¹ ¹èÀ²
+*/
+void CX2GameUnit::UpNowHpPerHitbyAttackPower( IN const float fHitAddHpPer_ )
+{
+	const CX2Stat::Stat& MyStat = GetStat().GetStat();
+	const float fAddHPRate = ( (MyStat.m_fAtkMagic + MyStat.m_fAtkPhysic) * 0.5f * fHitAddHpPer_ );
+
+	UpNowHp( fAddHPRate );
+
+	D3DXVECTOR3 pos	= GetPos();		/// ¹®±¸ À§Ä¡ ¼³Á¤
+	pos.y += 50.0f;
+
+	WCHAR wszBuf[256] = {0,};		/// ¹®±¸ ¼³Á¤
+	StringCchPrintf( wszBuf, 256, L"HP +%d", static_cast<int>( fAddHPRate ) );
+
+	g_pData->GetPicCharGreen()->DrawText( wszBuf, pos, GetDirVector(), CKTDGPicChar::AT_CENTER );
+}
+#endif //ADD_MEMO_1ST_CLASS
+
 /** @function : SetBuffFactorToDamageData
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(uiBuffFactorId_)
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½(false)
+	@brief : ¹öÇÁÆÑÅÍ ID·Î °ÔÀÓÀ¯´ÖÀÇ µ¥¹ÌÁöµ¥ÀÌÅÍ¿¡ ¹öÇÁÆÑÅÍ Ãß°¡
+	@param : ¹öÇÁÆÑÅÍID(uiBuffFactorId_)
+	@return : ¼öÇàÇÔ(true), ¾ÈÇÔ(false)
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 /*virtual*/ bool CX2GameUnit::SetBuffFactorToDamageData( const UINT uiBuffFactorId_, IN const UINT uiLevel_/* = 1*/ )
@@ -10635,10 +11036,10 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 		
 		if ( NULL != ptrBuffFactorClone )
 		{
-			GetDamageData()->PushBuffFactor( ptrBuffFactorClone );
+			GetDamageData().PushBuffFactor( ptrBuffFactorClone );
 		}
 #else //UPGRADE_SKILL_SYSTEM_2013
-		GetDamageData()->PushBuffFactor( ptrBuffFactor );
+		GetDamageData().PushBuffFactor( ptrBuffFactor );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		return true;
 	}
@@ -10647,9 +11048,9 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 }
 
 /** @function : SetBuffFactorToGameUnitByBuffFactorID
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(uiBuffFactorId_)
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½(false)
+	@brief : ¹öÇÁÆÑÅÍ ID·Î °ÔÀÓÀ¯´Ö¿¡ ¹öÇÁ Àû¿ë
+	@param : ¹öÇÁÆÑÅÍID(uiBuffFactorId_)
+	@return : ¼öÇàÇÔ(true), ¾ÈÇÔ(false)
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 /*virtual*/ bool CX2GameUnit::SetBuffFactorToGameUnitByBuffFactorID( const UINT uiBuffFactorId_, IN const UINT uiLevel_ /*= 1*/ )
@@ -10679,9 +11080,9 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 
 #ifdef ADD_LIVE_CREATOR_FINALIZER
 /** @function : SetBuffFactorToGameUnitByBuffFactorIDAndCreatorID
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ID ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID(uiBuffFactorId_), ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ID(uidCreatorID_)
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½(false)
+	@brief : ¹öÇÁÆÑÅÍ ID·Î °ÔÀÓÀ¯´Ö¿¡ ¹öÇÁ Àû¿ë ¹× ¹öÇÁ »ý¼ºÀÚ ID ÀúÀå
+	@param : ¹öÇÁÆÑÅÍID(uiBuffFactorId_), ¹öÇÁ »ý¼ºÀÚ ID(uidCreatorID_)
+	@return : ¼öÇàÇÔ(true), ¾ÈÇÔ(false)
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 /*virtual*/ bool CX2GameUnit::SetBuffFactorToGameUnitByBuffFactorIDAndCreatorID( const UINT uiBuffFactorId_, const UidType iCreatorID_,
@@ -10704,7 +11105,7 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 #endif //UPGRADE_SKILL_SYSTEM_2013
 			if ( NULL != ptrBuffFactorClone )
 			{
-				ptrBuffFactorClone->SetGameUnitBuffFactor( this, iCreatorID_, bIsUserID_ );		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				ptrBuffFactorClone->SetGameUnitBuffFactor( this, iCreatorID_, bIsUserID_ );		/// ¹öÇÁ ½ÃÀüÀÚÀÇ À¯´Ö ID¸¦ ÀúÀå
 				return SetBuffFactorToGameUnit( *ptrBuffFactorClone );
 			}
 		}
@@ -10715,9 +11116,9 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 #endif ADD_LIVE_CREATOR_FINALIZER
 
 /** @function : SetBuffFactorToGameUnit
-	@brief : ï¿½ï¿½Å³ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pSkillTemplet_)
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½(false)
+	@brief : ½ºÅ³ÅÛÇÃ¸´¿¡ ÀÖ´Â ¹öÇÁÆÑÅÍ·Î °ÔÀÓÀ¯´Ö¿¡ ¹öÇÁ Àû¿ë
+	@param : ½ºÅ³Æ®¸®Á¤º¸Æ÷ÀÎÅÍ(pSkillTemplet_)
+	@return : ¼öÇàÇÔ(true), ¾ÈÇÔ(false)
 */
 /*virtual*/ bool CX2GameUnit::SetBuffFactorToGameUnit( const CX2SkillTree::SkillTemplet* pSkillTemplet_, const UINT uiIndex_ )
 {
@@ -10726,11 +11127,14 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 		if ( NULL != pSkillTemplet_ && uiIndex_ < pSkillTemplet_->m_vecBuffFactorPtr.size() )
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( GetGameUnitType() != CX2GameUnit::GUT_USER )
 				return false;
+            CX2Unit* pUnit = static_cast<CX2GUUser*>( this )->GetUnit();
+            if ( pUnit == NULL )
+                return false;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
-			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet_->m_eID ) );	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+			const CX2UserSkillTree& userSkillTree = pUnit->GetUnitData().m_UserSkillTree;
+			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet_->m_eID ) );	/// ½ºÅ³ ·¹º§
 
 			CX2BuffFactorPtr ptrBuffFactorClone = pSkillTemplet_->m_vecBuffFactorPtr[uiIndex_]->GetClonePtr( iSkillTempletLevel );
 #else //UPGRADE_SKILL_SYSTEM_2013
@@ -10750,9 +11154,9 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 }
 
 /** @function : SetBuffFactorToGameUnit
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(buffFactor_)
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½(false)
+	@brief : °ÔÀÓÀ¯´Ö¿¡°Ô ¹öÇÁ Àû¿ë
+	@param : ¾î¶² ¹öÇÁ¸¦ Àû¿ëÇÒ °ÍÀÎ°¡¿¡ ´ëÇÑ Á¤º¸(buffFactor_)
+	@return : ¼öÇàÇÔ(true), ¾ÈÇÔ(false)
 */
 /*virtual*/ bool CX2GameUnit::SetBuffFactorToGameUnit( const CX2BuffFactor& buffFactor_ )
 {
@@ -10764,27 +11168,26 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 	const float fRegist = ( buffFactor_.GetIgnoreRegistForRate() ? 
 		0.0f : GetEnchantResist( static_cast<CX2EnchantItem::ENCHANT_TYPE>( ptrBuffTemplet->GetRegistType() ) ) / CX2EnchantItem::EAR_MAX_VALUE );
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	const float fRate = buffFactor_.GetRate( 1 ); //ï¿½É¸ï¿½ È®ï¿½ï¿½
+	const float fRate = buffFactor_.GetRate( 1 ); //°É¸± È®·ü
 #else //UPGRADE_SKILL_SYSTEM_2013
-	const float fRate = buffFactor_.GetRate(); //ï¿½É¸ï¿½ È®ï¿½ï¿½
+	const float fRate = buffFactor_.GetRate(); //°É¸± È®·ü
 #endif //UPGRADE_SKILL_SYSTEM_2013
-	const float fRateAndRegist = fRate * (1.0f - fRegist); //Registï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ È®ï¿½ï¿½
-	
+	const float fRateAndRegist = fRate * (1.0f - fRegist); //Regist°ª Æ÷ÇÔÇÑ °É¸± È®·ü
 	float fRandomFloat = GetRandomFloat() ;
 
 	if ( fRate < fRandomFloat )
 	{
 		return false;
 	}
-
-	if ( fRateAndRegist < fRandomFloat ) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ð½Ã¿ï¿½ RESISTï¿½ï¿½ï¿½
+	
+	if ( fRateAndRegist < fRandomFloat ) // ÀúÇ×À¸·Î ÀÎÇÑ ½ÇÆÐ½Ã¿¡ RESISTÃâ·Â
 	{
 		if( NULL != g_pData->GetPicCharBlue() )
 			g_pData->GetPicCharBlue()->DrawText( L"RESIST", GetHeadBonePos(), GetDirVector(), CKTDGPicChar::AT_CENTER );
 		return false;
 	}
 
-	/// ï¿½É·ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	/// °É·ÁÀÖ´Â ¹öÇÁ°¡ ¾øÀ¸¸é
 	if ( m_vecBuffTempletPtr.empty() )
 	{
 		PushNewBuffTempletToGameUnit( ptrBuffTemplet, buffFactor_, 1 );
@@ -10802,39 +11205,39 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 
 		switch ( uiAccumulationLimit )
 		{
-		case 0:	/// ï¿½ßºï¿½
+		case 0:	/// Áßº¹
 			{	
-				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ uniqueNumï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+				/// ¹öÇÁ¾ÆÀÌµð°¡ °°Àº ¹öÇÁÀÇ °³¼ö¸¦ ¹öÇÁ¸¦ ±¸ºÐÇÏ´Â uniqueNumÀ¸·Î »ç¿ë
 				UINT uiCount = std::count_if( m_vecBuffTempletPtr.begin(), m_vecBuffTempletPtr.end(), FindFunc );
 
 				PushNewBuffTempletToGameUnit( ptrBuffTemplet, buffFactor_, uiCount );
 			} break;
 
-		case 1:	/// ï¿½ï¿½Ã¼
+		case 1:	/// ±³Ã¼
 			{
 				vector<CX2BuffTempletPtr>::iterator vItr
 					= std::find_if( m_vecBuffTempletPtr.begin(), m_vecBuffTempletPtr.end(), FindFunc );
 
 				if ( m_vecBuffTempletPtr.end() != vItr )
 					(*vItr)->SetFactor( buffFactor_, this );
-				else	/// ï¿½ßºï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ BUFF_TEMPLET_IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ uniqueNumï¿½ï¿½ 1ï¿½Ì´ï¿½.
+				else	/// Áßº¹ÀÌ ¾Æ´Ñ °æ¿ì ¿¡´Â BUFF_TEMPLET_ID°¡ °°Àº ¹öÇÁ°¡ 1°³ ÀÌ»ó Á¸Àç ÇÒ ¼ö ¾ø±â ¶§¹®¿¡ uniqueNumÀº 1ÀÌ´Ù.
 					PushNewBuffTempletToGameUnit( ptrBuffTemplet, buffFactor_, 1 );
 			} break;
 
-		default:	/// ï¿½ï¿½Ã¸
+		default:	/// ÁßÃ¸
 			{
 				vector<CX2BuffTempletPtr>::iterator vItr
 					= std::find_if( m_vecBuffTempletPtr.begin(), m_vecBuffTempletPtr.end(), FindFunc );
 
 				if ( m_vecBuffTempletPtr.end() != vItr )
 				{
-					/// ï¿½Ö´ï¿½ ï¿½ï¿½Ã¸ Ä«ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¸ï¿½ï¿½ È½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+					/// ÃÖ´ë ÁßÃ¸ Ä«¿îÆ® º¸´Ù ÁßÃ¸µÈ È½¼ö°¡ ÀûÀ¸¸é
 					if ( (*vItr)->GetAccumulationCountNow() < uiAccumulationLimit )
 						(*vItr)->SetFactor( buffFactor_, this );
-					else	/// ï¿½Ö´ï¿½ ï¿½ï¿½Ã¸ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+					else	/// ÃÖ´ë ÁßÃ¸ÀÌ µÇ¾úÀ¸¸é Á¾·áÁ¶°Ç¸¸ °»½Å
 						(*vItr)->SetFactorToOnlyFinalizer( buffFactor_, this );
 				}
-				else	/// ï¿½ßºï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ BUFF_TEMPLET_IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ uniqueNumï¿½ï¿½ 1ï¿½Ì´ï¿½.
+				else	/// Áßº¹ÀÌ ¾Æ´Ñ °æ¿ì ¿¡´Â BUFF_TEMPLET_ID°¡ °°Àº ¹öÇÁ°¡ 1°³ ÀÌ»ó Á¸Àç ÇÒ ¼ö ¾ø±â ¶§¹®¿¡ uniqueNumÀº 1ÀÌ´Ù.
 					PushNewBuffTempletToGameUnit( ptrBuffTemplet, buffFactor_, 1 );
 			} break;
 		}
@@ -10843,32 +11246,33 @@ void CX2GameUnit::UpNowHpPerHitOthers( IN const float fHitAddHpPer_ )
 }
 
 /** @function : PushNewBuffTempletToGameUnit
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É·ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½(ï¿½Ç´ï¿½ ï¿½ßºï¿½) ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½(ptrBuffTemplet_), ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(buffFactor_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ï¿½ï¿½ï¿½ï¿½ Uniqueï¿½ï¿½(uiUniqueNum_)
+	@brief : ±âÁ¸¿¡ °É·ÁÀÖ´Â ¹öÇÁ°¡ ¾Æ´Ñ °æ¿ì(¶Ç´Â Áßº¹) »õ·Î¿î ¹öÇÁ Àû¿ë
+	@param : Àû¿ëÇØ¾ßÇÒ ¹öÇÁÀÇ ÅÛÇÃ¸´Á¤º¸(ptrBuffTemplet_), Àû¿ëÇØ¾ßÇÒ ¹öÇÁÀÇ ¿ä¼ÒÁ¤º¸(buffFactor_), ¹öÇÁ¾ÆÀÌµð°¡ °°Àº°æ¿ì ±¸ºÐÇÏ±âÀ§ÇÑ Unique°ª(uiUniqueNum_)
 */
 void CX2GameUnit::PushNewBuffTempletToGameUnit( IN CX2BuffTempletPtr ptrBuffTemplet_, const CX2BuffFactor& buffFactor_, const UINT uiUniqueNum_ )
 {
 	CX2BuffTempletPtr ptrCloneBuffTemplet = ptrBuffTemplet_->GetClonePtr();
 	if ( NULL != ptrCloneBuffTemplet )
 	{
+#ifdef FIELD_BOSS_RAID // µð¹öÇÁ ÀÌ¹Ã °Ë»ç
+		if( true == GetIsImmuneDebuff() &&
+			true == ptrCloneBuffTemplet->IsDeBuff() )
+			return;
+#endif // FIELD_BOSS_RAID
+
 		ptrCloneBuffTemplet->SetUniqueNum( uiUniqueNum_ );
 		if ( ptrCloneBuffTemplet->SetFactor( buffFactor_, this ) )
 		{
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// µð¹öÇÁ¸é µð¹öÇÁÄ«¿îÆ®¸¦, ¹öÇÁ¸é ¹öÇÁÄ«¿îÆ®¸¦ Áõ°¡
 			( true == ptrCloneBuffTemplet->IsDeBuff() ? SetNumOfDeBuff( GetNumOfDeBuff() + 1 ) : SetNumOfBuff( GetNumOfBuff() + 1 ) );
-			/// ï¿½ï¿½ ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½(ex: ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½...)
+			/// °¢ À¯´Ö¸¶´Ù Æ¯Á¤ ¹öÇÁ°¡ ½ÇÇàµÉ ¶§ ¼ÂÆÃÇØÁà¾ß ÇÏ´Â °ª(ex: ¸ÅÁöÄÃ¸ÞÀÌÅ©¾÷ÀÌ ½ÃÀüÁßÀÌ¶ó´Â ÇÃ·¡±× µî...)
 			SetSpecificValueByBuffTempletID( ptrCloneBuffTemplet->GetBuffTempletID() );
 			m_vecBuffTempletPtr.push_back( ptrCloneBuffTemplet );
 #ifdef BUFF_ICON_UI		
 			if( true == ptrCloneBuffTemplet->GetUseBuffIcon() )
 			{
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-				CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(),
-					ptrCloneBuffTemplet->GetIconKeyName(), ptrCloneBuffTemplet->GetBuffName(), ptrCloneBuffTemplet->GetBuffDesc(), ptrCloneBuffTemplet->GetRemainDurationTime() ), ptrCloneBuffTemplet->IsDeBuff() );
-#else
-				CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(),
+				CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(), 
 					ptrCloneBuffTemplet->GetIconKeyName(), ptrCloneBuffTemplet->GetBuffName(), ptrCloneBuffTemplet->GetBuffDesc() ), ptrCloneBuffTemplet->IsDeBuff() );
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 			}
 #endif //BUFF_ICON_UI
 		}
@@ -10876,8 +11280,8 @@ void CX2GameUnit::PushNewBuffTempletToGameUnit( IN CX2BuffTempletPtr ptrBuffTemp
 }
 
 /** @function : EraseBuffTempletFromGameUnit
-	@brief : ï¿½É·ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½IDï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ID(eBuffTempletID_)
+	@brief : °É·ÁÀÖ´Â ¹öÇÁ Áß ÅÛÇÃ¸´ID¿Í ÀÏÄ¡ÇÏ´Â ¹öÇÁ ÇØÁ¦
+	@param : ¹öÇÁÅÛÇÃ¸´ID(eBuffTempletID_)
 */
 void CX2GameUnit::EraseBuffTempletFromGameUnit( const BUFF_TEMPLET_ID eBuffTempletID_ )
 {
@@ -10896,8 +11300,8 @@ void CX2GameUnit::EraseBuffTempletFromGameUnit( const BUFF_TEMPLET_ID eBuffTempl
 }
 
 /** @function : EraseBuffTempletFromGameUnitByIterator
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ iteratorï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ iterator
+	@brief : Àü´Þ ¹ÞÀº iterator¿¡ ÇØ´çÇÏ´Â ¹öÇÁ ÇØÁ¦
+	@param : ÇØÁ¦ÇÒ ¹öÇÁÀÇ iterator
 */
 void CX2GameUnit::EraseBuffTempletFromGameUnitByIterator( vector<CX2BuffTempletPtr>::iterator vItr_ )
 {
@@ -10914,8 +11318,8 @@ void CX2GameUnit::EraseBuffTempletFromGameUnitByIterator( vector<CX2BuffTempletP
 }
 
 /** @function : ReserveToFinishBuffTempletFromGameUnit
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ ID
+	@brief : ´ÙÀ½ Á¾·á Ã¼Å©½Ã ÇØ´ç ¹öÇÁ°¡ Á¾·á µÇµµ·Ï ÇÏ´Â ÇÔ¼ö
+	@param : Á¾·á ½ÃÅ³ ¹öÇÁ ÅÛÇÃ¸´ ID
 */
 void CX2GameUnit::ReserveToFinishBuffTempletFromGameUnit( const BUFF_TEMPLET_ID eBuffTempletID_ )
 {
@@ -10932,9 +11336,9 @@ void CX2GameUnit::ReserveToFinishBuffTempletFromGameUnit( const BUFF_TEMPLET_ID 
 }
 
 /** @function : GetAppliedBuffCount
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½É·ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : trueï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(bIsDebuff_)
-	@return : ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ÇöÀç °É·ÁÀÖ´Â ¹öÇÁ/µð¹öÇÁÀÇ °³¼ö¸¦ ¾Ë¾Æ³»±â À§ÇÑ ÇÔ¼ö
+	@param : trueÀÎ °æ¿ì µð¹öÇÁÀÇ °³¼ö ¸®ÅÏ(bIsDebuff_)
+	@return : ¹öÇÁ ¶Ç´Â µð¹öÇÁÀÇ °³¼ö
 */
 UINT CX2GameUnit::GetAppliedBuffCount( const bool bIsDeBuff_ ) const
 {
@@ -10946,8 +11350,8 @@ UINT CX2GameUnit::GetAppliedBuffCount( const bool bIsDeBuff_ ) const
 }
 
 /** @function : CreateAndInsertReverseLeftRightByBuff
-	@brief : ï¿½Â¿ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ÁÂ¿ì¹ÝÀüÈ¿°ú »ý¼º ¹× Àû¿ë
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇØ¼­ Àû¿ë ‰ç´ÂÁö¿¡ ´ëÇÑ Á¤º¸
 */
 void CX2GameUnit::CreateAndInsertReverseLeftRightByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -10957,8 +11361,8 @@ void CX2GameUnit::CreateAndInsertReverseLeftRightByBuff( const KBuffIdentity& Bu
 }
 
 /** @function : ToggleReverseLeftRightByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ý´ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ßµï¿½ï¿½È°Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ÇöÀç Àû¿ëµÈ ÁÂ¿ì ¹ÝÀüÀ» ¹Ý´ë·Î Àû¿ë(BuffIdentity_)
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇØ¼­ ¹ßµ¿µÈ°Í¿¡ Àû¿ëÀ» ÇØ¾ßÇÏ´ÂÁö Á¤º¸
 */
 void CX2GameUnit::ToggleReverseLeftRightByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -10971,8 +11375,8 @@ void CX2GameUnit::ToggleReverseLeftRightByBuff( const KBuffIdentity& BuffIdentit
 
 
 /** @function : EraseReverseLeftRightByBuff
-	@brief : Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Â¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : Æ¯Á¤¹öÇÁ¿¡ ÀÇÇÑ ÁÂ¿ì¹ÝÀü »èÁ¦
+	@param : Æ¯Á¤¹öÇÁ¸¦ ±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseReverseLeftRightByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -10984,8 +11388,8 @@ void CX2GameUnit::EraseReverseLeftRightByBuff( const KBuffIdentity& BuffIdentity
 }
 
 /** @function : CreateAndInsertNeverMoveByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ÇöÀç À§Ä¡¿¡ °íÁ¤ È¿°ú »ý¼º ¹× Àû¿ë
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇØ¼­ Àû¿ë ‰ç´ÂÁö¿¡ ´ëÇÑ Á¤º¸
 */
 #ifdef NEVER_MOVE_GRAVITY_APPLY
 void CX2GameUnit::CreateAndInsertNeverMoveByBuff( const KBuffIdentity& BuffIdentity_, const D3DXVECTOR3& vPos_, const bool vGravity_ )
@@ -11003,8 +11407,8 @@ void CX2GameUnit::CreateAndInsertNeverMoveByBuff( const KBuffIdentity& BuffIdent
 }
 
 /** @function : EraseNeverMoveByBuff
-	@brief : Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : Æ¯Á¤¹öÇÁ¿¡ ÀÇÇÑ ÇöÀç À§Ä¡¿¡ °íÁ¤ È¿°ú »èÁ¦
+	@param : Æ¯Á¤¹öÇÁ¸¦ ±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseNeverMoveByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -11016,8 +11420,8 @@ void CX2GameUnit::EraseNeverMoveByBuff( const KBuffIdentity& BuffIdentity_ )
 }
 
 /** @function : CreateAndInsertRenderParamByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ RenderParam ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½ï¿½ BuffRenderParam ï¿½ï¿½
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ RenderParam º¯°æ Àû¿ë
+	@param : ¾î¶² ¹öÇÁ/µð¹öÇÁ¿¡ ÀÇÇØ¼­ »ý¼ºµÈ È¿°úÀÎÁö¿¡ ´ëÇÑ Á¤º¸(BuffIdentity_), Àû¿ëµÉ BuffRenderParam °ª
 */
 void CX2GameUnit::CreateAndInsertRenderParamByBuff( const KBuffIdentity& BuffIdentity_, const StBuffRenderParam& stBuffRenderParam_ )
 {
@@ -11027,8 +11431,8 @@ void CX2GameUnit::CreateAndInsertRenderParamByBuff( const KBuffIdentity& BuffIde
 }
 
 /** @function : EraseRenderParamByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ RenderParam ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ï´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ RenderParam º¯°æ ÇØÁ¦
+	@param : ¾î¶² ¹öÇÁ/µð¹öÇÁ¿¡ ÀÇÇÑ È¿°ú°¡ »èÁ¦µÇ¾ß ÇÏ´ÂÁö¿¡ ´ëÇÑ Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseRenderParamByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -11039,14 +11443,14 @@ void CX2GameUnit::EraseRenderParamByBuff( const KBuffIdentity& BuffIdentity_ )
 		m_vecRenderParamByBuffPtr.erase( vItr );
 }
 /** @function : InsertAdditionalStat
-	@brief : ï¿½àµ¿ Å¸ï¿½Ôºï¿½ È¿ï¿½ï¿½ ï¿½ß°ï¿½
-	@param : ï¿½àµ¿Å¸ï¿½ï¿½(eBehaviorType_), ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½(eChangeType_), ï¿½î¶²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ë°ª(fValue_)
+	@brief : Çàµ¿ Å¸ÀÔº° È¿°ú Ãß°¡
+	@param : Çàµ¿Å¸ÀÔ(eBehaviorType_), º¯°æÅ¸ÀÔ(eChangeType_), ¾î¶²¹öÇÁ¿¡ ÀÇÇÑ°ÍÀÎÁö±¸ºÐ(BuffIdentity_), Àû¿ë°ª(fValue_)
 */
 void CX2GameUnit::InsertAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_, const BUFF_CHANGE_TYPE eChangeType_, const KBuffIdentity& BuffIdentity_, const float fValue_ )
 {
 	switch ( eBehaviorType_ )
 	{
-	case BBT_CHANGE_MAX_HP:					/// ï¿½Ö´ï¿½HP ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_MAX_HP:					/// ÃÖ´ëHP º¯°æ
 		m_AdditionalMaxHp.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 
 		m_AdditionalMaxHp.CheckAndUpdateResultValue();
@@ -11054,7 +11458,7 @@ void CX2GameUnit::InsertAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_,
 		GetGageData()->SetMaxHp( m_AdditionalMaxHp.GetResultValue() );
 		break;
 
-	case BBT_CHANGE_MAX_MP:					/// ï¿½Ö´ï¿½MP ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_MAX_MP:					/// ÃÖ´ëMP º¯°æ
 		m_AdditionalMaxMp.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 
 		m_AdditionalMaxMp.CheckAndUpdateResultValue();
@@ -11062,97 +11466,97 @@ void CX2GameUnit::InsertAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_,
 		GetGageData()->SetMaxMp( m_AdditionalMaxMp.GetResultValue() );
 		break;
 
-	case BBT_CHANGE_PHYSIC_ATTACK:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý·ï¿½
+	case BBT_CHANGE_PHYSIC_ATTACK:			/// ¹°¸®°ø°Ý·Â
 		m_AdditionalPhysicAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 			
-	case BBT_CHANGE_MAGIC_ATTACK:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý·ï¿½
+	case BBT_CHANGE_MAGIC_ATTACK:			/// ¸¶¹ý°ø°Ý·Â
 		m_AdditionalMagicAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 			
-	case BBT_CHANGE_PHYSIC_DEFENCE:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_PHYSIC_DEFENCE:			/// ¹°¸®¹æ¾î·Â
 		m_AdditionalPhysicDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_MAGIC_DEFENCE:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_MAGIC_DEFENCE:			/// ¸¶¹ý¹æ¾î·Â
 		m_AdditionalMagicDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_ANIM_SPEED:				/// ï¿½ï¿½ï¿½Û¼Óµï¿½
+	case BBT_CHANGE_ANIM_SPEED:				/// µ¿ÀÛ¼Óµµ
 		m_AdditionalAnimSpeed.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_WALK_RUN_SPEED:			/// ï¿½Ìµï¿½ï¿½Óµï¿½
+	case BBT_CHANGE_WALK_RUN_SPEED:			/// ÀÌµ¿¼Óµµ
 		m_AdditionalWalkSpeed.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		m_AdditionalDashSpeed.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 			
-	case BBT_CHANGE_JUMP_POWER:				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_JUMP_POWER:				/// Á¡ÇÁ·Â
 		m_AdditionalJumpPower.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		m_AdditionalDashJumpPower.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_ACCURACY:				/// ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ACCURACY:				/// ¸íÁß
 		m_AdditionalAccuracy.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_AVOIDANCE:					///	È¸ï¿½ï¿½
+	case BBT_CHANGE_AVOIDANCE:					///	È¸ÇÇ
 		m_AdditionalAvoidance.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_CRITICAL_RATE:			/// Å©ï¿½ï¿½Æ¼ï¿½Ã°ï¿½ï¿½ï¿½È®ï¿½ï¿½
+	case BBT_CHANGE_CRITICAL_RATE:			/// Å©¸®Æ¼ÄÃ°ø°ÝÈ®·ü
 		m_AdditionalCriticalRate.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_CRITICAL_ATTACK:			/// Å©ï¿½ï¿½Æ¼ï¿½Ã°ï¿½ï¿½Ý·ï¿½(Å©ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	case BBT_CHANGE_CRITICAL_ATTACK:			/// Å©¸®Æ¼ÄÃ°ø°Ý·Â(Å©¸®Æ¼ÄÃ ½Ã µ¥¹ÌÁö °ü·Ã)
 		m_AdditionalCriticalAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_ANTI_CRITICAL_RATE:		/// Å©ï¿½ï¿½Æ¼ï¿½Ã¹ï¿½ï¿½È®ï¿½ï¿½
+	case BBT_CHANGE_ANTI_CRITICAL_RATE:		/// Å©¸®Æ¼ÄÃ¹æ¾îÈ®·ü
 		m_AdditionalAntiCriticalRate.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_CRITICAL_DEFENCE:		/// Å©ï¿½ï¿½Æ¼ï¿½Ã¹ï¿½ï¿½ï¿½(Å©ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	case BBT_CHANGE_CRITICAL_DEFENCE:		/// Å©¸®Æ¼ÄÃ¹æ¾î·Â(Å©¸®Æ¼ÄÃ ½Ã µ¥¹ÌÁö °ü·Ã)
 		m_AdditionalCriticalDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_ADDITIONAL_ATTACK:		/// ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ADDITIONAL_ATTACK:		/// Ãß°¡µ¥¹ÌÁö
 		m_AdditionalChangeAdditionalAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 			
-	case BBT_CHANGE_ADDITIONAL_DEFENCE:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ADDITIONAL_DEFENCE:		/// µ¥¹ÌÁö°¨¼Ò
 		m_AdditionalChangeAdditionalDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHARGE_MP_HIT_MELEE_ATTACK:					/// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ MP È¸ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHARGE_MP_HIT_MELEE_ATTACK:					/// ±ÙÁ¢ Å¸°Ý ½Ã MP È¸º¹·®
 		m_AdditionalChargeMpHitMeleeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 		
-	case BBT_CHARGE_MP_HIT_RANGE_ATTACK:					/// ï¿½ï¿½ï¿½Å¸ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ MP È¸ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHARGE_MP_HIT_RANGE_ATTACK:					/// ¿ø°Å¸® Å¸°Ý ½Ã MP È¸º¹·®
 		m_AdditionalChargeMpHitRangeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHARGE_MP_HITTED:				/// ï¿½Ç°ï¿½ ï¿½ï¿½ MP È¸ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHARGE_MP_HITTED:				/// ÇÇ°Ý ½Ã MP È¸º¹·®
 		m_AdditionalChargeMpHitted.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_MELEE_ATTACK:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_MELEE_ATTACK:		/// ±ÙÁ¢°ø°Ý ÁÖ´Â µ¥¹ÌÁö º¯°æ
 		m_AdditionalFinalDamageMultiplierMeleeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_RANGE_ATTACK:		/// ï¿½ï¿½ï¿½Å¸ï¿½(DAMAGE_EFFECT)ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_RANGE_ATTACK:		/// ¿ø°Å¸®(DAMAGE_EFFECT)°ø°Ý ÁÖ´Â µ¥¹ÌÁö º¯°æ
 		m_AdditionalFinalDamageMultiplierRangeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_FINAL_DEFENCE_MULTIPLIER:		/// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FINAL_DEFENCE_MULTIPLIER:		/// ¹Þ´Â µ¥¹ÌÁö º¯°æ
 		m_AdditionalFinalDefenceMultiplier.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_MELEE_ATTACK:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FORCE_DOWN ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_MELEE_ATTACK:		/// ±ÙÁ¢°ø°Ý FORCE_DOWN ¼öÄ¡ º¯°æ
 		m_AddtionalForceDownMultiplierMeleeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
-	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_RANGE_ATTACK:		/// ï¿½ï¿½ï¿½Å¸ï¿½(DAMAGE_EFFECT)ï¿½ï¿½ï¿½ï¿½ FORCE_DOWN ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_RANGE_ATTACK:		/// ¿ø°Å¸®(DAMAGE_EFFECT)°ø°Ý FORCE_DOWN ¼öÄ¡ º¯°æ
 		m_AddtionalForceDownMultiplierRangeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
@@ -11189,6 +11593,12 @@ void CX2GameUnit::InsertAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_,
 		m_AdditionalDrainHpNormalAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		break;
 
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+	case BBT_CHANGE_HYPER_CHARGE_SPEED:			/// °¢¼º ÃæÀü ¼Óµµ
+		m_AdditionalHyperCharge.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
+		break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 	default:
 		DISPLAY_ERROR( L"Behavior Type Invalid" );
 		break;
@@ -11196,56 +11606,56 @@ void CX2GameUnit::InsertAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_,
 }
 
 /** @function : UpdateAdditionalStat
-	@brief : ï¿½àµ¿ Å¸ï¿½Ôºï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½àµ¿Å¸ï¿½ï¿½(eBehaviorType_), ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½(eChangeType_), ï¿½î¶²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ë°ª(fValue_)
+	@brief : Çàµ¿ Å¸ÀÔº° È¿°ú °»½Å
+	@param : Çàµ¿Å¸ÀÔ(eBehaviorType_), º¯°æÅ¸ÀÔ(eChangeType_), ¾î¶²¹öÇÁ¿¡ ÀÇÇÑ°ÍÀÎÁö±¸ºÐ(BuffIdentity_), Àû¿ë°ª(fValue_)
 */
 void CX2GameUnit::UpdateAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_, const BUFF_CHANGE_TYPE eChangeType_, const KBuffIdentity& BuffIdentity_, const float fValue_ )
 {
 	switch ( eBehaviorType_ )
 	{
-	case BBT_CHANGE_MAX_HP:					/// ï¿½Ö´ï¿½HP ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_MAX_HP:					/// ÃÖ´ëHP º¯°æ
 		{
 			if ( !m_AdditionalMaxHp.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalMaxHp.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_MAX_MP:					/// ï¿½Ö´ï¿½MP ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_MAX_MP:					/// ÃÖ´ëMP º¯°æ
 		{
 			if ( !m_AdditionalMaxMp.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalMaxMp.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_PHYSIC_ATTACK:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý·ï¿½
+	case BBT_CHANGE_PHYSIC_ATTACK:			/// ¹°¸®°ø°Ý·Â
 		{
 			if ( !m_AdditionalPhysicAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalPhysicAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_MAGIC_ATTACK:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý·ï¿½
+	case BBT_CHANGE_MAGIC_ATTACK:			/// ¸¶¹ý°ø°Ý·Â
 		{
 			if ( !m_AdditionalMagicAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalMagicAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_PHYSIC_DEFENCE:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_PHYSIC_DEFENCE:			/// ¹°¸®¹æ¾î·Â
 		{
 			if ( !m_AdditionalPhysicDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalPhysicDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_MAGIC_DEFENCE:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_MAGIC_DEFENCE:			/// ¸¶¹ý¹æ¾î·Â
 		{
 			if ( !m_AdditionalMagicDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalMagicDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_ANIM_SPEED:				/// ï¿½ï¿½ï¿½Û¼Óµï¿½
+	case BBT_CHANGE_ANIM_SPEED:				/// µ¿ÀÛ¼Óµµ
 		{
 			if ( !m_AdditionalAnimSpeed.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalAnimSpeed.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_WALK_RUN_SPEED:			/// ï¿½Ìµï¿½ï¿½Óµï¿½
+	case BBT_CHANGE_WALK_RUN_SPEED:			/// ÀÌµ¿¼Óµµ
 		{
 			if ( !m_AdditionalWalkSpeed.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalWalkSpeed.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
@@ -11254,7 +11664,7 @@ void CX2GameUnit::UpdateAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_,
 				m_AdditionalDashSpeed.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_JUMP_POWER:				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_JUMP_POWER:				/// Á¡ÇÁ·Â
 		{
 			if ( !m_AdditionalJumpPower.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalJumpPower.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
@@ -11263,135 +11673,135 @@ void CX2GameUnit::UpdateAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_,
 				m_AdditionalDashJumpPower.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_ACCURACY:				/// ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ACCURACY:				/// ¸íÁß
 		{
 			if ( !m_AdditionalAccuracy.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalAccuracy.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_AVOIDANCE:					///	È¸ï¿½ï¿½
+	case BBT_CHANGE_AVOIDANCE:					///	È¸ÇÇ
 		{
 			if ( !m_AdditionalAvoidance.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalAvoidance.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_CRITICAL_RATE:			/// Å©ï¿½ï¿½Æ¼ï¿½Ã°ï¿½ï¿½ï¿½È®ï¿½ï¿½
+	case BBT_CHANGE_CRITICAL_RATE:			/// Å©¸®Æ¼ÄÃ°ø°ÝÈ®·ü
 		{
 			if ( !m_AdditionalCriticalRate.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalCriticalRate.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_CRITICAL_ATTACK:			/// Å©ï¿½ï¿½Æ¼ï¿½Ã°ï¿½ï¿½Ý·ï¿½(Å©ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	case BBT_CHANGE_CRITICAL_ATTACK:			/// Å©¸®Æ¼ÄÃ°ø°Ý·Â(Å©¸®Æ¼ÄÃ ½Ã µ¥¹ÌÁö °ü·Ã)
 		{
 			if ( !m_AdditionalCriticalAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalCriticalAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		}
 		break;
 
-	case BBT_CHANGE_ANTI_CRITICAL_RATE:		/// Å©ï¿½ï¿½Æ¼ï¿½Ã¹ï¿½ï¿½È®ï¿½ï¿½
+	case BBT_CHANGE_ANTI_CRITICAL_RATE:		/// Å©¸®Æ¼ÄÃ¹æ¾îÈ®·ü
 		{
 			if ( !m_AdditionalAntiCriticalRate.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 			m_AdditionalAntiCriticalRate.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_CRITICAL_DEFENCE:		/// Å©ï¿½ï¿½Æ¼ï¿½Ã¹ï¿½ï¿½ï¿½(Å©ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	case BBT_CHANGE_CRITICAL_DEFENCE:		/// Å©¸®Æ¼ÄÃ¹æ¾î·Â(Å©¸®Æ¼ÄÃ ½Ã µ¥¹ÌÁö °ü·Ã)
 		{
 			if ( !m_AdditionalCriticalDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalCriticalDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_ADDITIONAL_ATTACK:		/// ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ADDITIONAL_ATTACK:		/// Ãß°¡µ¥¹ÌÁö
 		{
 			if ( !m_AdditionalChangeAdditionalAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChangeAdditionalAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_ADDITIONAL_DEFENCE:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ADDITIONAL_DEFENCE:		/// µ¥¹ÌÁö°¨¼Ò
 		{
 			if ( !m_AdditionalChangeAdditionalDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChangeAdditionalDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHARGE_MP_HIT_MELEE_ATTACK:					/// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ MP È¸ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHARGE_MP_HIT_MELEE_ATTACK:					/// ±ÙÁ¢ Å¸°Ý ½Ã MP È¸º¹·®
 		{
 			if ( !m_AdditionalChargeMpHitMeleeAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChargeMpHitMeleeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHARGE_MP_HIT_RANGE_ATTACK:					/// ï¿½ï¿½ï¿½Å¸ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ MP È¸ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHARGE_MP_HIT_RANGE_ATTACK:					/// ¿ø°Å¸® Å¸°Ý ½Ã MP È¸º¹·®
 		{
 			if ( !m_AdditionalChargeMpHitRangeAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChargeMpHitRangeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHARGE_MP_HITTED:				/// ï¿½Ç°ï¿½ ï¿½ï¿½ MP È¸ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHARGE_MP_HITTED:				/// ÇÇ°Ý ½Ã MP È¸º¹·®
 		{
 			if ( !m_AdditionalChargeMpHitted.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChargeMpHitted.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 	
-	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_MELEE_ATTACK:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_MELEE_ATTACK:		/// ±ÙÁ¢°ø°Ý ÁÖ´Â µ¥¹ÌÁö º¯°æ
 		{
 			if ( !m_AdditionalFinalDamageMultiplierMeleeAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalFinalDamageMultiplierMeleeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_RANGE_ATTACK:		/// ï¿½ï¿½ï¿½Å¸ï¿½(DAMAGE_EFFECT)ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_RANGE_ATTACK:		/// ¿ø°Å¸®(DAMAGE_EFFECT)°ø°Ý ÁÖ´Â µ¥¹ÌÁö º¯°æ
 		{
 			if ( !m_AdditionalFinalDamageMultiplierRangeAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalFinalDamageMultiplierRangeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_FINAL_DEFENCE_MULTIPLIER:		/// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FINAL_DEFENCE_MULTIPLIER:		/// ¹Þ´Â µ¥¹ÌÁö º¯°æ
 		{
 			if ( !m_AdditionalFinalDefenceMultiplier.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalFinalDefenceMultiplier.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_MELEE_ATTACK:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FORCE_DOWN ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_MELEE_ATTACK:		/// ±ÙÁ¢°ø°Ý FORCE_DOWN ¼öÄ¡ º¯°æ
 		{
 			if ( !m_AddtionalForceDownMultiplierMeleeAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AddtionalForceDownMultiplierMeleeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_RANGE_ATTACK:		/// ï¿½ï¿½ï¿½Å¸ï¿½(DAMAGE_EFFECT)ï¿½ï¿½ï¿½ï¿½ FORCE_DOWN ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_RANGE_ATTACK:		/// ¿ø°Å¸®(DAMAGE_EFFECT)°ø°Ý FORCE_DOWN ¼öÄ¡ º¯°æ
 		{
 			if ( !m_AddtionalForceDownMultiplierRangeAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AddtionalForceDownMultiplierRangeAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_ATTRIBUTE_BLAZE_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_BLAZE_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		{
 			if ( !m_AdditionalChangeAttributeBlazeDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChangeAttributeBlazeDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
-	case BBT_CHANGE_ATTRIBUTE_WATER_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_WATER_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		{
 			if ( !m_AdditionalChangeAttributeWaterDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChangeAttributeWaterDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
-	case BBT_CHANGE_ATTRIBUTE_NATURE_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_NATURE_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		{
 			if ( !m_AdditionalChangeAttributeNatureDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChangeAttributeNatureDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
-	case BBT_CHANGE_ATTRIBUTE_WIND_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_WIND_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		{
 			if ( !m_AdditionalChangeAttributeWindDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChangeAttributeWindDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
-	case BBT_CHANGE_ATTRIBUTE_LIGHT_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_LIGHT_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		{
 			if ( !m_AdditionalChangeAttributeLightDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChangeAttributeLightDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
-	case BBT_CHANGE_ATTRIBUTE_DARK_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_DARK_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		{
 			if ( !m_AdditionalChangeAttributeDarkDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChangeAttributeDarkDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_CHANGE_EVERY_ATTRIBUTE_DEFENCE:		/// ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_EVERY_ATTRIBUTE_DEFENCE:		/// ¸ðµç ¼Ó¼ºÀúÇ×
 		{
 			if ( !m_AdditionalChangeAttributeBlazeDefence.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalChangeAttributeBlazeDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
@@ -11412,11 +11822,20 @@ void CX2GameUnit::UpdateAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_,
 				m_AdditionalChangeAttributeDarkDefence.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
 
-	case BBT_DRAIN_HP_NORMAL_ATTACK:		/// ï¿½ï¿½ï¿½ï¿½
+	case BBT_DRAIN_HP_NORMAL_ATTACK:		/// ÇÇÈí
 		{
 			if ( !m_AdditionalDrainHpNormalAttack.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
 				m_AdditionalDrainHpNormalAttack.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
 		} break;
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+	case BBT_CHANGE_HYPER_CHARGE_SPEED:		/// °¢¼º ÃæÀü ¼Óµµ
+		{
+			if ( !m_AdditionalHyperCharge.UpdateAddtionalStatFactor( eChangeType_, BuffIdentity_, fValue_ ) )
+				m_AdditionalHyperCharge.CreateAndInsertStatFactor( eChangeType_, BuffIdentity_, fValue_ );
+			break;
+		}
+#endif //SERV_ADD_LUNATIC_PSYKER
 
 	default:
 		DISPLAY_ERROR( L"Behavior Type Invalid" );
@@ -11425,14 +11844,14 @@ void CX2GameUnit::UpdateAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_,
 }
 
 /** @function : EraseAdditionalStat
-	@brief : ï¿½àµ¿ Å¸ï¿½Ôºï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½àµ¿Å¸ï¿½ï¿½(eBehaviorType_), ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½(eChangeType_), ï¿½î¶²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ñ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : Çàµ¿ Å¸ÀÔº° È¿°ú »èÁ¦
+	@param : Çàµ¿Å¸ÀÔ(eBehaviorType_), º¯°æÅ¸ÀÔ(eChangeType_), ¾î¶²¹öÇÁ¿¡ ÀÇÇÑ°ÍÀÎÁö±¸ºÐ(BuffIdentity_)
 */
 void CX2GameUnit::EraseAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_, const BUFF_CHANGE_TYPE eChangeType_, const KBuffIdentity& BuffIdentity_ )
 {
 	switch ( eBehaviorType_ )
 	{
-	case BBT_CHANGE_MAX_HP:					/// ï¿½Ö´ï¿½HP ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_MAX_HP:					/// ÃÖ´ëHP º¯°æ
 		m_AdditionalMaxHp.EraseStatFactor( eChangeType_, BuffIdentity_ );
 
 		m_AdditionalMaxHp.CheckAndUpdateResultValue();
@@ -11440,133 +11859,136 @@ void CX2GameUnit::EraseAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_, 
 		GetGageData()->SetMaxHp( m_AdditionalMaxHp.GetResultValue() );
 		break;
 
-	case BBT_CHANGE_MAX_MP:					/// ï¿½Ö´ï¿½MP ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_MAX_MP:					/// ÃÖ´ëMP º¯°æ
 		m_AdditionalMaxMp.EraseStatFactor( eChangeType_, BuffIdentity_ );
 
 		m_AdditionalMaxMp.CheckAndUpdateResultValue();
 
 		GetGageData()->SetMaxMp( m_AdditionalMaxMp.GetResultValue() );
 #ifdef ADD_BUFF_FINALIZER_FINISH_HYPER
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ GageManagerï¿½ï¿½ m_pGageDataï¿½ï¿½ GameUnitï¿½ï¿½ m_pGageDataï¿½ï¿½ ï¿½ï¿½ï¿½Åµï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		if ( NULL != CX2GageManager::GetInstance())
-			CX2GageManager::GetInstance()->GetMyGageData()->UpdateDataFromGameUnit( m_pGageData );
+		// ¹öÇÁ°¡ ÇØÁ¦µÉ ¶§ GageManagerÀÇ m_pGageData°¡ GameUnitÀÇ m_pGageData·Î °»½ÅµÇÁö ¾Ê´Â ¹®Á¦ ¼öÁ¤
+		if( true == IsMyUnit() )
+		{
+			if ( NULL != CX2GageManager::GetInstance())
+				CX2GageManager::GetInstance()->GetMyGageData()->UpdateDataFromGameUnit( m_pGageData );
+		}
 #endif
 		break;
 
-	case BBT_CHANGE_PHYSIC_ATTACK:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý·ï¿½
+	case BBT_CHANGE_PHYSIC_ATTACK:			/// ¹°¸®°ø°Ý·Â
 		m_AdditionalPhysicAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_MAGIC_ATTACK:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý·ï¿½
+	case BBT_CHANGE_MAGIC_ATTACK:			/// ¸¶¹ý°ø°Ý·Â
 		m_AdditionalMagicAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_PHYSIC_DEFENCE:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_PHYSIC_DEFENCE:			/// ¹°¸®¹æ¾î·Â
 		m_AdditionalPhysicDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_MAGIC_DEFENCE:			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_MAGIC_DEFENCE:			/// ¸¶¹ý¹æ¾î·Â
 		m_AdditionalMagicDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_ANIM_SPEED:				/// ï¿½ï¿½ï¿½Û¼Óµï¿½
+	case BBT_CHANGE_ANIM_SPEED:				/// µ¿ÀÛ¼Óµµ
 		m_AdditionalAnimSpeed.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_WALK_RUN_SPEED:			/// ï¿½Ìµï¿½ï¿½Óµï¿½
+	case BBT_CHANGE_WALK_RUN_SPEED:			/// ÀÌµ¿¼Óµµ
 		m_AdditionalWalkSpeed.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		m_AdditionalDashSpeed.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_JUMP_POWER:				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_JUMP_POWER:				/// Á¡ÇÁ·Â
 		m_AdditionalJumpPower.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		m_AdditionalDashJumpPower.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_ACCURACY:				/// ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ACCURACY:				/// ¸íÁß
 		m_AdditionalAccuracy.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_AVOIDANCE:					///	È¸ï¿½ï¿½
+	case BBT_CHANGE_AVOIDANCE:					///	È¸ÇÇ
 		m_AdditionalAvoidance.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_CRITICAL_RATE:			/// Å©ï¿½ï¿½Æ¼ï¿½Ã°ï¿½ï¿½ï¿½È®ï¿½ï¿½
+	case BBT_CHANGE_CRITICAL_RATE:			/// Å©¸®Æ¼ÄÃ°ø°ÝÈ®·ü
 		m_AdditionalCriticalRate.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_CRITICAL_ATTACK:			/// Å©ï¿½ï¿½Æ¼ï¿½Ã°ï¿½ï¿½Ý·ï¿½(Å©ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	case BBT_CHANGE_CRITICAL_ATTACK:			/// Å©¸®Æ¼ÄÃ°ø°Ý·Â(Å©¸®Æ¼ÄÃ ½Ã µ¥¹ÌÁö °ü·Ã)
 		m_AdditionalCriticalAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_ANTI_CRITICAL_RATE:		/// Å©ï¿½ï¿½Æ¼ï¿½Ã¹ï¿½ï¿½È®ï¿½ï¿½
+	case BBT_CHANGE_ANTI_CRITICAL_RATE:		/// Å©¸®Æ¼ÄÃ¹æ¾îÈ®·ü
 		m_AdditionalAntiCriticalRate.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_CRITICAL_DEFENCE:		/// Å©ï¿½ï¿½Æ¼ï¿½Ã¹ï¿½ï¿½ï¿½(Å©ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	case BBT_CHANGE_CRITICAL_DEFENCE:		/// Å©¸®Æ¼ÄÃ¹æ¾î·Â(Å©¸®Æ¼ÄÃ ½Ã µ¥¹ÌÁö °ü·Ã)
 		m_AdditionalCriticalDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_ADDITIONAL_ATTACK:		/// ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ADDITIONAL_ATTACK:		/// Ãß°¡µ¥¹ÌÁö
 		m_AdditionalChangeAdditionalAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_ADDITIONAL_DEFENCE:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ADDITIONAL_DEFENCE:		/// µ¥¹ÌÁö°¨¼Ò
 		m_AdditionalChangeAdditionalDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 	
-	case BBT_CHARGE_MP_HIT_MELEE_ATTACK:					/// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ MP È¸ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHARGE_MP_HIT_MELEE_ATTACK:					/// ±ÙÁ¢ Å¸°Ý ½Ã MP È¸º¹·®
 		m_AdditionalChargeMpHitMeleeAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHARGE_MP_HIT_RANGE_ATTACK:					/// ï¿½ï¿½ï¿½Å¸ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ MP È¸ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHARGE_MP_HIT_RANGE_ATTACK:					/// ¿ø°Å¸® Å¸°Ý ½Ã MP È¸º¹·®
 		m_AdditionalChargeMpHitRangeAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHARGE_MP_HITTED:				/// ï¿½Ç°ï¿½ ï¿½ï¿½ MP È¸ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHARGE_MP_HITTED:				/// ÇÇ°Ý ½Ã MP È¸º¹·®
 		m_AdditionalChargeMpHitted.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_MELEE_ATTACK:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_MELEE_ATTACK:		/// ±ÙÁ¢°ø°Ý ÁÖ´Â µ¥¹ÌÁö º¯°æ
 		m_AdditionalFinalDamageMultiplierMeleeAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_RANGE_ATTACK:		/// ï¿½ï¿½ï¿½Å¸ï¿½(DAMAGE_EFFECT)ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FINAL_DAMAGE_MULTIPLIER_RANGE_ATTACK:		/// ¿ø°Å¸®(DAMAGE_EFFECT)°ø°Ý ÁÖ´Â µ¥¹ÌÁö º¯°æ
 		m_AdditionalFinalDamageMultiplierRangeAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_FINAL_DEFENCE_MULTIPLIER:		/// ï¿½Þ´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FINAL_DEFENCE_MULTIPLIER:		/// ¹Þ´Â µ¥¹ÌÁö º¯°æ
 		m_AdditionalFinalDefenceMultiplier.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_MELEE_ATTACK:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ FORCE_DOWN ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_MELEE_ATTACK:		/// ±ÙÁ¢°ø°Ý FORCE_DOWN ¼öÄ¡ º¯°æ
 		m_AddtionalForceDownMultiplierMeleeAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_RANGE_ATTACK:		/// ï¿½ï¿½ï¿½Å¸ï¿½(DAMAGE_EFFECT)ï¿½ï¿½ï¿½ï¿½ FORCE_DOWN ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_FORCE_DOWN_MULTIPLIER_RANGE_ATTACK:		/// ¿ø°Å¸®(DAMAGE_EFFECT)°ø°Ý FORCE_DOWN ¼öÄ¡ º¯°æ
 		m_AddtionalForceDownMultiplierRangeAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_ATTRIBUTE_BLAZE_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_BLAZE_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		m_AdditionalChangeAttributeBlazeDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
-	case BBT_CHANGE_ATTRIBUTE_WATER_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_WATER_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		m_AdditionalChangeAttributeWaterDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
-	case BBT_CHANGE_ATTRIBUTE_NATURE_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_NATURE_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		m_AdditionalChangeAttributeNatureDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
-	case BBT_CHANGE_ATTRIBUTE_WIND_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_WIND_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		m_AdditionalChangeAttributeWindDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
-	case BBT_CHANGE_ATTRIBUTE_LIGHT_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_LIGHT_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		m_AdditionalChangeAttributeLightDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
-	case BBT_CHANGE_ATTRIBUTE_DARK_DEFENCE:		/// ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_ATTRIBUTE_DARK_DEFENCE:		/// ¼Ó¼ºÀúÇ×
 		m_AdditionalChangeAttributeDarkDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
 
-	case BBT_CHANGE_EVERY_ATTRIBUTE_DEFENCE:		/// ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ï¿½ï¿½ï¿½ï¿½
+	case BBT_CHANGE_EVERY_ATTRIBUTE_DEFENCE:		/// ¸ðµç ¼Ó¼ºÀúÇ×
 		{
 			m_AdditionalChangeAttributeBlazeDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 			m_AdditionalChangeAttributeWaterDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
@@ -11576,9 +11998,15 @@ void CX2GameUnit::EraseAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_, 
 			m_AdditionalChangeAttributeDarkDefence.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		} break;
 
-	case BBT_DRAIN_HP_NORMAL_ATTACK:		/// ï¿½ï¿½ï¿½ï¿½
+	case BBT_DRAIN_HP_NORMAL_ATTACK:		/// ÇÇÈí
 		m_AdditionalDrainHpNormalAttack.EraseStatFactor( eChangeType_, BuffIdentity_ );
 		break;
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+	case BBT_CHANGE_HYPER_CHARGE_SPEED:		/// °¢¼º ÃæÀü ¼Óµµ
+		m_AdditionalHyperCharge.EraseStatFactor( eChangeType_, BuffIdentity_ );
+		break;
+#endif //SERV_ADD_LUNATIC_PSYKER
 
 	default:
 		DISPLAY_ERROR( L"Behavior Type Invalid" );
@@ -11587,43 +12015,46 @@ void CX2GameUnit::EraseAdditionalStat( const BUFF_BEHAVIOR_TYPE eBehaviorType_, 
 }
 
 /** @function : SetGameStat
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ KStat(kGameStat_)
+	@brief : ½ºÅÈ Àû¿ë½Ã ¹öÇÁ°ü·Ã ½ºÅÈÀ» °»½ÅÇÏµµ·Ï ÇÏ´Â ÇÔ¼ö
+	@param : ¼­¹ö·Î ºÎÅÍ ¹ÞÀº KStat(kGameStat_)
 */
 /*virtual*/ void CX2GameUnit::SetGameStat( const KStat& kGameStat_ )
 {
-	CX2Stat::Stat* pStat = GetStat()->GetStat();
-	pStat->SetKStat( kGameStat_ );
+	CX2Stat::Stat& kStat = m_Stat.AccessStat();
+	kStat.SetKStat( kGameStat_ );
 
-	m_AdditionalMaxHp.SetBasicStatValue( pStat->m_fBaseHP );
-	m_AdditionalPhysicAttack.SetBasicStatValue( pStat->m_fAtkPhysic );
-	m_AdditionalMagicAttack.SetBasicStatValue( pStat->m_fAtkMagic );
-	m_AdditionalPhysicDefence.SetBasicStatValue( pStat->m_fDefPhysic );
-	m_AdditionalMagicDefence.SetBasicStatValue( pStat->m_fDefMagic );	
+	m_AdditionalMaxHp.SetBasicStatValue( kStat.m_fBaseHP );
+	m_AdditionalPhysicAttack.SetBasicStatValue( kStat.m_fAtkPhysic );
+	m_AdditionalMagicAttack.SetBasicStatValue( kStat.m_fAtkMagic );
+	m_AdditionalPhysicDefence.SetBasicStatValue( kStat.m_fDefPhysic );
+	m_AdditionalMagicDefence.SetBasicStatValue( kStat.m_fDefMagic );	
 }
 
 /** @function : SetGameStat
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : Å¬ï¿½ï¿½ï¿½Ì¾ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½È±ï¿½ï¿½ï¿½Ã¼(Stat_)
+	@brief : ½ºÅÈ Àû¿ë½Ã ¹öÇÁ°ü·Ã ½ºÅÈÀ» °»½ÅÇÏµµ·Ï ÇÏ´Â ÇÔ¼ö
+	@param : Å¬¶óÀÌ¾ðÆ®¿¡¼­ »ç¿ëÇÏ´Â ½ºÅÈ±¸Á¶Ã¼(Stat_)
 */
 /*virtual*/ void CX2GameUnit::SetGameStat( const CX2Stat::Stat& Stat_ )
 {
-	CX2Stat::Stat* pStat = GetStat()->GetStat();
-	*pStat = Stat_;
+	CX2Stat::Stat& kStat = m_Stat.AccessStat();
+    if ( &kStat != &Stat_ )
+    {
+	    kStat = Stat_;
+    }
 
-	m_AdditionalMaxHp.SetBasicStatValue( pStat->m_fBaseHP );
-	m_AdditionalPhysicAttack.SetBasicStatValue( pStat->m_fAtkPhysic );
-	m_AdditionalMagicAttack.SetBasicStatValue( pStat->m_fAtkMagic );
-	m_AdditionalPhysicDefence.SetBasicStatValue( pStat->m_fDefPhysic );
-	m_AdditionalMagicDefence.SetBasicStatValue( pStat->m_fDefMagic );	
+	m_AdditionalMaxHp.SetBasicStatValue( kStat.m_fBaseHP );
+	m_AdditionalPhysicAttack.SetBasicStatValue( kStat.m_fAtkPhysic );
+	m_AdditionalMagicAttack.SetBasicStatValue( kStat.m_fAtkMagic );
+	m_AdditionalPhysicDefence.SetBasicStatValue( kStat.m_fDefPhysic );
+	m_AdditionalMagicDefence.SetBasicStatValue( kStat.m_fDefMagic );	
 }
 
 /** @function : CheckAndUpdateAdditionalStat
-	@brief : ï¿½ï¿½ï¿½ï¿½È¿ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÅµÇ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+	@brief : ¹öÇÁÈ¿°ú ¶Ç´Â Àåºñ±³Ã¼ µî °ªÀÌ °»½ÅµÇ¸é »õ·Î Àû¿ëÇÏ´Â ÇÔ¼ö
 */
 void CX2GameUnit::CheckAndUpdateAdditionalStat()
 {
-	m_AdditionalMaxHp.CheckAndUpdateResultValue();;
+	m_AdditionalMaxHp.CheckAndUpdateResultValue();
 	m_AdditionalMaxMp.CheckAndUpdateResultValue();
 
 	m_AdditionalPhysicAttack.CheckAndUpdateResultValue();
@@ -11647,12 +12078,17 @@ void CX2GameUnit::CheckAndUpdateAdditionalStat()
 	m_AdditionalAntiCriticalRate.CheckAndUpdateResultValue();
 	m_AdditionalCriticalDefence.CheckAndUpdateResultValue();
 
-	if ( NULL != g_pX2Game  )	/// ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.. /// kimhc
+	if ( NULL != g_pX2Game  )	/// ÀÏ´ÜÀº ÀÌ·¸°Ô Ã³¸® ÇÏÀÚ.. /// kimhc
 	{
-		if ( g_pX2Game->IsDamageFreeGame() )	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+#ifdef ADJUST_BUFF_CALCULATE
+		//°ø½ÄÀÌ ¼öÁ¤µÊ¿¡ µû¶ó º¸Á¤´øÀü¸¸ µû·Î °ø½ÄÀ» Ã³¸®ÇÑ °ÍÀÌ ÇÊ¿ä ¾ø¾îÁü.
+		m_AdditionalChangeAdditionalAttack.CheckAndUpdateResultValueWithOptionData( &CX2SocketItem::GetFinalAdditionalAttackValue, GetUnitLevel() );
+#else //ADJUST_BUFF_CALCULATE
+		if ( g_pX2Game->IsDamageFreeGame() )	/// º¸Á¤ ´øÀüÀÇ °æ¿ì
 			m_AdditionalChangeAdditionalAttack.CheckAndUpdateResultValueWithOptionData( &CX2SocketItem::GetFinalAdditionalAttackValueInDamageFreeGame, GetUnitLevel() );
 		else
 			m_AdditionalChangeAdditionalAttack.CheckAndUpdateResultValueWithOptionData( &CX2SocketItem::GetFinalAdditionalAttackValue, GetUnitLevel() );
+#endif //ADJUST_BUFF_CALCULATE
 	}
 
 	m_AdditionalChangeAdditionalDefence.CheckAndUpdateResultValueWithOptionData( &CX2SocketItem::GetFinalAdditionalDefencePercent, GetUnitLevel() );
@@ -11678,11 +12114,15 @@ void CX2GameUnit::CheckAndUpdateAdditionalStat()
 	m_AdditionalChangeAttributeDarkDefence.CheckAndUpdateResultValue();
 
 	m_AdditionalDrainHpNormalAttack.CheckAndUpdateResultValue();
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+	m_AdditionalHyperCharge.CheckAndUpdateResultValueWithOptionData( &CX2SocketItem::GetFinalHyperGageChargeSpeedPercent, GetUnitLevel() );
+#endif //SERV_ADD_LUNATIC_PSYKER
 }
 
 /** @function : CreateAndInsertTemporaryBuffFactor
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï´ï¿½ BuffFactorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(BuffFactor_), ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇØ ÀÏ½ÃÀûÀ¸·Î ¹ß»ýÇÏ´Â BuffFactor¸¦ ¸¸µå´Â ÇÔ¼ö
+	@param : Âü°íÇÒ ¹öÇÁÆÑÅÍ(BuffFactor_), ¾î¶² ¹öÇÁ¿¡ ÀÇÇØ »ý±ä°ÍÀÎÁö ±¸ºÐ(BuffIdentity_)
 */
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 void CX2GameUnit::CreateAndInsertTemporaryBuffFactor( const CX2BuffFactor& BuffFactor_, const KBuffIdentity& BuffIdentity_, UINT uiLevel )
@@ -11703,8 +12143,8 @@ void CX2GameUnit::CreateAndInsertTemporaryBuffFactor( const CX2BuffFactor& BuffF
 }
 
 /** @function : EraseTemporaryBuffFactor
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ï½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ï¿½ï¿½ BuffFactorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¹öÇÁ°¡ ³¡³µÀ» ´ë ÀÏ½ÃÀûÀ¸·Î ¹ß»ýÇÑ BuffFactor¸¦ »èÁ¦ÇÏ´Â ÇÔ¼ö
+	@param : ¾î¶² ¹öÇÁ°¡ ³¡³µ´ÂÁö(BuffIdentity_)
 */
 void CX2GameUnit::EraseTemporaryBuffFactor( const KBuffIdentity& BuffIdentity_ )
 {
@@ -11724,8 +12164,8 @@ void CX2GameUnit::EraseTemporaryBuffFactor( const KBuffIdentity& BuffIdentity_ )
 }
 
 /** @function : CreateAndInsertAbsorbEffectAttack
-	@brief : ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ MPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ MPï¿½ï¿½(fAbsorbValue_)
+	@brief : ÀÌÆåÆ® °ø°ÝÀ» Èí¼öÇÏ¿© MP¸¦ Áõ°¡½ÃÅ°´Â ¹öÇÁ¿ä¼Ò¸¦ °ÔÀÓÀ¯´Ö¿¡ Àû¿ëÇÏ´Â ÇÔ¼ö
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ °ÍÀÎÁö ±¸ºÐ(BuffIdentity_), Èí¼ö½Ã Áõ°¡µÇ´Â MP·®(fAbsorbValue_)
 */
 void CX2GameUnit::CreateAndInsertAbsorbEffectAttack( const KBuffIdentity& BuffIdentity_, const float fAbsorbValue_ )
 {
@@ -11735,8 +12175,8 @@ void CX2GameUnit::CreateAndInsertAbsorbEffectAttack( const KBuffIdentity& BuffId
 }
 
 /** @function : UpdateAbsorbEffectAttack
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ MPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ MPï¿½ï¿½(fAbsorbValue_)
+	@brief : Èí¼ö½Ã Áõ°¡µÇ´Â MP·® º¯°æ
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ °ÍÀÎÁö ±¸ºÐ(BuffIdentity_), Èí¼ö½Ã Áõ°¡µÇ´Â MP·®(fAbsorbValue_)
 */
 void CX2GameUnit::UpdateAbsorbEffectAttack( const KBuffIdentity& BuffIdentity_, const float fAbsorbValue_ )
 {
@@ -11750,8 +12190,8 @@ void CX2GameUnit::UpdateAbsorbEffectAttack( const KBuffIdentity& BuffIdentity_, 
 }
 
 /** @function : EraseAbsorbEffectAttack
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : °ÔÀÓÀ¯´Ö¿¡ Àû¿ëµÈ ÀÌÆåÆ® Èí¼ö ±â´É »èÁ¦
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ °ÍÀÎÁö ±¸ºÐ(BuffIdentity_)
 */
 void CX2GameUnit::EraseAbsorbEffectAttack( const KBuffIdentity& BuffIdentity_ )
 {
@@ -11763,16 +12203,16 @@ void CX2GameUnit::EraseAbsorbEffectAttack( const KBuffIdentity& BuffIdentity_ )
 }
 
 /** @function : AbsorbEffectAttackProcess
-	@brief : ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ý¹Þ¾ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ MPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Îºï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pDamageData_)
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(false) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DamageReact ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ÀÌÆåÆ®¿¡ ÀÇÇØ °ø°Ý¹Þ¾ÒÀ» ¶§ Èí¼öÇÏ¿© MP¸¦ Áõ°¡½ÃÅ°´Â Ã³¸® ºÎºÐ
+	@param : µ¥¹ÌÁöµ¥ÀÌÅ¸ Æ÷ÀÎÅÍ(pDamageData_)
+	@return : Èí¼ö¼º°ø(true), Èí¼ö¾ÈÇÔ(false) Èí¼ö ¼º°øÇÏ¸é À¯´ÖÀÇ DamageReact ÀÌÈÄ ºÎºÐ ½ÇÇà ¾ÈÇÔ
 */
 bool CX2GameUnit::AbsorbEffectAttackProcess( CX2DamageManager::DamageData* pDamageData_ )
 {
 	if( !m_vecAbsorbEffectAttackPtr.empty() && pDamageData_->bCanReflexMagic == true )
 	{
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, 
-		/// ï¿½Õ»ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// Èí¼ö ÇÒ ¶§ ¸¶´Ù ÇÕÀ» ±¸ÇÏµµ·Ï ±¸ÇöÇßÀ¸³ª ÇöÀçÀÇ ¹æ½ÄÀÌ ÁÁÀ»Áö, 
+		/// ÇÕ»êÇÑ °ªÀ» °¡Áö°í ÀÖ´Â ¹æ½ÄÀÌ ÁÁÀ»Áö »ý°¢ÇØ º¸ÀÚ
 		float fSumOfAbsorbValue = 0.0f;
 		auto FuncPlus = [&fSumOfAbsorbValue]( CX2StatFactorByBuffPtr ptr_ ) {
 			fSumOfAbsorbValue += ptr_->GetValue();
@@ -11780,7 +12220,7 @@ bool CX2GameUnit::AbsorbEffectAttackProcess( CX2DamageManager::DamageData* pDama
 	
 		for_each( m_vecAbsorbEffectAttackPtr.begin(), m_vecAbsorbEffectAttackPtr.end(), FuncPlus );
 	
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		// ¸¶¹ýÈí¼ö
 		UpNowMp( fSumOfAbsorbValue );
 
 		WCHAR wstr[10];
@@ -11801,8 +12241,8 @@ bool CX2GameUnit::AbsorbEffectAttackProcess( CX2DamageManager::DamageData* pDama
 }
 
 /** @function : CreateAndInsertChangeAttackByType
-	@brief : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ MPï¿½ï¿½(fAbsorbValue_)
+	@brief : °ø°Ý Å¸ÀÔ¿¡ µû¸¥ µ¥¹ÌÁö º¯°æ ¹öÇÁ¿ä¼Ò¸¦ °ÔÀÓÀ¯´Ö¿¡ Àû¿ëÇÏ´Â ÇÔ¼ö
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ °ÍÀÎÁö ±¸ºÐ(BuffIdentity_), Èí¼ö½Ã Áõ°¡µÇ´Â MP·®(fAbsorbValue_)
 */
 void CX2GameUnit::CreateAndInsertChangeAttackByType( const KBuffIdentity& BuffIdentity_, CX2DamageManager::ATTACK_TYPE eAttackType_, float fValue_ )
 {
@@ -11812,8 +12252,8 @@ void CX2GameUnit::CreateAndInsertChangeAttackByType( const KBuffIdentity& BuffId
 }
 
 /** @function : EraseChangeAttackByType
-	@brief : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : °ø°Ý Å¸ÀÔ¿¡ µû¸¥ µ¥¹ÌÁö º¯°æ ¹öÇÁ ¿ä¼Ò ÇØÁ¦
+	@param : °ø°Ý Å¸ÀÔ¿¡ µû¸¥ µ¥¹ÌÁö º¯°æ ¹öÇÁ ¿ä¼Ò¸¦±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseChangeAttackByType( const KBuffIdentity& BuffIdentity_ )
 {
@@ -11825,14 +12265,14 @@ void CX2GameUnit::EraseChangeAttackByType( const KBuffIdentity& BuffIdentity_ )
 }
 
 /** @function : GetAdditionalAttackByType
-	@brief : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½È¯ ï¿½Ô¼ï¿½
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡
+	@brief : °ø°Ý Å¸ÀÔ¿¡ µû¸¥ µ¥¹ÌÁö Áõ°¡Ä¡ ¹ÝÈ¯ ÇÔ¼ö
+	@return : µ¥¹ÌÁö Áõ°¡Ä¡
 */
 float CX2GameUnit::GetAdditionalAttackByType( CX2DamageManager::ATTACK_TYPE eAttackType_ )
 {
 	float fPowerRate = 1.f;
 
-	BOOST_FOREACH( CX2ChangeAttackByTypePtr ChangeAttackByTypePtr, m_AdditionalAttackByType )	/// Ã£ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	BOOST_FOREACH( CX2ChangeAttackByTypePtr ChangeAttackByTypePtr, m_AdditionalAttackByType )	/// Ã£°íÀÚ ÇÏ´Â °ø°Ý Å¸ÀÔ¿¡ ÇØ´çÇÏ´Â ¹èÀ² °Ë»ç
 	{
 		if( eAttackType_ ==  ChangeAttackByTypePtr->GetAttackType() )
 			fPowerRate *= ChangeAttackByTypePtr->GetValue();
@@ -11845,19 +12285,31 @@ float CX2GameUnit::GetAdditionalAttackByType( CX2DamageManager::ATTACK_TYPE eAtt
 }
 
 /** @function : CreateAndInsertChangeEnchantAttackRate
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ßµï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ MPï¿½ï¿½(fAbsorbValue_)
+	@brief : ¼ÒÄÏ ¼Ó¼º °ø°Ý ¹ßµ¿ È®·ü º¯°æ ¹öÇÁ¿ä¼Ò¸¦ °ÔÀÓÀ¯´Ö¿¡ Àû¿ëÇÏ´Â ÇÔ¼ö
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ °ÍÀÎÁö ±¸ºÐ(BuffIdentity_), Èí¼ö½Ã Áõ°¡µÇ´Â MP·®(fAbsorbValue_)
 */
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+// ÀÎÃ¦Æ® ¼Ó¼º Å¸ÀÔ°ú º¯°æ Å¸ÀÔ Ãß°¡
+void CX2GameUnit::CreateAndInsertChangeEnchantAttackRate( const KBuffIdentity& BuffIdentity_, float fRate_, 
+	BUFF_ENCHANT_ATTRIBUTE_TYPE eEnchantAttributeType_ /* = BEAT_ALL */, BUFF_CHANGE_TYPE eBuffChangeType_ /* = BCT_PERCENT */ )
+{
+	CX2ChangeEnchantAttackRatePtr ptrChangeEnchantAttackRate = CX2ChangeEnchantAttackRatePtr( new CX2ChangeEnchantAttackRate( BuffIdentity_, fRate_, eEnchantAttributeType_, eBuffChangeType_ ) );
+	if ( NULL != ptrChangeEnchantAttackRate )
+		m_AdditionalChangeEnchantAttackRate.push_back( ptrChangeEnchantAttackRate );
+}
+#else // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 void CX2GameUnit::CreateAndInsertChangeEnchantAttackRate( const KBuffIdentity& BuffIdentity_, float fRate_ )
 {
+
 	CX2ChangeEnchantAttackRatePtr ptrChangeEnchantAttackRate = CX2ChangeEnchantAttackRatePtr( new CX2ChangeEnchantAttackRate( BuffIdentity_, fRate_ ) );
 	if ( NULL != ptrChangeEnchantAttackRate )
 		m_AdditionalChangeEnchantAttackRate.push_back( ptrChangeEnchantAttackRate );
 }
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 
 /** @function : EraseChangeEnchantAttackRate
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ßµï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ßµï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¼ÒÄÏ ¼Ó¼º °ø°Ý ¹ßµ¿ È®·ü º¯°æ ¹öÇÁ ¿ä¼Ò ÇØÁ¦
+	@param : ¼ÒÄÏ ¼Ó¼º °ø°Ý ¹ßµ¿ È®·ü º¯°æ ¹öÇÁ ¿ä¼Ò¸¦±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseChangeEnchantAttackRate( const KBuffIdentity& BuffIdentity_ )
 {
@@ -11869,24 +12321,67 @@ void CX2GameUnit::EraseChangeEnchantAttackRate( const KBuffIdentity& BuffIdentit
 }
 
 /** @function : GetAdditionalAttackByType
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ßµï¿½ È®ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½Ô¼ï¿½
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+	@brief : ¼ÒÄÏ ¼Ó¼º °ø°Ý ¹ßµ¿ È®·ü ¹ÝÈ¯ ÇÔ¼ö
+	@return : Áõ°¡ÇÒ È®·ü
 */
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+// ¹«±â °­È­ ¼Ó¼º Àü´ÞÇØÁÖ´Â ÀÎÀÚ Ãß°¡ ¹× ¹ÝÈ¯°ª Ãß°¡
+CX2GameUnit::EnchantAttackRate CX2GameUnit::GetChangeEnchantAttackRate( CX2DamageManager::EXTRA_DAMAGE_TYPE eExtraDamageType )
+#else // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 float CX2GameUnit::GetChangeEnchantAttackRate()
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 {
 	float fIncreaseRate = 1.f;
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+	// ÀÎÃ¦Æ® °ø°Ý È®·üÀÌ ±âÁ¸ Percent ¿¡¼­ °íÁ¤°ªÀÌ Ãß°¡µÊ¿¡ µû¶ó
+	// ¿¬»ê °úÁ¤ÀÌ Ãß°¡µÊ ( ¼Ó¼º °ø°Ý È®·ü = ¹«±â ±âº» È®·ü * Ãß°¡ ¹öÇÁ Percent -> ¼Ó¼º °ø°Ý È®·ü = ( ¹«±â ±âº» È®·ü * Ãß°¡ ¹öÇÁ Percent ) + Ãß°¡ ¹öÇÁ Fix_Value
+	// ¾Æ·¡ º¯¼öµéÀº Ãß°¡ ¹öÇÁ FixValue ¸¦ À§ÇØ »ç¿ëµÊ
 
-	BOOST_FOREACH( CX2ChangeEnchantAttackRatePtr ChangeEnchantAttackRatePtr, m_AdditionalChangeEnchantAttackRate )	/// Ã£ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	float fIncraseAttackRateFixValue = 0.f;			// ¹öÇÁ Ã¼ÀÎÁö Å¸ÀÔÀÌ FixValue ÀÏ ¶§ »ç¿ëµÊ
+	EnchantAttackRate sEnchantAttackRate;			// ÀÎÃ¦Æ® °ø°Ý È®·ü Å¬·¡½º, ¹ÝÈ¯°ª¿¡ ¾²ÀÓ
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+	BOOST_FOREACH( CX2ChangeEnchantAttackRatePtr ChangeEnchantAttackRatePtr, m_AdditionalChangeEnchantAttackRate )	/// Ã£°íÀÚ ÇÏ´Â °ø°Ý Å¸ÀÔ¿¡ ÇØ´çÇÏ´Â ¹èÀ² °Ë»ç
 	{
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+		// ¼Ó¼º °ø°Ý Å¸ÀÔÀÌ Á¸ÀçÇÑ´Ù¸é, ÇØ´ç ¼Ó¼ºÀÇ °ø°Ý¸¸ °­È­½ÃÄÑÁØ´Ù.
+		// µðÆúÆ®´Â BEAT_ALL
+		BUFF_ENCHANT_ATTRIBUTE_TYPE eBuffEnchantAttributeType = ChangeEnchantAttackRatePtr->GetBuffEnchantAttributeType();
+
+		if (
+			( eBuffEnchantAttributeType == BEAT_ALL ) ||
+			( eBuffEnchantAttributeType == BEAT_BLAZE && eExtraDamageType == CX2DamageManager::EDT_ENCHANT_BLAZE		) ||
+			( eBuffEnchantAttributeType == BEAT_FROZEN && eExtraDamageType == CX2DamageManager::EDT_ENCHANT_FROZEN		) ||	
+			( eBuffEnchantAttributeType == BEAT_PIERCING && eExtraDamageType == CX2DamageManager::EDT_ENCHANT_PIERCING	) ||
+			( eBuffEnchantAttributeType == BEAT_POSION && eExtraDamageType == CX2DamageManager::EDT_ENCHANT_POISON		) ||
+			( eBuffEnchantAttributeType == BEAT_SHOCK && eExtraDamageType == CX2DamageManager::EDT_ENCHANT_SHOCK		) ||
+			( eBuffEnchantAttributeType == BEAT_SNATCH && eExtraDamageType == CX2DamageManager::EDT_ENCHANT_SNATCH		) 
+			)
+		{
+			// ¹öÇÁ Ã¼ÀÎÁö Å¸ÀÔ¿¡ µû¶ó¼­ ´Ù¸¥ ¿¬»êÀ» ÇØÁØ´Ù.
+			sEnchantAttackRate.eBuffchangeType = ChangeEnchantAttackRatePtr->GetBuffChangeType ();
+			if ( BCT_PERCENT == ChangeEnchantAttackRatePtr->GetBuffChangeType () )
+				fIncreaseRate *= ChangeEnchantAttackRatePtr->GetRate();
+			else if ( BCT_FIX_VALUE == ChangeEnchantAttackRatePtr->GetBuffChangeType () )
+				fIncraseAttackRateFixValue += ChangeEnchantAttackRatePtr->GetRate();
+		}
+	}
+	
+	sEnchantAttackRate.fIncreaseAttackRate = ( fIncreaseRate  == 0.f ? 1.f : fIncreaseRate );
+	sEnchantAttackRate.fIncreaseAttackRateFixValue = fIncraseAttackRateFixValue;
+	return sEnchantAttackRate;
+
+#else // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 		fIncreaseRate *= ChangeEnchantAttackRatePtr->GetRate();
 	}
 
-	return fIncreaseRate  == 0.f ? 1.f : fIncreaseRate;			/// ï¿½ï¿½È¯ï¿½ï¿½ï¿½ï¿½ 0ï¿½Ì¸ï¿½ 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+
+	return fIncreaseRate  == 0.f ? 1.f : fIncreaseRate;			/// ¹ÝÈ¯°ªÀÌ 0ÀÌ¸é 1·Î ¼öÁ¤
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 }
 
 /** @function : CreateAndInsertChangeEnchantAttackRate
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ MPï¿½ï¿½(fAbsorbValue_)
+	@brief : ´õºí ¾îÅÃ ¹öÇÁ¿ä¼Ò¸¦ °ÔÀÓÀ¯´Ö¿¡ Àû¿ëÇÏ´Â ÇÔ¼ö
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ °ÍÀÎÁö ±¸ºÐ(BuffIdentity_), Èí¼ö½Ã Áõ°¡µÇ´Â MP·®(fAbsorbValue_)
 */
 void CX2GameUnit::CreateAndInsertDoubleAttackByBuff( const KBuffIdentity& BuffIdentity_, float fRate_ )
 {
@@ -11896,8 +12391,8 @@ void CX2GameUnit::CreateAndInsertDoubleAttackByBuff( const KBuffIdentity& BuffId
 }
 
 /** @function : EraseChangeEnchantAttackRate
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ´õºí ¾îÅÃ ¹öÇÁ ¿ä¼Ò ÇØÁ¦
+	@param : ´õºí ¾îÅÃ ¹öÇÁ ¿ä¼Ò¸¦±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseDoubleAttackByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -11909,12 +12404,12 @@ void CX2GameUnit::EraseDoubleAttackByBuff( const KBuffIdentity& BuffIdentity_ )
 }
 
 /** @function : IsDoubleAttackByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ßµï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ´õºí ¾îÅÃ ¹ßµ¿ È®·ü¿¡ µû¸¥ ¼º°ø ¿©ºÎ ¹ÝÈ¯
+	@param : ´õºí ¾îÅÃ ¹öÇÁ ¿ä¼Ò¸¦±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 bool CX2GameUnit::IsDoubleAttackByBuff()
 {
-	BOOST_FOREACH( CX2DoubleAttackPtr ChangeEnchantAttackRatePtr, m_vecDoubleAttack )	/// Ã£ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	BOOST_FOREACH( CX2DoubleAttackPtr ChangeEnchantAttackRatePtr, m_vecDoubleAttack )	/// Ã£°íÀÚ ÇÏ´Â °ø°Ý Å¸ÀÔ¿¡ ÇØ´çÇÏ´Â ¹èÀ² °Ë»ç
 	{
 		if( GetRandomFloat() < ChangeEnchantAttackRatePtr->GetRate() )
 			return true;
@@ -11924,7 +12419,7 @@ bool CX2GameUnit::IsDoubleAttackByBuff()
 }
 
 /** @function : InitAdditionalStatOptionValue
-	@brief : ï¿½ï¿½ï¿½Ï¿É¼Ç¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ ï¿½Ê±ï¿½È­
+	@brief : ¼ÒÄÏ¿É¼Ç¿¡ ÀÇÇÑ Ãß°¡ ½ºÅÈ ºÎºÐ ÃÊ±âÈ­
 */
 void CX2GameUnit::InitAdditionalStatOptionValue()
 {
@@ -11947,7 +12442,7 @@ void CX2GameUnit::InitAdditionalStatOptionValue()
 	m_AdditionalChangeAdditionalAttack.SetOptionValue( m_SocketData.m_fAdditionalAttackValue );
 	m_AdditionalChangeAdditionalDefence.SetOptionValue( m_SocketData.m_fAdditionalDefenceValue );
 
-	/// ï¿½É¼Ç¼ï¿½Ä¡È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½Íµï¿½ï¿½ï¿½ OptionValueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	/// ¿É¼Ç¼öÄ¡È­¸¦ »ç¿ëÇÏÁö ¾Ê´Â °ÍµéÀº OptionValue¸¦ »ç¿ëÇÏÁö ¾Ê±â ¶§¹®¿¡
 	m_AdditionalChangeAttributeBlazeDefence.SetOptionValue( 0.f );
 	m_AdditionalChangeAttributeWaterDefence.SetOptionValue( 0.f );
 	m_AdditionalChangeAttributeNatureDefence.SetOptionValue( 0.f );
@@ -11957,6 +12452,10 @@ void CX2GameUnit::InitAdditionalStatOptionValue()
 
 	m_AdditionalDrainHpNormalAttack.SetOptionValue( 0.f );
 
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+	m_AdditionalHyperCharge.SetOptionValue( m_SocketData.m_fHyperModeChargeRate );
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 // 	m_AdditionalFinalDamageMultiplier.SetOptionValue( 0.0f );
 // 	m_AdditionalFinalDefenceMultiplier.SetOptionValue( 0.0f );
 // 
@@ -11965,7 +12464,7 @@ void CX2GameUnit::InitAdditionalStatOptionValue()
 }
 
 /** @function : InitAdditionalBasicStatValue
-	@brief : ï¿½âº» ï¿½ï¿½ï¿½È°ï¿½ ï¿½Ê±ï¿½È­
+	@brief : ±âº» ½ºÅÈ°ª ÃÊ±âÈ­
 */
 void CX2GameUnit::InitAdditionalBasicStatValue()
 {
@@ -11976,7 +12475,7 @@ void CX2GameUnit::InitAdditionalBasicStatValue()
 	m_AdditionalAccuracy.SetBasicStatValue( 1.0f );
 	m_AdditionalAvoidance.SetBasicStatValue( 1.0f );
 	m_AdditionalCriticalRate.SetBasicStatValue( 0.0f );
-	m_AdditionalCriticalAttack.SetBasicStatValue( 1.5f );	/// ï¿½âº» Å©ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1.5
+	m_AdditionalCriticalAttack.SetBasicStatValue( 1.5f );	/// ±âº» Å©¸®Æ¼ÄÃ µ¥¹ÌÁö ¹èÀ²Àº 1.5
 
 	m_AdditionalAntiCriticalRate.SetBasicStatValue( 0.0f );
 	m_AdditionalCriticalDefence.SetBasicStatValue( 1.0f );
@@ -12007,11 +12506,15 @@ void CX2GameUnit::InitAdditionalBasicStatValue()
 
 	m_AdditionalMaxMp.SetBasicStatValue( ONE_CHARGE * 3.0f );
 
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+	m_AdditionalHyperCharge.SetBasicStatValue( 0.f );
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 	CheckAndUpdateAdditionalStat();
 }
 
 /** @function : InitAdditionalPassiveMultipleAndSum
-	@brief : ï¿½Ð½Ãºï¿½ ï¿½Ê±ï¿½È­
+	@brief : ÆÐ½Ãºê ÃÊ±âÈ­
 */
 void CX2GameUnit::InitAdditionalPassive()
 {
@@ -12054,14 +12557,18 @@ void CX2GameUnit::InitAdditionalPassive()
 
 	InitAdditionalPassiveMultipleAndSum(m_AdditionalMaxMp);
 
-	/// ï¿½ï¿½ï¿½Ï¿É¼Ç¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Passiveï¿½Ê¿ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½ï¿½)
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+	InitAdditionalPassiveMultipleAndSum(m_AdditionalHyperCharge);
+#endif //SERV_ADD_LUNATIC_PSYKER
+
+	/// ¼ÒÄÏ¿É¼Ç¿¡ ÀÇÇÑ °ÍÀ» PassiveÂÊ¿¡ ³Ö¾îÁÜ(¿¬»ê ·ÎÁ÷ ¶§¹®¿¡ ÀÌ·¸°Ô ÇÔ)
 	m_AdditionalChargeMpHitMeleeAttack.SetPassiveSum( m_SocketData.m_fMPMultiplyByAll );
 	m_AdditionalChargeMpHitRangeAttack.SetPassiveSum( m_SocketData.m_fMPMultiplyByAll );
 	m_AdditionalChargeMpHitted.SetPassiveSum( m_SocketData.m_fMPMultiplyByAll );
 }
 
 /** @function : InitAdditionalPassiveMultipleAndSum
-	@brief : ï¿½Ð½Ãºï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½Ê±ï¿½È­
+	@brief : ÆÐ½Ãºê ¹èÀ², Áõ°¨ ¼öÄ¡ ÃÊ±âÈ­
 */
 void CX2GameUnit::InitAdditionalPassiveMultipleAndSum(CX2AdditionalStatByBuff& Additional_ )
 {
@@ -12080,8 +12587,8 @@ void CX2GameUnit::InitAdditionalPassiveMultipleAndSum(CX2AdditionalStatByBuff& A
 }
 
 /** @function : SetBuffFactorPacketToGameUnit
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Þ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief : ¼­¹ö·Î ºÎÅÍ ¹öÇÁ¿ä¼Ò Á¤º¸¸¦ Àü´Þ ¹Þ¾Æ °ÔÀÓÀ¯´Ö¿¡ Àû¿ë
+	@param : ¼­¹ö·Î ºÎÅÍ Àü´Þ¹ÞÀº ¹öÇÁ ¸ñ·Ï
 */
 void CX2GameUnit::SetKBuffFactorPacketToGameUnit( const vector<KBuffFactor>& vecBuffFactor_ )
 {
@@ -12089,12 +12596,12 @@ void CX2GameUnit::SetKBuffFactorPacketToGameUnit( const vector<KBuffFactor>& vec
 
 	BOOST_FOREACH( const KBuffFactor& kBuffFactor, vecBuffFactor_ )
 	{
-		auto FindFunc = [kBuffFactor]( CX2BuffTempletPtr ptr_ ) {
+		auto FindFunc = [&kBuffFactor]( CX2BuffTempletPtr ptr_ ) {
 			return ( ptr_->GetBuffTempletID() == kBuffFactor.m_BuffIdentity.m_eBuffTempletID
 				&& ptr_->GetUniqueNum() == kBuffFactor.m_BuffIdentity.m_uiUniqueNum );
 		};
 
-		/// kimhc // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ Ã£ï¿½Æºï¿½ï¿½ï¿½ ï¿½ï¿½Æ¾ï¿½Îµï¿½, ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..?
+		/// kimhc // ÇöÀç Àû¿ëµÈ ¹öÇÁ Áß °°Àº °ÍÀÌ ÀÖ´ÂÁö Ã£¾Æº¸´Â ·çÆ¾ÀÎµ¥, ÀÌ·¡¾ß ÇÒ ÇÊ¿ä°¡ ÀÖÀ»±î..?
 		vector<CX2BuffTempletPtr>::iterator vItr =
 			std::find_if( m_vecBuffTempletPtr.begin(), m_vecBuffTempletPtr.end(), FindFunc );
 
@@ -12106,34 +12613,33 @@ void CX2GameUnit::SetKBuffFactorPacketToGameUnit( const vector<KBuffFactor>& vec
 				CX2BuffTempletPtr ptrCloneBuffTemplet = ptrBuffTemplet->GetClonePtr();
 				if ( ptrCloneBuffTemplet->SetFactorFromPacket( kBuffFactor, this ) )
 				{
-					/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					/// µð¹öÇÁ¸é µð¹öÇÁÄ«¿îÆ®¸¦, ¹öÇÁ¸é ¹öÇÁÄ«¿îÆ®¸¦ Áõ°¡
 					( true == ptrCloneBuffTemplet->IsDeBuff() ? SetNumOfDeBuff( GetNumOfDeBuff() + 1 ) : SetNumOfBuff( GetNumOfBuff() + 1 ) );
-					/// ï¿½ï¿½ ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½(ex: ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½...)
+					/// °¢ À¯´Ö¸¶´Ù Æ¯Á¤ ¹öÇÁ°¡ ½ÇÇàµÉ ¶§ ¼ÂÆÃÇØÁà¾ß ÇÏ´Â °ª(ex: ¸ÅÁöÄÃ¸ÞÀÌÅ©¾÷ÀÌ ½ÃÀüÁßÀÌ¶ó´Â ÇÃ·¡±× µî...)
 					SetSpecificValueByBuffTempletID( ptrCloneBuffTemplet->GetBuffTempletID() );
 					m_vecBuffTempletPtr.push_back( ptrCloneBuffTemplet );
 #ifdef BUFF_ICON_UI
 					if( true == ptrCloneBuffTemplet->GetUseBuffIcon() )
 					{
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-						CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(),
-						ptrCloneBuffTemplet->GetIconKeyName(), ptrCloneBuffTemplet->GetBuffName(), ptrCloneBuffTemplet->GetBuffDesc(), ptrCloneBuffTemplet->GetRemainDurationTime() ), ptrCloneBuffTemplet->IsDeBuff());
-#else
-						CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(),
+						CX2GageManager::GetInstance()->PushBuff( m_UnitUID, CX2GageUI::BuffIcon( ptrCloneBuffTemplet->GetBuffTempletID(),ptrCloneBuffTemplet->GetIconFileName(), 
 						ptrCloneBuffTemplet->GetIconKeyName(), ptrCloneBuffTemplet->GetBuffName(), ptrCloneBuffTemplet->GetBuffDesc() ), ptrCloneBuffTemplet->IsDeBuff());
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 					}
 #endif //BUFF_ICON_UI
 				}
 			}
 		}
-		/// kimhc // ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ì¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½(ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Þ±ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½)
+		/// kimhc // ÀÌ¹Ì °°Àº ¹öÇÁ°¡ Á¸Àç ÇÏ´Â °æ¿ì¿¡ ´ëÇÑ ¿¹¿ÜÃ³¸®°¡ ÇÊ¿äÇÒ µí(ÆÐÅ¶À» ¹Þ±â Àü ÇØ´ç À¯´ÖÀÌ °°Àº ¹öÇÁ¸¦ »ç¿ëÇÏ´Â °æ¿ì ¿¹¿ÜÃ³¸®)
 	}
 }
 
 /** @function : OnFrameMoveBuff
-	@brief : OnFrameMoveï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ Buff ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ OnFrameMove, ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : OnFrameMove¿¡¼­ Ã³¸®ÇÒ Buff ÇÁ·Î¼¼½º·Î ¹öÇÁµéÀÇ OnFrameMove, °»½Å, »èÁ¦ µîÀ» ¼öÇà
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2GameUnit::OnFrameMoveBuff( float fElapsedTime )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2GameUnit::OnFrameMoveBuff()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( !m_vecBuffTempletPtr.empty() )
 	{
@@ -12142,10 +12648,14 @@ void CX2GameUnit::OnFrameMoveBuff()
 
 		while ( m_vecBuffTempletPtr.end() != vItr )
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            (*vItr)->OnFrameMove( this, fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			(*vItr)->OnFrameMove( this );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if ( (*vItr)->GetDidFinish() )
 			{
-				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				/// µð¹öÇÁ¸é µð¹öÇÁÄ«¿îÆ®¸¦, ¹öÇÁ¸é ¹öÇÁÄ«¿îÆ®¸¦ °¨¼Ò
 				( true == (*vItr)->IsDeBuff() ? SetNumOfDeBuff( GetNumOfDeBuff() - 1 ) : SetNumOfBuff( GetNumOfBuff() - 1 ) );
 				UnSetSpecificValueByBuffTempletID( (*vItr)->GetBuffTempletID() );
 				(*vItr)->DoFinishBehavior( this );
@@ -12166,15 +12676,15 @@ void CX2GameUnit::OnFrameMoveBuff()
 }
 
 /** @function : FinishAndClearAllBuff
-	@brief : ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ clear ï¿½ï¿½
+	@brief : ¸ðµç ¹öÇÁ¸¦ Á¾·áÈÄ ¸ðµÎ clear ÇÔ
 */
 void CX2GameUnit::FinishAndClearAllBuff()
 {
 	CX2GageManager* pGageManager = CX2GageManager::GetInstance();
 
-	/// ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	/// ÀÚ½ÅÀÇ À¯´ÖÀÎ °æ¿ì
 	if ( IsMyUnit() )
-		pGageManager->GetBuffFactorFromGameUnit( this );	/// GageManagerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		pGageManager->GetBuffFactorFromGameUnit( this );	/// GageManager¿¡ ¹öÇÁ Á¤º¸ ÀÓ½Ã ÀúÀå
 
 	BOOST_FOREACH( CX2BuffTempletPtr ptrBuffTemplet, m_vecBuffTempletPtr )
 	{
@@ -12195,12 +12705,13 @@ void CX2GameUnit::FinishAndClearAllBuff()
 }
 
 /** @function : ApplyRenderParam
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ RenderParam ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº»RenderParamï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : SkinAnimï¿½ï¿½ RenderParam ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pRenderParam_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇØ Àû¿ëµÇ¾ßÇÒ RenderParam °ªÀÌ ÀÖÀ¸¸é Á¦ÀÏ ¸¶Áö¸· °ÍÀ» Àû¿ëÇÏ°í ¾øÀ¸¸é ±âº»RenderParamÀ» Àû¿ëÇÏ´Â ÇÔ¼ö
+	@param : SkinAnimÀÇ RenderParam Æ÷ÀÎÅÍ(pRenderParam_)
 */
 /*virtual*/ void CX2GameUnit::ApplyRenderParam( CKTDGXRenderer::RenderParam* pRenderParam_ )
 {
-	/// kimhc // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¿ï¿½ ï¿½ÌºÎºï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Æµï¿½ ï¿½É¼ï¿½ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æºï¿½ï¿½ï¿½
+	/// kimhc // ¹öÇÁ¸¦ ¸¸µç ÈÄ¿¡ ÀÌºÎºÐÀ» ¸Å ÇÁ·¹ÀÓ ½ÇÇàÇÏÁö ¾Ê¾Æµµ µÉ¼öÀÖµµ·Ï ÇÒ °³¼±¹æ¹ýÀ» Ã£¾Æº¸ÀÚ
+	/// mauntain // ¸¸¾à ÀÌ ºÎºÐÀ» ¸ÅÇÁ·¹ÀÓ ½ÇÇà ½ÃÅ°Áö ¾Êµµ·Ï ¼öÁ¤Çß´Ù¸é, ´Ù¸¥ °÷¿¡¼­ GetFlickerColorByBuff()¸¦ ¸Å ÇÁ·¹ÀÓ ½ÇÇà ½ÃÄÑ ÁÖµµ·Ï ¼öÁ¤ ÇØ ÁÖÀÚ.
 	#ifdef RIDING_SYSTEM
 	if ( m_bPassDash )
 		return;
@@ -12222,27 +12733,47 @@ void CX2GameUnit::FinishAndClearAllBuff()
 			pRenderParam_->cartoonTexType = stBuffRenderParam.m_eCartoonTexType;
 			pRenderParam_->fOutLineWide = stBuffRenderParam.m_fOutLineWide;
 			pRenderParam_->outLineColor = stBuffRenderParam.m_d3dxColorOutLine;
-			pRenderParam_->color	= stBuffRenderParam.m_d3dxColor;
 			pRenderParam_->bAlphaBlend = stBuffRenderParam.m_bAlphaBlend;
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+			/// ¹ÝÂ¦ÀÌ´Â »ö °£°ÝÀÌ ¼³Á¤µÇ¾î ÀÖ´Ù¸é, »ö ¼³Á¤ ÇØÁÖÀÚ.
+			if ( 0.f < stBuffRenderParam.m_fFlickerColorGap )
+				pRenderParam_->color	= GetFlickerColorByBuff( stBuffRenderParam.m_d3dxColor, stBuffRenderParam.m_fFlickerColorGap );
+			else
+#endif //SERV_ADD_LUNATIC_PSYKER
+				pRenderParam_->color	= stBuffRenderParam.m_d3dxColor;
 		}
 	}
 }
 
 /** @function : ApplyHyperModeBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : °¢¼º¹öÇÁ Àû¿ë
 */
 /*virtual*/ void CX2GameUnit::ApplyHyperModeBuff()
 {
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	SetBuffFactorToGameUnitByBuffFactorID( static_cast<UINT>( BFI_HYPER_MODE ), 1 );
-#else //UPGRADE_SKILL_SYSTEM_2013
-	SetBuffFactorToGameUnitByBuffFactorID( static_cast<UINT>( BFI_HYPER_MODE ) );
-#endif //UPGRADE_SKILL_SYSTEM_2013
-	
+
+#ifdef HAMEL_SECRET_DUNGEON // ±èÅÂÈ¯
+	/// °¢¼º½Ã Àû¿ëÇÒ ¹öÇÁ°¡ ÀÖ´ÂÁö °Ë»ç
+	if ( false == m_SocketData.m_vecInfoByUseHyperMode.empty() &&
+		 GUT_USER == GetGameUnitType() )
+	{
+		CX2GUUser* pGUUser = static_cast<CX2GUUser*>( this );
+
+		/// ¹öÇÁ Àû¿ë
+		if ( NULL != pGUUser )
+		{
+#ifdef ADJUST_SECRET_ITEM_OPTION //±èÃ¢ÇÑ
+			if( pGUUser->GetSocketOptionHyperCoolTime() <= 0.f )
+#endif //ADJUST_SECRET_ITEM_OPTION
+			pGUUser->ApplyBuffByUseHyperMode();
+		}
+	}
+#endif // HAMEL_SECRET_DUNGEON
 }
 
 /** @function : HyperModeBuffEffectEnd
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½Ô¼ï¿½
+	@brief : °¢¼º Á¾·á½Ã °¢¼ºÀÌÆåÆ® ÇØÁ¦¸¦ À§ÇØ ¼öÇàµÇ´Â ÇÔ¼ö
 */
 /*virtual*/ void CX2GameUnit::HyperModeBuffEffectEnd()
 {
@@ -12253,7 +12784,7 @@ void CX2GameUnit::FinishAndClearAllBuff()
 }
 
 /** @function : HyperModeBuffEffectOnFrameMove
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+	@brief : °¢¼º ÀÌÆåÆ®¸¦ ¸Å ÇÁ·¹ÀÓ °»½ÅÇÏ´Â ÇÔ¼ö
 */
 /*virtual*/ void CX2GameUnit::HyperModeBuffEffectOnFrameMove()
 {
@@ -12267,7 +12798,7 @@ void CX2GameUnit::FinishAndClearAllBuff()
 		&& pSeq_RArm 	!= NULL
 		&& pSeq_LArm 	!= NULL )
 	{
-		/// kimhc // ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Øºï¿½ï¿½ï¿½
+		/// kimhc // Á»´õ È¿À²ÀûÀ¸·Î Á¤¸® ÇØº¸ÀÚ
 		if( GetRemainHyperModeTime() < GetMaxHyperModeTime() / 3.0f )
 		{
 			CMinMax<float> emit( 15, 20 );
@@ -12345,8 +12876,8 @@ void CX2GameUnit::FinishAndClearAllBuff()
 }
 
 /** @function : CanApplyBuffToGameUnit
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ³ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@return : ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ true, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ false
+	@brief : ¹öÇÁ¿¡ °É¸±¼ö ÀÖ´Â »óÅÂÀÎÁö ¾Ë¾Æ³»´Â ÇÔ¼ö
+	@return : °É¸±¼ö ÀÖÀ¸¸é true, ¾øÀ¸¸é false
 */
 bool CX2GameUnit::CanApplyBuffToGameUnit() const
 {
@@ -12357,8 +12888,8 @@ bool CX2GameUnit::CanApplyBuffToGameUnit() const
 }
 
 /** @function : CreateAndInsertBuffIdentity
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ÃºÒ°ï¿½, ï¿½ï¿½ï¿½ÝºÒ°ï¿½, ï¿½ï¿½ï¿½Û¾Æ¸ï¿½ ï¿½ï¿½)
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½àµ¿ Å¸ï¿½ï¿½(eType_), ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½á¸¦ ï¿½Äºï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ È¿°ú »ý¼º ¹× Àû¿ë(´ë½ÃºÒ°¡, °ø°ÝºÒ°¡, ¼öÆÛ¾Æ¸Ó µî)
+	@param : ¹öÇÁ Çàµ¿ Å¸ÀÔ(eType_), ¹öÇÁ Á¾·á¸¦ ½Äº°ÇÒ ¼ö ÀÖ´Â ¿ä¼Ò(BuffIdentity_)
 */
 void CX2GameUnit::CreateAndInsertBuffIdentity( const BUFF_BEHAVIOR_TYPE eType_, const KBuffIdentity& BuffIdentity_ )
 {
@@ -12395,6 +12926,15 @@ void CX2GameUnit::CreateAndInsertBuffIdentity( const BUFF_BEHAVIOR_TYPE eType_, 
 		case BBT_ZX_ATTACK_IMPOSSIBLE:
 			m_vecZXImpossiblePtr.push_back( ptrBuffIdentity );
 			break;
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+		// Z °ø°Ý ºÒ°¡, X °ø°Ý ºÒ°¡ ¹öÇÁ Å¸ÀÔ Ãß°¡
+		case BBT_Z_ATTACK_IMPOSSIBLE:
+			m_vecZImpossiblePtr.push_back( ptrBuffIdentity );
+			break;
+		case BBT_X_ATTACK_IMPOSSIBLE:
+			m_vecXImpossiblePtr.push_back( ptrBuffIdentity );
+			break;
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 
 		default:
 			break;
@@ -12403,8 +12943,8 @@ void CX2GameUnit::CreateAndInsertBuffIdentity( const BUFF_BEHAVIOR_TYPE eType_, 
 }
 
 /** @function : EraseBuffIdentity
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ÃºÒ°ï¿½, ï¿½ï¿½ï¿½ÝºÒ°ï¿½, ï¿½ï¿½ï¿½Û¾Æ¸ï¿½ ï¿½ï¿½)
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½àµ¿ Å¸ï¿½ï¿½(eType_), ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½á¸¦ ï¿½Äºï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ È¿°ú »èÁ¦(´ë½ÃºÒ°¡, °ø°ÝºÒ°¡, ¼öÆÛ¾Æ¸Ó µî)
+	@param : ¹öÇÁ Çàµ¿ Å¸ÀÔ(eType_), ¹öÇÁ Á¾·á¸¦ ½Äº°ÇÒ ¼ö ÀÖ´Â ¿ä¼Ò(BuffIdentity_)
 */
 void CX2GameUnit::EraseBuffIdentity( const BUFF_BEHAVIOR_TYPE eType_, const KBuffIdentity& BuffIdentity_ )
 {
@@ -12437,12 +12977,22 @@ void CX2GameUnit::EraseBuffIdentity( const BUFF_BEHAVIOR_TYPE eType_, const KBuf
 	case BBT_ZX_ATTACK_IMPOSSIBLE:
 		ERASE_BUFF_IDENTITY( m_vecZXImpossiblePtr, BuffIdentity_ );
 		break;
+
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+	// Z °ø°Ý ºÒ°¡, X °ø°Ý ºÒ°¡ ¹öÇÁ Å¸ÀÔ Ãß°¡
+	case BBT_Z_ATTACK_IMPOSSIBLE:
+		ERASE_BUFF_IDENTITY( m_vecZImpossiblePtr, BuffIdentity_ );
+		break;
+	case BBT_X_ATTACK_IMPOSSIBLE:
+		ERASE_BUFF_IDENTITY( m_vecXImpossiblePtr, BuffIdentity_ );
+		break;
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
 	}	
 }
 
 /** @function : DoDelegateProcess
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(vecDelegateProcess_)
+	@brief : Àü´Þ ¹ÞÀº µ¨¸®°ÔÀÌÅÍµéÀÇ ¸ðÀ½À» ½ÇÇà ÇÏ´Â ÇÔ¼ö
+	@param : µ¨¸®°ÔÀÌÅÍ ¸ðÀ½(vecDelegateProcess_)
 */
 void CX2GameUnit::DoDelegateProcess( const vector<DelegateProcess>& vecDelegateProcess_ )
 {
@@ -12457,11 +13007,9 @@ void CX2GameUnit::DoDelegateProcess( const vector<DelegateProcess>& vecDelegateP
 }
 
 /** @function : DoDelegateProcessWithDamageData
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ DamageDataï¿½ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½Þ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(vecDelegateProcess_), const DamageData&
+	@brief : Àü´Þ ¹ÞÀº µ¨¸®°ÔÀÌÅÍ¸¦ DamageData¸¦ ÀÎÀÚ·Î ¹Þ¾Æ ½ÇÇàÇÏ´Â ÇÔ¼ö
+	@param : µ¨¸®°ÔÀÌÅÍ ¸ðÀ½(vecDelegateProcess_), const DamageData&
 */
-#ifdef INT_SKILL_BUG_FIX
-#else
 void CX2GameUnit::DoDelegateProcessWithDamageData( const vector<DelegateProcessWithDamageData>& vecDelegateProcess_, const CX2DamageManager::DamageData& damageData_ )
 {
 	if ( !vecDelegateProcess_.empty() )
@@ -12473,17 +13021,17 @@ void CX2GameUnit::DoDelegateProcessWithDamageData( const vector<DelegateProcessW
 		}
 	}
 }
-#endif INT_SKILL_BUG_FIX
+
 
 /** @function : DoUnitSlashTraceInCommonStateStart
-	@brief : CommonStateStartï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ SlashTraceï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+	@brief : CommonStateStart¿¡¼­ ½ÇÇàµÉ À¯´Ö¿¡ ºÙÀº SlashTrace¸¦ ½ÇÇàÇÏ´Â ÇÔ¼ö
 */
 void CX2GameUnit::DoUnitSlashTraceInCommonStateStart()
 {
 #ifdef UNIT_SLASH_TRACE_MANAGER_TEST
 
 	int iTableIndex = 0; 
-	while( true == m_LuaManager.BeginTable( L"UNIT_SLASH_TRACE", iTableIndex ) )
+	while( true == m_LuaManager.BeginTable( "UNIT_SLASH_TRACE", iTableIndex ) )
 	{
 		CX2UnitSlashTraceManager::SLASH_TRACE_CONDITION eSlashTraceCondition = CX2UnitSlashTraceManager::STC_NONE;
 		LUA_GET_VALUE_ENUM( m_LuaManager, 5, eSlashTraceCondition, CX2UnitSlashTraceManager::SLASH_TRACE_CONDITION, CX2UnitSlashTraceManager::STC_NONE );
@@ -12499,7 +13047,7 @@ void CX2GameUnit::DoUnitSlashTraceInCommonStateStart()
 }
 
 /** @function : AddSlashTraceTiming
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ÇµÇ¾ï¿½ï¿½Ö´ï¿½ ï¿½Îµï¿½ï¿½ï¿½, Å¸ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : À¯´ÖÀÇ ½ºÅ×ÀÌÆ®¿¡ Á¤ÀÇµÇ¾îÀÖ´Â ÀÎµ¦½º, Å¸ÀÌ¹Ö ´ë·Î Æ®·¹ÀÌ½º¸¦ ½ÇÇà
 */
 void CX2GameUnit::AddSlashTraceTiming()
 {
@@ -12519,11 +13067,11 @@ void CX2GameUnit::AddSlashTraceTiming()
 }
 
 /** @function : CreateAndInsertEffectSetImpactPointByBuff
-	@brief : Å¸ï¿½Ý½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½Ì¸ï¿½(pwszEffectSetName_), ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½(pwszSoundName_)
+	@brief : Å¸°Ý½Ã Å¸°ÝÁ¡¿¡ Ãâ·ÂÇÒ ÀÌÆåÆ®¼ÂÀ» ÁöÁ¤
+	@param : ÇØ´ç ÀÌÆåÆ®¼ÂÀ» Ãâ·Â ½ÃÅ°´Â ¹öÇÁÀÇ ½Äº°ÀÚ(BuffIdentity_), ÀÌÆåÆ®¼ÂÀÌ¸§(pwszEffectSetName_), »ç¿îµåÀÌ¸§(pwszSoundName_)
 */
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09		»ý¼º °£°Ý Ãß°¡
 
 void CX2GameUnit::CreateAndInsertEffectSetImpactPointByBuff( const KBuffIdentity& BuffIdentity_, const WCHAR* pwszEffectSetName_, const WCHAR* pwszSoundName_, const float fCoolTime )
 {
@@ -12544,8 +13092,8 @@ void CX2GameUnit::CreateAndInsertEffectSetImpactPointByBuff( const KBuffIdentity
 #endif // SERV_NEW_DEFENCE_DUNGEON
 
 /** @function : EraseEffectSetImpactPointByBuff
-	@brief : Å¸ï¿½Ý½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½È°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : Å¸°Ý½Ã Å¸°ÝÁ¡¿¡ Ãâ·ÂÇÒ ÀÌÆåÆ®¼ÂÀÌ ÁöÁ¤µÈ°ÍÀ» »èÁ¦
+	@param : ÇØ´ç ÀÌÆåÆ®¼ÂÀ» Ãâ·Â ½ÃÅ°´Â ¹öÇÁÀÇ ½Äº°ÀÚ(BuffIdentity_)
 */
 void CX2GameUnit::EraseEffectSetImpactPointByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -12557,7 +13105,7 @@ void CX2GameUnit::EraseEffectSetImpactPointByBuff( const KBuffIdentity& BuffIden
 }
 
 /** @function : PlayEffectSetImpactPointByBuff
-	@brief : Å¸ï¿½Ý½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Âµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief : Å¸°Ý½Ã Å¸°ÝÁ¡¿¡ ¸®½ºÆ®¿¡ ÀÖ´Â ÀÌÆåÆ®¼ÂµéÀ» Ãâ·Â
 */
 void CX2GameUnit::PlayEffectSetImpactPointByBuff()
 {
@@ -12572,8 +13120,8 @@ void CX2GameUnit::PlayEffectSetImpactPointByBuff()
 }
 
 /** @function : InsertPairSubAttackListSet
-	@brief : ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½Å¸ï¿½Ý°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Å¸ï¿½Ý¹Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : Pairï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½Úµï¿½(hMeshHandle_), Å¸ï¿½Ý¹Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ SkinAnim ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pSkinAnim_)
+	@brief : ÀÌÆåÆ®ÀÇ Å¸°ÝÀÌ ÀÏ¹ÝÅ¸°Ý°ú °°ÀÌ ÀÌ·ç¾îÁö°Ô ÇÏ±â À§ÇØ ÀÌÆåÆ®ÀÇ Å¸°Ý¹Ú½º¸¦ À¯´Ö¿¡ Á÷Á¢ Ãß°¡ÇÏ´Â ÇÔ¼ö
+	@param : PairÀÇ Å°·Î »ç¿ëÇÒ ¸Þ½ÃÇÚµé(hMeshHandle_), Å¸°Ý¹Ú½º¸¦ °¡Áö°í ÀÖ´Â ¸Þ½ÃÀÇ SkinAnim Æ÷ÀÎÅÍ(pSkinAnim_)
 */
 void CX2GameUnit::InsertPairSubAttackListSet( const CKTDGXMeshPlayer::CXMeshInstanceHandle hMeshHandle_, const CKTDGXSkinAnim* pSkinAnim_ )
 {
@@ -12587,8 +13135,8 @@ void CX2GameUnit::InsertPairSubAttackListSet( const CKTDGXMeshPlayer::CXMeshInst
 }
 
 /** @function : ErasePairSubAttackListSet
-	@brief : ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¹ï¿½Å¸ï¿½Ý°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Å¸ï¿½Ý¹Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ö¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Keyï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½Úµï¿½(hMeshHandle_)
+	@brief : ÀÌÆåÆ®ÀÇ Å¸°ÝÀÌ ÀÏ¹ÝÅ¸°Ý°ú °°ÀÌ ÀÌ·ç¾îÁö°Ô ÇÏ±â À§ÇÑ ÀÌÆåÆ®ÀÇ Å¸°Ý¹Ú½º¸¦ À¯´Ö¿¡¼­ Á¦°Å
+	@param : »èÁ¦ÇÒ Key°ªÀÎ ¸Þ½ÃÇÚµé(hMeshHandle_)
 */
 void CX2GameUnit::ErasePairSubAttackListSet( const CKTDGXMeshPlayer::CXMeshInstanceHandle hMeshHandle_ )
 {
@@ -12607,8 +13155,8 @@ void CX2GameUnit::ErasePairSubAttackListSet( const CKTDGXMeshPlayer::CXMeshInsta
 }
 
 /** @function : GetSubAttackListGetFromPair
-	@brief : ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ SubAttackListSetï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ true, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ false
+	@brief : ÀÎµ¦½º¿¡ ÇØ´çÇÏ´Â SubAttackListSetÀ» ¾ò¾î¿À´Â ÇÔ¼ö
+	@param : °ªÀÌ ÀÖÀ¸¸é true, ¾øÀ¸¸é false
 */
 bool CX2GameUnit::GetSubAttackListGetFromPair( const UINT uiIndex_, OUT const CKTDXCollision::CollisionDataListSet** ppCollisionDataListSet_ )
 {
@@ -12625,13 +13173,13 @@ bool CX2GameUnit::GetSubAttackListGetFromPair( const UINT uiIndex_, OUT const CK
 }
 
 /** @function : CreateAndInsertChangeUnitScaleByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_), Å©ï¿½ï¿½(vScale_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ À¯´ÖÀÇ ½ºÄÉÀÏ º¯°æ Àû¿ë
+	@param : ¹öÇÁ ½Äº°ÀÚ(BuffIdentity_), Å©±â(vScale_)
 */
 void CX2GameUnit::CreateAndInsertChangeUnitScaleByBuff( const KBuffIdentity& BuffIdentity_, const D3DXVECTOR3& vScale_ )
 {
 #ifdef POSSIBLE_ADD_CHANGE_SCALE_BUFF_VALUE
-	const D3DXVECTOR3 vChangeScale( m_vBasicScale.x * vScale_.x, m_vBasicScale.y * vScale_.y, m_vBasicScale.z * vScale_.z );		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	const D3DXVECTOR3 vChangeScale( m_vBasicScale.x * vScale_.x, m_vBasicScale.y * vScale_.y, m_vBasicScale.z * vScale_.z );		/// ÇöÀç ½ºÄÉÀÏ¿¡ º¯È­µÉ ¼öÄ¡¸¦ ¿¬»ê
 
 	CX2ChangeUnitScaleByBuffPtr ptrChangeUnitScaleByBuff( new CX2ChangeUnitScaleByBuff( BuffIdentity_, vChangeScale ) );
 #else  POSSIBLE_ADD_CHANGE_SCALE_BUFF_VALUE
@@ -12646,8 +13194,8 @@ void CX2GameUnit::CreateAndInsertChangeUnitScaleByBuff( const KBuffIdentity& Buf
 }
 
 /** @function : EraseChangeUnitScaleByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½Âµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½(bUseTimeToReturn_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ À¯´ÖÀÇ ½ºÄÉÀÏ º¯°æ ÇØÁ¦
+	@param : ¹öÇÁ ½Äº°ÀÚ(BuffIdentity_), ÇìÁ¦ ½Ã¿¡ µ¹¾Æ°¡´Âµ¥ Á¤ÇØÁø ½Ã°£À» ¾µ°ÍÀÎ°¡(bUseTimeToReturn_)
 */
 void CX2GameUnit::EraseChangeUnitScaleByBuff( const KBuffIdentity& BuffIdentity_, const bool bUseTimeToReturn_ )
 {
@@ -12658,12 +13206,12 @@ void CX2GameUnit::EraseChangeUnitScaleByBuff( const KBuffIdentity& BuffIdentity_
 	{
 		m_vecChangeUnitScaleByBuffPtr.erase( vItr );
 
-		m_fTimeDirectToReturnBasicScale = 0.1f;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½Âµï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
+		m_fTimeDirectToReturnBasicScale = 0.1f;	/// ¿ø·¡ ½ºÄÉÀÏ·Î µ¹¾Æ°¡´Âµ¥ °É¸®´Â ½Ã°£
 		m_delegateProcessReturnFromScaleChange = SET_DELEGATE_PROCESS( CX2GameUnit, ProcessReturnFromScaleChange );
 
-		if ( bUseTimeToReturn_ )	/// ï¿½Â¿ï¿½ï¿½ ï¿½ï··ï¿½ï·· ï¿½Å¸ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+		if ( bUseTimeToReturn_ )	/// ÁÂ¿ì·Î ¿ï··¿ï·· °Å¸®´Â È¿°ú¸¦ »ç¿ë
 		{
-			/// Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ß´Ù¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¾ï¿½ ï¿½Ù½ï¿½ Ã¼Å© ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			/// Ã¼Å©¸¦ ¾ÈÇß´Ù¶ó°í ÁöÁ¤ÇØÁÖ¾î ´Ù½Ã Ã¼Å© ÇÏµµ·Ï ¼ÂÆÃÇÔ
 			m_bCheckHeightEnlargeSize = false;
 			m_bCheckWidthEnlargeSize = false;			
 		}
@@ -12671,13 +13219,13 @@ void CX2GameUnit::EraseChangeUnitScaleByBuff( const KBuffIdentity& BuffIdentity_
 }
 
 /** @function : ProcessReturnFromScaleChange
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ m_delegateProcessReturnFromScaleChange ï¿½ï¿½ ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö¾ï¿½ß¸ï¿½ Ã³ï¿½ï¿½ï¿½È´ï¿½
+	@brief : ½ºÄÉÀÏ º¯°æÀÌ ÀÖÀº ÈÄ µ¹¾Æ°¡´Â Ã³¸®¸£ ÇÏ´Â ÇÔ¼ö·Î m_delegateProcessReturnFromScaleChange ¿¡ ÀÌ ÇÔ¼ö°¡ ÁöÁ¤µÇ¾î ÀÖ¾î¾ß¸¸ Ã³¸®µÈ´Ù
 */
 void CX2GameUnit::ProcessReturnFromScaleChange()
 {
 	if ( 0.0f < m_fTimeToReturnBasicScale )
 	{
-		m_fTimeToReturnBasicScale -= m_fElapsedTime;	/// Ä¡Æ® ï¿½ï¿½...
+		m_fTimeToReturnBasicScale -= m_fElapsedTime;	/// Ä¡Æ® ¿ë...
 		return;
 	}
 	else
@@ -12736,17 +13284,18 @@ void CX2GameUnit::ProcessReturnFromScaleChange()
 	if ( m_fTimeDirectToReturnBasicScale <= 0.0f )
 	{
 		m_fTimeDirectToReturnBasicScale = 0.0f;
-		if ( m_vecChangeUnitScaleByBuffPtr.empty() )
-#ifdef POSSIBLE_ADD_CHANGE_SCALE_BUFF_VALUE
+		
+#ifdef FIX_RETURN_FROM_SCALE_CHANGE
+		if( true == m_vecChangeUnitScaleByBuffPtr.empty() )
 			TransformScale( m_vBasicScale );
-#else  POSSIBLE_ADD_CHANGE_SCALE_BUFF_VALUE
-			m_vTransScale = m_vBasicScale;
-#endif POSSIBLE_ADD_CHANGE_SCALE_BUFF_VALUE
 		else
-			TransformScale( m_vecChangeUnitScaleByBuffPtr.back()->GetScale() );
+#endif // FIX_RETURN_FROM_SCALE_CHANGE
+		{
+			TransformScale( GetChangeUnitScaleByBuff() );
+		}
 
 		if( GUT_USER == m_GameUnitType )
-		{ //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½//2012-13-02//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		{ //¿ÀÇöºó//2012-13-02//À¯ÀúÀÇ °æ¿ì¿¡¸¸ »ç¿îµå Ãâ·ÂÇÏµµ·Ï º¯°æ
 			PlaySound( L"Pressed_Return.ogg" );
 		}
 
@@ -12755,17 +13304,17 @@ void CX2GameUnit::ProcessReturnFromScaleChange()
 }
 
 /** @function : IsChangedGameUnitScaleByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Î°ï¿½?
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ true, ï¿½Æ´Ï¸ï¿½ false
+	@brief : ¹öÇÁ¿¡ ÀÇÇØ ½ºÄÉÀÏÀÌ º¯°æµÈ »óÅÂ ÀÎ°¡?
+	@return : º¯°æµÈ »óÅÂ¸é true, ¾Æ´Ï¸é false
 */
 bool CX2GameUnit::IsChangedGameUnitScaleByBuff() const
 {
-	return !m_vecChangeUnitScaleByBuffPtr.empty();	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	return !m_vecChangeUnitScaleByBuffPtr.empty();	/// ¹«¾ð°¡ µé¾îÀÖÀ¸¸é ½ºÄÉÀÏÀÌ º¯°æµÈ °ÍÀÓ
 }
 
 /** @function : TransformScale_LUA
-	@brief : ï¿½ï¿½Æ½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ Ä¡Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Scaleï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ò¶ï¿½ ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­ ï¿½Èµï¿½)
-	@param : Å©ï¿½ï¿½(fScale_), ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½(fTime_)
+	@brief : ·ç¾Æ½ºÅ©¸³Æ®¿¡¼­ Ä¡Æ®¸¦ ÅëÇØ ScaleÀ» º¯°æÇÒ¶§ »ç¿ë (³­ÀÔÀ¯Àú¿Í µ¿±âÈ­ ¾ÈµÊ)
+	@param : Å©±â(fScale_), À¯Áö½Ã°£(fTime_)
 */
 void CX2GameUnit::TransformScale_LUA( const float fScale_, const float fTime_ )
 {
@@ -12787,8 +13336,8 @@ void CX2GameUnit::TransformScale_LUA( const float fScale_, const float fTime_ )
 #ifdef POSSIBLE_ADD_CHANGE_SCALE_BUFF_VALUE
 
 /** @function : UpdateChangeUnitScaleByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_), Å©ï¿½ï¿½(vScale_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ À¯´ÖÀÇ ½ºÄÉÀÏ º¯°æ °»½Å
+	@param : ¹öÇÁ ½Äº°ÀÚ(BuffIdentity_), Å©±â(vScale_)
 */
 void CX2GameUnit::UpdateChangeUnitScaleByBuff( const KBuffIdentity& BuffIdentity_, const D3DXVECTOR3& vScale_, const UINT uiAccumulationLimit_ )
 {
@@ -12800,26 +13349,26 @@ void CX2GameUnit::UpdateChangeUnitScaleByBuff( const KBuffIdentity& BuffIdentity
 			if( NULL != ptrChangeUnitScaleByBuff && 
 				true == ptrChangeUnitScaleByBuff->IsSame(BuffIdentity_) )
 			{
-				if( uiAccumulationLimit_ > 1 ) //ï¿½ï¿½Ã¸
+				if( uiAccumulationLimit_ > 1 ) //ÁßÃ¸
 				{
 #ifdef VERIFY_STAT_BY_BUFF
-					const PROTECT_VECTOR3 vNowScale = ptrChangeUnitScaleByBuff->GetScale();		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-					const PROTECT_VECTOR3 vChangeScale( vNowScale.x * vScale_.x, vNowScale.y * vScale_.y, vNowScale.z * vScale_.z );			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					const PROTECT_VECTOR3 vNowScale = ptrChangeUnitScaleByBuff->GetScale();		/// ÇöÀç Àû¿ëÁßÀÎ ½ºÄÉÀÏ
+					const PROTECT_VECTOR3 vChangeScale( vNowScale.x * vScale_.x, vNowScale.y * vScale_.y, vNowScale.z * vScale_.z );			/// ÇöÀç ½ºÄÉÀÏ¿¡ º¯È­µÉ ¼öÄ¡¸¦ ¿¬»ê
 #else	// VERIFY_STAT_BY_BUFF
-					const D3DXVECTOR3 vNowScale = ptrChangeUnitScaleByBuff->GetScale();		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-					const D3DXVECTOR3 vChangeScale( vNowScale.x * vScale_.x, vNowScale.y * vScale_.y, vNowScale.z * vScale_.z );			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					const D3DXVECTOR3 vNowScale = ptrChangeUnitScaleByBuff->GetScale();		/// ÇöÀç Àû¿ëÁßÀÎ ½ºÄÉÀÏ
+					const D3DXVECTOR3 vChangeScale( vNowScale.x * vScale_.x, vNowScale.y * vScale_.y, vNowScale.z * vScale_.z );			/// ÇöÀç ½ºÄÉÀÏ¿¡ º¯È­µÉ ¼öÄ¡¸¦ ¿¬»ê
 #endif // VERIFY_STAT_BY_BUFF
 
 
 					ptrChangeUnitScaleByBuff->SetScale( vChangeScale );
 					TransformScale( vChangeScale );
 				}
-				else //ï¿½ï¿½Ã¼
+				else //±³Ã¼
 				{
 #ifdef VERIFY_STAT_BY_BUFF
-					const PROTECT_VECTOR3 vChangeScale( m_vBasicScale.x * vScale_.x, m_vBasicScale.y * vScale_.y, m_vBasicScale.z * vScale_.z );/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					const PROTECT_VECTOR3 vChangeScale( m_vBasicScale.x * vScale_.x, m_vBasicScale.y * vScale_.y, m_vBasicScale.z * vScale_.z );/// ÇöÀç ½ºÄÉÀÏ¿¡ º¯È­µÉ ¼öÄ¡¸¦ ¿¬»ê
 #else	// VERIFY_STAT_BY_BUFF
-					const D3DXVECTOR3 vChangeScale( m_vBasicScale.x * vScale_.x, m_vBasicScale.y * vScale_.y, m_vBasicScale.z * vScale_.z );/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					const D3DXVECTOR3 vChangeScale( m_vBasicScale.x * vScale_.x, m_vBasicScale.y * vScale_.y, m_vBasicScale.z * vScale_.z );/// ÇöÀç ½ºÄÉÀÏ¿¡ º¯È­µÉ ¼öÄ¡¸¦ ¿¬»ê
 #endif // VERIFY_STAT_BY_BUFF
 					ptrChangeUnitScaleByBuff->SetScale( vChangeScale );
 					TransformScale( vChangeScale );
@@ -12827,15 +13376,15 @@ void CX2GameUnit::UpdateChangeUnitScaleByBuff( const KBuffIdentity& BuffIdentity
 			}
 		}
 	}
-	else	/// È¤ï¿½Ã¶ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	else	/// È¤½Ã¶óµµ º¤ÅÍ°¡ ºñ¾îÀÖ´Ù¸é, »õ·Î »ðÀÔ
 	{
 		CreateAndInsertChangeUnitScaleByBuff( BuffIdentity_, vScale_ );
 	}
 }
 
 /** @function : GetChangeUnitScaleByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½È¯
-	@return : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ À¯´ÖÀÇ ½ºÄÉÀÏ º¯°æ ¼öÄ¡ ¹ÝÈ¯
+	@return : Áõ°¡ ¼öÄ¡ º¤ÅÍ
 */
 D3DXVECTOR3 CX2GameUnit::GetChangeUnitScaleByBuff()
 {
@@ -12856,8 +13405,8 @@ D3DXVECTOR3 CX2GameUnit::GetChangeUnitScaleByBuff()
 #endif POSSIBLE_ADD_CHANGE_SCALE_BUFF_VALUE
 
 /** @function : CreateAndInsertCustomFunctionByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ StateStart, CommonFrameMove, StageEndï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ instance ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß°ï¿½
-	@param : ï¿½àµ¿ï¿½ï¿½ï¿½ï¿½(kBehaviorFactor_), ï¿½ï¿½ï¿½ï¿½ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ È¿°ú Áß StateStart, CommonFrameMove, StageEnd¿¡¼­ Ã³¸®ÇØ¾ßÇÏ´Â ÇÏµåÄÚµùÀ» ¼öÇàÇÏ´Â instance »ý¼º ¹× Ãß°¡
+	@param : Çàµ¿ÆÑÅÍ(kBehaviorFactor_), ¹öÇÁ½Äº°ÀÚ(BuffIdentity_)
 */
 void CX2GameUnit::CreateAndInsertCustomFunctionByBuff( const KBuffIdentity& BuffIdentity_, const KBuffBehaviorFactor& kBehaviorFactor_ )
 {
@@ -12890,8 +13439,8 @@ void CX2GameUnit::CreateAndInsertCustomFunctionByBuff( const KBuffIdentity& Buff
 }
 
 /** @function : EraseCustomFunctionByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ StateStart, CommonFrameMove, StageEndï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½Ïµï¿½ï¿½Úµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ instance ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ È¿°ú Áß StateStart, CommonFrameMove, StageEnd¿¡¼­ Ã³¸®ÇØ¾ßÇÏ´Â ÇÏµåÄÚµùÀ» ¼öÇàÇÏ´Â instance »èÁ¦
+	@param : ¹öÇÁ½Äº°ÀÚ(BuffIdentity_)
 */
 void CX2GameUnit::EraseCustomFunctionByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -12903,7 +13452,7 @@ void CX2GameUnit::EraseCustomFunctionByBuff( const KBuffIdentity& BuffIdentity_ 
 }
 
 /** @function : DoCustomFunctionByBuffInCommonStateStart
-	@brief : StateStartï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ CustomFunctionï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : StateStart¿¡¼­ ½ÇÇà µÇ¾î¾ß ÇÏ´Â ¹öÇÁ¿¡ ÀÇÇÑ CustomFunction¸¦ ½ÇÇà
 */
 void CX2GameUnit::DoCustomFunctionByBuffInCommonStateStart()
 {
@@ -12918,7 +13467,7 @@ void CX2GameUnit::DoCustomFunctionByBuffInCommonStateStart()
 }
 
 /** @function : DoCustomFunctionByBuffInCommonFrameMove
-	@brief : CommonFrameMoveï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ CustomFunctionï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : CommonFrameMove¿¡¼­ ½ÇÇà µÇ¾î¾ß ÇÏ´Â ¹öÇÁ¿¡ ÀÇÇÑ CustomFunction¸¦ ½ÇÇà
 */
 void CX2GameUnit::DoCustomFunctionByBuffInCommonFrameMove()
 {
@@ -12933,7 +13482,7 @@ void CX2GameUnit::DoCustomFunctionByBuffInCommonFrameMove()
 }
 
 /** @function : DoCustomFunctionByBuffInCommonStateEnd
-	@brief : StateEndï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ CustomFunctionï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : StateEnd¿¡¼­ ½ÇÇà µÇ¾î¾ß ÇÏ´Â ¹öÇÁ¿¡ ÀÇÇÑ CustomFunction¸¦ ½ÇÇà
 */
 void CX2GameUnit::DoCustomFunctionByBuffInCommonStateEnd()
 {
@@ -12948,7 +13497,7 @@ void CX2GameUnit::DoCustomFunctionByBuffInCommonStateEnd()
 }
 
 /** @function : DoCustomFunctionByBuffInDamageReact
-	@brief : DamageReactï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ DamageReact ï¿½ï¿½ï¿½ï¿½
+	@brief : DamageReact¿¡¼­ ½ÇÇà µÇ¾î¾ß ÇÏ´Â ¹öÇÁ¿¡ ÀÇÇÑ DamageReact ½ÇÇà
 */
 void CX2GameUnit::DoCustomFunctionByBuffInDamageReact( IN CX2DamageManager::DamageData& damageData_ )
 {
@@ -12963,10 +13512,10 @@ void CX2GameUnit::DoCustomFunctionByBuffInDamageReact( IN CX2DamageManager::Dama
 }
 
 /** @function : CreateAndInsertEffectSetHittedByBuff
-	@brief : ï¿½Ç°Ý½ï¿½  ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½Ì¸ï¿½(pwszEffectSetName_), ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½(pwszSoundName_)
+	@brief : ÇÇ°Ý½Ã  Ãâ·ÂÇÒ ÀÌÆåÆ®¼ÂÀ» ÁöÁ¤
+	@param : ÇØ´ç ÀÌÆåÆ®¼ÂÀ» Ãâ·Â ½ÃÅ°´Â ¹öÇÁÀÇ ½Äº°ÀÚ(BuffIdentity_), ÀÌÆåÆ®¼ÂÀÌ¸§(pwszEffectSetName_), »ç¿îµåÀÌ¸§(pwszSoundName_)
 */
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09		»ý¼º °£°Ý Ãß°¡
 
 void CX2GameUnit::CreateAndInsertEffectSetHittedByBuff( const KBuffIdentity& BuffIdentity_, const WCHAR* pwszEffectSetName_, const WCHAR* pwszSoundName_, const float fCreateGap )
 {
@@ -12987,8 +13536,8 @@ void CX2GameUnit::CreateAndInsertEffectSetHittedByBuff( const KBuffIdentity& Buf
 #endif // SERV_NEW_DEFENCE_DUNGEON
 
 /** @function : EraseEffectSetHittedByBuff
-	@brief : ï¿½Ç°Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½È°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ÇÇ°Ý½Ã Ãâ·ÂÇÒ ÀÌÆåÆ®¼ÂÀÌ ÁöÁ¤µÈ°ÍÀ» »èÁ¦
+	@param : ÇØ´ç ÀÌÆåÆ®¼ÂÀ» Ãâ·Â ½ÃÅ°´Â ¹öÇÁÀÇ ½Äº°ÀÚ(BuffIdentity_)
 */
 void CX2GameUnit::EraseEffectSetHittedByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -13000,7 +13549,7 @@ void CX2GameUnit::EraseEffectSetHittedByBuff( const KBuffIdentity& BuffIdentity_
 }
 
 /** @function : PlayEffectSetHittedByBuff
-	@brief : ï¿½Ç°Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Âµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief : ÇÇ°Ý½Ã ¸®½ºÆ®¿¡ ÀÖ´Â ÀÌÆåÆ®¼ÂµéÀ» Ãâ·Â
 */
 void CX2GameUnit::PlayEffectSetHittedByBuff()
 {
@@ -13015,30 +13564,39 @@ void CX2GameUnit::PlayEffectSetHittedByBuff()
 }
 
 /** @function : ApplyBuffToGameUnitInDamageReact
-	@brief : DamageReactï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Buffï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¾
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Buffï¿½ï¿½ ï¿½ï¿½ï¿½ DamageData ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	@return : Buffï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ true ï¿½ï¿½ï¿½ï¿½
+	@brief : DamageReact¿¡¼­ÀÇ BuffÀû¿ë ·çÆ¾
+	@param : Àû¿ëÇÒ Buff°¡ ´ã±ä DamageData Æ÷ÀÎÅÍ
+	@return : Buff°¡ Àû¿ë µÌÀ¸¸é true ¸®ÅÏ
 */
 bool CX2GameUnit::ApplyBuffToGameUnitInDamageReact( const CX2DamageManager::DamageData* pDamageData_ )
 {
+    if ( pDamageData_ == NULL )
+        return false;
+
 	bool bBeApplied = false;
 
 	if ( !pDamageData_->m_vecBuffFactorPtr.empty() && CanApplyBuffToGameUnit() )
 	{
 		vector<CX2BuffFactorPtr>::const_iterator vItr 
 			= pDamageData_->m_vecBuffFactorPtr.begin();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        const std::vector<BUFF_TEMPLET_ID>& vecImmunityAtThisState = GetVecImmunityAtThisState();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        const std::vector<BUFF_TEMPLET_ID>& vecImmunityAtThisState = m_vecImmunityAtThisState;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 		while ( pDamageData_->m_vecBuffFactorPtr.end() != vItr )
 		{
 			if ( NULL != (*vItr) )
 			{
-				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å³ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹Ã´ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
-				if ( m_vecImmunityAtThisState.empty() ||
-					m_vecImmunityAtThisState.end() == std::find( m_vecImmunityAtThisState.begin(), m_vecImmunityAtThisState.end(), (*vItr)->GetBuffTempletID() ) )
+				/// ÇöÀç»óÅÂÀÇ ÀÌ¹ÃÀÌ ¾ø°Å³ª, Àû¿ëÇÏ·Á´Â ¹öÇÁ/µð¹öÇÁ°¡ ÀÌ¹Ã´ë»óÀÌ ¾Æ´ÑÁö È®ÀÎ
+				if ( vecImmunityAtThisState.empty() ||
+					vecImmunityAtThisState.end() == std::find( vecImmunityAtThisState.begin(), vecImmunityAtThisState.end(), (*vItr)->GetBuffTempletID() ) )
 				{
-					/// ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ DamageDataï¿½ï¿½ BuffFactorï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SetGameUnitBuffFactorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß¾ï¿½ï¿½ ï¿½Ï¹Ç·ï¿½
-					/// ï¿½Ì°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					/// ½ÃÀüÀÚ°¡ DamageData¿¡ BuffFactor¸¦ ´ã±â Àü¿¡ SetGameUnitBuffFactor¸¦ ½ÇÇàÇß¾î¾ß ÇÏ¹Ç·Î
+					/// ÀÌ°÷¿¡¼­´Â ÇÏÁö ¾ÊÀ½
 					SetBuffFactorToGameUnit( **vItr );
+
 					bBeApplied = true;
 				}
 			}
@@ -13049,9 +13607,11 @@ bool CX2GameUnit::ApplyBuffToGameUnitInDamageReact( const CX2DamageManager::Dama
 	return bBeApplied;
 }
 
+
+
 /** @function : CreateAndInsertAfterImageByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ AfterImage ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_), AfterImage ï¿½ï¿½ï¿½ï¿½(d3dxColor_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ AfterImage ½ÇÇà
+	@param : ¹öÇÁ½Äº°ÀÚ(BuffIdentity_), AfterImage »ö±ò(d3dxColor_)
 */
 void CX2GameUnit::CreateAndInsertAfterImageByBuff( const KBuffIdentity& BuffIdentity_, const D3DXCOLOR& d3dxColor_ )
 {
@@ -13063,8 +13623,8 @@ void CX2GameUnit::CreateAndInsertAfterImageByBuff( const KBuffIdentity& BuffIden
 }
 
 /** @function : EraseAfterImageByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ AfterImage ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ AfterImage Á¾·á
+	@param : ¹öÇÁ½Äº°ÀÚ(BuffIdentity_)
 */
 void CX2GameUnit::EraseAfterImageByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -13082,8 +13642,13 @@ void CX2GameUnit::EnableAfterImage()
 {
 	if ( NULL != m_pAfterImage )
 	{
-		if( g_pMain->GetGameOption()->GetOptionList()->m_bEffect &&
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH &&
 			false == GetAbsoluteInvisibility() )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		if( g_pMain->GetGameOption().GetOptionList().m_bEffect &&
+			false == GetAbsoluteInvisibility() )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		{
 			m_pAfterImage->Enable();
 			if ( !m_vecAfterImageByBuff.empty() )
@@ -13098,7 +13663,11 @@ void CX2GameUnit::DisableAfterImage( const bool bForce_ /*= false*/ )
 	{
 		if ( bForce_ || 
 			m_vecAfterImageByBuff.empty() || 
-			false == g_pMain->GetGameOption()->GetOptionList()->m_bEffect )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_LOW )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			false == g_pMain->GetGameOption().GetOptionList().m_bEffect )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		{
 			m_pAfterImage->SetAfterImageColor( 0xffcccccc );
 			m_pAfterImage->Disable();
@@ -13110,8 +13679,8 @@ void CX2GameUnit::DisableAfterImage( const bool bForce_ /*= false*/ )
 
 #ifdef ADD_DISPLAYER_WEAPON_AFTER_IMAGE
 /** @function : CreateAndInsertAfterImageByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ AfterImage ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_), AfterImage ï¿½ï¿½ï¿½ï¿½(d3dxColor_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ AfterImage ½ÇÇà
+	@param : ¹öÇÁ½Äº°ÀÚ(BuffIdentity_), AfterImage »ö±ò(d3dxColor_)
 */
 void CX2GameUnit::CreateAndInsertWeaponAfterImageByBuff( const KBuffIdentity& BuffIdentity_, const D3DXCOLOR& d3dxColor_ )
 {
@@ -13125,8 +13694,8 @@ void CX2GameUnit::CreateAndInsertWeaponAfterImageByBuff( const KBuffIdentity& Bu
 
 
 /** @function : EraseAfterImageByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ AfterImage ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ AfterImage Á¾·á
+	@param : ¹öÇÁ½Äº°ÀÚ(BuffIdentity_)
 */
 void CX2GameUnit::EraseWeaponAfterImageByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -13163,8 +13732,8 @@ void CX2GameUnit::DisableWeaponAfterImage( const bool bForce_ /*= false*/ )
 
 
 /** @function : CreateAndInsertStunByBuff
-	@brief : ï¿½×·Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ±×·Î±â ½ºÅ×ÀÌÆ® °íÁ¤ »ý¼º ¹× Àû¿ë
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇØ¼­ Àû¿ë ‰ç´ÂÁö¿¡ ´ëÇÑ Á¤º¸
 */
 void CX2GameUnit::CreateAndInsertStunByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -13174,8 +13743,8 @@ void CX2GameUnit::CreateAndInsertStunByBuff( const KBuffIdentity& BuffIdentity_ 
 }
 
 /** @function : EraseStunByBuff
-	@brief : Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½×·Î±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : Æ¯Á¤¹öÇÁ¿¡ ÀÇÇÑ ±×·Î±â ½ºÅ×ÀÌÆ® °íÁ¤ ÇØÁ¦
+	@param : Æ¯Á¤¹öÇÁ¸¦ ±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseStunByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -13191,8 +13760,8 @@ void CX2GameUnit::EraseStunByBuff( const KBuffIdentity& BuffIdentity_ )
 
 
 /** @function : CreateAndInsertFreezeByBuff
-	@brief : Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : Æ¯Á¤¹öÇÁ¿¡ ÀÇÇÑ °íÁ¤ Àû¿ë
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇØ¼­ Àû¿ë ‰ç´ÂÁö¿¡ ´ëÇÑ Á¤º¸
 */
 void CX2GameUnit::CreateAndInsertFreezeByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -13202,8 +13771,8 @@ void CX2GameUnit::CreateAndInsertFreezeByBuff( const KBuffIdentity& BuffIdentity
 }
 
 /** @function : EraseFreezeByBuff
-	@brief : Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : Æ¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : Æ¯Á¤¹öÇÁ¿¡ ÀÇÇÑ ½ºÅ×ÀÌÆ® °íÁ¤ ÇØÁ¦
+	@param : Æ¯Á¤¹öÇÁ¸¦ ±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseFreezeByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -13215,31 +13784,37 @@ void CX2GameUnit::EraseFreezeByBuff( const KBuffIdentity& BuffIdentity_ )
 }
 
 /** @function : AddToDamagedMap
-	@brief : ï¿½Ú½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UID ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DamagedMapï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½Ú½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pAttackerGameUnit_, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(fFinalDamage_)
+	@brief : ÀÚ½ÅÀ» Å¸°ÝÇÑ À¯ÀúÀÇ UID ¹× µ¥¹ÌÁö¸¦ DamagedMap¿¡ ÀúÀå
+	@param : ÀÚ½ÅÀ» Å¸°ÝÇÑ °ÔÀÓÀ¯´Ö(pAttackerGameUnit_, µ¥¹ÌÁö(fFinalDamage_)
 */
 void CX2GameUnit::AddToDamagedMap( const CX2GameUnit* pAttackerGameUnit_, const float fFinalDamage_ )
 {
 	if ( NULL != pAttackerGameUnit_ )
 	{
 		pair<map<UidType, float>::iterator, bool> pairReturn = m_DamagedMap.insert( std::make_pair( pAttackerGameUnit_->GetUnitUID(), fFinalDamage_ ) );
-		if ( false == pairReturn.second )	// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ elementï¿½ï¿½ ï¿½Ö´Ù¸ï¿½
+		if ( false == pairReturn.second )	// ÀÌ¹Ì °°Àº Å°¸¦ °¡Áø element°¡ ÀÖ´Ù¸é
 			pairReturn.first->second += fFinalDamage_;
 	}
 }
 
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
+void CX2GameUnit::SetToDamagedMap ( const UidType uidType_, const float Damage_ )
+{	
+	pair<map<UidType, float>::iterator, bool> pairReturn = m_DamagedMap.insert( std::make_pair( uidType_, Damage_ ) );
+	if ( false == pairReturn.second )	// ÀÌ¹Ì °°Àº Å°¸¦ °¡Áø element°¡ ÀÖ´Ù¸é
+		pairReturn.first->second = Damage_;		
+}
 void CX2GameUnit::AddToDamagedMap ( const UidType uidType_, const float Damage_ )
 {	
 	pair<map<UidType, float>::iterator, bool> pairReturn = m_DamagedMap.insert( std::make_pair( uidType_, Damage_ ) );
-	if ( false == pairReturn.second )	// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ elementï¿½ï¿½ ï¿½Ö´Ù¸ï¿½
-		pairReturn.first->second += Damage_;		// ï¿½ï¿½ï¿½Ñ´ï¿½.
+	if ( false == pairReturn.second )	// ÀÌ¹Ì °°Àº Å°¸¦ °¡Áø element°¡ ÀÖ´Ù¸é
+		pairReturn.first->second += Damage_;		
 }
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
 
 /** @function : GetGameUnitUIDMaxDamage
-	@brief : ï¿½Ú½Å¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UIDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@return : ï¿½ï¿½ï¿½ï¿½ UID
+	@brief : ÀÚ½Å¿¡°Ô Á¦ÀÏ µ¥¹ÌÁö¸¦ ¸¹ÀÌ ÁØ À¯´ÖÀÇ UID¸¦ ¾ò¾î¿È
+	@return : À¯´Ö UID
 */
 UidType CX2GameUnit::GetGameUnitUIDMaxDamage() const
 {
@@ -13269,8 +13844,8 @@ UidType CX2GameUnit::GetGameUnitUIDMaxDamage() const
 }
 
 /** @function : GetBuffFactor
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ vectorï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ö´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½
+	@brief : °ÔÀÓ À¯´ÖÀÌ °É¸° ¹öÇÁ Á¤º¸¸¦ vector¿¡ ´ã¾Æ ¾Ë·ÁÁÖ´Â ÇÔ¼ö
+	@param : ¹öÇÁÁ¤º¸¸¦ ´ã¾Æ³¾ ÄÁÅ×ÀÌ³Ê
 */
 void CX2GameUnit::GetBuffFactor( OUT vector<KBuffFactor>& vecBuffFactor_ ) const
 {
@@ -13286,8 +13861,8 @@ void CX2GameUnit::GetBuffFactor( OUT vector<KBuffFactor>& vecBuffFactor_ ) const
 }
 
 /** @function : GetBuffFactorOnlyDebuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ vectorï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ö´ï¿½ ï¿½Ô¼ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì³ï¿½
+	@brief : °ÔÀÓ À¯´ÖÀÌ °É¸° µð¹öÇÁ Á¤º¸¸¸ vector¿¡ ´ã¾Æ ¾Ë·ÁÁÖ´Â ÇÔ¼ö (¿ùµå ¹öÇÁ Á¦¿Ü)
+	@param : µð¹öÇÁÁ¤º¸¸¦ ´ã¾Æ³¾ ÄÁÅ×ÀÌ³Ê
 */
 void CX2GameUnit::GetBuffFactorOnlyDebuff( OUT vector<KBuffFactor>& vecBuffFactor_ ) const
 {
@@ -13303,8 +13878,8 @@ void CX2GameUnit::GetBuffFactorOnlyDebuff( OUT vector<KBuffFactor>& vecBuffFacto
 }
 
 /** @function : IsApplyBuffByBuffFactorID
-	@brief : Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ Ã¼Å©
-	@param : eBuffFactorID_( Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ID )
+	@brief : Æ¯Á¤ ¹öÇÁ ÆÑÅÍ°¡ Àû¿ëµÇ¾î ÀÖ´ÂÁö Ã¼Å©
+	@param : eBuffFactorID_( Ã¼Å©ÇÒ ¹öÇÁ ID )
 */
 bool CX2GameUnit::IsApplyBuffByBuffTempletID( BUFF_TEMPLET_ID eBuffTempletID_ ) const
 {
@@ -13321,48 +13896,49 @@ bool CX2GameUnit::IsApplyBuffByBuffTempletID( BUFF_TEMPLET_ID eBuffTempletID_ ) 
 	return false;
 }
 #ifdef SERV_RENA_NIGHT_WATCHER
-void CX2GameUnit::SetStartOfDelayedFiringEmoticon()		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åº ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+void CX2GameUnit::SetStartOfDelayedFiringEmoticon()		/// Áö¿¬ÀÇ ½ÅÈ£Åº ÀÌ¸ðÆ¼ÄÜ ¼³Á¤
 {
 	CKTDGParticleSystem::CParticleEventSequence* pSeqArrowOfExplosionEmoticon = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqEnchant_ArrowOfExplosion );
 
-	//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2012-08-20 // ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ ï¿½Å¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ìµµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ ¿ÀÇöºó // 2012-08-20 // ÀÌ¸ðÆ¼ÄÜ ¸Å¹ø Àç»ý¼º ÇÏÁö ¾Ê°í ÇÊ¿äÇÒ ¶§¸¸ Áö¿ìµµ·Ï ¼öÁ¤
 #ifdef MODIFY_OVERLAP_EDT_EMOTICON
-	if( true == GetStartOfDelayedFiringData().empty() )	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½, ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if( true == GetStartOfDelayedFiringData().empty() )	/// Àû¿ëÁßÀÎ È­»ìÀÌ ¾ø´Ù¸é, ÀÌ¸ðÆ¼ÄÜ »ý¼ºÇÏÁö ¾ÊÀ½
 	{
-		if( NULL !=  pSeqArrowOfExplosionEmoticon )			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		if( NULL !=  pSeqArrowOfExplosionEmoticon )			/// ±âÁ¸¿¡ ÀÖ´ø ÀÌ¸ðÆ¼ÄÜÀº ÇØÁ¦
 		{
 			pSeqArrowOfExplosionEmoticon->SetEmitRate( 0, 0 );
 			pSeqArrowOfExplosionEmoticon->ClearAllParticle();
-			m_hSeqEnchant_ArrowOfExplosion = INVALID_PARTICLE_HANDLE;
+			m_hSeqEnchant_ArrowOfExplosion = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 
 		return;
 	}
 #else
-	if( NULL !=  pSeqArrowOfExplosionEmoticon )			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if( NULL !=  pSeqArrowOfExplosionEmoticon )			/// ±âÁ¸¿¡ ÀÖ´ø ÀÌ¸ðÆ¼ÄÜÀº ÇØÁ¦
 	{
 		pSeqArrowOfExplosionEmoticon->SetEmitRate( 0, 0 );
 		pSeqArrowOfExplosionEmoticon->ClearAllParticle();
-		m_hSeqEnchant_ArrowOfExplosion = INVALID_PARTICLE_HANDLE;
+		m_hSeqEnchant_ArrowOfExplosion = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 
-	if( true == GetStartOfDelayedFiringData().empty() )	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½, ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if( true == GetStartOfDelayedFiringData().empty() )	/// Àû¿ëÁßÀÎ È­»ìÀÌ ¾ø´Ù¸é, ÀÌ¸ðÆ¼ÄÜ »ý¼ºÇÏÁö ¾ÊÀ½
 		return;
 #endif //MODIFY_OVERLAP_EDT_EMOTICON
-	//}} ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2012-08-20 // ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ ï¿½Å¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ìµµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//}} ¿ÀÇöºó // 2012-08-20 // ÀÌ¸ðÆ¼ÄÜ ¸Å¹ø Àç»ý¼º ÇÏÁö ¾Ê°í ÇÊ¿äÇÒ ¶§¸¸ Áö¿ìµµ·Ï ¼öÁ¤
 
-	int  iLocalUnitArrowCount	= 0;					/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	int  iLocalUnitArrowCount	= 0;					/// ·ÎÄÃ À¯´ÖÀÌ Àû¿ëÇÑ È­»ì °¹¼ö
 
-	for( UINT i = 0; i < GetStartOfDelayedFiringData().size(); ++i)
+	for( UINT i = 0; i < m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData.size(); ++i)
 	{
-		vector<CX2DamageManager::StartOfDelayedFiringData*> pArrowData = GetStartOfDelayedFiringData();
+        CX2DamageManager::StartOfDelayedFiringData* pArrowData = m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData[ i ];
+        ASSERT( pArrowData != NULL );
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
-		if( CX2DamageEffect::DET_ARROW_OF_EXPLOSION_READY == pArrowData[i]->m_iType )
+		/// Æø¹ß ¿¹Á¤ÀÎ È­»ì Á¤º¸´Â Ç¥½ÃÇÏÁö ¾Ê´Â´Ù.
+		if( CX2DamageEffect::DET_ARROW_OF_EXPLOSION_READY == pArrowData->m_iType )
 			continue;
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½Ãµï¿½ ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		CX2GameUnit* pUnit = GetGameUnitByUnitIndex( pArrowData[i]->m_iAttackerIndex );
+		/// ¸¸¾à ·ÎÄÃ À¯´ÖÀÇ È­»ìÀÌ Àû¿ëÁßÀÌ¶ó¸é, Àû¿ë È½¼ö°¡ Ç¥½ÃµÈ ÀÌ¸ðÆ¼ÄÜ »ý¼º
+		CX2GameUnit* pUnit = GetGameUnitByUnitIndex( pArrowData->m_iAttackerIndex );
 
 		if( NULL != pUnit )
 		{
@@ -13371,14 +13947,14 @@ void CX2GameUnit::SetStartOfDelayedFiringEmoticon()		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï
 		}
 	}
 
-	/// ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ EDT È½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½
+	/// ÁßÃ¸ÁßÀÎ EDT È½¼ö Ç¥½Ã ÀÌ¸ðÆ¼ÄÜ
 	SetOverlapEDTEmoticon( m_hStartOfDelayedFiringOverlap, iLocalUnitArrowCount );
 
-	//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2012-08-20 // ï¿½Ì¸ï¿½ï¿½ ï¿½Å¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ìµµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ ¿ÀÇöºó // 2012-08-20 // ÀÌ¸ð¼Ç ¸Å¹ø Àç»ý¼º ÇÏÁö ¾Ê°í ÇÊ¿äÇÒ ¶§¸¸ Áö¿ìµµ·Ï ¼öÁ¤
 #ifdef MODIFY_OVERLAP_EDT_EMOTICON
-	if( INVALID_PARTICLE_HANDLE == m_hSeqEnchant_ArrowOfExplosion )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqEnchant_ArrowOfExplosion )
 #endif //MODIFY_OVERLAP_EDT_EMOTICON
-	//}} ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2012-08-20 // ï¿½Ì¸ï¿½ï¿½ ï¿½Å¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ìµµï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//}} ¿ÀÇöºó // 2012-08-20 // ÀÌ¸ð¼Ç ¸Å¹ø Àç»ý¼º ÇÏÁö ¾Ê°í ÇÊ¿äÇÒ ¶§¸¸ Áö¿ìµµ·Ï ¼öÁ¤
 	{
 		m_hSeqEnchant_ArrowOfExplosion = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*)this,  L"Enchant_Arrow_Of_Explosion_Emoticon", 0, 0, 0 );
 		pSeqArrowOfExplosionEmoticon  = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqEnchant_ArrowOfExplosion );
@@ -13391,23 +13967,23 @@ void CX2GameUnit::SetStartOfDelayedFiringEmoticon()		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï
 	}
 }
 
-void CX2GameUnit::CheckDamageEffectType( CX2DamageEffect::CEffect* pCEffect )	/// DamageEffectï¿½ï¿½ï¿½ï¿½ Typeï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+void CX2GameUnit::CheckDamageEffectType( CX2DamageEffect::CEffect* pCEffect )	/// DamageEffect¿¡¼­ TypeÀÌ ÀÖ´Â ÀÌÆåÆ®¿¡ ´ëÇØ °Ë»ç
 {
 	switch( pCEffect->GetType() )
 	{
-	case CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY:				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	case CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY:				/// Æø¹ßÀÇ È­»ìÀÌ ¶¥¿¡ Àû¿ëµÉ ¶§
 		{
 			pCEffect->SetType( CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY_GROUND );
 			pCEffect->SetOrderNum( 100 );
 
-			if ( null != pCEffect->GetDamageData()->optrAttackerGameUnit )
+			if ( null != pCEffect->GetDamageData().optrAttackerGameUnit )
 			{
-				CX2GUUser* pAttacker = static_cast<CX2GUUser*>( pCEffect->GetDamageData()->optrAttackerGameUnit.GetObservable() );
+				CX2GUUser* pAttacker = static_cast<CX2GUUser*>( pCEffect->GetDamageData().optrAttackerGameUnit.GetObservable() );
 				pAttacker->UpdateStartOfDelayedFiring( false );					
 			}
 		} break;
 
-	case CX2DamageEffect::DET_START_OF_DELAYED_FIRING:		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åºï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	case CX2DamageEffect::DET_START_OF_DELAYED_FIRING:		/// Áö¿¬ÀÇ ½ÅÈ£ÅºÀÌ ¶¥¿¡ Àû¿ëµÉ ¶§
 		{
 			pCEffect->SetType( CX2DamageEffect::DET_START_OF_DELAYED_FIRING_GROUND );
 		} break;
@@ -13416,7 +13992,7 @@ void CX2GameUnit::CheckDamageEffectType( CX2DamageEffect::CEffect* pCEffect )	//
 		{
 			pCEffect->SetType( CX2DamageEffect::DET_EXPLOSION_TRAP_GROUND );
 		} break;
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //ï¿½ï¿½Ã¢ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 //±èÃ¢ÇÑ
 	case CX2DamageEffect::DET_TRAPPING_ARROW_BURSTR:
 		{
 			pCEffect->SetType( CX2DamageEffect::DET_TRAPPING_ARROW_BURSTR_GROUND );
@@ -13445,10 +14021,10 @@ void CX2GameUnit::CheckDamageEffectType( CX2DamageEffect::CEffect* pCEffect )	//
 	}
 }
 
-CX2GameUnit* CX2GameUnit::GetGameUnitByUnitIndex( int iUnitIndex )	/// UnitIndexï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ GameUnit ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½È¯
+CX2GameUnit* CX2GameUnit::GetGameUnitByUnitIndex( int iUnitIndex )	/// UnitIndex¿¡ ÇØ´çÇÏ´Â GameUnit °´Ã¼¸¦ ¹ÝÈ¯
 {
-	vector<CX2GameUnit*>		   vecUnitList = g_pX2Game->GetUnitList();
-	vector<CX2GameUnit*>::iterator vIt		   = vecUnitList.begin();
+	const vector<CX2GameUnit*>&		   vecUnitList = g_pX2Game->GetUnitList();
+	vector<CX2GameUnit*>::const_iterator vIt		   = vecUnitList.begin();
 
 	while( vIt != vecUnitList.end() )
 	{
@@ -13463,7 +14039,7 @@ CX2GameUnit* CX2GameUnit::GetGameUnitByUnitIndex( int iUnitIndex )	/// UnitIndex
 	return NULL;
 }
 
-void CX2GameUnit::ClearStartOfDelayedFiringData()		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åº ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+void CX2GameUnit::ClearStartOfDelayedFiringData()		/// Áö¿¬ÀÇ ½ÅÈ£Åº Á¤º¸ »èÁ¦ ÇÔ¼ö
 {
 	for( UINT i = 0; i <m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData.size(); ++i )
 	{
@@ -13473,25 +14049,25 @@ void CX2GameUnit::ClearStartOfDelayedFiringData()		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 	m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData.erase( m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData.begin(), 
 																				  m_ExtraDamagePack.m_StartOfDelayedFiring.m_vecStartOfDelayedFiringData.end() );
 
-	g_pX2Game->GetEffectSet()->StopEffectSet( m_hActiveStartOfDelayedFiringEDT );	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È£Åº ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	g_pX2Game->GetEffectSet()->StopEffectSet( m_hActiveStartOfDelayedFiringEDT );	/// Áö¿¬ÀÇ ½ÅÈ£Åº Àû¿ëÁß È®ÀÎ ÀÌÆåÆ®
 }
 
-void CX2GameUnit::SetOverlapEDTEmoticon( CKTDGParticleSystem::CParticleEventSequenceHandle& hEmoticon, int iActiveEDTNum )		/// ï¿½ï¿½Ã¸ï¿½ï¿½ EDTï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¸ È½ï¿½ï¿½ ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+void CX2GameUnit::SetOverlapEDTEmoticon( CKTDGParticleSystem::CParticleEventSequenceHandle& hEmoticon, int iActiveEDTNum )		/// ÁßÃ¸µÈ EDT¿¡ ´ëÇÑ ÁßÃ¸ È½¼ö ÀÌ¸ðÆ¼ÄÜ ¼³Á¤
 {
 	CKTDGParticleSystem::CParticleEventSequence* pEmoticon = g_pX2Game->GetMajorParticle()->GetInstanceSequence( hEmoticon );
 
-	if( NULL !=  pEmoticon )			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if( NULL !=  pEmoticon )			/// ±âÁ¸¿¡ ÀÖ´ø ÀÌ¸ðÆ¼ÄÜÀº ÇØÁ¦
 	{
 		pEmoticon->SetEmitRate( 0, 0 );
 		pEmoticon->ClearAllParticle();
-		hEmoticon = INVALID_PARTICLE_HANDLE;
+		hEmoticon = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 
-	if( 0 >= iActiveEDTNum || 10 < iActiveEDTNum )		/// 1 ~ 10 ï¿½È¿ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+	if( 0 >= iActiveEDTNum || 10 < iActiveEDTNum )		/// 1 ~ 10 ¾È¿¡ ÇØ´çÇÏ´Â ÁßÃ¸¼ö¸¸ Ç¥½Ã
 		return;
 
 	WCHAR wszControlName[50] = L"";
-	StringCchPrintf( wszControlName, ARRAY_SIZE(wszControlName), L"Overlap_EDT_Emoticon_%d", iActiveEDTNum );		/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½Ì¸ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	StringCchPrintf( wszControlName, ARRAY_SIZE(wszControlName), L"Overlap_EDT_Emoticon_%d", iActiveEDTNum );		/// Àû¿ëµÈ ¼öÄ¡¿¡ ÇØ´çÇÏ´Â ÀÌ¸ðÆ¼ÄÜ »ý¼º
 
 	hEmoticon = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*)this, wszControlName, 0, 0, 0 );
 	pEmoticon  = g_pX2Game->GetMajorParticle()->GetInstanceSequence( hEmoticon );
@@ -13519,8 +14095,8 @@ void CX2GameUnit::SetExtraDamagePack( ExtraDamagePack *pExtraDamagePack )
 #endif SERV_RENA_NIGHT_WATCHER
 
 /** @function : GetBuffFinalizerTempletPtrList
-	@brief : ï¿½É·ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ BuffTempletID_, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : °É·ÁÀÖ´Â ¹öÇÁÁß ID¿¡ ÇØ´çÇÏ´Â °ÍÀÇ Á¾·áÁ¶°ÇÀ» ¾ò¾î¿È
+	@param : Á¾·áÁ¶°ÇÀ» ¾ò¾î¿Ã BuffTempletID_, Á¾·áÁ¶°Ç
 */
 bool CX2GameUnit::GetBuffFinalizerTempletPtrList( const BUFF_TEMPLET_ID eBuffTempletID_, OUT vector<CX2BuffFinalizerTempletPtr>& vecFinalizerPtr_ )
 {
@@ -13539,11 +14115,18 @@ bool CX2GameUnit::GetBuffFinalizerTempletPtrList( const BUFF_TEMPLET_ID eBuffTem
 }
 
 /** @function : SetFinalizerTempletPtrList
-	@brief : ï¿½É·ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ BuffTempletID_, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : °É·ÁÀÖ´Â ¹öÇÁÁß ID¿¡ ÇØ´çÇÏ´Â °ÍÀÇ Á¾·áÁ¶°ÇÀ» º¯°æ
+	@param : Á¾·áÁ¶°ÇÀ» º¯°æÇÒ BuffTempletID_, Á¾·áÁ¶°Ç
 */
-void CX2GameUnit::ChangeBuffFinalizerTempletPtrList( const BUFF_TEMPLET_ID eBuffTempletID_, const vector<CX2BuffFinalizerTempletPtr>& vecFinalizerPtr_ )
+void CX2GameUnit::ChangeBuffFinalizerTempletPtrList( const BUFF_TEMPLET_ID eBuffTempletID_, OUT vector<CX2BuffFinalizerTempletPtr>& vecFinalizerPtr_ )
 {
+#ifdef FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
+	BOOST_FOREACH( OUT CX2BuffFinalizerTempletPtr& FinalizePtr, vecFinalizerPtr_ )
+	{
+		FinalizePtr->SetBuffTempletID(eBuffTempletID_);
+	}
+#endif // FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
+
 	if ( !m_vecBuffTempletPtr.empty() )
 	{
 		BOOST_FOREACH( CX2BuffTempletPtr ptr, m_vecBuffTempletPtr )
@@ -13558,9 +14141,9 @@ void CX2GameUnit::ChangeBuffFinalizerTempletPtrList( const BUFF_TEMPLET_ID eBuff
 }
 
 /** @function : HaveThisBuff
-	@brief : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½Ìµï¿½
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ true, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ false
+	@brief : ÇØ´ç ¹öÇÁ¸¦ °¡Áö°í ÀÖ´ÂÁö¸¦ Á¶»ç ÇÏ´Â ÇÔ¼ö
+	@param : ¹öÇÁ ÅÛÇÃ¸´ ¾ÆÀÌµð
+	@return : °¡Áö°í ÀÖÀ¸¸é true, ¾øÀ¸¸é false
 */
 bool CX2GameUnit::HaveThisBuff( const BUFF_TEMPLET_ID eBuffTempletID_ )
 {
@@ -13577,8 +14160,8 @@ bool CX2GameUnit::HaveThisBuff( const BUFF_TEMPLET_ID eBuffTempletID_ )
 }
 
 /** @function : GetShowOnMiniMap
-	@brief : ï¿½Ì´Ï¸ï¿½ ï¿½ó¿¡¼ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@return : ï¿½ï¿½ï¿½Ì¸ï¿½ true, ï¿½Èºï¿½ï¿½Ì¸ï¿½ false
+	@brief : ¹Ì´Ï¸Ê »ó¿¡¼­ º¸ÀÌ´ÂÁö ¿©ºÎ¸¦ Á¶»çÇÏ´Â ÇÔ¼ö
+	@return : º¸ÀÌ¸é true, ¾Èº¸ÀÌ¸é false
 */
 /*virtual*/ bool CX2GameUnit::GetShowOnMiniMap() const
 {
@@ -13592,8 +14175,8 @@ bool CX2GameUnit::HaveThisBuff( const BUFF_TEMPLET_ID eBuffTempletID_ )
 }
 
 /** @function : CreateAndInsertSkillAndSocketBuffFactorToList
-	@brief : ï¿½ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½î¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(BuffFactor_)
+	@brief : Àåºñ, ½ºÅ³ µî¿¡ ÀÇÇØ ³²¿¡°Ô Àû¿ëÇÒ µð¹öÇÁ ¶Ç´Â ¹öÇÁ µîÀ» ¼ÂÆÃ
+	@param : ³²¿¡°Ô Àû¿ëÇÒ ¹öÇÁÆÑÅÍ(BuffFactor_)
 */
 void CX2GameUnit::CreateAndInsertSkillAndSocketBuffFactorToList( CX2BuffFactorPtr ptrBuffFactor_ )
 {
@@ -13603,7 +14186,7 @@ void CX2GameUnit::CreateAndInsertSkillAndSocketBuffFactorToList( CX2BuffFactorPt
 }
 
 /** @function : SetKBuffFactorFromGageManagerToGameUnit
-	@brief : GageManagerï¿½ï¿½ ï¿½Ó½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å² BuffFactorï¿½ï¿½ GameUnitï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+	@brief : GageManager¿¡ ÀÓ½ÃÀúÀå ½ÃÅ² BuffFactor¸¦ GameUnit¿¡ Àû¿ë ÇÏ´Â ÇÔ¼ö
 */
 void CX2GameUnit::SetKBuffFactorFromGageManagerToGameUnit()
 {
@@ -13625,12 +14208,12 @@ void CX2GameUnit::SetDamageExceptionProcess( OUT CX2DamageManager::DamageData* p
 	if ( pDamageData_->optrAttackerGameUnit->ShouldAttackAllTeam() )
 			pDamageData_->m_bAttackAllTeam = true;
 
-	if ( pDamageData_->m_bMeleeAttack )	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if ( pDamageData_->m_bMeleeAttack )	/// ±ÙÁ¢ °ø°ÝÀ¸·Î °£ÁÖ
 		pDamageData_->fForceDownValue *= pDamageData_->optrAttackerGameUnit->GetAdditionalForceDownMultiplierMeleeAttack();
-	else	/// ï¿½ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	else	/// ¿ø°Å¸® °ø°ÝÀ¸·Î °£ÁÖ
 		pDamageData_->fForceDownValue *= pDamageData_->optrAttackerGameUnit->GetAdditionalForceDownMultiplierRangeAttack();
 
-#ifdef BALANCE_PATCH_20120329	//PowerRateï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì°ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ PowerRateï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef BALANCE_PATCH_20120329	//PowerRate°¡ º¯°æµÉ ¼ö ÀÖÀ¸¹Ç·Î, À§¿¡ ÀÖ´ø ±¸¹®À» ÀÌ°÷À¸·Î ÀÌµ¿ÇÏ¿© º¯°æµÈ PowerRate¸¦ Àû¿ë
 
 	if( pDamageData_->m_ExtraDamage.m_ExtraDamageType == CX2DamageManager::EDT_PAIN )
 		pDamageData_->m_ExtraDamage.m_Damage = fPowerRate;
@@ -13653,16 +14236,11 @@ void CX2GameUnit::SetDamageExceptionProcess( OUT CX2DamageManager::DamageData* p
 	pDamageData_->damage.fPhysic					*= fPowerRate;
 	pDamageData_->damage.fMagic					*= fPowerRate;		
 
-#ifdef FIXED_DAMAGE
 	if( pDamageData_->m_ExtraDamage.m_bFixedDamage == false )
 	{
 		pDamageData_->m_ExtraDamage.m_DamagePerSec	*= fPowerRate;
 		pDamageData_->m_ExtraDamage.m_Damage			*= fPowerRate;
 	}	
-#else
-	pDamageData_->m_ExtraDamage.m_DamagePerSec	*= fPowerRate;
-	pDamageData_->m_ExtraDamage.m_Damage			*= fPowerRate;
-#endif
 }
 #endif //MODIFY_SET_DAMAGE_DATA
 
@@ -13674,6 +14252,48 @@ float CX2GameUnit::CalcAdditionalAttackDamage  ( const CX2DamageManager::DamageD
 
 	if ( 0.0f < fAdditionalAttackValue )
 	{
+#ifdef ADJUST_BUFF_CALCULATE
+		//Å©¸®Æ¼ÄÃ°úÀÇ °æÀï¿¡¼­ ¹Ð¸°´Ù´Â ÆÇ´Ü(±âÈ¹)À¸·Î
+		//Ãß°¡µ¥¹ÌÁö ¼ÒÄÏÀÌ À¯Àú ½ºÅÈ¿¡ ¿µÇâÀ» ¹Þµµ·Ï ¼öÁ¤.
+		float fStat = 0.0f;
+		float fPower = 0.0f;
+		switch ( pAttackDamageData_->damageType )
+		{
+		case CX2DamageManager::DT_PHYSIC:
+		case CX2DamageManager::DT_WEAPON_PHYSIC:
+			fPower = pAttackDamageData_->damage.fPhysic;
+			fStat = GetStat().GetStat().m_fAtkPhysic;
+			break;
+
+		case CX2DamageManager::DT_MAGIC:
+		case CX2DamageManager::DT_WEAPON_MAGIC:
+			fPower = pAttackDamageData_->damage.fMagic;
+			fStat = GetStat().GetStat().m_fAtkMagic;
+			break;
+
+		case CX2DamageManager::DT_MIX:
+		case CX2DamageManager::DT_WEAPON_MIX:
+			fPower = ( pAttackDamageData_->damage.fPhysic + pAttackDamageData_->damage.fMagic ) * 0.5f;
+			fStat = ( GetStat().GetStat().m_fAtkPhysic + GetStat().GetStat().m_fAtkMagic ) * 0.5f;
+			break;
+
+#ifdef ADD_DAMAGE_TYPE_BUFF
+		case CX2DamageManager::DT_BUFF:
+			break;
+#endif //ADD_DAMAGE_TYPE_BUFF
+
+		default:
+			ASSERT( !"Worng Path" );
+			break;
+		}
+
+		if ( g_pX2Game->IsDamageFreeGame() )
+			return 1.5f * pow( fPower, 0.65f ) * fAdditionalAttackValue * fStat;
+		else if ( CX2Game::GT_PVP == g_pX2Game->GetGameType() )
+			return 1.5f * pow( fPower, 0.65f ) * fAdditionalAttackValue * fStat;
+		else
+			return 1.5f * pow( fPower, 0.65f ) * fAdditionalAttackValue * fStat;
+#else //ADJUST_BUFF_CALCULATE
 		float fPower = 0.0f;
 		switch ( pAttackDamageData_->damageType )
 		{
@@ -13692,6 +14312,11 @@ float CX2GameUnit::CalcAdditionalAttackDamage  ( const CX2DamageManager::DamageD
 			fPower = ( pAttackDamageData_->damage.fPhysic + pAttackDamageData_->damage.fMagic ) * 0.5f;
 			break;
 
+#ifdef ADD_DAMAGE_TYPE_BUFF
+		case CX2DamageManager::DT_BUFF:
+			break;
+#endif //ADD_DAMAGE_TYPE_BUFF
+
 		default:
 			ASSERT( !"Worng Path" );
 			break;
@@ -13700,53 +14325,63 @@ float CX2GameUnit::CalcAdditionalAttackDamage  ( const CX2DamageManager::DamageD
 		if ( g_pX2Game->IsDamageFreeGame() )
 			return 1.5f * pow( fPower, 0.65f ) * fAdditionalAttackValue;
 		else if ( CX2Game::GT_PVP == g_pX2Game->GetGameType() )
-			return 0.15f * pow( fPower, 0.65f ) * fAdditionalAttackValue;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ 1/10 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			return 0.15f * pow( fPower, 0.65f ) * fAdditionalAttackValue;	/// ´ëÀüÀÇ °æ¿ì 1/10 µ¥¹ÌÁö
 		else
 			return 1.5f * pow( fPower, 0.65f ) * fAdditionalAttackValue;
+#endif //ADJUST_BUFF_CALCULATE
 	}
 	return 0.0f;
 }
 
 #endif // FIXED_APPLYING_ADDITINAL_DAMAGE_FOR_SUMMON_MONSTER
 
-#ifdef ADD_UPGRADE_WEAPON_PARTICLE	/// ï¿½ï¿½È­ ï¿½ï¿½ï¿½â¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+#ifdef ADD_UPGRADE_WEAPON_PARTICLE	/// °­È­ ¹«±â¿¡ ´ëÇÑ ÀÌÆåÆ® Ãâ·Â Ã³¸®
 
-/// ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ê±ï¿½È­
+/// °­È­ ¹«±â ÀÌÆåÆ® ÃÊ±âÈ­
 void CX2GameUnit::Weapon::InitUpgradeWeaponParticle()
 {
-	if( NULL != &GetOwnerUnit() && NULL != GetOwnerUnit().GetUnit() && NULL != GetOwnerUnit().GetUnit()->GetInventory() )
+	if ( GetOwnerUnit().GetGameUnitType() != CX2GameUnit::GUT_USER )
+		return;
+    CX2Unit* pUnit = static_cast<CX2GUUser&>( GetOwnerUnit() ).GetUnit();
+    if ( pUnit == NULL )
+        return;
+
 	{
-		CX2Unit* pUnit = GetOwnerUnit().GetUnit();		/// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		CX2Item* pItem = GetOwnerUnit().GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );	/// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		CX2Item* pItem = pUnit->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );	/// ÇØ´ç ¹«±âÀÇ ¾ÆÀÌÅÛ Á¤º¸
 
 		if( NULL != pUnit->GetUnitTemplet() &&
 			NULL != pItem &&
-			NULL != pItem->GetItemData() &&
-			( (	pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData()->m_Endurance > 0) || 
-			pItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY ) )
+			( (	pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData().m_Endurance > 0) || 
+			pItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY ) )
 		{
-			const int			iUpgradeLevel	= pItem->GetItemData()->m_EnchantLevel;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½
-			CX2Unit::UNIT_TYPE	eUnitType		= pUnit->GetUnitTemplet()->m_UnitType;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+			const int			iUpgradeLevel	= pItem->GetItemData().m_EnchantLevel;		/// ÇöÀç ¹«±âÀÇ °­È­ ·¹º§
+			CX2Unit::UNIT_TYPE	eUnitType		= pUnit->GetUnitTemplet()->m_UnitType;		/// ÇöÀç À¯ÀúÀÇ À¯´Ö Å¸ÀÔ
 
 
-			if( iUpgradeLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_2 )		/// 11ï¿½ï¿½È­ ï¿½Ì»ï¿½
+			if( iUpgradeLevel >= ENCHANT_WEAPON_EFFECT_LEVEL_2 )		/// 11°­È­ ÀÌ»ó
 			{
 				switch( eUnitType )
 				{
-				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				/// ±æÂßÇÑ ¸ð¾çÀÇ ¹«±â
 				case CX2Unit::UT_ELSWORD:
 				case CX2Unit::UT_ARME:
 				case CX2Unit::UT_RAVEN:
 				case CX2Unit::UT_CHUNG:
 				case CX2Unit::UT_ARA:
 				case CX2Unit::UT_LIRE:
+		#ifdef NEW_CHARACTER_EL
+				case CX2Unit::UT_ELESIS:
+		#endif // NEW_CHARACTER_EL
 					{
 						CreateUpgradeWeaponParticle( L"11Gang_Weapon_Effect_Lightning", L"11Gang_Weapon_Effect_Lightning02", 
 													 L"11Gang_Weapon_Effect_Lightning03", L"11Gang_Weapon_Effect_Lightning04" );
 					} break;
 
-				/// ï¿½ï¿½ï¿½â°¡ 2ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+				/// ¹«±â°¡ 2°³ÀÎ ÀÌºêÀÇ ±â¾î
 				case CX2Unit::UT_EVE:
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯ ( Ä³¸¯ÅÍ Ãß°¡¿ë )
+				case CX2Unit::UT_ADD:
+#endif //SERV_9TH_NEW_CHARACTER
 					{
 						CreateUpgradeWeaponParticle( L"11Gang_Weapon_Effect_Lightning02", L"11Gang_Weapon_Effect_Lightning04",
 													 L"11Gang_Weapon_Effect_Lightning02", L"11Gang_Weapon_Effect_Lightning04" );
@@ -13757,13 +14392,13 @@ void CX2GameUnit::Weapon::InitUpgradeWeaponParticle()
 	}
 }
 
-/// ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+/// °­È­ ¹«±â ÀÌÆåÆ® »ý¼º
 void CX2GameUnit::Weapon::CreateUpgradeWeaponParticle( const WCHAR* pName1, const WCHAR* pName2 /*= NULL*/, const WCHAR* pName3 /*= NULL*/, const WCHAR* pName4 /*= NULL*/ )
 {
 	if( NULL != g_pX2Game && NULL != g_pX2Game->GetMajorParticle() )
 	{
-		/// 1ï¿½ï¿½ ï¿½ï¿½Æ¼Å¬
-		if( NULL != pName1 && m_hSeqUpgradeWeapon == INVALID_PARTICLE_HANDLE )
+		/// 1¹ø ÆÄÆ¼Å¬
+		if( NULL != pName1 && m_hSeqUpgradeWeapon == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqUpgradeWeapon = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL, pName1, 0.f, 0.f ,0.f );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon );
@@ -13774,8 +14409,8 @@ void CX2GameUnit::Weapon::CreateUpgradeWeaponParticle( const WCHAR* pName1, cons
 			}
 		}
 
-		/// 2ï¿½ï¿½ ï¿½ï¿½Æ¼Å¬
-		if( NULL != pName2 && m_hSeqUpgradeWeapon2 == INVALID_PARTICLE_HANDLE )
+		/// 2¹ø ÆÄÆ¼Å¬
+		if( NULL != pName2 && m_hSeqUpgradeWeapon2 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqUpgradeWeapon2 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL, pName2, 0.f, 0.f ,0.f );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon2 );
@@ -13786,8 +14421,8 @@ void CX2GameUnit::Weapon::CreateUpgradeWeaponParticle( const WCHAR* pName1, cons
 			}
 		}
 
-		/// 3ï¿½ï¿½ ï¿½ï¿½Æ¼Å¬
-		if( NULL != pName3 && m_hSeqUpgradeWeapon3 == INVALID_PARTICLE_HANDLE )
+		/// 3¹ø ÆÄÆ¼Å¬
+		if( NULL != pName3 && m_hSeqUpgradeWeapon3 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqUpgradeWeapon3 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL, pName3, 0.f, 0.f ,0.f );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon3 );
@@ -13798,8 +14433,8 @@ void CX2GameUnit::Weapon::CreateUpgradeWeaponParticle( const WCHAR* pName1, cons
 			}
 		}
 
-		/// 4ï¿½ï¿½ ï¿½ï¿½Æ¼Å¬
-		if( NULL != pName3 && m_hSeqUpgradeWeapon4 == INVALID_PARTICLE_HANDLE )
+		/// 4¹ø ÆÄÆ¼Å¬
+		if( NULL != pName3 && m_hSeqUpgradeWeapon4 == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_hSeqUpgradeWeapon4 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL, pName3, 0.f, 0.f ,0.f );
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon4 );
@@ -13812,7 +14447,7 @@ void CX2GameUnit::Weapon::CreateUpgradeWeaponParticle( const WCHAR* pName1, cons
 	}
 }
 
-/// ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+/// °­È­ ¹«±â ÀÌÆåÆ® °»½Å
 void CX2GameUnit::Weapon::ProcessUpgradeWeaponParticle()
 {
 	if( NULL != g_pX2Game && NULL != g_pX2Game->GetMajorParticle() )
@@ -13822,9 +14457,9 @@ void CX2GameUnit::Weapon::ProcessUpgradeWeaponParticle()
 		CKTDGParticleSystem::CParticleEventSequence* pSeqUpgradeWeapon3 = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon3 );
 		CKTDGParticleSystem::CParticleEventSequence* pSeqUpgradeWeapon4 = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqUpgradeWeapon4 );
 
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		/// º¸ÀÌÁö ¸»¾Æ¾ß ÇÒ ¶§´Â ¼û±âÀÚ
 #ifdef RIDING_SYSTEM
-		/// Å»ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¾Æ® È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+		/// Å»°ÍÀ» Å¸°í ÀÖÀ¸¸é, ¹«±â ÀÎÃ¾Æ® È¿°ú ¸ðµÎ ²¨ÁÖÀÚ.
 		if ( false == GetShowObject() ||
 			 ( NULL != CX2RidingPetManager::GetInstance() && true == CX2RidingPetManager::GetInstance()->GetRidingOn() ) )
 #else RIDING_SYSTEM
@@ -13846,122 +14481,150 @@ void CX2GameUnit::Weapon::ProcessUpgradeWeaponParticle()
 			return;
 		}
 
-		/// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
-		if( NULL != &GetOwnerUnit() && NULL != GetOwnerUnit().GetUnit() && NULL != GetOwnerUnit().GetUnit()->GetUnitTemplet() )
-		{
-			switch( GetOwnerUnit().GetUnit()->GetUnitTemplet()->m_UnitType )
-			{
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-			case CX2Unit::UT_ELSWORD:
-			case CX2Unit::UT_ARME:
-			case CX2Unit::UT_RAVEN:
-			case CX2Unit::UT_CHUNG:
-			case CX2Unit::UT_ELESIS:
-				{
-					if( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL && pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )
+		/// À¯´Ö Å¸ÀÔ¿¡ µû¸¥ ÀÌÆåÆ® °»½Å
+        if( GetOwnerUnit().GetGameUnitType() == CX2GameUnit::GUT_USER )
+        {
+            CX2Unit* pUnit = static_cast<CX2GUUser&>(GetOwnerUnit()).GetUnit();
+		    if( pUnit != NULL && NULL != pUnit->GetUnitTemplet() )
+		    {
+			    switch( pUnit->GetUnitTemplet()->m_UnitType )
+			    {
+			    /// ±æÂßÇÑ ¸ð¾çÀÇ ¹«±â
+			    case CX2Unit::UT_ELSWORD:
+			    case CX2Unit::UT_ARME:
+			    case CX2Unit::UT_RAVEN:
+			    case CX2Unit::UT_CHUNG:
+			    case CX2Unit::UT_ELESIS:
+				    {
+					    if( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL && pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )
+					    {
+						    D3DXVECTOR3 weaponPos( 0.f, 0.f, 0.f );
+						    GetFramePos( &weaponPos, m_pFrame_TRACE_END[0] );
+
+						    D3DXVECTOR3 traceEndPos( 0.f, 0.f, 0.f );
+						    GetFramePos( &traceEndPos, m_pFrame_TRACE_START[0] );
+
+						    D3DXVECTOR3 traceCenterPos = traceEndPos - weaponPos;
+						    traceCenterPos.x = traceCenterPos.x/2.0f + weaponPos.x;
+						    traceCenterPos.y = traceCenterPos.y/2.0f + weaponPos.y;
+						    traceCenterPos.z = traceCenterPos.z/2.0f + weaponPos.z;
+
+
+						    pSeqUpgradeWeapon->SetPosition( traceCenterPos );
+						    pSeqUpgradeWeapon2->SetPosition( traceCenterPos );
+						    pSeqUpgradeWeapon3->SetPosition( traceCenterPos );
+						    pSeqUpgradeWeapon4->SetPosition( traceCenterPos );
+
+
+						    pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
+					    }
+				    } break;
+
+			    /// ±æÀÌ°¡ ±ä ¾Æ¶óÀÇ Ã¢
+			    case CX2Unit::UT_ARA:
+				    {
+					    if( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL && pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )
+					    {
+						    D3DXVECTOR3 weaponPos( 0.f, 0.f, 0.f );
+						    GetFramePos( &weaponPos, m_pFrame_ATTACK_LINE_END0 );
+
+						    D3DXVECTOR3 traceEndPos( 0.f, 0.f, 0.f );
+						    GetFramePos( &traceEndPos, m_pFrame_ATTACK_LINE_START0_FRONT );
+
+						    D3DXVECTOR3 traceCenterPos = traceEndPos - weaponPos;
+						    traceCenterPos.x = traceCenterPos.x/2.0f + weaponPos.x;
+						    traceCenterPos.y = traceCenterPos.y/2.0f + weaponPos.y;
+						    traceCenterPos.z = traceCenterPos.z/2.0f + weaponPos.z;
+
+
+						    pSeqUpgradeWeapon->SetPosition( traceCenterPos );
+						    pSeqUpgradeWeapon2->SetPosition( traceCenterPos );
+						    pSeqUpgradeWeapon3->SetPosition( traceCenterPos );
+						    pSeqUpgradeWeapon4->SetPosition( traceCenterPos );
+
+
+						    pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
+					    }
+				    } break;
+
+			    /// ´õ¹Ì°¡ ÇÏ³ªÀÎ ·¹³ªÀÇ È°
+			    case CX2Unit::UT_LIRE:
+				    {
+					    if( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL && pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )
+					    {
+						    D3DXVECTOR3 vBonePos1 = GetOwnerUnit().GetBonePos( L"Dummy2_Lhand" );
+						    pSeqUpgradeWeapon->SetPosition( vBonePos1 );
+						    pSeqUpgradeWeapon2->SetPosition( vBonePos1 );
+						    pSeqUpgradeWeapon3->SetPosition( vBonePos1 );
+						    pSeqUpgradeWeapon4->SetPosition( vBonePos1 );
+
+						    pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
+					    }
+				    } break;
+
+			    /// ¹«±â°¡ 2°³ÀÎ ÀÌºêÀÇ ±â¾î
+			    case CX2Unit::UT_EVE:
+				    {
+					    if ( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL )
+					    {
+						    D3DXVECTOR3 vBonePos1 = GetOwnerUnit().GetBonePos( L"Dummy1_Rhand" );
+						    pSeqUpgradeWeapon->SetPosition( vBonePos1 );
+						    pSeqUpgradeWeapon2->SetPosition( vBonePos1 );
+
+						    pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
+					    }
+
+					    if ( pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )
+					    {
+						    D3DXVECTOR3 vBonePos1 = GetOwnerUnit().GetBonePos( L"Dummy2_Lhand" );
+						    pSeqUpgradeWeapon3->SetPosition( vBonePos1 );
+						    pSeqUpgradeWeapon4->SetPosition( vBonePos1 );
+
+						    pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
+						    pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
+					    }
+				    } break;
+	#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯
+				case CX2Unit::UT_ADD:
 					{
-						D3DXVECTOR3 weaponPos( 0.f, 0.f, 0.f );
-						GetFramePos( &weaponPos, m_pFrame_TRACE_END[0] );
+						if ( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL )
+						{
+							D3DXVECTOR3 vBonePos1 = GetOwnerUnit().GetBonePos( L"Weapon02" );
+							pSeqUpgradeWeapon->SetPosition( vBonePos1 );
+							pSeqUpgradeWeapon2->SetPosition( vBonePos1 );
 
-						D3DXVECTOR3 traceEndPos( 0.f, 0.f, 0.f );
-						GetFramePos( &traceEndPos, m_pFrame_TRACE_START[0] );
+							pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
+							pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
+						}
 
-						D3DXVECTOR3 traceCenterPos = traceEndPos - weaponPos;
-						traceCenterPos.x = traceCenterPos.x/2.0f + weaponPos.x;
-						traceCenterPos.y = traceCenterPos.y/2.0f + weaponPos.y;
-						traceCenterPos.z = traceCenterPos.z/2.0f + weaponPos.z;
+						if ( pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )
+						{
+							D3DXVECTOR3 vBonePos1 = GetOwnerUnit().GetBonePos( L"Weapon05" );
+							pSeqUpgradeWeapon3->SetPosition( vBonePos1 );
+							pSeqUpgradeWeapon4->SetPosition( vBonePos1 );
 
-
-						pSeqUpgradeWeapon->SetPosition( traceCenterPos );
-						pSeqUpgradeWeapon2->SetPosition( traceCenterPos );
-						pSeqUpgradeWeapon3->SetPosition( traceCenterPos );
-						pSeqUpgradeWeapon4->SetPosition( traceCenterPos );
-
-
-						pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
-					}
-				} break;
-
-			/// ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½ï¿½ ï¿½Æ¶ï¿½ï¿½ï¿½ Ã¢
-			case CX2Unit::UT_ARA:
-				{
-					if( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL && pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )
-					{
-						D3DXVECTOR3 weaponPos( 0.f, 0.f, 0.f );
-						GetFramePos( &weaponPos, m_pFrame_ATTACK_LINE_END0 );
-
-						D3DXVECTOR3 traceEndPos( 0.f, 0.f, 0.f );
-						GetFramePos( &traceEndPos, m_pFrame_ATTACK_LINE_START0_FRONT );
-
-						D3DXVECTOR3 traceCenterPos = traceEndPos - weaponPos;
-						traceCenterPos.x = traceCenterPos.x/2.0f + weaponPos.x;
-						traceCenterPos.y = traceCenterPos.y/2.0f + weaponPos.y;
-						traceCenterPos.z = traceCenterPos.z/2.0f + weaponPos.z;
-
-
-						pSeqUpgradeWeapon->SetPosition( traceCenterPos );
-						pSeqUpgradeWeapon2->SetPosition( traceCenterPos );
-						pSeqUpgradeWeapon3->SetPosition( traceCenterPos );
-						pSeqUpgradeWeapon4->SetPosition( traceCenterPos );
-
-
-						pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
-					}
-				} break;
-
-			/// ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È°
-			case CX2Unit::UT_LIRE:
-				{
-					if( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL && pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )
-					{
-						D3DXVECTOR3 vBonePos1 = GetOwnerUnit().GetBonePos( L"Dummy2_Lhand" );
-						pSeqUpgradeWeapon->SetPosition( vBonePos1 );
-						pSeqUpgradeWeapon2->SetPosition( vBonePos1 );
-						pSeqUpgradeWeapon3->SetPosition( vBonePos1 );
-						pSeqUpgradeWeapon4->SetPosition( vBonePos1 );
-
-						pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
-					}
-				} break;
-
-			/// ï¿½ï¿½ï¿½â°¡ 2ï¿½ï¿½ï¿½ï¿½ ï¿½Ìºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-			case CX2Unit::UT_EVE:
-				{
-					if ( pSeqUpgradeWeapon != NULL && pSeqUpgradeWeapon2 != NULL )
-					{
-						D3DXVECTOR3 vBonePos1 = GetOwnerUnit().GetBonePos( L"Dummy1_Rhand" );
-						pSeqUpgradeWeapon->SetPosition( vBonePos1 );
-						pSeqUpgradeWeapon2->SetPosition( vBonePos1 );
-
-						pSeqUpgradeWeapon->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon2->SetEmitRate( 10, 10 );
-					}
-
-					if ( pSeqUpgradeWeapon3 != NULL && pSeqUpgradeWeapon4 != NULL )
-					{
-						D3DXVECTOR3 vBonePos1 = GetOwnerUnit().GetBonePos( L"Dummy2_Lhand" );
-						pSeqUpgradeWeapon3->SetPosition( vBonePos1 );
-						pSeqUpgradeWeapon4->SetPosition( vBonePos1 );
-
-						pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
-						pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
-					}
-				} break;
-			}
-		}
+							pSeqUpgradeWeapon3->SetEmitRate( 10, 10 );
+							pSeqUpgradeWeapon4->SetEmitRate( 10, 10 );
+						}
+					} break;
+	#endif //SERV_9TH_NEW_CHARACTER
+			    }
+		    }
+        }
 	}
 }
 
-/// ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+/// °­È­ ¹«±â ÀÌÆåÆ® Á¦°Å
 void CX2GameUnit::Weapon::DeleteUpgradeWeaponParticle()
 {
 	if( NULL != g_pX2Game && NULL != g_pX2Game->GetMajorParticle() )
@@ -13978,8 +14641,8 @@ void CX2GameUnit::Weapon::DeleteUpgradeWeaponParticle()
 #ifdef DAMAGE_EFFECT_GROUP_DAMAGE
 
 /** @function : ProcessGroupDamageData
-	@brief : ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½Ó´ï¿½ ï¿½Ã°ï¿½(fElapsedTime_)
+	@brief : ±×·ì µ¥¹ÌÁö µ¥ÀÌÅÍ Ã³¸® ÇÔ¼ö
+	@param : ÇÁ·¹ÀÓ´ç ½Ã°£(fElapsedTime_)
 */
 void CX2GameUnit::ProcessGroupDamageData( float fElapsedTime_ )
 {
@@ -13989,11 +14652,11 @@ void CX2GameUnit::ProcessGroupDamageData( float fElapsedTime_ )
 	{
 		if( NULL != pDamageEffectGroupData )
 		{
-			float& fHitGap = pDamageEffectGroupData->m_fHitGFap;		/// ï¿½×·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½
+			float& fHitGap = pDamageEffectGroupData->m_fHitGFap;		/// ±×·ì µ¥¹ÌÁö ÇÇ°Ý °£°Ý
 
-			fHitGap -= fElapsedTime_;		/// ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			fHitGap -= fElapsedTime_;		/// ÇÇ°Ý °£°Ý °»½Å
 
-			if( 0.f >= fHitGap )	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Û´Ù¸ï¿½, ï¿½Ç°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			if( 0.f >= fHitGap )	/// ¸¸¾à ÇÇ°Ý °£°ÝÀÌ 0º¸´Ù ÀÛ´Ù¸é, ÇÇ°Ý Á¤º¸ Áö¿öÁÖÀÚ
 			{
 				m_vecDamageEffectGroupDataPtr.erase( m_vecDamageEffectGroupDataPtr.begin() + iCount );
 			}
@@ -14006,31 +14669,31 @@ void CX2GameUnit::ProcessGroupDamageData( float fElapsedTime_ )
 
 #endif DAMAGE_EFFECT_GROUP_DAMAGE
 
-#ifdef ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ï¿½Ï´ï¿½ ï¿½ÎºÐ¿ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±â¿¡, GetFinalDamageï¿½ï¿½ ï¿½Ìµï¿½
+#ifdef ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE		/// µ¥¹ÌÁö µ¥ÀÌÅÍ ÆÄ½ÌÇÏ´Â ºÎºÐ¿¡¼­´Â µ¥¹ÌÁö ¹èÀ²À» Á¶ÀÛÇÏ´Â µ¿ÀÛÀ» ÇÏÁö ¾Ê±â¿¡, GetFinalDamage·Î ÀÌµ¿
 
 /** @function	: GetAdditionalAttackPowerRateByType
-	@brief		: Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param		: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	@return		: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief		: Æ¯Á¤ °ø°Ý Å¸ÀÔ¿¡ µû¸¥ Ãß°¡ µ¥¹ÌÁö ¹èÀ² ¼³Á¤
+	@param		: °ø°ÝÀÚÀÇ µ¥¹ÌÁö µ¥ÀÌÅÍ
+	@return		: µ¥¹ÌÁö ¹èÀ²
 */
-float CX2GameUnit::GetAdditionalAttackPowerRateByType( CX2DamageManager::DamageData* pDamageData_ )		/// Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½Ý¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½Ô¼ï¿½ ( AT_SPECIAL, AT_NORMAL )
+float CX2GameUnit::GetAdditionalAttackPowerRateByType( CX2DamageManager::DamageData* pDamageData_ )		/// Æ¯Á¤ °ø°Ý¿¡ µû¸¥ µ¥¹ÌÁö ¹èÀ² ¹ÝÈ¯ ÇÔ¼ö ( AT_SPECIAL, AT_NORMAL )
 {
 	float fPowerRate = 1.f;
 
 	if ( null != pDamageData_->optrAttackerGameUnit && 
 		CX2GameUnit::GUT_USER == pDamageData_->optrAttackerGameUnit->GetGameUnitType() )
 	{
-		if( pDamageData_->attackType == CX2DamageManager::AT_SPECIAL ) /// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½
+		if( pDamageData_->attackType == CX2DamageManager::AT_SPECIAL ) /// ½ºÆä¼È ¾×Æ¼ºê ½ºÅ³ÀÏ ¶§
 		{
 			CX2GUUser *pAttackerUser = static_cast<CX2GUUser*>( pDamageData_->optrAttackerGameUnit.GetObservable() );
 
-			const float	fSkillDamage  = pAttackerUser->GetSocketData()->m_fSkillDamageUpRate;
+			const float	fSkillDamage  = pAttackerUser->GetSocketData().m_fSkillDamageUpRate;
 
 			fPowerRate *= 1.f + fSkillDamage;
 
 			fPowerRate *= pDamageData_->optrAttackerGameUnit->GetAdditionalAttackByType( CX2DamageManager::AT_SPECIAL );
 		}
-		else		/// ï¿½Ï¹ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½
+		else		/// ÀÏ¹Ý ½ºÅ³ÀÏ ¶§
 		{
 			fPowerRate *= pDamageData_->optrAttackerGameUnit->GetAdditionalAttackByType( CX2DamageManager::AT_NORMAL );
 		}
@@ -14040,11 +14703,11 @@ float CX2GameUnit::GetAdditionalAttackPowerRateByType( CX2DamageManager::DamageD
 }
 #endif ADD_SUMMON_NPC_SPECIAL_ACTOVE_POWER_RATE
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09		»ý¼º °£°Ý Ãß°¡
 
 /** @function : CreateAndInsertEffectSetNormalAttackByBuff
-	@brief : ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ý½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½Ì¸ï¿½(pwszEffectSetName_), ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½(pwszSoundName_)
+	@brief : ÀÏ¹Ý °ø°Ý Å¸°Ý½Ã Å¸°ÝÁ¡¿¡ Ãâ·ÂÇÒ ÀÌÆåÆ®¼ÂÀ» ÁöÁ¤
+	@param : ÇØ´ç ÀÌÆåÆ®¼ÂÀ» Ãâ·Â ½ÃÅ°´Â ¹öÇÁÀÇ ½Äº°ÀÚ(BuffIdentity_), ÀÌÆåÆ®¼ÂÀÌ¸§(pwszEffectSetName_), »ç¿îµåÀÌ¸§(pwszSoundName_)
 */
 void CX2GameUnit::CreateAndInsertEffectSetNormalAttackByBuff( const KBuffIdentity& BuffIdentity_, const WCHAR* pwszEffectSetName_, const WCHAR* pwszSoundName_, const float fCoolTime )
 {
@@ -14054,8 +14717,8 @@ void CX2GameUnit::CreateAndInsertEffectSetNormalAttackByBuff( const KBuffIdentit
 }
 
 /** @function : EraseEffectSetNormalAttackByBuff
-	@brief : ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½È°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Äºï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ÀÏ¹Ý °ø°Ý Å¸°Ý½Ã ÀÌÆåÆ®¼ÂÀÌ ÁöÁ¤µÈ°ÍÀ» »èÁ¦
+	@param : ÇØ´ç ÀÌÆåÆ®¼ÂÀ» Ãâ·Â ½ÃÅ°´Â ¹öÇÁÀÇ ½Äº°ÀÚ(BuffIdentity_)
 */
 void CX2GameUnit::EraseEffectSetNormalAttackByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -14067,8 +14730,8 @@ void CX2GameUnit::EraseEffectSetNormalAttackByBuff( const KBuffIdentity& BuffIde
 }
 
 /** @function : PlayEffectSetNormalAttackByBuff
-	@brief : ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ý½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Âµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+	@brief : ÀÏ¹Ý °ø°Ý Å¸°Ý½Ã Å¸°ÝÁ¡¿¡ ¸®½ºÆ®¿¡ ÀÖ´Â ÀÌÆåÆ®¼ÂµéÀ» Ãâ·Â
+	@param : °ø°Ý Å¸ÀÔ
 */
 void CX2GameUnit::PlayEffectSetNormalAttackByBuff( CX2DamageManager::ATTACK_TYPE eAttackType )
 {
@@ -14085,77 +14748,73 @@ void CX2GameUnit::PlayEffectSetNormalAttackByBuff( CX2DamageManager::ATTACK_TYPE
 #endif // SERV_NEW_DEFENCE_DUNGEON
 
 /** @function : CreateAndInsertAddSkillLevelByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ MPï¿½ï¿½(fAbsorbValue_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇÑ ½ºÅ³ ·¹º§ Áõ°¨À» °ÔÀÓÀ¯´Ö¿¡ Àû¿ëÇÏ´Â ÇÔ¼ö
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ °ÍÀÎÁö ±¸ºÐ(BuffIdentity_), Èí¼ö½Ã Áõ°¡µÇ´Â MP·®(fAbsorbValue_)
 */
 void CX2GameUnit::CreateAndInsertAddSkillLevelByBuff( const KBuffIdentity& BuffIdentity_, const int iAddSkillLevel_ )
 {
 	CX2AddSkillLevelByBuffPtr ptrAddSkillLevelByBuff = CX2AddSkillLevelByBuffPtr( new CX2AddSkillLevelByBuff( BuffIdentity_, iAddSkillLevel_ ) );
-
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-14 // ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 	if ( NULL != ptrAddSkillLevelByBuff )
 		m_vecAddSkillLevelByBuffPtr.push_back( ptrAddSkillLevelByBuff );
-#endif // SERV_NEW_DEFENCE_DUNGEON
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	if ( NULL != GetUnit() &&
-		NULL != GetUnit()->GetUnitData() )
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
+	if ( GetGameUnitType() == CX2GameUnit::GUT_USER )
 	{
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		GetUnit()->ResetIncreaseSkillLevelByBuff();
+        CX2Unit* pUnit = static_cast<CX2GUUser*>( this )->GetUnit();
+        if ( pUnit != NULL )
+		/// ½ºÅ³ ·¹º§ Áõ°¡ ¹öÇÁ¿¡ ´ëÇÑ È¿°ú ¼³Á¤
+		    pUnit->ResetIncreaseSkillLevelByBuff();
 	}
 #endif // UPGRADE_SKILL_SYSTEM_2013
 }
 
 /** @function : EraseAddSkillLevelByBuff
-	@brief : ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : ½ºÅ³·¹º§ Áõ°¨ ¹öÇÁ ¿ä¼Ò ÇØÁ¦
+	@param : ½ºÅ³·¹º§ Áõ°¨ ¹öÇÁ ¿ä¼Ò¸¦±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseAddSkillLevelByBuff( const KBuffIdentity& BuffIdentity_ )
 {
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-14 // ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
 	vector<CX2AddSkillLevelByBuffPtr>::iterator vItr 
 	= FindSameBuffIdentity<vector<CX2AddSkillLevelByBuffPtr>::iterator, CX2AddSkillLevelByBuffPtr>( m_vecAddSkillLevelByBuffPtr, BuffIdentity_ );
 
 	if ( m_vecAddSkillLevelByBuffPtr.end() != vItr )
 		m_vecAddSkillLevelByBuffPtr.erase( vItr );
-#endif // SERV_NEW_DEFENCE_DUNGEON
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	if ( NULL != GetUnit() &&
-		NULL != GetUnit()->GetUnitData() )
+
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
+	if ( GetGameUnitType() == CX2GameUnit::GUT_USER )
 	{
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		GetUnit()->ResetIncreaseSkillLevelByBuff();
+        CX2Unit* pUnit = static_cast<CX2GUUser*>( this )->GetUnit();
+        if ( pUnit != NULL )
+		/// ½ºÅ³ ·¹º§ Áõ°¡ ¹öÇÁ¿¡ ´ëÇÑ È¿°ú ¼³Á¤
+		    pUnit->ResetIncreaseSkillLevelByBuff();
 	}
 #endif // UPGRADE_SKILL_SYSTEM_2013
 }
 
 /** @function : GetAddSkillLevelByBuff
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ¿¡ ÀÇÇØ Áõ°¨ÇÒ ½ºÅ³ ·¹º§À» ¾ò¾î ¿À´Â ÇÔ¼ö
+	@return : ¹öÇÁ¿¡ÀÇÇØ Áõ°¨ ÇÒ ½ºÅ³ ·¹º§
 */
 int CX2GameUnit::GetAddSkillLevelByBuff() const
 {
 	int iSumOfAddSkillLevelByBuff = 0;
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-14 // ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
-	BOOST_FOREACH( CX2AddSkillLevelByBuffPtr addSkillLevelByBuffPtr, m_vecAddSkillLevelByBuffPtr )	/// Ã£ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	BOOST_FOREACH( CX2AddSkillLevelByBuffPtr addSkillLevelByBuffPtr, m_vecAddSkillLevelByBuffPtr )	/// Ã£°íÀÚ ÇÏ´Â °ø°Ý Å¸ÀÔ¿¡ ÇØ´çÇÏ´Â ¹èÀ² °Ë»ç
 	{
 		if ( NULL != addSkillLevelByBuffPtr )
 			iSumOfAddSkillLevelByBuff += addSkillLevelByBuffPtr->GetAddSkillLevel();
 	}
-#endif // SERV_NEW_DEFENCE_DUNGEON
 
 	return iSumOfAddSkillLevelByBuff;
 }
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥: 2013-04-17
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥: 2013-04-17
 
 /** @function	: ShowIncreaseValue
-	@brief		: HP ï¿½ï¿½ MP ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param		: ï¿½ï¿½Ä¡, ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½
+	@brief		: HP ¹× MP º¯µ¿Ä¡ Ãâ·Â ÇÔ¼ö
+	@param		: À§Ä¡, Ãâ·ÂÇÒ ¼öÄ¡ ¼±ÅÃ, °ª
 */
-void CX2GameUnit::ShowIncreaseValue( D3DXVECTOR3 vecPos, bool IsHP, float fValue )		/// HP ï¿½ï¿½ MP ï¿½ï¿½ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+void CX2GameUnit::ShowIncreaseValue( D3DXVECTOR3 vecPos, bool IsHP, float fValue )		/// HP ¹× MP º¯µ¿Ä¡ Ãâ·Â ÇÔ¼ö
 {
 	WCHAR wszText[64]	= L"";
 	vecPos.y			+= 30.0f;
@@ -14182,40 +14841,43 @@ void CX2GameUnit::ShowIncreaseValue( D3DXVECTOR3 vecPos, bool IsHP, float fValue
 #ifdef VERIFY_STAT_BY_BUFF
 bool CX2GameUnit::VerifyStatByBuff()
 {
-	if ( m_AdditionalMaxHp.Verify() &&
-		 m_AdditionalPhysicAttack.Verify() &&
-		 m_AdditionalMagicAttack.Verify() &&
-		 m_AdditionalPhysicDefence.Verify() &&
-		 m_AdditionalMagicDefence.Verify() &&
-		 m_AdditionalAnimSpeed.Verify() &&
-		 m_AdditionalWalkSpeed.Verify() &&
-		 m_AdditionalDashSpeed.Verify() &&
-		 m_AdditionalJumpPower.Verify() &&
-		 m_AdditionalDashJumpPower.Verify() &&
-		 m_AdditionalAccuracy.Verify() &&
-		 m_AdditionalAvoidance.Verify() &&
-		 m_AdditionalCriticalRate.Verify() &&
-		 m_AdditionalCriticalAttack.Verify() &&
-		 m_AdditionalAntiCriticalRate.Verify() &&
-		 m_AdditionalCriticalDefence.Verify() &&
-		 m_AdditionalChangeAdditionalAttack.Verify() &&
-		 m_AdditionalChangeAdditionalDefence.Verify() &&
-		 m_AdditionalChargeMpHitMeleeAttack.Verify() &&
-		 m_AdditionalChargeMpHitRangeAttack.Verify() &&
-		 m_AdditionalChargeMpHitted.Verify() &&
-		 m_AdditionalFinalDamageMultiplierMeleeAttack.Verify() &&
-		 m_AdditionalFinalDamageMultiplierRangeAttack.Verify() &&
-		 m_AdditionalFinalDefenceMultiplier.Verify() &&
-		 m_AddtionalForceDownMultiplierMeleeAttack.Verify() &&
-		 m_AddtionalForceDownMultiplierRangeAttack.Verify() &&
-		 m_AdditionalChangeAttributeBlazeDefence.Verify() &&
-		 m_AdditionalChangeAttributeWaterDefence.Verify() &&
-		 m_AdditionalChangeAttributeNatureDefence.Verify() &&
-		 m_AdditionalChangeAttributeWindDefence.Verify() &&
-		 m_AdditionalChangeAttributeLightDefence.Verify() &&
-		 m_AdditionalChangeAttributeDarkDefence.Verify() &&
-		 m_AdditionalDrainHpNormalAttack.Verify() &&
-		 m_AdditionalMaxMp.Verify()
+	if ( m_AdditionalMaxHp.Verify()
+		 && m_AdditionalPhysicAttack.Verify()
+		 && m_AdditionalMagicAttack.Verify()
+		 && m_AdditionalPhysicDefence.Verify()
+		 && m_AdditionalMagicDefence.Verify()
+		 && m_AdditionalAnimSpeed.Verify()
+		 && m_AdditionalWalkSpeed.Verify()
+		 && m_AdditionalDashSpeed.Verify()
+		 && m_AdditionalJumpPower.Verify()
+		 && m_AdditionalDashJumpPower.Verify()
+		 && m_AdditionalAccuracy.Verify()
+		 && m_AdditionalAvoidance.Verify()
+		 && m_AdditionalCriticalRate.Verify()
+		 && m_AdditionalCriticalAttack.Verify()
+		 && m_AdditionalAntiCriticalRate.Verify()
+		 && m_AdditionalCriticalDefence.Verify()
+		 && m_AdditionalChangeAdditionalAttack.Verify()
+		 && m_AdditionalChangeAdditionalDefence.Verify()
+		 && m_AdditionalChargeMpHitMeleeAttack.Verify()
+		 && m_AdditionalChargeMpHitRangeAttack.Verify()
+		 && m_AdditionalChargeMpHitted.Verify()
+		 && m_AdditionalFinalDamageMultiplierMeleeAttack.Verify()
+		 && m_AdditionalFinalDamageMultiplierRangeAttack.Verify()
+		 && m_AdditionalFinalDefenceMultiplier.Verify()
+		 && m_AddtionalForceDownMultiplierMeleeAttack.Verify()
+		 && m_AddtionalForceDownMultiplierRangeAttack.Verify()
+		 && m_AdditionalChangeAttributeBlazeDefence.Verify()
+		 && m_AdditionalChangeAttributeWaterDefence.Verify()
+		 && m_AdditionalChangeAttributeNatureDefence.Verify()
+		 && m_AdditionalChangeAttributeWindDefence.Verify()
+		 && m_AdditionalChangeAttributeLightDefence.Verify()
+		 && m_AdditionalChangeAttributeDarkDefence.Verify()
+		 && m_AdditionalDrainHpNormalAttack.Verify()
+		 && m_AdditionalMaxMp.Verify()
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+		 && m_AdditionalHyperCharge.Verify()
+#endif //SERV_ADD_LUNATIC_PSYKER
 		 )
 		 return true;
 	else
@@ -14252,38 +14914,47 @@ bool CX2GameUnit::CanNotShowEnchantedWeaponEffectToRiding()
 #endif //RIDING_SYSTEM
 
 #ifdef MODIFY_EFFECT_SET_DELETE
+#ifdef ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+void CX2GameUnit::AddEffectSetDeleteCondition( CX2EffectSet::Handle hEffectSetHandle_, const vector<DELETE_CONDITION_EFFECT_SET> & vecDeleteCondition )
+#else // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
 void CX2GameUnit::AddEffectSetDeleteCondition( CX2EffectSet::Handle hEffectSetHandle_, DELETE_CONDITION_EFFECT_SET eDeleteCondition )
+#endif // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
 {
-	switch ( eDeleteCondition )
+#ifdef ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
+	BOOST_FOREACH ( DELETE_CONDITION_EFFECT_SET eDeleteCondition, vecDeleteCondition )
+#endif // ADD_TO_EFFECT_SET_LIST_EX_DELETE_CONDITION	  // ±èÁ¾ÈÆ, EFFECT_SET_LIST_EX Å×ÀÌºíÀÇ Á¾·á Á¶°Ç Ãß°¡ È®Àå
 	{
-	case DCES_DAMAGE_REACT:
+		switch ( eDeleteCondition )
 		{
-			m_vecEffectSetToDeleteOnDamageReact.push_back( hEffectSetHandle_ );
-		} break;
-	case DCES_STATE_END:
-		{
-			m_vecEffectSetToDeleteOnStateEnd.push_back( hEffectSetHandle_ );
-		} break;
-	case DCES_DIE:
-		{
-			m_vecEffectSetToDeleteOnDie.push_back( hEffectSetHandle_ );
-		} break;
-	case DCES_CUSTOM_STATE:
-		{
-#ifdef DELETE_EFFECTSET_ON_CUSTOM_STATE
-			m_vecEffectSetToDeleteOnCustomState.push_back( hEffectSetHandle_ );
-#endif // DELETE_EFFECTSET_ON_CUSTOM_STATE
-		} break;
-	default:
-		break;
+		case DCES_DAMAGE_REACT:
+			{
+				m_vecEffectSetToDeleteOnDamageReact.push_back( hEffectSetHandle_ );
+			} break;
+		case DCES_STATE_END:
+			{
+				m_vecEffectSetToDeleteOnStateEnd.push_back( hEffectSetHandle_ );
+			} break;
+		case DCES_DIE:
+			{
+				m_vecEffectSetToDeleteOnDie.push_back( hEffectSetHandle_ );
+			} break;
+		case DCES_CUSTOM_STATE:
+			{
+	#ifdef DELETE_EFFECTSET_ON_CUSTOM_STATE
+				m_vecEffectSetToDeleteOnCustomState.push_back( hEffectSetHandle_ );
+	#endif // DELETE_EFFECTSET_ON_CUSTOM_STATE
+			} break;
+		default:
+			break;
+		}
 	}
 }
 #endif //MODIFY_EFFECT_SET_DELETE 
 
-#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
 /** @function : CreateAndInsertChangeAttackByType
-	@brief : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ MPï¿½ï¿½(fAbsorbValue_)
+	@brief : °ø°Ý Å¸ÀÔ¿¡ µû¸¥ µ¥¹ÌÁö º¯°æ ¹öÇÁ¿ä¼Ò¸¦ °ÔÀÓÀ¯´Ö¿¡ Àû¿ëÇÏ´Â ÇÔ¼ö
+	@param : ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ °ÍÀÎÁö ±¸ºÐ(BuffIdentity_), Èí¼ö½Ã Áõ°¡µÇ´Â MP·®(fAbsorbValue_)
 */
 void CX2GameUnit::CreateAndInsertReflectMagicByBuff( const KBuffIdentity& BuffIdentity_, float fValue_ )
 {
@@ -14293,8 +14964,8 @@ void CX2GameUnit::CreateAndInsertReflectMagicByBuff( const KBuffIdentity& BuffId
 }
 
 /** @function : EraseChangeAttackByType
-	@brief : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief : °ø°Ý Å¸ÀÔ¿¡ µû¸¥ µ¥¹ÌÁö º¯°æ ¹öÇÁ ¿ä¼Ò ÇØÁ¦
+	@param : °ø°Ý Å¸ÀÔ¿¡ µû¸¥ µ¥¹ÌÁö º¯°æ ¹öÇÁ ¿ä¼Ò¸¦±¸ºÐÇÒ ¼ö ÀÖ´Â Á¤º¸(BuffIdentity_)
 */
 void CX2GameUnit::EraseReflectMagicByBuff( const KBuffIdentity& BuffIdentity_ )
 {
@@ -14307,13 +14978,155 @@ void CX2GameUnit::EraseReflectMagicByBuff( const KBuffIdentity& BuffIdentity_ )
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
 /** @function : PostProcessEnchantDamage
-	@brief : EDT ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : EDT Àû¿ë ÈÄ Ã³¸®ÇØ¾ß ÇÏ´Â ³»¿ë
 */
 /*virtual*/	void CX2GameUnit::PostProcessEnchantDamage( OUT CX2DamageManager::DamageData* pDamageData_ )
 {
 	if( NULL != pDamageData_ )
 	{
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2013-09-23 // ï¿½ï¿½Å¸ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ¿ÀÇöºó // 2013-09-23 // ¿¬Å¸ °ø°Ý ÀÏ ¶§ ÇÇ¾î½Ì È¿°ú°¡ È®·ü°ú »ó°ü¾øÀÌ Àû¿ë µÇ´Â ¹®Á¦ ¼öÁ¤
 		pDamageData_->m_bPenetrate = false;
 	}
 }
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //±èÃ¢ÇÑ
+/** @function : GetExtraDamageType
+	@brief : ÇöÀç ÀÚ½Å¿¡°Ô °É¸° ¹«±â ÀÎÃ¦Æ® Å¸ÀÔÀ» ¹ÝÈ¯. Á¦ÀÏ ½Ã°£ÀÌ ±ä °ÍÀ» ¹ÝÈ¯ÇÑ´Ù.
+	@param : -
+*/
+const CX2DamageManager::EXTRA_DAMAGE_TYPE		CX2GameUnit::GetApplyWeaponExtraDamageType()
+{
+	float fCheckTime = 0.f;
+	CX2DamageManager::EXTRA_DAMAGE_TYPE eEDTType = CX2DamageManager::EDT_NONE;
+
+	if( m_ExtraDamagePack.m_EnchantBlaze.m_fTime > fCheckTime )
+	{
+		eEDTType = CX2DamageManager::EDT_ENCHANT_BLAZE;
+		fCheckTime = m_ExtraDamagePack.m_EnchantBlaze.m_fTime;
+	}
+
+	if( m_ExtraDamagePack.m_EnchantFrozen.m_fTime > fCheckTime )
+	{
+		eEDTType = CX2DamageManager::EDT_ENCHANT_FROZEN;
+		fCheckTime = m_ExtraDamagePack.m_EnchantFrozen.m_fTime;
+	}
+
+	if( m_ExtraDamagePack.m_EnchantPoison.m_fTime > fCheckTime )
+	{
+		eEDTType = CX2DamageManager::EDT_ENCHANT_POISON;
+		fCheckTime = m_ExtraDamagePack.m_EnchantPoison.m_fTime;
+	}
+	
+	if( m_ExtraDamagePack.m_EnchantShock.m_fTime > fCheckTime )
+	{
+		eEDTType = CX2DamageManager::EDT_ENCHANT_SHOCK;
+	}
+
+	return eEDTType;
+}
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+bool CX2GameUnit::IsCanNotIntput() const 
+{ 
+	if( 0.0f < m_fCanNotInputTime || true == m_bCanNotInput ) 
+		return true; 
+	
+	return false;
+}
+
+
+#ifdef WRITE_SCRIPT_LOG_AT_CONSOLE_WINDOW  // ±èÅÂÈ¯
+void CX2GameUnit::WriteLogByConsoleWindow_LUA( const char* wstrLog_ ) 
+{
+	wstring wstrStateName = L"";
+	wstrStateName += L"\n";
+
+	ConvertUtf8ToWCHAR( wstrStateName, wstrLog_ );
+
+	wstrStateName += L"\n";
+
+	dbg::clog << wstrStateName << dbg::endl;
+}
+#endif // WRITE_SCRIPT_LOG_AT_CONSOLE_WINDOW
+
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯
+/** @function	: IsRightTarget
+	@brief		: Æ¯Á¤À§Ä¡°¡ ³ªÀÇ ¿À¸¥ÂÊÀÎÁö ¿ÞÂÊÀÎÁö ÆÇº°ÇÑ´Ù.
+	@param		: ´ë»ó À§Ä¡
+	@return		: À§Ä¡ ¿©ºÎ
+*/
+bool CX2GameUnit::IsRightTarget(D3DXVECTOR3 vPos)
+{
+	bool bRight = false;	
+
+	if(g_pX2Game == NULL || g_pX2Game->GetWorld() == NULL || g_pX2Game->GetWorld()->GetLineMap() == NULL)
+		return true;
+
+	const CKTDGLineMap::LineData* pCurrLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( GetLastTouchLineIndex( true ) );
+
+	// pCurrLineData°¡ NULLÀÏ°æ¿ì Ã³¸®´Â....????
+	if(pCurrLineData == NULL)
+		return false;			
+
+	D3DXVECTOR3 vFinalDestDir = vPos - GetPos();
+	float fFinalDestDist = D3DXVec3Length( &vFinalDestDir );
+	D3DXVec3Normalize( &vFinalDestDir, &vFinalDestDir );
+	const D3DXVECTOR3 vUpVec(0,1,0);
+	D3DXVECTOR3 vRightVec = pCurrLineData->dirVector;
+	D3DXVec3Normalize( &vRightVec, &vRightVec );
+
+	float fIsUp    = D3DXVec3Dot( &vUpVec,    &vFinalDestDir );
+	float fIsRight = D3DXVec3Dot( &vRightVec, &vFinalDestDir );
+	if( fIsRight > 0.f )
+		bRight = true;
+	else
+		bRight = false;
+
+	return bRight;
+}
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+/** @function	: GetFlickerColor
+	@brief		: ¹öÇÁ¸¦ ÅëÇØ¹ÝÂ¦ÀÌ´Â ·»´õ ÄÃ·¯°ª ¿¬»ê ÇÔ¼ö
+	@param		: ¹öÇÁ¿¡ ¼³Á¤µÈ »ö, ¹ÝÂ¦ÀÌ´Â °£°Ý
+	@return		: ·£´õ¿¡ Àû¿ëÇÒ »ö
+*/
+const D3DXCOLOR CX2GameUnit::GetFlickerColorByBuff( IN const D3DXCOLOR& coRenderColor_, IN const float fFlickerGap_ )
+{
+	D3DXCOLOR coResultColor = coRenderColor_;
+
+	if ( 0.f < coResultColor )
+	{
+		/// ¹ÝÂ¦ÀÌ´Â ½Ã°£ °»½Å
+		m_fFlickerElapsedTime += m_fElapsedTime;
+
+		if ( m_fFlickerElapsedTime >= fFlickerGap_ )
+			m_fFlickerElapsedTime = 0.f;
+
+		/// ¹ÝÂ¦ÀÌ´Â °£°Ý¿¡ ´ëÇÑ ÁøÇà·ü
+		float fFlickerRate = m_fFlickerElapsedTime / fFlickerGap_;
+
+		/// ÁøÇà·üÀÌ Àý¹Ý ÀÌ»óÀÌ¸é, »ö»ó °¨¼Ò
+		if ( ( fFlickerGap_ / 2 ) < m_fFlickerElapsedTime )
+		{
+			fFlickerRate = ( fFlickerRate - 0.5f ) * 2.f;	/// 0 ~ 1.f ·Î ÁøÇà·ü º¯È¯
+
+			coResultColor.r = max( 1.f - ( ( 1.f - coResultColor.r ) * fFlickerRate ), coResultColor.r );
+			coResultColor.g = max( 1.f - ( ( 1.f - coResultColor.g ) * fFlickerRate ), coResultColor.g );
+			coResultColor.b = max( 1.f - ( ( 1.f - coResultColor.b ) * fFlickerRate ), coResultColor.b );
+		}
+		///  ÁøÇà·üÀÌ Àý¹Ý ÀÌÇÏ¸é, »ö»ó Áõ°¡
+		else
+		{
+			fFlickerRate *= 2.f;	/// 0 ~ 1.f ·Î ÁøÇà·ü º¯È¯
+
+			coResultColor.r = min( coResultColor.r + ( ( 1.f - coResultColor.r ) * fFlickerRate ), 1.f );
+			coResultColor.g = min( coResultColor.g + ( ( 1.f - coResultColor.g ) * fFlickerRate ), 1.f );
+			coResultColor.b = min( coResultColor.b + ( ( 1.f - coResultColor.b ) * fFlickerRate ), 1.f );
+		}
+	}
+
+	return coResultColor;
+}
+#endif //SERV_ADD_LUNATIC_PSYKER

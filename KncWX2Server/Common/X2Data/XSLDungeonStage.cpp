@@ -1,5 +1,8 @@
 #include "XSLDungeonStage.h"
 
+#ifdef _CONVERT_VS_2010
+#define ARRAY_SIZE(a)       (sizeof(a)/sizeof((a)[0]))
+#endif _CONVERT_VS_2010
 
 CXSLDungeonStage::CXSLDungeonStage( StageData* pStageData )
 {
@@ -17,7 +20,7 @@ bool CXSLDungeonStage::StageData::LoadData( IN bool bScriptCheck, KLuaManager& l
 {
 	LUA_GET_VALUE_RETURN(	luaManager, "WORLD_ID",		m_WorldID,		-1,			return false );
 	//{{ 2010. 03. 24  최육사	비밀던전 헬모드
-	LUA_GET_VALUE_ENUM(		luaManager, "STAGE_TYPE",	m_eStageType,	STAGE_TYPE,	STAGE_TYPE::ST_NONE );
+	LUA_GET_VALUE_ENUM(		luaManager, "STAGE_TYPE",	m_eStageType,	STAGE_TYPE,	ST_NONE );
 	//}}
 
 	////스테이지에서 예약할 NPC 정보를 읽어둔다
@@ -68,12 +71,23 @@ bool CXSLDungeonStage::StageData::LoadSubStageData( IN bool bScriptCheck, KLuaMa
 	char strTable[MAX_PATH] = "";
 	for( int i = 0;; ++i )
 	{
+#ifdef _CONVERT_VS_2010
+		sprintf_s( strTable, ARRAY_SIZE( strTable ), "SUB_STAGE%d", i );
+#else
 		sprintf( strTable, "SUB_STAGE%d", i );
+#endif _CONVERT_VS_2010
 		if( luaManager.BeginTable( strTable ) == E_FAIL )
 			break;
 
 		CXSLDungeonSubStage::SubStageData* pSubStageData = new CXSLDungeonSubStage::SubStageData();
-		if( pSubStageData->LoadData( bScriptCheck, luaManager ) == false ) bRet = false;
+		const bool bResult = pSubStageData->LoadData( bScriptCheck
+			, luaManager
+			);
+
+		if( bResult == false )
+		{
+			bRet = false;
+		}
 
 		m_SubStageDataList.push_back( pSubStageData );
 		luaManager.EndTable();

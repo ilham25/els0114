@@ -141,6 +141,14 @@ public:
         UI_MENU_END,
     };
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	enum UI_TIME_CONTROL_ITME_TYPE
+	{
+		UTCIT_SHOP					= 0,
+		UTCIT_MANUFACTURE			= 1,
+		UTCIT_EXCHANGE_SHOP			= 2,
+	};
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 public:
     CX2UIManager();
@@ -198,6 +206,10 @@ public:
 	
 	void CreateUIPersonalShop();
 	CX2UIPersonalShop* GetUIPersonalShop();
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	void DestroyPeronalShopUI();
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	
 	void CreateUIPersonalTrade();
 	CX2UIPersonalTrade* GetUIPersonalTrade();
@@ -329,6 +341,23 @@ public:
 	void Handler_EGS_WATCH_UNIT_REQ(UidType uid);
 	bool Handler_EGS_WATCH_UNIT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	bool Handler_EGS_BUY_UI_SETTING_REQ(int iHouseID, int iTimeControlItemType);
+	bool Handler_EGS_BUY_UI_SETTING_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+	bool Handler_EGS_GET_TIME_CONTROL_ITME_LIST_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+	bool Handler_EGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+
+	std::set<int> GetBanBuyItemList() { return m_setBanBuyItem; }
+	std::set<int> GetBanManufactureItemList() { return m_setBanManufactureItem; }
+	std::set<int> GetBanExchangeItemList() { return m_setBanExchangeItem; }
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+	bool Handler_EGS_MANUFACTURE_PERIOD_SETTING_REQ( int iHouseID );
+	bool Handler_EGS_MANUFACTURE_PERIOD_SETTING_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //SERV_MANUFACTURE_PERIOD_FIX
+
+
 #ifdef OTHER_SERVER_GROUP_WATCH
 	void OpenWatchUIByOtherServerGroupUnitUid(UidType UnitUid_);
 	bool IsSameServerGroupByUnitUid( UidType UnitUid_ );
@@ -336,7 +365,7 @@ public:
 
 #ifdef REFORM_UI_SKILLSLOT
 	//스킬슬롯, 퀵슬롯, 메뉴버튼을 각각 따로 관리하기 위해 추가
-	void SetShowSkillSlot(bool val) { m_bShowSkillSlot = val;}
+	void SetShowSkillSlot(bool val);
 	bool GetShowSkillslot() const { return m_bShowSkillSlot; }
 
 	void SetShowQuickSlot(bool val) { m_bShowQuickSlot = val;}
@@ -359,6 +388,15 @@ public:
 	bool Handler_EGS_SEND_LOVE_LETTER_EVENT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif //SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	CX2UIPersonalShop* GetPersonalShop() { return m_pPersonalShop; }
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	bool GetbShowAdamsShop(void)
+	{
+		return m_bShowAdamsShop;
+	}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 private:
 	//void SetPosLUDialog(UI_MENU openDLG, bool forOpen);
 	void SetPosLUDialogOnOpen(UI_MENU openDLG);
@@ -369,7 +407,13 @@ private:
 
 	void SetShowMinimapUI(bool bVal);
 	void SetShowGageUI(bool bVal);
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	public :
 	void SetShowQucikQuest(bool bVal);
+	private:
+#else
+	void SetShowQucikQuest(bool bVal);
+#endif 
 	void SetShowPlayGuide(bool bVal);
 	void SetShowFeverUI(bool bVal);
 	void SetShowCinematicUI(bool bVal, float fTime_ = 0.0f );
@@ -382,7 +426,13 @@ private:
 
 	private :
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	public :
 	void SetShowPartyMenu(bool bVal);
+	private:
+#else
+	void SetShowPartyMenu(bool bVal);
+#endif 
 	void SetShowMonsterIndicator(bool bVal);
 	bool					m_bFlag;
 
@@ -487,6 +537,12 @@ private:
 	vector<CX2UIManager::UI_MENU>		m_vLayer;	
 	bool								m_bShowUI;
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	std::set<int>				m_setBanBuyItem;
+	std::set<int>				m_setBanManufactureItem;
+	std::set<int>				m_setBanExchangeItem;
+#endif SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 #ifdef REFORM_UI_SKILLSLOT
 	//스킬슬롯, 퀵슬롯, 메뉴버튼을 각각 따로 관리하기 위해 추가
 	bool								m_bShowSkillSlot;
@@ -496,6 +552,10 @@ private:
 #ifdef RIDING_SYSTEM
 	bool								m_bShowRidingPetSkillSlot;
 #endif //RIDING_SYSTEM
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	bool								m_bShowAdamsShop;
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 };
 
 #endif

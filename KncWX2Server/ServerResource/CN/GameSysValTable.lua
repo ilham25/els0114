@@ -18,7 +18,7 @@ GameSysVal:AddPCBang( 0, 0.05, 0.05, 0.05, False, 0.0, 0, False, True, True )
 GameSysVal:AddPCBang( 1, 0.1, 0.1, 0.1, False, 0.0, 0, False ,True ,True )
 
 --제한 레벨.
-GameSysVal:AddLimitsMaxLevel( 67 )
+GameSysVal:AddLimitsMaxLevel( 70 )
 
 --프리미업 캐쉬아이템 경험치 숫치 : 축복의 메달
 GameSysVal:AddPremiumEXP( 0.3 )

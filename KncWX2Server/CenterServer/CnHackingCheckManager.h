@@ -49,6 +49,14 @@ public:
 	};
 #endif SERV_DUNGEON_CLEAR_TIME_HACK_USER_CHECK
 	//}}
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+    typedef std::map<int, int> KMapStageClearTime;
+    struct KHenirClearTimeHackUserCheck 
+    {
+        //int                             m_iCheckPlayTime;
+        KMapStageClearTime m_mapStageClearTime;
+    };
+#endif SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
 
 public:
 	KCnHackingCheckManager(void);
@@ -98,9 +106,23 @@ public:
 
 	void Tick();
 
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+    bool CheckHenirClearTimeHackUser( IN const char cAuthLevel,
+                                      IN const UidType iUserUID,
+                                      IN const int iDungeonID, 
+                                      IN const int iStageID,
+                                      IN const int iPlayTime );
+    bool IsHenirClearTimeCheckEnable() { return m_bHenirClearTimeCheckEnable; }
+    void SetHenirClearTimeCheckEnable_LUA( bool bVal );
+    bool SetHenirClearTimeHackUserCheckData_LUA();
+    bool CheckStageMinimumClearTime( IN const int iStageID_, IN const int iPlayTime_ );
+
+#endif SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+
 private:
 	template < class T > void SendToLogDB( unsigned short usEventID, const T& data );
 	template < class T > void SendToSMSDB( unsigned short usEventID, const T& data );
+
 #endif SERV_DUNGEON_CLEAR_TIME_HACK_USER_CHECK
 	//}}
 
@@ -117,6 +139,10 @@ private:
 	std::vector< std::wstring >		m_vecPhoneNumList;
 #endif SERV_DUNGEON_CLEAR_TIME_HACK_USER_CHECK
 	//}}
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+    KHenirClearTimeHackUserCheck    m_kHenirClearTimeCheckData;
+    bool                            m_bHenirClearTimeCheckEnable;
+#endif SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
 };
 
 template < class T >

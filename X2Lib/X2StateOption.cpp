@@ -17,11 +17,11 @@ m_wstrNickNameForBlackListRemove(L""),
 m_pResolutionChangeConfirmDialog(NULL),
 m_vOriginalResolution(1024.f, 768.f ),			// D3DXVECTOR2
 m_bResetOriginalResolution(true)
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 , m_DLGWaitKeyConfig(NULL)
 , m_fKeyconfigTimer(-1.0f)
 , m_eSelectedGameAction( GAME_ACTION_NONE )
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 {
 	// 초기화 코드 ////////////////////////////////////////////////////////////////////////// 
 	
@@ -75,10 +75,10 @@ CX2StateOption::~CX2StateOption(void)
 	CloseOptionWindow();
 	//SAFE_DELETE_DIALOG( m_pDLGOptionWindow );		// 삭제하면 안됩니다. cx2memoryholder 클래스에서 관리합니다
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	SAFE_DELETE_DIALOG(m_DLGKeyConfig);
 	SAFE_DELETE_DIALOG(m_DLGWaitKeyConfig);
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
 	SAFE_DELETE_DIALOG( m_pDLGBlackList );
 	SAFE_DELETE_DIALOG( m_pDLGBlackListAdd );
@@ -111,7 +111,8 @@ HRESULT CX2StateOption::OnFrameMove( double fTime, float fElapsedTime )
 			}
 		}
 	}
-#ifdef KEY_MAPPING_INT
+
+#ifdef SERV_KEY_MAPPING_INT
 	if( m_fKeyconfigTimer > 0.0f )
 	{
 		unsigned char ucUserInput;
@@ -121,8 +122,6 @@ HRESULT CX2StateOption::OnFrameMove( double fTime, float fElapsedTime )
 		//g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_RETURN, FALSE);
 		//g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_ESCAPE, FALSE);
 		//키 설정부분에서는 ESC및 Enter키 락을 강제로 풀어주어 입력가능하게 한다. 좋은방법은 아니기 때문에 차후 다른방법 강구
-
-
 		if( true == g_pKTDXApp->GetDIManager()->ListenDeviceInput( ucUserInput, JOYSTICK )  && m_iInputDevice == JOYSTICK )
 		{
 			g_pKTDXApp->GetDIManager()->SetKeyChanging( false );
@@ -143,7 +142,7 @@ HRESULT CX2StateOption::OnFrameMove( double fTime, float fElapsedTime )
 		m_eSelectedGameAction = GAME_ACTION_NONE;
 		g_pKTDXApp->GetDIManager()->SetKeyChanging( false );
 	}
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
 	return S_OK;
 }
@@ -158,7 +157,7 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 	if ( CX2State::UICustomEventProc( hWnd, uMsg, wParam, lParam ) == true )
 		return true;
 
-	CX2GameOption* pGameOption = g_pMain->GetGameOption();
+	CX2GameOption* pGameOption = &g_pMain->GetGameOption();
 
 	switch(wParam)
 	{
@@ -178,9 +177,9 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				ShowGraphicOption( true );
 				ShowSoundOption( false );
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 				ShowInputOption( false );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 				ShowOtherOption( false );				
 				ShowCommunityOption( false );
@@ -201,9 +200,9 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				ShowGraphicOption( false );
 				ShowSoundOption( true );
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT  
+#ifdef SERV_KEY_MAPPING_INT  
 				ShowInputOption( false );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 				ShowOtherOption( false );		
 				ShowCommunityOption( false );
@@ -218,7 +217,7 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 		} break;
 
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	case SOUCM_OPTION_INPUT:
 		{
 			if( NULL != m_pDLGOptionWindow )
@@ -237,7 +236,7 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			}
 			return true;
 		} break;
-#endif KEY_MAPPING_INT
+#endif SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 
 	case SOUCM_OPTION_OTHER:
@@ -247,9 +246,9 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				ShowGraphicOption( false );
 				ShowSoundOption( false );
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 				ShowInputOption( false );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 				ShowOtherOption( true );				
 				ShowCommunityOption( false );
@@ -290,9 +289,9 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				ShowGraphicOption( false );
 				ShowSoundOption( false );
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 				ShowInputOption( false );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 				ShowOtherOption( false );				
 				ShowCommunityOption( false );
@@ -374,17 +373,29 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 
 	case SOUCM_OPTION_GRAPHIC_EFFECT_HIGH:
 		{
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			pGameOption->SetEffectDetail( CX2GameOption::OL_HIGH );
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 			pGameOption->SetEffectDetail( true );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 			return true;
 		} break; 
 	case SOUCM_OPTION_GRAPHIC_EFFECT_MEDIUM:
 		{
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			pGameOption->SetEffectDetail( CX2GameOption::OL_MEDIUM );
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 			pGameOption->SetEffectDetail( true );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 			return true;
 		} break; 
 	case SOUCM_OPTION_GRAPHIC_EFFECT_LOW:
 		{
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			pGameOption->SetEffectDetail( CX2GameOption::OL_LOW );
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 			pGameOption->SetEffectDetail( false );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 			return true;
 		} break; 
 		//{{2011.09.20 이준호 이벤트 처리
@@ -396,9 +407,9 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				ShowGraphicOption( false );
 				ShowSoundOption( false );
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 				ShowInputOption( false );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 				ShowOtherOption( false );		
 				ShowCommunityOption( false );
@@ -413,7 +424,7 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 		{
 			CKTDGUIComboBox* pCombo				= (CKTDGUIComboBox*) m_pDLGOptionWindow->GetControl( L"Cam_Option_General_Video_List" );
 			if(pCombo==NULL)return false;
-			g_pMain->GetGameOption()->SetGeneralVideoType(pCombo->GetSelectedItemIndex());
+			g_pMain->GetGameOption().SetGeneralVideoType(pCombo->GetSelectedItemIndex());
 
 			// 동영상 포맷 설정 변경 시 라디오 버튼 즉시 바뀌도록 수정
 			CKTDGUIRadioButton* pRadio	= (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"Cam_Option_Video_User_Rbtn" );
@@ -424,17 +435,17 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			if(pRadio!=NULL)
 				pRadio->SetChecked(true);
 
-			g_pMain->GetGameOption()->SetUserSetting(false);
+			g_pMain->GetGameOption().SetUserSetting(false);
 			return true;
 		}break;
 	case SOUCM_OPTION_VIDEO_GENERAL_RBTN:
 		{
-			g_pMain->GetGameOption()->SetUserSetting(false);
+			g_pMain->GetGameOption().SetUserSetting(false);
 			return true;
 		}break;
 	case SOUCM_OPTION_VIDEO_USER_RBTN:
 		{
-			g_pMain->GetGameOption()->SetUserSetting(true);
+			g_pMain->GetGameOption().SetUserSetting(true);
 			return true;
 		}break;
 	case SOUCM_OPTION_VIDEO_USER_BTN:
@@ -446,7 +457,7 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			}
 			else
 			{
-				g_pMain->GetGameOption()->SetUserSetting(true);
+				g_pMain->GetGameOption().SetUserSetting(true);
 				ShowBandiCamOptionUser(true);
 			}
 			return true;
@@ -462,7 +473,7 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			if(pRbtn==NULL)return false;
 			if(pRbtn->GetChecked())
 				iVal=100;
-			g_pMain->GetGameOption()->SetVideoQuality(iVal);
+			g_pMain->GetGameOption().SetVideoQuality(iVal);
 
 
 			//해상도
@@ -494,9 +505,9 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				case 19:	iVideoSizeW=1680;	iVideoSizeH=1050;	break;
 				default:	iVideoSizeW=1024;	iVideoSizeH=768;	break;
 				}
-				g_pMain->GetGameOption()->SetVideoSizeW( iVideoSizeW );
-				g_pMain->GetGameOption()->SetVideoSizeH( iVideoSizeH );
-				g_pMain->GetGameOption()->SetVideoSizeIndex( pCombo->GetSelectedItemIndex() );
+				g_pMain->GetGameOption().SetVideoSizeW( iVideoSizeW );
+				g_pMain->GetGameOption().SetVideoSizeH( iVideoSizeH );
+				g_pMain->GetGameOption().SetVideoSizeIndex( pCombo->GetSelectedItemIndex() );
 			}
 
 			//프레임
@@ -505,18 +516,25 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			{
 				switch(pCombo->GetSelectedItemIndex())
 				{
-				case 0:	g_pMain->GetGameOption()->SetVideoFPS(15.0f);	break;
-				case 1:	g_pMain->GetGameOption()->SetVideoFPS(24.0f);	break;
-				case 2:	g_pMain->GetGameOption()->SetVideoFPS(25.0f);	break;
-				case 3:	g_pMain->GetGameOption()->SetVideoFPS(30.0f);	break;
-				case 4:	g_pMain->GetGameOption()->SetVideoFPS(35.0f);	break;
-				case 5:	g_pMain->GetGameOption()->SetVideoFPS(45.0f);	break;
-				case 6:	g_pMain->GetGameOption()->SetVideoFPS(50.0f);	break;
-				case 7:	g_pMain->GetGameOption()->SetVideoFPS(55.0f);	break;
-				case 8:	g_pMain->GetGameOption()->SetVideoFPS(60.0f);	break;
-				default:	g_pMain->GetGameOption()->SetVideoFPS(60.0f);	break;
+#ifdef BANDICAM_OPTION_FIX
+				case 0:	g_pMain->GetGameOption().SetVideoFPS(24.0f);	break;
+				case 1:	g_pMain->GetGameOption().SetVideoFPS(30.0f);	break;
+				case 2:	g_pMain->GetGameOption().SetVideoFPS(50.0f);	break;
+				case 3:	g_pMain->GetGameOption().SetVideoFPS(60.0f);	break;
+#else //BANDICAM_OPTION_FIX
+				case 0:	g_pMain->GetGameOption().SetVideoFPS(15.0f);	break;
+				case 1:	g_pMain->GetGameOption().SetVideoFPS(24.0f);	break;
+				case 2:	g_pMain->GetGameOption().SetVideoFPS(25.0f);	break;
+				case 3:	g_pMain->GetGameOption().SetVideoFPS(30.0f);	break;
+				case 4:	g_pMain->GetGameOption().SetVideoFPS(35.0f);	break;
+				case 5:	g_pMain->GetGameOption().SetVideoFPS(45.0f);	break;
+				case 6:	g_pMain->GetGameOption().SetVideoFPS(50.0f);	break;
+				case 7:	g_pMain->GetGameOption().SetVideoFPS(55.0f);	break;
+				case 8:	g_pMain->GetGameOption().SetVideoFPS(60.0f);	break;
+#endif //BANDICAM_OPTION_FIX
+				default:	g_pMain->GetGameOption().SetVideoFPS(60.0f);	break;
 				}			
-				g_pMain->GetGameOption()->SetVideoFPSIndex( pCombo->GetSelectedItemIndex() );//콤보박스 인덱스 기록
+				g_pMain->GetGameOption().SetVideoFPSIndex( pCombo->GetSelectedItemIndex() );//콤보박스 인덱스 기록
 			}
 
 			//오디오 음질
@@ -525,23 +543,35 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			{
 				switch(pCombo->GetSelectedItemIndex())
 				{
+#ifdef BANDICAM_OPTION_FIX
 				case 0:
-					g_pMain->GetGameOption()->SetAudioSampleRate(8000);
+					g_pMain->GetGameOption().SetAudioSampleRate(16000);
 					break;
 				case 1:
-					g_pMain->GetGameOption()->SetAudioSampleRate(16000);
+					g_pMain->GetGameOption().SetAudioSampleRate(24000);
 					break;
 				case 2:
-					g_pMain->GetGameOption()->SetAudioSampleRate(22000);
+					g_pMain->GetGameOption().SetAudioSampleRate(48000);
+					break;
+#else //BANDICAM_OPTION_FIX
+				case 0:
+					g_pMain->GetGameOption().SetAudioSampleRate(8000);
+					break;
+				case 1:
+					g_pMain->GetGameOption().SetAudioSampleRate(16000);
+					break;
+				case 2:
+					g_pMain->GetGameOption().SetAudioSampleRate(22000);
 					break;
 				case 3:
-					g_pMain->GetGameOption()->SetAudioSampleRate(44100);
+					g_pMain->GetGameOption().SetAudioSampleRate(44100);
 					break;
+#endif //BANDICAM_OPTION_FIX					
 				default:
-					g_pMain->GetGameOption()->SetAudioSampleRate(0);
+					g_pMain->GetGameOption().SetAudioSampleRate(0);
 					break;
 				}			
-				g_pMain->GetGameOption()->SetAudioSampleRateIndex( pCombo->GetSelectedItemIndex() );//콤보박스 인덱스 기록
+				g_pMain->GetGameOption().SetAudioSampleRateIndex( pCombo->GetSelectedItemIndex() );//콤보박스 인덱스 기록
 			}
 
 			//비디오 포맷
@@ -551,28 +581,28 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 				switch(pCombo->GetSelectedItemIndex())
 				{
 				case 0:
-					g_pMain->GetGameOption()->SetVideoFormat(FOURCC_MPEG);
+					g_pMain->GetGameOption().SetVideoFormat(FOURCC_MPEG);
 					break;
 				case 1:
-					g_pMain->GetGameOption()->SetVideoFormat(FOURCC_MJPG);
+					g_pMain->GetGameOption().SetVideoFormat(FOURCC_MJPG);
 					break;
 				case 2:
-					g_pMain->GetGameOption()->SetVideoFormat(FOURCC_MP4V);
+					g_pMain->GetGameOption().SetVideoFormat(FOURCC_MP4V);
 					break;
 				case 3:
-					g_pMain->GetGameOption()->SetVideoFormat(FOURCC_ARGB);
+					g_pMain->GetGameOption().SetVideoFormat(FOURCC_ARGB);
 					break;
 				case 4:
-					g_pMain->GetGameOption()->SetVideoFormat(FOURCC_RGB24);
+					g_pMain->GetGameOption().SetVideoFormat(FOURCC_RGB24);
 					break;
 				case 5:
-					g_pMain->GetGameOption()->SetVideoFormat(FOURCC_YV12);
+					g_pMain->GetGameOption().SetVideoFormat(FOURCC_YV12);
 					break;
 				default:
-					g_pMain->GetGameOption()->SetVideoFormat(FOURCC_MPEG);
+					g_pMain->GetGameOption().SetVideoFormat(FOURCC_MPEG);
 					break;
 				}
-				g_pMain->GetGameOption()->SetVideoFormatIndex( pCombo->GetSelectedItemIndex() ); //콤보박스 인덱스 기록
+				g_pMain->GetGameOption().SetVideoFormatIndex( pCombo->GetSelectedItemIndex() ); //콤보박스 인덱스 기록
 			}
 
 			//오디오 채널
@@ -582,7 +612,7 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			{
 				if(pRbtn->GetChecked())
 					iVal=1;
-				g_pMain->GetGameOption()->SetAudioChannels(iVal);
+				g_pMain->GetGameOption().SetAudioChannels(iVal);
 			}
 			
 			CKTDGUIRadioButton* pRadio			= (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"Cam_Option_Video_User_Rbtn" );
@@ -670,7 +700,7 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 	
 	case SOUCM_OPTION_GRAPHIC_RESOLUTION:
 		{
-			m_vOriginalResolution = g_pMain->GetGameOption()->GetOptionList()->m_vResolution;
+			m_vOriginalResolution = g_pMain->GetGameOption().GetOptionList().m_vResolution;
 			
 			//{{ dmlee 2008.06.03 해상도 변경할지 물어보는 팝업창 (20초동안)
 			m_bResetOriginalResolution = true;
@@ -1083,6 +1113,19 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환
+	case SOUCM_OPTION_OTHER_INVITE_PVP_ON:
+		pGameOption->SetRefuseInvitePVP( true );
+		Handler_EGS_UPDATE_COMMUNITY_OPTION_REQ();
+		break;
+
+	case SOUCM_OPTION_OTHER_INVITE_PVP_OFF:
+		pGameOption->SetRefuseInvitePVP( false );
+		Handler_EGS_UPDATE_COMMUNITY_OPTION_REQ();
+		break;
+#endif // FIX_INVITE_PVP_PLAYER
+
+
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 	case SOUCM_OPTION_RANKUPUI_ON:
 		pGameOption->SetShowRankUpInDungeon( true );
@@ -1121,19 +1164,22 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 		}break;
 #endif SERV_SECOND_SECURITY
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	case SOUCM_KEY_CONFIG_OPEN:
 		{
+			if( g_pKTDXApp->GetDIManager()->GetJoystic() != NULL )
+				g_pKTDXApp->GetDIManager()->GetJoystic()->GetActionKeys( m_mapGamePadActionKeys );
 			ShowKeyConfigDLG(true);
 		}break;
 	case SOUCM_KEY_CONFIG_CLOSE_SAVE:
 		{
-			pGameOption->SaveJoyScript();
+			Handler_EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ();
 			ShowKeyConfigDLG(false);
 		}break;
 	case SOUCM_KEY_CONFIG_CLOSE_CANCEL:
 		{
-			pGameOption->OpenJoyScript();
+			if( g_pKTDXApp->GetDIManager()->GetJoystic() != NULL )
+				g_pKTDXApp->GetDIManager()->GetJoystic()->SetActionKeys( m_mapGamePadActionKeys );
 			ShowKeyConfigDLG(false);
 		}break;
 	case SOUCM_JOY_CONFIG_BUTTON_CLICKED:
@@ -1142,42 +1188,33 @@ bool CX2StateOption::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			m_fKeyconfigTimer = 10.0f;
 
 			CKTDGUIButton* pButtonKeyconfig	= (CKTDGUIButton*)lParam;
-
 			m_eSelectedGameAction = MappingKeyConfigIndex( pButtonKeyconfig->GetDummyInt(0) );
-
 			g_pKTDXApp->GetDIManager()->SetKeyChanging( true );
-
 			m_iInputDevice = JOYSTICK;
-
 		} break;
 	case SOUCM_JOY_CONFIG_BUTTON_RCLICKED:
 		{
 			CKTDGUIButton* pButtonKeyconfig	= (CKTDGUIButton*)lParam;
-
 			m_eSelectedGameAction = MappingKeyConfigIndex( pButtonKeyconfig->GetDummyInt(0) );
-
 			SetKeyConfig( m_eSelectedGameAction, DIK_UP, JOYSTICK );
 			UpdateKeyConfigList();
 		} break;
-
 	case SOUCM_KEY_CONFIG_ENABLE:
 		{
 			g_pKTDXApp->GetDIManager()->SetEnableJoyStick(true);
 			pGameOption->SetJoyEnable(true);
-
 		} break;
 	case SOUCM_KEY_CONFIG_DISABLE:
 		{
 			g_pKTDXApp->GetDIManager()->SetEnableJoyStick(false);
 			pGameOption->SetJoyEnable(false);
 		} break;
-
 	case SOUCM_KEY_CONFIG_RESET:
 		{
-			g_pKTDXApp->GetDIManager()->SetDefaultMap();
+			g_pKTDXApp->GetDIManager()->SetGamePadDefaultMap();
 			UpdateKeyConfigList();
 		} break;
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
 #ifdef VERTICAL_SYNC_OPTION
 	case SOUCM_OPTION_GRAPHIC_FLASH_EFFECT:
@@ -1260,7 +1297,7 @@ bool CX2StateOption::CloseOptionWindow()
 	CloseBlackListAddWindow();
 
 #if 0 
-	CX2GameOption::OptionList* pGameOptionList = g_pMain->GetGameOption()->GetOptionList();
+	CX2GameOption::OptionList* pGameOptionList = &g_pMain->GetGameOption().GetOptionList();
 
 	bool bChangeCommunityOption = false;
 	if( m_OldOptionList.m_eDenyFriendship != pGameOptionList->m_eDenyFriendship )
@@ -1300,12 +1337,12 @@ bool CX2StateOption::CloseOptionWindow()
 	m_pDLGOptionWindow->SetEnable( false );
 	m_pDLGOptionWindow->SetModal( true );
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	SAFE_DELETE_DIALOG(m_DLGKeyConfig);
 	SAFE_DELETE_DIALOG(m_DLGWaitKeyConfig);
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
-	g_pMain->GetGameOption()->SaveScriptFile();
+	g_pMain->GetGameOption().SaveScriptFile();
 
 	//m_OldOptionList = *pGameOptionList;
 #ifdef BANDICAM_RECORDING
@@ -1322,7 +1359,7 @@ bool CX2StateOption::OpenOptionWindow()
 
 	m_pDLGOptionWindow->SetPos( D3DXVECTOR2(303.f, 202.f) );
 
-	CX2GameOption::OptionList* pGameOptionList = g_pMain->GetGameOption()->GetOptionList();
+	CX2GameOption::OptionList* pGameOptionList = &g_pMain->GetGameOption().GetOptionList();
 	//m_OldOptionList = *pGameOptionList;
 
 	m_pDLGOptionWindow->SetShow( true );
@@ -1333,9 +1370,9 @@ bool CX2StateOption::OpenOptionWindow()
 	InitGraphicOption();
 	InitSoundOption();
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	InitInputOption();
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 	InitOtherOption();
 	//InitCommunityOption();
@@ -1343,27 +1380,31 @@ bool CX2StateOption::OpenOptionWindow()
 	CKTDGUICheckBox* pCheckBox_OptionGraphic	= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Graphic_Menu" );
 	CKTDGUICheckBox* pCheckBox_OptionSound		= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Sound_Menu" );
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	CKTDGUICheckBox* pCheckBox_OptionInput		= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Input_Menu" );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 	CKTDGUICheckBox* pCheckBox_OptionOther		= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Other_Menu" );
 #if defined( SERV_SECOND_SECURITY ) && !defined( SERV_DISABLE_SECOND_SECURITY )	// 해외팀 수정
-	CKTDGUICheckBox* pCheckBox_OptionSecurity	= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_security_Menu" );
-	pCheckBox_OptionSecurity->SetShowEnable(true, true);
+	#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		CKTDGUICheckBox* pCheckBox_OptionSecurity	= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_security_Menu" );
+		pCheckBox_OptionSecurity->SetShowEnable(true, true);
+	#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 #endif
 	//CKTDGUICheckBox* pCheckBox_OptionCommunity	= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Community_Menu" );
 
 	ShowGraphicOption(	pCheckBox_OptionGraphic->GetChecked() );
 	ShowSoundOption(	pCheckBox_OptionSound->GetChecked() );
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	ShowInputOption(	pCheckBox_OptionInput->GetChecked() );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 	ShowOtherOption(	pCheckBox_OptionOther->GetChecked() );
 #if defined( SERV_SECOND_SECURITY ) && !defined( SERV_DISABLE_SECOND_SECURITY )	// 해외팀 수정
-	ShowSecurityOption(	pCheckBox_OptionSecurity->GetChecked() );
+	#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		ShowSecurityOption(	pCheckBox_OptionSecurity->GetChecked() );
+	#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 #endif
 	//ShowCommunityOption( pCheckBox_OptionCommunity->GetChecked() );
 
@@ -1384,7 +1425,7 @@ bool CX2StateOption::OpenSecurityOptionWindow()
 
 	m_pDLGOptionWindow->SetPos( D3DXVECTOR2(303.f, 202.f) );
 
-	//CX2GameOption::OptionList* pGameOptionList = g_pMain->GetGameOption()->GetOptionList();
+	//CX2GameOption::OptionList* pGameOptionList = &g_pMain->GetGameOption().GetOptionList();
 	//m_OldOptionList = *pGameOptionList;
 
 	m_pDLGOptionWindow->SetShow( true );
@@ -1399,13 +1440,18 @@ bool CX2StateOption::OpenSecurityOptionWindow()
 	CKTDGUICheckBox* pCheckBox_OptionGraphic	= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Graphic_Menu" );
 	CKTDGUICheckBox* pCheckBox_OptionSound		= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Sound_Menu" );
 	CKTDGUICheckBox* pCheckBox_OptionOther		= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Other_Menu" );
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 	CKTDGUICheckBox* pCheckBox_OptionSecurity	= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_security_Menu" );
 	pCheckBox_OptionSecurity->SetShowEnable(true, true);
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 	pCheckBox_OptionGraphic->SetChecked(false);
 	pCheckBox_OptionSound->SetChecked(false);
 	pCheckBox_OptionOther->SetChecked(false);
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 	pCheckBox_OptionSecurity->SetChecked(true);
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+	
 
 #ifdef BANDICAM_RECORDING
 	CKTDGUICheckBox* pCheckBox_OptionCam		= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Cam_Menu" );
@@ -1423,7 +1469,7 @@ bool CX2StateOption::OpenSecurityOptionWindow()
 	ShowSecurityOption(	true );
 
 #ifndef KEY_MAPPING_INT_IN_KEYBOARD_SETTING
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	CKTDGUICheckBox* pCheckBox_OptionInput		= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Option_Input_Menu" );
 	if( NULL != pCheckBox_OptionInput )
 	{
@@ -1431,7 +1477,7 @@ bool CX2StateOption::OpenSecurityOptionWindow()
 	}
 
 	ShowInputOption( false );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #endif KEY_MAPPING_INT_IN_KEYBOARD_SETTING
 
 	m_bIsOptionWindowOpen = true;
@@ -1493,7 +1539,7 @@ void CX2StateOption::ShowGraphicOption( bool bShow )
 	pCheckBox_Graphic_FieldSD->SetShowEnable(bShow, bShow);
 
 
-	CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList() ;
+	CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList() ;
 
 	switch( pOptionList->m_MaxUnitDetail )
 	{
@@ -1706,7 +1752,7 @@ void CX2StateOption::ShowSoundOption( bool bShow )
 
 
 
-	CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList() ;
+	CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList() ;
 	if( NULL != pOptionList )
 	{
 		CKTDGUIRadioButton* pRadioEnable3DSoundOn	= (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"3DSound_on" );
@@ -1810,6 +1856,14 @@ void CX2StateOption::ShowOtherOption( bool bShow )
 		pStatic_Other13->SetShow( bShow );
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환	/// 대전 초대 거부 추가
+	CKTDGUIStatic* pStatic_Other14 = NULL;
+	pStatic_Other14 = static_cast< CKTDGUIStatic* >( m_pDLGOptionWindow->GetControl( L"StaticFightVeto" ) );
+
+	if ( pStatic_Other14 != NULL )
+		pStatic_Other14->SetShow( bShow );
+#endif // FIX_INVITE_PVP_PLAYER
+
 	ShowStaticOther(bShow);
 /*
 	for( int i=0; i<6; i++ )
@@ -1910,6 +1964,14 @@ void CX2StateOption::ShowOtherOption( bool bShow )
 #endif	CHAT_WINDOW_IMPROV
 //}} kimhc // 2010.3.12 //	채팅창 개편	
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환		/// 대전 초대 거부 추가
+	CKTDGUICheckBox* pCheckInvitePVPVeto	= NULL;
+	pCheckInvitePVPVeto						= static_cast< CKTDGUICheckBox* >( m_pDLGOptionWindow->GetControl( L"Fight_veto" ) );
+
+	if ( pCheckInvitePVPVeto != NULL )
+		pCheckInvitePVPVeto->SetShow( bShow );
+#endif // FIX_INVITE_PVP_PLAYER
+
 #ifdef IDENTITY_CONFIRM
 	CKTDGUIStatic* pStatic_Identity = NULL; //2011.04.27 lygan_조성욱 //방침미 관련 스트링 추가 처리
 	pStatic_Identity			= (CKTDGUIStatic*) m_pDLGOptionWindow->GetControl( L"Identity_Confirm_Name" );
@@ -1919,7 +1981,6 @@ void CX2StateOption::ShowOtherOption( bool bShow )
 	ASSERT(pButtonIdentity);
 	pButtonIdentity->SetShowEnable(bShow, bShow);
 #endif IDENTITY_CONFIRM
-
 }
 
 #ifdef SERV_SECOND_SECURITY
@@ -2066,13 +2127,13 @@ void CX2StateOption::ShowBandiCamOption( bool bShow )
 	CKTDGUIRadioButton* pRadio = (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"Cam_Option_Video_General_Rbtn" );
 	if(pRadio!=NULL)
 	{
-		pRadio->SetChecked(!g_pMain->GetGameOption()->GetUserSetting());
+		pRadio->SetChecked(!g_pMain->GetGameOption().GetUserSetting());
 		pRadio->SetShowEnable(bShow,bShow);
 	}
 	pRadio			= (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"Cam_Option_Video_User_Rbtn" );
 	if(pRadio!=NULL)
 	{
-		pRadio->SetChecked(g_pMain->GetGameOption()->GetUserSetting());
+		pRadio->SetChecked(g_pMain->GetGameOption().GetUserSetting());
 		pRadio->SetShowEnable(bShow,bShow);
 	}
 
@@ -2126,9 +2187,9 @@ void CX2StateOption::ShowBandiCamOptionUser( bool bShow )
 			pCombo->AddItem(L"1600 X 1024",(LPVOID) NULL, false);
 			pCombo->AddItem(L"1680 X 1050",(LPVOID) NULL, false);
 			
-			if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+			if( NULL != g_pMain )
 			{	//새로 생성 되어도 기존 값 유지 할 수 있도록 수정.
-				pCombo->SetSelectedByIndex( g_pMain->GetGameOption()->GetVideoSizeIndex() ) ;
+				pCombo->SetSelectedByIndex( g_pMain->GetGameOption().GetVideoSizeIndex() ) ;
 			}
 		}
 
@@ -2136,6 +2197,12 @@ void CX2StateOption::ShowBandiCamOptionUser( bool bShow )
 		pCombo	= (CKTDGUIComboBox*)m_pCamUserWindow->GetControl( L"Cam_User_Frame_List");
 		if(pCombo!=NULL)
 		{
+#ifdef BANDICAM_OPTION_FIX
+			pCombo->AddItem(L"24.0fps",(LPVOID) NULL, false);
+			pCombo->AddItem(L"30.0fps",(LPVOID) NULL, false);
+			pCombo->AddItem(L"50.0fps",(LPVOID) NULL, false);
+			pCombo->AddItem(L"60.0fps",(LPVOID) NULL, false);
+#else //BANDICAM_OPTION_FIX
 			pCombo->AddItem(L"15.0fps",(LPVOID) NULL, false);
 			pCombo->AddItem(L"24.0fps",(LPVOID) NULL, false);
 			pCombo->AddItem(L"25.0fps",(LPVOID) NULL, false);
@@ -2145,9 +2212,10 @@ void CX2StateOption::ShowBandiCamOptionUser( bool bShow )
 			pCombo->AddItem(L"45.0fps",(LPVOID) NULL, false);
 			pCombo->AddItem(L"50.0fps",(LPVOID) NULL, false);
 			pCombo->AddItem(L"60.0fps",(LPVOID) NULL, false);
-			if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+#endif //BANDICAM_OPTION_FIX
+			if( NULL != g_pMain )
 			{	//새로 생성 되어도 기존 값 유지 할 수 있도록 수정.
-				pCombo->SetSelectedByIndex( g_pMain->GetGameOption()->GetVideoFPSIndex() ) ;
+				pCombo->SetSelectedByIndex( g_pMain->GetGameOption().GetVideoFPSIndex() ) ;
 			}
 		}
 
@@ -2155,18 +2223,24 @@ void CX2StateOption::ShowBandiCamOptionUser( bool bShow )
 		pCombo	= (CKTDGUIComboBox*)m_pCamUserWindow->GetControl( L"Cam_User_AudioQuality_List");
 		if(pCombo!=NULL)
 		{
+#ifdef BANDICAM_OPTION_FIX	
+			pCombo->AddItem(L"16000k",(LPVOID) NULL, false);
+			pCombo->AddItem(L"24000K",(LPVOID) NULL, false);
+			pCombo->AddItem(L"48000k",(LPVOID) NULL, false);
+#else //BANDICAM_OPTION_FIX
 			pCombo->AddItem(L"8000k",(LPVOID) NULL, false);
 			pCombo->AddItem(L"16000k",(LPVOID) NULL, false);
 			pCombo->AddItem(L"22000K",(LPVOID) NULL, false);
 			pCombo->AddItem(L"44000k",(LPVOID) NULL, false);
-			if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+#endif //BANDICAM_OPTION_FIX
+			if( NULL != g_pMain )
 			{	//새로 생성 되어도 기존 값 유지 할 수 있도록 수정.
-				pCombo->SetSelectedByIndex( g_pMain->GetGameOption()->GetAudioSampleRateIndex() ) ;
+				pCombo->SetSelectedByIndex( g_pMain->GetGameOption().GetAudioSampleRateIndex() ) ;
 			}
 		}
 		
 		//오디오 채널
-		switch( g_pMain->GetGameOption()->GetAudioChannels() ) 
+		switch( g_pMain->GetGameOption().GetAudioChannels() ) 
 		{
 		case 1: //모노
 			{
@@ -2189,7 +2263,7 @@ void CX2StateOption::ShowBandiCamOptionUser( bool bShow )
 		}
 		
 		//화질
-		switch( g_pMain->GetGameOption()->GetVideoQuality() ) 
+		switch( g_pMain->GetGameOption().GetVideoQuality() ) 
 		{ // SetVideoQuality 할때 값을 30, 70, 100으로 고정하고 있습니다.
 		case 30:
 			{
@@ -2239,9 +2313,9 @@ void CX2StateOption::ShowBandiCamOptionUser( bool bShow )
 			pCombo->AddItem(L"ARGB",(LPVOID) NULL, false);
 			pCombo->AddItem(L"RGB24",(LPVOID) NULL, false);
 			pCombo->AddItem(L"YV12",(LPVOID) NULL, false);
-			if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+			if( NULL != g_pMain )
 			{	//새로 생성 되어도 기존 값 유지 할 수 있도록 수정.
-				pCombo->SetSelectedByIndex( g_pMain->GetGameOption()->GetVideoFormatIndex() ) ;
+				pCombo->SetSelectedByIndex( g_pMain->GetGameOption().GetVideoFormatIndex() ) ;
 			}
 		}
 	}
@@ -2260,13 +2334,13 @@ void CX2StateOption::ShowBandiCamOptionUser( bool bShow )
 //	//문자열 예외처리를 해야지 정상 작동을 보장할수 있다
 //	//한글 이나 다른 문자가 들어가면 예외처리 일단 패스 완성본에 넣자
 //	CKTDGUIIMEEditBox * pIME=(CKTDGUIIMEEditBox *)m_pDLGOptionWindow->GetControl( L"Cam_IME1" );
-//	g_pMain->GetGameOption()->SetVideoSizeW(_wtoi(pIME->GetText()));
+//	g_pMain->GetGameOption().SetVideoSizeW(_wtoi(pIME->GetText()));
 //	
 //
 //	pIME=(CKTDGUIIMEEditBox *)m_pDLGOptionWindow->GetControl( L"Cam_IME2" );
-//	g_pMain->GetGameOption()->SetVideoSizeH(_wtoi(pIME->GetText()));
+//	g_pMain->GetGameOption().SetVideoSizeH(_wtoi(pIME->GetText()));
 //	
-//	//g_pMain->GetGameOption()->SetUserSetting(true);
+//	//g_pMain->GetGameOption().SetUserSetting(true);
 //
 //}
 #endif BANDICAM_RECORDING
@@ -2325,7 +2399,7 @@ void CX2StateOption::ShowStaticSecurity( bool bShow )
 
 void CX2StateOption::InitGraphicOption()
 {
-	CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList();
+	CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList();
 
 	CKTDGUIButton* pButton_Grahpic_AutoSetLevel_Left		= (CKTDGUIButton*) m_pDLGOptionWindow->GetControl( L"ButtonLeft_AutoSetLevel" );
 	CKTDGUIButton* pButton_Grahpic_AutoSetLevel_Right		= (CKTDGUIButton*) m_pDLGOptionWindow->GetControl( L"ButtonRight_AutoSetLevel" );
@@ -2476,7 +2550,28 @@ void CX2StateOption::InitGraphicOption()
 	}
 
 
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( pOptionList->m_eEffect == CX2GameOption::OL_HIGH )
+	{
+		pRadio_Graphic_Effect_High->SetChecked( true );
+		pRadio_Graphic_Effect_Middle->SetChecked( false );
+		pRadio_Graphic_Effect_Low->SetChecked( false );
+	}
+	else if( pOptionList->m_eEffect == CX2GameOption::OL_MEDIUM )
+	{
+		pRadio_Graphic_Effect_High->SetChecked( false );
+		pRadio_Graphic_Effect_Middle->SetChecked( true );
+		pRadio_Graphic_Effect_Low->SetChecked( false );
+	}
+	else
+	{
+		pRadio_Graphic_Effect_High->SetChecked( false );
+		pRadio_Graphic_Effect_Middle->SetChecked( false );
+		pRadio_Graphic_Effect_Low->SetChecked( true );
+	}
 
+
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	if( pOptionList->m_bEffect == true )
 	{
 		pRadio_Graphic_Effect_High->SetChecked( true );
@@ -2489,6 +2584,8 @@ void CX2StateOption::InitGraphicOption()
 		pRadio_Graphic_Effect_Middle->SetChecked( false );
 		pRadio_Graphic_Effect_Low->SetChecked( true );
 	}
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 
 	//{{ kimhc // 2010.3.12 //	채팅창 개편
 #ifdef	CHAT_WINDOW_IMPROV
@@ -2513,7 +2610,7 @@ void CX2StateOption::InitGraphicOption()
 
 void CX2StateOption::InitSoundOption()
 {
-	CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList();
+	CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList();
 
 //	CKTDGUIRadioButton* pRadio_Sound_On		= (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"Option_Window_Sound_On" );
 	//CKTDGUIRadioButton* pRadio_Sound_Off	= (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"Option_Window_Sound_Off" );
@@ -2560,7 +2657,7 @@ void CX2StateOption::InitSoundOption()
 
 void CX2StateOption::InitOtherOption()
 {
-	CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList();
+	CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList();
 
 	CKTDGUIRadioButton* pRadio_Dynamic_Camera_On	= (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"Option_Window_Dynamic_Camera_On" );
 	CKTDGUIRadioButton* pRadio_Dynamic_Camera_Off	= (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"Option_Window_Dynamic_Camera_Off" );
@@ -2675,6 +2772,15 @@ void CX2StateOption::InitOtherOption()
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환		/// 대전 초대 거부 추가
+	CKTDGUICheckBox* pCheckInvitePVPVeto	= NULL;
+	pCheckInvitePVPVeto						= static_cast< CKTDGUICheckBox* >( m_pDLGOptionWindow->GetControl( L"Fight_veto" ) );
+
+	if ( pCheckInvitePVPVeto != NULL )
+		pCheckInvitePVPVeto->SetChecked( pOptionList->m_bRefuseInvitePVP );
+#endif // FIX_INVITE_PVP_PLAYER
+
+
 	//{{ kimhc // 2010.3.12 //	채팅창 개편
 #ifndef	CHAT_WINDOW_IMPROV
 	CKTDGUICheckBox* pCheckWindowMode = (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"Window_Mode" );
@@ -2688,7 +2794,7 @@ void CX2StateOption::InitOtherOption()
 
 void CX2StateOption::InitCommunityOption()
 {
-	CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList();
+	CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList();
 
 
 	CKTDGUIRadioButton* pRadio_DENY_FRIENDSHIP_ON						= (CKTDGUIRadioButton*) m_pDLGOptionWindow->GetControl( L"SOUCM_OPTION_COMMUNITY_DENY_FRIENDSHIP_ON" );
@@ -2846,7 +2952,7 @@ void CX2StateOption::UpdateBlackListWindow()
 
 	pListBox->RemoveAllItems();
 
-	CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList();
+	CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList();
 
 	std::map< UidType, wstring >::iterator it;
 	for( it=pOptionList->m_mapBlackList.begin(); it!= pOptionList->m_mapBlackList.end() ; it++ )
@@ -2894,7 +3000,7 @@ void CX2StateOption::CloseBlackListAddWindow()
 
 bool CX2StateOption::Handler_EGS_UPDATE_COMMUNITY_OPTION_REQ()
 {
-	CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList();
+	CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList();
 
 	KEGS_UPDATE_COMMUNITY_OPTION_REQ kPacket;
 	
@@ -2933,6 +3039,13 @@ bool CX2StateOption::Handler_EGS_UPDATE_COMMUNITY_OPTION_REQ()
 		kPacket.m_kDenyOptions.m_cDenyRequestCouple = CX2GameOption::BL_OFF;
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환	/// 대전 초대 거부 추가
+	if ( pOptionList->m_bRefuseInvitePVP == true )
+		kPacket.m_kDenyOptions.m_cDenyInvitePracticePVP = CX2GameOption::BL_ON;
+	else
+		kPacket.m_kDenyOptions.m_cDenyInvitePracticePVP = CX2GameOption::BL_OFF;
+#endif // FIX_INVITE_PVP_PLAYER
+
 	g_pData->GetServerProtocol()->SendPacket( EGS_UPDATE_COMMUNITY_OPTION_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_UPDATE_COMMUNITY_OPTION_ACK, 60.0f );
 
@@ -2949,16 +3062,16 @@ bool CX2StateOption::Handler_EGS_UPDATE_COMMUNITY_OPTION_ACK( HWND hWnd, UINT uM
 	{		
 		if ( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList();
+			CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList();
 
 			pOptionList->m_eDenyFriendship      = (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip;
 			pOptionList->m_eDenyInviteGuild		= (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyInviteGuild;	
 			pOptionList->m_eDenyParty			= (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty;
 			pOptionList->m_eDenyPersonalTrade   = (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade;
 
-			g_pMain->GetGameOption()->SetRefuseParty( pOptionList->m_eDenyParty );
-			g_pMain->GetGameOption()->SetRefuseFriend( pOptionList->m_eDenyFriendship );
-			g_pMain->GetGameOption()->SetRefusePersonalTrade( pOptionList->m_eDenyPersonalTrade );
+			g_pMain->GetGameOption().SetRefuseParty( pOptionList->m_eDenyParty );
+			g_pMain->GetGameOption().SetRefuseFriend( pOptionList->m_eDenyFriendship );
+			g_pMain->GetGameOption().SetRefusePersonalTrade( pOptionList->m_eDenyPersonalTrade );
 
 			CKTDGUICheckBox* pCheckRefuseParty		= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"party_veto" );
 			CKTDGUICheckBox* pCheckRefuseFriend		= (CKTDGUICheckBox*) m_pDLGOptionWindow->GetControl( L"friend_veto" );
@@ -2986,6 +3099,14 @@ bool CX2StateOption::Handler_EGS_UPDATE_COMMUNITY_OPTION_ACK( HWND hWnd, UINT uM
 				pCheckRefuseCouple->SetChecked( pOptionList->m_bRefuseRequestCouple );
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환		/// 대전 초대 거부 추가
+			CKTDGUICheckBox* pCheckInvitePVPVeto	= NULL;
+			pCheckInvitePVPVeto						= static_cast< CKTDGUICheckBox* >( m_pDLGOptionWindow->GetControl( L"Fight_veto" ) );
+
+			if ( pCheckInvitePVPVeto != NULL )
+				pCheckInvitePVPVeto->SetChecked( pOptionList->m_bRefuseInvitePVP );
+#endif // FIX_INVITE_PVP_PLAYER
+
 			return true;
 		}
 	}
@@ -2994,7 +3115,7 @@ bool CX2StateOption::Handler_EGS_UPDATE_COMMUNITY_OPTION_ACK( HWND hWnd, UINT uM
 
 void CX2StateOption::ResetResolutionToOriginal()
 {
-	CX2GameOption* pGameOption = g_pMain->GetGameOption();
+	CX2GameOption* pGameOption = &g_pMain->GetGameOption();
 	pGameOption->SetResolution( (int) m_vOriginalResolution.x, (int) m_vOriginalResolution.y );
 
 	if( NULL != m_pDLGOptionWindow /*&&
@@ -3059,7 +3180,7 @@ void CX2StateOption::ConfirmDialog::OnFrameMove( double fTime, float fElapsedTim
 		}
 	}
 }
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 void CX2StateOption::ShowKeyConfigDLG( bool bShow )
 {	
 	if(bShow)
@@ -3067,12 +3188,9 @@ void CX2StateOption::ShowKeyConfigDLG( bool bShow )
 		SAFE_DELETE_DIALOG(m_DLGKeyConfig);
 
 		m_DLGKeyConfig = new CKTDGUIDialog( this, L"DLG_UI_Option_KeyConfig.lua", 0.07f, 0 );
-
+		
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_DLGKeyConfig );
-
-//		g_pKTDXApp->GetDIManager()->SetDefaultMap();
 		UpdateKeyConfigList();
-
 	}
 	else
 	{
@@ -3080,7 +3198,6 @@ void CX2StateOption::ShowKeyConfigDLG( bool bShow )
 			g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_DLGKeyConfig, NULL, false );
 	}
 }
-
 
 void CX2StateOption::UpdateKeyConfigList()
 {
@@ -3252,7 +3369,6 @@ wstring CX2StateOption::GetJoystickButtonName( unsigned char input )
 		return L"L-TRIGGER";
 	case JB_RIGHT_TRIGGER:
 		return L"R-TRIGGER";
-
 	case JB_BUTTON0:
 		return L"BUTTON1";
 	case JB_BUTTON1:
@@ -3362,4 +3478,19 @@ void CX2StateOption::InitInputOption()
 	pRadio_Joy_ON->SetChecked(g_pKTDXApp->GetDIManager()->GetEnableJoyStick());
 	pRadio_Joy_OFF->SetChecked(!g_pKTDXApp->GetDIManager()->GetEnableJoyStick());
 }
-#endif // KEY_MAPPING_INT
+
+bool CX2StateOption::Handler_EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ()
+{
+	KEGS_KEYBOARD_MAPPING_INFO_WRITE_REQ  kPacket;
+
+	if( NULL != g_pKTDXApp && NULL != g_pKTDXApp->GetDIManager() )
+	{
+		g_pKTDXApp->GetDIManager()->GetJoystic()->GetActionKeys( kPacket.m_mapGamePadMappingInfo );
+
+		g_pData->GetServerProtocol()->SendPacket( EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ, kPacket );
+		g_pMain->AddServerPacket( EGS_KEYBOARD_MAPPING_INFO_WRITE_ACK );
+	}
+
+	return true;
+}
+#endif // SERV_KEY_MAPPING_INT

@@ -13,7 +13,7 @@ class CX2ItemManager
 		enum PREVIEW_PET_TYPE
 		{
 			PPT_PET,		// 일반 펫
-			PPT_RIDING_PET, // 탈 것 RIDING_SYSTEM
+			PPT_RIDING_PET, // 탈 것 
 		};
 
 		struct PREVIEW_PET_DATA
@@ -104,6 +104,9 @@ class CX2ItemManager
 			vector< KNXBTProductInfo > m_vecKNXBTProductInfo; //같은 아이템이지만 기간제로 인해 여러개 있을 수 있겠지?
 #endif // SERV_GLOBAL_BILLING
 			
+#ifdef SERV_WISH_LIST_NO_ITEM
+			bool				m_bIsWishListNotEnable;
+#endif SERV_WISH_LIST_NO_ITEM
 
 			CashItem()
 			{
@@ -118,17 +121,24 @@ class CX2ItemManager
 				m_bIsHot = false;
 				m_bIsRecommend = false;
 				m_bIsLimited = false;
+#ifdef SERV_WISH_LIST_NO_ITEM
+				m_bIsWishListNotEnable = false;
+#endif SERV_WISH_LIST_NO_ITEM
 			}
 
 			//대표 상품 캐시 수치
 			int GetCash();
 #ifdef SERV_GLOBAL_BILLING
 			const KBillProductInfo* GetGateProduct();
-#ifdef NO_SHOW_PRICE
-			wstring GetPeriod( KBillProductInfo& kKBillProductInfo, bool bShowPrice = true );
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+			const std::vector<int> GetGateListOfProduct();
+#endif //ADD_CASH_SHOP_CATEGORY_EVENT_2
+#ifdef SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
+			wstring GetPeriod( KBillProductInfo& kKBillProductInfo, bool bShowSalePeriod = true );
+			wstring GetSalePeriod( KBillProductInfo& kBillProductInfo );
 #else
 			wstring GetPeriod( KBillProductInfo& kBillProductInfo );
-#endif
+#endif SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
 #else // SERV_GLOBAL_BILLING
 			const KNXBTProductInfo* GetGateProduct();
 			int	GetGateProductIndex();
@@ -138,6 +148,9 @@ class CX2ItemManager
 			bool GetIsNew() { return m_bIsNew; }
 			bool GetIsHot() { return m_bIsHot; }
 			bool GetIsRecommend();
+#ifdef SERV_WISH_LIST_NO_ITEM
+			bool GetIsWishListNotEnable() { return m_bIsWishListNotEnable; }
+#endif SERV_WISH_LIST_NO_ITEM
 		};
 
 		class CCashProductSort
@@ -186,9 +199,7 @@ class CX2ItemManager
 		{
 			int							m_SetID;
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			int							m_iMaxLevel;	// m_SetID의 효과를 가지고 있는 Item 중 가장 높은 레벨
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 			wstring						m_SetName;
 
@@ -196,9 +207,7 @@ class CX2ItemManager
 
 			SetItemData() : m_SetID(0)
 //{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			, m_iMaxLevel(0)
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 //}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 			{}
 
@@ -211,6 +220,9 @@ class CX2ItemManager
 		{
 			int					m_iItemID;
 			CX2Unit::UNIT_TYPE	m_eUnitType;
+	#ifdef ICE_HEATER_RANDOM_PRE_VIEW // 김태환
+			int					m_iItemGroup;	/// 복수의 아바타 종류가 들어있을 때 구분을 위한 아이템 그룹
+	#endif //ICE_HEATER_RANDOM_PRE_VIEW
 		};
 #endif //ICE_HEATER_PRE_VIEW
 
@@ -230,10 +242,13 @@ class CX2ItemManager
 			ITEM_EXCHANGE_TYPE						m_eExchangeType;
 			int										m_iSrcItemID;
 			int										m_iDestItemID;
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 둘러져 있어서 해외팀 수정
 			int										m_iSrcQuantity;
 #endif SERV_ITEM_EXCHANGE_NEW
 			int										m_iQuantity;
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+			short									m_sPeriod;
+#endif //SERV_EXCHANGE_PERIOD_ITEM
 		};
 		
 #endif NEW_ITEM_EXCHANGE_TEST
@@ -255,6 +270,7 @@ class CX2ItemManager
 		bool	OpenScriptFile( const WCHAR* pFileName );
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 		bool	OpenItemScriptFile( const WCHAR* pKimFile, unsigned uNumScriptFiles, const WCHAR* apScriptFileName[] );
+        bool    DoMemoryNotEncrypt( const char* pBuffer, long nSize );
 #endif	//X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 #ifndef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
@@ -312,7 +328,11 @@ class CX2ItemManager
 #endif //SERV_TOONILAND_CHANNELING
 
 #ifdef SERV_GLOBAL_BILLING
+#ifdef SERV_WISH_LIST_NO_ITEM
+		bool	AddCashItem( vector< KBillProductInfo >& vecKBillProductInfo, std::set< int >& setWishListNoItemList );
+#else	//SERV_WISH_LIST_NO_ITEM
 		bool	AddCashItem( vector< KBillProductInfo >& vecKBillProductInfo );
+#endif //SERV_WISH_LIST_NO_ITEM
 #else // SERV_GLOBAL_BILLING
 		bool	AddCashItem( vector< KNXBTProductInfo >& vecKNXBTProductInfo );
 #endif // SERV_GLOBAL_BILLING
@@ -372,13 +392,14 @@ class CX2ItemManager
 		void			GetSetItemList( int setID, vector< int >& vecItemID );
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
+#ifndef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 #ifdef SERV_ITEM_LUA_TRANS_DEVIDE
 		bool	AddItemTempletTrans_LUA();
 #endif SERV_ITEM_LUA_TRANS_DEVIDE
-
 #ifdef LUA_TRANS_DEVIDE
-		bool			AddSetItemDataTrans_LUA();
+		bool	AddSetItemDataTrans_LUA();
 #endif LUA_TRANS_DEVIDE
+#endif //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 #ifdef IN_ITEM_KIM_USE_HIDE_SET_DESC
 		bool			AddHideSetDesc_LUA();
@@ -423,6 +444,9 @@ class CX2ItemManager
 			case SILVER_ED_ITEM_ID:
 			case GOLD_ED_ITEM_ID:
 			case POSTBOX_ED_ITEM_ID:
+#ifdef FIELD_BOSS_RAID
+			case GOLD_BAR_ED_ITEM_ID:
+#endif // FIELD_BOSS_RAID
 				{
 					return true;
 				}
@@ -445,14 +469,12 @@ class CX2ItemManager
 //}} kimhc // 2010.12.9 //  2010-12-23 New Character CHUNG
 
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 
 #ifndef  X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 		void UpdateSetIDAndMaxLevelMap( const int iSetID_, const int iLevel_ );
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 		void UpdateMaxLevelToSetItemData();
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 #ifdef COOLTIME_SHARE_GROUP_ITEM
@@ -476,7 +498,12 @@ class CX2ItemManager
 		//}}
 
 #ifdef ICE_HEATER_PRE_VIEW
+	#ifdef ICE_HEATER_RANDOM_PRE_VIEW // 김태환
+		bool	AddIceHeaterItemData_LUA( int iIceHeaterItemID_, int iItemID_, int eUnitType_, int iItemGroup );
+	#else //ICE_HEATER_RANDOM_PRE_VIEW
 		bool	AddIceHeaterItemData_LUA( int iIceHeaterItemID_, int iItemID_, int eUnitType_ );
+	#endif //ICE_HEATER_RANDOM_PRE_VIEW
+
 		bool	GetIceHeaterItemData( int iIceHeaterItemID_, CX2Unit::UNIT_TYPE eUnitType_, OUT std::vector< int >& vecIceHeaterItemData_ );
 #endif //ICE_HEATER_PRE_VIEW
 
@@ -493,6 +520,10 @@ class CX2ItemManager
 		int		GetConvertResultItemID( int iTargetItemID_ );
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
+#ifdef MODIFY_FIND_SHOP_IMAGE_FILE_NAME
+		void CreateShopImageNameList();	
+#endif // MODIFY_FIND_SHOP_IMAGE_FILE_NAME
+
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
 		inline void	 SetKeepShowItemList( std::map<int,std::vector<int>> TempKeepShowList ){ m_mapKeepShowItemList = TempKeepShowList;}
 		bool	CheckKeepShowItem( int TempItemID , std::vector<int>& GetItemID );
@@ -502,6 +533,7 @@ class CX2ItemManager
 		inline std::map< int , kDisCountItemInfo > GetDisCountListProDcut(void){ return m_DisCountInfoMap; }
 		int		GetChangeCashPoint(int TempItemID);
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+
 	protected:
 		//{{ 080721.hoons.
 #ifndef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
@@ -576,12 +608,12 @@ class CX2ItemManager
 		std::map< int, std::vector< ItemExchangeData > > m_mapItemExchangeData;
 #endif NEW_ITEM_EXCHANGE_TEST
 
+
 		//int										m_nString_Index;
 
 
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 #ifndef X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		// first: SetID, second: MaxLevel In SetItem 로 하여 
 		// 셋트 효과 별로, 셋트 구성 아이템 중 가장 높은 레벨을 가지고 있는 자료구조
 		// 이 자료구조는 SetItem.lua의 파싱이 모두 끝난 후에 clear 한다.
@@ -589,7 +621,6 @@ class CX2ItemManager
 
 		SetIDAndMaxLevelMap						m_mapSetIDAndMaxLevel;
 
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
@@ -619,14 +650,17 @@ class CX2ItemManager
 #endif PACKAGE_IN_QUBE_PREVIEW
 		//}} 2013.01.26 최민철 큐브패키지아이템 미리보기기능
 
-
 #ifdef IN_ITEM_KIM_USE_HIDE_SET_DESC
 		std::map< int, bool > m_mapHideSetDescItem; // 아이템ID, hide여부
 #endif //IN_ITEM_KIM_USE_HIDE_SET_DESC
 
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-		std::map<int, int> m_mapItemConvertList;
+		typedef std::map<int, int> ItemConvertList; // <변경 재료 아이템ID, 변경 결과 아이템 ID>
+
+		// NPC ID, <변경 재료 아이템ID, 변경 결과 아이템 ID>
+		std::map< int, ItemConvertList> m_mapNpcItemConvertList;
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
+
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
 		std::map<int,std::vector<int>>						m_mapKeepShowItemList;
 		std::map< int, kDisCountItemInfo >					m_DisCountInfoMap;

@@ -161,10 +161,10 @@ public:
 	char	GetAuthLevel()										{ return m_kRoomUserInfo.m_cAuthLevel; }
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-	bool GetIsBoss() const { return m_bIsBoss; }
-	void SetIsBoss(const bool val) { m_bIsBoss = val; }
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//	bool GetIsBoss() const { return m_bIsBoss; }
+//	void SetIsBoss(const bool val) { m_bIsBoss = val; }
+//#endif PVP_BOSS_COMBAT_TEST
 
 	//{{ 2013. 04. 15	최육사	어둠의 문 개편
 #ifdef SERV_NEW_DEFENCE_DUNGEON
@@ -443,10 +443,6 @@ public:
 	bool	IsEquippedItem( IN int iItemID ) const;
 #endif SERV_QUEST_CLEAR_EXPAND
 	//}}
-#ifdef SERV_PAYMENT_ITEM_WITH_CONSUMING_OTHER_ITEM
-	bool	HasSpecialItem( IN int iItemID ) const;
-#endif SERV_PAYMENT_ITEM_WITH_CONSUMING_OTHER_ITEM
-
 
 	//{{ 2010. 12. 7	최육사	적정 레벨 장비 통계
 #ifdef SERV_APPROPRIATE_LEVEL_STAT
@@ -469,9 +465,24 @@ public:
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM
 	//}}
 
+#ifdef SERV_PAYMENT_ITEM_WITH_CONSUMING_OTHER_ITEM
+	bool	HasSpecialItem( IN int iItemID ) const;
+#endif SERV_PAYMENT_ITEM_WITH_CONSUMING_OTHER_ITEM
+
 #ifdef SERV_PAYMENT_ITEM_ON_GOING_QUEST
 	void	SetUnitGoingQuestInfo( std::set< int >& setQuestInfo )  { m_kRoomUserInfo.m_setGoingQuestInfo = setQuestInfo; }
 #endif SERV_PAYMENT_ITEM_ON_GOING_QUEST
+
+#ifdef SERV_PVP_REMATCH
+	bool	IsAcceptRematch()						{ return m_bAcceptRematch; }
+	void	SetRematch( bool bAcceptRematch )		{ m_bAcceptRematch = bAcceptRematch; }
+#endif SERV_PVP_REMATCH
+
+#ifdef SERV_PAYMENT_ITEM_WITH_ALLY_NPC
+	bool	AddAllyNPC( IN const KNPCUnitReq& kNPCUnit );
+	bool	IsAllyNPC( IN const int iNPCID );
+	void	DeleteAllyNPC( IN const UidType iNPCUID );
+#endif SERV_PAYMENT_ITEM_WITH_ALLY_NPC
 
 	//{{ 2011. 06. 13	최육사	스테이지 로그
 #ifdef SERV_DUNGEON_STAGE_LOG
@@ -551,6 +562,7 @@ public:
 #endif SERV_CHOOSE_FASTEST_HOST
 	//}
 
+
 	//{{ 자동 파티로 던전 시작 시 매칭 대기 시간 로그 추가 - 김민성
 #ifdef SERV_AUTO_PARTY_MATCHING_REQUIRED_TIME_LOG
 	int		GetAutoPartyWaitTime()								{ return m_iAutoPartyWaitTime; }
@@ -576,11 +588,6 @@ public:
 #endif SERV_DUNGEON_FORCED_EXIT_SYSTEM
 	//}
 
-#ifdef SERV_PVP_REMATCH
-	bool	IsAcceptRematch()						{ return m_bAcceptRematch; }
-	void	SetRematch( bool bAcceptRematch )		{ m_bAcceptRematch = bAcceptRematch; }
-#endif SERV_PVP_REMATCH
-
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-21
 	void	SetRidingPetInfo( IN const UidType iRidingPetUID, IN const USHORT usRidingPetID )
 	{
@@ -595,12 +602,6 @@ public:
 	char	GetWeddingStatus()									{ return m_kRoomUserInfo.m_cWeddingStatus; }
 #endif SERV_RELATIONSHIP_SYSTEM
 	//}
-
-#ifdef SERV_PAYMENT_ITEM_WITH_ALLY_NPC
-	bool	AddAllyNPC( IN const KNPCUnitReq& kNPCUnit );
-	bool	IsAllyNPC( IN const int iNPCID );
-	void	DeleteAllyNPC( IN const UidType iNPCUID );
-#endif SERV_PAYMENT_ITEM_WITH_ALLY_NPC
 
 protected:
     KRoomUserInfo                   m_kRoomUserInfo;
@@ -716,11 +717,11 @@ protected:
 	boost::timer					m_tDelayPacketTimer;
 	boost::timer					m_tCashContinueTimer;
 
-
-#ifdef PVP_BOSS_COMBAT_TEST
-
-	bool							m_bIsBoss;
-#endif PVP_BOSS_COMBAT_TEST
+//
+//#ifdef PVP_BOSS_COMBAT_TEST
+//
+//	bool							m_bIsBoss;
+//#endif PVP_BOSS_COMBAT_TEST
 
 	//{{ 2009. 7. 21  최육사	비밀스테이지
 	CXSLRoom::ENTER_SECRET_STAGE	m_eAgreeEnterSecretStage;
@@ -752,6 +753,7 @@ protected:
 	bool							m_bRecivedPingScore;
 	std::vector< DWORD >			m_vecPingScore;
 #endif SERV_CHOOSE_FASTEST_HOST
+
 	//}
 	//{{ 버프 관리 시스템 - 김민성
 #ifdef SERV_SERVER_BUFF_SYSTEM

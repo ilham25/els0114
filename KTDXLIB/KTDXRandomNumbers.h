@@ -33,6 +33,9 @@ public:
 		SRO_POISON_BURST,
 		SRO_ABSORB_HP,
 #endif
+#ifdef HAMEL_SECRET_DUNGEON // ±Ë≈¬»Ø
+		SRO_ACTIVE_BUFF,
+#endif // HAMEL_SECRET_DUNGEON
 	};
 
 

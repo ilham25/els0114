@@ -38,6 +38,9 @@ public:
 #ifdef SERV_NEW_HENIR_TEST
 	struct SHenirChallangeReward
 	{
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-23	// 박세훈
+		char					m_cHenirDungeonMode;
+#endif // SERV_HENIR_RENEWAL_2013
 		std::map< int, int >	m_mapReward;
 		KLottery				m_kReward;
 	};
@@ -68,7 +71,11 @@ public:
 
 	//{{ 2011. 08. 22	최육사	헤니르 시공 개편
 #ifdef SERV_NEW_HENIR_TEST
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-23	// 박세훈
+	bool GetHenirChallangeRewardItem( IN char cHenirDungeonMode, IN const int iStageID, IN OUT std::map< int, KItemInfo >& mapRewardItem ) const;
+#else // SERV_HENIR_RENEWAL_2013
 	bool GetHenirChallangeRewardItem( IN const int iStageID, IN OUT std::map< int, KItemInfo >& mapRewardItem );
+#endif // SERV_HENIR_RENEWAL_2013
 #endif SERV_NEW_HENIR_TEST
 	//}}
 
@@ -83,14 +90,17 @@ public:
 	bool IsClearNotifyStage( int iStageCount )		{ return ( m_setClearNotifyStage.find( iStageCount ) != m_setClearNotifyStage.end() ); }
 
 	//{{ 2011. 08. 22	최육사	헤니르 시공 개편
-#ifdef SERV_NEW_HENIR_TEST	
+#ifdef SERV_NEW_HENIR_TEST
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-23	// 박세훈
+	bool AddHenirChallangeRewardInfo_LUA( IN char cHenirDungeonMode, IN int iStageID, IN int iItemID, IN int iQuantity );
+#else // SERV_HENIR_RENEWAL_2013
 	bool AddHenirChallangeRewardInfo_LUA( IN int iStageID, IN int iItemID, IN int iQuantity );
+#endif // SERV_HENIR_RENEWAL_2013
 #endif SERV_NEW_HENIR_TEST
 	//}}
 
 #ifdef SERV_HENIR_NO_NOTIFY
 	bool SetEnbleNotify_LUA( IN bool bVal );
-
 	bool GetEnbleNotify();
 #endif // SERV_HENIR_NO_NOTIFY
 
@@ -99,7 +109,14 @@ private:
 	std::map< int, KLottery >								m_mapRewardGroup;
 	//{{ 2011. 08. 22	최육사	헤니르 시공 개편
 #ifdef SERV_NEW_HENIR_TEST
+
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-23	// 박세훈
+	typedef std::map< int, std::vector< SHenirChallangeReward > >	TYPE_CHALLANGE_REWARD;
+	TYPE_CHALLANGE_REWARD	m_mapChallangeReward;
+#else // SERV_HENIR_RENEWAL_2013
 	std::map< int, SHenirChallangeReward >					m_mapChallangeReward;
+#endif // SERV_HENIR_RENEWAL_2013
+
 #endif SERV_NEW_HENIR_TEST
 	//}}
 

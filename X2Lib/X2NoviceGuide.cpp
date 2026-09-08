@@ -12,10 +12,15 @@ m_fElapsedTime(0.f),
 m_eGuideState(GS_END),
 m_fGuideTimer(0.f),
 m_bShowArrow(true),
-m_hGuideLeft(INVALID_PARTICLE_HANDLE),
-m_hGuideRight(INVALID_PARTICLE_HANDLE),
+m_hGuideLeft(INVALID_PARTICLE_SEQUENCE_HANDLE),
+m_hGuideRight(INVALID_PARTICLE_SEQUENCE_HANDLE),
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+m_hGuideLeftParticle(INVALID_PARTICLE_HANDLE),
+m_hGuideRightParticle(INVALID_PARTICLE_HANDLE),
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 m_pGuideLeftParticle(NULL),
 m_pGuideRightParticle(NULL),
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 m_pUINPC(NULL),
 m_pDLGNpcName(NULL),
 m_pDlgNpcMessage(NULL),
@@ -77,7 +82,7 @@ m_pDlgItemGuide( NULL )
 #endif
 	
 	// 가이드 완료
-	if( g_pTFieldGame->GetMyUnit()->GetUnit()->GetUnitData()->m_Level >= 5 ||
+	if( g_pTFieldGame->GetMyUnit()->GetUnit()->GetUnitData().m_Level >= 5 ||
 		g_pData->GetQuestManager()->GetUnitCompleteQuest(11010) == true )
 	{
 		m_bNoviceGuide = false;
@@ -731,30 +736,38 @@ void CX2NoviceGuide::CreateNpc()
 void CX2NoviceGuide::CreateArrow()
 {
 	m_fGuideTimer = 0.f;		
-	if( m_hGuideLeft == INVALID_PARTICLE_HANDLE )
+	if( m_hGuideLeft == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hGuideLeftParticle = INVALID_PARTICLE_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_hGuideLeft = GetUiParticle()->CreateSequenceHandle( NULL,  L"LeftGuide", 0.0f, 0.0f, 0.0f);
 		CKTDGParticleSystem::CParticleEventSequence* pSeqGuideL	= GetUiParticle()->GetInstanceSequence( m_hGuideLeft );
 		if( pSeqGuideL != NULL )
 		{		
-			if( m_pGuideLeftParticle == NULL )
-			{
-				m_pGuideLeftParticle = pSeqGuideL->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-			}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hGuideLeftParticle = pSeqGuideL->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_pGuideLeftParticle = pSeqGuideL->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			pSeqGuideL->SetShowObject(false);
 		}
 	}
 
-	if( m_hGuideRight == INVALID_PARTICLE_HANDLE )
+	if( m_hGuideRight == INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hGuideRightParticle = INVALID_PARTICLE_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_hGuideRight = GetUiParticle()->CreateSequenceHandle( NULL,  L"RightGuide", 0.0f, 0.0f, 0.0f);
 		CKTDGParticleSystem::CParticleEventSequence* pSeqGuideR	= GetUiParticle()->GetInstanceSequence( m_hGuideRight );
 		if( pSeqGuideR != NULL )
 		{		
-			if( m_pGuideRightParticle == NULL )
-			{
-				m_pGuideRightParticle = pSeqGuideR->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-			}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hGuideRightParticle = pSeqGuideR->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_pGuideRightParticle = pSeqGuideR->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			pSeqGuideR->SetShowObject(false);
 		}	
 	}		
@@ -774,18 +787,24 @@ void CX2NoviceGuide::SetHide(bool val)
 		CKTDGParticleSystem::CParticleEventSequence* pSeqGuideL	= GetUiParticle()->GetInstanceSequence( m_hGuideLeft );
 		if( pSeqGuideL != NULL )
 		{		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( m_hGuideLeftParticle == INVALID_PARTICLE_HANDLE )
+                m_hGuideLeftParticle = pSeqGuideL->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			if( m_pGuideLeftParticle == NULL )
-			{
-				m_pGuideLeftParticle = pSeqGuideL->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-			}		
+                m_pGuideLeftParticle = pSeqGuideL->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 		CKTDGParticleSystem::CParticleEventSequence* pSeqGuideR	= GetUiParticle()->GetInstanceSequence( m_hGuideRight );
 		if( pSeqGuideR != NULL )
 		{		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			if( m_hGuideRightParticle == INVALID_PARTICLE_HANDLE )
+				m_hGuideRightParticle = pSeqGuideR->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			if( m_pGuideRightParticle == NULL )
-			{
 				m_pGuideRightParticle = pSeqGuideR->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-			}		
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 
 		if(m_bShowArrow == true && pSeqGuideL != NULL && pSeqGuideR != NULL)
@@ -1101,8 +1120,8 @@ bool CX2NoviceGuide::DoGuideStep2()
 		GetUiParticle()->DestroyInstanceHandle( m_hGuideLeft );	
 		GetUiParticle()->DestroyInstanceHandle( m_hGuideRight );
 
-		m_hGuideLeft = INVALID_PARTICLE_HANDLE;
-		m_hGuideRight = INVALID_PARTICLE_HANDLE;		
+		m_hGuideLeft = INVALID_PARTICLE_SEQUENCE_HANDLE;
+		m_hGuideRight = INVALID_PARTICLE_SEQUENCE_HANDLE;		
 
 		// 다음단계로 넘어간다.
 		SetNextStep();
@@ -1223,8 +1242,8 @@ bool CX2NoviceGuide::DoGuideStep3()
 		GetUiParticle()->DestroyInstanceHandle( m_hGuideLeft );	
 		GetUiParticle()->DestroyInstanceHandle( m_hGuideRight );
 
-		m_hGuideLeft = INVALID_PARTICLE_HANDLE;
-		m_hGuideRight = INVALID_PARTICLE_HANDLE;		
+		m_hGuideLeft = INVALID_PARTICLE_SEQUENCE_HANDLE;
+		m_hGuideRight = INVALID_PARTICLE_SEQUENCE_HANDLE;		
 
 		// 다음단계로 넘어간다.
 		SetNextStep();
@@ -1319,8 +1338,8 @@ bool CX2NoviceGuide::DoGuideStep4()
 		GetUiParticle()->DestroyInstanceHandle( m_hGuideLeft );	
 		GetUiParticle()->DestroyInstanceHandle( m_hGuideRight );
 
-		m_hGuideLeft = INVALID_PARTICLE_HANDLE;
-		m_hGuideRight = INVALID_PARTICLE_HANDLE;		
+		m_hGuideLeft = INVALID_PARTICLE_SEQUENCE_HANDLE;
+		m_hGuideRight = INVALID_PARTICLE_SEQUENCE_HANDLE;		
 
 		// 다음단계로 넘어간다.
 		SetNextStep();

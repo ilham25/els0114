@@ -29,14 +29,10 @@ protected:
 	void WriteServerInfoToDB();
 	virtual void OnServerReadyComplete();
 
-   //_DECL_ON_FUNC( DBE_SERVER_ON_ACK, KDBE_LOGIN_SERVER_ON_ACK );
-	_DECL_ON_FUNC( DBE_SERVER_ON_ACK, KDBE_CHANNEL_SERVER_ON_ACK );
+	//_DECL_ON_FUNC( DBE_SERVER_ON_ACK, KDBE_LOGIN_SERVER_ON_ACK );
+	_DECL_ON_FUNC( DBE_SERVER_ON_ACK, KDBE_CHANNEL_SERVER_ON_ACK );	// 엘소드 해외팀 변경
    _DECL_ON_FUNC( DBE_UPDATE_SERVER_INFO_ACK, KServerList );
 	DECL_ON_FUNC( DBE_CHANNEL_LIST_ACK );
-
-#ifdef SERVER_GROUP_UI_ADVANCED
-	DECL_ON_FUNC( DBE_SERVERGROUP_LIST_ACK );
-#endif SERVER_GROUP_UI_ADVANCED
 
 	//{{ 2010. 02. 16  최육사	해킹툴 리스트
 #ifdef SERV_HACKING_TOOL_LIST
@@ -61,13 +57,10 @@ protected:
 #endif SERV_CHANNEL_SERVER_REALTIME_SCRIPT
 	//}}
 
-public:
 #ifdef SERVER_GROUP_UI_ADVANCED
-	void RefreshServerGroupList();
-	void UpdateServerGroupList( const std::map< int, KServerGroupInfo >& mapServerGroupList );
-	const std::map< int, KServerGroupInfo >& GetServerGroupList() { return m_mapServerGroupList; }
+	DECL_ON_FUNC( DBE_SERVERGROUP_LIST_ACK );
 #endif SERVER_GROUP_UI_ADVANCED
-
+public:
 	void RefreshChannelList();
 	void UpdateChannelList( const std::map< int, KChannelInfo >& mapChannelList );
 
@@ -85,18 +78,18 @@ public:
 	template < class T > void SendToSMSDB( unsigned short usEventID, const T& data );
 #endif SERV_CHECK_DROP_CCU
 	//}}
+#ifdef SERVER_GROUP_UI_ADVANCED
+	void RefreshServerGroupList();
+	void UpdateServerGroupList( const std::map< int, KServerGroupInfo >& mapServerGroupList );
+	const std::map< int, KServerGroupInfo >& GetServerGroupList() { return m_mapServerGroupList; }
+#endif SERVER_GROUP_UI_ADVANCED
 
 #ifdef SERV_LOGIN_RESULT_INFO
 	void InitLoginResultInfo();
 	void WriteLoginResultInfoToDB();
 	void PlusLoginResultCount(KLoginResultInfo::LOGIN_RESULT_TYPE_ENUM eResultType);
 #endif SERV_LOGIN_RESULT_INFO
-
 protected:
-#ifdef SERVER_GROUP_UI_ADVANCED
-	std::map< int, KServerGroupInfo >		m_mapServerGroupList;
-#endif SERVER_GROUP_UI_ADVANCED
-
 	std::map< int, KChannelInfo >		m_mapChannelList;
 
 	//{{ 2012. 06. 29	박세훈	채널 UI 유동적으로 변경 가능한 시스템 ( Merge )
@@ -104,15 +97,14 @@ protected:
 	std::map< int, KChannelBonusInfo >	m_mapChannelBonusList;
 #endif SERV_CHANNEL_LIST_RENEWAL
 	//}}
-	
-#ifdef SERVER_GROUP_UI_ADVANCED
-	boost::timer						m_kServerGroupListRefreshTimer;
-	bool								m_bIsFirstUpdateServerGroup;
-#endif SERVER_GROUP_UI_ADVANCED	
-	
 
 	boost::timer						m_kChannelListRefreshTimer;
 	bool								m_bIsFirstUpdate;
+#ifdef SERVER_GROUP_UI_ADVANCED
+	std::map< int, KServerGroupInfo >		m_mapServerGroupList;
+	boost::timer							m_kServerGroupListRefreshTimer;
+	bool									m_bIsFirstUpdateServerGroup;
+#endif SERVER_GROUP_UI_ADVANCED	
 
 #ifdef SERV_LOGIN_RESULT_INFO
 	KLoginResultInfo					m_kLoginResultInfo;
@@ -123,7 +115,6 @@ protected:
 	boost::timer					m_tTimeProcessCommunicationONOFF;
 	bool							m_bServerRunningProcessCommunicationOnOff;
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
 };
 
 DefKObjectInline( KChannelServer, KBaseServer );

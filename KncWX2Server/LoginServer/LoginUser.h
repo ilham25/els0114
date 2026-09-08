@@ -100,7 +100,6 @@ protected:  // util function, Packet Handling
 	template < class T > void SendToKOGBillingDB( unsigned short usEventID, const T& data );
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 
-
 #ifdef SERV_COUNTRY_PH
 	template < class T > void SendToKOGBillingDB( unsigned short usEventID, const T& data );
 #endif //SERV_COUNTRY_PH
@@ -159,6 +158,10 @@ protected:  // util function, Packet Handling
 
 	_DECL_ON_FUNC( ELG_USE_COUPON_REQ, KEBILL_USE_COUPON_REQ );
 	DECL_ON_FUNC( EBILL_USE_COUPON_RESERVE_ACK );
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	DECL_ON_FUNC( ELG_CASH_DIRECT_CHARGE_CN_REQ );
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 
 #ifdef SERV_INFOSERVER_ADD_WORK
 	DECL_ON_FUNC( EGIANT_INFO_USERONLINE_REQ );
@@ -417,7 +420,7 @@ protected:  // util function, Packet Handling
 
 #ifdef SERV_DELETE_GUILD_ADD_CHEAT
    DECL_ON_FUNC( ELG_ADMIN_DELETE_GUILD_ADD_NOT );
-#endif
+#endif SERV_DELETE_GUILD_ADD_CHEAT
 
    //{{ 2011.03.04  임규수 헤니르 랭킹 삭제 치트 ( 운영자,개발자 계정 )
 #ifdef SERV_DELETE_HENIR_RANKING
@@ -460,6 +463,13 @@ protected:  // util function, Packet Handling
    DECL_ON_FUNC( ELG_CHANGE_LOVE_WORD_NOT );
 #endif SERV_RELATIONSHIP_SYSTEM
    //}
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	DECL_ON_FUNC( ELG_EVENT_PROPOSE_CHECK_CONNECT_USER_REQ );
+	_DECL_ON_FUNC( ELG_EVENT_PROPOSE_AGREE_CHECK_NOT, KEGS_EVENT_PROPOSE_AGREE_NOT );
+	_DECL_ON_FUNC( ELG_EVENT_PROPOSE_RESULT_SUCCESS_NOT, KERM_EVENT_PROPOSE_RESULT_SUCCESS_NOT );
+	DECL_ON_FUNC( ELG_DIVORCE_NOT );
+#endif SERV_RELATIONSHIP_EVENT_INT
 
     DECL_ON_FUNC_NOPARAM( E_RESERVE_DESTROY );
 

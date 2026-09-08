@@ -77,6 +77,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#pragma warning(push)
 #pragma warning(disable:4786)
 
 #include <sstream>
@@ -636,6 +637,8 @@ struct PROTECT_VECTOR3
 	}
 };
 
+
+#pragma warning(pop)
 #endif //end of _PROTECTEDTYPE_H_
 
 // Performance

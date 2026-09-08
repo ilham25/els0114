@@ -11,7 +11,7 @@ const wchar_t*  KDefaultFSM::ms_szInput[] = {
 #   include "DefaultFSMInput_def.h" 
 };
 
-KDefaultFSM::KDefaultFSM() : FSMclass( KDefaultFSM::ENUM_STATE::S_INIT )
+KDefaultFSM::KDefaultFSM() : FSMclass( KDefaultFSM::S_INIT )
 {
     // S_INIT
     FSMstate* pState = new FSMstate( S_INIT, 2 );

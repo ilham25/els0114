@@ -50,8 +50,8 @@ AF_NEXON_KOREA : 넥슨 국내 인증
 SimLayer:SetAuthFlag( AF_INTERNAL )
 
 -- Script File Path --
-SimLayer:AddPath( "D:\\ProjectX2_SVN\\source\\EU_CN_US\\Trunk\\KncWX2Server\\ServerResource\\EU" ) -- server ServerResource
-SimLayer:AddPath( "D:\\ProjectX2_SVN\\resource\\DE\\Trunk\\dat\\Script" ) -- client script
+SimLayer:AddPath( "D:\\ProjectX2_SVN\\source\\JP_TW_EU_CN_US\\Trunk\\KncWX2Server\\ServerResource\\EU" ) -- server ServerResource
+SimLayer:AddPath( "D:\\ProjectX2_SVN\\resource\\EU\\DE\\Trunk\\dat\\Script" ) -- client script
 
 --SimLayer:AddPath( "C:\\projectx2_svn\\source\\EU\\Trunk\\KncWX2Server\\ServerResource" ) -- server common
 --SimLayer:AddPath( "C:\\projectx2_svn\\resource\\EU\\Trunk\\dat\\Script" ) -- client scrip

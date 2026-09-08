@@ -32,7 +32,10 @@ m_pScrollBarY(NULL)
 {
 	m_ControlType = UCT_CONTROLLIST;
 
-
+#ifdef DLL_BUILD
+	m_pCheckedEdgeTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"UIEdge.tga" );
+	m_bEditEdge = false;
+#endif
 }
 
 CKTDGUIContolList::~CKTDGUIContolList(void)
@@ -69,9 +72,9 @@ CKTDGUIContolList::~CKTDGUIContolList(void)
 	SAFE_DELETE( m_pYScollBarTrackTex );
 	SAFE_DELETE( m_pYScollBarThumbTex );
 
-
-
-
+#ifdef DLL_BUILD
+	SAFE_CLOSE( m_pCheckedEdgeTexture );
+#endif
 }
 
 void CKTDGUIContolList::SetShow(bool bShow, Row row /*= -1*/, Col col /*= -1*/ )
@@ -272,6 +275,11 @@ void CKTDGUIContolList::UpdateRenderControlList()
 // 	}
 	if( m_bShow == false )
 		return S_OK;
+
+
+#ifdef DLL_BUILD
+	DrawEditEdge( &m_NowPoint );
+#endif // DLL_BUILD
 
 	// Render the scroll bar
 	if ( m_pScrollBarX != NULL )
@@ -727,6 +735,181 @@ void CKTDGUIContolList::FromRectToPoint( RECT& rect, CKTDGUIControl::UIPointData
 	point.rightBottomPoint.y = (float)rect.bottom;
 }
 
+#ifdef DLL_BUILD
+void CKTDGUIContolList::SetColor( D3DXCOLOR color )
+{
+	__super::SetColor(color);
+
+	// 내부에 스크롤 바의 색깔 변경
+	if( NULL != m_pScrollBarY )
+		m_pScrollBarY->SetColor(color);
+	if( NULL != m_pScrollBarX )
+		m_pScrollBarX->SetColor(color);
+}
+void CKTDGUIContolList::MoveControl( float fx, float fy )
+{
+	// ControlList 위치를 이동
+	m_Pos.x += fx;
+	m_Pos.y += fy;
+	UpdateRects();
+
+	// 내부에 스크롤 바 위치를 이동
+	if( NULL != m_pScrollBarY )
+		m_pScrollBarY->MoveControl( fx, fy );
+	if( NULL != m_pScrollBarX )
+		m_pScrollBarX->MoveControl( fx, fy );
+}
+
+void CKTDGUIContolList::MoveSubControl( float fx, float fy, wstring subControlName )
+{
+	if( subControlName == L"BackGround" )
+	{
+		m_Pos.x += fx;
+		m_Pos.y += fy;
+		UpdateRects();
+	}
+	else if( subControlName == L"ScrollBar" )
+	{
+		if( NULL != m_pScrollBarY )
+			m_pScrollBarY->MoveControl( fx, fy );
+		if( NULL != m_pScrollBarX )
+			m_pScrollBarX->MoveControl( fx, fy );
+	}
+}
+
+void CKTDGUIContolList::SetEditGUI( bool bEdit )
+{
+	m_bUpdate = !bEdit;		// update 멈춘다.
+	m_bEditEdge = bEdit;	// 외각사각형을 그린다.
+
+
+	if( NULL != m_pScrollBarY )
+		m_pScrollBarY->SetEditGUI( bEdit );
+	else if( NULL != m_pScrollBarX )
+		m_pScrollBarX->SetEditGUI( bEdit );
+}
+
+void CKTDGUIContolList::ShowSubView( wstring name, bool bView )
+{	
+	m_bEditEdge = false;
+
+	if( NULL != m_pScrollBarY )
+		m_pScrollBarY->ShowEdge( false );
+	else if( NULL != m_pScrollBarX )
+		m_pScrollBarX->ShowEdge( false );
+
+
+	if( name == L"BackGround" )
+	{
+		__super::SetColor(D3DXCOLOR(0xffff0000));
+		m_bEditEdge = true;
+	}
+	else if( name == L"ScrollBar" )
+	{
+		if( NULL != m_pScrollBarY )
+			m_pScrollBarY->ShowEdge( bView );
+		else if( NULL != m_pScrollBarX )
+			m_pScrollBarX->ShowEdge( bView );
+	}
+}
+
+vector<D3DXVECTOR2> CKTDGUIContolList::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;
+
+	ret.push_back(D3DXVECTOR2(m_Pos));
+
+	if( NULL != m_pScrollBarY )
+		ret.push_back( m_pScrollBarY->GetPos() );
+	else if( NULL != m_pScrollBarX )
+		ret.push_back(m_pScrollBarX->GetPos());
+
+	return ret;
+}
+
+D3DXVECTOR2 CKTDGUIContolList::GetPos()
+{
+	return GetPos(L"BackGround");
+}
+
+D3DXVECTOR2 CKTDGUIContolList::GetPos(wstring name)
+{
+	if( name == L"BackGround" )
+		return m_Pos;
+	else if( name == L"ScrollBar" )
+	{
+		if( NULL != m_pScrollBarY )
+			return m_pScrollBarY->GetPos();
+		else if( NULL != m_pScrollBarX )
+			return m_pScrollBarX->GetPos();
+	}
+
+	return D3DXVECTOR2();
+}
+
+void CKTDGUIContolList::DrawEditEdge( CKTDGUIControl::UIPointData* m_pEditEdgePoint )
+{
+	if( false == m_bEditEdge )
+		return;
+
+	if(NULL == m_pEditEdgePoint) 
+		return;
+
+	if ( m_pCheckedEdgeTexture == NULL )
+		return;
+
+
+	const CKTDGUIControl::UIPointData & point = *m_pEditEdgePoint;
+	D3DXCOLOR tempColor;
+
+	int edgeWidth = 4;
+	D3DXCOLOR edgeColor = D3DXCOLOR(0xffffffff);
+
+	tempColor.a = edgeColor.a * m_pDialog->GetColor().a * m_Color.a;
+	tempColor.r = edgeColor.r * m_pDialog->GetColor().r * m_Color.r;
+	tempColor.g = edgeColor.g * m_pDialog->GetColor().g * m_Color.g;
+	tempColor.b = edgeColor.b * m_pDialog->GetColor().b * m_Color.b;
+
+
+	int _width = (int)(point.rightBottomPoint.x - point.leftTopPoint.x);
+	int _height = (int)(point.rightBottomPoint.y - point.leftTopPoint.y);
+
+	//if ( m_bDrawEdgeOut == true )
+	{
+		// 좌
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + point.leftTopPoint.x - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + point.leftTopPoint.y - edgeWidth), 
+			edgeWidth , 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 하
+
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + point.leftTopPoint.x - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + point.leftBottomPoint.y ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+
+		// 우
+
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + point.rightTopPoint.x ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + point.leftTopPoint.y ), 
+			edgeWidth, 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 상
+
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + point.leftTopPoint.x ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + point.leftTopPoint.y - edgeWidth ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+	}
+}
+
+#endif
 
 
 #endif

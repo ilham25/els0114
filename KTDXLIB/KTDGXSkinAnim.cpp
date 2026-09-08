@@ -20,10 +20,16 @@ CKTDGXSkinAnim::CKTDGXSkinAnim()
 
 	m_NowTrack				= 0;
 	m_NewTrack				= 1;
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_fElapsedTime			= 0.0f;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_fAnimGlobalTime		= 0.0f;
 	m_fAnimCurrTime			= 0.0f;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_fAnimCurrSpeed        = 1.0f;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_fAnimBeforeTime		= 0.0f;
+
 	m_fAnimMaxTime			= 0.0f;
 	m_pAC					= NULL;
 
@@ -34,6 +40,9 @@ CKTDGXSkinAnim::CKTDGXSkinAnim()
 	m_fPlaySpeed			= 1.0f;
 	m_fTransitionTime		= 0.1f;
 	m_NowPlayCount			= 0;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_fAnimOneshotTimer = 0.f;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	m_MotionMoveBack.x		= 0.0f;
 	m_MotionMoveBack.y		= 0.0f;
@@ -62,10 +71,6 @@ CKTDGXSkinAnim::CKTDGXSkinAnim()
 	m_ModelDetailPercent	= 100;
 
 	SetIsCulled( false );
-	m_fPassedElapsedTime	= 0.0f;
-	m_fUpdatePassedElapsedTime = 0.0f;
-	m_fUpdatePassedNeedTime	= 0.0f;
-
 
 	m_pModelXSkinMeshList.reserve( 16 );
 	m_pModelAniXETList.reserve( 16 );
@@ -106,9 +111,7 @@ CKTDGXSkinAnim::CKTDGXSkinAnim()
 	m_iExpand = 0;
 #endif
 
-#ifdef UNIT_MOVE_BONE_TOGGLE
 	m_bApplyMoveBone = true;
-#endif
 
 #ifdef FACE_OFF_MONSTER_HEAD_TEST
 	m_bHideNoRenderable = false;
@@ -223,9 +226,9 @@ void CKTDGXSkinAnim::BuildCloneFrame( CKTDXDeviceXSkinMesh::MultiAnimFrame* pClo
 	pCloneFrame->fBoundingRadius	= pSrcFrame->fBoundingRadius;
 
 
-#ifdef HEAD_INVERSE_KINEMATICS_TEST
-	pCloneFrame->m_iIndex = pSrcFrame->m_iIndex;
-#endif HEAD_INVERSE_KINEMATICS_TEST
+//#ifdef HEAD_INVERSE_KINEMATICS_TEST
+//	pCloneFrame->m_iIndex = pSrcFrame->m_iIndex;
+//#endif HEAD_INVERSE_KINEMATICS_TEST
 
 
 	WCHAR wszBoneName[ MAX_PATH ];
@@ -336,7 +339,11 @@ bool CKTDGXSkinAnim::SetAnimXSkinMesh( CKTDXDeviceXSkinMesh* pAnimXSkinMesh, CKT
 		if( false == bSimple )
 		{
 			//{{ dmlee 2008.05.30 데미지 이펙트 이상한 위치에서 타격되는 문제 수정
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            UpdateAnimationFrameStructure( 0.f );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			UpdateAnimationFrameStructure();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			//}} dmlee 2008.05.30 데미지 이펙트 이상한 위치에서 타격되는 문제 수정	
 		}
 	}
@@ -421,7 +428,11 @@ bool CKTDGXSkinAnim::MixAnim( CKTDXDeviceXSkinMesh* pAnimXSkinMesh, bool bSimple
 	if( false == bSimple )
 	{
 		//{{ dmlee 2008.05.30 데미지 이펙트 이상한 위치에서 타격되는 문제 수정
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        UpdateAnimationFrameStructure( 0.f );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		UpdateAnimationFrameStructure();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		//}} dmlee 2008.05.30 데미지 이펙트 이상한 위치에서 타격되는 문제 수정	
 	}
 
@@ -498,9 +509,7 @@ void CKTDGXSkinAnim::ReplaceChangeXET( int iIndex, CKTDXDeviceXET* pModelTexChan
 // @bCloseDeviceAtDestructor : 추가된 device를 skinanim객체가 지워질 때 close_device해줄지 말지. 일단은 pModelXSkinMesh만 처리 되게 만들었음.
 void CKTDGXSkinAnim::AddModelXSkinMesh( CKTDXDeviceXSkinMesh* pModelXSkinMesh, CKTDXDeviceXET* pModelAniXET, 
 									   CKTDXDeviceXET* pModelMultiTexXET, CKTDXDeviceXET* pModelTexChangeXET, bool bCloseDeviceAtDestructor /*= false*/
-#ifdef FIELD_NOT_COLLISIONDATA
                                        , bool bAddCollisionData /*= true*/ 
-#endif
 									   )
 {
 
@@ -520,10 +529,8 @@ void CKTDGXSkinAnim::AddModelXSkinMesh( CKTDXDeviceXSkinMesh* pModelXSkinMesh, C
 	m_pModelMultiTexXETList.push_back( pModelMultiTexXET );
 	m_pModelTexChangeXETList.push_back( pModelTexChangeXET );
 
-#ifdef FIELD_NOT_COLLISIONDATA
 	if( bAddCollisionData == false )
 		return;
-#endif
 
 	CKTDXCollision::CollisionData* pCollisionData = NULL;
 	CKTDXCollision::CollisionData* pAttackData = NULL;
@@ -536,8 +543,12 @@ void CKTDGXSkinAnim::AddModelXSkinMesh( CKTDXDeviceXSkinMesh* pModelXSkinMesh, C
         *pCollisionData = *pModelCollision;
 		if( LinkCollisionDataFrame( pCollisionData ) == false )
 		{
-			SAFE_DELETE( pCollisionData );
-			continue;
+			// 오현빈 // 2013-09-13 // 
+			// 기존 : LinkCollisionDataFrame 값이 false를 return하지 않도록 함으로써 강제 크래시 발생 유도
+			// 변경 : 로그 남기기 위해 false를 return하는 대신 continue; 수행 하지 않도록 하여 크래시 발생 유도
+			ErrorLogMsg( KEM_ERROR432, pModelXSkinMesh->GetDeviceID().c_str() );
+// 			SAFE_DELETE( pCollisionData );
+// 			continue;
 		}
 		m_CollisionDataList.push_back( pCollisionData );
     }//BOOST_TEST_FOREACH()
@@ -549,8 +560,9 @@ void CKTDGXSkinAnim::AddModelXSkinMesh( CKTDXDeviceXSkinMesh* pModelXSkinMesh, C
 		*pAttackData = *pModelAttack;
 		if( LinkCollisionDataFrame( pAttackData ) == false )
 		{
-			SAFE_DELETE( pAttackData );
-			continue;
+			ErrorLogMsg( KEM_ERROR432, pModelXSkinMesh->GetDeviceID().c_str() );
+// 			SAFE_DELETE( pAttackData );
+// 			continue;
 		}
 		m_AttackDataList.push_back( pAttackData );
     }//BOOST_TEST_FOREACH()
@@ -608,8 +620,12 @@ void CKTDGXSkinAnim::AddAnimXSkinMesh( CKTDXDeviceXSkinMesh* pModelXSkinMesh )
 		*pCollisionData = *pModelCollision;
 		if( LinkCollisionDataFrame( pCollisionData ) == false )
 		{
-			SAFE_DELETE( pCollisionData );
-			continue;
+			// 오현빈 // 2013-09-13 // 
+			// 기존에는 LinkCollisionDataFrame 값이 false를 return하지 않도록 함으로써 강제 크래시 발생 하도록 했음.
+			// 로그 남기기 false를 return 하고 continue 하지 않도록 변경거
+			ErrorLogMsg( KEM_ERROR432, pModelXSkinMesh->GetDeviceID().c_str() );
+			//SAFE_DELETE( pCollisionData );
+			//continue;
 		}
 		m_CollisionDataList.push_back( pCollisionData );
     }//BOOST_TEST_FOREACH()
@@ -623,8 +639,9 @@ void CKTDGXSkinAnim::AddAnimXSkinMesh( CKTDXDeviceXSkinMesh* pModelXSkinMesh )
 		*pAttackData = *pModelAttack;
 		if( LinkCollisionDataFrame( pAttackData ) == false )
 		{
-			SAFE_DELETE( pAttackData );
-			continue;
+			ErrorLogMsg( KEM_ERROR432, pModelXSkinMesh->GetDeviceID().c_str() );
+// 			SAFE_DELETE( pAttackData );
+// 			continue;
 		}
 		m_AttackDataList.push_back( pAttackData );
     }//BOOST_TEST_FOREACH()
@@ -637,7 +654,11 @@ bool CKTDGXSkinAnim::LinkCollisionDataFrame( CKTDXCollision::CollisionData* pCol
     if( pCollisionData->m_CollisionType == CKTDXCollision::CT_SPHERE || pCollisionData->m_CollisionType == CKTDXCollision::CT_GUARD)
 	{
 		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = GetCloneFrame( pCollisionData->m_FrameName.c_str() );
-		ASSERT( NULL != pFrame );
+		if( NULL == pFrame )
+		{
+			ASSERT( !L"GetCloneFrame Error" );
+			return false;
+		}
 
 		pCollisionData->m_pCombineMatrix		= &pFrame->combineMatrix;
 		pCollisionData->m_pTransformMatrix		= &pFrame->TransformationMatrix;
@@ -646,14 +667,22 @@ bool CKTDGXSkinAnim::LinkCollisionDataFrame( CKTDXCollision::CollisionData* pCol
 	else if( pCollisionData->m_CollisionType == CKTDXCollision::CT_LINE )
 	{
 		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = GetCloneFrame( pCollisionData->m_FrameName.c_str() );
-		ASSERT( NULL != pFrame );
+		if( NULL == pFrame )
+		{
+			ASSERT( !L"GetCloneFrame Error" );
+			return false;
+		}
 
 		pCollisionData->m_pCombineMatrix		= &pFrame->combineMatrix;
 		pCollisionData->m_pTransformMatrix		= &pFrame->TransformationMatrix;
 		pCollisionData->m_pBaseMatrix			= &pFrame->baseMatrix;
 
 		CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrameEnd = GetCloneFrame( pCollisionData->m_FrameNameLineEnd.c_str() );
-		ASSERT( NULL != pFrameEnd );
+		if( NULL == pFrameEnd )
+		{
+			ASSERT( !L"GetCloneFrame Error" );
+			return false;
+		}
 
 		pCollisionData->m_pCombineMatrixLineEnd		= &pFrameEnd->combineMatrix;
 		pCollisionData->m_pTransformMatrixLineEnd	= &pFrameEnd->TransformationMatrix;
@@ -730,54 +759,19 @@ HRESULT CKTDGXSkinAnim::OnFrameMove( double fTime, float fElapsedTime )
 {
 	KTDXPROFILE();
 
-//#ifdef FRAME_MOVE_CULL
-//
-//	if ( m_sbTestUpdateAnimation == true )
-//	{
-////{{ robobeg : 2008-10-17
-//		//if ( m_bCulled == true )
-//        if ( IsCulled() )
-////}} robobeg : 2008-10-17
-//		{
-//			m_fPassedElapsedTime += fElapsedTime;
-//			m_fElapsedTime = 0.0f;
-//			if ( m_fUpdatePassedElapsedTime >= m_fUpdatePassedNeedTime )
-//			{
-//				m_fUpdatePassedElapsedTime = 0.0f;
-//				m_fElapsedTime = fElapsedTime;
-//				m_fElapsedTime += m_fPassedElapsedTime;
-//				m_fPassedElapsedTime = 0.0f;
-//			}
-//			else
-//			{
-//				m_fUpdatePassedElapsedTime += fElapsedTime;
-//				return S_OK;
-//			}
-//		}
-//		else
-//		{
-//			m_fUpdatePassedElapsedTime = 0.0f;
-//			m_fElapsedTime = fElapsedTime;
-//			m_fElapsedTime += m_fPassedElapsedTime;
-//			m_fPassedElapsedTime = 0.0f;
-//		}
-//	}
-//	else
-//	{
-//		m_fUpdatePassedElapsedTime = 0.0f;
-//		m_fElapsedTime = fElapsedTime;
-//		m_fElapsedTime += m_fPassedElapsedTime;
-//		m_fPassedElapsedTime = 0.0f;
-//	}
-//
-//#endif //FRAME_MOVE_CULL
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_fElapsedTime = fElapsedTime;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	if( m_AnimState == XAS_PLAYING )
 	{
 		m_bAnimEnd = false;
 		
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        UpdateAnimationFrameStructure( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		UpdateAnimationFrameStructure();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 		switch( m_PlayType )
 		{
@@ -812,9 +806,20 @@ HRESULT CKTDGXSkinAnim::OnFrameMove( double fTime, float fElapsedTime )
 	}
 	else if( m_AnimState == XAS_WAIT )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		UpdateAnimationFrameStructure( 0.f );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_fElapsedTime = 0.0f;
 		UpdateAnimationFrameStructure();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else
+    {
+        UpdateBeforeAnimationTime();
+    }
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 
 #ifdef SKIN_LIGHTFLOW
     if(m_bLightFlow == true)
@@ -906,6 +911,10 @@ void CKTDGXSkinAnim::OnFrameRender_Draw()
 		{		
 			CKTDXDeviceXSkinMesh* pXSkinMesh = m_pModelXSkinMeshList[i];
             ASSERT( pXSkinMesh != NULL );
+#ifdef  X2OPTIMIZE_KTDGXSKINANIM_CRAHSH_BUG_FIX
+            if ( pXSkinMesh == NULL )
+                continue;
+#endif  X2OPTIMIZE_KTDGXSKINANIM_CRAHSH_BUG_FIX
 #ifdef FACE_OFF_MONSTER_HEAD_TEST
 			if(m_bHideNoRenderable == true && pXSkinMesh->GetNoRenderable() == true)
 				continue;
@@ -1055,7 +1064,10 @@ void CKTDGXSkinAnim::OnFrameRender_Draw()
 void CKTDGXSkinAnim::DrawFrame( CKTDXDeviceXSkinMesh::MultiAnimFrame* pModelFrame, int modelIndex )
 {
 	KTDXPROFILE();
-
+#ifdef  X2OPTIMIZE_KTDGXSKINANIM_CRAHSH_BUG_FIX
+    if ( modelIndex < 0 || modelIndex >= (int) m_pModelXSkinMeshList.size() || m_pModelXSkinMeshList[modelIndex] == NULL || pModelFrame == NULL )
+        return;
+#endif  X2OPTIMIZE_KTDGXSKINANIM_CRAHSH_BUG_FIX
     m_pRenderer->DrawFrame( *m_pModelXSkinMeshList[modelIndex], *pModelFrame, m_pModelTexChangeXETList[modelIndex]
         , m_pModelMultiTexXETList[modelIndex], m_pModelAniDataList[modelIndex], GetNowAnimationTime(), m_ModelDetailPercent
         , m_bUseTex, m_pAnimAniXET, m_NowAnimName.c_str() );
@@ -1081,10 +1093,24 @@ void CKTDGXSkinAnim::Stop()
 
 void CKTDGXSkinAnim::Reset( float fAnimTime )
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pAC == NULL )
+        return;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_pAC->ResetTime();
 	m_pAC->AdvanceTime( fAnimTime, NULL );
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_fAnimBeforeTime = 0.f;
+    m_fAnimGlobalTime = (float) m_pAC->GetTime();
+	D3DXTRACK_DESC td;
+	m_pAC->GetTrackDesc( m_NowTrack, &td );
+    m_fAnimCurrTime = (float) td.Position;
+    if ( m_fAnimCurrTime < 0.f )
+        m_fAnimCurrTime = 0.f;
+    m_fAnimCurrSpeed = td.Speed;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_fAnimCurrTime = fAnimTime;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 }
 
 bool CKTDGXSkinAnim::ChangeAnim( int index, bool transition, float fStartTime )
@@ -1155,6 +1181,9 @@ bool CKTDGXSkinAnim::ChangeAnim( LPD3DXANIMATIONSET pAS, bool transition, float 
 	m_fAnimGlobalTime	= 0.0f;
 	m_fAnimCurrTime		= 0.0f;
 	m_fAnimBeforeTime	= 0.0f;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_fAnimCurrSpeed    = 1.f;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_pAC->ResetTime();
 
 #ifdef ANIMATIONCONTROLLER_FIX
@@ -1203,19 +1232,30 @@ bool CKTDGXSkinAnim::ChangeAnim( LPD3DXANIMATIONSET pAS, bool transition, float 
 
 	m_fAnimMaxTime = (float)pAS->GetPeriod();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    D3DXTRACK_DESC td;
+    m_pAC->GetTrackDesc( m_NewTrack, &td );
+	//m_fAnimCurrTime = (float)td.Position;
+ //   if ( m_fAnimCurrTime < 0.f )
+ //       m_fAnimCurrTime = 0.f;
+ //   if ( m_fAnimCurrTime > m_fAnimMaxTime )
+ //       m_fAnimCurrTime = m_fAnimMaxTime;
+    m_fAnimCurrSpeed = (float)td.Speed;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 	for( int i = 0; i < (int)m_pModelAniXETList.size(); i++ )
 	{
 		CKTDXDeviceXET* pCKTDXDeviceXET = m_pModelAniXETList[i];
 		if( pCKTDXDeviceXET == NULL )
 			continue;
 
-		CKTDXDeviceXET::AniData* pAniData = pCKTDXDeviceXET->GetAniData( m_NowAnimName.c_str() );
+		const CKTDXDeviceXET::AniData* pAniData = pCKTDXDeviceXET->GetAniData( m_NowAnimName.c_str() );
 		m_pModelAniDataList[i] = pAniData;
 	}
 
 	if( m_pAnimAniXET != NULL )
 	{
-		CKTDXDeviceXET::AniData* pAniData = m_pAnimAniXET->GetAniData( m_NowAnimName.c_str() );
+		const CKTDXDeviceXET::AniData* pAniData = m_pAnimAniXET->GetAniData( m_NowAnimName.c_str() );
 		if( pAniData != NULL )
 		{
 			if( pAniData->fTransitionTime == 0.0f )
@@ -1301,6 +1341,9 @@ void CKTDGXSkinAnim::ResetAnimSet()
 	m_fAnimGlobalTime		= 0.0f;
 	m_fAnimCurrTime			= 0.0f;
 	m_fAnimBeforeTime		= 0.0f;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_fAnimCurrSpeed        = 1.f;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_fAnimMaxTime			= 0.0f;
 }
 
@@ -1400,7 +1443,10 @@ void CKTDGXSkinAnim::SetLightFlow(wstring szName, CKTDGXRenderer::RENDER_TYPE fl
         {            
           
             CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = pXSkinMesh->GetFrame(j);
-            
+#ifdef  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
+            if ( pFrame == NULL )
+                continue;
+#endif  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
             tempName = pFrame->Name;
             MultiByteToWideChar( CP_ACP, 0, tempName, -1, wszName, MAX_PATH);
             frameName = wszName;

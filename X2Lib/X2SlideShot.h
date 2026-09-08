@@ -49,12 +49,19 @@ class CX2SlideShot
 		void		SetTextSpread();
 		bool		IsTextSpreading();
 		float		GetElapsedTimeAfterTextSpread() { return m_fElapsedTimeAfterTextSpread; }
-#ifdef REFORM_TUTORIAL
 		void		PlaySound2D_LUA( char* pFileName );
 		void		StopAllSound_LUA();
 		void		SetSlideBGM_LUA( char* pFileName );
 		void		ResetBGM();
-#endif //REFORM_TUTORIAL
+#ifdef  X2OPTIMIZE_SLIDE_SHOT_NPC_SELF_CRASH_BUG_FIX
+        void        SetNPC( CX2GUNPC* pNPC );
+        void        ResetNPC();
+        CX2GUNPC*   GetNPC();
+#endif  X2OPTIMIZE_SLIDE_SHOT_NPC_SELF_CRASH_BUG_FIX
+
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+		float		GetElapsedTimeAfterVoiceStopped();
+#endif //CHECK_VOICE_IN_SLIDESHOT
 
 	private:		
 		void		ClearSeq();
@@ -73,11 +80,15 @@ class CX2SlideShot
 		CX2State*			m_pNowState;		
 		CKTDGUIDialogType		m_pDLGSlideShot;
 		float				m_fElapsedTimeAfterTextSpread;
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+		float				m_fElapsedTimeAfterVoiceStopped;
+#endif //CHECK_VOICE_IN_SLIDESHOT
 
         map<string, CKTDGParticleSystem::CParticleEventSequenceHandle >	m_SeqMap;
-#ifdef REFORM_TUTORIAL
 		vector<wstring> m_vecSoundList;
 		wstring			m_preBGMName;
-#endif //REFORM_TUTORIAL
 		bool			m_bSetCursor;
+#ifdef  X2OPTIMIZE_SLIDE_SHOT_NPC_SELF_CRASH_BUG_FIX
+        CX2GUNPCoPtr    m_coNPC;
+#endif  X2OPTIMIZE_SLIDE_SHOT_NPC_SELF_CRASH_BUG_FIX
 };

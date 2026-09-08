@@ -187,7 +187,6 @@ public:
 
 
 //{{ 허상형 : [2009/7/14] // 나소드 메가폰 enum 값 정의
-#ifdef NASOD_SCOPE
     enum NASOD_SCOPE_UI_MSG
 	{
 		NSUM_INSERT_MESSAGE_CLOSE = 32000,
@@ -202,8 +201,6 @@ public:
 		NSUM_MENU_FRIEND,
 		NSUM_MENU_CLEAR,
 	};
-
-#endif
 //}} 허상형 : [2009/7/14] // 나소드 메가폰 enum 값 정의
 
 
@@ -355,10 +352,8 @@ public:
 	int LineBreak( wstring& wstrText, int iTextWidth, const wstring& wstrTextColor, bool bEnableColor );
 
 	//{{ 허상형 : [2009/7/20] //	메가폰용 LineBreak, 나눈 값들을 바로 전송한다.
-#ifdef NASOD_SCOPE
 	bool MegaLineBreakAdd( wstring wstrText, int iTextWidth, CKTDGUIListBox* pListBox );
 	CKTDGUIListBox* GetCurrentChatbox();
-#endif
 	//}} 허상형 : [2009/7/20] //	메가폰용 LineBreak, 나눈 값들을 바로 전송한다.
 
 
@@ -443,7 +438,6 @@ public:
 #endif
 
 	//{{ 허상형 : [2009/7/14] // 나소드 메가폰 관련 함수
-#ifdef NASOD_SCOPE
 	bool ShowNasodMessageDlg( bool bEnable );	//	나소드 메가폰 메시지 입력 Dialog 생성
 
 	void SetLastUsedMegaphone(int itemTID) { m_iLastUsedMegaphoneTID = itemTID; }
@@ -454,7 +448,6 @@ public:
 	bool Handler_EGS_USE_MEGAPHONE_REQ();
 	bool Handler_EGS_USE_MEGAPHONE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 	bool Handler_EGS_MEGAPHONE_MESSAGE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
-#endif
 	//}} 허상형 : [2009/7/14] //
 
 	bool Handler_EGS_CHAT_OPTION_INFO_WRITE_REQ(byte cIndex, bool bVal);
@@ -542,7 +535,6 @@ protected:
 	bool					m_bFocusChatEditBox;	
 
 	//{{ 허상형 : [2009/7/14] //	나소드 메가폰 관련 변수
-#ifdef NASOD_SCOPE
 
     CKTDGUIDialogType			m_pDLGNasodScopeMessage;	//	나소드 메가폰 메시지 입력 Dialog
 	CKTDGUIDialogType			m_pDLGNasodScopeMessageYesNo;	//	나소드 메가폰 전송 여부 확인 Dialog
@@ -553,12 +545,9 @@ protected:
 	int						m_iLastUsedMegaphoneTID;
 	//}}
 	int						m_iMegaID;					//	메가폰 ID
-#endif	
 	//}} 허상형 : [2009/7/14] //	나소드 메가폰 관련 변수
 
-#ifdef AVATAR_EMOTION
 	vector<CKTDXDeviceSound*> m_vecDeviceSound;
-#endif
 
 
 	CKTDGUIDialogType			m_pDLGTabMenu;	//	채팅탭 우클릭 메뉴

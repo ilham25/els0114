@@ -56,7 +56,7 @@ void KUdpCheckerSession::Run()
 
     while( true )
     {
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		OnFrameMove();
 
 		ret = ::WaitForSingleObjectEx( m_hKillEvent, INFINITE, TRUE );     // sleep 타임을 주면 안된다.
@@ -65,98 +65,98 @@ void KUdpCheckerSession::Run()
 			break;
 
 		_ProcessRecvData();
-#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-        ret = ::WaitForSingleObject( m_hKillEvent, 1 );     // sleep 타임을 주면 안된다.
-
-        if( ret == WAIT_OBJECT_0 ) break;
-
-        if( ret == WAIT_TIMEOUT ) OnFrameMove( 0.0, 0.f ); // 전달인자는 dummy다.
-
-        else std::cout << "*** WaitForSingleObject() - return : " << ret << std::endl;
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//        ret = ::WaitForSingleObject( m_hKillEvent, 1 );     // sleep 타임을 주면 안된다.
+//
+//        if( ret == WAIT_OBJECT_0 ) break;
+//
+//        if( ret == WAIT_TIMEOUT ) OnFrameMove( 0.0, 0.f ); // 전달인자는 dummy다.
+//
+//        else std::cout << "*** WaitForSingleObject() - return : " << ret << std::endl;
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     }// while
 }
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 void KUdpCheckerSession::OnFrameMove()
-#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-void KUdpCheckerSession::OnFrameMove( double fTime, float fElapsedTime )
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//void KUdpCheckerSession::OnFrameMove( double fTime, float fElapsedTime )
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 {
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	RecvForRelayTest();
-#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	WSANETWORKEVENTS	netEvent;
-	RecvData kRecvData;
-	bool bRecvSuccess = false;
-
-	//패킷 리시브
-	while( true )
-	{
-		//Event select
-		::ZeroMemory( &netEvent, sizeof(netEvent) );
-
-		::WSAEnumNetworkEvents( GetSocketHandle(), GetRecvEvent(), &netEvent );
-
-		if( (netEvent.lNetworkEvents & FD_READ) == FD_READ )
-			bRecvSuccess = RecvForRelayTest( kRecvData );
-		else
-			break;
-	}
-
-	//bRecvSuccess = RecvForRelayTest( kRecvData );
-	if( bRecvSuccess )
-	{
-		switch( kRecvData.m_ID )
-		{
-		case SP_CONNECT_RELAY_ACK: // for client
-			{
-				// UDP Relay 서버에 peer가 생성되었다면 이 패킷이 도착할것이다!
-				if( m_pUdpRelayChecker->IsPrintLog() )
-				{
-					START_LOG( cout, L"[알림] Recv Packet : SP_CONNECT_RELAY_ACK" )
-						<< BUILD_LOG( kRecvData.m_SenderIP );
-				}
-
-				// 해당 Relay서버정보에 연결 결과를 저장해두자!
-				KE_CONNECT_RELAY_ACK kRelayTestPacket;
-				kRelayTestPacket.m_wstrRelayServerIP = kRecvData.m_SenderIP;
-
-				KEventPtr spEvent( new KEvent );
-				spEvent->SetData( PI_NULL, NULL, E_CONNECT_RELAY_ACK, kRelayTestPacket );
-				m_pUdpRelayChecker->QueueingEvent( spEvent );
-			}
-			break;
-
-		case E_UDP_RELAY_SERVER_CHECK_PACKET_NOT:
-			{
-				if( m_pUdpRelayChecker->IsPrintLog() )
-				{
-					START_LOG( cout, L"[알림] Recv Packet : E_UDP_RELAY_SERVER_CHECK_PACKET_NOT" )
-						<< BUILD_LOG( kRecvData.m_SenderIP );
-				}
-
-				KE_UDP_RELAY_SERVER_CHECK_PACKET_NOT kRelayTestPacket;
-				//kRelayTestPacket.m_dwEndTickCount = ::GetTickCount();
-				kRelayTestPacket.m_dwEndTimeGetTime = ::timeGetTime();
-				kRelayTestPacket.m_wstrRelayServerIP = kRecvData.m_SenderIP;
-				
-				KEventPtr spEvent( new KEvent );
-				spEvent->SetData( PI_NULL, NULL, E_UDP_RELAY_SERVER_CHECK_PACKET_NOT, kRelayTestPacket );
-				m_pUdpRelayChecker->QueueingEvent( spEvent );
-			}
-			break;
-
-		default:
-			{
-                START_LOG( cerr, L"이상한 패킷이 도착하였습니다!" )
-					<< BUILD_LOG( kRecvData.m_ID )
-					<< END_LOG;
-			}
-			break;
-		}
-	}
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	WSANETWORKEVENTS	netEvent;
+//	RecvData kRecvData;
+//	bool bRecvSuccess = false;
+//
+//	//패킷 리시브
+//	while( true )
+//	{
+//		//Event select
+//		::ZeroMemory( &netEvent, sizeof(netEvent) );
+//
+//		::WSAEnumNetworkEvents( GetSocketHandle(), GetRecvEvent(), &netEvent );
+//
+//		if( (netEvent.lNetworkEvents & FD_READ) == FD_READ )
+//			bRecvSuccess = RecvForRelayTest( kRecvData );
+//		else
+//			break;
+//	}
+//
+//	//bRecvSuccess = RecvForRelayTest( kRecvData );
+//	if( bRecvSuccess )
+//	{
+//		switch( kRecvData.m_ID )
+//		{
+//		case SP_CONNECT_RELAY_ACK: // for client
+//			{
+//				// UDP Relay 서버에 peer가 생성되었다면 이 패킷이 도착할것이다!
+//				if( m_pUdpRelayChecker->IsPrintLog() )
+//				{
+//					START_LOG( cout, L"[알림] Recv Packet : SP_CONNECT_RELAY_ACK" )
+//						<< BUILD_LOG( kRecvData.m_SenderIP );
+//				}
+//
+//				// 해당 Relay서버정보에 연결 결과를 저장해두자!
+//				KE_CONNECT_RELAY_ACK kRelayTestPacket;
+//				kRelayTestPacket.m_wstrRelayServerIP = kRecvData.m_SenderIP;
+//
+//				KEventPtr spEvent( new KEvent );
+//				spEvent->SetData( PI_NULL, NULL, E_CONNECT_RELAY_ACK, kRelayTestPacket );
+//				m_pUdpRelayChecker->QueueingEvent( spEvent );
+//			}
+//			break;
+//
+//		case E_UDP_RELAY_SERVER_CHECK_PACKET_NOT:
+//			{
+//				if( m_pUdpRelayChecker->IsPrintLog() )
+//				{
+//					START_LOG( cout, L"[알림] Recv Packet : E_UDP_RELAY_SERVER_CHECK_PACKET_NOT" )
+//						<< BUILD_LOG( kRecvData.m_SenderIP );
+//				}
+//
+//				KE_UDP_RELAY_SERVER_CHECK_PACKET_NOT kRelayTestPacket;
+//				//kRelayTestPacket.m_dwEndTickCount = ::GetTickCount();
+//				kRelayTestPacket.m_dwEndTimeGetTime = ::timeGetTime();
+//				kRelayTestPacket.m_wstrRelayServerIP = kRecvData.m_SenderIP;
+//				
+//				KEventPtr spEvent( new KEvent );
+//				spEvent->SetData( PI_NULL, NULL, E_UDP_RELAY_SERVER_CHECK_PACKET_NOT, kRelayTestPacket );
+//				m_pUdpRelayChecker->QueueingEvent( spEvent );
+//			}
+//			break;
+//
+//		default:
+//			{
+//                START_LOG( cerr, L"이상한 패킷이 도착하였습니다!" )
+//					<< BUILD_LOG( kRecvData.m_ID )
+//					<< END_LOG;
+//			}
+//			break;
+//		}
+//	}
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 }
 
 void KUdpCheckerSession::ShutDown()
@@ -167,7 +167,7 @@ void KUdpCheckerSession::ShutDown()
     ::WSACleanup();
 }
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 void KUdpCheckerSession::_ProcessRecvData()
 {
 	list<RecvData>::iterator itRecvData;
@@ -225,6 +225,6 @@ void KUdpCheckerSession::_ProcessRecvData()
 		ReturnRecvData( itRecvData );
 	}
 }
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #endif  SERV_UDP_RELAY_CHECKER

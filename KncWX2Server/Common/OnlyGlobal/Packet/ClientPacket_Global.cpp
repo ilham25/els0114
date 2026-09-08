@@ -123,6 +123,9 @@ SERIALIZE_DEFINE_PUT( KEGS_BILL_PRODUCT_INFO_ACK, obj, ks )
 		&& PUT( m_mapKeepShowItem )
 		&& PUT( m_DisCountInfoMap )
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+#ifdef SERV_WISH_LIST_NO_ITEM
+		&& PUT( m_setWishListNoItemList )
+#endif SERV_WISH_LIST_NO_ITEM
 		;
 }
 
@@ -134,6 +137,10 @@ SERIALIZE_DEFINE_GET( KEGS_BILL_PRODUCT_INFO_ACK, obj, ks )
 		&& GET( m_mapKeepShowItem )
 		&& GET( m_DisCountInfoMap )
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+#ifdef SERV_WISH_LIST_NO_ITEM
+		&& GET( m_setWishListNoItemList )
+#endif SERV_WISH_LIST_NO_ITEM
+
 		;
 }
 
@@ -396,9 +403,7 @@ SERIALIZE_DEFINE_PUT( KEGS_RESTORE_UNIT_ACK, obj, ks )
 {
 	return PUT( m_iOK )
 		&& PUT( m_iUnitUID )
-#ifdef SERV_UNIT_WAIT_DELETE
 		&& PUT( m_tRestoreAbleDate )
-#endif SERV_UNIT_WAIT_DELETE
 		;
 }
 
@@ -406,9 +411,7 @@ SERIALIZE_DEFINE_GET( KEGS_RESTORE_UNIT_ACK, obj, ks )
 {
 	return GET( m_iOK )
 		&& GET( m_iUnitUID )
-#ifdef SERV_UNIT_WAIT_DELETE
 		&& GET( m_tRestoreAbleDate )
-#endif SERV_UNIT_WAIT_DELETE
 		;
 }
 
@@ -443,11 +446,7 @@ SERIALIZE_DEFINE_PUT( KEGS_FINAL_DELETE_UNIT_ACK, obj, ks )
 		&& PUT( m_cUnitClass )
 #endif SERV_CHAR_LOG
 		//}}
-		//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
-#ifdef SERV_UNIT_WAIT_DELETE
 		&& PUT( m_tReDelAbleDate )
-#endif SERV_UNIT_WAIT_DELETE
-		//}}
 		;
 }
 
@@ -468,14 +467,9 @@ SERIALIZE_DEFINE_GET( KEGS_FINAL_DELETE_UNIT_ACK, obj, ks )
 		&& GET( m_cUnitClass )
 #endif SERV_CHAR_LOG
 		//}}
-		//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
-#ifdef SERV_UNIT_WAIT_DELETE
 		&& GET( m_tReDelAbleDate )
-#endif SERV_UNIT_WAIT_DELETE
-		//}}
 		;
 }
-
 #endif SERV_UNIT_WAIT_DELETE
 //}}
 
@@ -928,32 +922,6 @@ SERIALIZE_DEFINE_GET( KEGS_OPEN_RANDOM_ITEM_DEVELOPER_ACK, obj, ks )
 }
 #endif//SERV_DEVELOPER_RANDOM_OPEN_ITEM_LOG
 
-#ifdef SERV_KOM_FILE_CHECK_ADVANCED
-SERIALIZE_DEFINE_PUT( KEGS_KOM_FILE_CHECK_LOG_REQ, obj, ks )
-{
-	return PUT( m_wstrInvalidKomName )
-		;
-}
-SERIALIZE_DEFINE_GET( KEGS_KOM_FILE_CHECK_LOG_REQ, obj, ks )
-{
-	return GET( m_wstrInvalidKomName )
-		;
-}
-
-SERIALIZE_DEFINE_PUT( KEGS_KOM_FILE_CHECK_LOG_ACK, obj, ks )
-{
-	return PUT( m_wstrInvalidKomName )
-		&& PUT( m_iOK )
-		;
-}
-SERIALIZE_DEFINE_GET( KEGS_KOM_FILE_CHECK_LOG_ACK, obj, ks )
-{
-	return GET( m_wstrInvalidKomName )
-		&& GET( m_iOK )
-		;
-}
-#endif SERV_KOM_FILE_CHECK_ADVANCED
-
 #ifdef SERV_CHECK_TIME_QUEST
 SERIALIZE_DEFINE_PUT( KEGS_EVENT_QUEST_CHECK_FOR_ADMIN_NOT, obj, ks )
 {
@@ -1044,6 +1012,379 @@ SERIALIZE_DEFINE_GET(KEGS_CHANGE_PET_ID_NOT, obj,ks)
 }
 #endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 
+#ifdef SERV_COUPON_EVENT
+SERIALIZE_DEFINE_PUT( KEGS_COUPON_ITEM_CHECK_REQ, obj, ks )
+{
+	return PUT( m_iButtonType )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_COUPON_ITEM_CHECK_REQ, obj, ks )
+{
+	return GET( m_iButtonType )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_COUPON_ITEM_CHECK_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iCouponType )
+		&& PUT( m_iItemID )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_COUPON_ITEM_CHECK_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iCouponType )
+		&& GET( m_iItemID )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_COUPON_ENTRY_REQ, obj, ks )
+{
+	return PUT( m_iCouponType )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_COUPON_ENTRY_REQ, obj, ks )
+{
+	return GET( m_iCouponType )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_COUPON_ENTRY_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_vecUpdatedInventorySlot )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_COUPON_ENTRY_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_vecUpdatedInventorySlot )
+		;
+}
+#endif //SERV_COUPON_EVENT
+
+#ifdef SERV_GUILD_FIND_AD
+SERIALIZE_DEFINE_PUT( KEGS_GET_GUILD_FIND_AD_LIST_REQ, obj, ks )
+{
+	return PUT( m_cSortType )
+		&& PUT( m_uiViewPage )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_GET_GUILD_FIND_AD_LIST_REQ, obj, ks )
+{
+	return GET( m_cSortType )
+		&& GET( m_uiViewPage )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_GET_GUILD_FIND_AD_LIST_ACK, obj, ks )
+{
+	return PUT( m_cSortType )
+		&& PUT( m_uiTotalPage )
+		&& PUT( m_uiViewPage )
+		&& PUT( m_vecGuildFindAdList )
+		&& PUT( m_bCanShowInviteUserList )
+		&& PUT( m_bCanShowInviteGuildList )
+		&& PUT( m_bRegMyGuildFindAd )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_GET_GUILD_FIND_AD_LIST_ACK, obj, ks )
+{
+	return GET( m_cSortType )
+		&& GET( m_uiTotalPage )
+		&& GET( m_uiViewPage )
+		&& GET( m_vecGuildFindAdList )
+		&& GET( m_bCanShowInviteUserList )
+		&& GET( m_bCanShowInviteGuildList )
+		&& GET( m_bRegMyGuildFindAd )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_REGISTRATION_GUILD_INVITE_MSG_REQ, obj, ks )
+{
+	return PUT( m_bOldInviteMsgDelete )
+		&& PUT( m_iUnitUID )
+		&& PUT( m_cUnitClass )
+		&& PUT( m_iUnitLevel )
+		&& PUT( m_wstrNickName )
+		&& PUT( m_wstrMessage )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_REGISTRATION_GUILD_INVITE_MSG_REQ, obj, ks )
+{
+	return GET( m_bOldInviteMsgDelete )
+		&& GET( m_iUnitUID )
+		&& GET( m_cUnitClass )
+		&& GET( m_iUnitLevel )
+		&& GET( m_wstrNickName )
+		&& GET( m_wstrMessage )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_REGISTRATION_GUILD_INVITE_MSG_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iED )
+		&& PUT( m_sPeriod )
+		&& PUT( m_wstrNickName )
+		&& PUT( m_wstrMessage )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_REGISTRATION_GUILD_INVITE_MSG_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iED )
+		&& GET( m_sPeriod )
+		&& GET( m_wstrNickName )
+		&& GET( m_wstrMessage )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_REGISTRATION_GUILD_FIND_AD_REQ, obj, ks )
+{
+	return PUT( m_sPeriod )
+		&& PUT( m_wstrFindAdMessage )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_REGISTRATION_GUILD_FIND_AD_REQ, obj, ks )
+{
+	return GET( m_sPeriod )
+		&& GET( m_wstrFindAdMessage )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_REGISTRATION_GUILD_FIND_AD_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iED )
+		&& PUT( m_sPeriod )
+		&& PUT( m_wstrFindAdMessage )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_REGISTRATION_GUILD_FIND_AD_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iED )
+		&& GET( m_sPeriod )
+		&& GET( m_wstrFindAdMessage )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_GET_GUILD_INVITE_USER_LIST_REQ, obj, ks )
+{
+	return PUT( m_uiViewPage )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_GET_GUILD_INVITE_USER_LIST_REQ, obj, ks )
+{
+	return GET( m_uiViewPage )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_GET_GUILD_INVITE_USER_LIST_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_wstrGuildName )
+		&& PUT( m_uiTotalPage )
+		&& PUT( m_uiViewPage )
+		&& PUT( m_vecGuildInviteUserList )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_GET_GUILD_INVITE_USER_LIST_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_wstrGuildName )
+		&& GET( m_uiTotalPage )
+		&& GET( m_uiViewPage )
+		&& GET( m_vecGuildInviteUserList )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_GET_GUILD_INVITE_GUILD_LIST_REQ, obj, ks )
+{
+	return PUT( m_uiViewPage )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_GET_GUILD_INVITE_GUILD_LIST_REQ, obj, ks )
+{
+	return GET( m_uiViewPage )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_GET_GUILD_INVITE_GUILD_LIST_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_uiTotalPage )
+		&& PUT( m_uiViewPage )
+		&& PUT( m_vecGuildInviteGuildList )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_GET_GUILD_INVITE_GUILD_LIST_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_uiTotalPage )
+		&& GET( m_uiViewPage )
+		&& GET( m_vecGuildInviteGuildList )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_ACCEPT_INVITE_REQ, obj, ks )
+{
+	return PUT( m_iGuildUID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_ACCEPT_INVITE_REQ, obj, ks )
+{
+	return GET( m_iGuildUID )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_CANCEL_INVITE_MSG_REQ, obj, ks )
+{
+	return PUT( m_iGuildUID )
+		&& PUT( m_iDeletedUnitUID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_CANCEL_INVITE_MSG_REQ, obj, ks )
+{
+	return GET( m_iGuildUID )
+		&& GET( m_iDeletedUnitUID )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_CANCEL_INVITE_MSG_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_bCancel )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_CANCEL_INVITE_MSG_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_bCancel )
+		;
+}
+#endif SERV_GUILD_FIND_AD
+
+#ifdef SERV_READY_TO_SOSUN_EVENT
+SERIALIZE_DEFINE_PUT( KEGS_READY_TO_SOSUN_EVENT_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_vecKInventorySlotInfo )
+		&& PUT( m_iFirstUnitClass )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_READY_TO_SOSUN_EVENT_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_vecKInventorySlotInfo )
+		&& GET( m_iFirstUnitClass )
+		;
+}
+#endif SERV_READY_TO_SOSUN_EVENT
+
+#ifdef SERV_MOMOTI_EVENT
+SERIALIZE_DEFINE_PUT( KEGS_MOMOTI_QUIZ_EVENT_REQ, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_istrReply )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_MOMOTI_QUIZ_EVENT_REQ, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_istrReply )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_MOMOTI_QUIZ_EVENT_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iCheckReward )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_MOMOTI_QUIZ_EVENT_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iCheckReward )
+		;
+}
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+SERIALIZE_DEFINE_PUT( KEGS_USE_PROPOSE_ITEM_REQ, obj, ks )
+{
+	return PUT( m_iUsedItemUID )
+		&& PUT( m_wstrNickName )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_USE_PROPOSE_ITEM_REQ, obj, ks )
+{
+	return GET( m_iUsedItemUID )
+		&& GET( m_wstrNickName )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_USE_PROPOSE_ITEM_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_wstrNickName )
+		&& PUT( m_vecKInventorySlotInfo )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_USE_PROPOSE_ITEM_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_wstrNickName )
+		&& GET( m_vecKInventorySlotInfo )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_PROPOSE_RESULT_ACCEPTOR_NOT, obj, ks )
+{
+	return PUT( m_vecUpdatedInventorySlot )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_EVENT_PROPOSE_RESULT_ACCEPTOR_NOT, obj, ks )
+{
+	return GET( m_vecUpdatedInventorySlot )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_USE_DIVORCE_ITEM_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_vecUpdatedInventorySlot )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_USE_DIVORCE_ITEM_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_vecUpdatedInventorySlot )
+		;
+}
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 #ifdef SERV_CHINA_SPIRIT_EVENT
 SERIALIZE_DEFINE_PUT( KEGS_USE_SPIRIT_REWARD_REQ, obj, ks )
 {
@@ -1081,56 +1422,17 @@ SERIALIZE_DEFINE_GET( KEGS_USE_SPIRIT_REWARD_ACK, obj, ks )
 }
 #endif SERV_CHINA_SPIRIT_EVENT
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
-SERIALIZE_DEFINE_PUT( KEGS_DUNGEON_SUB_STAGE_CLEAR_REQ, obj, ks )
-{
-	return PUT( m_iClearConditionIndex )
-		;
-}
-SERIALIZE_DEFINE_GET( KEGS_DUNGEON_SUB_STAGE_CLEAR_REQ, obj, ks )
-{
-	return GET( m_iClearConditionIndex )
-		;
-}
-SERIALIZE_DEFINE_PUT( KEGS_DUNGEON_SUB_STAGE_CLEAR_ACK, obj, ks )
-{
-	return PUT( m_iOK )
-		&& PUT( m_iClearType )
-		&& PUT( m_iStageIndex )
-		&& PUT( m_iSubStageIndex )
-		;
-}
-SERIALIZE_DEFINE_GET( KEGS_DUNGEON_SUB_STAGE_CLEAR_ACK, obj, ks )
-{
-	return GET( m_iOK )
-		&& GET( m_iClearType )
-		&& GET( m_iStageIndex )
-		&& GET( m_iSubStageIndex )
-		;
-}
-SERIALIZE_DEFINE_PUT( KEGS_SECRET_STAGE_LOAD_REQ, obj, ks )
-{
-	return PUT( m_iPadID )
-		;
-}
-SERIALIZE_DEFINE_GET( KEGS_SECRET_STAGE_LOAD_REQ, obj, ks )
-{
-	return GET( m_iPadID )
-		;
-}
-SERIALIZE_DEFINE_PUT( KEGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT, obj, ks )
-{
-	return PUT( m_iStartSecretStageEnteringEvent )
-		;
-}
-SERIALIZE_DEFINE_GET( KEGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT, obj, ks )
-{
-	return GET( m_iStartSecretStageEnteringEvent )
-		;
-}
-#endif SERV_STAGE_CLEAR_IN_SERVER
-
 #ifdef SERV_PERIOD_PET
+SERIALIZE_DEFINE_PUT( KEGS_RELEASE_PET_REQ, obj, ks )
+{
+	return PUT( m_iPetUID )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_RELEASE_PET_REQ, obj, ks )
+{
+	return GET( m_iPetUID )
+		;
+}
 SERIALIZE_DEFINE_PUT( KEGS_RELEASE_PET_ACK, obj, ks )
 {
 	return PUT( m_iOK )
@@ -1269,6 +1571,40 @@ SERIALIZE_DEFINE_GET( KEGS_RECRUIT_RECRUITER_INFO_NOT, obj, ks )
 }
 #endif SERV_RECRUIT_EVENT_BASE
 
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+
+SERIALIZE_DEFINE_PUT( KEGS_GET_EVENT_INFO_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_kEventCharacterRaking )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_GET_EVENT_INFO_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_kEventCharacterRaking )
+		;
+}
+
+#endif SERV_EVENT_CHARACTER_QUEST_RANKING
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_NOTE_VIEW_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iTitleID )
+		&& PUT( m_iNoteViewCount )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_EVENT_NOTE_VIEW_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iTitleID )
+		&& GET( m_iNoteViewCount )
+		;
+}
+#endif SERV_ELESIS_UPDATE_EVENT
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
 SERIALIZE_DEFINE_PUT( KEGS_2013_EVENT_MISSION_COMPLETE_REQ, obj, ks )
 {
@@ -1296,24 +1632,6 @@ SERIALIZE_DEFINE_GET( KEGS_2013_EVENT_MISSION_COMPLETE_ACK, obj, ks )
 }
 #endif SERV_NEW_YEAR_EVENT_2014
 
-#ifdef SERV_READY_TO_SOSUN_EVENT
-SERIALIZE_DEFINE_PUT( KEGS_READY_TO_SOSUN_EVENT_ACK, obj, ks )
-{
-	return PUT( m_iOK )
-		&& PUT( m_vecKInventorySlotInfo )
-		&& PUT( m_iFirstUnitClass )
-		;
-}
-
-SERIALIZE_DEFINE_GET( KEGS_READY_TO_SOSUN_EVENT_ACK, obj, ks )
-{
-	return GET( m_iOK )
-		&& GET( m_vecKInventorySlotInfo )
-		&& GET( m_iFirstUnitClass )
-		;
-}
-#endif SERV_READY_TO_SOSUN_EVENT
-
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 SERIALIZE_DEFINE_PUT( KEGS_GLOBAL_MISSION_UPDATE_NOT, obj, ks )
 {
@@ -1340,3 +1658,350 @@ SERIALIZE_DEFINE_GET( KEGS_UNLIMITED_SECOND_CHANGE_JOB_NOT , obj, ks )
 }
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
 
+#ifdef SERV_EVENT_CHECK_POWER
+SERIALIZE_DEFINE_PUT( KEGS_START_CHECK_POWER_REQ, obj, ks )
+{
+	return PUT( m_bStart )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_START_CHECK_POWER_REQ, obj, ks )
+{
+	return GET( m_bStart )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_UPDATE_CHECK_POWER_NOT, obj, ks )
+{
+	return PUT( m_ucCheckPowerCount )
+		&& PUT( m_iCheckPowerTime )
+		&& PUT( m_ucCheckPowerScore )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_UPDATE_CHECK_POWER_NOT, obj, ks )
+{
+	return GET( m_ucCheckPowerCount )
+		&& GET( m_iCheckPowerTime )
+		&& GET( m_ucCheckPowerScore )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_SET_MULTIPLYER, obj, ks )
+{
+	return PUT( fM )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_SET_MULTIPLYER, obj, ks )
+{
+	return GET( fM )
+		;
+}
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING
+SERIALIZE_DEFINE_PUT( KEGS_BUY_UI_SETTING_REQ, obj, ks )
+{
+	return PUT( m_iTimeControlItemType )
+		&& PUT( m_iHouseID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_BUY_UI_SETTING_REQ, obj, ks )
+{
+	return GET( m_iTimeControlItemType )
+		&& GET( m_iHouseID )
+		;
+}
+
+
+SERIALIZE_DEFINE_PUT( KEGS_BUY_UI_SETTING_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_setGetItemOnOff )
+		&& PUT( m_iHouseID )
+		&& PUT( m_iTimeControlItemType )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_BUY_UI_SETTING_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_setGetItemOnOff )
+		&& GET( m_iHouseID )
+		&& GET( m_iTimeControlItemType )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK, obj, ks )
+{
+	return PUT( m_mapGetItemOnOff )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK, obj, ks )
+{
+	return GET( m_mapGetItemOnOff )
+		;
+}
+
+#endif SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_CHUNG_GIVE_ITEM_NOT, obj, ks )
+{
+	return PUT( m_bGiveItemGet )
+		&& PUT( m_wstrToolTipTime )
+		&& PUT( m_cGetUnitClass )
+		&& PUT( m_bTwoGiveItem )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_EVENT_CHUNG_GIVE_ITEM_NOT, obj, ks )
+{
+	return GET( m_bGiveItemGet )
+		&& GET( m_wstrToolTipTime )
+		&& GET( m_cGetUnitClass )
+		&& GET( m_bTwoGiveItem )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_CHUNG_GIVE_ITEM_REQ, obj, ks )
+{
+	return PUT( iChoice )
+		&& PUT( bTwoGiveItem )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_EVENT_CHUNG_GIVE_ITEM_REQ, obj, ks )
+{
+	return GET( iChoice )
+		&& GET( bTwoGiveItem )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_CHUNG_GIVE_ITEM_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_wstrGetItemTime )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_EVENT_CHUNG_GIVE_ITEM_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_wstrGetItemTime )
+		;
+}
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_COBO_DUNGEON_FIELD_NOT , obj, ks )
+{
+	return PUT( m_StartButtonUI )
+		&& PUT( m_DungeonCountUI )
+		&& PUT( m_FieldCountUI )
+		&& PUT( m_DungeonCount )
+		&& PUT( m_FieldMonsterKillCount )
+		&& PUT( m_iOk )
+		&& PUT( m_iRemaindTime )
+		&& PUT( m_tPushTime )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_EVENT_COBO_DUNGEON_FIELD_NOT , obj, ks )
+{
+	return GET( m_StartButtonUI )
+		&& GET( m_DungeonCountUI )
+		&& GET( m_FieldCountUI )
+		&& GET( m_DungeonCount )
+		&& GET( m_FieldMonsterKillCount )
+		&& GET( m_iOk )
+		&& GET( m_iRemaindTime )
+		&& GET( m_tPushTime )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_COBO_DUNGEON_FIELD_REQ , obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_EventStart )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_EVENT_COBO_DUNGEON_FIELD_REQ , obj, ks )
+{
+		return GET( m_iOK )
+		&& GET( m_EventStart )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_COBO_DUNGEON_FIELD_ACK , obj, ks )
+{
+	return PUT( m_bStartUI )
+		&& PUT( m_DungeonCountUI )
+		&& PUT( m_FieldCountUI )
+		&& PUT( m_DungeonCount )
+		&& PUT( m_FieldMonsterKillCount )
+		&& PUT( m_iOK )
+		&& PUT( m_iRemaindTime )
+		&& PUT( m_wstrPushTime )
+		&& PUT( m_tPushTime )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_EVENT_COBO_DUNGEON_FIELD_ACK , obj, ks )
+{
+	return GET( m_bStartUI )
+		&& GET( m_DungeonCountUI )
+		&& GET( m_FieldCountUI )
+		&& GET( m_DungeonCount )
+		&& GET( m_FieldMonsterKillCount )
+		&& GET( m_iOK )
+		&& GET( m_iRemaindTime )
+		&& GET( m_wstrPushTime )
+		&& GET( m_tPushTime )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_COBO_DUNGEON_CLEAR_COUNT_NOT , obj, ks )
+{
+	return PUT( m_iDungeonClearCount )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_EVENT_COBO_DUNGEON_CLEAR_COUNT_NOT , obj, ks )
+{
+	return GET( m_iDungeonClearCount )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_COBO_FIELD_MONSTER_KILL_NOT , obj, ks )
+{
+	return PUT( m_iFieldMonsterKillCount )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_EVENT_COBO_FIELD_MONSTER_KILL_NOT , obj, ks )
+{
+	return GET( m_iFieldMonsterKillCount )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_COBO_ITEM_GIVE_CHEAT_NOT , obj, ks )
+{
+	return PUT( m_CoboEventITemGet )
+		&& PUT( m_bNextDay )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_EVENT_COBO_ITEM_GIVE_CHEAT_NOT , obj, ks )
+{
+	return GET( m_CoboEventITemGet )
+		&& GET( m_bNextDay )
+		;
+}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_NOT , obj, ks )
+{
+	return PUT( m_iValentineItemCount )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_NOT , obj, ks )
+{
+	return GET( m_iValentineItemCount )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_CHEAT_NOT , obj, ks )
+{
+	return PUT( m_iValentineItemCount )
+		;
+}
+SERIALIZE_DEFINE_GET( KEGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_CHEAT_NOT , obj, ks )
+{
+	return GET( m_iValentineItemCount )
+		;
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+SERIALIZE_DEFINE_PUT( KEGS_CASH_DIRECT_CHARGE_CN_REQ, obj, ks )
+{
+	return PUT( m_iUserUID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_CASH_DIRECT_CHARGE_CN_REQ, obj, ks )
+{
+	return GET( m_iUserUID )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_CASH_DIRECT_CHARGE_CN_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_wstrToken )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_CASH_DIRECT_CHARGE_CN_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_wstrToken )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_CASH_DIRECT_CHARGE_CN_NOT, obj, ks )
+{
+	return PUT( m_iOK )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_CASH_DIRECT_CHARGE_CN_NOT, obj, ks )
+{
+	return GET( m_iOK )
+		;
+}
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+SERIALIZE_DEFINE_PUT( KEGS_MANUFACTURE_PERIOD_SETTING_REQ, obj, ks )
+{
+	return PUT( m_iHouseID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_MANUFACTURE_PERIOD_SETTING_REQ, obj, ks )
+{
+	return GET( m_iHouseID )
+		;
+}
+SERIALIZE_DEFINE_PUT( KEGS_MANUFACTURE_PERIOD_SETTING_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_mapPeriodGroup )
+		&& PUT( m_iHouseID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_MANUFACTURE_PERIOD_SETTING_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_mapPeriodGroup )
+		&& GET( m_iHouseID )
+		;
+}
+#endif //SERV_MANUFACTURE_PERIOD_FIX
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+SERIALIZE_DEFINE_PUT( KEGS_4TH_ANNIV_EVENT_REWARD_REQ, obj, ks )
+{
+	return PUT( m_iSeletedIndex )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_4TH_ANNIV_EVENT_REWARD_REQ, obj, ks )
+{
+	return GET( m_iSeletedIndex )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_4TH_ANNIV_EVENT_REWARD_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iSeletedIndex )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_4TH_ANNIV_EVENT_REWARD_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iSeletedIndex )
+		;
+}
+#endif // SERV_4TH_ANNIVERSARY_EVENT

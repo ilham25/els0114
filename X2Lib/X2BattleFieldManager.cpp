@@ -162,6 +162,11 @@ bool CBattleFieldData::ParsingScriptFile( IN KLuaManager& luaManager_ )
 	ParsingBattleFieldMiddleBossInfo ( luaManager_ );
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
 
+#ifdef FIELD_BOSS_RAID
+	LUA_GET_VALUE( luaManager_, "IS_BOSS_RAID_FIELD", m_bIsBossRaidField, false);
+	LUA_GET_VALUE( luaManager_, "RAID_FIELD_PORTAL_POSITION_INDEX", m_usRaidFieldPortalPositionIndex, 0);
+#endif // FIELD_BOSS_RAID
+
 	return bResult;
 }
 
@@ -302,28 +307,15 @@ void CBattleFieldData::ParsingBattleFieldMiddleBossInfo ( IN KLuaManager& luaMan
 	@brief : BattleField 스크립트 파싱
 	@param : const char* szScriptFileName_
 */
-void CX2BattleFieldManager::OpenScriptFile( const char* szScriptFileName_ )
+void CX2BattleFieldManager::OpenScriptFile( const wchar_t* wszScriptFileName_ )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pBattleFieldManager", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( szScriptFileName_ );
-
-	if( Info == NULL )
-	{
-		ASSERT( !"LoadDataFile doesn't work!" );
-		ErrorLogMsg( XEM_ERROR1, szScriptFileName_ );
-		//return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
+    if ( g_pKTDXApp->LoadLuaTinker( wszScriptFileName_ ) == false )
+    {
 		ASSERT( !"DoMemory doesn't work!" );
-		ErrorLogMsg( XEM_ERROR2, szScriptFileName_ );
-		//return false;
-	}
-
-	//return true;
+		ErrorLogMsg( XEM_ERROR2, wszScriptFileName_ );
+    }
 }
 
 
@@ -333,7 +325,9 @@ void CX2BattleFieldManager::OpenScriptFile( const char* szScriptFileName_ )
 void CX2BattleFieldManager::AddBattleFieldData_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	// BattleFieldData의 shared_ptr 생성
 	CBattleFieldDataPtr ptrBattleFieldData = CreateBattleFieldDataPtr();
@@ -363,10 +357,10 @@ void CX2BattleFieldManager::AddBattleFieldData_LUA()
 	@brief : 기존의 BattleField정보(m_mapBattleFieldDataPtr)을 clear 하고, 새로 읽어 들임
 	@param : const char* szScriptFileName_
 */
-void CX2BattleFieldManager::ReOpenScriptFile( const char* szScriptFileName_ )
+void CX2BattleFieldManager::ReOpenScriptFile( const wchar_t* wszScriptFileName_ )
 {
 	m_mapBattleFieldDataPtr.clear();
-	OpenScriptFile( szScriptFileName_ );
+	OpenScriptFile( wszScriptFileName_ );
 }
 
 /** @function : GetWorldIdByBattleFieldId
@@ -452,10 +446,20 @@ UINT CX2BattleFieldManager::GetReturnVillageId( UINT uiBattleFieldId_ /*= -1*/) 
 {
 	if ( false == m_mapBattleFieldDataPtr.empty() )
 	{
-		//오현빈//2012-10-25//인자 비워서 호출하면 현재 필드의 ReturnVillageId 구하도록 변경
-		if( -1 == uiBattleFieldId_ )
+#ifdef FIELD_BOSS_RAID // 김태환
+		/// 레이드 필드일 경우, 입장 전 필드 아이디를 사용
+		if( true == g_pData->GetBattleFieldManager().GetIsBossRaidFieldByFieldID( uiBattleFieldId_ ) )
 		{
-			uiBattleFieldId_ = m_BattleFieldPositionInfo.m_uiBattleFieldIdWhereIam;
+			uiBattleFieldId_ = CX2BossRaidManager::GetInstance()->GetBossRaidCreatorMapID();
+		}
+		else
+#endif // FIELD_BOSS_RAID
+		{
+			//오현빈//2012-10-25//인자 비워서 호출하면 현재 필드의 ReturnVillageId 구하도록 변경
+			if( -1 == uiBattleFieldId_ )
+			{
+				uiBattleFieldId_ = m_BattleFieldPositionInfo.m_uiBattleFieldIdWhereIam;
+			}
 		}
 
 		// 현재 배틀필드의 정보를 가지고 온다.
@@ -578,3 +582,49 @@ bool CBattleFieldMiddleBossInfo::ParsingScriptFile ( IN KLuaManager& luaManager_
 
 
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
+
+#ifdef FIELD_BOSS_RAID
+bool CX2BattleFieldManager::GetIsBossRaidFieldByFieldID( const UINT uiBattleFieldID_ ) const
+{
+	if ( false == m_mapBattleFieldDataPtr.empty() )
+	{
+		// 현재 배틀필드의 정보를 가지고 온다.
+		BattleFieldDataPtrMap::const_iterator mItrBattleFieldDataPtr = m_mapBattleFieldDataPtr.find( uiBattleFieldID_ );
+
+		if ( mItrBattleFieldDataPtr != m_mapBattleFieldDataPtr.end() )
+		{
+			return mItrBattleFieldDataPtr->second->GetIsBossRaidField();
+		}
+	}
+
+	return false;
+}
+/** @function : GetIsBossRaidCurrentField
+	@brief : 현재 필드가 보스 레이드 필드인지 검사
+*/
+bool CX2BattleFieldManager::GetIsBossRaidCurrentField() const
+{
+	if( CX2Main::XS_BATTLE_FIELD != g_pMain->GetNowStateID() )
+		return false;
+
+	return GetIsBossRaidFieldByFieldID( GetBattleFieldIdWhereIam() );
+}
+/** @function : GetBossFieldPortalLineByFieldID
+	@brief : 보스 레이드 필드의 포탈이 열리는 라인맵 인덱스 얻기.
+*/
+const USHORT CX2BattleFieldManager::GetRaidFieldPortalLineByFieldID( const UINT uiBattleFieldID_ ) const
+{	
+	if ( false == m_mapBattleFieldDataPtr.empty() )
+	{
+		// 현재 배틀필드의 정보를 가지고 온다.
+		BattleFieldDataPtrMap::const_iterator mItrBattleFieldDataPtr = m_mapBattleFieldDataPtr.find( uiBattleFieldID_ );
+
+		if ( mItrBattleFieldDataPtr != m_mapBattleFieldDataPtr.end() )
+		{
+			return mItrBattleFieldDataPtr->second->GetRaidFieldPortalLineIndex();
+		}
+	}
+
+	return 0;
+}
+#endif // FIELD_BOSS_RAID

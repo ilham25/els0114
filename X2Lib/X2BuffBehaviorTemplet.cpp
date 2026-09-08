@@ -11,7 +11,7 @@
 case type_: \
 	{ \
 		CX2BuffBehaviorTempletPtr ptrBehaviorTemplet = class_::CreateBuffBehaviorTempletPtr(); \
-		if ( NULL != ptrBehaviorTemplet && ptrBehaviorTemplet->ParsingBehaviorTemplateMethod( luaManager_, STRINGIZE2(type_) ) ) \
+		if ( NULL != ptrBehaviorTemplet && ptrBehaviorTemplet->ParsingBehaviorTemplateMethod( luaManager_, STRINGIZEA2(type_) ) ) \
 		{ \
 			ptrBehaviorTemplet->SetType( type_ ); \
 			vecBuffBehaviorTempletPtr_.push_back( ptrBehaviorTemplet ); \
@@ -114,6 +114,24 @@ case type_: \
 	#ifdef FIX_SKILL_BALANCE_AISHA_LENA //JHKang
 			CASE_BEHAVIOR_TEMPLET( CX2BuffChangeConsumeMpRate, BBT_CHANGE_CONSUME_MP_RATE )
 	#endif //FIX_SKILL_BALANCE_AISHA_LENA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// Z 키 사용 X 키 사용 불가, 버프 타입 추가
+			CASE_BEHAVIOR_TEMPLET( CX2BuffIdentityBehaviorTemplet, BBT_Z_ATTACK_IMPOSSIBLE )
+			CASE_BEHAVIOR_TEMPLET( CX2BuffIdentityBehaviorTemplet, BBT_X_ATTACK_IMPOSSIBLE )
+			
+			// 각 속성 별 인챈트 확률 증가
+			CASE_BEHAVIOR_TEMPLET( CX2BuffChangeEncahntAttackRateBehaviorTemplet, BBT_CHANGE_ATTRIBUTE_BLAZE_ATTACK_RATE )
+			CASE_BEHAVIOR_TEMPLET( CX2BuffChangeEncahntAttackRateBehaviorTemplet, BBT_CHANGE_ATTRIBUTE_WATER_ATTACK_RATE )
+			CASE_BEHAVIOR_TEMPLET( CX2BuffChangeEncahntAttackRateBehaviorTemplet, BBT_CHANGE_ATTRIBUTE_NATURE_ATTACK_RATE )
+			CASE_BEHAVIOR_TEMPLET( CX2BuffChangeEncahntAttackRateBehaviorTemplet, BBT_CHANGE_ATTRIBUTE_WIND_ATTACK_RATE )
+			CASE_BEHAVIOR_TEMPLET( CX2BuffChangeEncahntAttackRateBehaviorTemplet, BBT_CHANGE_ATTRIBUTE_LIGHT_ATTACK_RATE )
+			CASE_BEHAVIOR_TEMPLET( CX2BuffChangeEncahntAttackRateBehaviorTemplet, BBT_CHANGE_ATTRIBUTE_DARK_ATTACK_RATE )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+			CASE_BEHAVIOR_TEMPLET( CX2BuffChangeStatBehaviorTemplet, BBT_CHANGE_HYPER_CHARGE_SPEED )
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 			case BBT_EMPTY:	/// 행동을 지정하지 않겠다고 명시적으로 해야함
 				return true;
 #ifdef EXCEPTION_BUFF_FACTOR_VER2
@@ -151,9 +169,9 @@ case type_: \
 	@param : 읽어들이고 있는 루아스크립트의 루아매니저(luaManager_), 파싱성공한 BehaviorTempletPtr을 담을 vector(vecBuffBehaviorTempletPtr_)
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
-bool CX2BuffBehaviorTemplet::ParsingBehaviorTemplateMethod( KLuaManager& luaManager_, const WCHAR* pwszTableName_ )
+bool CX2BuffBehaviorTemplet::ParsingBehaviorTemplateMethod( KLuaManager& luaManager_, const char* pszTableName_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -162,7 +180,7 @@ bool CX2BuffBehaviorTemplet::ParsingBehaviorTemplateMethod( KLuaManager& luaMana
 		return ParsingBehavior( luaManager_ );
 	}
 	else
-		return DISPLAY_ERROR( pwszTableName_ );	
+		return DISPLAY_ERROR( pszTableName_ );	
 }
 
 /** @function : SetFactorFromPacketTemplateMothod
@@ -206,9 +224,17 @@ bool CX2BuffBehaviorTemplet::SetFactorFromPacketTemplateMothod( const KBuffFacto
 	@brief : interval 타이머 Update, HP 변경
 	@param : HP가 변경되야 하는 게임유닛(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffChangeNowHpPerSecondBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffChangeNowHpPerSecondBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_CheckElapsedTimeForInterval.OnFrameMove( fElapsedTime_ );	/// Interval 타이머 진행
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_CheckElapsedTimeForInterval.OnFrameMove();	/// Interval 타이머 진행
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_delegateChangeHpByTypeFunc( pGameUnit_ );		/// HP 변경
 }
 
@@ -246,14 +272,31 @@ bool CX2BuffBehaviorTemplet::SetFactorFromPacketTemplateMothod( const KBuffFacto
 				const UINT uiAccumulationCountBefore = pBuffTemplet_->GetAccumulationCountNow();
 				if ( uiAccumulationCountBefore > 0 )	/// 중첩 이라면
 				{
-					// 중첩되었을 때 적용할 배율
-					const float fAccumulationMultiflier = pBuffTemplet_->GetAccumulationMultiflier();
-					// 이전 효과의 적용값
-					const float fOldValueOrPercent = m_fResultValue / ( 1 + fAccumulationMultiflier * (uiAccumulationCountBefore - 1) );
-					/// 이전 효과와 현재 효과 중 절대값 수치가 더 높을 것을 적용
-					m_fResultValue = ( abs(fNewValueOrPercent) > abs(fOldValueOrPercent) ? fNewValueOrPercent : fOldValueOrPercent );
-					/// 중첩 적용
-					m_fResultValue *= ( 1 + fAccumulationMultiflier * uiAccumulationCountBefore );	/// 현재의 중첩횠수 - 1을 곱해줘야 하는 Before는 현재-1과 같으므로 그냥 곱한다.
+#ifdef ADJUST_BUFF_ACCMULATION_CALCULATE
+					if( eChangeType == BCT_PERCENT )
+					{
+						//바뀐 공식은 첫 효과가 1중첩이 된 것이라고 생각하고 작성됨.
+						//따라서 uiAccumulationCountBefore에 1을 더해줌.
+						m_fResultValue = 1 + ( ( fNewValueOrPercent - 1.0f ) * ( uiAccumulationCountBefore + 1 ) );
+						if( m_fResultValue < 0.0f )
+						{
+							//m_fREsultValue값이 0보다 작지 않도록 값들을 계산해서 적어야 한다.(기획파트에서 정함)
+							DISPLAY_ERROR( L"m_fResultValue error" );
+							m_fResultValue = max( m_fResultValue, 0.0f );
+						}
+					}
+					else
+#endif //ADJUST_BUFF_ACCMULATION_CALCULATE
+					{		
+						// 중첩되었을 때 적용할 배율
+						const float fAccumulationMultiflier = pBuffTemplet_->GetAccumulationMultiflier();
+						// 이전 효과의 적용값
+						const float fOldValueOrPercent = m_fResultValue / ( 1 + fAccumulationMultiflier * (uiAccumulationCountBefore - 1) );
+						/// 이전 효과와 현재 효과 중 절대값 수치가 더 높을 것을 적용
+						m_fResultValue = ( abs(fNewValueOrPercent) > abs(fOldValueOrPercent) ? fNewValueOrPercent : fOldValueOrPercent );
+						/// 중첩 적용
+						m_fResultValue *= ( 1 + fAccumulationMultiflier * uiAccumulationCountBefore );	/// 현재의 중첩횠수 - 1을 곱해줘야 하는 Before는 현재-1과 같으므로 그냥 곱한다.
+					}
 				}
 				else	/// 교체 라면
 					m_fResultValue = ( abs(fNewValueOrPercent) > abs(m_fResultValue) ? fNewValueOrPercent : m_fResultValue );
@@ -455,9 +498,17 @@ void CX2BuffChangeNowHpPerSecondBehaviorTemplet::DrawText( CX2GameUnit* pGameUni
 	@brief : interval 타이머 Update, Mp 변경
 	@param : Mp가 변경되야 하는 게임유닛(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffChangeNowMpPerSecondBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffChangeNowMpPerSecondBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	m_CheckElapsedTimeForInterval.OnFrameMove( fElapsedTime_ );	/// Interval 타이머 진행
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_CheckElapsedTimeForInterval.OnFrameMove();	/// Interval 타이머 진행
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_delegateChangeMpByTypeFunc( pGameUnit_ );		/// Mp 변경
 }
 
@@ -495,14 +546,32 @@ void CX2BuffChangeNowHpPerSecondBehaviorTemplet::DrawText( CX2GameUnit* pGameUni
 				const UINT uiAccumulationCountBefore = pBuffTemplet_->GetAccumulationCountNow();
 				if ( uiAccumulationCountBefore > 0 )	/// 중첩 이라면
 				{
-					// 중첩되었을 때 적용할 배율
-					const float fAccumulationMultiflier = pBuffTemplet_->GetAccumulationMultiflier();
-					// 이전 효과의 적용값
-					const float fOldValueOrPercent = m_fResultValue / ( 1 + fAccumulationMultiflier * (uiAccumulationCountBefore - 1) );
-					/// 이전 효과와 현재 효과 중 절대값 수치가 더 높을 것을 적용
-					m_fResultValue = ( abs(fNewValueOrPercent) > abs(fOldValueOrPercent) ? fNewValueOrPercent : fOldValueOrPercent );
-					/// 중첩 적용
-					m_fResultValue *= ( 1 + fAccumulationMultiflier * uiAccumulationCountBefore );	/// 현재의 중첩횠수 - 1을 곱해줘야 하는 Before는 현재-1과 같으므로 그냥 곱한다.
+#ifdef ADJUST_BUFF_ACCMULATION_CALCULATE
+					if( eChangeType == BCT_PERCENT )
+					{
+						//바뀐 공식은 첫 효과가 1중첩이 된 것이라고 생각하고 작성됨.
+						//따라서 uiAccumulationCountBefore에 1을 더해줌.
+						m_fResultValue = 1 + ( ( fNewValueOrPercent - 1.0f ) * ( uiAccumulationCountBefore + 1 ) );
+
+						if( m_fResultValue < 0.0f )
+						{
+							//m_fREsultValue값이 0보다 작지 않도록 값들을 계산해서 적어야 한다.(기획파트에서 정함)
+							DISPLAY_ERROR( L"m_fResultValue error" );
+							m_fResultValue = max( m_fResultValue, 0.0f );
+						}
+					}
+					else
+#endif //ADJUST_BUFF_ACCMULATION_CALCULATE
+					{
+						// 중첩되었을 때 적용할 배율
+						const float fAccumulationMultiflier = pBuffTemplet_->GetAccumulationMultiflier();
+						// 이전 효과의 적용값
+						const float fOldValueOrPercent = m_fResultValue / ( 1 + fAccumulationMultiflier * (uiAccumulationCountBefore - 1) );
+						/// 이전 효과와 현재 효과 중 절대값 수치가 더 높을 것을 적용
+						m_fResultValue = ( abs(fNewValueOrPercent) > abs(fOldValueOrPercent) ? fNewValueOrPercent : fOldValueOrPercent );
+						/// 중첩 적용
+						m_fResultValue *= ( 1 + fAccumulationMultiflier * uiAccumulationCountBefore );	/// 현재의 중첩횠수 - 1을 곱해줘야 하는 Before는 현재-1과 같으므로 그냥 곱한다.
+					}
 				}
 				else	/// 교체 라면
 					m_fResultValue = ( abs(fNewValueOrPercent) > abs(m_fResultValue) ? fNewValueOrPercent : m_fResultValue );
@@ -661,9 +730,17 @@ void CX2BuffChangeNowMpPerSecondBehaviorTemplet::DrawText( CX2GameUnit* pGameUni
 	@brief : interval 타이머 Update 및 좌우반전 갱신
 	@param : 좌우반전이 갱신되야 하는 게임유닛(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffReverseLeftRightBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffReverseLeftRightBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_CheckElapsedTimeForInterval.OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_CheckElapsedTimeForInterval.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_CheckElapsedTimeForInterval.CheckAndResetElapsedTime() )
 		pGameUnit_->ToggleReverseLeftRightByBuff( pBuffTemplet_->GetBuffIdentity() );
 }
@@ -861,6 +938,18 @@ void CX2BuffChangeNowMpPerSecondBehaviorTemplet::DrawText( CX2GameUnit* pGameUni
 
 						case BCT_PERCENT:
 							{
+#ifdef ADJUST_BUFF_ACCMULATION_CALCULATE
+								//바뀐 공식은 첫 효과가 1중첩이 된 것이라고 생각하고 작성됨.
+								//따라서 uiAccumulationCountBefore에 1을 더해줌.
+								m_fResultValue = 1 + ( ( fNewValue - 1.0f ) * ( uiAccumulationCountBefore + 1 ) );
+
+								if( m_fResultValue < 0.0f )
+								{
+									//m_fREsultValue값이 0보다 작지 않도록 값들을 계산해서 적어야 한다.(기획파트에서 정함)
+									DISPLAY_ERROR( L"m_fResultValue error" );
+									m_fResultValue = max( m_fResultValue, 0.0f );
+								}
+#else //ADJUST_BUFF_ACCMULATION_CALCULATE
 								// 이전 효과의 적용값	/// 첫 중첩이면(uiAccumulationCountBefore <= 1) 기존의 적용값을 old 값으로 그대로 사용
 								const float fOldValue =
 									(uiAccumulationCountBefore <= 1) ? m_fResultValue : ( m_fResultValue / pow( fAccumulationMultiflier, static_cast<float>(uiAccumulationCountBefore - 1) ) );
@@ -871,6 +960,7 @@ void CX2BuffChangeNowMpPerSecondBehaviorTemplet::DrawText( CX2GameUnit* pGameUni
 								/// 현재의 중첩횟수 - 1 한 값을 을 곱해줘야 하는 uiAccumulationCountBefore가 이미 현재중첩횟수-1과 같으므로 그냥 곱한다.
 								m_fResultValue *= pow( fAccumulationMultiflier, static_cast<float>( uiAccumulationCountBefore ) );
 								//m_fResultValue += 1.0f;
+#endif //ADJUST_BUFF_ACCMULATION_CALCULATE
 							} break;
 
 						default:	/// 치환인 경우 행동요소는 중복 수행 안함
@@ -1006,6 +1096,9 @@ bool CX2BuffChangeStatBehaviorTemplet::MustUseOptionData() const
 	case BBT_CHANGE_CRITICAL_RATE:
 	case BBT_CHANGE_ADDITIONAL_ATTACK:
 	case BBT_CHANGE_ADDITIONAL_DEFENCE:
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case BBT_CHANGE_HYPER_CHARGE_SPEED:
+#endif //SERV_ADD_LUNATIC_PSYKER
 		return true;
 		break;
 		
@@ -1047,10 +1140,10 @@ bool CX2BuffChangeStatBehaviorTemplet::MustUseOptionData() const
 			{
 				CX2GUUser* pUser = reinterpret_cast<CX2GUUser*>( pGameUnit_ );
 				
-				if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+				if ( NULL == pUser->GetUnit() )
 					return false;
 
-				const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SKILL_ID( m_uiSkillId ) ) );	/// 스킬 레벨
 				pGameUnit_->CreateAndInsertTemporaryBuffFactor( *ptrBuffFactor, pBuffTemplet_->GetBuffIdentity(), iSkillTempletLevel );
 
@@ -1101,10 +1194,10 @@ bool CX2BuffChangeStatBehaviorTemplet::MustUseOptionData() const
 	{
 		CX2GUUser* pUser = reinterpret_cast<CX2GUUser*>( pGameUnit_ );
 				
-		if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+		if ( NULL == pUser->GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SKILL_ID( m_uiSkillId ) ) );	/// 스킬 레벨
 
 		pGameUnit_->CreateAndInsertTemporaryBuffFactor( *ptrBuffFactor, kBuffFactor_.m_BuffIdentity, iSkillTempletLevel );
@@ -1395,14 +1488,22 @@ bool CX2BuffChangeStatBehaviorTemplet::MustUseOptionData() const
 	@brief : 보여주기용 각성 시간을 갱신
 	@param : 각성중인 유닛(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffChangeHyperModeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffChangeHyperModeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( 0.0f < m_fRemainTime )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_fRemainTime -= fElapsedTime_;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_fRemainTime -= g_pKTDXApp->GetElapsedTime();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_fRemainTime = max( m_fRemainTime, 0.0f );
 		pGameUnit_->SetRemainHyperModeTime( m_fRemainTime );
-
+// robobeg : frame move 호출 빈도에 따라 이펙트가 달라질 수도 있다. --;
 		pGameUnit_->HyperModeBuffEffectOnFrameMove();
 	}
 }
@@ -1491,7 +1592,11 @@ bool CX2BuffChangeStatBehaviorTemplet::MustUseOptionData() const
 	@brief : 스킬 쿨타임 초기화
 	@param : 버프에 걸리 게임유닛(pGameUnit_), 버프의 템플리정보(pBuffTemplet_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffResetSkillCoolTimeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffResetSkillCoolTimeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( DidStart() )
 #ifdef UPGRADE_SKILL_SYSTEM_2013 /// 김태환
@@ -1841,7 +1946,7 @@ bool CX2BuffChangeStatBehaviorTemplet::MustUseOptionData() const
 	while( luaManager_.GetValue( iIndex, wstrEffectSetName ) )
 	{
 		m_vecWstrEffectSetName.push_back( wstrEffectSetName );
-		m_vecHandleEffectSet.push_back( CX2EffectSet::INVALID_HANDLE );
+		m_vecHandleEffectSet.push_back( INVALID_EFFECTSET_HANDLE );
 		wstrEffectSetName.resize(0);
 		++iIndex;
 	}
@@ -2119,7 +2224,11 @@ void CX2BuffFinishOtherBuffDebuffBehaviorTemplet::EraseBuffTempletFromGameUnit( 
 	}
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2BuffFreezeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2BuffFreezeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( DidStart() )
 		pGameUnit_->AnimStop();
@@ -2179,7 +2288,11 @@ void CX2BuffFreezeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2Buff
 	@brief : 매 프레임 SetCanPassUnit 지정
 	@param : 버프에 걸리 게임유닛(pGameUnit_), 버프의 템플리정보(pBuffTemplet_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffCanPassUnitBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffCanPassUnitBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2BuffTemplet* pBuffTemplet_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( DidStart() )
 		pGameUnit_->SetCanPassUnit( m_bCanPassUnit );
@@ -2407,7 +2520,11 @@ void CX2BuffFreezeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2Buff
 {
 	LUA_GET_VALUE_RETURN_ENUM( luaManager_, "BUFF_CHANGE_TYPE", m_eChangeType, 
 		BUFF_CHANGE_TYPE, BCT_SWAP_VALUE, return DISPLAY_ERROR( L"BUFF_CHANGE_TYPE" ) );
-
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 버프 타입에 대해 지정 가능하도록 추가
+	LUA_GET_VALUE_ENUM ( luaManager_, "ENCHANT_ATTRIBUTE_TYPE", m_eEnchantAttributeType, 
+		BUFF_ENCHANT_ATTRIBUTE_TYPE, BEAT_ALL );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	return true;
 }
 
@@ -2419,24 +2536,71 @@ void CX2BuffFreezeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2Buff
 {
 	const KBuffBehaviorFactor* pBehaviorFactor = NULL;
 
+
 	/// 버프가 가지고 있는 여러 요소 중 현재 클래스에 해당 하는 정보를 얻어옴
 	if ( BuffFactor_.GetBehaviorFactor( GetType(), &pBehaviorFactor ) )
 	{
 		if ( STATIC_CAST_FLOAT_TO_ENUM( BUFF_CHANGE_TYPE, (*pBehaviorFactor)[FO_CHANGE_TYPE] ) == m_eChangeType )
 		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// BBT_CHANGE_ATTRIBUTE_BLAZE_ATTACK_RATE 등 특정 속성만 강화 시키는 BBT 는
+			// m_eEnchantAttributeType 값만 수정해서 넣는다.
+			// 후에 확률 계산 때 해당 속성에 대해서만 체크하게 됨
+			switch ( GetType() )
+			{
+			case BBT_CHANGE_ATTRIBUTE_BLAZE_ATTACK_RATE :
+				m_eEnchantAttributeType = BEAT_BLAZE;
+				break;
+			case BBT_CHANGE_ATTRIBUTE_WATER_ATTACK_RATE :
+				m_eEnchantAttributeType = BEAT_FROZEN;
+				break;
+			case BBT_CHANGE_ATTRIBUTE_NATURE_ATTACK_RATE :
+				m_eEnchantAttributeType = BEAT_POSION;
+				break;
+			case BBT_CHANGE_ATTRIBUTE_LIGHT_ATTACK_RATE :
+				m_eEnchantAttributeType = BEAT_SHOCK;
+				break;
+			case BBT_CHANGE_ATTRIBUTE_DARK_ATTACK_RATE :
+				m_eEnchantAttributeType = BEAT_SNATCH;
+				break;
+			case BBT_CHANGE_ATTRIBUTE_WIND_ATTACK_RATE :
+				m_eEnchantAttributeType = BEAT_PIERCING;			
+				break;
+			}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+
 			if ( BCT_PERCENT == m_eChangeType ) /// 일단 무조건 배율
 			{
 				/*if ( DidStart() )
 				{*/
 					m_fRate = (*pBehaviorFactor)[FO_VALUE];
-
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+					// 공격 타입 및 변경 조건에 대해 추가
+					pGameUnit_->CreateAndInsertChangeEnchantAttackRate( pBuffTemplet_->GetBuffIdentity(), m_fRate, m_eEnchantAttributeType, m_eChangeType );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편					
 					pGameUnit_->CreateAndInsertChangeEnchantAttackRate( pBuffTemplet_->GetBuffIdentity(), m_fRate );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편					
 
 					return true;
 				//}
 			}
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// FIX_VALUE 까지 확장, 인챈트 속성 발동 확률이 0 이 넘어야지 적용된다.
+			else if ( BCT_FIX_VALUE == m_eChangeType )		
+			{
+				m_fRate = (*pBehaviorFactor)[FO_VALUE];
+				// 공격 타입 및 변경 조건에 대해 추가
+				pGameUnit_->CreateAndInsertChangeEnchantAttackRate( pBuffTemplet_->GetBuffIdentity(), m_fRate, m_eEnchantAttributeType, m_eChangeType );
+				return true;
+			}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			else
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				return DISPLAY_ERROR( L"ONLY BCT_PERCENT OR BCT_FIX_VALUE" );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				return DISPLAY_ERROR( L"ONLY BCT_PERCENT" );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
 		else
 			return DISPLAY_ERROR( L"MISS MATCH BUFF_CHANGE_TYPE" );
@@ -2451,6 +2615,7 @@ void CX2BuffFreezeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2Buff
 /*virtual*/ CX2BuffBehaviorTempletPtr CX2BuffChangeEncahntAttackRateBehaviorTemplet::GetClonePtr() const
 {
 	return CX2BuffBehaviorTempletPtr( new CX2BuffChangeEncahntAttackRateBehaviorTemplet( *this ) );
+
 }
 
 /** @function : GetFactor
@@ -2635,12 +2800,13 @@ void CX2BuffFreezeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2Buff
 	{
 		AttackSphereNameAndScale attackSphereNameAndScale;
 
-		LUA_GET_VALUE_RETURN( luaManager_, "ATTACK_SPHERE_NAME", attackSphereNameAndScale.m_wstrAttackSphereName, L"" );
-		LUA_GET_VALUE_RETURN( luaManager_, "SCALE", attackSphereNameAndScale.m_fScale, 1.0f );
+		LUA_GET_VALUE( luaManager_, "ATTACK_SPHERE_NAME", attackSphereNameAndScale.m_wstrAttackSphereName, L"" );
+		LUA_GET_VALUE( luaManager_, "SCALE", attackSphereNameAndScale.m_fScale, 1.0f );
 
 		m_vecAttackSphereNameAndScale.push_back( attackSphereNameAndScale );
 		++iIndex;
-		luaManager_.EndTable();
+
+        luaManager_.EndTable();
 	}
 
 	return true;
@@ -2906,10 +3072,10 @@ void CX2BuffFreezeBehaviorTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, CX2Buff
 		{
 			CX2GUUser* pUser = reinterpret_cast<CX2GUUser*>( pGameUnit_ );
 
-			if ( NULL == pUser->GetUnit() || NULL == pUser->GetUnit()->GetUnitData() )
+			if ( NULL == pUser->GetUnit() )
 				return false;
 
-			const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SKILL_ID( m_uiSkillId ) ) );
 						
 			if ( DidStart() )

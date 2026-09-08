@@ -1,14 +1,14 @@
 ﻿----------     Center Server 설정     ----------
 
 -- 크래쉬 리포트 메일링 리스트 --
-Server:SetMailingList( "kknd345@kog.co.kr, bowrain@kog.co.kr" )
+Server:SetMailingList( "ninil@kog.co.kr, bowrain@kog.co.kr" )
 
 -- 종료시 db 처리 대기시간 --
 Server:SetShutDownWait( 60 * 1000 )  -- 종료시 db 처리 대기시간 : 1분.
 
 -- 스크립트 파싱 실패 리포트
 Server:SetScriptParsingErrReport( true )
-Server:AddScriptParsingErrReportMail( 'kknd345@kog.co.kr' )	-- 조효진
+Server:AddScriptParsingErrReportMail( 'ninil@kog.co.kr' )	-- 조효진
 Server:AddScriptParsingErrReportMail( 'bowrain@kog.co.kr' ) -- 임규수
 
 -- Add moritoring server's IP for checking port of elsword's server ( SERV_PERMIT_PORT_CHECK )
@@ -41,7 +41,7 @@ AF_NEXON_KOREA : 넥슨 국내 인증
 SimLayer:SetAuthFlag( AF_INTERNAL )
 
 -- Script File Path --
-SimLayer:AddPath( "D:\\projectx2_svn\\source\\EU_CN_US\\Trunk\\KncWX2Server\\ServerResource\\CN" ) -- server script
+SimLayer:AddPath( "D:\\projectx2_svn\\source\\JP_TW_EU_CN_US\\Trunk\\KncWX2Server\\ServerResource\\CN" ) -- server script
 SimLayer:AddPath( "D:\\projectx2_svn\\resource\\ES_INT\\Branches\\ES_CN\\dat\\Script" ) -- client script
 
 
@@ -76,6 +76,7 @@ RoomManager:SetNumTrade( 300 )
 RoomManager:SetNumTrainingCenterRoom( 1500 )
 RoomManager:SetNumPersonalShop( 150 )
 RoomManager:SetNumBattleField( 1500 )
+RoomManager:SetNumWeddingHall( 300 )
 RoomManager:SetZUTickTime( 60 )					-- 좀비유저 체크 시간 설정
 RoomManager:SetBattleFieldZUTickTime( 20 )		-- 배틀필드 좀비유저 체크 시간 설정
 

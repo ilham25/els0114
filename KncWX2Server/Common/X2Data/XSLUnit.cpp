@@ -275,12 +275,22 @@ CXSLUnit::UNIT_CLASS CXSLUnit::GetUnitClassDownGrade( UNIT_CLASS eUnitClass )
 	case CXSLUnit::UC_ELESIS_KNIGHT:			return CXSLUnit::UC_ELESIS_KNIGHT;
 	case CXSLUnit::UC_ELESIS_SABER_KNIGHT:		return CXSLUnit::UC_ELESIS_KNIGHT;
 	case CXSLUnit::UC_ELESIS_PYRO_KNIGHT:		return CXSLUnit::UC_ELESIS_KNIGHT;
-#endif // SERV_NEW_CHARACTER_EL
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case CXSLUnit::UC_ELESIS_GRAND_MASTER:		return CXSLUnit::UC_ELESIS_SABER_KNIGHT;
+	case CXSLUnit::UC_ELESIS_BLAZING_HEART:		return CXSLUnit::UC_ELESIS_PYRO_KNIGHT;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 
+#endif // SERV_NEW_CHARACTER_EL
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND
 	case CXSLUnit::UC_ARA_LITTLE_DEVIL:			return CXSLUnit::UC_ARA_MARTIAL_ARTIST;
 	case CXSLUnit::UC_ARA_YAMA_RAJA:			return CXSLUnit::UC_ARA_LITTLE_DEVIL;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_9TH_NEW_CHARACTER
+	case CXSLUnit::UC_ADD_PSYCHIC_TRACER:		return CXSLUnit::UC_ADD_NASOD_RULER;
+#endif // SERV_9TH_NEW_CHARACTER
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CXSLUnit::UC_ADD_LUNATIC_PSYKER:		return CXSLUnit::UC_ADD_PSYCHIC_TRACER;
+#endif //SERV_ADD_LUNATIC_PSYKER
 	}
 
 	return CXSLUnit::UC_NONE;
@@ -391,18 +401,31 @@ CXSLUnit::UNIT_CLASS CXSLUnit::GetUnitClassBaseGrade( UNIT_CLASS eUnitClass )
 	case CXSLUnit::UC_ARA_LITTLE_HSIEN:
 	case CXSLUnit::UC_ARA_SAKRA_DEVANAM:
 #endif //SERV_ARA_CHANGE_CLASS_FIRST
-//#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case CXSLUnit::UC_ARA_LITTLE_DEVIL:
 	case CXSLUnit::UC_ARA_YAMA_RAJA:
-//#endif // SERV_ARA_CHANGE_CLASS_SECOND
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
 		return CXSLUnit::UC_ARA_MARTIAL_ARTIST;
 #endif
-//#ifdef SERV_NEW_CHARACTER_EL
+#ifdef SERV_NEW_CHARACTER_EL
 	case CXSLUnit::UC_ELESIS_KNIGHT:
 	case CXSLUnit::UC_ELESIS_SABER_KNIGHT:
 	case CXSLUnit::UC_ELESIS_PYRO_KNIGHT:
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case CXSLUnit::UC_ELESIS_GRAND_MASTER:
+	case CXSLUnit::UC_ELESIS_BLAZING_HEART:
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 		return CXSLUnit::UC_ELESIS_KNIGHT;
-//#endif // SERV_NEW_CHARACTER_EL
+#endif // SERV_NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case UC_ADD_NASOD_RULER:
+	case UC_ADD_PSYCHIC_TRACER:
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case UC_ADD_LUNATIC_PSYKER:
+#endif //SERV_ADD_LUNATIC_PSYKER
+		return UC_ADD_NASOD_RULER;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 
 	return CXSLUnit::UC_NONE;
@@ -468,7 +491,14 @@ CXSLUnit::UNIT_CLASS CXSLUnit::GetUnitClassUpGrade( UNIT_CLASS eUnitClass )
 	case CXSLUnit::UC_ARA_LITTLE_DEVIL:	return CXSLUnit::UC_ARA_YAMA_RAJA;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case CXSLUnit::UC_ELESIS_SABER_KNIGHT:	return CXSLUnit::UC_ELESIS_GRAND_MASTER;
+	case CXSLUnit::UC_ELESIS_PYRO_KNIGHT:	return CXSLUnit::UC_ELESIS_BLAZING_HEART;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CXSLUnit::UC_ADD_PSYCHIC_TRACER:	return CXSLUnit::UC_ADD_LUNATIC_PSYKER;
+#endif //SERV_ADD_LUNATIC_PSYKER
 	}
 
 	return CXSLUnit::UC_NONE;
@@ -580,18 +610,31 @@ CXSLUnit::UNIT_TYPE CXSLUnit::GetUnitClassToUnitType( UNIT_CLASS eUnitClass )
 	case CXSLUnit::UC_ARA_LITTLE_HSIEN:
 	case CXSLUnit::UC_ARA_SAKRA_DEVANAM:
 #endif //SERV_ARA_CHANGE_CLASS_FIRST
-//#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case CXSLUnit::UC_ARA_LITTLE_DEVIL:
 	case CXSLUnit::UC_ARA_YAMA_RAJA:
-//#endif // SERV_ARA_CHANGE_CLASS_SECOND
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
 		return CXSLUnit::UT_ARA;
 #endif
-//#ifdef SERV_NEW_CHARACTER_EL
+#ifdef SERV_NEW_CHARACTER_EL
 	case CXSLUnit::UC_ELESIS_KNIGHT:
 	case CXSLUnit::UC_ELESIS_SABER_KNIGHT:
 	case CXSLUnit::UC_ELESIS_PYRO_KNIGHT:
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case CXSLUnit::UC_ELESIS_GRAND_MASTER:
+	case CXSLUnit::UC_ELESIS_BLAZING_HEART:
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트		
 		return CXSLUnit::UT_ELESIS;
-//#endif // SERV_NEW_CHARACTER_EL
+#endif // SERV_NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case UC_ADD_NASOD_RULER:
+	case UC_ADD_PSYCHIC_TRACER:
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case UC_ADD_LUNATIC_PSYKER:
+#endif //SERV_ADD_LUNATIC_PSYKER
+		return UT_ADD;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 
 	return CXSLUnit::UT_NONE;
@@ -653,6 +696,9 @@ bool CXSLUnit::IsFirstChangeJob( CXSLUnit::UNIT_CLASS unitClass )
 	case CXSLUnit::UC_ELESIS_SABER_KNIGHT:
 	case CXSLUnit::UC_ELESIS_PYRO_KNIGHT:
 #endif // SERV_NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CXSLUnit::UC_ADD_PSYCHIC_TRACER:
+#endif //SERV_9TH_NEW_CHARACTER
 		return true;
 	}
 
@@ -708,12 +754,20 @@ bool CXSLUnit::IsSecondChangeJob( CXSLUnit::UNIT_CLASS unitClass )
 	case CXSLUnit::UC_CHUNG_TACTICAL_TROOPER:
 #endif
 #ifdef SERV_ARA_CHANGE_CLASS_FIRST
-	case CXSLUnit::UC_ARA_SAKRA_DEVANAM: //제천
+	case CXSLUnit::UC_ARA_SAKRA_DEVANAM:		//제천
 #endif //SERV_ARA_CHANGE_CLASS_FIRST
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case CXSLUnit::UC_ARA_YAMA_RAJA:			//명왕
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case CXSLUnit::UC_ELESIS_GRAND_MASTER:		//그랜드 마스터
+	case CXSLUnit::UC_ELESIS_BLAZING_HEART:		//블레이징 하트
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CXSLUnit::UC_ADD_LUNATIC_PSYKER:		//루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
 		return true;
 	}
 
@@ -738,6 +792,9 @@ bool CXSLUnit::IsInitNormalJob( CXSLUnit::UNIT_CLASS unitClass )
 #ifdef SERV_NEW_CHARACTER_EL
 	case CXSLUnit::UC_ELESIS_KNIGHT:
 #endif //SERV_NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CXSLUnit::UC_ADD_NASOD_RULER:
+#endif //SERV_9TH_NEW_CHARACTER
 		return true;
 	}
 
@@ -755,6 +812,9 @@ bool CXSLUnit::IsMan_UnitType( UNIT_TYPE eUnitType )
 	case UT_ELSWORD:
 	case UT_RAVEN:
 	case UT_CHUNG:
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+	case UT_ADD:
+#endif //SERV_9TH_NEW_CHARACTER
 		{
 			return true;
 		}break;

@@ -41,7 +41,7 @@ bool CX2PVPResultTable::OpenScriptFile( const WCHAR* wstrFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "KPVPResultTable", this );
 
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( wstrFileName );
+	return g_pKTDXApp->LoadLuaTinker( wstrFileName );
 }
 
 

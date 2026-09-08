@@ -10,6 +10,9 @@
 #include "EventDataRefresh/EventNotifyMsgServerInfo.h"
 #else
 #include "GameEvent/GameEventScriptManager.h"
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+#include "GameEvent/GameEventDBManager.h"
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 //}}
 #include "GameSysVal/GameSysVal.h"
@@ -80,6 +83,10 @@
 #endif SERV_NEW_DEFENCE_DUNGEON
 //}}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	#include "X2Data/XSLFieldBossData.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+
 #define CASE_SCRIPT_REFRESH_SWAP_INSTANCE( flag, className ) \
 case KESR_SCRIPT_REFRESH_ORDER_NOT::flag: \
 	className::SwapInstance( g_pLua ); \
@@ -132,6 +139,10 @@ void KCnRMEventProcess::ProcessEvent( const KEventPtr& spEvent_ )
 	CASE( DBE_GET_DUNGEON_EVENT_INFO_ACK );
 #endif SERV_TIME_DROP_MONSTER_EVENT
 	//}}
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	CASE( DBE_EVENT_DB_SCRIPT_ACK );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 	default:
 		START_LOG( cerr, L"핸들러가 지정되지 않은 이벤트." )
@@ -216,6 +227,10 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	CASE_SCRIPT_REFRESH_SWAP_INSTANCE( OT_CN_FIELD_BOSS_DATA, CXSLFieldBossData );
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	default:
 		{
 			START_LOG( cerr, L"이쪽으로 오면 안되는 타입인데?" )
@@ -235,6 +250,15 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 #ifdef SERV_EVENT_SCRIPT_REFRESH
 	else if( kPacket_.m_iOrderType == KESR_SCRIPT_REFRESH_ORDER_NOT::OT_CN_GAME_EVENT_SCRIPT_MANAGER )
 	{
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		const std::map< int, EVENT_DATA >	mapEventScriptData = SiKGameEventScriptManager()->GetMapEventScriptData();
+		const std::map< int, EVENT_DATA >	mapEventDBData = SiKGameEventDBManager()->GetMapEventDBData();
+
+		SiKGameEventManager()->SetTotalEventData( mapEventScriptData, mapEventDBData );
+
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 		SiKGameEventManager()->RefreshEventScript();
 		//{{ 2012. 02. 03	박세훈	이벤트 관련정보 처리방법 변경 ( Script -> DB )
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
@@ -336,5 +360,24 @@ IMPL_ON_FUNC( DBE_GET_DUNGEON_EVENT_INFO_ACK )
 #endif SERV_TIME_DROP_MONSTER_EVENT
 //}}
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
 
+IMPL_ON_FUNC( DBE_EVENT_DB_SCRIPT_ACK )
+{
+
+	if( kPacket_.m_mapEventDBData.size() > 0 )
+	{
+		SiKGameEventDBManager()->SetEventDBData(kPacket_.m_mapEventDBData);
+
+		const std::map< int, EVENT_DATA >	mapEventScriptData = SiKGameEventScriptManager()->GetMapEventScriptData();
+		const std::map< int, EVENT_DATA >	mapEventDBData = SiKGameEventDBManager()->GetMapEventDBData();
+
+		SiKGameEventManager()->SetTotalEventData( mapEventScriptData, mapEventDBData );
+
+		SiKGameEventManager()->RefreshEventScript();
+
+	}
+}
+
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 

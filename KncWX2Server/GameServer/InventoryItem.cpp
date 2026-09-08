@@ -7,19 +7,22 @@
 #include "X2Data/XSLAttribEnchantItem.h"
 
 
-KInventoryItem::KInventoryItem() : 
-m_iItemUID( 0 ),
-m_iItemID( 0 ),
-m_iUsageType( 0 ),
-m_iEnchantLevel( 0 ),
-m_ucSealData( 0 ),
-m_sPeriod( 0 ),
+KInventoryItem::KInventoryItem()
+	: m_iItemUID( 0 )
+	, m_iItemID( 0 )
+	, m_iUsageType( 0 )
+	, m_iEnchantLevel( 0 )
+	, m_ucSealData( 0 )
+	, m_sPeriod( 0 )
 //{{ 2013. 05. 15	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-m_cItemState( 0 ),
+	, m_cItemState( 0 )
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 //}}
-m_bIsDBUpdate( true )
+	, m_bIsDBUpdate( true )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	, m_byteExpandedSocketNum( 0 )
+#endif // SERV_BATTLE_FIELD_BOSS
 {
 }
 
@@ -56,6 +59,9 @@ void KInventoryItem::Init( IN const KInventoryItemInfo& kInfo, IN const bool bNe
 	m_iEnchantLevel		 = static_cast<int>( kInfo.m_kItemInfo.m_cEnchantLevel );
 	m_kAttribEnchantInfo = kInfo.m_kItemInfo.m_kAttribEnchantInfo;
 	m_vecItemSocket		 = kInfo.m_kItemInfo.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+	m_byteExpandedSocketNum	= kInfo.m_kItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 	//{{ 2013. 05. 15	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	m_vecRandomSocket	 = kInfo.m_kItemInfo.m_vecRandomSocket;
@@ -99,6 +105,10 @@ void KInventoryItem::Init( IN const KInventoryItemInfo& kInfo, IN const bool bNe
 	CheckAndUpdateItemState();
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 	//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	m_byteExpandedSocketNum = kInfo.m_kItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 }
 
 int KInventoryItem::GetQuantity() const
@@ -216,7 +226,11 @@ bool KInventoryItem::GetItemSocketOption( IN const int iSocketIndex, OUT short& 
 		return false;
 	}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	int iMaxSocketCount = GetMaxSocketCount();
+#else // SERV_BATTLE_FIELD_BOSS
 	int iMaxSocketCount = SiCXSLSocketItem()->GetSocketCount( pItemTemplet->m_ItemGrade, pItemTemplet->m_ItemType );
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	// 소켓 인덱스 검사
 	if( iSocketIndex < 0 || iSocketIndex >= iMaxSocketCount )
@@ -404,6 +418,9 @@ void KInventoryItem::GetItemInfo( KItemInfo& kInfo ) const
 	kInfo.m_cEnchantLevel		= static_cast<char>( GetEnchantLevel() );
 	kInfo.m_kAttribEnchantInfo	= m_kAttribEnchantInfo;
 	kInfo.m_vecItemSocket		= GetItemSocketList();
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	kInfo.m_byteExpandedSocketNum	= m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 	//{{ 2013. 05. 15	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	kInfo.m_vecRandomSocket		= GetRandomSocketList();
@@ -411,6 +428,10 @@ void KInventoryItem::GetItemInfo( KItemInfo& kInfo ) const
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 	//}}
 	kInfo.m_ucSealData			= GetSealData();
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	kInfo.m_byteExpandedSocketNum	= m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 }
 
 void KInventoryItem::GetInventoryItemInfo( OUT KInventoryItemInfo& kInfo ) const
@@ -1004,7 +1025,11 @@ bool KInventoryItem::SetItemSocketOption( IN const int iSocketIndex, IN const sh
 		return false;
 	}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	int iMaxSocketCount = GetMaxSocketCount();
+#else // SERV_BATTLE_FIELD_BOSS
 	int iMaxSocketCount = SiCXSLSocketItem()->GetSocketCount( pItemTemplet->m_ItemGrade, pItemTemplet->m_ItemType );
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	// 소켓 인덱스 검사
 	if( iSocketIndex < 0 || iSocketIndex >= iMaxSocketCount )
@@ -1303,3 +1328,18 @@ void KInventoryItem::RollBackInitEndurance( int iChange )
 	m_iEndurance.AdjustInitValue( m_iEndurance.GetInitValue() - iChange );
 }
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+int KInventoryItem::GetMaxSocketCount( void ) const
+{
+	const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( m_iItemID );
+	if( pItemTemplet == NULL )
+	{
+		START_LOG( cerr, L"아이템 템플릿을 얻지 못함." )
+			<< BUILD_LOG( m_iItemID )
+			<< END_LOG;
+		return 0;
+	}
+
+	return SiCXSLSocketItem()->GetSocketCount( pItemTemplet->m_ItemGrade, pItemTemplet->m_ItemType ) + m_byteExpandedSocketNum;
+}
+#endif // SERV_BATTLE_FIELD_BOSS

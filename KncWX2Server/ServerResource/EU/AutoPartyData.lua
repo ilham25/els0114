@@ -44,6 +44,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNG
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"],		51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"],		56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"],		61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_NORMAL"],		66,	70	)
 
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_HARD"],		1,	10	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_HARD"],		11,	20	)
@@ -53,6 +54,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNG
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_HARD"],		51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_HARD"],		56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_HARD"],		61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_HARD"],		66,	70	)
 
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_EXPERT"],		1,	10	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_EXPERT"],		11,	20	)
@@ -62,6 +64,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNG
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_EXPERT"],		51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_EXPERT"],		56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_EXPERT"],		61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_DEFENCE_DUNGEON_ELDER_EXPERT"],		66,	70	)
 
 
 
@@ -74,6 +77,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_PRACTICE"
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_PRACTICE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_PRACTICE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_PRACTICE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_PRACTICE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		66,	70	)
 
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_CHALLENGE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		1,	10	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_CHALLENGE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		11,	20	)
@@ -83,6 +87,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_CHALLENGE
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_CHALLENGE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_CHALLENGE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_CHALLENGE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_HENIR_CHALLENGE"],	DUNGEON_ID["DI_ELDER_HENIR_SPACE"],		66,	70	)
 
 
 -- 엘더 비밀던전
@@ -94,6 +99,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"]
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_ELDER_SECRET_COMMON"],	51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_ELDER_SECRET_COMMON"],	56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_ELDER_SECRET_COMMON"],	61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_ELDER_SECRET_COMMON"],	66,	70	)
 
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ELDER_SECRET_HELL"],		1,	10	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ELDER_SECRET_HELL"],		11,	20	)
@@ -103,6 +109,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],	
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ELDER_SECRET_HELL"],		51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ELDER_SECRET_HELL"],		56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ELDER_SECRET_HELL"],		61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ELDER_SECRET_HELL"],		66,	70	)
 
 
 -- 베스마 비밀던전
@@ -114,6 +121,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"]
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_BESMA_SECRET_COMMON"],	51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_BESMA_SECRET_COMMON"],	56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_BESMA_SECRET_COMMON"],	61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_BESMA_SECRET_COMMON"],	66,	70	)
 
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_BESMA_SECRET_HELL"],		1,	10	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_BESMA_SECRET_HELL"],		11,	20	)
@@ -123,6 +131,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],	
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_BESMA_SECRET_HELL"],		51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_BESMA_SECRET_HELL"],		56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_BESMA_SECRET_HELL"],		61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_BESMA_SECRET_HELL"],		66,	70	)
 
 
 -- 알테라 비밀던전
@@ -134,6 +143,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"]
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_ALTERA_SECRET_COMMON"],	51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_ALTERA_SECRET_COMMON"],	56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_ALTERA_SECRET_COMMON"],	61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_ALTERA_SECRET_COMMON"],	66,	70	)
 
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ALTERA_SECRET_HELL"],	1,	10	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ALTERA_SECRET_HELL"],	11,	20	)
@@ -143,6 +153,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],	
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ALTERA_SECRET_HELL"],	51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ALTERA_SECRET_HELL"],	56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ALTERA_SECRET_HELL"],	61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_ALTERA_SECRET_HELL"],	66,	70	)
 
 
 -- 벨더 비밀던전
@@ -154,6 +165,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"]
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_VELDER_SECRET_COMMON"],	51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_VELDER_SECRET_COMMON"],	56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_VELDER_SECRET_COMMON"],	61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_NORMAL"],	DUNGEON_ID["DI_VELDER_SECRET_COMMON"],	66,	70	)
 
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_VELDER_SECRET_HELL"],	1,	10	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_VELDER_SECRET_HELL"],	11,	20	)
@@ -163,6 +175,7 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],	
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_VELDER_SECRET_HELL"],	51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_VELDER_SECRET_HELL"],	56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_VELDER_SECRET_HELL"],	61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_SECRET_HELL"],		DUNGEON_ID["DI_VELDER_SECRET_HELL"],	66,	70	)
 
 
 -- 각 던전마다 매칭 성사 인원 설정( 설정되지 않은 던전은 기본 4인으로 설정됨 )
@@ -310,3 +323,4 @@ AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNG
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_EVENT_VALENTINE_DAY"],		51,	55	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_EVENT_VALENTINE_DAY"],		56,	60	)
 AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_EVENT_VALENTINE_DAY"],		61,	65	)
+AutoPartyScriptManager:AddAutoPartyDungeonInfo( DUNGEON_MODE["DM_INVALID"],	DUNGEON_ID["DI_EVENT_VALENTINE_DAY"],		66,	70	)

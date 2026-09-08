@@ -46,7 +46,11 @@ void CrashReportProcess( LPVOID lpvState )
 	// get post-crash execute file's full path.
 	wchar_t szBuff[MAX_PATH] = {0};
 	::GetCurrentDirectoryW( MAX_PATH, szBuff );
+#ifdef _CONVERT_VS_2010
+	wcscat_s( szBuff, MAX_PATH, L"\\DumpUploader.exe" );
+#else
 	::wcscat( szBuff, L"\\DumpUploader.exe" );
+#endif _CONVERT_VS_2010
 
 	stm.str( L"" );  // 초기화 - 버퍼의 내용을 인자로 받은 문자열로 대치.
 
@@ -229,7 +233,6 @@ void KBaseServer::RegToLua()
 	lua_tinker::class_def<KBaseServer>( g_pLua, "AddPortCheckMoritoringServer", &KBaseServer::AddPortCheckMoritoringServer_LUA );
 #endif SERV_PERMIT_PORT_CHECK
 	//}}
-
 	//{{ 2011. 04. 13  우편 및 거래 감시 실시간 SMS 전송
 #ifdef SERV_MONITORING_LETTER_AND_TRADE_SMS
 	lua_tinker::class_def<KBaseServer>( g_pLua, "SetMonitoringLetterAndTradeSMS",		&KBaseServer::SetMonitoringLetterAndTradeSMS_LUA );
@@ -260,9 +263,9 @@ void KBaseServer::RegToLua()
 }
 
 extern const wchar_t* g_szConfigFile;
-#ifdef SERV_CHANGE_SERVER_CONFIG_FORDER
+#if defined( SERV_CHANGE_SERVER_CONFIG_FORDER ) && !defined( SERV_INT_INTERNAL )
 	#if defined( SERV_COUNTRY_TWHK )
-		const wchar_t* g_szConfigForderName = L"Config\\TWHK\\";
+		const wchar_t* g_szConfigForderName = L"Config\\TW\\";
 	#elif defined( SERV_COUNTRY_JP )
 		const wchar_t* g_szConfigForderName = L"Config\\JP\\";
 	#elif defined( SERV_COUNTRY_EU )
@@ -279,9 +282,13 @@ extern const wchar_t* g_szConfigFile;
 		const wchar_t* g_szConfigForderName = L"Config\\BR\\";
 	#elif defined( SERV_COUNTRY_PH )
 		const wchar_t* g_szConfigForderName = L"Config\\PH\\";
+	#elif defined( SERV_COUNTRY_IN )
+		const wchar_t* g_szConfigForderName = L"Config\\IN\\";
 	#else
 		const wchar_t* g_szConfigForderName = L"Config\\INT\\";
-#endif
+	#endif
+#else	
+		const wchar_t* g_szConfigForderName = L"Config\\INT\\";
 #endif //SERV_CHANGE_SERVER_CONFIG_FORDER
 
 #ifndef _DEBUG	// 디버그 안되는 오류 해외팀 수정
@@ -649,7 +656,7 @@ void KBaseServer::LoadINIFile( const wchar_t* szFileName_ )
 
 const std::wstring& KBaseServer::GetMainVersion() const
 {
-	if( m_eUseVersion < 0  ||  m_eUseVersion >= VERSION_ENUM::VE_MAX )
+	if( m_eUseVersion < 0  ||  m_eUseVersion >= VE_MAX )
 	{
 		START_LOG( cerr, L"잘못된 버전 인덱스 입니다!" )
 			<< BUILD_LOG( m_eUseVersion )
@@ -905,7 +912,12 @@ void KBaseServer::SendToLogDB( unsigned short usEventID )
     SendToLogDB( usEventID, char() );
 }
 
-
+#ifdef SERV_ADD_EVENT_DB
+void KBaseServer::SendToEventDB( unsigned short usEventID )
+{
+	SendToEventDB( usEventID, char() );
+}
+#endif //SERV_ADD_EVENT_DB
 
 //{{ 2011.2.11  조효진  모니터링툴 서버 포트 체크 시 에러로그 남는거 수정
 #ifdef SERV_PERMIT_PORT_CHECK

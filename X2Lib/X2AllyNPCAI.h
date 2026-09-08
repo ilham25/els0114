@@ -26,8 +26,11 @@ public:
 		int					targetAttakerRate;	// [0,100] 나를 공격한 유닛을 타겟팅할 확률				맞는 즉시, 타겟으로
 		int					targetPreserveRate; // [0,100] 현재 타겟을 유지할 확률, 현재 타겟이 있을 경우에만
 #ifdef EVOKE_TARGETING_BUG_FIX
-		wstring				wstrLuaTargetingFunc;	/// 메뉴얼 타겟팅 함수명
+		std::string			strLuaTargetingFunc;	/// 메뉴얼 타겟팅 함수명
 #endif EVOKE_TARGETING_BUG_FIX
+#ifdef ADD_NPC_CONDITION_TABLE
+		bool				bTargetOnlyOurTeam;
+#endif // ADD_NPC_CONDITION_TABLE
 
 		TargetData()
 		{
@@ -40,8 +43,11 @@ public:
 			targetAttakerRate	= 0;
 			targetPreserveRate	= 0;
 #ifdef EVOKE_TARGETING_BUG_FIX
-			wstrLuaTargetingFunc = L"";
+			strLuaTargetingFunc = "";
 #endif EVOKE_TARGETING_BUG_FIX
+#ifdef ADD_NPC_CONDITION_TABLE
+			bTargetOnlyOurTeam = false;
+#endif // ADD_NPC_CONDITION_TABLE
 		}
 	};
 
@@ -58,6 +64,10 @@ public:
 
 		bool		bStayOnCurrentLineGroup;
 
+#ifdef ADD_NPC_CONDITION_TABLE
+		bool		bIfCannotFindMoveStateDoWait; // 이동 스테이트 찾지 못하면 대기 하도록 하는 설정
+#endif // ADD_NPC_CONDITION_TABLE
+
 		ChaseMoveData()
 		{
 			destGap		= 0.f;
@@ -68,6 +78,9 @@ public:
 			dirChangeInterval		= 0.f;
 			walkDashInterval		= 0;
 			bStayOnCurrentLineGroup	= false;
+#ifdef ADD_NPC_CONDITION_TABLE
+			bIfCannotFindMoveStateDoWait = false; // 이동 스테이트 찾지 못하면 대기 하도록 하는 설정
+#endif // ADD_NPC_CONDITION_TABLE
 		}
 	};
 
@@ -118,8 +131,8 @@ public:
 #ifdef EVOKE_TARGETING_BUG_FIX			/// 메뉴얼 타겟팅 추가
 	bool GetEnableLuaTargetingFunc() const { return m_bEnableLuaTargetingFunc; }
 	void SetEnableLuaTargetingFunc(bool val) { m_bEnableLuaTargetingFunc = val; }
-	wstring GetLuaTargetingFunc() const { return m_wstrLuaTargetingFunc; }
-	void SetLuaTargetingFunc(wstring val) { m_wstrLuaTargetingFunc = val; }
+	const std::string& GetLuaTargetingFunc() const { return m_strLuaTargetingFunc; }
+	void SetLuaTargetingFunc( const std::string& val) { m_strLuaTargetingFunc = val; }
 #endif EVOKE_TARGETING_BUG_FIX
 
 public:
@@ -165,6 +178,10 @@ private:
 
 #ifdef EVOKE_TARGETING_BUG_FIX							/// 메뉴얼 타겟팅 추가
 	bool			m_bEnableLuaTargetingFunc;
-	wstring			m_wstrLuaTargetingFunc;
+	string			m_strLuaTargetingFunc;
 #endif EVOKE_TARGETING_BUG_FIX
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    std::vector<CX2GameUnit*>   m_vecpTempGameUnit;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 };

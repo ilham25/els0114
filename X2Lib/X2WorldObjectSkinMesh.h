@@ -3,7 +3,11 @@
 
 //{{ seojt // 2009-1-13, 17:04
 class CX2WorldObjectSkinMesh;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2WorldObjectSkinMesh>   CX2WorldObjectSkinMeshPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2WorldObjectSkinMesh>   CX2WorldObjectSkinMeshPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 //}} seojt // 2009-1-13, 17:04
 
 
@@ -28,7 +32,11 @@ class CX2WorldObjectSkinMesh : public CX2WorldObject
 	public:
 		static CX2WorldObjectSkinMeshPtr CreateWorldObjectSkinMesh( bool bBackgroundLoad_ )
         {
-            CX2WorldObjectSkinMeshPtr pObject( new CX2WorldObjectSkinMesh( bBackgroundLoad_ ), CKTDGObject::KTDGObjectDeleter() );
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            CX2WorldObjectSkinMeshPtr pObject( new CX2WorldObjectSkinMesh( bBackgroundLoad_ ) );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+			CX2WorldObjectSkinMeshPtr pObject( new CX2WorldObjectSkinMesh( bBackgroundLoad_ ), CKTDGObject::KTDGObjectDeleter() );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
             return pObject;
         }//CreateWorldObjectSkinMesh()
 
@@ -192,7 +200,7 @@ class CX2WorldObjectSkinMesh : public CX2WorldObject
 		float							m_fElapsedLastOccansionalEventTime;
 		float							m_fOccasionalEventTime;
 		int 							m_iOccasionalPlayRate;
-#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+//#ifdef UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
 	private:		
 		std::wstring					    m_wstrModelXSkinMeshName;
 		bool							    m_bXSkinMeshLoaded;
@@ -200,7 +208,7 @@ class CX2WorldObjectSkinMesh : public CX2WorldObject
         WORLD_OBJECT_SKIN_MESH_PLAY_TYPE    m_playTypeReq;
         bool                                m_bPlayTypeTransitionReq;
         bool                                m_bPendingPlayAnim;
-#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
+//#endif // UNIT_BACKGROUND_LOADING_TEST // 2008-12-11
 
 		float							m_fLocalInterval;
 		float							m_fLocalElapsedTime;
@@ -215,4 +223,5 @@ class CX2WorldObjectSkinMesh : public CX2WorldObject
 		wstring							m_wstrOriAnimName;
 		int								m_iOriPlayType;		
 #endif
+
 };

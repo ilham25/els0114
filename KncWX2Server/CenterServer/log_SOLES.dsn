@@ -4,5 +4,5 @@ UID=elsword
 DATABASE=Statistics
 WSID=INT-SERVER
 APP=Microsoft Data Access Components
-SERVER=192.168.199.137,7763
+SERVER=192.168.199.137,7762
 PWD=x2akstp!@#$

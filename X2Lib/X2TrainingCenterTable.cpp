@@ -13,17 +13,10 @@ bool CX2TrainingCenterTable::OpenScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "KTrainingCenterTable", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		return false;
-	}
+    }
 
 	return true;
 }
@@ -32,7 +25,9 @@ bool CX2TrainingCenterTable::OpenScriptFile( const WCHAR* pFileName )
 bool CX2TrainingCenterTable::AddTCTemplet_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	TC_TABLE_INFO	kInfo;
 
@@ -56,7 +51,7 @@ bool CX2TrainingCenterTable::AddTCTemplet_LUA()
 	LUA_GET_VALUE(	luaManager, "m_wstrDescTextureName",		kInfo.m_wstrDescTextureName,			L"" );
 	LUA_GET_VALUE(	luaManager, "m_wstrDescTexturePieceName",	kInfo.m_wstrDescTexturePieceName,		L"" );
 	
-	if( luaManager.BeginTable( L"UNIT_CLASS" ) == true )
+	if( luaManager.BeginTable( "UNIT_CLASS" ) == true )
 	{
 		int index	= 1; 
 		int buf		= -1;
@@ -111,11 +106,13 @@ vector<int>& CX2TrainingCenterTable::GetTrainingListByUnitClass( CX2Unit::UNIT_C
 bool CX2TrainingCenterTable::SetTrainingListByUnitClass_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 
 	CX2Unit::UNIT_CLASS eUnitClass;
-	LUA_GET_VALUE_ENUM( luaManager, L"UNIT_CLASS", eUnitClass, CX2Unit::UNIT_CLASS, CX2Unit::UC_NONE );
+	LUA_GET_VALUE_ENUM( luaManager, "UNIT_CLASS", eUnitClass, CX2Unit::UNIT_CLASS, CX2Unit::UC_NONE );
 
 	if( CX2Unit::UC_NONE == eUnitClass )
 		return false;
@@ -124,7 +121,7 @@ bool CX2TrainingCenterTable::SetTrainingListByUnitClass_LUA()
 	vector<int>& vecTrainingList = GetTrainingListByUnitClass( eUnitClass );
 	vecTrainingList.clear();
 
-	if( true == luaManager.BeginTable( L"TRAINING_ID_LIST" ) )
+	if( true == luaManager.BeginTable( "TRAINING_ID_LIST" ) )
 	{
 		int index	= 1; 
 		int iTrainingID = -1;

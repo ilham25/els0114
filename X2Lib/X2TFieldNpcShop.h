@@ -171,13 +171,11 @@ protected:
     //{{ seojt // 2009-8-18, 18:03, qff
     CKTDGUIDialogType       m_pDlgMessage;
     //}} seojt // 2009-8-18, 18:03
-
-
-	std::vector<NPCSHOPTYPE> m_vecShopType;
-
 #ifdef SERV_READY_TO_SOSUN_EVENT
 	CKTDGUIDialogType		m_pDlgReadyToSosun;
 #endif SERV_READY_TO_SOSUN_EVENT
+
+	std::vector<NPCSHOPTYPE> m_vecShopType;
 
 private:
 	int						m_iNpcID;

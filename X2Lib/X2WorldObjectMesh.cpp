@@ -2,7 +2,6 @@
 #include ".\x2worldobjectmesh.h"
 #include "KTDXDeviceManager.h"
 
-
 CX2WorldObjectMesh::CX2WorldObjectMesh( bool bBackgroundLoad_ )
 	: CX2WorldObject( bBackgroundLoad_ )
 {
@@ -13,10 +12,10 @@ CX2WorldObjectMesh::CX2WorldObjectMesh( bool bBackgroundLoad_ )
 	m_bLOD				= false;
 	m_pXMesh			= NULL;
 	m_pXMeshLOD			= NULL;
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
     m_bXMeshLoaded      = false;
     m_bXMeshLODLoaded   = false;
-#endif // BACKGROUND_LOADING_TEST // 2008-10-20
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-20
 	m_pMultiTexXET		= NULL;
 	m_pChangeTexXET		= NULL;
 
@@ -36,8 +35,17 @@ CX2WorldObjectMesh::CX2WorldObjectMesh( bool bBackgroundLoad_ )
 	INIT_VECTOR2( m_Tex1UVSpeed, 0.0f, 0.0f );
 	INIT_VECTOR2( m_Tex2UVSpeed, 0.0f, 0.0f );
 
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+	m_RenderParam.fOutLineWide = CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 	m_RenderParam.fOutLineWide = 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 	m_RenderParam.outLineColor = D3DXCOLOR( 1.f, 0.f, 0.f, 1.f);
+
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+	m_pkBoundingSphere = g_pKTDXApp->GetDeviceManager()->OpenXMesh( L"Bounding_Sphere.x" );
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+
 }
 
 
@@ -48,13 +56,17 @@ CX2WorldObjectMesh::~CX2WorldObjectMesh(void)
 	SAFE_CLOSE( m_pXMesh );
 	SAFE_CLOSE( m_pXMeshLOD );
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
     m_bXMeshLoaded      = false;
     m_bXMeshLODLoaded   = false;
-#endif // BACKGROUND_LOADING_TEST // 2008-10-20
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-20
 
 	SAFE_CLOSE( m_pMultiTexXET );
 	SAFE_CLOSE( m_pChangeTexXET );
+
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+	SAFE_CLOSE( m_pkBoundingSphere );
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
 }
 
 HRESULT CX2WorldObjectMesh::OnFrameMove( double fTime, float fElapsedTime )
@@ -122,7 +134,7 @@ HRESULT CX2WorldObjectMesh::OnFrameMove( double fTime, float fElapsedTime )
 /*virtual*/
 RENDER_HINT   CX2WorldObjectMesh::OnFrameRender_Prepare() 
 { 
-    __super::SetLastAccessTime( g_NowTime );
+    //__super::SetLastAccessTime( g_NowTime );
 	
 	//{{ 09.03.02 김태완 : 지정된 거리 이상 멀어지면 안 보이게 하기
 	if(m_fHideDistance > 0.f)
@@ -174,7 +186,7 @@ RENDER_HINT   CX2WorldObjectMesh::OnFrameRender_Prepare()
 			{		
 				//레이가 모델에 히트하면
 				float fDist = 0.f;
-				if( RayHit( g_pKTDXApp->GetDGManager()->GetCamera()->GetEye(), g_pKTDXApp->GetDGManager()->GetCamera()->GetLookAt(), 
+				if( RayHit( g_pKTDXApp->GetDGManager()->GetCamera().GetEye(), g_pKTDXApp->GetDGManager()->GetCamera().GetLookAt(), 
 					&fDist, 
 					GetMatrix().GetMatrix(GetBillboardType()) ) == true )
 				{
@@ -224,6 +236,13 @@ RENDER_HINT   CX2WorldObjectMesh::OnFrameRender_Prepare()
 		}
 	}//if.. else..
 
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+	if ( m_pkBoundingSphere != NULL )
+	{
+		return RENDER_HINT_DEFAULT;
+	}//if
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+
     return RENDER_HINT_XMESH( m_RenderParam.renderType, m_RenderParam.bFog && m_RenderParam.bFogShow );
 }
 
@@ -266,7 +285,64 @@ void    CX2WorldObjectMesh::OnFrameRender_Draw()
     else
         renderParam.bAlphaBlend = false;
 
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+	g_pKTDXApp->GetDGManager()->GetXRenderer()->OnFrameRender( renderParam, worldMatrix, *pXMesh, m_pChangeTexXET, m_pMultiTexXET, NULL, 0, 1, &m_vecDrawSubset );
+#else//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 	g_pKTDXApp->GetDGManager()->GetXRenderer()->OnFrameRender( renderParam, worldMatrix, *pXMesh, m_pChangeTexXET, m_pMultiTexXET );
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+
+#ifdef X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
+	if ( m_pkBoundingSphere != NULL )
+	{
+		DWORD dwOldFillMode = CKTDGStateManager::GetRenderState( D3DRS_FILLMODE );
+		CKTDGStateManager::SetRenderState( D3DRS_FILLMODE, D3DFILL_WIREFRAME );
+		CKTDGStateManager::SetTexture( 0, NULL );
+		CKTDGStateManager::SetTexture( 1, NULL );
+
+		//mesh 전체에 대한 bounding sphere 렌더링
+		{
+			D3DXVECTOR3 vPos = GetCenter();
+			float   fRadius = GetBoundingRadius();
+
+			CKTDGXRenderer::RenderParam renderParam;
+			renderParam.renderType = CKTDGXRenderer::RT_REAL_COLOR;		
+			renderParam.color = D3DXCOLOR(1,0,0,1);
+			CKTDGMatrix matTemp( g_pKTDXApp->GetDevice() );
+
+			matTemp.Scale( fRadius, fRadius, fRadius );
+			matTemp.Move( vPos );	
+			D3DXMATRIX worldMatrix = matTemp.GetMatrix();
+
+			g_pKTDXApp->GetDGManager()->GetXRenderer()->OnFrameRender( renderParam, worldMatrix, *m_pkBoundingSphere );
+		}
+
+		//mesh subset에 대한 bounding sphere 렌더링
+		{
+			const std::vector< CKTDXDeviceXMesh::KSubsetCullingInfo >& vecSubsetBoundingSphere = pXMesh->GetSubsetCullingInfoVec();
+			for( int i = 0; i < m_vecDrawSubset.size(); i++ )
+			{
+				if( m_vecDrawSubset.size() > i && m_vecDrawSubset[i] == false )
+					continue;
+
+				D3DXVECTOR3 vPos = vecSubsetBoundingSphere[i].m_vCenter;
+				float   fRadius = vecSubsetBoundingSphere[i].m_fRadius;
+
+				CKTDGXRenderer::RenderParam renderParam;
+				renderParam.renderType = CKTDGXRenderer::RT_REAL_COLOR;		
+				renderParam.color = D3DXCOLOR(0,1,0,1);
+				CKTDGMatrix matTemp( g_pKTDXApp->GetDevice() );
+
+				matTemp.Scale( fRadius, fRadius, fRadius );
+				matTemp.Move( vPos );	
+				D3DXMATRIX worldMatrix = matTemp.GetMatrix();
+
+				g_pKTDXApp->GetDGManager()->GetXRenderer()->OnFrameRender( renderParam, worldMatrix, *m_pkBoundingSphere );
+			}
+		}
+
+		CKTDGStateManager::SetRenderState( D3DRS_FILLMODE, dwOldFillMode );
+	}//if
+#endif//X2OPTIMIZE_RENDER_BOUNDING_SPHERE_TEST
 }
 
 void CX2WorldObjectMesh::SetLOD( bool bLOD )
@@ -301,10 +377,10 @@ void CX2WorldObjectMesh::SetLOD( bool bLOD )
 
 bool CX2WorldObjectMesh::RayHit( D3DXVECTOR3 rayStart, D3DXVECTOR3 rayEnd, float* pHitDistance )
 {
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
     if ( !IsValidMesh() )
         return false;
-#endif // BACKGROUND_LOADING_TEST // 2008-10-20
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-20
 
 	D3DXVECTOR3 rayDir = rayEnd - rayStart;
 	D3DXVec3Normalize( &rayDir, &rayDir );
@@ -332,10 +408,10 @@ bool CX2WorldObjectMesh::RayHit( D3DXVECTOR3 rayStart, D3DXVECTOR3 rayEnd, float
 
 bool CX2WorldObjectMesh::RayHit( const D3DXVECTOR3& rayStart, const D3DXVECTOR3& rayEnd, float* pHitDistance, const D3DXMATRIX& transform )
 {
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
 	if ( !IsValidMesh() )
 		return false;
-#endif // BACKGROUND_LOADING_TEST // 2008-10-20
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-20
 
 	D3DXVECTOR3 rayDir = rayEnd - rayStart;
 	D3DXVec3Normalize( &rayDir, &rayDir );
@@ -389,7 +465,7 @@ void CX2WorldObjectMesh::SetXMesh_LUA( const char* pFileName )
     SetName( pFileName );
     //}} seojt // 2008-10-22, 11:53
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
 
     /** EnableThreadLoading 플래그가 true로 설정되어 있으면, 실제 로드가 아니라,
         리소스 로딩 쓰레드 큐로 큐잉을 진행한다.
@@ -469,9 +545,7 @@ void CX2WorldObjectMesh::SetXMesh_LUA( const char* pFileName )
 ////#endif	_HACKPROOF_OBSOLETE_
 //	}//if.. else..
 //#endif // BACKGROUND_LOADING_TEST // 2008-10-20
-#endif _HACKPROOF_CLIENT_
-
-
+//#endif // BACKGROUND_LOADING_TEST
 
 }//CX2WorldObjectMesh::SetXMesh_LUA()
 
@@ -483,7 +557,7 @@ void CX2WorldObjectMesh::SetXMeshLOD_LUA( const char* pFileName )
 	SAFE_CLOSE( m_pXMeshLOD );
 	ConvertUtf8ToWCHAR( m_XMeshLODName, pFileName );
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-20
 
     m_bXMeshLODLoaded = false;
     //if ( g_pKTDXApp->GetDeviceManager()->IsEnableThreadLoading() )
@@ -559,7 +633,7 @@ void CX2WorldObjectMesh::SetXMeshLOD_LUA( const char* pFileName )
 ////#endif	_HACKPROOF_OBSOLETE_
 //	}//if.. else..
 //#endif // BACKGROUND_LOADING_TEST // 2008-10-20
-#endif _HACKPROOF_CLIENT_
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-20
 
 
 
@@ -634,13 +708,14 @@ CKTDXDeviceXMesh* CX2WorldObjectMesh::GetMesh()
 #ifdef FOG_WORLD
 void CX2WorldObjectMesh::SetFog(float xNear, float xFar, float yNear, float yFar, D3DXCOLOR color, float density)
 {
-    m_RenderParam.bFogShow      = true;
-    m_RenderParam.bFog          = true;
-    m_RenderParam.fogColor      = color;
-    m_RenderParam.fogDensity    = density;
-    m_RenderParam.fogFarX       = xFar;
-    m_RenderParam.fogFarY       = yFar;
-    m_RenderParam.fogNearX      = xNear;
-    m_RenderParam.fogNearY      = yNear;
+	m_RenderParam.bFogShow      = true;
+	m_RenderParam.bFog          = true;
+	m_RenderParam.fogColor      = color;
+	m_RenderParam.fogDensity    = density;
+	m_RenderParam.fogFarX       = xFar;
+	m_RenderParam.fogFarY       = yFar;
+	m_RenderParam.fogNearX      = xNear;
+	m_RenderParam.fogNearY      = yNear;
 }
 #endif
+

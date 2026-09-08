@@ -236,6 +236,32 @@ void    CX2UnitLoader::AddUnitLoadDataForSquareOrField( CX2Unit* pUnit, bool bTF
     kLoadUserUnitData.m_UnitUID = uidUnitUID;
 
 	CX2SquareUnit::AppendToDeviceList( kLoadUserUnitData.m_listKTDXDeviceData, pUnit, bTField, CX2UnitViewerUI::UVS_FIELD );
+
+#ifdef  X2OPTIMIZE_VILLAGE_OR_SQUARE_PET_BACKGROUND_LOAD
+#ifdef SERV_PET_SYSTEM
+
+	if( g_pData != NULL && g_pData->GetPetManager() != NULL && pUnit->GetPetInfo() != NULL )
+	{
+		const KPetInfo *pPetInfo = pUnit->GetPetInfo();
+#ifdef SERV_PETID_DATA_TYPE_CHANGE //2013.07.02
+		const CX2PetManager::PetTemplet* pPetTemplet = g_pData->GetPetManager()->GetPetTemplet((CX2PetManager::PET_UNIT_ID)pPetInfo->m_iPetID);
+#else //SERV_PETID_DATA_TYPE_CHANGE
+		const CX2PetManager::PetTemplet* pPetTemplet = g_pData->GetPetManager()->GetPetTemplet((CX2PetManager::PET_UNIT_ID)pPetInfo->m_cPetID);
+#endif //SERV_PETID_DATA_TYPE_CHANGE
+		if ( pPetTemplet && pPetInfo->m_cEvolutionStep >= 0 && pPetInfo->m_cEvolutionStep < (int) pPetTemplet->m_Evolution_Step_InitLuaTemplet.size() )
+		{
+			const CX2PetManager::PetInitTemplet* pPetInitTemplet 
+				= pPetTemplet->m_Evolution_Step_InitLuaTemplet[ pPetInfo->m_cEvolutionStep ].m_pInitTemplet;
+			if ( pPetInitTemplet != NULL )
+			{
+				pPetInitTemplet->m_init.AppendToDeviceList( kLoadUserUnitData.m_listKTDXDeviceData );
+			}
+		}
+	}
+
+#endif	SERV_PET_SYSTEM
+#endif  X2OPTIMIZE_VILLAGE_OR_SQUARE_PET_BACKGROUND_LOAD
+
 }//CX2UnitLoader::AddUnitLoadDataForSquareOrField()
 
 

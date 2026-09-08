@@ -17,10 +17,6 @@ class KHSAuth
 		// 3분 ~ 4분 ( HackShield 버전 )
 		ST_LOOP_AUTH_TIME_MIN	= 180,	//min random time(auth check)
 		ST_LOOP_AUTH_TIME_MAX	= 240,	//max random time(auth check)
-
-		//
-		//ST_LOOP_AUTH_TIME_MIN	= 40,	//min random time(auth check)
-		//ST_LOOP_AUTH_TIME_MAX	= 60,	//max random time(auth check)
 	};
 
 	enum ENUM_TIMER

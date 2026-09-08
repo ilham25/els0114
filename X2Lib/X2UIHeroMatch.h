@@ -63,6 +63,7 @@ private:
 
 	void					UpdateUserList();
 	void					ClearList();
+	void					ToggleHelpList();
 
 	CKTDXStage*				m_pStage;
 	CKTDGUIDialogType		m_pDlgHeroMatch;

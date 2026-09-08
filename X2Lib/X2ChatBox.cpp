@@ -29,7 +29,6 @@ m_bOpenChatWindowButton( false ),
 m_bFocusChatEditBox( false )
 
 //{{ 허상형 : [2009/7/14] //	초기화
-#ifdef NASOD_SCOPE
 ,
 m_pDLGNasodScopeMessage( NULL ),
 m_pDLGNasodScopeMessageYesNo( NULL ),
@@ -38,7 +37,6 @@ m_pSelectedItemSlot( NULL ),
 m_wstrSenderName( L"" ),
 m_iMegaID( 0 ),
 m_iLastUsedMegaphoneTID( -1 )
-#endif
 //}} 허상형 : [2009/7/14] //
 
 //{{ kimhc // 2010.3.10 //	채팅창 개편
@@ -88,13 +86,12 @@ m_iLastUsedMegaphoneTID( -1 )
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGEmotionList );
 	m_pDLGEmotionList->SetShow(false);
 
-#ifdef NASOD_SCOPE
 	//{{ 허상형 : [2009/7/20] //	나소드 메가폰 메뉴 Dialog 초기화
 	m_pDLGNasodScopeUserMenu = new CKTDGUIDialog( m_pStage, L"DLG_Mega_Phone_User_Menu.lua" );
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGNasodScopeUserMenu );
 	m_pDLGNasodScopeUserMenu->SetShowEnable(false, false);	
 	//}} 허상형 : [2009/7/20] //	나소드 메가폰 메뉴 Dialog 초기화
-#endif
+
 	//채팅탭 우클릭 메뉴
 	m_pDLGTabMenu = new CKTDGUIDialog(m_pStage, L"DLG_Chatbox_Popup.lua");
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGTabMenu );
@@ -141,9 +138,7 @@ m_iLastUsedMegaphoneTID( -1 )
 #endif	CHAT_WINDOW_IMPROV
 //}} kimhc // 2010.3.12 //	채팅창 개편
 
-#ifdef AVATAR_EMOTION
 	m_vecDeviceSound.clear();
-#endif
 }
 
 CX2ChatBox::~CX2ChatBox()
@@ -152,13 +147,10 @@ CX2ChatBox::~CX2ChatBox()
 	SAFE_DELETE_DIALOG( m_pDLGChatWindowButton );
 	SAFE_DELETE_DIALOG( m_pDLGChatWindowEditBox );
 
-#ifdef NASOD_SCOPE
 	SAFE_DELETE_DIALOG( m_pDLGNasodScopeMessage );
 	SAFE_DELETE_DIALOG( m_pDLGNasodScopeUserMenu );
-#endif
 	SAFE_DELETE_DIALOG( m_pDLGTabMenu );
 
-#ifdef AVATAR_EMOTION
 	for(UINT i=0; i<m_vecDeviceSound.size(); ++i)
 	{
 		CKTDXDeviceSound *pSound = m_vecDeviceSound[i];
@@ -168,14 +160,12 @@ CX2ChatBox::~CX2ChatBox()
 			SAFE_CLOSE(pSound);
 		}
 	}
-#endif
 }
 
 HRESULT CX2ChatBox::OnFrameMove( double fTime, float fElapsedTime )
 {
 	KTDXPROFILE();
 
-#ifdef AVATAR_EMOTION
 	for(UINT i=0; i<m_vecDeviceSound.size(); ++i)
 	{
 		CKTDXDeviceSound *pSound = m_vecDeviceSound[i];
@@ -186,7 +176,6 @@ HRESULT CX2ChatBox::OnFrameMove( double fTime, float fElapsedTime )
 			--i;
 		}
 	}
-#endif
 
 	m_AntiChatSpam.OnFrameMove( fTime, fElapsedTime );
 
@@ -208,15 +197,15 @@ HRESULT CX2ChatBox::OnFrameMove( double fTime, float fElapsedTime )
 	BOOL bPressReturn2 = false;
 
 	bPressReturn1 = g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_RETURN)
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 					|| GET_KEY_STATE(GA_RETURN)
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 					;
 
 	bPressReturn2 = g_pKTDXApp->GetDIManager()->Getkeyboard()->GetExtraEnter()
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 					|| g_pKTDXApp->GetDIManager()->GetJoystic()->GetExtraEnter()
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 					;
 
 	// 일단 가열기 열었을경우 채팅창 열지 못하도록 한다.
@@ -247,7 +236,7 @@ HRESULT CX2ChatBox::OnFrameMove( double fTime, float fElapsedTime )
 			{
 				wstring wstrText = pEdit_Chat->GetText();
 #ifdef GLOBAL_CHAT_FUNCTION
-				wstring wstrFunction[12]; // [0] : 도움말, [1] : 귓속말, [2] : 귓속말 응신, [3] : 전체 채팅, [4] : 파티 채팅, [5] : 길드 채팅
+				wstring wstrFunction[14]; // [0] : 도움말, [1] : 귓속말, [2] : 귓속말 응신, [3] : 전체 채팅, [4] : 파티 채팅, [5] : 길드 채팅
 				
 				wstrFunction[0] = GET_STRING(STR_ID_14330);
 				wstrFunction[0] += L" ";
@@ -273,6 +262,12 @@ HRESULT CX2ChatBox::OnFrameMove( double fTime, float fElapsedTime )
 				wstrFunction[10] += L" ";
 				wstrFunction[11] = GET_STRING(STR_ID_14341);
 				wstrFunction[11] += L" ";
+#ifdef ADDED_RELATIONSHIP_SYSTEM
+				wstrFunction[12] = GET_STRING(STR_ID_30504);
+				wstrFunction[12] += L" ";
+				wstrFunction[13] = GET_STRING(STR_ID_30505);
+				wstrFunction[13] += L" ";
+#endif ADDED_RELATIONSHIP_SYSTEM
 	
 				if(boost::iequals(wstrText, wstrFunction[2]) || boost::iequals(wstrText, wstrFunction[8]))
 				{
@@ -320,6 +315,41 @@ HRESULT CX2ChatBox::OnFrameMove( double fTime, float fElapsedTime )
 
 					pEdit_Chat->ClearText();
 				}
+#ifdef ADDED_RELATIONSHIP_SYSTEM
+				else if(boost::iequals(wstrText, wstrFunction[12]) || boost::iequals(wstrText, wstrFunction[13]))
+				{
+					//{{ kimhc // 2010.3.10 //	채팅창 개편
+
+					if ( NULL != g_pData->GetRelationshipManager() &&
+						NULL != g_pData->GetRelationshipManager()->GetMyRelationshipInfo() )
+					{
+						switch ( g_pData->GetRelationshipManager()->GetMyRelationshipInfo()->m_eRelationStateType )
+						{
+						case SEnum::RT_MARRIED :
+#ifdef	CHAT_WINDOW_IMPROV
+							ChangeIMEEditBox( CWM_RELATION_MARRIED );
+							pEdit_Chat->RequestFocus();
+#else	CHAT_WINDOW_IMPROV
+							ChangeChatWindowAndIMEEditBox( CWM_RELATION_MARRIED );
+#endif	CHAT_WINDOW_IMPROV
+							break;
+
+						case SEnum::RT_COUPLE :
+#ifdef	CHAT_WINDOW_IMPROV
+							ChangeIMEEditBox( CWM_RELATION_COUPLE );
+							pEdit_Chat->RequestFocus();
+#else	CHAT_WINDOW_IMPROV
+							ChangeChatWindowAndIMEEditBox( CWM_RELATION_COUPLE );
+#endif	CHAT_WINDOW_IMPROV
+							break;
+
+						default :
+							break;
+						}
+					}
+					pEdit_Chat->ClearText();
+				}
+#endif ADDED_RELATIONSHIP_SYSTEM
 				else if(boost::iequals(wstrText, wstrFunction[0]) || boost::iequals(wstrText, wstrFunction[6]))
 				{
   					switch( GetChatWindowMode() )
@@ -354,6 +384,23 @@ HRESULT CX2ChatBox::OnFrameMove( double fTime, float fElapsedTime )
 								AddChatLog( m_vecChatHelpString[i].c_str(), KEGS_CHAT_REQ::CPT_WHISPER, D3DXCOLOR(0,1,0,1), L"#C00FF00", false );
 							}
 						} break;
+#ifdef ADDED_RELATIONSHIP_SYSTEM
+					case CWM_RELATION_COUPLE :
+						{	
+							for( UINT i=0; i<m_vecChatHelpString.size(); i++ )
+							{
+								AddChatLog( m_vecChatHelpString[i].c_str(), KEGS_CHAT_REQ::CPT_RELATIONSHIP, D3DXCOLOR(0,1,0,1), L"#C00FF00", false );
+							}
+						} break;		
+
+					case CWM_RELATION_MARRIED :
+						{	
+							for( UINT i=0; i<m_vecChatHelpString.size(); i++ )
+							{
+								AddChatLog( m_vecChatHelpString[i].c_str(), KEGS_CHAT_REQ::CPT_RELATIONSHIP, D3DXCOLOR(0,1,0,1), L"#C00FF00", false );
+							}
+						} break;		
+#endif // ADDED_RELATIONSHIP_SYSTEM
 					}
 
 					pEdit_Chat->ClearText();
@@ -855,10 +902,10 @@ HRESULT CX2ChatBox::OnFrameMove( double fTime, float fElapsedTime )
 	if ( NULL != g_pKTDXApp && NULL != g_pKTDXApp->GetDIManager() && NULL != g_pKTDXApp->GetDIManager()->Getkeyboard() )
 		g_pKTDXApp->GetDIManager()->Getkeyboard()->SetExtraEnter(FALSE);
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	if ( NULL != g_pKTDXApp && NULL != g_pKTDXApp->GetDIManager() && NULL != g_pKTDXApp->GetDIManager()->GetJoystic() )
 		g_pKTDXApp->GetDIManager()->GetJoystic()->SetExtraEnter(FALSE);
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
 	// 채팅창에 마우스 오버시 윈도우 프레임 보이도록한다.	
 	if(m_bOpenChatWindowButton == false)
@@ -981,7 +1028,6 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 				return true;			
 						
 			//{{ 허상형 : [2009/7/23] //	채팅창 닫았을때 포커스 닫히게
-#ifdef NASOD_SCOPE
 			CKTDGUIListBox *pListBox = GetCurrentChatbox();
 
 			if( pListBox != NULL )
@@ -989,12 +1035,18 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 				pListBox->ClearSelect();
 			}
 
-#endif
 			//}} 허상형 : [2009/7/23] //	채팅창 닫았을때 포커스 닫히게
 			
 			m_bChatEnteredBefore = true;
 			
 			wstring wstrChatMsg = GetChatMessage();
+#ifdef ALWAYS_IS_THIS_MESSAGESPAM_NOT
+			//귓속말 도배 금지 풀기 
+			if( wstrChatMsg.compare(L"/w ") == 0 )
+			{
+				wstrChatMsg = L"";
+			}
+#endif ALWAYS_IS_THIS_MESSAGESPAM_NOT
 			if( wstrChatMsg.length() == 0 )
 			{
 				//{{ kimhc // 2010.3.18 //	채팅창 개편
@@ -1010,6 +1062,7 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 			if(bEmotionCommand == false)
 			{
+#ifdef _SERVICE_
 				if( m_AntiChatSpam.GetSpamBlockingTimeLeft() > 0.f )
 				{
 					switch( GetChatWindowMode() )
@@ -1075,7 +1128,7 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 						{
 							AddChatLog( GET_REPLACED_STRING( ( STR_ID_55, "i", ( int )m_AntiChatSpam.GetNowSpamWarningCount() ) ), KEGS_CHAT_REQ::CPT_GUILD, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 						} break;
-#ifdef ADDED_RELATIONSHIP_SYSTEM
+			#ifdef ADDED_RELATIONSHIP_SYSTEM
 					case CWM_RELATION_MARRIED:
 						{
 							AddChatLog( GET_REPLACED_STRING( ( STR_ID_55, "i", ( int )m_AntiChatSpam.GetNowSpamWarningCount() ) ), KEGS_CHAT_REQ::CPT_RELATIONSHIP, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
@@ -1084,12 +1137,13 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 						{
 							AddChatLog( GET_REPLACED_STRING( ( STR_ID_55, "i", ( int )m_AntiChatSpam.GetNowSpamWarningCount() ) ), KEGS_CHAT_REQ::CPT_RELATIONSHIP, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
 						} break;
-#endif // ADDED_RELATIONSHIP_SYSTEM
+			#endif // ADDED_RELATIONSHIP_SYSTEM
 					}
 					ClearShortCutKeyProcess();
 					return true;
 				}
-			}		
+#endif
+			}
 
 
 		//{{ kimhc // 2010.3.10 //	채팅창 개선
@@ -1113,7 +1167,7 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 				wstrCmpMsg += L" ";
 			}
 
-			wstring wstrFunction[12]; // [0] : 도움말, [1] : 귓속말, [2] : 귓속말 응신, [3] : 전체 채팅, [4] : 파티 채팅, [5] : 길드 채팅
+			wstring wstrFunction[14]; // [0] : 도움말, [1] : 귓속말, [2] : 귓속말 응신, [3] : 전체 채팅, [4] : 파티 채팅, [5] : 길드 채팅
 
 			wstrFunction[0] = GET_STRING(STR_ID_14330);
 			wstrFunction[0] += L" ";
@@ -1139,6 +1193,12 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 			wstrFunction[10] += L" ";
 			wstrFunction[11] = GET_STRING(STR_ID_14341);
 			wstrFunction[11] += L" ";
+#ifdef ADDED_RELATIONSHIP_SYSTEM
+			wstrFunction[12] = GET_STRING(STR_ID_30504);
+			wstrFunction[12] += L" ";
+			wstrFunction[13] = GET_STRING(STR_ID_30505);
+			wstrFunction[13] += L" ";
+#endif ADDED_RELATIONSHIP_SYSTEM
 
 			if(boost::iequals(wstrCmpMsg, wstrFunction[1]) || boost::iequals(wstrCmpMsg, wstrFunction[7]))
 			{
@@ -1243,6 +1303,40 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 #endif CHAT_WINDOW_IMPROV
 			}
 #endif GUILD_MANAGEMENT
+#ifdef ADDED_RELATIONSHIP_SYSTEM
+			else if(boost::iequals(wstrCmpMsg, wstrFunction[12]) || boost::iequals(wstrCmpMsg, wstrFunction[13]))
+			{
+				//{{ kimhc // 2010.3.10 //	채팅창 개편
+
+				if ( NULL != g_pData->GetRelationshipManager() &&
+					NULL != g_pData->GetRelationshipManager()->GetMyRelationshipInfo() )
+				{
+					switch ( g_pData->GetRelationshipManager()->GetMyRelationshipInfo()->m_eRelationStateType )
+					{
+					case SEnum::RT_MARRIED :
+#ifdef	CHAT_WINDOW_IMPROV
+						ChangeIMEEditBox( CWM_RELATION_MARRIED );
+						return true;
+#else	CHAT_WINDOW_IMPROV
+						ChangeChatWindowAndIMEEditBox( CWM_RELATION_MARRIED );
+						return false;
+#endif	CHAT_WINDOW_IMPROV
+						break;
+					case SEnum::RT_COUPLE :
+#ifdef	CHAT_WINDOW_IMPROV
+						ChangeIMEEditBox( CWM_RELATION_COUPLE );
+						return true;
+#else	CHAT_WINDOW_IMPROV
+						ChangeChatWindowAndIMEEditBox( CWM_RELATION_COUPLE );
+						return false;
+#endif	CHAT_WINDOW_IMPROV
+						break;
+					default :
+						break;
+					}
+				}
+			}
+#endif ADDED_RELATIONSHIP_SYSTEM
 			else if(boost::iequals(wstrCmpMsg, wstrFunction[0]))
 			{
 				switch( GetChatWindowMode() )
@@ -1283,7 +1377,24 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 							AddChatLog( m_vecChatHelpString[i].c_str(), KEGS_CHAT_REQ::CPT_MEGAPHONE, D3DXCOLOR(0,1,0,1), L"#C00FF00", false );
 						}
 					} break;
+#ifdef ADDED_RELATIONSHIP_SYSTEM
+				case CWM_RELATION_COUPLE:
+					{
+						for( UINT i=0; i<m_vecChatHelpString.size(); i++ )
+						{
+							AddChatLog( m_vecChatHelpString[i].c_str(), KEGS_CHAT_REQ::CPT_RELATIONSHIP, D3DXCOLOR(0,1,0,1), L"#C00FF00", false );
+						}
+					} break;
+				case CWM_RELATION_MARRIED:
+					{
+						for( UINT i=0; i<m_vecChatHelpString.size(); i++ )
+						{
+							AddChatLog( m_vecChatHelpString[i].c_str(), KEGS_CHAT_REQ::CPT_RELATIONSHIP, D3DXCOLOR(0,1,0,1), L"#C00FF00", false );
+						}
+					} break;
+#endif // ADDED_RELATIONSHIP_SYSTEM
 				}
+
 
 				return false;
 			}
@@ -1900,13 +2011,13 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 			}
 #endif GLOBAL_CHAT_FUNCTION
 
+
 			if( false == bIsSystemCommand ) // 일반적인 채팅인 경우
 			{
 	//{{ kimhc // 2010.3.10 //	채팅창 개선
 #ifndef	CHAT_WINDOW_IMPROV
 
 	//{{ 허상형 : [2009/7/18] //	메가폰 탭에서 채팅 메시지 입력시 전체 채팅 창으로 탭이동, 및 메시지 출력
-	#ifdef NASOD_SCOPE
 				if( CWM_MEGAPHONE == GetChatWindowMode() )
 				{
 					if(eChatWindowMode != CWM_PERSONAL)
@@ -1915,7 +2026,6 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 						eChatWindowMode = CWM_TOTAL;
 					}					
 				}
-	#endif
 	//}} 허상형 : [2009/7/18] //	메가폰 탭에서 채팅 메시지 입력시 전체 채팅 창으로 탭이동, 및 메시지 출력
 
 #endif	CHAT_WINDOW_IMPROV	
@@ -2390,9 +2500,7 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 				CKTDGUIListBox* pListBox_Party = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Party" );
 				CKTDGUIListBox* pListBox_Guild = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Guild" );
 				CKTDGUIListBox* pListBox_Personal = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Personal" );
-#ifdef NASOD_SCOPE
 				CKTDGUIListBox* pListBox_Megaphone = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Megaphone" );
-#endif
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 				CKTDGUIListBox* pListBox_Relation = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Relation" );
@@ -2444,7 +2552,6 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
 
-#ifdef NASOD_SCOPE
 				if( NULL != pListBox_Megaphone )
 				{
 					pListBox_Megaphone->SetScrollBarEndPos();
@@ -2453,7 +2560,6 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 					pListBox_Personal->SetShowTimeAllItems( MAGIC_CHAT_SHOW_TIME );
 				}
 				//}} 허상형 : [2009/7/24] //		스크롤바 최하단 버튼을 눌렀을때 메시지가 보이도록 수정
-#endif
 
 			}
 			return true;
@@ -2622,7 +2728,7 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 				wstrText = GET_STRING(STR_ID_14331);
 				wstrText += L" ";
 #else GLOBAL_CHAT_FUNCTION
-                wstrText = L"/w ";
+				wstrText = L"/w ";
 #endif GLOBAL_CHAT_FUNCTION
 				wstrText += m_wstrLastWhiperNickName;
 				wstrText += L" ";
@@ -2697,7 +2803,7 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 				wstrText = GET_STRING(STR_ID_14331);
 				wstrText += L" ";
 #else GLOBAL_CHAT_FUNCTION
-                wstrText = L"/w ";
+				wstrText = L"/w ";
 #endif GLOBAL_CHAT_FUNCTION
 				wstrText += m_wstrLastWhiperNickName;
 				wstrText += L" ";
@@ -3005,7 +3111,6 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 #endif // ADDED_RELATIONSHIP_SYSTEM
 		//{{ 허상형 : [2009/7/14] // 나소드 메가폰 관련 이벤트 프로시저
-#ifdef NASOD_SCOPE
 	case NSUM_INSERT_MESSAGE_CLOSE:
 		{
 			return ShowNasodMessageDlg( false );
@@ -3129,7 +3234,7 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 			m_pDLGNasodScopeUserMenu->SetShowEnable(false, false);
 
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -3148,10 +3253,8 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 			return true;	
 		} break;
-#endif
 
 		//{{ 허상형 : [2009/7/22] //
-#ifdef NASOD_SCOPE
 	case NSUM_MENU_CLEAR:
 		{
 			CKTDGUIListBox* pListBox;
@@ -3173,9 +3276,7 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
 		} break;
-#endif
 		//}} 허상형 : [2009/7/22] //
-#ifdef NASOD_SCOPE
 		//	더블 클릭일 경우 귓말 모드로 전환 )
 	case NSUM_MENU_WHISPER:
 		{
@@ -3186,7 +3287,6 @@ bool CX2ChatBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
 			return true;
 		} break;
-#endif
 		//}} 허상형 : [2009/7/14] // 나소드 메가폰 관련 이벤트 프로시저
 	}
 
@@ -3224,7 +3324,6 @@ bool CX2ChatBox::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 		break;
 
 		//{{ 허상형 : [2009/7/15] // 나소드 메가폰 핸들러
-#ifdef NASOD_SCOPE
 	case EGS_USE_MEGAPHONE_ACK:
 		{
 			return Handler_EGS_USE_MEGAPHONE_ACK( hWnd, uMsg, wParam, lParam );
@@ -3236,7 +3335,6 @@ bool CX2ChatBox::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 			return Handler_EGS_MEGAPHONE_MESSAGE_NOT( hWnd, uMsg, wParam, lParam );
 		}
 		break;
-#endif
 		//}} 허상형 : [2009/7/15] // 나소드 메가폰 핸들러
 	case EGS_CHAT_OPTION_INFO_WRITE_ACK:
 		{
@@ -3434,7 +3532,6 @@ bool CX2ChatBox::Handler_EGS_CHAT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 			break;
 		}
 #endif SERVER_GROUP_UI_ADVANCED
-		
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300), GET_REPLACED_STRING( ( STR_ID_5132, "L", wstrServerName ) ), g_pMain->GetNowState() );
 		return true;
 	}
@@ -3727,12 +3824,19 @@ bool CX2ChatBox::Handler_EGS_CHAT_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 			case CX2Room::RCT_WHISPER:
 				{
 					wstringstream wstrmChatContent;
-
+#ifdef UPDATE_TO_STR_IN_WISPER
+					wstrmChatContent << wstrSenderNickName << L" : (" << GET_STRING( STR_ID_28125 ) << " ";
+#else
 					wstrmChatContent << wstrSenderNickName << L" : (to ";
+#endif UPDATE_TO_STR_IN_WISPER
 					wstrmChatContent << wstrReceiverNickName << ") ";
 					wstrmChatContent << kEvent.m_wstrMsg;
 
+#ifdef UPDATE_TO_STR_IN_WISPER
+					wstrmTalkBoxMsg << L"(" << GET_STRING( STR_ID_28125 ) << " ";
+#else
 					wstrmTalkBoxMsg << L"(to ";
+#endif UPDATE_TO_STR_IN_WISPER
 					wstrmTalkBoxMsg << wstrReceiverNickName << ") ";
 					wstrmTalkBoxMsg << kEvent.m_wstrMsg;
 
@@ -4001,7 +4105,7 @@ bool CX2ChatBox::Handler_EGS_NEW_BLACKLIST_USER_ACK( HWND hWnd, UINT uMsg, WPARA
 			{
 				g_pData->GetMyUser()->GetSelectUnit()->AddBlackList( kEvent.m_kChatBlackListUnit );
 			}
-			//if( true == g_pMain->GetGameOption()->AddBlackList( kEvent.m_iUnitUID, kEvent.m_wstrBlackListNick ) )
+			//if( true == g_pMain->GetGameOption().AddBlackList( kEvent.m_iUnitUID, kEvent.m_wstrBlackListNick ) )
 			{
 				//AddBlackListWindow( kEvent.m_wstrBlackListNick );
 			}
@@ -4042,7 +4146,7 @@ bool CX2ChatBox::Handler_EGS_DEL_BLACKLIST_USER_ACK( HWND hWnd, UINT uMsg, WPARA
 			{
 				g_pData->GetMyUser()->GetSelectUnit()->RemoveBlackList( kEvent.m_kChatBlackListUnit.m_iUnitUID );
 			}
-			//if( true == g_pMain->GetGameOption()->RemoveBlackList( kEvent.m_iUnitUID, kEvent.m_wstrBlackListNick ) )
+			//if( true == g_pMain->GetGameOption().RemoveBlackList( kEvent.m_iUnitUID, kEvent.m_wstrBlackListNick ) )
 			{
 				//RemoveBlackListWindow( kEvent.m_wstrBlackListNick );
 			}
@@ -4132,10 +4236,8 @@ void CX2ChatBox::UnHideChatEditBox()
 	CKTDGUIIMEEditBox* pEditChat = (CKTDGUIIMEEditBox*) m_pDLGChatWindowEditBox->GetControl( L"IMEEditBoxChatBox" );
 	if( NULL != pEditChat )
 	{
-#ifdef FIX_PERSONAL_CHAT
 		if( GetIMEEditWindowMode() == CWM_PERSONAL )
 			ChangeIMEEditBox( CWM_PERSONAL );
-#endif
 		
 		pEditChat->SetShowEnable( true, true );
 		pEditChat->RequestFocus();
@@ -4248,9 +4350,7 @@ void CX2ChatBox::HideChatWindowFrame()
 	CKTDGUIListBox* pListBox_Guild = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Guild" );
 	CKTDGUIListBox* pListBox_Personal = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Personal" );
 	//{{ 허상형 : [2009/7/17] //	메가폰 탭 스크롤바 객체
-#ifdef NASOD_SCOPE
 	CKTDGUIListBox* pListBox_Megaphone = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Megaphone" );
-#endif
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	CKTDGUIListBox* pListBox_Relation = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Relation" );
@@ -4264,9 +4364,7 @@ void CX2ChatBox::HideChatWindowFrame()
 	if( pListBox_Guild != NULL ) pListBox_Guild->GetScrollBar()->SetShowEnable( false, false );
 	if( pListBox_Personal != NULL ) pListBox_Personal->GetScrollBar()->SetShowEnable( false, false );
 	//{{ 허상형 : [2009/7/17] //	메가폰 탭 스크롤바 사라지기
-#ifdef NASOD_SCOPE
 	if( pListBox_Megaphone != NULL ) pListBox_Megaphone->GetScrollBar()->SetShowEnable( false, false );
-#endif
 	//}} 허상형 : [2009/7/17] //	메가폰 탭 스크롤바 사라지기
 	
 #ifdef ADDED_RELATIONSHIP_SYSTEM
@@ -4376,9 +4474,7 @@ void CX2ChatBox::UnHideChatWindowFrame()
 	CKTDGUIListBox* pListBox_Guild = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Guild" );
 	CKTDGUIListBox* pListBox_Personal = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Personal" );
 	//{{ 허상형 : [2009/7/17] //	메가폰 탭 스크롤바 객체
-#ifdef NASOD_SCOPE
 	CKTDGUIListBox* pListBox_Megaphone = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Megaphone" );
-#endif
 	//}} 허상형 : [2009/7/17] //	메가폰 탭 스크롤바 객체
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	CKTDGUIListBox* pListBox_Relation = static_cast <CKTDGUIListBox*> ( m_pDLGChatWindow->GetControl( L"ListBox_Relation" ) );
@@ -4394,9 +4490,7 @@ void CX2ChatBox::UnHideChatWindowFrame()
 	// 귓속말
 	pListBox_Personal->GetScrollBar()->SetShowEnable( true, true );
 	//{{ 허상형 : [2009/7/17] //	메가폰 탭 스크롤바 활성화
-#ifdef NASOD_SCOPE
 	pListBox_Megaphone->GetScrollBar()->SetShowEnable( true, true );
-#endif
 	//}} 허상형 : [2009/7/17] //	메가폰 탭 스크롤바 활성화
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	pListBox_Relation->GetScrollBar()->SetShowEnable( true, true );
@@ -4541,8 +4635,7 @@ void CX2ChatBox::AddChatLogObtain( const WCHAR* wszMsg, CHAT_OBTAIN_TYPE eObtain
 #else //#ifdef CLIENT_GLOBAL_LINEBREAK
 	addRow = LineBreak( chatContent, CHAT_LINE_WIDTH, wstrColor, true );
 #endif //CLIENT_GLOBAL_LINEBREAK
-	
-	
+
 
 	switch (eObtainType)
 	{
@@ -4683,9 +4776,7 @@ void CX2ChatBox::AddChatLog( const WCHAR* wszMsg, KEGS_CHAT_REQ::CHAT_PACKET_TYP
 			if( false == GetOpenChatWindow() && NULL != m_pDLGChatWindowButton )
 			{				
 				if( eChatPacketType == KEGS_CHAT_REQ::CPT_WHISPER || eChatPacketType == KEGS_CHAT_REQ::CPT_PARTY
-#ifdef NASOD_SCOPE
 					|| eChatPacketType == KEGS_CHAT_REQ::CPT_MEGAPHONE 
-#endif
 
 					)
 				{
@@ -4700,13 +4791,11 @@ void CX2ChatBox::AddChatLog( const WCHAR* wszMsg, KEGS_CHAT_REQ::CHAT_PACKET_TYP
 	}
 
 	//{{ 허상형 : [2009/7/21] //	메가폰 메시지 처리 부분
-#ifdef NASOD_SCOPE
 	if( m_wstrSenderName != L"" )
 	{
 		CKTDGUIListBox* pListBoxMegaphone = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Megaphone" );
 		if( NULL != pListBoxMegaphone )
 		{
-
 #ifdef CLIENT_GLOBAL_LINEBREAK
 			m_iMegaID = (m_iMegaID + 1) % 100000000;
 			CKTDGUIListBox* pListBoxChatContent = (CKTDGUIListBox*)m_pDLGChatWindow->GetControl( L"ListBox_All" );
@@ -4719,7 +4808,6 @@ void CX2ChatBox::AddChatLog( const WCHAR* wszMsg, KEGS_CHAT_REQ::CHAT_PACKET_TYP
 		}
 		return;
 	}
-#endif
 	//}} 허상형 : [2009/7/21] //	메가폰 메시지 처리 부분
 
 
@@ -5121,7 +5209,6 @@ int CX2ChatBox::LineBreak( wstring& wstrText, int iTextWidth, const wstring& wst
 }
 
 //{{ 허상형 : [2009/7/20] //	메가폰용 LineBreak, 나눈 값들을 바로 전송한다.
-#ifdef NASOD_SCOPE
 bool CX2ChatBox::MegaLineBreakAdd( wstring wstrText, int iTextWidth, CKTDGUIListBox* pListBox )
 {
 	enum CHAR_STATE
@@ -5289,7 +5376,6 @@ bool CX2ChatBox::MegaLineBreakAdd( wstring wstrText, int iTextWidth, CKTDGUIList
 
 	return true;
 }
-#endif
 //}} 허상형 : [2009/7/20] //	메가폰용 LineBreak, 나눈 값들을 바로 전송한다.
 
 
@@ -5306,9 +5392,7 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 	CKTDGUIListBox* pListBox_Guild = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Guild" );
 	CKTDGUIListBox* pListBox_Personal = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Personal" );
 	//{{ 허상형 : [2009/7/17] //	나소드 메가폰 리스트박스 컨트롤
-#ifdef NASOD_SCOPE
 	CKTDGUIListBox* pListBox_Megaphone = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Megaphone" );
-#endif
 	//}} 허상형 : [2009/7/17] //	나소드 메가폰 리스트박스 컨트롤
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
@@ -5332,7 +5416,6 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 //}} kimhc // 2010.3.10 //	채팅창 개편
 
 	//{{ 허상형 : [2009/7/23] //	탭 변경 시 클릭 지워지게
-#ifdef NASOD_SCOPE
 	if( pListBox_Square != NULL)	pListBox_Square->ClearSelect();
 	if( pListBox_Party != NULL)		pListBox_Party->ClearSelect();
 	if( pListBox_Guild != NULL)		pListBox_Guild->ClearSelect();
@@ -5341,7 +5424,6 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	if( pListBox_Relation != NULL)	pListBox_Relation->ClearSelect();
 #endif // ADDED_RELATIONSHIP_SYSTEM
-#endif
 	//}} 허상형 : [2009/7/23] //	탭 변경 시 클릭 지워지게
 
 	switch( GetChatWindowMode() )
@@ -5356,9 +5438,7 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 			pListBox_Guild->SetShow( false );
 			pListBox_Personal->SetShowEnable( false, false );
 			//{{ 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
-#ifdef NASOD_SCOPE
 			pListBox_Megaphone->SetShowEnable( true	, true );
-#endif
 			//}} 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
 			
 			pRadio_All->SetChecked( true );
@@ -5399,9 +5479,7 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 			pListBox_Guild->SetShow( false );
 			pListBox_Personal->SetShowEnable( false, false );
 			//{{ 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
-#ifdef NASOD_SCOPE
 			pListBox_Megaphone->SetShowEnable( true	, true );
-#endif
 			//}} 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
 
 			pRadio_All->SetChecked( false );
@@ -5447,9 +5525,7 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 			pListBox_Guild->SetShow( true );
 			pListBox_Personal->SetShowEnable( false, false );
 			//{{ 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
-#ifdef NASOD_SCOPE
 			pListBox_Megaphone->SetShowEnable( true	, true );
-#endif
 			//}} 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
 
 			pRadio_All->SetChecked( false );
@@ -5496,9 +5572,7 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 			pListBox_Guild->SetShow( false );
 			pListBox_Personal->SetShowEnable( true, true );
 			//{{ 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
-#ifdef NASOD_SCOPE
 			pListBox_Megaphone->SetShowEnable( true	, true );
-#endif
 			//}} 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
 
 			pRadio_All->SetChecked( false );
@@ -5553,9 +5627,7 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 			pListBox_Guild->SetShow( false );
 			pListBox_Personal->SetShowEnable( false, false );
 			//{{ 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
-#ifdef NASOD_SCOPE
 			pListBox_Megaphone->SetShowEnable( true	, true );
-#endif
 			//}} 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
 
 			pRadio_All->SetChecked( false );
@@ -5611,7 +5683,6 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 		}
 		break;
 #endif // ADDED_RELATIONSHIP_SYSTEM
-#ifdef NASOD_SCOPE
 	case CWM_MEGAPHONE:
 		{
 
@@ -5658,8 +5729,6 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 			//}} kimhc // 2010.3.10 //	채팅창 개편
 
 		} break;
-
-#endif
 		//}} 허상형 : [2009/7/17] //
 	}
 
@@ -5683,10 +5752,8 @@ void CX2ChatBox::ChangeChatWindowAndIMEEditBox( CHAT_WINDOW_MODE eMode )
 
 
 	//{{ 허상형 : [2009/7/24] //
-#ifdef NASOD_SCOPE
 	pListBox_Megaphone->SetShowAllItems( true );
 	pListBox_Megaphone->SetShowTimeAllItems( MAGIC_CHAT_SHOW_TIME );
-#endif
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	pListBox_Relation->SetShowAllItems( true );
@@ -5709,11 +5776,8 @@ void CX2ChatBox::HideChatLog()
 	CKTDGUIListBox* pListBox_Guild = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Guild" );
 	CKTDGUIListBox* pListBox_Personal = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Personal" );
 	//{{ 허상형 : [2009/7/17] //	나소드 메가폰 관련
-#ifdef NASOD_SCOPE
 
 	CKTDGUIListBox* pListBox_Megaphone = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Megaphone" );
-
-#endif	
 
 	//}} 허상형 : [2009/7/17] //
 
@@ -5735,11 +5799,9 @@ void CX2ChatBox::HideChatLog()
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
 	//{{ 허상형 : [2009/7/17] //	나소드 메가폰 관련
-#ifdef NASOD_SCOPE
 
 	pListBox_Megaphone->SetShowAllItems( false );
 
-#endif	
 	//}} 허상형 : [2009/7/17] //
 }
 
@@ -6011,12 +6073,6 @@ bool CX2ChatBox::OnOpenWhisperChatMode()
 	if( NULL == m_pDLGChatWindow )
 		return false;
 
-	//{{ 허상형 : [2009/7/22] //
-#ifdef NASOD_SCOPE
-	//int iChatMode = m_eChatWindowMode;
-#endif
-	//}} 허상형 : [2009/7/22] //
-
 	// 내 자신이거나 메시지를 보낼 아이디가 없는 경우 빠져나감
 	if( g_pData->GetMyUser()->GetSelectUnit()->GetNickName() == m_wstrPickedUserNickName || m_wstrPickedUserNickName == L"" )
 	{
@@ -6037,27 +6093,8 @@ bool CX2ChatBox::OnOpenWhisperChatMode()
 	{
 		OpenChatWindow();
 	}
-	//UnHideChatWindowFrame();
+
 	UnHideChatEditBox();
-
-	//{{ 허상형 : [2009/7/23] //	귓속말 했을때 현재 탭 유지하도록 설정
-	// 광장 채팅 모드로 바꾸고
-	//ChangeChatWindowAndIMEEditBox( CWM_TOTAL );
-	//}} 허상형 : [2009/7/23] //	귓속말 했을때 현재 탭 유지하도록 설정
-
-	// 파티 채팅 모드로 바꾸고 
-	//ChangeChatWindowAndIMEEditBox( CWM_PARTY );
-
-	//{{ 허상형 : [2009/7/22] //	메가폰일 경우 메가폰 탭 유지
-#ifdef NASOD_SCOPE
-	//if( iChatMode == CWM_MEGAPHONE )
-	{
-	//	ChangeChatWindowAndIMEEditBox( CWM_MEGAPHONE );
-	}
-#endif
-	//}} 허상형 : [2009/7/22] //	메가폰일 경우 메가폰 탭 유지
-
-
 
 	pIMEEditBox->SetText( wstrText.c_str() );
 	pIMEEditBox->RequestFocus();
@@ -6114,9 +6151,7 @@ void CX2ChatBox::SetScrollBarEndPos()
 	CKTDGUIListBox* pListBox_Party = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Party" );
 	CKTDGUIListBox* pListBox_Guild = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Guild" );
 	CKTDGUIListBox* pListBox_Personal = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Personal" );
-#ifdef NASOD_SCOPE
 	CKTDGUIListBox* pListBox_Megaphone = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Megaphone" );
-#endif
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	CKTDGUIListBox* pListBox_Relation = static_cast <CKTDGUIListBox*> ( m_pDLGChatWindow->GetControl( L"ListBox_Relation" ) );
@@ -6130,10 +6165,8 @@ void CX2ChatBox::SetScrollBarEndPos()
 		pListBox_Guild->SetScrollBarEndPos();
 	if( NULL != pListBox_Personal )
 		pListBox_Personal->SetScrollBarEndPos();
-#ifdef NASOD_SCOPE
 	if( NULL != pListBox_Megaphone )
 		pListBox_Megaphone->SetScrollBarEndPos();
-#endif
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	if ( NULL != pListBox_Relation )
@@ -6145,7 +6178,6 @@ void CX2ChatBox::SetScrollBarEndPos()
 void CX2ChatBox::ClearShortCutKeyProcess()
 {
 	// 채팅 입력후 shortcut key가 작동하지 않도록 키보드 입력 데이터를 지운다
-#ifdef REFORM_UI_KEYPAD
 	SET_KEYLOCK( GA_ATTACK_FAST, TRUE );
 	SET_KEYLOCK( GA_ATTACK_STRONG, TRUE );
 
@@ -6196,55 +6228,11 @@ void CX2ChatBox::ClearShortCutKeyProcess()
 	SET_KEYLOCK( GA_WARP, TRUE );
 #endif // SERV_ADD_WARP_BUTTON
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	SET_KEYLOCK( GA_RETURN, TRUE );
 	SET_KEYLOCK( GA_ESCAPE, TRUE );
 	SET_KEYLOCK( GA_PARTYREADY, TRUE );
-#endif // KEY_MAPPING_INT
-
-#else
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_Q, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_I, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_S, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_F, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_P, TRUE);
-#ifdef SERV_PVP_NEW_SYSTEM
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_L, TRUE);
-#endif
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_M, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_N, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_T, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_K, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_G, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_U, TRUE);
-#ifdef DIALOG_SHOW_TOGGLE
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_DELETE, TRUE);
-#endif
-#ifdef SERV_PET_SYSTEM
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_J, TRUE);
-#endif
-
-
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_Z, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_X, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_W, TRUE);	
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_A, TRUE);	
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_D, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_C, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_O, TRUE);
-//{{오현빈 // 2012-04-30 // 스킬슬롯 체인지 없이 확장 스킬 사용 할 수 있도록 수정
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_Q, TRUE);	
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_W, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_E, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_F, TRUE);
-//}}오현빈 // 2012-04-30 // 스킬슬롯 체인지 없이 확장 스킬 사용 할 수 있도록 수정
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_1, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_2, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_3, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_4, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_5, TRUE);
-	g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock(DIK_6, TRUE);
-#endif
+#endif // SERV_KEY_MAPPING_INT
 
 #if 0 
 	g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_Q);
@@ -6409,7 +6397,6 @@ bool CX2ChatBox::IsEmotionID( const wstring &wstrChatMsg ) const
 	{
 		return true;
 	}
-#ifdef AVATAR_EMOTION
 	else if(wstrChatMsg.compare( GET_STRING( STR_ID_11545 ) ) == 0 || wstrChatMsg.compare( GET_STRING( STR_ID_11547 ) ) == 0)
 	{
 		return true;
@@ -6430,7 +6417,20 @@ bool CX2ChatBox::IsEmotionID( const wstring &wstrChatMsg ) const
 	{		
 		return true;
 	}
-#endif
+#ifdef CRAYONPOP_SECOND_EMOTION
+	else if(wstrChatMsg.compare( GET_STRING( STR_ID_27031 ) ) == 0 )
+	{
+		return true;
+	}
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+	else if(wstrChatMsg.compare( L"/꾸리스마스" ) == 0 )
+	{
+		return true;
+	}
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
 	//else if(wstrChatMsg.compare(L"/수락") == 0 || wstrChatMsg.compare(L"/그래") == 0)
 	//{
 	//	return true;
@@ -6514,7 +6514,6 @@ CX2Unit::EMOTION_TYPE CX2ChatBox::GetEmotionID( const wstring &wstrChatMsg ) con
 	//{
 	//	eResult = CX2Unit::ET_NONE;
 	//}
-#ifdef AVATAR_EMOTION
 	else if(wstrChatMsg.compare( GET_STRING( STR_ID_11545 ) ) == 0 || wstrChatMsg.compare( GET_STRING( STR_ID_11547 ) ) == 0 ||
 		wcsstr(wstrChatMsg.c_str(),  GET_STRING( STR_ID_11546 ) ) != NULL || wcsstr(wstrChatMsg.c_str(),  GET_STRING( STR_ID_11548 ) ) != NULL )
 	{		
@@ -6538,7 +6537,21 @@ CX2Unit::EMOTION_TYPE CX2ChatBox::GetEmotionID( const wstring &wstrChatMsg ) con
 	{		
 		eResult = CX2Unit::ET_EMOTION_AVATAR5;
 	}
-#endif
+#ifdef CRAYONPOP_SECOND_EMOTION
+	else if(wstrChatMsg.compare( GET_STRING( STR_ID_27031 ) ) == 0 )
+	{
+		eResult = CX2Unit::ET_EMOTION_AVATAR6;
+	}
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef CRAYONPOP_SECOND_EMOTION
+	else if(wstrChatMsg.compare( L"/꾸리스마스" ) == 0 )
+	{
+		eResult = CX2Unit::ET_EMOTION_AVATAR7;
+	}
+#endif // CRAYONPOP_SECOND_EMOTION
+
+
 	else if(wstrChatMsg.compare( GET_STRING( STR_ID_2514 ) ) == 0 || wstrChatMsg.compare( GET_STRING( STR_ID_2515 ) ) == 0 ||
 		wcsstr(wstrChatMsg.c_str(),  GET_STRING( STR_ID_2537 ) ) != NULL)
 	{
@@ -6616,7 +6629,6 @@ wstring CX2ChatBox::GetEmotionName( const wstring &wstrChatMsg) const
 	case CX2Unit::ET_SMILE:
 		wstrResult = L"Emotion_Smile";
 		break;
-#ifdef AVATAR_EMOTION
 	case CX2Unit::ET_EMOTION_AVATAR1:
 		wstrResult = L"Emotion_BIGBANG";
 		break;
@@ -6629,11 +6641,15 @@ wstring CX2ChatBox::GetEmotionName( const wstring &wstrChatMsg) const
 	case CX2Unit::ET_EMOTION_AVATAR4:
 		wstrResult = L"Emotion_APINK_LOVE";
 		break;
-
 	case CX2Unit::ET_EMOTION_AVATAR5:
 		wstrResult = L"Emotion_CRAYONPOP";
 		break;
-#endif //AVATAR_EMOTION
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	case CX2Unit::ET_EMOTION_AVATAR6:	// CRAYONPOP 한벌
+		wstrResult = L"Emotion_BbaBbaBba";
+		break;
+#endif // CRAYONPOP_SECOND_EMOTION
+
 	default:
 		break;
 	}
@@ -6679,7 +6695,6 @@ bool CX2ChatBox::GetEmotionIdAndName(CX2Unit::EMOTION_TYPE &eId, wstring &wstrNa
 		wstrName = L"Emotion_Smile";
 		eId = CX2Unit::ET_SMILE;
 		return true;
-#ifdef AVATAR_EMOTION
 	case CX2Unit::ET_EMOTION_AVATAR1:
 		wstrName = L"Emotion_BIGBANG";
 		eId = CX2Unit::ET_EMOTION_AVATAR1;
@@ -6700,7 +6715,21 @@ bool CX2ChatBox::GetEmotionIdAndName(CX2Unit::EMOTION_TYPE &eId, wstring &wstrNa
 		wstrName = L"Emotion_CRAYONPOP";
 		eId = CX2Unit::ET_EMOTION_AVATAR5;
 		return true;
-#endif //AVATAR_EMOTION
+
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	case CX2Unit::ET_EMOTION_AVATAR6:
+		wstrName = L"Emotion_BbaBbaBba";
+		eId = CX2Unit::ET_EMOTION_AVATAR6;
+		return true;
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+	case CX2Unit::ET_EMOTION_AVATAR7:
+		wstrName = L"Emotion_BbaBbaBba";
+		eId = CX2Unit::ET_EMOTION_AVATAR7;
+		return true;
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
 	default:
 		break;
 	}
@@ -6735,14 +6764,21 @@ wstring CX2ChatBox::GetEmotionSound(CX2Unit::EMOTION_TYPE eId) const
 		return L"Emotion_Sad.ogg";
 	case CX2Unit::ET_SMILE:
 		return L"Emotion_Smile.ogg";
-#ifdef AVATAR_EMOTION
 	case CX2Unit::ET_EMOTION_AVATAR2:
 		return L"Newyear.ogg";
 	case CX2Unit::ET_EMOTION_AVATAR3:
 		return L"Emotion_APinkDance.ogg";
 	case CX2Unit::ET_EMOTION_AVATAR5:
 		return L"DancingQueen_Music.ogg";
-#endif //AVATAR_EMOTION
+#ifdef CRAYONPOP_SECOND_EMOTION
+	case CX2Unit::ET_EMOTION_AVATAR6:
+		return L"Emotion_Bbabbabba.ogg";
+#endif // CRAYONPOP_SECOND_EMOTION
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+	case CX2Unit::ET_EMOTION_AVATAR7:
+		return L"Emotion_Crayonpop_NoMotion.ogg";
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
 	default:
 		return L"";
 	}
@@ -6813,6 +6849,13 @@ bool CX2ChatBox::PlayEmotionSound( CX2Unit::UNIT_TYPE eUnitType, CX2Unit::EMOTIO
 		wstrEmotionSound = L"Elesis_";
 		break;
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER
+	case CX2Unit::UT_ADD:
+		wstrEmotionSound = L"Add_";
+		break;
+#endif //SERV_9TH_NEW_CHARACTER
+
 	default:
 		break;
 	}
@@ -6821,24 +6864,26 @@ bool CX2ChatBox::PlayEmotionSound( CX2Unit::UNIT_TYPE eUnitType, CX2Unit::EMOTIO
 		(bAvatarEmotion == false || eEmotionID != eEmotion ) )
 		return false;
 
-#ifdef AVATAR_EMOTION
-	if( eEmotionID == CX2Unit::ET_EMOTION_AVATAR1 || eEmotionID == CX2Unit::ET_EMOTION_AVATAR3 || eEmotionID == CX2Unit::ET_EMOTION_AVATAR5 )
+	if( eEmotionID == CX2Unit::ET_EMOTION_AVATAR1 || eEmotionID == CX2Unit::ET_EMOTION_AVATAR3 || eEmotionID == CX2Unit::ET_EMOTION_AVATAR5 
+#ifdef CRAYONPOP_SECOND_EMOTION
+		|| eEmotionID == CX2Unit::ET_EMOTION_AVATAR6
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		|| eEmotionID == CX2Unit::ET_EMOTION_AVATAR7
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		)
 		wstrEmotionSound = wstrEmotionSoundSuffix;
 	else
 		wstrEmotionSound += wstrEmotionSoundSuffix;
-#else
-	wstrEmotionSound += wstrEmotionSoundSuffix;
-#endif
 
 	const float MAGIC_NUMBER = 500.f;
-	const float fMaxDist = g_pKTDXApp->GetDGManager()->GetCamera()->GetCameraDistance() + MAGIC_NUMBER;
+	const float fMaxDist = g_pKTDXApp->GetDGManager()->GetCamera().GetCameraDistance() + MAGIC_NUMBER;
 	CKTDXDeviceSound* pDeviceSound = g_pKTDXApp->GetDeviceManager()->OpenSound( wstrEmotionSound.c_str(), 10, true, fMaxDist );
 	if( NULL == pDeviceSound )
 		return false;
 
-#ifdef AVATAR_EMOTION
 	m_vecDeviceSound.push_back( pDeviceSound );
-#endif
 	
 
 	switch( g_pMain->GetNowStateID() )
@@ -6870,7 +6915,6 @@ bool CX2ChatBox::PlayEmotionSound( CX2Unit::UNIT_TYPE eUnitType, CX2Unit::EMOTIO
 #endif
 
 //{{ 허상형 : [2009/7/14] // 나소드 메가폰 관련 함수
-#ifdef NASOD_SCOPE
 bool CX2ChatBox::ShowNasodMessageDlg( bool bEnable )	//	나소드 메가폰 메시지 입력 Dialog 생성
 {
 	if(bEnable == true)
@@ -6925,7 +6969,7 @@ bool CX2ChatBox::Handler_EGS_USE_MEGAPHONE_REQ()
 
 				if(m_iLastUsedMegaphoneTID != -1)
 				{
-					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( m_iLastUsedMegaphoneTID );
+					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( m_iLastUsedMegaphoneTID );
 					if(pItem != NULL)
 					{
 						kPacket.m_iItemUID = pItem->GetUID();
@@ -6986,9 +7030,9 @@ bool CX2ChatBox::Handler_EGS_USE_MEGAPHONE_ACK( HWND hWnd, UINT uMsg, WPARAM wPa
 			//	다이얼로그 닫기
 			if( ShowNasodMessageDlg( false ) )
 			{
-				CX2Inventory* pInven = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+				CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 				//	아이템 업데이트
-				pInven->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+				kInventory.UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 				g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
 
@@ -7057,8 +7101,6 @@ bool CX2ChatBox::Handler_EGS_MEGAPHONE_MESSAGE_NOT( HWND hWnd, UINT uMsg, WPARAM
 	return true;
 
 }
-
-#endif
 //}} 허상형 : [2009/7/14] // 나소드 메가폰 관련 함수
 
 //{{ 박교현 : [2010/03/09] //	중국 중독방지 방침미 시스템
@@ -7349,7 +7391,6 @@ bool CX2ChatBox::AntiChatSpam::IsThisMessageSpam( wstring& wstrMsg )
 	return false;
 }
 
-#ifdef NASOD_SCOPE
 CKTDGUIListBox* CX2ChatBox::GetCurrentChatbox()
 {
 	CKTDGUIListBox* pChatBox = NULL;
@@ -7390,7 +7431,6 @@ CKTDGUIListBox* CX2ChatBox::GetCurrentChatbox()
 
 	return pChatBox;
 }
-#endif
 
 //{{ kimhc // 2010.3.10 //	채팅창 개편
 #ifdef	CHAT_WINDOW_IMPROV
@@ -7529,9 +7569,7 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 	CKTDGUIListBox* pListBox_Guild = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Guild" );
 	CKTDGUIListBox* pListBox_Personal = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Personal" );
 	//{{ 허상형 : [2009/7/17] //	나소드 메가폰 리스트박스 컨트롤
-#ifdef NASOD_SCOPE
 	CKTDGUIListBox* pListBox_Megaphone = (CKTDGUIListBox*) m_pDLGChatWindow->GetControl( L"ListBox_Megaphone" );
-#endif
 	//}} 허상형 : [2009/7/17] //	나소드 메가폰 리스트박스 컨트롤
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	CKTDGUIListBox* pListBox_Relation = static_cast <CKTDGUIListBox*> ( m_pDLGChatWindow->GetControl( L"ListBox_Relation" ) );
@@ -7546,7 +7584,6 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 	CKTDGUIRadioButton* pRadio_RelationMarried	= (CKTDGUIRadioButton*) m_pDLGChatWindow->GetControl( L"ButtonRelationMarried" );
 #endif // ADDED_RELATIONSHIP_SYSTEM
 	//{{ 허상형 : [2009/7/23] //	탭 변경 시 클릭 지워지게
-#ifdef NASOD_SCOPE
 	if( pListBox_Square != NULL)	pListBox_Square->ClearSelect();
 	if( pListBox_Party != NULL)		pListBox_Party->ClearSelect();
 	if( pListBox_Guild != NULL)		pListBox_Guild->ClearSelect();
@@ -7555,8 +7592,6 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	if( pListBox_Relation != NULL)	pListBox_Relation->ClearSelect();
 #endif // ADDED_RELATIONSHIP_SYSTEM
-
-#endif
 
 	//}} 허상형 : [2009/7/23] //	탭 변경 시 클릭 지워지게
 
@@ -7573,9 +7608,7 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 			pListBox_Guild->SetShow( false );
 			pListBox_Personal->SetShowEnable( false, false );
 			//{{ 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
-#ifdef NASOD_SCOPE
 			pListBox_Megaphone->SetShowEnable( false, false );
-#endif
 			//}} 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
 
 
@@ -7601,9 +7634,7 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 			pListBox_Guild->SetShow( false );
 			pListBox_Personal->SetShowEnable( false, false );
 			//{{ 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
-#ifdef NASOD_SCOPE
 			pListBox_Megaphone->SetShowEnable( false, false );
-#endif
 			//}} 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
 
 			pRadio_All->SetChecked( false );
@@ -7631,9 +7662,7 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 			pListBox_Guild->SetShow( true );
 			pListBox_Personal->SetShowEnable( false, false );
 			//{{ 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
-#ifdef NASOD_SCOPE
 			pListBox_Megaphone->SetShowEnable( false, false );
-#endif
 			//}} 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
 
 			pRadio_All->SetChecked( false );
@@ -7661,9 +7690,7 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 			pListBox_Guild->SetShow( false );
 			pListBox_Personal->SetShowEnable( true, true );
 			//{{ 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
-#ifdef NASOD_SCOPE
 			pListBox_Megaphone->SetShowEnable( false, false );
-#endif
 			//}} 허상형 : [2009/7/17] //	리스트박스 버튼 활성화 여부
 
 			pRadio_All->SetChecked( false );
@@ -7680,7 +7707,6 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 		} break;
 
 		//{{ 허상형 : [2009/7/17] //	메가폰 탭 변경 설정
-#ifdef NASOD_SCOPE
 	case CWM_MEGAPHONE:
 		{
 
@@ -7706,8 +7732,6 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
 		} break;
-
-#endif
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	case CWM_RELATION_COUPLE :
@@ -7774,10 +7798,8 @@ void CX2ChatBox::ChangeChatWindow( CHAT_WINDOW_MODE eMode )
 
 
 	//{{ 허상형 : [2009/7/24] //
-#ifdef NASOD_SCOPE
 	pListBox_Megaphone->SetShowAllItems( true );
 	pListBox_Megaphone->SetShowTimeAllItems( MAGIC_CHAT_SHOW_TIME );
-#endif
 	//}} 허상형 : [2009/7/24] //
 	if( true == m_pDLGTabMenu->GetShow() )
 		m_pDLGTabMenu->SetShow(false);
@@ -8870,7 +8892,11 @@ void CX2ChatBox::PopupNasodScopeUserMenu(bool bPopup_)
 	m_wstrPickedUserNickName = (wchar_t *)pSelectedItem->GetSenderName()->c_str();	
 		
 	//메가폰을 보낸 캐릭터가 자기 이름이라면 팝업 띄우지 않기
-	if( m_wstrPickedUserNickName == g_pData->GetMyUser()->GetSelectUnit()->GetNickName())
+	if( 
+#ifdef NASOD_SCOPE_USER_NULLCHECK
+		NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() &&
+#endif //NASOD_SCOPE_USER_NULLCHECK
+		m_wstrPickedUserNickName == g_pData->GetMyUser()->GetSelectUnit()->GetNickName())
 		return;
 
 	if(pSelectedItem->GetMessageID() > -1)

@@ -38,7 +38,7 @@ m_bReserveCashShopOpen( NULL )
 	g_pMain->ResetDungeonRewardItem();
 	m_pCX2DungeonRoom	= g_pData->GetDungeonRoom();
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(),
 				g_pKTDXApp->GetDGManager()->GetFar(), false );
 
@@ -164,7 +164,7 @@ HRESULT CX2StateDungeonRoom::OnFrameMove( double fTime, float fElapsedTime )
 */	
 
 
-//	g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( fElapsedTime );
+//	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( fElapsedTime );
 	m_pCX2DungeonRoom->OnFrameMove( fTime, fElapsedTime );
 	
 	//////////////////////////////////////////////////////////////////////////
@@ -256,12 +256,12 @@ HRESULT CX2StateDungeonRoom::OnFrameMove( double fTime, float fElapsedTime )
 
 
 #ifdef _SERVICE_
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	if( ( GET_KEY_STATE( GA_PARTYREADY )  == TRUE
 		|| g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F8) == TRUE )
-#else // KEY_MAPPING_INT
+#else // SERV_KEY_MAPPING_INT
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F8) == TRUE 
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 #ifdef DIALOG_SHOW_TOGGLE
 		&& g_pKTDXApp->GetDGManager()->GetDialogManager()->GetHideDialog() == false
 #endif
@@ -420,14 +420,14 @@ HRESULT CX2StateDungeonRoom::OnFrameRender()
 				if ( pSlotData == NULL || pSlotData->m_pUnit == NULL )
 					continue;
 
-				wstring ipAndPort = pSlotData->m_pUnit->GetUnitData()->m_IP + L":";
+				wstring ipAndPort = pSlotData->m_pUnit->GetUnitData().m_IP + L":";
 				WCHAR szPort[256] = {0};
-				swprintf( szPort, L"%d", pSlotData->m_pUnit->GetUnitData()->m_Port );
+				swprintf( szPort, L"%d", pSlotData->m_pUnit->GetUnitData().m_Port );
 				ipAndPort += szPort;
 				swprintf( szPort, L"\n%d", (int)pSlotData->m_PingTime );
 				ipAndPort += szPort;
 
-				if( true == pSlotData->m_pUnit->GetUnitData()->m_bMan )
+				if( true == pSlotData->m_pUnit->GetUnitData().m_bMan )
 				{
                     ipAndPort += L" ";
                     ipAndPort += GET_STRING( STR_ID_535 );
@@ -438,7 +438,7 @@ HRESULT CX2StateDungeonRoom::OnFrameRender()
                     ipAndPort += GET_STRING( STR_ID_536 );
 				}
 
-				ipAndPort += GET_REPLACED_STRING( ( STR_ID_537, "i", pSlotData->m_pUnit->GetUnitData()->m_Age ) );
+				ipAndPort += GET_REPLACED_STRING( ( STR_ID_537, "i", pSlotData->m_pUnit->GetUnitData().m_Age ) );
 
 
 
@@ -610,25 +610,25 @@ bool CX2StateDungeonRoom::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 			return Handler_EGS_GET_CONNECTION_UNIT_INFO_REQ( pkSlotData->m_pUnit->GetNickName() );
 
 		} break;
-#ifndef NOT_USE_DICE_ROLL
-	case DRUCM_CHANGE_GET_ITEM_TYPE:
-		{
-			CKTDGUIControl* pControl = (CKTDGUIControl*)lParam;
-			if ( pControl != NULL )
-			{
-				if ( wcscmp( pControl->GetName(), L"RadioButtonRandom" ) == 0 )
-				{
-					Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ( CX2DungeonRoom::DGIT_RANDOM );
-				}
-				else if ( wcscmp( pControl->GetName(), L"RadioButtonPersonal" ) == 0 )
-				{
-					Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ( CX2DungeonRoom::DGIT_PERSON );
-				}
-			}
-			return true;
-		}
-		break;
-#endif //NOT_USE_DICE_ROLL
+//#ifndef NOT_USE_DICE_ROLL
+//	case DRUCM_CHANGE_GET_ITEM_TYPE:
+//		{
+//			CKTDGUIControl* pControl = (CKTDGUIControl*)lParam;
+//			if ( pControl != NULL )
+//			{
+//				if ( wcscmp( pControl->GetName(), L"RadioButtonRandom" ) == 0 )
+//				{
+//					Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ( CX2DungeonRoom::DGIT_RANDOM );
+//				}
+//				else if ( wcscmp( pControl->GetName(), L"RadioButtonPersonal" ) == 0 )
+//				{
+//					Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ( CX2DungeonRoom::DGIT_PERSON );
+//				}
+//			}
+//			return true;
+//		}
+//		break;
+//#endif //NOT_USE_DICE_ROLL
 
 	case DRUCM_CHALLANGE_NEXT_DIFFICULTY:
 		{
@@ -795,19 +795,19 @@ bool CX2StateDungeonRoom::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 			return Handler_EGS_CHANGE_PITIN_NOT( hWnd, uMsg, wParam, lParam );
 		}
 		break;
-#ifndef NOT_USE_DICE_ROLL
-	case EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK:
-		{
-			return Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK( hWnd, uMsg, wParam, lParam );
-		}
-		break;
-
-	case EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_NOT:
-		{
-			return Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_NOT( hWnd, uMsg, wParam, lParam );
-		}
-		break;
-#endif //NOT_USE_DICE_ROLL
+//#ifndef NOT_USE_DICE_ROLL
+//	case EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK:
+//		{
+//			return Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK( hWnd, uMsg, wParam, lParam );
+//		}
+//		break;
+//
+//	case EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_NOT:
+//		{
+//			return Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_NOT( hWnd, uMsg, wParam, lParam );
+//		}
+//		break;
+//#endif //NOT_USE_DICE_ROLL
 
 	case EGS_CHANGE_TRADE_NOT:
 		{
@@ -1244,7 +1244,7 @@ bool CX2StateDungeonRoom::Handler_EGS_CHANGE_DUNGEON_DIFFICULTY_NOT( HWND hWnd, 
 
 
 
-	CX2Dungeon::DUNGEON_ID dungeonID = (CX2Dungeon::DUNGEON_ID) ( m_pCX2DungeonRoom->GetDungeonID() + m_pCX2DungeonRoom->GetDifficulty() );
+	SEnum::DUNGEON_ID dungeonID = (SEnum::DUNGEON_ID) ( m_pCX2DungeonRoom->GetDungeonID() + m_pCX2DungeonRoom->GetDifficulty() );
 	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( dungeonID );
 	if( NULL != pDungeonData &&
 		pDungeonData->m_fTimeLimit > 0.f )
@@ -1254,7 +1254,7 @@ bool CX2StateDungeonRoom::Handler_EGS_CHANGE_DUNGEON_DIFFICULTY_NOT( HWND hWnd, 
 	
 
 	// note!!! special case
-	if( m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL )
+	if( m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_NORMAL )
 	{
 		if( m_pCX2DungeonRoom->GetDifficulty() == CX2Dungeon::DL_NORMAL )
 		{
@@ -1341,7 +1341,7 @@ bool CX2StateDungeonRoom::Handler_EGS_STATE_CHANGE_GAME_START_NOT( HWND hWnd, UI
 	
 	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
 
-	g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
 
 	if( g_pData->GetGameUDP()->ConnectRelayTestResult() == true || m_pCX2DungeonRoom->GetUserNum() == 1 )
@@ -1380,15 +1380,15 @@ bool CX2StateDungeonRoom::Handler_EGS_CHANGE_READY_REQ()
 	if ( pSlotData != NULL && pSlotData->GetIsReady() == false && 
 		g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 		for ( int i = (int)(CX2Inventory::ST_EQUIP); i < (int)( CX2Inventory::ST_AVARTA ); i++ )
 		{
 			CX2Inventory::SORT_TYPE sortType = (CX2Inventory::SORT_TYPE)i;
-			int usedSlotNum = pInventory->GetUsedSlotNum( sortType );
-			if ( pInventory->GetItemMaxNum( sortType ) - usedSlotNum < 7 )
+			int usedSlotNum = kInventory.GetUsedSlotNum( sortType );
+			if ( kInventory.GetItemMaxNum( sortType ) - usedSlotNum < 7 )
 			{
-				wstring invenSortTypeName = pInventory->GetInvenSortTypeName( sortType );
+				wstring invenSortTypeName = kInventory.GetInvenSortTypeName( sortType );
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_REPLACED_STRING( ( STR_ID_634, "L", invenSortTypeName ) ), this );
 				break;
 			}
@@ -1541,62 +1541,62 @@ bool CX2StateDungeonRoom::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( HWND hWn
 	return m_pCX2DungeonRoom->Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_ROOM_NOT( kEvent );
 }
 
-#ifndef NOT_USE_DICE_ROLL
-bool CX2StateDungeonRoom::Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ( CX2DungeonRoom::DUNGEON_GET_ITEM_TYPE getItemType )
-{
-	KEGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ kPacket;
-	kPacket.m_cGetItemType = (char)getItemType;
-
-	g_pData->GetServerProtocol()->SendPacket( EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ, kPacket );
-	g_pMain->AddServerPacket( EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK );
-
-	return true;
-}
-
-bool CX2StateDungeonRoom::Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam  )
-{
-	KSerBuffer* pBuff = (KSerBuffer*)lParam;
-	KEGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK kEvent;
-	DeSerialize( pBuff, &kEvent );
-
-	if( g_pMain->DeleteServerPacket( EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK ) == true )
-	{
-		return g_pMain->IsValidPacket( kEvent.m_iOK );
-	}
-
-	return true;
-}
-
-bool CX2StateDungeonRoom::Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam  )
-{
-	KSerBuffer* pBuff = (KSerBuffer*)lParam;
-	KEGS_CHANGE_DUNGEON_GET_ITEM_TYPE_NOT kEvent;
-	DeSerialize( pBuff, &kEvent );
-
-	CKTDGUIRadioButton* pRadioButton = NULL;
-
-	if ( (CX2DungeonRoom::DUNGEON_GET_ITEM_TYPE)kEvent.m_cGetItemType == CX2DungeonRoom::DGIT_RANDOM )
-	{
-		pRadioButton = (CKTDGUIRadioButton*)m_pDLGDungeonRoomFront->GetControl( L"RadioButtonRandom" );
-	}
-	else if ( (CX2DungeonRoom::DUNGEON_GET_ITEM_TYPE)kEvent.m_cGetItemType == CX2DungeonRoom::DGIT_PERSON )
-	{
-		pRadioButton = (CKTDGUIRadioButton*)m_pDLGDungeonRoomFront->GetControl( L"RadioButtonPersonal" );
-	}
-
-	if ( pRadioButton != NULL )
-	{
-		pRadioButton->SetChecked( true );
-	}
-
-	if( NULL != m_pCX2DungeonRoom )
-	{
-		m_pCX2DungeonRoom->SetGetItemType( (CX2DungeonRoom::DUNGEON_GET_ITEM_TYPE)kEvent.m_cGetItemType );
-	}
-	
-	return true;
-}
-#endif //NOT_USE_DICE_ROLL
+//#ifndef NOT_USE_DICE_ROLL
+//bool CX2StateDungeonRoom::Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ( CX2DungeonRoom::DUNGEON_GET_ITEM_TYPE getItemType )
+//{
+//	KEGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ kPacket;
+//	kPacket.m_cGetItemType = (char)getItemType;
+//
+//	g_pData->GetServerProtocol()->SendPacket( EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_REQ, kPacket );
+//	g_pMain->AddServerPacket( EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK );
+//
+//	return true;
+//}
+//
+//bool CX2StateDungeonRoom::Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam  )
+//{
+//	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+//	KEGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK kEvent;
+//	DeSerialize( pBuff, &kEvent );
+//
+//	if( g_pMain->DeleteServerPacket( EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_ACK ) == true )
+//	{
+//		return g_pMain->IsValidPacket( kEvent.m_iOK );
+//	}
+//
+//	return true;
+//}
+//
+//bool CX2StateDungeonRoom::Handler_EGS_CHANGE_DUNGEON_GET_ITEM_TYPE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam  )
+//{
+//	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+//	KEGS_CHANGE_DUNGEON_GET_ITEM_TYPE_NOT kEvent;
+//	DeSerialize( pBuff, &kEvent );
+//
+//	CKTDGUIRadioButton* pRadioButton = NULL;
+//
+//	if ( (CX2DungeonRoom::DUNGEON_GET_ITEM_TYPE)kEvent.m_cGetItemType == CX2DungeonRoom::DGIT_RANDOM )
+//	{
+//		pRadioButton = (CKTDGUIRadioButton*)m_pDLGDungeonRoomFront->GetControl( L"RadioButtonRandom" );
+//	}
+//	else if ( (CX2DungeonRoom::DUNGEON_GET_ITEM_TYPE)kEvent.m_cGetItemType == CX2DungeonRoom::DGIT_PERSON )
+//	{
+//		pRadioButton = (CKTDGUIRadioButton*)m_pDLGDungeonRoomFront->GetControl( L"RadioButtonPersonal" );
+//	}
+//
+//	if ( pRadioButton != NULL )
+//	{
+//		pRadioButton->SetChecked( true );
+//	}
+//
+//	if( NULL != m_pCX2DungeonRoom )
+//	{
+//		m_pCX2DungeonRoom->SetGetItemType( (CX2DungeonRoom::DUNGEON_GET_ITEM_TYPE)kEvent.m_cGetItemType );
+//	}
+//	
+//	return true;
+//}
+//#endif //NOT_USE_DICE_ROLL
 
 
 bool CX2StateDungeonRoom::Handler_EGS_CHANGE_TRADE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
@@ -1628,7 +1628,7 @@ bool CX2StateDungeonRoom::Handler_EGS_RESTORE_SPIRIT_NOT( HWND hWnd, UINT uMsg, 
 		CX2Room::SlotData* pSlotData = m_pCX2DungeonRoom->GetSlotDataByUnitUID( kEvent.m_iUnitUID );
 		if ( pSlotData != NULL && pSlotData->m_pUnit != NULL )
 		{
-			pSlotData->m_pUnit->GetUnitData()->m_iSpirit = kEvent.m_iSpirit;
+			pSlotData->m_pUnit->AccessUnitData().m_iSpirit = kEvent.m_iSpirit;
 		}
 	}
 
@@ -1728,7 +1728,7 @@ void CX2StateDungeonRoom::CheckChangeDifficulty( bool bLower )
 			CX2DungeonRoom::SlotData *pSlotData = m_pCX2DungeonRoom->GetSlotData(i);
 			if( pSlotData != NULL && pSlotData->GetIsHost() == false && pSlotData->m_pUnit != NULL )
 			{
-				int userLv = pSlotData->m_pUnit->GetUnitData()->m_Level;
+				int userLv = pSlotData->m_pUnit->GetUnitData().m_Level;
 				if(userLv < iRequireLv)
 				{
 					g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_636 ), DRUCM_BAN_CHANGE_DIFFICULTY_OK, this );
@@ -1799,7 +1799,8 @@ void CX2StateDungeonRoom::UnitViewerProcess( CX2UnitViewerUI* pViewer, int slotN
 		return;
 
 	//pViewer->SetLightPos( 1000, 1000, -200 );
-	pViewer->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+	//pViewer->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+	pViewer->SetLightPos( -250, 100, -600 );	// 캐릭터뷰어 라이트 위치 변경
 
 	//{{ 2009.01.19 김태완 : 코드정리 elseif -> switch
 	switch(slotNum)
@@ -1989,9 +1990,9 @@ void CX2StateDungeonRoom::UISetting()
 	case CX2Dungeon::DL_HARD:
 		pStaticDifficulty->GetString(0)->msg = GET_STRING( STR_ID_386 );
 
-		if ( m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL ||
-			m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_HARD || 
-			m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_EXPERT )
+		if ( m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_NORMAL ||
+			m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_HARD || 
+			m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_EXPERT )
 		{
 			pStaticDiff->GetString( 0 )->msg = L"";
 			pStaticDiffStar->GetString( 0 )->msg = L"";
@@ -2007,9 +2008,9 @@ void CX2StateDungeonRoom::UISetting()
 	case CX2Dungeon::DL_EXPERT:
 		pStaticDifficulty->GetString(0)->msg = GET_STRING( STR_ID_388 );
 
-		if ( m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL ||
-			m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_HARD || 
-			m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_EXPERT )
+		if ( m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_NORMAL ||
+			m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_HARD || 
+			m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_EXPERT )
 		{
 			pStaticDiff->GetString( 0 )->msg = L"";
 			pStaticDiffStar->GetString( 0 )->msg = L"";
@@ -2041,7 +2042,7 @@ void CX2StateDungeonRoom::UISetting()
 	pStaticRecommendLevel->GetString( 0 )->color = diffColor; 
 
 	int requireLevel = 0;
-	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID)( g_pData->GetDungeonRoom()->GetDungeonID() + g_pData->GetDungeonRoom()->GetDifficulty() ) );
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)( g_pData->GetDungeonRoom()->GetDungeonID() + g_pData->GetDungeonRoom()->GetDifficulty() ) );
 	if ( pDungeonData != NULL )
 	{
 		requireLevel = pDungeonData->m_MinLevel;
@@ -2061,7 +2062,7 @@ void CX2StateDungeonRoom::UISetting()
 		CKTDGUIStatic* pStatic_PlaySoloMsg = (CKTDGUIStatic*) m_pDLGDungeonRoomBack->GetControl( L"g_pStaticPlaySolo" );
 		if( NULL != pStatic_PlaySoloMsg )
 		{
-			if( CX2Dungeon::DI_EL_FOREST_GATE_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
+			if( SEnum::DI_EL_FOREST_GATE_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
 			{
 				pStatic_PlaySoloMsg->SetShow( true ); // 초심자 숲은 혼자서만
 			}
@@ -2308,24 +2309,24 @@ void CX2StateDungeonRoom::UISetting()
 	}
 
 
-#ifndef NOT_USE_DICE_ROLL
-	if ( m_pCX2DungeonRoom->GetDungeonGetItemType() == CX2DungeonRoom::DGIT_RANDOM )
-	{
-		CKTDGUIRadioButton* pRadioButtonRandom = (CKTDGUIRadioButton*)m_pDLGDungeonRoomFront->GetControl( L"RadioButtonRandom" );
-		if ( pRadioButtonRandom != NULL )
-		{
-			pRadioButtonRandom->SetChecked( true );
-		}
-	}
-	else if ( m_pCX2DungeonRoom->GetDungeonGetItemType() == CX2DungeonRoom::DGIT_PERSON )
-	{
-		CKTDGUIRadioButton* pRadioButtonPersonal = (CKTDGUIRadioButton*)m_pDLGDungeonRoomFront->GetControl( L"RadioButtonPersonal" );
-		if ( pRadioButtonPersonal != NULL )
-		{
-			pRadioButtonPersonal->SetChecked( true );
-		}
-	}
-#endif //NOT_USE_DICE_ROLL
+//#ifndef NOT_USE_DICE_ROLL
+//	if ( m_pCX2DungeonRoom->GetDungeonGetItemType() == CX2DungeonRoom::DGIT_RANDOM )
+//	{
+//		CKTDGUIRadioButton* pRadioButtonRandom = (CKTDGUIRadioButton*)m_pDLGDungeonRoomFront->GetControl( L"RadioButtonRandom" );
+//		if ( pRadioButtonRandom != NULL )
+//		{
+//			pRadioButtonRandom->SetChecked( true );
+//		}
+//	}
+//	else if ( m_pCX2DungeonRoom->GetDungeonGetItemType() == CX2DungeonRoom::DGIT_PERSON )
+//	{
+//		CKTDGUIRadioButton* pRadioButtonPersonal = (CKTDGUIRadioButton*)m_pDLGDungeonRoomFront->GetControl( L"RadioButtonPersonal" );
+//		if ( pRadioButtonPersonal != NULL )
+//		{
+//			pRadioButtonPersonal->SetChecked( true );
+//		}
+//	}
+//#endif //NOT_USE_DICE_ROLL
 
 
 	CKTDGUIControl* pControlLock = m_pDLGDungeonRoomFront->GetControl( L"Dungeon_Room_State_Lock" );
@@ -2343,7 +2344,7 @@ void CX2StateDungeonRoom::UISetting()
 
 
 	// note!!! special case
-	if( m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL )
+	if( m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_NORMAL )
 	{
 		// 초심자 숲 가기 퀘스트
 		int MAGIC_QUEST_ID = 11; 
@@ -2450,11 +2451,11 @@ void CX2StateDungeonRoom::SetUIOXButton()
 
 void CX2StateDungeonRoom::UIFrameMove()
 {
-	CX2Dungeon::DUNGEON_ID dungeonID = g_pData->GetDungeonRoom()->GetDungeonID();
+	SEnum::DUNGEON_ID dungeonID = g_pData->GetDungeonRoom()->GetDungeonID();
 #ifndef NEW_VILLAGE_UI
-	if ( dungeonID == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL ||
-		dungeonID == CX2Dungeon::DI_EL_FOREST_GATE_HARD || 
-		dungeonID == CX2Dungeon::DI_EL_FOREST_GATE_EXPERT )
+	if ( dungeonID == SEnum::DI_EL_FOREST_GATE_NORMAL ||
+		dungeonID == SEnum::DI_EL_FOREST_GATE_HARD || 
+		dungeonID == SEnum::DI_EL_FOREST_GATE_EXPERT )
 	{
 		if ( m_pDLGMenu != NULL && m_pDLGMenu->GetControl(L"ButtonBack")->GetIsMoving() == false )
 		{
@@ -2544,7 +2545,7 @@ void CX2StateDungeonRoom::UIFrameMove()
 		{
 			if ( pSlotData != NULL && pSlotData->m_pUnit != NULL )
 			{
-				if ( pSlotData->m_pUnit->GetUnitData()->m_bIsGameBang == true )
+				if ( pSlotData->m_pUnit->GetUnitData().m_bIsGameBang == true )
 				{
 					pPicturePCRoom->SetShow( true );
 				}
@@ -2558,7 +2559,7 @@ void CX2StateDungeonRoom::UIFrameMove()
 				const CX2Item::ItemTemplet* pItemTempet = g_pData->GetItemManager()->GetItemTemplet( MAGIC_EMBLEM_ITEM_ID );
 				if( NULL != pItemTempet )
 				{
-					CX2Item* pEmblemItem = pSlotData->m_pUnit->GetInventory()->GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
+					CX2Item* pEmblemItem = pSlotData->m_pUnit->GetInventory().GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
 					if( NULL != pEmblemItem && 
                         pEmblemItem->GetItemTemplet()->GetItemID() == pItemTempet->GetItemID()
                         )
@@ -2573,7 +2574,7 @@ void CX2StateDungeonRoom::UIFrameMove()
 					pItemTempet = g_pData->GetItemManager()->GetItemTemplet( MAGIC_EMBLEM_ITEM_ID_GOLD_MEDAL );
 					if( NULL != pItemTempet )
 					{
-						CX2Item* pEmblemItem = pSlotData->m_pUnit->GetInventory()->GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
+						CX2Item* pEmblemItem = pSlotData->m_pUnit->GetInventory().GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
 						if( NULL != pEmblemItem && 
                             pEmblemItem->GetItemTemplet()->GetItemID() == pItemTempet->GetItemID()
                             )
@@ -2588,7 +2589,7 @@ void CX2StateDungeonRoom::UIFrameMove()
 	//		pStringUnitDot->msg = L".";
 
 	//		WCHAR tempLevelNum[20] = {0};
-	//		wsprintf(tempLevelNum, L"%d", pSlotData->m_pUnit->GetUnitData()->m_Level);
+	//		wsprintf(tempLevelNum, L"%d", pSlotData->m_pUnit->GetUnitData().m_Level);
 	//		pStringUnitLVNum->msg = tempLevelNum;
 
 	//		pStringUnitLV->msg = L"LV";
@@ -2778,9 +2779,9 @@ void CX2StateDungeonRoom::UIFrameMove()
 
 	case CX2Dungeon::DL_HARD:
 
-		if ( m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL ||
-			m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_HARD || 
-			m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_EXPERT )
+		if ( m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_NORMAL ||
+			m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_HARD || 
+			m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_EXPERT )
 		{
 			pStaticDiff->GetString( 0 )->msg = L"";
 			pStaticDiffStar->GetString( 0 )->msg = L"";
@@ -2798,9 +2799,9 @@ void CX2StateDungeonRoom::UIFrameMove()
 
 	case CX2Dungeon::DL_EXPERT:
 
-		if ( m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL ||
-			m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_HARD || 
-			m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_EXPERT )
+		if ( m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_NORMAL ||
+			m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_HARD || 
+			m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_EXPERT )
 		{
 			pStaticDiff->GetString( 0 )->msg = L"";
 			pStaticDiffStar->GetString( 0 )->msg = L"";
@@ -2834,7 +2835,7 @@ void CX2StateDungeonRoom::UIFrameMove()
 	pStaticRecommendLevel->GetString( 0 )->color = diffColor; 
 
 	int requireLevel = 0;
-	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID)( g_pData->GetDungeonRoom()->GetDungeonID() + g_pData->GetDungeonRoom()->GetDifficulty() ) );
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)( g_pData->GetDungeonRoom()->GetDungeonID() + g_pData->GetDungeonRoom()->GetDifficulty() ) );
 	if ( pDungeonData != NULL )
 		requireLevel = pDungeonData->m_MinLevel;
 	
@@ -2928,7 +2929,7 @@ bool CX2StateDungeonRoom::SetUserBox( CX2Room::SlotData* pSlotData )
 			pStaticSlotIndex->GetString( 0 )->msg = buf;
 
 		CKTDGUIStatic* pStaticUserInfo = (CKTDGUIStatic*)pDialog->GetControl( L"StaticDungeon_Room_UserInfo" );
-		_itow( (int)pSlotData->m_pUnit->GetUnitData()->m_Level, buf, 10 );
+		_itow( (int)pSlotData->m_pUnit->GetUnitData().m_Level, buf, 10 );
 		if ( pStaticUserInfo != NULL )
 		{
 			pStaticUserInfo->GetString( 1 )->msg = buf;
@@ -3022,8 +3023,7 @@ bool CX2StateDungeonRoom::SetUserBox( CX2Room::SlotData* pSlotData )
 			}
 		}
 
-		CX2Unit::UnitData* pUnitData = pSlotData->m_pUnit->GetUnitData();
-		if ( pUnitData != NULL )
+		const CX2Unit::UnitData* pUnitData = &pSlotData->m_pUnit->GetUnitData();
 		{
 			CKTDGUIStatic* pStaticUserFatigue = (CKTDGUIStatic*)pDialog->GetControl( L"UserInfo_Fatigue" );	
 			float _width = (pUnitData->m_iSpirit / (float)pUnitData->m_iSpiritMax ) * pStaticUserFatigue->GetPicture(0)->GetOriginalSize().x;
@@ -3134,9 +3134,9 @@ void CX2StateDungeonRoom::OnChatModeOpen()
 
 void CX2StateDungeonRoom::OpenDungeonHelpPopUp()
 {
-	if ( m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL ||
-		m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_HARD ||
-		m_pCX2DungeonRoom->GetDungeonID() == CX2Dungeon::DI_EL_FOREST_GATE_EXPERT )
+	if ( m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_NORMAL ||
+		m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_HARD ||
+		m_pCX2DungeonRoom->GetDungeonID() == SEnum::DI_EL_FOREST_GATE_EXPERT )
 	{
 		bool bCheckNewDungeon = false;
 		bool bCheckNextDifficulty = false;
@@ -3154,7 +3154,7 @@ void CX2StateDungeonRoom::OpenDungeonHelpPopUp()
 
 			for( UINT i=0; i<vecNewlyOpened.size(); i++ )
 			{
-				const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) vecNewlyOpened[i] );
+				const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) vecNewlyOpened[i] );
 				if( NULL == pDungeonData )
 					continue;
 
@@ -3302,7 +3302,7 @@ void CX2StateDungeonRoom::OpenDungeonHelpPopUp()
 
 			for( UINT i=0; i<vecNewlyOpened.size(); i++ )
 			{
-				const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) vecNewlyOpened[i] );
+				const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) vecNewlyOpened[i] );
 				if( NULL == pDungeonData )
 					continue;
 
@@ -3313,7 +3313,7 @@ void CX2StateDungeonRoom::OpenDungeonHelpPopUp()
 					g_pData->GetMyUser()->GetSelectUnit()->AddNewlyOpenedDungeonAtLocalMap( pDungeonData->m_DungeonID );
 				}
 
-				wstrmDungeonOpened << g_pData->GetDungeonManager()->MakeDungeonNameString( (CX2Dungeon::DUNGEON_ID) vecNewlyOpened[i], eDiffculty, CX2Dungeon::DM_INVALID ) << std::endl;
+				wstrmDungeonOpened << g_pData->GetDungeonManager()->MakeDungeonNameString( (SEnum::DUNGEON_ID) vecNewlyOpened[i], eDiffculty, CX2Dungeon::DM_INVALID ) << std::endl;
 			}
 			
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), wstrmDungeonOpened.str().c_str(), this, -1, 3.f );

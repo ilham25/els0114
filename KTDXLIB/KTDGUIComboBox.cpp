@@ -3,6 +3,16 @@
 
 inline int RectWidth( RECT &rc ) { return ( (rc).right - (rc).left ); }
 inline int RectHeight( RECT &rc ) { return ( (rc).bottom - (rc).top ); }
+inline RECT AddRect( RECT &rc1, RECT &rc2 )
+{
+	RECT rc;
+	rc.left = min(rc1.left, rc2.left);
+	rc.right = max(rc1.right, rc2.right);
+	rc.top = min(rc1.top, rc2.top);
+	rc.bottom = max(rc1.bottom, rc2.bottom);
+
+	return rc;
+}
 
 CKTDGUIComboBox::CKTDGUIComboBox()
 : m_rcBoundingBox( RECT() )
@@ -80,24 +90,24 @@ CKTDGUIComboBox::CKTDGUIComboBox()
     KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
 
-	if(  g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
+	if(  g_pKTDXApp->LoadAndDoMemory( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
 	{
 		return;
 	}
 
-	string checkSndFileName;
+	wstring checkSndFileName;
 
-	LUA_GET_VALUE( kLuaManager, "ComboBox_Mouse_Down", checkSndFileName, "" );
+	LUA_GET_VALUE( kLuaManager, "ComboBox_Mouse_Down", checkSndFileName, L"" );
+	m_pSndButtonMouseDown = g_pKTDXApp->GetDeviceManager()->OpenSound( checkSndFileName );
 
-	wstring sndFileName;
+	LUA_GET_VALUE( kLuaManager, "ComboBox_Mouse_Over", checkSndFileName, L"" );
+	m_pSndButtonMouseOver = g_pKTDXApp->GetDeviceManager()->OpenSound( checkSndFileName );
 
-	ConvertCharToWCHAR( sndFileName, checkSndFileName.c_str() );
-	m_pSndButtonMouseDown = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
-
-	LUA_GET_VALUE( kLuaManager, "ComboBox_Mouse_Over", checkSndFileName, "" );
-
-	ConvertCharToWCHAR( sndFileName, checkSndFileName.c_str() );
-	m_pSndButtonMouseOver = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
+#ifdef DLL_BUILD
+	m_pCheckedEdgeTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"UIEdge.tga" );
+	m_bEditEdge = false;	
+	m_colorEdge = D3DXCOLOR(0xffffffff);
+#endif
 }
 
 
@@ -124,6 +134,10 @@ CKTDGUIComboBox::~CKTDGUIComboBox()
 
 	SAFE_CLOSE( m_pSndButtonMouseDown );
 	SAFE_CLOSE( m_pSndButtonMouseOver );
+
+#ifdef DLL_BUILD
+	SAFE_CLOSE( m_pCheckedEdgeTexture );
+#endif
 }
 
 void CKTDGUIComboBox::InitScrollBar_LUA()
@@ -199,6 +213,10 @@ HRESULT CKTDGUIComboBox::OnFrameRender()
 		return false;
 	}
 
+
+#ifdef DLL_BUILD
+	DrawEditEdge( m_colorEdge );
+#endif
 
 	DXUT_CONTROL_STATE iState = DXUT_STATE_NORMAL;
 
@@ -880,8 +898,9 @@ bool CKTDGUIComboBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lP
 			{
 				// Pressed while inside the control
 				m_bPressed = true;
+#ifndef DLL_BUILD
 				SetCapture( DXUTGetHWND() );
-
+#endif
 				if( !m_bHasFocus )
 				{
 					m_pDialog->RequestFocus( this );
@@ -1427,7 +1446,7 @@ void	CKTDGUIComboBox::SetScollBarThumbTex_LUA( const char* pFileName, const char
 //	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUIDialog", m_pDialog );
 //
 //
-//	bool bResult = g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName );
+//	bool bResult = g_pKTDXApp->LoadLuaTinker( pFileName );
 //
 //
 //	
@@ -1826,6 +1845,122 @@ void CKTDGUIComboBox::SetButtonSize_LUA( int width, int height )
 
 	UpdateRects();
 }
+
+#ifdef DLL_BUILD
+
+bool CKTDGUIComboBox::IsSelectByEditGui( POINT pt )
+{
+	RECT rect = AddRect(m_rcText, m_rcDropdown);
+
+	D3DXVECTOR2 vLeftTop( (float) rect.left, (float) rect.top );
+	D3DXVECTOR2 vRightTop( (float) rect.right, (float) rect.top );
+	D3DXVECTOR2 vLeftBottom( (float) rect.left, (float) rect.bottom );
+	D3DXVECTOR2 vRightBottom( (float) rect.right, (float) rect.bottom );
+	if( true == Pick2DRect( pt, vLeftTop, vRightTop, vLeftBottom, vRightBottom ) )
+		return true;
+
+
+	return false;
+}
+
+void CKTDGUIComboBox::MoveControl( float fx, float fy )
+{
+	m_TextX += (int)fx;
+	m_TextY += (int)fy;
+
+	m_ButtonX += (int)fx;
+	m_ButtonY += (int)fy;
+
+	UpdateRects();
+}
+
+void CKTDGUIComboBox::SetEditGUI( bool bEdit )
+{
+	SetColor( D3DXCOLOR(0xffffffff) );
+	m_bEditEdge = bEdit;
+	m_bOpened = bEdit;
+
+	//m_rcEdge = AddRect(m_rcText, m_rcButton);
+	//m_rcEdge = AddRect(m_rcEdge, m_rcDropdown);
+
+	m_colorEdge = D3DXCOLOR(0xff0000ff);	
+}
+
+D3DXVECTOR2 CKTDGUIComboBox::GetPos()
+{
+	return D3DXVECTOR2((float)m_TextX, (float)m_TextY);
+}
+
+vector<D3DXVECTOR2> CKTDGUIComboBox::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;
+	
+	ret.push_back( D3DXVECTOR2((float)m_TextX, (float)m_TextY) );
+	ret.push_back( D3DXVECTOR2((float)m_ButtonX, (float)m_ButtonY) );
+
+	return ret;
+}
+
+void CKTDGUIComboBox::DrawEditEdge( D3DXCOLOR edgeColor )
+{
+	if( false == m_bEditEdge )
+		return;	
+
+	if ( m_pCheckedEdgeTexture == NULL )
+		return;	
+
+	//const CKTDGUIControl::UIPointData & point = *m_pEditEdgePoint;
+	D3DXCOLOR tempColor;
+
+	int edgeWidth = 2;
+	//D3DXCOLOR edgeColor = D3DXCOLOR(0xffff0000);
+
+	tempColor.a = edgeColor.a * m_pDialog->GetColor().a * m_Color.a;
+	tempColor.r = edgeColor.r * m_pDialog->GetColor().r * m_Color.r;
+	tempColor.g = edgeColor.g * m_pDialog->GetColor().g * m_Color.g;
+	tempColor.b = edgeColor.b * m_pDialog->GetColor().b * m_Color.b;
+
+	RECT edgeRect = AddRect(m_rcText, m_rcButton);
+	edgeRect = AddRect(edgeRect, m_rcDropdown);
+
+
+	int _width = (int)(edgeRect.right - edgeRect.left);
+	int _height = (int)(edgeRect.bottom - edgeRect.top);
+
+	//if ( m_bDrawEdgeOut == true )
+	{
+		// ÁÂ left/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth), 
+			edgeWidth , 
+			_height + edgeWidth, 
+			tempColor );
+
+		// ÇÏleft/bottom
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.bottom ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+
+		// ¿ìright/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.right ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top ), 
+			edgeWidth, 
+			_height + edgeWidth, 
+			tempColor );
+
+		// »óleft/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+	}
+}
+
+
+#endif
 
 #ifdef COMBOBOX_ADD_ITEM_STR_ID
 void CKTDGUIComboBox::AddItemStrID_LUA( int iIndex )

@@ -8,7 +8,6 @@ ImplementSingleton( KTutorialManager );
 
 KTutorialManager::KTutorialManager(void)
 {
-	
 	//{{ 2011.09.16 조효진  넷 에러 스트링을 클라이언트쪽에서 가져와서 출력
 #ifdef SERV_NETERROR_STR_GET_FROM_CLIENT
 	m_iDelReason[TDR_DISCONNECT_DAY]	= NetError::ERR_TUTORIAL_07; // 제자가 7일동안 접속을 하지 않아 사제관계가 종료 되었습니다.
@@ -212,7 +211,6 @@ void KTutorialManager::SetLevelData( UidType iUnitUID, u_char ucLevel )
 		}
 	}
 }
-
 
 //{{ 2011.09.16 조효진  넷 에러 스트링을 클라이언트쪽에서 가져와서 출력
 #ifdef SERV_NETERROR_STR_GET_FROM_CLIENT

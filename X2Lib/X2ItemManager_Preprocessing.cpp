@@ -1,19 +1,36 @@
 #include <StdAfx.h>
-#include <x2itemmanager.h>
 
 
 #include <boost/scoped_array.hpp>
-#include <KLuaManager.h>
 #ifdef  X2OPTIMIZE_SCRIPT_PREPROCESSING_TOOL
 #include <X2Stub.h>
 #endif  X2OPTIMIZE_SCRIPT_PREPROCESSING_TOOL
 
 #ifdef  X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
+
+/*static*/
+void CX2ItemManager::RegisterProxyLuabind( lua_State* L )
+{
+	lua_tinker::class_add<CX2ItemManager::KProxy>( L, "CX2ItemManagerProxy" );
+	lua_tinker::class_def<CX2ItemManager::KProxy>( L, "AddItemTemplet",				&CX2ItemManager::KProxy::AddItemTemplet_LUA );
+	lua_tinker::class_def<CX2ItemManager::KProxy>( L, "AddSetItemData_LUA",				&CX2ItemManager::KProxy::AddSetItemData_LUA );
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	lua_tinker::class_def<CX2ItemManager::KProxy>( L, "AddItemTempletTrans",		&CX2ItemManager::KProxy::AddItemTempletTrans_LUA );
+	lua_tinker::class_def<CX2ItemManager::KProxy>( L, "AddSetItemDataTrans_LUA",	&CX2ItemManager::KProxy::AddSetItemDataTrans_LUA );
+#endif SERV_ITEM_LUA_TRANS_DEVIDE
+	lua_tinker::class_add<CX2ItemManager::KProxy2>( L, "CX2ItemManagerProxy2" );
+	lua_tinker::class_def<CX2ItemManager::KProxy2>( L, "AddItemTemplet",			&CX2ItemManager::KProxy2::AddItemTemplet_LUA );
+	lua_tinker::class_def<CX2ItemManager::KProxy2>( L, "AddSetItemData_LUA",		&CX2ItemManager::KProxy2::AddSetItemData_LUA );
+}
+
+
 bool    CX2ItemManager::KProxy::AddItemTemplet_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
     CX2Item::USE_CONDITION  eUseCondition = CX2Item::UC_ANYONE;
 	LUA_GET_VALUE_ENUM(	luaManager, "m_UseCondition",		eUseCondition,			CX2Item::USE_CONDITION,		CX2Item::UC_ANYONE );
@@ -40,7 +57,9 @@ bool    CX2ItemManager::KProxy::AddSetItemData_LUA()
 	bool bCheckNew = false;
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LUA_GET_VALUE(	luaManager, "m_SetID",						dwSetID,					0	);
 
@@ -52,9 +71,58 @@ bool    CX2ItemManager::KProxy::AddSetItemData_LUA()
 	return true;
 }
 
-
-CX2ItemManager::KProxy2::KProxy2( const std::set<DWORD>& setItemIDs, const std::set<DWORD>& setSetIDs )
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+bool    CX2ItemManager::KProxy::AddItemTempletTrans_LUA()
 {
+	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+
+    ItemTransData strItemTransData;
+	DWORD   dwItemID = 0;
+	std::wstring wstrTemp;
+	// 여기서 입력 받아야 함.
+    LUA_GET_VALUE_RETURN(	luaManager, "m_ItemID",	dwItemID, 0, return false; );
+    LUA_GET_VALUE_RETURN(	luaManager, "m_Name", wstrTemp, L"", return false; );
+	
+	strItemTransData.m_Name = wstrTemp;
+	LUA_GET_VALUE(			luaManager, "m_Description",				strItemTransData.m_Description,			L"" );
+	LUA_GET_VALUE(			luaManager, "m_DescriptionInShop",			strItemTransData.m_DescriptionInShop,		L"" );
+	LUA_GET_VALUE(			luaManager, "m_DescriptionInSkillNote",	strItemTransData.m_DescriptionInSkillNote,	L"" );
+
+	// 치환은 KProxy2 데이터 입력받을 때
+	m_mapItemTrans.insert(std::make_pair(dwItemID, strItemTransData));
+
+	return true;
+}
+
+bool    CX2ItemManager::KProxy::AddSetItemDataTrans_LUA()
+{
+	DWORD dwSetID = 0;
+	bool bCheckNew = false;
+	std::wstring wstrTemp;
+
+	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+	
+    LUA_GET_VALUE_RETURN(	luaManager, "m_SetID",	dwSetID, 0, return false; );
+    LUA_GET_VALUE_RETURN(	luaManager, "m_SetName", wstrTemp, L"", return false; );
+	// 치환은 KProxy2 데이터 입력받을 때
+	m_mapSetItemTrans.insert(std::make_pair(dwSetID, wstrTemp));
+	return true;
+}
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
+
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+CX2ItemManager::KProxy2::KProxy2( const std::set<DWORD>& setItemIDs, const std::set<DWORD>& setSetIDs, const std::map<DWORD, ItemTransData>& mapItemTrans, const std::map<DWORD, std::wstring>& mapSetItemTrans )
+#else //SERV_ITEM_LUA_TRANS_DEVIDE
+CX2ItemManager::KProxy2::KProxy2( const std::set<DWORD>& setItemIDs, const std::set<DWORD>& setSetIDs )
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
+{
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+		m_mapItemTrans = mapItemTrans;
+		m_mapSetItemTrans = mapSetItemTrans;
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
+
     m_setSetIDs = setSetIDs;
     DWORD   dwNumItem = setItemIDs.size();
     DWORD   dwNumSetIDs = setSetIDs.size();
@@ -186,7 +254,9 @@ const CX2Item::ItemTemplet* CX2ItemManager::GetItemTemplet( const int itemID ) c
 bool    CX2ItemManager::KProxy2::AddSetItemData_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
     
     char aszError[MAX_PATH];
     bool    bCheckNew = false;
@@ -194,6 +264,21 @@ bool    CX2ItemManager::KProxy2::AddSetItemData_LUA()
 	LUA_GET_VALUE(	luaManager, "m_SetID",						dwSetID,					0	);
 	if ( dwSetID == 0 )
 		return false;
+
+	// dwItemID로 비교해서 매핑할 때 바꾸어준다
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	bool bSetItemTransData = false;
+	std::map<DWORD, std::wstring>::iterator mitSetItemTrans;
+	mitSetItemTrans = m_mapSetItemTrans.find(dwSetID);
+	if( mitSetItemTrans == m_mapSetItemTrans.end() )
+	{
+		//return false; // 에러로그 출력 후 한글 보여준다.
+	}
+	else
+	{
+		bSetItemTransData = true;
+	}
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
 
     const CX2Item::KItemFormatHeader* pkHeader = (const CX2Item::KItemFormatHeader*) m_kFileSerializer.AccessData( 0, sizeof(CX2Item::KItemFormatHeader) );
     ASSERT( pkHeader );
@@ -257,6 +342,12 @@ bool    CX2ItemManager::KProxy2::AddSetItemData_LUA()
 	LUA_GET_VALUE(	luaManager, "m_SetName",					wstrTemp,				L""	);
 	//LUA_GET_VALUE(	luaManager, "m_iSetName_Index",			m_nString_Index,		0);
 	//pSetItemData->m_SetName = GET_SCRIPT_STRING(m_nString_Index);
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	if(bSetItemTransData)
+	{
+		wstrTemp = mitSetItemTrans->second;
+	}
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
     kSetItemData.m_dwOffset_SetName = m_kFileSerializer.AppendWideString( true, false, wstrTemp );
 
     DWORD   dwNeedPartsNum = 0;
@@ -383,20 +474,20 @@ void    CX2ItemManager::KProxy2::PostProcess()
 bool    CX2ItemManager::KProxy2::AddItemTemplet_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
     
     static const char* s_aszSmallName[] = 
     {
-        "", "Elsword", "Aisha", "Rena", "Raven", "Eve", "Chung", "Ara", "Elesis"
+        "", "Elsword", "Aisha", "Rena", "Raven", "Eve", "Chung", "Ara", "Elesis", "Add"
     };
     static const char* s_aszCapitalName[] = 
     {
-        "", "ELSWORD", "AISHA", "RENA", "RAVEN", "EVE", "CHUNG", "ARA", "ELESIS"
+        "", "ELSWORD", "AISHA", "RENA", "RAVEN", "EVE", "CHUNG", "ARA", "ELESIS", "ADD"
     };
     BOOST_STATIC_ASSERT( ARRAY_SIZE( s_aszSmallName ) == ARRAY_SIZE( s_aszCapitalName ) );
 #ifndef X2OPTIMIZE_SCRIPT_PREPROCESSING_TOOL
-    BOOST_STATIC_ASSERT( ARRAY_SIZE( s_aszSmallName ) == CX2Unit::UT_END );
-    BOOST_STATIC_ASSERT( ARRAY_SIZE( s_aszCapitalName ) == CX2Unit::UT_END );
 #endif  X2OPTIMIZE_SCRIPT_PREPROCESSING_TOOL
 
     char    aszError[MAX_PATH];
@@ -427,7 +518,27 @@ bool    CX2ItemManager::KProxy2::AddItemTemplet_LUA()
         DWORD   dwIndex = 0;
 
 	    LUA_GET_VALUE_RETURN(	luaManager, "m_ItemID",	dwItemID, 0, return false; );
+// dwItemID로 비교해서 매핑할 때 바꾸어준다
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+		bool bItemTransData = false;
+		std::map<DWORD, ItemTransData>::iterator mitItemTrans;
+		mitItemTrans = m_mapItemTrans.find(dwItemID);
+		if( mitItemTrans == m_mapItemTrans.end() )
+		{
+			//return false; // 에러로그 출력 후 한글 보여준다.
+		}
+		else
+		{
+			bItemTransData = true;
+		}
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
 	    LUA_GET_VALUE_RETURN(	luaManager, "m_Name", wstrTemp, L"", return false; );
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+		if( bItemTransData )
+		{
+			wstrTemp = mitItemTrans->second.m_Name;
+		}
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
 	    LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ItemType", eItemType, CX2Item::ITEM_TYPE, CX2Item::IT_NONE, return false; );
 
 	    LUA_GET_VALUE_ENUM(	luaManager, "m_UseCondition",		eUseCondition,			CX2Item::USE_CONDITION,		CX2Item::UC_ANYONE );
@@ -583,12 +694,38 @@ bool    CX2ItemManager::KProxy2::AddItemTemplet_LUA()
 #endif  X2OPTIMIZE_SCRIPT_PREPROCESSING_TOOL
     }
 
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	bool bItemTransData = false;
+	std::map<DWORD, ItemTransData>::iterator mitItemTrans;
+	mitItemTrans = m_mapItemTrans.find(dwItemID);
+	if( mitItemTrans == m_mapItemTrans.end() )
+	{
+		//return false; // 에러로그 출력 후 한글 보여준다.
+	}
+	else
+	{
+		bItemTransData = true;
+	}
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
+
     wstrTemp.resize( 0 );
 	LUA_GET_VALUE(			luaManager, "m_Description",				wstrTemp,			L"" );
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	if( bItemTransData )
+	{
+		wstrTemp = mitItemTrans->second.m_Description;
+	}
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
     kTemplet.m_dwOffset_Description = m_kFileSerializer.AppendWideString( true, true, wstrTemp );
 	
     wstrTemp.resize( 0 );
 	LUA_GET_VALUE(			luaManager, "m_DescriptionInShop",			wstrTemp,		L"" );
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	if( bItemTransData )
+	{
+		wstrTemp = mitItemTrans->second.m_DescriptionInShop;
+	}
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
     kTemplet.m_dwOffset_DescriptionInShop = m_kFileSerializer.AppendWideString( true, true, wstrTemp );
 	
     wstrTemp.resize( 0 );
@@ -631,16 +768,13 @@ bool    CX2ItemManager::KProxy2::AddItemTemplet_LUA()
 	    //LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ItemType",				eItemType,				CX2Item::ITEM_TYPE,		CX2Item::IT_NONE, SAFE_DELETE(pItemTemplet); return false; );
 	    LUA_GET_VALUE_ENUM(			luaManager, "m_ItemGrade",				eItemGrade,				CX2Item::ITEM_GRADE,	CX2Item::IG_NORMAL );
 	    LUA_GET_VALUE(				luaManager, "m_bFashion",				bFashion,				false );
-	    LUA_GET_VALUE(				luaManager, "m_bVested",				bVested,				false );
-
+	    LUA_GET_VALUE(				luaManager, "m_bVested",				bVested,				false );	
 #ifdef HIDE_SET_DESCRIPTION
 		LUA_GET_VALUE(				luaManager, "m_bHideSetDesc",			bHideSetDesc,			false );
 #endif HIDE_SET_DESCRIPTION
-
 #ifdef SERV_PVP_EQUIPMENT
 		LUA_GET_VALUE(				luaManager, "m_bIsPvpItem",				bIsPvpItem,				false );
 #endif SERV_PVP_EQUIPMENT
-
 	    LUA_GET_VALUE(				luaManager, "m_bCanEnchant",			bCanEnchant,			false );
 	    LUA_GET_VALUE(				luaManager, "m_bCanUseInventory",		bCanUseInventory,		false );	
 
@@ -792,7 +926,7 @@ bool    CX2ItemManager::KProxy2::AddItemTemplet_LUA()
         {
             sprintf_s( aszBuffer, ARRAY_SIZE(aszBuffer), "%s_ITEM_SCALE_ROTATE", s_aszCapitalName[i] );
             strTemp.resize( 0 );
-	        LUA_GET_VALUE( luaManager, aszBuffer, strTemp, "" );
+	        LUA_GET_VALUE_UTF8( luaManager, aszBuffer, strTemp, "" );
 	        TokenizeByScaleRotate( strTemp, vScale[i], vRotate[i] );
         }
         for( int i = 1; i < ARRAY_SIZE( s_aszCapitalName ); ++i )
@@ -872,6 +1006,12 @@ bool    CX2ItemManager::KProxy2::AddItemTemplet_LUA()
 //#ifdef SERV_SKILL_NOTE
     wstrTemp.resize( 0 );
 	LUA_GET_VALUE(				luaManager, "m_DescriptionInSkillNote",	wstrTemp,	L"" );
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	if( bItemTransData )
+	{
+		wstrTemp = mitItemTrans->second.m_DescriptionInSkillNote;
+	}
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
     kTemplet.m_dwOffset_DescriptionInSkillNote = m_kFileSerializer.AppendWideString( true, true, wstrTemp );
 //#endif SERV_SKILL_NOTE
 	//}}
@@ -1254,20 +1394,10 @@ bool    CX2ItemManager::KProxy2::AddItemTemplet_LUA()
         int iCoolTime = 0;
         int iSetID = 0;
 
-	    LUA_GET_VALUE(		luaManager, L"m_CoolTime",			iCoolTime,				0 );
-	    LUA_GET_VALUE(		luaManager, L"m_SetID",				iSetID,					0 );
+	    LUA_GET_VALUE(		luaManager, "m_CoolTime",			iCoolTime,				0 );
+	    LUA_GET_VALUE(		luaManager, "m_SetID",				iSetID,					0 );
         kTemplet.SetCoolTime( iCoolTime );
         kTemplet.SetSetID( iSetID );
-
-//	    //{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-//#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
-//	    // 셋트효과가 있고, 요구레벨도 있는 경우
-//	    if ( 0 < iSetID && 0 < kTemplet.GetUseLevel() )
-//	    {
-//		    g_pData->GetItemManager()->UpdateSetIDAndMaxLevelMap( iSetID, kTemplet.GetUseLevel() );
-//	    }
-//#endif	NOT_USE_PERCENT_IN_OPTION_DATA
-//	    //}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
     }
 
 //#ifdef ITEM_SLASH_TRACE_COLOR_TEST
@@ -1528,9 +1658,7 @@ int CX2ItemManager::GetSetItemOptions( DWORD dwSetID, const int iNumOfEquippedIt
 
     pSetItemData->GetSetItemOptions( iNumOfEquippedItems_, vecOptions );
 
-//#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
     return  pSetItemData->m_iMaxLevel;
-//#endif  NOT_USE_PERCENT_IN_OPTION_DATA
 }
 
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING

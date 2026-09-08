@@ -48,7 +48,7 @@ public:
 	int		IsExpirationRidingPet( IN const UidType iRidingPetUID, OUT USHORT& usRidingPetID );
 	int		UpdateSummonedRidingPetInfo( IN const UidType iRidingPetUID, IN const float fStamina );
 
-#ifdef SERV_EVENT_RIDING_WITH_SUB_QUEST
+#if defined(SERV_EVENT_RIDING_WITH_SUB_QUEST) || defined(SERV_RIDING_PET_WITH_SUB_QUEST)
 	KUserRidingPetPtr GetRidingPetSummoned() {return m_spSummoned;}
 #endif //SERV_EVENT_RIDING_WITH_SUB_QUEST
 

@@ -49,6 +49,13 @@
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 //}}
 
+#ifdef SERV_GOOD_ELSWORD
+    #include "X2Data/XSLEDInventoryExpand.h"
+#endif //SERV_GOOD_ELSWORD
+
+#ifdef SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+#include <boost/foreach.hpp>
+#endif SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 
 KInventory::KInventory()
 {
@@ -142,14 +149,6 @@ bool KInventory::Init( IN const std::map< int, int >& mapSlotSize,
 			continue;
 		}
 #endif SERV_PET_SYSTEM
-		//}}
-		//{{ Iruha : 2026-08-27 // Category 11 is always exactly 6; ignore any legacy +3 purchase row
-#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-		else if( iCategory == CXSLInventory::ST_E_QUICK_SLOT )
-		{
-			iSlotSize = 6;
-		}
-#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
 		//}}
 
         if( iSlotSize > 0 )
@@ -303,7 +302,6 @@ bool KInventory::Init( IN const std::map< int, int >& mapSlotSize,
 #else SERV_PC_BANG_TYPE
 		SiKGameSysVal()->GetPcBangPremiumItem( m_pUser->GetUnitType(), vecPcBangPremiumItem );
 #endif 
-
 
 		BOOST_TEST_FOREACH( const KInventoryItemInfo&, kPcBangItem, vecPcBangPremiumItem )
 		{
@@ -525,13 +523,7 @@ int KInventory::GetBaseSlotSize( IN const int iCategory ) const
     case CXSLInventory::ST_E_SKILL:
         return CXSLUnit::NSSI_END;
     case CXSLInventory::ST_E_QUICK_SLOT:
-		//{{ Iruha : 2026-08-27 // All 6 consumable quick slots open by default
-#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-		return 6;
-#else
-		return 3;
-#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-		//}}
+		return 3;   
 	case CXSLInventory::ST_AVARTA:
 		//{{ 2012. 12. 14	허상형 ( Merged by 박세훈 )	인벤토리 개편 테스트
 #ifdef SERV_REFORM_INVENTORY_TEST
@@ -547,7 +539,7 @@ int KInventory::GetBaseSlotSize( IN const int iCategory ) const
 	case CXSLInventory::ST_SPECIAL:
 #ifdef SERV_REFORM_INVENTORY_INT
 		// 해외팀 각국가 전용 디파인
-#if defined( SERV_COUNTRY_TWHK ) || defined( SERV_COUNTRY_CN ) || defined( SERV_COUNTRY_TH ) || defined( SERV_COUNTRY_US )
+#if defined( SERV_COUNTRY_TWHK ) || defined( SERV_COUNTRY_CN ) || defined( SERV_COUNTRY_TH ) || defined( SERV_COUNTRY_US ) || defined( SERV_COUNTRY_PH ) || defined( SERV_COUNTRY_IN )
 		return 24;
 #elif defined( SERV_COUNTRY_JP ) || defined( SERV_COUNTRY_EU ) || defined( SERV_COUNTRY_ID ) || defined( SERV_COUNTRY_BR )
 		return 32;
@@ -924,12 +916,12 @@ bool KInventory::IsEnoughItemExistOnlyInventory( IN const std::map< int, int >& 
     return IsEnoughItemExist( mapRequiredItem, true );
 }
 
-bool KInventory::IsEnoughItemExist( IN const std::map< UidType, int >& mapRequiredItem )
+bool KInventory::IsEnoughItemExist( IN const std::map< UidType, int >& mapRequiredItem_ )
 {
     std::map< UidType, KInventoryItem >::iterator mit;
     std::map< UidType, int >::const_iterator mitRequired;
 
-    for( mitRequired = mapRequiredItem.begin(); mitRequired != mapRequiredItem.end(); ++mitRequired )
+    for( mitRequired = mapRequiredItem_.begin(); mitRequired != mapRequiredItem_.end(); ++mitRequired )
     {
         int iQuantity;
         _JIF( GetQuantity( mitRequired->first, iQuantity ), return false );
@@ -956,7 +948,19 @@ bool KInventory::IsSuitableSlot( int iItemID, int iCategory, int iSlotID )
 
         return false;
     }
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+	// 카테코리가 펫, 은행, 은행 공유이고 ItemID  엘의 여인의 눈물
+	if(pItemTemplet->m_ItemID == CXSLItem::EI_TEAR_OF_ELWOMAN &&
+		( iCategory == CXSLInventory::ST_PET || iCategory == CXSLInventory::ST_BANK || iCategory == CXSLInventory::ST_SHARE_BANK) )
+	{
+		START_LOG( clog, L"엘의 여인의 눈물 아이템은 펫이나 은행, 은행공유 인벤토리로 넣을 수 없음." )
+			<< BUILD_LOG( iItemID )
+			<< BUILD_LOG( iCategory )
+			<< END_LOG;
 
+		return false;
+	}
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 	//{{ 2010. 01. 05  최육사	PC방 프리미엄
 	// PC방이 인벤토리 슬롯 검사의 우선순위가 높다
 #ifdef SERV_PC_BANG_PRE
@@ -1269,7 +1273,6 @@ bool KInventory::IsSuitableSlot( int iItemID, int iCategory, int iSlotID )
 				return false;
 			}
 #endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
-
         default:
             START_LOG( cerr, L"이상한 슬롯." )
                 << BUILD_LOG( iCategory )
@@ -1452,43 +1455,43 @@ bool KInventory::IsEnoughSpaceExist( IN const std::map< int, int >& mapItem )
 	return true;
 }
 #else
-bool KInventory::IsEnoughSpaceExist( IN const std::map< int, int >& mapItem )
+bool KInventory::IsEnoughSpaceExist( IN const std::map< int, int >& mapItem ) // itemID, quantity
 {
     std::map< int, int >::iterator mit;
     std::map< int, int > mapNewItem = mapItem;
 
 	// 1. 먼저 수량만으로 채울수 있는지 검사
-    int i, j;
+    int iCategory, iSlotIndex;
     for( mit = mapNewItem.begin(); mit != mapNewItem.end(); ++mit )
     {
 		// 빈공간을 검사할 아이템 카테고리가 정상값인지 검사하기
-        i = GetSuitableCategory( mit->first );
-        if( i < CXSLInventory::ST_EQUIP  ||  i > CXSLInventory::ST_AVARTA )
+        iCategory = GetSuitableCategory( mit->first );
+        if( iCategory < CXSLInventory::ST_EQUIP  ||  iCategory > CXSLInventory::ST_AVARTA )
         {
             START_LOG( cerr, L"카테고리 설정이 이상합니다." )
-                << BUILD_LOG( i )
+                << BUILD_LOG( iCategory )
                 << BUILD_LOG( mit->first )
                 << END_LOG;
 
             return false;
         }
 
-        for( j = 0; j < GetSlotSize( i ); ++j )
+        for( iSlotIndex = 0; iSlotIndex < GetSlotSize( iCategory ); ++iSlotIndex )
         {
-			if( IsEmptySlot( i, j ) )
+			if( IsEmptySlot( iCategory, iSlotIndex ) )
 			{
 				continue;
 			}
 
-			if( GetItemID( i, j ) == mit->first )
+			if( GetItemID( iCategory, iSlotIndex ) == mit->first ) // 슬롯에 있는 아이템이 동일한가?
 			{
-			    mit->second -= std::min< int >( mit->second, GetRemainedQuantityCapacity( i, j ) );
+			    mit->second -= std::min< int >( mit->second, GetRemainedQuantityCapacity( iCategory, iSlotIndex ) );
 			}
         }
     }
 
     std::map< int, int >::iterator mit2;
-    std::map< int, int > mapNumFreeSlot;
+    std::map< int, int > mapNumFreeSlot; // first int = category, second int = slot number
 
 	// 2. 빈슬롯 얻기
 	GetNumFreeSlot( mapNumFreeSlot );
@@ -1519,14 +1522,14 @@ bool KInventory::IsEnoughSpaceExist( IN const std::map< int, int >& mapItem )
 
                     return false;
                 }
-                iRequiredNumSlot = mit->second / pItemTemplet->m_Quantity;
-                if( ( mit->second % pItemTemplet->m_Quantity ) > 0 )
+                iRequiredNumSlot = mit->second / pItemTemplet->m_Quantity; // item quantity /  quantity unit 1묶음 수량
+                if( ( mit->second % pItemTemplet->m_Quantity ) > 0 ) // 나누어 떨어지는 경우와 아닌 경우의 필요 슬롯 수를 구하기 위한 공식으로 보인다
                 {
                     iRequiredNumSlot++;
                 }
             }
         }
-        else
+        else // 수량 아이템이 아닌 경우 
         {
             _JIF( mit->second >= 0, return false );
             iRequiredNumSlot = mit->second;
@@ -2191,7 +2194,11 @@ void KInventory::GetEquippedItem( IN std::set< CXSLItem::ITEM_TYPE >& setItemTyp
 
 //{{ 2011. 07. 08    김민성    옵션 수치화
 #ifdef SERV_USE_PERCENT_IN_OPTION_DATA
+#ifdef SERV_EVENT_VALENTINE_RING_IS_DUNGEON
+void KInventory::GetEquippedStat( IN const bool bIsDungeon, IN const KStat& kBaseStat, IN OUT float& fTotalIncHPRate, OUT KStat& kAddStat, IN unsigned int& uiHP_OnePoint, IN unsigned int& uiUnitLevel, IN int iTempDungeonID  )
+#else 
 void KInventory::GetEquippedStat( IN const bool bIsDungeon, IN const KStat& kBaseStat, IN OUT float& fTotalIncHPRate, OUT KStat& kAddStat, IN unsigned int& uiHP_OnePoint, IN unsigned int& uiUnitLevel )
+#endif SERV_EVENT_VALENTINE_RING_IS_DUNGEON
 #else
 void KInventory::GetEquippedStat( IN const bool bIsDungeon, IN const KStat& kBaseStat, IN OUT float& fTotalIncHPRate, OUT KStat& kAddStat )
 #endif SERV_USE_PERCENT_IN_OPTION_DATA
@@ -2257,6 +2264,30 @@ void KInventory::GetEquippedStat( IN const bool bIsDungeon, IN const KStat& kBas
 				;
 			continue;
 		}
+#ifdef SERV_EVENT_VALENTINE_RING_IS_DUNGEON
+		if( pItemTemplet->m_ItemID == 141000980 ||
+			pItemTemplet->m_ItemID == 141000981 ||
+			pItemTemplet->m_ItemID == 141000982 ||
+			pItemTemplet->m_ItemID == 141000983 ||
+			pItemTemplet->m_ItemID == 141000984 )
+		{
+			if( iTempDungeonID != SEnum::DI_EVENT_VALENTINE_DUNGEON_INT )
+			{
+				START_LOG( clog, L"발렌타인 던전 아이템 다른던전에서 사용 안됨" )
+					<< BUILD_LOG( pItemTemplet->m_ItemID )
+					<< BUILD_LOG( iTempDungeonID )
+					<< END_LOG;
+					continue;
+			}
+			else
+			{
+				START_LOG( clog, L"발렌타인 던전 아이템 사용가능" )
+				<< BUILD_LOG( pItemTemplet->m_ItemID )
+				<< BUILD_LOG( iTempDungeonID )
+				<< END_LOG;
+			}
+		}
+#endif SERV_EVENT_VALENTINE_RING_IS_DUNGEON
 
 		// 4. 세트 아이템인지 검사
 		if( pItemTemplet->m_SetID > 0 )
@@ -2820,6 +2851,10 @@ void KInventory::GetEquippedStatOnlyGMWeapon( KStat& kStat )
 //{{ 2009. 2. 2  최육사		소켓옵션
 void KInventory::GetEquippedItemBonusRate( IN const bool bIsDungeonRoom, OUT float& fAddTitleExpRate, OUT float& fAddTitleEDRate )
 {
+#ifdef SERV_SET_ITEM_OPTION_ADD
+	// 4. 세트 아이템인지 검사
+	std::set< int > setEquippedItemSetID;
+#endif SERV_SET_ITEM_OPTION_ADD
 	for( int i = 0; i < GetSlotSize( CXSLInventory::ST_E_EQUIP ); ++i )
 	{
 		if( !IsEmptySlot( CXSLInventory::ST_E_EQUIP, i ) )
@@ -2938,8 +2973,83 @@ void KInventory::GetEquippedItemBonusRate( IN const bool bIsDungeonRoom, OUT flo
 				if( pSocketData->m_fIncreaseEDPer > 0.0f )
 					fAddTitleEDRate += pSocketData->m_fIncreaseEDPer;
 			}
+#ifdef SERV_SET_ITEM_OPTION_ADD
+///셋트 아이템 옵션 적용
+			if( pItemTemplet->m_SetID > 0 )
+			{
+				setEquippedItemSetID.insert( pItemTemplet->m_SetID );
+			}
+#endif SERV_SET_ITEM_OPTION_ADD
 		}
 	}
+#ifdef SERV_SET_ITEM_OPTION_ADD
+	//////////////////////////////////////////////////////////////////////////
+	// 9. 세트 아이템 스탯 적용
+	BOOST_TEST_FOREACH( const int, iSetID, setEquippedItemSetID )
+	{
+		// 9-1. 세트 아이템 템플릿 얻기
+		const CXSLSocketItem::SetItemData* pSetItemData = SiCXSLSocketItem()->GetSetItem( iSetID );
+		if( pSetItemData == NULL )
+		{
+			START_LOG( cerr, L"존재하지 않는 SetID를 가진 아이템을 장착중입니다." )
+				<< BUILD_LOG( iSetID )
+				<< END_LOG;
+			continue;
+		}
+
+		// 9-2. 장착중인 아이템중 해당 setItem을 현재 몇개 장착중인지 얻기
+		const int iSetItemCount = GetEquippedSetItemCount( iSetID );
+
+		// 9-3. 장착된 수량만큼 적용될 소켓옵션 찾기
+		//{{ 2011. 07. 25    김민성    아이템 옵션ID 데이터 사이즈 증가
+#ifdef SERV_ITEM_OPTION_DATA_SIZE
+		std::map< int, std::vector< int > >::const_iterator mit = pSetItemData->m_mapNeedPartsNumNOptions.end();
+#else
+		std::map< int, std::vector< short > >::const_iterator mit = pSetItemData->m_mapNeedPartsNumNOptions.end();
+#endif SERV_ITEM_OPTION_DATA_SIZE
+		//}} 
+		for( int iCnt = iSetItemCount; iCnt > 0; --iCnt )
+		{
+			mit = pSetItemData->m_mapNeedPartsNumNOptions.find( iCnt );
+			if( mit == pSetItemData->m_mapNeedPartsNumNOptions.end() )
+				continue;
+			else
+				break;
+		}
+		if( mit == pSetItemData->m_mapNeedPartsNumNOptions.end() )
+			continue;
+
+		std::vector< int > vecTemp = mit->second;
+		BOOST_TEST_FOREACH( const int, sSocketOptionID, vecTemp )
+		{
+			if( sSocketOptionID == 0 )
+				continue;
+
+			const CXSLSocketItem::SocketData* pSocketData = SiCXSLSocketItem()->GetSocketData( sSocketOptionID );
+			if( pSocketData == NULL )
+			{
+				START_LOG( cerr, L"존재하지않는 소켓옵션이 세팅되어 있습니다." )
+					<< BUILD_LOG( sSocketOptionID )
+					<< END_LOG;
+				continue;
+			}
+			//{{ 2009. 4. 1  최육사		던전온리
+			if( pSocketData->m_bDungeonOnly  &&  !bIsDungeonRoom )
+				continue;
+			//}}
+
+
+			if( true == pSocketData->m_bPVPOnly && true == bIsDungeonRoom )	
+				continue;
+
+			if( pSocketData->m_fIncreaseExpPer > 0.0f )
+				fAddTitleExpRate += pSocketData->m_fIncreaseExpPer;
+
+			if( pSocketData->m_fIncreaseEDPer > 0.0f )
+				fAddTitleEDRate += pSocketData->m_fIncreaseEDPer;
+		}
+	}
+#endif SERV_SET_ITEM_OPTION_ADD
 }
 //}}
 
@@ -3880,7 +3990,11 @@ bool KInventory::InsertItem( IN UidType iItemUID, IN const KItemInfo& kItemInfo,
 	if( pItemTemplet->m_ItemType == CXSLItem::IT_WEAPON || pItemTemplet->m_ItemType == CXSLItem::IT_DEFENCE )
 	{
 		// 소켓 정보 검사
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+		int iSocketCount = SiCXSLSocketItem()->GetSocketCount( pItemTemplet->m_ItemGrade, pItemTemplet->m_ItemType ) + kItemInfo.m_byteExpandedSocketNum;
+#else // SERV_BATTLE_FIELD_BOSS
 		int iSocketCount = SiCXSLSocketItem()->GetSocketCount( pItemTemplet->m_ItemGrade, pItemTemplet->m_ItemType );
+#endif // SERV_BATTLE_FIELD_BOSS
 
 		//1. 템프 카피
 		//{{ 2011. 07. 25    김민성    아이템 옵션ID 데이터 사이즈 증가
@@ -4634,7 +4748,7 @@ bool KInventory::DeleteItem( IN UidType iItemUID, OUT KInventoryItemInfo& kInven
 
 		return false;
 	}
-#endif
+#endif SERV_SHARING_BANK_TEST
 
 	//////////////////////////////////////////////////////////////////////////	
 	//{{ 2010. 01. 18  최육사	오류검사
@@ -4710,7 +4824,7 @@ bool KInventory::DeleteItem( IN UidType iItemUID, OUT KInventoryItemInfo& kInven
 #ifdef	SERV_SHARING_BANK_TEST
 	m_setShareItem.erase( mit->first );
 #endif	SERV_SHARING_BANK_TEST
-	m_mapItem.erase( mit );
+    m_mapItem.erase( mit );
 
     LIF( GetInventorySlotInfo( iCategory, iSlotID, kInventorySlotInfo ) );
     return true;
@@ -5018,6 +5132,8 @@ bool KInventory::DiscardItem( IN UidType iItemUID, IN int iQuantity, OUT KInvent
 }
 //}}
 
+
+
 bool KInventory::UseQuickSlotItem( IN int iSlotID, OUT int& iItemID, OUT KInventoryItemInfo& kInventorySlotInfo )
 {
     _JIF( iSlotID >= 0 && iSlotID < GetSlotSize( CXSLInventory::ST_E_QUICK_SLOT ), return false );
@@ -5173,7 +5289,24 @@ bool KInventory::MoveItem( IN UidType iItemUID, IN int iDestCategory, IN int iDe
 			<< END_LOG;
 		return false;
 	}
-
+#ifdef SERV_EVENT_PET_INVENTORY
+	///여기서 예외 처리 한다.
+	std::vector< KPetInfo > TempPetInfo;
+	m_pUser->GetSummonePetInfo( TempPetInfo );
+	if( TempPetInfo.size() > 0 )
+	{
+		if( TempPetInfo[0].m_bIsEventPetID ) //소환된 놈이 이벤트 펫이라면
+		{
+			if( TempPetInfo[0].m_bEventFoodEat == false && iDestCategory == CXSLInventory::ST_PET )
+			{
+				START_LOG( cerr, L"이벤트 펫 먹이를 먹이지 않았는데 인벤이 있네?? 해킹이다" )
+					<< BUILD_LOG( m_pUser->GetCharUID() )
+					<< END_LOG;
+				return false;
+			}
+		}
+	}
+#endif SERV_EVENT_PET_INVENTORY
 #endif SERV_PET_SYSTEM
 	//}}
 
@@ -5270,7 +5403,6 @@ bool KInventory::MoveItem( IN UidType iItemUID, IN int iDestCategory, IN int iDe
 	// 9. 이동하려는 슬롯이 비어있는지 체크!
     if( IsEmptySlot( iDestCategory, iDestSlotID ) )
     {
-
 #ifdef SERV_PERSONAL_SHOP_NO_MOVE
 		if( vecPersonalShopItemInfo.empty() == false )
 		{
@@ -5541,7 +5673,7 @@ bool KInventory::MoveItem( IN int iSrcCategory, IN int iSrcSlotID, IN int iDestC
 	return MoveItem( GetItemUID( iSrcCategory, iSrcSlotID ), iDestCategory, iDestSlotID, bCoolTimeCheck, vecChanged, kSealReq );
 #endif SERV_PERSONAL_SHOP_NO_MOVE
 #else	SERV_SHARING_BANK_TEST
-	return MoveItem( GetItemUID( iSrcCategory, iSrcSlotID ), iDestCategory, iDestSlotID, bCoolTimeCheck, vecChanged );
+    return MoveItem( GetItemUID( iSrcCategory, iSrcSlotID ), iDestCategory, iDestSlotID, bCoolTimeCheck, vecChanged );
 #endif	SERV_SHARING_BANK_TEST
 }
 
@@ -5780,8 +5912,8 @@ bool KInventory::PrepareBuy( IN const std::map< int, int >& mapItem, IN const bo
 			<< BUILD_LOG( m_pUser->GetCharUID() )
 			<< BUILD_LOG( m_pUser->GetAPoint() )
 			<< BUILD_LOG( iTotalPvPPoint )
-			<< END_LOG;	
-	
+			<< END_LOG;
+
 		SET_ERROR( ERR_BUY_ED_ITEM_05 );
         return false;
     }
@@ -6560,6 +6692,9 @@ bool KInventory::PrepareInsert( std::map< int, KItemInfo >& mapReward, std::map<
             kInfo.m_cEnchantLevel	= std::min< char >( mitReward->second.m_cEnchantLevel, cEnchantLevel );
 			kInfo.m_kAttribEnchantInfo = mitReward->second.m_kAttribEnchantInfo;
             kInfo.m_vecItemSocket	= mitReward->second.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+			kInfo.m_byteExpandedSocketNum	= mitReward->second.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 			kInfo.m_vecRandomSocket	= mitReward->second.m_vecRandomSocket;
@@ -6777,6 +6912,9 @@ bool KInventory::PrepareInsertForTrade( IN const std::vector< KInventoryItemInfo
 				kInfo.m_cEnchantLevel	= std::min< char >( vitROO->m_cEnchantLevel, cEnchantLevel );
 				kInfo.m_kAttribEnchantInfo = vitROO->m_kAttribEnchantInfo;
 				kInfo.m_vecItemSocket	= vitROO->m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+				kInfo.m_byteExpandedSocketNum	= vitROO->m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 				//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 				kInfo.m_vecRandomSocket	= vitROO->m_vecRandomSocket;
@@ -6889,6 +7027,9 @@ bool KInventory::PrepareInsertForTrade( IN const std::vector< KInventoryItemInfo
 			kInfo.m_cEnchantLevel	= std::min< char >( vitROO->m_cEnchantLevel, cEnchantLevel );
 			kInfo.m_kAttribEnchantInfo = vitROO->m_kAttribEnchantInfo;
 			kInfo.m_vecItemSocket	= vitROO->m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+			kInfo.m_byteExpandedSocketNum	= vitROO->m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 			kInfo.m_vecRandomSocket	= vitROO->m_vecRandomSocket;
@@ -7285,7 +7426,7 @@ bool KInventory::DeleteAndInsert( IN const std::map< UidType, int >& mapToDelete
     _JIF( IsEnoughItemExist( mapToDelete ), return false );
 
     // 인벤토리에 현재 비어 있는 슬롯들을 조사한다.
-    std::map< int, int > mapNumEmptySlot;
+    std::map< int, int > mapNumEmptySlot; // category, number of slot
     GetNumFreeSlot( mapNumEmptySlot );
 
     // 아이템을 제거할 경우 빈 공간이 더 생기는지 조사한다.
@@ -7301,7 +7442,7 @@ bool KInventory::DeleteAndInsert( IN const std::map< UidType, int >& mapToDelete
         int iQuantity;
         _JIF( GetQuantity( mitToDelete->first, iQuantity ), return false );
 
-        if( mitToDelete->second >= iQuantity )
+        if( mitToDelete->second >= iQuantity ) // ???
         {
             int iCategory;
             int iSlotID;
@@ -7571,6 +7712,9 @@ bool KInventory::DeleteAndInsert( IN const std::map< UidType, int >& mapToDelete
             kInfo.m_sEndurance		= sEndurance;
             kInfo.m_sPeriod			= mitToInsertClone->second.m_sPeriod;
 			kInfo.m_vecItemSocket	= mitToInsertClone->second.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+			kInfo.m_byteExpandedSocketNum	= mitToInsertClone->second.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 			kInfo.m_vecRandomSocket	= mitToInsertClone->second.m_vecRandomSocket;
@@ -8474,6 +8618,11 @@ bool KInventory::OpenRandomItem( IN char cUnitClass,
 								OUT std::vector< KItemInfo >& vecNewItem, 
 								OUT int& iRessurectionCount,
 								OUT int& iRestoreSpirit,
+								//{{ 2012. 11. 26 큐브 ED 오픈 조건 기능 추가 - 김민성
+#ifdef SERV_CUBE_OPEN_ED_CONDITION //SERV_ALL_RENEWAL_SP
+								OUT int& iED,
+#endif SERV_CUBE_OPEN_ED_CONDITION //SERV_ALL_RENEWAL_SP
+								//}
 								OUT bool& bCharmItem )
 #endif SERV_TIME_OPEN_RANDOM_ITEM_EVENT
 //}}
@@ -8609,6 +8758,20 @@ bool KInventory::OpenRandomItem( IN char cUnitClass,
 		{
 			iKeyItemID = mitKey->first;
             bEnoughKey = true;
+#ifdef SERV_EVENT_RANDOM_ITEM_KEY_NO_DELETE
+			bool bEventRandomItemKey = false;
+			switch(GetItemID(iItemUID))
+			{
+			case 85003835: // 정파비전 큐브 열쇠
+			case 85003836: // 사파비전 큐브 열쇠
+				bEventRandomItemKey = true;
+				break;
+			default:
+				break;
+			}
+			if(bEventRandomItemKey)
+				break;
+#endif SERV_EVENT_RANDOM_ITEM_KEY_NO_DELETE
 #ifdef SERV_RANDOM_ITEM_KEY_NO_DELETE
 			if(GetItemID(iItemUID) != 80000114) // 2011.09.07 lygan_조성욱 //VIP 큐브에서 특정 키가 소모 안되게 처리방식
 #endif //SERV_RANDOM_ITEM_KEY_NO_DELETE
@@ -8646,6 +8809,7 @@ bool KInventory::OpenRandomItem( IN char cUnitClass,
 		START_LOG( cerr, L"랜덤 아이템 템플릿을 얻지 못함" )
 			<< BUILD_LOG( iItemUID )
 			<< BUILD_LOG( iItemID )
+			<< BUILD_LOG( iKeyItemID )
 			<< END_LOG;
 
 		SET_ERROR( ERR_RANDOM_ITEM_01 );
@@ -8815,9 +8979,8 @@ bool KInventory::OpenRandomItem( IN char cUnitClass,
 #else	// SERV_CHARM_ITEM_SCRIPT
 				// 매력아이템의 결과템과 보너스템을 함께 빈공간검사를 해야한다.
 				mapCheckResultItem.insert( std::make_pair( CXSLRandomItemManager::RID_ATTRANTION_BONUS, 1 ) );
-#endif	// SERV_CHARM_ITEM_SCRIPT				
+#endif	// SERV_CHARM_ITEM_SCRIPT
 			}
-			//}}
 
 			if( IsEnoughSpaceExist( mapCheckResultItem ) == false )
 			{
@@ -8863,13 +9026,6 @@ bool KInventory::OpenRandomItem( IN char cUnitClass,
 	{
 		mapInsertedItem.insert( std::make_pair( mitRI->first, mitRI->second.m_iQuantity ) );
 	}
-
-	//{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-	// 폭발한 엘의 파편은 인벤토리에 실제로 집어넣진 않는다.
-	mapResultItem.erase( CXSLItem::EI_ANGEL_FEATHER );
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-	//}}
 
 	// 7. 결과 처리
 	if( DeleteAndInsert( mapRequireKey, mapRandomBox, mapResultItem, vecUpdated, vecNewItem, true, KDeletedItemInfo::DR_RANDOM_ITEM ) == false )
@@ -8932,6 +9088,18 @@ bool KInventory::ItemManufacture( IN int iManufactureID,
 	mapInsertedItem.clear();
 	vecUpdated.clear();
 	vecNewItem.clear();
+
+#ifdef SERV_CHECK_POSSIBLE_MANUFACTURE_ID	// 적용날짜: 미정
+	if( SiCXSLManufactureItemManager()->IsPossibleManufactureID( iManufactureID ) == false )
+	{
+		START_LOG( cerr, L"제조 데이터를 얻지 못함" )
+			<< BUILD_LOG( iManufactureID )
+			<< END_LOG;
+
+		SET_ERROR( ERR_MANUFACTURE_00 );
+		return false;
+	}
+#endif	// SERV_CHECK_POSSIBLE_MANUFACTURE_ID
 
 	// 1. 제조 데이터 검사
 	const CXSLManufactureItemManager::ManufactureData* pManufactureData = SiCXSLManufactureItemManager()->GetManufactureData( iManufactureID );
@@ -9041,7 +9209,6 @@ bool KInventory::ItemManufacture( IN int iManufactureID,
 		}
 		else
 		{
-
 #ifdef SERV_MANUFACTURE_PERIOD
 			int iPeriod = SiCXSLManufactureItemManager()->GetManufactureResultItemIDPeriod(iResultGroupID, iResultItemID );
 
@@ -9051,7 +9218,6 @@ bool KInventory::ItemManufacture( IN int iManufactureID,
 			if (pItemTemplet->m_PeriodType != CXSLItem::PERIOD_TYPE::PT_INFINITY )
 				iPeriod = 0;
 #endif //SERV_MANUFACTURE_PERIOD
-
 
 			KItemInfo kInsertItemInfo;
 			kInsertItemInfo.m_iItemID	 = iResultItemID;
@@ -9081,6 +9247,20 @@ bool KInventory::ItemManufacture( IN int iManufactureID,
 			}
 #endif SERV_NEW_DEFENCE_DUNGEON
 			//}}
+
+#ifdef SERV_ADD_SEALED_ITEM_SIGN
+            switch( pItemTemplet->m_ItemType )
+            {
+            case CXSLItem::IT_WEAPON:
+            case CXSLItem::IT_DEFENCE:
+            case CXSLItem::IT_ACCESSORY:
+                if( SiCXSLManufactureItemManager()->IsItemSealed( iResultItemID ) == true )
+                {
+                    kInsertItemInfo.m_ucSealData = 101;
+                }
+                break;
+            }
+#endif SERV_ADD_SEALED_ITEM_SIGN
 
 			mapToInsert.insert( std::make_pair( iResultItemID, kInsertItemInfo ) );
 
@@ -9184,8 +9364,8 @@ bool KInventory::ItemManufacture( IN int iManufactureID,
 
 		SET_ERROR( ERR_MANUFACTURE_00 );
 		return false;
-	}	
-	
+	}
+
 	if( m_pUser->GetED() < iED)
 	{
 		SET_ERROR( ERR_MANUFACTURE_03 );
@@ -9460,8 +9640,11 @@ bool KInventory::ItemManufacture( IN int iManufactureID,
     return true;
 }
 #endif SERV_MANUFACTURE_FIX
-
+#ifdef SERV_DELETE_CUBE_GIVE_POST
+void KInventory::ExpireItem( OUT std::vector< UidType >& vecItemUID, OUT std::vector< KInventoryItemInfo >& vecInventorySlotInfo, OUT std::vector< KInventoryItemInfo >& vecDeleteItem)	
+#else SERV_DELETE_CUBE_GIVE_POST
 void KInventory::ExpireItem( OUT std::vector< UidType >& vecItemUID, OUT std::vector< KInventoryItemInfo >& vecInventorySlotInfo )
+#endif SERV_DELETE_CUBE_GIVE_POST
 {
     std::map< UidType, KInventoryItem >::const_iterator mit;
     for( mit = m_mapItem.begin(); mit != m_mapItem.end(); ++mit )
@@ -9475,6 +9658,13 @@ void KInventory::ExpireItem( OUT std::vector< UidType >& vecItemUID, OUT std::ve
     std::vector< UidType >::const_iterator vit;
     for( vit = vecItemUID.begin(); vit != vecItemUID.end(); ++vit )
     {
+#ifdef SERV_DELETE_CUBE_GIVE_POST
+		// 지워지기 전에 아이템 정보 미리얻자
+		KInventoryItemInfo TempDeleteItem;
+		GetInventoryItemInfo( *vit, TempDeleteItem );
+		vecDeleteItem.push_back(TempDeleteItem);
+#endif SERV_DELETE_CUBE_GIVE_POST
+
         KInventoryItemInfo kInfo;
 		DeleteItem( *vit, kInfo, KDeletedItemInfo::DR_EXPIRED );
         vecInventorySlotInfo.push_back( kInfo );
@@ -9754,6 +9944,9 @@ bool KInventory::CompareUnitClass( int iItemID )
 #ifdef SERV_NEW_CHARACTER_EL
 			case CXSLUnit::UT_ELESIS:
 #endif // SERV_NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+			case CXSLUnit::UT_ADD:
+#endif //SERV_9TH_NEW_CHARACTER
 				{
 					return ( m_pUser->GetUnitType() == pItemTemplet->m_UnitType );
 				}
@@ -10382,6 +10575,9 @@ bool KInventory::TrialPrepareInsert( IN const std::vector< KInventoryItemInfo >&
 			kInfo.m_cEnchantLevel	= std::min< char >( vitROO->m_cEnchantLevel, (char)(CXSLEnchantItemManager::MAX_ENCHANT_LEVEL) );
 			kInfo.m_kAttribEnchantInfo = vitROO->m_kAttribEnchantInfo;
 			kInfo.m_vecItemSocket	= vitROO->m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+			kInfo.m_byteExpandedSocketNum	= vitROO->m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 			kInfo.m_vecRandomSocket	= vitROO->m_vecRandomSocket;
@@ -10648,6 +10844,9 @@ bool KInventory::TrialPrepareInsert( IN const std::map< int, KItemInfo >& mapRew
 			kInfo.m_cEnchantLevel	= std::min< char >( mitReward->second.m_cEnchantLevel, (char)(CXSLEnchantItemManager::MAX_ENCHANT_LEVEL) );
 			kInfo.m_kAttribEnchantInfo = mitReward->second.m_kAttribEnchantInfo;
 			kInfo.m_vecItemSocket	= mitReward->second.m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+			kInfo.m_byteExpandedSocketNum	= mitReward->second.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 			//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 			kInfo.m_vecRandomSocket	= mitReward->second.m_vecRandomSocket;
@@ -11541,6 +11740,10 @@ int KInventory::GetSuitableCategory( int iItemID )
 	case CXSLItem::IT_SKILL_MEMO:
 		return CXSLInventory::ST_SPECIAL;
 #endif
+    case CXSLItem::IT_PET:
+    case CXSLItem::IT_RIDING:
+        return CXSLInventory::ST_SPECIAL;
+
     default:
         return CXSLInventory::ST_NONE;
     }
@@ -11604,7 +11807,7 @@ void KInventory::GetNumFreeSlot( std::map< int, int >& mapNumFreeSlot )
 		//}}
 		for( iSlotID = 0; iSlotID < GetSlotSize( iCategory ); ++iSlotID )
 		{
-			if( IsEmptySlot( iCategory, iSlotID ) )
+			if( IsEmptySlot( iCategory, iSlotID ) ) // 빈 슬롯이라면
 			{
 				mit = mapNumFreeSlot.find( iCategory );
 				if( mit != mapNumFreeSlot.end() )
@@ -12084,26 +12287,26 @@ bool KInventory::ResolveItem( IN UidType iItemUID,
 // 강화 파괴 방지랑 겹친다. 따로 쓸 경우 알아서 분리합시다.
 #ifdef SERV_ENCHANT_PLUS_ITEM
 bool KInventory::EnchantItem( IN UidType iItemUID, 
-							 IN bool bIsRareEnchantStone, 
-							 IN bool bIsNewEnchant,
-							 IN bool bIsSupportMaterial,
-							 IN bool bIsDestroyGuard,
-							 IN bool bIsEnchantPlus,
-							 IN bool bDebug, 
-							 OUT int& iEnchantResult, 
-							 OUT int& iLevelAfterEnchant, 
-							 OUT int& iED, 
-							 OUT std::vector< KInventoryItemInfo >& vecUpdated )
+							  IN bool bIsRareEnchantStone, 
+							  IN bool bIsNewEnchant,
+							  IN bool bIsSupportMaterial,
+							  IN bool bIsDestroyGuard,
+							  IN bool bIsEnchantPlus,
+							  IN bool bDebug, 
+							  OUT int& iEnchantResult, 
+							  OUT int& iLevelAfterEnchant, 
+							  OUT int& iED, 
+							  OUT std::vector< KInventoryItemInfo >& vecUpdated )
 #else
 bool KInventory::EnchantItem( IN UidType iItemUID, 
-							 IN bool bIsRareEnchantStone, 
-							 IN bool bIsNewEnchant,
-							 IN bool bIsSupportMaterial,
-							 IN bool bDebug, 
-							 OUT int& iEnchantResult, 
-							 OUT int& iLevelAfterEnchant, 
-							 OUT int& iED, 
-							 OUT std::vector< KInventoryItemInfo >& vecUpdated )
+							  IN bool bIsRareEnchantStone, 
+							  IN bool bIsNewEnchant,
+							  IN bool bIsSupportMaterial,
+							  IN bool bDebug, 
+							  OUT int& iEnchantResult, 
+							  OUT int& iLevelAfterEnchant, 
+							  OUT int& iED, 
+							  OUT std::vector< KInventoryItemInfo >& vecUpdated )
 #endif//SERV_ENCHANT_PLUS_ITEM
 							 //}}
 {
@@ -12438,7 +12641,34 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 		{
 		case CXSLItem::IT_WEAPON:
 			{
-#ifdef SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
+#ifdef SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+				BOOST_FOREACH( const int iWeaponEnchantStoneID, SiCXSLEnchantItemManager()->GetRareWeaponEnchantStoneID() )
+				{
+					std::vector< KInventoryItemInfo > vecEnchantTempItemInfo;
+					GetInventoryItemInfoContainingThisItem( iWeaponEnchantStoneID, vecEnchantTempItemInfo, true );
+					if( vecEnchantTempItemInfo.empty() == false )
+					{
+						iEnchantStoneID = iWeaponEnchantStoneID;
+						break;
+					}
+				}
+
+				if( iEnchantStoneID == 0 )
+				{
+					BOOST_FOREACH( const int iWeaponEnchantStoneID, SiCXSLEnchantItemManager()->GetWeaponEnchantStoneID() )
+					{
+						std::vector< KInventoryItemInfo > vecEnchantTempItemInfo;
+						GetInventoryItemInfoContainingThisItem( iWeaponEnchantStoneID, vecEnchantTempItemInfo, true );
+						if( vecEnchantTempItemInfo.empty() == false )
+						{
+							iEnchantStoneID = iWeaponEnchantStoneID;
+							break;
+						}
+					}
+				}
+#else //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+
+#ifdef SERV_BLESSED_ARIEL_ENCHANT_STONE_EVENT
 				iEnchantStoneID = SiCXSLEnchantItemManager()->GetRareWeaponEnchantStoneID();		
 
 				// 인벤토리에서 강화석 찾기
@@ -12459,7 +12689,7 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 					}
 				}
 
-#else // SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
+#else // SERV_BLESSED_ARIEL_ENCHANT_STONE_EVENT
 				if( bIsRareEnchantStone )
 				{
 					iEnchantStoneID = SiCXSLEnchantItemManager()->GetRareWeaponEnchantStoneID();				
@@ -12468,20 +12698,48 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 				{
 					iEnchantStoneID = SiCXSLEnchantItemManager()->GetWeaponEnchantStoneID();
 				}
-#endif // SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
+#endif // SERV_BLESSED_ARIEL_ENCHANT_STONE_EVENT
+
+#endif //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 			}
 			break;
 
 		case CXSLItem::IT_DEFENCE:
 			{
-#ifdef SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
+#ifdef SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+				BOOST_FOREACH( const int& iArmorEnchantStoneID, SiCXSLEnchantItemManager()->GetRareArmorEnchantStoneID() )
+				{
+					std::vector< KInventoryItemInfo > vecEnchantTempItemInfo;
+					GetInventoryItemInfoContainingThisItem( iArmorEnchantStoneID, vecEnchantTempItemInfo, true );
+					if( vecEnchantTempItemInfo.empty() == false )
+					{
+						iEnchantStoneID = iArmorEnchantStoneID;
+						break;
+					}
+				}
+
+				if( iEnchantStoneID == 0 )
+				{
+					BOOST_FOREACH( const int& iArmorEnchantStoneID, SiCXSLEnchantItemManager()->GetArmorEnchantStoneID() )
+					{
+						std::vector< KInventoryItemInfo > vecEnchantTempItemInfo;
+						GetInventoryItemInfoContainingThisItem( iArmorEnchantStoneID, vecEnchantTempItemInfo, true );
+						if( vecEnchantTempItemInfo.empty() == false )
+						{
+							iEnchantStoneID = iArmorEnchantStoneID;
+							break;
+						}
+					}
+				}
+#else //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
+
+#ifdef SERV_BLESSED_ARIEL_ENCHANT_STONE_EVENT
 				iEnchantStoneID = SiCXSLEnchantItemManager()->GetRareArmorEnchantStoneID();		
 
 				// 인벤토리에서 강화석 찾기
 				std::vector< KInventoryItemInfo > vecEnchantTempItemInfo;
 				GetInventoryItemInfoContainingThisItem( iEnchantStoneID, vecEnchantTempItemInfo, true );
 
-				// 레어인체트 아이템이 없다면
 				if( vecEnchantTempItemInfo.empty() )
 				{
 					iEnchantStoneID = _CONST_BLESSED_RURIEL_ENCHANT_STONE_EVENT::iRuriel_Enchant_Stone_Defence_Item;
@@ -12495,7 +12753,7 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 					}
 				}
 
-#else // SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
+#else // SERV_BLESSED_ARIEL_ENCHANT_STONE_EVENT
 
 				if( bIsRareEnchantStone )
 				{
@@ -12505,8 +12763,9 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 				{
 					iEnchantStoneID = SiCXSLEnchantItemManager()->GetArmorEnchantStoneID();
 				}
-#endif // SERV_BLESSED_RURIEL_ENCHANT_STONE_EVENT
+#endif // SERV_BLESSED_ARIEL_ENCHANT_STONE_EVENT
 
+#endif //SERV_MULTIPLE_BLESSED_ENCHANT_STONE
 			}
 			break;
 
@@ -12591,7 +12850,7 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 #ifdef SERV_ENCHANT_PLUS_ITEM
 	int iEnchantPlusItemID = 0;
 	std::vector< KInventoryItemInfo > vecEnchantPlusInfo;
-#endif
+#endif SERV_ENCHANT_PLUS_ITEM
 
 	// 강화 작업
 	//{{ 2012. 01. 19	김민성	플루오르 스톤 강화 이벤트 실시간 적용
@@ -12615,35 +12874,35 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 	{
 	//{{ 2011.5.23 지헌 : 강화시 성공 확률 증가 아이템 추가
 #ifdef SERV_ENCHANT_PLUS_ITEM
-	if(bIsEnchantPlus)
-	{
-		// 지헌 : 셀레네 있나없나 체크 하고, 강화 결과 돌린다.
-		iEnchantPlusItemID = SiCXSLEnchantItemManager()->GetEnchantPlusItemID( pItemTemplet->m_UseLevel );
-		if( iEnchantPlusItemID <= 0 )
+		if(bIsEnchantPlus)
 		{
-			START_LOG( cerr, L"일어날수 없는 에러, 강화 확률 증가 정보 스크립트가 잘못되었나?" )
-				<< BUILD_LOG( pItemTemplet->m_UseLevel )
-				<< END_LOG;
+			// 지헌 : 셀레네 있나없나 체크 하고, 강화 결과 돌린다.
+			iEnchantPlusItemID = SiCXSLEnchantItemManager()->GetEnchantPlusItemID( pItemTemplet->m_UseLevel );
+			if( iEnchantPlusItemID <= 0 )
+			{
+				START_LOG( cerr, L"일어날수 없는 에러, 강화 확률 증가 정보 스크립트가 잘못되었나?" )
+					<< BUILD_LOG( pItemTemplet->m_UseLevel )
+					<< END_LOG;
+	
+				// 지헌 : 넷 에러 추가 1 - 강화 확률 증가 아이템 사용 불가
+				SET_ERROR( ERR_ENCHANT_ITEM_10 );
+				return false;
+			}
 
-			// 지헌 : 넷 에러 추가 1 - 강화 확률 증가 아이템 사용 불가
-			SET_ERROR( ERR_ENCHANT_ITEM_10 );
-			return false;
+			// 인벤토리에서 강화 확률 증가 아이템 찾기
+			GetInventoryItemInfoContainingThisItem( iEnchantPlusItemID, vecEnchantPlusInfo, true );
+
+			if( vecEnchantPlusInfo.empty() )
+			{
+				//START_LOG( cerr, L"인벤토리에 강화 확률 증가 아이템 없다." )
+				//	<< BUILD_LOG( iSupportMaterialItemID )
+				//	<< END_LOG;
+	
+				// 지헌 : 넷 에러 추가 2
+				SET_ERROR( ERR_ENCHANT_ITEM_09 );
+				return false;
+			}
 		}
-
-		// 인벤토리에서 강화 확률 증가 아이템 찾기
-		GetInventoryItemInfoContainingThisItem( iEnchantPlusItemID, vecEnchantPlusInfo, true );
-
-		if( vecEnchantPlusInfo.empty() )
-		{
-			//START_LOG( cerr, L"인벤토리에 강화 확률 증가 아이템 없다." )
-			//	<< BUILD_LOG( iSupportMaterialItemID )
-			//	<< END_LOG;
-
-			// 지헌 : 넷 에러 추가 2
-			SET_ERROR( ERR_ENCHANT_ITEM_09 );
-			return false;
-		}
-	}
 
 		if( SiCXSLEnchantItemManager()->GetEnchantResult( bIsRareEnchantStone, bIsEnchantPlus, iEnchantLevel + 1, iEnchantResult ) == false )
 #else	
@@ -12876,7 +13135,7 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 			break;
 		}
 	}
-#endif
+#endif SERV_ENCHANT_PLUS_ITEM
 	//}}
 
 	//{{ 2011.5.23 지헌 : 강화시 파괴 방지 아이템 추가
@@ -12953,7 +13212,7 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 		}
 	}
 	//}}
-#endif
+#endif SERV_DESTROY_GUARD_ITEM
 	//}}
 
 	// 강화 결과 처리
@@ -13085,7 +13344,7 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 #endif SERV_ITEM_STATISTICS_TO_DB
 			//}}
 		}
-#endif
+#endif SERV_ENCHANT_PLUS_ITEM
 		//}}
 		//{{ 2011.5.23 지헌 : 강화시 파괴 방지 아이템 추가
 #ifdef SERV_DESTROY_GUARD_ITEM
@@ -13101,7 +13360,7 @@ bool KInventory::EnchantItem( IN UidType iItemUID,
 #endif SERV_ITEM_STATISTICS_TO_DB
 			//}}
 		}
-#endif
+#endif SERV_DESTROY_GUARD_ITEM
 		//}}
 
 		// ED 사용량 통계
@@ -13318,7 +13577,6 @@ bool KInventory::RestoreItem( IN UidType iItemUID, OUT int& iLevelAfterEnchant, 
 				return false;
 			}
 		}
-
 #else
 		iEventRestoreItemID = SiCXSLEnchantItemManager()->GetEventRestoreItemID( pItemTemplet->m_UseLevel, CXSLItem::IT_NONE );
 		if( iEventRestoreItemID > 0 )
@@ -13346,7 +13604,6 @@ bool KInventory::RestoreItem( IN UidType iItemUID, OUT int& iLevelAfterEnchant, 
 			}
 		}
 #endif SERV_EVENT_RESTORE_SCROLL_MULTI 
-
 #else
 		iRestoreItemID = SiCXSLEnchantItemManager()->GetRestoreItemID( pItemTemplet->m_UseLevel, CXSLItem::IT_NONE );
 		if( iRestoreItemID <= 0 )
@@ -13483,13 +13740,17 @@ bool KInventory::RestoreItem( IN UidType iItemUID, OUT int& iLevelAfterEnchant, 
 //{{ 2008. 3. 5  최육사  소켓 아이템
 //{{ 2011. 07. 25    김민성    아이템 옵션ID 데이터 사이즈 증가
 #ifdef SERV_ITEM_OPTION_DATA_SIZE
-bool KInventory::SocketItem( IN UidType iItemUID, 
-							IN const std::map< int, UidType >& mapSocketInfo,
-							IN bool bCheat,
-							OUT int& iTargetItemID, 
-							OUT int& iED, 
-							OUT std::vector< int >& vecSocketResult,
-							OUT std::vector< KInventoryItemInfo >& vecUpdated )
+bool KInventory::SocketItem( IN UidType iItemUID
+						   , IN const std::map< int, UidType >& mapSocketInfo
+						   , IN bool bCheat
+						   , OUT int& iTargetItemID
+						   , OUT int& iED
+						   , OUT std::vector< int >& vecSocketResult
+						   , OUT std::vector< KInventoryItemInfo >& vecUpdated
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+						   , OUT byte& byteExpandedSocketNum
+#endif // SERV_BATTLE_FIELD_BOSS
+						   )
 #else
 bool KInventory::SocketItem( IN UidType iItemUID, 
 							IN const std::map< int, UidType >& mapSocketInfo,
@@ -13631,6 +13892,11 @@ bool KInventory::SocketItem( IN UidType iItemUID,
 		KInventoryItemInfo kInventoryItemInfo;
 		GetInventoryItemInfo( iItemUID, kInventoryItemInfo );
 		vecUpdated.push_back( kInventoryItemInfo );
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+		byteExpandedSocketNum = kInventoryItemInfo.m_kItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
+
         return true;
 	}
 	//}}
@@ -13854,6 +14120,10 @@ bool KInventory::SocketItem( IN UidType iItemUID,
 	KInventoryItemInfo kInventoryItemInfo;
 	GetInventoryItemInfo( iItemUID, kInventoryItemInfo );
 	vecUpdated.push_back( kInventoryItemInfo );
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	byteExpandedSocketNum = kInventoryItemInfo.m_kItemInfo.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	//////////////////////////////////////////////////////////////////////////	
 	// 13. 마법석 삭제
@@ -14781,69 +15051,81 @@ bool KInventory::ResetSkillItem( OUT KInventoryItemInfo& kInventoryItemInfo )
 	// 스킬 초기화 아이템 검사
 	std::vector< KInventoryItemInfo > vecResetSkillItem;
 
+#ifdef SERV_UNLIMITED_SKILL_RESET_ITEM
+	GetInventoryItemInfoContainingThisItem( CXSLItem::CI_UNLIMITED_SKILL_RESET_ITEM, vecResetSkillItem, true );
+	if( false == vecResetSkillItem.empty() )
+	{
+		return true;
+	}
+#endif SERV_UNLIMITED_SKILL_RESET_ITEM
+
+	GetInventoryItemInfoContainingThisItem( CXSLItem::CI_SKILL_RESET_EVENT_ITEM2, vecResetSkillItem, true );
+	if( true == vecResetSkillItem.empty() )
+	{
 #ifdef SERV_NEW_ITEM_COBO_SKILL_RESET_ITEM// 작업날짜: 2013-07-02	// 박세훈
-				GetInventoryItemInfoContainingThisItem( CXSLItem::CI_COBO_SKILL_RESET_ITEM, vecResetSkillItem, true );
-				if( true == vecResetSkillItem.empty() )
-				{
+		GetInventoryItemInfoContainingThisItem( CXSLItem::CI_COBO_SKILL_RESET_ITEM, vecResetSkillItem, true );
+		if( true == vecResetSkillItem.empty() )
+		{
 #endif // SERV_NEW_ITEM_COBO_SKILL_RESET_ITEM
-					GetInventoryItemInfoContainingThisItem( CXSLItem::CI_SKILL_RESET_EVENT_ITEM, vecResetSkillItem, true );
+			GetInventoryItemInfoContainingThisItem( CXSLItem::CI_SKILL_RESET_EVENT_ITEM, vecResetSkillItem, true );
+			if( true == vecResetSkillItem.empty() )
+			{
+#ifdef SERV_EVENT_RESET_A_SKILL_ITEM
+			GetInventoryItemInfoContainingThisItem( CXSLItem::CI_RESET_A_SKILL_ITEM, vecResetSkillItem, true );
+			if( true == vecResetSkillItem.empty() )
+			{
+#endif SERV_EVENT_RESET_A_SKILL_ITEM
+#ifdef SERV_2ND_CLASS_SKILL_RESET
+				GetInventoryItemInfoContainingThisItem( CXSLItem::CI_SKILL_RESET_2ND_CLASS_EVENT_ITEM, vecResetSkillItem, true );
+				if (true == vecResetSkillItem.empty() )
+				{
+#endif SERV_2ND_CLASS_SKILL_RESET
+#ifdef SERV_QUEST_SKILL_RESET
+					GetInventoryItemInfoContainingThisItem( CXSLItem::CI_SKILL_RESET_QUEST_ITEM, vecResetSkillItem, true );
 					if( true == vecResetSkillItem.empty() )
 					{
-						GetInventoryItemInfoContainingThisItem( CXSLItem::CI_SKILL_RESET_ITEM, vecResetSkillItem, true );
+#endif SERV_QUEST_SKILL_RESET
+#ifdef SERV_EVENT_RURIEL_RESET_SKILL_ITEM
+						GetInventoryItemInfoContainingThisItem( CXSLItem::EI_RURIEL_RESET_A_SKILL_ITEM, vecResetSkillItem, true );
 						if( true == vecResetSkillItem.empty() )
 						{
-#ifdef SERV_EVENT_RESET_A_SKILL_ITEM
-							GetInventoryItemInfoContainingThisItem( CXSLItem::CI_RESET_A_SKILL_ITEM, vecResetSkillItem, true );
+							GetInventoryItemInfoContainingThisItem( CXSLItem::EI_RURIEL_RESET_A_SKILL_EVENT_ITEM, vecResetSkillItem, true );
 							if( true == vecResetSkillItem.empty() )
 							{
-#endif SERV_EVENT_RESET_A_SKILL_ITEM
-#ifdef SERV_2ND_CLASS_SKILL_RESET
-								GetInventoryItemInfoContainingThisItem( CXSLItem::CI_SKILL_RESET_2ND_CLASS_EVENT_ITEM, vecResetSkillItem, true );
-								if (true == vecResetSkillItem.empty() )
+#endif SERV_EVENT_RURIEL_RESET_SKILL_ITEM
+
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
+								GetInventoryItemInfoContainingThisItem( CXSLItem::EI_SKILL_RESET_EVENT_ITEM2, vecResetSkillItem, true );
+								if( true == vecResetSkillItem.empty() )
 								{
-#endif SERV_2ND_CLASS_SKILL_RESET
-#ifdef SERV_QUEST_SKILL_RESET
-									GetInventoryItemInfoContainingThisItem( CXSLItem::CI_SKILL_RESET_QUEST_ITEM, vecResetSkillItem, true );
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+									GetInventoryItemInfoContainingThisItem( CXSLItem::CI_SKILL_RESET_ITEM, vecResetSkillItem, true );
 									if( true == vecResetSkillItem.empty() )
 									{
-#endif SERV_QUEST_SKILL_RESET
-#ifdef SERV_EVENT_RURIEL_RESET_SKILL_ITEM
-										GetInventoryItemInfoContainingThisItem( CXSLItem::EI_RURIEL_RESET_A_SKILL_ITEM, vecResetSkillItem, true );
-										if( true == vecResetSkillItem.empty() )
-										{
-											GetInventoryItemInfoContainingThisItem( CXSLItem::EI_RURIEL_RESET_A_SKILL_EVENT_ITEM, vecResetSkillItem, true );
-											if( true == vecResetSkillItem.empty() )
-											{
-#endif SERV_EVENT_RURIEL_RESET_SKILL_ITEM
+										// 스킬 1개 초기화 아이템없이 스킬 되돌리기를 하려고 한 경우
+										return false;
+									}
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
-												GetInventoryItemInfoContainingThisItem( CXSLItem::EI_SKILL_RESET_EVENT_ITEM2, vecResetSkillItem, true );
-												if( true == vecResetSkillItem.empty() )
-												{
-#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-													// 스킬 1개 초기화 아이템없이 스킬 되돌리기를 하려고 한 경우
-													return false;
-#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-												}
+								}
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
 #ifdef SERV_EVENT_RURIEL_RESET_SKILL_ITEM
-											}
-										}
+							}
+						}
 #endif SERV_EVENT_RURIEL_RESET_SKILL_ITEM
 #ifdef SERV_QUEST_SKILL_RESET
-									}
+					}
 #endif SERV_QUEST_SKILL_RESET
 #ifdef SERV_2ND_CLASS_SKILL_RESET
-								}
+				}
 #endif SERV_2ND_CLASS_SKILL_RESET
 #ifdef SERV_EVENT_RESET_A_SKILL_ITEM
-							}
+			}
 #endif SERV_EVENT_RESET_A_SKILL_ITEM
-						}
-					}
+			}
 #ifdef SERV_NEW_ITEM_COBO_SKILL_RESET_ITEM// 작업날짜: 2013-07-02	// 박세훈
-				}
+		}
 #endif // SERV_NEW_ITEM_COBO_SKILL_RESET_ITEM
-
+	}
 
 	UidType iItemUID = 0;
 	int iSlotCategory = 0, iSlotID = 0;
@@ -16635,12 +16917,14 @@ bool KInventory::SealItem( IN UidType iDestItemUID, IN UidType iSealItemUID, OUT
 #ifdef SERV_COBO_SEAL_ITEM_EVENT
 		switch( pItemTemplet->m_ItemGrade )
 		{
-		case CXSLItem::IG_ELITE:	iSealItemID = CXSLItem::CI_EVENT_SEAL_ITEM_ELITE;	break;
-		case CXSLItem::IG_NORMAL:	iSealItemID = CXSLItem::CI_EVENT_SEAL_ITEM_NORMAL;	break;
 #ifdef SERV_COUNTRY_JP
 		case CXSLItem::IG_RARE:		iSealItemID = CXSLItem::CI_EVENT_SEAL_ITEM_RARE;	break;
-		case CXSLItem::IG_UNIQUE:	iSealItemID = CXSLItem::CI_EVENT_SEAL_ITEM_UNIQUE;	break;
 #endif //SERV_COUNTRY_JP
+#ifdef SERV_EVENT_SEAL_ITEM_UNIQUE// 작업날짜: 2013-05-08	// 박세훈
+		case CXSLItem::IG_UNIQUE:	iSealItemID = CXSLItem::CI_EVENT_SEAL_ITEM_UNIQUE;	break;
+#endif // SERV_EVENT_SEAL_ITEM_UNIQUE
+		case CXSLItem::IG_ELITE:	iSealItemID = CXSLItem::CI_EVENT_SEAL_ITEM_ELITE;	break;
+		case CXSLItem::IG_NORMAL:	iSealItemID = CXSLItem::CI_EVENT_SEAL_ITEM_NORMAL;	break;
 		default:
 			{
 				START_LOG( cerr, L"선택한 아이템을 봉인할수 있는 봉인주문서가 아닙니다." )
@@ -18676,6 +18960,9 @@ bool KInventory::InsertToEmptySlotForTest( IN const int iCategory
 				kInfo.m_cEnchantLevel		= std::min< char >( p_kItemInfo->m_cEnchantLevel, cEnchantLevel );
 				kInfo.m_kAttribEnchantInfo	= p_kItemInfo->m_kAttribEnchantInfo;
 				kInfo.m_vecItemSocket		= p_kItemInfo->m_vecItemSocket;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+				kInfo.m_byteExpandedSocketNum	= p_kItemInfo->m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 				//{{ 2013. 06. 04	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 				kInfo.m_vecRandomSocket		= p_kItemInfo->m_vecRandomSocket;
@@ -19722,7 +20009,6 @@ bool KInventory::OpenRandomItem_DEV( IN char cUnitClass,
 }
 #endif//SERV_DEVELOPER_RANDOM_OPEN_ITEM_LOG
 
-
 #ifdef SERV_READY_TO_SOSUN_EVENT
 bool KInventory::ExchangeToEvent( IN int iDeleteItemID, IN int iDeleteItemCount, IN int iInsertItemID, IN int iInsertItemCount, OUT std::vector< KInventoryItemInfo >& vecUpdatedInventorySlot, OUT std::vector< KItemInfo >& vecNewItemInfo, IN int iFirstUnitClass  )
 {
@@ -19794,6 +20080,7 @@ bool KInventory::ExchangeToEvent( IN int iDeleteItemID, IN int iDeleteItemCount,
 	return true;
 }
 #endif SERV_READY_TO_SOSUN_EVENT
+
 //{{ 2013. 05. 15	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 bool KInventory::ItemEvaluateCheck( IN const UidType iItemUID, OUT std::vector< int >& vecRandomSocket, OUT int& iCost )
@@ -19898,9 +20185,6 @@ bool KInventory::ItemEvaluateCheck( IN const UidType iItemUID, OUT std::vector< 
 	case CXSLUnit::EP_AC_RING:
 	case CXSLUnit::EP_AC_NECKLESS:
 	case CXSLUnit::EP_AC_WEAPON:
-#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT	// 여기 필요 없지 싶다.
-//	case CXSLUnit::EP_ONEPIECE_FASHION:
-#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
 		break;
 
 	default:
@@ -20246,13 +20530,14 @@ bool KInventory::RestoreItemEvaluateResult( IN const UidType iTargetItemUID, IN 
 	return true;
 }
 
-bool KInventory::ItemConvert( IN const UidType iItemUID, 
-							 OUT std::map< int, int >& mapInsertedItem, 
+bool KInventory::ItemConvert( IN const UidType& iItemUID, 
+                             IN const int& iItemQuantity_,
+							 OUT std::map< int, int >& mapInsertedItem_, 
 							 OUT std::vector< KItemInfo >& vecNewItem, 
 							 OUT std::vector< KInventoryItemInfo >& vecUpdated, 
 							 OUT int& iCommissionED )
 {
-	mapInsertedItem.clear();
+	mapInsertedItem_.clear();
 	vecUpdated.clear();
 	vecNewItem.clear();
 	iCommissionED = 0;
@@ -20286,10 +20571,11 @@ bool KInventory::ItemConvert( IN const UidType iItemUID,
 		return false;
 	}
 
-	// 장비니깐 수량은 무조건 1개다
-	mapToDeleteByItemUID.insert( std::make_pair( iItemUID, 1 ) );
+	// 장비니깐 수량은 무조건 1개다 -> 2013-08-21  여러개 아이템 교환 기능으로 수정합니다. woosanghyuk.
+	//mapToDeleteByItemUID.insert( std::make_pair( iItemUID, 1 ) );
+    mapToDeleteByItemUID.insert( std::make_pair( iItemUID, iItemQuantity_ ) );
 
-	if( IsEnoughItemExist( mapToDeleteByItemUID ) == false )
+	if( IsEnoughItemExist( mapToDeleteByItemUID ) == false ) // map = ItemUID, quantity
 	{
 		START_LOG( cerr, L"인벤토리에 없는 아이템ID인데?" )
 			<< BUILD_LOG( iItemUID )
@@ -20307,6 +20593,11 @@ bool KInventory::ItemConvert( IN const UidType iItemUID,
 		return false;
 	}
 
+    if ( iItemQuantity_ > 1 ) // 아이템 수량이 여러개 일 때 
+    {
+        iCommissionED = iCommissionED * iItemQuantity_;
+    }
+    
 	// 3. 수수료 검사
 	if( m_pUser->GetED() < iCommissionED )
 	{
@@ -20330,11 +20621,11 @@ bool KInventory::ItemConvert( IN const UidType iItemUID,
 		mapResultItem.insert( std::make_pair( iResultItemID, kNewItemInfo ) );
 
 		// 교환 대상 아이템이 들어갈 빈슬롯이 있는지 찾기위한 컨테이너
-		mapInsertedItem.insert( std::make_pair( iResultItemID, 1 ) );
+		mapInsertedItem_.insert( std::make_pair( iResultItemID, iItemQuantity_ ) );
 	}
 
 	// 결과물의 카테고리 별 필요한 빈슬롯 수를 구하자
-	if( IsEnoughSpaceExist( mapInsertedItem ) == false )
+	if( IsEnoughSpaceExist( mapInsertedItem_ ) == false )
 	{
 		SET_ERROR( ERR_PERSONAL_SHOP_51 );
 		return false;
@@ -20362,7 +20653,7 @@ bool KInventory::ItemConvert( IN const UidType iItemUID,
 
 	// 아이템 교환 통계
 	std::map<int,int>::const_iterator mit;
-	for( mit = mapInsertedItem.begin(); mit != mapInsertedItem.end(); ++mit )
+	for( mit = mapInsertedItem_.begin(); mit != mapInsertedItem_.end(); ++mit )
 	{
 		KStatisticsKey kKey;
 		kKey.m_vecIntKey.push_back( mit->first );
@@ -20378,6 +20669,7 @@ bool KInventory::ItemConvert( IN const UidType iItemUID,
 }
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 //}}
+
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
 bool KInventory::CheckKeepItem( const int nProductID )
 {
@@ -20420,7 +20712,6 @@ char KInventory::GetItemState( IN const UidType iItemUID ) const
 }
 #endif //SERV_SHARE_BANK_ITEM_EVALUATE_FIX
 
-
 #ifdef SERV_RECRUIT_EVENT_BASE
 void KInventory::DeleteItemAll( IN int iItemID, OUT std::vector< KInventoryItemInfo >& vecInventorySlotInfo, IN KDeletedItemInfo::DELETE_REASON eReason )
 {
@@ -20449,3 +20740,264 @@ void KInventory::DeleteItemAll( IN int iItemID, OUT std::vector< KInventoryItemI
 	}
 }
 #endif SERV_RECRUIT_EVENT_BASE
+
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+bool KInventory::IsPossibleExtractItem( const int iItemID )
+{
+	return SiCXSLAttribEnchantItem()->IsExtractItem( iItemID );
+}
+
+bool KInventory::ItemExtract( IN const UidType iSourceItemUID, 
+				 IN const int iSourceQuantity, 
+				 OUT std::map< int, int >& mapInsertedItem, 
+				 OUT std::vector< KInventoryItemInfo >& vecUpdated, 
+				 OUT std::vector< KItemInfo >& vecNewItem	)
+{
+	mapInsertedItem.clear();
+	vecUpdated.clear();
+	vecNewItem.clear();
+
+	std::map< int, int > mapToDeleteByItemID;
+	std::map< UidType, int > mapToDeleteByItemUID;
+	std::map< int, KItemInfo > mapResultItem;  // 결과템
+	KInventoryItemInfo kSrcItemInfo;
+
+	SET_ERROR( NET_OK );
+
+	// 실제로 해당 아이템이 존재하는지 체크!
+	if( GetInventoryItemInfo( iSourceItemUID, kSrcItemInfo ) == false )
+	{
+		START_LOG( cerr, L"해당 아이템이 인벤토리에 없다!" )
+			<< BUILD_LOG( iSourceItemUID )
+			<< END_LOG;
+
+		// 추출 아이템 정보가 이상합니다. 
+		SET_ERROR( ERR_EXTRACT_01 );
+		return false;
+	}
+
+	// 존재 한다면 수량은 충분한지 체크!
+	if( kSrcItemInfo.m_kItemInfo.m_iQuantity < iSourceQuantity )
+	{
+		START_LOG( cerr, L"해당 아이템의 수량이 충분하지 않다!" )
+			<< BUILD_LOG( iSourceItemUID )
+			<< BUILD_LOG( iSourceQuantity )
+			<< BUILD_LOG( kSrcItemInfo.m_kItemInfo.m_iQuantity )
+			<< END_LOG;
+
+		// 아이템 수량이 이상합니다.
+		SET_ERROR( ERR_EXTRACT_02 );
+		return false;
+	}
+
+	// 기간제 아이템은 추출 할 수 없다!
+	if( kSrcItemInfo.m_kItemInfo.m_sPeriod != 0 )
+	{
+		SET_ERROR( ERR_EXTRACT_03 );	// 기간제 아이템은 추출 할 수 없습니다.
+		return false;
+	}
+
+	mapToDeleteByItemID.insert( std::make_pair( kSrcItemInfo.m_kItemInfo.m_iItemID, iSourceQuantity ) );
+
+	if( IsEnoughItemExist( mapToDeleteByItemID, true, true ) == false )
+	{
+		if( IsEnoughItemExist( mapToDeleteByItemID, true, false ) == true )
+		{
+			SET_ERROR( ERR_EXTRACT_03 );	// 기간제 아이템은 추출 할 수 없습니다.
+		}
+		else
+		{
+			START_LOG( cerr, L"인벤토리에 없는 아이템ID인데?" )
+				<< BUILD_LOG( kSrcItemInfo.m_kItemInfo.m_iItemID )
+				<< BUILD_LOG( iSourceQuantity )
+				<< END_LOG;
+
+			SET_ERROR( ERR_EXTRACT_01 );
+		}
+
+		return false;
+	}
+
+	// 추출 시 얻게 되는 아이템
+	const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( CXSLAttribEnchantItem::ATI_ESSENCE );
+	if( pItemTemplet == NULL )
+	{
+		START_LOG( cerr, L"아이템 템플릿을 얻지 못함." )
+			<< BUILD_LOG( CXSLAttribEnchantItem::ATI_ESSENCE )
+			<< END_LOG;
+
+		SET_ERROR( ERR_EXTRACT_01 );
+
+		return false;
+	}
+
+	KItemInfo kInsertItemInfo;
+	kInsertItemInfo.m_iItemID		= pItemTemplet->m_ItemID;
+	kInsertItemInfo.m_cUsageType	= pItemTemplet->m_PeriodType;
+	kInsertItemInfo.m_iQuantity		= iSourceQuantity * 3;
+	kInsertItemInfo.m_sEndurance	= pItemTemplet->m_Endurance;
+
+	mapResultItem.insert( std::make_pair( kInsertItemInfo.m_iItemID, kInsertItemInfo ) );
+
+	// 3. 습득 아이템 정보
+	std::map< int, KItemInfo >::const_iterator mitRI;
+	for( mitRI = mapResultItem.begin(); mitRI != mapResultItem.end(); ++mitRI )
+	{
+		mapInsertedItem.insert( std::make_pair( mitRI->first, mitRI->second.m_iQuantity ) );
+	}
+
+	// 공간 확인
+	if( IsEnoughSpaceExist( mapInsertedItem ) == false )
+	{
+		SET_ERROR( ERR_EXTRACT_05 );
+		return false;
+	}
+
+	// 4. 결과 처리
+	if( DeleteAndInsert( mapToDeleteByItemID
+		, mapToDeleteByItemUID
+		, mapResultItem
+		, vecUpdated
+		, vecNewItem
+		, true
+		, KDeletedItemInfo::DR_ITEM_EXTRACT
+		, true
+		) == false 	)
+	{
+		SET_ERROR( ERR_EXTRACT_04 );
+		return false;
+	}
+
+	// 아이템 추출 통계
+	KStatisticsKey kKeyRandom;
+	kKeyRandom.m_vecIntKey.push_back( kSrcItemInfo.m_kItemInfo.m_iItemID );
+	KSIManager.IncreaseCount( KStatistics::SI_LOC_ITEM, kKeyRandom, KStatistics::SI_ITEM_EXTRACT_S, iSourceQuantity );
+	//{{ 2011. 04. 13	최육사	아이템 통계 DB기록
+	KSIManager.IncreaseCount( KStatistics::SI_ITEM_DB, kKeyRandom, KStatistics::SI_ITEM_EXTRACT_S, iSourceQuantity );
+	//}}
+
+	// 아이템 추출 통계
+	std::map<int,int>::const_iterator mit;
+	for( mit = mapInsertedItem.begin(); mit != mapInsertedItem.end(); ++mit )
+	{
+		KStatisticsKey kKey;
+		kKey.m_vecIntKey.push_back( mit->first );
+		KSIManager.IncreaseCount( KStatistics::SI_LOC_ITEM, kKey, KStatistics::SI_ITEM_EXTRACT_R, mit->second );
+		//{{ 2011. 04. 13	최육사	아이템 통계 DB기록
+		KSIManager.IncreaseCount( KStatistics::SI_ITEM_DB, kKey, KStatistics::SI_ITEM_EXCHANGE_R, mit->second );
+		//}}
+	}
+
+	return true;
+}
+
+bool KInventory::UseFinalitySkill( IN const UidType iSourceItemUID, 
+							 IN const int iSourceQuantity, 
+							 OUT std::map< int, int >& mapInsertedItem, 
+							 OUT std::vector< KInventoryItemInfo >& vecUpdated, 
+							 OUT std::vector< KItemInfo >& vecNewItem	)
+{
+	mapInsertedItem.clear();
+	vecUpdated.clear();
+	vecNewItem.clear();
+
+	std::map< int, int > mapToDeleteByItemID;
+	std::map< UidType, int > mapToDeleteByItemUID;
+	std::map< int, KItemInfo > mapResultItem;  // 결과템
+	KInventoryItemInfo kSrcItemInfo;
+
+	SET_ERROR( NET_OK );
+
+	// 실제로 해당 아이템이 존재하는지 체크!
+	if( GetInventoryItemInfo( iSourceItemUID, kSrcItemInfo ) == false )
+	{
+		START_LOG( cerr, L"해당 아이템이 인벤토리에 없다!" )
+			<< BUILD_LOG( iSourceItemUID )
+			<< END_LOG;
+
+		// 추출 아이템 정보가 이상합니다. 
+		SET_ERROR( ERR_FINALITY_SKILL_01 );
+		return false;
+	}
+
+	// 존재 한다면 수량은 충분한지 체크!
+	if( kSrcItemInfo.m_kItemInfo.m_iQuantity < iSourceQuantity )
+	{
+		START_LOG( cerr, L"해당 아이템의 수량이 충분하지 않다!" )
+			<< BUILD_LOG( iSourceItemUID )
+			<< BUILD_LOG( iSourceQuantity )
+			<< BUILD_LOG( kSrcItemInfo.m_kItemInfo.m_iQuantity )
+			<< END_LOG;
+
+		// 아이템 수량이 이상합니다.
+		SET_ERROR( ERR_FINALITY_SKILL_02 );
+		return false;
+	}
+
+	mapToDeleteByItemID.insert( std::make_pair( kSrcItemInfo.m_kItemInfo.m_iItemID, iSourceQuantity ) );
+
+	if( IsEnoughItemExist( mapToDeleteByItemID, true, true ) == false )
+	{
+		START_LOG( cerr, L"인벤토리에 없는 아이템ID인데?" )
+			<< BUILD_LOG( kSrcItemInfo.m_kItemInfo.m_iItemID )
+			<< BUILD_LOG( iSourceQuantity )
+			<< END_LOG;
+
+		SET_ERROR( ERR_FINALITY_SKILL_01 );
+		return false;
+	}
+
+	// 결과 처리
+	if( DeleteAndInsert( mapToDeleteByItemID
+		, mapToDeleteByItemUID
+		, mapResultItem
+		, vecUpdated
+		, vecNewItem
+		, true
+		, KDeletedItemInfo::DR_USE_FINALITY_SKILL
+		, true
+		) == false 	)
+	{
+		SET_ERROR( ERR_FINALITY_SKILL_03 );
+		return false;
+	}
+
+	// 아이템 추출 통계
+	KStatisticsKey kKeyRandom;
+	kKeyRandom.m_vecIntKey.push_back( kSrcItemInfo.m_kItemInfo.m_iItemID );
+	KSIManager.IncreaseCount( KStatistics::SI_LOC_ITEM, kKeyRandom, KStatistics::SI_ITEM_USE_FINALITY_SKILL, iSourceQuantity );
+	//{{ 2011. 04. 13	최육사	아이템 통계 DB기록
+	KSIManager.IncreaseCount( KStatistics::SI_ITEM_DB, kKeyRandom, KStatistics::SI_ITEM_USE_FINALITY_SKILL, iSourceQuantity );
+	//}}
+
+	return true;
+}
+#endif // SERV_FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_GOOD_ELSWORD
+int KInventory::GetNextUpgradeBankED( IN const int& iNextGrade_ )
+{
+    return SiCXSLEDInventoryExpand()->GetNextBankUpgradeED( iNextGrade_ );
+}
+
+int KInventory::GetNextUpgradeInventoryED( IN const int& iNextGrade_ )
+{
+    return SiCXSLEDInventoryExpand()->GetNextInventoryUpgradeED( iNextGrade_ );
+}
+
+#endif //SERV_GOOD_ELSWORD
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+bool KInventory::UpdateExpandedSocketNum( IN UidType iItemUID, IN const byte byteExpandedSocketNum )
+{
+	std::map< UidType, KInventoryItem >::iterator it = m_mapItem.find( iItemUID );
+	if( it == m_mapItem.end() )
+	{
+		return false;
+	}
+
+	it->second.UpdateExpandedSocketNum( byteExpandedSocketNum );
+
+	return true;
+}
+#endif // SERV_BATTLE_FIELD_BOSS

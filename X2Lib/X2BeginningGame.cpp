@@ -274,10 +274,10 @@ HRESULT	CX2BeginningGame::OnFrameMove( double fTime, float fElapsedTime )
 			m_FPSCamera.SetEnablePositionMovement( true );
 
 			m_FPSCamera.FrameMove( fElapsedTime * 300.f );			
-			m_pCamera->GetCamera()->Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
+			m_pCamera->GetCamera().Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
 			D3DXVECTOR3 vLookAt = *m_FPSCamera.GetWorldAhead() * 500.f + *m_FPSCamera.GetEyePt();
-			m_pCamera->GetCamera()->LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
-			m_pCamera->GetCamera()->UpdateCamera( fElapsedTime );
+			m_pCamera->GetCamera().LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
+			m_pCamera->GetCamera().UpdateCamera( fElapsedTime );
 		}
 	}		
 
@@ -285,12 +285,12 @@ HRESULT	CX2BeginningGame::OnFrameMove( double fTime, float fElapsedTime )
 	if( true == g_pKTDXApp->GetDSManager()->GetCapable3DSound() &&
 		true == g_pKTDXApp->GetDSManager()->GetEnable3DSound() )
 	{
-		D3DXVECTOR3 vLookVec = m_pCamera->GetCamera()->GetLookVec();
+		D3DXVECTOR3 vLookVec = m_pCamera->GetCamera().GetLookVec();
 		D3DXVec3Normalize( &vLookVec, &vLookVec );
-		D3DXVECTOR3 vUpVec = m_pCamera->GetCamera()->GetUpVec();
+		D3DXVECTOR3 vUpVec = m_pCamera->GetCamera().GetUpVec();
 		D3DXVec3Normalize( &vUpVec, &vUpVec );
 
-		g_pKTDXApp->GetDSManager()->SetListenerData( m_pCamera->GetCamera()->GetEye(), vLookVec, vUpVec );
+		g_pKTDXApp->GetDSManager()->SetListenerData( m_pCamera->GetCamera().GetEye(), vLookVec, vUpVec );
 	}
 	
 
@@ -416,7 +416,9 @@ HRESULT	CX2BeginningGame::OnFrameRender()
 {	
 
 	KTDXPROFILE();
-		
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+        CKTDGParticleSystem::EnableParticleCulling( true );
+#endif  X2OPTIMIZE_CULLING_PARTICLE		
 		g_pKTDXApp->GetDGManager()->ObjectChainSort();
 		//{{ robobeg : 2008-10-18
 		
@@ -424,7 +426,9 @@ HRESULT	CX2BeginningGame::OnFrameRender()
 
 
 		g_pKTDXApp->GetDGManager()->ObjectChainAlphaRender();
-
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+        CKTDGParticleSystem::EnableParticleCulling( false );
+#endif  X2OPTIMIZE_CULLING_PARTICLE	
 		g_pKTDXApp->GetDGManager()->FrontUIRender();
 		//}} robobeg : 2008-10-18	
 
@@ -528,10 +532,10 @@ void CX2BeginningGame::SetFreeCamera( bool bFreeCamera )
 
 	if( true == m_bFreeCamera )
 	{
-		D3DXVECTOR3 vEye	= m_pCamera->GetCamera()->GetEye();
-		D3DXVECTOR3 vLookAt = m_pCamera->GetCamera()->GetLookAt();
+		D3DXVECTOR3 vEye	= m_pCamera->GetCamera().GetEye();
+		D3DXVECTOR3 vLookAt = m_pCamera->GetCamera().GetLookAt();
 #ifdef KEYFRAME_CAMERA
-		D3DXVECTOR3 vUpVec	= m_pCamera->GetCamera()->GetUpVec();
+		D3DXVECTOR3 vUpVec	= m_pCamera->GetCamera().GetUpVec();
 		m_FPSCamera.SetViewParams( &vEye, &vLookAt, &vUpVec );
 #else
 		m_FPSCamera.SetViewParams( &vEye, &vLookAt );
@@ -936,9 +940,9 @@ bool CX2BeginningGame::ReadyUnitResources( CX2Unit* pUnit )
 	if ( pUnit == NULL )
 		return false;
 
-	for( int j =0; j < (int)pUnit->GetUnitData()->m_NowEqipItemUIDList.size(); j++ )
+	for( int j =0; j < (int)pUnit->GetUnitData().m_NowEqipItemUIDList.size(); j++ )
 	{
-		CX2Item* pItem = pUnit->GetInventory()->GetItem( pUnit->GetUnitData()->m_NowEqipItemUIDList[j] );
+		CX2Item* pItem = pUnit->GetInventory().GetItem( pUnit->GetUnitData().m_NowEqipItemUIDList[j] );
         XSkinMeshReady( pItem->GetItemTemplet()->GetModelName(0) );
 	}
 

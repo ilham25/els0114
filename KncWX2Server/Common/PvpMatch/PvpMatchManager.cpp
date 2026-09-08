@@ -111,7 +111,7 @@ void KPvpMatchManager::SetMatchMakingBeginCount_LUA( int iMatchMakingBeginCount 
 
 void KPvpMatchManager::SetMatchWeightValue_LUA( int iEnum, int iWeightValue )
 {
-	if( iEnum < 0  ||  iEnum >= MATCH_WEIGHT_ENUM::MWE_MAX )
+	if( iEnum < 0  ||  iEnum >= MWE_MAX )
 	{
 		START_LOG( cerr, L"대전 매치 가중치 enum이 이상합니다!" )
 			<< BUILD_LOG( iEnum )
@@ -390,7 +390,7 @@ bool KPvpMatchManager::DecisionPvpMap( IN const bool bIsNpcPvpMode, IN const std
 
 int	KPvpMatchManager::GetMatchWeightValue( IN const MATCH_WEIGHT_ENUM eEnum ) const
 {
-	if( eEnum < 0  ||  eEnum >= MATCH_WEIGHT_ENUM::MWE_MAX )
+	if( eEnum < 0  ||  eEnum >= MWE_MAX )
 	{
 		START_LOG( cerr, L"대전 매치 가중치 enum이 이상합니다!" )
 			<< BUILD_LOG( eEnum )

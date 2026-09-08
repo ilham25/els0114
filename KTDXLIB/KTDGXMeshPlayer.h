@@ -8,8 +8,25 @@
 	 - 파티클
 */
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#include    "indexed_list.h"
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+struct  CKTDGXMeshPlayer_CXMeshInstance_TAG {};
+typedef KHandleType<int,CKTDGXMeshPlayer_CXMeshInstance_TAG>    CKTDGXMeshPlayer_CXMeshInstanceHandle;
+#define INVALID_MESH_INSTANCE_HANDLE (CKTDGXMeshPlayer_CXMeshInstanceHandle::invalid_handle())
+
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 static const int INVALID_MESH_INSTANCE_HANDLE = -1;		/// 전역 상수; 핸들 인스턴스 없음
+
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+#define MESHPLAYER_TOKEN_LINE_NUMBER
+
 
 /** @class CKTDGXMeshPlayer
 	@brief 
@@ -26,7 +43,12 @@ static const int INVALID_MESH_INSTANCE_HANDLE = -1;		/// 전역 상수; 핸들 인스턴�
 class CKTDGXMeshPlayer
 {
 public: 
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    typedef CKTDGXMeshPlayer_CXMeshInstanceHandle   CXMeshInstanceHandle;
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	typedef int	CXMeshInstanceHandle;		/// 메쉬 인스턴스 핸들
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 	public:
 		/// 메쉬 형태
@@ -85,7 +107,8 @@ public:
 			// system property tokens
 			SeqAlphaBlendModeProp, SeqLifeTypeProp, SeqMeshTypeProp, SeqBillboardTypeProp,
 			SeqRenderTypeProp, SeqCartoonTexTypeProp,
-			SeqCullModeProp,
+			SeqCullModeProp, 
+			SeqBillBoardProblem,	// 빌보드 문제 임시 수정
 
 			// event time tokens
 			KeywordGlobal, KeywordDie, KeywordAnim,
@@ -108,11 +131,18 @@ public:
 		class CXMeshPlayerToken  
 		{
 			public:
-				CXMeshPlayerToken() : m_strValue(), m_Type( RealNumber ) {}
+				CXMeshPlayerToken() : m_strValue(), m_Type( RealNumber )
+#ifdef          MESHPLAYER_TOKEN_LINE_NUMBER
+                    , m_iLineNumber( -1)
+#endif          MESHPLAYER_TOKEN_LINE_NUMBER
+                {}
 				virtual ~CXMeshPlayerToken(){}
 
 				std::string m_strValue;
 				TokenType	m_Type;
+#ifdef          MESHPLAYER_TOKEN_LINE_NUMBER
+                int         m_iLineNumber;
+#endif          MESHPLAYER_TOKEN_LINE_NUMBER
 
 				bool IsLifeType(void)			{ return(m_strValue.compare("LIFETYPE")				== 0); }
 				bool IsDieType(void)			{ return(m_strValue.compare("DIETYPE")				== 0); }
@@ -165,12 +195,17 @@ public:
 				bool IsCrashLand(void)			{ return(m_strValue.compare("CRASHLAND")			== 0); }
 
 				bool IsNotCheckLandTime(void)   { return(m_strValue.compare("NOT_CHECK_LAND_TIME")	== 0); }
-#ifdef ADD_UPDATE_LANDPOS
 				bool IsElasticCoeffX(void)		{ return(m_strValue.compare("ELASTICCOEFF_X")			== 0); }
-#endif
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 				bool IsApplyUnitScale(void)		{ return(m_strValue.compare("APPLYUNITSCALE")		== 0); }
 #endif
+#ifdef FIX_TEMP_MESH_BILLBOARD //2013.10.09
+				bool IsUseMeshBillBoard(void)		{ return( m_strValue.compare( "USEMESHBILLBOARD" ) == 0 ); }
+#endif //FIX_TEMP_MESH_BILLBOARD
+
+#ifdef ADD_ALPHATESTENABLE
+				bool IsAlphatest(void)		{ return( m_strValue.compare( "ALPHATEST" ) == 0 ); }
+#endif //ADD_ALPHATESTENABLE
 		};
 
 		class CXMeshInstance;
@@ -198,7 +233,11 @@ public:
 						m_ActualTime.m_Max = fFinalTime; 
 				}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime ) = 0;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime ) = 0;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				virtual bool	FadeAllowed() = 0;
 
 				CMinMax<float>	GetActualTime(){ return m_ActualTime; }
@@ -248,8 +287,12 @@ public:
 				CXMeshEvent_AniName( bool final = false ) : m_fPlaySpeed( 0.f ),
 					CXMeshEvent(final){ m_EventType = ET_ANINAME; m_PlayType = CKTDGXSkinAnim::XAP_LOOP; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return false; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return false; }
 
 				const WCHAR*	GetAniName()						{ return m_AniName.c_str(); }
 				void			SetAniName(const WCHAR* pAniName)	{ m_AniName = pAniName; }
@@ -275,8 +318,12 @@ public:
 		public:
 			CXMeshEvent_SlashTrace( bool final = false ) : m_bSlashTrace( false ), CXMeshEvent(final){ m_EventType = ET_SLASHTRACE; }
 
-			void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-			bool FadeAllowed() { return false; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			virtual bool FadeAllowed() { return false; }
 #ifdef EFFECT_TOOL
 			void SetSlashTrace( bool bVal_ ) { m_bSlashTrace = bVal_; }
 #endif // EFFECT_TOOL
@@ -296,8 +343,12 @@ public:
 			public:
 				CXMeshEvent_AniSpeed( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_ANISPEED; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return false; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return false; }
 
 				CMinMax<float>	GetAniSpeed()							{ return m_AniSpeed; }
 				void			SetAniSpeed(const CMinMax<float> &data)	{ m_AniSpeed = data; }
@@ -314,8 +365,12 @@ public:
 			public:
 				CXMeshEvent_Color( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_COLOR; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXCOLOR>	GetColor()									{ return m_Color; }
 				void				SetColor(const CMinMax<D3DXCOLOR> &data)	{ m_Color = data; }
@@ -333,8 +388,12 @@ public:
 			public:
 				CXMeshEvent_OutLineColor( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_OUTLINECOLOR; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXCOLOR>	GetOutLineColor()									{ return m_OutLineColor; }
 				void				SetOutLineColor(const CMinMax<D3DXCOLOR> &data)	{ m_OutLineColor = data; }
@@ -354,8 +413,12 @@ public:
 		public:
 			CXMeshEvent_Position( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_POSITION; }
 
-			void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-			bool FadeAllowed(){ return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			virtual bool FadeAllowed(){ return true; }
 
 			CMinMax<D3DXVECTOR3>	GetPosition()									{ return m_Position; }
 			void					SetPosition(CMinMax<D3DXVECTOR3> &data)	{ m_Position = data; }
@@ -374,8 +437,12 @@ public:
 			public:
 				CXMeshEvent_Size( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_SIZE; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXVECTOR3>	GetSize()									{ return m_Size; }
 				void					SetSize(const CMinMax<D3DXVECTOR3> &data)	{ m_Size = data; }
@@ -393,8 +460,12 @@ public:
 			public:
 				CXMeshEvent_Velocity( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_VELOCITY; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXVECTOR3>	GetVelocity()									{ return m_Velocity; }
 				void					SetVelocity(const CMinMax<D3DXVECTOR3> &data)	{ m_Velocity = data; }
@@ -412,8 +483,12 @@ public:
 			public:
 				CXMeshEvent_Tex0UV( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_TEX0UV; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXVECTOR2>	GetTex0UV()									{ return m_Tex0UV; }
 				void					SetTex0UV(const CMinMax<D3DXVECTOR2> &data)	{ m_Tex0UV = data; }
@@ -431,8 +506,12 @@ public:
 			public:
 				CXMeshEvent_Tex1UV( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_TEX1UV; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXVECTOR2>	GetTex1UV()									{ return m_Tex1UV; }
 				void					SetTex1UV(const CMinMax<D3DXVECTOR2> &data)	{ m_Tex1UV = data; }
@@ -450,8 +529,12 @@ public:
 			public:
 				CXMeshEvent_Tex2UV( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_TEX2UV; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXVECTOR2>	GetTex2UV()									{ return m_Tex2UV; }
 				void					SetTex2UV(const CMinMax<D3DXVECTOR2> &data)	{ m_Tex2UV = data; }
@@ -469,8 +552,12 @@ public:
 			public:
 				CXMeshEvent_Rotate( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_ROTATE; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXVECTOR3>	GetRotate()									{ return m_Rotate; }
 				void					SetRotate(const CMinMax<D3DXVECTOR3> &data)	{ m_Rotate = data; }
@@ -488,8 +575,12 @@ public:
 			public:
 				CXMeshEvent_DirSpeed( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_DIRSPEED; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<float>			GetDirSpeed()									{ return m_DirSpeed; }
 				void					SetDirSpeed(const CMinMax<float> &data)	{ m_DirSpeed = data; }
@@ -507,8 +598,12 @@ public:
 			public:
 				CXMeshEvent_BlackHoleTime( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_BLACKHOLETIME; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return false; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return false; }
 
 				CMinMax<float>	GetBlackHoleTime()								{ return m_BlackHoleTime; }
 				void			SetBlackHoleTime(const CMinMax<float> &data)	{ m_BlackHoleTime = data; }
@@ -526,8 +621,12 @@ public:
 			public:
 				CXMeshEvent_Crash( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_CRASH; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXVECTOR3>	GetCrash()									{ return m_Crash; }
 				void					SetCrash(const CMinMax<D3DXVECTOR3> &data)	{ m_Crash = data; }
@@ -545,8 +644,12 @@ public:
 			public:
 				CXMeshEvent_ResetCrash( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_RESETCRASH; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return false; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return false; }
 
 				CMinMax<float>	GetResetCrash()								{ return m_ResetCrash; }
 				void			SetResetCrash(const CMinMax<float> &data)	{ m_ResetCrash = data; }
@@ -564,8 +667,12 @@ public:
 			public:
 				CXMeshEvent_LightFlowImpact( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_LIGHTFLOWIMPACT; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<float>	GetLightFlowImpact()							{ return m_LightFlowImpact; }
 				void			SetLightFlowImpact(const CMinMax<float> &data)	{ m_LightFlowImpact = data; }
@@ -583,8 +690,12 @@ public:
 			public:
 				CXMeshEvent_LightFlowPoint( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_LIGHTFLOWPOINT; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return true; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return true; }
 
 				CMinMax<D3DXVECTOR3>	GetLightFlowPoint()										{ return m_LightFlowPoint; }
 				void					SetLightFlowPoint(const CMinMax<D3DXVECTOR3> &data)		{ m_LightFlowPoint = data; }
@@ -602,8 +713,12 @@ public:
 			public:
 				CXMeshEvent_Sound( bool final = false ) : CXMeshEvent(final){ m_EventType = ET_SOUND; }
 
-				void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-				bool FadeAllowed() { return false; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				virtual bool FadeAllowed() { return false; }
 
 				const WCHAR*	GetSoundName()					{ return m_SoundName.c_str(); }
 				void			SetSoundName(const WCHAR* data)	{ m_SoundName = data; }
@@ -621,8 +736,12 @@ public:
 		public:
 			CXMeshEvent_RenderType( bool final = false ) : m_RenderType( CKTDGXRenderer::RT_REAL_COLOR ), CXMeshEvent(final){ m_EventType = ET_RENDERTYPE; }
 
-			void OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
-			bool FadeAllowed() { return false; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			virtual void	OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			virtual bool FadeAllowed() { return false; }
 
 			const CKTDGXRenderer::RENDER_TYPE	GetRenderType()					{ return m_RenderType; }
 			void			SetRenderType(const CKTDGXRenderer::RENDER_TYPE data)	{ m_RenderType = data; }
@@ -684,9 +803,7 @@ public:
 			bool							bUseLand;
 			bool							bCrashLand;			
 			CMinMax<float>					elasticCoeff;
-#ifdef ADD_UPDATE_LANDPOS
 			CMinMax<float>					elasticCoeffX;
-#endif
 
 			vector<CXMeshEvent*>			globalTimeEventList;
 			vector<CXMeshEvent*>			animTimeEventList;
@@ -702,6 +819,14 @@ public:
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 			bool							bApplyUnitScale;
 #endif //PARTICLE_NOTAPPLY_UNITSCALE
+
+#ifdef FIX_TEMP_MESH_BILLBOARD //2013.10.09
+			bool	bUseMeshBillBoard;
+#endif //FIX_TEMP_MESH_BILLBOARD
+
+#ifdef ADD_ALPHATESTENABLE
+			bool	bAlphaTestEnable;
+#endif
 
 			XMeshTemplet()
 			{
@@ -747,9 +872,7 @@ public:
 				bUseLand			= false;
 				bCrashLand			= false;
 				elasticCoeff		= CMinMax<float>(0.5f, 0.5f);
-#ifdef ADD_UPDATE_LANDPOS
 				elasticCoeffX		= CMinMax<float>(0.f, 0.f);
-#endif
 
 				bUseSlashTrace		= false;
 				iSlashTraceType		= (int) CKTDGSlashTrace::STT_DEFAULT;
@@ -760,6 +883,12 @@ public:
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 				bApplyUnitScale		= true;
 #endif //PARTICLE_NOTAPPLY_UNITSCALE
+#ifdef FIX_TEMP_MESH_BILLBOARD //2013.10.09
+				bUseMeshBillBoard	= false;
+#endif //FIX_TEMP_MESH_BILLBOARD
+#ifdef ADD_ALPHATESTENABLE
+				bAlphaTestEnable	= false;
+#endif //ADD_ALPHATESTENABLE
 			}
 			~XMeshTemplet()
 			{
@@ -780,7 +909,9 @@ public:
 				dieEventList.clear();
 			}
 
-#ifdef EFFECT_TOOL				
+
+#if defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
+// #ifdef EFFECT_TOOL
 			static bool IsSamef_( float a, float b = 0.f )
 			{
 				if( fabs( a - b ) > 0.0009 )
@@ -841,6 +972,12 @@ public:
 				if( bApplyUnitScale			!= rhs_.bApplyUnitScale) return false;
 #endif //PARTICLE_NOTAPPLY_UNITSCALE
 				if( billBoardType			!= rhs_.billBoardType) return false;
+#ifdef FIX_TEMP_MESH_BILLBOARD //2013.10.09
+				if( bUseMeshBillBoard		!= rhs_.bUseMeshBillBoard ) return false;
+#endif //FIX_TEMP_MESH_BILLBOARD
+#ifdef ADD_ALPHATESTENABLE
+				if( bAlphaTestEnable		!= rhs_.bAlphaTestEnable ) return false;
+#endif //ADD_ALPHATESTENABLE
 
 
 
@@ -850,9 +987,7 @@ public:
 				if( false == IsSameMinMax( dieLifeTime		, rhs_.dieLifeTime)) return false;	
 				
 				if( false == IsSameMinMax( elasticCoeff		, rhs_.elasticCoeff)) return false;
-#ifdef ADD_UPDATE_LANDPOS
 				if( false == IsSameMinMax( elasticCoeffX	, rhs_.elasticCoeffX)) return false;
-#endif //ADD_UPDATE_LANDPOS
 				
 				if( false == IsSameMinMax( drawCount		, rhs_.drawCount)) return false;
 				if( false == IsSameMinMax( gravity			, rhs_.gravity)) return false;				
@@ -865,7 +1000,10 @@ public:
 				
 				return true;
 			}
-#endif //EFFECT_TOOL
+
+// #endif // EFFECT_TOOL
+#endif // defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
+
 			XMeshTemplet& operator=( const XMeshTemplet& templet )
 			{
 				//메인 정보
@@ -915,9 +1053,7 @@ public:
 				bUseLand			= templet.bUseLand;
 				bCrashLand			= templet.bCrashLand;
 				elasticCoeff		= templet.elasticCoeff;
-#ifdef ADD_UPDATE_LANDPOS
 				elasticCoeffX		= templet.elasticCoeffX;
-#endif
 
 				bUseSlashTrace		= templet.bUseSlashTrace;
 				iSlashTraceType		= templet.iSlashTraceType;
@@ -928,6 +1064,14 @@ public:
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 				bApplyUnitScale		= templet.bApplyUnitScale;
 #endif //PARTICLE_NOTAPPLY_UNITSCALE
+#ifdef FIX_TEMP_MESH_BILLBOARD //2013.10.09
+				bUseMeshBillBoard	= templet.bUseMeshBillBoard;
+#endif //FIX_TEMP_MESH_BILLBOARD
+
+#ifdef ADD_ALPHATESTENABLE
+				bAlphaTestEnable	= templet.bAlphaTestEnable;
+#endif //ADD_ALPHATESTENABLE
+
 				return *this;
 			}
 		};
@@ -935,7 +1079,9 @@ public:
 		enum INSTANCE_STATE
 		{
 			IS_PLAY,
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 			IS_DYING,
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 			IS_DIE,
 //#ifdef RAVEN_WEAPON_TAKER
 			IS_DYING_BY_CRASH,
@@ -998,7 +1144,9 @@ public:
 				float GetDelayTime(){ return m_fDelayTime; }
 
 				void PlayProcess();
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 				void DyingProcess();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 
 				void PlayEnd();
 
@@ -1030,7 +1178,6 @@ public:
 
 
 
-
 				void RunEvent();
 
 				CKTDGXSkinAnim*			GetXSkinAnim(){ return m_pXSkinAnim; }
@@ -1049,8 +1196,10 @@ public:
 				D3DXVECTOR3 GetMoveAxisAngleDegree() const { return m_MoveAxisAngleDegree; }
 				void SetMoveAxisAngleDegree( D3DXVECTOR3 degree ){ m_MoveAxisAngleDegree = degree; }
 //#ifdef EVE_ELECTRA
+#ifdef LOCAL_ROTATE_EFFECT
 				D3DXVECTOR3 GetRotateLocalDegree(){ return m_vRotateLocal; }
 				void SetRotateLocalDegree( D3DXVECTOR3 degree ){ m_vRotateLocal = degree; }
+#endif
 				float GetMeshAlphaColor(){ return m_Color.a; }
 				void SetMeshAlphaColor( float _fVal){ m_Color.a = _fVal; }
 				D3DXVECTOR3 GetScale(){ return m_vScale; }
@@ -1058,7 +1207,12 @@ public:
 #ifdef BALANCE_BLADE_MASTER_20130117
 				D3DXVECTOR3 GetSize(){ return m_vSize; }
 #endif BALANCE_BLADE_MASTER_20130117
-				void SetGlobalTime( float fTime ){ m_fGlobalTime = fTime; }
+				void SetGlobalTime( float fTime )
+                    {   m_fGlobalTime = fTime; 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                        m_fGlobalTimeVelocity = fTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                    }
 				float GetGlobalTime() { return m_fGlobalTime; }
 
 				bool GetIsSetLandHeightOnStart() { return m_TempletData.bSetLandHeightOnStart; }
@@ -1110,13 +1264,62 @@ public:
 				
 				void SetGravity(const D3DXVECTOR3& val) { m_Gravity = val; }
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                // 주의!!! 아래 함수가 제대로 동작하려면 해당 mesh instance 는 SetPerFrameSimulation( true )  설정되어 있어야 함!!!
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				bool EventTimerGlobal( float fTime );
 
 
 				CKTDXDeviceXET* GetChangeTexXET() const { return m_pChangeTexXET; }
 				void SetChangeTexXET(CKTDXDeviceXET* val) { m_pChangeTexXET = val; }
-
 				void SetVelocity( const D3DXVECTOR3 &vSpeed) { m_vVelocity = vSpeed; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                void    ResetVelocityToAccumPos() { INIT_VECTOR3( m_vVelocityToAccumPos, 0, 0, 0 ); }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                float   GetGlobalTimeVelocity() const   { return m_fGlobalTimeVelocity; }
+                float   GetAniTimeVelocity() const
+                        {
+                            if ( m_fGlobalTimeBefore <= m_fGlobalTime
+                                && m_fAniTimeBefore <= m_fAniTime )
+                            {
+                                float   fRatio = ( m_fGlobalTimeVelocity - m_fGlobalTimeBefore ) / ( m_fGlobalTime - m_fGlobalTimeBefore );
+                                fRatio = __max( 0.f, __min( 1.f , fRatio ) );
+                                return  m_fAniTimeBefore * ( 1.f - fRatio ) + m_fAniTime * fRatio;
+                            }
+                            return  m_fAniTime;
+                        }
+                void    UpdateVelocityAccumPosAndEventTimer( float fTime, bool bAniTime )
+                        {
+                            if ( bAniTime == true )
+                            {
+                                if ( m_fAniTimeBefore <= fTime && fTime <= m_fAniTime
+                                    && m_fGlobalTimeBefore <= m_fGlobalTime )
+                                {
+                                    float   fRatio = ( fTime - m_fAniTimeBefore ) / ( m_fAniTime - m_fAniTimeBefore );
+                                    fRatio = __max( 0.f, __min( 1.f , fRatio ) );
+                                    float   fGlobalTime = m_fGlobalTimeBefore * ( 1.f - fRatio ) + fRatio * m_fGlobalTime;
+                                    if ( m_fGlobalTimeVelocity < fGlobalTime )  
+                                        m_vVelocityToAccumPos += m_vVelocity * ( fGlobalTime - m_fGlobalTimeVelocity );
+                                    m_fGlobalTimeVelocity = fGlobalTime;
+                                }
+                            }
+                            else
+                            {
+                                if ( m_fGlobalTimeVelocity < fTime )    m_vVelocityToAccumPos += m_vVelocity * ( fTime - m_fGlobalTimeVelocity );
+                                m_fGlobalTimeVelocity = fTime;
+                            }//if.. else..
+                        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                void    AddVelocityToAccumPos( float fElapsedTime, bool bAniTime )
+                {
+                    if ( bAniTime == false )
+                        m_vVelocityToAccumPos += m_vVelocity * fElapsedTime;
+                    else
+                        m_vVelocityToAccumPos += m_vVelocity * ( fElapsedTime / m_fAniPlaySpeed );
+                }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				// kimhc // 2010.02.10 // Get 핸들러 추가
 				D3DXVECTOR3 GetVelocity() const { return m_vVelocity; }
 				void SetDirSpeed(float val) { m_fDirSpeed = val; }
@@ -1155,10 +1358,8 @@ public:
 				bool GetParabolicCurve() const { return m_bParabolicCurve; }
 				void SetParabolicCurve(const bool val) { m_bParabolicCurve = val; }
 
-#ifdef ADD_UPDATE_LANDPOS
 				bool GetToggleRotae() { return m_bToggleRotate; }
 				void SetToggleRotate(bool bVal) { m_bToggleRotate = bVal; }
-#endif
 
 #ifdef STOP_UNIT_STOP_EFFECT_TEST
 
@@ -1186,13 +1387,28 @@ public:
 				bool GetApplyUnitScale() { return m_TempletData.bApplyUnitScale; }
 #endif
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                void    SetPerFrameSimulation( bool bPerFrame ) { m_bPerFrameSimulation = bPerFrame; }
+                bool    GetPerFrameSimulation() const           { return m_bPerFrameSimulation; }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                void    SetPerFrameSimulation( bool ) {}
+                bool    GetPerFrameSimulation() const           { return true; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+
+
+
+
 			private:
 				void OpenResource();
 
 
 			private:
-				CXMeshInstanceHandle	m_Handle;
-
+				CXMeshInstanceHandle	    m_Handle;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                bool                        m_bPerFrameSimulation;
+                float                       m_fAccumElapsedTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				float						m_fDelayTime;
 				//객체 데이터
 				INSTANCE_STATE				m_State;
@@ -1215,18 +1431,22 @@ public:
 				CKTDXDeviceXET*				m_pChangeTexXET;
 				CKTDXDeviceXET*				m_pMultiTexXET;
 				CKTDXDeviceXET*				m_pAniXET;
-				CKTDXDeviceXET::AniData*	m_pAniData;
+				const CKTDXDeviceXET::AniData*	m_pAniData;
 				float						m_fAniPlaySpeed;
 
 				float						m_fElapsedTime;
 				float						m_fGlobalTimeBefore;
 				float						m_fGlobalTime;
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 				float						m_fDieTimeBefore;
 				float						m_fDieTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 				float						m_fAniTimeBefore;
 				float						m_fAniTime;
 				float						m_fFinalTime;
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 				float						m_fDieFinalTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 				
 				D3DXVECTOR3					m_vPos;
 				D3DXVECTOR3					m_vPosBefore;
@@ -1282,6 +1502,12 @@ public:
 #endif EVENT_SCENE
 				D3DXVECTOR3					m_vVelocity;
 				D3DXVECTOR3					m_vVelocityFinal;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                D3DXVECTOR3                 m_vVelocityToAccumPos;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                float                       m_fGlobalTimeVelocity;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 				D3DXVECTOR2					m_vTexStage0UV;
 				D3DXVECTOR2					m_vTexStage0UVFinal;
@@ -1307,7 +1533,7 @@ public:
 				D3DXVECTOR3					m_LightFlowPoint;
 				D3DXVECTOR3					m_LightFlowPointFinal;
 
-				D3DXVECTOR3					m_BlackHoleSpeed;
+				D3DXVECTOR3					m_vBlackHoleSpeed;
 				float						m_BlackHoleTime;
 
 				float						m_fResetCrash;
@@ -1326,9 +1552,7 @@ public:
 
 				bool		m_bParabolicCurve;		// 포물선 그리는 meshplayer의 경우에 m_vRotate와 m_vMoveAxisAngle을 동일하게 맞추기 위해
 
-#ifdef ADD_UPDATE_LANDPOS
 				bool		m_bToggleRotate;
-#endif
 
 #ifdef STOP_UNIT_STOP_EFFECT_TEST
 				TimeLimited m_StopTime;
@@ -1343,7 +1567,11 @@ public:
 				bool											m_bShowAttackBox;
 #endif // SHOW_ATTACK_BOX_DUMMY
 
-
+//#ifdef X2OPTIMIZE_CULLING_PARTICLE
+//			private:
+//				void _DecideWorldMatrix_SkinMesh( CKTDGMatrixSet& kWorldMatrix, CKTDGCamera& kCamera, D3DXVECTOR3& vCenter, float fRadius );
+//				void _DecideWorldMatrix_Mesh( D3DXMATRIX& kWorldMatrix, CKTDGCamera& kCamera, D3DXVECTOR3& vCenter, float fRadius );
+//#endif//X2OPTIMIZE_CULLING_PARTICLE
 		};
 
 		struct BLENDINGMODE
@@ -1432,11 +1660,16 @@ public:
 		};
 
 	public:
-		CKTDGXMeshPlayer();
+		CKTDGXMeshPlayer(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            unsigned char ucSystemID = 0
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            );
 		~CKTDGXMeshPlayer(void);
 
 		void OpenScriptFile( const WCHAR* pFilename );
 		bool Compile( const char *pScript, const int iLength = -1 );
+        bool DoMemoryNotEncrypt( const char* pBuffer, long nSize ) { return Compile( pBuffer, (int) nSize ); }
 
 		HRESULT OnFrameMove( double fTime, float fElapsedTime );
 
@@ -1450,7 +1683,7 @@ public:
 			ConvertUtf8ToWCHAR( wstrTempletName, pTempletName );
 
 #pragma DMLEE_NOTE( "일단은 스크립트에서 사용하는 부분에서는 NULL 로 입력, 나중에 몬스터 스크립트 전체 수정하면서 코드 수정해야함" )
-			return CreateInstance( NULL, wstrTempletName.c_str(), pos, angleDegree, moveAxisDegree, layer );
+			return  CreateInstance( NULL, wstrTempletName.c_str(), pos, angleDegree, moveAxisDegree, layer );
 		}
 
 
@@ -1458,12 +1691,12 @@ public:
 		//{{ oasis907 : 김상윤 [2010.6.10] // 
 		// txt에서 파싱된 Templet들이 등록된 TempletMap과 상관없이 동작할 수 있게금 하였습니다.
 		// 대신 pTemplet의 내용은 다른 곳에서 수동으로 입력해야합니다. 
-		CKTDGXMeshPlayer::CXMeshInstance* CreateInstanceNonTemplet( CKTDGXMeshPlayer* pMeshPlayer, XMeshTemplet* pTemplet, 
+		CXMeshInstance* CreateInstanceNonTemplet( CKTDGXMeshPlayer* pMeshPlayer, XMeshTemplet* pTemplet, 
 			const D3DXVECTOR3& pos, const D3DXVECTOR3& angleDegree, const D3DXVECTOR3& moveAxisAngleDegree );
 		//}}
 #endif EVENT_SCENE
 
-		CKTDGXMeshPlayer::CXMeshInstance* CreateInstanceParabolic( CKTDGObject* pKTDGObject, const WCHAR* pTempletName, const D3DXVECTOR3& vPos, const D3DXVECTOR3& vTargetPos, 
+		CXMeshInstance* CreateInstanceParabolic( CKTDGObject* pKTDGObject, const WCHAR* pTempletName, const D3DXVECTOR3& vPos, const D3DXVECTOR3& vTargetPos, 
 			const D3DXVECTOR3& vAcceleration, const float fTimeToReachTarget, const float fTimeToLive );
 
 
@@ -1486,12 +1719,12 @@ public:
 										float moveAxisXDegree, float moveAxisYDegree, float moveAxisZDegree,
 										int layer = -1 );
 
-		void DestroyAllInstance();
-		void DestroyInstance( CXMeshInstanceHandle& handle );	
+		void DestroyAllInstances();
+		void DestroyInstanceHandle( CXMeshInstanceHandle& handle );	
 
 		void DestroyInstance_LUA( CXMeshInstanceHandle handle )
 		{
-			DestroyInstance( handle );
+			DestroyInstanceHandle( handle );
 		}
 
 		bool IsLiveInstanceHandle( const CXMeshInstanceHandle handle );
@@ -1502,15 +1735,31 @@ public:
 
 			return IsLiveInstanceHandle( pMeshInst->GetHandle() );
 		}
-		CKTDGXMeshPlayer::CXMeshInstance* GetMeshInstance( CXMeshInstanceHandle handle );
-		
+		CXMeshInstance* GetMeshInstance( CXMeshInstanceHandle handle, bool bLiveOnly = true );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CXMeshInstance* ValidateInstanceHandle( CXMeshInstanceHandle& handle, bool bLiveOnly = true )
+        {
+            CXMeshInstance* pInstance = GetMeshInstance( handle, bLiveOnly );
+            if ( pInstance == NULL )
+                handle = INVALID_MESH_INSTANCE_HANDLE;
+            return pInstance;
+        }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		static CXMeshEvent* EventFactory( std::string EventName, bool bFinal );
 		void SetEnable( bool bEnable ){ m_bEnable = bEnable; }
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        UINT EstimateInstanceNum();
 
+        template< typename FUNCTION >
+        void                            ApplyFunctionToLiveInstances( FUNCTION fn );
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CXMeshInstance* GetInstance( int index ) { return m_InstanceList[index]; }
 		UINT GetInstanceNum() { return m_InstanceList.size(); } 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 		map<wstring, XMeshTemplet*>& GetTempletMap() { return m_TempletMap; }
 		const XMeshTemplet* GetTempletByName( const wstring wstrName );
 
@@ -1543,6 +1792,42 @@ public:
 		void ToggleShowAttackBox() { SetShowAttackBox( !m_bShowAttackBox ); }
 #endif // SHOW_ATTACK_BOX_DUMMY
 
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+		typedef map< wstring, XMeshTemplet* > XMeshTempletMap;
+		bool MergeXMeshTemplet( CKTDGXMeshPlayer::XMeshTemplet* pNewXMeshTemplet_, CKTDGXMeshPlayer::XMeshTemplet* pOrgXMeshTemplet_ );
+		bool CreateXMeshTemplet( CKTDGXMeshPlayer::XMeshTemplet* pXMesshTemplet_ );
+		bool EraseXMeshTemplet ( CKTDGXMeshPlayer::XMeshTemplet* pXMesshTemplet_ );
+		bool CopyXMeshTempletTimeEvent( CKTDGXMeshPlayer::XMeshTemplet* pXMeshTemplet_ );
+#endif // EXPAND_DEVELOPER_SCRIPT  // 김종훈, 개발자 스크립트 확장 기능 추가
+
+        DWORD   ComposeHandle( WORD wIndex, OUT WORD& wStamp )
+        {
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            wStamp &= 0x3fff;
+            return wIndex | ( wStamp << 16L ) | ( m_ucSystemID << 30L );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            return wIndex | ( wStamp << 16L );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        }
+        bool    DecomposeHandle( DWORD dwHandle, OUT WORD& wIndex, OUT WORD& wStamp )
+        {
+            wIndex = (WORD) dwHandle;
+            wStamp = (WORD) ( ( dwHandle & 0xffff0000 ) >> 16L );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            unsigned char ucSystemID = (unsigned char) ( wStamp >> 14L );
+            wStamp &= 0x3fff;
+            return ucSystemID == m_ucSystemID;
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            return true;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        }
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        unsigned char GetSystemID()                     { return m_ucSystemID; }
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+         bool   IsInCriticalLoop() const { return m_bInCriticalLoop; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 
 	private:
 		bool ProcessXMeshPlayerBlock(
@@ -1566,20 +1851,46 @@ public:
 		vector<XMeshTemplet*>							m_TempletVec;
 #endif //EFFECT_TOOL
 		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+        enum    EListType
+        {
+            LIST_LIVE = 0,
+            LIST_FREE = 1,
+            LIST_NUM
+        };
+        struct  KInstanceHandleInfo
+        {
+            CXMeshInstance*         m_pInstance;
+            WORD                    m_wStamp;
+            KInstanceHandleInfo()
+                : m_pInstance( NULL )
+                , m_wStamp(0)
+            {
+            }
+        };
+        typedef kog::indexed_list<KInstanceHandleInfo> KInstanceHandleList;
+        KInstanceHandleList             m_coInstanceHandleList;
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 		/// 내부적으로 관리하는 객체이므로 smart pointer를 사용하지 않는다.
         /// - jintaeks on 2009-01-12, 17:48
 		std::vector<CXMeshInstance*>						m_InstanceList;
 		std::map< CXMeshInstanceHandle, CXMeshInstance* >	m_mapInstance;
+		static CXMeshInstanceHandle		s_iNextMeshInstanceHandle;
+		CRITICAL_SECTION				m_csMeshPlayerLock;
 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        bool                            m_bInCriticalLoop;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 
 		string							m_strLastError;
 		bool							m_bEnable;
 
-		CRITICAL_SECTION				m_csMeshPlayerLock;
-
 		bool							m_bEnableSlashTrace;
-
-		static CXMeshInstanceHandle		s_iNextMeshInstanceHandle;
 
 #ifdef NOT_RENDER_EFFECT_MADE_BY_GAME_UNIT
 		bool									m_bRenderEffectMadeByGameUnit;
@@ -1590,4 +1901,37 @@ public:
 		bool							m_bShowAttackBox;
 #endif // SHOW_ATTACK_BOX_DUMMY
 
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        unsigned char                           m_ucSystemID;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
 };
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+template< typename FUNCTION >
+void    CKTDGXMeshPlayer::ApplyFunctionToLiveInstances( FUNCTION fn )
+{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    bool bOldInCriticalLoop = m_bInCriticalLoop;
+    m_bInCriticalLoop = true;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        ++iter )
+    {
+        CXMeshInstance* pInstance = iter->m_pInstance;
+        if ( pInstance == NULL || pInstance->GetState() == IS_DIE )
+            contniue;
+        fn(*pInstance );
+    }
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    m_bInCriticalLoop = bOldInCriticalLoop;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE

@@ -181,9 +181,9 @@ protected:
    //}}
 
 	DECL_ON_FUNC_NOPARAM( ERM_BATTLE_FIELD_NPC_LOAD_COMPLETE_REQ );
-#ifndef SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-	DECL_ON_FUNC_NOPARAM( ERM_BATTLE_FIELD_NPC_P2P_SYNC_COMPLETE_NOT );
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifndef SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//	DECL_ON_FUNC_NOPARAM( ERM_BATTLE_FIELD_NPC_P2P_SYNC_COMPLETE_NOT );
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
 	DECL_ON_FUNC( ERM_UPDATE_PARTY_INFO_TO_BATTLE_FIELD_NOT );
 
@@ -192,6 +192,8 @@ protected:
 	DECL_ON_FUNC( ERM_DUMP_ROOM_MONSTER_NOT );
 	DECL_ON_FUNC( ERM_DUMP_BATTLE_FIELD_NOT );
 	DECL_ON_FUNC_NOPARAM( ERM_BATTLE_FIELD_ZU_ECHO_ACK );
+
+
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 #ifdef  SERV_OPTIMIZE_DETECT_ZOMBIE_HOST
@@ -242,6 +244,11 @@ protected:
 	_DECL_ON_FUNC( ERM_LEAVE_ROOM_FOR_WORKINGS_BLOCK_REQ, KERM_LEAVE_ROOM_REQ );
 #endif // SERV_SYNC_PACKET_USING_RELAY_WORKINGS_CHECK
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-07	// 박세훈
+	DECL_ON_FUNC_NOPARAM( ERM_BOSS_FIELD_INTRUDE_RESTRICTION_REQ );
+	DECL_ON_FUNC( ERM_BOSS_FIELD_LOG_NOT );
+#endif // SERV_BATTLE_FIELD_BOSS
+
 protected:
 	KDropItemData	CreateItemProcess( IN const int iItemID, 
 									   IN const char cNpcLevel,
@@ -255,11 +262,11 @@ protected:
 	//{{ 2013. 02. 15   필드 중간 보스 - 김민성
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
 	void			CheckMiddleBossMonster();
-	void			BattleFieldMiddleBossDropProcess( IN KEGS_NPC_UNIT_DIE_REQ& kPacket_, IN KRoomMonsterManager::NPC_DATA& kDieNpcInfo, IN UidType& iSendUnitUID );
-	void			BattleFieldNormalDropProcess( IN KEGS_NPC_UNIT_DIE_REQ& kPacket_, IN KRoomMonsterManager::NPC_DATA& kDieNpcInfo, IN UidType& iSendUnitUID );
+	void			BattleFieldMiddleBossDropProcess( IN const KEGS_NPC_UNIT_DIE_REQ& kPacket_, IN KRoomMonsterManager::NPC_DATA& kDieNpcInfo, IN const UidType& iSendUnitUID, OUT std::vector< KDropItemData >& vecDropItem_ );
+	void			BattleFieldNormalDropProcess( const IN KEGS_NPC_UNIT_DIE_REQ& kPacket_, IN KRoomMonsterManager::NPC_DATA& kDieNpcInfo, IN const UidType& iSendUnitUID );
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
-	void			CheckBossMonster();
+
 	//{{ 2012. 12. 30	박세훈	필드 이벤트 몬스터
 #ifdef SERV_FIELD_EVENT_MONSTER
 	void			CheckEventMonster( void );
@@ -321,6 +328,43 @@ protected:
 #endif SERV_COLLECTION_OF_RELAY_AND_P2P_INFO
 	//}}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-28	// 박세훈
+	void	IncreaseDangerousValue( IN const int iIncreaseValue, IN const UidType iGSUID );
+	
+	void	OnNpcUnitDie( IN const int iPlayerCount
+						, IN const bool bIsAttribNpc
+						, IN const char cDifficultyLevel
+						, IN const char cMonsterGrade
+						, IN const bool bIncreaseDanger
+						, IN const UidType iGSUID
+						);
+
+	void	CheckFieldBossSystem( void );
+
+	void	InitBossFieldCreateInfo( IN const KBossFieldCreateInfo& kBossFieldCreateInfo );
+
+	void	BattleFieldBossDropProcess( const IN KEGS_NPC_UNIT_DIE_REQ& kPacket_, IN KRoomMonsterManager::NPC_DATA& kDieNpcInfo, IN const UidType& iSendUnitUID );
+	void	_BossRewardProcess( IN const UidType iUnitUID, IN const std::multimap< float, std::set< UidType > > mmapPartyContribution, OUT std::vector<int>& vecItemID ) const;
+	int		EventMonsterDieProcess( IN const UidType iUnitUID, IN const KEGS_NPC_UNIT_DIE_REQ& kPacket_, OUT KERM_NPC_UNIT_DIE_ACK& kPacket, OUT char& cMonsterGrade );
+	int		MiddleBossMonsterDieProcess( IN const UidType iUnitUID, IN const KEGS_NPC_UNIT_DIE_REQ& kPacket_, OUT KERM_NPC_UNIT_DIE_ACK& kPacket, OUT char& cMonsterGrade );
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	int		EventBossMonsterDieProcess( IN const UidType iUnitUID, IN const KEGS_NPC_UNIT_DIE_REQ& kPacket_, OUT KERM_NPC_UNIT_DIE_ACK& kPacket, OUT char& cMonsterGrade );
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
+	int		MonsterDiePrcess( IN const UidType iUnitUID, IN const KEGS_NPC_UNIT_DIE_REQ& kPacket_, OUT KERM_NPC_UNIT_DIE_ACK& kPacket, OUT char& cMonsterGrade );
+	int		BossMonsterDieProcess( IN const UidType iUnitUID, IN const KEGS_NPC_UNIT_DIE_REQ& kPacket_, OUT KERM_NPC_UNIT_DIE_ACK& kPacket );
+	void	_MakePartyContributionData( IN const std::map<UidType, float>& mapUserContribution, OUT std::multimap< float, std::set< UidType > >& mmapPartyContribution ) const;
+
+	void	_BossFieldCloseProcess( const bool bTimeOut );
+
+	bool	EnterRoom( IN const KRoomUserInfo& kInfo, IN const KBattleFieldJoinInfo& kJoinInfo, IN const bool bConsiderTeam );
+#endif // SERV_BATTLE_FIELD_BOSS
+private:
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-12-03	// 박세훈
+	// 로그 수집
+	void	_MakeBossFieldUserLogAtLeave( IN const UidType iUnitUID );
+	void	_MakeBossFieldUserLog( IN const UidType iUnitUID, IN const byte byteContributionRank );
+#endif // SERV_BATTLE_FIELD_BOSS
+
 protected:
 	SEnum::BATTLE_FIELD_ID				m_eBattleFieldID;			// 배틀필드ID
 
@@ -334,13 +378,17 @@ protected:
 	KBattleFieldMonsterManager			m_kMonsterManager;
 	KDungeonSecurityManager				m_kSecurityManager;
 
-	boost::timer						m_tTimer[TIMER_ENUM::TE_MAX];
+	boost::timer						m_tTimer[TE_MAX];
 
 	static DWORD						m_dwMonsterRespawnCheckTick;
 
 	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	float								m_fItemDropEventProbRate;
+#else // SERV_DROP_EVENT_RENEWAL
 	int									m_iItemDropEventProbCount;
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 	//}}
 	//{{ 2013. 03. 18	 퀘스트 드롭 확률 증가 이벤트 - 김민성
@@ -348,6 +396,15 @@ protected:
 	float								m_fQuestItemDropEventProbRate;
 #endif SERV_QUEST_ITEM_DROP_EVENT
 	//}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+	byte								m_byteBossFieldState;
+	__time64_t							m_tFieldHoldingTime;
+	__time64_t							m_tFieldOpenTime;
+	__time64_t							m_tFieldCloseTime;
+
+	KDBE_BOSS_FIELD_LOG_NOT				m_kBossFieldLog;
+#endif // SERV_BATTLE_FIELD_BOSS
 };
 
 

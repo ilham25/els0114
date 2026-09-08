@@ -16,7 +16,6 @@ CX2NoticeManager::CX2NoticeManager( int noticeGapWidth )
 
 		m_fTakeItemNoticeTime[i] = 0.0f;	/// 초기화
 	}
-
 #ifdef SERV_SHUTDOWN_SYSTEM	// 빌드 오류로 해외팀 추가
 	bShutDownNotice = false;
 #endif // SERV_SHUTDOWN_SYSTEM

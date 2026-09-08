@@ -22,6 +22,10 @@ public:
 		CTUCM_SLIDE_OPACITY,
 		CTUCM_COMBO_ICON_MOUSE_OVER,
 		CTUCM_COMBO_ICON_MOUSE_OUT,
+
+//#ifdef SERV_ADD_LUNATIC_PSYKER // ±Ë≈¬»Ø
+		CTUCM_CATEGORY_SPECIAL_COMBO,
+//#endif //SERV_ADD_LUNATIC_PSYKER
 	};
 
 public:
@@ -65,7 +69,11 @@ private:
 	void						CreateMouseOverButton( const CX2ComboTree::ComboIcon& eIcon, int staticComboIndex_ );
 	void						DrawComboTreeDesc( D3DXVECTOR2 vDrawPos_, wstring wstrDesc );
 	int							m_iNumMouseOverButton;
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±Ë≈¬»Ø
+	vector<CKTDGUIButton*>		m_vecMouseOverButton[5];
+#else //SERV_ADD_LUNATIC_PSYKER
 	vector<CKTDGUIButton*>		m_vecMouseOverButton[4];
+#endif //SERV_ADD_LUNATIC_PSYKER
 	CKTDGUIDialogType			m_pDLGComboTreeDesc;
 #endif COMBO_TREE_TOOLTIP
 

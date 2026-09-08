@@ -71,10 +71,10 @@ m_pTexutureBG(NULL)
 	if( totalTextureMem <= 40 )	
 	{
 		// 비디오 메모리가 일정 크기 이하이면 해상도를 최하로, color format도 16bit로,
-		g_pMain->GetGameOption()->SetResolution( 640, 480, 16 );
+		g_pMain->GetGameOption().SetResolution( 640, 480, 16 );
 	}
 
-	g_pMain->GetGameOption()->ApplyAllOption( true );
+	g_pMain->GetGameOption().ApplyAllOption( true );
 
 	// 게임 시작할 때 무조건 풀스크린으로 시작하게
 	//if( true == DXUTIsWindowed() )
@@ -84,7 +84,6 @@ m_pTexutureBG(NULL)
 	//::SetFocus( g_pKTDXApp->GetHWND() );
 
 #ifdef GET_ELSWORD_FOCUS
-	//SetActiveWindow( g_pKTDXApp->GetHWND() );
 	SetForegroundWindow( g_pKTDXApp->GetHWND() );
 	SetFocus( g_pKTDXApp->GetHWND() );
 #endif GET_ELSWORD_FOCUS
@@ -147,7 +146,10 @@ void CX2StateStartUp::LoadData()
 	g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle18.txt" );
 	g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle19.txt" );
 	g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle20.txt" );
-
+	g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle21.txt" );
+	g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle22.txt" );
+	g_pData->GetGameMajorParticle()->OpenScriptFile( L"GameMajorParticle23.txt" );
+	
 	g_pData->ResetGameMinorParticle( L"GameMinorParticle.txt" );
 
 	//UI 메시플레이어
@@ -185,11 +187,7 @@ void CX2StateStartUp::LoadData()
 	g_pData->ResetUIUnitManager();
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	g_pData->ResetSocketItem( L"OptionItemData.lua", L"SocketOptionForm.lua" );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-	g_pData->ResetSocketItem( L"OptionItemData.lua" );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	
 	g_pData->ResetEnchantItem();
@@ -197,19 +195,19 @@ void CX2StateStartUp::LoadData()
 	// 파티 매니저 로드
 	g_pData->ResetPartyManager();
 
-	g_pMain->GetGameOption()->OpenScriptFile();
+	g_pMain->GetGameOption().OpenScriptFile();
 
 #ifdef OPTIMIZATION_DEV_MODE
-	g_pMain->GetGameOption()->SetTexDetail( CX2GameOption::OL_LOW );
-	g_pMain->GetGameOption()->SetUnitDetail( CX2GameOption::OL_LOW );
-	g_pMain->GetGameOption()->SetMapDetail( CX2GameOption::OL_LOW );
-	g_pMain->GetGameOption()->SetFieldDetail( CX2GameOption::FL_LOW );
+	g_pMain->GetGameOption().SetTexDetail( CX2GameOption::OL_LOW );
+	g_pMain->GetGameOption().SetUnitDetail( CX2GameOption::OL_LOW );
+	g_pMain->GetGameOption().SetMapDetail( CX2GameOption::OL_LOW );
+	g_pMain->GetGameOption().SetFieldDetail( CX2GameOption::FL_LOW );
 #endif OPTIMIZATION_DEV_MODE
 
 	g_pData->ResetLocationManager();
 
 	// Field_Data.lua 파싱
-	g_pData->ResetBattleFieldManager( "BattleFieldData.lua" );
+	g_pData->ResetBattleFieldManager( L"BattleFieldData.lua" );
 }
 
 #ifdef FIRST_SCREEN_TEST

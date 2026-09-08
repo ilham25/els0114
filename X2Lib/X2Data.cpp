@@ -1,12 +1,6 @@
 #include "stdafx.h"
 #include ".\x2data.h"
 
-//{{ Iruha : 2026-08-31 // offline mode
-#ifdef SERV_IRUHADEV_OFFLINE
-#include "Offline/X2OfflineServer.h"
-#endif SERV_IRUHADEV_OFFLINE
-//}}
-
 //#ifdef USER_DEFINED_KEYBOARD_SETTING
 //	unsigned char CX2Data::s_KeyMappingLayer[2][256];
 //#endif USER_DEFINED_KEYBOARD_SETTING
@@ -36,7 +30,6 @@ struct CharacterImageName
 #pragma region s_CharacterImageNameMyGage
 static const CharacterImageName s_CharacterImageNameMyGage[] = 
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	#pragma region 엘소드, 아이샤, 레나, 레이븐, 이브
 	CharacterImageName( L"DLG_UI_Common_Texture16_NEW.tga",		L"ELSWORD_STATE" ),		//0
 	CharacterImageName( L"DLG_UI_Common_Texture16_NEW.tga", 	L"S_KNIGHT_STATE"	),	//1
@@ -94,7 +87,7 @@ static const CharacterImageName s_CharacterImageNameMyGage[] =
 	#pragma region 아라(마샬 아티스트, )
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga",		L"ARA_FACE"	),		//42
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga", 	L"ARA_LH_FACE"	),	//43 소선
-	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_FACE"	),	//44 제석천
+	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_FACE"	),	//44 제천
 	#pragma endregion 노전직, 1차전직, 2차전직
 
 	CharacterImageName( L"DLG_UI_Common_Texture74_NEW.tga",		L"EL_FACE"	),		//45 엘리시스 노전
@@ -107,102 +100,31 @@ static const CharacterImageName s_CharacterImageNameMyGage[] =
 	CharacterImageName( L"DLG_UI_Common_Texture77_NEW.tga", 	L"Y_RAJA_STATE"		),	//49 명왕
 #pragma endregion 아라 2번째 전직
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-#else
-	CharacterImageName( L"DLG_PVP_State_Info0.tga",			L"ElswordState" 		),
-	CharacterImageName( L"DLG_Common_New_Texture61.TGA", 	L"ELSWORD_SK_STATE" 	),
-	CharacterImageName( L"DLG_Common_New_Texture61.TGA", 	L"ELSWORD_MK_STATE" 	),	
-	CharacterImageName( L"DLG_PVP_State_Info0.tga",			L"ArmeState" 			),
-	CharacterImageName( L"DLG_Common_New_Texture61.TGA", 	L"AISHA_HM_STATE" 		),
-	CharacterImageName( L"DLG_Common_New_Texture61.TGA", 	L"AISHA_DM_STATE" 		),
-	CharacterImageName( L"DLG_PVP_State_Info0.tga",			L"LireState" 			),
-	CharacterImageName( L"DLG_Common_New_Texture57.TGA", 	L"RENA_CR_STATE" 		),
-	CharacterImageName( L"DLG_Common_New_Texture57.TGA", 	L"RENA_SR_STATE" 		),
-	CharacterImageName( L"DLG_Common_New_Texture58.TGA",	L"Raven_State" 			),
-	CharacterImageName( L"DLG_Game_Gage_Bar_Face.TGA", 		L"Raven_ST_State" 		),
-	CharacterImageName( L"DLG_Game_Gage_Bar_Face.TGA", 		L"Raven_OT_State" 		),
-	CharacterImageName( L"DLG_UI_Character01.TGA",			L"Eve_State" 			),
-	CharacterImageName( L"DLG_Game_Gage_Bar_Face.TGA", 		L"Eve_CE_State" 		),
-	CharacterImageName( L"DLG_Game_Gage_Bar_Face.TGA", 		L"Eve_CA_State" 		),
-	CharacterImageName( L"DLG_UI_Common_Texture21.TGA", 	L"L_Knight" 			),
-	CharacterImageName( L"DLG_UI_Common_Texture21.TGA", 	L"R_Slayer" 			),
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+#pragma region 엘리시스 ( 그랜드 마스터, 블레이징 하트 )
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga",		L"EL_SGM_FACE"		),	//50 그랜드 마스터
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga", 	L"EL_SBH_FACE"		),	//51 블레이징 하트
+#pragma endregion 엘리시스 1-2, 2-2 신 전직
 
 
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",		L"W_Sneaker" 			),
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",		L"G_Archer" 			),
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	CharacterImageName( L"DLG_UI_Common_Texture80_NEW.tga",		L"ADD_FACE"	),		//52 애드 기본 전직
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_APT_FACE"	),	//53 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
 
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_ALP_FACE"	),	//54 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
 
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",		L"E_Master" 			),
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",		L"V_Princess" 			),
-
-#ifdef RAVEN_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",		L"B_MASTER" 			),
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",		L"R_FIST" 				),
-#endif
-
-	//{{ kimhc // 2010.2.17 //	이브 2차 전직
-#ifdef	EVE_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 	L"C_NEMESIS"			),
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 	L"C_EMPRESS"			),
-#endif	EVE_SECOND_CLASS_CHANGE
-	//}} kimhc // 2010.2.17 //	이브 2차 전직
-
-	//{{ kimhc // 2010.12.11 // 2010-12-23 New Character CHUNG
-#ifdef	NEW_CHARACTER_CHUNG
-	CharacterImageName( L"DLG_UI_Character04.tga", 			L"Chung_State_Face"			),
-#endif	NEW_CHARACTER_CHUNG
-	//}} kimhc // 2010.12.11 //  2010-12-23 New Character CHUNG
-
-	//{{ kimhc // 2011.1.3 // 청 1차 전직
-#ifdef	CHUNG_FIRST_CLASS_CHANGE //chung임시
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga",		L"F_GUARDIAN_FACE"			),
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga",		L"S_GUARDIAN_FACE"			),
-#endif	CHUNG_FIRST_CLASS_CHANGE
-	//}} kimhc // 2011.1.3 // 청 1차 전직
-	//{{ JHKang / 강정훈 / 2011.6.13 / 청 2차 전직
-#ifdef CHUNG_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture56.tga",		L"I_PALADIN_FACE"			),
-	CharacterImageName( L"DLG_UI_Common_Texture56.tga",		L"D_CHASER_FACE"			),
-#endif
-	//}}
-#ifdef ELSWORD_SHEATH_KNIGHT
-	CharacterImageName( L"DLG_UI_Common_Texture61.tga", 	L"T_KNIGHT" 	),
-#endif ELSWORD_SHEATH_KNIGHT
-
-#ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
-	CharacterImageName( L"DLG_UI_Common_Texture62.tga",		L"B_MAGICIAN"			),
-#endif
-
-#ifdef SERV_TRAPPING_RANGER_TEST
-	CharacterImageName( L"DLG_UI_Common_Texture63.tga",		L"T_RANGER"			),
-#endif SERV_TRAPPING_RANGER_TEST
-#ifdef RAVEN_WEAPON_TAKER
-	CharacterImageName( L"DLG_UI_Common_Texture64.TGA", 		L"W_TAKER" 		),
-#endif RAVEN_WEAPON_TAKER
-#ifdef EVE_ELECTRA
-	CharacterImageName( L"DLG_UI_Common_Texture65.tga", 	L"ELECTRA"			),
-#endif EVE_ELECTRA
-#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
-	CharacterImageName( L"DLG_UI_Common_Texture67.tga", 	L"SH_GUARDIAN_NORMAL"			),
-#endif
-#ifdef SERV_ELSWORD_INFINITY_SWORD
-	CharacterImageName( L"DLG_UI_Common_Texture69.TGA", 	L"I_SWORD_STATE" 			),
-#endif
-#ifdef SERV_ARME_DIMENSION_WITCH
-	CharacterImageName( L"DLG_UI_Common_Texture62.TGA", 	L"D_WITCH_STATE" 			),
-#endif
-#ifdef SERV_RENA_NIGHT_WATCHER
-	CharacterImageName( L"DLG_UI_Common_Texture63.TGA", 	L"N_WATCHER" 			),
-#endif
-
-#endif	REFORM_UI_CHARACTER_INFO
 };
 #pragma endregion 유저 Gage UI
 
 #pragma region s_CharacterImageName160
 static const CharacterImageName s_CharacterImageName160[] = 
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	#pragma region 엘소드, 아이샤, 레나, 레이븐, 이브
 	CharacterImageName( L"DLG_UI_Common_Texture16_NEW.tga",		L"ELSWORD_LARGE"	),	// 0
 	CharacterImageName( L"DLG_UI_Common_Texture16_NEW.tga",		L"S_KNIGHT_LARGE"	),	// 1
@@ -260,7 +182,7 @@ static const CharacterImageName s_CharacterImageName160[] =
 	#pragma region 아라(마샬 아티스트, )
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga",		L"ARA_LARGE"	),	//42
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga", 	L"ARA_LH_LARGE"	),	//43 소선
-	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_LARGE"	),	//44 제석천
+	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_LARGE"	),	//44 제천
 	#pragma endregion 노전직, 1차전직, 2차전직
 
 	CharacterImageName( L"DLG_UI_Common_Texture74_NEW.tga",		L"EL_LARGE"	),	//45 엘리시스 노전
@@ -273,110 +195,30 @@ static const CharacterImageName s_CharacterImageName160[] =
 	CharacterImageName( L"DLG_UI_Common_Texture77_NEW.tga", 	L"Y_RAJA_LARGE"		),	//49 명왕
 #pragma endregion 아라 2번째 전직
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-#else
-	CharacterImageName( L"DLG_Common_New_Texture19.tga",   		L"Dungeon_Result_Elsword1"  	),
-	CharacterImageName( L"DLG_UI_Common_Texture16.tga",    		L"Result_Elsword_Sword"   		),
-	CharacterImageName( L"DLG_UI_Common_Texture16.tga",    		L"Result_Elsword_Magic"   		),
-	CharacterImageName( L"DLG_Common_New_Texture19.tga",   		L"Dungeon_Result_Aisha1"   		),
-	CharacterImageName( L"DLG_UI_Common_Texture16.tga",    		L"Result_Aisha_High"   			),
-
-	CharacterImageName( L"DLG_UI_Common_Texture16.tga",    		L"Result_Aisha_Dark"   			),
-	CharacterImageName( L"DLG_Common_New_Texture19.tga",   		L"Dungeon_Result_Rena1"   		),
-	CharacterImageName( L"DLG_UI_Common_Texture16.tga",    		L"Result_Rena_Combat"   		),
-	CharacterImageName( L"DLG_UI_Common_Texture16.tga",    		L"Result_Rena_Sniper"   		),
-	CharacterImageName( L"DLG_Common_New_Texture57.tga",   		L"DUNGEON_RESULT_RAVEN1"   		),
-
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga",    		L"Result_Raven_Sword"   		),
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga",    		L"Result_Raven_Over"   			),
-	CharacterImageName( L"DLG_UI_Character01.tga",				L"EVE_NORMAL" 	  				),
-	CharacterImageName( L"DLG_UI_Common_Texture16.tga",    		L"Result_Eve_Exotic"   			),
-	CharacterImageName( L"DLG_UI_Common_Texture16.tga",    		L"Result_Eve_Arch"   			),
-
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",    		L"L_Knight_Large" 		  		),
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",    		L"R_Slayer_Large"   			),
 
 
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+#pragma region 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga",		L"EL_SGM_LARGE"	),	//50 그랜드 마스터
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga", 	L"EL_SBH_LARGE"		),	//51 블레이징 하트
+#pragma endregion 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",			L"W_Sneaker_Large"     			),
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",			L"G_Archer_Large"     			),
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	CharacterImageName( L"DLG_UI_Common_Texture80_NEW.tga",		L"ADD_LARGE"	),		//52 애드 기본 전직
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_APT_LARGE"	),	//53 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
 
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",			L"E_Master_Large" 				),
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",			L"V_Princess_Large" 			),
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_ALP_LARGE"	),	//54 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
 
-#ifdef RAVEN_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",			L"B_MASTER_Large" 				),
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",			L"R_FIST_Large" 				),
-#endif
-
-	//{{ kimhc // 2010.2.17 //	이브 2차 전직
-#ifdef	EVE_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 			L"C_NEMESIS_Large"			),
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 			L"C_EMPRESS_Large"			),
-#endif	EVE_SECOND_CLASS_CHANGE
-	//}} kimhc // 2010.2.17 //	이브 2차 전직
-
-	//{{ kimhc // 2010.12.11 // 2010-12-23 New Character CHUNG
-#ifdef	NEW_CHARACTER_CHUNG
-	CharacterImageName( L"DLG_UI_Character04.tga", 					L"Dungeon_Chung_Normal"			),
-#endif	NEW_CHARACTER_CHUNG
-	//}} kimhc // 2010.12.11 //  2010-12-23 New Character CHUNG
-
-	//{{ kimhc // 2011.1.3 // 청 1차 전직
-#ifdef	CHUNG_FIRST_CLASS_CHANGE //chung임시
-	CharacterImageName( L"DLG_UI_Common_Texture44.tga", 			L"F_GUARDIAN_Large"			),
-	CharacterImageName( L"DLG_UI_Common_Texture44.tga", 			L"S_GUARDIAN_Large"			),
-#endif	CHUNG_FIRST_CLASS_CHANGE
-	//}} kimhc // 2011.1.3 // 청 1차 전직
-
-	//{{ JHKang / 강정훈 / 2011.6.13 / 청 2차 전직
-#ifdef CHUNG_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga", 			L"I_PALADIN_Large"			),
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga", 			L"D_CHASER_Large"			),
-#endif
-	//}}
-
-#ifdef ELSWORD_SHEATH_KNIGHT
-	CharacterImageName( L"DLG_UI_Common_Texture61.tga",    		L"T_KNIGHT_LARGE"   		),
-#endif ELSWORD_SHEATH_KNIGHT
-
-#ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
-	CharacterImageName( L"DLG_UI_Common_Texture62.tga", 			L"B_MAGICIAN_LARGE"			),
-#endif
-
-#ifdef SERV_TRAPPING_RANGER_TEST
-	CharacterImageName( L"DLG_UI_Common_Texture63.tga", 			L"T_RANGER_LARGE"			),
-#endif SERV_TRAPPING_RANGER_TEST
-
-#ifdef RAVEN_WEAPON_TAKER
-	CharacterImageName( L"DLG_UI_Common_Texture64.tga",		  		L"W_TAKER_LARGE"   			),
-#endif RAVEN_WEAPON_TAKER
-
-#ifdef EVE_ELECTRA
-	CharacterImageName( L"DLG_UI_Common_Texture65.tga", 			L"ELECTRA_LARGE"			),
-#endif EVE_ELECTRA
-
-#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
-	CharacterImageName( L"DLG_UI_Common_Texture67.tga", 			L"SH_GUARDIAN_LARGE"			),
-#endif
-
-#ifdef SERV_ELSWORD_INFINITY_SWORD
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",    		L"R_Slayer_Large"   			),
-#endif
-#ifdef SERV_ARME_DIMENSION_WITCH
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",    		L"R_Slayer_Large"   			),
-#endif
-#ifdef SERV_RENA_NIGHT_WATCHER
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",    		L"R_Slayer_Large"   			),
-#endif
-
-#endif	REFORM_UI_CHARACTER_INFO
 };
 	#pragma endregion 큰 초상화 이미지_160x160
 
 #pragma region s_CharacterImageName160Gray
 static const CharacterImageName s_CharacterImageName160Gray[] = 
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	#pragma region 엘소드, 아이샤, 레나, 레이븐, 이브
 	CharacterImageName( L"DLG_UI_Common_Texture16_NEW.tga",		L"ELSWORD_LARGE_GRAY"	),	// 0
 	CharacterImageName( L"DLG_UI_Common_Texture17_NEW.tga",		L"S_KNIGHT_LARGE_GRAY"	),	// 1
@@ -434,7 +276,7 @@ static const CharacterImageName s_CharacterImageName160Gray[] =
 	#pragma region 아라(마샬 아티스트, )
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga",		L"ARA_GRAY"	),		//42
 	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_LH_GRAY"),	//43 소선
-	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_GRAY"),	//44 제석천
+	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_GRAY"),	//44 제천
 	#pragma endregion 노전직, 1차전직, 2차전직
 
 	CharacterImageName( L"DLG_UI_Common_Texture74_NEW.tga",		L"EL_GRAY"	),	//45 엘리시스 노전
@@ -447,107 +289,31 @@ static const CharacterImageName s_CharacterImageName160Gray[] =
 	CharacterImageName( L"DLG_UI_Common_Texture77_NEW.tga", 	L"Y_RAJA_LARGE_GRAY"	),	//49 명왕
 #pragma endregion 아라 2번째 전직
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-#else
-	CharacterImageName( L"DLG_Common_New_Texture19.tga",    	L"Dungeon_Result_Elsword2"    	),
-	CharacterImageName( L"DLG_UI_Common_Texture17.tga",     	L"Result_Elsword_Sword_Gray" 	),
-	CharacterImageName( L"DLG_UI_Common_Texture17.tga",     	L"Result_Elsword_Magic_Gray" 	),
-	CharacterImageName( L"DLG_UI_Common_Texture17.tga",     	L"Result_Elsword_Magic_Gray" 	),
-	CharacterImageName( L"DLG_Common_New_Texture19.tga",    	L"Dungeon_Result_Aisha2"  		),	
-	CharacterImageName( L"DLG_UI_Common_Texture17.tga",     	L"Result_Aisha_High_Gray"		),
 
-	CharacterImageName( L"DLG_UI_Common_Texture17.tga",     	L"Result_Aisha_Dark_Gray"		),
-	CharacterImageName( L"DLG_Common_New_Texture19.tga",    	L"Dungeon_Result_Rena2" 		),	
-	CharacterImageName( L"DLG_UI_Common_Texture17.tga",     	L"Result_Rena_Combat_Gray" 		),
-	CharacterImageName( L"DLG_UI_Common_Texture17.tga",     	L"Result_Rena_Sniper_Gray" 		),
-	CharacterImageName( L"DLG_Common_New_Texture57.tga",    	L"DUNGEON_RESULT_RAVEN2"  		),
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga",     	L"Result_Raven_Sword_Gray" 		),
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga",     	L"Result_Raven_Over_Gray" 		),
-	CharacterImageName( L"DLG_UI_Character01.tga",				L"EVE_GRAY"	),	
-	CharacterImageName( L"DLG_UI_Common_Texture17.tga",     	L"Result_Eve_Exotic_Gray" 		),
-	CharacterImageName( L"DLG_UI_Common_Texture17.tga",     	L"Result_Eve_Arch_Gray"			),
+#pragma region 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga",		L"EL_SGM_GRAY"	),	//50 그랜드 마스터
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga", 	L"EL_SBH_GRAY"	),	//51 블레이징 하트
+#pragma endregion 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
 
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",     	L"L_Knight_Gray" 				),		
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",     	L"R_Slayer_Gray"				),
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	CharacterImageName( L"DLG_UI_Common_Texture80_NEW.tga",		L"ADD_GRAY"		),	//52 애드 기본 전직
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_APT_GRAY"	),	//53 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
 
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",			L"W_Sneaker_Gray"     			),	
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",			L"G_Archer_Gray"     			),	
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_ALP_GRAY"	),	//54 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
 
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",			L"E_Master_Gray" 				),
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",			L"V_Princess_Gray" 				),
-
-#ifdef RAVEN_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",			L"B_MASTER_Gray" 				),
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",			L"R_FIST_Gray" 					),
-#endif
-
-	//{{ kimhc // 2010.2.17 //	이브 2차 전직
-#ifdef	EVE_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 		L"C_NEMESIS_Gray"				),
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 		L"C_EMPRESS_Gray"				),
-#endif	EVE_SECOND_CLASS_CHANGE
-	//}} kimhc // 2010.2.17 //	이브 2차 전직
-
-	//{{ kimhc // 2010.12.11 // 2010-12-23 New Character CHUNG
-#ifdef	NEW_CHARACTER_CHUNG
-	CharacterImageName( L"DLG_UI_Character04.tga", 				L"Dungeon_Chung_Gray"			),
-#endif	NEW_CHARACTER_CHUNG
-	//}} kimhc // 2010.12.11 //  2010-12-23 New Character CHUNG
-
-	//{{ kimhc // 2011.1.3 // 청 1차 전직
-#ifdef	CHUNG_FIRST_CLASS_CHANGE //chung임시
-	CharacterImageName( L"DLG_UI_Common_Texture44.tga", 		L"F_GUARDIAN_Gray"			),
-	CharacterImageName( L"DLG_UI_Common_Texture44.tga", 		L"S_GUARDIAN_Gray"			),
-#endif	CHUNG_FIRST_CLASS_CHANGE
-	//}} kimhc // 2011.1.3 // 청 1차 전직
-
-	//{{ JHKang / 강정훈 / 2011.6.13 / 청 2차 전직
-#ifdef CHUNG_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga", 		L"I_PALADIN_Gray"			),
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga", 		L"D_CHASER_Gray"			),
-#endif
-	//}}
-#ifdef ELSWORD_SHEATH_KNIGHT
-	CharacterImageName( L"DLG_UI_Common_Texture61.tga",    		L"T_KNIGHT_GRAY"   			),
-#endif ELSWORD_SHEATH_KNIGHT
-
-#ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
-	CharacterImageName( L"DLG_UI_Common_Texture62.tga", 		L"B_MAGICIAN_GRAY"			),
-#endif
-
-#ifdef SERV_TRAPPING_RANGER_TEST
-	CharacterImageName( L"DLG_UI_Common_Texture63.tga", 		L"T_RANGER_GRAY"			),
-#endif SERV_TRAPPING_RANGER_TEST
-
-#ifdef RAVEN_WEAPON_TAKER
-	CharacterImageName( L"DLG_UI_Common_Texture64.tga",     	L"W_TAKER_GRAY" 		),
-#endif RAVEN_WEAPON_TAKER
-
-#ifdef EVE_ELECTRA
-	CharacterImageName( L"DLG_UI_Common_Texture65.tga", 		L"ELECTRA_GRAY"				),
-#endif EVE_ELECTRA
-#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
-	CharacterImageName( L"DLG_UI_Common_Texture67.tga", 		L"SH_GUARDIAN_GRAY"				),
-#endif
-#ifdef SERV_ELSWORD_INFINITY_SWORD
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",     	L"R_Slayer_Gray"				),
-#endif
-#ifdef SERV_ARME_DIMENSION_WITCH
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",     	L"R_Slayer_Gray"				),
-#endif
-#ifdef SERV_RENA_NIGHT_WATCHER
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga",     	L"R_Slayer_Gray"				),
-#endif
-
-#endif	REFORM_UI_CHARACTER_INFO
 };
 #pragma endregion 큰 초상화 회색 이미지_160x160
 
 #pragma region s_CharacterImageName50
 static const CharacterImageName s_CharacterImageName50[] = 
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	#pragma region 엘소드, 아이샤, 레나, 레이븐, 이브
 	CharacterImageName( L"DLG_UI_Common_Texture16_NEW.tga",		L"ELSWORD_SMALL"),		///0
 	CharacterImageName( L"DLG_UI_Common_Texture16_NEW.tga", 	L"S_KNIGHT_SMALL"	),	//1
@@ -605,7 +371,7 @@ static const CharacterImageName s_CharacterImageName50[] =
 	#pragma region 아라(마샬 아티스트, )
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga",		L"ARA_MEDIUM"	),	//42
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga", 	L"ARA_LH_MEDIUM"	),	//43 소선
-	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_MEDIUM"	),	//44 제석천
+	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_MEDIUM"	),	//44 제천
 	#pragma endregion 노전직, 1차전직, 2차전직
 
 	CharacterImageName( L"DLG_UI_Common_Texture74_NEW.tga",		L"EL_MEDIUM"	),	//45 엘리시스 노전
@@ -619,109 +385,28 @@ static const CharacterImageName s_CharacterImageName50[] =
 #pragma endregion 아라 2번째 전직
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
-#else
-	CharacterImageName( L"DLG_PVP_State_Info0.tga",			L"ElswordStateSmall"  		),
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Elsword_Sword"      		),
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Elsword_Magic"      		),
-	CharacterImageName( L"DLG_PVP_State_Info0.tga",			L"ArmeStateSmall"     		),
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Aisha_High"         		),
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+#pragma region 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga",		L"EL_SGM_MEDIUM"	),	//50 그랜드 마스터
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga", 	L"EL_SBH_MEDIUM"	),	//51 블레이징 하트
+#pragma endregion 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Aisha_Dark"         		),
-	CharacterImageName( L"DLG_PVP_State_Info0.tga",			L"LireStateSmall"     		),	
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Rena_Combat"        		),
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Rena_Sniper"        		),
-	CharacterImageName( L"DLG_Common_New_Texture58.tga",	L"Raven_State_Small"  		),
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	CharacterImageName( L"DLG_UI_Common_Texture80_NEW.tga",		L"ADD_MEDIUM"	),		//52 애드 기본 전직
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_APT_MEDIUM"	),	//53 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
 
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Raven_Sword"        		),
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Raven_Over"         		),
-	CharacterImageName( L"DLG_UI_Character01.tga",			L"Eve_State_Small"    		),	
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Eve_Exotic"         		),
-	CharacterImageName( L"DLG_UI_Common_Texture15.tga", 	L"Eve_Arch"           		),
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_ALP_MEDIUM"	),	//54 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
 
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 	L"L_Knight_Medium"    		),
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 	L"R_Slayer_Medium"    		),
-
-
-
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",			L"W_Sneaker_Medium"		),	
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",			L"G_Archer_Medium" 		),	
-
-
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",			L"E_Master_Medium"		),
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",			L"V_Princess_Medium"	),
-
-#ifdef RAVEN_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",			L"B_MASTER_Medium" 		),
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",			L"R_FIST_Medium" 		),
-#endif
-
-	//{{ kimhc // 2010.2.17 //	이브 2차 전직
-#ifdef	EVE_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 		L"C_NEMESIS_Medium"		),
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 		L"C_EMPRESS_Medium"		),
-#endif	EVE_SECOND_CLASS_CHANGE
-	//}} kimhc // 2010.2.17 //	이브 2차 전직
-
-	//{{ kimhc // 2010.12.11 // 2010-12-23 New Character CHUNG
-#ifdef	NEW_CHARACTER_CHUNG
-	CharacterImageName( L"DLG_UI_Character04.tga", 			L"CHUNG_STATE_SMALL"		),
-#endif	NEW_CHARACTER_CHUNG
-	//}} kimhc // 2010.12.11 //  2010-12-23 New Character CHUNG
-
-	//{{ kimhc // 2011.1.3 // 청 1차 전직
-#ifdef	CHUNG_FIRST_CLASS_CHANGE //chung임시
-	CharacterImageName( L"DLG_UI_Common_Texture44.tga", 		L"F_GUARDIAN_Medium"		),
-	CharacterImageName( L"DLG_UI_Common_Texture44.tga", 		L"S_GUARDIAN_Medium"		),
-#endif	CHUNG_FIRST_CLASS_CHANGE
-	//}} kimhc // 2011.1.3 // 청 1차 전직
-
-	//{{ JHKang / 강정훈 / 2011.6.13 / 청 2차 전직
-#ifdef CHUNG_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga", 		L"I_PALADIN_Medium"		),
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga", 		L"D_CHASER_Medium"		),
-#endif
-	//}}
-#ifdef ELSWORD_SHEATH_KNIGHT
-	CharacterImageName( L"DLG_UI_Common_Texture61.tga",    		L"T_KNIGHT_MEDIUM"   			),
-#endif ELSWORD_SHEATH_KNIGHT
-
-#ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
-	CharacterImageName( L"DLG_UI_Common_Texture62.tga", 		L"B_MAGICIAN_MEDIUM"		),
-#endif
-
-#ifdef SERV_TRAPPING_RANGER_TEST
-	CharacterImageName( L"DLG_UI_Common_Texture63.tga", 		L"T_RANGER_MEDIUM"		),
-#endif SERV_TRAPPING_RANGER_TEST
-
-#ifdef RAVEN_WEAPON_TAKER
-	CharacterImageName( L"DLG_UI_Common_Texture64.tga",			L"W_TAKER_MEDIUM"         		),
-#endif RAVEN_WEAPON_TAKER
-
-#ifdef EVE_ELECTRA
-	CharacterImageName( L"DLG_UI_Common_Texture65.tga", 		L"ELECTRA_MEDIUM"		),
-#endif EVE_ELECTRA
-
-#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
-	CharacterImageName( L"DLG_UI_Common_Texture67.tga", 		L"SH_GUARDIAN_MEDIUM"		),
-#endif
-#ifdef SERV_ELSWORD_INFINITY_SWORD
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 		L"R_Slayer_Medium"    		),
-#endif
-#ifdef SERV_ARME_DIMENSION_WITCH
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 		L"R_Slayer_Medium"    		),
-#endif
-#ifdef SERV_RENA_NIGHT_WATCHER
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 		L"R_Slayer_Medium"    		),
-#endif
-
-#endif	REFORM_UI_CHARACTER_INFO
 };
 #pragma endregion 중간 초상화 회색 이미지_50x50
 
 #pragma region s_CharacterImageName20
 static const CharacterImageName s_CharacterImageName20[] = 
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	#pragma region 엘소드, 아이샤, 레나, 레이븐, 이브
 	CharacterImageName( L"DLG_UI_Common_Texture16_NEW.tga",		L"ELSWORD_ICON"		), //0
 	CharacterImageName( L"DLG_UI_Common_Texture16_NEW.tga", 	L"S_KNIGHT_ICON"	), //1
@@ -779,7 +464,7 @@ static const CharacterImageName s_CharacterImageName20[] =
 	#pragma region 아라(마샬 아티스트, )
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga",		L"ARA_ICON"	),	//42
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga", 	L"ARA_LH_ICON"	),	//43 소선
-	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_ICON"	),	//44 제석천
+	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga", 	L"ARA_SD_ICON"	),	//44 제천
 	#pragma endregion 노전직, 1차전직, 2차전직
 
 	CharacterImageName( L"DLG_UI_Common_Texture74_NEW.tga",		L"EL_ICON"	),	//45 엘리시스 노전
@@ -792,102 +477,23 @@ static const CharacterImageName s_CharacterImageName20[] =
 	CharacterImageName( L"DLG_UI_Common_Texture77_NEW.tga", 	L"Y_RAJA_ICON"	),	//49 명왕
 #pragma endregion 아라 2번째 전직
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-#else
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga",		L"elsword_base"  		),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"elsword_s"     		),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"elsword_m"     		),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"elsword_m"     		),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga",		L"arme_base"   			),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"arme_h" 				),
 
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"arme_d" 				),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga",		L"lire_base"			),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"lire_c" 				),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"lire_s" 				),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga",		L"raven_base"			),
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+#pragma region 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga",		L"EL_SGM_ICON"	),	//50 그랜드 마스터
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga", 	L"EL_SBH_ICON"	),	//51 블레이징 하트 
+#pragma endregion 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
 
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"raven_s"  			),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"raven_o"  			),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga",		L"EVE_BASE"				),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"EVE_E"				),
-	CharacterImageName( L"DLG_UI_Common_Texture02.tga", 	L"EVE_A"				),
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	CharacterImageName( L"DLG_UI_Common_Texture80_NEW.tga",		L"ADD_ICON"	),		//52 애드 기본 전직
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_APT_ICON"	),	//53 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
 
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 	L"L_Knight_Icon"		),
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 	L"R_Slayer_Icon"		),
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_ALP_ICON"	),	//54 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
 
-
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",		L"W_Sneaker_Icon"		),
-	CharacterImageName( L"DLG_UI_Common_Texture22.tga",		L"G_Archer_Icon"		),
-
-
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",		L"E_Master_Icon" 		),
-	CharacterImageName( L"DLG_UI_Common_Texture23.tga",		L"V_Princess_Icon" 		),
-
-#ifdef RAVEN_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",		L"B_MASTER_Icon"		),
-	CharacterImageName( L"DLG_UI_Common_Texture24.tga",		L"R_FIST_Icon" 			),
-#endif
-
-	//{{ kimhc // 2010.2.17 //	이브 2차 전직
-#ifdef	EVE_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 	L"C_NEMESIS_Icon"				),
-	CharacterImageName( L"DLG_UI_Common_Texture25.tga", 	L"C_EMPRESS_Icon"				),
-#endif	EVE_SECOND_CLASS_CHANGE
-	//}} kimhc // 2010.2.17 //	이브 2차 전직
-
-	//{{ kimhc // 2010.12.11 // 2010-12-23 New Character CHUNG
-#ifdef	NEW_CHARACTER_CHUNG
-	CharacterImageName( L"DLG_UI_Character04.tga", 			L"Chung_Icon"			),
-#endif	NEW_CHARACTER_CHUNG
-	//}} kimhc // 2010.12.11 //  2010-12-23 New Character CHUNG
-
-	//{{ kimhc // 2011.1.3 // 청 1차 전직
-#ifdef	CHUNG_FIRST_CLASS_CHANGE //chung임시
-	CharacterImageName( L"DLG_UI_Common_Texture44.tga", 	L"F_GUARDIAN_Icon"			),
-	CharacterImageName( L"DLG_UI_Common_Texture44.tga", 	L"S_GUARDIAN_Icon"			),
-#endif	CHUNG_FIRST_CLASS_CHANGE
-	//}} kimhc // 2011.1.3 // 청 1차 전직
-
-	//{{ JHKang / 강정훈 / 2011.6.13 / 청 2차 전직
-#ifdef CHUNG_SECOND_CLASS_CHANGE
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga", 	L"I_PALADIN_Icon"			),
-	CharacterImageName( L"DLG_UI_Common_Texture45.tga", 	L"D_CHASER_Icon"			),
-#endif
-	//}}
-
-#ifdef ELSWORD_SHEATH_KNIGHT
-	CharacterImageName( L"DLG_UI_Common_Texture61.tga",    	L"T_KNIGHT_ICON"   			),
-#endif ELSWORD_SHEATH_KNIGHT
-
-#ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
-	CharacterImageName( L"DLG_UI_Common_Texture62.tga", 	L"B_MAGICIAN_ICON"			),
-#endif
-
-#ifdef SERV_TRAPPING_RANGER_TEST
-	CharacterImageName( L"DLG_UI_Common_Texture63.tga", 	L"T_RANGER_ICON"			),
-#endif SERV_TRAPPING_RANGER_TEST
-
-#ifdef RAVEN_WEAPON_TAKER
-	CharacterImageName( L"DLG_UI_Common_Texture64.tga", 	L"W_TAKER_ICON"  			),
-#endif RAVEN_WEAPON_TAKER
-
-#ifdef EVE_ELECTRA
-	CharacterImageName( L"DLG_UI_Common_Texture65.tga", 	L"ELECTRA_ICON"			),
-#endif EVE_ELECTRA
-#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
-	CharacterImageName( L"DLG_UI_Common_Texture67.tga", 	L"SH_GUARDIAN_ICON"			),
-#endif
-#ifdef SERV_ELSWORD_INFINITY_SWORD
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 	L"R_Slayer_Icon"		),
-#endif
-#ifdef SERV_ARME_DIMENSION_WITCH
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 	L"R_Slayer_Icon"		),
-#endif
-#ifdef SERV_RENA_NIGHT_WATCHER
-	CharacterImageName( L"DLG_UI_Common_Texture21.tga", 	L"R_Slayer_Icon"		),
-#endif
-
-#endif	REFORM_UI_CHARACTER_INFO
 };
 #pragma endregion 작인 초상화 이미지_20x20
 
@@ -953,7 +559,7 @@ CharacterImageName s_CharacterImageNameDungeonClear[] =
 	#pragma region 아라(마샬 아티스트, )
 	CharacterImageName( L"HQ_Dungeon_Clear_Ara_Martial_Artist_Normal.tga",	L""	),	//42
 	CharacterImageName( L"HQ_Dungeon_Clear_Ara_LITTLE_HSIEN_Normal.tga", 	L""	),	//43 소선
-	CharacterImageName( L"HQ_Dungeon_Clear_Ara_Sakra_Devanam_Normal.tga", 	L""	),	//44 제석천
+	CharacterImageName( L"HQ_Dungeon_Clear_Ara_Sakra_Devanam_Normal.tga", 	L""	),	//44 제천
 	#pragma endregion 노전직, 1차전직, 2차전직
 
 	CharacterImageName( L"HQ_Dungeon_Clear_Elesis.tga",		L""	),				//45 엘리시스 노전
@@ -966,6 +572,23 @@ CharacterImageName s_CharacterImageNameDungeonClear[] =
 	CharacterImageName( L"HQ_Dungeon_Clear_Ara_Yama_Raja_Normal.tga",		L""	),	//49 명왕
 #pragma endregion 아라 2번째 전직
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+	
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+#pragma region 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+	CharacterImageName( L"HQ_Dungeon_Clear_Elesis_Grand_Master_Normal.tga",		L""	),	//50 그랜드 마스터
+	CharacterImageName( L"HQ_Dungeon_Clear_Elesis_Blazing_Heart_Normal.tga",	L""	),	//51 블레이징 하트
+#pragma endregion 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	CharacterImageName( L"HQ_Dungeon_Clear_Add.tga",	L""			),	 //52 애드 기본 전직
+	CharacterImageName( L"HQ_Dungeon_Clear_Add_APT.tga",	L""		),	 //53 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	CharacterImageName( L"HQ_Dungeon_Clear_Add_ALP.tga",	L""		),	 //54 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 };
 #pragma endregion 던전 클리어 이미지
 
@@ -1027,9 +650,9 @@ CharacterImageName s_CharacterImageNameInitial[] =
 	#pragma endregion 신 2차 전직
 
 	#pragma region 아라(마샬 아티스트, )
-	CharacterImageName( L"DLG_UI_Common_Texture11.tga", 	L"CLASS_M"	),	//42
+	CharacterImageName( L"DLG_UI_Common_Texture11.tga", 	L""	),	//42
 	CharacterImageName( L"DLG_UI_Common_Texture11.tga", 	L"CLASS_L"	),	//43 소선
-	CharacterImageName( L"DLG_UI_Common_Texture11.tga", 	L"CLASS_S"	),	//44 제석천
+	CharacterImageName( L"DLG_UI_Common_Texture11.tga", 	L"CLASS_S"	),	//44 제천
 	#pragma endregion 노전직, 1차전직, 2차전직
 
 	CharacterImageName( L"DLG_UI_Common_Texture11.tga",		L""	),		//45 엘리시스 노전
@@ -1043,11 +666,24 @@ CharacterImageName s_CharacterImageNameInitial[] =
 #pragma endregion 아라 2번째 전직
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	CharacterImageName( L"DLG_UI_Common_Texture11.tga", 	L"CLASS_G"	),	//50 그랜드 마스터
+	CharacterImageName( L"DLG_UI_Common_Texture11.tga", 	L"CLASS_H"	),	//51 블레이징 하트
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	CharacterImageName( L"DLG_UI_Common_Texture11.tga",		L"" 		),	 //52 애드 기본 전직
+	CharacterImageName( L"DLG_UI_Common_Texture11.tga",		L"CLASS_P" 	),	 //53 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	CharacterImageName( L"DLG_UI_Common_Texture11.tga",		L"CLASS_L" 	),	 //54 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 };
 #pragma endregion 직업 관련 글자
 
 #pragma region s_CharacterImageNameParty
-#ifdef REFORM_UI_CHARACTER_INFO
 static const CharacterImageName s_CharacterImageNameParty[] = 
 {
 	#pragma region 엘소드, 아이샤, 레나, 레이븐, 이브
@@ -1107,7 +743,7 @@ static const CharacterImageName s_CharacterImageNameParty[] =
 	#pragma region 아라(마샬 아티스트, )
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga",		L"ARA_PARTY"	),	//42
 	CharacterImageName( L"DLG_UI_Common_Texture68_NEW.tga",		L"ARA_LH_PARTY"	),	//43 소선
-	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga",		L"ARA_SD_PARTY"	),	//44 제석천
+	CharacterImageName( L"DLG_UI_Common_Texture70_NEW.tga",		L"ARA_SD_PARTY"	),	//44 제천
 	#pragma endregion 노전직, 1차전직, 2차전직
 
 
@@ -1121,10 +757,120 @@ static const CharacterImageName s_CharacterImageNameParty[] =
 	CharacterImageName( L"DLG_UI_Common_Texture77_NEW.tga", 	L"Y_RAJA_STATE_PARTY"	),	//49 명왕
 #pragma endregion 아라 2번째 전직
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+#pragma region 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga", 	L"EL_SGM_PARTY"	),	//50 그랜드 마스터
+	CharacterImageName( L"DLG_UI_Common_Texture76_NEW.tga", 	L"EL_SBH_PARTY"	),	//51 블레이징 하트
+#pragma endregion 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	CharacterImageName( L"DLG_UI_Common_Texture80_NEW.tga",		L"ADD_PARTY"		), //52 애드 기본 전직
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_APT_PARTY"	), //53 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	CharacterImageName( L"DLG_UI_Common_Texture81_NEW.tga",		L"ADD_ALP_PARTY"	), //54 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 };
-#endif
 #pragma endregion 파티원 이미지
 
+
+#pragma region s_CharacterImageUnitSlot
+static const CharacterImageName s_CharacterImageUnitSlot[] = 
+{
+#pragma region 엘소드, 아이샤, 레나, 레이븐, 이브
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELSWORD"	), //0
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELSWORD_SW_KNIGHT"	), //1
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELSWORD_M_KNIGHT"	), //2
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_AISHA"		), //3
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_AISHA_H_MAGICIAN"	), //4
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_AISHA_D_MAGICIAN"	), //5
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RENA"		), //6
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RENA_C_RANGER"	), //7
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RENA_S_RANGER"	), //8
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RAVEN"		), //9
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RAVEN_S_TAKER"	), //10
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RAVEN_O_TAKER"	), //11
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_EVE"		), //12
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_EVE_EXOTIC"		), //13
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_EVE_ARCHITECTURE"		), //14
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELSWORD_LO_KNIGHT"	), //15
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELSWORD_R_SLAYER"	), //16
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RENA_W_SNEAKER"	), //17
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RENA_G_ARCHER"	), //18
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_AISHA_E_MASTER"	), //19
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_AISHA_V_PRINCESS"	), //20
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RAVEN_B_MASTER"	), //21
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RAVEN_R_FIST"		), //22
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_EVE_NEMESIS"	), //23
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_EVE_EMPRESS"	), //24
+#pragma endregion 노전직, 1차전직, 2차전직
+
+#pragma region 청 (아이언 캐논, 퓨리 가디언, 슈팅 가디언, 아이언 팔라딘, 데들리 체이서)
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_CHUNG"		), //25
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_CHUNG_F_GUARDIAN"	), //26
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_CHUNG_S_GUARDIAN"	), //27
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_CHUNG_I_PALADIN"	), //28
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_CHUNG_D_CHASER"	), //29
+#pragma endregion 노전직, 1차전직, 2차전직
+
+#pragma region 시쓰 나이트, 배틀 매지션, 트래핑 레인저, 웨폰 테이커, 쉘링 가디언
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELSWORD_S_KNIGHT" 	), //30
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_AISHA_B_MAGICIAN"	), //31
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RENA_T_RANGER"	), //32
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_RAVEN_W_TAKER"	), //33
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_EVE_ELECTRA"		), //34
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_CHUNG_SHEL_GUARDIAN"), //35
+#pragma endregion 신 1차전직
+
+#pragma region 인피니티 소드, 디멘션 위치, 나이트 와쳐, 베터랑 코만도, 배틀 세라프, 택티컬 트루퍼
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELSWORD_I_SWORD" 	),	//36
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.TGA",		L"list_AISHA_D_WITCH" 	),	//37
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.TGA",		L"list_RENA_N_WATCHER" 	),	//38
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.TGA",		L"list_RAVEN_V_C0MMENDER"),	//39
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_EVE_B_SERAPH"	),	//40 
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.TGA",		L"list_CHUNG_T_TROOPER"	),	//41
+#pragma endregion 신 2차 전직
+
+#pragma region 아라(마샬 아티스트, )
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ARA"	),	//42
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ARA_L_Hsien"	),	//43 소선
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ARA_S_Devanam"	),	//44 제천
+#pragma endregion 노전직, 1차전직, 2차전직
+
+
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELESIS"	),	//45 엘리시스 노전
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga", 		L"list_ELESIS_S_KNIGHT"	),	//46 엘리시스 세이버 나이트
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELESIS_P_KNIGHT"	),	//47 엘리시스 파이로 나이트
+
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+#pragma region 아라 (소마, 명왕)
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ARA_L_DEVIL"	),	//48 소마
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ARA_Y_RAJA"	),	//49 명왕
+#pragma endregion 아라 2번째 전직
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+#pragma region 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",	 	L"list_ELESIS_G_MASTER"	),	//50 그랜드 마스터
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ELESIS_B_HEART"	),	//51 블레이징 하트
+#pragma endregion 엘리시스 2차 전직 ( 그랜드 마스터, 블레이징 하트 )
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ADD"	), //52 애드 기본 전직
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ADD_P_Tracer"	), //53 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	CharacterImageName( L"DLG_UI_Common_Texture_GUI_character_01.tga",		L"list_ADD_ALP"), //54 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
+
+};
+#pragma endregion 유닛 슬롯 이미지
 
 CX2Data::CX2Data(void)
 //{{ kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 저장
@@ -1142,6 +888,10 @@ CX2Data::CX2Data(void)
 #ifdef SERV_RECOMMEND_LIST_EVENT
 , m_bShowRecommendUI( false )
 #endif //SERV_RECOMMEND_LIST_EVENT
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+, m_UIEffectSet( 0 )
+, m_GameEffectSet( 1 )
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 , m_pGlobalMissionManager( NULL )
 #endif SERV_GLOBAL_MISSION_MANAGER
@@ -1209,9 +959,9 @@ CX2Data::CX2Data(void)
 	m_pCX2SocketItem		= NULL;
 	m_pCX2EnchantItem		= NULL;
 	//{{ 2008. 10. 1  최육사
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 	m_pCX2TitleManager		= NULL;
-#endif
+//#endif
 #ifdef NEW_VILLAGE_UI
 	m_pRewardTable			= NULL;
     m_pUIManager            = NULL;
@@ -1298,9 +1048,9 @@ CX2Data::~CX2Data(void)
 	CX2GageManager::DestroyInstance();
 
     //{{ 2008. 10. 1  최육사
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
     SAFE_DELETE( m_pCX2TitleManager );
-#endif
+//#endif
     //}}	
 
 	//{{ 2009. 6. 24  최육사
@@ -1481,7 +1231,7 @@ HRESULT CX2Data::OnFrameMove( double fTime, float fElapsedTime )
 			CX2Unit* pUnit = GetMyUser()->GetUnitByIndex(i);
 			if ( pUnit == NULL )
 				continue;
-			pUnit->GetUnitData()->Verify();
+			pUnit->GetUnitData().Verify();
 		}
 	}
 
@@ -1494,19 +1244,19 @@ HRESULT CX2Data::OnFrameMove( double fTime, float fElapsedTime )
 #endif
 
 
-#ifndef X2OPTIMIZE_PARTY_UDP_CONNECTION_BUG_FIX
-	//{{ 2013. 1. 9	박세훈	Merge 공인IP 연결 실패시 내부IP로 시도( 박진웅 )
-//#ifdef SERV_KTDX_RETRY_USING_INTERNAL_IP
-	if( ( g_pData->GetPVPRoom() == NULL ) && ( g_pData->GetDungeonRoom() == NULL ) )
-	{
-		if( m_pPartyManager != NULL )
-		{
-			m_pPartyManager->OnFrameMove( fTime, fElapsedTime );
-		}
-	}
-//#endif SERV_KTDX_RETRY_USING_INTERNAL_IP
-	//}}
-#endif  X2OPTIMIZE_PARTY_UDP_CONNECTION_BUG_FIX
+//#ifndef X2OPTIMIZE_PARTY_UDP_CONNECTION_BUG_FIX
+//	//{{ 2013. 1. 9	박세훈	Merge 공인IP 연결 실패시 내부IP로 시도( 박진웅 )
+////#ifdef SERV_KTDX_RETRY_USING_INTERNAL_IP
+//	if( ( g_pData->GetPVPRoom() == NULL ) && ( g_pData->GetDungeonRoom() == NULL ) )
+//	{
+//		if( m_pPartyManager != NULL )
+//		{
+//			m_pPartyManager->OnFrameMove( fTime, fElapsedTime );
+//		}
+//	}
+////#endif SERV_KTDX_RETRY_USING_INTERNAL_IP
+//	//}}
+//#endif  X2OPTIMIZE_PARTY_UDP_CONNECTION_BUG_FIX
 
 	return S_OK;
 }
@@ -1557,14 +1307,15 @@ void CX2Data::LoadUserUnitMotion1()
 	XSkinMeshReady( L"Motion_Field_Elsword.x" );
 #endif
 
-#ifdef AVATAR_EMOTION
 	XSkinMeshReady( L"Motion_Elsword_Emotion_BIGBANG.X" );
 	XSkinMeshReady( L"Motion_Elsword_Emotion_DeepBow.X" );
 	XSkinMeshReady( L"Motion_Elsword_Emotion_APINK.X" );
 	XSkinMeshReady( L"Motion_Elsword_Emotion_APINK_LOVE.X" );
 	XSkinMeshReady( L"Motion_Elsword_Emotion_CRAYONPOP_Sorted.X" );
-#endif
 
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_Elsword_Emotion_BbaBbaBba.X" );
+#endif // CRAYONPOP_SECOND_EMOTION
 }
 
 void CX2Data::LoadUserUnitMotion2()
@@ -1579,13 +1330,15 @@ void CX2Data::LoadUserUnitMotion2()
 	XSkinMeshReady( L"Motion_Field_Lire.x" );
 #endif
 
-#ifdef AVATAR_EMOTION
 	XSkinMeshReady( L"Motion_Lire_Emotion_BIGBANG.X" );
 	XSkinMeshReady( L"Motion_Lire_Emotion_DeepBow.X" );
 	XSkinMeshReady( L"Motion_Lire_Emotion_APINK.X" );
 	XSkinMeshReady( L"Motion_Lire_Emotion_APINK_LOVE.X" );
 	XSkinMeshReady( L"Motion_Lire_Emotion_CRAYONPOP_Sorted.X" );
-#endif
+
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_LIRE_Emotion_BbaBbaBba.X" );
+#endif // CRAYONPOP_SECOND_EMOTION
 }
 
 void CX2Data::LoadUserUnitMotion3()
@@ -1600,13 +1353,15 @@ void CX2Data::LoadUserUnitMotion3()
 	XSkinMeshReady( L"Motion_Field_Arme.x" );
 #endif
 
-#ifdef AVATAR_EMOTION
 	XSkinMeshReady( L"Motion_Arme_Emotion_BIGBANG.X" );
 	XSkinMeshReady( L"Motion_Arme_Emotion_DeepBow.X" );
 	XSkinMeshReady( L"Motion_Arme_Emotion_APINK.X" );
 	XSkinMeshReady( L"Motion_Arme_Emotion_APINK_LOVE.X" );
 	XSkinMeshReady( L"Motion_Arme_Emotion_CRAYONPOP_Sorted.X" );
-#endif
+
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_ARME_Emotion_BbaBbaBba.X" );
+#endif // CRAYONPOP_SECOND_EMOTION
 }
 
 void CX2Data::LoadUserUnitMotion4()
@@ -1621,13 +1376,15 @@ void CX2Data::LoadUserUnitMotion4()
 	XSkinMeshReady( L"Motion_Field_Raven.x" );
 #endif
 
-#ifdef AVATAR_EMOTION
 	XSkinMeshReady( L"Motion_Raven_Emotion_BIGBANG.X" );
 	XSkinMeshReady( L"Motion_Raven_Emotion_DeepBow.X" );
 	XSkinMeshReady( L"Motion_Raven_Emotion_APINK.X" );
 	XSkinMeshReady( L"Motion_Raven_Emotion_APINK_LOVE.X" );
 	XSkinMeshReady( L"Motion_Raven_Emotion_CRAYONPOP_Sorted.X" );
-#endif
+
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_RAVEN_Emotion_BbaBbaBba.X" );
+#endif // CRAYONPOP_SECOND_EMOTION
 }
 
 void CX2Data::LoadUserUnitMotion5()
@@ -1643,13 +1400,15 @@ void CX2Data::LoadUserUnitMotion5()
 	XSkinMeshReady( L"Motion_Eve_Emotion_DeepBow.X" );
 #endif
 
-#ifdef AVATAR_EMOTION
 	XSkinMeshReady( L"Motion_EVE_Emotion_BIGBANG.X" );
 	XSkinMeshReady( L"Motion_Eve_Emotion_DeepBow.X" );
 	XSkinMeshReady( L"Motion_EVE_Emotion_APINK.X" );
 	XSkinMeshReady( L"Motion_EVE_Emotion_APINK_LOVE.X" );
 	XSkinMeshReady( L"Motion_Eve_Emotion_CRAYONPOP_Sorted.X" );
-#endif
+
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_EVE_Emotion_BbaBbaBba.X" );
+#endif // CRAYONPOP_SECOND_EMOTION
 }
 
 #ifdef NEW_CHARACTER_CHUNG
@@ -1661,13 +1420,15 @@ void CX2Data::LoadUserUnitMotion6()
 	XSkinMeshReady( L"Motion_CHUNG_Field.x" );
 	XSkinMeshReady( L"Motion_CHUNG_Emotion.x" );
 
-#ifdef AVATAR_EMOTION
 	XSkinMeshReady( L"Motion_CHUNG_Emotion_BIGBANG.X" );
 	XSkinMeshReady( L"Motion_Chung_Emotion_DeepBow.X" );
 	XSkinMeshReady( L"Motion_CHUNG_Emotion_APINK.X" );
 	XSkinMeshReady( L"Motion_CHUNG_Emotion_APINK_LOVE.X" );
 	XSkinMeshReady( L"Motion_Chung_Emotion_CRAYONPOP_Sorted.X" );
-#endif
+
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_CHUNG_Emotion_BbaBbaBba.X" );
+#endif // CRAYONPOP_SECOND_EMOTION
 }
 #endif
 
@@ -1684,6 +1445,9 @@ void CX2Data::LoadUserUnitMotion7()
 	XSkinMeshReady( L"Motion_Ara_Emotion_CRAYONPOP_Sorted.X" );
 #endif ADD_ARA_EMOTION
 
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_ARA_Emotion_BbaBbaBba.X" );
+#endif // CRAYONPOP_SECOND_EMOTION
 }
 #endif
 #ifdef NEW_CHARACTER_EL
@@ -1693,8 +1457,30 @@ void CX2Data::LoadUserUnitMotion8()
 	XSkinMeshReady( L"Motion_EL_Common.x" );
 	XSkinMeshReady( L"Motion_EL_Field.x" );
 	XSkinMeshReady( L"Motion_EL_Emotion.x" );
+
+
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_EL_Emotion_BbaBbaBba.X" );
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef ADD_KOREAN_CLOTHES_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_EL_Emotion_DeepBow.X" );
+#endif // ADD_KOREAN_CLOTHES_EMOTION
 }
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+void CX2Data::LoadUserUnitMotion9()		/// 변경이 필요 하다.
+{
+	XSkinMeshReady( L"Motion_ADD.x" );
+	XSkinMeshReady( L"Motion_Add_Common.x" );
+	XSkinMeshReady( L"Motion_ADD_Field.x" );
+	XSkinMeshReady( L"Motion_Add_Emotion.x" );
+
+#ifdef ADD_KOREAN_CLOTHES_EMOTION // 김태환
+	XSkinMeshReady( L"Motion_Add_Emotion_DeepBow.X" );
+#endif // ADD_KOREAN_CLOTHES_EMOTION
+}
+#endif //SERV_9TH_NEW_CHARACTER
 
 void CX2Data::LoadPicChar1()
 {
@@ -1898,21 +1684,27 @@ CX2ItemManager* CX2Data::ResetItemManager()
 #endif //IN_ITEM_KIM_USE_HIDE_SET_DESC
 
 #ifdef UNITED_CLIENT_EU
-	
 	std::wstring strItemLuaName = GetWstrItemLuaName();
-		const wchar_t*  apwszArray[] = { strItemLuaName.c_str(), L"SetItem.lua" };
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	std::wstring strItemTransLuaName = GetWstrItemTransLuaName();
+	const wchar_t*  apwszArray[] = { strItemLuaName.c_str(), L"SetItem.lua", strItemTransLuaName.c_str(), L"SetItemTrans.lua" };
+#else //SERV_ITEM_LUA_TRANS_DEVIDE
+	const wchar_t*  apwszArray[] = { strItemLuaName.c_str(), L"SetItem.lua" };
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
     m_pItemManager->OpenItemScriptFile( L"Item.kim", ARRAY_SIZE( apwszArray ), apwszArray );
 	
 #else UNITED_CLIENT_EU
 
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	const wchar_t*  apwszArray[] = { L"Item.lua", L"SetItem.lua", L"ItemTrans.lua", L"SetItemTrans.lua" };
+#else //SERV_ITEM_LUA_TRANS_DEVIDE
     const wchar_t*  apwszArray[] = { L"Item.lua", L"SetItem.lua" };
-	m_pItemManager->OpenItemScriptFile( L"Item.kim", ARRAY_SIZE( apwszArray ), apwszArray );
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
 
+    m_pItemManager->OpenItemScriptFile( L"Item.kim", ARRAY_SIZE( apwszArray ), apwszArray );
 #endif UNITED_CLIENT_EU
 	//}}	
-	
 #else   //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
-
 #ifdef UNITED_CLIENT_EU
 	std::wstring strItemLuaName = GetWstrItemLuaName();
 	m_pItemManager->OpenScriptFile( strItemLuaName.c_str() );
@@ -1920,10 +1712,6 @@ CX2ItemManager* CX2Data::ResetItemManager()
 	m_pItemManager->OpenScriptFile( L"Item.lua" );
 #endif UNITED_CLIENT_EU
 	//}}
-	
-#endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
-
-
 #ifdef SERV_ITEM_LUA_TRANS_DEVIDE
 #ifdef UNITED_CLIENT_EU
 	std::wstring strItemTransLuaName = GetWstrItemTransLuaName();
@@ -1931,8 +1719,8 @@ CX2ItemManager* CX2Data::ResetItemManager()
 #else // UNITED_CLIENT_EU
 	m_pItemManager->OpenScriptFile( L"ItemTrans.lua" );
 #endif // UNITED_CLIENT_EU
-#endif SERV_ITEM_LUA_TRANS_DEVIDE
-
+#endif SERV_ITEM_LUA_TRANS_DEVIDE	
+#endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	m_pItemManager->OpenScriptFile( L"ShopItem.lua" );
 	m_pItemManager->OpenScriptFile( L"RandomItem.lua" );
 #ifndef ADD_SERVER_GROUP
@@ -1941,12 +1729,10 @@ CX2ItemManager* CX2Data::ResetItemManager()
 	m_pItemManager->OpenScriptFile( L"PackageItemData.lua" );
 #ifndef X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	m_pItemManager->OpenScriptFile( L"SetItem.lua" );
-#endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
-
 #ifdef LUA_TRANS_DEVIDE
 	m_pItemManager->OpenScriptFile( L"SetItemTrans.lua" );
-#endif LUA_TRANS_DEVIDE
-
+#endif LUA_TRANS_DEVIDE	
+#endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 #ifndef ADD_SERVER_GROUP
 	m_pItemManager->OpenScriptFile( L"ItemExchangeTable.lua" );
 #endif
@@ -1961,17 +1747,14 @@ CX2ItemManager* CX2Data::ResetItemManager()
 
 #ifndef X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	// SetItemData에 구해준 MaxLevel(셋트효과를 구성하는 아이템 중 제일 높은 레벨) 을 넣어줌
 	m_pItemManager->UpdateMaxLevelToSetItemData();
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 #ifdef COOLTIME_SHARE_GROUP_ITEM
 	m_pItemManager->OpenScriptFile( L"CoolTimeGroupItem.lua" );
 #endif COOLTIME_SHARE_GROUP_ITEM
-
 	//{{ 2013.01.26 최민철 큐브패키지아이템 미리보기기능
 #ifdef PACKAGE_IN_QUBE_PREVIEW
 	m_pItemManager->OpenScriptFile( L"AddCubePackageData.lua" );
@@ -1981,6 +1764,11 @@ CX2ItemManager* CX2Data::ResetItemManager()
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	m_pItemManager->OpenScriptFile( L"ItemConvertTable.lua" );
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
+
+#ifdef MODIFY_FIND_SHOP_IMAGE_FILE_NAME
+	m_pItemManager->CreateShopImageNameList();
+#endif // MODIFY_FIND_SHOP_IMAGE_FILE_NAME
+
 	return m_pItemManager;
 }
 #ifdef WORLD_TOOL
@@ -2003,6 +1791,11 @@ CX2UnitManager* CX2Data::ResetUnitManager( const WCHAR* pFileName, const WCHAR* 
 #endif //USE_DIFFERENT_SOUND_WHEN_IN_SPECIAL
 	m_pUnitManager->OpenScriptFile( pFileName );
 	m_pUnitManager->OpenNPCFiles( pNPCFileName, pNPCStatFileName, L"NpcExtraAbility.lua" );
+
+#ifdef REFORM_SKILL_NOTE_UI
+	// 특정 클래스의 하위 클래스가 설정된 스크립트 파싱
+	m_pUnitManager->OpenDataScriptFile( L"CorrelateUnitClassTemplet.lua");
+#endif // REFORM_SKILL_NOTE_UI
 
 	return m_pUnitManager;
 }
@@ -2128,15 +1921,6 @@ CX2ServerProtocol* CX2Data::ResetServerProtocol()
 {
 	SAFE_DELETE( m_pServerProtocol );
 
-//{{ Iruha : 2026-08-31 // offline mode - stand the emulator up and register
-//            it as the socket layer's hook before any proxy can connect.
-//            It outlives every CX2ServerProtocol on purpose: the client
-//            drops and rebuilds its proxies several times per session.
-#ifdef SERV_IRUHADEV_OFFLINE
-	CX2OfflineServer::Instance();
-#endif SERV_IRUHADEV_OFFLINE
-//}}
-
 	bool bIsSERVICE = false;
 #ifndef _SERVICE_
 	bIsSERVICE = false;
@@ -2149,10 +1933,11 @@ CX2ServerProtocol* CX2Data::ResetServerProtocol()
 	return m_pServerProtocol;
 }
 
-CX2User* CX2Data::ResetMyUser( CX2User::UserData* pUserData )
+//CX2User* CX2Data::ResetMyUser( CX2User::UserData* pUserData )
+CX2User* CX2Data::ResetMyUser( const CX2User::UserData& kUserData )
 {
 	SAFE_DELETE( m_pMyUser );
-	m_pMyUser = new CX2User( pUserData );
+	m_pMyUser = new CX2User( kUserData );
 
 	return m_pMyUser;
 }
@@ -2206,7 +1991,11 @@ CX2BattleFieldRoom* CX2Data::ResetBattleFieldRoom()
 CKTDGParticleSystem* CX2Data::ResetUIMajorParticle( const WCHAR* pFileName )
 {
 	SAFE_DELETE( m_pUIMajorParticle );
-	m_pUIMajorParticle = new CKTDGParticleSystem( g_pKTDXApp->GetDevice() );
+	m_pUIMajorParticle = new CKTDGParticleSystem( g_pKTDXApp->GetDevice()
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        , 0
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK        
+        );
 	m_pUIMajorParticle->OpenScriptFile( pFileName );
 
 	return m_pUIMajorParticle;
@@ -2215,7 +2004,11 @@ CKTDGParticleSystem* CX2Data::ResetUIMajorParticle( const WCHAR* pFileName )
 CKTDGParticleSystem* CX2Data::ResetUIMinorParticle( const WCHAR* pFileName )
 {
 	SAFE_DELETE( m_pUIMinorParticle );
-	m_pUIMinorParticle = new CKTDGParticleSystem( g_pKTDXApp->GetDevice() );
+	m_pUIMinorParticle = new CKTDGParticleSystem( g_pKTDXApp->GetDevice()
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        , 1
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK         
+        );
 	m_pUIMinorParticle->OpenScriptFile( pFileName );
 
 	return m_pUIMinorParticle;
@@ -2224,7 +2017,11 @@ CKTDGParticleSystem* CX2Data::ResetUIMinorParticle( const WCHAR* pFileName )
 CKTDGParticleSystem* CX2Data::ResetGameMajorParticle( const WCHAR* pFileName )
 {
 	SAFE_DELETE( m_pGameMajorParticle );
-	m_pGameMajorParticle = new CKTDGParticleSystem( g_pKTDXApp->GetDevice() );
+	m_pGameMajorParticle = new CKTDGParticleSystem( g_pKTDXApp->GetDevice()
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        , 2
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK          
+        );
 	m_pGameMajorParticle->OpenScriptFile( pFileName );
 
 	return m_pGameMajorParticle;
@@ -2233,7 +2030,11 @@ CKTDGParticleSystem* CX2Data::ResetGameMajorParticle( const WCHAR* pFileName )
 CKTDGParticleSystem* CX2Data::ResetGameMinorParticle( const WCHAR* pFileName )
 {
 	SAFE_DELETE( m_pGameMinorParticle );
-	m_pGameMinorParticle = new CKTDGParticleSystem( g_pKTDXApp->GetDevice() );
+	m_pGameMinorParticle = new CKTDGParticleSystem( g_pKTDXApp->GetDevice()
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        , 3
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK          
+        );
 	m_pGameMinorParticle->OpenScriptFile( pFileName );
 
 	return m_pGameMinorParticle;
@@ -2242,7 +2043,12 @@ CKTDGParticleSystem* CX2Data::ResetGameMinorParticle( const WCHAR* pFileName )
 CKTDGXMeshPlayer* CX2Data::ResetUIMajorXMeshPlayer( const WCHAR* pFileName )
 {
 	SAFE_DELETE( m_pUIMajorXMeshPlayer );
-	m_pUIMajorXMeshPlayer = new CKTDGXMeshPlayer();
+	m_pUIMajorXMeshPlayer = new CKTDGXMeshPlayer(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        0
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK         
+        );
+    ASSERT( m_pUIMajorXMeshPlayer != NULL );
 	m_pUIMajorXMeshPlayer->OpenScriptFile( pFileName );
 
 	return m_pUIMajorXMeshPlayer;
@@ -2251,7 +2057,12 @@ CKTDGXMeshPlayer* CX2Data::ResetUIMajorXMeshPlayer( const WCHAR* pFileName )
 CKTDGXMeshPlayer* CX2Data::ResetUIMinorXMeshPlayer( const WCHAR* pFileName )
 {
 	SAFE_DELETE( m_pUIMinorXMeshPlayer );
-	m_pUIMinorXMeshPlayer = new CKTDGXMeshPlayer();
+	m_pUIMinorXMeshPlayer = new CKTDGXMeshPlayer(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        1
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK        
+        );
+    ASSERT( m_pUIMinorXMeshPlayer != NULL );
 	m_pUIMinorXMeshPlayer->OpenScriptFile( pFileName );
 
 	return m_pUIMinorXMeshPlayer;
@@ -2260,7 +2071,12 @@ CKTDGXMeshPlayer* CX2Data::ResetUIMinorXMeshPlayer( const WCHAR* pFileName )
 CKTDGXMeshPlayer* CX2Data::ResetGameMajorXMeshPlayer( const WCHAR* pFileName )
 {
 	SAFE_DELETE( m_pGameMajorXMeshPlayer );
-	m_pGameMajorXMeshPlayer = new CKTDGXMeshPlayer();
+	m_pGameMajorXMeshPlayer = new CKTDGXMeshPlayer(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        2
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK         
+        );
+    ASSERT( m_pGameMajorXMeshPlayer != NULL );
 	m_pGameMajorXMeshPlayer->OpenScriptFile( pFileName );
 
 	return m_pGameMajorXMeshPlayer;
@@ -2269,7 +2085,12 @@ CKTDGXMeshPlayer* CX2Data::ResetGameMajorXMeshPlayer( const WCHAR* pFileName )
 CKTDGXMeshPlayer* CX2Data::ResetGameMinorXMeshPlayer( const WCHAR* pFileName )
 {
 	SAFE_DELETE( m_pGameMinorXMeshPlayer );
-	m_pGameMinorXMeshPlayer = new CKTDGXMeshPlayer();
+	m_pGameMinorXMeshPlayer = new CKTDGXMeshPlayer(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        3
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK         
+        );
+    ASSERT( m_pGameMinorXMeshPlayer != NULL );
 	m_pGameMinorXMeshPlayer->OpenScriptFile( pFileName );
 
 	return m_pGameMinorXMeshPlayer;
@@ -2309,22 +2130,14 @@ CKTDNUDP* CX2Data::ResetGameUDP( int port )
 }
 
 //{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 CX2SocketItem* CX2Data::ResetSocketItem( const WCHAR* pFileName,const WCHAR* pFormulaFileName_ )
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-CX2SocketItem* CX2Data::ResetSocketItem( WCHAR* pFileName )
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 //}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 {
 	SAFE_DELETE( m_pCX2SocketItem );
 	m_pCX2SocketItem = new CX2SocketItem();
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	m_pCX2SocketItem->OpenScriptFile( pFileName, pFormulaFileName_ );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-	m_pCX2SocketItem->OpenScriptFile( pFileName );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 	return m_pCX2SocketItem;
@@ -2339,7 +2152,7 @@ CX2EnchantItem* CX2Data::ResetEnchantItem()
 }
 
 //{{ 2008. 10. 1  최육사
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 CX2TitleManager* CX2Data::ResetTitleManager()
 {
 	SAFE_DELETE( m_pCX2TitleManager );
@@ -2357,7 +2170,7 @@ CX2TitleManager* CX2Data::ResetTitleManager()
 
 	return m_pCX2TitleManager;
 }
-#endif
+//#endif
 //}}
 
 //{{ 2009. 6. 24  최육사	보상테이블
@@ -2365,7 +2178,10 @@ CX2RewardTable* CX2Data::ResetRewardTable()
 {
     SAFE_DELETE( m_pRewardTable );
 	m_pRewardTable = new CX2RewardTable();
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 	m_pRewardTable->OpenScriptFile( L"RewardTable.lua" );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 	return m_pRewardTable;
 }
@@ -2671,7 +2487,7 @@ void CX2Data::LoadCommonDevice()
 	//KLuaManager luaManager;
     KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, L"Unit_Common_Device.lua" );
+	g_pKTDXApp->LoadAndDoMemory( &luaManager, L"Unit_Common_Device.lua" );
 
 	wstring fileName;
 
@@ -2843,7 +2659,7 @@ void CX2Data::SetServerCurrentTime( wstring wstrTime )
 #endif
 #ifdef ARA_CHANGE_CLASS_FIRST
 	case CX2Unit::UC_ARA_LITTLE_HSIEN:					iImageIndex = 43;		break; //소선
-	case CX2Unit::UC_ARA_SAKRA_DEVANAM:					iImageIndex = 44;		break; //제석천
+	case CX2Unit::UC_ARA_SAKRA_DEVANAM:					iImageIndex = 44;		break; //제천
 #endif //ARA_CHANGE_CLASS_FIRST
 
 	case CX2Unit::UC_ELESIS_KNIGHT:						iImageIndex = 45;		break; // 엘리시스 노전직
@@ -2852,8 +2668,23 @@ void CX2Data::SetServerCurrentTime( wstring wstrTime )
 
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case CX2Unit::UC_ARA_LITTLE_DEVIL:					iImageIndex = 48;		break;	// 아라 2-1 소마
-	case CX2Unit::UC_ARA_YAMA_RAJA:							iImageIndex = 49;		break;	// 아라 2-2 명왕
+	case CX2Unit::UC_ARA_YAMA_RAJA:						iImageIndex = 49;		break;	// 아라 2-2 명왕
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case CX2Unit::UC_ELESIS_GRAND_MASTER:				iImageIndex = 50;		break; // 엘리시스 노전직
+	case CX2Unit::UC_ELESIS_BLAZING_HEART:				iImageIndex = 51;		break; // 엘리시스 세이버 나이트
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UC_ADD_NASOD_RULER:					iImageIndex = 52;		break; // 애드 기본 전직
+	case CX2Unit::UC_ADD_PSYCHIC_TRACER:				iImageIndex = 53;		break; // 애드 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CX2Unit::UC_ADD_LUNATIC_PSYKER:				iImageIndex = 54;		break; // 애드 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 	default:
 		break;
 	}
@@ -2910,14 +2741,20 @@ void CX2Data::SetServerCurrentTime( wstring wstrTime )
 			return true;
 		} break;
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	case CIT_Party:
 		{
 			fileName = s_CharacterImageNameParty[ iImageIndex ].fileName;
 			pieceName = s_CharacterImageNameParty[ iImageIndex ].pieceName;
 			return true;
 		} break;
-#endif
+// #ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	case CIT_UnitSlot:
+		{
+			fileName = s_CharacterImageUnitSlot[ iImageIndex ].fileName;
+			pieceName = s_CharacterImageUnitSlot[ iImageIndex ].pieceName;
+			return true;
+		} break;
+// #endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 	}
 
@@ -2927,37 +2764,6 @@ void CX2Data::SetServerCurrentTime( wstring wstrTime )
 #ifdef SERV_PVP_NEW_SYSTEM
 /*static*/ bool CX2Data::GetPvpNpcImageName( OUT wstring& fileName, OUT wstring& pieceName, CX2UnitManager::NPC_UNIT_ID iNpcId )
 {
-#ifdef SERV_IRUHADEV_OFFLINE
-	//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 4 - the party bar's portrait.
-	//
-	// The switch below knows the ten NUI_PVP_HERO_* ids and none of the ten
-	// NUI_CSM_PVP_HERO_* ones, so an offline AI party member fell through to
-	// the default, came back with empty strings, and drew whatever portrait
-	// DLG_PVP_Game_Other_State_NEW.lua ships with. The two groups are the same
-	// ten characters - phase 0 re-pointed the cast at the card-summoned
-	// variants because the plain ones have no templet in this build's .kom -
-	// so the picture is the same picture, and mapping the id across is enough.
-	//
-	// Done as a remap at the top rather than as ten extra case labels so the
-	// studio's table stays one table with one entry per portrait. Anything
-	// that is not one of the ten falls through untouched.
-	switch( iNpcId )
-	{
-	case CX2UnitManager::NUI_CSM_PVP_HERO_LOW:				iNpcId = CX2UnitManager::NUI_PVP_HERO_LOW;				break;
-	case CX2UnitManager::NUI_CSM_PVP_HERO_PENENSIO:			iNpcId = CX2UnitManager::NUI_PVP_HERO_PENENSIO;			break;
-	case CX2UnitManager::NUI_CSM_PVP_HERO_NOA:				iNpcId = CX2UnitManager::NUI_PVP_HERO_NOA;				break;
-	case CX2UnitManager::NUI_CSM_PVP_HERO_SPIKA:			iNpcId = CX2UnitManager::NUI_PVP_HERO_SPIKA;				break;
-	case CX2UnitManager::NUI_CSM_PVP_HERO_LIME:				iNpcId = CX2UnitManager::NUI_PVP_HERO_LIME;				break;
-	case CX2UnitManager::NUI_CSM_PVP_HERO_AMELIA:			iNpcId = CX2UnitManager::NUI_PVP_HERO_AMELIA;			break;
-	case CX2UnitManager::NUI_CSM_PVP_HERO_EDAN:				iNpcId = CX2UnitManager::NUI_PVP_HERO_EDAN;				break;
-	case CX2UnitManager::NUI_CSM_PVP_HERO_BALAK:			iNpcId = CX2UnitManager::NUI_PVP_HERO_BALAK;				break;
-	case CX2UnitManager::NUI_CSM_PVP_HERO_CODE_Q_PROTO_00:	iNpcId = CX2UnitManager::NUI_PVP_HERO_CODE_Q_PROTO_00;	break;
-	case CX2UnitManager::NUI_CSM_PVP_HERO_APPLE:			iNpcId = CX2UnitManager::NUI_PVP_HERO_APPLE;				break;
-	default:												break;
-	}
-	//}}
-#endif SERV_IRUHADEV_OFFLINE
-
 	switch(iNpcId)
 	{
 	case CX2UnitManager::NUI_PVP_HERO_LOW:
@@ -3132,7 +2938,7 @@ void CX2Data::ReadyCharacterMotion()
 // 
 // 
 	XSkinMeshReady( L"Motion_Elsword_RS.x" );
-	XSkinMeshReady( L"Motion_Elsword_SN.x" );		
+	XSkinMeshReady( L"Motion_Elsword_SK.x" );		
 	XSkinMeshReady( L"Motion_Lire_WS.x" );
 	XSkinMeshReady( L"Motion_Lire_GA.x" );	
 	XSkinMeshReady( L"Motion_Arme_EM.x" );
@@ -3145,24 +2951,39 @@ void CX2Data::ReadyCharacterMotion()
 	XSkinMeshReady( L"Motion_CHUNG_CIP.x" );
 
 #ifdef ARA_CHANGE_CLASS_FIRST
-	XSkinMeshReady( L"Motion_Ara_LH.x" ); //아라 1차 전직_소선
-	XSkinMeshReady( L"Motion_Ara_SD.x" ); //아라 2차 전직_제석천
+	XSkinMeshReady( L"Motion_Ara_LH.x" );	/// 아라 1차 전직_소선
+	XSkinMeshReady( L"Motion_Ara_SD.x" );	/// 아라 2차 전직_제천
 #endif //ARA_CHANGE_CLASS_FIRST
 
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
-	XSkinMeshReady( L"Motion_Ara_LD.x" ); //아라 1차 전직_소마
-	XSkinMeshReady( L"Motion_Ara_YR.x" ); //아라 2차 전직_명왕
+	XSkinMeshReady( L"Motion_Ara_LD.x" );	/// 아라 1차 전직_소마
+	XSkinMeshReady( L"Motion_Ara_YR.x" );	/// 아라 2차 전직_명왕
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	XSkinMeshReady( L"Motion_EL.x" );
+	XSkinMeshReady( L"Motion_EL_SK.x" );
+	XSkinMeshReady( L"Motion_EL_PK.x" );
+	XSkinMeshReady( L"MOTION_EL_BH.x" );
+	XSkinMeshReady( L"MOTION_EL_GM.x" );
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+	XSkinMeshReady( L"Motion_ADD_PT.x" );	/// 애드 1차 전직 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	XSkinMeshReady( L"Motion_ADD_LP.x" );	/// 애드 2차 전직 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
 }
 
 /** @function : ResetFieldManager
 	@brief : 기존의 Field정보를 clear 시키고, FieldData.lua 스크립트를 다시 파싱하여 정보를 만듦
 	@param : const char* szScriptFileName_
 */
-void CX2Data::ResetBattleFieldManager( const char* szScriptFileName_ )
+void CX2Data::ResetBattleFieldManager( const wchar_t* wszScriptFileName_ )
 {
-	m_BattleFieldManager.ReOpenScriptFile( szScriptFileName_ );
+	m_BattleFieldManager.ReOpenScriptFile( wszScriptFileName_ );
 }
 
 
@@ -3172,9 +2993,8 @@ void CX2Data::ResetBattleFieldManager( const char* szScriptFileName_ )
 //오현빈 // 2012-12-14 // 널체크 코드 길이 줄이기 위해 추가 했습니다.
 const int CX2Data::GetSelectUnitLevel() const
 {
-	if( NULL != m_pMyUser && NULL != m_pMyUser->GetSelectUnit() &&
-		NULL != m_pMyUser->GetSelectUnit()->GetUnitData() )
-		return m_pMyUser->GetSelectUnit()->GetUnitData()->m_Level;
+	if( NULL != m_pMyUser && NULL != m_pMyUser->GetSelectUnit() )
+		return m_pMyUser->GetSelectUnit()->GetUnitData().m_Level;
 
 	return 0;
 }
@@ -3200,13 +3020,29 @@ CX2Unit::UNIT_CLASS CX2Data::GetSelectUnitClass() const
 
 	return CX2Unit::UC_NONE;
 }
+BYTE CX2Data::GetSelectUnitMemberShipGrade() const
+{
+	if( NULL != m_pMyUser && NULL != m_pMyUser->GetSelectUnit() )
+		return m_pMyUser->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
+
+	return 0;
+}
+SEnum::SERVER_GROUP_ID CX2Data::GetSelectUnitServerGroupID() const
+{
+	if( NULL != m_pMyUser &&
+		NULL != m_pMyUser->GetSelectUnit() )
+	{
+		return m_pMyUser->GetSelectUnit()->GetServerGroupID();
+	}
+
+	return SEnum::SGI_INVALID;
+}
 void CX2Data::SetSelectUnitED( int iED_ )
 {
 	if( NULL != m_pMyUser &&
-		NULL != m_pMyUser->GetSelectUnit() &&
-		NULL != m_pMyUser->GetSelectUnit()->GetUnitData() )
+		NULL != m_pMyUser->GetSelectUnit() )
 	{
-		m_pMyUser->GetSelectUnit()->GetUnitData()->m_ED = iED_;
+		m_pMyUser->GetSelectUnit()->AccessUnitData().m_ED = iED_;
 	}
 
 	if( NULL != m_pUIManager &&
@@ -3216,6 +3052,15 @@ void CX2Data::SetSelectUnitED( int iED_ )
 	}
 }
 
+SEnum::DUNGEON_ID CX2Data::GetCurrentDungeonID()
+{
+	if( NULL != GetPartyManager() &&
+		NULL != GetPartyManager()->GetMyPartyData() )
+	{
+		return static_cast<const SEnum::DUNGEON_ID>(GetPartyManager()->GetMyPartyData()->m_iDungeonID);
+	}
+	return SEnum::DI_NONE;
+}
 
 
 #ifdef SERV_LOCAL_RANKING_SYSTEM //지인시스템
@@ -3233,7 +3078,9 @@ bool CX2Data::AddArea_LUA()
 	CX2ProfileManager::Area AddArea;
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LUA_GET_VALUE_RETURN( luaManager, "m_UpperAreaName", AddArea.UpperArea, L"", return false; );
 	LUA_GET_VALUE_RETURN( luaManager, "m_UnderAreaName", AddArea.UnderArea, L"", return false; );
@@ -3256,24 +3103,12 @@ bool CX2Data::LoadAreaData()
 	if( true == m_pProfileManager->GetIsLoadComplete() )
 		return false;
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( L"Area.lua" );
-	if( Info == NULL )
-	{
-		ErrorLogMsg( XEM_ERROR8, L"Area.lua" );
+    if ( g_pKTDXApp->LoadLuaTinker( L"Area.lua" ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR9, L"Area.lua" );
 
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName,  L"Area.lua" );
-		ErrorLogMsg( XEM_ERROR9, strFileName.c_str() );
-
-		return false;
-	}
-
+    }
 
 	//vector<wstring> AreaSort = m_pProfileManager->GetArea();
 	//wstring sort = L"";
@@ -3317,6 +3152,270 @@ CX2RelationshipEffectManager* CX2Data::ResetRelationshipEffectManager()
 
 }
 #endif	//	ADDED_RELATIONSHIP_SYSTEM
+
+#ifdef REFORM_ENTRY_POINT //JHKang
+#pragma region RotateYSelectCharacterType
+float CX2Data::RotateYSelectCharacterType( CX2Unit::UNIT_CLASS eClass_ )
+{
+	float fRotY = 0.f;
+
+	switch ( eClass_ )
+	{
+#pragma region Elsword
+	case CX2Unit::UC_ELSWORD_SWORDMAN:
+		{
+			fRotY = 25.f;
+		} break;
+	case CX2Unit::UC_ELSWORD_KNIGHT:
+		{
+			fRotY = 30.f;
+		} break;
+	case CX2Unit::UC_ELSWORD_MAGIC_KNIGHT:
+		{
+			fRotY = 45.f;
+		} break;
+	case CX2Unit::UC_ELSWORD_SHEATH_KNIGHT:
+		{
+			fRotY = 20.f;
+		} break;
+	case CX2Unit::UC_ELSWORD_LORD_KNIGHT:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_ELSWORD_RUNE_SLAYER:
+		{
+			fRotY = 20.f;
+		} break;
+	case CX2Unit::UC_ELSWORD_INFINITY_SWORD:
+		{
+			fRotY = 15.f;
+		} break;
+#pragma endregion 엘소드 회전 값
+
+#pragma region Aisha
+	case CX2Unit::UC_ARME_VIOLET_MAGE:
+		{
+			fRotY = 40.f;
+		} break;
+	case CX2Unit::UC_ARME_HIGH_MAGICIAN:
+		{
+			fRotY = 35.f;
+		} break;
+	case CX2Unit::UC_ARME_DARK_MAGICIAN:
+		{
+			fRotY = 40.f;
+		} break;
+	case CX2Unit::UC_ARME_BATTLE_MAGICIAN:
+		{
+			fRotY = 20.f;
+		} break;
+	case CX2Unit::UC_ARME_ELEMENTAL_MASTER:
+		{
+			fRotY = 20.f;
+		} break;
+	case CX2Unit::UC_ARME_VOID_PRINCESS:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_ARME_DIMENSION_WITCH:
+		{
+			fRotY = 30.f;
+		} break;
+#pragma endregion 아이샤 회전 값
+
+#pragma region Lena
+	case CX2Unit::UC_LIRE_ELVEN_RANGER:
+		{
+			fRotY = 30.f;
+		} break;
+	case CX2Unit::UC_LIRE_COMBAT_RANGER:
+		{
+			fRotY = 30.f;
+		} break;
+	case CX2Unit::UC_LIRE_SNIPING_RANGER:
+		{
+			fRotY = 30.f;
+		} break;
+	case CX2Unit::UC_LIRE_TRAPPING_RANGER:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_LIRE_WIND_SNEAKER:
+		{
+			fRotY = 20.f;
+		} break;
+	case CX2Unit::UC_LIRE_GRAND_ARCHER:
+		{
+			fRotY = 20.f;
+		} break;
+	case CX2Unit::UC_LIRE_NIGHT_WATCHER:
+		{
+			fRotY = 10.f;
+		} break;
+#pragma endregion 레나 회전 값
+
+#pragma region Raven
+	case CX2Unit::UC_RAVEN_FIGHTER:
+		{
+			fRotY = 15.f;
+		} break;
+	case CX2Unit::UC_RAVEN_SOUL_TAKER:
+		{
+			fRotY = 30.f;
+		} break;
+	case CX2Unit::UC_RAVEN_OVER_TAKER:
+		{
+			fRotY = 15.f;
+		} break;
+	case CX2Unit::UC_RAVEN_WEAPON_TAKER:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_RAVEN_BLADE_MASTER:
+		{
+			fRotY = 35.f;
+		} break;
+	case CX2Unit::UC_RAVEN_RECKLESS_FIST:
+		{
+			fRotY = 15.f;
+		} break;
+	case CX2Unit::UC_RAVEN_VETERAN_COMMANDER:
+		{
+			fRotY = 30.f;
+		} break;
+#pragma endregion 레이븐 회전 값
+
+#pragma region Eve
+	case CX2Unit::UC_EVE_NASOD:
+		{
+			fRotY = 20.f;
+		} break;
+	case CX2Unit::UC_EVE_EXOTIC_GEAR:
+		{
+			fRotY = 15.f;
+		} break;
+	case CX2Unit::UC_EVE_ARCHITECTURE:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_EVE_ELECTRA:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_EVE_CODE_NEMESIS:
+		{
+			fRotY = 5.f;
+		} break;
+	case CX2Unit::UC_EVE_CODE_EMPRESS:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_EVE_BATTLE_SERAPH:
+		{
+			fRotY = 5.f;
+		} break;
+#pragma endregion 이브 회전 값
+
+#pragma region Chung
+	case CX2Unit::UC_CHUNG_IRON_CANNON:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_CHUNG_FURY_GUARDIAN:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN:
+		{
+			fRotY = 20.f;
+		} break;
+	case CX2Unit::UC_CHUNG_SHELLING_GUARDIAN:
+		{
+			fRotY = 5.f;
+		} break;
+	case CX2Unit::UC_CHUNG_IRON_PALADIN:
+		{
+			fRotY = 20.f;
+		} break;
+	case CX2Unit::UC_CHUNG_DEADLY_CHASER:
+		{
+			fRotY = 25.f;
+		} break;
+	case CX2Unit::UC_CHUNG_TACTICAL_TROOPER:
+		{
+			fRotY = 25.f;
+		} break;
+#pragma endregion 청 회전 값
+
+#pragma region Ara
+	case CX2Unit::UC_ARA_MARTIAL_ARTIST:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_ARA_LITTLE_HSIEN:
+		{
+			fRotY = 15.f;
+		} break;
+	case CX2Unit::UC_ARA_LITTLE_DEVIL:
+		{
+			fRotY = 15.f;
+		} break;
+	case CX2Unit::UC_ARA_SAKRA_DEVANAM:
+		{
+			fRotY = 5.f;
+		} break;
+	case CX2Unit::UC_ARA_YAMA_RAJA:
+		{
+			fRotY = 13.f;
+		} break;
+#pragma endregion 아라 회전 값
+
+#pragma region Elesis
+	case CX2Unit::UC_ELESIS_KNIGHT:
+		{
+			fRotY = 30.f;
+		} break;
+	case CX2Unit::UC_ELESIS_SABER_KNIGHT:
+		{
+			fRotY = 25.f;
+		} break;
+	case CX2Unit::UC_ELESIS_PYRO_KNIGHT:
+		{
+			fRotY = 10.f;
+		} break;
+	case CX2Unit::UC_ELESIS_GRAND_MASTER:
+		{
+			fRotY = 15.f;
+		} break;
+	case CX2Unit::UC_ELESIS_BLAZING_HEART:
+		{
+			fRotY = 8.f;
+		} break;
+#pragma endregion 엘리시스 회전 값
+
+#pragma region ADD
+	case CX2Unit::UC_ADD_NASOD_RULER:
+		{
+			fRotY = 20.f;
+		} break;
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+		{
+			fRotY = 3.f;
+		} break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+#pragma endregion 애드 회전 값
+
+	default:
+		{
+			fRotY = 10.f;
+		} break;
+	}
+
+	return fRotY;
+}
+#pragma endregion 유닛 회전 값 지정
+#endif //REFORM_ENTRY_POINT
 
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 CX2GlobalMissionManager* CX2Data::ResetGlobalMissionManager()

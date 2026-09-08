@@ -4,10 +4,20 @@
 @brief : 필드에서 생성 되는 포탈의 이동 정보 클래스
 @date  : 2011/10/25
 */
-class CBattleFieldPortalMovingInfo {
+
+class CBattleFieldPortalMovingInfo
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+{
 public:
 	// 생성자: 기본Type은 Initialize에 넣어주시고, 사용자 정의 타입은 멤버 초기화 리스트에서 초기화 해주세요
-	CBattleFieldPortalMovingInfo() { _OnCreate(); }
+	CBattleFieldPortalMovingInfo() 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        : m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    { _OnCreate(); 
+    }
 	
 	void Initialize() {
 		_OnCreate();	// 기본Type 초기화
@@ -28,8 +38,14 @@ public:
 	USHORT GetPortalMoveType() const { return m_usPortalMoveType; }
 	void SetPortalMoveType( const USHORT usPortalMoveType_ ) { m_usPortalMoveType = usPortalMoveType_; }
 
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 private:	// private 함수명 앞에는 _를 붙여 주었음
-	
+
 	/// 생성자에서 기본Type의 변수들을 초기화 시키기 위한 용도로 사용
 	void _OnCreate() {
 		m_uiLineNumber				= 0;
@@ -42,6 +58,9 @@ private:	// private 함수명 앞에는 _를 붙여 주었음
 	}
 
 private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	UINT	m_uiLineNumber;				/// 필드의 라인맵에서 이 포탈이 위치한 필드 내의 라인 번호 및 인덱스
 	UINT	m_uiPlaceIdToMove;			/// 이동할 장소의 ID (VillageMapID or BattleFieldID)
 
@@ -53,11 +72,17 @@ private:
 #endif //QUEST_GUIDE
 };
 
+IMPLEMENT_INTRUSIVE_PTR( CBattleFieldPortalMovingInfo );
+
 /** @class : CBattleFieldRiskInfo
 @brief : 필드의 위험도 정보 클래스로 필드의 위험도 수치에 따라 어떤 몬스터가 나오는지에 대한 정보를 가지고 있음
 @date  : 2011/10/25
 */
-class CBattleFieldRiskInfo {
+class CBattleFieldRiskInfo
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+{
 public:
 	// true, false 속성을 가지는 타입의 플래그, std::bitset으로 관리
 	enum FLAG_RISK_INFO {
@@ -67,7 +92,11 @@ public:
 	};
 
 	// 생성자: 기본Type은 Initialize에 넣어주시고, 사용자 정의 타입은 멤버 초기화 리스트에서 초기화 해주세요
-	CBattleFieldRiskInfo() { _OnCreate(); }
+	CBattleFieldRiskInfo() 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        : m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    { _OnCreate(); }
 
 	bool ParsingScriptFile( IN KLuaManager& luaManager_ );	// CBattleFieldRiskInfo에 필요한 정보를 읽어들인다
 
@@ -88,7 +117,13 @@ public:
 		m_bitsetFlagRiskInfo.set( eFlagRiskInfo_, bFlag_ );
 	}
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 private:
+
 	/// 생성자에서 기본Type의 변수들을 초기화 시키기 위한 용도로 사용
 	void _OnCreate() {
 		m_uiMonsterIdToBeSpawned	= 0;
@@ -96,18 +131,31 @@ private:
 	}
 
 private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	UINT			m_uiMonsterIdToBeSpawned;			/// 위험도 수치에 따라 출현할 몬스터
 	USHORT			m_usRiskValue;						/// 위험도 수치
 	
 	std::bitset<FRI_FLAG_MAX>	m_bitsetFlagRiskInfo;	/// 위험도 정보에서 쓰이는 Flag의 BitSet
 };
 
+IMPLEMENT_INTRUSIVE_PTR( CBattleFieldRiskInfo );
+
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
 
 class CBattleFieldMiddleBossInfo		// 필드 중간 보스에 대한 정보를 담고 있는 클래스, BattleFieldData.lua 에서 파싱
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 {
 	public :
-		CBattleFieldMiddleBossInfo ()  { _OnCreate(); }
+		CBattleFieldMiddleBossInfo ()  
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        : m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        { _OnCreate(); }
 
 		UINT GetMonsterSpawnID() const { return m_uiMonsterSpawnID; }
 		void SetMonsterSpawnID(UINT val) { m_uiMonsterSpawnID = val; }
@@ -133,7 +181,13 @@ class CBattleFieldMiddleBossInfo		// 필드 중간 보스에 대한 정보를 담고 있는 클래
 
 		bool ParsingScriptFile ( IN KLuaManager& luaManager_ );	
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        void    AddRef()    {   ++m_uRefCount; }
+        void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	private : 
+
 		void _OnCreate()
 		{
 			m_uiMonsterSpawnID = 0;
@@ -152,6 +206,9 @@ class CBattleFieldMiddleBossInfo		// 필드 중간 보스에 대한 정보를 담고 있는 클래
 			m_vecMonsterSpawnGroupID.clear();
 		}
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        unsigned            m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		USHORT				m_usMonsterSpawnMany;
 		UINT				m_uiMonsterSpawnID;		
 		std::vector<UINT>	m_vecMonsterSpawnGroupID;		
@@ -163,6 +220,8 @@ class CBattleFieldMiddleBossInfo		// 필드 중간 보스에 대한 정보를 담고 있는 클래
 		wstring				m_wstrMainMonsterName;		// 몬스터 그룹 이름
 };
 
+IMPLEMENT_INTRUSIVE_PTR( CBattleFieldMiddleBossInfo );
+
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
 
 
@@ -171,18 +230,33 @@ class CBattleFieldMiddleBossInfo		// 필드 중간 보스에 대한 정보를 담고 있는 클래
 @brief : 필드에 대한 정보를 모아 놓은 클래스
 @date  : 2011/10/25
 */
-class CBattleFieldData {
+
+class CBattleFieldData
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+{
 
 public:
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+	typedef boost::intrusive_ptr<CBattleFieldPortalMovingInfo> CBattleFieldPortalMovingInfoPtr;
+	typedef boost::intrusive_ptr<CBattleFieldRiskInfo> CBattleFieldRiskInfoPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	typedef boost::shared_ptr<CBattleFieldPortalMovingInfo> CBattleFieldPortalMovingInfoPtr;
 	typedef boost::shared_ptr<CBattleFieldRiskInfo> CBattleFieldRiskInfoPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
 	typedef boost::shared_ptr<CBattleFieldMiddleBossInfo> CBattleFieldMiddleBossInfoPtr;
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
 
 	CBattleFieldData() 
-		: m_wstrBattleFieldName(), m_wstrBattleFieldTextureName(), m_uiReturnVillageId( 0 ) {
+		: m_wstrBattleFieldName(), m_wstrBattleFieldTextureName(), m_uiReturnVillageId( 0 ) 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR    
+    {
 		_OnCreate();
 	}
 
@@ -252,13 +326,28 @@ public:
 		return L"NoData";
 	}
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
+
+#ifdef FIELD_BOSS_RAID
+	bool GetIsBossRaidField() const { return m_bIsBossRaidField; }
+	const USHORT GetRaidFieldPortalLineIndex() const { return m_usRaidFieldPortalPositionIndex; }
+#endif // FIELD_BOSS_RAID
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 private:
-	
+
 	void _OnCreate() {
 		m_uiBattleFieldId = 0;
 		m_uiWorldId = 0;
 		m_uiStandardMonsterLevel = 0;
 		m_usMaxNumberOfMonsterInThisBattleField = 0;
+#ifdef FIELD_BOSS_RAID
+		m_bIsBossRaidField = false;
+		m_usRaidFieldPortalPositionIndex = 0;
+#endif // FIELD_BOSS_RAID
 	}
 
 	// CBattleFieldPortalMovingInfo의 shared_ptr 생성
@@ -283,6 +372,9 @@ private:
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
 
 private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	UINT		m_uiBattleFieldId;				/// 현재 필드의 ID, 선언은 UINT로 했지만 BattleField_ID 값을 대입
 	UINT		m_uiWorldId;				/// 현재 필드가 사용하는 CX2World::WORLD_ID enum값
 	UINT		m_uiStandardMonsterLevel;	/// 현재 필드에서 나오는 몬스터들의 기준 레벨 (일단 가지고 있기는 하지만.. 클라이언트에서 사용하는지는 두고 보자)
@@ -303,7 +395,15 @@ private:
 	std::vector<CBattleFieldMiddleBossInfoPtr> m_vecBattleFieldMiddleBossInfoPtr;	/// BattleFieldMiddleBossInfo의 shared_ptr을 담은 vector
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
 
+#ifdef FIELD_BOSS_RAID
+	bool		m_bIsBossRaidField;
+	USHORT		m_usRaidFieldPortalPositionIndex;	// 보스 레이드 필드로 이동하는 포탈 포지션 인덱스
+#endif // FIELD_BOSS_RAID
+
 };
+
+IMPLEMENT_INTRUSIVE_PTR( CBattleFieldData );
+
 
 /** @class : CX2BattleFieldManager
 @brief : 엘소드 필드의 Data를 루아로 부터 파싱하고, 해당 BattleFieldData를 관리하는 클래스
@@ -313,12 +413,17 @@ class CX2BattleFieldManager {
 
 public:
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    typedef boost::intrusive_ptr<CBattleFieldData> CBattleFieldDataPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	typedef boost::shared_ptr<CBattleFieldData> CBattleFieldDataPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 	enum PORTAL_MOVE_TYPE {
 		PMT_INVALID = 0,
 		PMT_MOVE_TO_VILLAGE,				/// 필드 -> 마을로 이동하는 포탈
 		PMT_MOVE_TO_BATTLE_FIELD,			/// 필드 -> 필드로 이동하는 포탈
+		PMT_MOVE_TO_RAID_FIELD,				/// 필드 -> 레이드 필드로 이동하는 포탈
 		PMT_END,
 	};
 
@@ -339,13 +444,13 @@ public:
 	CX2BattleFieldManager() : m_BattleFieldPositionInfo()
 	{}
 
-	void OpenScriptFile( const char* szScriptFileName_ );
+	void OpenScriptFile( const wchar_t* wszScriptFileName_ );
 	void AddBattleFieldData_LUA();
 	void SetMonsterRespawnFactorByUserCount_LUA();		// dummy
 	void SetMonsterRespawnTimeMinMax_LUA();				// dummy
 	void SetBattleFieldFactor_LUA();					// dummy
 
-	void ReOpenScriptFile( const char* szScriptFileName_ );
+	void ReOpenScriptFile( const wchar_t* wszScriptFileName_ );
 
 	// CBattleFieldData의 shared_ptr 생성
 	CBattleFieldDataPtr CreateBattleFieldDataPtr() { return CBattleFieldDataPtr( new CBattleFieldData() ); }	
@@ -383,6 +488,12 @@ public:
 	wstring GetBattleFieldBossDataGroupName ( UINT uiBattleFieldId_, int iBattleFieldBossGroupId_ );	// Field ID 와 Boss Group ID 를 받아서 보스 그룹 명을 반환함
 
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
+
+#ifdef FIELD_BOSS_RAID
+	bool		GetIsBossRaidFieldByFieldID( const UINT uiBattleFieldID_ ) const;
+	bool		GetIsBossRaidCurrentField() const;
+	const USHORT GetRaidFieldPortalLineByFieldID( const UINT uiBattleFieldID_ ) const;
+#endif // FIELD_BOSS_RAID
 
 private:
 	typedef std::map<UINT, CBattleFieldDataPtr> BattleFieldDataPtrMap;

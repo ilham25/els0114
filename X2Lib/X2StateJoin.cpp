@@ -60,7 +60,6 @@ bool CX2StateJoin::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 			}
 			break;
 #endif //SERV_JOIN_IN_CLIENT_FOR_TW_TEST_SERVER
-
 	}
 
 	return false;
@@ -236,8 +235,7 @@ bool CX2StateJoin::NewUserJoinReq( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 #else //SERV_JOIN_IN_CLIENT_FOR_TW_TEST_SERVER
 	kEGS_NEW_USER_JOIN_REQ.m_wstrName		= m_UserName;
 #endif //SERV_JOIN_IN_CLIENT_FOR_TW_TEST_SERVER
-	//kEGS_NEW_USER_JOIN_REQ.m_wstrNickName	= m_UserNickName;
-
+//	kEGS_NEW_USER_JOIN_REQ.m_wstrNickName	= m_UserNickName;
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_NEW_USER_JOIN_REQ, kEGS_NEW_USER_JOIN_REQ );
 	g_pMain->AddServerPacket( EGS_NEW_USER_JOIN_ACK );

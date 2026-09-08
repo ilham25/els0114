@@ -23,7 +23,6 @@
 #endif SERV_CCU_MONITORING_TOOL
 //}}
 
-
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 #include "ProxyManager.h"
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
@@ -95,7 +94,6 @@ KChannelUser::KChannelUser(void)
 	m_wstrSocketID = L"";
 #endif //SERV_COUNTRY_TH
 #endif //SERV_GLOBAL_AUTH
-
 }
 
 KChannelUser::~KChannelUser(void)
@@ -154,20 +152,6 @@ void KChannelUser::ProcessEvent( const KEventPtr& spEvent_ )
     //CASE( DBE_GASH_USER_LOGIN_ACK );// 해외에서 이제 사용안함
 	CASE_NOPARAM( ECH_GET_CHANNEL_LIST_REQ );
 	CASE_NOPARAM( ECH_DISCONNECT_REQ );
-#ifdef SERVER_GROUP_UI_ADVANCED
-	CASE_NOPARAM( ECH_GET_SERVERGROUP_LIST_REQ );
-#endif SERVER_GROUP_UI_ADVANCED
-
-#ifdef SERV_GLOBAL_AUTH
-	CASE( EPUBLISHER_AUTHENTICATION_ACK );
-	CASE( DBE_CH_USER_GENERAL_LOGIN_ACK );
-	CASE( DBE_CH_USER_KOGOTP_LOGIN_ACK );
-
-	CASE( ECH_SECURITY_AUTH_REQ );
-	CASE( EPUBLISHER_SECURITY_AUTH_ACK );
-
-	CASE( EPUBLISHER_SECURITY_INFO_NOT );
-#endif // SERV_GLOBAL_AUTH
 
 	//{{ 2009. 12. 16  최육사	동접툴
 	CASE( E_TOOL_GET_CCU_INFO_REQ );
@@ -198,11 +182,25 @@ void KChannelUser::ProcessEvent( const KEventPtr& spEvent_ )
 	CASE( DBE_CREATE_SERVER_SN_ACK );
 #endif SERV_SERIAL_NUMBER_AVAILABILITY_CHECK
 	//}}
+#ifdef SERVER_GROUP_UI_ADVANCED
+	CASE_NOPARAM( ECH_GET_SERVERGROUP_LIST_REQ );
+#endif SERVER_GROUP_UI_ADVANCED
 
+#ifdef SERV_GLOBAL_AUTH
+	CASE( EPUBLISHER_AUTHENTICATION_ACK );
+	CASE( DBE_CH_USER_GENERAL_LOGIN_ACK );
+	CASE( DBE_CH_USER_KOGOTP_LOGIN_ACK );
+
+	CASE( ECH_SECURITY_AUTH_REQ );
+	CASE( EPUBLISHER_SECURITY_AUTH_ACK );
+
+	CASE( EPUBLISHER_SECURITY_INFO_NOT );
+#endif // SERV_GLOBAL_AUTH
 
 #ifdef SERV_SERVER_TIME_GET
 	CASE_NOPARAM( ECH_GET_SERVER_TIME_REQ );
 #endif SERV_SERVER_TIME_GET
+
 #ifdef SERV_ID_NETMARBLE_PCBANG
 	CASE( ECH_PCBANG_IP_AND_MAC_INFO_NOT );
 #endif //SERV_ID_NETMARBLE_PCBANG
@@ -419,13 +417,13 @@ bool KChannelUser::RoutePacket( const KEvent* pkEvent_ )
 
 			return true;
 #else
-			START_LOG( cerr, L"현재는 채널 서버가 최상위 서버이다." )
-				<< BUILD_LOG( pkEvent_->m_kDestPerformer.m_dwPerformerID )
-				<< BUILD_LOG( pkEvent_->m_usEventID )
-				<< BUILD_LOG( pkEvent_->GetIDStr() )
-				<< END_LOG;
+            START_LOG( cerr, L"현재는 채널 서버가 최상위 서버이다." )
+                << BUILD_LOG( pkEvent_->m_kDestPerformer.m_dwPerformerID )
+                << BUILD_LOG( pkEvent_->m_usEventID )
+                << BUILD_LOG( pkEvent_->GetIDStr() )
+                << END_LOG;
 
-			return true;
+            return true;
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
         }
         else
@@ -540,26 +538,26 @@ void KChannelUser::CheckHackingToolList()
 #ifdef SERV_GLOBAL_AUTH
 IMPL_ON_FUNC( ECH_VERIFY_ACCOUNT_REQ )
 {
-	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
+    VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
 
-	START_LOG( clog, L"인증 요청." );
+    START_LOG( clog, L"인증 요청." );
 
-	KECH_VERIFY_ACCOUNT_ACK kPacket;
+    KECH_VERIFY_ACCOUNT_ACK kPacket;
 
-	//{{ 2009. 6. 10  최육사	접속IP제한
-	if( GetKChannelSimLayer()->CheckIP( GetIPStr() ) == false )
-	{
+    //{{ 2009. 6. 10  최육사	접속IP제한
+    if( GetKChannelSimLayer()->CheckIP( GetIPStr() ) == false )
+    {
 		if( GetKChannelSimLayer()->GetCheckIPMode() == KChannelSimLayer::CIM_SERVICE_MODE )
 		{
 			START_LOG( cout, L"[서비스 모드] 접속 차단 대상 IP의 유저가 접속시도를 하였습니다 : " << GetIPStr() << L" ,  UserID : " << kPacket_.m_wstrID );
 		}
 		else
 		{
-			START_LOG( cout, L"[점검 모드] 점검 중에 일반 유저 접속 : " << GetIPStr() << L" ,  UserID : " << kPacket_.m_wstrID );
+            START_LOG( cout, L"[점검 모드] 점검 중에 일반 유저 접속 : " << GetIPStr() << L" ,  UserID : " << kPacket_.m_wstrID );
 		}
 
-		kPacket.m_iOK = NetError::ERR_CONNECT_05;
-		SendPacket( ECH_VERIFY_ACCOUNT_ACK, kPacket );
+        kPacket.m_iOK = NetError::ERR_CONNECT_05;
+        SendPacket( ECH_VERIFY_ACCOUNT_ACK, kPacket );
 
 		// 종료 예약
 		ReserveDestroy();
@@ -664,7 +662,6 @@ IMPL_ON_FUNC( ECH_VERIFY_ACCOUNT_REQ )
 	}
 }
 
-
 #else // SERV_GLOBAL_AUTH
 // 국내 인증 처리 부분
 IMPL_ON_FUNC( ECH_VERIFY_ACCOUNT_REQ )
@@ -703,6 +700,7 @@ IMPL_ON_FUNC( ECH_VERIFY_ACCOUNT_REQ )
 	kPacket.m_wstrCurrentTime = ( CStringW )tCurrent.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 #endif SERV_MASSFILE_MAPPING_FUNCTION
 #endif SERV_SERVER_TIME_GET
+
     DWORD dwAuthFlag = KSimLayer::GetKObj()->GetAuthFlag();
     switch( dwAuthFlag )
     {
@@ -1038,7 +1036,6 @@ IMPL_ON_FUNC( ECH_VERIFY_ACCOUNT_REQ )
 #endif // SERV_GLOBAL_AUTH
 //}}
 
-
 #ifndef SERV_GLOBAL_AUTH 
 IMPL_ON_FUNC( ECH_VERIFY_ACCOUNT_ACK )
 {
@@ -1055,230 +1052,6 @@ IMPL_ON_FUNC( ECH_VERIFY_ACCOUNT_ACK )
         ReserveDestroy();
     }
 }
-#endif // SERV_GLOBAL_AUTH
-
-#ifdef SERV_GLOBAL_AUTH
-
-IMPL_ON_FUNC( EPUBLISHER_AUTHENTICATION_ACK )
-{
-    VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
-
-	// 국가별 특이 처리 추가 (국가별 넷에러값 처리)//
-	bool bDoNotDisconnect = false;
-
-#ifdef SERV_LOGIN_RESULT_INFO
-	ProcessLoginResultCount( kPacket_.m_iOK );			// 로그인 인증 결과 처리( 퍼블리셔 인증을 거치는 국가는 여기에서 처리 )
-#endif SERV_LOGIN_RESULT_INFO
-
-	HandlePublisherLoginAck(kPacket_, bDoNotDisconnect);
-		
-	if (kPacket_.m_iOK == NetError::NET_OK)				// 퍼블리셔 인증 성공
-	{
-		KDBE_CH_USER_GENERAL_LOGIN_REQ kPacketReq;
-		kPacketReq.m_wstrServiceAccountID = kPacket_.m_wstrID;
-		kPacketReq.m_uiPublisherUID = kPacket_.m_uiPublisherUID;
-		kPacketReq.m_wstrIP = KncUtil::toWideString(KSession::GetIPStr());
-		kPacketReq.m_iChannelingCode = kPacket_.m_iChannelingCode;
-#ifdef SERV_ANTI_ADDICTION_SYSTEM
-		kPacketReq.m_uiAccountType = kPacket_.m_uiAccountType;
-#endif SERV_ANTI_ADDICTION_SYSTEM
-
-#ifdef SERV_PURCHASE_TOKEN
-		kPacketReq.m_wstrPurchaseTok = kPacket_.wstrPurchTok;
-#endif SERV_PURCHASE_TOKEN
-		kPacketReq.m_bServerUseKogOTP = KSimLayer::GetKObj()->GetUseKogOTP();
-#ifdef SERV_COUNTRY_TH
-		SetMasterID( kPacket_.m_wstrMasterID );
-		SetSocketID( kPacket_.m_wstrSocketID );
-		kPacketReq.m_wstrMasterID = kPacket_.m_wstrMasterID;
-		kPacketReq.m_wstrSocketID = kPacket_.m_wstrSocketID;
-#endif // SERV_COUNTRY_TH
-
-		SendToAccountDB( DBE_CH_USER_GENERAL_LOGIN_REQ, kPacketReq );
-	}
-	else												// 퍼블리셔 인증 실패
-	{
-		KECH_VERIFY_ACCOUNT_ACK kPacketAck;
-		kPacketAck.m_iOK = kPacket_.m_iOK;
-		kPacketAck.m_wstrUserID = L"";
-		//	kPacketAck.m_iUserUID = kPacket_.m_iUserUID;
-		kPacketAck.m_wstrPassport = L"";
-#ifdef SERV_PURCHASE_TOKEN
-		kPacketAck.m_wstrPurchaseTok = L"";
-#endif SERV_PURCHASE_TOKEN
-
-#ifdef SERV_LOGIN_TOU // 약관 미동의로 로그인 실패 시에 사용함
-		kPacketAck.m_strAgreementURL = kPacket_.m_strAgreementURL;
-#endif //SERV_LOGIN_TOU
-
-		// Client ACK 날림 //
-		SendPacket( ECH_VERIFY_ACCOUNT_ACK, kPacketAck );
-		
-		if (bDoNotDisconnect)
-		{
-			// 패스워드 잘못 입력했을 때에는 끊지 않는다.
-			START_LOG( clog2, L"아이디 또는 패스워드 다름 또는 GF 계정 인증 안된 것임. (접속 안 끊음)" );
-		}
-		else
-		{
-			ReserveDestroy();
-		}
-	}	
-}
-
-IMPL_ON_FUNC( DBE_CH_USER_GENERAL_LOGIN_ACK )
-{
-	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
-	
-	KECH_VERIFY_ACCOUNT_ACK kPacketAck;
-
-	kPacketAck.m_iOK = kPacket_.m_iOK;
-	kPacketAck.m_wstrUserID = kPacket_.m_wstrUserID;
-	kPacketAck.m_iUserUID = kPacket_.m_iUserUID;
-	kPacketAck.m_wstrPassport = kPacket_.m_wstrOTP;
-	kPacketAck.m_iChannelingCode = kPacket_.m_iChannelingCode;
-#ifdef SERV_PURCHASE_TOKEN
-	kPacketAck.m_wstrPurchaseTok = kPacket_.m_wstrPurchaseTok;
-#endif SERV_PURCHASE_TOKEN
-#ifndef SERV_SERVER_TIME_GET
-#ifdef SERV_MASSFILE_MAPPING_FUNCTION
-	CTime tCurrent = CTime::GetCurrentTime();
-	kPacketAck.m_wstrCurrentTime = ( CStringW )tCurrent.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
-#endif SERV_MASSFILE_MAPPING_FUNCTION
-#endif SERV_SERVER_TIME_GET
-
-#ifdef SERV_COUNTRY_TH
-	kPacketAck.m_wstrSocketID = GetSocketID();
-#endif //SERV_COUNTRY_TH
-	
-	START_LOG( clog, L"[테스트 로그] Send Packet Token 정상 확인" )
-		<< BUILD_LOG( kPacketAck.m_iOK )
-#ifndef SERV_PRIVACY_AGREEMENT
-		<< BUILD_LOG( kPacketAck.m_wstrUserID )
-#endif SERV_PRIVACY_AGREEMENT
-		<< BUILD_LOG( kPacketAck.m_iUserUID )
-		<< BUILD_LOG( kPacketAck.m_wstrPassport )
-		<< BUILD_LOG( kPacketAck.m_wstrPurchaseTok )
-		<< END_LOG;
-
-	SendPacket( ECH_VERIFY_ACCOUNT_ACK, kPacketAck );
-
-#ifdef SERV_LOGIN_RESULT_INFO
-	// 사내 인증 또는 퍼블리셔 인증 서버로부터 인증받지 않고 자체 인증하는 경우(인도네시아, 필리핀)는 여기서 로그인 카운트 올림
-	// 인도네시아, 필리핀은 EPUBLISHER_AUTHENTICATION_ACK 이벤트를 거치지 않기에 여기서 로그인 카운트 올림
-	DWORD dwAuthFlag = KSimLayer::GetKObj()->GetAuthFlag();
-
-	if( KSimLayer::AF_INTERNAL == dwAuthFlag )							// 사내 로그인 인증 결과 처리
-	{
-		ProcessLoginResultCount( kPacket_.m_iOK );
-	}
-#if defined( SERV_COUNTRY_ID ) || defined( SERV_COUNTRY_PH )
-	else																// 인도네시아, 필리핀 로그인 인증 결과 처리
-	{
-		ProcessLoginResultCount( kPacket_.m_iOK );
-	}
-#endif // defined( SERV_COUNTRY_ID ) || defined( SERV_COUNTRY_PH )
-#endif SERV_LOGIN_RESULT_INFO
-
-	if( kPacket_.m_iOK == NetError::NET_OK )
-	{
-		StateTransition( KCHFSM::I_TO_AUTHENTICATED );
-		
-		//{{ 2011.03.16  임규수 IP 블록 거래 차단
-#ifdef SERV_IP_TRADE_BLOCK
-		KDBE_IP_CHECK_LIST_NOT kPacketNot;
-		kPacketNot.m_wstrID = kPacket_.m_wstrUserID;
-		//kPacketNot.iUserUID = kPacket_.m_iUserUID;
-		kPacketNot.strIP = GetIPStr();
-
-		START_LOG( clog, L"[테스트 로그] 유저 UID" )
-#ifdef SERV_PRIVACY_AGREEMENT
-			<< BUILD_LOG( GetUID() )
-#else
-			<< BUILD_LOG( kPacketNot.m_wstrID )
-			<< BUILD_LOG( GetIPStr() )
-#endif SERV_PRIVACY_AGREEMENT
-			<< END_LOG;
-
-		SendToAccountDB(DBE_IP_CHECK_LIST_NOT, kPacketNot);
-#endif SERV_IP_TRADE_BLOCK
-		//}}
-	}
-	else
-	{
-		ReserveDestroy();
-	}
-}
-
-IMPL_ON_FUNC( DBE_CH_USER_KOGOTP_LOGIN_ACK )
-{
-	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
-
-	// 국가별 특이 처리 있는 경우 사용
-	HandleKOGOTPLoginAck();
-
-
-	KECH_VERIFY_ACCOUNT_ACK kPacketAck;
-
-	kPacketAck.m_iOK = kPacket_.m_iOK;
-	kPacketAck.m_wstrUserID = kPacket_.m_wstrUserID;
-	kPacketAck.m_iUserUID = kPacket_.m_iUserUID;
-	kPacketAck.m_wstrPassport = kPacket_.m_wstrOTP;
-#ifdef SERV_PURCHASE_TOKEN
-	kPacketAck.m_wstrPurchaseTok = L"";	// 토큰 값은 GENERAL_LOGIN에서 받음. 여기선 NULL 세팅 
-#endif SERV_PURCHASE_TOKEN
-
-	START_LOG( clog, L"[테스트 로그] Send Packet Token 정상 확인" )
-		<< BUILD_LOG( kPacketAck.m_iOK )
-		<< BUILD_LOG( kPacketAck.m_wstrUserID )
-		<< BUILD_LOG( kPacketAck.m_iUserUID )
-		<< BUILD_LOG( kPacketAck.m_wstrPassport )
-		<< BUILD_LOG( kPacketAck.m_wstrPurchaseTok )
-		<< END_LOG;
-
-	SendPacket( ECH_VERIFY_ACCOUNT_ACK, kPacketAck );
-
-	if( kPacket_.m_iOK == NetError::NET_OK )
-	{
-		StateTransition( KCHFSM::I_TO_AUTHENTICATED );
-	}
-	else
-	{
-		ReserveDestroy();
-	}
-}
-
-IMPL_ON_FUNC( ECH_SECURITY_AUTH_REQ )
-{
-	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
-
-	KECH_SECURITY_AUTH_ACK kPacket;
-
-	DWORD dwAuthFlag = KSimLayer::GetKObj()->GetAuthFlag();
-	if (KSimLayer::AF_INTERNAL == dwAuthFlag)
-	{
-		StateTransition( KCHFSM::I_TO_AUTHENTICATED );
-		kPacket.m_iOK = NetError::NET_OK;
-		SendPacket( ECH_SECURITY_AUTH_ACK, kPacket );
-	}
-
-	RequestPublisherSecurityAuth(kPacket_);
-}
-
-IMPL_ON_FUNC( EPUBLISHER_SECURITY_AUTH_ACK )
-{
-	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );	// 인증전에 요청되기에 S_INIT임
-
-	HandlePublisherSecurityAuthAck(kPacket_);
-}
-
-IMPL_ON_FUNC( EPUBLISHER_SECURITY_INFO_NOT )
-{
-	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );	// 인증전에 요청되기에 S_INIT임
-
-	HandlePublisherSecurityInfoNot(kPacket_);
-}
-
 #endif // SERV_GLOBAL_AUTH
 
 /*
@@ -1907,6 +1680,229 @@ IMPL_ON_FUNC( DBE_CREATE_SERVER_SN_ACK )
 #endif SERV_SERIAL_NUMBER_AVAILABILITY_CHECK
 //}}
 
+#ifdef SERV_GLOBAL_AUTH
+IMPL_ON_FUNC( EPUBLISHER_AUTHENTICATION_ACK )
+{
+    VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
+
+	// 국가별 특이 처리 추가 (국가별 넷에러값 처리)//
+	bool bDoNotDisconnect = false;
+
+#ifdef SERV_LOGIN_RESULT_INFO
+	ProcessLoginResultCount( kPacket_.m_iOK );			// 로그인 인증 결과 처리( 퍼블리셔 인증을 거치는 국가는 여기에서 처리 )
+#endif SERV_LOGIN_RESULT_INFO
+
+	HandlePublisherLoginAck(kPacket_, bDoNotDisconnect);
+		
+	if (kPacket_.m_iOK == NetError::NET_OK)				// 퍼블리셔 인증 성공
+	{
+		KDBE_CH_USER_GENERAL_LOGIN_REQ kPacketReq;
+		kPacketReq.m_wstrServiceAccountID = kPacket_.m_wstrID;
+		kPacketReq.m_uiPublisherUID = kPacket_.m_uiPublisherUID;
+		kPacketReq.m_wstrIP = KncUtil::toWideString(KSession::GetIPStr());
+		kPacketReq.m_iChannelingCode = kPacket_.m_iChannelingCode;
+#ifdef SERV_ANTI_ADDICTION_SYSTEM
+		kPacketReq.m_uiAccountType = kPacket_.m_uiAccountType;
+#endif SERV_ANTI_ADDICTION_SYSTEM
+
+#ifdef SERV_PURCHASE_TOKEN
+		kPacketReq.m_wstrPurchaseTok = kPacket_.wstrPurchTok;
+#endif SERV_PURCHASE_TOKEN
+		kPacketReq.m_bServerUseKogOTP = KSimLayer::GetKObj()->GetUseKogOTP();
+#ifdef SERV_COUNTRY_TH
+		SetMasterID( kPacket_.m_wstrMasterID );
+		SetSocketID( kPacket_.m_wstrSocketID );
+		kPacketReq.m_wstrMasterID = kPacket_.m_wstrMasterID;
+		kPacketReq.m_wstrSocketID = kPacket_.m_wstrSocketID;
+#endif // SERV_COUNTRY_TH
+
+		SendToAccountDB( DBE_CH_USER_GENERAL_LOGIN_REQ, kPacketReq );
+	}
+	else												// 퍼블리셔 인증 실패
+	{
+		KECH_VERIFY_ACCOUNT_ACK kPacketAck;
+		kPacketAck.m_iOK = kPacket_.m_iOK;
+		kPacketAck.m_wstrUserID = L"";
+		//	kPacketAck.m_iUserUID = kPacket_.m_iUserUID;
+		kPacketAck.m_wstrPassport = L"";
+#ifdef SERV_PURCHASE_TOKEN
+		kPacketAck.m_wstrPurchaseTok = L"";
+#endif SERV_PURCHASE_TOKEN
+
+#ifdef SERV_LOGIN_TOU // 약관 미동의로 로그인 실패 시에 사용함
+		kPacketAck.m_strAgreementURL = kPacket_.m_strAgreementURL;
+#endif //SERV_LOGIN_TOU
+
+		// Client ACK 날림 //
+		SendPacket( ECH_VERIFY_ACCOUNT_ACK, kPacketAck );
+		
+		if (bDoNotDisconnect)
+		{
+			// 패스워드 잘못 입력했을 때에는 끊지 않는다.
+			START_LOG( clog2, L"아이디 또는 패스워드 다름 또는 GF 계정 인증 안된 것임. (접속 안 끊음)" );
+		}
+		else
+		{
+			ReserveDestroy();
+		}
+	}	
+}
+
+IMPL_ON_FUNC( DBE_CH_USER_GENERAL_LOGIN_ACK )
+{
+	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
+	
+	KECH_VERIFY_ACCOUNT_ACK kPacketAck;
+
+	kPacketAck.m_iOK = kPacket_.m_iOK;
+	kPacketAck.m_wstrUserID = kPacket_.m_wstrUserID;
+	kPacketAck.m_iUserUID = kPacket_.m_iUserUID;
+	kPacketAck.m_wstrPassport = kPacket_.m_wstrOTP;
+	kPacketAck.m_iChannelingCode = kPacket_.m_iChannelingCode;
+#ifdef SERV_PURCHASE_TOKEN
+	kPacketAck.m_wstrPurchaseTok = kPacket_.m_wstrPurchaseTok;
+#endif SERV_PURCHASE_TOKEN
+#ifndef SERV_SERVER_TIME_GET
+#ifdef SERV_MASSFILE_MAPPING_FUNCTION
+	CTime tCurrent = CTime::GetCurrentTime();
+	kPacketAck.m_wstrCurrentTime = ( CStringW )tCurrent.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
+#endif SERV_MASSFILE_MAPPING_FUNCTION
+#endif SERV_SERVER_TIME_GET
+
+#ifdef SERV_COUNTRY_TH
+	kPacketAck.m_wstrSocketID = GetSocketID();
+#endif //SERV_COUNTRY_TH
+	
+	START_LOG( clog, L"[테스트 로그] Send Packet Token 정상 확인" )
+		<< BUILD_LOG( kPacketAck.m_iOK )
+#ifndef SERV_PRIVACY_AGREEMENT
+		<< BUILD_LOG( kPacketAck.m_wstrUserID )
+#endif SERV_PRIVACY_AGREEMENT
+		<< BUILD_LOG( kPacketAck.m_iUserUID )
+		<< BUILD_LOG( kPacketAck.m_wstrPassport )
+		<< BUILD_LOG( kPacketAck.m_wstrPurchaseTok )
+		<< END_LOG;
+
+	SendPacket( ECH_VERIFY_ACCOUNT_ACK, kPacketAck );
+
+#ifdef SERV_LOGIN_RESULT_INFO
+	// 사내 인증 또는 퍼블리셔 인증 서버로부터 인증받지 않고 자체 인증하는 경우(인도네시아, 필리핀)는 여기서 로그인 카운트 올림
+	// 인도네시아, 필리핀은 EPUBLISHER_AUTHENTICATION_ACK 이벤트를 거치지 않기에 여기서 로그인 카운트 올림
+	DWORD dwAuthFlag = KSimLayer::GetKObj()->GetAuthFlag();
+
+	if( KSimLayer::AF_INTERNAL == dwAuthFlag )							// 사내 로그인 인증 결과 처리
+	{
+		ProcessLoginResultCount( kPacket_.m_iOK );
+	}
+#if defined( SERV_COUNTRY_ID ) || defined( SERV_COUNTRY_PH )
+	else																// 인도네시아, 필리핀 로그인 인증 결과 처리
+	{
+		ProcessLoginResultCount( kPacket_.m_iOK );
+	}
+#endif // defined( SERV_COUNTRY_ID ) || defined( SERV_COUNTRY_PH )
+#endif SERV_LOGIN_RESULT_INFO
+
+	if( kPacket_.m_iOK == NetError::NET_OK )
+	{
+		StateTransition( KCHFSM::I_TO_AUTHENTICATED );
+		
+		//{{ 2011.03.16  임규수 IP 블록 거래 차단
+#ifdef SERV_IP_TRADE_BLOCK
+		KDBE_IP_CHECK_LIST_NOT kPacketNot;
+		kPacketNot.m_wstrID = kPacket_.m_wstrUserID;
+		//kPacketNot.iUserUID = kPacket_.m_iUserUID;
+		kPacketNot.strIP = GetIPStr();
+
+		START_LOG( clog, L"[테스트 로그] 유저 UID" )
+#ifdef SERV_PRIVACY_AGREEMENT
+			<< BUILD_LOG( GetUID() )
+#else
+			<< BUILD_LOG( kPacketNot.m_wstrID )
+			<< BUILD_LOG( GetIPStr() )
+#endif SERV_PRIVACY_AGREEMENT
+			<< END_LOG;
+
+		SendToAccountDB(DBE_IP_CHECK_LIST_NOT, kPacketNot);
+#endif SERV_IP_TRADE_BLOCK
+		//}}
+	}
+	else
+	{
+		ReserveDestroy();
+	}
+}
+
+IMPL_ON_FUNC( DBE_CH_USER_KOGOTP_LOGIN_ACK )
+{
+	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
+
+	// 국가별 특이 처리 있는 경우 사용
+	HandleKOGOTPLoginAck();
+
+
+	KECH_VERIFY_ACCOUNT_ACK kPacketAck;
+
+	kPacketAck.m_iOK = kPacket_.m_iOK;
+	kPacketAck.m_wstrUserID = kPacket_.m_wstrUserID;
+	kPacketAck.m_iUserUID = kPacket_.m_iUserUID;
+	kPacketAck.m_wstrPassport = kPacket_.m_wstrOTP;
+#ifdef SERV_PURCHASE_TOKEN
+	kPacketAck.m_wstrPurchaseTok = L"";	// 토큰 값은 GENERAL_LOGIN에서 받음. 여기선 NULL 세팅 
+#endif SERV_PURCHASE_TOKEN
+
+	START_LOG( clog, L"[테스트 로그] Send Packet Token 정상 확인" )
+		<< BUILD_LOG( kPacketAck.m_iOK )
+		<< BUILD_LOG( kPacketAck.m_wstrUserID )
+		<< BUILD_LOG( kPacketAck.m_iUserUID )
+		<< BUILD_LOG( kPacketAck.m_wstrPassport )
+		<< BUILD_LOG( kPacketAck.m_wstrPurchaseTok )
+		<< END_LOG;
+
+	SendPacket( ECH_VERIFY_ACCOUNT_ACK, kPacketAck );
+
+    if( kPacket_.m_iOK == NetError::NET_OK )
+    {
+        StateTransition( KCHFSM::I_TO_AUTHENTICATED );
+    }
+    else
+    {
+        ReserveDestroy();
+    }
+}
+
+IMPL_ON_FUNC( ECH_SECURITY_AUTH_REQ )
+{
+	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );
+
+	KECH_SECURITY_AUTH_ACK kPacket;
+
+	DWORD dwAuthFlag = KSimLayer::GetKObj()->GetAuthFlag();
+	if (KSimLayer::AF_INTERNAL == dwAuthFlag)
+	{
+		StateTransition( KCHFSM::I_TO_AUTHENTICATED );
+		kPacket.m_iOK = NetError::NET_OK;
+		SendPacket( ECH_SECURITY_AUTH_ACK, kPacket );
+	}
+
+	RequestPublisherSecurityAuth(kPacket_);
+}
+
+IMPL_ON_FUNC( EPUBLISHER_SECURITY_AUTH_ACK )
+{
+	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );	// 인증전에 요청되기에 S_INIT임
+
+	HandlePublisherSecurityAuthAck(kPacket_);
+}
+
+IMPL_ON_FUNC( EPUBLISHER_SECURITY_INFO_NOT )
+{
+	VERIFY_STATE( ( 1, KCHFSM::S_INIT ) );	// 인증전에 요청되기에 S_INIT임
+
+	HandlePublisherSecurityInfoNot(kPacket_);
+}
+
+#endif // SERV_GLOBAL_AUTH
+
 #ifdef SERVER_GROUP_UI_ADVANCED
 IMPL_ON_FUNC_NOPARAM( ECH_GET_SERVERGROUP_LIST_REQ )
 {
@@ -1975,6 +1971,12 @@ void KChannelUser::ProcessLoginResultCount( IN const int iResult )
 	case NetError::ERR_GIANT_VERIFY_04:
 	case NetError::ERR_GASH_17:	
 	case NetError::ERR_VERIFY_11:	
+#ifdef SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
+	case NetError::ERR_ACCOUNT_BLOCK_01:	
+	case NetError::ERR_ACCOUNT_BLOCK_02:	
+	case NetError::ERR_ACCOUNT_BLOCK_03:	
+	case NetError::ERR_ACCOUNT_BLOCK_04:	
+#endif //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
 		GetKChannelServer()->PlusLoginResultCount(KLoginResultInfo::LRTE_FAIL_ACCOUNT_BLOCK);
 		break;
 	case NetError::ERR_GIANT_VERIFY_03:

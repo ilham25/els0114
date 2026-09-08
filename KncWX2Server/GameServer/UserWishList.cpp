@@ -3,10 +3,13 @@
 #include "NetError.h"
 #include "../common/X2Data/XSLCashItemManager.h"
 
+#ifdef SERV_WISH_LIST_NO_ITEM
+#include "X2Data/XSLItemManager.h"
+#endif //SERV_WISH_LIST_NO_ITEM		
+
 #ifdef SERV_WISH_LIST_BUG_FIX
 #include "BillManager.h"
 #endif //SERV_WISH_LIST_BUG_FIX
-
 
 KUserWishList::KUserWishList(void)
 {
@@ -33,6 +36,13 @@ void KUserWishList::InitWishList( const std::map< int, int >& mapWishList )
 		{
 			vecNoSaleProduct.push_back( mit->second );
 		}
+#ifdef SERV_WISH_LIST_NO_ITEM
+		// 찜리스트불가 아이템이면 찜리스트에서 삭제한다.
+		if( SiCXSLItemManager()->IsWishListNoItem( mit->second ) )
+		{
+			vecNoSaleProduct.push_back( mit->second );
+		}
+#endif //SERV_WISH_LIST_NO_ITEM
 	}
 
 	//{{ 2008. 5. 15  최육사  판매중인 상품이 아닐경우 찜에서 빼는 작업
@@ -61,7 +71,11 @@ void KUserWishList::GetWishList( std::map< int, int >& mapWishList )
 
 		std::set<int> setSellCashItemList = SiKBillManager()->GetSellCashItemList();	// 현재 팔고 있는 캐쉬아이템 리스트를 가져옴.
 
-		if( setSellCashItemList.find( nProductID ) == setSellCashItemList.end())
+		if( setSellCashItemList.find( nProductID ) == setSellCashItemList.end()
+#ifdef SERV_WISH_LIST_NO_ITEM
+			|| SiCXSLItemManager()->IsWishListNoItem( nProductID )
+#endif //SERV_WISH_LIST_NO_ITEM			
+			)
 		{
 			if( !DelWish( nProductID ) )												// 주의! DelWish()하고 나면 m_arrWishList[iIdx].GetSlotData()의 값이 바뀜.
 			{																			// 예) m_arrWishList[1]의 데이터가 m_arrWishList[0]으로 이동함.

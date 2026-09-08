@@ -113,19 +113,11 @@ HRESULT CX2UIQuestReceive::OnFrameMove( double fTime, float fElapsedTime )
 	if(m_pDLGUIQuestReceive != NULL && m_pDLGUIQuestClear == NULL 
 		&& false == g_pKTDXApp->GetDGManager()->GetDialogManager()->CheckFrontModalDlg( m_pDLGUIQuestReceive ) )	// 앞에 모달 다이얼로그가 없으면
 	{
-#ifdef REFORM_UI_KEYPAD
 		if ( GET_KEY_STATE( GA_UP ) == TRUE )
-#else
-		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_UP ) == TRUE )
-#endif
 		{
 			SelectNextQuest(false);
 		}
-#ifdef REFORM_UI_KEYPAD
 		else ( GET_KEY_STATE( GA_DOWN ) == TRUE )
-#else
-		else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_DOWN ) == TRUE )
-#endif
 		{
 			SelectNextQuest(true);
 		}
@@ -852,7 +844,7 @@ bool CX2UIQuestReceive::Handler_EGS_QUEST_COMPLETE_ACK( HWND hWnd, UINT uMsg, WP
 			g_pData->GetQuestManager()->RemoveUnitQuest( kEvent.m_kCompleteQuestInfo.m_iQuestID, true );
 
 			g_pData->GetMyUser()->GetSelectUnit()->Reset( kEvent.m_kUpdateUnitInfo.m_kUnitInfo );
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
 			if( NULL != g_pData->GetUIManager()->GetUIInventory() )
 			{
 				g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
@@ -932,7 +924,7 @@ bool CX2UIQuestReceive::Handler_EGS_QUEST_COMPLETE_ACK( HWND hWnd, UINT uMsg, WP
 			g_pData->GetQuestManager()->RemoveUnitQuest( kEvent.m_iQuestID, true );
 
 			g_pData->GetMyUser()->GetSelectUnit()->Reset( kEvent.m_kUpdateUnitInfo.m_kUnitInfo );
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
 			if( NULL != g_pData->GetUIManager()->GetUIInventory() )
 			{
 				g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_kUpdateUnitInfo.m_vecKInventorySlotInfo );
@@ -1136,7 +1128,7 @@ bool CX2UIQuestReceive::Handler_EGS_NEW_QUEST_NOT( HWND hWnd, UINT uMsg, WPARAM 
 
 	//{{ 2010. 10. 26	최육사	퀘스트 조건 추가
 #ifdef SERV_QUEST_CLEAR_EXPAND
-	g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );
 	if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 	{
 		g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );
@@ -1766,13 +1758,13 @@ void CX2UIQuestReceive::SetRewardItemSlot()
 				}
 				if(pItemTemplet != NULL)
 				{
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-					pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-					pItemData->m_SocketOption.push_back(itemData.m_iSocketOption1);
-					pItemData->m_ItemID = itemData.m_iItemID;
-					pItemData->m_Period = itemData.m_iPeriod;
-					pItemData->m_Endurance = pItemTemplet->GetEndurance();
-					CX2Item* pItem = new CX2Item(pItemData, NULL);
+					CX2Item::ItemData kItemData;
+					kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+					kItemData.m_SocketOption.push_back(itemData.m_iSocketOption1);
+					kItemData.m_ItemID = itemData.m_iItemID;
+					kItemData.m_Period = itemData.m_iPeriod;
+					kItemData.m_Endurance = pItemTemplet->GetEndurance();
+					CX2Item* pItem = new CX2Item( kItemData, NULL);
 					if ( pItem != NULL )
 					{
 						if ( pSlotItem != NULL )
@@ -1829,13 +1821,13 @@ void CX2UIQuestReceive::SetRewardItemSlot()
 				}
 				if(pItemTemplet != NULL)
 				{
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-					pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-					pItemData->m_SocketOption.push_back(itemData.m_iSocketOption1);
-					pItemData->m_ItemID = itemData.m_iItemID;
-					pItemData->m_Period = itemData.m_iPeriod;
-					pItemData->m_Endurance = pItemTemplet->GetEndurance();
-					CX2Item* pItem = new CX2Item(pItemData, NULL);
+					CX2Item::ItemData kItemData;
+					kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+					kItemData.m_SocketOption.push_back(itemData.m_iSocketOption1);
+					kItemData.m_ItemID = itemData.m_iItemID;
+					kItemData.m_Period = itemData.m_iPeriod;
+					kItemData.m_Endurance = pItemTemplet->GetEndurance();
+					CX2Item* pItem = new CX2Item( kItemData, NULL);
 					if ( pItem != NULL )
 					{
 						if ( pSlotItem != NULL )
@@ -1893,7 +1885,7 @@ wstring CX2UIQuestReceive::GetSlotItemDesc()
 		}
 		else
 		{	
-			CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( 
+			CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( 
 				m_pNowOverItemSlot->GetItemUID() );
 			if ( pkItem != NULL )
 				itemDesc = GetSlotItemDescByUID( m_pNowOverItemSlot->GetItemUID() );
@@ -1904,23 +1896,22 @@ wstring CX2UIQuestReceive::GetSlotItemDesc()
 				mit = m_mapItemIDAndSocketID.find( m_pNowOverItemSlot->GetItemTID() );
 				if ( mit != m_mapItemIDAndSocketID.end() )
 				{
-
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
 					const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( m_pNowOverItemSlot->GetItemTID() );
 					if ( pItemTemplet != NULL )
 					{
-						pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-						pItemData->m_Endurance = pItemTemplet->GetEndurance();
+					    CX2Item::ItemData kItemData;
+						kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+						kItemData.m_Endurance = pItemTemplet->GetEndurance();
 						int socketID = mit->second; 
-						pItemData->m_SocketOption.push_back( (short)socketID );
-						pItemData->m_ItemID = m_pNowOverItemSlot->GetItemTID();
+						kItemData.m_SocketOption.push_back( (short)socketID );
+						kItemData.m_ItemID = m_pNowOverItemSlot->GetItemTID();
 #ifdef QUEST_REWARD_PERIOD
 						if(m_pNowOverItemSlot->GetPeriod() != 0)
 						{
-							pItemData->m_Period = m_pNowOverItemSlot->GetPeriod();
+							kItemData.m_Period = m_pNowOverItemSlot->GetPeriod();
 						}
 #endif QUEST_REWARD_PERIOD
-						CX2Item* pItem = new CX2Item( pItemData, NULL );
+						CX2Item* pItem = new CX2Item( kItemData, NULL );
 						itemDesc = GetSlotItemDescByTID( pItem, m_pNowOverItemSlot->GetItemTID() );
 						SAFE_DELETE( pItem );
 					}
@@ -1929,15 +1920,15 @@ wstring CX2UIQuestReceive::GetSlotItemDesc()
 #ifdef QUEST_REWARD_PERIOD	
 				else if(m_pNowOverItemSlot->GetPeriod() != 0)
 				{
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
 					const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( m_pNowOverItemSlot->GetItemTID() );
 					if ( pItemTemplet != NULL )
 					{
-						pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-						pItemData->m_Period = m_pNowOverItemSlot->GetPeriod();
-						pItemData->m_Endurance = pItemTemplet->GetEndurance();
-						pItemData->m_ItemID = m_pNowOverItemSlot->GetItemTID();
-						CX2Item* pItem = new CX2Item( pItemData, NULL );
+					    CX2Item::ItemData kItemData;
+						kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+						kItemData.m_Period = m_pNowOverItemSlot->GetPeriod();
+						kItemData.m_Endurance = pItemTemplet->GetEndurance();
+						kItemData.m_ItemID = m_pNowOverItemSlot->GetItemTID();
+						CX2Item* pItem = new CX2Item( kItemData, NULL );
 						itemDesc = GetSlotItemDescByTID( pItem, m_pNowOverItemSlot->GetItemTID() );
 						SAFE_DELETE( pItem );
 					}
@@ -2207,17 +2198,17 @@ void CX2UIQuestReceive::OpenRewardItemInfoPopup( bool bOpen, D3DXVECTOR2 vPos, i
 		const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( iItemID );
 		if ( pItemTemplet != NULL )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-			pItemData->m_Endurance = pItemTemplet->GetEndurance();
-			pItemData->m_ItemID = iItemID;
+			CX2Item::ItemData kItemData;
+			kItemData.m_Endurance = pItemTemplet->GetEndurance();
+			kItemData.m_ItemID = iItemID;
 #ifdef QUEST_REWARD_PERIOD
 			if( Period != 0 )
 			{
-				pItemData->m_Period = Period;
+				kItemData.m_Period = Period;
 			}
 #endif QUEST_REWARD_PERIOD
-			pItemData->m_SocketOption.push_back( socketID );
-			pItem = new CX2Item( pItemData, NULL );
+			kItemData.m_SocketOption.push_back( socketID );
+			pItem = new CX2Item( kItemData, NULL );
 		}
 	}
 #ifdef QUEST_REWARD_PERIOD
@@ -2226,11 +2217,11 @@ void CX2UIQuestReceive::OpenRewardItemInfoPopup( bool bOpen, D3DXVECTOR2 vPos, i
 		const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( iItemID );
 		if ( pItemTemplet != NULL )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-			pItemData->m_Endurance = pItemTemplet->GetEndurance();
-			pItemData->m_ItemID = iItemID;
-			pItemData->m_Period = Period;
-			pItem = new CX2Item( pItemData, NULL );
+			CX2Item::ItemData kItemData;
+			kItemData.m_Endurance = pItemTemplet->GetEndurance();
+			kItemData.m_ItemID = iItemID;
+			kItemData.m_Period = Period;
+			pItem = new CX2Item( kItemData, NULL );
 		}
 	}
 #endif QUEST_REWARD_PERIOD
@@ -2714,7 +2705,7 @@ void CX2UIQuestReceive::UpdateNewQuestNotice()
 	std::map<CX2UnitManager::NPC_UNIT_ID, SEnum::VILLAGE_MAP_ID> mapNPCID;
 	mapNPCID.clear();
 	
-	for(int LID = (int)CX2LocationManager::LMI_VELDER_NORTH; 
+	for(int LID = (int)CX2LocationManager::LMI_RUBEN; 
 		g_pData->GetLocationManager()->GetLocalMapTemplet((CX2LocationManager::LOCAL_MAP_ID)LID) != NULL; 
 		++LID)
 	{
@@ -3025,9 +3016,6 @@ void CX2UIQuestReceive::UpdateNewQuestNotice()
 	}
 
 	// 8. 미니맵 쪽으로 쏴준다.	(포인터 유효성은 시작할 때 검사)
-#ifndef REFORM_UI_MINIMAP
-	g_pInstanceData->GetMiniMapUI()->UpdateQuestNotice( iQuestNum, TopQuestID, (int)VID );	
-#endif
 
 }
 
@@ -3060,7 +3048,7 @@ bool CX2UIQuestReceive::CanIAcceptQuest( int iQuestID )
 
 	if( -1 != pQuestTemplet->m_Condition.m_iConditionItemID && pQuestTemplet->m_Condition.m_iConditionItemNum > 0 )
 	{
-		int iItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( pQuestTemplet->m_Condition.m_iConditionItemID );
+		int iItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( pQuestTemplet->m_Condition.m_iConditionItemID );
 		if( iItemCount < pQuestTemplet->m_Condition.m_iConditionItemNum )
 		{
 			return false;

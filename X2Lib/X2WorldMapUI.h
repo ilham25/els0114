@@ -40,13 +40,11 @@ public:
 		WMUCM_BILLBOARD_MOUSE_OVER,
 		WMUCM_BILLBOARD_MOUSE_OUT,
 
-//#ifdef REFORM_UI_WORLDMAP
 		WMUCM_VILLAGE_MOUSE_OVER,
 		WMUCM_VILLAGE_MOUSE_OUT,
 		WMUCM_FIELD_RIGHT_CLICK,
 		WMUCM_NAVI_FIELD_MAP_STOP_DRAGGING,
 		WMUCM_WORLD_RIGHT_CLICK,
-//#endif
 	};
 
 public:
@@ -80,10 +78,8 @@ public:
 	// 2009.03.21 김태완
 	wstring GetNPCQuestDesc( CX2UnitManager::NPC_UNIT_ID eNPCID );
 	
-#ifdef REFORM_UI_WORLDMAP
 	void UpdateNaviMap( IN D3DXVECTOR2& vPos_, IN CKTDGUINavigation* pNavi_ );
 	bool GetDragNaviMap();
-#endif
 	void CloseWorldMapUI()
 	{
 		if( true == GetShow() )
@@ -97,6 +93,10 @@ public:
 #ifdef FIX_WORLD_MAP_UI_BUG
 	void SetZoomed( bool bVal_ ) { m_bZoomed = bVal_; }		/// 마을, 휴식처, 필드 맵으로 확대 여부 설정
 #endif FIX_WORLD_MAP_UI_BUG
+
+#ifdef VILLAGE_MAP_FAST_RELOADING
+	void ReLoadingVillageMap();
+#endif //VILLAGE_MAP_FAST_RELOADING
 
 private:
 	CKTDXStage* m_pStage;
@@ -117,10 +117,8 @@ private:
 	// 2009.03.11 김태완
 	CKTDGUIDialogType m_pDLGMiscToolTip;
 
-#ifdef REFORM_UI_WORLDMAP
 	bool	m_bZoomed;			/// 마을, 휴식처, 필드 맵으로 확대 여부
 	bool	m_bBeforeField;		/// 월드맵 상태의 마우스 오른쪽 버튼 이벤트를 위한 플래그
-#endif
 
 
 };

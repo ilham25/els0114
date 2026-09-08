@@ -18,12 +18,24 @@ KHenirResultTable::~KHenirResultTable(void)
 
 ImplToStringW( KHenirResultTable )
 {
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-23	// 박세훈
+	size_t iChallangeRewardSize = 0;
+	for( TYPE_CHALLANGE_REWARD::const_iterator it = m_mapChallangeReward.begin(); it != m_mapChallangeReward.end(); ++it )
+	{
+		iChallangeRewardSize += it->second.size();
+	}
+#endif // SERV_HENIR_RENEWAL_2013
+
 	stm_	<< L"----------[ Henir Reward Table ]----------" << std::endl
 			<< TOSTRINGW( m_mapHenirReward.size() )
 			<< TOSTRINGW( m_mapRewardGroup.size() )			
 			//{{ 2011. 08. 22	최육사	헤니르 시공 개편
 #ifdef SERV_NEW_HENIR_TEST
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-23	// 박세훈
+			<< TOSTRINGW( iChallangeRewardSize )
+#else // SERV_HENIR_RENEWAL_2013
 			<< TOSTRINGW( m_mapChallangeReward.size() )
+#endif // SERV_HENIR_RENEWAL_2013
 #endif SERV_NEW_HENIR_TEST
 			//}}
 			<< TOSTRINGW( m_setResurrectionStage.size() )
@@ -193,6 +205,78 @@ bool KHenirResultTable::AddClearNotifyStage_LUA( IN int iStageCount )
 
 //{{ 2011. 08. 22	최육사	헤니르 시공 개편
 #ifdef SERV_NEW_HENIR_TEST
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-23	// 박세훈
+bool KHenirResultTable::AddHenirChallangeRewardInfo_LUA( IN char cHenirDungeonMode, IN int iStageID, IN int iItemID, IN int iQuantity )
+{
+	if( ( cHenirDungeonMode < 0 ) || ( iStageID < 0 ) || ( iItemID < 0 ) || ( iQuantity < 0 ) )
+	{
+		START_LOG( cerr, L"Henir 도전 보상 스크립트 파싱 실패!" )
+			<< BUILD_LOGc( cHenirDungeonMode )
+			<< BUILD_LOG( iStageID )
+			<< BUILD_LOG( iItemID )
+			<< BUILD_LOG( iQuantity )
+			<< END_LOG;
+		return false;
+	}
+
+	// 1. map 컨테이너에 해당 stage 정보가 있는가?
+	TYPE_CHALLANGE_REWARD::iterator mit = m_mapChallangeReward.find( iStageID );
+	if( mit == m_mapChallangeReward.end() )
+	{
+		// 없다면 추가하고 해당 위치를 받아온다.
+		std::vector< SHenirChallangeReward > vecChallangeReward;
+
+		std::pair< TYPE_CHALLANGE_REWARD::iterator, bool > pairResult = m_mapChallangeReward.insert( std::make_pair( iStageID, vecChallangeReward ) );
+		if( pairResult.second == false )
+		{
+			START_LOG( cerr, L"Henir 도전 보상 스크립트 파싱 실패!" )
+				<< BUILD_LOGc( cHenirDungeonMode )
+				<< BUILD_LOG( iStageID )
+				<< BUILD_LOG( iItemID )
+				<< BUILD_LOG( iQuantity )
+				<< END_LOG;
+			return false;
+		}
+
+		mit = pairResult.first;
+	}
+
+	std::vector< SHenirChallangeReward >& vecChallangeReward = mit->second;
+
+	// 2. vector 컨테이너에 해당 정보가 있는가?
+	std::vector< SHenirChallangeReward >::reverse_iterator rit = vecChallangeReward.rbegin();
+	for( ; rit != vecChallangeReward.rend(); ++rit )
+	{
+		if( rit->m_cHenirDungeonMode == cHenirDungeonMode )
+			break;
+	}
+
+	if( rit == vecChallangeReward.rend() )
+	{
+		// 없다면 추가하고 해당 위치를 받아온다.
+		SHenirChallangeReward kInfo;
+		kInfo.m_cHenirDungeonMode	= cHenirDungeonMode;
+		vecChallangeReward.push_back( kInfo );
+		rit = vecChallangeReward.rbegin();
+	}
+
+	if( rit->m_mapReward.find( iItemID ) != rit->m_mapReward.end() )
+	{
+		START_LOG( cerr, L"이미 등록된 Henir 도전 보상 정보입니다!" )
+			<< BUILD_LOGc( cHenirDungeonMode )
+			<< BUILD_LOG( iStageID )
+			<< BUILD_LOG( iItemID )
+			<< BUILD_LOG( iQuantity )
+			<< END_LOG;
+
+		return false;
+	}
+
+	rit->m_mapReward.insert( std::make_pair( iItemID, iQuantity ) );
+
+	return true;
+}
+#else // SERV_HENIR_RENEWAL_2013
 bool KHenirResultTable::AddHenirChallangeRewardInfo_LUA( IN int iStageID, IN int iItemID, IN int iQuantity )
 {
 	if( iStageID < 0  ||  iItemID < 0  ||  iQuantity < 0 )
@@ -230,6 +314,7 @@ bool KHenirResultTable::AddHenirChallangeRewardInfo_LUA( IN int iStageID, IN int
 
 	return true;
 }
+#endif // SERV_HENIR_RENEWAL_2013
 #endif SERV_NEW_HENIR_TEST
 //}}
 
@@ -436,6 +521,78 @@ bool KHenirResultTable::GetHenirRewardItem( IN int iStageCount, IN char cDungeon
 
 //{{ 2011. 08. 22	최육사	헤니르 시공 개편
 #ifdef SERV_NEW_HENIR_TEST
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-23	// 박세훈
+bool KHenirResultTable::GetHenirChallangeRewardItem( IN char cHenirDungeonMode, IN const int iStageID, IN OUT std::map< int, KItemInfo >& mapRewardItem ) const
+{
+	TYPE_CHALLANGE_REWARD::const_iterator mit = m_mapChallangeReward.find( iStageID );
+	if( mit == m_mapChallangeReward.end() )
+	{
+		START_LOG( cerr, L"해당 스테이지에 대한 도전 보상 정보가 없다." )
+			<< BUILD_LOG( iStageID )
+			<< END_LOG;
+		return false;
+	}
+
+	const std::vector< SHenirChallangeReward >& vecChallangeReward = mit->second;
+
+	std::vector< SHenirChallangeReward >::const_iterator vit = vecChallangeReward.begin();
+	for( ; vit != vecChallangeReward.end(); ++vit )
+	{
+		if( vit->m_cHenirDungeonMode == cHenirDungeonMode )
+			break;
+	}
+
+	if( vit == vecChallangeReward.end() )
+	{
+		START_LOG( cerr, L"해당 모드에 대한 도전 보상 정보가 없다." )
+			<< BUILD_LOGc( cHenirDungeonMode )
+			<< BUILD_LOG( iStageID )
+			<< END_LOG;
+
+		return false;
+	}
+
+	for( std::map< int, int >::const_iterator mitCR = vit->m_mapReward.begin(); mitCR != vit->m_mapReward.end(); ++mitCR )
+	{
+		const int iRewardItemID = mitCR->first;
+		const int iRewardQuantity = mitCR->second;
+
+		// 에러 로그를 막기위하여 0~9스테이지 보상을 넣었다(수량을 0 으로 하였으므로 예외처리한다.)
+		if( iRewardQuantity == 0 )
+			continue;
+
+		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( iRewardItemID );
+		if( pItemTemplet == NULL )
+		{
+			START_LOG( cerr, L"존재하지 않는 itemid인데 헤니르 보상으로 등록되어있네?" )
+				<< BUILD_LOGc( cHenirDungeonMode )
+				<< BUILD_LOG( iStageID )
+				<< BUILD_LOGc( iRewardItemID )
+				<< BUILD_LOG( iRewardItemID )
+				<< END_LOG;
+			continue;
+		}
+
+		// 보상 저장
+		std::map< int, KItemInfo >::iterator mitRI = mapRewardItem.find( iRewardItemID );
+		if( mitRI == mapRewardItem.end() )
+		{
+			KItemInfo kInfo;
+			kInfo.m_iItemID		  = iRewardItemID;
+			kInfo.m_cUsageType	  = pItemTemplet->m_PeriodType;
+			kInfo.m_iQuantity	  = iRewardQuantity;
+			kInfo.m_sEndurance	  = pItemTemplet->m_Endurance;
+			mapRewardItem.insert( std::make_pair( iRewardItemID, kInfo ) );
+		}
+		else
+		{
+			mitRI->second.m_iQuantity += iRewardQuantity;
+		}
+	}
+
+	return true;    
+}
+#else // SERV_HENIR_RENEWAL_2013
 bool KHenirResultTable::GetHenirChallangeRewardItem( IN const int iStageID, IN OUT std::map< int, KItemInfo >& mapRewardItem )
 {
 	std::map< int, SHenirChallangeReward >::const_iterator mit;
@@ -488,6 +645,7 @@ bool KHenirResultTable::GetHenirChallangeRewardItem( IN const int iStageID, IN O
 
 	return true;    
 }
+#endif // SERV_HENIR_RENEWAL_2013
 #endif SERV_NEW_HENIR_TEST
 //}}
 

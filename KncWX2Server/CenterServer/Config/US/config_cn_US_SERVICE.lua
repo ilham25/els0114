@@ -73,6 +73,7 @@ RoomManager:SetNumTrade( 300 )
 RoomManager:SetNumTrainingCenterRoom( 1500 )
 RoomManager:SetNumPersonalShop( 150 )
 RoomManager:SetNumBattleField( 1800 )
+RoomManager:SetNumWeddingHall( 300 )
 --RoomManager:SetNumArcadeRoom( 1000 ) -- 사용 안하는 방
 
 -- 좀비유저 체크 시간 설정 --

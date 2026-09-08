@@ -6,12 +6,6 @@
 #endif SERV_ENCHANTED_ITEM_CUBE_REWARD
 //}}
 
-//{{ 2012. 11. 05	박세훈	필드 런칭 이벤트 ( 천사의 깃털, 필드 전야 이벤트 재활용 )
-#ifdef SERV_FIELD_LAUNCHING_EVENT
-	#include "XSLSocketItem.h"
-#endif SERV_FIELD_LAUNCHING_EVENT
-//}}
-
 //{{ 2013. 04. 01	 인연 시스템 - 김민성
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	#include "Enum/Enum.h"
@@ -23,6 +17,8 @@
 	#include ".\xslitemmanager.h"
 //#endif SERV_EVENT_APINK
 //}}
+
+#include "XSLSquareUnit.h"
 
 CXSLItem::CXSLItem( ItemData* pItemData )
 {
@@ -140,17 +136,27 @@ char CXSLItem::GetCashItemChangeUnitClass( const int iItemID )
 	case CI_CHANGE_JOB_TACTICAL_TROOPER:	return CXSLUnit::UC_CHUNG_TACTICAL_TROOPER;
 #endif
 #ifdef SERV_ARA_CHANGE_CLASS_FIRST
-	case CI_CHANGE_JOB_LITTLE_HSIEN:	return CXSLUnit::UC_ARA_LITTLE_HSIEN;/// 소선
-	case CI_CHANGE_JOB_SAKRA_DEVANAM:	return CXSLUnit::UC_ARA_SAKRA_DEVANAM;/// 제천
+	case CI_CHANGE_JOB_LITTLE_HSIEN:	return CXSLUnit::UC_ARA_LITTLE_HSIEN;		/// 소선
+	case CI_CHANGE_JOB_SAKRA_DEVANAM:	return CXSLUnit::UC_ARA_SAKRA_DEVANAM;		/// 제천
 #endif //SERV_ARA_CHANGE_CLASS_FIRST
 #ifdef SERV_NEW_CHARACTER_EL
-	case CI_CHANGE_JOB_SABER_KNIGHT:	return CXSLUnit::UC_ELESIS_SABER_KNIGHT;/// 세이버 나이트
-	case CI_CHANGE_JOB_PYRO_KNIGHT:		return CXSLUnit::UC_ELESIS_PYRO_KNIGHT;/// 파이로 나이트
+	case CI_CHANGE_JOB_SABER_KNIGHT:	return CXSLUnit::UC_ELESIS_SABER_KNIGHT;	/// 세이버 나이트
+	case CI_CHANGE_JOB_PYRO_KNIGHT:		return CXSLUnit::UC_ELESIS_PYRO_KNIGHT;		/// 파이로 나이트
 #endif //SERV_NEW_CHARACTER_EL
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
-	case CI_CHANGE_JOB_LITTLE_DEVIL:	return CXSLUnit::UC_ARA_LITTLE_DEVIL;/// 소마
-	case CI_CHANGE_JOB_YAMA_RAJA:			return CXSLUnit::UC_ARA_YAMA_RAJA;/// 명왕
+	case CI_CHANGE_JOB_LITTLE_DEVIL:	return CXSLUnit::UC_ARA_LITTLE_DEVIL;		/// 소마
+	case CI_CHANGE_JOB_YAMA_RAJA:			return CXSLUnit::UC_ARA_YAMA_RAJA;		/// 명왕
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case CI_CHANGE_JOB_GRAND_MASTER:	return CXSLUnit::UC_ELESIS_GRAND_MASTER;	/// 그렌드 마스터
+	case CI_CHANGE_JOB_BLAZING_HEART:	return CXSLUnit::UC_ELESIS_BLAZING_HEART;	/// 블레이징 하트
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CI_CHANGE_JOB_PSYCHIC_TRACER:	return CXSLUnit::UC_ADD_PSYCHIC_TRACER;		/// 사이킥 트레이서
+#endif //SERV_9TH_NEW_CHARACTER
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CI_CHANGE_JOB_LUNATIC_PSYKER:	return CXSLUnit::UC_ADD_LUNATIC_PSYKER;		/// 루나틱 사이커
+#endif //SERV_ADD_LUNATIC_PSYKER
 	}
 
 	return CXSLUnit::UC_NONE;
@@ -236,17 +242,27 @@ int CXSLItem::GetCashItemByUnitClass( const char cUnitClass )
 	case CXSLUnit::UC_CHUNG_TACTICAL_TROOPER:	return CI_CHANGE_JOB_TACTICAL_TROOPER;
 #endif
 #ifdef SERV_ARA_CHANGE_CLASS_FIRST
-	case CXSLUnit::UC_ARA_LITTLE_HSIEN: return CI_CHANGE_JOB_LITTLE_HSIEN;/// 소선
-	case CXSLUnit::UC_ARA_SAKRA_DEVANAM: return CI_CHANGE_JOB_SAKRA_DEVANAM;/// 제천
+	case CXSLUnit::UC_ARA_LITTLE_HSIEN: return CI_CHANGE_JOB_LITTLE_HSIEN;				/// 소선
+	case CXSLUnit::UC_ARA_SAKRA_DEVANAM: return CI_CHANGE_JOB_SAKRA_DEVANAM;			/// 제천
 #endif //SERV_ARA_CHANGE_CLASS_FIRST
 #ifdef SERV_NEW_CHARACTER_EL
-	case CXSLUnit::UC_ELESIS_SABER_KNIGHT:		return CI_CHANGE_JOB_SABER_KNIGHT;/// 세이버 나이트
-	case CXSLUnit::UC_ELESIS_PYRO_KNIGHT:		return CI_CHANGE_JOB_PYRO_KNIGHT; /// 파이로 나이트
+	case CXSLUnit::UC_ELESIS_SABER_KNIGHT:		return CI_CHANGE_JOB_SABER_KNIGHT;		/// 세이버 나이트
+	case CXSLUnit::UC_ELESIS_PYRO_KNIGHT:		return CI_CHANGE_JOB_PYRO_KNIGHT;		/// 파이로 나이트
 #endif //SERV_NEW_CHARACTER_EL
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
-	case CXSLUnit::UC_ARA_LITTLE_DEVIL:			return CI_CHANGE_JOB_LITTLE_DEVIL;/// 소마
-	case CXSLUnit::UC_ARA_YAMA_RAJA:			return CI_CHANGE_JOB_YAMA_RAJA;/// 명왕
+	case CXSLUnit::UC_ARA_LITTLE_DEVIL:			return CI_CHANGE_JOB_LITTLE_DEVIL;		/// 소마
+	case CXSLUnit::UC_ARA_YAMA_RAJA:			return CI_CHANGE_JOB_YAMA_RAJA;			/// 명왕
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case CXSLUnit::UC_ELESIS_GRAND_MASTER:		return CI_CHANGE_JOB_GRAND_MASTER;		/// 그랜드 마스터
+	case CXSLUnit::UC_ELESIS_BLAZING_HEART:		return CI_CHANGE_JOB_BLAZING_HEART;		/// 블레이징 하트
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CXSLUnit::UC_ADD_PSYCHIC_TRACER:		return CI_CHANGE_JOB_PSYCHIC_TRACER;	/// 애드
+#endif //SERV_9TH_NEW_CHARACTER
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CXSLUnit::UC_ADD_LUNATIC_PSYKER:		return CI_CHANGE_JOB_LUNATIC_PSYKER;	/// 애드
+#endif //SERV_ADD_LUNATIC_PSYKER
 	}
 
 	return 0;
@@ -275,6 +291,80 @@ bool CXSLItem::IsPcBangOnlyCashItem( const int iItemID )
 }
 //}}
 
+#ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
+bool CXSLItem::IsKeepItemShowItem( const int iItemID )
+{
+	switch( iItemID )
+	{
+		case EI_SERVICE_COUPON_TYPE_A_PACKAGE:	 // 맞춤 서비스 쿠폰 Type A 패키지 
+		case EI_SERVICE_COUPON_TYPE_B_PACKAGE: 	 // 맞춤 서비스 쿠폰 Type B 패키지
+		case EI_SERVICE_COUPON_TYPE_C_PACKAGE: 	 // 맞춤 서비스 쿠폰 Type C 패키지
+			return true;
+	}
+
+	return false;
+}
+
+bool CXSLItem::IsKeepItemShowItem2( const int iItemID )
+{
+	switch( iItemID )
+	{
+	case EI_ARA_SPECIAL_ATTRACTION_PACKAGE:		// 아라 스페셜 가열기 패키지
+	case EI_ARA_SPECIAL_AVATAR1_PACKAGE:		// 아라 스페셜 아바타 패키지1
+	case EI_ARA_SPECIAL_AVATAR2_PACKAGE:		// 아라 스페셜 아바타 패키지2
+	case EI_ARA_SPECIAL_PET_PACKAGE:			// 아라 스페셜 펫 패키지
+		return true;
+	}
+
+	return false;
+}
+
+bool CXSLItem::IsKeepItemShowItem3( const int iItemID )
+{
+	switch( iItemID )
+	{
+	case EI_SPECIAL_PRESENT_COPPER_KEY:
+		return true;
+	}
+
+	return false;
+}
+
+bool CXSLItem::IsKeepItemShowItem4( const int iItemID )
+{
+	switch( iItemID )
+	{
+	case EI_SPECIAL_PRESENT_SILVER_KEY:
+		return true;
+	}
+
+	return false;
+}
+
+bool CXSLItem::IsKeepItemShowItem5( const int iItemID )
+{
+	switch( iItemID )
+	{
+	case EI_SPECIAL_PRESENT_GOLD_KEY:
+		return true;
+	}
+
+	return false;
+}
+
+bool CXSLItem::IsKeepItemShowItem6( const int iItemID )
+{
+	switch( iItemID )
+	{
+	case EI_SPECIAL_HEAVENLY_BOSS_RARE:
+		return true;
+	}
+
+	return false;
+}
+#endif //SERV_KEEP_ITEM_SHOW_CASHSHOP
+
+#ifndef DELETE_EXCEPTION_WISHLIST_CHANGEJOBITEM //캐시샾 찜하기에서 전직 아이템에 대해 예외처리 해제.
 //{{ 캐시샵 찜하기 문제 임시 처리
 //{{ 2010. 03. 30  김정협 전직아이템인지 확인하는 함수
 bool CXSLItem::IsChangeJobItem( const int iItemID )
@@ -296,9 +386,48 @@ bool CXSLItem::IsChangeJobItem( const int iItemID )
 	case CI_CHANGE_JOB_FURY_GUARDIAN:
 	case CI_CHANGE_JOB_SHOOTER_GUARDIAN:
 		//}} kimhc // 2011.1.3 // 청 1차 전직
+
+		//{{ 트랜스폼 1차
+#ifdef SERV_ELSWORD_SHEATH_KNIGHT
+	case CI_CHANGE_JOB_SHEATH_KNIGHT:
+#endif SERV_ELSWORD_SHEATH_KNIGHT
+#ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
+	case CI_CHANGE_JOB_BATTLE_MAGICIAN:
+#endif SERV_ADD_ARME_BATTLE_MAGICIAN
+#ifdef SERV_TRAPPING_RANGER_TEST
+	case CI_CHANGE_JOB_TRAPPING_RANGER:
+#endif SERV_TRAPPING_RANGER_TEST
+#ifdef SERV_RAVEN_WEAPON_TAKER
+	case CI_CHANGE_JOB_WEAPON_TAKER:
+#endif SERV_RAVEN_WEAPON_TAKER
+#ifdef SERV_EVE_ELECTRA
+	case CI_CHANGE_JOB_EVE_ELECTRA:
+#endif SERV_EVE_ELECTRA
+#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
+	case CI_CHANGE_JOB_SHELLING_GUARDIAN:
+#endif
+		//}} 트랜스폼 1차
+
+		//{{ 소선
+#ifdef SERV_ARA_CHANGE_CLASS_FIRST
+	case CI_CHANGE_JOB_LITTLE_HSIEN:
+#endif //SERV_ARA_CHANGE_CLASS_FIRST
+		//}} 소선
+
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case CI_CHANGE_JOB_LITTLE_DEVIL:
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+		//{{ 엘리1차
+#ifdef SERV_NEW_CHARACTER_EL
+	case CI_CHANGE_JOB_SABER_KNIGHT:
+	case CI_CHANGE_JOB_PYRO_KNIGHT:
+#endif //SERV_NEW_CHARACTER_EL
+		//}} 엘리1차
+		
+#ifdef SERV_9TH_NEW_CHARACTER	// 해외팀 추가
+	case CI_CHANGE_JOB_PSYCHIC_TRACER:	// 애드 1차 전직 사이킥 트레이
+#endif SERV_9TH_NEW_CHARACTER	// 해외팀 추가
 
 		// 2차 전직
 	case CI_CHANGE_JOB_LORD_KNIGHT:
@@ -333,14 +462,27 @@ bool CXSLItem::IsChangeJobItem( const int iItemID )
 #ifdef SERV_CHUNG_TACTICAL_TROOPER
 	case CI_CHANGE_JOB_TACTICAL_TROOPER:
 #endif
+		//{{ 제천
+#ifdef SERV_ARA_CHANGE_CLASS_FIRST
+	case CI_CHANGE_JOB_SAKRA_DEVANAM:
+#endif //SERV_ARA_CHANGE_CLASS_FIRST
+		//}} 제천
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case CI_CHANGE_JOB_YAMA_RAJA:
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case CI_CHANGE_JOB_GRAND_MASTER:
+	case CI_CHANGE_JOB_BLAZING_HEART:
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CI_CHANGE_JOB_LUNATIC_PSYKER:
+#endif //SERV_ADD_LUNATIC_PSYKER
 		return true;
 	}
 
 	return false;
 }
+#endif //DELETE_EXCEPTION_WISHLIST_CHANGEJOBITEM
 
 bool CXSLItem::IsBankExpandItem( const int iItemID )
 {
@@ -360,7 +502,7 @@ bool CXSLItem::IsBankExpandItem( const int iItemID )
 		//}}
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 	case CI_CASH_SHARING_BACK_OPEN:
-#endif
+#endif SERV_SHARING_BANK_QUEST_CASH
 #ifdef SERV_CASH_ITEM_FOR_ELESIS	// 적용날짜: 2013-07-11
 	case CI_EXPAND_QUICK_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
@@ -385,11 +527,51 @@ int CXSLItem::GetPShopAgencyDays( IN const int iItemID )
 	case CXSLItem::SI_PSHOP_AGENCY_10_DAYS:	return 10;
 	case CXSLItem::SI_PSHOP_AGENCY_15_DAYS: return 15;
 	case CXSLItem::SI_PSHOP_AGENCY_30_DAYS:	return 30;
+    case CXSLItem::SI_PSHOP_AGENCY_7_DAYS_ED: return 7;
+    case CXSLItem::SI_PSHOP_AGENCY_15_DAYS_ED: return 15;
+    case CXSLItem::SI_PSHOP_AGENCY_30_DAYS_ED: return 30;
 	default: return 0;
 	}
 	
     return 0;
 }
+
+int CXSLItem::GetPShopAgencyType( IN const int iItemID_ )
+{
+    int ret = 0;
+    switch( iItemID_ )
+    {
+    case CXSLItem::SI_PSHOP_AGENCY_1_DAY:	
+    case CXSLItem::SI_PSHOP_AGENCY_2_DAYS:	
+    case CXSLItem::SI_PSHOP_AGENCY_3_DAYS:	
+    case CXSLItem::SI_PSHOP_AGENCY_5_DAYS:	
+    case CXSLItem::SI_PSHOP_AGENCY_7_DAYS:	
+    case CXSLItem::SI_PSHOP_AGENCY_10_DAYS:	
+    case CXSLItem::SI_PSHOP_AGENCY_15_DAYS: 
+    case CXSLItem::SI_PSHOP_AGENCY_30_DAYS:	
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+        ret = SEnum::AST_PREMIUM;
+#else //SERV_UPGRADE_TRADE_SYSTEM
+		ret = CXSLSquareUnit::PST_PREMIUM;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+        break;
+    case CXSLItem::SI_PSHOP_AGENCY_7_DAYS_ED:
+    case CXSLItem::SI_PSHOP_AGENCY_15_DAYS_ED:
+    case CXSLItem::SI_PSHOP_AGENCY_30_DAYS_ED:
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+        ret = SEnum::AST_NORMAL;
+#else //SERV_UPGRADE_TRADE_SYSTEM
+		ret = CXSLSquareUnit::PST_NORMAL;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+        break;
+
+    default: 
+        ret = 0;
+    }
+
+    return ret;
+}
+
 #endif SERV_PSHOP_AGENCY
 //}}
 
@@ -425,6 +607,15 @@ void CXSLItem::UpdateEnchantedItemCubeReward( IN const int iCubeItemID, IN OUT K
 	switch( iCubeItemID )
 	{
 #ifdef SERV_GLOBAL_EVENT_ITEM
+	case 60007610: // 10강 무기 큐브 Lv.20
+	case 60007611: // 10강 무기 큐브 Lv.32
+	case 60007612: // 10강 무기 큐브 Lv.44
+	case 60007613: // 10강 무기 큐브 Lv.52
+	case 60007614: // 10강 무기 큐브 Lv.60
+		{
+			kInsertItemInfo.m_cEnchantLevel = 10;
+		}
+		break;
 	case 67003610: // 용맹한 마도 대전 용사 큐브 1개
 		{
 			kInsertItemInfo.m_cEnchantLevel = 6;
@@ -596,6 +787,10 @@ void CXSLItem::UpdateEnchantedItemCubeReward( IN const int iCubeItemID, IN OUT K
 			kInsertItemInfo.m_cEnchantLevel = 10;
 		}
 		break;
+	case 161048: // +6강화 [코보]도전의 무기 상자
+		{
+			kInsertItemInfo.m_cEnchantLevel = 6;
+		} break;
 		//{{ 2012. 05. 23	김민성	[이벤트] 에이핑크가 응원합니다!
 //#ifdef SERV_EVENT_APINK
 	case 181456:   // +6 에이핑크의 수호자 풀세트 큐브
@@ -698,58 +893,6 @@ void CXSLItem::UpdateEnchantedItemCubeReward( IN const int iCubeItemID, IN OUT K
 		}
 		break;
 //#endif SERV_EVENT_APINK
-		//}}
-
-		//{{ 2012. 11. 05	박세훈	필드 런칭 이벤트 ( 천사의 깃털, 필드 전야 이벤트 재활용 )
-#ifdef SERV_FIELD_LAUNCHING_EVENT
-	case 160590:   // +5 초보 용사 무기 큐브
-	case 160591:   // +5 레드자이언트 무기 큐브
-	case 160592:   // +5 밴디트 무기 큐브
-	case 160593:   // +5 엘더 용병 무기 큐브
-	case 160594:   // +5 축복받은 무기 큐브
-		kInsertItemInfo.m_cEnchantLevel = 5;
-		break;
-
-	case 160595:   // +5 균형잡힌 무기 큐브
-		if( pItemTemplet->m_ItemType == CXSLItem::IT_WEAPON )
-		{
-			const int iSocketID = 1606;
-			if( SiCXSLSocketItem()->GetSocketData( iSocketID ) != NULL )
-			{
-				kInsertItemInfo.m_vecItemSocket.push_back( iSocketID );
-			}
-			else
-			{
-				START_LOG( cerr, L"존재하지 않는 소켓옵션을 아이템에 넣으려 했습니다." )
-					<< BUILD_LOG( iCubeItemID )
-					<< BUILD_LOG( pItemTemplet->m_ItemID )
-					<< BUILD_LOG( iSocketID )
-					<< END_LOG;
-			}
-		}
-		kInsertItemInfo.m_cEnchantLevel = 5;
-		break;
-
-	case 160596:   // +5 축복받은 2차 전직 무기 큐브
-		if( pItemTemplet->m_ItemType == CXSLItem::IT_WEAPON )
-		{
-			const int iSocketID = 1603;
-			if( SiCXSLSocketItem()->GetSocketData( iSocketID ) != NULL )
-			{
-				kInsertItemInfo.m_vecItemSocket.push_back( iSocketID );
-			}
-			else
-			{
-				START_LOG( cerr, L"존재하지 않는 소켓옵션을 아이템에 넣으려 했습니다." )
-					<< BUILD_LOG( iCubeItemID )
-					<< BUILD_LOG( pItemTemplet->m_ItemID )
-					<< BUILD_LOG( iSocketID )
-					<< END_LOG;
-			}
-		}
-		kInsertItemInfo.m_cEnchantLevel = 5;
-		break;
-#endif SERV_FIELD_LAUNCHING_EVENT
 		//}}
 
 	case 160619:	// +6 천년 여우 수호자 풀세트 큐브
@@ -867,6 +1010,21 @@ void CXSLItem::UpdateEnchantedItemCubeReward( IN const int iCubeItemID, IN OUT K
 			kInsertItemInfo.m_cEnchantLevel = 10;
 		}
 		break;
+
+	case 8655943:   // +7 [코보] 해킹 지원 장비 큐브 (Lv.30)
+	case 8655944:   // +7 [코보] 해킹 지원 장비 큐브 (Lv.40)
+	case 8655945:   // +7 [코보] 해킹 지원 장비 큐브 (Lv.50)
+	case 8655946:   // +7 [코보] 해킹 지원 장비 큐브 (Lv.60)
+	case 8655947:   // +7 [코보] 해킹 지원 장비 큐브 (Lv.65)
+		{
+			if( pItemTemplet->m_ItemType == CXSLItem::IT_WEAPON )
+			{
+				kInsertItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant0 = CXSLAttribEnchantItem::ET_DARK;
+				kInsertItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant1 = CXSLAttribEnchantItem::ET_DARK;
+			}
+			kInsertItemInfo.m_cEnchantLevel = 7;
+		}
+		break;
 #ifdef SERV_EN_OPEN_ENCHANT_ITEM_EVENT
 	case 85003011:   // 영국 상용화 각성한 모험가의 큐브
 		{
@@ -874,16 +1032,6 @@ void CXSLItem::UpdateEnchantedItemCubeReward( IN const int iCubeItemID, IN OUT K
 		}
 		break;
 #endif //SERV_EN_OPEN_ENCHANT_ITEM_EVENT
-#ifdef SERV_2013_JUNGCHU_TITLE
-	case 60007610:
-	case 60007611:
-	case 60007612:
-	case 60007613:
-	case 60007614:
-		{
-			kInsertItemInfo.m_cEnchantLevel = 10;
-		} break;
-#endif SERV_2013_JUNGCHU_TITLE
 
 #ifdef SERV_PLAY_TOGETHER_EVENT
 	case 90003000:	// 신규 유저 지원 장비 큐브 (Lv.16)
@@ -895,6 +1043,20 @@ void CXSLItem::UpdateEnchantedItemCubeReward( IN const int iCubeItemID, IN OUT K
 		}
 		break;
 #endif SERV_PLAY_TOGETHER_EVENT
+
+#ifdef SERV_BR_ENCHANT_CUBE_EVENT
+	case 152000450:
+	case 152000451:
+	case 152000452:
+	case 152000453:
+	case 152000454:
+	case 152000455:
+		{
+			kInsertItemInfo.m_cEnchantLevel = 5;
+		}
+		break;
+#endif //SERV_CHUNG_EVENT_WEAPON_ENCHANT
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
 	case 153000102:	// 6강 장비 풀세트 큐브(22레벨)
 		{
@@ -902,6 +1064,22 @@ void CXSLItem::UpdateEnchantedItemCubeReward( IN const int iCubeItemID, IN OUT K
 		}
 		break;
 #endif //SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_ENCHANT_LEVEL
+	case 67003609:	// 6강 매서운 분노의 화신 풀세트 큐브
+		{
+			kInsertItemInfo.m_cEnchantLevel = 6;
+		}
+		break;
+#endif SERV_EVENT_ENCHANT_LEVEL
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+	case 141000632:   // 각성한 여왕의 기어 큐브
+		{
+			kInsertItemInfo.m_cEnchantLevel = 6; //강화 레벨을 설정해 준다.
+		}
+		break;
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
 
 		//{{ 2013. 05. 15	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
@@ -924,7 +1102,7 @@ void CXSLItem::UpdateEnchantedItemCubeReward( IN const int iCubeItemID, IN OUT K
 
 #ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 //{{ 2011. 05. 27    김민성    휴면 복귀 유저 보상
 #ifdef SERV_COME_BACK_USER_REWARD
 int	CXSLItem::GetComeBackRewardSkillPointDays( IN const int iItemID )
@@ -942,7 +1120,7 @@ int	CXSLItem::GetComeBackRewardSkillPointDays( IN const int iItemID )
 }
 #endif SERV_COME_BACK_USER_REWARD
 //}}
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 //{{ 2011. 11. 21  김민성	전직 변경 아이템
@@ -1034,6 +1212,10 @@ int CXSLItem::GetClassChangeCashItem( const int iItemID )
 	case CI_CLASS_CHANGE_ELESIS_SABER_KNIGHT:		return CXSLUnit::UC_ELESIS_SABER_KNIGHT;
 	case CI_CLASS_CHANGE_ELESIS_PYRO_KNIGHT:		return CXSLUnit::UC_ELESIS_PYRO_KNIGHT;
 #endif	// SERV_NEW_CHARACTER_EL
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case CI_CLASS_CHANGE_ELESIS_GRAND_MASTER:		return CXSLUnit::UC_ELESIS_GRAND_MASTER;
+	case CI_CLASS_CHANGE_ELESIS_BLAZING_HEART:		return CXSLUnit::UC_ELESIS_BLAZING_HEART;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 ////////// 아라 ////////////////////////////////////////////////////////////////////////
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case CI_CLASS_CHANGE_UC_ARA_LITTLE_HSIEN:		return CXSLUnit::UC_ARA_LITTLE_HSIEN;
@@ -1042,6 +1224,14 @@ int CXSLItem::GetClassChangeCashItem( const int iItemID )
 	case CI_CLASS_CHANGE_ARA_SAKRA_DEVANAM:			return CXSLUnit::UC_ARA_SAKRA_DEVANAM;
 	case CI_CLASS_CHANGE_ARA_YAMA_RAJA:				return CXSLUnit::UC_ARA_YAMA_RAJA;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+////////// 애드 ////////////////////////////////////////////////////////////////////////
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CI_CLASS_CHANGE_PSYCHIC_TRACER:			return CXSLUnit::UC_ADD_PSYCHIC_TRACER;
+#endif //SERV_9TH_NEW_CHARACTER
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CI_CLASS_CHANGE_LUNATIC_PSYKER:			return CXSLUnit::UC_ADD_LUNATIC_PSYKER;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 	}
 
 	return CXSLUnit::UC_NONE;
@@ -1132,10 +1322,10 @@ int CXSLItem::GetClassChangeCashItemIDByUnitClass( const int iUnitClass_ )
 #endif
 		////////// 아라 ////////////////////////////////////////////////////////////////////////
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
-	case CXSLUnit::UC_ARA_LITTLE_HSIEN:			return CI_CLASS_CHANGE_UC_ARA_LITTLE_HSIEN;
-	case CXSLUnit::UC_ARA_LITTLE_DEVIL:			return CI_CLASS_CHANGE_ARA_LITTLE_DEVIL;
+	case CXSLUnit::UC_ARA_LITTLE_HSIEN:				return CI_CLASS_CHANGE_UC_ARA_LITTLE_HSIEN;
+	case CXSLUnit::UC_ARA_LITTLE_DEVIL:				return CI_CLASS_CHANGE_ARA_LITTLE_DEVIL;
 
-	case CXSLUnit::UC_ARA_SAKRA_DEVANAM:		return CI_CLASS_CHANGE_ARA_SAKRA_DEVANAM;
+	case CXSLUnit::UC_ARA_SAKRA_DEVANAM:			return CI_CLASS_CHANGE_ARA_SAKRA_DEVANAM;
 	case CXSLUnit::UC_ARA_YAMA_RAJA:				return CI_CLASS_CHANGE_ARA_YAMA_RAJA;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 		////////// 엘리시스 ////////////////////////////////////////////////////////////////////////
@@ -1143,6 +1333,17 @@ int CXSLItem::GetClassChangeCashItemIDByUnitClass( const int iUnitClass_ )
 	case CXSLUnit::UC_ELESIS_SABER_KNIGHT:			return CI_CLASS_CHANGE_ELESIS_SABER_KNIGHT;
 	case CXSLUnit::UC_ELESIS_PYRO_KNIGHT:			return CI_CLASS_CHANGE_ELESIS_PYRO_KNIGHT;
 #endif // SERV_NEW_CHARACTER_EL
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+	case CXSLUnit::UC_ELESIS_GRAND_MASTER:			return CI_CLASS_CHANGE_ELESIS_GRAND_MASTER;
+	case CXSLUnit::UC_ELESIS_BLAZING_HEART:			return CI_CLASS_CHANGE_ELESIS_BLAZING_HEART;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+		////////// 애드 ////////////////////////////////////////////////////////////////////////
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CXSLUnit::UC_ADD_PSYCHIC_TRACER:			return CI_CLASS_CHANGE_PSYCHIC_TRACER;
+#endif //SERV_9TH_NEW_CHARACTER
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CXSLUnit::UC_ADD_LUNATIC_PSYKER:			return CI_CLASS_CHANGE_LUNATIC_PSYKER;
+#endif //SERV_ADD_LUNATIC_PSYKER
 	}
 
 	return 0;
@@ -1156,11 +1357,6 @@ const bool	CXSLItem::IsPossibleCart( const int iItemID_ )
 {
 	if( CXSLItem::GetClassChangeCashItem( iItemID_ ) != CXSLUnit::UC_NONE )
 		return false;
-
-//	switch( iItemID_ )
-//	{
-//		return false;
-//	}
 
 	return true;
 }
@@ -1183,3 +1379,20 @@ bool CXSLItem::IsGoldTicket( const int iItemID )
 	return false;
 }
 #endif SERV_GOLD_TICKET_SEAL_COUNT
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+bool CXSLItem::IsItemToMakeSkillPageExpanded( const int iItemID_ )
+{
+	switch ( iItemID_ )
+	{
+	case CI_EXPAND_SKILL_PAGE:
+		return true;
+		break;
+
+	default:
+		break;
+	}
+
+	return false;	
+}
+#endif // SERV_SKILL_PAGE_SYSTEM

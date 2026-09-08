@@ -51,19 +51,16 @@ DECL_PACKET( ELG_PCBANG_LOGOUT_NOT )
 	UidType									m_iUserUID;
 	std::wstring							m_wstrUserID;
 	std::wstring							m_wstrIP;
-
 #ifdef SERV_COUNTRY_TH
 	std::wstring							m_wstrSockID;
 	UidType									m_iGSUID;
 #endif //SERV_COUNTRY_TH
-
 
 	KELG_PCBANG_LOGOUT_NOT()
 	{
 		m_iUserUID						= 0;
 		m_wstrUserID					= L"";
 		m_wstrIP						= L"";
-
 #ifdef SERV_COUNTRY_TH
 		m_wstrSockID					= L"";
 		m_iGSUID						= 0;
@@ -362,9 +359,9 @@ DECL_PACKET( DBE_CH_USER_KOGOTP_LOGIN_REQ )
 #endif SERV_PURCHASE_TOKEN
 	//}}
 
-#ifdef SERV_STEAM
+#if defined( SERV_STEAM ) || defined( SERV_ALL_RENEWAL_SP )
 	int				m_iChannelingCode;
-#endif //SERV_STEAM
+#endif //( SERV_STEAM ) || ( SERV_ALL_RENEWAL_SP )
 
 	KDBE_CH_USER_KOGOTP_LOGIN_REQ()
 	{
@@ -373,9 +370,9 @@ DECL_PACKET( DBE_CH_USER_KOGOTP_LOGIN_REQ )
 #ifdef SERV_PURCHASE_TOKEN
 		m_wstrPurchaseTok = L"";
 #endif //SERV_PURCHASE_TOKEN
-#ifdef SERV_STEAM
+#if defined( SERV_STEAM ) || defined( SERV_ALL_RENEWAL_SP )
 		m_iChannelingCode = 0;
-#endif //SERV_STEAM
+#endif //( SERV_STEAM ) || ( SERV_ALL_RENEWAL_SP )
 	};
 };
 
@@ -646,13 +643,16 @@ DECL_PACKET( DBE_UPDATE_ANTI_ADDICTION_INFO )
 DECL_PACKET( EPUBLISHER_BILLING_BALANCE_REQ )
 {
 	unsigned int						m_uiPublisherUID;
-	unsigned int						m_uiActorUID;
+	UidType								m_uiActorUID;
 	std::wstring						m_wstrAccount;					// [65]
 	std::wstring						m_wstrIP;
 #ifdef SERV_COUNTRY_CN
 	std::wstring						m_wstrTID;						// [33]
 	int									m_iAT;
 #endif // SERV_COUNTRY_CN
+#ifdef SERV_COUNTRY_IN
+	std::wstring						m_wstrNickName;
+#endif SERV_COUNTRY_IN
 
 	KEPUBLISHER_BILLING_BALANCE_REQ()
 	{
@@ -665,6 +665,9 @@ DECL_PACKET( EPUBLISHER_BILLING_BALANCE_REQ )
 		m_wstrTID				= L"";
 		m_iAT					= 0;
 #endif // SERV_COUNTRY_CN
+#ifdef SERV_COUNTRY_IN
+		m_wstrNickName			= L"";
+#endif SERV_COUNTRY_IN
 	}
 };
 
@@ -1266,14 +1269,18 @@ DECL_PACKET( EBILL_BUY_PRODUCT_REQ )
 
 	KEBILL_BUY_PRODUCT_REQ()
 	{
-		m_iServerGroupID			= 0;
-		m_iChannelingCode			= 0;
-
-		m_uiPublisherUID			= 0;
-		m_iUserUID					= 0;
-		m_iUnitUID					= 0;
-
-		m_wstrTotalOrderID			= L"";
+		m_iServerGroupID	= 0;
+		m_iChannelingCode	= 0;
+		m_wstrUserID		= L"";
+		m_uiPublisherUID	= 0;
+        m_iUserUID			= 0;
+		m_iUnitUID			= 0;
+		m_wstrNickName		= L"";
+		m_strUserIP			= "";
+		m_vecBillBuyInfo.clear();
+		m_iUseCashType		= 0;
+		m_iUserIP			= 0;
+		m_wstrTotalOrderID	= L"";
 	}
 };
 
@@ -2356,6 +2363,19 @@ typedef	KGashResponseData	KEGASH_DECREASE_GASHPOINT_ACK;
 #endif // SERV_COUNTRY_TWHK
 //////////////////////////////////////////////////////////////////////////
 
+#ifdef SERV_COUNTRY_IN
+DECL_PACKET( DBE_PUBLISHER_AUTHENTICATION_REQ )
+{
+	std::wstring					m_wstrServiceAccountID;
+	std::wstring					m_wstrServicePassword;
+};
+
+DECL_PACKET( DBE_PUBLISHER_AUTHENTICATION_ACK )
+{
+	unsigned int					m_uiPublisherUID;
+	int								m_iOK;
+};
+#endif SERV_COUNTRY_IN
 
 #endif SERV_GLOBAL_AUTH
 //}}
@@ -2708,6 +2728,76 @@ DECL_PACKET( EBILL_CHECK_BUY_FAKE_ITEM_ACK )
 };
 #endif //SERV_EVENT_BUY_FAKE_ITEM
 
+#ifdef SERV_READY_TO_SOSUN_EVENT
+DECL_PACKET( DBE_READY_TO_SOSUN_EVENT_REQ )
+{
+	UidType								m_iUnitUID;
+	std::map< int, int >				m_mapInsertedItem;
+	KItemQuantityUpdate					m_kItemQuantityUpdate;
+	std::vector< KInventoryItemInfo >	m_vecUpdatedInventorySlot;
+	std::vector< KItemInfo >			m_vecItemInfo;
+	int									m_iFirstUnitClass;
+};
+
+DECL_PACKET( DBE_READY_TO_SOSUN_EVENT_ACK )
+{
+	int									m_iOK;
+	std::map< int, int >				m_mapInsertedItem;
+	KItemQuantityUpdate					m_kItemQuantityUpdate;
+	std::vector< KInventoryItemInfo >	m_vecUpdatedInventorySlot;
+	std::map< UidType, KItemInfo >		m_mapItemInfo;
+	int									m_iFirstUnitClass;
+};
+#endif SERV_READY_TO_SOSUN_EVENT
+
+#ifdef SERV_MOMOTI_EVENT
+DECL_PACKET( DBE_MOMOTI_QUIZ_EVENT_REQ )
+{
+	int									m_iOK;
+	UidType								m_iUserUID;
+	UidType								m_iUnitUID;
+	int									m_istrReply;
+};
+
+DECL_PACKET( DBE_MOMOTI_QUIZ_EVENT_ACK )
+{
+	int									m_iOK;
+	int									m_iCheckReward;
+};
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+DECL_PACKET( DBE_CHECK_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL_REQ )
+{
+	UidType					m_iUnitUID;
+	UidType					m_iUserUID;
+	int						m_iUnitLevel;
+	int						m_iGetConnectExperience;
+	int						m_iRewardBonusItem;
+
+	KDBE_CHECK_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL_REQ()
+	{
+		m_iUnitUID = 0;
+		m_iUserUID = 0;
+		m_iUnitLevel = 0;
+		m_iGetConnectExperience = 0;
+		m_iRewardBonusItem = 0;
+	}
+};
+
+DECL_PACKET( DBE_CHECK_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL_ACK )
+{
+	int						m_iOK;
+	int						m_iRewardBonusItem;
+
+	KDBE_CHECK_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL_ACK()
+	{
+		m_iOK = 0;
+		m_iRewardBonusItem = 0;
+	}
+};
+#endif //SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+
 #ifdef SERV_CLIENT_PORT_CHANGE_REQUEST_LOG
 DECL_PACKET( DBE_CLIENT_POPRT_CHANGE_REQUEST_INFO_NOT )
 {
@@ -2754,13 +2844,66 @@ DECL_PACKET( DBE_ID_PCBANG_CEHCK_AUTH_ACK )
 };
 #endif //SERV_ID_NETMARBLE_PCBANG
 
-#ifdef SERV_KOM_FILE_CHECK_ADVANCED
-DECL_PACKET( ELOG_KOM_FILE_CHECK_LOG_NOT )
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+DECL_PACKET( DBE_EVENT_PROPOSE_USER_FIND_ACK )
 {
-	std::wstring		m_wstrInvaildKomName;
-	UidType				m_iUserUID;
+	int						m_iOK;
+	std::wstring			m_wstrOtherNickName;
+	UidType					m_iOtherUserUID;
+	UidType					m_iOtherUnitUID;
+	char					m_cUnitClass;
+	bool					m_bCouple;
 };
-#endif SERV_KOM_FILE_CHECK_ADVANCED
+
+typedef KELG_COUPLE_PROPOSE_CHECK_CONNECT_USER_REQ KELG_EVENT_PROPOSE_CHECK_CONNECT_USER_REQ;
+typedef KELG_COUPLE_PROPOSE_CHECK_CONNECT_USER_ACK KELG_EVENT_PROPOSE_CHECK_CONNECT_USER_ACK;
+typedef KELG_COUPLE_PROPOSE_NOT	KELG_EVENT_PROPOSE_NOT;
+typedef KERM_COUPLE_PROPOSE_RESULT_FAIL_NOT KERM_EVENT_PROPOSE_RESULT_FAIL_NOT;
+typedef KDBE_COUPLE_MAKING_SUCCESS_REQ KDBE_EVENT_MAKING_SUCCESS_REQ;
+typedef KDBE_COUPLE_MAKING_SUCCESS_ACK KDBE_EVENT_MAKING_SUCCESS_ACK;
+typedef KERM_COUPLE_PROPOSE_RESULT_SUCCESS_NOT KERM_EVENT_PROPOSE_RESULT_SUCCESS_NOT;
+
+DECL_PACKET( DBE_EVENT_MAKING_SUCCESS_ACCEPTOR_REQ )
+{
+	std::vector< KInventoryItemInfo >   m_vecUpdatedInventorySlot;
+	std::vector< KDeletedItemInfo >		m_vecDeleted;
+};
+
+DECL_PACKET( DBE_EVENT_MAKING_SUCCESS_ACCEPTOR_ACK )
+{
+	int									m_iOK;
+	KItemQuantityUpdate                 m_kItemQuantityUpdate;
+	std::vector< KInventoryItemInfo >   m_vecUpdatedInventorySlot;
+
+	KDBE_EVENT_MAKING_SUCCESS_ACCEPTOR_ACK()
+	{
+		m_iOK = 0;
+	}
+};
+
+DECL_PACKET( DBE_EVENT_DIVORCE_REQ )
+{
+	UidType								m_iUnitUID;
+	UidType								m_iRelationTargetUserUid;
+	std::vector< KInventoryItemInfo >   m_vecUpdatedInventorySlot;
+	std::vector< KDeletedItemInfo >		m_vecDeleted;
+};
+
+DECL_PACKET( DBE_EVENT_DIVORCE_ACK )
+{
+	int									m_iOK;
+	UidType								m_iRelationTargetUserUid;
+	KItemQuantityUpdate                 m_kItemQuantityUpdate;
+	std::vector< KInventoryItemInfo >	m_vecUpdatedInventorySlot;
+
+	KDBE_EVENT_DIVORCE_ACK()
+	{
+		m_iOK = 0;
+	}
+};
+
+typedef KELG_BREAK_UP_NOT KELG_DIVORCE_NOT;
+#endif SERV_RELATIONSHIP_EVENT_INT
 
 #ifdef SERV_COUNTRY_PH
 DECL_PACKET( EJSON_GN_CHECK_ACCOUNT_REQ )
@@ -2971,6 +3114,19 @@ DECL_PACKET( EGS_EXCHANGE_CASH_NOT ) // 2013.08.06 lygan_조성욱 // 동남아시아의 
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 };
 
+DECL_PACKET( EBILL_GARENA_PREPARE_PRESENT_CHECK_REQ ) // 2013.09.11 lygan_조성욱 // 동남아시아 선물하기 횟수 제한 체크용
+{
+	UidType									m_iUserUID;
+	KEGS_PRESENT_CASH_ITEM_REQ				m_kEGSPresentCashItemREQ;
+};
+
+DECL_PACKET( EBILL_GARENA_PREPARE_PRESENT_CHECK_ACK ) // 2013.09.11 lygan_조성욱 // 동남아시아 선물하기 횟수 제한 체크용 추가로 빌링에서 얻어 값을 얻어 올수 있을꺼 같아 이렇게 처리한다. 지금은 OK 값만 받아옴
+{
+	UidType									m_iOK;
+	KEGS_PRESENT_CASH_ITEM_REQ				m_kEGSPresentCashItemREQ;
+};
+
+
 #endif //SERV_COUNTRY_PH
 
 
@@ -3048,25 +3204,6 @@ DECL_PACKET( DBE_UPDATE_REWARD_COMPLETE_JP_EVENT_NOT )
 //#endif SERV_RELAY_DB_CONNECTION
 //}}
 
-#ifdef SERV_WATCH_LOG
-DECL_PACKET( E_LOCAL_LOG_WATCH_NOT )
-{
-	enum WATCH_LOG_TYPE
-	{
-		WLT_NICKNAME_ERROR = 0,
-	};
-
-	char								m_cLogType;
-	UidType                         	m_iOwnerUserUID;
-	char                            	m_cAuthLevel;
-	char                            	m_cUnitClass;
-	std::wstring                    	m_wstrNickName;
-	std::wstring			        	m_wstrIP;
-	USHORT                          	m_usPort;
-};
-#endif //SERV_WATCH_LOG
-
-
 #ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 DECL_PACKET( DBE_CHANGE_PET_ID_REQ )
 {
@@ -3106,6 +3243,271 @@ DECL_PACKET( DBE_CHANGE_PET_ID_LOG_NOT )
 	}
 };
 #endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
+
+#ifdef SERV_COUPON_EVENT
+DECL_PACKET( DBE_COUPON_ENTRY_REQ )
+{
+	UidType								m_iUserUID;
+	UidType								m_iUnitUID;
+	int									m_iCouponType;
+	KItemQuantityUpdate					m_kItemQuantityUpdate;
+	std::vector< KInventoryItemInfo >   m_vecUpdatedInventorySlot;
+};
+	
+DECL_PACKET( DBE_COUPON_ENTRY_ACK )
+{
+	int				m_iOK;
+	KItemQuantityUpdate					m_kItemQuantityUpdate;
+	std::vector< KInventoryItemInfo >   m_vecUpdatedInventorySlot;
+
+	KDBE_COUPON_ENTRY_ACK()
+	{
+		m_iOK = 0;
+	}
+};
+
+DECL_PACKET( ELOG_COUPON_EVENT_NOT )
+{
+	UidType				m_iUserUID;
+	UidType				m_iUnitUID;
+	int					m_iCouponType;
+};
+#endif SERV_COUPON_EVENT
+
+#ifdef SERV_GUILD_FIND_AD
+DECL_PACKET( ELG_GET_GUILD_FIND_AD_LIST_REQ )
+{
+	int									m_iGuildUID;
+	UidType								m_iUnitUID;
+    char								m_cSortType;
+    u_int								m_uiViewPage;
+};
+
+DECL_PACKET( ELG_REGISTRATION_GUILD_INVITE_MSG_REQ )
+{
+	int									m_iGuildUID;
+	UidType								m_iGuildMasterUnitUID;
+	UidType								m_iUnitUID;
+	std::wstring						m_wstrMessage;
+	short								m_sPeriod;
+	int									m_iCost;
+};
+
+DECL_PACKET( ELG_REGISTRATION_GUILD_INVITE_MSG_ACK )
+{
+	int									m_iOK;
+	std::wstring						m_wstrNickName;
+	std::wstring						m_wstrMessage;
+	short								m_sPeriod;
+	int									m_iCost;
+};
+
+DECL_PACKET( DBE_REGISTRATION_GUILD_INVITE_MSG_REQ )
+{
+	int									m_iGuildUID;
+	UidType								m_iGuildMasterUnitUID;
+	UidType								m_iUnitUID;
+	std::wstring						m_wstrMessage;
+	short								m_sPeriod;
+	int									m_iCost;
+	bool								m_bExistExpiredGuildInviteMsg;
+};
+
+DECL_PACKET( DBE_REGISTRATION_GUILD_INVITE_MSG_ACK )
+{
+	int									m_iOK;
+	int									m_iGuildUID;
+	UidType								m_iGuildMasterUnitUID;
+	UidType								m_iUnitUID;
+	char								m_cUnitClass;
+	int									m_iUnitLevel;
+	std::wstring						m_wstrNickName;
+	std::wstring						m_wstrMessage;
+	std::wstring						m_wstrMsgRegDate;
+	std::wstring						m_wstrMsgEndDate;
+	short								m_sPeriod;
+    int									m_iCost;
+	bool								m_bExistExpiredGuildInviteMsg;
+};
+
+DECL_PACKET( DBE_MODIFY_REG_GUILD_INVITE_MSG_REQ )
+{
+	int									m_iGuildUID;
+	UidType								m_iUnitUID;
+	char								m_cUnitClass;
+	int									m_iUnitLevel;
+	std::wstring						m_wstrNickName;
+	std::wstring						m_wstrMessage;
+	short								m_sPeriod;
+	int									m_iCost;
+};
+
+DECL_PACKET( ELG_REGISTRATION_GUILD_FIND_AD_REQ )
+{
+	UidType								m_iUnitUID;
+	std::wstring						m_wstrFindAdMessage;
+	short								m_sPeriod;
+	int									m_iCost;
+};
+
+DECL_PACKET( ELG_REGISTRATION_GUILD_FIND_AD_ACK )
+{
+	int									m_iOK;
+	std::wstring						m_wstrFindAdMessage;
+	short								m_sPeriod;
+	int									m_iCost;
+};
+
+DECL_PACKET( DBE_REGISTRATION_GUILD_FIND_AD_REQ )
+{
+	UidType								m_iUnitUID;
+	std::wstring						m_wstrFindAdMessage;
+	short								m_sPeriod;
+	int									m_iCost;
+	bool								m_bExistExpiredFindAd;
+};
+
+DECL_PACKET( DBE_REGISTRATION_GUILD_FIND_AD_ACK )
+{
+	int									m_iOK;
+	UidType								m_iUnitUID;
+	char								m_cUnitClass;
+	int									m_iUnitLevel;
+	std::wstring						m_wstrNickName;
+	std::wstring						m_wstrFindAdMessage;
+	std::wstring						m_wstrFindAdRegDate;
+	std::wstring						m_wstrFindAdEndDate;
+	short								m_sPeriod;
+	int									m_iCost;
+	bool								m_bExistExpiredFindAd;
+};
+
+DECL_PACKET( DBE_MODIFY_REG_GUILD_FIND_AD_REQ )
+{
+	UidType								m_iUnitUID;
+	std::wstring						m_wstrFindAdMessage;
+	short								m_sPeriod;
+	int									m_iCost;
+};
+
+typedef KELG_REGISTRATION_GUILD_INVITE_MSG_REQ KELG_MODIFY_REG_GUILD_INVITE_MSG_REQ;
+typedef KELG_REGISTRATION_GUILD_INVITE_MSG_ACK KELG_MODIFY_REG_GUILD_INVITE_MSG_ACK;
+typedef KDBE_REGISTRATION_GUILD_INVITE_MSG_ACK KDBE_MODIFY_REG_GUILD_INVITE_MSG_ACK;
+
+typedef KELG_REGISTRATION_GUILD_FIND_AD_REQ KELG_MODIFY_REG_GUILD_FIND_AD_REQ;
+typedef KELG_REGISTRATION_GUILD_FIND_AD_ACK KELG_MODIFY_REG_GUILD_FIND_AD_ACK;
+typedef KDBE_REGISTRATION_GUILD_FIND_AD_ACK KDBE_MODIFY_REG_GUILD_FIND_AD_ACK;
+
+DECL_PACKET( ELG_GET_GUILD_INVITE_USER_LIST_REQ )
+{
+	int									m_iGuildUID;
+	UidType								m_iUnitUID;
+	UINT								m_uiViewPage;
+};
+
+DECL_PACKET( ELG_GET_GUILD_INVITE_USER_LIST_ACK )
+{
+	int										m_iOK;
+	u_int									m_uiTotalPage;
+	u_int									m_uiViewPage;
+	std::vector< KGuildInviteMsgInfo >		m_vecGuildInviteUserList;
+};
+
+DECL_PACKET( ELG_GET_GUILD_INVITE_GUILD_LIST_REQ )
+{
+	UidType								m_iUnitUID;
+	UINT								m_uiViewPage;
+};
+
+DECL_PACKET( ELG_GET_GUILD_INVITE_GUILD_LIST_ACK )
+{
+	u_int									m_uiTotalPage;
+	u_int									m_uiViewPage;
+	std::vector< KGuildInviteMsgInfo >		m_vecGuildInviteGuildList;
+};
+
+DECL_PACKET( ELG_ACCEPT_INVITE_REQ )
+{
+	int									m_iGuildUID;
+	UidType								m_iUnitUID;
+	KGuildMemberInfo					m_kLoginGuildMember;
+	bool								m_bDeleteApplyJoin;
+	bool								m_bDeleteFindAd;
+	bool								m_bDeleteInviteMsg;
+};
+
+DECL_PACKET( ELG_ACCEPT_INVITE_ACK )
+{
+	int									m_iOK;
+	int									m_iGuildUID;
+	UidType								m_iGuildMasterUnitUID;
+};
+
+DECL_PACKET( DBE_ACCEPT_INVITE_REQ )
+{
+	int									m_iGuildUID;
+	UidType								m_iUnitUID;
+	KGuildMemberInfo					m_kLoginGuildMember;
+};
+
+typedef KDBE_GET_GUILD_INFO_ACK KDBE_ACCEPT_INVITE_ACK;
+
+DECL_PACKET( ELG_CANCEL_INVITE_MSG_REQ )
+{
+	int									m_iGuildUID;
+	UidType								m_iUnitUID;
+	UidType								m_iDeletedUnitUID;
+	bool								m_bDeleteChar;
+};
+
+DECL_PACKET( DBE_CANCEL_INVITE_MSG_ACK )
+{
+	int									m_iOK;
+	int									m_iGuildUID;
+	UidType								m_iUnitUID;
+	UidType								m_iDeletedUnitUID;
+	bool								m_bDeleteChar;
+};
+
+typedef KELG_CANCEL_INVITE_MSG_REQ KDBE_CANCEL_INVITE_MSG_REQ;
+
+DECL_PACKET( ELG_DELETE_GUILD_FIND_AD_REQ )
+{
+	UidType								m_iUnitUID;
+	bool								m_bDeleteChar;
+};
+
+DECL_PACKET( DBE_DELETE_GUILD_FIND_AD_ACK )
+{
+	int									m_iOK;
+	UidType								m_iUnitUID;
+	bool								m_bDeleteChar;
+};
+
+typedef KELG_DELETE_GUILD_FIND_AD_REQ KDBE_DELETE_GUILD_FIND_AD_REQ;
+typedef KELG_DELETE_GUILD_FIND_AD_REQ KELG_DELETE_INVITE_GUILD_LIST_REQ;
+typedef KELG_DELETE_GUILD_FIND_AD_REQ KDBE_DELETE_INVITE_GUILD_LIST_REQ;
+typedef KDBE_DELETE_GUILD_FIND_AD_ACK KDBE_DELETE_INVITE_GUILD_LIST_ACK;
+#endif SERV_GUILD_FIND_AD
+
+#ifdef SERV_DUNGEON_ROOM_USER_CHECK
+DECL_PACKET( ERM_CHECK_DUNGEON_ROOM_USER_REQ )
+{
+	UidType				m_iRoomUID;
+};
+#endif SERV_DUNGEON_ROOM_USER_CHECK
+
+#ifdef SERV_TOUR_TICKET_EVENT
+DECL_PACKET( DBE_REGIST_TOUR_TICKET_NOT )
+{
+	UidType					m_iUnitUID;
+
+	KDBE_REGIST_TOUR_TICKET_NOT()
+	{
+		m_iUnitUID = 0;
+	}
+};
+#endif SERV_TOUR_TICKET_EVENT
 
 #ifdef SERV_PERIOD_PET
 DECL_PACKET( DBE_RELEASE_PET_REQ )
@@ -3151,6 +3553,81 @@ DECL_PACKET( DBE_GET_RECRUIT_RECRUITER_LIST_REQ )
 };
 #endif SERV_RECRUIT_EVENT_BASE
 
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+DECL_PACKET( DBE_SET_EVENT_INFO_NOT )
+{
+	int			m_iQuestID;
+	int			m_iUnitType;
+
+	KDBE_SET_EVENT_INFO_NOT()
+	{
+		m_iQuestID = 0;
+		m_iUnitType = 0;
+	}
+};
+#endif //SERV_EVENT_CHARACTER_QUEST_RANKING
+
+#ifdef SERV_CONTENT_MANAGER_INT
+DECL_PACKET( DBE_GET_CASHSHOP_ON_OFF_INFO_REQ )
+{
+	bool		m_bFirstCashshopOnOffCheck;
+	int			m_iReleaseTick;
+	bool		m_bEnableCashshop;
+
+	KDBE_GET_CASHSHOP_ON_OFF_INFO_REQ()
+	{
+		m_bFirstCashshopOnOffCheck = false;
+		m_iReleaseTick = -1;
+		m_bEnableCashshop = true;
+	}
+};
+
+DECL_PACKET( DBE_GET_CASHSHOP_ON_OFF_INFO_ACK )
+{
+	int			m_iReleaseTick;
+	bool		m_bEnableCashshop;
+	int			m_iOK;
+
+	KDBE_GET_CASHSHOP_ON_OFF_INFO_ACK()
+	{
+		m_iReleaseTick = -1;
+		m_bEnableCashshop = true;
+		m_iOK = -1;
+	}
+};
+#endif SERV_CONTENT_MANAGER_INT
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+DECL_PACKET( DBE_EVENT_DB_SCRIPT_ACK ) // 2013.09.11 lygan_조성욱 // 동남아시아 선물하기 횟수 제한 체크용 추가로 빌링에서 얻어 값을 얻어 올수 있을꺼 같아 이렇게 처리한다. 지금은 OK 값만 받아옴
+{
+	std::map< int, std::string >						m_mapEventDBData;
+	std::map< int, std::vector< KRewardData > >			m_mapDBRewardData;
+};
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+#ifdef SERV_ADD_EVENT_DB
+//DECL_PACKET( DBE_GAME_SELECT_UNIT_EVENT_DATA_NOT )
+//{
+//	KDBE_SELECT_UNIT_ACK					m_kDBE_Select_Unit_Ack;
+//	UidType									m_iUserUID;
+//	
+//};
+
+DECL_PACKET( DBE_GAME_SELECT_UNIT_EVENT_DATA_NOT )
+{
+	UidType													m_iUserUID;
+	KDBE_SELECT_UNIT_ACK									m_kSelectUnitAck;
+#ifdef SERV_GLOBAL_EVENT_TABLE
+	std::map< int, KGlobalEventTableData >					m_mapGlobalEventData;
+#endif //SERV_GLOBAL_EVENT_TABLE
+
+};
+DECL_PACKET( DBE_CHANNEL_CHANGE_GAME_SELECT_UNIT_EVENT_DATA_NOT )
+{
+	UidType													m_iUserUID;
+	KDBE_CHANNEL_CHANGE_GAME_SELECT_UNIT_ACK				m_kSelectUnitAck;
+};
+#endif //SERV_ADD_EVENT_DB
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
 DECL_PACKET( DBE_2013_EVENT_MISSION_COMPLETE_REQ )
 {
@@ -3170,27 +3647,12 @@ DECL_PACKET( DBE_2014_EVENT_MISSION_COMPLETE_REQ )
 };
 #endif SERV_NEW_YEAR_EVENT_2014
 
-#ifdef SERV_READY_TO_SOSUN_EVENT
-DECL_PACKET( DBE_READY_TO_SOSUN_EVENT_REQ )
+#ifdef SERV_USE_GM_TOOL_INFO
+DECL_PACKET( DBE_USE_GM_TOOL_INSERT_ITEM_INFO_NOT )
 {
-	UidType								m_iUnitUID;
-	std::map< int, int >				m_mapInsertedItem;
-	KItemQuantityUpdate					m_kItemQuantityUpdate;
-	std::vector< KInventoryItemInfo >	m_vecUpdatedInventorySlot;
-	std::vector< KItemInfo >			m_vecItemInfo;
-	int									m_iFirstUnitClass;
+	std::map< int, KItemName >			m_CurrentItemTempletNameMap;
 };
-
-DECL_PACKET( DBE_READY_TO_SOSUN_EVENT_ACK )
-{
-	int									m_iOK;
-	std::map< int, int >				m_mapInsertedItem;
-	KItemQuantityUpdate					m_kItemQuantityUpdate;
-	std::vector< KInventoryItemInfo >	m_vecUpdatedInventorySlot;
-	std::map< UidType, KItemInfo >		m_mapItemInfo;
-	int									m_iFirstUnitClass;
-};
-#endif SERV_READY_TO_SOSUN_EVENT
+#endif //SERV_USE_GM_TOOL_INFO
 
 //{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
 #ifdef SERV_GLOBAL_MISSION_MANAGER
@@ -3266,6 +3728,42 @@ DECL_PACKET( DBE_UNLIMITED_SECOND_CHANGE_JOB_NOT )
 };
 #endif	//	SERV_UNLIMITED_SECOND_CHANGE_JOB
 
+#ifdef SERV_EVENT_CHECK_POWER
+DECL_PACKET( DBE_START_CHECK_POWER_REQ )
+{
+	UidType								m_iUnitUID;
+	unsigned char						m_ucCheckPowerCount;
+	__int64								m_iCheckPowerTime;
+	unsigned char						m_ucCheckPowerScore;
+};
+typedef KPacketOK KDBE_START_CHECK_POWER_ACK;
+typedef KPacketOK KDBE_UPDATE_CHECK_POWER_ACK;
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_SHARING_BANK_EVENT
+DECL_PACKET( DBE_SHARING_BANK_EVENT_REQ )
+{
+	UidType							m_iUserUID;
+	UidType							m_iUnitUID;	
+	int								m_iItemID;
+};
+#endif
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING
+DECL_PACKET( DBE_GET_ITEM_ONOFF_NPCSHOP_REQ )
+{
+
+	std::map<int , int> m_mapTimeControlItem_StaticDBReleaseTick;
+};
+
+DECL_PACKET( DBE_GET_ITEM_ONOFF_NPCSHOP_ACK )
+{
+
+	std::map<int , int> m_mapTimeControlItem_StaticDBReleaseTick;
+	std::map<int , std::vector<KPacketGetItemOnOff> > m_mapGetItemOnOff;
+};
+
+#endif SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 DECL_PACKET( DBE_GET_CUBE_IN_ITEM_MAPPING_ONOFF_REQ )
@@ -3280,5 +3778,307 @@ DECL_PACKET( DBE_GET_CUBE_IN_ITEM_MAPPING_ONOFF_ACK )
 };
 
 #endif SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
+
+#ifdef SERV_EVENT_PET_INVENTORY
+DECL_PACKET( DBE_EVENT_PET_EVENT_FOOD_EAT_REQ )
+{
+	int							m_iUnitUID;
+	std::wstring				m_wstrPetName;
+	UidType						m_iPetUID;
+	int							m_iPetID;
+	bool						m_bEventFoodEat;      // 이벤트 먹이의 사용 유무 
+	std::vector< KInventoryItemInfo >	m_vecInventorySlotInfo;
+};
+DECL_PACKET( DBE_EVENT_PET_EVENT_FOOD_EAT_ACK )
+{
+	int							m_iUnitUID;
+	std::wstring				m_wstrPetName;
+	UidType						m_iPetUID;
+	int							m_iPetID;
+	bool						m_bEventFoodEat;      // 이벤트 먹이의 사용 유무 
+	int							m_iOK;
+	std::vector< KInventoryItemInfo >	m_vecInventorySlotInfo;
+};
+#endif SERV_EVENT_PET_INVENTORY
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+DECL_PACKET( DBE_EVENT_CHUNG_GIVE_ITEM_REQ )
+{
+	std::wstring				m_wstrGiveItemTime_One;
+	std::wstring				m_wstrGiveItemTime_Two;
+	std::wstring				m_wstrGiveItemTime_Tree;
+	UidType						m_iUnitUID;
+	bool						m_bTwoGiveItem;
+	int							m_iChoice;
+	KDBE_EVENT_CHUNG_GIVE_ITEM_REQ()
+	{
+		m_wstrGiveItemTime_One = L"1900-01-01 00:00:00";
+		m_wstrGiveItemTime_Two = L"1900-01-01 00:00:00";
+		m_wstrGiveItemTime_Tree = L"1900-01-01 00:00:00";
+		m_bTwoGiveItem = false;
+		m_iChoice	= 0;
+	}
+};
+DECL_PACKET( DBE_EVENT_CHUNG_GIVE_ITEM_ACK )
+{
+	int							m_iOK;
+	bool						m_bTwoGiveItem;
+	int							m_iChoice;
+	KDBE_EVENT_CHUNG_GIVE_ITEM_ACK()
+	{
+		m_iOK	= 0;
+		m_bTwoGiveItem = false;
+		m_iChoice = 0;
+	}
+};
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+DECL_PACKET( DBE_EVENT_COBO_DUNGEON_AND_FIELD_REQ )
+{
+	UidType                         m_iUnitUID;
+	std::wstring					m_wstrButtonClickTime_One; //1주차 버튼 클릭 시간 저장 타임
+	bool							m_bItemGive; //2주차 버튼 클릭 시간 저장 타임
+	int								m_iDungeonClearCount;
+	int								m_iFieldMonsterKillCount;
+	bool							m_WeekEndItem;
+	int								m_Nowday;
+	bool							m_bStartButton;
+	KDBE_EVENT_COBO_DUNGEON_AND_FIELD_REQ()
+	{
+		m_iUnitUID = 0;
+		m_wstrButtonClickTime_One = L"1900-01-01 00:00:00";
+		m_bItemGive = false;
+		m_iDungeonClearCount = 0;
+		m_iFieldMonsterKillCount = 0;
+		m_WeekEndItem = false;
+		m_Nowday = 0;
+		m_bStartButton = false;
+	}
+};
+DECL_PACKET( DBE_EVENT_COBO_DUNGEON_AND_FIELD_ACK )
+{
+	int								m_iOk;
+	bool							m_bWeekEndItem;
+	int								m_iDungeonClearCount;
+	int								m_iFieldMonsterKillCount;
+	int								m_NowDay;
+	std::wstring					m_wstrButtonClickTime_One; //버튼 클릭 시간
+	KDBE_EVENT_COBO_DUNGEON_AND_FIELD_ACK()
+	{
+		m_iOk = 0;
+		m_bWeekEndItem = false;
+		m_iDungeonClearCount = 0;
+		m_iFieldMonsterKillCount = 0;
+		m_NowDay	= 0;
+		m_wstrButtonClickTime_One = L"1900-01-01 00:00:00";
+	}
+};
+DECL_PACKET( DBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT )
+{
+	UidType                         m_iUnitUID;
+	std::wstring					m_wstrButtonClickTime_One; 
+	bool							m_bItemGive; 
+	int								m_iDungeonClearCount;
+	int								m_iFieldMonsterKillCount;
+	KDBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT()
+	{
+		m_iUnitUID = 0;
+		m_wstrButtonClickTime_One = L"1900-01-01 00:00:00";
+		m_bItemGive = false;
+		m_iDungeonClearCount = 0;
+		m_iFieldMonsterKillCount = 0;
+	}
+};
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+DECL_PACKET( DBE_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_REQ )
+{
+	UidType                 m_iUnitUID;
+	int						m_iValenTineItemCount;	
+	KDBE_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_REQ()
+	{
+		m_iUnitUID			  = 0;
+		m_iValenTineItemCount = -1;
+	}
+};
+DECL_PACKET( DBE_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_ACK )
+{
+	int						m_iOk;
+	int						m_iValenTineItemCount;	
+	KDBE_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_ACK()
+	{
+		m_iOk = 0;
+		m_iValenTineItemCount = -1;
+	}
+};
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+
+#ifdef SERV_GLOBAL_EVENT_TABLE
+DECL_PACKET( DBE_GLOBAL_EVENT_TABLE_INSERT_NOT )
+{
+	std::map< int, KGlobalEventTableData >		m_mapGlobalEventData;
+};
+#endif //SERV_GLOBAL_EVENT_TABLE
+
+#ifdef SERV_COUNTRY_IN
+DECL_DATA( KNaunGetCashRequestData )
+{
+	std::wstring m_wstrUserUID;			// UserUID		[40]
+	std::wstring m_wstrUserID;			// 계정명		[40]
+	std::wstring m_wstrCompanyCode;		// 회사 코드	[4]
+	std::wstring m_wstrNickName;		// 캐릭터명		[30]
+	unsigned long m_ulShopBalance;		// 쇼핑몰 캐시 잔액
+	unsigned long m_ulContentsBalance;	// 컨텐츠 캐시 잔액(사용하지않음)
+	unsigned long m_ulBonusBalance;		// 보너스 캐시 잔액(사용하지않음)
+	unsigned long m_ulEtcBalance;		// 기타 캐시 잔액(사용하지않음)
+	unsigned long m_ulShopMileage;		// 쇼핑몰 마일리지 잔액(사용하지않음)
+	unsigned long m_ulContentsMileage;	// 컨텐츠 마일리지 잔액(사용하지않음)
+	std::wstring m_wstrReturnCode;		// 반환값		[4]
+
+	KNaunGetCashRequestData()
+	{
+		m_wstrUserUID = L"";
+		m_wstrUserID = L"";
+		m_wstrCompanyCode = L"";
+		m_wstrNickName = L"";
+		m_ulShopBalance = 0;
+		m_ulContentsBalance = 0;
+		m_ulBonusBalance = 0;
+		m_ulEtcBalance = 0;
+		m_ulShopMileage = 0;
+		m_ulContentsMileage = 0;
+		m_wstrReturnCode = L"";
+	}
+};
+
+typedef KNaunGetCashRequestData KENAUN_BILLING_BALANCE_REQ;
+typedef KNaunGetCashRequestData KENAUN_BILLING_BALANCE_ACK;
+
+DECL_DATA( KNaunBuyProductRequestData )
+{
+	std::wstring m_wstrUserUID;			// UserUID		[40]
+	std::wstring m_wstrUserID;			// 계정명		[40]
+	std::wstring m_wstrCompanyCode;		// 회사 코드	[4]
+	std::wstring m_wstrNickName;		// 캐릭터명		[30]
+	std::wstring m_wstrIP;				// IP			[15]
+	unsigned long m_ulBuyType;			// 구매 방식(단품 구매, 일괄 구매)
+	std::wstring m_wstrProductName;		// 상품명		[50]
+	std::wstring m_wstrProductNo;		// 상품 아이디	[20]
+	std::wstring m_wstrCategory;		// 상품 카테고리[20]
+	unsigned long m_ulProductCnt;		// 구매 수량
+	std::wstring m_wstrProductEtc;		// 구매 상품 관련 추가 기록 사항(기간 등)	[20]
+	std::wstring m_wstrToUserUID;		// 선물받는 UserUID	[40]
+	std::wstring m_wstrToUserID;		// 선물받는 계정명	[40]
+	unsigned long m_ulPrice;			// 상품 금액
+	std::wstring m_wstrAgencyNo;		// 가맹점 주문번호(사용하지 않음)	[20]
+	std::wstring m_wstrEtc2;			// 기타2		[100]
+	std::wstring m_wstrEtc3;			// 기타3		[100]
+	std::wstring m_wstrEtc4;			// 기타4		[100]
+	std::wstring m_wstrOrderNo;			// 주문번호		[20]
+	std::wstring m_wstrReturnCode;		// 반환값		[4]
+
+	KNaunBuyProductRequestData()
+	{
+        m_wstrUserUID = L"";
+		m_wstrUserID = L"";
+		m_wstrCompanyCode = L"";
+		m_wstrNickName = L"";
+		m_wstrIP = L"";
+		m_ulBuyType = 0;
+		m_wstrProductName = L"";
+		m_wstrProductNo = L"";
+		m_wstrCategory = L"";
+		m_ulProductCnt = 0;
+		m_wstrProductEtc = L"";
+		m_wstrToUserUID = L"";
+		m_wstrToUserID = L"";
+		m_ulPrice = 0;
+		m_wstrAgencyNo = L"";
+		m_wstrEtc2 = L"";
+		m_wstrEtc3 = L"";
+		m_wstrEtc4 = L"";
+		m_wstrOrderNo = L"";
+		m_wstrReturnCode = L"";
+	}
+};
+
+typedef KNaunBuyProductRequestData KENAUN_BUY_PRODUCT_REQ;
+typedef KNaunBuyProductRequestData KENAUN_BUY_PRODUCT_ACK;
+typedef KNaunBuyProductRequestData KENAUN_GIFT_ITEM_REQ;
+#endif SERV_COUNTRY_IN
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+DECL_PACKET( ELG_CASH_DIRECT_CHARGE_CN_REQ )
+{
+	UidType				m_iUserUID;
+	std::wstring		m_wstrServiceAccountID;
+	UidType				m_iUnitUID;
+	std::wstring		m_wstrUnitNickName;
+	std::wstring		m_wstrIP;
+};
+/*EGS_CASH_DIRECT_CHARGE_CN_ACK 와 같은 패킷이랑 지웠음
+DECL_PACKET( ELG_CASH_DIRECT_CHARGE_CN_ACK )
+{
+	int					m_iOK;
+	std::wstring		m_wstrToken;
+};
+*/
+
+DECL_PACKET( EGIANT_AUTH_DIRECT_CHARGE_REQ )
+{
+	std::wstring				m_wstrServiceAccountID;	// 게임 계정
+	unsigned int				m_uiUserUID;				// 수자 계정
+	
+	unsigned long				m_ulGameZone;			// 전체 게임서버 유일 코드
+
+	unsigned int				m_uiUnitUID;				// 캐릭터 코드
+	std::wstring				m_wstrUnitNickName;		// 캐릭터 명
+
+	std::wstring				m_wstrIP;				// 클라 IP
+
+	//unsigned short				m_usTokenLen;			// token 길이
+	//char						m_cToken;				// token
+	
+
+	KEGIANT_AUTH_DIRECT_CHARGE_REQ()
+	{
+		m_wstrServiceAccountID	= L"";
+		m_uiUserUID				= 0;
+		m_ulGameZone			= 0;
+		m_uiUnitUID				= 0;
+		m_wstrUnitNickName		= L"";
+		m_wstrIP				= L"";
+		//m_usTokenLen			= 0;
+		//m_cToken				= 0;
+
+	}
+};
+
+DECL_PACKET( EGIANT_AUTH_DIRECT_CHARGE_ACK )
+{
+	int							m_iOK;
+	std::wstring				m_wstrServiceAccountID;	// 게임 계정
+	unsigned int				m_uiUserUID;				// 수자 계정
+
+	unsigned long				m_ulGameZone;			// 전체 게임서버 유일 코드
+
+	unsigned int				m_uiUnitUID;				// 캐릭터 코드
+	std::wstring				m_wstrUnitNickName;		// 캐릭터 명
+
+	std::wstring				m_wstrIP;				// 클라 IP
+
+	unsigned short				m_usTokenLen;			// token 길이
+	std::wstring				m_wstrToken;			// token
+};
+#endif //SERV_DIRECT_CHARGE_ELSWORD_CASH
+
+#ifdef SERV_STRING_FILTER_USING_DB
+typedef KDBE_CHECK_EVENT_UPDATE_ACK KDBE_CHECK_STRING_FILTER_UPDATE_ACK;
+DECL_PACKET( DBE_STRING_FILTER_UPDATE_ACK )
+{
+	std::vector< KStringFilterInfo >	m_vecStringFilterList;
+};
+#endif //SERV_STRING_FILTER_USING_DB
 
 #pragma pack( pop )

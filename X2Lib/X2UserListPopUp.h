@@ -5,11 +5,7 @@
 
 using namespace std;
 
-#ifdef REFORM_UI_CHARACTER_INFO
 class CX2UserListPopUp : public CX2PopupUIBase
-#else
-class CX2UserListPopUp 
-#endif
 {
 public:
 	enum USERLIST_POPUP_MSG

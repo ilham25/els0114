@@ -739,9 +739,11 @@ _IMPL_ON_FUNC( ERM_LEAVE_WEDDING_HALL_REQ, KEGS_LEAVE_WEDDING_HALL_REQ )
 {
 	KERM_LEAVE_ROOM_REQ kPacket;
 	kPacket.m_iReason = kPacket_.m_iReason;
+#ifndef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	kPacket.m_kBattleFieldJoinInfo.m_iBattleFieldID = kPacket_.m_iBattleFieldID;
 	kPacket.m_kGamePlayNetworkInfo = kPacket_.m_kGamePlayNetworkInfo;
 	kPacket.m_kResultInfo = kPacket_.m_kResultInfo;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 	OnLeaveRoom( LAST_SENDER_UID, FIRST_SENDER_UID, kPacket, ERM_LEAVE_WEDDING_HALL_ACK );
 }

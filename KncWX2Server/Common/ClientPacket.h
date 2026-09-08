@@ -38,38 +38,18 @@ DECL_PACKET( EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK )
 	int                     m_iOK;
 	int                     m_nUnitSlot;
 	std::vector<KUnitInfo>  m_vecUnitInfo;
-
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 	bool					m_bSharingBank;
 #endif SERV_SHARING_BANK_QUEST_CASH
-
-	//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	std::vector< int >					m_vecCriterionEventUID;
-	std::wstring						m_wstrLastConnectDate;
-#else
-		//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-	#ifdef SERV_EVENT_RETURN_USER_MARK
-		bool					m_bEventMark;
-	#endif SERV_EVENT_RETURN_USER_MARK
-		//}}
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//}}
-
-	//{{ 2012. 10. 26	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-	bool					m_bEliosInvestigationsReward;
-#endif SERV_ELIOS_INVESTIGATIONS
-	//}}
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	K4ThAnnivEventInfo		m_4ThAnnivEventInfo;
+#endif // SERV_4TH_ANNIVERSARY_EVENT
 
 	KEGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK()
 		: m_iOK( 0 )
-		//{{ 2012. 10. 26	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		, m_bEliosInvestigationsReward( true )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
+        ,m_nUnitSlot(0)
 	{
+        m_vecUnitInfo.clear();
 	}
 };
 
@@ -88,7 +68,21 @@ DECL_PACKET( EGS_CREATE_UNIT_ACK )
 	//{{ 2008. 4. 8  최육사  지워진 닉네임 사용 가능 날짜
 	std::wstring			m_wstrEnableDate;
 	//}}	
+#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+#ifdef SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
+	//{{ 2012.02.21 조효진  고유 이름 관련 프로세스 애매한거 정리 
+	bool					m_bReqGiant_DeleteName;
+	std::wstring            m_wstrNickName;
+#endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
 
+	KEGS_CREATE_UNIT_ACK()
+	{
+#ifdef SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN	
+		m_bReqGiant_DeleteName	= false;
+		m_wstrNickName			= L"";
+#endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
+	}
+#else //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 #ifdef SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
 	//{{ 2012.02.21 조효진  고유 이름 관련 프로세스 애매한거 정리 
 	bool					m_bReqGiant_DeleteName;
@@ -101,6 +95,7 @@ DECL_PACKET( EGS_CREATE_UNIT_ACK )
 	}
 	//}}
 #endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
+#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -158,7 +153,6 @@ DECL_PACKET( EGS_GET_MY_INVENTORY_ACK )
 {
 	int										m_iOK;
 	bool									m_bIsRecommend;
-
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 	bool									m_bSharingBank;
 #endif SERV_SHARING_BANK_QUEST_CASH
@@ -303,6 +297,21 @@ DECL_PACKET( EGS_GET_CHANNEL_LIST_ACK )
 };
 //}}
 
+DECL_PACKET( EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK )
+{
+    std::map< int, KChannelInfo >	m_mapSolesChannelList; // 현재 서버군의 채널 리스트. 솔레스/가이아 고정이 아니므로 주의하자.
+    std::map< int, KChannelInfo >	m_mapGaiaChannelList; // 다른 서버군의 채널 리스트. 
+    std::map< int, KChannelBonusInfo >	m_mapSolesChannelBonusList;
+    std::map< int, KChannelBonusInfo >	m_mapGaiaChannelBonusList;
+
+    KEGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK()
+    {
+        m_mapSolesChannelList.clear();
+        m_mapGaiaChannelList.clear();
+        m_mapSolesChannelBonusList.clear();
+        m_mapGaiaChannelBonusList.clear();
+    }
+};
 
 //////////////////////////////////////////////////////////////////////////
 DECL_DATA( KStateChangeReq )
@@ -1100,6 +1109,14 @@ DECL_PACKET( EGS_END_GAME_DUNGEON_RESULT_DATA_NOT )
 	bool									m_bSpecChar2;
 #endif SERV_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT
 
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+	std::vector<UidType>					m_vecRelation;
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
+
+#ifdef SERV_THREE_COLOR_EVENT
+	std::set< int >							m_setEquippedTitle;
+#endif SERV_THREE_COLOR_EVENT
+
 #ifdef SERV_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT
 	KEGS_END_GAME_DUNGEON_RESULT_DATA_NOT()
 	{
@@ -1492,6 +1509,10 @@ DECL_PACKET( EGS_NPC_UNIT_DIE_REQ )
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
+#ifdef SERV_DROP_FOR_FINISHER_ONLY
+	UidType						m_iFinisherUID;
+#endif SERV_DROP_FOR_FINISHER_ONLY
+
 	KEGS_NPC_UNIT_DIE_REQ()
 	{
 		m_nDieNPCUID	= 0; // npcuid는 1부터 시작
@@ -1504,6 +1525,9 @@ DECL_PACKET( EGS_NPC_UNIT_DIE_REQ )
 		m_iNpcMaxHP		= 0;
 #endif SERV_BATTLE_FIELD_SYSTEM
 		//}}
+#ifdef SERV_DROP_FOR_FINISHER_ONLY
+		m_iFinisherUID	= 0;
+#endif SERV_DROP_FOR_FINISHER_ONLY
 	}
 
 	KEGS_NPC_UNIT_DIE_REQ( const int nDieNPCUID_, const char cAttUnitType_, const UidType uiAttUnit_, 
@@ -1596,10 +1620,17 @@ DECL_PACKET( EGS_DUNGEON_STAGE_LOAD_NOT )
 	//}}
 	//{{ 2010. 07. 09  최육사	드롭률 이벤트 확장
 #ifdef SERV_PC_BANG_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	float						m_fItemDropEventProbRate;
+#else // SERV_DROP_EVENT_RENEWAL
 	int							m_iItemDropEventProbCount;
+#endif // SERV_DROP_EVENT_RENEWAL
 	bool						m_bWithPlayPcBangEvent;
 #endif SERV_PC_BANG_DROP_EVENT
 	//}}
+#ifdef SERV_TEST_LOG_FOR_SUB_STAGE_NPC_GROUP_ID// 작업날짜: 2013-09-03	// 박세훈
+	std::map< int, int >		m_mapSubStageNpcGroupID;
+#endif // SERV_TEST_LOG_FOR_SUB_STAGE_NPC_GROUP_ID
 };
 
 //{{ 2009. 7. 21  최육사	비밀 스테이지
@@ -2169,24 +2200,14 @@ DECL_PACKET( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ )
 	char								m_cToSlotType;
 	int									m_iToSlotID;
 
-	KEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ()
-	{
-		m_cFromSlotType = 0;
-		m_iFromSlotID = 0;
-		m_cToSlotType = 0;
-		m_iToSlotID = 0;
-	}
+#ifdef SERV_SHARING_BANK_TEST
+	UidType								m_iShareUnitUID;
+#endif //SERV_SHARING_BANK_TEST
 };
 
 DECL_PACKET( EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK )
 {
-	int									m_iOK;
     std::vector< KInventoryItemInfo >	m_vecInventorySlotInfo;
-
-	KEGS_CHANGE_INVENTORY_SLOT_ITEM_ACK()
-	{
-		m_iOK = 0;
-	}
 };
 
 DECL_PACKET( EGS_CHANGE_EQUIPPED_ITEM_IN_SQUARE_NOT )
@@ -2486,18 +2507,30 @@ DECL_PACKET( EGS_JOIN_SQUARE_NOT )
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 DECL_PACKET( EGS_GET_SKILL_REQ )
 {
-	std::map< int, KGetSkillInfo >			m_mapSkillList;	// 새로 배우거나 강화 하는 스킬
 #ifdef SERV_SUB_QUEST_LEARN_NEW_SKILL
 	std::vector<int>						m_vecNowLearnSkill;	// 새로 배운 스킬 수
 #endif SERV_SUB_QUEST_LEARN_NEW_SKILL
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int										m_iActiveSkillPageNumber;	/// 활성화 중인 페이지
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+	std::map< int, KGetSkillInfo >			m_mapSkillList;	// 새로 배우거나 강화 하는 스킬
+	
 	KEGS_GET_SKILL_REQ()
-	{
-	}
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		: m_iActiveSkillPageNumber(0)	
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+	{}
 };
 
 DECL_PACKET( EGS_GET_SKILL_ACK )
 {
 	int										m_iOK;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int										m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	std::map< int, KGetSkillInfo >			m_mapSkillList;			// 변경된 skill list
 	int										m_iRemainSP;			// 남은 sp
 	int										m_iRemainCSP;			// 남은 Cash sp
@@ -2505,12 +2538,16 @@ DECL_PACKET( EGS_GET_SKILL_ACK )
 	KEGS_GET_SKILL_ACK()
 	{
 		m_iOK = 0;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_iActiveSkillPageNumber = 0;
+		m_mapSkillList.clear();
+#endif // SERV_SKILL_PAGE_SYSTEM
 		m_iRemainSP = 0;
 		m_iRemainCSP = 0;
 	}
 };
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 DECL_PACKET( EGS_GET_SKILL_REQ )
 {
 	int									m_iSkillID;
@@ -2525,7 +2562,7 @@ DECL_PACKET( EGS_GET_SKILL_ACK )
 	int									m_iSPoint;
 	int									m_iCSPoint;
 };
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 //////////////////////////////////////////////////////////////////////////
 DECL_PACKET( EGS_CHANGE_SKILL_SLOT_REQ )
@@ -2598,32 +2635,64 @@ DECL_PACKET( EGS_CHANGE_SKILL_SLOT_NOT )
 DECL_PACKET( EGS_ADMIN_CHANGE_SKILL_POINT_REQ )
 {
 	int									m_iSPoint;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int									m_iActiveSkillPageNumber;
+
+	KEGS_ADMIN_CHANGE_SKILL_POINT_REQ()
+		: m_iSPoint(0), m_iActiveSkillPageNumber(0)
+	{}
+#endif // SERV_SKILL_PAGE_SYSTEM
 };
 
 DECL_PACKET( EGS_ADMIN_CHANGE_SKILL_POINT_ACK )
 {
 	int								    m_iOK;
 	int								    m_iSPoint;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int									m_iActiveSkillPageNumber;
+
+	KEGS_ADMIN_CHANGE_SKILL_POINT_ACK()
+		: m_iOK(0), m_iSPoint(0), m_iActiveSkillPageNumber(0)
+	{}
+#endif // SERV_SKILL_PAGE_SYSTEM
 };
 
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+DECL_PACKET( EGS_ADMIN_INIT_SKILL_TREE_REQ )
+{
+	int									m_iActiveSkillPageNumber;
+
+	KEGS_ADMIN_INIT_SKILL_TREE_REQ()
+		: m_iActiveSkillPageNumber(0)
+	{}
+};
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 DECL_PACKET( EGS_ADMIN_INIT_SKILL_TREE_ACK )
 {
 	int								    m_iOK;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int									m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	int								    m_iSPoint;
 	int								    m_iCSPoint;
 
 	KEGS_ADMIN_INIT_SKILL_TREE_ACK()
 	{
 		m_iOK = 0;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_iActiveSkillPageNumber = 0;
+#endif // SERV_SKILL_PAGE_SYSTEM
 		m_iSPoint = 0;
 		m_iCSPoint = 0;
 	}
 };
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 typedef KPacketOK	KEGS_ADMIN_INIT_SKILL_TREE_ACK;
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 
@@ -2817,6 +2886,10 @@ DECL_PACKET( EGS_LEAVE_PARTY_NOT )
 #endif SERV_SERVER_BUFF_SYSTEM
 	//}
 
+#ifdef LOG_PARTY_BREAK
+	int								m_iReason;
+#endif // LOG_PARTY_BREAK
+
 	KEGS_LEAVE_PARTY_NOT()
 	{
 		m_iLeaveUnitUID = 0;
@@ -2831,6 +2904,9 @@ DECL_PACKET( EGS_LEAVE_PARTY_NOT )
 		m_bExistComeBackUser = false;
 #endif SERV_SERVER_BUFF_SYSTEM
 		//}
+#ifdef LOG_PARTY_BREAK
+		m_iReason = -1;
+#endif // LOG_PARTY_BREAK
 	}
 };
 
@@ -3523,17 +3599,25 @@ DECL_PACKET( EGS_CREATE_PERSONAL_SHOP_ACK )
 
 
 //////////////////////////////////////////////////////////////////////////
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+typedef KPacketReason               KEGS_BREAK_TRADE_REQ;
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 DECL_PACKET( EGS_BREAK_TRADE_REQ )
 {
 	int								m_iReason;
 };
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 typedef KPacketOK		KEGS_BREAK_TRADE_ACK;
 
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+typedef KPacketReason   KEGS_BREAK_TRADE_NOT;
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 DECL_PACKET( EGS_BREAK_TRADE_NOT )
 {
 	int								m_iReason;
 };
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 DECL_PACKET( EGS_TRADE_USER_INFO_NOT )
 {
@@ -4337,11 +4421,17 @@ DECL_PACKET( EGS_ITEM_EXPIRATION_NOT )
 DECL_PACKET( EGS_INIT_SKILL_TREE_REQ )
 {
 	UidType			m_iItemUID;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int									m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
 };
 
 DECL_PACKET( EGS_INIT_SKILL_TREE_ACK )
 {
 	int			m_iOK;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int									m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	int			m_iSPoint;
 	int			m_iCSPoint;
 	std::vector< KInventoryItemInfo >	m_vecInventorySlotInfo;
@@ -4613,12 +4703,19 @@ DECL_PACKET( EGS_PRESENT_CASH_ITEM_REQ )
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 	int									m_iUseCashType;	//KGlobalCashInfo의 enum GLOBAL_CASH_TYPE중 값 하나
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+	bool								m_bUseCoupon;
+#endif // SERV_NEXON_COUPON_SYSTEM
 
 	KEGS_PRESENT_CASH_ITEM_REQ()
-	{
+		: m_bIsWishList( false )
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
-		m_iUseCashType = -1;
-#endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
+		, m_iUseCashType( -1 )
+#endif //SERV_SUPPORT_SEVERAL_CASH_TYPES		
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+		, m_bUseCoupon( false )
+#endif // SERV_NEXON_COUPON_SYSTEM
+	{
 	}
 };
 
@@ -4730,6 +4827,13 @@ DECL_PACKET( EGS_TUTORIAL_STUDENT_LIST_ACK )
 DECL_PACKET( EGS_RESET_SKILL_REQ )
 {
 	int									m_iSkillID;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int									m_iActiveSkillPageNumber;	/// 활성화 중인 페이지
+
+	KEGS_RESET_SKILL_REQ()
+		: m_iSkillID(0), m_iActiveSkillPageNumber(0)
+	{}
+#endif // SERV_SKILL_PAGE_SYSTEM
 };
 
 DECL_PACKET( EGS_RESET_SKILL_ACK )
@@ -4741,13 +4845,24 @@ DECL_PACKET( EGS_RESET_SKILL_ACK )
 	int									m_iSPoint;
 	int									m_iCSPoint;
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 	int									m_iRestoreSPoint;
 	int									m_iRestoreCSPoint;
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 	std::vector< KInventoryItemInfo >	m_vecInventorySlotInfo;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int									m_iActiveSkillPageNumber;	/// 활성화 중인 페이지
+
+	KEGS_RESET_SKILL_ACK()
+		: m_iOK(0), m_iActiveSkillPageNumber(0), m_iDelSkillID(0),
+		m_iSPoint(0), m_iCSPoint(0)
+	{
+		m_vecInventorySlotInfo.clear();
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -5126,14 +5241,6 @@ DECL_PACKET( EGS_FIELD_LOADING_COMPLETE_REQ )
 	unsigned short						m_usLastPosValue;
 };
 
-//{{ 2012. 03. 27	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-DECL_PACKET( EGS_FIELD_LOADING_COMPLETE_ACK )
-{
-	int									m_iOK;
-	bool								m_bEventReturnUserMark;
-};
-#else
 //{{ 2012. 05. 16	박세훈	첫 접속 시 가이드 라인 띄워주기
 #ifdef SERV_EVENT_GUIDELINE_POPUP
 DECL_PACKET( EGS_FIELD_LOADING_COMPLETE_ACK )
@@ -5145,9 +5252,6 @@ DECL_PACKET( EGS_FIELD_LOADING_COMPLETE_ACK )
 typedef KPacketOK		KEGS_FIELD_LOADING_COMPLETE_ACK;
 #endif SERV_EVENT_GUIDELINE_POPUP
 //}}
-#endif SERV_EVENT_RETURN_USER_MARK
-//}}
-
 
 //////////////////////////////////////////////////////////////////////////
 DECL_PACKET( EGS_CHANGE_USER_LIST_IN_SECTOR_NOT )
@@ -5286,11 +5390,17 @@ DECL_PACKET( EGS_CHAR_LEVEL_UP_NOT )
 	UCHAR                           	m_ucLevel;
 	KStat								m_kBaseStat;
 	KStat                               m_kGameStat;
+#ifdef SERV_ELESIS_UPDATE_EVENT
+	int									m_iNoteViewCount;
+#endif SERV_ELESIS_UPDATE_EVENT
 
 	KEGS_CHAR_LEVEL_UP_NOT()
 	{
 		m_iUnitUID	= 0;
 		m_ucLevel	= 0;
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		m_iNoteViewCount = 0;
+#endif SERV_ELESIS_UPDATE_EVENT
 	}
 };
 //}}
@@ -5343,10 +5453,22 @@ DECL_PACKET( EGS_UPDATE_CASH_SKILL_POINT_NOT )
 DECL_PACKET( EGS_EXPIRE_CASH_SKILL_POINT_NOT )
 {
 	UidType							m_iUnitUID;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	std::vector<int>				m_vecRetrievedSPoint;
+
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
+	std::vector< std::map<int,int> >	m_vecMapHaveSKill;
+#endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+
+#else // SERV_SKILL_PAGE_SYSTEM
 	int								m_iRetrievedSPoint;
+
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 	std::map<int, int>				m_mapHaveSKill;
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+
+#endif // SERV_SKILL_PAGE_SYSTEM
 };
 
 
@@ -5447,6 +5569,8 @@ DECL_PACKET( EGS_GET_MY_BANK_INFO_ACK )
 DECL_PACKET( EGS_EXPAND_BANK_SLOT_NOT )
 {
 	std::map< int, int >					m_mapExpandedCategorySlot;
+    int                                     m_iOK;
+    int                                     m_iED;
 };
 //}}
 
@@ -5526,6 +5650,7 @@ DECL_PACKET( ECH_VERIFY_ACCOUNT_REQ )
 #ifdef SERV_PUBLISHER_OTP
 	std::wstring						m_wstrPublisherOTP;
 #endif // SERV_PUBLISHER_OTP
+
 #ifdef SERV_USE_DOMAIN_ACCOUNT
 	std::wstring						m_wstrDomain;
 #endif // SERV_USE_DOMAIN_ACCOUNT
@@ -5533,6 +5658,7 @@ DECL_PACKET( ECH_VERIFY_ACCOUNT_REQ )
 #ifdef SERV_STEAM
 	bool								m_bSteamClient;// 스팀 클라이언트로 실행되었냐
 #endif //SERV_STEAM
+
 #ifdef SERV_CHANNELING_AERIA
 	bool								m_bAeriaClient;
 #endif //SERV_CHANNELING_AERIA
@@ -5550,7 +5676,6 @@ DECL_PACKET( ECH_VERIFY_ACCOUNT_REQ )
 		//{{ 2011. 09. 14  김민성	해킹 프로세스 목록 전달 - 게임 로딩 이전 단계
 #ifdef SERV_DLL_LIST_CHECK_BEFOR_LOADING
 		m_bUseVerify = false;
-
 		//{{ 2011.11.02     김민성    서버에서 SN 발급 및 유효성 검사
 #ifdef SERV_SERIAL_NUMBER_AVAILABILITY_CHECK
 		for( int i = 0 ; i < SERVER_SN ; ++i )
@@ -5586,7 +5711,6 @@ DECL_PACKET( ECH_VERIFY_ACCOUNT_REQ )
 		m_bAeriaClient = false;
 #endif //SERV_CHANNELING_AERIA
 	}
-
 };
 
 DECL_PACKET( ECH_VERIFY_ACCOUNT_ACK )
@@ -5604,7 +5728,6 @@ DECL_PACKET( ECH_VERIFY_ACCOUNT_ACK )
 	std::wstring                        m_wstrCurrentTime;
 #endif SERV_MASSFILE_MAPPING_FUNCTION
 #endif SERV_SERVER_TIME_GET
-
 
 	//{{ 2011. 09. 14  김민성	해킹 프로세스 목록 전달 - 게임 로딩 이전 단계
 #ifdef SERV_DLL_LIST_CHECK_BEFOR_LOADING
@@ -5676,7 +5799,6 @@ DECL_PACKET( ECH_VERIFY_ACCOUNT_ACK )
 		m_iServerGourpID	= 0; 
 #endif // SERV_SOUTH_AMERICA
 	}
-
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -6310,6 +6432,7 @@ DECL_PACKET( EGS_SEARCH_TRADE_BOARD_REQ )
 
 	//char	m_cItemGrade;		// 아이템 등급
 	std::vector<char>	m_vecItemGrade;
+    bool    m_bStrictSearchOption; // 일치하는 키워드 검색
 };
 
 DECL_PACKET( EGS_SEARCH_TRADE_BOARD_ACK )
@@ -6828,6 +6951,14 @@ DECL_PACKET( EGS_FEED_PETS_ACK )
     int									m_iOK;
 	short								m_sSatiety;
 	std::vector< KInventoryItemInfo >	m_vecInventorySlotInfo;
+#ifdef SERV_EVENT_PET_INVENTORY
+	//이벤트 펫 먹이 사용 유무 체크 변수 
+	bool								m_EventFoodEat;
+	KEGS_FEED_PETS_ACK()
+	{
+		m_EventFoodEat = false;
+	}
+#endif SERV_EVENT_PET_INVENTORY
 };
 
 DECL_PACKET( EGS_FIRST_FEED_PETS_NOT )
@@ -6999,7 +7130,8 @@ typedef KEGS_CREATE_PERSONAL_SHOP_ACK		KEGS_CREATE_PSHOP_AGENCY_ACK;
 
 DECL_PACKET( EGS_CHANGE_PSHOP_AGENCY_EXPIRATION_NOT )
 {
-	std::wstring								m_wstrAgencyExpirationDate;
+    char                    m_cShopType;
+	std::wstring			m_wstrAgencyExpirationDate;
 };
 
 typedef KEGS_REG_PERSONAL_SHOP_ITEM_REQ		KEGS_REG_PSHOP_AGENCY_ITEM_REQ;
@@ -7028,11 +7160,17 @@ DECL_PACKET( EGS_JOIN_MY_PSHOP_AGENCY_ACK )
 	std::wstring								m_wstrPersonalShopName;
 	std::wstring								m_wstrNickName;
 	std::vector< KSellPersonalShopItemInfo >	m_vecSellItemInfo;
-
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+    int					                        m_iUsedItemID; // 상점 업그레이드 아이템(보증서)
+#endif SERV_UPGRADE_TRADE_SYSTEM
 	KEGS_JOIN_MY_PSHOP_AGENCY_ACK()
 	{
 		m_iOK = 0;
 		m_cJoinType = 0;
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+        m_iUsedItemID = 0;
+#endif SERV_UPGRADE_TRADE_SYSTEM
 	}
 };
 
@@ -7077,6 +7215,7 @@ DECL_PACKET( EGS_PICK_UP_FROM_PSHOP_AGENCY_ACK )
 	int											m_iED;
 	std::vector< KSellPersonalShopItemInfo >	m_vecSellItemInfo;
 	std::vector< KInventoryItemInfo >			m_vecInventorySlotInfo;
+    bool                                        m_bRemainSellItem;
 };
 
 #endif SERV_PSHOP_AGENCY
@@ -7137,6 +7276,8 @@ DECL_PACKET( EGS_SECOND_SECURITY_INFO_NOT )
 	bool										m_bUseSecondPW;
 };
 
+typedef KEGS_SECOND_SECURITY_INFO_NOT KEGS_GET_SECOND_SECURITY_INFO_ACK;
+
 DECL_PACKET( EGS_AUTH_SECOND_SECURITY_REQ )
 {
 	UidType										m_iUserUID;
@@ -7174,7 +7315,8 @@ typedef KPacketOK							KEGS_CHANGE_SECOND_SECURITY_PW_ACK;
 
 typedef std::wstring						KEGS_COMPARE_SECOND_SECURITY_PW_REQ;
 typedef KPacketOK							KEGS_COMPARE_SECOND_SECURITY_PW_ACK;
-
+typedef std::wstring                        KEGS_CHECK_SECOND_SECURITY_PW_CHRACTER_LIST_REQ;
+typedef KPacketOK                           KEGS_CHECK_SECOND_SECURITY_PW_CHRACTER_LIST_ACK;
 #endif SERV_SECOND_SECURITY
 //}}
 
@@ -7562,7 +7704,12 @@ DECL_PACKET( EGS_BUY_UNIT_CLASS_CHANGE_NOT )
 	UidType									m_iUnitUID;
 	int										m_iNewUnitClass;
 	std::vector< short >					m_vecSkillUnsealed;   // 봉인해제된 스킬 리스트
+	
+#ifdef SERV_REFORM_SKILL_NOTE
+#else // KDBE_BUY_UNIT_CLASS_CHANGE_REQ
 	std::map< char, int >					m_mapChangeMemo;  // <원본MemoSlot, 바뀐MemoID>
+#endif // SERV_REFORM_SKILL_NOTE
+	
 	std::vector< KInventoryItemInfo >		m_vecChangeItem;
 	std::vector< KCompleteQuestInfo >		m_vecChangeCompleteQuest;
 	std::vector< KQuestInstance >			m_vecChangeInProgressQuest;
@@ -7640,15 +7787,21 @@ DECL_PACKET( EGS_SORT_CATEGORY_ITEM_ACK )
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 DECL_PACKET( EGS_JOIN_BATTLE_FIELD_REQ )
 {
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+	KBattleFieldJoinInfo        m_kBattleFieldJoinInfo;
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	int							m_iBattleFieldID;
 	int							m_StartPosIndex;
 	bool						m_bMoveForMyParty;		// 같은 파티원이 있는 필드로 이동할때는 true값
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 	KEGS_JOIN_BATTLE_FIELD_REQ()
 	{
+#ifndef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		m_iBattleFieldID = 0;
 		m_StartPosIndex = 0;
 		m_bMoveForMyParty = false;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	}
 };
 
@@ -7660,7 +7813,9 @@ DECL_PACKET( EGS_JOIN_BATTLE_FIELD_ACK )
 	std::vector< KRoomSlotInfo >        m_vecSlot;
 
 	std::wstring						m_wstrCNIP;
+#ifndef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	int									m_iLastTouchIndex;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 	int									m_iRequireLevel;
 	int									m_iRequireDungeonID;
@@ -7677,6 +7832,11 @@ DECL_PACKET( EGS_JOIN_BATTLE_FIELD_ACK )
 #endif SERV_VIEW_CASH_SHOP_USER_LIST_IN_BATTLE_FIELD
 	//}}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+	__time64_t							m_tRemainFieldHoldingTime;	// 보스 필드가 닫힐 때까지 남은 시간
+#endif // SERV_BATTLE_FIELD_BOSS
+
+
 	KEGS_JOIN_BATTLE_FIELD_ACK()
 	{
 		Initialize();
@@ -7689,7 +7849,9 @@ DECL_PACKET( EGS_JOIN_BATTLE_FIELD_ACK )
 		m_RoomInfo.Initialize();
 		m_vecSlot.clear();
 		m_wstrCNIP.clear();
+#ifndef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		m_iLastTouchIndex = 0;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		m_iRequireLevel = 0;
 		m_iRequireDungeonID = 0;
 
@@ -7699,6 +7861,9 @@ DECL_PACKET( EGS_JOIN_BATTLE_FIELD_ACK )
 		m_usUDPRelayPort = 0;
 #endif SERV_CHOOSE_FASTEST_HOST
 		
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+		m_tRemainFieldHoldingTime = 0;
+#endif // SERV_BATTLE_FIELD_BOSS
 	}
 };
 
@@ -8125,18 +8290,18 @@ DECL_PACKET( EGS_UPDATE_USER_UNIT_BUFF_INFO_BROAD_NOT )
 
 DECL_PACKET( EGS_UPDATE_NPC_UNIT_BUFF_INFO_NOT )
 {
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
     std::vector<UidType>            m_vecToUnitUID;
-#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-	UidType							m_iToUnitUID;		// 값이 0이면 브로드캐스팅
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//	UidType							m_iToUnitUID;		// 값이 0이면 브로드캐스팅
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 	std::vector< KNpcUnitBuffInfo >	m_vecNpcUnitBuff;
 
 	KEGS_UPDATE_NPC_UNIT_BUFF_INFO_NOT()
 	{
-#ifndef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-		m_iToUnitUID = 0;
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifndef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//		m_iToUnitUID = 0;
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 	}
 };
 
@@ -9703,7 +9868,6 @@ DECL_PACKET( EGS_CALL_MY_LOVER_ROOM_NOT )
 DECL_PACKET( EGS_CALL_MY_LOVER_AGREE_ROOM_NOT )
 {
 	bool						m_bAgree;		// 동의 결과
-
 	int							m_iBattleFieldID;
 	UidType						m_RoomUID;
 
@@ -9735,7 +9899,9 @@ DECL_PACKET( EGS_CALL_MY_LOVER_JOIN_BATTLE_FIELD_NOT )
 	std::vector< KRoomSlotInfo >        m_vecSlot;
 
 	std::wstring						m_wstrCNIP;
+#ifndef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	int									m_iLastTouchIndex;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	VECTOR3								m_vPos;
 
 	int									m_iRequireLevel;
@@ -9757,7 +9923,9 @@ DECL_PACKET( EGS_CALL_MY_LOVER_JOIN_BATTLE_FIELD_NOT )
 		m_RoomInfo.Initialize();
 		m_vecSlot.clear();
 		m_wstrCNIP.clear();
+#ifndef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		m_iLastTouchIndex = 0;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		m_iRequireLevel = 0;
 		m_iRequireDungeonID = 0;
 
@@ -9818,7 +9986,11 @@ DECL_PACKET( EGS_JOIN_WEDDING_HALL_ACK )
 
 typedef KEGS_JOIN_ROOM_NOT		KEGS_JOIN_WEDDING_HALL_NOT;
 
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+typedef KPacketReason           KEGS_LEAVE_WEDDING_HALL_REQ;
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 typedef KEGS_LEAVE_ROOM_REQ		KEGS_LEAVE_WEDDING_HALL_REQ;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 typedef KPacketOK				KEGS_LEAVE_WEDDING_HALL_ACK;
 
 DECL_PACKET( EGS_LEAVE_WEDDING_HALL_NOT )
@@ -10147,10 +10319,11 @@ DECL_PACKET( EGS_RESTORE_ITEM_EVALUATE_ACK )
 DECL_PACKET( EGS_ITEM_CONVERT_REQ )
 {
     UidType								m_iItemUID;
-
+    int                                 m_iQuantity;
 	KEGS_ITEM_CONVERT_REQ()
 	{
 		m_iItemUID = 0;
+        m_iQuantity = 0;
 	}
 };
 
@@ -10258,9 +10431,23 @@ DECL_PACKET( EGS_CHANGE_MY_UNIT_INFO_NOT )
 	}
 };
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+DECL_PACKET( EGS_ADMIN_AUTO_GET_ALL_SKILL_REQ )
+{
+	int				m_iActiveSkillPageNumber;
+
+	KEGS_ADMIN_AUTO_GET_ALL_SKILL_REQ()
+		: m_iActiveSkillPageNumber(0)
+	{}
+};
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 DECL_PACKET( EGS_ADMIN_AUTO_GET_ALL_SKILL_ACK )
 {
 	int						m_iOK;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int						m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	int						m_iSPoint;
 	int						m_iCSPoint;
 	std::map< int, int>		m_mapSkillList;
@@ -10269,6 +10456,9 @@ DECL_PACKET( EGS_ADMIN_AUTO_GET_ALL_SKILL_ACK )
 	KEGS_ADMIN_AUTO_GET_ALL_SKILL_ACK()
 	{
 		m_iOK = 0;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_iActiveSkillPageNumber = 0;
+#endif // SERV_SKILL_PAGE_SYSTEM
 		m_iSPoint = 0;
 		m_iCSPoint = 0;
 	}
@@ -10278,11 +10468,17 @@ DECL_PACKET( EGS_ADMIN_GET_SKILL_REQ )
 {
 	int						m_iSkillID;
 	int						m_iSkillLevel;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int						m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	KEGS_ADMIN_GET_SKILL_REQ()
 	{
 		m_iSkillID = 0;
 		m_iSkillLevel = 0;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_iActiveSkillPageNumber = 0;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	}
 };
 
@@ -10291,6 +10487,9 @@ DECL_PACKET( EGS_ADMIN_GET_SKILL_ACK )
 	int						m_iOK;
 	int						m_iSkillID;
 	int						m_iSkillLevel;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int						m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	int						m_iCSPoint;
 	bool					m_bUnsealed;
 
@@ -10299,6 +10498,9 @@ DECL_PACKET( EGS_ADMIN_GET_SKILL_ACK )
 		m_iOK = 0;
 		m_iSkillID = 0;
 		m_iSkillLevel = 0;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_iActiveSkillPageNumber = 0;
+#endif // SERV_SKILL_PAGE_SYSTEM
 		m_iCSPoint = 0;
 		m_bUnsealed = false;
 	}
@@ -10343,7 +10545,7 @@ DECL_PACKET( EGS_COUPON_LIST_ACK )
 	short							m_sCouponBoxType;
 	unsigned short					m_usPageNum;
 	int								m_iCouponCount;
-	std::vector<KClientCouponBox>	m_vecUsedCouponList;
+	std::vector<KClientCouponBox>	m_vecCouponList;
 
 	KEGS_COUPON_LIST_ACK()
 		: m_iOK( 0 )
@@ -10472,8 +10674,383 @@ DECL_PACKET( EGS_JUMPING_CHARACTER_ACK )
 };
 #endif // SERV_JUMPING_CHARACTER
 
-#pragma pack( pop )
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+DECL_PACKET( EGS_ITEM_EXTRACT_REQ )
+{
+	UidType							m_iItemUID;
+	int								m_iQuantity;
 
+	KEGS_ITEM_EXTRACT_REQ()
+	{
+		m_iItemUID			= 0;
+		m_iQuantity			= 0;
+	}
+};
+
+
+DECL_PACKET( EGS_ITEM_EXTRACT_ACK )
+{
+	int									m_iOK;
+	std::vector< KInventoryItemInfo >	m_vecKInventorySlotInfo;
+	std::map< int, int >                m_mapInsertedItem;
+
+	KEGS_ITEM_EXTRACT_ACK()
+	{
+		m_iOK			= 0;
+	}
+};
+
+DECL_PACKET( EGS_USE_FINALITY_SKILL_REQ )
+{
+	UidType							m_iItemUID;
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+	bool							m_bNoConsume;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+
+	KEGS_USE_FINALITY_SKILL_REQ()
+	{
+		m_iItemUID			= 0;
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		m_bNoConsume		= false;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+	}
+};
+
+
+DECL_PACKET( EGS_USE_FINALITY_SKILL_ACK )
+{
+	int									m_iOK;
+	std::vector< KInventoryItemInfo >	m_vecKInventorySlotInfo;
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+	bool								m_bNoConsume;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+
+	KEGS_USE_FINALITY_SKILL_ACK()
+	{
+		m_iOK			= 0;
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		m_bNoConsume		= false;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+	}
+};
+#endif // SERV_FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-28	// 박세훈
+DECL_PACKET( EGS_BATTLE_FIELD_BOSS_GATE_OPEN_NOT )
+{
+	int		m_iBattleFieldID;	// 게이트가 생성될 배틀 필드 ID
+	int		m_iBossFieldID;		// 게이트가 연결된 보스 필드 ID
+
+	KEGS_BATTLE_FIELD_BOSS_GATE_OPEN_NOT()
+		: m_iBattleFieldID( 0 )
+		, m_iBossFieldID( 0 )
+	{
+	}
+};
+
+DECL_PACKET( EGS_BATTLE_FIELD_BOSS_GATE_CLOSE_NOT )
+{
+	int		m_iBattleFieldID;	// 게이트가 파괴될 배틀 필드 ID
+
+	KEGS_BATTLE_FIELD_BOSS_GATE_CLOSE_NOT()
+		: m_iBattleFieldID( 0 )
+	{
+	}
+};
+
+typedef	KBossFieldJoinInfo	KEGS_BOSS_FIELD_RETURN_PROCESS_NOT;
+
+DECL_PACKET( EGS_SOCKET_EXPAND_ITEM_REQ )
+{
+	UidType	m_iMaterialItemUID;
+	UidType	m_iTargetItemUID;
+
+	KEGS_SOCKET_EXPAND_ITEM_REQ()
+		: m_iMaterialItemUID( 0 )
+		, m_iTargetItemUID( 0 )
+	{
+	}
+};
+
+DECL_PACKET( EGS_SOCKET_EXPAND_ITEM_ACK )
+{
+	int								m_iOK;
+	std::vector<KInventoryItemInfo>	m_vecUpdatedInventorySlot;
+
+	KEGS_SOCKET_EXPAND_ITEM_ACK()
+		: m_iOK( 0 )
+	{
+	}
+};
+#endif // SERV_BATTLE_FIELD_BOS
+
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
+DECL_PACKET( EGS_DUNGEON_SUB_STAGE_CLEAR_REQ )
+{
+	int		m_iClearConditionIndex;
+
+	KEGS_DUNGEON_SUB_STAGE_CLEAR_REQ()
+		: m_iClearConditionIndex( 0 )
+	{
+	}
+};
+DECL_PACKET( EGS_DUNGEON_SUB_STAGE_CLEAR_ACK )
+{
+	int		m_iOK;
+	int		m_iClearType;
+	int		m_iStageIndex;
+	int		m_iSubStageIndex;
+
+	KEGS_DUNGEON_SUB_STAGE_CLEAR_ACK()
+		: m_iOK( 0 )
+		, m_iClearType( 0 )
+		, m_iStageIndex( 0 )
+		, m_iSubStageIndex( 0 )
+	{
+	}
+};
+DECL_PACKET( EGS_SECRET_STAGE_LOAD_REQ )
+{
+	int		m_iPadID;
+
+	KEGS_SECRET_STAGE_LOAD_REQ()
+		: m_iPadID( 0 )
+	{
+	}
+};
+DECL_PACKET( EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT )
+{
+	int		m_iStartSecretStageEnteringEvent;
+
+	KEGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT()
+		: m_iStartSecretStageEnteringEvent( 0 )
+	{
+	}
+};
+#endif // SERV_STAGE_CLEAR_IN_SERVER
+
+#ifdef SERV_GOOD_ELSWORD
+DECL_PACKET( EGS_GET_NEXT_BANK_ED_ACK )
+{
+    int m_iOK;
+    int m_iED;
+
+    KEGS_GET_NEXT_BANK_ED_ACK()
+        :m_iOK(0)
+        ,m_iED(0)
+    {}
+};
+
+typedef KEGS_GET_NEXT_BANK_ED_ACK    KEGS_GET_NEXT_INVENTORY_ED_ACK;
+
+DECL_PACKET( EGS_EXPAND_BANK_SLOT_ED_ACK )
+{
+    int m_iOK;
+    int m_iED;
+    std::map< int, int >					m_mapExpandedCategorySlot;
+
+    KEGS_EXPAND_BANK_SLOT_ED_ACK()
+        :m_iOK(0)
+        ,m_iED(0)
+    {
+        m_mapExpandedCategorySlot.clear();
+    }
+};
+
+
+
+typedef KEGS_EXPAND_BANK_SLOT_ED_ACK KEGS_EXPAND_INVENTORY_ED_ACK;
+
+
+#endif // SERV_GOOD_ELSWORD
+
+#ifdef SERV_KOM_FILE_CHECK_ADVANCED
+DECL_PACKET( EGS_KOM_FILE_CHECK_LOG_REQ )
+{
+	std::wstring						m_wstrInvalidKomName;
+};
+
+DECL_PACKET( EGS_KOM_FILE_CHECK_LOG_ACK )
+{
+	std::wstring						m_wstrInvalidKomName;
+	int									m_iOK;
+};
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+
+typedef KEGS_GET_NEXT_BANK_ED_ACK    KEGS_GET_NEXT_SKILL_PAGE_ED_ACK;
+
+DECL_PACKET( EGS_EXPAND_SKILL_PAGE_ACK )
+{
+	int						m_iOK;
+	int						m_iED;		/// 스킬페이지 확장 후 유저가 가지고 있어야 하는 ED
+	int						m_iTheNumberOfSkillPagesAvailable;
+	int						m_iSPointAvailable;
+	int						m_iCSPointAvailable;
+	std::vector<int>		m_vecSkillListLearned;
+	std::vector< short >	m_vecUnsealedSkillID;
+	bool					m_bPayWithED;
+
+	KEGS_EXPAND_SKILL_PAGE_ACK()
+		: m_iOK(0), 
+		m_iED(0),
+		m_iTheNumberOfSkillPagesAvailable(0),
+		m_iSPointAvailable(0),
+		m_iCSPointAvailable(0),
+		m_bPayWithED( true )
+	{
+		m_vecSkillListLearned.clear();
+		m_vecUnsealedSkillID.clear();
+	}
+};
+
+DECL_PACKET( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ )
+{
+	int	m_iSkillPagesNumberDecidedToUse;
+
+	KEGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ()
+		: m_iSkillPagesNumberDecidedToUse(0)
+	{}
+};
+
+DECL_PACKET( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK )
+{
+	int						m_iOK;
+	int						m_iSkillPagesNumberDecidedToUse;
+	int						m_iSPointAvailable;
+	int						m_iCSPointAvailable;
+	KUserSkillPageData		m_kUserSkillPageData;
+	//std::map< int, int>		m_mapSkillListLearned;
+
+	KEGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK()
+		: m_iOK(0),
+		m_iSkillPagesNumberDecidedToUse(0), 
+		m_iSPointAvailable(0),
+		m_iCSPointAvailable(0)
+	{}
+};
+
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+#ifdef SERV_ENTRY_POINT
+DECL_PACKET( EGS_CHARACTER_LIST_ACK )
+{
+    int                     m_iOK;
+    std::map< int, int >    m_mapServerGroupUnitSlot; // first = 서버군( SEnum::SGI_SOLES or SGI_GAIA, second = 슬롯 수
+    std::map< int, std::vector<KUnitInfo> > m_mapServerGroupUnitInfo; // first = 서버군
+    std::wstring m_strUserID;
+    KEGS_CHARACTER_LIST_ACK()
+        :m_iOK(0)        
+    {
+        m_mapServerGroupUnitSlot.clear();
+        m_mapServerGroupUnitInfo.clear();
+        m_strUserID.clear();
+    }
+};
+
+typedef std::wstring KECH_CHANNEL_CHARACTER_LIST_REQ;
+typedef KEGS_CHARACTER_LIST_ACK KEGS_CHARACTER_LIST_1ST_ACK;
+
+DECL_PACKET( EGS_CREATE_NEW_UNIT_REQ )
+{
+    std::wstring            m_wstrNickName;
+    int                     m_iClass;
+    int                     m_iServerGroup;
+
+    KEGS_CREATE_NEW_UNIT_REQ()
+        :m_wstrNickName(L"")
+        ,m_iClass(0)
+        ,m_iServerGroup(0)
+    {}
+
+};
+
+
+DECL_PACKET( EGS_ENTRY_POINT_DELETE_UNIT_REQ )
+{
+    UidType                 m_iUnitUID;
+    UidType                 m_iUserUID;
+    int                     m_iServerGroup;
+
+    KEGS_ENTRY_POINT_DELETE_UNIT_REQ()
+        
+        :m_iServerGroup(0)
+    {
+        m_iUnitUID		= 0;
+        m_iUserUID		= 0;
+    }
+};
+
+DECL_PACKET( EGS_ENTRY_POINT_CHECK_NICK_NAME_REQ )
+{
+    int                     m_iServerGroup;    
+    std::wstring			m_wstrNickName;
+
+    KEGS_ENTRY_POINT_CHECK_NICK_NAME_REQ():
+    m_iServerGroup(0),
+    m_wstrNickName(L"")
+    {
+    }
+};
+
+typedef KEGS_CHECK_NICK_NAME_ACK KEGS_ENTRY_POINT_CHECK_NICK_NAME_ACK;
+
+DECL_PACKET( EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK )
+{
+    UidType	             m_iUserUID;
+    std::map< int, int > m_mapCreateCharCountToday; // first : server group , second : 오늘 캐릭터 생성 수
+
+    KEGS_GET_CREATE_UNIT_TODAY_COUNT_ACK():
+    m_iUserUID(0)
+    {
+        m_mapCreateCharCountToday.clear();
+    }
+
+
+};
+
+DECL_PACKET( EGS_ENTRY_POINT_CHANGE_NICK_NAME_REQ )
+{
+    int                 m_iServerGroup;    
+    UidType             m_iUnitUID;
+    std::wstring        m_wstrNickName;
+    bool				m_bCheckOnly;
+
+    KEGS_ENTRY_POINT_CHANGE_NICK_NAME_REQ():
+        m_iServerGroup(0),
+        m_iUnitUID(0),
+        m_wstrNickName(L""),
+        m_bCheckOnly(false)
+    {
+    }
+};
+
+//DECL_PACKET( EGS_CHANGE_NICK_NAME_ACK )
+//{
+//    int                 m_iOK;
+//    UidType             m_iUnitUID;
+//    std::wstring		m_wstrNickName;
+//    bool				m_bCheckOnly;
+//};
+
+
+#endif SERV_ENTRY_POINT
+
+#ifdef SERV_NAVER_CHANNELING
+//typedef std::string KEGS_GET_NAVER_ACCESS_TOKEN_ACK;
+DECL_PACKET( EGS_GET_NAVER_ACCESS_TOKEN_ACK )
+{
+    int         m_iOK;
+    std::string m_strAccessToken;
+
+    KEGS_GET_NAVER_ACCESS_TOKEN_ACK():m_iOK(0),
+        m_strAccessToken(std::string())
+    {}
+};
+#endif SERV_NAVER_CHANNELING
+
+#pragma pack( pop )
 
 //{{ 2013.02.27 조효진	해외 기본 구조 작업 (SERV_GLOBAL_BASE)
 #   include "OnlyGlobal/Packet/ClientPacket_Global.h"

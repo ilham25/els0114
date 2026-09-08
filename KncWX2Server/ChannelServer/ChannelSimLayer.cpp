@@ -10,6 +10,26 @@
 #include "ChannelLoginProxy.h"
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 
+#ifdef SERV_GLOBAL_AUTH
+#if defined SERV_COUNTRY_EU
+#include "../Common/OnlyGlobal/AuthAndBilling/EU/GameForgeAuthManager.h"
+#elif defined SERV_COUNTRY_US
+#include "../Common/OnlyGlobal/AuthAndBilling/US/K3RComboAuthManager.h"
+#elif defined SERV_COUNTRY_TWHK
+#include "../Common/OnlyGlobal/AuthAndBilling/TW/GASHAuthManager.h"
+#elif defined SERV_COUNTRY_JP
+#include "../Common/OnlyGlobal/AuthAndBilling/JP/PURPLEAuthManager.h"
+#elif defined SERV_COUNTRY_BR
+#include "../Common/OnlyGlobal/AuthAndBilling/BR/LevelUpAuthManager.h"
+#elif defined SERV_COUNTRY_IN
+#include "../Common/OnlyGlobal/AuthAndBilling/IN/FunizenAuthManager.h"
+#endif // SERV_COUNTRY
+#endif // SERV_GLOBAL_AUTH
+
+#ifdef SERV_PROCESS_COMMUNICATION_KSMS
+#include "..\Common\OnlyGlobal\ProcessCommuniationModule\ProcessCommunicationManager.h"
+#endif //SERV_PROCESS_COMMUNICATION_KSMS
+
 #include "Event.h"
 #include "CommonPacket.h"
 #include "SystemPacket.h"
@@ -22,20 +42,6 @@
 #include "NetError.h"
 
 //#include "GASHAuthManager.h"
-
-#ifdef SERV_GLOBAL_AUTH
-
-#if defined SERV_COUNTRY_EU
-#include "../Common/OnlyGlobal/AuthAndBilling/EU/GameForgeAuthManager.h"
-#elif defined SERV_COUNTRY_US
-#include "../Common/OnlyGlobal/AuthAndBilling/US/K3RComboAuthManager.h"
-#elif defined SERV_COUNTRY_TWHK
-#include "../Common/OnlyGlobal/AuthAndBilling/TW/GASHAuthManager.h"
-#elif defined SERV_COUNTRY_JP
-#include "../Common/OnlyGlobal/AuthAndBilling/JP/PURPLEAuthManager.h"
-#endif // SERV_COUNTRY
-#endif // SERV_GLOBAL_AUTH
-
 
 //{{ 2010. 02. 16  최육사	해킹툴 리스트
 #ifdef SERV_HACKING_TOOL_LIST
@@ -64,10 +70,6 @@
 	#include "SMSPhoneNumberManager.h"
 #endif SERV_SMS_TOTAL_MANAGER
 //}}
-
-#ifdef SERV_PROCESS_COMMUNICATION_KSMS
-#include "..\Common\OnlyGlobal\ProcessCommuniationModule\ProcessCommunicationManager.h"
-#endif //SERV_PROCESS_COMMUNICATION_KSMS
 
 #include <lua_tinker.h>
 using namespace lua_tinker;
@@ -100,12 +102,10 @@ ImplToStringW( KChannelSimLayer )
 {
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 	START_TOSTRING_PARENTW( KSimLayer );
-
 	SiKProxyManager()->ToString( stm_ );
-
 	return stm_;
 #else
-	return START_TOSTRING_PARENTW( KSimLayer );
+    return START_TOSTRING_PARENTW( KSimLayer );
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 }
 
@@ -140,7 +140,6 @@ void KChannelSimLayer::RegToLua()
 #endif SERV_CHANNEL_SERV_CHECK_MODE
 	//}}
 
-
 	//{{ 2013.03.21 조효진 국가별 AuthManager 다름
 #ifdef SERV_GLOBAL_AUTH
 #if defined SERV_COUNTRY_EU
@@ -151,11 +150,14 @@ void KChannelSimLayer::RegToLua()
 	SiKGASHAuthManager()->RegToLua();
 #elif defined SERV_COUNTRY_JP
 	SiKPurpleAuthManager()->RegToLua();
+#elif defined SERV_COUNTRY_BR
+	SiKLevelUpAuthManager()->RegToLua();
+#elif defined SERV_COUNTRY_IN
+	//SiKFunizenAuthManager()->RegToLua(); 나중에 쓰일 수 있어서 주석처리만 해놓음
 #endif // SERV_COUNTRY
 #endif // SERV_GLOBAL_AUTH
 	//}}
 }
-
 
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 KActorProxy* CreateProxy( int iProxyType )
@@ -197,6 +199,10 @@ void KChannelSimLayer::Init()
 	m_vecpThreadMgr.push_back( SiKGASHAuthManager()->GetInstance() );
 #elif defined SERV_COUNTRY_JP
 	m_vecpThreadMgr.push_back( SiKPurpleAuthManager()->GetInstance() );
+#elif defined SERV_COUNTRY_BR
+	m_vecpThreadMgr.push_back( SiKLevelUpAuthManager()->GetInstance() );
+#elif defined SERV_COUNTRY_IN
+	//m_vecpThreadMgr.push_back( SiKFunizenAuthManager()->GetInstance() ); 나중에 쓰일 수 있어서 주석처리만 해놓음
 #endif // SERV_COUNTRY
 #endif // SERV_GLOBAL_AUTH
 	//}}
@@ -224,6 +230,25 @@ void KChannelSimLayer::Init()
 			START_LOG( cout, L"Enum 정보 로드 성공.!" );
 		}
 	}
+
+	{
+		LoadingTimer lt( L"DungeonEnum.lua" );
+
+		//추후 ↓에서 이루어 지는 데이터 로딩이 실패할경우 서버를 종료 시켜야한다.
+		strFile = "DungeonEnum.lua";
+		kAutoPath.GetPullPath( strFile );
+		if( 0 != LUA_DOFILE( g_pLua, strFile.c_str() ) )
+		{
+			START_LOG( cerr, L"DungeonEnum 정보 로드 실패.!" )
+				<< BUILD_LOG( KncUtil::toWideString( strFile ) );
+			KBaseServer::GetKObj()->AddFailScriptFileName( L"DungeonEnum.lua" );
+		}
+		else
+		{
+			START_LOG( cout, L"DungeonEnum 정보 로드 성공.!" );
+		}
+	}
+
 	{
 		KGameSysVal::RegScriptName( "GameSysValTable.lua" );
 		OPEN_SCRIPT_FILE( KGameSysVal );
@@ -272,25 +297,19 @@ void KChannelSimLayer::Init()
 		m_bOpensslRSAInit = true;
 	}
 #endif //SERV_COUNTRY_PH
-
 }
 
 void KChannelSimLayer::Tick()
 {
     KSimLayer::Tick();
 
-//////////////////////////////////////////////////////////////////////////
 	//{{ 2013.03.21 조효진 국가별 AuthManager 다름
 #ifdef SERV_GLOBAL_AUTH
-
 #if defined SERV_COUNTRY_TWHK
 	if (GetAuthFlag() == KSimLayer::AF_GLOBAL_SERVICE)
 		SiKGASHAuthManager()->Tick();
 #endif // SERV_COUNTRY_TWXX
-
 #endif // SERV_GLOBAL_AUTH
-	//}}
-//////////////////////////////////////////////////////////////////////////
 
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 	SiKProxyManager()->Tick();
@@ -329,15 +348,15 @@ void KChannelSimLayer::ShutDown()
 	SiKGASHAuthManager()->ReleaseInstance();
 #elif defined SERV_COUNTRY_JP
 	SiKPurpleAuthManager()->ReleaseInstance();
+#elif defined SERV_COUNTRY_BR
+	SiKLevelUpAuthManager()->ReleaseInstance();
 #endif // SERV_COUNTRY
 #endif // SERV_GLOBAL_AUTH
 	//}}
 
-
 #ifdef SERV_FROM_CHANNEL_TO_LOGIN_PROXY
 	KProxyManager::ReleaseInstance();
 #endif SERV_FROM_CHANNEL_TO_LOGIN_PROXY
-
 
 	//{{ 2010. 02. 16  최육사	해킹툴 리스트
 #ifdef SERV_HACKING_TOOL_LIST

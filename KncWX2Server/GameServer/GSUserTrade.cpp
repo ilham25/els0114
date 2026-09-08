@@ -55,7 +55,7 @@ IMPL_ON_FUNC( EGS_REQUEST_TRADE_REQ )
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
 	if( m_kUserAbuserManager.IsTradeBlockUnit() == true )
 	{
-		kAck.m_iOK = NetError::ERR_TRADE_BLOCK_UNIT_00;
+		kAck.m_iOK = NetError::ERR_TRADE_BLOCK_UNIT_02;
 		SendPacket( EGS_REQUEST_TRADE_ACK, kAck );
 		return;
 	}
@@ -578,7 +578,7 @@ IMPL_ON_FUNC( EGS_UPDATE_TRADE_ITEM_REQ )
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
 	if( m_kUserAbuserManager.IsTradeBlockUnit() == true )
 	{
-		kAck.m_iOK = NetError::ERR_TRADE_BLOCK_UNIT_00;
+		kAck.m_iOK = NetError::ERR_TRADE_BLOCK_UNIT_02;
 		SendPacket( EGS_UPDATE_TRADE_ITEM_ACK, kAck );
 		return;
 	}
@@ -711,7 +711,7 @@ IMPL_ON_FUNC( EGS_UPDATE_TRADE_ED_REQ )
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
 	if( m_kUserAbuserManager.IsTradeBlockUnit() == true )
 	{
-		kAck.m_iOK = NetError::ERR_TRADE_BLOCK_UNIT_00;
+		kAck.m_iOK = NetError::ERR_TRADE_BLOCK_UNIT_02;
 		SendPacket( EGS_UPDATE_TRADE_ED_ACK, kAck );
 		return;
 	}

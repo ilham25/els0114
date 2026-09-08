@@ -815,11 +815,11 @@ int	__stdcall	HS_CallbackProc( long lCode, long lParamSize, void* pParam )
 #endif
 
 #ifndef _DEBUG
-			if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL &&
-				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData != NULL && g_pData->GetMyUser() != NULL &&
+				g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
-				g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+				g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 			}
 			g_pKTDXApp->SetFindHacking( true );
 #endif

@@ -38,7 +38,6 @@
 #include "../Common/OnlyGlobal/AuthAndBilling/CN/GiantInfoManager.h"
 #endif SERV_COUNTRY_CN
 
-
 #include "defaultFSM.h"
 #include "LoginUser.h"
 //{{ 2009. 7. 6  최육사		랭킹개편
@@ -126,6 +125,11 @@
 	#include "WeddingHallManager.h"
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
+
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+#include "X2Data/XSLSkillTree.h"
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
+
 #include "NetError.h"
 
 //{{ 최육사 : [2012/10/9] //	태국 OTP 인증 통신 모듈
@@ -133,12 +137,9 @@
 #include "../Common/OnlyGlobal/AuthAndBilling/TH/LoginOtpAuthTcpThread.h"
 #endif SERV_AUTH_TCP_THREAD_MANAGER
 //}}
-
 #ifdef SERV_COUNTRY_JP
 #include "../Common/OnlyGlobal/AuthAndBilling/JP/HanNetCafeForSvr.h"
 #endif //SERV_COUNTRY_JP
-
-
 
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 #include "..\Common\OnlyGlobal\ProcessCommuniationModule\ProcessCommunicationManager.h"
@@ -168,11 +169,6 @@ ImplToStringW( KLoginServer )
 
 KLoginServer::KLoginServer(void)
 {
-	//{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-	m_iDBHackingTrapCount = -1;
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
-	//}}
 }
 
 KLoginServer::~KLoginServer(void)
@@ -258,7 +254,6 @@ KThread*        CreateTCPThread( const std::wstring& wstrIP, const short sPort )
 #endif SERV_AUTH_TCP_THREAD_MANAGER
 //}}
 
-
 bool KLoginServer::Init()
 {
     KSimLayer::KeepObject<KLoginSimLayer>();
@@ -298,7 +293,6 @@ bool KLoginServer::Init()
 	}
 #endif //SERV_COUNTRY_JP
 
-
 	//{{ 2011. 04. 29	최육사	대리상인
 #ifdef SERV_PSHOP_AGENCY
 	_JIF( GetKLoginRoomManager()->Init(), return false );
@@ -322,7 +316,6 @@ bool KLoginServer::Init()
 	OnServerReadyComplete();
 	//}}
 	
-
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	m_bServerRunningProcessCommunicationOnOff = false;
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
@@ -393,13 +386,6 @@ void KLoginServer::OnServerReadyComplete()
 #ifdef SERV_PSHOP_AGENCY
 	SendToGameDB( DBE_LOAD_PSHOP_AGENCY_REQ, char() );
 #endif SERV_PSHOP_AGENCY
-	//}}
-
-	//{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-	// DB로 체크하러 가자!
-	SendToGameDB( DBE_CHECK_DB_HACKING_TRAP_REQ, char() );
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
 	//}}
 
 	//{{ 2013. 3. 4	박세훈	 로컬 랭킹 시스템
@@ -575,12 +561,6 @@ void KLoginServer::Tick()
 #endif SERV_ACCOUNT_BLOCK
 	//}}
 
-	//{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-	CheckDBHackingCheck();
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
-	//}}
-
 #ifdef SERV_COUNTRY_PH
 	SiKGarenaBillingServer()->Tick();
 #endif SERV_COUNTRY_PH
@@ -607,24 +587,7 @@ void KLoginServer::Tick()
 		m_tTimeProcessCommunicationONOFF.restart();
 	}
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
 }
-
-//{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-void KLoginServer::CheckDBHackingCheck()
-{
-	// 1분마다 한번씩 체크하러 가자!
-	if( m_tDBHackingTrapTimer.elapsed() < 60.0 )
-		return;
-
-	m_tDBHackingTrapTimer.restart();
-
-	// DB로 체크하러 가자!
-    SendToGameDB( DBE_CHECK_DB_HACKING_TRAP_REQ, char() );
-}
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
-//}}
 
 //{{ 2008. 5. 27  최육사  체험ID 동접
 void KLoginServer::WriteServerInfoToDB()
@@ -788,11 +751,6 @@ void KLoginServer::ProcessEvent( const KEventPtr& spEvent_ )
 	  _CASE( ERM_PSHOP_AGENCY_MESSAGE_NOT, KEGS_PSHOP_AGENCY_MESSAGE_NOT );
 #endif SERV_PSHOP_AGENCY
 	   //}}
-	   //{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-	  _CASE( DBE_CHECK_DB_HACKING_TRAP_ACK, int );
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
-	   //}}
 		//{{ 2011. 11. 3	최육사	헤니르 시공 랭킹 보상 안전성 패치
 #ifdef SERV_HENIR_RANKING_TITLE_REWARD_FIX
 		CASE( ELG_RANKING_TITLE_REWARD_NOT );
@@ -822,6 +780,10 @@ void KLoginServer::ProcessEvent( const KEventPtr& spEvent_ )
 		_CASE( ELG_ADD_WEDDING_HALL_INFO_NOT, KDBE_LOAD_WEDDING_HALL_INFO_ACK );
 #endif SERV_RELATIONSHIP_SYSTEM
 		//}
+
+#ifdef SERV_NEXON_AUTH_SERVER_DISCONNECT_SMS// 작업날짜: 2013-10-28	// 박세훈
+		CASE( E_DISCONNECT_SERVER_REPORT_NOT );
+#endif // SERV_NEXON_AUTH_SERVER_DISCONNECT_SMS
 
     default:
         START_LOG( cerr, L"이벤트 핸들러가 정의되지 않았음. " << spEvent_->GetIDStr() );
@@ -856,127 +818,6 @@ IMPL_ON_FUNC_NOPARAM( DBE_UPDATE_SERVER_INFO_ACK )
 	// 기능 없음.
 }
 
-#ifdef SERV_GLOBAL_AUTH 
-IMPL_ON_FUNC( EPUBLISHER_REG_USER_ACK )
-{
-	// 국가별로 따로 RegUserAck 처리 하는게 없어서 함수로 따로 만들지는 않음 //
-	KUserList::KGSUserInfo kInfo;
-
-	
-	if( GetKLoginSimLayer()->GetGSUserInfoByUserID( kPacket_.m_wstrServiceAccountID, kInfo ) )
-	{
-		//{{ 2012. 09. 03	최육사		중복 접속 버그 수정
-#ifdef SERV_DUPLICATE_CONNECT_BUG_FIX
-		GetKLoginSimLayer()->UnRegAuthWaitUser( kInfo.m_nUserUID );
-#endif SERV_DUPLICATE_CONNECT_BUG_FIX
-		//}}
-
-
-		KELG_REGISTER_USER_GLOBAL_PUBLISHER_ACK kPacketAck;
-		kPacketAck.m_iOK = kPacket_.m_iOK;
-		kPacketAck.m_wstrServiceAccountID = kPacket_.m_wstrServiceAccountID;
-#ifdef SERV_CHECK_PCBANG_BY_PUBLISHER
-		kPacketAck.m_bIsPcBang = kPacket_.m_bIsPcBang;
-		kPacketAck.m_iPCBangType = kPacket_.m_iPCBangType;
-		kPacketAck.m_iCheckState = kPacket_.m_iCheckState;
-
-		START_LOG( clog, L"PC방 유저 체크." )
-			<< BUILD_LOG( kPacket_.m_iOK )
-			<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
-			<< BUILD_LOGc( kPacket_.m_bIsPcBang )
-			<< BUILD_LOG( kPacket_.m_iPCBangType )
-			<< BUILD_LOG( kPacket_.m_iCheckState )
-			<< END_LOG;
-#else //SERV_CHECK_PCBANG_BY_PUBLISHER
-		START_LOG( clog, L"PC방 유저 체크." )
-			<< BUILD_LOG( kPacket_.m_iOK )
-			<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
-			<< END_LOG;
-#endif //SERV_CHECK_PCBANG_BY_PUBLISHER
-
-#ifdef SERV_COUNTRY_TH
-		kPacketAck.m_wstrSockID = kPacket_.m_wstrSockID;
-#endif //SERV_COUNTRY_TH
-
-		UidType anTrace[2] = { kInfo.m_nGSUID, -1 };
-		KncSend( PI_LOGIN_SERVER, KBaseServer::GetKObj()->GetUID(), PI_GS_USER, kInfo.m_nUserUID, anTrace, ELG_REGISTER_USER_GLOBAL_PUBLISHER_ACK, kPacketAck );
-	}
-	else
-	{
-		START_LOG( cerr, L"유저 게임 서버 검색 실패." )
-			<< BUILD_LOG( kPacket_.m_iOK )
-			<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
-			<< END_LOG;
-	}
-}
-
-IMPL_ON_FUNC( EPUBLISHER_UNREG_USER_ACK )
-{
-	// 국가별로 따로 UnRegUserAck 처리 하는게 없어서 함수로 따로 만들지는 않음 //
-
-}
-#ifdef SERV_COUNTRY_CN
-IMPL_ON_FUNC( EGIANT_INFO_GET_CCU_REQ )
-{
-	typedef std::map< UidType, KUpdateCCUInfo > CCUInfoMap;
-
-	KEGIANT_INFO_GET_TOTAL_CCU_ACK kTotalCCUAck;
-	kTotalCCUAck.m_TimeStamp = kPacket_.m_TimeStamp;
-	kTotalCCUAck.m_usServerID = static_cast<unsigned short>(GetUID());
-	kTotalCCUAck.m_usServerType = GetServerClass();
-	kTotalCCUAck.m_usZone = SiKGiantInfoManager()->GetServerInfo().m_usZone;
-	kTotalCCUAck.m_usGame = SiKGiantInfoManager()->GetServerInfo().m_usGame;
-	kTotalCCUAck.m_strZoneName = SiKGiantInfoManager()->GetServerInfo().m_strZoneName;
-	kTotalCCUAck.m_uiCCU = 0;
-	BOOST_FOREACH( const CCUInfoMap::value_type& value, SiKServerCCUManager()->GetLastCCUInfo() )
-	{
-		kTotalCCUAck.m_uiCCU += value.second.m_iConcurrentUser;
-	}
-
-	KEventPtr spTotalEvent( new KEvent );
-	spTotalEvent->SetData( PI_GS_SERVER, NULL, EGIANT_INFO_GET_TOTAL_CCU_ACK, kTotalCCUAck );
-	SiKGiantInfoManager()->QueueingEvent( spTotalEvent );
-
-
-	KEGIANT_INFO_GET_CHANNEL_CCU_ACK kChannelCCUAck;
-	kChannelCCUAck.m_TimeStamp = kPacket_.m_TimeStamp;
-	kChannelCCUAck.m_usZone = SiKGiantInfoManager()->GetServerInfo().m_usZone;
-	kChannelCCUAck.m_usGame = SiKGiantInfoManager()->GetServerInfo().m_usGame;
-	BOOST_FOREACH( const CCUInfoMap::value_type& value, SiKServerCCUManager()->GetLastCCUInfo() )
-	{
-		kChannelCCUAck.m_mapChannelCCU.insert(std::make_pair(value.second.m_iServerUID, value.second.m_iConcurrentUser));
-	}
-
-	KEventPtr spChannelEvent( new KEvent );
-	spChannelEvent->SetData( PI_GS_SERVER, NULL, EGIANT_INFO_GET_CHANNEL_CCU_ACK, kChannelCCUAck );
-	SiKGiantInfoManager()->QueueingEvent( spChannelEvent );
-}
-#endif SERV_COUNTRY_CN
-
-
-#endif // SERV_GLOBAL_AUTH
-
-// #ifdef SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
-// 
-// IMPL_ON_FUNC( DBE_GET_GIANT_DELETED_UNIT_LIST_ACK )
-// {
-// 	if(!kPacket_.m_vecDeletedUnitInfo.empty())
-// 	{
-// 		std::vector<KGiantDeletedUnitInfo>::iterator iter = kPacket_.m_vecDeletedUnitInfo.begin();
-// 		for(; iter != kPacket_.m_vecDeletedUnitInfo.end(); ++iter)
-// 		{
-// 			KEGIANT_ROLEREG_DELETE_UNIT_REQ kPacketReq;
-// 			kPacketReq.m_wstrNickName = iter->m_wstrNickName;
-// 			kPacketReq.m_uiGiantUID = iter->m_uiGiantUID;
-// 
-// 			KEventPtr spEvent( new KEvent );
-// 			spEvent->SetData( PI_GS_SERVER, NULL, EGIANT_ROLEREG_DELETE_UNIT_REQ, kPacketReq );
-// 			SiKGiantRoleRegManager()->QueueingEvent( spEvent );
-// 		}
-// 	}
-// }
-// #endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
-
 //{{ 2010. 06. 08  최육사	넥슨PC방 인증 서버 개편
 #ifdef SERV_PCBANG_AUTH_NEW
 
@@ -987,7 +828,6 @@ IMPL_ON_FUNC( ENX_AUTH_LOGIN_ACK )
 		<< BUILD_LOG( kPacket_.m_iSessionNo )
 		<< BUILD_LOG( kPacket_.m_byteAuthorizeResult )
 		<< BUILD_LOG( kPacket_.m_mapProperty.size() );
-
 
 	// 인증 서버로부터 받은 SessionNo를 유저정보에 업데이트	
 // 	if( GetKLoginSimLayer()->UpdateSessionNoByUserID( kPacket_.m_wstrUserID, kPacket_.m_iSessionNo ) == false )
@@ -1637,6 +1477,10 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 #endif SERV_LOG_SYSTEM_NEW
 	//}}
 
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+	CASE_SCRIPT_REFRESH_SWAP_INSTANCE( OT_LG_SKILL_TREE, CXSLSkillTree );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
+
 	default:
 		{
 			START_LOG( cerr, L"이쪽으로 오면 안되는 타입인데?" )
@@ -1649,7 +1493,6 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_ACK, KESR_SCRIPT_REFRESH_ORDER_NOT )
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	SiKProcessCommunicationManager()->QueueingProcessWrite(boost::str(boost::wformat(L"%1%_%2%") % 0 %L"LoginServer 스크립트 실시간 패치 완료"));
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
 }
 
 #endif SERV_REALTIME_SCRIPT
@@ -1759,56 +1602,6 @@ _IMPL_ON_FUNC( ERM_PSHOP_AGENCY_MESSAGE_NOT, KEGS_PSHOP_AGENCY_MESSAGE_NOT )
 	SendToGSUser( kInfo.m_nGSUID, kInfo.m_nUserUID, ELG_PSHOP_AGENCY_MESSAGE_NOT, kPacket_ );
 }
 #endif SERV_PSHOP_AGENCY
-//}}
-
-//{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-_IMPL_ON_FUNC( DBE_CHECK_DB_HACKING_TRAP_ACK, int )
-{
-	// rowcount가 0이면 굳이 업데이트할 필요가 없다!
-	if( kPacket_ == 0 )
-		return;
-
-	// 초기값이 0이면 최초 초기화 상태 입니다!
-	if( m_iDBHackingTrapCount == -1 )
-	{
-        m_iDBHackingTrapCount = kPacket_;
-		return;
-	}
-	
-	// rowcount가 기존보다 증가했다면 해킹 시도가 들어온것이다!
-	if( m_iDBHackingTrapCount < kPacket_ )
-	{
-		//////////////////////////////////////////////////////////////////////////
-		START_LOG( cout, L"[경고!] DB해킹시도가 감지되었습니다! 프로파일러 체크바랍니다!" )
-			<< BUILD_LOG( m_iDBHackingTrapCount )
-			<< BUILD_LOG( kPacket_ );
-		//////////////////////////////////////////////////////////////////////////
-
-		m_iDBHackingTrapCount = kPacket_;
-
-#ifdef SERV_SMS_TEST	// 빌드 오류로 해외팀 추가
-		// SMS문자를 날리자!
-		KDBE_SEND_PHONE_MSG_NOT kPacketNot;
-		//{{ 2012. 10. 15	박세훈	SMS 전화번호 통합 관리
-#ifdef SERV_SMS_TOTAL_MANAGER
-		SiKSMSPhoneNumberManager()->GetPhoneNumberList( KSMSPhoneNumberManager::FS_DB_HACKING_ED_UPDATE_TRAP, kPacketNot.m_vecPhoneNum );
-#else
-		kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-4118-3867" ) ); // 김창호 팀장님
-		kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-9317-0790" ) ); // 황정희 님
-		//kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-9490-8761" ) );		// 황원준
-		kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-8982-3382" ) );		// 박창용
-		kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-2906-5792" ) );		// 안위수
-		kPacketNot.m_vecPhoneNum.push_back( std::wstring( L"010-8771-2480" ) );		// 유영식
-#endif SERV_SMS_TOTAL_MANAGER
-		//}}
-		kPacketNot.m_wstrSMSMessage += L"DB해킹시도! 호출되어서는 안되는 SP가 호출되었습니다!";
-		kPacketNot.m_wstrSMSMessage += boost::str( boost::wformat( L" rowcount : %d" ) % m_iDBHackingTrapCount );
-		SendToSMSDB( DBE_SEND_PHONE_MSG_NOT, kPacketNot );
-#endif // SERV_SMS_TEST
-	}
-}
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
 //}}
 
 //{{ 2011. 11. 3	최육사	헤니르 시공 랭킹 보상 안전성 패치
@@ -1929,3 +1722,119 @@ _IMPL_ON_FUNC( ELG_ADD_WEDDING_HALL_INFO_NOT, KDBE_LOAD_WEDDING_HALL_INFO_ACK )
 }
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
+
+#ifdef SERV_NEXON_AUTH_SERVER_DISCONNECT_SMS// 작업날짜: 2013-10-28	// 박세훈
+IMPL_ON_FUNC( E_DISCONNECT_SERVER_REPORT_NOT )
+{
+	switch( kPacket_.m_cType )
+	{
+	case KMornitoringManager::ET_DISCONNECT_LOGIN_AUTH:
+		{
+			SiKMornitoringManager()->IncreaseDisconnectCount( KMornitoringManager::ET_DISCONNECT_LOGIN_AUTH );
+		}
+		break;
+
+	default:
+		START_LOG( cerr, L"잘못된 타입입니다!" )
+			<< BUILD_LOGc( kPacket_.m_cType )
+			<< END_LOG;
+		break;
+	}
+}
+#endif // SERV_NEXON_AUTH_SERVER_DISCONNECT_SMS
+
+#ifdef SERV_GLOBAL_AUTH 
+IMPL_ON_FUNC( EPUBLISHER_REG_USER_ACK )
+{
+	// 국가별로 따로 RegUserAck 처리 하는게 없어서 함수로 따로 만들지는 않음 //
+	KUserList::KGSUserInfo kInfo;
+	
+	if( GetKLoginSimLayer()->GetGSUserInfoByUserID( kPacket_.m_wstrServiceAccountID, kInfo ) )
+	{
+		//{{ 2012. 09. 03	최육사		중복 접속 버그 수정
+#ifdef SERV_DUPLICATE_CONNECT_BUG_FIX
+		GetKLoginSimLayer()->UnRegAuthWaitUser( kInfo.m_nUserUID );
+#endif SERV_DUPLICATE_CONNECT_BUG_FIX
+		//}}
+		KELG_REGISTER_USER_GLOBAL_PUBLISHER_ACK kPacketAck;
+		kPacketAck.m_iOK = kPacket_.m_iOK;
+		kPacketAck.m_wstrServiceAccountID = kPacket_.m_wstrServiceAccountID;
+#ifdef SERV_CHECK_PCBANG_BY_PUBLISHER
+		kPacketAck.m_bIsPcBang = kPacket_.m_bIsPcBang;
+		kPacketAck.m_iPCBangType = kPacket_.m_iPCBangType;
+		kPacketAck.m_iCheckState = kPacket_.m_iCheckState;
+
+		START_LOG( clog, L"PC방 유저 체크." )
+			<< BUILD_LOG( kPacket_.m_iOK )
+			<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
+			<< BUILD_LOGc( kPacket_.m_bIsPcBang )
+			<< BUILD_LOG( kPacket_.m_iPCBangType )
+			<< BUILD_LOG( kPacket_.m_iCheckState )
+			<< END_LOG;
+#else //SERV_CHECK_PCBANG_BY_PUBLISHER
+		START_LOG( clog, L"PC방 유저 체크." )
+			<< BUILD_LOG( kPacket_.m_iOK )
+			<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
+			<< END_LOG;
+#endif //SERV_CHECK_PCBANG_BY_PUBLISHER
+
+#ifdef SERV_COUNTRY_TH
+		kPacketAck.m_wstrSockID = kPacket_.m_wstrSockID;
+#endif //SERV_COUNTRY_TH
+
+		UidType anTrace[2] = { kInfo.m_nGSUID, -1 };
+		KncSend( PI_LOGIN_SERVER, KBaseServer::GetKObj()->GetUID(), PI_GS_USER, kInfo.m_nUserUID, anTrace, ELG_REGISTER_USER_GLOBAL_PUBLISHER_ACK, kPacketAck );
+	}
+	else
+	{
+		START_LOG( cerr, L"유저 게임 서버 검색 실패." )
+			<< BUILD_LOG( kPacket_.m_iOK )
+			<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
+			<< END_LOG;
+	}
+}
+
+IMPL_ON_FUNC( EPUBLISHER_UNREG_USER_ACK )
+{
+	// 국가별로 따로 UnRegUserAck 처리 하는게 없어서 함수로 따로 만들지는 않음 //
+}
+
+#ifdef SERV_COUNTRY_CN
+IMPL_ON_FUNC( EGIANT_INFO_GET_CCU_REQ )
+{
+	typedef std::map< UidType, KUpdateCCUInfo > CCUInfoMap;
+
+	KEGIANT_INFO_GET_TOTAL_CCU_ACK kTotalCCUAck;
+	kTotalCCUAck.m_TimeStamp = kPacket_.m_TimeStamp;
+	kTotalCCUAck.m_usServerID = static_cast<unsigned short>(GetUID());
+	kTotalCCUAck.m_usServerType = GetServerClass();
+	kTotalCCUAck.m_usZone = SiKGiantInfoManager()->GetServerInfo().m_usZone;
+	kTotalCCUAck.m_usGame = SiKGiantInfoManager()->GetServerInfo().m_usGame;
+	kTotalCCUAck.m_strZoneName = SiKGiantInfoManager()->GetServerInfo().m_strZoneName;
+	kTotalCCUAck.m_uiCCU = 0;
+	BOOST_FOREACH( const CCUInfoMap::value_type& value, SiKServerCCUManager()->GetLastCCUInfo() )
+	{
+		kTotalCCUAck.m_uiCCU += value.second.m_iConcurrentUser;
+	}
+
+	KEventPtr spTotalEvent( new KEvent );
+	spTotalEvent->SetData( PI_GS_SERVER, NULL, EGIANT_INFO_GET_TOTAL_CCU_ACK, kTotalCCUAck );
+	SiKGiantInfoManager()->QueueingEvent( spTotalEvent );
+
+
+	KEGIANT_INFO_GET_CHANNEL_CCU_ACK kChannelCCUAck;
+	kChannelCCUAck.m_TimeStamp = kPacket_.m_TimeStamp;
+	kChannelCCUAck.m_usZone = SiKGiantInfoManager()->GetServerInfo().m_usZone;
+	kChannelCCUAck.m_usGame = SiKGiantInfoManager()->GetServerInfo().m_usGame;
+	BOOST_FOREACH( const CCUInfoMap::value_type& value, SiKServerCCUManager()->GetLastCCUInfo() )
+	{
+		kChannelCCUAck.m_mapChannelCCU.insert(std::make_pair(value.second.m_iServerUID, value.second.m_iConcurrentUser));
+	}
+
+	KEventPtr spChannelEvent( new KEvent );
+	spChannelEvent->SetData( PI_GS_SERVER, NULL, EGIANT_INFO_GET_CHANNEL_CCU_ACK, kChannelCCUAck );
+	SiKGiantInfoManager()->QueueingEvent( spChannelEvent );
+}
+#endif SERV_COUNTRY_CN
+
+#endif // SERV_GLOBAL_AUTH

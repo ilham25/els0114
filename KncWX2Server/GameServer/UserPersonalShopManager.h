@@ -47,6 +47,10 @@ public:
 	void GetAgencyShopPickUpItemInfo( OUT std::vector< UidType >& vecPickUpItemList )				{ vecPickUpItemList = m_vecPickUpItemList; }
 #endif SERV_TRADE_LOGIC_CHANGE_AGENCY_SHOP
 	//}}
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+    void SetPShopType( IN const char cShopType_ );
+    char GetPShopType() { return m_cShopType; };
+#endif SERV_UPGRADE_TRADE_SYSTEM
 
 private:
 	UidType				m_iPShopAgencyUID;
@@ -67,6 +71,12 @@ private:
 	std::vector< UidType >	m_vecPickUpItemList;
 #endif SERV_TRADE_LOGIC_CHANGE_AGENCY_SHOP
 	//}}
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 2012.10.10 우상혁 대리 상점 개선. 
+    char m_cShopType; // ED기본 혹은 ED 프리미엄 아이템으로 개설했는지, 캐시아이템으로 개설했는지. 현재는 3가지 타입
+#endif SERV_UPGRADE_TRADE_SYSTEM
+
+
 };
 
 

@@ -60,7 +60,6 @@
 	#include "BlockListManager.h"
 #endif SERV_BLOCK_LIST
 //}}
-
 #ifdef SERV_TIME_ENCHANT_EVENT// 작업날짜: 2013-05-30	// 박세훈
 	#include "GameSysVal/GameSysVal.h"
 #endif // SERV_TIME_ENCHANT_EVENT
@@ -70,6 +69,11 @@
 #include "GlobalMissionManager.h"
 #endif SERV_GLOBAL_MISSION_MANAGER
 //}} 2012. 09. 03	임홍락 글로벌 미션 매니저
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	#include "X2Data/XSLFieldBossData.h"
+	#include "X2Data/XSLBattleFieldManager.h"
+#endif // SERV_BATTLE_FIELD_BOSS
 
 #include "DBLayer.h"
 #include "NetError.h"
@@ -187,6 +191,27 @@ void KGlobalSimLayer::Init()
 		}
 	}
 
+	{
+		LoadingTimer lt( L"DungeonEnum.lua" );
+
+		//추후 ↓에서 이루어 지는 데이터 로딩이 실패할경우 서버를 종료 시켜야한다.
+		strFile = "DungeonEnum.lua";
+		kAutoPath.GetPullPath( strFile );
+		if( 0 != luaL_dofile( g_pLua, strFile.c_str() ) )
+		{
+			START_LOG( cerr, L"DungeonEnum 정보 로드 실패.!" )
+				<< BUILD_LOG( KncUtil::toWideString( strFile ) );
+
+			//{{ 2011. 02. 07	최육사	스크립트 파싱 오류 리포트
+			KBaseServer::GetKObj()->AddFailScriptFileName( L"DungeonEnum.lua" );
+			//}}
+		}
+		else
+		{
+			START_LOG( cout, L"DungeonEnum 정보 로드 성공.!" );
+		}
+	}
+
 	//{{ 2010. 10. 12	최육사	서버 모니터링
 #ifdef SERV_MORNITORING
 	{
@@ -269,6 +294,28 @@ void KGlobalSimLayer::Init()
 		OPEN_SCRIPT_FILE( KGameSysVal );
 	}
 #endif // SERV_TIME_ENCHANT_EVENT
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	{
+		CXSLFieldBossData::RegScriptName( "FieldBossData.lua" );
+		OPEN_SCRIPT_FILE( CXSLFieldBossData );
+
+		CXSLBattleFieldManager::RegScriptName( "BattleFieldData.lua" );
+		if( SiCXSLBattleFieldManager()->OpenScriptFile_AllBattleFieldScriptLoad( g_pLua ) == false )
+			START_LOG( cerr, L"Battle Field Manager 정보 로드 실패.!" );
+		else
+			START_LOG( cout, L"Battle Field Manager 정보 로드 성공.!" );
+
+		//{{ 2011. 02. 07	최육사	스크립트 파싱 오류 리포트
+#ifdef SERV_SCRIPT_PARSING_ERR_REPORT
+		if( SiCXSLBattleFieldManager()->IsLuaPasingSuccess() == false )
+		{
+			KBaseServer::GetKObj()->AddFailScriptFileName( SiCXSLBattleFieldManager()->GetParsingLuaFileName().c_str() );
+		}
+#endif SERV_SCRIPT_PARSING_ERR_REPORT
+		//}}
+	}
+#endif // SERV_BATTLE_FIELD_BOSS
 }
 
 void KGlobalSimLayer::Tick()
@@ -336,6 +383,11 @@ void KGlobalSimLayer::ShutDown()
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 	KGlobalMissionManager::ReleaseInstance();
 #endif SERV_GLOBAL_MISSION_MANAGER
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	CXSLFieldBossData::ReleaseInstance();
+	CXSLBattleFieldManager::ReleaseInstance();
+#endif // SERV_BATTLE_FIELD_BOSS
 }
 
 
@@ -362,4 +414,3 @@ std::string KGlobalSimLayer::GetStrPvpNpcDataLua()
 }
 #endif SERV_UNITED_SERVER_EU
 //}}
-

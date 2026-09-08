@@ -102,21 +102,6 @@ public:
 	int		GetCustomEventID( void ) const	{ return m_iCustomEventID;	}
 #endif SERV_CUSTOM_CONNECT_EVENT
 
-	//{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-	void	SetComeBackUserEvent( IN const bool bComeBackUserEvent ){	m_bComeBackUserEvent = bComeBackUserEvent;	}
-	bool	GetComeBackUserEvent( void ){	return m_bComeBackUserEvent;	}
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-	//}}
-	//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-	void				SetFixedDate( IN const std::wstring& wstrFixedDate ){	m_wstrFixedDate = wstrFixedDate;	}
-	const std::wstring	GetFixedDate( void ) const {	return m_wstrFixedDate;	}
-	
-	void	SetEventUserType( IN const int iEventUserType ){	m_iEventUserType = iEventUserType;	}
-	int		GetEventUserType( void ) const {	return m_iEventUserType;	}
-#endif SERV_FIXED_DATE_EVENT
-	//}}
 	//{{ 2012. 12. 25	박세훈	특정 유저 전용 접속 이벤트
 #ifdef SERV_SPECIFIC_USER_CONNECT_EVENT
 	void	SetEventGroupID( IN const int iEventGroupID ){	m_iEventGroupID = iEventGroupID;	}
@@ -201,17 +186,6 @@ private:
 #ifdef SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
 	bool	m_bRepeatEvent;
 #endif SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
-	//}}
-	//{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-	bool	m_bComeBackUserEvent;
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-	//}}
-	//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-	std::wstring	m_wstrFixedDate;
-	int				m_iEventUserType;
-#endif SERV_FIXED_DATE_EVENT
 	//}}
 	//{{ 2012. 12. 25	박세훈	특정 유저 전용 접속 이벤트
 #ifdef SERV_SPECIFIC_USER_CONNECT_EVENT

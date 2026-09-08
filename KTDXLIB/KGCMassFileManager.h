@@ -84,6 +84,13 @@ Average : 10000Hit Time - 225 ms
 #define MASSFILE_VERSION		(1)
 #define MASSFILE_NAMESIZE		(60)
 #define MFI_REALDATA			(1)
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+#define MFI_COMPRESSEDDATA      (2)
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+#ifdef  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+#define MFI_LOCALFILE           (4)
+#endif  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+
 
 #define  MASS_FILE_MANAGER_MAX_NUM_THREADS	2
 
@@ -120,7 +127,6 @@ class KGCMassFileManager
 		std::map<int, std::map<string, string>> m_mapMassFileMappingList;
 		std::map<int, MASSFILE_MAPPING_TIME> m_mapMassFileMappingTime;
 #endif MASSFILE_MAPPING_FUNCTION
-
 		//class KGCMemoryFile
 		//{
 		//	public:
@@ -139,98 +145,98 @@ class KGCMassFileManager
 		//		int  m_iCursorPos;
 		//};
 
-#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
-//{{AFX:
-		class KGCBufferManager  
-		{
-		public:
-			struct Buffer
-			{
-				bool	m_bInUse;
-				int		m_iMemorySize;
-				char*	m_pData;
-
-				Buffer()
-				{
-					m_bInUse = false;
-					m_iMemorySize = 1024;
-					m_pData = new char[m_iMemorySize];
-				}
-
-				~Buffer()
-				{
-					flush();
-				}
-
-				void flush()
-				{
-					if( m_pData != NULL )
-					{
-						delete[] m_pData;
-						m_pData = NULL;
-					}
-				}
-
-				char* GetMemory( int iSize, bool bClear = false )
-				{
-					if( m_iMemorySize < iSize )
-					{
-						if( m_pData != NULL )
-						{		
-							delete []m_pData;
-							m_pData = NULL;
-						}
-
-						while( (m_iMemorySize *= 2) < iSize )
-						{
-						}
-
-						m_pData = new char[m_iMemorySize];
-					}
-
-					if( true == bClear )
-					{
-						ZeroMemory( m_pData, sizeof(char) * m_iMemorySize );
-					}
-
-					return m_pData;
-				}
-			};
-
-		public:
-			KGCBufferManager();
-			~KGCBufferManager();
-
-			Buffer* GetCurrBuffer() 
-			{
-				CSLock locker( m_csBufferManager );
-				if( m_iCurrBufferIndex < 0 || m_iCurrBufferIndex > m_iBufferCount-1 )
-					return NULL;
-
-				return &m_aBuffer[m_iCurrBufferIndex];
-			}
-			char* GetBuffer(int iSize, bool bForceCurrent = false );
-			int GetBufferSize()		// 현재 버퍼 사이즈를 return 
-			{
-				CSLock locker( m_csBufferManager );
-				if( m_iCurrBufferIndex < 0 || m_iCurrBufferIndex > m_iBufferCount-1 )
-					return 0;
-
-				return m_aBuffer[m_iCurrBufferIndex].m_iMemorySize;
-			}
-
-			void  Flush();
-
-		private:
-			int m_iCurrBufferIndex;
-			int m_iBufferCount;			// m_aBuffer의 크기
-			
-			Buffer m_aBuffer[5];
-
-			CRITICAL_SECTION m_csBufferManager;
-		};//class KGCBufferManager  
-//}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
+////{{AFX:
+//		class KGCBufferManager  
+//		{
+//		public:
+//			struct Buffer
+//			{
+//				bool	m_bInUse;
+//				int		m_iMemorySize;
+//				char*	m_pData;
+//
+//				Buffer()
+//				{
+//					m_bInUse = false;
+//					m_iMemorySize = 1024;
+//					m_pData = new char[m_iMemorySize];
+//				}
+//
+//				~Buffer()
+//				{
+//					flush();
+//				}
+//
+//				void flush()
+//				{
+//					if( m_pData != NULL )
+//					{
+//						delete[] m_pData;
+//						m_pData = NULL;
+//					}
+//				}
+//
+//				char* GetMemory( int iSize, bool bClear = false )
+//				{
+//					if( m_iMemorySize < iSize )
+//					{
+//						if( m_pData != NULL )
+//						{		
+//							delete []m_pData;
+//							m_pData = NULL;
+//						}
+//
+//						while( (m_iMemorySize *= 2) < iSize )
+//						{
+//						}
+//
+//						m_pData = new char[m_iMemorySize];
+//					}
+//
+//					if( true == bClear )
+//					{
+//						ZeroMemory( m_pData, sizeof(char) * m_iMemorySize );
+//					}
+//
+//					return m_pData;
+//				}
+//			};
+//
+//		public:
+//			KGCBufferManager();
+//			~KGCBufferManager();
+//
+//			Buffer* GetCurrBuffer() 
+//			{
+//				CSLock locker( m_csBufferManager );
+//				if( m_iCurrBufferIndex < 0 || m_iCurrBufferIndex > m_iBufferCount-1 )
+//					return NULL;
+//
+//				return &m_aBuffer[m_iCurrBufferIndex];
+//			}
+//			char* GetBuffer(int iSize, bool bForceCurrent = false );
+//			int GetBufferSize()		// 현재 버퍼 사이즈를 return 
+//			{
+//				CSLock locker( m_csBufferManager );
+//				if( m_iCurrBufferIndex < 0 || m_iCurrBufferIndex > m_iBufferCount-1 )
+//					return 0;
+//
+//				return m_aBuffer[m_iCurrBufferIndex].m_iMemorySize;
+//			}
+//
+//			void  Flush();
+//
+//		private:
+//			int m_iCurrBufferIndex;
+//			int m_iBufferCount;			// m_aBuffer의 크기
+//			
+//			Buffer m_aBuffer[5];
+//
+//			CRITICAL_SECTION m_csBufferManager;
+//		};//class KGCBufferManager  
+////}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 		class CMassFile
 		{
@@ -265,13 +271,13 @@ class KGCMassFileManager
 				
 				struct MASSFILE_MEMBERFILEINFO
 				{
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
                     KGCMassFileBufferPtr    pBuffer;
-#else // BACKGROUND_LOADING_TEST // 2008-10-16
-                    //{{AFX
-					KGCBufferManager::Buffer* pBuffer;
-                    //}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#else // BACKGROUND_LOADING_TEST // 2008-10-16
+//                    //{{AFX
+//					KGCBufferManager::Buffer* pBuffer;
+//                    //}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 #ifdef WCHAR_DIR
 					WCHAR strFileName[MASSFILE_NAMESIZE];
@@ -282,6 +288,9 @@ class KGCMassFileManager
 					long size;
 					char *pRealData;
 					DWORD dwFlag;
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+                    long compressedSize;
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
 
 					MASSFILE_MEMBERFILEINFO()
 					{
@@ -291,12 +300,15 @@ class KGCMassFileManager
 						size			= 0;
 						pRealData		= NULL;
 						dwFlag			= MFI_REALDATA;
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+                        compressedSize = 0;
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
 
-#ifndef BACKGROUND_LOADING_TEST // 2008-10-16
-                        //{{AFX
-						pBuffer			= NULL;
-                        //}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifndef BACKGROUND_LOADING_TEST // 2008-10-16
+//                        //{{AFX
+//						pBuffer			= NULL;
+//                        //}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 					}//MASSFILE_MEMBERFILEINFO()
 					~MASSFILE_MEMBERFILEINFO()
                     {
@@ -306,7 +318,7 @@ class KGCMassFileManager
 
 
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-17
 
                 struct MASSFILE_MEMBERFILEINFO_POINTER : public MASSFILE_MEMBERFILEINFO
 				{
@@ -325,11 +337,14 @@ class KGCMassFileManager
 #ifdef WCHAR_DIR
 						StringCchCopyW( strFileName, ARRAY_SIZE(strFileName), rhs_.strFileName );
 #else WCHAR_DIR
-						StringCchCopyA( strFileName, ARRAY_SIZE(strFileName), rhs_.strFileName );
+					    StringCchCopyA( strFileName, ARRAY_SIZE(strFileName), rhs_.strFileName );
 #endif WCHAR_DIR
 					    size        = rhs_.size;
 					    pRealData   = rhs_.pRealData;
 					    dwFlag      = rhs_.dwFlag;
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+                        compressedSize = rhs_.compressedSize;
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
                         return *this;
                     }//operator=()
 
@@ -388,90 +403,90 @@ class KGCMassFileManager
 
 				typedef MASSFILE_MEMBERFILEINFO_POINTER     MASSFILE_MEMBERFILEINFO_PTR;
 
-#else // BACKGROUND_LOADING_TEST // 2008-10-17
-
-                typedef MASSFILE_MEMBERFILEINFO*    MASSFILE_MEMBERFILEINFO_PTR;
-
-                //{{AFX
-				struct MASSFILE_MEMBERFILEINFO_POINTER
-				{
-					KGCBufferManager::Buffer* pBuffer;
-					MASSFILE_MEMBERFILEINFO* m_pInfo;	
-
-					CRITICAL_SECTION m_csMASSFILE_MEMBERFILEINFO_POINTER;
-
-					MASSFILE_MEMBERFILEINFO_POINTER()
-					{
-						::InitializeCriticalSection( &m_csMASSFILE_MEMBERFILEINFO_POINTER );
-
-						pBuffer = NULL;
-						m_pInfo = NULL;
-					}
-
-					~MASSFILE_MEMBERFILEINFO_POINTER()
-					{
-						UnRef();
-
-						::DeleteCriticalSection( &m_csMASSFILE_MEMBERFILEINFO_POINTER );
-					}
-
-					MASSFILE_MEMBERFILEINFO_POINTER& operator= (MASSFILE_MEMBERFILEINFO* ptr) 
-					{
-						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
-
-						UnRef();
-						m_pInfo = ptr;
-						if( NULL != ptr )
-							pBuffer = ptr->pBuffer;
-						return *this;
-					}
-
-					void UnRef()
-					{
-						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
-
-						if( NULL != pBuffer )
-						{
-							pBuffer->m_bInUse = false;
-						}
-					}
-
-					MASSFILE_MEMBERFILEINFO* operator ->()
-					{
-						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
-
-						return m_pInfo;
-					}
-
-					operator MASSFILE_MEMBERFILEINFO* () const
-					{
-						
-
-						return m_pInfo;
-					}
-
-					bool operator !()
-					{
-						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
-
-						return m_pInfo == NULL;
-					}
-					bool operator ==(const MASSFILE_MEMBERFILEINFO* ptr)
-					{
-						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
-
-						return m_pInfo == ptr;
-					}
-					bool operator !=(const MASSFILE_MEMBERFILEINFO* ptr)
-					{
-						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
-
-						return m_pInfo != ptr;
-					}
-				};
-                //}}AFX
-
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#else // BACKGROUND_LOADING_TEST // 2008-10-17
+//
+//                typedef MASSFILE_MEMBERFILEINFO*    MASSFILE_MEMBERFILEINFO_PTR;
+//
+//                //{{AFX
+//				struct MASSFILE_MEMBERFILEINFO_POINTER
+//				{
+//					KGCBufferManager::Buffer* pBuffer;
+//					MASSFILE_MEMBERFILEINFO* m_pInfo;	
+//
+//					CRITICAL_SECTION m_csMASSFILE_MEMBERFILEINFO_POINTER;
+//
+//					MASSFILE_MEMBERFILEINFO_POINTER()
+//					{
+//						::InitializeCriticalSection( &m_csMASSFILE_MEMBERFILEINFO_POINTER );
+//
+//						pBuffer = NULL;
+//						m_pInfo = NULL;
+//					}
+//
+//					~MASSFILE_MEMBERFILEINFO_POINTER()
+//					{
+//						UnRef();
+//
+//						::DeleteCriticalSection( &m_csMASSFILE_MEMBERFILEINFO_POINTER );
+//					}
+//
+//					MASSFILE_MEMBERFILEINFO_POINTER& operator= (MASSFILE_MEMBERFILEINFO* ptr) 
+//					{
+//						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
+//
+//						UnRef();
+//						m_pInfo = ptr;
+//						if( NULL != ptr )
+//							pBuffer = ptr->pBuffer;
+//						return *this;
+//					}
+//
+//					void UnRef()
+//					{
+//						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
+//
+//						if( NULL != pBuffer )
+//						{
+//							pBuffer->m_bInUse = false;
+//						}
+//					}
+//
+//					MASSFILE_MEMBERFILEINFO* operator ->()
+//					{
+//						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
+//
+//						return m_pInfo;
+//					}
+//
+//					operator MASSFILE_MEMBERFILEINFO* () const
+//					{
+//						
+//
+//						return m_pInfo;
+//					}
+//
+//					bool operator !()
+//					{
+//						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
+//
+//						return m_pInfo == NULL;
+//					}
+//					bool operator ==(const MASSFILE_MEMBERFILEINFO* ptr)
+//					{
+//						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
+//
+//						return m_pInfo == ptr;
+//					}
+//					bool operator !=(const MASSFILE_MEMBERFILEINFO* ptr)
+//					{
+//						CSLock locker( m_csMASSFILE_MEMBERFILEINFO_POINTER );
+//
+//						return m_pInfo != ptr;
+//					}
+//				};
+//                //}}AFX
+//
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 			public:
 				CMassFile();
@@ -481,17 +496,17 @@ class KGCMassFileManager
 #ifdef WCHAR_DIR
 				bool LoadMassFile( const WCHAR* strMassFile );
 #else WCHAR_DIR
-				bool LoadMassFile( const char* strMassFile );
+				bool LoadMassFile( const char* strMassFile);
 #endif WCHAR_DIR
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
                 //{{ seojt // 2008-10-16, 15:15
                 // GetMemberFile()이 내부적으로 호출하는 함수이다.
                 // 내부적으로 호출하는 함수의 관례를 따라 함수 이름앞에 underscore(_)를 붙인다.
                 // - jintaeks on 2008-10-16, 15:16
                 bool _GetMemberFile( KGCMassFileManager& kManager, const MASSFILE_MEMBERFILEHEADER& MEMBERFILEHEADER_, MASSFILE_MEMBERFILEINFO* pOut_);
                 //}} seojt // 2008-10-16, 15:15
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 #ifdef WCHAR_DIR
 				bool GetMemberFile( KGCMassFileManager& kManager, const WCHAR* strRealFile, MASSFILE_MEMBERFILEINFO* pOut);
@@ -500,12 +515,12 @@ class KGCMassFileManager
 #endif WCHAR_DIR
 				bool GetMemberFile( KGCMassFileManager& kManager, int iFileIndex, MASSFILE_MEMBERFILEINFO* pOut);
 
-#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
-                //{{AFX
-				static KGCBufferManager m_BufferManager1;
-				static KGCBufferManager m_BufferManager2;
-                //}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
+//                //{{AFX
+//				static KGCBufferManager m_BufferManager1;
+//				static KGCBufferManager m_BufferManager2;
+//                //}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 /*
 #ifdef BACKGROUND_LOADING_TEST // 2008-10-16
@@ -563,12 +578,12 @@ class KGCMassFileManager
 				
 //{{ robobeg : 2011-08-16
 //              HANDLE                                 m_hFile;
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 				HANDLE									m_ahFilePerThread[MASS_FILE_MANAGER_MAX_NUM_THREADS];
-#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO				
-				HANDLE								   m_hFileForegroundSync; 
-				HANDLE                                 m_hFileBackgroundAsync;
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO				
+//				HANDLE								   m_hFileForegroundSync; 
+//				HANDLE                                 m_hFileBackgroundAsync;
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 //}} robobeg : 2011-08-16
 				int									   m_iFileVersion;
 				//CRITICAL_SECTION					   m_csMassFile;
@@ -588,12 +603,25 @@ class KGCMassFileManager
 		void AddDataDirectory(const std::wstring& wstrDirectory, bool bInsertFront = false );
 		void AddDataDirectory(const std::string& strDirectory, bool bInsertFront = false );
 
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 		void		LockMassFileMap();
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
+#ifdef NEW_MAIL_LOG
 #ifdef WCHAR_DIR
-		CMassFile* AddMassFile( const std::wstring& strKomFileName );
+		CMassFile* AddMassFile(IN const std::wstring& strKomFileName, OUT bool& bIsDuplicationError_  );
+#else WCHAR_DIR
+		CMassFile* AddMassFile(IN const std::wstring& strKomFileName, OUT bool& bIsDuplicationError_  )
+		{
+			std::string fileName;
+			ConvertWCHARToChar( fileName, strKomFileName.c_str() );
+			return AddMassFile( fileName, bIsDuplicationError_ );
+		}
+		CMassFile* AddMassFile(IN const std::string& strKomFileName, OUT bool& bIsDuplicationError_ );
+#endif WCHAR_DIR
+#else
+#ifdef WCHAR_DIR
+		CMassFile* AddMassFile(const std::wstring& strKomFileName);
 #else WCHAR_DIR
 		CMassFile* AddMassFile(const std::wstring& strKomFileName)
 		{
@@ -603,19 +631,47 @@ class KGCMassFileManager
 		}
 		CMassFile* AddMassFile(const std::string& strKomFileName);
 #endif WCHAR_DIR
+#endif // NEW_MAIL_LOG
+#ifdef X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+		void AddNewFolderFile( const char* szSearchDir );
+#endif//X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
 
-#ifdef  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
-		bool KGCMassFileManager::IsValidFile( std::wstring wstrFileName, bool bReaFileOnly = false );
-		CMassFile::MASSFILE_MEMBERFILEINFO_PTR LoadDataFile( std::string strFileName, bool bRealData = true, bool bReaFileOnly = false );
-		CMassFile::MASSFILE_MEMBERFILEINFO_PTR LoadDataFile( std::wstring wstrFileName, bool bRealData = true, bool bReaFileOnly = false );
-#else   X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+
+        // 이 아래의 세 버전은 패키지에서 파일을 확인하거나 읽는 API 이다.
+        // 개발 버전에서는 개발 목적으로 패키지에 없을 때 로컬 디렉토리에서 확인하거나 읽지만,
+        // 서비스 버전에서는 패키지만 처리하고, 로컬 파일은 확인하지 않는다. robobeg - 2014.01.21
 		bool KGCMassFileManager::IsValidFile( std::wstring wstrFileName );
-		CMassFile::MASSFILE_MEMBERFILEINFO_PTR LoadDataFile( std::string strFileName, bool bRealData = true );
-		CMassFile::MASSFILE_MEMBERFILEINFO_PTR LoadDataFile( std::wstring wstrFileName, bool bRealData = true );
-#endif  X2OPTIMIZE_MASS_FILE_MANAGER_REAL_FILE_ONLY
+		CMassFile::MASSFILE_MEMBERFILEINFO_PTR LoadDataFile( std::string strFileName, bool bRealData = true 
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+            , bool bKeepCompressedData = false
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS            
+            );
+		CMassFile::MASSFILE_MEMBERFILEINFO_PTR LoadDataFile( std::wstring wstrFileName, bool bRealData = true
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+            , bool bKeepCompressedData = false
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS              
+            );
+
+        // 이 아래의 세 버전은 오로지 로컬 디렉토리에서 파일을 확인하거나 읽는다. 서비스버전, 개발버전 공통이다. robobeg - 2014.01.21
+		bool KGCMassFileManager::IsValidFile_LocalFile( std::wstring wstrFileName );
+		CMassFile::MASSFILE_MEMBERFILEINFO_PTR LoadDataFile_LocalFile( std::string strFileName, bool bRealData = true );
+		CMassFile::MASSFILE_MEMBERFILEINFO_PTR LoadDataFile_LocalFile( std::wstring wstrFileName, bool bRealData = true );
+
 		
-		//KGCMemoryFile* LoadMemoryFile( std::string strFileName );
-		//KGCMemoryFile* LoadMemoryFile( std::wstring wstrFileName );
+#ifdef  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+        // 두 개의 map 상 혹은 물리 위치상 adjacent 한 파일 데이타 로딩을 위한 인터페이스
+        // 텍스쳐파일과 .TET 파일 로딩을 위해 사용한다.
+        CMassFile::MASSFILE_MEMBERFILEINFO_PTR
+            LoadTwoDataFiles( std::string strFileName, std::string strFileName2, OUT CMassFile::MASSFILE_MEMBERFILEINFO_PTR& info2, 
+            bool bRealData = true );
+
+        CMassFile::MASSFILE_MEMBERFILEINFO_PTR
+            LoadTwoDataFiles( const std::wstring& wstrFileName, const std::wstring& wstrFileName2, OUT CMassFile::MASSFILE_MEMBERFILEINFO_PTR& info2, 
+            bool bRealData = true );
+
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+
+
 
 		int  GetTotalFileCount();
 
@@ -632,12 +688,12 @@ class KGCMassFileManager
 #endif WCHAR_DIR
 
 		//{{ robobeg : 2011-08-16
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 		bool	RegisterCurrentThread();
-#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-		void    SetForegroundThreadId( DWORD dwThreadId )   { m_dwForegroundThreadId = dwThreadId; }
-		DWORD   GetForegroundThreadId() { return m_dwForegroundThreadId; }
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//		void    SetForegroundThreadId( DWORD dwThreadId )   { m_dwForegroundThreadId = dwThreadId; }
+//		DWORD   GetForegroundThreadId() { return m_dwForegroundThreadId; }
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 		//}} robobeg : 2011-08-16
 
 #ifdef	CHECK_FILE_DUPLICATION
@@ -645,12 +701,12 @@ class KGCMassFileManager
 		void ClearFileDuplicatedList() { m_vecFileNameDuplicated.clear(); }
 #endif	CHECK_FILE_DUPLICATION
 
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 		void	ReleaseAllMemoryBuffers();
-#ifdef	BACKGROUND_LOADING_TEST
+//#ifdef	BACKGROUND_LOADING_TEST
 		static KGCMassFileBufferManager&	GetMassFileBufMan() { return m_massFileBufMan; }
-#endif	BACKGROUND_LOADING_TEST
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#endif	BACKGROUND_LOADING_TEST
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
 #ifdef MASSFILE_MAPPING_FUNCTION //SERV_MASSFILE_MAPPING_FUNCTION
 		void InitServerCurrentTime();
@@ -663,9 +719,9 @@ public:
 #endif ALWAYS_MAPPING_MUSIC
 	private:
 
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 		int		GetCurrentThreadIndex();
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
 #ifdef WCHAR_DIR
 		//KOM파일이 아닌 Data폴더에서 실제 파일을 읽어 들이는경우..
@@ -679,59 +735,67 @@ public:
 		bool GetSubDirectory( char* szSearchDir);
 #endif WCHAR_DIR
 
+#ifdef X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+#ifdef WCHAR_DIR
+		bool    LoadTwoRealFiles(const std::wstring& strFileName, OUT CMassFile::MASSFILE_MEMBERFILEINFO& info,
+			const std::wstring& strFileName2, OUT CMassFile::MASSFILE_MEMBERFILEINFO& info2 );
+#else
+        bool    LoadTwoRealFiles(const std::string& strFileName, OUT CMassFile::MASSFILE_MEMBERFILEINFO& info,
+            const std::string& strFileName2, OUT CMassFile::MASSFILE_MEMBERFILEINFO& info2 );
+#endif WCHAR_DIR
+#endif  X2OPTIMIZE_SUPPORT_LOADING_TWO_ADJACENT_MASS_FILES
+
 #ifdef WCHAR_DIR
 		static HANDLE OpenReadFileHandle( const WCHAR* pszFilename, unsigned uRetryCount = 0, bool bAsync = false );
 		static BOOL ReadFile( HANDLE hFile, const WCHAR* pLogInfo, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead,
 			DWORD dwOffset
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-			, bool bAsync = false 
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//			, bool bAsync = false 
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 			);
 #else WCHAR_DIR
 		static HANDLE OpenReadFileHandle( const char* pszFilename, unsigned uRetryCount = 0, bool bAsync = false );
 		static BOOL ReadFile( HANDLE hFile, const char* pLogInfo, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead,
 			DWORD dwOffset
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-			, bool bAsync = false 
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//			, bool bAsync = false 
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 			);
 #endif WCHAR_DIR
 
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-		static void WINAPI _CompletionRoutine( DWORD dwErrorCode, DWORD dwNumTrans, LPOVERLAPPED lpOverlapped );
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//		static void WINAPI _CompletionRoutine( DWORD dwErrorCode, DWORD dwNumTrans, LPOVERLAPPED lpOverlapped );
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 		struct	KTLSData;
 		const KTLSData&		GetUpdatedTLSData();
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
-#ifdef CLIENT_COUNTRY_TWHK
-bool	KGCMassFileManager::IsADBoardInTWHK( const WCHAR* inName, std::wstring& outName);
-#endif CLIENT_COUNTRY_TWHK
+
 
     private:
 
-#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-		struct  KGCMASSFILEMANAGER_OVERLAPPED
-		{
-			enum    EFinishCode
-			{
-				NOT_FINISHED = 0,
-				FINISHED = 1,
-				FINISHED_WITH_ERROR = 2,
-			};
-			OVERLAPPED  m_overlapped;
-			DWORD       m_dwNumBytesTransferred;
-			EFinishCode m_eFinishCode;  // 0:not finished, 1:finish, 
-		};//struct  KGCMASSFILEMANAGER_OVERLAPPED : OVERLAPPED
+//#ifndef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//		struct  KGCMASSFILEMANAGER_OVERLAPPED
+//		{
+//			enum    EFinishCode
+//			{
+//				NOT_FINISHED = 0,
+//				FINISHED = 1,
+//				FINISHED_WITH_ERROR = 2,
+//			};
+//			OVERLAPPED  m_overlapped;
+//			DWORD       m_dwNumBytesTransferred;
+//			EFinishCode m_eFinishCode;  // 0:not finished, 1:finish, 
+//		};//struct  KGCMASSFILEMANAGER_OVERLAPPED : OVERLAPPED
+//
+//		__declspec(thread)  static  KGCMASSFILEMANAGER_OVERLAPPED   m_overlapped;       
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 
-		__declspec(thread)  static  KGCMASSFILEMANAGER_OVERLAPPED   m_overlapped;       
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-
-#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
-		CRITICAL_SECTION						m_csFileManager;
-#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#ifndef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//		CRITICAL_SECTION						m_csFileManager;
+//#endif	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 #ifdef WCHAR_DIR
 		typedef stdext::hash_map< std::wstring, SMassFileIndex>   MassFileMap;
@@ -752,7 +816,12 @@ bool	KGCMassFileManager::IsADBoardInTWHK( const WCHAR* inName, std::wstring& out
 #else WCHAR_DIR
 		std::vector<std::string>	m_vecstrDataDirectory;
 #endif WCHAR_DIR
-#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+
+#ifdef X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+		std::map< std::string, CMassFile::MASSFILE_MEMBERFILEINFO_POINTER > m_mapNewFolderFile;
+#endif//X2OPTIMIZE_REFERENCE_RESOURCE_NEW_FOLDER_FOR_VTUNE
+
+//#ifdef	X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 		// mass file manager 초기화 후에는 m_mapMassFile 이 수정되지 않는 것을 게런티 하기 위해 아래 플래그를 추가합니다.
 		bool						m_bLockMassFileMap;
@@ -772,7 +841,6 @@ bool	KGCMassFileManager::IsADBoardInTWHK( const WCHAR* inName, std::wstring& out
 #else WCHAR_DIR
 			std::vector<std::string> m_vecstrDataDirectory;
 #endif WCHAR_DIR
-			
 			DWORD                   m_dwDataDirectoryStamp;
 
 			KTLSData()
@@ -781,37 +849,37 @@ bool	KGCMassFileManager::IsADBoardInTWHK( const WCHAR* inName, std::wstring& out
 		__declspec(thread)  static KTLSData*  ms_pkTLSData;
 
 
-#endif  X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
+//#endif  X2OPTIMIZE_REMOVE_MASS_FILE_MANAGER_LOCK
 
 
 
-#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
-        //{{AFX
-		static KGCBufferManager					m_BufferManager;
-        //}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
+//        //{{AFX
+//		static KGCBufferManager					m_BufferManager;
+//        //}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
-#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
-        //{{AFX
-		CMassFile::MASSFILE_MEMBERFILEINFO		m_Info;
-        //}}AFX
-#endif // BACKGROUND_LOADING_TEST // 2008-10-17
+//#ifndef BACKGROUND_LOADING_TEST // 2008-10-17
+//        //{{AFX
+//		CMassFile::MASSFILE_MEMBERFILEINFO		m_Info;
+//        //}}AFX
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-17
 
 
 		//KGCMemoryFile							m_MemoryFile;
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-16
         static KGCMassFileBufferManager         m_massFileBufMan;
-#endif // BACKGROUND_LOADING_TEST // 2008-10-16
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-16
 
 
-#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#ifdef	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 		volatile DWORD							m_adwThreadId[ MASS_FILE_MANAGER_MAX_NUM_THREADS ];
-#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
-		//{{ robobeg : 2011-08-16
-		DWORD                                   m_dwForegroundThreadId;
-		//}} robobeg : 2011-08-16
-#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//#else	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
+//		//{{ robobeg : 2011-08-16
+//		DWORD                                   m_dwForegroundThreadId;
+//		//}} robobeg : 2011-08-16
+//#endif	X2OPTIMIZE_MASS_FILE_MANAGER_PER_THREAD_SYNC_IO
 #ifdef MASSFILE_MAPPING_FUNCTION
 		std::string								m_strWebAddress;
 		std::map< std::string, std::vector< char > > m_mapWebBuffer;

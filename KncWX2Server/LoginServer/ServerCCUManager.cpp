@@ -41,12 +41,8 @@ void KServerCCUManager::Tick()
 	if( m_kTimer[TM_CCU_UPDATE].elapsed() <= 40.0 )	// 시간 간격 줄이는게 중요
 		return;	
 	//}}
-
 	// DB에 동접 정보 업데이트
 	DBUpdateCCUInfo();
-
-
-
 #else SERV_FIX_CCU_REPORT
 	if( m_kTimer[TM_CCU_UPDATE].elapsed() > 60.0 )
 	{

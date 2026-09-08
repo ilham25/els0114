@@ -54,6 +54,10 @@
 #endif SERV_TIME_DROP_MONSTER_EVENT
 //}}
 
+#ifdef SERV_ADD_EVENT_DB
+#include "CnEventDBThread.h"
+#endif //SERV_ADD_EVENT_DB
+
 //{{ 2011. 03. 29	최육사	TBB 메모리 관리자
 //#ifdef SERV_TBB_MALLOC_PROXY_TEST
 //	#include <tbb/tbbmalloc_proxy.h>
@@ -151,6 +155,11 @@ KThread*        CreateDBThread( int iDBConnectionInfo, const wchar_t* szDSN, boo
         return new KCnLogDBThread( szDSN, bDBConnStr );
 	case KDBLayer::DC_SMS:
 		return new KCnSMSDBThread( szDSN, bDBConnStr );
+#ifdef SERV_ADD_EVENT_DB
+	case KDBLayer::DC_EVENT:
+		return new KCnEventDBThread( szDSN, bDBConnStr );
+#endif //SERV_ADD_EVENT_DB
+
     default:
         START_LOG( cerr, L"접속하려는 DB 종류가 이상함." )
             << BUILD_LOG( iDBConnectionInfo )
@@ -276,7 +285,6 @@ void KCnServer::SetActiveLagCheck_LUA( bool bActiveLagCheck )
 
 void KCnServer::ShutDown()
 {
-
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	if (SiKGameSysVal()->GetProcessCommunication() == true)
 	{
@@ -289,9 +297,9 @@ void KCnServer::ShutDown()
 
 	//{{ 2013. 2. 5	박세훈	랜선렉 방지 코드2
 #ifdef SERV_FIX_SYNC_PACKET_USING_RELAY
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	KInteriorUdpSession::GetKObj()->ShutDown();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	KInteriorUdpSession::GetKObj()->ShutDown();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #endif SERV_FIX_SYNC_PACKET_USING_RELAY
 	//}}
 
@@ -373,21 +381,16 @@ void KCnServer::Tick()
 			SiKProcessCommunicationManager()->InitWrite(TEXT("\\\\.\\pipe\\CenterServerWrite"));
 			SiKProcessCommunicationManager()->Begin();
 			m_bServerRunningProcessCommunicationOnOff = false;
-
-
 		}
 		else if (SiKGameSysVal()->GetProcessCommunication() == false && m_bServerRunningProcessCommunicationOnOff == false)
 		{
 			SiKProcessCommunicationManager()->ShutDown();
 
 			m_bServerRunningProcessCommunicationOnOff = true;
-
 		}
 		m_tTimeProcessCommunicationONOFF.restart();
 	}
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
-
 }
 
 void KCnServer::ProcessEvent( const KEventPtr& spEvent_ )
@@ -428,15 +431,23 @@ void KCnServer::ProcessEvent( const KEventPtr& spEvent_ )
 #endif SERV_LOG_SYSTEM_NEW
 	   //}}
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+		CASE( DBE_CHECK_EVENT_UPDATE_ACK );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
-	   CASE( DBE_CHECK_EVENT_UPDATE_ACK );
+		CASE( DBE_CHECK_EVENT_UPDATE_ACK );
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK	   
-	   
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
 	   //{{ 2012. 09. 02	박세훈	Merge ( 대전에서 클라이언트 조작등으로 UDP 패킷이 날아오지 않는 유저가 발견되면 서버에서 킥한다. // 2012.06.11 lygan_조성욱 )
 #ifdef UDP_CAN_NOT_SEND_USER_KICK
 	   _CASE( ECN_UDP_KICK_GAMEEDIT_NOT, KEGS_UDP_KICK_GAMEEDIT_NOT );
 #endif UDP_CAN_NOT_SEND_USER_KICK
 	   //}}
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH
+	   _CASE( ECN_ADD_COMMON_FLAG_NOT, KECN_ADD_COMMON_FLAG_NOT );
+	   _CASE( ECN_DEL_COMMON_FLAG_NOT, KECN_DEL_COMMON_FLAG_NOT );
+#endif // SERV_MODFIY_FLAG_REALTIME_PATCH
 
     default:
         START_LOG( cerr, L"이벤트 핸들러가 정의되지 않았음. " << spEvent_->GetIDStr() );
@@ -687,6 +698,80 @@ IMPL_ON_FUNC( DBE_RELEASE_TICK_UPDATE_ACK )
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 //}}
 
+//{{ 2012. 09. 02	박세훈	Merge ( 대전에서 클라이언트 조작등으로 UDP 패킷이 날아오지 않는 유저가 발견되면 서버에서 킥한다. // 2012.06.11 lygan_조성욱 )
+#ifdef UDP_CAN_NOT_SEND_USER_KICK
+_IMPL_ON_FUNC( ECN_UDP_KICK_GAMEEDIT_NOT, KEGS_UDP_KICK_GAMEEDIT_NOT )
+{
+
+	BroadCastAllGS( ECN_UDP_KICK_GAMEEDIT_NOT, kPacket_ );
+}
+#endif UDP_CAN_NOT_SEND_USER_KICK
+//}}
+
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH // 센터 서버에서 모든 게임 서버로 브로드 캐스팅
+_IMPL_ON_FUNC( ECN_ADD_COMMON_FLAG_NOT, KECN_ADD_COMMON_FLAG_NOT )
+{
+	KEGS_ADD_COMMON_FLAG_NOT kPacket;
+	kPacket.dwFlag = kPacket_.dwFlag;
+	BroadCastAllGS( EGS_ADD_COMMON_FLAG_NOT, kPacket );
+}
+_IMPL_ON_FUNC( ECN_DEL_COMMON_FLAG_NOT, KECN_DEL_COMMON_FLAG_NOT )
+{
+	KEGS_DEL_COMMON_FLAG_NOT kPacket;
+	kPacket.dwFlag = kPacket_.dwFlag;
+	BroadCastAllGS( EGS_DEL_COMMON_FLAG_NOT, kPacket );
+}
+#endif // SERV_MODFIY_FLAG_REALTIME_PATCH
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+
+IMPL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK )
+{
+
+	std::map<int , int>::const_iterator cmit;
+
+	cmit = kPacket_.m_mapReleaseTick.find( KGameEventManager::ERTT_EVENT_DB_SCRIPT_CHECK );
+
+	if( cmit !=  kPacket_.m_mapReleaseTick.end() )
+	{
+		int iOldReleaseTick = SiKGameEventManager()->GetEventDBScriptReleaseTick();
+		int iNewReleaseTick = cmit->second;
+		if( iOldReleaseTick != iNewReleaseTick )
+		{
+			START_LOG( cout2, L" 이벤트 DB 스크립트 데이터 변경 된 것을 새로 받아 옵니다." )
+				<< BUILD_LOG( iOldReleaseTick )
+				<< BUILD_LOG( iNewReleaseTick )
+				<< END_LOG;
+
+			SendToEventDB( DBE_EVENT_DB_SCRIPT_REQ );
+
+			SiKGameEventManager()->SetEventDBScriptReleaseTick( iNewReleaseTick );
+		}
+	}
+
+
+#ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
+	cmit = kPacket_.m_mapReleaseTick.find( KGameEventManager::ERTT_EVENT_CHECK );
+
+	if( cmit !=  kPacket_.m_mapReleaseTick.end() )
+	{
+		int iOldReleaseTick = SiKGameEventManager()->GetEventReleaseTick();
+		int iNewReleaseTick = cmit->second;
+		if( iOldReleaseTick != iNewReleaseTick )
+		{
+			START_LOG( cout2, L"이벤트 바뀐 것을 확인하였으므로 새로 받아옵니다." )
+				<< BUILD_LOG( iOldReleaseTick )
+				<< BUILD_LOG( iNewReleaseTick )
+				<< END_LOG;
+
+			SendToEventDB( DBE_EVENT_UPDATE_REQ );
+
+			SiKGameEventManager()->SetEventReleaseTick( iNewReleaseTick );
+		}
+	}
+#endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
+}
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK
 IMPL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK )
 {
@@ -703,20 +788,16 @@ IMPL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK )
 				<< BUILD_LOG( iNewReleaseTick )
 				<< END_LOG;
 
+#ifdef SERV_ADD_EVENT_DB
+			SendToEventDB( DBE_EVENT_UPDATE_REQ );
+#else //SERV_ADD_EVENT_DB
 			SendToLogDB( DBE_EVENT_UPDATE_REQ );
+#endif //SERV_ADD_EVENT_DB
+
 
 			SiKGameEventManager()->SetEventReleaseTick( iNewReleaseTick );
 		}
 	}
 }
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK
-
-//{{ 2012. 09. 02	박세훈	Merge ( 대전에서 클라이언트 조작등으로 UDP 패킷이 날아오지 않는 유저가 발견되면 서버에서 킥한다. // 2012.06.11 lygan_조성욱 )
-#ifdef UDP_CAN_NOT_SEND_USER_KICK
-_IMPL_ON_FUNC( ECN_UDP_KICK_GAMEEDIT_NOT, KEGS_UDP_KICK_GAMEEDIT_NOT )
-{
-
-	BroadCastAllGS( ECN_UDP_KICK_GAMEEDIT_NOT, kPacket_ );
-}
-#endif UDP_CAN_NOT_SEND_USER_KICK
-//}}
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM

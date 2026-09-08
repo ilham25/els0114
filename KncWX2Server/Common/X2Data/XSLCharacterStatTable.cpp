@@ -54,6 +54,15 @@ bool CXSLCharacterStatTable::OpenScriptFile_CharacterStatTable()
 		return false;
 	}
 
+	strFile = "DungeonEnum.lua";
+	kautoPaht.GetPullPath( strFile );
+	if( luaManager.DoFile( strFile.c_str() ) == E_FAIL )
+	{
+		START_LOG( cerr, strFile )
+			<< END_LOG;
+		return false;
+	}
+
 	strFile = "DLG_Map_Enum.lua";
 	kautoPaht.GetPullPath( strFile );
 

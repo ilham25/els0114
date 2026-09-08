@@ -27,6 +27,18 @@ CKTDGUIStatic::~CKTDGUIStatic(void)
 	}
 	m_StringDataList.clear();
 
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+	BOOST_FOREACH( CMovieData* pMovieData, m_MovieDataList )
+	{
+		SAFE_DELETE( pMovieData );
+	}
+	m_MovieDataList.clear();
+
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+
 	SAFE_CLOSE( m_pEdgeTexture );
 }
 
@@ -78,6 +90,19 @@ HRESULT CKTDGUIStatic::OnFrameMove( double fTime, float fElapsedTime )
 		}
 	}
 	KTDXPROFILE_END();
+
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+	KTDXPROFILE_BEGIN("movie_framemove");
+	BOOST_FOREACH( CMovieData* pMovieData, m_MovieDataList )
+	{
+		if ( NULL != pMovieData )
+			pMovieData->OnFrameMove();
+	}
+	KTDXPROFILE_END();
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
 
 
 	m_fElapsedTime = fElapsedTime;
@@ -199,6 +224,24 @@ HRESULT CKTDGUIStatic::OnFrameRender()
 		
 		KTDXPROFILE_END();
 	}
+
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+	BOOST_FOREACH( CMovieData* pMovieData, m_MovieDataList )
+	{
+		if ( NULL != pMovieData &&
+			 pMovieData->GetShow() )
+		{
+			D3DXVECTOR2 vPos( (pMovieData->GetOriginPos().x + m_pDialog->GetPos().x + m_OffsetPos.x) * g_pKTDXApp->GetResolutionScaleX(),
+				(pMovieData->GetOriginPos().y + m_pDialog->GetPos().y + m_OffsetPos.y) * g_pKTDXApp->GetResolutionScaleY() );
+			pMovieData->SetPos( vPos );
+
+			pMovieData->OnFrameRender();
+		}
+	}
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
 
 	return S_OK;
 }
@@ -384,7 +427,8 @@ void CKTDGUIStatic::SetString( int index, const WCHAR* wszMsg )
 //{{ kimhc // 2010.12.18 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
 void CKTDGUIStatic::RemovePictureByIndex( int iIndex_ )
-{
+{	// 이 함수 사용 할 때는 PVP_GAME_UI_WAKE_ORB 의 Index 숫자 높은 것에서 부터 낮은 것으로 지워야 합니다.
+	// Ex. Eve 다음 Ara 다음 Raven ....
 	if ( 0 > iIndex_ || m_PictureDataList.size() <= static_cast<UINT>( iIndex_ ) )
 	{
 		return;
@@ -619,20 +663,27 @@ void CKTDGUIStatic::SetRoundBoxPosSize( D3DXVECTOR2 vPos, D3DXVECTOR2 vRectSize,
 		if( NULL != pPicture &&
 			NULL != pPicture->pPoint )
 		{
+			pPicture->pPoint->leftTopPoint = pPicture->pos;
+			pPicture->pPoint->SetAutoPointByTextureSize();
+
 			pPicture->pPoint->Move( fx, fy );
 			pPicture->pos = pPicture->pPoint->leftTopPoint;
+#ifdef DLL_BUILD
+			if( pPicture->pPoint->fRotDegree != 0 )
+				pPicture->pPoint->Rotate(pPicture->pPoint->fRotDegree);
+#endif
 		}
 	}
-
-	//for( UINT i=0; i<m_StringDataList.size(); i++ )
-	//{
-	//	CKTDGUIControl::UIStringData* pStringData = m_StringDataList[i];
-	//	if( NULL != pStringData )
-	//	{
-	//		pStringData->pos += D3DXVECTOR2( fx, fy );
-	//	}
-	//}
-
+#ifdef DLL_BUILD
+	for( UINT i=0; i<m_StringDataList.size(); i++ )
+	{
+		CKTDGUIControl::UIStringData* pStringData = m_StringDataList[i];
+		if( NULL != pStringData )
+		{
+			pStringData->pos += D3DXVECTOR2( fx, fy );
+		}
+	}
+#endif
 }
 
 /*virtual*/ void CKTDGUIStatic::ScaleControl( float fx, float fy )
@@ -653,3 +704,575 @@ void CKTDGUIStatic::SetRoundBoxPosSize( D3DXVECTOR2 vPos, D3DXVECTOR2 vRectSize,
 		}
 	}
 }
+
+#ifdef DLL_BUILD
+void CKTDGUIStatic::MoveSubControl( float fx, float fy, wstring subControlName )
+{
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(subControlName);
+	if( NULL != pPictureData )
+	{
+		if( NULL != pPictureData->pPoint )
+		{
+			pPictureData->pPoint->leftTopPoint = pPictureData->pos;
+			pPictureData->pPoint->SetAutoPointByTextureSize();
+
+			pPictureData->pPoint->Move( fx, fy );
+			pPictureData->pos = pPictureData->pPoint->leftTopPoint;
+
+			if( pPictureData->pPoint->fRotDegree != 0 )
+				pPictureData->pPoint->Rotate(pPictureData->pPoint->fRotDegree);
+			return;
+		}
+	}	
+
+	int index = 1;
+	for each( CKTDGUIControl::UIStringData * pStringData in m_StringDataList )
+	{
+		if( NULL != pStringData )
+		{
+			std::wstringstream wstrstm;
+			wstrstm << index << L"_" << pStringData->msg;
+			if( wstrstm.str() == subControlName )
+			{
+				pStringData->pos += D3DXVECTOR2( fx, fy );
+				return;
+			}
+		}
+
+		index++;
+	}
+}
+
+void CKTDGUIStatic::ScaleSubControl( float fx, float fy, wstring subControlName )
+{
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(subControlName);
+	if( NULL != pPictureData )
+	{
+		if( NULL != pPictureData->pPoint )
+		{
+			pPictureData->pPoint->leftTopPoint = pPictureData->pos;
+			pPictureData->pPoint->Scale( fx, fy );
+			pPictureData->SetSizeAsTextureSize();
+			pPictureData->pos = pPictureData->pPoint->leftTopPoint;
+
+			if( pPictureData->pPoint->fRotDegree != 0 )
+				pPictureData->pPoint->Rotate(pPictureData->pPoint->fRotDegree);
+
+			return;
+		}			
+	}	
+}
+
+void CKTDGUIStatic::ShowSubView( wstring name, bool bView )
+{
+	SetColor(D3DXCOLOR(0xffffffff));
+
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		if( bView )
+			pPictureData->SetEdge( true, 4, D3DXCOLOR(1,0,0,1) );
+		else
+			pPictureData->SetEdge( true, 0, D3DXCOLOR(1,1,1,1) );
+
+		return;
+	}			
+
+}
+
+D3DXVECTOR2 CKTDGUIStatic::GetPos()
+{
+	if( m_PictureDataList.size() > 0 )
+	{
+		CKTDGUIControl::CPictureData* pPicture = m_PictureDataList[0];
+		if( pPicture != NULL )
+			return pPicture->pos;
+	}
+
+	if( m_StringDataList.size() > 0 )
+	{
+		CKTDGUIControl::UIStringData* pStringData = m_StringDataList[0];
+		if( NULL != pStringData )
+		{
+			return pStringData->pos;
+		}
+	}
+	return D3DXVECTOR2(0.f, 0.f);
+}
+
+vector<D3DXVECTOR2> CKTDGUIStatic::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;
+	for( UINT i=0; i<m_PictureDataList.size(); i++ )
+	{
+		CKTDGUIControl::CPictureData* pPicture = m_PictureDataList[i];
+		if( NULL != pPicture )		
+		{
+			ret.push_back(pPicture->pos);
+		}
+	}
+
+	return ret;
+}
+
+vector<D3DXVECTOR2> CKTDGUIStatic::GetPosList( wstring name )
+{
+	vector<D3DXVECTOR2> ret;
+
+	if( name == L"Picture" )
+	{
+		return GetPosList();
+	}
+	else if( name == L"String" )
+	{
+		for each( CKTDGUIControl::UIStringData * pStringData in m_StringDataList )
+		{			
+			if( NULL != pStringData )
+			{
+				ret.push_back(pStringData->pos);
+			}
+		}
+	}
+
+	return ret;
+}
+
+
+D3DXVECTOR2 CKTDGUIStatic::GetPos(wstring name)
+{	
+	int index = 1;
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		return pPictureData->pos;
+	}
+
+	index = 1;
+	for each( CKTDGUIControl::UIStringData * pStringData in m_StringDataList )
+	{
+		if( NULL != pStringData)
+		{
+			std::wstringstream wstrstm;
+			wstrstm << index << L"_" << pStringData->msg;
+			if( wstrstm.str() == name )
+				return pStringData->pos;
+		}
+
+		index++;
+	}
+
+	return D3DXVECTOR2(0, 0);
+}
+
+D3DXVECTOR2 CKTDGUIStatic::GetSize( wstring name )
+{
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		return pPictureData->size;
+	}
+
+	return D3DXVECTOR2(0.f, 0.f);
+}
+
+D3DXVECTOR2 CKTDGUIStatic::GetAddSize( wstring name )
+{
+	int index = 1;
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		if( NULL != pPictureData->pPoint )
+		{
+			return pPictureData->pPoint->addSize;
+		}
+	}	
+
+	return D3DXVECTOR2(0.f, 0.f);
+}
+
+
+vector<wstring> CKTDGUIStatic::GetNameList( wstring name )
+{
+	vector<wstring> ret;
+	if( name == L"Picture" )
+	{
+		int index = 1;
+		for each( CKTDGUIControl::CPictureData * pPicture in m_PictureDataList )
+		{
+			if( NULL != pPicture)
+			{
+				std::wstringstream wstrstm;
+				/*
+				if( NULL != pPicture->pTexture )
+				{					
+					wstrstm << index << L"_" <<  pPicture->pTexture->keyName;
+					ret.push_back( wstrstm.str() );
+				}
+				else
+				*/
+				{
+					wstrstm << index << L"_picture";
+					ret.push_back( wstrstm.str() );
+				}
+
+				index++;
+			}
+		}
+	}
+	else if( name == L"String" )
+	{
+		int index = 1;
+		for each( CKTDGUIControl::UIStringData * pStringData in m_StringDataList )
+		{
+			if( NULL != pStringData )
+			{
+				std::wstringstream wstrstm;
+				wstrstm << index << L"_" <<  pStringData->msg;
+				
+				ret.push_back(wstrstm.str());
+			}
+			index++;
+		}
+	}
+
+	
+
+	return ret;
+}
+
+vector<D3DXVECTOR2> CKTDGUIStatic::GetAddScaleList()
+{
+	vector<D3DXVECTOR2> ret;
+	for( UINT i=0; i<m_PictureDataList.size(); i++ )
+	{
+		CKTDGUIControl::CPictureData* pPicture = m_PictureDataList[i];
+		if( NULL != pPicture )		
+		{
+			ret.push_back(pPicture->pPoint->addSize);
+		}
+	}
+
+	return ret;
+}
+
+float CKTDGUIStatic::GetRotation( wstring name )
+{
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		if( NULL != pPictureData->pPoint )
+		{
+			return pPictureData->pPoint->fRotDegree;
+			
+		}
+	}
+	return  0.f;
+}
+
+void CKTDGUIStatic::Retate( wstring name, float fDegree )
+{
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		if( NULL != pPictureData->pPoint )
+		{
+			//pPictureData->fRotDegree = fDegree;
+			pPictureData->pPoint->leftTopPoint = pPictureData->pos;
+			pPictureData->pPoint->SetAutoPointByTextureSize();
+
+			pPictureData->pPoint->fRotDegree = fDegree;
+			pPictureData->pPoint->Rotate( fDegree );
+		}
+	}
+}
+
+vector<float> CKTDGUIStatic::GetRotationList()
+{
+	vector<float> ret;
+	for each( CKTDGUIControl::CPictureData * pPicture in m_PictureDataList )
+	{
+		if( NULL != pPicture &&
+			NULL != pPicture->pPoint )
+		{
+			ret.push_back(pPicture->pPoint->fRotDegree);						
+		}
+	}
+
+	return ret;
+}
+
+bool CKTDGUIStatic::IsSelectByEditGui( POINT pt )
+{
+	if( true == ContainsPoint(pt) )
+		return true;
+
+	/*
+	for each( CKTDGUIControl::UIStringData * pStringData in m_StringDataList )
+	{
+		if( NULL != pStringData )
+		{
+			Pick2DRect( pt, 
+				pStringData->pos, pPictureData->pPoint->rightTopPoint, 
+				pPictureData->pPoint->leftBottomPoint, pPictureData->pPoint->rightBottomPoint ) == true )
+			{
+				return true;
+		}
+	}
+	*/
+	return false;
+
+}
+
+vector<wstring> CKTDGUIStatic::GetTextureKeyList( wstring name )
+{
+	vector<wstring> ret;
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		CKTDGUIControl::UITextureData * pTextureData = pPictureData->pTexture;
+		if( NULL != pTextureData && NULL != pTextureData->pTexture )
+		{
+			//GetMapTexUVRect
+			const CKTDXDeviceTexture::KeyTexUVMap & uvMap = pTextureData->pTexture->GetMapTexUVRect();
+
+			CKTDXDeviceTexture::KeyTexUVMap::const_iterator itor = uvMap.cbegin();
+			for( ; itor != uvMap.end() ; itor++)
+			{
+				ret.push_back(itor->first);
+			} 
+
+			return ret;
+		}		
+	}
+
+	return vector<wstring>();
+}
+
+void CKTDGUIStatic::SetTexture( wstring name, wstring fileName )
+{
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		pPictureData->SetTex( fileName.c_str() );
+		pPictureData->SetPoint();
+	}
+}
+
+void CKTDGUIStatic::SetTextureKey( wstring name, wstring key )
+{
+	int index = 1;
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		CKTDGUIControl::UITextureData * pTextureData = pPictureData->pTexture;
+		if( NULL != pTextureData && NULL != pTextureData->pTexture )
+		{
+			pTextureData->keyName = key;
+			MakeUpperCase(key);
+
+			const CKTDXDeviceTexture::TEXTURE_UV* pTexUV = pTextureData->pTexture->GetTexUV( key );
+			if( pTexUV != NULL )
+			{
+				pTextureData->uvOrgTexture[CKTDGUIControl::VP_LEFT_TOP]		= pTexUV->leftTop;
+				pTextureData->uvOrgTexture[CKTDGUIControl::VP_RIGHT_TOP]	= pTexUV->rightTop;
+				pTextureData->uvOrgTexture[CKTDGUIControl::VP_LEFT_BOTTOM]	= pTexUV->leftBottom;
+				pTextureData->uvOrgTexture[CKTDGUIControl::VP_RIGHT_BOTTOM]	= pTexUV->rightBottom;
+
+				pTextureData->texSize = pTexUV->rectSize;
+
+				pTextureData->SetTextureUV();
+			}
+
+			if( NULL !=  pPictureData->pPoint )
+			{
+				pPictureData->pPoint->addSize = D3DXVECTOR2( 0, 0 );
+				pPictureData->pPoint->SetAutoPointByTextureSize();
+				pPictureData->size.x = pPictureData->pPoint->rightTopPoint.x - pPictureData->pPoint->leftTopPoint.x;
+				pPictureData->size.y = pPictureData->pPoint->rightBottomPoint.y - pPictureData->pPoint->leftTopPoint.y;
+			}
+		}
+	}
+}
+
+wstring CKTDGUIStatic::GetAttributeData( wstring name )
+{
+	CKTDGUIControl::CPictureData * pPictureData = _GetPictureData(name);
+	if( NULL != pPictureData )
+	{
+		std::wstringstream wstrstm1;
+		if( pPictureData->pTexture != NULL )
+			wstrstm1 << pPictureData->pTexture->texName 
+			<< L";" << pPictureData->pTexture->keyName
+			<< L";" << pPictureData->pos.x
+			<< L";" << pPictureData->pos.y
+			<< L";" << pPictureData->pPoint->addSize.x
+			<< L";" << pPictureData->pPoint->addSize.y;
+		else
+			wstrstm1 << L";"
+			<< L";" << pPictureData->pos.x
+			<< L";" << pPictureData->pos.y
+			<< L";" << pPictureData->pPoint->addSize.x
+			<< L";" << pPictureData->pPoint->addSize.y;
+
+		return wstrstm1.str();
+	}	
+
+	int index = 1;
+	for each( CKTDGUIControl::UIStringData * pStringData in m_StringDataList )
+	{
+		if( NULL != pStringData )
+		{
+			std::wstringstream wstrstm;
+			wstrstm << index << L"_" << pStringData->msg;
+			if( wstrstm.str() == name )
+			{
+				std::wstringstream wstrstm1;
+				
+				wstrstm1 << pStringData->stringTableID 
+					<< L";" << pStringData->msg
+					<< L";" << pStringData->pos.x
+					<< L";" << pStringData->pos.y
+					<< L";" << pStringData->fontIndex
+					<< L";" << pStringData->fontStyle
+					<< L";" << pStringData->sortFlag				
+					<< L";" << pStringData->color.r
+					<< L";" << pStringData->color.g
+					<< L";" << pStringData->color.b
+					<< L";" << pStringData->color.a
+
+					<< L";" << pStringData->outlineColor.r
+					<< L";" << pStringData->outlineColor.g
+					<< L";" << pStringData->outlineColor.b
+					<< L";" << pStringData->outlineColor.a;
+				
+				return wstrstm1.str();
+			}
+		}
+
+		index++;
+	}
+
+	return L"";
+}
+
+void CKTDGUIStatic::SetStringTableID( wstring name, int id )
+{
+	CKTDGUIControl::UIStringData * pStringData = _GetStringData(name);
+	if( pStringData )
+	{
+		pStringData->stringTableID = id;
+	}
+}
+
+void CKTDGUIStatic::SetString( wstring name, wstring str )
+{
+	CKTDGUIControl::UIStringData * pStringData = _GetStringData(name);
+	if( pStringData )
+	{
+		pStringData->msg = str;
+	}
+}
+
+void CKTDGUIStatic::SetFontIndex( wstring name, int index )
+{
+	CKTDGUIControl::UIStringData * pStringData = _GetStringData(name);
+	if( pStringData )
+	{
+		pStringData->fontIndex = index;
+	}
+}
+
+void CKTDGUIStatic::SetFontStyle( wstring name, int style )
+{
+	CKTDGUIControl::UIStringData * pStringData = _GetStringData(name);
+	if( pStringData )
+	{
+		pStringData->fontStyle = (CKTDGFontManager::FONT_STYLE)style;
+	}
+}
+
+void CKTDGUIStatic::SetFontSort( wstring name, int flag )
+{
+	CKTDGUIControl::UIStringData * pStringData = _GetStringData(name);
+	if( pStringData )
+	{
+		pStringData->sortFlag = flag;
+	}
+}
+
+void CKTDGUIStatic::SetFontColor( wstring name, D3DXCOLOR color )
+{
+	CKTDGUIControl::UIStringData * pStringData = _GetStringData(name);
+	if( pStringData )
+	{
+		pStringData->color = color;
+	}
+}
+
+void CKTDGUIStatic::SetFontOutlineColor( wstring name, D3DXCOLOR color )
+{
+	CKTDGUIControl::UIStringData * pStringData = _GetStringData(name);
+	if( pStringData )
+	{
+		pStringData->outlineColor = color;
+	}
+}
+
+CKTDGUIControl::CPictureData * CKTDGUIStatic::_GetPictureData( wstring name )
+{
+	int index = 1;
+	for each( CKTDGUIControl::CPictureData * pPicture in m_PictureDataList )
+	{
+		if( NULL != pPicture &&
+			NULL != pPicture->pPoint )
+		{
+			std::wstringstream wstrstm;
+			wstrstm << index << L"_picture";
+			if( wstrstm.str() == name )
+				return pPicture;
+		}
+
+		index++;
+	}
+
+	return NULL;
+}
+
+CKTDGUIControl::UIStringData * CKTDGUIStatic::_GetStringData( wstring name )
+{
+	int index = 1;
+	for each( CKTDGUIControl::UIStringData * pStringData in m_StringDataList )
+	{
+		if( NULL != pStringData )
+		{
+			std::wstringstream wstrstm;
+			wstrstm << index << L"_" << pStringData->msg;
+			if( wstrstm.str() == name )
+			{
+				return pStringData;
+			}
+		}
+
+		index++;
+	}
+
+	return NULL;
+}
+
+#endif
+
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+CKTDGUIControl::CMovieData* CKTDGUIStatic::GetMovie( const int index_ )
+{
+	if( index_ < 0 || index_ >= static_cast<int>( m_MovieDataList.size() ) )
+	{
+		return NULL;
+	}
+	else
+		return m_MovieDataList[index_];
+}
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+

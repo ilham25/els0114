@@ -31,7 +31,7 @@ class CKTDXDeviceTexture
 			DWORD color;
 			float u, v;
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
             bool operator == ( const TEXTURE_RHW_VERTEX& rhs_ ) const
             {
                 return  x == rhs_.x && y == rhs_.y && z == rhs_.z && color == rhs_.color && u == rhs_.u && v == rhs_.v;
@@ -41,8 +41,13 @@ class CKTDXDeviceTexture
             {
                 return !( operator == ( rhs_ ) );
             }
-#endif
+//#endif
 		};
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+
+        typedef KTETFormatTextureUV TEXTURE_UV;
+
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
 
 		struct TEXTURE_UV
 		{
@@ -67,7 +72,6 @@ class CKTDXDeviceTexture
 				rotateValue = 0;
 			}
 		};
-
         typedef map< wstring, TEXTURE_UV* >   KeyTexUVMap;
 
         struct  TETProxy
@@ -80,17 +84,23 @@ class CKTDXDeviceTexture
 		    void			AddRect_LUA( const char* pKey, D3DXVECTOR2 leftTop, D3DXVECTOR2 rightTop, D3DXVECTOR2 leftBottom, D3DXVECTOR2 rightBottom );
 		    void			RotateRect_LUA( const char* pKey, int roateValue );
         };//struct  TETProxy
+
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
+
     protected:
 
 		virtual HRESULT     _Load( bool bSkipStateCheck = false
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool bBackgroundQueueing = false
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD			
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD			
 			);
 		virtual HRESULT     _UnLoad();
+
+		virtual ~CKTDXDeviceTexture();
+
 	public:
 		CKTDXDeviceTexture( LPDIRECT3DDEVICE9 pd3dDevice, wstring fileName, DETAIL_LEVEL detailLevel = DL_HIGH, D3DFORMAT texFormat = D3DFMT_UNKNOWN, bool bAlwaysHigh = false );
-		virtual ~CKTDXDeviceTexture();
+
 
         /** @NOTE:
             Background 로딩을 사용하는 경우, Load()함수는 lua_State*를 사용하지 않는 리소스만을
@@ -119,14 +129,19 @@ class CKTDXDeviceTexture
 			return m_Info.Height;
 		}
 
-		TEXTURE_UV*			GetTexUV( const wstring& key );
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+        const TEXTURE_UV*               GetTexUV( const wchar_t* pwszKey ) const      { return m_tet.GetTexUV( pwszKey ); }
+        const TEXTURE_UV*               GetTexUV( const std::wstring& wstrKey ) const { return m_tet.GetTexUV( wstrKey ); }
+        const CKTDXDeviceTET_Preprocessing&    GetTET() const { return m_tet; }
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
+		const TEXTURE_UV*			GetTexUV( const wstring& key );
+		const KeyTexUVMap&  GetMapTexUVRect() const { return m_mapTexUVRect; }
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
 
 		void				Draw( int nX, int nY, int nWidth, int nHeight, D3DCOLOR color = 0xffffffff, float fRotateDegree = 0.f );
-		void				Draw( int nX, int nY, int nWidth, int nHeight, TEXTURE_UV* pTextureUV, D3DCOLOR color = 0xffffffff );
+		void				Draw( int nX, int nY, int nWidth, int nHeight, const TEXTURE_UV* pTextureUV, D3DCOLOR color = 0xffffffff );
 		void				Draw( float fX, float fY, float fWidth, float fHeight, int nTexU, int nTexV, int nTexWidth, int nTexHeight, D3DCOLOR color  = 0xffffffff   );
         void                DrawLayer( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color, D3DXVECTOR2 minUV, D3DXVECTOR2 maxUV, int blendType = 0);
-
-		const KeyTexUVMap&  GetMapTexUVRect() const { return m_mapTexUVRect; }
 
 	private:
 		//bool				LoadTET( const WCHAR* pFileName );
@@ -144,6 +159,10 @@ class CKTDXDeviceTexture
 		D3DFORMAT						m_LoadTexFormat;
 		bool							m_bAlwaysHigh;
 
-		LPDIRECT3DVERTEXBUFFER9			m_pVB;
+		//LPDIRECT3DVERTEXBUFFER9			m_pVB;
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+        CKTDXDeviceTET_Preprocessing           m_tet;
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
 		KeyTexUVMap                    m_mapTexUVRect;
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
 };

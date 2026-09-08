@@ -5,10 +5,13 @@
 ///////////////////////////////////////////////////////////////////////
 
 #ifdef KEY_MAPPING
-#define AXIS_THRESHOLD					500
-#define AXIS_THRESHOLD_TRIGGER_LEFT		50559
-#define AXIS_THRESHOLD_TRIGGER_RIGHT	1433
+#define AXIS_THRESHOLD_TRIGGER_LEFT  50559
+#define AXIS_THRESHOLD_TRIGGER_RIGHT  1433
 #endif KEY_MAPPING
+
+#ifdef SERV_KEY_MAPPING_INT
+#define AXIS_THRESHOLD					500
+#endif SERV_KEY_MAPPING_INT
 
 #define BUTTON_RELEASED    FALSE
 #define BUTTON_PRESSED      TRUE
@@ -121,9 +124,11 @@ class CKTDIDevice
 		void SetAction( int Action, unsigned char Key );
 #endif KEY_MAPPING_UPGRADE
 		unsigned char GetActionKey( int Action );
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 		bool ListenDeviceInput( unsigned char& ucoutUserInput );
-#endif KEY_MAPPING_INT
+		void GetActionKeys( OUT std::map<short, short>& mapMappingInfo );
+		void SetActionKeys( IN const std::map<short, short>& mapMappingInfo );
+#endif SERV_KEY_MAPPING_INT
 
 #endif KEY_MAPPING
 

@@ -34,11 +34,9 @@ public:
 	bool GetIsSkinMesh() { return m_bSkinMesh; }
 #endif
 
-#ifdef PVP_BOT
 	void SetScale(float fVal) { m_fScale = fVal; }
 	void SetRotate(D3DXVECTOR3 vRot) { m_vRotate = vRot; }
 	void SetOffset(D3DXVECTOR3 vOffset) { m_vOffset = vOffset; }
-#endif
 
 private:
 	D3DXMATRIX* m_pFrameMatrix;	// attach된 부모 eqip의 해당 frame의 combine_matrix
@@ -52,9 +50,7 @@ private:
 	CKTDXDeviceXSkinMesh	*m_pSkinModel;
 #endif
 
-#ifdef PVP_BOT
 	float		m_fScale;
 	D3DXVECTOR3 m_vRotate;
-	D3DXVECTOR3 m_vOffset;	
-#endif
+	D3DXVECTOR3 m_vOffset;
 };

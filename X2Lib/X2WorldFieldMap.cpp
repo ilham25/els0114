@@ -4,7 +4,7 @@
 
 CX2WorldFieldMap::CX2WorldFieldMap(void) :
 m_pCurrFieldData( NULL ),
-m_hSeqNewQuestRing(INVALID_PARTICLE_HANDLE),
+m_hSeqNewQuestRing(INVALID_PARTICLE_SEQUENCE_HANDLE),
 m_pFont( NULL )
 , m_iMapID( -1 )
 {
@@ -27,7 +27,6 @@ CX2WorldFieldMap::~CX2WorldFieldMap(void)
 
 /*virtual*/ void CX2WorldFieldMap::OnFrameRender_Draw()
 {
-#ifdef REFORM_UI_WORLDMAP
 	D3DXVECTOR2 vProjectedPos( 0, 0 );
 	const int MAGIC_ICON_SIZE_X = 30;	
 	const int MAGIC_ICON_SIZE_Y = 30;
@@ -317,6 +316,11 @@ CX2WorldFieldMap::~CX2WorldFieldMap(void)
 						continue;
 
 					CX2GUUser* pPartyUser = g_pX2Game->GetUserUnitByUID( pPartyMemberData->m_iUnitUID );				
+
+					// 오현빈 // 2013-08-22 // 같은 필드 내에 존재하지 않는 유저가 이상한 위치에 보이는 문제 수정
+					if( NULL == pPartyUser )
+						continue;
+
 					D3DXVECTOR3 vPos = pPartyMemberData->m_vPosition;
 
 					if( NULL != pPartyUser )
@@ -347,199 +351,6 @@ CX2WorldFieldMap::~CX2WorldFieldMap(void)
 			}
 		}
 	}
-#else
-	if( NULL == g_pTFieldGame )
-		return; 
-
-	if( NULL == m_pCurrFieldData )
-		return; 
-
-
-	D3DXVECTOR2 vProjectedPos(0, 0); //  = ProjectToScreenShot( g_pTFieldGame->GetMyUnit()->GetPos() );
-
-	const int MAGIC_ICON_SIZE_X = 30;	
-	const int MAGIC_ICON_SIZE_Y = 30;
-
-	for( int i = 0; i < g_pTFieldGame->GetFieldNPCCount(); i++ )
-	{
-		CX2TFieldNpc* pFieldNPC = g_pTFieldGame->GetFieldNPC( i );
-		if( NULL == pFieldNPC )
-			continue;
-
-		vProjectedPos = ProjectToScreenShot( pFieldNPC->GetPos() );
-		vProjectedPos = CalcPosInWindowTexture( vProjectedPos );
-
-		if( true == IsInWindowTexture( vProjectedPos )  )
-		{
-			vProjectedPos = CalcPosOnScreen( vProjectedPos );
-
-			vProjectedPos.x = vProjectedPos.x + m_pFieldDLG->GetPos().x;
-			vProjectedPos.y = vProjectedPos.y + m_pFieldDLG->GetPos().y;
-
-
-			switch( pFieldNPC->GetHouseType() )
-			{
-			case CX2TFieldNpc::NT_EQUIP:
-				{
-					if ( m_pTextureIcon[MI_NPC_WEAPON_SHOP] != NULL )
-						m_pTextureIcon[MI_NPC_WEAPON_SHOP]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 4, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y * 2, MAGIC_ICON_SIZE_X * 2, MAGIC_ICON_SIZE_Y * 2 );	
-				} break;
-			case CX2TFieldNpc::NT_ACCESSORY:
-				{
-					if ( m_pTextureIcon[MI_NPC_ACCESSARY_SHOP] != NULL )
-						m_pTextureIcon[MI_NPC_ACCESSARY_SHOP]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 4, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y * 2, MAGIC_ICON_SIZE_X * 2, MAGIC_ICON_SIZE_Y * 2 );
-				} break;
-			case CX2TFieldNpc::NT_PVP:
-				{
-					if ( m_pTextureIcon[MI_PVP_ARENA] != NULL )
-						m_pTextureIcon[MI_PVP_ARENA]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 4, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y * 2, MAGIC_ICON_SIZE_X * 2, MAGIC_ICON_SIZE_Y * 2 );			
-				} break;
-
-			case CX2TFieldNpc::NT_ALCHEMIST:
-				{
-					if ( m_pTextureIcon[MI_NPC_ALCHEMIST] != NULL )
-						m_pTextureIcon[MI_NPC_ALCHEMIST]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 4, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y * 2, MAGIC_ICON_SIZE_X * 2, MAGIC_ICON_SIZE_Y * 2 );		
-				} break;
-
-			case CX2TFieldNpc::NT_POSTBOX:
-				{
-					if ( m_pTextureIcon[MI_POSTBOX] != NULL )
-						m_pTextureIcon[MI_POSTBOX]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 4, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y * 2, MAGIC_ICON_SIZE_X * 2, MAGIC_ICON_SIZE_Y * 2 );			
-				} break;
-
-			case CX2TFieldNpc::NT_RANKING:
-				{	
-					if ( m_pTextureIcon[MI_BOARD] != NULL )
-						m_pTextureIcon[MI_BOARD]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 4, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y * 2, MAGIC_ICON_SIZE_X * 2, MAGIC_ICON_SIZE_Y * 2 );			
-				} break;
-
-			case CX2TFieldNpc::NT_PRIVATE_BANK:
-				{	
-					if ( m_pTextureIcon[MI_BANK] != NULL )
-						m_pTextureIcon[MI_BANK]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 4, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y * 2, MAGIC_ICON_SIZE_X * 2, MAGIC_ICON_SIZE_Y * 2 );			
-				} break;
-
-				//{{ kimhc // 2009-12-08 // 미니맵 Render 안함
-			case CX2TFieldNpc::NT_NO_RENDER_EVENT:	
-				break;
-				//}} kimhc // 2009-12-08 // 미니맵 Render 안함
-
-			case CX2TFieldNpc::NT_EVENT:
-			case CX2TFieldNpc::NT_TRAINNING:
-			case CX2TFieldNpc::NT_NORMAL:
-			default:
-				{
-					if ( m_pTextureIcon[MI_NPC_COMMON] != NULL )
-						m_pTextureIcon[MI_NPC_COMMON]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 4, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y * 2, MAGIC_ICON_SIZE_X * 2, MAGIC_ICON_SIZE_Y * 2 );		
-				} break;
-			}
-
-			const int MAGIC_QUEST_ICON_OFFSET_X = 1;
-			const int MAGIC_QUEST_ICON_OFFSET_Y = MAGIC_ICON_SIZE_Y - 4;
-
-			int iQuestIconPositionX = (int)vProjectedPos.x + MAGIC_QUEST_ICON_OFFSET_X;
-			int iQuestIconPositionY = (int)vProjectedPos.y - MAGIC_QUEST_ICON_OFFSET_Y;
-			int iEventQuestIconPositionX = (int)vProjectedPos.x - MAGIC_QUEST_ICON_OFFSET_X;
-			int iEventQuestIconPositionY = (int)vProjectedPos.y - MAGIC_QUEST_ICON_OFFSET_Y;
-
-
-			// 퀘스트 정보 출력
-			if( pFieldNPC->GetCompleteQuestNormal() > 0 )
-			{
-				if ( m_pTextureIcon[MI_NPC_COMPLETE_QUEST] != NULL )
-					m_pTextureIcon[MI_NPC_COMPLETE_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_ICON_SIZE_X), (int) (MAGIC_ICON_SIZE_Y) );		
-			}
-			else if( pFieldNPC->GetCompleteQuestRepeat() > 0 )
-			{
-				if ( m_pTextureIcon[MI_NPC_COMPLETE_REPEAT_QUEST] != NULL )
-					m_pTextureIcon[MI_NPC_COMPLETE_REPEAT_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_ICON_SIZE_X), (int) (MAGIC_ICON_SIZE_Y) );		
-			}
-			else if( pFieldNPC->GetFairLvQuest() > 0) // ( pFieldNPC->GetNewQuestNormal() > 0 )
-			{
-				if ( m_pTextureIcon[MI_NPC_AVAIL_QUEST] != NULL )
-					m_pTextureIcon[MI_NPC_AVAIL_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_ICON_SIZE_X), (int) (MAGIC_ICON_SIZE_Y) );		
-			}
-			else if( pFieldNPC->GetNewQuestRepeat() > 0 )
-			{
-				if ( m_pTextureIcon[MI_NPC_AVAIL_REPEAT_QUEST] != NULL )
-					m_pTextureIcon[MI_NPC_AVAIL_REPEAT_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_ICON_SIZE_X), (int) (MAGIC_ICON_SIZE_Y) );		
-			}
-			else if( pFieldNPC->GetDoQuest() > 0 )
-			{
-				if ( m_pTextureIcon[MI_NPC_INCOMPLETE_QUEST] != NULL )
-					m_pTextureIcon[MI_NPC_INCOMPLETE_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_ICON_SIZE_X), (int) (MAGIC_ICON_SIZE_Y) );		
-			}
-
-
-			if( pFieldNPC->GetEventQuest() > 0 )
-			{
-				// 아이콘 튀어나가는 현상 때문에 이것만 위치 검사를 따로 해준다..
-				// Y축은 검사하지 말자. x축만..
-				// 			D3DXVECTOR2 vPosEventQuestIcon = D3DXVECTOR2(vProjectedPos.x - (MAGIC_ICON_SIZE_X* 3/2), vProjectedPos.y - (MAGIC_ICON_SIZE_Y * 2));
-				// 			if(vPosEventQuestIcon.x > m_vMiniMapWindowPos.x && vPosEventQuestIcon.x < m_vMiniMapWindowPos.x+m_vMiniMapWindowSize.x )
-				// 			{
-				if ( m_pTextureIcon[MI_NPC_AVAIL_EVENT_QUEST] != NULL )
-					m_pTextureIcon[MI_NPC_AVAIL_EVENT_QUEST]->Draw( iEventQuestIconPositionX , iEventQuestIconPositionY, (int) (MAGIC_ICON_SIZE_X), (int) (MAGIC_ICON_SIZE_Y) );
-				//			}
-			}
-		}
-	}
-
-	if( g_pTFieldGame != NULL && m_pCurrFieldData->m_iMapID == g_pData->GetLocationManager()->GetCurrentVillageID() )
-	{
-		// 내 유닛 위치 표시
-		CX2SquareUnit* pMySquareUnit = g_pTFieldGame->GetSquareUnitByUID( g_pData->GetMyUser()->GetSelectUnit()->GetUID() );
-		if( NULL != pMySquareUnit )
-		{
-			vProjectedPos = ProjectToScreenShot( pMySquareUnit->GetPos() );
-			vProjectedPos = CalcPosInWindowTexture( vProjectedPos );
-
-			if( false == IsInWindowTexture( vProjectedPos ) )
-				continue;
-
-			vProjectedPos = CalcPosOnScreen( vProjectedPos );
-			m_pTextureIcon[MI_MYSELF]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 2, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y , MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y  );
-		}
-
-		// 파티원 위치 표시
-		if( true == g_pData->GetPartyManager()->DoIHaveParty() )
-		{
-			for( int i=0; i<g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberCount(); i++ )
-			{
-				const CX2PartyManager::PartyMemberData* pPartyMemberData = g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberData( i );
-				if( pPartyMemberData->m_iUnitUID == g_pData->GetMyUser()->GetSelectUnit()->GetUID() )
-					continue;
-
-				if( CX2Unit::CUS_FIELD_MAP != pPartyMemberData->m_eState ||
-					pPartyMemberData->m_iStateCode != (int) m_pCurrFieldData->m_iMapID )
-				{
-					continue;
-				}
-
-				CX2SquareUnit* pPartySquareUnit = g_pTFieldGame->GetSquareUnitByUID( pPartyMemberData->m_iUnitUID );
-				D3DXVECTOR3 vPos = pPartyMemberData->m_vPosition;
-				if( NULL != pPartySquareUnit )
-				{
-					vPos = pPartySquareUnit->GetPos();
-				}
-
-				vProjectedPos = ProjectToScreenShot( vPos );
-				vProjectedPos = CalcPosInWindowTexture( vProjectedPos );
-
-				//if( false == IsInWindowTexture( vProjectedPos ) )
-				//	continue;
-
-				vProjectedPos = CalcPosOnScreen( vProjectedPos );
-
-				m_pTextureIcon[MI_PARTY]->Draw( (int) vProjectedPos.x - MAGIC_ICON_SIZE_X / 2, (int) vProjectedPos.y - MAGIC_ICON_SIZE_Y , MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y  );		
-
-				const int MAGIC_FONT_OFFSET = 2;
-				m_pFont->OutTextXY( (int)vProjectedPos.x, (int)vProjectedPos.y + MAGIC_FONT_OFFSET, 
-					pPartyMemberData->m_wstrNickName.c_str(), D3DCOLOR_RGBA(255,255,255,255), CKTDGFontManager::FS_SHELL, D3DCOLOR_RGBA(0,0,0,255), NULL, DT_CENTER );
-			}
-		}
-	}
-#endif
 }
 
 
@@ -689,13 +500,12 @@ void CX2WorldFieldMap::MakeQuestNoticeEffect( int NPCID )
 
 void CX2WorldFieldMap::DestoryQuestNoticeEffect()
 {
-	if(m_hSeqNewQuestRing != INVALID_PARTICLE_HANDLE)
+	if(m_hSeqNewQuestRing != INVALID_PARTICLE_SEQUENCE_HANDLE)
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqNewQuestRing );
-	m_hSeqNewQuestRing = INVALID_PARTICLE_HANDLE;
+	m_hSeqNewQuestRing = INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 }
 
-#ifdef REFORM_UI_WORLDMAP
 D3DXVECTOR2 CX2WorldFieldMap::CalcPosForScroll( const D3DXVECTOR2& vPos_ )
 {
 	D3DXVECTOR2 vScrollPos( 0, 0 );
@@ -822,4 +632,3 @@ void CX2WorldFieldMap::InitCharacterMaker()
 		}
 	}
 }
-#endif

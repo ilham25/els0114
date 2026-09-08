@@ -126,6 +126,11 @@ public:
 	const UidType GetViewRidingPetID(){ return m_ViewRidingPetUid; }
 #endif //RIDING_SYSTEM
 
+#ifdef SIMPLE_BUG_FIX
+	CKTDGParticleSystem::CParticleEventSequenceHandle GethParticle() {return m_hParticle;} // Pet 성향 파티클 관련함수
+	void SethParticle(CKTDGParticleSystem::CParticleEventSequenceHandle mhParticle) { m_hParticle = mhParticle;} // Pet 성향 파티클 관련함수
+#endif SIMPLE_BUG_FIX
+	
 private:
 	bool IsInUnitClickReact( D3DXVECTOR2 mousePos );
 

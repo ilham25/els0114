@@ -403,11 +403,6 @@ SERIALIZE_DEFINE_PUT( KAccountInfo, obj, ks )
 		&& PUT( m_iChannelRandomKey )
 #endif SERV_DLL_LIST_CHECK_BEFOR_LOADING
 		//}}
-		//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-		&& PUT( m_wstrLogoutDate )
-#endif SERV_FIXED_DATE_EVENT
-		//}}
         ;
 }
 
@@ -437,11 +432,6 @@ SERIALIZE_DEFINE_GET( KAccountInfo, obj, ks )
 #ifdef SERV_DLL_LIST_CHECK_BEFOR_LOADING
 		&& GET( m_iChannelRandomKey )
 #endif SERV_DLL_LIST_CHECK_BEFOR_LOADING
-		//}}
-		//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-		&& GET( m_wstrLogoutDate )
-#endif SERV_FIXED_DATE_EVENT
 		//}}
 		;
 }
@@ -498,6 +488,9 @@ SERIALIZE_DEFINE_PUT( KItemInfo, obj, ks )
 #ifdef SERV_GOLD_TICKET
 		&& PUT(	m_iGoldTicketKeyUID )
 #endif //SERV_GOLD_TICKET
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+		&& PUT( m_byteExpandedSocketNum )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -522,6 +515,9 @@ SERIALIZE_DEFINE_GET( KItemInfo, obj, ks )
 #ifdef SERV_GOLD_TICKET
 		&& GET(	m_iGoldTicketKeyUID )
 #endif //SERV_GOLD_TICKET
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+		&& GET( m_byteExpandedSocketNum )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -784,6 +780,11 @@ SERIALIZE_DEFINE_PUT( KUnitSkillData, obj, ks )
 		&& PUT( m_vecSkillNote )
 #endif SERV_SKILL_NOTE
 		//}}
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_nActiveSkillPagesNumber)
+		&& PUT( m_nTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		;
 }
 
@@ -810,6 +811,10 @@ SERIALIZE_DEFINE_GET( KUnitSkillData, obj, ks )
 		&& GET( m_vecSkillNote )
 #endif SERV_SKILL_NOTE
 		//}}
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_nActiveSkillPagesNumber)
+		&& GET( m_nTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		;   
 }
 
@@ -1027,6 +1032,7 @@ SERIALIZE_DEFINE_PUT( KUnitInfo, obj, ks )
 		&& PUT( m_kUserGuildInfo )
 #endif GUILD_TEST
 		//}}
+        && PUT( m_wstrLastLoginTime )
 		//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
 #ifdef SERV_UNIT_WAIT_DELETE
 		&& PUT( m_wstrLastDate )
@@ -1042,6 +1048,9 @@ SERIALIZE_DEFINE_PUT( KUnitInfo, obj, ks )
 		&& PUT( m_iEventQuestClearCount )
 		&& PUT( m_iExchangeCount )
 #endif SERV_GROW_UP_SOCKET
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+		&& PUT( m_iAccumulationSpirit )
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 #ifdef SERV_CHINA_SPIRIT_EVENT
 		&& PUT( m_arrChinaSpirit[0] )
 		&& PUT( m_arrChinaSpirit[1] )
@@ -1057,6 +1066,15 @@ SERIALIZE_DEFINE_PUT( KUnitInfo, obj, ks )
 		&& PUT( m_ucOldYearMissionRewardedLevel )
 		&& PUT( m_iNewYearMissionStepID )
 #endif SERV_NEW_YEAR_EVENT_2014
+#ifdef SERV_EVENT_CHECK_POWER
+		&& PUT( m_ucCheckPowerCount )
+		&& PUT( m_iCheckPowerTime )
+		&& PUT( m_bCheckPowerShowPopUp )
+		&& PUT( m_ucCheckPowerScore )
+#endif SERV_EVENT_CHECK_POWER
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& PUT( m_iAccountPVPLoseCount )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -1149,6 +1167,7 @@ SERIALIZE_DEFINE_GET( KUnitInfo, obj, ks )
 		&& GET( m_kUserGuildInfo )
 #endif GUILD_TEST
 		//}}
+        && GET( m_wstrLastLoginTime )
 		//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
 #ifdef SERV_UNIT_WAIT_DELETE
 		&& GET( m_wstrLastDate )
@@ -1164,6 +1183,9 @@ SERIALIZE_DEFINE_GET( KUnitInfo, obj, ks )
 		&& GET( m_iEventQuestClearCount )
 		&& GET( m_iExchangeCount )
 #endif SERV_GROW_UP_SOCKET
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+		&& GET( m_iAccumulationSpirit )
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 #ifdef SERV_CHINA_SPIRIT_EVENT
 		&& GET( m_arrChinaSpirit[0] )
 		&& GET( m_arrChinaSpirit[1] )
@@ -1179,6 +1201,15 @@ SERIALIZE_DEFINE_GET( KUnitInfo, obj, ks )
 		&& GET( m_ucOldYearMissionRewardedLevel )
 		&& GET( m_iNewYearMissionStepID )
 #endif SERV_NEW_YEAR_EVENT_2014
+#ifdef SERV_EVENT_CHECK_POWER
+		&& GET( m_ucCheckPowerCount )
+		&& GET( m_iCheckPowerTime )
+		&& GET( m_bCheckPowerShowPopUp )
+		&& GET( m_ucCheckPowerScore )
+#endif SERV_EVENT_CHECK_POWER
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& GET( m_iAccountPVPLoseCount )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -1234,10 +1265,6 @@ SERIALIZE_DEFINE_PUT( KRoomInfo, obj, ks )
 		&& PUT( m_cGetItemType )
 		&& PUT( m_cDungeonMode )
 		&& PUT( m_iPartyUID )
-		//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		&& PUT( m_iBuffType )
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
 		//{{ 2011. 10. 31	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM		
 		&& PUT( m_iBattleFieldID )
@@ -1288,10 +1315,6 @@ SERIALIZE_DEFINE_GET( KRoomInfo, obj, ks )
 		&& GET( m_cGetItemType )
 		&& GET( m_cDungeonMode )
 		&& GET( m_iPartyUID )
-		//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		&& GET( m_iBuffType )
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
 		//{{ 2011. 10. 31	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM		
 		&& GET( m_iBattleFieldID )
@@ -1388,6 +1411,11 @@ SERIALIZE_DEFINE_PUT( KPetInfo, obj, ks )
 		&& PUT( m_wstrLastSummonDate )
 		&& PUT( m_wstrRegDate )
 		&& PUT( m_bAutoLooting )
+#ifdef SERV_EVENT_PET_INVENTORY
+		//이벤트 펫 먹이 추가 
+		&& PUT( m_bEventFoodEat )
+		&& PUT( m_bIsEventPetID )
+#endif SERV_EVENT_PET_INVENTORY
 #ifdef SERV_FREE_AUTO_LOOTING
 		&& PUT(	m_bFreeAutoLooting )
 #endif SERV_FREE_AUTO_LOOTING
@@ -1416,6 +1444,11 @@ SERIALIZE_DEFINE_GET( KPetInfo, obj, ks )
 		&& GET( m_wstrLastSummonDate )
 		&& GET( m_wstrRegDate )
 		&& GET( m_bAutoLooting )
+#ifdef SERV_EVENT_PET_INVENTORY
+		//이벤트 펫 먹이 추가 
+		&& GET( m_bEventFoodEat )
+		&& GET( m_bIsEventPetID )
+#endif SERV_EVENT_PET_INVENTORY
 #ifdef SERV_FREE_AUTO_LOOTING
 		&& GET(	m_bFreeAutoLooting )
 #endif SERV_FREE_AUTO_LOOTING
@@ -1536,6 +1569,9 @@ SERIALIZE_DEFINE_PUT( KLastPositionInfo, obj, ks )
 	return PUT( m_iMapID )
 		&& PUT( m_ucLastTouchLineIndex )
 		&& PUT( m_usLastPosValue )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		&& PUT( m_bIgnoreLastTouch )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -1544,6 +1580,9 @@ SERIALIZE_DEFINE_GET( KLastPositionInfo, obj, ks )
 	return GET( m_iMapID )
 		&& GET( m_ucLastTouchLineIndex )
 		&& GET( m_usLastPosValue )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		&& GET( m_bIgnoreLastTouch )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -1696,6 +1735,7 @@ SERIALIZE_DEFINE_PUT( KRoomUserInfo, obj, ks )
 		&& PUT( m_bEnterCashShop )
 #endif SERV_VISIT_CASH_SHOP
 		//}}
+
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-21
 		&& PUT( m_iRidingPetUID )
 		&& PUT( m_usRidingPetID )
@@ -1711,6 +1751,10 @@ SERIALIZE_DEFINE_PUT( KRoomUserInfo, obj, ks )
 		&& PUT( m_iExchangeCount )
 #endif SERV_GROW_UP_SOCKET
 
+#ifdef SERV_BLESS_OF_GODDESS_EVENT
+		&& PUT( m_bMaxLevelUnitInAccount )
+#endif SERV_BLESS_OF-GODDESS_EVENT
+
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 		&& PUT( m_iGateOfDarknessSupportEventTime )
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
@@ -1724,6 +1768,13 @@ SERIALIZE_DEFINE_PUT( KRoomUserInfo, obj, ks )
 #ifdef SERV_RECRUIT_EVENT_BASE
 		&& PUT( m_iRecruiterUnitUID )
 #endif SERV_RECRUIT_EVENT_BASE
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		&& PUT( m_iValentineItemCount )
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& PUT( m_iAccountPVPLoseCount )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -1870,6 +1921,7 @@ SERIALIZE_DEFINE_GET( KRoomUserInfo, obj, ks )
 		&& GET( m_bEnterCashShop )
 #endif SERV_VISIT_CASH_SHOP
 		//}}
+
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-21
 		&& GET( m_iRidingPetUID )
 		&& GET( m_usRidingPetID )
@@ -1884,6 +1936,10 @@ SERIALIZE_DEFINE_GET( KRoomUserInfo, obj, ks )
 		&& GET( m_iEventQuestClearCount )
 		&& GET( m_iExchangeCount )
 #endif SERV_GROW_UP_SOCKET
+		
+#ifdef SERV_BLESS_OF_GODDESS_EVENT
+		&& GET( m_bMaxLevelUnitInAccount )
+#endif SERV_BLESS_OF-GODDESS_EVENT
 
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 		&& GET( m_iGateOfDarknessSupportEventTime )
@@ -1898,6 +1954,13 @@ SERIALIZE_DEFINE_GET( KRoomUserInfo, obj, ks )
 #ifdef SERV_RECRUIT_EVENT_BASE
 		&& GET( m_iRecruiterUnitUID )
 #endif SERV_RECRUIT_EVENT_BASE
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		&& GET( m_iValentineItemCount )
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& GET( m_iAccountPVPLoseCount )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -1912,9 +1975,9 @@ SERIALIZE_DEFINE_PUT( KRoomSlotInfo, obj, ks )
         &&  PUT( m_bTrade )
         &&	PUT( m_TeamNum )
         &&	PUT( m_kRoomUserInfo )
-#ifdef PVP_BOSS_COMBAT_TEST
-		&& PUT( m_bIsBoss )
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		&& PUT( m_bIsBoss )
+//#endif PVP_BOSS_COMBAT_TEST
         ;
 }
 
@@ -1928,11 +1991,38 @@ SERIALIZE_DEFINE_GET( KRoomSlotInfo, obj, ks )
         &&  GET( m_bTrade )
         &&	GET( m_TeamNum )
         &&	GET( m_kRoomUserInfo )
-#ifdef PVP_BOSS_COMBAT_TEST
-		&& GET( m_bIsBoss )
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		&& GET( m_bIsBoss )
+//#endif PVP_BOSS_COMBAT_TEST
         ;
 }
+
+#ifdef SERV_GLOBAL_EVENT_TABLE
+SERIALIZE_DEFINE_PUT( KGlobalEventTableData, obj, ks )
+{
+	return PUT( m_iUserUID )
+		&& PUT( m_iUnitUID )
+		&& PUT( m_iEventID )
+		&& PUT( m_usCategory )
+		&& PUT( m_veciParamData )
+		&& PUT( m_iEventType )
+		&& PUT( m_iEventScriptID )
+		&& PUT( m_cEventAccountType )
+		;
+}
+SERIALIZE_DEFINE_GET( KGlobalEventTableData, obj, ks )
+{
+	return GET( m_iUserUID )
+		&& GET( m_iUnitUID )
+		&& GET( m_iEventID )
+		&& GET( m_usCategory )
+		&& GET( m_veciParamData )
+		&& GET( m_iEventType )
+		&& GET( m_iEventScriptID )
+		&& GET( m_cEventAccountType )
+		;
+}
+#endif //SERV_GLOBAL_EVENT_TABLE
 
 //{{ 2011. 07. 19	최육사	서버간 접속 코드 리팩토링
 //#ifdef SERV_SERVER_CONNECT_CODE_REFACTORING
@@ -1994,6 +2084,20 @@ SERIALIZE_DEFINE_GET( KPacketOK, obj, ks )
 {
     return  GET( m_iOK );
 }
+
+
+//#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+SERIALIZE_DEFINE_PUT( KPacketReason, obj, ks )
+{
+    return  PUT( m_iReason );
+}
+
+SERIALIZE_DEFINE_GET( KPacketReason, obj, ks )
+{
+    return  GET( m_iReason );
+}
+
+//#endif	SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2061,6 +2165,7 @@ SERIALIZE_DEFINE_PUT( KDenyOptions, obj, ks )
 		&&  PUT( m_cDenyRequestCouple )
 #endif SERV_RELATIONSHIP_SYSTEM
 		//}
+        &&  PUT( m_cDenyInvitePracticePVP )
 		;
 }
 
@@ -2075,7 +2180,7 @@ SERIALIZE_DEFINE_GET( KDenyOptions, obj, ks )
 		&&  GET( m_cDenyRequestCouple )
 #endif SERV_RELATIONSHIP_SYSTEM
 		//}
-		;
+		&&  GET( m_cDenyInvitePracticePVP );
 }
 
 //{{ 2008. 1. 31  최육사  
@@ -2121,6 +2226,9 @@ SERIALIZE_DEFINE_PUT( KHenirRankingInfo, obj, ks )
 		&& PUT( m_wstrNickName )
 		&& PUT( m_cUnitClass )
 		&& PUT( m_ucLevel )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+		&& PUT( m_bytePlayStartedUserNum )
+#endif // SERV_HENIR_RENEWAL_2013
 		;
 }
 
@@ -2134,6 +2242,9 @@ SERIALIZE_DEFINE_GET( KHenirRankingInfo, obj, ks )
 		&& GET( m_wstrNickName )
 		&& GET( m_cUnitClass )
 		&& GET( m_ucLevel )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+		&& GET( m_bytePlayStartedUserNum )
+#endif // SERV_HENIR_RENEWAL_2013
 		;
 }
 //}}
@@ -2263,11 +2374,6 @@ SERIALIZE_DEFINE_PUT( KCumulativeTimeEventInfo, obj, ks )
 		&& PUT( m_bAccountEvent )
 #endif SERV_ACC_TIME_EVENT
 		//}}
-		//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		&& PUT( m_wstrEventTime )
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		//}}
 		;
 }
 
@@ -2279,11 +2385,6 @@ SERIALIZE_DEFINE_GET( KCumulativeTimeEventInfo, obj, ks )
 #ifdef SERV_ACC_TIME_EVENT
 		&& GET( m_bAccountEvent )
 #endif SERV_ACC_TIME_EVENT
-		//}}
-		//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		&& GET( m_wstrEventTime )
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 		//}}
 		;
 }
@@ -2302,6 +2403,11 @@ SERIALIZE_DEFINE_PUT( KEGS_HENIR_REWARD_COUNT_NOT, obj, ks )
 		&& PUT( m_iEvent )
 		&& PUT( m_iPremiumMAX )
 		&& PUT( m_iEventMAX )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+		&& PUT( m_iChallengeNormal )
+		&& PUT( m_iChallengePremium )
+		&& PUT( m_iChallengeEvent )
+#endif // SERV_HENIR_RENEWAL_2013
 		;
 }
 
@@ -2313,6 +2419,11 @@ SERIALIZE_DEFINE_GET( KEGS_HENIR_REWARD_COUNT_NOT, obj, ks )
 		&& GET( m_iEvent )
 		&& GET( m_iPremiumMAX )
 		&& GET( m_iEventMAX )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+		&& GET( m_iChallengeNormal )
+		&& GET( m_iChallengePremium )
+		&& GET( m_iChallengeEvent )
+#endif // SERV_HENIR_RENEWAL_2013
 		;
 }
 #endif SERV_NEW_HENIR_TEST
@@ -2352,7 +2463,12 @@ SERIALIZE_DEFINE_PUT( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& PUT( m_iVSPointMax )
 #endif SERV_PVP_NEW_SYSTEM
 		//}}
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+#else // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_iSPoint )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		&& PUT( m_iWin )
 		&& PUT( m_iLose )
 		//{{ 2012. 02. 02	최육사	배틀필드 시스템
@@ -2381,7 +2497,14 @@ SERIALIZE_DEFINE_PUT( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& PUT( m_sEquippedTitleID )
 #endif SERV_TITLE_DATA_SIZE
 		//}}
+		
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_mapSkillSlotVector )
+		&& PUT( m_wstrSkillSlotBEndDate )
+#else // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_vecSkillSlot )
+#endif // SERV_SKILL_PAGE_SYSTEM
+		
 		&& PUT( m_kDenyOptions )
 		&& PUT( m_iSpirit )
 		&& PUT( m_bIsSpiritUpdated )
@@ -2394,6 +2517,9 @@ SERIALIZE_DEFINE_PUT( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& PUT( m_mapWishList )
 		//{{ 2009. 7. 7  최육사		랭킹개편
 		&& PUT( m_vecHenirRanking )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+		&& PUT( m_vecHenirHeroRanking )
+#endif // SERV_HENIR_RENEWAL_2013
 		//}}
 		//{{ 2009. 10. 7  최육사	길드
 #ifdef GUILD_TEST
@@ -2450,6 +2576,10 @@ SERIALIZE_DEFINE_PUT( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& PUT( m_cUnitRelationshipType )
 #endif SERV_RELATIONSHIP_SYSTEM
 		//}
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+		&& PUT( m_iAccumultionSpirit )
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
+
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 		&& PUT( m_iGateOfDarknessSupportEventTime )
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
@@ -2461,6 +2591,9 @@ SERIALIZE_DEFINE_PUT( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& PUT( m_arrChinaSpirit[4] )
 		&& PUT( m_arrChinaSpirit[5] )
 #endif SERV_CHINA_SPIRIT_EVENT
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		&& PUT( m_iNoteViewCount )
+#endif SERV_ELESIS_UPDATE_EVENT
         ;
 }
 
@@ -2498,7 +2631,12 @@ SERIALIZE_DEFINE_GET( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& GET( m_iVSPointMax )
 #endif SERV_PVP_NEW_SYSTEM
 		//}}
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+#else // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_iSPoint )
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		&& GET( m_iWin )
 		&& GET( m_iLose )
 		//{{ 2012. 02. 02	최육사	배틀필드 시스템
@@ -2527,7 +2665,14 @@ SERIALIZE_DEFINE_GET( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& GET( m_sEquippedTitleID )
 #endif SERV_TITLE_DATA_SIZE
 		//}}
+		
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_mapSkillSlotVector )
+		&& GET( m_wstrSkillSlotBEndDate )
+#else // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_vecSkillSlot )
+#endif // SERV_SKILL_PAGE_SYSTEM
+		
 		&& GET( m_kDenyOptions )
 		&& GET( m_iSpirit )
 		&& GET( m_bIsSpiritUpdated )
@@ -2540,6 +2685,9 @@ SERIALIZE_DEFINE_GET( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& GET( m_mapWishList )
 		//{{ 2009. 7. 7  최육사		랭킹개편
 		&& GET( m_vecHenirRanking )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+		&& GET( m_vecHenirHeroRanking )
+#endif // SERV_HENIR_RENEWAL_2013
 		//}}
 		//{{ 2009. 10. 7  최육사	길드
 #ifdef GUILD_TEST
@@ -2596,9 +2744,14 @@ SERIALIZE_DEFINE_GET( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& GET( m_cUnitRelationshipType )
 #endif SERV_RELATIONSHIP_SYSTEM
 		//}
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+		&& GET( m_iAccumultionSpirit )
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
+
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 		&& GET( m_iGateOfDarknessSupportEventTime )
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
 #ifdef SERV_CHINA_SPIRIT_EVENT
 		&& GET( m_arrChinaSpirit[0] )
 		&& GET( m_arrChinaSpirit[1] )
@@ -2607,6 +2760,10 @@ SERIALIZE_DEFINE_GET( KDBE_UPDATE_UNIT_INFO_REQ, obj, ks )
 		&& GET( m_arrChinaSpirit[4] )
 		&& GET( m_arrChinaSpirit[5] )
 #endif SERV_CHINA_SPIRIT_EVENT
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		&& GET( m_iNoteViewCount )
+#endif SERV_ELESIS_UPDATE_EVENT
         ;
 }
 //}}
@@ -2818,11 +2975,6 @@ SERIALIZE_DEFINE_PUT( KERM_UPDATE_DUNGEON_UNIT_INFO_NOT, obj, ks )
 		//{{ 2009. 7. 1  최육사		헤니르 시공
 		&& PUT( m_kHenirRankingInfo )
 		//}}
-		//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-		&& PUT( m_bHaveExpInDungeon )			// 던전에서 경험치를 얻은적이 있는가?
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-		//}}
 		//{{ 2012. 04. 16	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		&& PUT( m_bStartedByAutoParty )
@@ -2856,11 +3008,6 @@ SERIALIZE_DEFINE_GET( KERM_UPDATE_DUNGEON_UNIT_INFO_NOT, obj, ks )
 		//}} 2011. 04. 13  김민성  글로벌 서버 추가
 		//{{ 2009. 7. 1  최육사		헤니르 시공
 		&& GET( m_kHenirRankingInfo )
-		//}}
-		//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-		&& GET( m_bHaveExpInDungeon )			// 던전에서 경험치를 얻은적이 있는가?
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
 		//}}
 		//{{ 2012. 04. 16	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
@@ -3253,6 +3400,10 @@ SERIALIZE_DEFINE_PUT( KDBE_QUEST_COMPLETE_REQ, obj, ks )
 		&& PUT( m_iNewDefaultSkill1 )
 		&& PUT( m_iNewDefaultSkill2 )
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		;
 }
 
@@ -3277,6 +3428,10 @@ SERIALIZE_DEFINE_GET( KDBE_QUEST_COMPLETE_REQ, obj, ks )
 		&& GET( m_iNewDefaultSkill1 )
 		&& GET( m_iNewDefaultSkill2 )
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iTheNumberOfSkillPagesAvailable )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		;
 }
 
@@ -3593,6 +3748,9 @@ SERIALIZE_DEFINE_PUT( KSquareUserInfo, obj, ks )
 		&& PUT( m_iEventQuestClearCount )
 		&& PUT( m_iExchangeCount )
 #endif SERV_GROW_UP_SOCKET
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& PUT( m_iAccountPVPLoseCount )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -3644,6 +3802,9 @@ SERIALIZE_DEFINE_GET( KSquareUserInfo, obj, ks )
 		&& GET( m_iEventQuestClearCount )
 		&& GET( m_iExchangeCount )
 #endif SERV_GROW_UP_SOCKET
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& GET( m_iAccountPVPLoseCount )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -4061,7 +4222,7 @@ SERIALIZE_DEFINE_GET( KERM_SQUARE_LIST_INFO_NOT, obj, ks )
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 SERIALIZE_DEFINE_PUT( KDBE_INSERT_SKILL_REQ, obj, ks )
 {
 	return PUT( m_iUnitUID )
@@ -4101,7 +4262,7 @@ SERIALIZE_DEFINE_GET( KDBE_INSERT_SKILL_ACK, obj, ks )
 		&& GET( m_iCSPoint )
 		;
 }
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 
@@ -4940,7 +5101,10 @@ SERIALIZE_DEFINE_PUT( KPostItemInfo, obj, ks )
 		//}}
 #ifdef SERV_NETERROR_STR_GET_FROM_CLIENT
 		&& PUT( m_bSenderDeleted )
-#endif SERV_NETERROR_STR_GET_FROM_CLIENT	
+#endif SERV_NETERROR_STR_GET_FROM_CLIENT
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+		&& PUT( m_byteExpandedSocketNum )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -4976,7 +5140,10 @@ SERIALIZE_DEFINE_GET( KPostItemInfo, obj, ks )
 		//}}
 #ifdef SERV_NETERROR_STR_GET_FROM_CLIENT
 		&& GET( m_bSenderDeleted )
-#endif SERV_NETERROR_STR_GET_FROM_CLIENT		
+#endif SERV_NETERROR_STR_GET_FROM_CLIENT
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+		&& GET( m_byteExpandedSocketNum )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -5281,6 +5448,9 @@ SERIALIZE_DEFINE_PUT( KFieldUserInfo, obj, ks )
 		&& PUT( m_iEventQuestClearCount )
 		&& PUT( m_iExchangeCount )
 #endif SERV_GROW_UP_SOCKET
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& PUT( m_iAccountPVPLoseCount )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -5345,6 +5515,9 @@ SERIALIZE_DEFINE_GET( KFieldUserInfo, obj, ks )
 		&& GET( m_iEventQuestClearCount )
 		&& GET( m_iExchangeCount )
 #endif SERV_GROW_UP_SOCKET
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& GET( m_iAccountPVPLoseCount )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -5593,6 +5766,19 @@ SERIALIZE_DEFINE_PUT( KChannelChangeInfo, obj, ks )
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-30
 		&& PUT( m_iSummonedRidingPetUID )
 #endif	// SERV_RIDING_PET_SYSTM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		&& PUT( m_ButtonStartUI )
+		&& PUT( m_DungeonClearUI )
+		&& PUT( m_FieldCountUI )
+		&& PUT( m_DungeonCount )
+		&& PUT( m_FieldMonsterKillCount )
+		&& PUT( m_wstrButtonClickTime )
+		&& PUT( m_RemaindTime )
+		&& PUT( m_bCoboItemGive )
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_GLOBAL_EVENT_TABLE
+		&& PUT( m_mapGlobalEventData )
+#endif //SERV_GLOBAL_EVENT_TABLE
 		;
 }
 
@@ -5630,6 +5816,19 @@ SERIALIZE_DEFINE_GET( KChannelChangeInfo, obj, ks )
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-30
 		&& GET( m_iSummonedRidingPetUID )
 #endif	// SERV_RIDING_PET_SYSTM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		&& GET( m_ButtonStartUI )
+		&& GET( m_DungeonClearUI )
+		&& GET( m_FieldCountUI )
+		&& GET( m_DungeonCount )
+		&& GET( m_FieldMonsterKillCount )
+		&& GET( m_wstrButtonClickTime )
+		&& GET( m_RemaindTime )
+		&& GET( m_bCoboItemGive )
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_GLOBAL_EVENT_TABLE
+		&& GET( m_mapGlobalEventData )
+#endif //SERV_GLOBAL_EVENT_TABLE
 		;
 }
 //}}
@@ -5672,7 +5871,55 @@ SERIALIZE_DEFINE_GET( KUserSkillData, obj, ks )
 		;
 }
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
 
+SERIALIZE_DEFINE_PUT( KRetrievedSkillPageData, obj, ks )
+{
+	return  PUT( m_iRetrievedSPoint )
+		&&	PUT( m_vecUserSkillData )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KRetrievedSkillPageData, obj, ks )
+{
+	return  GET( m_iRetrievedSPoint )
+		&&	GET( m_vecUserSkillData )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KUserSkillPageData, obj, ks )
+{
+	return PUT( m_aEquippedSkill[0] )
+		&& PUT( m_aEquippedSkill[1] )
+		&& PUT( m_aEquippedSkill[2] )
+		&& PUT( m_aEquippedSkill[3] )
+		&& PUT( m_aEquippedSkillSlotB[0] )
+		&& PUT( m_aEquippedSkillSlotB[1] )
+		&& PUT( m_aEquippedSkillSlotB[2] )
+		&& PUT( m_aEquippedSkillSlotB[3] )
+		&& PUT( m_usSkillPoint )
+		&& PUT( m_usCashSkillPoint )
+		&& PUT( m_vecUserSkillData )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KUserSkillPageData, obj, ks )
+{
+	return  GET( m_aEquippedSkill[0] )
+		&& GET( m_aEquippedSkill[1] )
+		&& GET( m_aEquippedSkill[2] )
+		&& GET( m_aEquippedSkill[3] )
+		&& GET( m_aEquippedSkillSlotB[0] )
+		&& GET( m_aEquippedSkillSlotB[1] )
+		&& GET( m_aEquippedSkillSlotB[2] )
+		&& GET( m_aEquippedSkillSlotB[3] )
+		&& GET( m_usSkillPoint )
+		&& GET( m_usCashSkillPoint )
+		&& GET( m_vecUserSkillData ) 
+		;
+}
+
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 /////////////////////////////////////////////////////////////////////////////////////
 SERIALIZE_DEFINE_PUT( KDungeonRewardED, obj, ks )
@@ -5775,6 +6022,14 @@ SERIALIZE_DEFINE_PUT( KUserPShopAgencyInfo, obj, ks )
 {
 	return PUT( m_bIsPShopOpen )
 		&& PUT( m_wstrAgencyExpirationDate )
+        && PUT( m_cShopType )
+        && PUT( m_vecSellItemInfo )
+        && PUT( m_iUserUID )
+        && PUT( m_iUnitUID )
+        && PUT( m_wstrNickName )
+        && PUT( m_wstrAgencyOpenDate )
+        && PUT( m_wstrPersonalShopName )
+        && PUT( m_bOnSale )
 		;
 }
 
@@ -5782,6 +6037,14 @@ SERIALIZE_DEFINE_GET( KUserPShopAgencyInfo, obj, ks )
 {
 	return GET( m_bIsPShopOpen )
 		&& GET( m_wstrAgencyExpirationDate )
+        && GET( m_cShopType )
+        && GET( m_vecSellItemInfo )
+        && GET( m_iUserUID )
+        && GET( m_iUnitUID )
+        && GET( m_wstrNickName )
+        && GET( m_wstrAgencyOpenDate )
+        && GET( m_wstrPersonalShopName )
+        && GET( m_bOnSale )
 		;
 }
 
@@ -6373,9 +6636,7 @@ SERIALIZE_DEFINE_PUT( KUserConnectTimeEventInfo, obj, ks )
 		&& PUT( m_fBackUpTime )
 #endif SERV_TIME_EVENT_BUG_FIX
 		//}}
-#ifdef SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
-		&& PUT( m_bRepeatEvent )
-#endif SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
+
 		//{{ 2012. 08. 14	박세훈	대천사의 주화 이벤트 가이드 문구 출력
 #ifdef SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
 		&& PUT( m_iScriptID )
@@ -6385,17 +6646,17 @@ SERIALIZE_DEFINE_PUT( KUserConnectTimeEventInfo, obj, ks )
 		&& PUT( m_bRepeatRewardEvent )
 		&& PUT( m_iBeforeEventID )
 #endif //SERV_CONNECT_EVENT_CONSECUTIVELY_REWARD
-		#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
-		&& PUT( m_bNewUnit )
-		&& PUT( m_bNewUnit2 )
-		&& PUT( m_bCurrentUnit )
-#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 		&& PUT( m_iEventItemID )
 #endif
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		&& PUT( m_iCustomEventID )
 #endif //SERV_CUSTOM_CONNECT_EVENT
+#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+		&& PUT( m_bNewUnit )
+		&& PUT( m_bNewUnit2 )
+		&& PUT( m_bCurrentUnit )
+#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 		&& PUT( m_bOnlySteamUser )
 		&& PUT( m_bOnlyNotSteamUser )
@@ -6421,9 +6682,6 @@ SERIALIZE_DEFINE_GET( KUserConnectTimeEventInfo, obj, ks )
 		&& GET( m_fBackUpTime )
 #endif SERV_TIME_EVENT_BUG_FIX
 		//}}
-#ifdef SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
-		&& GET( m_bRepeatEvent )
-#endif SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
 
 		//{{ 2012. 08. 14	박세훈	대천사의 주화 이벤트 가이드 문구 출력
 #ifdef SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
@@ -6434,17 +6692,17 @@ SERIALIZE_DEFINE_GET( KUserConnectTimeEventInfo, obj, ks )
 		&& GET( m_bRepeatRewardEvent )
 		&& GET( m_iBeforeEventID )
 #endif //SERV_CONNECT_EVENT_CONSECUTIVELY_REWARD
-#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
-		&& GET( m_bNewUnit )
-		&& GET( m_bNewUnit2 )
-		&& GET( m_bCurrentUnit )
-#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 		&& GET( m_iEventItemID )
 #endif
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		&& GET( m_iCustomEventID )
 #endif //SERV_CUSTOM_CONNECT_EVENT
+#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+		&& GET( m_bNewUnit )
+		&& GET( m_bNewUnit2 )
+		&& GET( m_bCurrentUnit )
+#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 		&& GET( m_bOnlySteamUser )
 		&& GET( m_bOnlyNotSteamUser )
@@ -6465,11 +6723,6 @@ SERIALIZE_DEFINE_PUT( KUserCumulativeTimeEventInfo, obj, ks )
 #ifdef SERV_ACC_TIME_EVENT
 		&& PUT( m_bAccountEvent )
 #endif SERV_ACC_TIME_EVENT
-		//}}
-		//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		&& PUT( m_bRepeatEvent )
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 		//}}
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		&& PUT( m_iCustomEventID )
@@ -6494,11 +6747,6 @@ SERIALIZE_DEFINE_GET( KUserCumulativeTimeEventInfo, obj, ks )
 #ifdef SERV_ACC_TIME_EVENT
 		&& GET( m_bAccountEvent )
 #endif SERV_ACC_TIME_EVENT
-		//}}
-		//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		&& GET( m_bRepeatEvent )
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 		//}}
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		&& GET( m_iCustomEventID )
@@ -7674,6 +7922,9 @@ SERIALIZE_DEFINE_PUT( KEGS_SELECT_UNIT_REQ, obj, ks )
 #ifdef SERV_CODE_EVENT
 		&& PUT( m_setCodeEventScriptID )
 #endif //SERV_CODE_EVENT
+#ifdef SERV_GLOBAL_EVENT_TABLE
+		&& PUT( m_mapGlobalEventData )
+#endif //SERV_GLOBAL_EVENT_TABLE
 		;
 }
 
@@ -7683,6 +7934,9 @@ SERIALIZE_DEFINE_GET( KEGS_SELECT_UNIT_REQ, obj, ks )
 #ifdef SERV_CODE_EVENT
 		&& GET( m_setCodeEventScriptID )
 #endif //SERV_CODE_EVENT
+#ifdef SERV_GLOBAL_EVENT_TABLE
+		&& GET( m_mapGlobalEventData )
+#endif //SERV_GLOBAL_EVENT_TABLE
 		;
 }
 
@@ -7717,7 +7971,11 @@ SERIALIZE_DEFINE_PUT( KEGS_SELECT_UNIT_1_NOT, obj, ks )
 		&&	PUT( m_wstrAutoPayResStoneLastDate )
 #endif AP_RESTONE
 	//}}
-		&& PUT( m_vecSkillAcquired )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	&& PUT( m_vecUserSkillPageData )
+#else //SERV_SKILL_PAGE_SYSTEM
+	&& PUT( m_vecSkillAcquired )
+#endif //SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_vecSkillUnsealed )
 	//{{ 2010. 03. 13  최육사	기술의 노트
 #ifdef SERV_SKILL_NOTE
@@ -7767,7 +8025,11 @@ SERIALIZE_DEFINE_GET( KEGS_SELECT_UNIT_1_NOT, obj, ks )
 		&&	GET( m_wstrAutoPayResStoneLastDate )
 #endif AP_RESTONE
 		//}}
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_vecUserSkillPageData )
+#else //SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_vecSkillAcquired )
+#endif //SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_vecSkillUnsealed )
 		//{{ 2010. 03. 13  최육사	기술의 노트
 #ifdef SERV_SKILL_NOTE
@@ -7936,11 +8198,6 @@ SERIALIZE_DEFINE_PUT( KEGS_SELECT_UNIT_5_NOT, obj, ks )
 		&& PUT( m_bCashShopOpen )
 #endif SERV_CONTENT_MANAGER
 		//}}
-		//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		&& PUT( m_vecCriterionEvent )
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
 #ifdef SERV_EVENT_MONEY	// 김민성 // 적용날짜: 2013-07-04
 		&& PUT( m_iEventMoney )
 #endif // SERV_EVENT_MONEY
@@ -7955,11 +8212,6 @@ SERIALIZE_DEFINE_PUT( KEGS_SELECT_UNIT_5_NOT, obj, ks )
 		&& PUT( m_kBingoEvent )
 #endif SERV_EVENT_BINGO
 		//}}
-		//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& PUT( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 		//{{ 2012. 12. 20	최육사	아라 첫 선택 튜토리얼
 #ifdef SERV_ARA_FIRST_SELECT_TUTORIAL
 		&& PUT( m_bFirstSelect )
@@ -7971,13 +8223,37 @@ SERIALIZE_DEFINE_PUT( KEGS_SELECT_UNIT_5_NOT, obj, ks )
 #ifdef	SERV_LOCAL_RANKING_SYSTEM // 적용날짜: 2013-03-31
 		&& PUT( m_bLocalRankingUser )
 #endif	// SERV_LOCAL_RANKING_SYSTEM
+		
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+		&& PUT( m_iConnectExperienceAck )
+		&& PUT( m_iReward7DaysItem )
+#endif // SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+		&& PUT( m_iGateOfDarknessSupportEventTime )
+#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		&& PUT( m_bCouple )
+		&& PUT( m_iRelationTargetUserUid )
+		&& PUT( m_wstrRelationTargetUserNickname )
+#endif SERV_RELATIONSHIP_EVENT_INT
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 		&& PUT( m_bOnlySteamUser )
 		&& PUT(	m_bOnlyNotSteamUser )
 #endif //SERV_STEAM_USER_CONNECT_EVENT
-#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-		&& PUT( m_iGateOfDarknessSupportEventTime )
-#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		&& PUT( m_iNoteViewCount )
+#endif SERV_ELESIS_UPDATE_EVENT
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		&& PUT( m_wstrGiveMeTheItemTime_One )
+		&& PUT( m_wstrGiveMeTheItemTime_Two )
+		&& PUT( m_wstrGiveMeTheItemTime_Tree )
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& PUT( m_vec4ThAnnivEventRewardInfo )
+		&& PUT( m_tLastRewardTime )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -8005,11 +8281,6 @@ SERIALIZE_DEFINE_GET( KEGS_SELECT_UNIT_5_NOT, obj, ks )
 		&& GET( m_bCashShopOpen )
 #endif SERV_CONTENT_MANAGER
 		//}}
-		//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		&& GET( m_vecCriterionEvent )
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
 #ifdef SERV_EVENT_MONEY	// 김민성 // 적용날짜: 2013-07-04
 		&& GET( m_iEventMoney )
 #endif // SERV_EVENT_MONEY
@@ -8024,11 +8295,6 @@ SERIALIZE_DEFINE_GET( KEGS_SELECT_UNIT_5_NOT, obj, ks )
 		&& GET( m_kBingoEvent )
 #endif SERV_EVENT_BINGO
 		//}}
-		//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& GET( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 		//{{ 2012. 12. 20	최육사	아라 첫 선택 튜토리얼
 #ifdef SERV_ARA_FIRST_SELECT_TUTORIAL
 		&& GET( m_bFirstSelect )
@@ -8040,13 +8306,37 @@ SERIALIZE_DEFINE_GET( KEGS_SELECT_UNIT_5_NOT, obj, ks )
 #ifdef	SERV_LOCAL_RANKING_SYSTEM // 적용날짜: 2013-03-31
 		&& GET( m_bLocalRankingUser )
 #endif	// SERV_LOCAL_RANKING_SYSTEM
+		
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+		&& GET( m_iConnectExperienceAck )
+		&& GET( m_iReward7DaysItem )
+#endif // SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+		&& GET( m_iGateOfDarknessSupportEventTime )
+#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		&& GET( m_bCouple )
+		&& GET( m_iRelationTargetUserUid )
+		&& GET( m_wstrRelationTargetUserNickname )
+#endif SERV_RELATIONSHIP_EVENT_INT
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 		&& GET( m_bOnlySteamUser )
 		&& GET(	m_bOnlyNotSteamUser )
 #endif //SERV_STEAM_USER_CONNECT_EVENT
-#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-		&& GET( m_iGateOfDarknessSupportEventTime )
-#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		&& GET( m_iNoteViewCount )
+#endif SERV_ELESIS_UPDATE_EVENT
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		&& GET( m_wstrGiveMeTheItemTime_One )
+		&& GET( m_wstrGiveMeTheItemTime_Two )
+		&& GET( m_wstrGiveMeTheItemTime_Tree )
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		&& GET( m_vec4ThAnnivEventRewardInfo )
+		&& GET( m_tLastRewardTime )
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		;
 }
 
@@ -8156,11 +8446,6 @@ SERIALIZE_DEFINE_PUT( KEGS_SELECT_UNIT_ACK, obj, ks )
 		&& PUT( m_bCashShopOpen )
 #endif SERV_CONTENT_MANAGER
 		//}}
-		//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		&& PUT( m_vecCriterionEvent )
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
 		//{{ 2012. 02. 21	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		&& PUT( m_kGamePlayStatus )
@@ -8180,12 +8465,6 @@ SERIALIZE_DEFINE_PUT( KEGS_SELECT_UNIT_ACK, obj, ks )
 #ifdef SERV_EVENT_BINGO
 		&& PUT( m_kBingoEvent )
 #endif SERV_EVENT_BINGO
-		//}}
-
-		//{{ 2012. 11. 1	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& PUT( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
 		//}}
 		;
 }
@@ -8283,11 +8562,6 @@ SERIALIZE_DEFINE_GET( KEGS_SELECT_UNIT_ACK, obj, ks )
 		&& GET( m_bCashShopOpen )
 #endif SERV_CONTENT_MANAGER
 		//}}
-		//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		&& GET( m_vecCriterionEvent )
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
 		//{{ 2012. 02. 21	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		&& GET( m_kGamePlayStatus )
@@ -8307,12 +8581,6 @@ SERIALIZE_DEFINE_GET( KEGS_SELECT_UNIT_ACK, obj, ks )
 #ifdef SERV_EVENT_BINGO
 		&& GET( m_kBingoEvent )
 #endif SERV_EVENT_BINGO
-		//}}
-
-		//{{ 2012. 11. 1	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		&& GET( m_bEliosInvestigationsReward )
-#endif SERV_ELIOS_INVESTIGATIONS
 		//}}
 		;
 }
@@ -8491,6 +8759,10 @@ SERIALIZE_DEFINE_PUT( KBattleFieldJoinInfo, obj, ks )
 		&& PUT( m_iStartPosIndex )
 		&& PUT( m_vecPartyMemberList )
 		&& PUT( m_bMoveForMyParty )
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+        && PUT( m_bNowBattleFieldPositionInfoStartPosition )
+        && PUT( m_usBattleFieldPositionValue )
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 		;
 }
 
@@ -8500,6 +8772,11 @@ SERIALIZE_DEFINE_GET( KBattleFieldJoinInfo, obj, ks )
 		&& GET( m_iStartPosIndex )
 		&& GET( m_vecPartyMemberList )
 		&& GET( m_bMoveForMyParty )
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+        && GET( m_bNowBattleFieldPositionInfoStartPosition )
+        && GET( m_usBattleFieldPositionValue )
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+
 		;
 }
 
@@ -8511,6 +8788,9 @@ SERIALIZE_DEFINE_PUT( KBattleFieldRoomInfo, obj, ks )
 		&& PUT( m_MaxSlot )
 		&& PUT( m_mapUnitUIDPartyUID )
 		&& PUT( m_mapPartyList )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-06	// 박세훈
+		&& PUT( m_byteBossFieldState )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -8521,6 +8801,9 @@ SERIALIZE_DEFINE_GET( KBattleFieldRoomInfo, obj, ks )
 		&& GET( m_MaxSlot )
 		&& GET( m_mapUnitUIDPartyUID )
 		&& GET( m_mapPartyList )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-06	// 박세훈
+		&& GET( m_byteBossFieldState )
+#endif // SERV_BATTLE_FIELD_BOSS
 		;
 }
 
@@ -8907,12 +9190,20 @@ SERIALIZE_DEFINE_GET( KRecordBuffInfo, obj, ks )
 #ifdef SERV_KEYBOARD_MAPPING_INFO_RW
 SERIALIZE_DEFINE_PUT( KKeyboardMappingInfo, obj, ks )
 {
-	return PUT( m_mapKeyboardMappingInfo );
+	return PUT( m_mapKeyboardMappingInfo )
+#ifdef SERV_KEY_MAPPING_INT
+		&& PUT( m_mapGamePadMappingInfo )
+#endif //SERV_KEY_MAPPING_INT
+		;
 }
 
 SERIALIZE_DEFINE_GET( KKeyboardMappingInfo, obj, ks )
 {
-	return GET( m_mapKeyboardMappingInfo );
+	return GET( m_mapKeyboardMappingInfo )
+#ifdef SERV_KEY_MAPPING_INT
+		&& GET( m_mapGamePadMappingInfo )
+#endif //SERV_KEY_MAPPING_INT
+		;
 }
 #endif SERV_KEYBOARD_MAPPING_INFO_RW
 //}}
@@ -8952,9 +9243,26 @@ SERIALIZE_DEFINE_GET( KAdminCheatSkill, obj, ks )
 		;
 }
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+SERIALIZE_DEFINE_PUT( KEGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ, obj, ks )
+{
+	return PUT( m_iActiveSkillPageNumber )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ, obj, ks )
+{
+	return GET( m_iActiveSkillPageNumber )
+		;
+}
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 SERIALIZE_DEFINE_PUT( KEGS_ADMIN_CHEAT_GET_ALL_SKILL_ACK, obj, ks )
 {
 	return PUT( m_iOK )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& PUT( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& PUT( m_vecUnSealedSkill )
 		&& PUT( m_mapSkillInfo )
 		;
@@ -8963,6 +9271,9 @@ SERIALIZE_DEFINE_PUT( KEGS_ADMIN_CHEAT_GET_ALL_SKILL_ACK, obj, ks )
 SERIALIZE_DEFINE_GET( KEGS_ADMIN_CHEAT_GET_ALL_SKILL_ACK, obj, ks )
 {
 	return GET( m_iOK )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		&& GET( m_iActiveSkillPageNumber )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		&& GET( m_vecUnSealedSkill )
 		&& GET( m_mapSkillInfo )
 		;
@@ -9572,6 +9883,24 @@ SERIALIZE_DEFINE_GET( KGetSkillInfo, obj, ks )
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-06-18	// 박세훈
+SERIALIZE_DEFINE_PUT( KCouponBoxTargetItem, obj, ks )
+{
+	return PUT( m_iItemQuantity )
+		&& PUT( m_sItemUseDuration )
+		&& PUT( m_wstrItemCode )
+		&& PUT( m_wstrItemName )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KCouponBoxTargetItem, obj, ks )
+{
+	return GET( m_iItemQuantity )
+		&& GET( m_sItemUseDuration )
+		&& GET( m_wstrItemCode )
+		&& GET( m_wstrItemName )
+		;
+}
+
 SERIALIZE_DEFINE_PUT( KClientCouponBox, obj, ks )
 {
 	return PUT( m_wstrContractDetailName )
@@ -9579,12 +9908,14 @@ SERIALIZE_DEFINE_PUT( KClientCouponBox, obj, ks )
 		&& PUT( m_wstrCouponBoxType )
 		&& PUT( m_wstrCouponBoxTypeText )
 		&& PUT( m_iCouponCardNo )
-		&& PUT( m_wstrCouponCardStatus )
+		&& PUT( m_iCouponCardStatus )
 		&& PUT( m_wstrCouponCardStatusText )
 		&& PUT( m_wstrDiscountValue )
 		&& PUT( m_wstrExpireDateTime )
 		&& PUT( m_wstrObtainDateTime )
 		&& PUT( m_wstrValidDateRange )
+		&& PUT( m_wstrUsedDateTime )
+		&& PUT( m_vecTargetItem )
 		;
 }
 
@@ -9595,26 +9926,14 @@ SERIALIZE_DEFINE_GET( KClientCouponBox, obj, ks )
 		&& GET( m_wstrCouponBoxType )
 		&& GET( m_wstrCouponBoxTypeText )
 		&& GET( m_iCouponCardNo )
-		&& GET( m_wstrCouponCardStatus )
+		&& GET( m_iCouponCardStatus )
 		&& GET( m_wstrCouponCardStatusText )
 		&& GET( m_wstrDiscountValue )
 		&& GET( m_wstrExpireDateTime )
 		&& GET( m_wstrObtainDateTime )
 		&& GET( m_wstrValidDateRange )
-		;
-}
-
-SERIALIZE_DEFINE_PUT( KCouponBoxTargetItem, obj, ks )
-{
-	return PUT( m_wstrItemCode )
-		&& PUT( m_wstrItemName )
-		;
-}
-
-SERIALIZE_DEFINE_GET( KCouponBoxTargetItem, obj, ks )
-{
-	return GET( m_wstrItemCode )
-		&& GET( m_wstrItemName )
+		&& GET( m_wstrUsedDateTime )
+		&& GET( m_vecTargetItem )
 		;
 }
 
@@ -9650,3 +9969,204 @@ SERIALIZE_DEFINE_GET( KDiscountCouponInquriyInfo, obj, ks )
 		;
 }
 #endif // SERV_NEXON_COUPON_SYSTEM
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+SERIALIZE_DEFINE_PUT( KBossFieldCreateInfo, obj, ks )
+{
+	return PUT( m_tFieldHoldingTime )
+		&& PUT( m_tPortalOpenTime )
+		&& PUT( m_iBossFieldID )
+		&& PUT( m_iPortalMapID )
+		&& PUT( m_bBossField )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KBossFieldCreateInfo, obj, ks )
+{
+	return GET( m_tFieldHoldingTime )
+		&& GET( m_tPortalOpenTime )
+		&& GET( m_iBossFieldID )
+		&& GET( m_iPortalMapID )
+		&& GET( m_bBossField )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KBossFieldJoinInfo, obj, ks )
+{
+	return PUT( m_iReturnMapID )
+		&& PUT( m_ucLastTouchLineIndex )
+		&& PUT( m_usLastPosValue )
+		&& PUT( m_bIgnoreLastTouch )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KBossFieldJoinInfo, obj, ks )
+{
+	return GET( m_iReturnMapID )
+		&& GET( m_ucLastTouchLineIndex )
+		&& GET( m_usLastPosValue )
+		&& GET( m_bIgnoreLastTouch )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_ADMIN_BOSS_FIELD_GATE_OPEN_REQ, obj, ks )
+{
+	return PUT( m_iBattleFieldID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_ADMIN_BOSS_FIELD_GATE_OPEN_REQ, obj, ks )
+{
+	return GET( m_iBattleFieldID )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ, obj, ks )
+{
+	return PUT( m_iBattleFieldID )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ, obj, ks )
+{
+	return GET( m_iBattleFieldID )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK, obj, ks )
+{
+	return PUT( m_iOK )
+		&& PUT( m_iBattleFieldID )
+		&& PUT( m_byteTotalDangerousValue )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK, obj, ks )
+{
+	return GET( m_iOK )
+		&& GET( m_iBattleFieldID )
+		&& GET( m_byteTotalDangerousValue )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ, obj, ks )
+{
+	return PUT( m_iBattleFieldID )
+		&& PUT( m_iTotalDangerousValue )
+		&& PUT( m_bSet )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ, obj, ks )
+{
+	return GET( m_iBattleFieldID )
+		&& GET( m_iTotalDangerousValue )
+		&& GET( m_bSet )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KBossFieldLog, obj, ks )
+{
+	return PUT( m_iBossFieldID )
+		&& PUT( m_iPortalMapID )
+		&& PUT( m_iPlayTime )
+		&& PUT( m_byteRemainUserCount )
+		&& PUT( m_bSucceed )
+		&& PUT( m_wstrPortalOpenTime )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KBossFieldLog, obj, ks )
+{
+	return GET( m_iBossFieldID )
+		&& GET( m_iPortalMapID )
+		&& GET( m_iPlayTime )
+		&& GET( m_byteRemainUserCount )
+		&& GET( m_bSucceed )
+		&& GET( m_wstrPortalOpenTime )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KBossFieldUserLog, obj, ks )
+{
+	return PUT( m_iUnitUID )
+		&& PUT( m_iGivenDamage )
+		&& PUT( m_iAttackDamage )
+		&& PUT( m_iEXP )
+		&& PUT( m_iED )
+		&& PUT( m_sNumResurrectionStone )
+		&& PUT( m_byteLevel )
+		&& PUT( m_byteClass )
+		&& PUT( m_byteCompletionType )
+		&& PUT( m_byteContributionRank )
+		&& PUT( m_wstrNickName )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KBossFieldUserLog, obj, ks )
+{
+	return GET( m_iUnitUID )
+		&& GET( m_iGivenDamage )
+		&& GET( m_iAttackDamage )
+		&& GET( m_iEXP )
+		&& GET( m_iED )
+		&& GET( m_sNumResurrectionStone )
+		&& GET( m_byteLevel )
+		&& GET( m_byteClass )
+		&& GET( m_byteCompletionType )
+		&& GET( m_byteContributionRank )
+		&& GET( m_wstrNickName )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KEGS_BOSS_FIELD_LOG_NOT, obj, ks )
+{
+	return PUT( m_mapGivenDamage )
+		&& PUT( m_mapAttackDamage )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEGS_BOSS_FIELD_LOG_NOT, obj, ks )
+{
+	return GET( m_mapGivenDamage )
+		&& GET( m_mapAttackDamage )
+		;
+}
+#endif // SERV_BATTLE_FIELD_BOSS
+
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+SERIALIZE_DEFINE_PUT( K4ThAnnivEventInfo, obj, ks )
+{
+	return PUT( m_tTimeFirstPlay )
+		&& PUT( m_tTimeFirstPet )
+		&& PUT( m_tTimeFirstHenir )
+		&& PUT( m_tTimeFirstDeleteChar )
+		&& PUT( m_iItemIDFirstBuy )
+		&& PUT( m_iLongestConnectTime )
+		&& PUT( m_iCountQuestComplete )
+		&& PUT( m_iCountReceivedPost )
+		&& PUT( m_iDayTotalConnect )
+		&& PUT( m_iCountPvpLose )
+		&& PUT( m_iCountResurrect )
+		&& PUT( m_iCountDungeonClear )
+		;
+}
+
+SERIALIZE_DEFINE_GET( K4ThAnnivEventInfo, obj, ks )
+{
+	return GET( m_tTimeFirstPlay )
+		&& GET( m_tTimeFirstPet )
+		&& GET( m_tTimeFirstHenir )
+		&& GET( m_tTimeFirstDeleteChar )
+		&& GET( m_iItemIDFirstBuy )
+		&& GET( m_iLongestConnectTime )
+		&& GET( m_iCountQuestComplete )
+		&& GET( m_iCountReceivedPost )
+		&& GET( m_iDayTotalConnect )
+		&& GET( m_iCountPvpLose )
+		&& GET( m_iCountResurrect )
+		&& GET( m_iCountDungeonClear )
+		;
+}
+#endif // SERV_4TH_ANNIVERSARY_EVENT

@@ -79,12 +79,29 @@
 	#include "NexonSOAP.h"
 #endif // SERV_NEXON_COUPON_SYSTEM
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-07	// 박세훈
+	#include "X2Data/XSLBattleFieldManager.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#include "GameEvent/GameEventScriptManager.h"
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+#include "X2Data/XSLManufactureItemManager.h"
+#endif //SERV_MANUFACTURE_PERIOD_FIX
+
+#ifdef SERV_STRING_FILTER_USING_DB
+#include "StringFilterManager.h"
+#endif //SERV_STRING_FILTER_USING_DB
+
 #include "odbc/Odbc.h"
 #include "Enum/Enum.h"
 
 
 #define CLASS_TYPE      KGSUser
 
+// 우상혁 2014-01-07 : 진입구조 개편(캐릭터창) 하면서 클라이언트에서 안보내는 패킷이 되었고, 
+// 실제로 인벤토리정보(디비)는 다른 곳에서 가져오는 것 같다
 IMPL_ON_FUNC_NOPARAM( EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ )
 {
 	//{{ 2010. 9. 6	최육사	중폭 패킷 필터 개선
@@ -200,22 +217,6 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK, KEGS_MY_UNIT_AND_INVENTO
 	
     if( kPacket_.m_iOK == NetError::NET_OK )
     {
-		//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		if( KncUtil::ConvertStringToCTime( kPacket_.m_wstrLastConnectDate, m_tLastConnectDate ) == false )
-		{
-			START_LOG( cerr, L"wstrLastConnectDate 변환 실패!! 마지막 접속 시간을 현재로 지정합니다.")
-				<< BUILD_LOG( GetUserName() )
-				<< BUILD_LOG( GetCharUID() )
-				<< BUILD_LOG( GetCharName() )
-				<< BUILD_LOG( kPacket_.m_wstrLastConnectDate )
-				<< END_LOG;
-		}
-
-		m_kUserEventManager.InitCriterionEvent( kPacket_.m_vecCriterionEventUID );
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
-
         m_nUnitSlot = kPacket_.m_nUnitSlot;
 
         // udp 에서 받은 p2p ip/port를 채워보내준다.(임시가 될수있음 차후에 옴겨야 할수도있다.!머리아프네 )		
@@ -260,6 +261,15 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK, KEGS_MY_UNIT_AND_INVENTO
 			kPacket_.m_vecUnitInfo[i].m_kStat.m_iDefPhysic	+= (int)sUnitStat.m_usDefPhysic;
 			kPacket_.m_vecUnitInfo[i].m_kStat.m_iDefMagic	+= (int)sUnitStat.m_usDefMagic;
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-07	// 박세훈
+			// 보스 필드라면 마을로 이동 시키자
+			if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_vecUnitInfo[i].m_kLastPos.m_iMapID ) == true )
+			{
+				kPacket_.m_vecUnitInfo[i].m_kLastPos.m_iMapID = SiCXSLMapData()->GetPossibleEnterVillageMapID( kPacket_.m_vecUnitInfo[i].m_ucLevel, kPacket_.m_vecUnitInfo[i].m_mapDungeonClear );
+				kPacket_.m_vecUnitInfo[i].m_kLastPos.m_bIgnoreLastTouch = true;
+			}
+#endif // SERV_BATTLE_FIELD_BOSS
+
 			//{{ 2011. 01. 17	최육사	캐릭터 카운트 정보
 #ifdef SERV_CHAR_LOG
 			// 보유하고 있는 캐릭터 리스트 세팅
@@ -288,25 +298,25 @@ _IMPL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK, KEGS_MY_UNIT_AND_INVENTO
 #ifdef SERV_UNIT_WAIT_DELETE
 		// 캐릭터 보여주는 순서 때문에 정렬
 		std::stable_sort(kPacket_.m_vecUnitInfo.begin(), kPacket_.m_vecUnitInfo.end(), &LastDateSort );
-
 #endif SERV_UNIT_WAIT_DELETE
 		//}}
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		// DB에서 가져온 정보 저장해둔다. 재접속 까지는 계속 이 정보 쓰자
+		m_4ThAnnivEventInfo = kPacket_.m_4ThAnnivEventInfo;
+		START_LOG(clog, L"[4주년] 정보 잘 저장되는지 확인 합니다")
+			<< BUILD_LOG( m_4ThAnnivEventInfo.m_iCountQuestComplete )
+			<< END_LOG;
+#endif // SERV_4TH_ANNIVERSARY_EVENT
     }
 
 end_proc:
-	//{{ 2012. 04. 06	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	// 클라이언트에 보낼 필요 없는 정보는 비운다.
-	kPacket_.m_vecCriterionEvent.clear();
-	kPacket_.m_wstrLastConnectDate.clear();
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//}}
 
-	//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-	kPacket_.m_bEliosInvestigationsReward = GetEliosInvestigationsReward();
-#endif SERV_ELIOS_INVESTIGATIONS
-	//}}
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	KESG_REWARD_DB_DATA_NOT kPacketReward;
+	kPacketReward.m_mapTotalRewardData = SiKRewardTable()->GetMapTotalRewardData();
+	SendPacket( ESG_REWARD_DB_DATA_NOT, kPacketReward );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 	SendPacket( EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK, kPacket_ );
 }
@@ -327,8 +337,18 @@ IMPL_ON_FUNC( EGS_CREATE_UNIT_REQ )
 	char charBuf[255] = {0};
 	std::string strNickName;
 
+#ifdef SERV_LIMIT_UNIT
+	//국가별로 서버단에서 캐릭터 막는다. 
+	const CXSLUnit::UNIT_TYPE eLimitType = static_cast< CXSLUnit::UNIT_TYPE >( _CONST_LIMIT_UNIT_::iLimitType );
+	if( eLimitType <  CXSLUnit::GetUnitClassToUnitType( (CXSLUnit::UNIT_CLASS)kPacket_.m_iClass ) )
+	{
+		kPacket.m_iOK = NetError::ERR_CREATE_UNIT_03;
+		goto fail_proc;
+	}
+#endif //SERV_LIMIT_UNIT
+
 #ifdef SERV_NO_ARA
-	if( CXSLUnit::UT_ARA == (CXSLUnit::UNIT_CLASS)kPacket_.m_iClass )
+	if( CXSLUnit::UT_ARA ==  CXSLUnit::GetUnitClassToUnitType( (CXSLUnit::UNIT_CLASS)kPacket_.m_iClass ) )
 	{
 		kPacket.m_iOK = NetError::ERR_CREATE_UNIT_03;
 		goto fail_proc;
@@ -362,7 +382,11 @@ IMPL_ON_FUNC( EGS_CREATE_UNIT_REQ )
         goto fail_proc;
 	}
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	if ( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+#else //SERV_STRING_FILTER_USING_DB
 	if ( GetAuthLevel() < SEnum::UAL_GM && SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+#endif //SERV_STRING_FILTER_USING_DB
 	{
 		kPacket.m_iOK = NetError::ERR_CREATE_UNIT_08;
 		goto fail_proc;
@@ -389,7 +413,6 @@ IMPL_ON_FUNC( EGS_CREATE_UNIT_REQ )
         << BUILD_LOG( kPacket_.m_wstrNickName )
         << BUILD_LOG( kPacket_.m_iClass );
 
-
 #ifdef SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
 	if ( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_GLOBAL_SERVICE )
 	{
@@ -401,7 +424,6 @@ IMPL_ON_FUNC( EGS_CREATE_UNIT_REQ )
 		return;
 	}
 #endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
-
 
 	//{{ 2011. 08. 09  김민성 (2011.08.11) 특정일 이후 생성한 계정에 대하여 신규케릭터 생성 시 아이템 지급 이벤트
 #ifdef SERV_NEW_CREATE_CHAR_EVENT
@@ -477,19 +499,6 @@ _IMPL_ON_FUNC( DBE_GAME_CREATE_UNIT_ACK, KEGS_CREATE_UNIT_ACK )
 #endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
 
 	SendPacket( EGS_CREATE_UNIT_ACK, kPacket_ );
-
-#ifdef SERV_WATCH_LOG
-	KE_LOCAL_LOG_WATCH_NOT kNot;
-	kNot.m_cLogType = KE_LOCAL_LOG_WATCH_NOT::WLT_NICKNAME_ERROR;
-	kNot.m_iOwnerUserUID = GetUID();
-	kNot.m_cAuthLevel = GetAuthLevel();
-	kNot.m_cUnitClass = kPacket_.m_kUnitInfo.m_cUnitClass;
-	kNot.m_wstrNickName = kPacket_.m_kUnitInfo.m_wstrNickName;
-	kNot.m_wstrIP = KncUtil::toWideString(GetIPStr());
-	kNot.m_usPort = GetPort();
-
-	KSIManager.QueueingEvent( E_LOCAL_LOG_WATCH_NOT, kNot );
-#endif //SERV_WATCH_LOG
 }
 
 _IMPL_ON_FUNC( DBE_ACCOUNT_CREATE_UNIT_ACK, KEGS_CREATE_UNIT_ACK )
@@ -644,18 +653,14 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_ACK, KEGS_DELETE_UNIT_ACK )
 {
     VERIFY_STATE( ( 1, KGSFSM::S_SERVER_SELECT ) );
 
-	//{{ 2012.02.28 lygan_조성욱 // 
-//#ifndef SERV_UNIT_WAIT_DELETE
 	if( kPacket_.m_iOK != NetError::NET_OK )
 	{
 		SendPacket( EGS_DELETE_UNIT_ACK, kPacket_ );
 		return;
 	}
-//#endif //SERV_UNIT_WAIT_DELETE
-	//}}
-	//{{ 2009. 10. 8  최육사	길드
-#ifdef SERV_UNIT_WAIT_DELETE
 
+#ifdef SERV_UNIT_WAIT_DELETE
+	//{{ 2009. 10. 8  최육사	길드
 #ifdef GUILD_TEST
 	if( kPacket_.m_iGuildUID > 0 )
 	{
@@ -665,7 +670,6 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_ACK, KEGS_DELETE_UNIT_ACK )
 		SendToLoginServer( ELG_UPDATE_KICK_GUILD_MEMBER_NOT, kPacket );
 	}
 #endif GUILD_TEST
-
 	//}}
 
 	//{{ 2010. 02. 02  최육사	길드 게시판
@@ -685,6 +689,11 @@ _IMPL_ON_FUNC( DBE_GAME_DELETE_UNIT_ACK, KEGS_DELETE_UNIT_ACK )
 #endif SERV_UNIT_WAIT_DELETE
 	//}}
 
+	//{{ 2013. 09. 24	최육사	일본 이벤트 중계DB작업
+#ifdef SERV_RELAY_DB_CONNECTION
+	SendUpdateUnitInfoToRelayDB( KDBE_UPDATE_USER_INFO_TO_RELAY_DB_JP_EVENT_NOT::UT_NONE, true, kPacket_.m_iUnitUID );
+#endif SERV_RELAY_DB_CONNECTION
+	//}}
 
 #ifdef SERV_UNIT_WAIT_DELETE
 	SendPacket( EGS_DELETE_UNIT_ACK, kPacket_ );
@@ -854,6 +863,18 @@ IMPL_ON_FUNC( EGS_SELECT_UNIT_REQ )
 	}
 #endif //SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
+#ifdef SERV_EVENT_CHECK_POWER
+	IF_EVENT_ENABLED( CEI_CHECK_POWER )
+	{
+		kPacket_.m_setCodeEventScriptID.insert( CEI_CHECK_POWER );
+	}
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_GLOBAL_EVENT_TABLE
+	kPacket_.m_mapGlobalEventData.clear();
+	SiKGameEventManager()->CheckEnableCodeAndSetGlobalEventdata( kPacket_.m_mapGlobalEventData );
+#endif //SERV_GLOBAL_EVENT_TABLE
+
 	SendToGameDB( DBE_GAME_SELECT_UNIT_REQ, kPacket_ );
 }
 
@@ -880,7 +901,11 @@ _IMPL_ON_FUNC( DBE_GAME_SELECT_UNIT_ACK, KEGS_SELECT_UNIT_ACK )
 				<< BUILD_LOG( GetCharName() );
 
 			KDBE_SEND_PHONE_MSG_NOT kPacketNot;
-			kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"계정소속이 아닌 캐릭터로 선택시도한 유저 발견! : UserUID(%d)" ) % GetUID() );
+			kPacketNot.m_wstrSMSMessage = boost::str( boost::wformat( L"계정소속 아닌 캐릭터선택:UserUID(%d),UnitUID(%d) " ) // ,ServerIP(%s)" ) // 해외팀 주석 처리
+                % GetUID() 
+                % kPacket_.m_nWrongUnitUID
+                //% KBaseServer::GetKObj()->GetPublicIP() // 해외팀 주석 처리
+                );
 			//{{ 2012. 10. 8	박세훈	SMS 전화번호 통합 관리
 #ifdef SERV_SMS_TOTAL_MANAGER
 			SiKSMSPhoneNumberManager()->GetPhoneNumberList( KSMSPhoneNumberManager::FS_INCORRECT_USER_UNIT, kPacketNot.m_vecPhoneNum );
@@ -896,7 +921,7 @@ _IMPL_ON_FUNC( DBE_GAME_SELECT_UNIT_ACK, KEGS_SELECT_UNIT_ACK )
 			// 자동으로 어뷰저 등록
 			m_kUserAbuserManager.RegEDAbuser( GetThisPtr<KGSUser>() );
 			m_kUserAbuserManager.RegItemAbuser( GetThisPtr<KGSUser>() );
-			m_kUserAbuserManager.RegPacketMornitoring( GetThisPtr<KGSUser>() );
+			//HackUserRegPacketMornitor();
 		}
 #endif SERV_POST_COPY_BUG_FIX
 		//}}
@@ -906,6 +931,11 @@ _IMPL_ON_FUNC( DBE_GAME_SELECT_UNIT_ACK, KEGS_SELECT_UNIT_ACK )
 		KEGS_SELECT_UNIT_ACK kACK;
 		kACK.m_iOK = kPacket_.m_iOK;
 		SendPacket( EGS_SELECT_UNIT_ACK, kACK );
+
+        LOG_SUCCESS( kACK.m_iOK == NetError::NET_OK )
+            << BUILD_LOG( GetUID() )
+            << BUILD_LOG( kACK.m_iOK );
+
 #else
 		SendPacket( EGS_SELECT_UNIT_ACK, kPacket_ );
 #endif SERV_SELECT_UNIT_PACKET_DIVISION
@@ -922,12 +952,6 @@ _IMPL_ON_FUNC( DBE_GAME_SELECT_UNIT_ACK, KEGS_SELECT_UNIT_ACK )
         return;
     }
 
-	//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-	kPacket_.m_bEliosInvestigationsReward = GetEliosInvestigationsReward();
-#endif SERV_ELIOS_INVESTIGATIONS
-	//}}
-
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 	SetCustonEventID( kPacket_.m_iCustomEventID );
 	START_LOG( clog, L"[특수접속이벤트] 이벤트 조건값 셋팅")
@@ -939,17 +963,17 @@ _IMPL_ON_FUNC( DBE_GAME_SELECT_UNIT_ACK, KEGS_SELECT_UNIT_ACK )
 #ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 	switch(kPacket_.m_iNewUnitE)
 	{
-	case 0:
+	case 0:						// 복귀 유저
 		SetNewUnit(true);
 		SetNewUnit2(false);
 		SetCurrentUnit(false);
 		break;
-	case 1:
+	case 1:						// 복귀 유저와 신규 유저 기간 사이에 한 번이라도 접속한 기존 유저
 		SetNewUnit(false);
 		SetNewUnit2(true);
 		SetCurrentUnit(false);
 		break;
-	case 2:
+	case 2:						// 신규 유저
 		SetNewUnit(false);
 		SetNewUnit2(false);
 		SetCurrentUnit(true);
@@ -960,12 +984,70 @@ _IMPL_ON_FUNC( DBE_GAME_SELECT_UNIT_ACK, KEGS_SELECT_UNIT_ACK )
 		SetCurrentUnit(true);
 		break;
 	}
+	
+	//START_LOG( cerr, L"김석근_신규 생성 세팅의 결과는?" )
+	//	<< BUILD_LOG( IsNewUnit() )
+	//	<< BUILD_LOG( IsNewUnit2() )
+	//	<< BUILD_LOG( IsCurrentUnit() )
+	//	<< END_LOG;
+	
 #endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+	// 접속 세팅 1이면 접속경험 있음. 0이면 접속경험 없음.
+	SetConnectExperience(kPacket_.m_iConnectExperienceAck);
+	// 접속 보상여부세팅 1이면 보상있음, 0이면 보상 없음.
+	//SetRewardBonusItem(kPacket_.m_iReward7DaysItem);
+
+	START_LOG( clog, L"7일 후의 기적 정보 세팅완료" )
+		<< BUILD_LOG( GetConnectExperience() )
+		<< END_LOG;
+
+	// 접속한지 7일 지난 유저 중에서, 아직 보상을 받지 않은 유저가 대상자
+	
+	if(GetConnectExperience() == 1)
+	{
+		KDBE_CHECK_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL_REQ kPacketToDB7DaysEVENT;
+		//KDBE_CHECK_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL_REQ kPacketToDB7DaysEVENT;
+		kPacketToDB7DaysEVENT.m_iUnitUID = kPacket_.m_kUnitInfo.m_nUnitUID;
+		kPacketToDB7DaysEVENT.m_iUserUID = GetUID();
+		kPacketToDB7DaysEVENT.m_iUnitLevel = static_cast<int>(kPacket_.m_kUnitInfo.m_ucLevel);
+		kPacketToDB7DaysEVENT.m_iGetConnectExperience = GetConnectExperience();
+		kPacketToDB7DaysEVENT.m_iRewardBonusItem = GetRewardBonusItem();
+		SendToGameDB( DBE_CHECK_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL_REQ, kPacketToDB7DaysEVENT );
+
+		START_LOG( clog, L"7일 후의 기적 정보 패킷 전송 성공!" )
+			<< BUILD_LOG( kPacketToDB7DaysEVENT.m_iGetConnectExperience )
+			<< BUILD_LOG( kPacketToDB7DaysEVENT.m_iUnitUID)
+			<< BUILD_LOG( kPacketToDB7DaysEVENT.m_iUserUID )
+			<< BUILD_LOG( kPacketToDB7DaysEVENT.m_iUnitLevel )
+			<< END_LOG;
+	}
+#endif //SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
 
 #ifdef	SERV_LOCAL_RANKING_SYSTEM // 적용날짜: 2013-03-31
 	m_kUserLocalRankingInfo.GetUserInfo( kPacket_.m_kLocalRankingUserInfo );
 	m_kUserLocalRankingInfo.GetLastUpdateDate( kPacket_.m_wstrLocalRankingUserInfoUpdated );
 #endif	// SERV_LOCAL_RANKING_SYSTEM
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+	// 보스 필드라면 마을로 이동 시키자
+	if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kUnitInfo.m_kLastPos.m_iMapID ) == true )
+	{
+		kPacket_.m_kUnitInfo.m_kLastPos.m_iMapID = SiCXSLMapData()->GetPossibleEnterVillageMapID( kPacket_.m_kUnitInfo.m_ucLevel, kPacket_.m_kUnitInfo.m_mapDungeonClear );
+		kPacket_.m_kUnitInfo.m_kLastPos.m_bIgnoreLastTouch = true;
+	}
+	// 최초 선택이나, 채널 변경에서 동일하게 처리되는 구문은
+	// 함수로 처리해서 공용으로 처리되도록 하는게 좋을 듯 하다...
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_GLOBAL_EVENT_TABLE
+	m_mapGlobalEventData = kPacket_.m_mapGlobalEventData;
+	GetGlobalEventTableData(m_mapGlobalEventData);
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	m_bGetEventRewardInfo = true;
+#endif // SERV_4TH_ANNIVERSARY_EVENT
+#endif //SERV_GLOBAL_EVENT_TABLE
 
 	SendToAccountDB( DBE_ACCOUNT_SELECT_UNIT_REQ, kPacket_ );
 }
@@ -1018,6 +1100,7 @@ _IMPL_ON_FUNC( DBE_ACCOUNT_SELECT_UNIT_ACK, KEGS_SELECT_UNIT_ACK )
 			// 해당 유저가 접속할 수 있도록 예약정보 제거
 			SiKChannelManager()->DelChannelChangeUser( kPacket_.m_kUnitInfo.m_nUnitUID );
 		}
+
 
 		//////////////////////////////////////////////////////////////////////////
 		// 캐릭터 선택에 관련된 모든 처리는 이 함수 안에서 하도록 한다!
@@ -1122,6 +1205,13 @@ IMPL_ON_FUNC( EGS_CHAT_REQ )
 {
 	KEGS_CHAT_ACK kPacket;
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		kPacket_.m_wstrMsg = SiKStringFilterManager()->FilteringChatString( kPacket_.m_wstrMsg.c_str(), L'♡');
+	}
+#endif //SERV_STRING_FILTER_USING_DB
+
 	if( kPacket_.m_ToUnitUID == GetCharUID() )
 	{
 		kPacket.m_iOK = NetError::ERR_CHAT_02;
@@ -1136,11 +1226,8 @@ IMPL_ON_FUNC( EGS_CHAT_REQ )
 		kPacket.m_iOK = NetError::ERR_CHAT_04;		// 임시 메세지. 추후 수정
 		SendPacket( EGS_CHAT_ACK, kPacket );
 
-		//
 		KEGS_CHAT_NOT kPacketNot;
-
 		SendPacket( EGS_CHAT_NOT, kPacketNot );
-
 		return;
 	}
 
@@ -1153,7 +1240,6 @@ IMPL_ON_FUNC( EGS_CHAT_REQ )
 		return;
 	}
 #endif SERV_NEW_PUNISHMENT
-
 
 #ifdef SERV_CHATTING_OBSERVATION_CN
 	switch( kPacket_.m_cChatPacketType )
@@ -1573,7 +1659,7 @@ IMPL_ON_FUNC( DBE_NEW_QUEST_ACK )
 				continue;
 			}
 
-			if( pSubQuestTemplet->m_eClearType == CXSLQuestManager::SUB_QUEST_TYPE::SQT_PVP_PLAY_ARRANGE )	//클리어 조건이 같은지..
+			if( pSubQuestTemplet->m_eClearType == CXSLQuestManager::SQT_PVP_PLAY_ARRANGE )	//클리어 조건이 같은지..
 			{
 				// pvp info 테이블의 정보를 덮어 씌우기만 한다.
 				kSubQuest.m_ucClearData = GetOfficialMatchCount();
@@ -1743,34 +1829,7 @@ IMPL_ON_FUNC( DBE_GIVE_UP_QUEST_ACK )
 		}
 		else
 		{
-			//방상태이고 pvp & dungeon 방이면 아이템처리후 정보업데이트 한다.
-			if( GetStateID() == KGSFSM::S_ROOM )
-			{
-				switch( CXSLRoom::GetRoomType( GetRoomUID() ) )
-				{
-				case CXSLRoom::RT_DUNGEON:
-					//{{ 필드 드롭 개편 - 김민성
-#ifdef SERV_REFORM_ITEM_DROP
-				case CXSLRoom::RT_BATTLE_FIELD:
-#endif SERV_REFORM_ITEM_DROP
-					//}}
-					{
-						//Update Server quest item data
-						KERM_SET_QUEST_ITEM_INFO_NOT kInfo;
-
-						//{{ 2010. 10. 26	최육사	퀘스트 조건 추가
-#ifdef SERV_QUEST_CLEAR_EXPAND
-						m_kUserQuestManager.GetOngoingQuestForRoom( GetThisPtr<KGSUser>(), kInfo.m_mapDropQuestItembyIngQuest );
-#else
-						m_kUserQuestManager.GetDropQuestitembyIngQuest( kInfo.m_mapDropQuestItembyIngQuest, GetThisPtr<KGSUser>() );
-#endif SERV_QUEST_CLEAR_EXPAND
-						//}}
-
-						SendToCnRoom( ERM_SET_QUEST_ITEM_INFO_NOT, kInfo );
-					}
-					break;
-				}
-			}
+			SendUpdateDropQuestItemByIngQuest();
 		}
 
 		//{{ 2010. 10. 26	최육사	퀘스트 조건 추가
@@ -1967,163 +2026,38 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_ACK )
 #endif SERV_CHAR_LOG
 	//}}
 
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+	if( kPacket_.m_kCompleteQuestInfo.m_iQuestID == 74710 || kPacket_.m_kCompleteQuestInfo.m_iQuestID == 74720 || kPacket_.m_kCompleteQuestInfo.m_iQuestID == 74730 )
+	{
+//		if( GetUnitType() == CXSLUnit::UT_ELSWORD || GetUnitType() == CXSLUnit::UT_RAVEN || GetUnitType() == CXSLUnit::UT_CHUNG )
+		if( GetUnitType() == CXSLUnit::UT_ARME || GetUnitType() == CXSLUnit::UT_LIRE || GetUnitType() == CXSLUnit::UT_EVE || GetUnitType() == CXSLUnit::UT_ARA )		
+		{
+			KDBE_SET_EVENT_INFO_NOT kPacketToDB;
+			kPacketToDB.m_iQuestID = kPacket_.m_kCompleteQuestInfo.m_iQuestID;
+			kPacketToDB.m_iUnitType = GetUnitType();
+
+			SendToGameDB( DBE_SET_EVENT_INFO_NOT, kPacketToDB );				
+		}
+	}
+#endif //SERV_EVENT_CHARACTER_QUEST_RANKING
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+	IF_EVENT_ENABLED( CEI_BALANCE_FINALITY_SKILL_EVENT )
+	{
+		if( kPacket_.m_kCompleteQuestInfo.m_iQuestID == 35370 )
+		{
+			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+			kPacketToDB.m_iFromUnitUID = GetCharUID();
+			kPacketToDB.m_iToUnitUID   = GetCharUID();
+			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+			kPacketToDB.m_iRewardID	   = 2048;	// 카밀라의 비전서 (초급)
+			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+		}
+	}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+
 	if( kPacket_.m_bIsChangeJob == true )
 	{
-		//{{ 2011. 09. 07  김민성	투니랜드 2차 프로모션 전직시 아이템 우편으로 전송
-#ifdef SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-		if( CXSLUnit::IsFirstChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) == true && GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10242;			
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-
-			kPacketToDB.m_iRewardID	   = 10290;			
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-		else if( CXSLUnit::IsSecondChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) == true && GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10242;			
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-
-			kPacketToDB.m_iRewardID	   = 10243;			
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-#endif SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-		//}}
-		//{{ 2011. 12. 06	최육사	엘소드 추가 전직 이벤트
-#ifdef SERV_ELSWORD_SHEATH_KNIGHT_EVENT
-		if( CXSLUnit::UC_ELSWORD_SHEATH_KNIGHT == GetUnitClass() )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10271;	// 나소드 판넬 가드-Ver.K2 (엘소드)
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-#endif SERV_ELSWORD_SHEATH_KNIGHT_EVENT
-		//}}
-		//{{ 2011. 12. 08	김민성   아이샤 추가 전직 이벤트
-#ifdef SERV_ARME_BATTLE_MAGICIAN_EVENT
-		if( CXSLUnit::UC_ARME_BATTLE_MAGICIAN == GetUnitClass() )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10274;	// 나소드 판넬 가드-Ver.K2 (아이샤)
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-#endif SERV_ARME_BATTLE_MAGICIAN_EVENT
-		//}}
-		//{{ 2011. 12. 08	김민성   레나 추가 전직 이벤트
-#ifdef SERV_LIRE_TRAPPING_RANGER_EVENT
-		if( CXSLUnit::UC_LIRE_TRAPPING_RANGER == GetUnitClass() )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10281;	// 나소드 판넬 가드-Ver.K2 (레나)
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-#endif SERV_LIRE_TRAPPING_RANGER_EVENT
-		//}}
-		//{{ 2012. 1. 12	김민성   레이븐 추가 전직 이벤트
-#ifdef SERV_RAVEN_WEAPON_TAKER_EVENT
-		if( CXSLUnit::UC_RAVEN_WEAPON_TAKER == GetUnitClass() )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10284;	// 나소드 판넬 가드-Ver.K2 (레이븐)
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-#endif SERV_RAVEN_WEAPON_TAKER_EVENT
-		//}}
-		//{{ 2012. 01. 20	김민성	이브 추가 전직 이벤트
-#ifdef SERV_EVE_ELECTRA_EVENT
-		if( CXSLUnit::UC_EVE_ELECTRA == GetUnitClass() )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10289;	// 나소드 판넬 가드-Ver.K2 (이브)
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-#endif SERV_EVE_ELECTRA_EVENT
-			//}}
-			//{{ 2012. 01. 30	박세훈	청 추가 전직 이벤트
-#ifdef SERV_CHUNG_SHELLING_GUARDIAN_EVENT
-		if( CXSLUnit::UC_CHUNG_SHELLING_GUARDIAN == GetUnitClass() )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10295;	// 나소드 판넬 가드-Ver.K2 (청)
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-#endif SERV_CHUNG_SHELLING_GUARDIAN_EVENT
-		//}}
-		//{{ 2013. 1. 18	박세훈	소선, 제천 전직 이벤트
-#ifdef SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT
-		{
-			CTime tCurrentDate = CTime::GetCurrentTime();
-			//{{ 2013. 1. 18	박세훈	소선, 제천 전직 이벤트 테스트
-#ifdef SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT_TEST
-			if( ( CTime( 2013, 1, 18, 7, 0, 0 ) <= tCurrentDate ) &&
-				( tCurrentDate < CTime( 2013, 1, 25, 7, 0, 0 ) )
-				)
-#else
-			if( ( CTime( 2013, 1, 24, 7, 0, 0 ) <= tCurrentDate ) &&
-				( tCurrentDate < CTime( 2013, 1, 31, 7, 0, 0 ) )
-				)
-#endif SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT_TEST
-				//}}
-			{
-				if( CXSLUnit::UC_ARA_LITTLE_HSIEN == GetUnitClass() )
-				{
-					// 이벤트 보상을 주자!
-					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-					kPacketToDB.m_iFromUnitUID = GetCharUID();
-					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-					kPacketToDB.m_iRewardID	   = 10469;	// 소선의 축복 큐브
-					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-				}
-
-				if( CXSLUnit::UC_ARA_SAKRA_DEVANAM == GetUnitClass() )
-				{
-					// 이벤트 보상을 주자!
-					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-					kPacketToDB.m_iFromUnitUID = GetCharUID();
-					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-					kPacketToDB.m_iRewardID	   = 10470;	// 제천의 축복 큐브
-					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-				}
-			}
-		}
-#endif SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT
-		//}}
 #ifdef SERV_ARA_FIRST_CLASS_CHANGE_EVENT
 		IF_EVENT_ENABLED( CEI_ARA_FIRST_CLASS_CHANGE_EVENT )
 		{
@@ -2182,6 +2116,54 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_ACK )
 		}		
 #endif SERV_ARA_NEW_SECOND_CLASS_EVENT
 
+#ifdef SERV_EVENT_CHANGE_CLASS
+		IF_EVENT_ENABLED( CEI_EVENT_CHANGE_CLASS )
+		{
+			if( CXSLUnit::UC_ARME_BATTLE_MAGICIAN == GetUnitClass() )
+			{
+				// 이벤트 보상을 주자!
+				KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+				kPacketToDB.m_iFromUnitUID = GetCharUID();
+				kPacketToDB.m_iToUnitUID   = GetCharUID();
+				kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+				kPacketToDB.m_iRewardID	   = _CONST_EVENT_CHANGE_CLASS_ITEM_INT_::iTransFormItem;	//뉴트랜스폼 큐브(배틀매지션) 아이디로 바꿔야함
+				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+			}
+		}
+#endif SERV_EVENT_CHANGE_CLASS
+
+#ifdef SERV_ELESIS_NEW_FIRST_CLASS_EVENT
+		IF_EVENT_ENABLED( CEI_ELESIS_NEW_FIRST_CLASS_EVENT )
+		{
+			if( CXSLUnit::UC_ELESIS_SABER_KNIGHT == GetUnitClass() || CXSLUnit::UC_ELESIS_PYRO_KNIGHT == GetUnitClass() )
+			{
+				// 이벤트 보상을 주자!
+				KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+				kPacketToDB.m_iFromUnitUID = GetCharUID();
+				kPacketToDB.m_iToUnitUID   = GetCharUID();
+				kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+				kPacketToDB.m_iRewardID	   = _CONST_ELESIS_NEW_FIRST_CLASS_EVENT_REWARD_ID::iClassChangeQuestReward;
+				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+			}
+		}
+#endif SERV_ELESIS_NEW_FIRST_CLASS_EVENT
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		///전직했으면 해당 UI로 바꿔주어야 하니까 여기서 패킷을 쏘자
+		if( CXSLUnit::UC_CHUNG_FURY_GUARDIAN == GetUnitClass()
+			|| CXSLUnit::UC_CHUNG_SHOOTING_GUARDIAN == GetUnitClass() 
+			|| CXSLUnit::UC_CHUNG_IRON_PALADIN == GetUnitClass()
+			|| CXSLUnit::UC_CHUNG_DEADLY_CHASER == GetUnitClass() )
+		{
+			CTime cNowTime = GetCurrentTime();
+			KEGS_EVENT_CHUNG_GIVE_ITEM_NOT kPacketNot;
+			kPacketNot.m_bGiveItemGet = false;
+			kPacketNot.m_wstrToolTipTime = cNowTime.Format(L"%Y-%m-%d %H:%M:%S");
+			kPacketNot.m_cGetUnitClass = GetUnitClass();
+			kPacketNot.m_bTwoGiveItem = false;
+			SendPacket(EGS_EVENT_CHUNG_GIVE_ITEM_NOT,kPacketNot);
+		}		
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
 		KDBE_UPDATE_UNIT_CLASS_NOT kPacketNot;
 		kPacketNot.m_iUnitUID = GetCharUID();
 		kPacketNot.m_cUnitClass = GetUnitClass();
@@ -2191,8 +2173,15 @@ IMPL_ON_FUNC( DBE_QUEST_COMPLETE_ACK )
 		m_kSkillTree.SetUnitClass( (int) GetUnitClass() );
 
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		// kimhc // 김현철 // 전직 퀘스트 완료 시, 모든 스킬 페이지에 적용 되도록 함
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iNewDefaultSkill1, 1, 0 );
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iNewDefaultSkill2, 1, 0 );
+#else // SERV_SKILL_PAGE_SYSTEM
 		m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iNewDefaultSkill1, 1, 0 );
 		m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iNewDefaultSkill2, 1, 0 );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 		KEGS_CHANGE_MY_UNIT_INFO_NOT kMyInfoNot;
 		kMyInfoNot.m_cUnitClass = GetUnitClass();
@@ -2351,6 +2340,16 @@ IMPL_ON_FUNC( EGS_SEARCH_UNIT_REQ )
 {
 	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_ ) == false )
+	{
+		KEGS_SEARCH_UNIT_ACK kPacket; 
+		kPacket.m_iOK = NetError::ERR_STRING_FILTER_03;
+		SendPacket( EGS_SEARCH_UNIT_ACK, kPacket );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
+
 	//자기 자신의 정보를 요청한 경우.
 
 #ifdef SERV_STRING_CHECK_IGNORE_CASE
@@ -2395,6 +2394,16 @@ IMPL_ON_FUNC( EGS_SEARCH_UNIT_REQ )
 IMPL_ON_FUNC( EGS_GET_CONNECTION_UNIT_INFO_REQ )
 {
 	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_ ) == false )
+	{
+		KEGS_GET_CONNECTION_UNIT_INFO_ACK kPacket; 
+		kPacket.m_iOK = NetError::ERR_STRING_FILTER_03;
+		SendPacket( EGS_GET_CONNECTION_UNIT_INFO_ACK, kPacket );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
 
 	//자기 자신의 정보를 요청한 경우.
 #ifdef SERV_STRING_CHECK_IGNORE_CASE
@@ -3145,7 +3154,11 @@ IMPL_ON_FUNC( EGS_CHANGE_NICK_NAME_REQ )
         return;
     }
 
-    if( GetAuthLevel() < SEnum::UAL_GM && SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+#else //SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+#endif //SERV_STRING_FILTER_USING_DB
     {
         KEGS_CHANGE_NICK_NAME_ACK kPacket;
         kPacket.m_iOK = NetError::ERR_RESTORE_NICK_NAME_05;
@@ -3235,7 +3248,6 @@ _IMPL_ON_FUNC( DBE_CHANGE_NICK_NAME_ACK, KEGS_CHANGE_NICK_NAME_ACK )
 		kPacketReq.m_uiGiantUID = m_kNexonAccountInfo.m_uiNexonSN;
 		SendToGiantRoleReg( EGIANT_ROLEREG_DELETE_UNIT_REQ, kPacketReq );
 	}
-
 	//}}
 #endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
 
@@ -3256,9 +3268,17 @@ IMPL_ON_FUNC( DBE_CHANGE_UNIT_CLASS_ACK )
 		GetUnitInfo( kPacket.m_kUnitInfo );
 
 #ifdef	SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
+
 		// 기본 스킬 추가
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		// kimhc // 김현철 // 전직 변경 시, 모든 스킬 페이지에 적용 되도록 함
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iNewDefaultSkill1, 1, 0 );
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iNewDefaultSkill2, 1, 0 );
+#else // SERV_SKILL_PAGE_SYSTEM
 		m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iNewDefaultSkill1, 1, 0 );
 		m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iNewDefaultSkill2, 1, 0 );
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 		// 전직 로그 남기기
@@ -3406,24 +3426,6 @@ IMPL_ON_FUNC( DBE_CHANGE_UNIT_CLASS_ACK )
 #else // SERV_PRESENT_SKILL_INIT_ITEM
 					iPromotionCubeItemID = CXSLItem::SI_SECOND_CHANGE_JOB_CUBE;
 #endif // SERV_PRESENT_SKILL_INIT_ITEM
-
-					//{{ 2011. 09. 07  김민성	투니랜드 2차 프로모션 전직시 아이템 우편으로 전송
-#ifdef SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-					if( GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-					{
-						// 이벤트 보상을 주자!
-						KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-						kPacketToDB.m_iFromUnitUID = GetCharUID();
-						kPacketToDB.m_iToUnitUID   = GetCharUID();
-						kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-						kPacketToDB.m_iRewardID	   = 10242;			
-						SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-
-						kPacketToDB.m_iRewardID	   = 10243;			
-						SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-					}
-#endif SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-					//}}
 				}
 				else
 				{
@@ -3436,169 +3438,23 @@ IMPL_ON_FUNC( DBE_CHANGE_UNIT_CLASS_ACK )
 #else // SERV_PRESENT_SKILL_INIT_ITEM
 					iPromotionCubeItemID = CXSLItem::SI_FIRST_CHANGEJOB_CUBE;
 #endif // SERV_PRESENT_SKILL_INIT_ITEM
-
-					//{{ 2011. 09. 07  김민성	투니랜드 2차 프로모션 전직시 아이템 우편으로 전송
-#ifdef SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-					if( GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
+				}
+				//}}
+#ifdef SERV_EVENT_CHANGE_CLASS
+				IF_EVENT_ENABLED( CEI_EVENT_CHANGE_CLASS )
+				{
+					if( CXSLUnit::UC_ARME_BATTLE_MAGICIAN == GetUnitClass() )		
 					{
-						// 이벤트 보상을 주자!
+						//시스나이트로 전직 변경시 보상을 주자
 						KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 						kPacketToDB.m_iFromUnitUID = GetCharUID();
 						kPacketToDB.m_iToUnitUID   = GetCharUID();
 						kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-						kPacketToDB.m_iRewardID	   = 10242;			
-						SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-
-						kPacketToDB.m_iRewardID	   = 10290;			
+						kPacketToDB.m_iRewardID    = _CONST_EVENT_CHANGE_CLASS_ITEM_INT_::iTransFormItem; //뉴트랜스폼 큐브(배틀매지션) 아이디로 바꿔야함
 						SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 					}
-#endif SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-					//}}
 				}
-				//}}
-
-				//{{ 2011. 12. 06	최육사	엘소드 추가 전직 이벤트
-#ifdef SERV_ELSWORD_SHEATH_KNIGHT_EVENT
-				if( CXSLUnit::UC_ELSWORD_SHEATH_KNIGHT == GetUnitClass() )
-				{
-					// 이벤트 보상을 주자!
-					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-					kPacketToDB.m_iFromUnitUID = GetCharUID();
-					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-					kPacketToDB.m_iRewardID	   = 10271;	// 나소드 판넬 가드-Ver.K2 (엘소드)
-					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-				}
-#endif SERV_ELSWORD_SHEATH_KNIGHT_EVENT
-				//}}
-				//{{ 2011. 12. 08	김민성   아이샤 추가 전직 이벤트
-#ifdef SERV_ARME_BATTLE_MAGICIAN_EVENT
-				if( CXSLUnit::UC_ARME_BATTLE_MAGICIAN == GetUnitClass() )
-				{
-					// 이벤트 보상을 주자!
-					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-					kPacketToDB.m_iFromUnitUID = GetCharUID();
-					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-					kPacketToDB.m_iRewardID	   = 10274;	// 나소드 판넬 가드-Ver.K2 (아이샤)
-					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-				}
-#endif SERV_ARME_BATTLE_MAGICIAN_EVENT
-				//}}
-				//{{ 2011. 12. 08	김민성   레나 추가 전직 이벤트
-#ifdef SERV_LIRE_TRAPPING_RANGER_EVENT
-				if( CXSLUnit::UC_LIRE_TRAPPING_RANGER == GetUnitClass() )
-				{
-					// 이벤트 보상을 주자!
-					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-					kPacketToDB.m_iFromUnitUID = GetCharUID();
-					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-					kPacketToDB.m_iRewardID	   = 10281;	// 나소드 판넬 가드-Ver.K2 (레나)
-					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-				}
-#endif SERV_LIRE_TRAPPING_RANGER_EVENT
-				//}}
-				//{{ 2012. 1. 12	김민성   레이븐 추가 전직 이벤트
-#ifdef SERV_RAVEN_WEAPON_TAKER_EVENT
-				if( CXSLUnit::UC_RAVEN_WEAPON_TAKER == GetUnitClass() )
-				{
-					// 이벤트 보상을 주자!
-					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-					kPacketToDB.m_iFromUnitUID = GetCharUID();
-					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-					kPacketToDB.m_iRewardID	   = 10284;	// 나소드 판넬 가드-Ver.K2 (레이븐)
-					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-				}
-#endif SERV_RAVEN_WEAPON_TAKER_EVENT
-				//}}
-				//{{ 2012. 01. 20	김민성	이브 추가 전직 이벤트
-#ifdef SERV_EVE_ELECTRA_EVENT
-				if( CXSLUnit::UC_EVE_ELECTRA == GetUnitClass() )
-				{
-					// 이벤트 보상을 주자!
-					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-					kPacketToDB.m_iFromUnitUID = GetCharUID();
-					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-					kPacketToDB.m_iRewardID	   = 10289;	// 나소드 판넬 가드-Ver.K2 (이브)
-					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-				}
-#endif SERV_EVE_ELECTRA_EVENT
-				//}}
-				//{{ 2012. 01. 30	박세훈	청 추가 전직 이벤트
-#ifdef SERV_CHUNG_SHELLING_GUARDIAN_EVENT
-				if( CXSLUnit::UC_CHUNG_SHELLING_GUARDIAN == GetUnitClass() )
-				{
-					// 이벤트 보상을 주자!
-					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-					kPacketToDB.m_iFromUnitUID = GetCharUID();
-					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-					kPacketToDB.m_iRewardID	   = 10295;	// 나소드 판넬 가드-Ver.K2 (청)
-					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-				}
-#endif SERV_CHUNG_SHELLING_GUARDIAN_EVENT
-				//}}
-				//{{ 2012. 07. 12	김민성       전직권 구매 이벤트
-#ifdef SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-// 				if( kPacket_.m_iItemID != 0 )
-// 				{
-// 					if( CXSLItem::GetCashItemChangeUnitClass( kPacket_.m_iItemID ) == CXSLUnit::UC_ARME_DIMENSION_WITCH )
-// 					{
-// 						// 이벤트 보상을 주자!
-// 						KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-// 						kPacketToDB.m_iFromUnitUID = GetCharUID();
-// 						kPacketToDB.m_iToUnitUID   = GetCharUID();
-// 						kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-// 						kPacketToDB.m_iRewardID	   = 10084;	// 망각의 드링크 큐브
-// 						SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-// 					}
-// 				}
-#endif SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-				//}}
-				//{{ 2013. 1. 18	박세훈	소선, 제천 전직 이벤트
-#ifdef SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT
-				{
-					CTime tCurrentDate = CTime::GetCurrentTime();
-					//{{ 2013. 1. 18	박세훈	소선, 제천 전직 이벤트 테스트
-#ifdef SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT_TEST
-					if( ( CTime( 2013, 1, 18, 7, 0, 0 ) <= tCurrentDate ) &&
-						( tCurrentDate < CTime( 2013, 1, 25, 7, 0, 0 ) )
-						)
-#else
-					if( ( CTime( 2013, 1, 24, 7, 0, 0 ) <= tCurrentDate ) &&
-						( tCurrentDate < CTime( 2013, 1, 31, 7, 0, 0 ) )
-						)
-#endif SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT_TEST
-						//}}
-					{
-						if( CXSLUnit::UC_ARA_LITTLE_HSIEN == GetUnitClass() )
-						{
-							// 이벤트 보상을 주자!
-							KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-							kPacketToDB.m_iFromUnitUID = GetCharUID();
-							kPacketToDB.m_iToUnitUID   = GetCharUID();
-							kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-							kPacketToDB.m_iRewardID	   = 10469;	// 소선의 축복 큐브
-							SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-						}
-
-						if( CXSLUnit::UC_ARA_SAKRA_DEVANAM == GetUnitClass() )
-						{
-							// 이벤트 보상을 주자!
-							KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-							kPacketToDB.m_iFromUnitUID = GetCharUID();
-							kPacketToDB.m_iToUnitUID   = GetCharUID();
-							kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-							kPacketToDB.m_iRewardID	   = 10470;	// 제천의 축복 큐브
-							SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-						}
-					}
-				}
-#endif SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT
-				//}}				
+#endif SERV_EVENT_CHANGE_CLASS
 
 				KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
 				kPacketToDB.m_iFromUnitUID = GetCharUID();
@@ -3614,30 +3470,6 @@ IMPL_ON_FUNC( DBE_CHANGE_UNIT_CLASS_ACK )
 				kPacketToDB.m_bGameServerEvent = false;
 				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 			}
-
-			//{{ 2011. 01. 26	최육사	전직시 망각 드링크 지급 이벤트
-#ifdef SERV_CHANGE_CLASS_REWARD_EVENT
-			if( GetUnitType() == CXSLUnit::UT_CHUNG )
-			{
-				if( GetUnitClass() ==  CXSLUnit::UC_CHUNG_IRON_PALADIN 
-				||  GetUnitClass() ==  CXSLUnit::UC_CHUNG_DEADLY_CHASER )
-				{
-					CStringW cwstrItemID;
-					cwstrItemID.Format( L"%d", CXSLItem::GetCashItemByUnitClass( GetUnitClass() ) );
-
-					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-					kPacketToDB.m_iFromUnitUID = GetCharUID();
-					kPacketToDB.m_iToUnitUID   = GetCharUID();
-					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_MESSAGE;
-					kPacketToDB.m_iRewardID	   = CXSLItem::EI_TITLE_EVENT_ITEM;
-					kPacketToDB.m_sQuantity	   = 1;
-					kPacketToDB.m_wstrMessage  = cwstrItemID.GetBuffer();
-					kPacketToDB.m_bGameServerEvent = false;
-					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-				}
-			}
-#endif SERV_CHANGE_CLASS_REWARD_EVENT
-			//}}
 
 #ifdef SERV_ARA_FIRST_CLASS_CHANGE_EVENT
 			IF_EVENT_ENABLED( CEI_ARA_FIRST_CLASS_CHANGE_EVENT )
@@ -3695,6 +3527,38 @@ IMPL_ON_FUNC( DBE_CHANGE_UNIT_CLASS_ACK )
 			}			
 #endif SERV_ARA_NEW_SECOND_CLASS_EVENT
 
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+				///전직했으면 해당 UI로 바꿔주어야 하니까 여기서 패킷을 쏘자
+				///아이템을 받았던 안받았던 패킷을 쏘고 DB에 전직한 시간을 저장해줘야해
+				if( CXSLUnit::UC_CHUNG_FURY_GUARDIAN == GetUnitClass()
+					|| CXSLUnit::UC_CHUNG_SHOOTING_GUARDIAN == GetUnitClass() 
+					|| CXSLUnit::UC_CHUNG_IRON_PALADIN == GetUnitClass()
+					|| CXSLUnit::UC_CHUNG_DEADLY_CHASER == GetUnitClass() )
+				{
+					CTime cNowTime = GetCurrentTime();
+					KEGS_EVENT_CHUNG_GIVE_ITEM_NOT kPacketNot;
+					kPacketNot.m_bGiveItemGet = false;
+					kPacketNot.m_wstrToolTipTime = cNowTime.Format(L"%Y-%m-%d %H:%M:%S");
+					kPacketNot.m_cGetUnitClass = GetUnitClass();
+					kPacketNot.m_bTwoGiveItem = false;
+					SendPacket(EGS_EVENT_CHUNG_GIVE_ITEM_NOT,kPacketNot);
+				}		
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_ELESIS_NEW_FIRST_CLASS_EVENT
+			IF_EVENT_ENABLED( CEI_ELESIS_NEW_FIRST_CLASS_EVENT )
+			{
+				if( CXSLUnit::UC_ELESIS_SABER_KNIGHT == GetUnitClass() || CXSLUnit::UC_ELESIS_PYRO_KNIGHT == GetUnitClass() )
+				{
+					KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+					kPacketToDB.m_iFromUnitUID = GetCharUID();
+					kPacketToDB.m_iToUnitUID   = GetCharUID();
+					kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+					kPacketToDB.m_iRewardID	   = _CONST_ELESIS_NEW_FIRST_CLASS_EVENT_REWARD_ID::iClassChangeReward;
+					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+				}
+			}
+#endif SERV_ELESIS_NEW_FIRST_CLASS_EVENT
 
 			// 전직 캐쉬 아이템
 			SendPacket( EGS_CHANGE_JOB_CASH_ITEM_NOT, kPacket );
@@ -3722,6 +3586,16 @@ IMPL_ON_FUNC( EGS_RECOMMEND_USER_REQ )
 	VERIFY_STATE( ( 1, KGSFSM::S_FIELD_MAP ) );
 #endif SERV_ADD_REPEAT_FILTER
 	//}}
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+	{
+		KEGS_RECOMMEND_USER_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_STRING_FILTER_01;
+		SendPacket( EGS_RECOMMEND_USER_ACK, kPacket );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
 
 	//{{ 2008. 5. 16  최육사  체험ID 제한
 
@@ -4329,7 +4203,6 @@ end_proc:
 
 IMPL_ON_FUNC( EGS_REQUEST_TUTORIAL_REPLY_NOT )
 {
-
 #ifdef SERV_NO_DISCIPLE
 	return;
 #endif SERV_NO_DISCIPLE
@@ -4472,6 +4345,20 @@ IMPL_ON_FUNC( EGS_GET_SKILL_REQ )
 	KDBE_INSERT_SKILL_REQ kDBReq;
 	kPacket.m_iOK = NetError::ERR_UNKNOWN;
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( kPacket_.m_iActiveSkillPageNumber != m_kSkillTree.GetActiveSkillPageNumber() )
+	{
+		START_LOG( cerr, L"활성된 스킬 페이지 번호가 이상합니다 (EGS_GET_SKILL_REQ)" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iActiveSkillPageNumber )
+			<< BUILD_LOG( m_kSkillTree.GetActiveSkillPageNumber() )
+			<< END_LOG;
+
+		kPacket.m_iOK = NetError::ERR_SKILL_PAGE_01;;
+		goto end_proc;
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	// 변경된 스킬이 있는가?
 	if( kPacket_.m_mapSkillList.empty() == true )
 	{
@@ -4489,7 +4376,11 @@ IMPL_ON_FUNC( EGS_GET_SKILL_REQ )
 	if( m_kSkillTree.IsCashSkillPointExpired() == true )
 	{
 		// 충분한 SP를 가지고있는지?
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		if ( m_kSkillTree.GetSPoint() <= 0 )
+#else // SERV_SKILL_PAGE_SYSTEM
 		if( m_iSPoint <= 0 )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		{
 			kPacket.m_iOK = NetError::ERR_SKILL_17;
 			goto end_proc;
@@ -4498,7 +4389,11 @@ IMPL_ON_FUNC( EGS_GET_SKILL_REQ )
 	else
 	{
 		// 충분한 SP와 CSP를 가지고 있는지?
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		if( m_kSkillTree.GetSPoint() + m_kSkillTree.GetCSPoint() <= 0 )
+#else // SERV_SKILL_PAGE_SYSTEM
 		if( m_iSPoint + m_kSkillTree.GetCSPoint() <= 0 )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		{
 			kPacket.m_iOK = NetError::ERR_SKILL_18;
 			goto end_proc;
@@ -4508,14 +4403,29 @@ IMPL_ON_FUNC( EGS_GET_SKILL_REQ )
 	// 배울려는 스킬 목록으로 필요한 sp 량 얻기
 	int iTotalSP = 0;	// 스킬을 배우는데 필요한 일반 스킬 포인트
 	int iTotalCSP = 0;	// 스킬을 배우는데 필요한 캐시 스킬 포인트
-	if( m_kSkillTree.GetNecessarySkillPoint( kPacket_.m_mapSkillList, iTotalSP, iTotalCSP ) == false )
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( m_kSkillTree.GetNecessarySkillPoint( kPacket_.m_mapSkillList, iTotalSP, iTotalCSP, 
+		m_kSkillTree.AccessLearnedSkillTree() ) == false )
 	{
 		kPacket.m_iOK = NetError::ERR_SKILL_17;
 		goto end_proc;
 	}
 
+#else // SERV_SKILL_PAGE_SYSTEM
+	if( m_kSkillTree.GetNecessarySkillPoint( kPacket_.m_mapSkillList, iTotalSP, iTotalCSP ) == false )
+	{
+		kPacket.m_iOK = NetError::ERR_SKILL_17;
+		goto end_proc;
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	// sp 가 충분 한가?
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if( iTotalSP > m_kSkillTree.GetSPoint() || iTotalCSP > m_kSkillTree.GetCSPoint() )
+#else // SERV_SKILL_PAGE_SYSTEM
 	if( iTotalSP > m_iSPoint || iTotalCSP > m_kSkillTree.GetCSPoint() )
+#endif // SERV_SKILL_PAGE_SYSTEM
 	{
 		kPacket.m_iOK = NetError::ERR_SKILL_18;
 		goto end_proc;
@@ -4548,21 +4458,47 @@ IMPL_ON_FUNC( EGS_GET_SKILL_REQ )
 		{
 			int iSkillLevel = 0;
 			int iSkillCSPoint = 0;	// 배운 스킬 중 투자된 csp 얻기
+						
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			if ( m_kSkillTree.IsActiveSkillPageNumberValid() )
+			{
+				if ( m_kSkillTree.GetSkillLevelAndCSP( iSkillLevel, iSkillCSPoint, 
+					mit->first, m_kSkillTree.AccessLearnedSkillTree() ) )
+					mit->second.m_iSpendSkillCSPoint += iSkillCSPoint;	// 배운 스킬이 있다면
+			}
+			else
+			{
+				AddLogWhenSkillPagesNumberIsWrong( L"EGS_GET_SKILL_REQ" );
+				goto end_proc;
+			} 
+#else // SERV_SKILL_PAGE_SYSTEM
 			if( m_kSkillTree.GetSkillLevelAndCSP( mit->first, iSkillLevel, iSkillCSPoint ) == true )
 			{
 				// 배운 스킬이 있다면
 				mit->second.m_iSpendSkillCSPoint += iSkillCSPoint;
 			}
+#endif // SERV_SKILL_PAGE_SYSTEM
 		}
 	}
 
 	// DB 로 보낼때 감소 시키고 보내자
 	//{{
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	m_kSkillTree.SubtractSPoint( iTotalSP );
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_iSPoint -= iTotalSP;
+#endif // SERV_SKILL_PAGE_SYSTEM
+	
 	if( kDBReq.m_iCSPoint >= 0 )		// CSPoint를 사용해서 스킬을 획득한 경우
 	{
-		kDBReq.m_iBeforCSPoint = m_kSkillTree.GetCSPoint();
+		kDBReq.m_iBeforeCSPoint = m_kSkillTree.GetCSPoint();
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_kSkillTree.SetCSPoint( m_kSkillTree.GetActiveSkillPagesIndex(), kDBReq.m_iCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 		m_kSkillTree.SetCSPoint( kDBReq.m_iCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
 	}
 	//}}
 #ifdef SERV_SUB_QUEST_LEARN_NEW_SKILL
@@ -4573,6 +4509,10 @@ IMPL_ON_FUNC( EGS_GET_SKILL_REQ )
 	kDBReq.m_iUnitUID		= GetCharUID();
 	kDBReq.m_iTotalSpendSkillPoint = iTotalSP;						// 사용한 sp 총량
 	kDBReq.m_mapSkillList = kPacket_.m_mapSkillList;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kDBReq.m_iActiveSkillPageNumber = kPacket_.m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	SendToGameDB( DBE_INSERT_SKILL_REQ, kDBReq );
 	return;
@@ -4590,13 +4530,22 @@ IMPL_ON_FUNC( DBE_INSERT_SKILL_ACK )
 	KEGS_GET_SKILL_ACK kPacket;
 	kPacket.m_iOK	= kPacket_.m_iOK;
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacket.m_iActiveSkillPageNumber = kPacket_.m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	std::map< int, int > mapOldSkillList;
 
 	// 실패 시 감소한 sp 롤백
 	if( kPacket_.m_iOK != NetError::NET_OK )
 	{
-		m_kSkillTree.SetCSPoint( kPacket_.m_iBeforCSPoint );
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_kSkillTree.SetCSPoint( kPacket_.m_iActiveSkillPageNumber - 1, kPacket_.m_iBeforeCSPoint );
+		m_kSkillTree.AddSPoint( kPacket_.m_iActiveSkillPageNumber - 1, kPacket_.m_iTotalSpendSkillPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
+		m_kSkillTree.SetCSPoint( kPacket_.m_iBeforeCSPoint );
 		m_iSPoint += kPacket_.m_iTotalSpendSkillPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	}
 	else//스킬습득시 소모된sp 빼준다.
 	{
@@ -4605,9 +4554,14 @@ IMPL_ON_FUNC( DBE_INSERT_SKILL_ACK )
 			std::map< int, KGetSkillInfo >::iterator mit = kPacket_.m_mapSkillList.begin();
 			for( ; mit != kPacket_.m_mapSkillList.end() ; ++mit )
 			{
-				m_kSkillTree.GetSkillLevel( mit->first );
 				mapOldSkillList.insert( std::make_pair( mit->first, m_kSkillTree.GetSkillLevel( mit->first ) ) );
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+				// kimhc // 김현철 // 스킬 배우기는, 현재 사용중인 스킬 페이지에 적용 되도록 함
+				m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( mit->second.m_iSkillID, mit->second.m_iSkillLevel, mit->second.m_iSpendSkillCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 				m_kSkillTree.SetSkillLevelAndCSP( mit->second.m_iSkillID, mit->second.m_iSkillLevel, mit->second.m_iSpendSkillCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
 			}
 		}
 
@@ -4622,7 +4576,13 @@ IMPL_ON_FUNC( DBE_INSERT_SKILL_ACK )
 
 		//스킬을 배우면서 변경된 유저의 데이터도 다시 넘겨준다.
 		kPacket.m_mapSkillList			= kPacket_.m_mapSkillList;
+		
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		kPacket.m_iRemainSP				= m_kSkillTree.GetSPoint();
+#else // SERV_SKILL_PAGE_SYSTEM
 		kPacket.m_iRemainSP				= m_iSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+		
 		kPacket.m_iRemainCSP			= m_kSkillTree.GetCSPoint();
 
 		{
@@ -4708,6 +4668,22 @@ IMPL_ON_FUNC( EGS_RESET_SKILL_REQ )
 	KEGS_RESET_SKILL_ACK kPacketAck;
 	kPacketAck.m_iOK = NetError::ERR_UNKNOWN;
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( kPacket_.m_iActiveSkillPageNumber != m_kSkillTree.GetActiveSkillPageNumber() )
+	{
+		START_LOG( cerr, L"활성된 스킬 페이지 번호가 이상합니다 (EGS_RESET_SKILL_REQ)" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iActiveSkillPageNumber )
+			<< BUILD_LOG( m_kSkillTree.GetActiveSkillPageNumber() )
+			<< END_LOG;
+		
+		kPacketAck.m_iOK = NetError::ERR_SKILL_PAGE_01;
+
+		SendPacket( EGS_RESET_SKILL_ACK, kPacketAck );
+		return;
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	// 초기화 정보 얻기
 	const CXSLSkillTree::SkillTemplet* pDelSkillTemplet = SiCXSLSkillTree()->GetSkillTemplet( kPacket_.m_iSkillID );
 	if( pDelSkillTemplet == NULL )
@@ -4747,6 +4723,21 @@ IMPL_ON_FUNC( EGS_RESET_SKILL_REQ )
 	// 삭제 스킬 처리
 	int iDelSkillLevel = 0;
 	int iDelSkillCSPoint = 0;
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( false == m_kSkillTree.GetSkillLevelAndCSP( OUT iDelSkillLevel, OUT iDelSkillCSPoint,
+		IN kPacket_.m_iSkillID, IN m_kSkillTree.AccessLearnedSkillTree() ) )
+	{
+		START_LOG( cerr, L"클라이언트에서 스킬 검사를 했을텐데.." )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iSkillID )
+			<< END_LOG;
+
+		kPacketAck.m_iOK = NetError::ERR_RESET_SKILL_00;
+		SendPacket( EGS_RESET_SKILL_ACK, kPacketAck );
+		return;
+	}			
+#else // SERV_SKILL_PAGE_SYSTEM
 	if( m_kSkillTree.GetSkillLevelAndCSP( kPacket_.m_iSkillID, iDelSkillLevel, iDelSkillCSPoint ) == false )
 	{
 		START_LOG( cerr, L"클라이언트에서 스킬 검사를 했을텐데.." )
@@ -4758,17 +4749,10 @@ IMPL_ON_FUNC( EGS_RESET_SKILL_REQ )
 		SendPacket( EGS_RESET_SKILL_ACK, kPacketAck );
 		return;
 	}
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	// 초기화 할 스킬인지 확인하자. 아니라면 1렙으로 한다.(기본 스킬, 선행 스킬)
-	int iAfterDelSkillLevel = 0;
-	if( bSKillInitLevel == true )
-	{
-		iAfterDelSkillLevel = 0;
-	}
-	else
-	{
-		iAfterDelSkillLevel = 1;
-	}
+	const int iAfterDelSkillLevel = ( bSKillInitLevel ? 0 : 1 );
 
 	// 장착 중인지 검사, 장착중이라면 스킬레벨이 2이상인지 확인하기	- // note!! 나중에 장착중인 스킬중에 스킬되돌리기 이후에 없어지는 스킬은 자동으로 탈착되도록 처리하자
 	std::vector< int > vecSkillData;
@@ -4828,6 +4812,13 @@ IMPL_ON_FUNC( EGS_RESET_SKILL_REQ )
 	}
 	else
 	{
+		// kimhc // 김현철 // 2013-11-21 // 다른 곳에서는 Invaild 한 값을 -1로 셋팅하는데 여기는 왜 0으로 셋팅하나...
+		// 아래 iAfterCSP <= 0 ? -1 : iAfterCSP 를 보면 0인 경우까지 Invaild 하다고 해주겠다는 것인데..
+		// 0인 경우가 Invaild 한 것인가..?
+		// 캐시스킬 기간이 만료 되지 않았어도 iAfterCSP가 0인 경우는 있을 것 같은데...
+
+		// kimhc // 김현철 // 2013-11-21 // 이유를 알았음... 복잡하네..
+		// 돌려받아야할 CSP가 0인 경우 DB 값을 UPDATE 해주지 않기 위해서 임
 		iAfterCSP = 0; // invalid 한 값을 보내서 SP로 배웠다는 것을 구분한다
 	}
 
@@ -4851,11 +4842,23 @@ IMPL_ON_FUNC( EGS_RESET_SKILL_REQ )
 	kPacketToDB.m_iDelSkillID = kPacket_.m_iSkillID;
 	kPacketToDB.m_iDelSkillLevel = iAfterDelSkillLevel;
 	kPacketToDB.m_iCSPoint = iAfterCSP <= 0 ? -1 : iAfterCSP;
-	kPacketToDB.m_iBeforSPoint = m_iSPoint;
-	kPacketToDB.m_iBeforCSPoint =  m_kSkillTree.GetCSPoint();
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacketToDB.m_iBeforeSPoint = m_kSkillTree.GetSPoint();
+	kPacketToDB.m_iActiveSkillPageNumber = kPacket_.m_iActiveSkillPageNumber;
+#else // SERV_SKILL_PAGE_SYSTEM
+	kPacketToDB.m_iBeforeSPoint = m_iSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+	
+	kPacketToDB.m_iBeforeCSPoint =  m_kSkillTree.GetCSPoint();
 
-	m_kSkillTree.SetCSPoint( iAfterCSP );
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	m_kSkillTree.AddSPoint( kPacket_.m_iActiveSkillPageNumber - 1, iAfterSP );
+	m_kSkillTree.SetCSPoint( kPacket_.m_iActiveSkillPageNumber - 1, iAfterCSP );
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_iSPoint += iAfterSP;
+	m_kSkillTree.SetCSPoint( iAfterCSP );
+#endif // SERV_SKILL_PAGE_SYSTEM	
 
 	kPacketToDB.m_vecUpdatedInventorySlot.push_back( kInventoryItemInfo );
 	m_kInventory.FlushQuantityChange( kPacketToDB.m_kItemQuantityUpdate.m_mapQuantityChange );
@@ -4875,6 +4878,10 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_ACK )
 	kPacket.m_iDelSkillID			= kPacket_.m_iDelSkillID;
 	kPacket.m_vecInventorySlotInfo	= kPacket_.m_vecUpdatedInventorySlot;
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacket.m_iActiveSkillPageNumber	= kPacket_.m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	// DB쿼리 실패된 아이템이 있다면 롤백.
 	m_kInventory.RollBackInitQuantity( kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange );
 	m_kInventory.RollBackDeletedItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted );
@@ -4883,10 +4890,17 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_ACK )
 	{
 		// DB 업데이트 실패
 		// 증가한 sp 롤백
-		m_kSkillTree.SetCSPoint( kPacket_.m_iBeforCSPoint );
-
-		int iSPoint = m_iSPoint - kPacket_.m_iBeforSPoint;
+		
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_kSkillTree.SetCSPoint( kPacket_.m_iActiveSkillPageNumber - 1, kPacket_.m_iBeforeCSPoint );
+		int iSPoint = m_kSkillTree.GetSPoint() - kPacket_.m_iBeforeSPoint;
+		m_kSkillTree.SubtractSPoint( iSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
+		m_kSkillTree.SetCSPoint( kPacket_.m_iBeforeCSPoint );
+		int iSPoint = m_iSPoint - kPacket_.m_iBeforeSPoint;
 		m_iSPoint -= iSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 		goto end_proc;
 	}
 
@@ -4894,6 +4908,26 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_ACK )
 	bool isDefaultSkill = SiCXSLSkillTree()->IsUnitTypeDefaultSkill( kPacket_.m_iDelSkillID );
 	bool bAllFollowingSkillLevelZero = m_kSkillTree.IsAllFollowingSkillLevelZero( kPacket_.m_iDelSkillID );
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( m_kSkillTree.IsActiveSkillPageNumberValid() )
+	{
+		m_kSkillTree.ResetSkill( m_kSkillTree.AccessLearnedSkillTree(), kPacket_.m_iDelSkillID, isDefaultSkill );
+	}
+	else
+	{
+		AddLogWhenSkillPagesNumberIsWrong( L"DBE_RESET_SKILL_ACK" );
+		goto end_proc;
+	}
+
+	if( isDefaultSkill == true || bAllFollowingSkillLevelZero == false )
+	{
+		// kimhc // 김현철 // 2013-11-17 // 망각의 알약 등에 의해
+		// 스킬 한개 초기화 시, 현재 사용중인 스킬 페이지만 초기화 하도록 함
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( kPacket_.m_iDelSkillID, 1, 0 );
+	}
+
+	kPacket.m_iSPoint		= m_kSkillTree.GetSPoint();
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_kSkillTree.ResetSkill( kPacket_.m_iDelSkillID, isDefaultSkill );
 
 	if( isDefaultSkill == true || bAllFollowingSkillLevelZero == false )
@@ -4902,6 +4936,8 @@ IMPL_ON_FUNC( DBE_RESET_SKILL_ACK )
 	}
 
 	kPacket.m_iSPoint		= m_iSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	kPacket.m_iCSPoint		= m_kSkillTree.GetCSPoint();
 	
 end_proc:
@@ -4977,6 +5013,21 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 	KEGS_INIT_SKILL_TREE_ACK kAck;
 	kAck.m_iOK = NetError::ERR_UNKNOWN;
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( kPacket_.m_iActiveSkillPageNumber != m_kSkillTree.GetActiveSkillPageNumber() )
+	{
+		START_LOG( cerr, L"활성된 스킬 페이지 번호가 이상합니다 (EGS_INIT_SKILL_TREE_REQ)" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iActiveSkillPageNumber )
+			<< BUILD_LOG( m_kSkillTree.GetActiveSkillPageNumber() )
+			<< END_LOG;
+
+		kAck.m_iOK = NetError::ERR_SKILL_PAGE_01;;
+		SendPacket( EGS_INIT_SKILL_TREE_ACK, kAck );
+		return;
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	if( !m_kInventory.IsExist( kPacket_.m_iItemUID ) )
 	{
 		START_LOG( cerr, L"스킬초기화 아이템이 없는데 패킷 날아옴.!" )
@@ -4993,37 +5044,47 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 	}
 
 	int iItemID = m_kInventory.GetItemID( kPacket_.m_iItemUID );
-	if( ( iItemID != CXSLItem::CI_SKILL_INIT_ITEM )
-		&& ( iItemID != CXSLItem::CI_SKILL_INIT_EVENT_ITEM )
+
+	switch ( iItemID )
+	{
+
+	default:
+		{
+			START_LOG( cerr, L"스킬초기화 아이템ID가 이상함." )
+#ifndef SERV_PRIVACY_AGREEMENT
+				<< BUILD_LOG( GetCharName() )
+#endif SERV_PRIVACY_AGREEMENT
+				<< BUILD_LOG( GetCharUID() )
+				<< BUILD_LOG( kPacket_.m_iItemUID )
+				<< BUILD_LOG( iItemID )
+				<< END_LOG;
+
+			kAck.m_iOK = NetError::ERR_ITEM_04;
+			SendPacket( EGS_INIT_SKILL_TREE_ACK, kAck );
+			return;
+
+		} break;
+
+	case CXSLItem::CI_SKILL_INIT_ITEM:
+	case CXSLItem::CI_SKILL_INIT_EVENT_ITEM:
+
 #ifdef SERV_NEW_SKILL_INIT_EVENT_ITEM// 작업날짜: 2013-06-25	// 박세훈
-		&& ( iItemID != CXSLItem::CI_SKILL_INIT_EVENT_ITEM2 )
-		&& ( iItemID != CXSLItem::CI_SKILL_INIT_EVENT_ITEM3 )
+	case CXSLItem::CI_SKILL_INIT_EVENT_ITEM2:
+	case CXSLItem::CI_SKILL_INIT_EVENT_ITEM3:
+	case CXSLItem::CI_SKILL_INIT_EVENT_ITEM4:
 #endif // SERV_NEW_SKILL_INIT_EVENT_ITEM
 #ifdef SERV_EVENT_INIT_SKILL_TREE_ITEM
-		&& ( iItemID != CXSLItem::CI_INIT_SKILL_TREE_ITEM )
+	case CXSLItem::CI_INIT_SKILL_TREE_ITEM:
 #endif SERV_EVENT_INIT_SKILL_TREE_ITEM
-#ifdef SERV_COUNTRY_JP		
-     	&& ( iItemID != CXSLItem::CI_SKILL_INIT_EVENT_ITEM_JP )
-#endif //SERV_COUNTRY_JP
 #ifdef SERV_EVENT_RURIEL_RESET_SKILL_ITEM
-		&& ( iItemID != CXSLItem::EI_RURIEL_RESET_SKILL_ITEM )
+	case CXSLItem::EI_RURIEL_RESET_SKILL_ITEM:
 #endif SERV_EVENT_RURIEL_RESET_SKILL_ITEM
-		)
-	{
-		START_LOG( cerr, L"스킬초기화 아이템ID가 이상함." )
-#ifndef SERV_PRIVACY_AGREEMENT
-			<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
-			<< BUILD_LOG( GetCharUID() )
-			<< BUILD_LOG( kPacket_.m_iItemUID )
-			<< BUILD_LOG( iItemID )
-			<< END_LOG;
-
-		kAck.m_iOK = NetError::ERR_ITEM_04;
-		SendPacket( EGS_INIT_SKILL_TREE_ACK, kAck );
-		return;
+#ifdef SERV_GLOBAL_DEFINE
+	case CXSLItem::CI_SKILL_INIT_EVENT_ITEM_JP:
+#endif //SERV_GLOBAL_DEFINE
+		break;
 	}
-
+	
 	int iDefaultSkillID[6] = {0,};
 	if( !SiCXSLSkillTree()->GetUnitClassDefaultSkill( GetUnitClass(), iDefaultSkillID[0], iDefaultSkillID[1], iDefaultSkillID[2], iDefaultSkillID[3], iDefaultSkillID[4], iDefaultSkillID[5] ) )
 	{
@@ -5065,7 +5126,17 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 	}
 	else
 	{
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		/// kimhc // 김현철 // 2013-11-21 
+		/// 스킬 초기화는 한개의 스킬페이지에만 적용 되지만
+		/// CSPoint 가 얼마나 남았는지는 전체페이지를 검사하도록 했음
+		/// 캐시 스킬 기간이 만료 됐는데, 어느 한개 페이지의 CSP만 초기화 되었는지에 대한
+		/// 체크는 이상하다고 생각 되서...
+		if( m_kSkillTree.GetCSPointAnyPage() )
+#else // SERV_SKILL_PAGE_SYSTEM
 		if( 0 != m_kSkillTree.GetCSPoint() )
+#endif // SERV_SKILL_PAGE_SYSTEM
 		{
 			START_LOG( cerr, L"cash skill point기한이 다되었는데 스킬트리에 csp가 남아있다." )
 #ifndef SERV_PRIVACY_AGREEMENT
@@ -5074,7 +5145,13 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( iRetrievedSPoint )
 				<< BUILD_LOG( iRetrievedCSPoint )
+				
+#ifdef SERV_SKILL_PAGE_SYSTEM
+				<< BUILD_LOG( m_kSkillTree.GetCSPointAnyPage() )
+#else // SERV_SKILL_PAGE_SYSTEM
 				<< BUILD_LOG( m_kSkillTree.GetCSPoint() )
+#endif // SERV_SKILL_PAGE_SYSTEM
+				
 				<< END_LOG;
 
 			kAck.m_iOK = NetError::ERR_SKILL_12;
@@ -5094,11 +5171,23 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 	kDBReq.m_iDefaultSkillID4 = iDefaultSkillID[3];
 	kDBReq.m_iDefaultSkillID5 = iDefaultSkillID[4];
 	kDBReq.m_iDefaultSkillID6 = iDefaultSkillID[5];
-	kDBReq.m_iBeforSPoint = m_iSPoint;
-	kDBReq.m_iBeforCSPoint = m_kSkillTree.GetCSPoint();
-
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kDBReq.m_iBeforeSPoint = m_kSkillTree.GetSPoint();
+	kDBReq.m_iActiveSkillPageNumber = kPacket_.m_iActiveSkillPageNumber;
+#else // SERV_SKILL_PAGE_SYSTEM
+	kDBReq.m_iBeforeSPoint = m_iSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+	
+	kDBReq.m_iBeforeCSPoint = m_kSkillTree.GetCSPoint();
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	m_kSkillTree.SetSPoint( iRetrievedSPoint );
+	m_kSkillTree.SetCSPoint( kPacket_.m_iActiveSkillPageNumber - 1, iRetrievedCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_iSPoint.SetValue(iRetrievedSPoint);
 	m_kSkillTree.SetCSPoint( iRetrievedCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	SendToGameDB( DBE_INIT_SKILL_TREE_REQ, kDBReq );
 }
@@ -5121,9 +5210,15 @@ IMPL_ON_FUNC( DBE_INIT_SKILL_TREE_ACK )
 #endif SERV_PRIVACY_AGREEMENT
 			<< END_LOG;
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_kSkillTree.SetSPoint( kPacket_.m_iActiveSkillPageNumber - 1, kPacket_.m_iBeforeSPoint );
+		m_kSkillTree.SetCSPoint( kPacket_.m_iActiveSkillPageNumber - 1, kPacket_.m_iBeforeCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 		// 롤백
-		m_iSPoint -= (kPacket_.m_iSPoint - kPacket_.m_iBeforSPoint);
-		m_kSkillTree.SetCSPoint( kPacket_.m_iCSPoint );
+		m_iSPoint.SetValue( kPacket_.m_iBeforeSPoint );
+		m_kSkillTree.SetCSPoint( kPacket_.m_iBeforeCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	}
 	else
 	{
@@ -5161,10 +5256,29 @@ IMPL_ON_FUNC( DBE_INIT_SKILL_TREE_ACK )
 		vecUpdatedSlot.push_back( kInfo );
 
 		kPacket.m_vecInventorySlotInfo = vecUpdatedSlot;		
+		
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		// 배운스킬 삭제.. 장착스킬 제거
+		m_kSkillTree.SetSPoint( kPacket_.m_iActiveSkillPageNumber - 1, kPacket_.m_iSPoint );
+		m_kSkillTree.SetCSPoint( kPacket_.m_iActiveSkillPageNumber - 1, kPacket_.m_iCSPoint );
+		
+		kPacket.m_iSPoint					= kPacket_.m_iSPoint;
+		kPacket.m_iCSPoint					= kPacket_.m_iCSPoint;
+		kPacket.m_iActiveSkillPageNumber	= kPacket_.m_iActiveSkillPageNumber;
+		
+		m_kSkillTree.ResetThisSkillPage( kPacket_.m_iActiveSkillPageNumber );
+
+		// 기본 스킬 넣기
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( kPacket_.m_iDefaultSkillID1, 1, 0 );
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( kPacket_.m_iDefaultSkillID2, 1, 0 );
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( kPacket_.m_iDefaultSkillID3, 1, 0 );
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( kPacket_.m_iDefaultSkillID4, 1, 0 );
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( kPacket_.m_iDefaultSkillID5, 1, 0 );
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( kPacket_.m_iDefaultSkillID6, 1, 0 );
+#else // SERV_SKILL_PAGE_SYSTEM
+		// 배운스킬 삭제.. 장착스킬 제거
 		kPacket.m_iSPoint = m_iSPoint;
 		kPacket.m_iCSPoint = m_kSkillTree.GetCSPoint();
-
-		// 배운스킬 삭제.. 장착스킬 제거
 		m_kSkillTree.Reset( true, true, false, false, false );
 
 		// 기본 스킬 넣기
@@ -5174,12 +5288,13 @@ IMPL_ON_FUNC( DBE_INIT_SKILL_TREE_ACK )
 		m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iDefaultSkillID4, 1, 0 );
 		m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iDefaultSkillID5, 1, 0 );
 		m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iDefaultSkillID6, 1, 0 );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 
 		// logdb로 통계 보내기
 		KELOG_INIT_SKILL_TREE_NOT kNot;
 		kNot.m_iUnitUID = GetCharUID();
-		kNot.m_iSPoint = m_iSPoint;
+		kNot.m_iSPoint	= kPacket_.m_iSPoint;
 		kNot.m_iCSPoint = kPacket_.m_iCSPoint;
 		kNot.m_iItemUID = kPacket_.m_iItemUID;
 
@@ -5273,9 +5388,7 @@ IMPL_ON_FUNC( EGS_GET_SKILL_REQ )
 	{
 		START_LOG( cerr, L"자신의 클래스와 다른 스킬을 획득하려함.!" )
 			<< BUILD_LOG( GetCharUID() )
-#ifndef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOGc( GetUnitClass() )
 			<< BUILD_LOG( kPacket_.m_iSkillID )
 			<< END_LOG;
@@ -5469,12 +5582,10 @@ IMPL_ON_FUNC( EGS_RESET_SKILL_REQ )
 		if( m_kInventory.IsLocked() == true )
 		{
 			START_LOG( cout, L"인벤토리 락이 걸려있는 상태입니다!" )
-#ifndef SERV_PRIVACY_AGREEMENT			
 				<< BUILD_LOG( GetUID() )
 				<< BUILD_LOG( GetName() )
-				<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
-				<< BUILD_LOG( GetCharUID() );
+				<< BUILD_LOG( GetCharUID() )
+				<< BUILD_LOG( GetCharName() );
 
 			kAck.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
 			SendPacket( EGS_RESET_SKILL_ACK, kAck );
@@ -5858,12 +5969,10 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 		if( m_kInventory.IsLocked() == true )
 		{
 			START_LOG( cout, L"인벤토리 락이 걸려있는 상태입니다!" )
-#ifndef SERV_PRIVACY_AGREEMENT			
 				<< BUILD_LOG( GetUID() )
 				<< BUILD_LOG( GetName() )
-				<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
-				<< BUILD_LOG( GetCharUID() );
+				<< BUILD_LOG( GetCharUID() )
+				<< BUILD_LOG( GetCharName() );
 
 			kAck.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
 			SendPacket( EGS_INIT_SKILL_TREE_ACK, kAck );
@@ -5893,9 +6002,7 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 	if( !m_kInventory.IsExist( kPacket_.m_iItemUID ) )
 	{
 		START_LOG( cerr, L"스킬초기화 아이템이 없는데 패킷 날아옴.!" )
-#ifndef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( kPacket_.m_iItemUID )			
 			<< END_LOG;
@@ -5907,12 +6014,6 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 
 	int iItemID = m_kInventory.GetItemID( kPacket_.m_iItemUID );
 	if( ( iItemID != CXSLItem::CI_SKILL_INIT_ITEM )
-#ifdef SERV_EVENT_INIT_SKILL_TREE_ITEM
-		&& iItemID != CXSLItem::CI_INIT_SKILL_TREE_ITEM 
-#endif SERV_EVENT_INIT_SKILL_TREE_ITEM
-#ifdef SERV_COUNTRY_JP		
-     	&&	iItemID != CXSLItem::CI_SKILL_INIT_EVENT_ITEM_JP 
-#endif //SERV_COUNTRY_JP
 		&& ( iItemID != CXSLItem::CI_SKILL_INIT_EVENT_ITEM )
 #ifdef SERV_NEW_SKILL_INIT_EVENT_ITEM// 작업날짜: 2013-06-25	// 박세훈
 		&& ( iItemID != CXSLItem::CI_SKILL_INIT_EVENT_ITEM2 )
@@ -5921,9 +6022,7 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 		)
 	{
 		START_LOG( cerr, L"스킬초기화 아이템ID가 이상함." )
-#ifndef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( kPacket_.m_iItemUID )
 			<< BUILD_LOG( iItemID )
@@ -5939,9 +6038,7 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 	if( !SiCXSLSkillTree()->GetUnitTypeDefaultSkill( GetUnitType(), iDefaultSkillID, iDefaultSkillID2 ) )
 	{
 		START_LOG( cerr, L"유닛타입이 이상함." )
-#ifndef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( GetUnitType() )
 			<< END_LOG;
@@ -5961,9 +6058,7 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 		(iUsedSPoint + iUsedCSPoint <= 0) )
 	{
 		START_LOG( cwarn, L"스킬을 하나도 배우지 않았거나 기본 스킬만 있는 상태인데( 즉, 더이상 초기화 할 필요가 없는데) 초기화 하려고 함." )
-#ifndef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( iUsedSPoint )
 			<< BUILD_LOG( iUsedCSPoint )
@@ -5995,9 +6090,7 @@ IMPL_ON_FUNC( EGS_INIT_SKILL_TREE_REQ )
 		else
 		{
 			START_LOG( cerr, L"cash skill point기한이 다되었는데 스킬트리에 csp가 남아있다." )
-#ifndef SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharUID() )
 				<< BUILD_LOG( iUsedSPoint )
 				<< BUILD_LOG( iUsedCSPoint )
@@ -6033,11 +6126,7 @@ IMPL_ON_FUNC( DBE_INIT_SKILL_TREE_ACK )
 	{
 		START_LOG( cerr, L"스킬초기화 실패.!" )
 			<< BUILD_LOG( NetError::GetErrStr( kPacket_.m_iOK ) )
-#ifdef SERV_PRIVACY_AGREEMENT
-			<< BUILD_LOG( GetCharUID() )
-#else
 			<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
 			<< END_LOG;
 	}
 	else
@@ -6050,11 +6139,7 @@ IMPL_ON_FUNC( DBE_INIT_SKILL_TREE_ACK )
 		{
 			START_LOG( cerr, L"USAGE TYPE 읽어오기 실패.!" )
 				<< BUILD_LOG( kPacket_.m_iItemUID )
-#ifdef SERV_PRIVACY_AGREEMENT
-				<< BUILD_LOG( GetCharUID() );
-#else
 				<< BUILD_LOG( GetCharName() );
-#endif SERV_PRIVACY_AGREEMENT
 		}
 
 		//usage type 읽어오기 실패를 해도 아이템 삭제시도는 해본다.
@@ -6175,6 +6260,7 @@ IMPL_ON_FUNC( DBE_EXPAND_INVENTORY_SLOT_ACK )
 			for( mit = kPacket_.m_mapExpandedSlot.begin(); mit != kPacket_.m_mapExpandedSlot.end(); ++mit )
 			{
 				int iExpanded;
+// 해외팀 제거				
 //#ifdef SERV_REFORM_INVENTORY_INT
 				//{{ 2012. 12. 26	박세훈	인벤토리 개편 테스트	- 허상형 ( Merged by 박세훈 )
 //#ifdef SERV_REFORM_INVENTORY_TEST
@@ -6215,7 +6301,7 @@ IMPL_ON_FUNC( DBE_EXPAND_INVENTORY_SLOT_ACK )
 			for( mit = kPacket_.m_mapExpandedSlot.begin(); mit != kPacket_.m_mapExpandedSlot.end(); ++mit )
 			{
 				int iExpanded;
-
+// 해외팀 제거
 //#ifdef SERV_REFORM_INVENTORY_INT
 				//{{ 2012. 12. 26	박세훈	인벤토리 개편 테스트	- 허상형 ( Merged by 박세훈 )
 //#ifdef SERV_REFORM_INVENTORY_TEST
@@ -6284,7 +6370,6 @@ IMPL_ON_FUNC( DBE_EXPAND_SKILL_SLOT_ACK )
 #else // SERV_GLOBAL_BILLING
 				SendPacket( EGS_GET_PURCHASED_CASH_ITEM_ACK, kPacket );
 #endif // SERV_GLOBAL_BILLING
-
 			}
 #ifndef SERV_GLOBAL_BILLING
 //		}			
@@ -6340,12 +6425,6 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_ACK )
 
 			if( iRewardID <= 0 )
 			{
-				START_LOG( cerr, L"이벤트 보상정보가 이상합니다. 이벤트테이블 확인 필요!" )
-					<< BUILD_LOG( iEventUID )
-					<< BUILD_LOG( iRewardID )
-					<< END_LOG;
-
-				// 보상정보가 이상하면 편지를 주지 말자!
 				continue;
 			}
 
@@ -6394,7 +6473,7 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_ACK )
 			}
 
 #ifdef SERV_EVENT_MONEY	// 김민성 // 적용날짜: 2013-07-04
-			if( iRewardID == 10569 )
+			if( iRewardID == 10622 )
 			{
 				CTime tCurr = CTime::GetCurrentTime();
 
@@ -6407,7 +6486,7 @@ IMPL_ON_FUNC( DBE_UPDATE_EVENT_TIME_ACK )
 				kReq.m_wstrRegDate = tCurr.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
 				SendToAccountDB( DBE_UPDATE_EVENT_MONEY_REQ, kReq );
 
-				SetEventMoney( GetEventMoney() + 1 );
+				SetEventMoney( GetEventMoney() + kReq.m_iNewQuantity );
 				continue;
 			}
 #endif // SERV_EVENT_MONEY
@@ -6625,6 +6704,25 @@ IMPL_ON_FUNC( DBE_INSERT_TITLE_ACK )
 			}
 		}
 #endif SERV_2013_JUNGCHU_TITLE
+#ifdef SERV_CREATE_CHUNG_REWARD_TITLE
+
+		if( kPacket_.m_iTitleID == KRewardTable::ERI_CREATE_CHUNG_REWARD_TITLE )
+		{
+			// 타이틀 장착
+			m_kUserTitleManager.EquipTitle( kPacket_.m_iTitleID );
+		}
+
+#endif SERV_CREATE_CHUNG_REWARD_TITLE
+
+#ifdef SERV_CREATE_NEW_CHARACTER_REWARD_TITLE
+
+		if( kPacket_.m_iTitleID == KRewardTable::ERI_CREATE_NEW_CHARACTER_REWARD_TITLE )
+		{
+			// 타이틀 장착
+			m_kUserTitleManager.EquipTitle( kPacket_.m_iTitleID );
+		}
+
+#endif SERV_CREATE_NEW_CHARACTER_REWARD_TITLE
 
 #ifdef SERV_CHANNELING_AERIA_EVENT
 		IF_EVENT_ENABLED( CEI_CHANNELING_AERIA_EVENT )
@@ -6636,6 +6734,30 @@ IMPL_ON_FUNC( DBE_INSERT_TITLE_ACK )
 			}
 		}
 #endif SERV_CHANNELING_AERIA_EVENT
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		switch( kPacket_.m_iTitleID )
+		{
+		case 5730:
+		case 5740:
+		case 5750:
+		case 5760:
+		case 5770:
+		case 5780:
+		case 5790:
+		case 5800:
+		case 5810:
+		case 5820:
+			// 타이틀 장착
+			m_kUserTitleManager.EquipTitle( kPacket_.m_iTitleID );
+			START_LOG( cerr, L"이벤트 칭호 장착" )
+				<< BUILD_LOG( kPacket_.m_iTitleID )
+				<< END_LOG;
+			break;
+		default:
+			break;
+		}
+#endif SERV_ELESIS_UPDATE_EVENT
 	}
 }
 
@@ -6756,6 +6878,15 @@ IMPL_ON_FUNC( EGS_USE_MEGAPHONE_REQ )
 	// 예외처리
 	{
 		KEGS_USE_MEGAPHONE_ACK kAck;
+
+#ifdef SERV_STRING_FILTER_USING_DB
+		if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_CHAT, kPacket_.m_wstrMessage ) == false )
+		{
+			kAck.m_iOK = NetError::ERR_STRING_FILTER_00;
+			SendPacket( EGS_USE_MEGAPHONE_ACK, kAck );
+			return;
+		}
+#endif //SERV_STRING_FILTER_USING_DB
 
 		//{{ 2012. 03. 29	최육사	Inventory Lock 기능
 #ifdef SERV_INVENTORY_LOCK
@@ -6878,7 +7009,6 @@ IMPL_ON_FUNC( EGS_USE_MEGAPHONE_REQ )
 	}
 #endif SERV_RECORD_CHAT
 	//}}
-
 }
 
 //{{ 2010. 02. 01  최육사	메가폰 상태 제한
@@ -6977,7 +7107,11 @@ IMPL_ON_FUNC_NOPARAM( EGS_CHECK_TIME_EVENT_COMPLETE_REQ )
 	kPacketToDB.m_iUnitUID = GetCharUID();
     m_kInventory.FlushQuantityChange( kPacketToDB.m_kItemQuantityUpdate.m_mapQuantityChange );
 	m_kInventory.FlushDeletedItem( kPacketToDB.m_kItemQuantityUpdate.m_vecDeleted );
+#ifdef SERV_ADD_EVENT_DB
+	//SendToEventDB( DBE_CHECK_TIME_EVENT_COMPLETE_REQ, kPacketToDB ); // 해당 이벤트 사용 못함 사용할려면 추가 작업 필요
+#else //SERV_ADD_EVENT_DB
 	SendToGameDB( DBE_CHECK_TIME_EVENT_COMPLETE_REQ, kPacketToDB );
+#endif //SERV_ADD_EVENT_DB
 }
 
 IMPL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_ACK )
@@ -7436,8 +7570,7 @@ IMPL_ON_FUNC( EGS_FINAL_DELETE_UNIT_REQ )
 	// EGS_FINAL_DELETE_UNIT_REQ 는 최종 삭제 요청 Delete 임
 
 	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_SERVER_SELECT ), EGS_FINAL_DELETE_UNIT_REQ, EGS_FINAL_DELETE_UNIT_ACK );
-
-
+	
 	//{{ 2011. 05. 02  김민성	2차 보안 시스템
 #ifdef SERV_SECOND_SECURITY
 	if( IsUseSecurity() == true )
@@ -7463,12 +7596,10 @@ IMPL_ON_FUNC( EGS_FINAL_DELETE_UNIT_REQ )
 	SendToGameDB( DBE_GAME_FINAL_DELETE_UNIT_REQ, kPacket_ );
 }
 
-
 _IMPL_ON_FUNC( DBE_GAME_FINAL_DELETE_UNIT_ACK, KEGS_FINAL_DELETE_UNIT_ACK )
 {
 	VERIFY_STATE_ACK( ( 1, KGSFSM::S_SERVER_SELECT ), EGS_FINAL_DELETE_UNIT_ACK );
-
-
+	
 	if( kPacket_.m_iOK != NetError::NET_OK )
 	{
 		SendPacket( EGS_FINAL_DELETE_UNIT_ACK, kPacket_ );
@@ -7738,6 +7869,11 @@ IMPL_ON_FUNC( EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ )
 
 	kPacket.m_iUserUID = GetUID();
 	kPacket.m_kKeyboardMappingInfo.m_mapKeyboardMappingInfo = kPacket_.m_mapKeyboardMappingInfo;
+
+#ifdef SERV_KEY_MAPPING_INT
+	kPacket.m_kKeyboardMappingInfo.m_mapGamePadMappingInfo = kPacket_.m_mapGamePadMappingInfo;
+#endif //SERV_KEY_MAPPING_INT
+
 	SendToAccountDB( DBE_KEYBOARD_MAPPING_INFO_WRITE_REQ, kPacket );
 }
 
@@ -7762,15 +7898,26 @@ IMPL_ON_FUNC( EGS_UPDATE_PLAY_STATUS_NOT )
 	// 플레이 상태 정보 저장!
 	bool bChangedHpMp = false;
 	KPartyMemberStatus kPartyMemberStatus;
-
+		
 	// 유효한 값을 저장해 두도록 하자 -> 0이상의 값으로 저장
-	kPacket_.m_kGamePlayStatus.m_iMaxHP = max( 0, kPacket_.m_kGamePlayStatus.m_iMaxHP );
-	kPacket_.m_kGamePlayStatus.m_iCurHP = max( 0, kPacket_.m_kGamePlayStatus.m_iCurHP );
+	KStatTable::KUnitStatInfo	sUnitStat;
+	SiKStatTable()->GetUnitStat( GetUnitClass(), m_ucLevel, sUnitStat );
+
+	/// kimhc // 김현철 // 해킹 때문에 HP는 기본 HP의 3배
+	/// MP는 500 으로 제한 함
+	/// 추후 스탯 계산 (MP포함)을 통해 체크 하도록 해야 할 듯...
+	kPacket_.m_kGamePlayStatus.m_iMaxHP = max( sUnitStat.m_uiHP * 3, kPacket_.m_kGamePlayStatus.m_iMaxHP );
+	kPacket_.m_kGamePlayStatus.m_iCurHP = max( kPacket_.m_kGamePlayStatus.m_iCurHP, kPacket_.m_kGamePlayStatus.m_iMaxHP );
+	
 	kPacket_.m_kGamePlayStatus.m_iMaxMP = max( 0, kPacket_.m_kGamePlayStatus.m_iMaxMP );
+	kPacket_.m_kGamePlayStatus.m_iMaxMP = min( 500, kPacket_.m_kGamePlayStatus.m_iMaxMP );
+
 	kPacket_.m_kGamePlayStatus.m_iCurMP = max( 0, kPacket_.m_kGamePlayStatus.m_iCurMP );
+	kPacket_.m_kGamePlayStatus.m_iCurMP = min( kPacket_.m_kGamePlayStatus.m_iCurMP, kPacket_.m_kGamePlayStatus.m_iMaxMP );
+
 	kPacket_.m_kGamePlayStatus.m_iCurHyperGage = max( 0, kPacket_.m_kGamePlayStatus.m_iCurHyperGage );
 	kPacket_.m_kGamePlayStatus.m_cCharAbilType = max( 0, static_cast<int>(kPacket_.m_kGamePlayStatus.m_cCharAbilType) );
-
+	
 	m_kUserUnitManager.SetGamePlayStatusAndCheckChangedHpMp( kPacket_.m_kGamePlayStatus, bChangedHpMp, kPartyMemberStatus );
 
 	// HpMp정보가 변경되었고 파티소속 유저라면 파티원들에게도 변경된 hpMp를 전송하자!
@@ -8267,15 +8414,18 @@ IMPL_ON_FUNC( EGS_LOCAL_RANKING_USER_INFO_READ_REQ )
 	}
 
 	// soap 을 이용하여 유저의 비밀번호 확인을 하자
-	KSOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_READ_REQ kPacketToSoap;
-	kPacketToSoap.m_iNexonSN		= ( __int64 )m_kNexonAccountInfo.m_uiNexonSN;
-	kPacketToSoap.m_wstrPassword	= kPacket_.m_wstrPassword;
+    if ( GetChannelCode() == KNexonAccountInfo::CE_NEXON_ACCOUNT ) 
+    {
+        KSOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_READ_REQ kPacketToSoap;
+        kPacketToSoap.m_iNexonSN		= ( __int64 )m_kNexonAccountInfo.m_uiNexonSN;
+        kPacketToSoap.m_strPassword		= KncUtil::toNarrowString( kPacket_.m_wstrPassword );
 
-	KEventPtr spEvent( new KEvent );
-	UidType anTrace[2] = { GetUID(), -1 };
-	spEvent->SetData(PI_NULL, anTrace, SOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_READ_REQ, kPacketToSoap );
+        KEventPtr spEvent( new KEvent );
+        UidType anTrace[2] = { GetUID(), -1 };
+        spEvent->SetData(PI_NULL, anTrace, SOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_READ_REQ, kPacketToSoap );
 
-	SiKNexonSOAPManager()->QueueingEvent( spEvent );
+        SiKNexonSOAPManager()->QueueingEvent( spEvent );
+    }
 }
 
 IMPL_ON_FUNC( SOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_READ_ACK )
@@ -8286,7 +8436,7 @@ IMPL_ON_FUNC( SOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_READ_ACK )
 		kPacket.m_iOK = NetError::ERR_LOCALRANKING_07;
 		SendPacket( EGS_LOCAL_RANKING_USER_INFO_READ_ACK, kPacket );
 
-		START_LOG( cerr, L"Soap을 이용한 유저 비밀번호 인증 실패!" )
+		START_LOG( clog, L"Soap을 이용한 유저 비밀번호 인증 실패!" )
 			<< BUILD_LOG( kPacket_.m_iOK )
 			<< BUILD_LOG( GetUID() )
 			<< END_LOG;
@@ -8391,6 +8541,16 @@ IMPL_ON_FUNC( EGS_LOCAL_RANKING_USER_INFO_WRITE_REQ )
 {
 	VERIFY_STATE_REPEAT_FILTER( ( 4, KGSFSM::S_LOGINED, KGSFSM::S_SERVER_SELECT, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_LOCAL_RANKING_USER_INFO_WRITE_REQ, EGS_LOCAL_RANKING_USER_INFO_WRITE_ACK );
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_CHAT, kPacket_.m_kInfo.m_wstrProfile ) == false )
+	{
+		KEGS_LOCAL_RANKING_USER_INFO_WRITE_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_STRING_FILTER_02;
+		SendPacket( EGS_LOCAL_RANKING_USER_INFO_WRITE_ACK, kPacket );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
+
 	if( 50 < kPacket_.m_wstrPassword.size() )
 	{
 		KEGS_LOCAL_RANKING_USER_INFO_WRITE_ACK kPacket;
@@ -8399,17 +8559,28 @@ IMPL_ON_FUNC( EGS_LOCAL_RANKING_USER_INFO_WRITE_REQ )
 		return;
 	}
 
-	// soap 을 이용하여 유저의 비밀번호 확인을 하자
-	KSOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_WRITE_REQ kPacketToSoap;
-	kPacketToSoap.m_iNexonSN		= ( __int64 )m_kNexonAccountInfo.m_uiNexonSN;
-	kPacketToSoap.m_wstrPassword	= kPacket_.m_wstrPassword;
-	kPacketToSoap.m_kInfo			= kPacket_.m_kInfo;
+    if ( GetChannelCode() == KNexonAccountInfo::CE_NEXON_ACCOUNT ) 
+    {
+        // soap 을 이용하여 유저의 비밀번호 확인을 하자
+        KSOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_WRITE_REQ kPacketToSoap;
+        kPacketToSoap.m_iNexonSN		= ( __int64 )m_kNexonAccountInfo.m_uiNexonSN;
+        kPacketToSoap.m_strPassword		= KncUtil::toNarrowString( kPacket_.m_wstrPassword );
+        kPacketToSoap.m_kInfo			= kPacket_.m_kInfo;
 
-	KEventPtr spEvent( new KEvent );
-	UidType anTrace[2] = { GetUID(), -1 };
-	spEvent->SetData(PI_NULL, anTrace, SOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_WRITE_REQ, kPacketToSoap );
+        KEventPtr spEvent( new KEvent );
+        UidType anTrace[2] = { GetUID(), -1 };
+        spEvent->SetData(PI_NULL, anTrace, SOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_WRITE_REQ, kPacketToSoap );
 
-	SiKNexonSOAPManager()->QueueingEvent( spEvent );
+        SiKNexonSOAPManager()->QueueingEvent( spEvent );
+    }
+    else
+    {
+        // DB에 데이터를 업데이트 하러 가자!
+        KDBE_LOCAL_RANKING_USER_INFO_WRITE_REQ kPackeToDB;
+        kPackeToDB				= kPacket_.m_kInfo;
+        kPackeToDB.m_iUserUID	= GetUID();
+        SendToAccountDB( DBE_LOCAL_RANKING_USER_INFO_WRITE_REQ, kPackeToDB );
+    }	
 }
 
 IMPL_ON_FUNC( SOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_WRITE_ACK )
@@ -8458,7 +8629,11 @@ IMPL_ON_FUNC( SOAP_LOCAL_RANKING_NEXON_ID_CHECK_FOR_WRITE_ACK )
 	}
 
 	// 프로필 정보의 비속어 검사
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_CHAT, kPacket_.m_kInfo.m_wstrProfile ) == false )
+#else //SERV_STRING_FILTER_USING_DB
 	if( SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_CHAT, kPacket_.m_kInfo.m_wstrProfile ) == false )
+#endif //SERV_STRING_FILTER_USING_DB
 	{
 		KEGS_LOCAL_RANKING_USER_INFO_WRITE_ACK kPacket;
 		kPacket.m_iOK = NetError::ERR_LOCALRANKING_09;
@@ -8579,7 +8754,6 @@ IMPL_ON_FUNC( EGS_LOCAL_RANKING_INQUIRY_ACK )
 #endif SERV_LOCAL_RANKING_SYSTEM
 //}}
 
-
 #ifdef SERV_ADD_WARP_BUTTON
 IMPL_ON_FUNC( EGS_WARP_BY_BUTTON_REQ )
 {
@@ -8665,7 +8839,6 @@ IMPL_ON_FUNC( EGS_WARP_BY_BUTTON_REQ )
 
 	SendPacket( EGS_WARP_BY_BUTTON_ACK, kPacketAck );
 }
-
 #endif // SERV_ADD_WARP_BUTTON
 
 #ifdef	SERV_LOCAL_RANKING_SYSTEM // 적용날짜: 2013-04-05
@@ -8816,12 +8989,9 @@ IMPL_ON_FUNC_NOPARAM( ERM_UDP_KICK_STATE_CHANGE_FIELD_NOT )
 #endif SERV_FIX_SYNC_PACKET_USING_RELAY
 //}}
 
-
 #ifdef SERV_CLIENT_PORT_CHANGE_REQUEST_LOG
 IMPL_ON_FUNC( EGS_CLIENT_POPRT_CHANGE_REQUEST_INFO_NOT )
 {
-
-
 	KDBE_CLIENT_POPRT_CHANGE_REQUEST_INFO_NOT kPacketLogDB;
 	kPacketLogDB.m_iUDPPortSuccessType = kPacket_.m_iUDPPortSuccessType;
 	kPacketLogDB.m_iUseUdpPort = kPacket_.m_iUseUdpPort;
@@ -8839,8 +9009,10 @@ IMPL_ON_FUNC( EGS_SKILL_USE_REQ )
 	if( kPacket_.m_iSkillID == -1 )
 		return;
 
-	// 던전에서만 체크합니다.
-	if( CXSLRoom::RT_DUNGEON != CXSLRoom::GetRoomType( GetRoomUID() ) )
+	// 던전, 대전, 배틀필드 에서만 체크합니다.
+	if( CXSLRoom::RT_DUNGEON != CXSLRoom::GetRoomType( GetRoomUID() ) &&
+		CXSLRoom::RT_PVP != CXSLRoom::GetRoomType( GetRoomUID() ) &&
+		CXSLRoom::RT_BATTLE_FIELD != CXSLRoom::GetRoomType( GetRoomUID() ) )
 		return;
 
 	if( CXSLDungeon::IsTutorialDungeon( m_kUserDungeonManager.GetDungeonID() ) == true ||
@@ -8910,6 +9082,10 @@ IMPL_ON_FUNC( EGS_JUMPING_CHARACTER_REQ )
 	KDBE_JUMPING_CHARACTER_UPDATE_REQ kPacketToDB;
 	kPacketToDB.m_iUnitUID		= GetCharUID();
 	kPacketToDB.m_iLevel		= iLevel;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacketToDB.m_iTheNumberOfSkillPagesAvailable	= m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	// 기술의 노트 페이지 처리
 	if( m_kSkillTree.IsHaveSkillNote() == true )
@@ -9037,7 +9213,12 @@ IMPL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_ACK )
 			
 			BOOST_TEST_FOREACH( const int, iSkillID, kPacket_.m_vecNewDefaultSkill )
 			{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+				// kimhc // 김현철 // 점핑 캐릭터 시, 모든 스킬 페이지 변경
+				m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( iSkillID, 1, 0 );
+#else // SERV_SKILL_PAGE_SYSTEM
 				m_kSkillTree.SetSkillLevelAndCSP( iSkillID, 1, 0 );
+#endif // SERV_SKILL_PAGE_SYSTEM
 			}
 
 			//{{ 2013. 09. 24	최육사	일본 이벤트 중계DB작업
@@ -9152,23 +9333,134 @@ IMPL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_ACK )
 }
 #endif // SERV_JUMPING_CHARACTER
 
-#ifdef SERV_KOM_FILE_CHECK_ADVANCED
-IMPL_ON_FUNC( EGS_KOM_FILE_CHECK_LOG_REQ )
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING
+IMPL_ON_FUNC( DBE_GET_TIME_CONTROL_ITME_LIST_NOT )
 {
-	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_KOM_FILE_CHECK_LOG_REQ, EGS_KOM_FILE_CHECK_LOG_ACK );
-
-	KELOG_KOM_FILE_CHECK_LOG_NOT kPacket;
-	kPacket.m_iUserUID = GetUID();
-	kPacket.m_wstrInvaildKomName = kPacket_.m_wstrInvalidKomName;
-	SendToLogDB( ELOG_KOM_FILE_CHECK_LOG_NOT, kPacket );
-
-	KEGS_KOM_FILE_CHECK_LOG_ACK kPacket2;
-	kPacket2.m_wstrInvalidKomName = kPacket_.m_wstrInvalidKomName;
-	kPacket2.m_iOK = NetError::NET_OK;
-	SendPacket( EGS_KOM_FILE_CHECK_LOG_ACK, kPacket2 );
+	SendPacket( EGS_GET_TIME_CONTROL_ITME_LIST_NOT, kPacket_ );
 }
-#endif SERV_KOM_FILE_CHECK_ADVANCED
 
+IMPL_ON_FUNC( EGS_BUY_UI_SETTING_REQ )
+{
+	KEGS_BUY_UI_SETTING_ACK kPacketBuyUI;
+
+	if ( m_bTimeControlItemCheckDungeonPlay == true )
+	{
+
+		kPacketBuyUI.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
+		SendPacket( EGS_BUY_UI_SETTING_ACK, kPacketBuyUI );
+
+		return;
+	}
+
+	std::set<int> setBanBuyItemInven;
+	setBanBuyItemInven.clear();
+
+	CTime m_tStartDate;
+	CTime m_tEndDate;
+
+	std::vector<KPacketGetItemOnOff>::iterator vitrGetItemOnOff;
+	std::map<int , std::vector<KPacketGetItemOnOff> > mapGetItemOnOff =  GetKGSSimLayer()->GetTimeControlItem_Info();
+	std::map<int , std::vector<KPacketGetItemOnOff> >::iterator mit = mapGetItemOnOff.find( kPacket_.m_iTimeControlItemType );
+
+	if ( mit != mapGetItemOnOff.end() )
+	{
+		for ( vitrGetItemOnOff = mit->second.begin(); vitrGetItemOnOff != mit->second.end(); ++vitrGetItemOnOff )
+		{
+			KncUtil::ConvertStringToCTime(vitrGetItemOnOff->m_wstrStartTime , m_tStartDate);
+			KncUtil::ConvertStringToCTime(vitrGetItemOnOff->m_wstrEndTime , m_tEndDate);
+
+			if( CTime::GetCurrentTime() >= m_tStartDate && CTime::GetCurrentTime() <= m_tEndDate )
+			{
+				setBanBuyItemInven.insert(vitrGetItemOnOff->m_iItemID);
+			}
+		}
+	}
+
+	kPacketBuyUI.m_iOK = NetError::NET_OK;
+	kPacketBuyUI.m_setGetItemOnOff = setBanBuyItemInven;
+	kPacketBuyUI.m_iHouseID = kPacket_.m_iHouseID;
+	kPacketBuyUI.m_iTimeControlItemType = kPacket_.m_iTimeControlItemType;
+	SendPacket( EGS_BUY_UI_SETTING_ACK, kPacketBuyUI );
+}
+
+IMPL_ON_FUNC( EGS_GET_TIME_CONTROL_ITME_TALK_LIST_REQ )
+{
+	if ( m_bTimeControlItemCheckDungeonPlay == true )
+	{
+		KEGS_BUY_UI_SETTING_ACK kPacketBuyUI;	// 2012.12.20 lygan_조성욱 // 어차피 넷에러만 발송 해야 함으로 이 패킷 재활용
+		kPacketBuyUI.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
+		SendPacket( EGS_BUY_UI_SETTING_ACK, kPacketBuyUI );
+		return;
+	}
+
+	KEGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK kPacket;
+	CTime m_tStartDate;
+	CTime m_tEndDate;
+	std::map<int , std::vector<KPacketGetItemOnOff> > mapGetItemOnOff =  GetKGSSimLayer()->GetTimeControlItem_Info();
+	std::map<int , std::vector<KPacketGetItemOnOff> >::iterator mit = mapGetItemOnOff.begin();
+
+	for ( ; mit != mapGetItemOnOff.end(); ++mit )
+	{
+		std::vector<KPacketGetItemOnOff> vecTempItemOnOff;
+
+		BOOST_TEST_FOREACH( KPacketGetItemOnOff , kTimeControlItem, mit->second )
+		{
+			KncUtil::ConvertStringToCTime(kTimeControlItem.m_wstrStartTime , m_tStartDate);
+			KncUtil::ConvertStringToCTime(kTimeControlItem.m_wstrEndTime , m_tEndDate);
+
+			if( CTime::GetCurrentTime() >= m_tStartDate && CTime::GetCurrentTime() <= m_tEndDate )
+			{
+				vecTempItemOnOff.push_back(kTimeControlItem);
+			}
+		}
+
+		kPacket.m_mapGetItemOnOff.insert(std::make_pair(mit->first, vecTempItemOnOff ));
+	}
+
+	SendPacket( EGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK, kPacket );
+}
+#endif SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+IMPL_ON_FUNC( DBE_CHECK_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL_ACK )
+{
+	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
+
+	if( kPacket_.m_iOK == NetError::NET_OK )
+	{
+		// 보상을 받았으므로 이벤트 대상에서 제외
+		SetRewardBonusItem(kPacket_.m_iRewardBonusItem);
+	}
+}
+#endif SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+
+#ifdef SERV_MOMOTI_EVENT
+//m_iCheckReward ( 0 : 이번에지급, 1 : 이미 보상지급 완료, 2 : 정답 틀림 )
+
+IMPL_ON_FUNC( EGS_MOMOTI_QUIZ_EVENT_REQ )
+{
+	VERIFY_STATE( ( 1, KGSFSM::S_FIELD_MAP ) );
+
+	KDBE_MOMOTI_QUIZ_EVENT_REQ kPacketDBEMomotiQuizEventReq;
+	
+	kPacketDBEMomotiQuizEventReq.m_iOK = NetError::NET_OK;
+	kPacketDBEMomotiQuizEventReq.m_iUserUID = GetUID();
+	kPacketDBEMomotiQuizEventReq.m_iUnitUID = GetCharUID();
+	kPacketDBEMomotiQuizEventReq.m_istrReply = kPacket_.m_istrReply;
+	SendToGameDB( DBE_MOMOTI_QUIZ_EVENT_REQ, kPacketDBEMomotiQuizEventReq );
+
+}
+IMPL_ON_FUNC( DBE_MOMOTI_QUIZ_EVENT_ACK )
+{
+	VERIFY_STATE( ( 1, KGSFSM::S_FIELD_MAP ) );
+
+	// 리워드 정보 클라이언트 전달
+	KEGS_MOMOTI_QUIZ_EVENT_ACK kPacketEGSMomotiQuizEventAck;
+	kPacketEGSMomotiQuizEventAck.m_iOK = NetError::NET_OK;
+	kPacketEGSMomotiQuizEventAck.m_iCheckReward = kPacket_.m_iCheckReward;
+	SendPacket( EGS_MOMOTI_QUIZ_EVENT_ACK, kPacketEGSMomotiQuizEventAck );
+}
+#endif SERV_MOMOTI_EVENT
 
 #ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
 IMPL_ON_FUNC( DBE_CHANGE_PET_ID_ACK )
@@ -9386,6 +9678,31 @@ IMPL_ON_FUNC( ELG_RECRUIT_RECRUITER_INFO_NOT )
 	SendPacket( EGS_RECRUIT_RECRUITER_INFO_NOT, kPacket );
 }
 #endif SERV_RECRUIT_EVENT_BASE
+
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+IMPL_ON_FUNC_NOPARAM( EGS_GET_EVENT_INFO_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_GET_EVENT_INFO_REQ, EGS_GET_EVENT_INFO_ACK );
+
+	SendToGameDB( DBE_GET_EVENT_INFO_REQ );
+}
+
+_IMPL_ON_FUNC( DBE_GET_EVENT_INFO_ACK, KEGS_GET_EVENT_INFO_ACK )
+{
+	VERIFY_STATE( ( 1, KGSFSM::S_FIELD_MAP ) );
+
+	SendPacket( EGS_GET_EVENT_INFO_ACK, kPacket_ );
+}
+#endif SERV_EVENT_CHARACTER_QUEST_RANKING
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+IMPL_ON_FUNC( ESG_REWARD_DB_DATA_NOT )
+{
+
+	SendPacket( ESG_REWARD_DB_DATA_NOT, kPacket_ );
+
+}
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 #ifdef SERV_NEW_YEAR_EVENT_2014
 IMPL_ON_FUNC( EGS_2013_EVENT_MISSION_COMPLETE_REQ )
@@ -9717,6 +10034,64 @@ _IMPL_ON_FUNC( DBE_2014_EVENT_MISSION_COMPLETE_ACK, KEGS_2014_EVENT_MISSION_COMP
 }
 #endif SERV_NEW_YEAR_EVENT_2014
 
+#ifdef SERV_ELESIS_UPDATE_EVENT
+IMPL_ON_FUNC_NOPARAM( EGS_EVENT_NOTE_VIEW_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_EVENT_NOTE_VIEW_REQ, EGS_EVENT_NOTE_VIEW_ACK );
+
+	if( m_iNoteViewCount > 0 )
+	{
+		m_iNoteViewCount--;
+
+		int iTitleID = 5730 + ((rand()%10) * 10);
+		bool bExistTitle = m_kUserTitleManager.IsExistTitle( iTitleID );
+
+		if( bExistTitle )
+		{
+			// 칭호 기간을 연장하자!
+			KDBE_INSERT_TITLE_REQ kPacketToDB;
+			kPacketToDB.m_iUnitUID = GetCharUID();
+			kPacketToDB.m_iTitleID = iTitleID;
+			kPacketToDB.m_sPeriod  = 1;
+			kPacketToDB.m_bGameServerEvent = false;
+			kPacketToDB.m_bExpandPeriod = true;
+			SendToGameDB( DBE_INSERT_TITLE_REQ, kPacketToDB );
+		}
+		else
+		{
+			// 안가지고 있으면 타이틀 지급
+			KDBE_INSERT_TITLE_REQ kPacketToDB;
+			kPacketToDB.m_iUnitUID = GetCharUID();
+			kPacketToDB.m_iTitleID = iTitleID;
+			kPacketToDB.m_sPeriod  = 1;
+			SendToGameDB( DBE_INSERT_TITLE_REQ, kPacketToDB );
+		}
+
+		KEGS_EVENT_NOTE_VIEW_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::NET_OK;
+		kPacketAck.m_iTitleID = iTitleID;
+		kPacketAck.m_iNoteViewCount = m_iNoteViewCount;
+		SendPacket( EGS_EVENT_NOTE_VIEW_ACK, kPacketAck );
+
+		START_LOG( cerr, L"이벤트 칭호 획득" )
+			<< BUILD_LOG( m_iNoteViewCount )
+			<< BUILD_LOG( iTitleID )
+			<< BUILD_LOG( bExistTitle )
+			<< END_LOG;
+	}
+	else
+	{
+		KEGS_EVENT_NOTE_VIEW_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_UNKNOWN;
+		SendPacket( EGS_EVENT_NOTE_VIEW_ACK, kPacketAck );
+
+		START_LOG( cerr, L"클라이언트에서 한 번 확인했을텐데..." )
+			<< BUILD_LOG( m_iNoteViewCount )
+			<< END_LOG;
+	}
+}
+#endif SERV_ELESIS_UPDATE_EVENT
+
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
 IMPL_ON_FUNC( EGS_UNLIMITED_SECOND_CHANGE_JOB_NOT )
 {
@@ -9735,3 +10110,1465 @@ IMPL_ON_FUNC( EGS_UNLIMITED_SECOND_CHANGE_JOB_NOT )
 	}
 }
 #endif //SERV_UNLIMITED_SECOND_CHANGE_JOB
+
+#ifdef SERV_EVENT_CHECK_POWER
+IMPL_ON_FUNC( EGS_START_CHECK_POWER_REQ )
+{
+	START_LOG( cwarn, L"패킷 오는지 검사")
+		<< BUILD_LOG( kPacket_.m_bStart )
+		<< END_LOG;
+
+	VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_START_CHECK_POWER_ACK );
+
+	IF_EVENT_ENABLED( CEI_CHECK_POWER )
+	{
+	}
+	ELSE
+	{
+		KEGS_START_CHECK_POWER_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_QUEST_01;
+
+		SendPacket( EGS_START_CHECK_POWER_ACK, kPacket );
+		return;
+	}
+
+	KDBE_START_CHECK_POWER_REQ kPacketToDB;
+	if( kPacket_.m_bStart == true )
+	{
+		unsigned char ucMaxCount = 2;
+
+		if( static_cast< CXSLUnit::UNIT_TYPE >( GetUnitType() ) == CXSLUnit::UT_ELESIS )
+			ucMaxCount = 3;
+
+		if( m_ucCheckPowerCount >= ucMaxCount )
+		{
+			KEGS_START_CHECK_POWER_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_QUEST_01;
+
+			SendPacket( EGS_START_CHECK_POWER_ACK, kPacket );
+			return;
+		}
+
+		// 날짜가 지났다면 카운트 하기 전 초기화를 해 준다.
+		CTime tCurrentTime = CTime::GetCurrentTime();
+		if( tCurrentTime.GetDay() != CTime( m_iCheckPowerTime ).GetDay() )
+		{
+			m_ucCheckPowerCount = 0;
+		}
+
+		m_iCheckPowerTime = tCurrentTime.GetTime();
+		++m_ucCheckPowerCount;
+		m_ucCheckPowerScore = 0;
+	}
+	// 진짜 새로 등록하는 유저인지 검사
+	else if( m_iCheckPowerTime < CTime( 2013, 12, 1, 0, 0, 0 ).GetTime() )
+	{
+		m_iCheckPowerTime = CTime( 2013, 12, 17, 0, 0, 0 ).GetTime();
+		m_ucCheckPowerScore = 255;
+	}
+	else
+	{
+		KEGS_START_CHECK_POWER_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_QUEST_01;
+
+		SendPacket( EGS_START_CHECK_POWER_ACK, kPacket );
+		return;
+	}
+
+	kPacketToDB.m_iUnitUID = GetCharUID();
+	kPacketToDB.m_iCheckPowerTime = m_iCheckPowerTime;
+	kPacketToDB.m_ucCheckPowerCount = m_ucCheckPowerCount;
+	kPacketToDB.m_ucCheckPowerScore = m_ucCheckPowerScore;
+
+	SendToGameDB( DBE_START_CHECK_POWER_REQ, kPacketToDB );
+}
+
+IMPL_ON_FUNC( DBE_START_CHECK_POWER_ACK )
+{
+	KEGS_START_CHECK_POWER_ACK kPacket;
+	kPacket.m_iOK = kPacket_.m_iOK;
+	SendPacket( EGS_START_CHECK_POWER_ACK, kPacket );
+
+	START_LOG( cwarn, L"패킷 오는지 검사")
+		<< BUILD_LOG( kPacket_.m_iOK )
+		<< END_LOG;
+
+	if( kPacket_.m_iOK == NetError::NET_OK )
+	{
+		m_bCheckPowerShowPopUp		= false;
+
+		KEGS_UPDATE_CHECK_POWER_NOT kNot;
+		kNot.m_ucCheckPowerCount	= m_ucCheckPowerCount;
+		kNot.m_iCheckPowerTime		= m_iCheckPowerTime;
+		kNot.m_ucCheckPowerScore	= m_ucCheckPowerScore;
+
+		SendPacket( EGS_UPDATE_CHECK_POWER_NOT, kNot );
+	}
+}
+
+IMPL_ON_FUNC( DBE_UPDATE_CHECK_POWER_ACK )
+{
+	START_LOG( cwarn, L"패킷 오는지 검사")
+		<< BUILD_LOG( kPacket_.m_iOK )
+		<< END_LOG;
+
+	if( kPacket_.m_iOK == NetError::NET_OK )
+	{
+		m_bCheckPowerShowPopUp		= false;
+
+		KEGS_UPDATE_CHECK_POWER_NOT kNot;
+		kNot.m_ucCheckPowerCount	= m_ucCheckPowerCount;
+		kNot.m_iCheckPowerTime		= m_iCheckPowerTime;
+		kNot.m_ucCheckPowerScore	= m_ucCheckPowerScore;
+
+		SendPacket( EGS_UPDATE_CHECK_POWER_NOT, kNot );
+	}
+}
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_KOM_FILE_CHECK_ADVANCED
+IMPL_ON_FUNC( EGS_KOM_FILE_CHECK_LOG_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_KOM_FILE_CHECK_LOG_REQ, EGS_KOM_FILE_CHECK_LOG_ACK );
+
+	KELOG_KOM_FILE_CHECK_LOG_NOT kPacket;
+	kPacket.m_iUserUID = GetUID();
+	kPacket.m_wstrInvaildKomName = kPacket_.m_wstrInvalidKomName;
+	SendToLogDB( ELOG_KOM_FILE_CHECK_LOG_NOT, kPacket );
+
+	KEGS_KOM_FILE_CHECK_LOG_ACK kPacket2;
+	kPacket2.m_wstrInvalidKomName = kPacket_.m_wstrInvalidKomName;
+	kPacket2.m_iOK = NetError::NET_OK;
+	SendPacket( EGS_KOM_FILE_CHECK_LOG_ACK, kPacket2 );
+}
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
+
+#ifdef SERV_SKILL_PAGE_SYSTEM	// 작업날짜: 2013-11-14	// 김현철
+
+IMPL_ON_FUNC_NOPARAM( EGS_GET_NEXT_SKILL_PAGE_ED_REQ )
+{
+	// 상태 체크
+	VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_GET_NEXT_BANK_ED_ACK );
+	KEGS_GET_NEXT_BANK_ED_ACK kPacket;
+
+	const UCHAR ucTheNumberOfSkillPagesAvailable
+		= m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+
+	int iNextED = 0;
+
+	switch ( ucTheNumberOfSkillPagesAvailable )
+	{
+	case 1:	/// 현재 사용 가능한 페이지 수가 한개라 2개로 확장 하려는 경우
+	case 2:	/// 현재 사용 가능한 페이지 수가 두개라 3개로 확장 하려는 경우
+		iNextED = KUserSkillTree::ED_NEEDED_TO_EXPAND_SECOND_SKILL_PAGE;
+		break;
+
+	default:
+		{
+			SET_ERROR( ERR_SKILL_PAGE_02 );
+			goto end_proc;
+		} break;
+	}
+
+	kPacket.m_iED = iNextED;
+	SET_ERROR( NET_OK );
+
+end_proc:
+
+	kPacket.m_iOK = NetError::GetLastError();
+	SendPacket( EGS_GET_NEXT_SKILL_PAGE_ED_ACK, kPacket );
+}
+
+IMPL_ON_FUNC_NOPARAM( EGS_EXPAND_SKILL_PAGE_REQ )
+{
+	VERIFY_STATE_ACK( ( 1, KGSFSM::S_FIELD_MAP ), EGS_EXPAND_INVENTORY_ED_ACK );
+	
+	KDBE_EXPAND_SKILL_PAGE_REQ kPacket;
+
+	// 스킬 페이지를 확장할 페이지 여유가 있는 확인
+	if ( !m_kSkillTree.CanExpandSkillPage() )
+	{
+		SET_ERROR( ERR_SKILL_PAGE_02 );
+		goto end_proc;
+	}
+
+	// 확장할 수 있는 ED를 보유하고 있는지 체크
+	if ( m_iED < KUserSkillTree::ED_NEEDED_TO_EXPAND_SECOND_SKILL_PAGE || m_iED < 0 )
+	{
+		// 일단 인벤토리 것을 사용 하자
+		SET_ERROR( ERR_EXPAND_INVENTORY_ED_01 );
+		goto end_proc;
+	}
+	
+	// 기본 스킬 조회
+	if( !SiCXSLSkillTree()->GetUnitClassDefaultSkill( GetUnitClass(), 
+		kPacket.m_iDefaultSkill[0], kPacket.m_iDefaultSkill[1], 
+		kPacket.m_iDefaultSkill[2], kPacket.m_iDefaultSkill[3], 
+		kPacket.m_iDefaultSkill[4], kPacket.m_iDefaultSkill[5] ) )
+	{
+		START_LOG( cerr, L"유닛타입이 이상함." )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetUnitType() )
+			<< END_LOG;
+
+		SET_ERROR( ERR_SKILL_12 );
+		goto end_proc;
+	}
+
+	kPacket.m_usEventID = EGS_EXPAND_SKILL_PAGE_REQ;
+	kPacket.m_iUnitUID	= GetCharUID();
+	/// 추가되어야 할 페이지 넘버
+	kPacket.m_vecSkillPageNumberToBeAdded.push_back( m_kSkillTree.GetTheNumberOfSkillPagesAvailable() + 1 );
+	kPacket.m_cUnitClass = GetUnitClass();
+
+	// 스킬 포인트 얻어오기
+	SiCXSLSkillTree()->GetCalcInitSkillPoint( GetLevel(), kPacket.m_iSPoint );
+	// 캐시 스킬 포인트 얻어오기
+	kPacket.m_iCSPoint	=	m_kSkillTree.GetMaxCSPoint();
+
+	// ED 차감
+	m_iED -= KUserSkillTree::ED_NEEDED_TO_EXPAND_SECOND_SKILL_PAGE;
+
+	// DB에 스킬페이지 확장 요청
+	SendToGameDB( DBE_EXPAND_SKILL_PAGE_REQ, kPacket );	
+
+end_proc:
+	if ( NetError::GetLastError() != NetError::NET_OK ) 
+	{
+		KEGS_EXPAND_SKILL_PAGE_ACK kAck;
+		kAck.m_iOK = NetError::GetLastError();
+		SendPacket( EGS_EXPAND_SKILL_PAGE_ACK, kAck );
+
+		START_LOG( cerr, L"스킬 페이지 확장 실패 , User ID :" << GetUserID() )
+			// 현재 이용 가능한 스킬 페이지 수
+			// 현재 보유 ED 양
+			<< BUILD_LOG( NetError::GetLastErrMsg() )
+			<< END_LOG;
+	}
+}
+
+IMPL_ON_FUNC( DBE_EXPAND_SKILL_PAGE_ACK )
+{
+	 VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP ), EGS_EXPAND_SKILL_PAGE_ACK );
+
+	 KEGS_EXPAND_SKILL_PAGE_ACK kPacket;
+	 KELOG_EXPAND_SKILL_PAGE_NOT kLog;
+
+	 if ( kPacket_.m_iOK != NetError::NET_OK )
+	 {
+		 START_LOG( cerr, L"스킬 페이지 확장 실패(DBE_EXPAND_SKILL_PAGE_ACK) , User ID :" << GetUserID() )
+			 << BUILD_LOG( GetUID() )
+			 << BUILD_LOG( GetCharName() )
+			 << BUILD_LOG( GetCharUID() )
+			 << BUILD_LOG( m_kSkillTree.GetTheNumberOfSkillPagesAvailable() )
+			 << BUILD_LOG( kPacket_.m_iSkillPageNumberToBeAdded )
+			 << END_LOG;
+		 goto end_proc;
+	 }
+
+	 if ( m_kSkillTree.GetTheNumberOfSkillPagesAvailable() >= kPacket_.m_iSkillPageNumberToBeAdded )
+	 {
+		 /// kimhc // 김현철 // 이미 DB 처리등은 되어 있을 것이므로 로그만 출력하자.
+		START_LOG( cerr, L"이미 확장이 되어 있다는데?(DBE_EXPAND_SKILL_PAGE_ACK) , User ID :" << GetUserID() )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( "m_kSkillTree.GetTheNumberOfSkillPagesAvailable() >= kPacket_.m_iSkillPageNumberToBeAdded" )
+			<< BUILD_LOG( m_kSkillTree.GetTheNumberOfSkillPagesAvailable() )
+			<< BUILD_LOG( kPacket_.m_iSkillPageNumberToBeAdded )
+			<< END_LOG;
+	 }
+
+	 const int iHowManyTimesToBeExpanded
+		 = kPacket_.m_iSkillPageNumberToBeAdded - m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+
+	 for ( int i = 0; i < iHowManyTimesToBeExpanded; i++ )
+		 m_kSkillTree.ExpandSkillPage( kPacket_.m_iDefaultSkill, kPacket_.m_iSPoint, kPacket_.m_iCSPoint );
+
+	 kPacket.m_iCSPointAvailable				= kPacket_.m_iCSPoint;
+	 kPacket.m_iSPointAvailable					= kPacket_.m_iSPoint;
+	 kPacket.m_iTheNumberOfSkillPagesAvailable	= m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+
+	 m_kSkillTree.GetUnSealedSkillList( kPacket.m_vecUnsealedSkillID );
+	 
+	 for ( int i = 0; i < THE_NUMBER_OF_DEFAULT_SKILLS; i++ )
+		 kPacket.m_vecSkillListLearned.push_back( kPacket_.m_iDefaultSkill[i] );
+
+	 kLog.m_iUnitUID				= GetCharUID();
+	 kLog.m_wstrSenderNickName		= GetCharName();
+	 kLog.m_ucLevel					= GetLevel();
+	 kLog.m_ucUnitClass				= GetUnitClass();
+	 kLog.m_ucBeforeTheNumberOfSkillPagesAvailable	= m_kSkillTree.GetTheNumberOfSkillPagesAvailable() - iHowManyTimesToBeExpanded;
+
+	 if ( kPacket_.m_usEventID == EGS_EXPAND_SKILL_PAGE_REQ )
+	 {		 
+		 kLog.m_ucPaymentType = 0;	// ED 구매
+		 // DB통계 ED
+		 KStatisticsKey kKey;
+		 kKey.m_vecIntKey.push_back( 0 );
+		 KSIManager.IncreaseCount( KStatistics::SI_ED, kKey, KStatistics::eSIColDB_ED_ExpandSkillPage, ( KUserSkillTree::ED_NEEDED_TO_EXPAND_SECOND_SKILL_PAGE ) );
+	 }
+	 else
+	 {
+		 kPacket.m_bPayWithED = false;
+		 kLog.m_ucPaymentType = 1;	// 캐시 구매	 
+	 }
+
+	 SendToLogDB( ELOG_EXPAND_SKILL_PAGE_NOT, kLog );	 		 
+
+end_proc:
+	 // 실패 한 경우
+	 if ( kPacket_.m_iOK != NetError::NET_OK )
+	 {
+		 // ED로 구매했을 때만 ED 원래 대로
+		 if ( kPacket_.m_usEventID == EGS_EXPAND_SKILL_PAGE_REQ )
+			 m_iED += KUserSkillTree::ED_NEEDED_TO_EXPAND_SECOND_SKILL_PAGE;
+	 }
+
+	 kPacket.m_iOK = kPacket_.m_iOK;
+	 kPacket.m_iED = m_iED;	 
+	 
+	 SendPacket( EGS_EXPAND_SKILL_PAGE_ACK, kPacket );	 
+}
+
+IMPL_ON_FUNC( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ )
+{
+	// 마을, 쉼터에서만 가능
+	VERIFY_STATE_ACK( ( 1, KGSFSM::S_FIELD_MAP ), EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK );
+	
+	
+	if ( kPacket_.m_iSkillPagesNumberDecidedToUse < 1 ||
+		kPacket_.m_iSkillPagesNumberDecidedToUse > m_kSkillTree.GetTheNumberOfSkillPagesAvailable() )
+	{
+		SET_ERROR( ERR_SKILL_PAGE_03 );
+		goto end_proc;
+	}
+
+	KDBE_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ kReq( GetCharUID(), kPacket_.m_iSkillPagesNumberDecidedToUse );
+	SendToGameDB( DBE_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ, kReq );
+	return;
+
+end_proc:
+	if ( NetError::GetLastError() != NetError::NET_OK ) 
+	{
+		KEGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK kAck;
+		kAck.m_iOK = NetError::GetLastError();
+		SendPacket( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK, kAck );
+
+		START_LOG( cerr, L"EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ) , User ID :" << GetUserID() )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( m_kSkillTree.GetTheNumberOfSkillPagesAvailable() )
+			<< BUILD_LOG( kPacket_.m_iSkillPagesNumberDecidedToUse )
+			<< BUILD_LOG( NetError::GetLastErrMsg() )
+			<< END_LOG;
+	}
+}
+
+IMPL_ON_FUNC( DBE_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK )
+{
+	// 마을, 쉼터에서만 가능
+	VERIFY_STATE_ACK( ( 1, KGSFSM::S_FIELD_MAP ), EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK );
+
+	KEGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK kAck;
+
+	if ( kPacket_.m_iSkillPagesNumberToBeActive < 1 ||
+		kPacket_.m_iSkillPagesNumberToBeActive > m_kSkillTree.GetTheNumberOfSkillPagesAvailable() )
+	{
+		SET_ERROR( ERR_SKILL_PAGE_03 );
+		goto end_proc;
+	}
+	
+	m_kSkillTree.SetActiveSkillPageNumber( kPacket_.m_iSkillPagesNumberToBeActive );
+	kAck.m_iOK								= NetError::NET_OK;	
+	kAck.m_iCSPointAvailable				= m_kSkillTree.GetCSPoint();
+	kAck.m_iSPointAvailable					= m_kSkillTree.GetSPoint();
+	kAck.m_iSkillPagesNumberDecidedToUse	= kPacket_.m_iSkillPagesNumberToBeActive;
+
+	m_kSkillTree.GetKUserSkillPageData( kAck.m_kUserSkillPageData, kPacket_.m_iSkillPagesNumberToBeActive );
+	SendPacket( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK, kAck );
+	return;
+
+end_proc:
+	if ( NetError::GetLastError() != NetError::NET_OK ) 
+	{
+		kAck.m_iOK = NetError::GetLastError();
+		SendPacket( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK, kAck );
+
+		START_LOG( cerr, L"EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ) , User ID :" << GetUserID() )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( m_kSkillTree.GetTheNumberOfSkillPagesAvailable() )
+			<< BUILD_LOG( kPacket_.m_iSkillPagesNumberToBeActive )
+			<< BUILD_LOG( NetError::GetLastErrMsg() )
+			<< END_LOG;
+	}
+}
+
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+#ifdef SERV_ENTRY_POINT
+IMPL_ON_FUNC_NOPARAM( EGS_CHARACTER_LIST_REQ )
+{
+    VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_LOGINED, KGSFSM::S_SERVER_SELECT ), EGS_CHARACTER_LIST_REQ, EGS_CHARACTER_LIST_ACK );
+    SendToGameDB( DBE_CHARACTER_LIST_REQ, GetName() );
+
+#ifdef SERV_SECOND_SECURITY
+    KDBE_GET_SECOND_SECURITY_INFO_REQ kReq;
+    kReq.m_iUserUID = GetUID();
+    SiKGameSysVal()->GetComeBackRewardCondition( kReq.m_mapComeBackRewardCondition );
+
+    //{{  2011.11.08     김민성    버블파이터 공동 프로모션 이벤트
+#ifdef SERV_BUBBLE_FIGHTER_TOGETHER_EVENT
+    kReq.m_wstrID = GetName();
+#endif SERV_BUBBLE_FIGHTER_TOGETHER_EVENT
+    //}}
+
+    SendToAccountDB( DBE_GET_SECOND_SECURITY_INFO_REQ, kReq );	// AccountDB에 최근 접속 종료 정보 얻기
+
+#endif SERV_SECOND_SECURITY
+
+}
+
+IMPL_ON_FUNC( EGS_CHARACTER_LIST_1ST_ACK )
+{
+    switch( GetKGSSimLayer()->GetServerGroupNum() )
+    {
+    case KGSSimLayer::SINGLE_SERVER_GROUP: 
+        // EGS_CHARACTER_LIST_ACK 처리와 동일하게 하고..
+        ON_EGS_CHARACTER_LIST_ACK( anTrace_, kPacket_ );
+        break;
+    case KGSSimLayer::DOUBLE_SERVER_GROUP: // 한국, 중국
+        SendToGameDB2nd( DBE_CHARACTER_LIST_2ND_REQ, kPacket_ );
+        break;
+    default:
+        break;
+    }
+}
+
+IMPL_ON_FUNC( EGS_CHARACTER_LIST_ACK )
+{
+    VERIFY_STATE( ( 2, KGSFSM::S_SERVER_SELECT, KGSFSM::S_CHECK_SECOND_PW ) );
+
+    if( kPacket_.m_iOK == NetError::NET_OK )
+    {
+        m_nUnitSlot = kPacket_.m_mapServerGroupUnitSlot[KBaseServer::GetKObj()->GetServerGroupID()];
+
+        std::map< int, std::vector<KUnitInfo> >::iterator mit;
+        for ( mit = kPacket_.m_mapServerGroupUnitInfo.begin(); mit != kPacket_.m_mapServerGroupUnitInfo.end() ; ++mit )
+        {
+            std::vector<KUnitInfo>::iterator vit;
+            for( vit = mit->second.begin(); vit != mit->second.end(); ++vit )
+            {
+                vit->m_iOwnerUserUID		= GetUID();
+                vit->m_nStraightVictories	= 0;
+                vit->m_wstrIP				= GetP2PIP();
+                vit->m_usPort				= GetP2PPort();
+
+                const CXSLUnit::UnitTemplet* pUnitTemplet = SiCXSLUnitManager()->GetUnitTemplet( static_cast<CXSLUnit::UNIT_CLASS>(vit->m_cUnitClass) );
+                if( pUnitTemplet == NULL )
+                {
+                    START_LOG_WITH_NAME( cerr )
+                        << BUILD_LOGc( vit->m_cUnitClass )
+                        << END_LOG;
+
+#if defined( _IN_HOUSE_ )
+                    continue;
+#endif 
+
+                    kPacket_.m_iOK = NetError::ERR_CREATE_UNIT_03;
+                    goto end_proc;
+
+                }
+
+                vit->m_ucLevel				= SiKExpTable()->CheckLevelUp( 1, vit->m_iEXP );
+                vit->m_nNowBaseLevelEXP	= SiKExpTable()->GetRequireTotalExpbyLevel( (int)(vit->m_ucLevel) );
+                vit->m_nNextBaseLevelEXP	= SiKExpTable()->GetRequireTotalExpbyLevel( (int)(vit->m_ucLevel + 1) );
+
+                KStatTable::KUnitStatInfo sUnitStat;
+                SiKStatTable()->GetUnitStat( vit->m_cUnitClass, vit->m_ucLevel, sUnitStat );
+                vit->m_kStat.m_iBaseHP		+= (int)sUnitStat.m_uiHP;
+                vit->m_kStat.m_iAtkPhysic	+= (int)sUnitStat.m_usAtkPhysic;
+                vit->m_kStat.m_iAtkMagic	+= (int)sUnitStat.m_usAtkMagic;
+                vit->m_kStat.m_iDefPhysic	+= (int)sUnitStat.m_usDefPhysic;
+                vit->m_kStat.m_iDefMagic	+= (int)sUnitStat.m_usDefMagic;
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-07	// 박세훈
+                // 보스 필드라면 마을로 이동 시키자
+                if( SiCXSLBattleFieldManager()->IsBossFieldID( vit->m_kLastPos.m_iMapID ) == true )
+                {
+                    vit->m_kLastPos.m_iMapID = SiCXSLMapData()->GetPossibleEnterVillageMapID( vit->m_ucLevel, vit->m_mapDungeonClear );
+                    vit->m_kLastPos.m_bIgnoreLastTouch = true;
+                }
+#endif // SERV_BATTLE_FIELD_BOSS
+
+                // 보유하고 있는 캐릭터 리스트 세팅
+                m_setMyUnitUIDList.insert( vit->m_nUnitUID );
+
+                GetPvpRankForClient( vit->m_iOfficialMatchCnt, vit->m_cRank );
+            }
+
+            START_LOG( clog, L"EGS_CHARACTER_LIST_ACK 에 담겨지는 p2p data" )
+                << BUILD_LOG( GetP2PIP() )
+                << BUILD_LOG( GetP2PPort() );
+
+            if( ( int )mit->second.size() > kPacket_.m_mapServerGroupUnitSlot[mit->first] )
+            {
+                START_LOG( cerr, L"캐릭터 슬롯 개수를 초과하는 수의 캐릭터를 보유하고 있음." )
+                    << BUILD_LOG( ( int )mit->second.size() )
+                    << BUILD_LOG( kPacket_.m_mapServerGroupUnitSlot[mit->first] )
+                    << BUILD_LOG( GetUID() )
+                    << BUILD_LOG( GetName() );
+            }
+
+        }
+        // udp 에서 받은 p2p ip/port를 채워보내준다.(임시가 될수있음 차후에 옴겨야 할수도있다.!머리아프네 )		
+    }
+end_proc:
+
+    START_LOG( clog, L"캐릭터 리스트 결과(슬롯) : " )
+        << BUILD_LOG( kPacket_.m_mapServerGroupUnitSlot[0] )
+        << BUILD_LOG( kPacket_.m_mapServerGroupUnitSlot[1] )
+        << END_LOG;
+
+    SendPacket( EGS_CHARACTER_LIST_ACK, kPacket_ );
+}
+
+IMPL_ON_FUNC( EGS_CREATE_NEW_UNIT_REQ )
+{
+    VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_SERVER_SELECT ), EGS_CREATE_NEW_UNIT_REQ, EGS_CREATE_UNIT_ACK );
+
+    const CXSLUnit::UnitTemplet* pUnitTemplet = SiCXSLUnitManager()->GetUnitTemplet( (CXSLUnit::UNIT_CLASS)kPacket_.m_iClass );
+    KEGS_CREATE_UNIT_ACK kPacket;
+    kPacket.m_iOK = NetError::ERR_UNKNOWN;
+    char charBuf[255] = {0};
+    std::string strNickName;
+
+    KDBE_GAME_CREATE_UNIT_REQ kDBPacket;
+    KAccountInfo AccountTemp;
+
+    if( !pUnitTemplet ) // 070604. florist. templet을 얻어올 필요는 없다. iClass의 유효성 검증 정도의 의미만 가진다.
+    {
+        kPacket.m_iOK = NetError::ERR_CREATE_UNIT_03;
+        goto end_proc;
+    }
+
+    if( CXSLUnit::IsInitNormalJob( (CXSLUnit::UNIT_CLASS)kPacket_.m_iClass ) == false )
+    {
+        kPacket.m_iOK = NetError::ERR_CREATE_UNIT_11;
+        goto end_proc;
+    }
+
+    WideCharToMultiByte( CP_ACP, 0, kPacket_.m_wstrNickName.c_str(), -1, charBuf, 255, NULL, NULL );
+    strNickName = charBuf;
+    
+    if( strNickName.empty() || strNickName.size() > 12 )   //캐릭터 닉네임 길이 검사.
+    {
+        kPacket.m_iOK = NetError::ERR_CREATE_UNIT_04;
+        goto end_proc;
+    }
+
+    if ( GetAuthLevel() < SEnum::UAL_GM && SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+    {
+        kPacket.m_iOK = NetError::ERR_CREATE_UNIT_08;
+        goto end_proc;
+    }
+
+    if( SiKPvpMatchManager()->IsExistPvpNpcName( kPacket_.m_wstrNickName ) == true )
+    {		
+        kPacket.m_iOK = NetError::ERR_CREATE_UNIT_01;
+        goto end_proc;
+    }
+
+    // 쿼리에 직접 들어갈 문자열이므로 injection 대비 검사를 한다.
+    if( KODBC::IsInvalidMarkIn( kPacket_.m_wstrNickName ) )
+    {
+        kPacket.m_iOK = NetError::ERR_ODBC_00;
+        goto end_proc;
+    }
+
+    START_LOG_WITH_NAME( clog )
+        << BUILD_LOG( kPacket_.m_wstrNickName )
+        << BUILD_LOG( kPacket_.m_iClass );
+
+    GetAccountInfo( AccountTemp );
+    kDBPacket.m_wstrRegDate = AccountTemp.m_wstrRegDate;
+    kDBPacket.m_wstrNickName = kPacket_.m_wstrNickName;
+    kDBPacket.m_iClass = kPacket_.m_iClass;
+
+    // 1st 솔레스, 2nd 가이아가 아니라 1st 는 내가 속한 디비군, 2nd 는 다른 디비군인 점에 유의
+    switch ( KBaseServer::GetKObj()->GetServerGroupID() )
+    { // 해외의 서버군1개 국가에서는 서버=솔레스, kPacket_.m_iServerGroup=솔레스 로 보내면 됨
+        case SEnum::SGI_SOLES:
+            if ( kPacket_.m_iServerGroup == SEnum::SGI_SOLES )
+            {   // 기존 디비 함수로 큐잉한다는 것에 주의.
+                SendToGameDB( DBE_GAME_CREATE_UNIT_REQ, kDBPacket ); 
+            }
+            else if ( kPacket_.m_iServerGroup == SEnum::SGI_GAIA 
+                && GetKGSSimLayer()->GetServerGroupNum() == KGSSimLayer::DOUBLE_SERVER_GROUP )
+            {
+                SendToGameDB2nd( DBE_GAME_CREATE_UNIT_REQ, kDBPacket );
+            }
+            break;
+        case SEnum::SGI_GAIA:
+            if ( kPacket_.m_iServerGroup == SEnum::SGI_GAIA )
+            {
+                SendToGameDB( DBE_GAME_CREATE_UNIT_REQ, kDBPacket );
+            }
+            else if ( kPacket_.m_iServerGroup == SEnum::SGI_SOLES )
+            {
+                SendToGameDB2nd( DBE_GAME_CREATE_UNIT_REQ, kDBPacket );
+            }
+            
+            break;
+        default:
+            if( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_INTERNAL )
+            {
+                SendToGameDB( DBE_GAME_CREATE_UNIT_REQ, kDBPacket ); 
+            }
+    }
+    kPacket.m_iOK = NetError::NET_OK;
+
+end_proc:
+    LOG_CONDITION( kPacket.m_iOK == NetError::ERR_CREATE_UNIT_03, cerr, cwarn )
+        << BUILD_LOG( GetName() )
+        << BUILD_LOG( kPacket.m_iOK )
+        << BUILD_LOG( NetError::GetErrStr( kPacket.m_iOK ) )
+        << BUILD_LOG( kPacket_.m_iClass)
+        << BUILD_LOG( kPacket_.m_wstrNickName )
+        << END_LOG;
+
+    if ( kPacket.m_iOK != NetError::NET_OK ) 
+    {
+        SendPacket( EGS_CREATE_UNIT_ACK, kPacket );    
+    }    
+}
+
+IMPL_ON_FUNC( EGS_ENTRY_POINT_DELETE_UNIT_REQ )
+{
+    VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_LOGINED, KGSFSM::S_SERVER_SELECT ), EGS_DELETE_UNIT_REQ, EGS_DELETE_UNIT_ACK );
+
+	//{{ 2011. 05. 02  김민성	2차 보안 시스템
+#ifdef SERV_SECOND_SECURITY	// 해외팀 추가
+    if( IsUseSecurity() == true )
+    {
+        if( GetSuccessSecondSecurity() == false )	// 2차 보안을 사용 중인데 인증이 되지 않았다면 실패
+        {
+            START_LOG( cerr, L"2차 보안을 사용 중인데 인증도 되기 전에 유닉 삭제를 하려 한다." )
+                << BUILD_LOG( GetUID() )
+                << END_LOG;
+
+            KEGS_DELETE_UNIT_ACK kPacket;
+            kPacket.m_iOK = NetError::ERR_VERIFY_21;
+            kPacket.m_iUnitUID = kPacket_.m_iUnitUID;
+            kPacket.m_iGuildUID = 0;	
+            SendPacket( EGS_DELETE_UNIT_ACK, kPacket );
+            return;
+        }
+    }
+#endif SERV_SECOND_SECURITY
+	//}}
+
+	//{{ 2013. 04. 01	 인연 시스템 - 김민성
+#ifdef SERV_RELATIONSHIP_SYSTEM	// 해외팀 추가
+    if( m_kUserRelationshipManager.GetRelationshipType() != SEnum::RT_SOLO )
+    {
+        KEGS_DELETE_UNIT_ACK kPacket;
+        kPacket.m_iOK = NetError::ERR_DELETE_UNIT_06;
+        SendPacket( EGS_DELETE_UNIT_ACK, kPacket );
+        
+        START_LOG( cerr, L"진입구조개편 캐릭터 삭제 실패, UID : " << GetUID() )
+            << BUILD_LOG( kPacket.m_iOK )
+            //<< BUILD_LOG( NetError::GetLastErrMsg() )
+            << END_LOG;
+        
+        return;
+    }
+#endif SERV_RELATIONSHIP_SYSTEM
+	//}
+
+    KEGS_DELETE_UNIT_REQ kDBPacket;
+    kDBPacket.m_iUnitUID = kPacket_.m_iUnitUID;
+	//{{ 2012. 02. 21	김민성	캐릭터 삭제 및 길드 탈퇴 예외처리 수정
+#ifdef SERV_UNIT_DELETE_EXCEPTION_MODIFY // 해외팀 추가
+    kDBPacket.m_iUserUID = GetUID();
+#endif SERV_UNIT_DELETE_EXCEPTION_MODIFY
+	//}}
+
+    switch ( KBaseServer::GetKObj()->GetServerGroupID() )
+    {
+    case SEnum::SGI_SOLES:
+        if ( kPacket_.m_iServerGroup == SEnum::SGI_SOLES )
+        {   
+            SendToGameDB( DBE_GAME_DELETE_UNIT_REQ, kDBPacket );
+        }
+        else if ( kPacket_.m_iServerGroup == SEnum::SGI_GAIA && GetKGSSimLayer()->GetServerGroupNum() == KGSSimLayer::DOUBLE_SERVER_GROUP )
+        {
+            SendToGameDB2nd( DBE_GAME_DELETE_UNIT_REQ, kDBPacket );
+        }
+        break;
+    case SEnum::SGI_GAIA:
+        if ( kPacket_.m_iServerGroup == SEnum::SGI_GAIA )
+        {
+            SendToGameDB( DBE_GAME_DELETE_UNIT_REQ, kDBPacket );
+        }
+        else if ( kPacket_.m_iServerGroup == SEnum::SGI_SOLES )
+        {
+            SendToGameDB2nd( DBE_GAME_DELETE_UNIT_REQ, kDBPacket );
+        }
+
+        break;
+    default:
+        if( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_INTERNAL )
+        {
+            SendToGameDB( DBE_GAME_DELETE_UNIT_REQ, kDBPacket );
+        }
+    }
+
+    m_kUserTutorialInfo.OnDeleteUnitReq( kPacket_.m_iUnitUID );
+
+}
+
+IMPL_ON_FUNC( EGS_ENTRY_POINT_CHECK_NICK_NAME_REQ )
+{
+    // 닉네임 길이 체크
+    char charBuf[255] = {0};
+    std::string strNickName;
+
+    WideCharToMultiByte( CP_ACP, 0, kPacket_.m_wstrNickName.c_str(), -1, charBuf, 255, NULL, NULL );
+    strNickName = charBuf;
+    
+    KEGS_CHECK_NICK_NAME_ACK kPacket;
+
+    if( strNickName.empty() || strNickName.size() > 12 )   //캐릭터 닉네임 길이 검사.
+    { // TODO : 해외팀 코드에는 닉네임 최소 기준도 있는데, 이런 부분은 디파인보다는 gssimlayer에 루아로 제어하면 좋겠다.
+        
+        kPacket.m_iOK = NetError::ERR_RESTORE_NICK_NAME_06;
+        goto end_proc;        
+    }
+
+    if( GetAuthLevel() < SEnum::UAL_GM && SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+    {
+        kPacket.m_iOK = NetError::ERR_RESTORE_NICK_NAME_05;
+        goto end_proc;        
+    }
+
+    if( KODBC::IsInvalidMarkIn( kPacket_.m_wstrNickName ) )
+    {
+        kPacket.m_iOK = NetError::ERR_RESTORE_NICK_NAME_05;
+        goto end_proc;
+    }
+    // 디비에 있는 닉네임인가 , 디비로 큐잉해야 알 수 있다.
+    // 닉네임 변경 쿨타임인지 체크.
+    kPacket.m_iOK = NetError::NET_OK;
+
+    switch ( KBaseServer::GetKObj()->GetServerGroupID() )
+    {
+    case SEnum::SGI_SOLES:
+        if ( kPacket_.m_iServerGroup == SEnum::SGI_SOLES )
+        {   
+            SendToGameDB( DBE_ENTRY_POINT_CHECK_NICK_NAME_REQ, kPacket_ );
+        }
+        else if ( kPacket_.m_iServerGroup == SEnum::SGI_GAIA )
+        {
+            SendToGameDB2nd( DBE_ENTRY_POINT_CHECK_NICK_NAME_REQ, kPacket_ );
+        }
+        break;
+    case SEnum::SGI_GAIA:
+        if ( kPacket_.m_iServerGroup == SEnum::SGI_GAIA )
+        {
+            SendToGameDB( DBE_ENTRY_POINT_CHECK_NICK_NAME_REQ, kPacket_ );
+        }
+        else if ( kPacket_.m_iServerGroup == SEnum::SGI_SOLES )
+        {
+            SendToGameDB2nd( DBE_ENTRY_POINT_CHECK_NICK_NAME_REQ, kPacket_ );
+        }
+
+        break;
+    default:
+        if( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_INTERNAL )
+		{
+			START_LOG( cerr, L"사내서버 서버군 이상" )
+				<< BUILD_LOG( KBaseServer::GetKObj()->GetServerGroupID() )
+				<< BUILD_LOG( kPacket_.m_iServerGroup)
+				<< END_LOG;
+        }
+		else
+		{
+			kPacket.m_iOK = NetError::ERR_HERO_PVP_USER_LIST_01;
+			goto end_proc;        
+		}
+    }
+
+end_proc:
+    LOG_SUCCESS( kPacket.m_iOK == NetError::NET_OK )
+        << BUILD_LOG( GetUID() )
+        << BUILD_LOG( kPacket_.m_iServerGroup )
+        << END_LOG;
+
+    if ( kPacket.m_iOK != NetError::NET_OK ) 
+    {
+        SendPacket( EGS_ENTRY_POINT_CHECK_NICK_NAME_ACK, kPacket );    
+    }    
+}
+
+IMPL_ON_FUNC( EGS_ENTRY_POINT_CHECK_NICK_NAME_ACK )
+{
+    SendPacket( EGS_ENTRY_POINT_CHECK_NICK_NAME_ACK, kPacket_ );
+
+    LOG_SUCCESS( kPacket_.m_iOK == NetError::NET_OK )
+        << BUILD_LOG( GetUID() )
+        << BUILD_LOG( kPacket_.m_wstrNickName )
+        << END_LOG;
+}
+
+IMPL_ON_FUNC_NOPARAM( EGS_GET_CREATE_UNIT_TODAY_COUNT_REQ )
+{
+    KDBE_GET_CREATE_UNIT_TODAY_COUNT_REQ kDBPacket;
+    kDBPacket.m_iUserUID = GetUID();
+    // 두 서버군의 유닛 생성 수를 불러오려면 1st, 2nd 큐잉 사용. 결과는 합쳐서 클라이언트로 보내주기
+    SendToGameDB( DBE_GET_CREATE_UNIT_TODAY_COUNT_REQ, kDBPacket );
+}
+
+_IMPL_ON_FUNC( EGS_GET_CREATE_UNIT_TODAY_COUNT_1ST_ACK, KEGS_GET_CREATE_UNIT_TODAY_COUNT_ACK )
+{
+    switch( GetKGSSimLayer()->GetServerGroupNum() )
+    {
+    case KGSSimLayer::SINGLE_SERVER_GROUP: 
+        SendPacket( EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK, kPacket_ );
+        break;
+    case KGSSimLayer::DOUBLE_SERVER_GROUP: // 서버군이 2개인 국가
+        SendToGameDB2nd( DBE_GET_CREATE_UNIT_TODAY_COUNT_REQ, kPacket_ );
+        break;
+    default:
+        break;
+    }
+}
+
+IMPL_ON_FUNC( EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK )
+{
+    SendPacket( EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK, kPacket_ );
+}
+
+IMPL_ON_FUNC( EGS_ENTRY_POINT_CHANGE_NICK_NAME_REQ )
+{
+    //{{ 2010. 10. 07	최육사	중복 패킷 필터 추가
+#ifdef SERV_ADD_REPEAT_FILTER
+    VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_SERVER_SELECT ), EGS_CHANGE_NICK_NAME_REQ, EGS_CHANGE_NICK_NAME_ACK );
+#else
+    VERIFY_STATE( ( 1, KGSFSM::S_SERVER_SELECT ) );
+#endif SERV_ADD_REPEAT_FILTER
+    //}}
+
+    char charBuf[255] = {0};
+    std::string strNickName;
+    KEGS_CHANGE_NICK_NAME_REQ kDBPacket;
+
+    WideCharToMultiByte( CP_ACP, 0, kPacket_.m_wstrNickName.c_str(), -1, charBuf, 255, NULL, NULL );
+    strNickName = charBuf;
+
+    if( strNickName.empty() || strNickName.size() > 12 )   //캐릭터 닉네임 길이 검사.
+    {
+        KEGS_CHANGE_NICK_NAME_ACK kPacket;
+        kPacket.m_iOK = NetError::ERR_RESTORE_NICK_NAME_06;
+        SendPacket( EGS_CHANGE_NICK_NAME_ACK, kPacket );
+        return;
+    }
+
+    if( GetAuthLevel() < SEnum::UAL_GM && SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+    {
+        KEGS_CHANGE_NICK_NAME_ACK kPacket;
+        kPacket.m_iOK = NetError::ERR_RESTORE_NICK_NAME_05;
+        SendPacket( EGS_CHANGE_NICK_NAME_ACK, kPacket );
+        return;
+    }
+
+    // 쿼리에 직접 들어갈 문자열이므로 injection 대비 검사를 한다.
+    if( KODBC::IsInvalidMarkIn( kPacket_.m_wstrNickName ) )
+    {
+        KEGS_CHANGE_NICK_NAME_ACK kPacket;
+        kPacket.m_iOK = NetError::ERR_RESTORE_NICK_NAME_05;
+        SendPacket( EGS_CHANGE_NICK_NAME_ACK, kPacket );
+        return;
+    }
+
+    //{{ 2011. 07. 27	최육사	대전 개편
+#ifdef SERV_PVP_NEW_SYSTEM
+    if( SiKPvpMatchManager()->IsExistPvpNpcName( kPacket_.m_wstrNickName ) == true )
+    {
+        KEGS_CHANGE_NICK_NAME_ACK kPacket;
+        kPacket.m_iOK = NetError::ERR_CREATE_UNIT_01;
+        SendPacket( EGS_CHANGE_NICK_NAME_ACK, kPacket );
+        return;
+    }
+#endif SERV_PVP_NEW_SYSTEM
+    //}}
+
+    kDBPacket.m_wstrNickName = kPacket_.m_wstrNickName;
+    kDBPacket.m_iUnitUID = kPacket_.m_iUnitUID;
+    kDBPacket.m_bCheckOnly = kPacket_.m_bCheckOnly;
+
+    switch ( KBaseServer::GetKObj()->GetServerGroupID() )
+    {
+    case SEnum::SGI_SOLES:
+        if ( kPacket_.m_iServerGroup == SEnum::SGI_SOLES )
+        {   
+            SendToGameDB( DBE_CHANGE_NICK_NAME_REQ, kDBPacket );
+        }
+        else if ( kPacket_.m_iServerGroup == SEnum::SGI_GAIA )
+        {
+            SendToGameDB2nd( DBE_CHANGE_NICK_NAME_REQ, kDBPacket );
+        }
+        break;
+    case SEnum::SGI_GAIA:
+        if ( kPacket_.m_iServerGroup == SEnum::SGI_GAIA )
+        {
+            SendToGameDB( DBE_CHANGE_NICK_NAME_REQ, kDBPacket );
+        }
+        else if ( kPacket_.m_iServerGroup == SEnum::SGI_SOLES )
+        {
+            SendToGameDB2nd( DBE_CHANGE_NICK_NAME_REQ, kDBPacket );
+        }
+
+        break;
+    default:
+        if( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_INTERNAL )
+        {
+
+        }
+    }
+}
+
+#endif SERV_ENTRY_POINT
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+IMPL_ON_FUNC( EGS_EVENT_CHUNG_GIVE_ITEM_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_EVENT_CHUNG_GIVE_ITEM_REQ, EGS_EVENT_CHUNG_GIVE_ITEM_ACK );
+	
+	KDBE_EVENT_CHUNG_GIVE_ITEM_REQ kChungPacket;
+	CTime TempTime = CTime::GetCurrentTime();
+	switch(kPacket_.iChoice)
+	{
+	case 1:
+		{
+			kChungPacket.m_wstrGiveItemTime_One = TempTime.Format(L"%Y-%m-%d %H:%M:%S");
+		}break;
+	case 2:
+		{
+			kChungPacket.m_wstrGiveItemTime_Two = TempTime.Format(L"%Y-%m-%d %H:%M:%S");
+		}break;
+	case 3:
+		{
+			kChungPacket.m_wstrGiveItemTime_Tree = TempTime.Format(L"%Y-%m-%d %H:%M:%S");
+		}break;
+	}
+
+	kChungPacket.m_iUnitUID = GetCharUID();
+	kChungPacket.m_bTwoGiveItem = kPacket_.bTwoGiveItem;
+	kChungPacket.m_iChoice	= kPacket_.iChoice;
+	SendToGameDB(DBE_EVENT_CHUNG_GIVE_ITEM_REQ,kChungPacket);
+}
+IMPL_ON_FUNC( DBE_EVENT_CHUNG_GIVE_ITEM_ACK )
+{
+	if( kPacket_.m_iOK != NetError::NET_OK )
+	{
+		START_LOG( cerr, L"청 아이템 받은시간 기록 실패해서 우편주면 안돼!!" )
+			<< BUILD_LOG( kPacket_.m_iOK )
+			<< BUILD_LOG( kPacket_.m_iChoice )
+			<< BUILD_LOG( kPacket_.m_bTwoGiveItem )
+			<< END_LOG;
+
+		SetChungGiveItem(false);
+		CTime TempTime = CTime::GetCurrentTime();
+		KEGS_EVENT_CHUNG_GIVE_ITEM_ACK kPacketAck;
+		kPacketAck.m_iOK = kPacket_.m_iOK;
+		kPacketAck.m_wstrGetItemTime = TempTime.Format(L"%Y-%m-%d %H:%M:%S"); 
+		SendPacket( EGS_EVENT_CHUNG_GIVE_ITEM_ACK , kPacketAck );
+	}
+	else
+	{
+		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+		kPacketToDB.m_iFromUnitUID = GetCharUID();
+		kPacketToDB.m_iToUnitUID   = GetCharUID();
+		kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+		switch(kPacket_.m_iChoice)
+		{
+		case 1:
+			{
+				if(kPacket_.m_bTwoGiveItem == false)
+				{
+					kPacketToDB.m_iRewardID	   = 1000214;
+				}
+				else
+				{
+					kPacketToDB.m_iRewardID	   = 1000215;
+				}
+				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+			}break;
+		case 2:
+			{
+				if(kPacket_.m_bTwoGiveItem == false)
+				{
+					kPacketToDB.m_iRewardID	   = 1000216;
+				}
+				else
+				{
+					kPacketToDB.m_iRewardID	   = 1000217;
+				}
+				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+			}break;
+		case 3:
+			{
+				if(kPacket_.m_bTwoGiveItem == false)
+				{
+					kPacketToDB.m_iRewardID	   = 1000218;
+				}
+				else
+				{
+					kPacketToDB.m_iRewardID	   = 1000219;
+				}
+				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+			}break;
+		}
+	}
+}
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+IMPL_ON_FUNC( DBE_EVENT_COBO_DUNGEON_AND_FIELD_ACK )
+{
+	//여기서 기록 저장에 성공했으면 우편으로 보상을 지급한다
+	KEGS_EVENT_COBO_DUNGEON_FIELD_NOT kPacketCoboNot;
+	kPacketCoboNot.m_iOk = kPacket_.m_iOk;
+	kPacketCoboNot.m_DungeonCount = 0;
+	kPacketCoboNot.m_FieldMonsterKillCount = 0;
+	kPacketCoboNot.m_iRemaindTime = -1;
+	SetCoboItemGive(true); //보상 받았다는 처리 
+	SetDungeonCount(0);
+	SetFieldMosterKillCount(0);
+	SetDungeonClearUI(false);
+	SetFieldCountUI(false);
+	SetStartButtonPush(true);
+	SetRemaindTime(-1);
+	START_LOG( clog, L"여기서 남은 시간 초기화 하냐?" )
+		<< BUILD_LOG( GetRemaindTime() )
+		<< BUILD_LOG( kPacket_.m_NowDay )
+		<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+		<< BUILD_LOG( kPacket_.m_iDungeonClearCount )
+		<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+		<< BUILD_LOG( kPacket_.m_iFieldMonsterKillCount )
+		<< END_LOG;
+	switch(kPacket_.m_NowDay)
+	{
+	case 1:
+		{
+			kPacketCoboNot.m_StartButtonUI = true;
+			kPacketCoboNot.m_DungeonCountUI =true;
+			kPacketCoboNot.m_FieldCountUI = false;
+		}
+		break;
+	case 2:
+		{
+			kPacketCoboNot.m_StartButtonUI = true;
+			kPacketCoboNot.m_DungeonCountUI =true;
+			kPacketCoboNot.m_FieldCountUI = true;
+		}
+		break;
+	case 3:
+	case 4:
+		{
+			kPacketCoboNot.m_StartButtonUI = false;
+			kPacketCoboNot.m_DungeonCountUI =false;
+			kPacketCoboNot.m_FieldCountUI = false;
+		}
+		break;
+	case 5:
+		{
+			kPacketCoboNot.m_StartButtonUI = true;
+			kPacketCoboNot.m_DungeonCountUI =false;
+			kPacketCoboNot.m_FieldCountUI = true;
+		}
+		break;
+	case 6:
+		{
+			kPacketCoboNot.m_StartButtonUI = true;
+			kPacketCoboNot.m_DungeonCountUI =true;
+			kPacketCoboNot.m_FieldCountUI = true;
+		}
+		break;
+	case 7:
+	case 8:
+		{
+			kPacketCoboNot.m_StartButtonUI = false;
+			kPacketCoboNot.m_DungeonCountUI =false;
+			kPacketCoboNot.m_FieldCountUI = false;
+		}
+		break;
+	}
+	if(kPacket_.m_iOk != NetError::NET_OK)
+	{
+		START_LOG( cerr, L"코보 아이템 받은 기록 실패해서 우편주면 안돼!!" )
+			<< BUILD_LOG( kPacket_.m_iOk )
+			<< END_LOG;
+		
+		SendPacket( EGS_EVENT_COBO_DUNGEON_FIELD_NOT, kPacketCoboNot );
+	}
+	else
+	{
+		if( kPacket_.m_bWeekEndItem == true) //주말용 우편 보상 지급
+		{
+			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+			kPacketToDB.m_iFromUnitUID = GetCharUID();
+			kPacketToDB.m_iToUnitUID   = GetCharUID();
+			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+			//주말은 필드랑 던전 클리어 카운트 둘다 확인
+			if(kPacket_.m_iDungeonClearCount > 1)
+			{
+				if(kPacket_.m_iDungeonClearCount > 1 && kPacket_.m_iDungeonClearCount < 4)
+				{
+					kPacketToDB.m_iRewardID	   = 1000282;
+				}
+				else if(kPacket_.m_iDungeonClearCount >= 4 && kPacket_.m_iDungeonClearCount < 6 )
+				{
+					kPacketToDB.m_iRewardID	   = 1000283;
+				}
+				else if(kPacket_.m_iDungeonClearCount >= 6)
+				{
+					kPacketToDB.m_iRewardID	   = 1000284;
+				}
+				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+				START_LOG( clog, L"채널 이동 테스트" )
+					<< BUILD_LOG( kPacket_.m_bWeekEndItem )
+					<< BUILD_LOG( kPacket_.m_iDungeonClearCount )
+					<< BUILD_LOG( kPacket_.m_iOk )
+					<< BUILD_LOG( kPacket_.m_NowDay )
+					<< BUILD_LOG( kPacket_.m_iFieldMonsterKillCount )
+					<< BUILD_LOG( kPacket_.m_wstrButtonClickTime_One )
+					<< END_LOG;
+			}
+			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB2;
+			kPacketToDB2.m_iFromUnitUID = GetCharUID();
+			kPacketToDB2.m_iToUnitUID   = GetCharUID();
+			kPacketToDB2.m_iRewardType  = KPostItemInfo::LT_EVENT;
+			if(kPacket_.m_iFieldMonsterKillCount > 99)
+			{
+				if(kPacket_.m_iFieldMonsterKillCount > 99 && kPacket_.m_iFieldMonsterKillCount < 200)
+				{
+					kPacketToDB2.m_iRewardID	   = 1000282;
+				}
+				else if(kPacket_.m_iFieldMonsterKillCount >= 200 && kPacket_.m_iFieldMonsterKillCount < 300)
+				{
+					kPacketToDB2.m_iRewardID	   = 1000283;
+				}
+				else if(kPacket_.m_iFieldMonsterKillCount >= 300)
+				{
+					kPacketToDB2.m_iRewardID	   = 1000284;
+				}
+				SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB2 );
+				START_LOG( clog, L"채널 이동 테스트" )
+					<< BUILD_LOG( kPacket_.m_bWeekEndItem )
+					<< BUILD_LOG( kPacket_.m_iDungeonClearCount )
+					<< BUILD_LOG( kPacket_.m_iOk )
+					<< BUILD_LOG( kPacket_.m_NowDay )
+					<< BUILD_LOG( kPacket_.m_iFieldMonsterKillCount )
+					<< BUILD_LOG( kPacket_.m_wstrButtonClickTime_One )
+					<< END_LOG;
+			}
+		}
+		else
+		{
+			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+			kPacketToDB.m_iFromUnitUID = GetCharUID();
+			kPacketToDB.m_iToUnitUID   = GetCharUID();
+			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+			//평일은 해당 날짜에 관한 것만 확인
+			CTime tChangeEventTime = SiKGameEventScriptManager()->GetCoboEventData()[0];
+			CTime tNowTime = CTime::GetCurrentTime();; //주말이 아니면 클릭 한 날짜를 받아온다.
+			if(tNowTime < tChangeEventTime)
+			{
+				//이러면 던전 카운트 보상만 들어간다
+				//주말은 필드랑 던전 클리어 카운트 둘다 확인
+				if(kPacket_.m_iDungeonClearCount > 1)
+				{
+					if(kPacket_.m_iDungeonClearCount > 1 && kPacket_.m_iDungeonClearCount < 4)
+					{
+						kPacketToDB.m_iRewardID	   = 1000282;
+					}
+					else if(kPacket_.m_iDungeonClearCount >= 4 && kPacket_.m_iDungeonClearCount < 6 )
+					{
+						kPacketToDB.m_iRewardID	   = 1000283;
+					}
+					else if(kPacket_.m_iDungeonClearCount >= 6)
+					{
+						kPacketToDB.m_iRewardID	   = 1000284;
+					}
+					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+					START_LOG( clog, L"채널 이동 테스트 던전" )
+						<< BUILD_LOG( kPacket_.m_bWeekEndItem )
+						<< BUILD_LOG( kPacket_.m_iDungeonClearCount )
+						<< BUILD_LOG( kPacket_.m_iOk )
+						<< BUILD_LOG( kPacket_.m_NowDay )
+						<< BUILD_LOG( kPacket_.m_iFieldMonsterKillCount )
+						<< BUILD_LOG( kPacket_.m_wstrButtonClickTime_One )
+						<< END_LOG;
+				}
+			}
+			else
+			{
+				//여긴 필드 카운트 보상만 들어간다
+				if(kPacket_.m_iFieldMonsterKillCount > 99)
+				{
+					if(kPacket_.m_iFieldMonsterKillCount > 99 && kPacket_.m_iFieldMonsterKillCount < 200)
+					{
+						kPacketToDB.m_iRewardID	   = 1000282;
+					}
+					else if(kPacket_.m_iFieldMonsterKillCount >= 200 && kPacket_.m_iFieldMonsterKillCount < 300)
+					{
+						kPacketToDB.m_iRewardID	   = 1000283;
+					}
+					else if(kPacket_.m_iFieldMonsterKillCount >= 300)
+					{
+						kPacketToDB.m_iRewardID	   = 1000284;
+					}
+					SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+					START_LOG( clog, L"채널 이동 테스트" )
+						<< BUILD_LOG( kPacket_.m_bWeekEndItem )
+						<< BUILD_LOG( kPacket_.m_iDungeonClearCount )
+						<< BUILD_LOG( kPacket_.m_iOk )
+						<< BUILD_LOG( kPacket_.m_NowDay )
+						<< BUILD_LOG( kPacket_.m_iFieldMonsterKillCount )
+						<< BUILD_LOG( kPacket_.m_wstrButtonClickTime_One )
+						<< END_LOG;
+				}
+			}
+
+		}
+		SendPacket( EGS_EVENT_COBO_DUNGEON_FIELD_NOT, kPacketCoboNot );
+		START_LOG( clog, L"여기는 보상이 나갔을때" )
+			<< BUILD_LOG( kPacketCoboNot.m_StartButtonUI )
+			<< BUILD_LOG( kPacketCoboNot.m_DungeonCountUI )
+			<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+			<< BUILD_LOG( kPacketCoboNot.m_iRemaindTime )
+			<< BUILD_LOG( kPacketCoboNot.m_FieldCountUI )
+			<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+			<< END_LOG;
+	}
+}
+IMPL_ON_FUNC( EGS_EVENT_COBO_DUNGEON_FIELD_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_EVENT_COBO_DUNGEON_FIELD_REQ, EGS_EVENT_COBO_DUNGEON_FIELD_ACK );
+	CTime tNowTime = CTime::GetCurrentTime();
+	if(  GetLevel() < 10 || ( tNowTime.GetHour() == 23 && tNowTime.GetMinute() >= 30 && tNowTime.GetMinute() <= 59 ) )
+	{
+		KEGS_EVENT_COBO_DUNGEON_FIELD_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_UNKNOWN;
+		SendPacket( EGS_EVENT_COBO_DUNGEON_FIELD_ACK, kPacket );
+		std::wstring  TempTime = tNowTime.Format(L"%Y-%m-%d %H:%M:%S");
+		START_LOG( clog, L"레벨 10 미만 아니면 클라 해킹 " )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetLevel() )
+			<< BUILD_LOG( TempTime )
+			<< END_LOG;
+	}
+	else
+	{
+		//정보 저장 패킷을 날린다.
+		KDBE_EVENT_COBO_DUNGEON_AND_FIELD_REQ kPacketToDB;
+		kPacketToDB.m_iUnitUID = GetCharUID();
+		kPacketToDB.m_wstrButtonClickTime_One = tNowTime.Format(L"%Y-%m-%d %H:%M:%S");
+		kPacketToDB.m_iDungeonClearCount = 0;
+		kPacketToDB.m_iFieldMonsterKillCount = 0;
+		kPacketToDB.m_bItemGive = false;
+		kPacketToDB.m_bStartButton = kPacket_.m_EventStart;
+		SetCoboItemGive(kPacketToDB.m_bItemGive); //보상 정보 여기서 처리 
+		SendToGameDB( DBE_EVENT_COBO_DUNGEON_AND_FIELD_REQ, kPacketToDB );
+	}
+}
+IMPL_ON_FUNC( EGS_EVENT_COBO_DUNGEON_FIELD_ACK )
+{
+	KEGS_EVENT_COBO_DUNGEON_FIELD_ACK kPacket;
+	kPacket.m_bStartUI = kPacket_.m_bStartUI; //스타트 버튼 눌렀으니까 false여야 한다
+	kPacket.m_DungeonCount = kPacket_.m_DungeonCount; //당연히 0이겠지
+	kPacket.m_FieldMonsterKillCount = kPacket_.m_FieldMonsterKillCount; //이것두 0이겠지
+	kPacket.m_iOK = kPacket_.m_iOK; //저장 성공했는지
+	kPacket.m_iRemaindTime = SiKGameEventScriptManager()->GetRemainTime(); //처음시작 부터 30분이니까 30분 잡고
+	CTime tButtonPush;
+	if( KncUtil::ConvertStringToCTime( kPacket_.m_wstrPushTime, tButtonPush ) == false )
+	{
+		tButtonPush = CTime::GetCurrentTime(); 
+	}
+	//시작 UI 활성 여부 여기서 한번더 체크해주는게 좋겠다.
+	CTime tEventChangeTime = SiKGameEventScriptManager()->GetCoboEventData()[0]; //던전카운트 이벤트에서 필드 카운트 이벤트로 바껴야할 날짜
+	if( tButtonPush < tEventChangeTime) //아직 기간이 되지 않았다
+	{
+		//던전 UI 활성
+		kPacket.m_DungeonCountUI = true;
+		CTime tWeekEndTimeStart = SiKGameEventScriptManager()->GetCoboEventData()[1];
+		CTime tWeekEndTimeEnd = SiKGameEventScriptManager()->GetCoboEventData()[2];
+		if( tButtonPush > tWeekEndTimeStart && tWeekEndTimeEnd > tButtonPush ) //이러면 주말이다
+		{
+			//필드 UI도 활성 
+			kPacket.m_FieldCountUI = true;
+		}
+		else
+		{
+			kPacket.m_FieldCountUI = false;
+		}
+	}
+	else
+	{
+		//필드 UI 활성
+		kPacket.m_FieldCountUI = true;
+		CTime tWeekEndTimeStart = SiKGameEventScriptManager()->GetCoboEventData()[3];
+		CTime tWeekEndTimeEnd = SiKGameEventScriptManager()->GetCoboEventData()[4];
+		if( tButtonPush > tWeekEndTimeStart && tWeekEndTimeEnd > tButtonPush ) //이러면 주말이다
+		{
+			//던전 UI도 활성 
+			kPacket.m_DungeonCountUI = true;
+		}
+		else
+		{
+			kPacket.m_DungeonCountUI = false;
+		}
+	}
+	///여기서 서버도 정보를 가지고 있어야 한다.
+	///시간 체크를 해야 하기 때문이다.보상도 서버에서 줄꺼고
+	//클라는 단순히 버튼 누르고 시간 체크 하고 UI보여주고만 한다.
+	//몬스터랑 던전 클리어 카운트도 체크해야한다.
+	//버튼을 누르고의 처음 시작이다!!
+	SetDungeonCount(kPacket.m_DungeonCount);
+	SetFieldMosterKillCount(kPacket.m_FieldMonsterKillCount);
+	SetDungeonClearUI(kPacket.m_DungeonCountUI);
+	SetFieldCountUI(kPacket.m_FieldCountUI);
+	SetButtonClickTime(tButtonPush);
+	SetRemaindTime(kPacket.m_iRemaindTime);
+	START_LOG( clog, L"여기서 남은 시간 초기화 하냐?" )
+		<< BUILD_LOG( GetRemaindTime() )
+		<< END_LOG;
+	SetStartButtonPush(kPacket.m_bStartUI);
+	//여기서 클라로 보낼 시간 담자.
+	kPacket.m_tPushTime = tButtonPush.GetTime();
+	SendPacket( EGS_EVENT_COBO_DUNGEON_FIELD_ACK, kPacket );
+}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+IMPL_ON_FUNC( DBE_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_ACK )
+{
+	if(kPacket_.m_iOk != NetError::NET_OK)
+	{
+		START_LOG( clog, L"클라에 정보 전송 발렌타인 실패" )
+			<< BUILD_LOG( kPacket_.m_iOk )
+			<< END_LOG;
+		return;
+	}
+	SetValentineItemCount(kPacket_.m_iValenTineItemCount);
+	KEGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_NOT kPacketValen;
+	kPacketValen.m_iValentineItemCount = kPacket_.m_iValenTineItemCount;
+	SendPacket(EGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_NOT,kPacketValen);
+	START_LOG( clog, L"클라에 정보 전송 발렌타인 성공" )
+		<< BUILD_LOG( kPacketValen.m_iValentineItemCount)
+		<< END_LOG;
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+IMPL_ON_FUNC( EGS_MANUFACTURE_PERIOD_SETTING_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_MANUFACTURE_PERIOD_SETTING_REQ, EGS_MANUFACTURE_PERIOD_SETTING_ACK );
+
+	KEGS_MANUFACTURE_PERIOD_SETTING_ACK kPacketPeriodGroup;
+
+	kPacketPeriodGroup.m_mapPeriodGroup.clear();
+	kPacketPeriodGroup.m_mapPeriodGroup.insert( SiCXSLManufactureItemManager()->m_mapPeriodGroup.begin(), SiCXSLManufactureItemManager()->m_mapPeriodGroup.end() );
+
+	kPacketPeriodGroup.m_iHouseID = kPacket_.m_iHouseID;
+
+	SendPacket(EGS_MANUFACTURE_PERIOD_SETTING_ACK, kPacketPeriodGroup);
+	START_LOG( clog, L"클라에 기간제 그룹 정보 전달 성공 아래는 사이즈" )
+		<< BUILD_LOG( kPacketPeriodGroup.m_mapPeriodGroup.size())
+		<< BUILD_LOG( kPacketPeriodGroup.m_iHouseID)
+		<< END_LOG;
+}
+#endif //SERV_MANUFACTURE_PERIOD_FIX
+
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+IMPL_ON_FUNC( EGS_4TH_ANNIV_EVENT_REWARD_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_4TH_ANNIV_EVENT_REWARD_REQ, EGS_4TH_ANNIV_EVENT_REWARD_ACK );
+
+	KEGS_4TH_ANNIV_EVENT_REWARD_ACK kPacketAck;
+	kPacketAck.m_iOK = NetError::ERR_UNKNOWN;
+	kPacketAck.m_iSeletedIndex = -1;
+
+	if( kPacket_.m_iSeletedIndex < 0 || kPacket_.m_iSeletedIndex > 11 )
+	{
+		// TODO : 넷에러 발급해야 합니다.
+		// 잘못된 사진 번호 입니다.
+		kPacketAck.m_iOK = NetError::ERR_4TH_ANNIV_EVENT_02;
+		SendPacket( EGS_4TH_ANNIV_EVENT_REWARD_ACK, kPacketAck );
+		return;
+	}
+			
+	// 하루에 한번 지급하도록 체크 합니다.
+	const int iResetHour = _CONST_SERV_4TH_ANNIVERSARY_EVENT_REWARD_ID::iRewardResetHour;
+	CTime tResetTime = m_tLastRewardTime - CTimeSpan(0, iResetHour, 0, 0);
+	tResetTime = CTime(tResetTime.GetYear(), tResetTime.GetMonth(), tResetTime.GetDay(), iResetHour, 0, 0) + CTimeSpan(1,0,0,0);
+	CTime tCurrentTime = CTime::GetCurrentTime();
+
+	if( tCurrentTime < tResetTime )
+	{
+		// 하루에 한번 보상 지급 가능합니다.
+		kPacketAck.m_iOK = NetError::ERR_4TH_ANNIV_EVENT_01;
+		SendPacket( EGS_4TH_ANNIV_EVENT_REWARD_ACK, kPacketAck );
+		return;
+	}
+
+	// 서버가 가지고 있을 데이터 업데이트
+	if( m_vec4ThAnnivEventRewardInfo.size() != 12 )
+	{
+		START_LOG(cerr, L"[4주년] 보상 vec 사이즈가 12 가 아니다. 있을수 없는 에러")
+			<< BUILD_LOG( m_vec4ThAnnivEventRewardInfo.size() )
+			<< END_LOG;
+
+		kPacketAck.m_iOK = NetError::ERR_4TH_ANNIV_EVENT_02;
+		SendPacket( EGS_4TH_ANNIV_EVENT_REWARD_ACK, kPacketAck );
+		return;
+	}
+	
+	if( false == m_vec4ThAnnivEventRewardInfo[kPacket_.m_iSeletedIndex] )
+		m_vec4ThAnnivEventRewardInfo[kPacket_.m_iSeletedIndex] = true;
+	else
+	{
+		START_LOG(cerr, L"[4주년] 이미 받은 보상이다? 있을수 없는 에러")
+			<< BUILD_LOG( kPacket_.m_iSeletedIndex )
+			<< END_LOG;
+
+		kPacketAck.m_iOK = NetError::ERR_4TH_ANNIV_EVENT_01;
+		SendPacket( EGS_4TH_ANNIV_EVENT_REWARD_ACK, kPacketAck );
+		return;
+	}
+
+	m_tLastRewardTime = tCurrentTime;
+
+	// 보상 우편 보냅니다.
+	KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+	kPacketToDB.m_iFromUnitUID = GetCharUID();
+	kPacketToDB.m_iToUnitUID   = GetCharUID();
+	kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+	kPacketToDB.m_iRewardID	   = _CONST_SERV_4TH_ANNIVERSARY_EVENT_REWARD_ID::iRewardID + kPacket_.m_iSeletedIndex;
+	SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+
+	// 성공 패킷
+	kPacketAck.m_iOK = NetError::NET_OK;
+	kPacketAck.m_iSeletedIndex = kPacket_.m_iSeletedIndex;
+
+	SendPacket( EGS_4TH_ANNIV_EVENT_REWARD_ACK, kPacketAck );
+}
+#endif // SERV_4TH_ANNIVERSARY_EVENT

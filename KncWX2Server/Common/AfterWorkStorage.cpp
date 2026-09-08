@@ -1,5 +1,9 @@
 #include "AfterWorkStorage.h"
 
+#ifdef SERV_FIX_AFTER_WORK_STORAGE_CLASS// 작업날짜: 2013-12-21	// 박세훈
+#include "GameSysVal/GameSysVal.h"
+#endif // SERV_FIX_AFTER_WORK_STORAGE_CLASS
+
 KAfterWorkStorage::KAfterWorkStorage()
 : m_iKeyIndex( 0 )
 {
@@ -20,6 +24,16 @@ void KAfterWorkStorage::Tick( void )
 	m_kUpdateTimer.restart();
 
 	CTimeSpan tGab;
+#ifdef SERV_FIX_AFTER_WORK_STORAGE_CLASS// 작업날짜: 2013-12-21	// 박세훈
+	if( SiKGameSysVal()->GetAwsCriterionNum() <= static_cast<int>( m_mapStockedData.size() ) )
+	{
+		tGab = CTimeSpan( SiKGameSysVal()->GetAwsAboveOrEqualTerm() );
+	}
+	else
+	{
+		tGab = CTimeSpan( SiKGameSysVal()->GetAwsUnderTerm() );
+	}
+#else // SERV_FIX_AFTER_WORK_STORAGE_CLASS
 	if( 100 <= m_mapStockedData.size() )
 	{
 		tGab = CTimeSpan( 0, 0, 0, 1 );
@@ -28,6 +42,7 @@ void KAfterWorkStorage::Tick( void )
 	{
 		tGab = CTimeSpan( 0, 0, 0, 60 );
 	}
+#endif // SERV_FIX_AFTER_WORK_STORAGE_CLASS
 
 	CTime tCurrentTime = CTime::GetCurrentTime();
 
@@ -65,6 +80,9 @@ int KAfterWorkStorage::RetrieveData( IN const int iKey, OUT KEventPtr& spEvent )
 	if( it == m_mapStockedData.end() )
 	{
 		spEvent = KEventPtr();
+#ifdef SERV_FIX_AFTER_WORK_STORAGE_CLASS// 작업날짜: 2013-12-21	// 박세훈
+		return AWS_DATA_IS_NOT_EXIST;
+#endif // SERV_FIX_AFTER_WORK_STORAGE_CLASS
 	}
 	else
 	{

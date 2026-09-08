@@ -91,24 +91,38 @@ CX2SquareUnit::CX2SquareUnit( bool bMyUnit, CX2Unit* pUnit, const WCHAR* pScript
 	//m_pPlanMesh				= g_pKTDXApp->GetDeviceManager()->OpenXMesh( L"SquarePlan.Y" );
 	//m_pPlanMeshXET			= NULL;
 
-	m_hHeadMarkerMy					= INVALID_PARTICLE_HANDLE;
+	m_hHeadMarkerMy					= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hHeadMarkerPartyMy			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hHeadMarkerParty				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+
+	m_hSeqEmblem					= INVALID_PARTICLE_SEQUENCE_HANDLE;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_hHeadMarkerParticleMy			= INVALID_PARTICLE_HANDLE;
+	m_hHeadMarkerParticlePartyMy	= INVALID_PARTICLE_HANDLE;
+	m_hHeadMarkerParticleParty		= INVALID_PARTICLE_HANDLE;
+
+	m_hPart_Emblem_200				= INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pHeadMarkerParticleMy			= NULL;
-
-	m_hHeadMarkerPartyMy			= INVALID_PARTICLE_HANDLE;
 	m_pHeadMarkerParticlePartyMy	= NULL;
-
-	m_hHeadMarkerParty				= INVALID_PARTICLE_HANDLE;
 	m_pHeadMarkerParticleParty		= NULL;
 
-	m_hSeqEmblem					= INVALID_PARTICLE_HANDLE;
 	m_pPart_Emblem_200				= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	m_PersonalShopState				= CX2SquareUnit::PSS_NONE;
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	m_eShopType						= SEnum::AST_NORMAL;
+#else // SERV_UPGRADE_TRADE_SYSTEM
 	m_eShopType						= PST_NORMAL;
+#endif // SERV_UPGRADE_TRADE_SYSTEM
+	
 	m_PersonalShopName				= L"";
 
-	m_hShop = INVALID_PARTICLE_HANDLE;
-	m_hPremiumShop = INVALID_PARTICLE_HANDLE;
+	m_hShop = INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hPremiumShop = INVALID_PARTICLE_SEQUENCE_HANDLE;
 
     m_pParticleSystem = NULL;
 
@@ -201,6 +215,13 @@ CX2SquareUnit::CX2SquareUnit( bool bMyUnit, CX2Unit* pUnit, const WCHAR* pScript
 				m_pMesh = g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( L"Mesh_EL_Base_SD.X" );
 			} break;
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 잘 못 두른 디파인 해외팀 수정
+		case CX2Unit::UT_ADD:
+			{
+				m_pMesh = g_pKTDXApp->GetDeviceManager()->OpenXSkinMesh( L"Mesh_Add_Base_SD.X" );
+			} break;
+#endif // SERV_9TH_NEW_CHARACTER
 	}
  
 	if( m_pMesh != NULL )
@@ -216,10 +237,14 @@ CX2SquareUnit::CX2SquareUnit( bool bMyUnit, CX2Unit* pUnit, const WCHAR* pScript
 		//m_pXSkinAnim->GetMatrix().RotateDegree( m_vRot );
 		//m_pXSkinAnim->GetMatrix().Scale( m_vScale );
 	}
+	else
+	{
+		ASSERT( ! "m_pXSkinAnim is NULL!!!" );
+	}
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
     m_iTitleId = 0;
-#endif
+//#endif
 	
 #ifdef UNIT_EMOTION
 	m_ePlayedEmotion = CX2Unit::ET_NONE;
@@ -245,11 +270,9 @@ CX2SquareUnit::CX2SquareUnit( bool bMyUnit, CX2Unit* pUnit, const WCHAR* pScript
 	//}}
 #endif SERV_INTEGRATION
 
-#ifdef AVATAR_EMOTION
 	for(int i=0; i < AVATAR_EMOTION_NUM; ++i)
 		m_bMixedEmotion[i] = false;
 	m_pAvatarEmotionSound = NULL;
-#endif
 
 #ifdef SERV_ED_MONITORING_IN_GAME
 	m_iED = 0;
@@ -277,6 +300,10 @@ CX2SquareUnit::CX2SquareUnit( bool bMyUnit, CX2Unit* pUnit, const WCHAR* pScript
 	m_wstrLobbyWaitMotionName = L"";
 	m_ElapsedTimeRidingWaitHabit = 5.f;
 #endif //RIDING_SYSTEM
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+	m_bIsPlayAvatarEmotionSoundWithoutEmotion = false;
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
 }
 #pragma endregion 생성자
 
@@ -355,29 +382,27 @@ void    CX2SquareUnit::AppendToDeviceList( CKTDXDeviceDataList& listInOut_, CX2U
 		pParticleSystem->AppendToDeviceList( listInOut_,   L"PremiumSquareShop" );
 	}//if
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 	CKTDGParticleSystem* pUIParticleSystem = g_pData->GetUIMajorParticle();
 	if ( pUIParticleSystem != NULL )
 	{
 		int titleId = pUnit->GetTitleId();
-
-
 #ifdef SERV_GROW_UP_TITLE
 		// 해당 타이틀이 갖고 있는 소켓의 타입을 이용하여 레벨을 찾아내도록 수정하였음 by 박진웅
 		int iLevel = 0;
-		iLevel = pUnit->GetUnitData()->GetGrowUpLevelByTitle( titleId );
+		iLevel = pUnit->AccessUnitData().GetGrowUpLevelByTitle( titleId );
 		pUIParticleSystem->AppendToDeviceList( listInOut_, g_pData->GetTitleManager()->GetTitleModel( titleId, iLevel ) );
 #else
 		pUIParticleSystem->AppendToDeviceList( listInOut_, g_pData->GetTitleManager()->GetTitleModel(titleId) );
-#endif
+#endif SERV_GROW_UP_TITLE
 	}
-#else   TITLE_SYSTEM
-	if ( pParticleSystem != NULL )
-	{
-		pParticleSystem->AppendToDeviceList( listInOut_,   "UnitEmblem200" );
-		pParticleSystem->AppendToDeviceList( listInOut_,   "UnitEmblemGoldMedal" );
-	}//if
-#endif	TITLE_SYSTEM
+//#else   TITLE_SYSTEM
+//	if ( pParticleSystem != NULL )
+//	{
+//		pParticleSystem->AppendToDeviceList( listInOut_,   "UnitEmblem200" );
+//		pParticleSystem->AppendToDeviceList( listInOut_,   "UnitEmblemGoldMedal" );
+//	}//if
+//#endif	TITLE_SYSTEM
 }//CX2SquareUnit::AppendToDeviceList()
 //}} robobeg : 2011-03-18
 #pragma endregion 디바이스 리스트에 SD 모션, 엠블럼 관련 파티클, 머리 위 삼각뿔 파티클 등 첨부
@@ -397,13 +422,13 @@ CX2SquareUnit::~CX2SquareUnit(void)
 #ifdef SERV_PET_SYSTEM
 	if( g_pData != NULL && g_pData->GetPetManager() != NULL )
 	{
-		g_pData->GetPetManager()->RemovePet( GetUnit()->GetUnitData()->m_UnitUID );
+		g_pData->GetPetManager()->RemovePet( GetUnit()->GetUnitData().m_UnitUID );
 	}
 #endif
 
 #ifdef RIDING_SYSTEM
 	if ( NULL != CX2RidingPetManager::GetInstance() )
-		CX2RidingPetManager::GetInstance()->RemoveRidingPet( GetUnit()->GetUnitData()->m_UnitUID );
+		CX2RidingPetManager::GetInstance()->RemoveRidingPet( GetUnit()->GetUnitData().m_UnitUID );
 #endif //RIDING_SYSTEM
 
 #ifdef SERV_INTEGRATION
@@ -443,15 +468,13 @@ CX2SquareUnit::~CX2SquareUnit(void)
 		m_pParticleSystem->DestroyInstanceHandle( m_hPremiumShop );
 	}
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
     g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
-#else	
-	m_pParticleSystem->DestroyInstanceHandle( m_hSeqEmblem );
-#endif
+//#else	
+//	m_pParticleSystem->DestroyInstanceHandle( m_hSeqEmblem );
+//#endif
 
-#ifdef AVATAR_EMOTION
 	SAFE_CLOSE( m_pAvatarEmotionSound );
-#endif
 
 }
 #pragma endregion 소멸자
@@ -498,11 +521,11 @@ void CX2SquareUnit::NotifyShowObjectChanged()
 		pSeq->SetShowObject( bShow );
 	}
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 	pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
-#else
-	pSeq = m_pParticleSystem->GetInstanceSequence( m_hSeqEmblem );
-#endif TITLE_SYSTEM
+//#else
+//	pSeq = m_pParticleSystem->GetInstanceSequence( m_hSeqEmblem );
+//#endif TITLE_SYSTEM
 
 
 	if( NULL != pSeq )
@@ -533,13 +556,13 @@ void CX2SquareUnit::NotifyShowObjectChanged()
 #ifdef SERV_PET_SYSTEM
 	if( g_pData != NULL && g_pData->GetPetManager() != NULL )
 	{
-		g_pData->GetPetManager()->NotifyShowObjectChanged( GetUnit()->GetUnitData()->m_UnitUID, bShow );
+		g_pData->GetPetManager()->NotifyShowObjectChanged( GetUnit()->GetUnitData().m_UnitUID, bShow );
 	}
 #endif
 
 #ifdef RIDING_SYSTEM
 	if ( NULL != CX2RidingPetManager::GetInstance() )
-		CX2RidingPetManager::GetInstance()->NotifyShowObjectChanged( GetUnit()->GetUnitData()->m_UnitUID, bShow );
+		CX2RidingPetManager::GetInstance()->NotifyShowObjectChanged( GetUnit()->GetUnitData().m_UnitUID, bShow );
 #endif //RIDING_SYSTEM
 }
 #pragma endregion 보여질 객체 통보
@@ -570,9 +593,9 @@ void CX2SquareUnit::InitSystem()
 {
 	//스크립트 파일을 로드한다
 //{{ robobeg : 2008-10-28
-	//g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( m_ScriptFileName.c_str() );
-	//g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, L"Enum.lua" );
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, m_ScriptFileName.c_str() );
+	//g_pKTDXApp->LoadLuaTinker( m_ScriptFileName.c_str() );
+	//g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, L"Enum.lua" );
+	g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, m_ScriptFileName.c_str() );
 	m_LuaManager.ExportFunctionsToGlobalEnv();
 //}} robobeg : 2008-10-28
 
@@ -639,13 +662,20 @@ void CX2SquareUnit::InitViewer()
 #ifdef PET_DROP_ITEM_PICKUP
 			petInfo.m_bIsDropItemPickup = pPetInfo->m_bAutoLooting;
 #endif //PET_DROP_ITEM_PICKUP
+#ifdef SERV_PET_SYSTEM_EX1
+			petInfo.m_bAlwaysMaxSatiety = pPetInfo->m_bAlwaysMaxSatiety;
+#endif //SERV_PET_SYSTEM_EX1
+#ifdef SERV_EVENT_PET_INVENTORY
+			petInfo.m_bEventFoodEat		= pPetInfo->m_bEventFoodEat;
+			petInfo.m_bIsEventPetID		= pPetInfo->m_bIsEventPetID;
+#endif SERV_EVENT_PET_INVENTORY
 			petInfo.m_bSummon = true;
 
-			g_pData->GetPetManager()->CreatePet( GetUnit()->GetUnitData()->m_UnitUID, petInfo );
+			g_pData->GetPetManager()->CreatePet( GetUnit()->GetUnitData().m_UnitUID, petInfo );
 		}
 		else
 		{
-			g_pData->GetPetManager()->RemovePet( GetUnit()->GetUnitData()->m_UnitUID );
+			g_pData->GetPetManager()->RemovePet( GetUnit()->GetUnitData().m_UnitUID );
 		}		
 	}
 #endif
@@ -677,64 +707,64 @@ void CX2SquareUnit::InitState()
 		m_StateIDMap.clear();
 
 		int index = 1;
-		std::wstring stateName = L"";
-		while( m_LuaManager.GetValue( index, stateName ) == true )
+		std::string stateName = "";
+		while( m_LuaManager.GetValueUtf8( index, stateName ) == true )
 		{
 			m_StateNameMap.insert( std::make_pair( index, stateName.c_str() ) );
 			m_StateIDMap.insert( std::make_pair( stateName.c_str(), index ) );			
 			index++;
 		}
 		
-		LUA_GET_VALUE( m_LuaManager, "WAIT", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "WAIT", stateName, "" );
 		m_StateID.m_Wait = GetStateID( stateName.c_str() );
 
-		LUA_GET_VALUE( m_LuaManager, "WALK", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "WALK", stateName, "" );
 		m_StateID.m_Walk = GetStateID( stateName.c_str() );
 
-		LUA_GET_VALUE( m_LuaManager, "JUMP_UP", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "JUMP_UP", stateName, "" );
 		m_StateID.m_JumpUp = GetStateID( stateName.c_str() );
 
-		LUA_GET_VALUE( m_LuaManager, "JUMP_DOWN", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "JUMP_DOWN", stateName, "" );
 		m_StateID.m_JumpDown = GetStateID( stateName.c_str() );
 
-		LUA_GET_VALUE( m_LuaManager, "DASH", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DASH", stateName, "" );
 		m_StateID.m_Dash = GetStateID( stateName.c_str() );
 
-		LUA_GET_VALUE( m_LuaManager, "DASH_JUMP_UP", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DASH_JUMP_UP", stateName, "" );
 		m_StateID.m_DashJumpUp = GetStateID( stateName.c_str() );
 
-		LUA_GET_VALUE( m_LuaManager, "DASH_JUMP_DOWN", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DASH_JUMP_DOWN", stateName, "" );
 		m_StateID.m_DashJumpDown = GetStateID( stateName.c_str() );
 
 #ifdef RIDING_SYSTEM
-		LUA_GET_VALUE( m_LuaManager, "RIDING_ON", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_ON", stateName, "" );
 		m_StateID.m_iRidingOn = GetStateID( stateName.c_str() );
 		
-		LUA_GET_VALUE( m_LuaManager, "RIDING_OFF", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_OFF", stateName, "" );
 		m_StateID.m_iRidingOff = GetStateID( stateName.c_str() );
 		
-		LUA_GET_VALUE( m_LuaManager, "RIDING_WAIT", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_WAIT", stateName, "" );
 		m_StateID.m_iRidingWait = GetStateID( stateName.c_str() );
 		
-		LUA_GET_VALUE( m_LuaManager, "RIDING_WAIT_HABIT", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_WAIT_HABIT", stateName, "" );
 		m_StateID.m_iRidingWaitHabit = GetStateID( stateName.c_str() );
 
-		LUA_GET_VALUE( m_LuaManager, "RIDING_WALK", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_WALK", stateName, "" );
 		m_StateID.m_iRidingWalk = GetStateID( stateName.c_str() );
 		
-		LUA_GET_VALUE( m_LuaManager, "RIDING_JUMP_UP", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_JUMP_UP", stateName, "" );
 		m_StateID.m_iRidingJumpUp = GetStateID( stateName.c_str() );
 		
-		LUA_GET_VALUE( m_LuaManager, "RIDING_JUMP_DOWN", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_JUMP_DOWN", stateName, "" );
 		m_StateID.m_iRidingJumpDown = GetStateID( stateName.c_str() );
 		
-		LUA_GET_VALUE( m_LuaManager, "RIDING_DASH", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_DASH", stateName, "" );
 		m_StateID.m_iRidingDash = GetStateID( stateName.c_str() );
 		
-		LUA_GET_VALUE( m_LuaManager, "RIDING_DASH_JUMP_UP", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_DASH_JUMP_UP", stateName, "" );
 		m_StateID.m_iRidingDashJumpUp = GetStateID( stateName.c_str() );
 		
-		LUA_GET_VALUE( m_LuaManager, "RIDING_DASH_JUMP_DOWN", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "RIDING_DASH_JUMP_DOWN", stateName, "" );
 		m_StateID.m_iRidingDashJumpDown = GetStateID( stateName.c_str() );
 #endif //RIDING_SYSTEM
 
@@ -748,6 +778,11 @@ void CX2SquareUnit::InitParticle()
 	m_hHeadMarkerMy			= m_pParticleSystem->CreateSequenceHandle( NULL,  L"HeadMarkerRedMy3D", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
 	m_hHeadMarkerPartyMy	= m_pParticleSystem->CreateSequenceHandle( NULL,  L"HeadMarkerBlueMy3D", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
 	m_hHeadMarkerParty		= m_pParticleSystem->CreateSequenceHandle( NULL,  L"HeadMarkerBlue3D", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hHeadMarkerParticleMy = INVALID_PARTICLE_HANDLE;
+    m_hHeadMarkerParticleParty = INVALID_PARTICLE_HANDLE;
+    m_hHeadMarkerParticlePartyMy = INVALID_PARTICLE_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	CKTDGParticleSystem::CParticleEventSequence* pSeqHeadMarkerMy		= m_pParticleSystem->GetInstanceSequence( m_hHeadMarkerMy	);
 	CKTDGParticleSystem::CParticleEventSequence* pSeqHeadMarkerPartyMy	= m_pParticleSystem->GetInstanceSequence( m_hHeadMarkerPartyMy );
@@ -757,10 +792,14 @@ void CX2SquareUnit::InitParticle()
 	{
 		pSeqHeadMarkerMy->SetTrace( true );
 		pSeqHeadMarkerMy->SetBillBoardType( CKTDGMatrix::BT_Y );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hHeadMarkerParticleMy = pSeqHeadMarkerMy->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( m_pHeadMarkerParticleMy == NULL )
 		{
 			m_pHeadMarkerParticleMy = pSeqHeadMarkerMy->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
 		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		pSeqHeadMarkerMy->SetShowObject(false);
 	}
 
@@ -768,11 +807,14 @@ void CX2SquareUnit::InitParticle()
 	{
 		pSeqHeadMarkerParty->SetTrace( true );
 		pSeqHeadMarkerParty->SetBillBoardType( CKTDGMatrix::BT_Y );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    	m_hHeadMarkerParticleParty = pSeqHeadMarkerParty->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( m_pHeadMarkerParticleParty == NULL )
 		{
 			m_pHeadMarkerParticleParty = pSeqHeadMarkerParty->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-
 		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		pSeqHeadMarkerParty->SetShowObject(false);
 	}
 
@@ -780,10 +822,14 @@ void CX2SquareUnit::InitParticle()
 	{
 		pSeqHeadMarkerPartyMy->SetTrace( true );
 		pSeqHeadMarkerPartyMy->SetBillBoardType( CKTDGMatrix::BT_Y );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_hHeadMarkerParticlePartyMy = pSeqHeadMarkerPartyMy->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( m_pHeadMarkerParticlePartyMy == NULL )
 		{
 			m_pHeadMarkerParticlePartyMy = pSeqHeadMarkerPartyMy->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
 		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		pSeqHeadMarkerPartyMy->SetShowObject(false);
 	}
 }
@@ -805,6 +851,9 @@ void CX2SquareUnit::InitWaitMotion()
 #ifdef NEW_CHARACTER_EL
 	case CX2Unit::UC_ELESIS_KNIGHT:
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UC_ADD_NASOD_RULER:
+#endif //SERV_9TH_NEW_CHARACTER
 		m_wstrLobbyWaitMotionName = L"LobbyWait";
 		break;
 
@@ -936,6 +985,15 @@ void CX2SquareUnit::InitWaitMotion()
 	case CX2Unit::UC_ELESIS_PYRO_KNIGHT:
 		m_wstrLobbyWaitMotionName = L"SPK_LobbyWait";
 		break;
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case CX2Unit::UC_ELESIS_GRAND_MASTER:
+		m_wstrLobbyWaitMotionName = L"SGM_LobbyWait";
+		break;
+	case CX2Unit::UC_ELESIS_BLAZING_HEART:
+		m_wstrLobbyWaitMotionName = L"SBH_LobbyWait";
+		break;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
 #endif // NEW_CHARACTER_EL
 
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
@@ -946,6 +1004,18 @@ void CX2SquareUnit::InitWaitMotion()
 		m_wstrLobbyWaitMotionName = L"AYR_LobbyWait";
 		break;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+		m_wstrLobbyWaitMotionName = L"APT_LobbyWait";
+		break;
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+		m_wstrLobbyWaitMotionName = L"ALP_LobbyWait";
+		break;
+#endif //SERV_ADD_LUNATIC_PSYKER
 	}
 }
 
@@ -991,24 +1061,32 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
 {
 	typedef std::map< float, bool > EventTimeStampMap;
 
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	BOOST_TEST_FOREACH( EventTimeStampMap::value_type&, value, m_EventTimeStamp )
 	{
 		value.second = true;
 	}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	
 #ifdef RIDING_SYSTEM
 	if ( m_StateID.m_iRidingWait == m_SyncData.m_StateID )
+    {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_ElapsedTimeRidingWaitHabit.OnFrameMove( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_ElapsedTimeRidingWaitHabit.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    }
 #endif //RIDING_SYSTEM
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
     UpdateEquippedEmblem();		
     CKTDGParticleSystem::CParticleEventSequence* pSeq_Emblem	= g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqEmblem );
-#else
-    CKTDGParticleSystem::CParticleEventSequence* pSeq_Emblem	= m_pParticleSystem->GetInstanceSequence( m_hSeqEmblem );
-#endif TITLE_SYSTEM
+//#else
+//    CKTDGParticleSystem::CParticleEventSequence* pSeq_Emblem	= m_pParticleSystem->GetInstanceSequence( m_hSeqEmblem );
+//#endif TITLE_SYSTEM
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
     if( pSeq_Emblem != NULL )
     {
 		pSeq_Emblem->SetShowObject( true );        
@@ -1023,7 +1101,7 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
 			pSeq_Emblem->SetShowObject( false );
 #endif
     }
-#endif
+//#endif
 
 
 
@@ -1068,8 +1146,14 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
 	}
 	else
 	{
-		m_pXSkinAnim->SetShowObject(false);
-		m_pXSkinAnim->Stop();
+        if ( m_pXSkinAnim != NULL )
+        {
+		    m_pXSkinAnim->SetShowObject(false);
+		    m_pXSkinAnim->Stop();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_pXSkinAnim->UpdateBeforeAnimationTime();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        }
 	}
 	
 
@@ -1202,7 +1286,7 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
 	CKTDGXSkinAnim* pCKTDGXSkinAnim = m_pUnitViewer->GetXSkinAnim();
 	if( pCKTDGXSkinAnim != NULL && pCKTDGXSkinAnim->GetState() == CKTDGXSkinAnim::XAS_PLAYING && m_bPlanRender == false)
 	{
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 		D3DXVECTOR3 vTeamMarkerPos = GetPos();
         D3DXVECTOR3 vHeadPos;
         GetFramePos( &vHeadPos, pCKTDGXSkinAnim->GetCloneFrame( L"Bip01_Head" ) );
@@ -1212,68 +1296,102 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
         //vTeamMarkerPos =+ D3DXVECTOR3( 0.f, 70.f, 0.f );
         D3DXVECTOR3 vSize = D3DXVECTOR3(0.6f, 0.6f, 0.6f);
 
-        if( NULL != m_pPart_Emblem_200 && m_iTitleId != 0 && (pSeq_Emblem != NULL && pSeq_Emblem->GetShowObject() == true) )
+        if ( m_iTitleId != 0 && (pSeq_Emblem != NULL && pSeq_Emblem->GetShowObject() == true) )
         {
-            //vTeamMarkerPos.y += 120.0f;
-            m_pPart_Emblem_200->m_vPos = vTeamMarkerPos + D3DXVECTOR3( 0, 20, 0 );
-            vTeamMarkerPos.y += 60.0f;
-            vSize = D3DXVECTOR3(0.36f, 0.36f, 0.36f);
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CKTDGParticleSystem::CParticle* pPart_Emblem_200 = pSeq_Emblem->ValidateParticleHandle( m_hPart_Emblem_200 ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if( CKTDGParticleSystem::CParticle* pPart_Emblem_200 = m_pPart_Emblem_200 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            {
+                //vTeamMarkerPos.y += 120.0f;
+                pPart_Emblem_200->SetPos( vTeamMarkerPos + D3DXVECTOR3( 0, 20, 0 ) );
+                vTeamMarkerPos.y += 60.0f;
+                vSize = D3DXVECTOR3(0.36f, 0.36f, 0.36f);
+            }
         }
         
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( CKTDGParticleSystem::CParticle* pHeadMarkerParticleMy = m_pParticleSystem->ValidateParticleHandle( m_hHeadMarkerParticleMy ) )
+        {
+            pHeadMarkerParticleMy->SetPos( vTeamMarkerPos );
+            pHeadMarkerParticleMy->SetSize( vSize );
+        }
+        if( CKTDGParticleSystem::CParticle* pHeadMarkerParticleParty = m_pParticleSystem->ValidateParticleHandle( m_hHeadMarkerParticleParty ) )
+        {
+            pHeadMarkerParticleParty->SetPos( vTeamMarkerPos );
+            pHeadMarkerParticleParty->SetSize( vSize );
+        }
+        if( CKTDGParticleSystem::CParticle* pHeadMarkerParticlePartyMy = m_pParticleSystem->ValidateParticleHandle( m_hHeadMarkerParticlePartyMy ) )
+        {
+            pHeadMarkerParticlePartyMy->SetPos( vTeamMarkerPos );
+            pHeadMarkerParticlePartyMy->SetSize( vSize );
+        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
         if( m_pHeadMarkerParticleMy != NULL )
         {
-            m_pHeadMarkerParticleMy->m_vPos = vTeamMarkerPos;
-            m_pHeadMarkerParticleMy->m_vSize = vSize;
+            m_pHeadMarkerParticleMy->SetPos( vTeamMarkerPos );
+            m_pHeadMarkerParticleMy->SetSize( vSize );
         }
         if( m_pHeadMarkerParticleParty != NULL )
         {
-            m_pHeadMarkerParticleParty->m_vPos = vTeamMarkerPos;
-            m_pHeadMarkerParticleParty->m_vSize = vSize;
+            m_pHeadMarkerParticleParty->SetPos( vTeamMarkerPos );
+            m_pHeadMarkerParticleParty->SetSize( vSize );
         }
         if( m_pHeadMarkerParticlePartyMy != NULL )
         {
-            m_pHeadMarkerParticlePartyMy->m_vPos = vTeamMarkerPos;
-            m_pHeadMarkerParticlePartyMy->m_vSize = vSize;
+            m_pHeadMarkerParticlePartyMy->SetPos( vTeamMarkerPos );
+            m_pHeadMarkerParticlePartyMy->SetSize( vSize );
         }
-#else
-        //D3DXVECTOR3 vTeamMarkerPos = pCKTDGXSkinAnim->GetCloneFramePosition( L"Bip01_Head" );
-        D3DXVECTOR3 vTeamMarkerPos = GetPos() + D3DXVECTOR3( 0.f, 150.f, 0.f );
-        vTeamMarkerPos.y += 70.0f;
-        if( m_pHeadMarkerParticleMy != NULL )
-            m_pHeadMarkerParticleMy->m_vPos = vTeamMarkerPos;
-        if( m_pHeadMarkerParticleParty != NULL )
-            m_pHeadMarkerParticleParty->m_vPos = vTeamMarkerPos;
-        if( m_pHeadMarkerParticlePartyMy != NULL )
-            m_pHeadMarkerParticlePartyMy->m_vPos = vTeamMarkerPos;
-
-        if( NULL != m_pPart_Emblem_200 )
-            m_pPart_Emblem_200->m_vPos = vTeamMarkerPos + D3DXVECTOR3( 0, -20, 0 );
-
-        if( m_pHeadMarkerParticleMy != NULL )
-            m_pHeadMarkerParticleMy->m_vPos = vTeamMarkerPos;
-        if( m_pHeadMarkerParticleParty != NULL )
-            m_pHeadMarkerParticleParty->m_vPos = vTeamMarkerPos;
-        if( m_pHeadMarkerParticlePartyMy != NULL )
-            m_pHeadMarkerParticlePartyMy->m_vPos = vTeamMarkerPos;
-#endif
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+//#else
+//        //D3DXVECTOR3 vTeamMarkerPos = pCKTDGXSkinAnim->GetCloneFramePosition( L"Bip01_Head" );
+//        D3DXVECTOR3 vTeamMarkerPos = GetPos() + D3DXVECTOR3( 0.f, 150.f, 0.f );
+//        vTeamMarkerPos.y += 70.0f;
+//        if( m_pHeadMarkerParticleMy != NULL )
+//            m_pHeadMarkerParticleMy->SetPos( vTeamMarkerPos );
+//        if( m_pHeadMarkerParticleParty != NULL )
+//            m_pHeadMarkerParticleParty->SetPos( vTeamMarkerPos );
+//        if( m_pHeadMarkerParticlePartyMy != NULL )
+//            m_pHeadMarkerParticlePartyMy->SetPos( vTeamMarkerPos );
+//
+//        if( NULL != m_pPart_Emblem_200 )
+//            m_pPart_Emblem_200->m_vPos = vTeamMarkerPos + D3DXVECTOR3( 0, -20, 0 );
+//
+//        if( m_pHeadMarkerParticleMy != NULL )
+//            m_pHeadMarkerParticleMy->SetPos( vTeamMarkerPos );
+//        if( m_pHeadMarkerParticleParty != NULL )
+//            m_pHeadMarkerParticleParty->SetPos( vTeamMarkerPos );
+//        if( m_pHeadMarkerParticlePartyMy != NULL )
+//            m_pHeadMarkerParticlePartyMy->SetPos( vTeamMarkerPos );
+//#endif
 	}
 	else if( m_pXSkinAnim != NULL && m_pXSkinAnim->GetState() == CKTDGXSkinAnim::XAS_PLAYING && m_bPlanRender == true)
 	{
 		//D3DXVECTOR3 vTeamMarkerPos = pCKTDGXSkinAnim->GetCloneFramePosition( L"Bip01_Head" );
 		D3DXVECTOR3 vTeamMarkerPos = GetPos() + D3DXVECTOR3( 0.f, 150.f, 0.f );
 		vTeamMarkerPos.y += 70.0f;
-		if( m_pHeadMarkerParticleMy != NULL )
-			m_pHeadMarkerParticleMy->m_vPos = vTeamMarkerPos;
-		if( m_pHeadMarkerParticleParty != NULL )
-			m_pHeadMarkerParticleParty->m_vPos = vTeamMarkerPos;
-		if( m_pHeadMarkerParticlePartyMy != NULL )
-			m_pHeadMarkerParticlePartyMy->m_vPos = vTeamMarkerPos;	
 
-#ifdef TITLE_SYSTEM
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( CKTDGParticleSystem::CParticle* pHeadMarkerParticleMy = m_pParticleSystem->ValidateParticleHandle( m_hHeadMarkerParticleMy ) )
+            pHeadMarkerParticleMy->SetPos( vTeamMarkerPos );
+        if( CKTDGParticleSystem::CParticle* pHeadMarkerParticleParty = m_pParticleSystem->ValidateParticleHandle( m_hHeadMarkerParticleParty ) )
+            pHeadMarkerParticleParty->SetPos( vTeamMarkerPos );
+        if( CKTDGParticleSystem::CParticle* pHeadMarkerParticlePartyMy = m_pParticleSystem->ValidateParticleHandle( m_hHeadMarkerParticlePartyMy ) )
+            pHeadMarkerParticlePartyMy->SetPos( vTeamMarkerPos );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( m_pHeadMarkerParticleMy != NULL )
+			m_pHeadMarkerParticleMy->SetPos( vTeamMarkerPos );
+		if( m_pHeadMarkerParticleParty != NULL )
+			m_pHeadMarkerParticleParty->SetPos( vTeamMarkerPos );
+		if( m_pHeadMarkerParticlePartyMy != NULL )
+			m_pHeadMarkerParticlePartyMy->SetPos( vTeamMarkerPos );	
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+//#ifdef TITLE_SYSTEM
 		if(pSeq_Emblem != NULL)
 			pSeq_Emblem->SetShowObject(false);
-#endif
+//#endif
 	}
 	else
 	{
@@ -1289,23 +1407,23 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
 		if( pSeq_Emblem != NULL )
 			pSeq_Emblem->SetShowObject( false );
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
         if(pSeq_Emblem != NULL)
             pSeq_Emblem->SetShowObject(false);
-#endif
+//#endif
 	}
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	if(m_bTFieldUnit == false && g_pSquareGame != NULL && m_pUnit->GetUnitData()->m_Port != 0)
-	{
-		CKTDNUDP::Peer* pPeer = g_pData->GetGameUDP()->GetPeer( m_pUnit->GetUnitData()->m_UnitUID );
-		if( pPeer == NULL )
-		{
-			g_pData->GetGameUDP()->AddPeer( m_pUnit->GetUnitData()->m_UnitUID, m_pUnit->GetUnitData()->m_IP.c_str(), m_pUnit->GetUnitData()->m_Port );
-			g_pData->GetGameUDP()->ConnectTestToPeer();
-		}
-	}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	if(m_bTFieldUnit == false && g_pSquareGame != NULL && m_pUnit->GetUnitData().m_Port != 0)
+//	{
+//		CKTDNUDP::Peer* pPeer = g_pData->GetGameUDP()->GetPeer( m_pUnit->GetUnitData().m_UnitUID );
+//		if( pPeer == NULL )
+//		{
+//			g_pData->GetGameUDP()->AddPeer( m_pUnit->GetUnitData().m_UnitUID, m_pUnit->GetUnitData().m_IP.c_str(), m_pUnit->GetUnitData().m_Port );
+//			g_pData->GetGameUDP()->ConnectTestToPeer();
+//		}
+//	}
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 
 //{{ robobeg : 2008-10-18
@@ -1336,6 +1454,19 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
 			switch( m_eShopType )
 			{
 			default:
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			case SEnum::AST_NORMAL:
+				{
+					pSeqShop->SetShowObject( true );
+					pSeqPremiumShop->SetShowObject( false );
+				} break;
+
+			case SEnum::AST_PREMIUM:
+				{
+					pSeqShop->SetShowObject( false );
+					pSeqPremiumShop->SetShowObject( true );
+				} break;
+#else // SERV_UPGRADE_TRADE_SYSTEM
 			case PST_NORMAL:
 				{
 					pSeqShop->SetShowObject( true );
@@ -1347,6 +1478,7 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
 					pSeqShop->SetShowObject( false );
 					pSeqPremiumShop->SetShowObject( true );
 				} break;
+#endif // SERV_UPGRADE_TRADE_SYSTEM
 			}				
 		}
 		else
@@ -1428,13 +1560,15 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
 	{
 		float fTime = soundData.m_SoundPlayTime;
 		int iRate	= soundData.m_SoundPlayRate;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if( m_pXSkinAnim->EventTimerOneshot( fTime ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( fTime ) == true && EventCheck( fTime ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			if( rand()%100 < iRate )
 			{
-				if( soundData.m_bOnlyIfMyUnit == true && m_bMyUnit == true )
-					g_pKTDXApp->GetDeviceManager()->PlaySound( soundData.m_SoundPlayName.c_str(), false, false );
-				else if( soundData.m_bOnlyIfMyUnit == false )
+				if( soundData.m_bOnlyIfMyUnit == false || m_bMyUnit == true )
 					g_pKTDXApp->GetDeviceManager()->PlaySound( soundData.m_SoundPlayName.c_str(), false, false );
 			}
 		}
@@ -1469,27 +1603,35 @@ HRESULT	CX2SquareUnit::OnFrameMove( double fTime, float fElapsedTime )
             ASSERT( pRenderParam != NULL );
 
 			pRenderParam->renderType		= CKTDGXRenderer::RT_CARTOON_BLACK_EDGE;
-			if( g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail == CX2GameOption::OL_MEDIUM )
+			if( g_pMain->GetGameOption().GetOptionList().m_UnitDetail == CX2GameOption::OL_MEDIUM )
 			{
 				pRenderParam->renderType = CKTDGXRenderer::RT_CARTOON;
 			}
-			else if( g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail == CX2GameOption::OL_LOW )
+			else if( g_pMain->GetGameOption().GetOptionList().m_UnitDetail == CX2GameOption::OL_LOW )
 			{
 				pRenderParam->renderType = CKTDGXRenderer::RT_REAL_COLOR;
 			}
 
-			if( g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail == CX2GameOption::OL_HIGH )
+			if( g_pMain->GetGameOption().GetOptionList().m_UnitDetail == CX2GameOption::OL_HIGH )
 			{
 				
 				pRenderParam->renderType		= CKTDGXRenderer::RT_CARTOON_BLACK_EDGE;			
 				pRenderParam->outLineColor		= 0xffffffff;
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+				pRenderParam->fOutLineWide		= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 				pRenderParam->fOutLineWide		= 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 				pRenderParam->bAlphaBlend		= false;
 			}
 			else
 			{
 				pRenderParam->cartoonTexType	= CKTDGXRenderer::CTT_NORMAL;
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+				pRenderParam->fOutLineWide		= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 				pRenderParam->fOutLineWide		= 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 				pRenderParam->color				= 0xffffffff;
 				pRenderParam->bAlphaBlend		= false;
 			}				
@@ -1598,7 +1740,7 @@ void CX2SquareUnit::RenderRank(int iFinalLeft, int iFinalTop)
 #endif
 	
 	MakeUpperCase( wstrRankKey );
-	CKTDXDeviceTexture::TEXTURE_UV*	pTexUV = m_pTextureRank->GetTexUV( wstrRankKey );
+	const CKTDXDeviceTexture::TEXTURE_UV*	pTexUV = m_pTextureRank->GetTexUV( wstrRankKey );
 	if(pTexUV == NULL)
 		return;
 
@@ -1626,7 +1768,7 @@ void CX2SquareUnit::RenderServer(int iFinalLeft, int iFinalTop)
 	if(m_pTextureServer == NULL)
 		return;
 
-	CKTDXDeviceTexture::TEXTURE_UV*	pTexUV = NULL;
+	const CKTDXDeviceTexture::TEXTURE_UV*	pTexUV = NULL;
 
 #ifdef EXTEND_SERVER_GROUP_MASK
 	int iServerGroupID = -1;
@@ -1689,10 +1831,10 @@ void CX2SquareUnit::RenderName()
 	bool bLevel, bPvpRank, bGuild, bNothing;
 	bLevel = bPvpRank = bGuild = bNothing = true;
 
-	bLevel		= g_pMain->GetGameOption()->GetOptionList()->m_bLevel;
-	bPvpRank	= g_pMain->GetGameOption()->GetOptionList()->m_bPvpRank;
-	bGuild		= g_pMain->GetGameOption()->GetOptionList()->m_bGuild;
-	bNothing	= g_pMain->GetGameOption()->GetOptionList()->m_bNothing;
+	bLevel		= g_pMain->GetGameOption().GetOptionList().m_bLevel;
+	bPvpRank	= g_pMain->GetGameOption().GetOptionList().m_bPvpRank;
+	bGuild		= g_pMain->GetGameOption().GetOptionList().m_bGuild;
+	bNothing	= g_pMain->GetGameOption().GetOptionList().m_bNothing;
 
 	if(m_bMyUnit == true && bNothing == true)
 	{
@@ -1703,8 +1845,12 @@ void CX2SquareUnit::RenderName()
 
 	wstring wstrNickName= m_pUnit->GetNickName();
 	WCHAR wcLv[10];
-	StringCchPrintf(wcLv, 10, L"Lv.%d ", m_pUnit->GetUnitData()->m_Level);
-	//wsprintf(wcLv, L"Lv.%d ", m_pUnit->GetUnitData()->m_Level);
+#ifdef HARDCODING_STRING_BR
+	StringCchPrintf(wcLv, 10, L"Niv.%d ", m_pUnit->GetUnitData().m_Level);
+#else // HARDCODING_STRING_BR
+	StringCchPrintf(wcLv, 10, L"Lv.%d ", m_pUnit->GetUnitData().m_Level);
+#endif // HARDCODING_STRING_BR
+	//wsprintf(wcLv, L"Lv.%d ", m_pUnit->GetUnitData().m_Level);
 	
 	wstring wstrName = L"";
 	
@@ -1716,14 +1862,14 @@ void CX2SquareUnit::RenderName()
 	if ( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV && g_pData->GetRenderEtc() == true)
 	{
 		WCHAR wszText[256] = L"";
-		swprintf( wszText, L"(%5.2f, %5.2f, %5.2f) Rating: %d", GetPos().x, GetPos().y, GetPos().z, GetUnit()->GetUnitData()->m_iRating );
+		swprintf( wszText, L"(%5.2f, %5.2f, %5.2f) Rating: %d", GetPos().x, GetPos().y, GetPos().z, GetUnit()->GetUnitData().m_iRating );
 		wstrName += wszText;
 	}
 
 	if( m_bMyUnit == true )
 	{
 #ifdef SERV_INVISIBLE_GM
-		if( m_pUnit->GetUnitData()->IsInvisible() == true )
+		if( m_pUnit->AccessUnitData().IsInvisible() == true )
 			wstrName += L" [Invisible]";
 #endif SERV_INVISIBLE_GM
 
@@ -1809,24 +1955,24 @@ void CX2SquareUnit::RenderName()
 
 //{{ 허상형 : [2009/9/25] //	길드 이름 표시
 #ifdef GUILD_MANAGEMENT
-	if( m_pUnit->GetUnitData()->m_wstrGuildName != L"" )
+	if( m_pUnit->GetUnitData().m_wstrGuildName != L"" )
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y -= 22.0f;
 		
 		if( m_bTFieldUnit == true)
 		{
-			g_pTFieldGame->GetFontForUnitName()->OutProjectionText( vPos, (g_pData->GetGuildManager()->ConvertDisplayGuildName(m_pUnit->GetUnitData()->m_wstrGuildName) ).c_str(), 0xff96ff00, 
+			g_pTFieldGame->GetFontForUnitName()->OutProjectionText( vPos, (g_pData->GetGuildManager()->ConvertDisplayGuildName(m_pUnit->GetUnitData().m_wstrGuildName) ).c_str(), 0xff96ff00, 
 				CKTDGFontManager::FS_SHELL, 0xff062507, NULL, DT_CENTER  );
 		}
 		else
 		{
 			if( NULL != g_pSquareGame )
-				g_pSquareGame->GetFontForUnitName()->OutProjectionText( vPos, (g_pData->GetGuildManager()->ConvertDisplayGuildName(m_pUnit->GetUnitData()->m_wstrGuildName) ).c_str(), 0xff96ff00, 
+				g_pSquareGame->GetFontForUnitName()->OutProjectionText( vPos, (g_pData->GetGuildManager()->ConvertDisplayGuildName(m_pUnit->GetUnitData().m_wstrGuildName) ).c_str(), 0xff96ff00, 
 					CKTDGFontManager::FS_SHELL, 0xff062507, NULL, DT_CENTER  );
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 			else if( NULL != g_pWeddingGame )
-				g_pWeddingGame->GetFontForUnitName()->OutProjectionText( vPos, (g_pData->GetGuildManager()->ConvertDisplayGuildName(m_pUnit->GetUnitData()->m_wstrGuildName) ).c_str(), 0xff96ff00, 
+				g_pWeddingGame->GetFontForUnitName()->OutProjectionText( vPos, (g_pData->GetGuildManager()->ConvertDisplayGuildName(m_pUnit->GetUnitData().m_wstrGuildName) ).c_str(), 0xff96ff00, 
 					CKTDGFontManager::FS_SHELL, 0xff062507, NULL, DT_CENTER  );
 #endif //ADDED_RELATIONSHIP_SYSTEM
 		}
@@ -1834,11 +1980,56 @@ void CX2SquareUnit::RenderName()
 #endif	//GUILD_MANAGEMENT
 //}} 허상형 : [2009/9/25] //	길드 이름 표시
 
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	IF_EVENT_ENABLED( CEI_RELATIONSHIP_CODE_EVENT )
+	{
+		if( m_pUnit->GetUnitData().m_bCouple == true && m_pUnit->GetUnitData().m_wstrRelationTargetUserNickname != L"" )
+		{
+			D3DXVECTOR3 vPos = GetPos();
+
+			if( m_pUnit->GetUnitData().m_wstrGuildName != L"" )
+			{
+				vPos.y -= 70.0f;
+			}
+			else
+			{
+				vPos.y -= 35.0f;
+			}
+
+			if( m_bTFieldUnit == true)
+			{
+				//WCHAR adBuf[200] = {0,};
+				//StringCchPrintfW( adBuf, ARRAY_SIZE( adBuf ), L"%s ♡ %s", m_pUnit->GetNickName(), m_pUnit->GetUnitData().m_wstrRelationTargetUserNickname, (int)MAGIC_OXYGEN_GAGE );
+				//g_pTFieldGame->GetFontForUnitName()->OutProjectionText( vPos, adBuf, 0xffffaa77, CKTDGFontManager::FS_SHELL, 0xffff0000, NULL, DT_CENTER  );	
+				wstringstream adBuf;
+				adBuf << m_pUnit->GetNickName();
+				adBuf << L" ♡ ";
+				adBuf << m_pUnit->GetUnitData().m_wstrRelationTargetUserNickname;
+				g_pTFieldGame->GetFontForUnitName()->OutProjectionText( vPos, adBuf.str().c_str(), 0xffffaa77, CKTDGFontManager::FS_SHELL, 0xffff0000, NULL, DT_CENTER  );	
+			}
+			else
+			{
+				if( NULL != g_pSquareGame )
+				{
+					//WCHAR adBuf[200] = {0,};
+					//StringCchPrintfW( adBuf, ARRAY_SIZE( adBuf ), L"%s ♡ %s", m_pUnit->GetNickName(), m_pUnit->GetUnitData().m_wstrRelationTargetUserNickname, (int)MAGIC_OXYGEN_GAGE );
+					//g_pSquareGame->GetFontForUnitName()->OutProjectionText( vPos, adBuf, 0xffffaa77, CKTDGFontManager::FS_SHELL, 0xffff0000, NULL, DT_CENTER  );	
+					wstringstream adBuf;
+					adBuf << m_pUnit->GetNickName();
+					adBuf << L" ♡ ";
+					adBuf << m_pUnit->GetUnitData().m_wstrRelationTargetUserNickname;
+					g_pSquareGame->GetFontForUnitName()->OutProjectionText( vPos, adBuf.str().c_str(), 0xffffaa77, CKTDGFontManager::FS_SHELL, 0xffff0000, NULL, DT_CENTER  );	
+				}
+			}
+		}
+	}	
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 #ifdef SERV_JAPAN_CHANNELING
 	if ( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR && g_pData->GetRenderEtc() == true )
 	{
 		wstring wstrSite = L"Site : ";
-		switch( static_cast<UINT8>( g_pData->GetMyUser()->GetUserData()->m_uChannelCode) )
+		switch( static_cast<UINT8>( g_pData->GetMyUser()->GetUserData().m_uChannelCode) )
 		{
 		case KNexonAccountInfo::JCE_NHN:
 			{
@@ -1875,26 +2066,55 @@ void CX2SquareUnit::RenderName()
 		}
 	}
 #endif // SERV_JAPAN_CHANNELING
-	
+
+#ifdef TITLE_SHOWING_PVP_RESULT
+	// 포인트 표시는 이벤트 전용이므로, 하드코딩으로 처리한다.
+	if( _CONST_TITLE_SHOWING_PVP_RESULT_::iTitleID == GetUnit()->GetUnitData().m_iTitleId )
+	{
+		if( m_hHeadMarkerParticleMy != INVALID_PARTICLE_HANDLE )
+		{
+			if( false == g_pMain->GetGameOption().GetFieldSD() )
+			{
+				char szCount[10];
+				//대전 패배 횟수
+				::itoa( GetUnit()->GetUnitData().m_iAccountPVPLoseCount, szCount, 10 );
+
+				if( CKTDGParticleSystem::CParticle* pHeadMarkerParticleMy = m_pParticleSystem->ValidateParticleHandle( m_hHeadMarkerParticleMy ) )
+				{
+					if( NULL != g_pSquareGame )
+					{
+						g_pSquareGame->GetFontForUnitName()->OutProjectionText( pHeadMarkerParticleMy->GetPos() - D3DXVECTOR3(0, 57, 0), KncUtil::toWideString(szCount).c_str(),
+							0xe0e0e0ff, CKTDGFontManager::FS_SHELL, 0xff062507, NULL, DT_CENTER  );
+					}
+					else if( NULL != g_pTFieldGame )
+					{
+						g_pTFieldGame->GetFontForUnitName()->OutProjectionText( pHeadMarkerParticleMy->GetPos() - D3DXVECTOR3(0, 57, 0), KncUtil::toWideString(szCount).c_str(),
+							0xe0e0e0ff, CKTDGFontManager::FS_SHELL, 0xff062507, NULL, DT_CENTER  );
+					}
+				}
+			}
+		}
+	}
+#endif //TITLE_SHOWING_PVP_RESULT
 }
 
 
 void CX2SquareUnit::StateChange( char stateID )
 {
-	map<char,wstring>::iterator iter;
+	map<char,string>::iterator iter;
 	iter = m_StateNameMap.find( stateID );
 	if( iter != m_StateNameMap.end() )
 	{
-		wstring stateName = iter->second;
+		string stateName = iter->second;
 		StateChange( stateName.c_str() );
 	}
 }
 
-void CX2SquareUnit::StateChange( const WCHAR* pStateName )
+void CX2SquareUnit::StateChange( const char* pStateName )
 {
 	StateEnd();
 
-	m_SyncData.m_StateID = m_StateIDMap[pStateName];
+	m_SyncData.m_StateID = m_StateIDMap[(pStateName) ? pStateName : ""];
 	m_SyncData.m_StateChangeNum++;
 	m_StateData.m_StateName = pStateName;
 
@@ -1935,14 +2155,14 @@ void CX2SquareUnit::StateChange( const WCHAR* pStateName )
 	StateStart();
 }
 
-void CX2SquareUnit::StateChange_LUA( char* pStateName )
+void CX2SquareUnit::StateChange_LUA( const char* pStateName )
 {
-	wstring stateName;
-	ConvertUtf8ToWCHAR( stateName, pStateName );
-	StateChange( stateName.c_str() );
+	//wstring stateName;
+	//ConvertUtf8ToWCHAR( stateName, pStateName );
+	StateChange( pStateName );
 }
 
-u_char CX2SquareUnit::GetStateID( const WCHAR* pStateName )
+u_char CX2SquareUnit::GetStateID( const char* pStateName )
 {
 	return m_StateIDMap[pStateName];
 }
@@ -1951,14 +2171,18 @@ void CX2SquareUnit::StateStart()
 {
 	if( m_LuaManager.BeginTable( m_StateData.m_StateName.c_str() ) == true )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if ( m_pXSkinAnim != NULL )
+            m_pXSkinAnim->ResetOneshotPerformed();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_EventTimeStamp.clear();
-
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 		LUA_GET_VALUE( m_LuaManager, "LAND_CONNECT",		m_StateData.m_bLandConnect,		true );
-		LUA_GET_VALUE( m_LuaManager, "FUNC_STATE_START",	m_StateData.m_FuncStateStart,	L"" );
-		LUA_GET_VALUE( m_LuaManager, "FUNC_FRAME_MOVE",		m_StateData.m_FuncFrameMove,	L"" );
-		LUA_GET_VALUE( m_LuaManager, "FUNC_EVENT_PROCESS",	m_StateData.m_FuncEventProcess, L"" );
-		LUA_GET_VALUE( m_LuaManager, "FUNC_STATE_END",		m_StateData.m_FuncStateEnd,		L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "FUNC_STATE_START",	m_StateData.m_FuncStateStart,	"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "FUNC_FRAME_MOVE",		m_StateData.m_FuncFrameMove,	"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "FUNC_EVENT_PROCESS",	m_StateData.m_FuncEventProcess, "" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "FUNC_STATE_END",		m_StateData.m_FuncStateEnd,		"" );
 
 #ifdef MODIFY_LINEMAP_JUMPUP_IN_VILLAGE
 		if( false == m_bForceMoveSpeed )
@@ -1985,7 +2209,7 @@ void CX2SquareUnit::StateStart()
 
 		wstring animName;
 #ifdef RIDING_SYSTEM
-		if ( m_StateData.m_StateName == L"WAIT" )
+		if ( m_StateData.m_StateName == "WAIT" )
 			animName = m_wstrLobbyWaitMotionName;
 		else
 			LUA_GET_VALUE( m_LuaManager, "ANIM_NAME", animName, L"" );
@@ -2010,22 +2234,18 @@ void CX2SquareUnit::StateStart()
 		LUA_GET_VALUE( m_LuaManager, "PLAY_SPEED", fPlaySpeed, 1.0f );
 
 #ifdef UNIT_EMOTION
-		if(m_StateData.m_StateName.compare(L"EMOTION_STATE") == 0)
+		if(m_StateData.m_StateName.compare("EMOTION_STATE") == 0)
 		{
 			if(m_pUnit != NULL)
 			{
-#ifdef AVATAR_EMOTION				
 				if( CX2Unit::IsAvatarEmotion( m_ePlayedEmotion ) ) 
 					m_pUnitViewer->PlayAnim( m_pUnit->GetEmotionAniNameById(m_ePlayedEmotion).c_str(), CKTDGXSkinAnim::XAP_ONE_WAIT, false );
 				else
 					m_pUnitViewer->PlayAnim( m_pUnit->GetEmotionAniNameById(m_ePlayedEmotion).c_str(), CKTDGXSkinAnim::XAP_ONE_WAIT, true );
-#else
-				m_pUnitViewer->PlayAnim( m_pUnit->GetEmotionAniNameById(m_ePlayedEmotion).c_str(), CKTDGXSkinAnim::XAP_ONE_WAIT, true );
-#endif
 			}
 			m_pUnitViewer->GetXSkinAnim()->SetPlaySpeed( 1.f );
 		}
-		else if(m_StateData.m_StateName.compare(L"EMOTION_SITREADY") == 0)
+		else if(m_StateData.m_StateName.compare("EMOTION_SITREADY") == 0)
 		{
 			m_ePlayedEmotion = CX2Unit::ET_SITREADY;
 			m_pUnitViewer->PlayAnim( animName.c_str(), playType, bTransition );
@@ -2036,7 +2256,7 @@ void CX2SquareUnit::StateStart()
 				pRidingPetPtr->StateChange( pRidingPetPtr->m_SitReadyState );
 #endif //RIDING_SYSTEM
 		}
-		else if(m_StateData.m_StateName.compare(L"EMOTION_SITWAIT") == 0)
+		else if(m_StateData.m_StateName.compare("EMOTION_SITWAIT") == 0)
 		{
 			m_ePlayedEmotion = CX2Unit::ET_SITWAIT;
 			m_pUnitViewer->PlayAnim( animName.c_str(), playType, bTransition );
@@ -2047,7 +2267,7 @@ void CX2SquareUnit::StateStart()
 				pRidingPetPtr->StateChange( pRidingPetPtr->m_SitWaitState );
 #endif //RIDING_SYSTEM
 		}
-		else if(m_StateData.m_StateName.compare(L"EMOTION_STANDUP") == 0)
+		else if(m_StateData.m_StateName.compare("EMOTION_STANDUP") == 0)
 		{
 			m_ePlayedEmotion = CX2Unit::ET_STANDUP;
 			m_pUnitViewer->PlayAnim( animName.c_str(), playType, bTransition );
@@ -2092,19 +2312,19 @@ void CX2SquareUnit::StateStart()
 
 	if( false == m_StateData.m_FuncStateStart.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_StateData.m_FuncStateStart.c_str() );
+		//string func;
+		//ConvertWCHARToChar( func, m_StateData.m_FuncStateStart.c_str() );
 		if(m_bTFieldUnit == false)
 		{
 			if( NULL != g_pSquareGame )
-				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pSquareGame, this );
+				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncStateStart.c_str(), g_pKTDXApp, g_pMain, g_pSquareGame, this );
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 			else if( NULL != g_pWeddingGame )
-				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pWeddingGame, this );
+				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncStateStart.c_str(), g_pKTDXApp, g_pMain, g_pWeddingGame, this );
 #endif //ADDED_RELATIONSHIP_SYSTEM
 		}
 		else
-			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pTFieldGame, this );
+			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncStateStart.c_str(), g_pKTDXApp, g_pMain, g_pTFieldGame, this );
 	}
 
 //	SendPacketP2P();
@@ -2155,19 +2375,19 @@ void CX2SquareUnit::StateFrameMove()
 	m_SyncBefore = m_SyncData;
 	if( false == m_StateData.m_FuncFrameMove.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_StateData.m_FuncFrameMove.c_str() );
+		//string func;
+		//ConvertWCHARToChar( func, m_StateData.m_FuncFrameMove.c_str() );
 		if(m_bTFieldUnit == false)
 		{
 			if( NULL != g_pSquareGame )
-				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pSquareGame, this );
+				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncFrameMove.c_str(), g_pKTDXApp, g_pMain, g_pSquareGame, this );
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 			else if( NULL != g_pWeddingGame )
-				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pWeddingGame, this );
+				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncFrameMove.c_str(), g_pKTDXApp, g_pMain, g_pWeddingGame, this );
 #endif //ADDED_RELATIONSHIP_SYSTEM
 		}
 		else
-			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pTFieldGame, this );
+			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncFrameMove.c_str(), g_pKTDXApp, g_pMain, g_pTFieldGame, this );
 	}	
 
 	PhysicProcess();
@@ -2221,49 +2441,52 @@ void CX2SquareUnit::StateEventProcess()
 {
 	if( false == m_StateData.m_FuncEventProcess.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_StateData.m_FuncEventProcess.c_str() );
+		//string func;
+		//ConvertWCHARToChar( func, m_StateData.m_FuncEventProcess.c_str() );
 
 		if(m_bTFieldUnit == false)
 		{
 			if( NULL != g_pSquareGame )
-				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pSquareGame, this );
+				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncEventProcess.c_str(), g_pKTDXApp, g_pMain, g_pSquareGame, this );
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 			else if( NULL != g_pWeddingGame )
-				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pWeddingGame, this );
+				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncEventProcess.c_str(), g_pKTDXApp, g_pMain, g_pWeddingGame, this );
 #endif //ADDED_RELATIONSHIP_SYSTEM
 		}
 		else
-			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pTFieldGame, this );
+			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncEventProcess.c_str(), g_pKTDXApp, g_pMain, g_pTFieldGame, this );
 	}
 }
 
 void CX2SquareUnit::StateEnd()
 {
-#ifdef AVATAR_EMOTION
-	if( m_pAvatarEmotionSound != NULL )
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+	if ( false == m_bIsPlayAvatarEmotionSoundWithoutEmotion )
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
 	{
-		m_pAvatarEmotionSound->Stop();
-		SAFE_CLOSE( m_pAvatarEmotionSound );
+		if( m_pAvatarEmotionSound != NULL )
+		{
+			m_pAvatarEmotionSound->Stop();
+			SAFE_CLOSE( m_pAvatarEmotionSound );
+		}
 	}
-#endif
 
 	if( false == m_StateData.m_FuncStateEnd.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_StateData.m_FuncStateEnd.c_str() );
+		//string func;
+		//ConvertWCHARToChar( func, m_StateData.m_FuncStateEnd.c_str() );
 
 		if(m_bTFieldUnit == false)
 		{
 			if( NULL != g_pSquareGame )
-				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pSquareGame, this );
+				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncStateEnd.c_str(), g_pKTDXApp, g_pMain, g_pSquareGame, this );
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 			else if( NULL != g_pWeddingGame )
-				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pWeddingGame, this );
+				lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncStateEnd.c_str(), g_pKTDXApp, g_pMain, g_pWeddingGame, this );
 #endif //ADDED_RELATIONSHIP_SYSTEM
 		}
 		else
-			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pMain, g_pTFieldGame, this );
+			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_StateData.m_FuncStateEnd.c_str(), g_pKTDXApp, g_pMain, g_pTFieldGame, this );
 	}
 }
 
@@ -2295,7 +2518,7 @@ void CX2SquareUnit::PhysicProcess()
 	if( NULL == pWorld || NULL == pWorld->GetLineMap() )
 		return;
 
-	CKTDGLineMap::LineData* pLineData;
+	const CKTDGLineMap::LineData* pLineData;
 	pLineData = pWorld->GetLineMap()->GetLineData( m_SyncData.m_LastTouchLineIndex );
 
 	if( pLineData == NULL )
@@ -2465,7 +2688,7 @@ void CX2SquareUnit::PhysicProcess()
 		}
 		else //점프나 하강등 땅을 밟지 않는것이 정상인 상황이라면
 		{
-			CKTDGLineMap::LineData* pDwnLineData = pWorld->GetLineMap()->GetLineData( lastTouchLineIndex );
+			const CKTDGLineMap::LineData* pDwnLineData = pWorld->GetLineMap()->GetLineData( lastTouchLineIndex );
 			if( pDwnLineData == NULL )
 			{
 				lastTouchLineIndex = 0;
@@ -2537,7 +2760,7 @@ void CX2SquareUnit::PhysicProcess()
 	}
 
 
-	CKTDGLineMap::LineData* pSyncLineData = pWorld->GetLineMap()->GetLineData( m_SyncData.m_LastTouchLineIndex );
+	const CKTDGLineMap::LineData* pSyncLineData = pWorld->GetLineMap()->GetLineData( m_SyncData.m_LastTouchLineIndex );
 	if( pSyncLineData == NULL )
 	{
 		m_SyncData.m_LastTouchLineIndex = 0;
@@ -2945,35 +3168,38 @@ void CX2SquareUnit::UpdateEquippedEmblem()
 	if( NULL != m_pUnit )
 	{
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
         int titleId = m_pUnit->GetTitleId();
-
+        
 #ifdef SERV_GROW_UP_SOCKET
 		int iLevel = 0;
 		if( m_pUnit != NULL )
-			iLevel = m_pUnit->GetUnitData()->GetGrowUpLevelByTitle( titleId );
+			iLevel = m_pUnit->AccessUnitData().GetGrowUpLevelByTitle( titleId );
 		if( m_iTitleId == titleId && m_iTitleLevel == iLevel )
 			return;
 		m_iTitleLevel = iLevel;
 #else SERV_GROW_UP_SOCKET
-		if(m_iTitleId == titleId)
-			return;
+        if(m_iTitleId == titleId)
+            return;
 #endif SERV_GROW_UP_SOCKET
-        
-#endif
+//#endif
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEmblem );
-#else
-		m_pParticleSystem->DestroyInstanceHandle( m_hSeqEmblem );
-#endif
+//#else
+//		m_pParticleSystem->DestroyInstanceHandle( m_hSeqEmblem );
+//#endif
 
 
 
 
-#ifdef TITLE_SYSTEM
-        m_hSeqEmblem			= INVALID_PARTICLE_HANDLE;
+//#ifdef TITLE_SYSTEM
+        m_hSeqEmblem			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hPart_Emblem_200		= INVALID_PARTICLE_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
         m_pPart_Emblem_200		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
         m_iTitleId = titleId;
 
         if(titleId > 0)
@@ -2990,66 +3216,66 @@ void CX2SquareUnit::UpdateEquippedEmblem()
 
 			if( pSeqEmblem != NULL )
 			{
-				if( m_pPart_Emblem_200 == NULL )
-				{
-					m_pPart_Emblem_200 =  pSeqEmblem->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-				}
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_hPart_Emblem_200 =  pSeqEmblem->CreateNewParticleHandle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+				m_pPart_Emblem_200 =  pSeqEmblem->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
                 pSeqEmblem->SetShowObject( false );
 			}
         }
-#else
-		const int MAGIC_EMBLEM_ITEM_ID				= 129785;
-		const int MAGIC_EMBLEM_ITEM_ID_GOLD_MEDAL	= 130002; 
-
-		bool bEquippedEmblem = false;
-
-		const CX2Item::ItemTemplet* pItemTempet = g_pData->GetItemManager()->GetItemTemplet( MAGIC_EMBLEM_ITEM_ID );
-		if( NULL != pItemTempet )
-		{
-			CX2Item* pEmblemItem = m_pUnit->GetInventory()->GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
-            if( NULL != pEmblemItem && NULL != pEmblemItem->GetItemTemplet() 
-                && pEmblemItem->GetItemTemplet()->GetItemID() == pItemTempet->GetItemID() )
-			{
-				bEquippedEmblem = true;
-				m_hSeqEmblem	= m_pParticleSystem->CreateSequenceHandle( NULL,  L"UnitEmblem200", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
-				CKTDGParticleSystem::CParticleEventSequence* pSeqEmblem    = m_pParticleSystem->GetInstanceSequence( m_hSeqEmblem );
-
-				if( pSeqEmblem != NULL )
-				{
-					if( m_pPart_Emblem_200 == NULL )
-					{
-						m_pPart_Emblem_200 = pSeqEmblem->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-					}
-				}
-			}
-		}
-
-		if( false == bEquippedEmblem )
-		{
-			pItemTempet = g_pData->GetItemManager()->GetItemTemplet( MAGIC_EMBLEM_ITEM_ID_GOLD_MEDAL );
-			if( NULL != pItemTempet )
-			{
-				CX2Item* pEmblemItem = m_pUnit->GetInventory()->GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
-				if( NULL != pEmblemItem && NULL != pEmblemItem->GetItemTemplet() &&
-                    pEmblemItem->GetItemTemplet()->GetItemID() == pItemTempet->GetItemID()
-                    )
-				{
-					bEquippedEmblem = true;
-					m_hSeqEmblem	= m_pParticleSystem->CreateSequenceHandle( NULL,  L"UnitEmblemGoldMedal", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
-					CKTDGParticleSystem::CParticleEventSequence* pSeqEmblem    = m_pParticleSystem->GetInstanceSequence( m_hSeqEmblem );
-
-					if( pSeqEmblem != NULL )
-					{
-						if( m_pPart_Emblem_200 == NULL )
-						{
-							m_pPart_Emblem_200 = pSeqEmblem->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-						}
-					}
-				}
-			}
-		}
-#endif
+//#else
+//		const int MAGIC_EMBLEM_ITEM_ID				= 129785;
+//		const int MAGIC_EMBLEM_ITEM_ID_GOLD_MEDAL	= 130002; 
+//
+//		bool bEquippedEmblem = false;
+//
+//		const CX2Item::ItemTemplet* pItemTempet = g_pData->GetItemManager()->GetItemTemplet( MAGIC_EMBLEM_ITEM_ID );
+//		if( NULL != pItemTempet )
+//		{
+//			CX2Item* pEmblemItem = m_pUnit->GetInventory().GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
+//            if( NULL != pEmblemItem && NULL != pEmblemItem->GetItemTemplet() 
+//                && pEmblemItem->GetItemTemplet()->GetItemID() == pItemTempet->GetItemID() )
+//			{
+//				bEquippedEmblem = true;
+//				m_hSeqEmblem	= m_pParticleSystem->CreateSequenceHandle( NULL,  L"UnitEmblem200", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
+//				CKTDGParticleSystem::CParticleEventSequence* pSeqEmblem    = m_pParticleSystem->GetInstanceSequence( m_hSeqEmblem );
+//
+//				if( pSeqEmblem != NULL )
+//				{
+//					if( m_pPart_Emblem_200 == NULL )
+//					{
+//						m_pPart_Emblem_200 = pSeqEmblem->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+//					}
+//				}
+//			}
+//		}
+//
+//		if( false == bEquippedEmblem )
+//		{
+//			pItemTempet = g_pData->GetItemManager()->GetItemTemplet( MAGIC_EMBLEM_ITEM_ID_GOLD_MEDAL );
+//			if( NULL != pItemTempet )
+//			{
+//				CX2Item* pEmblemItem = m_pUnit->GetInventory().GetEquippingItemByEquipPos( pItemTempet->GetEqipPosition(), false );
+//				if( NULL != pEmblemItem && NULL != pEmblemItem->GetItemTemplet() &&
+//                    pEmblemItem->GetItemTemplet()->GetItemID() == pItemTempet->GetItemID()
+//                    )
+//				{
+//					bEquippedEmblem = true;
+//					m_hSeqEmblem	= m_pParticleSystem->CreateSequenceHandle( NULL,  L"UnitEmblemGoldMedal", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
+//					CKTDGParticleSystem::CParticleEventSequence* pSeqEmblem    = m_pParticleSystem->GetInstanceSequence( m_hSeqEmblem );
+//
+//					if( pSeqEmblem != NULL )
+//					{
+//						if( m_pPart_Emblem_200 == NULL )
+//						{
+//							m_pPart_Emblem_200 = pSeqEmblem->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+//						}
+//					}
+//				}
+//			}
+//		}
+//#endif
 	}
 }
 
@@ -3337,7 +3563,7 @@ bool CX2SquareUnit::GetNowJump()
 }
 
 
-
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 bool CX2SquareUnit::EventCheck( float fTime )
 {
 	KTDXPROFILE();
@@ -3359,6 +3585,7 @@ bool CX2SquareUnit::EventCheck( float fTime )
 			return false;
 	}
 }
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 
 
@@ -3389,13 +3616,24 @@ CKTDXDeviceSound* CX2SquareUnit::PlaySound_LUA( const char* szSoundFileName, boo
 bool CX2SquareUnit::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId)
 {	
 #ifdef PLAY_EMOTION_BY_USER_SELECT
-	if( m_StateID.m_Wait != m_SyncData.m_StateID )
+	if( m_StateID.m_Wait != m_SyncData.m_StateID &&
+		m_StateID.m_iRidingWait != m_SyncData.m_StateID )
 		return false;
 #endif // PLAY_EMOTION_BY_USER_SELECT
 
-#ifdef AVATAR_EMOTION
-	if( CX2Unit::IsAvatarEmotion( eEmotionId ) )
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+	if ( false == IsPlayAvatarEmotionSoundWithouEmotion( eEmotionId ) )
+		return false;
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
+
+	if ( true == CX2Unit::IsAvatarEmotion( eEmotionId ) 
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		&& false == m_bIsPlayAvatarEmotionSoundWithoutEmotion
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+		)
 	{		
+
 		wstring wstrEmotionName = L"";
 		CX2Unit::EMOTION_TYPE eEmotion = CX2Unit::ET_NONE;
 		bool bMixEmotion = m_pUnit->GetAvatarEmotion(wstrEmotionName, eEmotion);
@@ -3409,7 +3647,11 @@ bool CX2SquareUnit::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId)
 			  (eEmotion == CX2Unit::ET_EMOTION_AVATAR2 && m_bMixedEmotion[1] == false) ||
 			  (eEmotion == CX2Unit::ET_EMOTION_AVATAR3 && m_bMixedEmotion[2] == false) ||
 			  (eEmotion == CX2Unit::ET_EMOTION_AVATAR4 && m_bMixedEmotion[3] == false) ||
-			  (eEmotion == CX2Unit::ET_EMOTION_AVATAR5 && m_bMixedEmotion[4] == false) ) )
+			  (eEmotion == CX2Unit::ET_EMOTION_AVATAR5 && m_bMixedEmotion[4] == false)  
+#ifdef CRAYONPOP_SECOND_EMOTION
+				|| (eEmotion == CX2Unit::ET_EMOTION_AVATAR6 && m_bMixedEmotion[5] == false) 
+#endif // CRAYONPOP_SECOND_EMOTION
+			))
 		//if( bMixEmotion == true && m_bMixedEmotion == false && wstrEmotionName.empty() != true )
 		{			
 			if( m_pUnitViewer != NULL && m_pUnitViewer->GetXSkinAnimPtr() != NULL )
@@ -3434,12 +3676,16 @@ bool CX2SquareUnit::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId)
 				case CX2Unit::ET_EMOTION_AVATAR5:
 					m_bMixedEmotion[4] = true;
 					break;
+#ifdef CRAYONPOP_SECOND_EMOTION
+				case CX2Unit::ET_EMOTION_AVATAR6:
+					m_bMixedEmotion[5] = true;
+					break;
+#endif // CRAYONPOP_SECOND_EMOTION
 				}
 				SAFE_CLOSE( pMixMotion );
 			}			
 		}
 	}
-#endif //AVATAR_EMOTION
 
 	if(eEmotionId == CX2Unit::ET_NONE)
 		return false;
@@ -3457,11 +3703,11 @@ bool CX2SquareUnit::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId)
 	if( eEmotionId == CX2Unit::ET_STANDUP && m_ePlayedEmotion != CX2Unit::ET_SITWAIT )
 		return false;
 
-	wstring wstrEmotionStateName = L"";
+    
 	if(m_pUnit != NULL)
 	{
-		wstrEmotionStateName = m_pUnit->GetEmotionName(eEmotionId);
-		if(wstrEmotionStateName.empty() == true)
+		const char* pszEmotionStateName = m_pUnit->GetEmotionName(eEmotionId);
+		if( pszEmotionStateName == NULL || pszEmotionStateName[0] == NULL )
 			return false;
 
 		if(m_bMyUnit == false)
@@ -3472,16 +3718,17 @@ bool CX2SquareUnit::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId)
 		
 		m_ePlayedEmotion = eEmotionId;
 
-		StateChange(wstrEmotionStateName.c_str());
+		StateChange( pszEmotionStateName );
 
-		if( NULL != g_pChatBox )
-		{
-			g_pChatBox->PlayEmotionSound( m_pUnit->GetType(), eEmotionId, GetPos(), true );
-		}
-
-#ifdef AVATAR_EMOTION
 		if( eEmotionId == CX2Unit::ET_EMOTION_AVATAR1 || eEmotionId == CX2Unit::ET_EMOTION_AVATAR3 || 
-			eEmotionId == CX2Unit::ET_EMOTION_AVATAR4 || eEmotionId == CX2Unit::ET_EMOTION_AVATAR5 )
+			eEmotionId == CX2Unit::ET_EMOTION_AVATAR4 || eEmotionId == CX2Unit::ET_EMOTION_AVATAR5 
+#ifdef CRAYONPOP_SECOND_EMOTION
+			|| eEmotionId == CX2Unit::ET_EMOTION_AVATAR6 
+#endif // CRAYONPOP_SECOND_EMOTION
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+			|| eEmotionId == CX2Unit::ET_EMOTION_AVATAR7
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+			)
 		{
 			wstring wstrEmotionSoundName = L"";
 			switch( eEmotionId )
@@ -3498,6 +3745,17 @@ bool CX2SquareUnit::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId)
 			case CX2Unit::ET_EMOTION_AVATAR5:
 				wstrEmotionSoundName = L"DancingQueen_Music.ogg";
 				break;
+#ifdef CRAYONPOP_SECOND_EMOTION
+			case CX2Unit::ET_EMOTION_AVATAR6:
+				wstrEmotionSoundName = L"Emotion_Bbabbabba.ogg";
+				break;
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+			case CX2Unit::ET_EMOTION_AVATAR7:
+				wstrEmotionSoundName = L"Emotion_Crayonpop_NoMotion.ogg";
+				break;
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
 			default:
 				break;
 			}
@@ -3508,7 +3766,7 @@ bool CX2SquareUnit::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId)
 				SAFE_CLOSE( m_pAvatarEmotionSound );
 			}
 			const float MAGIC_NUMBER = 500.f;
-			const float fMaxDist = g_pKTDXApp->GetDGManager()->GetCamera()->GetCameraDistance() + MAGIC_NUMBER;
+			const float fMaxDist = g_pKTDXApp->GetDGManager()->GetCamera().GetCameraDistance() + MAGIC_NUMBER;
 			m_pAvatarEmotionSound = g_pKTDXApp->GetDeviceManager()->OpenSound( wstrEmotionSoundName, 10, true, fMaxDist );
 			if( m_pAvatarEmotionSound != NULL )
 			{
@@ -3523,7 +3781,7 @@ bool CX2SquareUnit::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId)
 					{
 						if( true == g_pKTDXApp->GetDSManager()->GetCapable3DSound() &&
 							true == g_pKTDXApp->GetDSManager()->GetEnable3DSound() &&
-							true == g_pMain->GetGameOption()->GetOptionList()->m_bEnable3DSound )
+							true == g_pMain->GetGameOption().GetOptionList().m_bEnable3DSound )
 						{
 							m_pAvatarEmotionSound->Set3DPosition( GetPos() );
 							m_pAvatarEmotionSound->Play( false );
@@ -3532,13 +3790,19 @@ bool CX2SquareUnit::PlayEmotion(CX2Unit::EMOTION_TYPE eEmotionId)
 				}
 			}
 		}
+		else
+		{
+			if( NULL != g_pChatBox )
+			{
+				g_pChatBox->PlayEmotionSound( m_pUnit->GetType(), eEmotionId, GetPos(), true );
+			}
+		}
 
 		if ( eEmotionId == CX2Unit::ET_EMOTION_AVATAR4 )
 		{
 			D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Head" );
 			g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, L"Emotion_APINK_LOVE_P01", vBonePos );
 		}
-#endif
 
 		return true;
 	}
@@ -3858,14 +4122,14 @@ void CX2SquareUnit::SendPacketP2PForWedding( IN vector<UidType>& vecUnitUIDList_
 	KXPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL kPacket;
 	GetPacketP2PForWedding( kPacket );
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	g_pData->GetGameUDP()->BroadCast( vecUnitUIDList_, XPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL, (char*)&kPacket, sizeof(KXPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL) );
-#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	KSerBuffer buff;
-	Serialize( &buff, &kPacket );
-
-	g_pData->GetGameUDP()->BroadCast( vecUnitUIDList_, XPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL, (char*)buff.GetData(), buff.GetLength() );
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	KSerBuffer buff;
+//	Serialize( &buff, &kPacket );
+//
+//	g_pData->GetGameUDP()->BroadCast( vecUnitUIDList_, XPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL, (char*)buff.GetData(), buff.GetLength() );
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 }
 void CX2SquareUnit::GetPacketP2PForWedding( OUT KXPT_UNIT_USER_SYNC_PACK_FOR_WEDDING_HALL& kPacket_ )
 {
@@ -3920,9 +4184,12 @@ void CX2SquareUnit::SetPlanRender( bool bPlanRender )
 			// 아닐 경우, 이펙트를 켠다.
 			else
 			{
-				CX2RelationshipEffectManager::RelationEffectInfo RelationEffectInfo_;
-				RelationEffectInfo_ = ( *(g_pData->GetRelationshipEffectManager()->GetRelationEffectInfoIndex ( 3 ) ) );
-				RelationEffectInfo_.PrepareDrawRelationshipEffect( CX2RelationshipEffectManager::RelationEffectInfo::RET_ATTACH_EFFECT, m_UnitUID );
+				if( NULL != GetUnit() && 0 < GetUnit()->GetLoverUnitUID() )
+				{
+					CX2RelationshipEffectManager::RelationEffectInfo RelationEffectInfo_;
+					RelationEffectInfo_ = ( *(g_pData->GetRelationshipEffectManager()->GetRelationEffectInfoIndex ( 3 ) ) );
+					RelationEffectInfo_.PrepareDrawRelationshipEffect( CX2RelationshipEffectManager::RelationEffectInfo::RET_ATTACH_EFFECT, m_UnitUID );
+				}
 			}
 		}
 	}
@@ -3931,3 +4198,36 @@ void CX2SquareUnit::SetPlanRender( bool bPlanRender )
 	m_bPlanRender = bPlanRender;
 }
 #endif // RELATIONSHIP_EFFECT_NOT_DRAW_WHEN_TARGET_POSITION_DATA_IS_MISSING
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
+bool CX2SquareUnit::IsPlayAvatarEmotionSoundWithouEmotion ( CX2Unit::EMOTION_TYPE eEmotionId )
+{
+	m_bIsPlayAvatarEmotionSoundWithoutEmotion = false;
+	switch ( eEmotionId )
+	{
+		case CX2Unit::ET_EMOTION_AVATAR7 :
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_EMOTION_AVATAR1 ); ++i )
+			{
+				const CX2Item::ItemTemplet* pItemTempet = g_pData->GetItemManager()->GetItemTemplet( ITEM_ID_EMOTION_AVATAR1[i] );
+
+				if( NULL != pItemTempet )
+				{
+					CX2Item* pEquipedItem = m_pUnit->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_DEFENCE_BODY, true ); 
+					if ( NULL != pEquipedItem && NULL != pEquipedItem->GetItemTemplet() )
+					if ( pEquipedItem->GetItemTemplet()->GetItemID () == pItemTempet->GetItemID() )
+					{
+						m_bIsPlayAvatarEmotionSoundWithoutEmotion = true;
+						return true;
+					}
+				}			
+			}
+			break;
+		default :
+			return true;
+			break;
+	}
+
+	return false;
+}
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨

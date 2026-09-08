@@ -4,6 +4,11 @@
 class CX2NPCUnitViewerUI;
 #endif //PET_PREVIEW
 
+#ifdef COUPON_SYSTEM
+class CX2UICouponBox;
+#endif // COUPON_SYSTEM
+
+
 class CX2CashShop : public CX2ItemSlotManager
 {
 	public:
@@ -22,8 +27,8 @@ class CX2CashShop : public CX2ItemSlotManager
 			CSCUM_MAIN_RECOMMEND_PREV_PAGE,
 			CSCUM_MAIN_RECOMMEND_NEXT_PAGE,
 
-			CSCUM_BUY_POP_UP_PREV_PAGE,
-			CSCUM_BUY_POP_UP_NEXT_PAGE,
+			CSCUM_BUY_POP_UP_PREV_PAGE,			// 구매하기 UI, 상품 페이지 1 변경
+			CSCUM_BUY_POP_UP_NEXT_PAGE,			// 구매하기 UI, 상품 페이지 1 변경
 			CSCUM_BUY_POP_UP_ALL_CHECK_CHANGED,
 			CSCUM_BUY_POP_UP_EACH_CHECK_CHANGED,
 			CSCUM_BUY_POP_UP_PRICE_CHANGED,		//리스트 박스에서 가격 변경
@@ -95,7 +100,7 @@ class CX2CashShop : public CX2ItemSlotManager
 			CSCUM_CASH_ELSWORD_CHANGE_CN				= 1888,
 			CSCUM_CASH_GIANT_FILLING_CN					= 1889,
 			CSCUM_CASH_GIANT_TAP_EXIT_CN				= 1890,
-#endif
+#endif CHINA_CASH_CHANGE
 
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 			CSCUM_USE_BONUS_SELECT						= 1891,
@@ -105,6 +110,11 @@ class CX2CashShop : public CX2ItemSlotManager
 			CSCUM_USE_GASH_SELECT						= 1895,
 			CSCUM_PRESENT_USE_GASH_SELECT				= 1896,
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+			CSCUM_CASH_CHARGE_TAP_DIRECT_CHARGE_CN		= 1897,
+			CSCUM_CASH_DIRECT_CHARGE_CN					= 1898,
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 
 //#ifdef SERV_NEXON_AUTH_SOAP
 			CSUCM_CHECK_AUTHORITY_OK,
@@ -117,6 +127,13 @@ class CX2CashShop : public CX2ItemSlotManager
 //#ifdef SAVE_CASH_SHOP_PRE_EQUIP_ITEM_LIST
 			CSCUM_RADIO_BUTTON_PRE_EQUIP_SET,
 //#endif //SAVE_CASH_SHOP_PRE_EQUIP_ITEM_LIST
+			CSCUM_BUY_COUPON_COMBOBOX_CHANGED, // 쿠폰 콤보박스 선택
+
+//#ifdef COUPON_SYSTEM
+			CSCUM_BUY_POP_UP_TO_FIRST_PAGE,			// 구매하기 UI, 상품 페이지 첫 페이지로 변경
+			CSCUM_BUY_POP_UP_TO_LAST_PAGE,			// 구매하기 UI, 상품 페이지 첫 페이지로 변경
+//#endif // COUPON_SYSTEM
+
 		};
 
 		enum CASH_SHOP_STATE
@@ -192,6 +209,8 @@ class CX2CashShop : public CX2ItemSlotManager
 			CSSC_EVENT_PET,
 
 			CSSC_AUTO_PAYMENT_BASIC = 300,
+
+			CSSC_EVENT_2_EVENT		= 400,//ADD_CASH_SHOP_CATEGORY_EVENT_2
 		};
 
 		//{{ kimhc // 2009-10-14 // 웹페이지 종류
@@ -244,7 +263,43 @@ class CX2CashShop : public CX2ItemSlotManager
 #ifdef SERV_USE_ENABLE_GIFT
 			void SetShowPresentButton( bool bShow );
 #endif SERV_USE_ENABLE_GIFT
+
+#ifdef SERV_WISH_LIST_NO_ITEM
+			void SetShowCartButton( bool bShow );
+#endif SERV_WISH_LIST_NO_ITEM
 		};		
+
+#ifdef COUPON_SYSTEM
+		struct CouponNoAndName
+		{
+			wstring m_wstrCouponName;
+			int m_iCouponNo;
+
+			CouponNoAndName( int iCoupon_, const wstring& CouponName_ ):
+			m_wstrCouponName(CouponName_), m_iCouponNo(iCoupon_)
+			{}
+		};
+
+		// 쿠폰 할인 정보
+		struct CouponDiscountInfo
+		{
+			bool m_bIsRateDiscount; // Percent 할인 여부
+			float m_fDiscountValue;
+
+			CouponDiscountInfo( bool bIsRateDiscount_, int iDiscountValue_ ):
+			m_bIsRateDiscount(bIsRateDiscount_)
+			{
+				// 정률 : 0~100%
+				if( true == m_bIsRateDiscount )
+					m_fDiscountValue = static_cast<float>(iDiscountValue_) / 100.f;
+				else
+					m_fDiscountValue = static_cast<float>(iDiscountValue_);
+			}
+
+			CouponDiscountInfo()
+			{}
+		};
+#endif // COUPON_SYSTEM
 
 		class CashShopSlotManager
 		{
@@ -282,10 +337,20 @@ class CX2CashShop : public CX2ItemSlotManager
 #endif	AUTO_PAYMENT
 				//}} kimhc // 2009-10-12 // 자동결제 시 선물, 찜 버튼 안보이게 하기 위해 추가
 
+#ifdef REFORM_SKILL_NOTE_UI
+				void ResetNowPage( int iVal_);
+				const CX2CashShop::CashShopSlot* GetCashShopSlot( int iItemID_ );
+#endif // REFORM_SKILL_NOTE_UI
+
 #ifdef SERV_USE_ENABLE_GIFT
 				void SetShowPresentButton();
 				bool IsPossiblePresent( int itemID );
 #endif SERV_USE_ENABLE_GIFT
+
+#ifdef SERV_WISH_LIST_NO_ITEM
+				void SetShowCartButton();
+				bool IsNotPossibleWishList( int itemID );
+#endif SERV_WISH_LIST_NO_ITEM
 			protected:
 
 				//{{ kimhc // 2009-10-12 // 자동결제 시 캐시 - 원 으로 표시
@@ -320,6 +385,9 @@ class CX2CashShop : public CX2ItemSlotManager
 				void UpdateUI();
 				void SetCheck( bool bCheck );
 				void SetCash( int comboBoxIndex );
+#ifdef COUPON_SYSTEM // 상품 번호에 따라 사용 가능한 할인 쿠폰 리스트 갱신
+				void UpdateCouponList( const vector<CouponNoAndName>& vecCouponList_, const int iSelectedCouponNo_ = -1 ); 
+#endif // COUPON_SYSTEM
 
 				CX2PageSlot* Clone( int index, const WCHAR* pFileName ) { return new BuyItemPopupSlot( index, pFileName ); }
 
@@ -336,29 +404,12 @@ class CX2CashShop : public CX2ItemSlotManager
 
 				void UpdateUI();
 
-//////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GLOBAL_BILLING
 				void SetKBillOrderInfo( KBillOrderInfo& kKBillOrderInfo ) { m_KBillOrderInfo = kKBillOrderInfo; }
 				void SetKBillPackageInfo( KBillPackageInfo& kKBillPackageInfo ) { m_KBillPackageInfo = kKBillPackageInfo; }
-
-				//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 				void AddItemToComboBox_KOG( CKTDGUIComboBox* pComboBox_, const CX2Item::ItemTemplet* pItemTemplet_ );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-				void AddItemToComboBox_KOG( CKTDGUIComboBox* pComboBox_ );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
-				//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-
 #else // SERV_GLOBAL_BILLING
-
-				//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 				void AddItemToComboBox( CKTDGUIComboBox* pComboBox_, const CX2Item::ItemTemplet* pItemTemplet_ );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-				void AddItemToComboBox( CKTDGUIComboBox* pComboBox_ );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
-				//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-				
 				void SetKNXBTOrderInfo( KNXBTOrderInfo& kKNXBTOrderInfo ) { m_KNXBTOrderInfo = kKNXBTOrderInfo; }
 				void SetKNXBTPackageInfo( KNXBTPackageInfo& kKNXBTPackageInfo ) { m_KNXBTPackageInfo = kKNXBTPackageInfo; }
 #endif // SERV_GLOBAL_BILLING
@@ -370,7 +421,6 @@ class CX2CashShop : public CX2ItemSlotManager
 				void AddSocketIdListToComboBox( CKTDGUIComboBox* pComboBox_, const CX2Item::ItemTemplet* pItemTemplet_, const WCHAR* wszSocketItemGroupID_ );
 #endif //SERV_GLOBAL_BILLING
 #endif // SERV_CASH_ITEM_SOCKET_OPTION
-//////////////////////////////////////////////////////////////////////////
 
 
 				void SetOption( int comboBoxIndex );
@@ -390,12 +440,13 @@ class CX2CashShop : public CX2ItemSlotManager
 #endif // SERV_GLOBAL_BILLING
 		};
 
-
 		class BuyItemPopup : public CX2PageMgrItem
 		{
 			public:
 
-				BuyItemPopup( const WCHAR* pFileName) : CX2PageMgrItem( pFileName ), m_bChoicedItemBuy( false ) 
+				BuyItemPopup( const WCHAR* pFileName) : 
+				CX2PageMgrItem( pFileName )
+				, m_bChoicedItemBuy( false )
 				{
 #if defined (SERV_COUNTRY_CN) || defined(CLIENT_COUNTRY_PH)
 					m_iUseCashType = KGlobalCashInfo::GCT_KOG_ELSWORD_CASH;
@@ -411,9 +462,37 @@ class CX2CashShop : public CX2ItemSlotManager
 				
 				void SetCheckAllItem( bool bCheck );
 				void ChangeCheckItem( CKTDGUIDialogType pDialog, bool bCheck );
-				void ChangeItemPeriod( CKTDGUIDialogType pDialog, int comboBoxIndex ); // 콤보박스에서 살 캐시 변경
-				bool GetCheckedProductNoList( vector<unsigned long>& vecProductNoList );
 
+				
+#ifdef COUPON_SYSTEM
+				// 할인 쿠폰 목록 갱신
+				void UpdateCouponList();
+
+				// '상품 번호' 별 할인 정보 등록
+				void InsertCouponNoAndDiscountInfo(const int iCouponNo_, const CouponDiscountInfo sDiscountInfo_ );
+
+				// '상품 번호' 별 사용 가능 한 '쿠폰 번호' 등록
+				void InsertCouponNoAndName( const unsigned long ulProductNo_, const int iCouponNo_, wstring& wstrCouponName_ );
+
+				// '상품 번호' 별 사용 가능 한 '쿠폰 번호' 초기화
+				void InitProductAndCouponNo( unsigned long ulProductNo_ );
+
+				// 상품 번호, 쿠폰 번호 얻기
+				bool GetCheckedProductAndCouponNoList(OUT vector< std::pair<unsigned long, int> >& vecProductAndCouponNoList_ );
+
+				// 상품 번호 변경 후 변경 된 상품 번호 반환
+				unsigned long ChangeItemPeriod( CKTDGUIDialogType pDialog, int comboBoxIndex );
+				// 쿠폰 변경
+				void ChangeItemCoupon( CKTDGUIDialogType pDialog, int comboBoxIndex );
+
+				void InitCouponList();
+
+				// 쿠폰 정보 보유 여부 체크
+				bool IsHavePrdouctCouponInfo( const unsigned long ulProductNo_ );
+#else
+				void ChangeItemPeriod( CKTDGUIDialogType pDialog, int comboBoxIndex ); // 콤보박스에서 살 캐시 변경
+				bool GetCheckedProductNoList(OUT vector<unsigned long>& vecProductNoList );
+#endif // COUPON_SYSTEM
 				void UpdateCashUI();
 
 				void SetChoicedItemBuy( bool bCheck ) { m_bChoicedItemBuy = bCheck; }
@@ -424,7 +503,6 @@ class CX2CashShop : public CX2ItemSlotManager
 				bool RestCashCheck();
 #endif 
 //}} 김상훈 2010.11.1
-
 
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 				void SetUseCashType(int iCashType)
@@ -483,7 +561,6 @@ class CX2CashShop : public CX2ItemSlotManager
 				int GetUseCashType(){ return m_iUseCashType; }
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 
-
 #ifdef CASH_ITEM_REFUND
 				int	GetCheckedItemListSize(){ return (int)m_vecCheckedItem.size(); }
 				bool NonRefundableItemInclude();
@@ -506,6 +583,20 @@ class CX2CashShop : public CX2ItemSlotManager
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 				int				m_iUseCashType;
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
+#ifdef COUPON_SYSTEM 
+				// 상품 번호 별 사용 가능한 쿠폰 리스트,( 쿠폰 리스트 : 쿠폰 번호, 쿠폰 명 )
+				map< unsigned long, vector<CouponNoAndName> > m_mapProductCouponNo; 
+				
+				// 상품번호별 선택 된 쿠폰 m_iCouponCardNo
+				map< unsigned long, int > m_mapSelectedCouponNo;
+
+				// 쿠폰 번호 별 할인 정보
+				map< int, CouponDiscountInfo > m_mapCouponDiscountInfo;
+
+				CKTDGUIDialogType m_pDialogSelectedPage; // 선택 된 아이템 페이지 슬롯
+				unsigned long	  m_ulSelectedProductNo; // 선택 된 상품 번호
+#endif // COUPON_SYSTEM
+
 		};
 
 		class CashItemToInvenPopup : public CX2PageMgrItem
@@ -515,17 +606,13 @@ class CX2CashShop : public CX2ItemSlotManager
 			CashItemToInvenPopup( const WCHAR* pFileName) : CX2PageMgrItem( pFileName ) {}
 			~CashItemToInvenPopup() {}
 
-//////////////////////////////////////////////////////////////////////////
-
 #ifdef SERV_GLOBAL_BILLING
 			void Reset( vector< int >& vecItemID, vector< KBillOrderInfo >& vecKBillOrderInfo,
-				vector< KBillPackageInfo >& vecKBillPackageInfo );
-			
+						vector< KBillPackageInfo >& vecKBillPackageInfo );			
 #else // SERV_GLOBAL_BILLING
 			void Reset( vector< int >& vecItemID, vector< KNXBTOrderInfo >& vecKNXBTOrderInfo,
 						vector< KNXBTPackageInfo >& vecKNXBTPackageInfo );
 #endif // SERV_GLOBAL_BILLING
-
 			void ChangeItemOption( CKTDGUIDialogType pDialog, int comboBoxIndex ); // 콤보박스에서 옵션 정하자
 			
 #ifdef	SERV_CASH_ITEM_SOCKET_OPTION
@@ -549,9 +636,9 @@ class CX2CashShop : public CX2ItemSlotManager
 #endif // SERV_GLOBAL_CASH_PACKAGE
 #else //SERV_GLOBAL_BILLING
 			vector< KNXBTOrderInfo >&	GetOrderInfoList() { return m_vecKNXBTOrderInfo; }
+
 			void GetCheckedPackageInfo( vector< KNXBTPackageInfo >& vecPackageInfo );
-#endif //SERV_GLOBAL_BILLING	
-			
+#endif //SERV_GLOBAL_BILLING			
 
 			void SetCheckAllItem( bool bCheck );
 			void ChangeCheckItem( CKTDGUIDialogType pDialog, bool bCheck );
@@ -601,6 +688,9 @@ class CX2CashShop : public CX2ItemSlotManager
 				void SetChoicedItem( bool bChoicedItem ) { m_bChoicedItem = bChoicedItem; }
 				bool GetChoicedItem() { return m_bChoicedItem; }
 
+#ifdef SERV_COUNTRY_PH
+				bool RestPresentItemCashCheck( int iProductNo ); // 2013.09.17 lygan_조성욱 // 선물하기 전에도 잔액 체크를 해서 잔액이 모자라면 서버로 REQ 보내지 않게 하기
+#endif //SERV_COUNTRY_PH
 
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 				void SetUseCashType(int iCashType)
@@ -658,7 +748,6 @@ class CX2CashShop : public CX2ItemSlotManager
 
 				int GetUseCashType(){ return m_iUseCashType; }
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
-
 			protected:
 
 				void InitUI();
@@ -673,8 +762,8 @@ class CX2CashShop : public CX2ItemSlotManager
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 				int				m_iUseCashType;
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
-
 		};
+
 	public:
 
 		CX2CashShop( CKTDXStage* pStage, const WCHAR* wszFileName );
@@ -744,13 +833,33 @@ class CX2CashShop : public CX2ItemSlotManager
 		void ClearEnterCashShopUserList(){m_vecEnterCashShopUser.clear();}
 #endif //SERV_VIEW_CASH_SHOP_USER_LIST_IN_BATTLE_FIELD
 
+#ifdef ADD_CASH_SHOP_CATEGORY_EVENT_2
+		void ShowEventCategoryInCashShop();
+		void OffEventCategoryInCashShop();
+#endif ADD_CASH_SHOP_CATEGORY_EVENT_2
+
+#ifdef ADJUST_UNIT_CLASS_CHANGE_ITEM_REPETITION
+		// 해당 유닛의 전직 아이템을 찜하기 목록에서 삭제함.
+		void RemoveUnitClassChangeItemInChoice( const CX2Unit::UNIT_CLASS eUnitClass_ );
+		// 해당 유닛에 해당하는 전직 아이템 ID를 받아옴.
+		const int GetUnitClassChangeItemID( const CX2Unit::UNIT_CLASS eUnitClass_ );
+#endif //ADJUST_UNIT_CLASS_CHANGE_ITEM_REPETITION
+		
+#ifdef REFORM_SKILL_NOTE_UI
+		void SetItemIDShowBuyUIAfterEnter(int iVal_) { m_iItemIDShowBuyUIAfterEnter = iVal_; }
+#endif // REFORM_SKILL_NOTE_UI
+
 	protected:
 
 		void InitUI( CKTDXStage* pStage );
 
 		void CategoryDataParsing( const WCHAR* pFileName );
 
+#ifdef COUPON_SYSTEM
+		bool Handler_EGS_BUY_CASH_ITEM_REQ( vector< std::pair<unsigned long, int> > vecProductAndCouponNoList, bool bChoicedItemBuy = false );
+#else
 		bool Handler_EGS_BUY_CASH_ITEM_REQ( vector< unsigned long >& vecProductNoList, bool bChoicedItemBuy = false );
+#endif // COUPON_SYSTEM
 		bool Handler_EGS_BUY_CASH_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 		
 		//////////////////////////////////////////////////////////////////////////
@@ -777,7 +886,6 @@ class CX2CashShop : public CX2ItemSlotManager
 #endif	//SERV_CASH_ITEM_SOCKET_OPTION
 
 #endif //SERV_GLOBAL_CASH_PACKAGE
-
 
 #else // SERV_GLOBAL_BILLING
 		
@@ -824,6 +932,11 @@ class CX2CashShop : public CX2ItemSlotManager
 		void SetStringBuyItemRefund();
 #endif CASH_ITEM_REFUND
 
+#ifdef COUPON_SYSTEM
+		void Handler_EGS_DISCOUNT_COUPON_LIST_INQUIRY_REQ( const unsigned long ulProductNo_ );
+		bool Handler_EGS_DISCOUNT_COUPON_LIST_INQUIRY_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif // COUPON_SYSTEM
+
 		bool MouseUp(  D3DXVECTOR2 mousePos );
 		bool MouseRButtonUp( D3DXVECTOR2 mousePos );
 		bool MouseLRButtonUpEquip( CX2SlotItem* pItemSlot );
@@ -858,6 +971,7 @@ class CX2CashShop : public CX2ItemSlotManager
 
 		void ChangeCategory( CKTDGUIRadioButton* pRadioButton );
 		void ChangeSubCategory( CKTDGUIRadioButton* pRadioButton );
+		void ChangeSubCategory( CX2CashShop::CASH_SHOP_SUB_CATEGORY eSubCategory );
 
 		static bool IsPossibleUsedByMyCharacter( int itemID );
 
@@ -867,13 +981,13 @@ class CX2CashShop : public CX2ItemSlotManager
 
 		bool CheckPreEqipItem( int itemTID );
 		void RemovePreEquipItemByEquipPos( int itemTID );
-		void InsertPreEquipItem( int itemTID, bool bForce = false );
+		bool InsertPreEquipItem( int itemTID, bool bForce = false );
  		void PreEquipping();
 
 		void OnRevertItem( int iItemTID );
 		void ResetNowEquipUI();
 		void ClearNowEquipUI();
-		void ResetNowEquipUIByInven(CX2Unit::UnitData* pMyUnitData, CX2Inventory* pInventory);
+		void ResetNowEquipUIByInven( const CX2Unit::UnitData& kMyUnitData, const CX2Inventory& kInventory);
 		void ResetNowEquipUIByShopEquip();
 		void ResetSellCashItemByPreEquip();
 		void UpdateShopEquipedPicture();
@@ -919,11 +1033,29 @@ class CX2CashShop : public CX2ItemSlotManager
 		bool Handler_EGS_EXCHANGE_ACK(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam); // 2011.03.08 lygan_조성욱 // 자이언트 캐쉬 전환 관련
 #endif //CHINA_CASH_CHANGE
 
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+		void ChinaCash_Tap_Change_Direct_Charge(bool _bShow);
+		void SetShowChinaCash_Tap_Elsword(bool _bShow);
+		void SetShowChinaCash_Tap_Giant(bool _bShow);
+		void SetShowChinaCash_Tap_DirectCharge(bool _bShow);
+
+		bool Handler_EGS_CASH_DIRECT_CHARGE_CN_REQ();
+		bool Handler_EGS_CASH_DIRECT_CHARGE_CN_ACK(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+		void ExecuteEpaySystem( std::wstring wstrToken = L"" );
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
+
 #ifdef SERV_COUNTRY_PH
 		bool Handler_EGS_EXCHANGE_CASH_CLIENT_NOT(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam); // 2011.03.08 lygan_조성욱 // 자이언트 캐쉬 전환 관련
 #endif //SERV_COUNTRY_PH
 
 		void SetOpenNexonCashChargePage( OUT string& strURL_, OUT RECT& rcWebPage_ );	// 넥슨 캐시 충전 웹페이지
+
+#ifdef SERV_NAVER_CHANNELING
+		void SetOpenNaverCashChargePage( OUT string& strURL_, OUT RECT& rcWebPage_ );
+#endif // SERV_NAVER_CHANNELING
+
+
 		//{{ kimhc // 2011-08-10 // 채널링
 #ifdef	SERV_TOONILAND_CHANNELING
 		void SetOpenTooniCashChargePage( OUT string& strURL_, OUT RECT& rcWebPage_ );	// 투니 캐시 충전 웹페이지
@@ -984,11 +1116,9 @@ class CX2CashShop : public CX2ItemSlotManager
 
 		bool ShowPopUpGuideByItemID( const int iItemID_ );
 
-#ifdef CASH_INVEN_PICKUP_ALL
-		bool PickUpAll();
-
-		bool m_bPickUpAll;
-#endif CASH_INVEN_PICKUP_ALL
+#ifdef REFORM_SKILL_NOTE_UI
+		void OpenBuyPopupByReserve();
+#endif // REFORM_SKILL_NOTE_UI
 
 		bool					m_bOpen;
 		CASH_SHOP_STATE			m_CashShopState;
@@ -1061,7 +1191,6 @@ class CX2CashShop : public CX2ItemSlotManager
 #else // SERV_GLOBAL_BILLING
 		KEGS_GET_PURCHASED_CASH_ITEM_REQ			m_TempKEGS_GET_PURCHASED_CASH_ITEM_REQ;
 #endif // SERV_GLOBAL_BILLING
-
 
 		KEGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ	m_TempKEGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ;
 		CKTDGUIDialogType			m_pDLGOverlapCheckCashItemToInven;
@@ -1153,5 +1282,15 @@ class CX2CashShop : public CX2ItemSlotManager
 		UINT						m_uiSelectPreEquipSet;
 		static const int			m_iMaxPreEquipSetNum = 3;
 #endif // SAVE_CASH_SHOP_PRE_EQUIP_ITEM_LIST
+
+#ifdef COUPON_SYSTEM
+		CX2UICouponBox*				m_pUICouponBox;
+		unsigned long				m_ulTempSelectedProductNo;
+#endif // COUPON_SYSTEM
+
+#ifdef REFORM_SKILL_NOTE_UI
+		// 캐시샵 입장 이후 바로 구매팝업 출력 시킬 아이템 ID
+		int							m_iItemIDShowBuyUIAfterEnter;
+#endif // REFORM_SKILL_NOTE_UI
 
 };

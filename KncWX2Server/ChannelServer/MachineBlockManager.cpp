@@ -13,7 +13,7 @@ ImplementSingleton( KMachineBlockManager );
 
 KMachineBlockManager::KMachineBlockManager(void)
 {
-	for( int iBlockType = 0; iBlockType < BLOCK_TYPE::BT_MAX; ++iBlockType )
+	for( int iBlockType = 0; iBlockType < BT_MAX; ++iBlockType )
 	{
 		m_iReleaseTick[iBlockType] = 0;
 	}
@@ -62,7 +62,7 @@ void KMachineBlockManager::UpdateMachineBlockList( IN const KDBE_CHECK_ACCOUNT_B
 			const int iBlockType = mit->first;
 			const int iReleaseTick = mit->second;
 
-			if( iBlockType != BLOCK_TYPE::BT_MACHINE_ID_BLOCK )
+			if( iBlockType != BT_MACHINE_ID_BLOCK )
 				continue;
 
 			m_iReleaseTick[iBlockType] = iReleaseTick;
@@ -96,7 +96,7 @@ void KMachineBlockManager::GetReleaseTick( OUT std::map< int, int >& mapReleaseT
 {
 	mapReleaseTick.clear();
 
-	for( int iBlockType = 0; iBlockType < BLOCK_TYPE::BT_MAX; ++iBlockType )
+	for( int iBlockType = 0; iBlockType < BT_MAX; ++iBlockType )
 	{
 		mapReleaseTick.insert( std::make_pair( iBlockType, m_iReleaseTick[iBlockType] ) );
 	}

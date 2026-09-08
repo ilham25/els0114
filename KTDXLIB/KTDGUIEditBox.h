@@ -105,13 +105,28 @@ class CKTDGUIEditBox : public CKTDGUIControl
 			m_OutlineColor = D3DCOLOR_COLORVALUE(colorR,colorG,colorB,colorA); m_bOutlineCheck = true;
 		}
 
-	
-		void	SetHideChar_( const char* hideChar );
-		void	SetHideChar( WCHAR hideChar );
-
 #ifdef BYTE_LIMIT_IN_EDIT_BOX
 		void	SetByteLimit_LUA( int val ) { m_Buffer.SetByteLimit( val ); }
 #endif //BYTE_LIMIT_IN_EDIT_BOX
+
+		void	SetHideChar_( const char* hideChar );
+		void	SetHideChar( WCHAR hideChar );
+
+#ifdef DLL_BUILD
+		virtual void	MoveControl( float fx, float fy );
+
+		virtual D3DXVECTOR2 GetPos() override;
+		virtual vector<D3DXVECTOR2> GetPosList() override;
+
+		virtual void SetEditGUI( bool bEdit ) override;
+		virtual bool IsSelectByEditGui( POINT pt ) override;
+
+		void DrawEditEdge();
+
+protected:
+	bool m_bEditEdge;
+	CKTDXDeviceTexture * m_pCheckedEdgeTexture;
+#endif
 
 	protected:
 		void	PlaceCaret( int nCP );

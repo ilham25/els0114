@@ -33,9 +33,13 @@ public:
     STDMETHOD(SetNPatchMode)(THIS_ FLOAT NumSegments);
     STDMETHOD(SetFVF)(THIS_ DWORD FVF);
     STDMETHOD(SetVertexShader)(THIS_ LPDIRECT3DVERTEXSHADER9 pShader);
-    STDMETHOD(SetVertexShaderConstantF)(THIS_ UINT RegisterIndex, CONST FLOAT *pConstantData, UINT RegisterCount);
-    STDMETHOD(SetVertexShaderConstantI)(THIS_ UINT RegisterIndex, CONST INT *pConstantData, UINT RegisterCount);
-    STDMETHOD(SetVertexShaderConstantB)(THIS_ UINT RegisterIndex, CONST BOOL *pConstantData, UINT RegisterCount);
+#ifdef X2OPTIMIZE_SETSHADERCONSTANT
+	__forceinline STDMETHOD(SetVertexShaderConstantF)(THIS_ UINT RegisterIndex, CONST FLOAT *pConstantData, UINT RegisterCount);
+#else//X2OPTIMIZE_SETSHADERCONSTANT
+	STDMETHOD(SetVertexShaderConstantF)(THIS_ UINT RegisterIndex, CONST FLOAT *pConstantData, UINT RegisterCount);
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
+	STDMETHOD(SetVertexShaderConstantI)(THIS_ UINT RegisterIndex, CONST INT *pConstantData, UINT RegisterCount);
+	STDMETHOD(SetVertexShaderConstantB)(THIS_ UINT RegisterIndex, CONST BOOL *pConstantData, UINT RegisterCount);
     STDMETHOD(SetPixelShader)(THIS_ LPDIRECT3DPIXELSHADER9 pShader);
     STDMETHOD(SetPixelShaderConstantF)(THIS_ UINT RegisterIndex, CONST FLOAT *pConstantData, UINT RegisterCount);
     STDMETHOD(SetPixelShaderConstantI)(THIS_ UINT RegisterIndex, CONST INT *pConstantData, UINT RegisterCount);
@@ -116,4 +120,88 @@ private:
     int                                         m_iStateManagerStackTop;
 
     ULONG   m_nRefCount;
+
+#ifdef X2OPTIMIZE_SETSHADERCONSTANT
+public:
+	__forceinline void PostCommitChanges();
+	__forceinline void OnLostDevice();
+
+private:
+	//VS - float constants
+	float* m_pfFloatVSConstantData;
+	UINT m_uiFirstDirtyFloatVSReg;
+	UINT m_uiFirstCleanFloatVSReg;
+	UINT m_uiNumFloatVSConstants;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 };//class   CKTDGEffectStateManager
+
+#ifdef X2OPTIMIZE_SETSHADERCONSTANT
+extern LPDIRECT3DDEVICE9        g_pd3dDevice;
+
+__forceinline HRESULT STDMETHODCALLTYPE CKTDGEffectStateManager::SetVertexShaderConstantF(THIS_ UINT RegisterIndex, CONST FLOAT *pConstantData, UINT RegisterCount)
+{
+	unsigned int uiBase = RegisterIndex * 4;
+
+	if ( RegisterIndex >= m_uiFirstDirtyFloatVSReg
+		&& RegisterIndex + RegisterCount <= m_uiFirstCleanFloatVSReg )
+	{
+		unsigned int uiByteSize = RegisterCount * 4 * sizeof(*pConstantData);
+		memcpy(m_pfFloatVSConstantData + uiBase, pConstantData, uiByteSize);
+	}
+	else
+	{
+        if ( RegisterIndex >= m_uiNumFloatVSConstants )
+            return E_FAIL;
+        if ( RegisterIndex + RegisterCount > m_uiNumFloatVSConstants )
+            RegisterCount = m_uiNumFloatVSConstants - RegisterIndex;
+
+		unsigned	uiDirty = RegisterCount;
+		unsigned	uiClean = 0;
+		for( unsigned u = 0; u != RegisterCount; u++ )
+		{
+			if ( memcmp( pConstantData + 4 * u, m_pfFloatVSConstantData + uiBase + 4 * u, sizeof(*pConstantData)*4 ) != 0 )
+			{
+				if ( u < uiDirty )
+					uiDirty = u;
+				uiClean = u + 1;
+			}//if
+		}//for
+		if ( uiDirty < uiClean )
+		{
+			RegisterIndex += uiDirty;
+			RegisterCount = uiClean - uiDirty;
+			memcpy( m_pfFloatVSConstantData + RegisterIndex * 4, pConstantData + uiDirty * 4
+				, RegisterCount * 4 * sizeof(*pConstantData) );
+
+			if (m_uiFirstDirtyFloatVSReg > RegisterIndex)
+				m_uiFirstDirtyFloatVSReg = RegisterIndex;
+			if (m_uiFirstCleanFloatVSReg < RegisterIndex + RegisterCount)
+				m_uiFirstCleanFloatVSReg = RegisterIndex + RegisterCount;
+		}//if
+	}
+	return S_OK;
+}//CKTDGEffectStateManager::SetVertexShaderConstantF()
+
+__forceinline void CKTDGEffectStateManager::PostCommitChanges()
+{
+	ASSERT( m_bInEffect );
+
+	if (m_uiFirstDirtyFloatVSReg < m_uiFirstCleanFloatVSReg)
+	{
+		HRESULT hr = g_pd3dDevice->SetVertexShaderConstantF(
+			m_uiFirstDirtyFloatVSReg, 
+			m_pfFloatVSConstantData + m_uiFirstDirtyFloatVSReg * 4,
+			m_uiFirstCleanFloatVSReg - m_uiFirstDirtyFloatVSReg);
+		ASSERT(SUCCEEDED(hr));
+	}
+
+	m_uiFirstDirtyFloatVSReg = m_uiNumFloatVSConstants;
+	m_uiFirstCleanFloatVSReg = 0;
+}
+
+__forceinline void CKTDGEffectStateManager::OnLostDevice()
+{
+	m_uiFirstDirtyFloatVSReg = 0;
+	m_uiFirstCleanFloatVSReg = m_uiNumFloatVSConstants;
+}
+#endif//X2OPTIMIZE_SETSHADERCONSTANT

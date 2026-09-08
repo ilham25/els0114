@@ -18,7 +18,6 @@ public:
 
 #include    "X2Item_Preprocessing.inl"
 
-
 		enum SPECIAL_SKILL_TYPE
 		{
 #ifdef SPECIAL_USE_ITEM
@@ -31,12 +30,10 @@ public:
 			SST_LIGHT_SPHERE,
 			SST_DARK_SPHERE,
 
-//#ifdef	CHILDRENS_DAY_SPHERE_ITEM
 			SST_CHILDRENSDAY_SHPERE_01,	/// 분노의 어린이탄
 			SST_CHILDRENSDAY_SHPERE_02,	/// 냉정한 어린이탄
 			SST_CHILDRENSDAY_SHPERE_03,	/// 사랑의 어린이탄
 			SST_CHILDRENSDAY_SHPERE_04,	/// 행복한 어린이탄
-//#endif	CHILDRENS_DAY_SPHERE_ITEM
 
 			SST_ANGER_SPHERE,		// 울분의 수정구
 #else SPECIAL_USE_ITEM
@@ -50,6 +47,17 @@ public:
 //#ifdef EVENT_CHINA_THROW_ITEM
 			SST_CHINA_EVENT_SPEAR = 1010,
 //#endif //EVENT_CHINA_THROW_ITEM
+//#ifdef EVENT_ICICLE_THROW_ITEM
+			SST_ICICLE_SPEAR = 1011,
+//#endif EVENT_ICICLE_THROW_ITEM
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+			SST_LOVE_LV1,
+			SST_LOVE_LV2,
+#endif SERV_RELATIONSHIP_EVENT_INT
+//#ifdef EVENT_FIRE_CRACKER_THROW_ITEM
+			SST_FIRE_CRACKER = 1021,
+			SST_GOOD_FIRE_CRACKER = 1022,
+//#endif //EVENT_FIRE_CRACKER_THROW_ITEM
 		};
 
         enum SPECIAL_SKILL_MOTION_TYPE
@@ -120,7 +128,7 @@ public:
 #endif  SUMMON_MONSTER_CARD_SYSTEM
         };
 
-        struct ItemTemplet
+        struct ItemTemplet : public CX2ItemTemplet_Base
         {
             USE_TYPE                    m_UseType;                    // 사용 방식 장착장비인지 아닌지, 장착장비라면 어떤식으로 장착하는지
             USE_CONDITION                m_UseCondition;                // 사용 조건
@@ -277,10 +285,7 @@ public:
             CX2PVPEmblem::PVP_RANK    m_BuyPvpRankCondition;
 #endif
 
-#ifdef ADD_TRAININGGAME_NPC
             CX2UnitManager::NPC_UNIT_ID    m_iSummonNpcID;
-#endif
-
 #ifdef HIDE_SET_DESCRIPTION
 			bool				m_bHideSetDesc;
 #endif HIDE_SET_DESCRIPTION
@@ -394,17 +399,13 @@ public:
                 m_BuyPvpRankCondition = CX2PVPEmblem::PVPRANK_NONE;
 #endif
 
-#ifdef ADD_TRAININGGAME_NPC
                 m_iSummonNpcID = CX2UnitManager::NUI_NONE;
-#endif
 #ifdef BUFF_TEMPLET_SYSTEM
                 m_Buff_ID = 0;
 #endif BUFF_TEMPLET_SYSTEM
-
 #ifdef HIDE_SET_DESCRIPTION
 				m_bHideSetDesc = false;
 #endif HIDE_SET_DESCRIPTION
-
             }
 
             int                GetSocketSlotNum() const;
@@ -444,9 +445,7 @@ public:
             int     GetEndurance() const                            { return m_Endurance; }
             int     GetEnduranceDamageMin() const                   { return m_EnduranceDamage.m_Min; }
             int     GetEnduranceDamageMax() const                   { return m_EnduranceDamage.m_Max; }
-#ifdef  ADD_TRAININGGAME_NPC
             CX2UnitManager::NPC_UNIT_ID GetSummonNpcID() const      { return m_iSummonNpcID; }
-#endif  ADD_TRAININGGAME_NPC
 #ifdef  SERV_PVP_NEW_SYSTEM
             CX2PVPEmblem::PVP_RANK GetBuyPvpRankCondition() const   { return m_BuyPvpRankCondition; }
 #endif  SERV_PVP_NEW_SYSTEM
@@ -534,7 +533,7 @@ public:
 
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
-        struct ItemData
+        struct ItemData : public CX2ItemData_Base
         {
 
             UidType				m_ItemUID;           //UID
@@ -564,7 +563,13 @@ public:
 			bool				m_bIsEvaluation;		 // 아이템 감정 여부
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
-            ItemData()
+#ifdef ADD_SOCKET_SLOT
+			BYTE				m_byAddedSocketSlot;	// 추가 소켓 슬롯 수
+#endif // ADD_SOCKET_SLOT
+
+        private:
+
+            void    Init()
             {
                 m_ItemUID                = 0;                //UID
                 m_ItemID                = 0;
@@ -588,13 +593,19 @@ public:
                 m_bIsSealed                = false;                    // 봉인된 상태인가?
                 m_ucTimesToBeSealed        = 0;                        // 봉인된 횟수
 #endif    SEAL_ITEM
+
+                m_SocketOption.resize(0);
                 //}} kimhc // 2009-08-20 // 아이템 봉인
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
+                m_vecRandomSocket.resize( 0 );
 				m_bIsEvaluation	= true;	// 아이템 감정 여부
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef ADD_SOCKET_SLOT
+				m_byAddedSocketSlot = 0;	// 추가 소켓 슬롯 수
+#endif // ADD_SOCKET_SLOT
             }
 
-            ItemData( const KInventoryItemInfo& data )
+            void    Init( const KInventoryItemInfo& data )
             {
                 m_ItemUID               = data.m_iItemUID;                    //UID
                 m_ItemID                = data.m_kItemInfo.m_iItemID;
@@ -604,22 +615,12 @@ public:
                 m_Quantity              = data.m_kItemInfo.m_iQuantity;                    //수량
 
                 m_EnchantLevel          = (int)data.m_kItemInfo.m_cEnchantLevel;
-                m_SocketOption          = data.m_kItemInfo.m_vecItemSocket;
-#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-				m_vecRandomSocket		= data.m_kItemInfo.m_vecRandomSocket;
-				// m_cItemState가 미감정 상태가 아니라면 감정 된 것으로 설정
-				m_bIsEvaluation			= (KItemInfo::IS_NOT_EVALUATED != data.m_kItemInfo.m_cItemState);
-#endif // SERV_NEW_ITEM_SYSTEM_2013_05
-
-                m_Period                = (int)data.m_kItemInfo.m_sPeriod;
-                m_wstrExpirationDate    = data.m_kItemInfo.m_wstrExpirationDate;
-
                 m_EnchantedAttribute.m_aEnchantedType[0] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant0;
                 m_EnchantedAttribute.m_aEnchantedType[1] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant1;
                 m_EnchantedAttribute.m_aEnchantedType[2] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant2;
 
-                //m_EnchantAttribute        = data.m_iEType;
-                //m_EnchantLevel            = data.m_iELevel;
+                m_Period                = (int)data.m_kItemInfo.m_sPeriod;
+                m_wstrExpirationDate    = data.m_kItemInfo.m_wstrExpirationDate;
 
                 //{{ kimhc // 2009-08-26 // 아이템 봉인
 #ifdef    SEAL_ITEM
@@ -627,9 +628,20 @@ public:
                 m_ucTimesToBeSealed        = data.m_kItemInfo.GetSealCount();    // 봉인된 횟수
 #endif    SEAL_ITEM
                 //}} kimhc // 2009-08-26 // 아이템 봉인
+
+                m_SocketOption          = data.m_kItemInfo.m_vecItemSocket;
+#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
+				m_vecRandomSocket		= data.m_kItemInfo.m_vecRandomSocket;
+				// m_cItemState가 미감정 상태가 아니라면 감정 된 것으로 설정
+				m_bIsEvaluation			= (KItemInfo::IS_NOT_EVALUATED != data.m_kItemInfo.m_cItemState);
+#endif // SERV_NEW_ITEM_SYSTEM_2013_05
+
+#ifdef ADD_SOCKET_SLOT
+				m_byAddedSocketSlot = data.m_kItemInfo.m_byteExpandedSocketNum;	// 추가 소켓 슬롯 수
+#endif // ADD_SOCKET_SLOT
             }
 
-            ItemData( const KItemInfo& data )
+            void    Init( const KItemInfo& data )
             {
                 m_ItemUID               = -1;                    //UID
                 m_ItemID                = data.m_iItemID;
@@ -639,53 +651,49 @@ public:
                 m_Quantity              = data.m_iQuantity;                    //수량
 
                 m_EnchantLevel          = (int)data.m_cEnchantLevel;
-				m_SocketOption          = data.m_vecItemSocket;
-#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-				m_vecRandomSocket		= data.m_vecRandomSocket;
-				// m_cItemState가 미감정 상태가 아니라면 감정 된 것으로 설정
-				m_bIsEvaluation			= (KItemInfo::IS_NOT_EVALUATED != data.m_cItemState);
-#endif // SERV_NEW_ITEM_SYSTEM_2013_05
+                m_EnchantedAttribute.m_aEnchantedType[0] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kAttribEnchantInfo.m_cAttribEnchant0;
+                m_EnchantedAttribute.m_aEnchantedType[1] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kAttribEnchantInfo.m_cAttribEnchant1;
+                m_EnchantedAttribute.m_aEnchantedType[2] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kAttribEnchantInfo.m_cAttribEnchant2;
 
                 m_Period                = (int)data.m_sPeriod;
                 m_wstrExpirationDate    = data.m_wstrExpirationDate;
 
 
-                m_EnchantedAttribute.m_aEnchantedType[0] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kAttribEnchantInfo.m_cAttribEnchant0;
-                m_EnchantedAttribute.m_aEnchantedType[1] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kAttribEnchantInfo.m_cAttribEnchant1;
-                m_EnchantedAttribute.m_aEnchantedType[2] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kAttribEnchantInfo.m_cAttribEnchant2;
-
-
                 //{{ kimhc // 2009-08-26 // 아이템 봉인
 #ifdef    SEAL_ITEM
                 m_bIsSealed                = data.IsSealedItem();            // 봉인된 상태인가?
                 m_ucTimesToBeSealed        = data.GetSealCount();            // 봉인된 횟수
 #endif    SEAL_ITEM
                 //}} kimhc // 2009-08-26 // 아이템 봉인
-            }
 
-            ItemData( const KPostItemInfo& data, PERIOD_TYPE iPeriodType, int iEndurance )
-            {
-                m_ItemUID               = -1;                    //UID
-                m_ItemID                = data.m_iScriptIndex;
-
-                m_PeriodType            = iPeriodType;
-                m_Endurance             = iEndurance;                        //내구도
-                m_Quantity              = data.m_iQuantity;                    //수량
-
-                m_EnchantLevel          = (int)data.m_cEnchantLevel;
 				m_SocketOption          = data.m_vecItemSocket;
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 				m_vecRandomSocket		= data.m_vecRandomSocket;
 				// m_cItemState가 미감정 상태가 아니라면 감정 된 것으로 설정
 				m_bIsEvaluation			= (KItemInfo::IS_NOT_EVALUATED != data.m_cItemState);
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
-				
-                m_Period                = 0;
 
+#ifdef ADD_SOCKET_SLOT
+				m_byAddedSocketSlot = data.m_byteExpandedSocketNum;	// 추가 소켓 슬롯 수
+#endif // ADD_SOCKET_SLOT
+            }
+
+            void    Init( const KPostItemInfo& data )
+            {
+                m_ItemUID               = -1;                    //UID
+                m_ItemID                = data.m_iScriptIndex;
+
+                m_PeriodType            = PT_INFINITY;
+                m_Endurance                = -1;                //내구도
+                m_Quantity              = data.m_iQuantity;                    //수량
+
+                m_EnchantLevel          = (int)data.m_cEnchantLevel;
                 m_EnchantedAttribute.m_aEnchantedType[0] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kAttribEnchantInfo.m_cAttribEnchant0;
                 m_EnchantedAttribute.m_aEnchantedType[1] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kAttribEnchantInfo.m_cAttribEnchant1;
                 m_EnchantedAttribute.m_aEnchantedType[2] = (CX2EnchantItem::ENCHANT_TYPE) data.m_kAttribEnchantInfo.m_cAttribEnchant2;
 
+                m_Period                = 0;
+                m_wstrExpirationDate.resize( 0 );
 
                 //{{ kimhc // 2009-08-26 // 아이템 봉인
 #ifdef    SEAL_ITEM
@@ -693,7 +701,38 @@ public:
                 m_ucTimesToBeSealed        = data.GetSealCount();            // 봉인된 횟수
 #endif    SEAL_ITEM
                 //}} kimhc // 2009-08-26 // 아이템 봉인
+
+				m_SocketOption          = data.m_vecItemSocket;
+#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
+				m_vecRandomSocket		= data.m_vecRandomSocket;
+				// m_cItemState가 미감정 상태가 아니라면 감정 된 것으로 설정
+				m_bIsEvaluation			= (KItemInfo::IS_NOT_EVALUATED != data.m_cItemState);
+#endif // SERV_NEW_ITEM_SYSTEM_2013_05
+
+#ifdef ADD_SOCKET_SLOT
+				m_byAddedSocketSlot = data.m_byteExpandedSocketNum;	// 추가 소켓 슬롯 수
+#endif // ADD_SOCKET_SLOT
             }
+
+        public:
+
+            ItemData()
+            {
+                Init();
+            }
+
+            ItemData( const KInventoryItemInfo& data )
+            {
+                Init( data );
+            }
+
+            ItemData( const KItemInfo& data )
+            {
+                Init( data );
+            }
+//{{ robobeg : 2013-11-04
+            bool    Initialize( const KPostItemInfo& data );
+//}} robobeg : 2013-11-04
 
             ItemData& operator=( const KInventoryItemInfo& data )
             {
@@ -726,12 +765,15 @@ public:
 #endif    SEAL_ITEM
                 //}} kimhc // 2009-08-26 // 아이템 봉인
 
+#ifdef ADD_SOCKET_SLOT
+				m_byAddedSocketSlot = data.m_kItemInfo.m_byteExpandedSocketNum;	// 추가 소켓 슬롯 수
+#endif // ADD_SOCKET_SLOT 
                 return *this;
             }
 
 
 
-            int GetAttribEnchantedCount()
+            int GetAttribEnchantedCount() const
             {
                 int iCount = 0;
 
@@ -750,14 +792,21 @@ public:
 
     public:
         CX2Item( int itemID );
-        CX2Item( ItemData* pItemData, CX2Unit* pOwnerUnit );
+//{{ robobeg : 2013-11-04
+        //CX2Item( ItemData* pItemData, CX2Unit* pOwnerUnit );
+        CX2Item( const ItemData& kItemData, CX2Unit* pOwnerUnit );
+//}} robobeg : 2013-11-04
         ~CX2Item(void);
 
-        ItemData*        GetItemData()            { return m_pItemData; }
+//{{ robobeg : 2013-11-04
+        //ItemData*        GetItemData()            { return m_pItemData; }
+        const ItemData&    GetItemData() const      { return m_kItemData; }
+        ItemData&          AccessItemData()         { return m_kItemData; }
+//}} robobeg : 2013-11-04
         const ItemTemplet*  GetItemTemplet() const    { return m_pItemTemplet; }
-		int					GetItemEnchantLevel() const { if( NULL == m_pItemData ) return 0; return m_pItemData->m_EnchantLevel; }
+		int					GetItemEnchantLevel() const { return m_kItemData.m_EnchantLevel; }
 
-        UidType            GetUID() const            { return m_pItemData->m_ItemUID; }
+        UidType            GetUID() const            { return m_kItemData.m_ItemUID; }
         void            SetEqip( bool bEqip )    { m_bEqip = bEqip; }
         bool            GetEqip()                { return m_bEqip; }
 
@@ -788,13 +837,21 @@ public:
 		int             GetIEchantedItemLevel(IN CX2Unit::UNIT_TYPE eUnitType_, IN CX2Unit::UNIT_CLASS eUnitClass_) const;    /// 강화와 관련하여 증가된 아이템 레벨
 
 		// 감정 여부 얻기. 기본값은 true
-		bool			GetIsEvaluation() const { if( NULL == m_pItemData ) return true; return m_pItemData->m_bIsEvaluation; }
+        bool			GetIsEvaluation() const { return m_kItemData.m_bIsEvaluation; }
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
 
         //+0 불패칸 검
-        wstring            GetFullName();
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		wstring            GetFullName( IN const bool bAddRandomSocketName_ = false );
+#else // SERV_UPGRADE_TRADE_SYSTEM
+		wstring            GetFullName();
+#endif // SERV_UPGRADE_TRADE_SYSTEM
 
-        static ItemData* CreateItemData( const KPostItemInfo& kPostItemInfo );
+#ifdef ADD_SOCKET_SLOT
+		BYTE			GetbyAddedSocketSlot() const;
+#endif // ADD_SOCKET_SLOT 
+
+        //static ItemData* CreateItemData( const KPostItemInfo& kPostItemInfo );
 
     public:
         static const int        WEAPON_LEVEL_WEIGHT = 4;            /// 아이템 평균 레벨을 구할 때 사용하는 무기 아이템의 레벨 가중치
@@ -807,7 +864,8 @@ public:
         static const int        STANDARD_VALUE_MAGIC_DEFENCE = 30;    /// 아이템 1레벨 마방 증가치    (이만큼이 증가해야 1레벨이 오름)
         static const int        STANDARD_VALUE_BASE_HP = 3000;        /// 아이템 1레벨 HP 증가치    (이만큼이 증가해야 1레벨이 오름)
 
-        ItemData*        m_pItemData;
+        //ItemData*        m_pItemData;
+        ItemData        m_kItemData;
         const ItemTemplet*    m_pItemTemplet;
         CX2Unit*        m_pOwnerUnit;
 

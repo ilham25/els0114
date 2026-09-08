@@ -27,6 +27,10 @@
 #endif SERV_NEXON_SESSION_PROTOCOL
 //}} 
 
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#include "GameEvent/GameEventScriptManager.h"
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
 //{{ 2011. 08. 10    김민성    채널링 SOAP
 #ifdef SERV_CHANNELING_SOAP
 	#include "NexonSOAPManager.h"
@@ -60,6 +64,10 @@
 	#include "SMSPhoneNumberManager.h"
 #endif SERV_POST_COPY_BUG_FIX
 //}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+	#include "X2Data/XSLBattleFieldManager.h"
+#endif // SERV_BATTLE_FIELD_BOSS
 
 //////////////////////////////////////////////////////////////////////////
 //#ifdef SERV_GSUSER_CPP
@@ -252,7 +260,9 @@ IMPL_ON_FUNC( DBE_UPDATE_UNIT_INFO_ACK )
 			kPacket.m_iED = GetED();
 			kPacket.m_wstrNickName = GetCharName();
 			kPacket.m_wstrAgencyExpirationDate = m_kUserPersonalShopManager.GetAgencyExpirationDate();
-			kPacket.m_cPersonalShopType = CXSLSquareUnit::PST_PREMIUM; // 대리상점은 기본적으로 프리미엄 효과랑 동일하다.
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+            kPacket.m_cPersonalShopType = m_kUserPersonalShopManager.GetPShopType();
+#endif //SERV_UPGRADE_TRADE_SYSTEM                        
 			SendToLoginRoom( ERM_OPEN_PSHOP_AGENCY_REQ, kPacket );
 		}break;
 	case EGS_PICK_UP_FROM_PSHOP_AGENCY_REQ:
@@ -309,7 +319,8 @@ IMPL_ON_FUNC( EGS_VERIFY_ACCOUNT_REQ )
 	//}}
 
 #ifdef SERV_CHANNELING_USER_MANAGER
-	SiKChannelingUserManager()->UpdateChannelingUserList( true, kPacket_.m_iChannelingCode );
+	SiKChannelingUserManager()->UpdateChannelingUserList( true, kPacket_.m_iChannelingCode, GetGameServerLoginUser() );
+	SetGameServerLoginUser( true );
 #endif SERV_CHANNELING_USER_MANAGER
 
 	START_LOG_WITH_NAME( clog )
@@ -486,8 +497,7 @@ IMPL_ON_FUNC( EGS_VERIFY_ACCOUNT_REQ )
 				//}}
 				
 				// 머신ID가 비어있으면 접속 차단!
-				Kick( KStatistics::eSIColDR_Check_ServerSN_In_GameServer );
-				
+				Kick( KStatistics::eSIColDR_Check_ServerSN_In_GameServer );				
 			}
 
 			// DB에 존제하는 ServerSN 인지 확인하자
@@ -832,7 +842,6 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_ACK )
 		<< END_LOG;
 #endif //SERV_COUNTRY_TH
 
-
 #ifdef SERV_COUNTRY_PH 
 	m_usGarenaCyberCafe = kPacket_.m_usGarenaCyberCafe; // 2013.08.01 lygan_조성욱 // 동남아시아 가레나 플랫폼으로 부터 받은 PC 방 정보
 #endif //SERV_COUNTRY_PH
@@ -1076,7 +1085,8 @@ IMPL_ON_FUNC( ELG_REGISTER_USER_ACK )
 #endif //SERV_PC_BANG_TYPE
 
 #ifdef SERV_COUNTRY_PH
-		if (m_usGarenaCyberCafe & 0x0001u)
+		//if (m_usGarenaCyberCafe & 0x0001u)
+		if ( (m_usGarenaCyberCafe & ( 1<<8)) >> 8 )
 		{
 			m_kUserPcBangManager.SetIsPcBang( true );	
 #ifdef SERV_PC_BANG_TYPE
@@ -1229,7 +1239,8 @@ IMPL_ON_FUNC( ELG_REGISTER_USER_GLOBAL_PUBLISHER_ACK )
 	}
 
 #ifdef SERV_COUNTRY_PH
-	if (m_usGarenaCyberCafe & 0x0001u)
+	//if (m_usGarenaCyberCafe & 0x0001u)
+	if ( (m_usGarenaCyberCafe & ( 1<<8)) >> 8 )
 	{
 		m_kUserPcBangManager.SetIsPcBang( true );	
 #ifdef SERV_PC_BANG_TYPE
@@ -1932,7 +1943,11 @@ IMPL_ON_FUNC( EGS_NEW_USER_JOIN_REQ )
 	multiByteString = KncUtil::toNarrowString( kPacket_.m_wstrName );
 	nSize = ( int )multiByteString.size();
 
+#ifdef SERV_INT_ONLY
 	if( nSize < 1 || nSize > 25 )
+#else //SERV_INT_ONLY
+	if( nSize < 1 || nSize > 16 )
+#endif //SERV_INT_ONLY
 	{
 		KEGS_NEW_USER_JOIN_ACK kPacket;
 		kPacket.m_iOK = NetError::ERR_NEW_ACCOUNT_06;
@@ -2171,7 +2186,11 @@ IMPL_ON_FUNC( EGS_SELECT_SERVER_SET_REQ )
 #endif SERV_ADD_BLOCK_DAY
 		//}}
 		{
+#ifdef SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
+			kPacket.m_iOK = NetError::ERR_ACCOUNT_BLOCK_01;
+#else //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
 			kPacket.m_iOK = NetError::ERR_VERIFY_11;
+#endif //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
 			kPacket.m_kAccountBlockInfo.m_wstrEndTime = m_kAccountBlockInfo.m_wstrEndTime;
 			kPacket.m_kAccountBlockInfo.m_wstrBlockReason = m_kAccountBlockInfo.m_wstrBlockReason;
 
@@ -2404,9 +2423,9 @@ IMPL_ON_FUNC( EGS_CONNECT_CHANNEL_CHANGE_REQ )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-
 #ifdef SERV_CHANNELING_USER_MANAGER
-	SiKChannelingUserManager()->UpdateChannelingUserList( true, kPacket_.m_kVerifyAccountReq.m_iChannelingCode );
+	SiKChannelingUserManager()->UpdateChannelingUserList( true, kPacket_.m_kVerifyAccountReq.m_iChannelingCode, GetGameServerLoginUser() );
+	SetGameServerLoginUser( true );
 #endif SERV_CHANNELING_USER_MANAGER
 
 	// 계정인증
@@ -2534,7 +2553,6 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_ACK )
 		<< BUILD_LOG( m_usGiantGame )
 		<< END_LOG;
 #endif //SERV_EPAY_SYSTEM
-
 
 	//////////////////////////////////////////////////////////////////////////
 	// 로그인 서버에 등록하기	
@@ -2739,12 +2757,20 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_REGISTER_USER_ACK )
 		kPacketToDB.m_kSelectUnitReq.m_setCodeEventScriptID.insert( CEI_NEW_YEAR_EVENT_2014 );
 	}
 #endif SERV_NEW_YEAR_EVENT_2014
+
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 	IF_EVENT_ENABLED( CEI_GATE_OF_DARKNESS_SUPPORT_EVENT )
 	{
 		kPacketToDB.m_kSelectUnitReq.m_setCodeEventScriptID.insert( CEI_GATE_OF_DARKNESS_SUPPORT_EVENT );
 	}
 #endif //SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_EVENT_CHECK_POWER
+	IF_EVENT_ENABLED( CEI_CHECK_POWER )
+	{
+		kPacketToDB.m_kSelectUnitReq.m_setCodeEventScriptID.insert( CEI_CHECK_POWER );
+	}
+#endif SERV_EVENT_CHECK_POWER
 
 	SendToGameDB( DBE_CHANNEL_CHANGE_GAME_SELECT_UNIT_REQ, kPacketToDB );
 }
@@ -2784,7 +2810,7 @@ IMPL_ON_FUNC( DBE_CHANNEL_CHANGE_GAME_SELECT_UNIT_ACK )
 			// 자동으로 어뷰저 등록
 			m_kUserAbuserManager.RegEDAbuser( GetThisPtr<KGSUser>() );
 			m_kUserAbuserManager.RegItemAbuser( GetThisPtr<KGSUser>() );
-			m_kUserAbuserManager.RegPacketMornitoring( GetThisPtr<KGSUser>() );
+			//HackUserRegPacketMornitor();
 		}
 #endif SERV_POST_COPY_BUG_FIX
 		//}}
@@ -2805,6 +2831,17 @@ IMPL_ON_FUNC( DBE_CHANNEL_CHANGE_GAME_SELECT_UNIT_ACK )
 		SendPacket( EGS_CONNECT_CHANNEL_CHANGE_ACK, kPacketAck );
 		return;
 	}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+	// 보스 필드라면 마을로 이동 시키자
+	if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kSelectUnitAck.m_kUnitInfo.m_kLastPos.m_iMapID ) == true )
+	{
+		kPacket_.m_kSelectUnitAck.m_kUnitInfo.m_kLastPos.m_iMapID = SiCXSLMapData()->GetPossibleEnterVillageMapID( kPacket_.m_kSelectUnitAck.m_kUnitInfo.m_ucLevel, kPacket_.m_kSelectUnitAck.m_kUnitInfo.m_mapDungeonClear );
+		kPacket_.m_kSelectUnitAck.m_kUnitInfo.m_kLastPos.m_bIgnoreLastTouch = true;
+	}
+	// 최초 선택이나, 채널 변경에서 동일하게 처리되는 구문은
+	// 함수로 처리해서 공용으로 처리되도록 하는게 좋을 듯 하다...
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	SendToAccountDB( DBE_CHANNEL_CHANGE_ACCOUNT_SELECT_UNIT_REQ, kPacket_ );
 }
@@ -2922,6 +2959,31 @@ _IMPL_ON_FUNC( DBE_CHANNEL_CHANGE_ACCOUNT_SELECT_UNIT_ACK, KDBE_CHANNEL_CHANGE_G
 
 end_proc:
 	SendPacket( EGS_CONNECT_CHANNEL_CHANGE_ACK, kPacketAck );
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	SetDungeonCount(kPacket_.m_kChangeUserInfo.m_DungeonCount);
+	SetFieldMosterKillCount(kPacket_.m_kChangeUserInfo.m_FieldMonsterKillCount);
+	SetDungeonClearUI(kPacket_.m_kChangeUserInfo.m_DungeonClearUI);
+	SetFieldCountUI(kPacket_.m_kChangeUserInfo.m_FieldCountUI);
+	CTime tTempTime;
+	if(KncUtil::ConvertStringToCTime( kPacket_.m_kChangeUserInfo.m_wstrButtonClickTime, tTempTime ) == false)
+	{
+		START_LOG( cerr, L"채널 이동 후 Ctime으로 시간변환 실패" )
+			<< BUILD_LOG( kPacket_.m_kChangeUserInfo.m_wstrButtonClickTime )
+			<< END_LOG;
+		tTempTime = CTime::GetCurrentTime();
+	}
+	SetButtonClickTime(tTempTime);
+	SetRemaindTime(kPacket_.m_kChangeUserInfo.m_RemaindTime);
+	SetStartButtonPush(kPacket_.m_kChangeUserInfo.m_ButtonStartUI);
+	SetCoboItemGive(kPacket_.m_kChangeUserInfo.m_bCoboItemGive);
+
+	kPacket_.m_kSelectUnitAck.m_wstrButtonClickTime_One = kPacket_.m_kChangeUserInfo.m_wstrButtonClickTime;
+	kPacket_.m_kSelectUnitAck.m_bItemGive = kPacket_.m_kChangeUserInfo.m_bCoboItemGive;
+	kPacket_.m_kSelectUnitAck.m_iDungeonClearCount = kPacket_.m_kChangeUserInfo.m_DungeonCount;
+	kPacket_.m_kSelectUnitAck.m_iFieldMonsterKillCount = kPacket_.m_kChangeUserInfo.m_FieldMonsterKillCount;
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
 	
 	if( kPacket_.m_kSelectUnitAck.m_iOK == NetError::NET_OK )
 	{
@@ -2930,6 +2992,11 @@ end_proc:
 		OnSelectUnitSuccess( kPacket_.m_kSelectUnitAck, true );
 		//////////////////////////////////////////////////////////////////////////
 
+#ifdef SERV_GLOBAL_EVENT_TABLE
+		m_mapGlobalEventData = kPacket_.m_kChangeUserInfo.m_mapGlobalEventData;
+		GetGlobalEventTableData(m_mapGlobalEventData);
+#endif //SERV_GLOBAL_EVENT_TABLE
+
 #ifdef SERV_EVENT_MONEY	// 김민성 // 적용날짜: 2013-07-04
 		SetEventMoney( kPacket_.m_kSelectUnitAck.m_iEventMoney );
 
@@ -2937,6 +3004,280 @@ end_proc:
 		kNot.m_iEventMoney = GetEventMoney();
 		SendPacket( EGS_UPDATE_EVENT_MONEY_NOT, kNot );
 #endif // SERV_EVENT_MONEY
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		IF_EVENT_ENABLED( CEI_EVENT_COBO_DUNGEON_AND_FIELD )
+		{
+			if(  GetLevel() >= 10 )
+			{
+				KEGS_EVENT_COBO_DUNGEON_FIELD_NOT kPacketCoboNot;
+				//현재 시간을 받아온다.
+				CTime tChangeEventTime = SiKGameEventScriptManager()->GetCoboEventData()[0];
+				CTime tCurTime_ = CTime::GetCurrentTime();
+				//현재 시간과 바뀌어야 하는 이벤트 시간을 비교한다.
+				std::wstring GameEventTime = tChangeEventTime.Format(L"%Y-%m-%d %H:%M:%S");
+
+				if( tCurTime_ < tChangeEventTime)
+				{
+					///현재 시간이 바뀌어야 하는 기준 시간보다 작으면 던전 클리어를 열어 주어야 한다.
+					///단 주말일 경우에는 필드 카운트도 열어주어야 하니까 주말인지 체크를 해야한다.
+					CTime	tWeekEndTimeStart = SiKGameEventScriptManager()->GetCoboEventData()[1];
+					CTime   tWeekEndTimeEnd = SiKGameEventScriptManager()->GetCoboEventData()[2];
+					GameEventTime = tWeekEndTimeStart.Format(L"%Y-%m-%d %H:%M:%S");
+					START_LOG( clog, L"던전 주말 타임 체크시작" )
+						<< BUILD_LOG( GameEventTime )
+						<< END_LOG;
+
+					GameEventTime = tWeekEndTimeEnd.Format(L"%Y-%m-%d %H:%M:%S");
+					START_LOG( clog, L"던전 주말 타임 체크끝" )
+						<< BUILD_LOG( GameEventTime )
+						<< END_LOG;
+					//클릭 한적이 있다.
+					CTime tClickTime;
+					if( KncUtil::ConvertStringToCTime( kPacket_.m_kChangeUserInfo.m_wstrButtonClickTime, tClickTime ) == false )
+					{
+
+						tClickTime = CTime::GetCurrentTime();  //실패 했을 경우 그냥 false처리 하자
+					}
+					SetButtonClickTime(tClickTime);
+					if(kPacket_.m_kChangeUserInfo.m_bCoboItemGive == true)
+					{
+						if( tClickTime.GetDay() < tCurTime_.GetDay()) //하루가 지났냐
+						{
+							///하루가 지났으면 보상 기록 초기화 하고 UI활성화 시켜주면 된다.
+							kPacketCoboNot.m_StartButtonUI = true;
+							kPacketCoboNot.m_DungeonCountUI = true;
+							kPacketCoboNot.m_DungeonCount = 0;
+							kPacketCoboNot.m_iRemaindTime = -1;
+							if(tCurTime_ > tWeekEndTimeStart && tCurTime_ < tWeekEndTimeEnd) //이러면 주말이다
+							{
+								//주말이면 필드카운트 UI도 활성화 
+								kPacketCoboNot.m_FieldCountUI = true;
+								kPacketCoboNot.m_FieldMonsterKillCount = 0;
+							}
+							kPacketCoboNot.m_tPushTime = tClickTime.GetTime();
+							SendPacket(EGS_EVENT_COBO_DUNGEON_FIELD_NOT,kPacketCoboNot);
+							START_LOG( clog, L"클릭한적 있을떄 던전 보상 지급받았을때 하루 지났을때" )
+								<< BUILD_LOG( kPacketCoboNot.m_StartButtonUI )
+								<< BUILD_LOG( kPacketCoboNot.m_DungeonCountUI )
+								<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+								<< BUILD_LOG( kPacketCoboNot.m_iRemaindTime )
+								<< BUILD_LOG( kPacketCoboNot.m_FieldCountUI )
+								<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+								<< END_LOG;
+							///DB에 초기화 하러 가자
+							//여기서 몬스터 킬수랑 던전 클리어수 보관해야 하니까 저장 하자
+							KDBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT kPacketToDB;
+							kPacketToDB.m_iUnitUID = GetCharUID();
+							kPacketToDB.m_bItemGive = 0;
+							kPacketToDB.m_wstrButtonClickTime_One = tClickTime.Format(L"%Y-%m-%d %H:%M:%S");
+							kPacketToDB.m_iDungeonClearCount = 0;
+							kPacketToDB.m_iFieldMonsterKillCount = 0;
+							kPacketCoboNot.m_tPushTime = tClickTime.GetTime();
+							SendToGameDB( DBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT, kPacketToDB );
+							SetRemaindTime(kPacketCoboNot.m_iRemaindTime);
+							SetStartButtonPush(kPacketCoboNot.m_StartButtonUI);
+							SetDungeonClearUI(kPacketCoboNot.m_DungeonCountUI);
+							SetFieldCountUI(kPacketCoboNot.m_FieldCountUI);
+							SetDungeonCount(kPacketCoboNot.m_DungeonCount);
+							SetFieldMosterKillCount(kPacketCoboNot.m_FieldMonsterKillCount);
+							SetCoboItemGive(false);
+
+						}
+						else
+						{
+							///하루가 안지났으면 UI그냥 다 끄면 된다.
+							kPacketCoboNot.m_StartButtonUI = false;
+							kPacketCoboNot.m_DungeonCountUI = false;
+							kPacketCoboNot.m_DungeonCount = 0;
+							kPacketCoboNot.m_iRemaindTime = -1;
+							if(tCurTime_ > tWeekEndTimeStart && tCurTime_ < tWeekEndTimeEnd) //이러면 주말이다
+							{
+								//주말이면 필드카운트 UI도 활성화 
+								kPacketCoboNot.m_FieldCountUI = false;
+								kPacketCoboNot.m_FieldMonsterKillCount = 0;
+							}
+							kPacketCoboNot.m_tPushTime = tClickTime.GetTime();
+							SendPacket(EGS_EVENT_COBO_DUNGEON_FIELD_NOT,kPacketCoboNot);
+							START_LOG( clog, L"클릭한적 있을떄 던전 보상 지급받았을때 하루 지났을때" )
+								<< BUILD_LOG( kPacketCoboNot.m_StartButtonUI )
+								<< BUILD_LOG( kPacketCoboNot.m_DungeonCountUI )
+								<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+								<< BUILD_LOG( kPacketCoboNot.m_iRemaindTime )
+								<< BUILD_LOG( kPacketCoboNot.m_FieldCountUI )
+								<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+								<< END_LOG;
+							SetRemaindTime(kPacketCoboNot.m_iRemaindTime);
+							SetStartButtonPush(kPacketCoboNot.m_StartButtonUI);
+							SetDungeonClearUI(kPacketCoboNot.m_DungeonCountUI);
+							SetFieldCountUI(kPacketCoboNot.m_FieldCountUI);
+							SetDungeonCount(kPacketCoboNot.m_DungeonCount);
+							SetFieldMosterKillCount(kPacketCoboNot.m_FieldMonsterKillCount);
+							SetCoboItemGive(true);
+						}
+					}
+					else
+					{
+						///채널 이동을 고려해야지
+
+						///보상 안받았으면 UI다시 활성화 시켜주면 된다.
+						kPacketCoboNot.m_StartButtonUI = kPacket_.m_kChangeUserInfo.m_ButtonStartUI;
+						kPacketCoboNot.m_DungeonCountUI = kPacket_.m_kChangeUserInfo.m_DungeonClearUI;
+						kPacketCoboNot.m_DungeonCount = kPacket_.m_kChangeUserInfo.m_DungeonCount;
+						kPacketCoboNot.m_iRemaindTime = kPacket_.m_kChangeUserInfo.m_RemaindTime;
+						if(tCurTime_ > tWeekEndTimeStart && tCurTime_ < tWeekEndTimeEnd) //이러면 주말이다
+						{
+							//주말이면 필드카운트 UI도 활성화 
+							kPacketCoboNot.m_FieldCountUI = true;
+							kPacketCoboNot.m_FieldMonsterKillCount = kPacket_.m_kChangeUserInfo.m_FieldMonsterKillCount;
+						}
+						kPacketCoboNot.m_tPushTime = tClickTime.GetTime();
+						SendPacket(EGS_EVENT_COBO_DUNGEON_FIELD_NOT,kPacketCoboNot);
+						START_LOG( clog, L"클릭한적 있을떄 던전 보상 지급받았을때 하루 지났을때" )
+							<< BUILD_LOG( kPacketCoboNot.m_StartButtonUI )
+							<< BUILD_LOG( kPacketCoboNot.m_DungeonCountUI )
+							<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+							<< BUILD_LOG( kPacketCoboNot.m_iRemaindTime )
+							<< BUILD_LOG( kPacketCoboNot.m_FieldCountUI )
+							<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+							<< END_LOG;
+						SetRemaindTime(kPacketCoboNot.m_iRemaindTime);
+						SetStartButtonPush(kPacketCoboNot.m_StartButtonUI);
+						SetDungeonClearUI(kPacketCoboNot.m_DungeonCountUI);
+						SetFieldCountUI(kPacketCoboNot.m_FieldCountUI);
+						SetDungeonCount(kPacketCoboNot.m_DungeonCount);
+						SetFieldMosterKillCount(kPacketCoboNot.m_FieldMonsterKillCount);
+						SetCoboItemGive(false);
+					}
+				}			
+				else
+				{
+					///현재 시간이 바뀌어야 하는 기준 시간보다 작으면 던전 클리어를 열어 주어야 한다.
+					///단 주말일 경우에는 필드 카운트도 열어주어야 하니까 주말인지 체크를 해야한다.
+					CTime	tWeekEndTimeStart = SiKGameEventScriptManager()->GetCoboEventData()[3];
+					CTime tWeekEndTimeEnd = SiKGameEventScriptManager()->GetCoboEventData()[4];
+					CTime TempTime = SiKGameEventScriptManager()->GetCoboEventData()[0];
+					GameEventTime = tWeekEndTimeStart.Format(L"%Y-%m-%d %H:%M:%S");
+					START_LOG( clog, L"필드 주말 타임 체크시작" )
+						<< BUILD_LOG( GameEventTime )
+						<< END_LOG;
+					GameEventTime = tWeekEndTimeEnd.Format(L"%Y-%m-%d %H:%M:%S");
+					START_LOG( clog, L"필드 주말 타임 체크끝" )
+						<< BUILD_LOG( GameEventTime )
+						<< END_LOG;
+					CTime tClickTime;
+					if( KncUtil::ConvertStringToCTime( kPacket_.m_kChangeUserInfo.m_wstrButtonClickTime, tClickTime ) == false )
+					{
+
+						tClickTime = CTime::GetCurrentTime();  //실패 했을 경우 그냥 false처리 하자
+					}
+					SetButtonClickTime(tClickTime);
+					if(kPacket_.m_kChangeUserInfo.m_bCoboItemGive == true)
+					{
+						if( tClickTime.GetDay() < tCurTime_.GetDay()) //하루가 지났냐
+						{
+							///하루가 지났으면 보상 기록 초기화 하고 UI활성화 시켜주면 된다.
+							kPacketCoboNot.m_StartButtonUI = true;
+							kPacketCoboNot.m_FieldCountUI = true;
+							kPacketCoboNot.m_FieldMonsterKillCount = 0;
+							kPacketCoboNot.m_DungeonCount = 0;
+							kPacketCoboNot.m_iRemaindTime = -1;
+							if(tCurTime_ > tWeekEndTimeStart && tCurTime_ < tWeekEndTimeEnd) //이러면 주말이다
+							{
+								//주말이면 필드카운트 UI도 활성화 
+								kPacketCoboNot.m_DungeonCountUI = true;
+							}
+							kPacketCoboNot.m_tPushTime = tClickTime.GetTime();
+							SendPacket(EGS_EVENT_COBO_DUNGEON_FIELD_NOT,kPacketCoboNot);
+							START_LOG( clog, L"클릭한적 있을떄 던전 보상 지급받았을때 하루 지났을때" )
+								<< BUILD_LOG( kPacketCoboNot.m_StartButtonUI )
+								<< BUILD_LOG( kPacketCoboNot.m_DungeonCountUI )
+								<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+								<< BUILD_LOG( kPacketCoboNot.m_iRemaindTime )
+								<< BUILD_LOG( kPacketCoboNot.m_FieldCountUI )
+								<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+								<< END_LOG;
+							///DB에 초기화 하러 가자
+							KDBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT kPacketToDB;
+							kPacketToDB.m_iUnitUID = GetCharUID();
+							kPacketToDB.m_bItemGive = 0;
+							kPacketToDB.m_wstrButtonClickTime_One = tClickTime.Format(L"%Y-%m-%d %H:%M:%S");
+							kPacketToDB.m_iDungeonClearCount = 0;
+							kPacketToDB.m_iFieldMonsterKillCount = 0;
+							SendToGameDB( DBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT, kPacketToDB );
+							SetRemaindTime(kPacketCoboNot.m_iRemaindTime);
+							SetStartButtonPush(kPacketCoboNot.m_StartButtonUI);
+							SetDungeonClearUI(kPacketCoboNot.m_DungeonCountUI);
+							SetFieldCountUI(kPacketCoboNot.m_FieldCountUI);
+							SetDungeonCount(kPacketCoboNot.m_DungeonCount);
+							SetFieldMosterKillCount(kPacketCoboNot.m_FieldMonsterKillCount);
+							SetCoboItemGive(false);
+						}
+						else
+						{
+							///하루가 안지났으면 UI그냥 다 끄면 된다.
+							kPacketCoboNot.m_StartButtonUI = false;
+							kPacketCoboNot.m_DungeonCountUI = false;
+							kPacketCoboNot.m_DungeonCount = 0;
+							kPacketCoboNot.m_iRemaindTime = -1;
+							//주말이면 필드카운트 UI도 활성화 
+							kPacketCoboNot.m_FieldCountUI = false;
+							kPacketCoboNot.m_FieldMonsterKillCount = 0;
+							kPacketCoboNot.m_tPushTime = tClickTime.GetTime();
+							SendPacket(EGS_EVENT_COBO_DUNGEON_FIELD_NOT,kPacketCoboNot);
+							START_LOG( clog, L"클릭한적 있을떄 던전 보상 지급받았을때 하루 지났을때" )
+								<< BUILD_LOG( kPacketCoboNot.m_StartButtonUI )
+								<< BUILD_LOG( kPacketCoboNot.m_DungeonCountUI )
+								<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+								<< BUILD_LOG( kPacketCoboNot.m_iRemaindTime )
+								<< BUILD_LOG( kPacketCoboNot.m_FieldCountUI )
+								<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+								<< END_LOG;
+							SetRemaindTime(kPacketCoboNot.m_iRemaindTime);
+							SetStartButtonPush(kPacketCoboNot.m_StartButtonUI);
+							SetDungeonClearUI(kPacketCoboNot.m_DungeonCountUI);
+							SetFieldCountUI(kPacketCoboNot.m_FieldCountUI);
+							SetDungeonCount(kPacketCoboNot.m_DungeonCount);
+							SetFieldMosterKillCount(kPacketCoboNot.m_FieldMonsterKillCount);
+							SetCoboItemGive(true);
+						}
+					}
+					else
+					{
+						///보상 안받았으면 UI다시 활성화 시켜주면 된다.
+						kPacketCoboNot.m_StartButtonUI = kPacket_.m_kChangeUserInfo.m_ButtonStartUI;
+						kPacketCoboNot.m_DungeonCount = kPacket_.m_kChangeUserInfo.m_DungeonCount;
+						kPacketCoboNot.m_iRemaindTime = kPacket_.m_kChangeUserInfo.m_RemaindTime;
+						//주말이면 필드카운트 UI도 활성화 
+						kPacketCoboNot.m_FieldCountUI = true;
+						kPacketCoboNot.m_FieldMonsterKillCount = kPacket_.m_kChangeUserInfo.m_FieldMonsterKillCount;
+						if(tCurTime_ > tWeekEndTimeStart && tCurTime_ < tWeekEndTimeEnd) //이러면 주말이다
+						{
+							kPacketCoboNot.m_DungeonCountUI = true;
+						}
+						kPacketCoboNot.m_tPushTime = tClickTime.GetTime();
+						SendPacket(EGS_EVENT_COBO_DUNGEON_FIELD_NOT,kPacketCoboNot);
+						START_LOG( clog, L"클릭한적 있을떄 던전 보상 지급받았을때 하루 지났을때" )
+							<< BUILD_LOG( kPacketCoboNot.m_StartButtonUI )
+							<< BUILD_LOG( kPacketCoboNot.m_DungeonCountUI )
+							<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+							<< BUILD_LOG( kPacketCoboNot.m_iRemaindTime )
+							<< BUILD_LOG( kPacketCoboNot.m_FieldCountUI )
+							<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+							<< END_LOG;
+						SetRemaindTime(kPacketCoboNot.m_iRemaindTime);
+						SetStartButtonPush(kPacketCoboNot.m_StartButtonUI);
+						SetDungeonClearUI(kPacketCoboNot.m_DungeonCountUI);
+						SetFieldCountUI(kPacketCoboNot.m_FieldCountUI);
+						SetDungeonCount(kPacketCoboNot.m_DungeonCount);
+						SetFieldMosterKillCount(kPacketCoboNot.m_FieldMonsterKillCount);
+						SetCoboItemGive(false);
+					}
+
+				}
+			}
+		}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 	}
 	else
 	{
@@ -3102,7 +3443,6 @@ _IMPL_ON_FUNC( ERM_JOIN_FIELD_CHANNEL_CHANGE_ACK, KERM_JOIN_FIELD_ACK )
 			}
 			m_bIdentityConfirmCheck = true;
 		}
-
 #endif //SERV_IDENTITY_CONFIRM_POPUP_MESSAGE
 	}
 
@@ -3128,10 +3468,8 @@ IMPL_ON_FUNC_NOPARAM( EGS_GET_CHANNEL_LIST_REQ )
 	KEGS_GET_CHANNEL_LIST_ACK kPacketAck;
 	kPacketAck.m_iServerGroupID = KBaseServer::GetKObj()->GetServerGroupID();
 #ifdef SERV_CHANNEL_LIST_RENEWAL
-
 	kPacketAck.m_vecChannelInfo = SiKChannelManager()->GetChannelInfo();
 	kPacketAck.m_mapChannelBonusInfo = SiKChannelManager()->GetChannelBonusInfo();
-
 #else //SERV_CHANNEL_LIST_RENEWAL
 	kPacketAck.m_vecChannelList = SiKChannelManager()->GetChannelList();
 #endif //SERV_CHANNEL_LIST_RENEWAL
@@ -3139,10 +3477,40 @@ IMPL_ON_FUNC_NOPARAM( EGS_GET_CHANNEL_LIST_REQ )
 }
 //}}
 
+IMPL_ON_FUNC_NOPARAM( EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ )
+{
+    KEGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK kPacketAck;
+    //kPacketAck.m_iServerGroupID = ( KBaseServer::GetKObj()->GetServerGroupID() == SEnum::SGI_SOLES ? SEnum::SGI_GAIA : SEnum::SGI_SOLES );
+
+    switch( KBaseServer::GetKObj()->GetServerGroupID() )
+    {
+    case SEnum::SGI_SOLES:
+        kPacketAck.m_mapSolesChannelList = SiKChannelManager()->GetChannelMap();
+        kPacketAck.m_mapGaiaChannelList = SiKChannelManager()->GetChannelMap2nd();
+        kPacketAck.m_mapSolesChannelBonusList = SiKChannelManager()->GetChannelBonusList();
+        kPacketAck.m_mapGaiaChannelBonusList = SiKChannelManager()->GetChannelBonusList2nd();
+        break;
+    case SEnum::SGI_GAIA:
+        kPacketAck.m_mapSolesChannelList = SiKChannelManager()->GetChannelMap2nd();
+        kPacketAck.m_mapGaiaChannelList = SiKChannelManager()->GetChannelMap();
+        kPacketAck.m_mapSolesChannelBonusList = SiKChannelManager()->GetChannelBonusList2nd();
+        kPacketAck.m_mapGaiaChannelBonusList = SiKChannelManager()->GetChannelBonusList();
+        break;
+    default:
+        kPacketAck.m_mapSolesChannelList = SiKChannelManager()->GetChannelMap();
+        kPacketAck.m_mapGaiaChannelList = SiKChannelManager()->GetChannelMap2nd();
+        kPacketAck.m_mapSolesChannelBonusList = SiKChannelManager()->GetChannelBonusList();
+        kPacketAck.m_mapGaiaChannelBonusList = SiKChannelManager()->GetChannelBonusList2nd();
+    }
+
+    SendPacket( EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK, kPacketAck );
+
+}
+
 IMPL_ON_FUNC_NOPARAM( EGS_DISCONNECT_FOR_SERVER_SELECT_REQ )
 {
-	// 채널 선택창과 필드에서만 호출 가능
-	VERIFY_STATE( ( 2, KGSFSM::S_SERVER_SELECT, KGSFSM::S_FIELD_MAP ) );
+	// 채널 선택창과 필드, 보안패드 상태에서만 호출 가능
+	VERIFY_STATE( ( 3, KGSFSM::S_SERVER_SELECT, KGSFSM::S_FIELD_MAP, KGSFSM::S_CHECK_SECOND_PW ) );
 
 	// 게임중 캐릭선택으로 오는것을 게임종료처리와 같은 상황으로 본다.
 	// 유닛이 선택되어 있다면 해당 유닛정보를 DB업데이트, 로그인서버에서 지우기, 나머지 처리를 한다.
@@ -3251,11 +3619,13 @@ IMPL_ON_FUNC( EGS_CLIENT_QUIT_REQ )
 		iIndex = KStatistics::eSIColDR_InvlideCheckKomScript;
 		break;
 #endif // SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
+
 #ifdef SERV_KOM_FILE_CHECK_ADVANCED
 	case NetError::ERR_CLIENT_QUIT_04: // 클라이언트 Kom 파일 변조 감지
 		iIndex = KStatistics::eSIColDR_InvaildKomDetect;
 		break;
-#endif SERV_KOM_FILE_CHECK_ADVANCED
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
+
 	default:
 		START_LOG( cerr, L"잘못된 disconnect reason 통계 인덱스임." )
 			<< BUILD_LOG( kPacket_.m_iReason )
@@ -3432,10 +3802,7 @@ IMPL_ON_FUNC( EGS_GET_ACTIVE_LAGCHECK_REQ )
 #ifdef SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
 IMPL_ON_FUNC( EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_REQ )
 {
-
-
 #ifdef SERV_ID_NETMARBLE_PCBANG
-
 	KDBE_ID_PCBANG_CEHCK_AUTH_REQ kPacketDB;
 
 	if ( kPacket_.m_iIsGameBangType <= -1 || kPacket_.m_bCheckClinetDirectPcBang != true)
@@ -3459,8 +3826,8 @@ IMPL_ON_FUNC( EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_REQ )
 	kPacketDB.m_wstrMacAdress = kPacket_.m_wstrMacAdress;
 	kPacketDB.m_wstrPublicIP = kPacket_.m_wstrPublicIP;
 
-	kPacketDB.m_wstrMacAdress = L"000115503111"; // 테스트용 나중에 삭제 해야 함
-	kPacketDB.m_wstrPublicIP = L"14.45.79.161";
+	//kPacketDB.m_wstrMacAdress = L"000115503111"; // 테스트용 나중에 삭제 해야 함
+	//kPacketDB.m_wstrPublicIP = L"14.45.79.161";
 
 
 	SendToIDPcbangDB( DBE_ID_PCBANG_CEHCK_AUTH_REQ, kPacketDB );
@@ -3490,12 +3857,41 @@ IMPL_ON_FUNC( EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_REQ )
 
 	SendPacket( EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_ACK, kPacket );
 
-#endif //SERV_ID_NETMARBLE_PCBANG
-	
-	
+#endif //SERV_ID_NETMARBLE_PCBANG	
 }
 #endif //SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
 
+#ifdef SERV_ID_NETMARBLE_PCBANG
+IMPL_ON_FUNC( DBE_ID_PCBANG_CEHCK_AUTH_ACK )
+{
+
+	
+	KEGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_ACK kPacket;
+	
+	if (kPacket_.m_iIsNetmarbleGameBangType == 1) // 2013.07.02 lygan_조성욱 // 넷마블에서 우선 숫자 1이 인증된 PC 방이라고 알려주지만 차후 해당 숫자 번호로 PC 방 등급 나눌수도 있다.
+	{
+		m_kUserPcBangManager.SetIsPcBang( true );
+
+		m_kUserPcBangManager.SetPcBangType(0);
+	}
+
+	if ( kPacket_.m_iIsNetmarbleGameBangType == 1 && kPacket_.m_bCheckClinetDirectPcBang == true ) // 2013.07.01 lygan_조성욱 // pika와 넷마블 둘다 PC방 가입되어 있을때
+	{
+		m_kUserPcBangManager.SetIsPcBang( true );
+
+		m_kUserPcBangManager.SetPcBangType(0);
+	}
+	
+
+	kPacket.m_bCheckClinetDirectPcBang = m_kUserPcBangManager.IsPcBang();
+	kPacket.m_iIsGameBangType = m_kUserPcBangManager.GetPcBangType();
+	kPacket.m_kPcBangReward = GetPcBangReward();
+
+	
+	SendPacket( EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_ACK, kPacket );
+}
+
+#endif //SERV_ID_NETMARBLE_PCBANG
 //{{ 2013. 05. 29	최육사	제재 리스트 통합
 #ifdef SERV_BLOCK_LIST
 IMPL_ON_FUNC( EGB_UPDATE_BLOCK_RESULT_NOT )
@@ -3517,7 +3913,12 @@ IMPL_ON_FUNC( EGB_UPDATE_BLOCK_RESULT_NOT )
 			{
 #ifdef SERV_BLOCK_LIST_SHOW_DISCONNECT_REASON
 				KEGS_SHOW_DISCONNECT_REASON_NOT kPacket;
+#ifdef SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
+				kPacket.m_iOK = NetError::ERR_ACCOUNT_BLOCK_03;
+#else //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
 				kPacket.m_iOK = NetError::ERR_VERIFY_11;
+#endif //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
+				
 				SendPacket( EGS_SHOW_DISCONNECT_REASON_NOT, kPacket );
 #endif SERV_BLOCK_LIST_SHOW_DISCONNECT_REASON
 
@@ -3560,37 +3961,6 @@ IMPL_ON_FUNC( EGB_UPDATE_BLOCK_RESULT_NOT )
 }
 #endif SERV_BLOCK_LIST
 //}}
-#ifdef SERV_ID_NETMARBLE_PCBANG
-IMPL_ON_FUNC( DBE_ID_PCBANG_CEHCK_AUTH_ACK )
-{
-
-	
-	KEGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_ACK kPacket;
-	
-	if (kPacket_.m_iIsNetmarbleGameBangType == true)
-	{
-		m_kUserPcBangManager.SetIsPcBang( true );
-
-		m_kUserPcBangManager.SetPcBangType(0);
-	}
-
-	if ( kPacket_.m_iIsNetmarbleGameBangType == true && kPacket_.m_bCheckClinetDirectPcBang == true ) // 2013.07.01 lygan_조성욱 // pika와 넷마블 둘다 PC방 가입되어 있을때
-	{
-		m_kUserPcBangManager.SetIsPcBang( true );
-
-		m_kUserPcBangManager.SetPcBangType(0);
-	}
-	
-
-	kPacket.m_bCheckClinetDirectPcBang = m_kUserPcBangManager.IsPcBang();
-	kPacket.m_iIsGameBangType = m_kUserPcBangManager.GetPcBangType();
-	kPacket.m_kPcBangReward = GetPcBangReward();
-
-	
-	SendPacket( EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_ACK, kPacket );
-}
-
-#endif //SERV_ID_NETMARBLE_PCBANG
 
 //{{ 2013. 09. 24	최육사	일본 이벤트 중계DB작업
 #ifdef SERV_RELAY_DB_CONNECTION
@@ -3629,7 +3999,7 @@ IMPL_ON_FUNC( DBE_CHECK_REWARD_FROM_RELAY_DB_JP_EVENT_ACK )
 		kPacketReq.m_kUseCouponPacket.m_PurchaserInfo.m_wstrIP = KncUtil::toWideString( GetIPStr() );
 		kPacketReq.m_kUseCouponPacket.m_PurchaserInfo.m_uiPublisherUID = m_kNexonAccountInfo.m_uiNexonSN;
 		kPacketReq.m_kUseCouponPacket.m_PurchaserInfo.m_iChannelingCode = GetChannelCode();
-		kPacketReq.m_kUseCouponPacket.m_wstrSerialCode = boost::str( boost::wformat( L"%d" ) % kInfo.m_iRewardID );
+		kPacketReq.m_kUseCouponPacket.m_wstrSerialCode = boost::str( boost::wformat( L"%d" ) % kInfo.m_iRID );
 
 		// 퍼블 체크가 아니기에 바로 사용 요청
 		SendToKOGBillingDB( EBILL_REWARD_COUPON_JP_EVENT_REQ, kPacketReq );

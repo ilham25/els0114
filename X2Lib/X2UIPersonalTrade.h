@@ -234,7 +234,9 @@ private:
 	D3DXVECTOR2					m_MovedPosition;
 	D3DXVECTOR2				m_DLGPosition;
 	D3DXVECTOR2				m_DLGSize;
-
+#ifdef ADJUST_THIRD_PERSON_BUG
+	bool						m_bTradeRequesting;	//거래를 요청중 임을 확인하는 변수.
+#endif //ADJUST_PERSONAL_TRADE_BUG
 	// 거래요청
 	vector<TradeInvited*>	m_vecTradeInvited;
 	TradeInviting*			m_pTradeInviting;

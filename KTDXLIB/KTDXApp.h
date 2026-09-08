@@ -56,10 +56,12 @@ class CKTDXApp
 		CKTDXApp( HWND hWnd, HINSTANCE hInstance, IDirect3DDevice9* pd3dDevice );
 		~CKTDXApp(void);
 
+#ifndef X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
 		//{{ robobeg : 2011-01-19
 		void InitializePerThread();
 		void FinalizePerThread();
 		//}} robobeg : 2011-01-19
+#endif  X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
 
 		static void StartUp();
 		static void Exit( EXIT_CODE code = EC_STANDARD );
@@ -119,10 +121,10 @@ class CKTDXApp
 		CKTDNManager*		GetDNManager(){ return m_pDNManager; }
 #endif CONVERSION_VS
 
-#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
         CKTDGDynamicVBManager*
                             GetDVBManager() { ASSERT( m_pDVBManager != NULL ); return m_pDVBManager; }
-#endif
+//#endif
 		
 		bool				GetAppDestroy(){ return m_bAppDestroy; }
 
@@ -151,7 +153,11 @@ class CKTDXApp
 		const D3DXMATRIX& GetProjectionTransform() const { return m_ProjectionMatrix; }
 
 		const D3DXMATRIX& GetViewProjectionTransform(){ return m_ViewProjectionMatrix; }
-
+        void ResetWorldTransform()
+        {
+            D3DXMatrixIdentity( &m_WorldMatrix );
+            m_pd3dDevice->SetTransform( D3DTS_WORLD, &m_WorldMatrix ); 
+        }
 		void SetWorldTransform( D3DXMATRIX* matrix )
 		{ 
 			m_WorldMatrix = *matrix; 
@@ -344,6 +350,35 @@ class CKTDXApp
 
 		static void LuaPerFrameGarbageCollection( int iNumSteps = PERFRAME_LUA_GARBAGE_COLLECTION_STEP );
 
+//{{ robobeg : 2014-01-07
+        // CKTDXDeviceManager 에서 옮겨옴
+
+        // 아래 template 코드는 KLuaManager, KLuaManagerProxy, KLuabinder 등
+        // bool DoMemoryNotEncrypt( const char* pRealFile, long nSize ) API 를 제공하는 매니저는 무엇이든 적용 가능합니다.
+        template<typename LUADOMEMORYNOTENCRYPT>
+        HRESULT LoadAndDoMemory_ErrorCode( LUADOMEMORYNOTENCRYPT* pLuaManager, const WCHAR* pFileName, bool bEncryption = true );
+        template<typename LUADOMEMORYNOTENCRYPT>
+        bool LoadAndDoMemory( LUADOMEMORYNOTENCRYPT* pManager, const WCHAR* pFileName, bool bEncryption = true );
+
+        template<typename LUADOMEMORYNOTENCRYPT>
+        HRESULT LoadAndDoMemory_LocalFile_ErrorCode( LUADOMEMORYNOTENCRYPT* pLuaManager, const WCHAR* pFileName );
+        template<typename LUADOMEMORYNOTENCRYPT>
+        bool LoadAndDoMemory_LocalFile( LUADOMEMORYNOTENCRYPT* pManager, const WCHAR* pFileName );
+
+
+        __forceinline bool       LoadLuaTinker( const WCHAR* pFileName, bool bEncryption = true )
+        {
+            return LoadAndDoMemory( GetLuaBinder(), pFileName, bEncryption );
+        }
+
+        __forceinline bool       LoadLuaTinker_LocalFile( const WCHAR* pFileName )
+        {
+            return LoadAndDoMemory_LocalFile( GetLuaBinder(), pFileName );
+        }
+
+
+//}} robobeg : 2014-01-07
+
 	private:
 
 #ifdef CHANGE_KEY_DEVICE
@@ -360,7 +395,12 @@ class CKTDXApp
 
 //}} robobeg : 2008-10-28
     private:		
+
+#ifdef  X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
+        static KLuabinder*   ms_pLuaBinder;
+#else   X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
 		__declspec(thread) static KLuabinder*   ms_pLuaBinder;
+#endif  X2OPTIMIZE_DISABLE_LUA_MULTITHREADING
 
 		IDirect3DDevice9*		m_pd3dDevice;
 #ifdef CONVERSION_VS
@@ -404,6 +444,7 @@ class CKTDXApp
 		float					m_fFrameMoveFPS;
 		float					m_fElapsedTimeAdd;
 		int						m_FrameMoveCountAdd;
+		
 
 //{{ robobeg : 2008-10-24
 		//LPDIRECT3DTEXTURE9		m_pBeforeTexture0;
@@ -418,7 +459,7 @@ class CKTDXApp
 		D3DVIEWPORT9			m_ViewPort;
 		int						m_ViewMatChangeCount;
 		D3DXVECTOR2				m_ResolutionScale;
-		KLuabinder				m_LuaBinder;
+		//KLuabinder				m_LuaBinder;
 
 		CKTDXCollision*			m_pCollision;
 
@@ -433,9 +474,9 @@ class CKTDXApp
 #else CONVERSION_VS
 		CKTDNManager*			m_pDNManager;
 #endif CONVERSION_VS
-#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
 		CKTDGDynamicVBManager*  m_pDVBManager;
-#endif
+//#endif
 
 #ifdef CHECKSUM_THREAD_TEST
 		KFileVerifier*          m_pFileVerifier;		// filechecksum 검사 쓰레드 - seojt // 2008-1-5, 17:50
@@ -463,7 +504,225 @@ class CKTDXApp
 		bool	m_bFirstFrame;
 #endif	X2OPTIMIZE_INFORM_FIRST_FRAME_OF_SIMULATION_LOOP
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+public:
+	bool IsFinalFrameOfSimulationLoop() { return m_bFinalFrame; }
+
+private:
+	bool m_bFinalFrame;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
+#ifdef X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
+public:
+	void SetEnableOneSimulOneRenderTest( bool bEnable ) { m_bOneSimulOneRender = bEnable; }
+
+private:
+	bool m_bOneSimulOneRender;
+#endif//X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
 };
 
 extern CRITICAL_SECTION g_csGameMessage;
 extern bool KTDXSendGameMessage( UINT uMsg, WPARAM wParam, LPARAM lParam, bool bDirectProcess = true );
+
+
+
+template<typename LUADOMEMORYNOTENCRYPT>
+__forceinline HRESULT CKTDXApp::LoadAndDoMemory_ErrorCode( LUADOMEMORYNOTENCRYPT* pLuaManager, const WCHAR* pFileName, bool bEncryption )
+{
+
+	//루아 매니져 로딩
+    if ( pLuaManager == NULL || pFileName == NULL || pFileName[0] == NULL )
+    {
+		ErrorLogMsg( KEM_ERROR72, "" );
+        return E_INVALIDARG;
+    }//if
+//	CSLock locker( m_DeviceLock );
+
+    if ( GetDeviceManager() == NULL || GetDeviceManager()->GetMassFileManager() == NULL )
+    {
+		ErrorLogMsg( KEM_ERROR72, "" );
+        return E_INVALIDARG;
+    }
+
+	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
+//#ifdef X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
+	Info = GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName, true
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        , bEncryption
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        );
+//#else//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
+//	Info = m_MassFileManager.LoadDataFile( pFileName );
+//#endif//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
+
+#ifdef MASSFILE_MAPPING_FUNCTION
+	wstring wstrFileNameExtension = pFileName;
+	int ifirstIndex = 0;
+	wstring wstrFileExtension= L"";
+	
+	wstrFileExtension = wstrFileNameExtension.substr(wstrFileNameExtension.find_last_of(L".")+1);
+
+	if ( wstrFileExtension == L"lua")
+	{
+		wstrFileNameExtension = Info->strFileName;
+	}
+
+#endif//MASSFILE_MAPPING_FUNCTION
+
+
+
+	if( Info == NULL || Info->pRealData == NULL || Info->size <= 0 )
+	{
+#ifdef MASSFILE_MAPPING_FUNCTION
+		ErrorLogMsg( KEM_ERROR72, wstrFileNameExtension.c_str() );
+#else //MASSFILE_MAPPING_FUNCTION
+		ErrorLogMsg( KEM_ERROR72, pFileName );
+#endif//MASSFILE_MAPPING_FUNCTION
+		
+		return HRESULT_FROM_WIN32( ERROR_FILE_NOT_FOUND );
+	}
+
+	if( true == bEncryption 
+#if !defined(MASS_FILE_FIRST) || !defined(_SERVICE_)
+#ifdef  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+        && ( Info->dwFlag & MFI_LOCALFILE ) == 0
+#endif  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+#endif
+        )
+	{
+        int iEncryptSize = Info->size;
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        if ( Info->dwFlag & MFI_COMPRESSEDDATA )
+            iEncryptSize = Info->compressedSize;
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+
+#ifdef _ENCRIPT_SCRIPT_
+#ifdef  X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+        char* pDecryptedBuffer = (char*) Info->pRealData;
+#ifdef MASSFILE_MAPPING_FUNCTION
+		XORCRCDecrypt( pDecryptedBuffer, Info->pRealData, iEncryptSize, wstrFileNameExtension.c_str() );
+#else //MASSFILE_MAPPING_FUNCTION
+		XORCRCDecrypt( pDecryptedBuffer, Info->pRealData, iEncryptSize, pFileName );
+#endif//MASSFILE_MAPPING_FUNCTION
+        
+#else   X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+	    char* pDecryptedBuffer = XORDecrypt( Info->pRealData, iEncryptSize );
+#endif  X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+#else   _ENCRIPT_SCRIPT_
+        const char* pDecryptedBuffer = Info->pRealData;
+#endif  _ENCRIPT_SCRIPT_
+
+	    bool bRetVal = false;
+#ifdef  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS
+        if ( Info->dwFlag & MFI_COMPRESSEDDATA )
+        {
+            KGCMassFileBufferPtr spRealBuffer = KGCMassFileManager::GetMassFileBufMan().GetBuffer( Info->size );
+            char* pRealBuffer = (char*) spRealBuffer->GetBuffer();
+		    unsigned long size = Info->size;
+#ifdef  X2OPTIMIZE_ZLIB_UNCOMPRESS_ERROR_CHECK
+		    if ( Z_OK == uncompress((BYTE*)pRealBuffer,&size,(BYTE*)pDecryptedBuffer,Info->compressedSize) )
+            {
+                ASSERT( size == Info->size );
+                bRetVal = pLuaManager->DoMemoryNotEncrypt( pRealBuffer, Info->size );
+            }
+            else
+            {
+                bRetVal = false;
+            }
+#else   X2OPTIMIZE_ZLIB_UNCOMPRESS_ERROR_CHECK
+		    uncompress((BYTE*)pRealBuffer,&size,(BYTE*)pDecryptedBuffer,Info->compressedSize);
+            ASSERT( size == Info->size );
+            bRetVal = pLuaManager->DoMemoryNotEncrypt( pRealBuffer, Info->size );
+#endif  X2OPTIMIZE_ZLIB_UNCOMPRESS_ERROR_CHECK
+        }
+        else
+#endif  X2OPTIMIZE_ENCRYPT_AFTER_COMPRESS     
+        {  
+            bRetVal = pLuaManager->DoMemoryNotEncrypt( pDecryptedBuffer, Info->size );
+        }
+#ifdef _ENCRIPT_SCRIPT_
+#ifndef X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+	    SAFE_DELETE_ARRAY( pDecryptedBuffer );	 // XORDecrypt() 함수에서 할당된 메모리 해제
+#endif  X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+#endif _ENCRIPT_SCRIPT_
+
+		if( bRetVal == false )
+		{
+#ifdef MASSFILE_MAPPING_FUNCTION
+			ErrorLogMsg( KEM_ERROR73, wstrFileNameExtension.c_str() );
+#else //MASSFILE_MAPPING_FUNCTION
+			ErrorLogMsg( KEM_ERROR73, pFileName );
+#endif//MASSFILE_MAPPING_FUNCTION
+			
+		    return HRESULT_FROM_WIN32( ERROR_INVALID_DATA );
+		}
+	}
+	else
+	{
+		if( pLuaManager->DoMemoryNotEncrypt( Info->pRealData, Info->size ) == false )
+		{
+#ifdef MASSFILE_MAPPING_FUNCTION
+			ErrorLogMsg( KEM_ERROR73, wstrFileNameExtension.c_str() );
+#else //MASSFILE_MAPPING_FUNCTION
+			ErrorLogMsg( KEM_ERROR73, pFileName );
+#endif//MASSFILE_MAPPING_FUNCTION
+			
+		    return HRESULT_FROM_WIN32( ERROR_INVALID_DATA );
+		}
+    }
+
+	return S_OK;
+}
+
+template<typename LUADOMEMORYNOTENCRYPT>
+__forceinline bool CKTDXApp::LoadAndDoMemory( LUADOMEMORYNOTENCRYPT* pLuaManager, const WCHAR* pFileName, bool bEncryption )
+{
+    HRESULT hr = LoadAndDoMemory_ErrorCode( pLuaManager, pFileName, bEncryption );
+    return  SUCCEEDED( hr );
+}
+
+template<typename LUADOMEMORYNOTENCRYPT>
+__forceinline HRESULT CKTDXApp::LoadAndDoMemory_LocalFile_ErrorCode( LUADOMEMORYNOTENCRYPT* pLuaManager, const WCHAR* pFileName )
+{
+
+	//루아 매니져 로딩
+    if ( pLuaManager == NULL || pFileName == NULL || pFileName[0] == NULL )
+    {
+		ErrorLogMsg( KEM_ERROR72, "" );
+        return E_INVALIDARG;
+    }//if
+//	CSLock locker( m_DeviceLock );
+
+    if ( GetDeviceManager() == NULL || GetDeviceManager()->GetMassFileManager() == NULL )
+    {
+		ErrorLogMsg( KEM_ERROR72, "" );
+        return E_INVALIDARG;
+    }
+
+	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
+//#ifdef X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
+	Info = GetDeviceManager()->GetMassFileManager()->LoadDataFile_LocalFile( pFileName );
+//#else//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
+//	Info = m_MassFileManager.LoadDataFile( pFileName );
+//#endif//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
+	if( Info == NULL || Info->pRealData == NULL || Info->size <= 0 )
+	{
+		ErrorLogMsg( KEM_ERROR72, pFileName );
+		return HRESULT_FROM_WIN32( ERROR_FILE_NOT_FOUND );
+	}
+
+	if( pLuaManager->DoMemoryNotEncrypt( Info->pRealData, Info->size ) == false )
+	{
+		ErrorLogMsg( KEM_ERROR73, pFileName );
+		return HRESULT_FROM_WIN32( ERROR_INVALID_DATA );
+	}
+
+	return S_OK;
+}
+
+template<typename LUADOMEMORYNOTENCRYPT>
+__forceinline bool CKTDXApp::LoadAndDoMemory_LocalFile( LUADOMEMORYNOTENCRYPT* pLuaManager, const WCHAR* pFileName )
+{
+    HRESULT hr = LoadAndDoMemory_LocalFile_ErrorCode( pLuaManager, pFileName );
+    return  SUCCEEDED( hr );
+}

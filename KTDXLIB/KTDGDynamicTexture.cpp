@@ -105,12 +105,12 @@ bool CKTDGDynamicTexture::CreateTexture(DWORD dwWidth, DWORD dwHeight, D3DFORMAT
 		}
 	}
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	m_bUpdateTexture = false;
 	m_pTextureSys->LockRect(0,&m_LockedRect, NULL, D3DLOCK_NO_DIRTY_UPDATE );
-#else
-	m_pTextureSys->LockRect(0,&m_LockedRect, NULL, 0);
-#endif
+//#else
+//	m_pTextureSys->LockRect(0,&m_LockedRect, NULL, 0);
+//#endif
 	return true;
 }
 
@@ -153,25 +153,25 @@ void CKTDGDynamicTexture::ResetDevice()
 		return;
 	}
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	if ( m_pTextureSys == NULL )
 		return;
-#endif 
+//#endif 
 	m_pTextureSys->UnlockRect(0);
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	m_pTextureSys->AddDirtyRect( NULL );
-#endif
+//#endif
 	if( FAILED( g_pKTDXApp->GetDevice()->UpdateTexture( m_pTextureSys, m_pTextureVid ) ) )
 	{
 		ErrorLogMsg( KEM_ERROR12, L"D3DERR_INVALIDCALL." );
 	}
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	m_bUpdateTexture = false;
 	m_pTextureSys->LockRect(0,&m_LockedRect, NULL, D3DLOCK_NO_DIRTY_UPDATE );
-#else
-	m_pTextureSys->LockRect(0,&m_LockedRect, NULL, 0);
-#endif
+//#else
+//	m_pTextureSys->LockRect(0,&m_LockedRect, NULL, 0);
+//#endif
 }
 
 void CKTDGDynamicTexture::LostDevice()
@@ -183,16 +183,16 @@ void CKTDGDynamicTexture::SetTexture( int iStage )
 {
 	if( m_bUpdateTexture )
 	{
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		m_bUpdateTexture = false;
-#endif
+//#endif
 		m_pTextureSys->UnlockRect(0);
 		g_pKTDXApp->GetDevice()->UpdateTexture( m_pTextureSys, m_pTextureVid );
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		m_pTextureSys->LockRect(0,&m_LockedRect, NULL, D3DLOCK_NO_DIRTY_UPDATE );
-#else
-		m_pTextureSys->LockRect(0,&m_LockedRect, NULL, 0);
-#endif
+//#else
+//		m_pTextureSys->LockRect(0,&m_LockedRect, NULL, 0);
+//#endif
 	}	
 //{{ robobeg : 2008-10-24
 	//if( FAILED( g_pKTDXApp->GetDevice()->SetTexture(iStage, m_pTextureVid ) ) )
@@ -207,7 +207,7 @@ void CKTDGDynamicTexture::SetTexture( int iStage )
 //}} robobeg : 2008-10-24
 }
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 void CKTDGDynamicTexture::SetChange( const RECT& rect )
 {
 	if ( rect.right <= rect.left
@@ -220,4 +220,4 @@ void CKTDGDynamicTexture::SetChange( const RECT& rect )
 		m_bUpdateTexture = true;
 	}//if
 }
-#endif
+//#endif

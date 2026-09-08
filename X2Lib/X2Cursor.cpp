@@ -106,6 +106,10 @@ CX2Cursor::CX2Cursor(void)
 	m_pCursorRestoreItemEvalutation = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"Evaulation_Cursor.tga" );	
 	m_pCursorExchangeNewItem = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"DLG_Change_Cursor.tga" );	
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+	m_pCursorAddSocketSlot = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"DLG_AddSocketSlot_Cursor.tga" );
+#endif // ADD_SOCKET_SLOT
+
 //{{ robobeg : 2008-10-13
 	m_RenderStateID = s_akStates;
 //}} robobeg : 2008-10-13
@@ -126,17 +130,17 @@ CX2Cursor::CX2Cursor(void)
 
 	m_CursorState = CX2Cursor::XCS_NORMAL;
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	m_pVB = NULL;
-	HRESULT hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(DRAWFACE_RHW_VERTEX), 
-		D3DUSAGE_WRITEONLY, D3DFVF_DRAWFACE_RHW_VERTEX, 
-		D3DPOOL_MANAGED, &m_pVB, NULL );
-	ASSERT( SUCCEEDED( hr ) );
-
-	m_PosVB = D3DXVECTOR2(0, 0);
-	m_SizeVB = D3DXVECTOR2(0, 0);
-	m_d3dColorVB = 0x00000000;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	m_pVB = NULL;
+//	HRESULT hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(DRAWFACE_RHW_VERTEX), 
+//		D3DUSAGE_WRITEONLY, D3DFVF_DRAWFACE_RHW_VERTEX, 
+//		D3DPOOL_MANAGED, &m_pVB, NULL );
+//	ASSERT( SUCCEEDED( hr ) );
+//
+//	m_PosVB = D3DXVECTOR2(0, 0);
+//	m_SizeVB = D3DXVECTOR2(0, 0);
+//	m_d3dColorVB = 0x00000000;
+//#endif
 
 }
 
@@ -177,9 +181,12 @@ CX2Cursor::~CX2Cursor(void)
 	SAFE_CLOSE( m_pCursorRestoreItemEvalutation );
 	SAFE_CLOSE( m_pCursorExchangeNewItem );
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	SAFE_RELEASE( m_pVB );
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	SAFE_RELEASE( m_pVB );
+//#endif
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+	SAFE_CLOSE( m_pCursorAddSocketSlot );
+#endif // ADD_SOCKET_SLOT
 }
 
 
@@ -355,8 +362,12 @@ HRESULT CX2Cursor::OnFrameRender()
 			case CX2Cursor::XCS_EVENT_SCENE:
 				{
 					if( NULL != m_pCursorEventScene)
-						m_pCursorEventScene->SetDeviceTexture();
+						m_pCursorEventScene->SetDeviceTexture();				
+#ifdef FIX_EVENT_SCENE_CURSOR_PICK_POINT_POSITION 
+					DrawFace( m_Pos.x - 40, m_Pos.y - 40, 128.f, 128.f );
+#else  // FIX_EVENT_SCENE_CURSOR_PICK_POINT_POSITION
 					DrawFace( m_Pos.x, m_Pos.y, 128.f, 128.f );
+#endif // FIX_EVENT_SCENE_CURSOR_PICK_POINT_POSITION					
 				}
 				break;
 #endif EVENT_SCENE
@@ -382,6 +393,15 @@ HRESULT CX2Cursor::OnFrameRender()
 					DrawFace(m_Pos.x, m_Pos.y, m_Size.x, m_Size.y );
 				} break;
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+			case CX2Cursor::XCS_ADD_SOCKET_SLOT:
+				{
+					if( NULL != m_pCursorAddSocketSlot )
+						m_pCursorAddSocketSlot->SetDeviceTexture();
+					DrawFace(m_Pos.x, m_Pos.y, m_Size.x, m_Size.y );
+				} break;				
+#endif // ADD_SOCKET_SLOT
+
 			default:
 				break;
 			}//}} elseif -> switch
@@ -496,14 +516,14 @@ void CX2Cursor::DrawFace( float nX, float nY, float nWidth, float nHeight, D3DCO
 	vertex[0].color = vertex[1].color = 
 		vertex[2].color = vertex[3].color = color;
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_DRAWFACE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 		, D3DPT_TRIANGLESTRIP, 2, vertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
-#endif
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
+//#endif
 
     KD3DEND()
 }

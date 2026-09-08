@@ -45,6 +45,10 @@ class CX2EnchantItem
 
 			ATI_IDENTIFY_STONE	= 130054, // 감정석
 			ATI_UNKNOWN_STONE	= 130055, // 복구석
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+			ATI_HYPER_SKILL_STONE	= 130208, /// 궁극기 사용에 소모되는 엘의 정수
+#endif //FINALITY_SKILL_SYSTEM
 		};
 
 
@@ -162,8 +166,8 @@ class CX2EnchantItem
 		virtual ~CX2EnchantItem(void);
 
 		bool			OpenScriptFile( WCHAR* pFileName );
-		EnchantData*	GetEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType ); // 2008.10.30 수정 - 김태완 
-		EnchantData*	GetNPCEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType );
+		const EnchantData*	GetEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType ) const; // 2008.10.30 수정 - 김태완 
+		const EnchantData*	GetNPCEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType ) const;
 		bool			AddEnchantData_LUA();
 		//{{ 2008. 9. 19  최육사	추가
 		bool			AddEnchantRequire_LUA( int iAttribEnchantType, int iCharLv );
@@ -218,11 +222,13 @@ class CX2EnchantItem
 		int GetAttribEnchantType( bool bWeapon, int iCurrEnchantedCount );
 		int		GetRequireEDFactor( int iItemGrade );
 
-		
-
-
-		map< CX2DamageManager::EXTRA_DAMAGE_TYPE, EnchantData* > m_mapEnchantData;
-		map< CX2DamageManager::EXTRA_DAMAGE_TYPE, EnchantData* > m_mapEnchantDataForNPC;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+        typedef std::map< CX2DamageManager::EXTRA_DAMAGE_TYPE, EnchantData >    EnchantDataMap;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+        typedef std::map< CX2DamageManager::EXTRA_DAMAGE_TYPE, EnchantData* >    EnchantDataMap;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+        EnchantDataMap      m_mapEnchantData;
+        EnchantDataMap      m_mapEnchantDataForNPC;
 
 		//{{ 2008. 9. 19  최육사	추가
 		typedef std::map< std::pair< int, int >, std::map< int, int > > MapEnchantRequire;

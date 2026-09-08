@@ -52,6 +52,9 @@ class CKTDGUIIMEEditBox : public CKTDGUIControl
 #ifdef NUMBER_TO_LANGUAGE
 		void	SetCustomMsgFocusIn( int val ) { m_CustomMsgEditBoxFocusIn = val; }
 #endif NUMBER_TO_LANGUAGE
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+		void	SetForceSendCustomMsgChange( bool bEnable_ ) { m_bIsForceSendCustomMsgChange = bEnable_; }	/// 한글 문자 하나만 입력해도 Change 메시지 전송할지 여부 설정
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 
 
 		void	PumpMessage();
@@ -96,8 +99,26 @@ class CKTDGUIIMEEditBox : public CKTDGUIControl
 		inline	int	RtWidth( RECT &rc )		{ return ( (rc).right - (rc).left ); }
 		inline	int	RtHeight( RECT &rc )	{ return ( (rc).bottom - (rc).top ); }
 
-#ifdef POSTBOX_FILTER
 		void	SetEnablePaste(bool bVal) { m_bEnablePaste = bVal; }
+
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+		const wstring	GetNowText();
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
+
+#ifdef DLL_BUILD
+		virtual void	MoveControl( float fx, float fy );
+
+		virtual D3DXVECTOR2 GetPos() override;
+		virtual vector<D3DXVECTOR2> GetPosList() override;
+
+		virtual void SetEditGUI( bool bEdit ) override;
+		virtual bool IsSelectByEditGui( POINT pt ) override;
+
+		void DrawEditEdge();
+
+protected:
+	bool m_bEditEdge;
+	CKTDXDeviceTexture * m_pCheckedEdgeTexture;
 #endif
 
 	protected:
@@ -245,6 +266,9 @@ class CKTDGUIIMEEditBox : public CKTDGUIControl
 #ifdef NUMBER_TO_LANGUAGE
 		int		m_CustomMsgEditBoxFocusIn;
 #endif NUMBER_TO_LANGUAGE
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+		bool		m_bIsForceSendCustomMsgChange;		/// 한글 문자 하나만 입력해도 Change 메시지 전송할지 여부
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 				
 		// Application-wide data
 		static	HINSTANCE	s_hDllImm32;	// IMM32 DLL handle
@@ -323,9 +347,7 @@ class CKTDGUIIMEEditBox : public CKTDGUIControl
 				int									m_GroupID;
 				int									m_GroupSequence;
 
-#ifdef POSTBOX_FILTER
 				bool								m_bEnablePaste;
-#endif
 
 
 #if defined(DEBUG) || defined(_DEBUG)

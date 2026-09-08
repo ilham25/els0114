@@ -290,7 +290,7 @@ bool KPersonalShopItemList::ChangeItemInfo( KERM_PERSONAL_SHOP_INFO_NOT & _kNot 
 		// 카테고리 리스트가 없다면..
 		if( mit == m_mapItemInfo.end() )
 		{
-			START_LOG( cerr, L"카테로리 리스트가 존재하지 않음." )
+			START_LOG( cerr, L"카테고리 리스트가 존재하지 않음." )
 				<< BUILD_LOGc( kChangeItemInfo.m_kInventoryItemInfo.m_cSlotCategory )
 				<< BUILD_LOG( _kNot.m_wstrSellerNickName )
 				<< END_LOG;
@@ -371,7 +371,7 @@ void KPersonalShopItemList::GetSearchList( IN KEGS_SEARCH_TRADE_BOARD_REQ & kReq
 							bIsInsert = false;
 							for( int i = 0; i < static_cast<int>(kReq.m_vecItemGrade.size()); ++i )
 							{
-								if( pListItem->m_ItemGrade == kReq.m_vecItemGrade[i] )
+								if( pListItem->m_ItemGrade == kReq.m_vecItemGrade[i] ) // 순회하면서 찾기
 								{
 									bIsInsert = true;
 									break;
@@ -394,7 +394,7 @@ void KPersonalShopItemList::GetSearchList( IN KEGS_SEARCH_TRADE_BOARD_REQ & kReq
 #endif SERV_FIX_SEARCH_WITH_EMPTY_TAB
 						kAck.m_vecItemInfo.push_back(kItemInfo);
 
-						if( kAck.m_vecItemInfo.size() >= 100 )
+						if( kAck.m_vecItemInfo.size() >= 100 ) // 100 개 제한.
 							return;
 					}
 				}
@@ -542,6 +542,216 @@ void KPersonalShopItemList::GetSearchList( IN KEGS_SEARCH_TRADE_BOARD_REQ & kReq
 
 }
 
+void KPersonalShopItemList::GetStrictSearchList( IN KEGS_SEARCH_TRADE_BOARD_REQ & kReq, OUT KEGS_SEARCH_TRADE_BOARD_ACK & kAck )
+{
+    kAck.m_iOK = NetError::NET_OK;
+
+    // 카테고리 키 검사.
+    if( false == CheckSlotCategoryID( kReq.m_cSlotCategory ) )
+    {
+        if( kReq.m_wstrFinder.empty() == true )
+        {
+            START_LOG( cerr, L"카테고리 키 이상." )
+                << BUILD_LOGc( kReq.m_cSlotCategory )
+                << END_LOG;
+
+            kAck.m_iOK = NetError::ERR_PERSONAL_SHOP_29;
+        }
+        // 스트링만으로 검색하는 경우.
+        else
+        {
+            //BOOST_TEST_FOREACH( std::list<KTradeBoardItemInfo>, TradeBoardItemList, m_mapItemInfo )
+            std::map< char, std::list<KTradeBoardItemInfo> >::iterator mit;
+            for( mit = m_mapItemInfo.begin(); mit != m_mapItemInfo.end(); ++mit )
+            {
+                BOOST_TEST_FOREACH( KTradeBoardItemInfo, kItemInfo, mit->second )//TradeBoardItemList )
+                {
+                    const CXSLItem::ItemTemplet* pListItem = SiCXSLItemManager()->GetItemTemplet( kItemInfo.m_kSellItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iItemID );
+
+                    if( NULL == pListItem )
+                    {
+                        START_LOG( cerr, L"아이템 아이디가 잘못되었음." )
+                            << BUILD_LOG( kItemInfo.m_kSellItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iItemID )
+                            << BUILD_LOG( kItemInfo.m_wstrSellerNickName )
+                            << END_LOG;
+
+                        continue;
+                    } // if
+
+                    // 스트링 검사
+                    if( pListItem->m_Name == kReq.m_wstrFinder ) // str1에서 str2 를 검색하여 가장 먼저 나타나는 곳의 위치를 리턴. 없으면 널 포인터 리턴
+                    {
+#ifdef SERV_FIX_SEARCH_WITH_EMPTY_TAB
+                        bool bIsInsert = true;
+                        if( false == kReq.m_vecItemGrade.empty() )
+                        {
+                            bIsInsert = false;
+                            for( int i = 0; i < static_cast<int>(kReq.m_vecItemGrade.size()); ++i )
+                            {
+                                if( pListItem->m_ItemGrade == kReq.m_vecItemGrade[i] ) // 순회하면서 찾기
+                                {
+                                    bIsInsert = true;
+                                    break;
+                                }
+                            }
+                        } // if
+
+                        if( -1 != kReq.m_cMinLevel && -1 != kReq.m_cMaxLevel )
+                        {
+                            //최소레벨 전이면 계속 진행
+                            if( pListItem->m_UseLevel < static_cast<int>(kReq.m_cMinLevel) ||
+                                pListItem->m_UseLevel > static_cast<int>(kReq.m_cMaxLevel) )
+                                bIsInsert = false;
+                            ////최고레벨 이후면 검색종료
+                            //else if( pListItem->m_UseLevel > static_cast<int>(kReq.m_cMaxLevel) )
+                            //	break;
+                        } // if
+
+                        if( bIsInsert == true )
+#endif SERV_FIX_SEARCH_WITH_EMPTY_TAB
+                            kAck.m_vecItemInfo.push_back(kItemInfo);
+
+                        if( kAck.m_vecItemInfo.size() >= 100 ) // 100 개 제한.
+                            return;
+                    }
+                }
+            }
+        }
+
+        // 검색된 아이템 리스트가 없으면 메세지 전송
+        // des : 검색할려는 아이템 정보가 없습니다.
+        if( true == kAck.m_vecItemInfo.empty() )
+            kAck.m_iOK = NetError::ERR_PERSONAL_SHOP_30;
+
+        return;
+    }
+
+    //## 검색할 카테고리 리스트를 찾는다.
+    std::map< char, std::list<KTradeBoardItemInfo> >::iterator mit;
+    mit = m_mapItemInfo.find( InvSlotCategoryID(kReq.m_cSlotCategory) );
+
+    //# 카테고리 리스트가 없다면..
+    if( mit == m_mapItemInfo.end() )
+    {
+        START_LOG( clog, L"검색할려는 카테고리 아이템 리스트가 없음." )
+            << BUILD_LOGc( kReq.m_cSlotCategory )
+            << END_LOG;
+        kAck.m_iOK = NetError::ERR_PERSONAL_SHOP_30;
+        return;
+    }
+
+    //# 검색 시작
+    BOOST_TEST_FOREACH( KTradeBoardItemInfo, kItemInfo, mit->second )
+    {
+        bool bIsInsert = true;
+
+        const CXSLItem::ItemTemplet* pListItem = SiCXSLItemManager()->GetItemTemplet( kItemInfo.m_kSellItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iItemID );
+
+        if( NULL == pListItem )
+        {
+            START_LOG( cerr, L"아이템 아이디가 잘못되었음." )
+                << BUILD_LOG( kItemInfo.m_kSellItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iItemID )
+                << BUILD_LOG( kItemInfo.m_wstrSellerNickName )
+                << END_LOG;
+
+            continue;
+        } // if
+
+        //# 스트링 검사
+        if( false == kReq.m_wstrFinder.empty() )
+        {
+            //if( (pListItem->m_Name.find(kReq.m_wstrFinder.c_str())) < 0 )
+            //int iTemp = pListItem->m_Name.find(kReq.m_wstrFinder.c_str());
+
+            if( StrStrW( pListItem->m_Name.c_str(), kReq.m_wstrFinder.c_str() ) == NULL )
+                bIsInsert = false;
+        }
+
+        //# 같은 부위별 인지 체크
+        if( -1 != kReq.m_cEqipPosition )
+        {
+            //아직 이전의 부위면 계속 진행
+            if( InvEqipPosID(pListItem) < InvEqipPosID(kReq.m_cEqipPosition) )
+                bIsInsert = false;
+            //정렬 같은 부위를 넘겼으면 검색종료
+            else if( InvEqipPosID(pListItem->m_EqipPosition) > InvEqipPosID(kReq.m_cEqipPosition) )
+                break;
+        } // if
+
+        //# 캐릭터별 체크
+        if( -1 != kReq.m_cUnitType )
+        {
+            //이전 유닛이면 계속진행
+            //if( InvUnitTypeID(pListItem) < InvUnitTypeID(kReq.m_cUnitType) )
+            //	bIsInsert = false;
+            //같은 유닛이면..
+            if( pListItem->m_UnitType == kReq.m_cUnitType )
+            {
+                //유닛클래스 검사..
+                if( -1 != kReq.m_cUnitClass )
+                {
+                    //같은 클래스가 아니면 계속진행
+                    if( pListItem->m_UnitClass != kReq.m_cUnitClass )
+                        bIsInsert = false;
+                }
+            }
+            else
+                bIsInsert = false;
+        } // if
+
+        //# 레벨범위 체크
+        if( -1 != kReq.m_cMinLevel && -1 != kReq.m_cMaxLevel )
+        {
+            //최소레벨 전이면 계속 진행
+            if( pListItem->m_UseLevel < static_cast<int>(kReq.m_cMinLevel) ||
+                pListItem->m_UseLevel > static_cast<int>(kReq.m_cMaxLevel) )
+                bIsInsert = false;
+            ////최고레벨 이후면 검색종료
+            //else if( pListItem->m_UseLevel > static_cast<int>(kReq.m_cMaxLevel) )
+            //	break;
+        } // if
+
+        //# 아이템 등급.
+        //if( -1 != kReq.m_cItemGrade )
+        if( false == kReq.m_vecItemGrade.empty() )
+        {
+            ////이전 등급이면 계속진행.
+            //if( InvItemGradeID(pListItem->m_ItemGrade) < InvItemGradeID(kReq.m_cItemGrade) )
+            //	bIsInsert = false;
+            ////이후 등급이면 검색종료.
+            //else if( InvItemGradeID(pListItem->m_ItemGrade) > InvItemGradeID(kReq.m_cItemGrade) )
+            //	break;
+            bool bIsCheck = false;
+            for( int i = 0; i < static_cast<int>(kReq.m_vecItemGrade.size()); ++i )
+            {
+                if( pListItem->m_ItemGrade == kReq.m_vecItemGrade[i] )
+                {
+                    bIsCheck = true;
+                    break;
+                }
+            }
+
+            if( bIsCheck == false )
+                bIsInsert = false;
+        } // if
+
+        if( kAck.m_vecItemInfo.size() >= 100 )
+            break;
+
+        if( true == bIsInsert )
+        {
+            kAck.m_vecItemInfo.push_back(kItemInfo);
+        } // if
+    }// BOOST_TEST_FOREACH
+
+    //{{ oasis907 : 김상윤 [2010.3.31] // 
+    // 검색된 아이템 리스트가 없으면 메세지 전송
+    // des : 검색할려는 아이템 정보가 없습니다.
+    if( true == kAck.m_vecItemInfo.empty() )
+        kAck.m_iOK = NetError::ERR_PERSONAL_SHOP_30;
+    //}}
+
+}
 char KPersonalShopItemList::InvSlotCategoryID( KSellPersonalShopItemInfo & _kInfo )
 {
 	return InvSlotCategoryID(_kInfo.m_kInventoryItemInfo.m_cSlotCategory);
@@ -616,21 +826,24 @@ char KPersonalShopItemList::InvUnitTypeID( const CXSLItem::ItemTemplet* _pInfo )
 
 char KPersonalShopItemList::InvUnitTypeID( char _cID )
 {
-	char cRet = UNIT_TYPE_SORT_INDEX::UTSI_CHUNG;
+	char cRet = UTSI_CHUNG;
 
 	switch( _cID )
 	{
-	case CXSLUnit::UT_ELSWORD:	cRet = UNIT_TYPE_SORT_INDEX::UTSI_ELSWORD;	break;
-	case CXSLUnit::UT_LIRE:		cRet = UNIT_TYPE_SORT_INDEX::UTSI_LENA;		break;
-	case CXSLUnit::UT_ARME:		cRet = UNIT_TYPE_SORT_INDEX::UTSI_AISHA;	break;
-	case CXSLUnit::UT_RAVEN:	cRet = UNIT_TYPE_SORT_INDEX::UTSI_RAVEN;	break;
-	case CXSLUnit::UT_EVE:		cRet = UNIT_TYPE_SORT_INDEX::UTSI_EVE;		break;
+	case CXSLUnit::UT_ELSWORD:	cRet = UTSI_ELSWORD;	break;
+	case CXSLUnit::UT_LIRE:		cRet = UTSI_LENA;		break;
+	case CXSLUnit::UT_ARME:		cRet = UTSI_AISHA;	break;
+	case CXSLUnit::UT_RAVEN:	cRet = UTSI_RAVEN;	break;
+	case CXSLUnit::UT_EVE:		cRet = UTSI_EVE;		break;
 	// kimhc // 2010-12-23 에 추가될 신캐릭터 청 (일단 엘소드와 같게 함)
-	case CXSLUnit::UT_CHUNG:	cRet = UNIT_TYPE_SORT_INDEX::UTSI_CHUNG;	break;
-	case CXSLUnit::UT_ARA:		cRet = UNIT_TYPE_SORT_INDEX::UTSI_ARA;	break;
+	case CXSLUnit::UT_CHUNG:	cRet = UTSI_CHUNG;	break;
+	case CXSLUnit::UT_ARA:		cRet = UTSI_ARA;	break;
 #ifdef SERV_NEW_CHARACTER_EL
-	case CXSLUnit::UT_ELESIS:	cRet = UNIT_TYPE_SORT_INDEX::UTSI_ELESIS;	break;
+	case CXSLUnit::UT_ELESIS:	cRet = UTSI_ELESIS;	break;
 #endif // SERV_NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CXSLUnit::UT_ADD:	cRet = UTSI_NEW_CHARACTER;	break;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 
 	return cRet;

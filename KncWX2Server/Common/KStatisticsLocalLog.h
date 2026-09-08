@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Statistics.h"
+#include "Enum/Enum.h"
 
 class KStatisticsLocalLog
 {
@@ -37,20 +38,11 @@ public:
 		LOG_ABUSER_MORNITORING,
 #endif SERV_AUTO_HACK_CHECK_GET_ITEM
 		//}}
-#ifdef SERV_WATCH_LOG
-		LOG_WATCH,
-#endif //SERV_WATCH_LOG
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET
+		LOG_UNDEFINED_QUEST_TEMPLET,
+#endif // SERV_LOG_UNDEFINED_QUEST_TEMPLET
 
         LOG_MAX,
-	};
-
-	enum RANKING_TYPE
-	{
-		RT_DAY_RANKING = 0,
-		RT_WEEK_RANKING,
-		RT_MONTH_RANKING,		
-
-		RT_MAX_NUM,
 	};
 
 	struct KLocalLogInfo
@@ -106,7 +98,7 @@ protected:
 	//}}
 
 	//{{ 2009. 7. 7  √÷¿∞ªÁ		∑©≈∑∞≥∆Ì	
-	std::wfstream					m_wfsLocalLog_Henir_Ranking[RT_MAX_NUM];
+	std::wfstream					m_wfsLocalLog_Henir_Ranking[SEnum::RT_MAX_NUM];
 	//}}
 };
 

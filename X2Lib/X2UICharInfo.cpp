@@ -12,8 +12,8 @@ CX2UICharInfo::CX2UICharInfo( CKTDXStage* pNowStage, const WCHAR* pFileName )
 : CX2UIDragable( pNowStage, NULL ),
 //: CX2ItemSlotManager( pNowStage, pFileName )
 m_pDLGCharInfo(NULL),
-m_pStat(NULL),
-m_pStatEqip(NULL),
+//m_pStat(NULL),
+//m_pStatEqip(NULL),
 m_pUnitViewerUI(NULL),
 m_DLGPosition(0,0),					// D3DXVECTOR2
 m_DLGSize(0,0),						// D3DXVECTOR2
@@ -43,6 +43,13 @@ m_MovedPosition(0,0)				// D3DXVECTOR2
 #ifdef MODIFY_CHARACTER_STAT_INFO
 , m_fAddEvadePercent(0.f)
 #endif // MODIFY_CHARACTER_STAT_INFO
+//{{ robobeg : 2013-11-04
+, m_Stat()
+, m_StatEqip()
+#ifdef  PET_AURA_SKILL
+, m_StatPet()
+#endif  PET_AURA_SKILL
+//}} robobeg : 2013-11-04
 {
 
 	//////////////////////////////////////////////////////////////////////////
@@ -56,11 +63,11 @@ m_MovedPosition(0,0)				// D3DXVECTOR2
 
 	//m_pDLGCharInfo->SetFront(true);
 
-	m_pStat				= new CX2Stat;
-	m_pStatEqip			= new CX2Stat;
-#ifdef PET_AURA_SKILL
-	m_pStatPet			= new CX2Stat;
-#endif
+//	m_pStat				= new CX2Stat;
+//	m_pStatEqip			= new CX2Stat;
+//#ifdef PET_AURA_SKILL
+//	m_pStatPet			= new CX2Stat;
+//#endif
 
 	// 슬롯을 끄자
 
@@ -84,11 +91,11 @@ m_MovedPosition(0,0)				// D3DXVECTOR2
 CX2UICharInfo::~CX2UICharInfo(void)
 {
 	SAFE_DELETE_DIALOG( m_pDLGCharInfo );	
-	SAFE_DELETE( m_pStat );
-	SAFE_DELETE( m_pStatEqip );
-#ifdef PET_AURA_SKILL
-	SAFE_DELETE( m_pStatPet );
-#endif
+//	SAFE_DELETE( m_pStat );
+//	SAFE_DELETE( m_pStatEqip );
+//#ifdef PET_AURA_SKILL
+//	SAFE_DELETE( m_pStatPet );
+//#endif
 
 	SAFE_DELETE_KTDGOBJECT( m_pUnitViewerUI );
 
@@ -109,17 +116,17 @@ HRESULT CX2UICharInfo::OnFrameMove( double fTime, float fElapsedTime )
 	KTDXPROFILE();
 
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 	if( g_pData->GetTitleManager() != NULL && g_pData->GetTitleManager()->GetShow() == true )
 	{
 		g_pData->GetTitleManager()->OnFrameMove( fTime, fElapsedTime );
 	}
-#endif
+//#endif
 
 
 // ** 유닛뷰어 조명 테스트
 // 		KLuaManager LuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-// 		g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &LuaManager, L"unproject.lua" );
+// 		g_pKTDXApp->LoadAndDoMemory( &LuaManager, L"unproject.lua" );
 // 		float x;
 // 		float y;
 // 		float z;
@@ -490,7 +497,7 @@ bool CX2UICharInfo::MouseUp( D3DXVECTOR2 mousePos )
 		if ( pCursor != NULL && pCursor->GetCurorState() != CX2Cursor::XCS_NORMAL )
 		{
 			UidType ItemUID = pSlot->GetItemUID();
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( ItemUID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( ItemUID );
 
 			if(pItem == NULL )
 				return false;
@@ -722,13 +729,12 @@ bool CX2UICharInfo::OnRClickedItem( D3DXVECTOR2 mousePos )
 	g_pData->GetUIManager()->GetUIInventory()->ChangeInventoryTabByUid( pItemSlot->GetItemUID() );
 	CX2Inventory::SORT_TYPE NowInventorySortType = g_pData->GetUIManager()->GetUIInventory()->GetSortType();
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	if ( pInventory != NULL )
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 	{
-		for ( int i = 0; i < pInventory->GetItemMaxNum( NowInventorySortType ); i++ )
+		for ( int i = 0; i < kInventory.GetItemMaxNum( NowInventorySortType ); i++ )
 		{
 			// 빈자리 찾아서
-			CX2Item* pItem = pInventory->GetItem( NowInventorySortType, i );
+			CX2Item* pItem = kInventory.GetItem( NowInventorySortType, i );
 			if ( pItem == NULL )
 			{
 				Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( pItemSlot->GetSortType(), pItemSlot->GetSlotID(),
@@ -782,8 +788,8 @@ bool CX2UICharInfo::OnDropAnyItem( D3DXVECTOR2 mousePos )
 	//*m_DraggingItemUID = ((CX2SlotItem*)(*m_pSlotBeforeDragging))->GetItemUID();
 	//}}
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	CX2Item* pItem = pInventory->GetItem( *m_DraggingItemUID );
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Item* pItem = kInventory.GetItem( *m_DraggingItemUID );
 
 	CX2SlotItem* pItemSlot = NULL;
 	if(g_pData->GetUIManager()->GetUIInventory() == NULL)
@@ -808,11 +814,10 @@ bool CX2UICharInfo::OnDropAnyItem( D3DXVECTOR2 mousePos )
 
 	//{{ kimhc // 2009-09-09 // 봉인된 아이템 장착 불가
 #ifdef	SEAL_ITEM
-	if ( pItem == NULL ||
-		 (pItem != NULL && pItem->GetItemData() == NULL) )
+	if ( pItem == NULL )
 		 return false;
 
-	if ( pItem->GetItemData()->m_bIsSealed == true )
+	if ( pItem->GetItemData().m_bIsSealed == true )
 		return false;
 
 #endif	SEAL_ITEM
@@ -837,20 +842,20 @@ bool CX2UICharInfo::OnDropAnyItem( D3DXVECTOR2 mousePos )
 
 	g_pData->GetUIManager()->GetUIInventory()->ChangeInventoryTabByUid(*m_DraggingItemUID);
 
-	if ( pInventory->GetItem( *m_DraggingItemUID ) != NULL )
+	if ( kInventory.GetItem( *m_DraggingItemUID ) != NULL )
 	{
-		CX2Item::ITEM_TYPE itemType = pInventory->GetItem( *m_DraggingItemUID )->GetItemTemplet()->GetItemType();
+		CX2Item::ITEM_TYPE itemType = kInventory.GetItem( *m_DraggingItemUID )->GetItemTemplet()->GetItemType();
 		if (  itemType == CX2Item::IT_WEAPON || itemType == CX2Item::IT_DEFENCE || itemType == CX2Item::IT_ACCESSORY ||
 			itemType == CX2Item::IT_SKILL )
 		{
-			CX2Unit::EQIP_POSITION equipPosition = pInventory->GetItem( *m_DraggingItemUID )->GetItemTemplet()->GetEqipPosition();
+			CX2Unit::EQIP_POSITION equipPosition = kInventory.GetItem( *m_DraggingItemUID )->GetItemTemplet()->GetEqipPosition();
 
 			for ( int i = 0; i < (int)m_SlotList.size(); i++ )
 			{
 				CX2SlotItem* pTempItemSlot = (CX2SlotItem*)GetSlot(i);
 				//{{ 태완 : 패션 악세사리 장착 예외처리
 				if ( pTempItemSlot->GetSlotType() == CX2Slot::ST_EQUIPPED && pTempItemSlot->GetEquipPos() == equipPosition && 
-					( pItem->GetItemTemplet()->GetItemType() == CX2Item::IT_ACCESSORY || pTempItemSlot->GetFashion() == pInventory->GetItem( *m_DraggingItemUID )->GetItemTemplet()->GetFashion() ) )
+					( pItem->GetItemTemplet()->GetItemType() == CX2Item::IT_ACCESSORY || pTempItemSlot->GetFashion() == kInventory.GetItem( *m_DraggingItemUID )->GetItemTemplet()->GetFashion() ) )
 				{
 					pItemSlot = pTempItemSlot;
 					break;
@@ -896,7 +901,7 @@ bool CX2UICharInfo::OnDropAnyItem( D3DXVECTOR2 mousePos )
 			}			
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
 
-			if ( pItem->GetItemTemplet()->GetPeriodType() == CX2Item::PT_ENDURANCE && pItem->GetItemData()->m_Endurance <= 0 )
+			if ( pItem->GetItemTemplet()->GetPeriodType() == CX2Item::PT_ENDURANCE && pItem->GetItemData().m_Endurance <= 0 )
 			{
 				return false;
 			}
@@ -923,13 +928,13 @@ bool CX2UICharInfo::OnDropAnyItem( D3DXVECTOR2 mousePos )
 
 bool CX2UICharInfo::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 	if( g_pData->GetTitleManager() != NULL && g_pData->GetTitleManager()->GetShow() == true )
 	{
 		if( g_pData->GetTitleManager()->UICustomEventProc( hWnd, uMsg, wParam, lParam ) == true )
 			return true;
 	}
-#endif
+//#endif
 
 	switch(wParam)
 	{
@@ -1006,59 +1011,26 @@ bool CX2UICharInfo::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 					g_pData->GetProfileManager()->Handler_EGS_LOCAL_RANKING_USER_INFO_READ_REQ( L"" );
 				else
 				{
-					if(m_pDlgPassword != NULL)
+#ifdef SERV_NAVER_CHANNELING
+					if ( NULL != g_pData && NULL != g_pData->GetMyUser() )
 					{
-						g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDlgPassword, NULL, false );
-						m_pDlgPassword = NULL;
-					}
+						switch ( g_pData->GetMyUser()->GetUserData().m_uChannelCode )
+						{
+						case KNexonAccountInfo::CE_NEXON_ACCOUNT:
+							OpenProfilePasswordDlg();
+							break;
 
-					m_pDlgPassword = g_pMain->KTDGUIOkAndCancelEditBox_Hide( D3DXVECTOR2( 300, 300), GET_STRING( STR_ID_12537 ), CIM_PASSWORD_OK, g_pMain->GetNowState(),16,false, CIM_PASSWORD_CANCLE );
-					if( NULL == m_pDlgPassword )
-						return true;
-
-					CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDlgPassword->GetControl( L"OkAndCancelEditBox" ));
-					if( NULL != pStatic )
-					{
-						CKTDGUIControl::CPictureData* pPicture = pStatic->GetPicture( 4 );
-						if( NULL != pPicture )
-						{
-							pPicture->SetSizeX( 250.f );
-						}
-						pPicture = pStatic->GetPicture( 5 );
-						if( NULL != pPicture )
-						{
-							pPicture->SetPos( D3DXVECTOR2( 280,50) );
-						}
-						pPicture = pStatic->GetPicture( 0 );
-						if( NULL != pPicture )
-						{
-							pPicture->SetSizeX( 310.0f );
-						}
-						pPicture = pStatic->GetPicture( 1 );
-						if( NULL != pPicture )
-						{
-							pPicture->SetSizeX( 310.0f );
-						}
-						pPicture = pStatic->GetPicture( 2 );
-						if( NULL != pPicture )
-						{
-							pPicture->SetSizeX( 310.0f );
-						}
-						CKTDGUIButton* pButton = static_cast<CKTDGUIButton*>(m_pDlgPassword->GetControl( L"Button_Check" ) );
-						if( NULL != pButton )
-						{
-							pButton->SetOffsetPos(D3DXVECTOR2(1,6));
-						}
-						pButton = static_cast<CKTDGUIButton*>(m_pDlgPassword->GetControl( L"Cancel" ) );
-						if( NULL != pButton )
-						{
-							pButton->SetOffsetPos(D3DXVECTOR2(4,6));
+						default:
+							g_pData->GetProfileManager()->Handler_EGS_LOCAL_RANKING_USER_INFO_READ_REQ( L"" );
+							break;
 						}
 					}
+#else // SERV_NAVER_CHANNELING
+					OpenProfilePasswordDlg();
+#endif // SERV_NAVER_CHANNELING
+	
 				}
-
 			}
-
 			return true;
 		}
 		break;
@@ -1112,7 +1084,7 @@ void CX2UICharInfo::SetShow(bool val)
 		CX2Unit* pSelectUnit = g_pData->GetMyUser()->GetSelectUnit();
 
 		WCHAR buff[256] = {0};
-		CX2Unit::UnitData* pUnitData = pSelectUnit->GetUnitData();
+		const CX2Unit::UnitData* pUnitData = &pSelectUnit->GetUnitData();
 
 		// 이름
 		CKTDGUIStatic* pStaticUserInfo	= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"Static_Nickname" );
@@ -1123,7 +1095,7 @@ void CX2UICharInfo::SetShow(bool val)
 		// 길드명
 		CKTDGUIStatic* pStaticGuildName = static_cast< CKTDGUIStatic* >( m_pDLGCharInfo->GetControl( L"Static_GuildName" ) );
 		if ( pStaticGuildName != NULL )
-			pStaticGuildName->SetString( 0, g_pData->GetGuildManager()->ConvertDisplayGuildName( pSelectUnit->GetUnitData()->m_wstrGuildName ).c_str() );
+			pStaticGuildName->SetString( 0, g_pData->GetGuildManager()->ConvertDisplayGuildName( pSelectUnit->GetUnitData().m_wstrGuildName ).c_str() );
 #endif	GUILD_MANAGEMENT
 		//}} kimhc // 2009-11-04 // 길드 명 추가
 
@@ -1350,7 +1322,7 @@ void CX2UICharInfo::SetLayer(X2_DIALOG_LAYER layer)
 
 void CX2UICharInfo::SetTitle()
 {	
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 	if(m_pDLGCharInfo != NULL && m_pDLGCharInfo->GetShow() == true)
 	{
 		bool bIsEmptyTitle = true;
@@ -1375,6 +1347,24 @@ void CX2UICharInfo::SetTitle()
 				{
 					wstring imgName = g_pData->GetTitleManager()->GetTitleImgName();
 					pTitlePicture->SetTex(imgName.c_str());
+#ifdef TITLE_SHOWING_PVP_RESULT
+					CKTDGUIStatic* pStaticTitleScore = (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticInfo_TitleScore" );
+					if( pStaticTitleScore != NULL )
+					{
+						if( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
+						{
+							if( g_pData->GetMyUser()->GetSelectUnit()->GetTitleId() == _CONST_TITLE_SHOWING_PVP_RESULT_::iTitleID )
+							{
+								char szCount[10];
+								::itoa( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAccountPVPLoseCount, szCount, 10 );
+								pStaticTitleScore->GetString(0)->msg = KncUtil::toWideString(szCount).c_str();
+								pStaticTitleScore->SetShow( true );
+							}
+							else
+								pStaticTitleScore->SetShow( false );
+						}
+					}
+#endif //TITLE_SHOWING_PVP_RESULT
 
 #ifdef ADD_TITLE_DESCRIPTION
 					// 타이틀 디스크립션 추가
@@ -1423,32 +1413,31 @@ void CX2UICharInfo::SetTitle()
 
 		}
 	}    
-#endif
+//#endif
 }
 
 void CX2UICharInfo::ResetStat()
 {
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	// 월드 버프 수치 표시는 보류!!!
 	CX2SocketItem::SocketData socketData = GetMyEquippedSocketData();
 	const CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 	
-	m_pStat->InitStat();
+	m_Stat.InitStat();
 	// 장비, 셋트, 펫, 칭호의 소켓 옵션은 위의 GetMyEquippedSocketData()에서 socketData의 옵션으로 더 해졌을 것이기 때문에 여기서 처리 하지 않음
-	m_pStat->AddStat( pMyUnit->GetUnitStat(), true );	// true를 안해도 될 것 같지만... 확인해 보지 않았음
+	m_Stat.AddStat( pMyUnit->GetUnitStat(), true );	// true를 안해도 될 것 같지만... 확인해 보지 않았음
 	// 장비의 기본 Stat을 추가함 (부가효과, 소켓효과 X)
-	m_pStat->AddStat( pMyUnit->GetEqipStat() );	
+	m_Stat.AddStat( pMyUnit->GetEqipStat() );	
 	// 스킬 스탯은 소켓 옵션이 아니므로 여기서 처리 ( GetSkillStat() 내부에서 ExtraStat을 더하지 않으므로 여기서도 해줄 필요 없음 )
-	m_pStat->AddStat( pMyUnit->GetSkillStat() );	// Stat을 기본적으로 올려주는 스킬만 이곳에서 처리 중이다.
+	m_Stat.AddStat( pMyUnit->GetSkillStat() );	// Stat을 기본적으로 올려주는 스킬만 이곳에서 처리 중이다.
 	// 길드 스킬 스탯은 소켓 옵션이 아니므로 여기서 처리 ( GetGuildSkillStat() 내부에서 ExtraStat을 더하지 않으므로 여기서도 해줄 필요 없음 )
-	m_pStat->AddStat( pMyUnit->GetGuildSkillStat() );	// Stat을 기본적으로 올려주는 스킬만 이곳에서 처리 중이다.
+	m_Stat.AddStat( pMyUnit->GetGuildSkillStat() );	// Stat을 기본적으로 올려주는 스킬만 이곳에서 처리 중이다.
 
 	// 칭호 스탯 추가
-	m_pStat->AddStat( g_pData->GetTitleManager()->GetSocketStat() );
+	m_Stat.AddStat( g_pData->GetTitleManager()->GetSocketStat() );
 
 	// SocketData의 기본 스탯 을 더해준다.
-	m_pStat->AddStat( socketData.m_Stat );
+	m_Stat.AddStat( socketData.m_Stat );
 
 	// 스킬에 의한 스탯 (2011.07.20 현재는 HP와 관련된 것만 있음)
 	UpdateBasicStatFromSpecialSkill();
@@ -1469,621 +1458,10 @@ void CX2UICharInfo::ResetStat()
 	UpdateResistanceStatUI();
 	#endif //VIEW_SPECIAL_OPTIONDATA
 
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-	//{{AFX
-	m_pStat->InitStat();
-	m_pStatEqip->InitStat();
-#ifdef PET_AURA_SKILL
-	m_pStatPet->InitStat();
-#endif
-
-	m_pStat->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetUnitStat(), true );	// 기본 스탯
-	m_pStatEqip->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetEqipStat(), true );	
-	m_pStatEqip->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetSkillStat(), true );
-	
-	m_pStatEqip->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetSetItemOptionStat(), true );
-
-#ifdef PET_AURA_SKILL
-	KPetInfo *pPetInfo = g_pData->GetMyUser()->GetSelectUnit()->GetPetInfo();
-	if( g_pData->GetPetManager() != NULL && g_pData->GetPetManager()->GetMyPet() != NULL && pPetInfo != NULL )
-	{			
-		CX2PET* pMyPet = g_pData->GetPetManager()->GetMyPet();
-		if ( !(pMyPet->GetAuraSuspendedTargetTime() > 0.0f) )	/// 오오라 지연 시간이 있으면 적용 안함
-		{
-			// 포만도가 40% 이상일 경우만 기운스킬 적용되도록 한다.
-			if( (float)pPetInfo->m_sSatiety / CX2PetManager::MAX_OF_SATIETY >= CX2PetManager::SATIETY_RATIO_TO_BE_ABLE_TO_APPLY_AURA )
-			{
-				CX2PetManager::PetTemplet *pPetTemplet = g_pData->GetPetManager()->GetPetTemplet( (CX2PetManager::PET_UNIT_ID)pPetInfo->m_cPetID );
-				int iStep = pPetTemplet->m_vecPetStatus[pPetInfo->m_cEvolutionStep];
-				if( pPetTemplet != NULL && iStep > 0 )
-				{			
-					for(int i=0; i < iStep; ++i)
-					{
-						const std::vector<int>& vecAuraSkillOptionTemp = pPetTemplet->m_vecAuraSkillOption[ i ];
-						for( UINT j=0; j<vecAuraSkillOptionTemp.size(); ++j)
-						{
-							int socketOptionID = vecAuraSkillOptionTemp[j];
-							CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
-
-							if( pSocketData != NULL )
-								m_pStatPet->AddStat( pSocketData->m_Stat, true );
-						}
-					}
-				}
-			}
-		}
-		
-	}	
-#endif
-
-	//{{ kimhc // 2009-11-17 //길드 스킬과 관련된 스탯
-#ifdef	GUILD_SKILL
-	m_pStatEqip->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetGuildSkillStat(), true );
-#endif	GUILD_SKILL
-	//}} kimhc // 2009-11-17 //길드 스킬과 관련된 스탯
-
-	// 속성저항은 아래쪽에 있음
-	//m_pStatEqip->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetEnchantDefence() );
-
-#ifdef TITLE_SYSTEM
-	m_pStatEqip->AddStat( g_pData->GetTitleManager()->GetSocketStat(), true );
-#endif
-
-#ifdef NEW_SKILL_TREE
-	// 일부 스킬에 대해서 : 최종 스탯 수치에서 마지막으로 보정해준다
-	CX2Stat TotalStat;
-	TotalStat.InitStat();
-
-	TotalStat.AddStat( *m_pStat->GetStat(), true );
-	TotalStat.AddStat( *m_pStatEqip->GetStat(), true );
-
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
-	CX2SkillTree* pSkillTree = g_pData->GetSkillTree();
-	int iSkillLevel = 0;
-
-	iSkillLevel = refUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_POWERFUL_SOUL );
-	if( iSkillLevel > 0)
-	{
-		const CX2SkillTree::SkillTemplet* pSkillTemplet = pSkillTree->GetSkillTemplet( CX2SkillTree::SI_P_COMMON_POWERFUL_SOUL, iSkillLevel );
-		if( pSkillTemplet != NULL )
-		{
-			// 마공 %만큼 물공증가
-			m_pStatEqip->GetStat()->m_fAtkPhysic += TotalStat.GetStat()->m_fAtkMagic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_MAGIC_TO_ATK_PHYSIC );
-		}
-	}
-
-	iSkillLevel = refUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_PHYSIC_HARMONY );
-	if( iSkillLevel > 0)
-	{
-		const CX2SkillTree::SkillTemplet* pSkillTemplet = pSkillTree->GetSkillTemplet( CX2SkillTree::SI_P_COMMON_PHYSIC_HARMONY, iSkillLevel );
-		if( pSkillTemplet != NULL )
-		{
-			// 물공 %만큼 마공증가
-			m_pStatEqip->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
-		}
-	}
-
-	iSkillLevel = refUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_FIGHTER_SOUL );
-	if( iSkillLevel > 0)
-	{
-		const CX2SkillTree::SkillTemplet* pSkillTemplet = pSkillTree->GetSkillTemplet( CX2SkillTree::SI_P_COMMON_FIGHTER_SOUL, iSkillLevel );
-		if( pSkillTemplet != NULL )
-		{
-			// 물공 %만큼 마공증가
-			m_pStatEqip->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
-		}
-	}
-#ifdef SERV_RENA_NIGHT_WATCHER
-	iSkillLevel = refUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RNW_GUARDIAN_OF_ELF );
-	if( iSkillLevel > 0)
-	{
-		const CX2SkillTree::SkillTemplet* pSkillTemplet = pSkillTree->GetSkillTemplet( CX2SkillTree::SI_P_RNW_GUARDIAN_OF_ELF, iSkillLevel );
-		if( pSkillTemplet != NULL )
-		{
-			// 물공 %만큼 마공증가
-			m_pStatEqip->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
-		}
-	}
-#endif SERV_RENA_NIGHT_WATCHER
-
-#ifdef NEW_SKILL_2010_11
-	// oasis907 : 김상윤 [2010.12.3] // 룬 슬레이어 - 마법저항 수련
-	iSkillLevel = refUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_MAGIC_RESISTANCE );
-	if( iSkillLevel > 0)
-	{
-		const CX2SkillTree::SkillTemplet* pSkillTemplet = pSkillTree->GetSkillTemplet( CX2SkillTree::SI_P_ERS_MAGIC_RESISTANCE, iSkillLevel );
-		if( pSkillTemplet != NULL )
-		{
-			m_pStatEqip->GetStat()->m_fDefMagic += TotalStat.GetStat()->m_fDefMagic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DEF_MAGIC_REL ) );
-		}
-	}
-
-	//{{ kimhc // 2010-12-13 // 승화된 분노
-	iSkillLevel = refUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RRF_SPIRITUALIZED_FURY );
-	if( iSkillLevel > 0)
-	{
-		const CX2SkillTree::SkillTemplet* pSkillTemplet = pSkillTree->GetSkillTemplet( CX2SkillTree::SI_P_RRF_SPIRITUALIZED_FURY, iSkillLevel );
-		if( pSkillTemplet != NULL )
-		{
-			m_pStatEqip->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkMagic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_MAGIC_REL ) );
-		}
-	}
-	//}} kimhc // 2010-12-13 // 승화된 분노
-#endif NEW_SKILL_2010_11
-
-#ifdef CHUNG_SECOND_CLASS_CHANGE
-	// oasis907 : 김상윤 [2011.6.28] 청 2차 전직 - 아이언 팔라딘 - 굳건한 의지
-	iSkillLevel = refUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_CIP_IRON_WILL );
-	if( iSkillLevel > 0)
-	{
-		const CX2SkillTree::SkillTemplet* pSkillTemplet = pSkillTree->GetSkillTemplet( CX2SkillTree::SI_P_CIP_IRON_WILL, iSkillLevel );
-		if( pSkillTemplet != NULL )
-		{
-			m_pStatEqip->GetStat()->m_fAtkPhysic += TotalStat.GetStat()->m_fAtkPhysic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_REL  ) );
-		}
-	}
-#endif CHUNG_SECOND_CLASS_CHANGE
-
-
-
-#endif 
-
-	//{{ kimhc // 2011.4.24 // 월드버프 2단계, 드래곤의 숨결 & 월드 버프 3단계 엘의 축복
-#ifdef	SERV_INSERT_GLOBAL_SERVER
-	if ( NULL != g_pData->GetWorldMissionManager() )
-	{
-		// 월드버프 2단계, 드래곤의 숨결이 적용 중이면
-		if ( false == g_pData->GetWorldMissionManager()->IsNullWorldBuffDragonBreath() )
-		{
-			float fIncreaseRateAtk = CalculateIncreasingRate( g_pData->GetWorldMissionManager()->GetDragonBreathAttackStatRateIncreased() );
-			m_pStatEqip->GetStat()->m_fAtkPhysic += TotalStat.GetStat()->m_fAtkPhysic * fIncreaseRateAtk;
-			m_pStatEqip->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkMagic * fIncreaseRateAtk;
-		}
-
-		// 월드버프 3단계, 엘의 축복이 적용 중이면
-		if ( false == g_pData->GetWorldMissionManager()->IsNULLWorldBuffElBless() )
-		{
-			float fIncreaseRateDef = CalculateIncreasingRate( g_pData->GetWorldMissionManager()->GetElBlessDefenceStatRateIncreased() );
-			m_pStatEqip->GetStat()->m_fDefPhysic += TotalStat.GetStat()->m_fDefPhysic * fIncreaseRateDef;
-			m_pStatEqip->GetStat()->m_fDefMagic += TotalStat.GetStat()->m_fDefMagic * fIncreaseRateDef;
-		}		
-	}
-#endif	SERV_INSERT_GLOBAL_SERVER
-	//}} kimhc // 2011.4.24 // 월드버프 2단계, 드래곤의 숨결 & 월드 버프 3단계 엘의 축복
-
-
-	WCHAR buff[256] = {0};
-
-	CKTDGUIStatic* pStaticUnitStat;
-	CKTDGUIStatic* pStaticUnitStat_add;
-
-	// hp
-	pStaticUnitStat			= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_hp" );
-	pStaticUnitStat_add		= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_hp_add" );
-
-	//wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fBaseHP );
-	StringCchPrintf( buff, 256, L"%d", (int)m_pStat->GetStat()->m_fBaseHP );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-
-	// 증가되는 HP 계산해서 ( 기본hp * 증가율 + 장비hp )
-#ifdef PET_AURA_SKILL
-	float fAddHP = m_pStat->GetStat()->m_fBaseHP * m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseHPRate + m_pStatEqip->GetStat()->m_fBaseHP;
-	float fAddHpInc = m_pStat->GetStat()->m_fBaseHP * m_pStatPet->GetStat()->m_ExtraStat.m_fIncreaseHPRate;
-
-	fAddHP += fAddHpInc;
-	if( fAddHP < 0.f )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)fAddHP) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)fAddHP) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)fAddHP );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)fAddHP );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#else
-	float fAddHP = m_pStat->GetStat()->m_fBaseHP * m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseHPRate + m_pStatEqip->GetStat()->m_fBaseHP;
-
-	if( fAddHP < 0 )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)fAddHP) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)fAddHP) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)fAddHP );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)fAddHP );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#endif
-
-	//phy_atk
-	pStaticUnitStat			= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_p_attack" );
-	pStaticUnitStat_add		= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_p_attack_add" );
-
-	//wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkPhysic );
-	StringCchPrintf( buff, 256, L"%d", (int)m_pStat->GetStat()->m_fAtkPhysic );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-#ifdef PET_AURA_SKILL
-	float fAtkPhysic = m_pStatEqip->GetStat()->m_fAtkPhysic + m_pStatPet->GetStat()->m_fAtkPhysic;
-	float fIncAtkPhysic = m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseAtkPhysicRate + m_pStatPet->GetStat()->m_ExtraStat.m_fIncreaseAtkPhysicRate;
-	if( fIncAtkPhysic != 0.f )
-	{
-		fIncAtkPhysic = ( fAtkPhysic + m_pStat->GetStat()->m_fAtkPhysic ) * fIncAtkPhysic;
-
-	}
-	fAtkPhysic += fIncAtkPhysic;
-
-	if( (int)fAtkPhysic < 0 )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fAtkPhysic) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)fAtkPhysic) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fAtkPhysic );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)fAtkPhysic );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#else
-	if( m_pStatEqip->GetStat()->m_fAtkPhysic < 0 )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fAtkPhysic) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fAtkPhysic) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fAtkPhysic );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fAtkPhysic );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#endif	
-
-	//mag_atk
-	pStaticUnitStat			= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_m_attack" );
-	pStaticUnitStat_add		= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_m_attack_add" );
-
-	//wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkMagic );
-	StringCchPrintf( buff, 256, L"%d", (int)m_pStat->GetStat()->m_fAtkMagic );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-#ifdef PET_AURA_SKILL
-	float fAtkMagic = m_pStatEqip->GetStat()->m_fAtkMagic + m_pStatPet->GetStat()->m_fAtkMagic;
-	float fIncAtkMagic = m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseAtkMagicRate + m_pStatPet->GetStat()->m_ExtraStat.m_fIncreaseAtkMagicRate;
-	if( fIncAtkMagic != 0.f )
-	{
-		fIncAtkMagic = ( m_pStat->GetStat()->m_fAtkMagic + fAtkMagic ) * fIncAtkMagic;
-	}
-	fAtkMagic += fIncAtkMagic;
-
-	if( (int)fAtkMagic < 0 )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fAtkMagic) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)fAtkMagic) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fAtkMagic );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)fAtkMagic );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#else
-	if( m_pStatEqip->GetStat()->m_fAtkMagic < 0 )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fAtkMagic) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fAtkMagic) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fAtkMagic );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fAtkMagic );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#endif
-
-	//phy_def
-	pStaticUnitStat			= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_p_defence" );
-	pStaticUnitStat_add		= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_p_defence_add" );
-
-	//wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefPhysic );
-	StringCchPrintf( buff, 256, L"%d", (int)m_pStat->GetStat()->m_fDefPhysic );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-#ifdef PET_AURA_SKILL
-	float fDefPhysic = m_pStatEqip->GetStat()->m_fDefPhysic + m_pStatPet->GetStat()->m_fDefPhysic;
-	float fIncDefPhysic = m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseDefPhysicRate + m_pStatPet->GetStat()->m_ExtraStat.m_fIncreaseDefPhysicRate;
-	if( fIncDefPhysic != 0.f )
-	{
-		fIncDefPhysic = ( m_pStat->GetStat()->m_fDefPhysic + fDefPhysic ) * fIncDefPhysic;
-	}
-	fDefPhysic += fIncDefPhysic;
-
-	if( (int)fDefPhysic < 0 )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fDefPhysic) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)fDefPhysic) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fDefPhysic );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)fDefPhysic );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#else
-	if( m_pStatEqip->GetStat()->m_fDefPhysic < 0 )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fDefPhysic) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fDefPhysic) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fDefPhysic );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fDefPhysic );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#endif
-
-	CKTDGUIButton* pButton_PhyDef = (CKTDGUIButton*)m_pDLGCharInfo->GetControl( L"Button_Phydef" );
-	if(pButton_PhyDef != NULL)
-	{
-#ifdef PET_AURA_SKILL
-		int totaldef = (int)m_pStat->GetStat()->m_fDefPhysic + (int)fDefPhysic;
-#else
-		int totaldef = (int)m_pStat->GetStat()->m_fDefPhysic + (int)m_pStatEqip->GetStat()->m_fDefPhysic;
-#endif
-		int level = 1;
-		if( NULL != g_pData->GetMyUser() &&
-			NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-			NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
-		{
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-			level = pUnitData->m_Level;
-		}
-
-#ifdef PET_AURA_SKILL
-		float defpercent = (m_pStat->GetStat()->m_fDefPhysic + fDefPhysic) / (348 + 62*level) * 100;
-#else
-		float defpercent = (m_pStat->GetStat()->m_fDefPhysic + m_pStatEqip->GetStat()->m_fDefPhysic) / (348 + 62*level) * 100;
-#endif
-		if(defpercent < 0.f)
-		{
-			defpercent = 0.f;
-		}
-		else if(defpercent > 99.99f)
-		{
-			defpercent = 99.99f;
-		}
-
-		pButton_PhyDef->SetGuideDesc( GET_REPLACED_STRING( ( STR_ID_2562, "if", totaldef, defpercent ) ) );
-
-	}
-
-	//mag_def
-	pStaticUnitStat			= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_m_defence" );
-	pStaticUnitStat_add		= (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_m_defence_add" );
-
-	//wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefMagic );
-	StringCchPrintf( buff, 256, L"%d", (int)m_pStat->GetStat()->m_fDefMagic );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-#ifdef PET_AURA_SKILL
-	float fDefMagic = m_pStatEqip->GetStat()->m_fDefMagic + m_pStatPet->GetStat()->m_fDefMagic;
-	float fIncDefMagic = m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseDefMagicRate + m_pStatPet->GetStat()->m_ExtraStat.m_fIncreaseDefMagicRate;
-	if( fIncDefMagic != 0.f )
-	{
-		fIncDefMagic = ( m_pStat->GetStat()->m_fDefMagic + fDefMagic ) * fIncDefMagic;
-	}
-	fDefMagic += fIncDefMagic;
-
-	if( (int)fDefMagic < 0 )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fDefMagic) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)fDefMagic) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fDefMagic );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)fDefMagic );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#else
-	if( m_pStatEqip->GetStat()->m_fDefMagic < 0 )
-	{
-		//wsprintf( buff, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fDefMagic) );
-		StringCchPrintf( buff, 256, L"#C800000- %5d", abs((int)m_pStatEqip->GetStat()->m_fDefMagic) );
-		pStaticUnitStat_add->GetString(0)->msg = buff;		
-	}
-	else
-	{
-		//wsprintf( buff, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fDefMagic );
-		StringCchPrintf( buff, 256, L"+ %5d", (int)m_pStatEqip->GetStat()->m_fDefMagic );
-		pStaticUnitStat_add->GetString(0)->msg = buff;
-	}
-#endif
-
-	CKTDGUIButton* pButton_MagDef = (CKTDGUIButton*)m_pDLGCharInfo->GetControl( L"Button_Magdef" );
-	if(pButton_MagDef != NULL)
-	{
-#ifdef PET_AURA_SKILL
-		int totaldef = (int)m_pStat->GetStat()->m_fDefMagic + (int)fDefMagic;
-#else
-		int totaldef = (int)m_pStat->GetStat()->m_fDefMagic + (int)m_pStatEqip->GetStat()->m_fDefMagic;
-#endif
-		int level = 1;
-		if( NULL != g_pData->GetMyUser() &&
-			NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-			NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
-		{
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-			level = pUnitData->m_Level;
-		}
-
-#ifdef PET_AURA_SKILL
-		float defpercent = (m_pStat->GetStat()->m_fDefMagic + fDefMagic) / (348 + 62*level) * 100;
-#else
-		float defpercent = (m_pStat->GetStat()->m_fDefMagic + m_pStatEqip->GetStat()->m_fDefMagic) / (348 + 62*level) * 100;
-#endif
-		if(defpercent < 0.f)
-		{
-			defpercent = 0.f;
-		}
-		else if(defpercent > 99.99f)
-		{
-			defpercent = 99.99f;
-		}
-
-		pButton_MagDef->SetGuideDesc( GET_REPLACED_STRING( ( STR_ID_2563, "if", totaldef, defpercent ) ) );
-	}
-
-
-	// 속성저항
-	const CX2Stat::EnchantStat& enchantStat = g_pData->GetMyUser()->GetSelectUnit()->GetEnchantStat( true );
-
-	//Resist
-	pStaticUnitStat = (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticInfo_fire" );
-	//wsprintf( buff, L"%d / %d", (int)enchantStat.m_fDefBlaze, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	StringCchPrintf( buff, 256, L"%d / %d", (int)enchantStat.m_fDefBlaze, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	pStaticUnitStat = (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticInfo_water" );
-	//wsprintf( buff, L"%d / %d", (int)enchantStat.m_fDefWater, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	StringCchPrintf( buff, 256, L"%d / %d", (int)enchantStat.m_fDefWater, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	pStaticUnitStat = (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticInfo_nature" );
-	//wsprintf( buff, L"%d / %d", (int)enchantStat.m_fDefNature, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	StringCchPrintf( buff, 256, L"%d / %d", (int)enchantStat.m_fDefNature, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	pStaticUnitStat = (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticInfo_wind" );
-	//wsprintf( buff, L"%d / %d", (int)enchantStat.m_fDefWind, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	StringCchPrintf( buff, 256, L"%d / %d", (int)enchantStat.m_fDefWind, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	pStaticUnitStat = (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticInfo_light" );
-	//wsprintf( buff, L"%d / %d", (int)enchantStat.m_fDefLight, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	StringCchPrintf( buff, 256, L"%d / %d", (int)enchantStat.m_fDefLight, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	pStaticUnitStat = (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticInfo_dark" );
-	//wsprintf( buff, L"%d / %d", (int)enchantStat.m_fDefDark, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	StringCchPrintf( buff, 256, L"%d / %d", (int)enchantStat.m_fDefDark, (int)CX2EnchantItem::EAR_MAX_VALUE );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	// 크리/회피/명중/이속/모속/점속
-
-	CX2SocketItem::SocketData SocketData = GetMyEquippedSocketData();
-	// Percent 증가량 제한 되어 있는 부분 주석 처리
-	const int CRITICAL_MAX_PERCENT		= static_cast< int >( CX2SocketItem::SocketData::MAX_CRITICAL_RATE			* 100 );
-	const int EVADE_MAX_PERCENT			= static_cast< int >( CX2SocketItem::SocketData::MAX_EVADE_RATE				* 100 );
-	const int ANTI_EVADE_MAX_PERCENT	= static_cast< int >( CX2SocketItem::SocketData::MAX_ANTI_EVADE_RATE		* 100 );
-	const int ANI_SPEED_MAX_PERCENT		= static_cast< int >( CX2SocketItem::SocketData::MAX_ANIMATION_SPEED_RATE	);
-	const int MOVE_SPEED_MAX_PERCENT	= static_cast< int >( CX2SocketItem::SocketData::MAX_MOVESPEED				* 100 );
-	const int JUMP_SPEED_MAX_PERCENT	= static_cast< int >( CX2SocketItem::SocketData::MAX_JUMPSPEED				* 100 );
-
-	int iNowPercent = 0;
-
-	// float -> int 로 오면서 숫자 잘리는 문제 : 반올림 해서 해결
-	// 크리티컬
-	pStaticUnitStat = static_cast< CKTDGUIStatic* >( m_pDLGCharInfo->GetControl( L"Static_Critical" ) );
-
-	iNowPercent = static_cast< int >( (SocketData.m_fPercentCritical+0.005f) * 100 );
-
-	//{{ kimhc // 2011.4.24 // 월드버프 3단계, 엘의 축복
-#ifdef	SERV_INSERT_GLOBAL_SERVER
-	if ( NULL != g_pData->GetWorldMissionManager() )
-		iNowPercent += g_pData->GetWorldMissionManager()->GetElBlessCriticalRateIncreased();
-#endif	SERV_INSERT_GLOBAL_SERVER
-	//}} kimhc // 2011.4.24 // 월드버프 3단계, 엘의 축복
-
-	if ( iNowPercent > CRITICAL_MAX_PERCENT )
-		iNowPercent = CRITICAL_MAX_PERCENT;
-
-	//wsprintf( buff, L"＋%d%%", iNowPercent );
-	StringCchPrintf( buff, 256, L"＋%d%%", iNowPercent );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	// 회피
-	pStaticUnitStat = static_cast< CKTDGUIStatic* >( m_pDLGCharInfo->GetControl( L"Static_Evade" ) );
-	
-	iNowPercent = static_cast< int >( (SocketData.m_fEvadePercent+0.005f) * 100 );
-	if ( iNowPercent > EVADE_MAX_PERCENT )
-		iNowPercent = EVADE_MAX_PERCENT;
-
-	//wsprintf( buff, L"＋%d%%", iNowPercent );
-	StringCchPrintf( buff, 256, L"＋%d%%", iNowPercent );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	// 명중
-	pStaticUnitStat = static_cast< CKTDGUIStatic* >( m_pDLGCharInfo->GetControl( L"Static_Accuracy" ) );
-
-	iNowPercent = static_cast< int >( (SocketData.m_fAntiEvadePercent+0.005f) * 100 );
-	if ( iNowPercent > ANTI_EVADE_MAX_PERCENT )
-		iNowPercent = ANTI_EVADE_MAX_PERCENT;
-
-	//wsprintf( buff, L"＋%d%%", iNowPercent );
-	StringCchPrintf( buff, 256, L"＋%d%%", iNowPercent );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	// 속도
-	pStaticUnitStat = static_cast< CKTDGUIStatic* >( m_pDLGCharInfo->GetControl( L"Static_SpeedAll" ) );
-
-	iNowPercent = static_cast< int >( SocketData.m_fAnimationSpeedRate );
-
-	//{{ kimhc // 2011.4.24 // 월드버프 2단계, 드래곤의 숨결
-#ifdef	SERV_INSERT_GLOBAL_SERVER
-	if ( NULL != g_pData->GetWorldMissionManager() )
-		iNowPercent += g_pData->GetWorldMissionManager()->GetDragonBreathAnimSpeedRateIncreased();
-#endif	SERV_INSERT_GLOBAL_SERVER
-	//}} kimhc // 2011.4.24 // 월드버프 2단계, 드래곤의 숨결
-
-	if ( iNowPercent > ANI_SPEED_MAX_PERCENT )
-		iNowPercent = ANI_SPEED_MAX_PERCENT;
-
-	//wsprintf( buff, L"＋%d%%", iNowPercent );
-	StringCchPrintf( buff, 256, L"＋%d%%", iNowPercent );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	// 이속
-	pStaticUnitStat = static_cast< CKTDGUIStatic* >( m_pDLGCharInfo->GetControl( L"Static_SpeedMove" ) );
-
-	iNowPercent = static_cast< int >( (SocketData.m_fMoveSpeed+0.005f) * 100 );
-	if ( iNowPercent > MOVE_SPEED_MAX_PERCENT )
-		iNowPercent = MOVE_SPEED_MAX_PERCENT;
-
-	//wsprintf( buff, L"＋%d%%", iNowPercent );
-	StringCchPrintf( buff, 256, L"＋%d%%", iNowPercent );
-	pStaticUnitStat->GetString(0)->msg = buff;
-
-	// 점프력
-	pStaticUnitStat = static_cast< CKTDGUIStatic* >( m_pDLGCharInfo->GetControl( L"Static_Jump" ) );
-
-	iNowPercent = static_cast< int >( (SocketData.m_fJumpSpeed+0.005f) * 100 );
-	if ( iNowPercent > JUMP_SPEED_MAX_PERCENT )
-		iNowPercent = JUMP_SPEED_MAX_PERCENT;
-
-	//wsprintf( buff, L"＋%d%%", iNowPercent );
-	StringCchPrintf( buff, 256, L"＋%d%%", iNowPercent );
-	pStaticUnitStat->GetString(0)->msg = buff;
-	//}}AFX
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 }
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 
 /*inline*/
 int CX2UICharInfo::GetMyLevel() const
@@ -2118,36 +1496,36 @@ void CX2UICharInfo::UpdateBasicStatUI( const CX2SocketItem::SocketData& socketDa
 	// HP
 	// 옵션 수치화 작업 이후에는 유저 정보창에 BaseHP와 추가 HP를 분리해서 표시 하지 않음
 
-	const float fMaxHpIncrement = m_pStat->GetStat()->m_fBaseHP * 0.5f;
+	const float fMaxHpIncrement = m_Stat.GetStat().m_fBaseHP * 0.5f;
 
 	if ( fMaxHpIncrement < socketData_.m_Stat.m_ExtraStat.m_fIncreaseHPRate )
-		StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", m_pStat->GetStat()->m_fBaseHP + fMaxHpIncrement );
+		StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", m_Stat.GetStat().m_fBaseHP + fMaxHpIncrement );
 	else
-		StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", m_pStat->GetStat()->m_fBaseHP + socketData_.m_Stat.m_ExtraStat.m_fIncreaseHPRate );
+		StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", m_Stat.GetStat().m_fBaseHP + socketData_.m_Stat.m_ExtraStat.m_fIncreaseHPRate );
 
 	SetStatInfoStatic( L"g_pStaticinfo_hp", wszBuffer );
 
-	const CX2Stat::Stat* pStat = m_pStat->GetStat();
+	const CX2Stat::Stat& kStat = m_Stat.GetStat();
 	const CX2Stat::Stat::ExtraStat& extraStat = socketData_.m_Stat.m_ExtraStat;
 
 	// 물공
-	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", pStat->m_fAtkPhysic + pStat->m_fAtkPhysic * extraStat.m_fIncreaseAtkPhysicRate );
+	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", kStat.m_fAtkPhysic + kStat.m_fAtkPhysic * extraStat.m_fIncreaseAtkPhysicRate );
 	SetStatInfoStatic( L"g_pStaticinfo_p_attack", wszBuffer );
 
 	// 마공
-	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", pStat->m_fAtkMagic + pStat->m_fAtkMagic * extraStat.m_fIncreaseAtkMagicRate );
+	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", kStat.m_fAtkMagic + kStat.m_fAtkMagic * extraStat.m_fIncreaseAtkMagicRate );
 	SetStatInfoStatic( L"g_pStaticinfo_m_attack", wszBuffer );
 	
 	// 물방
-	const float fTotalDefPhysic = pStat->m_fDefPhysic + pStat->m_fDefPhysic * extraStat.m_fIncreaseDefPhysicRate;
+	const float fTotalDefPhysic = kStat.m_fDefPhysic + kStat.m_fDefPhysic * extraStat.m_fIncreaseDefPhysicRate;
 	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", fTotalDefPhysic );
 	SetStatInfoStatic( L"g_pStaticinfo_p_defence", wszBuffer );
 	// 물방 툴팁
 	SetStatInfoGuideDesc( L"Button_PhysicDefence", GET_REPLACED_STRING( ( STR_ID_13570, "f", GetDamageDecrement( fTotalDefPhysic ) * 100 ) ) );
 
 	// 마방
-	const float fTotalDefMagic = pStat->m_fDefMagic + pStat->m_fDefMagic * extraStat.m_fIncreaseDefMagicRate;
-	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", pStat->m_fDefMagic + pStat->m_fDefMagic * extraStat.m_fIncreaseDefMagicRate );
+	const float fTotalDefMagic = kStat.m_fDefMagic + kStat.m_fDefMagic * extraStat.m_fIncreaseDefMagicRate;
+	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", kStat.m_fDefMagic + kStat.m_fDefMagic * extraStat.m_fIncreaseDefMagicRate );
 	SetStatInfoStatic( L"g_pStaticinfo_m_defence", wszBuffer );
 	// 마방 툴팁
 	SetStatInfoGuideDesc( L"Button_MagicDefence", GET_REPLACED_STRING( ( STR_ID_13571, "f", GetDamageDecrement( fTotalDefMagic ) * 100 ) ) );
@@ -2162,6 +1540,21 @@ void CX2UICharInfo::UpdateOptionStatUI( const CX2SocketItem::SocketData& socketD
 {
 	const int iMyLevel = GetMyLevel();
 	WCHAR wszBuffer[MAX_PATH] = {0, };
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+	if( NULL == m_pDLGCharInfo ||
+		NULL == g_pData ||
+		NULL == g_pData->GetMyUser() ||
+		NULL == g_pData->GetMyUser()->GetSelectUnit() )
+		return;
+
+	CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>( m_pDLGCharInfo->GetControl( L"g_pStaticInfo2" ) );
+
+	if ( NULL == pStatic )
+		return;
+
+	CX2Unit::UNIT_TYPE eUnitType = g_pData->GetMyUser()->GetSelectUnit()->GetType();
+#endif //SERV_9TH_NEW_CHARACTER
 	
 	// 크리티컬
 	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", socketData_.m_fPercentCritical );
@@ -2180,7 +1573,36 @@ void CX2UICharInfo::UpdateOptionStatUI( const CX2SocketItem::SocketData& socketD
 	// 추가데미지
 	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", socketData_.m_fAdditionalAttackValue );
 	SetStatInfoStatic( L"Static_Add", wszBuffer );
-	
+
+#ifdef ADJUST_BUFF_CALCULATE
+	// 추가데미지 툴팁 (1배율~50배율)
+	if ( 40 < CX2UICharInfo::GetIntermediateAdditionalAttackValue( socketData_.m_fAdditionalAttackValue, iMyLevel ) )
+	{
+		const float fFinalAdditionalAttackValue = CX2SocketItem::GetFinalAdditionalAttackValue( socketData_.m_fAdditionalAttackValue, iMyLevel );
+		float fStat = m_Stat.GetStat().m_fAtkPhysic;
+		wstring wstrTooTip = GET_STRING(STR_ID_30051);
+		wstrTooTip += GET_REPLACED_STRING( ( STR_ID_13555, "ii", static_cast<int>( fStat * 1.5 * pow( 1, 0.65 ) * fFinalAdditionalAttackValue ), static_cast<int>( fStat * 1.5 * pow( 50, 0.65 ) * fFinalAdditionalAttackValue ) ) );
+		wstrTooTip += L"\n";
+		fStat = m_Stat.GetStat().m_fAtkMagic;
+		wstrTooTip += GET_STRING(STR_ID_30052);
+		wstrTooTip += GET_REPLACED_STRING( ( STR_ID_13555, "ii", static_cast<int>( fStat * 1.5 * pow( 1, 0.65 ) * fFinalAdditionalAttackValue ), static_cast<int>( fStat * 1.5 * pow( 50, 0.65 ) * fFinalAdditionalAttackValue ) ) );
+		wstrTooTip += GET_STRING( STR_ID_13645 );
+		SetStatInfoGuideDesc( L"Button_Add", wstrTooTip.c_str() );
+	}
+	else
+	{
+		const float fFinalAdditionalAttackValue = CX2SocketItem::GetFinalAdditionalAttackValue( socketData_.m_fAdditionalAttackValue, iMyLevel );
+		float fStat = m_Stat.GetStat().m_fAtkPhysic;
+		wstring wstrTooTip = GET_STRING(STR_ID_30051);
+		wstrTooTip += GET_REPLACED_STRING( ( STR_ID_13555, "ii", static_cast<int>( fStat * 1.5 * pow( 1, 0.65 ) * fFinalAdditionalAttackValue ), static_cast<int>( fStat * 1.5 * pow( 50, 0.65 ) * fFinalAdditionalAttackValue ) ) );
+		wstrTooTip += L"\n";
+		fStat = m_Stat.GetStat().m_fAtkMagic;
+		wstrTooTip += GET_STRING(STR_ID_30052);
+		wstrTooTip += GET_REPLACED_STRING( ( STR_ID_13555, "ii", static_cast<int>( fStat * 1.5 * pow( 1, 0.65 ) * fFinalAdditionalAttackValue ), static_cast<int>( fStat * 1.5 * pow( 50, 0.65 ) * fFinalAdditionalAttackValue ) ) );
+
+		SetStatInfoGuideDesc( L"Button_Add", wstrTooTip.c_str() );
+	}
+#else //ADJUST_BUFF_CALCULATE
 	// 추가데미지 툴팁 (1배율~50배율)
 	if ( 40 < CX2UICharInfo::GetIntermediateAdditionalAttackValue( socketData_.m_fAdditionalAttackValue, iMyLevel ) )
 	{
@@ -2189,8 +1611,11 @@ void CX2UICharInfo::UpdateOptionStatUI( const CX2SocketItem::SocketData& socketD
 		SetStatInfoGuideDesc( L"Button_Add", wstrTooTip.c_str() );
 	}
 	else
+	{
 		SetStatInfoGuideDesc( L"Button_Add", 
 			GET_REPLACED_STRING( ( STR_ID_13555, "ii", static_cast<int>( 1.5 * pow( 1, 0.65 ) * CX2SocketItem::GetFinalAdditionalAttackValue( socketData_.m_fAdditionalAttackValue, iMyLevel ) ), static_cast<int>( 1.5 * pow( 50, 0.65 ) * CX2SocketItem::GetFinalAdditionalAttackValue( socketData_.m_fAdditionalAttackValue, iMyLevel ) ) ) ) );
+	}
+#endif //ADJUST_BUFF_CALCULATE
 
 	// 명중
 	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", socketData_.m_fAntiEvadePercent );
@@ -2207,6 +1632,50 @@ void CX2UICharInfo::UpdateOptionStatUI( const CX2SocketItem::SocketData& socketD
 		SetStatInfoGuideDesc( L"Button_Accuracy", GET_REPLACED_STRING( ( STR_ID_12786, "f", CX2SocketItem::GetFinalAnitEvadePercent( socketData_.m_fAntiEvadePercent, iMyLevel ) * 100 ) ) );
 	
 	// 각성 충전 속도
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 //JHKang
+	UINT uStrID = STR_ID_13556;
+	float fHyperModeChargeRate = socketData_.m_fHyperModeChargeRate;
+
+	CKTDGUIControl::CPictureData* pChargeRate	= pStatic->GetPicture( 3 );
+	CKTDGUIControl::CPictureData* pDPcharge		= pStatic->GetPicture( 10 );
+
+	if ( NULL != pChargeRate && NULL != pDPcharge )
+	{
+		if ( CX2Unit::UT_ADD == eUnitType )
+		{
+			pChargeRate->SetShow( false );
+			pDPcharge->SetShow(true );
+			uStrID = STR_ID_29871;
+		}
+		else
+		{
+			pChargeRate->SetShow( true );
+			pDPcharge->SetShow( false );
+		}
+	}
+
+	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", fHyperModeChargeRate );
+	SetStatInfoStatic( L"Static_Charge", wszBuffer );
+
+	// 최대 표기 값 제한.
+	//const float fLimitValue = CX2Unit::UT_ADD == eUnitType ? 25.f: 50.f;
+	// 최대 표기 값 애드전용 예외 제거
+	const float fLimitValue = 50.f;		
+
+	// 최대 표기값 제한 한 결과 값
+	const float fResultHyperModeChargeIncreaseRate = 
+		min( fLimitValue, CX2SocketItem::GetFinalHyperGageChargeSpeedPercent( fHyperModeChargeRate, iMyLevel ) * 100 ) ;
+	// 각성 충전 속도 툴팁
+	if ( 23 < CX2UICharInfo::GetIntermediateHyperGageChargeSpeedValue( fHyperModeChargeRate, iMyLevel ) )
+	{
+		wstring wstrTooTip = GET_REPLACED_STRING( ( uStrID, "f", fResultHyperModeChargeIncreaseRate ) );
+		wstrTooTip += GET_STRING( STR_ID_13645 );
+		SetStatInfoGuideDesc( L"Button_Charge", wstrTooTip.c_str() );
+	}
+	else
+		SetStatInfoGuideDesc( L"Button_Charge", GET_REPLACED_STRING( ( uStrID, "f", fResultHyperModeChargeIncreaseRate ) ) );
+#else // SERV_9TH_NEW_CHARACTER
+	// 각성 충전 속도
 	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", socketData_.m_fHyperModeChargeRate );
 	SetStatInfoStatic( L"Static_Charge", wszBuffer );
 	
@@ -2219,12 +1688,44 @@ void CX2UICharInfo::UpdateOptionStatUI( const CX2SocketItem::SocketData& socketD
 	}
 	else
 		SetStatInfoGuideDesc( L"Button_Charge", GET_REPLACED_STRING( ( STR_ID_13556, "f", CX2SocketItem::GetFinalHyperGageChargeSpeedPercent( socketData_.m_fHyperModeChargeRate, iMyLevel ) * 100 ) ) );
+#endif // SERV_9TH_NEW_CHARACTER
 
+
+	// 각성 지속 시간
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 //JHKang
+	uStrID = STR_ID_13557;
+	float fHyperModeTime = socketData_.m_fHyperModeTime;
+
+	CKTDGUIControl::CPictureData* pHyperModeTime = pStatic->GetPicture( 4 );
+	CKTDGUIControl::CPictureData* pDPConsume	 = pStatic->GetPicture( 11 );
+
+	if ( NULL != pHyperModeTime && NULL != pDPConsume )
+	{
+		if ( CX2Unit::UT_ADD == eUnitType )
+		{
+			pHyperModeTime->SetShow( false );
+			pDPConsume->SetShow( true );
+			uStrID = STR_ID_29872;
+		}
+		else
+		{
+			pHyperModeTime->SetShow( true );
+			pDPConsume->SetShow( false );
+		}
+	}
+
+	StringCchPrintf( wszBuffer, MAX_PATH, L"%3.0f%%", fHyperModeTime );
+	SetStatInfoStatic( L"Static_Time", wszBuffer );
+	// 각성 지속 시간 툴팁
+	SetStatInfoGuideDesc( L"Button_Time", GET_REPLACED_STRING( ( uStrID, "f", fHyperModeTime ) ) );
+#else // SERV_9TH_NEW_CHARACTER
 	// 각성 지속 시간
 	StringCchPrintf( wszBuffer, MAX_PATH, L"%3.0f%%", socketData_.m_fHyperModeTime );
 	SetStatInfoStatic( L"Static_Time", wszBuffer );
 	// 각성 지속 시간 툴팁
 	SetStatInfoGuideDesc( L"Button_Time", GET_REPLACED_STRING( ( STR_ID_13557, "f", socketData_.m_fHyperModeTime ) ) );
+#endif // SERV_9TH_NEW_CHARACTER
+
 
 	// 회피
 	StringCchPrintf( wszBuffer, MAX_PATH, L"%5.0f", socketData_.m_fEvadePercent );
@@ -2446,7 +1947,7 @@ void CX2UICharInfo::UpdateOptionStatUI( const CX2SocketItem::SocketData& socketD
 void CX2UICharInfo::UpdateOptionStatFromSpecialSkill( CX2SocketItem::SocketData& socketData_ )
 {
 
-	CX2UserSkillTree& UserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& UserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 	int iSkillLevel = 0;
 #ifdef BALANCE_CODE_NEMESIS_20121213
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -2463,7 +1964,7 @@ void CX2UICharInfo::UpdateOptionStatFromSpecialSkill( CX2SocketItem::SocketData&
 		if( NULL != pSkillTemplet )
 		{
 			const float fCriticalRateValueAtkBase = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_CRITICAL_RATE_ATK_BASE, iSkillLevel );
-			const float fMixAtk = (m_pStat->GetStat()->m_fAtkMagic + m_pStat->GetStat()->m_fAtkPhysic) / 2;
+			const float fMixAtk = (m_Stat.GetStat().m_fAtkMagic + m_Stat.GetStat().m_fAtkPhysic) / 2;
 
 			float fPassiveCriticalValue = fMixAtk * fCriticalRateValueAtkBase;
 			socketData_.m_fPercentCritical += fPassiveCriticalValue;
@@ -2474,7 +1975,7 @@ void CX2UICharInfo::UpdateOptionStatFromSpecialSkill( CX2SocketItem::SocketData&
 		if( NULL != pSkillTemplet )
 		{
 			const float fCriticalRateValueAtkBase = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_CRITICAL_RATE_ATK_BASE );
-			const float fMixAtk = (m_pStat->GetStat()->m_fAtkMagic + m_pStat->GetStat()->m_fAtkPhysic) / 2;
+			const float fMixAtk = (m_Stat.GetStat().m_fAtkMagic + m_Stat.GetStat().m_fAtkPhysic) / 2;
 
 			float fPassiveCriticalValue = fMixAtk * fCriticalRateValueAtkBase;
 			socketData_.m_fPercentCritical += fPassiveCriticalValue;
@@ -2518,11 +2019,10 @@ void CX2UICharInfo::UpdateOptionStatFromSpecialSkill( CX2SocketItem::SocketData&
 {
 	if( NULL == g_pData || 
 		NULL == g_pData->GetMyUser() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		return;
 
-	const CX2UserSkillTree& UserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& UserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 
 	m_fAddEvadePercent = 0.f;
 
@@ -2565,7 +2065,7 @@ void CX2UICharInfo::UpdateOptionStatFromSpecialSkill_EVE(OUT CX2SocketItem::Sock
 			if( NULL != pSkillTemplet )
 			{
 				const float fCriticalRateValueAtkBase = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_CRITICAL_RATE_ATK_BASE, iSkillLevel );
-				const float fMixAtk = (m_pStat->GetStat()->m_fAtkMagic + m_pStat->GetStat()->m_fAtkPhysic) / 2;
+				const float fMixAtk = (m_Stat.GetStat().m_fAtkMagic + m_Stat.GetStat().m_fAtkPhysic) / 2;
 				float fPassiveCriticalValue = fMixAtk * fCriticalRateValueAtkBase;
 				socketData_.m_fPercentCritical += fPassiveCriticalValue;
 			}
@@ -2672,9 +2172,9 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 	CX2Stat TotalStat;
 	TotalStat.InitStat();
 
-	TotalStat.AddStat( *m_pStat->GetStat(), true );
+	TotalStat.AddStat( m_Stat.GetStat(), true );
 	
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 	CX2SkillTree* pSkillTree = g_pData->GetSkillTree();
 	int iSkillLevel = 0;
 
@@ -2687,10 +2187,10 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 		{
 #ifdef BALANCE_RUNE_SLAYER_20130214
 			// 물공 %만큼 마공증가
-			m_pStat->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
+			m_Stat.AccessStat().m_fAtkMagic += TotalStat.GetStat().m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
 #else
 			// 마공 %만큼 물공증가
-			m_pStat->GetStat()->m_fAtkPhysic += TotalStat.GetStat()->m_fAtkMagic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_MAGIC_TO_ATK_PHYSIC );
+			m_Stat.AccessStat().m_fAtkPhysic += TotalStat.GetStat().m_fAtkMagic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_MAGIC_TO_ATK_PHYSIC );
 #endif //BALANCE_RUNE_SLAYER_20130214
 		}
 	}
@@ -2704,7 +2204,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 		if( pSkillTemplet != NULL )
 		{
 			// 물공 %만큼 마공증가
-			m_pStat->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
+			m_Stat.AccessStat().m_fAtkMagic += TotalStat.GetStat().m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
 		}
 	}
 
@@ -2715,7 +2215,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 		if( pSkillTemplet != NULL )
 		{
 			// 물공 %만큼 마공증가
-			m_pStat->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
+			m_Stat.AccessStat().m_fAtkMagic += TotalStat.GetStat().m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
 		}
 	}
 #ifdef SERV_RENA_NIGHT_WATCHER
@@ -2726,7 +2226,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 		if( pSkillTemplet != NULL )
 		{
 			// 물공 %만큼 마공증가
-			m_pStat->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
+			m_Stat.AccessStat().m_fAtkMagic += TotalStat.GetStat().m_fAtkPhysic * pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_TO_ATK_MAGIC );
 		}
 	}
 #endif SERV_RENA_NIGHT_WATCHER
@@ -2747,7 +2247,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 
 		if( pSkillTemplet != NULL )
 		{
-			m_pStat->GetStat()->m_fDefMagic += TotalStat.GetStat()->m_fDefMagic * 
+			m_Stat.AccessStat().m_fDefMagic += TotalStat.GetStat().m_fDefMagic * 
 				CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DEF_MAGIC_REL, iSkillLevel ) );
 		}
 	#else // UPGRADE_SKILL_SYSTEM_2013
@@ -2755,7 +2255,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 
 		if( pSkillTemplet != NULL )
 		{
-			m_pStat->GetStat()->m_fDefMagic += TotalStat.GetStat()->m_fDefMagic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DEF_MAGIC_REL ) );
+			m_Stat.AccessStat().m_fDefMagic += TotalStat.GetStat().m_fDefMagic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DEF_MAGIC_REL ) );
 		}
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 	}
@@ -2774,7 +2274,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 
 		if( pSkillTemplet != NULL )
 		{
-			m_pStat->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkMagic * 
+			m_Stat.AccessStat().m_fAtkMagic += TotalStat.GetStat().m_fAtkMagic * 
 				CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_MAGIC_REL, iSkillLevel ) );
 		}
 	#else // UPGRADE_SKILL_SYSTEM_2013
@@ -2782,7 +2282,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 
 		if( pSkillTemplet != NULL )
 		{
-			m_pStat->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkMagic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_MAGIC_REL ) );
+			m_Stat.AccessStat().m_fAtkMagic += TotalStat.GetStat().m_fAtkMagic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_MAGIC_REL ) );
 		}
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 	}
@@ -2804,7 +2304,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 
 		if( pSkillTemplet != NULL )
 		{
-			m_pStat->GetStat()->m_fAtkPhysic += TotalStat.GetStat()->m_fAtkPhysic * 
+			m_Stat.AccessStat().m_fAtkPhysic += TotalStat.GetStat().m_fAtkPhysic * 
 				CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_REL, iSkillLevel  ) );
 		}
 	#else // UPGRADE_SKILL_SYSTEM_2013
@@ -2812,7 +2312,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 
 		if( pSkillTemplet != NULL )
 		{
-			m_pStat->GetStat()->m_fAtkPhysic += TotalStat.GetStat()->m_fAtkPhysic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_REL  ) );
+			m_Stat.AccessStat().m_fAtkPhysic += TotalStat.GetStat().m_fAtkPhysic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_REL  ) );
 		}
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 	}
@@ -2830,7 +2330,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 
 		if( pSkillTemplet != NULL )
 		{
-			m_pStat->GetStat()->m_fAtkPhysic += TotalStat.GetStat()->m_fAtkPhysic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_REL  ) );
+			m_Stat.AccessStat().m_fAtkPhysic += TotalStat.GetStat().m_fAtkPhysic * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_PHYSIC_REL  ) );
 		}
 	}
 #endif //UPGRADE_SKILL_SYSTEM_2013
@@ -2845,7 +2345,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 
 		if( NULL != pSkillTemplet )
 		{
-			m_pStat->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkMagic * CalculateIncreasingRate(
+			m_Stat.AccessStat().m_fAtkMagic += TotalStat.GetStat().m_fAtkMagic * CalculateIncreasingRate(
 				pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_MAGIC_REL, iSkillLevel ) );
 		}
 	}
@@ -2860,7 +2360,7 @@ void CX2UICharInfo::UpdateBasicStatFromSpecialSkill()
 
 		if( NULL != pSkillTemplet )
 		{
-			m_pStat->GetStat()->m_fAtkMagic += TotalStat.GetStat()->m_fAtkMagic * CalculateIncreasingRate(
+			m_Stat.AccessStat().m_fAtkMagic += TotalStat.GetStat().m_fAtkMagic * CalculateIncreasingRate(
 				pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_ATK_MAGIC_REL, iSkillLevel ) );
 		}
 	}
@@ -2898,9 +2398,6 @@ void CX2UICharInfo::SetStatInfoGuideDesc( const WCHAR* wszButtonName_, const WCH
 	@param : const vector<int>& vecOptions_(소켓옵션ID들), OUT CX2SocketItem::SocketData& sumSocketData_(Sum을 수행할 socketData), const int iSocketLevel_(소켓효과적용레벨)
 */
 void CX2UICharInfo::SumSocketOption( const vector<int>& vecOptions_, OUT CX2SocketItem::SocketData& sumSocketData_, const int iSocketLevel_ )
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-void CX2UICharInfo::SumSocketOption( const vector<int>& vecOptions_, OUT CX2SocketItem::SocketData& sumSocketData_ )
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 {
 	const CX2SocketItem* pSocketItem = g_pData->GetSocketItem();
@@ -2938,7 +2435,6 @@ void CX2UICharInfo::SumSocketOption( const vector<int>& vecOptions_, OUT CX2Sock
 		}
 
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	#ifdef VIEW_SPECIAL_OPTIONDATA
 		//오현빈//2012-10-13// 기본 스탯의 옵션수치화가 하드코딩 되어 있기 때문에 툴팁도 하드코딩
 		if( true == m_bShowPVPOption && true == pSocketData->m_bPVPOnly && 
@@ -2948,12 +2444,29 @@ void CX2UICharInfo::SumSocketOption( const vector<int>& vecOptions_, OUT CX2Sock
 		}
 		else
 	#endif //VIEW_SPECIAL_OPTIONDATA
-		{
-			sumSocketData_.ConvertAndAdd( *pSocketData, iSocketLevel_ );
+#ifdef LEVEL_LINKED_STAT_DUNGEON
+		if( false == pSocketData->m_bPVPOnly && 
+			true == pSocketData->m_bIsLevelLinkedStat )
+		{ 
+			sumSocketData_.LevelLinkedStatAdd( *pSocketData, iSocketLevel_ + pSocketData->m_iAddLevel );
 		}
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		sumSocketData_.Add( *pSocketData );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+		else
+#endif // LEVEL_LINKED_STAT_DUNGEON
+		{
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			if ( NULL != g_pData &&
+				 NULL != g_pData->GetMyUser() &&
+				 NULL != g_pData->GetMyUser()->GetSelectUnit()  )
+			{
+				CX2Unit::UNIT_TYPE eUnitType = g_pData->GetMyUser()->GetSelectUnit()->GetType();
+
+				sumSocketData_.ConvertAndAdd( *pSocketData, iSocketLevel_, eUnitType );
+			}
+	#else //SERV_9TH_NEW_CHARACTER
+			sumSocketData_.ConvertAndAdd( *pSocketData, iSocketLevel_ );
+	#endif //SERV_9TH_NEW_CHARACTER
+			
+		}
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업	
 	}			
 }
@@ -2963,9 +2476,7 @@ CX2SocketItem::SocketData CX2UICharInfo::GetMyEquippedSocketData()
 	CX2SocketItem::SocketData SocketDataRetVal;
 
 	CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
-	if( NULL == pUnit ||
-		NULL == pUnit->GetUnitData() ||
-		NULL == pUnit->GetInventory() )
+	if( NULL == pUnit )
 	{
 		return SocketDataRetVal; 
 	}
@@ -2974,13 +2485,12 @@ CX2SocketItem::SocketData CX2UICharInfo::GetMyEquippedSocketData()
     std::vector<int>    vecSocketOption;
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
-	for( int i = 0; i < (int)pUnit->GetUnitData()->m_NowEqipItemUIDList.size(); i++ )
+	for( int i = 0; i < (int)pUnit->GetUnitData().m_NowEqipItemUIDList.size(); i++ )
 	{
-		UidType eqipUID = pUnit->GetUnitData()->m_NowEqipItemUIDList[i];
-		CX2Item* pItem = pUnit->GetInventory()->GetItem( eqipUID );
+		UidType eqipUID = pUnit->GetUnitData().m_NowEqipItemUIDList[i];
+		CX2Item* pItem = pUnit->GetInventory().GetItem( eqipUID );
 
 		if( NULL == pItem ||  
-			NULL == pItem->GetItemData() ||
 			NULL == pItem->GetItemTemplet() 
             )
 		{
@@ -2989,34 +2499,56 @@ CX2SocketItem::SocketData CX2UICharInfo::GetMyEquippedSocketData()
 
 		//{{ kimhc // 실시간 엘소드 중 실시간 내구도 감소
 #ifdef REAL_TIME_ELSWORD
-		if ( ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData()->m_Endurance <= 0 ) )
+		if ( ( pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData().m_Endurance <= 0 ) )
 			continue;
 #endif REAL_TIME_ELSWORD
 		//}} kimhc // 실시간 엘소드 중 실시간 내구도 감소
 
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		// 착용레벨
 		int iItemSocketLevel = 0;
 
 		if ( 0 < pItem->GetItemTemplet()->GetUseLevel() )
 			iItemSocketLevel = pItem->GetItemTemplet()->GetUseLevel();
 		else
-			iItemSocketLevel = pUnit->GetUnitData()->m_Level;
+			iItemSocketLevel = pUnit->GetUnitData().m_Level;
 
 		// 아이템 고유의 소켓 옵션
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // 오현빈
 			// 랜덤 소켓 옵션 담기
-			if( NULL != pItem && NULL != pItem->GetItemData() )
+			if( NULL != pItem )
 			{
-				vecSocketOption.assign( pItem->GetItemData()->m_vecRandomSocket.begin(), 
-					pItem->GetItemData()->m_vecRandomSocket.end() );
+				vecSocketOption.assign( pItem->GetItemData().m_vecRandomSocket.begin(), 
+					pItem->GetItemData().m_vecRandomSocket.end() );
 			}
 			// 일반 소켓 옵션 담기
 			std::vector<int> vecNormalSocketOption;
 			pItem->GetItemTemplet()->GetSocketOptions( vecNormalSocketOption );
-
+#ifdef SERV_EVENT_VALENTINE_RING_IS_DUNGEON
+			//여기서 수치가 계산 되는지 확인해 보장 
+			std::vector<int>::iterator ivecIter;
+			for(ivecIter = vecNormalSocketOption.begin(); ivecIter != vecNormalSocketOption.end();)
+			{
+				if( (g_pMain!= NULL && g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP) || ( g_pX2Game != NULL && CX2Game::GT_DUNGEON != g_pX2Game->GetGameType() ) 
+					|| ( g_pData != NULL && g_pData->GetDungeonRoom() != NULL && g_pData->GetDungeonRoom()->GetDungeonID() != SEnum::DI_EVENT_VALENTINE_DUNGEON_INT ))
+				{
+					if( *ivecIter == 1090005 || *ivecIter == 1090006 || *ivecIter == 1090007 || *ivecIter == 1090008
+						|| *ivecIter == 1090009 || *ivecIter == 1090010 || *ivecIter == 1090011 || *ivecIter == 1090012 )
+					{
+						ivecIter = vecNormalSocketOption.erase(ivecIter++);
+					}
+					else
+					{
+						++ivecIter;
+					}
+				}
+				else
+				{
+					++ivecIter;
+				}
+			}		
+#endif SERV_EVENT_VALENTINE_RING_IS_DUNGEON
 			vecSocketOption.insert( vecSocketOption.end(), vecNormalSocketOption.begin(), vecNormalSocketOption.end() );
 	#else
 			pItem->GetItemTemplet()->GetSocketOptions( vecSocketOption );
@@ -3027,24 +2559,12 @@ CX2SocketItem::SocketData CX2UICharInfo::GetMyEquippedSocketData()
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 		// 아이템에 유저가 박은 소켓에 의한 옵션
-		SumSocketOption( pItem->GetItemData()->m_SocketOption, SocketDataRetVal, iItemSocketLevel );
+		SumSocketOption( pItem->GetItemData().m_SocketOption, SocketDataRetVal, iItemSocketLevel );
 
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		// 아이템 고유의 소켓 옵션
-#ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
-        SumSocketOption( pItem->GetItemTemplet(), SocketDataRetVal );
-#else   //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
-		SumSocketOption( pItem->GetItemTemplet()->m_vecSocketOption, SocketDataRetVal );
-#endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
-
-		// 아이템에 유저가 박은 소켓에 의한 옵션
-		SumSocketOption( pItem->GetItemData()->m_SocketOption, SocketDataRetVal );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업	
 	}
 	
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	// 세트 아이템
 
 	// 세트 아이디와 파츠 갯수를 얻는다
@@ -3069,7 +2589,7 @@ CX2SocketItem::SocketData CX2UICharInfo::GetMyEquippedSocketData()
 					SumSocketOption( vecOptions, SocketDataRetVal, iMaxLevel );
 				// 없으면 유저의 레벨을 소켓의 레벨로 사용
 				else
-					SumSocketOption( vecOptions, SocketDataRetVal, pUnit->GetUnitData()->m_Level );
+					SumSocketOption( vecOptions, SocketDataRetVal, pUnit->GetUnitData().m_Level );
 
 				// 옵션들을 GUUser가 가지고 있는 m_vecSetItemOptions에 넣어줌
 				vecOptions.resize(0);
@@ -3077,42 +2597,20 @@ CX2SocketItem::SocketData CX2UICharInfo::GetMyEquippedSocketData()
 			++mItr;
 		}		
 	}
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-	// 세트 아이템
-
-	// 세트 아이디와 파츠 갯수를 얻는다
-	map<int,int> mapSetIDNParts;
-	pUnit->GetSetIDNPartsNum( mapSetIDNParts );
-
-	//구한 세트아이디와 파츠갯수로 옵션을 뒤져보자
-	vector< int > vecSetItemOptions;
-	map< int, int >::iterator mit = mapSetIDNParts.begin();
-	for ( ; mit != mapSetIDNParts.end(); mit++ )
-	{
-		g_pData->GetItemManager()->GetSetItemOptions( mit->first, mit->second, vecSetItemOptions );
-	}
-
-	SumSocketOption( vecSetItemOptions, SocketDataRetVal );
-
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
-#ifdef TITLE_SYSTEM   
+//#ifdef TITLE_SYSTEM   
 	if(g_pData->GetTitleManager()->GetTitleInfo(pUnit->GetTitleId()) != NULL)
 	{
 		const vector< int >& vecTitleOptions = g_pData->GetTitleManager()->GetTitleInfo(pUnit->GetTitleId())->m_vecSocketOption;
 		
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		// 칭호 옵션조은 Socket레벨로 유저의 레벨을 전달
-		SumSocketOption( vecTitleOptions, SocketDataRetVal, pUnit->GetUnitData()->m_Level );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		SumSocketOption( vecTitleOptions, SocketDataRetVal );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+		SumSocketOption( vecTitleOptions, SocketDataRetVal, pUnit->GetUnitData().m_Level );
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업		
 	} // if
 
-#endif
+//#endif
 
 #ifdef PET_AURA_SKILL
 	if( g_pData != NULL && g_pData->GetPetManager() != NULL && g_pData->GetPetManager()->GetMyPet() != NULL )
@@ -3128,12 +2626,8 @@ CX2SocketItem::SocketData CX2UICharInfo::GetMyEquippedSocketData()
 				for( int j=0; j<iStep; ++j)
 				{		
 					//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 					// 펫 기운 스킬은 Socket레벨로 유저의 레벨을 전달
-					SumSocketOption( pTemplet->m_vecAuraSkillOption[j], SocketDataRetVal, pUnit->GetUnitData()->m_Level );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-					SumSocketOption( pTemplet->m_vecAuraSkillOption[j], SocketDataRetVal );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+					SumSocketOption( pTemplet->m_vecAuraSkillOption[j], SocketDataRetVal, pUnit->GetUnitData().m_Level );
 					//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업	
 					
 				}
@@ -3147,7 +2641,7 @@ CX2SocketItem::SocketData CX2UICharInfo::GetMyEquippedSocketData()
 	g_pData->GetPremiumBuffManager()->GetSocketOptions( vecBuffSocketOptions );
 
 	if ( !vecBuffSocketOptions.empty() )
-		SumSocketOption( vecBuffSocketOptions, SocketDataRetVal, pUnit->GetUnitData()->m_Level );
+		SumSocketOption( vecBuffSocketOptions, SocketDataRetVal, pUnit->GetUnitData().m_Level );
 #endif BUFF_TEMPLET_SYSTEM
 
 	SocketDataRetVal.LimitMaximum( true );
@@ -3157,8 +2651,7 @@ CX2SocketItem::SocketData CX2UICharInfo::GetMyEquippedSocketData()
 
 void CX2UICharInfo::ResetNowEquipUI()
 {
-	CX2Unit::UnitData* pMyUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+
 
 	for ( int i = 0; i < (int)m_SlotList.size(); i++ )
 	{
@@ -3170,12 +2663,16 @@ void CX2UICharInfo::ResetNowEquipUI()
 
 	}
 
-	if ( pMyUnitData != NULL && pInventory != NULL )
+    if ( g_pData->GetMyUser() != NULL
+        && g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
+	    const CX2Unit::UnitData* pMyUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	    const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+
 		for ( int i = 0; i < (int)pMyUnitData->m_NowEqipItemUIDList.size(); i++ )
 		{
 			UidType uidType = pMyUnitData->m_NowEqipItemUIDList[i];
-			CX2Item* pItem = pInventory->GetItem( uidType );
+			CX2Item* pItem = kInventory.GetItem( uidType );
 			if ( pItem == NULL )
 				continue;
 
@@ -3225,19 +2722,6 @@ void CX2UICharInfo::ResetEDnCashnVP()
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 
 	//{{ kimhc // 2011-07-18 // 옵션 수치화 작업
-#ifndef	NOT_USE_PERCENT_IN_OPTION_DATA
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-
-	pStaticUnitStat = (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticinfo_ed" );
-	pStaticUnitStat->GetString(0)->msg = g_pMain->GetEDString( (int)pUnitData->m_ED );
-
-#ifndef SERV_PVP_NEW_SYSTEM
-	pStaticUnitStat = (CKTDGUIStatic*)m_pDLGCharInfo->GetControl( L"g_pStaticInfo_vp" );
-	StringCchPrintf( buff, 256, L"%s / %s", g_pMain->GetEDString( (int)pUnitData->m_VSPoint ).c_str(), g_pMain->GetEDString( (int)pUnitData->m_VSPointMax ).c_str() );
-	pStaticUnitStat->GetString(0)->msg = buff;
-#endif //SERV_PVP_NEW_SYSTEM
-
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-18 // 옵션 수치화 작업
 }
 
@@ -3249,11 +2733,10 @@ void CX2UICharInfo::UpdateLevel()
 		return;
 
 	if( NULL == g_pData->GetMyUser() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		return;
 
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	const CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 	WCHAR wszText[32] = {0,};
 	//wsprintf( wszText, L"%d", (int)pUnitData->m_Level );
@@ -3299,8 +2782,7 @@ void CX2UICharInfo::EquipChanged()
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 	if ( NULL != g_pData &&
 		 NULL != g_pData->GetMyUser() &&
-		 NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		 NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		 NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
 		/// 스킬 추가 레벨 효과 갱신
 		g_pData->GetMyUser()->GetSelectUnit()->ResetIncreaseSkillLevelBySocket();
@@ -3428,11 +2910,10 @@ void CX2UICharInfo::DrawSlotMouseOverImage()
 			//{{ 2008.11.13 김태완 : UI 예외처리
 			//*m_DraggingItemUID = ((CX2SlotItem*)(*m_pSlotBeforeDragging))->GetItemUID();
 			//}}
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-			if( pInventory == NULL )
-				return;
+			const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+
 			
-			CX2Item *pItem = pInventory->GetItem( *m_DraggingItemUID );
+			CX2Item *pItem = kInventory.GetItem( *m_DraggingItemUID );
 			if( pItem == NULL )
 				return;
 
@@ -3568,6 +3049,14 @@ bool CX2UICharInfo::Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2SlotItem* pFromCX2
 		kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iToSlotID		= pToCX2SlotItem->GetSlotID();
 	}
 
+#ifdef SERV_SHARING_BANK_TEST
+	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = -1;
+	if( g_pData->GetUIManager() != NULL && g_pData->GetUIManager()->GetUIPrivateBank() != NULL )
+	{
+		kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = g_pData->GetUIManager()->GetUIPrivateBank()->GetShareUnitUID();
+	}
+#endif //SERV_SHARING_BANK_TEST
+
 	g_pData->GetServerProtocol()->SendPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ, kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ );
 	g_pMain->AddServerPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK );
 
@@ -3587,6 +3076,13 @@ bool CX2UICharInfo::Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2Inventory::SORT_TY
 	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cToSlotType	= toSortType;
 	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iToSlotID		= toSlotID;
 
+#ifdef SERV_SHARING_BANK_TEST
+	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = -1;
+	if( g_pData->GetUIManager() != NULL && g_pData->GetUIManager()->GetUIPrivateBank() != NULL )
+	{
+		kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = g_pData->GetUIManager()->GetUIPrivateBank()->GetShareUnitUID();
+	}
+#endif //SERV_SHARING_BANK_TEST
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ, kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ );
 	g_pMain->AddServerPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK );
@@ -3687,3 +3183,58 @@ void CX2UICharInfo::UpdateItemLevel()
 		}
 	}
 }
+
+#ifdef SERV_LOCAL_RANKING_SYSTEM
+void CX2UICharInfo::OpenProfilePasswordDlg()
+{
+	if(m_pDlgPassword != NULL)
+	{
+		g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDlgPassword, NULL, false );
+		m_pDlgPassword = NULL;
+	}
+
+	m_pDlgPassword = g_pMain->KTDGUIOkAndCancelEditBox_Hide( D3DXVECTOR2( 300, 300), GET_STRING( STR_ID_12537 ), CIM_PASSWORD_OK, g_pMain->GetNowState(),16,false, CIM_PASSWORD_CANCLE );
+	if( NULL == m_pDlgPassword )
+		return;
+
+	CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDlgPassword->GetControl( L"OkAndCancelEditBox" ));
+	if( NULL != pStatic )
+	{
+		CKTDGUIControl::CPictureData* pPicture = pStatic->GetPicture( 4 );
+		if( NULL != pPicture )
+		{
+			pPicture->SetSizeX( 250.f );
+		}
+		pPicture = pStatic->GetPicture( 5 );
+		if( NULL != pPicture )
+		{
+			pPicture->SetPos( D3DXVECTOR2( 280,50) );
+		}
+		pPicture = pStatic->GetPicture( 0 );
+		if( NULL != pPicture )
+		{
+			pPicture->SetSizeX( 310.0f );
+		}
+		pPicture = pStatic->GetPicture( 1 );
+		if( NULL != pPicture )
+		{
+			pPicture->SetSizeX( 310.0f );
+		}
+		pPicture = pStatic->GetPicture( 2 );
+		if( NULL != pPicture )
+		{
+			pPicture->SetSizeX( 310.0f );
+		}
+		CKTDGUIButton* pButton = static_cast<CKTDGUIButton*>(m_pDlgPassword->GetControl( L"Button_Check" ) );
+		if( NULL != pButton )
+		{
+			pButton->SetOffsetPos(D3DXVECTOR2(1,6));
+		}
+		pButton = static_cast<CKTDGUIButton*>(m_pDlgPassword->GetControl( L"Cancel" ) );
+		if( NULL != pButton )
+		{
+			pButton->SetOffsetPos(D3DXVECTOR2(4,6));
+		}
+	}
+}
+#endif // SERV_LOCAL_RANKING_SYSTEM

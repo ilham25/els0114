@@ -24,7 +24,7 @@ ImplToStringW( KCnNetLayer )
 	if( CKTDNUDPPtr spUDP = m_kLBSUdpEcho.GetKTUDP() )
 	{
 		iKTUDPPeerSize = spUDP->GetPeerSize();
-		iKTUDPPacketLossCount = spUDP->GetPacketLossCount();
+		//iKTUDPPacketLossCount = spUDP->GetPacketLossCount();
 		iUDPSendTraffic = spUDP->GetUDPSendTraffic();
 		iUDPRecvTraffic = spUDP->GetUDPRecvTraffic();
     }
@@ -33,7 +33,7 @@ ImplToStringW( KCnNetLayer )
 	if( spUDP != NULL )
 	{
 		iKTUDPPeerSize = m_kLBSUdpEcho.GetKTUDP()->GetPeerSize();
-		iKTUDPPacketLossCount = m_kLBSUdpEcho.GetKTUDP()->GetPacketLossCount();
+		//iKTUDPPacketLossCount = m_kLBSUdpEcho.GetKTUDP()->GetPacketLossCount();
 		iUDPSendTraffic = m_kLBSUdpEcho.GetKTUDP()->GetUDPSendTraffic();
 		iUDPRecvTraffic = m_kLBSUdpEcho.GetKTUDP()->GetUDPRecvTraffic();
 	}
@@ -43,7 +43,7 @@ ImplToStringW( KCnNetLayer )
 	return START_TOSTRING_PARENTW( KNetLayer )
 		<< TOSTRINGW( iKTUDPPeerSize )
 		//{{ 2009. 12. 14  최육사	RELAY서버예외처리
-		<< TOSTRINGW( iKTUDPPacketLossCount )
+		//<< TOSTRINGW( iKTUDPPacketLossCount )
 		//}}
 		//{{ 2010. 07. 05  최육사	UDP 트래픽 로그
 		<< TOSTRINGW( iUDPSendTraffic )

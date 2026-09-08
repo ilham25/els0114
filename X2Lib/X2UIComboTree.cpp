@@ -85,6 +85,15 @@ bool CX2UIComboTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 
 		} break;
 
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CTUCM_CATEGORY_SPECIAL_COMBO:		/// 특수 콤보 트리
+		{
+			UpdateComboTree( g_pData->GetMyUser()->GetSelectUnit()->GetClass(), CX2ComboTree::CC_SPECIAL );
+			return true;
+
+		} break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 
 	case CTUCM_SLIDE_OPACITY:
 		{
@@ -155,6 +164,11 @@ bool CX2UIComboTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 			case 4:
 				wstrm << L"#CFF4444" << L"\n" << GET_STRING(STR_ID_26861) << L"#CX" << L"\n";
 				break;
+		#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+			case 5:
+				wstrm << L"#CD4B5FF" << L"\n" << GET_STRING(STR_ID_29882) << L"#CX" << L"\n";
+				break;
+		#endif //SERV_9TH_NEW_CHARACTER
 			}
 #else
 			if( iDummyInt == 1) // 활력
@@ -304,6 +318,16 @@ void CX2UIComboTree::UpdateComboTree( CX2Unit::UNIT_CLASS eUnitClass, CX2ComboTr
 	if( m_hDLGComboTree == NULL )
 		return;
 
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	const wstring staticControlName[5] = 
+	{
+		L"Static_Normal_Combo_Created",
+		L"Static_Jump_Combo_Created",
+		L"Static_Dash_Combo_Created",
+		L"Static_DashJump_Combo_Created",
+		L"Static_Special_Created",			/// 특수 콤보 트리
+	};
+#else // SERV_ADD_LUNATIC_PSYKER
 	const wstring staticControlName[4] = 
 	{
 		L"Static_Normal_Combo_Created",
@@ -311,9 +335,15 @@ void CX2UIComboTree::UpdateComboTree( CX2Unit::UNIT_CLASS eUnitClass, CX2ComboTr
 		L"Static_Dash_Combo_Created",
 		L"Static_DashJump_Combo_Created",
 	};
-
+#endif // SERV_ADD_LUNATIC_PSYKER
+	
 	if( m_eUnitClass != eUnitClass )
 	{
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		/// 타 캐릭터로 처음 갱신시, 일반 페이지 표시
+		eComboCategory = CX2ComboTree::CC_NORMAL;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 		const CX2ComboTree::ComboSet* pComboSet = g_pData->GetComboTree()->GetUnitComboSet( eUnitClass );
 		ASSERT( NULL != pComboSet );
 		if( NULL == pComboSet )
@@ -336,6 +366,9 @@ void CX2UIComboTree::UpdateComboTree( CX2Unit::UNIT_CLASS eUnitClass, CX2ComboTr
 			m_vecMouseOverButton[1].clear();
 			m_vecMouseOverButton[2].clear();
 			m_vecMouseOverButton[3].clear();
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+			m_vecMouseOverButton[4].clear();
+#endif //SERV_ADD_LUNATIC_PSYKER
 		}
 		m_iNumMouseOverButton = 0;
 #endif COMBO_TREE_TOOLTIP
@@ -371,6 +404,12 @@ void CX2UIComboTree::UpdateComboTree( CX2Unit::UNIT_CLASS eUnitClass, CX2ComboTr
 				{
 					pvecCombo = &pComboSet->m_vecDashJumpCombo;
 				} break;
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+			case 4:		/// 특수 콤보 트리
+				{
+					pvecCombo = &pComboSet->m_vecSpecialCombo;
+				} break;
+#endif //SERV_ADD_LUNATIC_PSYKER
 			}
 
 
@@ -396,6 +435,19 @@ void CX2UIComboTree::UpdateComboTree( CX2Unit::UNIT_CLASS eUnitClass, CX2ComboTr
 #endif COMBO_TREE_TOOLTIP
 			}
 		}
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		/// 특수 콤보 트리 표기 설정
+		CKTDGUIRadioButton* pRadio_Special = (CKTDGUIRadioButton*) m_hDLGComboTree->GetControl( L"RadioButton_Special" );
+
+		if ( NULL != g_pData && NULL != pRadio_Special )
+		{
+			/// 특수 콤보 설정이 되어 있다면, 표기
+			bool bShow = ( true == pComboSet->m_vecSpecialCombo.empty() ) ? false : true;
+
+			pRadio_Special->SetShow( bShow );
+		}
+#endif //SERV_ADD_LUNATIC_PSYKER
 	}
 
 
@@ -478,6 +530,24 @@ void CX2UIComboTree::UpdateComboTree( CX2Unit::UNIT_CLASS eUnitClass, CX2ComboTr
 			}
 #endif COMBO_TREE_TOOLTIP
 		} break;
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CX2ComboTree::CC_SPECIAL:		/// 특수 콤보 트리
+		{
+			CKTDGUIStatic* pStaticCombo	= (CKTDGUIStatic*) m_hDLGComboTree->GetControl( staticControlName[4].c_str() );
+
+			pStaticCombo->SetShowEnable( true, true );
+
+			CKTDGUIRadioButton* pRadio_Special = (CKTDGUIRadioButton*) m_hDLGComboTree->GetControl( L"RadioButton_Special" );
+			pRadio_Special->SetChecked( true );
+	#ifdef COMBO_TREE_TOOLTIP
+			for(UINT i=0; i< m_vecMouseOverButton[4].size(); i++ )
+			{
+				CKTDGUIButton* pButton	= m_vecMouseOverButton[4][i];
+				pButton->SetShowEnable( true, true );
+			}
+	#endif COMBO_TREE_TOOLTIP
+		} break;
+#endif //SERV_ADD_LUNATIC_PSYKER
 	}
 
 }
@@ -541,6 +611,12 @@ D3DXVECTOR2 CX2UIComboTree::CalcPicturePosition( CX2ComboTree::COMBO_TREE_ICON e
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND
 		case CX2ComboTree::CTI_Z_WOLF_TOOTH:
 #endif //SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+		case CX2ComboTree::CTI_RIGHT_Z_PURPLE:
+		case CX2ComboTree::CTI_RIGHT_X_PURPLE:
+		case CX2ComboTree::CTI_RIGHT_Z_PURPLE_CONTINUE:
+		case CX2ComboTree::CTI_RIGHT_X_PURPLE_CHARGE:
+#endif //SERV_9TH_NEW_CHARACTER
 		{
 			vReturnPosition += vOffsetOneKey;
 		} break;
@@ -682,6 +758,15 @@ D3DXVECTOR2 CX2UIComboTree::CalcPicturePosition( CX2ComboTree::COMBO_TREE_ICON e
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117
 	case CX2ComboTree::CTI_ICON_HURRICANE:					/// 엘리멘탈 마스터 허리케인
 #endif BALANCE_ELEMENTAL_MASTER_20130117
+#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+	case CX2ComboTree::CTI_ICON_DYNAMO_Z:
+	case CX2ComboTree::CTI_ICON_DYNAMO_X:
+	case CX2ComboTree::CTI_ICON_DYNAMO_ROLLING:
+	case CX2ComboTree::CTI_ICON_DYNAMO_TELEPORT:
+	case CX2ComboTree::CTI_ICON_FIST_NA:
+	case CX2ComboTree::CTI_ICON_KICK_NA:
+	case CX2ComboTree::CTI_ICON_NA:
+#endif //SERV_9TH_NEW_CHARACTER
 		{
 			vReturnPosition += vOffsetIcon;
 		} break;
@@ -777,7 +862,6 @@ bool CX2UIComboTree::GetComboIconTextureName( std::wstring& textureName, std::ws
 	case CX2ComboTree::CTI_DOWN_X:			textureName = L"DLG_UI_COMMON_TEXTURE11.TGA";			pieceName = L"DOWN_X_OVER";		 break;
 
 #ifdef COMBO_TREE_TOOLTIP
-#ifdef REFORM_UI_CHARACTER_INFO
 	case CX2ComboTree::CTI_Z_BLUE:			textureName = L"DLG_UI_Common_Texture16_NEW.tga";	pieceName = L"Z_B";		break;
 	case CX2ComboTree::CTI_X_BLUE:			textureName = L"DLG_UI_Common_Texture16_NEW.tga";	pieceName = L"X_B";		break;
 	case CX2ComboTree::CTI_Z_CONTINUE_BLUE:	textureName = L"DLG_UI_Common_Texture16_NEW.tga";	pieceName = L"ZZ_B";		break;
@@ -803,33 +887,6 @@ bool CX2UIComboTree::GetComboIconTextureName( std::wstring& textureName, std::ws
 	case CX2ComboTree::CTI_UP_X_RED:		textureName = L"DLG_UI_Common_Texture16_NEW.tga";	pieceName = L"X_UP_R";		break;
 	case CX2ComboTree::CTI_DOWN_Z_RED:		textureName = L"DLG_UI_Common_Texture16_NEW.tga";	pieceName = L"Z_DOWN_R";	break;
 	case CX2ComboTree::CTI_DOWN_X_RED:		textureName = L"DLG_UI_Common_Texture16_NEW.tga";	pieceName = L"X_DOWN_R";	break;
-#else
-	case CX2ComboTree::CTI_Z_BLUE:					textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_BLUE";		break;
-	case CX2ComboTree::CTI_X_BLUE:					textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_BLUE";		break;
-	case CX2ComboTree::CTI_Z_CONTINUE_BLUE:			textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"ZZ_B";		break;
-	case CX2ComboTree::CTI_X_CONTINUE_BLUE:			textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"XX_B";		break;
-	case CX2ComboTree::CTI_LEFT_Z_BLUE:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_BACK_B";	break;
-	case CX2ComboTree::CTI_LEFT_X_BLUE:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_BACK_B";	break;
-	case CX2ComboTree::CTI_RIGHT_Z_BLUE:			textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_FRONT_B";	break;
-	case CX2ComboTree::CTI_RIGHT_X_BLUE:			textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_FRONT_B";	break;
-	case CX2ComboTree::CTI_UP_Z_BLUE:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_UP_B";		break;
-	case CX2ComboTree::CTI_UP_X_BLUE:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_UP_B";		break;
-	case CX2ComboTree::CTI_DOWN_Z_BLUE:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_DOWN_B";	break;
-	case CX2ComboTree::CTI_DOWN_X_BLUE:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_DOWN_B";	break;
-
-	case CX2ComboTree::CTI_Z_RED:					textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_RED";		break;
-	case CX2ComboTree::CTI_X_RED:					textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_RED";		break;
-	case CX2ComboTree::CTI_Z_CONTINUE_RED:			textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"ZZ_R";		break;
-	case CX2ComboTree::CTI_X_CONTINUE_RED:			textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"XX_R";		break;
-	case CX2ComboTree::CTI_LEFT_Z_RED:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_BACK_R";	break;
-	case CX2ComboTree::CTI_LEFT_X_RED:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_BACK_R";	break;
-	case CX2ComboTree::CTI_RIGHT_Z_RED:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_FRONT_R";	break;
-	case CX2ComboTree::CTI_RIGHT_X_RED:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_FRONT_R";	break;
-	case CX2ComboTree::CTI_UP_Z_RED:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_UP_R";		break;
-	case CX2ComboTree::CTI_UP_X_RED:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_UP_R";		break;
-	case CX2ComboTree::CTI_DOWN_Z_RED:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"Z_DOWN_R";	break;
-	case CX2ComboTree::CTI_DOWN_X_RED:				textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"X_DOWN_R";	break;
-#endif
 #endif COMBO_TREE_TOOLTIP
 #ifdef RAVEN_WEAPON_TAKER
 	case CX2ComboTree::CTI_X_CONTINUE_OVERHEAT:		textureName = L"DLG_UI_Common_Texture21.tga";			pieceName = L"XX_R";		break;
@@ -851,6 +908,20 @@ bool CX2UIComboTree::GetComboIconTextureName( std::wstring& textureName, std::ws
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND
 		case CX2ComboTree::CTI_Z_WOLF_TOOTH:		textureName = L"DLG_UI_Common_Texture16_NEW.tga";	pieceName = L"Z_R";		break;
 #endif //SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_9TH_NEW_CHARACTER
+		case CX2ComboTree::CTI_ICON_DYNAMO_Z:			textureName = L"DLG_UI_Common_Texture80_NEW.tga";	pieceName = L"COMMAND_ICON_Add_Z";				break;
+		case CX2ComboTree::CTI_ICON_DYNAMO_X:			textureName = L"DLG_UI_Common_Texture20.tga";		pieceName = L"COMMAND_ICON_Add_X";				break;
+		case CX2ComboTree::CTI_ICON_DYNAMO_ROLLING:		textureName = L"DLG_UI_Common_Texture20.tga";		pieceName = L"COMMAND_ICON_Add_Wheel";			break;
+		case CX2ComboTree::CTI_ICON_DYNAMO_TELEPORT:	textureName = L"DLG_UI_Common_Texture20.tga";		pieceName = L"COMMAND_ICON_Add_Teleport";		break;
+		case CX2ComboTree::CTI_ICON_FIST_NA:			textureName = L"DLG_UI_Common_Texture18.tga";		pieceName = L"COMMAND_ICON_PUNCH";				break;	
+		case CX2ComboTree::CTI_ICON_KICK_NA:			textureName = L"DLG_UI_Common_Texture18.tga";		pieceName = L"COMMAND_ICON_KICK";				break;
+		case CX2ComboTree::CTI_RIGHT_Z_PURPLE:			textureName = L"DLG_UI_Common_Texture80_NEW.tga";	pieceName = L"COMMAND_ICON_Z_Purple";			break;
+		case CX2ComboTree::CTI_RIGHT_X_PURPLE:			textureName = L"DLG_UI_Common_Texture80_NEW.tga";	pieceName = L"COMMAND_ICON_X_Purple";			break;
+		case CX2ComboTree::CTI_RIGHT_Z_PURPLE_CONTINUE:	textureName = L"DLG_UI_Common_Texture80_NEW.tga";	pieceName = L"COMMAND_ICON_Z_Purple_CONTINUE";	break;
+		case CX2ComboTree::CTI_RIGHT_X_PURPLE_CHARGE:	textureName = L"DLG_UI_Common_Texture80_NEW.tga";	pieceName = L"COMMAND_ICON_X_Purple_CHARGE";	break;
+		case CX2ComboTree::CTI_ICON_NA:					textureName = L"DLG_UI_Common_Texture20.tga";		pieceName = L"ICON_NA";							break;
+#endif //SERV_9TH_NEW_CHARACTER
 
 		// 띄우기 공격인지 다운공격인지 표시
 	case CX2ComboTree::CTI_UP_DECISION:
@@ -1070,6 +1141,7 @@ void CX2UIComboTree::CreateMouseOverButton( const CX2ComboTree::ComboIcon& eIcon
 {
 	bool bCheck = false;
 	float fAddSizeX = 0.f;
+	float fAddSizeY = 0.f;
 	int iDummyInt = 0;
 	switch( eIcon_.m_eComboIcon )
 	{
@@ -1083,6 +1155,15 @@ void CX2UIComboTree::CreateMouseOverButton( const CX2ComboTree::ComboIcon& eIcon
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND
 	case CX2ComboTree::CTI_Z_WOLF_TOOTH:
 #endif //SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+	case CX2ComboTree::CTI_ICON_FIST_NA:
+	case CX2ComboTree::CTI_ICON_KICK_NA:
+	case CX2ComboTree::CTI_RIGHT_Z_PURPLE:
+	case CX2ComboTree::CTI_RIGHT_X_PURPLE:
+	case CX2ComboTree::CTI_RIGHT_Z_PURPLE_CONTINUE:
+	case CX2ComboTree::CTI_RIGHT_X_PURPLE_CHARGE:
+	case CX2ComboTree::CTI_ICON_NA:
+#endif //SERV_9TH_NEW_CHARACTER
 		{
 			bCheck = true;
 		} break;
@@ -1164,14 +1245,28 @@ void CX2UIComboTree::CreateMouseOverButton( const CX2ComboTree::ComboIcon& eIcon
 	case CX2ComboTree::CTI_X_DRAGON_TOOTH:
 		{
 			iDummyInt = 3;
-		}
+		} break;
 #endif
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND
 	case CX2ComboTree::CTI_Z_WOLF_TOOTH:
 		{
 			iDummyInt = 4;
-		}
+		} break;
 #endif //SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+	case CX2ComboTree::CTI_ICON_FIST_NA:
+	case CX2ComboTree::CTI_ICON_KICK_NA:
+	case CX2ComboTree::CTI_RIGHT_Z_PURPLE:
+	case CX2ComboTree::CTI_RIGHT_X_PURPLE:
+	case CX2ComboTree::CTI_RIGHT_Z_PURPLE_CONTINUE:
+	case CX2ComboTree::CTI_RIGHT_X_PURPLE_CHARGE:
+	case CX2ComboTree::CTI_ICON_NA:
+		{
+			iDummyInt = 5;
+			fAddSizeX = 20.f;
+			fAddSizeY = 20.f;
+		} break;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 
 
@@ -1190,19 +1285,19 @@ void CX2UIComboTree::CreateMouseOverButton( const CX2ComboTree::ComboIcon& eIcon
 
 	CKTDGUIControl::UIPointData* pNormalPointData = new CKTDGUIControl::UIPointData();
 	pNormalPointData->leftTopPoint = CalcPicturePosition( eIcon_.m_eComboIcon, eIcon_.m_vLeftTop );
-	pNormalPointData->addSize.y = 20.f;
+	pNormalPointData->addSize.y = 20.f + fAddSizeY;
 	pNormalPointData->addSize.x = 20.f + fAddSizeX;
 	pNormalPointData->color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.0f);
 
 	CKTDGUIControl::UIPointData* pOverPointData = new CKTDGUIControl::UIPointData();
 	pOverPointData->leftTopPoint = CalcPicturePosition( eIcon_.m_eComboIcon, eIcon_.m_vLeftTop );
-	pOverPointData->addSize.y = 20.f;
+	pOverPointData->addSize.y = 20.f + fAddSizeY;
 	pOverPointData->addSize.x = 20.f + fAddSizeX;
 	pOverPointData->color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.0f);
 
 	CKTDGUIControl::UIPointData* pDownPointData = new CKTDGUIControl::UIPointData();
 	pDownPointData->leftTopPoint = CalcPicturePosition( eIcon_.m_eComboIcon, eIcon_.m_vLeftTop );
-	pDownPointData->addSize.y = 20.f;
+	pDownPointData->addSize.y = 20.f + fAddSizeY;
 	pDownPointData->addSize.x = 20.f + fAddSizeX;
 	pDownPointData->color = D3DXCOLOR(1.0f, 1.0f, 1.0f, 0.0f);
 
@@ -1214,7 +1309,11 @@ void CX2UIComboTree::CreateMouseOverButton( const CX2ComboTree::ComboIcon& eIcon
 	pMouseOverButton->SetShowEnable( false, false );
 	pMouseOverButton->AddDummyInt(iDummyInt);
 
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	if(staticComboIndex_ >= 0 && staticComboIndex_ < 5 )
+#else //SERV_ADD_LUNATIC_PSYKER
 	if(staticComboIndex_ >= 0 && staticComboIndex_ < 4 )
+#endif //SERV_ADD_LUNATIC_PSYKER
 	{
 		m_vecMouseOverButton[staticComboIndex_].push_back(pMouseOverButton);
 	}

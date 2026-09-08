@@ -13,7 +13,7 @@ const wchar_t*  KTradeFSM::ms_szInput[] =
 #   include "TradeFSMInput_def.h" 
 };
 
-KTradeFSM::KTradeFSM() : FSMclass( KTradeFSM::ENUM_STATE::S_INIT )
+KTradeFSM::KTradeFSM() : FSMclass( S_INIT )
 {
 	// S_INIT
 	FSMstate* pState = new FSMstate( S_INIT, 1 );

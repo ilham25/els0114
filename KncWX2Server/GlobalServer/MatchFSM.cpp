@@ -11,7 +11,7 @@ const wchar_t*  KMatchFSM::ms_szInput[] = {
 #   include "MatchFSMInput_def.h" 
 };
 
-KMatchFSM::KMatchFSM() : FSMclass( KMatchFSM::ENUM_STATE::S_INIT )
+KMatchFSM::KMatchFSM() : FSMclass( KMatchFSM::S_INIT )
 {
     // S_INIT
     FSMstate* pState = new FSMstate( S_INIT, 1 );

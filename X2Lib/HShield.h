@@ -95,21 +95,9 @@ Tag Information:
 #define	AHNHS_SELFDESTRUCTION_RATIO_VERYSLOW		0x800	//5분
 
 // Hardware Automacro Detect Ratio
-#define	AHNHS_HARDWARE_AUTOMACRO_RATIO_HIGH			0x1000	// 10 Clicks for 0.5 second
-#define	AHNHS_HARDWARE_AUTOMACRO_RATIO_NORMAL		0x2000	// 30 Clicks for 0.5 second
-#define	AHNHS_HARDWARE_AUTOMACRO_RATIO_LOW			0x4000	// 50 Clicks for 0.5 second
-
-// Local PC 인증정보 옵션 및 그에 따른 데이터 크기
-#define OPTION_NO_CHECK			1		
-#define OPTION_CHECK_INTEGRITY	2
-
-#define DATASIZE_NO_CHECK			16
-#define DATASIZE_CHECK_INTEGRITY	48
-
-// Local PC 인증정보를 구성하는 데이터의 레벨
-#define DATALEVEL_DEFAULT	1
-#define DATALEVEL_HIGHER	2
-#define DATALEVEL_HIGHEST	3
+#define	AHNHS_HARDWARE_AUTOMACRO_RATIO_HIGH			0x1000	// 8 Clicks for 0.5 second
+#define	AHNHS_HARDWARE_AUTOMACRO_RATIO_NORMAL		0x2000	// 12 Clicks for 0.5 second
+#define	AHNHS_HARDWARE_AUTOMACRO_RATIO_LOW			0x4000	// 15 Clicks for 0.5 second
 
 //-------------------------------------------------
 //ERROR CODE
@@ -382,6 +370,25 @@ typedef struct
 	int		nCount;
 } AHNHS_AFCEX_QUERY_INFO, *PAHNHS_AFCEX_QUERY_INFO;
 
+//  QueryProcessInformation Structure
+typedef struct _AHNHS_PROCESS_INFO
+{
+	DWORD dwPID;			// process ID
+	DWORD dwReserved;
+} AHNHS_PROCESS_INFO, *PAHNHS_PROCESS_INFO;
+
+// Local PC 인증정보 옵션 및 그에 따른 데이터 크기
+#define OPTION_NO_CHECK			1		
+#define OPTION_CHECK_INTEGRITY	2
+
+#define DATASIZE_NO_CHECK			16
+#define DATASIZE_CHECK_INTEGRITY	48
+
+// Local PC 인증정보를 구성하는 데이터의 레벨
+#define DATALEVEL_DEFAULT	1
+#define DATALEVEL_HIGHER	2
+#define DATALEVEL_HIGHEST	3
+
 #pragma pack(pop)
 
 //-------------------------------------------------
@@ -391,7 +398,6 @@ typedef struct
 #define SIZEOF_ACKMSG		ANTICPX_TRANS_BUFFER_MAX
 #define SIZEOF_GUIDREQMSG	ANTICPX_TRANS_BUFFER_MAX
 #define SIZEOF_GUIDACKMSG	ANTICPX_TRANS_BUFFER_MAX
-
 
 //-------------------------------------------------
 // HackShield 동작 상태 값  
@@ -451,6 +457,8 @@ extern "C"
 	// LMP 기능
 	#define	_AhnHS_IsModuleSecure(arg1)			TRUE
 	
+	#define _AhnHS_QueryProcessInformation (arg1, arg2, arg3)		HS_ERR_OK
+	
 	// 확장서버연동
 	#define _AhnHS_MakeResponse(arg1,arg2,arg3)				HS_ERR_OK
 
@@ -471,7 +479,7 @@ extern "C"
 	#define _AhnHS_ThreadStartEx()							HS_ERR_OK
 	#define _AhnHS_ThreadStopEx()							HS_ERR_OK
 	#define _AhnHS_CheckProtectedStatus(arg1);				HS_ERR_OK
-	#define _AhnHS_SetProtectedFunction(arg1);				HS_ERR_OK
+	#define _AhnHS_SetProtectedFunction(arg1);				HS_ERR_OK	
 	
 	// 사용자 Local PC 식별정보 전달
 	#define _AhnHS_AuthenticateLocalPC(arg1,arg2,arg3,arg4,arg5)		HS_ERR_OK
@@ -773,9 +781,9 @@ _AhnHS_SetUserIdW (
  * @remarks	핵쉴드 모니터링 서비스가 시작된 이후에 게임에서 변경하고자 하는 모니터링 정보를 업데이트한다.
  *
  * @param	IN AHNHS_EXT_ERRORINFO HsExtErrorInfo :  모니터링 관련 입력 정보들
-          - Server URL       ( NULL )
-		  - User ID            ( "User1" )
-		  - Game Version  ( "5.0.2.1" )
+                                  - Server URL	  ( NULL )
+								  - User ID		  ( "User1" )
+								  - Game Version  ( "5.0.2.1" )
  */
 void
 __stdcall 
@@ -793,6 +801,7 @@ _AhnHS_UpdateMonitorInfoW (
 #else
 	#define _AhnHS_UpdateMonitorInfo	_AhnHS_UpdateMonitorInfoA
 #endif // !UNICODE
+
 
 /*!
  * 
@@ -987,10 +996,32 @@ _AhnHS_SetProtectedFunction( IN DWORD dwIndex );
 
 /*!
  * 
+ * 프로세스정보 리스트를 전달하는 함수.
+ *
+ * @param	[OUT] PVOID pProcessInfo		: 프로세스 목록을 전달받을 버퍼 주소
+ * @param	[IN] DWORD dwProcessInfoLength	: 프로세스 목록을 전달받을 버퍼의 크기
+ * @param	[OUT] PDWORD pdwReturnLength	: 프로세스 목록 버퍼에 기록한 데이터 크기
+ *
+ * @retval	HS_ERR_OK : 성공, 이외는 실패
+ * @remarks
+ *		2번째 인자(dwProcessInfoLength)가 0인경우 
+ *      3번째 인자(pdwReturnLength)를 통해 전체 프로세스의 크기를 알려준다.
+ */
+int
+__stdcall 
+_AhnHS_QueryProcessInformation(
+						  OUT PVOID pProcessInfo,		// 프로세스 목록을 전달받을 버퍼 주소
+						  IN DWORD dwProcessInfoLength,	// 프로세스 목록을 전달받을 버퍼 크기
+						  OUT PDWORD pdwReturnLength	// 프로세스 목록 버퍼에 기록한 데이터의 크기
+						  );
+
+
+/*!
+ * 
  * Local PC 의 고유 정보(HD Key)를 전달하여 해당 PC를 인증하기 위한 함수
  *
  * @param	[IN] DWORD dwSessionId			: 세션 ID 
- * @param	[OUT] PBYTE pbyAuthData			: Local PC 의 고유 정보
+ * @param	[OUT] PBYTE pbyAuthData			: Local PC를 인증하기 위한 정보
  * @param	[OUT] PDWORD pdwDataLength		: pbyAuthData 데이터의 크기
  * @param	[IN] DWORD dwCheckOption		: pbyAuthData 의 구조를 결정짓는 옵션값
  * @param	[IN] DWORD dwDataLevel			: HD Key 값을 구성하는 데이터의 레벨
@@ -999,9 +1030,8 @@ _AhnHS_SetProtectedFunction( IN DWORD dwIndex );
  *
  * @remarks
  *			dwCheckOption:	OPTION_NO_CHECK or OPTION_CHECK_INTEGRITY 만 가능  	
- *			dwDataLevel:	기본값은 DATALEVEL_HIGHEST			
- */
-int
+ *			dwDataLevel:	기본값은 DATALEVEL_HIGHEST 			
+ */int
 __stdcall 
 _AhnHS_AuthenticateLocalPC(
 						  IN DWORD dwSessionId,		
@@ -1010,7 +1040,7 @@ _AhnHS_AuthenticateLocalPC(
 						  IN DWORD dwCheckOption,
 						  IN DWORD dwDataLevel = DATALEVEL_HIGHEST
 						  );
-						  
+
 
 /*
  * 

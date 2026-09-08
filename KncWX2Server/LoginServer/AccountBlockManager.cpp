@@ -12,7 +12,7 @@ ImplementSingleton( KAccountBlockManager );
 
 KAccountBlockManager::KAccountBlockManager(void)
 {
-	for( int iBlockType = 0; iBlockType < BLOCK_TYPE::BT_MAX; ++iBlockType )
+	for( int iBlockType = 0; iBlockType < BT_MAX; ++iBlockType )
 	{
 		m_iReleaseTick[iBlockType] = 0;
 	}
@@ -77,7 +77,7 @@ void KAccountBlockManager::UpdateAccountBlockList( IN const KDBE_CHECK_ACCOUNT_B
 			const int iBlockType = mit->first;
 			const int iReleaseTick = mit->second;
 
-			if( iBlockType < 0  ||  iBlockType >= BLOCK_TYPE::BT_MAX )
+			if( iBlockType < 0  ||  iBlockType >= BT_MAX )
 				continue;
 
 			m_iReleaseTick[iBlockType] = iReleaseTick;
@@ -91,7 +91,7 @@ void KAccountBlockManager::UpdateAccountBlockList( IN const KDBE_CHECK_ACCOUNT_B
 			const BLOCK_TYPE eBlockType = static_cast<BLOCK_TYPE>(mit->first);
 			const std::set< UidType >& setNewBlockList = mit->second;
 
-			if( eBlockType < 0  ||  eBlockType >= BLOCK_TYPE::BT_MAX )
+			if( eBlockType < 0  ||  eBlockType >= BT_MAX )
 				continue;
 
 			{ // 기존 리스트에 없었던 유저들은 따로 골라낸다!
@@ -131,7 +131,7 @@ void KAccountBlockManager::UpdateAccountBlockList( IN const KDBE_CHECK_ACCOUNT_B
 			const int iBlockType = mit->first;
 			const std::set< UidType >& setNewBlockList = mit->second;
 
-			if( iBlockType < 0  ||  iBlockType >= BLOCK_TYPE::BT_MAX )
+			if( iBlockType < 0  ||  iBlockType >= BT_MAX )
 				continue;
 
 			const u_int uiOldCount = m_setAccountBlockList[iBlockType].size();
@@ -178,7 +178,7 @@ void KAccountBlockManager::GetReleaseTick( OUT std::map< int, int >& mapReleaseT
 {
 	mapReleaseTick.clear();
 
-	for( int iBlockType = 0; iBlockType < BLOCK_TYPE::BT_MAX; ++iBlockType )
+	for( int iBlockType = 0; iBlockType < BT_MAX; ++iBlockType )
 	{
 		mapReleaseTick.insert( std::make_pair( iBlockType, m_iReleaseTick[iBlockType] ) );
 	}
@@ -186,7 +186,7 @@ void KAccountBlockManager::GetReleaseTick( OUT std::map< int, int >& mapReleaseT
 
 void KAccountBlockManager::AddBlockedAccount( IN const UidType iUserUID, IN const BLOCK_TYPE eBlockType )
 {
-	if( eBlockType < 0  ||  eBlockType >= BLOCK_TYPE::BT_MAX )
+	if( eBlockType < 0  ||  eBlockType >= BT_MAX )
 	{
 		START_LOG( cerr, L"잘못된 블럭 타입 입니다!" )
 			<< BUILD_LOG( iUserUID )
@@ -200,7 +200,7 @@ void KAccountBlockManager::AddBlockedAccount( IN const UidType iUserUID, IN cons
 
 bool KAccountBlockManager::IsBlockedAccount( IN const UidType iUserUID, IN const BLOCK_TYPE eBlockType ) const
 {
-	if( eBlockType < 0  ||  eBlockType >= BLOCK_TYPE::BT_MAX )
+	if( eBlockType < 0  ||  eBlockType >= BT_MAX )
 	{
 		START_LOG( cerr, L"잘못된 블럭 타입 입니다!" )
 			<< BUILD_LOG( iUserUID )

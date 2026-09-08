@@ -155,75 +155,75 @@ protected:
 
 
 #ifdef MONSTER_STATE_LIST_TEST
-class MonsterStateListDialog
-{
-public: 
-	MonsterStateListDialog() 
-		: m_pDLGMonsterStateList( NULL )
-		, m_NPCID( CX2UnitManager::NUI_NONE )
-	{
-		m_vecStateName.reserve( 1024 ); 
-	}
-
-	~MonsterStateListDialog()
-	{
-		SAFE_DELETE_DIALOG( m_pDLGMonsterStateList );
-	}
-
-	bool IsOpen()
-	{
-		if( m_pDLGMonsterStateList == NULL )
-			return false;
-
-		if( false == m_pDLGMonsterStateList->GetShow() )
-			return false;
-		else
-			return true;
-	}
-
-	void Close()
-	{
-		if( m_pDLGMonsterStateList != NULL )
-		{
-			m_pDLGMonsterStateList->SetShowEnable( false, false );
-		}
-	}
-
-	void Open( CKTDXStage* pStage )
-	{
-		if( m_pDLGMonsterStateList == NULL )
-		{
-			m_pDLGMonsterStateList = new CKTDGUIDialog( pStage, L"DLG_Monster_List_Window.lua" );
-			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGMonsterStateList );
-		}
-
-		if( m_pDLGMonsterStateList != NULL )
-		{
-			m_pDLGMonsterStateList->SetStage( pStage );
-			m_pDLGMonsterStateList->SetShowEnable( true, true );
-
-			Update();
-		}
-	}
-
-	void Update();
-
-	void KeyProcess( CKTDXStage* pStage );
-
-	void OnCommand( const std::wstring& monsterName );
-
-
-	CKTDGUIDialogType GetDialog() { return m_pDLGMonsterStateList; }
-
-
-
-protected:
-	CKTDGUIDialogType m_pDLGMonsterStateList;
-	std::vector< std::wstring > m_vecStateName; 
-	CX2UnitManager::NPC_UNIT_ID m_NPCID;
-
-}; // class MonsterStateListDialog
-
+// class MonsterStateListDialog
+// {
+// public: 
+// 	MonsterStateListDialog() 
+// 		: m_pDLGMonsterStateList( NULL )
+// 		, m_NPCID( CX2UnitManager::NUI_NONE )
+// 	{
+// 		m_vecStateName.reserve( 1024 ); 
+// 	}
+// 
+// 	~MonsterStateListDialog()
+// 	{
+// 		SAFE_DELETE_DIALOG( m_pDLGMonsterStateList );
+// 	}
+// 
+// 	bool IsOpen()
+// 	{
+// 		if( m_pDLGMonsterStateList == NULL )
+// 			return false;
+// 
+// 		if( false == m_pDLGMonsterStateList->GetShow() )
+// 			return false;
+// 		else
+// 			return true;
+// 	}
+// 
+// 	void Close()
+// 	{
+// 		if( m_pDLGMonsterStateList != NULL )
+// 		{
+// 			m_pDLGMonsterStateList->SetShowEnable( false, false );
+// 		}
+// 	}
+// 
+// 	void Open( CKTDXStage* pStage )
+// 	{
+// 		if( m_pDLGMonsterStateList == NULL )
+// 		{
+// 			m_pDLGMonsterStateList = new CKTDGUIDialog( pStage, L"DLG_Monster_List_Window.lua" );
+// 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGMonsterStateList );
+// 		}
+// 
+// 		if( m_pDLGMonsterStateList != NULL )
+// 		{
+// 			m_pDLGMonsterStateList->SetStage( pStage );
+// 			m_pDLGMonsterStateList->SetShowEnable( true, true );
+// 
+// 			Update();
+// 		}
+// 	}
+// 
+// 	void Update();
+// 
+// 	void KeyProcess( CKTDXStage* pStage );
+// 
+// 	void OnCommand( const std::wstring& monsterName );
+// 
+// 
+// 	CKTDGUIDialogType GetDialog() { return m_pDLGMonsterStateList; }
+// 
+// 
+// 
+// protected:
+// 	CKTDGUIDialogType m_pDLGMonsterStateList;
+// 	std::vector< std::wstring > m_vecStateName; 
+// 	CX2UnitManager::NPC_UNIT_ID m_NPCID;
+// 
+// }; // class MonsterStateListDialog
+// 
 #endif MONSTER_STATE_LIST_TEST
 
 
@@ -406,6 +406,10 @@ public:
 		LUI_EL_COLOR,
 		LUI_EL_BLACK,
 //#endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		LUI_ADD_COLOR,
+		LUI_ADD_BLACK,
+#endif //SERV_9TH_NEW_CHARACTER
 		LUI_EMPTY,
 	};
 
@@ -580,15 +584,26 @@ public:
 
 
 #endif HENIR_TEST
-#ifdef REFORM_TUTORIAL
 	struct DRAWFACE_RHW_VERTEX
 	{
 		float x, y, z, rhw;
 		DWORD color;
 		float u, v;
 	};
-#endif //REFORM_TUTORIAL
 
+#ifdef REFORM_ENTRY_POINT
+	struct DUNGEON_LOADING_DATA
+	{
+		int iLoadingPercent;
+		UidType uidUnitUID;
+
+		DUNGEON_LOADING_DATA()
+		{
+			iLoadingPercent = 0;
+			uidUnitUID = -1;
+		}
+	};
+#endif //REFORM_ENTRY_POINT
 
 public:
 	CX2StateDungeonGame(void);
@@ -797,9 +812,12 @@ protected:
 	bool	Handler_EGS_BAD_ATTITUDE_USER_MSG_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif // SERV_DUNGEON_FORCED_EXIT_SYSTEM
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 	bool Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_CATCH_HACKUSER_INFO
+	bool Handler_EGS_CATCH_HACKUSER_INFO_NOT( KEGS_CATCH_HACKUSER_INFO_NOT& kEGS_CATCH_HACKUSER_INFO_NOT );
+#endif SERV_CATCH_HACKUSER_INFO
 
 	void LoadUI();
 	void CreateGame();
@@ -820,8 +838,13 @@ protected:
 
 	virtual void ProcessShowMiniMap( const bool bHide_ );
 
-#ifdef REFORM_TUTORIAL
+
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    void					MoveToRubenVillage( float fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	void					MoveToRubenVillage();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	void					DrawMovingSmallBar();
 	void					CreateMovingSmallBar();
 	void					DestroyMovingSmallBar();
@@ -829,7 +852,6 @@ protected:
 									const CKTDGUIControl::UITextureData& texData_, 
 									D3DCOLOR color_ /* = 0xffffffff */, const float fWidthPercent_ = 1.0f );
 
-#endif //REFORM_TUTORIAL
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
 	void ValentineDungeonTimer_OnFrameMove( float fElapsedTime_ );
 #endif //SERV_EVENT_VALENTINE_DUNGEON
@@ -840,6 +862,13 @@ protected:
 	void SetEnterDefenceDungeon(bool val) { m_bEnterDefenceDungeon = val; }
 #endif // SERV_NEW_DEFENCE_DUNGEON
 
+#ifdef DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
+	bool OnMouseWheel( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
+
+#ifdef REFORM_ENTRY_POINT
+	void SetLoadingGageBar( int iLoadingPercent );
+#endif //REFORM_ENTRY_POINT
 
 private:
 	CKTDGUIDialogType					m_pDLGExitMsgBox;
@@ -886,8 +915,11 @@ private:
 	int								m_NextStageNum;
 	int								m_RenderCount;
 
+#ifdef REFORM_ENTRY_POINT
+	CKTDGUIDialogType				m_pDLGLoadingFront;
+#else //REFORM_ENTRY_POINT
 	vector< CKTDGUIDialogType >		m_DLGLoadingStateUnitInfoList;
-
+#endif //REFORM_ENTRY_POINT
 
 	// tutorial 관련
 	char							m_TutorialBeforeUserStateID;
@@ -952,12 +984,10 @@ private:
 	BadAttitudeUserWarningDialog m_BadAttitudeUserWarningDialog;
 #endif FIXED_DIALOG_FAULTY_PLAYER_WARNING_DLG
 
-#ifdef REFORM_TUTORIAL
 	CKTDXCheckElapsedTime				m_TimerWaitingPortal;
 	CKTDGUIControl::UITextureData		m_TexDataMovingGageBG;
 	CKTDGUIControl::UITextureData		m_TexDataMovingGage;
 	CKTDGStateManager::KStateID			m_RenderStateID;	/// 인터페이스 출력을 위한 2D 출력함수
-#endif //REFORM_TUTORIAL
 
 #ifdef FIXED_DIALOG_FAULTY_PLAYER_WARNING_DLG
 	CKTDGUIDialogType						m_pDLGFaultyPlayerWarning;
@@ -977,5 +1007,15 @@ private:
 	bool								m_bEnterDefenceDungeon;				/// 어둠의 문 입장 처리 여부
 	float								m_fWaitDefenceDungeonStartTime;		/// 어둠의 문 시작까지의 대기 시간
 #endif // SERV_NEW_DEFENCE_DUNGEON
+
+#ifdef DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
+	SHORT								m_SumDelta;		/// 마우스 휠 저장값
+#endif //DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
+
+#ifdef REFORM_ENTRY_POINT
+	vector<DUNGEON_LOADING_DATA>		m_vecDungeonLoadingData; //던전 로딩 데이터. 던전 로딩형태가 게이지바 하나로 변화되며 
+																 //그 퍼센트 기준점이 제일 로딩이 느린 유저가 되야해서 추가한 구조체 벡터. (서버 작업 없이)
+#endif //REFORM_ENTRY_POINT
+
 };
 

@@ -20,6 +20,28 @@ class CX2TFieldGame
 		};
 #endif SERV_READY_TO_SOSUN_EVENT
 
+#ifdef SERV_MOMOTI_EVENT
+		enum MOMOTI_EVENT_UI_MSG
+		{
+			SHOW_MOMOTI_URL_EVENT			= 99200,
+			SHOW_MOMOTI_QUIZ_EVENT			= 99201,
+			SHOW_MOMOTI_QUIZ_EVENT_OK		= 99202,
+			SHOW_MOMOTI_QUIZ_EVENT_CANCEL 	= 99203,
+			SHOW_MOMOTI_QUIZ_EVENT_ENTER	= 99204,
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+			SHOW_MOMOTI_QUIZ_EVENT_ADDQUIZ  = 99205,
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+		};
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		enum RELATIONSHIP_EVENT_UI_MSG
+		{
+			REUM_OK = 99110,
+			REUM_CANCEL = 99111,
+		};
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 		struct SquareSlot
 		{
 			UidType				m_iSquareUID;
@@ -151,8 +173,13 @@ class CX2TFieldGame
 			float						m_fTimer;
 			CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hNpcShadowTop;
 			CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hNpcShadowBottom;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			CKTDGParticleSystem::CParticleHandle				m_hNpcShadowTopParticle;			
+			CKTDGParticleSystem::CParticleHandle				m_hNpcShadowBottomParticle;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CKTDGParticleSystem::CParticle*						m_pNpcShadowTopParticle;			
 			CKTDGParticleSystem::CParticle*						m_pNpcShadowBottomParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 			HRESULT OnFrameMove ( double fTime, float fElapsedTime );
 
@@ -162,7 +189,7 @@ class CX2TFieldGame
 			void OpenShadow();
 			void CloseShadow();
 		};
-#ifdef MODIFY_PORTAL_GATE
+//#ifdef MODIFY_PORTAL_GATE
 		struct PortalGate
 		{
 			// 마을 포탈이펙트
@@ -171,26 +198,42 @@ class CX2TFieldGame
 			CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate3;
 			CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate4;
 			CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate5;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			CKTDGParticleSystem::CParticleHandle				m_hPortalGateParticle1;
+			CKTDGParticleSystem::CParticleHandle				m_hPortalGateParticle2;
+			CKTDGParticleSystem::CParticleHandle				m_hPortalGateParticle3;
+			CKTDGParticleSystem::CParticleHandle				m_hPortalGateParticle4;
+			CKTDGParticleSystem::CParticleHandle				m_hPortalGateParticle5;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CKTDGParticleSystem::CParticle*						m_pPortalGateParticle1;
 			CKTDGParticleSystem::CParticle*						m_pPortalGateParticle2;
 			CKTDGParticleSystem::CParticle*						m_pPortalGateParticle3;
 			CKTDGParticleSystem::CParticle*						m_pPortalGateParticle4;
 			CKTDGParticleSystem::CParticle*						m_pPortalGateParticle5;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 			PortalGate():
-			m_hPortalGate1(INVALID_PARTICLE_HANDLE),
-			m_hPortalGate2(INVALID_PARTICLE_HANDLE),
-			m_hPortalGate3(INVALID_PARTICLE_HANDLE),
-			m_hPortalGate4(INVALID_PARTICLE_HANDLE),
-			m_hPortalGate5(INVALID_PARTICLE_HANDLE),
+			m_hPortalGate1(INVALID_PARTICLE_SEQUENCE_HANDLE),
+			m_hPortalGate2(INVALID_PARTICLE_SEQUENCE_HANDLE),
+			m_hPortalGate3(INVALID_PARTICLE_SEQUENCE_HANDLE),
+			m_hPortalGate4(INVALID_PARTICLE_SEQUENCE_HANDLE),
+			m_hPortalGate5(INVALID_PARTICLE_SEQUENCE_HANDLE),
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_hPortalGateParticle1(INVALID_PARTICLE_HANDLE),
+			m_hPortalGateParticle2(INVALID_PARTICLE_HANDLE),
+			m_hPortalGateParticle3(INVALID_PARTICLE_HANDLE),
+			m_hPortalGateParticle4(INVALID_PARTICLE_HANDLE),
+			m_hPortalGateParticle5(INVALID_PARTICLE_HANDLE)
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_pPortalGateParticle1(NULL),
 			m_pPortalGateParticle2(NULL),
 			m_pPortalGateParticle3(NULL),
 			m_pPortalGateParticle4(NULL),
 			m_pPortalGateParticle5(NULL)
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{}
 		};
-#endif //MODIFY_PORTAL_GATE
+//#endif //MODIFY_PORTAL_GATE
 	public:
 		CX2TFieldGame( CX2World::WORLD_ID worldID, SquareData* pSquareData = NULL );
 		virtual ~CX2TFieldGame(void);		
@@ -228,7 +271,6 @@ class CX2TFieldGame
 		CX2SquareUnit*				GetSquareUnit( int index );
 		CX2SquareUnit*				GetSquareUnitByUID( UidType UID );
 		CX2SquareUnit*				GetSquareUnitByNickName( const WCHAR* wszNickName );
-
 #ifdef SERV_INVISIBLE_GM
 		bool						IsInvisible( UidType UID ) const;
 #endif SERV_INVISIBLE_GM
@@ -296,6 +338,23 @@ class CX2TFieldGame
 		bool						Handler_EGS_READY_TO_SOSUN_EVENT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif SERV_READY_TO_SOSUN_EVENT
 
+#ifdef SERV_MOMOTI_EVENT
+		void SetShowMomotiQuizEvent();
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+		void SetShowMomotiQuizEventAddQuiz();
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+		void SetShowMomotiQuizReplyEvent();
+		bool Handler_EGS_MOMOTI_QUIZ_EVENT_REQ();
+		bool Handler_EGS_MOMOTI_QUIZ_EVENT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam ); 
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		bool						Handler_EGS_EVENT_PROPOSE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+		bool						Send_EGS_EVENT_PROPOSE_AGREE_NOT( CX2RelationshipManager::PROPOSE_RETURNED_MESSAGE eAgreeCouple);
+		bool						Handler_EGS_EVENT_PROPOSE_RESULT_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+		bool						Handler_EGS_EVENT_PROPOSE_RESULT_ACCEPTOR_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 		// 1.5초싱크 처리
 		bool						ReceiveSyncBroadNot(KEGS_FIELD_UNIT_SYNC_DATA_BROAD_NOT& syncBroadNot);
 
@@ -323,13 +382,13 @@ class CX2TFieldGame
 			m_bNearPortalToBattleField = bNearPortalToBattleField_; }
 		
 		void AddFieldNpc();			
-#ifdef MODIFY_PORTAL_GATE
+//#ifdef MODIFY_PORTAL_GATE
 		void CreatePortalGate();
 		void SetShowPortalGate(bool bShow, UINT uiPortalIndex, D3DXVECTOR3 vPos = D3DXVECTOR3(0.f, 0.f, 0.f));
-#else
-		void CreatePortalGate();
-		void SetShowPortalGate(bool bShow, D3DXVECTOR3 vPos = D3DXVECTOR3(0.f, 0.f, 0.f));
-#endif //MODIFY_PORTAL_GATE
+//#else
+//		void CreatePortalGate();
+//		void SetShowPortalGate(bool bShow, D3DXVECTOR3 vPos = D3DXVECTOR3(0.f, 0.f, 0.f));
+//#endif //MODIFY_PORTAL_GATE
 
 		void ByeNpc();
 		bool TalkNpc();
@@ -482,11 +541,11 @@ class CX2TFieldGame
 #endif	GUILD_MANAGEMENT
 		// }}kimhc // 2009-10-09 // 길드원도 보이도록 추가
 
-		//{{ kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 저장
-#ifdef	ADD_SERVER_GROUP
-		bool SaveScriptServerGroupFile();
-#endif	ADD_SERVER_GROUP
-		//}}  kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 저장		
+//		//{{ kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 저장
+//#ifdef	ADD_SERVER_GROUP
+//		bool SaveScriptServerGroupFile();
+//#endif	ADD_SERVER_GROUP
+//		//}}  kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 저장		
 
 //{{ kimhc // 2010.7.14 // 실시간 엘소드 중 마을내에서 레벨업시 이펙트 효과
 #ifdef	REAL_TIME_ELSWORD
@@ -497,7 +556,9 @@ class CX2TFieldGame
 #ifdef RIDING_SYSTEM
 		void SetOrClearRidingPetInfo( CX2Unit* pUnit_, const KFieldUserInfo& kFieldUserInfo_ );
 #endif // RIDING_SYSTEM
-
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+		void SendTimeControlItemListTalk();
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 	private:		
 		void						InitKey();
@@ -592,21 +653,23 @@ class CX2TFieldGame
 
 		/// 이펙트 셋으로 만드는게 나을 듯
 		// 마을 포탈이펙트
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate1;
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate2;
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate3;
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate4;
-		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate5;
-		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle1;
-		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle2;
-		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle3;
-		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle4;
-		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle5;
+//#ifndef MODIFY_PORTAL_GATE
+//		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate1;
+//		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate2;
+//		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate3;
+//		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate4;
+//		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hPortalGate5;
+//		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle1;
+//		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle2;
+//		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle3;
+//		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle4;
+//		CKTDGParticleSystem::CParticle*						m_pPortalGateParticle5;
+//#endif  MODIFY_PORTAL_GATE
 
-#ifdef MODIFY_PORTAL_GATE
+//#ifdef MODIFY_PORTAL_GATE
 		vector<PortalGate>			m_vecPortalGateParticle;
 		UINT						m_uiPortalCount;
-#endif //MODIFY_PORTAL_GATE
+//#endif //MODIFY_PORTAL_GATE
 
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hMarketInArea;	/// 마켓 화살표 이펙트
 		//CKTDGParticleSystem::CParticle*						m_pInAreaParticle;	
@@ -681,5 +744,11 @@ class CX2TFieldGame
         AddUserInUnitLoaderList                 m_listAddUserInUnitLoader;
 
 //}} robobeg : 2011-03-18
+
+#ifdef SERV_MOMOTI_EVENT
+		CKTDGUIDialogType		m_pDLGMomotiQuizEvent;
+		wstring					m_MomotiQuizEventMsg;
+		int						m_iInputDLGQuiz;
+#endif //SERV_MOMOTI_EVENT
 };
 

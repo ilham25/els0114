@@ -154,6 +154,9 @@ public:
 
 	void	AddBanSpotInfo_LUA( IN byte bytePos );
 
+	void	SetBillingIP( IN const std::string& strBillingIP ){	m_strBillingIP = strBillingIP;	}
+	bool	CheckBillingIP_LUA( IN const char* szBillingIP ){	return m_strBillingIP == std::string( szBillingIP );	}
+
 	void	GetPresentInfo( OUT std::vector<int>& vecPresent );
 	void	GetBanPresentInfo( OUT std::vector<int>& vecBanPresent );
 	bool	IsBanSpot( IN const byte byteSpotIndex );
@@ -167,6 +170,8 @@ private:
 	std::set<unsigned long>					m_setPresent;
 	std::set<unsigned long>					m_setBanPresent;
 	std::set<byte>							m_setBanSpot;
+
+	std::string								m_strBillingIP;
 };
 DefRefreshSingletonInline( KGSBingoEventInfo );
 

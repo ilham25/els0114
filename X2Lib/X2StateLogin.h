@@ -52,10 +52,10 @@ class CX2StateLogin : public CX2State
 			SLUCM_KEYBOARD_EDIT_FOCUSOUT,
 			SLUCM_KEYBOARD_CLOSE,
 //#endif LOGIN_KEYBOARD_SECURITY
-//#ifdef	USE_ACCOUNT_DOMAIN
+//#ifdef USE_ACCOUNT_DOMAIN
 			SLUCM_DOMAIN_TYPE_PLAYID		=	30, 
 			SLUCM_DOMAIN_TYPE_TCG			=	31, 
-//#endif	USE_ACCOUNT_DOMAIN
+//#endif USE_ACCOUNT_DOMAIN
 		};
 
 	public:
@@ -86,9 +86,9 @@ class CX2StateLogin : public CX2State
 		CKTDGUIDialogType	m_pDLGLoginFront;
 		
 #ifdef NEW_LOGIN_PROCESS
-#ifdef	ADD_SERVER_GROUP
+#ifdef ADD_SERVER_GROUP
 		bool OpenScriptServerGroupFile();
-#endif	//ADD_SERVER_GROUP
+#endif //ADD_SERVER_GROUP
 		bool TryVerifyAccount();
 		bool ConnectToChannelServer();
 #ifdef CLIENT_DIRECT_CONNECT_AUTH_SERVER
@@ -180,7 +180,6 @@ class CX2StateLogin : public CX2State
 		std::wstring GetStrMemberJoinWeb();
 #endif MEMBER_JOIN_FROM_WEB
 //}}
-
 #ifdef FIRST_SCREEN_TEST
 
 		CKTDXDeviceTexture*		m_pTexutureBG;

@@ -3,12 +3,17 @@
 
 
 /** @function	CX2userSkillTree
-	@brief		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­, ï¿½ï¿½ï¿½Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+	@brief		»ý¼ºÀÚ, ÀåÂø ½ºÅ³ ÃÊ±âÈ­, ±æµåÅ¬·¡½º ÃÊ±âÈ­
 	*/
-CX2UserSkillTree::CX2UserSkillTree(void) :
-m_eSkillSlotBExpirationState( SSBES_EXPIRED ),
-	m_wstrSkillSlotBEndDate( L"" ),
-	m_iUnitClass( CX2Unit::UC_NONE )
+CX2UserSkillTree::CX2UserSkillTree(void)
+	: m_eSkillSlotBExpirationState( SSBES_EXPIRED )
+	, m_wstrSkillSlotBEndDate( L"" )
+	, m_iUnitClass( CX2Unit::UC_NONE )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	, m_usUsingPage( 0 )
+	, m_usOpenedPage( 0 )
+	, m_usSelectPage( 0 )
+#endif //SKILL_PAGE_SYSTEM
 {
 	BOOST_STATIC_ASSERT( ARRAY_SIZE( m_aEquippedSkill ) == ARRAY_SIZE( m_aEquippedSkillSlotB ) );
 	for( int i=0; i<ARRAY_SIZE( m_aEquippedSkill ); ++i )
@@ -16,23 +21,29 @@ m_eSkillSlotBExpirationState( SSBES_EXPIRED ),
 		m_aEquippedSkill[i].Init();
 		m_aEquippedSkillSlotB[i].Init();
 	}
+	
 #ifdef GUILD_SKILL
 	m_iGuildClass = 0;
 #endif GUILD_SKILL
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	ZeroMemory( m_arrSkillPoint, sizeof(m_arrSkillPoint) );
+	ZeroMemory( m_arrCashSkillPoint, sizeof(m_arrCashSkillPoint) );
+#endif //SKILL_PAGE_SYSTEM
+
 }
 
 /** @function	~CX2UserSkillTree
-	@brief		ï¿½Ò¸ï¿½ï¿½ï¿½
+	@brief		¼Ò¸êÀÚ
 */
 CX2UserSkillTree::~CX2UserSkillTree(void)
 {
 }
 
 /** @function	OnFrameMove
-	@brief		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½Å¸ï¿½ï¿½ Ã³ï¿½ï¿½
-	@param[in]	fTime : ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
-	@param[in]	fElapsedTime : ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
+	@brief		ÇÁ·¹ÀÓ °»½Å ½Ã, ½ºÅ³ ÄðÅ¸ÀÓ Ã³¸®
+	@param[in]	fTime : ÇöÀç ½Ã°£
+	@param[in]	fElapsedTime : °æ°ú ½Ã°£
 */
 void CX2UserSkillTree::OnFrameMove( double fTime, float fElapsedTime )
 {
@@ -87,10 +98,9 @@ void CX2UserSkillTree::OnFrameMove( double fTime, float fElapsedTime )
 #endif //NEXON_QA_CHEAT_REQ
 
 
-	if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() 
-		&& NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+	if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		int iCurrentSP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iCSPoint;	
+		int iCurrentSP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iCSPoint;	
 		static int iOldSP = 0;
 
 		if( iCurrentSP != iOldSP )
@@ -98,14 +108,14 @@ void CX2UserSkillTree::OnFrameMove( double fTime, float fElapsedTime )
 			if( NULL != g_pData->GetPlayGuide() )
 			{
 				if( iCurrentSP > iOldSP )
-				{	//SPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¾ï¿½ï¿½ï¿½ ï¿½ï¿½ SP È¹ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½
+				{	//SP°¡ ÀÌÀüº¸´Ù ´Ã¾úÀ» ¶§ SP È¹µæ °¡ÀÌµå Ãâ·Â
 					g_pData->GetPlayGuide()->SetPlayGuide(CX2PlayGuide::PGT_OBTAIN_SKILL_POINT, true, iCurrentSP);
 				}
 				iOldSP = iCurrentSP;
 			}
 
 			if( iCurrentSP > 0 )
-			{	//SPï¿½ï¿½ 0ï¿½Ê°ï¿½ ï¿½ï¿½ ï¿½ï¿½ SP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½
+			{	//SP°¡ 0ÃÊ°ú ÀÏ ¶§ SP º¸À¯ °¡ÀÌµå Ãâ·Â
 
 				if( NULL != g_pMain && NULL != g_pMain->GetKeyPad() )
 				{
@@ -119,54 +129,111 @@ void CX2UserSkillTree::OnFrameMove( double fTime, float fElapsedTime )
 		}
 	}
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¿ï¿½ï¿½ ï¿½Ë»ï¿½
-	SkillDataMap::const_iterator mit = m_mapSkillAcquired.begin();
-
-	for ( mit; mit != m_mapSkillAcquired.end(); ++mit )
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
+	/// ½ºÅ³ ·¹º§ °ü·Ã ÀÎÀÚ À¯È¿¼º °Ë»ç
+	if ( g_pKTDXApp->GetIsNowVeryfy() == true
+		&& g_pInstanceData != NULL 
+		&& g_pInstanceData->GetVerifyGageManagerTimer() <= 0.f
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		&& true == IsEnableSkillAcquiredPage()
+#endif //SKILL_PAGE_SYSTEM
+		)
 	{
-		if( mit->second.m_iSkillLevel.Verify() == false ||
-			mit->second.m_iSkillCSPoint.Verify() == false ||
-			mit->second.m_iIncreaseSkillLevelByBuff.Verify() == false ||
-			mit->second.m_iIncreaseSkillLevelBySocket.Verify() == false )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		SkillDataMap::const_iterator mit = m_vecSkillDataMap[m_usUsingPage].begin();
+
+		for ( mit; mit != m_vecSkillDataMap[m_usUsingPage].end(); ++mit )
 		{
-			if( NULL != g_pData &&
-				NULL != g_pData->GetMyUser() &&
-				NULL != g_pData->GetMyUser()->GetUserData() &&
-				NULL != g_pData->GetServerProtocol() &&
-				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
-				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT) )
-			return;
+			if( mit->second.m_iSkillLevel.Verify() == false ||
+				mit->second.m_iSkillCSPoint.Verify() == false ||
+				mit->second.m_iIncreaseSkillLevelByBuff.Verify() == false ||
+				mit->second.m_iIncreaseSkillLevelBySocket.Verify() == false )
+			{
+				if( NULL != g_pData &&
+					NULL != g_pData->GetMyUser() &&
+					NULL != g_pData->GetServerProtocol() )
+				{
+					if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
+						g_pKTDXApp->GetFindHacking() == false )
+					{
+						g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+					}
+
+				#ifdef ADD_COLLECT_CLIENT_INFO
+					g_pMain->SendHackInfo1( ANTIHACKING_ID::ANTIHACKING_GAME_03, ANTI_HACK_STRING_AntiHacking_Skill_CoolTime_Verify, true, true );
+					g_pInstanceData->SetRemainedTimeByForceQuitGame( REMAINED_TIME_BY_FORCE_QUIT_GAME );
+				#endif // ADD_COLLECT_CLIENT_INFO
+					return;
+				}
+			}
 		}
-	}
+#else //SKILL_PAGE_SYSTEM
+		SkillDataMap::const_iterator mit = m_mapSkillAcquired.begin();
 
-	SkillDataMap::const_iterator mitGuild = m_mapGuildSkillAcquired.begin();
-
-	for ( mitGuild; mitGuild != m_mapGuildSkillAcquired.end(); ++mitGuild )
-	{
-		if( mitGuild->second.m_iSkillLevel.Verify() == false ||
-			mitGuild->second.m_iSkillCSPoint.Verify() == false ||
-			mitGuild->second.m_iIncreaseSkillLevelByBuff.Verify() == false ||
-			mitGuild->second.m_iIncreaseSkillLevelBySocket.Verify() == false )
+		for ( mit; mit != m_mapSkillAcquired.end(); ++mit )
 		{
-			if( NULL != g_pData &&
-				NULL != g_pData->GetMyUser() &&
-				NULL != g_pData->GetMyUser()->GetUserData() &&
-				NULL != g_pData->GetServerProtocol() &&
-				g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
-				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT) )
-			return;
+			if( mit->second.m_iSkillLevel.Verify() == false ||
+				mit->second.m_iSkillCSPoint.Verify() == false ||
+				mit->second.m_iIncreaseSkillLevelByBuff.Verify() == false ||
+				mit->second.m_iIncreaseSkillLevelBySocket.Verify() == false )
+			{
+				if( NULL != g_pData &&
+					NULL != g_pData->GetMyUser() &&
+					NULL != g_pData->GetServerProtocol() )
+				{
+					if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
+						g_pKTDXApp->GetFindHacking() == false )
+					{
+						g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+					}
+
+				#ifdef ADD_COLLECT_CLIENT_INFO
+					g_pMain->SendHackInfo1( ANTIHACKING_ID::ANTIHACKING_GAME_03, ANTI_HACK_STRING_AntiHacking_Skill_CoolTime_Verify, true, true );
+					g_pInstanceData->SetRemainedTimeByForceQuitGame( REMAINED_TIME_BY_FORCE_QUIT_GAME );
+				#endif // ADD_COLLECT_CLIENT_INFO
+					return;
+				}
+			}
+		}
+#endif //SKILL_PAGE_SYSTEM
+
+		SkillDataMap::const_iterator mitGuild = m_mapGuildSkillAcquired.begin();
+
+		for ( mitGuild; mitGuild != m_mapGuildSkillAcquired.end(); ++mitGuild )
+		{
+			if( mitGuild->second.m_iSkillLevel.Verify() == false ||
+				mitGuild->second.m_iSkillCSPoint.Verify() == false ||
+				mitGuild->second.m_iIncreaseSkillLevelByBuff.Verify() == false ||
+				mitGuild->second.m_iIncreaseSkillLevelBySocket.Verify() == false )
+			{
+				if( NULL != g_pData &&
+					NULL != g_pData->GetMyUser() &&
+					NULL != g_pData->GetServerProtocol() )
+				{
+					if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
+						g_pKTDXApp->GetFindHacking() == false )
+					{
+						g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
+					}
+
+#ifdef ADD_COLLECT_CLIENT_INFO
+					g_pMain->SendHackInfo1( ANTIHACKING_ID::ANTIHACKING_GAME_03, ANTI_HACK_STRING_AntiHacking_Skill_CoolTime_Verify, true, true );
+					g_pInstanceData->SetRemainedTimeByForceQuitGame( REMAINED_TIME_BY_FORCE_QUIT_GAME );
+#endif // ADD_COLLECT_CLIENT_INFO
+					return;
+				}
+			}
 		}
 	}
 #endif // UPGRADE_SKILL_SYSTEM_2013
 }
 
 /** @function	Reset
-	@brief		ï¿½ç¼³ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³(A, B), ï¿½ï¿½Å³ Æ®ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­
-	@param[in]	bResetSkillTree : ï¿½ï¿½Å³ Æ®ï¿½ï¿½
-	@param[in]	bResetEquippedSkill : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
-	@param[in]	bResetUnsealedSkill : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
-	@param[in]	bResetSkillSlotB : B ï¿½ï¿½ï¿½ï¿½
+	@brief		Àç¼³Á¤, ÀåÂø ½ºÅ³(A, B), ½ºÅ³ Æ®¸®, ºÀÀÎ ½ºÅ³ ÃÊ±âÈ­
+	@param[in]	bResetSkillTree : ½ºÅ³ Æ®¸®
+	@param[in]	bResetEquippedSkill : ÀåÂø ½ºÅ³
+	@param[in]	bResetUnsealedSkill : ºÀÀÎ ÇØÁ¦µÈ ½ºÅ³
+	@param[in]	bResetSkillSlotB : B ½½·Ô
 */
 void CX2UserSkillTree::Reset( bool bResetSkillTree, bool bResetEquippedSkill, bool bResetUnsealedSkill, bool bResetSkillSlotB )
 {
@@ -181,7 +248,12 @@ void CX2UserSkillTree::Reset( bool bResetSkillTree, bool bResetEquippedSkill, bo
 
 	if( true == bResetSkillTree )
 	{
+	#ifdef SKILL_PAGE_SYSTEM //JHKang
+		if ( m_vecSkillDataMap.size() > 0 )
+			m_vecSkillDataMap[m_usUsingPage].clear();
+	#else //SKILL_PAGE_SYSTEM
 		m_mapSkillAcquired.clear();
+	#endif //SKILL_PAGE_SYSTEM
 	}
 
 	if( true == bResetUnsealedSkill )
@@ -196,15 +268,15 @@ void CX2UserSkillTree::Reset( bool bResetSkillTree, bool bResetEquippedSkill, bo
 }
 
 /** @function	Reset
-	@brief		ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ß°ï¿½
-	@param[in]	bResetSkillTree : ï¿½ï¿½Å³ Æ®ï¿½ï¿½
-	@param[in]	bResetGuildSkillTree : ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ Æ®ï¿½ï¿½
-	@param[in]	bResetEquippedSkill : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
-	@param[in]	bResetUnsealedSkill : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
-	@param[in]	bResetSkillSlotB : B ï¿½ï¿½ï¿½ï¿½
+	@brief		ÀÌÀü ÇÔ¼ö ±æµå ½ºÅ³ ÃÊ±âÈ­ Ãß°¡
+	@param[in]	bResetSkillTree : ½ºÅ³ Æ®¸®
+	@param[in]	bResetGuildSkillTree : ±æµå ½ºÅ³ Æ®¸®
+	@param[in]	bResetEquippedSkill : ÀåÂø ½ºÅ³
+	@param[in]	bResetUnsealedSkill : ºÀÀÎ ÇØÁ¦µÈ ½ºÅ³
+	@param[in]	bResetSkillSlotB : B ½½·Ô
 */
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+//{{ oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 void CX2UserSkillTree::Reset( bool bResetSkillTree, bool bResetGuildSkillTree, bool bResetEquippedSkill, bool bResetUnsealedSkill, bool bResetSkillSlotB )
 {
 	if( true == bResetEquippedSkill )
@@ -218,7 +290,16 @@ void CX2UserSkillTree::Reset( bool bResetSkillTree, bool bResetGuildSkillTree, b
 
 	if( true == bResetSkillTree )
 	{
+	#ifdef SKILL_PAGE_SYSTEM //JHKang
+		BOOST_FOREACH( SkillDataMap& userSkillPageData, m_vecSkillDataMap )
+		{
+			userSkillPageData.clear();
+		}
+
+		m_vecSkillDataMap.clear();
+	#else //SKILL_PAGE_SYSTEM
 		m_mapSkillAcquired.clear();
+	#endif //SKILL_PAGE_SYSTEM
 	}
 
 	if( true == bResetGuildSkillTree )
@@ -236,19 +317,30 @@ void CX2UserSkillTree::Reset( bool bResetSkillTree, bool bResetGuildSkillTree, b
 		SetSkillSlotBExpirationState( SSBES_EXPIRED );
 	}
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 #endif GUILD_SKILL
 
 /** @function	ConstructSkillTreeNotMyUnit
-	@brief		ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Æ´ï¿½ ï¿½Ù¸ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½î¶² passive skillï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½Ô¼ï¿½
-	@param[in]	vecSkillData : ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	@brief		´ëÀü, ´øÀü °ÔÀÓ¿¡¼­ ³» Ä³¸¯ÅÍ°¡ ¾Æ´Ñ ´Ù¸¥ Ä³¸¯ÅÍ°¡ ¾î¶² passive skillÀ» ¹è¿ü´ÂÁö ¼³Á¤ÇÒ ¶§ »ç¿ëµÇ´Â ÇÔ¼ö
+	@param[in]	vecSkillData : ½ºÅ³ Á¤º¸
 	@param[out]	aEquippedSkill[] : A Slot
 	@param[out]	aEquippedSkillSlotB[] : B Slot
 */
 void CX2UserSkillTree::ConstructSkillTreeNotMyUnit( const std::vector<KSkillData>& vecSkillData, const KSkillData aEquippedSkill[], const KSkillData aEquippedSkillSlotB[] )
 {
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 
-	// ï¿½ß°ï¿½ ï¿½ï¿½ m_iIncreaseSkillLevelBySocketï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ê±ï¿½ ï¿½ï¿½ï¿½ï¿½ falseï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ¿ÀÇöºó // 
+	// Ãß°¡ µÈ m_iIncreaseSkillLevelBySocket°ªÀ» ÃÊ±âÈ­ ½ÃÅ°Áö ¾Ê±â À§ÇØ false·Î º¯°æ
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	BOOST_FOREACH( SkillDataMap& userSkillPageData, m_vecSkillDataMap )
+	{
+		userSkillPageData.clear();
+	}
+	m_vecSkillDataMap.clear();
+
+	SkillDataMap EmptySkillData;
+	m_vecSkillDataMap.push_back( EmptySkillData );
+#endif //SKILL_PAGE_SYSTEM
+
 	Reset( false, false, false, false );
 
 	for( int i=0; i<EQUIPPED_SKILL_SLOT_COUNT; i++ )
@@ -268,24 +360,24 @@ void CX2UserSkillTree::ConstructSkillTreeNotMyUnit( const std::vector<KSkillData
 }
 
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-18 //// 
+//{{ oasis907 : ±è»óÀ± //// 2009-11-18 //// 
 /** @function	ConstructGuildSkillTreeNotMyUnit
-	@brief		ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½, ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ X
-				ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
-				ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ï¿½ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Æ´ï¿½ ï¿½Ù¸ï¿½ Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½î¶² passive skillï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½Ô¼ï¿½
-	@param[in]	vecGuildSkillData : ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	@brief		¼­¹ö·ÎºÎÅÍ ¹ÞÀº ±æµå ½ºÅ³µµ ÁöÁ¤ÇÏ´Â ÇÔ¼ö, ³ªÁß¿¡ À§ÀÇ ÇÔ¼ö¸¦ ´ëÃ¼ X
+				±æµå ½ºÅ³¸¸ ¾÷µ¥ÀÌÆ®ÇÏ´Â ÇÔ¼ö (¼­¹ö Åë½Å ¶§¹®¿¡)
+				´ëÀü, ´øÀü°ÔÀÓ¿¡¼­ ³» Ä³¸¯ÅÍ°¡ ¾Æ´Ñ ´Ù¸¥ Ä³¸¯ÅÍ°¡ ¾î¶² passive skillÀ» ¹è¿ü´ÂÁö ¼³Á¤ÇÒ ¶§ »ç¿ëµÇ´Â ÇÔ¼ö
+	@param[in]	vecGuildSkillData : ±æµå ½ºÅ³ Á¤º¸
 */
 void CX2UserSkillTree::ConstructGuildSkillTreeNotMyUnit( const std::vector<KSkillData>& vecGuildSkillData )
 {
 	Reset( false, true, false, false, false );
 
-	// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
+	// ±æµå ½ºÅ³
 	BOOST_TEST_FOREACH( const KSkillData&, kSkillData, vecGuildSkillData )
 	{
 		SetSkillLevelAndCSP( (CX2SkillTree::SKILL_ID) kSkillData.m_iSkillID, (int) kSkillData.m_cSkillLevel, 0 );
 	}
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-18 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-18 //// 
 #endif GUILD_SKILL
 
 void CX2UserSkillTree::SetEquippedSkill( const int iSlotIndex_, const bool bSlotB_, const KSkillData& equippedSkillData_ )
@@ -311,13 +403,13 @@ void CX2UserSkillTree::SetEquippedSkill( const int iSlotIndex_, const bool bSlot
 }
 
 /** @function	SetEquippedSkill
-	@brief		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	@brief		ÀåÂø ½ºÅ³ ¼³Á¤
 	@param[out]	aEquippedSkill[] : A Slot
 	@param[out]	aEquippedSkillSlotB[] : B Slot
 */
 void CX2UserSkillTree::SetEquippedSkill( const KSkillData aEquippedSkill[], const KSkillData aEquippedSkillSlotB[] )
 {
-	/// ï¿½Ê±ï¿½È­
+	/// ÃÊ±âÈ­
 	for( int i=0; i<ARRAY_SIZE( m_aEquippedSkill ); ++i )
 	{
 		m_aEquippedSkill[i].Init();
@@ -325,14 +417,14 @@ void CX2UserSkillTree::SetEquippedSkill( const KSkillData aEquippedSkill[], cons
 	}
 
 	
-	/// A ï¿½ï¿½ï¿½ï¿½(ID, ï¿½ï¿½ï¿½ï¿½)
+	/// A ½½·Ô(ID, ·¹º§)
 	for( int i=0; i<ARRAY_SIZE( m_aEquippedSkill ); ++i )
 	{
 		m_aEquippedSkill[i].m_eID			= (CX2SkillTree::SKILL_ID) aEquippedSkill[i].m_iSkillID;
 		m_aEquippedSkill[i].m_iSkillLevel	= (int) aEquippedSkill[i].m_cSkillLevel;
 	}
 
-	/// B ï¿½ï¿½ï¿½ï¿½(ID, ï¿½ï¿½ï¿½ï¿½)
+	/// B ½½·Ô(ID, ·¹º§)
 	for( int i=0; i<ARRAY_SIZE( m_aEquippedSkillSlotB ); i++ )
 	{
 		m_aEquippedSkillSlotB[i].m_eID			= (CX2SkillTree::SKILL_ID) aEquippedSkillSlotB[i].m_iSkillID;
@@ -355,9 +447,9 @@ void CX2UserSkillTree::SetEquippedSkillLevelPlusBySlotIndex( const int iEquipped
 }
 
 /** @function	SetEquippedSkillLevelPlus
-	@brief		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½)
-	@param[in]	aEquippedSkillLevelPlus[] : A Slot ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
-	@param[in]	aEquippedSkillLevelPlusSlotB[] : B Slot ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	@brief		ÀåÂø ½ºÅ³ ·¹º§ Áõ°¡(¾ÆÀÌÅÛ¿¡ ÀÇÇÑ)
+	@param[in]	aEquippedSkillLevelPlus[] : A Slot ½ºÅ³ ·¹º§ Áõ°¡ °ª
+	@param[in]	aEquippedSkillLevelPlusSlotB[] : B Slot ½ºÅ³ ·¹º§ Áõ°¡ °ª
 */
 void CX2UserSkillTree::SetEquippedSkillLevelPlus( const int aEquippedSkillLevelPlus[], const int aEquippedSkillLevelPlusSlotB[] )
 {
@@ -374,9 +466,54 @@ void CX2UserSkillTree::SetEquippedSkillLevelPlus( const int aEquippedSkillLevelP
 
 
 /** @function	SetAcquiredSkill
-	@brief		ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
+	@brief		ÃëµæÇÑ ½ºÅ³ ¼³Á¤
+	@param[in]	½ºÅ³ ¸®½ºÆ®
 */
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+void CX2UserSkillTree::SetAcquiredSkill( const std::vector<KUserSkillPageData>& vecSkillList )
+{
+	BOOST_FOREACH( SkillDataMap& userSkillPageData, m_vecSkillDataMap )
+	{
+		userSkillPageData.clear();
+	}
+	m_vecSkillDataMap.clear();
+
+	for ( UINT i = 0; i < m_usOpenedPage; ++i )
+	{
+		SkillDataMap EmptySkillData;
+		m_vecSkillDataMap.push_back( EmptySkillData );
+	}
+
+	int iPage = 0;
+
+	BOOST_FOREACH( const KUserSkillPageData& userSkillPageData, vecSkillList )
+	{
+		BOOST_FOREACH( const KUserSkillData& userSkillData, userSkillPageData.m_vecUserSkillData )
+		{
+			if ( true == m_vecSkillDataMap.empty() || iPage >= m_vecSkillDataMap.size() )
+				continue;
+
+			SkillDataMap::iterator mit;
+			mit = m_vecSkillDataMap[iPage].find( (CX2SkillTree::SKILL_ID) userSkillData.m_iSkillID );
+			ASSERT( mit == m_vecSkillDataMap[iPage].end() );
+			if( mit == m_vecSkillDataMap[iPage].end() )
+			{
+				// ÀÌ¹Ì Á¸ÀçÇÏ¸é »ðÀÔµÇÁö ¾Ê°í Á¸ÀçÇÏÁö ¾ÊÀ¸¸é »ðÀÔµÈ´Ù.
+				m_vecSkillDataMap[iPage][ (CX2SkillTree::SKILL_ID)userSkillData.m_iSkillID ] = UserSkillData( (int)userSkillData.m_cSkillLevel, (int)userSkillData.m_cSkillCSPoint );
+			}
+		}
+		m_arrSkillPoint[iPage] = userSkillPageData.m_usSkillPoint;
+		m_arrCashSkillPoint[iPage] = userSkillPageData.m_usCashSkillPoint;
+		++iPage;
+	}
+}
+
+void CX2UserSkillTree::AddSkillPage()
+{
+	SkillDataMap EmptySkillData;
+	m_vecSkillDataMap.push_back( EmptySkillData );
+}
+#else //SKILL_PAGE_SYSTEM
 void CX2UserSkillTree::SetAcquiredSkill( const std::vector<KUserSkillData>& vecSkillList )
 {
 	m_mapSkillAcquired.clear();
@@ -387,16 +524,18 @@ void CX2UserSkillTree::SetAcquiredSkill( const std::vector<KUserSkillData>& vecS
 		ASSERT( mit == m_mapSkillAcquired.end() );
 		if( mit == m_mapSkillAcquired.end() )
 		{
-			// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÔµÈ´ï¿½.
+			// ÀÌ¹Ì Á¸ÀçÇÏ¸é »ðÀÔµÇÁö ¾Ê°í Á¸ÀçÇÏÁö ¾ÊÀ¸¸é »ðÀÔµÈ´Ù.
 			m_mapSkillAcquired[ (CX2SkillTree::SKILL_ID)userSkillData.m_iSkillID ] = UserSkillData( (int)userSkillData.m_cSkillLevel, (int)userSkillData.m_cSkillCSPoint );
 		}
 	}
 }
+#endif //SKILL_PAGE_SYSTEM
+
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+//{{ oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 /** @function	SetAcquiredGuildSkill
-	@brief		ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
+	@brief		ÃëµæÇÑ ±æµå ½ºÅ³ ¼³Á¤
+	@param[in]	±æµå ½ºÅ³ ¸®½ºÆ®
 */
 void CX2UserSkillTree::SetAcquiredGuildSkill( const std::vector<KGuildSkillData>& vecSkillList )
 {
@@ -408,20 +547,20 @@ void CX2UserSkillTree::SetAcquiredGuildSkill( const std::vector<KGuildSkillData>
 		ASSERT( mit == m_mapGuildSkillAcquired.end() );
 		if( mit == m_mapGuildSkillAcquired.end() )
 		{
-			// ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÔµÈ´ï¿½.
+			// ÀÌ¹Ì Á¸ÀçÇÏ¸é »ðÀÔµÇÁö ¾Ê°í Á¸ÀçÇÏÁö ¾ÊÀ¸¸é »ðÀÔµÈ´Ù.
 			m_mapGuildSkillAcquired[ (CX2SkillTree::SKILL_ID)userSkillData.m_iSkillID ] = UserSkillData( (int)userSkillData.m_cSkillLevel, (int)userSkillData.m_cSkillCSPoint );
 		}
 	}
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 #endif GUILD_SKILL
 /** @function	SetUnsealedSkill
-	@brief		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
+	@brief		ºÀÀÎ ÇØÁ¦µÈ ½ºÅ³ ¼³Á¤
+	@param[in]	ºÀÀÎ ÇØÁ¦µÈ ½ºÅ³ ¸®½ºÆ®
 */
 void CX2UserSkillTree::SetUnsealedSkill( const std::vector<short>& vecUnsealedSkillList )
 {
-	//  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½
+	//  ºÀÀÎÇØÁ¦µÈ ½ºÅ³ ¸ñ·Ï
 	m_setUnsealedSkillID.clear();
 	for( UINT i=0; i<vecUnsealedSkillList.size(); i++ )
 	{
@@ -430,16 +569,20 @@ void CX2UserSkillTree::SetUnsealedSkill( const std::vector<short>& vecUnsealedSk
 }
 
 /** @function	GetSkillLevel
-	@brief		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ID, ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ È¿ï¿½ï¿½( Ä³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®, ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@return		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	@brief		½ºÅ³ ·¹º§ ¾ò±â
+	@param[in]	½ºÅ³ ID, Ãß°¡µÈ ½ºÅ³ È¿°ú( Ä³½Ã Æ÷ÀÎÆ®, ¼ÒÄÏ, ¹öÇÁ ) Àû¿ë ¿©ºÎ
+	@return		½ºÅ³ ·¹º§
 */
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+int CX2UserSkillTree::GetSkillLevel( CX2SkillTree::SKILL_ID eSkillID, bool bBaslcLevel /*= false*/, USHORT usPageNumber_ /*= 0*/ ) const
+#else //SKILL_PAGE_SYSTEM
 int CX2UserSkillTree::GetSkillLevel( CX2SkillTree::SKILL_ID eSkillID, bool bBaslcLevel /*= false*/ ) const
+#endif //SKILL_PAGE_SYSTEM
 {
 	KTDXPROFILE();
 
 #ifdef GUILD_SKILL
-	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+	//{{ oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 	if(IsGuildSkill(eSkillID))
 	{
 		SkillDataMap::const_iterator mit = m_mapGuildSkillAcquired.find( eSkillID );
@@ -447,7 +590,7 @@ int CX2UserSkillTree::GetSkillLevel( CX2SkillTree::SKILL_ID eSkillID, bool bBasl
 		{
 			const UserSkillData& userSkillData = mit->second;
 
-		#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 			const int iSkillLevel = true == bBaslcLevel ? userSkillData.m_iSkillLevel : userSkillData.GetTotalSkillLevel();
 
 			return min( iSkillLevel, MAX_LIMITED_SKILL_LEVEL );
@@ -457,36 +600,58 @@ int CX2UserSkillTree::GetSkillLevel( CX2SkillTree::SKILL_ID eSkillID, bool bBasl
 		}
 		return 0;
 	}
-	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+	//}} oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 #endif GUILD_SKILL
 
+	#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if( m_vecSkillDataMap.empty() == true )
+		return 0;
+
+	USHORT usSkillPage = m_usUsingPage;
+
+	if ( usPageNumber_ > 0 )
+		usSkillPage = usPageNumber_ - 1;
+
+	if( m_vecSkillDataMap.size() <= usSkillPage )
+		usSkillPage = max( 0, m_vecSkillDataMap.size() - 1 );
+	
+	SkillDataMap::const_iterator mit = m_vecSkillDataMap[usSkillPage].find( eSkillID );
+
+	if( mit != m_vecSkillDataMap[usSkillPage].end() )
+	{
+		const UserSkillData& userSkillData = mit->second;
+		const int iSkillLevel = true == bBaslcLevel ? userSkillData.m_iSkillLevel : userSkillData.GetTotalSkillLevel();
+
+		return min( iSkillLevel, MAX_LIMITED_SKILL_LEVEL );
+	#else //SKILL_PAGE_SYSTEM
 	SkillDataMap::const_iterator mit = m_mapSkillAcquired.find( eSkillID );
 	if( mit != m_mapSkillAcquired.end() )
 	{
 		const UserSkillData& userSkillData = mit->second;
 
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		const int iSkillLevel = true == bBaslcLevel ? userSkillData.m_iSkillLevel : userSkillData.GetTotalSkillLevel();
 
 		return min( iSkillLevel, MAX_LIMITED_SKILL_LEVEL );
 	#else // UPGRADE_SKILL_SYSTEM_2013
 		return userSkillData.m_iSkillLevel;
 	#endif // UPGRADE_SKILL_SYSTEM_2013
+	#endif //SKILL_PAGE_SYSTEM
 	}
 	return 0;
 }
 
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-18 ////
+//{{ oasis907 : ±è»óÀ± //// 2009-11-18 ////
 /** @function	GetUserSkillTemplet
-	@brief		ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ID
-	@return		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½
+	@brief		À¯Àú ½ºÅ³ ÅÛÇÃ¸´ ¾ò±â
+	@param[in]	½ºÅ³ ID
+	@return		½ºÅ³ ÅÛÇÃ¸´
 */
 const CX2SkillTree::SkillTemplet* CX2UserSkillTree::GetUserSkillTemplet( CX2SkillTree::SKILL_ID eSkillID) const
 {
 	KTDXPROFILE();
 
-	//// passive skill ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½Ñ´ï¿½. active skillï¿½ï¿½ getequippedactiveskill()ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+	//// passive skill ¿¡¸¸ »ç¿ëÇØ¾ß ÇÑ´Ù. active skillÀº getequippedactiveskill()ÇÔ¼ö¸¦ ½á¾ßÇÔ
 	//ASSERT( NULL == g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, 1 ) ||
 	//	CX2SkillTree::ST_PASSIVE_PHYSIC_ATTACK == g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, 1 )->m_eType ||
 	//	CX2SkillTree::ST_PASSIVE_MAGIC_ATTACK == g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, 1 )->m_eType ||
@@ -494,36 +659,49 @@ const CX2SkillTree::SkillTemplet* CX2UserSkillTree::GetUserSkillTemplet( CX2Skil
 	//	CX2SkillTree::ST_PASSIVE_PHYSIC_DEFENCE == g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, 1 )->m_eType ||
 	//	CX2SkillTree::ST_PASSIVE == g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, 1 )->m_eType );
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+
+	if ( true == m_vecSkillDataMap.empty() || m_usUsingPage >= m_vecSkillDataMap.size() )
+		return NULL;
+
+	SkillDataMap::const_iterator mit = m_vecSkillDataMap[m_usUsingPage].find( eSkillID );
+
+	if( mit == m_vecSkillDataMap[m_usUsingPage].end() )
+	{
+		return NULL;
+	}
+#else //SKILL_PAGE_SYSTEM
 	SkillDataMap::const_iterator mit = m_mapSkillAcquired.find( eSkillID );
 
 	if( mit == m_mapSkillAcquired.end() )
 	{
 		return NULL;
 	}
+#endif //SKILL_PAGE_SYSTEM
 
 	const UserSkillData& userSkillData = mit->second;
 	/////////////////////////////////////////////
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	return g_pData->GetSkillTree()->GetSkillTemplet(eSkillID);
 #else // UPGRADE_SKILL_SYSTEM_2013
 	return g_pData->GetSkillTree()->GetSkillTemplet(eSkillID, userSkillData.m_iSkillLevel);
 #endif // UPGRADE_SKILL_SYSTEM_2013
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-18 ////
+//}} oasis907 : ±è»óÀ± //// 2009-11-18 ////
 
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-18 ////
+//{{ oasis907 : ±è»óÀ± //// 2009-11-18 ////
 /** @function	GetSkillLevel
-	@brief		ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-	@param[out]	int ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	@brief		±æµå ½ºÅ³ ·¹º§ ¾ò±â
+	@param[out]	int ±æµå ½ºÅ³ ·¹º§
 */
 int CX2UserSkillTree::GetSkillLevel( CX2SkillTree::SKILL_ID eSkillID, int iGuildMemberGrade) const
 {
 	KTDXPROFILE();
 	if(iGuildMemberGrade == CX2GuildManager::GUG_INVALID ||
-		iGuildMemberGrade >= g_pData->GetGuildManager()->GetLimitGuildGrade()) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¿Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+		iGuildMemberGrade >= g_pData->GetGuildManager()->GetLimitGuildGrade()) // ÁöÁ¤µÉ Ä¿Æ®¶óÀÎ ±æµå ¸â¹ö µî±Þ
 	{
-		return 0;      // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÉ¶ï¿½
+		return 0;      // µî±ÞÀÌ ³·¾Æ ±æµå ½ºÅ³ Àû¿ë ¾ÈµÉ¶§
 	}
 
 	SkillDataMap::const_iterator mit = m_mapGuildSkillAcquired.find( eSkillID );
@@ -535,23 +713,23 @@ int CX2UserSkillTree::GetSkillLevel( CX2SkillTree::SKILL_ID eSkillID, int iGuild
 
 	return 0;
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-18 ////
+//}} oasis907 : ±è»óÀ± //// 2009-11-18 ////
 
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-18 ////
+//{{ oasis907 : ±è»óÀ± //// 2009-11-18 ////
 /** @function	GetUserSkillTemplet
-	@brief		ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ID
-	@param[in]	ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-	@return		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½
+	@brief		±æµå À¯Àú ½ºÅ³ ÅÛÇÃ¸´ ¾ò±â
+	@param[in]	½ºÅ³ ID
+	@param[in]	±æµå ¸â¹ö µî±Þ
+	@return		½ºÅ³ ÅÛÇÃ¸´
 */
 const CX2SkillTree::SkillTemplet* CX2UserSkillTree::GetUserSkillTemplet( CX2SkillTree::SKILL_ID eSkillID, int iGuildMemberGrade) const
 {
 	KTDXPROFILE();
 
 	if(iGuildMemberGrade == CX2GuildManager::GUG_INVALID ||
-		iGuildMemberGrade >= g_pData->GetGuildManager()->GetLimitGuildGrade())  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¿Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+		iGuildMemberGrade >= g_pData->GetGuildManager()->GetLimitGuildGrade())  // ÁöÁ¤µÉ Ä¿Æ®¶óÀÎ ±æµå ¸â¹ö µî±Þ
 	{
-		return NULL;	// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ÈµÉ¶ï¿½
+		return NULL;	// µî±ÞÀÌ ³·¾Æ ±æµå ½ºÅ³ Àû¿ë ¾ÈµÉ¶§
 	}
 
 	SkillDataMap::const_iterator mit = m_mapGuildSkillAcquired.find( eSkillID );
@@ -564,28 +742,28 @@ const CX2SkillTree::SkillTemplet* CX2UserSkillTree::GetUserSkillTemplet( CX2Skil
 	const UserSkillData& userSkillData = mit->second;
 	/////////////////////////////////////////////
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	return g_pData->GetSkillTree()->GetSkillTemplet(eSkillID );
 #else // UPGRADE_SKILL_SYSTEM_2013
 	return g_pData->GetSkillTree()->GetSkillTemplet(eSkillID, userSkillData.m_iSkillLevel);
 #endif // UPGRADE_SKILL_SYSTEM_2013
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-18 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-18 //// 
 #endif GUILD_SKILL
 
 /** @function	GetSkillLevelAndCSP
-	@brief		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ID
-	@param[out]	ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-	@param[out]	ï¿½ï¿½Å³ Spell Point
+	@brief		½ºÅ³ ·¹º§, ½ºÆç Æ÷ÀÎÆ® ¾ò±â
+	@param[in]	½ºÅ³ ID
+	@param[out]	½ºÅ³ ·¹º§
+	@param[out]	½ºÅ³ Spell Point
 */
-bool CX2UserSkillTree::GetSkillLevelAndCSP( IN CX2SkillTree::SKILL_ID eSkillID, OUT int& iSkillLevel, OUT int& iSkillCSPoint )
+bool CX2UserSkillTree::GetSkillLevelAndCSP( IN CX2SkillTree::SKILL_ID eSkillID, OUT int& iSkillLevel, OUT int& iSkillCSPoint ) const
 {
 #ifdef GUILD_SKILL
-	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+	//{{ oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 	if(IsGuildSkill(eSkillID))
 	{
-		SkillDataMap::iterator mit = m_mapGuildSkillAcquired.find( eSkillID );
+		SkillDataMap::const_iterator mit = m_mapGuildSkillAcquired.find( eSkillID );
 		if( mit != m_mapGuildSkillAcquired.end() )
 		{
 			const UserSkillData& userSkillData = mit->second;
@@ -595,11 +773,20 @@ bool CX2UserSkillTree::GetSkillLevelAndCSP( IN CX2SkillTree::SKILL_ID eSkillID, 
 		}
 		return false;
 	}
-	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+	//}} oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 #endif GUILD_SKILL
 
-	SkillDataMap::iterator mit = m_mapSkillAcquired.find( eSkillID );
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( true == m_vecSkillDataMap.empty() || m_usUsingPage >= m_vecSkillDataMap.size() )
+		return false;
+
+	SkillDataMap::const_iterator mit = m_vecSkillDataMap[m_usUsingPage].find( eSkillID );
+
+	if( mit == m_vecSkillDataMap[m_usUsingPage].end() )
+#else //SKILL_PAGE_SYSTEM
+	SkillDataMap::const_iterator mit = m_mapSkillAcquired.find( eSkillID );
 	if( mit != m_mapSkillAcquired.end() )
+#endif //SKILL_PAGE_SYSTEM
 	{
 		const UserSkillData& userSkillData = mit->second;
 		iSkillLevel		= userSkillData.m_iSkillLevel;
@@ -612,20 +799,24 @@ bool CX2UserSkillTree::GetSkillLevelAndCSP( IN CX2SkillTree::SKILL_ID eSkillID, 
 
 
 /** @function	SetSkillLevelAndCSP
-	@brief		ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ñ´ï¿½, skill levelï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ID
-	@param[in]	ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ Spell Point
-	@return		false : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@return		true : ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½
+	@brief		µ¥ÀÌÅÍ°¡ ÀÖÀ¸¸é °ªÀ» º¯°æÇÏ°í, ¾øÀ¸¸é Ãß°¡ÇÑ´Ù, skill levelÀÌ 0º¸´Ù ÀÛÀ¸¸é »èÁ¦
+	@param[in]	½ºÅ³ ID
+	@param[in]	½ºÅ³ ·¹º§
+	@param[in]	½ºÅ³ Spell Point
+	@return		false : º¯°æ ½ÇÆÐ
+	@return		true : º¯°æ ¿Ï·á
 */
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+bool CX2UserSkillTree::SetSkillLevelAndCSP( CX2SkillTree::SKILL_ID eSkillID, int iSkillLevel, int iSkillCSPoint, USHORT usSkillPage_ )
+#else //SKILL_PAGE_SYSTEM
 bool CX2UserSkillTree::SetSkillLevelAndCSP( CX2SkillTree::SKILL_ID eSkillID, int iSkillLevel, int iSkillCSPoint )
+#endif //SKILL_PAGE_SYSTEM
 {
 #ifdef GUILD_SKILL
-	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+	//{{ oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 	if(IsGuildSkill(eSkillID))
 	{
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 #else // UPGRADE_SKILL_SYSTEM_2013
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, 1 );
@@ -636,9 +827,11 @@ bool CX2UserSkillTree::SetSkillLevelAndCSP( CX2SkillTree::SKILL_ID eSkillID, int
 		if( iSkillLevel > g_pData->GetSkillTree()->GetMaxGuildSkillLevel( (int)m_iGuildClass, eSkillID ) )
 			return false;
 
+#ifndef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		if( iSkillLevel > 0 &&
 			iSkillLevel < iSkillCSPoint )
 			return false;
+#endif // UPGRADE_SKILL_SYSTEM_2013
 
 
 		SkillDataMap::iterator mit;
@@ -666,10 +859,10 @@ bool CX2UserSkillTree::SetSkillLevelAndCSP( CX2SkillTree::SKILL_ID eSkillID, int
 		return true;
 
 	}
-	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+	//}} oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 #endif GUILD_SKILL
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 #else // UPGRADE_SKILL_SYSTEM_2013
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, 1 );
@@ -680,7 +873,7 @@ bool CX2UserSkillTree::SetSkillLevelAndCSP( CX2SkillTree::SKILL_ID eSkillID, int
 	if( iSkillLevel > g_pData->GetSkillTree()->GetMaxSkillLevel( (int)m_iUnitClass, eSkillID ) )
 		return false;
 
-#ifndef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifndef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	if( iSkillLevel > 0 &&
 		iSkillLevel < iSkillCSPoint )
 		return false;
@@ -688,6 +881,38 @@ bool CX2UserSkillTree::SetSkillLevelAndCSP( CX2SkillTree::SKILL_ID eSkillID, int
 
 
 	SkillDataMap::iterator mit;
+
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( m_vecSkillDataMap.size() <= usSkillPage_ )
+		return false;
+
+	USHORT usPageNumber = m_usUsingPage;
+
+	if ( usSkillPage_ > 0 )
+		usPageNumber = usSkillPage_;
+
+	mit = m_vecSkillDataMap[usPageNumber].find( eSkillID );
+	if( mit != m_vecSkillDataMap[usPageNumber].end() )
+	{
+		if( iSkillLevel > 0 )
+		{
+			UserSkillData& userSkillData = mit->second;
+			userSkillData.m_iSkillLevel		= iSkillLevel;
+			userSkillData.m_iSkillCSPoint	= iSkillCSPoint;
+		}
+		else
+		{
+			m_vecSkillDataMap[usPageNumber].erase( mit );
+		}
+	}
+	else 
+	{
+		if( iSkillLevel > 0 )
+		{
+			m_vecSkillDataMap[usPageNumber][ eSkillID ] = UserSkillData( iSkillLevel, iSkillCSPoint );
+		}
+	}
+#else //SKILL_PAGE_SYSTEM
 	mit = m_mapSkillAcquired.find( eSkillID );
 	if( mit != m_mapSkillAcquired.end() )
 	{
@@ -709,21 +934,22 @@ bool CX2UserSkillTree::SetSkillLevelAndCSP( CX2SkillTree::SKILL_ID eSkillID, int
 			m_mapSkillAcquired[ eSkillID ] = UserSkillData( iSkillLevel, iSkillCSPoint );
 		}
 	}
+#endif //SKILL_PAGE_SYSTEM
 	return true;
 }
 
 /** @function	IsMaxSkillLevel
-	@brief		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½(ï¿½Ö°ï¿½Ä¡)
-	@param[in]	ï¿½ï¿½Å³ ID
-	@return		ï¿½Ö°ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief		½ºÅ³ ·¹º§ È®ÀÎ(ÃÖ°íÄ¡)
+	@param[in]	½ºÅ³ ID
+	@return		ÃÖ°íÄ¡ ÀÎÁö ¾Æ´ÑÁö ¿©ºÎ
 */
-bool CX2UserSkillTree::IsMaxSkillLevel( IN CX2SkillTree::SKILL_ID eSkillID )
+bool CX2UserSkillTree::IsMaxSkillLevel( IN CX2SkillTree::SKILL_ID eSkillID ) const
 {
 #ifdef GUILD_SKILL
-	//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+	//{{ oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 	if(IsGuildSkill(eSkillID))
 	{
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 #else // UPGRADE_SKILL_SYSTEM_2013
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, 1 );
@@ -731,7 +957,7 @@ bool CX2UserSkillTree::IsMaxSkillLevel( IN CX2SkillTree::SKILL_ID eSkillID )
 		if( NULL == pSkillTemplet )
 			return false;
 
-		SkillDataMap::iterator mit;
+		SkillDataMap::const_iterator mit;
 		mit = m_mapGuildSkillAcquired.find( eSkillID );
 		if( mit != m_mapGuildSkillAcquired.end() )
 		{
@@ -744,10 +970,10 @@ bool CX2UserSkillTree::IsMaxSkillLevel( IN CX2SkillTree::SKILL_ID eSkillID )
 
 		return false;
 	}
-	//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+	//}} oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 #endif GUILD_SKILL
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 #else // UPGRADE_SKILL_SYSTEM_2013
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, 1 );
@@ -755,9 +981,17 @@ bool CX2UserSkillTree::IsMaxSkillLevel( IN CX2SkillTree::SKILL_ID eSkillID )
 	if( NULL == pSkillTemplet )
 		return false;
 
-	SkillDataMap::iterator mit;
+	SkillDataMap::const_iterator mit;
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( true == m_vecSkillDataMap.empty() || m_usUsingPage >= m_vecSkillDataMap.size() )
+		return false;
+
+	mit = m_vecSkillDataMap[m_usUsingPage].find( eSkillID );
+	if( mit != m_vecSkillDataMap[m_usUsingPage].end() )
+#else //SKILL_PAGE_SYSTEM
 	mit = m_mapSkillAcquired.find( eSkillID );
 	if( mit != m_mapSkillAcquired.end() )
+#endif //SKILL_PAGE_SYSTEM
 	{
 		const UserSkillData& userSkillData = mit->second;
 		if( userSkillData.m_iSkillLevel >= g_pData->GetSkillTree()->GetMaxSkillLevel( (int)m_iUnitClass, eSkillID ) )
@@ -772,13 +1006,13 @@ bool CX2UserSkillTree::IsMaxSkillLevel( IN CX2SkillTree::SKILL_ID eSkillID )
 //{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
 /** @function	SetSkillSlotInfo
-	@brief		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
-	@param[in]	ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ID
-	@param[in]	ï¿½ï¿½Å³ ID
+	@brief		½ºÅ³ ½½·Ô Á¤º¸ ¼³Á¤(Ä³³íº¼ Ãß°¡¿¡ µû¸¥ ±¸Çö)
+	@param[in]	½ºÅ³ ½½·Ô ID
+	@param[in]	½ºÅ³ ID
 */
 void CX2UserSkillTree::SetSkillSlotInfo( int iSkillSlotID, CX2SkillTree::SKILL_ID eSkillID ) 
 {
-	// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+	// Ä³³íº¼ Ãß°¡
 	switch( iSkillSlotID )
 	{
 	case CX2UserSkillTree::SKILL_SLOT_A1:
@@ -791,16 +1025,15 @@ void CX2UserSkillTree::SetSkillSlotInfo( int iSkillSlotID, CX2SkillTree::SKILL_I
 			{
 #ifdef ARA_CHARACTER_BASE
 
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 				if ( NULL == g_pData ||
 					 NULL == g_pData->GetMyUser() || 
-					 NULL == g_pData->GetMyUser()->GetSelectUnit() || 
-					 NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+					 NULL == g_pData->GetMyUser()->GetSelectUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 	
-				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// ½ºÅ³ ·¹º§
 	
 				SetSkillSlot( iSkillSlotID, eSkillID, pSkillTemplet->GetSkillMPConsumptionValue( iSkillTempletLevel ), pSkillTemplet->m_usCBConsumption,
 					pSkillTemplet->m_usFPConsumtion, false );
@@ -834,16 +1067,15 @@ void CX2UserSkillTree::SetSkillSlotInfo( int iSkillSlotID, CX2SkillTree::SKILL_I
 			{
 #ifdef ARA_CHARACTER_BASE
 
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 				if ( NULL == g_pData ||
 					NULL == g_pData->GetMyUser() || 
-					NULL == g_pData->GetMyUser()->GetSelectUnit() || 
-					NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+					NULL == g_pData->GetMyUser()->GetSelectUnit() )
 					return;
 
-				const CX2UserSkillTree& userSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 
-				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// ½ºÅ³ ·¹º§
 
 				SetSkillSlot( iSkillSlotID-(int)CX2UserSkillTree::SKILL_SLOT_B1, eSkillID, pSkillTemplet->GetSkillMPConsumptionValue( iSkillTempletLevel ), 
 					pSkillTemplet->m_usCBConsumption, pSkillTemplet->m_usFPConsumtion, true );
@@ -871,9 +1103,9 @@ void CX2UserSkillTree::SetSkillSlotInfo( int iSkillSlotID, CX2SkillTree::SKILL_I
 
 #else	NEW_CHARACTER_CHUNG
 /** @function	SetSkillSlotInfo
-	@brief		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ID
-	@param[in]	ï¿½ï¿½Å³ ID
+	@brief		½ºÅ³ ½½·Ô Á¤º¸ ¼³Á¤
+	@param[in]	½ºÅ³ ½½·Ô ID
+	@param[in]	½ºÅ³ ID
 */
 void CX2UserSkillTree::SetSkillSlotInfo( int iSkillSlotID, CX2SkillTree::SKILL_ID eSkillID ) 
 {
@@ -921,9 +1153,9 @@ void CX2UserSkillTree::SetSkillSlotInfo( int iSkillSlotID, CX2SkillTree::SKILL_I
 #ifdef	NEW_CHARACTER_CHUNG
 
 /** @function : GetCBConsumption
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½A,B ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ CBï¿½Ò¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ½½·Ô ÀÎµ¦½º¿Í ½½·ÔA,B ¿¡ µû¸¥ CB¼Ò¸ð·®À» ¾ò¾î¿È
 	@param : const int iSlotIndex_, const bool bSlotB_
-	@return : USHORT (CB ï¿½Ò¸ï¿½)
+	@return : USHORT (CB ¼Ò¸ð·®)
 */
 USHORT CX2UserSkillTree::GetCBConsumption( const int iSlotIndex_, const bool bSlotB_ ) const
 {
@@ -941,7 +1173,7 @@ USHORT CX2UserSkillTree::GetCBConsumption( const int iSlotIndex_, const bool bSl
 }
 
 /** @function : SetCBConsumption
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Ö´ï¿½ CB ï¿½Ò¸ï¿½ï¿½ï¿½ Setï¿½ï¿½
+	@brief : ÇöÀç ½½·Ô¿¡ ÀåÂøµÇ¾úÀÖ´Â CB ¼Ò¸ð·®À» SetÇÔ
 	@param : int iSlotIndex_, bool bSlotB_, int iCBConsumption_
 */
 void CX2UserSkillTree::SetCBConsumption( int iSlotIndex_, bool bSlotB_, USHORT usCBConsumption_ )
@@ -962,7 +1194,7 @@ void CX2UserSkillTree::SetCBConsumption( int iSlotIndex_, bool bSlotB_, USHORT u
 #pragma region ForcePower
 #ifdef ARA_CHARACTER_BASE
 /** @function 	: GetFPConsumption
-	@brief 		: ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ë·® È®ï¿½ï¿½
+	@brief 		: ÇØ´ç ½½·ÔÀÇ ±â·Â »ç¿ë·® È®ÀÎ
 */
 USHORT CX2UserSkillTree::GetFPConsumption( const int iSlotIndex_, const bool bSlotB_ ) const
 {
@@ -980,7 +1212,7 @@ USHORT CX2UserSkillTree::GetFPConsumption( const int iSlotIndex_, const bool bSl
 }
 
 /** @function 	: SetFPConsumption
-	@brief 		: ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ë·® ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÇØ´ç ½½·ÔÀÇ ±â·Â »ç¿ë·® ¼³Á¤
 */
 void CX2UserSkillTree::SetFPConsumption( int iSlotIndex_, bool bSlotB_, USHORT usFPConsumption_ )
 {
@@ -998,7 +1230,7 @@ void CX2UserSkillTree::SetFPConsumption( int iSlotIndex_, bool bSlotB_, USHORT u
 }
 
 /** @function 	: GetFPConsumption
-	@brief 		: ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ë·® È®ï¿½ï¿½
+	@brief 		: ÇØ´ç ½½·ÔÀÇ ±â·Â »ç¿ë·® È®ÀÎ
 */
 USHORT CX2UserSkillTree::GetFPGainCount( const int iSlotIndex_, const bool bSlotB_ ) const
 {
@@ -1016,7 +1248,7 @@ USHORT CX2UserSkillTree::GetFPGainCount( const int iSlotIndex_, const bool bSlot
 }
 
 /** @function 	: SetFPConsumption
-	@brief 		: ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ë·® ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ÇØ´ç ½½·ÔÀÇ ±â·Â »ç¿ë·® ¼³Á¤
 */
 void CX2UserSkillTree::SetFPGainCount( int iSlotIndex_, bool bSlotB_, USHORT usFPGainCount_ )
 {
@@ -1033,17 +1265,17 @@ void CX2UserSkillTree::SetFPGainCount( int iSlotIndex_, bool bSlotB_, USHORT usF
 	}
 }
 #endif
-#pragma endregion ï¿½ï¿½ï¿½
+#pragma endregion ±â·Â
 
 
 /** @function	SetSkillSlot
-	@brief		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ID
-	@param[in]	ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½Ò¸ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½
-	@param[in]	B ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ï¿½ï¿½
+	@brief		½ºÅ³ ½½·Ô ¼³Á¤
+	@param[in]	½½·Ô ÀÎµ¦½º
+	@param[in]	½ºÅ³ ID
+	@param[in]	¼Ò¸ð ¸¶³ª
+	@param[in]	¼Ò¸ð Ä³³íº¼
+	@param[in]	¼Ò¸ð ±â·Â
+	@param[in]	B ½½·Ô ÀÎÁö ¾Æ´ÑÁö
 */
 #ifdef ARA_CHARACTER_BASE
 bool CX2UserSkillTree::SetSkillSlot( int iSlotIndex_, CX2SkillTree::SKILL_ID eSkillID_, float fMPConsume_, USHORT usCBConsume_,
@@ -1091,11 +1323,11 @@ bool CX2UserSkillTree::SetSkillSlot( int iSlotIndex_, CX2SkillTree::SKILL_ID eSk
 
 #else	NEW_CHARACTER_CHUNG
 /** @function	SetSkillSlot
-	@brief		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ID
-	@param[in]	ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	B ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ï¿½ï¿½
+	@brief		½ºÅ³ ½½·Ô ¼³Á¤
+	@param[in]	½½·Ô ÀÎµ¦½º
+	@param[in]	½ºÅ³ ID
+	@param[in]	¼Ò¸ð ¸¶³ª
+	@param[in]	B ½½·Ô ÀÎÁö ¾Æ´ÑÁö
 */
 bool CX2UserSkillTree::SetSkillSlot( int iSlotIndex, CX2SkillTree::SKILL_ID eSkillID, float fMPConsumption, bool bSlotB )
 {
@@ -1131,9 +1363,9 @@ bool CX2UserSkillTree::SetSkillSlot( int iSlotIndex, CX2SkillTree::SKILL_ID eSki
 //}} kimhc // 2010.12.14 //  2010-12-23 New Character CHUNG
 
 /** @function	GetSkillSlot
-	@brief		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½
-	@param[in]	B ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ï¿½ï¿½
+	@brief		½ºÅ³ ½½·Ô ¾ò±â
+	@param[in]	½½·Ô ÀÎµ¦½º
+	@param[in]	B ½½·ÔÀÎÁö ¾Æ´ÑÁö
 */
 const CX2UserSkillTree::SkillSlotData* CX2UserSkillTree::GetSkillSlot( int iSlotIndex, bool bSlotB ) const
 {
@@ -1160,9 +1392,9 @@ const CX2UserSkillTree::SkillSlotData* CX2UserSkillTree::GetSkillSlot( int iSlot
 }
 
 /** @function : GetSkillSlot
-	@brief : ï¿½ï¿½Å³ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½Å³ID(eSkillID_)
-	@return : ï¿½ï¿½Å³ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : ½ºÅ³½½·Ôµ¥ÀÌÅÍÀÇ Æ÷ÀÎÅÍ¸¦ ¾ò´Â ÇÔ¼ö
+	@param : ½ºÅ³ID(eSkillID_)
+	@return : ½ºÅ³½½·Ôµ¥ÀÌÅÍ Æ÷ÀÎÅÍ
 */
 const CX2UserSkillTree::SkillSlotData* CX2UserSkillTree::GetSkillSlot( const CX2SkillTree::SKILL_ID eSkillID_ ) const
 {
@@ -1180,8 +1412,8 @@ const CX2UserSkillTree::SkillSlotData* CX2UserSkillTree::GetSkillSlot( const CX2
 }
 
 /** @function : ChangeMpConsumptionPercent
-	@brief : Mp ï¿½Ò¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : Mp ï¿½Ò¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ID, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(fMultiplier)
+	@brief : Mp ¼Ò¸ðÀ² º¯°æ
+	@param : Mp ¼Ò¸ðÀ²À» º¯°æÇÒ ½ºÅ³ID, º¯°æ ÀÎÀÚ(fMultiplier)
 */
 void CX2UserSkillTree::ChangeMpConsumptionPercent( const CX2SkillTree::SKILL_ID eSkillID_, const float fMultiplier_ )
 {
@@ -1203,10 +1435,10 @@ void CX2UserSkillTree::ChangeMpConsumptionPercent( const CX2SkillTree::SKILL_ID 
 }
 
 /** @function	SetMpConsumption
-	@brief		ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½
-	@param[in]	B ï¿½ï¿½ï¿½ï¿½?
-	@param[in]	ï¿½ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½
+	@brief		¸¶³ª ¼Ò¸ð·® ¼³Á¤
+	@param[in]	½½·Ô ÀÎµ¦½º
+	@param[in]	B ½½·Ô?
+	@param[in]	¸¶³ª ¼Ò¸ð·®
 */
 void CX2UserSkillTree::SetMpConsumption( int iSlotIndex_, bool bSlotB_, float fMpConsumption_ )
 {
@@ -1224,18 +1456,25 @@ void CX2UserSkillTree::SetMpConsumption( int iSlotIndex_, bool bSlotB_, float fM
 }
 
 /** @function	GetSkillStat
-	@brief		ï¿½ï¿½Å³ Stat ï¿½ï¿½ï¿½
+	@brief		½ºÅ³ Stat ¾ò±â
 	@return		CX2Stat::Stat
 */
 CX2Stat::Stat CX2UserSkillTree::GetSkillStat() const
 {
 	CX2Stat::Stat retStat;
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( true == m_vecSkillDataMap.empty() || m_usUsingPage >= m_vecSkillDataMap.size() )
+		return retStat;
+
+	BOOST_TEST_FOREACH( const SkillDataMap::value_type&, value, m_vecSkillDataMap[m_usUsingPage] )
+#else //SKILL_PAGE_SYSTEM
 	BOOST_TEST_FOREACH( const SkillDataMap::value_type&, value, m_mapSkillAcquired )
+#endif //SKILL_PAGE_SYSTEM
 	{
 		const UserSkillData& userSkillData = value.second;
 		
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( value.first );
 #else // UPGRADE_SKILL_SYSTEM_2013
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( value.first, userSkillData.m_iSkillLevel );
@@ -1251,7 +1490,7 @@ CX2Stat::Stat CX2UserSkillTree::GetSkillStat() const
 		case CX2SkillTree::ST_PASSIVE_MAGIC_DEFENCE: 
 		case CX2SkillTree::ST_PASSIVE_PHYSIC_DEFENCE:
 			{
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 				retStat.AddStat( pSkillTemplet->GetSkillStatValue( userSkillData.m_iSkillLevel ), false );
 	#else // UPGRADE_SKILL_SYSTEM_2013
 				retStat.AddStat( pSkillTemplet->m_Stat, false );
@@ -1264,18 +1503,18 @@ CX2Stat::Stat CX2UserSkillTree::GetSkillStat() const
 }
 
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+//{{ oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 /** @function	GetGuildSkillStat
-	@brief		ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief		±æµå ½ºÅ³ ½ºÅÈ ¾ò±â
 	@return		CX2Stat:Stat
 */
-CX2Stat::Stat CX2UserSkillTree::GetGuildSkillStat(int iGuildMemberGrade)
+CX2Stat::Stat CX2UserSkillTree::GetGuildSkillStat(int iGuildMemberGrade) const
 {
 	CX2Stat::Stat retStat;
 
-	// oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.12.8] // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	// oasis907 : ±è»óÀ± [2009.12.8] // ±æµå µî±Þ
 	if(iGuildMemberGrade == CX2GuildManager::GUG_INVALID ||
-		iGuildMemberGrade >= g_pData->GetGuildManager()->GetLimitGuildGrade()) // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¿Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+		iGuildMemberGrade >= g_pData->GetGuildManager()->GetLimitGuildGrade()) // ÁöÁ¤µÉ Ä¿Æ®¶óÀÎ ±æµå ¸â¹ö µî±Þ
 	{
 		return retStat;
 	}
@@ -1284,7 +1523,7 @@ CX2Stat::Stat CX2UserSkillTree::GetGuildSkillStat(int iGuildMemberGrade)
 	{
 		const UserSkillData& userSkillData = value.second;
 
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( value.first );
 
 		if( pSkillTemplet == NULL )
@@ -1317,27 +1556,34 @@ CX2Stat::Stat CX2UserSkillTree::GetGuildSkillStat(int iGuildMemberGrade)
 
 	return retStat;
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 #endif GUILD_SKILL
 
 /** @function	CalcUsedSPointAndCSPoint
-	@brief		ï¿½ï¿½ï¿½ï¿½ Skill Pointï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ï¿½ï¿½
-	@param[out]	iSPont : ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
-	@param[out]	iCSPoint : Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
+	@brief		»ç¿ëµÈ Skill Point¿Í Ä³½¬ ½ºÅ³ Æ÷ÀÎÆ® °ª °è»ê
+	@param[out]	iSPont : ½ºÅ³ Æ÷ÀÎÆ®
+	@param[out]	iCSPoint : Ä³½¬ ½ºÅ³ Æ÷ÀÎÆ®
 */
-void CX2UserSkillTree::CalcUsedSPointAndCSPoint( OUT int& iSPoint, OUT int& iCSPoint )
+void CX2UserSkillTree::CalcUsedSPointAndCSPoint( OUT int& iSPoint, OUT int& iCSPoint ) const
 {
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	if ( NULL == g_pData || NULL == g_pData->GetSkillTree() )
 		return;
 
 	iSPoint		= 0;
 	iCSPoint	= 0;
 
-	for( SkillDataMap::iterator mit = m_mapSkillAcquired.begin(); mit != m_mapSkillAcquired.end(); ++mit )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( m_vecSkillDataMap.size() < m_usUsingPage )
+		return;
+
+	for( SkillDataMap::const_iterator mit = m_vecSkillDataMap[m_usUsingPage].begin(); mit != m_vecSkillDataMap[m_usUsingPage].end(); ++mit )
+#else //SKILL_PAGE_SYSTEM
+	for( SkillDataMap::const_iterator mit = m_mapSkillAcquired.begin(); mit != m_mapSkillAcquired.end(); ++mit )
+#endif //SKILL_PAGE_SYSTEM
 	{
 #ifdef ADDED_RELATIONSHIP_SYSTEM
-		/// ï¿½ï¿½È¥ ï¿½ï¿½Å³ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// °áÈ¥ ½ºÅ³ÀÌ¶ó¸é, ½ºÅ³ Æ÷ÀÎÆ® ¿¬»ê Á¦¿Ü
 		CX2SkillTree::SKILL_ID eSkillID = mit->first;
 
 		if ( CX2SkillTree::SI_ETC_WS_COMMON_LOVE == eSkillID )
@@ -1347,31 +1593,31 @@ void CX2UserSkillTree::CalcUsedSPointAndCSPoint( OUT int& iSPoint, OUT int& iCSP
 		CX2SkillTree::SKILL_ID eSkillID = mit->first;
 #endif ADDED_RELATIONSHIP_SYSTEM 
 		
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½È¯
+		/// ½ºÅ³ ÅÛÇÃ¸´ ¹ÝÈ¯
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 
 		if ( NULL != pSkillTemplet )
 		{
 			const UserSkillData& userSkillData = mit->second;
 
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ( Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+			/// Àû¿ëµÈ ½ºÅ³ Æ÷ÀÎÆ® ¿¬»ê ( Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®µµ Æ÷ÇÔ )
 			for( int i = 0 ; i < userSkillData.m_iSkillLevel ; ++i )
 			{
-				if( i == 0 )	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½
+				if( i == 0 )	/// ·¹º§ÀÌ 1ÀÏ ¶¼
 				{
-					if( true == g_pData->GetSkillTree()->isDefaultSkill( eSkillID ) )	/// ï¿½âº» ï¿½ï¿½Å³ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+					if( true == g_pData->GetSkillTree()->isDefaultSkill( eSkillID ) )	/// ±âº» ½ºÅ³ÀÌ¸é Á¦¿Ü
 						continue;
 
-					iSPoint += pSkillTemplet->m_iRequireLearnSkillPoint;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					iSPoint += pSkillTemplet->m_iRequireLearnSkillPoint;	/// ½Àµæ Æ÷ÀÎÆ®¸¦ ¿¬»ê
 				}
 				else
 				{
-					iSPoint += pSkillTemplet->m_iRequireUpgradeSkillPoint;	/// ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					iSPoint += pSkillTemplet->m_iRequireUpgradeSkillPoint;	/// °­È­ Æ÷ÀÎÆ®¸¦ ¿¬»ê
 				}
 			}
 
-			iCSPoint	+= userSkillData.m_iSkillCSPoint;	/// Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-			iSPoint		-= userSkillData.m_iSkillCSPoint;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ü½ï¿½ï¿½ï¿½, ï¿½Ï¹ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			iCSPoint	+= userSkillData.m_iSkillCSPoint;	/// Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®¸¦ ¿¬»ê
+			iSPoint		-= userSkillData.m_iSkillCSPoint;	/// Àû¿ëµÈ Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®¸¦ Á¦¿Ü½ÃÄÑ, ÀÏ¹Ý ½ºÅ³ Æ÷ÀÎÆ®¸¸ ¿¬»ê
 			
 		}
 	}
@@ -1384,7 +1630,7 @@ void CX2UserSkillTree::CalcUsedSPointAndCSPoint( OUT int& iSPoint, OUT int& iCSP
 	for( SkillDataMap::iterator mit = m_mapSkillAcquired.begin(); mit != m_mapSkillAcquired.end(); ++mit )
 	{
 #ifdef ADDED_RELATIONSHIP_SYSTEM
-		/// ï¿½ï¿½È¥ ï¿½ï¿½Å³ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// °áÈ¥ ½ºÅ³ÀÌ¶ó¸é, ½ºÅ³ Æ÷ÀÎÆ® ¿¬»ê Á¦¿Ü
 		CX2SkillTree::SKILL_ID eSkillID = mit->first;
 
 		if ( CX2SkillTree::SI_ETC_WS_COMMON_LOVE == eSkillID )
@@ -1404,14 +1650,21 @@ void CX2UserSkillTree::CalcUsedSPointAndCSPoint( OUT int& iSPoint, OUT int& iCSP
 }
 
 /** @function	CalcCumulativeUsedSPointOnEachTier
-	@brief		tierï¿½ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SP+CSPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½
+	@brief		tierº°·Î ¼Ò¸ðµÈ ´©Àû SP+CSP¸¦ °è»êÇØÁØ´Ù
 	@param[out]	vecTierSPoint : 
 */
-void CX2UserSkillTree::CalcCumulativeUsedSPointOnEachTier( OUT std::vector<int>& vecTierSPoint )
+void CX2UserSkillTree::CalcCumulativeUsedSPointOnEachTier( OUT std::vector<int>& vecTierSPoint ) const
 {
 
 	int iMaxTierIndex = 0;
-	for( SkillDataMap::iterator mit = m_mapSkillAcquired.begin(); mit != m_mapSkillAcquired.end(); ++mit )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( true == m_vecSkillDataMap.empty() || m_usUsingPage >= m_vecSkillDataMap.size() )
+		return;
+
+	for( SkillDataMap::const_iterator mit = m_vecSkillDataMap[m_usUsingPage].begin(); mit != m_vecSkillDataMap[m_usUsingPage].end(); ++mit )
+#else //SKILL_PAGE_SYSTEM
+	for( SkillDataMap::const_iterator mit = m_mapSkillAcquired.begin(); mit != m_mapSkillAcquired.end(); ++mit )
+#endif //SKILL_PAGE_SYSTEM
 	{
 		const UserSkillData& userSkillData = mit->second;
 		if( userSkillData.m_iSkillLevel > 0 )
@@ -1433,7 +1686,11 @@ void CX2UserSkillTree::CalcCumulativeUsedSPointOnEachTier( OUT std::vector<int>&
 
 
 	
-	for( SkillDataMap::iterator mit = m_mapSkillAcquired.begin(); mit != m_mapSkillAcquired.end(); ++mit )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	for( SkillDataMap::const_iterator mit = m_vecSkillDataMap[m_usUsingPage].begin(); mit != m_vecSkillDataMap[m_usUsingPage].end(); ++mit )
+#else //SKILL_PAGE_SYSTEM
+	for( SkillDataMap::const_iterator mit = m_mapSkillAcquired.begin(); mit != m_mapSkillAcquired.end(); ++mit )
+#endif //SKILL_PAGE_SYSTEM
 	{
 		const UserSkillData& userSkillData = mit->second;
 		if( userSkillData.m_iSkillLevel > 0 )
@@ -1443,11 +1700,11 @@ void CX2UserSkillTree::CalcCumulativeUsedSPointOnEachTier( OUT std::vector<int>&
 			{
 				vecTierSPoint[ pSkillTreeTemplet->m_iTier ] += userSkillData.m_iSkillLevel; 
 
-//{{ kimhc // 2010.8.17 // ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½â°¡ ï¿½Ç¸ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½È²ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½â°¡ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
+//{{ kimhc // 2010.8.17 // ½ºÅ³ µÇµ¹¸®±â°¡ µÇ¸é ¾ÈµÇ´Â »óÈ²¿¡¼­ µÇµ¹¸®±â°¡ µÇ¾î ºñÁ¤»óÀûÀÎ ½ºÅ³Æ®¸®°¡ µÇ´Â ¹®Á¦¸¦ ÇØ°áÇÑ °ÍÀÔ´Ï´Ù.
 #ifdef	SERV_RESET_SKILL_BUG_FIX
 				vecTierSPoint[ pSkillTreeTemplet->m_iTier ] -= userSkillData.m_iSkillCSPoint; 
 #endif	SERV_RESET_SKILL_BUG_FIX
-//}} kimhc // 2010.8.17 // ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½â°¡ ï¿½Ç¸ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½È²ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½â°¡ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
+//}} kimhc // 2010.8.17 // ½ºÅ³ µÇµ¹¸®±â°¡ µÇ¸é ¾ÈµÇ´Â »óÈ²¿¡¼­ µÇµ¹¸®±â°¡ µÇ¾î ºñÁ¤»óÀûÀÎ ½ºÅ³Æ®¸®°¡ µÇ´Â ¹®Á¦¸¦ ÇØ°áÇÑ °ÍÀÔ´Ï´Ù.
 			}
 		}
 	}
@@ -1463,13 +1720,13 @@ void CX2UserSkillTree::CalcCumulativeUsedSPointOnEachTier( OUT std::vector<int>&
 
 
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
-void CX2UserSkillTree::CalcUsedGuildSPointAndCSPoint( OUT int& iSPoint, OUT int& iCSPoint )
+//{{ oasis907 : ±è»óÀ± //// 2009-11-12 //// 
+void CX2UserSkillTree::CalcUsedGuildSPointAndCSPoint( OUT int& iSPoint, OUT int& iCSPoint ) const
 {
 	iSPoint = 0;
 	iCSPoint = 0;
 
-	for( SkillDataMap::iterator mit = m_mapGuildSkillAcquired.begin(); mit != m_mapGuildSkillAcquired.end(); ++mit )
+	for( SkillDataMap::const_iterator mit = m_mapGuildSkillAcquired.begin(); mit != m_mapGuildSkillAcquired.end(); ++mit )
 	{
 		const UserSkillData& userSkillData = mit->second;
 
@@ -1484,12 +1741,12 @@ void CX2UserSkillTree::CalcUsedGuildSPointAndCSPoint( OUT int& iSPoint, OUT int&
 
 
 
-// tierï¿½ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SP+CSPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½
-void CX2UserSkillTree::CalcCumulativeUsedGuildSPointOnEachTier( OUT std::vector<int>& vecTierSPoint )
+// tierº°·Î ¼Ò¸ðµÈ ´©Àû SP+CSP¸¦ °è»êÇØÁØ´Ù
+void CX2UserSkillTree::CalcCumulativeUsedGuildSPointOnEachTier( OUT std::vector<int>& vecTierSPoint ) const
 {
 
 	int iMaxTierIndex = 0;
-	for( SkillDataMap::iterator mit = m_mapGuildSkillAcquired.begin(); mit != m_mapGuildSkillAcquired.end(); ++mit )
+	for( SkillDataMap::const_iterator mit = m_mapGuildSkillAcquired.begin(); mit != m_mapGuildSkillAcquired.end(); ++mit )
 	{
 		const UserSkillData& userSkillData = mit->second;
 		if( userSkillData.m_iSkillLevel > 0 )
@@ -1511,7 +1768,7 @@ void CX2UserSkillTree::CalcCumulativeUsedGuildSPointOnEachTier( OUT std::vector<
 
 
 
-	for( SkillDataMap::iterator mit = m_mapGuildSkillAcquired.begin(); mit != m_mapGuildSkillAcquired.end(); ++mit )
+	for( SkillDataMap::const_iterator mit = m_mapGuildSkillAcquired.begin(); mit != m_mapGuildSkillAcquired.end(); ++mit )
 	{
 		const UserSkillData& userSkillData = mit->second;
 		if( userSkillData.m_iSkillLevel > 0 )
@@ -1520,11 +1777,11 @@ void CX2UserSkillTree::CalcCumulativeUsedGuildSPointOnEachTier( OUT std::vector<
 			if( NULL != pSkillTreeTemplet )
 			{
 				vecTierSPoint[ pSkillTreeTemplet->m_iTier ] += userSkillData.m_iSkillLevel; 
-				//{{ kimhc // 2010.8.17 // ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½â°¡ ï¿½Ç¸ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½È²ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½â°¡ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
+				//{{ kimhc // 2010.8.17 // ½ºÅ³ µÇµ¹¸®±â°¡ µÇ¸é ¾ÈµÇ´Â »óÈ²¿¡¼­ µÇµ¹¸®±â°¡ µÇ¾î ºñÁ¤»óÀûÀÎ ½ºÅ³Æ®¸®°¡ µÇ´Â ¹®Á¦¸¦ ÇØ°áÇÑ °ÍÀÔ´Ï´Ù.
 #ifdef	SERV_RESET_SKILL_BUG_FIX
 				vecTierSPoint[ pSkillTreeTemplet->m_iTier ] -= userSkillData.m_iSkillCSPoint; 
 #endif	SERV_RESET_SKILL_BUG_FIX
-				//}} kimhc // 2010.8.17 // ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½â°¡ ï¿½Ç¸ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½È²ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½â°¡ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ô´Ï´ï¿½.
+				//}} kimhc // 2010.8.17 // ½ºÅ³ µÇµ¹¸®±â°¡ µÇ¸é ¾ÈµÇ´Â »óÈ²¿¡¼­ µÇµ¹¸®±â°¡ µÇ¾î ºñÁ¤»óÀûÀÎ ½ºÅ³Æ®¸®°¡ µÇ´Â ¹®Á¦¸¦ ÇØ°áÇÑ °ÍÀÔ´Ï´Ù.
 			}
 		}
 	}
@@ -1537,23 +1794,23 @@ void CX2UserSkillTree::CalcCumulativeUsedGuildSPointOnEachTier( OUT std::vector<
 		iTierSPoint = iCumulativeTierSPoint;
 	}
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 #endif GUILD_SKILL
 
 
-// cash skill pointï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯
+// cash skill point·Î ÂïÀº ½ºÅ³ÀÇ ·¹º§À» Á¶Á¤ÇÑ´Ù
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯
 void CX2UserSkillTree::ExpireCashSkillPoint( OUT const std::map<int, int> mapHaveSKill_ )
 #else // UPGRADE_SKILL_SYSTEM_2013
 void CX2UserSkillTree::ExpireCashSkillPoint()
 #endif // UPGRADE_SKILL_SYSTEM_2013
 {
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯
 
-	/// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+	/// ¹è¿î ½ºÅ³ ¸ñ·Ï ÃÊ±âÈ­
 	Reset( true, false, false, false );
 
-	/// ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ±×³ë½Ã½º ½Àµæ ÀÌÀü¿¡ ¹è¿ü´ø ½ºÅ³µé·Î ¼³Á¤
 	std::map<int, int>::const_iterator it = mapHaveSKill_.begin();
 
 	for ( it; it != mapHaveSKill_.end(); ++it  )
@@ -1561,7 +1818,11 @@ void CX2UserSkillTree::ExpireCashSkillPoint()
 		const CX2SkillTree:: SKILL_ID	eSkillID	= static_cast<CX2SkillTree::SKILL_ID>( it->first );
 		const int						eSkillLevel	= it->second;
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
 		SetSkillLevelAndCSP( eSkillID, eSkillLevel, 0 );
+#else //SKILL_PAGE_SYSTEM
+		SetSkillLevelAndCSP( eSkillID, eSkillLevel, 0 );
+#endif //SKILL_PAGE_SYSTEM
 	}
 
 #else // UPGRADE_SKILL_SYSTEM_2013 
@@ -1580,7 +1841,7 @@ void CX2UserSkillTree::ExpireCashSkillPoint()
 #endif UPGRADE_SKILL_SYSTEM_2013
 
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ß¿ï¿½ï¿½ï¿½ skill levelï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ï¿½ï¿½Å²ï¿½ï¿½.
+	// ÀåÂøµÈ ½ºÅ³ Áß¿¡¼­ skill levelÀÌ 0ÀÌÇÏÀÎ ½ºÅ³ÀÌ ÀÖÀ¸¸é Å»Âø½ÃÅ²´Ù.
 	for( int i=0; i<ARRAY_SIZE( m_aEquippedSkill ); ++i )
 	{
 		SkillSlotData& skillSlotData = m_aEquippedSkill[i];
@@ -1621,8 +1882,8 @@ void CX2UserSkillTree::ExpireCashSkillPoint()
 	}
 }
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.11.27] //
-// cash skill pointï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½
+//{{ oasis907 : ±è»óÀ± [2009.11.27] //
+// cash skill point·Î ÂïÀº ½ºÅ³ÀÇ ·¹º§À» Á¶Á¤ÇÑ´Ù
 void CX2UserSkillTree::ExpireGuildCashSkillPoint()
 {
 	for( SkillDataMap::iterator mit = m_mapGuildSkillAcquired.begin(); mit != m_mapGuildSkillAcquired.end(); ++mit )
@@ -1635,9 +1896,9 @@ void CX2UserSkillTree::ExpireGuildCashSkillPoint()
 			userSkillData.m_iSkillCSPoint	= 0;
 		}
 	}
-    // oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.11.27] // ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ê°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ï¿½
+    // oasis907 : ±è»óÀ± [2009.11.27] // ±æµå ½ºÅ³¿¡ ¾×Æ¼ºê°¡ ¾øÀ¸¹Ç·Î ÇÊ¿ä¾øÀ½
 /*
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ß¿ï¿½ï¿½ï¿½ skill levelï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ï¿½ï¿½Å²ï¿½ï¿½.
+	// ÀåÂøµÈ ½ºÅ³ Áß¿¡¼­ skill levelÀÌ 0ÀÌÇÏÀÎ ½ºÅ³ÀÌ ÀÖÀ¸¸é Å»Âø½ÃÅ²´Ù.
 	for( int i=0; i<ARRAY_SIZE( m_aEquippedSkill ); i++ )
 	{
 		SkillSlotData& skillSlotData = m_aEquippedSkill[i];
@@ -1663,11 +1924,11 @@ void CX2UserSkillTree::ExpireGuildCashSkillPoint()
 
 
 
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ [2009.11.27] //
+//}} oasis907 : ±è»óÀ± [2009.11.27] //
 
-bool CX2UserSkillTree::IsSkillUnsealed( CX2SkillTree::SKILL_ID eSkillID )
+bool CX2UserSkillTree::IsSkillUnsealed( CX2SkillTree::SKILL_ID eSkillID ) const
 {
-	std::set< CX2SkillTree::SKILL_ID >::iterator it = m_setUnsealedSkillID.find( eSkillID );
+	std::set< CX2SkillTree::SKILL_ID >::const_iterator it = m_setUnsealedSkillID.find( eSkillID );
 	if( it != m_setUnsealedSkillID.end() )
 	{
 		return true;
@@ -1687,21 +1948,21 @@ void CX2UserSkillTree::AddSkillUnsealed( CX2SkillTree::SKILL_ID eSkillID )
 }
 
 
-bool CX2UserSkillTree::DoIHaveThisSkill( CX2SkillTree::SKILL_ID eSkillID )
+bool CX2UserSkillTree::DoIHaveThisSkill( CX2SkillTree::SKILL_ID eSkillID ) const
 {
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Úµï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	/// ÇöÀç ½ºÅ³ Æ÷ÀÎÆ®°¡ ÅõÀÚµÈ ½ºÅ³ÀÎÁö °Ë»ç
 	if( GetSkillLevel(eSkillID) > 0 )
 		return true;
-	/// ï¿½Æ´Ï¶ï¿½ï¿½, ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	/// ¾Æ´Ï¶ó¸é, ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖ´Â ½ºÅ³ÀÎÁö °Ë»ç
 	else if (	NULL != g_pData &&
 				NULL != g_pData->GetUIManager() &&
 				NULL != g_pData->GetSkillTree() &&
 				NULL != g_pData->GetUIManager()->GetUISkillTree() &&
 				true == g_pData->GetUIManager()->GetUISkillTree()->GetNowLearnSkill() )
 	{
-		/// ï¿½Ã¸ï¿½ ï¿½ï¿½Ï¿ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+		/// ¿Ã¸° ¸ñ·Ï¿¡ ÇØ´ç ½ºÅ³ÀÌ ÀÖÀ¸¸é, ¼ÒÀ¯ÁßÀ¸·Î Ã³¸®
 		const std::map<int, KGetSkillInfo> mapSkillInfo = g_pData->GetSkillTree()->GetMapSkillInfo();
 
 		const std::map<int, KGetSkillInfo>::const_iterator it = mapSkillInfo.find( static_cast<int>( eSkillID ) );
@@ -1722,16 +1983,16 @@ bool CX2UserSkillTree::DoIHaveThisSkill( CX2SkillTree::SKILL_ID eSkillID )
 }
 
 
-bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID )
+bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID ) const
 {
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-17 //// 
+//{{ oasis907 : ±è»óÀ± //// 2009-11-17 //// 
 	if(IsGuildSkill(eSkillID))
 	{
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		if( true == g_pData->GetSkillTree()->IsUnitTypeDefaultSkill( eSkillID ) && GetSkillLevel( eSkillID, true ) <= 1)	// ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ : 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½..
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
+		if( true == g_pData->GetSkillTree()->IsUnitTypeDefaultSkill( eSkillID ) && GetSkillLevel( eSkillID, true ) <= 1)	// ÅÂ¿Ï ¼öÁ¤ : 1·¹º§±îÁö´Â ¶³±¼ ¼ö ÀÖ°Ô..
 	#else // UPGRADE_SKILL_SYSTEM_2013
-		if( true == g_pData->GetSkillTree()->IsUnitTypeDefaultSkill( eSkillID ) && GetSkillLevel( eSkillID ) <= 1)	// ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ : 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½..
+		if( true == g_pData->GetSkillTree()->IsUnitTypeDefaultSkill( eSkillID ) && GetSkillLevel( eSkillID ) <= 1)	// ÅÂ¿Ï ¼öÁ¤ : 1·¹º§±îÁö´Â ¶³±¼ ¼ö ÀÖ°Ô..
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 			return false;
 
@@ -1739,7 +2000,7 @@ bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID )
 		if( iMySkillLevel <= 0 )
 			return false;
 
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 	#else // UPGRADE_SKILL_SYSTEM_2013
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, iMySkillLevel );
@@ -1754,7 +2015,7 @@ bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID )
 			return false;
 
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		CX2SkillTree::SKILL_ID eFollowingSkillID = static_cast<CX2SkillTree::SKILL_ID>(pSkillTreeTemplet->m_iFollowingSkill);
 		if( true == DoIHaveThisSkill( eFollowingSkillID ) )
 			return false;
@@ -1768,7 +2029,7 @@ bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID )
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
 
-		// ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½â¸¦ ï¿½Ï°ï¿½ ï¿½ï¿½ ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½ tierï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ½ºÅ³ µÇµ¹¸®±â¸¦ ÇÏ°í ³­ ÈÄ¿¡ ÈÄÇà tier¿¡ ½ºÅ³À» ¸ø Âï°Ô µÇ´Â °æ¿ì ½ºÅ³ ¸®¼ÂÀ» ÇÒ ¼ö ¾ø´Ù
 		std::vector<int> vecCumulativeTierSPoint;
 		CalcCumulativeUsedGuildSPointOnEachTier( vecCumulativeTierSPoint );
 
@@ -1784,13 +2045,13 @@ bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID )
 
 		return true;
 	}
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-17 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-17 //// 
 #endif GUILD_SKILL
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	if( true == g_pData->GetSkillTree()->IsUnitTypeDefaultSkill( eSkillID ) && GetSkillLevel( eSkillID, true ) <= 1)	// ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ : 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½..
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
+	if( true == g_pData->GetSkillTree()->IsUnitTypeDefaultSkill( eSkillID ) && GetSkillLevel( eSkillID, true ) <= 1)	// ÅÂ¿Ï ¼öÁ¤ : 1·¹º§±îÁö´Â ¶³±¼ ¼ö ÀÖ°Ô..
 #else // UPGRADE_SKILL_SYSTEM_2013
-	if( true == g_pData->GetSkillTree()->IsUnitTypeDefaultSkill( eSkillID ) && GetSkillLevel( eSkillID ) <= 1)	// ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ : 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö°ï¿½..
+	if( true == g_pData->GetSkillTree()->IsUnitTypeDefaultSkill( eSkillID ) && GetSkillLevel( eSkillID ) <= 1)	// ÅÂ¿Ï ¼öÁ¤ : 1·¹º§±îÁö´Â ¶³±¼ ¼ö ÀÖ°Ô..
 #endif // UPGRADE_SKILL_SYSTEM_2013
 		return false;
 
@@ -1799,7 +2060,7 @@ bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID )
 	if( iMySkillLevel <= 0 )
 		return false;
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 #else // UPGRADE_SKILL_SYSTEM_2013
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, iMySkillLevel );
@@ -1814,7 +2075,7 @@ bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID )
 		return false;
 
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		CX2SkillTree::SKILL_ID eFollowingSkillID = static_cast<CX2SkillTree::SKILL_ID>( pSkillTreeTemplet->m_iFollowingSkill );
 		if( true == DoIHaveThisSkill( eFollowingSkillID ) )
 			return false;
@@ -1829,7 +2090,7 @@ bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID )
 
 
 
-	// ï¿½ï¿½Å³ ï¿½Çµï¿½ï¿½ï¿½ï¿½â¸¦ ï¿½Ï°ï¿½ ï¿½ï¿½ ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½ tierï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ½ºÅ³ µÇµ¹¸®±â¸¦ ÇÏ°í ³­ ÈÄ¿¡ ÈÄÇà tier¿¡ ½ºÅ³À» ¸ø Âï°Ô µÇ´Â °æ¿ì ½ºÅ³ ¸®¼ÂÀ» ÇÒ ¼ö ¾ø´Ù
 	std::vector<int> vecCumulativeTierSPoint;
 	CalcCumulativeUsedSPointOnEachTier( vecCumulativeTierSPoint );
 
@@ -1847,21 +2108,20 @@ bool CX2UserSkillTree::CanIResetThisSkill( CX2SkillTree::SKILL_ID eSkillID )
 }
 
 
-bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool bCheckSP /*= true*/ )
+bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool bCheckSP /*= true*/ ) const
 {
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-17 //// 
+//{{ oasis907 : ±è»óÀ± //// 2009-11-17 //// 
 	if(IsGuildSkill(eSkillID))
 	{
 		if( NULL == g_pData ||
 			NULL == g_pData->GetMyUser() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+			NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		{
 			return false;
 		}
 
-		CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+		const CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 		if(bCheckSP == true)
 		{
@@ -1874,7 +2134,7 @@ bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool
 
 		int iSkillLevelToLearn = GetSkillLevel( eSkillID ) + 1;
 
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 	#else // UPGRADE_SKILL_SYSTEM_2013
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, iSkillLevelToLearn );
@@ -1885,7 +2145,7 @@ bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool
 
 
 
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ºÀÀÎÇØÁ¦µÇÁö ¾ÊÀº ½ºÅ³Àº È¹µæÇÒ ¼ö ¾ø´Ù
 		if( true == pSkillTemplet->m_bBornSealed )
 		{
 			if( false == IsSkillUnsealed( eSkillID ) )
@@ -1910,7 +2170,7 @@ bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool
 
 
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 		CX2SkillTree::SKILL_ID ePrecedingSkillID = static_cast<CX2SkillTree::SKILL_ID>( pSkillTreeTemplet->m_iPrecedingSkill );
 
 		if( CX2SkillTree::SI_NONE != ePrecedingSkillID &&false == IsMaxSkillLevel( ePrecedingSkillID ) )
@@ -1927,18 +2187,17 @@ bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool
 		return true;
 
 	}
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-17 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-17 //// 
 #endif GUILD_SKILL
 
 	if( NULL == g_pData ||
 		NULL == g_pData->GetMyUser() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		NULL == g_pData->GetMyUser()->GetSelectUnit() )
 	{
 		return false;
 	}
 
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	const CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 	if(bCheckSP == true)
 	{
@@ -1951,7 +2210,7 @@ bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool
 
 	int iSkillLevelToLearn = GetSkillLevel( eSkillID ) + 1;
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 #else // UPGRADE_SKILL_SYSTEM_2013
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID, iSkillLevelToLearn );
@@ -1962,7 +2221,7 @@ bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool
 
 
     
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ È¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ºÀÀÎÇØÁ¦µÇÁö ¾ÊÀº ½ºÅ³Àº È¹µæÇÒ ¼ö ¾ø´Ù
 	if( true == pSkillTemplet->m_bBornSealed )
 	{
 		if( false == IsSkillUnsealed( eSkillID ) )
@@ -1988,7 +2247,7 @@ bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool
 
 
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	CX2SkillTree::SKILL_ID ePrecedingSkillID = static_cast<CX2SkillTree::SKILL_ID>( pSkillTreeTemplet->m_iFollowingSkill );
 	if( false == IsMaxSkillLevel( ePrecedingSkillID ) )
 		return false;
@@ -2005,9 +2264,16 @@ bool CX2UserSkillTree::CanILearnThisSkill( CX2SkillTree::SKILL_ID eSkillID, bool
 }
 
 
-bool CX2UserSkillTree::CanIInitSkillTree()
+bool CX2UserSkillTree::CanIInitSkillTree() const
 {
-	for(SkillDataMap::iterator mit = m_mapSkillAcquired.begin(); mit != m_mapSkillAcquired.end(); ++mit)
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( true == m_vecSkillDataMap.empty() || m_usUsingPage >= m_vecSkillDataMap.size() )
+		return false;
+
+	for( SkillDataMap::const_iterator mit = m_vecSkillDataMap[m_usUsingPage].begin(); mit != m_vecSkillDataMap[m_usUsingPage].end(); ++mit )
+#else //SKILL_PAGE_SYSTEM
+	for( SkillDataMap::const_iterator mit = m_mapSkillAcquired.begin(); mit != m_mapSkillAcquired.end(); ++mit )
+#endif //SKILL_PAGE_SYSTEM
 	{
 		CX2SkillTree::SKILL_ID eSkillID = mit->first;
 		const UserSkillData& userSkillData = mit->second;
@@ -2025,10 +2291,10 @@ bool CX2UserSkillTree::CanIInitSkillTree()
 
 }
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
-bool CX2UserSkillTree::CanIInitGuildSkillTree()
+//{{ oasis907 : ±è»óÀ± //// 2009-11-12 //// 
+bool CX2UserSkillTree::CanIInitGuildSkillTree() const
 {
-	for(SkillDataMap::iterator mit = m_mapGuildSkillAcquired.begin(); mit != m_mapGuildSkillAcquired.end(); ++mit)
+	for(SkillDataMap::const_iterator mit = m_mapGuildSkillAcquired.begin(); mit != m_mapGuildSkillAcquired.end(); ++mit)
 	{
 		CX2SkillTree::SKILL_ID eSkillID = mit->first;
 		const UserSkillData& userSkillData = mit->second;
@@ -2045,11 +2311,11 @@ bool CX2UserSkillTree::CanIInitGuildSkillTree()
 	return false;
 
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-12 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-12 //// 
 #endif GUILD_SKILL
 
 
-int CX2UserSkillTree::GetSkillEquippedSlotIndex( CX2SkillTree::SKILL_ID eSkillID, bool bSlotB )
+int CX2UserSkillTree::GetSkillEquippedSlotIndex( CX2SkillTree::SKILL_ID eSkillID, bool bSlotB ) const
 {
 	if( false == bSlotB )
 	{
@@ -2075,12 +2341,6 @@ int CX2UserSkillTree::GetSkillEquippedSlotIndex( CX2SkillTree::SKILL_ID eSkillID
 
 bool CX2UserSkillTree::GetEnabledSkillSlotB() const
 {
-//{{ Iruha : 2026-08-25 // Skill Slot B open by default, no medal purchase required
-#ifdef SERV_IRUHADEV_SKILL_SLOT_B_FREE
-	return true;
-#endif SERV_IRUHADEV_SKILL_SLOT_B_FREE
-//}}
-
 	switch( m_eSkillSlotBExpirationState )
 	{
 	case SSBES_EXPIRED:
@@ -2110,8 +2370,40 @@ void CX2UserSkillTree::SetSkillCoolTimeLeft( CX2SkillTree::SKILL_ID eSkillID, fl
 				
 		if( eSkillID == skillSlot.m_eID )
 		{
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetUserSkillTemplet( skillSlot.m_eID );
+			
+			if( pSkillTemplet != NULL && ( pSkillTemplet->m_eType == CX2SkillTree::ST_RELATIONSHIP_SKILL
+				|| ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && skillSlot.m_eID != CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION ) ) )
+			{
+				const int iSkillTempletLevel = max( 1, GetSkillLevel( pSkillTemplet->m_eID ) );
+				const float fTime = pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel );
+
+				skillSlot.m_fCoolTimeLeft = fTime;
+				pGageManager->SetMySkillCoolTimeList( i, fTime );
+			}
+			else
+			{
+				skillSlot.m_fCoolTimeLeft = fCoolTimeLeft;
+				pGageManager->SetMySkillCoolTimeList( i, fCoolTimeLeft );
+			}
+#else //FINALITY_SKILL_SYSTEM
 			skillSlot.m_fCoolTimeLeft = fCoolTimeLeft;
 			pGageManager->SetMySkillCoolTimeList( i, fCoolTimeLeft );
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+			float fDecreaseRate = 1.0f;			
+			if( NULL != pSkillTemplet && NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
+				fDecreaseRate =	g_pData->GetMyUser()->GetSelectUnit()->GetSkillCoolTimeDecreaseRate(eSkillID, pSkillTemplet->m_eType);
+			
+			if( 1.0f != fDecreaseRate )
+			{
+				float fCoolTimeLeftOld = skillSlot.m_fCoolTimeLeft;
+				skillSlot.m_fCoolTimeLeft = fCoolTimeLeftOld * fDecreaseRate;
+				pGageManager->SetMySkillCoolTimeList( i, fCoolTimeLeftOld * fDecreaseRate );
+			}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
 		}
 	}
 
@@ -2123,47 +2415,112 @@ void CX2UserSkillTree::SetSkillCoolTimeLeft( CX2SkillTree::SKILL_ID eSkillID, fl
 			
 			if( eSkillID == skillSlot.m_eID )
 			{
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = GetUserSkillTemplet( skillSlot.m_eID );
+
+				if( pSkillTemplet != NULL && ( pSkillTemplet->m_eType == CX2SkillTree::ST_RELATIONSHIP_SKILL
+					|| ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && skillSlot.m_eID != CX2SkillTree::SI_HA_EEP_LINK_OVERCHARGE_ILLUSION ) ) )
+				{
+					const int iSkillTempletLevel = max( 1, GetSkillLevel( pSkillTemplet->m_eID ) );
+					const float fTime = pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel );
+					
+					skillSlot.m_fCoolTimeLeft = fTime;
+					pGageManager->SetMySkillCoolTimeList( i + 4, fTime );
+				}
+				else
+				{
+					skillSlot.m_fCoolTimeLeft = fCoolTimeLeft;
+					pGageManager->SetMySkillCoolTimeList( i + 4, fCoolTimeLeft );
+				}
+#else //FINALITY_SKILL_SYSTEM
 				skillSlot.m_fCoolTimeLeft = fCoolTimeLeft;
 				pGageManager->SetMySkillCoolTimeList( i + 4, fCoolTimeLeft );
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+				float fDecreaseRate = 1.0f;
+				if( NULL != pSkillTemplet && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
+					fDecreaseRate =	g_pData->GetMyUser()->GetSelectUnit()->GetSkillCoolTimeDecreaseRate(eSkillID, pSkillTemplet->m_eType);
+
+				if( 1.0f != fDecreaseRate )
+				{
+					float fCoolTimeLeftOld = skillSlot.m_fCoolTimeLeft;
+					skillSlot.m_fCoolTimeLeft = fCoolTimeLeftOld * fDecreaseRate;
+					pGageManager->SetMySkillCoolTimeList( i, fCoolTimeLeftOld * fDecreaseRate );
+				}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
 			}
 		}
 	}
 }
 
-//{{ kimhc // 2010.11.2 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//{{ kimhc // 2010.11.2 // ¿¥ÇÁ·¹½º - ÃæÀü ÃßÁø±â
 #ifdef	NEW_SKILL_2010_11
 
 void CX2UserSkillTree::ResetLeftSkillCoolTimeAll()
 {
-	// ï¿½ï¿½ï¿½ï¿½ aï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ bï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½î°¡ ï¿½ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½
+	// ½½·Ô a¿Í ½½·Ô bÀÇ »çÀÌÁî°¡ °°´Ù°í °¡Á¤ÇÏ¿´À½
 	const int iSizeOfIndex = ARRAY_SIZE( m_aEquippedSkill );
 	CX2GageManager* pGageManager = CX2GageManager::GetInstance();
 
 	for ( int iCurrentIndex = 0; iCurrentIndex < iSizeOfIndex; ++iCurrentIndex )
 	{
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	#ifdef FINALITY_SKILL_COOLTIMERESET_IN_TRAINING
+		if( NULL != g_pMain && g_pMain->GetNowStateID() == CX2Main::XS_TRAINING_GAME )
+		{
+			m_aEquippedSkill[iCurrentIndex].m_fCoolTimeLeft = 0.0f;
+			m_aEquippedSkillSlotB[iCurrentIndex].m_fCoolTimeLeft = 0.0f;
+
+			pGageManager->SetMySkillCoolTimeList( iCurrentIndex, 0.0f );
+			pGageManager->SetMySkillCoolTimeList( iCurrentIndex + 4, 0.0f );
+		}
+		else
+	#endif //FINALITY_SKILL_COOLTIMERESET_IN_TRAINING
+		{
+			const CX2SkillTree::SkillTemplet* pSkillTempletA = GetUserSkillTemplet( m_aEquippedSkill[iCurrentIndex].m_eID );
+
+			if ( pSkillTempletA != NULL && ( pSkillTempletA->m_eType != CX2SkillTree::ST_HYPER_ACTIVE_SKILL &&
+				 pSkillTempletA->m_eType != CX2SkillTree::ST_RELATIONSHIP_SKILL ) )
+			{
+				m_aEquippedSkill[iCurrentIndex].m_fCoolTimeLeft = 0.0f;
+				pGageManager->SetMySkillCoolTimeList( iCurrentIndex, 0.0f );
+			}
+
+			const CX2SkillTree::SkillTemplet* pSkillTempletB = GetUserSkillTemplet( m_aEquippedSkillSlotB[iCurrentIndex].m_eID );
+
+			if ( pSkillTempletB != NULL && ( pSkillTempletB->m_eType != CX2SkillTree::ST_HYPER_ACTIVE_SKILL &&
+				pSkillTempletB->m_eType != CX2SkillTree::ST_RELATIONSHIP_SKILL ) )
+			{
+				m_aEquippedSkillSlotB[iCurrentIndex].m_fCoolTimeLeft = 0.0f;
+				pGageManager->SetMySkillCoolTimeList( iCurrentIndex + 4, 0.0f );
+			}
+		}
+#else //FINALITY_SKILL_SYSTEM
 		m_aEquippedSkill[iCurrentIndex].m_fCoolTimeLeft = 0.0f;
 		m_aEquippedSkillSlotB[iCurrentIndex].m_fCoolTimeLeft = 0.0f;
 
 		pGageManager->SetMySkillCoolTimeList( iCurrentIndex, 0.0f );
 		pGageManager->SetMySkillCoolTimeList( iCurrentIndex + 4, 0.0f );
+#endif //FINALITY_SKILL_SYSTEM
 	}
 }
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 /// ï¿½ï¿½ï¿½ï¿½È¯
+#ifdef UPGRADE_SKILL_SYSTEM_2013 /// ±èÅÂÈ¯
 
-#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 13-07-04 / ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½
+#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ±èÁ¾ÈÆ / 13-07-04 / ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡
 void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SKILL_TYPE eSkillType, const float fCoolTime /*= 0.f*/, bool bForceSet /*= true*/, BUFF_CHANGE_TYPE eChangeType /*= BCT_RELATION_VALUE*/, const float fCoolTimeRate /* = 1.f */, const bool bIsRelativeAllSkill /* = false */ )
 
 #else // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME
 void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SKILL_TYPE eSkillType, const float fCoolTime /*= 0.f*/, bool bForceSet /*= true*/, BUFF_CHANGE_TYPE eChangeType /*= BCT_RELATION_VALUE*/ )
 
-#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 13-07-04 / ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½
+#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ±èÁ¾ÈÆ / 13-07-04 / ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡
 
 #else // UPGRADE_SKILL_SYSTEM_2013
 void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SKILL_TYPE eSkillType )
 #endif // UPGRADE_SKILL_SYSTEM_2013
 {
-	// ï¿½ï¿½ï¿½ï¿½ aï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ bï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½î°¡ ï¿½ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½
+	// ½½·Ô a¿Í ½½·Ô bÀÇ »çÀÌÁî°¡ °°´Ù°í °¡Á¤ÇÏ¿´À½
 	const int iSizeOfIndex = ARRAY_SIZE( m_aEquippedSkill );
 	CX2GageManager* pGageManager = CX2GageManager::GetInstance();
 
@@ -2172,20 +2529,20 @@ void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SK
 		const CX2SkillTree::SkillTemplet* pSkillTempletSlotA = GetUserSkillTemplet( m_aEquippedSkill[iCurrentIndex].m_eID );
 
 		if ( NULL != pSkillTempletSlotA && ( eSkillType == pSkillTempletSlotA->m_eType 
-#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½
-			|| bIsRelativeAllSkill == true								// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½Å³ Å¸ï¿½ï¿½  
-#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½			
+#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ±èÁ¾ÈÆ, ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡
+			|| bIsRelativeAllSkill == true								// ÀåÂø °¡´ÉÇÑ ½ºÅ³Àº ¸ðµÎ °ü¿©ÇÏ´Â ½ºÅ³ Å¸ÀÔ  
+#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME				// ±èÁ¾ÈÆ, ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡			
 			) )
 		{
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 /// ï¿½ï¿½ï¿½ï¿½È¯
-			float fNowCoolTime = m_aEquippedSkill[iCurrentIndex].m_fCoolTimeLeft;		/// ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 /// ±èÅÂÈ¯
+			float fNowCoolTime = m_aEquippedSkill[iCurrentIndex].m_fCoolTimeLeft;		/// ÇØ´ç ½ºÅ³ÀÇ ÇöÀç ÄðÅ¸ÀÓ
 
 			switch ( eChangeType )
 			{
 			case BCT_FIX_VALUE:
 				{
-					/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½Óºï¿½ï¿½ï¿½ ï¿½Î¾ï¿½ Å¬ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+					/// ¸¸¾à ÄðÅ¸ÀÓ °­Á¦ ´ëÀÔ ¼³Á¤À» Çß°Å³ª ÇöÀç ÄðÅ¸ÀÓÀÌ º¯°æÇÒ ÄðÅ¸ÀÓº¸´Ù ÈÎ¾À Å¬¶§, ÇöÀç ÄðÅ¸ÀÓÀ» º¯°æÇÒ ÄðÅ¸ÀÓÀ¸·Î ´ëÀÔÇÑ´Ù.
 					if ( true == bForceSet || fNowCoolTime > fCoolTime )
 					{
 						m_aEquippedSkill[iCurrentIndex].m_fCoolTimeLeft = fCoolTime;
@@ -2201,7 +2558,7 @@ void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SK
 					m_aEquippedSkill[iCurrentIndex].m_fCoolTimeLeft = fNowCoolTime;
 					pGageManager->SetMySkillCoolTimeList( iCurrentIndex, fNowCoolTime );
 				} break;
-#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½
+#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ±èÁ¾ÈÆ, ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡
 			case BCT_PERCENT:
 				{										
 					int iSkillLevel = GetSkillLevel ( pSkillTempletSlotA->m_eID );
@@ -2211,7 +2568,7 @@ void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SK
 					m_aEquippedSkill[iCurrentIndex].m_fCoolTimeLeft = fNowCoolTime;
 					pGageManager->SetMySkillCoolTimeList( iCurrentIndex, fNowCoolTime);
 				} break;
-#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½
+#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ±èÁ¾ÈÆ, ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡
 
 			default:
 				break;
@@ -2232,21 +2589,21 @@ void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SK
 #endif
 
 		if ( NULL != pSkillTempletSlotB && ( eSkillType == pSkillTempletSlotB->m_eType 
-#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½
-			|| bIsRelativeAllSkill == true								// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½Å³ Å¸ï¿½ï¿½  
-#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½			
+#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ±èÁ¾ÈÆ, ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡
+			|| bIsRelativeAllSkill == true								// ÀåÂø °¡´ÉÇÑ ½ºÅ³Àº ¸ðµÎ °ü¿©ÇÏ´Â ½ºÅ³ Å¸ÀÔ  
+#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ±èÁ¾ÈÆ, ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡			
 
 			) )
 		{
 
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 /// ï¿½ï¿½ï¿½ï¿½È¯
-			float fNowCoolTime = m_aEquippedSkillSlotB[iCurrentIndex].m_fCoolTimeLeft;	/// ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 /// ±èÅÂÈ¯
+			float fNowCoolTime = m_aEquippedSkillSlotB[iCurrentIndex].m_fCoolTimeLeft;	/// ÇØ´ç ½ºÅ³ÀÇ ÇöÀç ÄðÅ¸ÀÓ
 
 			switch( eChangeType )
 			{
 			case BCT_FIX_VALUE:
 				{
-					/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½Óºï¿½ï¿½ï¿½ ï¿½Î¾ï¿½ Å¬ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+					/// ¸¸¾à ÄðÅ¸ÀÓ °­Á¦ ´ëÀÔ ¼³Á¤À» Çß°Å³ª ÇöÀç ÄðÅ¸ÀÓÀÌ º¯°æÇÒ ÄðÅ¸ÀÓº¸´Ù ÈÎ¾À Å¬¶§, ÇöÀç ÄðÅ¸ÀÓÀ» º¯°æÇÒ ÄðÅ¸ÀÓÀ¸·Î ´ëÀÔÇÑ´Ù.
 					if ( true == bForceSet || fNowCoolTime > fCoolTime )
 					{
 						m_aEquippedSkillSlotB[iCurrentIndex].m_fCoolTimeLeft = fCoolTime;
@@ -2264,7 +2621,7 @@ void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SK
 				} break;
 
 
-#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½
+#ifdef ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ±èÁ¾ÈÆ, ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡
 			case BCT_PERCENT:
 				{										
 					int iSkillLevel = GetSkillLevel ( pSkillTempletSlotB->m_eID );
@@ -2274,7 +2631,7 @@ void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SK
 					m_aEquippedSkillSlotB[iCurrentIndex].m_fCoolTimeLeft = fNowCoolTime;
 					pGageManager->SetMySkillCoolTimeList( iCurrentIndex, fNowCoolTime);
 				} break;
-#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½Ö´ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ï´ï¿½ BBT ï¿½ß°ï¿½
+#endif // ADDED_BBT_ALL_EQUIP_SKILL_SET_OR_RESET_COOLTIME					// ±èÁ¾ÈÆ, ¸ðµç Âø¿ë ÁßÀÎ ½ºÅ³ÀÇ ÄðÅ¸ÀÓ ÃÖ´ëÄ¡·Î ¼³Á¤µÇ°Ô ÇÏ´Â BBT Ãß°¡
 
 
 			default:
@@ -2291,13 +2648,13 @@ void CX2UserSkillTree::ResetLeftSkillCoolTimeBySkillType( const CX2SkillTree::SK
 }
 
 #endif	NEW_SKILL_2010_11
-//}} kimhc // 2010.11.2 // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.11.2 // ¿¥ÇÁ·¹½º - ÃæÀü ÃßÁø±â
 
 #ifdef GUILD_SKILL
-//{{ oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+//{{ oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 bool CX2UserSkillTree::IsGuildSkill( CX2SkillTree::SKILL_ID eSkillID ) const
 {
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet(eSkillID );
 #else // UPGRADE_SKILL_SYSTEM_2013
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet(eSkillID, 1);
@@ -2314,13 +2671,23 @@ bool CX2UserSkillTree::IsGuildSkill( CX2SkillTree::SKILL_ID eSkillID ) const
 	return false;
 
 }
-//}} oasis907 : ï¿½ï¿½ï¿½ï¿½ï¿½ //// 2009-11-16 //// 
+//}} oasis907 : ±è»óÀ± //// 2009-11-16 //// 
 #endif GUILD_SKILL
 
 
 #ifdef SERV_SKILL_NOTE
-bool CX2UserSkillTree::GetEqipSkillMemo(int iSkillMemo)
+bool CX2UserSkillTree::GetEqipSkillMemo(int iSkillMemo) const
 {
+#if defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ ) || defined( _OPEN_TEST_2_ )
+	if( g_pInstanceData != NULL )
+	{
+		if( g_pInstanceData->GetFrameScale() == true )
+		{
+			return true;
+		}
+	}		
+#endif
+
 	for(UINT i=0; i<m_vecSkillNote.size(); ++i)
 	{
 		if(m_vecSkillNote[i] == iSkillMemo)
@@ -2333,13 +2700,22 @@ bool CX2UserSkillTree::GetEqipSkillMemo(int iSkillMemo)
 }
 #endif
 
-//ï¿½ï¿½ï¿½ï¿½ Bï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//½½·Ô B¿¡ ÀåÂø ÇÒ ¶§ ·¹º§°ªÀ» °»½ÅÇÏÁö ¾Ê´Â ¿À·ù ¼öÁ¤
 int CX2UserSkillTree::UpdateEquippedSkillLevelFromAcqureidMap( const CX2SkillTree::SKILL_ID eSkillID, const int iSlotIndex_, bool bSlotB )
 {
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( m_usUsingPage < m_vecSkillDataMap.size() && !m_vecSkillDataMap[m_usUsingPage].empty() )
+#else //SKILL_PAGE_SYSTEM
 	if ( !m_mapSkillAcquired.empty() )
+#endif //SKILL_PAGE_SYSTEM
 	{
+	#ifdef SKILL_PAGE_SYSTEM //JHKang
+		SkillDataMap::const_iterator cmItr = m_vecSkillDataMap[m_usUsingPage].find( eSkillID );
+		if ( m_vecSkillDataMap[m_usUsingPage].end() != cmItr )
+	#else //SKILL_PAGE_SYSTEM
 		SkillDataMap::const_iterator cmItr = m_mapSkillAcquired.find( eSkillID );
 		if ( m_mapSkillAcquired.end() != cmItr )
+	#endif //SKILL_PAGE_SYSTEM
 		{
 			if ( iSlotIndex_ >= 0 && iSlotIndex_ < ARRAY_SIZE( m_aEquippedSkill ) )
 			{
@@ -2362,7 +2738,7 @@ int CX2UserSkillTree::UpdateEquippedSkillLevelFromAcqureidMap( const CX2SkillTre
 
 void CX2UserSkillTree::InitSkillCoolTimeFromGageManager( const vector<float>& vecSkillCoolTime_ )
 {
-	// ï¿½ï¿½ï¿½ï¿½ aï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ bï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½î°¡ ï¿½ï¿½ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½
+	// ½½·Ô a¿Í ½½·Ô bÀÇ »çÀÌÁî°¡ °°´Ù°í °¡Á¤ÇÏ¿´À½
 	const int iSizeOfIndex = ARRAY_SIZE( m_aEquippedSkill );
 	
 	for ( UINT uiSlotIndex = 0; uiSlotIndex < vecSkillCoolTime_.size(); ++uiSlotIndex )
@@ -2376,13 +2752,13 @@ void CX2UserSkillTree::InitSkillCoolTimeFromGageManager( const vector<float>& ve
 
 /*static*/ void CX2UserSkillTree::GetSlotIndexAndSlotB( IN const int iSkillSlotId_, OUT int& iSlotIndex_, OUT bool& bSlotB_ )
 {
-	// SlotBï¿½ï¿½ Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ ID intï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// SlotBÀÇ Ã¹¹øÂ° ½½·Ô ID intÇüÀ¸·Î º¯°æ
 	const int iSlotBStartId = static_cast<int>( CX2UserSkillTree::SKILL_SLOT_B1 );
 
-	// iSkillSlotId_ï¿½ï¿½ Bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ï¿½ï¿½..
+	// iSkillSlotId_°¡ B½½·ÔÀÎÁö ¾Æ´ÑÁö..
 	bSlotB_ = ( iSkillSlotId_ >= iSlotBStartId ? true : false );
 
-	// Bï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ Bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú·ï¿½ ï¿½Ñ°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµð¿¡¼ï¿½ ï¿½ï¿½ï¿½ï¿½ (0~3) ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Indexï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// B½½·ÔÀÌ¸é B½½·ÔÀÇ ½ÃÀÛ ½½·ÔÀ» ÇöÀç ÀÎÀÚ·Î ³Ñ°ÜÁø ¾ÆÀÌµð¿¡¼­ »©¼­ (0~3) »çÀÌÀÇ ½½·Ô Index¸¦ ±¸ÇÔ
 	iSlotIndex_ = ( bSlotB_ == true ? iSkillSlotId_ - iSlotBStartId : iSkillSlotId_ );
 }
 
@@ -2415,15 +2791,18 @@ void CX2UserSkillTree::AllSkillNoCoolTime()
 }
 #endif //NEXON_QA_CHEAT_REQ
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 
 /** @function	: SetDefaultSkill
-	@brief		: ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ ( SkillData.lua )
+	@brief		: °¢ ÀüÁ÷º° ±âº» ½ºÅ³ ¼³Á¤ ÇÔ¼ö ( SkillData.lua )
 */
-
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+void CX2UserSkillTree::SetDefaultSkill( USHORT usPageIndex_, bool bCanPassIfChecked_ /* = false */ )
+#else //SKILL_PAGE_SYSTEM
 void CX2UserSkillTree::SetDefaultSkill( bool bCanPassIfChecked_ /* = false */ )
+#endif //SKILL_PAGE_SYSTEM
 {
-	/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	/// °¢ ÀüÁ÷º° ±âº» ½ºÅ³ ¼³Á¤
 	if ( NULL == g_pData  ||
 		 NULL == g_pData->GetSkillTree() ||
 		 NULL == g_pData->GetMyUser()->GetSelectUnit() )
@@ -2431,32 +2810,36 @@ void CX2UserSkillTree::SetDefaultSkill( bool bCanPassIfChecked_ /* = false */ )
 		return;
 	}
 
-	const int iUnitClass = static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );	/// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
-	const std::map<int, std::vector<int>>					mapDefaultSkill		= g_pData->GetSkillTree()->GetMapDefaultSkill();	/// ï¿½âº» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	const int iUnitClass = static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );	/// ÇØ´ç À¯´ÖÀÇ Å¬·¡½º
+	const std::map<int, std::vector<int>>					mapDefaultSkill		= g_pData->GetSkillTree()->GetMapDefaultSkill();	/// ±âº» ½ºÅ³ Á¤º¸
 
 	const std::map<int, std::vector<int>>::const_iterator	it					= mapDefaultSkill.find( iUnitClass );
 
 
-	if ( it != mapDefaultSkill.end() )	/// ï¿½Ø´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½
+	if ( it != mapDefaultSkill.end() )	/// ÇØ´ç Å¬·¡½ºÀÇ ±âº» ½ºÅ³ Á¤º¸°¡ ÀÖ´Ù¸é, ¼³Á¤
 	{
 		std::vector<int> vecDefaultSkillID = it->second;
 	
 		BOOST_FOREACH( int iValue, vecDefaultSkillID )
 		{
 			if ( true == bCanPassIfChecked_ &&	
-				 0 < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( static_cast<CX2SkillTree::SKILL_ID> ( iValue ) ) )
+				 0 < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( static_cast<CX2SkillTree::SKILL_ID> ( iValue ) ) )
 			{
 				continue;
 			}
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( iValue ), 1, 0, usPageIndex_ );
+#else //SKILL_PAGE_SYSTEM
 			SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( iValue ), 1, 0 );
+#endif //SKILL_PAGE_SYSTEM
 		}
 	}
 }
 
 /** @function	GetIncreaseSkillLevel
-	@brief		ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½
-	@param[in]	ï¿½ï¿½Å³ ID
-	@return		int : ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	@brief		½ºÅ³ ·¹º§ Áõ°¡ È¿°úÄ¡ ¾ò±â
+	@param[in]	½ºÅ³ ID
+	@return		int : ½ºÅ³ ·¹º§
 */
 int CX2UserSkillTree::GetIncreaseSkillLevel( CX2SkillTree::SKILL_ID eSkillID ) const
 {
@@ -2475,8 +2858,16 @@ int CX2UserSkillTree::GetIncreaseSkillLevel( CX2SkillTree::SKILL_ID eSkillID ) c
 	}
 #endif GUILD_SKILL
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( true == m_vecSkillDataMap.empty() || m_usUsingPage >= m_vecSkillDataMap.size() )
+		return 0;
+
+	SkillDataMap::const_iterator mit = m_vecSkillDataMap[m_usUsingPage].find( eSkillID );
+	if( mit != m_vecSkillDataMap[m_usUsingPage].end() )
+#else //SKILL_PAGE_SYSTEM
 	SkillDataMap::const_iterator mit = m_mapSkillAcquired.find( eSkillID );
 	if( mit != m_mapSkillAcquired.end() )
+#endif //SKILL_PAGE_SYSTEM
 	{
 		const UserSkillData& userSkillData = mit->second;
 		return userSkillData.GetIncreaseSkillLevel();
@@ -2486,8 +2877,8 @@ int CX2UserSkillTree::GetIncreaseSkillLevel( CX2SkillTree::SKILL_ID eSkillID ) c
 
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
-#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
-/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
+/// ½ºÅ³ ½½·Ô ID¿¡ ¼³Á¤ µÇ¾îÀÖ´Â ½ºÅ³ ¾ÆÀÌµð ¹ÝÈ¯
 const CX2SkillTree::SKILL_ID CX2UserSkillTree::GetSkillIDByEquipSlotID( IN const int iStateID_ ) const
 {
 	int  iSkillSlotIndex	= -1;
@@ -2550,3 +2941,57 @@ const CX2SkillTree::SKILL_ID CX2UserSkillTree::GetSkillIDByEquipSlotID( IN const
 	return CX2SkillTree::SI_NONE;
 }
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯
+/** @function : GetIncreaseGainSoulRateByHit() 
+	@brief : 'Å¸°Ý ½Ã' Áõ°¡ ÇÏ´Â '°¢¼ºÃæÀü¼Óµµ'ÀÇ Áõ°¡ ¹èÀ²
+			 -> ÇöÀç´Â ±æµå ½ºÅ³¿¡ ÀÇÇØ¼­¸¸ Áõ°¡ µÊ
+*/
+const float CX2UserSkillTree::GetIncreaseGainSoulRateByHit() const
+{
+	float fIncreaseSoulRate = 1.f;
+
+#ifdef	GUILD_SKILL
+	/// ºÐ³ë ÇØ¹æ
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = 
+		GetUserSkillTemplet( CX2SkillTree::SI_GP_COMMON_LIBERATION_OF_ANGER, g_pData->GetSelectUnitMemberShipGrade() );
+
+	if( NULL != pSkillTemplet )
+	{
+		// ¿ÀÇöºó
+		//TODO : ±æµå ½ºÅ³ ·¹º§À» Basic Level¸¸ ¹Þ¾Æ ¿À°í ÀÖ´Âµ¥, ¼ÒÄÏ È¿°úµµ Àû¿ë ¹ÞÀ» ¼ö ÀÖµµ·Ï ÇØ¾ß ÇÔ.
+		//     : ÇöÀç ¸ðµç ±æµå ½ºÅ³ÀÌ true·Î ÁöÁ¤µÇ¾î ÀÖ¾î¼­ true À¯Áö ÇÔ
+		const int iSkillTempletLevel = max( 1, GetSkillLevel( pSkillTemplet->m_eID, true ) );	/// ½ºÅ³ ·¹º§
+		float fRate = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_SOUL_GAIN_ON_HIT_REL, iSkillTempletLevel );
+		fIncreaseSoulRate += CalculateIncreasingRate( fRate );
+	}
+#endif // GUILD_SKILL
+
+	return fIncreaseSoulRate;
+}
+/** @function : GetIncreaseGainSoulRateByDamage() 
+	@brief : 'ÇÇ°Ý ½Ã' Áõ°¡ ÇÏ´Â '°¢¼ºÃæÀü¼Óµµ'ÀÇ Áõ°¡ ¹èÀ²
+			 -> ÇöÀç´Â ±æµå ½ºÅ³¿¡ ÀÇÇØ¼­¸¸ Áõ°¡ µÊ
+*/
+const float CX2UserSkillTree::GetIncreaseGainSoulRateByDamage() const
+{
+	float fIncreaseSoulRate = 1.f;
+
+#ifdef	GUILD_SKILL
+	/// °Ý³ë
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = 
+		GetUserSkillTemplet( CX2SkillTree::SI_GP_COMMON_VIOLENT, g_pData->GetSelectUnitMemberShipGrade() );
+	if( NULL != pSkillTemplet )
+	{
+		// ¿ÀÇöºó
+		//TODO : ±æµå ½ºÅ³ ·¹º§À» Basic Level¸¸ ¹Þ¾Æ ¿À°í ÀÖ´Âµ¥, ¼ÒÄÏ È¿°úµµ Àû¿ë ¹ÞÀ» ¼ö ÀÖµµ·Ï ÇØ¾ß ÇÔ.
+		//     : ÇöÀç ¸ðµç ±æµå ½ºÅ³ÀÌ true·Î ÁöÁ¤µÇ¾î ÀÖ¾î¼­ true À¯Áö ÇÔ
+		const int iSkillTempletLevel = max( 1, GetSkillLevel( pSkillTemplet->m_eID, true) );	/// ½ºÅ³ ·¹º§
+		float fRate = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_SOUL_GAIN_GET_HIT_REL, iSkillTempletLevel );
+		fIncreaseSoulRate += CalculateIncreasingRate( fRate );					
+	}
+#endif // GUILD_SKILL
+
+	return fIncreaseSoulRate;
+}
+#endif //SERV_9TH_NEW_CHARACTER

@@ -43,6 +43,9 @@ m_bIsMyShopPremium(false)
 #ifdef SERV_PSHOP_AGENCY_NO_COMMISSION_EVENT
 , m_bIsPShopAgency( false )
 #endif
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+, m_uidSelectedItemUID( -1 )
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 {	
 
 	// 초기화 ////////////////////////////////////////////////////////////////////////
@@ -214,6 +217,12 @@ bool CX2UIPersonalShop::OnDropAnyItem( D3DXVECTOR2 mousePos )
 
 bool CX2UIPersonalShop::CheckDoubleShopItem( UidType itemUID, int SlotIdToSetting )
 {
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 이상한 UID라면, 검사 중지 시키자
+	if ( 0 >= itemUID )
+		return false;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 	for ( int i = 0; i < (int)m_vecSlotInfo.size(); i++ )
 	{
 		CX2UIPersonalShop::SlotInfo* pSlotInfo = m_vecSlotInfo[i];
@@ -376,12 +385,15 @@ bool CX2UIPersonalShop::Handler_EGS_JOIN_PERSONAL_SHOP_REQ( UidType unitUID )
 //{{ oasis907 : 김상윤 [2010.3.25] // 
 bool CX2UIPersonalShop::Handler_EGS_JOIN_PERSONAL_SHOP_FROM_BOARD_REQ()
 {
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// UI를 거치지 않기 때문에, 제거
 	m_bOpenFromBoard = true;
 	if ( m_NowShopState != CX2UIPersonalShop::XPSS_CLOSE )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_848 ), g_pMain->GetNowState() );
 		return true;
 	}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 #ifdef DISABLE_REDUDANT_PACKET_TEST
 	if( true == g_pMain->IsWaitingServerPacket( EGS_JOIN_PERSONAL_SHOP_ACK ) )
@@ -427,10 +439,19 @@ bool CX2UIPersonalShop::Handler_EGS_JOIN_PERSONAL_SHOP_ACK( HWND hWnd, UINT uMsg
 			m_vecPersonalShopSlotItem = kEvent.m_vecSellItemInfo;
 
 #ifdef LIMIT_PERSONAL_SHOP_PAGE
+
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 현재 대리 상점 등급에 따라서 아이템 수 연산
+			if ( m_vecPersonalShopSlotItem.size() > static_cast<UINT>( PERSONAL_SHOP_ITEM_SLOT_MAX ) )
+			{
+				m_vecPersonalShopSlotItem.resize( PERSONAL_SHOP_ITEM_SLOT_MAX );
+			}
+	#else // SERV_UPGRADE_TRADE_SYSTEM
 			if ( m_vecPersonalShopSlotItem.size() > 9 )
 			{
 				m_vecPersonalShopSlotItem.resize(9);
 			}
+	#endif // SERV_UPGRADE_TRADE_SYSTEM
 
 			m_iMaxPageIndex =  (int) ( ((int)m_vecPersonalShopSlotItem.size()+2) / 3);
 			m_iNowPageIndex = 1;
@@ -441,6 +462,106 @@ bool CX2UIPersonalShop::Handler_EGS_JOIN_PERSONAL_SHOP_ACK( HWND hWnd, UINT uMsg
 			m_iNowPageIndex = 1;
 			ResetSlotList( kEvent.m_vecSellItemInfo );
 #endif //LIMIT_PERSONAL_SHOP_PAGE
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			m_NowShopState			= CX2UIPersonalShop::XPSS_BUY;		/// 구입 상태
+
+			SlotInfo* pSlotInfo		= NULL;		/// 구입 대상 아이템 객체
+			m_PickedShopItemIndex	= 0;		/// 구입 대상 아이템 인덱스
+
+			/// 개인 상점 내 등록 아이템 루프 순회
+			vector<SlotInfo*>::const_iterator vIt = m_vecSlotInfo.begin();
+			for ( ; vIt != m_vecSlotInfo.end(); ++vIt )
+			{
+				/// 만약 구입 대상 아이템 UID랑 같은 아이템이 있다면, 해당 정보 저장
+				if ( (*vIt)->m_ItemUID == m_uidSelectedItemUID )
+				{
+					pSlotInfo = (*vIt);
+					break;
+				}
+
+				/// 구입 대상 아이템 인덱스 연산
+				++m_PickedShopItemIndex;
+			}
+
+			/// 선택한 아이템 UID 초기화
+			m_uidSelectedItemUID = -1;
+
+			/// 구입 대상 아이템을 찾을 수 없다면, 안내 팝업 ( 이미 팔린 아이템 일 수 있다. )
+			if ( NULL == pSlotInfo )	
+			{
+				/// 판매 종료된 상품입니다.
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28250 ), g_pMain->GetNowState() );
+
+				/// 아이템 리스트 갱신
+				if ( NULL != g_pData &&
+					 NULL != g_pData->GetUIManager() && 
+					 NULL != g_pData->GetUIManager()->GetUIPersonalShopBoard() )
+					g_pData->GetUIManager()->GetUIPersonalShopBoard()->Handler_EGS_SEARCH_TRADE_BOARD_REQ();
+
+				/// 퇴장 처리
+				Handler_EGS_LEAVE_PERSONAL_SHOP_REQ();
+
+				return true;
+			}
+
+			/// 구입할 아이템 UID 저장
+			m_ItemUIDToBuy = pSlotInfo->m_ItemUID;
+
+			/// 이하 구입 팝업 설정----------------------------------------------------------------------------------------------------
+			// 수량성인지 아닌지 봐서 수량성이면
+			const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( pSlotInfo->m_ItemID );
+
+			if( CX2Item::PT_QUANTITY == pItemTemplet->GetPeriodType() )
+			{
+				D3DXVECTOR2 pos;
+				pos.x = 512;
+				pos.y = 384;
+				OpenBuyQuantityDLG( pos );
+			}
+			else	// 아니면
+			{
+				wstringstream	wstrstm;
+				wstring			itemFullName = GetPersonalShopSlotItemFullName( m_ItemUIDToBuy );
+
+				// 수량성이 아니면 1개만 산다
+				m_ItemNumToBuy = 1;
+	#ifdef DEF_TRADE_BOARD // oasis907 : 김상윤 [2010.3.30] // 
+
+		#ifdef SERV_PSHOP_AGENCY_NO_COMMISSION_EVENT
+				if(m_bOpenFromBoard == true && m_bIsPShopAgency == false )
+		#else //SERV_PSHOP_AGENCY_NO_COMMISSION_EVENT
+				if(m_bOpenFromBoard == true)
+		#endif //SERV_PSHOP_AGENCY_NO_COMMISSION_EVENT
+				{
+					int iTotalED = pSlotInfo->m_PricePerOne; 
+					iTotalED	+= static_cast<int>(pSlotInfo->m_PricePerOne * _CONST_UIPERSONALSHOPBOARD_INFO_::g_dPersonalShopBoardFee);
+
+					wstrstm << GET_REPLACED_STRING( ( STR_ID_4977, "LILL",
+							itemFullName,
+							KHanSungPostWordUnicodeWrapper( itemFullName.c_str(), STR_ID_198, STR_ID_199 ),
+							g_pMain->GetEDString( iTotalED ),
+							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
+				}
+				else
+	#endif //DEF_TRADE_BOARD
+				{
+					wstrstm << GET_REPLACED_STRING( ( STR_ID_861, "LILL",
+							itemFullName,
+							KHanSungPostWordUnicodeWrapper( itemFullName.c_str(), STR_ID_198, STR_ID_199 ),
+							g_pMain->GetEDString( pSlotInfo->m_PricePerOne ),
+							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
+				}
+
+				m_pDLGBuyConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), 
+																	 wstrstm.str().c_str(), 
+																	 UPSCM_BUY_CONFIRM, 
+																	 g_pMain->GetNowState(), 
+																	 UPSCM_BUY_CANCLE );
+			 }
+
+#else //SERV_UPGRADE_TRADE_SYSTEM
+
 			JoinShop();
 			
 			// 열렸다고 신호
@@ -454,7 +575,7 @@ bool CX2UIPersonalShop::Handler_EGS_JOIN_PERSONAL_SHOP_ACK( HWND hWnd, UINT uMsg
 			m_DLGSize.y = tmp.y;
 			g_pData->GetUIManager()->UIOpened(CX2UIManager::UI_MENU_PERSONAL_SHOP);
 
-#ifdef SERV_SOCKET_NEW
+		#ifdef SERV_SOCKET_NEW
 			// oasis907 : 김상윤 [2010.4.6] // 
 			if ( g_pData->GetUIManager() != NULL && g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_INVEN))
 			{
@@ -465,12 +586,19 @@ bool CX2UIPersonalShop::Handler_EGS_JOIN_PERSONAL_SHOP_ACK( HWND hWnd, UINT uMsg
 			{
 				g_pData->GetUIManager()->GetUIInventory()->GetUISocketItem()->SetShow(false);
 			}
-#endif SERV_SOCKET_NEW
+		#endif SERV_SOCKET_NEW
+
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 			return true;
 		}
 
 	}
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 개인 상점 입장 실패 했으면, 선택한 아이템 UID 초기화
+	m_uidSelectedItemUID = -1;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 	return false;
 }
@@ -519,9 +647,31 @@ bool CX2UIPersonalShop::Handler_BREAK_PERSONAL_SHOP_NOT( HWND hWnd, UINT uMsg, W
 	KEGS_BREAK_PERSONAL_SHOP_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );	
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 물품 등록중 방 제거시, 무조건 닫도록 설정
+	if ( XPSS_AGENCY_WAIT == m_NowShopState )
+	{
+		CloseShop();
+
+		/// 개인 상점에 등록중인 아이템 표시 복구를 위한 아이콘 갱신
+		if( g_pData->GetUIManager()->GetUIInventory() != NULL )
+		{		
+			CX2UIInventory* pUIInventory = g_pData->GetUIManager()->GetUIInventory();
+
+			if ( NULL != pUIInventory )
+				pUIInventory->UpdateInventorySlot();
+		}
+
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), NetError::GetErrStrF( kEvent.m_iReason ), g_pMain->GetNowState() );
+	}
+
+	m_uidSelectedItemUID	= -1;
+	m_NowShopState			= XPSS_WAIT;
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	CloseShop();
 
 	g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), NetError::GetErrStrF( kEvent.m_iReason ), g_pMain->GetNowState() );
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 	return true;
 }
@@ -568,9 +718,9 @@ bool CX2UIPersonalShop::Handler_EGS_REG_PERSONAL_SHOP_ITEM_ACK( HWND hWnd, UINT 
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 			m_ShopName = kEvent.m_wstrPersonalShopName;
-			m_ShopKeeperName = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NickName;
-			int shopED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED - kEvent.m_iED; 
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
+			m_ShopKeeperName = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName;
+			int shopED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED - kEvent.m_iED; 
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
 
 			/*
 			if ( g_pSquareGame != NULL )
@@ -640,6 +790,16 @@ bool CX2UIPersonalShop::Handler_EGS_REG_PERSONAL_SHOP_ITEM_ACK( HWND hWnd, UINT 
 
 bool CX2UIPersonalShop::Handler_EGS_BUY_PERSONAL_SHOP_ITEM_REQ( UidType itemUID, int itemNum )
 {
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	if ( XPSS_CLOSE == m_NowShopState )
+	{
+		/// 이미 판매 종료된 상품 입니다.
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28250 ), g_pMain->GetNowState() );
+
+		return false;
+	}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 	CX2UIPersonalShop::SlotInfo* pSlotInfo = GetShopSlot( itemUID );
 	if ( pSlotInfo != NULL )
 	{
@@ -656,8 +816,8 @@ bool CX2UIPersonalShop::Handler_EGS_BUY_PERSONAL_SHOP_ITEM_REQ( UidType itemUID,
 		}
 
 		//돈검사 넣자.
-		//if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED < itemNum * pSlotInfoUI->GetNowUiTotalEDNum() )
-		if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED < itemNum * pSlotInfo->m_PricePerOne )
+		//if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED < itemNum * pSlotInfoUI->GetNowUiTotalEDNum() )
+		if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED < itemNum * pSlotInfo->m_PricePerOne )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_851 ), g_pMain->GetNowState() );
 			return false;
@@ -674,6 +834,23 @@ bool CX2UIPersonalShop::Handler_EGS_BUY_PERSONAL_SHOP_ITEM_REQ( UidType itemUID,
 		return true;
 	}
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+
+	if ( NULL != g_pMain && 
+		 NULL != g_pMain->GetNowState() &&
+		 NULL != g_pData &&
+		 NULL != g_pData->GetUIManager() &&
+		 NULL != g_pData->GetUIManager()->GetUIPersonalShopBoard() )
+	{
+		/// 재검색 ( 갱신 )
+		g_pData->GetUIManager()->GetUIPersonalShopBoard()->Handler_EGS_SEARCH_TRADE_BOARD_REQ();
+
+		/// 이미 판매 종료된 상품 입니다.
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28250 ), g_pMain->GetNowState() );
+
+	}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 	return false;
 }
 
@@ -689,6 +866,20 @@ bool CX2UIPersonalShop::Handler_EGS_BUY_PERSONAL_SHOP_ITEM_ACK( HWND hWnd, UINT 
 		{
 			return true;
 		}
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		else
+		{
+			/// 구입 실패 했으면, 개인 상점 퇴장
+			if ( XPSS_CLOSE != m_NowShopState )
+				Handler_EGS_LEAVE_PERSONAL_SHOP_REQ();
+
+			/// 갱신
+			if ( NULL != g_pData &&
+				 NULL != g_pData->GetUIManager() &&
+				 NULL != g_pData->GetUIManager()->GetUIPersonalShopBoard() )
+				g_pData->GetUIManager()->GetUIPersonalShopBoard()->Handler_EGS_SEARCH_TRADE_BOARD_REQ();
+		}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	}
 
 	return false;
@@ -700,12 +891,14 @@ bool CX2UIPersonalShop::Handler_EGS_BUY_PERSONAL_SHOP_ITEM_COMPLETE_NOT( HWND hW
 	KEGS_BUY_PERSONAL_SHOP_ITEM_COMPLETE_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );	
 
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환		/// 구입 확인 팝업 생성을 위해, 제거
 	if ( m_NowShopState == CX2UIPersonalShop::XPSS_BUY )
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_852 ), g_pMain->GetNowState() );
 	}
 
-	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
+	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
 
 	// 인벤토리 업데이트
 	if(g_pData->GetUIManager()->GetUIInventory() != NULL)
@@ -722,6 +915,11 @@ bool CX2UIPersonalShop::Handler_EGS_BUY_PERSONAL_SHOP_ITEM_COMPLETE_NOT( HWND hW
 		}
 	}
 #endif DEF_TRADE_BOARD
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 초기화
+	m_uidSelectedItemUID	= -1;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	return true;
 }
 
@@ -774,7 +972,12 @@ bool CX2UIPersonalShop::Handler_UPDATE_PERSONAL_SHOP_ITEM_INFO_NOT( HWND hWnd, U
 				wstringstream wstrstm;
 				wstrstm << GET_REPLACED_STRING( ( STR_ID_853, "LiL", tempItemFullName, sellItemNum, g_pMain->GetEDString( sellTotalED ) ) );
 
+		#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+				/// 캐시 대리상점 등급일 때
+				if ( NULL != g_pInstanceData && SEnum::AST_PREMIUM == g_pInstanceData->GetAgencyShopType() )
+		#else // SERV_UPGRADE_TRADE_SYSTEM
 				if( m_bIsMyShopPremium )
+		#endif // SERV_UPGRADE_TRADE_SYSTEM
 				{
 					wstrstm << L"(" << GET_STRING( STR_ID_854 ) << L")";
 				}
@@ -794,6 +997,15 @@ bool CX2UIPersonalShop::Handler_UPDATE_PERSONAL_SHOP_ITEM_INFO_NOT( HWND hWnd, U
 
 		// 여기서 아이템 리스트를 바꾸고 UI를 리셋해 준다
 		ResetSlotList( m_vecPersonalShopSlotItem );
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		/// 갱신
+		if ( NULL == g_pData &&
+			 NULL == g_pData->GetUIManager() &&
+			 NULL == g_pData->GetUIManager()->GetUIPersonalShopBoard() )
+			 g_pData->GetUIManager()->GetUIPersonalShopBoard()->Handler_EGS_SEARCH_TRADE_BOARD_REQ();
+		
+#else //SERV_UPGRADE_TRADE_SYSTEM
 		if ( m_NowShopState == CX2UIPersonalShop::XPSS_BUY )
 		{
 			ResetBuySlotUIList();
@@ -802,12 +1014,13 @@ bool CX2UIPersonalShop::Handler_UPDATE_PERSONAL_SHOP_ITEM_INFO_NOT( HWND hWnd, U
 		{
 			ResetSellSlotUIList();
 		}
-#ifdef SERV_PSHOP_AGENCY
+	#ifdef SERV_PSHOP_AGENCY
 		else if( m_NowShopState == CX2UIPersonalShop::XPSS_AGENCY_SELL )
 		{
 			ResetBuySlotUIList();
 		}
-#endif
+	#endif
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	}
 
 	return true;
@@ -816,6 +1029,16 @@ bool CX2UIPersonalShop::Handler_UPDATE_PERSONAL_SHOP_ITEM_INFO_NOT( HWND hWnd, U
 
 bool CX2UIPersonalShop::Handler_EGS_LEAVE_PERSONAL_SHOP_REQ()
 {
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	if ( XPSS_CLOSE == m_NowShopState )
+	{
+		/// 이미 판매 종료된 상품 입니다.
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28250 ), g_pMain->GetNowState() );
+
+		return false;
+	}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 	g_pData->GetServerProtocol()->SendID( EGS_LEAVE_PERSONAL_SHOP_REQ );
 	g_pMain->AddServerPacket( EGS_LEAVE_PERSONAL_SHOP_ACK );
 
@@ -833,7 +1056,18 @@ bool CX2UIPersonalShop::Handler_EGS_LEAVE_PERSONAL_SHOP_ACK( HWND hWnd, UINT uMs
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+
+			if ( -1 < m_uidSelectedItemUID )
+				Handler_EGS_JOIN_PERSONAL_SHOP_FROM_BOARD_REQ();
+			else
+			{
+				m_NowShopState = XPSS_WAIT;	/// 퇴장
+				m_uidSelectedItemUID = -1;
+			}
+#else //SERV_UPGRADE_TRADE_SYSTEM
 			CloseShop();
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 			return true;
 		}
@@ -1077,12 +1311,40 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 					CKTDGUIStatic *pStatic = (CKTDGUIStatic*)m_pDLGHelp->GetControl( L"shop");
 					if( pStatic != NULL )
 						pStatic->SetString( 0, GET_STRING( STR_ID_12164 ) );
+
 					pStatic = (CKTDGUIStatic*)m_pDLGHelp->GetControl( L"detail1");
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+					if( pStatic != NULL && NULL != g_pInstanceData )
+					{	
+						/// 대리 상점 타입에 따른 안내 문구 설정
+						SEnum::AGENCY_SHOP_TYPE eAgencyShopType = g_pInstanceData->GetAgencyShopType();
+
+						switch( eAgencyShopType )
+						{
+						case SEnum::AST_PREMIUM:
+							{
+								pStatic->SetString( 0, GET_STRING( STR_ID_28418 ) );
+							} break;
+						case SEnum::AST_NORMAL:
+							{
+								pStatic->SetString( 0, GET_STRING( STR_ID_28417 ) );
+							} break;
+						default:
+							{
+								pStatic->SetString( 0, GET_STRING( STR_ID_28416 ) );
+							} break;
+						}
+					}
+#else // SERV_UPGRADE_TRADE_SYSTEM
 					if( pStatic != NULL )
 						pStatic->SetString( 0, GET_STRING( STR_ID_12136 ) );
+#endif // SERV_UPGRADE_TRADE_SYSTEM
+
 					pStatic = (CKTDGUIStatic*)m_pDLGHelp->GetControl( L"detail2");
 					if( pStatic != NULL )
 						pStatic->SetString( 0, L"" );
+
 					pStatic = (CKTDGUIStatic*)m_pDLGHelp->GetControl( L"detail3");
 					if( pStatic != NULL )
 						pStatic->SetString( 0, L"" );
@@ -1169,6 +1431,22 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 			m_pDLGCloseShopCheck = NULL;
 
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 한개도 등록 않했어요
+			if ( CheckShopItemListToReg() == false )
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_860 ), g_pMain->GetNowState() );
+				return true;
+			}
+
+			/// 수수료를 낼 수가 없어요
+			if ( CheckCanPaymentRegistTex() == false )
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_24612 ), g_pMain->GetNowState() );
+				return true;
+			}
+	#else //SERV_UPGRADE_TRADE_SYSTEM
+			/// 상점 이름 입력창 제거
 			if ( m_pDLGUIPersonalShop != NULL )
 			{
 				CKTDGUIIMEEditBox* pIMEEditBox = (CKTDGUIIMEEditBox*)m_pDLGUIPersonalShop->GetControl( L"IME_Editname" );
@@ -1192,6 +1470,7 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_860 ), g_pMain->GetNowState() );
 				return true;
 			}
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 #ifdef SERV_PSHOP_AGENCY
 			if( m_NowShopState == CX2UIPersonalShop::XPSS_AGENCY_WAIT )
@@ -1246,13 +1525,13 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 							itemFullName,
 							L"",
 							g_pMain->GetEDString( iTotalED ),
-							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #else //REMOVE_POSTPOSITION_IN_REPLACE_STRING
 						wstrstm << GET_REPLACED_STRING( ( STR_ID_4977, "LILL",
 							itemFullName,
 							KHanSungPostWordUnicodeWrapper( itemFullName.c_str(), STR_ID_198, STR_ID_199 ),
 							g_pMain->GetEDString( iTotalED ),
-							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #endif //REMOVE_POSTPOSITION_IN_REPLACE_STRING
 					}
 					else
@@ -1263,13 +1542,13 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 							itemFullName,
 							L"",
 							g_pMain->GetEDString( pSlotInfo->m_PricePerOne ),
-							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #else //REMOVE_POSTPOSITION_IN_REPLACE_STRING
 						wstrstm << GET_REPLACED_STRING( ( STR_ID_861, "LILL",
 							itemFullName,
 							KHanSungPostWordUnicodeWrapper( itemFullName.c_str(), STR_ID_198, STR_ID_199 ),
 							g_pMain->GetEDString( pSlotInfo->m_PricePerOne ),
-							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+							g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #endif //REMOVE_POSTPOSITION_IN_REPLACE_STRING
 					}
 					m_pDLGBuyConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrstm.str().c_str(), UPSCM_BUY_CONFIRM, g_pMain->GetNowState() );
@@ -1353,6 +1632,22 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return Handler_EGS_BUY_PERSONAL_SHOP_ITEM_REQ( m_ItemUIDToBuy, m_ItemNumToBuy );
 		}
 		break;
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	case UPSCM_BUY_CANCLE:
+		{
+			if ( m_pDLGBuyConfirm != NULL )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGBuyConfirm, NULL, false );
+
+			m_pDLGBuyConfirm = NULL;
+
+			/// 들어갔던 개인 상점 나가자
+			SetSelectedItemID( -1 );
+
+			Handler_EGS_LEAVE_PERSONAL_SHOP_REQ();
+		} 
+		break;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 		//{{ kimhc // 2009-09-07 // 봉인된 아이템 거래 확인, 취소
 #ifdef	SEAL_ITEM
@@ -1441,14 +1736,14 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 					L"",
 					m_ItemNumToBuy,
 					g_pMain->GetEDString( static_cast<int>(iTotalED) ),
-					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #else //REMOVE_POSTPOSITION_IN_REPLACE_STRING
 				wstrstm << GET_REPLACED_STRING( ( STR_ID_4978, "LIiLL",
 					itemFullName,
 					KHanSungPostWordUnicodeWrapper( itemFullName.c_str(), STR_ID_198, STR_ID_199 ),
 					m_ItemNumToBuy,
 					g_pMain->GetEDString( static_cast<int>(iTotalED) ),
-					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #endif //REMOVE_POSTPOSITION_IN_REPLACE_STRING
 			}
 			else
@@ -1460,14 +1755,14 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 					L"",
 					m_ItemNumToBuy,
 					g_pMain->GetEDString( pSlotInfo->m_PricePerOne * m_ItemNumToBuy ),
-					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #else //REMOVE_POSTPOSITION_IN_REPLACE_STRING
 				wstrstm << GET_REPLACED_STRING( ( STR_ID_862, "LIiLL",
 					itemFullName,
 					KHanSungPostWordUnicodeWrapper( itemFullName.c_str(), STR_ID_198, STR_ID_199 ),
 					m_ItemNumToBuy,
 					g_pMain->GetEDString( pSlotInfo->m_PricePerOne * m_ItemNumToBuy ),
-					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED ) ) );
+					g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
 #endif //REMOVE_POSTPOSITION_IN_REPLACE_STRING
 			}
             m_pDLGBuyConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrstm.str().c_str(), UPSCM_BUY_CONFIRM, g_pMain->GetNowState() );
@@ -1483,6 +1778,13 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			if ( m_pDLGBuyQuantity != NULL )
 				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGBuyQuantity, NULL, false );
 			m_pDLGBuyQuantity = NULL;
+
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 들어갔던 개인 상점 나가자
+			SetSelectedItemID( -1 );
+
+			Handler_EGS_LEAVE_PERSONAL_SHOP_REQ();
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
 		}
 		break;
 	case UPSCM_BUY_QUANTITY_PLUS:
@@ -1526,9 +1828,8 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 			if( NULL != pMyUnit )
 			{
-				if(pMyUnit->GetInventory() != NULL)
 				{
-					if( NULL != pMyUnit->GetInventory()->GetItemByTID( NASOD_SCOPE_ITEM_ID ) )
+					if( NULL != pMyUnit->GetInventory().GetItemByTID( NASOD_SCOPE_ITEM_ID ) )
 					{
 						g_pChatBox->SetLastUsedMegaphone(NASOD_SCOPE_ITEM_ID);
 						g_pChatBox->ShowNasodMessageDlg( true );
@@ -1536,7 +1837,7 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 					}
 #ifdef SERV_VIP_SYSTEM
-					else if(NULL != pMyUnit->GetInventory()->GetItemByTID( EVENT_NASOD_SCOPE_ITEM_ID ))
+					else if(NULL != pMyUnit->GetInventory().GetItemByTID( EVENT_NASOD_SCOPE_ITEM_ID ))
 					{
 						g_pChatBox->SetLastUsedMegaphone(EVENT_NASOD_SCOPE_ITEM_ID);
 						g_pChatBox->ShowNasodMessageDlg( true );
@@ -1557,16 +1858,15 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 			if( NULL != pMyUnit )
 			{
-				if(pMyUnit->GetInventory() != NULL)
 				{
-					if( NULL != pMyUnit->GetInventory()->GetItemByTID( NASOD_SCOPE_HIGH_ITEM_ID ) )
+					if( NULL != pMyUnit->GetInventory().GetItemByTID( NASOD_SCOPE_HIGH_ITEM_ID ) )
 					{
 						g_pChatBox->SetLastUsedMegaphone(NASOD_SCOPE_HIGH_ITEM_ID);
 						g_pChatBox->ShowNasodMessageDlg( true );
 						return true;
 					}
 #ifdef SERV_VIP_SYSTEM
-					else if(NULL != pMyUnit->GetInventory()->GetItemByTID( EVENT_NASOD_SCOPE_HIGH_ITEM_ID ))
+					else if(NULL != pMyUnit->GetInventory().GetItemByTID( EVENT_NASOD_SCOPE_HIGH_ITEM_ID ))
 					{
 						g_pChatBox->SetLastUsedMegaphone(EVENT_NASOD_SCOPE_HIGH_ITEM_ID);
 						g_pChatBox->ShowNasodMessageDlg( true );
@@ -1626,17 +1926,17 @@ bool CX2UIPersonalShop::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 void CX2UIPersonalShop::UpdateMegaphoneButton()
 {
 	CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
-	if( NULL != pMyUnit && pMyUnit->GetInventory() != NULL && m_pDLGUIPersonalShop != NULL)
+	if( NULL != pMyUnit && m_pDLGUIPersonalShop != NULL)
 	{
 		WCHAR buff[256] = {0,};
-		CX2Item* pItem = pMyUnit->GetInventory()->GetItemByTID( NASOD_SCOPE_ITEM_ID );
+		CX2Item* pItem = pMyUnit->GetInventory().GetItemByTID( NASOD_SCOPE_ITEM_ID );
 #ifdef SERV_VIP_SYSTEM
-		CX2Item* pItem2 = pMyUnit->GetInventory()->GetItemByTID( EVENT_NASOD_SCOPE_ITEM_ID );
+		CX2Item* pItem2 = pMyUnit->GetInventory().GetItemByTID( EVENT_NASOD_SCOPE_ITEM_ID );
 #endif //SERV_VIP_SYSTEM
 		if(pItem != NULL)
 		{
 			CKTDGUIStatic* pStaticButtonM1 = static_cast <CKTDGUIStatic*> (m_pDLGUIPersonalShop->GetControl( L"Static_Button_M01" ));
-			int iItemQuantity = pItem->GetItemData()->m_Quantity;
+			int iItemQuantity = pItem->GetItemData().m_Quantity;
 			//wsprintf( buff, L"x%d", iItemQuantity );
 			StringCchPrintf(buff, 256, L"x%d", iItemQuantity );
 
@@ -1646,7 +1946,7 @@ void CX2UIPersonalShop::UpdateMegaphoneButton()
 		else if(pItem2 != NULL)
 		{
 			CKTDGUIStatic* pStaticButtonM1 = static_cast <CKTDGUIStatic*> (m_pDLGUIPersonalShop->GetControl( L"Static_Button_M01" ));
-			int iItemQuantity = pItem2->GetItemData()->m_Quantity;
+			int iItemQuantity = pItem2->GetItemData().m_Quantity;
 			StringCchPrintf(buff, 256, L"x%d", iItemQuantity );
 
 			pStaticButtonM1->SetString(0, buff);
@@ -1661,15 +1961,15 @@ void CX2UIPersonalShop::UpdateMegaphoneButton()
 		}
 
 
-		pItem = pMyUnit->GetInventory()->GetItemByTID( NASOD_SCOPE_HIGH_ITEM_ID );
+		pItem = pMyUnit->GetInventory().GetItemByTID( NASOD_SCOPE_HIGH_ITEM_ID );
 #ifdef SERV_VIP_SYSTEM
-		pItem2 = pMyUnit->GetInventory()->GetItemByTID( EVENT_NASOD_SCOPE_HIGH_ITEM_ID );
+		pItem2 = pMyUnit->GetInventory().GetItemByTID( EVENT_NASOD_SCOPE_HIGH_ITEM_ID );
 #endif //SERV_VIP_SYSTEM
 		if(pItem != NULL)
 		{
 			CKTDGUIStatic* pStaticButtonM2 = static_cast <CKTDGUIStatic*> (m_pDLGUIPersonalShop->GetControl( L"Static_Button_M02" ) );
 
-			int iItemQuantity = pItem->GetItemData()->m_Quantity;
+			int iItemQuantity = pItem->GetItemData().m_Quantity;
 			//wsprintf( buff, L"x%d", iItemQuantity );
 			StringCchPrintf( buff, 256, L"x%d", iItemQuantity );
 			pStaticButtonM2->SetString(0, buff);
@@ -1679,7 +1979,7 @@ void CX2UIPersonalShop::UpdateMegaphoneButton()
 		{
 			CKTDGUIStatic* pStaticButtonM2 = static_cast <CKTDGUIStatic*> (m_pDLGUIPersonalShop->GetControl( L"Static_Button_M02" ) );
 
-			int iItemQuantity = pItem2->GetItemData()->m_Quantity;
+			int iItemQuantity = pItem2->GetItemData().m_Quantity;
 			StringCchPrintf( buff, 256, L"x%d", iItemQuantity );
 			pStaticButtonM2->SetString(0, buff);
 		}
@@ -1817,7 +2117,12 @@ void CX2UIPersonalShop::CloseShop()		//판매자에겐 판매 종료, 구매자에겐 구매 종�
 	//{{ oasis907 : 김상윤 [2010.3.30] // 
 	if ( g_pTFieldGame != NULL )
 	{
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		/// 대화창의 닫기 버튼을 누를 때, 다른 NPC를 참조해 버린다! 강제로 게시판을 설정하도록 하자.
+		CX2TFieldNpc *pJoinNpc = g_pTFieldGame->GetHouseFieldNPC( static_cast<int>( CX2LocationManager::HI_BILLBOARD ) );
+	#else SERV_UPGRADE_TRADE_SYSTEM // 김태환
 		CX2TFieldNpc *pJoinNpc = g_pTFieldGame->GetFieldNPC( g_pTFieldGame->GetJoinNpcIndex() );
+	#endif SERV_UPGRADE_TRADE_SYSTEM // 김태환
 		if ( pJoinNpc != NULL )
 		{
 			if ( pJoinNpc->GetNpcShop() != NULL )
@@ -1901,12 +2206,40 @@ void CX2UIPersonalShop::SetDialog( CX2UIPersonalShop::X2_PERSONAL_SHOP_STATE per
 				CKTDGUIStatic *pStatic = (CKTDGUIStatic*)m_pDLGHelp->GetControl( L"shop");
 				if( pStatic != NULL )
 					pStatic->SetString( 0, GET_STRING( STR_ID_12164 ) );
+
 				pStatic = (CKTDGUIStatic*)m_pDLGHelp->GetControl( L"detail1");
+				
+		#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+				if( pStatic != NULL && NULL != g_pInstanceData )
+				{	
+					/// 대리 상점 타입에 따른 안내 문구 설정
+					SEnum::AGENCY_SHOP_TYPE eAgencyShopType = g_pInstanceData->GetAgencyShopType();
+
+					switch( eAgencyShopType )
+					{
+						case SEnum::AST_PREMIUM:
+							{
+								pStatic->SetString( 0, GET_STRING( STR_ID_28418 ) );
+							} break;
+						case SEnum::AST_NORMAL:
+							{
+								pStatic->SetString( 0, GET_STRING( STR_ID_28417 ) );
+							} break;
+						default:
+							{
+								pStatic->SetString( 0, GET_STRING( STR_ID_28416 ) );
+							} break;
+					}
+				}
+		#else // SERV_UPGRADE_TRADE_SYSTEM
 				if( pStatic != NULL )
 					pStatic->SetString( 0, GET_STRING( STR_ID_12136 ) );
+		#endif // SERV_UPGRADE_TRADE_SYSTEM
+
 				pStatic = (CKTDGUIStatic*)m_pDLGHelp->GetControl( L"detail2");
 				if( pStatic != NULL )
 					pStatic->SetString( 0, L"" );
+
 				pStatic = (CKTDGUIStatic*)m_pDLGHelp->GetControl( L"detail3");
 				if( pStatic != NULL )
 					pStatic->SetString( 0, L"" );
@@ -1924,7 +2257,14 @@ void CX2UIPersonalShop::SetDialog( CX2UIPersonalShop::X2_PERSONAL_SHOP_STATE per
 			if( personalShopState == XPSS_AGENCY_WAIT && g_pInstanceData->IsActiveAgencyShop() == true )
 			{				
 				m_bIsMyShopPremium = true;
+
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+				/// 현재 대리 상점 타입에 따른 등록 페이지 설정
+				m_iMaxPageIndex = GetMaxItemPageIndex();
+	#else // SERV_UPGRADE_TRADE_SYSTEM
 				m_iMaxPageIndex = 3;
+	#endif // SERV_UPGRADE_TRADE_SYSTEM
+				
 				pButtonLArrow->SetShowEnable(true, true);
 				pButtonRArrow->SetShowEnable(true, true);
 			}
@@ -1934,15 +2274,21 @@ void CX2UIPersonalShop::SetDialog( CX2UIPersonalShop::X2_PERSONAL_SHOP_STATE per
 #ifdef SERV_VIP_SYSTEM
 				const int EVENT_MAGIC_PREMIUM_SHOP_ITEM_ID = 84000173;
 #endif SERV_VIP_SYSTEM
-				if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
+				if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
 				{
 					m_bIsMyShopPremium = true;
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+					m_iMaxPageIndex = GetMaxItemPageIndex();
+#else // SERV_UPGRADE_TRADE_SYSTEM
 					m_iMaxPageIndex = 3;
+#endif // SERV_UPGRADE_TRADE_SYSTEM
+
 					pButtonLArrow->SetShowEnable(true, true);
 					pButtonRArrow->SetShowEnable(true, true);
 				}
 #ifdef SERV_VIP_SYSTEM
-				else if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( EVENT_MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
+				else if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( EVENT_MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
 				{
 					m_bIsMyShopPremium = true;
 					m_iMaxPageIndex = 3;
@@ -1953,14 +2299,14 @@ void CX2UIPersonalShop::SetDialog( CX2UIPersonalShop::X2_PERSONAL_SHOP_STATE per
 				else 
 				{
 					m_bIsMyShopPremium = false;
-					m_iMaxPageIndex = 1;
+					m_iMaxPageIndex = 2;
 					pButtonLArrow->SetShowEnable(false, false);
 					pButtonRArrow->SetShowEnable(false, false);
 				}
 			}
 #else
 			const int MAGIC_PREMIUM_SHOP_ITEM_ID = 200740;
-			if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
+			if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
 			{
 				m_bIsMyShopPremium = true;
 				m_iMaxPageIndex = 3;
@@ -1986,6 +2332,7 @@ void CX2UIPersonalShop::SetDialog( CX2UIPersonalShop::X2_PERSONAL_SHOP_STATE per
 			// 아이템 창들을 리셋
 			ResetSellSlotUIList();
 
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환			/// 상점 이름 입력창 제거
 			CKTDGUIStatic* pStatic;
 			// 이름 입력해주세요 스트링
 			pStatic = (CKTDGUIStatic*)m_pDLGUIPersonalShop->GetControl( L"Static_Personal_Shop_Name_Up" );
@@ -1997,8 +2344,9 @@ void CX2UIPersonalShop::SetDialog( CX2UIPersonalShop::X2_PERSONAL_SHOP_STATE per
 
 			// 상점이름 입력하는 부분 만들고 (포커스는 주지 말자)
 			CKTDGUIIMEEditBox* pIMEEditBox = (CKTDGUIIMEEditBox*)m_pDLGUIPersonalShop->GetControl( L"IME_Editname" );
-			pIMEEditBox->SetText( GET_REPLACED_STRING( ( STR_ID_864, "L", g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NickName ) ), true );
+			pIMEEditBox->SetText( GET_REPLACED_STRING( ( STR_ID_864, "L", g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName ) ), true );
 			pIMEEditBox->SetShowEnable(true, true);
+#endif // SERV_UPGRADE_TRADE_SYSTEM
 
 			// 판매시작 버튼만 보이게
 			CKTDGUIButton* pButtonSellBegin = (CKTDGUIButton*) m_pDLGUIPersonalShop->GetControl( L"Button_Sell_Begin" );
@@ -2038,13 +2386,13 @@ void CX2UIPersonalShop::SetDialog( CX2UIPersonalShop::X2_PERSONAL_SHOP_STATE per
 #else //CLIENT_GLOBAL_LINEBREAK
 			wstring wstrShopName = g_pMain->GetStrByLienBreak( m_ShopName.c_str(), 291, pStaticName->GetString(0)->fontIndex );
 #endif //CLIENT_GLOBAL_LINEBREAK
-
-			
 			pStaticName->GetString(0)->msg  = g_pMain->GetStringFilter()->FilteringChatString( wstrShopName.c_str(), L'♡' );
 
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환		/// 상점 이름 입력창 제거
 			// 이름 입력창은 안 보이게..
 			CKTDGUIIMEEditBox* pIMEEditBox = (CKTDGUIIMEEditBox*)m_pDLGUIPersonalShop->GetControl( L"IME_Editname" );
 			pIMEEditBox->SetShowEnable(false, false);
+#endif // SERV_UPGRADE_TRADE_SYSTEM
 
 			// 판매종료 버튼만 보이게
 			CKTDGUIButton* pButtonSellBegin = (CKTDGUIButton*) m_pDLGUIPersonalShop->GetControl( L"Button_Sell_Begin" );
@@ -2112,8 +2460,10 @@ void CX2UIPersonalShop::SetDialog( CX2UIPersonalShop::X2_PERSONAL_SHOP_STATE per
 			CKTDGUIStatic* pStaticPageNum = (CKTDGUIStatic*)m_pDLGUIPersonalShop->GetControl( L"Static_Page_Number" );
 			pStaticPageNum->GetString(0)->msg = buff;
 
+
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환			/// 사용하지 않는 코드 제거
 			// 임시코드
-#ifdef SERV_PSHOP_AGENCY
+	#ifdef SERV_PSHOP_AGENCY
 			CKTDGUIStatic* pStaticName = NULL;
 			if( personalShopState != XPSS_AGENCY_TAKE )
 			{
@@ -2127,23 +2477,23 @@ void CX2UIPersonalShop::SetDialog( CX2UIPersonalShop::X2_PERSONAL_SHOP_STATE per
 #else //CLIENT_GLOBAL_LINEBREAK
 				wstring wstrShopName = g_pMain->GetStrByLienBreak( m_ShopName.c_str(), 291, pStaticName->GetString(0)->fontIndex );
 #endif //CLIENT_GLOBAL_LINEBREAK
-
-				
 				pStaticName->GetString(0)->msg  = g_pMain->GetStringFilter()->FilteringChatString( wstrShopName.c_str(), L'♡' );
 			}
-#else
+	#else  //SERV_UPGRADE_TRADE_SYSTEM
 			CKTDGUIStatic* pStaticName = (CKTDGUIStatic*)m_pDLGUIPersonalShop->GetControl( L"Static_Personal_Shop_Name_Up" );
 			pStaticName->GetString(0)->msg = GET_REPLACED_STRING( ( STR_ID_864, "L", m_ShopKeeperName ) );
 
 			pStaticName = (CKTDGUIStatic*)m_pDLGUIPersonalShop->GetControl( L"Static_Personal_Shop_Name_Down" );
-			//pStaticName->GetString(0)->msg = g_pMain->GetStrByLienBreak( m_ShopName.c_str(), 291, pStaticName->GetString(0)->fontIndex );
+			//pStaticName->GetString(0)->msg = g_pMain->GetStrByLienBreak( m_ShopName.c_str(), 291, pStaticName->GetString(0)->fontIndex );	
 #ifdef CLIENT_GLOBAL_LINEBREAK
 			wstring wstrShopName = CWordLineHandler::GetStrByLineBreakInX2Main( m_ShopName.c_str(), 291, pStaticName->GetString(0)->fontIndex );
 #else //CLIENT_GLOBAL_LINEBREAK
 			wstring wstrShopName = g_pMain->GetStrByLienBreak( m_ShopName.c_str(), 291, pStaticName->GetString(0)->fontIndex );
 #endif //CLIENT_GLOBAL_LINEBREAK
 			pStaticName->GetString(0)->msg  = g_pMain->GetStringFilter()->FilteringChatString( wstrShopName.c_str(), L'♡' );
-#endif
+	#endif  //SERV_UPGRADE_TRADE_SYSTEM
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 
 #ifdef SERV_PSHOP_AGENCY
 			if( personalShopState == XPSS_AGENCY_SELL )
@@ -2218,7 +2568,7 @@ void CX2UIPersonalShop::ResetSellSlotUIList( int iPageIndex )
 		CKTDGUIStatic* pStaticTotalED;
 		CKTDGUIButton* pButtonModify;
 				
-		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlotInfo->m_ItemUID );
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlotInfo->m_ItemUID );
 
 		switch(iSlotIndex)
 		{
@@ -2268,7 +2618,7 @@ void CX2UIPersonalShop::ResetSellSlotUIList( int iPageIndex )
 #ifdef	SEAL_ITEM
 				if ( pItem != NULL && pSlotInfo != NULL )
 				{
-					if ( pItem->GetItemData() != NULL && pItem->GetItemData()->m_bIsSealed == true )
+					if ( pItem->GetItemData().m_bIsSealed == true )
 					{
 						pItemSlot->SetShowSealedImage( true );
 					}
@@ -2313,7 +2663,7 @@ void CX2UIPersonalShop::ResetSellSlotUIList( int iPageIndex )
 			wstring wstrNum = buff;
 			wstrNum += GET_STRING( STR_ID_24 );
 			pStaticItemNum->GetString(0)->msg = wstrNum.c_str();
-#endif
+#endif CLIENT_COUNTRY_EU
 			// 총ED 써주고
 			pStaticTotalED->GetString(0)->msg = g_pMain->GetEDString( pSlotInfo->m_PricePerOne * pSlotInfo->m_Quantity );
 
@@ -2336,7 +2686,7 @@ void CX2UIPersonalShop::ResetSellSlotUIList( int iPageIndex )
 			pStaticItemNum->GetString(0)->msg = GET_REPLACED_STRING( ( STR_ID_865, "i", 0 ) );
 #else
 			pStaticItemNum->GetString(0)->msg = GET_REPLACED_STRING( ( STR_ID_865, "S", L"0" ) );
-#endif
+#endif CLIENT_COUNTRY_EU
 			pStaticTotalED->GetString(0)->msg = L"0";
 			pButtonModify->SetShow(false);
 		}
@@ -2383,9 +2733,19 @@ void CX2UIPersonalShop::ResetBuySlotUIList( int iPageIndex /*= 1*/ )
 	for( int i= (m_iNowPageIndex-1)*3; i < m_iNowPageIndex*3; i++ )
 	{
 		int iSlotIndex = i%3;
+		
+		if ( iSlotIndex < 0 || iSlotIndex >= static_cast<int>( m_SlotList.size() ) )
+			continue;
+
 		CX2SlotItem* pItemSlot = (CX2SlotItem*)m_SlotList[iSlotIndex];
 #ifdef LIMIT_PERSONAL_SHOP_PAGE
+
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		int iSlotInfo = i % ( m_iMaxPageIndex * 3 );
+	#else // SERV_UPGRADE_TRADE_SYSTEM
 		int iSlotInfo = i%9;
+	#endif // SERV_UPGRADE_TRADE_SYSTEM
+		
 		CX2UIPersonalShop::SlotInfo* pSlotInfo = GetShopSlot( iSlotInfo );
 #else
 		CX2UIPersonalShop::SlotInfo* pSlotInfo = GetShopSlot( i );
@@ -2495,13 +2855,12 @@ void CX2UIPersonalShop::ResetBuySlotUIList( int iPageIndex /*= 1*/ )
 			// 템이름 써주고
 #ifdef CLIENT_GLOBAL_LINEBREAK
 			wstring tpString = CWordLineHandler::GetStrByLineBreakInX2Main(GetPersonalShopSlotItemFullName( pSlotInfo->m_ItemUID ).c_str(), 220, XUF_DODUM_15_BOLD );
-		if ( NULL != pStaticItemName && NULL != pStaticItemName->GetString(0) )
-			pStaticItemName->GetString(0)->msg = tpString;
+			if ( NULL != pStaticItemName && NULL != pStaticItemName->GetString(0) )
+				pStaticItemName->GetString(0)->msg = tpString;
 #else //CLIENT_GLOBAL_LINEBREAK
-		if ( NULL != pStaticItemName && NULL != pStaticItemName->GetString(0) )
-			pStaticItemName->GetString(0)->msg = GetPersonalShopSlotItemFullName( pSlotInfo->m_ItemUID );
-#endif //CLIENT_GLOBAL_LINEBREAK
-			
+			if ( NULL != pStaticItemName && NULL != pStaticItemName->GetString(0) )
+				pStaticItemName->GetString(0)->msg = GetPersonalShopSlotItemFullName( pSlotInfo->m_ItemUID );
+#endif //CLIENT_GLOBAL_LINEBREAK			
 			//{{ kimhc // 2009-11-10 // ED 입력 시 색 바뀌도록 수정
 #ifdef	PRICE_COLOR
 			if ( NULL != pStaticPricePerOne )
@@ -2609,7 +2968,7 @@ void CX2UIPersonalShop::OpenDLGItemEnroll( UidType itemUID )
 // 				if ( pSlotItem->GetDLGSlotFixBack() != NULL )
 // 					g_pKTDXApp->GetDGManager()->GetDialogManager()->ChangeLayer( pSlotItem->GetDLGSlotFixBack(), XDL_POP_UP );
 // 				// 슬롯 정보 설정
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( itemUID );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( itemUID );
 				if ( pItem != NULL )
 				{
 //					pSlotItem->CreateItemUI( pItem );
@@ -2655,8 +3014,7 @@ void CX2UIPersonalShop::OpenDLGItemEnroll( UidType itemUID )
 					}
 	//{{ kimhc // 2009-09-02 // 아이템 등록 창에 봉인 이미지 보이도록
 #ifdef	SEAL_ITEM
-					if ( pItem->GetItemData() != NULL &&
-						 pItem->GetItemData()->m_bIsSealed == true )
+					if ( pItem->GetItemData().m_bIsSealed == true )
 					{
 						if( pStaticSlot != NULL && pStaticSlot->GetPicture( 1 ) != NULL )
 						{
@@ -2715,21 +3073,54 @@ void CX2UIPersonalShop::EnrollItemByUid( UidType itemUid, int SlotIndex )
 #ifdef SERV_PSHOP_AGENCY
 		if( m_NowShopState == XPSS_AGENCY_WAIT && g_pInstanceData->IsActiveAgencyShop() == true )
 		{				
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 현재 대리 상점 타입에 따른 등록수 설정
+			const SEnum::AGENCY_SHOP_TYPE eAgencyShopType = g_pInstanceData->GetAgencyShopType();
+
+			switch( eAgencyShopType )
+			{
+			case SEnum::AST_PREMIUM:	MaxSlot = CASH_PERSONAL_SHOP_ITEM_SLOT_MAX;	break;		/// 캐시 상점 아이템
+			case SEnum::AST_NORMAL:		MaxSlot = ED_PERSONAL_SHOP_ITEM_SLOT_MAX;	break;		/// ED 상점 아이템
+			default:					MaxSlot = FREE_PERSONAL_SHOP_ITEM_SLOT_MAX;	break;		/// 무료 아이템
+			}
+	#else //SERV_UPGRADE_TRADE_SYSTEM
 			MaxSlot = PERSONAL_SHOP_ITEM_SLOT_MAX;
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
 		}
-		else if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
+		else if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
 		{
-			MaxSlot = PERSONAL_SHOP_ITEM_SLOT_MAX;			
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 현재 대리 상점 타입에 따른 등록수 설정
+			const SEnum::AGENCY_SHOP_TYPE eAgencyShopType = g_pInstanceData->GetAgencyShopType();
+
+			switch( eAgencyShopType )
+			{
+			case SEnum::AST_PREMIUM:	MaxSlot = CASH_PERSONAL_SHOP_ITEM_SLOT_MAX;	break;		/// 캐시 상점 아이템
+			case SEnum::AST_NORMAL:		MaxSlot = ED_PERSONAL_SHOP_ITEM_SLOT_MAX;	break;		/// ED 상점 아이템
+			default:					MaxSlot = FREE_PERSONAL_SHOP_ITEM_SLOT_MAX;	break;		/// 무료 아이템
+			}
+	#else //SERV_UPGRADE_TRADE_SYSTEM
+			MaxSlot = PERSONAL_SHOP_ITEM_SLOT_MAX;
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
 		}
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		/*else if( m_NowShopState == XPSS_AGENCY_WAIT && g_pInstanceData->IsActiveAgencyShop() == true )
+		{				
+			MaxSlot = ED_PERSONAL_SHOP_ITEM_SLOT_MAX;
+		}
+		else
+		{				
+			MaxSlot = FREE_PERSONAL_SHOP_ITEM_SLOT_MAX;
+		}*/
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
 #ifdef SERV_VIP_SYSTEM
-		else if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( EVENT_MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
+		else if(g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( EVENT_MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
 		{
 			MaxSlot = PERSONAL_SHOP_ITEM_SLOT_MAX;			
 		}
 #endif SERV_VIP_SYSTEM
-
 #else
-		if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
+		if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( MAGIC_PREMIUM_SHOP_ITEM_ID ) > 0 )
 		{
 			MaxSlot = PERSONAL_SHOP_ITEM_SLOT_MAX;			
 		}
@@ -2794,12 +3185,12 @@ void CX2UIPersonalShop::EnrollItemByUid( UidType itemUid, int SlotIndex )
 	else
 	{
 		bool bCheck = true;
-		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( itemUid );
-		if( NULL == pItem )
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( itemUid );
+		if( NULL == pItem || pItem->GetItemTemplet() == NULL )
 			return;
 #ifdef ITEM_RECOVERY_TEST
 		// 강화 레벨 검사 (사용불능인가?)
-		if(pItem != NULL && true == pItem->IsDisabled())
+		if( true == pItem->IsDisabled())
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_394 ), g_pMain->GetNowState() );
 			bCheck = false;
@@ -2808,7 +3199,7 @@ void CX2UIPersonalShop::EnrollItemByUid( UidType itemUid, int SlotIndex )
 
 		if ( pItem->GetItemTemplet()->GetPeriodType() == CX2Item::PT_ENDURANCE )
 		{
-			if ( pItem->GetItemData()->m_Endurance < pItem->GetItemTemplet()->GetEndurance() )
+			if ( pItem->GetItemData().m_Endurance < pItem->GetItemTemplet()->GetEndurance() )
 			{
 				bCheck = false;
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_867 ),g_pMain->GetNowState() );
@@ -2817,14 +3208,8 @@ void CX2UIPersonalShop::EnrollItemByUid( UidType itemUid, int SlotIndex )
 
 		//{{ kimhc // 2009-09-02 // 봉인된 아이템 개인상점에 등록 가능 하도록
 #ifdef	SEAL_ITEM
-		if ( pItem->GetItemData() == NULL )
-		{
-			ASSERT( !"Wrong path" );
-			return;
-		}
-
 		if ( bCheck == true && pItem->GetItemTemplet()->GetVested() == true 
-			&& pItem->GetItemData()->m_bIsSealed == false )
+			&& pItem->GetItemData().m_bIsSealed == false )
 #else	SEAL_ITEM
 		if ( bCheck == true && pItem->GetItemTemplet()->GetVested() == true )
 #endif	SEAL_ITEM
@@ -2910,15 +3295,18 @@ void CX2UIPersonalShop::UpdateDLGItemEnroll()
 		if ( m_RegShopItemNum <= 0 ) 
 			m_RegShopItemNum = 0;
 
-		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_RegShopItemUID );
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_RegShopItemUID );
 
-		if ( m_RegShopItemNum >= pItem->GetItemData()->m_Quantity )
-			m_RegShopItemNum = pItem->GetItemData()->m_Quantity;
-
-		if(pItem->GetItemTemplet()->GetPeriodType() == CX2Item::PT_QUANTITY)
+		if ( NULL != pItem )
 		{
-			if ( m_RegShopItemNum >= pItem->GetItemTemplet()->GetQuantity() )
-				m_RegShopItemNum = pItem->GetItemTemplet()->GetQuantity();
+			if ( m_RegShopItemNum >= pItem->GetItemData().m_Quantity )
+				m_RegShopItemNum = pItem->GetItemData().m_Quantity;
+
+			if(pItem->GetItemTemplet()->GetPeriodType() == CX2Item::PT_QUANTITY)
+			{
+				if ( m_RegShopItemNum >= pItem->GetItemTemplet()->GetQuantity() )
+					m_RegShopItemNum = pItem->GetItemTemplet()->GetQuantity();
+			}
 		}
 		
 		// Overflow Check
@@ -2964,13 +3352,13 @@ void CX2UIPersonalShop::RegisterShopItem()
 		return;
 	}
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_RegShopItemUID );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_RegShopItemUID );
 	if (m_RegShopItemNum <= 0 )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_870 ), g_pMain->GetNowState() );
 		return;
 	}
-	else if( m_RegShopItemNum > pItem->GetItemData()->m_Quantity )
+	else if( m_RegShopItemNum > pItem->GetItemData().m_Quantity )
 	{
 		// 혹시 모르니 처리해놓자
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_871 ), g_pMain->GetNowState() );
@@ -2994,7 +3382,7 @@ void CX2UIPersonalShop::RegisterShopItem()
 	if ( pSlotItem != NULL )
 	{
 		pSlotItem->DestroyItemUI();
-		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlotInfo->m_ItemUID );
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlotInfo->m_ItemUID );
 		if ( pItem != NULL && pSlotInfo != NULL )
 		{
 			pSlotItem->CreateItemUI( pItem->GetItemTemplet(), pSlotInfo->m_Quantity );
@@ -3002,7 +3390,7 @@ void CX2UIPersonalShop::RegisterShopItem()
 
 			//{{ kimhc // 2009-09-02 // 판매창에 봉인 이미지 보이도록
 #ifdef	SEAL_ITEM
-			if ( pItem->GetItemData() != NULL && pItem->GetItemData()->m_bIsSealed == true )
+			if ( pItem->GetItemData().m_bIsSealed == true )
 			{
 				pSlotItem->SetShowSealedImage( true );
 			}
@@ -3012,6 +3400,19 @@ void CX2UIPersonalShop::RegisterShopItem()
 			}
 #endif	SEAL_ITEM
 			//}} kimhc // 2009-09-02 // 판매창에 봉인 이미지 보이도록
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 개인 상점에 등록중인 아이템 표시를 위한 아이콘 갱신
+			if ( NULL != g_pData &&
+				 NULL != g_pData->GetUIManager() &&
+				 NULL != g_pData->GetUIManager()->GetUIInventory() )
+			{
+				CX2SlotItem* pSlotInvenItem = g_pData->GetUIManager()->GetUIInventory()->GetSlotByItemUID( pSlotItem->GetItemUID() );
+
+				if ( pSlotInvenItem != NULL )
+					pSlotInvenItem->ResetItemUI( pItem );
+			}
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 		}
 	}
 
@@ -3054,8 +3455,8 @@ wstring CX2UIPersonalShop::GetPersonalShopSlotItemFullName( UidType itemUID )
 		KSellPersonalShopItemInfo& kInfo = m_vecPersonalShopSlotItem[i];
 		if ( kInfo.m_kInventoryItemInfo.m_iItemUID == itemUID )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInfo.m_kInventoryItemInfo );
-			CX2Item* pItem = new CX2Item( pItemData, NULL );
+			CX2Item::ItemData kItemData( kInfo.m_kInventoryItemInfo );
+			CX2Item* pItem = new CX2Item( kItemData, NULL );
 			itemFullName = pItem->GetFullName();
 			SAFE_DELETE( pItem );
 			break;
@@ -3073,7 +3474,7 @@ wstring CX2UIPersonalShop::GetSlotItemDesc()
 
 	if ( m_pNowOverItemSlot != NULL )
 	{
-		CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( 
+		CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( 
 			m_pNowOverItemSlot->GetItemUID() );
 		if ( pkItem != NULL )
 			itemDesc = GetSlotItemDescByUID( m_pNowOverItemSlot->GetItemUID(), false );
@@ -3103,9 +3504,9 @@ wstring CX2UIPersonalShop::GetPersonalShopSlotItemDesc( UidType itemUID )
 		KSellPersonalShopItemInfo& kInfo = m_vecPersonalShopSlotItem[i];
 		if ( kInfo.m_kInventoryItemInfo.m_iItemUID == itemUID )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInfo.m_kInventoryItemInfo );
-			CX2Item* pItem = new CX2Item( pItemData, NULL );
-			itemDesc = GetSlotItemDescByTID( pItem, pItem->GetItemData()->m_ItemID, false );
+			CX2Item::ItemData kItemData( kInfo.m_kInventoryItemInfo );
+			CX2Item* pItem = new CX2Item( kItemData, NULL );
+			itemDesc = GetSlotItemDescByTID( pItem, pItem->GetItemData().m_ItemID, false );
 			SAFE_DELETE( pItem );
 			break;
 		}
@@ -3204,7 +3605,7 @@ void CX2UIPersonalShop::UpdateBuyQuantityDLG( bool bReadIME )
 bool CX2UIPersonalShop::CheckEdLimit()
 {
 	INT64 EDTotalAfterSell = 0;
-	EDTotalAfterSell += g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+	EDTotalAfterSell += g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 
 	for(int i=0; i<(int)m_vecSlotInfo.size(); ++i)
 	{
@@ -3401,7 +3802,19 @@ bool CX2UIPersonalShop::Handler_EGS_REG_PSHOP_AGENCY_ITEM_REQ()
 {
 	KEGS_REG_PERSONAL_SHOP_ITEM_REQ kPacket;
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	if ( NULL != g_pData &&
+		 NULL != g_pData->GetMyUser() &&
+		 NULL != g_pData->GetMyUser()->GetSelectUnit() )
+	{
+		m_ShopKeeperName = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName;
+
+		/// @님의 개인상점
+		kPacket.m_wstrPersonalShopName = GET_REPLACED_STRING( ( STR_ID_864, "L", m_ShopKeeperName ) );
+	}
+#else // SERV_UPGRADE_TRADE_SYSTEM
 	kPacket.m_wstrPersonalShopName = m_ShopName;
+#endif // SERV_UPGRADE_TRADE_SYSTEM
 
 	for ( int i = 0; i < (int)m_vecSlotInfo.size(); i++ )
 	{
@@ -3436,6 +3849,34 @@ bool CX2UIPersonalShop::Handler_EGS_REG_PSHOP_AGENCY_ITEM_ACK( HWND hWnd, UINT u
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+
+			RegisterAgencyShopItem();
+			CloseAgencyShop();
+
+			// 인벤토리 업데이트
+			if( g_pData->GetUIManager()->GetUIInventory() != NULL )
+			{		
+				CX2UIInventory* pUIInventory = g_pData->GetUIManager()->GetUIInventory();
+
+				if ( NULL != pUIInventory )
+				{
+					pUIInventory->UpdateInventorySlotList(kEvent.m_vecInventorySlotInfo);
+
+					/// 개인 상점에 등록중인 아이템 표시를 위한 아이콘 초기화
+					const CX2Inventory::SORT_TYPE	eNowInventorySortType	= pUIInventory->GetInventorySortType();
+					const int						iNowInventoryPageNum	= pUIInventory->GetNowInventoryPageNum( eNowInventorySortType );
+					pUIInventory->SetInventorySort( eNowInventorySortType, iNowInventoryPageNum );
+				}
+			}
+
+			/// 수수료를 통해 사용된 ED 갱신
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
+
+			Handler_EGS_JOIN_MY_PSHOP_AGENCY_REQ();
+
+#else //SERV_UPGRADE_TRADE_SYSTEM
+
 			// 인벤토리 업데이트
 			if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 			{		
@@ -3446,6 +3887,7 @@ bool CX2UIPersonalShop::Handler_EGS_REG_PSHOP_AGENCY_ITEM_ACK( HWND hWnd, UINT u
 			CloseAgencyShop();
 			Handler_EGS_JOIN_MY_PSHOP_AGENCY_REQ();
 
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 			return true;
 		}
 	}
@@ -3488,10 +3930,24 @@ bool CX2UIPersonalShop::Handler_EGS_JOIN_MY_PSHOP_AGENCY_ACK( HWND hWnd, UINT uM
 			m_vecPersonalShopSlotItem = kEvent.m_vecSellItemInfo;
 
 #ifdef LIMIT_PERSONAL_SHOP_PAGE
+
+		#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 샵 타입에 따른 최대 제한 설정
+			const int iLimitItemNum = GetMaxItemPageIndex() * 3;
+
+			if ( static_cast<int>( m_vecPersonalShopSlotItem.size() ) > iLimitItemNum )
+			{
+				m_vecPersonalShopSlotItem.resize(iLimitItemNum);
+			}
+
+		#else // SERV_UPGRADE_TRADE_SYSTEM
+
 			if ( m_vecPersonalShopSlotItem.size() > 9 )
 			{
 				m_vecPersonalShopSlotItem.resize(9);
 			}
+
+		#endif // SERV_UPGRADE_TRADE_SYSTEM
 
 			m_iMaxPageIndex =  (int) ( ((int)m_vecPersonalShopSlotItem.size()+2) / 3);
 			m_iNowPageIndex = 1;
@@ -3584,9 +4040,25 @@ bool CX2UIPersonalShop::Handler_EGS_LEAVE_PSHOP_AGENCY_ACK( HWND hWnd, UINT uMsg
 
 	if ( g_pMain->DeleteServerPacket( EGS_LEAVE_PSHOP_AGENCY_ACK ) == true )
 	{
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		/// 비정상 패킷이라도, 창은 닫아주자
+		CloseAgencyShop();
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 개인 상점에 등록중인 아이템 표시 복구를 위한 아이콘 갱신
+			if( g_pData->GetUIManager()->GetUIInventory() != NULL )
+			{		
+				CX2UIInventory* pUIInventory = g_pData->GetUIManager()->GetUIInventory();
+
+				if ( NULL != pUIInventory )
+					pUIInventory->UpdateInventorySlot();
+			}
+	#else //SERV_UPGRADE_TRADE_SYSTEM
 			CloseAgencyShop();
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 			return true;
 		}
@@ -3637,7 +4109,7 @@ bool CX2UIPersonalShop::Handler_EGS_PICK_UP_FROM_PSHOP_AGENCY_ACK( HWND hWnd, UI
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
 			if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 			{		
 				g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList(kEvent.m_vecInventorySlotInfo);
@@ -3652,6 +4124,12 @@ bool CX2UIPersonalShop::Handler_EGS_PICK_UP_FROM_PSHOP_AGENCY_ACK( HWND hWnd, UI
 			if( kEvent.m_vecSellItemInfo.size() == 0 )
 			{
 				CloseAgencyShop();
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+				/// 매진이 되지 않았다면, 퇴장 처리 해주세요!
+				if ( true == kEvent.m_bRemainSellItem )
+					Handler_EGS_LEAVE_PSHOP_AGENCY_REQ();
+#endif // SERV_UPGRADE_TRADE_SYSTEM 
 			}
 
 			return true;
@@ -3668,3 +4146,65 @@ bool CX2UIPersonalShop::Handler_EGS_PICK_UP_FROM_PSHOP_AGENCY_ACK( HWND hWnd, UI
 
 
 #endif
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+/** @function	: GetMaxItemPageIndex
+	@brief		: 현재 샵 타입에 따른 최대 등록 페이지 수 반환
+	@return		: 최대 등록 페이지 수
+*/
+const int CX2UIPersonalShop::GetMaxItemPageIndex()
+{
+	int iMaxPageIndex = 1;
+
+	if ( NULL != g_pInstanceData )
+	{
+		const SEnum::AGENCY_SHOP_TYPE eAgencyShopType = g_pInstanceData->GetAgencyShopType();
+
+		switch( eAgencyShopType )
+		{
+		case SEnum::AST_PREMIUM:	iMaxPageIndex = 5;	break;		/// 캐시 상점 아이템
+		case SEnum::AST_NORMAL:		iMaxPageIndex = 3;	break;		/// ED 상점 아이템
+		default:					iMaxPageIndex = 1;	break;		/// 무료 아이템
+		}
+	}
+
+	return iMaxPageIndex;
+}
+
+/** @function	: CheckCanPaymentRegistTex
+	@brief		: 물품 등록에 필요한 수수료를 납부할 수 있는가
+	@return		: 가능 여부
+*/
+const bool CX2UIPersonalShop::CheckCanPaymentRegistTex()
+{
+	/// 캐시 상점은 수수료 낼 필요가 없다.
+	if ( NULL != g_pInstanceData && SEnum::AST_PREMIUM == g_pInstanceData->GetAgencyShopType() )
+		return true;
+
+	if ( NULL == g_pData ||
+		 NULL == g_pData->GetMyUser() ||
+		 NULL == g_pData->GetMyUser()->GetSelectUnit() )
+		 return false;
+
+	int iItemNum = 0;	/// 등록할 아이템 수
+
+	//일단 등록할려는 아이템이 한개 이상이 된 경우 체크한다.
+	for ( int i = 0; i < (int)m_vecSlotInfo.size(); i++ )
+	{
+		CX2UIPersonalShop::SlotInfo* pSlotInfo = m_vecSlotInfo[i];
+		if ( pSlotInfo != NULL )
+		{
+			if ( pSlotInfo->m_ItemUID != 0 && pSlotInfo->m_Quantity != 0 )
+				++iItemNum;
+		}
+	}
+
+	const int iTex = iItemNum * 1000;		/// 수수료 계산 ( 개당 1000ED )
+
+	/// 현재 보유한 돈으로 낼 수 없다면, False 처리
+	if ( iTex > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
+		return false;
+
+	return true;
+}
+#endif //SERV_UPGRADE_TRADE_SYSTEM

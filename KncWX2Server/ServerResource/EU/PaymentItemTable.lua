@@ -117,6 +117,26 @@ DropTable:AddPaymentDungeon( ALL_DUNGEON,		{ iItemID = 60007341, fRate = 100, iQ
 DropTable:AddPaymentDungeon( DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 85003832, fRate = 100, iQuestID = 85660, wstrBeginDate = '2014-01-06 09:00:00', wstrEndDate = '2014-01-21 23:59:00'  } )  
 DropTable:AddPaymentDungeon( DUNGEON_KINDS["LEVEL_DUNGEON"],		{ iItemID = 85003832, fRate = 100, iQuestID = 85660, wstrBeginDate = '2014-01-29 09:00:00', wstrEndDate = '2014-02-05 08:59:00'  } )  
 
+-- 모비 튜닝 컨테스트 이벤트(루벤 제외, 경험치 받는 던전, 레벨10 이상), 야생화가 100% 1개 지급 됨
+-- DropTable:AddPaymentDungeon(	DUNGEON_KINDS["EXP_DUNGEON"]	, { iItemID = 100000162, fRate = 100, iQuantity = 1, iQuestID = 200210, iMinLv = 10, wstrBeginDate = '2014-03-26 00:00:00', wstrEndDate = '2014-04-08 23:59:00',} )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_EL_TREE_NORMAL"]			,{ iItemID = 100000162, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_RUIN_OF_ELF_NORMAL"]		,{ iItemID = 100000162, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_RUIN_OF_ELF_HARD"]			,{ iItemID = 100000162, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_RUIN_OF_ELF_EXPERT"]		,{ iItemID = 100000162, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_SWAMP_NORMAL"]				,{ iItemID = 100000162, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_SWAMP_HARD"]				,{ iItemID = 100000162, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_SWAMP_EXPERT"]				,{ iItemID = 100000162, fRate = 100, } )
+
+-- 모비 튜닝 컨테스트 이벤트(루벤 제외, 경험치 받는 던전, 레벨10 이상), 고대 나소드 동력원이 100% 1개 지급 됨
+-- DropTable:AddPaymentDungeon(	DUNGEON_KINDS["EXP_DUNGEON"]	, { iItemID = 100000164, fRate = 100, iQuantity = 1, iQuestID = 200230, iMinLv = 10, wstrBeginDate = '2014-04-02 00:00:00', wstrEndDate = '2014-04-15 23:59:00',} )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_EL_TREE_NORMAL"]			,{ iItemID = 100000164, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_RUIN_OF_ELF_NORMAL"]		,{ iItemID = 100000164, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_RUIN_OF_ELF_HARD"]			,{ iItemID = 100000164, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_RUIN_OF_ELF_EXPERT"]		,{ iItemID = 100000164, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_SWAMP_NORMAL"]				,{ iItemID = 100000164, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_SWAMP_HARD"]				,{ iItemID = 100000164, fRate = 100, } )
+-- DropTable:AddUnPaymentCondition(	DUNGEON_ID["DI_RUBEN_SWAMP_EXPERT"]				,{ iItemID = 100000164, fRate = 100, } )
+
 
 -- 베커 이벤트 신입 용병을 트레이닝하자!!  (2013년 08월 14일 ~ 2013년 08월 27일)
 --DropTable:AddPaymentDungeon(	DUNGEON_KINDS["EXP_DUNGEON"]	, { iItemID = 85003041, fRate = 100, iQuantity = 1, cUnitClass = UNIT_CLASS["UC_RAVEN_VETERAN_COMMANDER"], bPartyPay = True, wstrBeginDate = '2013-08-21 00:00:00', wstrEndDate = '2013-09-04 23:59:00',} )

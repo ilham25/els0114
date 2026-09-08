@@ -8,6 +8,8 @@ struct KPostItemInfo;
 class CX2RewardTable
 {
 public:
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 	struct KRewardData
 	{	
 		int				m_iRewardItemID;
@@ -29,6 +31,7 @@ public:
 			return *this;
 		}
 	};
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM	
 
 public:
 	CX2RewardTable(void);
@@ -57,6 +60,9 @@ public:
 	bool GetRewardInfo( IN int iRewardID, OUT std::map< int, int >& mapRewardInfo ) const;
 	void GetRewardInfo( IN int iRewardType, IN const std::vector< KPostItemInfo >& vecPostItemInfo, OUT std::map< int, int >& mapRewardInfo ) const;
 	void GetRewardInfo( IN int iRewardType, IN const std::vector< KPostItemInfo >& vecPostItemInfo, OUT std::vector< std::wstring >& vecMessage ) const;
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	void SetRewardDBData(IN std::map< int, std::vector< KRewardData > > mapRewardDBdata) { m_mapRewardData = mapRewardDBdata; }
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 private:
 	std::map< int, std::vector< KRewardData > > m_mapRewardData;

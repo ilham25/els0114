@@ -25,8 +25,12 @@ CX2EmblemManager* CX2EmblemManager::m_pEmblemManager = NULL;
 
 CX2EmblemManager::CX2EmblemManager():
 m_bHasNextPlayEmblem( false ),
-m_hCurrentEmblem(INVALID_PARTICLE_HANDLE),
+m_hCurrentEmblem(INVALID_PARTICLE_SEQUENCE_HANDLE),
+m_hCurrentEmblem2nd(INVALID_PARTICLE_SEQUENCE_HANDLE),
 m_fWaitTime(0.f)
+#ifdef ADD_PLAY_MUSIC_WHEN_EMBLEM_POP		// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
+, m_fSoundPlayingCheckTime ( 0.f )
+#endif // ADD_PLAY_MUSIC_WHEN_EMBLEM_POP	// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
 {
 
 }
@@ -37,6 +41,17 @@ CX2EmblemManager::~CX2EmblemManager()
 	{
 		SAFE_DELETE ( pEmblem );
 	}
+
+#ifdef ADD_PLAY_MUSIC_WHEN_EMBLEM_POP		// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
+	// 	BOOST_FOREACH ( CKTDXDeviceSound * pSound, m_vecPlayingEmblemSound )
+	// 	{
+	// 		if ( NULL != pSound )
+	// 		{
+	// 			pSound->Stop();
+	// 			SAFE_CLOSE(pSound);
+	// 		}
+	// 	}
+#endif // ADD_PLAY_MUSIC_WHEN_EMBLEM_POP	// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
 }
 
 
@@ -45,29 +60,15 @@ bool CX2EmblemManager::OpenScriptFile( IN const WCHAR* pFileName_ )
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, false );
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pEmblemManager", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName_ );
-	if ( Info == NULL )
-	{
-		std::string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName_ );
-		ErrorLogMsg( XEM_ERROR149, strFileName.c_str() );
+
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName_ ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR149, pFileName_ );
 
 		return false;
-	}
+    }
 
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName_ );
-		ErrorLogMsg( XEM_ERROR149, strFileName.c_str() );
-
-		return false;
-	}
-	else
-	{
-		ParsingEmblemTemplet( luaManager );
-	}
+	ParsingEmblemTemplet( luaManager );
 
 	return true;
 }
@@ -77,23 +78,23 @@ bool CX2EmblemManager::OpenScriptFile( IN const WCHAR* pFileName_ )
 void CX2EmblemManager::ParsingEmblemTemplet( KLuaManager& luaManager )
 {
 	// 파싱할 엠블럼ID에 대한 리스트 구하기
-	vector<std::string> vecEmblemTempletName;
-	if( true == luaManager.BeginTable( L"SHOW_EMBLEM_ID_LIST" ) )
+	vector<std::string> vecEmblemTempletNameUTF8;
+	if( true == luaManager.BeginTable( "SHOW_EMBLEM_ID_LIST" ) )
 	{
 		int index	= 1; 
 		std::string strValue = "";
-		while( luaManager.GetValue( index, strValue ) == true )
+		while( luaManager.GetValueUtf8( index,strValue ) == true )
 		{
 			if( false == strValue.empty() )
-				vecEmblemTempletName.push_back(strValue);
+				vecEmblemTempletNameUTF8.push_back(strValue);
 			index++;
 		}
 		luaManager.EndTable();
 	}
 
-	BOOST_FOREACH( const std::string& strTableName, vecEmblemTempletName )
+	BOOST_FOREACH( const std::string& strTableNameUTF8, vecEmblemTempletNameUTF8 )
 	{
-		if( true == luaManager.BeginTable( strTableName.c_str() ) )
+		if( true == luaManager.BeginTable( strTableNameUTF8.c_str() ) )
 		{
 			EmblemTemplet* pEmblemTemplet = new EmblemTemplet;
 
@@ -131,6 +132,62 @@ void CX2EmblemManager::ParsingEmblemTemplet( KLuaManager& luaManager )
 			LUA_GET_VALUE( luaManager, "DURATION_TIME",			pEmblemTemplet->m_vecTime.x, 0.f );
 			LUA_GET_VALUE( luaManager, "FADE_IN_TIME",			pEmblemTemplet->m_vecTime.y, 0.f );
 			LUA_GET_VALUE( luaManager, "FADE_OUT_TIME",			pEmblemTemplet->m_vecTime.z, 0.f );
+
+			// 이펙트 생성 관련 정보 파싱
+			LUA_GET_VALUE( luaManager, "TEXTUR_FILE_NAME_2ND",		pEmblemTemplet->m_wstrTextureFileName2nd, L"" );
+
+
+			LUA_GET_VALUE( luaManager, "TEXTURE_1ST_COSTUOM_POS_X",			pEmblemTemplet->m_vTexture1stCostomPos.x, -1.f );
+			LUA_GET_VALUE( luaManager, "TEXTURE_1ST_COSTUOM_POS_Y",			pEmblemTemplet->m_vTexture1stCostomPos.y, -1.f );
+			
+			LUA_GET_VALUE( luaManager, "TEXTURE_2ND_COSTUOM_POS_X",			pEmblemTemplet->m_vTexture2ndCostomPos.x, -1.f );
+			LUA_GET_VALUE( luaManager, "TEXTURE_2ND_COSTUOM_POS_Y",			pEmblemTemplet->m_vTexture2ndCostomPos.y, -1.f );
+
+#ifdef ADD_PLAY_MUSIC_WHEN_EMBLEM_POP 	// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
+			if( true == luaManager.BeginTable( "PLAY_SOUND_FILE_NAME_EMBLEM" ) )
+			{		
+				int iIndex = 1;
+				while( true == luaManager.BeginTable( iIndex++  ) )
+				{
+					wstring wstrSoundFileName = L"";
+					float fStartTime = 0;
+					int eEmblemPopupSoundType = 0;
+					int	eUnitType = 0;
+					luaManager.GetValue( 1, wstrSoundFileName, L"" );
+					luaManager.GetValue( 2, fStartTime, 0 );
+					luaManager.GetValue( 3, eEmblemPopupSoundType, 0 );
+					luaManager.GetValue( 4, eUnitType, 0 );
+
+					EmblemPopupSound sEmblemPopupSound ( wstrSoundFileName, fStartTime, 
+						static_cast<EMBLEM_POPUP_SOUND_TYPE> ( eEmblemPopupSoundType ), static_cast<CX2Unit::UNIT_TYPE> ( eUnitType ) );
+					pEmblemTemplet->m_vecPlayEmblemSoundTemplet.push_back ( sEmblemPopupSound );
+					luaManager.EndTable();
+				}
+			}
+#endif // ADD_PLAY_MUSIC_WHEN_EMBLEM_POP // 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
+			
+#ifdef ADD_2013_CHARACTER_ADD_EVENT 	// 김종훈, 2013 애드 추가 기념 버닝 이벤트
+			if( true == luaManager.BeginTable( "OPEN_TIME_SETTING" ) )
+			{		
+				int iIndex = 1;
+				while( true == luaManager.BeginTable( iIndex++  ) )
+				{
+					int iYear, iMonth, iDay, iHour, iMinute, iRemainingMinute = -1;
+
+					luaManager.GetValue( 1, iYear, 0 );
+					luaManager.GetValue( 2, iMonth, 0 );
+					luaManager.GetValue( 3, iDay, 0 );
+					luaManager.GetValue( 4, iHour, 0 );
+					luaManager.GetValue( 5, iMinute, 0 );
+					luaManager.GetValue( 6, iRemainingMinute, 0 );
+
+					OpenTimeSetting sOpenTimeSetting ( iYear, iMonth, iDay, iHour, iMinute, iRemainingMinute );
+					pEmblemTemplet->m_vecOpenTimeSettingTemplet.push_back( sOpenTimeSetting );
+					luaManager.EndTable();
+				}
+			}
+			luaManager.EndTable();
+#endif // ADD_2013_CHARACTER_ADD_EVENT	// 김종훈, 2013 애드 추가 기념 버닝 이벤트
 
 			m_vecEmblemTemplet.push_back( pEmblemTemplet );
 
@@ -178,7 +235,7 @@ CKTDGParticleSystem::CParticleEventSequence* CX2EmblemManager::CreateEventSequen
 	pParticleSequence->SetForceLayer(false);
 	pParticleSequence->SetMaxParticleNum(1);
 	pParticleSequence->SetTriggerCount(1);
-
+	
 	// 전체 지속시간은 스크립트로부터 얻은 값으러 설정
 	pParticleSequence->SetLifetime(CMinMax<float>(vTime.x, vTime.x));
 	pParticleSequence->SetEmitRate(1000.f,1000.f);
@@ -246,16 +303,89 @@ void CX2EmblemManager::PlayEmblemEffect( const EmblemTemplet& sEmblemTemplet_ )
 	if( NULL == g_pData || NULL == g_pData->GetUIMajorParticle() )
 		return;
 
-	CKTDGParticleSystem::CParticleEventSequence* pSequence = 
-		CreateEventSequence( sEmblemTemplet_.m_wstrTextureFileName.c_str(), sEmblemTemplet_.m_vecTime );
-	pSequence->SetOverUI( true );
+#ifdef _IN_HOUSE_
+	if( true == sEmblemTemplet_.m_wstrTextureFileName.empty() )
+		DISPLAY_ERROR( L"TextureFile Name don't exist" );
+#endif // _IN_HOUSE_
 
-	if( NULL != pSequence )
+#ifdef ADD_2013_CHARACTER_ADD_EVENT		// 2013 애드 추가 기념 버닝 이벤트
+	if ( false == SetOpenTimeEventEmblem ( sEmblemTemplet_ ) )
+		return;
+#endif // ADD_2013_CHARACTER_ADD_EVENT	// 2013 애드 추가 기념 버닝 이벤트
+
+
 	{
-		m_hCurrentEmblem = 
-			g_pData->GetUIMajorParticle()->CreateInstanceNonTemplet(pSequence, 
-				D3DXVECTOR3(500,300,0), D3DXVECTOR2(-1,-1), D3DXVECTOR2(-1,-1) ); 
+		CKTDGParticleSystem::CParticleEventSequence* pSequence = 
+			CreateEventSequence( sEmblemTemplet_.m_wstrTextureFileName.c_str(), sEmblemTemplet_.m_vecTime );
+		if( NULL != pSequence )
+		{
+			pSequence->SetOverUI( true );
+			D3DXVECTOR3 vPos;
+			sEmblemTemplet_.GetTexture1stPos(vPos);
+			m_hCurrentEmblem = 
+				g_pData->GetUIMajorParticle()->CreateInstanceNonTemplet(pSequence, 
+				vPos, D3DXVECTOR2(-1,-1), D3DXVECTOR2(-1,-1) ); 
+		
+#ifdef ADD_PLAY_MUSIC_WHEN_EMBLEM_POP		// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
+			vector<EmblemPopupSound> vecEmblemPopupSoundPickJustOneUnitType;
+			m_vecNowPlayEmblemSound.clear();			
+			m_fSoundPlayingCheckTime = 0.f;
+			BOOST_FOREACH ( EmblemPopupSound sEmblemPopupSound, sEmblemTemplet_.m_vecPlayEmblemSoundTemplet )
+			{
+				switch ( sEmblemPopupSound.m_eEmblemPopupSoundType )
+				{
+					case EPST_NONE :
+						{
+							m_vecNowPlayEmblemSound.push_back( sEmblemPopupSound );	
+						}
+						break;
 
+					case EPST_RELATIVE_UNIT_TYPE_RANDOM :
+						{
+							if ( NULL != g_pData->GetMyUser() && 
+								NULL != g_pData->GetMyUser()->GetSelectUnit() &&
+								NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet() )
+							{
+								CX2Unit::UNIT_TYPE eUnitType = g_pData->GetMyUser()->GetSelectUnit()->GetType();
+								if ( eUnitType == sEmblemPopupSound.m_eUnitType )
+								{
+									vecEmblemPopupSoundPickJustOneUnitType.push_back ( sEmblemPopupSound );
+								}
+							}
+						}
+					break;
+
+					default :
+						break;
+				}
+			}
+
+			int iArraySize = static_cast<int> ( vecEmblemPopupSoundPickJustOneUnitType.size () );
+			if ( iArraySize > 0 )
+			{
+				srand( (unsigned) time( NULL ) );
+				int iRandomArray = rand() % iArraySize;
+				if ( static_cast<int> ( vecEmblemPopupSoundPickJustOneUnitType.size() ) > iRandomArray )
+					m_vecNowPlayEmblemSound.push_back( vecEmblemPopupSoundPickJustOneUnitType[iRandomArray] );	
+			}
+#endif // ADD_PLAY_MUSIC_WHEN_EMBLEM_POP	// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
+
+		}
+	}
+
+	if( false == sEmblemTemplet_.m_wstrTextureFileName2nd.empty() )
+	{
+		CKTDGParticleSystem::CParticleEventSequence* pSequence = 
+			CreateEventSequence( sEmblemTemplet_.m_wstrTextureFileName2nd.c_str(), sEmblemTemplet_.m_vecTime );
+		if( NULL != pSequence )
+		{
+			D3DXVECTOR3 vPos;
+			sEmblemTemplet_.GetTexture2ndPos(vPos);
+			pSequence->SetOverUI( true );
+			m_hCurrentEmblem2nd = 
+				g_pData->GetUIMajorParticle()->CreateInstanceNonTemplet(pSequence, 
+				vPos, D3DXVECTOR2(-1,-1), D3DXVECTOR2(-1,-1) ); 
+		}
 	}
 }
 
@@ -277,10 +407,13 @@ void CX2EmblemManager::InitEmbelmPlayInfo( bool bCharChange /*= false */)
 	m_bHasNextPlayEmblem = true;
 
 	// 출력 중인 엠블럼이 있다면 종료
-	if( INVALID_PARTICLE_HANDLE != m_hCurrentEmblem &&
-		NULL != g_pData->GetUIMajorParticle() )
+	if( NULL != g_pData->GetUIMajorParticle() )
 	{
-		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hCurrentEmblem );
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCurrentEmblem )
+			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hCurrentEmblem );
+
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCurrentEmblem2nd )
+			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hCurrentEmblem2nd );
 	}
 
 	m_fWaitTime = 3.f;
@@ -288,18 +421,37 @@ void CX2EmblemManager::InitEmbelmPlayInfo( bool bCharChange /*= false */)
 
 void CX2EmblemManager::OnFrameMove( float fElpaseTime )
 {
+#ifdef ADD_PLAY_MUSIC_WHEN_EMBLEM_POP		// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
+	{
+		m_fSoundPlayingCheckTime += fElpaseTime;
+	
+		BOOST_FOREACH ( EmblemPopupSound & sEmblemPopupSound, m_vecNowPlayEmblemSound )
+		{
+			if ( m_fSoundPlayingCheckTime >= sEmblemPopupSound.m_fStartTime && false == sEmblemPopupSound.m_bIsPlaying)
+			{
+				CKTDXDeviceSound* pSound = g_pKTDXApp->GetDeviceManager()->PlaySound( sEmblemPopupSound.m_wstrSoundFileName.c_str(), false, false );
+				m_vecPlayingEmblemSound.push_back( pSound );
+				sEmblemPopupSound.m_bIsPlaying = true;
+			}
+		}
+	}
+#endif // ADD_PLAY_MUSIC_WHEN_EMBLEM_POP	// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
+
+
 	if( NULL != g_pData->GetCashShop() &&
 		true == g_pData->GetCashShop()->GetOpen() )
 	{	
 		// 출력 중인 엠블럼이 있다면 종료
-		if( INVALID_PARTICLE_HANDLE != m_hCurrentEmblem &&
-			NULL != g_pData->GetUIMajorParticle() )
+		if( NULL != g_pData->GetUIMajorParticle() )
 		{
-			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hCurrentEmblem );
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCurrentEmblem )
+				g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hCurrentEmblem );
+
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCurrentEmblem2nd )
+				g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hCurrentEmblem2nd );
 		}
 		return;
 	}
-
 	if( m_fWaitTime > 0 )
 	{
 		m_fWaitTime -= fElpaseTime;
@@ -314,13 +466,24 @@ void CX2EmblemManager::OnFrameMove( float fElpaseTime )
 		return;
 
 	// 진행중인 엠블럼이 있다면 return;
-	if( INVALID_PARTICLE_HANDLE != m_hCurrentEmblem &&
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hCurrentEmblem &&
 		true == g_pData->GetUIMajorParticle()->IsLiveInstanceHandle( m_hCurrentEmblem ))
 	{
 		return;
 	}
+#ifdef ADD_PLAY_MUSIC_WHEN_EMBLEM_POP		// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
+// 	BOOST_FOREACH ( CKTDXDeviceSound * pSound, m_vecPlayingEmblemSound )
+// 	{
+// 		if ( NULL != pSound )
+// 		{
+// 			pSound->Stop();
+// 			SAFE_CLOSE(pSound);
+// 		}
+// 	}
+#endif // ADD_PLAY_MUSIC_WHEN_EMBLEM_POP	// 김종훈, 엠블렘 등장 시, 사운드 출력 기능 추가
 
-	m_hCurrentEmblem = INVALID_PARTICLE_HANDLE;
+	m_hCurrentEmblem = INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hCurrentEmblem2nd = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	BOOST_FOREACH( EmblemTemplet* pEmblem, m_vecEmblemTemplet)
 	{
 		// 스테이트 체크
@@ -348,6 +511,11 @@ void CX2EmblemManager::OnFrameMove( float fElpaseTime )
 			{
 				if( false == pEmblem->m_bShowBattleFIeld )
 					continue;
+
+#ifdef FIELD_BOSS_RAID
+				if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+					continue;
+#endif // FIELD_BOSS_RAID
 			}
 			break;
 		default:
@@ -359,9 +527,10 @@ void CX2EmblemManager::OnFrameMove( float fElpaseTime )
 			true == pEmblem->m_bIsPassCondition ) // 조건 통과 했다면
 		{
 			pEmblem->m_bIsAlreadyShow = true;
+			pEmblem->m_bIsPassCondition = false;
 
 			PlayEmblemEffect(*pEmblem);
-			PlayEmblemOtehrProcess(*pEmblem);
+			PlayEmblemOtherProcess(*pEmblem);
 			CheckNextPlayingEmblem();
 			break;
 		}
@@ -385,18 +554,34 @@ void CX2EmblemManager::CheckNextPlayingEmblem()
 /** @function : PlayEmblem 
 	@brief : 조건이 설정된 엠블럼의 조건을 활성화 시켜주는 함수
 */
-void CX2EmblemManager::PlayEmblem( EMBLEM_ID eEmblemID_ )
+void CX2EmblemManager::PlayEmblem( EMBLEM_ID eEmblemID_, bool bReShow_ /*= false*/ )
 {	
 	BOOST_FOREACH( EmblemTemplet* pEmblem, m_vecEmblemTemplet)
 	{
 		if( eEmblemID_ == pEmblem->m_eEmblemID )
 		{
 			pEmblem->m_bIsPassCondition = true;
+			if( true == bReShow_ )
+				pEmblem->m_bIsAlreadyShow = false;
 			return;
 		}
 	}
 }
-void CX2EmblemManager::PlayEmblemOtehrProcess( const EmblemTemplet& sEmblemTemplet_ )
+/** @function : EndEmblem 
+	@brief : 조건이 설정된 엠블럼의 조건을 비활성화 시켜주는 함수
+*/
+void CX2EmblemManager::EndEmblem( EMBLEM_ID eEmblemID_ )
+{
+	BOOST_FOREACH( EmblemTemplet* pEmblem, m_vecEmblemTemplet)
+	{
+		if( eEmblemID_ == pEmblem->m_eEmblemID )
+		{
+			pEmblem->m_bIsPassCondition = false;
+			return;
+		}
+	}
+}
+void CX2EmblemManager::PlayEmblemOtherProcess( const EmblemTemplet& sEmblemTemplet_ )
 {
 	switch( sEmblemTemplet_.m_eEmblemID )
 	{
@@ -407,6 +592,51 @@ void CX2EmblemManager::PlayEmblemOtehrProcess( const EmblemTemplet& sEmblemTempl
 				g_pX2Game->GetMyUnit()->SetBuffFactorToGameUnitByBuffFactorID( BFI_EMPTY_EXP_BUFF );
 			}
 		} break;
+
+#ifdef EVENT_NEW_HENIR
+	case EI_WEEKEND_BURNING_EVENT:
+		{
+// 			if ( NULL != g_pX2Game &&
+// 				 NULL != g_pX2Game->GetMyUnit() &&
+// 				 true == IsBurningEventTime() )
+// 			{
+// 				g_pX2Game->GetMyUnit()->SetBuffFactorToGameUnitByBuffFactorID( BFI_EMPTY_EXP_BUFF );
+// 			}
+		} break;
+#endif // EVENT_NEW_HENIR
+#ifdef FIELD_BOSS_RAID
+	case EI_OPEN_FIELD_BOSS_RAID:
+		{
+			if( NULL != g_pChatBox )
+			{
+				const SEnum::VILLAGE_MAP_ID eBossFieldMapId = CX2BossRaidManager::GetInstance()->GetBossRaidCreatorMapID();
+				if( eBossFieldMapId != SEnum::VMI_INVALID )
+				{
+					g_pChatBox->AddChatLog( GET_REPLACED_STRING( ( STR_ID_29332, "S", g_pData->GetBattleFieldManager().GetBattleFieldNameByBattleFieldId(eBossFieldMapId) )) ,
+						KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFF0000" );		
+				}
+			}
+			g_pKTDXApp->GetDeviceManager()->PlaySound( L"ES_FieldRaidBoss_Gate_Notice.ogg", false, false );
+		} break; 
+	case EI_CLOSE_FIELD_BOSS_RAID:
+		{
+			CX2BossRaidManager::GetInstance()->InitRaidFieldMapID();
+		} break;
+#endif // FIELD_BOSS_RAID
+#ifdef ADD_2013_CHARACTER_ADD_EVENT			// 2013 애드 추가 기념 버닝 이벤트
+	case EI_EVENT_BURNING_NEW_CHARACTER_TRIPLE :
+	case EI_EVENT_BURNING_NEW_CHARACTER_DOUBLE :
+		{
+
+		} break;
+
+#endif // ADD_2013_CHARACTER_ADD_EVENT		// 2013 애드 추가 기념 버닝 이벤트
+#ifdef WORLD_BUFF_2013_CHRISTMAS 	// 김종훈, 2013년 크리스마스용 월드 버프
+	case EI_EVENT_2013_CHRISTMAS :
+		{
+
+		} break;
+#endif // WORLD_BUFF_2013_CHRISTMAS	// 김종훈, 2013년 크리스마스용 월드 버프
 	default:
 		{
 		} break;
@@ -423,6 +653,105 @@ bool CX2EmblemManager::HasEmblem( EMBLEM_ID eEmblemID_ )
 	}
 	return false;
 }
+void CX2EmblemManager::SetTexture2ndName( EMBLEM_ID eEmblemID_, const wstring& wstrTextureName )
+{
+	BOOST_FOREACH( EmblemTemplet* pEmblem, m_vecEmblemTemplet)
+	{
+		if( eEmblemID_ == pEmblem->m_eEmblemID )
+		{
+			pEmblem->m_wstrTextureFileName2nd = wstrTextureName;
+		}
+	}
+}
+#ifdef EVENT_NEW_HENIR
+bool CX2EmblemManager::IsBurningEventTime() const
+{
+	if( NULL == g_pData )
+		return false;
+
+	CTime ctCurrentTime( g_pData->GetServerCurrentTime() );
+
+	const int iCurrentMonth = ctCurrentTime.GetMonth();
+	const int iCurrentDay = ctCurrentTime.GetDay();
+	const int iCurrentHour = ctCurrentTime.GetHour();
+	
+	switch( iCurrentMonth )
+	{
+#ifdef _OPEN_TEST_
+	case 12: // 12월 14일/15일 14:00~15:02 (2분은 제외 함)
+		{
+			if( 11 == iCurrentDay )
+			{
+				if( iCurrentHour >= 19 && iCurrentHour < 20 )
+				{
+					return true;
+				}
+			}
+		} break;
+#else // _OPEN_TEST_
+
+#ifdef _SERVICE_
+	case 12: // 12월 14일/15일 14:00~15:02 (2분은 제외 함)
+		{
+			if( 14 == iCurrentDay ||
+				15 == iCurrentDay )
+			{
+				if( iCurrentHour >= 14 && iCurrentHour < 15 )
+				{
+					return true;
+				}
+			}
+		} break;
+#else // _SERVICE_
+
+		// 사내 QA
+	case 12: // 12월 14일 11:00~12:00 / 14:00~15:00 (2분은 제외 함)
+		{
+			if( 12 == iCurrentDay )
+			{
+				if( iCurrentHour >= 5 && iCurrentHour < 7 )
+				{
+					return true;
+				}
+			}
+		} break;
+#endif // _SERVICE_
+
+#endif // _OPEN_TEST_
+
+	default:
+		break;
+	}
+
+	return false;
+}
+#endif // EVENT_NEW_HENIR
+
 #endif // NEW_EMBLEM_MANAGER
 
+#ifdef ADD_2013_CHARACTER_ADD_EVENT		// 2013 애드 추가 기념 버닝 이벤트
+bool CX2EmblemManager::SetOpenTimeEventEmblem ( const EmblemTemplet& sEmblemTemplet_ )
+{
+	if( NULL == g_pData )
+		return false;
+	if ( true == sEmblemTemplet_.m_vecOpenTimeSettingTemplet.empty() )
+		return true;
 
+	CTime ctCurrentTime( g_pData->GetServerCurrentTime() );
+	const int TERM_TIME_OF_CHECK_EVENT = 2;		// 이벤트 종료 여유 시간, 2분
+	BOOST_FOREACH ( OpenTimeSetting cOpenTimeSetting, sEmblemTemplet_.m_vecOpenTimeSettingTemplet )
+	{
+		CTime ctEventTime ( cOpenTimeSetting.m_iYear, cOpenTimeSetting.m_iMonth, cOpenTimeSetting.m_iDay, cOpenTimeSetting.m_iHour, cOpenTimeSetting.m_iMinute, 0 );
+
+		CTimeSpan ctsElaspedTime = ctCurrentTime - ctEventTime;
+
+		double fLeftTime = static_cast<double> ( ctsElaspedTime.GetTotalMinutes() );
+		if ( fLeftTime < ( cOpenTimeSetting.m_iRemainingMinute ) + TERM_TIME_OF_CHECK_EVENT
+			&& fLeftTime > 0  )
+		{
+			return true;
+		}
+	}
+	return false;
+}
+#endif // ADD_2013_CHARACTER_ADD_EVENT	// 2013 애드 추가 기념 버닝 이벤트

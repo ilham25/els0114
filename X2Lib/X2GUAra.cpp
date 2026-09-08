@@ -80,7 +80,17 @@ CX2GUAra::CX2GUAra( int iUnitIndex_, int iTeamNum_, IN lua_State* pScriptLuaStat
 	, m_fDamageDataChangeTime( 0.f ), m_fDamageDataChangeTime2( 0.f ), m_uiComboXXXLoopCount( 0 ), m_fZpushXChargeTime( 0.f )
 	, m_fAirialDashTime( 0.f ), m_usArialCount( 0 ), m_usDoubleJumpCount( 0 ), m_bFPCancel( false )
 	, m_usForceGainCount( 0 ), m_usBeforeForceGainCount( 0 ), m_pSkillTemplet( NULL ), m_iPressedSkillSlotIndex( -1 )
-	, m_fMPConsume( 0.f ), m_fShadowKnotTime( 0.f ), m_pShadowKnotWeaponMesh( NULL ),  m_pGainForceDamaggeEffect( NULL )
+	, m_fMPConsume( 0.f )	
+
+	, m_fShadowKnotTime( 0.f )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    , m_hShadowKnotWeaponMesh( INVALID_DAMAGE_EFFECT_HANDLE )	
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    , m_pShadowKnotWeaponMesh( NULL )
+/*#ifndef FIX_GAIN_FORCE_BUG	
+	, m_pGainForceDamaggeEffect( NULL )
+#endif	FIX_GAIN_FORCE_BUG	*/	
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #ifndef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	, m_fForceSpearDamageRel( 1.f ), m_usForceSpearPiercing( 0 )
 #endif //UPGRADE_SKILL_SYSTEM_2013
@@ -89,7 +99,7 @@ CX2GUAra::CX2GUAra( int iUnitIndex_, int iTeamNum_, IN lua_State* pScriptLuaStat
 #ifdef ARA_CHANGE_CLASS_FIRST
 	, m_bAbleQuickStand( false ) ,m_iGainMpByFpConversion( 0 ), m_fPreRenderParamColorA (1.f), m_fRenderParamColorA( 1.f )
 	, m_fBlockingRate( 0.f ), m_fTurningRate( 0.f ), m_bBrutalPiercing( false )
-	, m_fReduceEDTDurationRate ( 1.f ), m_hTempEffectSet( CX2EffectSet::INVALID_HANDLE )
+	, m_fReduceEDTDurationRate ( 1.f ), m_hTempEffectSet( INVALID_EFFECTSET_HANDLE )
 	, m_vPreTransScale(1,1,1)
 #endif
 #ifdef FIX_SKILL_CANCEL_ARA
@@ -122,6 +132,10 @@ CX2GUAra::CX2GUAra( int iUnitIndex_, int iTeamNum_, IN lua_State* pScriptLuaStat
 	, m_iWolfBreakeCount( 0 )
 	, m_fOpenTheHellIncreaseDamage( 1.f )
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+//#ifdef FIX_GAIN_FORCE_BUG
+	, m_iGainForceDamageTimeNow(0)
+	, m_hGainForceIntakeEffect(INVALID_DAMAGE_EFFECT_HANDLE)
+//#endif // FIX_GAIN_FORCE_BUG
 {
 	InitializeAraMajorParticleArray();
 	InitializeAraMinorParticleArray();
@@ -288,7 +302,7 @@ CX2GUAra::CX2GUAra( int iUnitIndex_, int iTeamNum_, IN lua_State* pScriptLuaStat
 		} break;
 #endif //ARA_CHANGE_CLASS_FIRST
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND
-	case CX2Unit::UC_ARA_YAMA_RAJA: // 야마 라자 - 아라 2_2차 전직
+	case CX2Unit::UC_ARA_YAMA_RAJA: // 명왕 - 아라 2_2차 전직
 		{
 			m_iSkillCutInSetIndex = 2;
 		} break;
@@ -299,31 +313,31 @@ CX2GUAra::CX2GUAra( int iUnitIndex_, int iTeamNum_, IN lua_State* pScriptLuaStat
 	InitStateCommon();
 	InitStateByUnitClass();
 
-	std::wstring wstrStartTableName;
-	std::wstring wstrWinTableName;
-	std::wstring wstrLoseTableName;
+	std::string strStartTableNameUTF8;
+	std::string strWinTableNameUTF8;
+	std::string strLoseTableNameUTF8;
 
-	InitStateCommonRandom( wstrStartTableName, wstrWinTableName, wstrLoseTableName );
+	InitStateCommonRandom( strStartTableNameUTF8, strWinTableNameUTF8, strLoseTableNameUTF8 );
 
 	#pragma region 상태
 	UserUnitStateData stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_START;
-	m_LuaManager.MakeTableReference( wstrStartTableName.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( strStartTableNameUTF8.c_str(), stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, StartEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_WIN;
-	m_LuaManager.MakeTableReference( wstrWinTableName.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( strWinTableNameUTF8.c_str(), stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, WinStateStart );	
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_LOSE;
-	m_LuaManager.MakeTableReference( wstrLoseTableName.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( strLoseTableNameUTF8.c_str(), stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, LoseStateStart );	
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion 데이터 생성
@@ -347,7 +361,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DIE_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_DIE_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_DIE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DIE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, DieFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, DieFrontStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, DieFrontFrameMove );
@@ -358,7 +372,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DIE_BACK
 	stateData.Init();
 	stateData.stateID			= USI_DIE_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_DIE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DIE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, DieBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, DieBackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, DieBackFrameMove );
@@ -369,7 +383,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_START_INTRUDE
 	stateData.Init();
 	stateData.stateID			= USI_START_INTRUDE;
-	m_LuaManager.MakeTableReference( L"ASI_START_INTRUDE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_START_INTRUDE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, StartIntrudeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, StartIntrudeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartIntrudeEventProcess );
@@ -379,7 +393,7 @@ void CX2GUAra::InitStateCommon()
 #pragma region ASI_WAIT
 	stateData.Init();
 	stateData.stateID			= USI_WAIT;
-	m_LuaManager.MakeTableReference( L"ASI_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, WaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, WaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, WaitEventProcess );
@@ -389,7 +403,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_HYPER_WAIT
 	stateData.Init();
 	stateData.stateID			= ASI_HYPER_WAIT;
-	m_LuaManager.MakeTableReference( L"ASI_HYPER_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_HYPER_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, HyperWaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, HyperWaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, HyperWaitEventProcess );
@@ -400,7 +414,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_WALK
 	stateData.Init();
 	stateData.stateID			= USI_WALK;
-	m_LuaManager.MakeTableReference( L"ASI_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_WALK", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, WalkFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, WalkEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -409,7 +423,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_JUMP_READY
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_READY;
-	m_LuaManager.MakeTableReference( L"ASI_JUMP_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_JUMP_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, JumpReadyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -417,7 +431,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_JUMP_UP
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ASI_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_JUMP_UP", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, JumpUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -426,7 +440,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_JUMP_DOWN
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ASI_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_JUMP_DOWN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, JumpDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -435,7 +449,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ASI_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_JUMP_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, JumpLandingEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -444,7 +458,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH
 	stateData.Init();
 	stateData.stateID			= USI_DASH;
-	m_LuaManager.MakeTableReference( L"ASI_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, DashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -455,7 +469,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_END
 	stateData.Init();
 	stateData.stateID			= USI_DASH_END;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_END", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, DashEndStartFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, DashEndFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DashEndEventProcess );
@@ -465,7 +479,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_JUMP
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, DashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, DashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUAra, DashJumpFrameMoveFuture );
@@ -477,7 +491,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DashJumpLandingEventProcess );
@@ -487,7 +501,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_HYPER_MODE
 	stateData.Init();
 	stateData.stateID			= USI_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"ASI_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_HYPER_MODE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, HyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, HyperModeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, HyperModeEventProcess );
@@ -499,7 +513,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_BERSERK_MODE
 	stateData.Init();
 	stateData.stateID			= ASI_BERSERK_MODE;
-	m_LuaManager.MakeTableReference( L"ASI_BERSERK_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_BERSERK_MODE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, HyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, HyperModeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, HyperModeEventProcess );
@@ -511,7 +525,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_GROGGY
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_GROGGY;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_GROGGY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_GROGGY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DAMAGE_GROGGY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -519,7 +533,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_SMALL_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_SMALL_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_SMALL_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DamageSmallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -527,7 +541,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_SMALL_BACK
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_SMALL_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_SMALL_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DamageSmallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -535,7 +549,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_BIG_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_BIG_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_BIG_FRONT", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, DamageBigStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DamageBigEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -544,7 +558,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_BIG_BACK
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_BIG_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_BIG_BACK", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, DamageBigStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DamageBigEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -553,7 +567,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_DOWN_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_DOWN_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_DOWN_FRONT", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, DamageDownFrontFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DamageDownFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -562,7 +576,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_DOWN_BACK
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_DOWN_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_DOWN_BACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, DamageDownBackFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DamageDownBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -571,7 +585,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_STANDUP_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_STANDUP_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_STANDUP_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -580,7 +594,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_STANDUP_BACK
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_STANDUP_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_STANDUP_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -589,7 +603,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_AIR_SMALL
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_SMALL;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_AIR_SMALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_AIR_SMALL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DamageAirSmallStartFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirSmallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -598,7 +612,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_AIR_DOWN
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_AIR_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_AIR_DOWN", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -606,7 +620,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_AIR_DOWN_INVINCIBLE
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_INVINCIBLE;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownInvincibleEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -614,7 +628,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_AIR_DOWN_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_LANDING;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DamageAirDownLandingEventProcess );
@@ -624,7 +638,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_AIR_FALL
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FALL;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_AIR_FALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_AIR_FALL", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -632,7 +646,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_AIR_UP
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_UP;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_AIR_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_AIR_UP", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -640,7 +654,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_AIR_FLY_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -648,7 +662,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_AIR_FLY_BACK
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -656,7 +670,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DAMAGE_REVENGE
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_REVENGE;
-	m_LuaManager.MakeTableReference( L"ASI_DAMAGE_REVENGE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DAMAGE_REVENGE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageRevengeStart );
 	stateData.OnCameraMove		= SET_CB_FUNC( CX2GUUser, DamageRevengeCameraMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageRevengeEventProcess );
@@ -666,7 +680,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_STANDUP_ROLLING_FRONT_FRONT
 	stateData.Init();
 	stateData.stateID			= ASI_STANDUP_ROLLING_FRONT_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpRollingEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpRollingEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -675,7 +689,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_STANDUP_ROLLING_FRONT_BACK
 	stateData.Init();
 	stateData.stateID			= ASI_STANDUP_ROLLING_FRONT_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpRollingEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpRollingEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -684,7 +698,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_STANDUP_ROLLING_BACK_FRONT
 	stateData.Init();
 	stateData.stateID			= ASI_STANDUP_ROLLING_BACK_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpRollingEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpRollingEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -693,7 +707,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_STANDUP_ROLLING_BACK_BACK
 	stateData.Init();
 	stateData.stateID			= ASI_STANDUP_ROLLING_BACK_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpRollingEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpRollingEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -702,7 +716,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_STANDUP_ATTACK_FRONT
 	stateData.Init();
 	stateData.stateID			= ASI_STANDUP_ATTACK_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_STANDUP_ATTACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_STANDUP_ATTACK_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpAttackEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpAttackEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -711,7 +725,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_STANDUP_ATTACK_BACK
 	stateData.Init();
 	stateData.stateID			= ASI_STANDUP_ATTACK_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_STANDUP_ATTACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_STANDUP_ATTACK_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpAttackEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpAttackEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -720,7 +734,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_JUMP_POWER_LANDING
 	stateData.Init();
 	stateData.stateID			= ASI_DASH_JUMP_POWER_LANDING;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_POWER_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_POWER_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, DashJumpPowerLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, DashJumpPowerLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DashJumpPowerLandingEventProcess );
@@ -730,7 +744,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_WALL_LANDING
 	stateData.Init();
 	stateData.stateID			= ASI_WALL_LANDING;
-	m_LuaManager.MakeTableReference( L"ASI_WALL_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_WALL_LANDING", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, WallLandingEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GUUser, WallLandingEndFuture );
 	m_StateList[stateData.stateID] = stateData;
@@ -739,7 +753,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_PEPPER_RUN_READY
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_READY;
-	m_LuaManager.MakeTableReference( L"ASI_PEPPER_RUN_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_PEPPER_RUN_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_READY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -747,7 +761,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_PEPPER_RUN
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN;
-	m_LuaManager.MakeTableReference( L"ASI_PEPPER_RUN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_PEPPER_RUN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -756,7 +770,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_PEPPER_RUN_END
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_END;
-	m_LuaManager.MakeTableReference( L"ASI_PEPPER_RUN_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_PEPPER_RUN_END", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -765,7 +779,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_PEPPER_RUN_JUMP_UP
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ASI_PEPPER_RUN_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_PEPPER_RUN_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_EventProcess );
@@ -775,7 +789,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_PEPPER_RUN_JUMP_DOWN
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ASI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_EventProcess );
@@ -785,7 +799,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_THROW_ITEM
 	stateData.Init();
 	stateData.stateID			= USI_THROW_ITEM;
-	m_LuaManager.MakeTableReference( L"ASI_THROW_ITEM", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_THROW_ITEM", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_StateStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMove );
@@ -801,7 +815,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_START
 	stateData.Init();
 	stateData.stateID			= GetRidingStartStateID();
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_START", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingStartStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingStartStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingStartEventProcess );
@@ -812,7 +826,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_ON
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ON;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_ON", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_ON", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingOnStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingOnStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOnEventProcess );
@@ -823,7 +837,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_OFF
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_OFF;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_OFF", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_OFF", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOffEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, RidingOffEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -832,7 +846,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_WAIT_HABIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT_HABIT;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_WAIT_HABIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_WAIT_HABIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitEventProcess );
@@ -842,7 +856,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_WAIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitEventProcess );
@@ -852,7 +866,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_WALK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WALK;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_WALK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWalkStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWalkStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, WalkFrameMoveFuture );
@@ -863,7 +877,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_JUMP_UP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpUpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpUpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -874,7 +888,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_JUMP_DOWN
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpDownStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpDownStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -885,7 +899,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingEventProcess );
@@ -895,7 +909,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_DASH
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -906,7 +920,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_DASH_END
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_END;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_DASH_END", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashEndStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashEndStart );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashEndStartFuture );
@@ -918,7 +932,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_DASH_JUMP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpFrameMoveFuture );
@@ -930,7 +944,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_DASH_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingEventProcess );
@@ -940,7 +954,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_DAMAGE_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_DAMAGE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_DAMAGE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontEventProcess );
@@ -950,7 +964,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_DAMAGE_BACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_BACK;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_DAMAGE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_DAMAGE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageBackStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageBackEventProcess );
@@ -960,7 +974,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_DIE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DIE;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_DIE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_DIE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, DieFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, DieFrontStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, DieFrontFrameMove );
@@ -971,7 +985,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackZStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackZEventProcess );
@@ -981,7 +995,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_JUMP_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZFrameMoveFuture );
@@ -992,7 +1006,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_ATTACK_X
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_ATTACK_X", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackXStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackXStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackXEventProcess );
@@ -1002,7 +1016,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_SPECIAL_ATTACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_ATTACK;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_ATTACK_SPECIAL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_ATTACK_SPECIAL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackFrameMove );
@@ -1013,7 +1027,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_RIDING_SPECIAL_MOVE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_MOVE;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_SPECIAL_MOVE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_SPECIAL_MOVE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveFrameMoveFuture );
@@ -1029,7 +1043,7 @@ void CX2GUAra::InitStateCommon()
 	stateData.Init();
 
 	stateData.stateID			= USI_RIDING_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"ASI_RIDING_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_RIDING_HYPER_MODE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingHyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, RidingHyperModeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingHyperModeEventProcess );
@@ -1038,12 +1052,13 @@ void CX2GUAra::InitStateCommon()
 	m_StateList[stateData.stateID] = stateData;
 #endif // MODIFY_RIDING_PET_AWAKE
 
+
 	#pragma region Combo State
 
 	#pragma region ASI_AIRIAL_DASH
 	stateData.Init();
 	stateData.stateID			= ASI_AIRIAL_DASH;
-	m_LuaManager.MakeTableReference( L"ASI_AIRIAL_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_AIRIAL_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, AirialDashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, AirialDashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUAra, AirialDashFrameMoveFuture );
@@ -1056,7 +1071,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DOUBLE_JUMP_FRONT
 	stateData.Init();
 	stateData.stateID			= ASI_DOUBLE_JUMP_FRONT;
-	m_LuaManager.MakeTableReference( L"ASI_DOUBLE_JUMP_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DOUBLE_JUMP_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, DoubleJumpStartFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DoubleJumpFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1065,7 +1080,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DOUBLE_JUMP_UP
 	stateData.Init();
 	stateData.stateID			= ASI_DOUBLE_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ASI_DOUBLE_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DOUBLE_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, DoubleJumpStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DoubleJumpUpEventProcess );
@@ -1075,7 +1090,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_Z
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_Z", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboZEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1083,7 +1098,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_ZZ
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_ZZ;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_ZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_ZZ", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboZZEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1091,7 +1106,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_ZZZ
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_ZZZ;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_ZZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_ZZZ", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ComboZZZFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboZZZEventProcess );
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
@@ -1103,7 +1118,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_ZZZZ
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_ZZZZ;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_ZZZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_ZZZZ", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboZZZZEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1111,7 +1126,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_ZZZXStart
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_ZZZXStart;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_ZZZXStart", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_ZZZXStart", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboZZZXStartEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1119,7 +1134,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_ZZZXCharge
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_ZZZXCharge;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_ZZZXCharge", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_ZZZXCharge", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, ComboZZZXChargeStateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ComboZZZXChargeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboZZZXChargeEventProcess );
@@ -1130,7 +1145,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_ZZZXAttack
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_ZZZXAttack;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_ZZZXAttack", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_ZZZXAttack", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ComboZZZXAttackFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboZZZXAttackEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, ComboZZZXAttackStateEnd );
@@ -1140,7 +1155,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_ZZX
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_ZZX;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_ZZX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_ZZX", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboZZXEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1148,7 +1163,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_X
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_X;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_X", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboXEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1156,7 +1171,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_XX
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_XX;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_XX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_XX", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboXXEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1164,7 +1179,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_XXX
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_XXX;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_XXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_XXX", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, ComboXXXStateStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboXXXEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1173,7 +1188,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_XXXloop
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_XXXloop;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_XXXloop", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_XXXloop", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, ComboXXXloopStateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ComboXXXloopFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboXXXloopEventProcess );
@@ -1183,7 +1198,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_XXXloopX
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_XXXloopX;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_XXXloopX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_XXXloopX", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, ComboXXXloopXStateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ComboXXXloopXFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboXXXloopXEventProcess );
@@ -1194,7 +1209,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_XXdownX
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_XXdownX;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_XXdownX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_XXdownX", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ComboXXdownXFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboXXdownXEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1203,7 +1218,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_COMBO_XXdownXX
 	stateData.Init();
 	stateData.stateID			= ASI_COMBO_XXdownXX;
-	m_LuaManager.MakeTableReference( L"ASI_COMBO_XXdownXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_COMBO_XXdownXX", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboXXdownXXEventProcess );
 	stateData.m_ptrComboAndSkillChainInfo = m_ComboAndSkillChainSystem.GetSkillChainInfoPtrByStateID( ASI_COMBO_XXdownXX );
 	m_StateList[stateData.stateID] = stateData;
@@ -1212,7 +1227,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_COMBO_Z
 	stateData.Init();
 	stateData.stateID			= ASI_DASH_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_COMBO_Z", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ComboDashZFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboDashZEventProcess );
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
@@ -1224,7 +1239,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_COMBO_ZpushX_CHARGE
 	stateData.Init();
 	stateData.stateID			= ASI_DASH_COMBO_ZpushX_CHARGE;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_COMBO_ZpushX_CHARGE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_COMBO_ZpushX_CHARGE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUAra, ComboDashZpushX_ChargeStateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ComboDashZpushX_ChargeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboDashZpushX_ChargeEventProcess );
@@ -1235,7 +1250,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_COMBO_ZpushX_ATTACK
 	stateData.Init();
 	stateData.stateID			= ASI_DASH_COMBO_ZpushX_ATTACK;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_COMBO_ZpushX_ATTACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_COMBO_ZpushX_ATTACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ComboDashZpushX_AttackFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboDashZpushX_AttackEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, ComboDashZpushX_AttackStateEnd );
@@ -1245,7 +1260,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_COMBO_X
 	stateData.Init();
 	stateData.stateID			= ASI_DASH_COMBO_X;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_COMBO_X", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ComboDashXEventProcess );
 	stateData.m_ptrComboAndSkillChainInfo = m_ComboAndSkillChainSystem.GetSkillChainInfoPtrByStateID( ASI_DASH_COMBO_X );
 	m_StateList[stateData.stateID] = stateData;
@@ -1254,7 +1269,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_JUMP_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= ASI_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"ASI_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUAra, JumpAttackZFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, JumpAttackZEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1263,7 +1278,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_JUMP_ATTACK_X
 	stateData.Init();
 	stateData.stateID			= ASI_JUMP_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"ASI_JUMP_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_JUMP_ATTACK_X", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUAra, JumpAttackXFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, JumpAttackXFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, JumpAttackXEventProcess );
@@ -1273,7 +1288,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_JUMP_COMBO_Z
 	stateData.Init();
 	stateData.stateID			= ASI_DASH_JUMP_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_COMBO_Z", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DashJumpComboZEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1281,7 +1296,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_JUMP_COMBO_ZZ
 	stateData.Init();
 	stateData.stateID			= ASI_DASH_JUMP_COMBO_ZZ;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_COMBO_ZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_COMBO_ZZ", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DashJumpComboZZEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1289,7 +1304,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_JUMP_COMBO_ZZZ
 	stateData.Init();
 	stateData.stateID			= ASI_DASH_JUMP_COMBO_ZZZ;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_COMBO_ZZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_COMBO_ZZZ", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, DashJumpComboZZZFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DashJumpComboZZZEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1298,7 +1313,7 @@ void CX2GUAra::InitStateCommon()
 	#pragma region ASI_DASH_JUMP_COMBO_X
 	stateData.Init();
 	stateData.stateID			= ASI_DASH_JUMP_COMBO_X;
-	m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_COMBO_X", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, DashJumpComboXEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 	#pragma endregion
@@ -1325,13 +1340,13 @@ void CX2GUAra::InitStateByUnitClass()
 		{
 			stateData.Init();
 			stateData.stateID			= ASI_DASH_JUMP_COMBO_ASD_ZX;
-			m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_COMBO_ASD_ZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_COMBO_ASD_ZX", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_DASH_JUMP_COMBO_ASD_ZX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ASI_DOUBLE_JUMP_FRONT_COMBO_ASD_Z_BACK;
-			m_LuaManager.MakeTableReference( L"ASI_DOUBLE_JUMP_FRONT_COMBO_ASD_Z_BACK", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_DOUBLE_JUMP_FRONT_COMBO_ASD_Z_BACK", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_DOUBLE_JUMP_FRONT_COMBO_ASD_Z_BACK_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		}
@@ -1339,53 +1354,53 @@ void CX2GUAra::InitStateByUnitClass()
 		{
 			stateData.Init();
 			stateData.stateID			= ASI_COMBO_ALH_ZZXX;
-			m_LuaManager.MakeTableReference( L"ASI_COMBO_ALH_ZZXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_COMBO_ALH_ZZXX", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_COMBO_ALH_ZZXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ASI_COMBO_ALH_ZZXX_LANDING;
-			m_LuaManager.MakeTableReference( L"ASI_COMBO_ALH_ZZXX_LANDING", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_COMBO_ALH_ZZXX_LANDING", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_COMBO_ALH_ZZXX_LANDING_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ASI_DASH_COMBO_ALH_ZZ;
-			m_LuaManager.MakeTableReference( L"ASI_DASH_COMBO_ALH_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_DASH_COMBO_ALH_ZZ", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_DASH_COMBO_ALH_ZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ASI_JUMP_ATTACK_ALH_ZZ;
-			m_LuaManager.MakeTableReference( L"ASI_JUMP_ATTACK_ALH_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_JUMP_ATTACK_ALH_ZZ", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_JUMP_ATTACK_ALH_ZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			//재빠른 기상
 			stateData.Init();
 			stateData.stateID			= ASI_P_ALH_QUICK_STAND_FRONT_FRONT;
-			m_LuaManager.MakeTableReference( L"ASI_P_ALH_QUICK_STAND_FRONT_FRONT", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_P_ALH_QUICK_STAND_FRONT_FRONT", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpRollingEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpRollingEnd );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ASI_P_ALH_QUICK_STAND_FRONT_BACK;
-			m_LuaManager.MakeTableReference( L"ASI_P_ALH_QUICK_STAND_FRONT_BACK", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_P_ALH_QUICK_STAND_FRONT_BACK", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpRollingEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpRollingEnd );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ASI_P_ALH_QUICK_STAND_BACK_FRONT;
-			m_LuaManager.MakeTableReference( L"ASI_P_ALH_QUICK_STAND_BACK_FRONT", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_P_ALH_QUICK_STAND_BACK_FRONT", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpRollingEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpRollingEnd );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ASI_P_ALH_QUICK_STAND_BACK_BACK;
-			m_LuaManager.MakeTableReference( L"ASI_P_ALH_QUICK_STAND_BACK_BACK", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_P_ALH_QUICK_STAND_BACK_BACK", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpRollingEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpRollingEnd );
 			m_StateList[stateData.stateID] = stateData;	
@@ -1393,14 +1408,14 @@ void CX2GUAra::InitStateByUnitClass()
 		#pragma region 번득이는 기지
 			stateData.Init();
 			stateData.stateID			= ASI_P_ASD_QUICKEN_GUARD;
-			m_LuaManager.MakeTableReference( L"ASI_P_ASD_QUICKEN_GUARD", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_P_ASD_QUICKEN_GUARD", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_P_ASD_QUICKEN_GUARD_StateStart );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_P_ASD_QUICKEN_GUARD_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ASI_P_ASD_QUICKEN_GUARD_SMALL;
-			m_LuaManager.MakeTableReference( L"ASI_P_ASD_QUICKEN_GUARD_SMALL", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_P_ASD_QUICKEN_GUARD_SMALL", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_P_ASD_QUICKEN_GUARD_StateStart );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_P_ASD_QUICKEN_GUARD_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1408,14 +1423,14 @@ void CX2GUAra::InitStateByUnitClass()
 
 			stateData.Init();
 			stateData.stateID			= ASI_STANDUP_ATTACK_FRONT_NO_DOWN;
-			m_LuaManager.MakeTableReference( L"ASI_STANDUP_ATTACK_FRONT_NO_DOWN", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_STANDUP_ATTACK_FRONT_NO_DOWN", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpAttackEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpAttackEnd );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ASI_STANDUP_ATTACK_BACK_NO_DOWN;
-			m_LuaManager.MakeTableReference( L"ASI_STANDUP_ATTACK_BACK_NO_DOWN", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_STANDUP_ATTACK_BACK_NO_DOWN", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpAttackEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpAttackEnd );
 			m_StateList[stateData.stateID] = stateData;
@@ -1430,7 +1445,7 @@ void CX2GUAra::InitStateByUnitClass()
 		#pragma region ASI_DASH_JUMP_COMBO_AYR_XZ
 			stateData.Init();
 			stateData.stateID			= ASI_DASH_JUMP_COMBO_AYR_XZ;
-			m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_COMBO_AYR_XZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_COMBO_AYR_XZ", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUAra, ASI_DASH_JUMP_COMBO_AYR_XZ_StateStartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_DASH_JUMP_COMBO_AYR_XZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_DASH_JUMP_COMBO_AYR_XZ_EventProcess );
@@ -1440,7 +1455,7 @@ void CX2GUAra::InitStateByUnitClass()
 		#pragma region ASI_DASH_COMBO_AYR_ZZ
 			stateData.Init();
 			stateData.stateID			= ASI_DASH_COMBO_AYR_ZZ;
-			m_LuaManager.MakeTableReference( L"ASI_DASH_COMBO_AYR_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_DASH_COMBO_AYR_ZZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_DASH_COMBO_AYR_ZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_DASH_COMBO_AYR_ZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1453,7 +1468,7 @@ void CX2GUAra::InitStateByUnitClass()
 		#pragma region ASI_COMBO_ALD_ZZXX
 			stateData.Init();
 			stateData.stateID			= ASI_COMBO_ALD_ZZXX;
-			m_LuaManager.MakeTableReference( L"ASI_COMBO_ALD_ZZXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_COMBO_ALD_ZZXX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_COMBO_ALD_ZZXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_COMBO_ALD_ZZXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1462,7 +1477,7 @@ void CX2GUAra::InitStateByUnitClass()
 		#pragma region ASI_COMBO_ALD_ZZZFrontZ
 			stateData.Init();
 			stateData.stateID			= ASI_COMBO_ALD_ZZZFrontZ;
-			m_LuaManager.MakeTableReference( L"ASI_COMBO_ALD_ZZZFrontZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_COMBO_ALD_ZZZFrontZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_COMBO_ALD_ZZZFrontZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_COMBO_ALD_ZZZFrontZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1471,7 +1486,7 @@ void CX2GUAra::InitStateByUnitClass()
 		#pragma region ASI_DASH_JUMP_COMBO_ALD_ZX
 			stateData.Init();
 			stateData.stateID			= ASI_DASH_JUMP_COMBO_ALD_ZX;
-			m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_COMBO_ALD_ZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_COMBO_ALD_ZX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_DASH_JUMP_COMBO_ALD_ZX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_DASH_JUMP_COMBO_ALD_ZX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1480,7 +1495,7 @@ void CX2GUAra::InitStateByUnitClass()
 		#pragma region ASI_DASH_JUMP_COMBO_ALD_ZXX
 			stateData.Init();
 			stateData.stateID			= ASI_DASH_JUMP_COMBO_ALD_ZXX;
-			m_LuaManager.MakeTableReference( L"ASI_DASH_JUMP_COMBO_ALD_ZXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_DASH_JUMP_COMBO_ALD_ZXX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_DASH_JUMP_COMBO_ALD_ZXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_DASH_JUMP_COMBO_ALD_ZXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1505,16 +1520,14 @@ void CX2GUAra::InitStateByUnitClass()
 	SetAttackResultDelegate();
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 	const CX2SkillTree* const pSkillTree = g_pData->GetSkillTree();
 
 	#pragma region 기공창 숙련
 #ifndef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	const int iSkillLevelForceSpearMastery = userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ARA_FORCE_SPEAR_MASTERY );
-#ifndef ARA_FORCE_SPEAR_BUG_FIX //CX2GUAra 생성자에서 1.0f으로 초기화하는데 왜 0으로 세팅한거지?
 	m_fForceSpearDamageRel = 0.f;
-#endif ARA_FORCE_SPEAR_BUG_FIX
 	m_usForceSpearPiercing = 0;
 	if ( 0 < iSkillLevelForceSpearMastery )
 	{
@@ -1728,7 +1741,7 @@ void CX2GUAra::InitStateByUnitClass()
 				if( NULL != pSkillTemplet )
 				{
 					// 디버프 지속시간 감소
-					m_fReduceEDTDurationRate = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_REDUCE_EDT_TIME_REL, iSkillLevel );
+					m_fReduceEDTDurationRate = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_REDUCE_EDT_TIME_REL, iSkillLevelVigorEnergize );
 				}
 			}
 	#else // UPGRADE_SKILL_SYSTEM_2013
@@ -1900,11 +1913,11 @@ void CX2GUAra::InitStateByUnitClass()
 	#pragma region 버프 스킬
 	case CX2SkillTree::ST_BUFF:
 		{	// 버프 필살기
-			m_LuaManager.MakeTableReference( L"ASI_COMMON_BUFF", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_COMMON_BUFF", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, COMMON_BUFF_FrameMove );	
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ASI_COMMON_BUFF", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_COMMON_BUFF", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 
@@ -1913,6 +1926,9 @@ void CX2GUAra::InitStateByUnitClass()
 	#pragma endregion
 	case CX2SkillTree::ST_ACTIVE:
 	case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 		{
 			// ST_ACTIVE, ST_SPECIAL_ACTIVE는 아래 구문에서 수행
 		} break;
@@ -1923,11 +1939,11 @@ void CX2GUAra::InitStateByUnitClass()
 			{
 			case CX2SkillTree::SI_ETC_WS_COMMON_LOVE:
 				{
-					m_LuaManager.MakeTableReference( L"ASI_THROW_ITEM", normalStateData.stateID );
+					m_LuaManager.MakeTableReference( "ASI_THROW_ITEM", normalStateData.stateID );
 					normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_FrameMove );	
 					normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_EventProcess );	
 
-					m_LuaManager.MakeTableReference( L"ASI_THROW_ITEM", hyperStateData.stateID );
+					m_LuaManager.MakeTableReference( "ASI_THROW_ITEM", hyperStateData.stateID );
 					hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 					hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 				} break;
@@ -2014,12 +2030,12 @@ void CX2GUAra::InitStateByUnitClass()
 		case CX2SkillTree::SI_SA_ARA_TEMPEST_DANCE:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ASI_SA_ARA_TEMPEST_DANCE_START", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ARA_TEMPEST_DANCE_START", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_TEMPEST_DANCE_START_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_TEMPEST_DANCE_START_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_TEMPEST_DANCE_START_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_SA_ARA_TEMPEST_DANCE_START", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ARA_TEMPEST_DANCE_START", hyperStateData.stateID );
 			hyperStateData.StateStartFuture		= normalStateData.StateStartFuture;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
@@ -2029,7 +2045,7 @@ void CX2GUAra::InitStateByUnitClass()
 
 				stateData.Init();
 				stateData.stateID			= ASI_SA_ARA_TEMPEST_DANCE_END;
-				m_LuaManager.MakeTableReference( L"ASI_SA_ARA_TEMPEST_DANCE_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_SA_ARA_TEMPEST_DANCE_END", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_TEMPEST_DANCE_END_Init );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_TEMPEST_DANCE_END_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_TEMPEST_DANCE_END_EventProcess );
@@ -2046,12 +2062,12 @@ void CX2GUAra::InitStateByUnitClass()
 		case CX2SkillTree::SI_SA_ARA_FALLING_DRAGON:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ASI_SA_ARA_FALLING_DRAGON", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ARA_FALLING_DRAGON", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_FALLING_DRAGON_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_FALLING_DRAGON_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_FALLING_DRAGON_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_SA_ARA_FALLING_DRAGON", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ARA_FALLING_DRAGON", hyperStateData.stateID );
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2065,13 +2081,13 @@ void CX2GUAra::InitStateByUnitClass()
 		case CX2SkillTree::SI_SA_ARA_SHADOW_KNOT:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ASI_SA_ARA_SHADOW_KNOT_START", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ARA_SHADOW_KNOT_START", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_START_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_START_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_START_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_START_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_SA_ARA_SHADOW_KNOT_START", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ARA_SHADOW_KNOT_START", hyperStateData.stateID );
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2081,7 +2097,7 @@ void CX2GUAra::InitStateByUnitClass()
 
 				stateData.Init();
 				stateData.stateID			= ASI_SA_ARA_SHADOW_KNOT_WAIT;
-				m_LuaManager.MakeTableReference( L"ASI_SA_ARA_SHADOW_KNOT_WAIT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_SA_ARA_SHADOW_KNOT_WAIT", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_WAIT_Init );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_WAIT_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_WAIT_EventProcess );
@@ -2090,14 +2106,14 @@ void CX2GUAra::InitStateByUnitClass()
 
 				stateData.Init();
 				stateData.stateID			= ASI_SA_ARA_SHADOW_KNOT_CATCH;
-				m_LuaManager.MakeTableReference( L"ASI_SA_ARA_SHADOW_KNOT_CATCH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_SA_ARA_SHADOW_KNOT_CATCH", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_CATCH_Init );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_CATCH_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= ASI_SA_ARA_SHADOW_KNOT_END;
-				m_LuaManager.MakeTableReference( L"ASI_SA_ARA_SHADOW_KNOT_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_SA_ARA_SHADOW_KNOT_END", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_END_Init );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_END_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_KNOT_END_EventProcess );
@@ -2150,13 +2166,13 @@ void CX2GUAra::InitStateByUnitClass()
 	#pragma region SI_SA_ASD_SUPPRESSION
 	case CX2SkillTree::SI_SA_ASD_SUPPRESSION: // 아라 2차 전직 제천 - 제압
 		{
-			m_LuaManager.MakeTableReference( L"ASI_SA_ASD_SUPPRESSION", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ASD_SUPPRESSION", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_SUPPRESSION_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_SUPPRESSION_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_SUPPRESSION_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_SUPPRESSION_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_SA_ASD_SUPPRESSION", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ASD_SUPPRESSION", hyperStateData.stateID );
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
@@ -2193,13 +2209,13 @@ void CX2GUAra::InitStateByUnitClass()
 
 		case CX2SkillTree::SI_SA_ALH_WHITE_TIGER: // 맹호격
 		{
-			m_LuaManager.MakeTableReference( L"ASI_SA_ALH_POWER_OF_WHITER_TIGER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ALH_POWER_OF_WHITER_TIGER", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_POWER_OF_WHITER_TIGER_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_POWER_OF_WHITER_TIGER_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_POWER_OF_WHITER_TIGER_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_POWER_OF_WHITER_TIGER_End );
 
-			m_LuaManager.MakeTableReference( L"ASI_SA_ALH_POWER_OF_WHITER_TIGER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_SA_ALH_POWER_OF_WHITER_TIGER", hyperStateData.stateID );
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2210,7 +2226,7 @@ void CX2GUAra::InitStateByUnitClass()
 
 				stateData.Init();
 				stateData.stateID			= ASI_SA_ALH_POWER_OF_WHITER_TIGER_LANDING;
-				m_LuaManager.MakeTableReference( L"ASI_SA_ALH_POWER_OF_WHITER_TIGER_LANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_SA_ALH_POWER_OF_WHITER_TIGER_LANDING", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_POWER_OF_WHITER_TIGER_LANDING_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_POWER_OF_WHITER_TIGER_LANDING_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
@@ -2218,14 +2234,14 @@ void CX2GUAra::InitStateByUnitClass()
 		} break;
 		case CX2SkillTree::SI_SA_ALH_PEERLESSNESS_SLASH: // 무쌍참
 			{
-				m_LuaManager.MakeTableReference( L"ASI_SA_ALH_PEERLESSNESS_SLASH_START", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_SA_ALH_PEERLESSNESS_SLASH_START", normalStateData.stateID );
 				normalStateData.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_PEERLESSNESS_SLASH_START_Start );
 				normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_PEERLESSNESS_SLASH_START_Init );
 				normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_PEERLESSNESS_SLASH_START_FrameMove );
 				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_PEERLESSNESS_SLASH_START_EventProcess );
 				normalStateData.StateEnd		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_PEERLESSNESS_SLASH_START_End );
 
-				m_LuaManager.MakeTableReference( L"ASI_SA_ALH_PEERLESSNESS_SLASH_START", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_SA_ALH_PEERLESSNESS_SLASH_START", hyperStateData.stateID );
 				hyperStateData.stateID			= normalStateData.stateID;
 				hyperStateData.StateStart		= normalStateData.StateStart;
 				hyperStateData.StateInit		= normalStateData.StateInit;
@@ -2238,7 +2254,7 @@ void CX2GUAra::InitStateByUnitClass()
 
 					stateData.Init();
 					stateData.stateID			= ASI_SA_ALH_PEERLESSNESS_SLASH_END;
-					m_LuaManager.MakeTableReference( L"ASI_SA_ALH_PEERLESSNESS_SLASH_END", stateData.stateID );
+					m_LuaManager.MakeTableReference( "ASI_SA_ALH_PEERLESSNESS_SLASH_END", stateData.stateID );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_PEERLESSNESS_SLASH_END_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_PEERLESSNESS_SLASH_END_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
@@ -2248,14 +2264,14 @@ void CX2GUAra::InitStateByUnitClass()
 	#pragma region SI_SA_ALH_SWALLOW_ASSAULT
 		case CX2SkillTree::SI_SA_ALH_SWALLOW_ASSAULT: // 비연
 			{
-				m_LuaManager.MakeTableReference( L"ASI_SA_ALH_SWALLOW_ASSAULT_READY", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_SA_ALH_SWALLOW_ASSAULT_READY", normalStateData.stateID );
 				normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Ready_Init );
 				normalStateData.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Ready_StateStart );
 				normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Ready_FrameMove );
 				normalStateData.StateEnd		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Ready_StateEnd );
 				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Ready_EventProcess );
 
-				m_LuaManager.MakeTableReference( L"ASI_SA_ALH_SWALLOW_ASSAULT_READY", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_SA_ALH_SWALLOW_ASSAULT_READY", hyperStateData.stateID );
 				hyperStateData.StateInit		= normalStateData.StateInit;
 				hyperStateData.StateStart		= normalStateData.StateStart;
 				hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
@@ -2267,7 +2283,7 @@ void CX2GUAra::InitStateByUnitClass()
 
 					stateData.Init();
 					stateData.stateID			= ASI_SA_ALH_SWALLOW_ASSAULT_ATTACK;
-					m_LuaManager.MakeTableReference( L"ASI_SA_ALH_SWALLOW_ASSAULT_ATTACK", stateData.stateID );
+					m_LuaManager.MakeTableReference( "ASI_SA_ALH_SWALLOW_ASSAULT_ATTACK", stateData.stateID );
 					stateData.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Attack_Init );
 					stateData.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Attack_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Attack_FrameMove );
@@ -2277,7 +2293,7 @@ void CX2GUAra::InitStateByUnitClass()
 
 					stateData.Init();
 					stateData.stateID			= ASI_SA_ALH_SWALLOW_ASSAULT_FINISH;
-					m_LuaManager.MakeTableReference( L"ASI_SA_ALH_SWALLOW_ASSAULT_FINISH", stateData.stateID );
+					m_LuaManager.MakeTableReference( "ASI_SA_ALH_SWALLOW_ASSAULT_FINISH", stateData.stateID );
 					stateData.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Finish_Init );
 					stateData.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Finish_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Finish_FrameMove );
@@ -2286,18 +2302,36 @@ void CX2GUAra::InitStateByUnitClass()
 
 					stateData.Init();
 					stateData.stateID			= ASI_SA_ALH_SWALLOW_ASSAULT_ESCAPE;
-					m_LuaManager.MakeTableReference( L"ASI_SA_ALH_SWALLOW_ASSAULT_ESCAPE", stateData.stateID );
+					m_LuaManager.MakeTableReference( "ASI_SA_ALH_SWALLOW_ASSAULT_ESCAPE", stateData.stateID );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_SWALLOW_ASSAULT_Escape_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 				}
 
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR 
 				if ( 0 > m_sLockOnSystemPtr.use_count() )
 					m_sLockOnSystemPtr.reset();
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR 
 
 				m_sLockOnSystemPtr = SLockOnSystem::CreateLockOnSystem();
 			} break;
 	#pragma endregion 
 #endif //ARA_CHANGE_CLASS_FIRST
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+		#pragma region SI_HA_ASD_THOUSANDS_BLOSSOMS
+		case CX2SkillTree::SI_HA_ASD_THOUSANDS_BLOSSOMS: //아라 제천 궁극기 - 분기 등천
+		{
+			m_LuaManager.MakeTableReference( "ASI_HA_ASD_THOUSANDS_BLOSSOMS", normalStateData.stateID );
+			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_HA_ASD_THOUSANDS_BLOSSOMS_Init );
+			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_HA_ASD_THOUSANDS_BLOSSOMS_EventProcess );
+
+			m_LuaManager.MakeTableReference( "ASI_HA_ASD_THOUSANDS_BLOSSOMS", hyperStateData.stateID );
+			hyperStateData.StateInit		= normalStateData.StateInit;
+			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
+		} break;
+		#pragma endregion 
+#endif //FINALITY_SKILL_SYSTEM
+
 	#pragma region SI_A_ARA_TIGER_CLAW
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			case CX2SkillTree::SI_A_AM_TIGER_CLAW:
@@ -2321,12 +2355,12 @@ void CX2GUAra::InitStateByUnitClass()
 		case CX2SkillTree::SI_A_ARA_GAIN_FORCE:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_GAIN_FORCE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_GAIN_FORCE", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_GAIN_FORCE_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_GAIN_FORCE_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_GAIN_FORCE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_GAIN_FORCE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_GAIN_FORCE", hyperStateData.stateID );
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2340,12 +2374,12 @@ void CX2GUAra::InitStateByUnitClass()
 		case CX2SkillTree::SI_A_ARA_FORCE_SPEAR:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_FORCE_SPEAR", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_FORCE_SPEAR", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_FORCE_SPEAR_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_FORCE_SPEAR_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_FORCE_SPEAR_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_FORCE_SPEAR", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_FORCE_SPEAR", hyperStateData.stateID );
 			hyperStateData.StateInit		= normalStateData.StateStartFuture;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2355,12 +2389,12 @@ void CX2GUAra::InitStateByUnitClass()
 #ifdef ARA_CHANGE_CLASS_FIRST 
 	case CX2SkillTree::SI_A_ALH_BREAKING: //이화접목
 		{
-			m_LuaManager.MakeTableReference( L"ASI_A_ALH_BREAKING", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ALH_BREAKING", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_BREAKING_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_BREAKING_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_BREAKING_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_A_ALH_BREAKING", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ALH_BREAKING", hyperStateData.stateID );
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
@@ -2372,7 +2406,7 @@ void CX2GUAra::InitStateByUnitClass()
 
 				stateData.Init();
 				stateData.stateID			= ASI_A_ALH_BREAKING_ATTACK;
-				m_LuaManager.MakeTableReference( L"ASI_A_ALH_BREAKING_ATTACK", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_A_ALH_BREAKING_ATTACK", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_BREAKING_ATTACK_Init );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_BREAKING_ATTACK_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_BREAKING_ATTACK_EventProcess );
@@ -2381,7 +2415,7 @@ void CX2GUAra::InitStateByUnitClass()
 
 				stateData.Init();
 				stateData.stateID			= ASI_A_ALH_BREAKING_AVOIDANCE;
-				m_LuaManager.MakeTableReference( L"ASI_A_ALH_BREAKING_AVOIDANCE", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_A_ALH_BREAKING_AVOIDANCE", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, StandUpRollingEventProcess );
 				stateData.StateEnd			= SET_CB_FUNC( CX2GUAra, StandUpRollingEnd );
 				m_StateList[stateData.stateID] = stateData;
@@ -2418,11 +2452,11 @@ void CX2GUAra::InitStateByUnitClass()
 	#pragma region SI_A_ARA_QUICK_PIERCING
 	case CX2SkillTree::SI_A_AM_QUICK_PIERCING:
 		{
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_QUICK_PIERCING", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_QUICK_PIERCING", normalStateData.stateID );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_Quick_Piercing_EventProcess );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_Quick_Piercing_FrameMove );
 
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_QUICK_PIERCING", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_QUICK_PIERCING", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
@@ -2432,12 +2466,12 @@ void CX2GUAra::InitStateByUnitClass()
 	#pragma region SI_A_ARA_SHOULDER_BLOW
 	case CX2SkillTree::SI_A_AM_SHOULDER_BLOW:
 		{
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_SHOULDER_BLOW", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_SHOULDER_BLOW", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_Shoulder_Blow_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_Shoulder_Blow_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_Shoulder_Blow_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_SHOULDER_BLOW", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_SHOULDER_BLOW", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2447,12 +2481,12 @@ void CX2GUAra::InitStateByUnitClass()
 	#pragma region SI_A_ASD_DRAGON_FALLING
 	case CX2SkillTree::SI_A_ASD_DRAGON_FALLING:
 		{
-			m_LuaManager.MakeTableReference( L"ASI_A_ASD_FALLING_BLOSSOM_Start", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ASD_FALLING_BLOSSOM_Start", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_Falling_Blossom_Start_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_Falling_Blossom_Start_StateStart );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_Falling_Blossom_Start_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_A_ASD_FALLING_BLOSSOM_Start", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ASD_FALLING_BLOSSOM_Start", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2462,7 +2496,7 @@ void CX2GUAra::InitStateByUnitClass()
 
 				stateData.Init();
 				stateData.stateID			= ASI_A_ASD_FALLING_BLOSSOM_FINISH;
-				m_LuaManager.MakeTableReference( L"ASI_A_ASD_FALLING_BLOSSOM_Finish", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ASI_A_ASD_FALLING_BLOSSOM_Finish", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_Falling_Blossom_Finish_Init );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_Falling_Blossom_Finish_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
@@ -2473,12 +2507,12 @@ void CX2GUAra::InitStateByUnitClass()
 	#pragma region SI_A_ARA_QUICK_STAB
 	case CX2SkillTree::SI_A_AM_QUICK_STAB:
 		{
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_QUICK_STAB", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_QUICK_STAB", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_Quick_Stab_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_Quick_Stab_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_Quick_Stab_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ASI_A_ARA_QUICK_STAB", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ASI_A_ARA_QUICK_STAB", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2956,10 +2990,10 @@ void CX2GUAra::SetSkillLevelStateData( const CX2SkillTree::SkillTemplet* pSkillT
 {
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 
-	if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+	if ( NULL == GetUnit() )
 		return;
 	
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 	const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet_->m_eID ) );	/// 스킬 레벨
 	
@@ -3019,34 +3053,34 @@ void CX2GUAra::SetSkillLevelStateData( const CX2SkillTree::SkillTemplet* pSkillT
 */
 /*virtual*/ void CX2GUAra::ParseCommonRandomState()
 {
-	if( true == m_LuaManager.BeginTable( L"INIT_COMMON_RANDOM_STATE" ) )
+	if( true == m_LuaManager.BeginTable( "INIT_COMMON_RANDOM_STATE" ) )
 	{
 
-		std::wstring tableName = L"";
-		switch( m_pUnit->GetClass() )
+		const char* tableName = "";
+		switch( GetUnit()->GetClass() )
 		{
 		case CX2Unit::UC_ARA_MARTIAL_ARTIST:
 			{
-				tableName = L"ARA_MARTIAL_ARTIST";
+				tableName = "ARA_MARTIAL_ARTIST";
 			} break;
 #ifdef ARA_CHANGE_CLASS_FIRST
 		case CX2Unit::UC_ARA_LITTLE_HSIEN:
 			{
-				tableName = L"ARA_LITTLE_HSIEN";
+				tableName = "ARA_LITTLE_HSIEN";
 			} break;
 		case CX2Unit::UC_ARA_SAKRA_DEVANAM:
 			{
-				tableName = L"ARA_SAKRA_DEVANAM";
+				tableName = "ARA_SAKRA_DEVANAM";
 			} break;
 #endif //ARA_CHANGE_CLASS_FIRST
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 		case CX2Unit::UC_ARA_LITTLE_DEVIL:
 			{
-				tableName = L"ARA_LITTLE_DEVIL";
+				tableName = "ARA_LITTLE_DEVIL";
 			} break;
 		case CX2Unit::UC_ARA_YAMA_RAJA:
 			{
-				tableName = L"ARA_YAMA_RAJA";
+				tableName = "ARA_YAMA_RAJA";
 			} break;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 		default:
@@ -3099,7 +3133,7 @@ void CX2GUAra::InitializeAraMajorParticleArray()
 
 	for ( int index = 0; index < ARA_MAJOR_PII_END; index++ )
 	{
-		m_ahAraMajorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahAraMajorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 #pragma endregion
@@ -3171,7 +3205,7 @@ void CX2GUAra::InitializeAraMajorParticleArray()
 CKTDGParticleSystem::CParticleEventSequence* CX2GUAra::SetAraMajorParticleByEnum( ARA_MAJOR_PARTICLE_INSTANCE_ID eVal_,
 																			wstring wstrParticleName_, int iDrawCount_ /*= -1*/ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleAraMajorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleAraMajorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,
 											wstrParticleName_.c_str(), D3DXVECTOR3( 0.0f, 0.0f, 0.0f ), 0, 0, iDrawCount_, 0 );
@@ -3213,7 +3247,7 @@ void CX2GUAra::InitializeAraMinorParticleArray()
 
 	for ( int index = 0; index < ARA_MINOR_PII_END; index++ )
 	{
-		m_ahAraMinorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahAraMinorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 #pragma endregion
@@ -3246,7 +3280,7 @@ void CX2GUAra::InitializeAraMinorParticleArray()
 CKTDGParticleSystem::CParticleEventSequence* CX2GUAra::SetAraMinorParticleByEnum( ARA_MINOR_PARTICLE_INSTANCE_ID eVal_,
 																			wstring wstrParticleName_, int iDrawCount_ /*= -1*/ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleAraMinorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleAraMinorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this, 
 											wstrParticleName_.c_str(), D3DXVECTOR3( 0.0f, 0.0f, 0.0f ), 0, 0, iDrawCount_, 0 );
@@ -3302,7 +3336,7 @@ void CX2GUAra::SetHandleAraMajorMeshByEnum( ARA_MAJOR_MESH_INSTANCE_ID eVal_, CK
 	{
 		CKTDGXMeshPlayer::CXMeshInstanceHandle hHandleAraMesh = GetHandleAraMajorMeshByEnum( eVal_ );
 
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance(hHandleAraMesh);
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle(hHandleAraMesh);
 	}
 
 	m_ahAraMajorMeshInstance[eVal_] = hHandle_;
@@ -3319,7 +3353,11 @@ void CX2GUAra::DeleteMajorMesh()
 
 	for ( int index = 0; index < ARA_MAJOR_MII_END; index++ )
 	{
-		pMajorMeshSystem->DestroyInstance( m_ahAraMinorParticleInstance[index] );
+#ifdef  X2OPTIMIZE_ARA_MESH_DESTROY_BUG_FIX
+        pMajorMeshSystem->DestroyInstanceHandle( m_ahAraMajorMeshInstance[index] );
+#else   X2OPTIMIZE_ARA_MESH_DESTROY_BUG_FIX
+		pMajorMeshSystem->DestroyInstanceHandle( m_ahAraMinorParticleInstance[index] );
+#endif  X2OPTIMIZE_ARA_MESH_DESTROY_BUG_FIX
 	}	
 }
 #pragma endregion
@@ -3435,8 +3473,13 @@ void CX2GUAra::CommonFrameMove()
 	// 광폭화 모드에 쓰이는 장비들 frameMove 시켜줌
 	BOOST_TEST_FOREACH( CX2EqipPtr, pPromotionEquipPtr, m_vecPromotionEquipList )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		pPromotionEquipPtr->SetRenderParam( m_fTime, m_fElapsedTime, m_pXSkinAnim->GetRenderParam() );
+		pPromotionEquipPtr->OnFrameMove( m_fTime, m_fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		pPromotionEquipPtr->SetRenderParam( m_fTime, m_fElapsedTime * m_AdvanceTimeCount, m_pXSkinAnim->GetRenderParam() );
 		pPromotionEquipPtr->OnFrameMove( m_fTime, m_fElapsedTime * m_AdvanceTimeCount );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
@@ -3521,7 +3564,6 @@ RENDER_HINT CX2GUAra::CommonRender_Prepare()
 
 #ifdef SERV_SKILL_USE_SUBQUEST
 	Send_SKILL_USE_REQ( m_eSkillID );
-	//Send_SKILL_USE_REQ( m_pSkillTemplet->m_eID );
 #endif SERV_SKILL_USE_SUBQUEST
 
 	return true;
@@ -3538,7 +3580,7 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 
 	int iPressedSkillSlotIndex = -1;
 	const CX2UserSkillTree::SkillSlotData* pSkillSlotData = NULL;
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;	// 유저가 배운 스킬 트리
+	const CX2UserSkillTree& cUserSkillTree =  GetUnit()->GetUnitData().m_UserSkillTree;	// 유저가 배운 스킬 트리
 
 	// 사용한 스킬의 스킬슬롯 데이터와 그 인덱스를 얻어옴
 	if ( false == CommonSpecialAttackEventProcess( cUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
@@ -3556,7 +3598,11 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 		return false;
 
 	// 스킬을 사용할 수 있는 조건인지 판단( ex: 공중에서는 사용 할 수 없는 필살기 등)
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTemplet->m_eActiveSkillUseCondtion ) )
+#else //ADD_MEMO_1ST_CLASS
 	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTemplet ) )
+#endif //ADD_MEMO_1ST_CLASS
 		return false;
 
 	//소환 필살기 종류는 게임이 끝난 상태에서 사용할 수 없다.
@@ -3568,10 +3614,10 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 		return false;
 	
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+	if ( NULL == GetUnit() )
 		return false;
 	
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 	const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -3591,6 +3637,7 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 
 	// 엠피 소모량을 얻어옴
 	m_fMPConsume = GetActualMPConsume( pSkillTemplet->m_eID, iSkillTempletLevel );
+
 	float fCoolTimeLeft = pSkillSlotData->m_fCoolTimeLeft;
 #else // UPGRADE_SKILL_SYSTEM_2013
 	// 엠피 소모량을 얻어옴
@@ -3624,7 +3671,7 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 	{
 		m_ComboAndSkillChainSystem.ResetPtrNowUseChainInfo();
 
-		UserUnitStateData& stateDataPressed = GetPressedSkillState( iPressedSkillSlotIndex );
+		const UserUnitStateData& stateDataPressed = GetPressedSkillState( iPressedSkillSlotIndex );
 		if ( NULL != stateDataPressed.m_ptrComboAndSkillChainInfo &&
 			stateDataPressed.m_ptrComboAndSkillChainInfo->GetChaining() )
 		{
@@ -3662,14 +3709,15 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 							if ( NULL != pSkillTemplet )	/// 장착은 안했어도 스킬을 배운 경우
 							{
 				#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-								if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+								if ( NULL == GetUnit() )
 									return false;
 	
-								const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+								const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 								const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 								m_fMPConsume = pSkillTemplet->GetSkillMPConsumptionValue( iSkillTempletLevel );
+
 				#else // UPGRADE_SKILL_SYSTEM_2013
 								m_fMPConsume = pSkillTemplet->m_fMPConsumption;
 				#endif // UPGRADE_SKILL_SYSTEM_2013
@@ -3696,15 +3744,27 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 
 	//m_pSkillTemplet = pSkillTemplet;
 
-//#ifndef _SERVICE_
-//오현빈//2013-01-23//임시로 사내서버에서만 스킬 사용 조건 무시하도록 설정
-#ifdef _IN_HOUSE_
+	if( NULL == pSkillTemplet )		/// pSkillTemplet을 위에서 새로 대입하기 때문에, NULL처리 추가
+		return false;
+
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+#if defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_OPERATOR ) || false == g_pMain->IsUnlimitedSkillUse() )
+#endif //defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+#else //TOGGLE_UNLIMITED_SKILL_USE
+#ifndef _SERVICE_
 	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
-#endif //_IN_HOUSE_
-//#endif _SERVICE_
+#endif _SERVICE_
+#endif //TOGGLE_UNLIMITED_SKILL_USE
 	{
 		if( 0.f < fCoolTimeLeft )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_226 ), D3DXCOLOR(1,1,1,1),
 				D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 				return false;
@@ -3712,6 +3772,12 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 
 		if ( GetNowMp() < m_fMPConsume )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1),
 				D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 				return false;
@@ -3719,10 +3785,39 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 
 		if ( GetForcePower() < usFPConsumptionNeeded )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_21303 ), D3DXCOLOR(1,1,1,1),
 				D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 				return false;
 		}
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		if ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+		{
+			const int iItemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+			if( iItemNum <= 0 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+				&& false == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence()
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+				)
+			{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
+				g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_26119 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+				return false;
+			}
+		}
+#endif //FINALITY_SKILL_SYSTEM
 
 	}
 
@@ -3739,8 +3834,29 @@ bool CX2GUAra::CanUseSpecialAttack( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eAc
 		}
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
-	if( NULL == pSkillTemplet )		/// pSkillTemplet을 위에서 새로 대입하기 때문에, NULL처리 추가
-		return false;
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	if ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+	{
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		if( true ==  g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence() )
+		{
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ();
+		}
+		else
+		{
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+			if ( NULL != pItem )
+				g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ( pItem->GetItemData().m_ItemUID );
+		}
+#else
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+		if ( NULL != pItem )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ( pItem->GetItemData().m_ItemUID );
+#endif SERV_BALANCE_FINALITY_SKILL_EVENT
+	}
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef FIX_SKILL_CANCEL_ARA
 	m_eSkillID = pSkillTemplet->m_eID;
@@ -3778,7 +3894,8 @@ void CX2GUAra::StateChangeSpecialAttack( IN const CX2SkillTree::SKILL_ID eSkillI
 {
 	DXUTTRACE( L"stateChange %d\n", eSkillId_ );
 
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+
+	CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
 
 	// 던전 랭크 개선 관련
 	CountUsedSkill( m_iPressedSkillSlotIndex );
@@ -3797,16 +3914,17 @@ void CX2GUAra::StateChangeSpecialAttack( IN const CX2SkillTree::SKILL_ID eSkillI
 		const CX2SkillTree::SKILL_ID	eSkillID				= pSkillTemplet->m_eID;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		const int	iSkillTempletLevel	= max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+		const int	iSkillTempletLevel	= max( 1, accessUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 		const float	fSkillCoolTimeValue	= GetSkillCoolTimeValue( eSkillID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) );
 	#else // UPGRADE_SKILL_SYSTEM_2013
 		const float						fSkillCoolTimeValue		= GetSkillCoolTimeValue( eSkillID, pSkillTemplet->m_fSkillCoolTime );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 
-		cUserSkillTree.SetSkillCoolTimeLeft( eSkillID, fSkillCoolTimeValue );
+		accessUserSkillTree.SetSkillCoolTimeLeft( eSkillID, fSkillCoolTimeValue );
+
 #else  // ADD_ARA_MEMO
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
 #endif // ADD_ARA_MEMO
 
 		if ( NULL != m_ComboAndSkillChainSystem.GetPtrNowUseChainInfo() )
@@ -3860,7 +3978,7 @@ void CX2GUAra::StateChangeSpecialAttack( IN const CX2SkillTree::SKILL_ID eSkillI
 #else
 void CX2GUAra::StateChangeSpecialAttack( IN const CX2SkillTree::SkillTemplet* pSkillTemplet_ )
 {
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& cUserSkillTree =  GetUnit()->GetUnitData().m_UserSkillTree;
 
 	// 던전 랭크 개선 관련
 	CountUsedSkill( m_iPressedSkillSlotIndex );
@@ -3961,21 +4079,30 @@ void CX2GUAra::StateChangeSpecialAttack( IN const CX2SkillTree::SkillTemplet* pS
 	ShowActiveSkillCutInAndLightByBerserkMode(  0.004f, false  );
 #endif // UPGRADE_SKILL_SYSTEM_2013 // 공통 스킬 개편, 김종훈	
 	
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( true == m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.2f ) && true == EventCheck( 0.2f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		PlayCommonBuffMinorParticle();
 		UpDownCrashCamera( 30.0f, 0.4f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 0.25f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( true == m_pXSkinAnim->EventTimer( 0.25f ) && true == EventCheck( 0.25f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		int	iSkillSlotIndex = 0;
 		bool bSlotB = false;
 
 		if ( true == GetSkillSlotIndexUsed( iSkillSlotIndex, bSlotB ) )
 		{
-			CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+			const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = pUnitData->m_UserSkillTree.GetSkillSlot( iSkillSlotIndex, bSlotB );
 			CX2SkillTree::SKILL_ID eSkillID = CX2SkillTree::SI_NONE;
@@ -4056,7 +4183,11 @@ void CX2GUAra::InitPromotionEquipList()
 */
 /*virtual*/ void CX2GUAra::ShowActiveSkillCutInAndLightByBerserkMode( float fTimeToShow_, bool bOnlyLight_ /*= false*/ )
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( m_pXSkinAnim->EventTimerOneshot( fTimeToShow_ ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( fTimeToShow_ ) == true && EventCheck( fTimeToShow_, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( GetShowCutInAndChangeWorldColor() && GetShowActiveSkillShow() )
 		{
@@ -4100,9 +4231,14 @@ void CX2GUAra::InitPromotionEquipList()
 			if ( NULL != GetUnit() && g_pX2Game->GetEffectSet() && false == GetRidingOn() )
 			{
 				/// 스킬 레벨 반환
-				const int iSkillLevel = max( GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ALD_REFLECTION ), 1 );
+				const int iSkillLevel = max( GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ALD_REFLECTION ), 1 );
 
 				/// 반탄공 버프 생성
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				if( GetEqippedSkillMemo(CX2SkillTree::SMI_ARA_MEMO21) == true )
+					SetBuffFactorToGameUnitByBuffFactorID( BFI_BUFF_SI_A_ALD_REFLECTION_MEMO, iSkillLevel );
+				else
+#endif //ADD_MEMO_1ST_CLASS
 				SetBuffFactorToGameUnitByBuffFactorID( BFI_BUFF_SI_A_ALD_REFLECTION, iSkillLevel );
 
 				/// 반탄공 이펙트 생성
@@ -4144,10 +4280,34 @@ void CX2GUAra::InitPromotionEquipList()
 			if( true == GetEqippedSkillMemo( CX2SkillTree::SMI_ARA_MEMO5 ) )
 				fMpConsumption -= 100.f;
 		} break;
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		case CX2SkillTree::SI_A_ASD_DRAGON_FALLING:
+			{
+				if( GetEqippedSkillMemo( CX2SkillTree::SMI_ARA_MEMO10 ) == true )
+					fMpConsumption *= 0.9f;
+			} break;
+
+		case CX2SkillTree::SI_A_ALD_CONVERSION_MANA:
+			{
+				if( GetEqippedSkillMemo( CX2SkillTree::SMI_ARA_MEMO15 ) == true )
+					fMpConsumption *= 0.9f;
+			} break;
+#endif //ADD_MEMO_1ST_CLASS
+
 	}
 #endif // ADD_ARA_MEMO
 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT	
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( eSkillID_ );
+	float fMpDecreaseRate = 1.0f;
+	if( NULL != pSkillTemplet )
+		fMpDecreaseRate  =  g_pData->GetMyUser()->GetSelectUnit()->GetSkillMpDecreaseRate(eSkillID_, pSkillTemplet->m_eType);
+
+	return fMpConsumption * fMpDecreaseRate;
+#else SERV_BALANCE_FINALITY_SKILL_EVENT
 	return fMpConsumption;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
 }
 #pragma endregion
 
@@ -4553,6 +4713,32 @@ void CX2GUAra::ReplaceWeapon( CX2EqipPtr pWeaponPtr_ )
 					}
 				}
 			}
+			if ( IsOnePieceAvatarNotRenderFace1Face2( pNoRenderFactorEquipBody->GetItemID() ) == true )
+			{
+				BOOST_TEST_FOREACH( CX2EqipPtr, pViewEquip, m_vecPromotionEquipList )
+				{
+					switch ( pViewEquip->GetEqipPos() )
+					{
+					case CX2Unit::EP_DEFENCE_HAIR:
+					case CX2Unit::EP_DEFENCE_LEG:
+					case CX2Unit::EP_DEFENCE_HAND:
+					case CX2Unit::EP_DEFENCE_FOOT:
+					case CX2Unit::EP_AC_FACE1:
+					case CX2Unit::EP_AC_FACE2:
+#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
+					case CX2Unit::EP_DEFENCE_BODY:
+#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT					
+						{
+							pViewEquip->SetShowObject( false );
+							bOnePieceAvatarCheck = true;
+						}
+						break;
+
+					default:
+						break;
+					}
+				}
+			}
 			if ( IsOnePieceAvatarNotRenderFace( pNoRenderFactorEquipBody->GetItemID() ) == true )
 			{
 				SetHideNoRenderable(true);
@@ -4611,17 +4797,39 @@ void CX2GUAra::ReplaceWeapon( CX2EqipPtr pWeaponPtr_ )
 					}
 				}
 			}
-			if ( IsOnePieceAvatarWithRenderBodyItem( pNoRenderFactorEquipBody->GetItemID() ) == true )
+			if ( IsOnePieceAvatarRenderingHairAndFace1( pNoRenderFactorEquipBody->GetItemID() ) == true )
+			{
+				BOOST_TEST_FOREACH( CX2EqipPtr, pViewEquip, m_vecPromotionEquipList )
+				{
+					switch ( pViewEquip->GetEqipPos() )
+					{
+					case CX2Unit::EP_DEFENCE_LEG:
+					case CX2Unit::EP_DEFENCE_HAND:
+					case CX2Unit::EP_DEFENCE_FOOT:
+						{
+							pViewEquip->SetShowObject( false );
+						}
+						break;
+
+					default:
+						break;
+					}
+				}
+			}
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+			// 얼굴 상, 중, 하 제외 모든 악세, 장비의 렌더를 끔
+			if ( IsOnePieceAvatarOnlyRenderFace1Face2Face3Equip( pNoRenderFactorEquipBody->GetItemID() ) == true )
 			{
 				BOOST_TEST_FOREACH( CX2EqipPtr, pViewEquip, m_vecPromotionEquipList )
 				{
 					switch ( pViewEquip->GetEqipPos() )
 					{
 					case CX2Unit::EP_DEFENCE_HAIR:
+					case CX2Unit::EP_DEFENCE_LEG:
 					case CX2Unit::EP_DEFENCE_HAND:
-					case CX2Unit::EP_AC_FACE1:
-					case CX2Unit::EP_AC_FACE2:
-						//case CX2Unit::EP_AC_FACE3:	/// 요청으로 인한 얼굴 (하) 제외
+					case CX2Unit::EP_DEFENCE_FOOT:
+					case CX2Unit::EP_AC_BODY:
+					case CX2Unit::EP_AC_ARM:
 					case CX2Unit::EP_AC_NECKLESS:
 						{
 							pViewEquip->SetShowObject( false );
@@ -4634,8 +4842,32 @@ void CX2GUAra::ReplaceWeapon( CX2EqipPtr pWeaponPtr_ )
 					}
 				}
 			}
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT			
+			if ( IsOnePieceAvatarWithRenderBodyItem( pNoRenderFactorEquipBody->GetItemID() ) == true )
+			{
+				BOOST_TEST_FOREACH( CX2EqipPtr, pViewEquip, m_vecPromotionEquipList )
+				{
+					switch ( pViewEquip->GetEqipPos() )
+					{
+					case CX2Unit::EP_DEFENCE_HAIR:
+					case CX2Unit::EP_DEFENCE_HAND:
+					case CX2Unit::EP_AC_FACE1:
+					case CX2Unit::EP_AC_FACE2:
+					//case CX2Unit::EP_AC_FACE3:	/// 요청으로 인한 얼굴 (하) 제외
+					case CX2Unit::EP_AC_NECKLESS:
+						{
+							pViewEquip->SetShowObject( false );
+							bOnePieceAvatarCheck = true;
+						}
+						break;
 
-
+					default:
+						break;
+					}
+				}
+			}
+#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT					
 		}
 		#endif ONE_PIECE_AVATAR
 
@@ -4664,7 +4896,7 @@ void CX2GUAra::ReplaceWeapon( CX2EqipPtr pWeaponPtr_ )
 		}
 		#endif FACE_OFF_MONSTER_HEAD_TEST
 
-		//CX2Item* pItem = m_pUnit->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_AC_FACE1, false );
+		//CX2Item* pItem = GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_AC_FACE1, false );
 		// EP_AC_FACE1 장착위치에 있는 아이템의 id를 얻어옴
 		CX2EqipPtr pNoRenderFactorEquip = GetEquipPtrFromEquipViewListByEquipPosition( CX2Unit::EP_AC_FACE1 );
 
@@ -4692,6 +4924,24 @@ void CX2GUAra::ReplaceWeapon( CX2EqipPtr pWeaponPtr_ )
 					}
 				}
 			}
+
+			if ( IsNoRenderHairFace2Equip( pNoRenderFactorEquip->GetItemID() ) == true )
+			{
+				BOOST_TEST_FOREACH( CX2EqipPtr, pViewEquip, m_vecPromotionEquipList )
+				{
+					switch ( pViewEquip->GetEqipPos() )
+					{
+					case CX2Unit::EP_AC_FACE2:
+						pViewEquip->SetShowObject( false );
+						break;
+
+					default:
+						break;
+					}
+				}
+			}
+
+
 			else if ( IsNoRenderHair( pNoRenderFactorEquip->GetItemID() ) == true )
 			{
 				#ifdef ONE_PIECE_AVATAR
@@ -4702,6 +4952,7 @@ void CX2GUAra::ReplaceWeapon( CX2EqipPtr pWeaponPtr_ )
 						switch ( pViewEquip->GetEqipPos() )
 						{
 						case CX2Unit::EP_AC_FACE1:
+						case CX2Unit::EP_AC_FACE2:
 							pViewEquip->SetShowObject( false );
 							break;
 
@@ -4766,6 +5017,48 @@ void CX2GUAra::ReplaceWeapon( CX2EqipPtr pWeaponPtr_ )
 				}
 			}
 		#endif FACE_OFF_MONSTER_HEAD_TEST
+		}
+
+		pNoRenderFactorEquip = GetEquipPtrFromEquipViewListByEquipPosition( CX2Unit::EP_AC_FACE2 );
+
+		if ( pNoRenderFactorEquip != NULL )
+		{
+			if ( IsNoRenderHairFaceFace1Face3Equip( pNoRenderFactorEquip->GetItemID() ) == true )
+			{
+#ifdef ONE_PIECE_AVATAR
+				if(bOnePieceAvatarCheck == true)
+				{
+					BOOST_TEST_FOREACH( CX2EqipPtr, pViewEquip, m_vecPromotionEquipList )
+					{
+						switch ( pViewEquip->GetEqipPos() )
+						{
+						case CX2Unit::EP_AC_FACE2:
+							pViewEquip->SetShowObject( false );
+							break;
+
+						default:
+							break;
+						}
+					}
+				}
+#endif ONE_PIECE_AVATAR
+				else
+				{
+					SetHideNoRenderable(true);
+					BOOST_TEST_FOREACH( CX2EqipPtr, pViewEquip, m_vecPromotionEquipList )
+					{
+						switch ( pViewEquip->GetEqipPos() )
+						{
+						case CX2Unit::EP_AC_FACE1:
+						case CX2Unit::EP_AC_FACE3:
+							pViewEquip->SetShowObject( false );
+							break;
+						default:
+							break;
+						}
+					}
+				}
+			}
 		}
 	}
 }
@@ -4832,13 +5125,13 @@ bool CX2GUAra::GetAddItemAndRemoveItemToViewListBerserk( OUT CX2EqipPtr& pEquipP
 						{
 							CX2Item* pNormalEquip	= NULL;
 
-							pNormalEquip	= GetUnit()->GetInventory()->GetEquippingItemByEquipPos( pItemTempletForItemToRemove->GetEqipPosition(), false );
+							pNormalEquip	= GetUnit()->GetInventory().GetEquippingItemByEquipPos( pItemTempletForItemToRemove->GetEqipPosition(), false );
 
-							if ( pNormalEquip == NULL || pNormalEquip->GetItemData() == NULL)
+							if ( pNormalEquip == NULL )
 								return false;
 
-							if ( pNormalEquip->GetItemData()->m_PeriodType != CX2Item::PT_ENDURANCE		// 내구도가 없는 장비거나
-								|| pNormalEquip->GetItemData()->m_Endurance > 0)		// 내구도가 0이하가 아니라면 노말 장비를 넣어줌
+							if ( pNormalEquip->GetItemData().m_PeriodType != CX2Item::PT_ENDURANCE		// 내구도가 없는 장비거나
+								|| pNormalEquip->GetItemData().m_Endurance > 0)		// 내구도가 0이하가 아니라면 노말 장비를 넣어줌
 								*ppItemToAddInViewList_ = pNormalEquip;
 							else
 								*ppItemToAddInViewList_ = GetUnit()->CreateBasicEquip( pItemTempletForItemToRemove->GetEqipPosition() );
@@ -4876,9 +5169,7 @@ bool CX2GUAra::GetAddItemAndRemoveItemToViewListBerserk( OUT CX2EqipPtr& pEquipP
 #pragma region AddBerserkEquipToViewList
 void CX2GUAra::AddBerserkEquipToViewList( CX2Item* const pItem )
 {
-	if ( pItem == NULL || pItem->GetItemData() == NULL
-        || pItem->GetItemTemplet() == NULL 
-        )
+	if ( pItem == NULL || pItem->GetItemTemplet() == NULL )
 		return;
 
 	const CX2Item::ItemTemplet* pItemTemplet = pItem->GetItemTemplet();
@@ -4891,12 +5182,12 @@ void CX2GUAra::AddBerserkEquipToViewList( CX2Item* const pItem )
 	CX2EqipPtr	pCX2EquipPtr;
 	int			enchantLevel = 0;
 
-	enchantLevel = pItem->GetItemData()->m_EnchantLevel;
+	enchantLevel = pItem->GetItemData().m_EnchantLevel;
     bool bBasicEquip = GetUnit()->IsBasicEquip( pItemTemplet->GetItemID() );
 
 	if( pItemTemplet->GetUseCondition() == CX2Item::UC_ANYONE )
 	{
-		pCX2EquipPtr = CX2Eqip::CreateEquip( pItem, m_pXSkinAnim, enchantLevel, bBasicEquip, true, m_pUnit->GetType() );
+		pCX2EquipPtr = CX2Eqip::CreateEquip( pItem, m_pXSkinAnim, enchantLevel, bBasicEquip, true, GetUnit()->GetType() );
 	}
 	else
 	{
@@ -5052,6 +5343,11 @@ void CX2GUAra::SLockOnSystem::ProcessLockOn( CX2GUAra* myUnit )
 		if( pUnit->GetTeam() == myUnit->GetTeam() )
 			continue;
 
+#ifdef FIELD_BOSS_RAID // 유도 / 타겟 지정에 대한 예외
+		if( true == pUnit->GetIsBosRaidNPC() )
+			continue;
+#endif // FIELD_BOSS_RAID
+
 		if( pUnit->GetInvincible() == true )
 			continue;
 
@@ -5061,14 +5357,12 @@ void CX2GUAra::SLockOnSystem::ProcessLockOn( CX2GUAra* myUnit )
 		if( pUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 		{
 			CX2GUNPC* pNPC = (CX2GUNPC*) pUnit;
-			switch( pNPC->GetNPCTemplet()->m_ClassType )
+			switch( pNPC->GetNPCTemplet().m_ClassType )
 			{
 			case CX2UnitManager::NCT_THING_TRAP:
 			case CX2UnitManager::NCT_THING_BOX:
 			case CX2UnitManager::NCT_THING_GATE:
-#ifdef DUNGEON_CHECKER_NPC
 			case CX2UnitManager::NCT_THING_CHECKER:
-#endif
 				{
 					continue;
 				} break;
@@ -5120,7 +5414,7 @@ void CX2GUAra::SLockOnSystem::ProcessLockOn( CX2GUAra* myUnit )
 
 				if( g_pX2Game->GetWorld()->GetLineMap()->CanDown( m_vDestPos, LINE_RADIUS, &outPos, &lineIndex, false ) == true )
 				{
-					CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
+					const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
 					if( NULL != pLineData )
 					{
 						if( pLineData->lineType == CKTDGLineMap::LT_NORMAL && pLineData->bEnable == true )
@@ -5390,16 +5684,16 @@ void CX2GUAra::DeleteMinorParticle()
 	}
 	else
 	{
-		if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRFoot )
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRFoot )
 			m_hHyperBoostRFoot = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightOrange",	0, 0, 0, 0, 0);
 
-		if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLFoot )
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLFoot )
 			m_hHyperBoostLFoot = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftOrange",	0, 0, 0, 0, 0);
 
-		if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRArm )
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRArm )
 			m_hHyperBoostRArm = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightOrange",	0, 0, 0, 0, 0);
 
-		if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLArm )
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLArm )
 			m_hHyperBoostLArm = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftOrange",	0, 0, 0, 0, 0);
 
 		BOOST_TEST_FOREACH( CX2EqipPtr, pEquipPtr, m_ViewEqipList )
@@ -5556,7 +5850,11 @@ void CX2GUAra::DeleteMinorParticle()
 */
 __forceinline CKTDGParticleSystem::CParticleEventSequenceHandle CX2GUAra::GetHandleAraMajorParticleByEnum( ARA_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) const
 {
-	ASSERT( ARA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    ASSERT( ARA_MAJOR_PII_END > eVal_ && ARA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+	ASSERT( ARA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_SEQUENCE_HANDLE < eVal_ );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	return m_ahAraMajorParticleInstance[eVal_];
 }
 #pragma endregion
@@ -5567,7 +5865,11 @@ __forceinline CKTDGParticleSystem::CParticleEventSequenceHandle CX2GUAra::GetHan
 */
 __forceinline void CX2GUAra::SetHandleAraMajorParticleByEnum( ARA_MAJOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ )
 {
-	ASSERT( ARA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    ASSERT( ARA_MAJOR_PII_END > eVal_ && ARA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+	ASSERT( ARA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_SEQUENCE_HANDLE < eVal_ );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	m_ahAraMajorParticleInstance[eVal_] = hHandle_;
 }
 #pragma endregion
@@ -5578,7 +5880,11 @@ __forceinline void CX2GUAra::SetHandleAraMajorParticleByEnum( ARA_MAJOR_PARTICLE
 */
 __forceinline CKTDGParticleSystem::CParticleEventSequenceHandle	CX2GUAra::GetHandleAraMinorParticleByEnum( ARA_MINOR_PARTICLE_INSTANCE_ID eVal_ ) const
 {
-	ASSERT( ARA_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    ASSERT( ARA_MAJOR_PII_END > eVal_ && ARA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+	ASSERT( ARA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_SEQUENCE_HANDLE < eVal_ );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	return m_ahAraMinorParticleInstance[eVal_];
 }
 #pragma endregion
@@ -5589,7 +5895,11 @@ __forceinline CKTDGParticleSystem::CParticleEventSequenceHandle	CX2GUAra::GetHan
 */
 __forceinline void CX2GUAra::SetHandleAraMinorParticleByEnum( ARA_MINOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ )
 {
-	ASSERT( ARA_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    ASSERT( ARA_MAJOR_PII_END > eVal_ && ARA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+	ASSERT( ARA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_SEQUENCE_HANDLE < eVal_ );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	m_ahAraMinorParticleInstance[eVal_] = hHandle_;
 }
 #pragma endregion
@@ -5600,7 +5910,11 @@ __forceinline void CX2GUAra::SetHandleAraMinorParticleByEnum( ARA_MINOR_PARTICLE
 */
 CKTDGXMeshPlayer::CXMeshInstanceHandle CX2GUAra::GetHandleAraMajorMeshByEnum( ARA_MAJOR_MESH_INSTANCE_ID eVal_ ) const
 {
-	ASSERT( ARA_MAJOR_MII_END > eVal_ && INVALID_MESH_INSTANCE_HANDLE < eVal_ );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    ASSERT( ARA_MAJOR_PII_END > eVal_ && ARA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+	ASSERT( ARA_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_SEQUENCE_HANDLE < eVal_ );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	return m_ahAraMajorMeshInstance[eVal_];
 }
 #pragma endregion
@@ -5725,8 +6039,11 @@ bool CX2GUAra::UpForcePowerAtThisAnimationTime( float fAnimationTimeNeededToChar
 #else // SERV_ARA_CHANGE_CLASS_SECOND
 void CX2GUAra::UpForcePowerAtThisAnimationTime( float fAnimationTimeNeededToChargeForcePower_, int iUpCount_ )
 {
-	if ( true == m_pXSkinAnim->EventTimer( fAnimationTimeNeededToChargeForcePower_ ) && 
-		true == EventCheck( fAnimationTimeNeededToChargeForcePower_, false ) )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( true == m_pXSkinAnim->EventTimerOneshot( fAnimationTimeNeededToChargeForcePower_ ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if ( true == m_pXSkinAnim->EventTimer( fAnimationTimeNeededToChargeForcePower_ ) && true == EventCheck( fAnimationTimeNeededToChargeForcePower_, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpForcePower( iUpCount_ );
 	}
@@ -5754,8 +6071,11 @@ bool CX2GUAra::UseForcePowerAtThisAnimationTime( float fAnimationTimeNeededToUse
 #else // SERV_ARA_CHANGE_CLASS_SECOND
 void CX2GUAra::UseForcePowerAtThisAnimationTime( float fAnimationTimeNeededToUseForcePower_, int iUpCount_ )
 {
-	if ( true == m_pXSkinAnim->EventTimer( fAnimationTimeNeededToUseForcePower_ ) && 
-		true == EventCheck( fAnimationTimeNeededToUseForcePower_, false ) )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( true == m_pXSkinAnim->EventTimerOneshot( fAnimationTimeNeededToUseForcePower_ ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if ( true == m_pXSkinAnim->EventTimer( fAnimationTimeNeededToUseForcePower_ ) && true == EventCheck( fAnimationTimeNeededToUseForcePower_, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UseForcePower( iUpCount_ );
 	}
@@ -6200,7 +6520,7 @@ void CX2GUAra::PlayAnimationHyperWaitStart( CKTDGXSkinAnim* pXSkinAnim_, const F
 		}
 	}
 
-	m_pXSkinAnim->Play( playType );
+	pXSkinAnim_->Play( playType );
 }
 #pragma endregion 
 
@@ -6995,9 +7315,9 @@ void CX2GUAra::HyperModeFrameMove()
 	CommonHyperModeFrameMove( 0.693f, 0.759f, 1.287f );
 #else
 	g_pX2Game->GetWorld()->SetWorldColor( 0xff222222 );
-
+	
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( true == m_pXSkinAnim->EventTimerOneshot( 0.693f ) )
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.693f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.693f ) && true == EventCheck( 0.693f, false ) )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -7005,7 +7325,7 @@ void CX2GUAra::HyperModeFrameMove()
 		ShowMinorParticleHyperModeChange();
 	}
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	else if( true == m_pXSkinAnim->EventTimerOneshot( 0.759f ) )
+else if( true == m_pXSkinAnim->EventTimerOneshot( 0.759f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( true == m_pXSkinAnim->EventTimer( 0.759f ) && true == EventCheck( 0.759f, false ) )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -7019,9 +7339,9 @@ void CX2GUAra::HyperModeFrameMove()
 
 		ApplyHyperModeBuff();
 	}
-
+	
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if ( true == m_pXSkinAnim->EventTimerOneshot( 1.287f ) )
+    if ( true == m_pXSkinAnim->EventTimerOneshot( 1.287f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( true == m_pXSkinAnim->EventTimer( 1.287f ) && true == EventCheck( 1.287f, false ) )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -7115,7 +7435,11 @@ void CX2GUAra::DamageBigEventProcess()
 */
 void CX2GUAra::DamageDownFrontFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.19f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.19f ) && true == EventCheck( 0.19f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 	}
@@ -7539,7 +7863,11 @@ void CX2GUAra::AirialDashFrameMoveFuture()
 */
 void CX2GUAra::AirialDashFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Airial_Dash", this );
 	}
@@ -7827,7 +8155,11 @@ void CX2GUAra::ComboZZEventProcess()
 */
 void CX2GUAra::ComboZZZFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && true == EventCheck( m_fDamageDataChangeTime, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -7836,8 +8168,10 @@ void CX2GUAra::ComboZZZFrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -7943,11 +8277,15 @@ void CX2GUAra::ComboZZZXChargeFrameMove()
 	if ( 2.f <= m_fZZZXChargeTime )
 		m_fZZZXChargeTime = 2.f;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.495f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.495f ) && true == EventCheck( 0.495f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CX2EffectSet::Handle hEffectSet = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ZpushX_Charge", this, NULL,
 			false, GetPowerRate() );
-		if ( CX2EffectSet::INVALID_HANDLE != hEffectSet )
+		if ( INVALID_EFFECTSET_HANDLE != hEffectSet )
 			m_vecEffectSetToDeleteOnStateEnd.push_back( hEffectSet );
 	}
 }
@@ -7985,7 +8323,11 @@ void CX2GUAra::ComboZZZXChargeStateEnd()
 */
 void CX2GUAra::ComboZZZXAttackFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( m_pXSkinAnim->EventTimerOneshot( 0.331f ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.331f ) == true && EventCheck( 0.331f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.damage.fPhysic = m_DamageData.damage.fPhysic * ( 1.f + min( m_fZZZXChargeTime, 2.f ) );
 
@@ -8177,7 +8519,11 @@ void CX2GUAra::ComboXXXloopStateStart()
 */
 void CX2GUAra::ComboXXXloopFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && true == EventCheck( m_fDamageDataChangeTime, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -8186,8 +8532,10 @@ void CX2GUAra::ComboXXXloopFrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -8232,7 +8580,11 @@ void CX2GUAra::ComboXXXloopXStateStart()
 */
 void CX2GUAra::ComboXXXloopXFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && true == EventCheck( m_fDamageDataChangeTime, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -8241,8 +8593,10 @@ void CX2GUAra::ComboXXXloopXFrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}		
 	}
@@ -8286,7 +8640,11 @@ void CX2GUAra::ComboXXXloopXStateEnd()
 */
 void CX2GUAra::ComboXXdownXFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && true == EventCheck( m_fDamageDataChangeTime, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -8295,8 +8653,10 @@ void CX2GUAra::ComboXXdownXFrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -8337,7 +8697,12 @@ void CX2GUAra::ComboXXdownXXEventProcess()
 		StateChange( USI_WAIT );
 	}
 #ifdef FIX_SKILL_CANCEL_ARA
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	else if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	else if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	{
 		StateChangeSpecialAttack( m_eSkillID );
 	}
@@ -8364,7 +8729,11 @@ void CX2GUAra::ComboXXdownXXEventProcess()
 */
 void CX2GUAra::ComboDashZFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && true == EventCheck( m_fDamageDataChangeTime, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -8373,8 +8742,10 @@ void CX2GUAra::ComboDashZFrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}		
 	}
@@ -8442,11 +8813,15 @@ void CX2GUAra::ComboDashZpushX_ChargeFrameMove()
 	if ( 2.f <= m_fZpushXChargeTime )
 		m_fZpushXChargeTime = 2.f;
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.495f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.495f ) && true == EventCheck( 0.495f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CX2EffectSet::Handle hEffectSet = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ZpushX_Charge", this, NULL,
 																					false, GetPowerRate() );
-		if ( CX2EffectSet::INVALID_HANDLE != hEffectSet )
+		if ( INVALID_EFFECTSET_HANDLE != hEffectSet )
 			m_vecEffectSetToDeleteOnStateEnd.push_back( hEffectSet );
 	}
 }
@@ -8486,7 +8861,11 @@ void CX2GUAra::ComboDashZpushX_ChargeStateEnd()
 */
 void CX2GUAra::ComboDashZpushX_AttackFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.damage.fPhysic = m_DamageData.damage.fPhysic * ( 1.f + min( m_fZpushXChargeTime, 2.f ) );
 
@@ -8546,7 +8925,11 @@ void CX2GUAra::ComboDashXEventProcess()
 	}
 
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	else if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	else if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107	
 	{
 		StateChangeSpecialAttack( m_eSkillID );
 	}
@@ -8642,7 +9025,11 @@ void CX2GUAra::JumpAttackXFrameMoveFuture()
 */
 void CX2GUAra::JumpAttackXFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.396f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.396f ) && true == EventCheck( 0.396f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.reActType		= CX2DamageManager::RT_DOWN;
 		m_DamageData.backSpeed.y	= -2000.f;
@@ -8720,7 +9107,11 @@ void CX2GUAra::DashJumpComboZZEventProcess()
 */
 void CX2GUAra::DashJumpComboZZZFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.462f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.462f ) && true == EventCheck( 0.462f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.reActType		= CX2DamageManager::RT_FLY;
 		m_DamageData.backSpeed.y	= 1250.f;
@@ -8782,7 +9173,7 @@ void CX2GUAra::ASI_SA_ARA_WIND_WEDGE_START_CreateState( UserUnitStateData& state
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ARA_WIND_WEDGE_START", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ARA_WIND_WEDGE_START", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_WIND_WEDGE_START_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_WIND_WEDGE_START_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_WIND_WEDGE_START_EventProcess );
@@ -8808,7 +9199,11 @@ void CX2GUAra::ASI_SA_ARA_WIND_WEDGE_START_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) && CanUseForcePower() )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) && CanUseForcePower() )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef ADD_ARA_MEMO	// 적용날짜: 2013-03-22
 		/// 메모 : 흐름을 타는 창술 (맹호 2식 : 바람쐐기) - 기력 소모량 1 감소
@@ -8819,13 +9214,21 @@ void CX2GUAra::ASI_SA_ARA_WIND_WEDGE_START_FrameMove()
 			UseForcePower( 2 );
 	}
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.495f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.495f ) && true == EventCheck( 0.495f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Wind_Wedge", this );
 		m_usBeforeForceGainCount = m_usForceGainCount;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.495f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.495f ) && true == EventCheck( 0.495f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Wind_Wedge_1st", this, NULL, false, GetPowerRate() );
 	}
@@ -8841,7 +9244,12 @@ void CX2GUAra::ASI_SA_ARA_WIND_WEDGE_START_EventProcess()
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -8872,7 +9280,7 @@ void CX2GUAra::ASI_SA_ARA_WIND_WEDGE_END_CreateState( UserUnitStateData& stateDa
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ARA_WIND_WEDGE_END", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ARA_WIND_WEDGE_END", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_WIND_WEDGE_END_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_WIND_WEDGE_END_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_WIND_WEDGE_END_EventProcess );
@@ -8895,12 +9303,20 @@ void CX2GUAra::ASI_SA_ARA_WIND_WEDGE_END_Init()
 */
 void CX2GUAra::ASI_SA_ARA_WIND_WEDGE_END_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Wind_Wedge_Final", this );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.015f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.015f ) && true == EventCheck( 0.015f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Wind_Wedge_2nd", this, NULL, false, GetPowerRate() );
 	}
@@ -8931,7 +9347,7 @@ void CX2GUAra::ASI_SA_ARA_PULLING_PIERCE_START_CreateState( UserUnitStateData& s
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ARA_PULLING_PIERCE_START", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ARA_PULLING_PIERCE_START", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_PULLING_PIERCE_START_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_PULLING_PIERCE_START_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_PULLING_PIERCE_START_EventProcess );
@@ -8960,14 +9376,22 @@ void CX2GUAra::ASI_SA_ARA_PULLING_PIERCE_START_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.396f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.396f ) && true == EventCheck( 0.396f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Pulling_Pierce", this );
 		UpForcePower( 1 );
 		m_usBeforeForceGainCount = m_usForceGainCount;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.462f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.462f ) && true == EventCheck( 0.462f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef ADD_ARA_MEMO	// 적용날짜: 2013-03-22
 		bool bIsMemoAttack = false;		/// 메모 적용 여부
@@ -8984,9 +9408,13 @@ void CX2GUAra::ASI_SA_ARA_PULLING_PIERCE_START_FrameMove()
 #endif // ADD_ARA_MEMO
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.759f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.759f ) && true == EventCheck( 0.759f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		if ( CX2EffectSet::INVALID_HANDLE != m_hPullinPierce )
+		if ( INVALID_EFFECTSET_HANDLE != m_hPullinPierce )
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_hPullinPierce );
 	}
 
@@ -9001,7 +9429,11 @@ void CX2GUAra::ASI_SA_ARA_PULLING_PIERCE_START_EventProcess()
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -9030,7 +9462,7 @@ void CX2GUAra::ASI_SA_ARA_PULLING_PIERCE_END_CreateState( UserUnitStateData& sta
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_ ;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ARA_PULLING_PIERCE_END", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ARA_PULLING_PIERCE_END", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_PULLING_PIERCE_END_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_PULLING_PIERCE_END_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_PULLING_PIERCE_END_EventProcess );
@@ -9055,12 +9487,20 @@ void CX2GUAra::ASI_SA_ARA_PULLING_PIERCE_END_Init()
 */
 void CX2GUAra::ASI_SA_ARA_PULLING_PIERCE_END_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Pulling_Pierce_Final", this );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.066f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.066f ) && true == EventCheck( 0.066f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Pulling_Pierce_2nd", this, NULL, false, GetPowerRate() );
 	}
@@ -9107,14 +9547,22 @@ void CX2GUAra::ASI_SA_ARA_FALLING_DRAGON_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if ( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) && CanUseForcePower() )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) && CanUseForcePower() )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_fPullingDragonPowerRate = GetPowerRate() * ( 1 + ( GetForcePower() - 5 ) * 0.2f );
 		
 		UseForcePower( GetForcePower() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 1.320f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 1.320f ) && true == EventCheck( 1.320f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Falling_Dragon", this, NULL, IsHyperState(),
 			m_fPullingDragonPowerRate );
@@ -9146,7 +9594,7 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_RISING_JUMP_CreateState( UserUnitStateData& sta
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ARA_SHADOW_RISING_JUMP", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ARA_SHADOW_RISING_JUMP", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_RISING_JUMP_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_RISING_JUMP_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_RISING_JUMP_EventProcess );
@@ -9188,7 +9636,11 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_RISING_JUMP_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Shadow_Rising_Jump", this );
 		UpForcePower( 1 );
@@ -9216,7 +9668,7 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_RISING_LANDING_CreateState( UserUnitStateData& 
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ARA_SHADOW_RISING_LANDING", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ARA_SHADOW_RISING_LANDING", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_RISING_LANDING_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_RISING_LANDING_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_RISING_LANDING_EventProcess );
@@ -9255,7 +9707,11 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_RISING_LANDING_Init()
 */
 void CX2GUAra::ASI_SA_ARA_SHADOW_RISING_LANDING_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Shadow_Rising_Landing", this );
 	}
@@ -9271,7 +9727,11 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_RISING_LANDING_EventProcess()
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -9303,7 +9763,7 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_RISING_END_CreateState( UserUnitStateData& stat
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ARA_SHADOW_RISING_END", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ARA_SHADOW_RISING_END", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_RISING_END_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_RISING_END_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ARA_SHADOW_RISING_END_EventProcess );
@@ -9343,7 +9803,11 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_RISING_END_Init()
 */
 void CX2GUAra::ASI_SA_ARA_SHADOW_RISING_END_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Shadow_Rising_End", this );
 	}
@@ -9393,7 +9857,11 @@ void CX2GUAra::ASI_SA_ARA_TEMPEST_DANCE_START_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Tempest_Dance_Start", this );
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
@@ -9404,32 +9872,56 @@ void CX2GUAra::ASI_SA_ARA_TEMPEST_DANCE_START_FrameMove()
 		m_usBeforeForceGainCount = m_usForceGainCount;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.231f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.231f ) && true == EventCheck( 0.231f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tempest_Dance_1st", this, NULL, false, GetPowerRate() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.429f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.429f ) && true == EventCheck( 0.429f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tempest_Dance_2nd", this, NULL, false, GetPowerRate() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.561f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.561f ) && true == EventCheck( 0.561f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tempest_Dance_2nd", this, NULL, false, GetPowerRate() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.957f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.957f ) && true == EventCheck( 0.957f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tempest_Dance_2nd", this, NULL, false, GetPowerRate() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 1.056f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 1.056f ) && true == EventCheck( 1.056f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tempest_Dance_2nd", this, NULL, false, GetPowerRate() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 1.155f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 1.155f ) && true == EventCheck( 1.155f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tempest_Dance_2nd", this, NULL, false, GetPowerRate() );
 	}
@@ -9445,7 +9937,11 @@ void CX2GUAra::ASI_SA_ARA_TEMPEST_DANCE_START_EventProcess()
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -9495,17 +9991,29 @@ void CX2GUAra::ASI_SA_ARA_TEMPEST_DANCE_END_Init()
 */
 void CX2GUAra::ASI_SA_ARA_TEMPEST_DANCE_END_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Tempest_Dance_End", this );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.099f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.099f ) && true == EventCheck( 0.099f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tempest_Dance_Final_1st", this, NULL, false, GetPowerRate() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.297f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.297f ) && true == EventCheck( 0.297f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tempest_Dance_Final_2nd", this, NULL, false, GetPowerRate() );
 	}
@@ -9589,7 +10097,11 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_START_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ARA_Shadow_Knot_Start", this );
 
@@ -9599,7 +10111,11 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_START_FrameMove()
 			UpForcePower( 1 );
 #endif // ADD_ARA_MEMO
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.667f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.667f ) && true == EventCheck( 0.667f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		/* Frame 크래쉬 다음에 테스트 필요
 		CKTDXDeviceXSkinMesh* pSkinMesh = NULL;
@@ -9636,7 +10152,12 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_START_FrameMove()
 
 		//vPos.y += 150.f;
 
-		m_pShadowKnotWeaponMesh = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this,
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_hShadowKnotWeaponMesh = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_pShadowKnotWeaponMesh = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            (CX2GameUnit*) this,
 			L"DAMAGE_EFFECT_SHADOW_KNOT_WEAPON", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(),
 			m_FrameDataNow.unitCondition.landPosition.y );
 
@@ -9716,7 +10237,11 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_WAIT_FrameMove()
 	if ( 0.f > m_fShadowKnotTime )
 		m_fShadowKnotTime = 0.f;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ARA_Shadow_Knot_Wait", this, NULL, false, GetPowerRate() );
 	}
@@ -9734,10 +10259,15 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_WAIT_EventProcess()
 
 	if ( 0.5f >= m_fShadowKnotTime && 0.033f < m_fShadowKnotTime )
 	{
-		if ( NULL != m_pShadowKnotWeaponMesh )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pShadowKnotWeaponMesh 
+            = g_pX2Game->GetDamageEffect()->GetInstance( m_hShadowKnotWeaponMesh ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if ( CX2DamageEffect::CEffect* pShadowKnotWeaponMesh = m_pShadowKnotWeaponMesh )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			const CKTDGXMeshPlayer::CXMeshInstance* pMeshInstanceShadowKnot 
-				= m_pShadowKnotWeaponMesh->GetMainEffect();
+				= pShadowKnotWeaponMesh->GetMainEffect();
 
 			if ( NULL != pMeshInstanceShadowKnot )
 			{
@@ -9758,10 +10288,15 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_WAIT_EventProcess()
 */
 void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_WAIT_StateEnd()
 {
-	if ( NULL != m_pShadowKnotWeaponMesh )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pShadowKnotWeaponMesh 
+        = g_pX2Game->GetDamageEffect()->GetInstance( m_hShadowKnotWeaponMesh ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pShadowKnotWeaponMesh = m_pShadowKnotWeaponMesh )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInstanceShadowKnotWeapon 
-			= m_pShadowKnotWeaponMesh->GetMainEffect();
+			= pShadowKnotWeaponMesh->GetMainEffect();
 
 		if ( NULL != pMeshInstanceShadowKnotWeapon )
 			pMeshInstanceShadowKnotWeapon->SetNowLifeTime( pMeshInstanceShadowKnotWeapon->GetMaxLifeTime() );
@@ -9812,7 +10347,11 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_CATCH_EventProcess()
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -9880,12 +10419,20 @@ void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_END_Init()
 */
 void CX2GUAra::ASI_SA_ARA_SHADOW_KNOT_END_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ARA_Shadow_Knot_End", this, NULL, false, GetPowerRate() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.726f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.726f ) && true == EventCheck( 0.726f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Shadow_Knot_Final", this, NULL, false, GetPowerRate() );
 	}
@@ -9917,7 +10464,7 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_READY_CreateState( UserUnitStateData& 
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALH_MOONLIGHT_SLASH_READY", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALH_MOONLIGHT_SLASH_READY", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_READY_Init );
 	stateData_.StateStart			= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_READY_StateStart );
 	stateData_.StateStartFuture	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_READY_StateStartFuture );
@@ -10027,19 +10574,34 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_READY_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( NULL != m_sMoonRightSlashDataPtr )
 			m_sMoonRightSlashDataPtr->SetHandleEffectSet( g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_MoonLight_Slash_Charge", this ) );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_MoonLight_Slash_2Second", this );
 	}
 
 	if ( NULL != m_sMoonRightSlashDataPtr )
+#ifdef BALANCE_PATCH_20131107
+	{
+		const float fElapsedAnimationTime = m_pXSkinAnim->GetNowAnimationTime() - m_pXSkinAnim->GetBeforeAnimationTime();
+		m_sMoonRightSlashDataPtr->SetChargingTime( m_sMoonRightSlashDataPtr->GetChargingTime() + fElapsedAnimationTime );
+	}
+#else //BALANCE_PATCH_20131107
 		m_sMoonRightSlashDataPtr->SetChargingTime( m_sMoonRightSlashDataPtr->GetChargingTime() + m_fElapsedTime );
+#endif //BALANCE_PATCH_20131107
 
 	CommonFrameMove();
 }
@@ -10053,9 +10615,9 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_READY_EventProcess()
 	{
 		StateChange( ASI_SA_ALH_MOONLIGHT_SLASH_CHARGE );
 	}
-	else if ( 0.66 <= m_sMoonRightSlashDataPtr->GetChargingTime()  )
+	else if ( NULL != m_sMoonRightSlashDataPtr && 0.66 <= m_sMoonRightSlashDataPtr->GetChargingTime()  )
 	{
-		if ( NULL != m_sMoonRightSlashDataPtr && false == m_sMoonRightSlashDataPtr->GetChargeKey() )
+		if ( false == m_sMoonRightSlashDataPtr->GetChargeKey() )
 		{	
 			if ( 1.5f <= m_sMoonRightSlashDataPtr->GetChargingTime() )
 				StateChange( ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK );
@@ -10071,7 +10633,7 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_CHARGE_CreateState( UserUnitStateData&
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALH_MOONLIGHT_SLASH_CHARGE", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALH_MOONLIGHT_SLASH_CHARGE", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_CHARGE_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_CHARGE_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_CHARGE_EventProcess );
@@ -10102,7 +10664,22 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_CHARGE_FrameMove()
 	CommonFrameMove();
 
 	if ( NULL != m_sMoonRightSlashDataPtr )
+#ifdef BALANCE_PATCH_20131107
+	{
+		if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+		{
+			m_sMoonRightSlashDataPtr->SetChargingTime( m_sMoonRightSlashDataPtr->GetChargingTime() + m_fElapsedTime );
+		}
+		else
+		{
+			const float fElapsedAnimationTime = m_pXSkinAnim->GetNowAnimationTime() - m_pXSkinAnim->GetBeforeAnimationTime();
+			m_sMoonRightSlashDataPtr->SetChargingTime( m_sMoonRightSlashDataPtr->GetChargingTime() + fElapsedAnimationTime );
+		}
+	}
+#else //BALANCE_PATCH_20131107
 		m_sMoonRightSlashDataPtr->SetChargingTime( m_sMoonRightSlashDataPtr->GetChargingTime() + m_fElapsedTime );
+#endif //BALANCE_PATCH_20131107
+
 }
 
 /** @function 	: ASI_SA_ALH_MOONLIGHT_SLASH_Charge_EventProcess
@@ -10126,7 +10703,7 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK_CreateState( UserUnitS
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK_StateStart );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK_FrameMove );
@@ -10160,7 +10737,8 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK_StateStart()
 {
 	CommonStateStart();
 
-	m_sMoonRightSlashDataPtr->SetPowerRate( floor( m_sMoonRightSlashDataPtr->GetChargingTime() ) * 0.1f );
+	if( NULL != m_sMoonRightSlashDataPtr )
+		m_sMoonRightSlashDataPtr->SetPowerRate( floor( m_sMoonRightSlashDataPtr->GetChargingTime() ) * 0.1f );
 }
 
 /** @function 	: ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK_FrameMove
@@ -10168,12 +10746,20 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK_StateStart()
 */
 void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_MoonLight_Slash_New", this );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.12f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.12f ) == true && EventCheck( 0.12f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( NULL != m_sMoonRightSlashDataPtr )
 		{
@@ -10206,7 +10792,11 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_CRESCENT_ATTACK_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.275f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.275f ) == true && EventCheck( 0.275f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( NULL != m_sMoonRightSlashDataPtr )
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_sMoonRightSlashDataPtr->GetHandleReferenceEffectSet() );
@@ -10252,7 +10842,7 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK_CreateState( UserUnitS
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK_StateStart );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK_FrameMove );
@@ -10286,7 +10876,8 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK_StateStart()
 {
 	CommonStateStart();
 
-	m_sMoonRightSlashDataPtr->SetPowerRate( floor( m_sMoonRightSlashDataPtr->GetChargingTime() - 2.f ) * 0.1f );
+	if( NULL != m_sMoonRightSlashDataPtr )
+		m_sMoonRightSlashDataPtr->SetPowerRate( floor( m_sMoonRightSlashDataPtr->GetChargingTime() - 2.f ) * 0.1f );
 }
 
 /** @function 	: ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK_FrameMove
@@ -10294,12 +10885,20 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK_StateStart()
 */
 void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_MoonLight_Slash_Full", this );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.033f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.033f ) == true && EventCheck( 0.033f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( NULL != m_sMoonRightSlashDataPtr )
 		{
@@ -10336,7 +10935,11 @@ void CX2GUAra::ASI_SA_ALH_MOONLIGHT_SLASH_FULLMOON_ATTACK_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.300f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.300f ) == true && EventCheck( 0.300f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( NULL != m_sMoonRightSlashDataPtr )
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_sMoonRightSlashDataPtr->GetHandleReferenceEffectSet() );
@@ -10419,7 +11022,11 @@ void CX2GUAra::ASI_SA_ALH_SWALLOW_ASSAULT_Ready_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UseForcePower( 1 );
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Swallow_Assault_Ready", this );
@@ -10510,7 +11117,11 @@ void CX2GUAra::ASI_SA_ALH_SWALLOW_ASSAULT_Attack_StateStart()
 */
 void CX2GUAra::ASI_SA_ALH_SWALLOW_ASSAULT_Attack_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_FrameDataFuture.stateParam.bCanPushUnit = false;
 		m_FrameDataFuture.stateParam.bCanPassUnit = true;
@@ -10538,7 +11149,11 @@ void CX2GUAra::ASI_SA_ALH_SWALLOW_ASSAULT_Attack_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.198f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.198f ) && true == EventCheck( 0.198f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDestPos = m_sLockOnSystemPtr->GetDestPos();
 		vDestPos.y += 20.f;
@@ -10564,7 +11179,11 @@ void CX2GUAra::ASI_SA_ALH_SWALLOW_ASSAULT_Attack_EventProcess()
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			if( NULL != g_pX2Game->GetWorld() && NULL != g_pX2Game->GetWorld()->GetLineMap() )
 			{
@@ -10575,7 +11194,7 @@ void CX2GUAra::ASI_SA_ALH_SWALLOW_ASSAULT_Attack_EventProcess()
 				{
 					if( g_pX2Game->GetWorld()->GetLineMap()->CanDown( GetPos(), LINE_RADIUS, &outPos, &lineIndex, false ) == true )
 					{
-						CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
+						const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
 
 						if( NULL != pLineData )
 						{	// 라인맵이 있지만 LT_NORMAL이 아닐 경우나 활성화되어 있지 않을 경우
@@ -10682,7 +11301,7 @@ void CX2GUAra::ASI_SA_ALH_SWALLOW_ASSAULT_Finish_StateStart()
 		{
 			if( g_pX2Game->GetWorld()->GetLineMap()->CanDown( GetPos(), LINE_RADIUS, &outPos, &lineIndex, false ) == true )
 			{
-				CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
+				const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
 
 				if( NULL != pLineData )
 				{	// 라인맵이 있지만 LT_NORMAL이 아닐 경우나 활성화되어 있지 않을 경우
@@ -10707,7 +11326,11 @@ void CX2GUAra::ASI_SA_ALH_SWALLOW_ASSAULT_Finish_StateStart()
 */
 void CX2GUAra::ASI_SA_ALH_SWALLOW_ASSAULT_Finish_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		SetInvisibility( false );
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Swallow_Assault_Finish", this );
@@ -10768,7 +11391,7 @@ void CX2GUAra::ASI_A_ARA_TIGER_CLAW_START_CreateState( UserUnitStateData& stateD
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ARA_TIGER_CLAW_START", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ARA_TIGER_CLAW_START", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_TIGER_CLAW_START_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_TIGER_CLAW_START_StateStart );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_TIGER_CLAW_START_FrameMove );
@@ -10798,6 +11421,10 @@ void CX2GUAra::ASI_A_ARA_TIGER_CLAW_START_StateStart()
 	m_FrameDataNow.stateParam.bSuperArmorNotRed = false;
 
 	m_usBeforeForceGainCount = m_usForceGainCount;
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	if( GetEqippedSkillMemo( CX2SkillTree::SMI_ARA_MEMO11 ) == true )
+		++m_usBeforeForceGainCount;
+#endif //ADD_MEMO_1ST_CLASS
 }
 
 /** @function 	: ASI_A_ARA_TIGER_CLAW_START_FrameMove
@@ -10805,12 +11432,20 @@ void CX2GUAra::ASI_A_ARA_TIGER_CLAW_START_StateStart()
 */
 void CX2GUAra::ASI_A_ARA_TIGER_CLAW_START_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.396f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.396f ) && true == EventCheck( 0.396f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Tiger_Claw", this, NULL, false, GetPowerRate() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.561f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.561f ) && true == EventCheck( 0.561f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tiger_Claw_1st", this, NULL, false, GetPowerRate() );
 	}
@@ -10826,7 +11461,11 @@ void CX2GUAra::ASI_A_ARA_TIGER_CLAW_START_EventProcess()
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -10868,7 +11507,7 @@ void CX2GUAra::ASI_A_ARA_TIGER_CLAW_END_CreateState( UserUnitStateData& stateDat
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ARA_TIGER_CLAW_END", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ARA_TIGER_CLAW_END", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_TIGER_CLAW_END_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_TIGER_CLAW_END_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ARA_TIGER_CLAW_END_EventProcess );
@@ -10890,12 +11529,20 @@ void CX2GUAra::ASI_A_ARA_TIGER_CLAW_END_Init()
 */
 void CX2GUAra::ASI_A_ARA_TIGER_CLAW_END_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Tiger_Claw_Final", this, NULL, false, GetPowerRate() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.165f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.165f ) && true == EventCheck( 0.165f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ATTACK_BOX_Tiger_Claw_2nd", this, NULL, false, GetPowerRate() );
 	}
@@ -10940,7 +11587,11 @@ void CX2GUAra::ASI_A_ARA_FORCE_SPEAR_Init()
 */
 void CX2GUAra::ASI_A_ARA_FORCE_SPEAR_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+if( true == m_pXSkinAnim->EventTimerOneshot( 0.198f ) && CanUseForcePower() )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.198f ) && true == EventCheck( 0.198f, false ) && CanUseForcePower() )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UseForcePower( 1 );
 
@@ -10969,10 +11620,10 @@ void CX2GUAra::ASI_A_ARA_FORCE_SPEAR_FrameMove()
 		{
 			USHORT usForceSpearPiercing = 0;
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_AM_FORCE_SPEAR ) );	/// 스킬 레벨
 	
@@ -11068,7 +11719,11 @@ void CX2GUAra::ASI_A_ARA_GAIN_FORCE_Init()
 */
 void CX2GUAra::ASI_A_ARA_GAIN_FORCE_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_usBeforeForceGainCount = m_usForceGainCount;
 
@@ -11085,7 +11740,11 @@ void CX2GUAra::ASI_A_ARA_GAIN_FORCE_FrameMove()
 #endif // ADD_ARA_MEMO
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( true == m_pXSkinAnim->EventTimerOneshot( 0.066f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( true == m_pXSkinAnim->EventTimer( 0.066f ) && true == EventCheck( 0.066f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetBonePos( L"Bip01" );
 		
@@ -11102,10 +11761,10 @@ void CX2GUAra::ASI_A_ARA_GAIN_FORCE_FrameMove()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_AM_GAIN_FORCE ) );	/// 스킬 레벨
 	
@@ -11115,12 +11774,25 @@ void CX2GUAra::ASI_A_ARA_GAIN_FORCE_FrameMove()
 			float fDrainRate = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MP_INTAKE_ABS );
 			USHORT usPiercing = static_cast<USHORT>( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_PIERCING ) );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
-
+			
 			// 마나 데미지
-			m_pGainForceDamaggeEffect = NULL;
-			m_pGainForceDamaggeEffect = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, 
-				L"DAMAGE_EFFECT_SI_A_ARA_GAIN_FORCE_INTAKE", fDrainRate, vPos, GetRotateDegree(), GetRotateDegree(),
-				m_FrameDataNow.unitCondition.landPosition.y );
+//#ifdef FIX_GAIN_FORCE_BUG
+			m_iGainForceDamageTimeNow = 0;
+			m_hGainForceIntakeEffect = INVALID_DAMAGE_EFFECT_HANDLE;
+			//코드가 너무 지저분해지는 것을 막기 위해 지역변수이지만 접두어 m_ 유지 함
+			CX2DamageEffect::CEffect* m_pGainForceDamaggeEffect = 
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_SI_A_ARA_GAIN_FORCE_INTAKE", 
+				fDrainRate, vPos, GetRotateDegree(), GetRotateDegree(),	m_FrameDataNow.unitCondition.landPosition.y );
+
+			if( NULL != m_pGainForceDamaggeEffect )
+				m_hGainForceIntakeEffect = m_pGainForceDamaggeEffect->GetHandle();
+//#else
+//			m_pGainForceDamaggeEffect = NULL;
+//			m_pGainForceDamaggeEffect = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, 
+//				L"DAMAGE_EFFECT_SI_A_ARA_GAIN_FORCE_INTAKE", fDrainRate, vPos, GetRotateDegree(), GetRotateDegree(),
+//				m_FrameDataNow.unitCondition.landPosition.y );
+//#endif // FIX_GAIN_FORCE_BUG
+
 #ifdef ADD_ARA_MEMO	// 적용날짜: 2013-03-22
 			// 기본 데미지
 			CX2DamageEffect::CEffect* pGainForceNormalDamage = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, 
@@ -11149,12 +11821,26 @@ void CX2GUAra::ASI_A_ARA_GAIN_FORCE_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( true == m_pXSkinAnim->EventTimerOneshot( 0.297f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( true == m_pXSkinAnim->EventTimer( 0.297f ) && true == EventCheck( 0.297f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		if ( NULL != m_pGainForceDamaggeEffect && 0 < m_pGainForceDamaggeEffect->GetDamageTimeNow() )
+//#ifdef FIX_GAIN_FORCE_BUG
+		if( 0 < m_iGainForceDamageTimeNow )
 		{
-			UpForcePower( m_usForceGainCount * m_pGainForceDamaggeEffect->GetDamageTimeNow() );
+			UpForcePower( m_usForceGainCount * m_iGainForceDamageTimeNow );
+			m_iGainForceDamageTimeNow = 0;
+			m_hGainForceIntakeEffect = INVALID_DAMAGE_EFFECT_HANDLE;
 		}
+//#else
+//		if ( NULL != m_pGainForceDamaggeEffect && 0 < m_pGainForceDamaggeEffect->GetDamageTimeNow() )
+//		{
+//			UpForcePower( m_usForceGainCount * m_pGainForceDamaggeEffect->GetDamageTimeNow() );
+//		}
+//#endif // FIX_GAIN_FORCE_BUG
+
 	}
 
 	CommonFrameMove();
@@ -11239,7 +11925,11 @@ void CX2GUAra::ASI_A_ALH_BREAKING_Init() //이화접목 대기
 }
 void CX2GUAra::ASI_A_ALH_BREAKING_FrameMove() //이화접목 대기
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Breaking", this );
 	}
@@ -11266,7 +11956,11 @@ void CX2GUAra::ASI_A_ALH_BREAKING_ATTACK_Init() //이화접목 공격
 }
 void CX2GUAra::ASI_A_ALH_BREAKING_ATTACK_FrameMove() //이화접목 공격
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.23f ) && true == EventCheck( 0.23f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Breaking_Attack", this );
 
@@ -11304,7 +11998,7 @@ void CX2GUAra::ASI_SA_ALH_DOUBLE_COLLISION_START_CreateState( UserUnitStateData&
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALH_DOUBLE_COLLISION_START", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALH_DOUBLE_COLLISION_START", stateData_.stateID );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_DOUBLE_COLLISION_START_Start );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_DOUBLE_COLLISION_START_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_DOUBLE_COLLISION_START_FrameMove );
@@ -11337,13 +12031,21 @@ void CX2GUAra::ASI_SA_ALH_DOUBLE_COLLISION_START_FrameMove() //팔괘장_START
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Double_Collision_01", this );
 			UpForcePower( 1 );	// 스킬 사용 기본 기력 회복
 			m_usBeforeForceGainCount = m_usForceGainCount;
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.5f ) && true == EventCheck( 0.5f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef ADD_ARA_MEMO	// 적용날짜: 2013-03-22
 		bool bIsMemoAttack = false;		/// 메모 적용 여부
@@ -11366,7 +12068,11 @@ void CX2GUAra::ASI_SA_ALH_DOUBLE_COLLISION_START_EventProcess() //팔괘장_START
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -11397,17 +12103,25 @@ void CX2GUAra::ASI_SA_ALH_DOUBLE_COLLISION_END_CreateState( UserUnitStateData& s
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALH_DOUBLE_COLLISION_END", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALH_DOUBLE_COLLISION_END", stateData_.stateID );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_DOUBLE_COLLISION_END_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_DOUBLE_COLLISION_END_EventProcess );
 }
 void CX2GUAra::ASI_SA_ALH_DOUBLE_COLLISION_END_FrameMove() //팔괘장_END
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Double_Collision_03", this );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.5f ) && true == EventCheck( 0.5f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_Double_Collision_04", this, NULL, false, GetPowerRate() );
 	}
@@ -11474,7 +12188,7 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_START_CreateState( UserUnitStateData& s
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ASD_TURBULENT_WAVE_START", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ASD_TURBULENT_WAVE_START", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_TURBULENT_WAVE_START_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_TURBULENT_WAVE_START_Start );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_TURBULENT_WAVE_START_FrameMove );
@@ -11508,7 +12222,11 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_START_FrameMove()// 맹호 4식 - 노도
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		UpForcePower(1);
 		m_hTempEffectSet = 
@@ -11520,23 +12238,43 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_START_FrameMove()// 맹호 4식 - 노도
 	//바닥 돌무더기 생성
 	if( true == IsOnSomethingFuture() )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.402f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( true == m_pXSkinAnim->EventTimer( 0.402f ) && true == EventCheck( 0.402f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{	
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Turbulent_Wave_Stream", this, NULL, false, GetPowerRate() );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 0.602f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( true == m_pXSkinAnim->EventTimer( 0.602f ) && true == EventCheck( 0.602f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{	
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Turbulent_Wave_Stream", this, NULL, false, GetPowerRate() );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 0.802f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( true == m_pXSkinAnim->EventTimer( 0.802f ) && true == EventCheck( 0.802f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{	
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Turbulent_Wave_Stream", this, NULL, false, GetPowerRate() );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 1.002f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( true == m_pXSkinAnim->EventTimer( 1.002f ) && true == EventCheck( 1.002f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{	
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Turbulent_Wave_Stream", this, NULL, false, GetPowerRate() );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 1.202f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( true == m_pXSkinAnim->EventTimer( 1.202f ) && true == EventCheck( 1.202f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{	
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Turbulent_Wave_Stream", this, NULL, false, GetPowerRate() );
 		}
@@ -11558,7 +12296,7 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_START_End()
 	
 	if( false == m_pXSkinAnim->IsAnimationEnd() )
 	{
-		if ( CX2EffectSet::INVALID_HANDLE != m_hTempEffectSet )
+		if ( INVALID_EFFECTSET_HANDLE != m_hTempEffectSet )
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_hTempEffectSet );
 
 	}
@@ -11569,7 +12307,7 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_LOOP_CreateState( UserUnitStateData& st
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ASD_TURBULENT_WAVE_LOOP", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ASD_TURBULENT_WAVE_LOOP", stateData_.stateID );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_TURBULENT_WAVE_LOOP_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_TURBULENT_WAVE_LOOP_EventProcess );
 	stateData_.StateEnd			= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_TURBULENT_WAVE_LOOP_End );
@@ -11580,15 +12318,27 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_LOOP_FrameMove()// 맹호 4식 - 노도
 	//바닥 돌무더기 생성
 	if( true == IsOnSomethingFuture() )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.051f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( true == m_pXSkinAnim->EventTimer( 0.051f ) && true == EventCheck( 0.051f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{	
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Turbulent_Wave_Stream", this, NULL, false, GetPowerRate() );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 0.251f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( true == m_pXSkinAnim->EventTimer( 0.251f ) && true == EventCheck( 0.251f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{	
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Turbulent_Wave_Stream", this, NULL, false, GetPowerRate() );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 0.451f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( true == m_pXSkinAnim->EventTimer( 0.451f ) && true == EventCheck( 0.451f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{	
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Turbulent_Wave_Stream", this, NULL, false, GetPowerRate() );
 		}
@@ -11600,7 +12350,11 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_LOOP_EventProcess()// 맹호 4식 - 노도
 	if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -11629,7 +12383,7 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_LOOP_EventProcess()// 맹호 4식 - 노도
 void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_LOOP_End()// 맹호 4식 - 노도
 {	
 	CommonStateEnd();
-	if ( CX2EffectSet::INVALID_HANDLE != m_hTempEffectSet )
+	if ( INVALID_EFFECTSET_HANDLE != m_hTempEffectSet )
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hTempEffectSet );
 }
 
@@ -11637,7 +12391,7 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_END_CreateState( UserUnitStateData& sta
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ASD_TURBULENT_WAVE_END", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ASD_TURBULENT_WAVE_END", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_TURBULENT_WAVE_END_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_TURBULENT_WAVE_END_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_TURBULENT_WAVE_END_EventProcess );
@@ -11651,7 +12405,11 @@ void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_END_Init()// 맹호 4식 - 노도
 }
 void CX2GUAra::ASI_SA_ASD_TURBULENT_WAVE_END_FrameMove()// 맹호 4식 - 노도
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( true == IsOnSomethingFuture() )
 		{
@@ -11721,7 +12479,12 @@ void CX2GUAra::ASI_SA_ASD_SUPPRESSION_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
-	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )		/// 전조 이펙트 생성을 위한 더미 데미지 이펙트 생성
+    /// 전조 이펙트 생성을 위한 더미 데미지 이펙트 생성
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )		
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )		
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 		// 오현빈 // 사내에서 기력 없이 사용 할 때 ASSERT발생 문제 수정
@@ -11751,7 +12514,12 @@ void CX2GUAra::ASI_SA_ASD_SUPPRESSION_FrameMove()
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	}
-	else if( true == m_pXSkinAnim->EventTimer( 1.15f ) && true == EventCheck( 1.15f, false ) )	/// 실제 타격 데미지 이펙트 생성
+    /// 실제 타격 데미지 이펙트 생성
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 1.15f ) )	
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( true == m_pXSkinAnim->EventTimer( 1.15f ) && true == EventCheck( 1.15f, false ) )	
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vFirePos = GetPos();
 
@@ -11772,30 +12540,32 @@ void CX2GUAra::ASI_SA_ASD_SUPPRESSION_FrameMove()
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifndef BALANCE_PATCH_20131107
 		if( NULL != pDE )		/// 스킬 레벨에 따른 버프 펙터 삽입
 		{
-			CX2DamageManager::DamageData *pDamageData = pDE->GetDamageData();
-			if( NULL != pDamageData )
+			CX2DamageManager::DamageData& damageData = pDE->GetDamageData();
+			//if( NULL != pDamageData )
 			{
 				const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_ASD_SUPPRESSION );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 				if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 				{
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit() )
 						return;
 
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 					const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ASD_SUPPRESSION ) );	/// 스킬 레벨
 
-					pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ), false ); /// 데미지 이펙트에 제압 디버프를 추가 ( 프레스 디버프, 제압 디버프 두가지 적용 )
+					damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ), false ); /// 데미지 이펙트에 제압 디버프를 추가 ( 프레스 디버프, 제압 디버프 두가지 적용 )
 				}
 #else //UPGRADE_SKILL_SYSTEM_2013
 				if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )	/// 데미지 이펙트에 제압 디버프를 추가 ( 프레스 디버프, 제압 디버프 두가지 적용 )
-					pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0], false );
+					damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0], false );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 			}
 		}
+#endif //BALANCE_PATCH_20131107
 	}
 
 	CommonFrameMove();
@@ -11841,16 +12611,28 @@ void CX2GUAra::ASI_SA_ALH_POWER_OF_WHITER_TIGER_FrameMove() // 맹호격
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		UpForcePower( 1 );
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Power_of_WhiteTiger_Start", this );	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if ( true == m_pXSkinAnim->EventTimerOneshot( 0.8f ) ) 
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if ( true == m_pXSkinAnim->EventTimer( 0.8f ) && true == EventCheck( 0.8f, false ) ) 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hTempEffectSet = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Power_of_WhiteTiger_BlackHole", this );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if ( true == m_pXSkinAnim->EventTimerOneshot( 1.f ) ) 
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if ( true == m_pXSkinAnim->EventTimer( 1.f ) && true == EventCheck( 1.f, false ) ) 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( true == GetIsRight() ) 
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Power_of_WhiteTiger_Face", this );		
@@ -11873,12 +12655,16 @@ void CX2GUAra::ASI_SA_ALH_POWER_OF_WHITER_TIGER_End()
 {
 	CommonStateEnd();
 
-	if ( CX2EffectSet::INVALID_HANDLE != m_hTempEffectSet )
+	if ( INVALID_EFFECTSET_HANDLE != m_hTempEffectSet )
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hTempEffectSet );
 }
 void CX2GUAra::ASI_SA_ALH_POWER_OF_WHITER_TIGER_LANDING_FrameMove() // 맹호격
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{				
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Power_of_WhiteTiger_Landing", this, NULL, false, GetPowerRate() );
 
@@ -11892,27 +12678,34 @@ void CX2GUAra::ASI_SA_ALH_POWER_OF_WHITER_TIGER_LANDING_FrameMove() // 맹호격
 				GetPowerRate(), GetBonePos(L"Bip01"), GetRotateDegree(), GetRotateDegree(), 
 				m_FrameDataNow.unitCondition.landPosition.y );
 		
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ARA_MEMO12 ) == true )
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_ALH_POWER_OF_WHITE_TIGER_MEMO_DEBUFF", 
+				GetPowerRate(), GetBonePos(L"Bip01"), GetRotateDegree(), GetRotateDegree(), 
+				m_FrameDataNow.unitCondition.landPosition.y );
+#endif //ADD_MEMO_1ST_CLASS
+
 		if( NULL != pDE )		/// 스킬 레벨에 따른 버프 펙터 삽입
 		{
-			CX2DamageManager::DamageData *pDamageData = pDE->GetDamageData();
-			if( NULL != pDamageData )
+			CX2DamageManager::DamageData& damageData = pDE->GetDamageData();
+			//if( NULL != pDamageData )
 			{
 				const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_ALH_WHITE_TIGER );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 				if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 				{
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit() )
 						return;
 
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 					const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ALH_WHITE_TIGER ) );	/// 스킬 레벨
 
-					pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+					damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 				}
 #else //UPGRADE_SKILL_SYSTEM_2013
 				if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
-					pDamageData->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+					damageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 				
 			}
@@ -11963,14 +12756,22 @@ void CX2GUAra::ASI_SA_ALH_PEERLESSNESS_SLASH_START_FrameMove() // 무쌍참
 	
 	const float fInvisibleStartTime = 0.55f;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		UpForcePower( 1 );				
 		CX2EffectSet::Handle hEffectSset =
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Peerlessness_Slash_Start", this );	
 		m_vecEffectSetToDeleteOnDie.push_back(hEffectSset);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( fInvisibleStartTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( true == m_pXSkinAnim->EventTimer( fInvisibleStartTime ) && true == EventCheck( fInvisibleStartTime, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		SetInvisibility(true);
 		m_fRenderParamColorA = 0.f;
@@ -11986,13 +12787,21 @@ void CX2GUAra::ASI_SA_ALH_PEERLESSNESS_SLASH_START_FrameMove() // 무쌍참
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Peerlessness_Slash_Attack_Effect", this, NULL, false, GetPowerRate() );
 		m_vecEffectSetToDeleteOnDie.push_back(hEffectSset);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 0.710f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( true == m_pXSkinAnim->EventTimer( 0.710f ) && true == EventCheck( 0.710f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CX2EffectSet::Handle hEffectSset =
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Peerlessness_Slash_Attack", this, NULL, false, GetPowerRate() );
 		m_vecEffectSetToDeleteOnDie.push_back(hEffectSset);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 1.532f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( true == m_pXSkinAnim->EventTimer( 1.532f ) && true == EventCheck( 1.532f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		SetInvisibility(false);
 		m_fRenderParamColorA = 1.f;
@@ -12007,7 +12816,11 @@ void CX2GUAra::ASI_SA_ALH_PEERLESSNESS_SLASH_START_EventProcess() // 무쌍참
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -12040,11 +12853,19 @@ void CX2GUAra::ASI_SA_ALH_PEERLESSNESS_SLASH_START_End() // 무쌍참
 }
 void CX2GUAra::ASI_SA_ALH_PEERLESSNESS_SLASH_END_FrameMove() // // 무쌍참
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Peerlessness_Slash_End", this );			
 	}	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 0.138f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( true == m_pXSkinAnim->EventTimer( 0.138f ) && true == EventCheck( 0.138f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Peerlessness_Slash_Last_Attack", this, NULL, false, GetPowerRate() );
 	}
@@ -12096,25 +12917,25 @@ void CX2GUAra::SetInvisibility(bool bVal_)
 	// 각성 상태라면 각성 파티클 켜고/끄기
 	if( GetRemainHyperModeTime() > 0.f )
 	{
-		if ( INVALID_PARTICLE_HANDLE != m_hHyperBoostRFoot )
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostRFoot )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq_RFoot = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostRFoot );
 			if( NULL != pSeq_RFoot )
 				pSeq_RFoot->SetShowObject( !m_bInvisibility );
 		}
-		if ( INVALID_PARTICLE_HANDLE != m_hHyperBoostLFoot )
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostLFoot )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq_LFoot = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostLFoot );
 			if( NULL != pSeq_LFoot )
 				pSeq_LFoot->SetShowObject( !m_bInvisibility );
 		}
-		if ( INVALID_PARTICLE_HANDLE != m_hHyperBoostRArm )
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostRArm )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq_RArm = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostRArm );
 			if( NULL != pSeq_RArm )
 				pSeq_RArm->SetShowObject( !m_bInvisibility );
 		}
-		if ( INVALID_PARTICLE_HANDLE != m_hHyperBoostLArm )
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostLArm )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq_LArm = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostLArm );
 			if( NULL != pSeq_LArm )
@@ -12129,7 +12950,7 @@ void CX2GUAra::ASI_SA_ALH_DESCENT_DRAGON_CreateState( UserUnitStateData& stateDa
 	//폭쇄
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALH_DESCENT_DRAGON", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALH_DESCENT_DRAGON", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_DESCENT_DRAGON_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_DESCENT_DRAGON_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALH_DESCENT_DRAGON_EventProcess );
@@ -12150,7 +12971,11 @@ void CX2GUAra::ASI_SA_ALH_DESCENT_DRAGON_FrameMove() /// 용아 최종오의 - 폭쇄
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		if ( true == GetIsRight() )
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ALH_Descent_Dragon", this );
@@ -12164,7 +12989,11 @@ void CX2GUAra::ASI_SA_ALH_DESCENT_DRAGON_FrameMove() /// 용아 최종오의 - 폭쇄
 			GetScaleByUnit(), true, GetPos(), GetRotateDegree() + D3DXVECTOR3( 0, 180, 0 ), GetDirVector() );
 #endif // VERIFY_STAT_BY_BUFF
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 0.725f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( true == m_pXSkinAnim->EventTimer( 0.725f ) && true == EventCheck( 0.725f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*)this, L"DAMAGE_EFFECT_ALH_DESCENT_DRAGON", 
 			GetPowerRate(), GetBonePos(L"Bip01"), GetRotateDegree(), GetRotateDegree(),
@@ -12191,7 +13020,7 @@ void CX2GUAra::ASI_A_ALH_ROCK_CRASH_FALLING_START_CreateState( UserUnitStateData
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ALH_ROCK_CRASH_FALLING_START", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ALH_ROCK_CRASH_FALLING_START", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_ROCK_CRASH_START_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_ROCK_CRASH_START_StateStart );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_ROCK_CRASH_START_FrameMove );
@@ -12226,16 +13055,24 @@ void CX2GUAra::ASI_A_ALH_ROCK_CRASH_START_StateStart()
 */
 void CX2GUAra::ASI_A_ALH_ROCK_CRASH_START_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CX2EffectSet::Handle hEffectSet = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Rock_Crash_Start", this, NULL,
 			false, GetPowerRate() );
 
-		if ( CX2EffectSet::INVALID_HANDLE != hEffectSet )
+		if ( INVALID_EFFECTSET_HANDLE != hEffectSet )
 			m_vecEffectSetToDeleteOnStateEnd.push_back( hEffectSet );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( true == m_pXSkinAnim->EventTimerOneshot( 0.275f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( true == m_pXSkinAnim->EventTimer( 0.275f ) && true == EventCheck( 0.275f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetBonePos( L"Bip01" );
 
@@ -12259,9 +13096,13 @@ void CX2GUAra::ASI_A_ALH_ROCK_CRASH_START_FrameMove()
 
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( true == m_pXSkinAnim->EventTimerOneshot( 0.655f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( true == m_pXSkinAnim->EventTimer( 0.655f ) && true == EventCheck( 0.655f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		if ( CX2EffectSet::INVALID_HANDLE != m_hTempEffectSet )
+		if ( INVALID_EFFECTSET_HANDLE != m_hTempEffectSet )
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_hTempEffectSet );
 	}
 
@@ -12276,7 +13117,11 @@ void CX2GUAra::ASI_A_ALH_ROCK_CRASH_START_EventProcess()
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -12308,7 +13153,7 @@ void CX2GUAra::ASI_A_ALH_ROCK_CRASH_START_EventProcess()
 */
 void CX2GUAra::ASI_A_ALH_ROCK_CRASH_START_StateEnd()
 {
-	if ( CX2EffectSet::INVALID_HANDLE != m_hTempEffectSet )
+	if ( INVALID_EFFECTSET_HANDLE != m_hTempEffectSet )
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hTempEffectSet );
 
 	CommonStateEnd();
@@ -12320,7 +13165,7 @@ void CX2GUAra::ASI_A_ALH_ROCK_CRASH_END_CreateState( UserUnitStateData& stateDat
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ALH_ROCK_CRASH_END", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ALH_ROCK_CRASH_END", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_ROCK_CRASH_END_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_ROCK_CRASH_END_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ALH_ROCK_CRASH_END_EventProcess );
@@ -12343,7 +13188,11 @@ void CX2GUAra::ASI_A_ALH_ROCK_CRASH_END_Init()
 */
 void CX2GUAra::ASI_A_ALH_ROCK_CRASH_END_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 #ifdef ADD_ARA_MEMO	// 적용날짜: 2013-03-27
@@ -12392,7 +13241,7 @@ void CX2GUAra::ASI_A_ASD_LOW_BRANDISH_SLIDING_CreateState( UserUnitStateData& st
 {
 	stateData_.Init();
 	stateData_.stateID	= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ASD_LOW_BRANDISH_SLICE", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ASD_LOW_BRANDISH_SLICE", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_LOW_BRANDISH_SLIDING_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_LOW_BRANDISH_SLIDING_StateStart );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_LOW_BRANDISH_SLIDING_FrameMove );
@@ -12427,7 +13276,11 @@ void CX2GUAra::ASI_A_ASD_LOW_BRANDISH_SLIDING_StateStart()
 */
 void CX2GUAra::ASI_A_ASD_LOW_BRANDISH_SLIDING_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Low_Brandish_Sliding_Kick", this, NULL, false, GetPowerRate() );
 
@@ -12446,7 +13299,11 @@ void CX2GUAra::ASI_A_ASD_LOW_BRANDISH_SLIDING_EventProcess()
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
 #ifdef FIX_SKILL_CANCEL_ARA
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -12485,7 +13342,7 @@ void CX2GUAra::ASI_A_ASD_LOW_BRANDISH_KICK_CreateState( UserUnitStateData& state
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ASD_LOW_BRANDISH_KICK", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ASD_LOW_BRANDISH_KICK", stateData_.stateID );
 	stateData_.StateInit			= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_LOW_BRANDISH_KICK_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_LOW_BRANDISH_KICK_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ASD_LOW_BRANDISH_KICK_EventProcess );
@@ -12507,7 +13364,11 @@ void CX2GUAra::ASI_A_ASD_LOW_BRANDISH_KICK_Init()
 */
 void CX2GUAra::ASI_A_ASD_LOW_BRANDISH_KICK_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_Low_Brandish_Kick", this );
 	}
@@ -12541,7 +13402,7 @@ void CX2GUAra::ASI_SA_ASD_VOID_BREAK_CreateState( UserUnitStateData& stateData_,
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ASD_VOID_BREAK", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ASD_VOID_BREAK", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_VOID_BREAK_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_VOID_BREAK_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ASD_VOID_BREAK_EventProcess );
@@ -12570,7 +13431,11 @@ void CX2GUAra::ASI_SA_ASD_VOID_BREAK_FrameMove()
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLightByBerserkMode( 0.001f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef FIX_ARA_SKILL_BUG
 		bool bHyper = false;
@@ -12590,10 +13455,10 @@ void CX2GUAra::ASI_SA_ASD_VOID_BREAK_FrameMove()
 
 		if( NULL != pDE )		/// 스킬 레벨에 따른 버프 펙터 삽입
 		{
-			CX2DamageManager::DamageData *pDamageData = pDE->GetDamageData();
-			if( NULL != pDamageData )
+			CX2DamageManager::DamageData& damageData = pDE->GetDamageData();
+			//if( NULL != pDamageData )
 			{
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 				CX2SkillTree* pSkillTree = g_pData->GetSkillTree();
 				const int iSkillLevel = userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ASD_POWER_OF_TIGER, true );
 
@@ -12605,7 +13470,7 @@ void CX2GUAra::ASI_SA_ASD_VOID_BREAK_FrameMove()
 					{
 						CX2BuffFactorPtr ptrBuffFactorClone = pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillLevel );
 						SetBuffFactorToGameUnit( *ptrBuffFactorClone );
-						pDamageData->PushBuffFactor( ptrBuffFactorClone );
+						damageData.PushBuffFactor( ptrBuffFactorClone );
 					}
 				}
 			}
@@ -12660,7 +13525,11 @@ void CX2GUAra::ASI_A_ARA_Quick_Piercing_EventProcess()
 
 void CX2GUAra::ASI_A_ARA_Quick_Piercing_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && true == EventCheck( m_fDamageDataChangeTime, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -12669,8 +13538,10 @@ void CX2GUAra::ASI_A_ARA_Quick_Piercing_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -12697,9 +13568,17 @@ void CX2GUAra::ASI_A_ARA_Shoulder_Blow_Init()
 */
 void CX2GUAra::ASI_A_ALH_Shoulder_Blow_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.001f ) && true == EventCheck( 0.001f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		UseForcePower( 2 );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		UseForcePower( 3 );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 		bool bHyper = false;
 		if ( GetRemainHyperModeTime() > 0.f )
@@ -12769,7 +13648,11 @@ void CX2GUAra::ASI_A_ASD_Falling_Blossom_Start_EventProcess()
 {
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( true == GetAvailableFPCancel ( m_eSkillID ) )	/// 기력 캔슬 동작
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
 			UpForcePower( m_usBeforeForceGainCount );
 			StateChangeSpecialAttack( m_eSkillID );
@@ -12845,11 +13728,19 @@ void CX2GUAra::ASI_A_ARA_Quick_Stab_Init()
 
 void CX2GUAra::ASI_A_ARA_Quick_Stab_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		UseForcePower( 2 );	
+#else BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		UseForcePower( 3 );
-		
+		//이펙트 수정되며 스크립트에서 출력하도록 수정.
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Ara_ZpushX_Attack", this, NULL, false, GetPowerRate() );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	}
 
 	CommonFrameMove();
@@ -12861,12 +13752,14 @@ void CX2GUAra::ASI_A_ARA_Quick_Stab_EventProcess()
 	{
 		StateChange( USI_WAIT );
 	}
+#ifndef BALANCE_PATCH_20131107 //김창한
 	// 발밑에 라인맵이 없으면
 	if ( false == IsOnSomethingFuture() )
 	{
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * _CONST_ARA_::MAGIC_NUMBER_MULTIPLY_LINE_RADIUS;
 	}
+#endif //BALANCE_PATCH_20131107
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
 	DASH_CANCEL_AFTER( m_fDashCancelAfter )
@@ -12934,6 +13827,17 @@ float CX2GUAra::GetReduceDebuffDurationRate(BUFF_TEMPLET_ID eBuffTempletID_)
 {
 	float fReduceDebuffDurationRate = 1.f;
 
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+	if ( NULL != g_pX2Game )
+	{
+		/// 해로운 효과라고 정의된 공식적인 디버프 리스트에 해당 버프가 포함되어 있다면, 버프 시간 감소
+		BOOST_FOREACH( BUFF_TEMPLET_ID eBuffTempletID, g_pX2Game->GetOfficiallyDebuffList() )
+		{
+			if ( eBuffTempletID_ == eBuffTempletID )
+				fReduceDebuffDurationRate = m_fReduceEDTDurationRate;
+		}
+	}
+#else // HAMEL_SECRET_DUNGEON
 	switch( eBuffTempletID_ )
 	{
 	case BTI_DEBUFF_FIRE:					/// 화상
@@ -12974,6 +13878,7 @@ float CX2GUAra::GetReduceDebuffDurationRate(BUFF_TEMPLET_ID eBuffTempletID_)
 	default:
 		break;
 	}
+#endif // HAMEL_SECRET_DUNGEON
 
 	return fReduceDebuffDurationRate;
 }
@@ -12982,6 +13887,39 @@ float CX2GUAra::GetReduceDebuffDurationRate(BUFF_TEMPLET_ID eBuffTempletID_)
 #endif //ARA_CHANGE_CLASS_FIRST
 #pragma endregion functions
 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+void CX2GUAra::ASI_HA_ASD_THOUSANDS_BLOSSOMS_Init()
+{
+	XSkinMeshReadyInBackground(L"ALH_MOONLIGHT_SLASH_BLADE_FULL_BASE.X");
+	XSkinMeshReadyInBackground(L"ALH_MOONLIGHT_SLASH_BLADE_FULL_LIGHT.X");
+	TextureReadyInBackground(L"ALH_MOONLIGHT_SLASH_MOON.tga");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50.X");
+	TextureReadyInBackground(L"SI_SA_ALH_MOONLIGHT_SLASH_MOON.tga");
+	TextureReadyInBackground(L"star2.dds");
+	TextureReadyInBackground(L"Arme_Damage_Ring.dds");
+	TextureReadyInBackground(L"Arme_Damage_Center.dds");
+	TextureReadyInBackground(L"Arme_Critical.dds");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	TextureReadyInBackground(L"WhitePoint.dds");
+	TextureReadyInBackground(L"ASD_1000_slash_01.tga");
+	XSkinMeshReadyInBackground(L"elsword_SA_SwordBlastiong_slash.X");
+}
+void CX2GUAra::ASI_HA_ASD_THOUSANDS_BLOSSOMS_EventProcess()
+{
+	if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		if ( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * _CONST_ARA_::MAGIC_NUMBER_MULTIPLY_LINE_RADIUS;
+		}
+		else
+			StateChange( USI_WAIT );
+	}
+
+	CommonEventProcess();
+}
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 
@@ -13255,7 +14193,7 @@ void CX2GUAra::ASI_A_ALD_WOLF_CLAW_CreateState( UserUnitStateData& stateData_, c
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ALD_WOLF_CLAW", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ALD_WOLF_CLAW", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_WOLF_CLAW_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_WOLF_CLAW_StateStart );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_WOLF_CLAW_EventProcess );
@@ -13331,7 +14269,7 @@ void CX2GUAra::ASI_A_ALD_WOLF_CLAW_FINISH_CreateState( UserUnitStateData& stateD
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ALD_WOLF_CLAW_FINISH", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ALD_WOLF_CLAW_FINISH", stateData_.stateID );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_WOLF_CLAW_FINISH_Init );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_WOLF_CLAW_FINISH_EventProcess );
 }
@@ -13390,7 +14328,7 @@ void CX2GUAra::ASI_A_ALD_CONVERSION_HEALTH_CreateState( UserUnitStateData& state
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ALD_CONVERSION_HEALTH", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ALD_CONVERSION_HEALTH", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_CONVERSION_HEALTH_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_CONVERSION_HEALTH_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_CONVERSION_HEALTH_EventProcess );
@@ -13426,7 +14364,7 @@ void CX2GUAra::ASI_A_ALD_CONVERSION_HEALTH_FrameMove()
 		if ( NULL != g_pData->GetSkillTree() &&
 			 NULL != GetUnit() )
 		{
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;					/// 유저 스킬 트리
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;					/// 유저 스킬 트리
 
 			const int iSkillLevel = userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ALD_CONVERSION_HEALTH );	/// 이혈공 스킬 레벨
 
@@ -13482,7 +14420,7 @@ void CX2GUAra::ASI_A_ALD_CONVERSION_MANA_CreateState( UserUnitStateData& stateDa
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_ALD_CONVERSION_MANA", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_ALD_CONVERSION_MANA", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_CONVERSION_MANA_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_CONVERSION_MANA_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_ALD_CONVERSION_MANA_EventProcess );
@@ -13518,7 +14456,7 @@ void CX2GUAra::ASI_A_ALD_CONVERSION_MANA_FrameMove()
 		if ( NULL != g_pData->GetSkillTree() &&
 			 NULL != GetUnit() )
 		{
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;					/// 유저 스킬 트리
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;					/// 유저 스킬 트리
 
 			const int iSkillLevel = userSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ALD_CONVERSION_MANA );	/// 이혈공 스킬 레벨
 
@@ -13574,7 +14512,7 @@ void CX2GUAra::ASI_A_AYR_HIGH_SPEED_READY_CreateState( UserUnitStateData& stateD
 {
 	stateData_.Init();
 	stateData_.stateID = iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_AYR_HIGH_SPEED_READY", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_AYR_HIGH_SPEED_READY", stateData_.stateID );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_HIGH_SPEED_READY_EventProcess );
 }
 
@@ -13617,7 +14555,7 @@ void CX2GUAra::ASI_A_AYR_HIGH_SPEED_CreateState( UserUnitStateData& stateData_, 
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_AYR_HIGH_SPEED", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_AYR_HIGH_SPEED", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_HIGH_SPEED_Init );
 	stateData_.StateStartFuture	= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_HIGH_SPEED_StateStartFuture );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_HIGH_SPEED_EventProcess );
@@ -13648,7 +14586,7 @@ void CX2GUAra::ASI_A_AYR_HIGH_SPEED_StateStartFuture()
 
 		if ( NULL != pSkillTemplet )
 		{
-			const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_AYR_HIGH_SPEED );
+			const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_AYR_HIGH_SPEED );
 
 			/// 속도 증가값 설정
 			m_fHighSpeedValue = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_REMOTE_SPEED_ABS, iSkillLevel );
@@ -13707,7 +14645,7 @@ void CX2GUAra::ASI_SA_ALD_ENERGY_WAVE_CreateState( UserUnitStateData& stateData_
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_ENERGY_WAVE", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_ENERGY_WAVE", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_ENERGY_WAVE_Init );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_ENERGY_WAVE_EventProcess );
 }
@@ -13767,7 +14705,7 @@ void CX2GUAra::ASI_SA_ALD_HELL_OF_TORNADO_CreateState( UserUnitStateData& stateD
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_HELL_OF_TORNADO", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_HELL_OF_TORNADO", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_HELL_OF_TORNADO_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_HELL_OF_TORNADO_StateStart );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_HELL_OF_TORNADO_EventProcess );
@@ -13850,7 +14788,7 @@ void CX2GUAra::ASI_SA_ALD_HELL_OF_TORNADO_FINISH_CreateState( UserUnitStateData&
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_HELL_OF_TORNADO_FINISH", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_HELL_OF_TORNADO_FINISH", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_HELL_OF_TORNADO_FINISH_Init );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_HELL_OF_TORNADO_FINISH_EventProcess );
 }
@@ -13911,7 +14849,7 @@ void CX2GUAra::ASI_SA_ALD_WOLF_SPEAR_CreateState( UserUnitStateData& stateData_,
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_WOLF_SPEAR", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_WOLF_SPEAR", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_WOLF_SPEAR_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_WOLF_SPEAR_StateStart );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_WOLF_SPEAR_EventProcess );
@@ -13973,7 +14911,7 @@ void CX2GUAra::ASI_SA_ALD_WOLF_SPEAR_FINISH_CreateState( UserUnitStateData& stat
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_WOLF_SPEAR_FINISH", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_WOLF_SPEAR_FINISH", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_WOLF_SPEAR_FINISH_Init );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_WOLF_SPEAR_FINISH_EventProcess );
 }
@@ -14019,7 +14957,7 @@ void CX2GUAra::ASI_SA_ALD_FINGER_BULLET_CreateState( UserUnitStateData& stateDat
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_FINGER_BULLET", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_FINGER_BULLET", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_FINGER_BULLET_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_FINGER_BULLET_StateStart );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_FINGER_BULLET_EventProcess );
@@ -14101,7 +15039,7 @@ void CX2GUAra::ASI_SA_ALD_FINGER_BULLET_FINISH_CreateState( UserUnitStateData& s
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_FINGER_BULLET_FINISH", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_FINGER_BULLET_FINISH", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_FINGER_BULLET_FINISH_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_FINGER_BULLET_FINISH_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_FINGER_BULLET_FINISH_EventProcess );
@@ -14183,7 +15121,7 @@ void CX2GUAra::ASI_SA_ALD_ENERGY_BEAD_CreateState( UserUnitStateData& stateData_
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_ENERGY_BEAD", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_ENERGY_BEAD", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_ENERGY_BEAD_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_ENERGY_BEAD_StateStart );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_ENERGY_BEAD_EventProcess );
@@ -14255,7 +15193,7 @@ void CX2GUAra::ASI_SA_ALD_ENERGY_BEAD_FINISH_CreateState( UserUnitStateData& sta
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_ENERGY_BEAD_FINISH", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_ENERGY_BEAD_FINISH", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_ENERGY_BEAD_FINISH_Init );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_ENERGY_BEAD_FINISH_EventProcess );
 }
@@ -14304,7 +15242,7 @@ void CX2GUAra::ASI_SA_ALD_PRISON_SPEAR_CreateState( UserUnitStateData& stateData
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_PRISON_SPEAR", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_PRISON_SPEAR", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_PRISON_SPEAR_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_PRISON_SPEAR_StateStart );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_PRISON_SPEAR_EventProcess );
@@ -14376,7 +15314,7 @@ void CX2GUAra::ASI_SA_ALD_PRISON_SPEAR_FINISH_CreateState( UserUnitStateData& st
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_PRISON_SPEAR_FINISH", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_PRISON_SPEAR_FINISH", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_PRISON_SPEAR_FINISH_Init );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_ENERGY_BEAD_FINISH_EventProcess );
 }
@@ -14424,7 +15362,7 @@ void CX2GUAra::ASI_A_AYR_STEAL_SOUL_CreateState( OUT UserUnitStateData& stateDat
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_AYR_STEAL_SOUL", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_AYR_STEAL_SOUL", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_STEAL_SOUL_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_STEAL_SOUL_StateStart );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_STEAL_SOUL_EventProcess );
@@ -14497,7 +15435,7 @@ void CX2GUAra::ASI_A_AYR_STEAL_SOUL_FINISH_CreateState( OUT UserUnitStateData& s
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_A_AYR_STEAL_SOUL_FINISH", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_A_AYR_STEAL_SOUL_FINISH", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_STEAL_SOUL_FINISH_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_STEAL_SOUL_FINISH_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_A_AYR_STEAL_SOUL_FINISH_EventProcess );
@@ -14584,7 +15522,7 @@ void CX2GUAra::ASI_SA_AYR_ENERGY_VOID_START_CreateState( UserUnitStateData& stat
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_AYR_ENERGY_VOID_START", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_AYR_ENERGY_VOID_START", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_ENERGY_VOID_START_Init );
 	stateData_.StateStartFuture	= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_ENERGY_VOID_START_StateStartFuture );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_ENERGY_VOID_START_StateStart );
@@ -14643,7 +15581,7 @@ void CX2GUAra::ASI_SA_AYR_ENERGY_VOID_LOOP_CreateState( UserUnitStateData& state
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_AYR_ENERGY_VOID_LOOP", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_AYR_ENERGY_VOID_LOOP", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_ENERGY_VOID_LOOP_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_ENERGY_VOID_LOOP_StateStart );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_ENERGY_VOID_LOOP_EventProcess );
@@ -14785,7 +15723,7 @@ void CX2GUAra::ASI_SA_AYR_ENERGY_VOID_END_CreateState( UserUnitStateData& stateD
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_AYR_ENERGY_VOID_END", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_AYR_ENERGY_VOID_END", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_ENERGY_VOID_END_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_ENERGY_VOID_END_StateStart );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_ENERGY_VOID_END_FrameMove );
@@ -14843,7 +15781,7 @@ if( true == m_pXSkinAnim->EventTimerOneshot( 0.08f ) &&
 			 NULL != g_pX2Game->GetEffectSet() &&
 			 NULL != GetUnit() )
 		{
-			const CX2UserSkillTree&		userSkillTree	= GetUnit()->GetUnitData()->m_UserSkillTree;		/// 유저 스킬 트리
+			const CX2UserSkillTree&		userSkillTree	= GetUnit()->GetUnitData().m_UserSkillTree;		/// 유저 스킬 트리
 			const int					iSkillLevel		= userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_AYR_ENERGY_VOID );	/// 스킬 레벨
 
 			/// 기본 데미지 배율에 차지 단계만큼 곱해준다. ( 차지 단계 * 차지 단계별 데미지 배율 )
@@ -14892,7 +15830,7 @@ void CX2GUAra::ASI_SA_AYR_SUPPRESSION_ENERGY_CreateState( UserUnitStateData& sta
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_AYR_SUPPRESSION_ENERGY", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_AYR_SUPPRESSION_ENERGY", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_SUPPRESSION_ENERGY_Init );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_SUPPRESSION_ENERGY_EventProcess );
 }
@@ -14953,7 +15891,7 @@ void CX2GUAra::ASI_SA_ALD_WOLF_BREAK_CreateState( UserUnitStateData& stateData_,
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_ALD_WOLF_BREAK", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_ALD_WOLF_BREAK", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_WOLF_BREAK_Init );
 	stateData_.StateStart		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_WOLF_BREAK_StateStart );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_ALD_WOLF_BREAK_FrameMove );
@@ -15072,7 +16010,7 @@ void CX2GUAra::ASI_SA_AYR_OPEN_THE_HELL_CreateState( UserUnitStateData& stateDat
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_SA_AYR_OPEN_THE_HELL", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_SA_AYR_OPEN_THE_HELL", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_OPEN_THE_HELL_Init );
 	stateData_.OnFrameMove		= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_OPEN_THE_HELL_FrameMove );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_SA_AYR_OPEN_THE_HELL_EventProcess );
@@ -15145,7 +16083,7 @@ void CX2GUAra::ASI_HA_AYR_ENERGY_CANNON_CreateState( UserUnitStateData& stateDat
 {
 	stateData_.Init();
 	stateData_.stateID			= iStateId_;
-	m_LuaManager.MakeTableReference( L"ASI_HA_AYR_ENERGY_CANNON", stateData_.stateID );
+	m_LuaManager.MakeTableReference( "ASI_HA_AYR_ENERGY_CANNON", stateData_.stateID );
 	stateData_.StateInit		= SET_CB_FUNC( CX2GUAra, ASI_HA_AYR_ENERGY_CANNON_Init );
 	stateData_.OnEventProcess	= SET_CB_FUNC( CX2GUAra, ASI_HA_AYR_ENERGY_CANNON_EventProcess );
 }
@@ -15204,9 +16142,9 @@ void CX2GUAra::ASI_HA_AYR_ENERGY_CANNON_EventProcess()
 
 void CX2GUAra::InitAquiredActiveSkillState( const int iSkillID_ )
 {
-	if ( NULL != GetUnit() && NULL != GetUnit()->GetUnitData() )
+	if ( NULL != GetUnit() )
 	{
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = 
 			userSkillTree.GetUserSkillTemplet( static_cast<CX2SkillTree::SKILL_ID>( iSkillID_ ) );
 		if ( NULL != pSkillTemplet )
@@ -15803,7 +16741,7 @@ void CX2GUAra::SetAttackResultDelegate()
 		 return;
 	}
 
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 	/// 아라 1차 전직 소마 - 흡혼 혹은 아라 2차 전직 소마 - 탈혼 습득시, 타격 정보 저장하는 기능 설정
 	if ( 0 < userSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_ALD_FINGER_BULLET ) ||
@@ -15888,7 +16826,7 @@ void CX2GUAra::AddHitUnitInfoByDamageData( const CX2DamageManager::DamageData& d
 	if ( NULL == GetUnit() )
 		return;
 
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 	/// 아라 1차 전직 소마 - 기력 강화
 	if ( 0 < userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ALD_ENERGY_REINFORCE ) )
@@ -15900,6 +16838,8 @@ void CX2GUAra::AddHitUnitInfoByDamageData( const CX2DamageManager::DamageData& d
 }
 #pragma endregion
 
+#ifndef SERV_9TH_NEW_CHARACTER // 김태환
+/// 다른 캐릭터들 전부 똑같은 함수를 쓰고 있으니, X2GUUser로 옮기자.
 #pragma region CreateNotEnoughMPEffect
 /** @function	: CreateNotEnoughMPEffect
 	@brief		: MP 부족시, 헛타 생성
@@ -15919,6 +16859,7 @@ void CX2GUAra::CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float 
 	}
 }
 #pragma endregion
+#endif //SERV_9TH_NEW_CHARACTER
 
 #pragma region GetStateIDBySecretSkillStartID
 /** @function	: GetAraStateIDBySecretSkillStartID
@@ -15931,7 +16872,7 @@ void CX2GUAra::CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float 
 	if ( NULL != GetUnit() )
 	{
 		/// 스킬 슬롯 StateID에 설정되어 있는 스킬 ID를 반환 ( 스킬 슬롯 State ID가 아니라면, SI_NONE 반환 )
-		const CX2SkillTree::SKILL_ID	eSkillIDBySlotData = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillIDByEquipSlotID( iStateID_ );
+		const CX2SkillTree::SKILL_ID	eSkillIDBySlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillIDByEquipSlotID( iStateID_ );
 
 		/// 스킬 ID에서 해당 스킬의 State ID를 반환
 		/// ( 기본 스킬 State ID는 스킬 슬롯의 인덱스 이므로, 해당 ID를 통해 실제 State ID를 반환 )
@@ -16039,3 +16980,36 @@ bool CX2GUAra::IsNoStageChangeSkill( IN const CX2SkillTree::SkillTemplet* pSkill
 }
 #pragma endregion
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+//#ifdef FIX_GAIN_FORCE_BUG
+/*virtual*/void CX2GUAra::AttackResultByType( CX2DamageManager::DamageData &pDamageData )
+{
+	if( CX2SkillTree::SI_A_AM_GAIN_FORCE == m_NowStateData.m_eSkillID )
+	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( m_hGainForceIntakeEffect == pDamageData.hAttackerEffect )
+			++m_iGainForceDamageTimeNow;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		CX2DamageEffect::CEffect* pEffect = static_cast<CX2DamageEffect::CEffect*>(pDamageData.pAttackerEffect);
+		if( m_hGainForceIntakeEffect == pDamageData.hAttackerEffect )
+		{
+			m_iGainForceDamageTimeNow = pEffect->GetDamageTimeNow();
+		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	}
+}
+//#endif // FIX_GAIN_FORCE_BUG
+
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+/** @function	: GetHypetMpdeStateID
+	@brief		: 아라 3각성 여부에 따른 스테이트 아이디 반환
+	@return		: 스테이트 아이디
+*/
+/*virtual*/ const int CX2GUAra::GetHypetMpdeStateID()
+{
+	if ( 3 <= m_FrameDataFuture.syncData.m_HyperModeCount )
+		return static_cast<int>( ASI_BERSERK_MODE );
+	else
+		return static_cast<int>( USI_HYPER_MODE );
+}
+#endif //SKILL_CANCEL_BY_HYPER_MODE

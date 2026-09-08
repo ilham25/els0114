@@ -13,6 +13,9 @@ KLottery::~KLottery()
 KLottery& KLottery::operator=( const KLottery& t )
 {
     m_mapCase       = t.m_mapCase;
+//#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+	m_multimapCase  = t.m_multimapCase;
+//#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
     m_dTotalProb    = t.m_dTotalProb;
     return *this;
 }
@@ -20,6 +23,9 @@ KLottery& KLottery::operator=( const KLottery& t )
 void KLottery::Clear()
 {
 	m_mapCase.clear();
+//#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+	m_multimapCase.clear();
+//#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 	m_dTotalProb = 0.f;
 }
 
@@ -306,5 +312,98 @@ bool KLottery::AddMultiProbRate( double dRate )
 }
 //#endif SERV_REFORM_ITEM_DROP
 //}}
+
+//#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+bool KLottery::AddDuplicateCaseIntegerCast( int nCaseID, double dProbability, int nParam1 /*= PARAM_BLANK*/, int nParam2 /*= PARAM_BLANK*/ )
+{
+	if( static_cast<int>(m_dTotalProb + dProbability) > 100 )
+	{
+		START_LOG( cerr, L"100.1퍼센트를 넘는 확률 설정을 시도." )
+			<< BUILD_LOG( nCaseID )
+			<< BUILD_LOG( dProbability )
+			<< BUILD_LOG( m_dTotalProb )
+			<< BUILD_LOG( m_multimapCase.size() )
+			<< END_LOG;
+
+		return false;
+	}
+
+	KCaseUnit kUnit = { dProbability, nParam1, nParam2 };
+	m_multimapCase.insert( std::make_pair( nCaseID, kUnit ) );
+	m_dTotalProb += dProbability;
+
+	return true;
+}
+
+int KLottery::GetDuplicateParam1( int nCaseID, int iPeriod, int iQuantity  ) const
+{
+	std::multimap< int, KCaseUnit >::const_iterator mmit;
+
+	for( mmit = m_multimapCase.begin(); mmit != m_multimapCase.end(); ++mmit )
+	{		
+		if( mmit->first == nCaseID && mmit->second.m_nParam1 == iPeriod && mmit->second.m_nParam2 == iQuantity )
+		{
+			return mmit->second.m_nParam1;
+		}
+	}
+
+	return PARAM_BLANK;
+}
+
+int KLottery::GetDuplicateParam2( int nCaseID, int iPeriod, int iQuantity  ) const
+{
+	std::multimap< int, KCaseUnit >::const_iterator mmit;
+
+	for( mmit = m_multimapCase.begin(); mmit != m_multimapCase.end(); ++mmit )
+	{		
+		if( mmit->first == nCaseID && mmit->second.m_nParam1 == iPeriod && mmit->second.m_nParam2 == iQuantity )
+		{
+			return mmit->second.m_nParam2;
+		}
+	}
+
+	return PARAM_BLANK;
+}
+
+KLottery::KDuplicateCaseResult KLottery::DuplicateDecision( double& dCheckRoulette ) const
+{
+	static boost::uniform_real<> uni_dist(0,100);
+	static boost::variate_generator<boost::minstd_rand&, boost::uniform_real<> > uni(generator, uni_dist);
+
+	double dRoulette = (double)uni();
+
+	//{{ 2008. 5. 23  최육사  어뷰저 체크
+	dCheckRoulette = dRoulette;
+	//}}
+
+	double dAccumulate = 0.0f;
+	std::multimap<int,KCaseUnit>::const_iterator mit;
+	KDuplicateCaseResult kDuplicateCaseResult;
+	kDuplicateCaseResult.m_iItemID = -1;
+	kDuplicateCaseResult.m_nParam1 = -1;
+	kDuplicateCaseResult.m_nParam2 = -1;
+
+	for( mit = m_multimapCase.begin(); mit != m_multimapCase.end(); mit++ )
+	{
+		dAccumulate += mit->second.m_dProb;
+		if( dRoulette <= dAccumulate )
+		{
+			kDuplicateCaseResult.m_iItemID = mit->first;
+			kDuplicateCaseResult.m_nParam1 = mit->second.m_nParam1;
+			kDuplicateCaseResult.m_nParam2 = mit->second.m_nParam2;
+			return kDuplicateCaseResult;
+		}
+	}
+	return kDuplicateCaseResult;
+}
+
+//{{ 2008. 5. 23  최육사  어뷰저 체크 - 기존 인터페이스
+KLottery::KDuplicateCaseResult KLottery::DuplicateDecision() const
+{
+	double dCheckRoulette;
+	return DuplicateDecision( dCheckRoulette );
+}
+//}}
+//#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
 
 //#endif SERV_DOUBLE_LOTTERY

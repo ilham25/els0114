@@ -35,6 +35,16 @@ public:
 //#endif //SERV_POST_BAN_WORD_FILTER
 	};
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	enum FILTER_WORD_TYPE
+	{
+		FWT_NICKNAME = 0,
+		FWT_NICKNAMEWORD,
+		FWT_WORD,
+		FWT_POSTWORD,
+	};
+#endif //SERV_STRING_FILTER_USING_DB
+
 	CXSLStringFilter();
 	virtual ~CXSLStringFilter(void);
 
@@ -57,6 +67,10 @@ public:
 #ifdef SERV_POST_BAN_WORD_FILTER
 	void	AddPostWordFilter_LUA( char* szFilter );
 #endif //SERV_POST_BAN_WORD_FILTER
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	void	GetStringFilter( OUT StringFilterVector& vecStringFilter );
+#endif //SERV_STRING_FILTER_USING_DB
 
 protected:
 

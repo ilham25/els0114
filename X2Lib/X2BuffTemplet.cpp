@@ -1,5 +1,5 @@
 /** @file : X2BuffTemplet.cpp
-    @breif : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½àµ¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    @breif : ¹öÇÁÀÇ Çàµ¿°ú Á¾·áµîÀ» °¡Áö°í ÀÖ´Â Å¬·¡½º Á¤ÀÇ ÆÄÀÏ
 */
 #pragma once
 
@@ -7,47 +7,47 @@
 #include ".\X2BuffTemplet.h"
 
 /** @function : ParsingScript
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ð¾ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Æ¸Å´ï¿½ï¿½ï¿½(luaManager_)
-	@return : ï¿½Ä½ï¿½ ï¿½ï¿½ï¿½ï¿½ true, ï¿½ï¿½ï¿½ï¿½ false ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ ÅÛÇÃ¸´ ½ºÅ©¸³Æ®À» ÀÐ¾îµéÀÓ
+	@param : ÇöÀç ½ºÅ©¸³Æ®ÀÇ ·ç¾Æ¸Å´ÏÀú(luaManager_)
+	@return : ÆÄ½Ì ¼º°ø true, ½ÇÆÐ false ¸®ÅÏ
 */
 bool CX2BuffTemplet::ParsingScript( KLuaManager& luaManager_ )
 {
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½
+	/// ¹öÇÁ ¾ÆÀÌµð
 	LUA_GET_VALUE_RETURN_ENUM( luaManager_, "BUFF_TEMPLET_ID", m_BuffIdentity.m_eBuffTempletID, 
 		BUFF_TEMPLET_ID, BTI_NONE, return DISPLAY_ERROR( L"BUFF_TEMPLET_ID" ) );
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ¿ùµå ¿©ºÎ
 	LUA_GET_VALUE_RETURN( luaManager_, "IS_WORLD_BUFF", m_bWorldBuff, false, return DISPLAY_ERROR( L"IS_WORLD_BUFF" ) );
 
-	/// ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ¹öÇÁ, µð¹öÇÁ ¿©ºÎ
 	LUA_GET_VALUE_RETURN( luaManager_, "IS_DEBUF", m_bDeBuff, false, return DISPLAY_ERROR( L"IS_DEBUF" ) );
 
-	/// ï¿½ßºï¿½, ï¿½ï¿½Ã¼, ï¿½ï¿½Ã¸ ï¿½ï¿½ï¿½ï¿½
+	/// Áßº¹, ±³Ã¼, ÁßÃ¸ ¿©ºÎ
 	LUA_GET_VALUE_RETURN( luaManager_, "ACCUMULATION_LIMIT", m_uiAccumulationLimit, 0, return DISPLAY_ERROR( L"ACCUMULATION_LIMIT" ) );
 
-	if ( 1 < m_uiAccumulationLimit )	/// ï¿½ï¿½Ã¸ È½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (0 ï¿½ï¿½ 1ï¿½ï¿½ ï¿½ï¿½Ã¸ï¿½ï¿½ ï¿½Æ´ï¿½)
+	if ( 1 < m_uiAccumulationLimit )	/// ÁßÃ¸ È½¼ö°¡ Á¤ÇØÁ® ÀÖÀ¸¸é (0 °ú 1Àº ÁßÃ¸ÀÌ ¾Æ´Ô)
 	{
-		/// ï¿½ï¿½Ã¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¾ï¿½ï¿½ï¿½ï¿½
+		/// ÁßÃ¸ ¹èÀ²À» ÀÐ¾îµéÀÓ
 		float fAccumulationMultiplier = 0.0f;
 		LUA_GET_VALUE_RETURN( luaManager_, "ACCUMULATION_MULTIPLIER", fAccumulationMultiplier, 0, return DISPLAY_ERROR( L"ACCUMULATION_MULTIPLIER" ) );
 
 		m_mapUnCommonMember.insert( make_pair( UCM_ACCUMULATION_MULTIPLIER, fAccumulationMultiplier ) );
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¸ Ä«ï¿½ï¿½Æ®
+		/// ÇöÀç ÁßÃ¸ Ä«¿îÆ®
 		m_mapUnCommonMember.insert( make_pair( UCM_ACCUMULATION_COUNT_NOW, 0.0f ) );
 	}
 
-	/// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+	/// ÀúÇ× Å¸ÀÔ
 	float fRegistType = 0.0f;
 	LUA_GET_VALUE_RETURN( luaManager_, "REGIST_TYPE", fRegistType, 0.0f, return DISPLAY_ERROR( L"REGIST_TYPE" ) );
 
-	/// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ET_NONE(0) ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½
+	/// ÀúÇ× Å¸ÀÔÀÌ ET_NONE(0) ÀÌ ¾Æ´Ï¸é
 	if ( 0.0f < fRegistType )
 		m_mapUnCommonMember.insert( make_pair( UCM_REGIST_TYPE, fRegistType ) );
 
 
-	/// ï¿½àµ¿ ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½
+	/// Çàµ¿ ¿ä¼Ò ÆÄ½Ì
 	if ( luaManager_.BeginTable( "BEHAVIOR" ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
@@ -61,7 +61,7 @@ bool CX2BuffTemplet::ParsingScript( KLuaManager& luaManager_ )
 		return DISPLAY_ERROR( L"BEHAVIOR Templet doesn't exist" );
 
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½
+	/// Á¾·á ¿ä¼Ò ÆÄ½Ì
 	if ( luaManager_.BeginTable( "FINALIZER" ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
@@ -74,7 +74,7 @@ bool CX2BuffTemplet::ParsingScript( KLuaManager& luaManager_ )
 	else
 		return DISPLAY_ERROR( L"FINALIZER Templet doesn't exist" );
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½
+	/// Á¾·á ¿ä¼Ò ÆÄ½Ì
 	if ( luaManager_.BeginTable( "DISPLAYER" ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
@@ -84,7 +84,7 @@ bool CX2BuffTemplet::ParsingScript( KLuaManager& luaManager_ )
 			if ( !CX2BuffDisplayerTemplet::ParsingCombinationDisplayer( luaManager_, m_vecDisplayerPtr ) )
 				return false;		
 	}
-	// Displayerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ else ï¿½Ç´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.
+	// Displayer´Â ¾øÀ» ¼öµµ ÀÖÀ¸¹Ç·Î else ÆÇ´ÜÀ» ÇÏÁö ¾Ê´Â´Ù.
 
 #ifdef BUFF_ICON_UI
 	LUA_GET_VALUE( luaManager_, "BUFF_ICON_TEXTURE_NAME", m_wstIconFileName, L"" );
@@ -102,29 +102,29 @@ bool CX2BuffTemplet::ParsingScript( KLuaManager& luaManager_ )
 }
 
 /** @function : SetFactor
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ ï¿½Þ¾Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (buffFactor_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ true, ï¿½ï¿½ï¿½Ð½ï¿½ false
+	@brief : ¹öÇÁ ¿ä¼Ò¸¦ ¹Þ¾Æ¼­ ¹öÇÁ ÅÛÇÃ¸´¿¡ ¼ÂÆÃÇÏ°í, ¹öÇÁ¸¦ ½ÃÀÛ ½ÃÅ°´Â ÇÔ¼ö
+	@param : ¹öÇÁ ¿ä¼Ò (buffFactor_), ¹öÇÁ°¡ Àû¿ëµÇ¾ßÇÒ À¯´Ö(pGameUnit_)
+	@return : ¼º°ø½Ã true, ½ÇÆÐ½Ã false
 */
 bool CX2BuffTemplet::SetFactor( const CX2BuffFactor& buffFactor_, CX2GameUnit* pGameUnit_ )
 {
-	/// ï¿½àµ¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// Çàµ¿Á¶°Ç ¼ÂÆÃ
 	BOOST_FOREACH( CX2BuffBehaviorTempletPtr ptrBehavior, m_vecBehaviorPtr )
 	{
 		if ( NULL != ptrBehavior && ptrBehavior->SetFactor( buffFactor_, pGameUnit_, this ) )
-			ptrBehavior->SetStart( true );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			ptrBehavior->SetStart( true );	/// Á¤»ó ½ÇÇà
 		else
 			return false;
 	}
 
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// Á¾·áÁ¶°Ç ¼ÂÆÃ
 	if ( false == SetFactorToOnlyFinalizer( buffFactor_, pGameUnit_ ) )
 		return false;
 
-	if ( GetAccumulationLimit() > 1 )	/// ï¿½ï¿½Ã¸ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ã¸ Ä«ï¿½ï¿½Æ® ï¿½Ã·ï¿½ï¿½ï¿½
+	if ( GetAccumulationLimit() > 1 )	/// ÁßÃ¸ µÇ´Â °ÍÀÌ¶ó¸é À§ÀÇ Ç×¸ñµéÀ» ½ÇÇà ÈÄ ÁßÃ¸ Ä«¿îÆ® ¿Ã·ÁÁÜ
 		IncreaseAccumulationCountNow();
 
-	/// Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// Ç¥ÇöÁ¶°Ç ¼ÂÆÃ
 	BOOST_FOREACH( CX2BuffDisplayerTempletPtr ptrDisplayer, m_vecDisplayerPtr )
 	{
 		if ( NULL != ptrDisplayer )
@@ -134,16 +134,11 @@ bool CX2BuffTemplet::SetFactor( const CX2BuffFactor& buffFactor_, CX2GameUnit* p
 		}
 	}
 
-#ifdef BUFF_ICON_UI
+#ifdef BUFF_ICON_UI		
 	if( true == GetUseBuffIcon() )
 	{
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-		CX2GageUI::BuffIcon BuffIconData( buffFactor_.GetBuffTempletID(), GetIconFileName(),
-			GetIconKeyName(), GetBuffName(), GetBuffDesc(), GetRemainDurationTime() );
-#else
-		CX2GageUI::BuffIcon BuffIconData( buffFactor_.GetBuffTempletID(), GetIconFileName(),
+		CX2GageUI::BuffIcon BuffIconData( buffFactor_.GetBuffTempletID(), GetIconFileName(), 
 			GetIconKeyName(), GetBuffName(), GetBuffDesc() );
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 		CX2GageManager::GetInstance()->PushBuff( pGameUnit_->GetUnitUID(), BuffIconData, IsDeBuff() );
 	}
 #endif //BUFF_ICON_UI
@@ -152,43 +147,43 @@ bool CX2BuffTemplet::SetFactor( const CX2BuffFactor& buffFactor_, CX2GameUnit* p
 }
 
 /** @function : SetFactorFromPacket
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å´
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(kBuffFactor_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
-	@return : ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½(false)
+	@brief : ¼­¹ö·Î ºÎÅÍ ¹ÞÀº ¹öÇÁ¿ä¼Ò·Î ¹öÇÁÅÛÇÃ¸´À» ½ÇÇà ½ÃÅ´
+	@param : ¼­¹ö·ÎºÎÅÍ ¹ÞÀº ¹öÇÁ¿ä¼Ò(kBuffFactor_), ¹öÇÁ°¡ Àû¿ëµÉ °ÔÀÓÀ¯´Ö(pGameUnit_)
+	@return : ¼º°ø(true), ½ÇÆÐ(false)
 */
 bool CX2BuffTemplet::SetFactorFromPacket( const KBuffFactor& kBuffFactor_, CX2GameUnit* pGameUnit_ )
 {
 	SetUniqueNum( kBuffFactor_.m_BuffIdentity.m_uiUniqueNum );
 
-	if ( GetAccumulationLimit() > 1 )	/// ï¿½ï¿½Ã¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½
+	if ( GetAccumulationLimit() > 1 )	/// ÁßÃ¸ °¡´ÉÇÑ °ÍÀÌ¸é
 	{
 		const float fAccumulationCountNow = static_cast<float>( kBuffFactor_.m_ucAccumulationCountNow );
 		
 		pair<MAP_UN_COMMON_MEMBER::iterator, bool> pairReturn
 			= m_mapUnCommonMember.insert( make_pair( UCM_ACCUMULATION_COUNT_NOW, fAccumulationCountNow ) ); 
 
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß´Ù¸ï¿½
+		/// ±âÁ¸¿¡ Å°°ªÀÌ Á¸Àç Çß´Ù¸é
 		if ( !pairReturn.second )
 			pairReturn.first->second = fAccumulationCountNow;
 	}
 	
-	/// ï¿½àµ¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// Çàµ¿Á¶°Ç ¼ÂÆÃ
 	BOOST_FOREACH( CX2BuffBehaviorTempletPtr ptrBehavior, m_vecBehaviorPtr )
 	{
 		if ( NULL != ptrBehavior && ptrBehavior->SetFactorFromPacketTemplateMothod( kBuffFactor_, pGameUnit_ ) )
-			ptrBehavior->SetStart( true );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			ptrBehavior->SetStart( true );	/// Á¤»ó ½ÇÇà
 		else
 			return false;
 	}
 
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// Á¾·áÁ¶°Ç ¼ÂÆÃ
 	BOOST_FOREACH( CX2BuffFinalizerTempletPtr ptrFinalizer, m_vecFinalizerPtr )
 	{
 		if ( NULL != ptrFinalizer && !ptrFinalizer->SetFactorFromPacketTemplateMothod( kBuffFactor_, pGameUnit_ ) )
 			return false;
 	}
 
-	/// Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// Ç¥ÇöÁ¶°Ç ¼ÂÆÃ
 	BOOST_FOREACH( CX2BuffDisplayerTempletPtr ptrDisplayer, m_vecDisplayerPtr )
 	{
 		if ( NULL != ptrDisplayer )
@@ -202,8 +197,8 @@ bool CX2BuffTemplet::SetFactorFromPacket( const KBuffFactor& kBuffFactor_, CX2Ga
 }
 
 /** @function : GetAccumulationCountNow
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@return : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¸ È½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(UINT, ï¿½ï¿½Ã¸ï¿½ï¿½ ï¿½ÈµÇ´ï¿½ ï¿½ï¿½ï¿½ 0ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	@brief : ÇöÀç ¸î ÁßÃ¸ÀÎÁö ¾ò¾î¿È
+	@return : ÇöÀç ÁßÃ¸ È½¼ö ¸®ÅÏ(UINT, ÁßÃ¸ÀÌ ¾ÈµÇ´Â °æ¿ì 0À» ¸®ÅÏ)
 */
 UINT CX2BuffTemplet::GetAccumulationCountNow() const
 {
@@ -218,7 +213,7 @@ UINT CX2BuffTemplet::GetAccumulationCountNow() const
 }
 
 /** @function : IncreaseAccumulationCountNow
-	@brief : ï¿½ï¿½Ã¸ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¸ È½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½
+	@brief : ÁßÃ¸ÀÌ µÇ´Â °æ¿ì ÁßÃ¸ È½¼ö 1Áõ°¡
 */
 void CX2BuffTemplet::IncreaseAccumulationCountNow()
 {
@@ -231,8 +226,8 @@ void CX2BuffTemplet::IncreaseAccumulationCountNow()
 }
 
 /** @function : GetRegistType
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@return : ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½(UINT)ï¿½ï¿½ï¿½ï¿½ ï¿½Ö·ï¿½ CX2EnchantItem::ENCHANT_TYPEï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½
+	@brief : Àû¿ëµÉ ÀúÇ× Å¸ÀÔÀ» ¾ò¾î¿È
+	@return : ÀúÇ×Å¸ÀÔ(UINT)À¸·Î ÁÖ·Î CX2EnchantItem::ENCHANT_TYPEÀ¸·Î º¯È¯ÇÏ¿© »ç¿ë
 */
 UINT CX2BuffTemplet::GetRegistType() const
 {
@@ -247,8 +242,8 @@ UINT CX2BuffTemplet::GetRegistType() const
 }
 
 /** @function : GetAccumulationMultiflier
-	@brief : ï¿½ï¿½Ã¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@return : ï¿½ï¿½Ã¸ ï¿½ï¿½ï¿½ï¿½(float)
+	@brief : ÁßÃ¸ °¡´ÉÇÑ °æ¿ì ÁßÃ¸ ¹èÀ²À» ¾ò¾î¿È
+	@return : ÁßÃ¸ ¹èÀ²(float)
 */
 float CX2BuffTemplet::GetAccumulationMultiflier() const
 {
@@ -265,29 +260,47 @@ float CX2BuffTemplet::GetAccumulationMultiflier() const
 }
 
 /** @function : OnFrameMoveBehavior
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½àµ¿ ï¿½ï¿½Òµï¿½ï¿½ï¿½ OnFrameMove ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : ¹öÇÁÅÛÇÃ¸´ÀÇ Çàµ¿ ¿ä¼ÒµéÀÇ OnFrameMove ½ÇÇà
+	@param : ¹öÇÁ°¡ Àû¿ëµÈ À¯´Ö(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2BuffTemplet::OnFrameMoveBehavior( CX2GameUnit* pGameUnit_, float fElapsedTime )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2BuffTemplet::OnFrameMoveBehavior( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	BOOST_FOREACH( CX2BuffBehaviorTempletPtr ptrBehavior, m_vecBehaviorPtr )
 	{
 		if ( NULL != ptrBehavior )
+        {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            ptrBehavior->OnFrameMove( pGameUnit_, this, fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			ptrBehavior->OnFrameMove( pGameUnit_, this );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        }
 	}
 }
 
 /** @function : OnFrameMoveFinalizerAndCheckFinish
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Òµï¿½ï¿½ï¿½ OnFrameMove ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½á¿©ï¿½Î¸ï¿½ ï¿½Ç´ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : ¹öÇÁÅÛÇÃ¸´ÀÇ Á¾·á ¿ä¼ÒµéÀÇ OnFrameMove ½ÇÇà ¹× Á¾·á¿©ºÎ¸¦ ÆÇ´Ü
+	@param : ¹öÇÁ°¡ Àû¿ëµÈ À¯´Ö(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2BuffTemplet::OnFrameMoveFinalizerAndCheckFinish( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2BuffTemplet::OnFrameMoveFinalizerAndCheckFinish( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	BOOST_FOREACH( CX2BuffFinalizerTempletPtr ptrFinalizer, m_vecFinalizerPtr )
 	{
 		if ( NULL != ptrFinalizer )
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            ptrFinalizer->OnFrameMove( pGameUnit_, fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			ptrFinalizer->OnFrameMove( pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 			if ( ptrFinalizer->DidFinish( pGameUnit_ ) )
 				SetDidFinish( true );
@@ -297,23 +310,31 @@ void CX2BuffTemplet::OnFrameMoveFinalizerAndCheckFinish( CX2GameUnit* pGameUnit_
 
 
 /** @function : OnFrameMoveDisplayer
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½ï¿½Òµï¿½ï¿½ï¿½ OnFrameMove ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : ¹öÇÁÅÛÇÃ¸´ÀÇ Ç¥Çö ¿ä¼ÒµéÀÇ OnFrameMove ½ÇÇà
+	@param : ¹öÇÁ°¡ Àû¿ëµÈ À¯´Ö(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2BuffTemplet::OnFrameMoveDisplayer( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2BuffTemplet::OnFrameMoveDisplayer( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( !m_vecDisplayerPtr.empty() )
 	{
 		BOOST_FOREACH( CX2BuffDisplayerTempletPtr ptrDisplayer, m_vecDisplayerPtr )
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            ptrDisplayer->OnFrameMove( pGameUnit_, fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			ptrDisplayer->OnFrameMove( pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		}
 	}
 }
 
 /** @function : DoFinishBehavior
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½àµ¿ï¿½ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : ÇöÀç ½ÇÇàµÇ°í ÀÖ´Â ¹öÇÁ°¡ Á¾·áµÉ ¶§ ÅÛÇÃ¸´ÀÇ Çàµ¿¿ä¼Ò°¡ Á¾·áµÉ ¶§ ¼öÇàµÇ¾ßÇÏ´Â ÇÔ¼öµéÀ» ½ÇÇà
+	@param : ¹öÇÁ°¡ Àû¿ëÁßÀÎ °ÔÀÓÀ¯´Ö(pGameUnit_)
 */
 void CX2BuffTemplet::DoFinishBehavior( CX2GameUnit* pGameUnit_ )
 {
@@ -324,8 +345,8 @@ void CX2BuffTemplet::DoFinishBehavior( CX2GameUnit* pGameUnit_ )
 }
 
 /** @function : DoFinishBehavior
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½àµ¿ï¿½ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : ÇöÀç ½ÇÇàµÇ°í ÀÖ´Â ÅÛÇÃ¸´ÀÇ Çàµ¿¿ä¼Ò°¡ Á¾·áµÉ ¶§ ¼öÇàµÇ¾ßÇÏ´Â ÇÔ¼öµéÀ» ½ÇÇà
+	@param : ¹öÇÁ°¡ Àû¿ëÁßÀÎ °ÔÀÓÀ¯´Ö(pGameUnit_)
 */
 void CX2BuffTemplet::DoFinishDisplayer( CX2GameUnit* pGameUnit_ )
 {
@@ -336,8 +357,8 @@ void CX2BuffTemplet::DoFinishDisplayer( CX2GameUnit* pGameUnit_ )
 }
 
 /** @function : GetFactor
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½)
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½(kBuffFactor_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : ÇöÀç ½ÇÇàµÇ°í ÀÖ´Â ¹öÇÁÀÇ ¼öÇà¿ä¼Ò Á¤º¸¸¦ ¾ò¾î¿À´Â ÇÔ¼ö(¼­¹ö¸¦ ÅëÇØ ÆÐÅ¶Àü¼ÛÇÏ±â À§ÇØ)
+	@param : Á¤º¸¸¦ ´ãÀ» ÀúÀå¼Ò(kBuffFactor_), ¹öÇÁ¸¦ °¡Áö°í ÀÖ´Â °ÔÀÓÀ¯´Ö(pGameUnit_)
 */
 void CX2BuffTemplet::GetFactor( OUT KBuffFactor& kBuffFactor_, const CX2GameUnit* pGameUnit_ ) const
 {
@@ -353,7 +374,7 @@ void CX2BuffTemplet::GetFactor( OUT KBuffFactor& kBuffFactor_, const CX2GameUnit
 			ptr->GetFactor( kBuffFactor_.m_vecBuffFinalizerFactors, pGameUnit_ );
 		}
 
-		/// Ç¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½.(m_vecDisplayerPtr)
+		/// Ç¥ÇöÁ¶°ÇÀº ³­ÀÔÀÚ¿¡°Ô Àü¼ÛÇÒ ÇÊ¿ä°¡ ¾øÀ¸¹Ç·Î ¼öÇàÇÏÁö ¾Ê´Â´Ù.(m_vecDisplayerPtr)
 
 		kBuffFactor_.m_BuffIdentity = m_BuffIdentity;
 
@@ -366,13 +387,13 @@ void CX2BuffTemplet::GetFactor( OUT KBuffFactor& kBuffFactor_, const CX2GameUnit
 }
 
 /** @function : SetFactorToOnlyFinalizer
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½Ã¸Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¸ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ÅµÇµï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½)
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (buffFactor_), ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
-	@return : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ true, ï¿½ï¿½ï¿½Ð½ï¿½ false
+	@brief : Á¾·áÁ¶°Ç¿¡¸¸ ÆÑÅÍ Àû¿ë(ÁßÃ¸Ä«¿îÆ®°¡ ÃÖ´ëÀÎ ÀÌÈÄ¿¡µµ Á¾·áÁ¶°ÇÀº °è¼Ó ÁßÃ¸¿¡ ÀÇÇØ¼­ °»½ÅµÇµµ·Ï ÇÏ±â À§ÇØ »ç¿ë)
+	@param : ¹öÇÁ ¿ä¼Ò (buffFactor_), ¹öÇÁ°¡ Àû¿ëµÇ¾ßÇÒ À¯´Ö(pGameUnit_)
+	@return : ¼º°ø½Ã true, ½ÇÆÐ½Ã false
 */
 bool CX2BuffTemplet::SetFactorToOnlyFinalizer( const CX2BuffFactor& buffFactor_, CX2GameUnit* pGameUnit_ )
 {
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// Á¾·áÁ¶°Ç ¼ÂÆÃ
 	BOOST_FOREACH( CX2BuffFinalizerTempletPtr ptrFinalizer, m_vecFinalizerPtr )
 	{
 		if ( !ptrFinalizer->SetFactor( buffFactor_, pGameUnit_, this ) )
@@ -382,8 +403,8 @@ bool CX2BuffTemplet::SetFactorToOnlyFinalizer( const CX2BuffFactor& buffFactor_,
 }
 
 /** @function : GetFinalizerTempletPtrList
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+	@brief : Á¾·áÁ¶°ÇµéÀ» ¾ò¾î¿À´Â ÇÔ¼ö
+	@param : ¾ò¾î¿Â Á¾·áÁ¶°ÇÀ» ´ãÀ» ÇÔ¼ö
 */
 void CX2BuffTemplet::GetFinalizerTempletPtrList( OUT vector<CX2BuffFinalizerTempletPtr>& vecFinalizerPtr_ )
 {
@@ -392,8 +413,8 @@ void CX2BuffTemplet::GetFinalizerTempletPtrList( OUT vector<CX2BuffFinalizerTemp
 }
 
 /** @function : SetFinalizerTempletPtrList
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : Á¾·áÁ¶°ÇµéÀ» ¼ÂÆÃ ÇÏ´Â ÇÔ¼ö
+	@param : ¼¼ÆÃÇÒ Á¾·áÁ¶°Ç
 */
 void CX2BuffTemplet::ChangeFinalizerTempletPtrList( const vector<CX2BuffFinalizerTempletPtr>& vecFinalizerPtr_ )
 {
@@ -401,29 +422,12 @@ void CX2BuffTemplet::ChangeFinalizerTempletPtrList( const vector<CX2BuffFinalize
 	m_vecFinalizerPtr = vecFinalizerPtr_;
 }
 
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-//////////////////////////////////////////////////////////////////////////
-// Author: Iruha
-// Date: 2026-08-25
-// Description: Remaining seconds of this buff's BFT_TIME finalizer, if any
-float CX2BuffTemplet::GetRemainDurationTime() const
-{
-	BOOST_FOREACH( CX2BuffFinalizerTempletPtr ptrFinalizer, m_vecFinalizerPtr )
-	{
-		if ( NULL != ptrFinalizer && BFT_TIME == ptrFinalizer->GetType() )
-			return ptrFinalizer->GetRemainTime();
-	}
-	return -1.f;
-}
-//////////////////////////////////////////////////////////////////////////
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
-
 /** @function : ReserveToFinish
-	@brief : ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø³ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
+	@brief : ´ÙÀ½ Ã¼Å©½Ã Á¾·áµÇµµ·Ï ¿¹¾à ÇØ³õ´Â ÇÔ¼ö
 */
 void CX2BuffTemplet::ReserveToFinish()
 {
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// Á¾·áÁ¶°Ç ¼ÂÆÃ
 	BOOST_FOREACH( CX2BuffFinalizerTempletPtr ptrFinalizer, m_vecFinalizerPtr )
 	{
 		if ( NULL != ptrFinalizer )
@@ -434,8 +438,8 @@ void CX2BuffTemplet::ReserveToFinish()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** @function : SetBasicStatValue
-	@brief :ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½(ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½)
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(fValue_)
+	@brief :½ºÅÈÁß ±âº»°ªÀ» ¼ÂÆÃÇÏ´Â ÇÔ¼ö(½ºÅ©¸³Æ®°ª ¶Ç´Â ¿ùµå º¯¼öµîÀ» Àû¿ëÇÑ °ª µî)
+	@param : ¼ÂÆÃÇÒ °ª(fValue_)
 */
 void CX2AdditionalStatByBuff::SetBasicStatValue( const float fValue_ )
 { 
@@ -447,8 +451,8 @@ void CX2AdditionalStatByBuff::SetBasicStatValue( const float fValue_ )
 }
 
 /** @function : SetOptionValue
-	@brief :ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½É¼Ç¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(fValue_)
+	@brief :½ºÅÈÁß ¼ÒÄÏ ¿É¼Ç¿¡ ÀÇÇÑ °ªÀ» ¼ÂÆÃÇÏ´Â ÇÔ¼ö
+	@param : ¼ÂÆÃÇÒ °ª(fValue_)
 */
 void CX2AdditionalStatByBuff::SetOptionValue( const float fValue_ )
 {
@@ -460,8 +464,8 @@ void CX2AdditionalStatByBuff::SetOptionValue( const float fValue_ )
 }
 
 /** @function : SetPassiveSum
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½Ð½Ãºï¿½ ï¿½ï¿½ 0.0ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò½Ã¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì³Ê½ï¿½(-), ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ (+) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(fValue_)
+	@brief : ½ºÅÈÀ» ¿Ã¸®´Â ÆÐ½Ãºê Áß 0.0À» ±âÁØÀ¸·Î °¨¼Ò½Ã¿¡´Â ¸¶ÀÌ³Ê½º(-), Áõ°¡½Ã¿¡´Â (+) °ªÀÎ ¿ä¼Ò¸¦ ¼ÂÆÃÇÏ´Â ÇÔ¼ö
+	@param : ¼ÂÆÃÇÒ °ª(fValue_)
 */
 void CX2AdditionalStatByBuff::SetPassiveSum( const float fValue_ )
 {
@@ -473,8 +477,8 @@ void CX2AdditionalStatByBuff::SetPassiveSum( const float fValue_ )
 }
 
 /** @function : SetPassiveMultiple
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½Ð½Ãºï¿½ ï¿½ï¿½ 1.0ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò½Ã¿ï¿½ï¿½ï¿½ 0.0~1.0, ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ 1.0 ~ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½(fValue_)
+	@brief : ½ºÅÈÀ» ¿Ã¸®´Â ÆÐ½Ãºê Áß 1.0À» ±âÁØÀ¸·Î °¨¼Ò½Ã¿¡´Â 0.0~1.0, Áõ°¡½Ã¿¡´Â 1.0 ~ °ªÀÎ ¿ä¼Ò¸¦ ¼ÂÆÃ
+	@param : ¼ÂÆÃÇÒ °ª(fValue_)
 */
 void CX2AdditionalStatByBuff::SetPassiveMultiple( const float fValue_ )
 {
@@ -486,15 +490,15 @@ void CX2AdditionalStatByBuff::SetPassiveMultiple( const float fValue_ )
 }
 
 /** @function : UpdateResultValueByChangeType
-	@brief : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ôºï¿½(Ä¡È¯, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡, %) ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : º¯°æ Å¸ÀÔº°(Ä¡È¯, °íÁ¤¼öÄ¡, ¿¬µ¿¼öÄ¡, %) °á°ú°ª °»½Å
 */
 void CX2AdditionalStatByBuff::UpdateResultValueByChangeType()
 {
-	if ( m_bitsetMustChange.any() )	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if ( m_bitsetMustChange.any() )	/// º¯°æµÈ °ÍÀÌ ÀÖ´Ù¸é °»½Å
 	{
 		if ( m_bitsetMustChange.test( BCT_SWAP_VALUE ) )
 		{
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¡È¯ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ¹«Á¶°Ç Ä¡È¯¿ä¼ÒÁß Á¦ÀÏ ³ªÁß¿¡ °É¸°°Í Àû¿ë
 			if ( m_vecStatFactorArray[BCT_SWAP_VALUE].empty() )
 				m_fArrayResultValueByChangeType[BCT_SWAP_VALUE] = 0.0f;
 			else
@@ -546,42 +550,42 @@ void CX2AdditionalStatByBuff::UpdateResultValueByChangeType()
 			m_fArrayResultValueByChangeType[BCT_PERCENT] = fResultValueByChangeType;
 		}
 
-		m_bitsetMustChange.reset();	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ ï¿½Ê±ï¿½È­
+		m_bitsetMustChange.reset();	/// º¯°æÀ» Àû¿ë ÇßÀ¸¹Ç·Î ÃÊ±âÈ­
 	}		
 }
 
 /** @function : UpdateResultValue
-	@brief : ï¿½É¼Ç¼ï¿½Ä¡È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+	@brief : ¿É¼Ç¼öÄ¡È­¿Í °ü°è¾ø´Â ¶Ç´Â ±âº»°ªÀÌ Á¸ÀçÇÏ´Â ½ºÅÈÀÇ °á°ú°ªÀ» ¾÷µ¥ÀÌÆ® ÇÏ´Â ÇÔ¼ö
 */
 void CX2AdditionalStatByBuff::UpdateResultValue()
 {
-	if ( !m_vecStatFactorArray[BCT_SWAP_VALUE].empty() )	/// Ä¡È¯ï¿½ï¿½Ò°ï¿½ ï¿½Ö´Ù¸ï¿½
+	if ( !m_vecStatFactorArray[BCT_SWAP_VALUE].empty() )	/// Ä¡È¯¿ä¼Ò°¡ ÀÖ´Ù¸é
 	{
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä¡È¯ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ¹«Á¶°Ç Ä¡È¯¿ä¼ÒÁß Á¦ÀÏ ³ªÁß¿¡ °É¸°°Í Àû¿ë
 		SetResultValue( m_fArrayResultValueByChangeType[BCT_SWAP_VALUE] );
 	}
-	else	/// Ä¡È¯ï¿½ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½
+	else	/// Ä¡È¯¿ä¼Ò°¡ ¾ø´Ù¸é
 	{
 		float fResultValue = GetBasicStatValue();
 		fResultValue += GetOptionValue();
 		fResultValue += m_fArrayResultValueByChangeType[BCT_FIX_VALUE];
 		fResultValue += m_fArrayResultValueByChangeType[BCT_RELATION_VALUE];
 
-		/// ï¿½Ð½Ãºê½ºÅ³ï¿½ï¿½ ï¿½Õ¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ percent ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÆÐ½Ãºê½ºÅ³ÀÇ ÇÕ¹èÀ²°ú °ö¹èÀ² ¹× ¹öÇÁÀÇ percent ¹èÀ²À» ¸ðµÎ °öÇÔ
 		const float fMultiplier 
 			= ( 1 + GetPassiveSum() ) * GetPassiveMultiple() * m_fArrayResultValueByChangeType[BCT_PERCENT];
-		if ( fMultiplier > 0.0f )	/// È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÒµÇ´ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ 1.0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ 1.0ï¿½ï¿½ï¿½ï¿½ Å­
+		if ( fMultiplier > 0.0f )	/// È¿°ú°¡ °¨¼ÒµÇ´Â °æ¿ì¿¡´Â 0º¸´Ù Å©°í 1.0º¸´Ù ÀÛÀ½, Áõ°¡µÇ´Â °æ¿ì 1.0º¸´Ù Å­
 			fResultValue += GetBasicStatValue() * (fMultiplier - 1.0f);
 #ifdef _IN_HOUSE_
 		else
 		{
-			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ // 2013-08-16
-			// 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß»ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½×¿ï¿½ ï¿½ï¿½ï¿½ï¿½ 
-			// ï¿½ï¿½ï¿½ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.
-			// ex ) ï¿½Î½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½, 
-			//		ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½. 90% ï¿½ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½Ñµï¿½ 1ï¿½ï¿½ ï¿½Ç°ï¿½ ï¿½Ç´Âµï¿½,
-			//		100% ï¿½ï¿½ï¿½Ã°ï¿½ ï¿½ß»ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
-			DISPLAY_ERROR(L"BattleFieldBuffFactor.lua ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.\nPERCENT ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
+			// ¿ÀÇöºó // 2013-08-16
+			// 0À¸·Î ¸¸µé¾úÀ» ¶§ ¹ß»ýÇÒ ¼ö ÀÖ´Â ¿À·ù »çÇ×¿¡ ´ëÇÑ 
+			// ¿¹¿ÜÃ³¸®¸¦ À§ÇØ ±âÈ¹ÀûÀ¸·Î »ç¿ë ÇÒ ¼ö ¾øµµ·Ï Á¦ÇÑÇß½À´Ï´Ù.
+			// ex ) ÀÎ½ºÆåÅÍÀÇ °æ¿ì Æ¯Á¤ ±¸°£¿¡ ¹«Á¶°Ç µ¥¹ÌÁö¸¦ 1·Î ÁÖ±â À§ÇØ, 
+			//		¹æ¾î·ÂÀ» ³ô°Ô Àâ¾Æ¼­. 90% °¨¼Ò¸¦ ½ÃÄÑµµ 1·Î ÇÇ°Ý µÇ´Âµ¥,
+			//		100% ¹«½Ã°¡ ¹ß»ýÇÏ¸é ÇÑ ¹ø¿¡ ¸¹Àº µ¥¹ÌÁö¸¦ ÁÙ ¼ö ÀÖ±â ¶§¹®¿¡ Á¦ÇÑ.
+			DISPLAY_ERROR(L"BattleFieldBuffFactor.lua ¼³Á¤ ¿À·ù.\nPERCENT °ªÀ» 0À¸·Î ¼³Á¤ ÇÒ ¼ö ¾ø½À´Ï´Ù.");
 		}
 #endif // _IN_HOUSE_
 
@@ -591,23 +595,23 @@ void CX2AdditionalStatByBuff::UpdateResultValue()
 }
 
 /** @function : UpdateResultValue
-	@brief : ï¿½É¼Ç¼ï¿½Ä¡È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½âº»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+	@brief : ¿É¼Ç¼öÄ¡È­¿Í °ü°è¾ø´Â ¶Ç´Â ±âº»°ªÀÌ Á¸ÀçÇÏ´Â ½ºÅÈÀÌ º¯°æµÇ¾ú´ÂÁö¸¦ °Ë»çÇÏ°í, °á°ú°ªÀ» ¾÷µ¥ÀÌÆ® ÇÏ´Â ÇÔ¼ö
 */
 void CX2AdditionalStatByBuff::CheckAndUpdateResultValue()
 { 
 	if ( GetMustChangeResultValue() )
 	{
-		/// ï¿½ï¿½ Å¸ï¿½Ôºï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+		/// °¢ Å¸ÀÔº° ¸®½ºÆ® °»½Å
 		UpdateResultValueByChangeType();
 
-		/// ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÀüÃ¼°ª °»½Å
 		UpdateResultValue();
 	}
 }
 
 /** @function : CreateAndInsertStatFactor
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½(eChangeType_), ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½È°ï¿½(fStatValue_)
+	@brief : ¹öÇÁ¿¡ ÀÇÇØ Áõ°¡µÇ´Â ¿ä¼Ò¸¦ ¸¸µé°í »ðÀÔÇÔ
+	@param : °íÁ¤, ¿¬µ¿ ¼öÄ¡µî º¯µ¿Å¸ÀÔ(eChangeType_), ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ º¯È­ÀÎÁö ±¸ºÐ(BuffIdentity_), ½ºÅÈ°ª(fStatValue_)
 */
 void CX2AdditionalStatByBuff::CreateAndInsertStatFactor( const BUFF_CHANGE_TYPE eChangeType_, const KBuffIdentity& BuffIdentity_, const float fStatValue_ )
 {
@@ -624,9 +628,9 @@ void CX2AdditionalStatByBuff::CreateAndInsertStatFactor( const BUFF_CHANGE_TYPE 
 }
 
 /** @function : UpdateAddtionalStatFactor
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Identityï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½(eChangeType_), ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_), ï¿½ï¿½ï¿½Èºï¿½ï¿½æ°ª(fStatValue_)
-	@return: ï¿½ï¿½ï¿½ï¿½(true), ï¿½ï¿½ï¿½ï¿½(false) ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ÜºÎ¿ï¿½ï¿½ï¿½ Create ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁÀÇ Identity°¡ ÀÏÄ¡ÇÏ´Â °ÍÀ» Ã£¾Æ¼­ ½ºÅÈ °»½Å
+	@param : °íÁ¤, ¿¬µ¿ ¼öÄ¡µî º¯µ¿Å¸ÀÔ(eChangeType_), ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ º¯È­ÀÎÁö ±¸ºÐ(BuffIdentity_), ½ºÅÈº¯°æ°ª(fStatValue_)
+	@return: ¼º°ø(true), ½ÇÆÐ(false) ·Î ½ÇÆÐÇÏ¸é ¿ÜºÎ¿¡¼­ Create ½ÇÇà
 */
 bool CX2AdditionalStatByBuff::UpdateAddtionalStatFactor( const BUFF_CHANGE_TYPE eChangeType_, const KBuffIdentity& BuffIdentity_, const float fValue_ )
 {
@@ -648,8 +652,8 @@ bool CX2AdditionalStatByBuff::UpdateAddtionalStatFactor( const BUFF_CHANGE_TYPE 
 }
 
 /** @function : EraseStatFactor
-	@brief :ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Identityï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ¼ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½(eChangeType_), ï¿½î¶² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(BuffIdentity_)
+	@brief :¹öÇÁÀÇ Identity°¡ ÀÏÄ¡ÇÏ´Â °ÍÀ» Ã£¾Æ¼­ È¿°ú »èÁ¦
+	@param : °íÁ¤, ¿¬µ¿ ¼öÄ¡µî º¯µ¿Å¸ÀÔ(eChangeType_), ¾î¶² ¹öÇÁ¿¡ ÀÇÇÑ º¯È­ÀÎÁö ±¸ºÐ(BuffIdentity_)
 */
 void CX2AdditionalStatByBuff::EraseStatFactor( const BUFF_CHANGE_TYPE eChangeType_, const KBuffIdentity& BuffIdentity_ )
 {
@@ -710,22 +714,22 @@ bool CX2AdditionalStatByBuff::VerifyArrayResult()
 #endif // VERIFY_STAT_BY_BUFF
 
 /** @function : PlayEffectSetImpactPointByBuff
-	@brief : Å¸ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_), Å¸ï¿½ï¿½ï¿½ï¿½Ä¡(vImpactPos_)
+	@brief : Å¸°Ý À§Ä¡¿¡ ÁöÁ¤µÈ ÀÌÆåÆ®¼Â Ãâ·Â
+	@param : ÀÌÆåÆ®¼ÂÀ» ½ÇÇà½ÃÅ°´Â °ÔÀÓÀ¯´Ö(pGameUnit_), Å¸°ÝÀ§Ä¡(vImpactPos_)
 */
 void CX2EffectSetImpactPointByBuff::PlayEffectSetImpactPointByBuff( CX2GameUnit* pGameUnit_, const D3DXVECTOR3& vImpactPos_ )
 {
 	if ( NULL != g_pX2Game )
 	{
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09
-		if ( m_fNowCoolTime >= m_fCreateGap )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09
+		if ( m_fNowCoolTime >= m_fCreateGap )		/// »ý¼º °£°ÝÀÌ Áö³µÀ» ¶§, »ý¼º Ã³¸®
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( m_wstrEffectSetName, pGameUnit_, 
 				NULL, ( 0.0f < pGameUnit_->GetRemainHyperModeTime() ), pGameUnit_->GetPowerRate(), -1.f, D3DXVECTOR3( 1.0f, 1.0f, 1.0f ), 
 				true, vImpactPos_ );
 			PlaySound( pGameUnit_ );
 
-			m_fNowCoolTime = 0.f;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+			m_fNowCoolTime = 0.f;		/// »ý¼º °£°Ý ÃÊ±âÈ­
 		}
 #else // SERV_NEW_DEFENCE_DUNGEON
 		g_pX2Game->GetEffectSet()->PlayEffectSet( m_wstrEffectSetName, pGameUnit_, 
@@ -737,21 +741,21 @@ void CX2EffectSetImpactPointByBuff::PlayEffectSetImpactPointByBuff( CX2GameUnit*
 }
 
 /** @function : PlayEffectSetHittedByBuff
-	@brief : ï¿½Ç°Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : ÇÇ°Ý½Ã ÁöÁ¤µÈ ÀÌÆåÆ®¼Â Ãâ·Â
+	@param : ÀÌÆåÆ®¼ÂÀ» ½ÇÇà½ÃÅ°´Â °ÔÀÓÀ¯´Ö(pGameUnit_)
 */
 void CX2EffectSetImpactPointByBuff::PlayEffectSetHittedByBuff( CX2GameUnit* pGameUnit_ )
 {
 	if ( NULL != g_pX2Game )
 	{
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09
-		if ( m_fNowCoolTime >= m_fCreateGap )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09
+		if ( m_fNowCoolTime >= m_fCreateGap )		/// »ý¼º °£°ÝÀÌ Áö³µÀ» ¶§, »ý¼º Ã³¸®
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( m_wstrEffectSetName, pGameUnit_,
 			NULL, ( 0.0f < pGameUnit_->GetRemainHyperModeTime() ), pGameUnit_->GetPowerRate() );
 			PlaySound( pGameUnit_ );
 
-			m_fNowCoolTime = 0.f;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+			m_fNowCoolTime = 0.f;	/// »ý¼º °£°Ý ÃÊ±âÈ­
 		}
 #else // SERV_NEW_DEFENCE_DUNGEON
 		g_pX2Game->GetEffectSet()->PlayEffectSet( m_wstrEffectSetName, pGameUnit_,
@@ -762,8 +766,8 @@ void CX2EffectSetImpactPointByBuff::PlayEffectSetHittedByBuff( CX2GameUnit* pGam
 }
 
 /** @function : PlaySound
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½å¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : »ç¿îµå Ãâ·Â
+	@param : »ç¿îµå¸¦ ½ÇÇà½ÃÅ°´Â °ÔÀÓÀ¯´Ö(pGameUnit_)
 */
 void CX2EffectSetImpactPointByBuff::PlaySound( CX2GameUnit* pGameUnit_ )
 {
@@ -771,30 +775,30 @@ void CX2EffectSetImpactPointByBuff::PlaySound( CX2GameUnit* pGameUnit_ )
 		pGameUnit_->PlaySound( m_wstrSoundName.c_str() );
 }
 
-#ifdef SERV_NEW_DEFENCE_DUNGEON // ï¿½ï¿½ï¿½ë³¯Â¥ : 2013-04-09
+#ifdef SERV_NEW_DEFENCE_DUNGEON // Àû¿ë³¯Â¥ : 2013-04-09
 
 /** @function : PlayEffectSetNormalAttackByBuff
-	@brief : ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ý½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_), Å¸ï¿½ï¿½ï¿½ï¿½Ä¡(vImpactPos_)
+	@brief : ÀÏ¹Ý °ø°Ý Å¸°Ý½Ã ÀÌÆåÆ®¼Â »ý¼º
+	@param : ÀÌÆåÆ®¼ÂÀ» ½ÇÇà½ÃÅ°´Â °ÔÀÓÀ¯´Ö(pGameUnit_), Å¸°ÝÀ§Ä¡(vImpactPos_)
 */
 void CX2EffectSetImpactPointByBuff::PlayEffectSetNormalAttackByBuff( CX2GameUnit* pGameUnit_, const CX2DamageManager::ATTACK_TYPE eAttackType )
 {
 	if ( NULL != g_pX2Game )
 	{
-		if ( m_fNowCoolTime >= m_fCreateGap && CX2DamageManager::AT_NORMAL == eAttackType )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¶ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+		if ( m_fNowCoolTime >= m_fCreateGap && CX2DamageManager::AT_NORMAL == eAttackType )		/// »ý¼º °£°ÝÀÌ Áö³µ°í, ÀÏ¹Ý °ø°ÝÀÏ¶§ »ý¼º Ã³¸®
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( m_wstrEffectSetName, pGameUnit_, 
 				NULL, ( 0.0f < pGameUnit_->GetRemainHyperModeTime() ), pGameUnit_->GetPowerRate(), -1.f, D3DXVECTOR3( 1.0f, 1.0f, 1.0f ) );
 			PlaySound( pGameUnit_ );
 
-			m_fNowCoolTime = 0.f;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+			m_fNowCoolTime = 0.f;		/// »ý¼º °£°Ý ÃÊ±âÈ­
 		}
 	}
 }
 
 /** @function : ProcessCoolTime
-	@brief : ï¿½ï¿½Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½Ó´ï¿½ ï¿½Ã°ï¿½
+	@brief : ÄðÅ¸ÀÓ °»½Å ÇÔ¼ö
+	@param : ÇÁ·¹ÀÓ´ç ½Ã°£
 */
 void CX2EffectSetImpactPointByBuff::ProcessCoolTime( float fElapsedTime )
 {
@@ -808,7 +812,7 @@ void CX2EffectSetImpactPointByBuff::ProcessCoolTime( float fElapsedTime )
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /** @function : CX2CustomFunctionByBuffPhantomSword
-	@brief : CX2CustomFunctionByBuffPhantomSword ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : CX2CustomFunctionByBuffPhantomSword ÀÇ »ý¼ºÀÚ
 */
 CX2CustomFunctionByBuffPhantomSword::CX2CustomFunctionByBuffPhantomSword( const KBuffIdentity& BuffIdentity_, CX2GameUnit* pGameUnit_ ) 
 	: CX2CustomFunctionByBuff( BuffIdentity_ )
@@ -817,10 +821,14 @@ CX2CustomFunctionByBuffPhantomSword::CX2CustomFunctionByBuffPhantomSword( const 
 	, MAGIC_PHANTOM_STOP_TIME_DEF( 0.033f )
 	, MAGIC_MAX_COUNT_CATCH_UP( 2 )
 	, m_fThirdBladeTime( 0.0f )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    , m_hDamageEffectThirdBlade( INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	, m_pDamageEffectThirdBlade( NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	, m_hThirdBladeCenterMesh( INVALID_MESH_INSTANCE_HANDLE )
-	, m_hThirdBladeSheathMesh( INVALID_MESH_INSTANCE_HANDLE )
-	, m_wstrPhantomBladeDamageDataName()
+	//, m_hThirdBladeSheathMesh( INVALID_MESH_INSTANCE_HANDLE )
+	, m_strPhantomBladeDamageDataNameUTF8()
 	, m_iPhantomBladeAttackTimeIndex( -1 )
 	, m_vPhantomBladeBackSpeed( 0.0f, 0.0f )
 	, m_PhantomBladeReActType( CX2DamageManager::RT_NO_DAMAGE )
@@ -832,15 +840,20 @@ CX2CustomFunctionByBuffPhantomSword::CX2CustomFunctionByBuffPhantomSword( const 
 
 
 /** @function : ~CX2CustomFunctionByBuffPhantomSword
-	@brief : CX2CustomFunctionByBuffPhantomSwordï¿½ï¿½ ï¿½Ò¸ï¿½ï¿½ï¿½
+	@brief : CX2CustomFunctionByBuffPhantomSwordÀÇ ¼Ò¸êÀÚ
 */
 /*virtual*/ CX2CustomFunctionByBuffPhantomSword::~CX2CustomFunctionByBuffPhantomSword()
 {
 	if ( NULL != g_pX2Game )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hThirdBladeCenterMesh );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hThirdBladeCenterMesh );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( m_hDamageEffectThirdBlade != INVALID_DAMAGE_EFFECT_HANDLE )
+            g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hDamageEffectThirdBlade );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pDamageEffectThirdBlade );
-		m_pDamageEffectThirdBlade = NULL;
+        m_pDamageEffectThirdBlade = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
 	m_ThirdBladeMatrixQueue.swap( std::queue<ThirdBladeMatrixPtr>() );
@@ -848,12 +861,12 @@ CX2CustomFunctionByBuffPhantomSword::CX2CustomFunctionByBuffPhantomSword( const 
 }
 
 /** @function : FunctionInCommonStateStart
-	@brief : CommonStateStart ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_), ï¿½ï¿½Æ¸Å´ï¿½ï¿½ï¿½(luaManager_)
+	@brief : CommonStateStart ¿¡¼­ ¼öÇàµÉ ÇÔ¼ö
+	@param : °ÔÀÓÀ¯´Ö(pGameUnit_), ·ç¾Æ¸Å´ÏÀú(luaManager_)
 */
 /*virtual*/ void CX2CustomFunctionByBuffPhantomSword::FunctionInCommonStateStart( CX2GameUnit* pGameUnit_, KLuaManager& luaManager_ )
 {
-	LUA_GET_VALUE(	luaManager_, "PHANTOM_BLADE_DAMAGE_DATA_NAME",		m_wstrPhantomBladeDamageDataName,	L"" );
+	LUA_GET_VALUE_UTF8(	luaManager_, "PHANTOM_BLADE_DAMAGE_DATA_NAME",		m_strPhantomBladeDamageDataNameUTF8,	"" );
 	LUA_GET_VALUE(	luaManager_, "PHANTOM_BLADE_ATTACK_TIME_INDEX",		m_iPhantomBladeAttackTimeIndex,		-1 );
 
 	LUA_GET_VALUE(	luaManager_, "PHANTOM_BLADE_BACK_SPEED_X",			m_vPhantomBladeBackSpeed.x,			0.f );
@@ -864,26 +877,40 @@ CX2CustomFunctionByBuffPhantomSword::CX2CustomFunctionByBuffPhantomSword( const 
 	
 	if ( pGameUnit_->GetSizeOfAttackTimeList() > 0 && -1 != m_iPhantomBladeAttackTimeIndex )
 	{
-		if ( NULL != m_pDamageEffectThirdBlade )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pDamageEffectThirdBlade = g_pX2Game->GetDamageEffect()->GetInstance( m_hDamageEffectThirdBlade ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if ( CX2DamageEffect::CEffect* pDamageEffectThirdBlade = m_pDamageEffectThirdBlade )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pDamageEffectThirdBlade->GetMainEffect();
+			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pDamageEffectThirdBlade->GetMainEffect();
 			if( NULL != pMeshInst )			
 			{
 				CreateAndInsertThirdBladeData( pGameUnit_, luaManager_ );
-				if ( m_ThirdBladeDamageDataList.size() == 1 )	/// kimhc // ï¿½Ì°ï¿½ ï¿½ï¿½ ï¿½Ì·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..?
+				if ( m_ThirdBladeDamageDataList.size() == 1 )	/// kimhc // ÀÌ°Ç ¿Ö ÀÌ·¸°Ô ÇßÀ»±î..?
+                {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    MoveDataDataToDamageEffect( pGameUnit_, pDamageEffectThirdBlade );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					MoveDataDataToDamageEffect( pGameUnit_ );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                }
 			}	// if( NULL != pMeshInst )			
 		}	// if ( NULL != m_pDamageEffectThirdBlade )
 	}
 }
 
 /** @function : FunctionInCommonFrameMove
-	@brief : CommonFrameMove ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_), ï¿½ï¿½Æ¸Å´ï¿½ï¿½ï¿½(luaManager_)
+	@brief : CommonFrameMove ¿¡¼­ ¼öÇàµÉ ÇÔ¼ö
+	@param : °ÔÀÓÀ¯´Ö(pGameUnit_), ·ç¾Æ¸Å´ÏÀú(luaManager_)
 */
 /*virtual*/ void CX2CustomFunctionByBuffPhantomSword::FunctionInCommonFrameMove( CX2GameUnit* pGameUnit_, KLuaManager& luaManager_ )
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* m_pDamageEffectThirdBlade = g_pX2Game->GetDamageEffect()->GetInstance( m_hDamageEffectThirdBlade ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if ( NULL != m_pDamageEffectThirdBlade )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pDamageEffectThirdBlade->GetMainEffect();
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCenter = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hThirdBladeCenterMesh );
@@ -931,8 +958,18 @@ CX2CustomFunctionByBuffPhantomSword::CX2CustomFunctionByBuffPhantomSword( const 
 				m_ThirdBladeDamageDataList.pop_front();
 				if ( !m_ThirdBladeDamageDataList.empty() )
 				{
-					if ( NULL != m_pDamageEffectThirdBlade )
-						MoveDataDataToDamageEffect( pGameUnit_ );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    if ( CX2DamageEffect::CEffect* pDamageEffectThirdBlade = g_pX2Game->GetDamageEffect()->GetInstance( m_hDamageEffectThirdBlade ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	                if ( CX2DamageEffect::CEffect* pDamageEffectThirdBlade = m_pDamageEffectThirdBlade )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        MoveDataDataToDamageEffect( pGameUnit_, pDamageEffectThirdBlade );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+					    MoveDataDataToDamageEffect( pGameUnit_ );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    }
 				}
 			}
 		}
@@ -940,14 +977,18 @@ CX2CustomFunctionByBuffPhantomSword::CX2CustomFunctionByBuffPhantomSword( const 
 }
 
 /** @function : FunctionInCommonStateEnd
-	@brief : CommonStateEnd ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_), ï¿½ï¿½Æ¸Å´ï¿½ï¿½ï¿½(luaManager_)
+	@brief : CommonStateEnd ¿¡¼­ ¼öÇàµÉ ÇÔ¼ö
+	@param : °ÔÀÓÀ¯´Ö(pGameUnit_), ·ç¾Æ¸Å´ÏÀú(luaManager_)
 */
 /*virtual*/ void CX2CustomFunctionByBuffPhantomSword::FunctionInCommonStateEnd( CX2GameUnit* pGameUnit_, KLuaManager& luaManager_ )
 {
 	if ( pGameUnit_->GetSizeOfAttackTimeList() > 0 )
 	{
-		if ( NULL != m_pDamageEffectThirdBlade )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* m_pDamageEffectThirdBlade = g_pX2Game->GetDamageEffect()->GetInstance( m_hDamageEffectThirdBlade ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	    if ( NULL != m_pDamageEffectThirdBlade )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pDamageEffectThirdBlade->GetMainEffect();
 			if ( NULL != pMeshInst && !m_ThirdBladeDamageDataList.empty() )
@@ -970,17 +1011,31 @@ CX2CustomFunctionByBuffPhantomSword::CX2CustomFunctionByBuffPhantomSword( const 
 }
 
 /** @function : InitializeDamageEffectThridBlade
-	@brief : ï¿½ï¿½ï¿½Ò¼Òµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½Ò¼Òµå¸¦ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : ÆÒÅÒ¼ÒµåÀÇ µ¥¹ÌÁö ÀÌÆåÆ® »ý¼º
+	@param : ÆÒÅÒ¼Òµå¸¦ »ç¿ëÇÏ´Â °ÔÀÓÀ¯´Ö(pGameUnit_)
 */
 void CX2CustomFunctionByBuffPhantomSword::InitializeDamageEffectThridBlade( CX2GameUnit* pGameUnit_ )
 {
+	wstring wstrEffectName = L"THIRD_BLADE";
+
+#ifdef ADD_MEMO_1ST_CLASS //±èÃ¢ÇÑ
+	CX2GUUser* pUser = static_cast<CX2GUUser*>( pGameUnit_ );
+	if( NULL != pUser && pUser->GetEqippedSkillMemo(CX2SkillTree::SMI_ELSWORD_MEMO26) == true )
+		wstrEffectName += L"_MEMO";
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect*
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pDamageEffectThirdBlade
-		= g_pX2Game->GetDamageEffect()->CreateInstance( pGameUnit_, L"THIRD_BLADE", 
+		= g_pX2Game->GetDamageEffect()->CreateInstance( pGameUnit_, wstrEffectName.c_str(), 
 		pGameUnit_->GetPowerRate(), pGameUnit_->GetPos(), pGameUnit_->GetRotateDegree(), 
 		pGameUnit_->GetRotateDegree(),
 		pGameUnit_->GetLandPos().y );	
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hDamageEffectThirdBlade = ( m_pDamageEffectThirdBlade != NULL ) 
+        ? m_pDamageEffectThirdBlade->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if ( NULL != m_pDamageEffectThirdBlade )
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pDamageEffectThirdBlade->GetMainEffect();
@@ -999,14 +1054,25 @@ void CX2CustomFunctionByBuffPhantomSword::InitializeDamageEffectThridBlade( CX2G
 }
 
 /** @function : InitializeMeshThirdBaldeCenter
-	@brief : ï¿½ï¿½ï¿½Ò¼Òµï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½Ò¼Òµå¸¦ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : ÆÒÅÒ¼ÒµåÀÇ ¸Þ½Ã »ý¼º
+	@param : ÆÒÅÒ¼Òµå¸¦ »ç¿ëÇÏ´Â °ÔÀÓÀ¯´Ö(pGameUnit_)
 */
 void CX2CustomFunctionByBuffPhantomSword::InitializeMeshThirdBaldeCenter( CX2GameUnit* pGameUnit_ )
 {
-	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCenter 
-		= g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( pGameUnit_,  L"ThirdBladeCenter",
+	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstCenter = NULL;
+
+#ifdef ADD_MEMO_1ST_CLASS //±èÃ¢ÇÑ
+	CX2GUUser* pUser = static_cast<CX2GUUser*>( pGameUnit_ );
+	if( NULL != pUser && pUser->GetEqippedSkillMemo(CX2SkillTree::SMI_ELSWORD_MEMO26) == true )
+	{
+		pMeshInstCenter = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( pGameUnit_,  L"ThirdBladeCenter_MEMO",
+			pGameUnit_->GetPos(), pGameUnit_->GetRotateDegree(), pGameUnit_->GetRotateDegree() );
+	}
+	else
+#endif //ADD_MEMO_1ST_CLASS
+	pMeshInstCenter = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( pGameUnit_,  L"ThirdBladeCenter",
 		pGameUnit_->GetPos(), pGameUnit_->GetRotateDegree(), pGameUnit_->GetRotateDegree() );
+
 	if ( NULL != pMeshInstCenter )
 	{
 		m_hThirdBladeCenterMesh = pMeshInstCenter->GetHandle();
@@ -1022,13 +1088,13 @@ void CX2CustomFunctionByBuffPhantomSword::InitializeMeshThirdBaldeCenter( CX2Gam
 }
 
 /** @function : CreateAndInsertThirdBladeData
-	@brief : ï¿½ï¿½ï¿½Ò¼Òµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ queueï¿½ï¿½ pushï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param : ï¿½ï¿½ï¿½Ò¼Òµå¸¦ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_), ï¿½ï¿½Æ¸Å´ï¿½ï¿½ï¿½(luaManager_)
+	@brief : ÆÒÅÒ¼ÒµåÀÇ µ¥¹ÌÁö µ¥ÀÌÅ¸ »ý¼º ¹× queue¿¡ pushÇÏ´Â ÇÔ¼ö
+	@param : ÆÒÅÒ¼Òµå¸¦ »ç¿ëÇÏ´Â °ÔÀÓÀ¯´Ö(pGameUnit_), ·ç¾Æ¸Å´ÏÀú(luaManager_)
 */
 void CX2CustomFunctionByBuffPhantomSword::CreateAndInsertThirdBladeData( CX2GameUnit* pGameUnit_, KLuaManager& luaManager_ )
 {
 	const D3DXVECTOR2* const pAttackTime 
-		= pGameUnit_->GetAttackTimeListByIndex( m_iPhantomBladeAttackTimeIndex );
+		= pGameUnit_->GetAttackTimeByIndex( m_iPhantomBladeAttackTimeIndex );
 	if ( NULL != pAttackTime )
 	{
 		ThirdBladeDamageDataPtr ptrThirdBladeDamageData( new ThirdBladeDamageData );
@@ -1037,12 +1103,16 @@ void CX2CustomFunctionByBuffPhantomSword::CreateAndInsertThirdBladeData( CX2Game
 			ptrThirdBladeDamageData->m_DamageData.SimpleInit();
 			ptrThirdBladeDamageData->m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			ptrThirdBladeDamageData->m_DamageData.optrAttackerGameUnit	= pGameUnit_;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            ptrThirdBladeDamageData->m_DamageData.hAttackerEffect		= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			ptrThirdBladeDamageData->m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-			if ( m_wstrPhantomBladeDamageDataName.empty() )
-				g_pData->GetDamageManager()->SetDamageDataFromLUA( &(ptrThirdBladeDamageData->m_DamageData), luaManager_, L"DAMAGE_DATA" );
+			if ( m_strPhantomBladeDamageDataNameUTF8.empty() )
+				g_pData->GetDamageManager()->SetDamageDataFromLUA( &(ptrThirdBladeDamageData->m_DamageData), luaManager_, "DAMAGE_DATA" );
 			else
-				g_pData->GetDamageManager()->SetDamageDataFromLUA( &(ptrThirdBladeDamageData->m_DamageData), luaManager_, m_wstrPhantomBladeDamageDataName.c_str() );
+				g_pData->GetDamageManager()->SetDamageDataFromLUA( &(ptrThirdBladeDamageData->m_DamageData), luaManager_, m_strPhantomBladeDamageDataNameUTF8.c_str() );
 			
 			const D3DXVECTOR2 vDelayedAttackTime = *pAttackTime / pGameUnit_->GetPlaySpeed();
 
@@ -1057,6 +1127,17 @@ void CX2CustomFunctionByBuffPhantomSword::CreateAndInsertThirdBladeData( CX2Game
 			ptrThirdBladeDamageData->m_DamageData.bArrangedFly		= true;
 			ptrThirdBladeDamageData->m_DamageData.attackType		= CX2DamageManager::AT_SPECIAL;
 			ptrThirdBladeDamageData->m_DamageData.optrAttackerGameUnit	= pGameUnit_;
+#ifdef ADD_MEMO_1ST_CLASS //±èÃ¢ÇÑ
+			CX2GUUser* pUser = static_cast<CX2GUUser*>( pGameUnit_ );
+			if( NULL != pUser )
+			{
+				if( pUser->GetEqippedSkillMemo(CX2SkillTree::SMI_ELSWORD_MEMO26) == true )
+				{
+					ptrThirdBladeDamageData->m_DamageData.m_bIgnoreDefence = true;
+					ptrThirdBladeDamageData->m_DamageData.m_fApplyCriticalDamage = 0.1f;
+				}
+			}
+#endif //ADD_MEMO_1ST_CLASS
 
 			if ( CX2DamageManager::RT_NO_DAMAGE != m_PhantomBladeReActType )
 				ptrThirdBladeDamageData->m_DamageData.reActType = m_PhantomBladeReActType;
@@ -1067,20 +1148,31 @@ void CX2CustomFunctionByBuffPhantomSword::CreateAndInsertThirdBladeData( CX2Game
 }
 
 /** @function : MoveDataDataToDamageEffect
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¾ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½Ò¼Òµå¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(pGameUnit_)
+	@brief : À¯ÀúÀÇ ½ºÅ×ÀÌÆ®¿¡¼­ ÀÐ¾îµéÀÎ µ¥¹ÌÁö µ¥ÀÌÅÍ¸¦ µ¥¹ÌÁöÀÌÆåÆ®¿¡ Àü´Þ
+	@param : ÆÒÅÒ¼Òµå¸¦ »ç¿ëÁßÀÎ °ÔÀÓÀ¯´Ö(pGameUnit_)
 */
-void CX2CustomFunctionByBuffPhantomSword::MoveDataDataToDamageEffect( CX2GameUnit* pGameUnit_ )
+void CX2CustomFunctionByBuffPhantomSword::MoveDataDataToDamageEffect( CX2GameUnit* pGameUnit_
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    , CX2DamageEffect::CEffect*   pDamageEffectThirdBlade
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    )
 {
-	/// m_ThirdBladeDamageDataListï¿½ï¿½ empty ï¿½Ë»ï¿½, m_pDamageEffectThirdBlade NULL Ã¼Å©ï¿½ï¿½ callerï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect*   pDamageEffectThirdBlade = m_pDamageEffectThirdBlade;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	/// m_ThirdBladeDamageDataListÀÇ empty °Ë»ç, m_pDamageEffectThirdBlade NULL Ã¼Å©´Â caller¿¡¼­ ¼öÇàÇÔ
 	ThirdBladeDamageDataPtr ptrThirdBladeDamageData = m_ThirdBladeDamageDataList.front();
-	m_pDamageEffectThirdBlade->SetAttackTime( ptrThirdBladeDamageData->m_vAttackTime );
+	pDamageEffectThirdBlade->SetAttackTime( ptrThirdBladeDamageData->m_vAttackTime );
 
-	CX2DamageManager::DamageData* pDamageData = m_pDamageEffectThirdBlade->GetDamageData();
-	*pDamageData = ptrThirdBladeDamageData->m_DamageData;
-	pDamageData->attackerType = CX2DamageManager::AT_EFFECT;
-	pDamageData->pAttackerEffect = m_pDamageEffectThirdBlade;
-	m_pDamageEffectThirdBlade->SetFollowLineRight( pGameUnit_->GetIsRight() );
+	CX2DamageManager::DamageData& kDamageData = pDamageEffectThirdBlade->GetDamageData();
+	kDamageData = ptrThirdBladeDamageData->m_DamageData;
+	kDamageData.attackerType = CX2DamageManager::AT_EFFECT;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    kDamageData.hAttackerEffect = pDamageEffectThirdBlade->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	kDamageData.pAttackerEffect = pDamageEffectThirdBlade;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	pDamageEffectThirdBlade->SetFollowLineRight( pGameUnit_->GetIsRight() );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1101,7 +1193,7 @@ void CX2CustomFunctionByBuffPhantomSword::MoveDataDataToDamageEffect( CX2GameUni
 // 
 // CX2CustomFunctionByBuffMagicalMakeUp::~CX2CustomFunctionByBuffMagicalMakeUp()
 // {
-// 	/// ï¿½ï¿½ ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½(ex: ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½...)
+// 	/// °¢ À¯´Ö¸¶´Ù Æ¯Á¤ ¹öÇÁ°¡ ÇØÁ¦µÉ ¶§ ¼ÂÆÃÇØÁà¾ß ÇÏ´Â °ª(ex: ¸ÅÁöÄÃ¸ÞÀÌÅ©¾÷ÀÌ ½ÃÀüÁßÀÌ¶ó´Â ÇÃ·¡±× µî...)
 // //	pGameUnit_->UpSetSpecificValueByBuffTempletID( m_DataBuffIdentity.m_eBuffTempletID );
 // }
 // 
@@ -1127,9 +1219,9 @@ void CX2CustomFunctionByBuffPhantomSword::MoveDataDataToDamageEffect( CX2GameUni
 			++iIndex;
 		}
 
-		/// Å«ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// Å«°Í¿¡ ºÎÅÍ ÀÛÀº ¼øÀ¸·Î Á¤·Ä
 		std::sort( m_vecAnimationTime.begin(), m_vecAnimationTime.end(), std::greater<float>() );
-		m_vStateStartPos = pGameUnit_->GetPos();	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Û‰ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		m_vStateStartPos = pGameUnit_->GetPos();	/// ½ºÅ×ÀÌÆ®°¡ ½ÃÀÛ‰çÀ» ¶§ÀÇ À¯´Ö À§Ä¡¸¦ ÀúÀå
 
 		luaManager_.EndTable();
 	}
@@ -1138,12 +1230,27 @@ void CX2CustomFunctionByBuffPhantomSword::MoveDataDataToDamageEffect( CX2GameUni
 /*virtual*/ void CX2CustomFunctionByBuffBigBangStream::DoExtraAttack( CX2GameUnit* pGameUnit_ )
 {
 	const D3DXVECTOR3& vBonePos = pGameUnit_->GetBonePos( L"Bip01" );
-	
-	CX2DamageEffect::CEffect* pDamageEffect 
+	CX2DamageEffect::CEffect* pDamageEffect = NULL;
+#ifdef ADD_MEMO_1ST_CLASS //±èÃ¢ÇÑ
+	CX2GUUser* pUser = static_cast<CX2GUUser*>( pGameUnit_ );
+	if( NULL != pUser && pUser->GetEqippedSkillMemo( CX2SkillTree::SMI_CHUNG_MEMO26 ) == true 
+		&& pUser->GetRandomFloat() <= 0.2f )
+		pDamageEffect = g_pX2Game->GetDamageEffect()->CreateInstance( pGameUnit_, L"CHUNG_BIGBANGSTREAM_MEMO", pGameUnit_->GetPowerRate(), vBonePos, pGameUnit_->GetRotateDegree(), pGameUnit_->GetRotateDegree(),  pGameUnit_->GetLandPos().y );
+	else
+#endif //ADD_MEMO_1ST_CLASS
+
+	pDamageEffect 
 		= g_pX2Game->GetDamageEffect()->CreateInstance( 
 		pGameUnit_, L"HAND_GRENADE_0", pGameUnit_->GetPowerRate(), vBonePos,
 		pGameUnit_->GetRotateDegree(), pGameUnit_->GetRotateDegree(),  pGameUnit_->GetLandPos().y );
-	g_pX2Game->AddRemoveDamageEffect( pDamageEffect );	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( pDamageEffect == NULL )
+        return;
+    g_pX2Game->AddRemoveDamageEffect( pDamageEffect->GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    g_pX2Game->AddRemoveDamageEffect( pDamageEffect );	
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	
 	
 	CKTDGXMeshPlayer::CXMeshInstance *pMesh = pDamageEffect->GetMainEffect();
 	if ( NULL != pMesh )
@@ -1165,6 +1272,16 @@ void CX2CustomFunctionByBuffPhantomSword::MoveDataDataToDamageEffect( CX2GameUni
 
 		pMesh->SetVelocity( D3DXVECTOR3( fDirX, fDirY, 0.f) );
 	}
+}
+
+
+/*virtual*/ void CX2CustomFunctionByBuffMarkOfCommand::FunctionInCommonFrameMove( CX2GameUnit* pGameUnit_, KLuaManager& luaManager_ )
+{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_checkElapsedTime.OnFrameMove( pGameUnit_->GetElapsedTime() );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	m_checkElapsedTime.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 }
 
 /*virtual*/ void CX2CustomFunctionByBuffBigBangStream::FunctionInCommonFrameMove( CX2GameUnit* pGameUnit_, KLuaManager& luaManager_ )
@@ -1228,20 +1345,20 @@ if( damageData_.m_fHpPercentUp <= 0.f &&
 			else
 				vShellStartPos -= ( m_fBasicPosX[uiIndex] * vDirectVectorZeroY );
 
-			/// ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			/// ¸Þ¸ð¸¦ ¹è¿üÀ¸¸é
 			const WCHAR* pwszDamageEffectName
 				= ( ( 0.0f < m_fMemoRate && pAttackerGameUnit->GetRandomFloat( uiIndex + 3 ) <= m_fMemoRate ) ?
 				L"CHUNG_MARK_OF_COMMANDER_SHELL_MEMO" : L"CHUNG_MARK_OF_COMMANDER_SHELL" );
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // Ã» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // Ã» ½ºÅ³ °³Æí, ±èÁ¾ÈÆ
 			g_pX2Game->GetDamageEffect()->CreateInstance( pAttackerGameUnit, pwszDamageEffectName, 
 			fShellPowerRate * m_fAddPowerRate, vShellStartPos, vRotateDegree, vRotateDegree,  
 			pAttackerGameUnit->GetLandPos().y, true, fRandReservTime );						
 
-#else // UPGRADE_SKILL_SYSTEM_2013 // Ã» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#else // UPGRADE_SKILL_SYSTEM_2013 // Ã» ½ºÅ³ °³Æí, ±èÁ¾ÈÆ
 			g_pX2Game->GetDamageEffect()->CreateInstance( pAttackerGameUnit, pwszDamageEffectName, 
 				fShellPowerRate, vShellStartPos, vRotateDegree, vRotateDegree,  
 				pAttackerGameUnit->GetLandPos().y, true, fRandReservTime );				
-#endif // UPGRADE_SKILL_SYSTEM_2013 // Ã» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½								
+#endif // UPGRADE_SKILL_SYSTEM_2013 // Ã» ½ºÅ³ °³Æí, ±èÁ¾ÈÆ								
 		}
 		
 	}
@@ -1249,3 +1366,34 @@ if( damageData_.m_fHpPercentUp <= 0.f &&
 #endif SERV_ADD_CHUNG_SHELLING_GUARDIAN
 
 }
+
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+// Çàµ¿ ºÒ´É µð¹öÇÁ ÀÎ°¡? Æ¯Á¤ BBT ¸¦ °¡Áö°í ÀÖÀ¸¸é ÂüÀ» ¹ÝÈ¯
+// Ex. ºí·¹ÀÌÂ¡ ÇÏÆ®, ºÒ²É °³È­
+bool CX2BuffTemplet::IsNonControlDebuff ()
+{
+	BOOST_FOREACH( CX2BuffBehaviorTempletPtr ptrBehavior, m_vecBehaviorPtr )
+	{
+		switch ( ptrBehavior->GetBuffBehaviorType() )
+		{
+		case BBT_DASH_IMPOSSIBLE :
+		case BBT_ATTACK_IMPOSSIBLE :
+		case BBT_REVERSE_LEFT_RIGHT :
+		case BBT_CHANGE_UNIT_SCALE :
+		case BBT_STUN :
+		case BBT_FROZEN :
+		case BBT_NEVER_MOVE :
+		case BBT_SKILL_ATTACK_IMPOSSIBLE :
+		case BBT_ZX_ATTACK_IMPOSSIBLE :
+		case BBT_Z_ATTACK_IMPOSSIBLE :
+		case BBT_X_ATTACK_IMPOSSIBLE :
+			return true;
+			break;
+
+		default :
+			break;
+		}
+	}
+	return false;
+}
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí

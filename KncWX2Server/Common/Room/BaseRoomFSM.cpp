@@ -13,7 +13,7 @@ const wchar_t*  KBaseRoomFSM::ms_szInput[] =
 #   include "BaseRoomFSMInput_def.h" 
 };
 
-KBaseRoomFSM::KBaseRoomFSM() : FSMclass( KBaseRoomFSM::ENUM_STATE::S_INIT )
+KBaseRoomFSM::KBaseRoomFSM() : FSMclass( S_INIT )
 {
 	// S_INIT
 	FSMstate* pState = new FSMstate( S_INIT, 1 );

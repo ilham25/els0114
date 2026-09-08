@@ -17,20 +17,35 @@ public:
 
 	HRESULT		DoFile(const char* strFilename);
 	HRESULT		DoString(const char* strBuf);
-	HRESULT		DoMemory(const char* pBuffer, const long nSize)
+//#ifdef  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+    HRESULT		DoMemory(const char* pBuffer, const long nSize, bool bLocal = false )
+//#else   X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+//	HRESULT		DoMemory(const char* pBuffer, const long nSize)
+//#endif  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
 	{
         if ( m_pkLuaState == NULL || pBuffer == NULL || nSize == 0 )
             return E_FAIL;;
 
+//#ifdef  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+        if ( bLocal == false )
+//#endif  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+        {
 #ifdef _ENCRIPT_SCRIPT_
 		pBuffer = XORDecrypt( pBuffer, nSize );
 #endif
+        }
+
 
 		HRESULT retVal = DoMemoryNotEncript( pBuffer, nSize );
 
+//#ifdef  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+        if ( bLocal == false )
+//#endif  X2OPTIMIZE_INDICATE_LOCAL_MASSFILE
+        {
 #ifdef _ENCRIPT_SCRIPT_
 		SAFE_DELETE_ARRAY( pBuffer );
 #endif
+        }
 
 		return retVal;
 	}

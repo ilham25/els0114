@@ -3,7 +3,11 @@
 
 //{{ seojt // 2009-1-14, 23:42
 class CX2WorldObjectLightFlow;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2WorldObjectLightFlow>  CX2WorldObjectLightFlowPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2WorldObjectLightFlow>  CX2WorldObjectLightFlowPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 //}} seojt // 2009-1-14, 23:42
 
 
@@ -17,8 +21,12 @@ private:
 public: 
 	static CX2WorldObjectLightFlowPtr CreateWorldObjectLightFlow( bool bBackgroundLoad_ )
     {
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        CX2WorldObjectLightFlowPtr pObject( new CX2WorldObjectLightFlow( bBackgroundLoad_ ) );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
         CX2WorldObjectLightFlowPtr pObject( new CX2WorldObjectLightFlow( bBackgroundLoad_ )
             , CKTDGObject::KTDGObjectDeleter() );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
         return pObject;
     }
 

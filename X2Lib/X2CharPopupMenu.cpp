@@ -3,24 +3,11 @@
 #include ".\X2CharPopupMenu.h"
 
 CX2CharPopupMenu::CX2CharPopupMenu()
-#ifdef REFORM_UI_CHARACTER_INFO
 : CX2PopupUIBase(),
-#else
-m_pNowState( NULL ),
-m_nMenuCount( 0 ),
-m_iUnitLevel( -1 ),
-m_bShow( false ), 
-#endif
 m_pDlgMenu( NULL ),
 m_iUid( -1 ),
 m_wstrName( L"" ),
 m_eUnitClass( CX2Unit::UC_NONE ),
-#ifndef REFORM_UI_CHARACTER_INFO
-m_pPicMiddle1( NULL ),
-m_pPicBottom1( NULL ),
-m_pPicMiddle2( NULL ),
-m_pPicBottom2( NULL ),
-#endif
 m_pPicCharacter( NULL ),
 //m_pPicLevelTen(),
 //m_pPicLevelOne(),
@@ -60,24 +47,10 @@ m_pButtonInviteGuild( NULL )	//{{ 허상형 : [2009/9/18] // 길드 버튼 추가
 
 
 	// 변수 값 할당
-#ifdef REFORM_UI_CHARACTER_INFO
 	m_pDlgMenu = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_User_Menu_NEW.lua" );
-#else
-    m_pDlgMenu = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_User_Menu.lua" );
-#endif
     g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDlgMenu );    
     m_pDlgMenu->SetShowEnable(false, false);
     
-#ifndef REFORM_UI_CHARACTER_INFO
-	CKTDGUIStatic *pStaticDlg = m_pDlgMenu->GetStatic_LUA("user");
-	if( NULL != pStaticDlg )
-	{
-		m_pPicMiddle1 = pStaticDlg->GetPictureIndex(1);
-		m_pPicBottom1 = pStaticDlg->GetPictureIndex(2);
-		m_pPicMiddle2 = pStaticDlg->GetPictureIndex(3);
-		m_pPicBottom2 = pStaticDlg->GetPictureIndex(4);
-	}
-#endif
 
 #ifdef REMOVE_INVITE_PARTY_SERVER_BUTTON
 	CKTDGUIRadioButton* pRadioGaia = static_cast<CKTDGUIRadioButton*>(m_pDlgMenu->GetControl(L"Gaia"));
@@ -180,7 +153,7 @@ void CX2CharPopupMenu::SetUnit( UidType uidUnitUID, bool bPartyMember /*= false*
 							m_wstrName = pUnit->GetUnit()->GetNickName();
 
 							m_eUnitClass = pUnit->GetUnit()->GetClass();
-							m_iUnitLevel = pUnit->GetUnit()->GetUnitData()->m_Level;
+							m_iUnitLevel = pUnit->GetUnit()->GetUnitData().m_Level;
 						}
 						//m_pUnit = pUnit->GetUnit();
 					}
@@ -196,7 +169,7 @@ void CX2CharPopupMenu::SetUnit( UidType uidUnitUID, bool bPartyMember /*= false*
 							m_wstrName = pUnit->GetUnit()->GetNickName();
 
 							m_eUnitClass = pUnit->GetUnit()->GetClass();
-							m_iUnitLevel = pUnit->GetUnit()->GetUnitData()->m_Level;
+							m_iUnitLevel = pUnit->GetUnit()->GetUnitData().m_Level;
 						}
 						//m_pUnit = pUnit->GetUnit();
 					}
@@ -207,7 +180,7 @@ void CX2CharPopupMenu::SetUnit( UidType uidUnitUID, bool bPartyMember /*= false*
 						if( NULL != pSlotData && NULL != pSlotData->m_pUnit )
 						{
 							m_eUnitClass = pSlotData->m_pUnit->GetClass();
-							m_iUnitLevel = pSlotData->m_pUnit->GetUnitData()->m_Level;
+							m_iUnitLevel = pSlotData->m_pUnit->GetUnitData().m_Level;
 							m_wstrName = pSlotData->m_pUnit->GetNickName();
 							//m_pUnit = pSlotData->m_pUnit;
 						}
@@ -245,7 +218,7 @@ void CX2CharPopupMenu::SetUnit( UidType uidUnitUID, bool bPartyMember /*= false*
 					m_wstrName = pUnit->GetUnit()->GetNickName();
 
 					m_eUnitClass = pUnit->GetUnit()->GetClass();
-					m_iUnitLevel = pUnit->GetUnit()->GetUnitData()->m_Level;
+					m_iUnitLevel = pUnit->GetUnit()->GetUnitData().m_Level;
 				}
 				//m_pUnit = pUnit->GetUnit();
 			}
@@ -261,7 +234,7 @@ void CX2CharPopupMenu::SetUnit( UidType uidUnitUID, bool bPartyMember /*= false*
 					m_wstrName = pUnit->GetUnit()->GetNickName();
 
 					m_eUnitClass = pUnit->GetUnit()->GetClass();
-					m_iUnitLevel = pUnit->GetUnit()->GetUnitData()->m_Level;
+					m_iUnitLevel = pUnit->GetUnit()->GetUnitData().m_Level;
 				}
 				//m_pUnit = pUnit->GetUnit();
 			}
@@ -272,7 +245,7 @@ void CX2CharPopupMenu::SetUnit( UidType uidUnitUID, bool bPartyMember /*= false*
 				if( NULL != pSlotData && NULL != pSlotData->m_pUnit )
 				{
 					m_eUnitClass = pSlotData->m_pUnit->GetClass();
-					m_iUnitLevel = pSlotData->m_pUnit->GetUnitData()->m_Level;
+					m_iUnitLevel = pSlotData->m_pUnit->GetUnitData().m_Level;
 					m_wstrName = pSlotData->m_pUnit->GetNickName();
 					//m_pUnit = pSlotData->m_pUnit;
 				}
@@ -314,169 +287,13 @@ void CX2CharPopupMenu::SetMode( USER_MENU eMode, bool bPartyMember/* = false*/ )
     }//if
     //}} seojt // 2009-8-21, 11:51
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	float fButtonWidth = 60.f;
 	float fButtonHeight = 21.f;
-#else
-	float fButtonHeight = 22.f;
-#endif	
 	D3DXVECTOR2 offsetPos = D3DXVECTOR2(0.f, 0.f);
 
 	m_nMenuCount = 0;
 
-#ifndef REFORM_UI_CHARACTER_INFO
-	m_pButtonSimpleInfo->SetShow(true);
-	m_pButtonSimpleInfo->SetOffsetPos(offsetPos);
-	++m_nMenuCount;
 
-	m_pButtonUserInfo->SetShow(true);
-	offsetPos.y += fButtonHeight;
-	m_pButtonUserInfo->SetOffsetPos(offsetPos);
-	++m_nMenuCount;
-
-	m_pButtonWatch->SetShow(false);	
-	//offsetPos.y += fButtonHeight;
-	//m_pButtonWatch->SetOffsetPos(offsetPos);
-	//++m_nMenuCount;
-
-	m_pButtonwhisper->SetShow(true);	
-	offsetPos.y += fButtonHeight;
-	m_pButtonwhisper->SetOffsetPos(offsetPos);
-	++m_nMenuCount;
-
-	m_pButtontrade->SetShow(true);
-	offsetPos.y += fButtonHeight;
-	m_pButtontrade->SetOffsetPos(offsetPos);	
-	++m_nMenuCount;	
-
-	// 이미 친구등록된 유저인지 확인
-	bool bFind = false;
-	vector<wstring> vecFriendName;
-	if( g_pData->GetMessenger() != NULL)
-	{	
-		g_pData->GetMessenger()->GetFriendNameList(vecFriendName);
-		for(UINT i=0; i<vecFriendName.size(); ++i)
-		{
-			if(m_wstrName.compare(vecFriendName[i]) == 0)
-			{
-				bFind = true;
-				break;
-			}
-		}		
-	}
-	else
-	{
-		bFind = true;
-	}
-
-	if(bFind == true)
-	{
-		m_pButtonfriend->SetShow(false);
-	}
-	else
-	{
-		m_pButtonfriend->SetShow(true);
-		offsetPos.y += fButtonHeight;
-		m_pButtonfriend->SetOffsetPos(offsetPos);
-		++m_nMenuCount;
-	}
-	
-#ifdef SERV_NO_DISCIPLE
-	m_pButtondisciple->SetShow(false);
-#else SERV_NO_DISCIPLE
-	// 이미 사제등록되어있는 유저인지 확인
-	bFind = false;
-	if( m_iUnitLevel < 10)
-	{
-		m_pButtondisciple->SetShow(true);
-		offsetPos.y += fButtonHeight;
-		m_pButtondisciple->SetOffsetPos(offsetPos);
-		++m_nMenuCount;
-	}
-	else
-	{
-		m_pButtondisciple->SetShow(false);		
-	}
-#endif SERV_NO_DISCIPLE
-	
-
-	m_pButtonparty->SetShow(false);		
-	m_pButtoninvite->SetShow(false);
-	m_pButtonleader->SetShow(false);
-
-	if(g_pMain->GetNowStateID() == CX2Main::XS_PVP_ROOM)
-	{
-		++m_nMenuCount;
-		m_pButtonout->SetShow(true);
-		offsetPos.y += fButtonHeight;
-		m_pButtonout->SetOffsetPos(offsetPos);
-	}
-	else
-	{
-		m_pButtonout->SetShow(false);		
-	}
-	
-	//{{ 허상형 : [2009/9/18] //	길드 초대 버튼 추가
-#ifdef GUILD_MANAGEMENT
-	m_pButtonInviteGuild->SetShow(false);
-
-	if( g_pData->GetGuildManager()->CanInviteMember() == true )	//	길드 초대 할 수 있는 등급인지 검사
-	{
-		int iMyGuild = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
-		//	상대 유저의 길드와 내 길드가 다른지 여부 조건식 추가
-		if( g_pData->GetGuildManager()->IsMyGuildUser(m_iUid) == false )
-		{
-			m_pButtonInviteGuild->SetShow(true);
-			offsetPos.y += fButtonHeight;
-			m_pButtonInviteGuild->SetOffsetPos(offsetPos);	
-			++m_nMenuCount;	
-		}
-	}
-#endif	//	GUILD_MANAGEMENT
-	//}} 허상형 : [2009/9/18] //	길드 초대 버튼 추가
-
-// 	bool bUserHasParty = false;
-// 	if(g_pTFieldGame != NULL)
-// 	{
-// 		if( g_pTFieldGame->GetUserPartyUid(m_iUid) > 0 )
-// 			bUserHasParty = true;
-// 	}
-
-	switch(eMode)
-	{	
-	case UM_NORMAL_NORMAL:
-	case UM_PARTYL_NORMAL:		// 파티리더와
-	//case UM_PARTY_NORMAL:		// 파티원 모두 파티초대 가능
-		{
-			m_pButtoninvite->SetShow(true);
-			offsetPos.y += fButtonHeight;
-			m_pButtoninvite->SetOffsetPos(offsetPos);
-			++m_nMenuCount;
-		} break;
-	
-	case UM_PARTY_PARTY:
-	case UM_PARTY_PARTYL:
-		break;
-		
-	case UM_PARTYL_PARTY:
-		{
-			m_pButtonleader->SetShow(true);
-			offsetPos.y += fButtonHeight;
-			m_pButtonleader->SetOffsetPos(offsetPos);
-
-			m_pButtonout->SetShow(true);
-			offsetPos.y += fButtonHeight;
-			m_pButtonout->SetOffsetPos(offsetPos);
-
-			m_nMenuCount += 2;
-		} break;
-	default:
-	case UM_NONE:
-		break;
-	}
-#endif
-
-#ifdef REFORM_UI_CHARACTER_INFO
 	CKTDGUIStatic* pStaticTextParty = (CKTDGUIStatic*)m_pDlgMenu->GetControl( L"PartyPopUpGage" );
 	CKTDGUIStatic* pStaticBar = (CKTDGUIStatic*)m_pDlgMenu->GetControl( L"PopUpBar" );
 
@@ -641,16 +458,48 @@ void CX2CharPopupMenu::SetMode( USER_MENU eMode, bool bPartyMember/* = false*/ )
 
 		if( g_pData->GetGuildManager()->CanInviteMember() == true )	//	길드 초대 할 수 있는 등급인지 검사
 		{
-			int iMyGuild = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
+			int iMyGuild = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
 			//	상대 유저의 길드와 내 길드가 다른지 여부 조건식 추가
 			if( g_pData->GetGuildManager()->IsMyGuildUser(m_iUid) == false )
 			{
-				m_pButtonInviteGuild->SetShowEnable( true, true );
-				offsetPos.y += fButtonHeight;
-				m_pButtonInviteGuild->SetOffsetPos(offsetPos);	
-				pStaticTextParty->GetString( 7 )->msg = GET_STRING( STR_ID_20853 );
-				pStaticTextParty->GetString( 7 )->pos.y = m_pButtonInviteGuild->GetPos().y + 4;
-				++m_nMenuCount;	
+#ifdef MODFIY_INVITE_GUILD_MENU
+				// 길드에 가입한 유저인지 체크 후 메뉴 추가
+				pStaticTextParty->GetString( 7 )->msg = L"";
+				bool bIsGuildMember = true;
+				if( NULL != g_pX2Game )
+				{
+					CX2GUUser* pGUUser = g_pX2Game->GetUserUnitByUID( m_iUid );
+					if( NULL != pGUUser && 
+						NULL != pGUUser->GetUnit() )
+					{
+						if( false == pGUUser->GetUnit()->GetUnitData().m_wstrGuildName.empty() )
+						{
+							bIsGuildMember = false;
+						}
+					}
+				}
+				else if( NULL != g_pTFieldGame )
+				{
+					CX2Unit* pUnit = g_pTFieldGame->GetSquareUnitUnitByUID( m_iUid );
+					if( NULL != pUnit )
+					{
+						if( false == pUnit->GetUnitData().m_wstrGuildName.empty() )
+						{
+							bIsGuildMember = false;
+						}
+					}
+				}
+
+				if( true == bIsGuildMember )
+#endif // MODFIY_INVITE_GUILD_MENU
+				{
+					m_pButtonInviteGuild->SetShowEnable( true, true );
+					offsetPos.y += fButtonHeight;
+					m_pButtonInviteGuild->SetOffsetPos(offsetPos);	
+					pStaticTextParty->GetString( 7 )->msg = GET_STRING( STR_ID_20853 );
+					pStaticTextParty->GetString( 7 )->pos.y = m_pButtonInviteGuild->GetPos().y + 4;
+					++m_nMenuCount;	
+				}
 			}
 			else
 			{
@@ -856,18 +705,6 @@ void CX2CharPopupMenu::SetMode( USER_MENU eMode, bool bPartyMember/* = false*/ )
 	offsetPos = m_pPicCenterBottom->GetPos();
 	offsetPos.x += fButtonWidth;
 	m_pPicRightBottom->SetPos( offsetPos );
-#else
-	m_pPicMiddle1->SetSizeY( m_nMenuCount * fButtonHeight );
-	m_pPicMiddle2->SetSizeY( m_nMenuCount * fButtonHeight );
-
-	offsetPos = m_pPicMiddle1->GetPos();
-	offsetPos.y += (m_nMenuCount * fButtonHeight);
-	m_pPicBottom1->SetPos(offsetPos);
-
-	offsetPos = m_pPicMiddle2->GetPos();
-	offsetPos.y += (m_nMenuCount * fButtonHeight);
-	m_pPicBottom2->SetPos(offsetPos);
-#endif
 }
 
 bool CX2CharPopupMenu::SetPopupMenu( UidType iUnitUID, bool bPartyMember/* = false*/ )
@@ -1026,7 +863,7 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 #endif SERV_INTEGRATION
 #endif DEPRECATED_SERVER_GROUP_MASK
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -1073,7 +910,7 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 #endif DEPRECATED_SERVER_GROUP_MASK
 
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -1094,7 +931,7 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 						if( NULL != pSlotData &&
 							NULL != pSlotData->m_pUnit )
 						{
-							if( pSlotData->m_pUnit->GetUnitData()->m_Level >= 10 )
+							if( pSlotData->m_pUnit->GetUnitData().m_Level >= 10 )
 							{
 								bLevelCheckOK = false;
 							}
@@ -1115,7 +952,7 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 				}
 				if( NULL != pSquareUnit && NULL != pSquareUnit->GetUnit() )
 				{
-					if( pSquareUnit->GetUnit()->GetUnitData()->m_Level >= 10 )
+					if( pSquareUnit->GetUnit()->GetUnitData().m_Level >= 10 )
 					{
 						bLevelCheckOK = false;
 					}
@@ -1255,7 +1092,7 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 #endif DEPRECATED_SERVER_GROUP_MASK
 
 		// 체험 아이디 제한 
-		if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+		if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 			return true;
@@ -1302,25 +1139,18 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 		{
 			ClosePopupMenu();
 
-#ifndef DEPRECATED_SERVER_GROUP_MASK
-#ifdef SERV_INTEGRATION
-			//{{ oasis907 : 김상윤 [2010.5.18] // 던전 대전 서버군 통합
-#ifdef EXTEND_SERVER_GROUP_MASK
-			iServerGroupID = (int) g_pMain->ExtractServerGroupID(m_iUid);
-			// 우클릭한 대상 유닛의 서버가 자신의 서버와 다를 경우
-			if(g_pInstanceData->GetServerGroupID() != iServerGroupID)
-#else
-			eServerGroupID = (SERVER_GROUP_ID) g_pMain->ExtractServerGroupID(m_iUid);
-			// 우클릭한 대상 유닛의 서버가 자신의 서버와 다를 경우
-			if(g_pInstanceData->GetServerGroupID() != eServerGroupID)
-#endif // EXTEND_SERVER_GROUP_MASK
-			{
-				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_5129 ), g_pMain->GetNowState() );
-				return true;
-			}
-			//}}
-#endif SERV_INTEGRATION
-#endif DEPRECATED_SERVER_GROUP_MASK
+//#ifdef SERV_INTEGRATION //2013.4.11 다른 서버군도 프로필창이 보이도록 주석처리
+//			//{{ oasis907 : 김상윤 [2010.5.18] // 던전 대전 서버군 통합
+//			eServerGroupID = (SERVER_GROUP_ID) g_pMain->ExtractServerGroupID(m_iUid);
+//			// 우클릭한 대상 유닛의 서버가 자신의 서버와 다를 경우
+//			if(g_pInstanceData->GetServerGroupID() != eServerGroupID)
+//			{
+//				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_5129 ), g_pMain->GetNowState() );
+//				return true;
+//			}
+//			//}}
+//#endif SERV_INTEGRATION
+
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 			CX2State* pState = static_cast<CX2State*>( g_pMain->GetNowState() );
 			if( pState != NULL )
@@ -1333,7 +1163,6 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 		}
 		break;
 
-#ifdef REFORM_UI_CHARACTER_INFO
 
 	case UMUI_MOVE_TO_PARTY:	/// 파티원 있는 곳으로 이동
 		{
@@ -1465,7 +1294,6 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 			}
 			return true;
 		} break;
-#endif
 
 		//{{ kimhc // 2010-03-15 // 포커스 잃은경우 Exit 되도록 처리
 	case UMUI_EXIT:
@@ -1515,9 +1343,9 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 					{
 						CX2SquareUnit* pMyUnit = g_pTFieldGame->GetMyUnit();	/// 마을에서의 내 유닛
 
-						if( NULL != pMyUnit && NULL != pMyUnit->GetUnit() && NULL != pMyUnit->GetUnit()->GetUnitData() )
+						if( NULL != pMyUnit && NULL != pMyUnit->GetUnit() )
 						{
-							int				iMapID					= pMyUnit->GetUnit()->GetUnitData()->m_nMapID;	/// 현재 유닛이 있는 맵 아이디
+							int				iMapID					= pMyUnit->GetUnit()->GetUnitData().m_nMapID;	/// 현재 유닛이 있는 맵 아이디
 							D3DXVECTOR3		vMyPos					= pMyUnit->GetPos();							/// 현재 유닛의 위치
 							unsigned char	ucLastTouchLineIndex	= pMyUnit->GetLastTouchLineIndex();				/// 현재 유닛이 가장 마지막에 접근한 라인맵 인덱스
 
@@ -1537,9 +1365,9 @@ bool CX2CharPopupMenu::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 					{
 						CX2GUUser* pMyUnit = g_pX2Game->GetMyUnit();	/// 필드에서의 내 유닛
 
-						if( NULL != pMyUnit && NULL != pMyUnit->GetUnit() && NULL != pMyUnit->GetUnit()->GetUnitData() )
+						if( NULL != pMyUnit && NULL != pMyUnit->GetUnit() )
 						{
-							int				iMapID					= pMyUnit->GetUnit()->GetUnitData()->m_nMapID;	/// 현재 유닛이 있는 맵 아이디
+							int				iMapID					= pMyUnit->GetUnit()->GetUnitData().m_nMapID;	/// 현재 유닛이 있는 맵 아이디
 							D3DXVECTOR3		vMyPos					= pMyUnit->GetPos();							/// 현재 유닛의 위치
 							unsigned char	ucLastTouchLineIndex	= pMyUnit->GetLastTouchLineIndex();				/// 현재 유닛이 가장 마지막에 접근한 라인맵 인덱스
 
@@ -1568,18 +1396,14 @@ void CX2CharPopupMenu::OpenUserPopupMenu( UidType iUnitUID, bool bPartyMember /*
 {
 	m_iUid = iUnitUID;	
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	SetOnPopup();
-#endif //REFORM_UI_CHARACTER_INFO
 
 	SetUnit( iUnitUID, bPartyMember );
 	if( SetPopupMenu( iUnitUID, bPartyMember ) == false )
 	{
 		m_pDlgMenu->SetShowEnable(false, false);
 		m_bShow = false;
-#ifdef REFORM_UI_CHARACTER_INFO
 		m_pDlgPopup->SetShowEnable( false, false );
-#endif
 		return;
 	}
 
@@ -1590,7 +1414,6 @@ void CX2CharPopupMenu::OpenUserPopupMenu( UidType iUnitUID, bool bPartyMember /*
 
 	//if(m_pUnit != NULL)
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	CX2GageManager* pGageManager = CX2GageManager::GetInstance();
 
 	if ( NULL != pGageManager )
@@ -1635,23 +1458,6 @@ void CX2CharPopupMenu::OpenUserPopupMenu( UidType iUnitUID, bool bPartyMember /*
 	}
 
 	m_pDlgPopup->SetFront(true);
-#else
-	{
-		m_pStaticName->GetString(0)->msg = m_wstrName;
-
-		int tenL, oneL;
-		tenL = m_iUnitLevel / 10;
-		oneL = m_iUnitLevel % 10;
-
-		if(tenL > 0)
-			m_pPicLevelTen[tenL-1]->SetShow(true);
-		else if(tenL == 0)
-			m_pPicLevelTen[9]->SetShow(true);
-		if(oneL == 0)
-			oneL = 10;
-		m_pPicLevelOne[oneL-1]->SetShow(true);
-	}
-#endif
 
 	//m_pDlgMenu->SetModal(false);
 	m_pDlgMenu->SetFront(true);
@@ -1690,10 +1496,8 @@ void CX2CharPopupMenu::OpenUserPopupMenu( UidType iUnitUID, bool bPartyMember /*
 	m_pDlgMenu->SetPos( D3DXVECTOR2( (float)vMousePos.x, (float)vMousePos.y ) );
 
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	m_pDlgPopup->SetPos( D3DXVECTOR2( (float)vMousePos.x, (float)vMousePos.y ) );
 	m_pDlgPopup->SetShowEnable( true, true );
-#endif
 
 	// 일반/파티/파티장 모드 설정
 	m_pDlgMenu->SetShowEnable(true, true);
@@ -1704,12 +1508,10 @@ void CX2CharPopupMenu::OpenUserPopupMenu( UidType iUnitUID, bool bPartyMember /*
 
 void CX2CharPopupMenu::ClosePopupMenu()
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	if ( NULL != m_pDlgPopup )
 		m_pDlgPopup->SetShowEnable(false, false);
 
 	OnPartyInput( false );
-#endif
 	m_pDlgMenu->SetShowEnable(false, false);
 
 	m_bShow = false;
@@ -1718,7 +1520,6 @@ void CX2CharPopupMenu::ClosePopupMenu()
 	//m_iUid = -1;
 }
 
-#ifdef REFORM_UI_CHARACTER_INFO
 void CX2CharPopupMenu::OnPartyInput( bool bOn_ )
 {
 	if ( NULL != m_pDlgMenu )
@@ -1792,4 +1593,3 @@ void CX2CharPopupMenu::SetOnPopup()
 		}
 	}
 }
-#endif

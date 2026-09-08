@@ -30,10 +30,12 @@ namespace NetError
 	#include "NetError/NetError_def_BR.h"
 #elif defined( SERV_COUNTRY_PH )
 	#include "NetError/NetError_def_PH.h"
+#elif defined( SERV_COUNTRY_IN )
+	#include "NetError/NetError_def_IN.h"
 #endif
 
 #else //SERV_SEPARATE_NET_ERROR
-#include "NetError_def.h"
+	#include "NetError_def.h"
 #endif //SERV_SEPARATE_NET_ERROR
 
 	//{{ 임홍락 [2012.05.16] 클라이언트 단일화 // CLIENT_USE_NATION_FLAG 필수 포함임

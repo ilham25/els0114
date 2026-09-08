@@ -11,7 +11,7 @@ const wchar_t*  KRoomSlotFSM::ms_szInput[] = {
 #   include "RoomSlotFSMInput_def.h" 
 };
 
-KRoomSlotFSM::KRoomSlotFSM() : FSMclass( KRoomSlotFSM::ENUM_STATE::S_INIT )
+KRoomSlotFSM::KRoomSlotFSM() : FSMclass( S_INIT )
 {
     // S_INIT
     FSMstate* pState = new FSMstate( S_INIT, 2 );

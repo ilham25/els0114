@@ -2,6 +2,8 @@
 
 class CX2Game;
 class CX2GameUnit;
+class   CX2GUUser;
+class   CX2GUNPC;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 class CX2GageManager 
@@ -12,14 +14,24 @@ public:
 	enum GAGE_UI_CUSTOM_MSG
 	{
 		GUCM_BAN_FAULTY_PLAYER_BUTTON_CLICKED = 54000,		// 강퇴하기 버튼이 눌렸음!
+//#ifdef ERASE_BUFF_CHEAT
+		GUCM_ERASE_BUFF_CHEAT				  = 54001,		// 버프 제거 치트
+//#endif // ERASE_BUFF_CHEAT
 	};
 // #endif // SERV_DUNGEON_FORCED_EXIT_SYSTEM
 
 	class CX2GageSet
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{
 		public:
 			CX2GageSet( CX2GageUI* pGageUI_, CX2GageData* pGageData_, const UidType uidGameUnit_ ) 
 				: m_pGageUI( pGageUI_ ), m_pGageData( pGageData_ ), m_optrGameUnit(), m_uidGameUnit( uidGameUnit_ ), m_fNowHpPercent( 1.0f ), m_fNowMpPercent ( 1.0f )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+                , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 			{}
 
 		~CX2GageSet()
@@ -31,7 +43,11 @@ public:
 		bool GetShow() const { return m_pGageUI->GetShow(); }
 		void SetShow( const bool bShow_ ) { m_pGageUI->SetShow( bShow_ ); }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        void OnFrameMove( float fElapsedTime )	{ m_pGageUI->OnFrameMove( fElapsedTime );}
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		void OnFrameMove()	{ m_pGageUI->OnFrameMove();}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		void OnFrameRender() { m_pGageUI->OnFrameRender(); }
 		
 
@@ -116,7 +132,17 @@ public:
 		void UpdateNowHpFromPercent( const float fPercent_ ) { m_pGageData->SetNowHp( m_pGageData->GetMaxHp() * fPercent_ ); }
 		void UpdateNowMpFromPercent( const float fPercent_ ) { m_pGageData->SetNowMp( m_pGageData->GetMaxMp() * fPercent_ ); }
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        void    AddRef()    {   ++m_uRefCount; }
+        void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	private:
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 		CX2GageUI*			m_pGageUI;
 		CX2GageData*		m_pGageData;
 		CX2GameUnitoPtr		m_optrGameUnit;
@@ -126,7 +152,11 @@ public:
 		KProtectedType<float>	m_fNowMpPercent;	// 패시브로 인한 최대 MP 증가량을 마을에서 확인 할 수 없기 때문에 Max값 대비 %도 저장 (0.0~1.0 사이값)
 	};
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    typedef boost::intrusive_ptr<CX2GageSet> CX2GageSetPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	typedef boost::shared_ptr<CX2GageSet> CX2GageSetPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 	static CX2GageManager* GetInstance();
 	static void DestroyInstance();
@@ -168,8 +198,14 @@ public:
 
 	bool CanThisMemberInsert( const UidType uidGameUnit_ );
 
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	static void OnFrameMoveInSpecificX2State( float fElapsedTime_ );
+    void OnFrameMove( float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	static void OnFrameMoveInSpecificX2State();
 	void OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	void OnFrameRender();
 
 
@@ -236,15 +272,14 @@ public:
 
 	void CreateAndInsertBossGageUI( CX2GameUnit* pBossGameUnit_, const WCHAR* wszFaceTexName_, const WCHAR* wszFaceTexPieceName_ );
 	void ShowBossGageUIByUIDAndNotShowOtherBossGageUI( const UidType uidBoss_, bool bShow_ = true);
+	void ShowBossGageUI( bool bShow_ );
 	void ClearBossGageUIList();
 	void DeleteBossGageUIByUID( const UidType uidBoss_ );
 
 	const CX2GageData*	GetMyGageData() const;
 	CX2GageData* GetMyGageData();
 	
-#ifdef REFORM_UI_CHARACTER_INFO
 	const CX2MyGageUI* GetMyGageUI() const;
-#endif
 	void SetCharacterImage( const CX2Unit::UNIT_CLASS eGameUnitClass_ ){ static_cast<CX2MyGageUI*>(m_ptrMyGageSet->GetGageUI())->SetCharacterImage(eGameUnitClass_);}
 #ifdef FIX_CHUNG_GAGE_UI_UPDATE_BUG
 	void ResetGageUIEtc( const CX2Unit::UNIT_CLASS eGameUnitClass_ ) { static_cast<CX2MyGageUI*>(m_ptrMyGageSet->GetGageUI())->ResetGageUIEtc(eGameUnitClass_); }
@@ -286,17 +321,18 @@ public:
 	void SetShowBuffIcon( bool bIsShow_ );
 	void InitBuffIconFlicker( UidType uiUnitUID, BUFF_TEMPLET_ID eBuffID_ );
 #endif //BUFF_ICON_UI	
+#ifdef DISPLAY_BUFF_DURATION_TIME
+	void SetDurationTime( UidType uiUnitUID, BUFF_TEMPLET_ID eBuffID_, int iTime_);
+#endif // DISPLAY_BUFF_DURATION_TIME
 
 	void GetBuffFactorFromGameUnit( const CX2GameUnit* pGameUnit_ );
 	const vector<KBuffFactor> GetBuffFactor() const { return m_vecTempBuffFactor; }
 	void ClearTempBuffFactor() { m_vecTempBuffFactor.clear(); }
 
-#ifdef REFORM_UI_CHARACTER_INFO //오현빈//파티원 레벨업 정보 갱신되지 않는 오류 수정
 	void UpdatePartyMemberLevel( const UidType uiUnitUID_, const UINT uiLevel_ );
-#endif //REFORM_UI_CHARACTER_INFO
 
-	void InsertPvpMemberUI( const CX2Room::RoomNpcSlot& npcSlotData_, CX2GameUnit* pGameUnitPartyMember_ );
-	void InsertPvpMemberUI( const CX2Room::SlotData& slotData_, CX2GameUnit* pGameUnitPartyMember_ );
+	void InsertPvpMemberUI( const CX2Room::RoomNpcSlot& npcSlotData_, CX2GUNPC* pGameUnitPartyMember_ );
+	void InsertPvpMemberUI( const CX2Room::SlotData& slotData_, CX2GUUser* pGameUnitPartyMember_ );
 	void RemovePvpMemberUIByUserUid( const UidType uid_ );
 	void ClearPvpMemberUI();
 
@@ -310,6 +346,8 @@ public:
 #ifdef NEW_CHARACTER_EL
 	bool GetIsExsitancePartyMemberHPLessThanPer( float fHPRate_ );  //체력 @1 % 이하인 파티원이 존재 여부 체크
 #endif // NEW_CHARACTER_EL
+
+	bool IsNotUseNotifyTimeBuff( BUFF_TEMPLET_ID eBuffID_ );
 protected:
 
 	CX2GageManager() : m_ElapsedTimeCheckVillageBuff( 1.0f ), m_pGageDataForRestorationToPvpGame( NULL )
@@ -389,7 +427,6 @@ class CX2OldGageManager
 //}} kimhc // 2010.12.3 //  2010-12-23 New Character CHUNG
 
 	public:
-#ifdef GAGE_FACTOR
 		struct GageFactor
 		{
 			float	fTime;
@@ -401,7 +438,6 @@ class CX2OldGageManager
 				fFactor = 0.f;
 			}
 		};
-#endif
 
 		// TODO: Gage 구조체를 GageManager 클래스를 제외하고는 직접 참조할 수 없게 다 막자
 		struct Gage
@@ -421,9 +457,7 @@ class CX2OldGageManager
 		public: 
 			KProtectedType<float>	fChangeRate;
 
-#ifdef GAGE_FACTOR
 			std::vector<GageFactor> vecFactor;
-#endif
 
 
 #ifdef NO_ALL_KILL_HACKING_TEST
@@ -440,9 +474,7 @@ class CX2OldGageManager
 #ifdef NO_ALL_KILL_HACKING_TEST
 				m_fChanged = 0.f;
 #endif NO_ALL_KILL_HACKING_TEST
-#ifdef GAGE_FACTOR
 				vecFactor.clear();
-#endif
 			}
 
 			Gage()
@@ -464,14 +496,11 @@ class CX2OldGageManager
 #ifdef NO_ALL_KILL_HACKING_TEST
 					m_fChanged = pGage->m_fChanged;
 #endif
-#ifdef GAGE_FACTOR
 					vecFactor.clear();
 					vecFactor = pGage->vecFactor;
-#endif
 				}
 			}
 
-#ifdef GAGE_FACTOR
 			void AddFactor(float fFactor, float fTime)
 			{
 				GageFactor gageFactor;
@@ -485,7 +514,6 @@ class CX2OldGageManager
 			{
 				vecFactor.clear();
 			}
-#endif
 
 
 			
@@ -631,58 +659,30 @@ class CX2OldGageManager
 		void			UpSoul( float fSoul );
 		bool			FlushSoul( float fSoul );
 
-#ifdef GAGE_FACTOR
-#ifdef SWAP_GAGE
 		void			AddMPFactor( const float factor, const float time ) { m_pMPGage->AddFactor( factor, time ); }
 		void			ClearMPFactor() { m_pMPGage->ClearFactor(); }
-#else
-		void			AddMPFactor( const float factor, const float time ) { m_MPGage.AddFactor( factor, time ); }
-		void			ClearMPFactor() { m_MPGage.ClearFactor(); }
-#endif //SWAP_GAGE
-#endif
 
-#ifdef SWAP_GAGE
 		void			SetNowHP( float fHPNow ) { m_pHPGage->fNow = fHPNow; }
 		void			SetNowMP( float fMPNow ) { m_pMPGage->fNow = fMPNow; }
-#else
-		void			SetNowHP( float fHPNow ) { m_HPGage.fNow = fHPNow; }
-		void			SetNowMP( float fMPNow ) { m_MPGage.fNow = fMPNow; }
-#endif
 		void			SetNowMPCharge( float fMPChargeNow ) { m_MPChargeGage.fNow = fMPChargeNow; }
 
-#ifdef SWAP_GAGE
 		void			SetHPChangeRate( const float hpChangeRate ) { m_pHPGage->fChangeRate = hpChangeRate; }
 		void			SetMPChangeRate( const float mpChangeRate ) { m_pMPGage->fChangeRate = mpChangeRate; }
 		float			GetMPChangeRate() { return m_pMPGage->fChangeRate; }
-#else
-		void			SetHPChangeRate( const float hpChangeRate ) { m_HPGage.fChangeRate = hpChangeRate; }
-		void			SetMPChangeRate( const float mpChangeRate ) { m_MPGage.fChangeRate = mpChangeRate; }
-		float			GetMPChangeRate() { return m_MPGage.fChangeRate; }
-#endif
 
 		void			SetMPChargeChageRate( const float mpChargeChangeRate ) { m_MPChargeGage.fChangeRate = mpChargeChangeRate; }
 
-#ifdef SWAP_GAGE
 		float			GetNowHp() const { return m_pHPGage->fNow; }
 		float			GetNowMP() const{ return m_pMPGage->fNow; }
-#else
-		float			GetNowHp() const { return m_HPGage.fNow; }
-		float			GetNowMP() const { return m_MPGage.fNow; }
-#endif
 
 
 #ifdef NO_ALL_KILL_HACKING_TEST
-#ifdef SWAP_GAGE
 		const float		GetHPChange() const { return m_pHPGage->m_fChanged; }
-#else
-		const float		GetHPChange() const { return m_HPGage.m_fChanged; }
-#endif
 #endif NO_ALL_KILL_HACKING_TEST
 
 		void			SetNowSoul( const float soul ) { m_SoulGage.fNow = soul; }
 		float			GetNowSoul(){ return m_SoulGage.fNow; }
 
-#ifdef SWAP_GAGE
 		void			SetMaxHP( float fHPMax ) { m_pHPGage->fMax = fHPMax; }
 		float			GetMaxHp() const { return m_pHPGage->fMax; }
 		
@@ -691,16 +691,6 @@ class CX2OldGageManager
 
 		void			SetShowMPGage( bool bShow ) { m_pMPGage->bShow = bShow; }
 		bool			GetShowMPGage() { return m_pMPGage->bShow; }
-#else
-		void			SetMaxHP( float fHPMax ) { m_HPGage.fMax = fHPMax; }
-		float			GetMaxHp() const { return m_HPGage.fMax; }
-
-		void			SetMaxMP( const float maxMP ) { m_MPGage.fMax = maxMP; }
-		float			GetMaxMp() const{ return m_MPGage.fMax; }
-
-		void			SetShowMPGage( bool bShow ) { m_MPGage.bShow = bShow; }
-		bool			GetShowMPGage() { return m_MPGage.bShow; }
-#endif
 
 
 		float			GetMaxSoul(){ return m_SoulGage.fMax; }
@@ -711,13 +701,8 @@ class CX2OldGageManager
 		private: 
 			// TODO: 나중에는 아래의 함수 4개를 아예 없애버리자
 #endif REFACTORING_BY_TOOL_TEAM
-#ifdef SWAP_GAGE
 		Gage*			GetHPGage(){ return m_pHPGage; }
 		Gage*			GetMPGage(){ return m_pMPGage; }
-#else
-		Gage*			GetHPGage(){ return &m_HPGage; }
-		Gage*			GetMPGage(){ return &m_MPGage; }
-#endif
 		Gage*			GetMPChargeGage(){ return &m_MPChargeGage; }
 		Gage*			GetSoulGage(){ return &m_SoulGage; }
 #ifdef REFACTORING_BY_TOOL_TEAM
@@ -808,7 +793,6 @@ class CX2OldGageManager
 		void UpdateUIElswordWSP(int iWayOfSwordState ) {};
 #endif ELSWORD_WAY_OF_SWORD
 
-#ifdef SWAP_GAGE
 		void SwapGage()
 		{
 			Gage *pGage = new Gage(m_pHPGage);
@@ -820,7 +804,6 @@ class CX2OldGageManager
 
 			m_fSwapGageTime = 0.f;
 		}
-#endif
 
 	private:
 		void					CheckMaxHP();
@@ -833,13 +816,8 @@ class CX2OldGageManager
 		bool					m_bShow;
 		float					m_fElapsedTime;
 		
-#ifdef SWAP_GAGE
 		Gage					*m_pHPGage;
 		Gage					*m_pMPGage;
-#else
-		Gage					m_HPGage;
-		Gage					m_MPGage;
-#endif
 		Gage					m_MPChargeGage;
 		Gage					m_SoulGage;
 
@@ -898,9 +876,7 @@ class CX2OldGageManager
 		//}} kimhc // 2010.12.3 //  2010-12-23 New Character CHUNG
 */
 
-#ifdef UNDERWATER_LINEMAP
 		CKTDGUIDialogType			m_pDlgAirGage;	
-#endif
 
 		//{{ JHKang / 강정훈 / 2011/01/26 / 보스 HP Bar 여러 개로 구현
 #ifdef SERV_BOSS_GAUGE_HP_LINES
@@ -910,9 +886,7 @@ class CX2OldGageManager
 #endif
 		//}} JHKang / 강정훈 / 2011/01/26 / 보스 HP Bar 여러 개로 구현
 
-#ifdef SWAP_GAGE
 		float	m_fSwapGageTime;
-#endif
 
 		CX2GageUI*				m_pGageUI;
 
@@ -927,3 +901,6 @@ class CX2OldGageManager
 
 
 };
+
+
+IMPLEMENT_INTRUSIVE_PTR( CX2GageManager::CX2GageSet );

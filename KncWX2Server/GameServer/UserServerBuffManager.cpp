@@ -60,9 +60,6 @@ bool KUserServerBuffManager::ActivateBuff( IN KBuffInfo& kBuff, OUT std::vector<
 	// 이미 발동되어있는 버프인지 검사
 	if( IsBuffActivated( kBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID ) == true )
 	{
-		START_LOG( cerr, L"이미 걸려있는 버프입니다." )
-			<< BUILD_LOG( kBuff.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID )
-			<< END_LOG;
 		return false;
 	}
 
@@ -554,6 +551,36 @@ void KUserServerBuffManager::OnUserDied( IN KGSUserPtr spUser, std::vector< int 
 		DeactivateBuff( iBuffID, vecDeactivatedBuff );
 	}
 }
+
+#ifdef SERV_FIX_REVENGE_BUFF// 작업날짜: 2013-08-09	// 박세훈
+void KUserServerBuffManager::OnLeavePVPRoom( IN KGSUserPtr spUser, OUT std::vector< KBuffInfo >& vecActivateBuff, OUT std::vector< int >& vecDeactivatedBuff )
+{
+	std::vector<int> vecDeleteBuff;
+
+	for( std::map< int, KBuffInfo >::iterator mit = m_mapBuff.begin(); mit != m_mapBuff.end() ; ++mit )
+	{
+		const CXSLBuffManager::BuffTemplet* pBuffTemplet = SiCXSLBuffManager()->GetBuffTemplet( mit->second.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID );
+		if( pBuffTemplet == NULL )
+		{
+			START_LOG( cerr, L"존재 하지 않는 버프입니다!" )
+				<< BUILD_LOG( mit->second.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID )
+				<< END_LOG;
+			continue;
+		}
+
+		if( pBuffTemplet->m_bEndBuffAtTheLeavePvpRoom == true )
+		{
+			vecDeleteBuff.push_back( mit->second.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID );
+		}
+	}
+
+	BOOST_TEST_FOREACH( const int, iBuffID, vecDeleteBuff )
+	{
+		// 버프 삭제
+		DeactivateBuff( iBuffID, vecDeactivatedBuff );
+	}
+}
+#endif // SERV_FIX_REVENGE_BUFF
 
 #endif SERV_SERVER_BUFF_SYSTEM
 //}}

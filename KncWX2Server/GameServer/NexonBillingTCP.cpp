@@ -159,7 +159,7 @@ IMPL_ON_FUNC( ENX_BT_HEART_BEAT_ACK )
         kPacket.m_ulPacketNo = SiKNexonBillingTCPManager()->GetNextPacketNo();
         kPacket.m_bytePacketType = KNexonBillingTCPPacket::PRODUCT_INQUIRY;
         kPacket.m_ulPageIndex = SiKNexonBillingTCPManager()->GetNextProductPageNumber();        
-		kPacket.m_ulRowPerPage = NEXON_BILLING_ENUM::ROW_PER_PAGE;
+		kPacket.m_ulRowPerPage = ROW_PER_PAGE;
 
         boost::shared_ptr< KNexonBillingTCPPacket > spPacket( new KNexonBillingTCPPacket );
         spPacket->Write( kPacket );
@@ -184,7 +184,7 @@ IMPL_ON_FUNC( ENX_BT_CATEGORY_INQUIRY_ACK )
         kPacket.m_ulPacketNo = SiKNexonBillingTCPManager()->GetNextPacketNo();
         kPacket.m_bytePacketType = KNexonBillingTCPPacket::PRODUCT_INQUIRY;
         kPacket.m_ulPageIndex = SiKNexonBillingTCPManager()->GetNextProductPageNumber();		
-		kPacket.m_ulRowPerPage = NEXON_BILLING_ENUM::ROW_PER_PAGE;
+		kPacket.m_ulRowPerPage = ROW_PER_PAGE;
 
         boost::shared_ptr< KNexonBillingTCPPacket > spPacket( new KNexonBillingTCPPacket );
         spPacket->Write( kPacket );
@@ -229,7 +229,7 @@ IMPL_ON_FUNC( ENX_BT_PRODUCT_INQUIRY_ACK )
             kPacket.m_ulPacketNo = SiKNexonBillingTCPManager()->GetNextPacketNo();
             kPacket.m_bytePacketType = KNexonBillingTCPPacket::PRODUCT_INQUIRY;
             kPacket.m_ulPageIndex = SiKNexonBillingTCPManager()->GetNextProductPageNumber();
-			kPacket.m_ulRowPerPage = NEXON_BILLING_ENUM::ROW_PER_PAGE;
+			kPacket.m_ulRowPerPage = ROW_PER_PAGE;
 
             boost::shared_ptr< KNexonBillingTCPPacket > spPacket( new KNexonBillingTCPPacket );
             spPacket->Write( kPacket );
@@ -382,12 +382,10 @@ IMPL_ON_FUNC( ENX_BT_PURCHASE_ITEM_ACK )
         kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_05;
         break;
 
-#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-06-23	// 박세훈
 	case 10:
 	case 11:
-		//kPacket.m_iOK = NetError::??;	// 쿠폰 오류입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_07;	// 쿠폰 오류입니다.
 		break;
-#endif // SERV_NEXON_COUPON_SYSTEM
 
     case 21:
         kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_06;
@@ -414,6 +412,9 @@ IMPL_ON_FUNC( ENX_BT_PURCHASE_ITEM_ACK )
         kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_13;
         break;
 		//{{ 2010. 10. 06	최육사	구매 오류
+	case 81:
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_20;	// 쿠폰 총 사용 횟수를 초과하여 사용하실 수 없습니다.
+		break;
 	case 99:
 		START_LOG( cout, L"넥슨 빌링 DB오류로 인해 구매 실패!" )
 			<< BUILD_LOG( kPacket_.m_ulOrderNo );
@@ -497,6 +498,10 @@ IMPL_ON_FUNC( ENX_BT_PURCHASE_ITEM_ACK )
 #ifdef SERV_CASH_ITEM_FOR_ELESIS	// 적용날짜: 2013-07-11
 			case CXSLItem::CI_EXPAND_SKILL_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
+#ifdef SERV_CASH_ITEM_FOR_ADD
+			case CXSLItem::CI_EXPAND_SKILL_SLOT_ADD:
+#endif	// SERV_CASH_ITEM_FOR_ELESIS
+
 				//{{ 2009. 8. 7  최육사		은행
 			case CXSLItem::CI_BANK_MEMBERSHIP_SILVER:
 			case CXSLItem::CI_BANK_MEMBERSHIP_GOLD:
@@ -518,6 +523,11 @@ IMPL_ON_FUNC( ENX_BT_PURCHASE_ITEM_ACK )
 			case CXSLItem::CI_EXPAND_QUICK_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
 #endif SERV_EXPAND_QUICK_SLOT
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			case CXSLItem::CI_EXPAND_SKILL_PAGE:
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 				//}}
 				{
 					KENX_BT_NISMS_INVENTORY_PICK_UP_REQ kPacketReq;
@@ -691,12 +701,10 @@ IMPL_ON_FUNC( ENX_BT_PURCHASE_GIFT_ACK )
 	case 5:
 		kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_05;
 		break;
-#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
 	case 10:
 	case 11:
-		//kPacket.m_iOK = NetError::??;	// 쿠폰 오류입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_07;	// 쿠폰 오류입니다.
 		break;
-#endif // SERV_NEXON_COUPON_SYSTEM
 	case 21:
 		kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_06;
 		break;
@@ -720,6 +728,9 @@ IMPL_ON_FUNC( ENX_BT_PURCHASE_GIFT_ACK )
 		break;
 	case 28:
 		kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_13;
+		break;
+	case 81:
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_20;	// 쿠폰 총 사용 횟수를 초과하여 사용하실 수 없습니다.
 		break;
 	case 1000:
 		kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_24;
@@ -822,6 +833,14 @@ IMPL_ON_FUNC( ENX_BT_PURCHASE_GIFT_ACK )
 			kPRInfo.m_usOrderQuantity = vit->m_usOrderQuantity;
 			kPacket.m_vecPurchaseReqInfo.push_back( kPRInfo );
 		}
+	}
+	else
+	{
+		START_LOG( cerr, L"아이템 선물 실패" )
+			<< BUILD_LOG( kPacket_.m_ulResult )
+			<< BUILD_LOG( NetError::GetErrStr( kPacket.m_iOK ) )
+			<< BUILD_LOG( iUserUID )
+			<< END_LOG;
 	}
 
 	//KEventPtr spEvent( new KEvent );
@@ -1527,10 +1546,13 @@ IMPL_ON_FUNC( ENX_BT_NISMS_ITEM_COUPON_USING_ACK )
 	case 1:
 		kPacket.m_iOK = NetError::NET_OK;
 		break;
+	case 81:
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_20;	// 쿠폰 총 사용 횟수를 초과하여 사용하실 수 없습니다.
+		break;
 
 	case 51:
 	case 101:
-		//kPacket.m_iOK = NetError::??;	// 이미 사용된 쿠폰입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_00;	// 이미 사용된 쿠폰입니다.
 		break;
 
 	case 52:
@@ -1538,7 +1560,7 @@ IMPL_ON_FUNC( ENX_BT_NISMS_ITEM_COUPON_USING_ACK )
 	case 65:
 	case 102:
 	case 103:
-		//kPacket.m_iOK = NetError::??;	// 기간이 만료된 쿠폰입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_01;	// 기간이 만료된 쿠폰입니다.
 		break;
 
 	case 61:		
@@ -1547,7 +1569,7 @@ IMPL_ON_FUNC( ENX_BT_NISMS_ITEM_COUPON_USING_ACK )
 		break;
 
 	case 100:
-		//kPacket.m_iOK = NetError::??;	// PC방에서만 사용할 수 있는 쿠폰입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_08;	// PC방에서만 사용할 수 있는 쿠폰입니다.
 		break;
 
 		//{{ 2012. 04. 02	김민성		넥슨 auth soap, 통합 맴버쉽
@@ -1561,10 +1583,11 @@ IMPL_ON_FUNC( ENX_BT_NISMS_ITEM_COUPON_USING_ACK )
 #endif SERV_NEXON_AUTH_SOAP
 		//}}
 	default:
-		kPacket.m_iOK = NetError::ERR_NX_COUPON_04;
-		START_LOG( cerr, L"정의되지 않은 쿠폰 에러코드입니다." )
+		START_LOG( cerr, L"" )
 			<< BUILD_LOG( kPacket_.m_ulResult )
 			<< END_LOG;
+
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_04;
 		break;
 	}
 
@@ -1617,7 +1640,7 @@ IMPL_ON_FUNC( ENX_BT_NISMS_DISCOUNT_COUPON_INQUIRY_ACK )
 
 	case 51:
 	case 101:
-		//kPacket.m_iOK = NetError::??;	// 이미 사용된 쿠폰입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_00;	// 이미 사용된 쿠폰입니다.
 		break;
 
 	case 52:
@@ -1625,7 +1648,7 @@ IMPL_ON_FUNC( ENX_BT_NISMS_DISCOUNT_COUPON_INQUIRY_ACK )
 	case 65:
 	case 102:
 	case 103:
-		//kPacket.m_iOK = NetError::??;	// 기간이 만료된 쿠폰입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_01;	// 기간이 만료된 쿠폰입니다.
 		break;
 
 	case 61:		
@@ -1634,7 +1657,7 @@ IMPL_ON_FUNC( ENX_BT_NISMS_DISCOUNT_COUPON_INQUIRY_ACK )
 		break;
 
 	case 100:
-		//kPacket.m_iOK = NetError::??;	// PC방에서만 사용할 수 있는 쿠폰입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_08;	// PC방에서만 사용할 수 있는 쿠폰입니다.
 		break;
 
 		//{{ 2012. 04. 02	김민성		넥슨 auth soap, 통합 맴버쉽
@@ -1648,10 +1671,11 @@ IMPL_ON_FUNC( ENX_BT_NISMS_DISCOUNT_COUPON_INQUIRY_ACK )
 #endif SERV_NEXON_AUTH_SOAP
 		//}}
 	default:
-		kPacket.m_iOK = NetError::ERR_NX_COUPON_04;
-		START_LOG( cerr, L"정의되지 않은 쿠폰 에러코드입니다." )
+		START_LOG( cerr, L"" )
 			<< BUILD_LOG( kPacket_.m_ulResult )
 			<< END_LOG;
+
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_09;	// 쿠폰 정보 읽기에 실패하였습니다.
 		break;
 	}
 
@@ -1706,7 +1730,7 @@ IMPL_ON_FUNC( ENX_BT_NISMS_DISCOUNT_COUPON_INQUIRY_LIST_ACK )
 
 	case 51:
 	case 101:
-		//kPacket.m_iOK = NetError::??;	// 이미 사용된 쿠폰입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_00;	// 이미 사용된 쿠폰입니다.
 		break;
 
 	case 52:
@@ -1714,7 +1738,7 @@ IMPL_ON_FUNC( ENX_BT_NISMS_DISCOUNT_COUPON_INQUIRY_LIST_ACK )
 	case 65:
 	case 102:
 	case 103:
-		//kPacket.m_iOK = NetError::??;	// 기간이 만료된 쿠폰입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_01;	// 기간이 만료된 쿠폰입니다.
 		break;
 
 	case 61:		
@@ -1723,7 +1747,7 @@ IMPL_ON_FUNC( ENX_BT_NISMS_DISCOUNT_COUPON_INQUIRY_LIST_ACK )
 		break;
 
 	case 100:
-		//kPacket.m_iOK = NetError::??;	// PC방에서만 사용할 수 있는 쿠폰입니다.
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_08;	// PC방에서만 사용할 수 있는 쿠폰입니다.
 		break;
 
 		//{{ 2012. 04. 02	김민성		넥슨 auth soap, 통합 맴버쉽
@@ -1737,10 +1761,11 @@ IMPL_ON_FUNC( ENX_BT_NISMS_DISCOUNT_COUPON_INQUIRY_LIST_ACK )
 #endif SERV_NEXON_AUTH_SOAP
 		//}}
 	default:
-		kPacket.m_iOK = NetError::ERR_NX_COUPON_04;
-		START_LOG( cerr, L"정의되지 않은 쿠폰 에러코드입니다." )
+		START_LOG( cerr, L"" )
 			<< BUILD_LOG( kPacket_.m_ulResult )
 			<< END_LOG;
+
+		kPacket.m_iOK = NetError::ERR_NX_COUPON_09;	// 쿠폰 정보 읽기에 실패하였습니다.
 		break;
 	}
 

@@ -64,6 +64,11 @@
 #define ANTI_HACK_STRING_AntiHacking_TWindowText									"AntiHacking TWindowText - "
 #define ANTI_HACK_STRING_AntiHacking_TWindowClass									"AntiHacking TWindowClass - "
 #define ANTI_HACK_STRING_NPC_DIE_PACKET_VERIFY										"-- AntiHacking NDPV --"
+#define ANTI_HACK_STRING_AntiHacking_Skill_CoolTime_Verify							"-- AntiHacking Skill CoolTime --"
+#define ANTI_HACK_STRING_AntiHacking_GuildSkill_CoolTime_Verify						"-- AntiHacking GuildSkill CoolTime --"
+#define ANTI_HACK_STRING_AntiHacking_Stat_Verify									"-- AntiHacking Stat --"
+#define ANTI_HACK_STRING_AntiHacking_Buff_Verify									"-- AntiHacking Buff --"
+#define ANTI_HACK_STRING_AntiHacking_Extra_Info_Verify								"-- AntiHacking Extra Info --"
 
 
 

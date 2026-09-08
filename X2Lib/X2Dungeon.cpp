@@ -113,11 +113,11 @@ bool CX2Dungeon::OpenScriptFile( const WCHAR* pFileName )
 //{{ robobeg : 2008-10-28
 	//KLuaManager luaManager;
     KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName ) )
+	if( false == g_pKTDXApp->LoadLuaTinker( pFileName ) )
 		return false;
-	//if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, L"Enum.lua" ) )
+	//if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, L"Enum.lua" ) )
 		//return false;
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pFileName ) )
+	if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, pFileName ) )
 		return false;
 //}} robobeg : 2008-10-28
 
@@ -377,19 +377,17 @@ bool CX2Dungeon::GetStageLineOpen( int iPrevStageIndex, int iPrevSubStageIndex, 
 }
 
 #ifdef SERV_DUNGEON_OPTION_IN_LUA
-bool CX2Dungeon::IsFixedMembers( const DUNGEON_ID eDungeonID_ )
+bool CX2Dungeon::IsFixedMembers( const SEnum::DUNGEON_ID eDungeonID_ )
 {
 	return ( g_pData->GetDungeonManager()->GetDungeonData( eDungeonID_ )->m_usFixedMembers > 0 );
 }
-short CX2Dungeon::GetFixedMembers( const DUNGEON_ID eDungeonID_ )
+short CX2Dungeon::GetFixedMembers( const SEnum::DUNGEON_ID eDungeonID_ )
 {
 	return g_pData->GetDungeonManager()->GetDungeonData( eDungeonID_ )->m_usFixedMembers;
 }
 #endif SERV_DUNGEON_OPTION_IN_LUA
 
-
-//#ifdef CORRECTION_DAMAGE_FREE_CHANNEL
-bool CX2Dungeon::IsEventDungeon( const DUNGEON_ID eDungeonId_ )
+bool CX2Dungeon::IsEventDungeon( const SEnum::DUNGEON_ID eDungeonId_ )
 {
 #ifdef SERV_DUNGEON_OPTION_IN_LUA
 	if( g_pData->GetDungeonManager()->GetDungeonData( eDungeonId_ )->m_bEventDungeon == true )
@@ -398,23 +396,23 @@ bool CX2Dungeon::IsEventDungeon( const DUNGEON_ID eDungeonId_ )
 
 	switch( eDungeonId_ )
 	{
-	case DI_EVENT_KIDDAY_RUBEN:
-	case DI_EVENT_KIDDAY_ELDER:
-	case DI_EVENT_KIDDAY_BESMA:
-	case DI_EVENT_KIDDAY_ALTERA:
+	case SEnum::DI_EVENT_KIDDAY_RUBEN:
+	case SEnum::DI_EVENT_KIDDAY_ELDER:
+	case SEnum::DI_EVENT_KIDDAY_BESMA:
+	case SEnum::DI_EVENT_KIDDAY_ALTERA:
 
-	case DI_EVENT_TREE_DAY_ELDER:		// 식목일 이벤트 던전
-	case DI_EVENT_TREE_DAY_BESMA:
-	case DI_EVENT_TREE_DAY_ALTERA:
-	case DI_EVENT_TREE_DAY_PEITA:
-	case DI_EVENT_TREE_DAY_VELDER:
-	case DI_EVENT_TREE_DAY_HAMEL:
+	case SEnum::DI_EVENT_TREE_DAY_ELDER:		// 식목일 이벤트 던전
+	case SEnum::DI_EVENT_TREE_DAY_BESMA:
+	case SEnum::DI_EVENT_TREE_DAY_ALTERA:
+	case SEnum::DI_EVENT_TREE_DAY_PEITA:
+	case SEnum::DI_EVENT_TREE_DAY_VELDER:
+	case SEnum::DI_EVENT_TREE_DAY_HAMEL:
 
 		//{{ 2010. 10. 19	최육사	비밀던전 이벤트 업데이트
 #ifdef SERV_SECRET_DUNGEON_EVENT
-	case DI_ELDER_HALLOWEEN_NORMAL:
-	case DI_ELDER_HALLOWEEN_HARD:
-	case DI_ELDER_HALLOWEEN_EXPERT:
+	case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+	case SEnum::DI_ELDER_HALLOWEEN_HARD:
+	case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
 #endif SERV_SECRET_DUNGEON_EVENT
 		//}}
 		//{{ 2011. 04. 13  김민성  글로벌 서버 추가
@@ -422,39 +420,82 @@ bool CX2Dungeon::IsEventDungeon( const DUNGEON_ID eDungeonId_ )
 		CASE_DEFENCE_DUNGEON
 #endif SERV_INSERT_GLOBAL_SERVER
 			//}} 2011. 04. 13  김민성  글로벌 서버 추가
-	case DI_EVENT_VALENTINE_DAY:
+	case SEnum::DI_EVENT_VALENTINE_DAY:
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+	case SEnum::DI_EVENT_HALLOWEEN_DAY:
+#endif //SERV_HALLOWEEN_EVENT_2013
 
-			return true;
+		return true;
 	}
 
 	return false;
 }
 
-bool CX2Dungeon::IsHenirDungeon( const DUNGEON_ID eDungeonId_, const bool bChallenge_ )
+bool CX2Dungeon::IsHenirDungeon( const SEnum::DUNGEON_ID eDungeonId_ )
 {
 	switch( eDungeonId_ )
 	{
-	case DI_ELDER_HENIR_SPACE:
-// 	case DI_BESMA_HENIR_SPACE:
-// 	case DI_ALTERA_HENIR_SPACE:
-// 	case DI_FEITA_HENIR_SPACE:
-// 		//{{ 2009. 10. 27  최육사	벨더
-// 	case DI_VELDER_HENIR_SPACE:
-// 		//}}
-// 	case DI_HAMEL_HENIR_SPACE:
-		if ( true == bChallenge_ )
-		{
-			if( CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode )
-				return true;
-			else
-				return false;
-		}
-		else
-			return true;
+	case SEnum::DI_ELDER_HENIR_SPACE:
+		return true;
+		break;
 	}
 
 	return false;
 }
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+bool CX2Dungeon::IsEventValentineDungeon( const SEnum::DUNGEON_ID eDungeonId_ )
+{
+	switch( eDungeonId_ )
+	{
+	case SEnum::DI_EVENT_VALENTINE_DUNGEON_INT:
+		return true;
+		break;
+	}
+
+	return false;
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+bool CX2Dungeon::IsSecretDungeon( const SEnum::DUNGEON_ID eDungeonId_ )
+{
+	switch( eDungeonId_ )
+	{
+	case SEnum::DI_EL_FOREST_HELL_NORMAL:
+	case SEnum::DI_EL_FOREST_HELL_HARD:
+	case SEnum::DI_EL_FOREST_HELL_EXPERT:
+	case SEnum::DI_ELDER_WALLY_CASTLE_LAB_NORMAL:
+	case SEnum::DI_ELDER_WALLY_CASTLE_LAB_HARD:
+	case SEnum::DI_ELDER_WALLY_CASTLE_LAB_EXPERT:
+	case SEnum::DI_BESMA_SECRET_NORMAL:
+	case SEnum::DI_BESMA_SECRET_HARD:
+	case SEnum::DI_BESMA_SECRET_EXPERT:
+	case SEnum::DI_ALTERA_SECRET_NORMAL:
+	case SEnum::DI_ALTERA_SECRET_HARD:
+	case SEnum::DI_ALTERA_SECRET_EXPERT:
+		//{{ 2010. 04. 05  최육사	비밀던전 헬모드
+	case SEnum::DI_RUBEN_SECRET_COMMON:
+	case SEnum::DI_RUBEN_SECRET_HELL:
+	case SEnum::DI_ELDER_SECRET_COMMON:
+	case SEnum::DI_ELDER_SECRET_HELL:
+	case SEnum::DI_BESMA_SECRET_COMMON:
+	case SEnum::DI_BESMA_SECRET_HELL:
+	case SEnum::DI_ALTERA_SECRET_COMMON:
+	case SEnum::DI_ALTERA_SECRET_HELL:
+		//}}
+		//{{ JHKang / 강정훈 / 2011.8.24
+	case SEnum::DI_VELDER_SECRET_COMMON:
+	case SEnum::DI_VELDER_SECRET_HELL:
+		//}} 
+	case SEnum::DI_HAMEL_SECRET_COMMON:
+	case SEnum::DI_HAMEL_SECRET_HELL:
+		return true;
+	}
+
+	return false;
+}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
 
 bool CX2Dungeon::IsDamageFreeGame()
 {
@@ -466,10 +507,22 @@ bool CX2Dungeon::IsDamageFreeGame()
 	case CX2Game::GT_DUNGEON:
 		{
 			CX2DungeonGame* pDungeonGame = static_cast<CX2DungeonGame*>(g_pX2Game);
-			const CX2Dungeon::DUNGEON_ID eDungeonId = pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID;
 
-			if ( CX2Dungeon::IsEventDungeon( eDungeonId ) || CX2Dungeon::IsHenirDungeon( eDungeonId, true ) )
-				return true;
+			if( NULL != pDungeonGame &&
+				NULL != pDungeonGame->GetDungeon() &&
+				NULL != pDungeonGame->GetDungeon()->GetDungeonData() )
+			{
+				const SEnum::DUNGEON_ID eDungeonId = pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID;
+
+				if ( CX2Dungeon::IsEventDungeon( eDungeonId ) 
+	#ifndef NEW_HENIR_DUNGEON // 1레벨 보정 -> 연동 레벨 던전으로 변경
+					|| 	( CX2Dungeon::IsHenirDungeon( eDungeonId ) &&
+						NULL != g_pData->GetPartyManager() && NULL != g_pData->GetPartyManager()->GetMyPartyData() &&
+						  CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode ) 				  
+	#endif // NEW_HENIR_DUNGEON
+					)
+					return true;
+			}
 		} break;
 	case CX2Game::GT_PVP:
 		{

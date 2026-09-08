@@ -338,14 +338,12 @@ public:
 	bool GetFTEnableNPCAttack() const { return m_bFTEnableNPCAttack; }
 	void SetFTEnableNPCAttack(bool val) { m_bFTEnableNPCAttack = val; }
 
-#ifdef ADD_TRAININGGAME_NPC
 	CX2UnitManager::NPC_UNIT_ID GetNpcIdByIndex(int iVal)
 	{
 		if( iVal < 0 || iVal > (int)m_vecNpc.size() )
 			return CX2UnitManager::NUI_NONE;
 		return m_vecNpc[iVal];
 	}
-#endif
 
 protected:		
 	void		AddText( const WCHAR* wszMsg, wstring wstrColor = L"#C000000", bool bSpread = true, float fSpreadTime = 0.1f );
@@ -403,9 +401,7 @@ private:
 	int				m_iFTNPCLevel;
 	bool			m_bFTEnableNPCAttack;
 
-#ifdef ADD_TRAININGGAME_NPC
 	vector<CX2UnitManager::NPC_UNIT_ID> m_vecNpc;
-#endif
 	
 };
 

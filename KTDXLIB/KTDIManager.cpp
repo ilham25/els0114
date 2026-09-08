@@ -20,9 +20,9 @@ CKTDIManager::CKTDIManager( HWND hWnd, HINSTANCE hInst )
 
 #ifdef KEY_MAPPING
 	m_bJoyEnable	= false;
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	m_bKeyChanging = false;
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 	ZeroMemory( m_State, sizeof(bool)*GAMEACTION_END);
 #endif KEY_MAPPING
 
@@ -131,8 +131,7 @@ void CKTDIManager::UpdateData( float fElapsedTime )
 			if( i == GAMEACTION_END )
 				continue;
 
-//#ifndef REFORM_UI_KEYPAD
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 			// 조이스틱
 			if( m_bJoyEnable && m_KTDIJoystic != NULL )
 			{
@@ -150,7 +149,7 @@ void CKTDIManager::UpdateData( float fElapsedTime )
 					HandleAction( i, m_KTDIJoystic->GetActionState( i ) );
 				}
 			}
-#endif KEY_MAPPING_INT
+#endif SERV_KEY_MAPPING_INT
 
 			// 키보드
 			if (m_KTDIKeyboard != NULL )
@@ -355,9 +354,9 @@ bool CKTDIManager::ListenDeviceInput( unsigned char& ucoutUserInput, InputDevice
 		{
 			if(m_KTDIKeyboard != NULL )
 			{
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 				return m_KTDIKeyboard->ListenDeviceInput( ucoutUserInput );
-#else KEY_MAPPING_INT
+#else SERV_KEY_MAPPING_INT
 				for(int i=0; i<256; ++i)
 				{
 					if( m_KTDIKeyboard->GetKeyState(i) == TRUE )
@@ -366,13 +365,13 @@ bool CKTDIManager::ListenDeviceInput( unsigned char& ucoutUserInput, InputDevice
 						return true;
 					}
 				}
-#endif KEY_MAPPING_INT
+#endif SERV_KEY_MAPPING_INT
 			}			
 		}
 		break;
 	case MOUSE:
 		break;
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	case JOYSTICK:
 		{
 			if( m_KTDIJoystic != NULL )
@@ -381,23 +380,19 @@ bool CKTDIManager::ListenDeviceInput( unsigned char& ucoutUserInput, InputDevice
 			}
 		}
 		break;
-#endif KEY_MAPPING_INT
+#endif SERV_KEY_MAPPING_INT
 	}
 	return false;
 }
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 void CKTDIManager::SetKeyChanging( bool bKeyChanging )
 {
 	m_bKeyChanging = bKeyChanging;
 }
-#endif // KEY_MAPPING_INT
-
-void CKTDIManager::SetDefaultMap()
+void CKTDIManager::SetGamePadDefaultMap()
 {
 	// Default Mapping
-
-#ifdef KEY_MAPPING_INT
 	if(m_KTDIJoystic != NULL)
 	{
 		m_KTDIJoystic->SetAction( GAMEACTION_UP,					JB_UP );
@@ -425,9 +420,13 @@ void CKTDIManager::SetDefaultMap()
 		m_KTDIJoystic->SetAction( GAMEACTION_QUICKSLOT5,			JB_BUTTON15 );
 		m_KTDIJoystic->SetAction( GAMEACTION_QUICKSLOT6,			JB_BUTTON16 );
 	}
-#endif // KEY_MAPPING_INT
+}
+#endif // SERV_KEY_MAPPING_INT
 
-#ifdef REFORM_UI_KEYPAD
+void CKTDIManager::SetDefaultMap()
+{
+	// Default Mapping
+
 	if( m_KTDIKeyboard != NULL )
 	{
 		m_KTDIKeyboard->SetAction( GAMEACTION_ATTACK_FAST, DIK_Z );
@@ -473,12 +472,16 @@ void CKTDIManager::SetDefaultMap()
 		m_KTDIKeyboard->SetAction( GAMEACTION_LEFT,		DIK_LEFT );
 		m_KTDIKeyboard->SetAction( GAMEACTION_RIGHT,	DIK_RIGHT );
 		m_KTDIKeyboard->SetAction( GAMEACTION_SIT,		DIK_V );
+
+#ifdef RIDING_SYSTEM
+		m_KTDIKeyboard->SetAction( GAMEACTION_RIDING,		DIK_F );
+#endif // RIDING_SYSTEM
+#ifdef ADDED_RELATIONSHIP_SYSTEM
+		m_KTDIKeyboard->SetAction( GAMEACTION_RELATION,		DIK_H );
+#endif // ADDED_RELATIONSHIP_SYSTEM
 #ifdef SERV_ADD_WARP_BUTTON
 		m_KTDIKeyboard->SetAction( GAMEACTION_WARP,		DIK_B );
 #endif // SERV_ADD_WARP_BUTTON
-
-#else REFORM_UI_KEYPAD
-#endif REFORM_UI_KEYPAD
 
 	}
 

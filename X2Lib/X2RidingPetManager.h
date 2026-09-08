@@ -95,6 +95,22 @@ public:
 		RPUI_KOUCIKA,				/// 코우시카
 		RPUI_ANCIENT_PPORU,			/// 에인션트 뽀루
 		RPUI_SCORPION_TYPE_R,		/// 퐁고 스콜피온 TYPE-R
+		RPUI_ICE_HAMELING,			/// 아이스 하멜링
+		RPUI_DARK_HAMELING,			/// 다크 하멜링 
+		RPUI_RED_HAMELING,			/// 레드 하멜링 
+
+		// 기획상 변경된 능력치를 해외팀에 반영하지 않기 위해 추가 한 ID ~
+		RPUI_NASOD_MOBI_INT     = 8,    /// 고대의 돌진 전차 모비RT
+		RPUI_KOUCIKA_INT        = 9,    /// 고대의 바람의 코우시카
+		RPUI_ANCIENT_PPORU_INT  = 10,   /// 고대의 에이션트 라이딩 뽀루
+		// ~ 기획상 변경된 능력치를 해외팀에 반영하지 않기 위해 추가 한 ID
+
+		RPUI_OBERON_CUSTOM_650	= 11,	///	이브 커스텀-오베론650
+		RPUI_ANCIENT_PPORU_NAVER = 12,	///	네이버 채널링 이벤트 에이션트 뽀루
+
+		RPUI_OBERON_CUSTOM_650_BLACK_SKULL = 13,	/// 이브 커스텀 - 블랙 스컬
+		RPUI_OBERON_CUSTOM_650_ANGEL_HEART = 14,	/// 이브 커스텀 - 엔젤 하트
+
 		RPUI_END,					/// 끝
 	};
 	#pragma endregion 탈 것 아이디 열거체
@@ -356,6 +372,14 @@ public:
 
 	float GetRecoveryTimePerOne();
 
+#ifdef REALTIME_SCRIPT_PATCH
+	void RefreshRidingPetScript();
+#endif // REALTIME_SCRIPT_PATCH
+
+#ifdef RIDINGPET_STAMINA_ITEM
+	bool SetRidingPetStaminaPercentUP(int iValue_ );
+#endif RIDINGPET_STAMINA_ITEM
+
 #pragma endregion function
 
 #pragma region private
@@ -389,6 +413,9 @@ private:
 	CKTDXCheckElapsedTime m_ElapsedCanPushSummonButton;		/// 소환 버튼을 1초내에 다시 누르지 못하게 하기 위한 변수
 
 	float		m_fEnableStamina;	//탑승 가능한 스테미너 최소치
+#ifdef RIDINGPET_STAMINA_ITEM
+	float		m_fUpdateNowStamina;
+#endif RIDINGPET_STAMINA_ITEM
 #pragma endregion variable
 
 };

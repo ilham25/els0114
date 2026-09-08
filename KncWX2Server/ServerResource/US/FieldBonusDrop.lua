@@ -95,6 +95,16 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40003,												-- 베스아가라 폭포
+	MonsterID = 5125,													-- 월리 0호 Type-P
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
 --	베스마_02_레이키키 호수
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
@@ -107,12 +117,32 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40004,												-- 레이키키 호수
+	MonsterID = 5125,													-- 월리 0호 Type-P
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
 --	베스마_03_토리투게라 캐년
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 {
 	BattleFieldID = 40005,												-- 토리투게라 캐년
 	MonsterID = 5117,													-- 베스쿠
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40005,												-- 토리투게라 캐년
+	MonsterID = 5125,													-- 월리 0호 Type-P
 	SetMiddleBossCommonBonusItemID = 99988,			
 	SetMiddleBossCommonBonusItemCount = 1,
 	SetMiddleBossBonusItemID	= 160712,	
@@ -138,6 +168,16 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40006,												-- 베스아가라 폭포
+	MonsterID = 5126,													-- 무타
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
 --	알테라_02_나소드 폐기장
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
@@ -150,12 +190,32 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40007,												-- 나소드 폐기장
+	MonsterID = 5126,													-- 무타
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
 --	알테라_03_천공의 기지
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 {
 	BattleFieldID = 40008,												-- 천공의 기지
 	MonsterID = 5118,													-- 슬레슈
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40008,												-- 천공의 기지
+	MonsterID = 5126,													-- 무타
 	SetMiddleBossCommonBonusItemID = 99988,			
 	SetMiddleBossCommonBonusItemCount = 1,
 	SetMiddleBossBonusItemID	= 160712,	
@@ -181,6 +241,16 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40009,												-- 순례자의 관문
+	MonsterID = 5129,													-- 와무
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
 --	페이타_02_순례자의 터
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
@@ -193,12 +263,32 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40010,												-- 순례자의 터
+	MonsterID = 5129,													-- 와무
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
 --	페이타_03_망자의 언덕
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 {
 	BattleFieldID = 40011,												-- 망자의 언덕
 	MonsterID = 5119,													-- 배터
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40011,												-- 망자의 언덕
+	MonsterID = 5129,													-- 와무
 	SetMiddleBossCommonBonusItemID = 99988,			
 	SetMiddleBossCommonBonusItemCount = 1,
 	SetMiddleBossBonusItemID	= 160712,	
@@ -245,6 +335,57 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
 
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40012,												-- 번영의 길
+	MonsterID = 5130,													-- 글리터전대 : 레드
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
+{
+	BattleFieldID = 40012,												-- 번영의 길
+	MonsterID = 5131,													-- 글리터전대 : 블루
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
+{
+	BattleFieldID = 40012,												-- 번영의 길
+	MonsterID = 5132,													-- 글리터전대 : 핑크
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
+{
+	BattleFieldID = 40012,												-- 번영의 길
+	MonsterID = 5133,													-- 글리터전대 : 옐로
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
+{
+	BattleFieldID = 40012,												-- 번영의 길
+	MonsterID = 5134,													-- 글리터전대 : 블랙
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+
 --	벨더_02_평화의 길
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 {
@@ -270,6 +411,57 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 {
 	BattleFieldID = 40013,												-- 평화의 길
 	MonsterID = 5122,													-- 문스타
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40013,												-- 평화의 길
+	MonsterID = 5130,													-- 글리터전대 : 레드
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40013,												-- 평화의 길
+	MonsterID = 5131,													-- 글리터전대 : 블루
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40013,												-- 평화의 길
+	MonsterID = 5132,													-- 글리터전대 : 핑크
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40013,												-- 평화의 길
+	MonsterID = 5133,													-- 글리터전대 : 옐로
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40013,												-- 평화의 길
+	MonsterID = 5134,													-- 글리터전대 : 블랙
 	SetMiddleBossCommonBonusItemID = 99988,			
 	SetMiddleBossCommonBonusItemCount = 1,
 	SetMiddleBossBonusItemID	= 160712,	
@@ -309,6 +501,57 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
 
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40014,												-- 공존의 길
+	MonsterID = 5130,													-- 글리터전대 : 레드
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40014,												-- 공존의 길
+	MonsterID = 5131,													-- 글리터전대 : 블루
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40014,												-- 공존의 길
+	MonsterID = 5132,													-- 글리터전대 : 핑크
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40014,												-- 공존의 길
+	MonsterID = 5133,													-- 글리터전대 : 옐로
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40014,												-- 공존의 길
+	MonsterID = 5134,													-- 글리터전대 : 블랙
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+
 --	벨더_04_루렌시아 항구
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 {
@@ -340,6 +583,57 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40015,												-- 루렌시아 항구
+	MonsterID = 5130,													-- 글리터전대 : 레드
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40015,												-- 루렌시아 항구
+	MonsterID = 5131,													-- 글리터전대 : 블루
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40015,												-- 루렌시아 항구
+	MonsterID = 5132,													-- 글리터전대 : 핑크
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40015,												-- 루렌시아 항구
+	MonsterID = 5133,													-- 글리터전대 : 옐로
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40015,												-- 루렌시아 항구
+	MonsterID = 5134,													-- 글리터전대 : 블랙
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 ----------------------------------------------------------------------
 --	벨더 필드 셋팅 끝
 ----------------------------------------------------------------------
@@ -359,12 +653,32 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40016,												-- 엘라임의 물결
+	MonsterID = 5135,													-- 쉐도스
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
 --	하멜_02_휩쓸린 도시
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 {
 	BattleFieldID = 40017,												-- 휩쓸린 도시
 	MonsterID = 5123,													-- 스톤 갓
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40017,												-- 휩쓸린 도시
+	MonsterID = 5135,													-- 쉐도스
 	SetMiddleBossCommonBonusItemID = 99988,			
 	SetMiddleBossCommonBonusItemCount = 1,
 	SetMiddleBossBonusItemID	= 160712,	
@@ -383,12 +697,32 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40018,												-- 원형 수로
+	MonsterID = 5135,													-- 쉐도스
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
 --	하멜_04_노아호의 무덤
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 {
 	BattleFieldID = 40019,												-- 노아호의 무덤
 	MonsterID = 5123,													-- 스톤 갓
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40019,												-- 노아호의 무덤
+	MonsterID = 5135,													-- 쉐도스
 	SetMiddleBossCommonBonusItemID = 99988,			
 	SetMiddleBossCommonBonusItemCount = 1,
 	SetMiddleBossBonusItemID	= 160712,	
@@ -415,6 +749,16 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40022,												-- 바람의 사원
+	MonsterID = 5136,													-- 마푸
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
 --	샌더_02_칼루소 부족 정찰지대
 g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
@@ -427,7 +771,60 @@ g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.03.06
 	SetMiddleBossBonusItemIDCount_High	= 2,
 	SetMiddleBossBonusItemIDCount_Low	= 1,
 }
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40023,												-- 칼루소 부족 정찰지대
+	MonsterID = 5136,													-- 마푸
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 
+--	샌더_03_샌틸러스호의 무덤
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.08.04 // 공솔
+{
+	BattleFieldID = 40024,												-- 샌틸러스호의 무덤
+	MonsterID = 5124,													-- 카르베로스
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40024,												-- 샌틸러스호의 무덤
+	MonsterID = 5136,													-- 마푸
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+
+--	샌더_04_베히모스 크레이터
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.08.04 // 공솔
+{
+	BattleFieldID = 40025,												-- 베히모스 크레이터
+	MonsterID = 5124,													-- 카르베로스
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
+g_pBattleFieldManager:BattleFieldMiddleBossDropInfo	--2013.10.20
+{
+	BattleFieldID = 40025,												-- 베히모스 크레이터
+	MonsterID = 5136,													-- 마푸
+	SetMiddleBossCommonBonusItemID = 99988,			
+	SetMiddleBossCommonBonusItemCount = 1,
+	SetMiddleBossBonusItemID	= 160712,	
+	SetMiddleBossBonusItemIDCount_High	= 2,
+	SetMiddleBossBonusItemIDCount_Low	= 1,
+}
 ----------------------------------------------------------------------
 --	샌더 필드 셋팅 끝
 ----------------------------------------------------------------------

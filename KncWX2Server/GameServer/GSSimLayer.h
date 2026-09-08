@@ -16,6 +16,12 @@ class KGSSimLayer : public KSimLayer
 
 public:
 
+    enum SERVER_GROUP_NUM
+    {
+        SINGLE_SERVER_GROUP = 1,
+        DOUBLE_SERVER_GROUP = 2,
+    };
+
     KGSSimLayer(void);
     virtual ~KGSSimLayer(void);
 
@@ -77,8 +83,21 @@ public:
 #ifdef SERV_XTRAP_MAP_LOADING_AUTOMATION
 	int GetMapQuantity() { return m_setLoadedMaps.size(); }
 	char* GetAllMapPointer() { return &m_vecUsingMap[0]; }
-#endif SERV_XTRAP_MAP_LOADING_AUTOMATION
-#endif SERV_USE_XTRAP
+#endif //SERV_XTRAP_MAP_LOADING_AUTOMATION
+#endif //SERV_USE_XTRAP
+
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH
+	void DeleteCommonFlag_AllGS_LUA( DWORD dwFlag );
+	void AddCommonFlag_AllGS_LUA( DWORD dwFlag );
+#endif // SERV_MODFIY_FLAG_REALTIME_PATCH
+
+    void SetServerGroupNum( int iGroupNum );
+    int GetServerGroupNum();
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+			void SetTimeControlItem_Info(std::map< int, std::vector<KPacketGetItemOnOff> > _maptimeControl_Item) { m_map_TimeControl_Item = _maptimeControl_Item; }
+			std::map< int, std::vector<KPacketGetItemOnOff> > GetTimeControlItem_Info() { return m_map_TimeControl_Item; }
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 	void SetTimeControlCubeInItemMapping_Info(std::map< int, std::vector<KRandomItemMappingToInfoServer> > _maptimeControl_CubeInItemMapping) { m_map_TimeControl_CubeInItemMapping = _maptimeControl_CubeInItemMapping; }
@@ -111,8 +130,13 @@ protected:
 	boost::timer					m_tXTrapReloadTimer;
 	std::set<std::vector<char> >	m_setLoadedMaps;	// 현재 올라가 있는 맵인지 확인을 위한 정보
 	std::vector<char>				m_vecUsingMap;		// 실제 메모리에 올라가는 정보
-#endif SERV_XTRAP_MAP_LOADING_AUTOMATION
-#endif SERV_USE_XTRAP
+#endif //SERV_XTRAP_MAP_LOADING_AUTOMATION
+#endif //SERV_USE_XTRAP
+    int m_iServerGroupNum;
+	
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	std::map< int, std::vector<KPacketGetItemOnOff> > m_map_TimeControl_Item;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 	std::map< int, std::vector<KRandomItemMappingToInfoServer> > m_map_TimeControl_CubeInItemMapping;

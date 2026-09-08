@@ -595,6 +595,9 @@ void CX2World::PlayBGM()
 	if( true == m_BGMName.empty() )
 		return;
 
+	if( NULL == g_pKTDXApp->GetDSManager() )
+		return;
+
 	if( g_pKTDXApp->GetDSManager()->GetInit() == false || g_pKTDXApp->GetDSManager()->GetMP3Play() == NULL )
 		return;
 
@@ -689,11 +692,7 @@ CX2WorldObject* CX2World::FindObjectByName(const std::wstring& wstrName_)
 bool CX2World::OpenScriptFile( const WCHAR* pFileName, KLuabinder* pKLuabinder /* = NULL */ )
 {
 #ifdef MODIFY_FRUSTUM
-#ifdef MODIFY_ZFIGHTING
 	g_pKTDXApp->GetDGManager()->SetNear(10.f);
-#else
-	g_pKTDXApp->GetDGManager()->SetNear(1.f);
-#endif
 	g_pKTDXApp->GetDGManager()->SetFar(50000.f);
 	g_pKTDXApp->GetDGManager()->SetPerspectiveValue(4.f);
 #endif
@@ -720,29 +719,17 @@ bool CX2World::OpenScriptFile( const WCHAR* pFileName, KLuabinder* pKLuabinder /
 		}
 	}
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR70, strFileName.c_str() );
-
-		return false;
-	}
-
     // 게임월드의 스크립트를 파싱해서, 게임 월드의 게임 객체들을 생성한다.
     // DoMemory()가 파싱한 스크립트 함수의 호출이 내부적으로 g_pKTDXApp->GetLuaBinder()를
     // 또 사용하고 있다는 사실을 주의하자.
     // - jintaeks on 2008-10-21, 10:04, qff
-	if( pRealKLuabinder->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName );
-		ErrorLogMsg( XEM_ERROR71, strFileName.c_str() );
+    if ( g_pKTDXApp->LoadAndDoMemory( pRealKLuabinder, pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR71, pFileName );
 
 		return false;
-	}
+    }
+
 
 	//{{ seojt // 2008-10-24, 11:08
     // 메시 파일 이름으로 객체를 찾을 때, log(n)만에 검색하기 위해 
@@ -763,7 +750,7 @@ bool CX2World::OpenScriptFile( const WCHAR* pFileName, KLuabinder* pKLuabinder /
 //		Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( wstrPreProcessingFile.c_str() );
 //		if ( Info != NULL )
 //		{
-//			if ( pRealKLuabinder->DoMemoryNotEncript( Info->pRealData, Info->size ) == E_FAIL )
+//			if ( pRealKLuabinder->DoMemoryNotEncrypt( Info->pRealData, Info->size ) == false )
 //			{
 //				string strFileName;
 //				ConvertWCHARToChar( strFileName, pFileName );
@@ -777,7 +764,7 @@ bool CX2World::OpenScriptFile( const WCHAR* pFileName, KLuabinder* pKLuabinder /
 	//}} dmlee 2009/07/28 현재는 전처리 파일을 사용하지 않아서 comment out 해둠, 나중에 사용할 수도 있음
 
 
-	SetMapDetail( g_pMain->GetGameOption()->GetOptionList()->m_MapDetail );
+	SetMapDetail( g_pMain->GetGameOption().GetOptionList().m_MapDetail );
 
 #ifdef MODIFY_FRUSTUM
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), 
@@ -826,7 +813,7 @@ void CX2World::SetShowObject( bool bShow )
 #ifdef X2TOOL
 void CX2World::SetShowObjectByTool( bool bShow )
 {
-	SetMapDetail( g_pMain->GetGameOption()->GetOptionList()->m_MapDetail );
+	SetMapDetail( g_pMain->GetGameOption().GetOptionList().m_MapDetail );
 
 	for( int i = 0; i < (int)m_SkyDomeList.size(); i++ )
 	{
@@ -985,7 +972,7 @@ void CX2World::Add3DEffectBGM_LUA( const char* pFileName, float x, float y, floa
 		// 배경 3D sound는 옵션이 켜져있을 때만 play 한다
 		if( true == g_pKTDXApp->GetDSManager()->GetCapable3DSound() &&
 			true == g_pKTDXApp->GetDSManager()->GetEnable3DSound() &&
-			true == g_pMain->GetGameOption()->GetOptionList()->m_bEnable3DSound )
+			true == g_pMain->GetGameOption().GetOptionList().m_bEnable3DSound )
 		{
 			pDevice->Play( true, true );
 		}
@@ -1096,7 +1083,7 @@ void CX2World::Play3DEffectBGM( bool bPlay )
 				// 배경 3D sound는 옵션이 켜져있을 때만 play 한다
 				if( true == g_pKTDXApp->GetDSManager()->GetCapable3DSound() &&
 					true == g_pKTDXApp->GetDSManager()->GetEnable3DSound() &&
-					true == g_pMain->GetGameOption()->GetOptionList()->m_bEnable3DSound )
+					true == g_pMain->GetGameOption().GetOptionList().m_bEnable3DSound )
 				{
 					pSound->Play( true, true );
 				}
@@ -1208,6 +1195,7 @@ CKTDGSkyDome* CX2World::CreateSkyDome()
 {
 	//CKTDGSkyDome* pCKTDGSkyDome = new CKTDGSkyDome();
 	CKTDGSkyDome* pCKTDGSkyDome = CKTDGSkyDome::CreateSkyDome();
+
 	m_SkyDomeList.push_back( pCKTDGSkyDome );
     g_pKTDXApp->GetDGManager()->AddObjectChain( pCKTDGSkyDome );
 
@@ -1322,14 +1310,14 @@ void CX2World::ClearObjectMesh()
 #ifdef FOG_WORLD
 void CX2World::SetFogWorld(float fNearX, float fFarX, float fNearY, float fFarY, float fDensity, D3DXCOLOR fogColor)
 {
-    m_bFog      = true;
-    m_bFogShow  = true;
-    m_fNearX    = fNearX;
-    m_fFarX     = fFarX;
-    m_fNearY    = fNearY;
-    m_fFarY     = fFarY;
-    m_fDensity  = fDensity;
-    m_FogColor  = fogColor;
+	m_bFog      = true;
+	m_bFogShow  = true;
+	m_fNearX    = fNearX;
+	m_fFarX     = fFarX;
+	m_fNearY    = fNearY;
+	m_fFarY     = fFarY;
+	m_fDensity  = fDensity;
+	m_FogColor  = fogColor;
 }
 #endif
 
@@ -1526,7 +1514,9 @@ void CX2World::AddWorldMonster_LUA()
 #ifdef MARIO_LIKE_BLOCK_TEST
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	WorldMonsterData worldMonsterData;
 	
@@ -1543,8 +1533,12 @@ void CX2World::AddWorldMonster_LUA()
 		return; 
 
 
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "POSITION", worldMonsterData.m_vPosition, D3DXVECTOR3(0,0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	// lua script에 값이 없는 경우가 있으면 lua_tinker::get() 사용하면 안됨
 	worldMonsterData.m_vPosition = lua_tinker::get<D3DXVECTOR3>( luaManager.GetLuaState(), "POSITION" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	m_vecWorldMonsterData.push_back( worldMonsterData );
 #endif MARIO_LIKE_BLOCK_TEST
@@ -1607,7 +1601,7 @@ void CX2World::DoTriggerLine(CKTDGLineMap::TRIGGER_DATA_LINE &triggerLine)
 	if( triggerLine.m_iTriggerLineIndex < 0 )
 		return;
 
-	CKTDGLineMap::LineData *pLineData = GetLineMap()->GetLineData( triggerLine.m_iTriggerLineIndex);
+	CKTDGLineMap::LineData *pLineData = GetLineMap()->AccessLineData( triggerLine.m_iTriggerLineIndex);
 	if( pLineData == NULL )
 		return;
 
@@ -1674,16 +1668,16 @@ void CX2World::DoTriggerEtc(CKTDGLineMap::TRIGGER_DATA_ETC &triggerEtc)
 		break;
 	case CKTDGLineMap::TAT_ETC_CAMERA_SHAKE:
 		{
-			if( g_pX2Game != NULL && g_pX2Game->GetX2Camera() != NULL && g_pX2Game->GetX2Camera()->GetCamera() != NULL )
+			if( g_pX2Game != NULL && g_pX2Game->GetX2Camera() != NULL )
 			{
 				if( triggerEtc.m_iDummyValue01 >= 0 )
 				{
-					g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( (float)triggerEtc.m_iDummyValue01, triggerEtc.m_fDummyValue01 );
+					g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( (float)triggerEtc.m_iDummyValue01, triggerEtc.m_fDummyValue01 );
 				}
 				else
 				{
 					float fGap = (float)abs(triggerEtc.m_iDummyValue01);
-					g_pX2Game->GetX2Camera()->GetCamera()->LeftRightCrashCamera( fGap, triggerEtc.m_fDummyValue01 );
+					g_pX2Game->GetX2Camera()->GetCamera().LeftRightCrashCamera( fGap, triggerEtc.m_fDummyValue01 );
 				}
 			}
 		}
@@ -1830,3 +1824,4 @@ void CX2World::SetProjection( float fNear, float fFar, float fPerspective, float
 	m_fCameraDistanceStep[2] = fStepDist3;
 }
 #endif //MODIFY_FRUSTUM
+

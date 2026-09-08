@@ -32,7 +32,7 @@ CX2PETAI::CX2PETAI( CX2PET* pPet )
 	m_bFleeing = false;
 
 	m_bEnableLuaTargetingFunc	= false;
-	m_wstrLuaTargetingFunc		= L"";
+	m_strLuaTargetingFunc		= "";
 		
 	m_pAIData = new AIData();
 	m_bFleeing = false;
@@ -101,16 +101,16 @@ void CX2PETAI::OnFrameMove( double fTime, float fElapsedTime )
 
 
 	if( true == m_bEnableLuaTargetingFunc && 
-		false == m_wstrLuaTargetingFunc.empty() )
+		false == m_strLuaTargetingFunc.empty() )
 	{
 		m_fElapsedTimeAfterLastTargeting += fElapsedTime;
 		if( m_fElapsedTimeAfterLastTargeting > m_pAIData->targetData.targetInterval )
 		{
 			m_fElapsedTimeAfterLastTargeting = 0.f;
-			string func = "";
-			ConvertWCHARToChar( func, m_wstrLuaTargetingFunc.c_str() );
+			//string func = "";
+			//ConvertWCHARToChar( func, strLuaTargetingFunc.c_str() );
 #ifdef	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
-			lua_tinker::call<void>( m_pPet->GetLuaManager().GetLuaState(),  func.c_str(), g_pKTDXApp, g_pX2Game, m_pPet );
+			lua_tinker::call<void>( m_pPet->GetLuaManager().GetLuaState(),  m_strLuaTargetingFunc.c_str(), g_pKTDXApp, g_pX2Game, m_pPet );
 #else	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  func.c_str(), g_pKTDXApp, g_pX2Game, m_pPet );
 #endif	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
@@ -132,11 +132,11 @@ void CX2PETAI::LoadAIDataFromLUA( KLuaManager& luaManager )
 
 		if( luaManager.BeginTable( "TARGET" ) == true )
 		{
-			LUA_GET_VALUE( luaManager, "MANUAL_TARGETING_FUNC",	m_pAIData->targetData.wstrLuaTargetingFunc,		L"" );
+			LUA_GET_VALUE_UTF8( luaManager, "MANUAL_TARGETING_FUNC",	m_pAIData->targetData.strLuaTargetingFunc,		"" );
 
-			if( false == m_pAIData->targetData.wstrLuaTargetingFunc.empty() )
+			if( false == m_pAIData->targetData.strLuaTargetingFunc.empty() )
 			{
-				SetLuaTargetingFunc( m_pAIData->targetData.wstrLuaTargetingFunc );
+				SetLuaTargetingFunc( m_pAIData->targetData.strLuaTargetingFunc );
 				SetEnableLuaTargetingFunc( true );
 			}			
 
@@ -222,7 +222,7 @@ void CX2PETAI::SetMasterUnitData()
 	// fix!! 미리 한번만 계산해서 가지고 있어야, 아니면 대략 계산하거나
 	// t = v0/g
 	// l = v0*t - 1/2*g*t^2 = 1/2*v0^2/g
-	CX2PET::PhysicParam& physicParam = m_pPet->GetPhysicParam();	
+	const CX2PET::PhysicParam& physicParam = m_pPet->GetPhysicParam();	
 
 	float fHalfTimeOnAir;
 	if( physicParam.fGAccel != 0.f )
@@ -241,7 +241,7 @@ void CX2PETAI::SetMasterUnitData()
 
 void CX2PETAI::UpdateJumpSpeed()
 {
-	CX2PET::PhysicParam& physicParam = m_pPet->GetPhysicParam();	
+	const CX2PET::PhysicParam& physicParam = m_pPet->GetPhysicParam();	
 
 	float fHalfTimeOnAir;
 	if( physicParam.fGAccel != 0.f )
@@ -356,7 +356,7 @@ void CX2PETAI::TargetUpdate()
 			{
 				bTargetUnitOK = true;
 				vTargetUnitPos = pGUUser->GetPos();
-				iTargetLineIndex = pGUUser->GetFrameData()->syncData.lastTouchLineIndex;
+				iTargetLineIndex = pGUUser->GetFrameData().syncData.lastTouchLineIndex;
 				m_bMasterIsRight =  pGUUser->GetIsRight();
 			}
 		}

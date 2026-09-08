@@ -378,7 +378,7 @@ bool CX2StateTrainingSchool::Handler_EGS_CREATE_TC_ROOM_ACK( HWND hWnd, UINT uMs
 			roomInfo.m_RoomState		= (CX2Room::ROOM_STATE) CX2Room::RS_INIT;
 			roomInfo.m_bPublic			= false;
 			roomInfo.m_DifficultyLevel	= (CX2Dungeon::DIFFICULTY_LEVEL) CX2Dungeon::DL_NORMAL;
-			roomInfo.m_iDungeonID		= (CX2Dungeon::DUNGEON_ID)kEvent.m_kTCInfo.m_iDungeonID;
+			roomInfo.m_iDungeonID		= (SEnum::DUNGEON_ID)kEvent.m_kTCInfo.m_iDungeonID;
 
 
 			CX2TrainingCenterTable::TC_TABLE_INFO trainingInfo;
@@ -425,10 +425,10 @@ bool CX2StateTrainingSchool::Handler_EGS_CREATE_TC_ROOM_ACK( HWND hWnd, UINT uMs
 			pCX2DungeonRoom->Set_KRoomSlotInfoList( vecRoomSlotInfo );
 			pCX2DungeonRoom->ConnectRelayServer( kEvent.m_kTCInfo.m_wstrUDPRelayIP.c_str(), kEvent.m_kTCInfo.m_usUDPRelayPort );
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
             if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
                 g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_DUNGEON ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #endif // HEAP_BROKEN_BY_ROOM
 

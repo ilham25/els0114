@@ -112,6 +112,9 @@ DECL_PACKET( EGS_BILL_PRODUCT_INFO_ACK )
 	std::map< int,std::vector< int > >	m_mapKeepShowItem;
 	std::map< int, kDisCountItemInfo >	m_DisCountInfoMap;
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+#ifdef SERV_WISH_LIST_NO_ITEM
+	std::set< int >						m_setWishListNoItemList;
+#endif SERV_WISH_LIST_NO_ITEM
 };
 
 DECL_PACKET( EGS_BILL_INVENTORY_INQUIRY_REQ )
@@ -277,24 +280,18 @@ DECL_PACKET( EGS_PVP_REMATCH_NOT )
 
 //{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
 #ifdef SERV_UNIT_WAIT_DELETE
-
 DECL_PACKET( EGS_RESTORE_UNIT_REQ )
 {
 	UidType                 m_iUnitUID;
 	UidType                 m_iUserUID;
 };
 
-
 DECL_PACKET( EGS_RESTORE_UNIT_ACK )
 {
 	int                     m_iOK;
 	UidType                 m_iUnitUID;
-	//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
-#ifdef SERV_UNIT_WAIT_DELETE
 	//{{ // 2012.03.06 lygan_조성욱 // 기존 문자열시간을 그대로 받는 부분을 서버에서 숫자로 변경해서 클라로 전달 구조로 변경
 	__int64					m_tRestoreAbleDate; //2012.03.05 lygan_조성욱 // 캐릭터 삭제 할때 최종 삭제 가능한 날을 알기 위해 
-	//}}
-#endif SERV_UNIT_WAIT_DELETE
 	//}}
 };
 
@@ -303,7 +300,6 @@ DECL_PACKET( EGS_FINAL_DELETE_UNIT_REQ )
 	UidType                 m_iUnitUID;
 	UidType                 m_iUserUID;
 };
-
 
 DECL_PACKET( EGS_FINAL_DELETE_UNIT_ACK )
 {
@@ -322,15 +318,9 @@ DECL_PACKET( EGS_FINAL_DELETE_UNIT_ACK )
 	char					m_cUnitClass;
 #endif SERV_CHAR_LOG
 	//}}
-	//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
-#ifdef SERV_UNIT_WAIT_DELETE
 	__int64					m_tReDelAbleDate;
-#endif SERV_UNIT_WAIT_DELETE
-	//}}
 };
-
 #endif SERV_UNIT_WAIT_DELETE
-//}}
 
 //{{ 2011.03.16   임규수 아바타 분해 시스템
 #ifdef SERV_MULTI_RESOLVE
@@ -588,18 +578,6 @@ DECL_PACKET( EGS_OPEN_RANDOM_ITEM_DEVELOPER_ACK )
 	std::map<int, KRandomItemResult>	m_map_RandomItemResult;
 };
 #endif//SERV_DEVELOPER_RANDOM_OPEN_ITEM_LOG
-#ifdef SERV_KOM_FILE_CHECK_ADVANCED
-DECL_PACKET( EGS_KOM_FILE_CHECK_LOG_REQ )
-{
-	std::wstring						m_wstrInvalidKomName;
-};
-
-DECL_PACKET( EGS_KOM_FILE_CHECK_LOG_ACK )
-{
-	std::wstring						m_wstrInvalidKomName;
-	int									m_iOK;
-};
-#endif SERV_KOM_FILE_CHECK_ADVANCED
 
 #ifdef SERV_CHECK_TIME_QUEST
 DECL_PACKET( EGS_EVENT_QUEST_CHECK_FOR_ADMIN_NOT )
@@ -607,6 +585,19 @@ DECL_PACKET( EGS_EVENT_QUEST_CHECK_FOR_ADMIN_NOT )
 	std::vector<int>					m_vecWarningQuestID;
 };
 #endif // SERV_CHECK_TIME_QUEST
+
+#ifdef SERV_MOMOTI_EVENT
+DECL_PACKET( EGS_MOMOTI_QUIZ_EVENT_REQ )
+{
+	int										m_iOK;
+	int										m_istrReply;									;
+};
+DECL_PACKET( EGS_MOMOTI_QUIZ_EVENT_ACK )
+{
+	int										m_iOK;
+	int										m_iCheckReward;
+};
+#endif //SERV_MOMOTI_EVENT
 
 #ifdef SERV_CLIENT_PORT_CHANGE_REQUEST_LOG
 DECL_PACKET( EGS_CLIENT_POPRT_CHANGE_REQUEST_INFO_NOT )
@@ -646,7 +637,6 @@ DECL_PACKET( EGS_QUEST_POINT_COUNT_SYSTEM_NOT )
 #endif //SERV_POINT_COUNT_SYSTEM
 
 #ifdef SERV_COUNTRY_PH
-
 DECL_PACKET( EGS_EXCHANGE_CASH_CLIENT_NOT ) // 2013.08.06 lygan_조성욱 // 동남아시아의 경우 전환할때 EGS_EXCHANGE_CASH_REQ 패킷을 못날린다. 그래서 ACK를 받을 수 없기 때문에 NOT로 대신한다.
 {
 	int									m_iOK;
@@ -655,7 +645,6 @@ DECL_PACKET( EGS_EXCHANGE_CASH_CLIENT_NOT ) // 2013.08.06 lygan_조성욱 // 동남아
 	KGlobalCashInfo						m_AddBonusCashInfo;
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 };
-
 #endif //SERV_COUNTRY_PH
 
 #ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
@@ -670,6 +659,203 @@ DECL_PACKET( EGS_CHANGE_PET_ID_NOT )
 	}
 };
 #endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
+
+#ifdef SERV_COUPON_EVENT
+DECL_PACKET( EGS_COUPON_ITEM_CHECK_REQ )
+{
+	int				m_iButtonType;
+};
+
+DECL_PACKET( EGS_COUPON_ITEM_CHECK_ACK )
+{
+	int				m_iOK;
+	int				m_iCouponType;
+	int				m_iItemID;
+};
+
+DECL_PACKET( EGS_COUPON_ENTRY_REQ )
+{
+	int				m_iCouponType;
+};
+
+DECL_PACKET( EGS_COUPON_ENTRY_ACK )
+{
+	int									m_iOK;
+	std::vector< KInventoryItemInfo >	m_vecUpdatedInventorySlot;
+};
+#endif //SERV_COUPON_EVENT
+
+#ifdef SERV_GUILD_FIND_AD
+typedef KEGS_GET_GUILD_SKILL_IN_BOARD_REQ KEGS_GET_GUILD_SKILL_IN_INVITE_GUILD_LIST_REQ;
+typedef KEGS_GET_GUILD_SKILL_IN_BOARD_ACK KEGS_GET_GUILD_SKILL_IN_INVITE_GUILD_LIST_ACK;
+
+DECL_PACKET( EGS_GET_GUILD_FIND_AD_LIST_REQ )
+{
+	enum FIND_AD_SORT_TYPE
+	{
+		FAST_REG_DATE = 0,
+		FAST_UNIT_LEVEL,
+
+		FAST_MAX,
+	};
+
+	char								m_cSortType;
+	u_int								m_uiViewPage;
+};
+
+DECL_PACKET( EGS_GET_GUILD_FIND_AD_LIST_ACK )
+{	
+	char									m_cSortType;
+	u_int									m_uiTotalPage;
+	u_int									m_uiViewPage;
+	std::vector< KGuildFindAdInfo >			m_vecGuildFindAdList;
+	bool									m_bCanShowInviteUserList;
+	bool									m_bCanShowInviteGuildList;
+	bool									m_bRegMyGuildFindAd;
+};
+
+DECL_PACKET( EGS_REGISTRATION_GUILD_INVITE_MSG_REQ )
+{	
+	bool									m_bOldInviteMsgDelete;
+	UidType									m_iUnitUID;
+	char									m_cUnitClass;
+	int										m_iUnitLevel;
+	std::wstring							m_wstrNickName;
+	std::wstring							m_wstrMessage;
+};
+
+DECL_PACKET( EGS_REGISTRATION_GUILD_INVITE_MSG_ACK )
+{
+	int										m_iOK;
+	int										m_iED;
+	short									m_sPeriod;
+	std::wstring							m_wstrNickName;
+	std::wstring							m_wstrMessage;
+};
+
+DECL_PACKET( EGS_REGISTRATION_GUILD_FIND_AD_REQ )
+{
+	short									m_sPeriod;
+	std::wstring							m_wstrFindAdMessage;
+};
+
+DECL_PACKET( EGS_REGISTRATION_GUILD_FIND_AD_ACK )
+{
+	int										m_iOK;
+	int										m_iED;
+	short									m_sPeriod;
+	std::wstring							m_wstrFindAdMessage;
+};
+
+typedef KEGS_REGISTRATION_GUILD_INVITE_MSG_REQ KEGS_MODIFY_REG_GUILD_INVITE_MSG_REQ;
+typedef KEGS_REGISTRATION_GUILD_INVITE_MSG_ACK KEGS_MODIFY_REG_GUILD_INVITE_MSG_ACK;
+typedef KEGS_REGISTRATION_GUILD_FIND_AD_REQ KEGS_MODIFY_REG_GUILD_FIND_AD_REQ;
+typedef KEGS_REGISTRATION_GUILD_FIND_AD_ACK KEGS_MODIFY_REG_GUILD_FIND_AD_ACK;
+
+DECL_PACKET( EGS_GET_GUILD_INVITE_USER_LIST_REQ )
+{
+	UINT									m_uiViewPage;
+};
+
+DECL_PACKET( EGS_GET_GUILD_INVITE_USER_LIST_ACK )
+{
+	int										m_iOK;
+	std::wstring							m_wstrGuildName;
+	u_int									m_uiTotalPage;
+	u_int									m_uiViewPage;
+	std::vector< KGuildInviteMsgInfo >		m_vecGuildInviteUserList;
+};
+
+DECL_PACKET( EGS_GET_GUILD_INVITE_GUILD_LIST_REQ )
+{
+	UINT									m_uiViewPage;
+};
+
+DECL_PACKET( EGS_GET_GUILD_INVITE_GUILD_LIST_ACK )
+{
+	int										m_iOK;
+	u_int									m_uiTotalPage;
+	u_int									m_uiViewPage;
+	std::vector< KGuildInviteMsgInfo >		m_vecGuildInviteGuildList;
+};
+
+DECL_PACKET( EGS_ACCEPT_INVITE_REQ )
+{
+	int										m_iGuildUID;
+};
+
+typedef KPacketOK KEGS_ACCEPT_INVITE_ACK;
+
+DECL_PACKET( EGS_CANCEL_INVITE_MSG_REQ )
+{
+	int										m_iGuildUID;
+	UidType									m_iDeletedUnitUID;
+};
+
+DECL_PACKET( EGS_CANCEL_INVITE_MSG_ACK )
+{
+	int										m_iOK;
+	bool									m_bCancel;
+};
+
+typedef KPacketOK KEGS_DELETE_GUILD_FIND_AD_ACK;
+#endif SERV_GUILD_FIND_AD
+
+#ifdef SERV_READY_TO_SOSUN_EVENT
+DECL_PACKET( EGS_READY_TO_SOSUN_EVENT_ACK )
+{
+	int										m_iOK;
+	std::vector< KInventoryItemInfo >		m_vecKInventorySlotInfo;
+	int										m_iFirstUnitClass;
+};
+#endif SERV_READY_TO_SOSUN_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+DECL_PACKET( EGS_USE_PROPOSE_ITEM_REQ )
+{
+	UidType									m_iUsedItemUID;
+	std::wstring							m_wstrNickName;
+};
+
+DECL_PACKET( EGS_USE_PROPOSE_ITEM_ACK )
+{
+	int										m_iOK;
+	std::wstring							m_wstrNickName;
+	std::vector< KInventoryItemInfo >		m_vecKInventorySlotInfo;
+};
+
+typedef KEGS_COUPLE_PROPOSE_NOT KEGS_EVENT_PROPOSE_NOT;
+typedef KEGS_COUPLE_PROPOSE_ACK KEGS_EVENT_PROPOSE_ACK;
+typedef KEGS_COUPLE_PROPOSE_AGREE_NOT KEGS_EVENT_PROPOSE_AGREE_NOT;
+typedef KEGS_COUPLE_PROPOSE_RESULT_NOT KEGS_EVENT_PROPOSE_RESULT_NOT;
+
+DECL_PACKET( EGS_EVENT_PROPOSE_RESULT_ACCEPTOR_NOT )
+{
+	std::vector< KInventoryItemInfo >		m_vecUpdatedInventorySlot;
+};
+
+DECL_PACKET( EGS_USE_DIVORCE_ITEM_ACK )
+{
+	int										m_iOK;
+	std::vector< KInventoryItemInfo >		m_vecUpdatedInventorySlot;
+};
+
+typedef KEGS_BREAK_UP_NOT KEGS_DIVORCE_NOT;
+#endif SERV_RELATIONSHIP_EVENT_INT
+
+#ifdef SERV_EVENT_VC
+DECL_PACKET( EGS_USE_INTIMACY_UP_ITEM_REQ )
+{
+	UidType								m_iItemUID;
+};
+
+DECL_PACKET( EGS_USE_INTIMACY_UP_ITEM_ACK )
+{
+	int m_iOK;
+	std::vector< KInventoryItemInfo >	m_vecInventorySlotInfo;
+	int m_iUpPercent;
+};
+#endif //SERV_EVENT_VC
 
 #ifdef SERV_CHINA_SPIRIT_EVENT
 DECL_PACKET( EGS_USE_SPIRIT_REWARD_REQ )
@@ -696,29 +882,16 @@ DECL_PACKET( EGS_USE_SPIRIT_REWARD_ACK )
 };
 #endif SERV_CHINA_SPIRIT_EVENT
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
-DECL_PACKET( EGS_DUNGEON_SUB_STAGE_CLEAR_REQ )
-{
-	int									m_iClearConditionIndex;
-};
-DECL_PACKET( EGS_DUNGEON_SUB_STAGE_CLEAR_ACK )
-{
-	int							        m_iOK;
-	int									m_iClearType;
-	int									m_iStageIndex;
-	int									m_iSubStageIndex;
-};
-DECL_PACKET( EGS_SECRET_STAGE_LOAD_REQ )
-{
-	int									m_iPadID;
-};
-DECL_PACKET( EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT )
-{
-	int									m_iStartSecretStageEnteringEvent;
-};
-#endif SERV_STAGE_CLEAR_IN_SERVER
-
 #ifdef SERV_PERIOD_PET
+DECL_PACKET( EGS_RELEASE_PET_REQ )
+{
+	UidType		m_iPetUID;
+
+	KEGS_RELEASE_PET_REQ()
+		: m_iPetUID( 0 )
+	{
+	}
+};
 DECL_PACKET( EGS_RELEASE_PET_ACK )
 {
 	UidType		m_iOK;
@@ -797,6 +970,23 @@ DECL_PACKET( EGS_RECRUIT_RECRUITER_INFO_NOT )
 
 #endif SERV_RECRUIT_EVENT_BASE
 
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+DECL_PACKET( EGS_GET_EVENT_INFO_ACK )
+{
+	int							m_iOK;
+	KEventCharacterRanking		m_kEventCharacterRaking;
+};
+#endif SERV_EVENT_CHARACTER_QUEST_RANKING
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+DECL_PACKET( EGS_EVENT_NOTE_VIEW_ACK )
+{
+	int							m_iOK;
+	int							m_iTitleID;
+	int							m_iNoteViewCount;
+};
+#endif SERV_ELESIS_UPDATE_EVENT
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
 DECL_PACKET( EGS_2013_EVENT_MISSION_COMPLETE_REQ )
 {
@@ -811,15 +1001,6 @@ DECL_PACKET( EGS_2013_EVENT_MISSION_COMPLETE_ACK )
 typedef KPacketOK		KEGS_2014_EVENT_MISSION_COMPLETE_ACK;
 #endif SERV_NEW_YEAR_EVENT_2014
 
-#ifdef SERV_READY_TO_SOSUN_EVENT
-DECL_PACKET( EGS_READY_TO_SOSUN_EVENT_ACK )
-{
-	int										m_iOK;
-	std::vector< KInventoryItemInfo >		m_vecKInventorySlotInfo;
-	int										m_iFirstUnitClass;
-};
-#endif SERV_READY_TO_SOSUN_EVENT
-
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 DECL_PACKET( EGS_GLOBAL_MISSION_UPDATE_NOT )
 {
@@ -832,5 +1013,238 @@ DECL_PACKET( EGS_UNLIMITED_SECOND_CHANGE_JOB_NOT )
 	int									m_iUnlimitedSecondChangeJob;
 };
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
+
+#ifdef SERV_EVENT_CHECK_POWER
+DECL_PACKET( EGS_START_CHECK_POWER_REQ )
+{
+	bool				m_bStart;
+};
+typedef KPacketOK		KEGS_START_CHECK_POWER_ACK;
+DECL_PACKET( EGS_UPDATE_CHECK_POWER_NOT )
+{
+	unsigned char						m_ucCheckPowerCount;
+	__int64								m_iCheckPowerTime;
+	unsigned char						m_ucCheckPowerScore;
+};
+DECL_PACKET( EGS_SET_MULTIPLYER )
+{
+	float	fM;
+};
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING
+DECL_PACKET( EGS_BUY_UI_SETTING_REQ )
+{
+	int									m_iTimeControlItemType;
+	int									m_iHouseID;
+};
+
+DECL_PACKET( EGS_BUY_UI_SETTING_ACK )
+{
+	int									m_iOK;
+	std::set<int>						m_setGetItemOnOff;
+	int									m_iHouseID;
+	int									m_iTimeControlItemType;
+
+};
+
+DECL_PACKET( EGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK )
+{
+	std::map<int , std::vector<KPacketGetItemOnOff> > m_mapGetItemOnOff;
+
+};
+
+
+typedef KPacketOK								KEGS_GET_TIME_CONTROL_ITME_TALK_LIST_REQ;
+
+#endif SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+DECL_PACKET( EGS_EVENT_CHUNG_GIVE_ITEM_NOT )
+{
+	bool m_bGiveItemGet;
+	std::wstring m_wstrToolTipTime;
+	char m_cGetUnitClass;
+	bool m_bTwoGiveItem;
+	KEGS_EVENT_CHUNG_GIVE_ITEM_NOT()
+	{
+		m_bGiveItemGet = false;
+		m_wstrToolTipTime = L"";
+		m_bTwoGiveItem = false;
+	}
+};
+DECL_PACKET( EGS_EVENT_CHUNG_GIVE_ITEM_REQ )
+{
+	int iChoice;
+	bool bTwoGiveItem;
+	KEGS_EVENT_CHUNG_GIVE_ITEM_REQ()
+	{
+		iChoice = 0;
+		bTwoGiveItem = false;
+	}
+};
+DECL_PACKET( EGS_EVENT_CHUNG_GIVE_ITEM_ACK )
+{
+	int m_iOK;
+	std::wstring  m_wstrGetItemTime;
+	KEGS_EVENT_CHUNG_GIVE_ITEM_ACK()
+	{
+		m_iOK = 0;
+		m_wstrGetItemTime = L" ";
+	}
+};
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+DECL_PACKET( EGS_EVENT_COBO_DUNGEON_FIELD_NOT )
+{
+	bool								m_StartButtonUI;
+	bool								m_DungeonCountUI;
+	bool								m_FieldCountUI;
+	int									m_DungeonCount;
+	int									m_FieldMonsterKillCount;
+	int									m_iOk;
+	int									m_iRemaindTime;
+	__time64_t							m_tPushTime;
+	KEGS_EVENT_COBO_DUNGEON_FIELD_NOT()
+	{
+		m_StartButtonUI = false;
+		m_DungeonCountUI = false;
+		m_FieldCountUI	=	false;
+		m_DungeonCount	= 0;
+		m_FieldMonsterKillCount = 0;
+		m_iOk = 0;
+		m_iRemaindTime = -1;
+		m_tPushTime = 0;
+	}
+};
+DECL_PACKET( EGS_EVENT_COBO_DUNGEON_FIELD_REQ )
+{
+	int								m_iOK;
+	bool							m_EventStart;
+	KEGS_EVENT_COBO_DUNGEON_FIELD_REQ()
+	{
+		m_iOK = 0;
+		m_EventStart = false;
+	}
+};
+DECL_PACKET( EGS_EVENT_COBO_DUNGEON_FIELD_ACK )
+{
+	bool								m_bStartUI;
+	bool								m_DungeonCountUI;
+	bool								m_FieldCountUI;
+	int									m_DungeonCount;
+	int									m_FieldMonsterKillCount;
+	int									m_iOK;
+	int									m_iRemaindTime;
+	std::wstring						m_wstrPushTime;
+	__time64_t							m_tPushTime;
+	KEGS_EVENT_COBO_DUNGEON_FIELD_ACK()
+	{
+		m_bStartUI = false;
+		m_DungeonCountUI = false;
+		m_FieldCountUI = false;
+		m_DungeonCount = 0;
+		m_FieldMonsterKillCount = 0;
+		m_iOK = 0;
+		m_iRemaindTime = -1;
+		m_wstrPushTime = L"";
+		m_tPushTime = 0;
+	}
+};
+DECL_PACKET( EGS_EVENT_COBO_DUNGEON_CLEAR_COUNT_NOT )
+{
+	int						m_iDungeonClearCount;
+
+	KEGS_EVENT_COBO_DUNGEON_CLEAR_COUNT_NOT()
+	{
+		m_iDungeonClearCount = 0;
+	}
+
+};
+DECL_PACKET( EGS_EVENT_COBO_FIELD_MONSTER_KILL_NOT )
+{
+	int					   m_iFieldMonsterKillCount;
+
+	KEGS_EVENT_COBO_FIELD_MONSTER_KILL_NOT()
+	{
+		m_iFieldMonsterKillCount = 0;
+	}
+};
+DECL_PACKET( EGS_EVENT_COBO_ITEM_GIVE_CHEAT_NOT )
+{
+	bool					   m_CoboEventITemGet;
+	bool					   m_bNextDay;
+
+	KEGS_EVENT_COBO_ITEM_GIVE_CHEAT_NOT()
+	{
+		m_CoboEventITemGet = false;
+		m_bNextDay		   = false;
+	}
+};
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+DECL_PACKET( EGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_NOT )
+{
+	int					   m_iValentineItemCount;
+	KEGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_NOT()
+	{
+		m_iValentineItemCount = -1;
+	}
+};
+DECL_PACKET( EGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_CHEAT_NOT )
+{
+	int					   m_iValentineItemCount;
+	KEGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_CHEAT_NOT()
+	{
+		m_iValentineItemCount = -1;
+	}
+};
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+DECL_PACKET( EGS_CASH_DIRECT_CHARGE_CN_REQ )
+{
+	UidType				m_iUserUID;
+};
+
+DECL_PACKET( EGS_CASH_DIRECT_CHARGE_CN_ACK )
+{
+	int					m_iOK;
+	std::wstring		m_wstrToken;
+};
+
+DECL_PACKET( EGS_CASH_DIRECT_CHARGE_CN_NOT )
+{
+	int					m_iOK;
+};
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+DECL_PACKET( EGS_MANUFACTURE_PERIOD_SETTING_REQ )
+{
+	int									m_iHouseID;
+};
+DECL_PACKET( EGS_MANUFACTURE_PERIOD_SETTING_ACK )
+{
+	int									m_iOK;
+	std::map<int , int>					m_mapPeriodGroup;
+	int									m_iHouseID;
+};
+#endif //SERV_MANUFACTURE_PERIOD_FIX
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+DECL_PACKET( EGS_4TH_ANNIV_EVENT_REWARD_REQ )
+{
+	int					m_iSeletedIndex;	// 선택한 사진 번호
+};
+
+DECL_PACKET( EGS_4TH_ANNIV_EVENT_REWARD_ACK )
+{
+	int					m_iOK;
+	int					m_iSeletedIndex;
+};
+#endif // SERV_4TH_ANNIVERSARY_EVENT
 
 #pragma pack( pop )

@@ -167,7 +167,11 @@ public:
 
 	void UpdateEventNotice();
 	void UpdateChannelInfo();
-	
+
+#ifdef EVENT_CARNIVAL_DECORATION
+	void UpdateCarnivalDeco();		
+#endif EVENT_CARNIVAL_DECORATION
+
 	void UpdateChannelIndex();
 
 	//{{ kimhc // 2009-12-16 // 채널 콤보박스 설정
@@ -191,6 +195,16 @@ public:
 	void	SetShowAngelsFeather();
 	void	UpdateAngelsFeatherCount(int iVal);
 #endif //SERV_EVENT_MONEY
+
+#ifdef SERV_MOMOTI_EVENT
+	void	SetShowMomotiURLEvent();
+	void	SetShowMomotiQuizEvent();
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_INT_UI_SHOW_EVENT_UI
+	void	SetShowIntUIShowEventUI();
+#endif //SERV_INT_UI_SHOW_EVENT_UI
+
 	bool	GetShow()const {return m_bShow;}
 
 	void CloseWorldMapUI() {if( NULL != m_pWorldMapUI )m_pWorldMapUI->CloseWorldMapUI();}
@@ -199,6 +213,10 @@ public:
 	void SetEnableChannelComboBox( bool bVal_ );
 #endif //DISABLE_CHANNEL_CHANGE_IN_SQUARE
 
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+	void	SetShowTearOfELWoman();
+	void	UpdateTearOfELWomanCount(int iVal);
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 private:
 	CX2MiniMap*			m_pDungeonMiniMap;
 	CX2FieldMiniMap*	m_pFieldMiniMap;
@@ -240,4 +258,20 @@ private:
 #ifdef SERV_EVENT_MONEY
 	CKTDGUIDialogType		m_pDLGAngelsFeather;
 #endif //SERV_EVENT_MONEY
+
+#ifdef SERV_MOMOTI_EVENT
+	CKTDGUIDialogType		m_pDLGMomotiURLEvent;
+	CKTDGUIDialogType		m_pDLGMomotiQuizEvent;
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+	CKTDGUIDialogType		m_pDLGMomotiQuizEvent2;
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_INT_UI_SHOW_EVENT_UI
+	CKTDGUIDialogType		m_pDLGSIntUIShowEventUI;
+#endif //SERV_INT_UI_SHOW_EVENT_UI
+
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+	CKTDGUIDialogType		m_pDLGTearOfELWoman;
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 };

@@ -312,9 +312,19 @@ public:
 		@date	JHKang on 2013-1-14,
 				- 레피-와일드 차지 참조
 	*/
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    struct sMoonLightSlashData;
+    typedef boost::intrusive_ptr<sMoonLightSlashData> sMoonRightSlashDataPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+	typedef boost::shared_ptr<sMoonLightSlashData> sMoonRightSlashDataPtr;		/// 스마트 포인터 타입
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	struct sMoonLightSlashData : boost::noncopyable
 	{
 	private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		float	m_fChargingTime;		/// 충전 시간
 		float	m_fPowerRate;			/// 충전 시간에 따른 데미지 비율
 		bool	m_bSlotB;				/// A/B Slot 확인
@@ -326,11 +336,14 @@ public:
 
 		sMoonLightSlashData() : m_fChargingTime( 0.f ), m_fPowerRate( 0.f ), m_bSlotB( false ),
 			m_pChargeKey( NULL ), m_iSlotID( 0 ),
-			m_hChargeEffect( CX2EffectSet::INVALID_HANDLE ), m_hNewAttackBox( INVALID_MESH_INSTANCE_HANDLE )
+			m_hChargeEffect( INVALID_EFFECTSET_HANDLE ), m_hNewAttackBox( INVALID_MESH_INSTANCE_HANDLE )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		{}
 		
 	public:
-		typedef boost::shared_ptr<sMoonLightSlashData> sMoonRightSlashDataPtr;		/// 스마트 포인터 타입
+
 		static sMoonRightSlashDataPtr CreateMoonLightSlashData() { return sMoonRightSlashDataPtr( new sMoonLightSlashData ); }
 
 		float	GetChargingTime() const { return m_fChargingTime; }
@@ -355,13 +368,29 @@ public:
 		CKTDGXMeshPlayer::CXMeshInstanceHandle GetHandleAttackMesh() const { return m_hNewAttackBox; }
 		CKTDGXMeshPlayer::CXMeshInstanceHandle& GetHandleRefAttackMesh() { return m_hNewAttackBox; }
 		void SetHandleAttackMesh( CKTDGXMeshPlayer::CXMeshInstanceHandle hHandle_ ) { m_hNewAttackBox = hHandle_; }
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        void    AddRef()    {   ++m_uRefCount; }
+        void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	};
 	#pragma endregion SMoonLightSlashData
 
 	#pragma region SLockOnSystem 
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    struct SLockOnSystem;
+    typedef boost::intrusive_ptr<SLockOnSystem> sLockOnSystemPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    typedef boost::shared_ptr<SLockOnSystem> sLockOnSystemPtr;		/// 스마트 포인터 타입
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	struct SLockOnSystem : boost::noncopyable
 	{
 	private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		bool		m_bLockOnUnit;		/// LockOn 성공 여부
 		float		m_fPvpRange;		/// 대전 범위
 		float		m_fPveRange;		/// 던전 범위
@@ -370,13 +399,16 @@ public:
 		UidType		m_BeforeTargetUID;	/// 이전에 타겟된 유닉의 UID
 		
 		SLockOnSystem() : m_bLockOnUnit( false ), m_fPvpRange( 0.f ), m_fPveRange( 0.f ), m_BeforeTargetUID( -1 )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		{
 			INIT_VECTOR3( m_vDestPos,	0.f, 0.f, 0.f );
 			INIT_VECTOR3( m_vSafePos,	0.f, 0.f, 0.f );
 		}
 
 	public:
-		typedef boost::shared_ptr<SLockOnSystem> sLockOnSystemPtr;		/// 스마트 포인터 타입
+
 		static sLockOnSystemPtr CreateLockOnSystem() { return sLockOnSystemPtr( new SLockOnSystem ); }
 
 		bool	CheckLockOnUnit() { return m_bLockOnUnit; }
@@ -394,6 +426,11 @@ public:
 		void		SetSafePos( D3DXVECTOR3 vPos_ ) { m_vSafePos = vPos_; }
 
 		void ProcessLockOn( CX2GUAra* myUnit );
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        void    AddRef()    {   ++m_uRefCount; }
+        void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	};
 	#pragma endregion 
 		
@@ -626,7 +663,10 @@ public:
 	virtual void	ModifyFinalDamageByGameUnitType( OUT CX2DamageManager::DAMAGE_TYPE& damageType_, OUT float& fAttackerPhysicDamage_, 
 													 OUT float& fAttackerMagicDamage_, OUT float& fForceDownValue_ );
 	///  MP 부족시, 헛타 생성
-	void CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#ifndef SERV_9TH_NEW_CHARACTER // 김태환
+	/// 다른 캐릭터들 전부 똑같은 함수를 쓰고 있으니, X2GUUser로 옮기자.
+	virtual void		CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#endif // SERV_9TH_NEW_CHARACTER
 
 	/// 스킬 슬롯 스테이트 아이디에 해당하는 스테이트 아이디 반환
 	virtual void GetStateIDBySecretSkillTriggerStateID( IN OUT int& iStateID_ ) const;
@@ -634,9 +674,27 @@ public:
 	/// 해당 스킬이 스테이트가 없는 스킬인지 검사
 	bool IsNoStageChangeSkill( IN const CX2SkillTree::SkillTemplet* pSkillTemplet_ )  const;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+//#ifdef FIX_GAIN_FORCE_BUG
+	virtual void		AttackResultByType( CX2DamageManager::DamageData &pDamageData );
+//#endif // FIX_GAIN_FORCE_BUG
+
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	virtual const int GetHypetMpdeStateID();
+#endif //SKILL_CANCEL_BY_HYPER_MODE
+
 	#pragma endregion function
 
 	#pragma region protected
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// FP Cancel 이 가능한지 여부, 종전 boolean 값 쓰던 부분에 Skill ID 체크하는 부분을 추가함
+	bool GetAvailableFPCancel ( CX2SkillTree::SKILL_ID m_eSkillID ) const 
+	{
+		return ( true == m_bFPCancel && CX2SkillTree::SI_NONE != m_eSkillID && CX2SkillTree::SI_A_ALD_REFLECTION != m_eSkillID );	
+	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 protected:
 	#pragma region state set
 	void DieFrontStartFuture();
@@ -1219,6 +1277,12 @@ protected:
 
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	//아라 제천 궁극기 - 분기 등천
+	void ASI_HA_ASD_THOUSANDS_BLOSSOMS_Init();
+	void ASI_HA_ASD_THOUSANDS_BLOSSOMS_EventProcess();
+#endif //FINALITY_SKILL_SYSTEM	#pragma endregion state function
+
 	#pragma region protected
 protected:
 	CKTDGParticleSystem::CParticleEventSequenceHandle	m_ahAraMajorParticleInstance[ARA_MAJOR_PII_END];	/// 메이저 파티클 핸들
@@ -1255,8 +1319,14 @@ protected:
 	float	m_fMPConsume;
 
 	float	m_fShadowKnotTime;								/// 그림자 매듭 Wait 타임
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CX2DamageEffect::CEffectHandle	    m_hShadowKnotWeaponMesh;	/// 그림자 매듭 무기
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CX2DamageEffect::CEffect*	m_pShadowKnotWeaponMesh;	/// 그림자 매듭 무기
-	CX2DamageEffect::CEffect*	m_pGainForceDamaggeEffect;	/// 흡공에 의한 타격을 확인하기 위함
+//#ifndef FIX_GAIN_FORCE_BUG
+//	CX2DamageEffect::CEffect*	m_pGainForceDamaggeEffect;	/// 흡공에 의한 타격을 확인하기 위함
+//#endif	FIX_GAIN_FORCE_BUG	
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifndef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	float	m_fForceSpearDamageRel;		/// 기공창 숙련 패시브 데미지 증가량
@@ -1283,11 +1353,11 @@ protected:
 
 	float	m_fReduceEDTDurationRate;			/// 아라 1차 전직 소선 - 패시브 기력 활성화 : 디버프 시간 감소율
 
-	sMoonLightSlashData::sMoonRightSlashDataPtr	m_sMoonRightSlashDataPtr;		/// 달빛베기 데이터
+	sMoonRightSlashDataPtr	m_sMoonRightSlashDataPtr;		/// 달빛베기 데이터
 
 	CX2EffectSet::Handle	m_hTempEffectSet;	/// 이펙트셋 끄는 시점을 컨트롤하기 위한 임시 핸들
 	
-	SLockOnSystem::sLockOnSystemPtr m_sLockOnSystemPtr;		/// 추적 시스템 Smart Ptr
+    sLockOnSystemPtr                m_sLockOnSystemPtr;		/// 추적 시스템 Smart Ptr
 
 #ifdef	VERIFY_STAT_BY_BUFF
 	PROTECT_VECTOR3				m_vPreTransScale;	/// 무쌍참으로 유저 스케일 변경 시킬 때, 버프에 의한 스케일 변경 값 저장
@@ -1329,7 +1399,7 @@ protected:
 
 	int			m_iEnergeVoidChargeValue;					/// 아라 2차 전직 명왕 - 초진공장 차지 단계
 #ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
-    CX2DamageEffectHandle   m_hEnergeVoidDamageEffect;	/// 아라 2차 전직 명왕 - 초진공장 공격 이펙트
+    CX2DamageEffect::CEffectHandle   m_hEnergeVoidDamageEffect;	/// 아라 2차 전직 명왕 - 초진공장 공격 이펙트
 #else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CX2DamageEffect::CEffect* m_pEnergeVoidDamageEffect;	/// 아라 2차 전직 명왕 - 초진공장 공격 이펙트
 #endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
@@ -1345,7 +1415,14 @@ protected:
 
 	#pragma endregion variable
 
+//#ifdef FIX_GAIN_FORCE_BUG
+	CX2DamageEffect::CEffectHandle m_hGainForceIntakeEffect;	// 흡공 기력 회수용 데미지 이펙트의 핸들
+	int		m_iGainForceDamageTimeNow;	// 흡공 기력 회복을 위한 변수,(타격 횟수 저장)
+//#endif // FIX_GAIN_FORCE_BUG
 };
 #pragma endregion 클래스
+
+IMPLEMENT_INTRUSIVE_PTR( CX2GUAra::SLockOnSystem );
+IMPLEMENT_INTRUSIVE_PTR( CX2GUAra::sMoonLightSlashData );
 
 #endif

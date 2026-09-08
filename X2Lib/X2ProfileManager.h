@@ -79,7 +79,7 @@ public:
 	CX2ProfileManager(void);
 	~CX2ProfileManager(void);
 
-	bool	Handler_EGS_LOCAL_RANKING_USER_INFO_READ_REQ( wstring _password );
+	bool	Handler_EGS_LOCAL_RANKING_USER_INFO_READ_REQ( const wstring& _password );
 
 	bool	UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 	bool	UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );

@@ -85,9 +85,7 @@ CKTDGUIDialog::CKTDGUIDialog( CKTDXStage* pStage, const WCHAR* wstrScriptFileNam
 
 	m_CustomMsgFocusOutEventID = -1;
 
-#ifdef REFORM_UI_WORLDMAP
 	m_CustomMsgRMouseUp		= -1;
-#endif
 
 	m_bEnableShortCutEnter = false;
 //{{ robobeg : 2009-01-07
@@ -116,6 +114,7 @@ CKTDGUIDialog::CKTDGUIDialog( CKTDXStage* pStage, const WCHAR* wstrScriptFileNam
 		m_bSuccessInitOpenScript = OpenScriptFile( wstrScriptFileName );
 #ifdef LOG_LOAD_DLG_SCRIPT
 		m_strScriptFileName = wstrScriptFileName;
+		m_strMouseOverStaticName = L"";
 		m_bShowScriptName = false;
 #endif //LOG_LOAD_DLG_SCRIPT
 	}
@@ -138,13 +137,18 @@ CKTDGUIDialog::CKTDGUIDialog( CKTDXStage* pStage, const WCHAR* wstrScriptFileNam
     // - jintaeks on 2009-01-07, 14:35
 	//m_pUnitViewer = NULL;
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	m_wstrCustomButtonMouseOverSndFileName = L"";
+	m_wstrCustomButtonMouseUpSndFileName = L"";
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 	KOGGamePerformanceCheck::GetInstance()->GetLagCheckMgr()->Resume();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	m_bOneClickJoyVectorButton = false;	
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
 }
 
@@ -209,7 +213,7 @@ HRESULT	CKTDGUIDialog::OnFrameMove( double fTime, float fElapsedTime )
 	
 
 	//{{10.05.25 정협 : 패드로커서 이동 가능
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	if( s_pControlFocus != NULL )
 	{		
 		unsigned char ucUserInput;		
@@ -252,16 +256,14 @@ HRESULT	CKTDGUIDialog::OnFrameMove( double fTime, float fElapsedTime )
 						return true;
 					}					
 				}
-			}			
-
+			}
 		}	
 		else
 		{
 			m_bOneClickJoyVectorButton = false;
-		}		
-
+		}
 	}
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 	//}}10.05.25 정협 : 패드로커서 이동 가능
 
 	if ( m_fChangeTime > 0.0f )
@@ -296,7 +298,6 @@ HRESULT	CKTDGUIDialog::OnFrameMove( double fTime, float fElapsedTime )
 				D3DXCOLOR remainColor = m_GoalColor - m_Color;
 				m_Color += (remainColor / _fRemainTime)	* fElapsedTime;
 			}
-
 
 			m_fAnimateTime += fElapsedTime;
 		}
@@ -573,13 +574,14 @@ HRESULT	CKTDGUIDialog::OnFrameRender( bool bForceDraw /* = false */ )
 	{
 		if (g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_LCONTROL) == TRUE )
 		{
-			g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( 4 )->OutTextXY(  
-				412, 300, m_strScriptFileName.c_str(), D3DXCOLOR(1,0.6f,0,1), 	CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_CENTER );
+			/*g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( 4 )->OutTextXY(  
+				412, 300, m_strScriptFileName.c_str(), D3DXCOLOR(1,0.6f,0,1), 	CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_CENTER );*/
 
 			if( NULL != m_pControlMouseOverStatic )
 			{
-				g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( 4 )->OutTextXY(  
-					412, 370, m_pControlMouseOverStatic->GetName(), D3DXCOLOR(1,0.6f,0,1), 	CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_CENTER );
+				m_strMouseOverStaticName = m_pControlMouseOverStatic->GetName();
+				/*g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( 4 )->OutTextXY(  
+					412, 370, m_pControlMouseOverStatic->GetName(), D3DXCOLOR(1,0.6f,0,1), 	CKTDGFontManager::FS_SHELL, D3DXCOLOR(0,0,0,1), NULL, DT_CENTER );*/
 			}
 		}
 		if(g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_LCONTROL) == TRUE &&
@@ -913,13 +915,11 @@ bool CKTDGUIDialog::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam 
 					}
 					break;
 
-#ifdef REFORM_UI_WORLDMAP
 				case WM_RBUTTONUP:
 					{
 						if( m_CustomMsgRMouseUp != -1 )
 							SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_EVENT, m_CustomMsgRMouseUp, (LPARAM)this );
 					} break;
-#endif
 				//{{ 09.06.11 태완 : 위에서 명시되지 않은 마우스 메시지들은 m_bDisableUnderWindow의 영향을 받지 않는 문제 수정
 				default:	// 위에 명시되지 않은 모든 마우스 메시지.
 					{
@@ -994,13 +994,39 @@ void CKTDGUIDialog::AddControl( CKTDGUIControl* pControl )
 		}
 		pControl->SetNameByForce( (const WCHAR*) buff );
 	}
-
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	if ( m_wstrCustomButtonMouseOverSndFileName != L"" )
+	{
+		pControl->SetCustomMouseOverSound( m_wstrCustomButtonMouseOverSndFileName );
+	}
+	if ( m_wstrCustomButtonMouseUpSndFileName != L"" )
+	{
+		pControl->SetCustomMouseUpSound( m_wstrCustomButtonMouseUpSndFileName );
+	}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 	m_ControlsMap.insert( std::make_pair( pControl->GetName(), pControl ) );
 	//m_ControlsMap_MB.insert( std::make_pair( pControl->GetName_MB(), pControl ) );
 	m_ControlsList.push_back( pControl );
 }//CKTDGUIDialog::AddControl()
 
+#ifdef DLL_BUILD
+void CKTDGUIDialog::AddControl_Front( CKTDGUIControl* pControl )
+{
+	if( NULL == pControl )
+		return;
+
+	AddControl( pControl );
+
+	// 앞에 추가하기 위해 제거
+	vector<CKTDGUIControl * >::iterator itor = find( m_ControlsList.begin(), m_ControlsList.end(), pControl );
+	if( itor != m_ControlsList.end() )
+		m_ControlsList.erase( itor );
+
+	// 리스트에 앞에 추가한다/ 컨트롤을 제일 뒤에 보이게 하기 위함
+	m_ControlsList.insert( m_ControlsList.begin(), pControl );
+}
+#endif
 
 bool CKTDGUIDialog::DeleteControl( const WCHAR* pControlName )
 {
@@ -2194,7 +2220,9 @@ void CKTDGUIDialog::Move_LUA()
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 
 	LUA_GET_VALUE( luaManager, "IS_DIRECT", bDirect, false );
@@ -2202,11 +2230,16 @@ void CKTDGUIDialog::Move_LUA()
 
 	LUA_GET_VALUE( luaManager, "AUTO_DELETE", bAutoDelete, false );
 
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    D3DXVECTOR2 pos;
+    D3DXCOLOR color;
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "POS", pos, D3DXVECTOR2(0,0) );
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "COLOR", color, D3DXCOLOR(1,1,1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	D3DXVECTOR2 pos	= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "POS" );
 	D3DXCOLOR color = lua_tinker::get<D3DXCOLOR>( luaManager.GetLuaState(),  "COLOR" );
-
-
-
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    
 
 	if ( bDirect == true )
 	{
@@ -2292,7 +2325,7 @@ bool CKTDGUIDialog::OpenScriptFile( const WCHAR* pFilename )
 
 
 
-	bool bResult = g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFilename );
+	bool bResult = g_pKTDXApp->LoadLuaTinker( pFilename );
 
 
 
@@ -2666,6 +2699,32 @@ void CKTDGUIDialog::ClearParticleList()
 	m_bHasParticle = false;
 }
 #endif //PARTICLE_RENDER_BY_DIALOG
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+void CKTDGUIDialog::SetCustomButtonMouseOverSndFile_LUA( const char* pCustomSndFileName )
+{
+	ConvertUtf8ToWCHAR( m_wstrCustomButtonMouseOverSndFileName, pCustomSndFileName );
+}
+void CKTDGUIDialog::SetCustomButtonMouseUpSndFile_LUA( const char* pCustomSndFileName )
+{
+	ConvertUtf8ToWCHAR( m_wstrCustomButtonMouseUpSndFileName, pCustomSndFileName );
+}
+
+void CKTDGUIDialog::SetDownStateToAllButtonType()
+{
+	for ( int iSize = 0; iSize < GetControlSize(); ++iSize )
+	{
+		CKTDGUIControl* pControl = GetControl( iSize );
+		if ( NULL != pControl )
+		{
+			if ( pControl->GetType () == CKTDGUIControl::UCT_BUTTON ) 
+			{
+				static_cast <CKTDGUIButton *> ( pControl )->SetDownStateAtNormal ( false );
+			}
+		}
+	}
+}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 #ifdef SET_SHOW_CONTROLS_WITH_DUMMYINT
 void CKTDGUIDialog::SetShowEnableControlsWithDummyInt( IN int iIndex, IN int iValue, IN bool bShow, IN bool bEnable )

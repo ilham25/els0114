@@ -48,7 +48,6 @@ class CX2StatePVPResult : public CX2StateCommonBG
 		CKTDGUIDialogType		m_pDLGFront;
 #ifdef SERV_PVP_REMATCH
 		CKTDGUIDialogType		m_pDLGRematch;
-
 		map< UidType, int >		m_mapSlotIndexByUnitUID;
 		bool					m_bCanRematch;
 #endif SERV_PVP_REMATCH

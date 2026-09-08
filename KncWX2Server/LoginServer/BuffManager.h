@@ -21,7 +21,11 @@ public:
 	// 버프 정보 갱신
 	bool AddUnitBuffInfo( IN const UidType& iUnitUID, IN const std::vector<KBuffInfo>& vecBuffInfo );
 	bool DeleteUnitBuffInfo( IN UidType& iUnitUID, IN std::vector<int>& vecBuffID );
+#ifdef _CONVERT_VS_2010
+	bool DeleteUnitAllBuffInfo( IN UidType iUnitUID );
+#else
 	bool DeleteUnitAllBuffInfo( IN UidType& iUnitUID );
+#endif _CONVERT_VS_2010
 	
 	// 갱신된 버프 시간 추가
 	bool AddRenewBuffTime( IN const UidType& iUnitUID, IN const __int64& iNewTime, IN const __int64 iOleTime = 0 );

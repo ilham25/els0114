@@ -116,6 +116,9 @@ void KChannelUser::RequestKOGOTPLogin(const KECH_VERIFY_ACCOUNT_REQ& kPacket_)
 #ifdef SERV_PURCHASE_TOKEN
 	kPacketReq.m_wstrPurchaseTok = L"";
 #endif SERV_PURCHASE_TOKEN
+#if defined( SERV_STEAM ) || defined( SERV_ALL_RENEWAL_SP )
+	kPacketReq.m_iChannelingCode = kPacket_.m_iChannelingCode;
+#endif //( SERV_STEAM ) || ( SERV_ALL_RENEWAL_SP )
 
 	SendToAccountDB( DBE_CH_USER_KOGOTP_LOGIN_REQ, kPacketReq );
 }

@@ -80,6 +80,10 @@ public:
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 									 , IN bool bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+									 , IN bool bCouplePvp
+									 , IN bool bIsDrawn
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 									 , IN const bool bHasFriend = false
 #endif SERV_RECRUIT_EVENT_SUBQUEST
@@ -101,6 +105,13 @@ public:
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 									 , IN bool bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+									 , IN char killedUserUnitType
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+									 , IN char killedUserUnitClass
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 									 );
 
 	void			Handler_OnPVPWin( IN int iGameType
@@ -230,9 +241,15 @@ public:
 											,IN const bool bChar1
 											,IN const bool bChar2
 #endif SERV_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+											,IN const std::vector<UidType> vecRelation
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 											, IN const bool bHasFriend = false
 #endif SERV_RECRUIT_EVENT_SUBQUEST
+#ifdef SERV_THREE_COLOR_EVENT
+											,IN const std::set< int >& setEquippedTitle
+#endif SERV_THREE_COLOR_EVENT
 											);		// 던전 입장 당시 레벨 - 적정 레벨 이었는가?
 
 	bool			IsSuitableLevelUser( IN UidType CharUID, IN const std::map< UidType, bool >& mapSuitableLevelInfo );
@@ -269,7 +286,9 @@ public:
 #ifdef SERV_SUB_QUEST_USE_ITEM
 	void CountUseItem( IN KGSUserPtr spUser, IN const int iDungeonID, IN const char cDifficulty, IN const int iItemID );
 #endif SERV_SUB_QUEST_USE_ITEM
-
+#ifdef SERV_EVENT_LEVEL_UP_QUEST_CLEAR
+	bool Handler_OnCheckLevelUpQuest(IN const KGSUserPtr spUser);
+#endif SERV_EVENT_LEVEL_UP_QUEST_CLEAR
 	//{{ 2011. 11. 21  김민성	전직 변경 아이템
 #ifdef SERV_UNIT_CLASS_CHANGE_ITEM
 	void GetCompleteChangeClassQuest( OUT std::vector< KCompleteQuestInfo >& vecQuest );
@@ -328,9 +347,21 @@ protected:
 #ifdef PVP_QUEST_HERO_KILL_COUNT
 						 , IN bool bIsHeroNPC
 #endif //PVP_QUEST_HERO_KILL_COUNT
+#ifdef SERV_RELATIONSHIP_EVENT_SUBQUEST
+						 , IN int iPvpChannelClass = 0
+						 , IN bool bCouplePvp = false
+						 , IN bool bIsDrawn = false
+#endif SERV_RELATIONSHIP_EVENT_SUBQUEST
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 						 , IN bool bHasFriend = false
 #endif SERV_RECRUIT_EVENT_SUBQUEST
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+						 , IN char killedUserUnitType
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+						 , IN char killedUserUnitClass
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 						 );
 
 #ifdef SERV_EPIC_QUEST

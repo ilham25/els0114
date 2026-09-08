@@ -16,7 +16,7 @@
 //#define FIX_PARTY_MEMBER_POSITION
 
 
-//#define FIELD_CHARACTER_SCREEN_SHOT					// 김석근 [2012.02.15] 캐릭터 스크린샷 기능 구현
+#define FIELD_CHARACTER_SCREEN_SHOT					// 김석근 [2012.02.15] 캐릭터 스크린샷 기능 구현
 
 // 검의길, 웨폰테이커 공용 콤보트리 툴팁
 //#define COMBO_TREE_TOOLTIP
@@ -94,9 +94,9 @@
 
 
 // 아이템 치트로 사는 인터페이스
-//#ifndef ITEM_CHEAT_POPUP_TEST
-//	#define ITEM_CHEAT_POPUP_TEST
-//#endif //ITEM_CHEAT_POPUP_TEST
+#ifndef ITEM_CHEAT_POPUP_TEST
+	#define ITEM_CHEAT_POPUP_TEST
+#endif //ITEM_CHEAT_POPUP_TEST
 
 
 // 사내에서 몬스터 테스트용 던전 들어갈 수 있게 
@@ -326,7 +326,7 @@
 
 
 // 라인맵에 못 들어가는 사각형 영역 지정할 수 있게
-#define LINEMAP_RECT_TEST
+//#define LINEMAP_RECT_TEST
 
 
 
@@ -400,11 +400,13 @@
 
 //#define SKILL_SHORT_CUT_KEY_TEST			// 스킬 단축키 작업
 
+//#define X2VIEWER  // x2viewer 툴용 디파인 
 
 // 김태완	
 //#define WORLD_TOOL
 //#define EFFECT_TOOL					// 오현빈 // 2013-02-20 // 월드툴에서 이펙트툴 기능 분리 및 이펙트 툴 개선 작업
-#ifdef EFFECT_TOOL
+//#ifdef EFFECT_TOOL
+#if defined( EFFECT_TOOL ) || defined( X2VIEWER )
 	#define WORLD_TOOL
 #endif
 
@@ -428,8 +430,6 @@
 
 // hoons // 2009-09-04 // 자동 콤보 & 자동 달리기 테스트
 //#define TEST_MACRO_COMBO
-
-//#define X2VIEWER  // x2viewer 툴용 디파인 
 
 //#define POST_QUANTITY_NEW				// 우편 수량 UI 개편
 
@@ -508,7 +508,7 @@
 //#define  MEMO_FIX_PUSH_AND_PUSH
 
 // 이지헌 : ALLY NPC 가 유저를 타겟 잡는 문제 수정
-#define EVOKE_TARGETING_BUG_FIX
+//#define EVOKE_TARGETING_BUG_FIX
 
 #define NOT_USE_UDP_CHECK_INHOUSE		/// 랜선랙 사내에서는 작동 안하도록!
 

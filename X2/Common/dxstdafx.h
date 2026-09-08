@@ -20,17 +20,11 @@
 #define _WIN32_WINNT   0x0500 
 #endif
 
-#define _HAS_ITERATOR_DEBUGGING 0
-
-#if defined(DEBUG) || defined(_DEBUG)
-	#pragma comment( lib, "KTDXLIBD.lib" )
-	#pragma comment( lib, "X2LibD.lib" )
-#else
-	#pragma comment( lib, "KTDXLIB.lib" )
-	#pragma comment( lib, "X2Lib.lib" )
-#endif
 
 
 #include "X2Main.h"
+
+
+
 //#include "vld.h"
 #endif // !defined(DXSDK_STDAFX_H)

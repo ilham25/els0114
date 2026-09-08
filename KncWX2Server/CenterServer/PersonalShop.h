@@ -98,7 +98,11 @@ protected:
 	std::wstring							m_wstrPersonalShopName;
 	std::vector<KSellPersonalShopItemInfo>	m_vecSellItemInfo;
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+	SEnum::AGENCY_SHOP_TYPE		m_PersonalShopType;
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	CXSLSquareUnit::PERSONAL_SHOP_TYPE		m_PersonalShopType;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 };
 
 //{{ 2010. 05. 10  최육사	대전던전 서버군 통합

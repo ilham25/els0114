@@ -419,18 +419,10 @@ bool CX2SlotManager::OpenScriptFile( const WCHAR* pFilename )
 
 	RegisterLuaBind();
 
-	//파일 로드
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFilename );
-	if( Info == NULL )
-	{
+    if ( g_pKTDXApp->LoadLuaTinker( pFilename ) == false )
+    {
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		return false;
-	}
+    }
 
 	return true;
 }
@@ -602,17 +594,26 @@ void CX2SlotManager::CX2Slot::SetPos( D3DXVECTOR2 pos )
 void CX2SlotManager::CX2Slot::SetSlotData_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LuaGetValue( luaManager );
 
-
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "POS", m_Pos, D3DXVECTOR2(0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	m_Pos	= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "POS" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	if ( m_pDLGSlotFixBack != NULL )
 		m_pDLGSlotFixBack->SetPos( m_Pos + m_pSlotManager->GetPos() );
 
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "SIZE", m_Size, D3DXVECTOR2(0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	m_Size	= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "SIZE" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 
 	
@@ -668,7 +669,7 @@ void CX2SlotManager::CX2Slot::LuaGetValue( KLuaManager& luaManager )
 
 	LUA_GET_VALUE_ENUM( luaManager, "SLOT_TYPE", m_SlotType, CX2Slot::SLOT_TYPE, ST_NONE );
 	wstring dlgFileName;
-	LUA_GET_VALUE( luaManager, L"SLOT_BACK_DLG_FILE", dlgFileName, L"" );
+	LUA_GET_VALUE( luaManager, "SLOT_BACK_DLG_FILE", dlgFileName, L"" );
 
 	if ( dlgFileName.empty() == false )
 	{
@@ -722,3 +723,30 @@ bool CX2SlotManager::CX2Slot::IsItem()
 	};
 }
 #endif
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+
+/** @function	: GetSlotByItemUID
+	@brief		: ItemUID를 통해 SlotItem 객체를 반환하는 함수
+	@param		: ItemUID
+	@return		: SlotItem 객체
+*/
+CX2SlotItem* CX2SlotManager::GetSlotByItemUID( IN UidType uidItemUID_ )
+{
+	for ( UINT i = 0; i < m_SlotList.size(); i++ )
+	{
+		CX2SlotItem* pItemSlot = static_cast<CX2SlotItem*>( GetSlot( i ) );
+
+		if ( pItemSlot == NULL )
+			continue;
+
+		if ( pItemSlot->GetItemUID() == uidItemUID_ )
+		{
+			return pItemSlot;
+		}
+	}
+
+	return NULL;
+}
+
+#endif //SERV_UPGRADE_TRADE_SYSTEM

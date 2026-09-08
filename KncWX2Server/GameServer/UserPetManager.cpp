@@ -83,6 +83,11 @@ bool KUserPetManager::AddUserPet( IN const KPetInfo& kPetInfo, IN const std::map
 		DelUserPet( kPetInfo.m_iPetUID );
 	}
 
+#ifdef SERV_PET_SYSTEM_EX1
+	// 포만도 max 는 이벤트성 옵션이므로 여기서 templet 통해서 셋팅해준다
+	spPet->SetAlwaysMaxSatiety(SiCXSLPetManager()->IsAlwaysMaxSatietyPet( kPetInfo.m_iPetID ));
+#endif //SERV_PET_SYSTEM_EX1
+
 	// 컨테이너에 펫 정보 넣자!
 	m_mapPetList.insert( std::make_pair( kPetInfo.m_iPetUID, spPet ) );
 	m_vecPetList.push_back( spPet );
@@ -642,7 +647,13 @@ bool KUserPetManager::CheckAutoFeed( IN KGSUserPtr spUser, OUT bool& bIsFirstFee
 	{
 		return false;
 	}
-
+#ifdef SERV_EVENT_PET_INVENTORY
+	///이벤트 먹이는 자동먹이 기능으로 사용 할 수 없다.
+	if( kNotAutoFeed.m_iFeedItemID == 141000440 )
+	{
+		return false;
+	}
+#endif SERV_EVENT_PET_INVENTORY
 	// 6. 먹이를 먹자!
 	//{{ 2011. 05. 23  김민성	큐피엘 젤리 친밀도 증감
 #ifdef SERV_ADD_KEWPIEL_JELLY
@@ -1470,3 +1481,46 @@ bool KUserPetManager::ReleasePet( IN UidType iPetUID )
 	return DelUserPet( iPetUID );
 }
 #endif SERV_PERIOD_PET
+
+#ifdef SERV_EVENT_VC
+bool KUserPetManager::Handler_EGS_USE_INTIMACY_UP_ITEM_REQ( OUT KEGS_CHANGED_PET_INTIMACY_NOT& kNotIntimacy, OUT int& iUpPercent )
+{
+	SET_ERROR( NET_OK );
+
+	// 현재 소환된 펫이 있는지 체크!
+	if( GetSummonedPetUID() == 0 )
+	{
+		START_LOG( cerr, L"소환된 펫이 없는데 친밀 상승아이템을 주려고 하네? 있을 수 없는에러!" )
+			<< END_LOG;
+
+		SET_ERROR( ERR_PET_06 );
+		return false;
+	}
+
+	// 소환된 펫 정보얻기!
+	KUserPetPtr spSummonedPet = GetSummonedPet();
+	if( spSummonedPet == NULL )
+	{
+		START_LOG( cerr, L"소환 펫의 PetUID값은 있는데 펫 정보는 없네?" )
+			<< BUILD_LOG( GetSummonedPetUID() )
+			<< END_LOG;
+
+		SET_ERROR( ERR_PET_06 );
+		return false;
+	}
+
+	// 먹이 주기!
+	if( false == spSummonedPet->IncreaseIntimacyByItem( kNotIntimacy.m_iCurrentIntimacy, iUpPercent ) )
+	{
+		START_LOG( cerr, L"최대 친밀도가 잘못되어 있습니다." )
+			<< BUILD_LOG( GetSummonedPetUID() )
+			<< END_LOG;
+
+		SET_ERROR( ERR_PET_11 );
+		return false;
+	}
+
+	kNotIntimacy.m_iPetUID = GetSummonedPetUID();
+	return true;
+}
+#endif //SERV_EVENT_VC

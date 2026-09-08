@@ -13,33 +13,32 @@ namespace NetError
 #   define NET_ERROR( id, comment ) id,
 
 #ifdef SERV_SEPARATE_NET_ERROR
-	
+
 #if defined( SERV_COUNTRY_TWHK )
-	#include "NetError/NetError_def_TW.h"
+#include "NetError/NetError_def_TW.h"
 #elif defined( SERV_COUNTRY_JP )
-	#include "NetError/NetError_def_JP.h"
+#include "NetError/NetError_def_JP.h"
 #elif defined( SERV_COUNTRY_EU )
-	#include "NetError/NetError_def.h"
+#include "NetError/NetError_def.h"
 #elif defined( SERV_COUNTRY_US )
-	#include "NetError/NetError_def_US.h"
+#include "NetError/NetError_def_US.h"
 #elif defined( SERV_COUNTRY_CN )
-	#include "NetError/NetError_def_CN.h"
+#include "NetError/NetError_def_CN.h"
 #elif defined( SERV_COUNTRY_TH )
-	#include "NetError/NetError_def_TH.h"
+#include "NetError/NetError_def_TH.h"
 #elif defined( SERV_COUNTRY_ID )
-	#include "NetError/NetError_def_ID.h"
+#include "NetError/NetError_def_ID.h"
 #elif defined( SERV_COUNTRY_BR )
-	#include "NetError/NetError_def_BR.h"
+#include "NetError/NetError_def_BR.h"
 #elif defined( SERV_COUNTRY_PH )
-	#include "NetError/NetError_def_PH.h"
+#include "NetError/NetError_def_PH.h"
+#elif defined( SERV_COUNTRY_IN )
+#include "NetError/NetError_def_IN.h"
 #endif
 
 #else //SERV_SEPARATE_NET_ERROR
-	#include "NetError_def.h"
+#include "NetError_def.h"
 #endif //SERV_SEPARATE_NET_ERROR
-
-	
-	
 
 	//{{ 2011.11.20 임홍락	서버 단일화 // SERV_USE_NATION_FLAG 필수 포함임
 #ifdef SERV_UNITED_SERVER_EU

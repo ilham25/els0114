@@ -140,17 +140,6 @@ protected:
 	
 	void			SendDSSGoNextAllNot( KEGS_DUNGEON_SUB_STAGE_GO_NEXT_ALL_NOT& kDSSGoNextAllNot );
 
-	//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	void			BroadCastUpdateUnitInfoWithPartyCheck( 
-					std::vector< KRoomUserPtr >& vecKRoomUserPtr, 
-					unsigned short usEventID, 
-					std::vector< KERM_UPDATE_DUNGEON_UNIT_INFO_NOT >& data,
-					int iDungeonID,
-					std::map< UidType, bool >	mapHaveExpInDungeon
-					);
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	//}}
 	//{{ 2007. 10. 19  최육사  유저 통계를 위한 함수
 	void			BroadCastUpdateUnitInfoWithPartyCheck( 
 					std::vector< KRoomUserPtr >& vecKRoomUserPtr, 
@@ -293,10 +282,10 @@ protected:
 	DECL_ON_FUNC_NOPARAM( ERM_BATTLE_FIELD_ZOMBIE_ALERT_NOT );
 #endif  SERV_OPTIMIZE_DETECT_ZOMBIE_HOST
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 	_DECL_ON_FUNC( ERM_DUNGEON_SUB_STAGE_CLEAR_REQ, KEGS_DUNGEON_SUB_STAGE_CLEAR_REQ );
 	_DECL_ON_FUNC( ERM_SECRET_STAGE_LOAD_REQ, KEGS_SECRET_STAGE_LOAD_REQ );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 protected:
 	void			SetStageID( IN int iStageID )		{ m_iStageID = iStageID; }
@@ -370,6 +359,9 @@ protected:
 	//{{ 2010. 01. 05  최육사	내구도개편
 	short			GetSubStageExpNpcNum( IN int iSubStageID ) const;
 	//}}
+#ifdef SERV_FIX_DUNGEON_TOTAL_PLAY_TIME_AT_LEAVE// 작업날짜: 2013-09-04	// 박세훈
+	void			ComputeTotalPlayTime( void );
+#endif // SERV_FIX_DUNGEON_TOTAL_PLAY_TIME_AT_LEAVE
 	//{{ 2010. 8. 16	최육사	서버 코드 정리
 	double			GetTotalPlayTime() const	{ return m_fTotalPlayTime; }
 	double			GetLoadingTime() const		{ return m_fLoadingTime; }
@@ -427,6 +419,9 @@ protected:
 	bool			PlayWithCharBuff( IN OUT std::map< UidType, std::vector< KBuffInfo > >& mapActivateBuffList );
 #endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 	//}}
+#ifdef SERV_BUFF_BONUSRATE_HAMEL_EVENT
+	void			PlayHamelEventBuff(IN OUT std::map< UidType, std::vector< KBuffInfo > >& mapActivateBuffList );
+#endif SERV_BUFF_BONUSRATE_HAMEL_EVENT
 
 #ifdef SERV_CRAYON_POP_EVENT_BUFF// 작업날짜: 2013-06-10	// 박세훈
 	void			CrayonPopEventBuff( IN OUT std::map< UidType, std::vector< KBuffInfo > >& mapActivateBuffList ) const;
@@ -529,7 +524,11 @@ protected:
 
 	//{{ 2010. 07. 09  최육사	드롭률 이벤트 확장
 #ifdef SERV_PC_BANG_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	float						m_fItemDropEventProbRate;
+#else // SERV_DROP_EVENT_RENEWAL
 	int							m_iItemDropEventProbCount;
+#endif // SERV_DROP_EVENT_RENEWAL
 	bool						m_bWithPlayPcBangEvent;
 #endif SERV_PC_BANG_DROP_EVENT
 	//}}
@@ -674,12 +673,12 @@ protected:
 #endif  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
 #endif  SERV_CHOOSE_FASTEST_HOST
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 	CXSLDungeonSubStage::NextStageData	m_kNextStageData;
 	bool								m_bFirstStage;
 	bool								m_bFirstSubStage;
 	int									m_iClearConditionIndex;
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 };
 
 

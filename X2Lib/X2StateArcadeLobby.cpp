@@ -654,7 +654,7 @@
 //
 //			pCX2DungeonRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 //
-//			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID)kEvent.m_RoomInfo.m_iDungeonID );
+//			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)kEvent.m_RoomInfo.m_iDungeonID );
 //			if ( pDungeonData != NULL )
 //			{
 //
@@ -788,7 +788,7 @@
 //
 //			pCX2DungeonRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 //
-//			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID)kEvent.m_RoomInfo.m_iDungeonID );
+//			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)kEvent.m_RoomInfo.m_iDungeonID );
 //			if ( pDungeonData != NULL )
 //			{
 //				
@@ -885,7 +885,7 @@
 //
 //			pCX2DungeonRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 //
-//			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID)kEvent.m_RoomInfo.m_iDungeonID );
+//			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)kEvent.m_RoomInfo.m_iDungeonID );
 //			if ( pDungeonData != NULL )
 //			{
 //
@@ -921,7 +921,7 @@
 //	KArcadeChannelInfo* pChannelInfo = g_pData->GetArcadeChannelInfo( channelID );
 //	if ( pChannelInfo != NULL )
 //	{
-//		const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID)pChannelInfo->m_iDungeonID );
+//		const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)pChannelInfo->m_iDungeonID );
 //		if ( pDungeonData != NULL )
 //		{
 //			if ( g_pData->GetMyUser()->GetAuthLevel() < CX2User::XUAL_OPERATOR )
@@ -937,7 +937,7 @@
 //
 //				if ( g_pData->GetMyUser()->GetSelectUnit()->IsClearDungeon( pDungeonData->m_RequireDungeonID ) == false )
 //				{
-//					const CX2Dungeon::DungeonData* pRequireDungeon = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID)pDungeonData->m_RequireDungeonID );
+//					const CX2Dungeon::DungeonData* pRequireDungeon = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)pDungeonData->m_RequireDungeonID );
 //					if ( pRequireDungeon != NULL )
 //					{
 //						wstringstream wstrstm;
@@ -1063,7 +1063,7 @@
 //			KArcadeChannelInfo* pChannelInfo = g_pData->GetArcadeChannelInfo( pRadioButton->GetDummyInt(0) );
 //			if ( pChannelInfo != NULL )
 //			{
-//				const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID)pChannelInfo->m_iDungeonID );
+//				const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)pChannelInfo->m_iDungeonID );
 //				if( pDungeonData != NULL )
 //				{
 //					wstringstream wstrstm;
@@ -1132,7 +1132,7 @@
 //
 //
 //	if ( g_pData->GetConnectedArcadeChannelInfo() != NULL )
-//		kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= (CX2Dungeon::DUNGEON_ID)g_pData->GetConnectedArcadeChannelInfo()->m_iDungeonID;
+//		kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= (SEnum::DUNGEON_ID)g_pData->GetConnectedArcadeChannelInfo()->m_iDungeonID;
 //
 //	kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_cGetItemType = CX2DungeonRoom::DGIT_RANDOM;
 //}

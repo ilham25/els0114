@@ -91,7 +91,9 @@ public:
 	//}}
 	//{{ 2011. 10. 12	최육사	컨텐츠 관리자
 #ifdef SERV_CONTENT_MANAGER
+#ifndef SERV_CONTENT_MANAGER_INT
 	void ContentManager_LUA();
+#endif SERV_CONTENT_MANAGER_INT
 #endif SERV_CONTENT_MANAGER
 	//}}
 
@@ -167,6 +169,17 @@ public:
 	void RidingPetManager_LUA( void );
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+	void SkillTree_LUA( void );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	void	FieldBossData_LUA( void );
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_GOOD_ELSWORD
+    void EDInventoryExpand_LUA();
+#endif 
 	// derived from KThreadManager
 	virtual void Init();
 	virtual KThread* CreateThread();

@@ -452,6 +452,8 @@ enum KTDX_ERROR_MSG
 	KEM_ERROR430,	// 오현빈 // 2013-07-03 // 이펙트셋 트레이스 타겟 본 찾기 실패
 	KEM_ERROR431,	// 오현빈 // 2013-07-03 // 존재하지 않는 XET 파일 생성 시도
 
+	KEM_ERROR432,	// 오현빈 // 2013-09-13 // CollisionData 오류
+
 	KEM_BASE_ERROR_MSG = 10000,
 };
 

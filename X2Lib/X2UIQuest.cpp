@@ -580,12 +580,12 @@ void CX2UIQuest::UpdateQuestList()
 			else
 			{
 				ASSERT( !"Quest with No Subquest!" );
-				QuestList.m_DungeonID = CX2Dungeon::DI_NONE;
+				QuestList.m_DungeonID = SEnum::DI_NONE;
 			}
 		}
 		else
 		{
-			QuestList.m_DungeonID = CX2Dungeon::DI_NONE;
+			QuestList.m_DungeonID = SEnum::DI_NONE;
 		}
 
 		mapQuestList.insert(std::pair<int, MyQuestList>(QuestList.m_DungeonID, QuestList));
@@ -605,7 +605,7 @@ void CX2UIQuest::UpdateQuestList()
 			LastDID = i->first;
 			MyQuestList QuestCategory;
 			QuestCategory.m_bIsCategory = true;
-// 			if(i->first == CX2Dungeon::DI_END)
+// 			if(i->first == SEnum::DI_END)
 // 				pQuestCategory->m_bIsOpen = true;
 			QuestCategory.m_DungeonID = i->first;
 
@@ -669,14 +669,14 @@ int CX2UIQuest::GetSubQuestDungeonID( int iSubQuestID )
 				// DID는 normal-hard-expert가 붙어 있고, 30000부터 시작하고, 각 던전마다 10단위로 분류되어 있다.
 				// 따라서 그냥 10자리를 자른 값을 넣어 준다.
 				// 해당 던전이 존재하는 던전이면 던전 ID로 묶어주고
-				if( NULL != g_pData->GetDungeonManager()->GetDungeonData((CX2Dungeon::DUNGEON_ID)pSubQuestTemplet->m_ClearCondition.m_eDungeonID) )
+				if( NULL != g_pData->GetDungeonManager()->GetDungeonData((SEnum::DUNGEON_ID)pSubQuestTemplet->m_ClearCondition.m_eDungeonID) )
 				{
 					return (int)(pSubQuestTemplet->m_ClearCondition.m_eDungeonID / 10) * 10;
 				}
 				else
 				{
 					// 아니면 일반으로 묶는다
-					return CX2Dungeon::DI_END;
+					return SEnum::DI_END;
 				}				
 			}
 			break;
@@ -696,14 +696,14 @@ int CX2UIQuest::GetSubQuestDungeonID( int iSubQuestID )
 		default:
 			{
 				// 없다
-				return CX2Dungeon::DI_END;
+				return SEnum::DI_END;
 			} break;
 		}
 	}
 	else
 	{
 		// 아예 해당 서브퀘스트가 없다
-		return CX2Dungeon::DI_END;
+		return SEnum::DI_END;
 	}
 
 }
@@ -769,19 +769,19 @@ void CX2UIQuest::UpdateQuestUI( bool bUpdateNavi )
 			QuestListSlot.m_pCategoryStatic->GetPicture(7)->SetShow(false);
 			// 던전 아이디를 이용해서 던전 이름을 세팅해 주고
 			// DungeonData.m_DungeonName으로 얻어주자
-			if(Quest.m_DungeonID == CX2Dungeon::DI_END)
+			if(Quest.m_DungeonID == SEnum::DI_END)
 			{
 				QuestListSlot.m_pCategoryStatic->GetString(0)->msg = L"";
 				QuestListSlot.m_pCategoryStatic->GetPicture(5)->SetShow(true);
 			}
-			else if(Quest.m_DungeonID ==CX2Dungeon::DI_NONE)
+			else if(Quest.m_DungeonID ==SEnum::DI_NONE)
 			{
 				QuestListSlot.m_pCategoryStatic->GetString(0)->msg = L"";
 				QuestListSlot.m_pCategoryStatic->GetPicture(6)->SetShow(true);
 			}
-			else if(NULL != g_pData->GetDungeonManager()->GetDungeonData((CX2Dungeon::DUNGEON_ID)Quest.m_DungeonID) )
+			else if(NULL != g_pData->GetDungeonManager()->GetDungeonData((SEnum::DUNGEON_ID)Quest.m_DungeonID) )
 			{
-				wstring dungeonName = g_pData->GetDungeonManager()->GetDungeonData((CX2Dungeon::DUNGEON_ID)Quest.m_DungeonID)->m_DungeonName;
+				wstring dungeonName = g_pData->GetDungeonManager()->GetDungeonData((SEnum::DUNGEON_ID)Quest.m_DungeonID)->m_DungeonName;
 				QuestListSlot.m_pCategoryStatic->GetString(0)->msg = dungeonName;
 			}
 			else
@@ -792,18 +792,18 @@ void CX2UIQuest::UpdateQuestUI( bool bUpdateNavi )
 
 			// 던전 아이디->지역 아이디->지역 아이콘을 세팅해 주고 예아아아아
 
-			CX2LocationManager::LOCAL_MAP_ID LMapID = g_pData->GetLocationManager()->GetLocalMapID( (CX2Dungeon::DUNGEON_ID)Quest.m_DungeonID );
+			CX2LocationManager::LOCAL_MAP_ID LMapID = g_pData->GetLocationManager()->GetLocalMapID( (SEnum::DUNGEON_ID)Quest.m_DungeonID );
 			switch(LMapID)
 			{
-			case CX2LocationManager::LMI_VELDER_NORTH:
+			case CX2LocationManager::LMI_RUBEN:
 				{
 					QuestListSlot.m_pCategoryStatic->GetPicture(0)->SetShow(true);
 				} break;
-			case CX2LocationManager::LMI_VELDER_EAST:
+			case CX2LocationManager::LMI_ELDER:
 				{
 					QuestListSlot.m_pCategoryStatic->GetPicture(1)->SetShow(true);
 				} break;
-			case CX2LocationManager::LMI_VELDER_SOUTH:
+			case CX2LocationManager::LMI_BESMA:
 				{
 					QuestListSlot.m_pCategoryStatic->GetPicture(2)->SetShow(true);
 				} break;
@@ -1107,13 +1107,13 @@ void CX2UIQuest::SetRewardItemSlot()
 				}
 				if(pItemTemplet != NULL)
 				{
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-					pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-					pItemData->m_SocketOption.push_back(itemData.m_iSocketOption1);
-					pItemData->m_ItemID = itemData.m_iItemID;
-					pItemData->m_Endurance = pItemTemplet->GetEndurance();
-					pItemData->m_Period = itemData.m_iPeriod;
-					CX2Item* pItem = new CX2Item(pItemData, NULL);
+					CX2Item::ItemData kItemData;
+					kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+					kItemData.m_SocketOption.push_back(itemData.m_iSocketOption1);
+					kItemData.m_ItemID = itemData.m_iItemID;
+					kItemData.m_Endurance = pItemTemplet->GetEndurance();
+					kItemData.m_Period = itemData.m_iPeriod;
+					CX2Item* pItem = new CX2Item(kItemData, NULL);
 					if ( pItem != NULL )
 					{
 						if ( pSlotItem != NULL )
@@ -1170,13 +1170,13 @@ void CX2UIQuest::SetRewardItemSlot()
 				}
 				if(pItemTemplet != NULL)
 				{
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-					pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-					pItemData->m_SocketOption.push_back(itemData.m_iSocketOption1);
-					pItemData->m_ItemID = itemData.m_iItemID;
-					pItemData->m_Period = itemData.m_iPeriod;
-					pItemData->m_Endurance = pItemTemplet->GetEndurance();
-					CX2Item* pItem = new CX2Item(pItemData, NULL);
+					CX2Item::ItemData kItemData;
+					kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+					kItemData.m_SocketOption.push_back(itemData.m_iSocketOption1);
+					kItemData.m_ItemID = itemData.m_iItemID;
+					kItemData.m_Period = itemData.m_iPeriod;
+					kItemData.m_Endurance = pItemTemplet->GetEndurance();
+					CX2Item* pItem = new CX2Item(kItemData, NULL);
 					if ( pItem != NULL )
 					{
 						if ( pSlotItem != NULL )
@@ -1755,9 +1755,9 @@ void CX2UIQuest::UpdateQuickQuestDLG()
 		MyQuestList& Quest = m_vQuestList[i];
 		if(Quest.m_bIsCategory)
 		{
-			if(Quest.m_DungeonID == CX2Dungeon::DI_END)
+			if(Quest.m_DungeonID == SEnum::DI_END)
 				continue;
-			if(Quest.m_DungeonID == CX2Dungeon::DI_NONE)
+			if(Quest.m_DungeonID == SEnum::DI_NONE)
 			{
 				// "특수" 탭 카테고리 존재
 				bSpecialQuestCategoryWritten = false;
@@ -1784,10 +1784,10 @@ void CX2UIQuest::UpdateQuickQuestDLG()
 			{
 				wstr += L"#C23AF1E+ ";
 			}
-			wstr += g_pData->GetDungeonManager()->GetDungeonData((CX2Dungeon::DUNGEON_ID)Quest.m_DungeonID)->m_DungeonName;
+			wstr += g_pData->GetDungeonManager()->GetDungeonData((SEnum::DUNGEON_ID)Quest.m_DungeonID)->m_DungeonName;
 			wstr += L"#CX\n";
 		}
-		else if( Quest.m_DungeonID == CX2Dungeon::DI_NONE )
+		else if( Quest.m_DungeonID == SEnum::DI_NONE )
 		{
 			// "특수" 로 분류된, 이벤트/전직 퀘스트
 			// 일단 해당 퀘스트가 지금 이 던전에서 처리되는지 확인해보자.
@@ -1919,7 +1919,6 @@ void CX2UIQuest::UpdateQuickQuestDLG()
 	const int MAGIC_TEXT_WIDTH = 220;
 	const int MAGIC_DESC_ADD_SIZE_Y = 20;
 
-
 #ifdef CLIENT_GLOBAL_LINEBREAK
 	nLine = CWordLineHandler::LineBreakInX2Main( wstr, pFont, (int)((float)MAGIC_TEXT_WIDTH*g_pKTDXApp->GetResolutionScaleX()), L"", true );
 #else //#ifdef CLIENT_GLOBAL_LINEBREAK
@@ -2023,7 +2022,7 @@ wstring CX2UIQuest::GetSlotItemDesc()
 		}
 		else
 		{	
-			CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( 
+			CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( 
 				m_pNowOverItemSlot->GetItemUID() );
 			if ( pkItem != NULL )
 				itemDesc = GetSlotItemDescByUID( m_pNowOverItemSlot->GetItemUID() );
@@ -2035,22 +2034,22 @@ wstring CX2UIQuest::GetSlotItemDesc()
 				if ( mit != m_mapItemIDAndSocketID.end() )
 				{
 
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
 					const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( m_pNowOverItemSlot->GetItemTID() );
 					if ( pItemTemplet != NULL )
 					{
-						pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-						pItemData->m_Endurance = pItemTemplet->GetEndurance();
+					    CX2Item::ItemData kItemData;
+						kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+						kItemData.m_Endurance = pItemTemplet->GetEndurance();
 						int socketID = mit->second; 
-						pItemData->m_SocketOption.push_back( (short)socketID );
-						pItemData->m_ItemID = m_pNowOverItemSlot->GetItemTID();
+						kItemData.m_SocketOption.push_back( (short)socketID );
+						kItemData.m_ItemID = m_pNowOverItemSlot->GetItemTID();
 #ifdef QUEST_REWARD_PERIOD
 						if(m_pNowOverItemSlot->GetPeriod() != 0)
 						{
-							pItemData->m_Period = m_pNowOverItemSlot->GetPeriod();
+							kItemData.m_Period = m_pNowOverItemSlot->GetPeriod();
 						}
 #endif QUEST_REWARD_PERIOD
-						CX2Item* pItem = new CX2Item( pItemData, NULL );
+						CX2Item* pItem = new CX2Item( kItemData, NULL );
 						itemDesc = GetSlotItemDescByTID( pItem, m_pNowOverItemSlot->GetItemTID() );
 						SAFE_DELETE( pItem );
 					}
@@ -2059,15 +2058,15 @@ wstring CX2UIQuest::GetSlotItemDesc()
 #ifdef QUEST_REWARD_PERIOD	
 				else if(m_pNowOverItemSlot->GetPeriod() != 0)
 				{
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData();
 					const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( m_pNowOverItemSlot->GetItemTID() );
 					if ( pItemTemplet != NULL )
 					{
-						pItemData->m_PeriodType = pItemTemplet->GetPeriodType();
-						pItemData->m_Period = m_pNowOverItemSlot->GetPeriod();
-						pItemData->m_Endurance = pItemTemplet->GetEndurance();
-						pItemData->m_ItemID = m_pNowOverItemSlot->GetItemTID();
-						CX2Item* pItem = new CX2Item( pItemData, NULL );
+					    CX2Item::ItemData kItemData;
+						kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+						kItemData.m_Period = m_pNowOverItemSlot->GetPeriod();
+						kItemData.m_Endurance = pItemTemplet->GetEndurance();
+						kItemData.m_ItemID = m_pNowOverItemSlot->GetItemTID();
+						CX2Item* pItem = new CX2Item( kItemData, NULL );
 						itemDesc = GetSlotItemDescByTID( pItem, m_pNowOverItemSlot->GetItemTID() );
 						SAFE_DELETE( pItem );
 					}

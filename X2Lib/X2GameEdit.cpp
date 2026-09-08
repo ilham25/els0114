@@ -1,6 +1,11 @@
 #include "StdAfx.h"
 #include ".\x2gameedit.h"
 
+
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+#include    <boost/tokenizer.hpp>
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+
 CX2GameEdit::CX2GameEdit(void)
 #ifdef EFFECT_USE_LOG
 :m_eShowEffetLogLevel(ELL_NONE)
@@ -53,7 +58,10 @@ CX2GameEdit::~CX2GameEdit(void)
 HRESULT CX2GameEdit::OnFrameMove( double fTime, float fElapsedTime )
 {
 	if ( m_bEnable == false )
+	{
+		HotKeyProcess();
 		return S_OK;
+	}
 
 	if ( m_pChatWindow != NULL )
 		m_pChatWindow->OnFrameMove( fTime, fElapsedTime );
@@ -142,6 +150,11 @@ bool CX2GameEdit::ExecCommand( const WCHAR* pCommandString )
 
 	THEMIDA_VM_START
 
+	if( g_pData->GetMyUser()->GetAuthLevel() < CX2User::XUAL_SPECIAL_USER )
+	{
+		return false;
+	}
+
 	wstring commandWString = pCommandString;
 	string commandString;
 #ifdef CHEAT_WCHART_TO_UTF8
@@ -157,6 +170,10 @@ bool CX2GameEdit::ExecCommand( const WCHAR* pCommandString )
 	}
 
 	AddCommandHistory( commandWString.c_str() );
+
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+    KLuaManagerProxy    kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 
 	WCHAR tempChar = commandWString[0];
 	if ( tempChar == '/' )
@@ -182,7 +199,11 @@ bool CX2GameEdit::ExecCommand( const WCHAR* pCommandString )
 
 		slashCommandString += tempString;
 
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+        std::vector<KLuaManagerProxyLuaValue> vecArg;
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 		slashCommandString += "(";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 
 		if ( tempString == "n" || 
 			//{{ 2010. 05. 18  최육사	대전 던전 서버군 통합
@@ -214,21 +235,39 @@ bool CX2GameEdit::ExecCommand( const WCHAR* pCommandString )
 
 		{	
 			nowStringIndex += 1;
+#ifndef X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			slashCommandString += "\"";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			string noticeMsg;
 			noticeMsg.assign( commandString.begin() + nowStringIndex, commandString.end() );
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+            vecArg.push_back( KLuaManagerProxyLuaValue( noticeMsg ) );
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			slashCommandString += noticeMsg;
 			slashCommandString += "\"";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 		}
 #ifdef ADD_HERO_MATCH_NOTICE
 		else if( tempString == "obsw" )		/// 영웅 대전 귓속말 공지 ( 특정 인자에 ""를 씌우기 위해 분류 )
 		{
-			if( false == SetValueByHeroMatchWisperNotice( slashCommandString, commandString, nowStringIndex ) )
+			if( false == SetValueByHeroMatchWisperNotice( 
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+                kLuaManager, vecArg,
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+                slashCommandString, 
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+                commandString, nowStringIndex ) )
 				return false;
 		}
 		else if( tempString == "obsdel" )	/// 영웅 대전 그룹 제거 기능 ( 특정 인자에 ""를 씌우기 위해 분류 )
 		{
-			if( false == SetValueByHeroMatchDeleteGroupUser( slashCommandString, commandString, nowStringIndex ) )
+			if( false == SetValueByHeroMatchDeleteGroupUser( 
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+                kLuaManager, vecArg,
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+                slashCommandString, 
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+                commandString, nowStringIndex ) )
 				return false;
 		}
 #endif ADD_HERO_MATCH_NOTICE
@@ -243,10 +282,12 @@ bool CX2GameEdit::ExecCommand( const WCHAR* pCommandString )
 				if ( prevStringIndex >= (int)commandString.size() )
 					break;
 
+#ifndef X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 				if ( bFirstCheck == true )
 				{
 					slashCommandString += ",";
 				}
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 
 				WCHAR tempChar = commandWString[prevStringIndex];
 				if ( tempChar == '"' ) //변수가 스트링일 경우
@@ -259,10 +300,15 @@ bool CX2GameEdit::ExecCommand( const WCHAR* pCommandString )
 						return false;
 					}
 
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+					string tempString;
+					tempString.assign( commandString.begin() + prevStringIndex + 1, commandString.begin() + nowStringIndex );
+                    vecArg.push_back( KLuaManagerProxyLuaValue( tempString ) );
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 					string tempString;
 					tempString.assign( commandString.begin() + prevStringIndex, commandString.begin() + nowStringIndex + 1 );
 					slashCommandString += tempString;
-
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 
 					prevStringIndex = nowStringIndex + 2;
 				}
@@ -274,32 +320,70 @@ bool CX2GameEdit::ExecCommand( const WCHAR* pCommandString )
 					{
 						nowStringIndex = (int)commandString.size();
 					}
-
 					string tempString;
 					tempString.assign( commandString.begin() + prevStringIndex, commandString.begin() + nowStringIndex );
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+                    KLuaManagerProxyLuaValue    luaValue;
+                    switch( kLuaManager.LuaParse( tempString, true, luaValue ) )
+                    {
+                    case KLuaManagerProxy::LUA_PARSE_VALUE:
+                        vecArg.push_back( luaValue );
+                        break;
+                    default:
+						AddString( CX2ChatWindow::CT_NORMAL, GET_STRING( STR_ID_217 ) );
+						return false;
+                    }//switch
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 					slashCommandString += tempString;
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 
 					prevStringIndex = nowStringIndex + 1;
 				}
-
 				bFirstCheck = true;
-
 			}
 		}
 
+#ifndef X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 		slashCommandString += ")";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 
 		RegisterLuaBind();
 
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+        if ( kLuaManager.LuaCall( slashCommandString.c_str(), vecArg ) == false )
+        {
+			AddString( CX2ChatWindow::CT_NORMAL, GET_STRING( STR_ID_217 ) );
+			return false;
+        }
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 		if( g_pKTDXApp->GetLuaBinder()->DoString( slashCommandString.c_str() ) == E_FAIL )
 		{
 			AddString( CX2ChatWindow::CT_NORMAL, GET_STRING( STR_ID_217 ) );
 			return false;
 		}
-		
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+
+#if defined( NEW_MAIL_LOG ) && defined(_SERVICE_) && !defined(_OPEN_TEST_)
+// 		if( NULL != g_pData && 
+// 			NULL != g_pData->GetMyUser() )
+// 		{
+// 			char Buf1[256];
+// 			StringCchPrintfA( Buf1, 256, "사용 유저 UID : %lld, 권한 : %d \n 사용 치트 : ", g_pData->GetMyUser()->GetUID(), g_pData->GetMyUser()->GetAuthLevel());
+// 			CX2MailLogManager::GetInstance()->AddMailLog( CX2MailLogManager::MLI_USE_GAME_EDIT, Buf1 );
+// 		}
+// 
+// 		CX2MailLogManager::GetInstance()->AddMailLog( CX2MailLogManager::MLI_USE_GAME_EDIT, slashCommandString.c_str() );
+#endif // defined( NEW_MAIL_LOG ) || defined(_SERVICE_) // 
 	}
 	else
 	{
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+
+		AddString( CX2ChatWindow::CT_NORMAL, GET_STRING( STR_ID_217 ) );
+		return false;
+
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+
 		if( g_pData->GetMyUser()->GetAuthLevel() < CX2User::XUAL_DEV )
 		{
 			AddString( CX2ChatWindow::CT_NORMAL, GET_STRING( STR_ID_217 ) );
@@ -313,6 +397,7 @@ bool CX2GameEdit::ExecCommand( const WCHAR* pCommandString )
 			AddString( CX2ChatWindow::CT_NORMAL, GET_STRING( STR_ID_217 ) );
 			return false;
 		}
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 	}
 
 	AddString( CX2ChatWindow::CT_NORMAL, GET_STRING( STR_ID_218 ) );
@@ -364,10 +449,11 @@ void CX2GameEdit::MonsterStateChange(const char* pString )
 	}
 #endif LIGHT_OPERATOR_ACCOUNT
 
-	wstring wstrMonsterStateName;
-	ConvertUtf8ToWCHAR( wstrMonsterStateName, pString );
+	//wstring wstrMonsterStateName;
+	//ConvertUtf8ToWCHAR( wstrMonsterStateName, pString );
 
-	MakeUpperCase(wstrMonsterStateName);
+    string  strMonsterStateName = ( pString ) ? pString : "";
+	MakeUpperCase(strMonsterStateName);
 
 	int iNpcID = GetLastCreatedMonster();
 
@@ -385,11 +471,12 @@ void CX2GameEdit::MonsterStateChange(const char* pString )
 		return;
 	}	
 
-	int stateID = pNPCUnit->GetStateIDByKeyword( wstrMonsterStateName );
+	int stateID = pNPCUnit->GetStateIDByKeyword( strMonsterStateName );
 
 	if (stateID != CX2GUNPC::GUSI_NONE)
 	{
-		AddString(CX2ChatWindow::CT_KILL, pNPCUnit->GetStateNameByStateID( stateID ).c_str());
+        std::wstring    wstrTemp;
+		AddString(CX2ChatWindow::CT_KILL, ConvertUtf8ToWCHAR( wstrTemp, pNPCUnit->GetStateNameByStateID( stateID ) ).c_str() );
 		pNPCUnit->StateChangeCheat( stateID );
 	}
 	else
@@ -432,26 +519,29 @@ void CX2GameEdit::PetActionCheat_LUA( const char *motionName )
 		return;
 	}
 #endif LIGHT_OPERATOR_ACCOUNT
+    
+    if ( motionName == NULL || motionName[0] == NULL )
+        return;
 
 	if( g_pData != NULL && g_pData->GetPetManager() != NULL )
 	{
 		CX2PET *pPet = g_pData->GetPetManager()->GetMyPet();
 		if( pPet != NULL && pPet->GetXSkinAnim() != NULL )
 		{			
-			wstring wstrMotionName;
-			ConvertUtf8ToWCHAR( wstrMotionName, motionName );
+			//wstring wstrMotionName;
+			//ConvertUtf8ToWCHAR( wstrMotionName, motionName );
 
-			if( wstrMotionName == L"true" )
+			if( strcmp( motionName, "true" ) == 0 )
 			{
 				pPet->SetCheat(true);
 			}
-			else if( wstrMotionName == L"false" )
+			else if( strcmp( motionName, "false" ) == 0 )
 			{
 				pPet->SetCheat(false);
 			}
 			else
 			{
-				int stateId = pPet->GetStateID( wstrMotionName );
+				int stateId = pPet->GetStateID( motionName );
 				pPet->StateChange( stateId, true, false );				
 			}			
 		}
@@ -478,7 +568,6 @@ void CX2GameEdit::UserEdCheat_LUA( const char* nickName )
 		return;
 	}
 #endif LIGHT_OPERATOR_ACCOUNT
-
 
 	wstring wstrNickName;
 #ifdef CHEAT_WCHART_TO_UTF8
@@ -836,19 +925,11 @@ bool CX2GameEdit::OpenScriptFile( const WCHAR* pFilename )
 {
 	RegisterLuaBind();
 
-	//파일 로드
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
 
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFilename );
-	if( Info == NULL )
-	{
+    if ( g_pKTDXApp->LoadLuaTinker( pFilename ) == false )
+    {
 		return false;
-	}
-
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		return false;
-	}
+    }
 
 	return true;
 }
@@ -1005,7 +1086,7 @@ void CX2GameEdit::PvpKickSet_LUA( bool bSetKick )
 #ifdef SERV_BATTLE_FIELD_DANGEROUS_CHEAT
 /** @function : RequireGetDangerousValue_LUA
 	@breif : 필드 위험도 확인 치트
-*/
+	*/
 void CX2GameEdit::RequireGetDangerousValue_LUA()
 {
 	if( CX2Main::XS_BATTLE_FIELD != g_pMain->GetNowStateID() )
@@ -1084,7 +1165,11 @@ void CX2GameEdit::AveragePingTime_LUA( DWORD dwAveragePingTime_ )
 //}} kimhc // 2012-10-16 // 핑이 빠른 유저를 호스트로 변경하는 코드
 
 #ifdef ADD_HERO_MATCH_NOTICE		/// 영웅 대전 운영자용 치트 인자 설정 함수
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+bool CX2GameEdit::SetValueByHeroMatchWisperNotice( KLuaManagerProxy& kLuaManager, std::vector<KLuaManagerProxyLuaValue>& vec_, string wstrCommandString, int iNowStringIndex_ )
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 bool CX2GameEdit::SetValueByHeroMatchWisperNotice( string& wstrSlashCommandString_, string wstrCommandString, int iNowStringIndex_ )
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 {
 	const int iMaxValueNum		= 2;
 	int		  iValueIndex		= 0;
@@ -1109,21 +1194,44 @@ bool CX2GameEdit::SetValueByHeroMatchWisperNotice( string& wstrSlashCommandStrin
 
 		if( 1 == iValueIndex || 2 == iValueIndex )		/// 쌍따옴표를 추가해 주어야 할 인자 ( 문자 )
 		{
+#ifndef X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			wstrSlashCommandString_ += "\"";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			string noticeMsg;
 			noticeMsg.assign( wstrCommandString.begin() + iPrevStringIndex, wstrCommandString.begin() + iNowStringIndex_ );
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+            vec_.push_back( KLuaManagerProxyLuaValue( noticeMsg ) );
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			wstrSlashCommandString_ += noticeMsg;
 			wstrSlashCommandString_ += "\"";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 		}
 		else	/// 그냥 인자
 		{
 			string noticeMsg;
 			noticeMsg.assign( wstrCommandString.begin() + iPrevStringIndex, wstrCommandString.begin() + iNowStringIndex_ );
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+            KLuaManagerProxyLuaValue    luaValue;
+            switch( kLuaManager.LuaParse( noticeMsg, true, luaValue ) )
+            {
+            case KLuaManagerProxy::LUA_PARSE_VALUE:
+                vec_.push_back( luaValue );
+                break;
+            default:
+			    AddString( CX2ChatWindow::CT_NORMAL, GET_STRING( STR_ID_217 ) );
+                return false;
+            }//switch
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			wstrSlashCommandString_ += noticeMsg;
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 		}
 
 		if( iMaxValueNum > iValueIndex )	/// 최대 인자 수를 넘지 않았다면 쉼표 추가
+        {
+#ifndef X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			wstrSlashCommandString_ += ",";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+        }
 		else								/// 최대 인자 수를 넘었다면, 탈출
 			break;
 
@@ -1133,7 +1241,11 @@ bool CX2GameEdit::SetValueByHeroMatchWisperNotice( string& wstrSlashCommandStrin
 	return true;
 }
 
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+bool CX2GameEdit::SetValueByHeroMatchDeleteGroupUser( KLuaManagerProxy& kLuaManager, std::vector<KLuaManagerProxyLuaValue>& vec_, string wstrCommandString, int iNowStringIndex_ )
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 bool CX2GameEdit::SetValueByHeroMatchDeleteGroupUser( string& wstrSlashCommandString_, string wstrCommandString, int iNowStringIndex_ )
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 {
 	const int iMaxValueNum		= 1;
 	int		  iValueIndex		= 0;
@@ -1158,21 +1270,44 @@ bool CX2GameEdit::SetValueByHeroMatchDeleteGroupUser( string& wstrSlashCommandSt
 
 		if( 1 == iValueIndex )		/// 쌍따옴표를 추가해 주어야 할 인자 ( 문자 )
 		{
+#ifndef X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			wstrSlashCommandString_ += "\"";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			string noticeMsg;
 			noticeMsg.assign( wstrCommandString.begin() + iPrevStringIndex, wstrCommandString.begin() + iNowStringIndex_ );
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+            vec_.push_back( KLuaManagerProxyLuaValue( noticeMsg ) );
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			wstrSlashCommandString_ += noticeMsg;
 			wstrSlashCommandString_ += "\"";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 		}
 		else	/// 그냥 인자
 		{
 			string noticeMsg;
 			noticeMsg.assign( wstrCommandString.begin() + iPrevStringIndex, wstrCommandString.begin() + iNowStringIndex_ );
+#ifdef  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+            KLuaManagerProxyLuaValue    luaValue;
+            switch( kLuaManager.LuaParse( noticeMsg, true, luaValue ) )
+            {
+            case KLuaManagerProxy::LUA_PARSE_VALUE:
+                vec_.push_back( luaValue );
+                break;
+            default:
+			    AddString( CX2ChatWindow::CT_NORMAL, GET_STRING( STR_ID_217 ) );
+                return false;
+            }//switch
+#else   X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			wstrSlashCommandString_ += noticeMsg;
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 		}
 
 		if( iMaxValueNum > iValueIndex )	/// 최대 인자 수를 넘지 않았다면 쉼표 추가
+        {
+#ifndef X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
 			wstrSlashCommandString_ += ",";
+#endif  X2OPTIMIZE_REMOVE_LUA_INTERPRETER_MODULE
+        }
 		else								/// 최대 인자 수를 넘었다면, 탈출
 			break;
 
@@ -1289,7 +1424,7 @@ void CX2GameEdit::ToggleGameEditCamera()
 				g_pMain->ChangeUnitClass( pListBoxItem->m_iMessageID );
 
 				if ( NULL != m_pDLGClassChangeCheat )
-					CX2Unit::UNIT_CLASS eUnitClass = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass;
+					CX2Unit::UNIT_CLASS eUnitClass = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass;
 			}
 		} break;
 #endif //CHEAT_CLASS_CHANGE
@@ -1308,6 +1443,25 @@ bool CX2GameEdit::DeleteGUildAdd_LUA( int iGuildUID )
 	return true;
 }
 #endif // SERV_DELETE_GUILD_ADD_CHEAT
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+void CX2GameEdit::SetCoboEventItemGet_LUA( bool bItemGive,bool bNextDay )
+{
+	KEGS_EVENT_COBO_ITEM_GIVE_CHEAT_NOT kPacket;
+	kPacket.m_CoboEventITemGet = bItemGive;
+	kPacket.m_bNextDay = bNextDay;
+	g_pData->GetServerProtocol()->SendPacket( EGS_EVENT_COBO_ITEM_GIVE_CHEAT_NOT, kPacket );
+}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+void CX2GameEdit::SetValenTineCountCheat_LUA( int iCount )
+{
+	KEGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_CHEAT_NOT kPacket;
+	kPacket.m_iValentineItemCount = iCount;
+	g_pData->GetServerProtocol()->SendPacket( EGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_CHEAT_NOT, kPacket );
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 
 //{{ 2011.03.04  임규수 헤니르 랭킹 삭제 치트 ( 운영자,개발자 계정 )
 #ifdef SERV_DELETE_HENIR_RANKING
@@ -1409,7 +1563,7 @@ void CX2GameEdit::ToggleClassChangeCheat()
 
 		if ( NULL != m_pDLGClassChangeCheat )
 		{
-			CX2Unit::UNIT_CLASS eUnitClass = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass;
+			CX2Unit::UNIT_CLASS eUnitClass = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass;
 			CKTDGUIListBox* pListBox = (CKTDGUIListBox*) m_pDLGClassChangeCheat->GetControl( L"Class_List" );
 
 			if ( NULL != pListBox )
@@ -1431,3 +1585,112 @@ void CX2GameEdit::ToggleClassChangeCheat()
 	}
 }
 #endif //CHEAT_CLASS_CHANGE
+
+void CX2GameEdit::HotKeyProcess()
+{
+	if( NULL != g_pData && 
+		NULL != g_pData->GetMyUser() && 
+		CX2User::XUAL_DEV > g_pData->GetMyUser()->GetAuthLevel()  )
+		return;
+
+	if( true == g_pChatBox->GetChatEditBox() )
+		return;
+
+	HotKeyProcess_BossRaid();
+#ifdef SUMMON_MONSTER_BY_PRESS_KEY_AT_TRAINING_GAME
+	HotKeyProcess_FreeTraining();
+#endif // SUMMON_MONSTER_BY_PRESS_KEY_AT_TRAINING_GAME
+}
+#ifdef SUMMON_MONSTER_BY_PRESS_KEY_AT_TRAINING_GAME
+void CX2GameEdit::HotKeyProcess_FreeTraining()
+{
+	if( NULL == g_pX2Game )
+		return;
+
+	if( NULL != g_pData && 
+		NULL != g_pData->GetMyUser() && 
+		CX2User::XUAL_DEV > g_pData->GetMyUser()->GetAuthLevel()  )
+		return;
+
+	if( NULL != g_pX2Game &&
+		NULL != g_pX2Game->GetWorld() &&
+		NULL != g_pX2Game->GetWorld()->GetWorldData() &&
+	    g_pX2Game->GetWorld()->GetWorldData()->worldID == CX2World::WI_TRAINING_CENTER_FREESTAGE )
+	{
+		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_1) == TRUE )
+		{
+			g_pX2Game->Send_EGS_ADMIN_NPC_UNIT_CREATE_REQ_LUA( CX2UnitManager::NUI_DUMMY_MOVE, 70, g_pX2Game->GetMyUnit()->GetPos(), true, 0, 0, 0, 0 );
+			g_pChatBox->AddChatLog( L"NUI_DUMMY_MOVE 소환", KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
+		}
+		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_2) == TRUE )
+		{
+			g_pX2Game->Send_EGS_ADMIN_NPC_UNIT_CREATE_REQ_LUA( CX2UnitManager::NUI_DUMMY_WAIT, 70, g_pX2Game->GetMyUnit()->GetPos(), true, 0, 0, 0, 0 );
+			g_pChatBox->AddChatLog( L"NUI_DUMMY_WAIT 소환", KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
+		}
+		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_3) == TRUE )
+		{
+			g_pX2Game->Send_EGS_ADMIN_NPC_UNIT_CREATE_REQ_LUA( CX2UnitManager::NUI_DUMMY_BIG_MOVE, 70, g_pX2Game->GetMyUnit()->GetPos(), true, 0, 0, 0, 0 );
+			g_pChatBox->AddChatLog( L"NUI_DUMMY_BIG_MOVE 소환", KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
+		}
+		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_4) == TRUE )
+		{
+			g_pX2Game->Send_EGS_ADMIN_NPC_UNIT_CREATE_REQ_LUA( CX2UnitManager::NUI_DUMMY_BIG_WAIT, 70, g_pX2Game->GetMyUnit()->GetPos(), true, 0, 0, 0, 0 );
+			g_pChatBox->AddChatLog( L"NUI_DUMMY_BIG_WAIT 소환", KEGS_CHAT_REQ::CPT_SYSTEM, D3DXCOLOR(1,1,0,1), L"#CFFFF00" );
+		}
+	}
+}
+#endif // SUMMON_MONSTER_BY_PRESS_KEY_AT_TRAINING_GAME
+#ifdef FIELD_BOSS_RAID
+void CX2GameEdit::HotKeyProcess_BossRaid()
+{
+	if( NULL != g_pData && 
+		NULL != g_pData->GetMyUser() && 
+		CX2User::XUAL_DEV > g_pData->GetMyUser()->GetAuthLevel()  )
+		return;
+
+	if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+	{
+		CX2UnitManager::NPC_UNIT_ID eNpcID =
+			CX2BossRaidManager::GetInstance()->GetBossNPCIDByMapID(static_cast<SEnum::VILLAGE_MAP_ID>(g_pData->GetBattleFieldManager().GetBattleFieldIdWhereIam()));
+
+		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_4) == TRUE )
+		{
+			CX2BossRaidManager::GetInstance()->Handler_EGS_BOSS_FIELD_INTRUDE_RESTRICTION_REQ_Cheat();
+#ifdef HARDCODING_STRING_TO_INDEX
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_30361 ), g_pMain->GetNowState() );
+#else
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"독방으로 설정되었습니다.\n다른 유저는 현재 필드에 난입 할 수 없습니다.", g_pMain->GetNowState() );
+#endif HARDCODING_STRING_TO_INDEX
+		}
+		if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_5) == TRUE )
+		{
+			SetLastCreatedMonster( eNpcID );
+		}
+	}
+}
+void CX2GameEdit::OpenRaidGate()
+{
+	CX2BossRaidManager::GetInstance()->Handler_EGS_ADMIN_BOSS_FIELD_GATE_OPEN_REQ();
+}
+void CX2GameEdit::CloseRateGate()
+{
+	CX2BossRaidManager::GetInstance()->Send_EGS_ADMIN_BOSS_FIELD_GATE_CLOSE_NOT();
+}
+void CX2GameEdit::RequireGetTotalDangerousValue()
+{
+	CX2BossRaidManager::GetInstance()->Handler_EGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ();
+}
+void CX2GameEdit::IncreaseTotalDangerousValue(int iValue_)
+{
+	CX2BossRaidManager::GetInstance()->Handler_EGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ(iValue_);
+}
+#endif // FIELD_BOSS_RAID
+
+#ifdef SERV_EVENT_CHECK_POWER
+void CX2GameEdit::SetMultiplyer( float f )
+{
+	KEGS_SET_MULTIPLYER kPac;
+	kPac.fM = f;
+	g_pData->GetServerProtocol()->SendPacket( EGS_SET_MULTIPLYER, kPac);
+}
+#endif SERV_EVENT_CHECK_POWER

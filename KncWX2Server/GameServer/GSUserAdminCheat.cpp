@@ -20,6 +20,18 @@
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
+#ifdef SERV_EVENT_CHECK_POWER
+	#include "GameSysval/GameSysVal.h"
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-09	// 박세훈
+	#include "X2Data/XSLFieldBossData.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#include "X2Data/XSLSquareUnit.h"
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#include "GameEvent/GameEventScriptManager.h"
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 #include "odbc/Odbc.h"
 #include "Enum/Enum.h"
 
@@ -287,7 +299,7 @@ IMPL_ON_FUNC( EGS_ADMIN_CHANGE_AUTH_LEVEL_REQ )
 {
 	
 	// config_gs_internal.lua 에서  AF_INTERNAL 로 되어 있지 않음
-	if( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_INTERNAL )
+	if( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_INTERNAL )	// 해외팀 변경
 	//if( KSimLayer::GetKObj()->GetBillingFlag() == KSimLayer::BF_NEXON_KOREA_TEST )
 	{
 		if( GetAuthLevel() < SEnum::UAL_DEVELOPER )
@@ -474,16 +486,55 @@ IMPL_ON_FUNC( EGS_ADMIN_CHANGE_SKILL_POINT_REQ )
 		return;
 	}
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( kPacket_.m_iActiveSkillPageNumber != m_kSkillTree.GetActiveSkillPageNumber() )
+	{
+		SET_ERROR( ERR_SKILL_PAGE_01 );
+		START_LOG( cerr, L"활성된 스킬 페이지 번호가 이상합니다 (EGS_ADMIN_CHANGE_SKILL_POINT_REQ)" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iActiveSkillPageNumber )
+			<< BUILD_LOG( m_kSkillTree.GetActiveSkillPageNumber() )
+			<< END_LOG;
+
+		return;
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	if( kPacket_.m_iSPoint >= 0 )
 	{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		// kimhc // 김현철 // 2013-11-22 현재 사용중인 스킬 페이지에만 적용
+		std::vector<KUserSkillTree::SkillPageData>& vecSkillPageData
+			= m_kSkillTree.AccessSkillPageDataVector();
+
+		for ( UINT i = 0; i < vecSkillPageData.size(); i++ )
+		{
+			if ( i == kPacket_.m_iActiveSkillPageNumber )
+			{
+				int iSPointChange = kPacket_.m_iSPoint - vecSkillPageData[i].m_iSPoint.GetInitValue();
+				vecSkillPageData[i].m_iSPoint.SetValue( vecSkillPageData[i].m_iSPoint.GetInitValue() );
+				vecSkillPageData[i].m_iSPoint += iSPointChange;
+				break;
+			}
+			
+		}
+#else // SERV_SKILL_PAGE_SYSTEM
 		int iSPointChange = kPacket_.m_iSPoint - m_iSPoint.GetInitValue();
 		m_iSPoint.SetValue( m_iSPoint.GetInitValue() );
 		m_iSPoint += iSPointChange;
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 
 		KEGS_ADMIN_CHANGE_SKILL_POINT_ACK kPacket;
 		kPacket.m_iOK		= NetError::NET_OK;
+		
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		kPacket.m_iSPoint					= m_kSkillTree.GetSPoint();
+		kPacket.m_iActiveSkillPageNumber	= kPacket_.m_iActiveSkillPageNumber;
+#else // SERV_SKILL_PAGE_SYSTEM
 		kPacket.m_iSPoint	= m_iSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+		
 		SendPacket( EGS_ADMIN_CHANGE_SKILL_POINT_ACK, kPacket );
 
 		// 치트 로그
@@ -494,7 +545,12 @@ IMPL_ON_FUNC( EGS_ADMIN_CHANGE_SKILL_POINT_REQ )
 }
 
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+IMPL_ON_FUNC( EGS_ADMIN_INIT_SKILL_TREE_REQ )
+#else // SERV_SKILL_PAGE_SYSTEM
 IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_INIT_SKILL_TREE_REQ )
+#endif // SERV_SKILL_PAGE_SYSTEM
 {
 	if( GetAuthLevel() < SEnum::UAL_DEVELOPER )
 	{
@@ -511,6 +567,22 @@ IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_INIT_SKILL_TREE_REQ )
 		return;
 	}
 	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( kPacket_.m_iActiveSkillPageNumber != m_kSkillTree.GetActiveSkillPageNumber() )
+	{
+		START_LOG( cerr, L"활성된 스킬 페이지 번호가 이상합니다 (EGS_ADMIN_INIT_SKILL_TREE_REQ)" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iActiveSkillPageNumber )
+			<< BUILD_LOG( m_kSkillTree.GetActiveSkillPageNumber() )
+			<< END_LOG;
+
+		KEGS_ADMIN_INIT_SKILL_TREE_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_SKILL_PAGE_01;
+		SendPacket( EGS_ADMIN_INIT_SKILL_TREE_ACK, kPacket );
+		return;
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	//{{ 2012. 03. 23	박세훈	관리자용 치트키 오류 수정
 	int iDefaultSkillID1 = 0;
 	int iDefaultSkillID2 = 0;
@@ -582,6 +654,11 @@ IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_INIT_SKILL_TREE_REQ )
 	kPacket.m_iDefaultSkillID4 = iDefaultSkillID4;
 	kPacket.m_iDefaultSkillID5 = iDefaultSkillID5;
 	kPacket.m_iDefaultSkillID6 = iDefaultSkillID6;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacket.m_iActiveSkillPageNumber = kPacket_.m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	SendToGameDB( DBE_ADMIN_INIT_SKILL_TREE_REQ, kPacket );
 
 	// 치트 로그
@@ -591,11 +668,20 @@ IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_INIT_SKILL_TREE_REQ )
 _IMPL_ON_FUNC( DBE_ADMIN_INIT_SKILL_TREE_ACK, KEGS_ADMIN_INIT_SKILL_TREE_ACK )
 {
 	if( kPacket_.m_iOK == NetError::NET_OK )
-	{
+	{		
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_kSkillTree.SetSPoint( kPacket_.m_iSPoint );
+		m_kSkillTree.SetCSPoint( kPacket_.m_iActiveSkillPageNumber - 1, kPacket_.m_iCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 		m_iSPoint.SetValue( kPacket_.m_iSPoint );
 		m_kSkillTree.SetCSPoint( kPacket_.m_iCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_kSkillTree.ResetThisSkillPage( kPacket_.m_iActiveSkillPageNumber );
+#else // SERV_SKILL_PAGE_SYSTEM
 		m_kSkillTree.Reset( true, true, false, false, false );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 		//{{ 2012. 03. 23	박세훈	관리자용 치트키 오류 수정
 		// 기본 스킬 넣기
@@ -613,7 +699,12 @@ _IMPL_ON_FUNC( DBE_ADMIN_INIT_SKILL_TREE_ACK, KEGS_ADMIN_INIT_SKILL_TREE_ACK )
 		// 스킬 초기화
 		for( int i = 0 ; i < 6 ; ++i )
 		{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			// kimhc // 김현철 // 스킬 초기화 치트 사용 시, 사용중인 스킬 페이지만 초기화 하도록 함
+			m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( iDefaultSkillID[i], 1, 0 );
+#else // SERV_SKILL_PAGE_SYSTEM
 			m_kSkillTree.SetSkillLevelAndCSP( iDefaultSkillID[i], 1, 0 );
+#endif // SERV_SKILL_PAGE_SYSTEM
 		}
 	}
 	else
@@ -967,9 +1058,23 @@ IMPL_ON_FUNC( EGS_ADMIN_CHANGE_UNIT_CLASS_REQ )
 	cwstrCheatContents.Format( L"%d", (int)kPacket_.m_cUnitClass );
 	WriteCheatLogToDB( L"/uc", cwstrCheatContents );
 
-#ifdef SERV_NO_ARA
+#ifdef SERV_LIMIT_UNIT
+	//국가별로 서버단에서 캐릭터 막는다. 
+	const CXSLUnit::UNIT_TYPE eLimitType = static_cast< CXSLUnit::UNIT_TYPE >( _CONST_LIMIT_UNIT_::iLimitType );	
 	const CXSLUnit::UNIT_TYPE eUnitType = CXSLUnit::GetUnitClassToUnitType( static_cast<CXSLUnit::UNIT_CLASS>(kPacket_.m_cUnitClass) );
-	if( CXSLUnit::UT_ARA == eUnitType )
+	if( eLimitType < eUnitType )
+	{
+		KEGS_ADMIN_CHANGE_UNIT_CLASS_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_SELECT_UNIT_01; // 선택한 캐릭터 클래스가 이상함.
+		SendPacket( EGS_ADMIN_CHANGE_UNIT_CLASS_ACK, kPacket );
+		return;
+	}
+#endif SERV_LIMIT_UNIT
+ 
+
+#ifdef SERV_NO_ARA
+	const CXSLUnit::UNIT_TYPE eUnitARAType = CXSLUnit::GetUnitClassToUnitType( static_cast<CXSLUnit::UNIT_CLASS>(kPacket_.m_cUnitClass) );
+	if( CXSLUnit::UT_ARA == eUnitARAType )
 	{
 		KEGS_ADMIN_CHANGE_UNIT_CLASS_ACK kPacket;
 		kPacket.m_iOK = NetError::ERR_SELECT_UNIT_01; // 선택한 캐릭터 클래스가 이상함.
@@ -1059,18 +1164,36 @@ IMPL_ON_FUNC( DBE_ADMIN_CHANGE_UNIT_CLASS_ACK )
 		// 스킬 초기화
 		int iRetrievedSPoint = 0;
 		if( SiCXSLSkillTree()->GetCalcInitSkillPoint( GetLevel(), iRetrievedSPoint ) == true )
+		{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			m_kSkillTree.SetSPointEveryPage( iRetrievedSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 			m_iSPoint.SetValue( iRetrievedSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
+		}
 		
 		if( m_kSkillTree.IsCashSkillPointExpired() == true )
 		{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			m_kSkillTree.SetCSPointEveryPage( m_kSkillTree.GetMaxCSPoint() );
+#else // SERV_SKILL_PAGE_SYSTEM
 			m_kSkillTree.SetCSPoint( m_kSkillTree.GetMaxCSPoint() );
+#endif // SERV_SKILL_PAGE_SYSTEM
 		}
 		else
 		{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			m_kSkillTree.SetCSPointEveryPage( 0 );
+#else // SERV_SKILL_PAGE_SYSTEM
 			m_kSkillTree.SetCSPoint( 0 );
+#endif // SERV_SKILL_PAGE_SYSTEM
 		}
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_kSkillTree.ResetEveryPage();
+#else // SERV_SKILL_PAGE_SYSTEM
 		m_kSkillTree.Reset( true, true, false, false, false );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 		//{{ 2012. 03. 23	박세훈	관리자용 치트키 오류 수정
 		// 기본 스킬 넣기
@@ -1086,7 +1209,12 @@ IMPL_ON_FUNC( DBE_ADMIN_CHANGE_UNIT_CLASS_ACK )
 		// 스킬 초기화
 		for( int i = 0 ; i < 6 ; ++i )
 		{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			// kimhc // 김현철 // 전직 변경 치트 사용 시, 모든 스킬 페이지를 초기화 하도록 함
+			m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( iDefaultSkillID[i], 1, 0 );
+#else // SERV_SKILL_PAGE_SYSTEM
 			m_kSkillTree.SetSkillLevelAndCSP( iDefaultSkillID[i], 1, 0 );
+#endif // SERV_SKILL_PAGE_SYSTEM
 		}
 
 		kPacket.m_cUnitClass = kPacket_.m_cUnitClass;
@@ -1102,8 +1230,15 @@ IMPL_ON_FUNC( DBE_ADMIN_CHANGE_UNIT_CLASS_ACK )
 		return;
 	}
 
+	// m_iOK != NetError::NET_OK
 	kPacket.m_cUnitClass = 0;
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacket.m_iSPoint = m_kSkillTree.GetSPoint();
+#else // SERV_SKILL_PAGE_SYSTEM
 	kPacket.m_iSPoint = m_iSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+	
 	kPacket.m_iCSPoint = m_kSkillTree.GetCSPoint();
 	kPacket.m_iDefaultSkill1 = 0;
 	kPacket.m_iDefaultSkill2 = 0;
@@ -1115,7 +1250,11 @@ IMPL_ON_FUNC( DBE_ADMIN_CHANGE_UNIT_CLASS_ACK )
 	return;
 }
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+IMPL_ON_FUNC( EGS_ADMIN_AUTO_GET_ALL_SKILL_REQ )
+#else // SERV_SKILL_PAGE_SYSTEM
 IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_AUTO_GET_ALL_SKILL_REQ )
+#endif // SERV_SKILL_PAGE_SYSTEM
 {
 	// 레벨에 따라 배울수있는 스킬 다 찍기
 	if( GetAuthLevel() < SEnum::UAL_DEVELOPER )
@@ -1136,6 +1275,23 @@ IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_AUTO_GET_ALL_SKILL_REQ )
 	WriteCheatLogToDB( L"/as" );
 
 	KDBE_ADMIN_AUTO_GET_ALL_SKILL_REQ kPacketToDB;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( kPacket_.m_iActiveSkillPageNumber != m_kSkillTree.GetActiveSkillPageNumber() )
+	{
+		START_LOG( cerr, L"활성된 스킬 페이지 번호가 이상합니다 (EGS_ADMIN_AUTO_GET_ALL_SKILL_REQ)" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iActiveSkillPageNumber )
+			<< BUILD_LOG( m_kSkillTree.GetActiveSkillPageNumber() )
+			<< END_LOG;
+
+		KEGS_ADMIN_AUTO_GET_ALL_SKILL_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_SKILL_PAGE_01;;
+		SendPacket( EGS_ADMIN_AUTO_GET_ALL_SKILL_ACK, kPacket );
+		return;
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	if( !SiCXSLSkillTree()->GetUnitClassDefaultSkill( GetUnitClass(), 
 		kPacketToDB.m_iNewDefaultSkill1, 
 		kPacketToDB.m_iNewDefaultSkill2, 
@@ -1200,6 +1356,10 @@ IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_AUTO_GET_ALL_SKILL_REQ )
 	kPacketToDB.m_iSPoint = iRetrievedSPoint;
 	kPacketToDB.m_iCSPoint = iRetrievedCSPoint;
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacketToDB.m_iActiveSkillPageNumber = kPacket_.m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	std::map< int, CXSLSkillTree::SkillTreeTemplet > mapSkillTreeList;
 	std::map< int, CXSLSkillTree::SkillTreeTemplet >::iterator mit;
 
@@ -1263,11 +1423,20 @@ IMPL_ON_FUNC( DBE_ADMIN_AUTO_GET_ALL_SKILL_ACK)
 		return;
 	}
 
-	// 스킬 초기화
+	// 스킬 초기화	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	m_kSkillTree.SetSPoint( kPacket_.m_iSPoint );
+	m_kSkillTree.SetCSPoint( kPacket_.m_iActiveSkillPageNumber - 1, kPacket_.m_iCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_iSPoint.SetValue( kPacket_.m_iSPoint );
 	m_kSkillTree.SetCSPoint( kPacket_.m_iCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	m_kSkillTree.ResetEveryPage();
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_kSkillTree.Reset( true, true, false, false, false );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	// 기본 스킬 넣기
 	int iDefaultSkillID[6] = {0,};
@@ -1292,7 +1461,12 @@ IMPL_ON_FUNC( DBE_ADMIN_AUTO_GET_ALL_SKILL_ACK)
 	std::map<int, int>::iterator mit = kPacket_.m_mapGetSkillList.begin();
 	for( ; mit != kPacket_.m_mapGetSkillList.end() ; ++mit )
 	{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		// kimhc // 김현철 // 자신의 레벨에 맞는 모든 스킬 배우기 치트 사용 시, 현재 활성화 중인 스킬 페이지에만 적용 되도록 함
+		m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( mit->first, mit->second, 0 );
+#else // SERV_SKILL_PAGE_SYSTEM
 		m_kSkillTree.SetSkillLevelAndCSP( mit->first, mit->second, 0 );
+#endif // SERV_SKILL_PAGE_SYSTEM
 	}
 
 	BOOST_TEST_FOREACH( short, iSkillID, kPacket_.m_vecUnsealedSkillID )
@@ -1301,11 +1475,16 @@ IMPL_ON_FUNC( DBE_ADMIN_AUTO_GET_ALL_SKILL_ACK)
 	}
 
 	KEGS_ADMIN_AUTO_GET_ALL_SKILL_ACK kPacket;
-	kPacket.m_iOK = kPacket_.m_iOK;
-	kPacket.m_iSPoint = kPacket_.m_iSPoint;
-	kPacket.m_iCSPoint = kPacket_.m_iCSPoint;
-	kPacket.m_mapSkillList = kPacket_.m_mapGetSkillList;
-	kPacket.m_vecUnsealedSkillID = kPacket_.m_vecUnsealedSkillID;
+	kPacket.m_iOK						= kPacket_.m_iOK;
+	kPacket.m_iSPoint					= kPacket_.m_iSPoint;
+	kPacket.m_iCSPoint					= kPacket_.m_iCSPoint;
+	kPacket.m_mapSkillList				= kPacket_.m_mapGetSkillList;
+	kPacket.m_vecUnsealedSkillID		= kPacket_.m_vecUnsealedSkillID;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacket.m_iActiveSkillPageNumber	= kPacket_.m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	SendPacket( EGS_ADMIN_AUTO_GET_ALL_SKILL_ACK, kPacket );
 }
 
@@ -1325,6 +1504,22 @@ IMPL_ON_FUNC( EGS_ADMIN_GET_SKILL_REQ )
 		SendPacket( EGS_ADMIN_GET_SKILL_ACK, kPacket );
 		return;
 	}	
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( kPacket_.m_iActiveSkillPageNumber != m_kSkillTree.GetActiveSkillPageNumber() )
+	{
+		START_LOG( cerr, L"활성된 스킬 페이지 번호가 이상합니다 (EGS_ADMIN_GET_SKILL_REQ)" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iActiveSkillPageNumber )
+			<< BUILD_LOG( m_kSkillTree.GetActiveSkillPageNumber() )
+			<< END_LOG;
+
+		KEGS_ADMIN_GET_SKILL_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_SKILL_PAGE_01;;
+		SendPacket( EGS_ADMIN_GET_SKILL_ACK, kPacket );
+		return;
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	// 치트 로그
 	CStringW cwstrCheatContents;
@@ -1360,10 +1555,26 @@ IMPL_ON_FUNC( EGS_ADMIN_GET_SKILL_REQ )
 
 	int iSkillLevel = 0;
 	int iSkillCSPoint = 0;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( m_kSkillTree.IsActiveSkillPageNumberValid() )
+	{
+		// kimhc // 김현철 // 2013-11-17 // 이 부분은 기존 코드에서도 실패시 별다른 처리가 없기에
+		// 그냥 다음 Step 으로 진행 하도록 하였음
+		m_kSkillTree.GetSkillLevelAndCSP( iSkillLevel, iSkillCSPoint, kPacket_.m_iSkillID, 
+			m_kSkillTree.AccessLearnedSkillTree() );
+	}
+	else
+	{
+		AddLogWhenSkillPagesNumberIsWrong( L"EGS_ADMIN_GET_SKILL_REQ" );		
+		return;
+	}
+#else // SERV_SKILL_PAGE_SYSTEM
 	if( m_kSkillTree.GetSkillLevelAndCSP( kPacket_.m_iSkillID, iSkillLevel, iSkillCSPoint ) == false )
 	{
 		iSkillCSPoint = 0;
 	}
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	bool bUnsealed = false;
 	if( pSkillTemplet->m_bBornSealed == true && m_kSkillTree.IsSkillUnsealed( kPacket_.m_iSkillID ) == false )
@@ -1377,6 +1588,10 @@ IMPL_ON_FUNC( EGS_ADMIN_GET_SKILL_REQ )
 	kPacketToDB.m_iSkillLevel = kPacket_.m_iSkillLevel;
 	kPacketToDB.m_iCSPoint = iSkillCSPoint;
 	kPacketToDB.m_bUnsealed = true;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacketToDB.m_iActiveSkillPageNumber	= kPacket_.m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	SendToGameDB( DBE_ADMIN_GET_SKILL_REQ, kPacketToDB );
 }
@@ -1394,7 +1609,12 @@ IMPL_ON_FUNC( DBE_ADMIN_GET_SKILL_ACK )
 	if( kPacket_.m_bUnsealed == true )
 		m_kSkillTree.SkillUnseal( kPacket_.m_iSkillID );
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	// kimhc // 김현철 // 한개의 스킬 배우기 치트 사용 시, 현재의 스킬 페이지에 적용 되도록 함
+	m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( kPacket_.m_iSkillID, kPacket_.m_iSkillLevel, kPacket_.m_iCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iSkillID, kPacket_.m_iSkillLevel, kPacket_.m_iCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	KEGS_ADMIN_GET_SKILL_ACK kPacket;
 	kPacket.m_iOK = kPacket_.m_iOK;
@@ -1402,6 +1622,11 @@ IMPL_ON_FUNC( DBE_ADMIN_GET_SKILL_ACK )
 	kPacket.m_iSkillLevel = kPacket_.m_iSkillLevel;
 	kPacket.m_iCSPoint = kPacket_.m_iCSPoint;
 	kPacket.m_bUnsealed = kPacket_.m_bUnsealed;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacket.m_iActiveSkillPageNumber = kPacket_.m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	SendPacket( EGS_ADMIN_GET_SKILL_ACK, kPacket );
 }
 
@@ -1428,25 +1653,12 @@ IMPL_ON_FUNC( EGS_ADMIN_CHANGE_UNIT_CLASS_REQ )
 	cwstrCheatContents.Format( L"%d", (int)kPacket_.m_cUnitClass );
 	WriteCheatLogToDB( L"/uc", cwstrCheatContents );
 
-#ifdef SERV_NO_ARA
-	const CXSLUnit::UNIT_TYPE eUnitType = CXSLUnit::GetUnitClassToUnitType( static_cast<CXSLUnit::UNIT_CLASS>(kPacket_.m_cUnitClass) );
-	if( CXSLUnit::UT_ARA == eUnitType )
-	{
-		KEGS_ADMIN_CHANGE_UNIT_CLASS_ACK kPacket;
-		kPacket.m_iOK = NetError::ERR_SELECT_UNIT_01; // 선택한 캐릭터 클래스가 이상함.
-		SendPacket( EGS_ADMIN_CHANGE_UNIT_CLASS_ACK, kPacket );
-		return;
-	}
-#endif // SERV_NO_ARA
-
 	// 유닛 클래스 검사
 	if( CXSLUnit::IsValidUnitClass( static_cast<CXSLUnit::UNIT_CLASS>(kPacket_.m_cUnitClass) ) == false )
 	{
 		START_LOG( cout, L"존재하지 않는 유닛 클래스로 치트를 사용하였습니다. 영자님 제대로 입력해주세요." )
-#ifndef SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOG( GetUserName() )
 			<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
 			<< BUILD_LOGc( kPacket_.m_cUnitClass )
 			<< END_LOG;
 
@@ -1966,6 +2178,11 @@ IMPL_ON_FUNC( EGS_ADMIN_PSHOP_AGENCY_CHEAT_REQ )
 	kPacketToDB.m_iUnitUID = GetCharUID();
 	kPacketToDB.m_sAgencyPeriod = kPacket_.m_sPeriod;
 	kPacketToDB.m_usEventID = EGS_ADMIN_PSHOP_AGENCY_CHEAT_REQ;
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+    kPacketToDB.m_cShopType = SEnum::AST_PREMIUM; // CXSLSquareUnit::PST_PREMIUM;
+#else //SERV_UPGRADE_TRADE_SYSTEM
+	kPacketToDB.m_cShopType = CXSLSquareUnit::PST_PREMIUM; // CXSLSquareUnit::PST_PREMIUM;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	SendToGameDB( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ, kPacketToDB );
 }
 #endif SERV_PSHOP_AGENCY
@@ -2173,7 +2390,12 @@ _IMPL_ON_FUNC( DBE_ADMIN_CASH_SKILL_POINT_DATE_CHANGE_ACK, KEGS_ADMIN_CASH_SKILL
 
 //{{ 2012. 07. 24	박세훈	해당 캐릭터의 모든 스킬을 다 찍는 치트
 #ifdef SERV_ADMIN_CHEAT_GET_ALL_SKILL
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+IMPL_ON_FUNC( EGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ )
+#else // SERV_SKILL_PAGE_SYSTEM
 IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ )
+#endif // SERV_SKILL_PAGE_SYSTEM
 {
 	if( GetAuthLevel() < SEnum::UAL_DEVELOPER )
 	{
@@ -2187,6 +2409,22 @@ IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ )
 		SendPacket( EGS_ADMIN_CHEAT_GET_ALL_SKILL_ACK, kPacket );
 		return;
 	}
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	if ( kPacket_.m_iActiveSkillPageNumber != m_kSkillTree.GetActiveSkillPageNumber() )
+	{
+		START_LOG( cerr, L"활성된 스킬 페이지 번호가 이상합니다 (EGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ)" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( kPacket_.m_iActiveSkillPageNumber )
+			<< BUILD_LOG( m_kSkillTree.GetActiveSkillPageNumber() )
+			<< END_LOG;
+
+		KEGS_ADMIN_CHEAT_GET_ALL_SKILL_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_SKILL_PAGE_01;;
+		SendPacket( EGS_ADMIN_CHEAT_GET_ALL_SKILL_ACK, kPacket );
+		return;
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	// 1. 해당 클래스의 모든 스킬 정보 수집
 	const CXSLSkillTree::SkillTreeTempletMap* pSkillTreeTempletMap = SiCXSLSkillTree()->GetSkillTreeTemplet( GetUnitClass() );
@@ -2216,11 +2454,27 @@ IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ )
 		
 		// 현재 해당 스킬에 사용되고 있는 캐쉬 스킬 포인트를 구해오되 없다면, 0으로 설정한다.
 		KAdminCheatSkill kAdminCheatSkill;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		if ( m_kSkillTree.IsActiveSkillPageNumberValid() )
+		{
+			// kimhc // 김현철 // 2013-11-17 // 이 부분은 기존 코드에서도 실패시 별다른 처리가 없기에
+			// 그냥 다음 Step 으로 진행 하도록 하였음
+			m_kSkillTree.GetSkillLevelAndCSP( kAdminCheatSkill.m_iSkillLevel, kAdminCheatSkill.m_iSkillCSPoint, 
+				it->first, m_kSkillTree.AccessLearnedSkillTree() );
+		}
+		else
+		{
+			AddLogWhenSkillPagesNumberIsWrong( L"EGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ" );
+			return;
+		}
+#else // SERV_SKILL_PAGE_SYSTEM
 		if( m_kSkillTree.GetSkillLevelAndCSP( it->first, kAdminCheatSkill.m_iSkillLevel, kAdminCheatSkill.m_iSkillCSPoint ) == false )
 		{
 			kAdminCheatSkill.m_iSkillCSPoint = 0;
 		}
-
+#endif // SERV_SKILL_PAGE_SYSTEM
+		
 		// 스킬 레벨을 최대로 설정한다.
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		kAdminCheatSkill.m_iSkillLevel = it->second.m_iMasterSkillLevel;
@@ -2262,7 +2516,12 @@ IMPL_ON_FUNC( DBE_ADMIN_CHEAT_GET_ALL_SKILL_ACK )
 		std::map<int, KAdminCheatSkill>::iterator it;
 		for( it=kPacket_.m_mapSkillInfo.begin(); it != kPacket_.m_mapSkillInfo.end(); ++it )
 		{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			// kimhc // 김현철 // 모든 스킬 배우기 치트 사용 시, 현재 사용중인 스킬 페이지에 적용 되도록 함
+			m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnUsedPage( it->first, it->second.m_iSkillLevel, it->second.m_iSkillCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 			m_kSkillTree.SetSkillLevelAndCSP( it->first, it->second.m_iSkillLevel, it->second.m_iSkillCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
 		}
 	}
 
@@ -2771,7 +3030,6 @@ _IMPL_ON_FUNC( ERM_ADMIN_BATTLE_FIELD_INCREASE_DANGER_ACK, KEGS_ADMIN_BATTLE_FIE
 #ifdef SERV_POINT_COUNT_SYSTEM_GAME_EDIT_COMMAND
 IMPL_ON_FUNC( EGS_QUEST_POINT_CHEAT_NOT )
 {
-
 	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
 
 	if( GetAuthLevel() < SEnum::UAL_DEVELOPER )
@@ -2792,18 +3050,14 @@ IMPL_ON_FUNC( EGS_QUEST_POINT_CHEAT_NOT )
 	if ( kPacket_.m_iQuestPointCheat > 200 )
 		kPacket_.m_iQuestPointCheat = 200;
 
-
 	// 치트 로그
 	CStringW cwstrCheatContents;
 	cwstrCheatContents.Format( L"%d", kPacket_.m_iQuestPointCheat );
 	WriteCheatLogToDB( L"/questpoint", cwstrCheatContents );
 
-
 #ifdef SERV_POINT_COUNT_SYSTEM
 	m_kUserQuestManager.SetUpdateQuestInstance(GetThisPtr<KGSUser>());
 #endif //SERV_POINT_COUNT_SYSTEM
-
-
 }
 #endif //SERV_POINT_COUNT_SYSTEM_GAME_EDIT_COMMAND
 
@@ -2865,3 +3119,313 @@ _IMPL_ON_FUNC( DBE_ADMIN_CHANGE_COUPLE_DATE_ACK, KEGS_ADMIN_CHANGE_COUPLE_DATE_A
 }
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
+
+#ifdef SERV_EVENT_CHECK_POWER
+IMPL_ON_FUNC( EGS_SET_MULTIPLYER )
+{
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		START_LOG( cerr, L"개쓰레기 해커 새끼" )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< BUILD_LOG( GetUserName() )
+			<< END_LOG;
+		return;
+	}
+
+	SiKGameSysVal()->m_fMultiplayer = kPacket_.fM;
+}
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-09	// 박세훈
+IMPL_ON_FUNC( EGS_ADMIN_BOSS_FIELD_GATE_OPEN_REQ )
+{
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		START_LOG( cwarn, L"허용되지 않은 권한을 사용하려 하였습니다." )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< BUILD_LOG( GetUserName() )
+			<< END_LOG;
+
+		KEGS_ADMIN_BOSS_FIELD_GATE_OPEN_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_ADMIN_COMMAND_10;	// 사용할 수 없는 권한입니다.
+		SendPacket( EGS_ADMIN_BOSS_FIELD_GATE_OPEN_ACK, kPacket );
+		return;
+	}
+
+	// 게이트가 열리는 곳인가?
+	if( SiCXSLFieldBossData()->DoesFieldAffectTotalDangerousValue( kPacket_.m_iBattleFieldID ) == false )
+	{
+		KEGS_ADMIN_BOSS_FIELD_GATE_OPEN_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_FIELD_BOSS_01;	// 해당 필드에서는 보스 필드 게이트가 생성되지 않습니다.
+		SendPacket( EGS_ADMIN_BOSS_FIELD_GATE_OPEN_ACK, kPacket );
+		return;
+	}
+
+	SendToGlobalServer( EGB_ADMIN_BOSS_FIELD_GATE_OPEN_REQ, kPacket_ );
+
+	// 치트 로그 남겨야 함.
+	// WriteCheatLogToDB 체크
+}
+
+IMPL_ON_FUNC( EGB_ADMIN_BOSS_FIELD_GATE_OPEN_ACK )
+{
+	SendPacket( EGS_ADMIN_BOSS_FIELD_GATE_OPEN_ACK, kPacket_ );
+}
+
+IMPL_ON_FUNC_NOPARAM( EGS_ADMIN_BOSS_FIELD_GATE_CLOSE_NOT )
+{
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		START_LOG( cwarn, L"허용되지 않은 권한을 사용하려 하였습니다." )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< BUILD_LOG( GetUserName() )
+			<< END_LOG;
+		return;
+	}
+
+	SendToGlobalServer( EGB_ADMIN_BOSS_FIELD_GATE_CLOSE_NOT );
+
+	// 치트 로그 남겨야 함.
+	// WriteCheatLogToDB 체크
+}
+
+IMPL_ON_FUNC( EGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ )
+{
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		START_LOG( cwarn, L"허용되지 않은 권한을 사용하려 하였습니다." )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< BUILD_LOG( GetUserName() )
+			<< END_LOG;
+		
+		KEGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_VERIFY_12;
+		SendPacket( EGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK, kPacket );
+		return;
+	}
+
+	// 게이트가 열리는 곳인가?
+	if( SiCXSLFieldBossData()->DoesFieldAffectTotalDangerousValue( kPacket_.m_iBattleFieldID ) == false )
+	{
+		KEGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_FIELD_BOSS_01;	// 해당 필드에서는 보스 필드 게이트가 생성되지 않습니다.
+		SendPacket( EGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK, kPacket );
+		return;
+	}
+
+	SendToGlobalServer( EGB_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ, kPacket_ );
+
+	// 치트 로그 남겨야 함.
+	// WriteCheatLogToDB 체크
+}
+
+IMPL_ON_FUNC( EGB_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK )
+{
+	SendPacket( EGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK, kPacket_ );
+}
+
+IMPL_ON_FUNC( EGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ )
+{
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		START_LOG( cwarn, L"허용되지 않은 권한을 사용하려 하였습니다." )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< BUILD_LOG( GetUserName() )
+			<< END_LOG;
+		
+		KEGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_VERIFY_12;
+		SendPacket( EGS_ADMIN_CHANGE_COUPLE_DATE_ACK, kPacket );
+		return;
+	}
+
+	// 게이트가 열리는 곳인가?
+	if( SiCXSLFieldBossData()->DoesFieldAffectTotalDangerousValue( kPacket_.m_iBattleFieldID ) == false )
+	{
+		KEGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_FIELD_BOSS_01;	// 해당 필드에서는 보스 필드 게이트가 생성되지 않습니다.
+		SendPacket( EGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_ACK, kPacket );
+		return;
+	}
+
+	SendToGlobalServer( EGB_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ, kPacket_ );
+
+	// 치트 로그 남겨야 함.
+	// WriteCheatLogToDB 체크
+}
+
+IMPL_ON_FUNC( EGB_ADMIN_SET_TOTAL_DANGEROUS_VALUE_ACK )
+{
+	SendPacket( EGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_ACK, kPacket_ );
+}
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+IMPL_ON_FUNC( EGS_EVENT_COBO_ITEM_GIVE_CHEAT_NOT )
+{
+	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
+
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		START_LOG( cerr, L"운영자가 아닌데 감히..?ㅁ?" )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< BUILD_LOG( GetUserName() )
+			<< END_LOG;
+		return;
+	}
+	if(kPacket_.m_bNextDay == true)
+	{
+		KEGS_EVENT_COBO_DUNGEON_FIELD_NOT kPacketCoboNot;
+		//현재 시간을 받아온다.
+		CTime tChangeEventTime = SiKGameEventScriptManager()->GetCoboEventData()[0];
+		CTime tCurTime_ = CTime::GetCurrentTime();
+		//현재 시간과 바뀌어야 하는 이벤트 시간을 비교한다.
+		std::wstring GameEventTime = tChangeEventTime.Format(L"%Y-%m-%d %H:%M:%S");
+
+		if( tCurTime_ < tChangeEventTime)
+		{
+			///현재 시간이 바뀌어야 하는 기준 시간보다 작으면 던전 클리어를 열어 주어야 한다.
+			///단 주말일 경우에는 필드 카운트도 열어주어야 하니까 주말인지 체크를 해야한다.
+			CTime	tWeekEndTimeStart = SiKGameEventScriptManager()->GetCoboEventData()[1];
+			CTime   tWeekEndTimeEnd = SiKGameEventScriptManager()->GetCoboEventData()[2];
+			GameEventTime = tWeekEndTimeStart.Format(L"%Y-%m-%d %H:%M:%S");
+			START_LOG( cerr, L"던전 주말 타임 체크시작" )
+				<< BUILD_LOG( GameEventTime )
+				<< END_LOG;
+
+			GameEventTime = tWeekEndTimeEnd.Format(L"%Y-%m-%d %H:%M:%S");
+			START_LOG( cerr, L"던전 주말 타임 체크끝" )
+				<< BUILD_LOG( GameEventTime )
+				<< END_LOG;
+			///하루가 지났으면 보상 기록 초기화 하고 UI활성화 시켜주면 된다.
+			kPacketCoboNot.m_StartButtonUI = true;
+			kPacketCoboNot.m_DungeonCountUI = true;
+			kPacketCoboNot.m_DungeonCount = 0;
+			kPacketCoboNot.m_iRemaindTime = -1;
+			if(tCurTime_ > tWeekEndTimeStart && tCurTime_ < tWeekEndTimeEnd) //이러면 주말이다
+			{
+				//주말이면 필드카운트 UI도 활성화 
+				kPacketCoboNot.m_FieldCountUI = true;
+				kPacketCoboNot.m_FieldMonsterKillCount = 0;
+			}
+			SendPacket(EGS_EVENT_COBO_DUNGEON_FIELD_NOT,kPacketCoboNot);
+			START_LOG( cerr, L"클릭한적 있을떄 던전 보상 지급받았을때 하루 지났을때" )
+				<< BUILD_LOG( kPacketCoboNot.m_StartButtonUI )
+				<< BUILD_LOG( kPacketCoboNot.m_DungeonCountUI )
+				<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+				<< BUILD_LOG( kPacketCoboNot.m_iRemaindTime )
+				<< BUILD_LOG( kPacketCoboNot.m_FieldCountUI )
+				<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+				<< END_LOG;
+			///DB에 초기화 하러 가자
+			//여기서 몬스터 킬수랑 던전 클리어수 보관해야 하니까 저장 하자
+			KDBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT kPacketToDB;
+			kPacketToDB.m_iUnitUID = GetCharUID();
+			kPacketToDB.m_bItemGive = 0;
+			kPacketToDB.m_wstrButtonClickTime_One = GetButtonClickTime().Format(L"%Y-%m-%d %H:%M:%S");
+			kPacketToDB.m_iDungeonClearCount = 0;
+			kPacketToDB.m_iFieldMonsterKillCount = 0;
+			SendToGameDB( DBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT, kPacketToDB );
+			SetRemaindTime(kPacketCoboNot.m_iRemaindTime);
+			SetStartButtonPush(kPacketCoboNot.m_StartButtonUI);
+			SetDungeonClearUI(kPacketCoboNot.m_DungeonCountUI);
+			SetFieldCountUI(kPacketCoboNot.m_FieldCountUI);
+			SetDungeonCount(kPacketCoboNot.m_DungeonCount);
+			SetFieldMosterKillCount(kPacketCoboNot.m_FieldMonsterKillCount);
+			SetCoboItemGive(false);
+
+		}			
+		else
+		{
+			///현재 시간이 바뀌어야 하는 기준 시간보다 작으면 던전 클리어를 열어 주어야 한다.
+			///단 주말일 경우에는 필드 카운트도 열어주어야 하니까 주말인지 체크를 해야한다.
+			CTime	tWeekEndTimeStart = SiKGameEventScriptManager()->GetCoboEventData()[3];
+			CTime tWeekEndTimeEnd = SiKGameEventScriptManager()->GetCoboEventData()[4];
+			CTime TempTime = SiKGameEventScriptManager()->GetCoboEventData()[0];
+			GameEventTime = tWeekEndTimeStart.Format(L"%Y-%m-%d %H:%M:%S");
+			START_LOG( cerr, L"필드 주말 타임 체크시작" )
+				<< BUILD_LOG( GameEventTime )
+				<< END_LOG;
+			GameEventTime = tWeekEndTimeEnd.Format(L"%Y-%m-%d %H:%M:%S");
+			START_LOG( cerr, L"필드 주말 타임 체크끝" )
+				<< BUILD_LOG( GameEventTime )
+				<< END_LOG;
+			///하루가 지났으면 보상 기록 초기화 하고 UI활성화 시켜주면 된다.
+			kPacketCoboNot.m_StartButtonUI = true;
+			kPacketCoboNot.m_FieldCountUI = true;
+			kPacketCoboNot.m_FieldMonsterKillCount = 0;
+			kPacketCoboNot.m_DungeonCount = 0;
+			kPacketCoboNot.m_iRemaindTime = -1;
+			if(tCurTime_ > tWeekEndTimeStart && tCurTime_ < tWeekEndTimeEnd) //이러면 주말이다
+			{
+				//주말이면 필드카운트 UI도 활성화 
+				kPacketCoboNot.m_DungeonCountUI = true;
+			}
+			SendPacket(EGS_EVENT_COBO_DUNGEON_FIELD_NOT,kPacketCoboNot);
+			START_LOG( cerr, L"클릭한적 있을떄 던전 보상 지급받았을때 하루 지났을때" )
+				<< BUILD_LOG( kPacketCoboNot.m_StartButtonUI )
+				<< BUILD_LOG( kPacketCoboNot.m_DungeonCountUI )
+				<< BUILD_LOG( kPacketCoboNot.m_DungeonCount )
+				<< BUILD_LOG( kPacketCoboNot.m_iRemaindTime )
+				<< BUILD_LOG( kPacketCoboNot.m_FieldCountUI )
+				<< BUILD_LOG( kPacketCoboNot.m_FieldMonsterKillCount )
+				<< END_LOG;
+			///DB에 초기화 하러 가자
+			KDBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT kPacketToDB;
+			kPacketToDB.m_iUnitUID = GetCharUID();
+			kPacketToDB.m_bItemGive = 0;
+			kPacketToDB.m_wstrButtonClickTime_One = GetButtonClickTime().Format(L"%Y-%m-%d %H:%M:%S");
+			kPacketToDB.m_iDungeonClearCount = 0;
+			kPacketToDB.m_iFieldMonsterKillCount = 0;
+			SendToGameDB( DBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT, kPacketToDB );
+			SetRemaindTime(kPacketCoboNot.m_iRemaindTime);
+			SetStartButtonPush(kPacketCoboNot.m_StartButtonUI);
+			SetDungeonClearUI(kPacketCoboNot.m_DungeonCountUI);
+			SetFieldCountUI(kPacketCoboNot.m_FieldCountUI);
+			SetDungeonCount(kPacketCoboNot.m_DungeonCount);
+			SetFieldMosterKillCount(kPacketCoboNot.m_FieldMonsterKillCount);
+			SetCoboItemGive(false);
+		}
+	}
+	else
+	{
+		//보상 기록 초기화 
+		KDBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT kPacketToDB;
+		kPacketToDB.m_iUnitUID = GetCharUID();
+		kPacketToDB.m_bItemGive = kPacket_.m_CoboEventITemGet;
+		kPacketToDB.m_wstrButtonClickTime_One = GetButtonClickTime().Format(L"%Y-%m-%d %H:%M:%S");
+		kPacketToDB.m_iDungeonClearCount = 0;
+		kPacketToDB.m_iFieldMonsterKillCount = 0;
+		SendToGameDB( DBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT, kPacketToDB );
+	}
+}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+IMPL_ON_FUNC( EGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_CHEAT_NOT )
+{
+	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
+
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		START_LOG( cerr, L"운영자가 아닌데 감히..?ㅁ?" )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< BUILD_LOG( GetUserName() )
+			<< END_LOG;
+		return;
+	}
+	//치트 성공 
+	///초기화를 시켜주고 DB에 정보 기록하고 클라에 알려주자
+	SetValentineItemCount( kPacket_.m_iValentineItemCount );
+	KEGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_NOT kPacketValen;
+	kPacketValen.m_iValentineItemCount = kPacket_.m_iValentineItemCount;
+	SendPacket(EGS_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_NOT,kPacketValen);
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM

@@ -25,9 +25,21 @@ bool KStoredProcedureProfiler::CheckUpdateTime( double fCheckTime /*= 1800.f*/ )
 	return false;
 }
 
-void KStoredProcedureProfiler::Check( const wchar_t* pQuery, unsigned int iDurationTime, bool bQueryFail )
+void KStoredProcedureProfiler::Check( std::wstring wstrQuery, unsigned int iDurationTime, bool bQueryFail )
 {
-	std::map< const wchar_t*, KSPInfo >::iterator mit = m_mapProfileInfo.find( pQuery );
+	int iPos = 0;
+	iPos = wstrQuery.find( L" ", iPos );
+	if( iPos != -1 )
+	{
+		iPos = wstrQuery.find( L" ", ++iPos );
+	}
+
+	if( iPos != -1 )
+	{
+		wstrQuery = wstrQuery.substr( 0, iPos );
+	}
+
+	std::map< std::wstring, KSPInfo >::iterator mit = m_mapProfileInfo.find( wstrQuery );
 	if( mit == m_mapProfileInfo.end() )
 	{
 		// 쿼리가 1000개가 넘는건 비정상이다!
@@ -35,7 +47,7 @@ void KStoredProcedureProfiler::Check( const wchar_t* pQuery, unsigned int iDurat
 			return;
 
 		KSPInfo kInfo;
-		kInfo.m_wstrQuery = pQuery;
+		kInfo.m_wstrQuery = wstrQuery;
 		if( bQueryFail )
 		{
 			kInfo.m_iTotalTime = 0;
@@ -57,7 +69,7 @@ void KStoredProcedureProfiler::Check( const wchar_t* pQuery, unsigned int iDurat
 		{
 			kInfo.m_iOver1Sec = 1;
 		}
-		m_mapProfileInfo.insert( std::make_pair( pQuery, kInfo ) );
+		m_mapProfileInfo.insert( std::make_pair( wstrQuery, kInfo ) );
 	}
 	else
 	{
@@ -88,7 +100,7 @@ void KStoredProcedureProfiler::GetDump( std::vector< KSPInfo >& vecDump )
 {
 	vecDump.clear();
 
-	std::map< const wchar_t*, KSPInfo >::const_iterator mit;
+	std::map< std::wstring, KSPInfo >::const_iterator mit;
 	for( mit = m_mapProfileInfo.begin(); mit != m_mapProfileInfo.end(); ++mit )
 	{
 		vecDump.push_back( mit->second );

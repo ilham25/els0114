@@ -59,11 +59,11 @@ bool KRoomMonsterManager::CreateMonster( IN const KNPCUnitReq& kNpcInfo, OUT int
 	}
 	else
 	{
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		iCreatedNpcUID = GetNewNpcUID();
-#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
-		iCreatedNpcUID = m_nNPCUID++;
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
+//		iCreatedNpcUID = m_nNPCUID++;
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
 	}
 
 	// 3. NPC(Monster) 관리를 위한 data 보관
@@ -198,17 +198,17 @@ void KRoomMonsterManager::PrintLuaLog_LUA( int iType, double fValue )
 		<< BUILD_LOG( fValue );
 }
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 int KRoomMonsterManager::GetNewNpcUID()
 {
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	while( m_setReservedNpcUID.find( m_nNPCUID ) != m_setReservedNpcUID.end() )
 		m_nNPCUID++;
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
 
 	return m_nNPCUID++;
 }
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #endif SERV_DUNGEON_RANK_NEW
 //}}
 

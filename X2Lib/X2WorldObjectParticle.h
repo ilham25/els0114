@@ -3,7 +3,11 @@
 
 //{{ seojt // 2009-1-14, 23:41
 class CX2WorldObjectParticle;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2WorldObjectParticle>   CX2WorldObjectParticlePtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2WorldObjectParticle>   CX2WorldObjectParticlePtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 //}} seojt // 2009-1-14, 23:41
 
 
@@ -42,8 +46,12 @@ private:
 public: 
 	static CX2WorldObjectParticlePtr CreateWorldObjectParticle( CKTDGParticleSystem* pParticleSystem, const char* pszSequenceName, float fDelayTime ) 
 	{
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+		CX2WorldObjectParticlePtr pObject( new CX2WorldObjectParticle( pParticleSystem, pszSequenceName, fDelayTime ) );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		CX2WorldObjectParticlePtr pObject( new CX2WorldObjectParticle( pParticleSystem, pszSequenceName, fDelayTime )
             , CKTDGObject::KTDGObjectDeleter() );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
         return pObject;
 	}
 	
@@ -64,7 +72,7 @@ public:
 		if( m_pParticleSystem == NULL )
 			return;
 
-		if( m_hParticleEventSequence == INVALID_PARTICLE_HANDLE )
+		if( m_hParticleEventSequence == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			m_vPos = vPos;
 			return;
@@ -87,7 +95,7 @@ public:
 		if( m_pParticleSystem == NULL )
 			return;
 
-		if( m_hParticleEventSequence == INVALID_PARTICLE_HANDLE )
+		if( m_hParticleEventSequence == INVALID_PARTICLE_SEQUENCE_HANDLE )
 			return;
 
 		if( fEmitMin != -1 && fEmitMax != -1 )
@@ -109,7 +117,7 @@ public:
 		if( m_pParticleSystem == NULL )
 			return;
 
-		if( m_hParticleEventSequence == INVALID_PARTICLE_HANDLE )
+		if( m_hParticleEventSequence == INVALID_PARTICLE_SEQUENCE_HANDLE )
 			return;
 
 		if( iTriggerCount != -1 )
@@ -130,7 +138,7 @@ public:
 		if( m_pParticleSystem == NULL )
 			return;
 
-		if( m_hParticleEventSequence == INVALID_PARTICLE_HANDLE )
+		if( m_hParticleEventSequence == INVALID_PARTICLE_SEQUENCE_HANDLE )
 			return;
 
 		if( fTriggerTime != -1.f )
@@ -151,7 +159,7 @@ public:
 		if( m_pParticleSystem == NULL )
 			return;
 
-		if( m_hParticleEventSequence == INVALID_PARTICLE_HANDLE )
+		if( m_hParticleEventSequence == INVALID_PARTICLE_SEQUENCE_HANDLE )
 			return;
 
 		if( iDrawCount != -1 )
@@ -174,7 +182,7 @@ public:
 		if( m_pParticleSystem == NULL )
 			return;
 
-		if( m_hParticleEventSequence == INVALID_PARTICLE_HANDLE )
+		if( m_hParticleEventSequence == INVALID_PARTICLE_SEQUENCE_HANDLE )
 			return;
 		
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_hParticleEventSequence );
@@ -189,7 +197,7 @@ public:
 		if( m_pParticleSystem == NULL )
 			return;
 
-		if( m_hParticleEventSequence == INVALID_PARTICLE_HANDLE )
+		if( m_hParticleEventSequence == INVALID_PARTICLE_SEQUENCE_HANDLE )
 			return;
 
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_hParticleEventSequence );
@@ -208,7 +216,7 @@ public:
 		if( m_pParticleSystem == NULL )
 			return;
 
-		if( m_hParticleEventSequence == INVALID_PARTICLE_HANDLE )
+		if( m_hParticleEventSequence == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{			
 			return;
 		}
@@ -233,12 +241,12 @@ public: // tool-only
 		if( NULL == m_pParticleSystem )
 			return NULL;
 
-		if( INVALID_PARTICLE_HANDLE == m_hParticleEventSequence )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hParticleEventSequence )
 			return NULL;
 
 		return m_pParticleSystem->GetInstanceSequence( m_hParticleEventSequence );
 	}	
-	
+	CKTDGParticleSystem::CParticleEventSequenceHandle GetHandle() const { return m_hParticleEventSequence; }
 protected:
 	CKTDGParticleSystem*								m_pParticleSystem;
 	CKTDGParticleSystem::CParticleEventSequenceHandle	m_hParticleEventSequence;

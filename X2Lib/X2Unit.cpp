@@ -2,18 +2,20 @@
 #include ".\x2unit.h"
 
 CX2Unit::CX2Unit( const KUnitInfo& unitInfo )
-    : m_pUnitData(NULL)
-    , m_pUnitTemplet(NULL)
+    //: m_pUnitData(NULL)
+    : m_pUnitTemplet(NULL)
 {
-	m_pUnitData					= new CX2Unit::UnitData( this, unitInfo );	
+	//m_pUnitData					= new CX2Unit::UnitData( this, unitInfo );	
+    m_UnitData.Init( this, unitInfo );
 	Init();
 }
 
 CX2Unit::CX2Unit( const KRoomUserInfo& RoomUserInfo )
-    : m_pUnitData(NULL)
-    , m_pUnitTemplet(NULL)
+    //: m_pUnitData(NULL)
+    : m_pUnitTemplet(NULL)
 {
-	m_pUnitData					= new CX2Unit::UnitData( this, RoomUserInfo );
+	//m_pUnitData					= new CX2Unit::UnitData( this, RoomUserInfo );
+    m_UnitData.Init( this, RoomUserInfo );
 	Init();
 #ifdef SERV_PET_SYSTEM
 	if( RoomUserInfo.m_vecPet.size() > 0 )
@@ -25,19 +27,21 @@ CX2Unit::CX2Unit( const KRoomUserInfo& RoomUserInfo )
 }
 
 CX2Unit::CX2Unit( const KSquareUserInfo& pKSquareUserInfo )
-    : m_pUnitData(NULL)
-    , m_pUnitTemplet(NULL)
+    //: m_pUnitData(NULL)
+    : m_pUnitTemplet(NULL)
 {
-	m_pUnitData					= new CX2Unit::UnitData( this, pKSquareUserInfo );
+	//m_pUnitData					= new CX2Unit::UnitData( this, pKSquareUserInfo );
+    m_UnitData.Init( this, pKSquareUserInfo );
 	Init();
 }
 
 
 CX2Unit::CX2Unit( const KFieldUserInfo& pKFieldUserInfo )
-    : m_pUnitData(NULL)
-    , m_pUnitTemplet(NULL)
+    //: m_pUnitData(NULL)
+    : m_pUnitTemplet(NULL)
 {
-	m_pUnitData					= new CX2Unit::UnitData( this, pKFieldUserInfo );
+	//m_pUnitData					= new CX2Unit::UnitData( this, pKFieldUserInfo );
+    m_UnitData.Init( this, pKFieldUserInfo );
 	Init();
 #ifdef SERV_PET_SYSTEM
 	if( pKFieldUserInfo.m_vecPet.size() > 0 )
@@ -48,15 +52,15 @@ CX2Unit::CX2Unit( const KFieldUserInfo& pKFieldUserInfo )
 
 void CX2Unit::Init()
 {
-	m_pUnitTemplet				= g_pData->GetUnitManager()->GetUnitTemplet( m_pUnitData->m_UnitClass );
+	m_pUnitTemplet				= g_pData->GetUnitManager()->GetUnitTemplet( m_UnitData.m_UnitClass );
     ASSERT( m_pUnitTemplet != NULL );
 
 	m_bIsLevelUp				= false;	
-	m_PrevLevel					= m_pUnitData->m_Level;
+	m_PrevLevel					= m_UnitData.m_Level;
 
-	m_PrevEXP					= m_pUnitData->m_EXP;
-	m_PrevNowBaseLevelEXP		= m_pUnitData->m_NowBaseLevelEXP;
-	m_PrevNextBaseLevelEXP		= m_pUnitData->m_NextBaseLevelEXP;
+	m_PrevEXP					= m_UnitData.m_EXP;
+	m_PrevNowBaseLevelEXP		= m_UnitData.m_NowBaseLevelEXP;
+	m_PrevNextBaseLevelEXP		= m_UnitData.m_NextBaseLevelEXP;
 
 	m_ResurrectionStoneNum		= 0;
 
@@ -102,24 +106,18 @@ void CX2Unit::Init()
 #endif SERV_NEW_UNIT_TRADE_LIMIT
 
 #ifdef	SERV_EXPAND_QUICK_SLOT
-//{{ Iruha : 2026-08-27 // All 6 consumable quick slots open by default
-#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-	m_bExpandQuickSlot = true;
-#else
 	m_bExpandQuickSlot = false;
-#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-//}}
 #endif  SERV_EXPAND_QUICK_SLOT
 
 	SetSumOfItemLevel( 0 );
 
-#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-    m_fAvgPingTime = 0.f;
-#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-
 #ifdef SERV_NEW_DEFENCE_DUNGEON
 	m_iRecentEnterDungeonID = 0;
 #endif // SERV_NEW_DEFENCE_DUNGEON
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	m_eServerGroupID = SEnum::SGI_INVALID;
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 	m_iGateOfDarknessSupportEventTime = 0;
@@ -128,7 +126,7 @@ void CX2Unit::Init()
 
 CX2Unit::~CX2Unit(void)
 {
-	SAFE_DELETE( m_pUnitData );
+	//SAFE_DELETE( m_pUnitData );
 
 	m_ViewEqipItemUIDList.clear();
 	m_FashionEqipItemUIDList.clear();
@@ -161,18 +159,32 @@ void CX2Unit::Reset( const KUnitInfo& unitInfo, bool bForceUpdate /* = false */ 
 		NULL != g_pData->GetMyUser()->GetSelectUnit() &&
 		GetUID() == g_pData->GetMyUser()->GetSelectUnit()->GetUID() )
 	{
-		if( static_cast< int >( unitInfo.m_ucLevel ) != static_cast< int >( m_pUnitData->m_Level ) ||
-			static_cast< CX2Unit::UNIT_CLASS >( unitInfo.m_cUnitClass ) != m_pUnitData->m_UnitClass )
+		if( static_cast< int >( unitInfo.m_ucLevel ) != static_cast< int >( m_UnitData.m_Level ) ||
+			static_cast< CX2Unit::UNIT_CLASS >( unitInfo.m_cUnitClass ) != m_UnitData.m_UnitClass )
 		{
 			bRefresh2014UI = true;
 		}
 	}
 #endif SERV_NEW_YEAR_EVENT_2014
 
-	// XS_PVP_GAME = 9
-	if ( m_pUnitData != NULL && g_pMain->GetNowStateID() == CX2Main::XS_PVP_GAME ) 
+#ifdef SERV_EVENT_CHECK_POWER
+	bool bRefreshCheckPower = false;
+
+	if( NULL != g_pData->GetMyUser() &&
+		NULL != g_pData->GetMyUser()->GetSelectUnit() &&
+		GetUID() == g_pData->GetMyUser()->GetSelectUnit()->GetUID() )
 	{
-		if ( (int)m_pUnitData->m_Level < (int)unitInfo.m_ucLevel )
+		if( static_cast< CX2Unit::UNIT_CLASS >( unitInfo.m_cUnitClass ) != m_UnitData.m_UnitClass )
+		{
+			bRefreshCheckPower = true;
+		}
+	}
+#endif SERV_EVENT_CHECK_POWER
+
+	// XS_PVP_GAME = 9
+	if ( g_pMain->GetNowStateID() == CX2Main::XS_PVP_GAME ) 
+	{
+		if ( (int)m_UnitData.m_Level < (int)unitInfo.m_ucLevel )
 		{
 			SetIsLevelUp( true );
 		}
@@ -187,14 +199,14 @@ void CX2Unit::Reset( const KUnitInfo& unitInfo, bool bForceUpdate /* = false */ 
 	
 
 	//m_pUnitData		= new CX2Unit::UnitData( this, unitInfo );
-	m_PrevLevel					= m_pUnitData->m_Level;
+	m_PrevLevel					= m_UnitData.m_Level;
 
-	m_PrevEXP					= m_pUnitData->m_EXP;
-	m_PrevNowBaseLevelEXP		= m_pUnitData->m_NowBaseLevelEXP;
-	m_PrevNextBaseLevelEXP		= m_pUnitData->m_NextBaseLevelEXP;
+	m_PrevEXP					= m_UnitData.m_EXP;
+	m_PrevNowBaseLevelEXP		= m_UnitData.m_NowBaseLevelEXP;
+	m_PrevNextBaseLevelEXP		= m_UnitData.m_NextBaseLevelEXP;
 
-	m_pUnitData->SetKUnitInfo( unitInfo );
-	m_pUnitTemplet	= g_pData->GetUnitManager()->GetUnitTemplet( m_pUnitData->m_UnitClass );
+	m_UnitData.SetKUnitInfo( unitInfo );
+	m_pUnitTemplet	= g_pData->GetUnitManager()->GetUnitTemplet( m_UnitData.m_UnitClass );
 
 #ifdef SERV_LIMITED_DUNGEON_PLAY_TIMES
 	m_mapDungeonPlay.clear();
@@ -233,23 +245,33 @@ void CX2Unit::Reset( const KUnitInfo& unitInfo, bool bForceUpdate /* = false */ 
 	}
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
 
+#ifdef REFORM_SKILL_NOTE_UI
+	if( m_pUnitTemplet->m_UnitClass != CX2SkillNoteManager::GetInstance()->GetUnitClass() )
+	{
+		CX2SkillNoteManager::GetInstance()->SetUnitClass( m_pUnitTemplet->m_UnitClass );
+		CX2SkillNoteManager::GetInstance()->ResetMemoList();
+	}
+#endif // REFORM_SKILL_NOTE_UI
+
 	ResetEqip();
 
 #ifdef SERV_NEW_YEAR_EVENT_2014
 	if( bRefresh2014UI )
 		g_pMain->GetMemoryHolder()->UpdateNewYear2014Event();
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+	if( bRefreshCheckPower )
+		g_pMain->GetMemoryHolder()->UpdateCheckPowerEvent();
+#endif SERV_EVENT_CHECK_POWER
 }
 
 
 
 void CX2Unit::ResetInventory( std::map< int, int >& mapInventorySlotSize, std::map< UidType, KInventoryItemInfo >& mapItem )
 {
-	ASSERT( m_pUnitData != NULL );
-	ASSERT( m_pUnitData->m_pInventory != NULL );
-
-	if ( m_pUnitData != NULL && m_pUnitData->m_pInventory != NULL )
-		m_pUnitData->m_pInventory->Reset( mapInventorySlotSize, mapItem ); 
+	//ASSERT( m_pUnitData != NULL );
+    m_UnitData.m_Inventory.Reset( mapInventorySlotSize, mapItem ); 
 }
 
 void CX2Unit::ResetEqip()
@@ -263,9 +285,9 @@ void CX2Unit::ResetEqip()
 	m_FashionEqipItemUIDList.resize(0);
 
 
-	for( int i = 0; i < (int)m_pUnitData->m_NowEqipItemUIDList.size(); i++ )
+	for( int i = 0; i < (int)m_UnitData.m_NowEqipItemUIDList.size(); i++ )
 	{
-		CX2Item* pCX2Item = GetInventory()->GetItem( m_pUnitData->m_NowEqipItemUIDList[i] );
+		CX2Item* pCX2Item = GetInventory().GetItem( m_UnitData.m_NowEqipItemUIDList[i] );
 //		ASSERT( pCX2Item != NULL );
 		if( pCX2Item == NULL )
 			continue;
@@ -299,16 +321,16 @@ void CX2Unit::ResetEqip()
 
 void CX2Unit::ResetUnitClass( CX2Unit::UNIT_CLASS eUnitClass )
 {
-	if( m_pUnitData->m_UnitClass == eUnitClass )
+	if( m_UnitData.m_UnitClass == eUnitClass )
 		return;
 
-	m_pUnitData->m_UnitClass = eUnitClass;
-	m_pUnitData->m_UserSkillTree.SetUnitClass( eUnitClass );
+	m_UnitData.m_UnitClass = eUnitClass;
+	m_UnitData.m_UserSkillTree.SetUnitClass( eUnitClass );
 #ifdef GUILD_SKILL	
 	//{{ [11/11/2009 : oasis907 ]
 	// 임시
-	//m_pUnitData->m_GuildClass = 0; // Not Now
-	m_pUnitData->m_UserSkillTree.SetGuildClass( 0 );
+	//m_UnitData.m_GuildClass = 0; // Not Now
+	m_UnitData.m_UserSkillTree.SetGuildClass( 0 );
 	//}}  [11/11/2009 : oasis907 ]
 #endif GUILD_SKILL
 	m_pUnitTemplet = g_pData->GetUnitManager()->GetUnitTemplet( eUnitClass );
@@ -319,7 +341,7 @@ void CX2Unit::ResetUnitClass( CX2Unit::UNIT_CLASS eUnitClass )
 
 bool CX2Unit::AddEqip( UidType itemUID )
 {
-	CX2Item* pCX2Item = GetInventory()->GetItem( itemUID );
+	CX2Item* pCX2Item = GetInventory().GetItem( itemUID );
 	return AddEqip( pCX2Item );
 }
 
@@ -360,7 +382,7 @@ bool CX2Unit::AddEqip( CX2Item* pItem )
 	}
 
 	//장착 리스트 업데이트
-	m_pUnitData->m_NowEqipItemUIDList.push_back( pItem->GetUID() );
+	m_UnitData.m_NowEqipItemUIDList.push_back( pItem->GetUID() );
 
 	//장착위치 업데이트
 	UpdateEqipPosition( pItem, true );
@@ -374,7 +396,7 @@ bool CX2Unit::AddEqip( CX2Item* pItem )
 
 bool CX2Unit::RemoveEqip( UidType itemUID )
 {
-	CX2Item* pCX2Item = GetInventory()->GetItem( itemUID );
+	CX2Item* pCX2Item = GetInventory().GetItem( itemUID );
 	return RemoveEqip( pCX2Item );
 }
 
@@ -416,12 +438,12 @@ bool CX2Unit::RemoveEqip( CX2Item* pItem )
 	}
 
 	//장착 리스트 업데이트
-	for ( int i = 0; i < (int)m_pUnitData->m_NowEqipItemUIDList.size(); i++ )
+	for ( int i = 0; i < (int)m_UnitData.m_NowEqipItemUIDList.size(); i++ )
 	{
-		UidType uidType = m_pUnitData->m_NowEqipItemUIDList[i];
+		UidType uidType = m_UnitData.m_NowEqipItemUIDList[i];
 		if ( uidType == pItem->GetUID() )
 		{
-			m_pUnitData->m_NowEqipItemUIDList.erase( m_pUnitData->m_NowEqipItemUIDList.begin() + i );
+			m_UnitData.m_NowEqipItemUIDList.erase( m_UnitData.m_NowEqipItemUIDList.begin() + i );
 			break;
 		}
 	}
@@ -438,7 +460,7 @@ bool CX2Unit::RemoveEqip( CX2Item* pItem )
 
 bool CX2Unit::IsPossibleAddEqip( UidType itemUID )
 {
-	CX2Item* pCX2Item = GetInventory()->GetItem( itemUID );
+	CX2Item* pCX2Item = GetInventory().GetItem( itemUID );
 	return IsPossibleAddEqip( pCX2Item );
 }
 bool CX2Unit::IsPossibleAddEqip( CX2Item* pItem )
@@ -466,9 +488,9 @@ bool CX2Unit::IsPossibleAddEqip( CX2Item* pItem )
 
 bool CX2Unit::CheckNowEquipItem( UidType itemUID )
 {
-	for ( int i = 0; i < (int)m_pUnitData->m_NowEqipItemUIDList.size(); i++ )
+	for ( int i = 0; i < (int)m_UnitData.m_NowEqipItemUIDList.size(); i++ )
 	{
-		UidType uidType = m_pUnitData->m_NowEqipItemUIDList[i];
+		UidType uidType = m_UnitData.m_NowEqipItemUIDList[i];
 
 		if ( uidType == itemUID )
 		{
@@ -497,7 +519,7 @@ bool CX2Unit::EqipAbility( CX2Item* pItem )
 
 	if( false == CX2Unit::CanEquipAsParts(
         pItemTemplet->GetItemID(),
-        this, m_pUnitData->m_Level ) )
+        this, m_UnitData.m_Level ) )
 		return false;
 
 
@@ -508,11 +530,10 @@ bool CX2Unit::EqipAbility( CX2Item* pItem )
 		GetUID() == g_pData->GetMyUser()->GetSelectUnit()->GetUID() )
 	{
 		// 내구도 검사
-		CX2Item::ItemData* pItemData = pItem->GetItemData();
-		if( NULL != pItemData &&
-			CX2Item::PT_ENDURANCE == pItemData->m_PeriodType )
+		const CX2Item::ItemData& kItemData = pItem->GetItemData();
+		if( CX2Item::PT_ENDURANCE == kItemData.m_PeriodType )
 		{
-			if( pItemData->m_Endurance <= 0 )
+			if( kItemData.m_Endurance <= 0 )
 				return false;
 		}
 #ifdef ITEM_RECOVERY_TEST
@@ -555,7 +576,7 @@ bool CX2Unit::UpdateViewEqipPosition()
 	memset( m_ViewEqipPosition,		0, sizeof(bool) * EP_END );
 	for( int i =0; i < (int)m_ViewEqipItemUIDList.size(); i++ )
 	{
-		CX2Item* pEqipItem = GetInventory()->GetItem( m_ViewEqipItemUIDList[i] );
+		CX2Item* pEqipItem = GetInventory().GetItem( m_ViewEqipItemUIDList[i] );
 		if( pEqipItem == NULL )
 			return false;
 
@@ -570,7 +591,7 @@ bool CX2Unit::UpdateFashionEqipPosition()
 	memset( m_FashionEqipPosition,	0, sizeof(bool) * EP_END );
 	for( int i =0; i < (int)m_FashionEqipItemUIDList.size(); i++ )
 	{
-		CX2Item* pEqipItem = GetInventory()->GetItem( m_FashionEqipItemUIDList[i] );
+		CX2Item* pEqipItem = GetInventory().GetItem( m_FashionEqipItemUIDList[i] );
 		if( pEqipItem == NULL )
 			return false;
 
@@ -585,7 +606,7 @@ bool CX2Unit::UpdateNormalEqipPosition()
 	memset( m_NormalEqipPosition,	0, sizeof(bool) * EP_END );
 	for( int i =0; i < (int)m_NormalEqipItemUIDList.size(); i++ )
 	{
-		CX2Item* pEqipItem = GetInventory()->GetItem( m_NormalEqipItemUIDList[i] );
+		CX2Item* pEqipItem = GetInventory().GetItem( m_NormalEqipItemUIDList[i] );
 		if( pEqipItem == NULL )
 			return false;
 
@@ -635,7 +656,7 @@ bool CX2Unit::UpdateViewEqip()
 
 	for( int i =0; i < (int)m_NormalEqipItemUIDList.size(); i++ )
 	{
-		CX2Item* pEqipItem = GetInventory()->GetItem( m_NormalEqipItemUIDList[i] );
+		CX2Item* pEqipItem = GetInventory().GetItem( m_NormalEqipItemUIDList[i] );
 		if( pEqipItem == NULL )
 			continue;
 
@@ -670,7 +691,7 @@ bool CX2Unit::UpdateViewEqip()
 */
 void CX2Unit::UpdateEnchantStatFromPassiveSkill()
 {
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 	CX2SkillTree* pSkillTree = g_pData->GetSkillTree();
 	int iSkillLevel = 0;
 	m_EnchantStatFromPassiveSkill.Init();
@@ -766,44 +787,40 @@ bool CX2Unit::IsViewEquipInThePosition( EQIP_POSITION equipPosition ) const
 
 CX2Item* CX2Unit::CreateBasicEquip( CX2Unit::EQIP_POSITION equipPosition )
 {
-	CX2Item::ItemData* pBasicEquipData = new CX2Item::ItemData();
+	CX2Item::ItemData kBasicEquipData;
 
 	switch ( equipPosition )
 	{
 	case CX2Unit::EP_DEFENCE_HAIR:
-		pBasicEquipData->m_ItemID = GetUnitTemplet()->m_BasicHairItemID;
+		kBasicEquipData.m_ItemID = GetUnitTemplet()->m_BasicHairItemID;
 		break;
 	case CX2Unit::EP_DEFENCE_FACE:
-		pBasicEquipData->m_ItemID = GetUnitTemplet()->m_BasicFaceItemID;
+		kBasicEquipData.m_ItemID = GetUnitTemplet()->m_BasicFaceItemID;
 		break;
 	case CX2Unit::EP_DEFENCE_BODY:
-		pBasicEquipData->m_ItemID = GetUnitTemplet()->m_BasicBodyItemID;
+		kBasicEquipData.m_ItemID = GetUnitTemplet()->m_BasicBodyItemID;
 		break;
 	case CX2Unit::EP_DEFENCE_LEG:
-		pBasicEquipData->m_ItemID = GetUnitTemplet()->m_BasicLegItemID;
+		kBasicEquipData.m_ItemID = GetUnitTemplet()->m_BasicLegItemID;
 		break;
 	case CX2Unit::EP_DEFENCE_HAND:
-		pBasicEquipData->m_ItemID = GetUnitTemplet()->m_BasicHandItemID;
+		kBasicEquipData.m_ItemID = GetUnitTemplet()->m_BasicHandItemID;
 		break;
 	case CX2Unit::EP_DEFENCE_FOOT:
-		pBasicEquipData->m_ItemID = GetUnitTemplet()->m_BasicFootItemID;
+		kBasicEquipData.m_ItemID = GetUnitTemplet()->m_BasicFootItemID;
 		break;
 	case CX2Unit::EP_WEAPON_HAND:
-		pBasicEquipData->m_ItemID = GetUnitTemplet()->m_BasicWeaponItemID;
+		kBasicEquipData.m_ItemID = GetUnitTemplet()->m_BasicWeaponItemID;
 		break;
 	}
-	pBasicEquipData->m_ItemUID		= 0;
-	pBasicEquipData->m_Endurance	= 1;
-
-	if ( pBasicEquipData->m_ItemID == 0 )		// 위의 상의에 없는 악세사리인 경우
+	if ( kBasicEquipData.m_ItemID == 0 )		// 위의 상의에 없는 악세사리인 경우
 	{
-		delete pBasicEquipData;
-		pBasicEquipData = NULL;
-
 		return NULL;
 	}
+	kBasicEquipData.m_ItemUID		= 0;
+	kBasicEquipData.m_Endurance	= 1;
 
-	return new CX2Item( pBasicEquipData, this );
+	return new CX2Item( kBasicEquipData, this );
 }
 
 #endif REAL_TIME_ELSWORD
@@ -850,12 +867,12 @@ int CX2Unit::GetLastClearDungeonID()
 	int iRequireLevel = 0;
 	int iDungeonID = -1;
 
-	const int iMyLevel = GetUnitData()->m_Level;
+	const int iMyLevel = GetUnitData().m_Level;
 
 	std::map< int, KDungeonClearInfo >::iterator it;
 	for( it = m_mapDungeonClear.begin(); it != m_mapDungeonClear.end(); it++ )
 	{
-		const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) it->first );
+		const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) it->first );
 		if( NULL == pDungeonData )
 			continue;
 		
@@ -863,8 +880,8 @@ int CX2Unit::GetLastClearDungeonID()
 		if( CX2Dungeon::DL_NORMAL != pDungeonData->m_eDifficulty )
 			continue;
 
-		if( pDungeonData->m_DungeonID == CX2Dungeon::DI_BATTLE_SHIP_VELDER ||
-			pDungeonData->m_DungeonID == CX2Dungeon::DI_BATTLE_SHIP_HAMEL )
+		if( pDungeonData->m_DungeonID == SEnum::DI_BATTLE_SHIP_VELDER ||
+			pDungeonData->m_DungeonID == SEnum::DI_BATTLE_SHIP_HAMEL )
 			continue;
 
 		const int iAdequateLevelToPlay = pDungeonData->m_MinLevel - 2;
@@ -912,7 +929,7 @@ float CX2Unit::ResetMaxMp( const float fMaxMp_ )
 	
 	// 끝없는 마력
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	int iSkillLevel = GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AHM_UNLIMIT_MANA, true );
+	int iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AHM_UNLIMIT_MANA, true );
 
 	if( iSkillLevel > 0 )
 	{
@@ -925,7 +942,7 @@ float CX2Unit::ResetMaxMp( const float fMaxMp_ )
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_UNLIMIT_MANA );
+	int iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_UNLIMIT_MANA );
 
 	if( iSkillLevel > 0 )
 	{
@@ -941,9 +958,9 @@ float CX2Unit::ResetMaxMp( const float fMaxMp_ )
 	
 	// 여왕의 잠재력 적용해주기(MAX MP 추가)
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EN_QUEENS_POTENTIAL, true );
+	iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EN_QUEENS_POTENTIAL, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EN_QUEENS_POTENTIAL );
+	iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EN_QUEENS_POTENTIAL );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
 	if( iSkillLevel > 0 )
@@ -969,9 +986,9 @@ float CX2Unit::ResetMaxMp( const float fMaxMp_ )
 
 #ifdef EVE_ELECTRA
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EEL_ADVANCED_EL_ENERGY_REACTOR, true );
+	iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EEL_ADVANCED_EL_ENERGY_REACTOR, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EEL_ADVANCED_EL_ENERGY_REACTOR );
+	iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EEL_ADVANCED_EL_ENERGY_REACTOR );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevel > 0 )
@@ -998,9 +1015,9 @@ float CX2Unit::ResetMaxMp( const float fMaxMp_ )
 
 #ifdef ARA_CHANGE_CLASS_FIRST
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ALH_FILLED_POWER, true ); // 아라 1차 전직 소선 - 충만한 힘
+	iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ALH_FILLED_POWER, true ); // 아라 1차 전직 소선 - 충만한 힘
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ALH_FILLED_POWER ); // 아라 1차 전직 소선 - 충만한 힘
+	iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ALH_FILLED_POWER ); // 아라 1차 전직 소선 - 충만한 힘
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevel > 0 )
@@ -1027,7 +1044,7 @@ float CX2Unit::ResetMaxMp( const float fMaxMp_ )
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	// 마력 증폭
-	iSkillLevel = GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AVP_MAGIC_AMPLIFICATION, true );
+	iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_AVP_MAGIC_AMPLIFICATION, true );
 	if( iSkillLevel > 0 )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_AVP_MAGIC_AMPLIFICATION );
@@ -1040,24 +1057,40 @@ float CX2Unit::ResetMaxMp( const float fMaxMp_ )
 	}
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
-	//{{ kimhc // 2009-10-19 // 최대 MP 증가 값 추가
-	if ( GetInventory() != NULL )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 기력 가속 패시브 적용 시, 최대 MP 값 증가 추가
+	iSkillLevel = GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ADW_SPIRIT_ACCELERATION, true );
+	if( iSkillLevel > 0 )
 	{
-		const float maxMPIncrement = GetInventory()->GetAddMaxMPValue();
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_ADW_SPIRIT_ACCELERATION );
+
+		if( NULL != pSkillTemplet )
+		{
+			const float maxMPIncrement = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_MP_ABS, iSkillLevel );
+			fResultMaxMp += maxMPIncrement;
+		}
+	}
+
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+	//{{ kimhc // 2009-10-19 // 최대 MP 증가 값 추가
+	{
+		const float maxMPIncrement = GetInventory().GetAddMaxMPValue();
 		fResultMaxMp += maxMPIncrement;
 	}
 	//}} kimhc // 2009-10-19 // 최대 MP 증가 값 추가
+
 
 	return fResultMaxMp;
 }
 
 CX2Stat::Stat CX2Unit::GetUnitStat() const
 {
-	CX2Stat::Stat retval = m_pUnitData->m_Stat;
+	CX2Stat::Stat retval = m_UnitData.m_Stat;
 	CX2SkillTree* pSkillTree = g_pData->GetSkillTree();
 	if( pSkillTree != NULL )
 	{
-		CX2UserSkillTree& refUserSkillTree = m_pUnitData->m_UserSkillTree;
+		const CX2UserSkillTree& refUserSkillTree = m_UnitData.m_UserSkillTree;
 		
 		int iSkillLevel = 0;
 		
@@ -1121,14 +1154,14 @@ CX2Stat::Stat CX2Unit::GetUnitStat() const
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = pSkillTree->GetSkillTemplet( CX2SkillTree::SI_P_CFG_GUARD_MASTERY );
 			if ( NULL != pSkillTemplet )
 			{
-				retval.m_fBaseHP += m_pUnitData->m_Stat.m_fBaseHP * 
+				retval.m_fBaseHP += m_UnitData.m_Stat.m_fBaseHP * 
 					CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_HP_REL, iSkillLevel ) );
 			} // if
 	#else // UPGRADE_SKILL_SYSTEM_2013
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = pSkillTree->GetSkillTemplet( CX2SkillTree::SI_P_CFG_GUARD_MASTERY, iSkillLevel );
 			if ( NULL != pSkillTemplet )
 			{
-				retval.m_fBaseHP += m_pUnitData->m_Stat.m_fBaseHP * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_HP_REL ) );
+				retval.m_fBaseHP += m_UnitData.m_Stat.m_fBaseHP * CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_HP_REL ) );
 			} // if
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 
@@ -1145,11 +1178,11 @@ CX2Stat::Stat CX2Unit::GetUnitStat() const
 
 			if( NULL != pSkillTemplet )
 			{
-				retval.m_fDefPhysic += m_pUnitData->m_Stat.m_fDefPhysic * 
+				retval.m_fDefPhysic += m_UnitData.m_Stat.m_fDefPhysic * 
 					CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DEF_PHYSIC_REL, iSkillLevel ) );
-				retval.m_fDefMagic += m_pUnitData->m_Stat.m_fDefMagic * 
+				retval.m_fDefMagic += m_UnitData.m_Stat.m_fDefMagic * 
 					CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DEF_MAGIC_REL, iSkillLevel ) );
-				retval.m_fBaseHP += m_pUnitData->m_Stat.m_fBaseHP * 
+				retval.m_fBaseHP += m_UnitData.m_Stat.m_fBaseHP * 
 					CalculateIncreasingRate( pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MAX_HP_REL, iSkillLevel ) );
 			}
 		}
@@ -1165,26 +1198,22 @@ CX2Stat::Stat CX2Unit::GetEqipStat() const
 	CX2Stat::Stat retStat;
 	for( int i = 0; i < GetFashionEqipNum(); i++ )
 	{
-		CX2Item* pItem = GetInventory()->GetItem( GetFashionEqipUID(i) );		
+		CX2Item* pItem = GetInventory().GetItem( GetFashionEqipUID(i) );		
 
 		if ( pItem != NULL 
             && pItem->GetItemTemplet() != NULL 
             )
 		{
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			// 소켓 옵션은 가져오지 않도록 수정
 			retStat.AddStat( pItem->GetStat() );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-			retStat.AddStat( pItem->GetStat( true ), true );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 		}	
 	}
 
 	for( int i = 0; i < GetNormalEqipNum(); i++ )
 	{
-		CX2Item* pItem = GetInventory()->GetItem( GetNormalEqipUID(i) );
+		CX2Item* pItem = GetInventory().GetItem( GetNormalEqipUID(i) );
 
 		if ( pItem != NULL 
             && pItem->GetItemTemplet() != NULL 
@@ -1192,19 +1221,14 @@ CX2Stat::Stat CX2Unit::GetEqipStat() const
 		{
 			//{{ kimhc // 실시간 엘소드 중 실시간 내구도 소모
 #ifdef REAL_TIME_ELSWORD
-			if ( pItem->GetItemData() == NULL || 
-				( pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData()->m_Endurance <= 0 ) )
+			if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData().m_Endurance <= 0 )
 				continue;
 #endif REAL_TIME_ELSWORD
 			//}} kimhc // 실시간 엘소드 중 실시간 내구도 소모
 			
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			// 소켓 옵션은 가져오지 않도록 수정
 			retStat.AddStat( pItem->GetStat() );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-			retStat.AddStat( pItem->GetStat( true ), true );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업			
 		}		
 	}
@@ -1226,17 +1250,12 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 	if( false == bUpdate )
 		return m_EnchantStat;
 
-	if( NULL == m_pUnitData ||
-		NULL == m_pUnitData->m_pInventory ) 
-		return m_EnchantStat; 
-
-
 	m_EnchantStat.Init();
 
-	for( UINT i=0; i< m_pUnitData->m_NowEqipItemUIDList.size(); i++ )
+	for( UINT i=0; i< m_UnitData.m_NowEqipItemUIDList.size(); i++ )
 	{
-		UidType eqipUID = m_pUnitData->m_NowEqipItemUIDList[i];
-		CX2Item* pItem = m_pUnitData->m_pInventory->GetItem( eqipUID );
+		UidType eqipUID = m_UnitData.m_NowEqipItemUIDList[i];
+		CX2Item* pItem = m_UnitData.m_Inventory.GetItem( eqipUID );
 		if( NULL == pItem )
 			continue;
 
@@ -1247,7 +1266,7 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 
 		if( pItemTemplet->GetItemType() == CX2Item::IT_DEFENCE ) 
 		{
-			CX2DamageManager::EXTRA_DAMAGE_TYPE currExtraDamageType = g_pData->GetEnchantItem()->GetExtraDamageType( pItem->GetItemData()->m_EnchantedAttribute );
+			CX2DamageManager::EXTRA_DAMAGE_TYPE currExtraDamageType = g_pData->GetEnchantItem()->GetExtraDamageType( pItem->GetItemData().m_EnchantedAttribute );
 
 			switch( currExtraDamageType )
 			{
@@ -1322,7 +1341,7 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 		for( UINT j=0; j<uiNumSocketOption; j++ )
 		{
             int socketOptionID = pItemTemplet->GetSocketOption(j);
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 
 			if( NULL == pSocketData )
 				continue;
@@ -1338,10 +1357,10 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 
 
 		// 아이템에 유저가 박은 소켓에 의한 
-		for( UINT j=0; j < pItem->GetItemData()->m_SocketOption.size(); j++ )
+		for( UINT j=0; j < pItem->GetItemData().m_SocketOption.size(); j++ )
 		{
-			int socketOptionID = pItem->GetItemData()->m_SocketOption[j];
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+			int socketOptionID = pItem->GetItemData().m_SocketOption[j];
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 
 			if( NULL == pSocketData )
 				continue;
@@ -1357,9 +1376,9 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		// 감정을 통해 얻는 랜덤 소켓 옵션
-		BOOST_FOREACH( int iSocketID, pItem->GetItemData()->m_vecRandomSocket )
+		BOOST_FOREACH( int iSocketID, pItem->GetItemData().m_vecRandomSocket )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
 
 			if( NULL == pSocketData )
 				continue;
@@ -1377,7 +1396,7 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 	} // for(i)
 
 
-#ifdef TITLE_SYSTEM   
+//#ifdef TITLE_SYSTEM   
 	if( NULL != g_pData->GetTitleManager()->GetTitleInfo( GetTitleId() ) )
 	{
 		const vector<int>& vecTitleSocketOption = g_pData->GetTitleManager()->GetTitleInfo( GetTitleId() )->m_vecSocketOption;
@@ -1385,7 +1404,7 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 		for(UINT i=0; i<vecTitleSocketOption.size(); ++i)
 		{
 			int socketOptionID = vecTitleSocketOption[i];
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 			if( NULL == pSocketData )
 				continue;
 
@@ -1398,7 +1417,7 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 			AddEchantStatFromSocket( socketOptionID );
 		}
 	}
-#endif TITLE_SYSTEM
+//#endif TITLE_SYSTEM
 
 #ifdef PET_AURA_SKILL
 	KPetInfo *pPetInfo = GetPetInfo();
@@ -1460,7 +1479,6 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 #endif	SERV_INSERT_GLOBAL_SERVER
 	//}} kimhc // 2011.4.24 // 월드버프 2단계, 드래곤의 숨결
 
-#ifdef FIX_ECHANTSTAT
 	if( m_EnchantStat.m_fDefBlaze > CX2EnchantItem::EAR_MAX_VALUE )
 		m_EnchantStat.m_fDefBlaze = CX2EnchantItem::EAR_MAX_VALUE;
 	if( m_EnchantStat.m_fDefWater > CX2EnchantItem::EAR_MAX_VALUE )
@@ -1473,7 +1491,6 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 		m_EnchantStat.m_fDefLight = CX2EnchantItem::EAR_MAX_VALUE;
 	if( m_EnchantStat.m_fDefDark > CX2EnchantItem::EAR_MAX_VALUE )
 		m_EnchantStat.m_fDefDark = CX2EnchantItem::EAR_MAX_VALUE;
-#endif
 
 	return m_EnchantStat;
 }
@@ -1481,7 +1498,7 @@ const CX2Stat::EnchantStat& CX2Unit::GetEnchantStat( bool bUpdate /*= true*/, bo
 
 void CX2Unit::AddEchantStatFromSocket( int iSocketOptionID )
 {
-	CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketOptionID );
+	const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketOptionID );
 
 	if( NULL == pSocketData )
 		return;
@@ -1541,17 +1558,11 @@ void CX2Unit::AddEnchantStatFromDragonBreath( OUT CX2Stat::EnchantStat& enchantS
 float CX2Unit::GetRepairDiscountRate()
 {
 	float fDiscountRate = 0.f;
-	
-
-	if( NULL == m_pUnitData ||
-		NULL == m_pUnitData->m_pInventory ) 
-		return 0.f;
 
 
-
-	BOOST_TEST_FOREACH( const UidType&, eqipUID, m_pUnitData->m_NowEqipItemUIDList )
+	BOOST_TEST_FOREACH( const UidType&, eqipUID, m_UnitData.m_NowEqipItemUIDList )
 	{
-		CX2Item* pItem = m_pUnitData->m_pInventory->GetItem( eqipUID );
+		CX2Item* pItem = m_UnitData.m_Inventory.GetItem( eqipUID );
 		if( NULL == pItem )
 			continue;
 
@@ -1564,7 +1575,7 @@ float CX2Unit::GetRepairDiscountRate()
 		for( UINT j=0; j<uNumSockOption; j++ )
 		{
             int socketOptionID = pItemTemplet->GetSocketOption(j);
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 			if( NULL == pSocketData )
 				continue;
 
@@ -1576,10 +1587,10 @@ float CX2Unit::GetRepairDiscountRate()
 
 
 		// 아이템에 유저가 박은 소켓에 의한 
-		for( UINT j=0; j < pItem->GetItemData()->m_SocketOption.size(); j++ )
+		for( UINT j=0; j < pItem->GetItemData().m_SocketOption.size(); j++ )
 		{
-			int socketOptionID = pItem->GetItemData()->m_SocketOption[j];
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+			int socketOptionID = pItem->GetItemData().m_SocketOption[j];
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 			if( NULL == pSocketData )
 				continue;
 
@@ -1590,9 +1601,9 @@ float CX2Unit::GetRepairDiscountRate()
 		}
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		// 감정을 통해 얻는 랜덤 소켓 옵션
-		BOOST_FOREACH( int iSocketID, pItem->GetItemData()->m_vecRandomSocket )
+		BOOST_FOREACH( int iSocketID, pItem->GetItemData().m_vecRandomSocket )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
 			if( NULL == pSocketData )
 				continue;
 
@@ -1614,7 +1625,7 @@ float CX2Unit::GetRepairDiscountRate()
 		for(UINT i=0; i<vecTitleSocketOption.size(); ++i)
 		{
 			int socketOptionID = vecTitleSocketOption[i];
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 			if( NULL == pSocketData )
 				continue;
 
@@ -1643,7 +1654,7 @@ float CX2Unit::GetRepairDiscountRate()
 	for ( int i = 0; i < (int)vecSetItemOptions.size(); i++ )
 	{
 		int socketOptionID = vecSetItemOptions[i];
-		CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+		const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 		if( NULL == pSocketData )
 			continue;
 
@@ -1654,8 +1665,35 @@ float CX2Unit::GetRepairDiscountRate()
 	}
 
 #ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-18
-#ifdef SERV_NEW_DEFENCE_DUNGEON_NO_USE_DEFENSE_BUFF_AND_DEBUFF
-#else //SERV_NEW_DEFENCE_DUNGEON_NO_USE_DEFENSE_BUFF_AND_DEBUFF
+
+#ifdef SET_WORLD_BUFF_AT_RESURRECTION // 김태환		서버에서 준 버프 정보를 버프 펙터 아이디로 저장하였기 때문에, 수정
+	BOOST_FOREACH( BUFF_FACTOR_ID eBuffFactorID, m_vecWorldBuffFactorID )
+	{
+		if ( NULL != CX2BuffTempletManager::GetInstance() )
+		{
+			CX2BuffFactorPtr ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( eBuffFactorID );
+
+			if( NULL != ptrBuffFactor )
+			{
+				switch ( ptrBuffFactor->GetBuffTempletID() )
+				{	
+				case BTI_BUFF_2013_DEFENSE_BUFF_EVENT:	/// 이벤트용 2013 어둠의 문 참여자 버프
+					{
+						fDiscountRate += 0.7f;
+					} break;
+				case BTI_BUFF_2013_DEFENSE_BUFF:		/// 2013 어둠의 문 참여자 진짜 버프
+					{
+						fDiscountRate += 0.5f;
+					} break;
+				case BTI_BUFF_2013_DEFENSE_DEBUFF:		/// 2013 어둠의 문 월드 디버프
+					{
+						fDiscountRate -= 1.5f;
+					} break;
+				}
+			}
+		}
+	}
+#else // SET_WORLD_BUFF_AT_RESURRECTION
 	BOOST_FOREACH( CX2BuffFactorPtr pBuffFactorPtr, m_vecWorldBuffFactorPtr )
 	{
 		if( NULL != pBuffFactorPtr )
@@ -1678,7 +1716,8 @@ float CX2Unit::GetRepairDiscountRate()
 			
 		}
 	}
-#endif //SERV_NEW_DEFENCE_DUNGEON_NO_USE_DEFENSE_BUFF_AND_DEBUFF
+#endif // SET_WORLD_BUFF_AT_RESURRECTION
+
 	if( fDiscountRate > CX2SocketItem::SocketData::MAX_REPAIR_PRICE_DISCOUNT )
 		fDiscountRate = CX2SocketItem::SocketData::MAX_REPAIR_PRICE_DISCOUNT;
 
@@ -1721,37 +1760,43 @@ float CX2Unit::GetRepairDiscountRate()
 }
 
 #ifdef UNIT_EMOTION
-wstring CX2Unit::GetEmotionName(EMOTION_TYPE eEmotionType)
+const char* CX2Unit::GetEmotionName(EMOTION_TYPE eEmotionType)
 {
 	// 이모션 id에 해당되는 스테이트이름을 반환한다.
 	switch(eEmotionType)
 	{
 	case ET_NONE:
-		return L"";
+		return "";
 	case ET_SITREADY:
-		return L"EMOTION_SITREADY";
+		return "EMOTION_SITREADY";
 	case ET_SITWAIT:
-		return L"EMOTION_SITWAIT";
+		return "EMOTION_SITWAIT";
 	case ET_STANDUP:
-		return L"EMOTION_STANDUP";
+		return "EMOTION_STANDUP";
 	case ET_ANGRY:
 	case ET_HELLO:
 	case ET_NO:
 	case ET_SAD:
 	case ET_SMILE:
-#ifdef AVATAR_EMOTION
 	case ET_EMOTION_AVATAR1:
 	case ET_EMOTION_AVATAR2:
 	case ET_EMOTION_AVATAR3:
 	case ET_EMOTION_AVATAR4:
 	case ET_EMOTION_AVATAR5:
-#endif //AVATAR_EMOTION
-		return L"EMOTION_STATE";
+#ifdef CRAYONPOP_SECOND_EMOTION
+	case ET_EMOTION_AVATAR6:
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+	case ET_EMOTION_AVATAR7:
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
+		return "EMOTION_STATE";
 	default:
-		return L"";
+		return "";
 	}	
 
-	return L"";	
+	return "";	
 }
 
 wstring CX2Unit::GetEmotionAniNameById(EMOTION_TYPE eEmotionType)
@@ -1777,7 +1822,6 @@ wstring CX2Unit::GetEmotionAniNameById(EMOTION_TYPE eEmotionType)
 		return L"Emotion_Sad";
 	case ET_SMILE:
 		return L"Emotion_Smile";
-#ifdef AVATAR_EMOTION
 	case ET_EMOTION_AVATAR1:
 		return L"Emotion_BIGBANG";
 	case ET_EMOTION_AVATAR2:
@@ -1788,7 +1832,10 @@ wstring CX2Unit::GetEmotionAniNameById(EMOTION_TYPE eEmotionType)
 		return L"Emotion_APINK_LOVE";
 	case ET_EMOTION_AVATAR5:
 		return L"Emotion_CRAYONPOP";
-#endif //AVATAR_EMOTION
+#ifdef CRAYONPOP_SECOND_EMOTION
+	case ET_EMOTION_AVATAR6:
+		return L"Emotion_BbaBbaBba";
+#endif // CRAYONPOP_SECOND_EMOTION
 	default:
 		return L"";
 	}	
@@ -1840,7 +1887,7 @@ void CX2Unit::SetSkillNotePage(char iPage, int iMemo)
 
 CX2Stat::Stat CX2Unit::GetSkillStat() const
 {
-	return m_pUnitData->m_UserSkillTree.GetSkillStat();
+	return m_UnitData.m_UserSkillTree.GetSkillStat();
 }
 
 //{{ kimhc // 2009-11-17 //길드 스킬과 관련된 스탯
@@ -1849,8 +1896,8 @@ CX2Stat::Stat CX2Unit::GetSkillStat() const
 CX2Stat::Stat CX2Unit::GetGuildSkillStat() const
 {
 	// oasis907 : 김상윤 [2009.12.8] // 길드 등급
-	BYTE byMemberShipGrade = m_pUnitData->m_byMemberShipGrade; 
-	return m_pUnitData->m_UserSkillTree.GetGuildSkillStat(byMemberShipGrade);
+	BYTE byMemberShipGrade = m_UnitData.m_byMemberShipGrade; 
+	return m_UnitData.m_UserSkillTree.GetGuildSkillStat(byMemberShipGrade);
 }
 
 #endif	GUILD_SKILL
@@ -1860,57 +1907,48 @@ CX2Stat::Stat CX2Unit::GetGuildSkillStat() const
 
 void CX2Unit::SetBlackList( vector<KChatBlackListUnit>& blackList )
 {
-	if( m_pUnitData != NULL )
-		m_pUnitData->SetBlackList( blackList );
+
+		m_UnitData.SetBlackList( blackList );
 }
 
 bool CX2Unit::AddBlackList( KChatBlackListUnit blackList )
 {
-	if( m_pUnitData != NULL )
-		return m_pUnitData->AddBlackList( blackList );
 
-	return false;
+		return m_UnitData.AddBlackList( blackList );
+
 }
 
 bool CX2Unit::RemoveBlackList( UidType unitUID )
 {
-	if( m_pUnitData != NULL )
-		return m_pUnitData->RemoveBlackList( unitUID );
+		return m_UnitData.RemoveBlackList( unitUID );
 
-	return false;
 }
 
 
 const vector<KChatBlackListUnit>& CX2Unit::GetBlackList() const
 {
-	assert( m_pUnitData ); 
-	return m_pUnitData->GetBlackList();
+	return m_UnitData.GetBlackList();
 }
 
 UidType CX2Unit::GetBlackListUnitUID( const WCHAR* wszNickName )
 {
-	if( NULL == m_pUnitData )
-		return -1;
-
-	return m_pUnitData->GetBlackListUnitUID( wszNickName );
+	return m_UnitData.GetBlackListUnitUID( wszNickName );
 }
 
 void CX2Unit::GetSetIDNPartsNum( map<int,int>& mapSetIDNPartsNum )
 {
-	CX2Inventory* pInventory = GetUnitData()->m_pInventory;
-	if ( pInventory != NULL )
+	const CX2Inventory& kInventory = GetUnitData().m_Inventory;
 	{
-		for ( int i = 0;  i < pInventory->GetItemMaxNum( CX2Inventory::ST_E_EQUIP ); i++ )
+		for ( int i = 0;  i < kInventory.GetItemMaxNum( CX2Inventory::ST_E_EQUIP ); i++ )
 		{
-			CX2Item* pItem = pInventory->GetItem( CX2Inventory::ST_E_EQUIP, i );
+			CX2Item* pItem = kInventory.GetItem( CX2Inventory::ST_E_EQUIP, i );
 			if ( pItem != NULL && 
                 pItem->GetItemTemplet() != NULL 
                 )
 			{
 				//{{ kimhc // 실시간 엘소드 중 실시간 내구도 감소
 #ifdef REAL_TIME_ELSWORD
-				if ( pItem->GetItemData() == NULL || 
-					( pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData()->m_Endurance <= 0 ) )
+				if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData().m_Endurance <= 0 )
 					continue;
 #endif REAL_TIME_ELSWORD
 				//}} kimhc // 실시간 엘소드 중 실시간 내구도 감소
@@ -1951,7 +1989,7 @@ void CX2Unit::GetSetIDNPartsNum( map<int,int>& mapSetIDNPartsNum )
 
 	if( -1 != iUnitLevel )	
 	{
-		if( pUnit->GetUnitData()->m_Level < pItemTemplet->GetUseLevel() )
+		if( pUnit->GetUnitData().m_Level < pItemTemplet->GetUseLevel() )
 			return false;
 	}
 
@@ -2002,7 +2040,7 @@ void CX2Unit::GetSetIDNPartsNum( map<int,int>& mapSetIDNPartsNum )
 	
 	if( -1 != iUnitLevel )	
 	{
-		if( pUnit->GetUnitData()->m_Level < pItemTemplet->GetUseLevel() ) // 레벨 제한에 걸린다면
+		if( pUnit->GetUnitData().m_Level < pItemTemplet->GetUseLevel() ) // 레벨 제한에 걸린다면
 			return false;
 	}
 
@@ -2039,11 +2077,7 @@ void CX2Unit::GetSetIDNPartsNum( map<int,int>& mapSetIDNPartsNum )
 // 1차 전직이면 1을 return, 2차 전직이면 2를 return, 
 int CX2Unit::GetClassLevel()
 {
-	if( NULL == m_pUnitData )
-		return -1;
-
-
-	switch( m_pUnitData->m_UnitClass )
+	switch( m_UnitData.m_UnitClass )
 	{
 	case UC_ELSWORD_SWORDMAN:		
 	case UC_ARME_VIOLET_MAGE:		
@@ -2059,6 +2093,11 @@ int CX2Unit::GetClassLevel()
 	case UC_ARA_MARTIAL_ARTIST:
 #endif
 	case UC_ELESIS_KNIGHT:
+
+#ifdef SERV_9TH_NEW_CHARACTER
+	case UC_ADD_NASOD_RULER:
+#endif // SERV_9TH_NEW_CHARACTER
+
 		{
 			return 0;
 		} break;
@@ -2105,6 +2144,9 @@ int CX2Unit::GetClassLevel()
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case UC_ARA_LITTLE_DEVIL:
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_9TH_NEW_CHARACTER
+	case UC_ADD_PSYCHIC_TRACER:
+#endif // SERV_9TH_NEW_CHARACTER
 		{
 			return 1;
 		} break;
@@ -2157,6 +2199,14 @@ int CX2Unit::GetClassLevel()
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 	case UC_ARA_YAMA_RAJA:
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case UC_ELESIS_GRAND_MASTER:
+	case UC_ELESIS_BLAZING_HEART:
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case UC_ADD_LUNATIC_PSYKER:
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 		{
 			return 2;
 		} break;
@@ -2170,37 +2220,13 @@ int CX2Unit::GetClassLevel()
 #ifdef	PC_BANG_WORK
 void	CX2Unit::ResetInventorySize( const std::map<int, int>& mapInventorySize )
 {
-	if ( m_pUnitData == NULL )
-	{
-		ASSERT( !L"m_pUnitData is NULL In ResetInventorySize Func" );
-		return;
-	}
-
-	if ( m_pUnitData->m_pInventory == NULL )
-	{
-		ASSERT( !L"m_pInventory is NULL In ResetInventorySize Func" );
-		return;
-	}
-
-	m_pUnitData->m_pInventory->Clear();
-	m_pUnitData->m_pInventory->ResetSize( mapInventorySize );
+	m_UnitData.m_Inventory.Clear();
+	m_UnitData.m_Inventory.ResetSize( mapInventorySize );
 }
 
 void	CX2Unit::ResetInventoryItems( const std::map< UidType, KInventoryItemInfo >& mapItem )
 {
-	if ( m_pUnitData == NULL )
-	{
-		ASSERT( !L"m_pUnitData is NULL In ResetInventoryItems Func" );
-		return;
-	}
-
-	if ( m_pUnitData->m_pInventory == NULL )
-	{
-		ASSERT( !L"m_pInventory is NULL In ResetInventoryItems Func" );
-		return;
-	}
-
-	m_pUnitData->m_pInventory->ResetItems( mapItem );
+	m_UnitData.m_Inventory.ResetItems( mapItem );
 
 }
 #endif	PC_BANG_WORK
@@ -2263,14 +2289,13 @@ void CX2Unit::SetPetAutoLooting( UidType uiPetUID, bool bAutoLooting)
 }
 #endif //PET_DROP_ITEM_PICKUP
 
-#ifdef AVATAR_EMOTION
 bool CX2Unit::CheckNowEquipItemByItemId( UidType itemID )
 {
-	for ( int i = 0; i < (int)m_pUnitData->m_NowEqipItemUIDList.size(); i++ )
+	for ( int i = 0; i < (int)m_UnitData.m_NowEqipItemUIDList.size(); i++ )
 	{
-		UidType itemUid = m_pUnitData->m_NowEqipItemUIDList[i];
+		UidType itemUid = m_UnitData.m_NowEqipItemUIDList[i];
 		
-		CX2Item *pItem = GetInventory()->GetItem( itemUid );
+		CX2Item *pItem = GetInventory().GetItem( itemUid );
 
 		if( pItem != NULL && 
             pItem->GetItemTemplet()->GetItemID() == itemID 
@@ -2289,7 +2314,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD1 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD1[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Elsword_Emotion_BIGBANG.X";
 					eEmotionID = ET_EMOTION_AVATAR1;
@@ -2298,7 +2323,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD2 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD2[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Elsword_Emotion_DeepBow.X";
 					eEmotionID = ET_EMOTION_AVATAR2;
@@ -2307,7 +2332,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD3 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD3[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Elsword_Emotion_APINK.X";
 					eEmotionID = ET_EMOTION_AVATAR3;
@@ -2316,7 +2341,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD4 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD4[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Elsword_Emotion_APINK_LOVE.X";
 					eEmotionID = ET_EMOTION_AVATAR4;
@@ -2325,20 +2350,31 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD5 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD5[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Elsword_Emotion_CRAYONPOP_Sorted.X";
 					eEmotionID = ET_EMOTION_AVATAR5;
 					return true;	
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD6[i] ) == 2 )
+				{
+					wstrEmotionName = L"Motion_Elsword_Emotion_BbaBbaBba.X";
+					eEmotionID = ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_ARME:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME1[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Arme_Emotion_BIGBANG.X";
 					eEmotionID = ET_EMOTION_AVATAR1;
@@ -2347,7 +2383,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME2[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Arme_Emotion_DeepBow.X";
 					eEmotionID = ET_EMOTION_AVATAR2;
@@ -2356,7 +2392,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME3[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Arme_Emotion_APINK.X";
 					eEmotionID = ET_EMOTION_AVATAR3;
@@ -2365,7 +2401,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME4[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Arme_Emotion_APINK_LOVE.X";
 					eEmotionID = ET_EMOTION_AVATAR4;
@@ -2374,20 +2410,31 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME5[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Arme_Emotion_CRAYONPOP_Sorted.X";
 					eEmotionID = ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME6[i] ) == 2 )
+				{
+					wstrEmotionName = L"Motion_ARME_Emotion_BbaBbaBba.X";
+					eEmotionID = ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_LIRE:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE1[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Lire_Emotion_BIGBANG.X";
 					eEmotionID = ET_EMOTION_AVATAR1;
@@ -2396,7 +2443,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE2[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Lire_Emotion_DeepBow.X";
 					eEmotionID = ET_EMOTION_AVATAR2;
@@ -2405,7 +2452,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE3[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Lire_Emotion_APINK.X";
 					eEmotionID = ET_EMOTION_AVATAR3;
@@ -2414,7 +2461,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE4[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Lire_Emotion_APINK_LOVE.X";
 					eEmotionID = ET_EMOTION_AVATAR4;
@@ -2423,20 +2470,31 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE5[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Lire_Emotion_CRAYONPOP_Sorted.X";
 					eEmotionID = ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE6[i] ) == 2 )
+				{
+					wstrEmotionName = L"Motion_LIRE_Emotion_BbaBbaBba.X";
+					eEmotionID = ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_RAVEN:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN1[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Raven_Emotion_BIGBANG.X";
 					eEmotionID = ET_EMOTION_AVATAR1;
@@ -2445,7 +2503,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN2[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Raven_Emotion_DeepBow.X";
 					eEmotionID = ET_EMOTION_AVATAR2;
@@ -2454,7 +2512,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN3[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Raven_Emotion_APINK.X";
 					eEmotionID = ET_EMOTION_AVATAR3;
@@ -2463,7 +2521,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN4[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Raven_Emotion_APINK_LOVE.X";
 					eEmotionID = ET_EMOTION_AVATAR4;
@@ -2472,20 +2530,31 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN5[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Raven_Emotion_CRAYONPOP_Sorted.X";
 					eEmotionID = ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN6[i] ) == 2 )
+				{
+					wstrEmotionName = L"Motion_RAVEN_Emotion_BbaBbaBba.X";
+					eEmotionID = ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_EVE:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE1[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_EVE_Emotion_BIGBANG.X";
 					eEmotionID = ET_EMOTION_AVATAR1;
@@ -2494,7 +2563,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE2[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Eve_Emotion_DeepBow.X";
 					eEmotionID = ET_EMOTION_AVATAR2;
@@ -2503,7 +2572,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE3[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_EVE_Emotion_APINK.X";
 					eEmotionID = ET_EMOTION_AVATAR3;
@@ -2512,7 +2581,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE4[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_EVE_Emotion_APINK_LOVE.X";
 					eEmotionID = ET_EMOTION_AVATAR4;
@@ -2521,20 +2590,31 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE5[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Eve_Emotion_CRAYONPOP_Sorted.X";
 					eEmotionID = ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE6[i] ) == 2 )
+				{
+					wstrEmotionName = L"Motion_EVE_Emotion_BbaBbaBba.X";
+					eEmotionID = ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_CHUNG:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG1[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_CHUNG_Emotion_BIGBANG.X";
 					eEmotionID = ET_EMOTION_AVATAR1;
@@ -2543,7 +2623,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG2[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Chung_Emotion_DeepBow.X";
 					eEmotionID = ET_EMOTION_AVATAR2;
@@ -2552,7 +2632,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG3[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_CHUNG_Emotion_APINK.X";
 					eEmotionID = ET_EMOTION_AVATAR3;
@@ -2561,7 +2641,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG4[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_CHUNG_Emotion_APINK_LOVE.X";
 					eEmotionID = ET_EMOTION_AVATAR4;
@@ -2570,13 +2650,24 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG5[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Chung_Emotion_CRAYONPOP_Sorted.X";
 					eEmotionID = ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG6[i] ) == 2 )
+				{
+					wstrEmotionName = L"Motion_CHUNG_Emotion_BbaBbaBba.X";
+					eEmotionID = ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 
@@ -2585,7 +2676,7 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARA2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA2[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Ara_Emotion_DeepBow.X";
 					eEmotionID = ET_EMOTION_AVATAR2;
@@ -2595,16 +2686,77 @@ bool CX2Unit::GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &
 
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARA5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA5[i] ) == 6 )
 				{
 					wstrEmotionName = L"Motion_Ara_Emotion_CRAYONPOP_Sorted.X";
 					eEmotionID = ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARA6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA6[i] ) == 2 )
+				{
+					wstrEmotionName = L"Motion_ARA_Emotion_BbaBbaBba.X";
+					eEmotionID = ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 #endif ADD_ARA_EMOTION
+
+
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	case CX2Unit::UT_ELESIS:
+		{
+	#ifdef ADD_KOREAN_CLOTHES_EMOTION // 김태환
+			{
+				/// 한복 아바타
+				for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELESIS2 ); ++i )
+				{
+					if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELESIS2[i] ) == 6 )
+					{
+						wstrEmotionName = L"Motion_EL_Emotion_DeepBow.X";
+						eEmotionID = ET_EMOTION_AVATAR2;
+						return true;
+					}
+				}
+			}
+			break;
+	#endif // ADD_KOREAN_CLOTHES_EMOTION
+
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELESIS6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELESIS6[i] ) == 2 )
+				{
+					wstrEmotionName = L"Motion_EL_Emotion_BbaBbaBba.x";
+					eEmotionID = ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+		}
+		break;
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef ADD_KOREAN_CLOTHES_EMOTION // 김태환
+	case CX2Unit::UT_ADD:
+		{
+			/// 한복 아바타
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ADD2 ); ++i )
+			{
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ADD2[i] ) == 6 )
+				{
+					wstrEmotionName = L"Motion_Add_Emotion_DeepBow.X";
+					eEmotionID = ET_EMOTION_AVATAR2;
+					return true;
+				}
+			}
+		}
+		break;
+#endif // ADD_KOREAN_CLOTHES_EMOTION
 
 	default:
 		break;
@@ -2621,7 +2773,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD1 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD1[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR1;
 					return true;	
@@ -2629,7 +2781,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD2 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD2[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR2;
 					return true;	
@@ -2637,7 +2789,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD3 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD3[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR3;
 					return true;	
@@ -2645,7 +2797,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD4 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD4[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR4;
 					return true;	
@@ -2653,19 +2805,29 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD5 ); ++i )
 			{				
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD5[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR5;
 					return true;	
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELSWORD6[i] ) == 2 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_ARME:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME1[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR1;
 					return true;
@@ -2673,7 +2835,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME2[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR2;
 					return true;
@@ -2681,7 +2843,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME3[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR3;
 					return true;
@@ -2689,7 +2851,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME4[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR4;
 					return true;
@@ -2697,19 +2859,29 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME5[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARME6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARME6[i] ) == 2 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_LIRE:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE1[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR1;
 					return true;
@@ -2717,7 +2889,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE2[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR2;
 					return true;
@@ -2725,7 +2897,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE3[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR3;
 					return true;
@@ -2733,7 +2905,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE4[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR4;
 					return true;
@@ -2741,19 +2913,29 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE5[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_LIRE6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_LIRE6[i] ) == 2 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_RAVEN:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN1[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR1;
 					return true;
@@ -2761,7 +2943,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN2[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR2;
 					return true;
@@ -2769,7 +2951,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN3[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR3;
 					return true;
@@ -2777,7 +2959,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN4[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR4;
 					return true;
@@ -2785,19 +2967,29 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN5[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_RAVEN6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_RAVEN6[i] ) == 2 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_EVE:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE1[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR1;
 					return true;
@@ -2805,7 +2997,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE2[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR2;
 					return true;
@@ -2813,7 +3005,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE3[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR3;
 					return true;
@@ -2821,7 +3013,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE4[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR4;
 					return true;
@@ -2829,19 +3021,29 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE5[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_EVE6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_EVE6[i] ) == 2 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 	case CX2Unit::UT_CHUNG:
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG1 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG1[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG1[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR1;
 					return true;
@@ -2849,7 +3051,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG2[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR2;
 					return true;
@@ -2857,7 +3059,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG3 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG3[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG3[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR3;
 					return true;
@@ -2865,7 +3067,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG4 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG4[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG4[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR4;
 					return true;
@@ -2873,12 +3075,22 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG5[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_CHUNG6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_CHUNG6[i] ) == 2 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 
@@ -2887,7 +3099,7 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 		{
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARA2 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA2[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA2[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR2;
 					return true;
@@ -2895,15 +3107,67 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 			}
 			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARA5 ); ++i )
 			{
-				if( GetInventory()->GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA5[i] ) == 6 )
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA5[i] ) == 6 )
 				{
 					eEmotionID = CX2Unit::ET_EMOTION_AVATAR5;
 					return true;
 				}
 			}
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ARA6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ARA6[i] ) == 2 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+#endif // CRAYONPOP_SECOND_EMOTION
 		}
 		break;
 #endif ADD_ARA_EMOTION
+
+#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+	case CX2Unit::UT_ELESIS:
+		{
+	#ifdef ADD_KOREAN_CLOTHES_EMOTION // 김태환
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELESIS2 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELESIS2[i] ) == 6 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR2;
+					return true;	
+				}
+			}
+	#endif // ADD_KOREAN_CLOTHES_EMOTION
+
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ELESIS6 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ELESIS6[i] ) == 2 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR6;
+					return true;	
+				}
+			}
+		}
+		break;
+#endif // CRAYONPOP_SECOND_EMOTION
+
+#ifdef ADD_KOREAN_CLOTHES_EMOTION // 김태환
+	case CX2Unit::UT_ADD:
+		{
+			/// 한복 아바타
+			for( int i=0; i<ARRAY_SIZE( ITEM_ID_ET_EMOTION_AVATAR_ADD2 ); ++i )
+			{				
+				if( GetInventory().GetEqiuppingSetItemNum( ITEM_ID_ET_EMOTION_AVATAR_ADD2[i] ) == 6 )
+				{
+					eEmotionID = CX2Unit::ET_EMOTION_AVATAR2;
+					return true;	
+				}
+			}
+		}
+		break;
+#endif // ADD_KOREAN_CLOTHES_EMOTION
 
 	default:
 		break;
@@ -2913,7 +3177,6 @@ bool CX2Unit::GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID)
 	return false;
 }
 
-#endif //AVATAR_EMOTION
 
 void CX2Unit::AddItemLevel( IN const CX2Item* pEquipItem_ )
 {
@@ -2943,7 +3206,7 @@ void CX2Unit::UpdateItemLevel()
 
 	for ( UINT i =0; i < m_NormalEqipItemUIDList.size(); i++ )
 	{
-		CX2Item* pEqipItem = GetInventory()->GetItem( m_NormalEqipItemUIDList[i] );
+		CX2Item* pEqipItem = GetInventory().GetItem( m_NormalEqipItemUIDList[i] );
 		if( pEqipItem == NULL )
 			continue;
 
@@ -2961,44 +3224,48 @@ int CX2Unit::GetAverageItemlevel() const
 //////////////////////////////////////////////////////////////////////////
 // CX2Unit::UnitData
 
-CX2Unit::UnitData::UnitData(CX2Unit* pOwnerUnit, const KUnitInfo& data )
+void    CX2Unit::UnitData::Init( CX2Unit* pOwnerUnit, const KUnitInfo& data )
 {
-	Init();
+	//Init();
 
-	pOwnerUnit->SetUnitData( this );
-	m_pInventory = new CX2Inventory( pOwnerUnit );
+	//pOwnerUnit->SetUnitData( this );
+	//m_pInventory = new CX2Inventory( pOwnerUnit );
+    m_Inventory.SetOwnerUnit( pOwnerUnit );
 
 	SetKUnitInfo( data );
 }
 
-CX2Unit::UnitData::UnitData( CX2Unit* pOwnerUnit, const KRoomUserInfo& data )
+void    CX2Unit::UnitData::Init( CX2Unit* pOwnerUnit, const KRoomUserInfo& data )
 {
-	Init();
+	//Init();
 
-	pOwnerUnit->SetUnitData( this );
-	m_pInventory = new CX2Inventory( pOwnerUnit );
+	//pOwnerUnit->SetUnitData( this );
+	//m_pInventory = new CX2Inventory( pOwnerUnit );
+    m_Inventory.SetOwnerUnit( pOwnerUnit );
 
 	SetKRoomUserInfo( data );
 }
 
-CX2Unit::UnitData::UnitData(CX2Unit* pOwnerUnit, const KSquareUserInfo& pKSquareUserInfo )
+void    CX2Unit::UnitData::Init( CX2Unit* pOwnerUnit, const KSquareUserInfo& pKSquareUserInfo )
 {
-	Init();
+	//Init();
 
-	pOwnerUnit->SetUnitData( this );
-	m_pInventory = new CX2Inventory( pOwnerUnit );
+	//pOwnerUnit->SetUnitData( this );
+	//m_pInventory = new CX2Inventory( pOwnerUnit );
+    m_Inventory.SetOwnerUnit( pOwnerUnit );
 
 	SetKSquareUserInfo( pKSquareUserInfo );
 
 }
 
 
-CX2Unit::UnitData::UnitData(CX2Unit* pOwnerUnit, const KFieldUserInfo& pKFieldUserInfo )
+void    CX2Unit::UnitData::Init( CX2Unit* pOwnerUnit, const KFieldUserInfo& pKFieldUserInfo )
 {
-	Init();
+	//Init();
 
-	pOwnerUnit->SetUnitData( this );
-	m_pInventory = new CX2Inventory( pOwnerUnit );
+	//pOwnerUnit->SetUnitData( this );
+	//m_pInventory = new CX2Inventory( pOwnerUnit );
+    m_Inventory.SetOwnerUnit( pOwnerUnit );
 
 	SetKFieldUserInfo( pKFieldUserInfo );
 	
@@ -3007,7 +3274,7 @@ CX2Unit::UnitData::UnitData(CX2Unit* pOwnerUnit, const KFieldUserInfo& pKFieldUs
 
 CX2Unit::UnitData::~UnitData()
 {
-	SAFE_DELETE( m_pInventory );
+	//SAFE_DELETE( m_pInventory );
 }
 
 void CX2Unit::UnitData::Init()
@@ -3021,6 +3288,10 @@ void CX2Unit::UnitData::Init()
 	m_ED					= 0;	
 	m_Level					= 0;
 	m_EXP					= 0;
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	m_iAccountPVPLoseCount	= 0;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 
 #ifdef SERV_PVP_NEW_SYSTEM
 	m_iRating				= 0;
@@ -3053,7 +3324,8 @@ void CX2Unit::UnitData::Init()
 
 	//m_RemainStatPoint		= 0;
 	m_iSPoint				= 0;
-	m_pInventory			= NULL;
+	//m_pInventory			= NULL;
+
 
 	m_nStraightVictories	= 0;
 	m_nMapID				= 0;
@@ -3082,11 +3354,9 @@ void CX2Unit::UnitData::Init()
 	m_arrChinaSpirit[5]		= 0;
 #endif SERV_CHINA_SPIRIT_EVENT
 
-	m_pInventory			= NULL;
-
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
     m_iTitleId              = 0;
-#endif
+//#endif
 
 	//{{ 허상형 : [2009/9/25] //	길드 초기화
 #ifdef GUILD_MANAGEMENT
@@ -3113,6 +3383,9 @@ void CX2Unit::UnitData::Init()
 	m_cWeddingStatus = 0;
 	m_iLoverUnitUID = 0;
 #endif //SERV_RELATIONSHIP_SYSTEM
+#ifdef FIELD_BOSS_RAID
+	m_bIgnoreLastTouch = false;
+#endif // FIELD_BOSS_RAID
 
 #ifdef SERV_GROW_UP_SOCKET
 	m_mapGrowUpPoint.clear();
@@ -3120,11 +3393,29 @@ void CX2Unit::UnitData::Init()
 #ifdef SERV_GROW_UP_TITLE
 	m_iOldLevel = 0;
 #endif
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	m_bCouple = false;
+#endif SERV_RELATIONSHIP_EVENT_INT
+#ifdef SERV_ELESIS_UPDATE_EVENT
+	m_iNoteViewCount = 0;
+	m_bReserveShow = false;
+#endif SERV_ELESIS_UPDATE_EVENT
 
 #ifdef SERV_NEW_YEAR_EVENT_2014
 	m_ucOldYearMissionRewardedLevel = 0;
 	m_iNewYearMissionStepID = -1;
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+	m_ucCheckPowerCount = 0;
+	m_iCheckPowerTime = CTime( 2000, 1, 1, 0, 0, 0 ).GetTime();
+	m_bCheckPowerShowPopUp = false;
+	m_ucCheckPowerScore = 0;
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+	m_iValentineItemCount = -1;
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 }
 
 
@@ -3134,6 +3425,10 @@ void CX2Unit::UnitData::SetKUnitInfo( const KUnitInfo& data )
 	m_UnitUID				= data.m_nUnitUID;
 	m_UserUID				= data.m_iOwnerUserUID;
 	m_UnitClass				= (UNIT_CLASS)data.m_cUnitClass;
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	m_iAccountPVPLoseCount = data.m_iAccountPVPLoseCount;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 	
 #ifndef NEW_MESSENGER
 	m_iNMKSerialNum			= data.m_uiKNMSerialNum;
@@ -3208,7 +3503,9 @@ void CX2Unit::UnitData::SetKUnitInfo( const KUnitInfo& data )
 	m_ucLastTouchLineIndex	= data.m_kLastPos.m_ucLastTouchLineIndex;
 	m_usLastPosValue		= data.m_kLastPos.m_usLastPosValue;
 #endif REMEMBER_LOGOUT_POSITION_TEST
-
+#ifdef FIELD_BOSS_RAID
+	m_bIgnoreLastTouch		= data.m_kLastPos.m_bIgnoreLastTouch;			// LastTouch를 사용하지 않고 m_iMapID에 해당하는 기본 위치를 사용하도록 알린다.
+#endif // FIELD_BOSS_RAID
 	m_bIsGameBang			= data.m_bIsGameBang;
 
 
@@ -3232,33 +3529,31 @@ void CX2Unit::UnitData::SetKUnitInfo( const KUnitInfo& data )
 
 	for ( int i = 0; i < (int)m_NowEqipItemUIDList.size(); i++ )
 	{
-		if ( m_pInventory != NULL )
-			m_pInventory->RemoveItem( m_NowEqipItemUIDList[i] );
+        m_Inventory.RemoveItem( m_NowEqipItemUIDList[i] );
 	}
 
 
 	m_NowEqipItemUIDList.resize(0);
 
 
-	if ( m_pInventory != NULL )
+	std::map< int, KInventoryItemInfo >::const_iterator iM;
+	for ( iM = data.m_mapEquippedItem.begin(); iM != data.m_mapEquippedItem.end(); ++iM )
 	{
-		std::map< int, KInventoryItemInfo >::const_iterator iM;
-		for ( iM = data.m_mapEquippedItem.begin(); iM != data.m_mapEquippedItem.end(); ++iM )
-		{
-			KInventoryItemInfo kInventorySlotInfo = (*iM).second;
-			m_pInventory->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
-		}
+		KInventoryItemInfo kInventorySlotInfo = (*iM).second;
+		m_Inventory.RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+	}
 
-		for ( iM = data.m_mapEquippedItem.begin(); iM != data.m_mapEquippedItem.end(); ++iM )
+	for ( iM = data.m_mapEquippedItem.begin(); iM != data.m_mapEquippedItem.end(); ++iM )
+	{
+		KInventoryItemInfo kInventorySlotInfo = (*iM).second;
+		if ( kInventorySlotInfo.m_iItemUID > 0 )
 		{
-			KInventoryItemInfo kInventorySlotInfo = (*iM).second;
-			if ( kInventorySlotInfo.m_iItemUID > 0 )
-			{
-				m_NowEqipItemUIDList.push_back( kInventorySlotInfo.m_iItemUID );
-				CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
-				m_pInventory->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
-				m_pInventory->AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, pItemData );
-			}
+			m_NowEqipItemUIDList.push_back( kInventorySlotInfo.m_iItemUID );
+			m_Inventory.RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+            {
+			    CX2Item::ItemData kItemData( kInventorySlotInfo );
+			    m_Inventory.AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, kItemData );
+            }
 		}
 	}
 
@@ -3288,13 +3583,13 @@ void CX2Unit::UnitData::SetKUnitInfo( const KUnitInfo& data )
 	m_GameStat.SetKStat( data.m_kGameStat );
 
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 #ifdef SERV_TITLE_DATA_SIZE
 	m_iTitleId              = data.m_iTitleID;
 #else
     m_iTitleId              = data.m_sTitleID;
 #endif
-#endif
+//#endif
 
 	//{{ 허상형 : [2009/9/25] //	길드 이름 추가
 #ifdef GUILD_MANAGEMENT
@@ -3338,6 +3633,13 @@ void CX2Unit::UnitData::SetKUnitInfo( const KUnitInfo& data )
 	m_ucOldYearMissionRewardedLevel = data.m_ucOldYearMissionRewardedLevel;
 	m_iNewYearMissionStepID = data.m_iNewYearMissionStepID;
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+	m_ucCheckPowerCount = data.m_ucCheckPowerCount;
+	m_iCheckPowerTime = data.m_iCheckPowerTime;
+	m_bCheckPowerShowPopUp = data.m_bCheckPowerShowPopUp;
+	m_ucCheckPowerScore = data.m_ucCheckPowerScore;
+#endif SERV_EVENT_CHECK_POWER
 }
 
 void CX2Unit::UnitData::SetKRoomUserInfo( const KRoomUserInfo& data )
@@ -3349,6 +3651,10 @@ void CX2Unit::UnitData::SetKRoomUserInfo( const KRoomUserInfo& data )
 	m_Age					= data.m_ucAge;
 
 	m_UnitClass				= (UNIT_CLASS)data.m_cUnitClass;
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	m_iAccountPVPLoseCount = data.m_iAccountPVPLoseCount;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 
 	// 랭크정보
 #ifdef SERV_PVP_NEW_SYSTEM
@@ -3405,18 +3711,16 @@ void CX2Unit::UnitData::SetKRoomUserInfo( const KRoomUserInfo& data )
 
 			for ( int i = 0; i < (int)m_NowEqipItemUIDList.size(); i++ )
 			{
-				if ( m_pInventory != NULL )
-					m_pInventory->RemoveItem( m_NowEqipItemUIDList[i] );
+                m_Inventory.RemoveItem( m_NowEqipItemUIDList[i] );
 			}
 
 			m_NowEqipItemUIDList.resize(0);
-			if ( m_pInventory != NULL )
 			{
 				std::map< int, KInventoryItemInfo >::const_iterator iM;
 				for ( iM = data.m_mapEquippedItem.begin(); iM != data.m_mapEquippedItem.end(); ++iM )
 				{
 					KInventoryItemInfo kInventorySlotInfo = (*iM).second;
-					m_pInventory->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+					m_Inventory.RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 				}
 
 				for ( iM = data.m_mapEquippedItem.begin(); iM != data.m_mapEquippedItem.end(); ++iM )
@@ -3425,9 +3729,11 @@ void CX2Unit::UnitData::SetKRoomUserInfo( const KRoomUserInfo& data )
 					if ( kInventorySlotInfo.m_iItemUID > 0 )
 					{
 						m_NowEqipItemUIDList.push_back( kInventorySlotInfo.m_iItemUID );
-						CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
-						m_pInventory->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
-						m_pInventory->AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, pItemData );
+						m_Inventory.RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+                        {
+                            CX2Item::ItemData kItemData( kInventorySlotInfo );
+						    m_Inventory.AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, kItemData );
+                        }
 					}
 				}
 			}
@@ -3450,13 +3756,13 @@ void CX2Unit::UnitData::SetKRoomUserInfo( const KRoomUserInfo& data )
 
 	m_GameStat.SetKStat( data.m_kGameStat );
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 #ifdef SERV_TITLE_DATA_SIZE
     m_iTitleId              = data.m_iTitleID;
 #else
 	m_iTitleId              = data.m_sTitleID;
 #endif
-#endif
+//#endif
 
 	//{{ 허상형 : [2009/9/25] //	길드 이름 추가
 #ifdef GUILD_MANAGEMENT
@@ -3479,9 +3785,16 @@ void CX2Unit::UnitData::SetKRoomUserInfo( const KRoomUserInfo& data )
 	SetGrowUpPoint( GUT_QUEST_CLEAR_COUNT, data.m_iEventQuestClearCount, data.m_nUnitUID );
 	SetGrowUpPoint( GUT_EXCHANGE_COUNT, data.m_iExchangeCount, data.m_nUnitUID );
 #endif//SERV_GROW_UP_SOCKET
+
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 	m_iGateOfDarknessSupportEventTime = data.m_iGateOfDarknessSupportEventTime;
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	m_bCouple = data.m_bCouple;
+	m_iRelationTargetUserUid = data.m_iRelationTargetUserUid;
+	m_wstrRelationTargetUserNickname = data.m_wstrRelationTargetUserNickname;
+#endif SERV_RELATIONSHIP_EVENT_INT
 }
 
 void CX2Unit::UnitData::SetKSquareUserInfo( const KSquareUserInfo& pKSquareUserInfo )
@@ -3498,6 +3811,10 @@ void CX2Unit::UnitData::SetKSquareUserInfo( const KSquareUserInfo& pKSquareUserI
 	m_bMan					= false; //pKSquareUserInfo.m_bMale;
 	m_Age					= 0; //pKSquareUserInfo.m_ucAge;
 
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	m_iAccountPVPLoseCount = pKSquareUserInfo.m_iAccountPVPLoseCount;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
+
 	// 랭크정보
 #ifdef SERV_PVP_NEW_SYSTEM
 #ifdef PVP_SEASON2
@@ -3513,14 +3830,12 @@ void CX2Unit::UnitData::SetKSquareUserInfo( const KSquareUserInfo& pKSquareUserI
 
 	for ( int i = 0; i < (int)m_NowEqipItemUIDList.size(); i++ )
 	{
-		if ( m_pInventory != NULL )
-			m_pInventory->RemoveItem( m_NowEqipItemUIDList[i] );
+        m_Inventory.RemoveItem( m_NowEqipItemUIDList[i] );
 	}
 
 	m_NowEqipItemUIDList.resize(0);
 
 
-	if ( m_pInventory != NULL )
 	{
 		for( int i = 0; i < (int)pKSquareUserInfo.m_vecEquippedItem.size(); i++ )
 		{
@@ -3529,28 +3844,28 @@ void CX2Unit::UnitData::SetKSquareUserInfo( const KSquareUserInfo& pKSquareUserI
 			if ( kInventoryItemSimpleInfo.m_iItemUID > 0 )
 			{
 				m_NowEqipItemUIDList.push_back( kInventoryItemSimpleInfo.m_iItemUID );
-				CX2Item::ItemData* pItemData	= new CX2Item::ItemData();
-				pItemData->m_ItemUID			= kInventoryItemSimpleInfo.m_iItemUID;
-				pItemData->m_ItemID				= kInventoryItemSimpleInfo.m_iItemID;
-				pItemData->m_EnchantLevel		= kInventoryItemSimpleInfo.m_EnchantLevel;
+				CX2Item::ItemData kItemData;
+				kItemData.m_ItemUID			= kInventoryItemSimpleInfo.m_iItemUID;
+				kItemData.m_ItemID				= kInventoryItemSimpleInfo.m_iItemID;
+				kItemData.m_EnchantLevel		= kInventoryItemSimpleInfo.m_EnchantLevel;
 
-				pItemData->m_EnchantedAttribute.m_aEnchantedType[0]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant0;
-				pItemData->m_EnchantedAttribute.m_aEnchantedType[1]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant1;
-				pItemData->m_EnchantedAttribute.m_aEnchantedType[2]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant2;
+				kItemData.m_EnchantedAttribute.m_aEnchantedType[0]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant0;
+				kItemData.m_EnchantedAttribute.m_aEnchantedType[1]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant1;
+				kItemData.m_EnchantedAttribute.m_aEnchantedType[2]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant2;
 
-				m_pInventory->RemoveItem( (CX2Inventory::SORT_TYPE)kInventoryItemSimpleInfo.m_cSlotCategory, kInventoryItemSimpleInfo.m_sSlotID );
-				m_pInventory->AddItem( (CX2Inventory::SORT_TYPE)kInventoryItemSimpleInfo.m_cSlotCategory, kInventoryItemSimpleInfo.m_sSlotID, pItemData );
+				m_Inventory.RemoveItem( (CX2Inventory::SORT_TYPE)kInventoryItemSimpleInfo.m_cSlotCategory, kInventoryItemSimpleInfo.m_sSlotID );
+				m_Inventory.AddItem( (CX2Inventory::SORT_TYPE)kInventoryItemSimpleInfo.m_cSlotCategory, kInventoryItemSimpleInfo.m_sSlotID, kItemData );
 			}
 		}
 	}
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 #ifdef SERV_TITLE_DATA_SIZE
 	m_iTitleId              = pKSquareUserInfo.m_iTitleID;
 #else
     m_iTitleId              = pKSquareUserInfo.m_sTitleID;
 #endif
-#endif	
+//#endif	
 
 	//{{ 허상형 : [2009/9/25] //	길드 이름 추가
 #ifdef GUILD_MANAGEMENT
@@ -3576,6 +3891,10 @@ void CX2Unit::UnitData::SetKFieldUserInfo( const KFieldUserInfo& pKFieldUserInfo
 	m_NickName				= pKFieldUserInfo.m_wstrNickName;
 	m_Level					= pKFieldUserInfo.m_ucLevel;
 
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	m_iAccountPVPLoseCount = pKFieldUserInfo.m_iAccountPVPLoseCount;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
+
 	// 랭크정보
 #ifdef SERV_PVP_NEW_SYSTEM
 #ifdef PVP_SEASON2
@@ -3597,14 +3916,12 @@ void CX2Unit::UnitData::SetKFieldUserInfo( const KFieldUserInfo& pKFieldUserInfo
 
 	for ( int i = 0; i < (int)m_NowEqipItemUIDList.size(); i++ )
 	{
-		if ( m_pInventory != NULL )
-			m_pInventory->RemoveItem( m_NowEqipItemUIDList[i] );
+        m_Inventory.RemoveItem( m_NowEqipItemUIDList[i] );
 	}
 
 	m_NowEqipItemUIDList.resize(0);
 
 
-	if ( m_pInventory != NULL )
 	{
 		for( int i = 0; i < (int)pKFieldUserInfo.m_vecEquippedItem.size(); i++ )
 		{
@@ -3613,30 +3930,30 @@ void CX2Unit::UnitData::SetKFieldUserInfo( const KFieldUserInfo& pKFieldUserInfo
 			if ( kInventoryItemSimpleInfo.m_iItemUID > 0 )
 			{
 				m_NowEqipItemUIDList.push_back( kInventoryItemSimpleInfo.m_iItemUID );
-				CX2Item::ItemData* pItemData	= new CX2Item::ItemData();
-				pItemData->m_ItemUID			= kInventoryItemSimpleInfo.m_iItemUID;
-				pItemData->m_ItemID				= kInventoryItemSimpleInfo.m_iItemID;
-				pItemData->m_EnchantLevel		= kInventoryItemSimpleInfo.m_EnchantLevel;
+				CX2Item::ItemData kItemData;
+				kItemData.m_ItemUID			= kInventoryItemSimpleInfo.m_iItemUID;
+				kItemData.m_ItemID				= kInventoryItemSimpleInfo.m_iItemID;
+				kItemData.m_EnchantLevel		= kInventoryItemSimpleInfo.m_EnchantLevel;
 
 
-				pItemData->m_EnchantedAttribute.m_aEnchantedType[0]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant0;
-				pItemData->m_EnchantedAttribute.m_aEnchantedType[1]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant1;
-				pItemData->m_EnchantedAttribute.m_aEnchantedType[2]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant2;
+				kItemData.m_EnchantedAttribute.m_aEnchantedType[0]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant0;
+				kItemData.m_EnchantedAttribute.m_aEnchantedType[1]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant1;
+				kItemData.m_EnchantedAttribute.m_aEnchantedType[2]	= (CX2EnchantItem::ENCHANT_TYPE) kInventoryItemSimpleInfo.m_kAttribEnchantInfo.m_cAttribEnchant2;
 
 
-				m_pInventory->RemoveItem( (CX2Inventory::SORT_TYPE)kInventoryItemSimpleInfo.m_cSlotCategory, kInventoryItemSimpleInfo.m_sSlotID );
-				m_pInventory->AddItem( (CX2Inventory::SORT_TYPE)kInventoryItemSimpleInfo.m_cSlotCategory, kInventoryItemSimpleInfo.m_sSlotID, pItemData );
+				m_Inventory.RemoveItem( (CX2Inventory::SORT_TYPE)kInventoryItemSimpleInfo.m_cSlotCategory, kInventoryItemSimpleInfo.m_sSlotID );
+				m_Inventory.AddItem( (CX2Inventory::SORT_TYPE)kInventoryItemSimpleInfo.m_cSlotCategory, kInventoryItemSimpleInfo.m_sSlotID, kItemData );
 			}
 		}
 	}
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 #ifdef SERV_TITLE_DATA_SIZE
 	m_iTitleId              = pKFieldUserInfo.m_iTitleID;
 #else
 	m_iTitleId              = pKFieldUserInfo.m_sTitleID;
 #endif
-#endif
+//#endif
 
 	//{{ 허상형 : [2009/9/25] //	길드 이름 추가
 #ifdef GUILD_MANAGEMENT
@@ -3658,7 +3975,7 @@ void CX2Unit::UnitData::SetKFieldUserInfo( const KFieldUserInfo& pKFieldUserInfo
 }
 
 
-void CX2Unit::UnitData::Verify()
+void CX2Unit::UnitData::Verify() const
 {
 	if( m_ED.Verify()							== false
 #ifdef SERV_PVP_NEW_SYSTEM
@@ -3718,7 +4035,7 @@ bool CX2Unit::UnitData::RemoveBlackList( UidType unitUID )
 	return false;
 }
 
-UidType CX2Unit::UnitData::GetBlackListUnitUID( const WCHAR* wszNickName )
+UidType CX2Unit::UnitData::GetBlackListUnitUID( const WCHAR* wszNickName ) const
 {
 	UidType unitUID = -1;
 	for( UINT i=0; i<m_BlackList.size(); i++ )
@@ -3864,7 +4181,7 @@ KRidingPetInfo* CX2Unit::GetRidingPetInfo()
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 bool CX2Unit::IsManCharacter ()
 {
-	UNIT_CLASS ucMyClass = GetUnitData()->m_UnitClass;
+	UNIT_CLASS ucMyClass = GetUnitData().m_UnitClass;
 
 	if ( 
 		ucMyClass == UC_ELSWORD_SWORDMAN ||
@@ -3903,9 +4220,15 @@ bool CX2Unit::IsManCharacter ()
 */
 void CX2Unit::ResetIncreaseSkillLevelByBuff()
 {
+#ifdef SKILL_PAGE_SYSTEM // 해외팀 추가
+	/// 스킬 페이지에 대한 스킬 목록이 없다면, 구문 중지
+	if ( false == m_UnitData.m_UserSkillTree.IsEnableSkillAcquiredPage() )
+		return;
+#else
 	const int iIncreaseSkillLevelByBuff = GetIncreaseSkillLevelByBuff();	/// 버프로 인한 스킬 레벨 증가 효과값
+#endif SKILL_PAGE_SYSTEM
 
-	std::map<CX2SkillTree::SKILL_ID, CX2UserSkillTree::UserSkillData>& mapSkillAcquired = m_pUnitData->m_UserSkillTree.GetMapSkillAcquired();
+	std::map<CX2SkillTree::SKILL_ID, CX2UserSkillTree::UserSkillData>& mapSkillAcquired = m_UnitData.m_UserSkillTree.AccessMapSkillAcquired();
 
 	std::map<CX2SkillTree::SKILL_ID, CX2UserSkillTree::UserSkillData>::iterator mit = mapSkillAcquired.begin();
 
@@ -3941,6 +4264,25 @@ int CX2Unit::GetIncreaseSkillLevelByBuff()
 	/// 유닛 객체가 없다면, 월드 버프에서 검색 ( 마을 등에서는 월드 버프만 유지되어 있다.( 효과 없이 아이콘만 표시 ) )
 	else
 	{
+#ifdef SET_WORLD_BUFF_AT_RESURRECTION // 김태환		서버에서 준 버프 정보를 버프 펙터 아이디로 저장하였기 때문에, 수정
+		/// 월드 버프 저장 컨테이너
+		std::vector<BUFF_FACTOR_ID> vecWorldBuffID = g_pData->GetMyUser()->GetSelectUnit()->GetWorldBuffFactorID();
+
+		BOOST_FOREACH( BUFF_FACTOR_ID eAddSkillLevelByBuffID, vecWorldBuffID )
+		{
+			CX2BuffFactorPtr ptrBuffFactor = CX2BuffTempletManager::GetInstance()->GetBuffFactorPtr( eAddSkillLevelByBuffID );
+
+			if ( NULL != ptrBuffFactor )
+			{
+				const KBuffBehaviorFactor* pBehaviorFactor = NULL;
+
+				ptrBuffFactor->GetBehaviorFactor( BBT_ADD_SKILL_LEVEL, &pBehaviorFactor );		/// 스킬 레벨 증가 효과 검사
+
+				if ( NULL != pBehaviorFactor )
+					iIncreaseSkillLevelByBuff += static_cast<int>( pBehaviorFactor->m_vecValues[0] );	/// 설정된 레벨치 적용
+			}
+		}
+#else // SET_WORLD_BUFF_AT_RESURRECTION
 		/// 월드 버프 저장 컨테이너
 		std::vector<CX2BuffFactorPtr> vecWorldBuff = g_pData->GetMyUser()->GetSelectUnit()->GetWorldBuffFactorPtr();
 
@@ -3956,6 +4298,7 @@ int CX2Unit::GetIncreaseSkillLevelByBuff()
 					iIncreaseSkillLevelByBuff += static_cast<int>( pBehaviorFactor->m_vecValues[0] );	/// 설정된 레벨치 적용
 			}
 		}
+#endif // SET_WORLD_BUFF_AT_RESURRECTION
 	}
 
 	return iIncreaseSkillLevelByBuff;
@@ -3966,10 +4309,13 @@ int CX2Unit::GetIncreaseSkillLevelByBuff()
 */
 void CX2Unit::ResetIncreaseSkillLevelBySocket()
 {
-	if ( NULL ==m_pUnitData )
+#ifdef SKILL_PAGE_SYSTEM // 해외팀 추가
+	/// 스킬 페이지에 대한 스킬 목록이 없다면, 구문 중지
+	if ( false == m_UnitData.m_UserSkillTree.IsEnableSkillAcquiredPage() )
 		return;
+#endif SKILL_PAGE_SYSTEM
 
-	std::map<CX2SkillTree::SKILL_ID, CX2UserSkillTree::UserSkillData>& mapSkillAcquired = m_pUnitData->m_UserSkillTree.GetMapSkillAcquired();
+	std::map<CX2SkillTree::SKILL_ID, CX2UserSkillTree::UserSkillData>& mapSkillAcquired = m_UnitData.m_UserSkillTree.AccessMapSkillAcquired();
 
 	std::map<CX2SkillTree::SKILL_ID, CX2UserSkillTree::UserSkillData>::iterator mit = mapSkillAcquired.begin();
 
@@ -3998,17 +4344,15 @@ int CX2Unit::GetIncreaseSkillLevelBySocket( CX2SkillTree::SKILL_ID eSkillID )
 {
 	if( NULL == g_pData ||
 		NULL == g_pData->GetSocketItem() ||
-		NULL == g_pData->GetTitleManager() ||
-		NULL == m_pUnitData ||
-		NULL == m_pUnitData->m_pInventory )
+		NULL == g_pData->GetTitleManager() )
 		return 0;
 
 	int iIncreaseSkillLevelBySocket = 0;
 	/// 소켓에 레벨 증가 관련 효과가 있는지 검사
 		
-	BOOST_TEST_FOREACH( const UidType&, eqipUID, m_pUnitData->m_NowEqipItemUIDList )		/// 장비중인 아이템을 모두 검사
+	BOOST_TEST_FOREACH( const UidType&, eqipUID, m_UnitData.m_NowEqipItemUIDList )		/// 장비중인 아이템을 모두 검사
 	{
-		CX2Item* pItem = m_pUnitData->m_pInventory->GetItem( eqipUID );		/// 아이템 UID를 통해 아이템 객체 반환
+		CX2Item* pItem = m_UnitData.m_Inventory.GetItem( eqipUID );		/// 아이템 UID를 통해 아이템 객체 반환
 		if( NULL == pItem )
 			continue;
 
@@ -4023,40 +4367,40 @@ int CX2Unit::GetIncreaseSkillLevelBySocket( CX2SkillTree::SKILL_ID eSkillID )
 		for( UINT j=0; j<uNumSockOption; j++ )
 		{
 			int socketOptionID = pItemTemplet->GetSocketOption(j);
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 			if( NULL == pSocketData )
 				continue;
 
 			/// 스킬 레벨 증가 효과로 인한 스킬 레벨 증가치 연산
-			g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_pUnitData->m_UnitClass );
+			g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_UnitData.m_UnitClass );
 		}
 
 		/// 아이템에 유저가 박은 소켓에 의한 소켓 옵션 검사
-		for( UINT j=0; j < pItem->GetItemData()->m_SocketOption.size(); j++ )
+		for( UINT j=0; j < pItem->GetItemData().m_SocketOption.size(); j++ )
 		{
-			int socketOptionID = pItem->GetItemData()->m_SocketOption[j];
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+			int socketOptionID = pItem->GetItemData().m_SocketOption[j];
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 			if( NULL == pSocketData )
 				continue;
 
-			g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_pUnitData->m_UnitClass );
+			g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_UnitData.m_UnitClass );
 		}
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
 		/// 감정을 통해 얻는 랜덤 소켓 옵션 검사
-		BOOST_FOREACH( int iSocketID, pItem->GetItemData()->m_vecRandomSocket )
+		BOOST_FOREACH( int iSocketID, pItem->GetItemData().m_vecRandomSocket )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
 			if( NULL == pSocketData )
 				continue;
 
-			g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_pUnitData->m_UnitClass );
+			g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_UnitData.m_UnitClass );
 		}
 
 	}
 
 	/// 칭호에 레벨 증가 관련 효과가 있는지 검사
-	const int iTitleID = m_pUnitData->m_iTitleId;		/// 칭호 아이디
+	const int iTitleID = m_UnitData.m_iTitleId;		/// 칭호 아이디
 
 	if( NULL != g_pData->GetTitleManager()->GetTitleInfo( iTitleID ) )
 	{
@@ -4064,11 +4408,11 @@ int CX2Unit::GetIncreaseSkillLevelBySocket( CX2SkillTree::SKILL_ID eSkillID )
 
 		BOOST_FOREACH( int socketOptionID, vecTitleSocketOption )
 		{
-			CX2SocketItem::SocketData*	pSocketData		= g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+			const CX2SocketItem::SocketData*	pSocketData		= g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 			if( NULL == pSocketData )
 				continue;
 
-			g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_pUnitData->m_UnitClass );
+			g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_UnitData.m_UnitClass );
 		}
 	}
 
@@ -4094,9 +4438,9 @@ int CX2Unit::GetIncreaseSkillLevelBySocket( CX2SkillTree::SKILL_ID eSkillID )
 				/// 옵션중 스킬 레벨 등가 효과가 있으면, 적용
 				BOOST_FOREACH( int iSocketID, vecOptions )
 				{
-					CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
+					const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
 					if( NULL != pSocketData )
-						g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_pUnitData->m_UnitClass );
+						g_pData->GetSocketItem()->GetSkillLevelIncreaseValue( pSocketData, eSkillID, iIncreaseSkillLevelBySocket, m_UnitData.m_UnitClass );
 				}
 			}
 
@@ -4145,7 +4489,6 @@ void CX2Unit::UnitData::SetGrowUpPoint( GROW_UP_TYPE eType_, int const iPoint_, 
 	}
 }
 
-
 void CX2Unit::UnitData::IncreaseGrowUpPoint( GROW_UP_TYPE eType_, int const iPoint_, UidType iUnitUID_ )
 {
 	if( GUT_NONE == eType_ )
@@ -4176,12 +4519,10 @@ void CX2Unit::UnitData::IncreaseGrowUpPoint( GROW_UP_TYPE eType_, int const iPoi
 		{
 			m_mapGrowUpPoint.insert(std::make_pair(eType_, iPoint_));
 		}
-
-
 	}
 }
 
-int  CX2Unit::UnitData::GetGrowUpPoint( GROW_UP_TYPE eType_ )
+int CX2Unit::UnitData::GetGrowUpPoint( GROW_UP_TYPE eType_ )
 {
 	if( eType_ == GUT_NONE )
 		return 0;
@@ -4197,7 +4538,7 @@ int  CX2Unit::UnitData::GetGrowUpPoint( GROW_UP_TYPE eType_ )
 	}
 }
 
-int  CX2Unit::UnitData::GetGrowUpLevel( GROW_UP_TYPE eType_ )
+int CX2Unit::UnitData::GetGrowUpLevel( GROW_UP_TYPE eType_ )
 {
 	if( eType_ == GUT_NONE )
 		return 0;
@@ -4229,7 +4570,11 @@ int  CX2Unit::UnitData::GetGrowUpLevel( GROW_UP_TYPE eType_ )
 		case GUT_EXCHANGE_COUNT:
 			{
 				// 최대 레벨은 15. 이런식으로 만들면 안 됨. 나중에 제대로 수정해야 할 듯 by 박진웅
+#ifdef SERV_2013_SILVER_WEEK_TITLE
+				return min( mit->second + 1, 12 );
+#else //SERV_2013_SILVER_WEEK_TITLE
 				return min( mit->second + 1, 15 );
+#endif //SERV_2013_SILVER_WEEK_TITLE
 			}
 			break;
 
@@ -4244,7 +4589,7 @@ int  CX2Unit::UnitData::GetGrowUpLevel( GROW_UP_TYPE eType_ )
 	}
 }
 
-int  CX2Unit::UnitData::GetGrowUpLevelBySocket( const int iType_ )
+int CX2Unit::UnitData::GetGrowUpLevelBySocket( const int iType_ )
 {
 	GROW_UP_TYPE eGrowUpType = GUT_NONE;
 	if( iType_ == static_cast<int>( CX2SocketItem::SDT_PVP_TAG_POINT ) )
@@ -4265,7 +4610,7 @@ int  CX2Unit::UnitData::GetGrowUpLevelBySocket( const int iType_ )
 	return GetGrowUpLevel( eGrowUpType );
 }
 
-int  CX2Unit::UnitData::GetGrowUpLevelByTitle( const int iTitleID )
+int CX2Unit::UnitData::GetGrowUpLevelByTitle( const int iTitleID )
 {
 	const CX2TitleManager::TitleInfo* pTitleInfo = g_pData->GetTitleManager()->GetTitleInfo( iTitleID );
 
@@ -4275,15 +4620,14 @@ int  CX2Unit::UnitData::GetGrowUpLevelByTitle( const int iTitleID )
 	int iLevel = 0;
 	for each( const int iSocketID in pTitleInfo->m_vecSocketOption )
 	{
-		CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
+		const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
 		if( pSocketData == NULL ||
 			g_pData->GetMyUser() == NULL ||
-			g_pData->GetMyUser()->GetSelectUnit() == NULL ||
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
+			g_pData->GetMyUser()->GetSelectUnit() == NULL )
 			continue;
 
 		// 설마 그럴리는 없겠지만 한 타이틀 안에 여러 종류의 레벨업 소켓을 넣었다면 그 중 더 높은 소켓의 레벨이 사용됨 by 박진웅
-		iLevel = max( iLevel, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->GetGrowUpLevelBySocket( pSocketData->m_Type ) );
+		iLevel = max( iLevel, g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().GetGrowUpLevelBySocket( pSocketData->m_Type ) );
 	}
 
 	return iLevel;
@@ -4307,9 +4651,7 @@ bool CX2Unit::UnitData::_CheckGrowUpNow( GROW_UP_TYPE eType_ )
 
 		return false;
 	}
-
 }
-
 #endif //SERV_GROW_UP_SOCKET
 
 #ifdef SERV_LIMITED_DUNGEON_PLAY_TIMES
@@ -4350,3 +4692,259 @@ wstring CX2Unit::GetLocalMapPlayTimesDesc( int iDungeonID )
 	return wstrLimitedPlayTimes;
 }
 #endif SERV_LIMITED_DUNGEON_PLAY_TIMES
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+bool CX2Unit::IsInfinityElEssence() const
+{
+	if( NULL != GetInventory().GetItemByTID( INFINITY_EL_ESSENCE_ITEM_EVENT, false, false ) )
+	{
+		if( g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME
+			&& NULL != g_pData->GetPartyManager()
+			&& NULL != g_pData->GetPartyManager()->GetMyPartyData()) 
+		{
+			if( true == CX2Dungeon::IsHenirDungeon( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ))
+				|| true == CX2Dungeon::IsSecretDungeon( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ))
+				return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+float CX2Unit::GetSkillCoolTimeDecreaseRate(CX2SkillTree::SKILL_ID eSkillID, CX2SkillTree::SKILL_TYPE eSkillType) const
+{
+	float fDecreaseRate = 1.0f;
+
+	if( CX2SkillTree::ST_HYPER_ACTIVE_SKILL == eSkillType )
+	{
+		if( NULL != GetInventory().GetItemByTID( FINALITY_SKILL_COOL_TIME_LEFT_ITEM_EVENT, false, false ) )
+		{
+			if( g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME
+				&& NULL != g_pData->GetPartyManager()
+				&& NULL != g_pData->GetPartyManager()->GetMyPartyData()) 
+			{
+				if( false == CX2Dungeon::IsHenirDungeon( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ))
+					&& false == CX2Dungeon::IsSecretDungeon( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ))
+					fDecreaseRate = 0.7f;
+			}
+			else
+				fDecreaseRate = 0.7f;
+		}
+
+		return fDecreaseRate;
+	}
+
+	switch(eSkillID)
+	{
+	case 202:
+	case 204:
+	case 1000:
+	case 1002:
+	case 1004:
+	case 1007:
+	case 1015:
+	case 1200:
+	case 1209:
+	case 1210:
+	case 1217:
+	case 1222:
+	case 1224:
+	case 1402:
+	case 1406:
+	case 1408:
+	case 2000:
+	case 2007:
+	case 2013:
+	case 2014:
+	case 2016:
+	case 2017:
+	case 2020:
+	case 2021:
+	case 2201:
+	case 2203:
+	case 2206:
+	case 2212:
+	case 2214:
+	case 2217:
+	case 2218:
+	case 2219:
+	case 2223:
+	case 2415:
+	case 3000:
+	case 3001:
+	case 3003:
+	case 3005:
+	case 3008:
+	case 3011:
+	case 3016:
+	case 3017:
+	case 3018:
+	case 3201:
+	case 3206:
+	case 3207:
+	case 3210:
+	case 3218:
+	case 3219:
+	case 3220:
+	case 3222:
+	case 3224:
+	case 3226:
+	case 3227:
+	case 3229:
+	case 3400:
+	case 3404:
+	case 3410:
+	case 3412:
+	case 3413:
+	case 4000:
+	case 4002:
+	case 4005:
+	case 4009:
+	case 4010:
+	case 4013:
+	case 4016:
+	case 4017:
+	case 4019:
+	case 4021:
+	case 4022:
+	case 4200:
+	case 4203:
+	case 4213:
+	case 4214:
+	case 4215:
+	case 4216:
+	case 4218:
+	case 4411:
+	case 4412:
+	case 4414:
+	case 4417:
+	case 5005:
+	case 5008:
+	case 5009:
+	case 5011:
+	case 5013:
+	case 5015:
+	case 5017:
+	case 5024:
+	case 5200:
+	case 5202:
+	case 5206:
+	case 5214:
+	case 5217:
+	case 5407:
+	case 6000:
+	case 6001:
+	case 6002:
+	case 6006:
+	case 6009:
+	case 6010:
+	case 6016:
+	case 6020:
+	case 6021:
+	case 6200:
+	case 6201:
+	case 6206:
+	case 6210:
+	case 6213:
+	case 6214:
+	case 6218:
+	case 6219:
+	case 6222:
+	case 6224:
+	case 6225:
+	case 6410:
+	case 6413:
+	case 7001:
+	case 7006:
+	case 7008:
+	case 7010:
+	case 7011:
+	case 7012:
+	case 7014:
+	case 7200:
+	case 7202:
+	case 7203:
+	case 7204:
+	case 7206:
+	case 7207:
+	case 7212:
+	case 7214:
+	case 7216:
+	case 7219:
+	case 7408:
+	case 7410:
+	case 8003:
+	case 8004:
+	case 8006:
+	case 8011:
+	case 8016:
+	case 8019:
+	case 8202:
+	case 8204:
+	case 8205:
+	case 8206:
+	case 8209:
+	case 8210:
+	case 8213:
+	case 8217:
+	case 8218:
+	case 8401:
+	case 8402:
+	case 8403:
+	case 8404:
+	case 8405:
+	case 8406:
+	case 8407:
+	case 8408:
+	case 8409:
+	case 8600:
+	case 8601:
+		{
+			if( NULL != GetInventory().GetItemByTID( BALANCE_SKILL_COOL_TIME_LEFT_ITEM_EVENT, false, false ) )
+			{
+				if( g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME
+					&& NULL != g_pData->GetPartyManager()
+					&& NULL != g_pData->GetPartyManager()->GetMyPartyData()) 
+				{
+					if( false == CX2Dungeon::IsHenirDungeon( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ))
+						&& false == CX2Dungeon::IsSecretDungeon( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ))
+						fDecreaseRate = 0.7f;
+				}
+				//else
+				//	fDecreaseRate = 0.7f;
+			}
+
+			return fDecreaseRate;
+		}
+		break;
+	}
+
+	return fDecreaseRate;
+}
+
+float CX2Unit::GetSkillMpDecreaseRate(CX2SkillTree::SKILL_ID eSkillID, CX2SkillTree::SKILL_TYPE eSkillType) const
+{
+	float fDecreaseRate = 1.0f;
+
+	if( CX2SkillTree::ST_HYPER_ACTIVE_SKILL == eSkillType )
+	{
+		if( NULL != GetInventory().GetItemByTID( FINALITY_SKILL_COOL_ACTIVATE_ITEM_EVENT, false, false ) )
+		{
+			if( g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME
+				&& NULL != g_pData->GetPartyManager()
+				&& NULL != g_pData->GetPartyManager()->GetMyPartyData()) 
+			{
+				if( false == CX2Dungeon::IsHenirDungeon( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ))
+					&& false == CX2Dungeon::IsSecretDungeon( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ))
+					fDecreaseRate = 0.8f;
+			}
+			else
+				fDecreaseRate = 0.8f;
+		}
+	}
+
+	return fDecreaseRate;
+}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT

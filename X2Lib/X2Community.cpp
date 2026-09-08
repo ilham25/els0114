@@ -27,6 +27,9 @@ m_pDlgGuild( NULL )
 , m_pDlgRelationOnlyPartnerShowing ( NULL )
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환
+, m_fInviteCoolTime( 0.f )
+#endif // FIX_INVITE_PVP_PLAYER
 #ifdef SERV_RECRUIT_EVENT_BASE
 , m_pDlgRecruit( NULL )
 #endif SERV_RECRUIT_EVENT_BASE
@@ -107,10 +110,13 @@ m_pDlgGuild( NULL )
 	m_iChangeChannelId = -1;
 
 	m_SelectedGuildMemberUID = 0;
-
-#ifndef NEW_MESSENGER // 빌드 오류로 해외팀 추가
+#ifndef NEW_MESSENGER
 	m_RequestedNMFriendKey = NMFriendKey();
-#endif // NEW_MESSENGER
+#endif  NEW_MESSENGER
+
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환
+	m_vecInviteRoomUID.clear();
+#endif // FIX_INVITE_PVP_PLAYER
 }
 
 CX2Community::~CX2Community(void)
@@ -178,7 +184,11 @@ CX2Community::~CX2Community(void)
 	m_vecRecommendUserInfo.clear();
 #endif	VIEW_REFEREE_LIST
 	//}} kimhc // 2009-01-12 // 가이아 서버에만 추천인 리스트 보이는 기능
-	
+
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환
+	m_vecInviteRoomUID.clear();
+#endif // FIX_INVITE_PVP_PLAYER
+
 #ifdef	SERV_RECRUIT_EVENT_BASE
 	SAFE_DELETE_DIALOG( m_pDlgRecruit );
 	m_vecRecruitUnitInfo.clear();
@@ -468,28 +478,19 @@ bool CX2Community::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 			if(m_pDLGUserMenu != NULL)
 				m_pDLGUserMenu->SetShowEnable(false, false);
 
-#ifndef DEPRECATED_SERVER_GROUP_MASK
-#ifdef SERV_INTEGRATION
-#ifdef EXTEND_SERVER_GROUP_MASK
-			int iServerGroupID = -1;
-			//{{ oasis907 : 김상윤 [2010.5.18] // 던전 대전 서버군 통합
-			iServerGroupID = (int) g_pMain->ExtractServerGroupID(m_iPickedUserUID);
-			// 우클릭한 대상 유닛의 서버가 자신의 서버와 다를 경우
-			if(g_pInstanceData->GetServerGroupID() != iServerGroupID)
-#else
-			SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
-			//{{ oasis907 : 김상윤 [2010.5.18] // 던전 대전 서버군 통합
-			eServerGroupID = (SERVER_GROUP_ID) g_pMain->ExtractServerGroupID(m_iPickedUserUID);
-			// 우클릭한 대상 유닛의 서버가 자신의 서버와 다를 경우
-			if(g_pInstanceData->GetServerGroupID() != eServerGroupID)
-#endif // EXTEND_SERVER_GROUP_MASK
-			{
-				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_5129 ), g_pMain->GetNowState() );
-				return true;
-			}
-			//}}
-#endif SERV_INTEGRATION
-#endif DEPRECATED_SERVER_GROUP_MASK
+//#ifdef SERV_INTEGRATION //2013.4.11 다른 서버군도 프로필 정보가 출력되도록 주석 처리
+//			SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
+//			//{{ oasis907 : 김상윤 [2010.5.18] // 던전 대전 서버군 통합
+//			eServerGroupID = (SERVER_GROUP_ID) g_pMain->ExtractServerGroupID(m_iPickedUserUID);
+//			// 우클릭한 대상 유닛의 서버가 자신의 서버와 다를 경우
+//			if(g_pInstanceData->GetServerGroupID() != eServerGroupID)
+//			{
+//				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_5129 ), g_pMain->GetNowState() );
+//				return true;
+//			}
+//			//}}
+//#endif SERV_INTEGRATION
+
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 			CX2State* pState = static_cast<CX2State*>( m_pStage );
 			if( NULL != pState )
@@ -581,7 +582,7 @@ bool CX2Community::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				return true;
 
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -697,7 +698,7 @@ bool CX2Community::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				return true;
 
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -971,6 +972,19 @@ bool CX2Community::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 			if( NULL != pTimedPopup )
 			{
 				pTimedPopup->m_fTimeLeft = 0.f;
+
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환
+				/// 초대 룸 리스트에서 해당 룸 아이디를 제거
+				vector<UidType>::iterator it;
+
+				for( it = m_vecInviteRoomUID.begin(); it != m_vecInviteRoomUID.end(); ++it )
+				{
+					if ( pTimedPopup->m_UserData.iOpponentUID == *it )
+						m_vecInviteRoomUID.erase( it );
+
+					break;
+				}
+#endif // FIX_INVITE_PVP_PLAYER
 			}
 			return true;
 
@@ -1327,7 +1341,7 @@ bool CX2Community::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				m_pDLGUserMenu->SetShowEnable(false, false);
 
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -1343,7 +1357,7 @@ bool CX2Community::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				m_pDLGUserMenu->SetShowEnable(false, false);
 
 			// 체험 아이디 제한 
-			if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+			if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 			{
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 				return true;
@@ -1989,9 +2003,9 @@ bool CX2Community::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					{
 						CX2SquareUnit* pMyUnit = g_pTFieldGame->GetMyUnit();	/// 마을에서의 내 유닛
 
-						if( NULL != pMyUnit && NULL != pMyUnit->GetUnit() && NULL != pMyUnit->GetUnit()->GetUnitData() )
+						if( NULL != pMyUnit && NULL != pMyUnit->GetUnit() )
 						{
-							int				iMapID					= pMyUnit->GetUnit()->GetUnitData()->m_nMapID;	/// 현재 유닛이 있는 맵 아이디
+							int				iMapID					= pMyUnit->GetUnit()->GetUnitData().m_nMapID;	/// 현재 유닛이 있는 맵 아이디
 							D3DXVECTOR3		vMyPos					= pMyUnit->GetPos();							/// 현재 유닛의 위치
 							unsigned char	ucLastTouchLineIndex	= pMyUnit->GetLastTouchLineIndex();				/// 현재 유닛이 가장 마지막에 접근한 라인맵 인덱스
 
@@ -2011,9 +2025,9 @@ bool CX2Community::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					{
 						CX2GUUser* pMyUnit = g_pX2Game->GetMyUnit();	/// 필드에서의 내 유닛
 
-						if( NULL != pMyUnit && NULL != pMyUnit->GetUnit() && NULL != pMyUnit->GetUnit()->GetUnitData() )
+						if( NULL != pMyUnit && NULL != pMyUnit->GetUnit() )
 						{
-							int				iMapID					= pMyUnit->GetUnit()->GetUnitData()->m_nMapID;	/// 현재 유닛이 있는 맵 아이디
+							int				iMapID					= pMyUnit->GetUnit()->GetUnitData().m_nMapID;	/// 현재 유닛이 있는 맵 아이디
 							D3DXVECTOR3		vMyPos					= pMyUnit->GetPos();							/// 현재 유닛의 위치
 							unsigned char	ucLastTouchLineIndex	= pMyUnit->GetLastTouchLineIndex();				/// 현재 유닛이 가장 마지막에 접근한 라인맵 인덱스
 
@@ -2218,7 +2232,7 @@ void CX2Community::Reset()
 void CX2Community::SetOpen( bool bCheck )
 {
 	// 체험 아이디 제한 
-	if( bCheck == true && true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+	if( bCheck == true && true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
 		return;
@@ -2712,12 +2726,12 @@ void CX2Community::OnFrameMove( double fTime, float fElapsedTime )
 		{
 			if ( pIMEEdit->GetHaveFocusIn() == true )
 			{
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 				GET_KEY_STATE(GA_RETURN);
 				g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_RETURN);
-#else // KEY_MAPPING_INT
+#else // SERV_KEY_MAPPING_INT
 				g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_RETURN);
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 				pChatSession->m_bAlarmReceiveMessage = false;
 			}
 		}
@@ -2743,7 +2757,16 @@ void CX2Community::OnFrameMove( double fTime, float fElapsedTime )
 	}
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환
+	/// 해당 쿨타임이 종료되면, 초대 룸 리스트를 초기화 한다.
+	if ( 0.f < m_fInviteCoolTime )
+	{
+		m_fInviteCoolTime -= fElapsedTime;
 
+		if ( 0.f >= m_fInviteCoolTime )
+			m_vecInviteRoomUID.clear();
+	}
+#endif // FIX_INVITE_PVP_PLAYER
 }
 
 void CX2Community::OnFrameRender()
@@ -2855,7 +2878,7 @@ void CX2Community::SyncFriendList()
 	CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 	NMVirtualKey myNMVirtualKey;
 	myNMVirtualKey.uGameCode = NEXON_KOREA_ELSWORD_GAMECODE;
-	myNMVirtualKey.uVirtualIDCode = pMyUnit->GetUnitData()->m_iNMKSerialNum;
+	myNMVirtualKey.uVirtualIDCode = pMyUnit->GetUnitData().m_iNMKSerialNum;
 
 	//그룹에 속해있지 않은 친구 리스트 등록
 	for ( int i = 0; i < (int)friendList.size(); i++ )
@@ -2927,7 +2950,7 @@ void CX2Community::ResetUserList()
 	CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 	NMVirtualKey myNMVirtualKey;
 	myNMVirtualKey.uGameCode = NEXON_KOREA_ELSWORD_GAMECODE;
-	myNMVirtualKey.uVirtualIDCode = pMyUnit->GetUnitData()->m_iNMKSerialNum;
+	myNMVirtualKey.uVirtualIDCode = pMyUnit->GetUnitData().m_iNMKSerialNum;
 
 	//그룹에 속해있지 않은 친구 리스트 등록
 	for ( int i = 0; i < (int)friendList.size(); i++ )
@@ -3013,6 +3036,29 @@ bool CX2Community::SearchFriendReq()
 			if ( pState != NULL )
 			{
 				wstring nickName = pIMEEditID->GetText();
+#ifdef SIMPLE_BUG_FIX
+				if( g_pData != NULL && g_pData->GetMyUser() != NULL)
+				{
+					if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName == nickName )
+					{
+#ifdef HARDCODING_STRING_TO_INDEX
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING(STR_ID_2539), g_pMain->GetNowState() );
+#else
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"자기 자신입니다.", g_pMain->GetNowState() );
+#endif HARDCODING_STRING_TO_INDEX
+						return false;
+					}
+					else if( NULL != g_pData->GetMyUser()->GetUnitByNickName(nickName.c_str()) )
+					{
+#ifdef HARDCODING_STRING_TO_INDEX
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING(STR_ID_4883), g_pMain->GetNowState() );
+#else
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"같은 계정의 캐릭터는 친구로 등록할수 없습니다.", g_pMain->GetNowState() );
+#endif HARDCODING_STRING_TO_INDEX
+						return false;
+					}
+				}
+#endif // SIMPLE_BUG_FIX
 				return pState->Handler_EGS_SEARCH_UNIT_REQ( nickName.c_str() );
 			}
 		}
@@ -3585,8 +3631,7 @@ bool CX2Community::Handler_EGS_KNM_REQUEST_NEW_FRIEND_INFO_ACK( HWND hWnd, UINT 
 				wstrServerName = GET_STRING( STR_ID_5131 );
 				break;
 			}
-#endif SERVER_GROUP_UI_ADVANCED
-			
+#endif SERVER_GROUP_UI_ADVANCED			
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300), GET_REPLACED_STRING( ( STR_ID_5132, "L", wstrServerName ) ), g_pMain->GetNowState() );
 			OpenAddFriendWindow( false );
 			return true;
@@ -3612,7 +3657,7 @@ bool CX2Community::Handler_EGS_KNM_REQUEST_NEW_FRIEND_INFO_ACK( HWND hWnd, UINT 
 				wstring tempNickName = ConvertFullName( kEvent.m_wstrUnitNickName.c_str() );
 				if ( CNMCOClientObject::GetInstance().RequestNewFriend( tempNickName.c_str(), addFriendMessage.c_str(), 
 					FALSE, NEXON_KOREA_ELSWORD_GAMECODE, NEXON_KOREA_ELSWORD_GAMECODE, 
-					(_UInt32_)pUnit->GetUnitData()->m_iNMKSerialNum, kEvent.m_uiKNMSerialNum) == FALSE )
+					(_UInt32_)pUnit->GetUnitData().m_iNMKSerialNum, kEvent.m_uiKNMSerialNum) == FALSE )
 				{
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300), GET_STRING( STR_ID_75 ), m_pStage );
 				}
@@ -3739,7 +3784,7 @@ bool CX2Community::CreateGroup()
 #else NEW_MESSENGER
 		NMVirtualKey nmVirtualKey;
 		nmVirtualKey.uGameCode = NEXON_KOREA_ELSWORD_GAMECODE;
-		nmVirtualKey.uVirtualIDCode = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iNMKSerialNum;
+		nmVirtualKey.uVirtualIDCode = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iNMKSerialNum;
 		if ( CNMCOClientObject::GetInstance().AddCategory( nmVirtualKey, newGroupName.c_str() ) == FALSE )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_79 ), m_pStage );
@@ -4886,11 +4931,8 @@ wstring CX2Community::ConvertFullName( const WCHAR* pNickName )
 	//수정해야함 나중에 서버군 이름 넣어줘야하는 식으로.. 아직은 솔레스 밖에 없으므로 일단 요로코롬 작업
 
 #ifdef EXTEND_SERVER_GROUP_MASK
-
 	tempName = pNickName;
-
 #else
-
 #ifdef _SERVICE_
 	#ifdef _OPEN_TEST_
         tempName = GET_REPLACED_STRING( ( STR_ID_94, "S", pNickName ) );
@@ -4943,9 +4985,7 @@ wstring CX2Community::ConvertFullName( const WCHAR* pNickName )
 		#endif
 	#endif	
 #endif
-
 #endif // EXTEND_SERVER_GROUP_MASK
-
 	return tempName;
 }
 
@@ -5182,6 +5222,9 @@ void CX2Community::SetTab( CX2Community::X2_COMMUNITY_TAB messengerTab )
 	CheckButton(NULL);
 
 	//SetMode( CX2Community::XMM_USER_LIST_MODE );
+#ifdef COMMUNITY_ALL_TAB_BUG_FIX
+	CKTDGUIRadioButton *pRadioAll = (CKTDGUIRadioButton*)m_pDlgBack->GetControl(L"all");
+#endif COMMUNITY_ALL_TAB_BUG_FIX
 
 	switch(messengerTab)
 	{
@@ -5237,7 +5280,7 @@ void CX2Community::SetTab( CX2Community::X2_COMMUNITY_TAB messengerTab )
 					wstrLocalInfo += L")";
 
 					CKTDGUIStatic* pStaticName = (CKTDGUIStatic*) m_pDlgField->GetControl( L"channel_name" );
-#ifdef ELLIPSE_GLOBAL
+#ifdef INTEGRATE_TOOLTIP
 					bool bEllipse = false;
 					wstring tempName = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(wstrLocalInfo.c_str(), 160, pStaticName->GetString(0)->fontIndex, 1, bEllipse);
 
@@ -5264,7 +5307,7 @@ void CX2Community::SetTab( CX2Community::X2_COMMUNITY_TAB messengerTab )
 					pStaticName->GetString(0)->msg = tempName;
 #else
 					pStaticName->GetString(0)->msg = wstrLocalInfo;	
-#endif ELLIPSE_GLOBAL
+#endif INTEGRATE_TOOLTIP
 				}
 			}			
 
@@ -5303,7 +5346,9 @@ void CX2Community::SetTab( CX2Community::X2_COMMUNITY_TAB messengerTab )
 			m_pDlgRelationOnlyNotCouple->SetShowEnable( false, false );
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifndef COMMUNITY_ALL_TAB_BUG_FIX
 			CKTDGUIRadioButton *pRadioAll = (CKTDGUIRadioButton*)m_pDlgBack->GetControl(L"all");		
+#endif COMMUNITY_ALL_TAB_BUG_FIX
 			//CKTDGUIRadioButton *pRadioDisciple = (CKTDGUIRadioButton*)m_pDlgBack->GetControl(L"disciple");
 			//CKTDGUIRadioButton *pRadioGuild = m_pDlgBack->GetControl(L"guild");
 
@@ -5360,6 +5405,20 @@ void CX2Community::SetTab( CX2Community::X2_COMMUNITY_TAB messengerTab )
 		m_pDlgRelationOnlyNotCouple->SetShowEnable( false, false );
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef COMMUNITY_ALL_TAB_BUG_FIX
+		// 게임중 커뮤니티창이 열렸을시 전체탭은 활성화시키지 못하도록 한다.
+		if( m_pDlgBack != NULL && (g_pMain->GetNowStateID() == CX2Main::XS_PVP_GAME || g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME) )
+		{
+			pRadioAll->SetEnable(false);
+			//pRadioDisciple->SetEnable(false);
+		}
+		else
+		{
+			pRadioAll->SetEnable(true);
+			//pRadioDisciple->SetEnable(true);
+		}
+#endif COMMUNITY_ALL_TAB_BUG_FIX
+
 		for(int i=0; i<8; ++i)
 		{
 			if(m_pFieldUserIcon[i] != NULL)
@@ -5407,6 +5466,19 @@ void CX2Community::SetTab( CX2Community::X2_COMMUNITY_TAB messengerTab )
 
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
+#ifdef COMMUNITY_ALL_TAB_BUG_FIX
+		// 게임중 커뮤니티창이 열렸을시 전체탭은 활성화시키지 못하도록 한다.
+		if( m_pDlgBack != NULL && (g_pMain->GetNowStateID() == CX2Main::XS_PVP_GAME || g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME) )
+		{
+			pRadioAll->SetEnable(false);
+			//pRadioDisciple->SetEnable(false);
+		}
+		else
+		{
+			pRadioAll->SetEnable(true);
+			//pRadioDisciple->SetEnable(true);
+		}
+#endif COMMUNITY_ALL_TAB_BUG_FIX
 
 		for(int i=0; i<8; ++i)
 		{
@@ -5510,7 +5582,7 @@ void CX2Community::SetTab( CX2Community::X2_COMMUNITY_TAB messengerTab )
 		m_pDlgField->SetShowEnable(false, false);
 		m_pDlgFriend->SetShowEnable(false, false);
 		m_pDlgGuild->SetShowEnable(false, false);
-		m_pDlgDisciple->SetShowEnable(false, false);
+		m_pDlgDisciple->SetShowEnable(false, false);	
 #ifdef	VIEW_REFEREE_LIST
 		if ( NULL != m_pDlgReferee )
 			m_pDlgReferee->SetShowEnable(false, false);	
@@ -5520,6 +5592,20 @@ void CX2Community::SetTab( CX2Community::X2_COMMUNITY_TAB messengerTab )
 			m_pDlgRecruit->SetShowEnable( false, false );
 #endif	SERV_RECRUIT_EVENT_BASE
 		
+#ifdef COMMUNITY_ALL_TAB_BUG_FIX
+		// 게임중 커뮤니티창이 열렸을시 전체탭은 활성화시키지 못하도록 한다.
+		if( m_pDlgBack != NULL && (g_pMain->GetNowStateID() == CX2Main::XS_PVP_GAME || g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_GAME) )
+		{
+			pRadioAll->SetEnable(false);
+			//pRadioDisciple->SetEnable(false);
+		}
+		else
+		{
+			pRadioAll->SetEnable(true);
+			//pRadioDisciple->SetEnable(true);
+		}
+#endif COMMUNITY_ALL_TAB_BUG_FIX
+
 		if ( NULL != g_pData->GetRelationshipManager() &&
 			NULL != g_pData->GetRelationshipManager()->GetMyRelationshipInfo() )
 		{
@@ -5606,7 +5692,7 @@ void CX2Community::ResetUserListUI()
 #ifdef NEW_MESSENGER
 	if ( m_bOpen == false )
 		return;
-#endif
+#endif NEW_MESSENGER
 	if ( m_MessengerUserTab != XMUT_FRIEND )
 		return;
 
@@ -5672,7 +5758,7 @@ void CX2Community::ResetUserListUI()
 #else
 				if ( IS_ONLINE( pMessengerUser->m_uStatus ) )
 					onlineFriend++;
-#endif
+#endif NEW_MESSENGER
 			}
 
 			WCHAR buff[512];
@@ -5722,7 +5808,7 @@ void CX2Community::ResetUserListUI()
 						pListBox->AddItem( tempExplantion.c_str(), NULL, 1 );
 					else
 						pListBox->AddItem( tempExplantion.c_str(), NULL, 1, CKTDGUIListBox::LBIT_NOT_ENABLE );
-#endif
+#endif NEW_MESSENGER
 				}
 			}
 		}
@@ -5838,7 +5924,7 @@ void CX2Community::ResetUserListUI()
 						pListBox->AddItem( tempExplantion.c_str(), NULL, 1 );
 					else
 						pListBox->AddItem( tempExplantion.c_str(), NULL, 1, CKTDGUIListBox::LBIT_NOT_ENABLE );
-#endif
+#endif NEW_MESSENGER
 				}
 			}			
 		}
@@ -5984,7 +6070,7 @@ void CX2Community::ResetUserListUI()
 						pListBox->AddItem( tempExplantion.c_str(), NULL, 1 );
 					else
 						pListBox->AddItem( tempExplantion.c_str(), NULL, 1, CKTDGUIListBox::LBIT_NOT_ENABLE );
-#endif
+#endif NEW_MESSENGER
 				}
 			}			
 		}
@@ -6207,7 +6293,6 @@ bool CX2Community::AddChatMsg( ChatSession* pChatSession, const WCHAR* pChatMsg,
 
 	wstring tempChatMsg = pChatMsg;
 #ifdef CLIENT_GLOBAL_LINEBREAK
-
 	wstring tempChatColor = chatColor;
 
 	bool bIsSameChatSession = false;
@@ -6217,12 +6302,10 @@ bool CX2Community::AddChatMsg( ChatSession* pChatSession, const WCHAR* pChatMsg,
 	CKTDGUIListBox* pListBoxMessenger = (CKTDGUIListBox*)pChatSession->m_pDialog->GetControl(L"ListBoxChat"); //GetListBox();
 	if(pListBoxMessenger == NULL)
 		return false;
+		
 	CKTDGFontManager::CUKFont* pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( pListBoxMessenger->GetString()->fontIndex );
-
-
 	CWordLineHandler::LineBreakInX2Community(tempChatMsg, pFont, tempChatColor, pChatSession->m_vecTalk, 
 		pListBoxMessenger, bApplyColor, bIsSameChatSession);
-
 #else //CLIENT_GLOBAL_LINEBREAK
 	int iUniCharSize = 0;		// pixel 단위??
 	int iStringSize = 0;		// pixel 단위??
@@ -6337,7 +6420,6 @@ bool CX2Community::AddChatMsg( ChatSession* pChatSession, const WCHAR* pChatMsg,
 		tempString.clear();
 	}
 #endif //CLIENT_GLOBAL_LINEBREAK
-
 	return true;
 }
 
@@ -6817,21 +6899,21 @@ bool CX2Community::OpenUserMenu(int idummy)
 	CKTDGUIControl::CPictureData*	m_pPicMiddle2 = pStaticUser1->GetPictureIndex(3);
 	CKTDGUIControl::CPictureData*	m_pPicBottom2 = pStaticUser1->GetPictureIndex(4);
 
-	pUserMenu[0] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"invite" );				// 파티초대
-	pUserMenu[1] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"party" );					// 파티요청
-	pUserMenu[2] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"talk" );					// 대화하기
-	pUserMenu[3] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"cut_cancle" );			// 차단/해제
-	pUserMenu[4] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"delete" );				// 삭제
-	pUserMenu[5] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"character_info" );		// 캐릭터정보	
-	pUserMenu[6] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"group_move" );			// 그룹이동
-	pUserMenu[7] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"friend" );				// 친구요청
-	pUserMenu[8] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"disciple" );				// 사제요청
-	pUserMenu[9] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"trade" );					// 개인거래
+	pUserMenu[0] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"invite" );			// 파티초대
+	pUserMenu[1] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"party" );			// 파티요청
+	pUserMenu[2] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"talk" );			// 대화하기
+	pUserMenu[3] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"cut_cancle" );		// 차단/해제
+	pUserMenu[4] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"delete" );			// 삭제
+	pUserMenu[5] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"character_info" );	// 캐릭터정보	
+	pUserMenu[6] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"group_move" );		// 그룹이동
+	pUserMenu[7] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"friend" );			// 친구요청
+	pUserMenu[8] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"disciple" );		// 사제요청
+	pUserMenu[9] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"trade" );			// 개인거래
 	pUserMenu[10] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"shop_look" );			// 상점보기
 	pUserMenu[11] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"name_change" );			// 이름바꾸기
-	pUserMenu[12] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"whisper" );				// 귓속말
-	pUserMenu[13] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Invite" );				// 초대하기(대전)
-	pUserMenu[14] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Together" );				// 같이하기(대전)
+	pUserMenu[12] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"whisper" );			// 귓속말
+	pUserMenu[13] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Invite" );			// 초대하기(대전)
+	pUserMenu[14] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Together" );			// 같이하기(대전)
 //{{ 허상형 : [2009/9/18] //	길드 메뉴 추가
 	pUserMenu[15] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"InviteGuild" );			// 길드 초대
 	pUserMenu[16] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"BanishGuild" );			// 길드 추방
@@ -6957,11 +7039,10 @@ bool CX2Community::OpenUserMenu(int idummy)
 			//}
 
 			if ( g_pData->GetMyUser() == NULL ||
-				g_pData->GetMyUser()->GetSelectUnit() == NULL ||
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
+				g_pData->GetMyUser()->GetSelectUnit() == NULL )
 				return false;
 
-			BYTE byMyGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
+			BYTE byMyGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
 
 			switch( byMyGrade )
 			{
@@ -7068,6 +7149,8 @@ bool CX2Community::OpenUserMenu(int idummy)
 						pUserMenu[21]->SetOffsetPos_LUA(menuPosX, menuPosY + (menuHegith * countMenuHeight));
 						++countMenuHeight;
 					} break;
+#ifdef REMOVE_SUMMON_ON_WHOLE_TAB
+#else REMOVE_SUMMON_ON_WHOLE_TAB
 				case SEnum::RT_MARRIED:
 					{
 						/// 마을 이거나 필드일 때만 소환하기 추가
@@ -7081,6 +7164,7 @@ bool CX2Community::OpenUserMenu(int idummy)
 							++countMenuHeight;
 						}
 					} break;
+#endif REMOVE_SUMMON_ON_WHOLE_TAB
 				}
 			}
 #endif // ADDED_RELATIONSHIP_SYSTEM
@@ -7126,10 +7210,41 @@ bool CX2Community::OpenUserMenu(int idummy)
 			{
 				if( g_pData->GetGuildManager()->IsMyGuildUser(m_iPickedUserUID) == false )
 				{
-					++countUserMenu;
-					pUserMenu[15]->SetShowEnable(true, true);
-					pUserMenu[15]->SetOffsetPos_LUA(menuPosX, menuPosY + (menuHegith * countMenuHeight));	
-					++countMenuHeight;
+#ifdef MODFIY_INVITE_GUILD_MENU
+					// 길드에 가입한 유저인지 체크 후 메뉴 추가
+					bool bIsGuildMember = true;
+					if( NULL != g_pX2Game )
+					{
+						CX2GUUser* pGUUser = g_pX2Game->GetUserUnitByUID( m_iPickedUserUID );
+						if( NULL != pGUUser && 
+							NULL != pGUUser->GetUnit())
+						{
+							if( false == pGUUser->GetUnit()->GetUnitData().m_wstrGuildName.empty() )
+							{
+								bIsGuildMember = false;
+							}
+						}
+					}
+					else if( NULL != g_pTFieldGame )
+					{
+						CX2Unit* pUnit = g_pTFieldGame->GetSquareUnitUnitByUID( m_iPickedUserUID );
+						if( NULL != pUnit )
+						{
+							if( false == pUnit->GetUnitData().m_wstrGuildName.empty() )
+							{
+								bIsGuildMember = false;
+							}
+						}
+					}
+
+					if( true == bIsGuildMember )
+#endif // MODFIY_INVITE_GUILD_MENU
+					{
+						++countUserMenu;
+						pUserMenu[15]->SetShowEnable(true, true);
+						pUserMenu[15]->SetOffsetPos_LUA(menuPosX, menuPosY + (menuHegith * countMenuHeight));	
+						++countMenuHeight;
+					}
 				}
 				else	//	내 길드원이고 현재 길드 탭일 경우 추방 메뉴 추가
 				{
@@ -7495,7 +7610,6 @@ bool CX2Community::OpenUserMenu(int idummy)
 			pUserMenu[7]->SetOffsetPos_LUA(menuPosX, menuPosY + (menuHegith * countMenuHeight));
 			++countMenuHeight;
 
-
 #ifndef SERV_NO_DISCIPLE
 			if( g_pMain->GetTutorSystem()->GetNumberOfStudent() < 3 &&
 				g_pData->GetSelectUnitLevel() >= 20 )
@@ -7506,10 +7620,8 @@ bool CX2Community::OpenUserMenu(int idummy)
 				++countMenuHeight;
 			}			
 #endif //SERV_NO_DISCIPLE
-
 			if ( g_pData->GetMyUser() == NULL ||
-				g_pData->GetMyUser()->GetSelectUnit() == NULL ||
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() == NULL )
+				g_pData->GetMyUser()->GetSelectUnit() == NULL )
 				return false;
 
 			if ( NULL != g_pData->GetRelationshipManager() &&
@@ -7590,21 +7702,21 @@ bool CX2Community::OpenGroupMenu()
 	CKTDGUIControl::CPictureData*	m_pPicMiddle2 = pStaticUser1->GetPictureIndex(3);
 	CKTDGUIControl::CPictureData*	m_pPicBottom2 = pStaticUser1->GetPictureIndex(4);
 
-	pUserMenu[0] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"invite" );				// 파티초대
-	pUserMenu[1] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"party" );					// 파티요청
-	pUserMenu[2] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"talk" );					// 대화하기
-	pUserMenu[3] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"cut_cancle" );			// 차단/해제
-	pUserMenu[4] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"delete" );				// 삭제
-	pUserMenu[5] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"character_info" );		// 캐릭터정보
-	pUserMenu[6] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"group_move" );			// 그룹이동
-	pUserMenu[7] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"friend" );				// 친구요청
-	pUserMenu[8] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"disciple" );				// 사제요청
-	pUserMenu[9] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"trade" );					// 개인거래
+	pUserMenu[0] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"invite" );			// 파티초대
+	pUserMenu[1] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"party" );			// 파티요청
+	pUserMenu[2] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"talk" );			// 대화하기
+	pUserMenu[3] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"cut_cancle" );		// 차단/해제
+	pUserMenu[4] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"delete" );			// 삭제
+	pUserMenu[5] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"character_info" );	// 캐릭터정보
+	pUserMenu[6] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"group_move" );		// 그룹이동
+	pUserMenu[7] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"friend" );			// 친구요청
+	pUserMenu[8] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"disciple" );		// 사제요청
+	pUserMenu[9] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"trade" );			// 개인거래
 	pUserMenu[10] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"shop_look" );			// 상점보기
 	pUserMenu[11] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"name_change" );			// 이름바꾸기
-	pUserMenu[12] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"whisper" );				// 귓속말
-	pUserMenu[13] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Invite" );				// 초대하기(대전)
-	pUserMenu[14] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Together" );				// 같이하기(대전)
+	pUserMenu[12] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"whisper" );			// 귓속말
+	pUserMenu[13] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Invite" );			// 초대하기(대전)
+	pUserMenu[14] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Together" );			// 같이하기(대전)
 	//{{ 허상형 : [2009/9/19] //	길드 컨트롤 불러오기
 	pUserMenu[15] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"InviteGuild" );			// 길드 초대
 	pUserMenu[16] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"BanishGuild" );			// 길드 초대	
@@ -7612,9 +7724,9 @@ bool CX2Community::OpenGroupMenu()
 	pUserMenu[17] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"watch" );				// 살펴보기
 
 	//SERV_ED_MONITORING_IN_GAME
-	pUserMenu[18] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Menu_Image" );			// 살펴보기
-	pUserMenu[19] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Menu_Brick" );			// 살펴보기
-	pUserMenu[20] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Menu_Machine_Brick" );	// 살펴보기
+	pUserMenu[18] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Menu_Image" );				// 살펴보기
+	pUserMenu[19] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Menu_Brick" );				// 살펴보기
+	pUserMenu[20] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"Menu_Machine_Brick" );				// 살펴보기
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	pUserMenu[21] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"couple" );					// 커플 신청
 	pUserMenu[22] = (CKTDGUIButton*) m_pDLGUserMenu->GetControl( L"summon" );					// 커플 신청
@@ -8253,10 +8365,10 @@ void CX2Community::UpdateMarketUserList(int iPage)
 		CX2SquareUnit* pCX2SquareUnit = vecUnitList[i];
 		CX2Unit* pUnit = pCX2SquareUnit->GetUnit();
 
-		userNode.m_iUnitUID = pUnit->GetUnitData()->m_UnitUID;
-		userNode.m_wstrNickName = pUnit->GetUnitData()->m_NickName;
-		userNode.m_cUnitClass = pUnit->GetUnitData()->m_UnitClass;
-		userNode.m_ucLevel = pUnit->GetUnitData()->m_Level;
+		userNode.m_iUnitUID = pUnit->GetUnitData().m_UnitUID;
+		userNode.m_wstrNickName = pUnit->GetUnitData().m_NickName;
+		userNode.m_cUnitClass = pUnit->GetUnitData().m_UnitClass;
+		userNode.m_ucLevel = pUnit->GetUnitData().m_Level;
 
 		// 거래광장에서는 m_bIsPartyUser를 상점개설여부로 사용한다.
 		userNode.m_iStateCode = 0; 
@@ -8269,8 +8381,8 @@ void CX2Community::UpdateMarketUserList(int iPage)
 		userNode.m_iED = pCX2SquareUnit->GetED();
 #endif
 
-		m_vecUserUID.push_back( pUnit->GetUnitData()->m_UnitUID );
-		m_vecUserLv.push_back( pUnit->GetUnitData()->m_Level );
+		m_vecUserUID.push_back( pUnit->GetUnitData().m_UnitUID );
+		m_vecUserLv.push_back( pUnit->GetUnitData().m_Level );
 
 		m_vecFieldUser.push_back(userNode);		
 	}
@@ -8467,14 +8579,14 @@ void CX2Community::InitGuildUI()
 			{
 				m_GuildUserListUIConstrols[i].m_pButtonGrade->SetShowEnable( false, false );
 			}
-#ifdef ELLIPSE_GLOBAL
+#ifdef INTEGRATE_TOOLTIP
 			m_GuildUserListUIConstrols[i].m_pButtonToolTip		=
 				static_cast< CKTDGUIButton* >( m_pDlgGuild->GetControl( GET_REPLACED_STRING( ( STR_ID_3738, "Li", std::wstring( L"GuildMemberLocaTip" ), i + 1 ) ) ) );
 			if( NULL != m_GuildUserListUIConstrols[i].m_pButtonToolTip )
 			{
 				m_GuildUserListUIConstrols[i].m_pButtonToolTip->SetShowEnable( false, false );
 			}
-#endif ELLIPSE_GLOBAL
+#endif INTEGRATE_TOOLTIP
 		}
 
 	
@@ -8599,9 +8711,9 @@ void CX2Community::InitGuildTabListUI()
 		m_GuildUserListUIConstrols[i].m_pStaticChannel->SetShowEnable( false, false );
 		m_GuildUserListUIConstrols[i].m_pButtonNickName->SetShowEnable( false, false );
 		m_GuildUserListUIConstrols[i].m_pButtonGrade->SetShowEnable( false, false );
-#ifdef ELLIPSE_GLOBAL
+#ifdef INTEGRATE_TOOLTIP
 		m_GuildUserListUIConstrols[i].m_pButtonToolTip->SetShowEnable( false, false );
-#endif ELLIPSE_GLOBAL
+#endif INTEGRATE_TOOLTIP
 
 		if ( m_pFieldUserIcon[i] != NULL )
 			m_pFieldUserIcon[i]->SetShowEnable( false, false );
@@ -8779,7 +8891,7 @@ void CX2Community::UpdateGuildPositionInfo()
 						CX2LocationManager::VillageTemplet* pVillageTemplet = g_pData->GetLocationManager()->GetVillageMapTemplet( eMapID );
 						if( NULL != pVillageTemplet )
 						{
-#ifdef ELLIPSE_GLOBAL
+#ifdef INTEGRATE_TOOLTIP
 							bool bEllipse = false;
 							wstring wstrName = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(pVillageTemplet->m_Name.c_str(), 100, m_GuildUserListUIConstrols[i].m_pStaticLocationOrGradeOrTimeSpan->GetString(0)->fontIndex, 1, bEllipse);
 
@@ -8798,7 +8910,7 @@ void CX2Community::UpdateGuildPositionInfo()
 #else
 							m_GuildUserListUIConstrols[i].m_pStaticLocationOrGradeOrTimeSpan->SetString( 0, 
 								pVillageTemplet->m_Name.c_str() );
-#endif ELLIPSE_GLOBAL
+#endif INTEGRATE_TOOLTIP
 						}
 					}
 				}
@@ -8948,7 +9060,6 @@ void CX2Community::UpdateNumOfGuildMembers()
 	}
 }
 
-
 // 2011.05.05 lygan_조성욱 // 중국용 커뮤니티탭 유저 정보 보기
 #ifdef SERV_USER_WATCH_NEW
 bool CX2Community::Handler_EGS_USER_WATCH_NEW_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
@@ -9001,13 +9112,11 @@ bool CX2Community::Handler_EGS_USER_WATCH_NEW_ACK( HWND hWnd, UINT uMsg, WPARAM 
 			}
 			break;
 		}
-
 	}
 
 	return false;
 }
 #endif //SERV_USER_WATCH_NEW
-
 
 #ifdef EXTEND_SERVER_GROUP_MASK
 D3DXCOLOR CX2Community::GetChannelColor( int iChannelID, int ServerID /*= SGI_SOLES*/ ) const
@@ -9243,7 +9352,11 @@ std::wstring	CX2Community::GetWStrAboutTimeFromLogOutToNow( const CTime& ctLogOu
 		wstrStreamTemp << GET_STRING( STR_ID_4520 );
 	}
 
+#ifdef CUSTOMIZE_FOR_LONG_LANGUAGE
+	wstrStreamTimeSpan << L"\n" << GET_REPLACED_STRING( ( STR_ID_4523, "L", wstrStreamTemp.str() ) );
+#else // CUSTOMIZE_FOR_LONG_LANGUAGE
 	wstrStreamTimeSpan << GET_REPLACED_STRING( ( STR_ID_4523, "L", wstrStreamTemp.str() ) );
+#endif // CUSTOMIZE_FOR_LONG_LANGUAGE
 
     return wstrStreamTimeSpan.str();
 }
@@ -9651,7 +9764,7 @@ void CX2Community::DeleteFriendTab()
 		{
 			Handler_EGS_UPDATE_FRIEND_INFO_REQ(pMessengerUser->m_NickName);
 		}
-#endif
+#endif NEW_MESSENGER
 		
 	}
 	else
@@ -10542,9 +10655,30 @@ bool CX2Community::Handler_EGS_INVITE_PVP_ROOM_NOT( HWND hWnd, UINT uMsg, WPARAM
 		return true;
 	}
 
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환
+	if ( NULL != g_pMain )
+	{
+		/// 옵션 설정값 반환
+		CX2GameOption::OptionList& kOptionList = g_pMain->GetGameOption().GetOptionList();
+
+		/// 대전 초대 거부를 설정하였다면, 초대 중지
+		if ( true == kOptionList.m_bRefuseInvitePVP )
+			return true;
+	}
+#endif // FIX_INVITE_PVP_PLAYER
+
 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
 	KEGS_INVITE_PVP_ROOM_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
+
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환
+	/// 이미 초대받은 룸 아이디라면, 리턴
+	BOOST_FOREACH ( UidType uidRoomUID, m_vecInviteRoomUID )
+	{
+		if ( uidRoomUID == kEvent.m_kRoomInfo.m_RoomUID )
+			return true;
+	}
+#endif // FIX_INVITE_PVP_PLAYER
 
 	//kEvent.m_wstrNickName;
 
@@ -10569,6 +10703,12 @@ bool CX2Community::Handler_EGS_INVITE_PVP_ROOM_NOT( HWND hWnd, UINT uMsg, WPARAM
 		CX2Main::TimedMessagePopUp::MBT_OK_CANCEL, userData, 7.f, wstrText.c_str(), 
 		(CKTDXStage*) g_pMain->GetNowState(), 
 		XCCUM_PVP_INVITE_ACCEPT, XCCUM_PVP_INVITE_REJECT, XCCUM_PVP_INVITE_REJECT );
+
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환
+	m_fInviteCoolTime = 10.f;		/// 초대 룸 리스트 초기화 쿨타임 설정 ( 해당 쿨타임이 끝나면, 모든 초대 룸 리스트를 지운다. )
+
+	m_vecInviteRoomUID.push_back( kEvent.m_kRoomInfo.m_RoomUID );	/// 초대 룸 리스트 저장
+#endif // FIX_INVITE_PVP_PLAYER
 
 	return true;
 }
@@ -10687,13 +10827,33 @@ bool CX2Community::Handler_EGS_REQUEST_FRIEND_REQ( wstring wstrNickName, wstring
 	//m_vecMyUserName.clear();
 	if( g_pData != NULL && g_pData->GetMyUser() != NULL)
 	{
+#ifdef SIMPLE_BUG_FIX
+		if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName == wstrNickName )
+		{
+#ifdef HARDCODING_STRING_TO_INDEX
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING(STR_ID_2539), g_pMain->GetNowState() );
+#else
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"자기 자신입니다.", g_pMain->GetNowState() );
+#endif HARDCODING_STRING_TO_INDEX
+			return true;
+		}
+		else if( NULL != g_pData->GetMyUser()->GetUnitByNickName(wstrNickName.c_str()) )
+		{
+#ifdef HARDCODING_STRING_TO_INDEX
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING(STR_ID_4883), g_pMain->GetNowState() );
+#else
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"같은 계정의 캐릭터는 친구로 등록할수 없습니다.", g_pMain->GetNowState() );
+#endif HARDCODING_STRING_TO_INDEX
+			return true;
+		}
+#else // SIMPLE_BUG_FIX
 		for(int i=0; i<g_pData->GetMyUser()->GetUnitNum(); ++i)
 		{
 			CX2Unit *pUnit = g_pData->GetMyUser()->GetUnitByIndex(i);
 			if(pUnit != NULL)
 			{
-				if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NickName != wstrNickName &&
-					pUnit->GetUnitData()->m_NickName == wstrNickName ) 
+				if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName != wstrNickName &&
+					pUnit->GetUnitData().m_NickName == wstrNickName ) 
 				{
 #ifdef HARDCODING_STRING_TO_INDEX
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING(STR_ID_4883), g_pMain->GetNowState() );
@@ -10706,6 +10866,7 @@ bool CX2Community::Handler_EGS_REQUEST_FRIEND_REQ( wstring wstrNickName, wstring
 				
 			}
 		}
+#endif // SIMPLE_BUG_FIX
 	}
 
 	// 이미 친구목록에 있는지 검사
@@ -11345,15 +11506,39 @@ bool CX2Community::Handler_EGS_FRIEND_POSITION_UPDATE_NOT( HWND hWnd, UINT uMsg,
 
 bool CX2Community::DeleteFriend( UidType UnitUid )
 {
+#ifdef CLOSE_MESSENGER_WHEN_DELETE_FRIEND
+	CX2Community::ChatSession* pFriendChatSession = FindChatSession( UnitUid );
+	if( pFriendChatSession != NULL )
+	{
+		for ( int i = 0; i < (int)m_vecChatSession.size(); i++ )
+		{
+			if( pFriendChatSession == m_vecChatSession[i] )
+			{
+				SetChatHistory(pFriendChatSession);
+				SetChatBoxShow(pFriendChatSession, false);
+
+				if( m_pOpendChatSession == pFriendChatSession )
+				{
+					m_pOpendChatSession = NULL;
+				}
+
+				SAFE_DELETE( pFriendChatSession );
+				m_vecChatSession.erase( m_vecChatSession.begin() + i );
+				i--;
+			}
+		}
+	}
+#endif CLOSE_MESSENGER_WHEN_DELETE_FRIEND
+
 	for( vector<MessengerUser*>::iterator it = m_pMessengerUserList->m_vecDefaultGroupUser.begin(); it != m_pMessengerUserList->m_vecDefaultGroupUser.end(); ++it)
 	{
 		CX2Community::MessengerUser* pMessengerUser = *it;
-		if ( pMessengerUser->m_UnitUID == UnitUid )
+		if( pMessengerUser->m_UnitUID == UnitUid )
 		{
 			SAFE_DELETE(pMessengerUser);
 			m_pMessengerUserList->m_vecDefaultGroupUser.erase(it);
 			return true;
-		}					
+		}
 	}
 
 	for( vector<MessengerUserGroup*>::iterator itGp = m_pMessengerUserList->m_vecUserGroup.begin(); itGp != m_pMessengerUserList->m_vecUserGroup.end(); ++itGp)
@@ -11371,10 +11556,8 @@ bool CX2Community::DeleteFriend( UidType UnitUid )
 		}
 	}
 	return false;
-
 }
-
-#endif
+#endif NEW_MESSENGER
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 void CX2Community::InitRelationUI()
@@ -11597,6 +11780,11 @@ void CX2Community::UpdateCoupleStateAndDurationDay()
 					default :		// 인연이 없는 경우도 여기에 포함된다.
 						break;
 				}
+
+#ifdef CLIENT_COUNTRY_EU
+				// 유럽은 뒤에 붙는 글짜가 너무 길어서 따로 표시
+				wstrTextNotice = wstrTextNotice= GET_REPLACED_STRING( ( STR_ID_22727, "i", pMyRealtionInfo->GetDurationDay()) );
+#endif  CLIENT_COUNTRY_EU
 			}
 
 			pStatic->SetString( 0, wstrRelationType.c_str() );			

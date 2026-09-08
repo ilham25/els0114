@@ -121,9 +121,9 @@ class CX2QuestManager
 			SQT_PVP_HERO_NPC_KILL				= 33,
 			SQT_PVP_HERO_NPC_PLAY				= 34,
 			//#endif //SERV_PVP_NPC_HUNT_QUEST_EXTEND
-			//#ifdef SERV_POINT_COUNT_SYSTEM
+//#ifdef SERV_POINT_COUNT_SYSTEM
 			SQT_POINT_COUNT						= 35,
-			//#endif SERV_POINT_COUNT_SYSTEM
+//#endif SERV_POINT_COUNT_SYSTEM
 #ifdef SERV_SUB_QUEST_LEARN_NEW_SKILL
 			SQT_LEARN_NEW_SKILL					= 36,
 #endif SERV_SUB_QUEST_LEARN_NEW_SKILL
@@ -192,9 +192,9 @@ class CX2QuestManager
 			int								m_iCollectionItemNum;
 
 #ifdef REFORM_QUEST
-			std::set<CX2Dungeon::DUNGEON_ID>	m_setDungeonID;
+			std::set<SEnum::DUNGEON_ID>	m_setDungeonID;
 #else
-			CXSLDungeon::DUNGEON_ID			m_eDungeonID;
+			SEnum::DUNGEON_ID			m_eDungeonID;
 			char							m_cDifficulty;
 #endif REFORM_QUEST
 			//{{ 2010. 05. 01  최육사	비밀던전 헬모드
@@ -251,10 +251,12 @@ class CX2QuestManager
 #ifdef SERV_EVENT_TITLE_SUBQUEST
 		int								m_iUseTitleID;
 #endif SERV_EVENT_TITLE_SUBQUEST
+
 #ifdef SERV_SUB_QUEST_USE_ITEM
 			std::vector< int >				m_vecUseItemID;
 			int								m_iUseItemNum;
 #endif SERV_SUB_QUEST_USE_ITEM
+
 #ifdef SERV_POINT_COUNT_SYSTEM
 		int								m_iPointCount;
 #endif SERV_POINT_COUNT_SYSTEM
@@ -263,9 +265,11 @@ class CX2QuestManager
 		int								m_iUseSkillCount;
 		std::set< int >					m_setSkillID;
 #endif SERV_SKILL_USE_SUBQUEST
+
 #ifdef SERV_SUB_QUEST_LEARN_NEW_SKILL
 		int								m_iLearnNewSkillCount;
 #endif SERV_SUB_QUEST_LEARN_NEW_SKILL
+
 			ClearCondition()
 			{
 				m_iKillNum				= 0;
@@ -273,7 +277,7 @@ class CX2QuestManager
 				m_iCollectionItemID		= -1;
 				m_iCollectionItemNum	= 0;
 #ifndef REFORM_QUEST
-				m_eDungeonID			= CX2Dungeon::DI_NONE;
+				m_eDungeonID			= SEnum::DI_NONE;
 				m_cDifficulty			= -1;
 #endif //REFORM_QUEST
 				//{{ 2010. 05. 01  최육사	비밀던전 헬모드
@@ -324,7 +328,7 @@ class CX2QuestManager
 				m_iCharLevel			= 0;
 #endif //SERV_ACCOUNT_MISSION_SYSTEM
 #ifdef SERV_EVENT_TITLE_SUBQUEST
-				m_iUseTitleID           = 0;
+				m_iUseTitleID           = -1;
 #endif SERV_EVENT_TITLE_SUBQUEST
 #ifdef SERV_SUB_QUEST_USE_ITEM
 				m_iUseItemNum			= 0;
@@ -464,24 +468,6 @@ class CX2QuestManager
 			std::wstring					m_wstrStartScene;
 			std::wstring					m_wstrEndScene;
 			int								m_iAfterQuestID;
-//{{ Iruha : 2026-09-03 // offline mode needs the epic quest chain
-#ifdef SERV_IRUHADEV_OFFLINE
-			// The quests this one unlocks when it is handed in.
-			//
-			// The Lua key is m_iAfterQuestID and it is a TABLE, not the single int
-			// above: the server reads it into a vector
-			// (CXSLQuestManager::AddQuestTemplet_LUA, XSLQuestManager.cpp:156) and
-			// the client's own loader never reads the field at all, which is why
-			// m_iAfterQuestID sits here unused. So the chain is in the script the
-			// client already loads and only the client's parser ignores it.
-			//
-			// It matters because it is the PRIMARY way the story advances: quest
-			// 11005 '[Field] Thief Pursuit' has no prerequisite, no opening village
-			// and no opening dungeon - the only thing that can ever start it is
-			// being listed here by 11000.
-			std::vector< int >				m_vecAfterQuestID;
-#endif SERV_IRUHADEV_OFFLINE
-//}}
 #endif SERV_EPIC_QUEST
 
 			std::vector< int >										m_vecShowItemID;			// 해당 아이템을 인벤토리(은행,캐시보관함 제외)에 보유 하고 있을 경우, 해당 퀘스트를 보이게 하고, 아이템이 없으면 수행중인 퀘스트는 자동으로 포기 시킨다.
@@ -718,6 +704,7 @@ class CX2QuestManager
 #endif	SERV_DAY_QUEST
 		//}} kimhc // 2010.02.09 // 일정시간마다 퀘스트가 업데이트 되는 시스템 구현
 
+
 		bool IsForbiddenQuest( int iQuestID );
 		void GiveUpForbiddenQuest();	
 #ifdef SERV_RANDOM_DAY_QUEST
@@ -733,7 +720,7 @@ class CX2QuestManager
 		bool GetNeedToTalkNPCList( OUT map<CX2UnitManager::NPC_UNIT_ID, bool>& mapGuideTarget_ );// 퀘스트 완료를 위해 방문이 필요한 Village ID
 		bool GetNeedToVisitVillageList( OUT map<int, bool>& mapGuideTarget_ );					// 퀘스트 완료를 위해 방문이 필요한 Village ID
 		bool GetNeedToVisitFieldList( OUT map<int, bool>& mapGuideTarget_ );					// 퀘스트 완료를 위해 방문이 필요한 FIELD ID
-		bool GetNeedToClearDungeonList( OUT map<CX2Dungeon::DUNGEON_ID, bool>& mapGuideTarget_ );	// 퀘스트 완료를 위해 클리어 해야 하는 Dungeon ID
+		bool GetNeedToClearDungeonList( OUT map<SEnum::DUNGEON_ID, bool>& mapGuideTarget_ );	// 퀘스트 완료를 위해 클리어 해야 하는 Dungeon ID
 		void GetCompleteTalkQuest( const CX2UnitManager::NPC_UNIT_ID eQuestNPCID, int &nNormal );// 대화 퀘스트 완료
 		void SetHasDungeonQuest();
 		bool GetHasDungeonQuest(){return m_bHasDungeonQuest;}
@@ -745,20 +732,21 @@ class CX2QuestManager
 #ifdef SERV_POINT_COUNT_SYSTEM
 		void SetUpdataQuestInstance(std::map< int, KQuestInstance > mapQuestInstance);
 #endif //SERV_POINT_COUNT_SYSTEM
-
 		//{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
 		void PrintQuestInfo_ToExcel();
 #endif PRINT_INGAMEINFO_TO_EXCEL
 		//}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
-
 #ifdef SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
 		static bool IsNewUserOnlyQuest( int iQuestID );
 #endif SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
 
+#ifdef SERV_SKILL_USE_SUBQUEST
+		bool HasSkillUseSubQuest( const int& iSkillID );
+#endif SERV_SKILL_USE_SUBQUEST
 	private:
 		bool	LoadQuestCondition( KLuaManager& luaManager, QuestCondition& questCondition );
-		bool	LoadReward( KLuaManager& luaManager, const WCHAR* pTableName, Reward& reward );
+		bool	LoadReward( KLuaManager& luaManager, const char* pTableName, Reward& reward );
 		bool	LoadClearCondition( KLuaManager& luaManager, SubQuestTemplet* pSubQuestTemplet );
 
 

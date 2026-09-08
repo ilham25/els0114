@@ -33,6 +33,8 @@ void KBattleFieldGameManager::EndGame()
 	m_kLotEliteMonsterDrop.Clear();
 }
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-28	// 박세훈
+#else // SERV_BATTLE_FIELD_BOSS
 void KBattleFieldGameManager::IncreaseDangerousValue( IN const int iIncreaseValue )
 {
 	//{{ 2013. 02. 15   필드 중간 보스 - 김민성
@@ -49,18 +51,9 @@ void KBattleFieldGameManager::IncreaseDangerousValue( IN const int iIncreaseValu
 #endif SERV_BATTLE_FIELD_DANGEROUS_VALUE_EVENT
 	//}
 
-	if( m_iDangerousValue < 0 )
+	if( ( m_iDangerousValue < 0 ) || ( SiCXSLBattleFieldManager()->GetDangerousValueMax() <= m_iDangerousValue ) )
 	{
-		m_iDangerousValue = 0;
-		//{{ 2013. 02. 15   필드 중간 보스 - 김민성
-#ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
-		m_iOldDangerousValue = 0;
-#endif SERV_BATTLEFIELD_MIDDLE_BOSS
-		//}
-	}
-	else if( m_iDangerousValue >= SiCXSLBattleFieldManager()->GetDangerousValueMax() )
-	{
-		m_iDangerousValue = 0;
+		ResetDangerousValue();
 	}
 }
 
@@ -110,10 +103,14 @@ void KBattleFieldGameManager::OnNpcUnitDie( IN const int iPlayerCount,
 	CheckReserveMiddleBossDropEvent( iPlayerCount );
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
-
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	CheckReserveEventBossDropEvent( iPlayerCount );
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
+	
 	// 보스 출현 이벤트 체크
 	CheckReserveBossDropEvent( iPlayerCount );
 }
+#endif // SERV_BATTLE_FIELD_BOSS
 
 void KBattleFieldGameManager::CheckReserveWarningEvent( IN const int iBeforeDangerousValue )
 {
@@ -200,6 +197,40 @@ void KBattleFieldGameManager::CheckReserveMiddleBossDropEvent( IN const int iPla
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 //}
 
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+void KBattleFieldGameManager::CheckReserveEventBossDropEvent( IN const int iPlayerCount )
+{
+	// 현재 인원이 n명 이하면 나가자!
+	if( iPlayerCount < SiCXSLBattleFieldManager()->GetBossCheckUserCount() )
+		return;
+
+	// 위험도 수치가 최소한 위험 상태 이상이어야 한다.
+	if( GetDangerousValue() < SiCXSLBattleFieldManager()->GetDangerousValueWarning() )
+		return;
+
+	// 이미 국지 이벤트에 몬스터 드롭이 예약되어있다면 나가자!
+	if( m_kDangerousEvent.IsEventReserved( KDangerousEventInfo::DE_EVENT_BOSS_MONSTER_DROP ) == true )
+		return;
+
+	//////////////////////////////////////////////////////////////////////////
+	// 국지 이벤트 랜덤굴림 준비!
+	// 4300 이후로는 50증가할때마다 이벤트 발생 확률이 10%씩 증가한다.
+	static int BOSS_DROP_EVENT = 1;
+	const float fBossDropRate = SiCXSLBattleFieldManager()->GetEventBossMonsterDropRate( GetDangerousValue(), GetOldDangerousValue() );
+	//////////////////////////////////////////////////////////////////////////
+
+	KLottery kBossDropLot;
+	LIF( kBossDropLot.AddCase( BOSS_DROP_EVENT, fBossDropRate ) );
+
+	// 국지 이벤트 굴림!
+	const int iResult = kBossDropLot.Decision();
+	if( iResult == BOSS_DROP_EVENT )
+	{
+		m_kDangerousEvent.ReserveEvent( KDangerousEventInfo::DE_EVENT_BOSS_MONSTER_DROP );
+	}
+}
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
+
 void KBattleFieldGameManager::CheckReserveBossDropEvent( IN const int iPlayerCount )
 {
 	// 현재 인원이 n명 이하면 나가자!
@@ -242,7 +273,13 @@ bool KBattleFieldGameManager::CheckAndDeleteReservedDangerousEvent( IN const KDa
 	return bRet;
 }
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-28	// 박세훈
+void KBattleFieldGameManager::UpdateDangerousValue( IN const int iDangerousValue )
+{
+	m_iOldDangerousValue	= m_iDangerousValue;
+	m_iDangerousValue		= iDangerousValue;
+}
+#endif // SERV_BATTLE_FIELD_BOSS
+
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
-
-

@@ -369,9 +369,9 @@ _IMPL_ON_FUNC( ERM_SERVER_CHECK_HACK_USER_NOT, KEGS_SERVER_CHECK_HACK_USER_REQ )
 //			// 패킷만 날리자!
 //			SendPacket( EGS_SERVER_CHECK_HACK_USER_REQ, kPacket_ );
 			HackUserRegRejectedUser( kPacket_.m_cHackingCheckType
-#ifdef SERV_PERIOD_ACCOUNT_BLOCK// 작업날짜: 2013-05-27	// 박세훈				
-				, SEnum::UAL_BLOCKED_3, L"운영정책에 따라 접속이 제한되었습니다. (홈페이지>고객센터로 문의 주시기 바랍니다.)" 
-#endif // SERV_PERIOD_ACCOUNT_BLOCK
+#ifdef SERV_PERIOD_ACCOUNT_BLOCK				
+				, SEnum::UAL_BLOCKED_3, L"운영정책에 따라 접속이 제한되었습니다. (홈페이지>고객센터로 문의 주시기 바랍니다.)"
+#endif //SERV_PERIOD_ACCOUNT_BLOCK				
 				);
 			SetRandomTimeKick( KStatistics::eSIColDR_Client_Hacking, 10, 50 );
 		}
@@ -525,7 +525,7 @@ _IMPL_ON_FUNC( ERM_SERVER_CHECK_HACK_USER_NOT, KEGS_SERVER_CHECK_HACK_USER_NOT )
 			HackUserRegTradeBlock( kPacket_.m_cHackingCheckType );
 			//{{ 2011. 09. 08	최육사	오토핵 패킷 모니터링
 #ifdef SERV_AUTO_HACK_PACKET_MORNITOING
-			HackUserRegPacketMornitor();
+			//HackUserRegPacketMornitor();
 #endif SERV_AUTO_HACK_PACKET_MORNITOING
 			//}}
 
@@ -668,8 +668,12 @@ IMPL_ON_FUNC( ELG_TRADE_BLOCK_NOT )
 #ifdef SERV_SECOND_SECURITY
 IMPL_ON_FUNC( DBE_GET_SECOND_SECURITY_INFO_ACK )
 {
+#ifdef SERV_ENTRY_POINT
+    VERIFY_STATE_ACK( ( 2, KGSFSM::S_LOGINED, KGSFSM::S_SERVER_SELECT ), EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK );
+#else
 	VERIFY_STATE_ACK( ( 1, KGSFSM::S_SERVER_SELECT ), EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK );
-
+#endif SERV_ENTRY_POINT
+        
 	KEGS_SECOND_SECURITY_INFO_NOT kNot;
 	kNot.m_iOK = kPacket_.m_iOK;
 	kNot.m_bUseSecondPW = kPacket_.m_bUseSecondPW;
@@ -735,12 +739,6 @@ IMPL_ON_FUNC( DBE_GET_SECOND_SECURITY_INFO_ACK )
 	SetBF_Team( kPacket_.m_iBF_Team );
 #endif SERV_BUBBLE_FIGHTER_TOGETHER_EVENT
 	//}}
-
-	//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-	SetEliosInvestigationsReward( kPacket_.m_bEliosInvestigationsReward );
-#endif SERV_ELIOS_INVESTIGATIONS
-	//}}
 	//{{ 2012. 12. 12	박세훈	겨울 방학 전야 이벤트( 임시, 하드 코딩 )
 #ifdef SERV_2012_WINTER_VACATION_EVENT
 	m_wstrWinterVacationEventRegDate	= kPacket_.m_wstrWinterVacationEventRegDate;
@@ -768,49 +766,6 @@ IMPL_ON_FUNC( DBE_GET_SECOND_SECURITY_INFO_ACK )
 
 	m_kComeBackUserInfo.SetIsComeBackUser( kPacket_.m_bIsComeBackUser );	// 휴면 복귀 유저인지 아닌지 셋팅
 
-	//{{ 2012. 03. 27	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-	KDBE_GET_SECOND_SECURITY_INFO_REQ_FOR_GameDB kPacket;
-	CTime tLastConnectDate;
-	if( KncUtil::ConvertStringToCTime( kPacket_.m_wstrLastConnectDate, tLastConnectDate ) == false )
-	{
-		kPacket.m_bEventMark = false;
-		if( kPacket_.m_wstrLastConnectDate.size() != 0 )
-		{
-			START_LOG( cerr, L"문자열 시간 변환 실패." )
-				<< BUILD_LOG( kPacket_.m_wstrLastConnectDate )
-				<< END_LOG;
-		}
-	}
-	else
-	{
-		if( tLastConnectDate < CTime( 2012, 3, 29, 7, 0, 0 ) )
-		//if( tLastConnectDate < CTime( 2012, 3, 27, 16, 40, 0 ) )
-		{
-			kPacket.m_bEventMark = true;
-		}
-		else
-		{
-			kPacket.m_bEventMark = false;
-		}
-
-		if( tLastConnectDate < CTime( 2012, 3, 1, 0, 0, 0 ) )
-		//if( tLastConnectDate < CTime( 2012, 3, 27, 16, 40, 0 ) )
-		{
-			m_bEventReturnUserMark = true;
-		}
-		else
-		{
-			m_bEventReturnUserMark = false;
-		}
-	}
-
-	// KGSUser 객체의 m_bEventReturnUserMark에 저장한다.
-	m_bEventMark = kPacket.m_bEventMark;
-
-	kPacket.m_wstrName = GetName();
-	SendToGameDB( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, kPacket );
-#else
 	//{{ 2012. 05. 16	박세훈	첫 접속 시 가이드 라인 띄워주기
 #ifdef SERV_EVENT_GUIDELINE_POPUP
 	CTime tLastConnectDate;
@@ -834,8 +789,6 @@ IMPL_ON_FUNC( DBE_GET_SECOND_SECURITY_INFO_ACK )
 	//}}
 
 	SendToGameDB( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, GetName() );
-#endif SERV_EVENT_RETURN_USER_MARK
-	//}}
 #else
 	SendToGameDB( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, GetName() );
 #endif SERV_COME_BACK_USER_REWARD
@@ -852,7 +805,7 @@ IMPL_ON_FUNC( EGS_AUTH_SECOND_SECURITY_REQ )
 {
 	//{{ 2011. 06. 23	최육사	2차 비번 예외처리
 #ifdef SERV_CHECK_SECOND_PW_STATE
-	VERIFY_STATE_ACK( ( 1, KGSFSM::S_CHECK_SECOND_PW ), EGS_AUTH_SECOND_SECURITY_ACK );
+	VERIFY_STATE_ACK( ( 2, KGSFSM::S_CHECK_SECOND_PW, KGSFSM::S_SERVER_SELECT ), EGS_AUTH_SECOND_SECURITY_ACK );
 #else
 	VERIFY_STATE_ACK( ( 1, KGSFSM::S_SERVER_SELECT ), EGS_AUTH_SECOND_SECURITY_ACK );
 #endif SERV_CHECK_SECOND_PW_STATE
@@ -895,7 +848,7 @@ IMPL_ON_FUNC( DBE_SEUCCESS_SECOND_SECURITY_ACK )
 {
 	//{{ 2011. 06. 23	최육사	2차 비번 예외처리
 #ifdef SERV_CHECK_SECOND_PW_STATE
-	VERIFY_STATE_ACK( ( 1, KGSFSM::S_CHECK_SECOND_PW ), EGS_AUTH_SECOND_SECURITY_ACK );
+	VERIFY_STATE_ACK( ( 2, KGSFSM::S_CHECK_SECOND_PW, KGSFSM::S_SERVER_SELECT ), EGS_AUTH_SECOND_SECURITY_ACK );
 #endif SERV_CHECK_SECOND_PW_STATE
 	//}}
 
@@ -917,7 +870,6 @@ IMPL_ON_FUNC( DBE_SEUCCESS_SECOND_SECURITY_ACK )
 		kAck.m_iFailedCount = 0;
 
 		SendPacket( EGS_AUTH_SECOND_SECURITY_ACK, kAck );
-
 
 #ifdef SERV_SECOND_SECURITY_REWARD_ID
 #ifdef SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
@@ -1317,6 +1269,36 @@ IMPL_ON_FUNC( EGS_COMPARE_SECOND_SECURITY_PW_REQ )
 
 	SendPacket( EGS_COMPARE_SECOND_SECURITY_PW_ACK, kAck );
 }
+
+IMPL_ON_FUNC( EGS_CHECK_SECOND_SECURITY_PW_CHRACTER_LIST_REQ )
+{
+    KEGS_CHECK_SECOND_SECURITY_PW_CHRACTER_LIST_ACK kAck;
+    kAck.m_iOK = NetError::NET_OK;
+
+    // 2011.12.20     김민성    2차 보안 패드 비밀번호 암호화
+    std::string strPW = KncUtil::toNarrowString( kPacket_ );
+    std::string strChangePW = KServerSNMaker::GetCRCFromString( strPW );
+    kPacket_ = KncUtil::toWideString( strChangePW.c_str() );
+
+    // 2차 보안 패드 사용 중이고 비밀번호가 동일 할 때 통과
+    if( GetIsUseSecondPW() == false )
+    {
+        kAck.m_iOK = NetError::ERR_SECOND_SECURITY_NO_USE;
+    }
+    else if( IsSameSecondSecurityPW( kPacket_ ) == false )
+    {
+        kAck.m_iOK = NetError::ERR_SECOND_SECURITY_DIFFER_PW;
+    }
+    else 
+    {
+#ifdef SERV_CHECK_SECOND_PW_STATE
+        StateTransition( KGSFSM::I_TO_SERVER_SELECT );
+#endif SERV_CHECK_SECOND_PW_STATE
+    }
+
+    SendPacket( EGS_CHECK_SECOND_SECURITY_PW_CHRACTER_LIST_ACK, kAck );
+}
+
 #endif SERV_SECOND_SECURITY
 //}}
 
@@ -1613,7 +1595,6 @@ IMPL_ON_FUNC( EGS_SERVER_CHECK_HACK_USER_ACK )
 #endif SERV_SERVER_CHECK_HACK_USER_REQ_ACK
 //}}
 
-
 #ifdef SERV_NPROTECT_CS_AUTH_30
 IMPL_ON_FUNC( EGS_NPROTECT_CSAUTH3_RESPONE_NOT )
 {
@@ -1768,6 +1749,68 @@ IMPL_ON_FUNC( EGS_HACKING_USER_PROCESS_NAME_RECORD_NOT )
 	}
 }
 #endif // SERV_HACKING_USER_PROCESS_NAME_RECORD
+
+#ifdef SERV_ENTRY_POINT
+
+IMPL_ON_FUNC_NOPARAM( EGS_GET_SECOND_SECURITY_INFO_REQ )
+{
+    KDBE_GET_PURE_SECOND_SECURITY_INFO_REQ kReq;
+    kReq.m_iUserUID = GetUID();
+    //SiKGameSysVal()->GetComeBackRewardCondition( kReq.m_mapComeBackRewardCondition );
+#ifdef SERV_BUBBLE_FIGHTER_TOGETHER_EVENT
+    kReq.m_wstrID = GetName();
+#endif SERV_BUBBLE_FIGHTER_TOGETHER_EVENT
+
+    SendToAccountDB( DBE_GET_PURE_SECOND_SECURITY_INFO_REQ, kReq );	// AccountDB에 최근 접속 종료 정보 얻기
+}
+
+IMPL_ON_FUNC( DBE_GET_PURE_SECOND_SECURITY_INFO_ACK )
+{
+    KEGS_SECOND_SECURITY_INFO_NOT kNot;
+    kNot.m_iOK = kPacket_.m_iOK;
+    kNot.m_bUseSecondPW = kPacket_.m_bUseSecondPW;
+
+    if( kPacket_.m_iOK == NetError::ERR_SECOND_SECURITY_AUTH_FAILED_LIMIT ) // 비밀 번호 입력 실패가 10회 이상일 때 
+    {
+        SendPacket( EGS_GET_SECOND_SECURITY_INFO_ACK, kNot );
+
+        // 클라이서 종료 시키기로 하여 주석 됨
+        //SetDisconnectReason( KStatistics::eSIColDR_Normal_Disconnect );
+        //ReserveDestroy();															// 강제 종료
+        return;
+    }
+
+    // DB 에서 받아온 데이터 저장 (성공 일 때)
+    CTime tLastAuthDate;
+    if( kPacket_.m_bUseSecondPW == true )
+    {
+        if( KncUtil::ConvertStringToCTime( kPacket_.m_wstrLastAuthDate, tLastAuthDate ) == false )
+        {
+            START_LOG( cerr, L"문자열 시간 변환 실패." )
+                << BUILD_LOG( kPacket_.m_wstrLastAuthDate )
+                << END_LOG;
+        }
+
+        //{{ 2011. 06. 23	최육사	2차 비번 예외처리
+#ifdef SERV_CHECK_SECOND_PW_STATE
+        //StateTransition( KGSFSM::I_TO_CHECK_SECOND_PW );
+#endif SERV_CHECK_SECOND_PW_STATE
+        //}}
+    }
+    SetIsUseSecondPW( kPacket_.m_bUseSecondPW );
+    SetSecondPWFailedCount( kPacket_.m_iFailedCount );
+    SetSecondPW( kPacket_.m_wstrSecondPW );
+    SetLastAuthDate( tLastAuthDate );
+
+    SendPacket( EGS_GET_SECOND_SECURITY_INFO_ACK, kNot );
+
+    if( m_kUserStatistics.IsFirstUserLoginToday( GetUID(), GetLastLoginDate() ) == true )
+    {  // 보안 사용 정보 로그 남기자!
+        SendFirstLoginSecurityInfo();
+    }
+}
+
+#endif SERV_ENTRY_POINT
 
 //////////////////////////////////////////////////////////////////////////
 #endif SERV_GSUSER_CPP

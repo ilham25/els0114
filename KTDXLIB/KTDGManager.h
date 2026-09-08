@@ -65,7 +65,7 @@ class CKTDGUIDialog;
 
 #include "KTDGUIDialog.h"
 #include "KTDGUIDialogManager.h"
-#include "KTDGGrayScale.h"
+//#include "KTDGGrayScale.h"
 
 
 class CKTDGManager : public CKTDXStage
@@ -73,17 +73,12 @@ class CKTDGManager : public CKTDXStage
     private:
 
 //{{ kimhc // 2010.6.17 // enum X2_LAYER에 레이어 추가하는 작업
-#ifdef	ADD_X2_LAYER
 		static const int       m_ciNumLayerGroups = 32;	// 레이어 6개 추가
-#else	ADD_X2_LAYER
-		static const int       m_ciNumLayerGroups = 26;
-#endif	ADD_X2_LAYER
 //}} kimhc // 2010.6.17 // enum X2_LAYER에 레이어 추가하는 작업
 
         inline int      MapLayerGroup( int iLayer )
         {
 //{{ kimhc // 2010.6.17 // enum X2_LAYER에 레이어 추가하는 작업
-#ifdef	ADD_X2_LAYER
 			if ( iLayer <= 26 )
 				return iLayer;
 			if ( iLayer <= 100 )
@@ -95,19 +90,6 @@ class CKTDGManager : public CKTDXStage
 			if ( iLayer <= 400 )
 				return 30;
 			return 31;
-#else	ADD_X2_LAYER
-			if ( iLayer <= 20 )
-				return iLayer;
-			if ( iLayer <= 100 )
-				return 21;
-			if ( iLayer <= 200 )
-				return 22;
-			if ( iLayer <= 300 )
-				return 23;
-			if ( iLayer <= 400 )
-				return 24;
-			return 25;
-#endif	ADD_X2_LAYER
 //}} kimhc // 2010.6.17 // enum X2_LAYER에 레이어 추가하는 작업
             
         }//MapLayerGroup()
@@ -257,8 +239,10 @@ class CKTDGManager : public CKTDXStage
 		void SetFar( float fVal ) { m_Far = fVal; }
 #endif
 
-		CKTDGCamera*				GetCamera(){ return m_pCamera; }
-		CKTDGFrustum*				GetFrustum(){ return m_pFrustum; }
+		//CKTDGCamera*				GetCamera(){ return m_pCamera; }
+        //CKTDGFrustum*				GetFrustum(){ return m_pFrustum; }
+        CKTDGCamera&				GetCamera(){ return m_kCamera; }
+		const CKTDGFrustum&			GetFrustum() const { return m_kFrustum; }
 		//CKTDGGlow*					GetGlow(){ return m_pGlow; }
 		//CKTDGMotionBlur*			GetMotionBlur(){ return m_pMotionBlur; }
 		CKTDGXRenderer*				GetXRenderer(){ return m_pXRenderer; }
@@ -357,8 +341,10 @@ class CKTDGManager : public CKTDXStage
 		KObjectRenderHintVector		m_OverUIAlphaChain;
 #endif OVER_UI_ALPHA_RENDER_FIX
 
-		CKTDGCamera*				m_pCamera;
-		CKTDGFrustum*				m_pFrustum;
+		//CKTDGCamera*				m_pCamera;
+        //CKTDGFrustum*				m_pFrustum;
+        CKTDGCamera                 m_kCamera;
+		CKTDGFrustum				m_kFrustum;
 		//CKTDGGlow*					m_pGlow;
 		//CKTDGMotionBlur*			m_pMotionBlur;
 		CKTDGXRenderer*				m_pXRenderer;

@@ -26,10 +26,13 @@
 #include "./X2GUEl.h"
 #endif // NEW_CHARACTER_EL
 
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+#include "./X2GUAdd.h"
+#endif //SERV_9TH_NEW_CHARACTER
+
 
 #endif REDUCED_PRECOMPILED_HEADER_TEST
 
-#ifdef REFORM_TUTORIAL
 static const CKTDGStateManager::KState s_akStates[] = 
 {
 	KRenderState( D3DRS_ALPHATESTENABLE,	TRUE ),
@@ -48,95 +51,111 @@ static const CKTDGStateManager::KState s_akStates[] =
 	KTextureStageState( 0, D3DTSS_ALPHAARG1,	D3DTA_DIFFUSE ),
 	KTextureStageState( 0, D3DTSS_ALPHAARG2,	D3DTA_TEXTURE ),
 };//s_akStates[]
-#endif //REFORM_TUTORIAL
 
 
 
-CX2StateDungeonGame::CX2StateDungeonGame(void) :
-m_pDLGExitMsgBox( NULL ),
-m_pDLGLoadingState( NULL ),
-m_pDLGTutorialInputControl( NULL ),
-m_pDLGGoToFirstDungeon( NULL ),
-m_pDLGInputUI( NULL ),
-m_pDLGTutorialExitButton( NULL ),
-//m_pDLGF1Help( NULL ),		
-m_pDLGF1Help2( NULL ),
-m_pDLGArcadeFrame( NULL ),
-m_pDungeonGame( NULL ),
-m_bLoadingOK( false ),
-m_pCX2GameLoadingTip( NULL ),
-m_HostIP( L"" ),
-m_HostPort( 0 ),
-m_bSubStageLoading( false ),
-m_SubStageLoadingRenderCount( 0 ),
-//m_WinTeam( CX2Room::TN_NONE ),
-m_bResultStateReq( false ),
-m_bGameEnd( false ),
-m_fGameEndWaitTime( 5.f ),
-m_pLoadingOutLineTex( NULL ),
-m_pLoadingBasicTex( NULL ),
-m_LoadingPercent( 0 ),
-m_LoadingRenderCount( 0 ),
-m_ConnectType( CX2Game::CT_START_GAME ), 
-m_NextStageNum( -2 ),
-m_RenderCount( 0 ),
-m_DLGLoadingStateUnitInfoList( NULL ),
-m_TutorialBeforeUserStateID( -1 ),
-//m_vecTutorialInputTreeParticle;
-m_vTutorialParticlePos( D3DXVECTOR3( 80, 700, 0 ) ),
-m_bShowSkilList( false ),
-m_pFontForSkillList( NULL ),
-m_HighLightSkillID( -1 ), 
-m_fTimeLeftForHighlight( 0.f ),
-m_coHighlight( D3DXCOLOR(1,1,1,1) ),
-m_coHighLightIncrement( D3DXCOLOR(0.04f, 0.04f, 0.04f, 0.f) ),
-m_iTutorialMsgFlashCount( 0 ),
-m_bCreateCommandSuccessSplash( false ),
-m_hTutorialMissionSplashParticle( INVALID_PARTICLE_HANDLE ),
-//m_mapUnitCommandList;
-m_pDungeonMapUI( NULL ),
-m_bWasQuestUIMinimized( false ),
-m_bWasMiniMapMinimized( false ),
-m_bSend_KEGS_END_GAME_REQ( false ),
-m_bStateChangeLocalMap( false ),
-m_bSend_KEGS_LEAVE_ROOM_REQ( false ),
-m_bReceive_KEGS_LEAVE_ROOM_ACK( false ),
-m_bReceive_KEGS_UNIT_INFO_UPDATE( false ),
-m_bLeaveRoomAtTutorial( false ),
-//m_DungeonEndingEvent;
-m_pDLGArcadeMission( NULL ),
-m_fTimeShowArcadeMission( 0.f ),
+CX2StateDungeonGame::CX2StateDungeonGame(void)
+	: m_pDLGExitMsgBox( NULL )
+	, m_pDLGLoadingState( NULL )
+	, m_pDLGTutorialInputControl( NULL )
+	, m_pDLGGoToFirstDungeon( NULL )
+	, m_pDLGInputUI( NULL )
+	, m_pDLGTutorialExitButton( NULL )
+	//, m_pDLGF1Help( NULL )
+	, m_pDLGF1Help2( NULL )
+	, m_pDLGArcadeFrame( NULL )
+	, m_pDungeonGame( NULL )
+	, m_bLoadingOK( false )
+	, m_pCX2GameLoadingTip( NULL )
+	, m_HostIP( L"" )
+	, m_HostPort( 0 )
+	, m_bSubStageLoading( false )
+	, m_SubStageLoadingRenderCount( 0 )
+	//, m_WinTeam( CX2Room::TN_NONE )
+	, m_bResultStateReq( false )
+	, m_bGameEnd( false )
+	, m_fGameEndWaitTime( 5.f )
+	, m_pLoadingOutLineTex( NULL )
+	, m_pLoadingBasicTex( NULL )
+	, m_LoadingPercent( 0 )
+	, m_LoadingRenderCount( 0 )
+	, m_ConnectType( CX2Game::CT_START_GAME )
+	, m_NextStageNum( -2 )
+	, m_RenderCount( 0 )
+#ifdef REFORM_ENTRY_POINT
+	, m_pDLGLoadingFront( NULL )
+#else //REFORM_ENTRY_POINT
+	, m_DLGLoadingStateUnitInfoList( NULL )
+#endif //REFORM_ENTRY_POINT
+	, m_TutorialBeforeUserStateID( -1 )
+	//, m_vecTutorialInputTreeParticle;
+	, m_vTutorialParticlePos( D3DXVECTOR3( 80, 700, 0 ) )
+	, m_bShowSkilList( false )
+	, m_pFontForSkillList( NULL )
+	, m_HighLightSkillID( -1 )
+	, m_fTimeLeftForHighlight( 0.f )
+	, m_coHighlight( D3DXCOLOR(1,1,1,1) )
+	, m_coHighLightIncrement( D3DXCOLOR(0.04f, 0.04f, 0.04f, 0.f) )
+	, m_iTutorialMsgFlashCount( 0 )
+	, m_bCreateCommandSuccessSplash( false )
+	, m_hTutorialMissionSplashParticle( INVALID_PARTICLE_SEQUENCE_HANDLE )
+	//, m_mapUnitCommandList;
+	, m_pDungeonMapUI( NULL )
+	, m_bWasQuestUIMinimized( false )
+	, m_bWasMiniMapMinimized( false )
+	, m_bSend_KEGS_END_GAME_REQ( false )
+	, m_bStateChangeLocalMap( false )
+	, m_bSend_KEGS_LEAVE_ROOM_REQ( false )
+	, m_bReceive_KEGS_LEAVE_ROOM_ACK( false )
+	, m_bReceive_KEGS_UNIT_INFO_UPDATE( false )
+	, m_bLeaveRoomAtTutorial( false )
+	//, m_DungeonEndingEvent;
+	, m_pDLGArcadeMission( NULL )
+	, m_fTimeShowArcadeMission( 0.f )
 #ifdef NEW_HENIR_TEST
-m_iStartSecretStageEnteringEvent( 0 ),
+	, m_iStartSecretStageEnteringEvent( 0 )
 #endif NEW_HENIR_TEST
-m_bAutoShowOffArcadeMission( true )
-#ifdef REFORM_TUTORIAL
-,m_TimerWaitingPortal(3.f)
-,m_RenderStateID(s_akStates)
-,m_TexDataMovingGageBG( L"DLG_LOADING_BAR.tga", L"LOADING_BG" )
-,m_TexDataMovingGage( L"DLG_LOADING_BAR.tga", L"LOADING_BAR" )
-#endif //REFORM_TUTORIAL
+	, m_bAutoShowOffArcadeMission( true )
+	, m_TimerWaitingPortal(3.f)
+	, m_RenderStateID(s_akStates)
+	, m_TexDataMovingGageBG( L"DLG_LOADING_BAR.tga", L"LOADING_BG" )
+	, m_TexDataMovingGage( L"DLG_LOADING_BAR.tga", L"LOADING_BAR" )
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
-,m_pDLGValentineTimer ( NULL )		/// 발렌타인 던전 타이머 UI
-,m_fValentineDungeonRemainTime ( 0.f )
-,m_iValentineDungeonStage ( 1 )
-,m_bIsValentineDungeon( false )
-,m_hStageStartEffect1( INVALID_PARTICLE_HANDLE )
-,m_hStageStartEffect2( INVALID_PARTICLE_HANDLE )
+	, m_pDLGValentineTimer ( NULL )		/// 발렌타인 던전 타이머 UI
+	, m_fValentineDungeonRemainTime ( 0.f )
+	, m_iValentineDungeonStage ( 1 )
+	, m_bIsValentineDungeon( false )
+	, m_hStageStartEffect1( INVALID_PARTICLE_SEQUENCE_HANDLE )
+	, m_hStageStartEffect2( INVALID_PARTICLE_SEQUENCE_HANDLE )
 #endif //SERV_EVENT_VALENTINE_DUNGEON
 #ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-09
-,m_bEnterDefenceDungeon( false )		/// 어둠의 문 입장 처리 여부
-,m_fWaitDefenceDungeonStartTime( -1.f )	/// 어둠의 문 시작까지의 대기 시간
+	, m_bEnterDefenceDungeon( false )		/// 어둠의 문 입장 처리 여부
+	, m_fWaitDefenceDungeonStartTime( -1.f )	/// 어둠의 문 시작까지의 대기 시간
 #endif // SERV_NEW_DEFENCE_DUNGEON
+#ifdef DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
+	, m_SumDelta( 0 )
+#endif //DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
 {
 	DialogLog( "\nCX2StateDungeonGame::CX2StateDungeonGame Start\n" );
 
 	m_pCX2GameLoadingTip	= new CX2GameLoadingTip();
+#ifdef REFORM_ENTRY_POINT
+	if( NULL != m_pCX2GameLoadingTip && NULL != g_pData->GetPartyManager() && NULL != g_pData->GetPartyManager()->GetMyPartyData() )
+	{
+		if( true == CX2Dungeon::IsHenirDungeon( static_cast<const SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ) ) 
+			m_pCX2GameLoadingTip->SetVillageSetting();
+	}
+#endif //REFORM_ENTRY_POINT
 
 #ifdef SERV_CATCH_HACKUSER_INFO
 	if ( g_pData->GetDungeonRoom() == NULL )
 	{
-		Handler_EGS_CATCH_HACKUSER_INFO_NOT(1);
+		KEGS_CATCH_HACKUSER_INFO_NOT kPacket;
+		kPacket.m_iUserUID = g_pData->GetMyUser()->GetUID();
+		kPacket.m_iUnitUID = g_pData->GetMyUser()->GetSelectUnit()->GetUID();
+		kPacket.m_iCrashType = 1;
+
+		Handler_EGS_CATCH_HACKUSER_INFO_NOT(kPacket);
 	}
 #endif SERV_CATCH_HACKUSER_INFO
 
@@ -186,8 +205,8 @@ m_bAutoShowOffArcadeMission( true )
 	// skill list 관련 string 초기화
 	if( true == g_pMain->GetIsPlayingTutorial() ||
 		( NULL != g_pData->GetDungeonRoom() && 
-		( CX2Dungeon::DI_EL_FOREST_GATE_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() ||
-		CX2Dungeon::DI_EL_FOREST_WEST_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
+		( SEnum::DI_EL_FOREST_GATE_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() ||
+		SEnum::DI_EL_FOREST_WEST_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
 		) )
 	{
 		CreateComboListForTutorial();
@@ -237,24 +256,6 @@ m_bAutoShowOffArcadeMission( true )
 	// tutorial 관련
 	m_pFontForSkillList			= g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( XUF_DODUM_20_BOLD );
 
-#ifndef REFORM_TUTORIAL
-	if( true == g_pMain->GetIsPlayingTutorial() )
-	{
-		m_pDLGTutorialExitButton = new CKTDGUIDialog( this, L"DLG_Tutorial_Exit_Button.lua" );
-		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGTutorialExitButton );
-
-		m_pDLGTutorialInputControl = new CKTDGUIDialog( this, L"DLG_Tutorial_InputControl.lua" );
-		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGTutorialInputControl );
-
-		m_pDLGTutorialInputControl->SetShow(false);
-
-		SetShowMenu(false);
-#ifdef REFORM_UI_SKILLSLOT
-		SetShowSkillSlot(true);
-		SetShowQuickSlot(true);
-#endif //REFORM_UI_SKILLSLOT
-	}
-#endif //REFORM_TUTORIAL
 
 	g_pKTDXApp->GetDGManager()->SetProjection( 
 		g_pKTDXApp->GetDGManager()->GetNear(),
@@ -276,10 +277,13 @@ m_bAutoShowOffArcadeMission( true )
 	{
 		switch(g_pData->GetDungeonRoom()->GetDungeonID())
 		{
-		case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-		case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:
-		case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:
-		case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+		case SEnum::DI_EVENT_KIDDAY_RUBEN:
+		case SEnum::DI_EVENT_KIDDAY_ELDER:
+		case SEnum::DI_EVENT_KIDDAY_BESMA:
+		case SEnum::DI_EVENT_KIDDAY_ALTERA:
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+		case SEnum::DI_EVENT_HALLOWEEN_DAY:
+#endif //SERV_HALLOWEEN_EVENT_2013
 			{
 				g_pData->GetUIManager()->SetShowQuickSlot(false);
 			} break;
@@ -289,18 +293,16 @@ m_bAutoShowOffArcadeMission( true )
 	}
 #endif CHILDRENS_DAY_EVENT_DUNGEON
 
-	if( true == g_pData->GetDungeonManager()->IsHenirDungeon( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) &&
+	if( true == CX2Dungeon::IsHenirDungeon( static_cast<const SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) ) &&
 		CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode )
 	{
 		g_pData->GetUIManager()->SetShowQuickSlot(false);
 	}
 
-#ifdef REFORM_TUTORIAL
 	if( NULL != g_pMain && true == g_pMain->GetIsPlayingTutorial() )
 	{
 		CreateMovingSmallBar();
 	}
-#endif //REFORM_TUTORIAL
 
 	m_bLoadingOK = true;	// 여기까지 실행되면 로딩이 완료된 것으로 
 	g_pKTDXApp->SkipFrame();
@@ -313,6 +315,11 @@ m_bAutoShowOffArcadeMission( true )
 	//서버로부터 랙체크 활성화 여부를 알아낸다.
 	CX2State::Handler_EGS_GET_ACTIVE_LAGCHECK_REQ();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK_VER2
+
+#ifdef  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
+    if ( g_pData->GetGameUDP() != NULL )
+        g_pData->GetGameUDP()->RemoveAllPendingPingSends();
+#endif  SERV_KTDX_OPTIMIZE_NEW_UDP_CONNECTION_STRATEGY
 
 #ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-07
 	/// 만약 어둠의 문 입장중이라면, 소환 퀵슬롯 설정
@@ -339,6 +346,33 @@ CX2StateDungeonGame::~CX2StateDungeonGame(void)
 	DialogLog( "\nCX2StateDungeonGame::~CX2StateDungeonGame Start\n" );
 	
 
+
+
+#ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-07
+	if(	NULL != g_pData && NULL != g_pData->GetUIManager() )
+	{
+		CX2UIQuickSlot* pQuickSlot = g_pData->GetUIManager()->GetUIQuickSlot();
+		if( NULL != pQuickSlot )
+		{
+			if ( NULL != g_pData->GetDungeonRoom() && 
+				true == g_pData->GetDungeonRoom()->IsDefenceDungeon( g_pData->GetDungeonRoom()->GetDungeonID() ) )
+			{
+				pQuickSlot->SetIsSummonCardSlot( false );
+				pQuickSlot->ResetQuickSlotUI();
+				pQuickSlot->SetShow( true );
+
+				if( NULL != g_pData->GetMyUser() &&
+					NULL != g_pData->GetMyUser()->GetSelectUnit() )
+				{
+					const int iMaxQuickSlotNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT );
+					pQuickSlot->SetExpandQuickSlot(iMaxQuickSlotNum);
+				}
+			}
+
+			pQuickSlot->SetEnable(true);
+		}
+	}
+#else // SERV_NEW_DEFENCE_DUNGEON
 	// 09.04.27 태완 : 아까 못쓰게 했던 퀵슬롯 원래대로 돌려주자
 //#ifdef CHILDRENS_DAY_EVENT_DUNGEON
 	if(	g_pData->GetUIManager() != NULL && 
@@ -347,8 +381,7 @@ CX2StateDungeonGame::~CX2StateDungeonGame(void)
 		g_pData->GetUIManager()->GetUIQuickSlot()->SetEnable(true);
 	}
 //#endif
-
-
+#endif // SERV_NEW_DEFENCE_DUNGEON
 
 
 #ifdef FIXED_DIALOG_FAULTY_PLAYER_WARNING_DLG
@@ -390,7 +423,7 @@ CX2StateDungeonGame::~CX2StateDungeonGame(void)
 
 	SAFE_DELETE( m_pDungeonMapUI );
 
-	if( INVALID_PARTICLE_HANDLE != m_hTutorialMissionSplashParticle )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hTutorialMissionSplashParticle )
 	{
 		if( NULL != g_pX2Game && NULL != g_pX2Game->GetMajorParticle() )
 		{
@@ -398,7 +431,9 @@ CX2StateDungeonGame::~CX2StateDungeonGame(void)
 		}
 	}
 
-
+#ifdef REFORM_ENTRY_POINT
+	SAFE_DELETE_DIALOG( m_pDLGLoadingFront );
+#else //REFORM_ENTRY_POINT
 	for ( int i = 0; i < (int)m_DLGLoadingStateUnitInfoList.size(); i++ )
 	{
 		CKTDGUIDialogType pDialog = m_DLGLoadingStateUnitInfoList[i];
@@ -408,16 +443,15 @@ CX2StateDungeonGame::~CX2StateDungeonGame(void)
 		SAFE_DELETE( pDialog );
 #endif // DIALOG_HANDLE_TEST // 2009-8-19
 	}
+#endif //REFORM_ENTRY_POINT
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), false );
 
 	m_pDungeonGame->Release();
 	SAFE_DELETE( m_pDungeonGame );
 	
-#ifdef REFORM_TUTORIAL 
 	DestroyMovingSmallBar();
-#endif //REFORM_TUTORIAL
 	DialogLog( "\nCX2StateDungeonGame::~CX2StateDungeonGame End\n" );
 
 #ifdef SERV_EVENT_VALENTINE_DUNGEON		/// 스테이지 변경시 발생되는 안내 문구 이펙트 해제
@@ -444,13 +478,13 @@ void CX2StateDungeonGame::LoadUI()
 {
 	if( NULL != g_pData->GetDungeonRoom() )
 	{
-		if( CX2Dungeon::DI_EL_FOREST_GATE_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() ||
-			CX2Dungeon::DI_EL_FOREST_WEST_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
+		if( SEnum::DI_EL_FOREST_GATE_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() ||
+			SEnum::DI_EL_FOREST_WEST_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
 		{
 			m_pDLGInputUI = new CKTDGUIDialog( this, L"DLG_Novice_InputUI.lua", 0.07f );
 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGInputUI );
 
-			//if( CX2Dungeon::DI_EL_FOREST_WEST_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
+			//if( SEnum::DI_EL_FOREST_WEST_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
 			//{
 			//	// 메인메뉴 높이만큼 위로 올린다.
 			//	m_pDLGInputUI->SetPos(D3DXVECTOR2(0.f, -50.f));
@@ -480,7 +514,7 @@ void CX2StateDungeonGame::LoadUI()
 			{
 				wstringstream wstrmCommandList;
 
-				map<char, wstring>& mapCommandList = m_mapUnitCommandList[ g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass ];
+				map<char, wstring>& mapCommandList = m_mapUnitCommandList[ g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass ];
 				map<char, wstring>::iterator it;
 
 				for( it = mapCommandList.begin() ; it != mapCommandList.end(); it++ )
@@ -506,25 +540,20 @@ void CX2StateDungeonGame::LoadUI()
 	vecLoadingTextureName.reserve( 16 );
 #ifdef DUNGEON_LOADING_ADVERTISEMENT
 	KLuaManager kLuamanager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( "Dungeon_Loading_Advertisement.lua" );
-	if( NULL != Info )
+    if ( g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"Dungeon_Loading_Advertisement.lua" ) == true )
 	{
-		if( true == kLuamanager.DoMemory( Info->pRealData, Info->size ) )
+		if ( true == kLuamanager.BeginTable( "TEXTURE_NAME" ) )
 		{
-			if ( true == kLuamanager.BeginTable( "TEXTURE_NAME" ) )
+			int tableIndex = 1;
+			wstring textureName;
+			while( kLuamanager.GetValue( tableIndex, textureName ) == true )
 			{
-				int tableIndex = 1;
-				wstring textureName;
-				while( kLuamanager.GetValue( tableIndex, textureName ) == true )
-				{
-					vecLoadingTextureName.push_back( textureName );
-					tableIndex++;
-				}
-				kLuamanager.EndTable();
+				vecLoadingTextureName.push_back( textureName );
+				tableIndex++;
 			}
+			kLuamanager.EndTable();
 		}
-	}	
+	}
 	if( true == vecLoadingTextureName.empty() )
 	{
 		vecLoadingTextureName.push_back( L"HQ_LoadingBasic_111.tga" );
@@ -612,12 +641,25 @@ void CX2StateDungeonGame::LoadUI()
 
 				if ( NULL != g_pData &&
 					 NULL != g_pData->GetDungeonRoom() &&
-					 CX2Dungeon::DI_DEFENCE_DUNGEON_ELDER_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
+					 SEnum::DI_DEFENCE_DUNGEON_ELDER_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
 				{
 					 bIsDefenceDungeon = true;
 				}
 
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+				bool bIsHalloweenDungeon = false;		/// 어둠의 문인가
+
+				if ( NULL != g_pData &&
+					NULL != g_pData->GetDungeonRoom() &&
+					SEnum::DI_EVENT_HALLOWEEN_DAY == g_pData->GetDungeonRoom()->GetDungeonID() )
+				{
+					bIsHalloweenDungeon = true;
+				}
+
+				if ( false == bIsDefenceDungeon && false == bIsHalloweenDungeon )		/// 어둠의 문, 할로윈이 아닐때만, 한줄 툴팁 설정
+#else //SERV_HALLOWEEN_EVENT_2013
 				if ( false == bIsDefenceDungeon )		/// 어둠의 문이 아닐때만, 한줄 툴팁 설정
+#endif //SERV_HALLOWEEN_EVENT_2013
 #endif // SERV_NEW_DEFENCE_DUNGEON
 				{
 					// 로딩팁 생성
@@ -706,6 +748,18 @@ void CX2StateDungeonGame::LoadUI()
 	};
 	*/
 
+#ifdef REFORM_ENTRY_POINT
+	if( NULL == m_pDLGLoadingFront )
+	{
+		m_pDLGLoadingFront = new CKTDGUIDialog( this, L"DLG_Loading_Front.lua", 0.0f );
+
+		if( NULL != m_pDLGLoadingFront )
+		{
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGLoadingFront );
+			SetLoadingGageBar(0);
+		}
+	}
+#else //REFORM_ENTRY_POINT
 	for ( int i = 0; i < g_pData->GetDungeonRoom()->GetSlotNum(); i++ )
 	{
 		CKTDGUIDialogType pDialog = new CKTDGUIDialog( this, L"DLG_PVP_Game_Loading_State_User.lua", 0.0f );
@@ -769,6 +823,12 @@ void CX2StateDungeonGame::LoadUI()
 				pStaticUnitInfoTex->GetPicture( LUI_EL_BLACK )->SetShow( true );
 			} break;
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		case CX2Unit::UT_ADD:
+			{
+				pStaticUnitInfoTex->GetPicture( LUI_ADD_BLACK )->SetShow( true );
+			} break;
+#endif //SERV_9TH_NEW_CHARACTER
 
 		default:
 			{
@@ -784,12 +844,13 @@ void CX2StateDungeonGame::LoadUI()
 		pStaticUnitInfoPercent->GetString( 0 )->msg = L"0%";
 		CKTDGUIStatic* pStaticUnitInfo = (CKTDGUIStatic*)pDialog->GetControl( L"StaticLoading_UserInfo" );
 		WCHAR buff[256] = {0};
-		StringCchPrintf( buff, 256, L"LV.%d %s", (int)pSlotData->m_pUnit->GetUnitData()->m_Level, pSlotData->m_pUnit->GetNickName() );
-		//wsprintf( buff, L"LV.%d %s", (int)pSlotData->m_pUnit->GetUnitData()->m_Level, pSlotData->m_pUnit->GetNickName() );
+		StringCchPrintf( buff, 256, L"LV.%d %s", (int)pSlotData->m_pUnit->GetUnitData().m_Level, pSlotData->m_pUnit->GetNickName() );
+		//wsprintf( buff, L"LV.%d %s", (int)pSlotData->m_pUnit->GetUnitData().m_Level, pSlotData->m_pUnit->GetNickName() );
 		pStaticUnitInfo->GetString( 0 )->msg = buff;
 
 		m_DLGLoadingStateUnitInfoList.push_back( pDialog );
 	}	
+#endif //REFORM_ENTRY_POINT
 
 	//int redTeam = 0; 
 	//int blueTeam = 4;
@@ -909,7 +970,7 @@ HRESULT CX2StateDungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 			D3DXVECTOR3 vStartPos( 0.0f, 0.0f, 0.0f );
 
 			if(g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL)
-				iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_nMapID;
+				iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_nMapID;
 
 			if(g_pData->GetLocationManager()->GetVillageMapTemplet((SEnum::VILLAGE_MAP_ID)iMapId) == NULL)
 			{
@@ -931,9 +992,11 @@ HRESULT CX2StateDungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 			StateChangeFieldReq();
 		}
 	}
-#ifdef REFORM_TUTORIAL
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    MoveToRubenVillage( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	MoveToRubenVillage();
-#endif //REFORM_TUTORIAL
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	if ( m_pDLGArcadeMission != NULL )
 	{
@@ -969,11 +1032,16 @@ HRESULT CX2StateDungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 		if ( m_pCX2GameLoadingTip != NULL )
 			m_pCX2GameLoadingTip->OnFrameMove( fTime, fElapsedTime );
 
+#ifdef REFORM_ENTRY_POINT
+		if( NULL != m_pDLGLoadingFront )
+			m_pDLGLoadingFront->OnFrameMove( fTime, fElapsedTime );
+#else //REFORM_ENTRY_POINT
 		for ( int i = 0; i < (int)m_DLGLoadingStateUnitInfoList.size(); i++ )
 		{
 			CKTDGUIDialogType pDialog = m_DLGLoadingStateUnitInfoList[i];
 			pDialog->OnFrameMove( fTime, fElapsedTime );
 		}
+#endif //REFORM_ENTRY_POINT
 	}
 
 
@@ -1000,15 +1068,14 @@ HRESULT CX2StateDungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 					m_pDungeonGame->StageLoading( m_NextStageNum );
 					DungeonStageLoadCompleteReq( m_pDungeonGame->GetDungeon()->GetNowStage()->GetStageData()->m_bSecretStage );
 		
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #ifdef  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
 
                     if ( g_pData->GetGameUDP() != NULL )
                         g_pData->GetGameUDP()->ResetConnectTestToPeersAll();
 
 #endif  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #ifdef  SERV_OPTIMIZE_CHOOSE_FASTEST_HOST_ENHANCE
                     if ( g_pX2Room != NULL )
                         g_pX2Room->ResetSlotPingSendsAll();
@@ -1068,8 +1135,8 @@ HRESULT CX2StateDungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 			//{{AFX
 			if( NULL != g_pData->GetDungeonRoom() )
 			{
-				if( CX2Dungeon::DI_EL_FOREST_GATE_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() ||
-					CX2Dungeon::DI_EL_FOREST_WEST_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
+				if( SEnum::DI_EL_FOREST_GATE_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() ||
+					SEnum::DI_EL_FOREST_WEST_NORMAL == g_pData->GetDungeonRoom()->GetDungeonID() )
 				{
 					if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_L) == TRUE && m_pDungeonGame->GetOpenChatBox() == false )
 					{
@@ -1092,12 +1159,6 @@ HRESULT CX2StateDungeonGame::OnFrameMove( double fTime, float fElapsedTime )
 
 
 
-#ifndef REFORM_TUTORIAL
-			if( true == g_pMain->GetIsPlayingTutorial() && m_pDungeonGame->GetGameState() == CX2Game::GS_PLAY )
-			{
-				TutorialFrameMove( fTime, fElapsedTime );
-			}
-#endif //REFORM_TUTORIAL
 
 
 #ifdef CREATE_MONSTER_LIST_TEST
@@ -1194,18 +1255,26 @@ HRESULT CX2StateDungeonGame::OnFrameRender()
 					if ( m_pCX2GameLoadingTip != NULL )
 						m_pCX2GameLoadingTip->OnFrameRender();
 
-
+#ifdef REFORM_ENTRY_POINT
+					if( NULL != m_pDLGLoadingFront )
+						m_pDLGLoadingFront->OnFrameRender();
+#else //REFORM_ENTRY_POINT
 					for ( int i = 0; i < (int)m_DLGLoadingStateUnitInfoList.size(); i++ )
 					{
 						CKTDGUIDialogType pDialog = m_DLGLoadingStateUnitInfoList[i];
 						pDialog->OnFrameRender();
 					}
+#endif //REFORM_ENTRY_POINT
 				}
 			}
 			else
 			{
 				if( m_pDungeonGame->GetLastKillCheck() == true && g_pKTDXApp->GetCannotStretchRect() == false )
+	#ifdef SET_LAST_KILL_SHOT_HIDE_UI // 김태환		최대 화면 크기로 확대
+					m_pDungeonGame->GetLastKillShot()->Draw( 0, 0, 1024, 768 );// CopySurfaceToBackBuffer();
+	#else // SET_LAST_KILL_SHOT_HIDE_UI
 					m_pDungeonGame->GetLastKillShot()->Draw( 95,92, 889,665 );// CopySurfaceToBackBuffer();
+	#endif // SET_LAST_KILL_SHOT_HIDE_UI
 				else
 					m_pLoadingBasicTex->Draw( 0,0, 1024,768 );
 
@@ -1223,26 +1292,11 @@ HRESULT CX2StateDungeonGame::OnFrameRender()
 				m_pDLGExitMsgBox->OnFrameRender();
 		}
 
-#ifndef REFORM_TUTORIAL
-		if( true == g_pMain->GetIsPlayingTutorial()	)
-		{
-			if( true == m_pDungeonGame->GetShowTutorialUI() )
-			{
-				if( NULL == g_pData->GetSlideShot() || 
-					false == g_pData->GetSlideShot()->IsPresentNow() )
-				{
-					TextOutSkillList( m_HighLightSkillID );
-				}
-			}
-		}
-#endif //REFORM_TUTORIAL
-#ifdef REFORM_TUTORIAL
 		if ( NULL != g_pMain && true == g_pMain->GetIsPlayingTutorial()
 			&&m_TimerWaitingPortal.GetSumOfElapsedTime() > 0.0f )
 		{
 			DrawMovingSmallBar();
 		}
-#endif //REFORM_TUTORIAL
 	}
 	else
 	{
@@ -1265,6 +1319,9 @@ HRESULT CX2StateDungeonGame::OnFrameRender()
 		g_pInstanceData->GetMiniMapUI() != NULL )
 	{
 		g_pInstanceData->GetMiniMapUI()->UpdateEventNotice();
+#ifdef EVENT_CARNIVAL_DECORATION
+		g_pInstanceData->GetMiniMapUI()->UpdateCarnivalDeco();
+#endif //EVENT_CARNIVAL_DECORATION
 	}
 	//RenderMarketingEventTimer();
 	//}}
@@ -1284,12 +1341,17 @@ HRESULT CX2StateDungeonGame::OnResetDevice()
 		m_pDLGLoadingState->OnResetDevice();
 	}
 
+#ifdef REFORM_ENTRY_POINT
+	if( NULL != m_pDLGLoadingFront )
+		m_pDLGLoadingFront->OnResetDevice();
+#else //REFORM_ENTRY_POINT
 	for ( int i = 0; i < (int)m_DLGLoadingStateUnitInfoList.size(); i++ )
 	{
 		CKTDGUIDialogType pDialog = m_DLGLoadingStateUnitInfoList[i];
 		if ( pDialog != NULL )
 			pDialog->OnResetDevice();
 	}
+#endif //REFORM_ENTRY_POINT
 
 	return S_OK;
 }
@@ -1301,12 +1363,17 @@ HRESULT CX2StateDungeonGame::OnLostDevice()
 	if ( m_pDLGLoadingState != NULL)
 		m_pDLGLoadingState->OnLostDevice();
 
+#ifdef REFORM_ENTRY_POINT
+	if( NULL != m_pDLGLoadingFront )
+		m_pDLGLoadingFront->OnLostDevice();
+#else //REFORM_ENTRY_POINT
 	for ( int i = 0; i < (int)m_DLGLoadingStateUnitInfoList.size(); i++ )
 	{
 		CKTDGUIDialogType pDialog = m_DLGLoadingStateUnitInfoList[i];
 		if ( pDialog != NULL )
 			pDialog->OnLostDevice();
 	}
+#endif //REFORM_ENTRY_POINT
 
 
 	return S_OK;
@@ -1335,13 +1402,6 @@ bool CX2StateDungeonGame::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 							EndDungeonGameReq( CX2Room::TN_RED );
 
 						} break;
-#ifndef ADD_TRAININGGAME_NPC
-					case CX2Main::XS_TRAINING_GAME:
-						{
-							CX2StateTrainingGame* pStateTrainingGame = (CX2StateTrainingGame*) g_pMain->GetNowState();
-							pStateTrainingGame->Handler_EGS_END_TC_GAME_REQ( true );
-						} break;
-#endif
 					}
 				}
 				break;
@@ -1367,7 +1427,6 @@ bool CX2StateDungeonGame::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 				break;
 			}		
 			break;
-#ifdef SWAP_GAGE		
 		case WM_ACTIVATEAPP:
 			{
 				//if( wParam == FALSE )
@@ -1382,7 +1441,6 @@ bool CX2StateDungeonGame::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 			break;
 			
 
-#endif
 
 		}	
 	}
@@ -1404,6 +1462,16 @@ bool CX2StateDungeonGame::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 #endif SERV_EPIC_QUEST
 	if ( CX2State::MsgProc( hWnd, uMsg, wParam, lParam ) == true )
 		return true;
+
+#ifdef DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
+	switch ( uMsg )
+	{	
+	case WM_MOUSEWHEEL:
+		{ 
+			return OnMouseWheel(hWnd, uMsg, wParam,lParam);
+		} break;
+	}
+#endif //DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
 
 	if( NULL != g_pX2Game )
 		return g_pX2Game->MsgProc( hWnd, uMsg, wParam, lParam );
@@ -1460,7 +1528,7 @@ bool CX2StateDungeonGame::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 #ifdef	REAL_TIME_ELSWORD
 				// 던전 이탈시 ED의 패널티가 적용된 메뉴 효과를 위한 용도
 				if ( g_pInstanceData != NULL )
-					g_pInstanceData->SetInstanceED( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED );
+					g_pInstanceData->SetInstanceED( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED );
 #endif	REAL_TIME_ELSWORD
 				//}} kimhc // 실시간 엘소드 중 실시간 ED 획득 관련
 
@@ -1491,7 +1559,7 @@ bool CX2StateDungeonGame::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 
 			CX2StateAutoChanger::TARGET_DETAIL targetDetail;
 			targetDetail.m_iChannelID = (int) 104;		// note!!! 채널번호 일단 하드코딩
-			targetDetail.m_iDungeonID = (int) CX2Dungeon::DI_EL_FOREST_GATE_NORMAL;
+			targetDetail.m_iDungeonID = (int) SEnum::DI_EL_FOREST_GATE_NORMAL;
 			targetDetail.m_iRoomUID = -1;
 
 			g_pMain->GetStateAutoChanger().StartStateChange( (int)g_pMain->GetNowStateID(), CX2Main::XS_DUNGEON_GAME, targetDetail, 
@@ -1542,7 +1610,7 @@ bool CX2StateDungeonGame::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 #ifdef MONSTER_STATE_LIST_TEST
 				if( pListBox->GetDialog() == m_MonsterStateListDialog.GetDialog() )
 				{
-					m_MonsterStateListDialog.OnCommand( *((std::wstring*)(pListBoxItem->pData)) );
+					m_MonsterStateListDialog.OnCommand( *((const std::string*)(pListBoxItem->pData)) );
 				}
 #endif MONSTER_STATE_LIST_TEST
 
@@ -1785,6 +1853,17 @@ bool CX2StateDungeonGame::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 			}
 			return true;
 		} break;
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case EGS_USE_FINALITY_SKILL_ACK:
+		{
+			if ( NULL != g_pX2Game )
+			{
+				return g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_ACK( hWnd, uMsg, wParam, lParam );
+			}
+			return true;
+		} break;
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef SERV_INSERT_GLOBAL_SERVER
 	case EGS_CREATE_ATTRIB_NPC_NOT:
@@ -2051,11 +2130,11 @@ bool CX2StateDungeonGame::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 		} break;
 #endif // SERV_FIX_NONE_NPC_DUNGEON_LINES
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 	case EGS_DUNGEON_SUB_STAGE_CLEAR_ACK:
 		return Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_ACK( hWnd, uMsg, wParam, lParam );
 		break;
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 	}
 
 #if defined( _SERVICE_ )
@@ -2190,6 +2269,51 @@ bool CX2StateDungeonGame::GameLoadingNot( HWND hWnd, UINT uMsg, WPARAM wParam, L
 
 		LUI_EMPTY,
 	};*/
+#ifdef REFORM_ENTRY_POINT
+	DUNGEON_LOADING_DATA sDungeonLoadingData;
+	
+	if( m_vecDungeonLoadingData.empty() )
+	{
+		sDungeonLoadingData.uidUnitUID = kPacket.m_iUnitUID;
+		sDungeonLoadingData.iLoadingPercent = kPacket.m_iLoadingProgress;
+
+		m_vecDungeonLoadingData.push_back(sDungeonLoadingData);
+	}
+	else
+	{
+
+		bool IsHaveUID = false;
+		BOOST_FOREACH( DUNGEON_LOADING_DATA& LoadingData, m_vecDungeonLoadingData )
+		{	
+			if( LoadingData.uidUnitUID == kPacket.m_iUnitUID )
+			{
+				IsHaveUID = true;
+				LoadingData.uidUnitUID = kPacket.m_iUnitUID;
+				LoadingData.iLoadingPercent = kPacket.m_iLoadingProgress;
+			}
+		}
+
+		if( IsHaveUID == false )
+		{
+			sDungeonLoadingData.uidUnitUID = kPacket.m_iUnitUID;
+			sDungeonLoadingData.iLoadingPercent = kPacket.m_iLoadingProgress;
+
+			m_vecDungeonLoadingData.push_back(sDungeonLoadingData);
+		}
+	}
+	if( g_pData->GetDungeonRoom()->GetUserNum() == static_cast<int>(m_vecDungeonLoadingData.size()) )
+	{
+		int iLoadingPercent1 = 100;
+		BOOST_FOREACH( DUNGEON_LOADING_DATA LoadingData, m_vecDungeonLoadingData )
+		{	
+			if( LoadingData.iLoadingPercent < iLoadingPercent1 )
+				iLoadingPercent1 = LoadingData.iLoadingPercent;
+		}
+
+		SetLoadingGageBar(iLoadingPercent1);
+	}
+
+#else //REFORM_ENTRY_POINT
 
 #ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-22
 	/*
@@ -2286,6 +2410,13 @@ bool CX2StateDungeonGame::GameLoadingNot( HWND hWnd, UINT uMsg, WPARAM wParam, L
 						pStaticUnitInfoTex->GetPicture( LUI_EL_COLOR )->SetShow( true );
 					} break;
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+				case CX2Unit::UT_ADD:		/// 변경이 필요 하다.
+					{
+						pStaticUnitInfoTex->GetPicture( LUI_ADD_BLACK )->SetShow( false );
+						pStaticUnitInfoTex->GetPicture( LUI_ADD_COLOR )->SetShow( true );
+					} break;
+#endif //SERV_9TH_NEW_CHARACTER
 				default:
 					{
 						ASSERT( !"Unexpected UnitClass" );
@@ -2302,13 +2433,14 @@ bool CX2StateDungeonGame::GameLoadingNot( HWND hWnd, UINT uMsg, WPARAM wParam, L
 			pStaticUnitInfoPercent->GetString( 0 )->msg = buff;
 			CKTDGUIStatic* pStaticUnitInfo = (CKTDGUIStatic*)pDialog->GetControl( L"StaticLoading_UserInfo" );
 
-			StringCchPrintf( buff, 256, L"LV.%d %s", (int)pSlotData->m_pUnit->GetUnitData()->m_Level, pSlotData->m_pUnit->GetNickName() );
-			//wsprintf( buff, L"LV.%d %s", (int)pSlotData->m_pUnit->GetUnitData()->m_Level, pSlotData->m_pUnit->GetNickName() );
+			StringCchPrintf( buff, 256, L"LV.%d %s", (int)pSlotData->m_pUnit->GetUnitData().m_Level, pSlotData->m_pUnit->GetNickName() );
+			//wsprintf( buff, L"LV.%d %s", (int)pSlotData->m_pUnit->GetUnitData().m_Level, pSlotData->m_pUnit->GetNickName() );
 			pStaticUnitInfo->GetString( 0 )->msg = buff;
 
 			break;
 		}
 	}	
+#endif //REFORM_ENTRY_POINT
 
 	return true;
 }
@@ -2330,7 +2462,9 @@ bool CX2StateDungeonGame::PlayStartNot()
 	ELSWORD_VIRTUALIZER_END
 #endif
 	
-
+#ifdef REFORM_ENTRY_POINT
+	SAFE_DELETE_DIALOG( m_pDLGLoadingFront );
+#else //REFORM_ENTRY_POINT
 	for ( int i = 0; i < (int)m_DLGLoadingStateUnitInfoList.size(); i++ )
 	{
 		CKTDGUIDialogType pDialog = m_DLGLoadingStateUnitInfoList[i];
@@ -2341,7 +2475,7 @@ bool CX2StateDungeonGame::PlayStartNot()
 #endif // DIALOG_HANDLE_TEST // 2009-8-19
 	}
 	m_DLGLoadingStateUnitInfoList.clear();
-
+#endif //REFORM_ENTRY_POINT
 
 	m_pDungeonGame->GameStart();
 	g_pKTDXApp->SkipFrame();
@@ -2401,13 +2535,6 @@ bool CX2StateDungeonGame::Handler_EGS_END_GAME_ACK( HWND hWnd, UINT uMsg, WPARAM
 
 	if( true == g_pMain->GetIsPlayingTutorial() )
 	{
-#ifndef REFORM_TUTORIAL
-		if( NULL != m_pDLGTutorialInputControl )
-		{
-			m_pDLGTutorialInputControl->SetShow(false);
-		}
-		m_bShowSkilList = false;
-#endif //REFORM_TUTORIAL
 	}				
 	//	g_pX2Room->Set_KRoomSlotInfoList( kEvent.m_vecSlot, false );
 	m_pDungeonGame->Handler_EGS_END_GAME_NOT( kEvent );
@@ -2811,7 +2938,7 @@ bool CX2StateDungeonGame::DungeonStageLoadCompleteNot( HWND hWnd, UINT uMsg, WPA
 	DeSerialize( pBuff, &kEvent );
 	CX2PacketLog::PrintLog( &kEvent );
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #ifdef  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
 
     if ( g_pData->GetGameUDP() != NULL )
@@ -2820,7 +2947,8 @@ bool CX2StateDungeonGame::DungeonStageLoadCompleteNot( HWND hWnd, UINT uMsg, WPA
     }
 
 #endif  SERV_KTDX_OPTIMIZE_UDP_ROBUST_CONNECTION
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+
 
 	return true;
 }
@@ -3214,8 +3342,8 @@ bool CX2StateDungeonGame::Handler_EGS_PLAY_TIME_OUT_NOT( HWND hWnd, UINT uMsg, W
 	{
 		switch(g_pData->GetDungeonRoom()->GetDungeonID())
 		{
-		case CX2Dungeon::DI_ALTERA_SECRET_COMMON:
-		case CX2Dungeon::DI_ALTERA_SECRET_HELL:
+		case SEnum::DI_ALTERA_SECRET_COMMON:
+		case SEnum::DI_ALTERA_SECRET_HELL:
 			{
 				m_pDungeonGame->CreateDamageDataForDungeonTimeOut();
 			} 
@@ -3290,14 +3418,14 @@ bool CX2StateDungeonGame::Handler_EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_ACK( HWND
 				NULL != m_pDungeonGame->GetDungeon()->GetNowStage() &&
 				NULL != m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage() )
 			{
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 				SecretDungeonStageLoadReq( CX2DungeonSubStage::SSP_NORMAL );
-#else SERV_STAGE_CLEAR_IN_SERVER
+#else // SERV_STAGE_CLEAR_IN_SERVER
 				ASSERT( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextNormalStageIndex() > 0 );
 
 				CX2StateDungeonGame* pCX2StateDungeonGame = (CX2StateDungeonGame*)g_pMain->GetNowState();
 				DungeonStageLoadReq( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextNormalStageIndex() );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 			}
 		}
 	}
@@ -3307,11 +3435,11 @@ bool CX2StateDungeonGame::Handler_EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_ACK( HWND
 
 bool CX2StateDungeonGame::Handler_EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
 	KEGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 #ifdef NEW_HENIR_TEST
 	if( NULL != m_pDungeonGame &&
@@ -3319,9 +3447,9 @@ bool CX2StateDungeonGame::Handler_EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT( HWND
 		NULL != m_pDungeonGame->GetDungeon()->GetNowStage() &&
 		NULL != m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage() )
 	{
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 		m_iStartSecretStageEnteringEvent = kEvent.m_iStartSecretStageEnteringEvent;
-#else SERV_STAGE_CLEAR_IN_SERVER
+#else // SERV_STAGE_CLEAR_IN_SERVER
 		CX2StateDungeonGame* pCX2StateDungeonGame = (CX2StateDungeonGame*)g_pMain->GetNowState();
 
 		if( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextSecretStageIndex() > 0 &&
@@ -3341,7 +3469,7 @@ bool CX2StateDungeonGame::Handler_EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT( HWND
 		{
 			m_iStartSecretStageEnteringEvent = 0;
 		}
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 	}
 #else
 	// 비밀스테이지 입장 연출을 시작한다.
@@ -3379,21 +3507,21 @@ bool CX2StateDungeonGame::Handler_EGS_DUNGEON_SECRET_STAGE_ENTER_RESULT_NOT( HWN
 		{
 			if( true == kEvent.m_bProceedToEnterSecretStage )
 			{
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 				SecretDungeonStageLoadReq( CX2DungeonSubStage::SSP_SECRET );
-#else SERV_STAGE_CLEAR_IN_SERVER
+#else // SERV_STAGE_CLEAR_IN_SERVER
 				ASSERT( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextSecretStageIndex() > 0 );
 				DungeonStageLoadReq( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextSecretStageIndex() );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 			}
 			else
 			{
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 				SecretDungeonStageLoadReq( CX2DungeonSubStage::SSP_NORMAL );
-#else SERV_STAGE_CLEAR_IN_SERVER
+#else // SERV_STAGE_CLEAR_IN_SERVER
 				ASSERT( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextNormalStageIndex() > 0 );
 				DungeonStageLoadReq( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextNormalStageIndex() );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 			}
 		}
 	}
@@ -3413,20 +3541,20 @@ bool CX2StateDungeonGame::SecretDungeonStageLoadReq(int iVal)
 	{
 		if( g_pX2Game->IsHost() == true )
 		{
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 			ASSERT( iVal >= 1 && iVal <= 3 );
 			if( iVal < 1 || iVal > 3 )
 			{
 				StateLog( L"iVal < 1 || iVal > 3" );
 				return false;
 			}
-			
+
 			KEGS_SECRET_STAGE_LOAD_REQ kPacket;
 			kPacket.m_iPadID = iVal;
 
 			g_pData->GetServerProtocol()->SendPacket( EGS_SECRET_STAGE_LOAD_REQ, kPacket ); 
 			g_pMain->AddServerPacket( EGS_DUNGEON_STAGE_LOAD_ACK, 60.f );
-#else SERV_STAGE_CLEAR_IN_SERVER
+#else // SERV_STAGE_CLEAR_IN_SERVER
 			if( iVal == 1 )
 			{
 				ASSERT( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextSecretStageIndex() > 0 );
@@ -3442,7 +3570,7 @@ bool CX2StateDungeonGame::SecretDungeonStageLoadReq(int iVal)
 				ASSERT( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextNormalStageIndex() > 0 );
 				DungeonStageLoadReq( m_pDungeonGame->GetDungeon()->GetNowStage()->GetNowSubStage()->GetNextNormalStageIndex() );
 			}
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 		}
 	}
 	return true;
@@ -3502,18 +3630,16 @@ bool CX2StateDungeonGame::Handler_EGS_DUNGEON_KILLALLNPC_CHECK_ACK( HWND hWnd, U
 			{
 				CX2GUNPC* pCX2GUNPC = g_pX2Game->GetNPCUnit(i);
 				if( pCX2GUNPC != NULL 
-#ifdef DUNGEON_CHECKER_NPC
-					&& pCX2GUNPC->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_THING_CHECKER
-#endif
+					&& pCX2GUNPC->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_THING_CHECKER
 					)
 				{					
 					pCX2GUNPC->ResetGameUnitWhoAttackedMe();
 
-					if(	pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID != CX2UnitManager::NUI_ENT_EVENT
-						&& pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID != CX2UnitManager::NUI_TREE_KNIGHT_EVENT
-						&& pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID != CX2UnitManager::NUI_ENT_SMALL_EVENT 
+					if(	pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID != CX2UnitManager::NUI_ENT_EVENT
+						&& pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID != CX2UnitManager::NUI_TREE_KNIGHT_EVENT
+						&& pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID != CX2UnitManager::NUI_ENT_SMALL_EVENT 
 #ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-09
-						&& pCX2GUNPC->GetNPCTemplet()->m_nNPCUnitID != CX2UnitManager::NUI_SEED_OF_DARK_PORTAL 
+						&& pCX2GUNPC->GetNPCTemplet().m_nNPCUnitID != CX2UnitManager::NUI_SEED_OF_DARK_PORTAL 
 #endif // SERV_NEW_DEFENCE_DUNGEON
 						)
 						pCX2GUNPC->SetNowHp( 0.f );
@@ -3531,10 +3657,9 @@ bool CX2StateDungeonGame::Handler_EGS_DUNGEON_KILLALLNPC_CHECK_ACK( HWND hWnd, U
 	// 핵유저로 판단된다면 핵유저등록하고 핵실드검사 요청한다.
 	if( bResult == false &&
 		g_pData != NULL &&
-		g_pData->GetMyUser() != NULL && 
-		g_pData->GetMyUser()->GetUserData() != NULL )
+		g_pData->GetMyUser() != NULL )
 	{
-		g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+		g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 		g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
 		g_pData->GetServerProtocol()->SendID( EGS_REQUEST_HACKSHIELD_CHECK_NOT );
 
@@ -3583,7 +3708,7 @@ bool CX2StateDungeonGame::Handler_EGS_USER_GAME_STAT_NOT( HWND hWnd, UINT uMsg, 
 		if ( pUnit == NULL )
 			return false;
 
-		CX2Unit::UnitData*	pUnitData	= pUnit->GetUnitData();
+		CX2Unit::UnitData*	pUnitData	= &pUnit->AccessUnitData();
 
 		pUser->SetGameStat( kEvent.m_kGameStat );
 		pUnitData->m_GameStat.SetKStat( kEvent.m_kGameStat );
@@ -3767,7 +3892,7 @@ HRESULT CX2StateDungeonGame::TutorialFrameMove( double fTime, float fElapsedTime
 
 	if( true == m_pDungeonGame->GetIsThereTutorialMessage() )
 	{
-		if( INVALID_PARTICLE_HANDLE == m_hTutorialMissionSplashParticle )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hTutorialMissionSplashParticle )
 		{
 			m_hTutorialMissionSplashParticle = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL,  L"TutorialMissionSplash", 
 				512, 274, 1000, 1000, 1, 1 );
@@ -4159,7 +4284,7 @@ void CX2StateDungeonGame::TextOutSkillList( const char unitStateID )
 	const int iPosHeight = 22;
 
 
-	map<char, wstring>& mapCommandList = m_mapUnitCommandList[ g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass ];
+	map<char, wstring>& mapCommandList = m_mapUnitCommandList[ g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass ];
 	map<char, wstring>::iterator it;
 
 	for( it = mapCommandList.begin() ; it != mapCommandList.end(); it++ )
@@ -4211,41 +4336,47 @@ void CX2StateDungeonGame::PopTalkBox( UidType iUnitUID_, const WCHAR* pWstrMsg_,
 			if( g_pChatBox != NULL && bCommandEmotion == false )
 #endif
 			{
-				//컬링
-				float fScale;
-				if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetYScale() )
-				{
-					if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetZScale() )
-					{
-						//X가 제일 큼
-						fScale = pGUUser->GetMatrix().GetXScale();
-					}
-					else
-					{
-						//Z가 제일 큼
-						fScale = pGUUser->GetMatrix().GetZScale();
-					}
-				}
-				else
-				{
-					if( pGUUser->GetMatrix().GetYScale() > pGUUser->GetMatrix().GetZScale() )
-					{
-						//Y가 제일 큼
-						fScale = pGUUser->GetMatrix().GetYScale();
-					}
-					else
-					{
-						//Z가 제일 큼
-						fScale = pGUUser->GetMatrix().GetZScale();
-					}
-				}
+                if( pGUUser->GetBoundingRadius() > 0 )
+                {
+				    D3DXVECTOR3 center;
+				    pGUUser->GetTransformCenter( &center );
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+                    float   fScaledBoundingRadius =pGUUser->GetScaledBoundingRadius();
+#else   X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+				    //컬링
+				    float fScale;
+				    if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetYScale() )
+				    {
+					    if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetZScale() )
+					    {
+						    //X가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetXScale();
+					    }
+					    else
+					    {
+						    //Z가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetZScale();
+					    }
+				    }
+				    else
+				    {
+					    if( pGUUser->GetMatrix().GetYScale() > pGUUser->GetMatrix().GetZScale() )
+					    {
+						    //Y가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetYScale();
+					    }
+					    else
+					    {
+						    //Z가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetZScale();
+					    }
+				    }
+                    float   fScaledBoundingRadius = pGUUser->GetBoundingRadius() * fScale;
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
-				D3DXVECTOR3 center;
-				pGUUser->GetTransformCenter( &center );
-
-				if( pGUUser->GetBoundingRadius() > 0
-					&& g_pKTDXApp->GetDGManager()->GetFrustum()->CheckSphere( center, pGUUser->GetBoundingRadius() * fScale ) == false )
-					return;
+				    if( g_pKTDXApp->GetDGManager()->GetFrustum().CheckSphere( center, fScaledBoundingRadius ) == false )
+					    return;
+                }
 
 
 				CX2TalkBoxManagerImp::TalkBox talkBox;
@@ -4307,6 +4438,10 @@ void CX2StateDungeonGame::ToggleDungeonMapUI()
 		const CX2Dungeon::DungeonData* pDungeonData = m_pDungeonGame->GetDungeon()->GetDungeonData();
 		if( NULL != pDungeonData )
 		{
+#ifdef EVENT_BM_DUNGEON_MINIMAP_OFF
+			if( SEnum::DI_EVENT_AISHA_ELDER == pDungeonData->m_DungeonID )
+				return;	
+#endif //EVENT_BM_DUNGEON_MINIMAP_OFF
 			if( CX2Dungeon::DT_SECRET == pDungeonData->m_eDungeonType )
 				return;
 
@@ -4314,9 +4449,18 @@ void CX2StateDungeonGame::ToggleDungeonMapUI()
 				return;
 
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
-			if( CX2Dungeon::DI_EVENT_VALENTINE_DAY == pDungeonData->m_DungeonID )
+			if( SEnum::DI_EVENT_VALENTINE_DAY == pDungeonData->m_DungeonID )
 				return;
 #endif //SERV_EVENT_VALENTINE_DUNGEON
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+			if( SEnum::DI_EVENT_VALENTINE_DUNGEON_INT == pDungeonData->m_DungeonID )
+				return;
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+			if ( SEnum::DI_EVENT_HALLOWEEN_DAY == pDungeonData->m_DungeonID )
+				return;
+#endif //SERV_HALLOWEEN_EVENT_2013
 		}
 	}
 
@@ -4398,15 +4542,15 @@ bool CX2StateDungeonGame::ShortCutKeyProcess()
 
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F11) == TRUE )
 	{
-		g_pMain->GetGameOption()->SetMusic( !g_pMain->GetGameOption()->GetOptionList()->m_bMusic );
-		g_pMain->GetGameOption()->SaveScriptFile();
+		g_pMain->GetGameOption().SetMusic( !g_pMain->GetGameOption().GetOptionList().m_bMusic );
+		g_pMain->GetGameOption().SaveScriptFile();
 		if( m_bIsOptionWindowOpen == true )
 		{
 			InitSoundOption();
 		}
 
 
-		if( true == g_pMain->GetGameOption()->GetOptionList()->m_bMusic )
+		if( true == g_pMain->GetGameOption().GetOptionList().m_bMusic )
 		{
 			if( NULL != g_pChatBox )
 			{
@@ -4427,15 +4571,15 @@ bool CX2StateDungeonGame::ShortCutKeyProcess()
 
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F10) == TRUE )
 	{
-		g_pMain->GetGameOption()->SetSound( !g_pMain->GetGameOption()->GetOptionList()->m_bSound );
-		g_pMain->GetGameOption()->SaveScriptFile();
+		g_pMain->GetGameOption().SetSound( !g_pMain->GetGameOption().GetOptionList().m_bSound );
+		g_pMain->GetGameOption().SaveScriptFile();
 		if( m_bIsOptionWindowOpen == true )
 		{
 			InitSoundOption();
 		}
 
 
-		if( true == g_pMain->GetGameOption()->GetOptionList()->m_bSound )
+		if( true == g_pMain->GetGameOption().GetOptionList().m_bSound )
 		{
 			if( NULL != g_pChatBox )
 			{
@@ -4457,14 +4601,14 @@ bool CX2StateDungeonGame::ShortCutKeyProcess()
 
 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F9) == TRUE )
 	{
-		g_pMain->GetGameOption()->SetDynamicCamera( !g_pMain->GetGameOption()->GetOptionList()->m_bDynamicCamera );
-		g_pMain->GetGameOption()->SaveScriptFile();
+		g_pMain->GetGameOption().SetDynamicCamera( !g_pMain->GetGameOption().GetOptionList().m_bDynamicCamera );
+		g_pMain->GetGameOption().SaveScriptFile();
 		if( m_bIsOptionWindowOpen == true )
 		{
 			InitOtherOption();
 		}
 
-		if( true == g_pMain->GetGameOption()->GetOptionList()->m_bDynamicCamera )
+		if( true == g_pMain->GetGameOption().GetOptionList().m_bDynamicCamera )
 		{
 			if( NULL != g_pChatBox )
 			{
@@ -4491,11 +4635,7 @@ bool CX2StateDungeonGame::ShortCutKeyProcess()
 	//	if ( m_pDungeonGame->UseQuickSlot() == true )
 	//		return true;
 	//}
-#ifdef REFORM_UI_KEYPAD
 	if ( bHideDialog == false && GET_KEY_STATE( GA_NAME ) == TRUE )
-#else
-	if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_N ) == TRUE )
-#endif
 	{
 		g_pX2Game->SetRenderNPCName( !g_pX2Game->GetRenderNPCName() );
 		return true;
@@ -4651,11 +4791,7 @@ bool CX2StateDungeonGame::ShortCutKeyProcess()
 	//return g_pMain->KeyProcess();
 	//return false;
 
-#ifdef REFORM_UI_KEYPAD
 	if ( bHideDialog == false && GET_KEY_STATE( GA_QUEST ) == TRUE )
-#else
-	if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_L) == TRUE )
-#endif
 	{
 		//g_pMain->GetNewQuestUI()->SetOpenQuestPopUpWindow( !g_pMain->GetNewQuestUI()->GetOpenQuestPopUpWindow() );
 		g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_QUEST);
@@ -4665,22 +4801,14 @@ bool CX2StateDungeonGame::ShortCutKeyProcess()
 
 	//{{ kimhc // 실시간 엘소드 중 실시간 인벤토리 열기 및 갱신
 #ifdef	REAL_TIME_ELSWORD 
-#ifdef REFORM_UI_KEYPAD
 	if ( bHideDialog == false && GET_KEY_STATE( GA_INFO ) == TRUE )
-#else
-	if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_U) == TRUE )
-#endif
 	{
 		g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_CHARINFO);
 
 		return true;
 	}
 
-#ifdef REFORM_UI_KEYPAD
 	if ( bHideDialog == false && GET_KEY_STATE( GA_INVENTORY ) == TRUE )
-#else
-	if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_I) == TRUE )
-#endif
 	{
 		g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_INVEN);
 
@@ -4690,11 +4818,7 @@ bool CX2StateDungeonGame::ShortCutKeyProcess()
 	//}} kimhc // 실시간 엘소드 중 실시간 인벤토리 열기 및 갱신
 
 #ifdef SERV_PET_SYSTEM
-#ifdef REFORM_UI_KEYPAD
 	if ( bHideDialog == false && GET_KEY_STATE( GA_PET ) == TRUE )
-#else
-	if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_J) == TRUE )
-#endif
 	{
 		g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_PET_LIST);
 
@@ -4711,11 +4835,7 @@ bool CX2StateDungeonGame::ShortCutKeyProcess()
 	//	g_pData->GetMessenger()->SetOpen( !g_pData->GetMessenger()->GetOpen() );
 	//	return true;
 	//}
-#ifdef REFORM_UI_KEYPAD
 	if ( bHideDialog == false && GET_KEY_STATE( GA_FRIEND ) == TRUE )
-#else
-	if( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_M) == TRUE )
-#endif
 	{
 		g_pData->GetMessenger()->SetFriendTab(true);
 		g_pData->GetMessenger()->SetOpen( !g_pData->GetMessenger()->GetOpen() );
@@ -4728,11 +4848,7 @@ bool CX2StateDungeonGame::ShortCutKeyProcess()
 	//{{ kimhc // 2009-10-13 // 길드 탭UI 단축키 지정
 #ifdef	GUILD_MANAGEMENT
 	// 커뮤니티(친구탭)
-#ifdef REFORM_UI_KEYPAD
 	if ( bHideDialog == false && GET_KEY_STATE( GA_GUILD ) == TRUE )
-#else
-	if ( bHideDialog == false && g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_G) == TRUE )
-#endif
 	{			
 		g_pData->GetMessenger()->SetTabByShortCutKey( CX2Community::XMUT_GUILD );
 		g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_COMMUNITY);
@@ -5258,6 +5374,12 @@ void CX2StateDungeonGame::DungeonMapUI::CreateDungeonMapUI()
 				pUserPicture->SetTex( L"DLG_Common_Emblem00.tga", L"ELESIS" );
 			} break;
 	#endif // NEW_CHARACTER_EL
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		case CX2Unit::UT_ADD:
+			{
+				pUserPicture->SetTex( L"DLG_UI_Common_Texture80_NEW.tga", L"ADD_MapSD" );
+			} break;
+	#endif //SERV_9TH_NEW_CHARACTER
 		}
 		pUserPicture->SetPoint();
 
@@ -5714,7 +5836,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::OnFrameMove( double fTime, float f
 		#else	NEW_CHARACTER_CHUNG
 				wstring fileName;
 				wstring pieceName;
-				if( true == CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear ) )
+				if( true == CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear ) )
 				{
 					if( true == pieceName.empty() )
 					{
@@ -5782,18 +5904,24 @@ void CX2StateDungeonGame::DungeonEndingEvent::OnFrameMove( double fTime, float f
 		#endif	NEW_CHARACTER_CHUNG
 			//}} kimhc // 2010.11.24 //  2010-12-23 New Character CHUNG
 
-#ifdef ARA_CHARACTER_BASE
+		#ifdef ARA_CHARACTER_BASE
 				case CX2Unit::UT_ARA:
 					{
 						pStatic_Character_Name->GetString(0)->msg = GET_STRING( STR_ID_21181 );
 					} break;
-#endif
-			#ifdef NEW_CHARACTER_EL
+		#endif
+		#ifdef NEW_CHARACTER_EL
 				case CX2Unit::UT_ELESIS:
 					{
 						pStatic_Character_Name->GetString(0)->msg = GET_STRING( STR_ID_25873 );
 					} break;
-			#endif // NEW_CHARACTER_EL
+		#endif // NEW_CHARACTER_EL
+		#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+				case CX2Unit::UT_ADD:
+					{
+						pStatic_Character_Name->GetString(0)->msg = GET_STRING( STR_ID_29422 );
+					} break;
+		#endif //SERV_9TH_NEW_CHARACTER
 
 				}
 			}
@@ -5832,7 +5960,9 @@ void CX2StateDungeonGame::DungeonEndingEvent::OnFrameMove( double fTime, float f
 						if( NULL == pFont )
 							return; 
 
-						const int CHAT_LINE_WIDTH = 840;
+						D3DXVECTOR2 vTemp = g_pKTDXApp->ConvertByResolution( 840, 512 );
+						
+						const int CHAT_LINE_WIDTH = (int)vTemp.x;;
 					
 						int addRow = CWordLineHandler::LineBreakInX2Main(str, pFont, CHAT_LINE_WIDTH, L"", true, false);
 						if( -1 == addRow)
@@ -6122,7 +6252,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Chung_Iron_Cannon_Rage.TGA";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		}
 		break;
 
@@ -6132,7 +6262,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Chung_CFG_Rage.TGA";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		}
 		break;
 
@@ -6142,7 +6272,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Chung_CSG_Rage.TGA";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		}
 		break;
 #ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
@@ -6152,7 +6282,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Chung_SHG_Rage.tga";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		}
 		break;
 #endif
@@ -6163,7 +6293,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"DDS_Chung_CIP_Clear_Rage.tga";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		}
 		break;
 	case CX2Unit::UC_CHUNG_DEADLY_CHASER:
@@ -6172,7 +6302,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"DDS_Chung_CDC_Clear_Rage.tga";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		}
 		break;
 #endif CHUNG_SECOND_CLASS_CHANGE
@@ -6185,7 +6315,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Chung_TT_Rage.tga";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		}
 		break;
 #endif SERV_CHUNG_TACTICAL_TROOPER
@@ -6198,7 +6328,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Ara_Martial_Artist_Rage.tga";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		} break;
 #endif
 #ifdef ARA_CHANGE_CLASS_FIRST
@@ -6209,7 +6339,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Ara_LITTLE_HSIEN_Rage.tga";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		} break;
 	case CX2Unit::UC_ARA_SAKRA_DEVANAM:
 		{
@@ -6218,7 +6348,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Ara_Sakra_Devanam_Rage.tga";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		} break;
 #endif //ARA_CHANGE_CLASS_FIRST
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND
@@ -6229,7 +6359,7 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Ara_Little_Devil_Rage.tga";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		} break;
 	case CX2Unit::UC_ARA_YAMA_RAJA:
 		{
@@ -6238,11 +6368,11 @@ void CX2StateDungeonGame::DungeonEndingEvent::SetDungeonClearTexture( CKTDGUISta
 			if ( pMyUser->IsFullHyperMode() )
 				fileName = L"HQ_Dungeon_Clear_Ara_Yama_Raja_Rage.tga";
 			else
-				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+				CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		} break;
 #endif //SERV_ARA_CHANGE_CLASS_SECOND
 	default:
-		CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass, CX2Data::CIT_DungeonClear );
+		CX2Data::GetCharacterImageName( fileName, pieceName, g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass, CX2Data::CIT_DungeonClear );
 		break;
 	}
 
@@ -6354,81 +6484,80 @@ void CreateMonsterListDialog::OnCommand( const std::wstring& monsterName )
 
 
 #ifdef MONSTER_STATE_LIST_TEST
-void MonsterStateListDialog::Update()
-{
-	if( m_pDLGMonsterStateList == NULL )
-		return;
-
-	CKTDGUIListBox* pListBox = (CKTDGUIListBox*) m_pDLGMonsterStateList->GetControl( L"ListBox_Monster_ID" );
-	if( NULL == pListBox )
-		return;
-	
-	if ( NULL == g_pMain->GetGameEdit() )
-		return;
-
-
-	int npcID = g_pMain->GetGameEdit()->GetLastCreatedMonster();
-	CX2GUNPC* pNPC = g_pX2Game->GetNPCUnitByType(npcID);
-	if( NULL == pNPC )
-		return; 
-
-	if( (CX2UnitManager::NPC_UNIT_ID)npcID == m_NPCID )
-		return; 
-	m_NPCID = (CX2UnitManager::NPC_UNIT_ID)npcID;
-
-	m_vecStateName.resize(0); 
-	std::vector< std::wstring > vecAnimationName;	
-	pNPC->EnumerateStateAndAnimationName( m_vecStateName, vecAnimationName );
-	ASSERT( m_vecStateName.size() == vecAnimationName.size() );
-
-	pListBox->RemoveAllItems();
-	for( int i=0; i<(int)vecAnimationName.size(); i++ )
-	{
-		vecAnimationName[i] += L"(";
-		vecAnimationName[i] += m_vecStateName[i];
-		vecAnimationName[i] += L")";
-
-		pListBox->AddItem( vecAnimationName[i].c_str(), (void*)&m_vecStateName[i] );
-	}
-
-	pListBox->SetScrollBarWidth( 26 );
-	pListBox->SetScrollBarEndPos();
-}
-
-void MonsterStateListDialog::KeyProcess( CKTDXStage* pStage )
-{
-	if( g_pData->GetMyUser()->GetAuthLevel() < CX2User::XUAL_OPERATOR )
-		return; 
-
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_PERIOD) == TRUE )
-	{
-		if( true == IsOpen() )
-		{
-			Close();
-		}
-		else
-		{
-			Open( pStage );
-		}
-	}
-}
-
-void MonsterStateListDialog::OnCommand( const std::wstring& monsterName )
-{
-	if( NULL != g_pX2Game )
-	{
-		g_pX2Game->EnableAllNPCAI( false ); 
-	}
-
-	WCHAR wszText[256] = L"";
-	StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"/msc %s", monsterName.c_str() ); 
-
-	if ( NULL != g_pMain->GetGameEdit() )
-		g_pMain->GetGameEdit()->ExecCommand( wszText );
-}
+// void MonsterStateListDialog::Update()
+// {
+// 	if( m_pDLGMonsterStateList == NULL )
+// 		return;
+// 
+// 	CKTDGUIListBox* pListBox = (CKTDGUIListBox*) m_pDLGMonsterStateList->GetControl( L"ListBox_Monster_ID" );
+// 	if( NULL == pListBox )
+// 		return;
+// 	
+// 	if ( NULL == g_pMain->GetGameEdit() )
+// 		return;
+// 
+// 
+// 	int npcID = g_pMain->GetGameEdit()->GetLastCreatedMonster();
+// 	CX2GUNPC* pNPC = g_pX2Game->GetNPCUnitByType(npcID);
+// 	if( NULL == pNPC )
+// 		return; 
+// 
+// 	if( (CX2UnitManager::NPC_UNIT_ID)npcID == m_NPCID )
+// 		return; 
+// 	m_NPCID = (CX2UnitManager::NPC_UNIT_ID)npcID;
+// 
+// 	m_vecStateName.resize(0); 
+// 	std::vector< std::wstring > vecAnimationName;	
+// 	pNPC->EnumerateStateAndAnimationName( m_vecStateName, vecAnimationName );
+// 	ASSERT( m_vecStateName.size() == vecAnimationName.size() );
+// 
+// 	pListBox->RemoveAllItems();
+// 	for( int i=0; i<(int)vecAnimationName.size(); i++ )
+// 	{
+// 		vecAnimationName[i] += L"(";
+// 		vecAnimationName[i] += m_vecStateName[i];
+// 		vecAnimationName[i] += L")";
+// 
+// 		pListBox->AddItem( vecAnimationName[i].c_str(), (void*)&m_vecStateName[i] );
+// 	}
+// 
+// 	pListBox->SetScrollBarWidth( 26 );
+// 	pListBox->SetScrollBarEndPos();
+// }
+// 
+// void MonsterStateListDialog::KeyProcess( CKTDXStage* pStage )
+// {
+// 	if( g_pData->GetMyUser()->GetAuthLevel() < CX2User::XUAL_OPERATOR )
+// 		return; 
+// 
+// 	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_PERIOD) == TRUE )
+// 	{
+// 		if( true == IsOpen() )
+// 		{
+// 			Close();
+// 		}
+// 		else
+// 		{
+// 			Open( pStage );
+// 		}
+// 	}
+// }
+// 
+// void MonsterStateListDialog::OnCommand( const std::wstring& monsterName )
+// {
+// 	if( NULL != g_pX2Game )
+// 	{
+// 		g_pX2Game->EnableAllNPCAI( false ); 
+// 	}
+// 
+// 	WCHAR wszText[256] = L"";
+// 	StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"/msc %s", monsterName.c_str() ); 
+// 
+// 	if ( NULL != g_pMain->GetGameEdit() )
+// 		g_pMain->GetGameEdit()->ExecCommand( wszText );
+// }
 #endif MONSTER_STATE_LIST_TEST
 
-#ifdef REFORM_TUTORIAL	
 /** @function : IsNearPortalLineMap() const
 	@brief : 튜토리얼 던전에서 루벤마을로 이동 하는 동작
 */
@@ -6507,14 +6636,22 @@ void BadAttitudeUserWarningDialog::Update( float fElapsedTime_ )
 
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2StateDungeonGame::MoveToRubenVillage( float fElapsedTime )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2StateDungeonGame::MoveToRubenVillage()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if( false == g_pMain->GetIsPlayingTutorial() )
 		return;
 
 	if ( NULL != m_pDungeonGame && true == m_pDungeonGame->IsNearPortalLineMap() )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_TimerWaitingPortal.OnFrameMove( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_TimerWaitingPortal.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if ( m_TimerWaitingPortal.CheckAndResetElapsedTime() )
 		{		
 			g_pMain->SetIsPlayingTutorial( false );
@@ -6626,14 +6763,14 @@ void CX2StateDungeonGame::DrawFace( const float fX_, const float fY_, const CKTD
 
 	KD3DPUSH( m_RenderStateID )
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		BOOST_STATIC_ASSERT( D3DFVF_DRAWFACE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 		, D3DPT_TRIANGLESTRIP, 2, vertex );
-#else
-		g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
-#endif
+//#else
+//		g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
+//#endif
 
 	KD3DEND()
 }
@@ -6641,7 +6778,7 @@ void CX2StateDungeonGame::CreateMovingSmallBar()
 {
 	/// 로딩게이지 백그라운드
 	m_TexDataMovingGageBG.pTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( m_TexDataMovingGageBG.texName );
-	CKTDXDeviceTexture::TEXTURE_UV* pTexUvBG = m_TexDataMovingGageBG.pTexture->GetTexUV( m_TexDataMovingGageBG.keyName );
+	const CKTDXDeviceTexture::TEXTURE_UV* pTexUvBG = m_TexDataMovingGageBG.pTexture->GetTexUV( m_TexDataMovingGageBG.keyName );
 
 	if ( NULL != pTexUvBG )
 	{
@@ -6656,7 +6793,7 @@ void CX2StateDungeonGame::CreateMovingSmallBar()
 
 	/// 로딩게이지
 	m_TexDataMovingGage.pTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( m_TexDataMovingGage.texName );
-	CKTDXDeviceTexture::TEXTURE_UV* pTexUV = m_TexDataMovingGage.pTexture->GetTexUV( m_TexDataMovingGage.keyName );
+	const CKTDXDeviceTexture::TEXTURE_UV* pTexUV = m_TexDataMovingGage.pTexture->GetTexUV( m_TexDataMovingGage.keyName );
 
 	if ( NULL != pTexUV )
 	{
@@ -6676,7 +6813,6 @@ void CX2StateDungeonGame::DestroyMovingSmallBar()
 	SAFE_CLOSE( m_TexDataMovingGage.pTexture );
 }
 
-#endif //REFORM_TUTORIAL
 #ifdef FIXED_DIALOG_FAULTY_PLAYER_WARNING_DLG
 void CX2StateDungeonGame::AllocateFaultyPlayerWarningDlg ()
 {
@@ -6744,13 +6880,22 @@ void CX2StateDungeonGame::Send_EGS_SYNC_DUNGEON_TIMER_NOT()
 	if( NULL != m_pDungeonGame && 
 		NULL != m_pDungeonGame->GetDungeon() &&
 		NULL != m_pDungeonGame->GetDungeon()->GetDungeonData() &&
-		CX2Dungeon::DI_EVENT_VALENTINE_DAY == m_pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID )
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+		SEnum::DI_EVENT_VALENTINE_DUNGEON_INT == m_pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID
+#else
+		SEnum::DI_EVENT_VALENTINE_DAY == m_pDungeonGame->GetDungeon()->GetDungeonData()->m_DungeonID
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+		)
 	{
 		m_bIsValentineDungeon = true;
 
 		if( NULL == m_pDLGValentineTimer )
 		{
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+			m_pDLGValentineTimer = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Valentine_Dungeon_Play_Timer.lua" );
+#else
 			m_pDLGValentineTimer = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Valentine_Dungeon_Timer.lua" );
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGValentineTimer );
 			m_pDLGValentineTimer->SetShowEnable(true, true);
 		}
@@ -6770,6 +6915,7 @@ bool CX2StateDungeonGame::Handler_EGS_SYNC_DUNGEON_TIMER_NOT( HWND hWnd, UINT uM
 
 	m_fValentineDungeonRemainTime = static_cast<float>(kEvent.m_iRemainTime);
 
+#ifndef SERV_EVENT_VALENTINE_DUNGEON_INT
 #ifdef FIXED_CLEAR_VALENTINE_DUNGEON_WHEN_REMAINING_TIME_ZERO
 	if ( m_fValentineDungeonRemainTime <= 0 )		// 남은 시간이 0 이하 라면..게임 끝!
 	{
@@ -6786,12 +6932,16 @@ bool CX2StateDungeonGame::Handler_EGS_SYNC_DUNGEON_TIMER_NOT( HWND hWnd, UINT uM
 		}
 	}
 #endif // FIXED_CLEAR_VALENTINE_DUNGEON_WHEN_REMAINING_TIME_ZERO
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 	return true;
 }
 void CX2StateDungeonGame::ValentineDungeonTimer_OnFrameMove( float fElapsedTime_ )
 { 
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	m_fValentineDungeonRemainTime += fElapsedTime_;
+#else
 	m_fValentineDungeonRemainTime -= fElapsedTime_;
-
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 
 
 	if( m_fValentineDungeonRemainTime < 0 || m_iValentineDungeonStage < 0 )
@@ -6802,6 +6952,7 @@ void CX2StateDungeonGame::ValentineDungeonTimer_OnFrameMove( float fElapsedTime_
 		CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDLGValentineTimer->GetControl(L"Valentine_Dungeon_Timer"));
 		if( NULL != pStatic )
 		{
+#ifndef SERV_EVENT_VALENTINE_DUNGEON_INT
 			// 현재 스테이지 계산
 			const wstring STAGE_TEXTURE_KEY[] = {	L"valen_stage_number_0",
 				L"valen_stage_number_1",
@@ -6828,6 +6979,7 @@ void CX2StateDungeonGame::ValentineDungeonTimer_OnFrameMove( float fElapsedTime_
 			{
 				pPicture->SetTex(L"DLG_UI_Common_Texture65_NEW.tga", STAGE_TEXTURE_KEY[iStage1].c_str());
 			}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 
 			// 남은 시간 계산
 			const wstring TIMER_TEXTURE_KEY[] = {	L"valen_time_no_0",
@@ -6840,7 +6992,38 @@ void CX2StateDungeonGame::ValentineDungeonTimer_OnFrameMove( float fElapsedTime_
 				L"valen_time_no_7",
 				L"valen_time_no_8",
 				L"valen_time_no_9" };
-	
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+			UINT iRemainMin10 = min( static_cast<UINT>(m_fValentineDungeonRemainTime) / 600, 9 );
+			UINT iRemainMin1 = min( ( static_cast<UINT>(m_fValentineDungeonRemainTime) % 600 ) / 60, 9 );
+			UINT iRemainSec10 = min( ( static_cast<UINT>(m_fValentineDungeonRemainTime) % 60 ) / 10, 9 );
+			UINT iRemainSec1  = min( static_cast<UINT>(m_fValentineDungeonRemainTime) % 10, 9 );
+
+			//시간
+			CKTDGUIControl::CPictureData* pPicture = pStatic->GetPicture(1);
+			if( NULL != pPicture )
+			{
+				pPicture->SetTex(L"DLG_UI_Common_Texture65_NEW.tga", TIMER_TEXTURE_KEY[iRemainMin10].c_str());
+			}
+
+			pPicture = pStatic->GetPicture(2);
+			if( NULL != pPicture )
+			{
+				pPicture->SetTex(L"DLG_UI_Common_Texture65_NEW.tga", TIMER_TEXTURE_KEY[iRemainMin1].c_str());
+			}
+
+			pPicture = pStatic->GetPicture(3);
+			if( NULL != pPicture )
+			{
+				pPicture->SetTex(L"DLG_UI_Common_Texture65_NEW.tga", TIMER_TEXTURE_KEY[iRemainSec10].c_str());
+			}
+
+			pPicture = pStatic->GetPicture(4);
+			if( NULL != pPicture )
+			{
+				pPicture->SetTex(L"DLG_UI_Common_Texture65_NEW.tga", TIMER_TEXTURE_KEY[iRemainSec1].c_str());
+			}
+#else
 			UINT iRemainSec10 = min( static_cast<UINT>(m_fValentineDungeonRemainTime) / 10, 9 );	//10의 자리 초.
 			UINT iRemainSec1  = min( static_cast<UINT>(m_fValentineDungeonRemainTime) % 10, 9 );	//1의 자리 초
 
@@ -6856,6 +7039,7 @@ void CX2StateDungeonGame::ValentineDungeonTimer_OnFrameMove( float fElapsedTime_
 			{
 				pPicture->SetTex(L"DLG_UI_Common_Texture65_NEW.tga", TIMER_TEXTURE_KEY[iRemainSec1].c_str());
 			}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 		}
 	}
 }
@@ -6869,7 +7053,7 @@ void CX2StateDungeonGame::NotfiyCreateValentineCupCake()
 		m_hStageStartEffect1 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, L"Vallentine_Stage_Change_P01", 
 																  0, 0, 0, 9999, 9999, -1, 1, -1.0f, true, 1.2f, false );
 
-		if( INVALID_PARTICLE_HANDLE != m_hStageStartEffect1 )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hStageStartEffect1 )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pParticle = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hStageStartEffect1 );
 			if( pParticle != NULL )
@@ -6881,7 +7065,7 @@ void CX2StateDungeonGame::NotfiyCreateValentineCupCake()
 		m_hStageStartEffect2 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, L"Vallentine_Stage_Change_P02", 
 																	 0, 0, 0, 9999, 9999, -1, 1, -1.0f, true, 1.2f, false );
 
-		if( INVALID_PARTICLE_HANDLE != m_hStageStartEffect2 )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hStageStartEffect2 )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pParticle = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hStageStartEffect2 );
 			if( pParticle != NULL )
@@ -6892,6 +7076,15 @@ void CX2StateDungeonGame::NotfiyCreateValentineCupCake()
 	}
 }
 #endif //SERV_EVENT_VALENTINE_DUNGEON
+
+#ifdef SERV_CATCH_HACKUSER_INFO
+bool CX2StateDungeonGame::Handler_EGS_CATCH_HACKUSER_INFO_NOT( KEGS_CATCH_HACKUSER_INFO_NOT& kEGS_CATCH_HACKUSER_INFO_NOT )
+{
+	g_pData->GetServerProtocol()->SendPacket( EGS_CATCH_HACKUSER_INFO_NOT, kEGS_CATCH_HACKUSER_INFO_NOT );
+
+	return true;
+}
+#endif SERV_CATCH_HACKUSER_INFO
 
 #ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-09
 
@@ -6916,7 +7109,7 @@ bool CX2StateDungeonGame::Handler_EGS_DECISION_ENTER_DEFENCE_DUNGEON_NOT( HWND h
 								 CX2Room::TN_RED, CX2NPCAI::NAT_NORMAL, -1, false, CX2Room::TN_NONE, CX2GUNPC::NCT_DEFENCE_DUNGEON  );
 
 	/// 어둠의 문 던전 데이터 안의 입장 대사를 받아와서, 엔딩 스피치에 적용
-	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( static_cast<CX2Dungeon::DUNGEON_ID>(38300) );
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( static_cast<SEnum::DUNGEON_ID>(38300) );
 	if( NULL != pDungeonData || pDungeonData->m_vecEndingSpeechSetMap.size() >= 2 )
 	{
 		const CX2Dungeon::DungeonData::EndingSpeechSetMap& mapSpeech = pDungeonData->m_vecEndingSpeechSetMap[ 1 ];
@@ -6955,10 +7148,9 @@ bool CX2StateDungeonGame::Handler_EGS_UPDATE_INVENTORY_SLOT_INFO_NOT( HWND hWnd,
 	if( NULL != g_pData )
 	{
 		if ( NULL != g_pData->GetMyUser() &&
-			 NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-			 NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+			 NULL != g_pData->GetMyUser()->GetSelectUnit() )
 		{
-			 g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			 g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 		}
 
 		if ( NULL != g_pData->GetUIManager() &&
@@ -7144,7 +7336,7 @@ bool CX2StateDungeonGame::Handler_EGS_DUNGEON_KILLALLNPC_CHECK_NOT()
 }
 #endif // PLAY_EMOTION_BY_USER_SELECT
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 bool CX2StateDungeonGame::Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
@@ -7153,4 +7345,61 @@ bool CX2StateDungeonGame::Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_ACK( HWND hWnd, UI
 
 	return m_pDungeonGame->Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_ACK( kEvent );
 }
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
+
+#ifdef DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
+bool CX2StateDungeonGame::OnMouseWheel( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	// 인벤토리가 열려 있을 때는 인벤토리의 휠 처리만 하기
+	if( NULL != g_pData &&
+		NULL != g_pData->GetUIManager() && 
+		NULL != g_pData->GetUIManager()->GetUIInventory() &&
+		true == g_pData->GetUIManager()->GetUIInventory()->GetIsMouseOver() )
+	{
+		return true;
+	}
+
+	short zDelta = static_cast<short>(HIWORD(wParam));
+	m_SumDelta += zDelta;
+	while (abs(m_SumDelta) >= WHEEL_DELTA)
+	{
+		if(m_SumDelta>0)
+		{
+			g_pMain->GetGameOption().CameraZoomIn( 1 );
+			m_SumDelta -= WHEEL_DELTA;
+		}
+		else
+		{
+			g_pMain->GetGameOption().CameraZoomIn( -1 );
+			m_SumDelta += WHEEL_DELTA;
+		}	
+	}
+	return true;
+}
+#endif //DUNGEON_CAMERA_ZOOM_BY_MOUSE_WHEEL
+
+
+#ifdef REFORM_ENTRY_POINT
+void CX2StateDungeonGame::SetLoadingGageBar( int iLoadingPercent )
+{
+	if( NULL == m_pDLGLoadingFront )
+		return;
+
+	CKTDGUIStatic* pStatic_Loading = m_pDLGLoadingFront->GetStatic_LUA( "First_Loading" );
+	CKTDGUIControl::CPictureData* pPicture_OrangeBar = pStatic_Loading->GetPicture(0);
+#ifdef FIX_FIRST_LOADING
+	const float MAGIC_GAGE_BAR_FULL_LENGTH = 1024;
+#else
+	CKTDGUIControl::CPictureData* pPicture_LeftEdge = pStatic_Loading->GetPicture(1);
+	CKTDGUIControl::CPictureData* pPicture_RightEdge = pStatic_Loading->GetPicture(2);
+	CKTDGUIControl::CPictureData* pPicture_UpEdge = pStatic_Loading->GetPicture(3);
+	CKTDGUIControl::CPictureData* pPicture_DownEdge = pStatic_Loading->GetPicture(4);
+
+	const float MAGIC_GAGE_BAR_FULL_LENGTH = 614;
+#endif //FIX_FIRST_LOADING
+
+	const float fNowBarLength = MAGIC_GAGE_BAR_FULL_LENGTH * (float)iLoadingPercent / 100.f;
+	pPicture_OrangeBar->SetSizeX( fNowBarLength );
+
+}
+#endif //REFORM_ENTRY_POINT

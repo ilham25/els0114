@@ -29,7 +29,7 @@ m_Layer(XDL_NORMAL_4)
 
 	for ( int i = 0; i < _CONST_UISOCKETITEM_INFO_::g_iMaxNumSocketInItem; i++ )
 	{
-		m_hSocketSeq1[i] = INVALID_PARTICLE_HANDLE;
+		m_hSocketSeq1[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 #ifdef UI_SOCKET_NEW_CHEAT
 		m_iSocketOptionCode[i] = 0;
 		m_pIMEEditSocketOptionCode[i] = NULL;
@@ -88,17 +88,44 @@ void CX2UISocketItem::SetShow(bool bShow)
 void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 {
 	m_SocketItemUID = Uid;
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID ); 
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID ); 
 
-	if ( pItem == NULL )
+	if ( pItem == NULL || pItem->GetItemTemplet() == NULL )
 		return;
 
+#ifdef ADD_SOCKET_SLOT
+	int slotNum = GetSocketSlotNum( pItem );
+#else
 	int slotNum = pItem->GetItemTemplet()->GetSocketSlotNum();
+#endif // ADD_SOCKET_SLOT
 
 	// 주의 : Dialog를 생성 시점에 로드하지 않는다
 	RegisterLuaBind();
 
 	SAFE_DELETE_DIALOG(m_pDlgSocketItem);
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장 // 관리를 위해 리소스 직접 변경하지 않고 _New 추가 함
+	switch(slotNum)
+	{
+	case 1:
+		m_pDlgSocketItem = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_NEW_Socket_1slot_NEW.lua" );
+		break;
+	case 2:
+		m_pDlgSocketItem = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_NEW_Socket_2slot_NEW.lua" );
+		break;
+	case 3:
+		m_pDlgSocketItem = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_NEW_Socket_3slot_NEW.lua" );
+		break;
+	case 4:
+		m_pDlgSocketItem = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_NEW_Socket_4slot_NEW.lua" );
+		break;
+	case 5:
+		m_pDlgSocketItem = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_NEW_Socket_5slot_NEW.lua" );
+		break;
+	default:
+		m_pDlgSocketItem = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_NEW_Socket_5slot_NEW.lua" );
+		break;
+	}
+#else
 	switch(slotNum)
 	{
 	case 1:
@@ -117,6 +144,7 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 		m_pDlgSocketItem = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_NEW_Socket_4slot.lua" );
 		break;
 	}
+#endif // ADD_SOCKET_SLOT
 
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDlgSocketItem );
 	SetLayer(m_Layer);
@@ -126,7 +154,11 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 #ifdef UI_SOCKET_NEW_CHEAT
 	SAFE_DELETE_DIALOG(m_pDlgSocketItemCheat);
 
+#ifdef ADD_SOCKET_SLOT
+	m_pDlgSocketItemCheat = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_NEW_Socket_Cheat_NEW.lua" );
+#else
 	m_pDlgSocketItemCheat = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_NEW_Socket_Cheat.lua" );
+#endif // ADD_SOCKET_SLOT
 
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDlgSocketItemCheat );
 	m_pDlgSocketItemCheat->SetDisableUnderWindow( true );
@@ -136,16 +168,26 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 	m_pIMEEditSocketOptionCode[1] =  static_cast< CKTDGUIIMEEditBox* >( m_pDlgSocketItemCheat->GetControl( L"IMEEditCode2" ) );
 	m_pIMEEditSocketOptionCode[2] =  static_cast< CKTDGUIIMEEditBox* >( m_pDlgSocketItemCheat->GetControl( L"IMEEditCode3" ) );
 	m_pIMEEditSocketOptionCode[3] =  static_cast< CKTDGUIIMEEditBox* >( m_pDlgSocketItemCheat->GetControl( L"IMEEditCode4" ) );
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+	m_pIMEEditSocketOptionCode[4] =  static_cast< CKTDGUIIMEEditBox* >( m_pDlgSocketItemCheat->GetControl( L"IMEEditCode5" ) );
+#endif // ADD_SOCKET_SLOT
 
 	m_pIMEEditSocketOptionCode[0]->SetShowEnable(false, false);
 	m_pIMEEditSocketOptionCode[1]->SetShowEnable(false, false);
 	m_pIMEEditSocketOptionCode[2]->SetShowEnable(false, false);
 	m_pIMEEditSocketOptionCode[3]->SetShowEnable(false, false);
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+	m_pIMEEditSocketOptionCode[4]->SetShowEnable(false, false);
+#endif // ADD_SOCKET_SLOT
 
 	if ( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR )
 	{
 		switch(slotNum)
 		{
+#ifdef ADD_SOCKET_SLOT// 소켓 슬롯 확장
+		case 5:
+			m_pIMEEditSocketOptionCode[4]->SetShowEnable(true, true);
+#endif // ADD_SOCKET_SLOT
 		case 4:
 			m_pIMEEditSocketOptionCode[3]->SetShowEnable(true, true);
 		case 3:
@@ -184,28 +226,28 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 
 	//아이템 이름하고 아이템 슬롯 이미지 표시
 	CKTDGUIStatic* pStaticSlotImage = (CKTDGUIStatic*)m_pDlgSocketItem->GetControl( L"g_pStatic_item_Slot_Image" );
-	if ( pStaticSlotImage != NULL && pStaticSlotImage->GetPicture(0) != NULL )
+	if( NULL != pStaticSlotImage )
 	{
-		pStaticSlotImage->GetPicture(0)->SetTex( 
-            pItem->GetItemTemplet()->GetShopImage()
-            );
-		//pStaticSlotImage->GetPicture(0)->SetSize( D3DXVECTOR2 ( 44, 44 ) );
-	}
-
-	//{{ kimhc // 2009-09-08 // 봉인된 아이템 이미지 출력
-#ifdef	SEAL_ITEM
-	if ( pItem->GetItemData() == NULL )
-		return;
-
-	if ( pStaticSlotImage->GetPicture( 1 ) != NULL )
-	{
-		if ( pItem->GetItemData()->m_bIsSealed == true )
-			pStaticSlotImage->GetPicture( 1 )->SetShow( true );
-		else
-			pStaticSlotImage->GetPicture( 1 )->SetShow( false );
-	}		
+		if ( pStaticSlotImage->GetPicture(0) != NULL )
+		{
+			pStaticSlotImage->GetPicture(0)->SetTex( 
+	            pItem->GetItemTemplet()->GetShopImage()
+	            );
+			//pStaticSlotImage->GetPicture(0)->SetSize( D3DXVECTOR2 ( 44, 44 ) );
+		}
+	
+		//{{ kimhc // 2009-09-08 // 봉인된 아이템 이미지 출력
+	#ifdef	SEAL_ITEM
+		if ( pStaticSlotImage->GetPicture( 1 ) != NULL )
+		{
+			if ( pItem->GetItemData().m_bIsSealed == true )
+				pStaticSlotImage->GetPicture( 1 )->SetShow( true );
+			else
+				pStaticSlotImage->GetPicture( 1 )->SetShow( false );
+		}		
 #endif	SEAL_ITEM
-	//}} kimhc // 2009-09-08 // 봉인된 아이템 이미지 출력
+		//}} kimhc // 2009-09-08 // 봉인된 아이템 이미지 출력
+	}
 
 
 	CKTDGUIStatic* pStaticItemName = (CKTDGUIStatic*)m_pDlgSocketItem->GetControl( L"Static_Item_Name1" );
@@ -251,9 +293,16 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 		if ( pStaticStoneSlotImage != NULL )
 		{
 			CKTDGUIControl::CPictureData* pPicture = pStaticStoneSlotImage->GetPicture(i);
-			pPicture->SetTex( L"DLG_UI_Common_Texture02.TGA", L"slot" );
-			pPicture->SetSize( D3DXVECTOR2 (35, 35) );
-			pPicture->SetShow(false);
+			if( NULL != pPicture )
+			{
+				pPicture->SetTex( L"DLG_UI_Common_Texture02.TGA", L"slot" );
+				pPicture->SetSize( D3DXVECTOR2 (35, 35) );
+				pPicture->SetShow(false);
+			}
+			else
+			{
+				ASSERT(!"Slot Picture is NULL!");
+			}
 			
 			//pPicture->SetTex( L"HQ_Shop_Ui_Noimage.dds" );
 		}
@@ -266,7 +315,12 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 #ifdef UI_SOCKET_NEW_CHEAT
 		// 소켓 치트 초기화
 		m_iSocketOptionCode[i] = 0;
-		m_pIMEEditSocketOptionCode[i]->SetText(L"");
+		if( NULL != m_pIMEEditSocketOptionCode[i] )
+			m_pIMEEditSocketOptionCode[i]->SetText(L"");
+		else
+		{
+			ASSERT(!"Slot IME is NULL!");
+		}
 #endif UI_SOCKET_NEW_CHEAT
 
 
@@ -320,10 +374,10 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 	{
 		bool bCheckEmpty = true;
 
-		if ( i < (int)pItem->GetItemData()->m_SocketOption.size() )
+		if ( i < (int)pItem->GetItemData().m_SocketOption.size() )
 		{
 			//0으로 채워져 있으면 비어있는거고 다른값으로 채워져 있는거면 있는거다..
-			int socketOption = pItem->GetItemData()->m_SocketOption[i];
+			int socketOption = pItem->GetItemData().m_SocketOption[i];
 			if ( socketOption != 0 )
 			{
 				bCheckEmpty = false;
@@ -333,7 +387,7 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 				// 소켓 카운트 증가
 				m_iSocketCount++;
 
-				CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
+				const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
 				if ( pSocketData != NULL )
 				{
 					//여기다가.. 소켓 옵션 설명 가져와서 한줄 짜리인지 두줄짜리인지 보고.. 넣자잉..
@@ -341,7 +395,6 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 					bool bCheckTwoLine = false;
 
 		//{{ kimhc // 2011-07-21 // 옵션 수치화
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 					int iSocketLevel = pItem->GetItemTemplet()->GetUseLevel();
 					if ( 0 >= iSocketLevel )
 						iSocketLevel = g_pData->GetSelectUnitLevel();
@@ -351,14 +404,6 @@ void CX2UISocketItem::ResetSocketWindow( UidType Uid )
 #else //CLIENT_GLOBAL_LINEBREAK
 					wstring socketDesc = g_pMain->GetStrByLienBreak( pSocketData->GetSocketDesc( iSocketLevel ).c_str(), 190, XUF_DODUM_13_SEMIBOLD );
 #endif //CLIENT_GLOBAL_LINEBREAK
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-#ifdef CLIENT_GLOBAL_LINEBREAK
-					wstring socketDesc = CWordLineHandler::GetStrByLineBreakInX2Main( pSocketData->GetSocketDesc(true).c_str(), 190, XUF_DODUM_13_SEMIBOLD );
-#else //CLIENT_GLOBAL_LINEBREAK
-					wstring socketDesc = g_pMain->GetStrByLienBreak( pSocketData->GetSocketDesc(true).c_str(), 190, XUF_DODUM_13_SEMIBOLD );
-#endif //CLIENT_GLOBAL_LINEBREAK
-
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-21 // 옵션 수치화
 					
 					if ( socketDesc.find( L"\n") != -1 )
@@ -712,10 +757,10 @@ void CX2UISocketItem::DrawSlotMouseOverImage()
 
 bool CX2UISocketItem::IsStoneItem(UidType Uid)
 {
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( Uid );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( Uid );
 
 	const UINT iArraySize = ARRAY_SIZE( _CONST_UISOCKETITEM_INFO_::g_iArrayMagicStoneID );
-	const int iItemID = pItem->GetItemData()->m_ItemID;
+	const int iItemID = pItem->GetItemData().m_ItemID;
 
 	bool bFind = false;
 	for ( UINT i = 0; i < iArraySize; i++ )
@@ -761,13 +806,13 @@ void CX2UISocketItem::ShowSocketDescExpected(int iSlotIndex)
 
 	UidType Uid = m_vecSocketSlotInfo[iSlotIndex].m_StoneUID;
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( Uid );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( Uid );
 
 	wstringstream wstrDesc;
 	wstrDesc.str( L"" );
 	
 	const UINT iArraySize = ARRAY_SIZE( _CONST_UISOCKETITEM_INFO_::g_iArrayMagicStoneID );
-	const int iItemID = pItem->GetItemData()->m_ItemID;
+	const int iItemID = pItem->GetItemData().m_ItemID;
 
 	int iIndex = -1;
 	for ( UINT i = 0; i < iArraySize; i++ )
@@ -782,7 +827,49 @@ void CX2UISocketItem::ShowSocketDescExpected(int iSlotIndex)
 	if ( -1 < iIndex && iArraySize > iIndex )
 	{
 		// 포인터의 위치 계산으로 인덱스를 구해준다.
+#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+		if ( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
+		{
+			if ( g_pData->GetMyUser()->GetSelectUnit()->GetType() == CX2Unit::UT_ADD )
+			{
+				UINT uStrID = _CONST_UISOCKETITEM_INFO_::g_iArrayMagicStoneStringID[iIndex];
+
+				switch( iIndex )
+				{
+				case 4:		// STR_5076
+					uStrID = STR_ID_29867;
+					break;
+
+				case 6:		// STR_5078
+					uStrID = STR_ID_29868;
+					break;
+
+				case 20:	// STR_5089
+				case 34:	// STR_5089
+					uStrID = STR_ID_29869;
+					break;
+
+				case 19:	// STR_5091
+				case 36:	// STR_5091
+					uStrID = STR_ID_29870;
+					break;
+
+				case 12:	// STR_13904
+				case 29:	// STR_13904
+					uStrID = STR_ID_29873;
+					break;
+
+				default:
+					break;
+				}
+			}
+			else
+				wstrDesc << GET_STRING( _CONST_UISOCKETITEM_INFO_::g_iArrayMagicStoneStringID[iIndex] );
+
+		}
+#else //SERV_9TH_NEW_CHARACTER
 		wstrDesc << GET_STRING( _CONST_UISOCKETITEM_INFO_::g_iArrayMagicStoneStringID[iIndex] );
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 	
 	bool bCheckTwoLine = false;
@@ -830,7 +917,7 @@ int CX2UISocketItem::CalculateNewSocketCost(UidType UID)
 {
 	int iCost = 0;
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( UID );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( UID );
     CX2Item::ITEM_GRADE StoneGrade = pItem->GetItemTemplet()->GetItemGrade();
 
 	double dStoneCostFactor = 0.0;
@@ -910,7 +997,7 @@ void CX2UISocketItem::UpdateButtonEquip()
 		CKTDGUIStatic* pStaticInfo = static_cast< CKTDGUIStatic* >(m_pDlgSocketItem->GetControl( L"g_pStatic_Memo1" ));
 		CKTDGUIStatic* pStaticInfo2 = static_cast< CKTDGUIStatic* >(m_pDlgSocketItem->GetControl( L"g_pStatic_Memo2" ));
 
-		if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED < m_iTotalCostED)
+		if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED < m_iTotalCostED)
 		{
 			pStatic_ED->GetString(0)->color = D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f);
 #ifdef MULTILINE_STR_ID_5080
@@ -1038,14 +1125,13 @@ bool CX2UISocketItem::OnRClickedItem( D3DXVECTOR2 mousePos )
 
 				wstrstm.str( L"" );
 
-				CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( m_vecSocketSlotInfo[iSlotIndex].m_iEquippedSocketOption );
+				const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( m_vecSocketSlotInfo[iSlotIndex].m_iEquippedSocketOption );
 				if ( pSocketData != NULL )
 				{
 					bool bCheckTwoLine = false;
 
 					//{{ kimhc // 2011-07-21 // 옵션 수치화
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
-					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID ); 
+					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID ); 
 
 					int iSocketLevel = g_pData->GetSelectUnitLevel();
 					if ( NULL != pItem && 0 < pItem->GetItemTemplet()->GetUseLevel() )
@@ -1055,9 +1141,6 @@ bool CX2UISocketItem::OnRClickedItem( D3DXVECTOR2 mousePos )
 #else //CLIENT_GLOBAL_LINEBREAK
 					wstring socketDesc = g_pMain->GetStrByLienBreak( pSocketData->GetSocketDesc( iSocketLevel ).c_str(), 190, XUF_DODUM_13_SEMIBOLD );
 #endif //CLIENT_GLOBAL_LINEBREAK
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-					wstring socketDesc = g_pMain->GetStrByLienBreak( pSocketData->GetSocketDesc(true).c_str(), 190, XUF_DODUM_13_SEMIBOLD );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 					//}} kimhc // 2011-07-21 // 옵션 수치화
 
 					if ( socketDesc.find( L"\n") != -1 )
@@ -1199,6 +1282,9 @@ bool CX2UISocketItem::OnDropAnyItem( D3DXVECTOR2 mousePos )
 			case 1:
 			case 2:
 			case 3:
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장 
+			case 4:
+#endif // ADD_SOCKET_SLOT
 				{
 					m_PickedSocketIndex = iSlotIndex;
 
@@ -1215,8 +1301,8 @@ bool CX2UISocketItem::OnDropAnyItem( D3DXVECTOR2 mousePos )
 
 					g_pKTDXApp->GetDeviceManager()->PlaySound( L"MagicStone_PutDown.ogg", false, false );
 
-					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( DraggedItemUID ); 
-					int DraggedItemTID = pItem->GetItemData()->m_ItemID;
+					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( DraggedItemUID ); 
+					int DraggedItemTID = pItem->GetItemData().m_ItemID;
 
 					// 실제 남은 마법석 수를 찾아낸다.
 					int iNumDraggedItemRemain = -1;
@@ -1233,7 +1319,7 @@ bool CX2UISocketItem::OnDropAnyItem( D3DXVECTOR2 mousePos )
 					// 만약 현재 소켓들에 장착 대기 중인 동일한 UID의 마법석이 없다면 인벤토리의 Quantity 정보를 얻어온다.
 					if( iNumDraggedItemRemain == -1)
 					{
-						iNumDraggedItemRemain = pItem->GetItemData()->m_Quantity;
+						iNumDraggedItemRemain = pItem->GetItemData().m_Quantity;
 					}
 					
 					// 마법석의 개수가 부족
@@ -1567,15 +1653,15 @@ bool CX2UISocketItem::Handler_EGS_SOCKET_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM 
 			vector< int > vecOrgSocketOption;
 			bool bCheckNewElementOption = false;
 
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEvent.m_iItemUID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEvent.m_iItemUID );
 			if ( pItem != NULL )
 			{
-				vecOrgSocketOption = pItem->GetItemData()->m_SocketOption;
+				vecOrgSocketOption = pItem->GetItemData().m_SocketOption;
 			}
 
 			//특수 처리 고고싱
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
 			g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 
@@ -1587,10 +1673,10 @@ bool CX2UISocketItem::Handler_EGS_SOCKET_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM 
 			}
 #endif SERV_PET_SYSTEM
 
-			pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEvent.m_iItemUID );
+			pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEvent.m_iItemUID );
 			if ( pItem != NULL )
 			{
-				vector< int > vecNewSocketOption = pItem->GetItemData()->m_SocketOption;
+				vector< int > vecNewSocketOption = pItem->GetItemData().m_SocketOption;
 				for ( int i = 0; i < (int)vecNewSocketOption.size(); i++ )
 				{
 					int newSocketOption = vecNewSocketOption[i];
@@ -1605,7 +1691,7 @@ bool CX2UISocketItem::Handler_EGS_SOCKET_ITEM_ACK( HWND hWnd, UINT uMsg, WPARAM 
 					}
 					if ( bCheck == true )
 					{
-						CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( newSocketOption );
+						const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( newSocketOption );
 						if ( pSocketData != NULL )
 						{
 							if ( pSocketData->m_SocketExtraDamage.m_fRate > 0.f )
@@ -1738,7 +1824,7 @@ bool CX2UISocketItem::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LP
 
 void CX2UISocketItem::SocketEquipEffect()
 {
-	D3DXVECTOR3 vecEffectPos[4];
+	D3DXVECTOR3 vecEffectPos[_CONST_UISOCKETITEM_INFO_::g_iMaxNumSocketInItem];
 
 	CX2SlotItem* pItemSlot = NULL;
 
@@ -1794,7 +1880,7 @@ void CX2UISocketItem::SocketEquipEffect()
 
 void CX2UISocketItem::SocketEquipReadyEffectStart()
 {
-	D3DXVECTOR3 vecEffectPos[4];
+	D3DXVECTOR3 vecEffectPos[_CONST_UISOCKETITEM_INFO_::g_iMaxNumSocketInItem];
 
 	CX2SlotItem* pItemSlot = NULL;
 
@@ -1817,7 +1903,7 @@ void CX2UISocketItem::SocketEquipReadyEffectStart()
 		if( m_vecSocketSlotInfo[i].m_StateSlotState != SSS_NOT_AVAILABLE)
 		{	
 
-			if( m_hSocketSeq1[i] != INVALID_PARTICLE_HANDLE )
+			if( m_hSocketSeq1[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			{	
 				g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSocketSeq1[i] );
 			}
@@ -1838,7 +1924,7 @@ void CX2UISocketItem::SocketEquipReadyEffectStart()
 
 void CX2UISocketItem::SocketEquipReadyEffectEnd()
 {
-	D3DXVECTOR3 vecEffectPos[4];
+	D3DXVECTOR3 vecEffectPos[_CONST_UISOCKETITEM_INFO_::g_iMaxNumSocketInItem];
 
 	CX2SlotItem* pItemSlot = NULL;
 
@@ -1909,3 +1995,24 @@ bool CX2UISocketItem::CheckSocketUseItem(UidType Uid)
 #endif SERV_SOCKET_NEW
 //}} oasis907 : 김상윤 [2010.4.5] //  소켓 강화 UI 개편
 #endif
+
+#ifdef ADD_SOCKET_SLOT
+/** @function : GetSocketSlotNum
+	@brief : 추가된 소켓 포함한 슬롯 수 얻기
+*/
+int CX2UISocketItem::GetSocketSlotNum( const CX2Item* pItem_ )
+{
+	int iSlotNum = -1;
+	if( NULL != pItem_ )
+	{
+		iSlotNum = pItem_->GetItemTemplet()->GetSocketSlotNum();
+		iSlotNum += pItem_->GetbyAddedSocketSlot();
+	}
+	else
+	{
+		iSlotNum = pItem_->GetItemTemplet()->GetSocketSlotNum();
+	}
+
+	return iSlotNum;
+}
+#endif // ADD_SOCKET_SLOT

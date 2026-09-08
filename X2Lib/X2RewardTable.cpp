@@ -13,9 +13,13 @@ CX2RewardTable::~CX2RewardTable(void)
 
 bool CX2RewardTable::OpenScriptFile( const wchar_t* pFileName )
 {
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	return true;
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pKRewardTable", this );
 
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName );
+	return g_pKTDXApp->LoadLuaTinker( pFileName );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 }
 
 void CX2RewardTable::GetRewardItem( IN const KPostItemInfo& kPostItemInfo, OUT std::map< int, KItemInfo >& mapRewardItem ) const
@@ -282,16 +286,6 @@ void CX2RewardTable::MakeSystemLetterTitle( const std::wstring& wstrNickName, KP
 #endif SERV_NAVER_PROMOTIONS
 				//}} 
 
-				//{{ 2011. 08. 09  김민성 채널링 이벤트 - 투니랜드 유저 25렙 달성 이벤트
-#ifdef SERV_CHANNELING_TOONILAND_LEVEL_UP_EVENT
-			case 10219: // TooniLand 칭호 ITEM
-				{
-					kPostTitle.m_wstrFromNickName.clear();
-					kPostTitle.m_wstrTitle = GET_STRING( STR_ID_13694 );
-				}
-				break;
-#endif SERV_CHANNELING_TOONILAND_LEVEL_UP_EVENT
-				//}}
 				//{{ 2011. 11. 26  검의 길을 걷는 자 : 퀘스트 보상 아이템 지급트
 #ifdef SERV_SWORD_WAY_QUEST_COMPLETE_REWARD
 			case 10258: // 소드 마스터 증표를 가지고 있으면 아리엘 7 강부 지급 이벤트
@@ -432,15 +426,6 @@ void CX2RewardTable::MakeSystemLetterTitle( const std::wstring& wstrNickName, KP
 				}break;
 //#endif SERV_ARCHUANGEL_S_COIN_EVENT_LOG
 				//}}
-				//{{ 2013. 1. 18	박세훈	소선, 제천 전직 이벤트
-#ifdef SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT
-			case 10468:
-				{
-					kPostTitle.m_wstrFromNickName.clear();
-					kPostTitle.m_wstrTitle = GET_STRING( STR_ID_22308 );
-				}break;
-#endif SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT
-				//}}
 #ifdef SERV_PRESENT_SKILL_INIT_ITEM// 작업날짜: 2013-06-25	// 박세훈
 #ifdef SERV_PRESENT_SKILL_INIT_ITEM_INT
 			case _CONST_PRESENT_SKILL_INIT_ITEM_INT_::iReachLimitLevel:
@@ -482,6 +467,33 @@ void CX2RewardTable::MakeSystemLetterTitle( const std::wstring& wstrNickName, KP
 					kPostTitle.m_wstrFromNickName.clear();
 					kPostTitle.m_wstrTitle = GET_STRING( STR_ID_26338 ); // 불편을 드려 죄송합니다.
 				}break;
+
+			case 10607:
+			case 10608:
+				{
+					kPostTitle.m_wstrFromNickName.clear();
+					kPostTitle.m_wstrTitle = GET_STRING( STR_ID_28384 );
+				}break;
+
+			case 10614:
+				{
+					kPostTitle.m_wstrFromNickName.clear();
+					kPostTitle.m_wstrTitle = GET_STRING( STR_ID_29330 );
+				}break;
+
+			case 10640:
+				{
+					kPostTitle.m_wstrFromNickName.clear();
+					kPostTitle.m_wstrTitle = GET_STRING( STR_ID_29955 );
+				}break;
+
+			case 10643:
+			case 10644:
+			case 10645:
+				{
+					kPostTitle.m_wstrFromNickName.clear();
+					kPostTitle.m_wstrTitle = GET_STRING( STR_ID_30271 );
+				} break;
 
 			default:
 				{
@@ -555,14 +567,26 @@ void CX2RewardTable::MakeSystemLetterTitle( const std::wstring& wstrNickName, KP
 #ifdef SERV_PSHOP_AGENCY
 	case KPostItemInfo::LT_STOP_SALE_PSHOP:
 		{
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 뮤 -> 게시판
+			kPostTitle.m_wstrFromNickName = GET_STRING( STR_ID_3723 );
+#else // SERV_UPGRADE_TRADE_SYSTEM
 			kPostTitle.m_wstrFromNickName = GET_STRING( STR_ID_12247 );
+#endif // SERV_UPGRADE_TRADE_SYSTEM
+			
 			kPostTitle.m_wstrTitle = GET_STRING( STR_ID_12248 );
 		}
 		break;
 
 	case KPostItemInfo::LT_SELL_ITEM_PSHOP:
 		{
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 뮤 -> 게시판
+			kPostTitle.m_wstrFromNickName = GET_STRING( STR_ID_3723 );
+#else // SERV_UPGRADE_TRADE_SYSTEM
 			kPostTitle.m_wstrFromNickName = GET_STRING( STR_ID_12247 );
+#endif // SERV_UPGRADE_TRADE_SYSTEM
+			
 			kPostTitle.m_wstrTitle = GET_STRING( STR_ID_12250 );
 		}
 		break;
@@ -627,6 +651,7 @@ void CX2RewardTable::MakeSystemLetterTitle( const std::wstring& wstrNickName, KP
 			kPostTitle.m_wstrTitle = GET_STRING( STR_ID_4923 );
 		} break;
 #endif //SERV_INDEMNIFICATION_POST_DB_ONLY
+
 
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	case KPostItemInfo::LT_WEDDING_INVITATION :
@@ -749,7 +774,6 @@ void CX2RewardTable::MakeSystemLetter( const std::wstring& wstrNickName, KPostIt
 
 	case KPostItemInfo::LT_EVENT:
 		{
-
 			switch( kPostItem.m_iScriptIndex )
 			{
 			case 60: // 300일 이벤트
@@ -846,14 +870,7 @@ void CX2RewardTable::MakeSystemLetter( const std::wstring& wstrNickName, KPostIt
 				}break;
 #endif SERV_NAVER_PROMOTIONS
 				//}} 
-				//{{ 2011. 08. 09  김민성 채널링 이벤트 - 투니랜드 유저 25렙 달성 이벤트
-#ifdef SERV_CHANNELING_TOONILAND_LEVEL_UP_EVENT
-			case 10219: // TooniLand 칭호 ITEM
-				{
-					kPostItem.m_wstrMessage = GET_STRING( STR_ID_13695 );
-				}break;
-#endif SERV_CHANNELING_TOONILAND_LEVEL_UP_EVENT
-				//}}
+
 				//{{ 2011. 11. 26  검의 길을 걷는 자 : 퀘스트 보상 아이템 지급트
 #ifdef SERV_SWORD_WAY_QUEST_COMPLETE_REWARD
 			case 10258: // 소드 마스터 증표를 가지고 있으면 아리엘 7 강부 지급 이벤트
@@ -958,21 +975,14 @@ void CX2RewardTable::MakeSystemLetter( const std::wstring& wstrNickName, KPostIt
 				}break;
 //#endif SERV_ARCHUANGEL_S_COIN_EVENT_LOG
 				//}}
-
+#ifndef SERV_INT_ENTRY_POINT_LEVEL_UP_EVENT
 				//{{ 2012. 08. 14	박세훈	대천사의 주화 교환 로그
 			case 10405:	// 태풍 이슈 '기술의 반지(1일권)'
 				{
 					kPostItem.m_wstrMessage = GET_STRING( STR_ID_18424 );
 				}break;
 				//}}
-				//{{ 2013. 1. 18	박세훈	소선, 제천 전직 이벤트
-#ifdef SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT
-			case 10468:
-				{
-					kPostItem.m_wstrMessage = GET_STRING( STR_ID_22309 );
-				}break;
-#endif SERV_ARA_LITTLE_HSIEN_SAKRA_DEVANAM_EVENT
-				//}}
+#endif SERV_INT_ENTRY_POINT_LEVEL_UP_EVENT
 			case 10518:
 				{
 					kPostItem.m_wstrMessage = GET_STRING( STR_ID_23796 );
@@ -1014,6 +1024,29 @@ void CX2RewardTable::MakeSystemLetter( const std::wstring& wstrNickName, KPostIt
 				{
 					kPostItem.m_wstrMessage = GET_STRING( STR_ID_26339 );	// 7/21 긴급점검으로 불편을 드려 죄송합니다.\n사과의 뜻을 담아 “노란 사과의 큐브” 를 보내 드립니다!\n좋은 하루 보내세요!
 				}break;
+
+			case 10607:
+			case 10608:
+				{
+					kPostItem.m_wstrMessage = GET_STRING( STR_ID_28385 );
+				}break;
+
+			case 10614:
+				{
+					kPostItem.m_wstrMessage = GET_STRING( STR_ID_29331 );
+				}break;
+
+			case 10640:
+				{
+					kPostItem.m_wstrMessage = GET_STRING( STR_ID_29956 );
+				}break;
+
+			case 10643:
+			case 10644:
+			case 10645:
+				{
+					kPostItem.m_wstrMessage = GET_STRING( STR_ID_30272 );
+				} break;
 
 			default: // 기본 이벤트
 				{
@@ -1100,39 +1133,6 @@ void CX2RewardTable::MakeSystemLetter( const std::wstring& wstrNickName, KPostIt
 					kPostItem.m_wstrMessage = GET_REPLACED_STRING( ( STR_ID_4517, "L", wstrItemName ) );
 				}
 				break;
-
-				//{{ 2011. 01. 26	최육사	전직시 망각 드링크 지급 이벤트
-#ifdef SERV_CHANGE_CLASS_REWARD_EVENT
-			case 132696: // 망각의 드링크 큐브 (7일권)
-				{
-					std::wstring wstrItemName;
-					const int iItemID = _wtoi( kPostItem.m_wstrMessage.c_str() );
-					const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( iItemID );
-					if( pItemTemplet != NULL )
-					{
-						wstrItemName = pItemTemplet->GetName();
-					}
-
-					kPostItem.m_wstrMessage.clear();
-					kPostItem.m_wstrMessage = GET_REPLACED_STRING( ( STR_ID_11052, "L", wstrItemName ) );
-				}
-				break;
-			case 160228: // Rebirth’칭호 획득 아이템
-				{
-					std::wstring wstrItemName;
-					const int iItemID = _wtoi( kPostItem.m_wstrMessage.c_str() );
-					const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( iItemID );
-					if( pItemTemplet != NULL )
-					{
-						wstrItemName = pItemTemplet->GetName();
-					}
-
-					kPostItem.m_wstrMessage.clear();
-					kPostItem.m_wstrMessage = GET_REPLACED_STRING( ( STR_ID_12771, "L", wstrItemName ) );
-				}
-				break;
-#endif SERV_CHANGE_CLASS_REWARD_EVENT
-				//}}
 			}
 			//}}
 		}
@@ -1282,6 +1282,8 @@ void CX2RewardTable::AssignStringFromRewardTable( IN const int iRewardID, OUT st
 
 bool CX2RewardTable::AddRewardData_LUA( int iRewardID, int iItemID, int iQuantity, short sPeriod )
 {
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 	if( iRewardID <= 0  ||  iItemID <= 0  ||  iQuantity <= 0  ||  sPeriod < 0 )
 	{
 		//ErrorLog( KEM_ERROR359 );
@@ -1306,6 +1308,7 @@ bool CX2RewardTable::AddRewardData_LUA( int iRewardID, int iItemID, int iQuantit
 	{
 		mit->second.push_back( kRewardData );
 	}
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 	return true;;
 }

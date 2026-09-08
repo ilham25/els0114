@@ -85,11 +85,18 @@ namespace EditStream {
 			if( pptr() != 0 && 0 < (nMax = epptr() - pptr()) ) {
 				if( n < nMax )
 					nMax = n;
+#ifdef _CONVERT_VS_2010
+				traits_type::copy( pptr(), pch, static_cast<size_t>(nMax) );
+				// Sync if string contains LF
+				bool bSync = traits_type::find( pch, static_cast<int>(nMax), traits_type::to_char_type( '\n' ) ) != NULL;
+				pch += nMax, nPut += nMax, n -= nMax, pbump(static_cast<int>(nMax));
+#else
 				traits_type::copy( pptr(), pch, nMax );
-
 				// Sync if string contains LF
 				bool bSync = traits_type::find( pch, nMax, traits_type::to_char_type( '\n' ) ) != NULL;
 				pch += nMax, nPut += nMax, n -= nMax, pbump(nMax);
+#endif _CONVERT_VS_2010
+
 				if( bSync )
 					sync();
 

@@ -38,13 +38,13 @@ bool CX2NPCUnitViewerUI::ResetNPC( CX2UnitManager::NPC_UNIT_ID eNPCID )
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pNPCTemplet->m_LuaFileName.c_str() ) )
+	if( false == g_pKTDXApp->LoadLuaTinker( pNPCTemplet->m_LuaFileName.c_str() ) )
 	{
 		ASSERT( !"NO" );
 		return false;
 	}
 	
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pNPCTemplet->m_LuaFileName.c_str() ) )
+	if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, pNPCTemplet->m_LuaFileName.c_str() ) )
 	{
 		ASSERT( !"NO" );
 		return false;
@@ -116,12 +116,12 @@ bool CX2NPCUnitViewerUI::ResetPet( int petId, char iLv )
 	KLuaManager	luaManager( pLuaManager->GetLuaState(), 0, false );
 #else	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pTemplet->m_Evolution_Step_ScriptName[iLv].c_str() ) )
+	if( false == g_pKTDXApp->LoadLuaTinker( pTemplet->m_Evolution_Step_ScriptName[iLv].c_str() ) )
 	{
 		ASSERT( !"NO" );
 		return false;
 	}
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, pTemplet->m_Evolution_Step_ScriptName[iLv].c_str() ) )
+	if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, pTemplet->m_Evolution_Step_ScriptName[iLv].c_str() ) )
 	{
 		ASSERT( !"NO" );
 		return false;
@@ -136,7 +136,11 @@ bool CX2NPCUnitViewerUI::ResetPet( int petId, char iLv )
 		LUA_GET_VALUE( luaManager, "UNIT_SCALE", m_fScale, 1.f );		
 
 		LUA_GET_VALUE_ENUM( luaManager, "RENDER_PARAM", m_RenderParam.renderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_CARTOON_BLACK_EDGE );
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+		m_RenderParam.fOutLineWide	= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 		m_RenderParam.fOutLineWide	= 1.7f;
+#endif //UNIT_SCALE_COMBINE_ONE
 
 		LUA_GET_VALUE( luaManager, "ALPHA_BLEND", m_RenderParam.bAlphaBlend, false );
 		if( m_RenderParam.bAlphaBlend == true )
@@ -238,7 +242,11 @@ void CX2NPCUnitViewerUI::ResetRenderParam()
 	pRenderParam->renderType		= CKTDGXRenderer::RT_CARTOON_BLACK_EDGE;
 	pRenderParam->outLineColor		= 0xffffffff;
 	pRenderParam->lightPos			= m_vLightPosition;
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+	pRenderParam->fOutLineWide		= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 	pRenderParam->fOutLineWide		= 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 	pRenderParam->bAlphaBlend		= false;
 
 #ifdef SERV_PET_SYSTEM
@@ -376,7 +384,11 @@ bool CX2NPCUnitViewerUI::ResetRidingPet( int RidingPetId )
 		LUA_GET_VALUE( luaManager, "UNIT_SCALE", m_fScale, 1.f );		
 
 		LUA_GET_VALUE_ENUM( luaManager, "RENDER_PARAM", m_RenderParam.renderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_CARTOON_BLACK_EDGE );
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+		m_RenderParam.fOutLineWide	= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 		m_RenderParam.fOutLineWide	= 1.7f;
+#endif //UNIT_SCALE_COMBINE_ONE
 
 		LUA_GET_VALUE( luaManager, "ALPHA_BLEND", m_RenderParam.bAlphaBlend, false );
 		if( m_RenderParam.bAlphaBlend == true )

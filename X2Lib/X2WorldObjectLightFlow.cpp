@@ -67,7 +67,7 @@ HRESULT CX2WorldObjectLightFlow::OnFrameMove( double fTime, float fElapsedTime )
 /*virtual*/
 RENDER_HINT   CX2WorldObjectLightFlow::OnFrameRender_Prepare() 
 { 
-    __super::SetLastAccessTime( g_NowTime );
+    //__super::SetLastAccessTime( g_NowTime );
 
     if ( NULL == m_pXMesh || false == m_bXMeshLoaded )
         return RENDER_HINT_NORENDER;
@@ -81,7 +81,7 @@ RENDER_HINT   CX2WorldObjectLightFlow::OnFrameRender_Prepare()
 void    CX2WorldObjectLightFlow::OnFrameRender_Draw()
 {
 	KTDXPROFILE();
-    __super::SetLastAccessTime( g_NowTime );
+    //__super::SetLastAccessTime( g_NowTime );
 
 	if ( false == m_bXMeshLoaded )
 		return;

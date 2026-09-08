@@ -341,7 +341,11 @@ void CX2SMTPMail::FindFilesByExt( std::vector<std::string>& vecFilePath, const c
 			}
 			else
 			{
+#ifdef _CONVERT_VS_2010
+				_splitpath_s( fd.cFileName, NULL, 0, NULL, 0, fname, _MAX_FNAME, ext, _MAX_EXT );
+#else
 				_splitpath( fd.cFileName, NULL, NULL, fname, ext );
+#endif _CONVERT_VS_2010
 				MakeUpperCase( ext );
 
 				if( 0 == strExt.compare( ext ) )
@@ -481,9 +485,18 @@ bool CX2SMTPMail::SMTPSend()
 		m_oError = CSMTP_COMMAND_EHLO;
 		return false;
 	}
-
+	
 	// AUTH <SP> Global <CRLF>
+#ifdef _CONVERT_VS_2010
+	strncpy_s( SendBuf, BUFFER_SIZE, "AUTH Global\r\n", BUFFER_SIZE - 1 );
+#else
+#ifdef SERV_INT_ONLY
+	//smtp 메일서버로 인증 할때 AUTH LOGIN
+	strncpy(SendBuf,"AUTH LOGIN\r\n", BUFFER_SIZE - 1 );
+#else //SERV_INT_ONLY
 	strncpy(SendBuf,"AUTH Global\r\n", BUFFER_SIZE - 1 );
+#endif //SERV_INT_ONLY
+#endif _CONVERT_VS_2010
 	//strcpy(SendBuf,"AUTH Global\r\n");
 	if(!SMTPSendData())
 		return false;
@@ -621,7 +634,11 @@ bool CX2SMTPMail::SMTPSend()
 	}
 
 	// DATA <CRLF>
+#ifdef _CONVERT_VS_2010
+	strncpy_s( SendBuf, BUFFER_SIZE, "DATA\r\n", BUFFER_SIZE - 1 );
+#else
 	strncpy(SendBuf,"DATA\r\n" , BUFFER_SIZE - 1 );
+#endif _CONVERT_VS_2010
 	//strcpy(SendBuf,"DATA\r\n");
 	if(!SMTPSendData())
 		return false;
@@ -677,7 +694,11 @@ bool CX2SMTPMail::SMTPSend()
 	TotalSize = 0;
 	for(FileId=0;FileId<Attachments.size();FileId++)
 	{
+#ifdef _CONVERT_VS_2010
+		strncpy_s(FileName, 255, Attachments[FileId].c_str(), 254 );
+#else
 		strncpy(FileName,Attachments[FileId].c_str() , 254 );
+#endif _CONVERT_VS_2010
 		//strcpy(FileName,Attachments[FileId].c_str());
 
 		StringCchPrintfA(SendBuf, BUFFER_SIZE, "--%s\r\n",BOUNDARY_TEXT);
@@ -705,7 +726,11 @@ bool CX2SMTPMail::SMTPSend()
 			return false;
 
 		// opening the file:
+#ifdef _CONVERT_VS_2010
+		fopen_s( &hFile, FileName,"rb");
+#else
 		hFile = fopen(FileName,"rb");
+#endif _CONVERT_VS_2010
 		if(hFile == NULL)
 		{
 			m_oError = CSMTP_FILE_NOT_EXIST;
@@ -730,8 +755,13 @@ bool CX2SMTPMail::SMTPSend()
 			{
 				res = fread(FileBuf,sizeof(char),54,hFile);
 				string strTemp = base64_encode(reinterpret_cast<const unsigned char*>(FileBuf),res);
+#ifdef _CONVERT_VS_2010
+				MsgPart ? strncat_s( SendBuf, BUFFER_SIZE, strTemp.c_str(), strTemp.size())
+					: strncpy_s(SendBuf, BUFFER_SIZE, base64_encode(reinterpret_cast<const unsigned char*>(FileBuf),res).c_str() , BUFFER_SIZE - 1);
+#else
 				MsgPart ? strncat(SendBuf,strTemp.c_str(),strTemp.size())
 					: strncpy(SendBuf,base64_encode(reinterpret_cast<const unsigned char*>(FileBuf),res).c_str() , BUFFER_SIZE - 1);
+#endif _CONVERT_VS_2010
 					//: strcpy(SendBuf,base64_encode(reinterpret_cast<const unsigned char*>(FileBuf),res).c_str());
 
 				StringCchCatA(SendBuf, BUFFER_SIZE,"\r\n");
@@ -780,7 +810,11 @@ bool CX2SMTPMail::SMTPSend()
 	}
 
 	// <CRLF> . <CRLF>
+#ifdef _CONVERT_VS_2010
+	strncpy_s( SendBuf, BUFFER_SIZE, "\r\n.\r\n", BUFFER_SIZE - 1 );
+#else
 	strncpy(SendBuf,"\r\n.\r\n" , BUFFER_SIZE - 1 );
+#endif _CONVERT_VS_2010
 	//strcpy(SendBuf,"\r\n.\r\n");
 	if(!SMTPSendData())
 		return false;
@@ -800,7 +834,11 @@ bool CX2SMTPMail::SMTPSend()
 	// ***** CLOSING CONNECTION *****
 
 	// QUIT <CRLF>
+#ifdef _CONVERT_VS_2010
+	strncpy_s( SendBuf, BUFFER_SIZE, "QUIT\r\n", BUFFER_SIZE - 1 );
+#else
 	strncpy(SendBuf,"QUIT\r\n" , BUFFER_SIZE - 1 );
+#endif _CONVERT_VS_2010
 	//strcpy(SendBuf,"QUIT\r\n");
 	if(!SMTPSendData())
 		return false;
@@ -918,6 +956,16 @@ bool CX2SMTPMail::SMTPFormatHeader(char* header)
 		}
 
 		to[0] = '\0';
+#ifdef _CONVERT_VS_2010
+		for (unsigned int i=0;i<Recipients.size();i++)
+		{
+			(i > 0) ? strncat_s(to, s, ",", 1) : strncpy_s(to, s, "",0);
+			strncat_s(to, s, Recipients[i].Name.c_str(),Recipients[i].Name.size());
+			strncat_s(to, s, "<",1);
+			strncat_s(to, s, Recipients[i].Mail.c_str(),Recipients[i].Mail.size());
+			strncat_s(to, s, ">",1);
+		}
+#else
 		for (i=0;i<Recipients.size();i++)
 		{
 			i > 0 ? strncat(to,",",1):strncpy(to,"",0);
@@ -926,6 +974,7 @@ bool CX2SMTPMail::SMTPFormatHeader(char* header)
 			strncat(to,Recipients[i].Mail.c_str(),Recipients[i].Mail.size());
 			strncat(to,">",1);
 		}
+#endif _CONVERT_VS_2010
 	}
 	else
 	{
@@ -949,11 +998,19 @@ bool CX2SMTPMail::SMTPFormatHeader(char* header)
 		cc[0] = '\0';
 		for (i=0;i<CCRecipients.size();i++)
 		{
+#ifdef _CONVERT_VS_2010
+			i > 0 ? strncat_s(cc, s, ",", 1):strncpy_s(cc, s, "", 0);
+			strncat_s(cc, s, CCRecipients[i].Name.c_str(),CCRecipients[i].Name.size());
+			strncat_s(cc, s, "<",1);
+			strncat_s(cc, s, CCRecipients[i].Mail.c_str(),CCRecipients[i].Mail.size());
+			strncat_s(cc, s, ">",1);
+#else
 			i > 0 ? strncat(cc,",",1):strncpy(cc,"",0);
 			strncat(cc,CCRecipients[i].Name.c_str(),CCRecipients[i].Name.size());
 			strncat(cc,"<",1);
 			strncat(cc,CCRecipients[i].Mail.c_str(),CCRecipients[i].Mail.size());
 			strncat(cc,">",1);
+#endif _CONVERT_VS_2010
 		}
 	}
 
@@ -974,11 +1031,19 @@ bool CX2SMTPMail::SMTPFormatHeader(char* header)
 		bcc[0] = '\0';
 		for (i=0;i<BCCRecipients.size();i++)
 		{
+#ifdef _CONVERT_VS_2010
+			i > 0 ? strncat_s(bcc, s, ",",1):strncpy_s(bcc,s,"",0);
+			strncat_s(bcc,s,BCCRecipients[i].Name.c_str(),BCCRecipients[i].Name.size());
+			strncat_s(bcc,s,"<",1);
+			strncat_s(bcc,s,BCCRecipients[i].Mail.c_str(),BCCRecipients[i].Mail.size());
+			strncat_s(bcc,s,">",1);
+#else
 			i > 0 ? strncat(bcc,",",1):strncpy(bcc,"",0);
 			strncat(bcc,BCCRecipients[i].Name.c_str(),BCCRecipients[i].Name.size());
 			strncat(bcc,"<",1);
 			strncat(bcc,BCCRecipients[i].Mail.c_str(),BCCRecipients[i].Mail.size());
 			strncat(bcc,">",1);
+#endif _CONVERT_VS_2010
 		}
 	}
 
@@ -1320,7 +1385,11 @@ void CX2SMTPMail::SMTPSetMessageBody(const char *body)
 		m_oError = CSMTP_LACK_OF_MEMORY;
 		return;
 	}
+#ifdef _CONVERT_VS_2010
+	strncpy_s(m_pcMsgBody, s+1, body , s);
+#else
 	strncpy(m_pcMsgBody, body , s);
+#endif _CONVERT_VS_2010
 	m_pcMsgBody[s] = '\0';
 	//strcpy(m_pcMsgBody, body);    
 }
@@ -1339,7 +1408,11 @@ void CX2SMTPMail::SMTPSetReplyTo(const char *replyto)
 		m_oError = CSMTP_LACK_OF_MEMORY;
 		return;
 	}
+#ifdef _CONVERT_VS_2010
+	strncpy_s(m_pcReplyTo, s+1, replyto ,s);
+#else
 	strncpy(m_pcReplyTo, replyto ,s);
+#endif _CONVERT_VS_2010
 	m_pcReplyTo[s] = '\0';
 	//strcpy(m_pcReplyTo, replyto);
 }
@@ -1358,7 +1431,11 @@ void CX2SMTPMail::SMTPSetSenderMail(const char *email)
 		m_oError = CSMTP_LACK_OF_MEMORY;
 		return;
 	}
-	strncpy(m_pcMailFrom, email ,s);    
+#ifdef _CONVERT_VS_2010
+	strncpy_s(m_pcMailFrom, s+1, email ,s);
+#else
+	strncpy(m_pcMailFrom, email ,s);
+#endif _CONVERT_VS_2010
 	m_pcMailFrom[s] = '\0';
 	//strcpy(m_pcMailFrom, email);        
 }
@@ -1377,7 +1454,11 @@ void CX2SMTPMail::SMTPSetSenderName(const char *name)
 		m_oError = CSMTP_LACK_OF_MEMORY;
 		return;
 	}
+#ifdef _CONVERT_VS_2010
+	strncpy_s(m_pcNameFrom, s+1, name , s);
+#else
 	strncpy(m_pcNameFrom, name , s);
+#endif _CONVERT_VS_2010
 	m_pcNameFrom[s] = '\0';
 	//strcpy(m_pcNameFrom, name);
 }
@@ -1396,7 +1477,11 @@ void CX2SMTPMail::SMTPSetSubject(const char *subject)
 		m_oError = CSMTP_LACK_OF_MEMORY;
 		return;
 	}
+#ifdef _CONVERT_VS_2010
+	strncpy_s(m_pcSubject, s+1, subject , s);
+#else
 	strncpy(m_pcSubject, subject , s);
+#endif _CONVERT_VS_2010
 	m_pcSubject[s] = '\0';
 	//strcpy(m_pcSubject, subject);
 }
@@ -1415,7 +1500,11 @@ void CX2SMTPMail::SMTPSetXMailer(const char *xmailer)
 		m_oError = CSMTP_LACK_OF_MEMORY;
 		return;
 	}
+#ifdef _CONVERT_VS_2010
+	strncpy_s(m_pcXMailer, s+1, xmailer , s);
+#else
 	strncpy(m_pcXMailer, xmailer , s);
+#endif _CONVERT_VS_2010
 	m_pcXMailer[s] = '\0';
 	//strcpy(m_pcXMailer, xmailer);
 }
@@ -1434,7 +1523,11 @@ void CX2SMTPMail::SMTPSetLogin(const char *Global)
 		m_oError = CSMTP_LACK_OF_MEMORY;
 		return;
 	}
+#ifdef _CONVERT_VS_2010
+	strncpy_s(m_pcLogin, s+1, Global, s);
+#else
 	strncpy(m_pcLogin, Global, s);
+#endif _CONVERT_VS_2010
 	m_pcLogin[s] = '\0';
 	//strcpy(m_pcLogin, Global);
 }
@@ -1453,7 +1546,11 @@ void CX2SMTPMail::SMTPSetPassword(const char *password)
 		m_oError = CSMTP_LACK_OF_MEMORY;
 		return;
 	}
+#ifdef _CONVERT_VS_2010
+	strncpy_s(m_pcPassword, s+1, password , s);
+#else
 	strncpy(m_pcPassword, password , s);
+#endif _CONVERT_VS_2010
 	m_pcPassword[s] = '\0';
 	//strcpy(m_pcPassword, password);
 }
@@ -1473,7 +1570,11 @@ void CX2SMTPMail::SMTPSetServer(const char* SrvName,const unsigned short SrvPort
 		m_oError = CSMTP_LACK_OF_MEMORY;
 		return;
 	}
+#ifdef _CONVERT_VS_2010
+	strncpy_s(m_pcSMTPSrvName, s+1, SrvName , s);
+#else
 	strncpy(m_pcSMTPSrvName, SrvName , s);
+#endif _CONVERT_VS_2010
 	m_pcSMTPSrvName[s] = '\0';
 	//strcpy(m_pcSMTPSrvName, SrvName);
 }

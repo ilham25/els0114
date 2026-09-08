@@ -439,26 +439,12 @@ namespace lua_tinker
 		void set(lua_State *L)	{ read<T*>(L,1)->*(_var) = read<V>(L, 3);	}
 	};
 
-	//{{ Iruha : 2026-08-27 // VS2010 port: extended from 6 to 10 args. KncWX2Server/Common/
-	// GameSysVal/GameSysVal.h's AddPCBang_LUA (behind SERV_PC_BANG_TYPE) takes 10 params and
-	// is registered via lua_tinker::class_def, which needed a matching push_functor/mem_functor
-	// overload that didn't exist at any arity in this vendored copy.
 	// member function
-	template<typename RVal, typename T, typename T1=void, typename T2=void, typename T3=void, typename T4=void, typename T5=void, typename T6=void, typename T7=void, typename T8=void, typename T9=void, typename T10=void>
+	template<typename RVal, typename T, typename T1=void, typename T2=void, typename T3=void, typename T4=void, typename T5=void, typename T6=void>
 	struct mem_functor
-	{
-		static int invoke(lua_State *L) { push(L,(read<T*>(L,1)->*upvalue_<RVal(T::*)(T1,T2,T3,T4,T5,T6,T7,T8,T9,T10)>(L))(read<T1>(L,2),read<T2>(L,3),read<T3>(L,4),read<T4>(L,5),read<T5>(L,6),read<T6>(L,7),read<T7>(L,8),read<T8>(L,9),read<T9>(L,10),read<T10>(L,11)));; return 1; }
-	};
-
-	// Before this port, the unspecialized primary above directly implemented the 6-arg case
-	// (with T1..T6 only) and nothing called it with more than 6 args. Now that the primary
-	// implements the 10-arg case, the 6-arg case needs its own explicit specialization too.
-	template<typename RVal, typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-	struct mem_functor<RVal,T,T1,T2,T3,T4,T5,T6>
 	{
 		static int invoke(lua_State *L) { push(L,(read<T*>(L,1)->*upvalue_<RVal(T::*)(T1,T2,T3,T4,T5,T6)>(L))(read<T1>(L,2),read<T2>(L,3),read<T3>(L,4),read<T4>(L,5),read<T5>(L,6),read<T6>(L,7)));; return 1; }
 	};
-	//}}
 
 	template<typename RVal, typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
 	struct mem_functor<RVal,T,T1,T2,T3,T4,T5>
@@ -495,14 +481,6 @@ namespace lua_tinker
 	{
 		static int invoke(lua_State *L) { push(L,(read<T*>(L,1)->*upvalue_<RVal(T::*)()>(L))()); return 1; }
 	};
-
-	//{{ Iruha : 2026-08-27 // VS2010 port: 10-arg void specialization for AddPCBang_LUA -- see note above
-	template<typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10>
-	struct mem_functor<void,T,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>
-	{
-		static int invoke(lua_State *L)  { (read<T*>(L,1)->*upvalue_<void(T::*)(T1,T2,T3,T4,T5,T6,T7,T8,T9,T10)>(L))(read<T1>(L,2),read<T2>(L,3),read<T3>(L,4),read<T4>(L,5),read<T5>(L,6),read<T6>(L,7),read<T7>(L,8),read<T8>(L,9),read<T9>(L,10),read<T10>(L,11)); return 0; }
-	};
-	//}}
 
 	template<typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
 	struct mem_functor<void,T,T1,T2,T3,T4,T5,T6>
@@ -620,95 +598,87 @@ namespace lua_tinker
 	}
 
 	template<typename RVal, typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-		void push_functor(lua_State *L, RVal (T::*func)(T1,T2,T3,T4,T5,T6))
-	{
-		lua_pushcclosure(L, mem_functor<RVal,T,T1,T2,T3,T4,T5,T6>::invoke, 1);
+		void push_functor(lua_State *L, RVal (T::*func)(T1,T2,T3,T4,T5,T6)) 
+	{ 
+		lua_pushcclosure(L, mem_functor<RVal,T,T1,T2,T3,T4,T5,T6>::invoke, 1); 
 	}
 
 	template<typename RVal, typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-		void push_functor(lua_State *L, RVal (T::*func)(T1,T2,T3,T4,T5,T6) const)
-	{
-		lua_pushcclosure(L, mem_functor<RVal,T,T1,T2,T3,T4,T5,T6>::invoke, 1);
+		void push_functor(lua_State *L, RVal (T::*func)(T1,T2,T3,T4,T5,T6) const) 
+	{ 
+		lua_pushcclosure(L, mem_functor<RVal,T,T1,T2,T3,T4,T5,T6>::invoke, 1); 
 	}
 
-	//{{ Iruha : 2026-08-27 // VS2010 port: 10-arg push_functor for AddPCBang_LUA -- see note above
-	template<typename RVal, typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10>
-		void push_functor(lua_State *L, RVal (T::*func)(T1,T2,T3,T4,T5,T6,T7,T8,T9,T10))
-	{
-		lua_pushcclosure(L, mem_functor<RVal,T,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::invoke, 1);
-	}
-
-	template<typename RVal, typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename T10>
-		void push_functor(lua_State *L, RVal (T::*func)(T1,T2,T3,T4,T5,T6,T7,T8,T9,T10) const)
-	{
-		lua_pushcclosure(L, mem_functor<RVal,T,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::invoke, 1);
-	}
-	//}}
-
-	//{{ Iruha : 2026-08-27 // VS2010 port: this whole constructor/class_con pair was a
-	// function-template redesign that no longer matches how the game code actually calls
-	// it (e.g. KncWX2Server/Common/X2Data/XSLBattleField.cpp:62 does
-	// `class_con<D3DXVECTOR3>(L, constructor<float,float,float>())` -- a struct VALUE passed
-	// by name, not a called function). Replaced with the struct-based design from the VC7.1
-	// KNCSDK/Include/lua_tinker.h, which class_con here is now restored to match.
 	// constructor
-	template<typename T1=void, typename T2=void, typename T3=void, typename T4=void>
-	struct constructor {};
+	template<typename T, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+	int constructor(lua_State *L) 
+	{ 
+		new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>(read<T1>(L,2),read<T2>(L,3),read<T3>(L,4),read<T4>(L,5),read<T5>(L,6),read<T6>(L,7));
+		push_meta(L, class_name<typename class_type<T>::type>::name());
+		lua_setmetatable(L, -2);
 
-	template<typename T1, typename T2, typename T3>
-	struct constructor<T1,T2,T3>
-	{
-		template<typename T>
-		static void invoke(lua_State *L)
-		{
-			new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>(read<T1>(L,2),read<T2>(L,3),read<T3>(L,4));
-		}
-	};
+		return 1; 
+	}
 
-	template<typename T1, typename T2>
-	struct constructor<T1,T2>
-	{
-		template<typename T>
-		static void invoke(lua_State *L)
-		{
-			new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>(read<T1>(L,2),read<T2>(L,3));
-		}
-	};
+	template<typename T, typename T1, typename T2, typename T3, typename T4, typename T5>
+	int constructor(lua_State *L) 
+	{ 
+		new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>(read<T1>(L,2),read<T2>(L,3),read<T3>(L,4),read<T4>(L,5),read<T5>(L,6));
+		push_meta(L, class_name<typename class_type<T>::type>::name());
+		lua_setmetatable(L, -2);
 
-	template<typename T1>
-	struct constructor<T1>
-	{
-		template<typename T>
-		static void invoke(lua_State *L)
-		{
-			new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>(read<T1>(L,2));
-		}
-	};
+		return 1; 
+	}
 
-	template<>
-	struct constructor<void>
-	{
-		template<typename T>
-		static void invoke(lua_State *L)
-		{
-			new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>();
-		}
-	};
+	template<typename T, typename T1, typename T2, typename T3, typename T4>
+	int constructor(lua_State *L) 
+	{ 
+		new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>(read<T1>(L,2),read<T2>(L,3),read<T3>(L,4),read<T4>(L,5));
+		push_meta(L, class_name<typename class_type<T>::type>::name());
+		lua_setmetatable(L, -2);
+
+		return 1; 
+	}
+
+	template<typename T, typename T1, typename T2, typename T3>
+	int constructor(lua_State *L) 
+	{ 
+		new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>(read<T1>(L,2),read<T2>(L,3),read<T3>(L,4));
+		push_meta(L, class_name<typename class_type<T>::type>::name());
+		lua_setmetatable(L, -2);
+
+		return 1; 
+	}
+
+	template<typename T, typename T1, typename T2>
+	int constructor(lua_State *L) 
+	{ 
+		new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>(read<T1>(L,2),read<T2>(L,3));
+		push_meta(L, class_name<typename class_type<T>::type>::name());
+		lua_setmetatable(L, -2);
+
+		return 1; 
+	}
+
+	template<typename T, typename T1>
+	int constructor(lua_State *L) 
+	{ 
+		new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>(read<T1>(L,2));
+		push_meta(L, class_name<typename class_type<T>::type>::name());
+		lua_setmetatable(L, -2);
+
+		return 1; 
+	}
 
 	template<typename T>
-	struct creator
-	{
-		template<typename CONSTRUCTOR>
-		static int invoke(lua_State *L)
-		{
-			CONSTRUCTOR::invoke<T>(L);
-			push_meta(L, class_name<typename class_type<T>::type>::name());
-			lua_setmetatable(L, -2);
+	int constructor(lua_State *L) 
+	{ 
+		new(lua_newuserdata(L, sizeof(val2user<T>))) val2user<T>();
+		push_meta(L, class_name<typename class_type<T>::type>::name());
+		lua_setmetatable(L, -2);
 
-			return 1;
-		}
-	};
-	//}}
+		return 1; 
+	}
 
 	// destroyer
 	template<typename T>
@@ -941,73 +911,6 @@ namespace lua_tinker
 		return pop<RVal>(L);
 	}
 
-	//{{ Iruha : 2026-08-27 // VS2010 port: extended from 6 to 8 args. KncWX2Server/CenterServer/
-	// PvpMatchResultTable.cpp calls lua_tinker::call<int>(...) with 8 args to invoke
-	// GET_RANKING_POINT_PVP_RESULT, and this vendored copy topped out at 6.
-	template<typename RVal, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-		RVal call(lua_State* L, const char* name, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7 )
-	{
-		lua_pushcclosure(L, on_error, 0);
-		int errfunc = lua_gettop(L);
-
-		lua_pushstring(L, name);
-		lua_gettable(L, LUA_GLOBALSINDEX);
-		if(lua_isfunction(L,-1))
-		{
-			push(L, arg1);
-			push(L, arg2);
-			push(L, arg3);
-			push(L, arg4);
-			push(L, arg5);
-			push(L, arg6);
-			push(L, arg7);
-			if(lua_pcall(L, 7, 1, errfunc) != 0)
-			{
-				lua_pop(L, 1);
-			}
-		}
-		else
-		{
-			print_error(L, "lua_tinker::call() attempt to call global `%s' (not a function)", name);
-		}
-
-		lua_remove(L, -2);
-		return pop<RVal>(L);
-	}
-
-	template<typename RVal, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-		RVal call(lua_State* L, const char* name, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5, T6 arg6, T7 arg7, T8 arg8 )
-	{
-		lua_pushcclosure(L, on_error, 0);
-		int errfunc = lua_gettop(L);
-
-		lua_pushstring(L, name);
-		lua_gettable(L, LUA_GLOBALSINDEX);
-		if(lua_isfunction(L,-1))
-		{
-			push(L, arg1);
-			push(L, arg2);
-			push(L, arg3);
-			push(L, arg4);
-			push(L, arg5);
-			push(L, arg6);
-			push(L, arg7);
-			push(L, arg8);
-			if(lua_pcall(L, 8, 1, errfunc) != 0)
-			{
-				lua_pop(L, 1);
-			}
-		}
-		else
-		{
-			print_error(L, "lua_tinker::call() attempt to call global `%s' (not a function)", name);
-		}
-
-		lua_remove(L, -2);
-		return pop<RVal>(L);
-	}
-	//}}
-
 	// class helper
 	int meta_get(lua_State *L);
 	int meta_set(lua_State *L);
@@ -1056,27 +959,24 @@ namespace lua_tinker
 	}
 
 	// Tinker Class Constructor
-	//{{ Iruha : 2026-08-27 // VS2010 port: matched to the struct-based constructor<> above --
-	// see note there.
-	template<typename T, typename CONSTRUCTOR>
-	void class_con(lua_State* L, CONSTRUCTOR)
+	template<typename T, typename F>
+	void class_con(lua_State* L,F func)
 	{
 		push_meta(L, class_name<T>::name());
 		if(lua_istable(L, -1))
 		{
 			lua_newtable(L);
 			lua_pushstring(L, "__call");
-			lua_pushcclosure(L, creator<T>::invoke<CONSTRUCTOR>, 0);
+			lua_pushcclosure(L, func, 0);
 			lua_rawset(L, -3);
 			lua_setmetatable(L, -2);
 		}
 		lua_pop(L, 1);
 	}
-	//}}
 
 	// Tinker Class Functions
 	template<typename T, typename F>
-	void class_def(lua_State* L, const char* name, F func)
+	void class_def(lua_State* L, const char* name, F func) 
 	{ 
 		push_meta(L, class_name<T>::name());
 		if(lua_istable(L, -1))

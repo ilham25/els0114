@@ -65,9 +65,9 @@ void KTSMEventProcess::ProcessEvent( const KEventPtr& spEvent_ )
 	CASE( E_LOCAL_LOG_ABUSER_MORNITORING_NOT );
 #endif SERV_AUTO_HACK_CHECK_GET_ITEM
 	//}}
-#ifdef SERV_WATCH_LOG
-	CASE( E_LOCAL_LOG_WATCH_NOT );
-#endif //SERV_WATCH_LOG
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET
+	CASE( E_LOCAL_LOG_UNDEFINED_QUEST_TEMPLET_NOT );
+#endif // SERV_LOG_UNDEFINED_QUEST_TEMPLET
 
 	default:
 		START_LOG( cerr, L"핸들러가 지정되지 않은 이벤트." )
@@ -354,6 +354,20 @@ IMPL_ON_FUNC( E_LOCAL_LOG_SERVER_DISCONNECT_NOT )
 #endif SERV_SERVER_DISCONNECT_LOG
 //}}
 
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET
+IMPL_ON_FUNC( E_LOCAL_LOG_UNDEFINED_QUEST_TEMPLET_NOT )
+{
+	std::wfstream& fout = KSIManager.GetLocalLog().LocalLogStm( KStatisticsLocalLog::LOG_UNDEFINED_QUEST_TEMPLET );
+	fout << L"\n";
+
+	fout << KLocAlign << kPacket_.m_iQuestID << L"\t";
+	fout << KLocAlign << kPacket_.m_wstrRegDate << L"\t";
+
+	fout.flush();
+}
+#endif // SERV_LOG_UNDEFINED_QUEST_TEMPLET
+
+
 //{{ 2010. 10. 11	최육사	넥슨 빌링 패킷 로그
 #ifdef SERV_BILLING_PACKET_LOG
 
@@ -432,39 +446,6 @@ IMPL_ON_FUNC( E_LOCAL_LOG_ABUSER_MORNITORING_NOT )
 #endif SERV_AUTO_HACK_CHECK_GET_ITEM
 //}}
 
-#ifdef SERV_WATCH_LOG
-
-IMPL_ON_FUNC( E_LOCAL_LOG_WATCH_NOT )
-{
-	std::wfstream& fout = KSIManager.GetLocalLog().LocalLogStm( KStatisticsLocalLog::LOG_WATCH );
-
-	fout << L"\n";
-	switch( kPacket_.m_cLogType )
-	{
-	case KE_LOCAL_LOG_WATCH_NOT::WLT_NICKNAME_ERROR:
-		{
-			fout << KLocAlign << static_cast<int>(kPacket_.m_cLogType) << L"\t";
-			fout << KLocAlign << kPacket_.m_iOwnerUserUID << L"\t";
-			fout << KLocAlign << static_cast<int>(kPacket_.m_cAuthLevel) << L"\t";
-			fout << KLocAlign << static_cast<int>(kPacket_.m_cUnitClass) << L"\t";
-			fout << KLocAlign << kPacket_.m_wstrNickName << L"\t";
-			fout << KLocAlign << kPacket_.m_wstrIP << L"\t";
-			fout << KLocAlign << kPacket_.m_usPort << L"\t";
-		}
-		break;
-
-	default:
-		START_LOG( cerr, L"잘못된 로그 타입입니다!" )
-			<< BUILD_LOGc( kPacket_.m_cLogType )
-			<< END_LOG;
-		return;
-	}
-
-	
-	fout.flush();
-}
-
-#endif SERV_WATCH_LOG
 
 #endif SERV_STATISTICS_THREAD
 

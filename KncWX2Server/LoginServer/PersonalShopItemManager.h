@@ -30,7 +30,7 @@ public:
 	u_int GetSellItemCount() const { return m_mapSellItemInfo.size(); }
 	//{{ 2011. 05. 23	최육사	대리 상인 개편
 #ifdef SERV_PSHOP_AGENCY_NEW
-	void GetSellPersonalShopItemInfoList( OUT std::vector< KSellPersonalShopItemInfo >& vecItemList, IN const ITEM_LIST_TYPE eType = ITEM_LIST_TYPE::ILT_ONLY_ON_SALE_ITEMS );
+	void GetSellPersonalShopItemInfoList( OUT std::vector< KSellPersonalShopItemInfo >& vecItemList, IN const ITEM_LIST_TYPE eType = ILT_ONLY_ON_SALE_ITEMS );
 #else
 	void GetSellPersonalShopItemInfoList( OUT std::vector< KSellPersonalShopItemInfo >& vecItemList, IN const bool bAllItems = false );
 #endif SERV_PSHOP_AGENCY_NEW

@@ -86,7 +86,11 @@ void CX2StateAutoChanger::InCase_XS_CREATE_UNIT()
 			}
 			else
 			{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_552 ), L"DLG_UI_Selection_MessageBox_No_Button.lua" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_552 ) );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			}
 			
 			g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, /*CX2Main::XS_UNIT_SELECT*/CX2Main::XS_SERVER_SELECT, NULL, false );
@@ -503,7 +507,7 @@ void CX2StateAutoChanger::InCase_XS_VILLAGE_MAP()
 //	case CX2Main::XS_DUNGEON_GAME:
 //		{
 //			CX2LocationManager::LOCAL_MAP_ID eLocalMapID = 
-//				g_pData->GetLocationManager()->GetLocalMapID( (CX2Dungeon::DUNGEON_ID) m_TargetDetail.m_iDungeonID ); // fix!! 채널manager에서 던전 아이디를 가져오게
+//				g_pData->GetLocationManager()->GetLocalMapID( (SEnum::DUNGEON_ID) m_TargetDetail.m_iDungeonID ); // fix!! 채널manager에서 던전 아이디를 가져오게
 //
 //			if( CX2LocationManager::LMI_INVALID == eLocalMapID )
 //			{
@@ -1258,7 +1262,7 @@ void CX2StateAutoChanger::InCase_XS_TRAINING_SCHOOL()
 //	{
 //		// fix!! 여기에서 바로 초심자숲으로 가도록 하드코딩된 부분 입력인자를 받아서 처리하도록 고쳐야함. 일단 이렇게 가자~
 //		pState->Handler_EGS_CREATE_ROOM_REQ( L"Rookie's", L"m3af*Aq1", false, 1, 
-//			(int) CX2Dungeon::DI_EL_FOREST_GATE_NORMAL, (int) CX2Dungeon::DL_NORMAL, 19999.f );
+//			(int) SEnum::DI_EL_FOREST_GATE_NORMAL, (int) CX2Dungeon::DL_NORMAL, 19999.f );
 //
 //		m_iTryEnterRoomCount++; // note: 두번 create_room_req 하는 경우를 막기 위해서 
 //	}
@@ -1337,7 +1341,7 @@ void CX2StateAutoChanger::TryEnterArcadeRoom( bool bIsPublic /* = true */ )
 //	CX2StateLocalMap* pState = (CX2StateLocalMap*) g_pMain->GetNowState();
 //
 //	CX2LocationManager::LOCAL_MAP_ID eLocalMapID = 
-//		g_pData->GetLocationManager()->GetLocalMapID( (CX2Dungeon::DUNGEON_ID) m_TargetDetail.m_iDungeonID );
+//		g_pData->GetLocationManager()->GetLocalMapID( (SEnum::DUNGEON_ID) m_TargetDetail.m_iDungeonID );
 //
 //	if( CX2LocationManager::LMI_INVALID == eLocalMapID )
 //	{

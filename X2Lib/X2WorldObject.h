@@ -3,7 +3,11 @@
 
 //{{ seojt // 2009-1-14, 23:16
 class CX2WorldObject;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2WorldObject>   CX2WorldObjectPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2WorldObject>   CX2WorldObjectPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 //}} seojt // 2009-1-14, 23:16
 
 
@@ -134,4 +138,5 @@ class CX2WorldObject : public CKTDGObject
 		bool							m_bFreezing;
 
 #endif
+
 };

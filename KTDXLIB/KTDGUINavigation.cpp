@@ -32,10 +32,10 @@ CKTDGUINavigation::CKTDGUINavigation(void)
 	//KLuaManager kLuaManager;
     KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
-	if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, L"UI_Control_Sound.lua" ) )
+	if( true == g_pKTDXApp->LoadAndDoMemory( &kLuaManager, L"UI_Control_Sound.lua" ) )
 	{
 		wstring wstrMouseDownSoundName = L"";
-		LUA_GET_VALUE( kLuaManager, L"Button_Mouse_Up", wstrMouseDownSoundName, L"" );
+		LUA_GET_VALUE( kLuaManager, "Button_Mouse_Up", wstrMouseDownSoundName, L"" );
 		m_pSndMouseDown = g_pKTDXApp->GetDeviceManager()->OpenSound( wstrMouseDownSoundName );
 	}
 }
@@ -116,6 +116,12 @@ bool CKTDGUINavigation::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM 
 	if( false == m_bEnable )
 		return false;
 
+
+#ifdef DLL_BUILD
+	if( m_bUpdate == false )
+		return false;
+#endif
+
 	switch( uMsg )
 	{
 	case WM_LBUTTONDOWN:
@@ -135,7 +141,9 @@ bool CKTDGUINavigation::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM 
 				}
 
 				m_bDraggingWindow = true;
+#ifndef DLL_BUILD
 				SetCapture( DXUTGetHWND() );
+#endif
 
 				if( m_CustomMsgLButtonDown != -1 )
 					SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_EVENT, m_CustomMsgLButtonDown, (LPARAM)this );
@@ -157,9 +165,9 @@ bool CKTDGUINavigation::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM 
 				}
 
 				m_bDraggingWindow = true;
-
+#ifndef DLL_BUILD
 				SetCapture( DXUTGetHWND() );
-
+#endif
 				//if ( m_pSndMouseDown != NULL )
 				//	m_pSndMouseDown->Play( false, false );
 				PlaySound( m_pSndMouseDown );
@@ -430,3 +438,51 @@ void CKTDGUINavigation::SetRelativeWindowSize( D3DXVECTOR2 vSize )
 	BoundRectInRect( &m_rcWindow, m_rcBG );
 	FromRectToPoint( m_rcWindow, m_pWindowPoint );
 }
+
+#ifdef DLL_BUILD
+void CKTDGUINavigation::MoveControl( float fx, float fy )
+{
+	if( NULL != m_pBGPoint )
+		m_pBGPoint->Move(fx, fy);
+
+	if( NULL != m_pWindowPoint )
+		m_pWindowPoint->Move(fx, fy);	
+}
+
+void CKTDGUINavigation::SetEditGUI( bool bEdit )
+{
+	m_bUpdate = !bEdit;
+}
+
+D3DXVECTOR2 CKTDGUINavigation::GetPos()
+{
+	if( NULL != m_pBGPoint )
+		return m_pBGPoint->leftTopPoint;
+
+	return D3DXVECTOR2(0, 0);
+}
+
+vector<D3DXVECTOR2> CKTDGUINavigation::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;
+
+	if( NULL != m_pBGPoint )
+		ret.push_back( m_pBGPoint->leftTopPoint);
+
+	if( NULL != m_pWindowPoint )
+		ret.push_back( m_pWindowPoint->leftTopPoint );
+
+	return ret;
+}
+
+D3DXVECTOR2 CKTDGUINavigation::GetPos(wstring name)
+{
+	if( name == L"BG_RIGHT_BOTTOM" && NULL != m_pBGPoint )
+		return m_pBGPoint->rightBottomPoint;
+	else if( name == L"WINDIOW_RIGHT_BOTTOM" && NULL != m_pWindowPoint )
+		return m_pWindowPoint->rightBottomPoint;
+
+	return D3DXVECTOR2(0, 0);
+}
+
+#endif

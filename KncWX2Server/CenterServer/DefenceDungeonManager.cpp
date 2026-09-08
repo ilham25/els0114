@@ -116,8 +116,11 @@ bool KDefenceDungeonManager::DecisionEnterDefenceDungeon( IN const int iDungeonI
 #ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_100_PERCENT_EVENT
 	if(b100PerEventOn)
 	{
+#ifdef SERV_NEW_DEFENCE_DUNGEON_ENTER_0_PERCENT_EVENT
+		fEnterDefenceRate = 0.f;
+#else //SERV_NEW_DEFENCE_DUNGEON_ENTER_0_PERCENT_EVENT
 		fEnterDefenceRate = 100.f;
-
+#endif //SERV_NEW_DEFENCE_DUNGEON_ENTER_0_PERCENT_EVENT
 		START_LOG( clog, L"김석근_어둠의 문 100% 이벤트 돌입!" )
 			<< BUILD_LOG( fEnterDefenceRate )
 			<< END_LOG;

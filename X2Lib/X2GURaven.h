@@ -228,6 +228,11 @@ class CX2GURaven : public CX2GUUser
 
 #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+			RSI_HA_RBM_EXTREM_BLADE_READY,			//익스트림 블레이드 FX 공격 준비
+			RSI_HA_RBM_EXTREM_BLADE_ATTACK,			//익스트림 블레이드 FX 공격
+			RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH,	//익스트림 블레이드 FX 피니쉬 공격
+#endif //FINALITY_SKILL_SYSTEM
 
 			//////////////////////////////////////////////////////////////////////////
 			// 위쪽에 추가해주세요~ 이 아래는 테스트로 추가된 enum 입니다
@@ -235,9 +240,9 @@ class CX2GURaven : public CX2GUUser
 
 			RSI_TRANSFORMED,
 
-#ifdef PVP_BOSS_COMBAT_TEST
-			RSI_FROZEN,
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//			RSI_FROZEN,
+//#endif PVP_BOSS_COMBAT_TEST
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 			RSI_A_RBM_SONIC_SLASH_FINISH,
@@ -263,7 +268,11 @@ class CX2GURaven : public CX2GUUser
 		{
 			D3DXVECTOR3					m_vOffsetPos;
 			D3DXVECTOR3					m_vOffsetRotate;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffectHandle       m_hEffect;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CX2DamageEffect::CEffect*	m_pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 			ArcEnemyData();
 			~ArcEnemyData();
@@ -273,9 +282,20 @@ class CX2GURaven : public CX2GUUser
 			@brief : 레피-와일드차지 스킬에서 필요로 하는 데이타를 모아 놓은 구조체
 			@date  : 2010/11/16
 		*/
+        struct  WildChargeData;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        typedef boost::intrusive_ptr<WildChargeData> WildChargeDataPtr;	/// WildChargeData 구조체의 스마트 포인터 타입
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+		typedef boost::shared_ptr<WildChargeData> WildChargeDataPtr;	/// WildChargeData 구조체의 스마트 포인터 타입
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 		struct WildChargeData : boost::noncopyable
 		{
 		private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 			float m_fHpEachWildChargeFrame;				/// 와일드 차지에서 차지 중일 때 이전 프레임의 HP를 저장할 용도(현재 프레임의 소모된 HP를 알아내기 위해 사용)
 			float m_fTimeAfterFullCharging;				/// 와일드차지가 풀차지 된 후의 경과 시간
 			float m_fPowerRateWildCharging;				/// 와일드차지에서 차지된 파워레이트(데미지배율)
@@ -286,11 +306,13 @@ class CX2GURaven : public CX2GUUser
 			
 			WildChargeData() : m_fHpEachWildChargeFrame( 0.f ), m_fTimeAfterFullCharging( 0.f ),
 				m_fPowerRateWildCharging( 0.f ), m_eSlotID_WildCharge( RSI_BASE ), m_bSlotB( false ),
-				m_pChargeKey( NULL ), m_hHandleWildCharingEffectSet( CX2EffectSet::INVALID_HANDLE )
+				m_pChargeKey( NULL ), m_hHandleWildCharingEffectSet( INVALID_EFFECTSET_HANDLE )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+                , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 			{}
 
 		public:
-			typedef boost::shared_ptr<WildChargeData> WildChargeDataPtr;	/// WildChargeData 구조체의 스마트 포인터 타입
 
 			static WildChargeDataPtr  CreateWildChargeData() { return WildChargeDataPtr( new WildChargeData ); }
 
@@ -320,6 +342,12 @@ class CX2GURaven : public CX2GUUser
 			CX2EffectSet::Handle GetHandleWildCharingEffectSet() const { return m_hHandleWildCharingEffectSet; }
 			CX2EffectSet::Handle& GetHandleReferenceWildCharingEffectSet() { return m_hHandleWildCharingEffectSet; }
 			void SetHandleWildCharingEffectSet(CX2EffectSet::Handle hHandle_) { m_hHandleWildCharingEffectSet = hHandle_; }
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            void    AddRef()    {   ++m_uRefCount; }
+            void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 		};
 
 
@@ -379,18 +407,18 @@ class CX2GURaven : public CX2GUUser
 		CKTDGParticleSystem::CParticleEventSequence* SetRavenMajorParticleByEnum( RAVEN_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ = -1 );	// 각 캐릭터들만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		ParticleEventSequenceHandle	GetHandleRavenMajorParticleByEnum( RAVEN_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) const // 캐릭터만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		{
-			ASSERT( RAVEN_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RAVEN_MAJOR_PII_END > eVal_ && RAVEN_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahRavenMajorParticleInstance[eVal_];
 		}
 		ParticleEventSequenceHandle& GetHandleReferenceRavenMajorParticleByEnum( RAVEN_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) // 캐릭터만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들의 레퍼런스 하나를 얻어옴 // kimhc // 2010.11.5 
 		{
-			ASSERT( RAVEN_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RAVEN_MAJOR_PII_END > eVal_ && RAVEN_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahRavenMajorParticleInstance[eVal_];
 		}
 
 		void				SetHandleRavenMajorParticleByEnum( RAVEN_MAJOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ ) // 캐릭터만 쓰는 메이저 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함 // kimhc // 2010.11.5 
 		{
-			ASSERT( RAVEN_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RAVEN_MAJOR_PII_END > eVal_ && RAVEN_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			m_ahRavenMajorParticleInstance[eVal_] = hHandle_;
 		}
 		void				DeleteRavenMajorParticle();
@@ -404,17 +432,17 @@ class CX2GURaven : public CX2GUUser
 		CKTDGParticleSystem::CParticleEventSequence* SetRavenMinorParticleByEnum( RAVEN_MINOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ = -1 );	// 각 캐릭터들만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		ParticleEventSequenceHandle	GetHandleRavenMinorParticleByEnum( RAVEN_MINOR_PARTICLE_INSTANCE_ID eVal_ ) const	// 캐릭터만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴	// kimhc // 2010.11.5 
 		{
-			ASSERT( RAVEN_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RAVEN_MINOR_PII_END > eVal_ && RAVEN_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahRavenMinorParticleInstance[eVal_];
 		}
 		ParticleEventSequenceHandle& GetHandleReferenceRavenMinorParticleByEnum( RAVEN_MINOR_PARTICLE_INSTANCE_ID eVal_ ) // 캐릭터만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들의 레퍼런스 하나를 얻어옴	// kimhc // 2010.11.5 
 		{
-			ASSERT( RAVEN_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RAVEN_MINOR_PII_END > eVal_ && RAVEN_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahRavenMinorParticleInstance[eVal_];
 		}
 		void				SetHandleRavenMinorParticleByEnum( RAVEN_MINOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ )	// 캐릭터만 쓰는 마이너 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함	// kimhc // 2010.11.5 
 		{
-			ASSERT( RAVEN_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( RAVEN_MINOR_PII_END > eVal_ && RAVEN_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			m_ahRavenMinorParticleInstance[eVal_] = hHandle_;
 		}
 		void				DeleteRavenMinorParticle();
@@ -643,7 +671,11 @@ class CX2GURaven : public CX2GUUser
 		int													m_iRVCComboLoopCount;					/// 연발 콤보 반복 횟수
 		int													m_iRVCComboLoopInputCount;				/// 연발 콤보 반복 입력 횟수
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle   							m_hEffectFrameThrow;					/// 대시 zzzz용 화염 방사 이펙트
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*							m_pEffectFrameThrow;					/// 대시 zzzz용 화염 방사 이펙트
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		bool												m_bEndFrameThrow;						/// 화염 방사 동작 정지 여부 조사
 
 		bool												m_bEnableShadowBackSlide;				/// 섀도우 백 슬라이드 패시브 적용 여부
@@ -676,10 +708,19 @@ class CX2GURaven : public CX2GUUser
 
 		CKTDGXMeshPlayer::CXMeshInstanceHandle				m_hOverHeatObject;						/// 오버 히트 발동시 생성되는 구조물
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		CX2DamageEffect::CEffectHandle							    m_hEffectOverHeatFire1;					/// 오버 히트 발동시 생성되는 화염
+		CX2DamageEffect::CEffectHandle							    m_hEffectOverHeatFire2;					/// 오버 히트 발동시 생성되는 화염
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*							m_pEffectOverHeatFire1;					/// 오버 히트 발동시 생성되는 화염
 		CX2DamageEffect::CEffect*							m_pEffectOverHeatFire2;					/// 오버 히트 발동시 생성되는 화염
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #endif SERV_RAVEN_VETERAN_COMMANDER
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+		float												m_fExtremBladeDelay;					/// 익스트림 블레이드 히트 간격
+#endif //FINALITY_SKILL_SYSTEM
 
 	private:
 
@@ -752,7 +793,7 @@ class CX2GURaven : public CX2GUUser
 		void RidingHyperModeFrameMove();
 		void CommonHyperModeFrameMove( float fTime1_, float fTime2_, bool bSound_ = false );
 #endif // MODIFY_RIDING_PET_AWAKE
-		
+
 		//RSI_DAMAGE_GROGGY
 		//void RSI_DAMAGE_GROGGY_FrameMoveFuture();
 		//void RSI_DAMAGE_GROGGY_EventProcess();
@@ -1436,9 +1477,9 @@ class CX2GURaven : public CX2GUUser
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-		void _BurnOverheatHP( CX2DamageManager::DamageData* pAttDamageData, float fDecreaseHPRate = -1.f, float fDecreaseHPRate2 = 1.f );
+		void _BurnOverheatHP( const CX2DamageManager::DamageData& AttDamageData, float fDecreaseHPRate = -1.f, float fDecreaseHPRate2 = 1.f );
 #else  SERV_RAVEN_VETERAN_COMMANDER
-		void _BurnOverheatHP( CX2DamageManager::DamageData* pAttDamageData );
+		void _BurnOverheatHP( const CX2DamageManager::DamageData& AttDamageData );
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
 		void _SetOverheat( bool bOn = true, float fDuration = -1.f );
@@ -1619,7 +1660,7 @@ class CX2GURaven : public CX2GUUser
 
 //{{ kimhc // 2010.11.12 // 레피-와일드차지
 #ifdef	NEW_SKILL_2010_11
-		WildChargeData::WildChargeDataPtr m_WildChargeDataPtr; /// 와일드차지 스킬 데이터
+		WildChargeDataPtr m_WildChargeDataPtr; /// 와일드차지 스킬 데이터
 #endif	NEW_SKILL_2010_11
 //}} kimhc // 2010.11.12 // 레피-와일드차지
 
@@ -1767,11 +1808,40 @@ class CX2GURaven : public CX2GUUser
 		void RSI_P_RRF_SHADOW_PUNISHER_EventProcess ();
 
 		void RSI_A_ROT_ARMOR_BREAK_Init();
-		void RSI_A_ROT_ARMOR_BREAK_StateStart();
 		void RSI_A_ROT_ARMOR_BREAK_EventProcess();
 		
 
 		void SetSkillLevelStateData( const CX2SkillTree::SkillTemplet* pSkillTemplet_, UserUnitStateData& stateData_ );
 		void SetEquippedSkillLevelStateData( const CX2SkillTree::SkillTemplet* pSkillTemplet, RAVEN_STATE_ID eStateID );
 #endif UPGRADE_SKILL_SYSTEM_2013
+
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+		// 인페르날 암스 
+		void RSI_HA_RRF_INFERNAL_ARM_Init();
+		void RSI_HA_RRF_INFERNAL_ARM_EventProcess();
+
+		// 익스트림 블레이드 FX
+		void RSI_HA_RBM_EXTREM_BLADE_READY_Init();
+		void RSI_HA_RBM_EXTREM_BLADE_READY_EventProcess();
+
+		void RSI_HA_RBM_EXTREM_BLADE_ATTACK_Init();
+		void RSI_HA_RBM_EXTREM_BLADE_ATTACK_StateStart();
+		void RSI_HA_RBM_EXTREM_BLADE_ATTACK_FrameMove(); 
+		void RSI_HA_RBM_EXTREM_BLADE_ATTACK_EventProcess();
+		void RSI_HA_RBM_EXTREM_BLADE_ATTACK_StateEnd();
+
+		void RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH_Init();
+		void RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH_StartFuture();
+		void RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH_EventProcess();
+
+		#pragma region SI_HA_RVC_BURNING_BUSTER
+		void RSI_HA_RVC_BURNING_BUSTER_Init();
+		#pragma endregion 버닝 버스터 - 궁극기
+
+
+		void SetInvisibility(bool bVal_);
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
 };
+
+IMPLEMENT_INTRUSIVE_PTR( CX2GURaven::WildChargeData );

@@ -160,7 +160,7 @@ bool KEvent::IsValidEventID() const
 #undef _ENUM
 #define _ENUM( id ) case id:
 
-	if( m_usFromType == EVENT_FROM_TYPE::EFT_CLIENT )
+	if( m_usFromType == EFT_CLIENT )
 	{
 		switch( m_usEventID )
 		{

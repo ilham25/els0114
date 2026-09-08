@@ -874,10 +874,10 @@ bool CX2StatePvPLobby::Handler_EGS_CREATE_ROOM_ACK( HWND hWnd, UINT uMsg, WPARAM
 			pCX2PVPRoom->ConnectRelayServer( kEvent.m_RoomInfo.m_wstrUDPRelayIP.c_str(), kEvent.m_RoomInfo.m_usUDPRelayPort );
 			pCX2PVPRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
            if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
                 g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_PVP ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #endif // HEAP_BROKEN_BY_ROOM
 
@@ -959,10 +959,10 @@ bool CX2StatePvPLobby::Handler_EGS_JOIN_ROOM_ACK( HWND hWnd, UINT uMsg, WPARAM w
 			pCX2PVPRoom->ConnectRelayServer( kEvent.m_RoomInfo.m_wstrUDPRelayIP.c_str(), kEvent.m_RoomInfo.m_usUDPRelayPort );
 			pCX2PVPRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
            if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
                 g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_PVP ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #endif // HEAP_BROKEN_BY_ROOM
 
@@ -1041,7 +1041,7 @@ bool CX2StatePvPLobby::Handler_EGS_CHANGE_PVP_ROOM_LIST_REQ( UINT channelID )
 	// 특정 아이템을 가지고 있으면 대회 채널 입장 못함
 	if( KPVPChannelInfo::PCC_TOURNAMENT == g_pMain->GetPVPChannelClass( channelID ) )
 	{
-		if( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
+		if( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
 		{	
  			if( true == g_pMain->GetStateAutoChanger().GetIsAutoChangingState() )
  			{
@@ -1056,7 +1056,7 @@ bool CX2StatePvPLobby::Handler_EGS_CHANGE_PVP_ROOM_LIST_REQ( UINT channelID )
 	// 특정 아이템을 가지고 있지 않으면 대회 채널 입장 못함
 	if( KPVPChannelInfo::PCC_TOURNAMENT == g_pMain->GetPVPChannelClass( channelID ) )
 	{
-		if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
+		if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
 		{	
 			if( true == g_pMain->GetStateAutoChanger().GetIsAutoChangingState() )
 			{
@@ -1247,21 +1247,21 @@ void CX2StatePvPLobby::ResetRoomListUI()
 
 		// 방제 (String2)
 		//pSimpleRoom->pStatic->GetString(2)->msg = L"";
-#ifdef CLIENT_COUNTRY_US
-			if ( pRoomData->m_RoomName.size() < 20 )
-#else
-			if ( pRoomData->m_RoomName.size() < 12 )
-#endif CLIENT_COUNTRY_US
+#if defined(CLIENT_COUNTRY_US) || defined(CLIENT_COUNTRY_PH) || defined(CLIENT_COUNTRY_IN)
+		if ( pRoomData->m_RoomName.size() < 20 )
+#else // CLIENT_COUNTRY_US || defined(CLIENT_COUNTRY_PH) || defined(CLIENT_COUNTRY_IN)
+		if ( pRoomData->m_RoomName.size() < 12 )
+#endif // CLIENT_COUNTRY_US || defined(CLIENT_COUNTRY_PH) || defined(CLIENT_COUNTRY_IN)
 		{
 			pSimpleRoom->pStatic->GetString(2)->msg = pRoomData->m_RoomName;
 		}
 		else
 		{
-#ifdef CLIENT_COUNTRY_US
+#if defined(CLIENT_COUNTRY_US) || defined(CLIENT_COUNTRY_PH) || defined(CLIENT_COUNTRY_IN)
 			pSimpleRoom->pStatic->GetString(2)->msg = CWordLineHandler::GetStrByLineBreakInX2Main( pRoomData->m_RoomName.c_str(), 170, SLOT_MANAGER_FONT_INDEX );
-#else // CLIENT_COUNTRY_US
+#else // CLIENT_COUNTRY_US || defined(CLIENT_COUNTRY_PH) || defined(CLIENT_COUNTRY_IN)
 			pSimpleRoom->pStatic->GetString(2)->msg.assign( pRoomData->m_RoomName.begin(), pRoomData->m_RoomName.begin() + 12 );
-#endif // CLIENT_COUNTRY_US
+#endif // CLIENT_COUNTRY_US || defined(CLIENT_COUNTRY_PH) || defined(CLIENT_COUNTRY_IN)
 		}
 
 
@@ -1863,7 +1863,7 @@ void CX2StatePvPLobby::SettingChannelButton()
 #ifdef TEMP_HERO_MATCH_PREVENT_ITEM_POSSESSION
 				if( KPVPChannelInfo::PCC_TOURNAMENT == (KPVPChannelInfo::PVP_CHANNEL_CLASS) channelInfo.m_cPVPChannelClass )
 				{
-					if( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
+					if( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
 					{
 						pRadioButton->SetShowEnable( false, false );
 						// 비활성 스태틱을 켜자
@@ -1875,7 +1875,7 @@ void CX2StatePvPLobby::SettingChannelButton()
 				// 특정 아이템을 가지고 있지 않으면 대회 채널 입장 못함
 				if( KPVPChannelInfo::PCC_TOURNAMENT == (KPVPChannelInfo::PVP_CHANNEL_CLASS) channelInfo.m_cPVPChannelClass )
 				{
-					if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
+					if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
 					{
 						pRadioButton->SetShowEnable( false, false );
 						// 비활성 스태틱을 켜자
@@ -1917,13 +1917,13 @@ bool CX2StatePvPLobby::CheckUnitLevelByChannelList()
 		 KPVPChannelInfo kPVPChannel = g_pMain->GetChannelList().at(i);
 #ifdef SERV_PVP_NEW_SYSTEM
 		 if ( kPVPChannel.m_iChannelID == g_pMain->GetConnectedChannelID() &&
-			 ( pNowUnit->GetUnitData()->m_iRating < kPVPChannel.m_iMinRating || 
-			 pNowUnit->GetUnitData()->m_iRating > kPVPChannel.m_iMaxRating ) )
+			 ( pNowUnit->GetUnitData().m_iRating < kPVPChannel.m_iMinRating || 
+			 pNowUnit->GetUnitData().m_iRating > kPVPChannel.m_iMaxRating ) )
 #else
 		 //{{ 2007. 8. 28  최육사  level -> VP		 
 		 if ( kPVPChannel.m_iChannelID == g_pMain->GetConnectedChannelID() &&
-			 ( pNowUnit->GetUnitData()->m_VSPointMax < kPVPChannel.m_nMinVSPoint || 
-			 pNowUnit->GetUnitData()->m_VSPointMax > kPVPChannel.m_nMaxVSPoint ) )
+			 ( pNowUnit->GetUnitData().m_VSPointMax < kPVPChannel.m_nMinVSPoint || 
+			 pNowUnit->GetUnitData().m_VSPointMax > kPVPChannel.m_nMaxVSPoint ) )
 		 //}}
 #endif
 		 {
@@ -1991,10 +1991,10 @@ bool CX2StatePvPLobby::Handler_EGS_QUICK_JOIN_ACK( HWND hWnd, UINT uMsg, WPARAM 
 			pCX2PVPRoom->ConnectRelayServer( kEvent.m_RoomInfo.m_wstrUDPRelayIP.c_str(), kEvent.m_RoomInfo.m_usUDPRelayPort );
 			pCX2PVPRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
            if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
                 g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_PVP ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #endif // HEAP_BROKEN_BY_ROOM
 
@@ -2448,7 +2448,7 @@ void CX2StatePvPLobby::OpenDialog()
 	// 특정아이템을 획득하고 나면 대회 채널에서 강제 퇴장
 	if( KPVPChannelInfo::PCC_TOURNAMENT == g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) )
 	{
-		if( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
+		if( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
 		{
 			UINT iTempChannelID = g_pMain->GetConnectedChannelID();
 
@@ -2472,7 +2472,7 @@ void CX2StatePvPLobby::OpenDialog()
 	// 특정 아이템을 가지고 있지 않으면 대회 채널 입장 못함
 	if( KPVPChannelInfo::PCC_TOURNAMENT == g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) )
 	{
-		if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
+		if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( MAGIC_HERO_MATCH_ITEM_ID ) )
 		{
 			UINT iTempChannelID = g_pMain->GetConnectedChannelID();
 

@@ -18,7 +18,6 @@
 	#include <boost/random.hpp>
 #endif // SERV_KOG_OTP_VERIFY
 
-
 #ifdef SERV_COUNTRY_PH
 #include "../Common/OnlyGlobal/AuthAndBilling/PH/GarenaBillingServer.h"
 #endif //SERV_COUNTRY_PH
@@ -32,7 +31,17 @@ IMPL_PROFILER_DUMP( KLoginAccountDBThread )
 	{
 		unsigned int iAvg = 0;
 		if( vecDump[ui].m_iQueryCount > 0 )	iAvg = vecDump[ui].m_iTotalTime / vecDump[ui].m_iQueryCount;		
-
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY_NO_PROFILE( L"exec dbo.P_QueryStats_INS", L"N\'%s\', %d, %d, %d, %d, %d, %d",
+			% vecDump[ui].m_wstrQuery
+			% vecDump[ui].m_iMinTime
+			% iAvg
+			% vecDump[ui].m_iMaxTime
+			% vecDump[ui].m_iOver1Sec
+			% vecDump[ui].m_iQueryCount
+			% vecDump[ui].m_iQueryFail
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY_NO_PROFILE( L"exec dbo.mup_insert_querystats", L"N\'%s\', %d, %d, %d, %d, %d, %d",
 			% vecDump[ui].m_wstrQuery
 			% vecDump[ui].m_iMinTime
@@ -42,7 +51,7 @@ IMPL_PROFILER_DUMP( KLoginAccountDBThread )
 			% vecDump[ui].m_iQueryCount
 			% vecDump[ui].m_iQueryFail
 			);
-
+#endif //SERV_ALL_RENEWAL_SP
 		continue;
 
 end_proc:
@@ -240,6 +249,42 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 		}
 	}
 #else // SERV_HACKING_USER_CHECK_COUNT
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUser_SEL_Auth", L"%d, N\'%s\', N\'%s\', %d, %d", 
+		% kPacket_.m_kAuthenticateReq.m_bDebugAuth 
+		% kPacket_.m_kAuthenticateReq.m_wstrUserID 
+		% wstrPassword.c_str() 
+		% kPacket_.m_kNexonAccountInfo.m_uiAge 
+		% kPacket_.m_kNexonAccountInfo.m_uiNexonSN );
+
+	if( m_kODBC.BeginFetch() )
+	{
+		byte byteBlockType = 0;
+		byte byteBlockLevel = 0;
+		std::wstring wstrBlockReason2 = L"";
+		std::wstring wstrBlockEndDate = L"";
+
+		FETCH_DATA( kPacket.m_iOK
+			>> kPacket.m_kAccountInfo.m_nUserUID
+			>> kPacket.m_kAccountInfo.m_wstrName
+			>> kPacket.m_kAccountInfo.m_iAuthLevel
+			>> kPacket.m_kAccountInfo.m_kAccountOption.m_bPlayGuide
+			>> kPacket.m_kAccountInfo.m_bInternalUser
+			>> kPacket.m_kAccountInfo.m_kAccountBlockInfo.m_wstrEndTime
+			>> kPacket.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockReason			
+			>> kPacket.m_kAccountInfo.m_bIsRecommend
+			>> kPacket.m_kAccountInfo.m_wstrRegDate
+			>> kPacket.m_kAccountInfo.m_wstrLastLogin
+			>> byteBlockType//kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_byteBlockType
+			>> byteBlockLevel
+			>> wstrBlockReason2//kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockReason2
+			>> wstrBlockEndDate//kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockEndDate
+			>> kPacket.m_kNexonAccountInfo.m_uiNexonSN		//SERV_GLOBAL_AUTH //SERV_INT_ONLY
+			);
+
+		m_kODBC.EndFetch();
+	}
+#else //SERV_ALL_RENEWAL_SP
     DO_QUERY( L"exec dbo.mup_auth_user", L"%d, N\'%s\', N\'%s\', %d, %d", 
 		% kPacket_.m_kAuthenticateReq.m_bDebugAuth 
 		% kPacket_.m_kAuthenticateReq.m_wstrUserID 
@@ -262,7 +307,7 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 			>> kPacket.m_kAccountInfo.m_bIsRecommend
 			>> kPacket.m_kAccountInfo.m_wstrRegDate
 			>> kPacket.m_kAccountInfo.m_wstrLastLogin
-			>> kPacket.m_kNexonAccountInfo.m_uiNexonSN		// SERV_GLOBAL_AUTH
+			>> kPacket.m_kNexonAccountInfo.m_uiNexonSN		//SERV_GLOBAL_AUTH //SERV_INT_ONLY
 			);
 #else
 		//{{ 2011. 02. 23	최육사	캐쉬 상품 리스트
@@ -277,19 +322,8 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 			>> kPacket.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockReason			
 			>> kPacket.m_kAccountInfo.m_bIsRecommend
 			>> kPacket.m_kAccountInfo.m_wstrRegDate
-			>> kPacket.m_kNexonAccountInfo.m_uiNexonSN		// SERV_GLOBAL_AUTH
+			>> kPacket.m_kNexonAccountInfo.m_uiNexonSN		//SERV_GLOBAL_AUTH //SERV_INT_ONLY
 			);
-//#else
-//		FETCH_DATA( kPacket.m_iOK
-//			>> kPacket.m_kAccountInfo.m_nUserUID
-//			>> kPacket.m_kAccountInfo.m_wstrName
-//			>> kPacket.m_kAccountInfo.m_iAuthLevel
-//			>> kPacket.m_kAccountInfo.m_kAccountOption.m_bPlayGuide
-//			>> kPacket.m_kAccountInfo.m_bInternalUser
-//			>> kPacket.m_kAccountInfo.m_kAccountBlockInfo.m_wstrEndTime
-//			>> kPacket.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockReason			
-//			>> kPacket.m_kAccountInfo.m_bIsRecommend
-//			);
 //#endif SERV_CASH_ITEM_LIST
 		//}}        
 #endif SERV_SECOND_SECURITY
@@ -297,12 +331,13 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 
         m_kODBC.EndFetch();
     }
+#endif //SERV_ALL_RENEWAL_SP
 #endif // SERV_HACKING_USER_CHECK_COUNT
 
     if( kPacket.m_iOK != NetError::NET_OK )
     {
         // 계정 DB 인증 실패
-        START_LOG( clog, L"존재하지 않거나 삭제/비번 다른 계정." )
+        START_LOG( cwarn, L"존재하지 않거나 삭제/비번 다른 계정." )
             << BUILD_LOG( kPacket.m_iOK )
             << END_LOG;
 
@@ -337,6 +372,23 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
             switch( dwAuthFlag )
             {
             case KSimLayer::AF_NEXON_KOREA:
+
+#ifdef SERV_ALL_RENEWAL_SP
+				{
+					int iChannelCode = static_cast< int >(kPacket_.m_kNexonAccountInfo.m_uChannelCode);
+
+					DO_QUERY( L"exec dbo.P_MUser_INS_Nexon", L"N\'%s\', N\'%s\', %d, %d, %d, N\'%s\', %d, %d",
+						% kPacket_.m_kAuthenticateReq.m_wstrUserID
+						% wstrPassword
+						% kPacket_.m_kNexonAccountInfo.m_uiNexonSN
+						% kPacket_.m_kNexonAccountInfo.m_bSex
+						% kPacket_.m_kNexonAccountInfo.m_uiAge
+						% kPacket_.m_kAuthenticateReq.m_wstrUserID
+						% kPacket_.m_kNexonAccountInfo.m_byteGuestUser
+						% iChannelCode														// 채널링 코드 입력
+						);
+				}
+#else //SERV_ALL_RENEWAL_SP
 				//{{ 2011. 07. 27    김민성    투니랜드 채널링
 #ifdef SERV_TOONILAND_CHANNELING
 				{
@@ -365,6 +417,7 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 					);
 #endif SERV_TOONILAND_CHANNELING
 				//}}
+#endif //SERV_ALL_RENEWAL_SP
                 
                 break;
             // 해외 인증 다 해당됨 (해외의 경우 Game Server 접속 시 인증은 계정 생성 하지 않음.)
@@ -422,10 +475,15 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 #ifdef SERV_KOG_OTP_VERIFY
 	else if( kPacket_.m_bServerUseKogOTP )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_MUserOTP_SEL_Check", L"%d, N\'%s\'",
+			% kPacket.m_kAccountInfo.m_nUserUID
+			% wstrPassword );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.mup_verify_user_otp", L"%d, N\'%s\'",
 			% kPacket.m_kAccountInfo.m_nUserUID
 			% wstrPassword );
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_iOK
@@ -454,13 +512,22 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 		//}}
 
 		wchar_t wszOTP[128];
-		::_itow( iOTP, wszOTP, 10 );
+#ifdef _CONVERT_VS_2010
+				_itow_s( iOTP, wszOTP, 10 );
+#else
+				::_itow( iOTP, wszOTP, 10 );
+#endif _CONVERT_VS_2010
 		kPacket.m_kAccountInfo.m_wstrOTP = wszOTP;
 
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_MUserOTP_UPD", L"%d, N\'%s\'",
+			% kPacket.m_kAccountInfo.m_nUserUID
+			% kPacket.m_kAccountInfo.m_wstrOTP );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.mup_update_user_otp", L"%d, N\'%s\'",
 			% kPacket.m_kAccountInfo.m_nUserUID
 			% kPacket.m_kAccountInfo.m_wstrOTP );
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_iOK
@@ -480,7 +547,6 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 		}
 	}
 #endif // SERV_KOG_OTP_VERIFY
-
 
 #ifdef SERV_COUNTRY_CN
 	if ( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_GLOBAL_SERVICE )
@@ -512,24 +578,15 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 		kPacket.m_uiGiantAccountType = 24;
 	}
 #endif //SERV_COUNTRY_CN
-
-
-	//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-	DO_QUERY( L"exec dbo.mup_get_comeback_logout", L"%d", % kPacket.m_kAccountInfo.m_nUserUID );
-	if( m_kODBC.BeginFetch() )
-	{
-		FETCH_DATA( kPacket.m_kAccountInfo.m_wstrLogoutDate );
-		m_kODBC.EndFetch();
-	}
-#endif SERV_FIXED_DATE_EVENT
-	//}}
 	
 	//해킹유저 정보 받아오기.
 	if( kPacket.m_iOK == NetError::NET_OK )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec P_MUserHackerList_SEL", L"%d", % kPacket.m_kAccountInfo.m_nUserUID );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec mup_get_hackerlist", L"%d", % kPacket.m_kAccountInfo.m_nUserUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 		int iOK = 0;
 
 		if( m_kODBC.BeginFetch() )
@@ -569,7 +626,11 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 	//{{ 2011. 02. 23	최육사	계정 단위 카운트
 #ifdef SERV_ACCOUNT_COUNT
 	// 캐릭터 카운트 정보 얻기!
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUserUID_Count_SEL", L"%d", % kPacket.m_kAccountInfo.m_nUserUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.mup_get_UserUID_Count", L"%d", % kPacket.m_kAccountInfo.m_nUserUID );
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		int iLogType = 0;
@@ -589,7 +650,11 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 	if( kPacket_.m_kNexonAccountInfo.m_byteGuestUser != 1 )  // 체험 아이디가 아닐때만 얻어온다.
 	{
 		int iOK_ = NetError::ERR_ODBC_01;
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_MUserAuthentication_SEL", L"N\'%s\'", % kPacket.m_kAccountInfo.m_wstrID );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.mup_get_user_authkey", L"N\'%s\'", % kPacket.m_kAccountInfo.m_wstrID );
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_kAccountInfo.m_iChannelRandomKey 
@@ -617,11 +682,14 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 	}
 #endif SERV_DLL_LIST_CHECK_BEFOR_LOADING
 	//}}
-
-
+	
 #ifdef SERV_COUNTRY_PH
 	unsigned short usGarenaCyberCafe = 0;
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUserOption_SEL", L"%d", % kPacket.m_kAccountInfo.m_nUserUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_MUserOption_GET", L"%d", % kPacket.m_kAccountInfo.m_nUserUID );
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( usGarenaCyberCafe);
@@ -629,15 +697,17 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 		m_kODBC.EndFetch();
 	}
 	kPacket.m_usGarenaCyberCafe = usGarenaCyberCafe;
-
 #endif //SERV_COUNTRY_PH
-
 
 #ifdef SERV_EVENT_MONEY	// 김민성 // 적용날짜: 2013-07-04
 	if( kPacket.m_iOK == NetError::NET_OK )
 	{
 		kPacket.m_iEventMoney = 0;
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_MEventPoint_SEL ", L"%d", % kPacket.m_kAccountInfo.m_nUserUID );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_MEventPoint_GET ", L"%d", % kPacket.m_kAccountInfo.m_nUserUID );
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_iEventMoney );
@@ -646,9 +716,7 @@ IMPL_ON_FUNC( ELG_NEXON_USER_AUTHENTICATE_REQ )
 		}
 	}
 #endif // SERV_EVENT_MONEY
-
-
-
+	
 end_proc:
     LOG_SUCCESS( kPacket.m_iOK == NetError::NET_OK )
 		<< BUILD_LOG( kPacket.m_iOK )
@@ -731,6 +799,35 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_REQ )
 		}
 	}
 #else // SERV_HACKING_USER_CHECK_COUNT
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUser_SEL_Auth", L"%d, N\'%s\', N\'%s\', %d, %d", % kPacket_.m_kUserAuthReq.m_kAuthenticateReq.m_bDebugAuth % kPacket_.m_kUserAuthReq.m_kAuthenticateReq.m_wstrUserID % wstrPassword.c_str() % kPacket_.m_kUserAuthReq.m_kNexonAccountInfo.m_uiAge % kPacket_.m_kUserAuthReq.m_kNexonAccountInfo.m_uiNexonSN );
+	
+	if( m_kODBC.BeginFetch() )
+	{
+		byte byteBlockType = 0;
+		byte byteBlockLevel = 0;
+		std::wstring wstrBlockReason2 = L"";
+		std::wstring wstrBlockEndDate = L"";
+
+		FETCH_DATA( kPacket.m_kUserAuthAck.m_iOK
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_wstrName
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_iAuthLevel
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountOption.m_bPlayGuide
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_bInternalUser
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_wstrEndTime
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockReason
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_bIsRecommend
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_wstrRegDate
+			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_wstrLastLogin
+			>> byteBlockType//kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_byteBlockType
+			>> byteBlockLevel
+			>> wstrBlockReason2//kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockReason2
+			>> wstrBlockEndDate//kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockEndDate
+			>> kPacket.m_kUserAuthAck.m_kNexonAccountInfo.m_uiNexonSN		// SERV_GLOBAL_AUTH
+			);
+	}
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.mup_auth_user", L"%d, N\'%s\', N\'%s\', %d, %d", % kPacket_.m_kUserAuthReq.m_kAuthenticateReq.m_bDebugAuth % kPacket_.m_kUserAuthReq.m_kAuthenticateReq.m_wstrUserID % wstrPassword.c_str() % kPacket_.m_kUserAuthReq.m_kNexonAccountInfo.m_uiAge % kPacket_.m_kUserAuthReq.m_kNexonAccountInfo.m_uiNexonSN );
 
 	if( m_kODBC.BeginFetch() )
@@ -760,12 +857,16 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_REQ )
 			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_wstrEndTime
 			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_kAccountBlockInfo.m_wstrBlockReason			
 			>> kPacket.m_kUserAuthAck.m_kAccountInfo.m_bIsRecommend
+			>> kPacket.m_kAccountInfo.m_wstrRegDate			//SERV_GLOBAL_AUTH //SERV_INT_ONLY	
+			>> kPacket.m_kAccountInfo.m_wstrLastLogin		//SERV_GLOBAL_AUTH //SERV_INT_ONLY
+			>> kPacket.m_kNexonAccountInfo.m_uiNexonSN		//SERV_GLOBAL_AUTH //SERV_INT_ONLY
 			);
 #endif SERV_CASH_ITEM_LIST
 		//}}		
 
 		m_kODBC.EndFetch();
 	}
+#endif //SERV_ALL_RENEWAL_SP
 #endif // SERV_HACKING_USER_CHECK_COUNT
 
 	if( kPacket.m_kUserAuthAck.m_iOK != NetError::NET_OK )
@@ -796,10 +897,15 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_REQ )
 #ifdef SERV_KOG_OTP_VERIFY
 	else if( kPacket_.m_bServerUseKogOTP )
     {
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_MUserOTP_SEL_Check", L"%d, N\'%s\'",
+			% kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID
+			% wstrPassword );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.mup_verify_user_otp", L"%d, N\'%s\'",
             % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID
             % wstrPassword );
-
+#endif //SERV_ALL_RENEWAL_SP
         if( m_kODBC.BeginFetch() )
         {
             FETCH_DATA( kPacket.m_kUserAuthAck.m_iOK
@@ -829,13 +935,22 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_REQ )
 
 			int iOTP  = gen();
             wchar_t wszOTP[128];
-            ::_itow( iOTP, wszOTP, 10 );
+#ifdef _CONVERT_VS_2010
+			_itow_s( iOTP, wszOTP, 10 );
+#else
+			::_itow( iOTP, wszOTP, 10 );
+#endif _CONVERT_VS_2010
             kPacket.m_kUserAuthAck.m_kAccountInfo.m_wstrOTP = wszOTP;
 
+#ifdef SERV_ALL_RENEWAL_SP
+			DO_QUERY( L"exec dbo.P_MUserOTP_UPD", L"%d, N\'%s\'",
+				% kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID
+				% kPacket.m_kUserAuthAck.m_kAccountInfo.m_wstrOTP );
+#else //SERV_ALL_RENEWAL_SP
 			DO_QUERY( L"exec dbo.mup_update_user_otp", L"%d, N\'%s\'",
                 % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID
                 % kPacket.m_kUserAuthAck.m_kAccountInfo.m_wstrOTP );
-
+#endif //SERV_ALL_RENEWAL_SP
             if( m_kODBC.BeginFetch() )
             {
                 FETCH_DATA( kPacket.m_kUserAuthAck.m_iOK
@@ -852,11 +967,10 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_REQ )
 
 				kPacket.m_kUserAuthAck.m_iOK = NetError::ERR_UNKNOWN;
 				goto end_proc;
-			}
-		}
+            }
+        }
     }
 #endif // SERV_KOG_OTP_VERIFY
-
 
 #ifdef SERV_COUNTRY_CN
 	if ( KSimLayer::GetKObj()->GetAuthFlag() == KSimLayer::AF_GLOBAL_SERVICE )
@@ -888,13 +1002,15 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_REQ )
 		kPacket.m_uiGiantAccountType = 24;
 	}
 #endif //SERV_COUNTRY_CN
-
-
+	
 	//해킹유저 정보 받아오기.
 	if( kPacket.m_kUserAuthAck.m_iOK == NetError::NET_OK )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec P_MUserHackerList_SEL", L"%d", % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec mup_get_hackerlist", L"%d", % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 		int iOK = 0;
 
 		if( m_kODBC.BeginFetch() )
@@ -934,7 +1050,11 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_REQ )
 	//{{ 2011. 02. 23	최육사	계정 단위 카운트
 #ifdef SERV_ACCOUNT_COUNT
 	// 캐릭터 카운트 정보 얻기!
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUserUID_Count_SEL", L"%d", % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.mup_get_UserUID_Count", L"%d", % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID );
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		int iLogType = 0;
@@ -952,8 +1072,11 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_REQ )
 	//{{ 2012. 02. 21	김민성	2차 보안 채널 이동시(미니맵) 오류 수정
 #ifdef SERV_SECOND_SECURITY_PW_ERROR_MODIFY
 	// 2차 비번 얻기 : kPacket_ --> UserUID
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUserSecondPW_SEL", L"%d", % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.mup_get_second_pw_Info", L"%d", % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_bUseSecondPW
@@ -968,17 +1091,20 @@ IMPL_ON_FUNC( ELG_CHANNEL_CHANGE_NEXON_USER_AUTHENTICATE_REQ )
 
 #ifdef SERV_COUNTRY_PH
 	unsigned short usGarenaCyberCafe = 0;
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUserOption_SEL", L"%d", % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_MUserOption_GET", L"%d", % kPacket.m_kUserAuthAck.m_kAccountInfo.m_nUserUID );
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( usGarenaCyberCafe);
 
 		m_kODBC.EndFetch();
 	}
+	
 	kPacket.m_usGarenaCyberCafe = usGarenaCyberCafe;
-
 #endif //SERV_COUNTRY_PH
-
 
 end_proc:
 	LOG_SUCCESS( kPacket.m_kUserAuthAck.m_iOK == NetError::NET_OK )
@@ -991,8 +1117,11 @@ end_proc:
 
 IMPL_ON_FUNC( DBE_UPDATE_IS_LOGIN_NOT )
 {
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUser_UPD_IsLogin", L"%d, %d", % kPacket_.m_iUserUID % kPacket_.m_bIsLogin );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.mup_update_islogin", L"%d, %d", % kPacket_.m_iUserUID % kPacket_.m_bIsLogin );
-
+#endif //SERV_ALL_RENEWAL_SP
 	int iOK = NetError::NET_OK;
 
 	if( m_kODBC.BeginFetch() )
@@ -1007,12 +1136,19 @@ IMPL_ON_FUNC( DBE_UPDATE_IS_LOGIN_NOT )
 		std::map< int, int >::const_iterator mitCGC;
 		for( mitCGC = kPacket_.m_mapAccCountInfo.begin(); mitCGC != kPacket_.m_mapAccCountInfo.end(); ++mitCGC )
 		{
+#ifdef SERV_ALL_RENEWAL_SP
+			DO_QUERY( L"exec dbo.P_MUserUID_Count_MER", L"%d, %d, %d", 
+				% kPacket_.m_iUserUID
+				% mitCGC->first
+				% mitCGC->second
+				);
+#else //SERV_ALL_RENEWAL_SP
 			DO_QUERY( L"exec dbo.mup_update_UserUID_Count", L"%d, %d, %d", 
 				% kPacket_.m_iUserUID
 				% mitCGC->first
 				% mitCGC->second
 				);
-
+#endif //SERV_ALL_RENEWAL_SP
 			if( m_kODBC.BeginFetch() )
 			{
 				FETCH_DATA( iOK );
@@ -1039,7 +1175,11 @@ IMPL_ON_FUNC( DBE_CHECK_ACCOUNT_BLOCK_LIST_REQ )
 	KDBE_CHECK_ACCOUNT_BLOCK_LIST_ACK kPacket;
 
 	// Release Tick 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_ReleaseTick_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.mup_get_release_tick" );
+#endif //SERV_ALL_RENEWAL_SP
 
 	while( m_kODBC.Fetch() )
 	{
@@ -1075,8 +1215,11 @@ IMPL_ON_FUNC( DBE_CHECK_ACCOUNT_BLOCK_LIST_REQ )
 					std::set< UidType > setAccountBlockList;
 
 					// 계정 블럭 리스트 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+					DO_QUERY_NO_ARG( L"exec dbo.P_RejectedUser_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 					DO_QUERY_NO_ARG( L"exec dbo.mup_get_rejected_user" );
-
+#endif //SERV_ALL_RENEWAL_SP
 					while( m_kODBC.Fetch() )
 					{
 						UidType iUserUID = 0;
@@ -1093,9 +1236,12 @@ IMPL_ON_FUNC( DBE_CHECK_ACCOUNT_BLOCK_LIST_REQ )
 			case KAccountBlockManager::BT_TRADE_BLOCK: // 개인 거래 차단 리스트
 				{
 					std::set< UidType > setTradeBlockList;
-
+#ifdef SERV_ALL_RENEWAL_SP
+					DO_QUERY_NO_ARG( L"exec dbo.P_TradeBlock_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 					// 거래 블럭 리스트 얻기
 					DO_QUERY_NO_ARG( L"exec dbo.mup_get_TradeBlock_user" );
+#endif //SERV_ALL_RENEWAL_SP
 
 					while( m_kODBC.Fetch() )
 					{
@@ -1115,7 +1261,11 @@ IMPL_ON_FUNC( DBE_CHECK_ACCOUNT_BLOCK_LIST_REQ )
 			case KAccountBlockManager::BT_MACHINE_ID_BLOCK:
 				{
 					// 거래 블럭 리스트 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+					DO_QUERY_NO_ARG( L"exec dbo.P_Temp_Add_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 					DO_QUERY_NO_ARG( L"exec dbo.mup_get_add" );
+#endif //SERV_ALL_RENEWAL_SP
 
 					while( m_kODBC.Fetch() )
 					{
@@ -1154,7 +1304,11 @@ _IMPL_ON_FUNC( DBE_REG_REJECTED_USER_NOT, KELG_REG_REJECTED_USER_NOT )
 #ifdef SERV_PERIOD_ACCOUNT_BLOCK// 작업날짜: 2013-05-27	// 박세훈
 	if( kPacket_.m_cPeriodUAL == SEnum::UAL_NORMAL )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_RejectedUser_MER", L"%d, %d", % kPacket_.m_iUserUID % (int)kPacket_.m_cRejectedReason );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.mup_insert_rejected_user", L"%d, %d", % kPacket_.m_iUserUID % (int)kPacket_.m_cRejectedReason );
+#endif //SERV_ALL_RENEWAL_SP
 	}
 	else if( kPacket_.m_cPeriodUAL < SEnum::UAL_NORMAL )
 	{
@@ -1166,7 +1320,11 @@ _IMPL_ON_FUNC( DBE_REG_REJECTED_USER_NOT, KELG_REG_REJECTED_USER_NOT )
 			);
 	}
 #else // SERV_PERIOD_ACCOUNT_BLOCK
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_RejectedUser_MER", L"%d, %d", % kPacket_.m_iUserUID % (int)kPacket_.m_cRejectedReason );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.mup_insert_rejected_user", L"%d, %d", % kPacket_.m_iUserUID % (int)kPacket_.m_cRejectedReason );
+#endif //SERV_ALL_RENEWAL_SP
 #endif // SERV_PERIOD_ACCOUNT_BLOCK
 
 	if( m_kODBC.BeginFetch() )
@@ -1199,8 +1357,11 @@ _IMPL_ON_FUNC( DBE_REG_TRADE_BLOCK_USER_NOT, KELG_REG_REJECTED_USER_NOT )
 {
 	// DB에 Trade Block User 등록!
 	int iOK = NetError::ERR_ODBC_01;
-
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_TradeBlock_INS", L"%d, %d", % kPacket_.m_iUserUID % (int)kPacket_.m_cRejectedReason );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.mup_insert_TradeBlock_user", L"%d, %d", % kPacket_.m_iUserUID % (int)kPacket_.m_cRejectedReason );
+#endif //SERV_ALL_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1228,7 +1389,11 @@ IMPL_ON_FUNC( DBE_GET_HACKING_MODULE_LIST_REQ )
 	KDBE_GET_HACKING_MODULE_LIST_ACK kAck;
 	kAck.m_iOK = NetError::ERR_ODBC_00;
 
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_ReleaseTick_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.mup_get_release_tick" );
+#endif //SERV_ALL_RENEWAL_SP
 
 	while( m_kODBC.Fetch() )
 	{
@@ -1257,8 +1422,11 @@ IMPL_ON_FUNC( DBE_GET_HACKING_MODULE_LIST_REQ )
 
 	if( kAck.m_bRequest == true )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY_NO_ARG( L"exec dbo.P_HackingModulelist_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY_NO_ARG( L"exec dbo.P_HackingModulelist_GET" );
-
+#endif //SERV_ALL_RENEWAL_SP
 		while( m_kODBC.Fetch() )
 		{
 			KModuleInfo kInfo;
@@ -1290,8 +1458,11 @@ IMPL_ON_FUNC( DBE_ACCOUNT_LOCAL_RANKING_INIT_INFO_REQ )
 	for( it = kPacket_.m_mapRankerUIDInfo.begin(); it != kPacket_.m_mapRankerUIDInfo.end(); ++it )
 	{
 		// 랭커 유저 정보 읽기
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_MFriendSystem_UserInfo_SEL", L"%d", % it->second );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_MFriendSystem_UserInfo_GET", L"%d", % it->second );
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			KLocalRankingUserInfo kUserInfo;
@@ -1328,8 +1499,11 @@ IMPL_ON_FUNC( DBE_ACCOUNT_GET_GUILD_INFO_REQ )
 	for( it = kPacket_.m_mapRankerUIDInfo.begin(); it != kPacket_.m_mapRankerUIDInfo.end(); ++it )
 	{
 		// 랭커 유저 정보 읽기
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_MFriendSystem_UserInfo_SEL", L"%d", % it->second );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_MFriendSystem_UserInfo_GET", L"%d", % it->second );
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			KLocalRankingUserInfo kUserInfo;
@@ -1365,8 +1539,11 @@ IMPL_ON_FUNC( DBE_ACCOUNT_LOCAL_RANKING_WATCH_UNIT_REQ )
 	kPacket_.m_iOK = NetError::ERR_ODBC_01;
 
 	// 랭커 유저 정보 읽기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MFriendSystem_UserInfo_SEL", L"%d", % kPacket_.m_kUserInfo.m_iUserUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_MFriendSystem_UserInfo_GET", L"%d", % kPacket_.m_kUserInfo.m_iUserUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		std::wstring wstrUpdated;
@@ -1390,15 +1567,16 @@ end_proc:
 #ifdef SERV_COUNTRY_PH
 IMPL_ON_FUNC( EBILL_LOGIN_ACCOUNT_USER_OFFLINE_GN_ACCOUNT_CHECK_REQ )
 {
-
 	KEBILL_LOGIN_ACCOUNT_USER_OFFLINE_GN_ACCOUNT_CHECK_ACK kPacket;
 
 	kPacket.m_iResult = 0;
 	kPacket.m_uiPublisherUID = kPacket_.m_uiGarenaUID;
 	kPacket.m_iSessionUID = kPacket_.m_iSessionUID;
-
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUser_By_PublisherSN_SEL", L"%d", % kPacket_.m_uiGarenaUID);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_MUser_By_PublisherSN_GET", L"%d", % kPacket_.m_uiGarenaUID);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 
@@ -1416,7 +1594,7 @@ IMPL_ON_FUNC( EBILL_LOGIN_ACCOUNT_USER_OFFLINE_GN_ACCOUNT_CHECK_REQ )
 		kPacket.m_wstrUserID = L"";
 		kPacket.m_wstrUserName = L"";
 
-		START_LOG( cerr, L"우리게임에 캐릭터도 없는데 전환 신청이 들어 왔다." )
+		START_LOG( cwarn, L"우리게임에 캐릭터도 없는데 전환 신청이 들어 왔다." )
 			<< BUILD_LOG( kPacket_.m_uiGarenaUID )
 			<< END_LOG;
 		goto end_proc;
@@ -1435,16 +1613,17 @@ end_proc:
 
 IMPL_ON_FUNC( EBILL_LOGIN_ACCOUNT_USER_OFFLINE_GN_EXCHANGE_REQ )
 {
-
 	KEBILL_LOGIN_ACCOUNT_USER_OFFLINE_GN_EXCHANGE_ACK kPacket;
 
 	kPacket.m_kGNGameCurrencyREQ = kPacket_.m_kGNGameCurrencyREQ;
 
 	kPacket.m_iResult = 0;
 	kPacket.m_uiPublisherUID = kPacket_.m_kGNGameCurrencyREQ.m_uiGarenaUID;
-
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_MUser_By_PublisherSN_SEL", L"%d", % kPacket_.m_kGNGameCurrencyREQ.m_uiGarenaUID);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_MUser_By_PublisherSN_GET", L"%d", % kPacket_.m_kGNGameCurrencyREQ.m_uiGarenaUID);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 

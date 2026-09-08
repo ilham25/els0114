@@ -30,27 +30,16 @@ public:
 protected:
 
 	void _ProcessErrorPacket( IN const KEPL_BR_PURCHASEITEM_ACK kPacket_ );
-	void _ProcessErrorPacket( IN const KEPL_BR_REGCOUPON_ACK kPacket_ );
-	void _ProcessErrorPacket( IN const KEPL_BR_GIFTITEM_ACK kPacket_ );
 	int _GetErrorPacketType( IN const unsigned short usRetCode_ );
 
 	// derived from KSubThread
 	virtual void ProcessEvent( const KEventPtr& spEvent );
-
-	DECL_ON_FUNC( EPL_BR_HEALTH_CHECK_ACK );	// 빌링 연결 정상 여부 확인
 	
 	DECL_ON_FUNC( EPUBLISHER_BILLING_BALANCE_REQ );
 	DECL_ON_FUNC( EPL_BR_BALANCE_CHECK_ACK );
 
 	DECL_ON_FUNC( EBILL_BUY_PRODUCT_REQ );
 	DECL_ON_FUNC( EPL_BR_PURCHASEITEM_ACK );
-	
-	DECL_ON_FUNC( EBILL_GIFT_ITEM_REQ );
-	DECL_ON_FUNC( EPL_BR_GIFTITEM_ACK );
-
-	DECL_ON_FUNC( EBILL_USE_COUPON_REQ );
-	DECL_ON_FUNC( EPL_BR_REGCOUPON_ACK );
-
 
 	// packet send function
 	template < class T > void SendToServer( unsigned short usEventID, const T& data );

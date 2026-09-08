@@ -68,15 +68,20 @@ void KNexonBillingAuthManager::Init( int nThreadNum )
     m_iRecvCP = 0;
 
     //////////////////////////////////////////////////////////////////////////
-    // thread setting : recvï¿½ï¿½ recvfrom() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¼ï¿½ blockï¿½È´ï¿½.
-    //{{ Iruha : 2026-08-27 // VS2010 port: bare Class::Method as a member-function pointer
-    // was a VC7.1 extension; VC10 requires the explicit &.
+    // thread setting : recv´Â recvfrom() ÇÔ¼ö¿¡¼­ ¾Ë¾Æ¼­ blockµÈ´Ù.
+#ifdef _CONVERT_VS_2010
     m_spThreadRecv = boost::shared_ptr< KTThread< KNexonBillingAuthManager > >
-        ( new KTThread< KNexonBillingAuthManager >( *this, &KNexonBillingAuthManager::Recv, 50 ) );
+		( new KTThread< KNexonBillingAuthManager >( *this, &KNexonBillingAuthManager::Recv, 50 ) );
 
     m_spThreadSend = boost::shared_ptr< KTThread< KNexonBillingAuthManager > >
         ( new KTThread< KNexonBillingAuthManager >( *this, &KNexonBillingAuthManager::Send, 100 ) );
-    //}}
+#else
+    m_spThreadRecv = boost::shared_ptr< KTThread< KNexonBillingAuthManager > >
+        ( new KTThread< KNexonBillingAuthManager >( *this, KNexonBillingAuthManager::Recv, 50 ) );
+
+    m_spThreadSend = boost::shared_ptr< KTThread< KNexonBillingAuthManager > >
+        ( new KTThread< KNexonBillingAuthManager >( *this, KNexonBillingAuthManager::Send, 100 ) );
+#endif _CONVERT_VS_2010
 
 	KThreadManager::Init( nThreadNum );
 }
@@ -102,7 +107,7 @@ void KNexonBillingAuthManager::BeginThread()
 
     if( !Connect() )
     {
-        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
+        START_LOG( cerr, L"ºô¸µ ÀÎÁõ ¼­¹ö Á¢¼Ó ½ÇÆÐ." )
             << END_LOG;
     }
 }
@@ -151,7 +156,7 @@ void KNexonBillingAuthManager::Recv()
         MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH - m_iRecvCP,
         0 );
 
-    START_LOG( clog, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½." )
+    START_LOG( clog, L"ÆÐÅ¶ ¹ÞÀ½." )
         << BUILD_LOG( ret );
 
     if( ret == SOCKET_ERROR )
@@ -163,7 +168,7 @@ void KNexonBillingAuthManager::Recv()
 
     if( ret == 0 )
     {
-        START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
+        START_LOG( cerr, L"¼ÒÄÏ ¿¬°áÀÌ ²÷¾îÁü." )
             << END_LOG;
 
         CLOSE_SOCKET( m_sock );
@@ -174,18 +179,18 @@ void KNexonBillingAuthManager::Recv()
 
     while( m_iRecvCP >= 4 )
     {
-        // ï¿½ï¿½ï¿½(1) + ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(2) + Å¸ï¿½ï¿½(1) = 4
-        // ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ 4ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ì»ï¿½ï¿½ï¿½
+        // Çì´õ(1) + »çÀÌÁî(2) + Å¸ÀÔ(1) = 4
+        // ¸ðµç ÆÐÅ¶ÀÌ 4¹ÙÀÌÆ® ÀÌ»óÀÓ
 
         unsigned short usLength;
         ::memcpy( &usLength, m_cRecvBuffer + 1, sizeof( usLength ) );
 
         usLength = ::ntohs( usLength );
         int iTotalPacketSize = usLength + 3;
-        //if( iTotalPacketSize > MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH ) ï¿½ï¿½Î¼ï¿½
+        //if( iTotalPacketSize > MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH ) ±è¹Î¼º
 		if( iTotalPacketSize >= MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH )
         {
-            START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
+            START_LOG( cerr, L"ÃßÃâÇÑ ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
                 << BUILD_LOG( iTotalPacketSize )
                 << BUILD_LOG( MAX_PACKET_SIZE_OF_NEXON_BILLING_AUTH )
                 << END_LOG;
@@ -223,7 +228,7 @@ void KNexonBillingAuthManager::Send()
 	{
 		if( !spPacket )
 		{
-			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
+			START_LOG( cerr, L"Æ÷ÀÎÅÍ ÀÌ»ó." )
 				<< BUILD_LOG( m_kSendQueue.size() )
 				<< END_LOG;
 
@@ -258,7 +263,7 @@ void KNexonBillingAuthManager::Send()
 bool KNexonBillingAuthManager::Connect()
 {
     m_iRecvCP = 0;
-	m_sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	m_sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
 
 	if( INVALID_SOCKET == m_sock )
 	{
@@ -298,7 +303,7 @@ bool KNexonBillingAuthManager::Connect()
     spPacket->Write( kPacketInit );
     QueueingSendPacket( spPacket );
 
-    START_LOG( cout, L"ï¿½Ø½ï¿½ PCï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." );
+    START_LOG( cout, L"³Ø½¼ PC¹æ ÀÎÁõ ¼­¹ö Á¢¼Ó." );
 	return true;
 }
 
@@ -316,7 +321,7 @@ void KNexonBillingAuthManager::KeepConnection()
 
     m_dwLastHeartBeatTick = ::GetTickCount();
 
-	// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	// ÇãÆ®ºø º¸³»±â
     KENX_ALIVE_NOT kPacketNot;
     kPacketNot.m_bytePacketType = 100;
     boost::shared_ptr< KNexonBillingAuthPacket > spPacket( new KNexonBillingAuthPacket );
@@ -360,7 +365,7 @@ void KNexonBillingAuthManager::MakeEventFromReceivedPacket()
 	KNexonBillingAuthPacket kPacket;
 	if( !kPacket.ReadFromBuffer( ( BYTE* )m_cRecvBuffer ) )
     {
-        START_LOG( cerr, L"ï¿½ï¿½ï¿½Û¿ï¿½ï¿½ï¿½ ï¿½Ð±ï¿½ ï¿½ï¿½ï¿½ï¿½." )
+        START_LOG( cerr, L"¹öÆÛ¿¡¼­ ÀÐ±â ½ÇÆÐ." )
             << END_LOG;
 
         DumpBuffer( ( BYTE* )m_cRecvBuffer, true );
@@ -369,7 +374,7 @@ void KNexonBillingAuthManager::MakeEventFromReceivedPacket()
 
     if( kPacket.GetPacketType() != KNexonBillingAuthPacket::NBA_PT_COMMON )
     {
-        START_LOG( cerr, L"ï¿½ï¿½Å¶ Å¸ï¿½ï¿½ ï¿½Ì»ï¿½." )
+        START_LOG( cerr, L"ÆÐÅ¶ Å¸ÀÔ ÀÌ»ó." )
             << BUILD_LOG( kPacket.GetPacketType() )
             << END_LOG;
 
@@ -404,16 +409,24 @@ void KNexonBillingAuthManager::DumpBuffer( BYTE* buffer, bool bError )
 
     for( int i = 0; i < iTotalPacketSize; i++ )
     {
-        if( ( int )buffer[i] >= 16 )
+		if( ( int )buffer[i] >= 16 )
+		{
+#ifdef _CONVERT_VS_2010
+			_itoa_s( ( int )buffer[i], szByte, 4, 16 );
+#else
+			::itoa( ( int )buffer[i], szByte, 16 );
+#endif _CONVERT_VS_2010
+			szBuffer[i * 3] = szByte[0];
+			szBuffer[i * 3 + 1] = szByte[1];
+			szBuffer[i * 3 + 2] = ' ';
+		}
+		else
         {
-            ::itoa( ( int )buffer[i], szByte, 16 );
-            szBuffer[i * 3] = szByte[0];
-            szBuffer[i * 3 + 1] = szByte[1];
-            szBuffer[i * 3 + 2] = ' ';
-        }
-        else
-        {
-            ::itoa( ( int )buffer[i], szByte, 16 );
+#ifdef _CONVERT_VS_2010
+			_itoa_s( ( int )buffer[i], szByte, 4, 16 );
+#else
+			::itoa( ( int )buffer[i], szByte, 16 );
+#endif _CONVERT_VS_2010
             szBuffer[i * 3] = '0';
             szBuffer[i * 3 + 1] = szByte[0];
             szBuffer[i * 3 + 2] = ' ';

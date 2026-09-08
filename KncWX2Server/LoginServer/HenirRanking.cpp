@@ -109,6 +109,41 @@ void KHenirRanking::SetRefreshTime( const int iRankingType, const int iWeekOfMon
 		}
 		break;
 
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+	case SEnum::RT_HERO_RANKING:
+		{			
+			CTime tCurTime = CTime::GetCurrentTime();
+
+			// 그달의 몇번째주 무슨요일 몇시
+			CTime tResetTime = GetDayOfWeekInMonth( tCurTime.GetYear(), tCurTime.GetMonth(), iWeekOfMonth, iDayOfWeek, iHour );
+
+			// 지금 보다 과거인가?
+			if( tResetTime < tCurTime )
+			{
+				// 한달 다음으로 돌리고..
+				int iYear = tResetTime.GetYear();
+				int iNextMonth = tResetTime.GetMonth() + 1;
+				if( iNextMonth > 12 )
+				{
+					++iYear; // 다음해
+					iNextMonth = 1; // 1월
+				}
+
+				tResetTime = GetDayOfWeekInMonth( iYear, iNextMonth, iWeekOfMonth, iDayOfWeek, iHour );
+			}
+
+			// 갱신 시각 설정
+			m_tRefreshTime = tResetTime;
+
+			//////////////////////////////////////////////////////////////////////////
+			CStringW strRefreshTime = (CStringW)m_tRefreshTime.Format( _T("%Y-%m-%d %H:%M:%S") );
+			START_LOG( cout, L"영웅 랭킹 갱신 일자 설정!" )
+				<< BUILD_LOG( strRefreshTime.GetBuffer() );
+			//////////////////////////////////////////////////////////////////////////
+		}
+		break;
+#endif // SERV_HENIR_RENEWAL_2013
+
 	default:
 		{
             START_LOG( cerr, L"랭킹 타입이 이상합니다. 갱신날짜 설정 실패!" )
@@ -167,6 +202,28 @@ void KHenirRanking::NextRefreshTimeSet()
 			//////////////////////////////////////////////////////////////////////////
 		}
 		break;
+
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+	case SEnum::RT_HERO_RANKING:
+		{
+			int iYear = m_tRefreshTime.GetYear();
+			int iNextMonth = m_tRefreshTime.GetMonth() + 1;
+			if( iNextMonth > 12 )
+			{
+				++iYear; // 다음해
+				iNextMonth = 1; // 1월
+			}
+
+			m_tRefreshTime = GetDayOfWeekInMonth( iYear, iNextMonth, m_iRefreshWeekOfMonth, m_iRefreshDayOfWeek, m_iRefreshHour );
+
+			//////////////////////////////////////////////////////////////////////////
+			CStringW strRefreshTime = (CStringW)m_tRefreshTime.Format( _T("%Y-%m-%d %H:%M:%S") );
+			START_LOG( cout, L"영웅 랭킹 갱신 일자를 다음 갱신 날짜로 수정 완료!" )
+				<< BUILD_LOG( strRefreshTime.GetBuffer() );
+			//////////////////////////////////////////////////////////////////////////
+		}
+		break;
+#endif // SERV_HENIR_RENEWAL_2013
 
 	default:
 		{
@@ -393,7 +450,7 @@ end_proc:
 		return false;
 #else
 	RankingSort();
-#endif
+#endif SERV_HENIR_RANKING_GROUP_FIX
 
 	// 6. 랭킹 정보 refresh 예약
 	SetRankingChanged( true );

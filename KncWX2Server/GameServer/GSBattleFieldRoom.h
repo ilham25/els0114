@@ -24,7 +24,11 @@ public:
 	bool	IsJoinUser( IN const UidType iUnitUID ) const		{ return ( m_kRoomInfo.m_mapUnitUIDPartyUID.find( iUnitUID ) != m_kRoomInfo.m_mapUnitUIDPartyUID.end() ); }
 	bool	IsExistParty( IN const UidType iPartyUID )			{ return ( m_kRoomInfo.m_mapPartyList.find( iPartyUID ) != m_kRoomInfo.m_mapPartyList.end() ); }
 
-	void	UpdateRoomInfo( IN const KBattleFieldRoomInfo& kInfo );	
+	void	UpdateRoomInfo( IN const KBattleFieldRoomInfo& kInfo );
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-06	// 박세훈
+	int		GetBossFieldState( void ) const	{	return m_kRoomInfo.m_byteBossFieldState;	}
+#endif // SERV_BATTLE_FIELD_BOSS
 
 protected:
 	int		CalcJoinUserCountWithReservedUserCount() const;

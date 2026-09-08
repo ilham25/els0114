@@ -1,6 +1,6 @@
-#ifdef SERV_GLOBAL_MISSION_MANAGER
-
 #pragma once
+
+#ifdef SERV_GLOBAL_MISSION_MANAGER
 
 #include "RefreshSingleton.h"
 #include "DBLayer.h"

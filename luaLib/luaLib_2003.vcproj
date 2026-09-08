@@ -494,7 +494,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release_EU|Win32"
+			Name="Release_JP|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
@@ -538,7 +538,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release_US|Win32"
+			Name="Release_TW|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
@@ -582,7 +582,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release_CN|Win32"
+			Name="Release_HK|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
@@ -626,21 +626,22 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug_EU|Win32"
+			Name="Release_TH|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="0"
+				GlobalOptimizations="TRUE"
+				InlineFunctionExpansion="2"
+				FavorSizeOrSpeed="1"
+				OptimizeForWindowsApplication="TRUE"
 				AdditionalIncludeDirectories="..\KTDXLIB"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)/luaLibD.pdb"
+				ProgramDataBaseFileName="$(IntDir)/luaLib.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -648,7 +649,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/luaLibD.lib"/>
+				OutputFile="$(OutDir)/luaLib.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -669,21 +670,22 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug_CN|Win32"
+			Name="Release_ID|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="0"
+				GlobalOptimizations="TRUE"
+				InlineFunctionExpansion="2"
+				FavorSizeOrSpeed="1"
+				OptimizeForWindowsApplication="TRUE"
 				AdditionalIncludeDirectories="..\KTDXLIB"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="2"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)/luaLibD.pdb"
+				ProgramDataBaseFileName="$(IntDir)/luaLib.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -691,7 +693,51 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/luaLibD.lib"/>
+				OutputFile="$(OutDir)/luaLib.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_IN|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				GlobalOptimizations="TRUE"
+				InlineFunctionExpansion="2"
+				FavorSizeOrSpeed="1"
+				OptimizeForWindowsApplication="TRUE"
+				AdditionalIncludeDirectories="..\KTDXLIB"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="2"
+				UsePrecompiledHeader="0"
+				ProgramDataBaseFileName="$(IntDir)/luaLib.pdb"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)/luaLib.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -788,31 +834,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -887,31 +939,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -986,31 +1044,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1085,31 +1149,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1184,31 +1254,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1283,31 +1359,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1382,31 +1464,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1481,31 +1569,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1580,31 +1674,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1679,31 +1779,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1778,31 +1884,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1877,31 +1989,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -1976,31 +2094,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2075,31 +2199,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2174,31 +2304,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2273,31 +2409,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2372,31 +2514,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2471,31 +2619,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2570,31 +2724,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2669,31 +2829,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2768,31 +2934,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2867,31 +3039,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -2966,31 +3144,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3065,31 +3249,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3164,31 +3354,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3263,31 +3459,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3362,31 +3564,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3461,31 +3669,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3560,31 +3774,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3659,31 +3879,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3758,31 +3984,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3857,31 +4089,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -3956,31 +4194,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -4055,31 +4299,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -4154,31 +4404,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
@@ -4253,31 +4509,37 @@
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						CompileAs="2"/>

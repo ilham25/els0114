@@ -25,8 +25,8 @@ bool CX2UIPetInventory::InitUIPetInventory(int iLayer)
 	g_pKTDXApp->GetDGManager()->AddObjectChain( m_pTalkBoxManager );
 	m_pTalkBoxManager->SetOverUI( true );
 
-	CX2Inventory* pInventory	= NULL;
-	pInventory	= GetInventory();
+	const CX2Inventory* pInventory	= NULL;
+	pInventory	= GetMyInventory();
 
 	if ( pInventory == NULL )
 		return false;					// ASSERT 처리는 위의 GetInventory에서 해줌
@@ -372,7 +372,7 @@ void CX2UIPetInventory::MovePosition( D3DXVECTOR2 vec )
 	}
 }
 
-CX2Inventory*	CX2UIPetInventory::GetInventory()
+const CX2Inventory*	CX2UIPetInventory::GetMyInventory() const
 {
 	if ( g_pData->GetMyUser() == NULL )
 	{
@@ -386,13 +386,24 @@ CX2Inventory*	CX2UIPetInventory::GetInventory()
 		return NULL;
 	}
 
-	if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory() == NULL  )
+	return &g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+}
+
+CX2Inventory*	CX2UIPetInventory::AccessMyInventory()
+{
+	if ( g_pData->GetMyUser() == NULL )
 	{
-		ASSERT( !"Inventory Is NULL");
+		ASSERT( !"User Is NULL");
 		return NULL;
 	}
 
-	return g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	if ( g_pData->GetMyUser()->GetSelectUnit() == NULL )
+	{
+		ASSERT( !"SelectUnit Is NULL");
+		return NULL;
+	}
+
+	return &g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 }
 
 
@@ -400,9 +411,9 @@ void	CX2UIPetInventory::UpdateSlotList()
 {
 	CX2Item*		pItem			=	NULL;
 	CX2SlotItem*	pSlotItem		=	NULL;
-	CX2Inventory*	pInventory		=	NULL;
+	const CX2Inventory*	pInventory		=	NULL;
 
-	pInventory		=	GetInventory();
+	pInventory		=	GetMyInventory();
 
 	if ( pInventory == NULL )
 	{
@@ -501,9 +512,10 @@ bool	CX2UIPetInventory::MouseDown( D3DXVECTOR2 mousePos )
 		g_pData->GetUIManager()->ToggleUI( CX2UIManager::UI_MENU_INVEN, true );
 	}
 	
-	if ( g_pData->GetUIManager()->GetUIInventory()->GetSortType() != GetInventory()->GetSortTypeByItemTemplet( pItemTemplet ) )
+	if ( GetMyInventory() != NULL
+        && g_pData->GetUIManager()->GetUIInventory()->GetSortType() != GetMyInventory()->GetSortTypeByItemTemplet( pItemTemplet ) )
 	{
-		g_pData->GetUIManager()->GetUIInventory()->ChangeInventoryTab( GetInventory()->GetSortTypeByItemTemplet( pItemTemplet ) );
+		g_pData->GetUIManager()->GetUIInventory()->ChangeInventoryTab( GetMyInventory()->GetSortTypeByItemTemplet( pItemTemplet ) );
 	}
 	
 	
@@ -567,10 +579,10 @@ bool	CX2UIPetInventory::MouseUp( D3DXVECTOR2 mousePos )
 	}
 	else									// 드래그 앤 드랍이 아닐때
 	{
-		CX2Inventory*	pInventory	= NULL;	
+		const CX2Inventory*	pInventory	= NULL;	
 		CX2Item*		pItem		= NULL;
 
-		pInventory		= GetInventory();
+		pInventory		= GetMyInventory();
 
 		if ( pInventory == NULL )
 			return false;
@@ -679,7 +691,7 @@ bool CX2UIPetInventory::OnDropAnyItem( D3DXVECTOR2 mousePos )
 	if ( (*m_pSlotBeforeDragging)->IsItem() == false )
 		return false;
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory* pInventory = GetMyInventory();
 
 	//{{ kimhc // 실시간 엘소드 중 던전내에서 유저가 죽었거나, wait, mpCharge 상태가 아닐때 장비 교체 막기
 #ifdef	REAL_TIME_ELSWORD
@@ -759,6 +771,23 @@ bool CX2UIPetInventory::OnDropAnyItem( D3DXVECTOR2 mousePos )
 			}	
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
 
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN //pItemSlot->GetSlotType()
+			// 펫인벤토리와 유저인벤토리, 은행과 유저 인벤토리 시, 엘의 여인의 눈물 이동 차단
+			if ( (*m_pSlotBeforeDragging)->GetSlotType() == CX2Slot::ST_INVENTORY )
+			{
+				if( NULL == pToItemTemplet->GetItemID() )
+					return false;
+
+				if( pToItemTemplet->GetItemID() == TEAR_OF_ELWOMAN_ITEM_ID )
+				{
+					// 현재 아이템 떨구는 곳이 인벤토리가 아닌 경우
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_18422 ), g_pMain->GetNowState() ); //18422
+					SetNowDragItemReturn();
+					return true;
+				}	
+			}
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
+
 			//{{ kimhc // 2010-01-05 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
 
@@ -783,23 +812,26 @@ bool CX2UIPetInventory::OnDropAnyItem( D3DXVECTOR2 mousePos )
 			}
 
 
-			if ( ( pInventory->GetSortTypeByItemTemplet( pFromItemTemplet ) == pInventory->GetSortTypeByItemTemplet( pToItemTemplet ) ) 
-#ifdef PET_INVENTORY_BUG_FIX_01
-				|| ( ( pSlotItem->GetSlotType() == CX2SlotItem::ST_PET ) && ( (*m_pSlotBeforeDragging)->GetSlotType() == CX2SlotItem::ST_PET ) ) 
-#endif PET_INVENTORY_BUG_FIX_01
-				|| ( pInventory->IsPossibleAddItem( pInventory->GetSortTypeByItemTemplet( pFromItemTemplet ) ) == true ) )
-			{
-				g_pData->GetUIManager()->GetUIInventory()->Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( static_cast< CX2SlotItem* >( *m_pSlotBeforeDragging ),
-					pSlotItem );	// 확실히 열려 잇으므로 예외처리 안함
+            if ( pInventory != NULL )
+            {
+			    if ( ( pInventory->GetSortTypeByItemTemplet( pFromItemTemplet ) == pInventory->GetSortTypeByItemTemplet( pToItemTemplet ) ) 
+    #ifdef PET_INVENTORY_BUG_FIX_01
+				    || ( ( pSlotItem->GetSlotType() == CX2SlotItem::ST_PET ) && ( (*m_pSlotBeforeDragging)->GetSlotType() == CX2SlotItem::ST_PET ) ) 
+    #endif PET_INVENTORY_BUG_FIX_01
+				    || ( pInventory->IsPossibleAddItem( pInventory->GetSortTypeByItemTemplet( pFromItemTemplet ) ) == true ) )
+			    {
+				    g_pData->GetUIManager()->GetUIInventory()->Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( static_cast< CX2SlotItem* >( *m_pSlotBeforeDragging ),
+					    pSlotItem );	// 확실히 열려 잇으므로 예외처리 안함
 
-				CX2SlotItem*	pSlotBeforeDragging = static_cast< CX2SlotItem* >( *m_pSlotBeforeDragging );
-				pSlotBeforeDragging->DestroyItemUI();
-			}
-			else
-			{
-				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_3860 ), g_pMain->GetNowState() );
-				SetNowDragItemReturn();
-			}
+				    CX2SlotItem*	pSlotBeforeDragging = static_cast< CX2SlotItem* >( *m_pSlotBeforeDragging );
+				    pSlotBeforeDragging->DestroyItemUI();
+			    }
+			    else
+			    {
+				    g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_3860 ), g_pMain->GetNowState() );
+				    SetNowDragItemReturn();
+			    }
+            }
 			
 		}
 		return true;

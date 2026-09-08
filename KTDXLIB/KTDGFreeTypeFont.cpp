@@ -221,8 +221,13 @@ bool CKTDGFreeTypeFont::Load()
 
 	// 실제 폰트
 	{
+#ifdef  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+        const std::vector<BYTE>& vec = g_pKTDXApp->GetDGManager()->GetFontManager()->GetFontMemory( m_strFontName );
+        if( vec.empty() == true || FT_New_Memory_Face( m_FreeTypeLibrary, ( const FT_Byte* )&vec.front(), vec.size(), 0, &m_FreeTypeFace ) )
+#else   X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 		KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER pMemory = g_pKTDXApp->GetDGManager()->GetFontManager()->GetFontMemory( m_strFontName );
 		if( FT_New_Memory_Face( m_FreeTypeLibrary, ( const FT_Byte* )pMemory->pRealData, pMemory->size, 0, &m_FreeTypeFace ) )
+#endif  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 		{
 			ErrorLogMsg( KEM_ERROR426, "FT_New_Memory_Face" );
 			MessageBoxA( NULL, m_strFontName.c_str(), "Font Load Error!", NULL );
@@ -242,8 +247,13 @@ bool CKTDGFreeTypeFont::Load()
 #ifdef USE_FREE_TYPE_SUB_FONT
 	// 실제 폰트가 지원못하는 글자를 위한 서브 폰트
 	{
+#ifdef  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+		const std::vector<BYTE>& vec = g_pKTDXApp->GetDGManager()->GetFontManager()->GetFontMemory( "JhengHeiBold" );
+		if( vec.empty() == true || FT_New_Memory_Face( m_FreeTypeLibrary, ( const FT_Byte* )&vec.front(), vec.size(), 0, &m_FreeTypeSubFace ) )
+#else   X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 		KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER pMemory = g_pKTDXApp->GetDGManager()->GetFontManager()->GetFontMemory( "JhengHeiBold" );
 		if( FT_New_Memory_Face( m_FreeTypeLibrary, ( const FT_Byte* )pMemory->pRealData, pMemory->size, 0, &m_FreeTypeSubFace ) )
+#endif  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 		{
 			ErrorLogMsg( KEM_ERROR426, "FT_New_Memory_Face" );
 			MessageBoxA( NULL, m_strFontName.c_str(), "Font Load Error!", NULL );
@@ -263,8 +273,13 @@ bool CKTDGFreeTypeFont::Load()
 	// 굴림
 	if( m_strFontName != FT_DEFAULT_FONTNAME )
 	{
+#ifdef  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+		const std::vector<BYTE>& vec = g_pKTDXApp->GetDGManager()->GetFontManager()->GetFontMemory( FT_DEFAULT_FONTNAME );
+		if( vec.empty() == true || FT_New_Memory_Face( m_FreeTypeLibrary, ( const FT_Byte* )&vec.front(), vec.size(), 0, &m_KoreanFreeTypeFace ) )
+#else   X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 		KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER pMemory = g_pKTDXApp->GetDGManager()->GetFontManager()->GetFontMemory( FT_DEFAULT_FONTNAME );
 		if( FT_New_Memory_Face( m_FreeTypeLibrary, ( const FT_Byte* )pMemory->pRealData, pMemory->size, 0, &m_KoreanFreeTypeFace ) )
+#endif  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 		{
 			ErrorLogMsg( KEM_ERROR426, "FT_New_Memory_Face" );
 			MessageBoxA( NULL, FT_DEFAULT_FONTNAME, "Font Load Error!", NULL );
@@ -761,9 +776,9 @@ void CKTDGFreeTypeFont::Buffering( bool bOutLine, const int& iLeft, const int& i
 
 		//{{ robobeg : 2011-11-17
 		if ( m_iOutLineSize != 0 )
-			bufferingILeft += ( ( cache->iWidth /m_EnlargeNum ) - 2 ) * fScaleX;
+			bufferingILeft += ( ( cache->iWidth /m_EnlargeNum ) - 2) * fScaleX;
 		else
-			bufferingILeft += ( ( cache->iWidth /m_EnlargeNum ) - 1 ) * fScaleX;
+			bufferingILeft += ( ( cache->iWidth /m_EnlargeNum ) - 1) * fScaleX;
 		//}} robobeg : 2011-11-17
 		m_iCandidate[cache->iPage]++;
 	}	
@@ -977,9 +992,9 @@ void CKTDGFreeTypeFont::OutTextMultiline( const int& iLeft, const int& iTop, con
 			if( bNewLine )
 			{
 				if( m_bRHW == true )
-					iTopLocal += (int)( ( m_iFontCacheSize / m_EnlargeNum - 1 ) * fLineSpace * fScaleY );
+					iTopLocal += (int)((m_iFontCacheSize / m_EnlargeNum - 1) * fLineSpace * fScaleY );
 				else
-					iTopLocal -= (int)( ( m_iFontCacheSize / m_EnlargeNum - 1 ) * fLineSpace * fScaleY );
+					iTopLocal -= (int)((m_iFontCacheSize / m_EnlargeNum - 1) * fLineSpace * fScaleY );
 			}			
 
 			pToken = &wstrBuf[i+1];

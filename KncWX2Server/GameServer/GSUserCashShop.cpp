@@ -27,6 +27,10 @@
 	#include "NexonSOAP.h"
 #endif SERV_NEXON_AUTH_SOAP
 //}}
+#ifdef SERV_NAVER_CHANNELING
+    #include "NaverSOAPManager.h"
+    #include "NaverSoap.h"
+#endif SERV_NAVER_CHANNELING
 
 //{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
@@ -47,13 +51,15 @@
 #endif SERV_CASH_ITEM_SOCKET_OPTION
 //}
 
+#include "X2Data/XSLSquareUnit.h"
+
 //////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GSUSER_CPP
 #pragma NOTE( "GSUserHandler.cpp 파일 컴파일 됩니당!" )
 //////////////////////////////////////////////////////////////////////////
+#include "boost/lexical_cast.hpp"
 
 #define CLASS_TYPE      KGSUser
-
 
 #ifndef SERV_GLOBAL_BILLING
 
@@ -332,27 +338,46 @@ IMPL_ON_FUNC( EGS_GET_PURCHASED_CASH_ITEM_REQ )
 		}
 	}
 
-	//{{ 2012. 12. 14  캐시 인벤토리에서 아라가 사용 불가능한 아이템 가져오는거 막는 기능 - 김민성
-#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ARA
-	if( GetUnitType() == CXSLUnit::UT_ARA )
+
+	switch ( GetUnitType() )
 	{
-		switch( iItemID )
+	
+#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ARA
+	case CXSLUnit::UT_ARA:
+#endif // SERV_CAN_NOT_GET_CASH_ITEM_ARA
+
+#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ELESIS
+	case CXSLUnit::UT_ELESIS:
+#endif // SERV_CAN_NOT_GET_CASH_ITEM_ELESIS
+
+#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ADD
+	case CXSLUnit::UT_ADD:
+#endif // SERV_CAN_NOT_GET_CASH_ITEM_ADD
 		{
+			switch( iItemID )
+			{
 			case 160570:		// 리폼 웨딩 무기 큐브
 			case 160571:		// 리폼 웨딩 상의 큐브
 			case 160572:		// 리폼 웨딩 하의 큐브
 			case 160573:		// 리폼 웨딩 장갑 큐브
 			case 160574:		// 리폼 웨딩 신발 큐브
 			case 160575:		// 리폼 웨딩 헤어 큐브
-			{
-				KEGS_GET_PURCHASED_CASH_ITEM_ACK kPacket;
-				kPacket.m_iOK = NetError::ERR_NX_SHOP_07;
-				SendPacket( EGS_GET_PURCHASED_CASH_ITEM_ACK, kPacket );
-				return;
-			}break;
-		}
+				{
+					KEGS_GET_PURCHASED_CASH_ITEM_ACK kPacket;
+					kPacket.m_iOK = NetError::ERR_NX_SHOP_07;
+					SendPacket( EGS_GET_PURCHASED_CASH_ITEM_ACK, kPacket );
+					return;
+				}break;
+			}
+
+		} break;
+
+	default:
+		break;
 	}
 
+	//{{ 2012. 12. 14  캐시 인벤토리에서 아라가 사용 불가능한 아이템 가져오는거 막는 기능 - 김민성
+#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ARA
 	switch( iItemID )
 	{
 		case 261590:		// 천년 여우의 스킬 슬롯 체인지 메달 패키지	
@@ -432,10 +457,52 @@ IMPL_ON_FUNC( EGS_GET_PURCHASED_CASH_ITEM_REQ )
 	case CXSLItem::CI_CASH_SKILL_POINT_60_30:
 	case CXSLItem::CI_CASH_SKILL_POINT_30_15:
 	case CXSLItem::CI_CASH_SKILL_POINT_30_30:
+#ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
+	case CXSLItem::EI_SKILL_POINT_130_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 #ifdef SERV_CASH_SKILL_POINT_TW
 	case CXSLItem::CI_CASH_SKILL_POINT_30_7:
 	case CXSLItem::CI_CASH_SKILL_POINT_60_7:
 #endif SERV_CASH_SKILL_POINT_TW
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+#ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+	case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_30_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
+	case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+	case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+	case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP:
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_GNOSIS_BR
+	case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+	case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+	case CXSLItem::EI_SKILL_POINT_30_14DAY_USE_INVEN:
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+	case CXSLItem::EI_LURIEL_GNOSIS_30_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_7DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_7DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 #else
 /*
 	case CXSLItem::CI_CASH_SKILL_POINT_5:
@@ -548,10 +615,52 @@ IMPL_ON_FUNC( EGS_GET_PURCHASED_CASH_ITEM_REQ )
 	case CXSLItem::CI_CASH_SKILL_POINT_60_30:
 	case CXSLItem::CI_CASH_SKILL_POINT_30_15:
 	case CXSLItem::CI_CASH_SKILL_POINT_30_30:
+#ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
+	case CXSLItem::EI_SKILL_POINT_130_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 #ifdef SERV_CASH_SKILL_POINT_TW
 	case CXSLItem::CI_CASH_SKILL_POINT_30_7:
 	case CXSLItem::CI_CASH_SKILL_POINT_60_7:
 #endif SERV_CASH_SKILL_POINT_TW
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+#ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+	case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_30_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
+	case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+	case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+	case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP:
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_GNOSIS_BR
+	case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+	case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+	case CXSLItem::EI_SKILL_POINT_30_14DAY_USE_INVEN:
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+	case CXSLItem::EI_LURIEL_GNOSIS_30_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_7DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_7DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 #else
 /*
 	case CXSLItem::CI_CASH_SKILL_POINT_5:
@@ -971,6 +1080,11 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 					KDBE_EXPAND_SKILL_SLOT_REQ kPacket;
 					kPacket.m_iUnitUID		= GetCharUID();
 					kPacket.m_iPeriodExpire = kPacket_.m_usProductExpire;
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+					kPacket.m_usTheNumberOfSkillPagesAvailable = m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 					//{{ 2011. 11. 30	최육사	패키지 상품 추가
 					kPacket.m_usEventID = ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK;
 					//}}
@@ -986,10 +1100,17 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 #ifdef SERV_CASH_ITEM_FOR_ELESIS	// 적용날짜: 2013-07-11
 			case CXSLItem::CI_EXPAND_SKILL_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
+#ifdef SERV_CASH_ITEM_FOR_ADD
+			case CXSLItem::CI_EXPAND_SKILL_SLOT_ADD:
+#endif	// SERV_CASH_ITEM_FOR_ADD
 				{
 					KDBE_EXPAND_SKILL_SLOT_REQ kPacket;
 					kPacket.m_iUnitUID		= GetCharUID();
 					kPacket.m_iPeriodExpire = 0;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+					kPacket.m_usTheNumberOfSkillPagesAvailable = m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 					//{{ 2011. 11. 30	최육사	패키지 상품 추가
 					kPacket.m_usEventID = ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK;
 					//}}
@@ -997,16 +1118,56 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 					continue; // 아이템 생성하지 않고 바로 리턴
 				} break;
 
-			//case CXSLItem::CI_CASH_SKILL_POINT_5:
-			//case CXSLItem::CI_CASH_SKILL_POINT_10:
 			case CXSLItem::CI_CASH_SKILL_POINT_60_15:
 			case CXSLItem::CI_CASH_SKILL_POINT_60_30:
 			case CXSLItem::CI_CASH_SKILL_POINT_30_15:
 			case CXSLItem::CI_CASH_SKILL_POINT_30_30:
+#ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
+			case CXSLItem::EI_SKILL_POINT_130_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 #ifdef SERV_CASH_SKILL_POINT_TW
 			case CXSLItem::CI_CASH_SKILL_POINT_30_7:
 			case CXSLItem::CI_CASH_SKILL_POINT_60_7:
 #endif SERV_CASH_SKILL_POINT_TW
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+			case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN:
+			case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
+			case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
+			case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
+			case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
+			case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+#ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+			case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
+			case CXSLItem::EI_SKILL_POINT_30_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
+			case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+			case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+			case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP:
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_GNOSIS_BR
+			case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+			case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+			case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+			case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+			case CXSLItem::EI_SKILL_POINT_30_14DAY_USE_INVEN:
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+			case CXSLItem::EI_LURIEL_GNOSIS_30_15DAY:
+			case CXSLItem::EI_LURIEL_GNOSIS_30_30DAY:
+			case CXSLItem::EI_LURIEL_GNOSIS_30_60DAY:
+			case CXSLItem::EI_LURIEL_GNOSIS_60_15DAY:
+			case CXSLItem::EI_LURIEL_GNOSIS_60_30DAY:
+			case CXSLItem::EI_LURIEL_GNOSIS_60_60DAY:
+			case CXSLItem::EI_LURIEL_GNOSIS_30_7DAY:
+			case CXSLItem::EI_LURIEL_GNOSIS_60_7DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+			case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 				{
 					const int iCSPoint = SiCXSLItemManager()->GetItemCSPoint( pItemTemplet->m_ItemID );
 
@@ -1132,6 +1293,15 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 				break;
 #endif SERV_EVENT_BINGO
 				//}}
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			case CXSLItem::CI_EXPAND_SKILL_PAGE:
+				{			
+					SendExpandSkillPageReqToGameDB( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK, kPacket_.m_usProductPieces * kPacket_.m_usOrderQuantity );
+					continue;
+				}
+				break;
+#endif	// SERV_SKILL_PAGE_SYSTEM
 
 #ifdef SERV_ADD_WARP_BUTTON
 			case CXSLItem::CI_WARP_VIP_ITEM:
@@ -1444,6 +1614,9 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 				KDBE_EXPAND_SKILL_SLOT_REQ kPacket;
 				kPacket.m_iUnitUID		= GetCharUID();
 				kPacket.m_iPeriodExpire = kPacket_.m_usProductExpire;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+				kPacket.m_usTheNumberOfSkillPagesAvailable = m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
 				//{{ 2011. 11. 30	최육사	패키지 상품 추가
 				kPacket.m_usEventID = ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK;
 				//}}
@@ -1459,10 +1632,17 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 #ifdef SERV_CASH_ITEM_FOR_ELESIS	// 적용날짜: 2013-07-11
 		case CXSLItem::CI_EXPAND_SKILL_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
+#ifdef SERV_CASH_ITEM_FOR_ADD
+		case CXSLItem::CI_EXPAND_SKILL_SLOT_ADD:
+#endif	// SERV_CASH_ITEM_FOR_ADD
+
 			{
 				KDBE_EXPAND_SKILL_SLOT_REQ kPacket;
 				kPacket.m_iUnitUID		= GetCharUID();
 				kPacket.m_iPeriodExpire = 0;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+				kPacket.m_usTheNumberOfSkillPagesAvailable = m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
 				//{{ 2011. 11. 30	최육사	패키지 상품 추가
 				kPacket.m_usEventID = ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK;
 				//}}
@@ -1471,16 +1651,56 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 			}
 			break;
 
-		//case CXSLItem::CI_CASH_SKILL_POINT_5:
-		//case CXSLItem::CI_CASH_SKILL_POINT_10:
 		case CXSLItem::CI_CASH_SKILL_POINT_60_15:
 		case CXSLItem::CI_CASH_SKILL_POINT_60_30:
 		case CXSLItem::CI_CASH_SKILL_POINT_30_15:
 		case CXSLItem::CI_CASH_SKILL_POINT_30_30:
+#ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
+		case CXSLItem::EI_SKILL_POINT_130_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 #ifdef SERV_CASH_SKILL_POINT_TW
 		case CXSLItem::CI_CASH_SKILL_POINT_30_7:
 		case CXSLItem::CI_CASH_SKILL_POINT_60_7:
 #endif SERV_CASH_SKILL_POINT_TW
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+		case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN:
+		case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
+		case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
+		case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
+		case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
+		case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+#ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+		case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
+		case CXSLItem::EI_SKILL_POINT_30_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
+		case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+		case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+		case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP:
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_GNOSIS_BR
+		case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+		case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+		case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+		case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+		case CXSLItem::EI_SKILL_POINT_30_14DAY_USE_INVEN:
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+		case CXSLItem::EI_LURIEL_GNOSIS_30_15DAY:
+		case CXSLItem::EI_LURIEL_GNOSIS_30_30DAY:
+		case CXSLItem::EI_LURIEL_GNOSIS_30_60DAY:
+		case CXSLItem::EI_LURIEL_GNOSIS_60_15DAY:
+		case CXSLItem::EI_LURIEL_GNOSIS_60_30DAY:
+		case CXSLItem::EI_LURIEL_GNOSIS_60_60DAY:
+		case CXSLItem::EI_LURIEL_GNOSIS_30_7DAY:
+		case CXSLItem::EI_LURIEL_GNOSIS_60_7DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+		case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 			{
 				const int iCSPoint = SiCXSLItemManager()->GetItemCSPoint( pItemTemplet->m_ItemID );
 
@@ -1631,12 +1851,19 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 				kPacketToDB.m_iUnitUID = GetCharUID();
 				kPacketToDB.m_sAgencyPeriod = kPacket_.m_usProductExpire;
 				kPacketToDB.m_usEventID = EGS_GET_PURCHASED_CASH_ITEM_REQ;
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+                kPacketToDB.m_cShopType = SEnum::AST_PREMIUM;
+#else //SERV_UPGRADE_TRADE_SYSTEM
+				kPacketToDB.m_cShopType = CXSLSquareUnit::PST_PREMIUM;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 				SendToGameDB( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ, kPacketToDB );
 				return;
 			}
 			break;
 			//}}
 
+#ifdef SERV_GUILD_CHANGE_NAME
 			//{{ 2012. 02. 22	박세훈	길드 이름 변경권
 		case CXSLItem::CI_GUILD_NAME_CHANGE:
 			{
@@ -1649,6 +1876,7 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 				return;
 			}
 			break;
+#endif SERV_GUILD_CHANGE_NAME
 
 			//{{ 2013. 2. 28	박세훈	 빙고 이벤트
 #ifdef SERV_EVENT_BINGO
@@ -1677,6 +1905,15 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 			break;
 #endif SERV_EVENT_BINGO
 			//}}
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		case CXSLItem::CI_EXPAND_SKILL_PAGE:
+			{
+				SendExpandSkillPageReqToGameDB( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK, kPacket_.m_usProductPieces * kPacket_.m_usOrderQuantity );
+				return;
+			}
+			break;
+#endif	// SERV_SKILL_PAGE_SYSTEM
 #ifdef SERV_ADD_WARP_BUTTON
 		case CXSLItem::CI_WARP_VIP_ITEM:
 #ifdef SERV_VIP_SYSTEM
@@ -1776,12 +2013,11 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 					kPacket.m_usEventID = EGS_BUY_CASH_ITEM_REQ;
 					kPacket.m_iUnitUID = GetCharUID();
 					kPacket.m_cUnitClass = CXSLItem::GetCashItemChangeUnitClass( pItemTemplet->m_ItemID );
-					//{{ 2012. 07. 12	김민성       전직권 구매 이벤트
-#ifdef SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-					kPacket.m_iItemID = iItemID;
-#endif SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-					//}}
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+					kPacket.m_iTheNumberOfSkillPagesAvailable = m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
+					
 					int iDefaultSkill[6] = {0,};
 					if( SiCXSLSkillTree()->GetUnitClassDefaultSkill( kPacket.m_cUnitClass, iDefaultSkill[0], iDefaultSkill[1], iDefaultSkill[2], iDefaultSkill[3], iDefaultSkill[4], iDefaultSkill[5] ) == false )
 					{
@@ -2873,11 +3109,6 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK )
 					kPacket.m_usEventID = EGS_BUY_CASH_ITEM_REQ;
 					kPacket.m_iUnitUID = GetCharUID();
 					kPacket.m_cUnitClass = CXSLItem::GetCashItemChangeUnitClass( pItemTemplet->m_ItemID );
-					//{{ 2012. 07. 12	김민성       전직권 구매 이벤트
-#ifdef SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-					kPacket.m_iItemID = iItemID;
-#endif SERV_BUY_SECOND_JOB_CHANGE_ITEM_EVENT
-					//}}
 
 					SendToGameDB( DBE_CHANGE_UNIT_CLASS_REQ, kPacket );
 					return;
@@ -3080,26 +3311,45 @@ IMPL_ON_FUNC( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ )
 		return;
 	}
 
-	//{{ 2012. 12. 14  캐시 인벤토리에서 아라가 사용 불가능한 아이템 가져오는거 막는 기능 - 김민성
-#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ARA
-	if( GetUnitType() == CXSLUnit::UT_ARA )
+	switch ( GetUnitType() )
 	{
-		switch( iItemID )
+
+#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ARA
+	case CXSLUnit::UT_ARA:
+#endif // SERV_CAN_NOT_GET_CASH_ITEM_ARA
+
+#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ELESIS
+	case CXSLUnit::UT_ELESIS:
+#endif // SERV_CAN_NOT_GET_CASH_ITEM_ELESIS
+
+#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ADD
+	case CXSLUnit::UT_ADD:
+#endif // SERV_CAN_NOT_GET_CASH_ITEM_ADD
 		{
+			switch( iItemID )
+			{
 			case 160570:		// 리폼 웨딩 무기 큐브
 			case 160571:		// 리폼 웨딩 상의 큐브
 			case 160572:		// 리폼 웨딩 하의 큐브
 			case 160573:		// 리폼 웨딩 장갑 큐브
 			case 160574:		// 리폼 웨딩 신발 큐브
 			case 160575:		// 리폼 웨딩 헤어 큐브
-			{
-				KEGS_GET_PURCHASED_PACKAGE_CASH_ITEM_ACK kPacket;
-				kPacket.m_iOK = NetError::ERR_NX_SHOP_10;
-				SendPacket( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_ACK, kPacket );
-				return;
-			}break;
-		}
+				{
+					KEGS_GET_PURCHASED_CASH_ITEM_ACK kPacket;
+					kPacket.m_iOK = NetError::ERR_NX_SHOP_07;
+					SendPacket( EGS_GET_PURCHASED_CASH_ITEM_ACK, kPacket );
+					return;
+				}break;
+			}
+
+		} break;
+
+	default:
+		break;
 	}
+
+	//{{ 2012. 12. 14  캐시 인벤토리에서 아라가 사용 불가능한 아이템 가져오는거 막는 기능 - 김민성
+#ifdef SERV_CAN_NOT_GET_CASH_ITEM_ARA
 
 	switch( iItemID )
 	{
@@ -3251,6 +3501,9 @@ IMPL_ON_FUNC( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ )
 #ifdef SERV_CASH_ITEM_FOR_ELESIS	// 적용날짜: 2013-07-11
 			case CXSLItem::CI_EXPAND_SKILL_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
+#ifdef SERV_CASH_ITEM_FOR_ADD
+			case CXSLItem::CI_EXPAND_SKILL_SLOT_ADD:
+#endif	// SERV_CASH_ITEM_FOR_ADD
 				{
 					KUserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE eSkillSlotBExpireState = m_kSkillTree.GetSkillSlotBExpirationState();
 					if( KUserSkillTree::SSBES_PERMANENT == eSkillSlotBExpireState )
@@ -3383,6 +3636,19 @@ IMPL_ON_FUNC( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ )
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
 #endif SERV_EXPAND_QUICK_SLOT
 					//}}
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			case CXSLItem::CI_EXPAND_SKILL_PAGE:
+				{
+					if ( !m_kSkillTree.CanExpandSkillPage() )
+					{
+						KEGS_GET_PURCHASED_PACKAGE_CASH_ITEM_ACK kPacket;
+						kPacket.m_iOK = NetError::ERR_SKILL_PAGE_02;
+						SendPacket( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_ACK, kPacket );
+						return;
+					}
+				}break;
+#endif // SERV_SKILL_PAGE_SYSTEM
 			}
 
 			// 8. 인벤토리에 여유공간 검사를 위한 준비
@@ -3457,20 +3723,62 @@ IMPL_ON_FUNC( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ )
 				case CXSLItem::CI_CASH_SKILL_POINT_60_30:
 				case CXSLItem::CI_CASH_SKILL_POINT_30_15:
 				case CXSLItem::CI_CASH_SKILL_POINT_30_30:
+#ifdef SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
+				case CXSLItem::EI_SKILL_POINT_130_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_130_1DAY_USE_INVEN
 #ifdef SERV_CASH_SKILL_POINT_TW
 				case CXSLItem::CI_CASH_SKILL_POINT_30_7:
 				case CXSLItem::CI_CASH_SKILL_POINT_60_7:
 #endif SERV_CASH_SKILL_POINT_TW
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+				case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN:
+				case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
+				case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
+				case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
+				case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
+				case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+#ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+				case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
+				case CXSLItem::EI_SKILL_POINT_30_1DAY_USE_INVEN:
+#endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
+				case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+				case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+				case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP:
+#endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_GNOSIS_BR
+				case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
+				case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
+				case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+				case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+				case CXSLItem::EI_SKILL_POINT_30_14DAY_USE_INVEN:
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+				case CXSLItem::EI_LURIEL_GNOSIS_30_15DAY:
+				case CXSLItem::EI_LURIEL_GNOSIS_30_30DAY:
+				case CXSLItem::EI_LURIEL_GNOSIS_30_60DAY:
+				case CXSLItem::EI_LURIEL_GNOSIS_60_15DAY:
+				case CXSLItem::EI_LURIEL_GNOSIS_60_30DAY:
+				case CXSLItem::EI_LURIEL_GNOSIS_60_60DAY:
+				case CXSLItem::EI_LURIEL_GNOSIS_30_7DAY:
+				case CXSLItem::EI_LURIEL_GNOSIS_60_7DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+				case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 					{
 						if( false == m_kSkillTree.IsCashSkillPointExpired() )
 						{
-							const int iCSPoint = SiCXSLItemManager()->GetItemCSPoint( iItemID );
+							const int iCSPoint = SiCXSLItemManager()->GetItemCSPoint( kPickUpPackageInfo.m_iSubProductNo );
 
 							if( iCSPoint <= 0 )
 							{
 								KEGS_GET_PURCHASED_CASH_ITEM_ACK kPacket;
 								kPacket.m_iOK = NetError::ERR_RESET_SKILL_01;
-								SendPacket( EGS_GET_PURCHASED_CASH_ITEM_ACK, kPacket );
+								SendPacket( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_ACK, kPacket );
 								return;
 							}
 
@@ -3478,7 +3786,7 @@ IMPL_ON_FUNC( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ )
 							{
 								KEGS_GET_PURCHASED_CASH_ITEM_ACK kPacket;
 								kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_32;				// fix!! 에러메세지 수정
-								SendPacket( EGS_GET_PURCHASED_CASH_ITEM_ACK, kPacket );
+								SendPacket( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_ACK, kPacket );
 								return;
 							}
 						}
@@ -3542,7 +3850,6 @@ IMPL_ON_FUNC( EGS_GET_PURCHASED_PACKAGE_CASH_ITEM_REQ )
 		UidType anTrace[2] = { GetUID(), -1 };
 		spEvent->SetData( PI_GS_NX_BILLING_TCP, anTrace, ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_REQ, kPacket );
 		SiKNexonBillingTCPManager()->QueueingEvent( spEvent );
-
 #endif // SERV_GLOBAL_BILLING
 	}
 	//////////////////////////////////////////////////////////////////////////
@@ -3629,6 +3936,14 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_ACK )
 	switch( pItemTemplet->m_ItemID )
 	{
 	case CXSLItem::CI_EXPAND_INVENTORY:
+#ifdef SERV_GLOBAL_BILLING
+	case CXSLItem::CI_EXPAND_INVENTORY_EQUIP:
+	case CXSLItem::CI_EXPAND_INVENTORY_ACCESSORY:
+	case CXSLItem::CI_EXPAND_INVENTORY_QUICK_SLOT:
+	case CXSLItem::CI_EXPAND_INVENTORY_MATERIAL:
+	case CXSLItem::CI_EXPAND_INVENTORY_QUEST:
+	case CXSLItem::CI_EXPAND_INVENTORY_SPECIAL:
+#endif //SERV_GLOBAL_BILLING
 	case CXSLItem::CI_EXPAND_SKILL_SLOT:
 		//{{ 2011. 11. 30	최육사	패키지 상품 추가
 #ifdef SERV_ADD_PACKAGE_PRODUCT
@@ -3647,10 +3962,11 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_ACK )
 #endif //SERV_USE_GNOSIS_IN_PACKAGE
 
 #endif // SERV_UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	case CXSLItem::CI_EXPAND_SKILL_PAGE:
+#endif // SERV_SKILL_PAGE_SYSTEM
 		{
-			START_LOG( cerr, L"패키지 구성상품이 아닌 특수 아이템이 포함되어 있다!")
-				<< BUILD_LOG( iItemID )
-				<< END_LOG;
 			kPacket.m_iOK = NetError::ERR_NX_SHOP_01;
 			goto end_proc;
 		}
@@ -3667,6 +3983,10 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_ACK )
 #ifdef SERV_CASH_ITEM_FOR_ELESIS	// 적용날짜: 2013-07-11
 	case CXSLItem::CI_EXPAND_SKILL_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
+#ifdef SERV_CASH_ITEM_FOR_ADD
+	case CXSLItem::CI_EXPAND_SKILL_SLOT_ADD:
+#endif	// SERV_CASH_ITEM_FOR_ADD
+
 		{
 			if( kPickUpPackageInfo.GetProductExpire() != 0 )
 			{
@@ -3761,10 +4081,17 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_ACK )
 #ifdef SERV_CASH_ITEM_FOR_ELESIS	// 적용날짜: 2013-07-11
 	case CXSLItem::CI_EXPAND_SKILL_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
+#ifdef SERV_CASH_ITEM_FOR_ADD
+	case CXSLItem::CI_EXPAND_SKILL_SLOT_ADD:
+#endif	// SERV_CASH_ITEM_FOR_ADD
+
 		{
 			KDBE_EXPAND_SKILL_SLOT_REQ kPacketToDB;
 			kPacketToDB.m_iUnitUID		= GetCharUID();
 			kPacketToDB.m_iPeriodExpire = 0;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			kPacketToDB.m_usTheNumberOfSkillPagesAvailable = m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
 			kPacketToDB.m_usEventID		= ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_ACK;
 			SendToGameDB( DBE_EXPAND_SKILL_SLOT_REQ, kPacketToDB );
 
@@ -3778,6 +4105,9 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_ACK )
 			KDBE_EXPAND_SKILL_SLOT_REQ kPacketToDB;
 			kPacketToDB.m_iUnitUID		= GetCharUID();
 			kPacketToDB.m_iPeriodExpire = kPickUpPackageInfo.GetProductExpire();
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			kPacketToDB.m_usTheNumberOfSkillPagesAvailable = m_kSkillTree.GetTheNumberOfSkillPagesAvailable();
+#endif // SERV_SKILL_PAGE_SYSTEM
 			kPacketToDB.m_usEventID		= ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_ACK;
 			SendToGameDB( DBE_EXPAND_SKILL_SLOT_REQ, kPacketToDB );
 
@@ -3785,80 +4115,6 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_ACK )
 			goto end_proc;
 		}
 		break;
-#ifdef SERV_USE_GNOSIS_IN_PACKAGE
-#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013// 작업날짜: 2013-06-25	// 박세훈
-	case CXSLItem::CI_CASH_SKILL_POINT_60_15:
-	case CXSLItem::CI_CASH_SKILL_POINT_60_30:
-	case CXSLItem::CI_CASH_SKILL_POINT_30_15:
-	case CXSLItem::CI_CASH_SKILL_POINT_30_30:
-#else // SERV_UPGRADE_SKILL_SYSTEM_2013
-	case CXSLItem::CI_CASH_SKILL_POINT_5:
-	case CXSLItem::CI_CASH_SKILL_POINT_10:
-#endif // SERV_UPGRADE_SKILL_SYSTEM_2013
-		{
-			const int iCSPoint = SiCXSLItemManager()->GetItemCSPoint( pItemTemplet->m_ItemID );
-
-			if( iCSPoint <= 0 )
-			{
-				kPacket.m_iOK = NetError::ERR_RESET_SKILL_01;
-				goto end_proc;
-			}
-
-			if( true == m_kSkillTree.IsCashSkillPointExpired() )
-			{
-				KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-				kPacket.m_iUnitUID	= GetCharUID();
-				kPacket.m_iCSPoint	= iCSPoint;
-				//{{ 2009. 12. 2  최육사	캐쉬템기간타입변경
-				kPacket.m_iPeriod	= kPickUpPackageInfo.GetProductExpire();
-				//}}
-				kPacket.m_bUpdateEndDateOnly = false;
-				//{{ 2010. 12. 8	최육사	이벤트용 그노시스 축복
-#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM
-				kPacket.m_iSkillPointItemID = pItemTemplet->m_ItemID;
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM
-				//}}
-				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-			}
-			else
-			{
-				if( iCSPoint == m_kSkillTree.GetMaxCSPoint() )
-				{
-					KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-					kPacket.m_iUnitUID = GetCharUID();
-					kPacket.m_iCSPoint = iCSPoint;
-					//{{ 2009. 12. 2  최육사	캐쉬템기간타입변경
-					kPacket.m_iPeriod = kPickUpPackageInfo.GetProductExpire();
-					//}}
-					kPacket.m_bUpdateEndDateOnly = true;
-					//{{ 2010. 12. 8	최육사	이벤트용 그노시스 축복
-#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM
-					kPacket.m_iSkillPointItemID = pItemTemplet->m_ItemID;
-#endif SERV_EVENT_CASH_SKILL_POINT_ITEM
-					//}}
-					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-				}
-				else
-				{
-					START_LOG( cerr, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!!" )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( pItemTemplet->m_ItemID )
-						//{{ 2009. 12. 2  최육사	캐쉬템기간타입변경
-						<< BUILD_LOG( kPickUpPackageInfo.GetProductExpire() )
-						//}}
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-
-					kPacket.m_iOK = NetError::ERR_NX_SHOP_01;
-					goto end_proc;
-				}
-			}
-
-			kPacket.m_iOK = NetError::NET_OK;
-			goto end_proc;
-		} break;
-#endif //SERV_USE_GNOSIS_IN_PACKAGE
 #endif SERV_ADD_PACKAGE_PRODUCT
 		//}}
 
@@ -3943,6 +4199,61 @@ IMPL_ON_FUNC( ENX_BT_NISMS_INVENTORY_PICK_UP_FOR_PACKAGE_ACK )
 		break;
 #endif SERV_EVENT_BINGO
 		//}}
+#ifdef SERV_USE_GNOSIS_IN_PACKAGE
+	case CXSLItem::CI_CASH_SKILL_POINT_30_15:
+	case CXSLItem::CI_CASH_SKILL_POINT_30_30:
+	case CXSLItem::CI_CASH_SKILL_POINT_60_15:
+	case CXSLItem::CI_CASH_SKILL_POINT_60_30:
+		{
+			const int iCSPoint = SiCXSLItemManager()->GetItemCSPoint( iItemID );
+			if( iCSPoint <= 0 )
+			{
+				kPacket.m_iOK =  NetError::ERR_RESET_SKILL_01;
+				goto end_proc;
+			}
+
+			if( true == m_kSkillTree.IsCashSkillPointExpired() )
+			{
+				KDBE_INSERT_CASH_SKILL_POINT_REQ kPacketToDB;
+				kPacketToDB.m_iUnitUID	= GetCharUID();
+				kPacketToDB.m_iCSPoint	= iCSPoint;;
+				kPacketToDB.m_iPeriod	= kPickUpPackageInfo.GetProductExpire();
+				kPacketToDB.m_bUpdateEndDateOnly = false;
+				kPacketToDB.m_iSkillPointItemID = iItemID;
+				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacketToDB );
+			}
+			else
+			{
+				if( iCSPoint == m_kSkillTree.GetMaxCSPoint() )
+				{
+					KDBE_INSERT_CASH_SKILL_POINT_REQ kPacketToDB;
+					kPacketToDB.m_iUnitUID = GetCharUID();
+					kPacketToDB.m_iCSPoint = iCSPoint;
+					kPacketToDB.m_iPeriod = kPickUpPackageInfo.GetProductExpire();
+					kPacketToDB.m_bUpdateEndDateOnly = true;
+					kPacketToDB.m_iSkillPointItemID = iItemID;
+					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacketToDB );
+				}
+				else
+				{
+					START_LOG( cerr, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!!" )
+						<< BUILD_LOG( GetCharUID() )
+						<< BUILD_LOG( pItemTemplet->m_ItemID )
+						<< BUILD_LOG( kPickUpPackageInfo.GetProductExpire() )
+						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
+						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
+						<< END_LOG;
+
+					kPacket.m_iOK =  NetError::ERR_NX_SHOP_01;
+					goto end_proc;
+				}
+			}
+
+			kPacket.m_iOK = NetError::NET_OK;
+			goto end_proc;
+		}
+		break;
+#endif // SERV_USE_GNOSIS_IN_PACKAGE
 
 	default:
 		// 7. 인벤토리에 넣기
@@ -4141,7 +4452,6 @@ IMPL_ON_FUNC( EGS_CASH_PRODUCT_INFO_REQ )
 	//}}
 	SendPacket( EGS_CASH_PRODUCT_INFO_ACK, kPacket );
 }
-
 
 #ifndef SERV_GLOBAL_BILLING
 IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
@@ -4406,6 +4716,10 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 #ifdef SERV_CASH_ITEM_FOR_ELESIS	// 적용날짜: 2013-07-11
 		case CXSLItem::CI_EXPAND_SKILL_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
+#ifdef SERV_CASH_ITEM_FOR_ADD
+		case CXSLItem::CI_EXPAND_SKILL_SLOT_ADD:
+#endif	// SERV_CASH_ITEM_FOR_ADD
+
 			{
 				KNXBTProductInfo kProductInfo;
 				if( !SiKNexonBillingTCPManager()->GetProductInfo( vit->m_ulProductNo, kProductInfo ) )
@@ -4654,6 +4968,62 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
 #endif SERV_EXPAND_QUICK_SLOT
 			//}}
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		case CXSLItem::CI_EXPAND_SKILL_PAGE:
+			{
+				KNXBTProductInfo kProductInfo;
+				if( !SiKNexonBillingTCPManager()->GetProductInfo( vit->m_ulProductNo, kProductInfo ) )
+				{
+					START_LOG( cerr, L"프로덕트 정보 추출 실패." )
+						<< BUILD_LOG( GetCharUID() )
+						<< BUILD_LOG( GetCharName() )
+						<< BUILD_LOG( vit->m_ulProductNo )
+						<< END_LOG;
+
+					KEGS_BUY_CASH_ITEM_ACK kPacket;
+					kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_00;
+					SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
+					return;
+				}
+
+				switch ( GetStateID() )
+				{
+				case KGSFSM::S_FIELD_MAP:
+					break;
+
+				default:
+					{
+						KEGS_BUY_CASH_ITEM_ACK kPacket;
+						kPacket.m_iOK = NetError::ERR_SKILL_PAGE_08;
+						SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
+						return;
+					} break;
+				}
+
+				/// 구매한 확장권 개수가 최대로 확장할 수 있는 수보다 크면 구입 실패
+				const int iTheNumberOfSkillPagesToBeAdded
+					= kProductInfo.m_usProductPieces * vit->m_usOrderQuantity;
+
+				if ( !m_kSkillTree.CanExpandSkillPage( iTheNumberOfSkillPagesToBeAdded ) )
+				{
+					KEGS_BUY_CASH_ITEM_ACK kPacket;
+
+					const int iTheNumberOfSkillPagesRemainedToLimit
+						= KUserSkillTree::MAX_COUNT_OF_PAGES_AVAILABLE - static_cast<int>( m_kSkillTree.GetTheNumberOfSkillPagesAvailable() );
+
+					// 2개권을 사려고 하는데 1페이지만 확장 가능 할 때
+					if ( iTheNumberOfSkillPagesToBeAdded == 2 &&
+						 iTheNumberOfSkillPagesRemainedToLimit == 1 )
+						kPacket.m_iOK = NetError::ERR_SKILL_PAGE_09;
+					else
+						kPacket.m_iOK = NetError::ERR_SKILL_PAGE_02;
+
+					SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
+					return;
+				}
+			}break;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 #ifdef SERV_CASHITEM_PURCHASE_RESTRICTION
 		case CXSLItem::CI_ICE_BURNER:
 		case CXSLItem::CI_OFFICER_EVE_ICE_BURNER:
@@ -4811,7 +5181,11 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 							}
 
 							// 혹시나해서 스킬찍었는지도 검사해봄
+#ifdef SERV_SKILL_PAGE_SYSTEM
+							if ( m_kSkillTree.IsExistOnUsedPage( iSkillID ) )
+#else // SERV_SKILL_PAGE_SYSTEM
 							if( m_kSkillTree.IsExist( iSkillID ) )
+#endif // SERV_SKILL_PAGE_SYSTEM
 							{
 								START_LOG( cerr, L"봉인해제도 안되었는데 스킬이 찍혔다? 절대 일어나서는 안되는 에러!" )
 									<< BUILD_LOG( GetCharUID() )
@@ -4980,6 +5354,11 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 		}
 	}
 
+#ifdef SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
+	if(iInventorySlotToExpand <= 0)  // 카테고리별 인벤토리 확장 버그 수정
+		return;
+#endif //SERV_EXPAND_INVENTORY_BY_EVENT_ITEM
+
 	//{{ 2009. 8. 7  최육사		은행
 	if( iBankSlotToExpand > 0 )
 	{		
@@ -5107,13 +5486,25 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 	CTime tCurrent = CTime::GetCurrentTime();
 	kPacketReq.m_wstrOrderID = ( CStringW )tCurrent.Format( _T( "%Y%m%d%H%M%S" ) );
 	wchar_t wszNumber[32];
+#ifdef _CONVERT_VS_2010
+	_i64tow_s( KBaseServer::GetKObj()->GetUID(), wszNumber, 32, 10 );
+#else
 	_i64tow( KBaseServer::GetKObj()->GetUID(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 	kPacketReq.m_wstrOrderID += L"_";
 	kPacketReq.m_wstrOrderID += wszNumber;
+#ifdef _CONVERT_VS_2010
+	_i64tow_s( GetUID(), wszNumber, 32, 10 );
+#else
 	_i64tow( GetUID(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 	kPacketReq.m_wstrOrderID += L"_";
 	kPacketReq.m_wstrOrderID += wszNumber;
+#ifdef _CONVERT_VS_2010
+	_i64tow_s( SiKNexonBillingTCPManager()->GetNextPurchaseNo(), wszNumber, 32, 10 );
+#else
 	_i64tow( SiKNexonBillingTCPManager()->GetNextPurchaseNo(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 	kPacketReq.m_wstrOrderID += L"_";
 	kPacketReq.m_wstrOrderID += wszNumber;
 
@@ -5156,7 +5547,6 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 	SiKNexonBillingTCPManager()->QueueingEvent( spEvent );
 }
 #endif // ndef SERV_GLOBAL_BILLING
-
 
 _IMPL_ON_FUNC( ENX_BT_PURCHASE_ITEM_ACK, KEGS_BUY_CASH_ITEM_ACK )
 {
@@ -5345,6 +5735,55 @@ _IMPL_ON_FUNC( ENX_BT_PURCHASE_ITEM_ACK, KEGS_BUY_CASH_ITEM_ACK )
 		kPacketToLog.m_iTotalSalePrice	= kReq.m_usOrderQuantity * kProductInfo.m_ulSalePrice;
 		kPacketToLog.m_wstrRegDate		= ( std::wstring )( tCurTime.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
 		SendToLogDB( ELOG_BUY_CASH_ITEM_LOG_NOT, kPacketToLog );
+
+#ifdef SERV_NAVER_CHANNELING
+        // TODO : 네이버 채널링 , 캐시 아이템 구매 고지.
+        if( GetChannelCode() == KNexonAccountInfo::CE_NAVER_ACCOUNT )  // 네이버 채널링 유저
+        {
+            int iItemID = SiKNexonBillingTCPManager()->GetItemID( kProductInfo.m_ulProductNo );
+            if( iItemID <= 0 )
+            {
+                START_LOG( cerr, L"아이템 ID 변환 실패." )
+                    << BUILD_LOG( kProductInfo.m_ulProductNo )
+                    << BUILD_LOG( iItemID )
+                    << END_LOG;
+                continue;
+            }
+            
+            std::wstring wstrMessage = std::wstring();
+            const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( iItemID );
+            if( pItemTemplet == NULL )
+            {
+                START_LOG( cerr, L"아이템 템플릿을 얻지 못함." )
+                    << BUILD_LOG( iItemID )
+                    << END_LOG;
+                continue;
+            }
+            std::wstring wstrItemName = pItemTemplet->m_Name;
+
+            wstrMessage = L"게임명: 엘소드 \n";
+            wstrMessage += L"아이템명: " + wstrItemName + L"\n"
+            //wstrMessage += wstrItemName + L"\n";
+                + L"가격: " + boost::lexical_cast<std::wstring>(kProductInfo.m_ulSalePrice) + L"\n"
+                + L"구입수량: " + boost::lexical_cast<std::wstring>(kProductInfo.m_usProductPieces * kReq.m_usOrderQuantity) + L"\n" 
+                + L"구매날짜: " + kPacketToLog.m_wstrRegDate + L"\n" 
+                + L"배송여부: 완료" + L"\n" 
+                + L"청약철회: \n"
+                + L"-재화(아이템)의 공급을 받은 날로부터 7일 이내 청약 철회 가능(단, 일부 아이템의 경우 청약철회가 불가능) \n"
+                + L"-상세 내용 확인 하기( http://help.nexon.com/faq/31/2/4156 ) \n"
+                + L"넥슨 이용약관 및 캐시 이용약관 확인하기( https://member.nexon.com/policy/stipulation.aspx ) \n"
+                + L"문의 메일 등 고객센터 이용방법( http://help.nexon.com/help/page/nx.aspx?url=qna/qnaguide )";
+
+            KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+            kPacketToDB.m_iFromUnitUID = GetCharUID();
+            kPacketToDB.m_iToUnitUID   = GetCharUID();
+            kPacketToDB.m_iRewardType  = KPostItemInfo::LT_MESSAGE; // 보상 타입
+            kPacketToDB.m_iRewardID	   = 0;
+            kPacketToDB.m_wstrMessage  = wstrMessage; // TODO : 구매 고지 내용
+            SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+        }
+
+#endif SERV_NAVER_CHANNELING
 	}
 #endif SERV_BUY_CASH_ITEM_LOG
 	//}}
@@ -5368,6 +5807,24 @@ IMPL_ON_FUNC( EGS_PRESENT_CASH_ITEM_REQ )
 	}
 #endif SERV_CONTENT_MANAGER
 	//}}
+
+#ifdef SERV_COUNTRY_PH
+	if ( GetLevel() < 15)
+	{
+		KEGS_PRESENT_CASH_ITEM_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_BUY_CASH_ITEM_40;
+		SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacketAck );
+		return;
+	}
+
+	KEBILL_GARENA_PREPARE_PRESENT_CHECK_REQ kPacketCheckReq;
+	kPacketCheckReq.m_kEGSPresentCashItemREQ = kPacket_;
+	kPacketCheckReq.m_iUserUID = GetUID();
+
+	SendToKOGBillingDB( EBILL_GARENA_PREPARE_PRESENT_CHECK_REQ, kPacketCheckReq );
+
+	return; // 2013.09.11 lygan_조성욱 // 동남아시아는 사전에 선물 제한에 걸리는지 체크를 해야 한다. 국내와 같이 사용하는 cpp이고 이 아래에 전부 국가 디파인 #else 걸었을때 코드 보기에 안좋아서 그냥 코드상 여기서 return 으로 끊어줬음
+#endif //SERV_COUNTRY_PH
 
 	//{{ 2012. 09. 25	박세훈	빙고 이벤트
 #ifdef SERV_EVENT_BINGO
@@ -5411,13 +5868,11 @@ IMPL_ON_FUNC( EGS_PRESENT_CASH_ITEM_REQ )
 		return;
 	}
 
-
 #ifndef SERV_GLOBAL_BILLING
-
 	// 비밀번호 입력 체크
 	//{{ 2011. 07. 27    김민성    투니랜드 채널링
 #ifdef SERV_TOONILAND_CHANNELING
-	if( GetChannelCode() != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
+	if( GetChannelCode() == KNexonAccountInfo::CE_NEXON_ACCOUNT )
 #endif SERV_TOONILAND_CHANNELING
 	//}}
 	if( kPacket_.m_wstrPassword.empty() )
@@ -5452,7 +5907,6 @@ IMPL_ON_FUNC( EGS_PRESENT_CASH_ITEM_REQ )
 	//}}
 #endif SERV_NEXON_AUTH_SOAP
 	//}
-
 #endif // ndef SERV_GLOBAL_BILLING
 
 	// 쿼리에 직접 들어갈 문자열이므로 injection 대비 검사를 한다.
@@ -5545,6 +5999,14 @@ IMPL_ON_FUNC( EGS_PRESENT_CASH_ITEM_REQ )
 #ifdef SERV_CASH_ITEM_FOR_ELESIS	// 적용날짜: 2013-07-11
 		case CXSLItem::CI_EXPAND_SKILL_SLOT_ELESIS:
 #endif	// SERV_CASH_ITEM_FOR_ELESIS
+#ifdef SERV_CASH_ITEM_FOR_ADD
+		case CXSLItem::CI_EXPAND_SKILL_SLOT_ADD:
+#endif	// SERV_CASH_ITEM_FOR_ADD
+
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		case CXSLItem::CI_EXPAND_SKILL_PAGE:
+#endif // SERV_SKILL_PAGE_SYSTEM
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
 		case CXSLItem::CI_UNLIMITED_CHANGE_SECOND_JOB: //무제한 2차 전직 아이템
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
@@ -5581,15 +6043,13 @@ IMPL_ON_FUNC( EGS_PRESENT_CASH_ITEM_REQ )
 	kPacketToDB.m_iUseCashType = kPacket_.m_iUseCashType;
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 
-
 	SendToGameDB( DBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ, kPacketToDB );
-
 
 #else // SERV_GLOBAL_BILLING
 
 	//{{ 2011. 07. 27    김민성    투니랜드 채널링
 #ifdef SERV_TOONILAND_CHANNELING
-	if( GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )  // 투니랜드 채널링 유저
+	if( GetChannelCode() != KNexonAccountInfo::CE_NEXON_ACCOUNT )  // 투니랜드 채널링 유저
 	{
 		KDBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ kPacketToDB;
 		kPacketToDB.m_wstrReceiverNickName = kPacket_.m_wstrReceiverNickName;
@@ -5605,17 +6065,17 @@ IMPL_ON_FUNC( EGS_PRESENT_CASH_ITEM_REQ )
 	//}}
 
 	//{{ 2012. 04. 06	김민성		넥슨 SSO 모듈 선 적용으로 인하여 비밀번호 검사 기능 제거
-#ifdef SERV_DELETE_PW_CHECK
-	KDBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ kPacketToDB;
-	kPacketToDB.m_wstrReceiverNickName = kPacket_.m_wstrReceiverNickName;
-	kPacketToDB.m_wstrMessage		   = kPacket_.m_wstrMessage;
-	kPacketToDB.m_vecPurchaseReqInfo   = kPacket_.m_vecPurchaseReqInfo;
-#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
-	kPacketToDB.m_bUseCoupon			= kPacket_.m_bUseCoupon;
-#endif // SERV_NEXON_COUPON_SYSTEM
-	SendToGameDB( DBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ, kPacketToDB );
-	return;
-#endif SERV_DELETE_PW_CHECK
+//#ifdef SERV_DELETE_PW_CHECK
+	//KDBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ kPacketToDB;
+	//kPacketToDB.m_wstrReceiverNickName = kPacket_.m_wstrReceiverNickName;
+	//kPacketToDB.m_wstrMessage		   = kPacket_.m_wstrMessage;
+	//kPacketToDB.m_vecPurchaseReqInfo   = kPacket_.m_vecPurchaseReqInfo;
+//#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-07-29	// 박세훈
+//	kPacketToDB.m_bUseCoupon			= kPacket_.m_bUseCoupon;
+//#endif // SERV_NEXON_COUPON_SYSTEM
+	//SendToGameDB( DBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ, kPacketToDB );
+	//return;
+//#endif SERV_DELETE_PW_CHECK
 	//}}
 
 	//{{ 2013. 2. 4	박세훈	사내 선물하기 기능에서 SOAP 체크 끄기
@@ -5641,7 +6101,7 @@ IMPL_ON_FUNC( EGS_PRESENT_CASH_ITEM_REQ )
 	kPacketToSoap.m_iGameCode = KNexonSOAP::NGC_ELSWORD;
 	kPacketToSoap.m_iNexonSN = ( __int64 )m_kNexonAccountInfo.m_uiNexonSN;
 	kPacketToSoap.m_wstrLoginID = GetName();
-	kPacketToSoap.m_wstrPassword = kPacket_.m_wstrPassword;
+	kPacketToSoap.m_strPassword = KncUtil::toNarrowString( kPacket_.m_wstrPassword );
 	kPacketToSoap.m_wstrReceiverNickName = kPacket_.m_wstrReceiverNickName;
 	kPacketToSoap.m_wstrMessage		   = kPacket_.m_wstrMessage;
 	kPacketToSoap.m_vecPurchaseReqInfo   = kPacket_.m_vecPurchaseReqInfo;
@@ -5671,7 +6131,6 @@ IMPL_ON_FUNC( EGS_PRESENT_CASH_ITEM_REQ )
 #endif SERV_SOAP_CHECK_OFF_FOR_PRESENT_TEST
 	//}}
 #endif // SERV_GLOBAL_BILLING
-	//////////////////////////////////////////////////////////////////////////
 }
 
 IMPL_ON_FUNC( ELG_PRESENT_CASH_ITEM_ACK )
@@ -5763,13 +6222,25 @@ IMPL_ON_FUNC( DBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_ACK )
 	CTime tCurrent = CTime::GetCurrentTime();
 	kPacketReq.m_wstrOrderID = ( CStringW )tCurrent.Format( _T( "%Y%m%d%H%M%S" ) );
 	wchar_t wszNumber[32];
+#ifdef _CONVERT_VS_2010
+	_i64tow_s( KBaseServer::GetKObj()->GetUID(), wszNumber, 32, 10 );
+#else
 	_i64tow( KBaseServer::GetKObj()->GetUID(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 	kPacketReq.m_wstrOrderID += L"_";
 	kPacketReq.m_wstrOrderID += wszNumber;
+#ifdef _CONVERT_VS_2010
+	_i64tow_s( GetUID(), wszNumber, 32, 10 );
+#else
 	_i64tow( GetUID(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 	kPacketReq.m_wstrOrderID += L"_";
 	kPacketReq.m_wstrOrderID += wszNumber;
+#ifdef _CONVERT_VS_2010
+	_i64tow_s( SiKNexonBillingTCPManager()->GetNextPurchaseNo(), wszNumber, 32, 10 );
+#else
 	_i64tow( SiKNexonBillingTCPManager()->GetNextPurchaseNo(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 	kPacketReq.m_wstrOrderID += L"_";
 	kPacketReq.m_wstrOrderID += wszNumber;
 
@@ -5869,13 +6340,25 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_AUTOMATIC_PAYMENT_REQ )
 	tCurrent = CTime::GetCurrentTime();
 	kPacket.m_wstrTransactionID = ( CStringW )tCurrent.Format( _T( "%Y%m%d%H%M%S" ) );
 	wchar_t wszNumber[32];
+#ifdef _CONVERT_VS_2010
+	_i64tow_s( KBaseServer::GetKObj()->GetUID(), wszNumber, 32, 10 );
+#else
 	_i64tow( KBaseServer::GetKObj()->GetUID(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 	kPacket.m_wstrTransactionID += L"_";
 	kPacket.m_wstrTransactionID += wszNumber;
+#ifdef _CONVERT_VS_2010
+	_i64tow_s( GetUID(), wszNumber, 32, 10 );
+#else
 	_i64tow( GetUID(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 	kPacket.m_wstrTransactionID += L"_";
 	kPacket.m_wstrTransactionID += wszNumber;
+#ifdef _CONVERT_VS_2010
+	_i64tow_s( SiKNexonBillingTCPManager()->GetNextPurchaseNo(), wszNumber, 32, 10 );
+#else
 	_i64tow( SiKNexonBillingTCPManager()->GetNextPurchaseNo(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 	kPacket.m_wstrTransactionID += L"_";
 	kPacket.m_wstrTransactionID += wszNumber;
 
@@ -5948,8 +6431,6 @@ IMPL_ON_FUNC( ENX_BT_CHECK_AUTO_PAYMENT_USER_ACK )
 
 _IMPL_ON_FUNC( ENX_BT_PURCHASE_GIFT_ACK, KEGS_PRESENT_CASH_ITEM_ACK )
 {
-
-	// 해외에서는 해당 코드 안 씀 
 #ifndef SERV_GLOBAL_BILLING
 	// 상태 막을까?
 
@@ -6058,7 +6539,6 @@ _IMPL_ON_FUNC( ENX_BT_PURCHASE_GIFT_ACK, KEGS_PRESENT_CASH_ITEM_ACK )
 	}
 #endif SERV_BUY_CASH_ITEM_LOG
 	//}}
-
 #endif // SERV_GLOBAL_BILLING
 }
 
@@ -6121,7 +6601,14 @@ IMPL_ON_FUNC( DBE_INSERT_CASH_SKILL_POINT_ACK )
 
 	if( false == kPacket_.m_bUpdateEndDateOnly )
 	{
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		// kimhc // 김현철 // 그노시스 축복 사용 시, 캐시 스킬 포인트는
+		// 모든 페이지에서 증가 되어야 한다
+		m_kSkillTree.SetCSPointEveryPage( kPacket_.m_iCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 		m_kSkillTree.SetCSPoint( kPacket_.m_iCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
+		
 		m_kSkillTree.SetMaxCSPoint( kPacket_.m_iCSPoint );
 	}
 	m_kSkillTree.SetCSPointEndDate( kPacket_.m_wstrEndDate );
@@ -6136,8 +6623,10 @@ IMPL_ON_FUNC( DBE_INSERT_CASH_SKILL_POINT_ACK )
 		case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
 		case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
 		case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP:
-		case CXSLItem::EI_SKILL_POINT_5_7DAY_USE_INVEN_JP:
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+		case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 		case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN:
 		case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
@@ -6183,6 +6672,10 @@ IMPL_ON_FUNC( DBE_INSERT_CASH_SKILL_POINT_ACK )
 */
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 #endif SERV_EVENT_CASH_SKILL_5_POINT_7_DAY
+#ifdef SERV_GNOSIS_BR
+		case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+		case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
 		//}
 		break;
 
@@ -6220,14 +6713,33 @@ IMPL_ON_FUNC( DBE_EXPIRE_CASH_SKILL_POINT_ACK )
 	// fix!! DB작업에 실패한 경우에 어떻게 예외 처리할지에 대해서 좀 더 고민해봐야함
 	if( kPacket_.m_iOK != NetError::NET_OK )
 	{
+		
+			
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			int iSumSPoint = 0;
+			for ( UINT i = 0; i < kPacket_.m_vecRetrievedSPoint.size(); i++ )
+				iSumSPoint += kPacket_.m_vecRetrievedSPoint[i];
+			
+			START_LOG( cerr, L"cash skill expire 실패, 있을수 없는 에러!" )
+				<< BUILD_LOG( GetCharUID() )
+				<< BUILD_LOG( iSumSPoint )
+				<< BUILD_LOG( kPacket_.m_iOK )
+				<< END_LOG;
+#else // SERV_SKILL_PAGE_SYSTEM
 		START_LOG( cerr, L"cash skill expire 실패, 있을수 없는 에러!" )
 			<< BUILD_LOG( GetCharUID() )
 			<< BUILD_LOG( kPacket_.m_iRetrievedSPoint )
 			<< BUILD_LOG( kPacket_.m_iOK )
 			<< END_LOG;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	}
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	m_kSkillTree.AddSPointEveryPage( kPacket_.m_vecRetrievedSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_iSPoint += kPacket_.m_iRetrievedSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+	
 	m_kSkillTree.ExpireCashSkillPoint();
 
 	//{{ 2010. 07. 04  최육사	스킬 포인트 오류 확인
@@ -6244,7 +6756,7 @@ IMPL_ON_FUNC( DBE_EXPIRE_CASH_SKILL_POINT_ACK )
 				<< BUILD_LOG( GetName() )
 				<< BUILD_LOG( GetCharName() )
 #endif SERV_PRIVACY_AGREEMENT
-				<< BUILD_LOG( kPacket_.m_iRetrievedSPoint )
+				//<< BUILD_LOG( kPacket_.m_iRetrievedSPoint )
 				<< END_LOG;
 		}
 	}
@@ -6253,10 +6765,23 @@ IMPL_ON_FUNC( DBE_EXPIRE_CASH_SKILL_POINT_ACK )
 
 	KEGS_EXPIRE_CASH_SKILL_POINT_NOT kPacket;
 	kPacket.m_iUnitUID = GetCharUID();
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	kPacket.m_vecRetrievedSPoint = kPacket_.m_vecRetrievedSPoint;
+#else // SERV_SKILL_PAGE_SYSTEM
 	kPacket.m_iRetrievedSPoint = kPacket_.m_iRetrievedSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	// kimhc // 김현철 // 2013-11-21 // 모든 스킬 페이지 별로 배운 스킬 정보 얻어오도록!
+	m_kSkillTree.GetHaveSkillList( kPacket.m_vecMapHaveSKill );
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_kSkillTree.GetHaveSkillList( kPacket.m_mapHaveSKill );
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 	SendPacket( EGS_EXPIRE_CASH_SKILL_POINT_NOT, kPacket );
@@ -6327,7 +6852,18 @@ IMPL_ON_FUNC( EGS_MODIFY_WISH_LIST_REQ )
 			}
 
 			//{{ 캐시샵 찜하기 문제 임시 처리
-			if( CXSLItem::IsChangeJobItem( pItemTemplet->m_ItemID )  ||  CXSLItem::IsBankExpandItem( pItemTemplet->m_ItemID ) 
+#ifdef DELETE_EXCEPTION_WISHLIST_CHANGEJOBITEM
+			if( CXSLItem::IsBankExpandItem( pItemTemplet->m_ItemID )
+#else //DELETE_EXCEPTION_WISHLIST_CHANGEJOBITEM
+			
+#ifdef SERV_SKILL_PAGE_SYSTEM
+			if( CXSLItem::IsChangeJobItem( pItemTemplet->m_ItemID )  
+				||  CXSLItem::IsBankExpandItem( pItemTemplet->m_ItemID )
+				|| CXSLItem::IsItemToMakeSkillPageExpanded( pItemTemplet->m_ItemID )
+#else // SERV_SKILL_PAGE_SYSTEM
+			if( CXSLItem::IsChangeJobItem( pItemTemplet->m_ItemID )  ||  CXSLItem::IsBankExpandItem( pItemTemplet->m_ItemID )
+#endif // SERV_SKILL_PAGE_SYSTEM
+#endif //DELETE_EXCEPTION_WISHLIST_CHANGEJOBITEM
 #ifdef SERV_WISH_ITEM_DISABLE
 				|| CXSLItem::IsPossibleCart( pItemTemplet->m_ItemID) == false
 #endif // SERV_WISH_ITEM_DISABLE
@@ -6552,8 +7088,9 @@ _IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_ACK, KDBE_BUY_UNIT_CLASS_CHANGE_REQ )
 // 			<< BUILD_LOG( GetCharName() )
 // 			<< END_LOG;
 // 
- 		KEGS_GET_PURCHASED_CASH_ITEM_ACK kPacket;
+ 		KEGS_GET_PURCHASED_CASH_ITEM_ACK kPacket;				// 근데 이거 해외팀 패킷에 맞는 걸로 바꿔야하는거 아닌가?
  		kPacket.m_iOK = NetError::NET_OK;
+        kPacket.m_iNumResurrectionStone = m_iNumResurrectionStone;
  		SendPacket( EGS_GET_PURCHASED_CASH_ITEM_ACK, kPacket );
 // 		return;
 // 	}
@@ -6566,13 +7103,44 @@ _IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_ACK, KDBE_BUY_UNIT_CLASS_CHANGE_REQ )
 	m_kSkillTree.SetUnitClass( (int) GetUnitClass() );
 	
 	// 배운스킬 삭제.. 장착스킬 제거
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	m_kSkillTree.ResetEveryPage();
+#else // SERV_SKILL_PAGE_SYSTEM
 	m_kSkillTree.Reset( true, true, false, false, false );
-
+#endif // SERV_SKILL_PAGE_SYSTEM
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	//스킬포인트 새로 셋팅.
+	m_kSkillTree.SetSPointEveryPage( kPacket_.m_iSPoint );
+	m_kSkillTree.SetCSPointEveryPage( kPacket_.m_iCSPoint );
+#else // SERV_SKILL_PAGE_SYSTEM
 	//스킬포인트 새로 셋팅.
 	m_iSPoint.SetValue( kPacket_.m_iSPoint );
 	m_kSkillTree.SetCSPoint( kPacket_.m_iCSPoint );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 	// 기본 스킬 넣기
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	// kimhc // 김현철 // 2013-11-17
+	// 전직 변경 시에는 모든 스킬 페이지에 초기화 적용 되도록 함
+
+#ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
+	m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iDefaultSkillID1, 1, 0 );
+	m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iDefaultSkillID2, 1, 0 );
+	m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iDefaultSkillID3, 1, 0 );
+	m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iDefaultSkillID4, 1, 0 );
+	m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iDefaultSkillID5, 1, 0 );
+	m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iDefaultSkillID6, 1, 0 );
+#else	// SERV_UPGRADE_SKILL_SYSTEM_2013
+/*
+	m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iDefaultSkillID, 1, 0 );
+	m_kSkillTree.CheckAndUpdateSkillLevelAndCSPOnEveryPage( kPacket_.m_iDefaultSkillID2, 1, 0 );
+*/
+#endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+
+
+#else // SERV_SKILL_PAGE_SYSTEM
+	
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 	m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iDefaultSkillID1, 1, 0 );
 	m_kSkillTree.SetSkillLevelAndCSP( kPacket_.m_iDefaultSkillID2, 1, 0 );
@@ -6587,11 +7155,16 @@ _IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_ACK, KDBE_BUY_UNIT_CLASS_CHANGE_REQ )
 */
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	// skill 설정
 	m_kSkillTree.SetClassChangeSkill( kPacket_.m_mapChangeSkill );
 
+#ifdef SERV_REFORM_SKILL_NOTE
+#else // SERV_REFORM_SKILL_NOTE
 	// memo 설정
 	m_kSkillTree.SetClassChangeMemo( kPacket_.m_mapChangeMemo );
+#endif // SERV_REFORM_SKILL_NOTE
 
 	// item 설정
 	m_kInventory.SetClassChangeItem( kPacket_.m_mapChangeItem, kNot.m_vecChangeItem );
@@ -6605,7 +7178,12 @@ _IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_ACK, KDBE_BUY_UNIT_CLASS_CHANGE_REQ )
 	
 	kNot.m_iUnitUID						= kPacket_.m_iUnitUID;
 	kNot.m_iNewUnitClass				= kPacket_.m_iNewUnitClass;
+	
+#ifdef SERV_REFORM_SKILL_NOTE
+#else // EGS_BUY_UNIT_CLASS_CHANGE_NOT
 	m_kSkillTree.GetMemoList( kNot.m_mapChangeMemo );
+#endif // SERV_REFORM_SKILL_NOTE
+	
 	GetUnitInfo( kNot.m_kUnitInfo );
 	m_kUserQuestManager.GetCompleteChangeClassQuest( kNot.m_vecChangeCompleteQuest );
 	m_kUserQuestManager.GetInProgressClassChangeQuest( kNot.m_vecChangeInProgressQuest );
@@ -6694,6 +7272,29 @@ _IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_ACK, KDBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		kPacketToDB.m_iRewardID	   = 10589;	// 카밀라의 비전서 (초급), 카밀라의 비전서 (중급)
 		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 	}
+#endif SERV_ARA_LITTLE_DEVIL_YAMA_RAJA_EVENT
+	//}}
+#ifdef SERV_ARA_LITTLE_DEVIL_YAMA_RAJA_EVENT// 작업날짜: 2013-08-08	// 박세훈
+	if( GetUnitClass() == CXSLUnit::UC_ARA_LITTLE_DEVIL )
+	{
+		// 이벤트 보상을 주자!
+		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+		kPacketToDB.m_iFromUnitUID = GetCharUID();
+		kPacketToDB.m_iToUnitUID   = GetCharUID();
+		kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+		kPacketToDB.m_iRewardID	   = 10588;	// 카밀라의 비전서 (초급)
+		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+	}
+	else if( GetUnitClass() == CXSLUnit::UC_ARA_YAMA_RAJA )
+	{
+		// 이벤트 보상을 주자!
+		KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+		kPacketToDB.m_iFromUnitUID = GetCharUID();
+		kPacketToDB.m_iToUnitUID   = GetCharUID();
+		kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+		kPacketToDB.m_iRewardID	   = 10589;	// 카밀라의 비전서 (초급), 카밀라의 비전서 (중급)
+		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+	}
 #endif // SERV_ARA_LITTLE_DEVIL_YAMA_RAJA_EVENT
 
 #ifdef SERV_ARA_NEW_FIRST_CLASS_EVENT
@@ -6728,6 +7329,21 @@ _IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_ACK, KDBE_BUY_UNIT_CLASS_CHANGE_REQ )
 	}
 #endif SERV_ELESIS_NEW_FIRST_CLASS_EVENT
 
+#ifdef SERV_EVENT_CHANGE_CLASS
+	IF_EVENT_ENABLED( CEI_EVENT_CHANGE_CLASS )
+	{
+		if( CXSLUnit::UC_ARME_BATTLE_MAGICIAN == GetUnitClass() )		
+		{
+			//전직 변경시 보상을 주자
+			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+			kPacketToDB.m_iFromUnitUID = GetCharUID();
+			kPacketToDB.m_iToUnitUID   = GetCharUID();
+			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
+			kPacketToDB.m_iRewardID    = _CONST_EVENT_CHANGE_CLASS_ITEM_INT_::iTransFormItem; //뉴트랜스폼 큐브(배틀매지션) 아이디로 바꿔야함
+			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+		}
+	}
+#endif SERV_EVENT_CHANGE_CLASS
 	//////////////////////////////////////////////////////////////////////////
 	// 프로모션 아바타 큐브 지급
 	CStringW cwstrItemID;
@@ -6754,24 +7370,6 @@ _IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_ACK, KDBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		kPacketToDB.m_wstrMessage  = cwstrItemID.GetBuffer();
 		kPacketToDB.m_bGameServerEvent = false;
 		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-
-		//{{ 2011. 09. 07  김민성	투니랜드 2차 프로모션 전직시 아이템 우편으로 전송
-#ifdef SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-		if( GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10242;			
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-
-			kPacketToDB.m_iRewardID	   = 10243;			
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-#endif SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-		//}}
 	}
 	else if( CXSLUnit::IsFirstChangeJob( static_cast<CXSLUnit::UNIT_CLASS>(GetUnitClass()) ) == true
 #ifdef SERV_UNLIMITED_SECOND_CHANGE_JOB
@@ -6788,24 +7386,6 @@ _IMPL_ON_FUNC( DBE_BUY_UNIT_CLASS_CHANGE_ACK, KDBE_BUY_UNIT_CLASS_CHANGE_REQ )
 		kPacketToDB.m_wstrMessage  = cwstrItemID.GetBuffer();
 		kPacketToDB.m_bGameServerEvent = false;
 		SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-
-		//{{ 2011. 09. 07  김민성	투니랜드 2차 프로모션 전직시 아이템 우편으로 전송
-#ifdef SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-		if( GetChannelCode() == KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-		{
-			// 이벤트 보상을 주자!
-			KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
-			kPacketToDB.m_iFromUnitUID = GetCharUID();
-			kPacketToDB.m_iToUnitUID   = GetCharUID();
-			kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT;
-			kPacketToDB.m_iRewardID	   = 10242;			
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-
-			kPacketToDB.m_iRewardID	   = 10290;			
-			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
-		}
-#endif SERV_TOONILAND_USER_CLASS_CHANGE_EVENT
-		//}}
 	}
 }
 #endif SERV_UNIT_CLASS_CHANGE_ITEM
@@ -7281,7 +7861,7 @@ IMPL_ON_FUNC( EGS_COUPON_LIST_REQ )
 	default:
 		{
 			KEGS_COUPON_LIST_ACK kPacket;
-			//kPacket.m_iOK = NetError::??;	// 잘못된 쿠폰 박스 타입입니다.
+			kPacket.m_iOK = NetError::ERR_NX_COUPON_06;	// 잘못된 쿠폰 박스 타입입니다.
 			SendPacket( EGS_COUPON_LIST_ACK, kPacket );
 			return;
 		}
@@ -7308,7 +7888,7 @@ IMPL_ON_FUNC( SOAP_COUPON_LIST_ACK )
 	kPacket.m_sCouponBoxType	= kPacket_.m_sCouponBoxType;
 	kPacket.m_usPageNum			= kPacket_.m_iStartRowIndex / SEnum::CL_INDEX_PER_PAGE;
 	kPacket.m_iCouponCount		= kPacket_.m_iCouponCount;
-	kPacket.m_vecUsedCouponList	= kPacket_.m_vecUsedCouponList;
+	kPacket.m_vecCouponList		= kPacket_.m_vecCouponList;
 
 	SendPacket( EGS_COUPON_LIST_ACK, kPacket );
 }
@@ -7342,7 +7922,7 @@ IMPL_ON_FUNC( EGS_REGIST_COUPON_REQ )
 	}
 
 	// 쿠폰 시리얼은 30자
-	if( kPacket_.m_strCouponPin.size() != 30 )
+	if( kPacket_.m_strCouponPin.size() != 35 )
 	{
 		KEGS_REGIST_COUPON_ACK kPacket;
 		kPacket.m_iOK = NetError::ERR_NX_WEB_SERVICE_01;	//쿠폰 번호 30자를 입력해주세요.
@@ -7543,6 +8123,43 @@ IMPL_ON_FUNC( EGS_DISCOUNT_COUPON_LIST_INQUIRY_REQ )
 	SiKNexonBillingTCPManager()->QueueingEvent( spEvent );
 };
 #endif // SERV_NEXON_COUPON_SYSTEM
+
+#ifdef SERV_NAVER_CHANNELING
+IMPL_ON_FUNC_NOPARAM( EGS_GET_NAVER_ACCESS_TOKEN_REQ )
+{
+    if( GetChannelCode() != KNexonAccountInfo::CE_NAVER_ACCOUNT )
+    {
+        KEGS_GET_NAVER_ACCESS_TOKEN_ACK kPacket;
+        kPacket.m_iOK = -99;
+        SendPacket( EGS_GET_NAVER_ACCESS_TOKEN_ACK, kPacket );
+        return;
+    }
+    KNAVER_SOAP_GET_TOKEN_REQ kSOAPReq;
+    kSOAPReq.m_iNaverSN = static_cast<__int64>(m_kNexonAccountInfo.m_uiNexonSN);
+    
+    KEventPtr spEvent( new KEvent );
+    UidType anTrace[2] = { GetUID(), -1 };
+    spEvent->SetData(PI_NULL, anTrace, NAVER_SOAP_GET_TOKEN_REQ, kSOAPReq );
+
+    SiKNaverSOAPManager()->QueueingEvent( spEvent );
+}
+
+IMPL_ON_FUNC( NAVER_SOAP_GET_TOKEN_ACK )
+{
+    KEGS_GET_NAVER_ACCESS_TOKEN_ACK kPacket;
+    kPacket.m_iOK = kPacket_.m_iOK;
+    kPacket.m_strAccessToken = kPacket_.m_strAccessToken;
+
+    LOG_SUCCESS( kPacket_.m_iOK == 0 )
+        << BUILD_LOG( GetName() )
+        << BUILD_LOG( GetCharName() )
+        << BUILD_LOG( kPacket_.m_iOK )
+        << BUILD_LOG( kPacket_.m_strAccessToken )
+        << END_LOG;
+
+    SendPacket( EGS_GET_NAVER_ACCESS_TOKEN_ACK, kPacket );
+}
+#endif SERV_NAVER_CHANNELING
 
 //////////////////////////////////////////////////////////////////////////
 #endif SERV_GSUSER_CPP

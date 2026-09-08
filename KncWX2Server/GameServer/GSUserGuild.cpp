@@ -18,6 +18,10 @@
 #include "GSSimLayer.h"
 #endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
 
+#ifdef SERV_STRING_FILTER_USING_DB
+#include "StringFilterManager.h"
+#endif //SERV_STRING_FILTER_USING_DB
+
 //////////////////////////////////////////////////////////////////////////
 //#ifdef SERV_GSUSER_CPP
 //#pragma NOTE( "GSUserHandler.cpp 파일 컴파일 됩니당!" )
@@ -55,7 +59,11 @@ IMPL_ON_FUNC( EGS_CREATE_GUILD_REQ )
 		}
 
 		// 닉네임과 동일한 조건으로 길드 이름에 대한 필터링 적용
+#ifdef SERV_STRING_FILTER_USING_DB
+		if( SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrGuildName ) == false )
+#else //SERV_STRING_FILTER_USING_DB
 		if( SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrGuildName ) == false )
+#endif //SERV_STRING_FILTER_USING_DB
 		{
 			kAck.m_iOK = NetError::ERR_GUILD_04;
 			SendPacket( EGS_CREATE_GUILD_ACK, kAck );
@@ -136,21 +144,21 @@ IMPL_ON_FUNC( EGS_CREATE_GUILD_REQ )
 	{
 		//{{ 2012. 02. 22	박세훈	길드 이름 변경권
 #ifdef SERV_GUILD_CHANGE_NAME
-		// Login Server로 길드 생성하러 가자!
-		KELG_CREATE_GUILD_REQ kPacketToLG;
-		kPacketToLG.m_iUnitUID = GetCharUID();
-		kPacketToLG.m_iItemUID = kPacket_.m_iItemUID;
-		kPacketToLG.m_wstrGuildName = kPacket_.m_wstrGuildName;
-		kPacketToLG.m_wstrGuildMessage = kPacket_.m_wstrGuildMessage;
-		SendToLoginServer( ELG_CREATE_GUILD_REQ, kPacketToLG );
+	// Login Server로 길드 생성하러 가자!
+	KELG_CREATE_GUILD_REQ kPacketToLG;
+	kPacketToLG.m_iUnitUID = GetCharUID();
+	kPacketToLG.m_iItemUID = kPacket_.m_iItemUID;
+	kPacketToLG.m_wstrGuildName = kPacket_.m_wstrGuildName;
+	kPacketToLG.m_wstrGuildMessage = kPacket_.m_wstrGuildMessage;
+	SendToLoginServer( ELG_CREATE_GUILD_REQ, kPacketToLG );
 #else
-		// DB로 길드생성 가능한지 검사하러 가자!
-		KDBE_CREATE_GUILD_REQ kPacketToDB;
-		kPacketToDB.m_iUnitUID = GetCharUID();
-		kPacketToDB.m_iItemUID = kPacket_.m_iItemUID;
-		kPacketToDB.m_wstrGuildName = kPacket_.m_wstrGuildName;
-		kPacketToDB.m_wstrGuildMessage = kPacket_.m_wstrGuildMessage;
-		SendToGameDB( DBE_CREATE_GUILD_REQ, kPacketToDB );
+	// DB로 길드생성 가능한지 검사하러 가자!
+	KDBE_CREATE_GUILD_REQ kPacketToDB;
+	kPacketToDB.m_iUnitUID = GetCharUID();
+	kPacketToDB.m_iItemUID = kPacket_.m_iItemUID;
+	kPacketToDB.m_wstrGuildName = kPacket_.m_wstrGuildName;
+	kPacketToDB.m_wstrGuildMessage = kPacket_.m_wstrGuildMessage;
+	SendToGameDB( DBE_CREATE_GUILD_REQ, kPacketToDB );
 #endif SERV_GUILD_CHANGE_NAME
 	}
 
@@ -477,6 +485,16 @@ _IMPL_ON_FUNC( ELG_GUILD_MESSAGE_NOT, KEGS_GUILD_MESSAGE_NOT )
 IMPL_ON_FUNC( EGS_INVITE_GUILD_REQ )
 {
 	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_CHAT, kPacket_.m_wstrNickName ) == false )
+	{
+		KEGS_INVITE_GUILD_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RECOMMEND_USER_00;
+		SendPacket( EGS_INVITE_GUILD_ACK, kPacket );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
 
 	if( GetGuildUID() <= 0 )
 	{
@@ -829,6 +847,10 @@ IMPL_ON_FUNC( EGS_CHANGE_GUILD_MESSAGE_REQ )
 #endif SERV_ADD_REPEAT_FILTER
 	//}}
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	kPacket_.m_wstrMessage = SiKStringFilterManager()->FilteringChatString( kPacket_.m_wstrMessage.c_str(), L'♡' );
+#endif //SERV_STRING_FILTER_USING_DB
+
 	KEGS_CHANGE_GUILD_MESSAGE_ACK kPacket;
 
 	if( GetGuildUID() <= 0 )
@@ -941,6 +963,10 @@ IMPL_ON_FUNC( EGS_CHANGE_GUILD_MEMBER_MESSAGE_REQ )
 	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
 #endif SERV_ADD_REPEAT_FILTER
 	//}}
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	kPacket_.m_wstrMessage = SiKStringFilterManager()->FilteringChatString( kPacket_.m_wstrMessage.c_str(), L'♡' );
+#endif //SERV_STRING_FILTER_USING_DB
 
 	KEGS_CHANGE_GUILD_MEMBER_MESSAGE_ACK kPacket;
 
@@ -1056,7 +1082,6 @@ IMPL_ON_FUNC( DBE_DISBAND_GUILD_ACK )
 			SendToGiantRoleReg( EGIANT_ROLEREG_DELETE_GUILD_REQ, kPacketReq );
 		}
 #endif //SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
-
 
 		// 길드정보 초기화!
 		m_kUserGuildManager.Clear();
@@ -1211,7 +1236,11 @@ IMPL_ON_FUNC( EGS_CHANGE_GUILD_NAME_CHECK_REQ )
 	}
 
 	// 4. 닉네임과 동일한 조건으로 길드 이름에 대한 필터링 적용
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrGuildName ) == false )
+#else //SERV_STRING_FILTER_USING_DB
 	if( SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrGuildName ) == false )
+#endif //SERV_STRING_FILTER_USING_DB
 	{
 		kPacket.m_iOK = NetError::ERR_GUILD_04;
 		SendPacket( EGS_CHANGE_GUILD_NAME_CHECK_ACK, kPacket );
@@ -1288,7 +1317,6 @@ IMPL_ON_FUNC( ELG_CHANGE_GUILD_NAME_TIME_CHECK_ACK )
 	kPacket.m_iTransNo		  = kPacket_.m_ulOrderNo;
 	kPacket.m_iProductNo	  = kPacket_.m_ulProductNo;
 	kPacket.m_byteProductKind = 0;
-
 	SendToKOGBillingDB( EBILL_PICK_UP_REQ, kPacket );
 #else //SERV_GLOBAL_BILLING
 	// 넥슨 빌링 서버에 전달
@@ -1304,7 +1332,6 @@ IMPL_ON_FUNC( ELG_CHANGE_GUILD_NAME_TIME_CHECK_ACK )
 	spEvent->SetData( PI_GS_NX_BILLING_TCP, anTrace, ENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_REQ, kPacket );
 	SiKNexonBillingTCPManager()->QueueingEvent( spEvent );
 #endif //SERV_GLOBAL_BILLING
-
 }
 
 IMPL_ON_FUNC( ELG_CHANGE_GUILD_NAME_ACK )
@@ -1927,6 +1954,15 @@ IMPL_ON_FUNC( EGS_REGISTRATION_GUILD_AD_REQ )
 
 	KEGS_REGISTRATION_GUILD_AD_ACK kPacket;
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_CHAT, kPacket_.m_wstrAdMessage ) == false )
+	{
+		kPacket.m_iOK = NetError::ERR_STRING_FILTER_04;
+		SendPacket( EGS_REGISTRATION_GUILD_AD_ACK, kPacket );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
+
 	// 체험ID 검사
 	if( IsGuestUser() )
 	{
@@ -2101,6 +2137,15 @@ IMPL_ON_FUNC( EGS_MODIFY_REG_GUILD_AD_REQ )
 
 	KEGS_MODIFY_REG_GUILD_AD_ACK kPacket;
 
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_CHAT, kPacket_.m_wstrAdMessage ) == false )
+	{
+		kPacket.m_iOK = NetError::ERR_STRING_FILTER_04;
+		SendPacket( EGS_MODIFY_REG_GUILD_AD_ACK, kPacket );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
+
 	// 문자열 검사
 	if( KODBC::IsInvalidMarkInForLetter( kPacket_.m_wstrAdMessage ) )
 	{
@@ -2258,6 +2303,15 @@ IMPL_ON_FUNC( EGS_APPLY_JOIN_GUILD_REQ )
 	//}}
 
 	KEGS_APPLY_JOIN_GUILD_ACK kPacket;
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_CHAT, kPacket_.m_wstrMessage ) == false )
+	{
+		kPacket.m_iOK = NetError::ERR_STRING_FILTER_04;
+		SendPacket( EGS_APPLY_JOIN_GUILD_ACK, kPacket );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
 
 	// 체험ID 검사
 	if( IsGuestUser() )

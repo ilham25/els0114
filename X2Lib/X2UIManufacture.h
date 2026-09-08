@@ -97,6 +97,10 @@ public:
 #endif	ADD_HOUSE_ID_TO_MANUFACTURE
 	//}} kimhc // 2009-11-23 // 제조 UI 변경
 
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+	void SetPeriodGroup( std::map< int, int > mPeriodGroup ) { m_mapPeriodGroup = mPeriodGroup; }
+#endif //SERV_MANUFACTURE_PERIOD_FIX
+
 	void SetLayer(X2_DIALOG_LAYER layer);
 	void SetPosition(D3DXVECTOR2 vec);
 
@@ -181,6 +185,9 @@ private:
 	int						m_iNowOpenHouseID;	// 현재 열린 제조 NPC의 HOUSE_ID
 #endif	ADD_HOUSE_ID_TO_MANUFACTURE
 		//}} kimhc // 2009-11-23 // 제조 아이템 NPC 별로 가능하도록
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+	std::map< int, int >				m_mapPeriodGroup;
+#endif //SERV_MANUFACTURE_PERIOD_FIX
 
 #ifdef SERV_MANUFACTURE_FIX
 	CKTDGUIDialogType			m_pDLGItemEnroll;

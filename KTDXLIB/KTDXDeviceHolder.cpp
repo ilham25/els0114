@@ -127,9 +127,9 @@ bool CKTDXDeviceHolder::XMeshReadyInBackground( const WCHAR* pFileName, int iPri
 }
 
 bool CKTDXDeviceHolder::SoundReadyInBackground( const WCHAR* pFileName
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 	, int iPriority 
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 	)
 {
 
@@ -137,9 +137,9 @@ bool CKTDXDeviceHolder::SoundReadyInBackground( const WCHAR* pFileName
 		return false;
 
 	CKTDXDeviceSound* pDevice = g_pKTDXApp->GetDeviceManager()->OpenSoundInBackground( pFileName
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 			, (CKTDXDeviceManager::EPriority) iPriority 
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD			
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD			
 		);
 	if( pDevice == NULL )
 		return false;

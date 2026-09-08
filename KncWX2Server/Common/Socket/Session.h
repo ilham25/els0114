@@ -218,6 +218,12 @@ protected:
 	DWORD				m_dwCurrentTickDump;
 #endif SERV_UNKNOWN_HEART_BEAT_ERROR_CHECK
 	//}}
+
+#ifdef SERV_DISCONNECT_LOG_FOR_SENDBUFFERFULL// 작업날짜: 2013-09-23// 박세훈
+	typedef std::pair< unsigned short, CTime >		TYPE_PAIR_USHORT_CTIME;
+	typedef	std::queue< TYPE_PAIR_USHORT_CTIME >	TYPE_SEND_BUFFER_FULL_LOG;
+	TYPE_SEND_BUFFER_FULL_LOG	m_queEventID;
+#endif // SERV_DISCONNECT_LOG_FOR_SENDBUFFERFULL
 };
 
 template < typename T > 

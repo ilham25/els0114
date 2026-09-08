@@ -55,6 +55,10 @@ protected:
 	virtual void Handle_OnCommonPacket(KGiantCommonPacket& kReceivedPacket);
 	void Handle_OnLoginPacket(KGiantAuthPacket& kReceivedPacket);
 
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	void Handle_OnDirectChargePacket(KGiantAuthPacket& kReceivedPacket);
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
+
 
 	unsigned int CreateRequestID();
 	void ReleaseRequestID(unsigned int iRequestID);

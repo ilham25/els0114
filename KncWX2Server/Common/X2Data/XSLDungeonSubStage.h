@@ -14,16 +14,12 @@ class CXSLDungeonSubStage
 public:
 	enum CLEAR_TYPE
 	{
-		CT_SUB_STAGE = 0,
-		CT_STAGE,
-		CT_STAGE_FORCE,
-//#ifdef SERV_STAGE_CLEAR_IN_SERVER
-		CT_STAGE_SECRET,
-//#endif SERV_STAGE_CLEAR_IN_SERVER
-		CT_GAME,
-//#ifdef SERV_CLEAR_TYPE_FAILURE
-		CT_FAILURE,
-//#endif SERV_CLEAR_TYPE_FAILURE
+		CT_SUB_STAGE	= 0,
+		CT_STAGE		= 1,
+		CT_STAGE_FORCE	= 2,
+		CT_STAGE_SECRET	= 3,
+		CT_GAME			= 4,
+		CT_FAILURE		= 5,
 	};
 
 	enum GO_TYPE
@@ -33,9 +29,9 @@ public:
 		GT_LEFT,
 		GT_UP,
 		GT_DOWN,
-	};
+	};	
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 	enum SECRET_STAGE_PAD
 	{
 		SSP_NONE = 0,
@@ -72,7 +68,7 @@ public:
 	{
 		std::vector<NextStageData>	m_vecNextStage;
 	};
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 	struct NPCData
 	{
@@ -130,11 +126,20 @@ public:
 	};
 #endif SERV_CREATED_NPC_LIMITED_DROPS
 
+#ifdef SERV_DUNGEON_NPC_DATA_EXP_RATE		// 적용날짜: 2013-08-13
+	struct NPCExpRateData
+	{
+		CXSLUnitManager::NPC_UNIT_ID	m_UnitID;
+		float							m_fExpRate;
+	};
+#endif // SERV_DUNGEON_NPC_DATA_EXP_RATE
+
 	struct SubStageData 
 	{
 		int						m_StartLineSet;
 		int						m_EndLineSet;
 		int						m_MainLineSet;
+
 		//{{ 2012. 12. 21  던전 몬스터 그룹 랜던 배치 - 김민성
 #ifdef SERV_DUNGEON_RANDOM_NPC_GROUP
 		KLottery								m_kNpcGroupRate;
@@ -148,6 +153,10 @@ public:
 		std::vector<NPCDropData>	m_NPCDropDataList;
 #endif SERV_CREATED_NPC_LIMITED_DROPS
 
+#ifdef SERV_DUNGEON_NPC_DATA_EXP_RATE		// 적용날짜: 2013-08-13
+		std::vector<NPCExpRateData>	m_vecNPCExpRateDataList;
+#endif // SERV_DUNGEON_NPC_DATA_EXP_RATE
+
 		GO_TYPE					m_GoType;
 		//{{ 2010. 04. 26  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
@@ -156,9 +165,9 @@ public:
 #endif SERV_SECRET_HELL
 		//}}
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 		std::vector<ClearCondtionData>	m_vecClearCondData;
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 		SubStageData()
 		{
@@ -191,10 +200,17 @@ public:
 #endif SERV_DUNGEON_RANDOM_NPC_GROUP
 			//}}
 		}
-		bool LoadData( IN bool bScriptCheck, KLuaManager& luaManager );
+
+		bool LoadData( IN bool bScriptCheck
+					 , IN OUT KLuaManager& luaManager
+					 );
+
 #ifdef SERV_CREATED_NPC_LIMITED_DROPS
 		int GetNpcDropTimes( int iUnitID );
 #endif SERV_CREATED_NPC_LIMITED_DROPS
+#ifdef SERV_DUNGEON_NPC_DATA_EXP_RATE		// 적용날짜: 2013-08-13
+		float GetNpcExpRate( int iUnitID );
+#endif // SERV_DUNGEON_NPC_DATA_EXP_RATE
 		//void CreateNPC();
 		//{{ 2012. 12. 21  던전 몬스터 그룹 랜던 배치 - 김민성
 #ifdef SERV_DUNGEON_RANDOM_NPC_GROUP
@@ -202,15 +218,18 @@ public:
 #endif SERV_DUNGEON_RANDOM_NPC_GROUP
 		//}}
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 		int GetSecretStageEnteringEvent( IN int iClearConditionIndex );
 		bool GetNextStage( OUT CXSLDungeonSubStage::NextStageData& kNextStageData, IN int iClearConditionIndex, IN int iSecretPadIndex );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 	private:
 #ifdef SERV_CREATED_NPC_LIMITED_DROPS
 		bool LoadCreatedNpcDropTimesData( KLuaManager& luaManager );
 #endif SERV_CREATED_NPC_LIMITED_DROPS
+#ifdef SERV_DUNGEON_NPC_DATA_EXP_RATE		// 적용날짜: 2013-08-13
+		bool LoadCreatedNpcExpRateData( KLuaManager& luaManager );
+#endif // SERV_DUNGEON_NPC_DATA_EXP_RATE
 		bool LoadNPCData( IN bool bScriptCheck, KLuaManager& luaManager );
 		bool FetchNPCData( IN bool bScriptCheck, KLuaManager& luaManager, CXSLDungeonSubStage::NPCData* pNPCData );
 
@@ -220,9 +239,9 @@ public:
 #endif SERV_DUNGEON_RANDOM_NPC_GROUP
 		//}}
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 		bool LoadClearCondition( KLuaManager& luaManager );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 	};
 
 public:

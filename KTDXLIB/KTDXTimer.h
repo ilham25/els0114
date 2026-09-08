@@ -34,7 +34,13 @@ public:
 	CKTDXCheckElapsedTime( const float fTargetTime_ ) : m_fTargetTime( fTargetTime_ ), m_fSumOfElapsedTime( fTargetTime_ )
 	{}
 
-	void OnFrameMove();// { m_fSumOfElapsedTime += g_pKTDXApp->GetElapsedTime(); }
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    void    OnFrameMove( float fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	void    OnFrameMove();// { m_fSumOfElapsedTime += g_pKTDXApp->GetElapsedTime(); }
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
+
 	
 	void ResetSumOfElapsedTime( const float fSumOfElapsedTime = 0 ) { m_fSumOfElapsedTime = fSumOfElapsedTime; }
 

@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="..\Common;.\"
 				PreprocessorDefinitions="_WIN32;_DEBUG;_WINDOWS;SERV_INT_INTERNAL"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -74,7 +74,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -126,7 +126,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -178,7 +178,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -230,7 +230,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_IN_HOUSE_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -282,7 +282,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_OPEN_TEST_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -334,7 +334,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_SERVICE_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -386,7 +386,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -438,7 +438,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -490,7 +490,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -542,7 +542,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_IN_HOUSE_SERVICE_READY_QA_"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -588,7 +588,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_INT_INTERNAL"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -640,7 +640,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Libs\ExternalL&quot;$(SolutionDir)\Libs\ExternalLib\DXSDK\Include&quot;;&quot;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0&quot;;&quot;$(SolutionDir)KNCSDK\Include&quot;;&quot;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include&quot;;&quot;$(SolutionDir)XTRAP\Server&quot;;&quot;$(SolutionDir)KncWX2Server\GameServer\nProtect&quot;;..\Common;.\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_TW;"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -655,6 +655,7 @@
 				ShowProgress="0"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86&quot;;&quot;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs&quot;;&quot;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\ia32\vc7.1\lib&quot;;&quot;$(SolutionDir)KNCSDK\lib&quot;"
 				IgnoreDefaultLibraryNames="libc"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
@@ -692,7 +693,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_HK;"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -744,7 +745,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_EU"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -796,7 +797,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)\Libs\ExternalLib\DXSDK\Include&quot;;&quot;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0&quot;;&quot;$(SolutionDir)KNCSDK\Include&quot;;&quot;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include&quot;;&quot;$(SolutionDir)XTRAP\Server&quot;;&quot;$(SolutionDir)KncWX2Server\GameServer\nProtect&quot;;..\Common;.\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_US"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -811,7 +812,7 @@
 				ShowProgress="0"
 				OutputFile="$(OutDir)/$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\ia32\vc7.1\lib;$(SolutionDir)KNCSDK\lib"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)Libs\ExternalLib\DXSDK\Lib\x86&quot;;&quot;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0\libs&quot;;&quot;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\ia32\vc7.1\lib&quot;;&quot;$(SolutionDir)KNCSDK\lib&quot;"
 				IgnoreDefaultLibraryNames="libc"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
@@ -849,7 +850,7 @@
 			CharacterSet="1">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="../Common;./"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_CN"
 				RuntimeLibrary="2"
 				TreatWChar_tAsBuiltInType="TRUE"
@@ -902,7 +903,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="..\Common;.\"
 				PreprocessorDefinitions="_WIN32;_DEBUG;_WINDOWS;SERV_COUNTRY_EU"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -956,7 +957,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)Libs\ExternalLib\DXSDK\Include;$(SolutionDir)Libs\ExternalLib\Boost\boost_1_44_0;$(SolutionDir)KNCSDK\Include;$(SolutionDir)Libs\ExternalLib\IntelTBB\tbb22_013oss\include;$(SolutionDir)XTRAP\Server;$(SolutionDir)KncWX2Server\GameServer\nProtect;..\Common;.\"
+				AdditionalIncludeDirectories="..\Common;.\"
 				PreprocessorDefinitions="_WIN32;_DEBUG;_WINDOWS;SERV_COUNTRY_CN"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -978,6 +979,266 @@
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)/$(ProjectName)D.pdb"
 				SubSystem="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_JP|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_JP"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_TH|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_TH"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_ID|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_ID"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_IN|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_IN"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_PH|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="2"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="../Common;./"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;SERV_COUNTRY_PH"
+				RuntimeLibrary="2"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				ShowProgress="0"
+				OutputFile="$(OutDir)/$(ProjectName).exe"
+				LinkIncremental="1"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				SubSystem="2"
+				OptimizeReferences="0"
+				EnableCOMDATFolding="2"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -1260,6 +1521,9 @@
 				</File>
 				<File
 					RelativePath="..\Common\NetError_def.h">
+				</File>
+				<File
+					RelativePath="..\Common\Neterror\NetError_def_BR.h">
 				</File>
 			</Filter>
 			<Filter
@@ -1551,6 +1815,12 @@
 					RelativePath="..\Common\X2Data\XSLEnchantItemManager.h">
 				</File>
 				<File
+					RelativePath="..\Common\X2Data\XSLFieldBossData.cpp">
+				</File>
+				<File
+					RelativePath="..\Common\X2Data\XSLFieldBossData.h">
+				</File>
+				<File
 					RelativePath="..\Common\X2Data\XSLGUNPCAI.cpp">
 				</File>
 				<File
@@ -1688,6 +1958,12 @@
 				</File>
 				<File
 					RelativePath="..\ServerResource\EventMonsterData.lua">
+				</File>
+				<File
+					RelativePath="..\Common\GameEvent\GameEventDBManager.cpp">
+				</File>
+				<File
+					RelativePath="..\Common\GameEvent\GameEventDBManager.h">
 				</File>
 				<File
 					RelativePath="..\Common\GameEvent\GameEventManager.cpp">
@@ -1953,6 +2229,36 @@
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JP|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\Room\RoomFSM.h">
@@ -2079,6 +2385,36 @@
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JP|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\Common\Room\RoomSlotFSM.h">
@@ -2195,6 +2531,36 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Debug_CN|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JP|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_TH|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_ID|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_IN|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_PH|Win32">
 						<Tool
 							Name="VCCLCompilerTool"
 							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -2318,6 +2684,36 @@
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Debug_CN|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_JP|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32">
 							<Tool
 								Name="VCCLCompilerTool"
 								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -2446,6 +2842,36 @@
 								Name="VCCLCompilerTool"
 								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_JP|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\Room\PersonalShopFSM.h">
@@ -2566,6 +2992,36 @@
 								Name="VCCLCompilerTool"
 								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
 						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_JP|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
 					</File>
 					<File
 						RelativePath="..\Common\Room\PersonalShopUser.h">
@@ -2676,6 +3132,36 @@
 						</FileConfiguration>
 						<FileConfiguration
 							Name="Debug_CN|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_JP|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_TH|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_ID|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_IN|Win32">
+							<Tool
+								Name="VCCLCompilerTool"
+								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+						</FileConfiguration>
+						<FileConfiguration
+							Name="Release_PH|Win32">
 							<Tool
 								Name="VCCLCompilerTool"
 								ObjectFile="$(IntDir)/$(InputName)1.obj"/>
@@ -2853,6 +3339,9 @@
 						RelativePath="..\Common\OnlyGlobal\ServerDefine\ServerDefine_ID.h">
 					</File>
 					<File
+						RelativePath="..\Common\OnlyGlobal\ServerDefine\ServerDefine_IN.h">
+					</File>
+					<File
 						RelativePath="..\Common\OnlyGlobal\ServerDefine\ServerDefine_JP.h">
 					</File>
 					<File
@@ -2957,6 +3446,9 @@
 				RelativePath="..\ServerResource\FieldBonusDrop.lua">
 			</File>
 			<File
+				RelativePath="..\ServerResource\FieldBossData.lua">
+			</File>
+			<File
 				RelativePath="..\ServerResource\HenirData.lua">
 			</File>
 			<File
@@ -3032,6 +3524,12 @@
 			</File>
 			<File
 				RelativePath=".\CnAccountDBThread.h">
+			</File>
+			<File
+				RelativePath=".\CnEventDBThread.cpp">
+			</File>
+			<File
+				RelativePath=".\CnEventDBThread.h">
 			</File>
 			<File
 				RelativePath=".\CnGameDBThread.cpp">

@@ -19,7 +19,7 @@
 }
 
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #ifdef HEAP_BROKEN_BY_ROOM
 /*virtual*/ void CX2BattleFieldRoom::ApplyRoomPacketData()
 {
@@ -28,4 +28,4 @@
         g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_BATTLE_FIELD ) );
 }
 #endif // HEAP_BROKEN_BY_ROOM
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK

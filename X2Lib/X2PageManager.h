@@ -43,6 +43,11 @@ class CX2PageManager
 		virtual bool NextPage();
 		virtual bool PrevPage();
 
+#ifdef COUPON_SYSTEM
+		virtual bool LastPage();
+		virtual bool FirstPage();
+#endif // COUPON_SYSTEM
+
 	protected:
 
 		virtual void InitbyOpen() {}

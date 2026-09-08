@@ -31,9 +31,6 @@ fix would be nice.
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include <windows.h>
-#include <string>
-
 class CRC_32
 {
 public:
@@ -98,6 +95,51 @@ public:
         Calculate(reinterpret_cast<const BYTE*>( buffer ), size, CRC);
         return CRC ^ 0xFFFFFFFF;
     }
+
+#ifdef  X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+    __forceinline void CalculateWithoutEncrypt( const BYTE* buffer, UINT size, const BYTE* pXORTable, UINT xorSize, ULONG& CRC_ ) const
+    {
+        if ( buffer == NULL || size == 0 || pXORTable == NULL || xorSize == 0 )
+            return;
+
+        // calculate the CRC
+        const BYTE* pbyte = buffer;
+        ULONG   crc = CRC_;
+        UINT    uXORIndex = 0;
+        while (size--)
+        {
+            crc = (crc >> 8) ^ Table[(crc & 0xFF) ^ (*pbyte++) ^ pXORTable[uXORIndex]];
+            uXORIndex++;
+            if ( uXORIndex == xorSize )
+                uXORIndex = 0;
+        }
+        CRC_ = crc;
+    }
+    __forceinline void CalculateAndDecrypt( BYTE* buffer, UINT size, const BYTE* pXORTable, UINT xorSize, ULONG& CRC_ ) const
+    {
+        if ( buffer == NULL || size == 0 || pXORTable == NULL || xorSize == 0 )
+            return;
+
+        // calculate the CRC
+        BYTE* pbyte = buffer;
+        ULONG   crc = CRC_;
+        UINT    uXORIndex = 0;
+        ULONG   ulComp, ulStored, ulEncrypted;
+        while (size--)
+        {
+            ulComp = ( crc & 0xFF ) ^ pXORTable[uXORIndex];
+            ulStored = *pbyte ^ 0xFF ^ ulComp;
+            ulEncrypted = Table[ ulStored ];
+            (*pbyte++) = (BYTE) ( ( ulEncrypted & 0xFF ) ^ ulComp );
+            crc = (crc >> 8) ^ ( ( ulEncrypted & 0xFFFFFF00 ) | ulStored );
+            uXORIndex++;
+            if ( uXORIndex == xorSize )
+                uXORIndex = 0;
+        }
+        CRC_ = crc;
+    }
+#endif  X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+
 
 private:
     /////////////////////////////////////////////////////////////////////////////

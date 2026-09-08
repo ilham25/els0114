@@ -11,7 +11,10 @@
 #define STRINGIZE(arg)  STRINGIZE1(arg)
 #define STRINGIZE1(arg) STRINGIZE2(arg)
 #define STRINGIZE2(arg) L#arg
-
+///-----------------------------------------------------------------------------
+#define STRINGIZEA(arg)  STRINGIZEA1(arg)
+#define STRINGIZEA1(arg) STRINGIZEA2(arg)
+#define STRINGIZEA2(arg) #arg
 ///-----------------------------------------------------------------------------
 #define CONCATENATE(arg1, arg2)   CONCATENATE1(arg1, arg2)
 #define CONCATENATE1(arg1, arg2)  CONCATENATE2(arg1, arg2)

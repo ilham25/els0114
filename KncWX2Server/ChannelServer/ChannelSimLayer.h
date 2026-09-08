@@ -87,7 +87,6 @@ public:
 #endif SERV_CHANNEL_SERV_CHECK_MODE
 			//}}
 
-
 #ifdef SERV_COUNTRY_PH
 			COpensslRSA GetOpensslRSA() { return m_OpensslRSAChannel; }
 			bool		GetOpensslRSAInit() { return m_bOpensslRSAInit; }
@@ -104,8 +103,6 @@ protected:
 			bool CheckIP( IN const CHECK_IP_MODE eCheckIpMode, IN const char* szIP );
 #endif SERV_CHANNEL_SERV_CHECK_MODE
 			//}}
-
-
 
 protected:
 	//{{ 2011. 08. 24	최육사	채널 서버 점검 모드
@@ -128,7 +125,6 @@ protected:
 	bool		m_bOpensslRSAInit;
 	COpensslRSA m_OpensslRSAChannel;
 #endif //SERV_COUNTRY_PH
-
 };
 
 DefKObjectInline( KChannelSimLayer, KSimLayer );

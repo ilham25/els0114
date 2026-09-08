@@ -15,12 +15,12 @@ public:
 // 	struct BattleFieldRoomSimpleInfo : public RoomSimpleInfo
 // 	{
 // 		CX2Dungeon::DIFFICULTY_LEVEL	m_DifficultyLevel;
-// 		CX2Dungeon::DUNGEON_ID			m_DungeonID;				
+// 		SEnum::DUNGEON_ID			m_DungeonID;				
 // 
 // 		BattleFieldRoomSimpleInfo()
 // 		{
 // 			m_DifficultyLevel	= CX2Dungeon::DL_NORMAL;
-// 			m_DungeonID			= CX2Dungeon::DI_NONE;
+// 			m_DungeonID			= SEnum::DI_NONE;
 // 		}
 // 
 // 		virtual void Set_KRoomInfo( const KRoomInfo* pData )
@@ -28,7 +28,7 @@ public:
 // 			RoomSimpleInfo::Set_KRoomInfo( pData );
 // 
 // 			m_DifficultyLevel	= (CX2Dungeon::DIFFICULTY_LEVEL)pData->m_DifficultyLevel;
-// 			m_DungeonID			= (CX2Dungeon::DUNGEON_ID)pData->m_iDungeonID;
+// 			m_DungeonID			= (SEnum::DUNGEON_ID)pData->m_iDungeonID;
 // 		}
 // 	};
 
@@ -53,11 +53,12 @@ public:
 	DUNGEON_GET_ITEM_TYPE			GetGetItemType() const { return m_eGetItemType; }
 	void							SetGetItemType( DUNGEON_GET_ITEM_TYPE val) { m_eGetItemType = val; }
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #ifdef HEAP_BROKEN_BY_ROOM
 	virtual void ApplyRoomPacketData();
 #endif // HEAP_BROKEN_BY_ROOM
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+
 
 protected:
 	UINT							m_uiBattleFieldId;

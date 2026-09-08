@@ -27,6 +27,14 @@ public:
 #endif SERV_SERVER_GROUP_EVENT_SYSTEM
 	//}}
 
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+	void	SetPcBangEvent( IN const bool bPcBangEvent ) 	{	m_bPcBangEvent = bPcBangEvent;	}
+	bool	GetPcBangEvent( void ) const					{	return m_bPcBangEvent;	}
+
+	void	SetAccumulate( IN const bool bAccumulate )		{	m_bAccumulate = bAccumulate;	}
+	bool	GetAccumulate( void ) const						{	return m_bAccumulate;	}
+#endif // SERV_HENIR_REWARD_EVENT
+
 private:
 
 	int						m_iEventID;
@@ -38,6 +46,11 @@ private:
 	int						m_iServerGroupID;
 #endif SERV_SERVER_GROUP_EVENT_SYSTEM
 	//}}
+
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+	bool	m_bPcBangEvent;
+	bool	m_bAccumulate;
+#endif // SERV_HENIR_REWARD_EVENT
 };
 
 #endif SERV_NEW_HENIR_TEST

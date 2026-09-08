@@ -1,14 +1,18 @@
 /** @file : X2BuffFinalizerTemplet.h
-    @breif : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Templet ï¿½ï¿½ï¿½ï¿½
+    @breif : ¹öÇÁÀÇ Á¾·á ºÎºÐÀ» Á¤ÀÇÇÏ´Â Templet ÆÄÀÏ
 */
 
 #pragma once
 
 class CX2BuffFinalizerTemplet;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2BuffFinalizerTemplet> CX2BuffFinalizerTempletPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2BuffFinalizerTemplet> CX2BuffFinalizerTempletPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 /** @class : CX2BuffFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁÀÇ Á¾·á ºÎºÐÀ» Á¤ÀÇÇÏ´Â Å¬·¡½º
 	@date : 2012/7/17/
 */
 class CX2BuffFinalizerTemplet
@@ -17,10 +21,17 @@ public:
 	static bool ParsingCombinationFinalizer( KLuaManager& luaManager_, OUT vector<CX2BuffFinalizerTempletPtr>& vecBuffFinalizerTempletPtr_ );
 	
 	CX2BuffFinalizerTemplet( const CX2BuffFinalizerTemplet& rhs_ ) : m_eType( rhs_.m_eType ), m_bReserveToFinish( false )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{}
 	virtual ~CX2BuffFinalizerTemplet() {}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ ) {};
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual void OnFrameMove( CX2GameUnit* pGameUnit_ ) {};
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ ) = NULL;
 	virtual CX2BuffFinalizerTempletPtr GetClonePtr() const = NULL;
 	virtual bool DidFinish( CX2GameUnit* pGameUnit_ ) const = NULL;
@@ -31,28 +42,47 @@ public:
 
 	bool SetFactorFromPacketTemplateMothod( const KBuffFactor& kBuffFactor_, CX2GameUnit* pGameUnit_ );
 	BUFF_FINALIZER_TYPE GetType() const { return m_eType; }
+#ifdef FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
+	virtual void SetBuffTempletID( BUFF_TEMPLET_ID eBuffTempletID_ ){}
+#endif // FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
 
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-	/// Remaining duration in seconds; -1.f sentinel means this finalizer has no timer (hit-count, state-change, etc.)
-	virtual float GetRemainTime() const { return -1.f; }
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 
 protected:
-	CX2BuffFinalizerTemplet() : m_eType( BFT_NONE ) {}
+	CX2BuffFinalizerTemplet() : m_eType( BFT_NONE )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR    
+    {}
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    CX2BuffFinalizerTemplet& operator = ( const CX2BuffFinalizerTemplet& );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 	void SetType(BUFF_FINALIZER_TYPE val) { m_eType = val; }
 
-	bool		ParsingFinalizerTemplateMethod( KLuaManager& luaManager_, const WCHAR* pwszTableName_ );
+	bool		ParsingFinalizerTemplateMethod( KLuaManager& luaManager_, const char* pszTableName_ );
 	virtual bool ParsingFinalizer( KLuaManager& luaManager_ ) { return true; }
 	virtual void SetFactorFromPacket( const KBuffFinalizerFactor& kFactor_, CX2GameUnit* pGameUnit_ ) {};
 	
 private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	BUFF_FINALIZER_TYPE		m_eType;
-	bool					m_bReserveToFinish;	/// ï¿½ï¿½ï¿½á¸¦ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ true ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©ï¿½Ã¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½)
+	bool					m_bReserveToFinish;	/// Á¾·á¸¦ ¿¹¾à (ÀÌ °ªÀÌ true ¸é Á¾·á Ã¼Å©½Ã¿¡ Á¾·áµÊ)
 };
 
+IMPLEMENT_INTRUSIVE_PTR( CX2BuffFinalizerTemplet );
+
+
 /** @class : CX2BuffTimeFinalizerTemplet
-	@brief : ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ½Ã°£¿¡ ÀÇÇØ Á¾·áµÇ´Â Á¶°ÇÀ» Á¤ÀÇÇÏ´Â Å¬·¡½º
 	@date : 2012/7/17/
 */
 class CX2BuffTimeFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -60,51 +90,59 @@ class CX2BuffTimeFinalizerTemplet : public CX2BuffFinalizerTemplet
 public:
 	enum FACTOR_ORDER
 	{
-		FO_DURATION_BUFF_TIME_TYPE,		/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½
-		FO_NORMAL_TIME,					/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
-		FO_FORCE_TIME,					/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
-		FO_MIN_TIME = FO_NORMAL_TIME,	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ ï¿½Ã°ï¿½
-		FO_MAX_TIME,					/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½Ã°ï¿½
+		FO_DURATION_BUFF_TIME_TYPE,		/// ·£´ý ½Ã°£ÀÎÁö, °íÁ¤ ½Ã°£ÀÎÁö
+		FO_NORMAL_TIME,					/// Á¤ÇØÁø ½Ã°£
+		FO_FORCE_TIME,					/// °­Á¦°¢¼º ½Ã°£
+		FO_MIN_TIME = FO_NORMAL_TIME,	/// ·£´ýÀÎ °æ¿ì ÃÖ¼Ò ½Ã°£
+		FO_MAX_TIME,					/// ·£´ýÀÎ °æ¿ì ÃÖ´ë ½Ã°£
 		
-		FO_END,					/// enum ï¿½ï¿½ï¿½ï¿½
+		FO_END,					/// enum °³¼ö
 	};
 
 	static CX2BuffFinalizerTempletPtr CreateBuffFinalizerTempletPtr() { return CX2BuffFinalizerTempletPtr( new CX2BuffTimeFinalizerTemplet ); }
 
-	virtual void OnFrameMove(  CX2GameUnit* pGameUnit_ );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	virtual void OnFrameMove( CX2GameUnit* pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffFinalizerTempletPtr GetClonePtr() const;
 	virtual bool DidFinish( CX2GameUnit* pGameUnit_ ) const;
 	virtual void GetFactor( OUT vector<KBuffFinalizerFactor>& vecFactors_, const CX2GameUnit* pGameUnit_ ) const;
-
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-	virtual float GetRemainTime() const { return m_fDurationTime; }
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
-
+#ifdef FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
+	virtual void SetBuffTempletID( BUFF_TEMPLET_ID eBuffTempletID_ ){ m_eBuffTempleteID = eBuffTempletID_;}
+#endif // FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
 protected:
 	CX2BuffTimeFinalizerTemplet() : CX2BuffFinalizerTemplet(),
 		m_fDurationTime( 0.0f ), m_eDurationTimeType( BDTT_NONE )
-#ifdef BUFF_ICON_UI //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½
+#ifdef BUFF_ICON_UI //¹öÇÁ ³²Àº Áö¼Ó ½Ã°£ ¾ò±â
 		,m_eBuffTempleteID(BTI_NONE)
 		,m_bIsAlreadyNotifyDurationTime(false)
 #endif //BUFF_ICON_UI
+#ifdef DISPLAY_BUFF_DURATION_TIME
+		,m_iDurationSec(0)
+#endif // DISPLAY_BUFF_DURATION_TIME
  {}
 
 	virtual void SetFactorFromPacket( const KBuffFinalizerFactor& kFactor_, CX2GameUnit* pGameUnit_ );
 	virtual bool ParsingFinalizer(  KLuaManager& luaManager_ );
 
 private:
-	float	m_fDurationTime;						/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½
-	BUFF_DURATION_TIME_TYPE m_eDurationTimeType;	/// ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Ã°ï¿½ï¿½ï¿½ï¿½ï¿½
-#ifdef BUFF_ICON_UI //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½
+	float	m_fDurationTime;						/// Á¤ÇØÁø Áö¼Ó½Ã°£
+	BUFF_DURATION_TIME_TYPE m_eDurationTimeType;	/// ·£´ý½Ã°£ÀÎÁö, °íÁ¤½Ã°£ÀÎÁö
+#ifdef BUFF_ICON_UI //¹öÇÁ ³²Àº Áö¼Ó ½Ã°£ ¾ò±â
 	BUFF_TEMPLET_ID			m_eBuffTempleteID;
 	bool					m_bIsAlreadyNotifyDurationTime;
 #endif //BUFF_ICON_UI
+#ifdef DISPLAY_BUFF_DURATION_TIME
+	int		m_iDurationSec;
+#endif // DISPLAY_BUFF_DURATION_TIME
 	
 };
 
 /** @class : CX2BuffHitCountFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ÀÏÁ¤ Å¸°Ý Ä«¿îÆ®°¡ µÇ¸é Á¾·áµÇ´Â Á¶°ÇÀ» Á¤ÀÇÇÏ´Â Å¬·¡½º
 	@date : 2012/7/19/
 */
 class CX2BuffHitCountFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -115,14 +153,18 @@ public:
 	enum FACTOR_ORDER
 	{
 		FO_USE_BUFF_COUNT_TYPE,
-		FO_COUNT,			/// FO_RESULT_COUNT ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, FO_USE_BUFF_COUNT_TYPE ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¸ï¿½ï¿½ï¿½Ì¸ï¿½ FO_RESULT_COUNTï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
-		FO_RESULT_COUNT,	/// ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ count (ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ FO_COUNTï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
-		FO_END,				/// enum ï¿½ï¿½ï¿½ï¿½
+		FO_COUNT,			/// FO_RESULT_COUNT °ªÀÌ ¾ø°í, FO_USE_BUFF_COUNT_TYPE ÀÌ »ó´ë¹æÀÇ ¹öÇÁ/µð¹öÇÁ °³¼ö¸¦ ÂüÁ¶ÇÏ´Â Å¸ÀÔÀÌ¸é FO_RESULT_COUNT¸¦ °è»ê ÇÏ±â À§ÇØ »ç¿ëÇÑ´Ù.
+		FO_RESULT_COUNT,	/// ¹öÇÁÄ«¿îÆ®±îÁö °í·ÁÇÑ °á°ú count (¹öÇÁÄ«¿îÆ®¸¦ »ç¿ëÇÏÁö ¾Ê´Â °æ¿ì FO_COUNT¿Í µ¿ÀÏ)
+		FO_END,				/// enum °³¼ö
 	};
 
 	static CX2BuffFinalizerTempletPtr CreateBuffFinalizerTempletPtr() { return CX2BuffFinalizerTempletPtr( new CX2BuffHitCountFinalizerTemplet ); }
 
-	virtual void OnFrameMove(  CX2GameUnit* pGameUnit_ );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	virtual void OnFrameMove( CX2GameUnit* pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffFinalizerTempletPtr GetClonePtr() const;
 	virtual bool DidFinish( CX2GameUnit* pGameUnit_ ) const;
@@ -139,16 +181,16 @@ protected:
 
 private:
 	BUFF_USE_COUNT_TYPE		m_eUseCountType;
-	int						m_iCountToBeFinished;		/// ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ Ä«ï¿½ï¿½Æ®(- ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½)
-	UCHAR					m_ucCountWhenStart;			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½ï¿½ Ä«ï¿½ï¿½Æ®
+	int						m_iCountToBeFinished;		/// Á¾·áµÇ±â À§ÇØ µµ´ÞÇØ¾ßÇÏ´Â Ä«¿îÆ®(- °ªµµ µÉ¼ö ÀÖÀ½)
+	UCHAR					m_ucCountWhenStart;			/// ¹öÇÁ ½ÃÀÛ½Ã Ä«¿îÆ®
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(SetFactorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½É¶ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Þ¾Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ P2P ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	/// ¹öÇÁ ½ÃÀÛ ¿©ºÎ(SetFactor·Î ½ÇÇàµÉ¶§´Â Ã³À½ ½ÇÇàÇÒ ¶§ true·Î ¼ÂÆÃÇÏ°í
+	/// ¼­¹ö·ÎºÎÅÍ ÆÐÅ¶À» ¹Þ¾Æ¼­ ½ÇÇàÇÒ ¶§´Â P2P ÆÐÅ¶À» ¹ÞÀº ÀÌÈÄ¿¡ true·Î ¼ÂÆÃÇÔ
 	bool					m_bStart;					
 };
 
 /** @class : CX2BuffHittedCountFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½Ç°ï¿½ Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ÀÏÁ¤ ÇÇ°Ý Ä«¿îÆ®°¡ µÇ¸é Á¾·áµÇ´Â Á¶°ÇÀ» Á¤ÀÇÇÏ´Â Å¬·¡½º
 	@date : 2012/7/19/
 */
 class CX2BuffHittedCountFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -159,14 +201,18 @@ public:
 	enum FACTOR_ORDER
 	{
 		FO_USE_BUFF_COUNT_TYPE,
-		FO_COUNT,			/// FO_RESULT_COUNT ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, FO_USE_BUFF_COUNT_TYPE ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¸ï¿½ï¿½ï¿½Ì¸ï¿½ FO_RESULT_COUNTï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
-		FO_RESULT_COUNT,	/// ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ count (ï¿½ï¿½ï¿½ï¿½Ä«ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´ï¿½ ï¿½ï¿½ï¿½ FO_COUNTï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
-		FO_END,				/// enum ï¿½ï¿½ï¿½ï¿½
+		FO_COUNT,			/// FO_RESULT_COUNT °ªÀÌ ¾ø°í, FO_USE_BUFF_COUNT_TYPE ÀÌ »ó´ë¹æÀÇ ¹öÇÁ/µð¹öÇÁ °³¼ö¸¦ ÂüÁ¶ÇÏ´Â Å¸ÀÔÀÌ¸é FO_RESULT_COUNT¸¦ °è»ê ÇÏ±â À§ÇØ »ç¿ëÇÑ´Ù.
+		FO_RESULT_COUNT,	/// ¹öÇÁÄ«¿îÆ®±îÁö °í·ÁÇÑ °á°ú count (¹öÇÁÄ«¿îÆ®¸¦ »ç¿ëÇÏÁö ¾Ê´Â °æ¿ì FO_COUNT¿Í µ¿ÀÏ)
+		FO_END,				/// enum °³¼ö
 	};
 
 	static CX2BuffFinalizerTempletPtr CreateBuffFinalizerTempletPtr() { return CX2BuffFinalizerTempletPtr( new CX2BuffHittedCountFinalizerTemplet ); }
 
-	virtual void OnFrameMove(  CX2GameUnit* pGameUnit_ );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	virtual void OnFrameMove( CX2GameUnit* pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffFinalizerTempletPtr GetClonePtr() const;
 	virtual bool DidFinish( CX2GameUnit* pGameUnit_ ) const;
@@ -182,16 +228,16 @@ protected:
 
 private:
 	BUFF_USE_COUNT_TYPE		m_eUseCountType;
-	int						m_iCountToBeFinished;		/// ï¿½ï¿½ï¿½ï¿½Ç±ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ Ä«ï¿½ï¿½Æ®(- ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½)
-	UCHAR					m_ucCountWhenStart;			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½ï¿½ Ä«ï¿½ï¿½Æ®
+	int						m_iCountToBeFinished;		/// Á¾·áµÇ±â À§ÇØ µµ´ÞÇØ¾ßÇÏ´Â Ä«¿îÆ®(- °ªµµ µÉ¼ö ÀÖÀ½)
+	UCHAR					m_ucCountWhenStart;			/// ¹öÇÁ ½ÃÀÛ½Ã Ä«¿îÆ®
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(SetFactorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½É¶ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Þ¾Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ P2P ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	/// ¹öÇÁ ½ÃÀÛ ¿©ºÎ(SetFactor·Î ½ÇÇàµÉ¶§´Â Ã³À½ ½ÇÇàÇÒ ¶§ true·Î ¼ÂÆÃÇÏ°í
+	/// ¼­¹ö·ÎºÎÅÍ ÆÐÅ¶À» ¹Þ¾Æ¼­ ½ÇÇàÇÒ ¶§´Â P2P ÆÐÅ¶À» ¹ÞÀº ÀÌÈÄ¿¡ true·Î ¼ÂÆÃÇÔ
 	bool					m_bStart;				
 };
 
 /** @class : CX2BuffStateChangeFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ÇöÀç ÁöÁ¤µÈ ½ºÅ×ÀÌÆ®¿¡¼­ º¯°æµÇ¸é Á¾·áµÇ´Â Á¶°ÇÀ» Á¤ÀÇÇÏ´Â Å¬·¡½º
 	@date : 2012/7/19/
 */
 class CX2BuffStateChangeFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -200,7 +246,7 @@ public:
 	enum FACTOR_ORDER
 	{
 		FO_STATE_ID,
-		FO_END,				/// enum ï¿½ï¿½ï¿½ï¿½
+		FO_END,				/// enum °³¼ö
 	};
 
 	static CX2BuffFinalizerTempletPtr CreateBuffFinalizerTempletPtr() { return CX2BuffFinalizerTempletPtr( new CX2BuffStateChangeFinalizerTemplet ); }
@@ -216,11 +262,11 @@ protected:
 		m_uiStateID( 0 ) {}
 
 private:
-	UINT	m_uiStateID;			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ID
+	UINT	m_uiStateID;			/// ¹öÇÁ°¡ ½ÃÀÛ µÆÀ» ¶§ÀÇ ½ºÅ×ÀÌÆ® ID
 };
 
 /** @class : CX2BuffDamageValueFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ÀÏÁ¤ÇÑ µ¥¹ÌÁö¸¦ ¹ÞÀ¸¸é Á¾·áµÇ´Â Á¶°ÇÀ» Á¤ÀÇÇÏ´Â Å¬·¡½º
 	@date : 2012/7/20/
 */
 class CX2BuffDamageValueFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -228,16 +274,20 @@ class CX2BuffDamageValueFinalizerTemplet : public CX2BuffFinalizerTemplet
 public:
 	enum FACTOR_ORDER
 	{
-		FO_CHANGE_TYPE,				/// ï¿½ï¿½È­ï¿½Ç´ï¿½ Å¸ï¿½ï¿½
-		FO_VALUE,					/// ï¿½ï¿½
-		FO_RELATION_TYPE,			/// CHANGE_TYPEï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½É°ï¿½ï¿½ï¿½ï¿½ï¿½
-		FO_MULTIPLIER,				/// ï¿½ï¿½ï¿½ï¿½(CHANGE_TYPEï¿½ï¿½ REATION ï¿½Ï¶ï¿½ ï¿½ï¿½ï¿½)
-		FO_END,						/// enum ï¿½ï¿½ï¿½ï¿½
+		FO_CHANGE_TYPE,				/// º¯È­µÇ´Â Å¸ÀÔ
+		FO_VALUE,					/// °ª
+		FO_RELATION_TYPE,			/// CHANGE_TYPEÀÌ ¿¬µ¿ÀÎ °æ¿ì ¹«¾ù°ú ¿¬µ¿µÉ°ÍÀÎÁö
+		FO_MULTIPLIER,				/// ¹èÀ²(CHANGE_TYPEÀÌ REATION ÀÏ¶§ »ç¿ë)
+		FO_END,						/// enum °³¼ö
 	};
 
 	static CX2BuffFinalizerTempletPtr CreateBuffFinalizerTempletPtr() { return CX2BuffFinalizerTempletPtr( new CX2BuffDamageValueFinalizerTemplet ); }
 
-	virtual void OnFrameMove(  CX2GameUnit* pGameUnit_ );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	virtual void OnFrameMove( CX2GameUnit* pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffFinalizerTempletPtr GetClonePtr() const;
 	virtual bool DidFinish( CX2GameUnit* pGameUnit_ ) const;
@@ -255,17 +305,17 @@ protected:
 	void ModifyDamageValue( const CX2GameUnit* pGameUnit_ );
 
 private:
-	BUFF_CHANGE_TYPE		m_eChangeType;			/// ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½
-	BUFF_RELATION_TYPE		m_eRelationType;		/// ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½
-	float					m_fNowHpOldFrame;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Hp
-	float					m_fDamageValue;			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(SetFactorï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½É¶ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½Þ¾Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ P2P ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ä¿ï¿½ trueï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	BUFF_CHANGE_TYPE		m_eChangeType;			/// º¯°æÅ¸ÀÔ
+	BUFF_RELATION_TYPE		m_eRelationType;		/// ¿¬µ¿Å¸ÀÔ
+	float					m_fNowHpOldFrame;		/// ÀÌÀü ÇÁ·¹ÀÓÀÇ Hp
+	float					m_fDamageValue;			/// µ¥¹ÌÁö·®
+	/// ¹öÇÁ ½ÃÀÛ ¿©ºÎ(SetFactor·Î ½ÇÇàµÉ¶§´Â Ã³À½ ½ÇÇàÇÒ ¶§ true·Î ¼ÂÆÃÇÏ°í
+	/// ¼­¹ö·ÎºÎÅÍ ÆÐÅ¶À» ¹Þ¾Æ¼­ ½ÇÇàÇÒ ¶§´Â P2P ÆÐÅ¶À» ¹ÞÀº ÀÌÈÄ¿¡ true·Î ¼ÂÆÃÇÔ
 	bool					m_bStart;				
 };
 
 /** @class : CX2BuffPassHpFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ HPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ì¿¡ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ±âÁØ HP¸¦ »óÇâ ¶Ç´Â ÇÏÇâ µ¹ÆÄ ÇÏ´Â °æ¿ì¿¡ Á¾·áµÇ´Â ¿ä¼Ò Á¤ÀÇ Å¬·¡½º
 	@date : 2012/7/20/
 */
 class CX2BuffPassHpFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -273,10 +323,10 @@ class CX2BuffPassHpFinalizerTemplet : public CX2BuffFinalizerTemplet
 public:
 	enum FACTOR_ORDER
 	{
-		FO_PASS_UP,			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½? ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½?
-		FO_CHANGE_TYPE,		/// Å¸ï¿½ï¿½(% ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½)
-		FO_CRITERION,		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
-		FO_END,				/// enum ï¿½ï¿½ï¿½ï¿½
+		FO_PASS_UP,			/// »óÇâ µ¹ÆÄ? ÇÏÇâ µ¹ÆÄ?
+		FO_CHANGE_TYPE,		/// Å¸ÀÔ(% ÀÎÁö ¼öÄ¡ ÀÎÁö)
+		FO_CRITERION,		/// ±âÁØ ¼öÄ¡
+		FO_END,				/// enum °³¼ö
 	};
 
 	static CX2BuffFinalizerTempletPtr CreateBuffFinalizerTempletPtr() { return CX2BuffFinalizerTempletPtr( new CX2BuffPassHpFinalizerTemplet ); }
@@ -303,15 +353,15 @@ private:
 	typedef srutil::delegate1<bool, CX2GameUnit*> DelegateCheckHpByPassType;
 	typedef srutil::delegate1<float, CX2GameUnit*> DelegateGetCriterionByChangeType;
 
-	DelegateCheckHpByPassType				m_delegateCheckHpByPassTypeFunc;			/// Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½Ù¸ï¿½ Ã¼Å© ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
-	DelegateGetCriterionByChangeType		m_delegateGetCriterionByChangeTypeFunc;		/// Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ % ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	BUFF_CHANGE_TYPE			m_eBuffChangeType;	/// Å¸ï¿½ï¿½(% ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½)
-	float						m_fCriterion;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
-	bool						m_bPassUp;			/// ï¿½ï¿½ï¿½âµ¹ï¿½ï¿½ ï¿½Î°ï¿½ ï¿½ï¿½ï¿½âµ¹ï¿½ï¿½ï¿½Î°ï¿½?
+	DelegateCheckHpByPassType				m_delegateCheckHpByPassTypeFunc;			/// Å¸ÀÔ¿¡ ÀÇÇØ¼­ ´Ù¸¥ Ã¼Å© ÇÔ¼ö ½ÇÇà
+	DelegateGetCriterionByChangeType		m_delegateGetCriterionByChangeTypeFunc;		/// Å¸ÀÔ¿¡ ÀÇÇØ¼­ % ¶Ç´Â °ªÀ» ¸®ÅÏ
+	BUFF_CHANGE_TYPE			m_eBuffChangeType;	/// Å¸ÀÔ(% ÀÎÁö ¼öÄ¡ ÀÎÁö)
+	float						m_fCriterion;		/// ±âÁØ ¼öÄ¡
+	bool						m_bPassUp;			/// »óÇâµ¹ÆÄ ÀÎ°¡ ÇÏÇâµ¹ÆÄÀÎ°¡?
 };
 
 /** @class : CX2BuffPassMpFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ Mpï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ì¿¡ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : ±âÁØ Mp¸¦ »óÇâ ¶Ç´Â ÇÏÇâ µ¹ÆÄ ÇÏ´Â °æ¿ì¿¡ Á¾·áµÇ´Â ¿ä¼Ò Á¤ÀÇ Å¬·¡½º
 	@date : 2012/7/20/
 */
 class CX2BuffPassMpFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -320,9 +370,9 @@ public:
 	enum FACTOR_ORDER
 	{
 		FO_PASS_UP,
-		FO_CHANGE_TYPE,		/// Å¸ï¿½ï¿½(% ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½)
-		FO_CRITERION,		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
-		FO_END,				/// enum ï¿½ï¿½ï¿½ï¿½
+		FO_CHANGE_TYPE,		/// Å¸ÀÔ(% ÀÎÁö ¼öÄ¡ ÀÎÁö)
+		FO_CRITERION,		/// ±âÁØ ¼öÄ¡
+		FO_END,				/// enum °³¼ö
 	};
 
 	static CX2BuffFinalizerTempletPtr CreateBuffFinalizerTempletPtr() { return CX2BuffFinalizerTempletPtr( new CX2BuffPassMpFinalizerTemplet ); }
@@ -349,15 +399,15 @@ private:
 	typedef srutil::delegate1<bool, CX2GameUnit*> DelegateCheckMpByPassType;
 	typedef srutil::delegate1<float, CX2GameUnit*> DelegateGetCriterionByChangeType;
 
-	DelegateCheckMpByPassType				m_delegateCheckMpByPassTypeFunc;			/// Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½Ù¸ï¿½ Ã¼Å© ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½
-	DelegateGetCriterionByChangeType		m_delegateGetCriterionByChangeTypeFunc;		/// Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ % ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	BUFF_CHANGE_TYPE			m_eBuffChangeType;	/// Å¸ï¿½ï¿½(% ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½)
-	float						m_fCriterion;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
-	bool						m_bPassUp;			/// ï¿½ï¿½ï¿½âµ¹ï¿½ï¿½ ï¿½Î°ï¿½ ï¿½ï¿½ï¿½âµ¹ï¿½ï¿½ï¿½Î°ï¿½?
+	DelegateCheckMpByPassType				m_delegateCheckMpByPassTypeFunc;			/// Å¸ÀÔ¿¡ ÀÇÇØ¼­ ´Ù¸¥ Ã¼Å© ÇÔ¼ö ½ÇÇà
+	DelegateGetCriterionByChangeType		m_delegateGetCriterionByChangeTypeFunc;		/// Å¸ÀÔ¿¡ ÀÇÇØ¼­ % ¶Ç´Â °ªÀ» ¸®ÅÏ
+	BUFF_CHANGE_TYPE			m_eBuffChangeType;	/// Å¸ÀÔ(% ÀÎÁö ¼öÄ¡ ÀÎÁö)
+	float						m_fCriterion;		/// ±âÁØ ¼öÄ¡
+	bool						m_bPassUp;			/// »óÇâµ¹ÆÄ ÀÎ°¡ ÇÏÇâµ¹ÆÄÀÎ°¡?
 };
 
 /** @class : CX2BuffImmediateFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¹Ì·ï¿½ ï¿½Ñ¹ï¿½ï¿½ï¿½ FrameMove ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief : Àû¿ë Áï½Ã Á¾·áÀÇ ÀÇ¹Ì·Î ÇÑ¹øÀÇ FrameMove ¼öÇà ÈÄ Á¾·áµÇ´Â Á¶°ÇÀ» Á¤ÀÇÇÏ´Â Å¬·¡½º
 	@date : 2012/7/19/
 */
 class CX2BuffImmediateFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -376,7 +426,7 @@ protected:
 };
 
 /** @class : CX2BuffDungeonStageChangeFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½
+	@brief : ´øÀüÀÇ ½ºÅ×ÀÌÁö µîÀÌ º¯°æ µÇ¸é Á¾·áµÇ´Â ÅÛÇÃ¸´
 	@date : 2012/9/1/
 */
 class CX2BuffDungeonStageChangeFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -401,7 +451,7 @@ private:
 
 #ifdef ADD_LIVE_CREATOR_FINALIZER
 /** @class : CX2BuffLiveCreatorFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½
+	@brief : ¹öÇÁ ½ÃÀüÀÚ°¡ »ç¸ÁÇÏ°Å³ª Á¸ÀçÇÏÁö ¾ÊÀ¸¸é Á¾·áµÇ´Â ÅÛÇÃ¸´
 	@date : 2012/11/15/
 */
 class CX2BuffLiveCreatorFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -409,18 +459,22 @@ class CX2BuffLiveCreatorFinalizerTemplet : public CX2BuffFinalizerTemplet
 public:
 	enum FACTOR_ORDER
 	{
-		/// int64ï¿½ï¿½ 16ï¿½ï¿½Æ®ï¿½ï¿½ float 4ï¿½ï¿½ï¿½ï¿½ ï¿½É°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½...
+		/// int64¸¦ 16ºñÆ®¾¿ float 4°³¿¡ ÂÉ°³¼­ ³ÖÀ½...
 		/// ( FO_UNIT_UID_FRONT_UP   FO_UNIT_UID_FRONT_DOWN   FO_UNIT_UID_BACK_UP   FO_UNIT_UID_BACK_DOWN )
-		FO_UNIT_UID_BACK_DOWN,		/// ï¿½ï¿½ï¿½ï¿½ UID ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ ï¿½ï¿½Æ®
-		FO_UNIT_UID_BACK_UP,		/// ï¿½ï¿½ï¿½ï¿½ UID ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½   ï¿½ï¿½Æ®
-		FO_UNIT_UID_FRONT_DOWN,		/// ï¿½ï¿½ï¿½ï¿½ UID ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ ï¿½ï¿½Æ®
-		FO_UNIT_UID_FRONT_UP,		/// ï¿½ï¿½ï¿½ï¿½ UID ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½   ï¿½ï¿½Æ®
-		FO_IS_USER_UNIT,			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NPCï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		FO_UNIT_UID_BACK_DOWN,		/// À¯´Ö UID ÇÏÀ§ ¾Æ·¡ ºñÆ®
+		FO_UNIT_UID_BACK_UP,		/// À¯´Ö UID ÇÏÀ§ À§   ºñÆ®
+		FO_UNIT_UID_FRONT_DOWN,		/// À¯´Ö UID »óÀ§ ¾Æ·¡ ºñÆ®
+		FO_UNIT_UID_FRONT_UP,		/// À¯´Ö UID »óÀ§ À§   ºñÆ®
+		FO_IS_USER_UNIT,			/// À¯ÀúÀÎÁö NPCÀÎÁö ¿©ºÎ
 	};
 
 	static CX2BuffFinalizerTempletPtr CreateBuffFinalizerTempletPtr() { return CX2BuffFinalizerTempletPtr( new CX2BuffLiveCreatorFinalizerTemplet ); }
 
-	virtual void OnFrameMove(  CX2GameUnit* pGameUnit_ );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	virtual void OnFrameMove( CX2GameUnit* pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	virtual bool SetFactor( const CX2BuffFactor& BuffFactor_, CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ );
 	virtual CX2BuffFinalizerTempletPtr GetClonePtr() const;
 	virtual bool DidFinish( CX2GameUnit* pGameUnit_ ) const;
@@ -434,16 +488,16 @@ protected:
 
 private:
 	//UidType m_iCreatorUID;
-	UidType				m_uidCreatorUID;		/// ï¿½ï¿½ï¿½ï¿½ UID
-	bool				m_bIsUserUnit;			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ NPCï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	bool				m_bIsLiveCreator;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¤ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	CX2GameUnitoPtr		m_optrCreatorUnit;		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼
+	UidType				m_uidCreatorUID;		/// À¯´Ö UID
+	bool				m_bIsUserUnit;			/// À¯ÀúÀÎÁö NPCÀÎÁö ¿©ºÎ
+	bool				m_bIsLiveCreator;		/// ¹öÇÁ ½ÃÀüÀÚ »ýÁ¸ È¤Àº Á¸Àç ¿©ºÎ
+	CX2GameUnitoPtr		m_optrCreatorUnit;		/// ½ÃÀüÀÚ À¯´Ö °´Ã¼
 };
 #endif ADD_LIVE_CREATOR_FINALIZER
 
 #ifdef ADD_BUFF_FINALIZER_FINISH_HYPER
 /** @class : CX2BuffFinishHyperFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½
+	@brief : °¢¼ºÀÌ ³¡³µÀ» °æ¿ì Á¾·áµÇ´Â ÅÛÇÃ¸´
 	@date  : 2013/02/22
 */
 class CX2BuffFinishHyperFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -456,7 +510,14 @@ public:
 	virtual bool DidFinish( CX2GameUnit* pGameUnit_ ) const;
 	virtual void GetFactor( OUT vector<KBuffFinalizerFactor>& vecFactors_, const CX2GameUnit* pGameUnit_ ) const;
 	virtual void SetFactorFromPacket( const KBuffFinalizerFactor& kFactor_, CX2GameUnit* pGameUnit_ );
-	virtual void OnFrameMove(  CX2GameUnit* pGameUnit_ );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    virtual void OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	virtual void OnFrameMove( CX2GameUnit* pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+#ifdef FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
+	virtual void SetBuffTempletID( BUFF_TEMPLET_ID eBuffTempletID_ ){ m_eBuffTempleteID = eBuffTempletID_;}
+#endif // FIX_BUFF_FINALIZE_DURATION_TIME_CONTROL_BUG
 
 protected:
 	CX2BuffFinishHyperFinalizerTemplet() 
@@ -465,8 +526,8 @@ protected:
 	{}
 
 private:
-	bool	m_bHyper;			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
-	float	m_fDurationTime;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ó½Ã°ï¿½
+	bool	m_bHyper;			/// °¢¼º »óÅÂ È®ÀÎ
+	float	m_fDurationTime;	/// Á¤ÇØÁø Áö¼Ó½Ã°£
 
 	BUFF_TEMPLET_ID		m_eBuffTempleteID;
 	bool				m_bIsAlreadyNotifyDurationTime;
@@ -475,7 +536,7 @@ private:
 
 #ifdef	RIDING_SYSTEM
 /** @class : CX2BuffFinishRidingPetOnOrNotFinalizerTemplet
-	@brief : ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ê¿¡ ï¿½ï¿½ï¿½Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½
+	@brief : ¶óÀÌµù Æê¿¡ ³ª°Å³ª ³»¸®¸é Á¾·áµÇ´Â ÅÛÇÃ¸´
 	@date  : 2013/04/22
 */
 class CX2BuffFinishRidingPetOnOrNotFinalizerTemplet : public CX2BuffFinalizerTemplet
@@ -493,17 +554,17 @@ protected:
 		: CX2BuffFinalizerTemplet(), m_bFinishRidingOn( false )
 	{}
 	
-	bool		ParsingFinalizerTemplateMethod( KLuaManager& luaManager_, const WCHAR* pwszTableName_ );
+	bool		ParsingFinalizerTemplateMethod( KLuaManager& luaManager_, const char* pszTableName_ );
 
 private:
 
-	/// ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ê¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ï¸ï¿½ true, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ ï¿½Ï¸ï¿½ false
+	/// ¶óÀÌµù Æê¿¡ ÅÀÀ» ¶§ ¹öÇÁ°¡ Á¾·áµÇ¾ß ÇÏ¸é true, ³»·ÈÀ» ¶§ Á¾·á µÇ¾î¾ß ÇÏ¸é false
 	bool	m_bFinishRidingOn;
 };
 #endif	RIDING_SYSTEM
 
 /** @class : CX2BuffDungeonStageChangeFinalizerTemplet
-	@brief : X2 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½
+	@brief : X2 ½ºÅ×ÀÌÆ® º¯°æ µÇ¸é Á¾·á µÇ´Â ÅÛÇÃ¸´
 	@date : 2013/7/16/
 */
 class CX2BuffX2StateChangeFinalizerTemplet : public CX2BuffFinalizerTemplet

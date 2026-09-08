@@ -10,12 +10,7 @@
 
 #ifdef SERV_COUNTRY_TH
 
-//{{ Iruha : 2026-08-27 // VS2010 port: ImplementDBThread is undefined everywhere in this tree.
-// VC7.1 silently parsed it as an implicit-int prototype (harmless, unused); VC10 makes that
-// a hard error (C4430). DeclareDBThread already implements the constructor inline, so this
-// pairing macro never did anything. Most sibling *DBThread.cpp files already comment it out.
-//ImplementDBThread( KGSASBillingDBThread );
-//}}
+ImplementDBThread( KGSASBillingDBThread );
 ImplPfID( KGSASBillingDBThread, PI_GS_PUBLISHER_BILLING_DB );
 
 #define CLASS_TYPE KGSASBillingDBThread
@@ -36,7 +31,7 @@ void KGSASBillingDBThread::ProcessEvent( const KEventPtr& spEvent_ )
     CASE( EBILL_BUY_PRODUCT_REQ );
 	CASE( EBILL_GIFT_ITEM_REQ );
     default:
-        START_LOG( cerr, L"ï¿½Ìºï¿½Æ® ï¿½Úµé·¯ï¿½ï¿½ ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½. " << spEvent_->GetIDStr() );
+        START_LOG( cerr, L"ÀÌº¥Æ® ÇÚµé·¯°¡ Á¤ÀÇµÇÁö ¾Ê¾ÒÀ½. " << spEvent_->GetIDStr() );
     }
 }
 
@@ -96,7 +91,7 @@ int KGSASBillingDBThread::GetCashPoint( const std::wstring& wstrUserID, int& iCa
 		break;
     case 2:	//	Record not found
         //iRet = NetError::ERR_AS_BILLING_01;
-		iRet = NetError::NET_OK;	//	ï¿½Ñ¾î°¡ï¿½ï¿½ï¿½ ï¿½ï¿½
+		iRet = NetError::NET_OK;	//	³Ñ¾î°¡±â·Î ÇÔ
         break;
 	case 3:	//	invalid ServiceID
 		iRet = NetError::ERR_AS_BILLING_00;
@@ -202,7 +197,7 @@ int KGSASBillingDBThread::InGameLessGPoint( const std::wstring& wstrTransID, con
 		% wstrReceiverUserID
 		% iPoint
 		% iProductNO
-		% 1						//	% usQuantity (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ ProductNOï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
+		% 1						//	% usQuantity (¾ÆÀÌÅÛÀÇ °¹¼ö°¡ ¾Æ´Ï¶ó ProductNOÀÇ °¹¼ö¶õ´Ù)
 		% 1						//	1:Game Item Shop, 2:Item Web Shop
 		% wstrTransID
 		% wstrUserIP
@@ -306,7 +301,10 @@ IMPL_ON_FUNC( EPUBLISHER_BILLING_BALANCE_REQ )
 
     int iCashPoint;
     kPacket.m_iOK = GetCashPoint( kPacket_.m_wstrAccount, iCashPoint );
-
+#ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
+	// Ä³½Ã Á¾·ù¸¦ ÇÏ³ª·Î º¸´Â°÷Àº ÀÏ¹ÝÀûÀ¸·Î ÆÛºíÄ³½¬·Î º»´Ù.
+	kPacket.m_iCashType = KGlobalCashInfo::GCT_PUBLISHER_CASH;
+#endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
     if( kPacket.m_iOK == NetError::NET_OK )
     {
         kPacket.m_ulBalance = ( unsigned long )iCashPoint;
@@ -322,7 +320,7 @@ IMPL_ON_FUNC( EBILL_BUY_PRODUCT_REQ )
     KEBILL_BUY_PRODUCT_ACK kPacket;
     kPacket.m_iOK = NetError::ERR_UNKNOWN;
 
-    // ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+    // ±¸ÀÔ ±Ý¾×À» °è»êÇÑ´Ù.
     int iTotalPrice = 0;
     std::vector< KBillBuyInfo >::iterator vit;
 	BOOST_TEST_FOREACH( const KBillBuyInfo&, kBillBuyInfo, kPacket_.m_vecBillBuyInfo )
@@ -330,7 +328,7 @@ IMPL_ON_FUNC( EBILL_BUY_PRODUCT_REQ )
 		iTotalPrice += kBillBuyInfo.m_iPoint;
 	}
 
-    // ï¿½Ü¾ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½.
+    // ÀÜ¾×À» È®ÀÎÇÑ´Ù.
     int iBalance;
     kPacket.m_iOK = GetCashPoint( kPacket_.m_wstrUserID, iBalance );
     if( kPacket.m_iOK != NetError::NET_OK )
@@ -346,7 +344,7 @@ IMPL_ON_FUNC( EBILL_BUY_PRODUCT_REQ )
         return;
     }
 
-    // ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+    // ¸®½ºÆ®¿¡ ÀÖ´Â ¾ÆÀÌÅÛ¿¡ ´ëÇØ Â÷·Ê·Î Æ÷ÀÎÆ®¸¦ Â÷°¨ÇÑ´Ù.
 	BOOST_TEST_FOREACH( const KBillBuyInfo&, kBillBuyInfo, kPacket_.m_vecBillBuyInfo )
 	{
 		wchar_t wszNumber[32];
@@ -357,7 +355,7 @@ IMPL_ON_FUNC( EBILL_BUY_PRODUCT_REQ )
 		int iRet = InGameLessGPoint( kBillBuyInfo.m_wstrOrderID, kPacket_.m_wstrUserID, kPacket_.m_wstrUserID, kBillBuyInfo.m_iPoint, kBillBuyInfo.m_iProductID, kBillBuyInfo.m_iProductNo, kBillBuyInfo.m_usOrderQuantity, KncUtil::toWideString(kPacket_.m_strUserIP) );
 		if( iRet != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
+			START_LOG( cerr, L"±¸ÀÔ ¿À·ù" )
 				<< BUILD_LOG( iRet )
 				<< BUILD_LOG( NetError::GetErrStr( iRet ) )
 				<< BUILD_LOG( kBillBuyInfo.m_wstrOrderID)
@@ -387,7 +385,7 @@ IMPL_ON_FUNC( EBILL_GIFT_ITEM_REQ )
 	kPacket.m_iOK = NetError::ERR_UNKNOWN;
 
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+	// ±¸ÀÔ ±Ý¾×À» °è»êÇÑ´Ù.
 	int iTotalPrice = 0;
 	std::vector< KBillBuyInfo >::iterator vit;
 	BOOST_TEST_FOREACH( const KBillBuyInfo&, kBillBuyInfo, kPacket_.m_vecBillBuyInfo )
@@ -395,7 +393,7 @@ IMPL_ON_FUNC( EBILL_GIFT_ITEM_REQ )
 		iTotalPrice += kBillBuyInfo.m_iPoint;
 	}
 
-	// ï¿½Ü¾ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ñ´ï¿½.
+	// ÀÜ¾×À» È®ÀÎÇÑ´Ù.
 	int iBalance;
 	kPacket.m_iOK = GetCashPoint( kPacket_.m_wstrSenderUserID, iBalance );
 	if( kPacket.m_iOK != NetError::NET_OK )
@@ -411,7 +409,7 @@ IMPL_ON_FUNC( EBILL_GIFT_ITEM_REQ )
 		return;
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Û¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê·ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+	// ¸®½ºÆ®¿¡ ÀÖ´Â ¾ÆÀÌÅÛ¿¡ ´ëÇØ Â÷·Ê·Î Æ÷ÀÎÆ®¸¦ Â÷°¨ÇÑ´Ù.
 	BOOST_TEST_FOREACH( const KBillBuyInfo&, kBillBuyInfo, kPacket_.m_vecBillBuyInfo )
 	{
 		wchar_t wszNumber[32];
@@ -422,7 +420,7 @@ IMPL_ON_FUNC( EBILL_GIFT_ITEM_REQ )
 		int iRet = InGameLessGPoint( kBillBuyInfo.m_wstrOrderID, kPacket_.m_wstrSenderUserID, kPacket_.m_wstrReceiverUserID, kBillBuyInfo.m_iPoint, kBillBuyInfo.m_iProductID, kBillBuyInfo.m_iProductNo, kBillBuyInfo.m_usOrderQuantity, kPacket_.m_wstrUserIP );
 		if( iRet != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½" )
+			START_LOG( cerr, L"±¸ÀÔ ¿À·ù" )
 				<< BUILD_LOG( iRet )
 				<< BUILD_LOG( NetError::GetErrStr( iRet ) )
 				<< BUILD_LOG( kBillBuyInfo.m_wstrOrderID )

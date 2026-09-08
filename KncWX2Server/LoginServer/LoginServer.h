@@ -7,7 +7,6 @@
 #include "../Common/OnlyGlobal/AuthAndBilling/TH/TCPThreadManager.h"
 #endif SERV_AUTH_TCP_THREAD_MANAGER
 //}}
-
 class KLoginServer : public KBaseServer
 {
     NiDeclareRTTI;
@@ -41,7 +40,6 @@ public:
 	template < class T > void SendToAuthTcpThread( unsigned short usEventID, const T& data );
 #endif SERV_AUTH_TCP_THREAD_MANAGER
 	//}}
-
 protected:
 	void WriteServerInfoToDB();
 	virtual void OnServerReadyComplete();
@@ -204,6 +202,10 @@ protected:
 #endif SERV_RELATIONSHIP_SYSTEM
 	//}
 
+#ifdef SERV_NEXON_AUTH_SERVER_DISCONNECT_SMS// 작업날짜: 2013-10-28	// 박세훈
+	DECL_ON_FUNC( E_DISCONNECT_SERVER_REPORT_NOT );
+#endif // SERV_NEXON_AUTH_SERVER_DISCONNECT_SMS
+
 	//{{ 2010. 06. 22  최육사	OTP적용
 #ifdef SERV_OTP_AUTH
 public:
@@ -212,18 +214,11 @@ private:
 	u_int					m_uiPassportLevel;
 #endif SERV_OTP_AUTH
 	//}}
-	//{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-	int						m_iDBHackingTrapCount;
-	boost::timer			m_tDBHackingTrapTimer;
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
-	//}}
 	//{{ 최육사 : [2012/10/9] //	태국 OTP 인증 통신 모듈
 #ifdef SERV_AUTH_TCP_THREAD_MANAGER
 	KTCPThreadManager		m_kTHOTPThread;
 #endif SERV_AUTH_TCP_THREAD_MANAGER
 	//}}
-
 #ifdef SERV_PROCESS_COMMUNICATION_KSMS
 	boost::timer					m_tTimeProcessCommunicationONOFF;
 	bool							m_bServerRunningProcessCommunicationOnOff;
@@ -322,4 +317,3 @@ void KLoginServer::SendToAuthTcpThread( unsigned short usEventID, const T& data 
 }
 #endif SERV_AUTH_TCP_THREAD_MANAGER
 //}}
-

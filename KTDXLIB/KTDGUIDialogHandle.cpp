@@ -32,7 +32,7 @@ CKTDGUIDialog* CKTDGUIDialogHandle::operator->()
 	KTDXPROFILE();
 
     CKTDGUIDialog* pControl = CKTDGUIDialog::GetObjectByUID( m_handle );
-    ASSERT( pControl != NULL );
+    //ASSERT( pControl != NULL );
     /** dialog에 대한 포인터가 null인 경우, null object를 리턴해서 프로그램이 죽지 않도록
         한다. operator->()는 항상 valid 한 포인터를 리턴하므로 null 포인터 참조로 인한 crash는
         발생하지 않는다.

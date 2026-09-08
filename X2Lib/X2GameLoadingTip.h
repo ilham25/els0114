@@ -36,6 +36,12 @@ class CX2GameLoadingTip
 #endif
 //}}
 
+#ifdef REFORM_ENTRY_POINT
+		//마을, 던전간에 한줄팁 위치가 달라짐에 따라
+		//기본 lua파일세팅을 던전으로 하고 마을의 위치는 따로 세팅.
+		void SetVillageSetting();
+#endif //REFORM_ENTRY_POINT
+
 	protected:
 
 		bool Init();

@@ -11,6 +11,7 @@ m_cDenyPersonalTrade(KDenyOptions::DOS_OFF)
 #ifdef SERV_RELATIONSHIP_SYSTEM
 , m_cDenyRequestCouple(KDenyOptions::DOS_OFF)
 #endif SERV_RELATIONSHIP_SYSTEM
+,m_cDenyInvitePractivePVP( KDenyOptions::DOS_OFF )
 //}
 
 {
@@ -24,7 +25,7 @@ const KDenyOptions KUserGameOption::GetDenyOptions()
 {
 	//{{ 2013. 04. 01	 인연 시스템 - 김민성
 #ifdef SERV_RELATIONSHIP_SYSTEM
-	return KDenyOptions( m_cDenyFriendShip, m_cDenyInviteGuild, m_cDenyParty, m_cDenyPersonalTrade, m_cDenyRequestCouple );
+	return KDenyOptions( m_cDenyFriendShip, m_cDenyInviteGuild, m_cDenyParty, m_cDenyPersonalTrade, m_cDenyRequestCouple, m_cDenyInvitePractivePVP );
 #else
 	return KDenyOptions( m_cDenyFriendShip, m_cDenyInviteGuild, m_cDenyParty, m_cDenyPersonalTrade );
 #endif SERV_RELATIONSHIP_SYSTEM
@@ -81,7 +82,14 @@ bool KUserGameOption::SetDenyOptions( const KDenyOptions& kDenyOptions )
 	}
 #endif SERV_RELATIONSHIP_SYSTEM
 	//}
+    if ( kDenyOptions.m_cDenyInvitePracticePVP < 0 || kDenyOptions.m_cDenyInvitePracticePVP > KDenyOptions::DOS_ONLY_FRIEND ) 
+    {
+        START_LOG( cerr, L"존재하지않는 커뮤니티옵션 상태값!" )
+            << BUILD_LOGc( kDenyOptions.m_cDenyInvitePracticePVP )
+            << END_LOG;
 
+        return false;
+    }
 
 	m_cDenyFriendShip	 = kDenyOptions.m_cDenyFriendShip;
 	m_cDenyInviteGuild	 = kDenyOptions.m_cDenyInviteGuild;
@@ -92,6 +100,7 @@ bool KUserGameOption::SetDenyOptions( const KDenyOptions& kDenyOptions )
 	m_cDenyRequestCouple = kDenyOptions.m_cDenyRequestCouple;
 #endif SERV_RELATIONSHIP_SYSTEM
 	//}
+    m_cDenyInvitePractivePVP = kDenyOptions.m_cDenyInvitePracticePVP;
 	return true;
 }
 

@@ -144,9 +144,9 @@ class CX2SquareGame
 		
 
 	private:
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		void						P2PPacketHandler();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		void						P2PPacketHandler();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		void						KeyProcess();
 
 		void						PopPersoanlShopTalkBox( UidType iUnitUID, wstring& wstrMsg, D3DXCOLOR color = 0xff000000 );
@@ -194,6 +194,6 @@ class CX2SquareGame
 		float						m_fTimeCheckShopTalkBox;
 
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hMarketOutArea;
-		CKTDGParticleSystem::CParticle*						m_pOutAreaParticle;
+		//CKTDGParticleSystem::CParticle*						m_pOutAreaParticle;
 
 };

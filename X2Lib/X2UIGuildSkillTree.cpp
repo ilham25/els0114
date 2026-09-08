@@ -35,7 +35,7 @@ CX2GuildSkillTreeSlotData::CX2GuildSkillTreeSlotData()
 
 	CX2SkillTree* pSkillTree = g_pData->GetSkillTree();
 
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree; // 슬롯 B 관련
+	const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree; // 슬롯 B 관련
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 	int iSkillLevel = refUserSkillTree.GetSkillLevel( m_eSkillID, true );
@@ -83,6 +83,9 @@ CX2GuildSkillTreeSlotData::CX2GuildSkillTreeSlotData()
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 			case CX2SkillTree::ST_RELATIONSHIP_SKILL:
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+			case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 				{
 					pSlot->SetDragable(true);
 				} break;
@@ -298,7 +301,7 @@ void CX2GuildSkillTreeSlotData::ShowSlotPicture(bool bShow, CKTDGUISlot* pSlot, 
 						pPicture->SetTex( L"NoAlphaImage.dds" );
 					}
 					pPicture->pPoint->color = D3DXCOLOR( 1,1,1,1 );
-//#ifdef MOVE_SKILL_TREE_LEVEL_TEXTURE
+
 					/// 레벨 텍스처 위치 조정
 					D3DXVECTOR2 vecPos					= pPicture->GetPos();
 					pPicture->SetPos( D3DXVECTOR2( vecPos.x, vecPos.y + 33.f ) );
@@ -307,7 +310,6 @@ void CX2GuildSkillTreeSlotData::ShowSlotPicture(bool bShow, CKTDGUISlot* pSlot, 
 					pPicture->pPoint->leftBottomPoint	= D3DXVECTOR2( vecPicturePos.x, vecPicturePos.y + 14.f );
 					pPicture->pPoint->rightTopPoint		= D3DXVECTOR2( vecPicturePos.x + 25.f, vecPicturePos.y );
 					pPicture->pPoint->rightBottomPoint	= D3DXVECTOR2( vecPicturePos.x + 25.f, vecPicturePos.y + 14.f );
-//#endif //MOVE_SKILL_TREE_LEVEL_TEXTURE					
 				} break;
 			case STSAPT_EQUIPPED:
 				{
@@ -543,15 +545,14 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 			pos.y += pControl->GetHeight();
 						
 			if(g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
-				CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 				int iSPoint = 0;
 				int iCSPoint = 0;
 
 				// oasis907 : 김상윤 [2009.12.3] // 길드 기간제 포인트 출력
-				int iMaxCSPoint = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iMaxGuildCSPoint; 
+				int iMaxCSPoint = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iMaxGuildCSPoint; 
 				WCHAR wszText[32] = L"";
 				iMaxCSPoint = 5; // 임시
 				StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"(%dGSP)\n", iMaxCSPoint );
@@ -560,7 +561,7 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 				wstr += GET_STRING(STR_ID_4815);
 				wstr += wszText;
 				// oasis907 : 김상윤 [2009.12.3] //
-				wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrGuildCSPointEndDate, g_pData->GetServerCurrentTime() );
+				wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrGuildCSPointEndDate, g_pData->GetServerCurrentTime() );
 
 				ShowUIDesc(true, wstr, pos, CX2TalkBoxManagerImp::TBT_FROM_UP_LEFT, D3DXCOLOR(1,1,1,1), D3DXCOLOR(0.97f, 0.23f, 0.06f, 1) );			
 			}
@@ -580,10 +581,9 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 			pos.x += pControl->GetWidth() / 2.f;
 			
 			if(g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
-				CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 				wstring wstr = L"";
 				wstr += GET_STRING(STR_ID_2690);
 				wstr += GetExpirationDateDesc( refUserSkillTree.GetSkillSlotBEndDateString(), g_pData->GetServerCurrentTime() );
@@ -604,13 +604,12 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 		{
 			if( g_pX2Game != NULL &&
 				g_pX2Game->GetMyUnit() != NULL &&
-				g_pX2Game->GetMyUnit()->GetUnit() != NULL &&
-				g_pX2Game->GetMyUnit()->GetUnit()->GetUnitData() != NULL )				
+				g_pX2Game->GetMyUnit()->GetUnit() != NULL )				
 			{
 				CKTDGUIButton* pControl = (CKTDGUIButton*)lParam;
 				int iIndex = pControl->GetDummyInt(0);
 
-				CX2UserSkillTree& refUserSkillTree = g_pX2Game->GetMyUnit()->GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& refUserSkillTree = g_pX2Game->GetMyUnit()->GetUnit()->GetUnitData().m_UserSkillTree;
 				bool bSlotB = !g_pX2Game->GetMyUnit()->GetSelectSkillSlot1();
 				CX2UserSkillTree::SkillSlotData* pSlotData = refUserSkillTree.GetSkillSlot( iIndex, bSlotB );
 				
@@ -632,7 +631,7 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 	case GSTUCM_SKILL_RESET_MODE_CHANGE_MOUSEOVER:
 		{
 			// oasis907 : 김상윤 [2009.12.7] //
-			if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade == CX2GuildManager::GUG_MASTER)
+			if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade == CX2GuildManager::GUG_MASTER)
 			{
 				CKTDGUIButton* pControl = (CKTDGUIButton*)lParam;
 				D3DXVECTOR2 pos = pControl->GetPos() + pControl->GetDialog()->GetPos();
@@ -654,7 +653,7 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 			pos.y += pControl->GetHeight() / 2.f;
 			
 			// oasis907 : 김상윤 [2009.11.25] // 여기서 처리, 길드 마스터 아닌 사람은 툴팁 다르게
-			if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
+			if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
 			{
 				ShowUIDesc( true, GET_STRING(STR_ID_4804), pos );
 			}
@@ -679,7 +678,7 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 			ShowUIDesc( true, GET_STRING(STR_ID_2664), pos );
 
 			// oasis907 : 김상윤 [2009.11.25] // 여기서 처리, 길드 마스터 아닌 사람은 툴팁 다르게
-			if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
+			if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
 			{
 				ShowUIDesc( true, GET_STRING(STR_ID_4806), pos );
 			}
@@ -799,7 +798,7 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 		} break;
 	case GSTUCM_SKILLTREESLOT_RMOUSEUP: // oasis907
 		{
-			CX2UserSkillTree* refUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree); // oasis907
+			const CX2UserSkillTree* refUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree); // oasis907
 			CKTDGUISlot* pSlot = (CKTDGUISlot*) lParam;
 			CX2GuildSkillTreeSlotData* pSlotData = (CX2GuildSkillTreeSlotData*)pSlot->GetSlotData();
 			if( pSlotData != NULL)
@@ -829,6 +828,9 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 						case CX2SkillTree::ST_RELATIONSHIP_SKILL:
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+						case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 							{
 								// 길드 스킬 액티브는 구현 X 
 								return true;
@@ -855,7 +857,7 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 	case GSTUCM_EQUIPSLOT_DROPPED:
 		{	
 /*
-			CX2UserSkillTree* refUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree); // oasis907
+			const CX2UserSkillTree* refUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree); // oasis907
 			CKTDGUISlot* pSlot = (CKTDGUISlot*) lParam;
 			CX2GuildEquippedSkillSlotData* pSlotData = (CX2GuildEquippedSkillSlotData*)pSlot->GetSlotData();
 
@@ -925,11 +927,10 @@ bool CX2UIGuildSkillTree::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 			CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 			if( NULL != pMyUnit )
 			{
-				if(pMyUnit->GetInventory() != NULL)
 				{
-					if( NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_GUILD_SKILL_ITEM_ID ) 
+					if( NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_GUILD_SKILL_ITEM_ID ) 
 #ifdef EVENT_GUILD_ITEM
-						|| NULL != pMyUnit->GetInventory()->GetItemByTID( EVENT_RESET_A_GUILD_SKILL_ITEM_ID ) 
+						|| NULL != pMyUnit->GetInventory().GetItemByTID( EVENT_RESET_A_GUILD_SKILL_ITEM_ID ) 
 #endif //EVENT_GUILD_ITEM						
 						)
 					{
@@ -1063,10 +1064,9 @@ void CX2UIGuildSkillTree::InitSkillTreeUI()
 
 	if( g_pData->GetMyUser() != NULL &&
 		g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+		g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet() != NULL  )
 	{
-		m_pUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree);
+		m_pUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree);
 
 		const CX2Unit::UnitTemplet* pUnitTemplet = g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet();
 
@@ -1601,7 +1601,7 @@ void CX2UIGuildSkillTree::UpdateBlind()
 		int TopTier = pControlList->GetIndexY();
 		int iUsedSP = 0;
 		int iUsedCP = 0;
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.CalcUsedGuildSPointAndCSPoint( iUsedSP, iUsedCP );
+		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.CalcUsedGuildSPointAndCSPoint( iUsedSP, iUsedCP );
 		int iTotalUsedSP = iUsedCP + iUsedSP;
 
 		const int MAGIC_SP_NEED_PER_TIER = 5;
@@ -1644,7 +1644,7 @@ void CX2UIGuildSkillTree::UpdateSPInfo()
 	bool bUsingCSP = false;
 	CTime cTime;
 	// oasis907 : 김상윤 [2009.12.3] //
-	KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrGuildCSPointEndDate, cTime );
+	KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrGuildCSPointEndDate, cTime );
 	CTime tCurrentTime = g_pData->GetServerCurrentTime();
 
 	if( tCurrentTime >= cTime )
@@ -1662,7 +1662,7 @@ void CX2UIGuildSkillTree::UpdateSPInfo()
 
 		CTime cTime;
 		// oasis907 : 김상윤 [2009.12.3] //
-		KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrGuildCSPointEndDate, cTime );
+		KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrGuildCSPointEndDate, cTime );
 		CTime tCurrentTime = g_pData->GetServerCurrentTime();
 
 		if( bUsingCSP )
@@ -1676,13 +1676,12 @@ void CX2UIGuildSkillTree::UpdateSPInfo()
 	}
 
 	if( g_pData->GetMyUser() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+		g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		int iNewSP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iGuildSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iGuildCSPoint;
+		int iNewSP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iGuildSPoint + g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iGuildCSPoint;
 		int iUsedSP = 0;
 		int iUsedCP = 0;
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.CalcUsedGuildSPointAndCSPoint( iUsedSP, iUsedCP );
+		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.CalcUsedGuildSPointAndCSPoint( iUsedSP, iUsedCP );
 		int iTotalUsedSP = iUsedCP + iUsedSP;
 
 		if( NULL != pStatic_SP )
@@ -1717,13 +1716,12 @@ void CX2UIGuildSkillTree::UpdateSPInfo()
 		if( NULL != pStatic_SPUndo )		
 		{		
 			wstring wstrText;
-			if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory() != NULL )
 			{	
-				int iSkillRevertItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( RESET_A_GUILD_SKILL_ITEM_ID );
+				int iSkillRevertItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( RESET_A_GUILD_SKILL_ITEM_ID );
 
 #ifdef EVENT_GUILD_ITEM
 				int iSkillRevertEventItemCount = 0;
-				iSkillRevertEventItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( EVENT_RESET_A_GUILD_SKILL_ITEM_ID );
+				iSkillRevertEventItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( EVENT_RESET_A_GUILD_SKILL_ITEM_ID );
 				iSkillRevertItemCount += iSkillRevertEventItemCount;
 #endif //EVENT_GUILD_ITEM
 
@@ -1756,7 +1754,7 @@ void CX2UIGuildSkillTree::UpdateSPInfo()
 	}
 
 	// oasis907 : 김상윤 [2009.12.7] //
-	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
+	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
 	{	
 		CKTDGUIButton* pSkill_Reset = static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"Skill_Reset" ) );
 		pSkill_Reset->SetEnable(false);
@@ -1816,6 +1814,9 @@ void CX2UIGuildSkillTree::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID )
 					UISet.m_pStaticActiveMark->GetPicture(0)->SetShow(true);
 				} break;
 			case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+			case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 				{
 					UISet.m_pStaticBackGround->GetPicture(1)->SetShow(true);
 					UISet.m_pStaticActiveMark->GetPicture(0)->SetShow(true);
@@ -2142,7 +2143,6 @@ void CX2UIGuildSkillTree::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSki
 			NULL == g_pData->GetTitleManager() ||
 			NULL == g_pData->GetMyUser() ||
 			NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() ||
 			NULL == g_pKTDXApp ||
 			NULL == g_pKTDXApp->GetDGManager() ||
 			NULL == g_pKTDXApp->GetDGManager()->GetDialogManager() ||
@@ -2173,7 +2173,7 @@ void CX2UIGuildSkillTree::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSki
 
 
 		/// 스킬 레벨 연산 -------------------------------------------------------------------------------------
-		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 
 		int iSkillLevel = refUserSkillTree.GetSkillLevel( eSkillID , true );		/// 스킬 레벨 ( 실제로 설정되어 있는 레벨 )
 
@@ -2564,7 +2564,7 @@ wstring CX2UIGuildSkillTree::GetSkillDesc( CX2SkillTree::SKILL_ID eSkillID, bool
 {
 	CX2SkillTree* pSkillTree = g_pData->GetSkillTree();
 
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 	int iSkillLevel = refUserSkillTree.GetSkillLevel( eSkillID );
 	//int iUnitclass = (int) g_pData->GetMyUser()->GetSelectUnit()->GetClass(); /
 	int iUnitclass = 0; // oasis
@@ -2899,13 +2899,12 @@ void CX2UIGuildSkillTree::GetPrecedingSkillDesc( OUT wstring& wstrDesc, CX2Skill
 	if ( NULL == g_pData ||
 		 NULL == g_pData->GetSkillTree() ||
 		 NULL == g_pData->GetMyUser() ||
-		 NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		 NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		 NULL == g_pData->GetMyUser()->GetSelectUnit() )
 	{
 		return;
 	}
 
-	 const CX2UserSkillTree& userSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	 const CX2UserSkillTree& userSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 
 	/// 선행 스킬의 레벨
 	const int iPrecedingSkillLevel = userSkillTree.GetSkillLevel( ePrecedingSkill );
@@ -2931,7 +2930,6 @@ void CX2UIGuildSkillTree::GetSkillTitleDesc( OUT wstring& wstrTitleDesc, IN cons
 		NULL == g_pData ||
 		NULL == g_pData->GetMyUser() ||
 		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() ||
 		NULL == g_pData->GetSocketItem() ||
 		NULL == g_pData->GetSkillTree() )
 		return;
@@ -2963,11 +2961,10 @@ void  CX2UIGuildSkillTree::GetSkillSubDesc( IN const CX2SkillTree::SkillTemplet*
 	if( NULL == pSkillTemplet ||
 		NULL == g_pData ||
 		NULL == g_pData->GetMyUser() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		return;
 
-	const CX2UserSkillTree&	refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;	/// 습득한 스킬 객체
+	const CX2UserSkillTree&	refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;	/// 습득한 스킬 객체
 
 	bool bIsPassive = false;	/// 패시브 스킬 여부 ( 패시브 스킬은 재사용 시간 0일때, 미표기 )
 
@@ -2981,6 +2978,13 @@ void  CX2UIGuildSkillTree::GetSkillSubDesc( IN const CX2SkillTree::SkillTemplet*
 			StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2672) );		/// 스페셜 액티브
 
 		} break;
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+		{
+			StringCchPrintf( buf, 256, L"[%s]", GET_STRING( STR_ID_26134 ) );		/// 하이퍼 액티브
+
+		} break;
+#endif //FINALITY_SKILL_SYSTEM
 	case CX2SkillTree::ST_ACTIVE:
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	case CX2SkillTree::ST_RELATIONSHIP_SKILL:

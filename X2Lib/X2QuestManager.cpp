@@ -8,7 +8,6 @@ using namespace YExcel;
 #endif PRINT_INGAMEINFO_TO_EXCEL
 //}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 
-
 CX2QuestManager::CX2QuestManager(void) :
 m_bUpdateQuest(false)
 #ifdef QUEST_GUIDE
@@ -47,7 +46,7 @@ CX2QuestManager::~CX2QuestManager(void)
 bool CX2QuestManager::OpenScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pQuestManager", this );
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName );
+	return g_pKTDXApp->LoadLuaTinker( pFileName );
 }
 
 
@@ -57,7 +56,9 @@ bool CX2QuestManager::AddQuestTemplet_LUA()
 
 	QuestTemplet* pQuestTemplet = new QuestTemplet();
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 #ifdef ADD_SERVER_GROUP
 	LUA_GET_VALUE(	luaManager, "m_iServerGroupID",				pQuestTemplet->m_iServerGroupID,	    -1 );
@@ -100,10 +101,10 @@ bool CX2QuestManager::AddQuestTemplet_LUA()
 //}} kimhc // 2010.3.30 // 비밀던전 작업(일일퀘스트 시스템)
 	
 	//{{ 2010. 01. 29  최육사	일일퀘스트
-	LUA_GET_VALUE_RETURN(	luaManager, L"m_bIsPcBang",			pQuestTemplet->m_bIsPcBang,		false,		goto LoadFail; );
+	LUA_GET_VALUE_RETURN(	luaManager, "m_bIsPcBang",			pQuestTemplet->m_bIsPcBang,		false,		goto LoadFail; );
 	//}}
 	//{{ 2010. 02. 09  최육사	일일 이벤트 퀘스트
-	LUA_GET_VALUE_RETURN(	luaManager, L"m_bIsTimeEvent",		pQuestTemplet->m_bIsTimeEvent,	false,		goto LoadFail; );
+	LUA_GET_VALUE_RETURN(	luaManager, "m_bIsTimeEvent",		pQuestTemplet->m_bIsTimeEvent,	false,		goto LoadFail; );
 	//}}
 
 	//09. 05. 14 김정협 머지를 위해서 인덱스 읽는 부분 막음
@@ -123,39 +124,14 @@ bool CX2QuestManager::AddQuestTemplet_LUA()
 
 #ifdef SERV_EPIC_QUEST
 
-	LUA_GET_VALUE(		luaManager, L"m_iEpisodeGroupID",	pQuestTemplet->m_iEpisodeGroupID,	0 );
-	LUA_GET_VALUE(		luaManager, L"m_iPlayLevel",		pQuestTemplet->m_iPlayLevel,		0 );
-	LUA_GET_VALUE(		luaManager, L"m_iFairLevel",		pQuestTemplet->m_iFairLevel,		0 );
+	LUA_GET_VALUE(		luaManager, "m_iEpisodeGroupID",	pQuestTemplet->m_iEpisodeGroupID,	0 );
+	LUA_GET_VALUE(		luaManager, "m_iPlayLevel",		pQuestTemplet->m_iPlayLevel,		0 );
+	LUA_GET_VALUE(		luaManager, "m_iFairLevel",		pQuestTemplet->m_iFairLevel,		0 );
 
-	LUA_GET_VALUE(		luaManager, L"m_wstrEpisodeGroupTitle",		pQuestTemplet->m_wstrEpisodeGroupTitle,	L"" );
-	LUA_GET_VALUE(		luaManager, L"m_wstrStartScene",			pQuestTemplet->m_wstrStartScene,		L"" );
-	LUA_GET_VALUE(		luaManager, L"m_wstrEndScene",				pQuestTemplet->m_wstrEndScene,			L"" );	
-//{{ Iruha : 2026-09-03 // offline mode needs the epic quest chain
-#ifdef SERV_IRUHADEV_OFFLINE
-	// m_iAfterQuestID is a TABLE in the script, and the stock client never
-	// reads it - the member of that name on QuestTemplet is a leftover int that
-	// nothing fills in. The server parses the same key into a vector
-	// (CXSLQuestManager::AddQuestTemplet_LUA, XSLQuestManager.cpp:156) and uses
-	// it to hand out the next link of the story when one is completed.
-	//
-	// Transcribed from that loader, including the `> 0` guard which is what
-	// skips the padding zeroes the tables are written with.
-	if( luaManager.BeginTable( L"m_iAfterQuestID" ) == true )
-	{
-		int index	= 1;
-		int buf		= -1;
-		while( luaManager.GetValue( index, buf ) == true )
-		{
-			if( buf > 0 )
-				pQuestTemplet->m_vecAfterQuestID.push_back( buf );
-			index++;
-		}
-
-		luaManager.EndTable();
-	}
-#endif SERV_IRUHADEV_OFFLINE
-//}}
-	LUA_GET_VALUE(		luaManager, L"m_iNextVillageID",			pQuestTemplet->m_iNextVillageID,		0 );//특정 퀘스트 완료 시 다음 마을로 이동에 대한 가이드 추가
+	LUA_GET_VALUE(		luaManager, "m_wstrEpisodeGroupTitle",		pQuestTemplet->m_wstrEpisodeGroupTitle,	L"" );
+	LUA_GET_VALUE(		luaManager, "m_wstrStartScene",			pQuestTemplet->m_wstrStartScene,		L"" );
+	LUA_GET_VALUE(		luaManager, "m_wstrEndScene",				pQuestTemplet->m_wstrEndScene,			L"" );	
+	LUA_GET_VALUE(		luaManager, "m_iNextVillageID",			pQuestTemplet->m_iNextVillageID,		0 );//특정 퀘스트 완료 시 다음 마을로 이동에 대한 가이드 추가
 	// 등록
 	if( 0 != pQuestTemplet->m_iEpisodeGroupID && false == pQuestTemplet->m_wstrEpisodeGroupTitle.empty() )
 	{
@@ -168,7 +144,7 @@ bool CX2QuestManager::AddQuestTemplet_LUA()
 #endif SERV_EPIC_QUEST
 
 #ifdef SERV_RANDOM_DAY_QUEST
-	LUA_GET_VALUE(		luaManager, L"m_iRandomGroupID",	pQuestTemplet->m_iRandomGroupID,		0 );
+	LUA_GET_VALUE(		luaManager, "m_iRandomGroupID",	pQuestTemplet->m_iRandomGroupID,		0 );
 #endif SERV_RANDOM_DAY_QUEST
 
 	if( LoadQuestCondition( luaManager, pQuestTemplet->m_Condition ) == false )
@@ -221,7 +197,7 @@ bool CX2QuestManager::AddQuestTemplet_LUA()
 		ASSERT( !"there is no subquest" );
 	}
 #ifdef REFORM_QUEST
-	if( luaManager.BeginTable( L"m_vecSubQuest_Group" ) == true )
+	if( luaManager.BeginTable( "m_vecSubQuest_Group" ) == true )
 	{
 		int index = 1; 
 		while( luaManager.BeginTable( index ) == true )
@@ -253,7 +229,7 @@ bool CX2QuestManager::AddQuestTemplet_LUA()
 	}
 #endif //REFORM_QUEST
 
-	if( LoadReward( luaManager, L"Reward", pQuestTemplet->m_Reward ) == false )
+	if( LoadReward( luaManager, "Reward", pQuestTemplet->m_Reward ) == false )
 		goto LoadFail;
 
 	if( luaManager.BeginTable( "SelectReward" ) == true )
@@ -408,7 +384,9 @@ bool CX2QuestManager::AddSubQuestTemplet_LUA()
 
 	SubQuestTemplet* pSubQuestTemplet = new SubQuestTemplet();
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LUA_GET_VALUE_RETURN(		luaManager, "m_iID",				pSubQuestTemplet->m_iID,				0,		goto LoadFail; );
 
@@ -441,10 +419,10 @@ bool CX2QuestManager::AddQuestTempletTrans_LUA()
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
 
-	LUA_GET_VALUE_RETURN(	luaManager, "m_iID",				pQuestTemplet->m_iID,			0,			goto LoadFail; );
-	LUA_GET_VALUE(			luaManager, L"m_iEpisodeGroupID",	pQuestTemplet->m_iEpisodeGroupID,	0 );
-	LUA_GET_VALUE(			luaManager, L"m_wstrEpisodeGroupTitle",		pQuestTemplet->m_wstrEpisodeGroupTitle,	L"" );
-	LUA_GET_VALUE_RETURN(	luaManager, "m_wstrTitle",			pQuestTemplet->m_wstrTitle,		L"",		goto LoadFail; );	
+	LUA_GET_VALUE_RETURN(	luaManager, "m_iID",					pQuestTemplet->m_iID,			0,			goto LoadFail; );
+	LUA_GET_VALUE(			luaManager, "m_iEpisodeGroupID",		pQuestTemplet->m_iEpisodeGroupID,	0 );
+	LUA_GET_VALUE(			luaManager, "m_wstrEpisodeGroupTitle",	pQuestTemplet->m_wstrEpisodeGroupTitle,	L"" );
+	LUA_GET_VALUE_RETURN(	luaManager, "m_wstrTitle",				pQuestTemplet->m_wstrTitle,		L"",		goto LoadFail; );	
 	LUA_GET_VALUE_RETURN(	luaManager, "m_wstrMainText",			pQuestTemplet->m_wstrMainText,			L"",	goto LoadFail; );
 	LUA_GET_VALUE_RETURN(	luaManager, "m_wstrThanksText",			pQuestTemplet->m_wstrThanksText,		L"",	goto LoadFail; );
 	LUA_GET_VALUE_RETURN(	luaManager, "m_wstrDissClearText",		pQuestTemplet->m_wstrDissClearText,		L"",	goto LoadFail; );
@@ -499,7 +477,6 @@ LoadFail:
 
 bool CX2QuestManager::AddSubQuestTempletTrans_LUA()
 {
-
 	SubQuestTemplet* pSubQuestTemplet = new SubQuestTemplet();
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
@@ -536,19 +513,20 @@ LoadFail:
 	SAFE_DELETE( pSubQuestTemplet );
 	return false;
 }
-
 #endif LUA_TRANS_DEVIDE
 
 #ifdef DAY_OF_THE_WEEK_QUEST
 bool CX2QuestManager::AddAccountQuestDate_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	int iAccountQuestID = - 1;
 	UINT iDayOfWeek = -1;
-	LUA_GET_VALUE(	luaManager, L"AccountQuestID",	iAccountQuestID, -1 );
-	LUA_GET_VALUE(	luaManager, L"DayOfWeek",		iDayOfWeek, -1 );
+	LUA_GET_VALUE(	luaManager, "AccountQuestID",	iAccountQuestID, -1 );
+	LUA_GET_VALUE(	luaManager, "DayOfWeek",		iDayOfWeek, -1 );
 
 	if( -1 == iAccountQuestID || -1 == iDayOfWeek )
 		return false;
@@ -1140,8 +1118,24 @@ void CX2QuestManager::GetCompleteQuest( const CX2UnitManager::NPC_UNIT_ID eQuest
 #ifdef SERV_EPIC_QUEST
 bool CX2QuestManager::GetBoardStartQuestList(std::vector<int>& vecQuestID )
 {
-
+#ifdef MODIFY_ACCEPT_QUEST // 현재 마을 설정
+	SEnum::VILLAGE_MAP_ID CurrentVillageID = SEnum::VMI_INVALID;
+	switch(g_pMain->GetNowStateID())
+	{
+	case CX2Main::XS_VILLAGE_MAP:
+		{
+			CurrentVillageID = g_pData->GetLocationManager()->GetCurrentVillageID();
+		} break;
+	case CX2Main::XS_BATTLE_FIELD:
+		{
+			CurrentVillageID = static_cast<SEnum::VILLAGE_MAP_ID>(g_pData->GetBattleFieldManager().GetReturnVillageId());
+		} break;
+	default:
+		break;
+	}
+#else
 	SEnum::VILLAGE_MAP_ID CurrentVillageID = g_pData->GetLocationManager()->GetCurrentVillageID();
+#endif // MODIFY_ACCEPT_QUEST
 	SEnum::VILLAGE_MAP_ID BoardVillageID = SEnum::VMI_RUBEN;
 
 	switch(CurrentVillageID)
@@ -1455,7 +1449,7 @@ bool CX2QuestManager::GetAvailableQuest( const CX2UnitManager::NPC_UNIT_ID eQues
 	//		CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 	//		if( NULL != pMyUnit )
 	//		{
-	//			if( NULL != pMyUnit->GetInventory()->GetItemByTID( MAGIC_MARKETING_EVENT_QUEST_NECESSARY_ITEM_ID ) )
+	//			if( NULL != pMyUnit->GetInventory().GetItemByTID( MAGIC_MARKETING_EVENT_QUEST_NECESSARY_ITEM_ID ) )
 	//			{
 	//				vecAccecptableQuest.erase( vecAccecptableQuest.begin() + j );
 	//				j--;
@@ -1484,7 +1478,7 @@ bool CX2QuestManager::GetAvailableQuest( const CX2UnitManager::NPC_UNIT_ID eQues
 						j--;
 					}
 
-					if( pMyUnit->GetInventory()->GetNumItemByTID( MAGIC_EVENT_QUEST_ITEM_ID_A ) >= 10 )
+					if( pMyUnit->GetInventory().GetNumItemByTID( MAGIC_EVENT_QUEST_ITEM_ID_A ) >= 10 )
 					{
 						vecQuestID.erase( vecQuestID.begin() + j );
 						j--;
@@ -1506,10 +1500,9 @@ bool CX2QuestManager::GetAvailableQuest( const CX2UnitManager::NPC_UNIT_ID eQues
 		const int MAGIC_EVENT_QUEST_ID			= 7070;
 		const int MAGIC_EVENT_QUEST_ITEM_ID[]	= { 130965, 130966 };
 
-		if( NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-			NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+		if( NULL != g_pData->GetMyUser()->GetSelectUnit() )
 		{
-			CX2Inventory* pInven = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+			const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 			for( int j=0; j<(int)vecQuestID.size(); j++ )
 			{
@@ -1517,8 +1510,8 @@ bool CX2QuestManager::GetAvailableQuest( const CX2UnitManager::NPC_UNIT_ID eQues
 
 				if( iQuestID == MAGIC_EVENT_QUEST_ID )
 				{
-					if( NULL != pInven->GetItemByTID( MAGIC_EVENT_QUEST_ITEM_ID[0] ) || 
-						NULL != pInven->GetItemByTID( MAGIC_EVENT_QUEST_ITEM_ID[1] ) )
+					if( NULL != kInventory.GetItemByTID( MAGIC_EVENT_QUEST_ITEM_ID[0] ) || 
+						NULL != kInventory.GetItemByTID( MAGIC_EVENT_QUEST_ITEM_ID[1] ) )
 					{
 						vecQuestID.erase( vecQuestID.begin() + j );
 						j--;
@@ -1542,7 +1535,7 @@ bool CX2QuestManager::GetAvailableQuest( const CX2UnitManager::NPC_UNIT_ID eQues
 		//		{
 		//			if( iQuestID == MAGIC_EVENT_QUEST_ID[i] )
 		//			{
-		//				if( NULL != pInven->GetItemByTID( MAGIC_EVENT_QUEST_ITEM_ID[i] ) )
+		//				if( NULL != kInventory.GetItemByTID( MAGIC_EVENT_QUEST_ITEM_ID[i] ) )
 		//				{
 		//					vecQuestID.erase( vecQuestID.begin() + j );
 		//					j--;
@@ -1729,11 +1722,11 @@ wstring CX2QuestManager::GetQuestColorString( int questID, int checkLevel )
 
 bool CX2QuestManager::LoadQuestCondition( KLuaManager& luaManager, QuestCondition& questCondition )
 {
-	if( luaManager.BeginTable( L"QuestCondition" ) == true )
+	if( luaManager.BeginTable( "QuestCondition" ) == true )
 	{
 #ifdef SERV_EPIC_QUEST
 	#ifdef SERV_REFORM_QUEST
-		if( luaManager.BeginTable( L"m_iEnableVillage" ) == true )
+		if( luaManager.BeginTable( "m_iEnableVillage" ) == true )
 		{
 			int index	= 1; 
 			int buf		= -1;
@@ -1750,14 +1743,14 @@ bool CX2QuestManager::LoadQuestCondition( KLuaManager& luaManager, QuestConditio
 			luaManager.EndTable();
 		}
 	#else
-		LUA_GET_VALUE( luaManager, L"m_iEnableVillage",	questCondition.m_iEnableVillage, 0 );
+		LUA_GET_VALUE( luaManager, "m_iEnableVillage",	questCondition.m_iEnableVillage, 0 );
 	#endif //SERV_REFORM_QUEST
 #endif SERV_EPIC_QUEST
-		LUA_GET_VALUE_RETURN(		luaManager,	L"m_iLevel",			questCondition.m_iLevel,			-1, return false; );
+		LUA_GET_VALUE_RETURN(		luaManager,	"m_iLevel",			questCondition.m_iLevel,			-1, return false; );
 #ifdef REFORM_QUEST
-		LUA_GET_VALUE(				luaManager,	L"m_iLimitLevel",		questCondition.m_iLimitLevel,		-1 );
+		LUA_GET_VALUE(				luaManager,	"m_iLimitLevel",		questCondition.m_iLimitLevel,		-1 );
 
-		if( luaManager.BeginTable( L"m_iEnableDungeon" ) == true )
+		if( luaManager.BeginTable( "m_iEnableDungeon" ) == true )
 		{
 			int index	= 1; 
 			int buf		= -1;
@@ -1773,7 +1766,7 @@ bool CX2QuestManager::LoadQuestCondition( KLuaManager& luaManager, QuestConditio
 
 			luaManager.EndTable();
 		}
-		if( luaManager.BeginTable( L"m_iEnableBattleField" ) == true )
+		if( luaManager.BeginTable( "m_iEnableBattleField" ) == true )
 		{
 			int index	= 1; 
 			int buf		= -1;
@@ -1790,10 +1783,10 @@ bool CX2QuestManager::LoadQuestCondition( KLuaManager& luaManager, QuestConditio
 			luaManager.EndTable();
 		}
 #endif //REFORM_QUEST
-		LUA_GET_VALUE_ENUM(			luaManager, L"m_eUnitType",			questCondition.m_eUnitType,			CX2Unit::UNIT_TYPE,		CX2Unit::UT_NONE );
+		LUA_GET_VALUE_ENUM(			luaManager, "m_eUnitType",			questCondition.m_eUnitType,			CX2Unit::UNIT_TYPE,		CX2Unit::UT_NONE );
 		
-		//LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eUnitClass",		questCondition.m_eUnitClass,		CX2Unit::UNIT_CLASS,	CX2Unit::UC_NONE, return false; );
-		if( true == luaManager.BeginTable( L"m_eUnitClass" ) )
+		//LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eUnitClass",		questCondition.m_eUnitClass,		CX2Unit::UNIT_CLASS,	CX2Unit::UC_NONE, return false; );
+		if( true == luaManager.BeginTable( "m_eUnitClass" ) )
 		{
 			int iUnitClass = 0;
 			for( int iValueIndex = 1; iValueIndex<100; iValueIndex++ )
@@ -1809,12 +1802,12 @@ bool CX2QuestManager::LoadQuestCondition( KLuaManager& luaManager, QuestConditio
 			luaManager.EndTable();	// m_eUnitClass
 		}
 
-		LUA_GET_VALUE_RETURN(		luaManager, L"m_iConditionItemID",	questCondition.m_iConditionItemID,	-1, return false; );
-		LUA_GET_VALUE_RETURN(		luaManager, L"m_iConditionItemNum",	questCondition.m_iConditionItemNum,	-1, return false; );
-		LUA_GET_VALUE(				luaManager, L"m_iNotBeforeQuestID",	questCondition.m_iNotBeforeQuestID,	-1 );
+		LUA_GET_VALUE_RETURN(		luaManager, "m_iConditionItemID",	questCondition.m_iConditionItemID,	-1, return false; );
+		LUA_GET_VALUE_RETURN(		luaManager, "m_iConditionItemNum",	questCondition.m_iConditionItemNum,	-1, return false; );
+		LUA_GET_VALUE(				luaManager, "m_iNotBeforeQuestID",	questCondition.m_iNotBeforeQuestID,	-1 );
 
 
-		if( luaManager.BeginTable( L"m_vecBeforeQuestID" ) == true )
+		if( luaManager.BeginTable( "m_vecBeforeQuestID" ) == true )
 		{
 			int index	= 1; 
 			int buf		= -1;
@@ -1839,28 +1832,28 @@ bool CX2QuestManager::LoadQuestCondition( KLuaManager& luaManager, QuestConditio
 
 
 
-bool CX2QuestManager::LoadReward( KLuaManager& luaManager, const WCHAR* pTableName, Reward& reward )
+bool CX2QuestManager::LoadReward( KLuaManager& luaManager, const char* pTableNameUTF8, Reward& reward )
 {
-	if( luaManager.BeginTable( pTableName ) == true )
+	if( luaManager.BeginTable( pTableNameUTF8 ) == true )
 	{
-		LUA_GET_VALUE_RETURN(	luaManager, L"m_bEnable",			reward.m_bEnable,			true,	return false; );
-		LUA_GET_VALUE(			luaManager, L"m_iEXP",				reward.m_iEXP,				0 );
-		LUA_GET_VALUE(			luaManager, L"m_iED",				reward.m_iED,				0 );
-		LUA_GET_VALUE(			luaManager, L"m_wstrName",			reward.m_wstrName,			L"" );
-		LUA_GET_VALUE(			luaManager, L"m_iBuff",				reward.m_iBuff,				0 );
-		LUA_GET_VALUE(			luaManager, L"m_iSP",				reward.m_iSP,				0 );
-		LUA_GET_VALUE_ENUM( 	luaManager, L"m_eChangeUnitClass",	reward.m_eChangeUnitClass,	CX2Unit::UNIT_CLASS, CX2Unit::UC_NONE );
+		LUA_GET_VALUE_RETURN(	luaManager, "m_bEnable",			reward.m_bEnable,			true,	return false; );
+		LUA_GET_VALUE(			luaManager, "m_iEXP",				reward.m_iEXP,				0 );
+		LUA_GET_VALUE(			luaManager, "m_iED",				reward.m_iED,				0 );
+		LUA_GET_VALUE(			luaManager, "m_wstrName",			reward.m_wstrName,			L"" );
+		LUA_GET_VALUE(			luaManager, "m_iBuff",				reward.m_iBuff,				0 );
+		LUA_GET_VALUE(			luaManager, "m_iSP",				reward.m_iSP,				0 );
+		LUA_GET_VALUE_ENUM( 	luaManager, "m_eChangeUnitClass",	reward.m_eChangeUnitClass,	CX2Unit::UNIT_CLASS, CX2Unit::UC_NONE );
 
-		if( luaManager.BeginTable( L"m_vecItem" ) == true )
+		if( luaManager.BeginTable( "m_vecItem" ) == true )
 		{
 			int index = 1; 
 			while( luaManager.BeginTable( index ) == true )
 			{
 				ITEM_DATA itemData;
-				LUA_GET_VALUE(	luaManager, L"m_iItemID",			itemData.m_iItemID,				0 );
-				LUA_GET_VALUE(	luaManager, L"m_iQuantity",			itemData.m_iQuantity,			0 );
-				LUA_GET_VALUE(	luaManager, L"m_iPeriod",			itemData.m_iPeriod,				0 );
-				LUA_GET_VALUE(	luaManager, L"m_sSocketOption",		itemData.m_iSocketOption1,		0 );
+				LUA_GET_VALUE(	luaManager, "m_iItemID",			itemData.m_iItemID,				0 );
+				LUA_GET_VALUE(	luaManager, "m_iQuantity",			itemData.m_iQuantity,			0 );
+				LUA_GET_VALUE(	luaManager, "m_iPeriod",			itemData.m_iPeriod,				0 );
+				LUA_GET_VALUE(	luaManager, "m_sSocketOption",		itemData.m_iSocketOption1,		0 );
 
 				if( 0 != itemData.m_iItemID && 0 != itemData.m_iQuantity )
 				{
@@ -1882,7 +1875,7 @@ bool CX2QuestManager::LoadReward( KLuaManager& luaManager, const WCHAR* pTableNa
 
 bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemplet* pSubQuestTemplet )
 {
-	if( luaManager.BeginTable( L"m_ClearCondition" ) == true )
+	if( luaManager.BeginTable( "m_ClearCondition" ) == true )
 	{
 		int iDifficulty = -1;
 
@@ -1890,11 +1883,11 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 		{
 		case SQT_NPC_TALK:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eTalkNPCID",		pSubQuestTemplet->m_ClearCondition.m_eTalkNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );
-				//LUA_GET_VALUE_RETURN(		luaManager, L"m_bTalkNPC",			pSubQuestTemplet->m_ClearCondition.m_bTalkNPC,			false, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eTalkNPCID",		pSubQuestTemplet->m_ClearCondition.m_eTalkNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );
+				//LUA_GET_VALUE_RETURN(		luaManager, "m_bTalkNPC",			pSubQuestTemplet->m_ClearCondition.m_bTalkNPC,			false, goto error_proc; );
 
 #ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eVillageID" ) == true )
+				if( luaManager.BeginTable( "m_eVillageID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
@@ -1913,28 +1906,28 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 		case SQT_NPC_HUNT:
 			{
 #ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					luaManager.EndTable();
 				}
 #else
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,			CX2Dungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,			SEnum::DI_NONE, goto error_proc; );
 #endif REFORM_QUEST
 				//{{ 2010. 05. 01  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
-				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
 #endif SERV_SECRET_HELL
 				//}}
 #ifndef REFORM_QUEST //m_cDifficulty 제거
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,			-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,			-1, goto error_proc; );
 				pSubQuestTemplet->m_ClearCondition.m_cDifficulty = (char) iDifficulty;
 #endif //REFORM_QUEST
 				//{{ 2009. 3. 31  최육사	난이도 이상
@@ -1943,7 +1936,7 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 				//{{ 2012. 04. 17	최육사	DB쿼리 성공 체크
 #ifdef SERV_ENTER_FIELD_QUEST_CLEAR
 	#ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eFieldID" ) == true )
+				if( luaManager.BeginTable( "m_eFieldID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
@@ -1956,7 +1949,7 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 					luaManager.EndTable();
 				}
 	#else
-					LUA_GET_VALUE(				luaManager, L"m_eFieldID",			pSubQuestTemplet->m_ClearCondition.m_iVillageMapID,			0 );
+					LUA_GET_VALUE(				luaManager, "m_eFieldID",			pSubQuestTemplet->m_ClearCondition.m_iVillageMapID,			0 );
 	#endif REFORM_QUEST
 #endif SERV_ENTER_FIELD_QUEST_CLEAR
 				//}}
@@ -1975,19 +1968,19 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 					luaManager.EndTable();
 				}
 
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iKillNum",			pSubQuestTemplet->m_ClearCondition.m_iKillNum,			0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iKillNum",			pSubQuestTemplet->m_ClearCondition.m_iKillNum,			0, goto error_proc; );
 
 			}
 			break;
 
 		case SQT_ITEM_COLLECTION:
 			{
-				//LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,			CX2Dungeon::DI_NONE, goto error_proc; );
-				//LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,			-1, goto error_proc; );
+				//LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,			SEnum::DI_NONE, goto error_proc; );
+				//LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,			-1, goto error_proc; );
 				//pSubQuestTemplet->m_ClearCondition.m_cDifficulty = (char) iDifficulty;
-				//LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eKillNPCID",		pSubQuestTemplet->m_ClearCondition.m_eKillNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iCollectionItemNum",pSubQuestTemplet->m_ClearCondition.m_iCollectionItemNum,0, goto error_proc; );
+				//LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eKillNPCID",		pSubQuestTemplet->m_ClearCondition.m_eKillNPCID,		CX2UnitManager::NPC_UNIT_ID,	CX2UnitManager::NUI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iCollectionItemNum",pSubQuestTemplet->m_ClearCondition.m_iCollectionItemNum,0, goto error_proc; );
 			}
 			break;
 
@@ -1995,20 +1988,20 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 			{
 
 #ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					luaManager.EndTable();
 				}
 
-				if( luaManager.BeginTable( L"m_eFieldID" ) == true )
+				if( luaManager.BeginTable( "m_eFieldID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
@@ -2021,20 +2014,20 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 					luaManager.EndTable();
 				}
 #else
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				//{{ 2012. 04. 17	최육사	DB쿼리 성공 체크
 	#ifdef SERV_ENTER_FIELD_QUEST_CLEAR
-				LUA_GET_VALUE(				luaManager, L"m_eFieldID",			pSubQuestTemplet->m_ClearCondition.m_iVillageMapID,			0 );
+				LUA_GET_VALUE(				luaManager, "m_eFieldID",			pSubQuestTemplet->m_ClearCondition.m_iVillageMapID,			0 );
 	#endif SERV_ENTER_FIELD_QUEST_CLEAR
 				//}}
 #endif //REFORM_QUEST
 				//{{ 2010. 05. 01  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
-				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
 #endif SERV_SECRET_HELL
 				//}}
 #ifndef REFORM_QUEST //m_cDifficulty 제거
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				pSubQuestTemplet->m_ClearCondition.m_cDifficulty = (char) iDifficulty;
 #endif //REFORM_QUEST
 
@@ -2056,37 +2049,37 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 					luaManager.EndTable();
 				}
 
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iCollectionItemNum",pSubQuestTemplet->m_ClearCondition.m_iCollectionItemNum,0, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_fQuestItemDropRate",pSubQuestTemplet->m_ClearCondition.m_fQuestItemDropRate,0.0f, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iCollectionItemNum",pSubQuestTemplet->m_ClearCondition.m_iCollectionItemNum,0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_fQuestItemDropRate",pSubQuestTemplet->m_ClearCondition.m_fQuestItemDropRate,0.0f, goto error_proc; );
 			}
 			break;
 
 		case SQT_DUNGEON_TIME:
 			{
 #ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					luaManager.EndTable();
 				}
 #else
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 #endif //REFORM_QUEST
 				//{{ 2010. 05. 01  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
-				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
 #endif SERV_SECRET_HELL
 				//}}
 #ifndef REFORM_QUEST //m_cDifficulty 제거
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,			-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,			-1, goto error_proc; );
 				pSubQuestTemplet->m_ClearCondition.m_cDifficulty = (char) iDifficulty;
 #endif //REFORM_QUEST			
 
@@ -2094,35 +2087,35 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 				LUA_GET_VALUE_RETURN(		luaManager, "m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
 				//}}
 
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearTime",	pSubQuestTemplet->m_ClearCondition.m_iDungeonClearTime,	0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearTime",	pSubQuestTemplet->m_ClearCondition.m_iDungeonClearTime,	0, goto error_proc; );
 			}
 			break;
 
 		case SQT_DUNGEON_RANK:
 			{
 #ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					luaManager.EndTable();
 				}
 #else
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 #endif //REFORM_QUEST
 				//{{ 2010. 05. 01  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
-				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
 #endif SERV_SECRET_HELL
 				//}}
 #ifndef REFORM_QUEST //m_cDifficulty 제거
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,			-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,			-1, goto error_proc; );
 				pSubQuestTemplet->m_ClearCondition.m_cDifficulty = (char) iDifficulty;
 #endif //REFORM_QUEST	
 
@@ -2130,39 +2123,39 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 				LUA_GET_VALUE_RETURN(		luaManager, "m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
 				//}}
 #ifdef SERV_EVENT_TITLE_SUBQUEST
-				LUA_GET_VALUE(	luaManager, L"m_iUseTitleID",		pSubQuestTemplet->m_ClearCondition.m_iUseTitleID,		-1);
+				LUA_GET_VALUE(				luaManager, "m_iUseTitleID",		pSubQuestTemplet->m_ClearCondition.m_iUseTitleID,		-1);
 #endif SERV_EVENT_TITLE_SUBQUEST
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonRank",		pSubQuestTemplet->m_ClearCondition.m_eDungeonRank,	CX2DungeonRoom::RANK_TYPE,		CX2DungeonRoom::RT_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonRank",		pSubQuestTemplet->m_ClearCondition.m_eDungeonRank,	CX2DungeonRoom::RANK_TYPE,		CX2DungeonRoom::RT_NONE, goto error_proc; );
 
-				LUA_GET_VALUE( luaManager, L"m_iDungeonClearCount", pSubQuestTemplet->m_ClearCondition.m_iDungeonClearCount,		0 );
+				LUA_GET_VALUE( luaManager, "m_iDungeonClearCount", pSubQuestTemplet->m_ClearCondition.m_iDungeonClearCount,		0 );
 			}
 			break;
 
 		case SQT_DUNGEON_DAMAGE:
 			{
 #ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					luaManager.EndTable();
 				}
 #else
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 #endif //REFORM_QUEST
 				//{{ 2010. 05. 01  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
-				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
 #endif SERV_SECRET_HELL
 				//}}
 #ifndef REFORM_QUEST //m_cDifficulty 제거
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				pSubQuestTemplet->m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 #endif //REFORM_QUEST		
 
@@ -2170,7 +2163,7 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 				LUA_GET_VALUE_RETURN(		luaManager, "m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
 				//}}
 
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonDamage",	pSubQuestTemplet->m_ClearCondition.m_iDungeonDamage,	-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonDamage",	pSubQuestTemplet->m_ClearCondition.m_iDungeonDamage,	-1, goto error_proc; );
 			}
 			break;
 
@@ -2180,29 +2173,29 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 #endif SERV_SUITABLE_LEVEL_DUNGEON_CLEAR_SUB_QUEST
 			{
 #ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					luaManager.EndTable();
 				}
 #else
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 #endif //REFORM_QUEST
 
 				//{{ 2010. 05. 01  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
-				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );
 #endif SERV_SECRET_HELL
 				//}}
 #ifndef REFORM_QUEST //m_cDifficulty 제거
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				pSubQuestTemplet->m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 #endif //REFORM_QUEST			
 
@@ -2210,34 +2203,34 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 				LUA_GET_VALUE_RETURN(		luaManager, "m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
 				//}}
 
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	pSubQuestTemplet->m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearCount",	pSubQuestTemplet->m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
 #ifdef SERV_EVENT_TITLE_SUBQUEST
-				LUA_GET_VALUE(	luaManager, L"m_iUseTitleID",		pSubQuestTemplet->m_ClearCondition.m_iUseTitleID,		-1);
-				LUA_GET_VALUE_ENUM(	luaManager, L"m_eDungeonRank",		pSubQuestTemplet->m_ClearCondition.m_eDungeonRank,	CX2DungeonRoom::RANK_TYPE,		CX2DungeonRoom::RT_NONE );
+				LUA_GET_VALUE(				luaManager, "m_iUseTitleID",		pSubQuestTemplet->m_ClearCondition.m_iUseTitleID,		-1);
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonRank",		pSubQuestTemplet->m_ClearCondition.m_eDungeonRank,	CX2DungeonRoom::RANK_TYPE,		CX2DungeonRoom::RT_NONE );
 #endif SERV_EVENT_TITLE_SUBQUEST
 			}
 			break;
 
 		case SQT_PVP_PLAY:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	pSubQuestTemplet->m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPPlay",	pSubQuestTemplet->m_ClearCondition.m_iPVPPlay,		-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePVPType",	pSubQuestTemplet->m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPPlay",	pSubQuestTemplet->m_ClearCondition.m_iPVPPlay,		-1, goto error_proc; );
 			}
 			break;
 
 		case SQT_PVP_WIN:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	pSubQuestTemplet->m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPWin",	pSubQuestTemplet->m_ClearCondition.m_iPVPWin,		-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePVPType",	pSubQuestTemplet->m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPWin",	pSubQuestTemplet->m_ClearCondition.m_iPVPWin,		-1, goto error_proc; );
 			}
 			break;
 
 		case SQT_PVP_KILL:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	pSubQuestTemplet->m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPKill",	pSubQuestTemplet->m_ClearCondition.m_iPVPKill,		-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePVPType",	pSubQuestTemplet->m_ClearCondition.m_ePVPType,		CX2PVPRoom::PVP_GAME_TYPE,		CX2PVPRoom::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPKill",	pSubQuestTemplet->m_ClearCondition.m_iPVPKill,		-1, goto error_proc; );
 #ifdef SERV_NEW_PVP_QUEST
-				LUA_GET_VALUE_RETURN_ENUM( luaManager, L"m_ePvpChannelClass", pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM( luaManager, "m_ePvpChannelClass", pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE, goto error_proc; );
 #endif SERV_NEW_PVP_QUEST
 			}
 			break;
@@ -2247,37 +2240,37 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 		case SQT_WITH_DIF_SERV_USER:
 			{
 #ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					luaManager.EndTable();
 				}
 #else
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 #endif //REFORM_QUEST
 
 				//{{ 2010. 05. 01  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
-				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );				
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );				
 #endif SERV_SECRET_HELL
 				//}}
 #ifndef REFORM_QUEST //m_cDifficulty 제거
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1,		goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1,		goto error_proc; );
 				pSubQuestTemplet->m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 #endif //REFORM_QUEST		
 
 				//{{ 2009. 3. 31  최육사	특정 난이도 이상
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false,	goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false,	goto error_proc; );
 				//}}
 
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	pSubQuestTemplet->m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearCount",	pSubQuestTemplet->m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
 			}
 			break;
 #endif SERV_INTEGRATION
@@ -2288,83 +2281,83 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 #ifdef SERV_QUEST_CLEAR_EXPAND
 		case SQT_ITEM_ENCHANT:
 			{
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iEnchantLevel",		pSubQuestTemplet->m_ClearCondition.m_iEnchantLevel,		0,		goto error_proc; );
-				LUA_GET_VALUE(				luaManager, L"m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0 );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iEnchantLevel",		pSubQuestTemplet->m_ClearCondition.m_iEnchantLevel,		0,		goto error_proc; );
+				LUA_GET_VALUE(				luaManager, "m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0 );
 			}
 			break;
 
 		case SQT_ITEM_SOCKET:
 			{
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iSocketCount",		pSubQuestTemplet->m_ClearCondition.m_iSocketCount,		0,		goto error_proc; );
-				LUA_GET_VALUE(				luaManager, L"m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0 );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iSocketCount",		pSubQuestTemplet->m_ClearCondition.m_iSocketCount,		0,		goto error_proc; );
+				LUA_GET_VALUE(				luaManager, "m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0 );
 			}
 			break;
 
 		case SQT_ITEM_ATTRIB:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eAttribCountType",	pSubQuestTemplet->m_ClearCondition.m_eAttribCountType,	CX2EnchantItem::ATTRIB_COUNT_TYPE,	CX2EnchantItem::ACT_NONE,	goto error_proc; );
-				LUA_GET_VALUE(				luaManager, L"m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0 );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eAttribCountType",	pSubQuestTemplet->m_ClearCondition.m_eAttribCountType,	CX2EnchantItem::ATTRIB_COUNT_TYPE,	CX2EnchantItem::ACT_NONE,	goto error_proc; );
+				LUA_GET_VALUE(				luaManager, "m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0 );
 				int iAttribEnchant = 0;
-				LUA_GET_VALUE(				luaManager, L"m_eAttribEnchant0",	iAttribEnchant,											0 );
+				LUA_GET_VALUE(				luaManager, "m_eAttribEnchant0",	iAttribEnchant,											0 );
 				pSubQuestTemplet->m_ClearCondition.m_kAttribEnchantInfo.m_cAttribEnchant0 = static_cast<char>(iAttribEnchant);
-				LUA_GET_VALUE(				luaManager, L"m_eAttribEnchant1",	iAttribEnchant,											0 );
+				LUA_GET_VALUE(				luaManager, "m_eAttribEnchant1",	iAttribEnchant,											0 );
 				pSubQuestTemplet->m_ClearCondition.m_kAttribEnchantInfo.m_cAttribEnchant1 = static_cast<char>(iAttribEnchant);
-				LUA_GET_VALUE(				luaManager, L"m_eAttribEnchant2",	iAttribEnchant,											0 );
+				LUA_GET_VALUE(				luaManager, "m_eAttribEnchant2",	iAttribEnchant,											0 );
 				pSubQuestTemplet->m_ClearCondition.m_kAttribEnchantInfo.m_cAttribEnchant2 = static_cast<char>(iAttribEnchant);				
 			}
 			break;
 
 		case SQT_ITEM_RESOLVE:
 			{
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iResolveCount",		pSubQuestTemplet->m_ClearCondition.m_iResolveCount,		0,		goto error_proc; );
-				LUA_GET_VALUE(				luaManager, L"m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0 );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iResolveCount",		pSubQuestTemplet->m_ClearCondition.m_iResolveCount,		0,		goto error_proc; );
+				LUA_GET_VALUE(				luaManager, "m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0 );
 			}
 			break;
 
 		case SQT_ITEM_EQUIP_DUNGEON_CLEAR:
 			{
 #ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					luaManager.EndTable();
 				}
 
 #else
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		CX2Dungeon::DUNGEON_ID,		CX2Dungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,		SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 
 #endif //REFORM_QUEST
 
 				//{{ 2010. 05. 01  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
-				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );				
+				LUA_GET_VALUE_ENUM(			luaManager, "m_eDungeonMode",		pSubQuestTemplet->m_ClearCondition.m_eDungeonMode,		CX2Dungeon::DUNGEON_MODE,	CX2Dungeon::DM_INVALID );				
 #endif SERV_SECRET_HELL
 				//}}
 #ifndef REFORM_QUEST //m_cDifficulty 제거
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1,		goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_cDifficulty",		iDifficulty,											-1,		goto error_proc; );
 				pSubQuestTemplet->m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 #endif //REFORM_QUEST			
 
 				//{{ 2009. 3. 31  최육사	특정 난이도 이상
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false,	goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false,	goto error_proc; );
 				//}}
 
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	pSubQuestTemplet->m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0,		goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iDungeonClearCount",	pSubQuestTemplet->m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iCollectionItemID",	pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID,	0,		goto error_proc; );
 			}
 			break;
 
 		case SQT_USE_SKILL_POINT:
 			{
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iSpUseCount",		pSubQuestTemplet->m_ClearCondition.m_iSpUseCount,		0,		goto error_proc; );
-				LUA_GET_VALUE(				luaManager, L"m_iSkillID",			pSubQuestTemplet->m_ClearCondition.m_iSkillID,			0 );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iSpUseCount",		pSubQuestTemplet->m_ClearCondition.m_iSpUseCount,		0,		goto error_proc; );
+				LUA_GET_VALUE(				luaManager, "m_iSkillID",			pSubQuestTemplet->m_ClearCondition.m_iSkillID,			0 );
 			}
 			break;
 #endif SERV_QUEST_CLEAR_EXPAND
@@ -2373,17 +2366,17 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 #ifdef SERV_NEW_PVP_QUEST
 		case SQT_PVP_NPC_HUNT:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			pSubQuestTemplet->m_ClearCondition.m_ePVPType,  CX2PVPRoom::PVP_GAME_TYPE,  CX2PVPRoom::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePVPType",			pSubQuestTemplet->m_ClearCondition.m_ePVPType,  CX2PVPRoom::PVP_GAME_TYPE,  CX2PVPRoom::PGT_TEAM, goto error_proc; );
 
 #ifdef SERV_PVP_NPC_HUNT_QUEST_EXTEND
-				LUA_GET_VALUE(		luaManager, L"m_iPVPWin",					pSubQuestTemplet->m_ClearCondition.m_iPVPWin,		-1 );
-				LUA_GET_VALUE(		luaManager, L"m_iPVPKill",					pSubQuestTemplet->m_ClearCondition.m_iPVPKill,		-1 );
-				LUA_GET_VALUE(		luaManager, L"m_iPVPPlay",					pSubQuestTemplet->m_ClearCondition.m_iPVPPlay,		-1 );
+				LUA_GET_VALUE(		luaManager, "m_iPVPWin",					pSubQuestTemplet->m_ClearCondition.m_iPVPWin,		-1 );
+				LUA_GET_VALUE(		luaManager, "m_iPVPKill",					pSubQuestTemplet->m_ClearCondition.m_iPVPKill,		-1 );
+				LUA_GET_VALUE(		luaManager, "m_iPVPPlay",					pSubQuestTemplet->m_ClearCondition.m_iPVPPlay,		-1 );
 #else //SERV_PVP_NPC_HUNT_QUEST_EXTEND
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPWin",			pSubQuestTemplet->m_ClearCondition.m_iPVPWin,  -1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPWin",			pSubQuestTemplet->m_ClearCondition.m_iPVPWin,  -1, goto error_proc; );
 #endif //SERV_PVP_NPC_HUNT_QUEST_EXTEND
 
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePvpChannelClass",	pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE, goto error_proc; );
 			}
 			break;
 #endif SERV_NEW_PVP_QUEST
@@ -2392,7 +2385,7 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 		case SQT_VISIT_VILLAGE:
 			{
 	#ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eVillageID" ) == true )
+				if( luaManager.BeginTable( "m_eVillageID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
@@ -2405,7 +2398,7 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 					luaManager.EndTable();
 				}
 	#else
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_eVillageID",		pSubQuestTemplet->m_ClearCondition.m_iVillageMapID,		0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_eVillageID",		pSubQuestTemplet->m_ClearCondition.m_iVillageMapID,		0, goto error_proc; );
 	#endif //REFORM_QUEST
 			}
 			break;
@@ -2413,7 +2406,7 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 		case SQT_VISIT_FIELD:
 			{
 	#ifdef REFORM_QUEST
-				if( luaManager.BeginTable( L"m_eFieldID" ) == true )
+				if( luaManager.BeginTable( "m_eFieldID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
@@ -2425,53 +2418,51 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 					}
 					luaManager.EndTable();
 				}
+#ifdef SERV_EVENT_TITLE_SUBQUEST
+				LUA_GET_VALUE(	luaManager, "m_iUseTitleID",					pSubQuestTemplet->m_ClearCondition.m_iUseTitleID,		-1);
+#endif SERV_EVENT_TITLE_SUBQUEST
 	#else
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_eFieldID",			pSubQuestTemplet->m_ClearCondition.m_iBattleFieldID,	0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_eFieldID",			pSubQuestTemplet->m_ClearCondition.m_iBattleFieldID,	0, goto error_proc; );
+#ifdef SERV_EVENT_TITLE_SUBQUEST
+				LUA_GET_VALUE(	luaManager, "m_iUseTitleID",					pSubQuestTemplet->m_ClearCondition.m_iUseTitleID,		-1);
+#endif SERV_EVENT_TITLE_SUBQUEST
 	#endif //REFORM_QUEST
 			}
 			break;
 	#ifdef REFORM_QUEST
 		case SQT_VISIT_DUNGEON:
 			{
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					luaManager.EndTable();
 				}
-				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty" flag
-				// here (CXSLQuestManager::LoadClearCondition) and the client never did,
-				// because the server decided. Offline the client's parse IS the server,
-				// so without this the step only matches the literal Normal dungeon ID.
-#ifdef SERV_IRUHADEV_OFFLINE
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
-#endif SERV_IRUHADEV_OFFLINE
-				//}}
 			}
 			break;
 		case SQT_FIND_NPC:
 			{
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
 					luaManager.EndTable();
 				}
 
-				if( luaManager.BeginTable( L"m_eFieldID" ) == true )
+				if( luaManager.BeginTable( "m_eFieldID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
@@ -2484,15 +2475,7 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 
 					luaManager.EndTable();
 				}
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_iFindNPCID",	pSubQuestTemplet->m_ClearCondition.m_iFindNPCID, CX2UnitManager::NPC_UNIT_ID, CX2UnitManager::NUI_NONE, goto error_proc; );
-				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty" flag
-				// here (CXSLQuestManager::LoadClearCondition) and the client never did,
-				// because the server decided. Offline the client's parse IS the server,
-				// so without this the step only matches the literal Normal dungeon ID.
-#ifdef SERV_IRUHADEV_OFFLINE
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
-#endif SERV_IRUHADEV_OFFLINE
-				//}}
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_iFindNPCID",	pSubQuestTemplet->m_ClearCondition.m_iFindNPCID, CX2UnitManager::NPC_UNIT_ID, CX2UnitManager::NUI_NONE, goto error_proc; );
 			}
 			break;
 	#endif //REFORM_QUEST
@@ -2501,20 +2484,20 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 		case SQT_POINT_COUNT:
 			{
 				///여기에 서브 퀘스트 조건 받아오면 된다.
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPointCount", pSubQuestTemplet->m_ClearCondition.m_iPointCount, 0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPointCount", pSubQuestTemplet->m_ClearCondition.m_iPointCount, 0, goto error_proc; );
 			}
 			break;
 #endif SERV_POINT_COUNT_SYSTEM	
 #ifdef PVP_SEASON2
 		case SQT_PVP_PLAY_ARRANGE:
 			{
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPPlay",			pSubQuestTemplet->m_ClearCondition.m_iPVPPlay,	0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPPlay",			pSubQuestTemplet->m_ClearCondition.m_iPVPPlay,	0, goto error_proc; );
 			} break;
 #endif
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 		case SQT_CHAR_LEVEL_UP:
 			{
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iCharLevel",		pSubQuestTemplet->m_ClearCondition.m_iCharLevel, 0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iCharLevel",		pSubQuestTemplet->m_ClearCondition.m_iCharLevel, 0, goto error_proc; );
 			} break;
 #endif //SERV_ACCOUNT_MISSION_SYSTEM
 			//}}
@@ -2522,37 +2505,37 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 #ifdef SERV_PVP_NPC_HUNT_QUEST_EXTEND
 		case SQT_PVP_HERO_NPC_KILL:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			pSubQuestTemplet->m_ClearCondition.m_ePVPType,			CX2PVPRoom::PVP_GAME_TYPE,			CX2PVPRoom::PGT_TEAM,		goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPKill",			pSubQuestTemplet->m_ClearCondition.m_iPVPKill,			-1,																goto error_proc; );
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass,	KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE,	goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePVPType",			pSubQuestTemplet->m_ClearCondition.m_ePVPType,			CX2PVPRoom::PVP_GAME_TYPE,			CX2PVPRoom::PGT_TEAM,		goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPKill",			pSubQuestTemplet->m_ClearCondition.m_iPVPKill,			-1,																goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePvpChannelClass",	pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass,	KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE,	goto error_proc; );
 			}
 			break;
 		case SQT_PVP_HERO_NPC_PLAY:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",			pSubQuestTemplet->m_ClearCondition.m_ePVPType,			CX2PVPRoom::PVP_GAME_TYPE,			CX2PVPRoom::PGT_TEAM,		goto error_proc; );
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPPlay",			pSubQuestTemplet->m_ClearCondition.m_iPVPPlay,		-1, goto error_proc; );
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass,	KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE,	goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePVPType",			pSubQuestTemplet->m_ClearCondition.m_ePVPType,			CX2PVPRoom::PVP_GAME_TYPE,			CX2PVPRoom::PGT_TEAM,		goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iPVPPlay",			pSubQuestTemplet->m_ClearCondition.m_iPVPPlay,		-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, "m_ePvpChannelClass",	pSubQuestTemplet->m_ClearCondition.m_ePvpChannelClass,	KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE,	goto error_proc; );
 			}
 			break;
 #endif //SERV_PVP_NPC_HUNT_QUEST_EXTEND
 #ifdef SERV_SUB_QUEST_USE_ITEM
 		case SQT_ITEM_USE:
 			{
-				if( luaManager.BeginTable( L"m_eDungeonID" ) == true )
+				if( luaManager.BeginTable( "m_eDungeonID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
 					while( luaManager.GetValue( index, buf ) == true )
 					{
 						if( buf > 0 )
-							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<CX2Dungeon::DUNGEON_ID>(buf) );
+							pSubQuestTemplet->m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
 					luaManager.EndTable();
 				}
 
-				if( luaManager.BeginTable( L"m_eFieldID" ) == true )
+				if( luaManager.BeginTable( "m_eFieldID" ) == true )
 				{
 					int index	= 1; 
 					int buf		= 0;
@@ -2565,15 +2548,6 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 
 					luaManager.EndTable();
 				}
-
-				//{{ Iruha : 2026-09-08 // offline: the server reads the "any difficulty" flag
-				// here (CXSLQuestManager::LoadClearCondition) and the client never did,
-				// because the server decided. Offline the client's parse IS the server,
-				// so without this the step only matches the literal Normal dungeon ID.
-#ifdef SERV_IRUHADEV_OFFLINE
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	pSubQuestTemplet->m_ClearCondition.m_bUpperDifficulty,	false, goto error_proc; );
-#endif SERV_IRUHADEV_OFFLINE
-				//}}
 
 				if( luaManager.BeginTable( "m_listUseItemID" ) == true )
 				{
@@ -2589,15 +2563,14 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 					luaManager.EndTable();
 				}
 
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iUseItemCnt",	pSubQuestTemplet->m_ClearCondition.m_iUseItemNum,	0, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iUseItemCnt",	pSubQuestTemplet->m_ClearCondition.m_iUseItemNum,	0, goto error_proc; );
 			}
 			break;
 #endif SERV_SUB_QUEST_USE_ITEM
-			//{{ 2012. 01. 20    박진웅		스킬 사용 서브퀘스트
 #ifdef SERV_SKILL_USE_SUBQUEST
 		case SQT_SKILL_USE:
 			{
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iUseSkillCount",	pSubQuestTemplet->m_ClearCondition.m_iUseSkillCount,		-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iUseSkillCount",	pSubQuestTemplet->m_ClearCondition.m_iUseSkillCount,		-1, goto error_proc; );
 
 				if( luaManager.BeginTable( "m_vecSkillID" ) == true )
 				{
@@ -2618,7 +2591,7 @@ bool CX2QuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTempl
 #ifdef SERV_SUB_QUEST_LEARN_NEW_SKILL
 		case SQT_LEARN_NEW_SKILL:
 			{
-				LUA_GET_VALUE_RETURN(		luaManager, L"m_iLearnNewSkillCount",	pSubQuestTemplet->m_ClearCondition.m_iLearnNewSkillCount,		-1, goto error_proc; );
+				LUA_GET_VALUE_RETURN(		luaManager, "m_iLearnNewSkillCount",	pSubQuestTemplet->m_ClearCondition.m_iLearnNewSkillCount,		-1, goto error_proc; );
 
 				if( luaManager.BeginTable( "m_vecSkillID" ) == true )
 				{
@@ -2768,8 +2741,8 @@ bool CX2QuestManager::SubQuestInst::IsComplete() const
 		(SQT_ITEM_COLLECTION == pSubQuestTemplet->m_eClearType || SQT_QUEST_ITEM_COLLECTION == pSubQuestTemplet->m_eClearType ) )
 	{
 		// 인벤에서 아이템 개수를 헤아려 보자~ // 장착 장비는 빼고!
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-		int nCount = pInventory->GetNumItemByTID( pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID, true );
+		const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		int nCount = kInventory.GetNumItemByTID( pSubQuestTemplet->m_ClearCondition.m_iCollectionItemID, true );
 
 		if( nCount < pSubQuestTemplet->m_ClearCondition.m_iCollectionItemNum )
 		{
@@ -2968,16 +2941,11 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 				bAuto = false;
 			}
 
-			CX2Inventory* pInventory = NULL;
 			int nItemCount = 0;
 			if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+				nItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( clearCond.m_iCollectionItemID, true );
 			}
-			if( NULL != pInventory )
-			{
-				nItemCount = pInventory->GetNumItemByTID( clearCond.m_iCollectionItemID, true );
-			}		
 
 #ifndef REFORM_QUEST //던전ID관련 자동완성에 대한 기획이 완료되지 않음, m_cDifficulty 제거
 			if( true == bAuto )
@@ -3505,7 +3473,7 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 #ifndef REFORM_QUEST //던전ID관련 자동완성에 대한 기획이 완료되지 않음, m_cDifficulty 제거
 			if( true == bAuto )
 			{
-				if( clearCond.m_eDungeonID != CX2Dungeon::DI_NONE )
+				if( clearCond.m_eDungeonID != SEnum::DI_NONE )
 				{
 					wstrmQuestCond << GET_STRING( STR_ID_5123 ) << L" ";
 					const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( clearCond.m_eDungeonID );
@@ -3846,11 +3814,11 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 	//{{ oasis907 : 김상윤 [2011.1.26] // 추가 퀘스트 클리어 타입 스트링
 	case CX2QuestManager::SQT_ITEM_ENCHANT:
 		{
-#ifndef FIX_QUEST_DESC_CRASH
-			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-			//int nItemCount = pInventory->GetNumItemByTID( clearCond.m_iCollectionItemID, true );
-#endif //FIX_QUEST_DESC_CRASH
+//#ifndef FIX_QUEST_DESC_CRASH
+//			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
+//			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+//			//int nItemCount = kInventory.GetNumItemByTID( clearCond.m_iCollectionItemID, true );
+//#endif //FIX_QUEST_DESC_CRASH
 
 			if( true == bAuto )
 			{
@@ -3879,10 +3847,10 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 		} break;
 	case CX2QuestManager::SQT_ITEM_SOCKET:
 		{
-#ifndef FIX_QUEST_DESC_CRASH
-			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-#endif //FIX_QUEST_DESC_CRASH
+//#ifndef FIX_QUEST_DESC_CRASH
+//			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
+//			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+//#endif //FIX_QUEST_DESC_CRASH
 
 			if( true == bAuto )
 			{
@@ -3924,10 +3892,10 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 		} break;
 	case CX2QuestManager::SQT_ITEM_ATTRIB:
 		{
-#ifndef FIX_QUEST_DESC_CRASH
-			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-#endif //FIX_QUEST_DESC_CRASH
+//#ifndef FIX_QUEST_DESC_CRASH
+//			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
+//			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+//#endif //FIX_QUEST_DESC_CRASH
 			if( true == bAuto )
 			{
 				if(clearCond.m_iCollectionItemID == 0)
@@ -3971,10 +3939,10 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 		} break;
 	case CX2QuestManager::SQT_ITEM_RESOLVE:
 		{
-#ifndef FIX_QUEST_DESC_CRASH
-			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-#endif //FIX_QUEST_DESC_CRASH
+//#ifndef FIX_QUEST_DESC_CRASH
+//			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
+//			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+//#endif //FIX_QUEST_DESC_CRASH
 			if( true == bAuto )
 			{
 				if(clearCond.m_iCollectionItemID == 0)
@@ -4016,10 +3984,10 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 	case CX2QuestManager::SQT_ITEM_EQUIP_DUNGEON_CLEAR:
 		{
 #ifndef REFORM_QUEST //던전ID관련 자동완성에 대한 기획이 완료되지 않음, m_cDifficulty 제거
-#ifndef FIX_QUEST_DESC_CRASH
-			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-#endif //FIX_QUEST_DESC_CRASH
+//#ifndef FIX_QUEST_DESC_CRASH
+//			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
+//			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+//#endif //FIX_QUEST_DESC_CRASH
 
 			if( true == bAuto )
 			{
@@ -4156,10 +4124,10 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 		} break;
 	case CX2QuestManager::SQT_USE_SKILL_POINT:
 		{
-#ifndef FIX_QUEST_DESC_CRASH
-			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
-			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-#endif //FIX_QUEST_DESC_CRASH
+//#ifndef FIX_QUEST_DESC_CRASH
+//			//사용하지 않는 객체이기 떄문에 제거 하겠습니다.
+//			CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+//#endif //FIX_QUEST_DESC_CRASH
 			if( true == bAuto )
 			{
 				if(clearCond.m_iSkillID == 0)
@@ -4274,7 +4242,7 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 			{
 				if( NULL != g_pData->GetDungeonManager() )
 				{
-					std::set<CX2Dungeon::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
+					std::set<SEnum::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
 					for( ; sit != pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end(); ++sit)
 					{
 						const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( *sit );
@@ -4468,7 +4436,6 @@ wstring CX2QuestManager::MakeSubQuestString( bool bAuto, const CX2QuestManager::
 					wstrmQuestCond << pSubQuestTemplet->m_wstrDescription << L" 0/" << clearCond.m_iLearnNewSkillCount << std::endl;
 				}
 			}
-
 		} break;
 #endif SERV_SUB_QUEST_LEARN_NEW_SKILL
 	}
@@ -4539,10 +4506,9 @@ bool CX2QuestManager::CheckItemCollection( int iItemID )
 						{											
 							int nCount = 0;
 
-							CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-							if( NULL != pInventory )
+							const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 							{
-								nCount += pInventory->GetNumItemByTID( iItemID );
+								nCount += kInventory.GetNumItemByTID( iItemID );
 							}
 
 							if( nCount <= pSubQuestTemplet->m_ClearCondition.m_iCollectionItemNum )
@@ -4602,12 +4568,6 @@ bool CX2QuestManager::IsForbiddenQuest( int iQuestID )
 	if( NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		return false;
 
-	if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
-		return false; 
-
-	if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
-		return false;
-
 
 #ifdef SERV_SKILL_NOTE
 	const int iQuestMagicID1 = 9000;	// 기술의 노트 1/2
@@ -4616,13 +4576,11 @@ bool CX2QuestManager::IsForbiddenQuest( int iQuestID )
 		return true;
 #endif
 
-	//{{ 지헌 - 은행 개편 퀘스트, 캐쉬 작업 
 #ifdef SERV_SHARING_BANK_QUEST_CASH
 	if( g_pData->GetMyUser()->IsSharingBankOpen() == true)
 		if( iQuestID == 60720 || iQuestID == 60710 || iQuestID == 60700) // 은행 공유 퀘스트
 			return true;
-#endif
-	//}}
+#endif SERV_SHARING_BANK_QUEST_CASH
 
 	const CX2QuestManager::QuestTemplet* pQuestTemplet = GetQuestTemplet( iQuestID );
 	if( NULL == pQuestTemplet )
@@ -4652,7 +4610,7 @@ bool CX2QuestManager::IsForbiddenQuest( int iQuestID )
 
 	BOOST_TEST_FOREACH( int, itemID, pQuestTemplet->m_vecShowItemID )
 	{
-		if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( itemID, true ) )
+		if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( itemID, true ) )
 		{
 			return true;
 		}
@@ -4661,7 +4619,7 @@ bool CX2QuestManager::IsForbiddenQuest( int iQuestID )
 
 	BOOST_TEST_FOREACH( int, itemID, pQuestTemplet->m_vecHideItemID )
 	{
-		if( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID( itemID, true ) )
+		if( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( itemID, true ) )
 		{
 			return true;
 		}
@@ -4671,7 +4629,7 @@ bool CX2QuestManager::IsForbiddenQuest( int iQuestID )
 
 	BOOST_TEST_FOREACH( int, skillID, pQuestTemplet->m_vecHideSkillID )
 	{
-		if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.IsSkillUnsealed( (CX2SkillTree::SKILL_ID) skillID ) )
+		if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.IsSkillUnsealed( (CX2SkillTree::SKILL_ID) skillID ) )
 		{
 			return true;
 
@@ -4681,7 +4639,7 @@ bool CX2QuestManager::IsForbiddenQuest( int iQuestID )
 
 	BOOST_TEST_FOREACH( const CX2Inventory::MEMBERSHIP_PRIVATE_BANK, bankGrade, pQuestTemplet->m_vecHideBankGrade )
 	{
-		if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetBankMembershipGrade() == bankGrade )
+		if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetBankMembershipGrade() == bankGrade )
 		{
 			return true;
 		}
@@ -4708,7 +4666,29 @@ void CX2QuestManager::GiveUpForbiddenQuest()
 		if( true == IsForbiddenQuest( pQuestInst->m_iID ) )
 		{
 #ifdef SERV_GATHER_GIVE_UP_QUEST
+	#ifdef SHOW_ONLY_MY_EVENT_QUEST
+			const CX2QuestManager::QuestTemplet* pQuestTemplet 
+				= g_pData->GetQuestManager()->GetQuestTemplet( pQuestInst->m_iID );
+
+			if( NULL != pQuestTemplet )
+			{
+				switch( pQuestTemplet->m_eQuestType )
+				{
+					// 이벤트 타입은 유닛타입 검사하여, 자기 유닛의 퀘스트일 경우만 받기
+				case CX2QuestManager::QT_EVENT:
+					{
+						if( CX2Unit::UT_NONE == pQuestTemplet->m_Condition.m_eUnitType ||
+							g_pData->GetSelectUnitType() == pQuestTemplet->m_Condition.m_eUnitType )
+							vecGatherQuestID.push_back( pQuestInst->m_iID );
+					} break;
+				default:
+					vecGatherQuestID.push_back( pQuestInst->m_iID );
+					break;
+				}
+			}
+	#else
 			vecGatherQuestID.push_back( pQuestInst->m_iID );
+	#endif // SHOW_ONLY_MY_EVENT_QUEST
 #else // SERV_GATHER_GIVE_UP_QUEST
 #ifdef SERV_EPIC_QUEST
 			ASSERT( NULL != g_pData->GetUIManager()->GetUIQuestNew() );
@@ -5043,7 +5023,7 @@ void CX2QuestManager::GetCompleteTalkQuest( const CX2UnitManager::NPC_UNIT_ID eQ
 	}
 }
 
-bool CX2QuestManager::GetNeedToClearDungeonList( OUT map<CX2Dungeon::DUNGEON_ID, bool>& mapGuideTarget_)
+bool CX2QuestManager::GetNeedToClearDungeonList( OUT map<SEnum::DUNGEON_ID, bool>& mapGuideTarget_)
 {
 	//유닛이 가지고 있는 퀘스트 목록 순회
 	map<int,QuestInst*>::iterator mit = m_mapUnitQuest.begin();
@@ -5071,13 +5051,13 @@ bool CX2QuestManager::GetNeedToClearDungeonList( OUT map<CX2Dungeon::DUNGEON_ID,
 						}
 
 						//해당 타입의 서브퀘스트와 연결된 필드ID 등록
-						for( std::set<CX2Dungeon::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
+						for( std::set<SEnum::DUNGEON_ID>::iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
 							sit != pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end(); ++sit)
 						{
 							if( NULL != g_pData && NULL != g_pData->GetDungeonManager() && NULL != g_pData->GetDungeonManager()->GetDungeonData(*sit) )
 							{	//난이도를 제외한 던전ID로 구별합니다.
 								int iExecptDiffucltyLevelDungeonID = *sit - g_pData->GetDungeonManager()->GetDungeonData(*sit)->m_eDifficulty;
-								mapGuideTarget_.insert( std::make_pair( static_cast<CX2Dungeon::DUNGEON_ID>(iExecptDiffucltyLevelDungeonID), bIsEpic) );	
+								mapGuideTarget_.insert( std::make_pair( static_cast<SEnum::DUNGEON_ID>(iExecptDiffucltyLevelDungeonID), bIsEpic) );	
 							}	
 						}						
 					}
@@ -5118,6 +5098,7 @@ void CX2QuestManager::SetHasDungeonQuest()
 	}
 }
 #endif //QUEST_GUIDE
+
 #ifdef SERV_POINT_COUNT_SYSTEM
 void CX2QuestManager::SetUpdataQuestInstance(std::map< int, KQuestInstance > mapQuestInstance)
 {
@@ -5275,7 +5256,6 @@ void CX2QuestManager::PrintQuestInfo_ToExcel()
 #endif PRINT_INGAMEINFO_TO_EXCEL
 //}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 
-
 #ifdef SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
 bool CX2QuestManager::IsNewUserOnlyQuest( int iQuestID )
 {
@@ -5289,3 +5269,36 @@ bool CX2QuestManager::IsNewUserOnlyQuest( int iQuestID )
 	return false;
 }
 #endif SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
+
+#ifdef SERV_SKILL_USE_SUBQUEST
+bool CX2QuestManager::HasSkillUseSubQuest( const int& iSkillID )
+{
+	map< int, QuestInst* >::iterator mitQuestInst;
+	for( mitQuestInst = m_mapUnitQuest.begin(); mitQuestInst != m_mapUnitQuest.end(); ++mitQuestInst )
+	{
+		QuestInst* pQuestInst = mitQuestInst->second;
+		if( pQuestInst == NULL )
+			continue;
+
+		if( true == pQuestInst->IsComplete() )
+			continue;
+
+		vector< SubQuestInst >::iterator vit;
+		for( vit = pQuestInst->m_vecSubQuestInst.begin(); vit != pQuestInst->m_vecSubQuestInst.end(); ++vit )
+		{
+			if( vit->m_bIsSuccess == true )
+				continue;
+
+			SubQuestTemplet* pSubQuestTemplet = m_mapSubQuestTemplet.find( vit->m_iID )->second;
+			if( pSubQuestTemplet == NULL || pSubQuestTemplet->m_eClearType != SQT_SKILL_USE )
+				continue;
+
+			std::set< int >& setSkillID = pSubQuestTemplet->m_ClearCondition.m_setSkillID;
+			if( setSkillID.find( iSkillID ) != setSkillID.end() )
+				return true;
+		}
+	}
+
+	return false;
+}
+#endif SERV_SKILL_USE_SUBQUEST

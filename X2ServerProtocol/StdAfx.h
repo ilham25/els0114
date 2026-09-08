@@ -30,7 +30,8 @@
 #endif
 #define ERRORMSG( msg )		MessageBox( NULL, msg, L"Error", MB_OK | MB_ICONERROR );
 
-#define ADD_COLLECT_CLIENT_INFO_PROTOCOL
+
+
 
 #include <Winsock2.h>
 #include <windows.h>

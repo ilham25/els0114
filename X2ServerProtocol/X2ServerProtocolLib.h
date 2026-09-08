@@ -4,6 +4,12 @@
 #define UNICODE
 #endif
 
+//#define X2OPTIMIZE_TCP_RELAY_TEST
+
+#define ADD_COLLECT_CLIENT_INFO_PROTOCOL
+#define X2OPTIMIZE_X2SERVERPROTOCOL_MULTITHREAD_CRASH_BUG_FIX
+#define X2OPTIMIZE_SESSION_THREAD_SAFETY
+
 #pragma comment( lib, "ws2_32.lib" )
 #pragma warning ( disable : 4702 )
 #pragma warning ( disable : 4995 )
@@ -65,9 +71,11 @@ typedef bool (*SEND_MSG_FUNC)( UINT uMsg, WPARAM wParam, LPARAM lParam, bool bDi
 #include "TRUser.h"
 
 #include "X2ServerProtocol.h"
+//#ifndef X2OPTIMIZE_TCP_RELAY_TEST
 #if !defined( X2TOOL ) && !defined( EFFECT_TOOL ) 
 #include "Odbc.h"
 #endif
+//#endif//X2OPTIMIZE_TCP_RELAY_TEST
 
 
 

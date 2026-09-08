@@ -666,36 +666,35 @@ private:
 #ifdef FONT_CASH_DATA_STRUCTURE_REFORM
 	int					m_iSizeArray;
 	SGCFontCacheBase**	m_FontCacheArray;
-#else
-	std::map< WCHAR, SGCFontCacheBase* > m_mapChar;
-#endif
-
 #ifdef  KTDGDEVICEFONT_SIZE_CACHE
-    struct  FontHash
-    {
-        SGCFontCacheBase*   m_pFontCache;
-        bool            m_bFontSize;
+	struct  FontHash
+	{
+		SGCFontCacheBase*   m_pFontCache;
+		bool            m_bFontSize;
 		SIZE            m_size;
-        FontHash()
-            : m_pFontCache( NULL )
-            , m_bFontSize( false )
-        {
-            m_size.cx = m_size.cy = 0;
-        }
-        void            Init()
-        {
-            m_pFontCache = NULL;
-            m_bFontSize = false;
-            m_size.cx = m_size.cy = 0;
-        }
-    };//struct  FontHash
+		FontHash()
+			: m_pFontCache( NULL )
+			, m_bFontSize( false )
+		{
+			m_size.cx = m_size.cy = 0;
+		}
+		void            Init()
+		{
+			m_pFontCache = NULL;
+			m_bFontSize = false;
+			m_size.cx = m_size.cy = 0;
+		}
+	};//struct  FontHash
 
 	mutable FontHash    m_FontCacheHashTable[HASH_BUCKET_SIZE];
 
-#else
-
+#else //KTDGDEVICEFONT_SIZE_CACHE
 	SGCFontCacheBase*	m_FontCacheHashTable[HASH_BUCKET_SIZE];
-#endif
+#endif //KTDGDEVICEFONT_SIZE_CACHE
+
+#else //FONT_CASH_DATA_STRUCTURE_REFORM
+	std::map< WCHAR, SGCFontCacheBase* > m_mapChar;
+#endif //FONT_CASH_DATA_STRUCTURE_REFORM
 
 	// about DC
 	HPEN				m_hPen, m_hOldPen;

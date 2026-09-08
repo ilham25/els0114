@@ -284,19 +284,19 @@ bool CX2WeddingManager::OpenScriptFile( const WCHAR* pOfficiantFileName_,
 
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pWeddingManager", this );
 
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pOfficiantFileName_ ) )
+	if( false == g_pKTDXApp->LoadLuaTinker( pOfficiantFileName_ ) )
 	{
 		ErrorLogMsg( XEM_ERROR147, pOfficiantFileName_ );
 		return false;
 	}
 
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pWeddingHallFileName_ ) )
+	if( false == g_pKTDXApp->LoadLuaTinker( pWeddingHallFileName_ ) )
 	{
 		ErrorLogMsg( XEM_ERROR147, pWeddingHallFileName_ );
 		return false;
 	}
 
-	if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pWeddingManagerFileName_ ) )
+	if( true == g_pKTDXApp->LoadLuaTinker( pWeddingManagerFileName_ ) )
 	{
 		m_WeddingBehavior.OpenScript( luaManager );
 	}
@@ -418,7 +418,9 @@ HRESULT CX2WeddingHallManager::OnFrameMove( double fTime, float fElapsedTime )
 bool CX2WeddingHallManager::AddWeddingHallTemplet_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	WeddingHallTemplet* pWeddingHallTemplet = new WeddingHallTemplet;
 
@@ -444,7 +446,7 @@ bool CX2WeddingHallManager::AddWeddingHallTemplet_LUA()
 		luaManager.EndTable();
 	}
 
-	if( true == luaManager.BeginTable( L"OFFCIANT_POSISTION" ) )
+	if( true == luaManager.BeginTable( "OFFCIANT_POSISTION" ) )
 	{
 		LUA_GET_VALUE( luaManager, "OFFCIANT_POS_X",					pWeddingHallTemplet->m_vOffciantPos.x,  0.f );
 		LUA_GET_VALUE( luaManager, "OFFCIANT_POS_Y",					pWeddingHallTemplet->m_vOffciantPos.y,  0.f );
@@ -462,8 +464,13 @@ bool CX2WeddingHallManager::AddWeddingHallTemplet_LUA()
 		luaManager.EndTable();
 	}
 
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "COLOR", pWeddingHallTemplet->m_vColor, D3DXCOLOR(1,1,1,1) );
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "OUTLINE_COLOR", pWeddingHallTemplet->m_vOutlineColor, D3DXCOLOR(1,1,1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	pWeddingHallTemplet->m_vColor		= lua_tinker::get<D3DXCOLOR>( luaManager.GetLuaState(),  "COLOR" );
 	pWeddingHallTemplet->m_vOutlineColor= lua_tinker::get<D3DXCOLOR>( luaManager.GetLuaState(),  "OUTLINE_COLOR" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	m_mapWeddingHallTemplet[ pWeddingHallTemplet->m_eWeddingHallType ] = pWeddingHallTemplet ;
 	return true;
@@ -592,7 +599,7 @@ CX2OfficiantManger::~CX2OfficiantManger()
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hOfficiantMesh )
 	{
 		if( NULL != g_pData->GetGameMajorXMeshPlayer() )
-			g_pData->GetGameMajorXMeshPlayer()->DestroyInstance( m_hOfficiantMesh );
+			g_pData->GetGameMajorXMeshPlayer()->DestroyInstanceHandle( m_hOfficiantMesh );
 	}
 
 	std::map<SEnum::WEDDING_OFFICIANT_TYPE, OfficiantTemplet*>::iterator mit = m_mapOfficiantTemplet.begin();
@@ -687,7 +694,9 @@ void CX2OfficiantManger::PlayOfficiantsMessage( int iStrID_ )
 bool CX2OfficiantManger::AddOfficiantTemplet_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	OfficiantTemplet* pOfficiantTemplet = new OfficiantTemplet ;
 
@@ -703,7 +712,7 @@ bool CX2OfficiantManger::AddOfficiantTemplet_LUA()
 	LUA_GET_VALUE( luaManager, "TALKBOX_POSITION_OFFSET_Y",		pOfficiantTemplet->m_vTalkBoxOffsetPos.y,  0.f );
 	LUA_GET_VALUE( luaManager, "TALKBOX_POSITION_OFFSET_Z",		pOfficiantTemplet->m_vTalkBoxOffsetPos.z,  0.f );
  
-	if( true == luaManager.BeginTable( L"OFFICANT_BEHAVIOR" ) )
+	if( true == luaManager.BeginTable( "OFFICANT_BEHAVIOR" ) )
 	{
 		int iBehaviorTableIndex = 1;
 		while( true == luaManager.BeginTable( iBehaviorTableIndex  ) )
@@ -745,7 +754,7 @@ bool CX2OfficiantManger::CreateOfficiant()
 		if( INVALID_MESH_INSTANCE_HANDLE != m_hOfficiantMesh )
 		{
 			if( NULL != g_pData->GetGameMajorXMeshPlayer() )
-				g_pData->GetGameMajorXMeshPlayer()->DestroyInstance( m_hOfficiantMesh );
+				g_pData->GetGameMajorXMeshPlayer()->DestroyInstanceHandle( m_hOfficiantMesh );
 		}
 	}
 
@@ -824,7 +833,7 @@ void CX2WeddingBehavior::OpenScript( KLuaManager& luaManager_ )
 	// 행동은 시간 순서에 맞게 입력 할 수 있도록 예외 처리
 	float fPreStartTime = 0.f;
 
-	if( true == luaManager_.BeginTable( L"WEDDING_BEHAVIOR_NOTICE" ) )
+	if( true == luaManager_.BeginTable( "WEDDING_BEHAVIOR_NOTICE" ) )
 	{
 		int iTableIndex = 1;
 		while( true == luaManager_.BeginTable( iTableIndex  ) )
@@ -849,7 +858,7 @@ void CX2WeddingBehavior::OpenScript( KLuaManager& luaManager_ )
 	}
 
 	fPreStartTime = 0.f;
-	if( true == luaManager_.BeginTable( L"WEDDING_BEHAVIOR_MOVE" ) )
+	if( true == luaManager_.BeginTable( "WEDDING_BEHAVIOR_MOVE" ) )
 	{
 		int iTableIndex = 1;
 		while( true == luaManager_.BeginTable( iTableIndex  ) )
@@ -871,7 +880,7 @@ void CX2WeddingBehavior::OpenScript( KLuaManager& luaManager_ )
 	}
 
 	fPreStartTime = 0.f;
-	if( true == luaManager_.BeginTable( L"WEDDING_BEHAVIOR_SOUND" ) )
+	if( true == luaManager_.BeginTable( "WEDDING_BEHAVIOR_SOUND" ) )
 	{
 		int iTableIndex = 1;
 		while( true == luaManager_.BeginTable( iTableIndex  ) )
@@ -898,7 +907,7 @@ void CX2WeddingBehavior::OpenScript( KLuaManager& luaManager_ )
 
 
 	fPreStartTime = 0.f;
-	if( true == luaManager_.BeginTable( L"WEDDING_BEHAVIOR_EFFECTSET" ) )
+	if( true == luaManager_.BeginTable( "WEDDING_BEHAVIOR_EFFECTSET" ) )
 	{
 		int iTableIndex = 1;
 		while( true == luaManager_.BeginTable( iTableIndex  ) )

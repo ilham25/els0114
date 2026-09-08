@@ -310,7 +310,7 @@ bool CX2UIWatch::OpenDialog(UidType uid)
 
 	// 캐릭터 정보 읽어와서 이름이랑 레벨 전적 대전순위 대전등급을 예쁘게 적어넣고
 	WCHAR buff[256] = {0,};
-	CX2Unit::UnitData* pUnitData = m_pTargetUnit->GetUnitData();
+	const CX2Unit::UnitData* pUnitData = &m_pTargetUnit->GetUnitData();
 
 	// 이름
 	CKTDGUIStatic* pStaticUserInfo = (CKTDGUIStatic*)m_pDLGWatch->GetControl( L"g_pStaticName" );
@@ -423,6 +423,25 @@ bool CX2UIWatch::OpenDialog(UidType uid)
 
 				bIsEmptyTitle = false;
 
+#ifdef TITLE_SHOWING_PVP_RESULT
+				CKTDGUIStatic* pStaticTitleScore = (CKTDGUIStatic*)m_pDLGWatch->GetControl( L"g_pStaticInfo_TitleScore" );
+				if( pStaticTitleScore != NULL )
+				{
+					if( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
+					{
+						if( pUnitData->m_iTitleId == _CONST_TITLE_SHOWING_PVP_RESULT_::iTitleID )
+						{
+							char szCount[10];
+							::itoa( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAccountPVPLoseCount, szCount, 10 );
+							pStaticTitleScore->GetString(0)->msg = KncUtil::toWideString(szCount).c_str();
+							pStaticTitleScore->SetShow( true );
+						}
+						else
+							pStaticTitleScore->SetShow( false );
+					}
+				}
+#endif //TITLE_SHOWING_PVP_RESULT
+
 #ifdef ADD_TITLE_DESCRIPTION
 				// 타이틀 디스크립션 추가
 				{
@@ -489,8 +508,8 @@ void CX2UIWatch::ResetEquipUI()
 	if( NULL == m_pTargetUnit )
 		return;
 
-	CX2Unit::UnitData* pUnitData = m_pTargetUnit->GetUnitData();
-	CX2Inventory* pInventory = m_pTargetUnit->GetInventory();
+	const CX2Unit::UnitData* pUnitData = &m_pTargetUnit->GetUnitData();
+	const CX2Inventory& kInventory = m_pTargetUnit->GetInventory();
 
 	for ( int i = 0; i < (int)m_SlotList.size(); i++ )
 	{
@@ -501,13 +520,11 @@ void CX2UIWatch::ResetEquipUI()
 		}
 	}
 
-	if ( pUnitData != NULL && 
-		pInventory != NULL )
 	{
 		for ( int i = 0; i < (int)pUnitData->m_NowEqipItemUIDList.size(); i++ )
 		{
 			UidType uidType = pUnitData->m_NowEqipItemUIDList[i];
-			CX2Item* pItem = pInventory->GetItem( uidType );
+			CX2Item* pItem = kInventory.GetItem( uidType );
 			if ( pItem == NULL )
 				continue;
 
@@ -799,14 +816,13 @@ wstring CX2UIWatch::GetSlotItemDesc()
 			// SlotItemDescByTID 새로 만듬 : 소켓 정보, 기간 정보 보여주지 않음
 			if( m_pTargetUnit != NULL )
 			{
-				CX2Inventory* pInventory = m_pTargetUnit->GetInventory();
-				if(pInventory != NULL)
+				const CX2Inventory& kInventory = m_pTargetUnit->GetInventory();
 				{
-					CX2Item* pItem = pInventory->GetItem( m_pNowOverItemSlot->GetItemUID() );
+					CX2Item* pItem = kInventory.GetItem( m_pNowOverItemSlot->GetItemUID() );
 					if(pItem != NULL)
 					{
-						//pItem->GetItemData()->m_Endurance = pItem->GetItemTemplet()->m_Endurance;
-						itemDesc = GetSlotItemDescByTID( pItem, pItem->GetItemData()->m_ItemID, false );
+						//pItem->GetItemData().m_Endurance = pItem->GetItemTemplet()->m_Endurance;
+						itemDesc = GetSlotItemDescByTID( pItem, pItem->GetItemData().m_ItemID, false );
 					}
 				}
 			}
@@ -846,12 +862,11 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 		if ( ( eItemType == CX2Item::IT_WEAPON || eItemType == CX2Item::IT_DEFENCE ) &&
 			pkItemTemplet->GetFashion() == false && pItem != NULL )
 		{
-			if( pItem->GetItemData() != NULL )
 			{
 #ifdef ITEM_RECOVERY_TEST
-				StringCchPrintfW( buff, ARRAY_SIZE(buff), L"+%d ", abs(pItem->GetItemData()->m_EnchantLevel) );
+				StringCchPrintfW( buff, ARRAY_SIZE(buff), L"+%d ", abs(pItem->GetItemData().m_EnchantLevel) );
 #else
-				StringCchPrintfW( buff, ARRAY_SIZE(buff), L"+%d ", pItem->GetItemData()->m_EnchantLevel );
+				StringCchPrintfW( buff, ARRAY_SIZE(buff), L"+%d ", pItem->GetItemData().m_EnchantLevel );
 #endif
 				slotItemDesc += buff;
 			}
@@ -1072,7 +1087,7 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 			// 스탯 관련
 			//wsprintf( buff, GET_REPLACED_STRING( ( STR_ID_279, "i", ( int )pkItemTemplet->m_UseLevel ) ) );
 			StringCchPrintf( buff, 256, GET_REPLACED_STRING( ( STR_ID_279, "i", ( int )pkItemTemplet->GetUseLevel() ) ) );
-			if ( pkUnit->GetUnitData()->m_Level < pkItemTemplet->GetUseLevel() ) 
+			if ( pkUnit->GetUnitData().m_Level < pkItemTemplet->GetUseLevel() ) 
 			{
 				slotItemDesc += L"\n";
 				slotItemDesc += L"#CFF0000";
@@ -1087,15 +1102,13 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 			}
 
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			// 요구 레벨이 없고, 착용 할 수 있으면
 			if ( 0 == pkItemTemplet->GetUseLevel() && false == pkItemTemplet->GetNoEquip() )
 			{
 				// 연동레벨을 보여줌
 				if( NULL != m_pTargetUnit )
-					slotItemDesc += GET_REPLACED_STRING( ( STR_ID_12772, "i", static_cast<int>( m_pTargetUnit->GetUnitData()->m_Level ) ) );
+					slotItemDesc += GET_REPLACED_STRING( ( STR_ID_12772, "i", static_cast<int>( m_pTargetUnit->GetUnitData().m_Level ) ) );
 			}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 			// 내구도 보여주지 않는다.
@@ -1103,7 +1116,7 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 // 			{
 // 				if ( pItem != NULL )
 // 				{
-// 					int endurancePer = (int)( (pItem->GetItemData()->m_Endurance / (float)pkItemTemplet->m_Endurance)  * 100.0f );
+// 					int endurancePer = (int)( (pItem->GetItemData().m_Endurance / (float)pkItemTemplet->m_Endurance)  * 100.0f );
 // 					//wsprintf( buff, L"내구도 : %d%%\n\n", endurancePer );
 //					StringCchPrintf( buff, 256, L"내구도 : %d%%\n\n", endurancePer );
 // 					if ( endurancePer <= 10 )
@@ -1805,7 +1818,6 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		// 아이템의 소켓 레벨 정의
 		// 아이템에 요구레벨이 있는 경우에는 소켓 레벨을 아이템의 요구레벨로 하고
 		// 아이템에 요구레벨이 없는 경우에는 소켓 레벨을 유저(타겟유저)의 레벨 함
@@ -1828,12 +1840,12 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 					std::vector<int> vecNormalAndRandomSocketOption;// 일반 소켓과 랜덤 옵션을 같이 닮을 컨테이너
 					// 랜덤 소켓 옵션 담기
 					bool bHasRandomSocket = false;
-					if( NULL != pItem && NULL != pItem->GetItemData() )
+					if( NULL != pItem )
 					{
-						if( false == pItem->GetItemData()->m_vecRandomSocket.empty() )
+						if( false == pItem->GetItemData().m_vecRandomSocket.empty() )
 						{
-							vecNormalAndRandomSocketOption.assign( pItem->GetItemData()->m_vecRandomSocket.begin(), 
-								pItem->GetItemData()->m_vecRandomSocket.end() );
+							vecNormalAndRandomSocketOption.assign( pItem->GetItemData().m_vecRandomSocket.begin(), 
+								pItem->GetItemData().m_vecRandomSocket.end() );
 
 							bHasRandomSocket = true;
 						}
@@ -1845,7 +1857,7 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 					vecNormalAndRandomSocketOption.insert( vecNormalAndRandomSocketOption.end(), vecNormalSocketOption.begin(), vecNormalSocketOption.end() );
 
 					// 소켓 레벨 얻기
-					const int iSocketLevel = 0 < pkItemTemplet->GetUseLevel() ? pkItemTemplet->GetUseLevel() : m_pTargetUnit->GetUnitData()->m_Level;
+					const int iSocketLevel = 0 < pkItemTemplet->GetUseLevel() ? pkItemTemplet->GetUseLevel() : m_pTargetUnit->GetUnitData().m_Level;
 
 					// 소켓 설명 얻기
 					if( true == bHasRandomSocket )
@@ -1856,23 +1868,19 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 						GET_STRING( STR_ID_301 ), iSocketLevel, eUnitClass );
 				}
 	#else
-			const int iSocketLevel = 0 < pkItemTemplet->GetUseLevel() ? pkItemTemplet->GetUseLevel() : m_pTargetUnit->GetUnitData()->m_Level;
+			const int iSocketLevel = 0 < pkItemTemplet->GetUseLevel() ? pkItemTemplet->GetUseLevel() : m_pTargetUnit->GetUnitData().m_Level;
 			slotItemDesc += GetSocketDesc( vecSocketOption, GET_STRING( STR_ID_301 ), iSocketLevel );
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
 		}
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		slotItemDesc += GetSocketDesc( vecSocketOption, GET_STRING( STR_ID_301 ) );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 		slotItemDesc += L"#CX";
 
 
 		// 소켓효과 보여주지 않는다
-// 		if( NULL != pItem &&
-// 			NULL != pItem->GetItemData() )
+// 		if( NULL != pItem )
 // 		{
-// 			slotItemDesc += GetSocketDesc( pItem->GetItemData()->m_SocketOption, L"[소켓 효과]" );
+// 			slotItemDesc += GetSocketDesc( pItem->GetItemData().m_SocketOption, L"[소켓 효과]" );
 // 			slotItemDesc += L"#CX";
 // 		}
 
@@ -1888,7 +1896,6 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 		//스페셜 어빌리티 능력치 표시
 		slotItemDesc += GetSpecialAbilityDesc( dwItemID );
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		// 요구 레벨이 없고, 착용 할 수 있으면
 		if ( 0 == pkItemTemplet->GetUseLevel() && 
 			(CX2Item::IT_WEAPON == pkItemTemplet->GetItemType() || CX2Item::IT_DEFENCE == pkItemTemplet->GetItemType() ) )
@@ -1896,7 +1903,6 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 			slotItemDesc += L"\n";
 			slotItemDesc += GET_STRING( STR_ID_13628 );
 		}			
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 		//{{ megagame : 박교현 : [2010-04-18] (마우스 오른쪽 버튼으로 사용)
@@ -1973,8 +1979,7 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 
 		if( pkItemTemplet->GetVested() == true ||
 			( NULL != pItem &&
-			NULL != pItem->GetItemData() &&
-			pItem->GetItemData()->m_Period > 0 ) )
+			pItem->GetItemData().m_Period > 0 ) )
 		{
 			slotItemDesc += GET_STRING( STR_ID_306 );
 			slotItemDesc += L"#CX";
@@ -1985,13 +1990,9 @@ std::wstring CX2UIWatch::GetSlotItemDescByTID( CX2Item* pItem, int itemTID, bool
 //		slotItemDesc += GetExpirationDateDesc( pItem );
 
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		if( NULL != m_pTargetUnit )
-			slotItemDesc += GetSetItemDesc( pItem, dwItemID, m_pTargetUnit->GetUnitData()->m_Level );
+			slotItemDesc += GetSetItemDesc( pItem, dwItemID, m_pTargetUnit->GetUnitData().m_Level );
 
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		slotItemDesc += GetSetItemDesc( pItem, dwItemID );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 		if ( g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR )

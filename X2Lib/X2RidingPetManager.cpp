@@ -40,6 +40,9 @@ CX2RidingPetManager::CX2RidingPetManager(void)
 	m_bIsDirectSummon = false;
 	m_DirectSummonUid = -1;
 
+#ifdef RIDINGPET_STAMINA_ITEM
+	m_fUpdateNowStamina = 0.0f;
+#endif RIDINGPET_STAMINA_ITEM
 }
 #pragma endregion 생성자
 
@@ -153,9 +156,15 @@ HRESULT CX2RidingPetManager::OnFrameMove( IN double fTime_, IN float fElapsedTim
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	m_ElapsedTimeDecrease.OnFrameMove( fElapsedTime_ );
+	m_ElapsedTimeRecovery.OnFrameMove( fElapsedTime_ );
+	m_ElapsedCanPushSummonButton.OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_ElapsedTimeDecrease.OnFrameMove();
 	m_ElapsedTimeRecovery.OnFrameMove();
 	m_ElapsedCanPushSummonButton.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	UpdateRidingPetGage();
 
 #ifdef FIX_RIDING_STAMINA_CONSUME
@@ -570,25 +579,14 @@ bool CX2RidingPetManager::OpenScriptFile(  IN const WCHAR* pFileName_ )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pRidingPetManager", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName_ );
-	if ( Info == NULL )
-	{
-		std::string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName_ );
-		ErrorLogMsg( XEM_ERROR68, strFileName.c_str() );
+
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName_ ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR69, pFileName_ );
 
 		return false;
-	}
+    }
 
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		string strFileName;
-		ConvertWCHARToChar( strFileName, pFileName_ );
-		ErrorLogMsg( XEM_ERROR69, strFileName.c_str() );
-
-		return false;
-	}
 
 #ifdef	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 	LoadInitPetData();
@@ -613,7 +611,7 @@ void CX2RidingPetManager::LoadInitPetData()
 			pRidingPetTemplet->m_InitLuaTemplet.m_pLuaManager 
 				= new KLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 
-			if ( g_pKTDXApp->GetDeviceManager()->LoadLuaManager( 
+			if ( g_pKTDXApp->LoadAndDoMemory( 
 				pRidingPetTemplet->m_InitLuaTemplet.m_pLuaManager, pRidingPetTemplet->m_wstrScripName.c_str() ) == true )
 			{
 				CX2RidingPet::InitInit( pRidingPetTemplet->m_InitLuaTemplet.m_pInitTemplet->m_init, 
@@ -630,20 +628,22 @@ bool CX2RidingPetManager::AddRidingPetTemplet_LUA()
 {
 	RidingPetTemplet* pRidingPetTemplet = new RidingPetTemplet();
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
-	LUA_GET_VALUE_RETURN_ENUM( luaManager, L"RIDING_PET_ID",	pRidingPetTemplet->m_Uid,	RIDING_PET_UNIT_ID,	RPUI_NONE,
+	LUA_GET_VALUE_RETURN_ENUM( luaManager, "RIDING_PET_ID",	pRidingPetTemplet->m_Uid,	RIDING_PET_UNIT_ID,	RPUI_NONE,
 							   SAFE_DELETE(pRidingPetTemplet); return false; );
 
 #ifdef RIDING_PET_NAME_USE_STRING_ID
 	int iStringIndex;
-	LUA_GET_VALUE( luaManager,	L"COMMON_NAME",	iStringIndex,	STR_ID_EMPTY );
+	LUA_GET_VALUE( luaManager,	"COMMON_NAME",	iStringIndex,	STR_ID_EMPTY );
 	pRidingPetTemplet->m_wstrName = GET_STRING( iStringIndex );
 #else RIDING_PET_NAME_USE_STRING_ID
-	LUA_GET_VALUE( luaManager,	L"COMMON_NAME",	pRidingPetTemplet->m_wstrName,	L""	);
+	LUA_GET_VALUE( luaManager,	"COMMON_NAME",	pRidingPetTemplet->m_wstrName,	L""	);
 #endif RIDING_PET_NAME_USE_STRING_ID
 
-	LUA_GET_VALUE( luaManager,	L"STAMINA_INCREASE_RATE",	pRidingPetTemplet->m_fIncreaseRate,	1.f	);
+	LUA_GET_VALUE( luaManager,	"STAMINA_INCREASE_RATE",	pRidingPetTemplet->m_fIncreaseRate,	1.f	);
 	if( pRidingPetTemplet->m_fIncreaseRate <= 0.f)
 	{
 		ASSERT(!"Increase Rate Error");
@@ -651,21 +651,21 @@ bool CX2RidingPetManager::AddRidingPetTemplet_LUA()
 
 	pRidingPetTemplet->m_fMaxStamina = static_cast<USHORT>( 100.f * pRidingPetTemplet->m_fIncreaseRate );
 	
-	LUA_GET_VALUE( luaManager,	L"STAMINA_RECOVERY_RATE",	pRidingPetTemplet->m_fRecoveryRate,	1.f	);
+	LUA_GET_VALUE( luaManager,	"STAMINA_RECOVERY_RATE",	pRidingPetTemplet->m_fRecoveryRate,	1.f	);
 	if( pRidingPetTemplet->m_fRecoveryRate <= 0.f)
 	{
 		ASSERT(!"Recovery Rate Error");
 	}
 
-	LUA_GET_VALUE( luaManager,	L"SCRIPTNAME",	pRidingPetTemplet->m_wstrScripName,	L"" );
+	LUA_GET_VALUE( luaManager,	"SCRIPTNAME",	pRidingPetTemplet->m_wstrScripName,	L"" );
 
 	float fInitSize = 1.f;
-	LUA_GET_VALUE( luaManager,	L"VIEWER_SIZE_X",	pRidingPetTemplet->m_fViewerSizeX, fInitSize );
-	LUA_GET_VALUE( luaManager,	L"VIEWER_SIZE_Y",	pRidingPetTemplet->m_fViewerSizeY, fInitSize );
-	LUA_GET_VALUE( luaManager,	L"VIEWER_SIZE_Z",	pRidingPetTemplet->m_fViewerSizeZ, fInitSize );
+	LUA_GET_VALUE( luaManager,	"VIEWER_SIZE_X",	pRidingPetTemplet->m_fViewerSizeX, fInitSize );
+	LUA_GET_VALUE( luaManager,	"VIEWER_SIZE_Y",	pRidingPetTemplet->m_fViewerSizeY, fInitSize );
+	LUA_GET_VALUE( luaManager,	"VIEWER_SIZE_Z",	pRidingPetTemplet->m_fViewerSizeZ, fInitSize );
 
 	int iDescription = STR_ID_27;
-	LUA_GET_VALUE( luaManager,	L"DESCRIPTION", iDescription, STR_ID_27 );
+	LUA_GET_VALUE( luaManager,	"DESCRIPTION", iDescription, STR_ID_27 );
 	pRidingPetTemplet->m_wstrDescription = GET_STRING( iDescription );
 
 	if ( true == luaManager.BeginTable( "FACE_IMAGE" ) )
@@ -737,7 +737,7 @@ bool CX2RidingPetManager::AddRidingPetTemplet_LUA()
 		luaManager.EndTable();
 	}
 	
-	LUA_GET_VALUE_ENUM( luaManager, L"SPECIAL_MOVE", pRidingPetTemplet->m_eSpecialMove, CX2RidingPet::RIDING_SPECIAL_MOVE, CX2RidingPet::RSM_NONE );
+	LUA_GET_VALUE_ENUM( luaManager, "SPECIAL_MOVE", pRidingPetTemplet->m_eSpecialMove, CX2RidingPet::RIDING_SPECIAL_MOVE, CX2RidingPet::RSM_NONE );
 	
 	if( luaManager.BeginTable( "SOCKET_OPTION" ) == true )
 	{
@@ -823,7 +823,6 @@ bool CX2RidingPetManager::Handler_EGS_SUMMON_RIDING_PET_ACK( HWND hWnd, UINT uMs
 	{
 		if( true == g_pMain->IsValidPacket( kEvent.m_iOK ) )
 		{
-#ifndef NO_RIDING_PET
 			switch( g_pMain->GetNowStateID() )
 			{
 			case CX2Main::XS_VILLAGE_MAP:
@@ -839,7 +838,12 @@ bool CX2RidingPetManager::Handler_EGS_SUMMON_RIDING_PET_ACK( HWND hWnd, UINT uMs
 						m_RidingPetUid = kEvent.m_kRidingPetInfo.m_iRidingPetUID;
 
 						if ( NULL != m_pSkillSlot )
+						{
+#ifdef ADJUST_RIDINGPET_SKILLSLOT
+							m_pSkillSlot->SetSkillSlotTexture();
+#endif //ADJUST_RIDINGPET_SKILLSLOT
 							m_pSkillSlot->SetShowRidingSkillSlot(true);
+						}
 					}
 				} break;
 
@@ -867,6 +871,9 @@ bool CX2RidingPetManager::Handler_EGS_SUMMON_RIDING_PET_ACK( HWND hWnd, UINT uMs
 									m_pSkillSlot->SetSkillSlotCoolTime( iSlotNum++, SkilInfo.m_fCoolTime );
 								}
 							}
+#ifdef ADJUST_RIDINGPET_SKILLSLOT
+							m_pSkillSlot->SetSkillSlotTexture();
+#endif //ADJUST_RIDINGPET_SKILLSLOT
 							m_pSkillSlot->SetShowRidingSkillSlot(true);
 						}
 					}		
@@ -900,7 +907,7 @@ bool CX2RidingPetManager::Handler_EGS_SUMMON_RIDING_PET_ACK( HWND hWnd, UINT uMs
 				else if( true == pPetInfo->GetShowRPList() )
 					pPetInfo->Select_Tab(CX2UIPetInfo::RPIT_LIST);	
 			}
-#endif NO_RIDING_PET
+
 			
 
 			return true;
@@ -919,7 +926,6 @@ bool CX2RidingPetManager::Handler_EGS_SUMMON_RIDING_PET_NOT( HWND hWnd, UINT uMs
 	if ( g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL &&
 		 kEvent.m_iUnitUID != g_pData->GetMyUser()->GetSelectUnit()->GetUID() )
 	{
-#ifndef NO_RIDING_PET
 		KRidingPetInfo kRidingPetInfo;
 		kRidingPetInfo.m_iRidingPetUID = kEvent.m_iRidingPetUID;
 		kRidingPetInfo.m_usRindingPetID = kEvent.m_usRidingPetID; 
@@ -950,7 +956,6 @@ bool CX2RidingPetManager::Handler_EGS_SUMMON_RIDING_PET_NOT( HWND hWnd, UINT uMs
 		default:
 			break;
 		}
-#endif NO_RIDING_PET
 	}
 
 	return true;
@@ -999,9 +1004,8 @@ bool CX2RidingPetManager::Handler_EGS_CREATE_RIDING_PET_ACK( HWND hWnd, UINT uMs
 
 				//사용한 아이템 삭제
 				if( NULL != g_pData->GetMyUser() &&
-					NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-					NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
-					g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+					NULL != g_pData->GetMyUser()->GetSelectUnit() )
+					g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
 				// 켜져있는지 확인 후 업데이트 
 				if( NULL != g_pData->GetUIManager() )
@@ -1236,6 +1240,7 @@ void CX2RidingPetManager::Handler_EGS_RELEASE_RIDING_PET_REQ( UidType _uId )
 	else
 		bCEventQuest1 = true;
 
+	// 퀘스트 보유 여부 확인 (questID : 74590)
 	CX2QuestManager::QuestInst* pQuestInst = NULL;
 	pQuestInst = g_pData->GetQuestManager()->GetUnitQuest( _CONST_AEVENT_RIDING_WITH_SUB_QUEST::iHasEventQuestID );
 
@@ -1482,6 +1487,14 @@ void CX2RidingPetManager::UpdateRidingPetGage()
 							iter->m_fProtectStamina = 0;
 					}
 
+#ifdef RIDINGPET_STAMINA_ITEM	
+					if( m_fUpdateNowStamina > 0.0f )
+					{
+						// 정확한 수치 보정을 위해서
+						iter->m_fProtectStamina = static_cast<int>(m_fUpdateNowStamina);
+						m_fUpdateNowStamina = 0.0f;
+					}
+#endif RIDINGPET_STAMINA_ITEM
 					// 스태미너 정보 갱신
 					m_pSkillSlot->UpdateStamina( iter->m_fProtectStamina, fMaxStamina );
 					iter->m_fStamina = iter->m_fProtectStamina ;
@@ -1602,13 +1615,13 @@ bool CX2RidingPetManager::GetRidingOnState()
 
 			if( NULL != pMyUnit && NULL != pMyUnit->GetUnit() )
 			{
-				if ( pMyUnit->GetNowState() == pMyUnit->GetStateID( L"WAIT") || 
-					 pMyUnit->GetNowState() == pMyUnit->GetStateID( L"WALK") ||
-					 pMyUnit->GetNowState() == pMyUnit->GetStateID( L"DASH") ||
-					 pMyUnit->GetNowState() == pMyUnit->GetStateID( L"RIDING_WAIT") ||
-					 pMyUnit->GetNowState() == pMyUnit->GetStateID( L"RIDING_WAIT_HABIT") ||
-					 pMyUnit->GetNowState() == pMyUnit->GetStateID( L"RIDING_WALK") ||
-					 pMyUnit->GetNowState() == pMyUnit->GetStateID( L"RIDING_DASH") )
+				if ( pMyUnit->GetNowState() == pMyUnit->GetStateID( "WAIT") || 
+					 pMyUnit->GetNowState() == pMyUnit->GetStateID( "WALK") ||
+					 pMyUnit->GetNowState() == pMyUnit->GetStateID( "DASH") ||
+					 pMyUnit->GetNowState() == pMyUnit->GetStateID( "RIDING_WAIT") ||
+					 pMyUnit->GetNowState() == pMyUnit->GetStateID( "RIDING_WAIT_HABIT") ||
+					 pMyUnit->GetNowState() == pMyUnit->GetStateID( "RIDING_WALK") ||
+					 pMyUnit->GetNowState() == pMyUnit->GetStateID( "RIDING_DASH") )
 					Is_Riding_State = true;
 			}
 		}
@@ -1723,6 +1736,14 @@ float CX2RidingPetManager::GetRecoveryTimePerOne()
 	return lua_tinker::call<float>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), "GET_RECOVERY_TIME_PER_ONE" );
 }
 
+#ifdef REALTIME_SCRIPT_PATCH
+void CX2RidingPetManager::RefreshRidingPetScript()
+{
+	GetInstance()->OpenScriptFile( L"RidingPetTemplet.lua" );
+}
+#endif // REALTIME_SCRIPT_PATCH
+
+
 #ifdef FIX_RIDING_STAMINA_CONSUME
 /** @function : IsValideRiding
 	@brief : 탈 것 탑승 상태가 유효한지에 대한 검사
@@ -1771,5 +1792,49 @@ void CX2RidingPetManager::UnsummonRidingPet()
 	}
 }
 #endif // FIX_RIDING_STAMINA_CONSUME
+
+#ifdef RIDINGPET_STAMINA_ITEM
+/** @function : SetRidingPetStaminaPercentUP
+	@brief : 탈것 전용 스태미너 작업 (%)
+*/
+bool CX2RidingPetManager::SetRidingPetStaminaPercentUP(int iValue_ )
+{
+	std::vector< sRidingPetInfo > vecRidingPetList;
+	GetRidingPetList( vecRidingPetList );
+	std::vector<sRidingPetInfo>::iterator iter;
+
+	for ( iter = vecRidingPetList.begin(); iter != vecRidingPetList.end(); ++iter )
+	{
+		if ( m_RidingPetUid > -1 && iter->m_iRidingPetUID == m_RidingPetUid ) // 게이지 소모
+		{
+			iter->Verify();
+			float fMaxStamina = 0.f;
+			float fNowStamina = 0.f;
+			float fValue = 1.f;
+
+			RidingPetTempletMap::iterator iterTempletMap;
+			iterTempletMap = m_mapRidingPetTemplet.find( iter->m_usRindingPetID );
+			
+			fValue = static_cast<float>(iValue_) / 100.0f;
+			fNowStamina = iter->m_fProtectStamina;
+			fMaxStamina = iterTempletMap->second->m_fMaxStamina;
+			fNowStamina += static_cast<int>(fMaxStamina * fValue);
+
+			// 스테미너 보정
+			if( fNowStamina > fMaxStamina || fNowStamina < 0.0f)
+			{
+				fNowStamina = fMaxStamina;
+			}
+
+			iter->m_fProtectStamina = fNowStamina;
+			// 스태미너 바 정보 갱신
+			m_fUpdateNowStamina = fNowStamina;
+			
+			return true;
+		}
+	}
+	return false;
+}
+#endif RIDINGPET_STAMINA_ITEM
 
 #endif //RIDING_SYSTEM

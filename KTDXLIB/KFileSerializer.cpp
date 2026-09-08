@@ -1,5 +1,4 @@
 #include <StdAfx.h>
-#include <KFileSerializer.h>
 
 static const char*	s_pcNullString = "";
 static const wchar_t*	s_pwcNullString = L"";
@@ -377,6 +376,8 @@ DWORD   KFileSerializer::AppendWideString( bool bShort, bool bNoMap, const wchar
     if( dwLength == 0 )
         return 0;
 
+	AlignSpace( sizeof(wchar_t) );
+
     DWORD   dwOffset = GetSize();
 
 	if ( bNoMap == false )
@@ -388,7 +389,6 @@ DWORD   KFileSerializer::AppendWideString( bool bShort, bool bNoMap, const wchar
 			return insertResult.first->second;
 		}//if
 	}
-	AlignSpace( sizeof(wchar_t) );
 	
 	if ( bShort == false )
 	{
@@ -435,6 +435,8 @@ DWORD   KFileSerializer::AppendWideString( bool bShort, bool bNoMap, const wchar
     if ( pwszInChar_ == NULL || dwLength == 0 )
         return 0;
 
+	AlignSpace( sizeof(wchar_t) );
+
     DWORD   dwOffset = GetSize();
 
 	if ( bNoMap == false )
@@ -447,7 +449,6 @@ DWORD   KFileSerializer::AppendWideString( bool bShort, bool bNoMap, const wchar
 			return insertResult.first->second;
 		}//if
 	}
-	AlignSpace( sizeof(wchar_t) );
 	
 	if ( bShort == false )
 	{
@@ -495,6 +496,8 @@ DWORD   KFileSerializer::AppendWideString( bool bShort, bool bNoMap, const std::
     DWORD   dwLength = wstrIn_.size();
     if( dwLength == 0 )
         return 0;
+	AlignSpace( sizeof(wchar_t) );
+
     DWORD   dwOffset = GetSize();
 
 	if ( bNoMap == false )
@@ -507,7 +510,7 @@ DWORD   KFileSerializer::AppendWideString( bool bShort, bool bNoMap, const std::
 			return insertResult.first->second;
 		}//if
 	}
-	AlignSpace( sizeof(wchar_t) );
+
 	
 	if ( bShort == false )
 	{

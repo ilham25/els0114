@@ -1,6 +1,5 @@
 #include "StdAfx.h"
 
-#ifdef COMBO_GUIDE
 CX2ComboGuide::CX2ComboGuide()
 {
 	m_DlgComboGuide = NULL;	
@@ -22,7 +21,7 @@ void CX2ComboGuide::InitComboGuide( CX2Unit::UNIT_CLASS eClass )
 		return;
 
 	KLuaManager kLuamanager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"DLG_Command_Guide.lua" );
+	g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"DLG_Command_Guide.lua" );
 
 	if ( kLuamanager.BeginTable( "COMBO_GUIDE" ) == true )
 	{
@@ -113,7 +112,7 @@ void CX2ComboGuide::CreateComboGuide( ComboGuide combo )
 			ComboCommand &comboCommand = comboguide.m_vecCommand[i];
 			switch(comboCommand.m_cCommandKey)
 			{
-			case 'u':	//'¦£'
+			case 'u':	//'+'
 				{
 					wstrTextureName = L"DLG_UI_Common_Texture10.tga";
 					wstrTextureKeyNormal = L"TREE_UP";
@@ -122,7 +121,7 @@ void CX2ComboGuide::CreateComboGuide( ComboGuide combo )
 					vColor = D3DXCOLOR(1.f, 1.f, 1.f, 0.6f);
 				}
 				break;
-			case 'd':	//'¦¦'
+			case 'd':	//'*'
 				{
 					wstrTextureName = L"DLG_UI_Common_Texture10.tga";
 					wstrTextureKeyNormal = L"TREE_DOWN";
@@ -131,7 +130,7 @@ void CX2ComboGuide::CreateComboGuide( ComboGuide combo )
 					vColor = D3DXCOLOR(1.f, 1.f, 1.f, 0.6f);
 				}
 				break;
-			case 'm' : // '¤¿'
+			case 'm' : // '-'
 				{
 					wstrTextureName = L"DLG_UI_Common_Texture10.tga";
 					wstrTextureKeyNormal = L"Tree_Down_Double";
@@ -140,7 +139,7 @@ void CX2ComboGuide::CreateComboGuide( ComboGuide combo )
 					vColor = D3DXCOLOR(1.f, 1.f, 1.f, 0.6f);
 				}
 				break;
-			case '|' : // '|'
+			case '|' : // '/'
 				{
 					wstrTextureName = L"DLG_UI_Common_Texture10.tga";
 					wstrTextureKeyNormal = L"Tree_Down_Double_B";
@@ -415,4 +414,3 @@ void CX2ComboGuide::ShowComboCommand( wstring wstrComboId, wstring wstrCommand, 
 }
 
 
-#endif

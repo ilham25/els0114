@@ -30,9 +30,9 @@ class CKTDGPlanShadow : public CKTDGObject
 
 //{{ robobeg : 2008-10-28
 		//virtual HRESULT OnFrameRender();
-#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
 		virtual RENDER_HINT OnFrameRender_Prepare();
-#endif
+//#endif
         virtual void    OnFrameRender_Draw();
 //}} robobeg : 2008-10-28
 
@@ -51,8 +51,8 @@ class CKTDGPlanShadow : public CKTDGObject
 		float				m_fSizeFactor;
 		float				m_fAlpha;
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		LPDIRECT3DVERTEXBUFFER9 m_pVB;
-		bool                m_bVBToBeUpdated;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		LPDIRECT3DVERTEXBUFFER9 m_pVB;
+//		bool                m_bVBToBeUpdated;
+//#endif
 };

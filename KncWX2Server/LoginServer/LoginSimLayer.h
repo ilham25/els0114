@@ -46,7 +46,6 @@ public:
 	u_int	GetConcurrentUserCount()					{ return m_kUserList.GetConcurrentUserCount(); }
 #endif SERV_PCBANG_AUTH_NEW
 	//}}
-
 #ifdef SERV_CHECK_PCBANG_BY_PUBLISHER
 	void	LogoutPcBang( const KELG_PCBANG_LOGOUT_NOT& kInfo );
 #endif //SERV_CHECK_PCBANG_BY_PUBLISHER
@@ -76,6 +75,11 @@ public:
 #endif SERV_DUPLICATE_CONNECT_BUG_FIX
 	//}}
 
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	void	SetEnableCNDirectCharge_LUA(bool bValue);
+	const bool	IsEnableCNDirectCharge() const { return m_bEnableCNDirectCharge; }
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
+
 	//{{ 2013.05.20 조효진 게임서버 접속 시 퍼블리셔 인증 갔다오는지 여부 (PC방 인증 포함) UnRegAuthWaitUser 위치 달라짐
 #ifdef SERV_GLOBAL_AUTH
 	void	SetPublisherCheckGameServerLogin_LUA( bool bValue ){ m_bPublisherCheckGameServerLogin = bValue; };
@@ -84,7 +88,6 @@ protected:
 	bool					m_bPublisherCheckGameServerLogin;
 #endif //SERV_GLOBAL_AUTH
 	//}}
-
 #ifdef	SERV_LOCAL_RANKING_SYSTEM // 적용날짜: 2013-04-07
 	void	ReserveLocalRankingUserUnitInfo( IN const KLocalRankingUserInfo& kUserInfo, IN const KLocalRankingUnitInfo& kUnitInfo ){	m_kUserList.ReserveLocalRankingUserUnitInfo( kUserInfo, kUnitInfo );	}
 	bool	GetLocalRankingUserUnitInfo( IN const UidType iUnitUID, OUT KLocalRankingUserInfo& kUserInfo, OUT KLocalRankingUnitInfo& kUnitInfo ) const{	return m_kUserList.GetLocalRankingUserUnitInfo( iUnitUID, kUserInfo, kUnitInfo );	}
@@ -97,7 +100,10 @@ protected:
 #ifdef SERV_WEB_POINT_EVENT
 	boost::timer			m_tWebPointEventTimer;
 #endif SERV_WEB_POINT_EVENT
-	//}}	
+	//}}
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	bool					m_bEnableCNDirectCharge;
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 };
 
 DefKObjectInline( KLoginSimLayer, KSimLayer );

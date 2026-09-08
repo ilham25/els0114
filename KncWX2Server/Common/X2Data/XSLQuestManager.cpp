@@ -7,6 +7,7 @@
 #ifdef SERV_ALLOW_EVENT_ERASE
 #include "GameEvent/GameEventManager.h"
 #endif //SERV_ALLOW_EVENT_ERASE
+
 ImplementRefreshSingleton( CXSLQuestManager );
 
 CXSLQuestManager::CXSLQuestManager(void)
@@ -888,7 +889,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
@@ -926,6 +927,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 				}
 
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iKillNum",			kSubQuestTemplet.m_ClearCondition.m_iKillNum,			0, goto error_proc; );
+				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		kSubQuestTemplet.m_ClearCondition.m_eDungeonMode,		CXSLDungeon::DUNGEON_MODE,	CXSLDungeon::DM_INVALID )
 			}
 			break;
 
@@ -947,7 +949,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
@@ -999,7 +1001,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
@@ -1023,14 +1025,16 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
 					luaManager.EndTable();
 				}
 				// 없어도 에러 아님
-
+#ifdef SERV_EVENT_TITLE_SUBQUEST
+				LUA_GET_VALUE(	luaManager, L"m_iUseTitleID",		kSubQuestTemplet.m_ClearCondition.m_iUseTitleID,			-1);
+#endif SERV_EVENT_TITLE_SUBQUEST
 				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		kSubQuestTemplet.m_ClearCondition.m_eDungeonMode,		CXSLDungeon::DUNGEON_MODE,	CXSLDungeon::DM_INVALID );				
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	kSubQuestTemplet.m_ClearCondition.m_bUpperDifficulty,	false,	goto error_proc; );
 				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonRank",		kSubQuestTemplet.m_ClearCondition.m_eDungeonRank,		CXSLDungeon::RANK_TYPE,		CXSLDungeon::RT_NONE, goto error_proc; );
@@ -1050,7 +1054,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 					// 없어도 에러 아님
@@ -1077,14 +1081,17 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
 					luaManager.EndTable();
 				}
 				// 없어도 에러 아님
-
+#ifdef SERV_EVENT_TITLE_SUBQUEST
+				LUA_GET_VALUE(	luaManager, L"m_iUseTitleID",		kSubQuestTemplet.m_ClearCondition.m_iUseTitleID,			-1);
+				LUA_GET_VALUE_ENUM(	luaManager, L"m_eDungeonRank",		kSubQuestTemplet.m_ClearCondition.m_eDungeonRank,		CXSLDungeon::RANK_TYPE,		CXSLDungeon::RT_NONE);
+#endif SERV_EVENT_TITLE_SUBQUEST
 				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonMode",		kSubQuestTemplet.m_ClearCondition.m_eDungeonMode,		CXSLDungeon::DUNGEON_MODE,	CXSLDungeon::DM_INVALID );				
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	kSubQuestTemplet.m_ClearCondition.m_bUpperDifficulty,	false,	goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	kSubQuestTemplet.m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
@@ -1093,25 +1100,25 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_PVP_PLAY:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	kSubQuestTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PVP_GAME_TYPE::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	kSubQuestTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PGT_TEAM, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPPlay",	kSubQuestTemplet.m_ClearCondition.m_iPVPPlay,		-1, goto error_proc; );
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	kSubQuestTemplet.m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PVP_CHANNEL_CLASS::PCC_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	kSubQuestTemplet.m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE, goto error_proc; );
 			}
 			break;
 
 		case SQT_PVP_WIN:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	kSubQuestTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PVP_GAME_TYPE::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	kSubQuestTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PGT_TEAM, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPWin",	kSubQuestTemplet.m_ClearCondition.m_iPVPWin,		-1, goto error_proc; );
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	kSubQuestTemplet.m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PVP_CHANNEL_CLASS::PCC_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	kSubQuestTemplet.m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE, goto error_proc; );
 			}
 			break;
 
 		case SQT_PVP_KILL:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	kSubQuestTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PVP_GAME_TYPE::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	kSubQuestTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PGT_TEAM, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPKill",	kSubQuestTemplet.m_ClearCondition.m_iPVPKill,		-1, goto error_proc; );
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	kSubQuestTemplet.m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PVP_CHANNEL_CLASS::PCC_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	kSubQuestTemplet.m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE, goto error_proc; );
 			}
 			break;
 
@@ -1124,7 +1131,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
@@ -1182,7 +1189,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
@@ -1219,9 +1226,9 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_PVP_NPC_HUNT:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	kSubQuestTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PVP_GAME_TYPE::PGT_TEAM, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePVPType",	kSubQuestTemplet.m_ClearCondition.m_ePVPType,		CXSLRoom::PVP_GAME_TYPE,		CXSLRoom::PGT_TEAM, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iPVPWin",	kSubQuestTemplet.m_ClearCondition.m_iPVPWin,		-1, goto error_proc; );
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	kSubQuestTemplet.m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PVP_CHANNEL_CLASS::PCC_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_ePvpChannelClass",	kSubQuestTemplet.m_ClearCondition.m_ePvpChannelClass, KPVPChannelInfo::PVP_CHANNEL_CLASS, KPVPChannelInfo::PCC_NONE, goto error_proc; );
 			}
 			break;
 
@@ -1276,6 +1283,10 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 					goto error_proc;
 				}
+				//없어도 에러아님
+#ifdef SERV_EVENT_TITLE_SUBQUEST
+				LUA_GET_VALUE(	luaManager, L"m_iUseTitleID",		kSubQuestTemplet.m_ClearCondition.m_iUseTitleID,			-1);
+#endif SERV_EVENT_TITLE_SUBQUEST
 			}
 			break;
 
@@ -1288,7 +1299,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
@@ -1317,7 +1328,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
@@ -1338,7 +1349,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					luaManager.EndTable();
 				}
 
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_iFindNPCID",	kSubQuestTemplet.m_ClearCondition.m_iFindNPCID, CXSLUnitManager::NPC_UNIT_ID, CXSLUnitManager::NPC_UNIT_ID::NUI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_iFindNPCID",	kSubQuestTemplet.m_ClearCondition.m_iFindNPCID, CXSLUnitManager::NPC_UNIT_ID, CXSLUnitManager::NUI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_bUpperDifficulty",	kSubQuestTemplet.m_ClearCondition.m_bUpperDifficulty,	false,	goto error_proc; );
 			}
 			break;
@@ -1402,7 +1413,6 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 #ifdef SERV_SUB_QUEST_USE_ITEM
 		case SQT_ITEM_USE:
 			{
-
 #ifdef SERV_SUB_QUEST_USE_ITEM_BUG_FIX
 				if( luaManager.BeginTable( L"m_eDungeonID" ) == S_OK )
 				{
@@ -1411,14 +1421,14 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
 					luaManager.EndTable();
 				}
 #else //SERV_SUB_QUEST_USE_ITEM_BUG_FIX
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1,		goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 #endif //SERV_SUB_QUEST_USE_ITEM_BUG_FIX
@@ -1516,7 +1526,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_NPC_HUNT:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
@@ -1550,7 +1560,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_ITEM_COLLECTION:
 			{
-				//LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,	CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				//LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		pSubQuestTemplet->m_ClearCondition.m_eDungeonID,	SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				//LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1,		goto error_proc; );
 				//pSubQuestTemplet->m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 				//LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eKillNPCID",		pSubQuestTemplet->m_ClearCondition.m_eKillNPCID,	CXSLUnitManager::NPC_UNIT_ID,	CXSLUnitManager::NUI_NONE, goto error_proc; );
@@ -1561,7 +1571,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_QUEST_ITEM_COLLECTION:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1,		goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty ); 
 
@@ -1597,7 +1607,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_DUNGEON_TIME:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
@@ -1620,7 +1630,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_DUNGEON_RANK:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
@@ -1645,7 +1655,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_DUNGEON_DAMAGE:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
@@ -1659,7 +1669,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_DUNGEON_CLEAR_COUNT:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1,		goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );	
 
@@ -1677,8 +1687,8 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_iDungeonClearCount",	kSubQuestTemplet.m_ClearCondition.m_iDungeonClearCount,	-1, goto error_proc; );
 #ifdef SERV_EVENT_TITLE_SUBQUEST
-				LUA_GET_VALUE(	luaManager, L"m_iUseTitleID",		kSubQuestTemplet.m_ClearCondition.m_iUseTitleID,			-1);
-				LUA_GET_VALUE_ENUM(	luaManager, L"m_eDungeonRank",		kSubQuestTemplet.m_ClearCondition.m_eDungeonRank,		CXSLDungeon::RANK_TYPE,		CXSLDungeon::RT_NONE);
+				LUA_GET_VALUE(				luaManager, L"m_iUseTitleID",		kSubQuestTemplet.m_ClearCondition.m_iUseTitleID,			-1);
+				LUA_GET_VALUE_ENUM(			luaManager, L"m_eDungeonRank",		kSubQuestTemplet.m_ClearCondition.m_eDungeonRank,		CXSLDungeon::RANK_TYPE,		CXSLDungeon::RT_NONE);
 #endif SERV_EVENT_TITLE_SUBQUEST
 			}
 			break;
@@ -1723,7 +1733,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 #ifdef SERV_INTEGRATION
 		case SQT_WITH_DIF_SERV_USER:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
@@ -1786,7 +1796,7 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 
 		case SQT_ITEM_EQUIP_DUNGEON_CLEAR:
 			{
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		SEnum::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1, goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 
@@ -1854,14 +1864,16 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 		case SQT_VISIT_FIELD:
 			{
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_eFieldID",			kSubQuestTemplet.m_ClearCondition.m_iBattleFieldID,			0, goto error_proc; );
+#ifdef SERV_EVENT_TITLE_SUBQUEST
+				LUA_GET_VALUE(				luaManager, L"m_iUseTitleID",		kSubQuestTemplet.m_ClearCondition.m_iUseTitleID,			-1);
+#endif SERV_EVENT_TITLE_SUBQUEST
 			}
 			break;
 #endif SERV_ENTER_FIELD_QUEST_CLEAR
 			//}}
 #ifdef SERV_SUB_QUEST_USE_ITEM
 		case SQT_ITEM_USE:
-			{
-				
+			{	
 #ifdef SERV_SUB_QUEST_USE_ITEM_BUG_FIX
 				if( luaManager.BeginTable( L"m_eDungeonID" ) == S_OK )
 				{
@@ -1870,14 +1882,14 @@ bool CXSLQuestManager::LoadClearCondition( KLuaManager& luaManager, SubQuestTemp
 					while( luaManager.GetValue( index, buf ) == S_OK )
 					{
 						if( buf > 0 )
-							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<CXSLDungeon::DUNGEON_ID>(buf) );
+							kSubQuestTemplet.m_ClearCondition.m_setDungeonID.insert( static_cast<SEnum::DUNGEON_ID>(buf) );
 						index++;
 					}
 
 					luaManager.EndTable();
 				}
 #else //SERV_SUB_QUEST_USE_ITEM_BUG_FIX
-				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			CXSLDungeon::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
+				LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eDungeonID",		kSubQuestTemplet.m_ClearCondition.m_eDungeonID,			SEnum::DUNGEON_ID,		CXSLDungeon::DI_NONE, goto error_proc; );
 				LUA_GET_VALUE_RETURN(		luaManager, L"m_cDifficulty",		iDifficulty,											-1,		goto error_proc; );
 				kSubQuestTemplet.m_ClearCondition.m_cDifficulty = static_cast<char>( iDifficulty );
 #endif //SERV_SUB_QUEST_USE_ITEM_BUG_FIX
@@ -1987,10 +1999,19 @@ bool CXSLQuestManager::SelectTodayRandomQuest( IN bool bIsFirst )
 	if( bIsFirst == false )
 	{
 		CTime tCurr = CTime::GetCurrentTime();
+#ifdef SERV_INT_ONLY
 		CTime tToday = CTime( tCurr.GetYear(), tCurr.GetMonth(), tCurr.GetDay(), QE_DAILY_REPEAT_HOUR, 0, 0 );
+#else //SERV_INT_ONLY
+		CTime tToday = CTime( tCurr.GetYear(), tCurr.GetMonth(), tCurr.GetDay(), 6, 0, 0 );
+#endif //SERV_INT_ONLY
+
 		if( tToday <= tCurr && m_tLastSelectTime < tToday )
 		{
+#ifdef SERV_INT_ONLY
 			m_tLastSelectTime = CTime( tCurr.GetYear(), tCurr.GetMonth(), tCurr.GetDay(), QE_DAILY_REPEAT_HOUR, 0, 1 );
+#else //SERV_INT_ONLY
+			m_tLastSelectTime = CTime( tCurr.GetYear(), tCurr.GetMonth(), tCurr.GetDay(), 6, 0, 1 );
+#endif //SERV_INT_ONLY		
 		}
 		else
 		{
@@ -2075,7 +2096,7 @@ bool CXSLQuestManager::CheckValidDungeonID( IN int iSubQuestID )
 
 	bool bResult = false;
 
-	std::set<CXSLDungeon::DUNGEON_ID>::const_iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
+	std::set<SEnum::DUNGEON_ID>::const_iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
 	for( ; sit != pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end() ; ++sit )
 	{
 		if( (*sit) > 0 )
@@ -2147,7 +2168,7 @@ bool CXSLQuestManager::IsExistDungeonInSubQuest( IN int iSubQuestID, IN const in
 		int iUserDungeon = iDungeonID / 10; // 플레이 중인 던전 얻기
 		int iUserDiff = iDungeonID % 10;	// 플레이 중인 던전 얻기
 
-		std::set<CXSLDungeon::DUNGEON_ID>::const_iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
+		std::set<SEnum::DUNGEON_ID>::const_iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.begin();
 		for( ; sit != pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end() ; ++sit )
 		{
 			int iScriptDungeon = (*sit) / 10;	// 스크립트 던전 얻기
@@ -2161,7 +2182,7 @@ bool CXSLQuestManager::IsExistDungeonInSubQuest( IN int iSubQuestID, IN const in
 	}
 	else
 	{
-		std::set<CXSLDungeon::DUNGEON_ID>::const_iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.find( static_cast<CXSLDungeon::DUNGEON_ID>(iDungeonID) );
+		std::set<SEnum::DUNGEON_ID>::const_iterator sit = pSubQuestTemplet->m_ClearCondition.m_setDungeonID.find( static_cast<SEnum::DUNGEON_ID>(iDungeonID) );
 		if( sit != pSubQuestTemplet->m_ClearCondition.m_setDungeonID.end() )
 		{
 			return true;
@@ -2225,7 +2246,6 @@ bool CXSLQuestManager::IsEpicAndNormalQuest( IN int iQuestID )
 #endif SERV_REFORM_QUEST
 //}} 
 
-
 //{{ 2012. 12. 14  계정 미션 시스템 ( 계정단위 퀘스트 ) - 김민성
 #ifdef SERV_ACCOUNT_MISSION_SYSTEM
 const CXSLQuestManager::QuestTemplet*	CXSLQuestManager::GetAccountQuestTemplet( int iQuestID )
@@ -2251,10 +2271,14 @@ bool CXSLQuestManager::AddAccountQuestTemplet_LUA()
 
 	LUA_GET_VALUE_RETURN_ERR(		luaManager, L"m_iID",				kQuestTemplet.m_iID,			0, wstrErrLua, goto LoadFail; );
 
+#ifdef SERV_NAVER_CHANNELING
+    LUA_GET_VALUE_ENUM(	luaManager, L"m_ePublisher", kQuestTemplet.m_ePublisher, KNexonAccountInfo::CHANNELING_ENUM, KNexonAccountInfo::CE_NEXON_ACCOUNT );
+#endif SERV_NAVER_CHANNELING
 	//////////////////////////////////////////////////////////////////////////	
 	//{{ 2009. 12. 18  최육사	서버군 확장
 	int iServerGroupID = 0;
 	LUA_GET_VALUE(					luaManager, L"m_iServerGroupID",	iServerGroupID,					-1 );
+	
 #ifdef EXTEND_SERVER_GROUP_MASK
 	if( iServerGroupID != -1 )
 #else EXTEND_SERVER_GROUP_MASK

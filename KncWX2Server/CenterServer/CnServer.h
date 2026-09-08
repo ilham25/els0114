@@ -83,17 +83,24 @@ protected:
 	DECL_ON_FUNC( DBE_RELEASE_TICK_UPDATE_ACK );
 #endif SERV_CHANGE_EVENT_INFO_SCRIPT_TO_DB
 	//}}
-
-#ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
-	DECL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK );
-#endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK	
-	
 	//{{ 2012. 09. 02	박세훈	Merge ( 대전에서 클라이언트 조작등으로 UDP 패킷이 날아오지 않는 유저가 발견되면 서버에서 킥한다. // 2012.06.11 lygan_조성욱 )
 #ifdef UDP_CAN_NOT_SEND_USER_KICK
 	_DECL_ON_FUNC( ECN_UDP_KICK_GAMEEDIT_NOT, KEGS_UDP_KICK_GAMEEDIT_NOT );
 #endif UDP_CAN_NOT_SEND_USER_KICK
 	//}}
 
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH
+	_DECL_ON_FUNC( ECN_ADD_COMMON_FLAG_NOT, KECN_ADD_COMMON_FLAG_NOT );   
+	_DECL_ON_FUNC( ECN_DEL_COMMON_FLAG_NOT, KECN_DEL_COMMON_FLAG_NOT );   
+#endif SERV_MODFIY_FLAG_REALTIME_PATCH
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	DECL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
+#ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	DECL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK );
+#endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK	
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 protected:
 	int								m_iProxyID;	
 
@@ -101,7 +108,6 @@ protected:
 	boost::timer					m_tTimeProcessCommunicationONOFF;
 	bool							m_bServerRunningProcessCommunicationOnOff;
 #endif //SERV_PROCESS_COMMUNICATION_KSMS
-
 };
 
 DefKObjectInline( KCnServer, KBaseServer );

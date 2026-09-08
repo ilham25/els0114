@@ -7,12 +7,34 @@ namespace _CONST_RENA_
 {
 	const float START_OF_DELAYED_FIRING_DELAY_ACTIVE_TIME	= 10.f;	/// 지연의 산호탄 유지 시간
 	const int	START_OF_DELAYED_FIRING_DELAY_MAX_COUNT		= 6;	/// 지연의 산호탄 최대 중첩 갯수
+
+#ifdef BALANCE_PATCH_20131107
+	const int   MAX_ARROW_OF_EXPLOSION	= 5;							/// 폭발의 화살 최대 적용 수
+#else //BALANCE_PATCH_20131107
 	const int   MAX_ARROW_OF_EXPLOSION	= 4;							/// 폭발의 화살 최대 적용 수
+#endif //BALANCE_PATCH_20131107
+
 	const int   MAX_PRIOR_PLANNED_BLOW_ACTIVE_NUM = 14;				/// 계산된 일격 최대 중첩 수
 	const int   MIN_PRIOR_PLANNED_BLOW_ACTIVE_NUM = 5;				/// 계산된 일격 최소 중첩 수
 	const int	PRIOR_PLANNED_BLOW_ACTIVE_LEVEL_1 = 5;				/// 계산된 일격 이펙트 레벨 1
 	const int	PRIOR_PLANNED_BLOW_ACTIVE_LEVEL_2 = 9;				/// 계산된 일격 이펙트 레벨 2
 	const int	PRIOR_PLANNED_BLOW_ACTIVE_LEVEL_3 = 14;				/// 계산된 일격 이펙트 레벨 3
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+	const float TIME_GAP_OF_CREATE_CRYOTRON_BOLT_GUIDE_SHOT = 0.1358f / 2;  // 크리아오트론 볼트 유도 발사체를
+																		// 주기적으로 데미지 이펙트를 생성하는
+																		// 시간 간격
+	const float START_TIME_OF_CRYOTRON_BOLT_CREATE_GUIDE_SHOT = 1.144f;	// 크리아오트론 볼트 유도 발사체
+																		// 생성을 시작하는 시간
+	const float END_TIME_OF_CRYOTRON_BOLT_CREATE_GUIDE_SHOT	  = 2.502f;	// 크리아오트론 볼트 유도 발사체
+																		// 생성을 끝내는 시간
+
+	/* 크리아오트론 볼트 발사체 생성량 = ( 끝 시간 - 시작 시간 ) / 시간 간격 */
+	const int MANY_CRYOTRON_BOLT_GUILDE_SHOT = 
+		static_cast <int> ( ( END_TIME_OF_CRYOTRON_BOLT_CREATE_GUIDE_SHOT - START_TIME_OF_CRYOTRON_BOLT_CREATE_GUIDE_SHOT ) / TIME_GAP_OF_CREATE_CRYOTRON_BOLT_GUIDE_SHOT );
+	
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
 }
 
 #endif  SERV_RENA_NIGHT_WATCHER
@@ -81,9 +103,22 @@ CX2GULire_ElvenRanger::CX2GULire_ElvenRanger( int unitIndex, int teamNum,
 	pScriptFileName, 
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD 
 	frameBufferNum, pUnit )
-, m_hWindSneakerFoot( CX2EffectSet::INVALID_HANDLE )
+, m_hWindSneakerFoot( INVALID_EFFECTSET_HANDLE )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+, m_hDESlideKick( INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 , m_pDESlideKick( NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 , m_iArrowMeshPlayerIndex( 0 )
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+, m_fPreRenderParamColorA (1.f)
+, m_fRenderParamColorA ( 1.f )
+, m_fSpiralStrikeRemainingTime ( 5.5f )
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+, m_fPriorPlannedBlowIncreaseHPRate ( 0.f )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 {
 	m_bReAttackZ1Right		= false;
 	m_fReAttackZ1Time		= 0.0f;
@@ -104,22 +139,25 @@ CX2GULire_ElvenRanger::CX2GULire_ElvenRanger( int unitIndex, int teamNum,
 	m_pMPChargeB			= NULL;
 	m_pMPChargeC			= NULL;
 
-	m_hSeqMPEnergy				= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPEnergyCenter		= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPChargeWave			= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPChargeFeather		= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPCharge2Up			= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPCharge2UpHigh		= INVALID_PARTICLE_HANDLE;
-	m_hSeqMPChargePlus			= INVALID_PARTICLE_HANDLE;
+	m_hSeqMPEnergy				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPEnergyCenter		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPChargeWave			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPChargeFeather		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPCharge2Up			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPCharge2UpHigh		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMPChargePlus			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	InitializeLireMajorParticleArray();
 	InitializeLireMinorParticleArray();
 
 	m_hMeshSpinningKick1				= INVALID_MESH_INSTANCE_HANDLE;
-	m_hSeqSpinningKick1					= INVALID_PARTICLE_HANDLE;
-	m_hSeqSpinningKick2					= INVALID_PARTICLE_HANDLE;
-
+	m_hSeqSpinningKick1					= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqSpinningKick2					= INVALID_PARTICLE_SEQUENCE_HANDLE;
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 다이브 킥 보밍 관련 소스 삭제 ( 캐릭터 스크립트 내 이펙트 셋으로 이관 )
 	m_hMeshDiveKickBombing				= INVALID_MESH_INSTANCE_HANDLE;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	
 
 
 	m_fArrowRangeRate				= 1.f;
@@ -160,8 +198,13 @@ CX2GULire_ElvenRanger::CX2GULire_ElvenRanger( int unitIndex, int teamNum,
 #ifdef	SERV_TRAPPING_RANGER_TEST
 	m_hTrapBlade					= INVALID_MESH_INSTANCE_HANDLE;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_hEffectTrapArrow				= INVALID_DAMAGE_EFFECT_HANDLE;
+	m_hEffectCallOfRuin				= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffectTrapArrow				= NULL;
 	m_pEffectCallOfRuin				= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	m_fDamageDataChangeTime			= 0.f;
 #ifdef SERV_RENA_NIGHT_WATCHER
@@ -191,13 +234,13 @@ CX2GULire_ElvenRanger::CX2GULire_ElvenRanger( int unitIndex, int teamNum,
 	m_iPriorPlannedBlowHitCount					= 0;								/// 계산된 일격 콤보 누적 값
 	m_bPossibleHitCount							= false;							/// 계산된 일격 콤보 누적 값 연산 가능 여부( 한 State에 여러명을 Hit 시켜도 한번만 Count 되어야 한다. )
 	m_fPriorPlannedBlowTime						= 0.f;								/// 계산된 일격 콤보 누적 시간
-	m_hPriorPlannedBlowEffect					= CX2EffectSet::INVALID_HANDLE;		/// 계산된 일격 이펙트 초기화
+	m_hPriorPlannedBlowEffect					= INVALID_EFFECTSET_HANDLE;		/// 계산된 일격 이펙트 초기화
 	m_iNowPriorPlannedBlowLevel					= 0;								/// 현재 적용되어 있는 계산된 일격 이펙트 레벨
 
 	m_bActiveStartOfDelayedFiring				= false;							/// 지연의 신호탄 적용 여부
 	m_fStartOfDelayedFiringIncreaseDamage		= 0.f;								/// 지연의 신호탄 추가 데미지
 	m_fStartOfDelayedFiringCoolTime				= 0.f;								/// 지연의 신호탄 유지 시간
-	m_hActiveStartOfDelayedFiring				= CX2EffectSet::INVALID_HANDLE;		/// 지연의 신호탄 유지중 확인 이펙트
+	m_hActiveStartOfDelayedFiring				= INVALID_EFFECTSET_HANDLE;		/// 지연의 신호탄 유지중 확인 이펙트
 	m_fStartOfDelayedFiringPowerRate			= 0.f;
 
 	m_bShowTrapBladeToWinMotion					= false;							/// 승리시 에렌딜 표시
@@ -217,11 +260,31 @@ CX2GULire_ElvenRanger::CX2GULire_ElvenRanger( int unitIndex, int teamNum,
 	m_delegateFriendshipOfNature = DelegateFriendshipOfNature();
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectTrapArrowFungus					= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffectTrapArrowFungus					= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_bAbleAgileMovement						= false;
 	m_fSiegeDamageByPassive						= 1.f;
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+	m_hSpiralStrikeMiddleEffect = INVALID_EFFECTSET_HANDLE;
+	m_hSpiralStrikeMiddleLightEffect = INVALID_EFFECTSET_HANDLE;
+	m_vecCryotronBoltDamageEffect.clear();
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	m_fNaturalForceValueCharge = 0.f;
+	m_hNaturalForceEffect = INVALID_EFFECTSET_HANDLE;
+	m_eSaveStateSkillId = CX2SkillTree::SI_NONE;
+
+	//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+	if( GetAccessNowDamageRelateSkillData().m_byteRelateData >= 10 )
+		GetAccessNowDamageRelateSkillData().m_byteRelateData = 0;
+	m_iBeforeNaturalForceCount = 0;
+#endif //ADD_RENA_SYSTEM
 }
 
 
@@ -259,10 +322,14 @@ CX2GULire_ElvenRanger::~CX2GULire_ElvenRanger(void)
 	DeleteLireMinorParticle();
 
 	//마이너
-	g_pX2Game->GetMinorXMeshPlayer()->DestroyInstance( m_hMeshSpinningKick1 );
+	g_pX2Game->GetMinorXMeshPlayer()->DestroyInstanceHandle( m_hMeshSpinningKick1 );
 	g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqSpinningKick1 );
 	g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqSpinningKick2 );
-	g_pX2Game->GetMinorXMeshPlayer()->DestroyInstance( m_hMeshDiveKickBombing );
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 다이브 킥 보밍 관련 소스 삭제 ( 캐릭터 스크립트 내 이펙트 셋으로 이관 )
+	g_pX2Game->GetMinorXMeshPlayer()->DestroyInstanceHandle( m_hMeshDiveKickBombing );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 
 #ifdef NEW_SKILL_2010_11 // oasis907 : 김상윤 [2010.11.4] // 윈드 스니커 - 자연과의 친화(패시브)
 	SAFE_DELETE(m_pFriendshipNatureData);
@@ -282,6 +349,16 @@ CX2GULire_ElvenRanger::~CX2GULire_ElvenRanger(void)
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	m_vecAngerOfElfTrapUID.clear();
 #endif //UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+	m_vecCryotronBoltDamageEffect.clear();
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	m_fNaturalForceValueCharge = 0.f;
+	SetNaturalForceBuff(false);
+	g_pX2Game->GetEffectSet()->StopEffectSet( m_hNaturalForceEffect );
+#endif //ADD_RENA_SYSTEM
 }
 
 void CX2GULire_ElvenRanger::ReInit( bool bRandom, int startPosIndex )
@@ -302,6 +379,31 @@ void CX2GULire_ElvenRanger::ReInit( bool bRandom, int startPosIndex )
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	MakeRoomForAngerOfElfTrap( 0, true );
 #endif //UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	/// 자연의 기운 차지 포인트 초기화
+	m_fNaturalForceValueCharge = 0.f;
+	/// 자연의 기운 동기화
+	if ( true == IsMyUnit() )
+		m_FrameDataFuture.syncData.m_CannonBallCount = GetNaturalForceCount();
+
+	if( GetNaturalForceCount() >= NATURAL_FORCE_BUFF )
+		SetNaturalForceBuff( true );
+	else
+		SetNaturalForceBuff( false );
+
+	SetNaturalForceEffect();
+
+	//기본 어택박스가 1.3배가 됨
+	SetSphereAttackBoxScale( L"Lfoot", 1.3f );
+	SetSphereAttackBoxScale( L"Rfoot", 1.3f );
+
+	m_eSaveStateSkillId = CX2SkillTree::SI_NONE;
+
+	//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+	if( GetAccessNowDamageRelateSkillData().m_byteRelateData >= 10 )
+		GetAccessNowDamageRelateSkillData().m_byteRelateData = 0;
+#endif //ADD_RENA_SYSTEM
 }
 
 void CX2GULire_ElvenRanger::DamageReact( CX2DamageManager::DamageData* pDamageData )
@@ -318,6 +420,7 @@ void CX2GULire_ElvenRanger::DamageReact( CX2DamageManager::DamageData* pDamageDa
 			m_delegateFriendshipOfNature();
 	}
 #endif NEW_SKILL_2010_11
+
 }
 
 #ifdef NEW_SKILL_2010_11
@@ -338,7 +441,7 @@ void CX2GULire_ElvenRanger::ProcessFriendshipNature()
 	CX2Unit* pUnit = GetUnit();
 	if ( NULL != pUnit )
 	{
-		const CX2UserSkillTree& cUserSkillTree = pUnit->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& cUserSkillTree = pUnit->GetUnitData().m_UserSkillTree;
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 		const int iSkillLevel = cUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LWS_FRIENDSHIP_OF_NATURE, true );
 	#else // UPGRADE_SKILL_SYSTEM_2013
@@ -460,11 +563,10 @@ void CX2GULire_ElvenRanger::InitEffect()
 	// 레나 트리플 속성 무기 사용시에 화살 이펙트. 레나는 무기가 하나 뿐인 것으로 간주한다.
 	ASSERT( 1 == m_vecpWeapon.size() );
 	CX2EnchantItem::ItemEnchantedAttribute enchantedAttribute;
-	CX2Item* pItemNotFashion = GetUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
-	if( NULL != pItemNotFashion &&
-		NULL != pItemNotFashion->GetItemData() )
+	CX2Item* pItemNotFashion = GetUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_WEAPON_HAND, false );
+	if( NULL != pItemNotFashion )
 	{
-		enchantedAttribute = pItemNotFashion->GetItemData()->m_EnchantedAttribute;
+		enchantedAttribute = pItemNotFashion->GetItemData().m_EnchantedAttribute;
 	}
 
 
@@ -528,7 +630,7 @@ void CX2GULire_ElvenRanger::InitializeLireMajorParticleArray()
 
 	for ( int index = 0; index < RENA_MAJOR_PII_END; index++ )
 	{
-		m_ahRenaMajorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahRenaMajorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -599,7 +701,7 @@ void	CX2GULire_ElvenRanger::AppendMajorParticleToDeviceList( CKTDXDeviceDataList
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GULire_ElvenRanger::SetRenaMajorParticleByEnum( RENA_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ /*= -1 */ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleRenaMajorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleRenaMajorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), 0,0,0, 0, 0, iDrawCount_, 0 );
@@ -619,7 +721,7 @@ void CX2GULire_ElvenRanger::InitializeLireMinorParticleArray()
 
 	for ( int index = 0; index < RENA_MINOR_PII_END; index++ )
 	{
-		m_ahRenaMinorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahRenaMinorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -649,7 +751,7 @@ void	CX2GULire_ElvenRanger::AppendMinorParticleToDeviceList( CKTDXDeviceDataList
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GULire_ElvenRanger::SetRenaMinorParticleByEnum( RENA_MINOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ /*= -1 */ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleRenaMinorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleRenaMinorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), 0,0,0, 0, 0, iDrawCount_, 0 );
@@ -692,6 +794,9 @@ void CX2GULire_ElvenRanger::InitComponent()
 		case CX2Game::GT_PVP:
 			{
 				m_pGageData->SetNowMp( 50.f );
+#ifdef ADD_RENA_SYSTEM //김창한
+				SetNaturalForceCount(0);
+#endif //ADD_RENA_SYSTEM
 			} break;
 		default:
 			break;
@@ -729,50 +834,50 @@ void CX2GULire_ElvenRanger::InitComponent()
 
 void CX2GULire_ElvenRanger::ParseCommonRandomState()
 {
-	if( true == m_LuaManager.BeginTable( L"INIT_COMMON_RANDOM_STATE" ) )
+	if( true == m_LuaManager.BeginTable( "INIT_COMMON_RANDOM_STATE" ) )
 	{
 
-		std::wstring tableName = L"";
-		switch( m_pUnit->GetClass() )
+		const char* tableName = "";
+		switch( GetUnit()->GetClass() )
 		{
 		case CX2Unit::UC_LIRE_ELVEN_RANGER:
 			{
-				tableName = L"LIRE_ELVEN_RANGER";
+				tableName = "LIRE_ELVEN_RANGER";
 			} break;
 
 		case CX2Unit::UC_LIRE_COMBAT_RANGER:
 			{
-				tableName = L"LIRE_COMBAT_RANGER";
+				tableName = "LIRE_COMBAT_RANGER";
 			} break;
 
 
 		case CX2Unit::UC_LIRE_SNIPING_RANGER:
 			{
-				tableName = L"LIRE_SNIPING_RANGER";
+				tableName = "LIRE_SNIPING_RANGER";
 			} break;
 
 		case CX2Unit::UC_LIRE_WIND_SNEAKER:
 			{
-				tableName = L"LIRE_WIND_SNEAKER";
+				tableName = "LIRE_WIND_SNEAKER";
 			} break;
 
 
 		case CX2Unit::UC_LIRE_GRAND_ARCHER:
 			{
-				tableName = L"LIRE_GRAND_ARCHER";
+				tableName = "LIRE_GRAND_ARCHER";
 			} break;
 
 #ifdef	SERV_TRAPPING_RANGER_TEST
 		case CX2Unit::UC_LIRE_TRAPPING_RANGER:
 			{
-				tableName = L"LIRE_TRAPPING_RANGER";
+				tableName = "LIRE_TRAPPING_RANGER";
 			} break;
 #endif	SERV_TRAPPING_RANGER_TEST
 
 #ifdef	SERV_RENA_NIGHT_WATCHER
 		case CX2Unit::UC_LIRE_NIGHT_WATCHER:
 			{
-				tableName = L"LIRE_NIGHT_WATCHER";
+				tableName = "LIRE_NIGHT_WATCHER";
 			} break;
 #endif	SERV_RENA_NIGHT_WATCHER
 
@@ -796,15 +901,15 @@ void CX2GULire_ElvenRanger::InitStateID()
 	m_CommonState.m_Wait			= USI_WAIT;
 	m_ChargeMpState			= LESI_CHARGE_MP;
 
-#ifdef PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//
+//	m_FrozenState = LESI_FROZEN;
+//
+//#endif PVP_BOSS_COMBAT_TEST
 
-	m_FrozenState = LESI_FROZEN;
-
-#endif PVP_BOSS_COMBAT_TEST
-
-#ifdef TRANSFORMER_TEST
-	m_CommonState.m_Transformed			= LESI_TRANSFORMED;
-#endif TRANSFORMER_TEST
+//#ifdef TRANSFORMER_TEST
+//	m_CommonState.m_Transformed			= LESI_TRANSFORMED;
+//#endif TRANSFORMER_TEST
 
 
 
@@ -825,7 +930,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_DIE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DIE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DieFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DieFrontStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DieFrontFrameMove );
@@ -834,7 +939,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_DIE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DIE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DieBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DieBackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DieBackFrameMove );
@@ -844,7 +949,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_START_INTRUDE;
-	m_LuaManager.MakeTableReference( L"LESI_START_INTRUDE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_START_INTRUDE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, StartIntrudeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, StartIntrudeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartIntrudeEventProcess );
@@ -853,7 +958,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WAIT;
-	m_LuaManager.MakeTableReference( L"LESI_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, WaitStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, WaitFrameMoveFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, WaitStart );
@@ -862,34 +967,37 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WALK;
-	m_LuaManager.MakeTableReference( L"LESI_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_WALK", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser,			  WalkFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, WalkEventProcess );
+#ifdef ADD_RENA_SYSTEM //김창한
+	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, WalkStart );
+#endif //ADD_RENA_SYSTEM
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_READY;
-	m_LuaManager.MakeTableReference( L"LESI_JUMP_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_JUMP_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpReadyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"LESI_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_JUMP_UP", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"LESI_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_JUMP_DOWN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"LESI_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_JUMP_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpLandingEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -900,9 +1008,13 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	{
 		stateData.Init();
 		stateData.stateID			= USI_DASH;
-		m_LuaManager.MakeTableReference( L"LESI_DASH", stateData.stateID );
+		m_LuaManager.MakeTableReference( "LESI_DASH", stateData.stateID );
 		stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_StateStartFuture );
+#ifdef ADD_RENA_SYSTEM //김창한
+		stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashStart );
+#else //ADD_RENA_SYSTEM
 		stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DashStart );
+#endif //ADD_RENA_SYSTEM
 		stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_FrameMoveFuture );
 		stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashEventProcess );
 		m_StateList[stateData.stateID] = stateData;
@@ -911,9 +1023,13 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	{
 		stateData.Init();
 		stateData.stateID			= USI_DASH;
-		m_LuaManager.MakeTableReference( L"LESI_DASH", stateData.stateID );
+		m_LuaManager.MakeTableReference( "LESI_DASH", stateData.stateID );
 		stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
+#ifdef ADD_RENA_SYSTEM //김창한
+		stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashStart );
+#else //ADD_RENA_SYSTEM
 		stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DashStart );
+#endif //ADD_RENA_SYSTEM
 		stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
 		stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashEventProcess );
 		m_StateList[stateData.stateID] = stateData;
@@ -921,9 +1037,13 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 #else  SERV_RENA_NIGHT_WATCHER
 	stateData.Init();
 	stateData.stateID			= USI_DASH;
-	m_LuaManager.MakeTableReference( L"LESI_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
+#ifdef ADD_RENA_SYSTEM //김창한
+	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashStart );
+#else //ADD_RENA_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DashStart );
+#endif //ADD_RENA_SYSTEM
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashEventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -931,7 +1051,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_END;
-	m_LuaManager.MakeTableReference( L"LESI_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DASH_END", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashEndStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashEndStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashEndFrameMoveFuture );
@@ -941,7 +1061,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"LESI_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpFrameMoveFuture );
@@ -951,7 +1071,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_DOUBLE_JUMP;
-	m_LuaManager.MakeTableReference( L"LESI_DOUBLE_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DOUBLE_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DoubleJumpStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DoubleJumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DoubleJumpEventProcess );
@@ -959,7 +1079,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_DASH_DOUBLE_JUMP;
-	m_LuaManager.MakeTableReference( L"LESI_DASH_DOUBLE_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DASH_DOUBLE_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashDoubleJumpStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashDoubleJumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashDoubleJumpEventProcess );
@@ -972,7 +1092,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_CHARGE_MP;
-	m_LuaManager.MakeTableReference( L"LESI_CHARGE_MP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_CHARGE_MP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ChargeMPStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, ChargeMPStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ChargeMPFrameMove );
@@ -983,7 +1103,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"LESI_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_HYPER_MODE", stateData.stateID );
 	stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, HyperModeInit );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser,			  HyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, HyperModeFrameMove );
@@ -996,96 +1116,94 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_GROGGY;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_GROGGY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_GROGGY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DAMAGE_GROGGY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"LESI_DASH_JUMP_LANDING", stateData.stateID );
-#ifdef MODIFY_DASH_JUMP_LANDING_SPEED
+	m_LuaManager.MakeTableReference( "LESI_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
-#endif
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpLandingEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_SMALL_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_SMALL_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageSmallFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_SMALL_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_SMALL_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageSmallBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_BIG_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_BIG_FRONT", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageBigFrontStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageBigFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_BIG_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_BIG_BACK", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageBigBackStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageBigBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_DOWN_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_DOWN_FRONT", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageDownFrontFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageDownFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_DOWN_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_DOWN_BACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageDownBackFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageDownBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_STANDUP_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_STANDUP_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_STANDUP_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_STANDUP_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_SMALL;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_AIR_SMALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_AIR_SMALL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DamageAirSmallStartFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirSmallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_AIR_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_AIR_DOWN", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_INVINCIBLE;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownInvincibleEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_LANDING;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
 	stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, DamageAirDownLandingInit );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingFrameMove );
@@ -1094,31 +1212,31 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FALL;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_AIR_FALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_AIR_FALL", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_UP;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_AIR_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_AIR_UP", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_REVENGE;
-	m_LuaManager.MakeTableReference( L"LESI_DAMAGE_REVENGE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DAMAGE_REVENGE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageRevengeStart );
 	stateData.OnCameraMove		= SET_CB_FUNC( CX2GUUser, DamageRevengeCameraMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageRevengeEventProcess );
@@ -1126,7 +1244,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_STANDUP_ROLLING_FRONT_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontFrontEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontFrontEndFuture );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontFrontEnd );
@@ -1134,7 +1252,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_STANDUP_ROLLING_FRONT_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontBackEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontBackEndFuture );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontBackEnd );
@@ -1142,7 +1260,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_STANDUP_ROLLING_BACK_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackFrontEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackFrontEndFuture );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackFrontEnd );
@@ -1150,7 +1268,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_STANDUP_ROLLING_BACK_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackBackEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackBackEndFuture );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackBackEnd );
@@ -1158,7 +1276,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_STANDUP_ATTACK_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_STANDUP_ATTACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_STANDUP_ATTACK_FRONT", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpAttackFrontFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpAttackFrontEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpAttackFrontEnd );
@@ -1166,7 +1284,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_STANDUP_ATTACK_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_STANDUP_ATTACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_STANDUP_ATTACK_BACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpAttackBackFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpAttackBackEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpAttackBackEnd );
@@ -1174,7 +1292,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	
 	stateData.Init();
 	stateData.stateID			= LESI_SIEGE_WAIT;
-	m_LuaManager.MakeTableReference( L"LESI_SIEGE_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_SIEGE_WAIT", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeWaitStateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeWaitFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeWaitEventProcess );
@@ -1182,7 +1300,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_SIEGE_ATTACK;
-	m_LuaManager.MakeTableReference( L"LESI_SIEGE_ATTACK", stateData.stateID );	
+	m_LuaManager.MakeTableReference( "LESI_SIEGE_ATTACK", stateData.stateID );	
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger,  SiegeAttackFrontStateStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeAttackFrontStateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeAttackFrontFrameMove );
@@ -1191,7 +1309,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= LESI_SIEGE_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"LESI_SIEGE_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_SIEGE_ATTACK_X", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeAttackXFrontStateStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeAttackXFrontStateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeAttackXFrontFrameMove );
@@ -1201,7 +1319,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 #ifdef BALANCE_PATCH_20120329	
 	stateData.Init();
 	stateData.stateID			= LESI_SIEGE_END;
-	m_LuaManager.MakeTableReference( L"LESI_SIEGE_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_SIEGE_END", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeEndEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 #endif
@@ -1210,27 +1328,27 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_READY;
-	m_LuaManager.MakeTableReference( L"LESI_PEPPER_RUN_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_PEPPER_RUN_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_READY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN;
-	m_LuaManager.MakeTableReference( L"LESI_PEPPER_RUN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_PEPPER_RUN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_END;
-	m_LuaManager.MakeTableReference( L"LESI_PEPPER_RUN_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_PEPPER_RUN_END", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"LESI_PEPPER_RUN_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_PEPPER_RUN_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_EventProcess );
@@ -1238,7 +1356,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"LESI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_EventProcess );
@@ -1247,7 +1365,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 #ifdef SPECIAL_USE_ITEM
 	stateData.Init();
 	stateData.stateID			= USI_THROW_ITEM;
-	m_LuaManager.MakeTableReference( L"LESI_THROW_ITEM", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_THROW_ITEM", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_StateStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMove );
@@ -1261,7 +1379,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_START
 	stateData.Init();
 	stateData.stateID			= GetRidingStartStateID();
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_START", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingStartStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingStartStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingStartEventProcess );
@@ -1272,7 +1390,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_ON
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ON;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_ON", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_ON", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingOnStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingOnStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOnEventProcess );
@@ -1283,7 +1401,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_OFF
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_OFF;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_OFF", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_OFF", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOffEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, RidingOffEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -1292,7 +1410,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_WAIT_HABIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT_HABIT;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_WAIT_HABIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_WAIT_HABIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitEventProcess );
@@ -1302,7 +1420,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_WAIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitEventProcess );
@@ -1312,7 +1430,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_WALK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WALK;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_WALK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWalkStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWalkStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, WalkFrameMoveFuture );
@@ -1323,7 +1441,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_JUMP_UP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpUpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpUpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -1334,7 +1452,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_JUMP_DOWN
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpDownStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpDownStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -1345,7 +1463,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingEventProcess );
@@ -1355,7 +1473,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_DASH
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -1366,7 +1484,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_DASH_END
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_END;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_DASH_END", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashEndStart );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashEndStartFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingDashEndFrameMove );
@@ -1377,7 +1495,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_DASH_JUMP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpFrameMoveFuture );
@@ -1389,7 +1507,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_DASH_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingEventProcess );
@@ -1399,7 +1517,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_DAMAGE_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_FRONT;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_DAMAGE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_DAMAGE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontEventProcess );
@@ -1409,7 +1527,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_DAMAGE_BACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_BACK;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_DAMAGE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_DAMAGE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageBackStartFuture );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageBackStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageBackEventProcess );
@@ -1419,7 +1537,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_DIE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DIE;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_DIE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_DIE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DieFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DieFrontStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DieFrontFrameMove );
@@ -1430,7 +1548,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackZStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackZEventProcess );
@@ -1440,7 +1558,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_JUMP_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZFrameMoveFuture );
@@ -1451,7 +1569,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_ATTACK_X
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_ATTACK_X", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackXStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackXStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackXEventProcess );
@@ -1461,7 +1579,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_SPECIAL_ATTACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_ATTACK;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_ATTACK_SPECIAL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_ATTACK_SPECIAL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackFrameMove );
@@ -1472,7 +1590,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 	#pragma region LESI_RIDING_SPECIAL_MOVE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_MOVE;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_SPECIAL_MOVE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_SPECIAL_MOVE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveFrameMoveFuture );
@@ -1487,7 +1605,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 #ifdef MODIFY_RIDING_PET_AWAKE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"LESI_RIDING_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_RIDING_HYPER_MODE", stateData.stateID );
 	stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, RidingHyperModeInit );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser,			  RidingHyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, RidingHyperModeFrameMove );
@@ -1502,7 +1620,7 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 #ifdef WALL_JUMP_TEST
 	stateData.Init();
 	stateData.stateID			= LESI_WALL_LANDING;
-	m_LuaManager.MakeTableReference( L"LESI_WALL_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_WALL_LANDING", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, WallLandingEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GUUser, WallLandingEndFuture );
 	m_StateList[stateData.stateID] = stateData;
@@ -1511,30 +1629,30 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-
-	stateData.Init();
-	stateData.stateID			= LESI_FROZEN;
-	m_LuaManager.MakeTableReference( L"LESI_FROZEN", stateData.stateID );
-	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
-	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
-	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
-	m_StateList[stateData.stateID] = stateData;
-
-
-#endif PVP_BOSS_COMBAT_TEST
-
-
-
-#ifdef TRANSFORMER_TEST
-
-	stateData.Init();
-	stateData.stateID			= LESI_TRANSFORMED;
-	m_LuaManager.MakeTableReference( L"LESI_TRANSFORMED", stateData.stateID );
-	m_StateList[stateData.stateID] = stateData;
+//#ifdef PVP_BOSS_COMBAT_TEST
+//
+//	stateData.Init();
+//	stateData.stateID			= LESI_FROZEN;
+//	m_LuaManager.MakeTableReference( "LESI_FROZEN", stateData.stateID );
+//	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
+//	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
+//	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
+//	m_StateList[stateData.stateID] = stateData;
+//
+//
+//#endif PVP_BOSS_COMBAT_TEST
 
 
-#endif TRANSFORMER_TEST
+
+//#ifdef TRANSFORMER_TEST
+//
+//	stateData.Init();
+//	stateData.stateID			= LESI_TRANSFORMED;
+//	m_LuaManager.MakeTableReference( "LESI_TRANSFORMED", stateData.stateID );
+//	m_StateList[stateData.stateID] = stateData;
+//
+//
+//#endif TRANSFORMER_TEST
 
 
 
@@ -1547,11 +1665,9 @@ void CX2GULire_ElvenRanger::InitStateCommon()
 void CX2GULire_ElvenRanger::InitState()
 {
 
-	ASSERT( NULL != m_pUnit );
-	ASSERT( NULL != m_pUnit->GetUnitData() );
+	ASSERT( NULL != GetUnit() );
 
-
-	CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+	const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 	switch( pUnitData->m_UnitClass )
 	{
@@ -1606,10 +1722,10 @@ void CX2GULire_ElvenRanger::InitState()
 
 
 	// 공통으로 쓰는 랜덤한 상태 start, win, lose 상태 초기화
-	std::wstring tableNameStart	= L"";
-	std::wstring tableNameWin	= L"";
-	std::wstring tableNameLose	= L"";
-	InitStateCommonRandom( tableNameStart, tableNameWin, tableNameLose );
+	std::string tableNameStartUTF8;
+	std::string tableNameWinUTF8;
+	std::string tableNameLoseUTF8;
+	InitStateCommonRandom( tableNameStartUTF8, tableNameWinUTF8, tableNameLoseUTF8 );
 
 
 
@@ -1619,7 +1735,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_START;
-	m_LuaManager.MakeTableReference( tableNameStart.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameStartUTF8.c_str(), stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, StartEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -1627,21 +1743,21 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_WIN;
-	m_LuaManager.MakeTableReference( tableNameWin.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameWinUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, WinStateStart );	
 #endif
 	m_StateList[stateData.stateID] = stateData;
 
 #ifdef SERV_RENA_NIGHT_WATCHER
-	if( L"LESI_RNW_WIN2" == tableNameWin )
+	if( "LESI_RNW_WIN2" == tableNameWinUTF8 )
 		m_bShowTrapBladeToWinMotion = true;
 #endif SERV_RENA_NIGHT_WATCHER
 
 
 	stateData.Init();
 	stateData.stateID			= USI_LOSE;
-	m_LuaManager.MakeTableReference( tableNameLose.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameLoseUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, LoseStateStart );	
 #endif
@@ -1669,7 +1785,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DOUBLE_JUMP_ATTACK_Z;
-			m_LuaManager.MakeTableReference( L"LESI_DOUBLE_JUMP_ATTACK_Z", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DOUBLE_JUMP_ATTACK_Z", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DoubleJumpAttackZStartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DoubleJumpAttackZFrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DoubleJumpAttackZEventProcess );
@@ -1682,13 +1798,13 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DOUBLE_JUMP_ATTACK_Z;
-			m_LuaManager.MakeTableReference( L"LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z_UP;
-			m_LuaManager.MakeTableReference( L"LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z_UP", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z_UP", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z_UP_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
@@ -1696,21 +1812,21 @@ void CX2GULire_ElvenRanger::InitState()
 			//-----재빠른 몸놀림
 			stateData.Init();
 			stateData.stateID			= LESI_P_LE_AGILE_MOVEMENT_FRONT_FRONT;
-			m_LuaManager.MakeTableReference( L"LESI_P_LE_AGILE_MOVEMENT_FRONT_FRONT", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_P_LE_AGILE_MOVEMENT_FRONT_FRONT", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontFrontEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontFrontEnd );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= LESI_P_LE_AGILE_MOVEMENT_FRONT_BACK;
-			m_LuaManager.MakeTableReference( L"LESI_P_LE_AGILE_MOVEMENT_FRONT_BACK", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_P_LE_AGILE_MOVEMENT_FRONT_BACK", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontBackEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingFrontBackEnd );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= LESI_P_LE_AGILE_MOVEMENT_BACK_FRONT;
-			m_LuaManager.MakeTableReference( L"LESI_P_LE_AGILE_MOVEMENT_BACK_FRONT", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_P_LE_AGILE_MOVEMENT_BACK_FRONT", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackFrontEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackFrontEnd );
 			m_StateList[stateData.stateID] = stateData;
@@ -1718,7 +1834,7 @@ void CX2GULire_ElvenRanger::InitState()
 			stateData.Init();
 			stateData.stateID			= LESI_P_LE_AGILE_MOVEMENT_BACK_BACK;
 			stateData.stateID			= LESI_P_LE_AGILE_MOVEMENT_BACK_BACK;
-			m_LuaManager.MakeTableReference( L"LESI_P_LE_AGILE_MOVEMENT_BACK_BACK", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_P_LE_AGILE_MOVEMENT_BACK_BACK", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackBackEventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, StandUpRollingBackBackEnd );
 			m_StateList[stateData.stateID] = stateData;
@@ -1733,15 +1849,29 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X", stateData.stateID );
+#ifdef ADD_RENA_SYSTEM //김창한
+	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_StateStart );
+#endif //ADD_RENA_SYSTEM
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
+#ifdef ADD_RENA_SYSTEM //김창한
+	stateData.Init();
+	stateData.stateID			= LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX;
+	m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX", stateData.stateID );
+	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_StateStart );
+	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_FrameMoveFuture );
+	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_FrameMove );
+	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_EventProcess );
+	m_StateList[stateData.stateID] = stateData;
+#endif //ADD_RENA_SYSTEM
+
 	stateData.Init();
 	stateData.stateID			= LESI_DOUBLE_JUMP_ATTACK_Z_LANDING;
-	m_LuaManager.MakeTableReference( L"LESI_DOUBLE_JUMP_ATTACK_Z_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DOUBLE_JUMP_ATTACK_Z_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DoubleJumpAttackZLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DoubleJumpAttackZLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DoubleJumpAttackZLandingEventProcess );
@@ -1749,7 +1879,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_COMBO_Z1;
-	m_LuaManager.MakeTableReference( L"LESI_COMBO_Z1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_COMBO_Z1", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ1FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ1EventProcess );
@@ -1757,7 +1887,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_COMBO_Z2;
-	m_LuaManager.MakeTableReference( L"LESI_COMBO_Z2", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_COMBO_Z2", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ2FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ2FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ2EventProcess );
@@ -1770,7 +1900,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_COMBO_Z3;
-			m_LuaManager.MakeTableReference( L"LESI_COMBO_Z3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBO_Z3", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ3FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ3FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ3EventProcess );
@@ -1778,7 +1908,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_COMBO_Z4;
-			m_LuaManager.MakeTableReference( L"LESI_COMBO_Z4", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBO_Z4", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4EventProcess );
@@ -1792,7 +1922,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_COMBO_RTR_ZZZ;
-			m_LuaManager.MakeTableReference( L"LESI_COMBO_RTR_ZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBO_RTR_ZZZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZ_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZ_EventProcess );
@@ -1801,7 +1931,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_COMBO_RTR_ZZZ_DZ;
-			m_LuaManager.MakeTableReference( L"LESI_COMBO_RTR_ZZZ_DZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBO_RTR_ZZZ_DZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZ_DZ_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZ_DZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZ_DZ_EventProcess );
@@ -1810,7 +1940,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_COMBO_RTR_ZZZZ;
-			m_LuaManager.MakeTableReference( L"LESI_COMBO_RTR_ZZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBO_RTR_ZZZZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZZ_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZZ_EventProcess );
@@ -1819,7 +1949,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_COMBO_RTR_ZZZZZ;
-			m_LuaManager.MakeTableReference( L"LESI_COMBO_RTR_ZZZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBO_RTR_ZZZZZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZZZ_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RTR_ZZZZZ_EventProcess );
@@ -1832,7 +1962,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_COMBO_Z4a;
-	m_LuaManager.MakeTableReference( L"LESI_COMBO_Z4a", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_COMBO_Z4a", stateData.stateID );
 	//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4aFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4aFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4aEventProcess );
@@ -1841,7 +1971,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_COMBO_Z4UP;
-	m_LuaManager.MakeTableReference( L"LESI_COMBO_Z4UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_COMBO_Z4UP", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4UpFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4UpFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4UpEventProcess );
@@ -1849,7 +1979,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_COMBO_X1;
-	m_LuaManager.MakeTableReference( L"LESI_COMBO_X1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_COMBO_X1", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX1FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX1EventProcess );
@@ -1860,14 +1990,14 @@ void CX2GULire_ElvenRanger::InitState()
 	{
 		stateData.Init();
 		stateData.stateID			= LESI_COMBO_X2;
-		m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_COMBO_X2", stateData.stateID );
+		m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_COMBO_X2", stateData.stateID );
 		stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, SnipingRangerComboX2FrameMove );
 		stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, SnipingRangerComboX2EventProcess );
 		m_StateList[stateData.stateID] = stateData;
 
 		stateData.Init();
 		stateData.stateID			= LESI_COMBO_X3;
-		m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_COMBO_X3", stateData.stateID );
+		m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_COMBO_X3", stateData.stateID );
 		stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, SnipingRangerComboX3FrameMoveFuture );		
 		stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, SnipingRangerComboX3FrameMove );
 		stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, SnipingRangerComboX3EventProcess );
@@ -1875,7 +2005,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 		stateData.Init();
 		stateData.stateID			= LESI_COMBO_X4;
-		m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_COMBO_X4", stateData.stateID );
+		m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_COMBO_X4", stateData.stateID );
 		stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, SnipingRangerComboX4FrameMove );
 		stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, SnipingRangerComboX4EventProcess );
 		m_StateList[stateData.stateID] = stateData;
@@ -1885,7 +2015,7 @@ void CX2GULire_ElvenRanger::InitState()
 	{
 		stateData.Init();
 		stateData.stateID			= LESI_COMBO_X2;
-		m_LuaManager.MakeTableReference( L"LESI_COMBO_X2", stateData.stateID );
+		m_LuaManager.MakeTableReference( "LESI_COMBO_X2", stateData.stateID );
 		stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX2FrameMoveFuture );
 		stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX2FrameMove );
 		stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX2EventProcess );
@@ -1893,7 +2023,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 		stateData.Init();
 		stateData.stateID			= LESI_COMBO_X3;
-		m_LuaManager.MakeTableReference( L"LESI_COMBO_X3", stateData.stateID );
+		m_LuaManager.MakeTableReference( "LESI_COMBO_X3", stateData.stateID );
 		stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX3FrameMoveFuture );
 		stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX3FrameMove );
 		stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX3EventProcess );
@@ -1901,7 +2031,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 		stateData.Init();
 		stateData.stateID			= LESI_COMBO_X4;
-		m_LuaManager.MakeTableReference( L"LESI_COMBO_X4", stateData.stateID );
+		m_LuaManager.MakeTableReference( "LESI_COMBO_X4", stateData.stateID );
 		stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX4FrameMoveFuture );
 		stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX4FrameMove );
 		stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX4EventProcess );
@@ -1911,7 +2041,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_COMBO_X4UP;
-	m_LuaManager.MakeTableReference( L"LESI_COMBO_X4UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_COMBO_X4UP", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX4UpFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX4UpFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX4UpEventProcess );
@@ -1919,7 +2049,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_COMBO_X4DOWN;
-	m_LuaManager.MakeTableReference( L"LESI_COMBO_X4DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_COMBO_X4DOWN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX4DownFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX4DownFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboX4DownEventProcess );
@@ -1938,7 +2068,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_COMBO_Z1;
-			m_LuaManager.MakeTableReference( L"LESI_DASH_COMBO_Z1", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DASH_COMBO_Z1", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashComboZ1StartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashComboZ1FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashComboZ1EventProcess );
@@ -1952,14 +2082,14 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_COMBO_Z1;
-			m_LuaManager.MakeTableReference( L"LESI_COMBAT_RANGER_DASH_COMBO_Z1", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBAT_RANGER_DASH_COMBO_Z1", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBAT_RANGER_DASH_COMBO_Z1_StartFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBAT_RANGER_DASH_COMBO_Z1_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= LESI_COMBAT_RANGER_DASH_COMBO_Z2;
-			m_LuaManager.MakeTableReference( L"LESI_COMBAT_RANGER_DASH_COMBO_Z2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBAT_RANGER_DASH_COMBO_Z2", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBAT_RANGER_DASH_COMBO_Z2_StartFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBAT_RANGER_DASH_COMBO_Z2_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1973,7 +2103,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_COMBO_Z1;
-			m_LuaManager.MakeTableReference( L"LESI_DASH_COMBO_Z1", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DASH_COMBO_Z1", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashComboZ1StartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashComboZ1FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashComboZ1EventProcess );
@@ -1981,7 +2111,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_COMBO_RTR_ZX;
-			m_LuaManager.MakeTableReference( L"LESI_DASH_COMBO_RTR_ZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DASH_COMBO_RTR_ZX", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_COMBO_RTR_ZX_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_COMBO_RTR_ZX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_COMBO_RTR_ZX_EventProcess );
@@ -1998,7 +2128,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_DASH_COMBO_Z2;
-	m_LuaManager.MakeTableReference( L"LESI_DASH_COMBO_Z2", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DASH_COMBO_Z2", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashComboZ2StartFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashComboZ2FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashComboZ2EventProcess );
@@ -2022,7 +2152,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"LESI_DASH_ATTACK_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DASH_ATTACK_X", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashAttackXStartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashAttackXFrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashAttackXEventProcess );
@@ -2038,7 +2168,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_DASH_COMBO_X1", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DASH_COMBO_X1", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X1_StartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X1_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X1_EventProcess );
@@ -2047,7 +2177,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_SNIPING_RANGER_DASH_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_DASH_COMBO_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DASH_COMBO_X2", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X2_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X2_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -2055,21 +2185,21 @@ void CX2GULire_ElvenRanger::InitState()
 #ifndef BALANCE_GRAND_ARCHER_20121213
 			stateData.Init();
 			stateData.stateID			= LESI_SNIPING_RANGER_DASH_COMBO_X3;
-			m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_DASH_COMBO_X3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DASH_COMBO_X3", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X3_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X3_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= LESI_SNIPING_RANGER_DASH_COMBO_X3_UP;
-			m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_DASH_COMBO_X3_UP", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DASH_COMBO_X3_UP", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X3_UP_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X3_UP_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN;
-			m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -2081,7 +2211,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_ATTACK_X;
-			m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_DASH_COMBO_X1", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DASH_COMBO_X1", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X1_StartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_COMBO_X1_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_DASH_X_EventProcess );
@@ -2093,7 +2223,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_LWS_DASH_XZ;
-			m_LuaManager.MakeTableReference( L"LESI_LWS_DASH_XZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LWS_DASH_XZ", stateData.stateID );
 			//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_DASH_XZ_FrameMoveFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_DASH_XZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -2101,7 +2231,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_LWS_DASH_XZZ;
-			m_LuaManager.MakeTableReference( L"LESI_LWS_DASH_XZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LWS_DASH_XZZ", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_DASH_XZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		} break;
@@ -2121,7 +2251,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_JUMP_ATTACK_Z;
-			m_LuaManager.MakeTableReference( L"LESI_JUMP_ATTACK_Z", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_JUMP_ATTACK_Z", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpAttackZFrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpAttackZFrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpAttackZEventProcess );
@@ -2135,7 +2265,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_JUMP_ATTACK_Z;
-			m_LuaManager.MakeTableReference( L"LESI_JUMP_ATTACK_RTR_Z", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_JUMP_ATTACK_RTR_Z", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_JUMP_ATTACK_RTR_Z_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_JUMP_ATTACK_RTR_Z_FrameMove );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_JUMP_ATTACK_RTR_Z_FrameMoveFuture );
@@ -2148,7 +2278,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_JUMP_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"LESI_JUMP_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_JUMP_ATTACK_X", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpAttackXStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpAttackXFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, JumpAttackXFrameMove );
@@ -2170,7 +2300,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_JUMP_ATTACK_Z;
-			m_LuaManager.MakeTableReference( L"LESI_DASH_JUMP_ATTACK_Z", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DASH_JUMP_ATTACK_Z", stateData.stateID );
 			//stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpAttackZStartFuture );
 			//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpAttackZFrameMoveFuture );
 			//stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpAttackZFrameMove );
@@ -2183,19 +2313,19 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_JUMP_ATTACK_Z;
-			m_LuaManager.MakeTableReference( L"LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z1", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z1", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z1_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z2;
-			m_LuaManager.MakeTableReference( L"LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z2", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z2_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z3;
-			m_LuaManager.MakeTableReference( L"LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z3", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z3_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		} break;
@@ -2205,14 +2335,14 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_LGA_DASH_JUMP_Z;
-			m_LuaManager.MakeTableReference( L"LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z1", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z1", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_DASH_JUMP_Z_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 
 			stateData.Init();
 			stateData.stateID			= LESI_LGA_DASH_JUMP_ZX;
-			m_LuaManager.MakeTableReference( L"LESI_LGA_DASH_JUMP_ZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LGA_DASH_JUMP_ZX", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_DASH_JUMP_ZX_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_DASH_JUMP_ZX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_DASH_JUMP_ZX_EventProcess );
@@ -2228,7 +2358,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_JUMP_ATTACK_RTR_Z;
-			m_LuaManager.MakeTableReference( L"LESI_DASH_JUMP_ATTACK_RTR_Z", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DASH_JUMP_ATTACK_RTR_Z", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_JUMP_ATTACK_RTR_Z_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_JUMP_ATTACK_RTR_Z_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_JUMP_ATTACK_RTR_Z_EventProcess );
@@ -2238,7 +2368,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_JUMP_ATTACK_RTR_ZZ;
-			m_LuaManager.MakeTableReference( L"LESI_DASH_JUMP_ATTACK_RTR_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DASH_JUMP_ATTACK_RTR_ZZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_JUMP_ATTACK_RTR_ZZ_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_JUMP_ATTACK_RTR_ZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_DASH_JUMP_ATTACK_RTR_ZZ_EventProcess );
@@ -2248,13 +2378,13 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_SA_RTR_FATALITY_SUCCESS;
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_FATALITY_SUCCESS", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_FATALITY_SUCCESS", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_SUCCESS_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= LESI_SA_RTR_FATALITY_FAIL;
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_FATALITY_FAIL", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_FATALITY_FAIL", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_FAIL_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		} break;
@@ -2268,7 +2398,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_DASH_JUMP_ATTACK_Z_LANDING;
-	m_LuaManager.MakeTableReference( L"LESI_DASH_JUMP_ATTACK_Z_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DASH_JUMP_ATTACK_Z_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpAttackZLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpAttackZLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpAttackZLandingEventProcess );
@@ -2276,7 +2406,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 	stateData.Init();
 	stateData.stateID			= LESI_DASH_JUMP_COMBO_X1;
-	m_LuaManager.MakeTableReference( L"LESI_DASH_JUMP_COMBO_X1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_DASH_JUMP_COMBO_X1", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX1FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX1EventProcess );
@@ -2302,7 +2432,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_JUMP_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"LESI_DASH_JUMP_COMBO_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DASH_JUMP_COMBO_X2", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX2FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX2FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX2EventProcess );
@@ -2310,7 +2440,10 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_JUMP_COMBO_X3;
-			m_LuaManager.MakeTableReference( L"LESI_DASH_JUMP_COMBO_X3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_DASH_JUMP_COMBO_X3", stateData.stateID );
+#ifdef ADD_RENA_SYSTEM // 김태환
+			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX3StateStart );
+#endif // ADD_RENA_SYSTEM
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX3FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX3FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX3EventProcess );
@@ -2322,7 +2455,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_DASH_JUMP_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_EventProcess );
@@ -2330,7 +2463,10 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3;
-			m_LuaManager.MakeTableReference( L"LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3", stateData.stateID );
+#ifdef ADD_RENA_SYSTEM // 김태환
+			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, DashJumpComboX3StateStart );
+#endif // ADD_RENA_SYSTEM
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3_EventProcess );
@@ -2356,7 +2492,7 @@ void CX2GULire_ElvenRanger::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= LESI_LWS_ZZfrontZ;
-			m_LuaManager.MakeTableReference( L"LESI_LWS_ZZfrontZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LWS_ZZfrontZ", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_ZZfrontZ_FrameMoveFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_ZZfrontZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -2365,7 +2501,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_LWS_ZZfrontZZ;
-			m_LuaManager.MakeTableReference( L"LESI_LWS_ZZfrontZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LWS_ZZfrontZZ", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_ZZfrontZZ_FrameMoveFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_ZZfrontZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -2373,7 +2509,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_LWS_ZZfrontZZZ;
-			m_LuaManager.MakeTableReference( L"LESI_LWS_ZZfrontZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LWS_ZZfrontZZZ", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_ZZfrontZZZ_FrameMoveFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_ZZfrontZZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -2381,7 +2517,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_LWS_ZZfrontZZZ_Landing;
-			m_LuaManager.MakeTableReference( L"LESI_LWS_ZZfrontZZZ_Landing", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LWS_ZZfrontZZZ_Landing", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LWS_ZZfrontZZZ_Landing_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
@@ -2397,7 +2533,7 @@ void CX2GULire_ElvenRanger::InitState()
 #ifdef BALANCE_GRAND_ARCHER_20121213
 			stateData.Init();
 			stateData.stateID			= LESI_LGA_ZZX;
-			m_LuaManager.MakeTableReference( L"LESI_LGA_ZZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LGA_ZZX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_ZZX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_ZZX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -2405,14 +2541,17 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_LGA_ZZXX;
-			m_LuaManager.MakeTableReference( L"LESI_LGA_ZZXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LGA_ZZXX", stateData.stateID );
+#ifdef ADD_RENA_SYSTEM //김창한
+			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_ZZXX_StateStart );
+#endif //ADD_RENA_SYSTEM
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_ZZXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_ZZXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 #else
 			stateData.Init();
 			stateData.stateID			= LESI_LGA_ZZZX;
-			m_LuaManager.MakeTableReference( L"LESI_LGA_ZZZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LGA_ZZZX", stateData.stateID );
 			//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, ComboZ4aFrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_ZZZX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_ZZZX_EventProcess );
@@ -2422,7 +2561,7 @@ void CX2GULire_ElvenRanger::InitState()
 
 			stateData.Init();
 			stateData.stateID			= LESI_LGA_ZZZXX;
-			m_LuaManager.MakeTableReference( L"LESI_LGA_ZZZXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_LGA_ZZZXX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_ZZZXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_LGA_ZZZXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -2436,7 +2575,7 @@ void CX2GULire_ElvenRanger::InitState()
 			//레나 2차 전직 나이트 와쳐 - ZX 콤보
 			stateData.Init();
 			stateData.stateID			= LESI_COMBO_RNW_ZZX;
-			m_LuaManager.MakeTableReference( L"LESI_COMBO_RNW_ZZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBO_RNW_ZZX", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RNW_ZZX_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RNW_ZZX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RNW_ZZX_EventProcess );
@@ -2446,7 +2585,7 @@ void CX2GULire_ElvenRanger::InitState()
 			//레나 2차 전직 나이트 와쳐 - ZXX 콤보
 			stateData.Init();
 			stateData.stateID			= LESI_COMBO_RNW_ZZXX;
-			m_LuaManager.MakeTableReference( L"LESI_COMBO_RNW_ZZXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBO_RNW_ZZXX", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RNW_ZZXX_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RNW_ZZXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RNW_ZZXX_EventProcess );
@@ -2456,7 +2595,7 @@ void CX2GULire_ElvenRanger::InitState()
 			//레나 2차 전직 나이트 와쳐 - ZXXX 콤보
 			stateData.Init();
 			stateData.stateID			= LESI_COMBO_RNW_ZZXXX;
-			m_LuaManager.MakeTableReference( L"LESI_COMBO_RNW_ZZXXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_COMBO_RNW_ZZXXX", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RNW_ZZXXX_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RNW_ZZXXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_COMBO_RNW_ZZXXX_EventProcess );
@@ -2466,7 +2605,7 @@ void CX2GULire_ElvenRanger::InitState()
 			//레나 2차 전직 나이트 와쳐 - 액셀 대시
 			stateData.Init();
 			stateData.stateID			= LESI_RNW_ACCEL_DASH;
-			m_LuaManager.MakeTableReference( L"LESI_RNW_ACCEL_DASH", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_RNW_ACCEL_DASH", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_StateStartFuture );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_StateStart );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_FrameMoveFuture );
@@ -2476,7 +2615,7 @@ void CX2GULire_ElvenRanger::InitState()
 			//레나 2차 전직 나이트 와쳐 - 액셀 대시 점프
 			stateData.Init();
 			stateData.stateID			= LESI_RNW_ACCEL_DASH_JUMP;
-			m_LuaManager.MakeTableReference( L"LESI_RNW_ACCEL_DASH_JUMP", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_RNW_ACCEL_DASH_JUMP", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_StateStartFuture );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_StateStart );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_FrameMoveFuture );
@@ -2487,7 +2626,7 @@ void CX2GULire_ElvenRanger::InitState()
 			//레나 2차 전직 나이트 와쳐 - 액셀 대시 점프 착지
 			stateData.Init();
 			stateData.stateID			= LESI_RNW_ACCEL_DASH_JUMP_LANDING;
-			m_LuaManager.MakeTableReference( L"LESI_RNW_ACCEL_DASH_JUMP_LANDING", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_RNW_ACCEL_DASH_JUMP_LANDING", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_LANDING_StateStartFuture );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_LANDING_StateStart );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_LANDING_EventProcess );
@@ -2496,7 +2635,7 @@ void CX2GULire_ElvenRanger::InitState()
 			//레나 2차 전직 나이트 와쳐 - 액셀 대시 점프 Z			
 			stateData.Init();
 			stateData.stateID			= LESI_RNW_ACCEL_DASH_JUMP_Z;
-			m_LuaManager.MakeTableReference( L"LESI_RNW_ACCEL_DASH_JUMP_Z", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_RNW_ACCEL_DASH_JUMP_Z", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_ATTACK_Z_StateStartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_ATTACK_Z_FrameMove );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_ATTACK_Z_FrameMoveFuture );
@@ -2507,7 +2646,7 @@ void CX2GULire_ElvenRanger::InitState()
 			//레나 2차 전직 나이트 와쳐 - 액셀 대시 점프 ZZ
 			stateData.Init();
 			stateData.stateID			= LESI_RNW_ACCEL_DASH_JUMP_ZZ;
-			m_LuaManager.MakeTableReference( L"LESI_RNW_ACCEL_DASH_JUMP_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_RNW_ACCEL_DASH_JUMP_ZZ", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_ATTACK_ZZ_StateStartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_ATTACK_ZZ_FrameMove );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_RNW_ACCEL_DASH_JUMP_ATTACK_ZZ_FrameMoveFuture );
@@ -2524,7 +2663,7 @@ void CX2GULire_ElvenRanger::InitState()
 #ifdef	SERV_TRAPPING_RANGER_TEST
 	stateData.Init();
 	stateData.stateID			= LESI_SI_A_LE_RISING_FALCON_LANDING;
-	m_LuaManager.MakeTableReference( L"LESI_A_LE_RISING_FALCON_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "LESI_A_LE_RISING_FALCON_LANDING", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_RISING_FALCON_LANDING_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 #endif	SERV_TRAPPING_RANGER_TEST
@@ -2554,6 +2693,11 @@ void CX2GULire_ElvenRanger::InitState()
 #endif	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
 #endif	SERV_TRAPPING_RANGER_TEST
 
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( GetNaturalForceCount() >= NATURAL_FORCE_BUFF )
+		SetNaturalForceBuff( true );
+#endif //ADD_RENA_SYSTEM
 }
 
 
@@ -2572,7 +2716,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	m_fSiegeDamageByPassive	= 1.f;
 
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LSR_HAWK_EYE, true );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LSR_HAWK_EYE, true );
 
 	if( iSkillLevel > 0 )
 	{
@@ -2586,13 +2730,13 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			m_fSiegeDamageByPassive	=  pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
 
 			/// 시즈 모드 데미지 증가 처리 ( 시즈 모드 레벨이 0이면, 1레벨 데미지에 연산 )
-			int iSiegeSkillLevel = max( GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LE_SIEGEMODE, true ), 1 );
+			int iSiegeSkillLevel = max( GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LE_SIEGEMODE, true ), 1 );
 
 			SetSiegeModeEffectiveValue( iSiegeSkillLevel );
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_HAWK_EYE );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_HAWK_EYE );
 
 	if( iSkillLevel > 0 )
 	{
@@ -2607,9 +2751,9 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 #ifdef BALANCE_PATCH_20110303
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LWS_POWERFUL_SHOT, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LWS_POWERFUL_SHOT, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LWS_POWERFUL_SHOT );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LWS_POWERFUL_SHOT );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevel > 0 )
@@ -2632,7 +2776,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 #ifdef	SERV_TRAPPING_RANGER_TEST
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_SHARPEN_ARROW, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_SHARPEN_ARROW, true );
 
 	if( iSkillLevel > 0 )
 	{
@@ -2644,7 +2788,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_SHARPEN_ARROW );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_SHARPEN_ARROW );
 
 	if( iSkillLevel > 0 )
 	{
@@ -2664,7 +2808,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	m_fMPConsumeRateSiegeArrow	= 1.f;
 	m_fDamageRelSiegeArrow		= 1.f;
 
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SIEGEMODE_UP );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SIEGEMODE_UP );
 	if( iSkillLevel > 0 )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LE_SIEGEMODE_UP, iSkillLevel );
@@ -2682,7 +2826,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	m_fHitAddMp = -1.f;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LSR_POWERFUL_BOWSTRING, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LSR_POWERFUL_BOWSTRING, true );
 
 	if( iSkillLevel > 0 )
 	{
@@ -2704,7 +2848,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_POWERFUL_BOWSTRING );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_POWERFUL_BOWSTRING );
 
 	if( iSkillLevel > 0 )
 	{
@@ -2731,7 +2875,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	m_SkillRelatedData.SetForceDownValueRateOfRenaArrowAttack( 1.f );
 	
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LSR_SHARP_ARROW, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LSR_SHARP_ARROW, true );
 
 	if( iSkillLevel > 0 )
 	{
@@ -2743,7 +2887,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SHARP_ARROW );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SHARP_ARROW );
 
 	if( iSkillLevel > 0 )
 	{
@@ -2758,14 +2902,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 #ifdef RENA_SECOND_CLASS_CHANGE
 
 	const CX2SkillTree::SkillTemplet* pMySkillTemplet = NULL;
-	pMySkillTemplet = GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LWS_POWERFUL_SHOT );
+	pMySkillTemplet = GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LWS_POWERFUL_SHOT );
 	if( NULL != pMySkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pMySkillTemplet->m_eID, true ) );	/// 스킬 레벨
 	
@@ -2781,14 +2925,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	m_ChargeMPData.m_fChargeStateMP = 0.f;
 #endif //UPGRADE_SKILL_SYSTEM_2013
-	pMySkillTemplet = GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LGA_COMMUNE_OF_NATURE );
+	pMySkillTemplet = GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LGA_COMMUNE_OF_NATURE );
 	if( NULL != pMySkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pMySkillTemplet->m_eID, true ) );	/// 스킬 레벨
 
@@ -2803,7 +2947,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 #ifdef NEW_SKILL_2010_11
 	//{{ oasis907 : 김상윤 [2010.11.3] // 윈드 스니커 - 자연과의 친화(패시브)
-	pMySkillTemplet = GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LWS_FRIENDSHIP_OF_NATURE );
+	pMySkillTemplet = GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LWS_FRIENDSHIP_OF_NATURE );
 
 	if ( NULL != pMySkillTemplet )
 		m_delegateFriendshipOfNature = DelegateFriendshipOfNature::from_method<CX2GULire_ElvenRanger, &CX2GULire_ElvenRanger::ProcessFriendshipNature>( this );
@@ -2817,10 +2961,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			m_pFriendshipNatureData = new FriendshipNatureData;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pMySkillTemplet->m_eID, true ) );	/// 스킬 레벨
 
@@ -2838,14 +2982,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	m_ArrowData.m_fVibrationShootingDamageRate = 0.f;
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	//{{ oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-	pMySkillTemplet = GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LGA_VIBRATION_SHOOTING );
+	pMySkillTemplet = GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LGA_VIBRATION_SHOOTING );
 	if( NULL != pMySkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pMySkillTemplet->m_eID, true ) );	/// 스킬 레벨
 
@@ -2862,9 +3006,9 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	//{{ 급소찌르기 by 박진웅
 #ifdef SERV_TRAPPING_RANGER_TEST
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	pMySkillTemplet = GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LNW_VITALPOINT_PIERCING );
+	pMySkillTemplet = GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LNW_VITALPOINT_PIERCING );
 #else //UPGRADE_SKILL_SYSTEM_2013
-	pMySkillTemplet = GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RTR_VITALPOINT_PIERCING );
+	pMySkillTemplet = GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RTR_VITALPOINT_PIERCING );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	if ( NULL != pMySkillTemplet )
 		m_delegateVitalPointPiercing = DelegateVitalPointPiercing::from_method<CX2GULire_ElvenRanger, &CX2GULire_ElvenRanger::ProcessVPP>( this );
@@ -2877,24 +3021,27 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	/// 레나 2차 전직 나이트 와처 - 계산된 일격
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	pMySkillTemplet = GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LNW_PRIOR_PLANNED_BLOW );
+	pMySkillTemplet = GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_LNW_PRIOR_PLANNED_BLOW );
 
 	if( NULL != pMySkillTemplet )
 	{
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pMySkillTemplet->m_eID, true ) );	/// 스킬 레벨
 
 		m_fPriorPlannedBlowDownValue	  = pMySkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_FORCE_DOWN_ABS, iSkillTempletLevel );	/// 다운 수치 감소
 		m_fPriorPlannedBlowIncreaseDamage = pMySkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillTempletLevel );		/// 증가 데미지 수치
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		m_fPriorPlannedBlowIncreaseHPRate = pMySkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_HP_INTAKE_REL_DAMAGE, iSkillTempletLevel );		/// 증가 데미지 수치
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 		m_bUsePriorPlannedBlow			= true;
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	pMySkillTemplet = GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RNW_PRIOR_PLANNED_BLOW );
+	pMySkillTemplet = GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RNW_PRIOR_PLANNED_BLOW );
 
 	if( NULL != pMySkillTemplet )
 	{
@@ -2910,7 +3057,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	//유연한 몸놀림
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LCR_SOFTBODY, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LCR_SOFTBODY, true );
 	CX2Unit::UNIT_CLASS eUnitClass = GetUnit()->GetClass();
 
 #ifndef FIX_SKILL_BALANCE_AISHA_LENA //JHKang
@@ -2927,7 +3074,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	//재빠른 몸놀림
 	m_bAbleAgileMovement = false;
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LCR_AGILE_MOVEMENT, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LCR_AGILE_MOVEMENT, true );
 	if( iSkillLevel > 0 && ( CX2Unit::UC_LIRE_COMBAT_RANGER == eUnitClass || CX2Unit::UC_LIRE_WIND_SNEAKER == eUnitClass ) )
 	{
 		m_bAbleAgileMovement = true;
@@ -2960,11 +3107,11 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	{	
 	case CX2SkillTree::ST_BUFF:
 		{	// 버프 필살기
-			m_LuaManager.MakeTableReference( L"LESI_SI_LE_COMMON_BUFF", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI_LE_COMMON_BUFF", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, COMMON_BUFF_FrameMove );	
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"LESI_SI_LE_COMMON_BUFF_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI_LE_COMMON_BUFF_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, COMMON_BUFF_FrameMove );	
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );
 
@@ -2972,6 +3119,9 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		} break;
 	case CX2SkillTree::ST_ACTIVE:
 	case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 		{
 			// ST_ACTIVE, ST_SPECIAL_ACTIVE는 아래 구문에서 수행
 		} break;
@@ -2982,11 +3132,11 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			{
 			case CX2SkillTree::SI_ETC_WS_COMMON_LOVE:
 				{
-					m_LuaManager.MakeTableReference( L"LESI_THROW_ITEM", normalStateData.stateID );
+					m_LuaManager.MakeTableReference( "LESI_THROW_ITEM", normalStateData.stateID );
 					normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_FrameMove );	
 					normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_EventProcess );	
 
-					m_LuaManager.MakeTableReference( L"LESI_THROW_ITEM", hyperStateData.stateID );
+					m_LuaManager.MakeTableReference( "LESI_THROW_ITEM", hyperStateData.stateID );
 					hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 					hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 				} break;
@@ -3008,12 +3158,12 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	{
 	default:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI_LE_POWER_ATTACK1", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI_LE_POWER_ATTACK1", normalStateData.stateID );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_LE_POWER_ATTACK_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_LE_POWER_ATTACK_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_LE_POWER_ATTACK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI_LE_POWER_ATTACK1", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI_LE_POWER_ATTACK1", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_LE_POWER_ATTACK_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_LE_POWER_ATTACK_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_LE_POWER_ATTACK_HYPER_EventProcess );
@@ -3026,14 +3176,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_LE_RAIL_STINGER:		//** Code 내의 이름과 사용되는 이름이 다름 : 함수명 수정 필요
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI1_LE_PIERCE_ARROW", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI1_LE_PIERCE_ARROW", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_PIERCE_ARROW_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_PIERCE_ARROW_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_PIERCE_ARROW_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_PIERCE_ARROW_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_PIERCE_ARROW_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI1_LE_PIERCE_ARROW_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI1_LE_PIERCE_ARROW_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_PIERCE_ARROW_HYPER_Init );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_PIERCE_ARROW_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_PIERCE_ARROW_HYPER_FrameMove );
@@ -3047,14 +3197,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_LE_ASSAULT_KICK:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI1_LE_ASSAULT_KICK", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI1_LE_ASSAULT_KICK", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_ASSAULT_KICK_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_ASSAULT_KICK_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_ASSAULT_KICK_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_ASSAULT_KICK_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_ASSAULT_KICK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI1_LE_ASSAULT_KICK_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI1_LE_ASSAULT_KICK_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_ASSAULT_KICK_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_ASSAULT_KICK_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_ASSAULT_KICK_HYPER_CameraMove );
@@ -3064,14 +3214,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_SA_LE_PERFECT_STORM:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI2_LE_PERFECT_STORM", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI2_LE_PERFECT_STORM", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_PERFECT_STORM_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_PERFECT_STORM_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_PERFECT_STORM_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_PERFECT_STORM_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_PERFECT_STORM_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI2_LE_PERFECT_STORM_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI2_LE_PERFECT_STORM_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_PERFECT_STORM_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_PERFECT_STORM_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_PERFECT_STORM_HYPER_CameraMove );
@@ -3082,7 +3232,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	case CX2SkillTree::SI_SA_LE_MULTIPLE_STINGER:	//** Code 내의 이름과 사용되는 이름이 다름 : 함수명 수정 필요
 		{
 			// 멀티플 스팅거 원본
-  			m_LuaManager.MakeTableReference( L"LESI_SI2_LE_DIVISION_BLAST", normalStateData.stateID );
+  			m_LuaManager.MakeTableReference( "LESI_SI2_LE_DIVISION_BLAST", normalStateData.stateID );
   			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_DIVISION_BLAST_Init );
   			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_DIVISION_BLAST_Start );
   			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_DIVISION_BLAST_FrameMoveFuture );
@@ -3090,7 +3240,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
  			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_DIVISION_BLAST_CameraMove );
   			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_DIVISION_BLAST_EventProcess );
   
-  			m_LuaManager.MakeTableReference( L"LESI_SI2_LE_DIVISION_BLAST_HYPER", hyperStateData.stateID );
+  			m_LuaManager.MakeTableReference( "LESI_SI2_LE_DIVISION_BLAST_HYPER", hyperStateData.stateID );
   			hyperStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_DIVISION_BLAST_HYPER_Init );
   			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_DIVISION_BLAST_HYPER_Start );
   			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_DIVISION_BLAST_HYPER_FrameMoveFuture );
@@ -3102,14 +3252,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_SA_LE_AERO_TORNADO:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI3_LE_AERO_TORNADO", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI3_LE_AERO_TORNADO", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_AERO_TORNADO_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_AERO_TORNADO_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_AERO_TORNADO_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_AERO_TORNADO_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_AERO_TORNADO_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI3_LE_AERO_TORNADO_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI3_LE_AERO_TORNADO_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_AERO_TORNADO_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_AERO_TORNADO_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_AERO_TORNADO_HYPER_CameraMove );
@@ -3120,14 +3270,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	case CX2SkillTree::SI_SA_LE_PHOENIX_STRIKE:
 		{
 
-			m_LuaManager.MakeTableReference( L"LESI_SI3_LE_PHOENIX_STRIKE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI3_LE_PHOENIX_STRIKE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_PHOENIX_STRIKE_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_PHOENIX_STRIKE_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_PHOENIX_STRIKE_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_PHOENIX_STRIKE_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_PHOENIX_STRIKE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI3_LE_PHOENIX_STRIKE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI3_LE_PHOENIX_STRIKE_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_PHOENIX_STRIKE_HYPER_Init );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_PHOENIX_STRIKE_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LE_PHOENIX_STRIKE_HYPER_FrameMove );
@@ -3137,12 +3287,12 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	case CX2SkillTree::SI_A_LCR_MIDDLE_KICK:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LCR_MIDDLE_KICK", normalStateData.stateID ); 		
+			m_LuaManager.MakeTableReference( "LESI_A_LCR_MIDDLE_KICK", normalStateData.stateID ); 		
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LCR_MIDDLE_KICK_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LCR_MIDDLE_KICK_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LCR_MIDDLE_KICK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LCR_MIDDLE_KICK", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_A_LCR_MIDDLE_KICK", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -3150,55 +3300,55 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LWS_BACK_KICK:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LWS_BACK_KICK", normalStateData.stateID ); 		
+			m_LuaManager.MakeTableReference( "LESI_A_LWS_BACK_KICK", normalStateData.stateID ); 		
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LWS_BACK_KICK_Init );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LWS_BACK_KICK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LWS_BACK_KICK", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_A_LWS_BACK_KICK", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 		} break;
 
 	case CX2SkillTree::SI_A_LWS_HIGH_KICK:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LWS_HIGH_KICK", normalStateData.stateID ); 		
+			m_LuaManager.MakeTableReference( "LESI_A_LWS_HIGH_KICK", normalStateData.stateID ); 		
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LWS_HIGH_KICK_Init );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LWS_HIGH_KICK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LWS_HIGH_KICK", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_A_LWS_HIGH_KICK", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 		} break;
 
 	case CX2SkillTree::SI_SA_LWS_AIRELINNA_SYLPH:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_LWS_AIRELINNA_SYLPH", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_SA_LWS_AIRELINNA_SYLPH", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_AIRELINNA_SYLPH_Init );
-			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_AIRELINNA_SYLPH_FrameMove );				
-#ifdef CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
-#else CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
-#endif CONVERSION_VS
+			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_AIRELINNA_SYLPH_FrameMove );
+	#ifdef CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+	#else CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
+	#endif CONVERSION_VS
 
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LWS_AIRELINNA_SYLPH", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SA_LWS_AIRELINNA_SYLPH", hyperStateData.stateID ); 
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
-#ifdef CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
-#else CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
-#endif CONVERSION_VS
+	#ifdef CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+	#else CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
+	#endif CONVERSION_VS
 		} break;
 
 	case CX2SkillTree::SI_A_LSR_SHOOTING_MAGNUM:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LSR_SHOOTING_MAGNUM", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LSR_SHOOTING_MAGNUM", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LSR_SHOOTING_MAGNUM_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LSR_SHOOTING_MAGNUM_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LSR_SHOOTING_MAGNUM_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LSR_SHOOTING_MAGNUM", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LSR_SHOOTING_MAGNUM", hyperStateData.stateID );
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -3207,12 +3357,12 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LGA_ARC_SHOT:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_ARC_SHOT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_ARC_SHOT", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_ARC_SHOT_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_ARC_SHOT_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_ARC_SHOT_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_ARC_SHOT", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_ARC_SHOT", hyperStateData.stateID );
 			hyperStateData.StateInit		= normalStateData.StateInit;
 			hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -3220,12 +3370,12 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LGA_RAPID_SHOT:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_RAPID_SHOT_READY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_RAPID_SHOT_READY", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_RAPID_SHOT_READY_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_RAPID_SHOT_READY_StartFuture );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_RAPID_SHOT_READY_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_RAPID_SHOT_READY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_RAPID_SHOT_READY", hyperStateData.stateID );
 			hyperStateData.StateInit			= normalStateData.StateInit;
 			hyperStateData.StateStartFuture		= normalStateData.StateStartFuture;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
@@ -3235,21 +3385,22 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				stateData.Init();
 				stateData.stateID				= LESI_A_LGA_RAPID_SHOT_ATTACK;
-				m_LuaManager.MakeTableReference( L"LESI_A_LGA_RAPID_SHOT_ATTACK", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_A_LGA_RAPID_SHOT_ATTACK", stateData.stateID );
 				stateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_RAPID_SHOT_ATTACK_EventProcess );
 				stateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_RAPID_SHOT_ATTACK_FrameMove );
 				m_StateList[stateData.stateID]	= stateData;
 
 				stateData.Init();
 				stateData.stateID				= LESI_A_LGA_RAPID_SHOT_FINISH;
-				m_LuaManager.MakeTableReference( L"LESI_A_LGA_RAPID_SHOT_FINISH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_A_LGA_RAPID_SHOT_FINISH", stateData.stateID );
 				stateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_RAPID_SHOT_FINISH_EventProcess );
 				stateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_RAPID_SHOT_FINISH_FrameMove );
 				m_StateList[stateData.stateID]	= stateData;
 			}
-
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 			if( 0 > m_RapidShotDataPtr.use_count() )
 				m_RapidShotDataPtr.reset();
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 			m_RapidShotDataPtr = RapidShotData::CreateRapidShotData();
 			m_RapidShotDataPtr->SetSlotID_RapidShot( static_cast<LIRE_ELVENRANGER_STATE_ID>( iNormalStateID ) );
@@ -3259,56 +3410,54 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LGA_FREEZING_BOLT:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_FREEZING_BOLT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_FREEZING_BOLT", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_FREEZING_BOLT_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_FREEZING_BOLT_FrameMove );
-#ifdef CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
-#else CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
-#endif CONVERSION_VS
+	#ifdef CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+	#else CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
+	#endif CONVERSION_VS
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_FREEZING_BOLT", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_FREEZING_BOLT", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
-#ifdef CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
-#else CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
-#endif CONVERSION_VS
-
+	#ifdef CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+	#else CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
+	#endif CONVERSION_VS
 		} break;
 
 	case CX2SkillTree::SI_A_LGA_WIND_BLAST:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_WIND_BLAST", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_WIND_BLAST", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_WIND_BLAST_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_WIND_BLAST_FrameMove );
-#ifdef CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
-#else CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
-#endif CONVERSION_VS
+	#ifdef CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+	#else CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
+	#endif CONVERSION_VS
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_WIND_BLAST", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_WIND_BLAST", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
-#ifdef CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
-#else CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
-#endif CONVERSION_VS
-
+	#ifdef CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+	#else CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
+	#endif CONVERSION_VS
 		} break;
 
 	case CX2SkillTree::SI_SA_LTR_TRAPPING_ARROW_FUNGUS:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_TRAPPING_ARROW_FUNGUS", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_TRAPPING_ARROW_FUNGUS", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_TRAPPING_ARROW_FUNGUS", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_TRAPPING_ARROW_FUNGUS", hyperStateData.stateID );
 			hyperStateData.StateInit			= normalStateData.StateInit;
 			hyperStateData.StateStart			= normalStateData.StateStart;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
@@ -3318,7 +3467,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_RNW_THORNS_TRAP:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_RNW_THORNS_TRAP", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RNW_THORNS_TRAP", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_THORNS_TRAP_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_THORNS_TRAP_StartFuture );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_THORNS_TRAP_FrameMoveFuture );
@@ -3326,7 +3475,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_THORNS_TRAP_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_THORNS_TRAP_EndFuture );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_RNW_THORNS_TRAP", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RNW_THORNS_TRAP", hyperStateData.stateID );
 			hyperStateData.StateInit			= normalStateData.StateInit;
 			hyperStateData.StateStartFuture		= normalStateData.StateStartFuture;
 			hyperStateData.OnFrameMoveFuture	= normalStateData.OnFrameMoveFuture;
@@ -3337,7 +3486,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_RNW_SEED_OF_RUIN:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_P_RNW_SEED_OF_RUIN", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_P_RNW_SEED_OF_RUIN", normalStateData.stateID );
 			normalStateData.StateInit				= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_P_RNW_SEED_OF_RUIN_Init );
 			normalStateData.StateStartFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_P_RNW_SEED_OF_RUIN_StartFuture );
 			normalStateData.OnFrameMoveFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_P_RNW_SEED_OF_RUIN_FrameMoveFuture );
@@ -3345,7 +3494,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnEventProcess			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_P_RNW_SEED_OF_RUIN_EventProcess );
 			normalStateData.StateEndFuture			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_P_RNW_SEED_OF_RUIN_EndFuture );
 
-			m_LuaManager.MakeTableReference( L"LESI_P_RNW_SEED_OF_RUIN", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_P_RNW_SEED_OF_RUIN", hyperStateData.stateID );
 			hyperStateData.StateInit				= normalStateData.StateInit;
 			hyperStateData.StateStartFuture			= normalStateData.StateStartFuture;
 			hyperStateData.OnFrameMoveFuture		= normalStateData.OnFrameMoveFuture;
@@ -3356,14 +3505,15 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_RNW_ANGER_OF_ELF:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_RNW_ANGER_OF_ELF", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RNW_ANGER_OF_ELF", normalStateData.stateID );
 			normalStateData.StateInit				= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ANGER_OF_ELF_Init );
 			normalStateData.StateStart				= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ANGER_OF_ELF_StateStart );
 			normalStateData.OnFrameMove				= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ANGER_OF_ELF_FrameMove );
 			normalStateData.OnEventProcess			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ANGER_OF_ELF_EventProcess );
 			normalStateData.StateEnd				= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ANGER_OF_ELF_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_RNW_ANGER_OF_ELF", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RNW_ANGER_OF_ELF", hyperStateData.stateID );
+			hyperStateData.m_bHyperState			= true;
 			hyperStateData.StateInit				= normalStateData.StateInit;
 			hyperStateData.StateStart				= normalStateData.StateStart;
 			hyperStateData.OnFrameMove				= normalStateData.OnFrameMove;
@@ -3373,7 +3523,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_RNW_ROSEBUSH_TRAP:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_RNW_ROSEBUSH_TRAP", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RNW_ROSEBUSH_TRAP", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ROSEBUSH_TRAP_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ROSEBUSH_TRAP_StartFuture );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ROSEBUSH_TRAP_FrameMoveFuture );
@@ -3381,7 +3531,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ROSEBUSH_TRAP_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_ROSEBUSH_TRAP_EndFuture );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_RNW_ROSEBUSH_TRAP", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RNW_ROSEBUSH_TRAP", hyperStateData.stateID );
 			hyperStateData.StateInit			= normalStateData.StateInit;
 			hyperStateData.StateStartFuture		= normalStateData.StateStartFuture;
 			hyperStateData.OnFrameMoveFuture	= normalStateData.OnFrameMoveFuture;
@@ -3392,11 +3542,11 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LWS_ASSAULT_IMPACT:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LWS_ASSAULT_IMPACT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LWS_ASSAULT_IMPACT", normalStateData.stateID );
 			normalStateData.StateInit				= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LWS_ASSAULT_IMPACT_Init );
 			normalStateData.OnEventProcess			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LWS_ASSAULT_IMPACT_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LWS_ASSAULT_IMPACT", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LWS_ASSAULT_IMPACT", hyperStateData.stateID );
 			hyperStateData.StateInit				= normalStateData.StateInit;
 			hyperStateData.OnEventProcess			= normalStateData.OnEventProcess;
 
@@ -3404,12 +3554,12 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LTR_ENTANGLE:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LTR_ENTANGLE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LTR_ENTANGLE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LTR_ENTANGLE_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LTR_ENTANGLE_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LTR_ENTANGLE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LTR_ENTANGLE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LTR_ENTANGLE", hyperStateData.stateID );
 			hyperStateData.StateInit			= normalStateData.StateInit;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
@@ -3423,13 +3573,13 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_LCR_SPINNING_KICK:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI1_LCR_SPINNING_KICK", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI1_LCR_SPINNING_KICK", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LCR_SPINNING_KICK_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LCR_SPINNING_KICK_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LCR_SPINNING_KICK_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LCR_SPINNING_KICK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI1_LCR_SPINNING_KICK_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI1_LCR_SPINNING_KICK_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LCR_SPINNING_KICK_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LCR_SPINNING_KICK_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LCR_SPINNING_KICK_HYPER_EventProcess );
@@ -3438,25 +3588,25 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_SA_LCR_CRESCENT_KICK:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI2_LCR_CRESCENT_KICK", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI2_LCR_CRESCENT_KICK", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LCR_CRESCENT_KICK_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LCR_CRESCENT_KICK_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LCR_CRESCENT_KICK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI2_LCR_CRESCENT_KICK_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI2_LCR_CRESCENT_KICK_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LCR_CRESCENT_KICK_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LCR_CRESCENT_KICK_HYPER_EventProcess );
 		} break;
 
 	case CX2SkillTree::SI_SA_LCR_DIVE_KICK_BOMBING:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI3_LCR_DIVE_KICK_BOMBING", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI3_LCR_DIVE_KICK_BOMBING", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LCR_DIVE_KICK_BOMBING_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LCR_DIVE_KICK_BOMBING_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LCR_DIVE_KICK_BOMBING_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LCR_DIVE_KICK_BOMBING_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER_EventProcess );
@@ -3469,14 +3619,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_LSR_HUMMING_WIND:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI1_LE_HUMMING_WIND", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI1_LE_HUMMING_WIND", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_HUMMING_WIND_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_HUMMING_WIND_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_HUMMING_WIND_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_HUMMING_WIND_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_HUMMING_WIND_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI1_LE_HUMMING_WIND_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI1_LE_HUMMING_WIND_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_HUMMING_WIND_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_HUMMING_WIND_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_HUMMING_WIND_HYPER_CameraMove );
@@ -3486,14 +3636,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_SA_LSR_GUIDED_ARROW:
 		{ 
-			m_LuaManager.MakeTableReference( L"LESI_SI2_LE_GUIDED_ARROW", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI2_LE_GUIDED_ARROW", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_GUIDED_ARROW_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_GUIDED_ARROW_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_GUIDED_ARROW_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_GUIDED_ARROW_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_GUIDED_ARROW_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI2_LE_GUIDED_ARROW_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI2_LE_GUIDED_ARROW_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_GUIDED_ARROW_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_GUIDED_ARROW_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI2_LE_GUIDED_ARROW_HYPER_CameraMove );
@@ -3503,12 +3653,12 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_SA_LSR_CRAZY_SHOT:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI3_LSR_CRAZY_SHOT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI3_LSR_CRAZY_SHOT", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LSR_CRAZY_SHOT_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LSR_CRAZY_SHOT_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LSR_CRAZY_SHOT_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI3_LSR_CRAZY_SHOT_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SI3_LSR_CRAZY_SHOT_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LSR_CRAZY_SHOT_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI3_LSR_CRAZY_SHOT_HYPER_EventProcess );
 
@@ -3517,12 +3667,12 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LE_SIEGEMODE:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SIEGE_READY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SIEGE_READY", normalStateData.stateID );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeReadyStateStartFuture );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeReadyStateStart );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeReadyEventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SIEGE_READY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SIEGE_READY", hyperStateData.stateID );
 			hyperStateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeReadyStateStartFuture );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeReadyStateStart );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, SiegeReadyEventProcess );
@@ -3532,7 +3682,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LE_BACKJUMP_SHOT:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SI_A_LE_BACKJUMP_SHOT", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SI_A_LE_BACKJUMP_SHOT", normalStateData.stateID ); 
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_BACKJUMP_SHOT_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_BACKJUMP_SHOT_Start );				
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_BACKJUMP_SHOT_FrameMoveFuture );
@@ -3540,7 +3690,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_BACKJUMP_SHOT_EventProcess );
 			normalStateData.StateEndFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_BACKJUMP_SHOT_EndFuture );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI_A_LE_BACKJUMP_SHOT", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SI_A_LE_BACKJUMP_SHOT", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_BACKJUMP_SHOT_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_BACKJUMP_SHOT_Start );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_BACKJUMP_SHOT_FrameMoveFuture );	
@@ -3555,10 +3705,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LE_REFLEX_MAGIC:
 		{				
-			m_LuaManager.MakeTableReference( L"LESI_SI_A_LE_REFLEX_MAGIC_READY", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SI_A_LE_REFLEX_MAGIC_READY", normalStateData.stateID ); 
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_REFLEX_MAGIC_READY_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SI_A_LE_REFLEX_MAGIC_READY", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SI_A_LE_REFLEX_MAGIC_READY", hyperStateData.stateID ); 
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_REFLEX_MAGIC_READY_EventProcess );
 
 
@@ -3567,7 +3717,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				stateData.Init();
 				stateData.stateID			= LESI_SI_A_LE_REFLEX_MAGIC;
-				m_LuaManager.MakeTableReference( L"LESI_SI_A_LE_REFLEX_MAGIC", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_SI_A_LE_REFLEX_MAGIC", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_REFLEX_MAGIC_Init );
 				stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_REFLEX_MAGIC_Start );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI_A_LE_REFLEX_MAGIC_EventProcess );
@@ -3585,13 +3735,13 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			case CX2SkillTree::SI_SA_LCR_SHARPFALL:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_LCR_SHARPFALL", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_SA_LCR_SHARPFALL", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_SHARPFALL_Init );				
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_SHARPFALL_FrameMove );				
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_SHARPFALL_EventProcess );				
 
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LCR_SHARPFALL_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SA_LCR_SHARPFALL_HYPER", hyperStateData.stateID ); 
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_SHARPFALL_HYPER_FrameMove );		
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_SHARPFALL_HYPER_EventProcess );	
 
@@ -3605,7 +3755,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				stateData.Init();
 				stateData.stateID			= LESI_SA_LCR_SHARPFALL_LANDING;
-				m_LuaManager.MakeTableReference( L"LESI_SA_LCR_SHARPFALL_LANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_SA_LCR_SHARPFALL_LANDING", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_SHARPFALL_LANDING_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_SHARPFALL_LANDING_EventProcess );	
 				m_StateList[stateData.stateID] = stateData;
@@ -3618,7 +3768,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_SA_LSR_WINDWARD:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_LSR_WINDWARD", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_SA_LSR_WINDWARD", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_WINDWARD_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_WINDWARD_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_WINDWARD_FrameMove );				
@@ -3626,7 +3776,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_WINDWARD_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LSR_WINDWARD_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SA_LSR_WINDWARD_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_WINDWARD_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_WINDWARD_HYPER_FrameMove );		
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_WINDWARD_HYPER_EventProcess );	
@@ -3638,29 +3788,25 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LSR_ENTANGLE:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_LSR_ENTANGLE", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_SA_LSR_ENTANGLE", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_FrameMove );				
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_EventProcess );				
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_StateEnd );
-#ifdef NEW_MEMO_01
 			normalStateData.StateStartFuture= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_StateStartFuture );
-#endif
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LSR_ENTANGLE", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SA_LSR_ENTANGLE", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_FrameMove );		
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_EventProcess );	
 			hyperStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_StateEnd );
-#ifdef NEW_MEMO_01
 			hyperStateData.StateStartFuture = SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_ENTANGLE_StateStartFuture );
-#endif
 		} break;
 
 	case CX2SkillTree::SI_A_LCR_LOW_KICK:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_LCR_LOW_KICK", normalStateData.stateID ); 		
+			m_LuaManager.MakeTableReference( "LESI_SA_LCR_LOW_KICK", normalStateData.stateID ); 		
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_LOW_KICK_Init );
 #ifndef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 로우킥 메모가 미들킥으로 이전되면서, Start 스테이트 제거
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_LOW_KICK_StateStart );
@@ -3669,7 +3815,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_LOW_KICK_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LCR_LOW_KICK", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SA_LCR_LOW_KICK", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_LOW_KICK_Init );
 #ifndef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 로우킥 메모가 미들킥으로 이전되면서, Start 스테이트 제거
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_LOW_KICK_StateStart );
@@ -3683,7 +3829,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 #ifdef SKILL_CASH_10_TEST
 	case CX2SkillTree::SI_SA_LSR_GUNGNIR:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_LSR_GUNGNIR", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_SA_LSR_GUNGNIR", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_GUNGNIR_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_GUNGNIR_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_GUNGNIR_FrameMove );				
@@ -3691,7 +3837,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_GUNGNIR_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LSR_GUNGNIR_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_SA_LSR_GUNGNIR_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_GUNGNIR_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_GUNGNIR_HYPER_FrameMove );		
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LSR_GUNGNIR_HYPER_EventProcess );	
@@ -3700,7 +3846,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_SA_LCR_VIOLENT_ATTACK:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_LCR_VIOLENT_ATTACK_READY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_LCR_VIOLENT_ATTACK_READY", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_READY_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_READY_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_READY_FrameMove );
@@ -3708,7 +3854,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_READY_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_READY_StateEnd );	
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LCR_VIOLENT_ATTACK_READY_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_LCR_VIOLENT_ATTACK_READY_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_READY_Init );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_READY_StateStart );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_READY_Hyper_FrameMove );
@@ -3721,16 +3867,16 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				stateData.Init();
 				stateData.stateID			= LESI_SA_LCR_VIOLENT_ATTACK;
-				m_LuaManager.MakeTableReference( L"LESI_SA_LCR_VIOLENT_ATTACK", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_SA_LCR_VIOLENT_ATTACK", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_Init );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_EventProcess );	
-				stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_StateEnd );					
+				stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_StateEnd );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= LESI_SA_LCR_VIOLENT_ATTACK_HYPER;
-				m_LuaManager.MakeTableReference( L"LESI_SA_LCR_VIOLENT_ATTACK_HYPER", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_SA_LCR_VIOLENT_ATTACK_HYPER", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_Init );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_EventProcess );	
@@ -3739,7 +3885,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				stateData.Init();
 				stateData.stateID			= LESI_SA_LCR_VIOLENT_ATTACK_LANDING;
-				m_LuaManager.MakeTableReference( L"LESI_SA_LCR_VIOLENT_ATTACK_LANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_SA_LCR_VIOLENT_ATTACK_LANDING", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_LANDING_Init );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_LANDING_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_LANDING_EventProcess );	
@@ -3748,7 +3894,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				stateData.Init();
 				stateData.stateID			= LESI_SA_LCR_VIOLENT_ATTACK_LANDING_HYPER;
-				m_LuaManager.MakeTableReference( L"LESI_SA_LCR_VIOLENT_ATTACK_LANDING_HYPER", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_SA_LCR_VIOLENT_ATTACK_LANDING_HYPER", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_LANDING_Init );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_LANDING_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LCR_VIOLENT_ATTACK_LANDING_Hyper_EventProcess );
@@ -3769,14 +3915,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LWS_SLIDE_KICK", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_SA_LWS_SLIDE_KICK", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LWS_SLIDE_KICK", hyperStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_SA_LWS_SLIDE_KICK", hyperStateData.stateID ); 				
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_EventProcess );
 			hyperStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_StateEnd );
@@ -3789,7 +3935,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				stateData.Init();
 				stateData.stateID			= LESI_SA_LWS_SLIDE_KICK_PASS_THROUGH;
-				m_LuaManager.MakeTableReference( L"LESI_SA_LWS_SLIDE_KICK_PASS_THROUGH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_SA_LWS_SLIDE_KICK_PASS_THROUGH", stateData.stateID );
 				//stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_PASS_THROUGH_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_PASS_THROUGH_EventProcess );	
 				m_StateList[stateData.stateID] = stateData; 
@@ -3797,7 +3943,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				stateData.Init();
 				stateData.stateID			= LESI_SA_LWS_SLIDE_KICK_FINISH;
-				m_LuaManager.MakeTableReference( L"LESI_SA_LWS_SLIDE_KICK_FINISH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_SA_LWS_SLIDE_KICK_FINISH", stateData.stateID );
 #ifdef CONVERSION_VS
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
 #else CONVERSION_VS
@@ -3808,7 +3954,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				//stateData.Init();
 				//stateData.stateID			= LESI_SA_LWS_SLIDE_KICK_FINISH_HYPER;
-				//m_LuaManager.MakeTableReference( L"LESI_SA_LWS_SLIDE_KICK_FINISH_HYPER", stateData.stateID );
+				//m_LuaManager.MakeTableReference( "LESI_SA_LWS_SLIDE_KICK_FINISH_HYPER", stateData.stateID );
 				//stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_FINISH_HYPER_FrameMove );	
 				//stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
 				//m_StateList[stateData.stateID] = stateData;
@@ -3816,7 +3962,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 				stateData.Init();
 				stateData.stateID			= LESI_SA_LWS_SLIDE_KICK_CANCEL;
-				m_LuaManager.MakeTableReference( L"LESI_SA_LWS_SLIDE_KICK_CANCEL", stateData.stateID );
+				m_LuaManager.MakeTableReference( "LESI_SA_LWS_SLIDE_KICK_CANCEL", stateData.stateID );
 				//stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_CANCEL_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_SLIDE_KICK_CANCEL_EventProcess );	
 				m_StateList[stateData.stateID] = stateData; 
@@ -3833,24 +3979,22 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_LGA_FREEZING_ARROW:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_LGA_FREEZING_ARROW", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_SA_LGA_FREEZING_ARROW", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_FREEZING_ARROW_Init );
-			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_FREEZING_ARROW_FrameMove );				
-#ifdef CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
-#else CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
-#endif CONVERSION_VS
+			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_FREEZING_ARROW_FrameMove );	
+	#ifdef CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+	#else CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
+	#endif CONVERSION_VS
 
-
-			m_LuaManager.MakeTableReference( L"LESI_SA_LGA_FREEZING_ARROW_HYPER", hyperStateData.stateID ); 
-			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_FREEZING_ARROW_HYPER_FrameMove );		
-#ifdef CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
-#else CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
-#endif CONVERSION_VS
-
+			m_LuaManager.MakeTableReference( "LESI_SA_LGA_FREEZING_ARROW_HYPER", hyperStateData.stateID ); 
+			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_FREEZING_ARROW_HYPER_FrameMove );
+	#ifdef CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
+	#else CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
+	#endif CONVERSION_VS
 
 		} break;
 
@@ -3858,23 +4002,23 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		{
 
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LWS_NATURE_FORCE", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_A_LWS_NATURE_FORCE", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LWS_NATURE_FORCE_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LWS_NATURE_FORCE_StateStart );
-#ifdef CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );				
-#else CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
-#endif CONVERSION_VS
+	#ifdef CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );				
+	#else CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
+	#endif CONVERSION_VS
 
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LWS_NATURE_FORCE_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "LESI_A_LWS_NATURE_FORCE_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LWS_NATURE_FORCE_HYPER_StateStart );
-#ifdef CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
-#else CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
-#endif CONVERSION_VS
+	#ifdef CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
+	#else CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
+	#endif CONVERSION_VS
 
 
 
@@ -3882,31 +4026,30 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LGA_STIGMA_ARROW:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_STIGMA_ARROW", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_STIGMA_ARROW", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_STIGMA_ARROW_Init );
-			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_STIGMA_ARROW_FrameMove );				
-#ifdef CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
-#else CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
-#endif CONVERSION_VS
+			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_STIGMA_ARROW_FrameMove );
+	#ifdef CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
+	#else CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
+	#endif CONVERSION_VS
 
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LGA_STIGMA_ARROW_HYPER", hyperStateData.stateID ); 
-			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_STIGMA_ARROW_FrameMove );		
-#ifdef CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
-#else CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
-#endif CONVERSION_VS
-
+			m_LuaManager.MakeTableReference( "LESI_A_LGA_STIGMA_ARROW_HYPER", hyperStateData.stateID ); 
+			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LGA_STIGMA_ARROW_FrameMove );
+	#ifdef CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
+	#else CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
+	#endif CONVERSION_VS
 		} break;
 
 		//{{ 김상훈 2010.11.2
 #ifdef NEW_SKILL_2010_11
 	case CX2SkillTree::SI_SA_LGA_AERO_STRAFE:
 		{ // 에어로 스트레이프
-			m_LuaManager.MakeTableReference( L"LESI_SA_LGA_AERO_STRAFE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_LGA_AERO_STRAFE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_AERO_STRAFE_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_AERO_STRAFE_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_AERO_STRAFE_FrameMove );
@@ -3914,7 +4057,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_AERO_STRAFE_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_AERO_STRAFE_StateEndFurtue );
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_LGA_AERO_STRAFE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_LGA_AERO_STRAFE_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_AERO_STRAFE_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_AERO_STRAFE_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LGA_AERO_STRAFE_HYPER_CameraMove );
@@ -3934,23 +4077,22 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_LWS_AIRELINNA:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_LWS_AIRELINNA", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "LESI_SA_LWS_AIRELINNA", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_AIRELINNA_Init );
-			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_AIRELINNA_FrameMove );				
-#ifdef CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
-#else CONVERSION_VS
-			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
-#endif CONVERSION_VS
+			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_AIRELINNA_FrameMove );
+	#ifdef CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+	#else CONVERSION_VS
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );				
+	#endif CONVERSION_VS
 
-
-			m_LuaManager.MakeTableReference( L"LESI_SA_LWS_AIRELINNA_HYPER", hyperStateData.stateID ); 
-			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_AIRELINNA_FrameMove );		
-#ifdef CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
-#else CONVERSION_VS
-			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
-#endif CONVERSION_VS
+			m_LuaManager.MakeTableReference( "LESI_SA_LWS_AIRELINNA_HYPER", hyperStateData.stateID ); 
+			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_LWS_AIRELINNA_FrameMove );
+	#ifdef CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+	#else CONVERSION_VS
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericSpecialActiveSkillEventProcess );	
+	#endif CONVERSION_VS
 		} break;
 		//}} oasis907 : 김상윤 [2010.11.5] // 윈드 스니커 - 아이레린나
 #endif NEW_SKILL_2010_11
@@ -3962,25 +4104,25 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_RTR_EVOKE:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_EVOKE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_EVOKE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_EVOKE_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_EVOKE_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_EVOKE_FrameMove );
-#ifdef CONVERSION_VS
-			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
-#else CONVERSION_VS
-			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericActiveSkillEventProcess );
-#endif CONVERSION_VS
+	#ifdef CONVERSION_VS
+				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
+	#else CONVERSION_VS
+				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericActiveSkillEventProcess );
+	#endif CONVERSION_VS
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_EVOKE_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_EVOKE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_EVOKE", hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_EVOKE_StateStart );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_EVOKE_HYPER_FrameMove );
-#ifdef CONVERSION_VS
-			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
-#else CONVERSION_VS
+	#ifdef CONVERSION_VS
+				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, GenericActiveSkillEventProcess );
+	#else CONVERSION_VS
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, GenericActiveSkillEventProcess );
-#endif CONVERSION_VS
+	#endif CONVERSION_VS
 			hyperStateData.StateEnd				= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_EVOKE_StateEnd );
 		} break;
 
@@ -3990,7 +4132,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_A_RTR_EXPLOSION_TRAP:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_RTR_EXPLOSION_TRAP", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RTR_EXPLOSION_TRAP", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RTR_EXPLOSION_TRAP_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RTR_EXPLOSION_TRAP_StartFuture );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RTR_EXPLOSION_TRAP_Start );
@@ -3999,7 +4141,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RTR_EXPLOSION_TRAP_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RTR_EXPLOSION_TRAP_EndFuture );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_RTR_EXPLOSION_TRAP", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RTR_EXPLOSION_TRAP", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RTR_EXPLOSION_TRAP_Init );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RTR_EXPLOSION_TRAP_StartFuture );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RTR_EXPLOSION_TRAP_Start );
@@ -4015,14 +4157,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_RTR_TRAPING_ARROW:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_TRAPING_ARROW", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_TRAPING_ARROW", normalStateData.stateID );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPING_ARROW_StateStart );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPING_ARROW_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPING_ARROW_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPING_ARROW_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPING_ARROW_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_TRAPING_ARROW", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_TRAPING_ARROW", hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPING_ARROW_StateStart );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPING_ARROW_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_TRAPING_ARROW_HYPER_FrameMove );
@@ -4037,14 +4179,14 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_RTR_KARMA:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_KARMA", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_KARMA", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_KARMA_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_KARMA_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_KARMA_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_KARMA_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_KARMA_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_KARMA", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_KARMA", hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_KARMA_StateStart );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_KARMA_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_KARMA_EventProcess );
@@ -4058,7 +4200,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_RTR_FATALITY:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_FATALITY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_FATALITY", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_StateStart );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_StateStartFuture );
@@ -4068,7 +4210,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_StateEnd );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_StateEndFuture );
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_FATALITY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_FATALITY", hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_StateStart );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_StateStartFuture );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_FATALITY_FrameMoveFuture );
@@ -4085,7 +4227,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		case CX2SkillTree::SI_SA_RTR_CALL_OF_RUIN:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_CALL_OF_RUIN", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_CALL_OF_RUIN", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_CALL_OF_RUIN_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_CALL_OF_RUIN_StateStart );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_CALL_OF_RUIN_FrameMoveFuture );
@@ -4093,7 +4235,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_CALL_OF_RUIN_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_CALL_OF_RUIN_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_RTR_CALL_OF_RUIN", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RTR_CALL_OF_RUIN", hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_CALL_OF_RUIN_StateStart );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_CALL_OF_RUIN_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RTR_CALL_OF_RUIN_HYPER_FrameMove );
@@ -4104,13 +4246,13 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 	case CX2SkillTree::SI_A_LE_RISING_FALCON:
 		{
-			m_LuaManager.MakeTableReference( L"LESI_A_LE_RISING_FALCON", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LE_RISING_FALCON", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LE_RISING_FALCON_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LE_RISING_FALCON_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LE_RISING_FALCON_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LE_RISING_FALCON_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_LE_RISING_FALCON", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_LE_RISING_FALCON", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LE_RISING_FALCON_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LE_RISING_FALCON_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_LE_RISING_FALCON_EventProcess );
@@ -4126,7 +4268,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
 			//레나 2차 전직 나이트 와쳐 - 퓨리어스 인게이지
-			m_LuaManager.MakeTableReference( L"LESI_SA_RNW_FURIOUS_ENGAGE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RNW_FURIOUS_ENGAGE", normalStateData.stateID );
 			//normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SI1_LE_ASSAULT_KICK_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_FURIOUS_ENGAGE_StateStart );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_FURIOUS_ENGAGE_FrameMoveFuture );
@@ -4134,7 +4276,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_FURIOUS_ENGAGE_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_FURIOUS_ENGAGE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_RNW_FURIOUS_ENGAGE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RNW_FURIOUS_ENGAGE", hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_FURIOUS_ENGAGE_StateStart );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_FURIOUS_ENGAGE_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_FURIOUS_ENGAGE_FrameMove );
@@ -4149,7 +4291,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
 			//레나 2차 전직 나이트 와쳐 - 글라이딩 스트라이크
-			m_LuaManager.MakeTableReference( L"LESI_SA_RNW_GLIDING_STRIKE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RNW_GLIDING_STRIKE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_GLIDING_STRIKE_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_GLIDING_STRIKE_StateStartFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_GLIDING_STRIKE_FrameMove );
@@ -4157,7 +4299,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_GLIDING_STRIKE_StateEndFuture );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_GLIDING_STRIKE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_SA_RNW_GLIDING_STRIKE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_SA_RNW_GLIDING_STRIKE", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_GLIDING_STRIKE_Init );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_GLIDING_STRIKE_StateStartFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_SA_RNW_GLIDING_STRIKE_FrameMove );
@@ -4173,7 +4315,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
 			/// 지연의 신호탄 State
-			m_LuaManager.MakeTableReference( L"LESI_A_RNW_START_OF_DELAYED_FIRING", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RNW_START_OF_DELAYED_FIRING", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_StateStart );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_StateStartFuture );
@@ -4182,7 +4324,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_StateEnd );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"LESI_A_RNW_START_OF_DELAYED_FIRING", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RNW_START_OF_DELAYED_FIRING", hyperStateData.stateID );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_StateStart );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_StateStartFuture );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_FrameMoveFuture );
@@ -4196,7 +4338,7 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 			stateData.Init();
 			stateData.stateID = LESI_A_RNW_START_OF_DELAYED_FIRING_ACTIVE;
-			m_LuaManager.MakeTableReference( L"LESI_A_RNW_START_OF_DELAYED_FIRING_ACTIVE", stateData.stateID );
+			m_LuaManager.MakeTableReference( "LESI_A_RNW_START_OF_DELAYED_FIRING_ACTIVE", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_ACTIVE_StateStart );	
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_ACTIVE_FrameMove );	
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_A_RNW_START_OF_DELAYED_FIRING_ACTIVE_EventProcess );
@@ -4209,10 +4351,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 			if( NULL != pMySkillTemplet )
 			{
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pMySkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -4227,16 +4369,118 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 		} break;
 #endif SERV_RENA_NIGHT_WATCHER
+
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+		case CX2SkillTree::SI_HA_LWS_SPIRAL_STRIKE :
+			{
+				// 스파이럴 스트라이크
+				m_LuaManager.MakeTableReference( "LESI_HA_LWS_SPIRAL_STIKE_READY", normalStateData.stateID );
+				normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_READY_Init );			
+				normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_READY_StateStart );
+				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_READY_EventProcess );
+
+				m_LuaManager.MakeTableReference( "LESI_HA_LWS_SPIRAL_STIKE_READY", hyperStateData.stateID );
+				hyperStateData.m_bHyperState		= true;
+				hyperStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_READY_Init );			
+				hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_READY_StateStart );
+				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_READY_EventProcess );
+
+				{
+					UserUnitStateData stateData;
+
+					stateData.Init();
+					stateData.stateID			= LESI_HA_LWS_SPIRAL_STIKE_SPINING;
+					m_LuaManager.MakeTableReference( "LESI_HA_LWS_SPIRAL_STIKE_SPINING", stateData.stateID );
+
+					stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_SPINING_StateStart );			
+					stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_SPINING_FrameMove );			
+					stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_SPINING_EventProcess );
+					stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_SPINING_StateEnd );
+
+						
+					m_StateList[stateData.stateID] = stateData;
+
+					stateData.Init();
+					stateData.stateID			= LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK;
+					m_LuaManager.MakeTableReference( "LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK", stateData.stateID );
+					stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK_Init );					
+					stateData.OnFrameMove		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK_FrameMove );	
+					stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK_EventProcess );	
+					m_StateList[stateData.stateID] = stateData;
+				}	
+			} break;
+
+		case CX2SkillTree::SI_HA_LGA_CRYOTRON_BOLT :
+			{
+				// 크리아오트론 볼트
+				m_LuaManager.MakeTableReference( "LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT", normalStateData.stateID );
+				normalStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_Init );
+				normalStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_StateStart );
+				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_FrameMove );
+				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_EventProcess );
+
+				m_LuaManager.MakeTableReference( "LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT", hyperStateData.stateID );
+				hyperStateData.m_bHyperState		= true;
+				hyperStateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_Init );
+				hyperStateData.StateStart			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_StateStart );
+				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_FrameMove );
+				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_EventProcess );
+				{
+
+					UserUnitStateData stateData;
+
+					stateData.Init();
+					stateData.stateID			= LESI_HA_LGA_CRYOTRON_BOLT_CHARGE_SHOT;
+					m_LuaManager.MakeTableReference( "LESI_HA_LGA_CRYOTRON_BOLT_CHARGE_SHOT", stateData.stateID );
+					stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_CHARGE_SHOT_EventProcess );
+					m_StateList[stateData.stateID] = stateData;
+
+
+					stateData.Init();
+					stateData.stateID			= LESI_HA_LGA_CRYOTRON_BOLT_DOWNLANDING;
+					m_LuaManager.MakeTableReference( "LESI_HA_LGA_CRYOTRON_BOLT_DOWNLANDING", stateData.stateID );
+					stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LGA_CRYOTRON_BOLT_DOWNLANDING_EventProcess );
+					m_StateList[stateData.stateID] = stateData;
+
+				}	
+			} break;
+
+		case CX2SkillTree::SI_HA_LNW_INNOCENT:
+			{
+				//나이트 와쳐 - 이노센트
+				m_LuaManager.MakeTableReference( "LESI_HA_LNW_INNOCENT_START", normalStateData.stateID );
+				normalStateData.StateInit		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LNW_INNOCENT_START_Init );
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LNW_INNOCENT_START_EventProcess );
+
+				m_LuaManager.MakeTableReference( "LESI_HA_LNW_INNOCENT_START", hyperStateData.stateID );
+				hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
+
+				{
+					UserUnitStateData stateData;
+
+					stateData.Init();
+					stateData.stateID			= LESI_HA_LNW_INNOCENT_END;
+					m_LuaManager.MakeTableReference( "LESI_HA_LNW_INNOCENT_END", stateData.stateID );
+					stateData.StateInit			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LNW_INNOCENT_END_Init );
+					stateData.StateStart		= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LNW_INNOCENT_END_StateStart );
+					stateData.OnEventProcess	= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LNW_INNOCENT_END_EventProcess );
+					stateData.StateEnd			= SET_CB_FUNC( CX2GULire_ElvenRanger, LESI_HA_LNW_INNOCENT_END_StateEnd );
+					m_StateList[stateData.stateID] = stateData;
+				}
+			} break;
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
 	}
 }
 
 /*virtual*/ void CX2GULire_ElvenRanger::SetEquippedSkillLevel( const CX2SkillTree::SKILL_ID eSkillID_, const bool bChangeAll_ )
 {
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+	if ( NULL == GetUnit() )
 		return;
 
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
 	if ( true == bChangeAll_ || CX2SkillTree::SI_A_LE_REFLEX_MAGIC == eSkillID_ )
@@ -4245,10 +4489,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4276,10 +4520,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4309,10 +4553,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4323,12 +4567,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 			m_fEntangleTrapAttackDuration = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 
-#ifdef NEW_MEMO_01
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO12 ) == true )
 			{
 				m_MaxEntangleTrapCount += 1;
 			}
-#endif
 		}
 	}
 	
@@ -4338,10 +4580,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4381,10 +4623,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -4421,10 +4663,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -4452,10 +4694,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_LGA_RAPID_SHOT );
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4480,10 +4722,10 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_RNW_ANGER_OF_ELF );
 		if( NULL != pSkillTemplet )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4509,6 +4751,99 @@ void CX2GULire_ElvenRanger::InitEquippedActiveSkillState(bool bOnlySkillLevel /*
 		}
 	}
 #endif //UPGRADE_SKILL_SYSTEM_2013
+
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+	
+	// 스파이럴 스트라이크, 레벨 예외 처리
+	if ( true == bChangeAll_ || CX2SkillTree::SI_HA_LWS_SPIRAL_STRIKE == eSkillID_ )
+	{
+
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_HA_LWS_SPIRAL_STRIKE );
+
+		if( NULL != pSkillTemplet )
+		{
+			if ( NULL == GetUnit() )
+				return;
+
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+
+			{
+				UserUnitStateData& normalStateData = m_StateList[ LESI_HA_LWS_SPIRAL_STIKE_SPINING ];
+				normalStateData.m_SPLevel		= iSkillTempletLevel;
+				normalStateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				normalStateData.m_eSkillID		= pSkillTemplet->m_eID;
+			}
+
+			{
+				UserUnitStateData& normalStateData = m_StateList[ LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK ];
+				normalStateData.m_SPLevel		= iSkillTempletLevel;
+				normalStateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				normalStateData.m_eSkillID		= pSkillTemplet->m_eID;
+			}
+		}
+	}
+
+	// 크리아오트론 볼트, 레벨 예외 처리
+	if ( true == bChangeAll_ || CX2SkillTree::SI_HA_LGA_CRYOTRON_BOLT == eSkillID_ )
+	{
+
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_HA_LGA_CRYOTRON_BOLT );
+
+		if( NULL != pSkillTemplet )
+		{
+			if ( NULL == GetUnit() )
+				return;
+
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+			
+			
+			{
+
+				UserUnitStateData& normalStateData = m_StateList[ LESI_HA_LGA_CRYOTRON_BOLT_CHARGE_SHOT ];
+				normalStateData.m_SPLevel		= iSkillTempletLevel;
+				normalStateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				normalStateData.m_eSkillID		= pSkillTemplet->m_eID;
+			}
+			{
+
+				UserUnitStateData& normalStateData = m_StateList[ LESI_HA_LGA_CRYOTRON_BOLT_DOWNLANDING ];
+				normalStateData.m_SPLevel		= iSkillTempletLevel;
+				normalStateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+				normalStateData.m_eSkillID		= pSkillTemplet->m_eID;
+			}
+
+		
+		}
+	}
+
+	//이노센트 (김창한)
+	if ( true == bChangeAll_ || CX2SkillTree::SI_HA_LNW_INNOCENT == eSkillID_ )
+	{
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_HA_LNW_INNOCENT );
+
+		if( NULL != pSkillTemplet )
+		{
+			if ( NULL == GetUnit() )
+				return;
+
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
+
+			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+
+			UserUnitStateData& normalStateData = m_StateList[ LESI_HA_LNW_INNOCENT_END ];
+			normalStateData.m_SPLevel		= iSkillTempletLevel;
+			normalStateData.m_fPowerRate	= pSkillTemplet->GetSkillPowerRateValue( iSkillTempletLevel );
+			normalStateData.m_eSkillID		= pSkillTemplet->m_eID;
+		}
+	}
+
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
 }
 
 
@@ -4584,7 +4919,6 @@ void CX2GULire_ElvenRanger::InitDevice()
 }
 
 
-
 void CX2GULire_ElvenRanger::CommonStateStartFuture()
 {
 	CX2GUUser::CommonStateStartFuture();
@@ -4603,10 +4937,52 @@ void CX2GULire_ElvenRanger::CommonStateStart()
 	LUA_GET_VALUE(	m_LuaManager, "DAMAGEDATA_CHANGE_TIME2",			m_fDamageDataChangeTime2,			0.f );
 #endif SERV_TRAPPING_RANGER_TEST
 
+#ifdef ADD_RENA_SYSTEM //김창한
+	//스킬일 경우(m_NowStateData.m_SPLevel > 0)에만 해당됨 (하이퍼 액티브는 해당 안됨)
+	//한 스킬인데 state가 여러개인 경우 해당구문을 여러번 동작되는것을 막기 위해 m_eSaveStateSkillId을 추가
+	//저장해둔 스킬과 id가 다를때 다른 스킬이 동작한다고 판단.
+	//하나의 스킬이 끝나고 스킬 캔슬로 인해 바로 연속적으로 전과 같은 스킬이 실행되는 경우는 고려하지 않음.(쿨타임이 존재하므로)
+	//wait, walk, dash에서 초기화 함. (스킬이 끝난후에 넘어갈 수 있는 state라고 생각)
+	//시즈모드일 경우 바로 연속적으로 사용이 가능하므로 SiegeReadyStateStart함수에 예외처리 추가
+	if( m_NowStateData.m_SPLevel > 0 )
+	{
+		CX2SkillTree::SKILL_ID eNowStateSkillId = GetNowStateSkillID();
+
+		if( eNowStateSkillId != m_eSaveStateSkillId )
+		{
+			if( IsHyperActiveSkill( eNowStateSkillId ) == false )
+			{
+				int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( eNowStateSkillId, true );
+
+				float fMPConsume = GetActualMPConsume( eNowStateSkillId, iSkillLevel );
+				Byte byteConsumeNFBySkill = static_cast<Byte>( ( abs( fMPConsume - 50.f ) * 0.01f ) + 1 );
+				SetNowDamageRelateSkillData( byteConsumeNFBySkill );
+
+				// MP 소모에 따라 자연의 기운 충전 값을 회복하는 기능 추가. 2014.01.28
+				if( IsFullNaturalForce() == false )
+				{
+					//마나 소모량의 0.2배 * ( 5MP당 1NFP 이므로 0.2배 )
+					m_fNaturalForceValueCharge += ( fMPConsume * 0.2f * 0.2f );
+
+					//충전 값이 충전완료값을 만족하면 게이지를 하나 충전.
+					int iUpNaturalForce = static_cast<int>( m_fNaturalForceValueCharge / NATURAL_FORCE_VALUE_PER_HIT );
+					if( iUpNaturalForce > 0 )
+					{
+						UpNaturalForce( iUpNaturalForce );
+						m_fNaturalForceValueCharge -= static_cast<float>( iUpNaturalForce * NATURAL_FORCE_VALUE_PER_HIT );
+					}
+				}
+			}
+
+			m_eSaveStateSkillId = eNowStateSkillId;		
+		}
+	}
+#endif //ADD_RENA_SYSTEM
+
 	CX2GUUser::CommonStateStart();
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LCR_SHARP_KICK, true );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LCR_SHARP_KICK, true );
 
 	if( iSkillLevel > 0 )
 	{
@@ -4622,7 +4998,7 @@ void CX2GULire_ElvenRanger::CommonStateStart()
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SHARP_KICK );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SHARP_KICK );
 
 	if( iSkillLevel > 0 )
 	{
@@ -4645,7 +5021,7 @@ void CX2GULire_ElvenRanger::CommonStateStart()
 	if( IsUseTrapBalde() == true )	//	검 사용 시 다운수치 감소
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );
+		iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );
 
 		if( iSkillLevel > 0 )
 		{
@@ -4657,7 +5033,7 @@ void CX2GULire_ElvenRanger::CommonStateStart()
 			}
 		}
 #else //UPGRADE_SKILL_SYSTEM_2013
-		iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );
+		iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );
 
 		if( iSkillLevel > 0 )
 		{
@@ -4673,6 +5049,7 @@ void CX2GULire_ElvenRanger::CommonStateStart()
 #endif	SERV_TRAPPING_RANGER_TEST
 	
 #endif RENA_SECOND_CLASS_CHANGE
+
 }
 
 void CX2GULire_ElvenRanger::CommonFrameMoveFuture()
@@ -4695,6 +5072,11 @@ void CX2GULire_ElvenRanger::CommonFrameMoveFuture()
 		m_iDoubleJumpCount = 0;
 	}
 
+#ifdef ADD_RENA_SYSTEM //김창한
+	/// 자연의 기운 동기화
+	m_FrameDataFuture.syncData.m_CannonBallCount = GetNaturalForceCount();
+#endif //ADD_RENA_SYSTEM
+
 	CX2GUUser::CommonFrameMoveFuture();
 }
 
@@ -4706,6 +5088,17 @@ void CX2GULire_ElvenRanger::CommonFrameMove()
 	//m_WindSneakerData.OnFrameMove( m_fTime, m_fElapsedTime );
 #endif RENA_SECOND_CLASS_CHANGE
 
+#ifdef ADD_RENA_SYSTEM //김창한
+	/// 타 클라이언트의 자연의 기운 동기화
+	if ( false == IsMyUnit() )
+	{
+		SetNaturalForceCount( m_FrameDataNow.syncData.m_CannonBallCount );
+	}
+
+	/// 자연의 기운 이펙트 갱신
+	UpdateNaturalForceEffect();
+
+#endif //ADD_RENA_SYSTEM
 
 	if( m_pMPChargeA != NULL && m_pMPChargeB != NULL && m_pMPChargeC != NULL )
 	{
@@ -4849,9 +5242,9 @@ RENDER_HINT CX2GULire_ElvenRanger::CommonRender_Prepare()
 
 	int iPressedSkillSlotIndex = INVALID_SKILL_SLOT_INDEX;
 	const CX2UserSkillTree::SkillSlotData* pSkillSlotData = NULL;
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;	// 유저가 배운 스킬 트리
+	CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree; // 유저가 배운 스킬 트리
 
-	if ( false == CommonSpecialAttackEventProcess( cUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
+	if ( false == CommonSpecialAttackEventProcess( accessUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
 		return false;
 
 	if( NULL == pSkillSlotData )
@@ -4876,8 +5269,16 @@ RENDER_HINT CX2GULire_ElvenRanger::CommonRender_Prepare()
 	}
 #endif SERV_RENA_NIGHT_WATCHER
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	const CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eActiveSkillUseConditionBySkillTemplet = GetSkillUseCondition( pSkillTemplet );
+
+	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, eActiveSkillUseConditionBySkillTemplet ) )
+		return false;	
+
+#else //ADD_MEMO_1ST_CLASS
 	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTemplet ) )
 		return false;
+#endif //ADD_MEMO_1ST_CLASS
 
 	//소환 필살기 종류는 게임이 끝난 상태에서 사용할 수 없다.
 	if( false == CheckSummonSpecialAttack( pSkillTemplet->m_eID ) )
@@ -4888,29 +5289,71 @@ RENDER_HINT CX2GULire_ElvenRanger::CommonRender_Prepare()
 		return false;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+	const int iSkillTempletLevel = max( 1, accessUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
 	float fMPConsume = GetActualMPConsume( pSkillTemplet->m_eID, iSkillTempletLevel );
+
+
 #else // UPGRADE_SKILL_SYSTEM_2013
 	float fMPConsume = GetActualMPConsume( pSkillTemplet->m_eID, pSkillTemplet->m_iSkillLevel );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+#if defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_OPERATOR ) || false == g_pMain->IsUnlimitedSkillUse() )
+#endif //defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+#else //TOGGLE_UNLIMITED_SKILL_USE
 #ifndef _SERVICE_
 	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
 #endif _SERVICE_
+#endif //TOGGLE_UNLIMITED_SKILL_USE
 	{
 		if( pSkillSlotData->m_fCoolTimeLeft > 0.f )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_226 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
 
-
 		if ( GetNowMp() < fMPConsume )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		if ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+		{
+			const int iItemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+			if( iItemNum <= 0 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+				&& false == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence()
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+				)
+			{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
+				g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_26119 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+				return false;
+			}
+		}
+#endif //FINALITY_SKILL_SYSTEM
 	}
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -4933,25 +5376,45 @@ RENDER_HINT CX2GULire_ElvenRanger::CommonRender_Prepare()
 	//}} JHKang / 강정훈 / 2011/02/14 / 던전 랭크 개선 관련
 
 	UpNowMp( -fMPConsume );
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	if ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+	{
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		if ( true == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence() )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ();
+		else
+		{
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+		if ( NULL != pItem )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ( pItem->GetItemData().m_ItemUID );
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+	}
+#endif //FINALITY_SKILL_SYSTEM
+
 #ifdef BALANCE_PATCH_20120329
 
-#ifdef SERV_RENA_NIGHT_WATCHER
+	#ifdef SERV_RENA_NIGHT_WATCHER
 
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	if( pSkillTemplet->m_eID != CX2SkillTree::SI_A_LE_SIEGEMODE && pSkillTemplet->m_eID != CX2SkillTree::SI_A_LNW_DELAYED_FIRING )
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) );
-#else //UPGRADE_SKILL_SYSTEM_2013
-	if( pSkillTemplet->m_eID != CX2SkillTree::SI_A_LE_SIEGEMODE && pSkillTemplet->m_eID != CX2SkillTree::SI_A_RNW_START_OF_DELAYED_FIRING )
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
-#endif //UPGRADE_SKILL_SYSTEM_2013
+		#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
+		if( pSkillTemplet->m_eID != CX2SkillTree::SI_A_LE_SIEGEMODE && pSkillTemplet->m_eID != CX2SkillTree::SI_A_LNW_DELAYED_FIRING )
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) );
+		#else //UPGRADE_SKILL_SYSTEM_2013
+		if( pSkillTemplet->m_eID != CX2SkillTree::SI_A_LE_SIEGEMODE && pSkillTemplet->m_eID != CX2SkillTree::SI_A_RNW_START_OF_DELAYED_FIRING )
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
+		#endif //UPGRADE_SKILL_SYSTEM_2013
 		
-#else  SERV_RENA_NIGHT_WATCHER
+	#else  SERV_RENA_NIGHT_WATCHER
 	if( pSkillTemplet->m_eID != CX2SkillTree::SI_A_LE_SIEGEMODE )
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
-#endif SERV_RENA_NIGHT_WATCHER
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
+	#endif SERV_RENA_NIGHT_WATCHER
 
 #else
-	cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
+	accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime );
 #endif
 
 
@@ -4960,22 +5423,22 @@ RENDER_HINT CX2GULire_ElvenRanger::CommonRender_Prepare()
 		(GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO6 ) == true && pSkillTemplet->m_eID == CX2SkillTree::SI_A_LE_REFLEX_MAGIC) )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - 1.f );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - 1.f );
+
 	#else // UPGRADE_SKILL_SYSTEM_2013
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime - 1.f );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime - 1.f );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 	}
 #endif
-#ifdef NEW_MEMO_01
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO12 ) == true && pSkillTemplet->m_eID == CX2SkillTree::SI_A_LSR_ENTANGLE )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - 2.f );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) - 2.f );
+
 	#else // UPGRADE_SKILL_SYSTEM_2013
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime - 2.f );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->m_fSkillCoolTime - 2.f );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 	}
-#endif
 
 
 	if( false == SpecialAttackNoStageChange( pSkillTemplet ) )
@@ -5015,6 +5478,7 @@ RENDER_HINT CX2GULire_ElvenRanger::CommonRender_Prepare()
 
 	m_iNowSpecialAttack = iPressedSkillSlotIndex + 1;
 	m_bSpecialAttackEventProcessedAtThisFrame = true;
+
 
 #if defined( _SERVICE_ ) 
 	ELSWORD_VIRTUALIZER_END
@@ -5096,11 +5560,11 @@ RENDER_HINT CX2GULire_ElvenRanger::CommonRender_Prepare()
 
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_hActiveStartOfDelayedFiring );	/// 지연의 신호탄 적용중 확인 이펙트
 
-			CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+			CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-			cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_LNW_DELAYED_FIRING, m_fStartOfDelayedFiringCoolTime );
+			accessUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_LNW_DELAYED_FIRING, m_fStartOfDelayedFiringCoolTime );
 #else //UPGRADE_SKILL_SYSTEM_2013
-			cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_RNW_START_OF_DELAYED_FIRING, m_fStartOfDelayedFiringCoolTime );
+			accessUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_RNW_START_OF_DELAYED_FIRING, m_fStartOfDelayedFiringCoolTime );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 			m_fStartOfDelayedFiringCoolTime = 0.f;
@@ -5232,6 +5696,14 @@ void CX2GULire_ElvenRanger::WaitStart()
 #ifdef BALANCE_PATCH_20120329
 	m_bIsSiegeSkill = false;	
 #endif
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	m_eSaveStateSkillId = CX2SkillTree::SI_NONE;
+
+	//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+	if( GetAccessNowDamageRelateSkillData().m_byteRelateData >= 10 )
+		GetAccessNowDamageRelateSkillData().m_byteRelateData = 0;
+#endif //ADD_RENA_SYSTEM
 }
 
 void CX2GULire_ElvenRanger::WaitFrameMoveFuture()
@@ -5355,7 +5827,17 @@ void CX2GULire_ElvenRanger::WalkEventProcess()
 
 	CommonEventProcess();
 }
+#ifdef ADD_RENA_SYSTEM //김창한
+void CX2GULire_ElvenRanger::WalkStart()
+{
+	m_eSaveStateSkillId = CX2SkillTree::SI_NONE;
 
+	//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+	if( GetAccessNowDamageRelateSkillData().m_byteRelateData >= 10 )
+		GetAccessNowDamageRelateSkillData().m_byteRelateData = 0;
+	CommonStateStart();
+}
+#endif //ADD_RENA_SYSTEM
 
 //LESI_JUMP_READY
 void CX2GULire_ElvenRanger::JumpReadyEventProcess()
@@ -5387,6 +5869,13 @@ void CX2GULire_ElvenRanger::JumpUpEventProcess()
 	{
 		StateChange( LESI_DOUBLE_JUMP );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	else if( (m_InputData.pureDoubleLeft == true || m_InputData.pureDoubleRight == true ) &&
+		GetEnableDash() == true )
+	{
+		StateChange( USI_DASH_JUMP );
+	}
+#endif //ADD_RENA_SYSTEM
 #ifdef NEW_SKILL_TREE
 	else if( true == SpecialAttackEventProcess( CX2SkillTree::ASUT_AIR ) )
 	{
@@ -5487,7 +5976,13 @@ void CX2GULire_ElvenRanger::JumpDownEventProcess()
 		StateChange( USI_RIDING_ON );
 	}
 #endif //RIDING_SYSTEM
-
+#ifdef ADD_RENA_SYSTEM //김창한
+	else if( (m_InputData.pureDoubleLeft == true || m_InputData.pureDoubleRight == true ) &&
+		GetEnableDash() == true )
+	{
+		StateChange( USI_DASH_JUMP );
+	}
+#endif //ADD_RENA_SYSTEM
 	CommonEventProcess();
 }
 
@@ -5644,7 +6139,17 @@ void CX2GULire_ElvenRanger::DashEventProcess()
 
 	CommonEventProcess();
 }
+#ifdef ADD_RENA_SYSTEM //김창한
+void CX2GULire_ElvenRanger::DashStart()
+{
+	m_eSaveStateSkillId = CX2SkillTree::SI_NONE;
 
+	//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+	if( GetAccessNowDamageRelateSkillData().m_byteRelateData >= 10 )
+		GetAccessNowDamageRelateSkillData().m_byteRelateData = 0;
+	CommonStateStart();
+}
+#endif //ADD_RENA_SYSTEM
 
 //LESI_DASH_END
 void CX2GULire_ElvenRanger::DashEndStartFuture()
@@ -5670,7 +6175,11 @@ void CX2GULire_ElvenRanger::DashEndFrameMoveFuture()
 
 void CX2GULire_ElvenRanger::DashEndFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck(0.4f, false) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 	}
@@ -6077,9 +6586,7 @@ void CX2GULire_ElvenRanger::DoubleJumpEventProcess()
 	else if( m_InputData.oneZ == true )
 	{
 		StateChange( LESI_DOUBLE_JUMP_ATTACK_Z );
-#ifdef COMBO_GUIDE
 		m_pComboGuide->ShowComboCommand(L"j", L"JJZ");
-#endif
 	}
 	else if( m_InputData.oneX == true )
 	{
@@ -6093,10 +6600,12 @@ void CX2GULire_ElvenRanger::DoubleJumpEventProcess()
 
 		default:
 			{
+#ifdef ADD_RENA_SYSTEM //김창한
+				StateChange( LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X );
+#else //ADD_RENA_SYSTEM
 				StateChange( LESI_DOUBLE_JUMP_ATTACK_Z );
-#ifdef COMBO_GUIDE
+#endif //ADD_RENA_SYSTEM
 				m_pComboGuide->ShowComboCommand(L"j", L"JJX");
-#endif
 			} break;
 		}
 	}
@@ -6180,7 +6689,11 @@ void CX2GULire_ElvenRanger::DashDoubleJumpEventProcess()
 
 		default:
 			{
+#ifdef ADD_RENA_SYSTEM //김창한
+				StateChange( LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X );
+#else //ADD_RENA_SYSTEM
 				StateChange( LESI_DOUBLE_JUMP_ATTACK_Z );
+#endif //ADD_RENA_SYSTEM
 			} break;
 		}
 	}
@@ -6239,10 +6752,20 @@ void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z_EventPr
 	{
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS/2.0f;
 	}
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	const float fNowAnimationTime = m_pXSkinAnimFuture->GetNowAnimationTime();
+	if( m_InputData.oneZ == true && ( fNowAnimationTime > m_fEventTime[0].keyInputStart && fNowAnimationTime < m_fEventTime[0].keyInputEnd ) )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = true;
+	}
+#else //ADD_RENA_SYSTEM
 	if( m_InputData.oneZ == true )
 	{
 		m_FrameDataFuture.stateParam.bEventFlagList[0] = true;
 	}
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -6269,7 +6792,11 @@ void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z_UP_Even
 //LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.185f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.185f ) == true && EventCheck( 0.185f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.y = GetJumpSpeed() / 4.0f;
 	}
@@ -6279,48 +6806,68 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_FrameMoveFu
 
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.18f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.18f ) == true && EventCheck( 0.18f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 degree = GetRotateDegree();
+#ifdef ADD_RENA_SYSTEM //김창한
+		if( FlushMp( 6.0f ) == true )
+#else //ADD_RENA_SYSTEM
 		if( FlushMp( 20.0f ) == true )
+#endif //ADD_RENA_SYSTEM
 		{
 			CX2DamageEffect::CEffect* pDE = NULL;
 			//화살쏘기
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 			degree.z = -90.0f;
+#ifdef ADD_RENA_SYSTEM //김창한
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_JUMP_X_ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+#else //ADD_RENA_SYSTEM
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+#endif //ADD_RENA_SYSTEM
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 			
 			degree.z = -70.0f;
+#ifdef ADD_RENA_SYSTEM //김창한
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_JUMP_X_ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+#else //ADD_RENA_SYSTEM
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+#endif //ADD_RENA_SYSTEM
 			if( NULL != pDE )
 			{
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 			}
 			
 			degree.z = -110.0f;
+#ifdef ADD_RENA_SYSTEM //김창한
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_JUMP_X_ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+#else //ADD_RENA_SYSTEM
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+#endif //ADD_RENA_SYSTEM
 			if( NULL != pDE )
 			{
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 			}
 
 		}
@@ -6337,6 +6884,41 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_FrameMove()
 
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, (GetUnitClass() == CX2Unit::UC_LIRE_SNIPING_RANGER || GetUnitClass() == CX2Unit::UC_LIRE_GRAND_ARCHER) && m_InputData.oneX == true, 
+		LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX )
+	else if( true == IsOnSomethingFuture() )
+	{
+		StateChange( LESI_DOUBLE_JUMP_ATTACK_Z_LANDING );
+	}
+	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true && false == IsOnSomethingFuture() )
+	{
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS/2.0f;
+	}
+#else //ADD_RENA_SYSTEM
+	if( true == IsOnSomethingFuture() )
+	{
+		StateChange( LESI_DOUBLE_JUMP_ATTACK_Z_LANDING );
+	}
+	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true && false == IsOnSomethingFuture() )
+	{
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS/2.0f;
+	}
+#endif //ADD_RENA_SYSTEM
+
+	CommonEventProcess();
+}
+
+#ifdef ADD_RENA_SYSTEM //김창한
+void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_StateStart()
+{
+	//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+	SetNowDamageRelateSkillData( 100 );
+
+	CommonStateStart();
+}
+void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_EventProcess()
+{
 	if( true == IsOnSomethingFuture() )
 	{
 		StateChange( LESI_DOUBLE_JUMP_ATTACK_Z_LANDING );
@@ -6348,6 +6930,74 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_X_EventProces
 
 	CommonEventProcess();
 }
+
+void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DOUBLE_JUMP_ATTACK_XX_FrameMove()
+{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimerOneshot( 0.18f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 0.18f ) == true && EventCheck( 0.18f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		D3DXVECTOR3 degree = GetRotateDegree();
+
+		if( FlushMp( 6.0f ) == true )
+		{
+			CX2DamageEffect::CEffect* pDE = NULL;
+			//화살쏘기
+			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
+			degree.z = -90.0f;
+
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_JUMP_XX_ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+			if( NULL != pDE )
+			{
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+#ifdef NEW_SKILL_2010_11 
+				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+#endif NEW_SKILL_2010_11
+			}
+
+			degree.z = -70.0f;
+
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_JUMP_XX_ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+			if( NULL != pDE )
+			{
+#ifdef NEW_SKILL_2010_11 
+				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+#endif NEW_SKILL_2010_11
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			}
+
+			degree.z = -110.0f;
+
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_JUMP_XX_ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+			if( NULL != pDE )
+			{
+#ifdef NEW_SKILL_2010_11 
+				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+#endif NEW_SKILL_2010_11
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			}
+
+		}
+		else
+		{
+			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
+
+			CreateNotEnoughMPEffect( pos, 0.f, 0.f, -90.f );
+		}
+	}
+
+	CommonFrameMove();
+}
+
+#endif //ADD_RENA_SYSTEM
 
 //LESI_DOUBLE_JUMP_ATTACK_Z_LANDING
 void CX2GULire_ElvenRanger::DoubleJumpAttackZLandingStartFuture()
@@ -6383,6 +7033,10 @@ void CX2GULire_ElvenRanger::DoubleJumpAttackZLandingEventProcess()
 	{
 		StateChangeDashIfPossible();
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, (GetUnitClass() == CX2Unit::UC_LIRE_COMBAT_RANGER || GetUnitClass() == CX2Unit::UC_LIRE_WIND_SNEAKER) && m_InputData.oneZ == true, 
+		LESI_COMBAT_RANGER_LESI_DOUBLE_JUMP_ATTACK_Z_UP )
+#endif //ADD_RENA_SYSTEM
 	else if( m_InputData.pureRight == true || m_InputData.pureLeft == true )
 	{
 		StateChange( USI_WALK );
@@ -6482,10 +7136,10 @@ void CX2GULire_ElvenRanger::ChargeMPFrameMove()
 	//if( m_hSeqMPEnergy != NULL && m_pMPEnergyCenter != NULL && m_pMPChargeWave != NULL && m_pMPChargeFeather != NULL )
 	//{
 
-	if( m_hSeqMPEnergy != INVALID_PARTICLE_HANDLE &&
-		m_hSeqMPEnergyCenter != INVALID_PARTICLE_HANDLE &&
-		m_hSeqMPChargeWave != INVALID_PARTICLE_HANDLE &&
-		m_hSeqMPChargeFeather != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqMPEnergy != INVALID_PARTICLE_SEQUENCE_HANDLE &&
+		m_hSeqMPEnergyCenter != INVALID_PARTICLE_SEQUENCE_HANDLE &&
+		m_hSeqMPChargeWave != INVALID_PARTICLE_SEQUENCE_HANDLE &&
+		m_hSeqMPChargeFeather != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeqMPEnergy			= g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqMPEnergy );
 		CKTDGParticleSystem::CParticleEventSequence* pSeqMPEnergyCenter 	= g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqMPEnergyCenter );
@@ -6546,7 +7200,7 @@ void CX2GULire_ElvenRanger::ChargeMPFrameMove()
 		m_pMPChargeA->GetMatrix().Scale( 1.0f, 1.2f, 1.0f );
 		//m_pMPChargeC->GetMatrix().Scale( 1.2f, 1.3f, 1.2f );
 		//if( GetDistance(GetPos(), g_pX2Game->GetMyUnit()->GetPos() ) < 500.0f )
-		//	g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCameraNoReset( 2.0f, 0.1f );
+		//	g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCameraNoReset( 2.0f, 0.1f );
 	}
 
 	if( EventTimer(5.0f, false) == true )
@@ -6812,9 +7466,9 @@ void CX2GULire_ElvenRanger::HyperModeFrameMove()
 	CommonHyperModeFrameMove( 0.2f, 0.75f );
 #else
 	g_pX2Game->GetWorld()->SetWorldColor( 0xff222222 );
-
+	
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck(0.2f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -6824,7 +7478,7 @@ void CX2GULire_ElvenRanger::HyperModeFrameMove()
 
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.75f ) == true && EventCheck(0.75f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -6833,14 +7487,15 @@ void CX2GULire_ElvenRanger::HyperModeFrameMove()
 
 		UpDownCrashCamera( 20.0f, 0.3f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
-
+		
 		ShowMinorParticleHyperModeTrace();
-
+		
 		ApplyHyperModeBuff();
 	}
 
 	CommonFrameMove();
 #endif // MODIFY_RIDING_PET_AWAKE
+
 }
 
 ////LESI_DAMAGE_GROGGY
@@ -6944,7 +7599,11 @@ void CX2GULire_ElvenRanger::DamageBigBackEventProcess()
 //LESI_DAMAGE_DOWN_FRONT
 void CX2GULire_ElvenRanger::DamageDownFrontFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.19f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.19f ) == true && EventCheck( 0.19f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		CreateStepDust();
@@ -7057,7 +7716,11 @@ void CX2GULire_ElvenRanger::DamageDownFrontEventProcess()
 
 void CX2GULire_ElvenRanger::DamageDownBackFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.32f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.32f ) == true && EventCheck(0.32f, false) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		CreateStepDust();
@@ -7177,6 +7840,12 @@ void CX2GULire_ElvenRanger::DamageAirDownLandingInit()
 
 void CX2GULire_ElvenRanger::DamageAirDownLandingEventProcess()
 {
+#ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
+	//재빠른 몸놀림을 배웠다면 스테이트에서 지정 한 시간으로 변경
+	float fInputStartTime = ( true == m_bAbleAgileMovement ) ? m_fEventTime[0].keyInputStart : 0.66f;
+	CX2Unit::UNIT_CLASS eUnitClass = GetUnit()->GetClass();
+#endif //UPGRADE_SKILL_SYSTEM_2013
+
 	if( false == IsOnSomethingFuture() )
 	{
 		StateChange( USI_DAMAGE_AIR_FALL );
@@ -7193,7 +7862,18 @@ void CX2GULire_ElvenRanger::DamageAirDownLandingEventProcess()
 		else
 			StateChange( USI_DAMAGE_STANDUP_FRONT );
 	}
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// AirDownLanding 에 재빠른 기상이 없던 것 추가
+	ELSE_IF_STATE_CHANGE_ON_EX_( 4, m_fEventTime[0].keyInputStart, m_fEventTime[0].keyInputEnd, m_fEventTime[0].stateChange, true == m_bAbleAgileMovement
+	&& true == m_FrameDataFuture.stateParam.bEventFlagList[2] && ( CX2Unit::UC_LIRE_COMBAT_RANGER == eUnitClass || CX2Unit::UC_LIRE_WIND_SNEAKER == eUnitClass ), LESI_P_LE_AGILE_MOVEMENT_FRONT_FRONT )
+	ELSE_IF_STATE_CHANGE_ON_EX_( 5, m_fEventTime[0].keyInputStart, m_fEventTime[0].keyInputEnd, m_fEventTime[0].stateChange, true == m_bAbleAgileMovement
+	&& true == m_FrameDataFuture.stateParam.bEventFlagList[3] && ( CX2Unit::UC_LIRE_COMBAT_RANGER == eUnitClass || CX2Unit::UC_LIRE_WIND_SNEAKER == eUnitClass ), LESI_P_LE_AGILE_MOVEMENT_FRONT_BACK )
+	ELSE_IF_STATE_CHANGE_ON_EX_( 6, m_fEventTime[0].keyInputStart, m_fEventTime[0].keyInputEnd, m_fEventTime[0].stateChange, true == m_bAbleAgileMovement
+	&& true == m_FrameDataFuture.stateParam.bEventFlagList[1] && ( CX2Unit::UC_LIRE_COMBAT_RANGER == eUnitClass || CX2Unit::UC_LIRE_WIND_SNEAKER == eUnitClass ), LESI_STANDUP_ATTACK_FRONT )
+else if( fInputStartTime < m_pXSkinAnimFuture->GetNowAnimationTime() )
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	else if( m_pXSkinAnimFuture->GetNowAnimationTime() > 0.66f )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	{
 		if( m_InputData.oneZ == true || m_InputData.oneX == true )
 		{	
@@ -7406,7 +8086,11 @@ void CX2GULire_ElvenRanger::StandUpAttackFrontEnd()
 //LESI_STANDUP_ATTACK_BACK
 void CX2GULire_ElvenRanger::StandUpAttackBackFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.43f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.43f ) == true && EventCheck( 0.43f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//m_pSoundSlash->Set3DPosition( m_FrameDataNow.syncData.position );
 		//m_pSoundSlash->Play();
@@ -7461,7 +8145,7 @@ void CX2GULire_ElvenRanger::SiegeReadyStateStartFuture()
 	
 	if( NULL != pSkillTemplet )
 	{
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LE_SIEGEMODE );
+		int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LE_SIEGEMODE );
 
 		float fAnimSpeedRate		= 1.f / pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_READY_TIME_REL, iSkillLevel );
 
@@ -7472,7 +8156,7 @@ void CX2GULire_ElvenRanger::SiegeReadyStateStartFuture()
 	#endif // ADD_ANIM_SPEED_FUTURE
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SIEGEMODE_UP );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SIEGEMODE_UP );
 
 	if( iSkillLevel > 0 )
 	{
@@ -7498,6 +8182,11 @@ void CX2GULire_ElvenRanger::SiegeReadyStateStartFuture()
 
 void CX2GULire_ElvenRanger::SiegeReadyStateStart()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	//시즈 모드일 경우에 대한 예외 처리
+	m_eSaveStateSkillId = CX2SkillTree::SI_NONE;
+#endif //ADD_RENA_SYSTEM
+
 	CommonStateStart();	
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
@@ -7505,13 +8194,13 @@ void CX2GULire_ElvenRanger::SiegeReadyStateStart()
 
 	if( NULL != pSkillTemplet )
 	{
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LE_SIEGEMODE );
+		int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LE_SIEGEMODE );
 
 		float fAnimSpeedRate		= 1.f / pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_READY_TIME_REL, iSkillLevel );
 		ResetAnimSpeed( m_fAnimSpeed, true, false, fAnimSpeedRate );
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SIEGEMODE_UP );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_SIEGEMODE_UP );
 	if( iSkillLevel > 0 )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LE_SIEGEMODE_UP, iSkillLevel );
@@ -7694,11 +8383,15 @@ void CX2GULire_ElvenRanger::SiegeAttackFrontStateStartFuture()
 #ifdef SERV_SKILL_NOTE
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO7 ) == true )
 	{
-#ifdef	ADD_ANIM_SPEED_FUTURE
-		ResetAnimSpeed( m_fAnimSpeedFuture, true, true, 1.105f );
-#else	ADD_ANIM_SPEED_FUTURE
-		ResetAnimSpeed( m_fAnimSpeed, true, true, 1.105f );
-#endif // ADD_ANIM_SPEED_FUTURE		
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		ResetAnimSpeed( m_fAnimSpeedFuture, true, true, 1.305f );
+#else //ADD_MEMO_1ST_CLASS
+	#ifdef	ADD_ANIM_SPEED_FUTURE
+			ResetAnimSpeed( m_fAnimSpeedFuture, true, true, 1.105f );
+	#else	ADD_ANIM_SPEED_FUTURE
+			ResetAnimSpeed( m_fAnimSpeed, true, true, 1.105f );
+	#endif // ADD_ANIM_SPEED_FUTURE		
+#endif //ADD_MEMO_1ST_CLASS
 	}
 #endif
 }
@@ -7713,7 +8406,11 @@ void CX2GULire_ElvenRanger::SiegeAttackFrontStateStart()
 #ifdef SERV_SKILL_NOTE
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO7 ) == true )
 	{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		ResetAnimSpeed( m_fAnimSpeedFuture, true, true, 1.305f );
+#else //ADD_MEMO_1ST_CLASS
 		ResetAnimSpeed( m_fAnimSpeed, true, false, 1.105f );
+#endif //ADD_MEMO_1ST_CLASS
 	}
 #endif
 }
@@ -7721,9 +8418,17 @@ void CX2GULire_ElvenRanger::SiegeAttackFrontStateStart()
 void CX2GULire_ElvenRanger::SiegeAttackFrontFrameMove()
 {
 #ifdef BALANCE_PATCH_20120329
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.07f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.07f ) == true && EventCheck( 0.07f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #endif
 	{
 #ifdef BALANCE_PATCH_20120329
@@ -7755,11 +8460,11 @@ void CX2GULire_ElvenRanger::SiegeAttackFrontFrameMove()
 				posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -7768,11 +8473,11 @@ void CX2GULire_ElvenRanger::SiegeAttackFrontFrameMove()
 				posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y, true, 0.12f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 #endif
@@ -7793,11 +8498,11 @@ void CX2GULire_ElvenRanger::SiegeAttackFrontFrameMove()
 					posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-					pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+					pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+					pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				}
 			}			
@@ -7863,11 +8568,15 @@ void CX2GULire_ElvenRanger::SiegeAttackXFrontStateStartFuture()
 #ifdef SERV_SKILL_NOTE
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO7 ) == true )
 	{
-#ifdef	ADD_ANIM_SPEED_FUTURE
-		ResetAnimSpeed( m_fAnimSpeedFuture, true, true, 1.105f );
-#else	ADD_ANIM_SPEED_FUTURE
-		ResetAnimSpeed( m_fAnimSpeed, true, true, 1.105f );
-#endif // ADD_ANIM_SPEED_FUTURE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		ResetAnimSpeed( m_fAnimSpeedFuture, true, true, 1.305f );
+#else //ADD_MEMO_1ST_CLASS
+	#ifdef	ADD_ANIM_SPEED_FUTURE
+			ResetAnimSpeed( m_fAnimSpeedFuture, true, true, 1.105f );
+	#else	ADD_ANIM_SPEED_FUTURE
+			ResetAnimSpeed( m_fAnimSpeed, true, true, 1.105f );
+	#endif // ADD_ANIM_SPEED_FUTURE
+#endif //ADD_MEMO_1ST_CLASS
 	}
 #endif
 }
@@ -7883,7 +8592,11 @@ void CX2GULire_ElvenRanger::SiegeAttackXFrontStateStart()
 #ifdef SERV_SKILL_NOTE
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO7 ) == true )
 	{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		ResetAnimSpeed( m_fAnimSpeedFuture, true, true, 1.305f );
+#else //ADD_MEMO_1ST_CLASS
 		ResetAnimSpeed( m_fAnimSpeed, true, false, 1.105f );
+#endif //ADD_MEMO_1ST_CLASS
 	}
 #endif
 }
@@ -7892,7 +8605,11 @@ void CX2GULire_ElvenRanger::SiegeAttackXFrontStateStart()
 void CX2GULire_ElvenRanger::SiegeAttackXFrontFrameMove()
 {
 #ifdef BALANCE_PATCH_20120329
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bAimingTarget = false;
 		D3DXVECTOR3 vAimingTargetPos = D3DXVECTOR3(0.f, 0.f, 0.f);
@@ -7949,11 +8666,11 @@ void CX2GULire_ElvenRanger::SiegeAttackXFrontFrameMove()
 #endif //UPGRADE_SKILL_SYSTEM_2013
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-					pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+					pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+					pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				}
 			}			
@@ -7973,18 +8690,22 @@ void CX2GULire_ElvenRanger::SiegeAttackXFrontFrameMove()
 					posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-					pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+					pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+					pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				}
 			}
 		}
 	}
 #else //BALANCE_PATCH_20120329
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.07f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.07f ) == true && EventCheck( 0.07f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		if( FlushMp( 18.f * m_fMPConsumeRateSiegeArrow ) == true )
@@ -8005,11 +8726,11 @@ void CX2GULire_ElvenRanger::SiegeAttackXFrontFrameMove()
 				posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -8018,11 +8739,11 @@ void CX2GULire_ElvenRanger::SiegeAttackXFrontFrameMove()
 				posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex  );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -8032,11 +8753,11 @@ void CX2GULire_ElvenRanger::SiegeAttackXFrontFrameMove()
 				posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -8155,6 +8876,33 @@ void CX2GULire_ElvenRanger::ComboZ1FrameMove()
 
 void CX2GULire_ElvenRanger::ComboZ1EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == true )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+	if( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == false )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		m_fCanNotAttackTime = 0.1f;
+		StateChange( USI_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 1, 1, GetUnitClass() == CX2Unit::UC_LIRE_NIGHT_WATCHER && m_InputData.oneX == true, LESI_COMBO_RNW_ZZX )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_COMBO_Z2 )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -8204,6 +8952,11 @@ void CX2GULire_ElvenRanger::ComboZ1EventProcess()
 		m_fCanNotAttackTime = 0.1f;
 		StateChange( USI_WAIT );
 	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -8211,7 +8964,11 @@ void CX2GULire_ElvenRanger::ComboZ1EventProcess()
 //LESI_COMBO_Z2
 void CX2GULire_ElvenRanger::ComboZ2FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.3f ) == true && EventCheck( 0.3f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 
 	CommonFrameMoveFuture();
@@ -8233,6 +8990,31 @@ void CX2GULire_ElvenRanger::ComboZ2FrameMove()
 
 void CX2GULire_ElvenRanger::ComboZ2EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	CANCEL_COMBO_ON_DIRECTION_CHANGE( 3 );
+
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		m_fCanNotAttackTime = 0.2f;
+		StateChange( USI_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, GetUnitClass() == CX2Unit::UC_LIRE_WIND_SNEAKER && m_InputData.oneZ == true && 
+		( ( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == false ) ||
+		( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == true ) ), LESI_LWS_ZZfrontZ )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 2, 2, ( GetUnitClass() == CX2Unit::UC_LIRE_TRAPPING_RANGER || 
+		GetUnitClass() == CX2Unit::UC_LIRE_NIGHT_WATCHER ) && m_InputData.oneZ == true, LESI_COMBO_RTR_ZZZ )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 1, 1, m_InputData.oneZ == true, LESI_COMBO_Z3 )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 3, 3, m_InputData.oneX == true && GetUnitClass() == CX2Unit::UC_LIRE_GRAND_ARCHER, LESI_LGA_ZZX )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -8275,6 +9057,7 @@ void CX2GULire_ElvenRanger::ComboZ2EventProcess()
 		m_fCanNotAttackTime = 0.2f;
 		StateChange( USI_WAIT );
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -8282,7 +9065,11 @@ void CX2GULire_ElvenRanger::ComboZ2EventProcess()
 //LESI_COMBO_Z3
 void CX2GULire_ElvenRanger::ComboZ3FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.125f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.125f ) == true && EventCheck( 0.125f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 
 	CommonFrameMoveFuture();
@@ -8304,6 +9091,27 @@ void CX2GULire_ElvenRanger::ComboZ3FrameMove()
 
 void CX2GULire_ElvenRanger::ComboZ3EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	CANCEL_COMBO_ON_DIRECTION_CHANGE( 4 )
+
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 2, 2, m_InputData.pureUp == true && m_InputData.oneZ == true, LESI_COMBO_Z4UP )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_COMBO_Z4 )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 1, 1, m_InputData.oneX == true && GetUnitClass() != CX2Unit::UC_LIRE_GRAND_ARCHER, LESI_COMBO_Z4a )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 3, 3, m_InputData.oneX == true && GetUnitClass() == CX2Unit::UC_LIRE_GRAND_ARCHER, LESI_LGA_ZZX )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	m_bReAttackZ1Right = m_FrameDataFuture.syncData.bIsRight;
 	m_fReAttackZ1Time = 0.4f;
 
@@ -8365,6 +9173,7 @@ void CX2GULire_ElvenRanger::ComboZ3EventProcess()
 		DASH_CANCEL_AFTER( m_fDashCancelAfter )
 #endif //BALANCE_CODE_NEMESIS_20121213
 
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -8372,7 +9181,11 @@ void CX2GULire_ElvenRanger::ComboZ3EventProcess()
 //LESI_COMBO_Z4
 void CX2GULire_ElvenRanger::ComboZ4FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.28f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.28f ) == true && EventCheck( 0.28f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -8396,6 +9209,22 @@ void CX2GULire_ElvenRanger::ComboZ4FrameMove()
 
 void CX2GULire_ElvenRanger::ComboZ4EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{	
+		if( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+		}
+		else
+			StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -8420,6 +9249,7 @@ void CX2GULire_ElvenRanger::ComboZ4EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -8432,7 +9262,11 @@ void CX2GULire_ElvenRanger::ComboZ4EventProcess()
 
 void CX2GULire_ElvenRanger::ComboZ4aFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 6.0f ) == true )
 		{
@@ -8468,6 +9302,11 @@ void CX2GULire_ElvenRanger::ComboZ4aFrameMove()
 			else
 			{
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_LONG_P", GetPowerRate() * m_fAttackPowerRateArrow, posR, angle, angle, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				if( NULL != pDE )
+					pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 #else  SERV_RENA_NIGHT_WATCHER
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_LONG_P", GetPowerRate() * m_fAttackPowerRateArrow, posR, angle, angle, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
@@ -8475,12 +9314,13 @@ void CX2GULire_ElvenRanger::ComboZ4aFrameMove()
 
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
 			}
 		}
 		else
@@ -8496,6 +9336,21 @@ void CX2GULire_ElvenRanger::ComboZ4aFrameMove()
 
 void CX2GULire_ElvenRanger::ComboZ4aEventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -8518,6 +9373,7 @@ void CX2GULire_ElvenRanger::ComboZ4aEventProcess()
 	{	
 		StateChange( USI_WAIT );
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -8553,6 +9409,21 @@ void CX2GULire_ElvenRanger::ComboZ4UpFrameMove()
 
 void CX2GULire_ElvenRanger::ComboZ4UpEventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -8576,6 +9447,8 @@ void CX2GULire_ElvenRanger::ComboZ4UpEventProcess()
 		StateChange( USI_WAIT );
 	}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -8587,7 +9460,11 @@ void CX2GULire_ElvenRanger::ComboX1FrameMoveFuture()
 
 void CX2GULire_ElvenRanger::ComboX1FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.24f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.24f ) == true && EventCheck( 0.24f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -8604,11 +9481,11 @@ void CX2GULire_ElvenRanger::ComboX1FrameMove()
 
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -8625,6 +9502,31 @@ void CX2GULire_ElvenRanger::ComboX1FrameMove()
 
 void CX2GULire_ElvenRanger::ComboX1EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == true )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+	if( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == false )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_COMBO_X2 )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -8679,6 +9581,8 @@ void CX2GULire_ElvenRanger::ComboX1EventProcess()
 		StateChange( USI_WAIT );
 	}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -8690,7 +9594,11 @@ void CX2GULire_ElvenRanger::ComboX2FrameMoveFuture()
 
 void CX2GULire_ElvenRanger::ComboX2FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.28f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.28f ) == true && EventCheck( 0.28f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -8705,11 +9613,11 @@ void CX2GULire_ElvenRanger::ComboX2FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -8726,6 +9634,31 @@ void CX2GULire_ElvenRanger::ComboX2FrameMove()
 
 void CX2GULire_ElvenRanger::ComboX2EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == true )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+	if( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == false )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_COMBO_X3 )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -8766,6 +9699,8 @@ void CX2GULire_ElvenRanger::ComboX2EventProcess()
 		StateChange( USI_WAIT );
 	}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -8796,9 +9731,17 @@ void CX2GULire_ElvenRanger::ComboX3FrameMove()
 		fFlushMp = 4.f;
 	#endif //BALANCE_GRAND_ARCHER_20121213
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.466f ) == true && EventCheck( 0.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.44f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.44f ) == true && EventCheck( 0.44f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #endif
 	{
 		if( FlushMp( fFlushMp ) == true )
@@ -8846,11 +9789,11 @@ void CX2GULire_ElvenRanger::ComboX3FrameMove()
 
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -8862,7 +9805,11 @@ void CX2GULire_ElvenRanger::ComboX3FrameMove()
 		}
 	}
 #ifdef BALANCE_PATCH_20120329
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( fFlushMp ) == true )
 		{
@@ -8905,11 +9852,11 @@ void CX2GULire_ElvenRanger::ComboX3FrameMove()
 #endif SERV_RENA_NIGHT_WATCHER
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -8927,6 +9874,37 @@ void CX2GULire_ElvenRanger::ComboX3FrameMove()
 
 void CX2GULire_ElvenRanger::ComboX3EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == true )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false; //X4
+		m_FrameDataFuture.stateParam.bEventFlagList[1] = false; //X4up
+		m_FrameDataFuture.stateParam.bEventFlagList[2] = false; //X4down
+	}
+	if( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == false )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+		m_FrameDataFuture.stateParam.bEventFlagList[1] = false;
+		m_FrameDataFuture.stateParam.bEventFlagList[2] = false;
+	}
+
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 2, 2, m_InputData.pureDown && m_InputData.oneX == true, LESI_COMBO_X4DOWN )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 1, 1, m_InputData.pureUp && m_InputData.oneX == true, LESI_COMBO_X4UP )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_COMBO_X4 )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -9007,6 +9985,8 @@ void CX2GULire_ElvenRanger::ComboX3EventProcess()
 		StateChange( USI_WAIT );
 	}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -9019,9 +9999,17 @@ void CX2GULire_ElvenRanger::ComboX4FrameMoveFuture()
 void CX2GULire_ElvenRanger::ComboX4FrameMove()
 {
 #ifdef BALANCE_PATCH_20120329
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.366f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.366f ) == true && EventCheck( 0.366f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #endif
 	{
 	#ifdef BALANCE_GRAND_ARCHER_20121213
@@ -9038,12 +10026,16 @@ void CX2GULire_ElvenRanger::ComboX4FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_LONG", GetPowerRate() * m_fAttackPowerRateArrow, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 		}
 		else
@@ -9059,6 +10051,21 @@ void CX2GULire_ElvenRanger::ComboX4FrameMove()
 
 void CX2GULire_ElvenRanger::ComboX4EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -9074,6 +10081,7 @@ void CX2GULire_ElvenRanger::ComboX4EventProcess()
 	{	
 		StateChange( USI_WAIT );
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -9087,9 +10095,17 @@ void CX2GULire_ElvenRanger::ComboX4UpFrameMoveFuture()
 void CX2GULire_ElvenRanger::ComboX4UpFrameMove()
 {
 #ifdef BALANCE_PATCH_20120329
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #endif
 	{
 		if( FlushMp( 15.0f ) == true )
@@ -9105,43 +10121,55 @@ void CX2GULire_ElvenRanger::ComboX4UpFrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE2_Z", degree.z, 0.0f );
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_LONG", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE3_Z", degree.z, 0.0f );
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 		}
 		else
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE2_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE2_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 0.f, fDegreeZ );
 
 		}
@@ -9152,6 +10180,21 @@ void CX2GULire_ElvenRanger::ComboX4UpFrameMove()
 
 void CX2GULire_ElvenRanger::ComboX4UpEventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -9167,6 +10210,7 @@ void CX2GULire_ElvenRanger::ComboX4UpEventProcess()
 	{	
 		StateChange( USI_WAIT );
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -9180,9 +10224,17 @@ void CX2GULire_ElvenRanger::ComboX4DownFrameMoveFuture()
 void CX2GULire_ElvenRanger::ComboX4DownFrameMove()
 {
 #ifdef BALANCE_PATCH_20120329
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #endif
 	{
 
@@ -9202,43 +10254,55 @@ void CX2GULire_ElvenRanger::ComboX4DownFrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE2_Z", degree.z, 0.0f );
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_LONG", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE3_Z", degree.z, 0.0f );
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 		}
 		else
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE2_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE2_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 0.f, fDegreeZ );
 
 		}
@@ -9249,6 +10313,21 @@ void CX2GULire_ElvenRanger::ComboX4DownFrameMove()
 
 void CX2GULire_ElvenRanger::ComboX4DownEventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -9264,6 +10343,8 @@ void CX2GULire_ElvenRanger::ComboX4DownEventProcess()
 	{	
 		StateChange( USI_WAIT );
 	}
+
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -9286,6 +10367,30 @@ void CX2GULire_ElvenRanger::DashComboZ1FrameMove()
 
 void CX2GULire_ElvenRanger::DashComboZ1EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	CANCEL_COMBO_ON_DIRECTION_CHANGE( 2 );
+
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+		}
+		else
+		{
+			StateChange( USI_WAIT );
+			m_fCanNotAttackTime = 0.2f;
+		}
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 1, 1, ( GetUnitClass() == CX2Unit::UC_LIRE_NIGHT_WATCHER || GetUnitClass() == CX2Unit::UC_LIRE_TRAPPING_RANGER ) 
+		&& m_InputData.oneX == true, LESI_DASH_COMBO_RTR_ZX )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_DASH_COMBO_Z2 )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -9337,6 +10442,8 @@ void CX2GULire_ElvenRanger::DashComboZ1EventProcess()
 		}
 	}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -9354,6 +10461,35 @@ void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_COMBO_Z1_StartFuture()
 
 void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_COMBO_Z1_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == true )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+	if( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == false )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+		}
+		else
+		{
+			StateChange( USI_WAIT );
+			m_fCanNotAttackTime = 0.2f;
+		}
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_COMBAT_RANGER_DASH_COMBO_Z2 )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -9406,6 +10542,7 @@ void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_COMBO_Z1_EventProcess()
 			m_fCanNotAttackTime = 0.2f;
 		}
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -9424,6 +10561,35 @@ void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_COMBO_Z2_StartFuture()
 
 void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_COMBO_Z2_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == true )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+	if( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == false )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+		}
+		else
+		{
+			StateChange( USI_WAIT );
+			m_fCanNotAttackTime = 0.2f;
+		}
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_DASH_COMBO_Z2 )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -9477,6 +10643,8 @@ void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_COMBO_Z2_EventProcess()
 		}
 	}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -9494,6 +10662,22 @@ void CX2GULire_ElvenRanger::DashComboZ2FrameMove()
 
 void CX2GULire_ElvenRanger::DashComboZ2EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{	
+		if( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+		}
+		else
+			StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -9518,6 +10702,8 @@ void CX2GULire_ElvenRanger::DashComboZ2EventProcess()
 		}
 	}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -9530,7 +10716,11 @@ void CX2GULire_ElvenRanger::DashAttackXStartFuture()
 
 void CX2GULire_ElvenRanger::DashAttackXFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 #ifdef BALANCE_GRAND_ARCHER_20121213
@@ -9580,11 +10770,11 @@ void CX2GULire_ElvenRanger::DashAttackXFrameMove()
 
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -9611,6 +10801,12 @@ void CX2GULire_ElvenRanger::DashAttackXEventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -9633,7 +10829,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X1_StartFuture()
 
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X1_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 6.0f ) == true )
 		{
@@ -9648,11 +10848,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X1_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, angle, angle, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -9669,6 +10869,28 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X1_FrameMove()
 
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X1_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	CANCEL_COMBO_ON_DIRECTION_CHANGE( 2 );
+
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	else if( SpecialAttackEventProcess() == true )
+	{
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_SNIPING_RANGER_DASH_COMBO_X2 )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 1, 1, m_InputData.oneZ == true && GetUnitClass() == CX2Unit::UC_LIRE_WIND_SNEAKER, LESI_LWS_DASH_XZ )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fChangeTime;
 	LUA_GET_VALUE( m_LuaManager, "CHANGE_TIME",		fChangeTime,	0.0f );
 
@@ -9692,6 +10914,7 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X1_EventProcess()
 	ELSE_IF_STATE_CHANGE_ON_( 1, fChangeTime, fChangeTime, m_InputData.oneZ == true && GetUnitClass() == CX2Unit::UC_LIRE_WIND_SNEAKER, LESI_LWS_DASH_XZ )
 #endif RENA_SECOND_CLASS_CHANGE
 
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 
@@ -9710,7 +10933,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X1_EndFuture()
 #ifdef BALANCE_GRAND_ARCHER_20121213
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X2_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.29f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.29f ) == true && EventCheck( 0.29f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 3.f ) == true )
 		{
@@ -9723,11 +10950,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X2_FrameMove()
 	
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -9753,10 +10980,13 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X2_EventProcess()
 	{	
 		StateChange( LESI_SIEGE_WAIT );
 	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
-		DASH_CANCEL_AFTER( m_fDashCancelAfter )
-		SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
-		ELSE_IF_ZX_PRESSED_AFTER( m_fAttackCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+#endif //ADD_RENA_SYSTEM
+	ELSE_IF_ZX_PRESSED_AFTER( m_fAttackCancelAfter )
 	{
 		StateChange( LESI_SIEGE_WAIT );
 	}
@@ -9767,7 +10997,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X2_EventProcess()
 #else
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X2_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 4.0f ) == true )
 		{
@@ -9779,11 +11013,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X2_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -9877,7 +11111,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X2_EventProcess()
 //LESI_SNIPING_RANGER_DASH_COMBO_X3
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.29f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.29f ) == true && EventCheck( 0.29f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 6.0f ) == true )
 		{
@@ -9890,11 +11128,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_DOWN", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -9920,6 +11158,12 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_EventProcess()
 	{	
 		StateChange( USI_WAIT );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -9928,7 +11172,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_EventProcess()
 //LESI_SNIPING_RANGER_DASH_COMBO_X3_UP
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_UP_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.31f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.31f ) == true && EventCheck( 0.31f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 15.0f ) == true )
 		{
@@ -9943,11 +11191,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_UP_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -9955,11 +11203,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_UP_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_LONG", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -9967,11 +11215,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_UP_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -9980,7 +11228,7 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_UP_FrameMove()
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE2_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE2_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 0.f, fDegreeZ );
 
 
@@ -10003,6 +11251,12 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_UP_EventProcess()
 	{	
 		StateChange( USI_WAIT );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -10011,7 +11265,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_UP_EventProcess()
 //LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.32f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.32f ) == true && EventCheck( 0.32f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 15.0f ) == true )
 		{
@@ -10026,11 +11284,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -10038,11 +11296,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_LONG", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -10051,11 +11309,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -10064,7 +11322,7 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN_FrameMove()
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE2_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE2_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 0.f, fDegreeZ );
 
 
@@ -10085,6 +11343,12 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_COMBO_X3_DOWN_EventProcess(
 	{	
 		StateChange( USI_WAIT );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -10171,7 +11435,11 @@ void CX2GULire_ElvenRanger::JumpAttackXFrameMoveFuture()
 
 void CX2GULire_ElvenRanger::JumpAttackXFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.21f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.21f ) == true && EventCheck( 0.21f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -10186,11 +11454,11 @@ void CX2GULire_ElvenRanger::JumpAttackXFrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -10249,7 +11517,11 @@ void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z1_EventProcess()
 	{
 		StateChange( LESI_DASH_JUMP_ATTACK_Z_LANDING );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z2 )
+#else //ADD_RENA_SYSTEM
 	ELSE_IF_STATE_CHANGE_ON_( 0, 100.f, 0.25f, m_InputData.oneZ == true, LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z2 )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -10257,6 +11529,13 @@ void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z1_EventProcess()
 //LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z2
 void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z2_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( true == IsOnSomethingFuture() )
+	{
+		StateChange( LESI_DASH_JUMP_ATTACK_Z_LANDING );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z3 )
+#else //ADD_RENA_SYSTEM
 	if( m_InputData.oneZ == true )
 	{
 		m_FrameDataFuture.stateParam.bEventFlagList[0] = true;
@@ -10272,6 +11551,7 @@ void CX2GULire_ElvenRanger::LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z2_EventProcess()
 			StateChange( LESI_COMBAT_RANGER_DASH_JUMP_COMBO_Z3 );
 		}
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -10321,9 +11601,13 @@ void CX2GULire_ElvenRanger::DashJumpAttackZLandingEventProcess()
 	{
 		StateChange( LESI_COMBO_X1 );
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_InputData.pureDoubleRight == true || m_InputData.pureDoubleLeft == true )
 	{
 		StateChangeDashIfPossible();
@@ -10372,7 +11656,11 @@ void CX2GULire_ElvenRanger::DashJumpComboX1FrameMoveFuture()
 
 void CX2GULire_ElvenRanger::DashJumpComboX1FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.23f ) == true && EventCheck( 0.23f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -10424,11 +11712,11 @@ void CX2GULire_ElvenRanger::DashJumpComboX1FrameMove()
 
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -10437,7 +11725,7 @@ void CX2GULire_ElvenRanger::DashJumpComboX1FrameMove()
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 0.f, fDegreeZ );
 
 
@@ -10449,6 +11737,13 @@ void CX2GULire_ElvenRanger::DashJumpComboX1FrameMove()
 
 void CX2GULire_ElvenRanger::DashJumpComboX1EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( true == IsOnSomethingFuture() )
+	{
+		StateChange( USI_DASH_JUMP_LANDING );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_DASH_JUMP_COMBO_X2 )
+#else //ADD_RENA_SYSTEM
 	if( true == IsOnSomethingFuture() )
 	{
 		StateChange( USI_DASH_JUMP_LANDING );
@@ -10462,6 +11757,7 @@ void CX2GULire_ElvenRanger::DashJumpComboX1EventProcess()
 	{
 		m_FrameDataFuture.stateParam.bEventFlagList[0] = true;
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -10480,7 +11776,11 @@ void CX2GULire_ElvenRanger::DashJumpComboX2FrameMoveFuture()
 
 void CX2GULire_ElvenRanger::DashJumpComboX2FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -10501,11 +11801,11 @@ void CX2GULire_ElvenRanger::DashJumpComboX2FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -10513,7 +11813,7 @@ void CX2GULire_ElvenRanger::DashJumpComboX2FrameMove()
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 0.f, fDegreeZ );
 
 		}
@@ -10524,6 +11824,13 @@ void CX2GULire_ElvenRanger::DashJumpComboX2FrameMove()
 
 void CX2GULire_ElvenRanger::DashJumpComboX2EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( true == IsOnSomethingFuture() )
+	{
+		StateChange( USI_DASH_JUMP_LANDING );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_DASH_JUMP_COMBO_X3 )
+#else //ADD_RENA_SYSTEM
 	if( true == IsOnSomethingFuture() )
 	{
 		StateChange( USI_DASH_JUMP_LANDING );
@@ -10537,12 +11844,22 @@ void CX2GULire_ElvenRanger::DashJumpComboX2EventProcess()
 	{
 		m_FrameDataFuture.stateParam.bEventFlagList[0] = true;
 	}
-
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
 
 //LESI_DASH_JUMP_COMBO_X3
+#ifdef ADD_RENA_SYSTEM // 김태환
+void CX2GULire_ElvenRanger::DashJumpComboX3StateStart()
+{
+	//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+	SetNowDamageRelateSkillData( 100 );
+
+	CommonStateStart();
+}
+#endif // ADD_RENA_SYSTEM
+
 void CX2GULire_ElvenRanger::DashJumpComboX3FrameMoveFuture()
 {
 	if( m_pXSkinAnimFuture->GetNowAnimationTime() < 0.3f )
@@ -10557,7 +11874,19 @@ void CX2GULire_ElvenRanger::DashJumpComboX3FrameMoveFuture()
 void CX2GULire_ElvenRanger::DashJumpComboX3FrameMove()
 {
 #ifdef BALANCE_PATCH_20120329
-	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	#ifdef ADD_RENA_SYSTEM //김창한
+		if( m_pXSkinAnim->EventTimerOneshot( 0.233f ) )
+	#else //ADD_RENA_SYSTEM
+		if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+	#endif //ADD_RENA_SYSTEM
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	#ifdef ADD_RENA_SYSTEM //김창한
+		if( m_pXSkinAnim->EventTimer( 0.233f ) == true && EventCheck( 0.233f, false ) == true )
+	#else //ADD_RENA_SYSTEM
+		if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+	#endif //ADD_RENA_SYSTEM
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 6.f ) == true )
@@ -10577,24 +11906,32 @@ void CX2GULire_ElvenRanger::DashJumpComboX3FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_DOWN", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;				
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;				
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 			degree.z -= 20.f;
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_DOWN", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 
@@ -10602,12 +11939,16 @@ void CX2GULire_ElvenRanger::DashJumpComboX3FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_DOWN", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 		}
 		else
@@ -10618,7 +11959,11 @@ void CX2GULire_ElvenRanger::DashJumpComboX3FrameMove()
 		}
 	}
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 4.0f ) == true )
 		{
@@ -10633,11 +11978,11 @@ void CX2GULire_ElvenRanger::DashJumpComboX3FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_DOWN", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -10645,7 +11990,7 @@ void CX2GULire_ElvenRanger::DashJumpComboX3FrameMove()
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 0.f, fDegreeZ );
 
 		}
@@ -10679,7 +12024,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_FrameMoveFutu
 
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -10697,11 +12046,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -10709,7 +12058,7 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_FrameMove()
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 0.f, fDegreeZ );
 
 		}
@@ -10720,6 +12069,13 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_FrameMove()
 
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( true == IsOnSomethingFuture() )
+	{
+		StateChange( USI_DASH_JUMP_LANDING );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3 )
+#else //ADD_RENA_SYSTEM
 	if( true == IsOnSomethingFuture() )
 	{
 		StateChange( USI_DASH_JUMP_LANDING );
@@ -10733,7 +12089,7 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X2_EventProcess(
 	{
 		m_FrameDataFuture.stateParam.bEventFlagList[0] = true;
 	}
-
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -10752,7 +12108,11 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3_FrameMoveFutu
 
 void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 12.0f ) == true )
 		{
@@ -10768,24 +12128,32 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_DOWN", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 			degree.z -= 20.f;
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_DOWN", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 
@@ -10793,12 +12161,16 @@ void CX2GULire_ElvenRanger::LESI_SNIPING_RANGER_DASH_JUMP_COMBO_X3_FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_DOWN", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 		}
 		else
@@ -10835,7 +12207,11 @@ void CX2GULire_ElvenRanger::ShowSiegeFailGuide()
 //LESI_SI_LE_POWER_ATTACK
 void CX2GULire_ElvenRanger::LESI_SI_LE_POWER_ATTACK_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.28f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.28f ) == true && EventCheck( 0.28f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -10861,6 +12237,14 @@ void CX2GULire_ElvenRanger::LESI_SI_LE_POWER_ATTACK_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	ZX_CANCEL_AFTER_EX( m_fAttackCancelAfterEx )
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -10868,7 +12252,11 @@ void CX2GULire_ElvenRanger::LESI_SI_LE_POWER_ATTACK_EventProcess()
 //LESI_SI_LE_POWER_ATTACK_HYPER
 void CX2GULire_ElvenRanger::LESI_SI_LE_POWER_ATTACK_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.28f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.28f ) == true && EventCheck( 0.28f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -10894,6 +12282,14 @@ void CX2GULire_ElvenRanger::LESI_SI_LE_POWER_ATTACK_HYPER_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	ZX_CANCEL_AFTER_EX( m_fAttackCancelAfterEx )
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -10913,7 +12309,11 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_PIERCE_ARROW_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 		D3DXVECTOR3 degree = GetRotateDegree();
@@ -10947,7 +12347,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_PIERCE_ARROW_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10955,7 +12355,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_PIERCE_ARROW_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -10973,6 +12373,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_PIERCE_ARROW_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -10994,7 +12395,11 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_PIERCE_ARROW_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
@@ -11028,7 +12433,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_PIERCE_ARROW_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11036,7 +12441,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_PIERCE_ARROW_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -11054,6 +12459,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_PIERCE_ARROW_HYPER_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -11078,43 +12484,61 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.001f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO8 ) == true )
 		{
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 			D3DXVECTOR3 degree = GetRotateDegree();
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 각도 수정 기존 -45 ~ 45 -> -30 ~ 30
+			degree.z = 30.0f;
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+			degree.z = 0.0f;
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+			degree.z = -30.0f;
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			degree.z = 45.0f;
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 			degree.z = 0.0f;
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 			degree.z = -45.0f;
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
 		else
 		{
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 			D3DXVECTOR3 degree = GetRotateDegree();
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 각도 수정 기존 -45 ~ 45 -> -30 ~ 30
+			degree.z = 30.0f;
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+			degree.z = 0.0f;
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+			degree.z = -30.0f;
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			degree.z = 45.0f;
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 			degree.z = 0.0f;
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 			degree.z = -45.0f;
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
-#else
-		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
-		D3DXVECTOR3 degree = GetRotateDegree();
-		degree.z = 45.0f;
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
-		degree.z = 0.0f;
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
-		degree.z = -45.0f;
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
-#endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.6f ) == true && EventCheck( 1.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
@@ -11141,7 +12565,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11149,7 +12573,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11157,7 +12581,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -11175,6 +12599,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -11201,14 +12626,28 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.001f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO8 ) == true )
 		{
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 			D3DXVECTOR3 degree = GetRotateDegree();
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 각도 수정 기존 -45 ~ 45 -> -30 ~ 30
+			degree.z = 30.0f;
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_REAL_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+
+			degree.z = 0.0f;
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_REAL_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+
+			degree.z = -30.0f;
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_REAL_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			degree.z = 45.0f;
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_REAL_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 
@@ -11217,6 +12656,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_HYPER_FrameMove()
 
 			degree.z = -45.0f;
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_REAL_MEMO", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
 		else
 		{
@@ -11232,21 +12672,12 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_HYPER_FrameMove()
 			degree.z = -45.0f;
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_REAL", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 		}
-#else
-		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
-		D3DXVECTOR3 degree = GetRotateDegree();
-
-		degree.z = 45.0f;
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_REAL", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
-
-		degree.z = 0.0f;
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_REAL", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
-
-		degree.z = -45.0f;
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"MULTI_ARROW_REAL", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
-#endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.6f ) == true && EventCheck( 1.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
@@ -11275,7 +12706,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11283,7 +12714,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11291,7 +12722,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -11309,6 +12740,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_DIVISION_BLAST_HYPER_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -11331,7 +12763,11 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.001f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 		D3DXVECTOR3 degree = GetRotateDegree();
@@ -11344,7 +12780,11 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 		D3DXVECTOR3 degree = GetRotateDegree();
@@ -11378,7 +12818,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11386,7 +12826,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11394,7 +12834,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}			
@@ -11412,6 +12852,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -11433,7 +12874,11 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.001f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 		D3DXVECTOR3 degree = GetRotateDegree();
@@ -11447,7 +12892,11 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_HYPER_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 		D3DXVECTOR3 degree = GetRotateDegree();
@@ -11482,7 +12931,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11490,7 +12939,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -11498,7 +12947,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}			
@@ -11516,6 +12965,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_PHOENIX_STRIKE_HYPER_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -11562,6 +13012,9 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RNW_ZZX_EventProcess()
 	DASH_CANCEL_AFTER( m_fDashCancelAfter )
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -11613,6 +13066,9 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RNW_ZZXX_EventProcess()
 	DASH_CANCEL_AFTER( m_fDashCancelAfter )
 	BWALK_CANCEL_AFTER( m_fWalkCancelAfter )
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -11634,7 +13090,11 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RNW_ZZXXX_FrameMove()
 {
 	if( true == m_bUsePriorPlannedBlow )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			if( true == m_bActivePriorPlannedBlow )			/// 계산된 일격 사용 가능한 상태일 때
 			{
@@ -11671,6 +13131,10 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RNW_ZZXXX_EventProcess()
 	}
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -11746,9 +13210,13 @@ void CX2GULire_ElvenRanger::LESI_RNW_ACCEL_DASH_EventProcess()
 		//	} break;
 		//}
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_InputData.oneUp == true )
 	{
 		//액셀 대시 점프
@@ -11872,9 +13340,13 @@ void CX2GULire_ElvenRanger::LESI_RNW_ACCEL_DASH_JUMP_LANDING_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_InputData.pureDoubleRight == true || m_InputData.pureDoubleLeft == true )
 	{
 		StateChangeDashIfPossible();
@@ -11938,8 +13410,12 @@ void CX2GULire_ElvenRanger::LESI_RNW_ACCEL_DASH_JUMP_ATTACK_Z_EventProcess()
 	{
 		StateChange( LESI_RNW_ACCEL_DASH_JUMP_LANDING );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_RNW_ACCEL_DASH_JUMP_ZZ )
+#else //ADD_RENA_SYSTEM
 	ELSE_IF_STATE_CHANGE_ON_( 0, 100.f, 0.25f, m_InputData.oneZ == true, LESI_RNW_ACCEL_DASH_JUMP_ZZ )
 	//ELSE_IF_STATE_CHANGE_ON_( 0, 100.f, 0.25f, m_InputData.oneZ == true, LESI_DASH_JUMP_ATTACK_RTR_ZZ )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -12012,7 +13488,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RNW_FURIOUS_ENGAGE_FrameMove()
 	g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
 
 	//에렌딜 공격 2타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -12021,8 +13501,10 @@ void CX2GULire_ElvenRanger::LESI_SA_RNW_FURIOUS_ENGAGE_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
-			m_DamageData.pAttackerEffect	= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 
@@ -12031,7 +13513,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RNW_FURIOUS_ENGAGE_FrameMove()
 
 	}
 	//에렌딜 공격 3타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime1 ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime1 ) == true && EventCheck( m_fDamageDataChangeTime1, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -12040,8 +13526,10 @@ void CX2GULire_ElvenRanger::LESI_SA_RNW_FURIOUS_ENGAGE_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_THIRD" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_THIRD" );
 			m_LuaManager.EndTable();		
 		}
 
@@ -12049,7 +13537,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RNW_FURIOUS_ENGAGE_FrameMove()
 			m_bPossibleHitCount = true;		//다음 타격으로 변경되었으니, 계산된 일격 Count 연산 가능하게 설정
 	}
 	//발로 띄우는 공격 4타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime2 ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime2 ) == true && EventCheck( m_fDamageDataChangeTime2, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		DeleteTrapBlade();
 
@@ -12063,8 +13555,10 @@ void CX2GULire_ElvenRanger::LESI_SA_RNW_FURIOUS_ENGAGE_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_LAST" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_LAST" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -12091,7 +13585,7 @@ void CX2GULire_ElvenRanger::LESI_SA_RNW_FURIOUS_ENGAGE_EventProcess()
 	}
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 
-		CommonEventProcess();
+	CommonEventProcess();
 }
 #endif SERV_RENA_NIGHT_WATCHER
 
@@ -12113,7 +13607,14 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_ASSAULT_KICK_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 0 );
 
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// Damage Data Next 사용으로 삭제
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -12125,17 +13626,32 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_ASSAULT_KICK_FrameMove()
 		m_DamageData.fCameraCrashGap	= 10.0f;
 		m_DamageData.fCameraCrashTime	= 0.2f;
 	}
+	
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편	
+	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"AssaultKick01", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"AssaultKick01", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.96f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.96f ) == true && EventCheck( 0.96f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"AssaultKick01", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
@@ -12167,6 +13683,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_ASSAULT_KICK_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -12183,7 +13700,14 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_ASSAULT_KICK_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 0 );
 
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// DAMAGE_DATA_NEXT 사용으로 삭제
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -12196,17 +13720,33 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_ASSAULT_KICK_HYPER_FrameMove()
 		m_DamageData.fCameraCrashGap	= 10.0f;
 		m_DamageData.fCameraCrashTime	= 0.2f;
 	}
+	
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"AssaultKick01Red", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"AssaultKick01Red", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.96f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.96f ) == true && EventCheck( 0.96f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"AssaultKick01Red", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
@@ -12238,6 +13778,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_ASSAULT_KICK_HYPER_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -12252,7 +13793,11 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_Init()
 void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_FrameMoveFuture()
 {
 	CommonFrameMoveFuture();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.15f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.15f ) == true && EventCheck( 0.15f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -12268,7 +13813,11 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.75f ) == true && EventCheck( 0.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"HummingWindShot", posR );
@@ -12276,7 +13825,6 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_FrameMove()
 		{
 			pSeq->SetBlackHolePosition( GetPos() );
 		}
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO10 ) == true )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeqHummingWind = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"HummingWind", GetPos() );
@@ -12293,11 +13841,6 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_FrameMove()
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HUMMING_WIND", GetPowerRate(), GetPos(), 
 				GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		}
-#else
-		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"HummingWind", GetPos() );
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HUMMING_WIND", GetPowerRate(), GetPos(), 
-			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-#endif
 	}
 
 	CommonFrameMove();
@@ -12324,6 +13867,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -12332,7 +13876,11 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_EventProcess()
 void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_HYPER_FrameMoveFuture()
 {
 	CommonFrameMoveFuture();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.15f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.15f ) == true && EventCheck( 0.15f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -12348,7 +13896,11 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.75f ) == true && EventCheck( 0.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"HummingWindShot_Hyper", posR );
@@ -12356,7 +13908,6 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_HYPER_FrameMove()
 		{
 			pSeq->SetBlackHolePosition( GetPos() );
 		}
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO10 ) == true )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeqHummingWind = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"HummingWind_Hyper", GetPos() );
@@ -12373,11 +13924,6 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_HYPER_FrameMove()
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HUMMING_WIND_HYPER", GetPowerRate(), GetPos(), 
 				GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		}
-#else
-		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"HummingWind_Hyper", GetPos() );
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"HUMMING_WIND_HYPER", GetPowerRate(), GetPos(), 
-			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-#endif
 	}
 
 	CommonFrameMove();
@@ -12404,6 +13950,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LE_HUMMING_WIND_HYPER_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -12426,7 +13973,11 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_GUIDED_ARROW_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		CreateGuideArrow( true == GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO4 ) );
@@ -12499,6 +14050,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_GUIDED_ARROW_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -12516,7 +14068,11 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_GUIDED_ARROW_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		CreateGuideArrow( true == GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO4 ) , true );
@@ -12588,6 +14144,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_GUIDED_ARROW_HYPER_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -12609,8 +14166,12 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_PERFECT_STORM_FrameMove()
 	ChangeWorldColorByHyperMode();
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 1 );
-
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.533f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.533f ) == true && EventCheck( 0.533f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		m_PerfectStormPos = GetPos();
 		D3DXVECTOR3 pos;
@@ -12623,26 +14184,38 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_PERFECT_STORM_FrameMove()
 			pos = m_PerfectStormPos + GetDirVector() * 60.0f;
 		else
 			pos = m_PerfectStormPos - GetDirVector() * 60.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm02", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm02", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.633f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.633f ) == true && EventCheck( 0.633f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos;
 		if( GetIsRight() == true )
 			pos = m_PerfectStormPos + GetDirVector() * 140.0f;
 		else
 			pos = m_PerfectStormPos - GetDirVector() * 140.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm02", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm02", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.666f ) == true && EventCheck( 0.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos;
 		if( GetIsRight() == true )
 			pos = m_PerfectStormPos + GetDirVector() * 100.0f;
 		else
 			pos = m_PerfectStormPos - GetDirVector() * 100.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm03", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm03", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 	CommonFrameMove();
 }
@@ -12661,6 +14234,12 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_PERFECT_STORM_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 캔슬 포인트 변경
+	SKILL_CANCEL_AFTER ( m_fSkillCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	ELSE_IF_KEY_PRESSED_AT_SKIP_POINT_ZXC
 	{
 		if( m_pXSkinAnimFuture->GetNowAnimationTime() > 1.7f )
@@ -12668,6 +14247,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_PERFECT_STORM_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	CommonEventProcess();
 }
 
@@ -12683,8 +14263,12 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_PERFECT_STORM_HYPER_FrameMove()
 	ChangeWorldColorByHyperMode();
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.06f, 1 );
-
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.533f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.533f ) == true && EventCheck( 0.533f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		m_PerfectStormPos = GetPos();
 		D3DXVECTOR3 pos;
@@ -12697,27 +14281,38 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_PERFECT_STORM_HYPER_FrameMove()
 			pos = m_PerfectStormPos + GetDirVector() * 60.0f;
 		else
 			pos = m_PerfectStormPos - GetDirVector() * 60.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm02Hyper", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm02Hyper", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.633f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.633f ) == true && EventCheck( 0.633f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos;
 		if( GetIsRight() == true )
 			pos = m_PerfectStormPos + GetDirVector() * 140.0f;
 		else
 			pos = m_PerfectStormPos - GetDirVector() * 140.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm02Hyper", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm02Hyper", pos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.666f ) == true && EventCheck( 0.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos;
 		if( GetIsRight() == true )
 			pos = m_PerfectStormPos + GetDirVector() * 100.0f;
 		else
 			pos = m_PerfectStormPos - GetDirVector() * 100.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm03Hyper", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"PerfectStorm03Hyper", pos, GetRotateDegree(), GetRotateDegree() );
 	}
-
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	CommonFrameMove();
 }
 
@@ -12735,6 +14330,12 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_PERFECT_STORM_HYPER_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 캔슬 포인트 변경
+	SKILL_CANCEL_AFTER ( m_fSkillCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	ELSE_IF_KEY_PRESSED_AT_SKIP_POINT_ZXC
 	{
 		if( m_pXSkinAnimFuture->GetNowAnimationTime() > 1.7f )
@@ -12742,6 +14343,9 @@ void CX2GULire_ElvenRanger::LESI_SI2_LE_PERFECT_STORM_HYPER_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+	
 	CommonEventProcess();
 }
 
@@ -12765,7 +14369,11 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_AERO_TORNADO_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.19f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.833f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.833f ) == true && EventCheck( 0.833f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PerfectStormPos = GetBonePos( L"Bip01_Footsteps" );
 		D3DXVECTOR3 pos;
@@ -12799,6 +14407,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_AERO_TORNADO_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -12815,7 +14424,11 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_AERO_TORNADO_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.19f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.833f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.833f ) == true && EventCheck( 0.833f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PerfectStormPos = GetBonePos( L"Bip01_Footsteps" );
 		D3DXVECTOR3 pos;
@@ -12850,6 +14463,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LE_AERO_TORNADO_HYPER_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -12871,7 +14485,11 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.1f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Bip01_Pelvis" );
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpinningKick01", pos, GetRotateDegree(), GetRotateDegree() );
@@ -12915,7 +14533,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_FrameMove()
 
 
 
-	if( m_hSeqSpinningKick1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqSpinningKick1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqSpinningKick1 );
 		if( NULL != pSeq )
@@ -12926,12 +14544,12 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_FrameMove()
 		}
 		else
 		{
-			m_hSeqSpinningKick1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqSpinningKick1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}		
 	}
 
 
-	if( m_hSeqSpinningKick2 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqSpinningKick2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqSpinningKick2 );
 		if( NULL != pSeq )
@@ -12942,12 +14560,19 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_FrameMove()
 		}
 		else
 		{
-			m_hSeqSpinningKick2 = INVALID_PARTICLE_HANDLE;
+			m_hSeqSpinningKick2 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}		
 	}
 
-#ifdef NEW_MEMO_01
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO9 ) == true )
+	{	// 급습 메모가 있을 시, DamageDatachangeTime 을 제거한다.
+		m_fCommonDamageChangeTime = -1.f; 
+	}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	bool bActiveDown = true;
+
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO9 ) == true && GetRandomFloat() <= 0.3f )
 	{
 		bActiveDown = false;
@@ -12959,12 +14584,9 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_FrameMove()
 		else
 			m_DamageData.reActType = CX2DamageManager::RT_BIG_DAMAGE;
 	}
-#else
-	if( m_pXSkinAnim->GetNowAnimationTime() > 0.6f )
-	{
-		m_DamageData.reActType = CX2DamageManager::RT_DOWN;
-	}
-#endif
+
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 
 	CommonFrameMove();
 }
@@ -12985,6 +14607,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -13006,7 +14629,11 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.1f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Bip01_Pelvis" );
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpinningKick01", pos, GetRotateDegree(), GetRotateDegree() );
@@ -13048,7 +14675,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_HYPER_FrameMove()
 		}		
 	}
 
-	if( m_hSeqSpinningKick1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqSpinningKick1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqSpinningKick1 );
 		if( NULL != pSeq )
@@ -13059,12 +14686,12 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqSpinningKick1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqSpinningKick1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}		
 	}
 
 
-	if( m_hSeqSpinningKick2 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqSpinningKick2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqSpinningKick2 );
 		if( NULL != pSeq )
@@ -13075,12 +14702,18 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqSpinningKick2 = INVALID_PARTICLE_HANDLE;
+			m_hSeqSpinningKick2 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}		
 	}
 
 
-#ifdef NEW_MEMO_01
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO9 ) == true )
+	{	// 급습 메모가 있을 시, DamageDatachangeTime 을 제거한다.
+		m_fCommonDamageChangeTime = -1.f; 
+	}
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	bool bActiveDown = true;
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO9 ) == true && GetRandomFloat() <= 0.3f )
 	{
@@ -13093,12 +14726,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_HYPER_FrameMove()
 		else
 			m_DamageData.reActType = CX2DamageManager::RT_BIG_DAMAGE;
 	}
-#else
-	if( m_pXSkinAnim->GetNowAnimationTime() > 0.6f )
-	{
-		m_DamageData.reActType = CX2DamageManager::RT_DOWN;
-	}
-#endif
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 	CommonFrameMove();
 }
@@ -13119,6 +14747,7 @@ void CX2GULire_ElvenRanger::LESI_SI1_LCR_SPINNING_KICK_HYPER_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -13138,7 +14767,11 @@ void CX2GULire_ElvenRanger::LESI_SI2_LCR_CRESCENT_KICK_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.14f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.166f ) == true && EventCheck( 0.166f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 70.0f;
@@ -13156,7 +14789,11 @@ void CX2GULire_ElvenRanger::LESI_SI2_LCR_CRESCENT_KICK_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CRESCENT_KICK_A", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.766f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.766f ) == true && EventCheck( 0.766f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 70.0f;
@@ -13174,7 +14811,11 @@ void CX2GULire_ElvenRanger::LESI_SI2_LCR_CRESCENT_KICK_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CRESCENT_KICK_A", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.566f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.566f ) == true && EventCheck( 1.566f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 70.0f;
@@ -13211,6 +14852,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LCR_CRESCENT_KICK_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -13222,7 +14864,11 @@ void CX2GULire_ElvenRanger::LESI_SI2_LCR_CRESCENT_KICK_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.1f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.166f ) == true && EventCheck( 0.166f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 70.0f;
@@ -13240,7 +14886,11 @@ void CX2GULire_ElvenRanger::LESI_SI2_LCR_CRESCENT_KICK_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CRESCENT_KICK_A_HYPER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.766f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.766f ) == true && EventCheck( 0.766f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 70.0f;
@@ -13258,7 +14908,11 @@ void CX2GULire_ElvenRanger::LESI_SI2_LCR_CRESCENT_KICK_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CRESCENT_KICK_A_HYPER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.566f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.566f ) == true && EventCheck( 1.566f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 70.0f;
@@ -13296,6 +14950,7 @@ void CX2GULire_ElvenRanger::LESI_SI2_LCR_CRESCENT_KICK_HYPER_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -13309,7 +14964,11 @@ void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_Init()
 
 void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.29f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.29f ) == true && EventCheck( 0.29f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.5f;
 	}
@@ -13329,8 +14988,13 @@ void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_FrameMove()
 	ChangeWorldColorByHyperMode();
 
 	ShowActiveSkillCutInAndLight( L"Bip01_R_Foot", 0.14f, 2 );
-
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 다이브 킥 보밍 관련 소스 삭제 ( 캐릭터 스크립트 내 이펙트 셋으로 이관 )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 3.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 3.666f ) == true && EventCheck( 3.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Bip01_Pelvis" );
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"DiveKinkBombing01", pos, GetRotateDegree(), GetRotateDegree() );
@@ -13357,6 +15021,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_FrameMove()
 			m_hMeshDiveKickBombing = INVALID_MESH_INSTANCE_HANDLE;
 		}
 	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 	CommonFrameMove();
 }
@@ -13370,6 +15035,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -13377,7 +15043,11 @@ void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_EventProcess()
 //LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER
 void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.29f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.29f ) == true && EventCheck( 0.29f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.5f;
 	}
@@ -13396,8 +15066,13 @@ void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER_FrameMove()
 	ChangeWorldColorByHyperMode();
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.14f, 2 );
-
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 다이브 킥 보밍 관련 소스 삭제 ( 캐릭터 스크립트 내 이펙트 셋으로 이관 )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 3.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 3.666f ) == true && EventCheck( 3.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Bip01_Pelvis" );
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"DiveKinkBombing01", pos, GetRotateDegree(), GetRotateDegree() );
@@ -13407,7 +15082,11 @@ void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 4.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 4.55f ) == true && EventCheck( 4.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DIVE_KICK_FINAL", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
@@ -13425,7 +15104,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER_FrameMove()
 			m_hMeshDiveKickBombing = INVALID_MESH_INSTANCE_HANDLE;
 		}
 	}
-
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 
 
@@ -13441,6 +15120,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LCR_DIVE_KICK_BOMBING_HYPER_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -13457,14 +15137,27 @@ void CX2GULire_ElvenRanger::LESI_SI3_LSR_CRAZY_SHOT_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.16f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy1_Rhand" );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Lire_CrazyShot04", pos );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.05f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.05f ) == true && EventCheck( 1.05f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy1_Rhand" );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO20 ) == true )
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CRAZY_SHOT_MEMO", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CRAZY_SHOT", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
 
@@ -13480,6 +15173,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LSR_CRAZY_SHOT_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -13491,14 +15185,27 @@ void CX2GULire_ElvenRanger::LESI_SI3_LSR_CRAZY_SHOT_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.1f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy1_Rhand" );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Lire_CrazyShot04", pos );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.05f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.05f ) == true && EventCheck( 1.05f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy1_Rhand" );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO20 ) == true )
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CRAZY_SHOT_MEMO", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CRAZY_SHOT_HYPER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
 
@@ -13514,6 +15221,7 @@ void CX2GULire_ElvenRanger::LESI_SI3_LSR_CRAZY_SHOT_HYPER_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -13529,21 +15237,29 @@ void CX2GULire_ElvenRanger::LESI_SI3_LSR_CRAZY_SHOT_HYPER_EventProcess()
 #endif // UPGRADE_SKILL_SYSTEM_2013 // 공통 스킬 개편, 김종훈
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.75f ) == true && EventCheck( 0.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		PlayCommonBuffMinorParticle();
 		UpDownCrashCamera( 20.0f, 0.3f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.77f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.77f ) == true && EventCheck( 0.77f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		int	iSkillSlotIndex = 0;
 		bool bSlotB = false;
 
 		if ( true == GetSkillSlotIndexUsed( iSkillSlotIndex, bSlotB ) )
 		{
-			CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+			const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = pUnitData->m_UserSkillTree.GetSkillSlot( iSkillSlotIndex, bSlotB );
 			CX2SkillTree::SKILL_ID eSkillID = CX2SkillTree::SI_NONE;
@@ -13558,6 +15274,8 @@ void CX2GULire_ElvenRanger::LESI_SI3_LSR_CRAZY_SHOT_HYPER_EventProcess()
 	CommonFrameMove();
 }
 
+#ifndef SERV_9TH_NEW_CHARACTER // 김태환
+/// 다른 캐릭터들 전부 똑같은 함수를 쓰고 있으니, X2GUUser로 옮기자.
 void CX2GULire_ElvenRanger::CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ )
 {
 	CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( GetHandleCommonMajorParticleByEnum( COMMON_MAJOR_PII_MAGIC_FAIL ) );
@@ -13571,6 +15289,7 @@ void CX2GULire_ElvenRanger::CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDe
 		pSeq->SetAddRotate( vAngle );
 	}
 }
+#endif // SERV_9TH_NEW_CHARACTER
 
 void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_Init()
 {
@@ -13588,10 +15307,10 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_Start()
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 		return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -13605,7 +15324,11 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_Start()
 
 void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CX2DamageEffect::CEffect* pDE = NULL;
 
@@ -13623,7 +15346,7 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 				}
 			}
 			break;
@@ -13634,7 +15357,7 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 				}
 
 				degree = vDegree;
@@ -13642,7 +15365,7 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 				}	
 			}
 			break;
@@ -13653,21 +15376,21 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 				}
 				degree = vDegree;
 				degree.z = -30.0f;
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 				}
 				degree = vDegree;
 				degree.z = -45.0f;
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 				}
 			}
 			break;				
@@ -13683,11 +15406,11 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-					pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+					pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+					pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				}
 			}
@@ -13699,11 +15422,11 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-					pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+					pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+					pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				}
 
@@ -13712,11 +15435,11 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-					pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+					pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+					pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				}	
 			}
@@ -13728,11 +15451,11 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-					pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+					pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+					pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				}
 				degree = vDegree;
@@ -13740,11 +15463,11 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-					pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+					pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+					pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				}
 
@@ -13754,11 +15477,11 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_FrameMove()
 				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_BACKJUMP", GetPowerRate() * m_fAttackPowerRateArrow, posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 				if( NULL != pDE )
 				{
-					pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+					pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-					pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+					pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+					pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				}
 			}
@@ -13793,7 +15516,8 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_BACKJUMP_SHOT_EventProcess()
 			StateChange( USI_JUMP_DOWN );			
 		else
 			StateChange( USI_WAIT );
-	}	
+	}
+
 	CommonEventProcess();
 }
 
@@ -13811,6 +15535,7 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_REFLEX_MAGIC_Init()
 
 void CX2GULire_ElvenRanger::LESI_SI_A_LE_REFLEX_MAGIC_Start()
 {
+
 	CommonStateStart();
 
 }
@@ -13823,7 +15548,7 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_REFLEX_MAGIC_EventProcess()
 			StateChange( USI_JUMP_DOWN );			
 		else
 			StateChange( USI_WAIT );
-	}	
+	}
 	ELSE_IF_KEY_PRESSED_AT_SKIP_POINT_ZXCAS
 	{
 		if( m_pXSkinAnimFuture->GetNowAnimationTime() >= 0.7f )
@@ -13831,6 +15556,13 @@ void CX2GULire_ElvenRanger::LESI_SI_A_LE_REFLEX_MAGIC_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }	
 
@@ -13910,10 +15642,9 @@ void CX2GULire_ElvenRanger::LESI_SA_LCR_SHARPFALL_HYPER_EventProcess()
 
 
 
-
-
 void CX2GULire_ElvenRanger::LESI_SA_LCR_SHARPFALL_LANDING_FrameMove()
 {
+
 	CommonFrameMove();
 }
 
@@ -13964,16 +15695,20 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_WINDWARD_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_LSR_WINDWARD );
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -13991,7 +15726,11 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_WINDWARD_FrameMove()
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -14036,16 +15775,20 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_WINDWARD_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_LSR_WINDWARD );
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -14063,7 +15806,11 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_WINDWARD_HYPER_FrameMove()
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -14118,7 +15865,7 @@ bool CX2GULire_ElvenRanger::MakeRoomForEntangleTrap( int iMaxEntangleTrapCount, 
 		CX2GUNPC* pNPC = g_pX2Game->GetNPCUnitByUID( (int) npcUID );
 		if( NULL != pNPC )
 		{
-			ASSERT( CX2UnitManager::NUI_ENTANGLE_TRAP_RENA == pNPC->GetNPCTemplet()->m_nNPCUnitID );
+			ASSERT( CX2UnitManager::NUI_ENTANGLE_TRAP_RENA == pNPC->GetNPCTemplet().m_nNPCUnitID );
 
 			if( false == bForce && 
 				1.f == pNPC->GetNowHp() ) // 공격중인 트랩은 못 없애게
@@ -14157,9 +15904,9 @@ void CX2GULire_ElvenRanger::AddEntangleTrap( CX2GUNPC* pEntangle )
 
 	// 버프팩터 추가를 위한 준비
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LSR_ENTANGLE );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LSR_ENTANGLE );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LSR_ENTANGLE );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LSR_ENTANGLE );
 #endif // UPGRADE_SKILL_SYSTEM_2013	
 
 	pEntangle->SetRealatedSkillLevel( iSkillLevel );
@@ -14169,7 +15916,7 @@ void CX2GULire_ElvenRanger::AddEntangleTrap( CX2GUNPC* pEntangle )
 	//if ( NULL != ptrBuffFactor )
 	//{
 	//	ptrBuffFactor->id
-	//	pNPC->GetDamageData()->PushBuffFactor( ptrBuffFactor );
+	//	pNPC->GetDamageData().PushBuffFactor( ptrBuffFactor );
 	//}
 }
 
@@ -14185,16 +15932,13 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_ENTANGLE_StateStart()
 {
 	CommonStateStart();
 
-#ifdef NEW_MEMO_01
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO12 ) == true )
 		m_pXSkinAnim->SetPlaySpeed( 2.f );
 	else
 		m_pXSkinAnim->SetPlaySpeed( 1.f );
-#endif
 }
 
 
-#ifdef NEW_MEMO_01
 void CX2GULire_ElvenRanger::LESI_SA_LSR_ENTANGLE_StateStartFuture()
 {
 	CommonStateStartFuture();
@@ -14204,11 +15948,14 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_ENTANGLE_StateStartFuture()
 	else
 		m_pXSkinAnimFuture->SetPlaySpeed( 1.f );
 }
-#endif
 
 void CX2GULire_ElvenRanger::LESI_SA_LSR_ENTANGLE_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateEntangleTrap();
 	}
@@ -14253,7 +16000,7 @@ void CX2GULire_ElvenRanger::LESI_SA_LCR_LOW_KICK_StateStart()
 	CommonStateStart();
 
 	float fAnimSpeed = 1.f;
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LCR_LOW_KICK );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_LCR_LOW_KICK );
 	if( iSkillLevel > 0 )
 	{
 #ifdef PVP_SEASON2
@@ -14375,6 +16122,7 @@ void CX2GULire_ElvenRanger::LESI_SA_LCR_VIOLENT_ATTACK_READY_EventProcess()
 
 void CX2GULire_ElvenRanger::LESI_SA_LCR_VIOLENT_ATTACK_READY_StateEnd()
 {
+
 	CommonStateEnd();
 }
 
@@ -14404,6 +16152,7 @@ void CX2GULire_ElvenRanger::LESI_SA_LCR_VIOLENT_ATTACK_StateEnd()
 	CommonStateEnd();
 }
 
+
 void CX2GULire_ElvenRanger::LESI_SA_LCR_VIOLENT_ATTACK_LANDING_Init()
 {
 	XSkinMeshReadyInBackground( L"SI_SA_LCR_VIOLENT_ATTACK_Effect_Dust.X" );
@@ -14431,6 +16180,7 @@ void CX2GULire_ElvenRanger::LESI_SA_LCR_VIOLENT_ATTACK_LANDING_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+
 	CommonEventProcess();
 }
 
@@ -14449,6 +16199,7 @@ void CX2GULire_ElvenRanger::LESI_SA_LCR_VIOLENT_ATTACK_LANDING_Hyper_EventProces
 
 void CX2GULire_ElvenRanger::LESI_SA_LCR_VIOLENT_ATTACK_LANDING_StateEnd()
 {
+
 	CommonStateEnd();
 }
 
@@ -14480,9 +16231,17 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_GUNGNIR_FrameMove()
 
 	
 #ifdef BALANCE_PATCH_20110303
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.1f ) == true && EventCheck( 2.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #endif
 	{
 
@@ -14522,19 +16281,33 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_GUNGNIR_FrameMove()
 			std::multimap< float, D3DXVECTOR3 >::iterator mItrStartPos = mapGungnirPos.begin();
 			CX2DamageEffect::CEffect* pPEffectInDamage = NULL;
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			wstring wstrEffectName = L"RENA_GUNGNIR_SPEAR";
+
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO21 ) == true )
+				wstrEffectName += L"_MEMO";
+#endif //ADD_MEMO_1ST_CLASS
+
 			while ( mItrStartPos != mapGungnirPos.end() )
 			{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				pPEffectInDamage = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrEffectName.c_str(), GetPowerRate(), mItrStartPos->second, 
+					GetRotateDegree(), GetRotateDegree(), vStartPos.y, true, GetRandomInt( i*4 + 3 ) / 100.f * 0.8f );
+#else //ADD_MEMO_1ST_CLASS
 				pPEffectInDamage = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RENA_GUNGNIR_SPEAR", GetPowerRate(), mItrStartPos->second, 
 					GetRotateDegree(), GetRotateDegree(), vStartPos.y, true, GetRandomInt( i*4 + 3 ) / 100.f * 0.8f );
+#endif //ADD_MEMO_1ST_CLASS
 
 
 				if ( pPEffectInDamage != NULL )
 				{
 					float addNotCheckLandTime = ( ( mItrStartPos->second.y - vStartPos.y - MIN_POS_Y ) / 1000 ) * MAGIC_NUMBER_NOT_CHECK_LAND_TIME;
 
-					pPEffectInDamage->GetMainEffect()->SetNotCheckLandTime( 
-						pPEffectInDamage->GetMainEffect()->GetNotCheckLandTime() +  addNotCheckLandTime );
-
+                    if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pPEffectInDamage->GetMainEffect() )
+                    {
+					    pMeshInstance->SetNotCheckLandTime( 
+						    pMeshInstance->GetNotCheckLandTime() +  addNotCheckLandTime );
+                    }
 					pPEffectInDamage = NULL;
 				}
 				mItrStartPos++;
@@ -14580,9 +16353,17 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_GUNGNIR_HYPER_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 0 );
 
 #ifdef BALANCE_PATCH_20110303
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #else
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.1f ) == true && EventCheck( 2.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 #endif
 	{
 
@@ -14622,18 +16403,32 @@ void CX2GULire_ElvenRanger::LESI_SA_LSR_GUNGNIR_HYPER_FrameMove()
 			std::multimap< float, D3DXVECTOR3 >::iterator mItrStartPos = mapGungnirPos.begin();
 			CX2DamageEffect::CEffect* pPEffectInDamage = NULL;
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			wstring wstrEffectName = L"RENA_GUNGNIR_SPEAR_HYPER";
+
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO21 ) == true )
+				wstrEffectName += L"_MEMO";
+#endif //ADD_MEMO_1ST_CLASS
+
 			while ( mItrStartPos != mapGungnirPos.end() )
 			{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				pPEffectInDamage = g_pX2Game->GetDamageEffect()->CreateInstance( this, wstrEffectName.c_str(), GetPowerRate(), mItrStartPos->second, 
+					GetRotateDegree(), GetRotateDegree(), vStartPos.y, true, GetRandomInt( i*4 + 3 ) / 100.f * 0.8f );
+#else //ADD_MEMO_1ST_CLASS
 				pPEffectInDamage = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RENA_GUNGNIR_SPEAR_HYPER", GetPowerRate(), mItrStartPos->second, 
 					GetRotateDegree(), GetRotateDegree(), vStartPos.y, true, GetRandomInt( i*4 + 3 ) / 100.f * 0.8f );
-
+#endif //ADD_MEMO_1ST_CLASS
 
 				if ( pPEffectInDamage != NULL )
 				{
 					float addNotCheckLandTime = ( ( mItrStartPos->second.y - vStartPos.y - MIN_POS_Y ) / 1000 ) * MAGIC_NUMBER_NOT_CHECK_LAND_TIME;
 
-					pPEffectInDamage->GetMainEffect()->SetNotCheckLandTime( 
-						pPEffectInDamage->GetMainEffect()->GetNotCheckLandTime() +  addNotCheckLandTime );
+                    if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pPEffectInDamage->GetMainEffect() )
+                    {
+					    pMeshInstance->SetNotCheckLandTime( 
+						    pMeshInstance->GetNotCheckLandTime() +  addNotCheckLandTime );
+                    }
 
 					pPEffectInDamage = NULL;
 				}
@@ -14689,6 +16484,23 @@ void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZ_FrameMoveFuture()
 
 void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZ_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	CANCEL_COMBO_ON_DIRECTION_CHANGE( 1 );
+
+	if( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+	}
+	else if( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{	
+		StateChange( USI_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_LWS_ZZfrontZZ )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	CANCEL_COMBO_ON_DIRECTION_CHANGE( 1 );
 
 
@@ -14710,6 +16522,8 @@ void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZ_EventProcess()
 	//	StateChange( LESI_WAIT );
 	//}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -14718,7 +16532,11 @@ void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZ_EventProcess()
 
 void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZZ_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.3f ) == true && EventCheck( 0.3f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -14729,6 +16547,22 @@ void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZZ_FrameMoveFuture()
 
 void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZZ_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+	}
+	else if( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{	
+		StateChange( USI_WAIT );
+	}
+	else if( m_pXSkinAnimFuture->GetNowAnimationTime() >= 0.83f && (m_InputData.pureDoubleRight == true || m_InputData.pureDoubleLeft == true) ) { StateChangeDashIfPossible(); }
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_LWS_ZZfrontZZZ )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	//CANCEL_COMBO_ON_DIRECTION_CHANGE( 1 );
 
 	if( false == IsOnSomethingFuture() )
@@ -14752,12 +16586,18 @@ void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZZ_EventProcess()
 		StateChange( USI_WAIT );
 	}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
 void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZZZ_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.54f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.54f ) == true && EventCheck( 0.54f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() + 400.f;
 	}
@@ -14798,6 +16638,12 @@ void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZZZ_Landing_EventProcess()
 	{
 		StateChange( USI_WAIT );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -14811,6 +16657,25 @@ void CX2GULire_ElvenRanger::LESI_LWS_ZZfrontZZZ_Landing_EventProcess()
 
 void CX2GULire_ElvenRanger::LESI_LWS_DASH_X_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	CANCEL_COMBO_ON_DIRECTION_CHANGE( 2 );
+
+	if( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{	
+		StateChange( USI_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 1, 1, m_InputData.oneZ == true, LESI_LWS_DASH_XZ )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
+
 	float fChangeTime;
 	LUA_GET_VALUE( m_LuaManager, "CHANGE_TIME",		fChangeTime,	0.0f );
 
@@ -14831,6 +16696,8 @@ void CX2GULire_ElvenRanger::LESI_LWS_DASH_X_EventProcess()
 	}
 	ELSE_IF_STATE_CHANGE_ON_( 1, fChangeTime, fChangeTime, m_InputData.oneZ == true, LESI_LWS_DASH_XZ )
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 
 }
@@ -14850,7 +16717,18 @@ void CX2GULire_ElvenRanger::LESI_LWS_DASH_XZ_EventProcess()
 {
 	//CANCEL_COMBO_ON_DIRECTION_CHANGE( 1 );
 
-
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( true == m_pXSkinAnimFuture->IsAnimationEnd() &&
+		true == IsOnSomethingFuture() )
+	{
+		StateChange( USI_DASH_JUMP_LANDING );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_LWS_DASH_XZZ )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	if( true == m_pXSkinAnimFuture->IsAnimationEnd() &&
 		true == IsOnSomethingFuture() )
 	{
@@ -14871,6 +16749,8 @@ void CX2GULire_ElvenRanger::LESI_LWS_DASH_XZ_EventProcess()
 	//	}
 	//}
 
+#endif //ADD_RENA_SYSTEM
+
 	CommonEventProcess();
 }
 
@@ -14890,6 +16770,12 @@ void CX2GULire_ElvenRanger::LESI_LWS_DASH_XZZ_EventProcess()
 			StateChange( USI_JUMP_DOWN );
 		}
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -14898,7 +16784,11 @@ void CX2GULire_ElvenRanger::LESI_LWS_DASH_XZZ_EventProcess()
 #ifdef BALANCE_GRAND_ARCHER_20121213
 void CX2GULire_ElvenRanger::LESI_LGA_ZZX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -14918,6 +16808,24 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZX_FrameMove()
 }
 void CX2GULire_ElvenRanger::LESI_LGA_ZZX_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	CANCEL_COMBO_ON_DIRECTION_CHANGE( 1 );
+
+	if( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{	
+		StateChange( LESI_SIEGE_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_LGA_ZZXX )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	CANCEL_COMBO_ON_DIRECTION_CHANGE( 1 );
 
 	if( false == IsOnSomethingFuture() )
@@ -14937,13 +16845,27 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZX_EventProcess()
 	{	
 		StateChange( LESI_SIEGE_WAIT );
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
 
+#ifdef ADD_RENA_SYSTEM //김창한
+void CX2GULire_ElvenRanger::LESI_LGA_ZZXX_StateStart()
+{
+	//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+	SetNowDamageRelateSkillData( 100 );
+
+	CommonStateStart();
+}
+#endif //ADD_RENA_SYSTEM
 void CX2GULire_ElvenRanger::LESI_LGA_ZZXX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 18.f ) == true )
 		{
@@ -14959,12 +16881,16 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZXX_FrameMove()
 				posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 			degree.z += 15.0f;
@@ -14972,12 +16898,16 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZXX_FrameMove()
 				posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 
 
@@ -14986,12 +16916,16 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZXX_FrameMove()
 				posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 		}
 		else
@@ -14999,7 +16933,7 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZXX_FrameMove()
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 180.f, fDegreeZ );
 		}
 	}
@@ -15013,6 +16947,12 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZXX_EventProcess()
 	{
 		StateChange( USI_JUMP_LANDING );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -15020,7 +16960,11 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZXX_EventProcess()
 #else
 void CX2GULire_ElvenRanger::LESI_LGA_ZZZX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 6.0f ) == true )
 		{
@@ -15074,7 +17018,11 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZZX_EventProcess()
 
 void CX2GULire_ElvenRanger::LESI_LGA_ZZZXX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 18.f ) == true )
 		{
@@ -15092,11 +17040,11 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZZXX_FrameMove()
 				posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -15105,11 +17053,11 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZZXX_FrameMove()
 				posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -15119,11 +17067,11 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZZXX_FrameMove()
 				posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 
@@ -15136,7 +17084,7 @@ void CX2GULire_ElvenRanger::LESI_LGA_ZZZXX_FrameMove()
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 
 			float fDegreeZ = 0.f;
-			LUA_GET_VALUE( m_LuaManager, L"ARROW_DEGREE_Z", fDegreeZ, 0.0f );
+			LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE_Z", fDegreeZ, 0.0f );
 			CreateNotEnoughMPEffect( pos, 0.f, 180.f, fDegreeZ );
 		}
 	}
@@ -15200,7 +17148,11 @@ void CX2GULire_ElvenRanger::LESI_LGA_DASH_JUMP_ZX_FrameMoveFuture()
 
 void CX2GULire_ElvenRanger::LESI_LGA_DASH_JUMP_ZX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.492f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.492f ) == true && EventCheck( 0.492f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 #ifdef BALANCE_GRAND_ARCHER_20121213
@@ -15275,7 +17227,11 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_SLIDE_KICK_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.13f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.13f ) == true && EventCheck( 0.13f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_R_Foot" );
 		if( true == GetIsRight() )
@@ -15287,14 +17243,22 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_SLIDE_KICK_FrameMove()
 			vBonePos -= GetDirVector() * 50.f;
 		}
 		vBonePos.y += 20.f;
-
-		m_pDESlideKick = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RENA_SLIDE_KICK_SLIDING", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hDESlideKick = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pDESlideKick = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            this, L"RENA_SLIDE_KICK_SLIDING", GetPowerRate(), vBonePos, GetRotateDegree(), GetRotateDegree() );
 	}
 
 
 	if( m_pXSkinAnim->GetNowAnimationTime() > 0.13f )
 	{
-		if( true == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDESlideKick ) )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pDESlideKick = g_pX2Game->GetDamageEffect()->GetInstance( m_hDESlideKick ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if ( CX2DamageEffect::CEffect* pDESlideKick = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDESlideKick ) ? m_pDESlideKick : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 
 			D3DXVECTOR3 vBonePos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_R_Foot" );
@@ -15308,7 +17272,7 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_SLIDE_KICK_FrameMove()
 			}
 			vBonePos.y += 20.f;
 
-			m_pDESlideKick->SetPos( vBonePos );
+			pDESlideKick->SetPos( vBonePos );
 		}
 
 	}
@@ -15320,8 +17284,12 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_SLIDE_KICK_FrameMove()
 
 void CX2GULire_ElvenRanger::LESI_SA_LWS_SLIDE_KICK_EventProcess()
 {
-	if( true == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDESlideKick ) &&
-		m_pDESlideKick->GetDamageData()->hitUnitList.size() > 0 )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pDESlideKick = g_pX2Game->GetDamageEffect()->GetInstance( m_hDESlideKick );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pDESlideKick = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDESlideKick ) ? m_pDESlideKick : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( pDESlideKick != NULL && pDESlideKick->GetDamageData().hitUnitList.size() > 0 )
 	{
 		StateChange( LESI_SA_LWS_SLIDE_KICK_PASS_THROUGH );
 	}
@@ -15330,9 +17298,9 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_SLIDE_KICK_EventProcess()
 		StateChange( LESI_SA_LWS_SLIDE_KICK_CANCEL );
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_A_LWS_SLIDE_KICK );
+		const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_A_LWS_SLIDE_KICK );
 #else //UPGRADE_SKILL_SYSTEM_2013
-		const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_SA_LWS_SLIDE_KICK );
+		const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_SA_LWS_SLIDE_KICK );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		if( NULL != pSkillSlotData )
 		{
@@ -15359,8 +17327,13 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_SLIDE_KICK_EventProcess()
 
 void CX2GULire_ElvenRanger::LESI_SA_LWS_SLIDE_KICK_StateEnd()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hDESlideKick = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pDESlideKick = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CommonStateEnd();
+
 }
 
 
@@ -15455,9 +17428,6 @@ void CX2GULire_ElvenRanger::LESI_SA_LGA_FREEZING_ARROW_HYPER_FrameMove()
 
 
 
-
-
-
 void CX2GULire_ElvenRanger::LESI_A_LWS_NATURE_FORCE_Init()
 {
 	XSkinMeshReadyInBackground( L"Lire_SI_A_Lws_Nature_Force_Mesh01.X" );
@@ -15491,6 +17461,7 @@ void CX2GULire_ElvenRanger::LESI_A_LWS_NATURE_FORCE_HYPER_StateStart()
 	}
 }
 
+
 void CX2GULire_ElvenRanger::LESI_A_LGA_STIGMA_ARROW_Init()
 {
 	TextureReadyInBackground( L"Death_Stigma01.dds" );
@@ -15498,7 +17469,11 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_STIGMA_ARROW_Init()
 
 void CX2GULire_ElvenRanger::LESI_A_LGA_STIGMA_ARROW_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet
 			= GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_LGA_STIGMA_ARROW );
@@ -15512,20 +17487,20 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_STIGMA_ARROW_FrameMove()
 
 			if ( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-				pDE->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+				pDE->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 #else //UPGRADE_SKILL_SYSTEM_2013
-				pDE->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+				pDE->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 			}
 		}			
@@ -15548,11 +17523,19 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_AIRELINNA_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_AIRELINNA", this );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7333f ) == true && EventCheck( 0.7333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 		const CX2SkillTree::SkillTemplet* pSkillTemplet 
@@ -15573,21 +17556,19 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_AIRELINNA_FrameMove()
 			if( NULL != pDE )
 			{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit()  )
 				return;
 	
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 				const float fEffectiveTime = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME, iSkillTempletLevel );	
 	#else // UPGRADE_SKILL_SYSTEM_2013
 				const float fEffectiveTime = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_TIME );	
-	#endif // UPGRADE_SKILL_SYSTEM_2013			
-				pDE->GetMainEffect()->SetMaxLifeTime(fEffectiveTime);
-#ifdef INT_SKILL_BUG_FIX
-				pDE->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );					
-#endif INT_SKILL_BUG_FIX
+	#endif // UPGRADE_SKILL_SYSTEM_2013		
+                if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pDE->GetMainEffect() )
+				    pMeshInstance->SetMaxLifeTime(fEffectiveTime);
 			}
 		}
 	}
@@ -15612,20 +17593,32 @@ void CX2GULire_ElvenRanger::LESI_SA_LGA_AERO_STRAFE_Init()
 void CX2GULire_ElvenRanger::LESI_SA_LGA_AERO_STRAFE_FrameMoveFuture()
 {
 	CommonFrameMoveFuture();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if (  m_pXSkinAnimFuture->EventTimerOneshot( 0.15f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if (  m_pXSkinAnimFuture->EventTimer( 0.15f ) == true && EventCheck( 0.15f, true ) == true  )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = -GetDashSpeed()*3/2+100;
 		m_PhysicParam.nowSpeed.y = 1400.f;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if (  m_pXSkinAnimFuture->EventTimerOneshot( 0.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if (  m_pXSkinAnimFuture->EventTimer( 0.55f ) == true && EventCheck( 0.55f, true ) == true  )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = true;
 		m_PhysicParam.nowSpeed.x = -35.f;
 		m_PhysicParam.nowSpeed.y = 0;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if (  m_pXSkinAnimFuture->EventTimerOneshot( 0.95f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if (  m_pXSkinAnimFuture->EventTimer( 0.95f ) == true && EventCheck( 0.95f, true ) == true  )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 		m_PhysicParam.nowSpeed.x = -1000.f;
@@ -15639,7 +17632,11 @@ void CX2GULire_ElvenRanger::LESI_SA_LGA_AERO_STRAFE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.001f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.55f ) == true && EventCheck( 0.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy2_Lhand" );
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"AERO_STRAFE", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -15662,7 +17659,7 @@ void CX2GULire_ElvenRanger::LESI_SA_LGA_AERO_STRAFE_EventProcess()
  		else if ( true == IsOnSomethingFuture() )
 			StateChange( USI_JUMP_LANDING );
 	}
-	
+
 	CommonEventProcess();
 }
 
@@ -15684,20 +17681,32 @@ void CX2GULire_ElvenRanger::LESI_SA_LGA_AERO_STRAFE_HYPER_Init()
 void CX2GULire_ElvenRanger::LESI_SA_LGA_AERO_STRAFE_HYPER_FrameMoveFuture()
 {
 	CommonFrameMoveFuture();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if (  m_pXSkinAnimFuture->EventTimerOneshot( 0.15f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if (  m_pXSkinAnimFuture->EventTimer( 0.15f ) == true && EventCheck( 0.15f, true ) == true  )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = -GetDashSpeed()*3/2+100;
 		m_PhysicParam.nowSpeed.y = 1400.f;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if (  m_pXSkinAnimFuture->EventTimerOneshot( 0.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if (  m_pXSkinAnimFuture->EventTimer( 0.55f ) == true && EventCheck( 0.55f, true ) == true  )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = true;
 		m_PhysicParam.nowSpeed.x = -35.f;
 		m_PhysicParam.nowSpeed.y = 0;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if (  m_pXSkinAnimFuture->EventTimerOneshot( 0.95f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if (  m_pXSkinAnimFuture->EventTimer( 0.95f ) == true && EventCheck( 0.95f, true ) == true  )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 		m_PhysicParam.nowSpeed.x = -1000.f;
@@ -15711,7 +17720,11 @@ void CX2GULire_ElvenRanger::LESI_SA_LGA_AERO_STRAFE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.001f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 0.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 0.55f ) == true && EventCheck( 0.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy2_Lhand" );
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"AERO_STRAFE", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -15749,7 +17762,7 @@ void	CX2GULire_ElvenRanger::StateInitTrapBlade()
 #ifdef SERV_RENA_NIGHT_WATCHER
 	wstring wstrTRapBladeName;
 
-	if( CX2Unit::UC_LIRE_TRAPPING_RANGER == m_pUnit->GetClass() )
+	if( CX2Unit::UC_LIRE_TRAPPING_RANGER == GetUnit()->GetClass() )
 		wstrTRapBladeName = L"Mesh_RTR_Lire_Sword";		/// 트래핑 레인저 전용 에렌딜 생성
 	else
 		wstrTRapBladeName = L"Mesh_RNW_Lire_Sword";		/// 나이트 와처 전용 에렌딜 생성
@@ -15775,7 +17788,7 @@ void CX2GULire_ElvenRanger::CreateTrapBlade()
 #ifdef SERV_RENA_NIGHT_WATCHER
 	wstring wstrTRapBladeName;
 
-	if( CX2Unit::UC_LIRE_TRAPPING_RANGER == m_pUnit->GetClass() )
+	if( CX2Unit::UC_LIRE_TRAPPING_RANGER == GetUnit()->GetClass() )
 		wstrTRapBladeName = L"Mesh_RTR_Lire_Sword";		/// 트래핑 레인저 전용 에렌딜 생성
 	else
 		wstrTRapBladeName = L"Mesh_RNW_Lire_Sword";		/// 나이트 와처 전용 에렌딜 생성
@@ -15787,6 +17800,9 @@ void CX2GULire_ElvenRanger::CreateTrapBlade()
 
 	if( pMeshInst != NULL )
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		m_hTrapBlade = pMeshInst->GetHandle();
 		pMeshInst->SetBoundingRadius( 0.0f );
 
@@ -15806,7 +17822,7 @@ void CX2GULire_ElvenRanger::DeleteTrapBlade()
 
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hTrapBlade )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hTrapBlade );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hTrapBlade );
 	}
 
 	m_bUseTrapBlade = false;
@@ -15857,6 +17873,9 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RTR_ZZZ_EventProcess()
 	DASH_CANCEL_AFTER( m_fDashCancelAfter )
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -15882,6 +17901,22 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RTR_ZZZ_DZ_FrameMove()
 
 void CX2GULire_ElvenRanger::LESI_COMBO_RTR_ZZZ_DZ_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{	
+		m_fCanNotAttackTime = 0.2f;
+		StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 
 	LUA_GET_VALUE( m_LuaManager, "SKIP_TIME",		fSkipTime,		0.0f );
@@ -15901,6 +17936,7 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RTR_ZZZ_DZ_EventProcess()
 	{
 		StateChange( USI_WAIT );
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -15955,6 +17991,9 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RTR_ZZZZ_EventProcess()
 	DASH_CANCEL_AFTER( m_fDashCancelAfter )
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -15984,7 +18023,11 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RTR_ZZZZZ_StateStart()
 
 void CX2GULire_ElvenRanger::LESI_COMBO_RTR_ZZZZZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -15993,8 +18036,10 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RTR_ZZZZZ_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 
 #ifdef SERV_RENA_NIGHT_WATCHER
 			if( true == m_bUsePriorPlannedBlow )			/// 계산된 일격 패시브 적용중
@@ -16056,6 +18101,10 @@ void CX2GULire_ElvenRanger::LESI_COMBO_RTR_ZZZZZ_EventProcess()
 	}
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -16147,7 +18196,7 @@ void CX2GULire_ElvenRanger::LESI_JUMP_ATTACK_RTR_Z_StateEnd()
 void CX2GULire_ElvenRanger::LESI_DASH_COMBO_RTR_ZX_StateStart()
 {
 #ifdef SERV_RENA_NIGHT_WATCHER
-	if( CX2Unit::UC_LIRE_NIGHT_WATCHER == m_pUnit->GetClass() && true == m_bUsePriorPlannedBlow )
+	if( CX2Unit::UC_LIRE_NIGHT_WATCHER == GetUnit()->GetClass() && true == m_bUsePriorPlannedBlow )
 	{
 		m_bPossibleHitCount				= true;				//계산된 일격 콤보 누적 값 연산 가능 여부
 		m_bActivePriorPlannedBlowAttack = false;			//계산된 일격이 적용된 타격 분별
@@ -16160,11 +18209,15 @@ void CX2GULire_ElvenRanger::LESI_DASH_COMBO_RTR_ZX_StateStart()
 
 void CX2GULire_ElvenRanger::LESI_DASH_COMBO_RTR_ZX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.29f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.29f ) == true && EventCheck( 1.29f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		DeleteTrapBlade();
 #ifdef SERV_RENA_NIGHT_WATCHER
-		if( CX2Unit::UC_LIRE_NIGHT_WATCHER == m_pUnit->GetClass() && true == m_bUsePriorPlannedBlow )
+		if( CX2Unit::UC_LIRE_NIGHT_WATCHER == GetUnit()->GetClass() && true == m_bUsePriorPlannedBlow )
 			m_bPossibleHitCount = false;					//계산된 일격 Count 해제
 #endif SERV_RENA_NIGHT_WATCHER
 	}
@@ -16179,6 +18232,22 @@ void CX2GULire_ElvenRanger::LESI_DASH_COMBO_RTR_ZX_FrameMove()
 
 void CX2GULire_ElvenRanger::LESI_DASH_COMBO_RTR_ZX_EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{	
+		if( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+		}
+		else
+			StateChange( USI_WAIT );
+	}
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fSkipTime;
 	float fChangeTime;
 
@@ -16202,6 +18271,7 @@ void CX2GULire_ElvenRanger::LESI_DASH_COMBO_RTR_ZX_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -16252,7 +18322,11 @@ void CX2GULire_ElvenRanger::LESI_DASH_JUMP_ATTACK_RTR_Z_EventProcess()
 	{
 		StateChange( LESI_DASH_JUMP_ATTACK_Z_LANDING );
 	}
+#ifdef ADD_RENA_SYSTEM //김창한
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneZ == true, LESI_DASH_JUMP_ATTACK_RTR_ZZ )
+#else //ADD_RENA_SYSTEM
 	ELSE_IF_STATE_CHANGE_ON_( 0, 100.f, 0.25f, m_InputData.oneZ == true, LESI_DASH_JUMP_ATTACK_RTR_ZZ )
+#endif //ADD_RENA_SYSTEM
 
 		CommonEventProcess();
 }
@@ -16315,6 +18389,7 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_FATALITY_SUCCESS_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -16327,8 +18402,10 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_FATALITY_FAIL_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
+
 
 void CX2GULire_ElvenRanger::LESI_SI_A_LE_RISING_FALCON_LANDING_EventProcess()
 {
@@ -16385,7 +18462,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_EVOKE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.1f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.25f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.25f ) == true && EventCheck( 0.25f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const int MAGIC_MAX_EVOKE_COUNT	= 1;	//	생성가능 이보크 갯수
 
@@ -16401,7 +18482,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_EVOKE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.1f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.25f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.25f ) == true && EventCheck( 0.25f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef REGULATE_EVOKE_HYPER_MODE
 		const int MAGIC_MAX_EVOKE_COUNT	= 1;	//	생성가능 이보크 갯수
@@ -16466,6 +18551,7 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_EVOKE_StateEnd()
 }
 
 
+
 //	LESI_A_RTR_EXPLOSION_TRAP
 void CX2GULire_ElvenRanger::LESI_A_RTR_EXPLOSION_TRAP_Init()
 {
@@ -16497,24 +18583,36 @@ void CX2GULire_ElvenRanger::LESI_A_RTR_EXPLOSION_TRAP_FrameMove()
 {
 	D3DXVECTOR3 pos;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		float fPowerRate = GetPowerRate();
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
 
-		if( iSkillLevel > 0 )
-		{
-			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 사냥꾼의 재능, 덫 데미지 증가 던전에서만 적용 가능하도록 추가
+		// 경직은 던전 / 대전 상관 없음!
+		if ( CX2Main::XS_PVP_GAME != g_pMain->GetNowStateID() )		
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		{	
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
 
-			if( NULL != pSkillTemplet )
+			if( iSkillLevel > 0 )
 			{
-				fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+
+				if( NULL != pSkillTemplet )
+				{
+					fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				}
 			}
 		}
 #else //UPGRADE_SKILL_SYSTEM_2013
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
+		int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
 
 		if( iSkillLevel > 0 )
 		{
@@ -16594,7 +18692,11 @@ void CX2GULire_ElvenRanger::LESI_A_RTR_EXPLOSION_TRAP_FrameMove()
 
 void CX2GULire_ElvenRanger::LESI_A_RTR_EXPLOSION_TRAP_EventProcess()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -16616,7 +18718,11 @@ void CX2GULire_ElvenRanger::LESI_A_RTR_EXPLOSION_TRAP_EndFuture()
 //	LESI_SA_RTR_TRAPING_ARROW
 void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_StateStart()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectTrapArrow = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffectTrapArrow = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CommonStateStart();
 }
 
@@ -16633,45 +18739,78 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_FrameMove()
 
 	bool bTrapDrop = false;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.33f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.33f ) == true && EventCheck( 1.33f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( INVALID_DAMAGE_EFFECT_HANDLE == m_hEffectTrapArrow )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( NULL == m_pEffectTrapArrow )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			D3DXVECTOR3 posR = GetPos();
 			D3DXVECTOR3 posHand = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 			D3DXVECTOR3 degree = GetRotateDegree();
 
 			posR.y = posHand.y;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect*
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_pEffectTrapArrow = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hEffectTrapArrow = ( m_pEffectTrapArrow != NULL ) ? m_pEffectTrapArrow->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_TRAPING_ARROW", this );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.40f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.50f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.60f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.70f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.80f ) == true )	bTrapDrop = true;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.40f ) == true && EventCheck( 1.40f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.50f ) == true && EventCheck( 1.50f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.60f ) == true && EventCheck( 1.60f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.70f ) == true && EventCheck( 1.70f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.80f ) == true && EventCheck( 1.80f, false ) == true )	bTrapDrop = true;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
-	if( bTrapDrop == true && m_pEffectTrapArrow != NULL )
+	if( bTrapDrop == true && 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectTrapArrow != INVALID_DAMAGE_EFFECT_HANDLE
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_pEffectTrapArrow != NULL 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        )
 	{
 		D3DXVECTOR3 vRotateDegree = GetRotateDegree();
 
 		float fPowerRate = GetPowerRate();
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
-
-		if( iSkillLevel > 0 )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if ( CX2Main::XS_PVP_GAME != g_pMain->GetNowStateID() )		// 사냥꾼의 재능, 던전에서만 적용 가능하도록 추가
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
-			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
 
-			if( NULL != pSkillTemplet )
+			if( iSkillLevel > 0 )
 			{
-				fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+
+				if( NULL != pSkillTemplet )
+				{
+					fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				}
 			}
 		}
 #else //UPGRADE_SKILL_SYSTEM_2013
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
+		int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
 
 		if( iSkillLevel > 0 )
 		{
@@ -16685,7 +18824,13 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_FrameMove()
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 		//	트랩 생성
-		if( m_pEffectTrapArrow->GetMainEffect() != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect* pEffectTrapArrow = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectTrapArrow );
+        CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( pEffectTrapArrow != NULL ) ? pEffectTrapArrow->GetMainEffect() : NULL;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = m_pEffectTrapArrow->GetMainEffect();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( pMainEffect != NULL )
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 			if( true == GetActiveStartOfDelayedFiring() ) //지연의 신호탄이 적용된 상태인지 체크
@@ -16694,14 +18839,14 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_FrameMove()
 #ifdef ADDITIONAL_MEMO
 				if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO15 ) == true )
 				{			
-					pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO_DELAY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );				
+					pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO_DELAY", fPowerRate, pMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );				
 				}
 				else
 				{
-					pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_DELAY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+					pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_DELAY", fPowerRate, pMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 				}
 #else //ADDITIONAL_MEMO
-				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_DELAY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_DELAY", fPowerRate, pMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 #endif //ADDITIONAL_MEMO
 
 				pDE->SetIndex( CreateDamageEffectIndex() );
@@ -16712,28 +18857,28 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_FrameMove()
 #ifdef ADDITIONAL_MEMO
 				if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO15 ) == true )
 				{			
-					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );				
+					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO", fPowerRate, pMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );				
 				}
 				else
 				{
-					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, pMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 				}
 #else //ADDITIONAL_MEMO
-				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, pMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 #endif //ADDITIONAL_MEMO
 			}
 #else //UPGRADE_SKILL_SYSTEM_2013
 #ifdef ADDITIONAL_MEMO
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO15 ) == true )
 			{			
-				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );				
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO", fPowerRate, pMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );				
 			}
 			else
 			{
-				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, pMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 			}
 #else
-			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, pMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 #endif
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		}
@@ -16750,45 +18895,78 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_HYPER_FrameMove()
 
 	bool bTrapDrop = false;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.33f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.33f ) == true && EventCheck( 1.33f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( m_hEffectTrapArrow == INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( NULL == m_pEffectTrapArrow )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			D3DXVECTOR3 posR = GetPos();
 			D3DXVECTOR3 posHand = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 			D3DXVECTOR3 degree = GetRotateDegree();
 
 			posR.y = posHand.y;
-			m_pEffectTrapArrow = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hEffectTrapArrow = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_pEffectTrapArrow = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                this, L"TRAPING_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_TRAPING_ARROW", this );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.40f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.50f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.60f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.70f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.80f ) == true )	bTrapDrop = true;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.40f ) == true && EventCheck( 1.40f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.50f ) == true && EventCheck( 1.50f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.60f ) == true && EventCheck( 1.60f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.70f ) == true && EventCheck( 1.70f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.80f ) == true && EventCheck( 1.80f, false ) == true )	bTrapDrop = true;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
-	if( bTrapDrop == true && m_pEffectTrapArrow != NULL )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pEffectTrapArrow = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectTrapArrow );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pEffectTrapArrow = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pEffectTrapArrow ) ? m_pEffectTrapArrow : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( bTrapDrop == true && pEffectTrapArrow != NULL )
 	{
 		D3DXVECTOR3 vRotateDegree = GetRotateDegree();
 
 		float fPowerRate = GetPowerRate();
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
-
-		if( iSkillLevel > 0 )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 사냥꾼의 재능, 덫 데미지 증가 던전에서만 적용 가능하도록 추가
+		// 경직은 던전 / 대전 상관 없음!
+		if ( CX2Main::XS_PVP_GAME != g_pMain->GetNowStateID() )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
-			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
 
-			if( NULL != pSkillTemplet )
+			if( iSkillLevel > 0 )
 			{
-				fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+
+				if( NULL != pSkillTemplet )
+				{
+					fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				}
 			}
 		}
 #else //UPGRADE_SKILL_SYSTEM_2013
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
+		int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
 
 		if( iSkillLevel > 0 )
 		{
@@ -16802,7 +18980,7 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_HYPER_FrameMove()
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 		//	트랩 생성
-		if( m_pEffectTrapArrow->GetMainEffect() != NULL )
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pEffectTrapArrowMainEffect = pEffectTrapArrow->GetMainEffect() )
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 			if( true == GetActiveStartOfDelayedFiring() ) //지연의 신호탄이 적용된 상태인지 체크
@@ -16811,14 +18989,14 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_HYPER_FrameMove()
 #ifdef ADDITIONAL_MEMO
 				if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO15 ) == true )
 				{			
-					pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO_DELAY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );				
+					pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO_DELAY", fPowerRate, pEffectTrapArrowMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );				
 				}
 				else
 				{
-					pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_DELAY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+					pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_DELAY", fPowerRate, pEffectTrapArrowMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 				}
 #else //ADDITIONAL_MEMO
-				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_DELAY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_DELAY", fPowerRate, pEffectTrapArrowMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 #endif //ADDITIONAL_MEMO
 
 				pDE->SetIndex( CreateDamageEffectIndex() );
@@ -16829,28 +19007,28 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_HYPER_FrameMove()
 #ifdef ADDITIONAL_MEMO
 				if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO15 ) == true )
 				{				
-					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO", fPowerRate, pEffectTrapArrowMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 				}
 				else
 				{
-					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+					g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, pEffectTrapArrowMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 				}
 #else
-				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, pEffectTrapArrowMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 #endif
 			}
 #else //UPGRADE_SKILL_SYSTEM_2013
 #ifdef ADDITIONAL_MEMO
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO15 ) == true )
 			{				
-				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY_MEMO", fPowerRate, pEffectTrapArrowMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 			}
 			else
 			{
-				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, pEffectTrapArrowMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 			}
 #else
-			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, m_pEffectTrapArrow->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FLY", fPowerRate, pEffectTrapArrowMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 #endif
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		}
@@ -16868,6 +19046,7 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -16875,7 +19054,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPING_ARROW_StateEnd()
 {
 	CommonStateEnd();
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectTrapArrow = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffectTrapArrow = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 //	LESI_SA_RTR_KARMA
@@ -16888,6 +19071,13 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_KARMA_StateStart()
 {
 	CommonStateStart();
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO27 ) == true )
+	{
+		float fAniSpeed = m_pXSkinAnimFuture->GetPlaySpeed();
+		m_pXSkinAnimFuture->SetPlaySpeed( fAniSpeed * 1.5f );
+	}
+#endif //ADD_MEMO_1ST_CLASS
 	//m_bDisableGravity = true;
 	//m_PhysicParam.nowSpeed		= D3DXVECTOR2( 0, 0 );
 	//m_PhysicParam.passiveSpeed	= D3DXVECTOR2( -1, -1 );
@@ -16899,7 +19089,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_KARMA_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//m_bDisableGravity = false;
 	}
@@ -16913,7 +19107,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_KARMA_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//m_bDisableGravity = false;
 	}
@@ -16974,21 +19172,53 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_FATALITY_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.03f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.04f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.04f ) == true && EventCheck( 0.04f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		wstring wstrEffectSetName = L"EffectSet_FATALITY_SPARK_FAIL";
+		wstring wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_FAIL_DAMAGE";
 		switch( m_sFatalityData.m_eRating )
 		{
-		case FRR_FAIL:		wstrEffectSetName = L"EffectSet_FATALITY_SPARK_FAIL";
+		case FRR_FAIL:
+			{
+				wstrEffectSetName = L"EffectSet_FATALITY_SPARK_FAIL";
+				wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_FAIL_DAMAGE";
+			}
 			break;
-		case FRR_POOR:		wstrEffectSetName = L"EffectSet_FATALITY_SPARK_POOR";
+		case FRR_POOR:
+			{
+				wstrEffectSetName = L"EffectSet_FATALITY_SPARK_POOR";
+				wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_POOR_DAMAGE";
+			}
 			break;
-		case FRR_NORMAL:	wstrEffectSetName = L"EffectSet_FATALITY_SPARK";
+		case FRR_NORMAL:
+			{
+				wstrEffectSetName = L"EffectSet_FATALITY_SPARK";
+				wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_DAMAGE";
+			}
 			break;
-		case FRR_LUCKY:		wstrEffectSetName = L"EffectSet_FATALITY_SPARK_LUCKY";
+		case FRR_LUCKY:
+			{
+				wstrEffectSetName = L"EffectSet_FATALITY_SPARK_LUCKY";
+				wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_LUCKY_DAMAGE";
+			}
 			break;
 		}
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO22) == true )
+			wstrEffectSetDamageName += L"_MEMO";
+
+		CX2EffectSet::Handle hEffectHandle =
+#endif //ADD_MEMO_1ST_CLASS
+		g_pX2Game->GetEffectSet()->PlayEffectSet( wstrEffectSetDamageName.c_str(), this, this );
 		g_pX2Game->GetEffectSet()->PlayEffectSet( wstrEffectSetName.c_str(), this, this );
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		m_vecEffectSetToDeleteOnStateEnd.push_back(hEffectHandle);
+#endif //ADD_MEMO_1ST_CLASS
 	}
 
 	CommonFrameMove();
@@ -17001,21 +19231,53 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_FATALITY_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.03f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.04f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.04f ) == true && EventCheck( 0.04f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		wstring wstrEffectSetName = L"EffectSet_FATALITY_SPARK_FAIL";
+		wstring wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_FAIL_DAMAGE";
 		switch( m_sFatalityData.m_eRating )
 		{
-		case FRR_FAIL:		wstrEffectSetName = L"EffectSet_FATALITY_SPARK_FAIL";
+		case FRR_FAIL:
+			{
+				wstrEffectSetName = L"EffectSet_FATALITY_SPARK_FAIL";
+				wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_FAIL_DAMAGE";
+			}
 			break;
-		case FRR_POOR:		wstrEffectSetName = L"EffectSet_FATALITY_SPARK_POOR";
+		case FRR_POOR:
+			{
+				wstrEffectSetName = L"EffectSet_FATALITY_SPARK_POOR";
+				wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_POOR_DAMAGE";
+			}
 			break;
-		case FRR_NORMAL:	wstrEffectSetName = L"EffectSet_FATALITY_SPARK";
+		case FRR_NORMAL:
+			{
+				wstrEffectSetName = L"EffectSet_FATALITY_SPARK";
+				wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_DAMAGE";
+			}
 			break;
-		case FRR_LUCKY:		wstrEffectSetName = L"EffectSet_FATALITY_SPARK_LUCKY";
+		case FRR_LUCKY:
+			{
+				wstrEffectSetName = L"EffectSet_FATALITY_SPARK_LUCKY";
+				wstrEffectSetDamageName = L"EffectSet_FATALITY_SPARK_LUCKY_DAMAGE";
+			}
 			break;
 		}
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO22) == true )
+			wstrEffectSetDamageName += L"_MEMO";
+
+		CX2EffectSet::Handle hEffectHandle =
+#endif //ADD_MEMO_1ST_CLASS
+		g_pX2Game->GetEffectSet()->PlayEffectSet( wstrEffectSetDamageName.c_str(), this, this );
 		g_pX2Game->GetEffectSet()->PlayEffectSet( wstrEffectSetName.c_str(), this, this );
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		m_vecEffectSetToDeleteOnStateEnd.push_back(hEffectHandle);
+#endif //ADD_MEMO_1ST_CLASS
 	}
 
 	CommonFrameMove();
@@ -17053,7 +19315,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_FATALITY_StateEndFuture()
 //	LESI_SA_RTR_CALL_OF_RUIN
 void CX2GULire_ElvenRanger::LESI_SA_RTR_CALL_OF_RUIN_Init()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectCallOfRuin = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffectCallOfRuin = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	XSkinMeshReady( L"rena_A_ruin_obje.X" );
 }
@@ -17078,34 +19344,73 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_CALL_OF_RUIN_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.09f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.09f ) == true && EventCheck( 0.09f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 130.f;
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO26 ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_hEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			this, L"CALL_OF_RUIN_MEMO", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
-		m_pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CALL_OF_RUIN", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+		else
+#endif //ADD_MEMO_1ST_CLASS
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            this, L"CALL_OF_RUIN", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//	타격 중단
-		if( NULL != m_pEffectCallOfRuin )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectCallOfRuin ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if ( CX2DamageEffect::CEffect* pEffectCallOfRuin = m_pEffectCallOfRuin )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			m_pEffectCallOfRuin->SetAttackTime( D3DXVECTOR2(0.1f, 0.1f) );
+			pEffectCallOfRuin->SetAttackTime( D3DXVECTOR2(0.1f, 0.1f) );
 		}
 
 		//	베는 속도 증가
 		m_PhysicParam.passiveSpeed.x = 400.f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.6f ) == true && EventCheck( 1.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.passiveSpeed.x = 0.f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.3f ) == true && EventCheck( 2.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//	타격 재시작
-		if( NULL != m_pEffectCallOfRuin )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectCallOfRuin ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if ( CX2DamageEffect::CEffect* pEffectCallOfRuin = m_pEffectCallOfRuin )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			m_pEffectCallOfRuin->SetAttackTime( D3DXVECTOR2(2.3f, 2.5f) );
+			pEffectCallOfRuin->SetAttackTime( D3DXVECTOR2(2.3f, 2.5f) );
 		}
 	}
 
@@ -17119,34 +19424,74 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_CALL_OF_RUIN_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.04f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.09f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.09f ) == true && EventCheck( 0.09f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 130.f;
 
-		m_pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"CALL_OF_RUIN", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO26 ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_hEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			this, L"CALL_OF_RUIN_MEMO", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+
+		else
+#endif //ADD_MEMO_1ST_CLASS
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            this, L"CALL_OF_RUIN", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//	타격 중단
-		if( NULL != m_pEffectCallOfRuin )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectCallOfRuin ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if ( CX2DamageEffect::CEffect* pEffectCallOfRuin = m_pEffectCallOfRuin )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			m_pEffectCallOfRuin->SetAttackTime( D3DXVECTOR2(0.1f, 0.1f) );
+			pEffectCallOfRuin->SetAttackTime( D3DXVECTOR2(0.1f, 0.1f) );
 		}
 
 		//	베는 속도 증가
 		m_PhysicParam.passiveSpeed.x = 400.f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.6f ) == true && EventCheck( 1.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.passiveSpeed.x = 0.f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.3f ) == true && EventCheck( 2.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//	타격 재시작
-		if( NULL != m_pEffectCallOfRuin )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pEffectCallOfRuin = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectCallOfRuin ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if ( CX2DamageEffect::CEffect* pEffectCallOfRuin = m_pEffectCallOfRuin )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			m_pEffectCallOfRuin->SetAttackTime( D3DXVECTOR2(2.3f, 2.5f) );
+			pEffectCallOfRuin->SetAttackTime( D3DXVECTOR2(2.3f, 2.5f) );
 		}
 	}
 
@@ -17163,6 +19508,7 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_CALL_OF_RUIN_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+
 	CommonEventProcess();
 }
 
@@ -17172,7 +19518,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_CALL_OF_RUIN_StateEnd()
 
 	DeleteTrapBlade();
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectCallOfRuin = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffectCallOfRuin = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 //	LESI_A_LE_RISING_FALCON
@@ -17187,7 +19537,11 @@ void CX2GULire_ElvenRanger::LESI_A_LE_RISING_FALCON_FrameMoveFuture()
 
 void CX2GULire_ElvenRanger::LESI_A_LE_RISING_FALCON_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -17196,12 +19550,18 @@ void CX2GULire_ElvenRanger::LESI_A_LE_RISING_FALCON_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime2 ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime2 ) == true && EventCheck( m_fDamageDataChangeTime2, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -17210,8 +19570,10 @@ void CX2GULire_ElvenRanger::LESI_A_LE_RISING_FALCON_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_LAST" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_LAST" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -17242,10 +19604,10 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_START_OF_DELAYED_FIRING_StateStart()
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_LNW_DELAYED_FIRING );
 
-	if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() || NULL == pSkillTemplet )
+	if ( NULL == GetUnit()  || NULL == pSkillTemplet )
 		return;
 	
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 	const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -17275,7 +19637,11 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_START_OF_DELAYED_FIRING_FrameMoveFuture()
 
 void CX2GULire_ElvenRanger::LESI_A_RNW_START_OF_DELAYED_FIRING_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 degree = GetRotateDegree();
 		D3DXVECTOR3 posR   = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );	/// 땅에 박혀야 해서 위치 재조정
@@ -17296,7 +19662,7 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_START_OF_DELAYED_FIRING_FrameMove()
 		{
 			pDE->SetIndex( CreateDamageEffectIndex() );								/// 해당 화살에 Index를 부여한다.( 지연 폭발 및 삭제용 )
 			pDE->SetType( CX2DamageEffect::DET_START_OF_DELAYED_FIRING );			/// 해당 화살에 Type을 부여한다. ( 지연의 신호탄 )
-			pDE->GetDamageData()->m_ExtraDamage.m_iLevel = 1;						/// 지연의 신호탄 인식용
+			pDE->GetDamageData().m_ExtraDamage.m_iLevel = 1;						/// 지연의 신호탄 인식용
 		}
 	}
 
@@ -17349,8 +19715,8 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_START_OF_DELAYED_FIRING_EventProcess()
 //
 //		g_pX2Game->GetEffectSet()->StopEffectSet( m_hActiveStartOfDelayedFiring );	/// 지연의 신호탄 적용중 확인 이펙트
 //
-//		CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
-//		cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_RNW_START_OF_DELAYED_FIRING, m_fStartOfDelayedFiringCoolTime );
+//		CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
+//		accessUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_RNW_START_OF_DELAYED_FIRING, m_fStartOfDelayedFiringCoolTime );
 //
 //		m_fStartOfDelayedFiringCoolTime = 0.f;
 //
@@ -17408,7 +19774,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RNW_GLIDING_STRIKE_FrameMove()
 
 	LUA_GET_VALUE( m_LuaManager, "ARROW_DEGREE_Z", degree.z, 0.0f );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vOriginPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 		D3DXVECTOR3 vEffectPos = vOriginPos;
@@ -17515,7 +19885,7 @@ void CX2GULire_ElvenRanger::ProcessVPP()
 		return;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LNW_VITALPOINT_PIERCING, true );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LNW_VITALPOINT_PIERCING, true );
 
 	if( iSkillLevel > 0 )
 	{
@@ -17526,11 +19896,16 @@ void CX2GULire_ElvenRanger::ProcessVPP()
 			if( GetRandomFloat(CKTDXRandomNumbers::SRO_VITALPOINT_PIERCING) <= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_EFFECTIVE_RATE, iSkillLevel ) )
 			{
 				SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 마나 즉시 회복 기능 추가
+				float fIncreaseMPValue = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MP_RETAKE_ABS, iSkillLevel );
+				UpNowMp( fIncreaseMPValue );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			}
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_VITALPOINT_PIERCING );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RTR_VITALPOINT_PIERCING );
 
 	if( iSkillLevel > 0 )
 	{
@@ -17554,7 +19929,7 @@ void CX2GULire_ElvenRanger::SetFatalityData()
 	float fRate[4];
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_LTR_FATALITY );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_LTR_FATALITY );
 
 	if( iSkillLevel > 0 )
 	{
@@ -17587,7 +19962,7 @@ void CX2GULire_ElvenRanger::SetFatalityData()
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_RTR_FATALITY );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_SA_RTR_FATALITY );
 
 	if( iSkillLevel > 0 )
 	{
@@ -17738,7 +20113,7 @@ void CX2GULire_ElvenRanger::DeleteEvokeNPCUID( UidType iNPCUID )
 {
 	for( int i = 0; i < static_cast<int>( m_vecOptrEvoke.size() ); i++ )
 	{
-		if( iNPCUID == m_vecOptrEvoke[i]->GetUnitUID() )
+		if( m_vecOptrEvoke[i] != null && iNPCUID == m_vecOptrEvoke[i]->GetUnitUID() )
 		{
 			m_vecOptrEvoke.erase( m_vecOptrEvoke.begin() + i );
 			i--;
@@ -17758,7 +20133,11 @@ void CX2GULire_ElvenRanger::DeleteEvokeNPCUID( UidType iNPCUID )
 
 void CX2GULire_ElvenRanger::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName_, const float fTimeToShow_, const UINT uiCutInIndex_, const bool bOnlyLight_ /*= false */ )
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( fTimeToShow_ ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( fTimeToShow_ ) == true && EventCheck( fTimeToShow_, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( GetShowCutInAndChangeWorldColor() && GetShowActiveSkillShow() )
 #ifdef SERV_APRIL_FOOLS_DAY
@@ -17772,7 +20151,11 @@ void CX2GULire_ElvenRanger::ShowActiveSkillCutInAndLight( const WCHAR* szBoneNam
 //LESI_COMBO_X2
 void CX2GULire_ElvenRanger::SnipingRangerComboX2FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 1.5f ) == true )
@@ -17787,11 +20170,11 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX2FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_X2_SR", GetPowerRate() * m_fAttackPowerRateArrow, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -17802,7 +20185,11 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX2FrameMove()
 
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.733f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.733f ) == true && EventCheck( 0.733f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 1.5f ) == true )
@@ -17817,11 +20204,11 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX2FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_X2_SR", GetPowerRate() * m_fAttackPowerRateArrow, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -17837,6 +20224,31 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX2FrameMove()
 
 void CX2GULire_ElvenRanger::SnipingRangerComboX2EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == true )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+	if( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == false )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+	}
+
+	if ( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if ( true == m_pXSkinAnimFuture->IsAnimationEnd() )
+	{
+		StateChange( USI_WAIT );
+	}
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_COMBO_X3 )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+#else //ADD_RENA_SYSTEM
 	if( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == true )
 	{
 		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
@@ -17866,6 +20278,7 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX2EventProcess()
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 	DASH_CANCEL_AFTER( m_fDashCancelAfter )
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -17887,7 +20300,11 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX3FrameMoveFuture()
 }
 void CX2GULire_ElvenRanger::SnipingRangerComboX3FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.45f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.45f ) == true && EventCheck( 0.45f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -17902,11 +20319,11 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX3FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_X3", GetPowerRate() * m_fAttackPowerRateArrow, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -17917,7 +20334,11 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX3FrameMove()
 
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.933f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.933f ) == true && EventCheck( 0.933f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -17932,11 +20353,11 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX3FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_X3", GetPowerRate() * m_fAttackPowerRateArrow, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 			}
 		}
@@ -17951,6 +20372,37 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX3FrameMove()
 }
 void CX2GULire_ElvenRanger::SnipingRangerComboX3EventProcess()
 {
+#ifdef ADD_RENA_SYSTEM //김창한
+	if( m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == true )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false; //X4
+		m_FrameDataFuture.stateParam.bEventFlagList[1] = false; //X4up
+		m_FrameDataFuture.stateParam.bEventFlagList[2] = false; //X4down
+	}
+	if( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == false )
+	{
+		m_FrameDataFuture.stateParam.bEventFlagList[0] = false;
+		m_FrameDataFuture.stateParam.bEventFlagList[1] = false;
+		m_FrameDataFuture.stateParam.bEventFlagList[2] = false;
+	}
+
+	if( false == IsOnSomethingFuture() )
+	{
+		StateChange( USI_JUMP_DOWN );
+		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+	}
+	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{	
+		StateChange( USI_WAIT );
+	}	
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 1, 1, m_InputData.oneX == true && m_InputData.pureUp, LESI_COMBO_X4UP )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 2, 2, m_InputData.oneX == true && m_InputData.pureDown, LESI_COMBO_X4DOWN )
+	ELSE_IF_STATE_CHANGE_ON_EX_STRUCT( 0, 0, m_InputData.oneX == true, LESI_COMBO_X4 )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+#else //ADD_RENA_SYSTEM
 	float fChangeTime = 0.f;
 	LUA_GET_VALUE( m_LuaManager, "CHANGE_TIME",	fChangeTime,	0.0f );
 
@@ -18012,9 +20464,8 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX3EventProcess()
 	{	
 		StateChange( USI_WAIT );
 	}
-	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
-	DASH_CANCEL_AFTER( m_fDashCancelAfter )
-	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+	
+#endif //ADD_RENA_SYSTEM
 
 	CommonEventProcess();
 }
@@ -18022,7 +20473,11 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX3EventProcess()
 //LESI_COMBO_X4
 void CX2GULire_ElvenRanger::SnipingRangerComboX4FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_GRAND_ARCHER_20121213
 		if( FlushMp( 3.f ) == true )
@@ -18037,13 +20492,17 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX4FrameMove()
 			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ARROW_LONG_SR_XXXX", GetPowerRate() * m_fAttackPowerRateArrow, posR, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, m_SkillRelatedData.GetForceDownValueRateOfRenaArrowAttack(), m_fArrowRangeRate, m_iAddHitCountArrow, m_fHitGapArrow, m_iArrowMeshPlayerIndex, m_fHitAddMp );
 			if( NULL != pDE )
 			{
-				pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+				pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 #ifdef NEW_SKILL_2010_11 
 				// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-				pDE->GetDamageData()->m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
-				pDE->GetDamageData()->m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
+				pDE->GetDamageData().m_fHitDamageEffectInvokeRate = m_ArrowData.m_fVibrationShootingInvokeRate;		
+				pDE->GetDamageData().m_fHitDamageEffectDamageRate = m_ArrowData.m_fVibrationShootingDamageRate;	
 #endif NEW_SKILL_2010_11
 				pDE->SetDamageTime( pDE->GetDamageTime() + 1 );
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				pDE->GetDamageData().m_NaturalForceType = CX2DamageManager::NFT_COMBO_BOMB;
+#endif //ADD_RENA_SYSTEM
 			}
 		}
 		else
@@ -18069,6 +20528,9 @@ void CX2GULire_ElvenRanger::SnipingRangerComboX4EventProcess()
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 	DASH_CANCEL_AFTER( m_fDashCancelAfter )
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+#endif //ADD_RENA_SYSTEM
 #ifdef BALANCE_GRAND_ARCHER_20121213
 	ELSE_IF_ZX_PRESSED_AFTER( m_fAttackCancelAfter )
 	{
@@ -18083,21 +20545,19 @@ void CX2GULire_ElvenRanger::SetSiegeModeCoolTime()
 	if( m_bIsSiegeSkill == false )
 		return;
 
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;	// 유저가 배운 스킬 트리		
+	CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;	// 유저가 배운 스킬 트리		
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_LE_SIEGEMODE );
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit()  )
 			return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const int iSkillTempletLevel = max( 1, accessUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
-		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
-	
-		cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_LE_SIEGEMODE, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) );
+		accessUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_LE_SIEGEMODE, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) );
 	#else // UPGRADE_SKILL_SYSTEM_2013
-		cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_LE_SIEGEMODE, pSkillTemplet->m_fSkillCoolTime );
+		accessUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_LE_SIEGEMODE, pSkillTemplet->m_fSkillCoolTime );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 	}
 }
@@ -18138,6 +20598,11 @@ void CX2GULire_ElvenRanger::CheckPriorPlannedBlow()		/// 계산된 일격 적용 판단 �
 	{
 		if( true == m_bActivePriorPlannedBlowAttack )	/// 계산된 일격이 적용된 타격일 때
 		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			/// 계산된 일격 적용 시 m_fPriorPlannedBlowIncreaseHPRate ( SA_HP_INTAKE_REL_DAMAGE ) 에 횟수를 곱하여 hp 를 회복한다.
+			UpNowHp ( GetMaxHp() * ( m_fPriorPlannedBlowIncreaseHPRate * static_cast<float> ( m_iPriorPlannedBlowHitCount - _CONST_RENA_::MIN_PRIOR_PLANNED_BLOW_ACTIVE_NUM + 1 ) ) );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 			EndPriorPlannedBlow();						/// 계산된 일격 초기화
 		}
 		else if( true == m_bPossibleHitCount )			/// 계산된 일격 누적 Count 가능한 타격일 때
@@ -18180,7 +20645,7 @@ void CX2GULire_ElvenRanger::DeletePriorPlannedBlowEffect()		/// 계산된 일격 이펙
 {
 	g_pX2Game->GetEffectSet()->StopEffectSet( m_hPriorPlannedBlowEffect );		/// 이전 이펙트 해제
 
-	m_hPriorPlannedBlowEffect = CX2EffectSet::INVALID_HANDLE;
+	m_hPriorPlannedBlowEffect = INVALID_EFFECTSET_HANDLE;
 
 	m_iNowPriorPlannedBlowLevel = 0;
 }
@@ -18202,6 +20667,9 @@ void CX2GULire_ElvenRanger::UpdateStartOfDelayedFiring( bool bInsertUnit/*= true
 		{
 			vTempArrowList[i]->m_fCoolTime = _CONST_RENA_::START_OF_DELAYED_FIRING_DELAY_ACTIVE_TIME;
 
+#ifdef BALANCE_PATCH_20131107
+			++iArrowByUnitNum;	/// 유닛에 적용된 화살
+#else //BALANCE_PATCH_20131107
 			if( CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY == vTempArrowList[i]->m_iType )
 			{
 				++iArrowByUnitNum;	/// 유닛에 적용된 화살
@@ -18212,6 +20680,8 @@ void CX2GULire_ElvenRanger::UpdateStartOfDelayedFiring( bool bInsertUnit/*= true
 
 				--i;
 			}
+#endif //BALANCE_PATCH_20131107
+
 		}
 		else
 		{
@@ -18260,27 +20730,33 @@ void CX2GULire_ElvenRanger::DeleteStartOfDelayedFiring( vector<CX2DamageManager:
 		/// 유닛에 적용된 화살에 대한 삭제 구문
 		if( -1 == vTempArrowList[i]->m_iArrowIndex && true == bDeleteUnitArrow )
 		{
-			vector<CX2GameUnit*> vecUnitList = g_pX2Game->GetUnitList();
+            unsigned uUnitNum = g_pX2Game->GetUnitNum();
+			const vector<CX2GameUnit*>& vecUnitList = g_pX2Game->GetUnitList();
 
-			for( UINT j = 0; j < vecUnitList.size(); ++j )								/// 유닛에게 적용된 화살 정보 검사
+			for( UINT j = 0; j < uUnitNum; ++j )								/// 유닛에게 적용된 화살 정보 검사
 			{
-				if( false == g_pX2Game->IsValidUnit( vecUnitList[i] ) ||
-					true == vecUnitList[j]->GetStartOfDelayedFiringData().empty() )		/// 적용 화살 정보가 존재하는 유닛일때만 검사
+                CX2GameUnit* pGameUnit = g_pX2Game->GetUnit( j );
+		        if( pGameUnit == NULL )
+                    continue;
+
+                vector<CX2DamageManager::StartOfDelayedFiringData*>& vecStart = pGameUnit->AccessStartOfDelayedFiringData();
+
+				if( true == vecStart.empty() )		/// 적용 화살 정보가 존재하는 유닛일때만 검사
 					continue;
 
-				for( UINT k = 0; k < vecUnitList[j]->GetStartOfDelayedFiringData().size(); ++k )
+				for( UINT k = 0; k < vecStart.size(); ++k )
 				{
 					int	iArrowOrderNum = vTempArrowList[i]->m_iArrowOrderNumber;		/// 해당 화살의 적용 순서
 
-					vector<CX2DamageManager::StartOfDelayedFiringData*> pArrowData = vecUnitList[j]->GetStartOfDelayedFiringData();
+					CX2DamageManager::StartOfDelayedFiringData* pArrowData = vecStart[k];
 
 					/// 발사한 유저와 발사 순서 번호가 일치하는 화살에 대해 삭제
-					if( iAttackerIndex == pArrowData[k]->m_iAttackerIndex && 
-						iArrowOrderNum == pArrowData[k]->m_iArrowOrderNumber )
+					if( pArrowData != NULL && iAttackerIndex == pArrowData->m_iAttackerIndex && 
+						iArrowOrderNum == pArrowData->m_iArrowOrderNumber )
 					{
 						vTempArrowList.erase( vTempArrowList.begin() + i );	/// 임시 벡터 삭제
 
-						pArrowData[k]->m_fCoolTime = 0.01f;
+						pArrowData->m_fCoolTime = 0.01f;
 
 						return;
 					}
@@ -18291,7 +20767,7 @@ void CX2GULire_ElvenRanger::DeleteStartOfDelayedFiring( vector<CX2DamageManager:
 		/// 지형에 적용된 화살에 대한 삭제 구문
 		else if( -1 != vTempArrowList[i]->m_iArrowIndex && false == bDeleteUnitArrow )
 		{
-			CX2DamageEffect::CEffect* pCEffect = g_pX2Game->GetDamageEffect()->GetInstaceByIndex( vTempArrowList[i]->m_iArrowIndex );
+			CX2DamageEffect::CEffect* pCEffect = g_pX2Game->GetDamageEffect()->GetInstanceByIndex( vTempArrowList[i]->m_iArrowIndex );
 
 			if( NULL != pCEffect )
 			{
@@ -18321,7 +20797,7 @@ void CX2GULire_ElvenRanger::SetStartOfDelayedFiringOrderNum( vector<CX2DamageMan
 		}
 		else												/// 지형에 적용중인 화살
 		{
-			CX2DamageEffect::CEffect* pCEffect = g_pX2Game->GetDamageEffect()->GetInstaceByIndex( vTempArrowList[i]->m_iArrowIndex );
+			CX2DamageEffect::CEffect* pCEffect = g_pX2Game->GetDamageEffect()->GetInstanceByIndex( vTempArrowList[i]->m_iArrowIndex );
 
 			if( NULL != pCEffect && CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY_GROUND != pCEffect->GetType() )
 				pCEffect->SetOrderNum( i );
@@ -18333,52 +20809,76 @@ void CX2GULire_ElvenRanger::SetStartOfDelayedFiringOrderNum( vector<CX2DamageMan
 bool CX2GULire_ElvenRanger::CreateStartOfDelayedFiringDataVector( OUT vector<CX2DamageManager::StartOfDelayedFiringData*>& vArrowData, int iAttackerIndex )
 {
 	/// 유저에게 적용된 화살 검사
-	vector<CX2GameUnit*> vecUnitList = g_pX2Game->GetUnitList();
+    unsigned    uNumUnit = g_pX2Game->GetUnitNum();
 
-	for( UINT i = 0; i < vecUnitList.size(); ++i )
+	for( UINT i = 0; i < uNumUnit; ++i )
 	{
+        CX2GameUnit* pGameUnit = g_pX2Game->GetUnit( i );
 		/// 적용 화살 정보가 존재하는 유닛일때만 검사
-		if( false == g_pX2Game->IsValidUnit( vecUnitList[i] ) ||
-			true == vecUnitList[i]->GetStartOfDelayedFiringData().empty() )
+		if( pGameUnit == NULL )
+            continue;
+
+        vector<CX2DamageManager::StartOfDelayedFiringData*>& vecStart = pGameUnit->AccessStartOfDelayedFiringData();
+
+		if ( vecStart.empty() == true )
 			continue;
 
-		vector<CX2DamageManager::StartOfDelayedFiringData*> pArrowData = vecUnitList[i]->GetStartOfDelayedFiringData();
-
 		/// 해당 공격자가 적용시킨 화살 정보 저장
-		for( UINT j = 0; j < pArrowData.size(); ++j )
+		for( UINT j = 0; j < vecStart.size(); ++j )
 		{
-			if( iAttackerIndex == pArrowData[j]->m_iAttackerIndex &&
-				CX2DamageEffect::DET_ARROW_OF_EXPLOSION_READY != pArrowData[j]->m_iType )	/// 전체 폭발 대기중인 화살은 제외
+            CX2DamageManager::StartOfDelayedFiringData* pArrowData = vecStart[j];
+			if( pArrowData != NULL && iAttackerIndex == pArrowData->m_iAttackerIndex &&
+				CX2DamageEffect::DET_ARROW_OF_EXPLOSION_READY != pArrowData->m_iType )	/// 전체 폭발 대기중인 화살은 제외
 			{
-				vArrowData.push_back( pArrowData[j] );
+				vArrowData.push_back( pArrowData );
 			}
 		}
 	}
 
 	/// 지형에 적용된 화살 검사
-	vector<CX2DamageEffect::CEffect*> vecDamageEffect = g_pX2Game->GetDamageEffect()->GetInstaceList();
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    auto CreateStartOfDelayedFiringDataVectorCB = [&vArrowData,iAttackerIndex]( CX2DamageEffect::CEffect& kEffect )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	vector<CX2DamageEffect::CEffect*> vecDamageEffect = g_pX2Game->GetDamageEffect()->GetInstanceList();
 	for( UINT i = 0; i < vecDamageEffect.size(); ++i )
-	{
-		if( NULL == vecDamageEffect[i] || 
-			false == g_pX2Game->GetDamageEffect()->IsLiveInstance( vecDamageEffect[i] ) ||
-			NULL == vecDamageEffect[i]->GetDamageData() ||
-			null == vecDamageEffect[i]->GetDamageData()->optrAttackerGameUnit )
-		   continue;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( null == kEffect.GetDamageData().optrAttackerGameUnit )
+		    return;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect* pEffect = vecDamageEffect[i];
+		if( NULL == pEffect || 
+			false == g_pX2Game->GetDamageEffect()->IsLiveInstance( pEffect ) ||
+            null == pEffect->GetDamageData().optrAttackerGameUnit )
+		    continue;
+        CX2DamageEffect::CEffect& kEffect = *pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		/// 해당 공격자가 땅에 적용시킨 폭발의 화살 저장
-		if( iAttackerIndex == vecDamageEffect[i]->GetDamageData()->optrAttackerGameUnit->GetUnitIndex() && 
-			CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY_GROUND == vecDamageEffect[i]->GetType() )
+		if( iAttackerIndex == kEffect.GetDamageData().optrAttackerGameUnit->GetUnitIndex() && 
+			CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY_GROUND == kEffect.GetType() )
 		{
-			if( -1 == vecDamageEffect[i]->GetOrderNum() )
-				continue;
+			if( -1 == kEffect.GetOrderNum() )
+            {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                return;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                continue;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            }
 
 			CX2DamageManager::StartOfDelayedFiringData* pData = new CX2DamageManager::StartOfDelayedFiringData( CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY_GROUND, 
-				iAttackerIndex, vecDamageEffect[i]->GetOrderNum(), vecDamageEffect[i]->GetIndex(), vecDamageEffect[i]->GetDamageData()->optrAttackerGameUnit->GetPowerRate() );
+				iAttackerIndex, kEffect.GetOrderNum(), 
+                kEffect.GetIndex(), 
+                kEffect.GetDamageData().optrAttackerGameUnit->GetPowerRate() );
 
 			vArrowData.push_back( pData );
 		}
-	}
+    };
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    g_pX2Game->GetDamageEffect()->ApplyFunctionToLiveInstances( CreateStartOfDelayedFiringDataVectorCB );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	if( true == vArrowData.empty() )
 		return false;		/// 공격자가 적용시킨 화살이 없다면, 화살 정보 갱신을 하지 않는다.
@@ -18389,13 +20889,17 @@ bool CX2GULire_ElvenRanger::CreateStartOfDelayedFiringDataVector( OUT vector<CX2
 /// 전체 폭발 대상 객체 정보 벡터 생성
 bool CX2GULire_ElvenRanger::CreateEntireExplosionDataVector( OUT vector<CX2DamageManager::StartOfDelayedFiringData*>& vArrowData )
 {
-	vector<CX2GameUnit*> vecUnitList = g_pX2Game->GetUnitList();
+    unsigned    uNumUnits = g_pX2Game->GetUnitNum();
 
 	/// 유닛에 적용된 화살 정보 검사
-	for( UINT i = 0; i < vecUnitList.size(); ++i )
+	for( UINT i = 0; i < uNumUnits; ++i )
 	{
-		if( false == g_pX2Game->IsValidUnit( vecUnitList[i] ) ||
-			true == vecUnitList[i]->GetStartOfDelayedFiringData().empty() )
+        CX2GameUnit* pGameUnit = g_pX2Game->GetUnit( i );
+		if( pGameUnit == NULL )
+            continue;
+
+        vector<CX2DamageManager::StartOfDelayedFiringData*>& vecStart = pGameUnit->AccessStartOfDelayedFiringData();
+		if ( true == vecStart.empty() )
 			continue;
 
 		//if( 9999.f >= GetDistance( GetPos(), vecUnitList[i]->GetPos() ) )		/// 폭파 거리 연산( 기획에서 제외됨 )
@@ -18417,20 +20921,20 @@ bool CX2GULire_ElvenRanger::CreateEntireExplosionDataVector( OUT vector<CX2Damag
 				D3DXVECTOR3(  50.f, -15.f,  50.f ),
 			};
 
-			for( UINT j = 0; j < vecUnitList[i]->GetStartOfDelayedFiringData().size(); ++j )		/// 공격자가 적용한 화살 정보 검색
+			for( UINT j = 0; j < vecStart.size(); ++j )		/// 공격자가 적용한 화살 정보 검색
 			{
-				vector<CX2DamageManager::StartOfDelayedFiringData*> pArrowData = vecUnitList[i]->GetStartOfDelayedFiringData();
+				CX2DamageManager::StartOfDelayedFiringData* pArrowData = vecStart[j];
 
-				if( GetUnitIndex() == pArrowData[j]->m_iAttackerIndex )
+				if( GetUnitIndex() == pArrowData->m_iAttackerIndex )
 				{
-					if( CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY == pArrowData[j]->m_iType )
-						pArrowData[j]->m_iType = CX2DamageEffect::DET_ARROW_OF_EXPLOSION_READY;			/// 폭발 대기 타입 설정( 폭발의 화살 )
-					else if( CX2DamageEffect::DET_START_OF_DELAYED_FIRING == pArrowData[j]->m_iType )
-						pArrowData[j]->m_iType = CX2DamageEffect::DET_START_OF_DELAYED_FIRING_READY;	/// 폭발 대기 타입 설정( 지연의 신호탄 )
+					if( CX2DamageEffect::DET_ARROW_OF_EXPLOSION_DELAY == pArrowData->m_iType )
+						pArrowData->m_iType = CX2DamageEffect::DET_ARROW_OF_EXPLOSION_READY;			/// 폭발 대기 타입 설정( 폭발의 화살 )
+					else if( CX2DamageEffect::DET_START_OF_DELAYED_FIRING == pArrowData->m_iType )
+						pArrowData->m_iType = CX2DamageEffect::DET_START_OF_DELAYED_FIRING_READY;	/// 폭발 대기 타입 설정( 지연의 신호탄 )
 					
-					pArrowData[j]->m_fCoolTime = fCoolTime;						/// 폭발 시간 설정
+					pArrowData->m_fCoolTime = fCoolTime;						/// 폭발 시간 설정
 
-					pArrowData[j]->m_vExplosionOffSet = vEffPos[iCount];		/// 폭발 위치 설정
+					pArrowData->m_vExplosionOffSet = vEffPos[iCount];		/// 폭발 위치 설정
 					++iCount;
 
 					if( 8 < iCount )		/// 최대 폭발 위치 인덱스 카운트 제한
@@ -18440,29 +20944,40 @@ bool CX2GULire_ElvenRanger::CreateEntireExplosionDataVector( OUT vector<CX2Damag
 
 					bIsExplosion = true;										/// EDT 이모티콘 갱신 여부 설정
 
-					vArrowData.push_back( pArrowData[j] );						/// 폭발 리스트 벡터에 저장
+					vArrowData.push_back( pArrowData );						/// 폭발 리스트 벡터에 저장
 				}
 			}
 
 			if( true == bIsExplosion )			/// 폭발된 정보가 있다면, EDT 이모티콘 갱신 처리
 			{
-				vecUnitList[i]->SetStartOfDelayedFiringEmoticon();
+				pGameUnit->SetStartOfDelayedFiringEmoticon();
 			}
 		}
 	}
 
 	/// 지형에 적용된 화살 검사
-	vector<CX2DamageEffect::CEffect*> vInstaceList = g_pX2Game->GetDamageEffect()->GetInstaceList();
-
+    int iUnitIndex = GetUnitIndex();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    auto CreateEntireExplosionDataVectorCB = [&vArrowData,iUnitIndex]( CX2DamageEffect::CEffect& kEffect ) 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	vector<CX2DamageEffect::CEffect*> vInstaceList = g_pX2Game->GetDamageEffect()->GetInstanceList();
 	for( UINT i = 0; i < vInstaceList.size(); ++i )
-	{
-		if( NULL == vInstaceList[i] || 
-			false == g_pX2Game->GetDamageEffect()->IsLiveInstance( vInstaceList[i] ) ||
-			NULL == vInstaceList[i]->GetDamageData() ||
-			null == vInstaceList[i]->GetDamageData()->optrAttackerGameUnit )
-			continue;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( null == kEffect.GetDamageData().optrAttackerGameUnit )
+            return;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect* pEffect = vInstaceList[i];
+		if( NULL == pEffect || 
+			false == g_pX2Game->GetDamageEffect()->IsLiveInstance( pEffect ) ||
+            null == pEffect->GetDamageData().optrAttackerGameUnit )
+		    continue;
+        CX2DamageEffect::CEffect& kEffect = *pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-		switch( vInstaceList[i]->GetType() )
+
+		switch( kEffect.GetType() )
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 		case CX2DamageEffect::DET_SEED_OF_RUIN_GROUND:					/// 지형에 적용된 진노의 씨앗
@@ -18474,20 +20989,25 @@ bool CX2GULire_ElvenRanger::CreateEntireExplosionDataVector( OUT vector<CX2Damag
 		case CX2DamageEffect::DET_EXPLOSION_TRAP_GROUND:				/// 지형에 적용된 폭발의 덫
 			{
 				/// 공격자가 일치하고, 공격 거리 안에 있는 데미지 이펙트 검사
-				if( GetUnitIndex() == vInstaceList[i]->GetDamageData()->optrAttackerGameUnit->GetUnitIndex() )
+				if( iUnitIndex == kEffect.GetDamageData().optrAttackerGameUnit->GetUnitIndex() )
 				{
-					//if( 9999.f >= GetDistance( GetPos(), vInstaceList[i]->GetPos() ) )			/// 폭파 거리 연산( 기획에서 제외됨 )
+					//if( 9999.f >= GetDistance( GetPos(), kEffect.GetPos() ) )			/// 폭파 거리 연산( 기획에서 제외됨 )
 					{
 						/// 임시 벡터에 넣을 화살 정보 생성
-						CX2DamageManager::StartOfDelayedFiringData* pData = new CX2DamageManager::StartOfDelayedFiringData( vInstaceList[i]->GetType(), 
-							GetUnitIndex(), vInstaceList[i]->GetOrderNum(), vInstaceList[i]->GetIndex(), 0.f, vInstaceList[i]->GetDamageData()->damage.fPhysic );
+						CX2DamageManager::StartOfDelayedFiringData* pData = new CX2DamageManager::StartOfDelayedFiringData( kEffect.GetType(), 
+							iUnitIndex, kEffect.GetOrderNum(), 
+                            kEffect.GetIndex(), 
+                            0.f, kEffect.GetDamageData().damage.fPhysic );
 
 						vArrowData.push_back( pData );
 					}
 				} 
 			} break;
 		}
-	}
+    };
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    g_pX2Game->GetDamageEffect()->ApplyFunctionToLiveInstances( CreateEntireExplosionDataVectorCB );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	if( true == vArrowData.empty() )
 		return false;
@@ -18514,7 +21034,7 @@ void CX2GULire_ElvenRanger::EntireExplosion()		/// 지연의 신호탄 전체 폭발
 		CX2GUNPC* pNPC = g_pX2Game->GetNPCUnitByUID( static_cast<int>(iNPCUID) );
 
 		/// 엘드랏실의 분노 ( 지연의 신호탄 반응 )
-		if( NULL != pNPC && NULL != pNPC->GetNPCTemplet() && CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY == pNPC->GetNPCTemplet()->m_nNPCUnitID )
+		if( NULL != pNPC && CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY == pNPC->GetNPCTemplet().m_nNPCUnitID )
 			++iCountExplosionObjectNum;
 	}
 
@@ -18546,8 +21066,7 @@ void CX2GULire_ElvenRanger::EntireExplosion()		/// 지연의 신호탄 전체 폭발
 		}
 		else															/// 지형에 적용된 폭발 설정
 		{
-			CX2DamageEffect::CEffect* pCEffect = g_pX2Game->GetDamageEffect()->GetInstaceByIndex( vExplosionArrowList[i]->m_iArrowIndex );
-
+			CX2DamageEffect::CEffect* pCEffect = g_pX2Game->GetDamageEffect()->GetInstanceByIndex( vExplosionArrowList[i]->m_iArrowIndex );
 			if( pCEffect !=	NULL && true == g_pX2Game->GetDamageEffect()->IsLiveInstance( pCEffect ) )
 			{
 				if( vExplosionArrowList[i]->m_iType == CX2DamageEffect::DET_EXPLOSION_TRAP_GROUND )		/// 폭발의 덫은 연타 공격 이므로, 데미지 보정
@@ -18570,7 +21089,7 @@ void CX2GULire_ElvenRanger::EntireExplosion()		/// 지연의 신호탄 전체 폭발
 	{
 		UidType& npcUID = m_vecAngerOfElfTrapUID[i];
 		CX2GUNPC* pNPC = g_pX2Game->GetNPCUnitByUID( static_cast<int>(npcUID) );
-		if( NULL != pNPC && NULL != pNPC->GetNPCTemplet() && CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY == pNPC->GetNPCTemplet()->m_nNPCUnitID )
+		if( NULL != pNPC && CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY == pNPC->GetNPCTemplet().m_nNPCUnitID )
 		{
 			pNPC->SetNowHp( 1.f );
 
@@ -18601,41 +21120,59 @@ void CX2GULire_ElvenRanger::EntireExplosion()		/// 지연의 신호탄 전체 폭발
 
 void CX2GULire_ElvenRanger::ClearStartOfDelayedFiringData()		/// 사망 혹은 이탈시, 해당 유저가 적용한 지연의 신호탄 정보 삭제
 {
-	vector<CX2GameUnit*> vecUnitList = g_pX2Game->GetUnitList();
+    unsigned    uNumUnit = g_pX2Game->GetUnitNum();
 
 	/// 유닛에 적용된 화살 정보 검사
-	for( UINT i = 0; i < vecUnitList.size(); ++i )
+	for( UINT i = 0; i < uNumUnit; ++i )
 	{
-		if( false == g_pX2Game->IsValidUnit( vecUnitList[i] ) ||
-			true == vecUnitList[i]->GetStartOfDelayedFiringData().empty() )
+        CX2GameUnit* pGameUnit = g_pX2Game->GetUnit( i );
+		if( pGameUnit == NULL )
+            continue;
+        vector<CX2DamageManager::StartOfDelayedFiringData*>& vecStart = pGameUnit->AccessStartOfDelayedFiringData();
+		if ( true == vecStart.empty() )
 			continue;
 
 		float fCoolTime	   = 0.01f;
 		bool  bIsExplosion = false;
 
-		for( UINT j = 0; j < vecUnitList[i]->GetStartOfDelayedFiringData().size(); ++j )		/// 공격자가 적용한 화살 정보 검색
+		for( UINT j = 0; j < vecStart.size(); ++j )		/// 공격자가 적용한 화살 정보 검색
 		{
-			vector<CX2DamageManager::StartOfDelayedFiringData*> pArrowData = vecUnitList[i]->GetStartOfDelayedFiringData();
-
-			if( GetUnitIndex() == pArrowData[j]->m_iAttackerIndex )
+            CX2DamageManager::StartOfDelayedFiringData* pArrowData = vecStart[j];
+			if( pArrowData != NULL && GetUnitIndex() == pArrowData->m_iAttackerIndex )
 			{
-				pArrowData[j]->m_fCoolTime = 0.01f;							/// 폭발 시간 설정
+				pArrowData->m_fCoolTime = 0.01f;							/// 폭발 시간 설정
 			}
 		}
 	}
 
 	/// 지형에 적용된 화살 검사
-	vector<CX2DamageEffect::CEffect*> vInstaceList = g_pX2Game->GetDamageEffect()->GetInstaceList();
-
+    int iUnitIndex = GetUnitIndex();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    auto ClearStartOfDelayedFiringDataCB = [iUnitIndex]( CX2DamageEffect::CEffect& kEffect )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    std::vector<CX2DamageEffect::CEffectHandle>  vecHandle;
+    auto ClearStartOfDelayedFiringDataCB = [&vecHandle,iUnitIndex]( CX2DamageEffect::CEffect& kEffect )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	vector<CX2DamageEffect::CEffect*> vInstaceList = g_pX2Game->GetDamageEffect()->GetInstanceList();
 	for( UINT i = 0; i < vInstaceList.size(); ++i )
-	{
-		if( NULL == vInstaceList[i] || 
-			false == g_pX2Game->GetDamageEffect()->IsLiveInstance( vInstaceList[i] ) ||
-			NULL == vInstaceList[i]->GetDamageData() ||
-			null == vInstaceList[i]->GetDamageData()->optrAttackerGameUnit )
-			continue;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( null == kEffect.GetDamageData().optrAttackerGameUnit )
+            return;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect* pEffect = vInstaceList[i];
+		if( NULL == pEffect || 
+			false == g_pX2Game->GetDamageEffect()->IsLiveInstance( pEffect ) ||
+            null == pEffect->GetDamageData().optrAttackerGameUnit )
+		    continue;
+        CX2DamageEffect::CEffect& kEffect = *pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-		switch( vInstaceList[i]->GetType() )
+
+		switch( kEffect.GetType() )
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 		case CX2DamageEffect::DET_SEED_OF_RUIN_GROUND:					/// 지형에 적용된 진노의 씨앗
@@ -18647,13 +21184,30 @@ void CX2GULire_ElvenRanger::ClearStartOfDelayedFiringData()		/// 사망 혹은 이탈�
 		case CX2DamageEffect::DET_EXPLOSION_TRAP_GROUND:				/// 지형에 적용된 폭발의 덫
 			{
 				/// 공격자가 일치하고, 공격 거리 안에 있는 데미지 이펙트 검사
-				if( GetUnitIndex() == vInstaceList[i]->GetDamageData()->optrAttackerGameUnit->GetUnitIndex() )
+				if( iUnitIndex == kEffect.GetDamageData().optrAttackerGameUnit->GetUnitIndex() )
 				{
-					g_pX2Game->GetDamageEffect()->DestroyInstanceSilently( vInstaceList[i] );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+                    g_pX2Game->GetDamageEffect()->DestroyInstanceHandleSilently( kEffect.GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+                    vecHandle.push_back( kEffect.GetHandle() );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    g_pX2Game->GetDamageEffect()->DestroyInstanceSilently( pEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				} 
 			} break;
 		}
-	}
+    };
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    g_pX2Game->GetDamageEffect()->ApplyFunctionToLiveInstances( ClearStartOfDelayedFiringDataCB );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    BOOST_FOREACH( CX2DamageEffect::CEffectHandle handle, vecHandle )
+    {
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandleSilently( handle );
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 int CX2GULire_ElvenRanger::CreateDamageEffectIndex()	/// 폭발의 화살 DamageEffect의 Index 생성 함수
@@ -18727,16 +21281,16 @@ void CX2GULire_ElvenRanger::UpNowMpPerHitOthers( const float fHitAddMp_, const i
 {
 	CX2GUUser::HyperModeBuffEffectStart();
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRFoot )
 		m_hHyperBoostRFoot = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightGreen",	0,0,0, 0, 0 );
 	
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLFoot )
 		m_hHyperBoostLFoot = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftGreen",	0,0,0, 0, 0 );
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRArm )
 		m_hHyperBoostRArm = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightGreen",	0,0,0, 0, 0 );
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLArm )
 		m_hHyperBoostLArm = g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftGreen",	0,0,0, 0, 0 );
 }
 
@@ -18782,6 +21336,21 @@ void CX2GULire_ElvenRanger::UpNowMpPerHitOthers( const float fHitAddMp_, const i
 		} break;
 #endif
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	case CX2SkillTree::SI_A_LTR_ENTANGLE:
+		{
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO23 ) == true )
+				fMpConsumption *= 0.9f;
+
+		} break;
+
+	case CX2SkillTree::SI_SA_LE_MULTIPLE_STINGER:
+		{
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO8 ) == true )
+				fMpConsumption *= 0.9f;
+		} break;
+
+#endif //ADD_MEMO_1ST_CLASS
 	default:
 		break;
 	}
@@ -18789,7 +21358,16 @@ void CX2GULire_ElvenRanger::UpNowMpPerHitOthers( const float fHitAddMp_, const i
 	if ( 0.0f > fMpConsumption )
 		fMpConsumption = 0.f;
 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT	
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( eSkillID_ );
+	float fMpDecreaseRate = 1.0f;
+	if( NULL != pSkillTemplet )
+		fMpDecreaseRate  =  g_pData->GetMyUser()->GetSelectUnit()->GetSkillMpDecreaseRate(eSkillID_, pSkillTemplet->m_eType);
+
+	return fMpConsumption * fMpDecreaseRate;
+#else SERV_BALANCE_FINALITY_SKILL_EVENT
 	return fMpConsumption;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
 }
 
 /** @function : AddUnitSlashData
@@ -18849,7 +21427,7 @@ void CX2GULire_ElvenRanger::SetDamageExceptionProcess( CX2DamageManager::DamageD
 	if( CX2DamageManager::HT_ARROW_HIT == pDamageData_->hitType )
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LSR_POWERFUL_BOWSTRING, true );
+		iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LSR_POWERFUL_BOWSTRING, true );
 
 		if( iSkillLevel > 0 )
 		{
@@ -18867,7 +21445,7 @@ void CX2GULire_ElvenRanger::SetDamageExceptionProcess( CX2DamageManager::DamageD
 			}
 		}
 #else //UPGRADE_SKILL_SYSTEM_2013
-		iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_POWERFUL_BOWSTRING );
+		iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LE_POWERFUL_BOWSTRING );
 
 		if( iSkillLevel > 0 )
 		{
@@ -18887,6 +21465,28 @@ void CX2GULire_ElvenRanger::SetDamageExceptionProcess( CX2DamageManager::DamageD
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	}
 #endif //BALANCE_GRAND_ARCHER_20121213
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 어택 트리거 타입이 DTT_SHARP_KICK_RELATE_ACTIVE_SKILL_INCREASE_MP_RATE 일 때, 날렵한 발차기 패시브 영향을 받음
+	if( CX2DamageManager::DTT_SHARP_KICK_RELATE_ACTIVE_SKILL_INCREASE_MP_RATE == pDamageData_->m_eDamageTrigger )
+	{
+		iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LCR_SHARP_KICK );
+
+		if( iSkillLevel > 0 )
+		{
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = 
+				g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LCR_SHARP_KICK );
+
+			if ( NULL != pSkillTemplet )
+			{
+				float fIncreaseSkillSkillMPRate = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_MP_GAIN_ON_HIT_REL, iSkillLevel );
+				{
+					pDamageData_->fHitAddMP = pDamageData_->fHitAddMP * fIncreaseSkillSkillMPRate;
+				}
+			}
+		}
+	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 }
 #endif //MODIFY_SET_DAMAGE_DATA
 
@@ -18922,17 +21522,19 @@ void CX2GULire_ElvenRanger::CreateGuideArrow( bool bMemo_, bool bHyperMode_/* = 
 	}
 
 	//가이드 애로우 이펙트 생성
-	vector<CX2DamageEffect::CEffect*>	m_vecDamageEffect;
-	m_vecDamageEffect.push_back( g_pX2Game->GetDamageEffect()->CreateInstance( this, EffectName.c_str() , GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y ) );
+	CX2DamageEffect::CEffect* aDamageEffect[4];
+    ZeroMemory( aDamageEffect, sizeof(0) );
+    int iNumDe = 0;
+	aDamageEffect[iNumDe++] = g_pX2Game->GetDamageEffect()->CreateInstance( this, EffectName.c_str() , GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 	degree.z += fDegreeZ;
-	m_vecDamageEffect.push_back( g_pX2Game->GetDamageEffect()->CreateInstance( this, EffectName.c_str(), GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y ) );
+	aDamageEffect[iNumDe++] = g_pX2Game->GetDamageEffect()->CreateInstance( this, EffectName.c_str(), GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 	degree.z += fDegreeZ;
-	m_vecDamageEffect.push_back( g_pX2Game->GetDamageEffect()->CreateInstance( this, EffectName.c_str(), GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y ) );
+	aDamageEffect[iNumDe++] = g_pX2Game->GetDamageEffect()->CreateInstance( this, EffectName.c_str(), GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 	degree.z += fDegreeZ;
 
 	//메모 적용시에는 한발 더 쏘기
 	if( true == bMemo_ )
-		m_vecDamageEffect.push_back( g_pX2Game->GetDamageEffect()->CreateInstance( this, EffectName.c_str(), GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y ) );
+		aDamageEffect[iNumDe++] = g_pX2Game->GetDamageEffect()->CreateInstance( this, EffectName.c_str(), GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 
 	//타겟 설정
 	//가까이 있는 순서대로 1발씩 타겟 잡으며, 개체수보다 화살이 많을 경우 첫 타겟 대상부터 다시 타겟팅
@@ -18941,7 +21543,7 @@ void CX2GULire_ElvenRanger::CreateGuideArrow( bool bMemo_, bool bHyperMode_/* = 
 
 	int iOffset = 0;
 	std::map<float, UidType>::iterator it = mapNearUnitUid.begin();
-	for( UINT i=0; i<m_vecDamageEffect.size(); ++i )
+	for( UINT i=0; i< (UINT) iNumDe; ++i )
 	{				
 		//타겟 개체 수 보다, 화살이 많으면
 		if( (i - iOffset) >= mapNearUnitUid.size() ) 
@@ -18950,12 +21552,15 @@ void CX2GULire_ElvenRanger::CreateGuideArrow( bool bMemo_, bool bHyperMode_/* = 
 			iOffset = i;	
 			it = mapNearUnitUid.begin();
 		}
-		if( NULL != g_pX2Game->GetNPCUnitByUID(static_cast<int>(it->second)) )
-			m_vecDamageEffect[i]->SetLockOnNPCUID( static_cast<int>(it->second) );
-		else
-			m_vecDamageEffect[i]->SetLockOnUnitUID( it->second );
-		//타겟을 잃었을 때에는 가장 가까이 있는 타겟을 잡기 위해 락온타입 설정
-		m_vecDamageEffect[i]->SetLockOnType(CX2DamageEffect::LOT_NEARST_UID_VECTOR);
+        if ( aDamageEffect[i] != NULL )
+        {
+		    if( NULL != g_pX2Game->GetNPCUnitByUID(static_cast<int>(it->second)) )
+			    aDamageEffect[i]->SetLockOnNPCUID( static_cast<int>(it->second) );
+		    else
+			    aDamageEffect[i]->SetLockOnUnitUID( it->second );
+		    //타겟을 잃었을 때에는 가장 가까이 있는 타겟을 잡기 위해 락온타입 설정
+		    aDamageEffect[i]->SetLockOnType(CX2DamageEffect::LOT_NEARST_UID_VECTOR);
+        }
 		++it;
 	}
 }
@@ -18971,7 +21576,11 @@ void CX2GULire_ElvenRanger::LESI_A_LCR_MIDDLE_KICK_Init()
 
 void CX2GULire_ElvenRanger::LESI_A_LCR_MIDDLE_KICK_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		/// 미들킥 메모
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO11 ) )
@@ -19090,11 +21699,19 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_AIRELINNA_SYLPH_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_AIRELINNA", this );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7333f ) == true && EventCheck( 0.7333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet 
 			= GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_LWS_AIRELINNA_SYLPH );
@@ -19109,7 +21726,8 @@ void CX2GULire_ElvenRanger::LESI_SA_LWS_AIRELINNA_SYLPH_FrameMove()
 				= g_pX2Game->GetDamageEffect()->CreateInstance( this, L"AIRELINNA_SYLPH_ATTACK_TWO", GetPowerRate(), DamageEffectPos, GetRotateDegree(), GetRotateDegree());
 			if( NULL != pDE )
 			{
-				pDE->GetMainEffect()->SetMaxLifeTime(1.1f);
+                if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pDE->GetMainEffect() )
+				    pMeshInstance->SetMaxLifeTime(1.1f);
 			}
 		}
 	}
@@ -19137,7 +21755,11 @@ void CX2GULire_ElvenRanger::LESI_A_LSR_SHOOTING_MAGNUM_Init()
 }
 void CX2GULire_ElvenRanger::LESI_A_LSR_SHOOTING_MAGNUM_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//화살쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
@@ -19149,14 +21771,43 @@ void CX2GULire_ElvenRanger::LESI_A_LSR_SHOOTING_MAGNUM_FrameMove()
 			posR = posR - GetDirVector() * 20.0f;
 
 		CX2DamageEffect::CEffect* pDE = NULL;
-		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LSR_Shooting_Magnum", GetPowerRate(), 
+		m_wstrShootingMagumRandomArrow = L"DamageEffect_LSR_Shooting_Magnum";
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_RENA_MEMO19) == true )
+		{
+			int iRandomindex = static_cast<int>(GetRandomFloat() * 10.f);
+			iRandomindex = iRandomindex % 3;
+			switch(iRandomindex)
+			{
+			case 0:
+				m_wstrShootingMagumRandomArrow += L"_Memo_Ice";
+				break;
+			case 1:
+				m_wstrShootingMagumRandomArrow += L"_Memo_Poison";
+				break;
+			case 2:
+				m_wstrShootingMagumRandomArrow += L"_Memo_Fire";
+				break;
+			}
+
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, m_wstrShootingMagumRandomArrow.c_str(), GetPowerRate(), 
+				posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+		}
+		else
+#endif //ADD_MEMO_1ST_CLASS
+		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, m_wstrShootingMagumRandomArrow.c_str(), GetPowerRate(), 
 			posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
+
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.637f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.637f ) == true && EventCheck( 0.637f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//화살쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
@@ -19167,14 +21818,27 @@ void CX2GULire_ElvenRanger::LESI_A_LSR_SHOOTING_MAGNUM_FrameMove()
 			posR = posR - GetDirVector() * 20.0f;
 
 		CX2DamageEffect::CEffect* pDE = NULL;
-		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LSR_Shooting_Magnum", GetPowerRate(), 
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_RENA_MEMO19) == true )
+		{
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, m_wstrShootingMagumRandomArrow.c_str(), GetPowerRate(), 
+				posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+		}
+		else
+#endif //ADD_MEMO_1ST_CLASS
+		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, m_wstrShootingMagumRandomArrow.c_str(), GetPowerRate(), 
 			posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.772f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.772f ) == true && EventCheck( 0.772f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//화살쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );		
@@ -19185,14 +21849,27 @@ void CX2GULire_ElvenRanger::LESI_A_LSR_SHOOTING_MAGNUM_FrameMove()
 			posR = posR - GetDirVector() * 20.0f;
 
 		CX2DamageEffect::CEffect* pDE = NULL;
-		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LSR_Shooting_Magnum", GetPowerRate(), 
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_RENA_MEMO19) == true )
+		{
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, m_wstrShootingMagumRandomArrow.c_str(), GetPowerRate(), 
+				posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+		}
+		else
+#endif //ADD_MEMO_1ST_CLASS
+		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, m_wstrShootingMagumRandomArrow.c_str(), GetPowerRate(), 
 			posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//화살쏘기
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );		
@@ -19203,11 +21880,20 @@ void CX2GULire_ElvenRanger::LESI_A_LSR_SHOOTING_MAGNUM_FrameMove()
 			posR = posR - GetDirVector() * 20.0f;
 
 		CX2DamageEffect::CEffect* pDE = NULL;
-		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LSR_Shooting_Magnum", GetPowerRate(), 
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo(CX2SkillTree::SMI_RENA_MEMO19) == true )
+		{
+			pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, m_wstrShootingMagumRandomArrow.c_str(), GetPowerRate(), 
+				posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+		}
+		else
+#endif //ADD_MEMO_1ST_CLASS
+		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, m_wstrShootingMagumRandomArrow.c_str(), GetPowerRate(), 
 			posR, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 	}
 
@@ -19225,6 +21911,7 @@ void CX2GULire_ElvenRanger::LESI_A_LSR_SHOOTING_MAGNUM_EventProcess()
 	DASH_CANCEL_AFTER( m_fDashCancelAfter )
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+
 
 	CommonEventProcess();
 }
@@ -19249,7 +21936,11 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_ARC_SHOT_Init()
 }
 void CX2GULire_ElvenRanger::LESI_A_LGA_ARC_SHOT_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.52f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.52f ) == true && EventCheck( 0.52f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 		CX2DamageEffect::CEffect* pDE = NULL;
@@ -19261,35 +21952,35 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_ARC_SHOT_FrameMove()
 			posR, vRotateArrow, vRotateArrow, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 		vRotateArrow.z -= 15.f;
 		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LGA_Arc_Shot", fPowerrate, 
 			posR, vRotateArrow, vRotateArrow, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 		vRotateArrow.z -= 15.f;
 		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LGA_Arc_Shot", fPowerrate, 
 			posR, vRotateArrow, vRotateArrow, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 		vRotateArrow.z -= 15.f;
 		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LGA_Arc_Shot", fPowerrate, 
 			posR, vRotateArrow, vRotateArrow, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 		vRotateArrow.z -= 15.f;
 		pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LGA_Arc_Shot", fPowerrate, 
 			posR, vRotateArrow, vRotateArrow, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 	}
 
@@ -19402,7 +22093,9 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_RAPID_SHOT_ATTACK_EventProcess()
 		{
 			StateChange( LESI_A_LGA_RAPID_SHOT_ATTACK );
 		}
+#ifndef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_EventTimeStampNow.clear();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 	DASH_CANCEL_AFTER( m_fDashCancelAfter )
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
@@ -19414,7 +22107,11 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_RAPID_SHOT_ATTACK_FrameMove()
 {
 	m_RapidShotDataPtr->SetTimeAfterStart( m_RapidShotDataPtr->GetTimeAfterStart() + m_fElapsedTime );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.034f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.034f ) == true && EventCheck( 0.034f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 		CX2DamageEffect::CEffect* pDE = NULL;
@@ -19428,8 +22125,9 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_RAPID_SHOT_ATTACK_FrameMove()
 			posR, vRotateArrow, vRotateArrow, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
+
 	}
 
 	CommonFrameMove();
@@ -19451,7 +22149,11 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_RAPID_SHOT_FINISH_EventProcess()
 }
 void CX2GULire_ElvenRanger::LESI_A_LGA_RAPID_SHOT_FINISH_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.054f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.054f ) == true && EventCheck( 0.054f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 		CX2DamageEffect::CEffect* pDE = NULL;
@@ -19465,7 +22167,7 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_RAPID_SHOT_FINISH_FrameMove()
 			posR, vRotateArrow, vRotateArrow, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, 1.f, -1, -1.f, m_iArrowMeshPlayerIndex );
 		if( NULL != pDE )
 		{
-			pDE->GetDamageData()->backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
+			pDE->GetDamageData().backSpeed.x += m_ArrowData.m_fAddBackSpeedX;
 		}
 	}
 
@@ -19498,7 +22200,6 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_FREEZING_BOLT_FrameMove()
 	CommonFrameMove();
 }
 
-
 //-----------------------LESI_A_LGA_WIND_BLAST-----------------------//
 void CX2GULire_ElvenRanger::LESI_A_LGA_WIND_BLAST_Init()
 {
@@ -19522,7 +22223,14 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_WIND_BLAST_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 0 );
 
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 데미지 이펙트 -> 레나 스크립트 내 이펙트 셋으로 변경 
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vRotateArrow  = GetRotateDegree();
@@ -19534,10 +22242,10 @@ void CX2GULire_ElvenRanger::LESI_A_LGA_WIND_BLAST_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LGA_Wind_Blast_Sub_Damage", fPowerrate, 
 			posR, vRotateArrow, vRotateArrow, m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 	CommonFrameMove();
 }
-
 
 //-----------------------LESI_SA_RTR_TRAPPING_ARROW_FUNGUS-----------------------//
 void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_Init()
@@ -19574,7 +22282,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_Init()
 }
 void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_StateStart()
 {
-	m_pEffectTrapArrowFungus = NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectTrapArrowFungus = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_pEffectTrapArrowFungs = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CommonStateStart();
 }
 void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_FrameMove()
@@ -19585,49 +22297,80 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_FrameMove()
 
 	bool bTrapDrop = false;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.33f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.33f ) == true && EventCheck( 1.33f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( INVALID_DAMAGE_EFFECT_HANDLE == m_hEffectTrapArrowFungus )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( NULL == m_pEffectTrapArrowFungus )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			D3DXVECTOR3 posR = GetPos();
 			D3DXVECTOR3 posHand = m_pXSkinAnim->GetCloneFramePosition( L"Dummy1_Rhand" );
 			D3DXVECTOR3 degree = GetRotateDegree();
 
 			posR.y = posHand.y;
-			m_pEffectTrapArrowFungus = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DamageEffect_LNW_Fungus_Trap_Arrow", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hEffectTrapArrowFungus = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_pEffectTrapArrowFungus = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                this, L"DamageEffect_LNW_Fungus_Trap_Arrow", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_TRAPING_ARROW", this );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.40f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.50f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.60f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.70f ) == true )	bTrapDrop = true;
+	else if( m_pXSkinAnim->EventTimerOneshot( 1.80f ) == true )	bTrapDrop = true;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.40f ) == true && EventCheck( 1.40f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.50f ) == true && EventCheck( 1.50f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.60f ) == true && EventCheck( 1.60f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.70f ) == true && EventCheck( 1.70f, false ) == true )	bTrapDrop = true;
 	else if( m_pXSkinAnim->EventTimer( 1.80f ) == true && EventCheck( 1.80f, false ) == true )	bTrapDrop = true;
-
-	if( bTrapDrop == true && m_pEffectTrapArrowFungus != NULL )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pEffectTrapArrowFungus = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectTrapArrowFungus );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pEffectTrapArrowFungus = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pEffectTrapArrowFungus ) ? m_pEffectTrapArrowFungus : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( bTrapDrop == true && pEffectTrapArrowFungus != NULL )
 	{
 		D3DXVECTOR3 vRotateDegree = GetRotateDegree();
 
 		float fPowerRate = GetPowerRate();
 
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
-		if( iSkillLevel > 0 )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 사냥꾼의 재능, 덫 데미지 증가 던전에서만 적용 가능하도록 추가
+		// 경직은 던전 / 대전 상관 없음!
+		if ( CX2Main::XS_PVP_GAME != g_pMain->GetNowStateID() )	
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
-			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
-			if( NULL != pSkillTemplet )
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
+			if( iSkillLevel > 0 )
 			{
-				fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+				if( NULL != pSkillTemplet )
+				{
+					fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				}
 			}
 		}
-
 		//	트랩 생성
-		if( m_pEffectTrapArrowFungus->GetMainEffect() != NULL )
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pEffectTrapArrowFungusMainEffect = pEffectTrapArrowFungus->GetMainEffect() )
 		{
 			CX2DamageEffect::CEffect* pDE = NULL;
 
 			if( true == GetActiveStartOfDelayedFiring() ) //지연의 신호탄이 적용된 상태인지 체크
 			{
-				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FUNGUS_FLY_DELAY", fPowerRate, m_pEffectTrapArrowFungus->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+				pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FUNGUS_FLY_DELAY", fPowerRate, pEffectTrapArrowFungusMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 				
 				if( NULL != pDE )
 				{
@@ -19637,7 +22380,7 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_FrameMove()
 			}
 			else
 			{
-				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FUNGUS_FLY", fPowerRate, m_pEffectTrapArrowFungus->GetMainEffect()->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRAPING_ARROW_FUNGUS_FLY", fPowerRate, pEffectTrapArrowFungusMainEffect->GetPos(), vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 			}	
 		}
 	}
@@ -19662,8 +22405,11 @@ void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_EventProcess()
 void CX2GULire_ElvenRanger::LESI_SA_RTR_TRAPPING_ARROW_FUNGUS_StateEnd()
 {
 	CommonStateEnd();
-
-	m_pEffectTrapArrowFungus = NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectTrapArrowFungus = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_pEffectTrapArrowFungs = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
@@ -19694,17 +22440,27 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_THORNS_TRAP_FrameMoveFuture()
 }
 void CX2GULire_ElvenRanger::LESI_A_RNW_THORNS_TRAP_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		float fPowerRate = GetPowerRate();
-		const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
-
-		if( iSkillLevel > 0 )
+		const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 사냥꾼의 재능, 덫 데미지 증가 던전에서만 적용 가능하도록 추가
+		// 경직은 던전 / 대전 상관 없음!
+		if ( CX2Main::XS_PVP_GAME != g_pMain->GetNowStateID() )	
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
-			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
-			if( NULL != pSkillTemplet )
+			if( iSkillLevel > 0 )
 			{
-				fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+				if( NULL != pSkillTemplet )
+				{
+					fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				}
 			}
 		}
 
@@ -19713,6 +22469,11 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_THORNS_TRAP_FrameMove()
 
 		D3DXVECTOR3 vRotateDegree = GetRotateDegree();
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO24) == true )
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"THORNS_TRAP_FLY_MEMO", fPowerRate, pos, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"THORNS_TRAP_FLY", fPowerRate, pos, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 
 	}
@@ -19721,7 +22482,11 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_THORNS_TRAP_FrameMove()
 }
 void CX2GULire_ElvenRanger::LESI_A_RNW_THORNS_TRAP_EventProcess()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -19773,16 +22538,27 @@ void CX2GULire_ElvenRanger::LESI_P_RNW_SEED_OF_RUIN_FrameMoveFuture()
 }
 void CX2GULire_ElvenRanger::LESI_P_RNW_SEED_OF_RUIN_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		float fPowerRate = GetPowerRate();
-		const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
-		if( iSkillLevel > 0 )
+		const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 사냥꾼의 재능, 덫 데미지 증가 던전에서만 적용 가능하도록 추가
+		// 경직은 던전 / 대전 상관 없음!
+		if ( CX2Main::XS_PVP_GAME != g_pMain->GetNowStateID() )	
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
-			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
-			if( NULL != pSkillTemplet )
+			if( iSkillLevel > 0 )
 			{
-				fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+				if( NULL != pSkillTemplet )
+				{
+					fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				}
 			}
 		}
 		
@@ -19808,7 +22584,11 @@ void CX2GULire_ElvenRanger::LESI_P_RNW_SEED_OF_RUIN_FrameMove()
 }
 void CX2GULire_ElvenRanger::LESI_P_RNW_SEED_OF_RUIN_EventProcess()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -19840,7 +22620,11 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_ANGER_OF_ELF_StateStart()
 }
 void CX2GULire_ElvenRanger::LESI_A_RNW_ANGER_OF_ELF_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.25f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.25f ) == true && EventCheck( 0.25f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateAngerOfElfTrap();
 	}
@@ -19888,7 +22672,7 @@ bool CX2GULire_ElvenRanger::MakeRoomForAngerOfElfTrap( int iMaxAngerOfElfTrapCou
 		CX2GUNPC* pNPC = g_pX2Game->GetNPCUnitByUID( (int) npcUID );
 		if( NULL != pNPC )
 		{
-			ASSERT( CX2UnitManager::NUI_RENA_ANGER_OF_ELF == pNPC->GetNPCTemplet()->m_nNPCUnitID || CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY == pNPC->GetNPCTemplet()->m_nNPCUnitID);
+			ASSERT( CX2UnitManager::NUI_RENA_ANGER_OF_ELF == pNPC->GetNPCTemplet().m_nNPCUnitID || CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY == pNPC->GetNPCTemplet().m_nNPCUnitID);
 
 			if( false == bForce && 
 				1.f == pNPC->GetNowHp() ) // 공격중인 트랩은 못 없애게
@@ -19911,16 +22695,15 @@ void CX2GULire_ElvenRanger::CreateAngerOfElfTrap()
 	if( true == g_pX2Game->IsHost() )
 	{
 		D3DXVECTOR3 vPos = GetLandPosition();
-		int iHyperMode = 0;
 
 		if( true == GetActiveStartOfDelayedFiring() )
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY, iHyperMode, true, vPos, 
+			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_RENA_ANGER_OF_ELF_DELAY, IsHyperState(), true, vPos, 
 				GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
 		}
 		else
 		{
-			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_RENA_ANGER_OF_ELF, iHyperMode, true, vPos, 
+			g_pX2Game->CreateNPCReq( CX2UnitManager::NUI_RENA_ANGER_OF_ELF, IsHyperState(), true, vPos, 
 				GetIsRight(), 0.f, true, -1, (CX2Room::TEAM_NUM) GetTeam(), CX2NPCAI::NAT_ALLY, GetUnitUID() );
 		}
 	}
@@ -19968,25 +22751,48 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_ROSEBUSH_TRAP_FrameMoveFuture()
 }
 void CX2GULire_ElvenRanger::LESI_A_RNW_ROSEBUSH_TRAP_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		float fPowerRate = GetPowerRate();
-		const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
-		if( iSkillLevel > 0 )
+		const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 사냥꾼의 재능, 덫 데미지 증가 던전에서만 적용 가능하도록 추가
+		// 경직은 던전 / 대전 상관 없음!
+		if ( CX2Main::XS_PVP_GAME != g_pMain->GetNowStateID() )	
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
-			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
-
-			if( NULL != pSkillTemplet )
+			if( iSkillLevel > 0 )
 			{
-				fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+
+				if( NULL != pSkillTemplet )
+				{
+					fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				}
 			}
 		}
-
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 200.f;
 
 		D3DXVECTOR3 vRotateDegree = GetRotateDegree();
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO25 ) == true )
+		{
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ROSEBUSH_TRAP_FLY_MEMO", fPowerRate, pos, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+
+			if( GetRandomFloat() <= 0.2f )
+			{
+				pos.x += 100.f;
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ROSEBUSH_TRAP_FLY_MEMO", fPowerRate, pos, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
+			}
+		}
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ROSEBUSH_TRAP_FLY", fPowerRate, pos, vRotateDegree, vRotateDegree, m_FrameDataNow.unitCondition.landPosition.y );
 
 	}
@@ -19995,7 +22801,11 @@ void CX2GULire_ElvenRanger::LESI_A_RNW_ROSEBUSH_TRAP_FrameMove()
 }
 void CX2GULire_ElvenRanger::LESI_A_RNW_ROSEBUSH_TRAP_EventProcess()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -20051,7 +22861,11 @@ void CX2GULire_ElvenRanger::LESI_A_LTR_ENTANGLE_Init()
 }
 void CX2GULire_ElvenRanger::LESI_A_LTR_ENTANGLE_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fThrowStartTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fThrowStartTime ) == true && EventCheck( m_fThrowStartTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vEffectPos = GetPos();
 		D3DXVECTOR3 vRotate = GetRotateDegree();
@@ -20064,16 +22878,27 @@ void CX2GULire_ElvenRanger::LESI_A_LTR_ENTANGLE_FrameMove()
 			vEffectPos -= ( m_vThrowStartPosOffset.x * GetDirVector() );
 
 		float fPowerRate = GetPowerRate();
-		const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY, true );	//	사냥꾼의 재능
-		if( iSkillLevel > 0 )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 사냥꾼의 재능, 덫 데미지 증가 던전에서만 적용 가능하도록 추가
+		// 경직은 던전 / 대전 상관 없음!
+		if ( CX2Main::XS_PVP_GAME != g_pMain->GetNowStateID() )	
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		{
-			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
-			if( NULL != pSkillTemplet )
+			const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );	//	사냥꾼의 재능
+			if( iSkillLevel > 0 )
 			{
-				fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LTR_HUNTERS_ABILITY );
+				if( NULL != pSkillTemplet )
+				{
+					fPowerRate *= pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iSkillLevel );
+				}
 			}
 		}
-
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RENA_MEMO23 ) == true )
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_LENA_TRAPPING_RANGER_ENTANGLE_MEMO", fPowerRate, vEffectPos, vRotate, vRotate, m_FrameDataNow.unitCondition.landPosition.y );
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_LENA_TRAPPING_RANGER_ENTANGLE", fPowerRate, vEffectPos, vRotate, vRotate, m_FrameDataNow.unitCondition.landPosition.y );
 
 	}
@@ -20105,10 +22930,10 @@ void CX2GULire_ElvenRanger::SetEquippedSkillLevelStateData( const CX2SkillTree::
 
 void CX2GULire_ElvenRanger::SetSkillLevelStateData( const CX2SkillTree::SkillTemplet* pSkillTemplet_, UserUnitStateData& stateData_ )
 {
-	if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+	if ( NULL == GetUnit()  )
 		return;
 	
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 	const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet_->m_eID ) );	/// 스킬 레벨
 	
@@ -20165,6 +22990,462 @@ void CX2GULire_ElvenRanger::SetSiegeModeEffectiveValue( IN const int iSkillLevel
 }
 
 
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+// 윈스 궁극기 스파이럴 스트라이크
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_READY_Init()
+{
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Condense_Pulse02.dds");
+	TextureReadyInBackground(L"Explosion_Fire01.dds");
+	TextureReadyInBackground(L"Inspector_State_Shield.tga");
+	TextureReadyInBackground(L"rana_A_explosionTrap_leaf.DDS");
+	TextureReadyInBackground(L"secretVelder_alchemystBoss_magicAttackE_light.dds");
+	TextureReadyInBackground(L"stone_AirShip.dds");
+	TextureReadyInBackground(L"title_bloodAlliance_line_p03.dds");
+
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Colorballgray.dds");
+	TextureReadyInBackground(L"Explosion_Sphere.dds");
+	XSkinMeshReadyInBackground(L"HA_LWS_Ultimate_Middle_FX_NEW_B.X");
+	XSkinMeshReadyInBackground(L"Karoo_Special_Attack_A_Tornado02.x");
+	XSkinMeshReadyInBackground(L"Karoo_Special_Attack_A_Tornado03.x");
+	XSkinMeshReadyInBackground(L"Karoo_Special_Attack_A_Tornado04.x");
+	XSkinMeshReadyInBackground(L"rena_A_explosionTrap_circle.X");
+	TextureReadyInBackground(L"stone_AirShip.dds");
+
+}
+
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_READY_StateStart()
+{
+	m_fSpiralStrikeRemainingTime = 5.5f;
+	CommonStateStart();
+}
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_READY_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		StateChange( LESI_HA_LWS_SPIRAL_STIKE_SPINING );
+	}
+
+	CommonEventProcess();
+}
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_SPINING_StateStart()
+{
+	SetInvisibility( true );
+//	TransformScale( PROTECT_VECTOR3( 0.001f, 0.001f, 0.001f ) );
+	m_fRenderParamColorA = 0.f;
+	
+	if ( NULL != g_pX2Game->GetEffectSet() )
+	{
+		m_hSpiralStrikeMiddleEffect = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_HA_LWS_Ultimate_Middle_FX", this );
+		if ( m_hSpiralStrikeMiddleLightEffect != INVALID_EFFECTSET_HANDLE )
+		{
+			g_pX2Game->GetEffectSet()->StopEffectSet(m_hSpiralStrikeMiddleLightEffect );
+		}
+	}
+}
+
+
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_SPINING_FrameMove()
+{
+	if ( m_fSpiralStrikeRemainingTime > 0 )
+	{
+		m_fSpiralStrikeRemainingTime -= m_fElapsedTime;
+	}
+		
+	if ( m_fSpiralStrikeRemainingTime <= 0 ) 
+	{		
+		m_fSpiralStrikeRemainingTime = 0;
+	}
+	
+	else if ( m_fSpiralStrikeRemainingTime <= 0.5f )
+	{ 		
+		if ( m_hSpiralStrikeMiddleLightEffect == INVALID_EFFECTSET_HANDLE )
+		{
+			m_hSpiralStrikeMiddleLightEffect = 
+				g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_HA_LWS_Ultimate_Finish_Light_FX", this );		
+		}	
+	}
+	
+	CommonFrameMove();
+}
+
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_SPINING_EventProcess()
+{
+	if ( m_fSpiralStrikeRemainingTime <= 0 ) 
+	{		
+		StateChange( LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK );
+	}
+	CommonEventProcess();
+}
+
+
+
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_SPINING_StateEnd()
+{
+	SetInvisibility( false );
+	CommonStateEnd();
+}
+
+
+
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK_Init()
+{
+
+	XSkinMeshReadyInBackground(L"Bust_Wolf_M02.X");
+	XSkinMeshReadyInBackground(L"Bust_Wolf_M03.X");
+	XSkinMeshReadyInBackground(L"CDC_AS_FIRE_EX_WIND02.x");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	XSkinMeshReadyInBackground(L"Gliter_Hammer_JumpAttack01.X");
+	TextureReadyInBackground(L"Inspector_State_Shield.tga");
+	XSkinMeshReadyInBackground(L"LUNATIC_FURY_FireWave.X");
+	XSkinMeshReadyInBackground(L"LUNATIC_FURY_FireWave02.X");
+	XSkinMeshReadyInBackground(L"Lire_SI_SA_Gungnir_Mesh03.X");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	XSkinMeshReadyInBackground(L"SA_AEM_ELEMENTAL_STORM_FIRE01.X");
+	XSkinMeshReadyInBackground(L"SA_AEM_ELEMENTAL_STORM_FIRE02.X");
+	XSkinMeshReadyInBackground(L"UnoHound_AttackB_Mesh01.X");
+	XSkinMeshReadyInBackground(L"aisha_active_energySpurt_circle.X");
+	XSkinMeshReadyInBackground(L"elsword_SA_SwordBlastiong_slash.X");
+	XSkinMeshReadyInBackground(L"rena_A_explosionTrap_trapLineLight.X");
+}
+
+
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK_FrameMove()
+{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 2.16f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if ( m_pXSkinAnim->EventTimer( 2.16f ) == true && EventCheck( 2.16f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{	
+		if ( m_hSpiralStrikeMiddleEffect != INVALID_EFFECTSET_HANDLE )
+		{
+			if ( NULL != g_pX2Game->GetEffectSet() )
+			{		
+				g_pX2Game->GetEffectSet()->StopEffectSet( m_hSpiralStrikeMiddleEffect );
+			}
+		}
+	}
+	CommonFrameMove();	
+}
+
+void CX2GULire_ElvenRanger::LESI_HA_LWS_SPIRAL_STIKE_FLYING_ATTACK_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )	
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	ZX_CANCEL_AFTER_EX( m_fAttackCancelAfterEx )
+#endif //ADD_RENA_SYSTEM
+
+	CommonEventProcess();
+}
+
+
+
+void CX2GULire_ElvenRanger::LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_Init()
+{
+	XSkinMeshReadyInBackground(L"Cryotron_Bolt_Weapon_Redy.X");
+	XSkinMeshReadyInBackground(L"Cryotron_Bolt_Weapon_Redy2.X");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50.X");
+	TextureReadyInBackground(L"Explosion_Sphere.dds");
+	TextureReadyInBackground(L"Heal01.dds");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	TextureReadyInBackground(L"PulseWave01.dds");
+	TextureReadyInBackground(L"rana_A_explosionTrap_leaf.DDS");
+
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	XSkinMeshReadyInBackground(L"Lire_SI_SA_Gungnir_Mesh01.X");
+	XSkinMeshReadyInBackground(L"Lire_SI_SA_Gungnir_Mesh05.X");
+	TextureReadyInBackground(L"rena_A_evoke_energy.DDS");
+	TextureReadyInBackground(L"rena_A_explosionTrap_leafBoom.DDS");
+}
+
+void CX2GULire_ElvenRanger:: LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		StateChange( LESI_HA_LGA_CRYOTRON_BOLT_CHARGE_SHOT );
+	}
+	CommonEventProcess();
+}
+
+
+void CX2GULire_ElvenRanger:: LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_StateStart()
+{	
+	m_vecCryotronBoltDamageEffect.clear();
+	CommonStateStart();
+
+}
+
+void CX2GULire_ElvenRanger:: LESI_HA_LGA_CRYOTRON_BOLT_GUIDE_SHOT_FrameMove()
+{	
+	for ( int i = 0; i < _CONST_RENA_::MANY_CRYOTRON_BOLT_GUILDE_SHOT; ++i )
+	{
+		float fCreateTimeOfGuideShot = _CONST_RENA_::START_TIME_OF_CRYOTRON_BOLT_CREATE_GUIDE_SHOT + i * _CONST_RENA_::TIME_GAP_OF_CREATE_CRYOTRON_BOLT_GUIDE_SHOT;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( fCreateTimeOfGuideShot ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		if( m_pXSkinAnim->EventTimer( fCreateTimeOfGuideShot ) == true && EventCheck( fCreateTimeOfGuideShot, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		{
+
+			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
+			D3DXVECTOR3 degree = GetRotateDegree();
+			degree.z = (i * ( 180.f / _CONST_RENA_::MANY_CRYOTRON_BOLT_GUILDE_SHOT ) );
+			// 크리아오트론 볼트 유도 발사체
+			// 30' ~ 150' 의 범위로 끝남
+
+			//가이드 애로우 이펙트 생성
+
+            CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( 
+                this, L"DamageEffect_Cryotron_Bolt_GUIDED_ARROW", GetPowerRate(), posR, degree, degree, m_FrameDataNow.unitCondition.landPosition.y );
+            if ( pEffect != NULL )
+            {
+			    m_vecCryotronBoltDamageEffect.push_back( 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    pEffect->GetHandle()
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    pEffect
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    );
+            }
+		}
+	}
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.730f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 2.730f ) == true && EventCheck( 2.730f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{	
+		//타겟 설정
+		//가까이 있는 순서대로 1발씩 타겟 잡으며, 개체수보다 화살이 많을 경우 첫 타겟 대상부터 다시 타겟팅
+		std::map<float, UidType> mapNearUnitUid;
+		g_pX2Game->GetNearUnitUidList( static_cast<CX2Room::TEAM_NUM>(GetTeam()), GetPos(), mapNearUnitUid);
+
+		int iOffset = 0;
+		std::map<float, UidType>::iterator it = mapNearUnitUid.begin();
+		for( UINT i=0; i<m_vecCryotronBoltDamageEffect.size(); ++i )
+		{				
+			//타겟 개체 수 보다, 화살이 많으면
+			if( (i - iOffset) >= mapNearUnitUid.size() ) 
+			{
+				//첫번 째 몬스터 부터 다시 접근하도록 오프셋 적용
+				iOffset = i;	
+				it = mapNearUnitUid.begin();
+			}
+            if ( CX2DamageEffect::CEffect* pCryotronBoltDamageEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_vecCryotronBoltDamageEffect[i] ) )
+            {
+			    if( NULL != g_pX2Game->GetNPCUnitByUID(static_cast<int>(it->second)) )
+				    pCryotronBoltDamageEffect->SetLockOnNPCUID( static_cast<int>(it->second) );
+			    else
+				    pCryotronBoltDamageEffect->SetLockOnUnitUID( it->second );
+			    //타겟을 잃었을 때에는 가장 가까이 있는 타겟을 잡기 위해 락온타입 설정
+			    pCryotronBoltDamageEffect->SetLockOnType(CX2DamageEffect::LOT_NEARST_UID_VECTOR);
+            }
+			++it;
+		}
+	}
+	CommonFrameMove();
+}
+
+
+void CX2GULire_ElvenRanger:: LESI_HA_LGA_CRYOTRON_BOLT_CHARGE_SHOT_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		StateChange( LESI_HA_LGA_CRYOTRON_BOLT_DOWNLANDING );
+	}
+	CommonEventProcess();
+}
+
+
+void CX2GULire_ElvenRanger:: LESI_HA_LGA_CRYOTRON_BOLT_DOWNLANDING_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )	
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	ZX_CANCEL_AFTER_EX( m_fAttackCancelAfterEx )
+#endif //ADD_RENA_SYSTEM
+
+	CommonEventProcess();
+}
+
+void CX2GULire_ElvenRanger::SetInvisibility(bool bVal_)
+{
+	m_bInvisibility					= bVal_;
+	m_bAbsoluteInvisibility			= bVal_;
+
+	if( false == m_bInvisibility )
+		m_RenderParam.color.a = m_fPreRenderParamColorA;
+
+	m_fPreRenderParamColorA = m_RenderParam.color.a;
+	m_fRenderParamColorA	= 1.f;
+
+	m_RenderParam.bAlphaBlend = m_bInvisibility;
+	SetAlphaObject( m_bInvisibility );
+
+	m_pXSkinAnim->SetLayer(1);
+	// 장비에 부착된 파티클
+	BOOST_TEST_FOREACH( CX2EqipPtr, pEquip, m_ViewEqipList )
+	{
+		if( pEquip != NULL )
+		{
+			pEquip->SetShowAttachedParticle( !m_bInvisibility );
+			pEquip->SetShowObject ( !m_bInvisibility, true );
+		}
+	}
+	
+	// 무기 속성 인챈트 파티클
+	SetShowEnchantWeaponParticle( !m_bInvisibility );
+	// 게이지 바
+	if ( false == IsMyUnit() && false == IsNullGageUI() )
+	{
+		if( true == m_bInvisibility )
+			m_pGageUI->SetAlpha( 0.f );
+		else
+			m_pGageUI->SetAlpha( 255.f );
+	}
+
+	// 각성 상태라면 각성 파티클 켜고/끄기
+	if( GetRemainHyperModeTime() > 0.f )
+	{
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostRFoot )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq_RFoot = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostRFoot );
+			if( NULL != pSeq_RFoot )
+				pSeq_RFoot->SetShowObject( !m_bInvisibility );
+		}
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostLFoot )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq_LFoot = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostLFoot );
+			if( NULL != pSeq_LFoot )
+				pSeq_LFoot->SetShowObject( !m_bInvisibility );
+		}
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostRArm )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq_RArm = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostRArm );
+			if( NULL != pSeq_RArm )
+				pSeq_RArm->SetShowObject( !m_bInvisibility );
+		}
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostLArm )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq_LArm = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostLArm );
+			if( NULL != pSeq_LArm )
+				pSeq_LArm->SetShowObject( !m_bInvisibility );
+		}
+	}
+}
+
+
+
+/*virtual*/ void CX2GULire_ElvenRanger::ApplyRenderParam( CKTDGXRenderer::RenderParam* pRenderParam_ )
+{
+#ifdef RIDING_SYSTEM
+	if ( m_bPassDash )
+		return;
+#endif //RIDING_SYSTEM
+
+	if( true == m_bInvisibility )
+	{
+		pRenderParam_->renderType		= CKTDGXRenderer::RT_CARTOON;
+		pRenderParam_->outLineColor.a	= m_fRenderParamColorA;
+		m_RenderParam.color.a			= m_fRenderParamColorA;
+		m_RenderParam.bAlphaBlend = true;
+	}
+	else 
+		CX2GameUnit::ApplyRenderParam( pRenderParam_ );
+}
+
+
+
+// 나이트 와쳐 궁극기 - 이노센트
+void CX2GULire_ElvenRanger::LESI_HA_LNW_INNOCENT_START_Init()
+{
+	TextureReadyInBackground(L"Arme_Critical2.dds");
+	TextureReadyInBackground(L"Colorballgray.dds");
+	TextureReadyInBackground(L"Arme_Critical2.dds");
+	TextureReadyInBackground(L"LGA_shot_Ring_01.tga");
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"LNW_Innocent_Shine_01.tga");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	TextureReadyInBackground(L"Explosion_Sphere_01.dds");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	XMeshReadyInBackground(L"Particel_Motion_Flame01.Y");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50.X");
+	XSkinMeshReadyInBackground(L"WindWard_XMesh01.X");		
+}
+void CX2GULire_ElvenRanger::LESI_HA_LNW_INNOCENT_START_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		StateChange( LESI_HA_LNW_INNOCENT_END );
+	}
+
+	CommonEventProcess();
+}
+
+void CX2GULire_ElvenRanger::LESI_HA_LNW_INNOCENT_END_Init()
+{
+	TextureReadyInBackground(L"Mesh_Lire_Event_AC_Upbody21A_Effect.tga");
+	TextureReadyInBackground(L"rena_C_QuickDashJump_line.dds");
+}
+void CX2GULire_ElvenRanger::LESI_HA_LNW_INNOCENT_END_StateStart()
+{
+	CreateTrapBlade();
+	CommonStateStart();
+}
+void CX2GULire_ElvenRanger::LESI_HA_LNW_INNOCENT_END_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )	
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+#ifdef ADD_RENA_SYSTEM //김창한
+	BWALK_CANCEL_AFTER( m_fBWalkCancelAfter )
+	ZX_CANCEL_AFTER_EX( m_fAttackCancelAfterEx )
+#endif //ADD_RENA_SYSTEM
+
+	CommonEventProcess();
+}
+void CX2GULire_ElvenRanger::LESI_HA_LNW_INNOCENT_END_StateEnd()
+{
+	DeleteTrapBlade();
+	CommonStateEnd();
+}
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
 #ifdef MODIFY_RIDING_PET_AWAKE
 void CX2GULire_ElvenRanger::RidingHyperModeInit()
 {
@@ -20179,7 +23460,7 @@ void CX2GULire_ElvenRanger::CommonHyperModeFrameMove( float fTime1_, float fTime
 	g_pX2Game->GetWorld()->SetWorldColor( 0xff222222 );
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( fTime1_ ) )
+    if( m_pXSkinAnim->EventTimerOneshot( fTime1_ ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( fTime1_ ) == true && EventCheck(fTime1_, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -20187,7 +23468,7 @@ void CX2GULire_ElvenRanger::CommonHyperModeFrameMove( float fTime1_, float fTime
 		ShowMinorParticleHyperModeChange();
 	}
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	else if( m_pXSkinAnim->EventTimerOneshot( fTime2_ ) )
+    else if( m_pXSkinAnim->EventTimerOneshot( fTime2_ ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( fTime2_ ) == true && EventCheck(fTime2_, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -20212,3 +23493,453 @@ void CX2GULire_ElvenRanger::CommonHyperModeFrameMove( float fTime1_, float fTime
 	CommonFrameMove();
 }
 #endif // MODIFY_RIDING_PET_AWAKE
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+const CX2SkillTree::ACTIVE_SKILL_USE_CONDITION CX2GULire_ElvenRanger::GetSkillUseCondition(const CX2SkillTree::SkillTemplet* pSkillTemplet_)
+{
+	CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eActiveSkillUseCondition = pSkillTemplet_->m_eActiveSkillUseCondtion;
+
+	switch (pSkillTemplet_->m_eID)
+	{
+	case CX2SkillTree::SI_SA_LTR_FATALITY:
+		{
+			if( GetEqippedSkillMemo(CX2SkillTree::SMI_RENA_MEMO22) == true )
+				eActiveSkillUseCondition = CX2SkillTree::ASUT_AIR;
+		} break;
+	}
+
+
+	return eActiveSkillUseCondition;
+}
+#endif //ADD_MEMO_1ST_CLASS
+
+
+#ifdef ADD_RENA_SYSTEM //김창한
+/** @function 	: CreateGageData
+	@brief 		: GageData 생성
+*/
+/*virtual*/ CX2GageData* CX2GULire_ElvenRanger::CreateGageData()
+{
+	if ( IsMyUnit() )
+	{
+		const CX2RenaGageData* pRenaGageData 
+			= static_cast<const CX2RenaGageData*>( CX2GageManager::GetInstance()->GetMyGageData() );
+
+		if ( NULL != pRenaGageData )
+			return new CX2RenaGageData( *pRenaGageData );
+		else
+			return new CX2RenaGageData();
+	}
+	else
+		return new CX2RenaGageData();
+}
+
+/** @function 	: AttackResultByType
+	@brief 		: AT_NORMAL 타격으로 자연의 기운이 충전
+*/
+/*virtual*/ void CX2GULire_ElvenRanger::AttackResultByType( CX2DamageManager::DamageData &pDamageData )
+{
+	CX2GUUser::AttackResultByType( pDamageData );
+
+
+	switch( pDamageData.m_NaturalForceType )
+	{
+	//콤보인 경우
+	case CX2DamageManager::NFT_COMBO:
+	case CX2DamageManager::NFT_COMBO_BOMB:
+		{
+			//한 타격에 여러명이 맞더라도 그 중 첫번째 타격일때만 적용. 
+			if( pDamageData.m_eFirstAttack == CX2DamageManager::FAC_FIRST_ATTACK )
+			{
+				bool bIsUpNaturalForce = false;
+
+				//NF 게이지가 최대 상태가 아닐때
+				if( IsFullNaturalForce() == false )
+				{
+					//NF 게이지 생성을 위한 타격 횟수 증가
+					//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리 2014.01.28
+					if( pDamageData.m_RelateSkillData.m_byteRelateData >= 10 )	
+					{
+						if( pDamageData.m_RelateSkillData.m_byteRelateData == 100 && CheckDamageRelateComboData( pDamageData.m_RelateSkillData ) )
+						{
+							++m_fNaturalForceValueCharge;
+						}
+					}
+					else
+						++m_fNaturalForceValueCharge;
+
+					if( m_fNaturalForceValueCharge >= NATURAL_FORCE_VALUE_PER_HIT )
+						bIsUpNaturalForce = true;
+				}
+
+				//NF 게이지가 있는지 체크
+				if( pDamageData.m_NaturalForceType == CX2DamageManager::NFT_COMBO_BOMB && IsEmptyNaturalForce() == false )
+				{
+					bool bCreate = true;
+
+					//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+					if( pDamageData.m_RelateSkillData.m_byteRelateData >= 10 )
+					{
+						if( CheckDamageRelateSkillData( pDamageData.m_RelateSkillData ) )
+						{
+							DeleteDamageRelateSkillData( pDamageData.m_RelateSkillData );
+						}
+						else
+							bCreate = false;
+					}
+					
+					//폭발 이펙트를 생성하고 NF게이지를 하나 소모한다.
+					if( bCreate == true )
+					{
+						CX2DamageEffect::CEffect* pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"NATURAL_FORCE_EXPLOSION_BOOM_COMBO", 1.f, pDamageData.impactPoint, GetRotateDegree(), GetRotateDegree() );
+						ConsumeNaturalForce(1);	
+					}
+			
+				}
+
+				//NF 게이지 생성을 위한 타격 횟수가 충분하다면 NF 게이지를 생성하고 타격 횟수 수정
+				if( bIsUpNaturalForce == true )
+				{
+					m_fNaturalForceValueCharge -= NATURAL_FORCE_VALUE_PER_HIT;
+
+					UpNaturalForce(1);
+				}
+
+				//첫번째 타격체크를 더이상 하지 않도록 변경
+				pDamageData.m_eFirstAttack = CX2DamageManager::FAC_NOT_CHECK;
+			}
+
+		} break;
+
+	//스킬인 경우
+	case CX2DamageManager::NFT_ACTIVE:
+	case CX2DamageManager::NFT_SPECIAL_ACTIVE:
+		{
+			//저장해둔 스킬 관련 데이터값 중에 Damagedata과 같은 것이 있는지 체크
+			//일치하는 것이 있고 NF게이지가 하나 이상 있다면 
+			if( CheckDamageRelateSkillData( pDamageData.m_RelateSkillData ) == true && IsEmptyNaturalForce() == false )
+			{
+				//최대로 소모하는 NF게이지 값 받아옴.
+				Byte byteConsumeNFBySkill = pDamageData.m_RelateSkillData.m_byteRelateData;
+
+				//일치한 값을 저장해둔 Vector에서 삭제
+				DeleteDamageRelateSkillData( pDamageData.m_RelateSkillData );
+				CX2DamageEffect::CEffect* pDE = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"NATURAL_FORCE_EXPLOSION_BOOM_SKILL", 1.f, pDamageData.impactPoint, GetRotateDegree(), GetRotateDegree() );
+
+				//현재 NF 게이지 값과 스킬에서 최대로 소모되는 NF 게이지 값 중 최소값을 적용.
+				byteConsumeNFBySkill = min( GetNaturalForceCount(), byteConsumeNFBySkill );
+				if( pDE != NULL )
+				{				
+					//NF게이지가 소모되는 갯수에 따라 데미지에 곱해준다
+					pDE->GetDamageData().damage.fMagic *= byteConsumeNFBySkill;
+					pDE->GetDamageData().damage.fPhysic *= byteConsumeNFBySkill;
+				}
+				ConsumeNaturalForce(byteConsumeNFBySkill);	
+			}
+
+		} break;
+
+	default:
+		break;
+
+	}
+}
+
+/** @function 	: ConsumeNaturalForce
+	@brief 		: 자연의 기운을 소모함
+*/
+void CX2GULire_ElvenRanger::ConsumeNaturalForce( int iCount_ )
+{
+	SetNaturalForceCount( GetNaturalForceCount() - iCount_ );
+
+	//각성 상태일 때는 수치와 상관없이 버프를 해제 시키지 않는다.
+	if( (GetRemainHyperModeTime() <= 0.f) && (GetNaturalForceCount() < NATURAL_FORCE_BUFF && GetNaturalForceBuff() == true) )
+		SetNaturalForceBuff( false );
+}
+
+/** @function	: GetNaturalForce
+	@brief		: 기력 확인
+*/
+__forceinline int CX2GULire_ElvenRanger::GetNaturalForceCount() 
+{ 
+	return GetRenaGageData()->GetNowNaturalForce(); 
+}
+
+/** @function 	: UpNaturalForce
+	@brief 		: 자연의 기운 충전
+*/
+__forceinline void CX2GULire_ElvenRanger::UpNaturalForce( int iUpCount_ )
+{
+	SetNaturalForceCount( GetNaturalForceCount() + iUpCount_ );
+
+	if( GetNaturalForceCount() >= NATURAL_FORCE_BUFF && GetNaturalForceBuff() == false )
+		SetNaturalForceBuff( true );
+}
+
+/** @function 	: IsEmptyNaturalForce
+	@brief 		: 자연의 기운이 비었는지 확인
+*/
+__forceinline bool CX2GULire_ElvenRanger::IsEmptyNaturalForce()
+{
+	return GetRenaGageData()->IsEmptyNaturalForce();
+}
+
+/** @function 	: IsFullNaturalForce
+	@brief 		: 자연의 기운이 가득 찼는지 확인
+*/
+__forceinline bool CX2GULire_ElvenRanger::IsFullNaturalForce()
+{
+	return GetRenaGageData()->IsFullNaturalForce();
+}
+
+/** @function 	: SetNaturalForceCount
+	@brief 		: 자연의 기운 갯수 설정
+*/
+void CX2GULire_ElvenRanger::SetNaturalForceCount( const int iNaturalForceCount_ ) 
+{ 
+	GetRenaGageData()->SetNaturalForceChanged( true );
+	GetRenaGageData()->SetNowNaturalForce( iNaturalForceCount_ ); 
+}
+
+/** @function 	: SetNaturalForceBuff
+	@brief 		: NF 버프 모드 설정
+*/
+void CX2GULire_ElvenRanger::SetNaturalForceBuff( const bool bBuffOn_ )
+{
+	GetRenaGageData()->SetNFBuffMode( bBuffOn_ );
+
+	if( bBuffOn_ == true )
+	{
+		SetBuffFactorToGameUnitByBuffFactorID(BFI_BUFF_NATURAL_FORCE);
+	}
+	else
+	{
+		EraseBuffTempletFromGameUnit(BTI_BUFF_NATURAL_FORCE);
+	}
+}
+
+/** @function 	: GetNaturalForceBuff
+	@brief 		: NF 버프 모드 설정
+*/
+const bool CX2GULire_ElvenRanger::GetNaturalForceBuff()
+{
+	return GetRenaGageData()->GetNFBuffMode();
+}
+
+/** @function 	: Init
+	@brief 		: 초기화 함수. 자연의 기운 동기화
+*/
+/*virtual*/ void CX2GULire_ElvenRanger::Init( bool bUseTeamPos_, int iStartPosIndex_ )
+{
+	CX2GUUser::Init( bUseTeamPos_, iStartPosIndex_ );
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	/// 자연의 기운 동기화
+	if ( true == IsMyUnit() )
+		m_FrameDataFuture.syncData.m_CannonBallCount = GetNaturalForceCount();
+
+	m_eSaveStateSkillId = CX2SkillTree::SI_NONE;
+
+	//예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리
+	if( GetAccessNowDamageRelateSkillData().m_byteRelateData >= 10 )
+		GetAccessNowDamageRelateSkillData().m_byteRelateData = 0;
+#endif //ADD_RENA_SYSTEM
+
+	SetSphereAttackBoxScale( L"Lfoot", 1.3f );
+	SetSphereAttackBoxScale( L"Rfoot", 1.3f );
+}
+
+/** @function	: SetSpecificValueByBuffTempletID
+	@brief		: 각 유닛마다 특정 버프가 실행 될 때 셋팅해야 하는 함수 실행(ex: 매지컬메이크업이 시전중이라는 플래그 설정 등...)
+	@param		: 버프템플릿ID(eBuffTempletId_)
+*/
+/*virtual*/ void CX2GULire_ElvenRanger::SetSpecificValueByBuffTempletID( const BUFF_TEMPLET_ID eBuffTempletId_ )
+{
+	CX2GUUser::SetSpecificValueByBuffTempletID( eBuffTempletId_ );
+
+	switch ( eBuffTempletId_ )
+	{
+	case BTI_HYPER_MODE:
+		{
+			SetNaturalForceBuff(true);
+		} break;
+
+	default:
+		break;
+	}
+}
+
+/** @function	: UnSetSpecificValueByBuffTempletID
+	@brief		: 각 유닛마다 특정 버프가 해제 될 때 셋팅해야 하는 함수 실행(ex: 매지컬메이크업이 해제 됬다는 플래그 설정 등...)
+	@param		: 버프템플릿ID(eBuffTempletId_)
+*/
+/*virtual*/ void CX2GULire_ElvenRanger::UnSetSpecificValueByBuffTempletID( const BUFF_TEMPLET_ID eBuffTempletId_ )
+{
+	CX2GUUser::UnSetSpecificValueByBuffTempletID( eBuffTempletId_ );
+
+	switch ( eBuffTempletId_ )
+	{
+	case BTI_HYPER_MODE:
+		{
+			if( GetNaturalForceCount() < NATURAL_FORCE_BUFF )
+			{
+				GetRenaGageData()->SetNFBuffMode( false );
+				ReserveToFinishBuffTempletFromGameUnit(BTI_BUFF_NATURAL_FORCE);
+			}
+		} break;
+
+	default:
+		break;
+	}
+}
+
+/** @function 	: AdjustDamageDataBeforeDamageReact
+	@brief 		: DamageReact를 실행하기 전에 해당 DamageData를 수정할 수 있는 함수
+*/
+/*virtual*/ void CX2GULire_ElvenRanger::AdjustDamageDataBeforeDamageReact( CX2DamageManager::DamageData* pDamageData )
+{
+	//RT_DOWN등으로 쓰러지지 않도록 BIG_DAMAGE로 REACT를 바꿔준다.
+	if( pDamageData->m_NaturalForceType == CX2DamageManager::NFT_COMBO_BOMB && IsEmptyNaturalForce() == false )
+	{
+		pDamageData->reActType = CX2DamageManager::RT_BIG_DAMAGE;
+		pDamageData->reActResult = CX2DamageManager::RT_BIG_DAMAGE;
+	}
+}
+
+/** @function 	: SetNaturalForceEffect
+	@brief 		: NF게이지 숫자에 일치하는 이펙트 생성
+*/
+void CX2GULire_ElvenRanger::SetNaturalForceEffect()
+{
+	if( NULL == g_pX2Game->GetEffectSet() )
+		return;
+
+	if( INVALID_EFFECTSET_HANDLE != m_hNaturalForceEffect )
+		g_pX2Game->GetEffectSet()->StopEffectSet(m_hNaturalForceEffect);
+	
+	//wstring wstrEffectName = L"";
+    const wchar_t* wszEffectName = NULL;
+
+	switch( GetNaturalForceCount() )
+	{
+	case 1:
+		wszEffectName = L"EffectSet_Rena_NF_Loop01";
+		break;
+
+	case 2:
+		wszEffectName = L"EffectSet_Rena_NF_Loop02";
+		break;
+
+	case 3:
+		wszEffectName = L"EffectSet_Rena_NF_Loop03";
+		break;
+
+	case 4:
+		wszEffectName = L"EffectSet_Rena_NF_Loop04";
+		break;
+
+	case 5:
+		wszEffectName = L"EffectSet_Rena_NF_Loop_ALL";
+		break;
+
+	default:
+		break;
+	}
+
+	//if( L"" != wszEffectName.c_str() )
+    if ( wszEffectName != NULL )
+		m_hNaturalForceEffect = g_pX2Game->GetEffectSet()->PlayEffectSet( wszEffectName, (CX2GameUnit*) this );
+}
+
+/** @function	: UpdateNaturalForceEffect
+	@brief		: NF 포인트에 의한 이펙트 갱신 함수
+*/
+void CX2GULire_ElvenRanger::UpdateNaturalForceEffect()
+{
+	/// 이전의 NF 포인트와 다르다면, 이펙트 갱신
+	if ( m_iBeforeNaturalForceCount != GetNaturalForceCount() )
+	{
+		SetNaturalForceEffect();
+		m_iBeforeNaturalForceCount = GetNaturalForceCount();
+	}
+}
+
+/** @function	: IsHyperSkill
+	@brief		: 인자로 넘어온 SKILL ID가 하이퍼 액티브인지 체크
+*/
+bool CX2GULire_ElvenRanger::IsHyperActiveSkill( CX2SkillTree::SKILL_ID eSkillId_ )
+{
+	switch( eSkillId_ )
+	{
+	case CX2SkillTree::SI_HA_LWS_SPIRAL_STRIKE:
+	case CX2SkillTree::SI_HA_LGA_CRYOTRON_BOLT:
+	case CX2SkillTree::SI_HA_LNW_INNOCENT:
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/** @function 	: CheckDamageRelateSkillData
+	@brief 		: 데미지 데이터에 들어있는 값과 저장해둔 데이터가 일치하는 것이 있는지 체크
+*/
+/*virtual*/ bool CX2GULire_ElvenRanger::CheckDamageRelateSkillData( const CX2DamageManager::DamageRelateSkillData sData_ )
+{
+	CX2GUUser::AllDamageRelateSkillData sAllDamageRelateSkillData = GetAccessAllDamageRelateSkillData();
+	std::vector<CX2DamageManager::DamageRelateSkillData>::iterator itr = sAllDamageRelateSkillData.m_vecSaveData.begin();
+	for( ; itr != sAllDamageRelateSkillData.m_vecSaveData.end(); )
+	{
+		if( sData_.m_byteSkillIndex == (*itr).m_byteSkillIndex )
+		{
+			return true;
+		}
+		else
+			itr++;
+	}
+
+	return false;
+}
+
+/** @function 	: CheckDamageRelateComboData
+	@brief 		: 예외적으로 데미지 이펙트를 2개 이상 생성하는 콤보에 대한 예외처리 2014.01.28
+*/
+bool CX2GULire_ElvenRanger::CheckDamageRelateComboData( const CX2DamageManager::DamageRelateSkillData sData_ )
+{
+	CX2GUUser::AllDamageRelateSkillData& sAllDamageRelateSkillData = GetAccessAllDamageRelateSkillData();
+	std::vector<CX2DamageManager::DamageRelateSkillData>::iterator itr = sAllDamageRelateSkillData.m_vecSaveData.begin();
+
+	for( ; itr != sAllDamageRelateSkillData.m_vecSaveData.end(); )
+	{
+		if( sData_.m_byteSkillIndex == (*itr).m_byteSkillIndex && sData_.m_byteRelateData == (*itr).m_byteRelateData )
+		{
+			(*itr).m_byteRelateData -= 1;
+			return true;
+		}
+		else
+			itr++;
+	}
+
+	return false;
+}
+
+/** @function 	: DeleteDamageRelateSkillData
+	@brief 		: 일치한는 데이터 값을 저장해둔 vector에서 삭제
+*/
+/*virtual*/ void CX2GULire_ElvenRanger::DeleteDamageRelateSkillData( const CX2DamageManager::DamageRelateSkillData sData_ )
+{
+	CX2GUUser::AllDamageRelateSkillData& sAllDamageRelateSkillData = GetAccessAllDamageRelateSkillData();
+	std::vector<CX2DamageManager::DamageRelateSkillData>::iterator itr = sAllDamageRelateSkillData.m_vecSaveData.begin();
+	for( ; itr != sAllDamageRelateSkillData.m_vecSaveData.end(); )
+	{
+		if( sData_.m_byteSkillIndex == (*itr).m_byteSkillIndex )
+		{
+			itr = sAllDamageRelateSkillData.m_vecSaveData.erase(itr);
+			break;
+		}
+		else
+			itr++;
+	}
+}
+#endif //ADD_RENA_SYSTEM

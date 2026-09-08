@@ -452,7 +452,32 @@ bool KSession::SendPacket( IN const KEvent& kEvent )
 #endif SERV_CHECK_RECV_BUFFER_FULL
 	//}}
 
-    return m_spSockObj->SendData( ( const char* )bsbuff.data(), bsbuff.length() );
+#ifdef SERV_DISCONNECT_LOG_FOR_SENDBUFFERFULL// 작업날짜: 2013-09-23	// 박세훈
+	const bool bResult = m_spSockObj->SendData( ( const char* )bsbuff.data(), bsbuff.length() );
+
+	if( m_bIsProxy == true )
+	{
+		if( 30 < m_queEventID.size() )
+		{
+			m_queEventID.pop();
+		}
+		m_queEventID.push( TYPE_SEND_BUFFER_FULL_LOG::value_type( kEvent.m_usEventID, CTime::GetCurrentTime() ) );
+
+		if( ( bResult == false ) && ( GetDisconnectReason() == KStatistics::eSIColDR_SendBufferFull ) )
+		{
+			while( m_queEventID.empty() == false )
+			{
+				const TYPE_PAIR_USHORT_CTIME& sInfo = m_queEventID.front();
+				START_LOG( cerr, L"Send Buffer Full. Latest Packet ID : " << (LPCTSTR)sInfo.second.Format( KNC_TIME_FORMAT ) << L", " << KEvent::GetIDStr( sInfo.first ) );
+				m_queEventID.pop();
+			}
+		}
+	}
+
+	return bResult;
+#else // SERV_DISCONNECT_LOG_FOR_SENDBUFFERFULL
+	return m_spSockObj->SendData( ( const char* )bsbuff.data(), bsbuff.length() );
+#endif // SERV_DISCONNECT_LOG_FOR_SENDBUFFERFULL
 }
 
 bool KSession::SendID( DWORD dwDestPI_, UidType nTo_, UidType anTrace[], unsigned short usEventID_ )

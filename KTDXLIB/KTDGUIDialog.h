@@ -81,6 +81,20 @@ class CKTDGUIDialog
 			return pPicture;
 		}
 
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+		CKTDGUIControl::CMovieData* CreateMovie()
+		{ 
+			CKTDGUIControl::CMovieData* pMovieData = new CKTDGUIControl::CMovieData();
+			return pMovieData;
+		}
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+
+
+
+
 		CKTDGUIButton*		CreateButton()		{ CKTDGUIButton*		pControl; pControl = new CKTDGUIButton();		return pControl; }
 		CKTDGUICheckBox*	CreateCheckBox()	{ CKTDGUICheckBox*		pControl; pControl = new CKTDGUICheckBox();		return pControl; }
 		CKTDGUIEditBox*		CreateEditBox()		{ CKTDGUIEditBox*		pControl; pControl = new CKTDGUIEditBox();		return pControl; }
@@ -100,6 +114,9 @@ class CKTDGUIDialog
 		CKTDGUIItem*		CreateItem()		{ CKTDGUIItem*	pControl; pControl = new CKTDGUIItem(); return pControl; }
 
 		void			AddControl( CKTDGUIControl* pControl );
+#ifdef DLL_BUILD
+		void			AddControl_Front( CKTDGUIControl* pControl );
+#endif
 		bool			DeleteControl( const WCHAR* pControlName );
 
 		bool			ChangeSequence( CKTDGUIControl* pControlToChange, bool bFront ); // 가장 앞으로 옮길것이냐 가장 뒤로 옮길것이냐?
@@ -133,7 +150,6 @@ class CKTDGUIDialog
 #ifdef SET_SHOW_CONTROLS_WITH_DUMMYINT
 		void			SetShowEnableControlsWithDummyInt( IN int iIndex, IN int iValue, IN bool bShow, IN bool bEnable );
 #endif SET_SHOW_CONTROLS_WITH_DUMMYINT
-
 		CKTDXStage*	GetStage()						{ return m_pStage; }
 		void		SetStage( CKTDXStage* pStage ) { m_pStage = pStage; }
 
@@ -297,9 +313,7 @@ class CKTDGUIDialog
 		void SetCustomMsgMouseOver( int msg ){ m_CustomMsgMouseOver = msg; }
 		void SetCustomMsgStopDragging(int val) { m_CustomMsgStopDragging = val; }
 		void SetCustomMsgStartDragging(int val) { m_CustomMsgStartDragging = val; }
-#ifdef REFORM_UI_WORLDMAP
 		void SetCustomMsgRMouseUp(int msg) { m_CustomMsgRMouseUp = msg; }
-#endif
 		
 
 //{{ robobeg : 2009-01-07
@@ -373,7 +387,13 @@ class CKTDGUIDialog
 		void ClearParticleList();
 #endif //PARTICLE_RENDER_BY_DIALOG
 
-		
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		void SetCustomButtonMouseOverSndFile_LUA( const char* pCustomSndFileName );
+		void SetCustomButtonMouseUpSndFile_LUA( const char* pCustomSndFileName );
+		void SetDownStateToAllButtonType ();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
+
 	protected:
 
 		CKTDGUIControl* GetControlAtPoint( POINT pt );
@@ -487,9 +507,7 @@ class CKTDGUIDialog
 		// 내부에서 OnFrameRender 처리한다.
 		CKTDGObject*                m_pUnitViewer; 
 		bool						m_bHasUnit;
-#ifdef REFORM_UI_WORLDMAP
 		int							m_CustomMsgRMouseUp;
-#endif
 
 #ifdef PARTICLE_RENDER_BY_DIALOG
 		//다이얼로그가 파티클의 레어이를 관리 하도록 다이얼로그 내부에서 OnFrameRender 처리
@@ -523,15 +541,27 @@ private:
 
 		int							m_iDialogListChangeCount; // dialog가 dialog list에 추가될때, list가 변경된 회수를 저장. dialog list에 추가된 이후에 dialog list가 변동이 있었는지 확인하기 위해 사용.
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 		bool						m_bOneClickJoyVectorButton;	
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
 		CKTDXTimer					m_TimerToSelfDelete;
 		float						m_fTimeForSelfDelete;
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		wstring		m_wstrCustomButtonMouseOverSndFileName;
+		wstring		m_wstrCustomButtonMouseUpSndFileName;
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
 #ifdef LOG_LOAD_DLG_SCRIPT
-		wstring						m_strScriptFileName;
-		bool						m_bShowScriptName;
+		wstring		m_strScriptFileName;
+		wstring		m_strMouseOverStaticName;
+		bool		m_bShowScriptName;
+
+	public:
+		bool GetShowScriptName() { return m_bShowScriptName; }
+		void SetShowScriptName( bool bValue_ ) { m_bShowScriptName = bValue_; }
+		wstring GetScriptFileName() { return m_strScriptFileName; }
+		wstring GetMouseOverStaticName() { return m_strMouseOverStaticName; }
 #endif //LOG_LOAD_DLG_SCRIPT
 
 #ifdef MOVE_FADE_IN_OUT

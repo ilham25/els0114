@@ -60,12 +60,6 @@ public:
 							   //}}
 							   IN const std::vector< KConnectTimeEventInfo >& vecEventTime, 
 							   IN const std::vector< KCumulativeTimeEventInfo >& vecCumulativeEventTime
-							   //{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-							   , IN const bool bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-							   //}}
-
 							   //{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 							   , IN const UidType& iUnitUID
@@ -142,7 +136,6 @@ public:
 	void		CheckAdvertisementEvent( IN KGSUserPtr spUser );
 	void		GetAdvertisementURL( OUT std::vector< std::wstring >& vecAdvertisementURL );
 #endif SERV_ADVERTISEMENT_EVENT
-
 private:
 	std::map< int, std::pair< KUserConnectTimeEventInfo, KTimerManager > >		m_mapConnectTimeEvent;		// 현재 진행중인 접속시간 이벤트
 	//{{ 2009. 12. 7  최육사	누적시간이벤트

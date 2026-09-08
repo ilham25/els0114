@@ -1,10 +1,6 @@
 #pragma once
 
-#ifdef REFORM_UI_CHARACTER_INFO
 class CX2CharPopupMenu : public CX2PopupUIBase
-#else
-class CX2CharPopupMenu
-#endif
 {   	
 public:
 	enum USER_MENU_UI_MSG
@@ -23,13 +19,11 @@ public:
 		UMUI_INVITE_GUILD_MEMBER,	/// 길드초대
 		//}} kimhc // 2009-09-29 // 길드 관련 메시지 추가
 		UMUI_INFO_SIMPLE,
-//#ifdef REFORM_UI_CHARACTER_INFO
 		UMUI_MOVE_TO_PARTY,	/// 파티 소속필드로 이동
 		UMUI_INPUT_PARTY,	/// 초대할 캐릭터명 입력
 		UMUI_DROP_OUT,		/// 파티 탈퇴
 		UMUI_INPUT_EXIT,	/// 캐릭 초대 다이얼로그 종료
 		UMUI_INVITE_PARTY_NAME,	/// 캐릭터 이름으로 파티 초대
-//#endif
 		UMUI_SELECT_INVITE_MEMBER_SEVER,//초대할 파티원 서버
 		UMUI_EXIT,			/// 종료
 //#ifdef ADDED_RELATIONSHIP_SYSTEM
@@ -69,10 +63,8 @@ private:
 	void SetUnit( UidType uidUnitUID, bool bPartyMember = false );
 	void SetMode( USER_MENU eMode, bool bPartyMember = false );
 	bool SetPopupMenu( UidType iUnitUID, bool bPartyMember = false );
-#ifdef REFORM_UI_CHARACTER_INFO
 	void OnPartyInput( bool bOn_ );
 	void SetOnPopup();
-#endif
 
 protected:    
     //CX2State*				m_pNowState;
@@ -88,12 +80,10 @@ private:
 
 	//bool							m_bShow;
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	CKTDGUIControl::CPictureData*	m_pPicMiddle1;
 	CKTDGUIControl::CPictureData*	m_pPicBottom1;
 	CKTDGUIControl::CPictureData*	m_pPicMiddle2;
 	CKTDGUIControl::CPictureData*	m_pPicBottom2;
-#endif
     
 	CKTDGUIControl::CPictureData*	m_pPicCharacter;		/// 캐릭터 이미지
 

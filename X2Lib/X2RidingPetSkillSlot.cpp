@@ -40,7 +40,6 @@ void CX2RidingPetSkillSlot::SetSkillUIType( bool bIsTypeA )
 	
 	if( false == bIsTypeA )
 	{
-
 		vSlotPos.x = -297.f;
 #ifdef INT_WIDE_BAR
 		vSlotPos.y = -595.f;
@@ -99,7 +98,7 @@ void CX2RidingPetSkillSlot::UpdateStamina( IN const float fStamina_, IN const fl
 			float fMaxStamina = fMaxStamina_;
 			float fStaminaPercent = fStamina / fMaxStamina;
 		
-			CKTDXDeviceTexture::TEXTURE_UV* pTexUV = pStamina->pTexture->pTexture->GetTexUV( L"RIDING_STAMINA_BAR" );
+			const CKTDXDeviceTexture::TEXTURE_UV* pTexUV = pStamina->pTexture->pTexture->GetTexUV( L"RIDING_STAMINA_BAR" );
 			float fRate = 1.0f;
 
 			if ( NULL != pTexUV )
@@ -134,6 +133,87 @@ void CX2RidingPetSkillSlot::UpdateStamina( IN const float fStamina_, IN const fl
 	}
 }
 
+#ifdef ADJUST_RIDINGPET_SKILLSLOT
+void CX2RidingPetSkillSlot::SetSkillSlotTexture()
+{
+	if( NULL != m_pDlgSkillSlot )
+	{
+		UidType RidingPetID = -1;
+		if( NULL != CX2RidingPetManager::GetInstance() && NULL != CX2RidingPetManager::GetInstance()->GetMyRidingPet() )
+			RidingPetID = CX2RidingPetManager::GetInstance()->GetMyRidingPet()->GetInfo().m_Id;
+		if( -1 == RidingPetID )
+			return;
+
+		CX2RidingPetManager::RidingPetTemplet* pTemplet = NULL;
+		pTemplet = CX2RidingPetManager::GetInstance()->GetRidingPetTemplet( static_cast<CX2RidingPetManager::RIDING_PET_UNIT_ID>(RidingPetID) );
+		if( NULL == pTemplet )
+			return;
+
+		CKTDGUISlot* pSlot = NULL;
+		WCHAR SlotName[10] = {0,};
+		int index = 0;
+
+		std::vector<CX2RidingPetManager::RidingPetSkillInfo>::iterator itr;
+		for( itr = pTemplet->m_vecAttackSkill.begin(); itr != pTemplet->m_vecAttackSkill.end(); ++itr )
+		{
+			StringCchPrintf( SlotName, 10, L"SlotB%d", index );
+			pSlot = static_cast<CKTDGUISlot*>( m_pDlgSkillSlot->GetControl( SlotName ) );
+			if( NULL != pSlot )
+			{
+				pSlot->SetItemTex( itr->m_wstrImageName.c_str(), itr->m_wstrKeyName.c_str() );
+				pSlot->SetGuideDesc( itr->m_wstrSkillDesc.c_str() );
+			}
+
+			++index;
+		}
+
+		StringCchPrintf( SlotName, 10, L"SlotB%d", index );
+		pSlot = static_cast<CKTDGUISlot*>( m_pDlgSkillSlot->GetControl( SlotName ) );
+		if( NULL != pSlot )
+		{
+			pSlot->SetItemTex( L"DLG_SKILL_RIDING.tga", L"RIDING_GET_OFF" );
+			UpdateRideOffSlotGuide();
+		}
+	}
+}
+void CX2RidingPetSkillSlot::UpdateSkillSlotTexture()
+{
+	if( NULL != m_pDlgSkillSlot )
+	{
+		CKTDGUISlot* pSlot = NULL;
+		WCHAR SlotName[10] = {0,};
+		int index = 0;
+
+		for( index; index < 4; ++index )
+		{
+			StringCchPrintf( SlotName, 10, L"SlotB%d", index );
+			pSlot = static_cast<CKTDGUISlot*>( m_pDlgSkillSlot->GetControl( SlotName ) );
+			if( NULL != pSlot )
+			{
+				D3DXVECTOR2 vOffsetPos = D3DXVECTOR2 ( 0, 0 );
+				if ( g_pMain->GetGameOption().GetIsSkillUITypeA() == false )
+				{
+					wstring guideDesc = pSlot->GetGuideDesc();
+					CKTDGFontManager::CUKFont* pItemDescFont = 
+						g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( 2 );
+
+					float itemDescWidth = (float)( pItemDescFont->GetWidth( guideDesc.c_str() ) / g_pKTDXApp->GetResolutionScaleX() ) + 12;
+
+					vOffsetPos.x = - ( itemDescWidth / 2.f ) - 297;
+					vOffsetPos.y = pSlot->GetSize().y;
+
+					pSlot->SetGuideDescLT( true );
+				}
+				else
+				{
+					pSlot->SetGuideDescLT( false );
+				}
+				pSlot->SetGuideDescOffsetPos ( vOffsetPos );
+			}
+		}
+	}
+}
+#else //ADJUST_RIDINGPET_SKILLSLOT
 void CX2RidingPetSkillSlot::UpdateSkillSlotTexture()
 {
 	if( NULL != m_pDlgSkillSlot )
@@ -162,10 +242,9 @@ void CX2RidingPetSkillSlot::UpdateSkillSlotTexture()
 			{
 				pSlot->SetItemTex( itr->m_wstrImageName.c_str(), itr->m_wstrKeyName.c_str() );
 				
-				if ( NULL != g_pMain->GetGameOption() )
 				{
 					D3DXVECTOR2 vOffsetPos = D3DXVECTOR2 ( 0, 0 );
-					if ( g_pMain->GetGameOption()->GetIsSkillUITypeA() == false )
+					if ( g_pMain->GetGameOption().GetIsSkillUITypeA() == false )
 					{
 						wstring guideDesc = pSlot->GetGuideDesc();
 						CKTDGFontManager::CUKFont* pItemDescFont = 
@@ -199,6 +278,7 @@ void CX2RidingPetSkillSlot::UpdateSkillSlotTexture()
 		}
 	}
 }
+#endif //ADJUST_RIDINGPET_SKILLSLOT
 
 void CX2RidingPetSkillSlot::UpdateRideOffSlotGuide()
 {

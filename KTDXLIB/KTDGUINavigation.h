@@ -48,8 +48,23 @@ public:
 	void SetRelativeWindowPos( D3DXVECTOR2 vRelativePos );
 	void SetRelativeWindowSize( D3DXVECTOR2 vSize );
 
-#ifdef REFORM_UI_WORLDMAP
 	bool GetDraggingWindow() { return m_bDraggingWindow; }
+
+#ifdef DLL_BUILD
+protected:
+	virtual bool IsSelectByEditGui( POINT pt ) override
+	{
+		return ContainsPoint(pt);
+	}
+
+	virtual void MoveControl( float fx, float fy ) override;
+
+	virtual void SetEditGUI( bool bEdit ) override;		// GUI 에디트 모드 설정
+
+
+	virtual D3DXVECTOR2 GetPos() override;		/// 컨트롤의 위치
+	virtual vector<D3DXVECTOR2> GetPosList() override;		// 컨트롤 내에 pictures의 위치 정보
+	virtual D3DXVECTOR2 GetPos(wstring name) override;
 #endif
 
 

@@ -22,8 +22,8 @@ m_fSec( 0.f ),
 m_fDamaged( 0.f ),
 m_DungeonResultAniOrder( DRAO_DUNGEON_PICTURE_BG ),
 m_bInitUIFail( false ),
-m_hParticleElMark( INVALID_PARTICLE_HANDLE ),
-m_hParticleRank( INVALID_PARTICLE_HANDLE ),
+m_hParticleElMark( INVALID_PARTICLE_SEQUENCE_HANDLE ),
+m_hParticleRank( INVALID_PARTICLE_SEQUENCE_HANDLE ),
 m_pSoundElMark( NULL ),
 m_pPicCharScore( NULL ),
 m_pPicCharEXP( NULL ),
@@ -92,7 +92,7 @@ m_bSendedRegHack( false )
 	}
 	
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), false );
 
 	g_pKTDXApp->SkipFrame();
@@ -132,10 +132,10 @@ CX2StateDungeonResult::~CX2StateDungeonResult(void)
 
 	g_pData->DeleteDungeonResultInfo();
 
-	if ( m_hParticleElMark != INVALID_PARTICLE_HANDLE )
+	if ( m_hParticleElMark != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hParticleElMark );
 
-	if ( m_hParticleRank != INVALID_PARTICLE_HANDLE )
+	if ( m_hParticleRank != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hParticleRank );
 
 
@@ -156,7 +156,7 @@ CX2StateDungeonResult::~CX2StateDungeonResult(void)
 	for ( int i = 0; i < (int)m_vecRewardXMeshInst.size(); i++ )
 	{
 		CKTDGXMeshPlayer::CXMeshInstanceHandle hMeshInst = m_vecRewardXMeshInst[i];
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( hMeshInst );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( hMeshInst );
 	}
 	m_vecRewardXMeshInst.clear();
 
@@ -189,7 +189,7 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 	}
 
 	CX2StateCommonBG::OnFrameMove( fTime, fElapsedTime );
-	g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( fElapsedTime );
+	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( fElapsedTime );
 
 	if ( m_bStartTimer == true )
 		m_fRemainTime -= fElapsedTime;
@@ -277,7 +277,7 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 		{
 			int iDungeonID = g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID;
 			int iDungeonDifficulty = g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonDifficulty;
-			pDungeonData_Difficulty = g_pData->GetDungeonManager()->GetDungeonData( static_cast<CX2Dungeon::DUNGEON_ID>( iDungeonID + iDungeonDifficulty) );
+			pDungeonData_Difficulty = g_pData->GetDungeonManager()->GetDungeonData( static_cast<SEnum::DUNGEON_ID>( iDungeonID + iDungeonDifficulty) );
 		}
 
 		int iDungeonLv = 0;
@@ -300,7 +300,7 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 #endif SERV_CATCH_HACKUSER_INFO
 
 		int nPlayer = (int)g_pData->GetDungeonResultInfo()->m_DungeonResultUnitInfoList.size();		
-		int iUserLv = g_pData->GetDungeonRoom()->GetMySlot()->m_pUnit->GetUnitData()->m_Level;
+		int iUserLv = g_pData->GetDungeonRoom()->GetMySlot()->m_pUnit->GetUnitData().m_Level;
 
 		if( g_pData->GetDungeonResultInfo()->m_bWin == true &&	// 클리어했고
 			playTimeAllSec <= 120 &&							// 클리어 소요 시간이 2분 이하이고
@@ -310,25 +310,25 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 			m_bSendedRegHack == false &&
 			g_pData->GetMyUser()->GetAuthLevel() < CX2User::XUAL_OPERATOR )
 		{
-			CX2Dungeon::DUNGEON_ID eDungeon = g_pData->GetDungeonRoom()->GetDungeonID();			
+			SEnum::DUNGEON_ID eDungeon = g_pData->GetDungeonRoom()->GetDungeonID();			
 
 			// 아래 던전부터 검사하도록 한다.
-			if( eDungeon != CX2Dungeon::DI_ELDER_HENIR_SPACE &&
-// 				eDungeon != CX2Dungeon::DI_BESMA_HENIR_SPACE &&
-// 				eDungeon != CX2Dungeon::DI_ALTERA_HENIR_SPACE &&
-// 				eDungeon != CX2Dungeon::DI_FEITA_HENIR_SPACE &&
-// 				eDungeon != CX2Dungeon::DI_VELDER_HENIR_SPACE &&
-// 				eDungeon != CX2Dungeon::DI_HAMEL_HENIR_SPACE &&
-// 				eDungeon != CX2Dungeon::DI_BATTLE_SHIP_VELDER &&
-// 				eDungeon != CX2Dungeon::DI_BATTLE_SHIP_HAMEL &&
-				( eDungeon > CX2Dungeon::DI_MONSTER_TEST_EXPERT && eDungeon < CX2Dungeon::DI_TRAINING_FREE ) )
+			if( eDungeon != SEnum::DI_ELDER_HENIR_SPACE &&
+// 				eDungeon != SEnum::DI_BESMA_HENIR_SPACE &&
+// 				eDungeon != SEnum::DI_ALTERA_HENIR_SPACE &&
+// 				eDungeon != SEnum::DI_FEITA_HENIR_SPACE &&
+// 				eDungeon != SEnum::DI_VELDER_HENIR_SPACE &&
+// 				eDungeon != SEnum::DI_HAMEL_HENIR_SPACE &&
+// 				eDungeon != SEnum::DI_BATTLE_SHIP_VELDER &&
+// 				eDungeon != SEnum::DI_BATTLE_SHIP_HAMEL &&
+				( eDungeon > SEnum::DI_MONSTER_TEST_EXPERT && eDungeon < SEnum::DI_TRAINING_FREE ) )
 			{
 				// 핵으로 감지
 				if(g_pData != NULL && g_pData->GetServerProtocol() != NULL )
 				{
 					g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );								
-					if( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetUserData() != NULL )
-						g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+					if( g_pData != NULL && g_pData->GetMyUser() != NULL )
+						g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 				}	
 
 #ifdef ADD_COLLECT_CLIENT_INFO			
@@ -793,10 +793,10 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 							//		m_DungeonResultAniOrder = DRAO_FIRST_RESULT_INFO_FADE_OUT;
 							m_DungeonResultAniOrder = DRAO_ED_BG;
 
-							if ( m_hParticleElMark != INVALID_PARTICLE_HANDLE )
+							if ( m_hParticleElMark != INVALID_PARTICLE_SEQUENCE_HANDLE )
 								g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hParticleElMark );
 
-							if ( m_hParticleRank != INVALID_PARTICLE_HANDLE )
+							if ( m_hParticleRank != INVALID_PARTICLE_SEQUENCE_HANDLE )
 								g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hParticleRank );
 
 							float moveChangeTime = 0.5f;
@@ -927,8 +927,8 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 
 
 							g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), true );
-							g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,500,-1000, 0,0,0 );
-							g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( 1.0f );
+							g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,500,-1000, 0,0,0 );
+							g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( 1.0f );
 
 
 							CKTDGUIStatic* pStaticReward_Choice_Item_Black = (CKTDGUIStatic*)m_pDLGBack->GetControl( L"Dungeon_Reward_Choice_Item_Black" );
@@ -1083,12 +1083,12 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 							for ( int i = 0; i < (int)m_vecRewardXMeshInst.size(); i++ )
 							{
 								CKTDGXMeshPlayer::CXMeshInstanceHandle hMeshInst = m_vecRewardXMeshInst[i];
-								g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( hMeshInst );
+								g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( hMeshInst );
 							}
 							m_vecRewardXMeshInst.clear();
 
 
-							g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+							g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 							g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(),
 								g_pKTDXApp->GetDGManager()->GetFar(), false );
 
@@ -1269,9 +1269,9 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 								D3DXVECTOR2 picOrgSize = pStaticEXPBG->GetPicture( (pStaticEXPBG->GetPictureNum() - 1) )->GetOriginalSize();
 								CKTDGUIControl::CPictureData* pPictureEXP = pStaticEXPBG->GetPicture( (pStaticEXPBG->GetPictureNum() - 1) );
 
-								int nowExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP;
-								int nowBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NowBaseLevelEXP;
-								int nextBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NextBaseLevelEXP;
+								int nowExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP;
+								int nowBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NowBaseLevelEXP;
+								int nextBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NextBaseLevelEXP;
 
 								pPictureEXP->SetSizeX( (float)(nowExp - nowBaseExp) / (float)( nextBaseExp - nowBaseExp ) * picOrgSize.x );
 
@@ -1310,7 +1310,7 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 						#ifdef	REAL_TIME_ELSWORD
 							const int iED 
 								= ( g_pMain->GetIsPlayingTutorial() ?
-								static_cast<int>( pDungeonResultUnitInfo->m_nED ) : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED - pDungeonResultUnitInfo->m_nOldED );
+								static_cast<int>( pDungeonResultUnitInfo->m_nED ) : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED - pDungeonResultUnitInfo->m_nOldED );
 							
 							if ( GetPressEnterKeyOrZKeyForSkip() )
 								m_fED = static_cast<float>( iED );
@@ -1499,7 +1499,7 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 
 						const int iEXP 
 							= ( g_pMain->GetIsPlayingTutorial() ?
-							static_cast<int>( pDungeonResultUnitInfo->GetTotalExp() ) : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP - pDungeonResultUnitInfo->m_nOldEXP );
+							static_cast<int>( pDungeonResultUnitInfo->GetTotalExp() ) : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP - pDungeonResultUnitInfo->m_nOldEXP );
 
 						if ( GetPressEnterKeyOrZKeyForSkip() )
 							m_fEXP = static_cast<float>( iEXP );
@@ -1537,16 +1537,16 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 						CKTDGUIStatic* pStaticEXPBG = (CKTDGUIStatic*)m_pDLGBack->GetControl( L"Dungeon_Result_EXP_BG" );
 						D3DXVECTOR2 picOrgSize = pStaticEXPBG->GetPicture(27)->GetOriginalSize();
 
-						int nowExp = pSlotData->m_pUnit->GetUnitData()->m_EXP;
-						int nowBaseExp = pSlotData->m_pUnit->GetUnitData()->m_NowBaseLevelEXP;
-						int nextBaseExp = pSlotData->m_pUnit->GetUnitData()->m_NextBaseLevelEXP;
+						int nowExp = pSlotData->m_pUnit->GetUnitData().m_EXP;
+						int nowBaseExp = pSlotData->m_pUnit->GetUnitData().m_NowBaseLevelEXP;
+						int nextBaseExp = pSlotData->m_pUnit->GetUnitData().m_NextBaseLevelEXP;
 
 
 
 						m_fEXPSize += (fElapsedTime*X2_MAGIC_MULTY_NUM4);
 
 						float maxSize = 0;
-						if ( pSlotData->m_pUnit->GetPrevLevel() == pSlotData->m_pUnit->GetUnitData()->m_Level )
+						if ( pSlotData->m_pUnit->GetPrevLevel() == pSlotData->m_pUnit->GetUnitData().m_Level )
 						{
 						maxSize = (float)(nowExp - nowBaseExp) / (float)( nextBaseExp - nowBaseExp ) * picOrgSize.x;
 						}
@@ -1561,7 +1561,7 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 						{
 						m_fEXPSize = maxSize;
 
-						if ( pSlotData->m_pUnit->GetPrevLevel() < pSlotData->m_pUnit->GetUnitData()->m_Level )
+						if ( pSlotData->m_pUnit->GetPrevLevel() < pSlotData->m_pUnit->GetUnitData().m_Level )
 						{
 						m_fEXPSize = 0;
 						//pStaticEXPBG->GetPicture(28)->SetSizeX( 0 );
@@ -1577,7 +1577,7 @@ HRESULT CX2StateDungeonResult::OnFrameMove( double fTime, float fElapsedTime )
 						pStaticEXPBG->GetPicture(27)->SetSizeX( m_fEXPSize );
 						*/
 
-						pSlotData->m_pUnit->SetPrevLevel( pSlotData->m_pUnit->GetUnitData()->m_Level);
+						pSlotData->m_pUnit->SetPrevLevel( pSlotData->m_pUnit->GetUnitData().m_Level);
 
 						m_DungeonResultAniOrder = DRAO_END;
 					} break;
@@ -1778,7 +1778,7 @@ bool CX2StateDungeonResult::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPar
 				// 던전 초심자숲으로 바로가기
 				CX2StateAutoChanger::TARGET_DETAIL targetDetail;
 				targetDetail.m_iChannelID = (int) 104;		// note!!! 채널번호 일단 하드코딩
-				targetDetail.m_iDungeonID = (int) CX2Dungeon::DI_EL_FOREST_GATE_NORMAL;
+				targetDetail.m_iDungeonID = (int) SEnum::DI_EL_FOREST_GATE_NORMAL;
 				targetDetail.m_iRoomUID = -1;
 
 				g_pMain->GetStateAutoChanger().StartStateChange( (int)g_pMain->GetNowStateID(), CX2Main::XS_DUNGEON_GAME, targetDetail, 
@@ -2242,10 +2242,10 @@ bool CX2StateDungeonResult::InitUI()
 
 			
 		const CX2Dungeon::DungeonData* pDungeonData = 
-			g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
+			g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
             
 		CKTDGUIControl::UITextureData* pTexture = NULL;
-		CKTDXDeviceTexture::TEXTURE_UV* pTexUV = NULL;
+		const CKTDXDeviceTexture::TEXTURE_UV* pTexUV = NULL;
 
 		if( NULL != pDungeonData )
 		{
@@ -2276,7 +2276,7 @@ bool CX2StateDungeonResult::InitUI()
 			}
 
 			const CX2Dungeon::DungeonData* pDungeonData_Difficulty = 
-				g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) (g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID + g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonDifficulty) );
+				g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) (g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID + g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonDifficulty) );
 
 
 			// fix!!! 헤니르 시공의 경우에 던전 결과창에서 던전 데이타 정보를 난이도 대신에 도전 모드인지를 참조해야함
@@ -2305,7 +2305,7 @@ bool CX2StateDungeonResult::InitUI()
 			pStaticDungeonPictrue->GetString(0)->msg	= wstrBuff;
 
 			int requireLevel = 0;
-			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID)( g_pData->GetDungeonRoom()->GetDungeonID() + g_pData->GetDungeonRoom()->GetDifficulty() ) );
+			const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)( g_pData->GetDungeonRoom()->GetDungeonID() + g_pData->GetDungeonRoom()->GetDifficulty() ) );
 			if ( pDungeonData != NULL )
 				requireLevel = pDungeonData->m_MinLevel;
 
@@ -2322,8 +2322,8 @@ bool CX2StateDungeonResult::InitUI()
 			case CX2Dungeon::DT_NORMAL:
 				{
 					// DI_EL_FOREST_GATE_NORMAL, HARD, EXPERT 가 아니면
-					if ( pDungeonData->m_DungeonID < CX2Dungeon::DI_EL_FOREST_GATE_NORMAL ||
-						pDungeonData->m_DungeonID > CX2Dungeon::DI_EL_FOREST_GATE_EXPERT )
+					if ( pDungeonData->m_DungeonID < SEnum::DI_EL_FOREST_GATE_NORMAL ||
+						pDungeonData->m_DungeonID > SEnum::DI_EL_FOREST_GATE_EXPERT )
 					{
 						pStaticDungeonPictrue->GetString(2)->msg = GET_STRING( STR_ID_620 );
 						pStaticDungeonPictrue->GetString(2)->msg += L":";
@@ -2343,6 +2343,13 @@ bool CX2StateDungeonResult::InitUI()
 							pStaticDungeonPictrue->GetString(3)->msg = L" 3~4";
 							break;
 						}
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+						if( pDungeonData->m_DungeonID == SEnum::DI_EVENT_VALENTINE_DUNGEON_INT )
+						{
+							pStaticDungeonPictrue->GetString(3)->msg = L" 3~4";
+						}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 					}
 
 					switch ( pDungeonData->m_eDifficulty )
@@ -2392,9 +2399,9 @@ bool CX2StateDungeonResult::InitUI()
 			}
 			else if ( g_pData->GetDungeonRoom()->GetDifficulty() == 1 )
 			{
-				if ( pDungeonData->m_DungeonID == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL ||
-					pDungeonData->m_DungeonID == CX2Dungeon::DI_EL_FOREST_GATE_HARD || 
-					pDungeonData->m_DungeonID == CX2Dungeon::DI_EL_FOREST_GATE_EXPERT )
+				if ( pDungeonData->m_DungeonID == SEnum::DI_EL_FOREST_GATE_NORMAL ||
+					pDungeonData->m_DungeonID == SEnum::DI_EL_FOREST_GATE_HARD || 
+					pDungeonData->m_DungeonID == SEnum::DI_EL_FOREST_GATE_EXPERT )
 				{
 					pStaticDungeonPictrue->GetString(2)->msg = L"";
 					pStaticDungeonPictrue->GetString(3)->msg = L"";
@@ -2409,9 +2416,9 @@ bool CX2StateDungeonResult::InitUI()
 			}
 			else if ( g_pData->GetDungeonRoom()->GetDifficulty() == 2 )
 			{
-				if ( pDungeonData->m_DungeonID == CX2Dungeon::DI_EL_FOREST_GATE_NORMAL ||
-					pDungeonData->m_DungeonID == CX2Dungeon::DI_EL_FOREST_GATE_HARD || 
-					pDungeonData->m_DungeonID == CX2Dungeon::DI_EL_FOREST_GATE_EXPERT )
+				if ( pDungeonData->m_DungeonID == SEnum::DI_EL_FOREST_GATE_NORMAL ||
+					pDungeonData->m_DungeonID == SEnum::DI_EL_FOREST_GATE_HARD || 
+					pDungeonData->m_DungeonID == SEnum::DI_EL_FOREST_GATE_EXPERT )
 				{
 					pStaticDungeonPictrue->GetString(2)->msg = L"";
 					pStaticDungeonPictrue->GetString(3)->msg = L"";
@@ -2813,15 +2820,15 @@ bool CX2StateDungeonResult::InitUI()
 				CKTDGUIStatic* pStaticOtherDesc = (CKTDGUIStatic*)m_pDLGBack->GetControl( staticResultDesc );
 				pStaticOtherDesc->SetShow( true );
 				WCHAR unitDescBuff[1024] = {0};
-				StringCchPrintf( unitDescBuff, 1024, L"LV.%d ", pSlotData->m_pUnit->GetUnitData()->m_Level );
-				//wsprintf( unitDescBuff, L"LV.%d ", pSlotData->m_pUnit->GetUnitData()->m_Level );
+				StringCchPrintf( unitDescBuff, 1024, L"LV.%d ", pSlotData->m_pUnit->GetUnitData().m_Level );
+				//wsprintf( unitDescBuff, L"LV.%d ", pSlotData->m_pUnit->GetUnitData().m_Level );
 				pStaticOtherDesc->GetString(0)->msg = unitDescBuff;
 
 				CKTDGUIStatic* pStaticOtherID = (CKTDGUIStatic*)m_pDLGBack->GetControl( staticResultID );
 				pStaticOtherID->SetShow( true );
 				pStaticOtherID->GetString(0)->msg = pSlotData->m_pUnit->GetNickName();
 
-				if ( pSlotData->m_pUnit->GetUnitData()->m_bIsGameBang == true )
+				if ( pSlotData->m_pUnit->GetUnitData().m_bIsGameBang == true )
 				{
 					CKTDGUIStatic* pStaticOtherPCRoom = (CKTDGUIStatic*)m_pDLGBack->GetControl( staticResultPCRoom );
 					pStaticOtherPCRoom->SetShow( true );
@@ -2852,7 +2859,8 @@ void CX2StateDungeonResult::UnitViewerProcess( CX2UnitViewerUI* pViewer )
 	}
 
 	//pViewer->SetLightPos( 1000, 1000, -200 );
-	pViewer->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+	//pViewer->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+	pViewer->SetLightPos( -250, 100, -600 );	// 캐릭터뷰어 라이트 위치 변경
 
 	pViewer->GetMatrix().Move( -272, -126, 0 ); 
 	pViewer->GetMatrix().Scale( 1.9f,1.9f,1.9f );

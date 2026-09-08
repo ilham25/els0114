@@ -13150,6 +13150,17 @@ g_pRandomItemManager:AddRandomItemTemplet
 
 g_pRandomItemManager:AddRandomItemTemplet
 {
+       m_ItemID = 135320,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       m_iRessurectionCount = 50,
+       
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
        m_ItemID = 135342,
        m_bGiveAll = False,
        m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
@@ -13704,6 +13715,90 @@ g_pRandomItemManager:AddRandomItemTemplet
 
 g_pRandomItemManager:AddRandomItemTemplet
 {
+       m_ItemID = 160762,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 16645,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 160763,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 16646,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 160764,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 16644,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 160765,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ONE_UNIT"],         --지정된 유닛만
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELSWORD_SWORDMAN"],
+              m_iItemGroupID = 161380,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ARME_VIOLET_MAGE"],
+              m_iItemGroupID = 161381,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_LIRE_ELVEN_RANGER"],
+              m_iItemGroupID = 161382,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_RAVEN_FIGHTER"],
+              m_iItemGroupID = 161383,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELESIS_KNIGHT"],
+              m_iItemGroupID = 161387,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_EVE_NASOD"],
+              m_iItemGroupID = 161384,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_CHUNG_IRON_CANNON"],
+              m_iItemGroupID = 161385,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ARA_MARTIAL_ARTIST"],
+              m_iItemGroupID = 161386,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
        m_ItemID = 160773,
        m_bGiveAll = False,
        m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
@@ -13769,6 +13864,20 @@ g_pRandomItemManager:AddRandomItemTemplet
        {
               m_cUnitClass = UNIT_CLASS["UC_NONE"],
               m_iItemGroupID = 16716,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 160867,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 271281,
+       m_RequiredKeyCount = 1,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 600040,
        },
 }
 
@@ -13951,6 +14060,20 @@ g_pRandomItemManager:AddRandomItemTemplet
        {
               m_cUnitClass = UNIT_CLASS["UC_NONE"],
               m_iItemGroupID = 17121,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 273060,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 17302,
        },
 }
 
@@ -17926,6 +18049,44 @@ g_pRandomItemManager:AddRandomItemTemplet
 
 g_pRandomItemManager:AddRandomItemTemplet
 {
+       m_ItemID = 60007798,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ONE_UNIT"],         --지정된 유닛만
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELSWORD_SWORDMAN"],
+              m_iItemGroupID = 161370,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ARME_VIOLET_MAGE"],
+              m_iItemGroupID = 161371,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_LIRE_ELVEN_RANGER"],
+              m_iItemGroupID = 161372,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_RAVEN_FIGHTER"],
+              m_iItemGroupID = 161373,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_EVE_NASOD"],
+              m_iItemGroupID = 161374,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_CHUNG_IRON_CANNON"],
+              m_iItemGroupID = 161375,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ARA_MARTIAL_ARTIST"],
+              m_iItemGroupID = 161376,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
        m_ItemID = 60007856,
        m_bGiveAll = False,
        m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
@@ -18495,6 +18656,118 @@ g_pRandomItemManager:AddRandomItemTemplet
        {
               m_cUnitClass = UNIT_CLASS["UC_ARA_YAMA_RAJA"],
               m_iItemGroupID = 235502,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 60008080,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 600120,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 60008090,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161560,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 60008091,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161561,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 60008092,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161562,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 60008093,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161563,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 60008094,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161564,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 60008095,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161565,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 64000108,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 102062,
        },
 }
 
@@ -21676,6 +21949,20 @@ g_pRandomItemManager:AddRandomItemTemplet
 
 g_pRandomItemManager:AddRandomItemTemplet
 {
+       m_ItemID = 65001078,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 170023,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
        m_ItemID = 67003744,
        m_bGiveAll = False,
        m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
@@ -22150,6 +22437,521 @@ g_pRandomItemManager:AddRandomItemTemplet
 
 g_pRandomItemManager:AddRandomItemTemplet
 {
+       m_ItemID = 67006670,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161530,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006671,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161531,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006672,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161532,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006673,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161533,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006674,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161534,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006675,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161535,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006676,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161536,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006677,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161537,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006678,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161540,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006679,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161542,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006680,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161539,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006681,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161538,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006682,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161543,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006683,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161541,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006687,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 402332,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006688,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161501,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006689,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 500710,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006690,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161503,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006691,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ONE_UNIT"],         --지정된 유닛만
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELESIS_KNIGHT"],
+              m_iItemGroupID = 161504,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006692,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ONE_UNIT"],         --지정된 유닛만
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELESIS_KNIGHT"],
+              m_iItemGroupID = 161505,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006693,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ONE_UNIT"],         --지정된 유닛만
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELESIS_KNIGHT"],
+              m_iItemGroupID = 161506,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006694,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ONE_UNIT"],         --지정된 유닛만
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELESIS_KNIGHT"],
+              m_iItemGroupID = 402360,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006695,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ONE_UNIT"],         --지정된 유닛만
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELESIS_KNIGHT"],
+              m_iItemGroupID = 161508,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006696,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ONE_UNIT"],         --지정된 유닛만
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELESIS_KNIGHT"],
+              m_iItemGroupID = 161509,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006697,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ONE_UNIT"],         --지정된 유닛만
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ELESIS_KNIGHT"],
+              m_iItemGroupID = 402370,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006698,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161511,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006699,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161512,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006700,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161513,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006701,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161514,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006702,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161515,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006708,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 402333,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006711,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161516,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006713,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161517,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006723,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 235510,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006725,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 67006724,
+       m_RequiredKeyCount = 1,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161520,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006726,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161521,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 67006727,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       m_iRessurectionCount = 5,
+       
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
        m_ItemID = 70000060,
        m_bGiveAll = True,
        m_UseCondition = USE_CONDITION["UC_ONE_CLASS"],         --지정된 클래스만
@@ -22433,6 +23235,20 @@ g_pRandomItemManager:AddRandomItemTemplet
        {
               m_cUnitClass = UNIT_CLASS["UC_NONE"],
               m_iItemGroupID = 161102,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 70007310,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 235520,
        },
 }
 
@@ -22778,6 +23594,10 @@ g_pRandomItemManager:AddRandomItemTemplet
        {
               m_cUnitClass = UNIT_CLASS["UC_CHUNG_IRON_CANNON"],
               m_iItemGroupID = 300505,
+       },
+       {
+              m_cUnitClass = UNIT_CLASS["UC_ARA_MARTIAL_ARTIST"],
+              m_iItemGroupID = 300506,
        },
 }
 
@@ -30679,12 +31499,12 @@ g_pRandomItemManager:AddRandomItemTemplet
        m_RequiredKeyCount = 1,
        
        {
-              m_cUnitClass = UNIT_CLASS["UC_ARA_MARTIAL_ARTIST"],
+              m_cUnitClass = UNIT_CLASS["UC_ARA_LITTLE_DEVIL"],
               m_iItemGroupID = 402331,
        },
        
        {
-              m_cUnitClass = UNIT_CLASS["UC_ARA_LITTLE_DEVIL"],
+              m_cUnitClass = UNIT_CLASS["UC_ARA_YAMA_RAJA"],
               m_iItemGroupID = 402331,
        },
 }
@@ -30772,6 +31592,34 @@ g_pRandomItemManager:AddRandomItemTemplet
        {
               m_cUnitClass = UNIT_CLASS["UC_NONE"],
               m_iItemGroupID = 400347,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 85500100,
+       m_bGiveAll = True,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 402350,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 85500110,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 0,
+       m_RequiredKeyCount = 0,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 402340,
        },
 }
 
@@ -32382,6 +33230,20 @@ g_pRandomItemManager:AddRandomItemTemplet
        {
               m_cUnitClass = UNIT_CLASS["UC_NONE"],
               m_iItemGroupID = 502122,
+       },
+}
+
+g_pRandomItemManager:AddRandomItemTemplet
+{
+       m_ItemID = 100000150,
+       m_bGiveAll = False,
+       m_UseCondition = USE_CONDITION["UC_ANYONE"],         --모두다
+       m_KeyItemID = 67006724,
+       m_RequiredKeyCount = 1,
+       
+       {
+              m_cUnitClass = UNIT_CLASS["UC_NONE"],
+              m_iItemGroupID = 161520,
        },
 }
 
@@ -65818,6 +66680,46 @@ g_pRandomItemManager:AddRandomItemGroup( 16444, 135342, 1.5, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 16444, 135345, 3, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 16444, 160613, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 16444, 160658, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 77200, 30, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 109945, 20, 0, 50 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 109955, 10, 0, 25 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 130047, 5, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 130048, 5, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 130049, 5, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 130050, 5, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 130051, 5, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 130052, 5, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 130053, 5, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 16644, 135320, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 77200, 15, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 109945, 15, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 109955, 15, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 130047, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 130048, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 130049, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 130050, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 130051, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 130052, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 130053, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16645, 131815, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 77200, 15, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 109945, 15, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 109955, 15, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 130047, 5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 130048, 5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 130049, 5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 130050, 5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 130051, 5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 130052, 5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 130053, 5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 16646, 135080, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16647, 183206, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16648, 183207, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16649, 183208, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16650, 183209, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16651, 183210, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16652, 183211, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 16653, 183212, 100, 30, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 16714, 99840, 12.5, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 16714, 99841, 12.5, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 16714, 99842, 12.5, 0, 1 )
@@ -65873,6 +66775,7 @@ g_pRandomItemManager:AddRandomItemGroup( 16954, 41752, 20, 15, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 16954, 41753, 20, 15, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 16954, 41754, 20, 15, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 17121, 500720, 100, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 17302, 500580, 100, 30, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 50053, 78040, 18, 0, 2 )
 g_pRandomItemManager:AddRandomItemGroup( 50053, 78140, 45, 0, 5 )
 g_pRandomItemManager:AddRandomItemGroup( 50053, 130165, 11.5, 0, 1 )
@@ -65880,828 +66783,905 @@ g_pRandomItemManager:AddRandomItemGroup( 50053, 131815, 4, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 50053, 132469, 20, 0, 3 )
 g_pRandomItemManager:AddRandomItemGroup( 50053, 132495, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 50053, 132496, 0.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 111077, 0.292, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 111082, 0.102, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 111083, 0.102, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 111084, 0.102, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 111085, 0.102, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 111200, 10.916, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 111201, 10.916, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 113750, 6.119, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 113770, 6.119, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116730, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116731, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116732, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116733, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116734, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116735, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116736, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116740, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116750, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116760, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 116770, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 130063, 0.407, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 130467, 0.508, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 130543, 0.407, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120001, 9.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120002, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120011, 9.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120012, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120021, 9.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120022, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120031, 9.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120032, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120101, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120102, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120201, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120202, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120301, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120302, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120401, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120402, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120501, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120502, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120601, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120602, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120701, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10120702, 0.687, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160002, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160012, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160022, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160032, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160102, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160202, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160302, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160402, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160502, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160602, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10160702, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200002, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200012, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200022, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200032, 1.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200102, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200202, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200302, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200402, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200502, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200602, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60000, 10200702, 0.128, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 111082, 1.059, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 111083, 1.061, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 111084, 1.061, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 111085, 1.061, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 113750, 11.145, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 113770, 11.145, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116730, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116731, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116732, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116733, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116734, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116735, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116736, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116740, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116750, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116760, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 116770, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120002, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120012, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120022, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120032, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120102, 2.022, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120202, 2.022, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120302, 2.022, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120402, 2.022, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120502, 2.022, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120602, 2.022, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10120702, 2.022, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160002, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160012, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160022, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160032, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160102, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160202, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160302, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160402, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160502, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160602, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10160702, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200002, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200012, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200022, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200032, 2.293, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200102, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200202, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200302, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200402, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200502, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200602, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60005, 10200702, 2.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 111077, 0.512, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 111082, 0.153, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 111083, 0.153, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 111084, 0.153, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 111085, 0.153, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 111202, 11.67, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 111203, 11.67, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113830, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113831, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113832, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113833, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113834, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113835, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113836, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113840, 2.073, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113930, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113931, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113932, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113933, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113934, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113935, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113936, 0.259, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113940, 2.073, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 113950, 2.073, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 114050, 2.073, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116830, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116831, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116832, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116833, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116834, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116835, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116836, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116840, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116850, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116860, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 116870, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 130063, 0.613, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 130467, 0.715, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 130543, 0.613, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240001, 10.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240002, 1.286, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240011, 10.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240012, 1.286, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240021, 10.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240022, 1.286, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240031, 10.006, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240032, 1.286, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240101, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240102, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240201, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240202, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240301, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240302, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240401, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240402, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240501, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240502, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240601, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240602, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240701, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10240702, 0.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280002, 1.286, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280012, 1.286, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280022, 1.286, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280032, 1.286, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280102, 0.161, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280202, 0.161, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280302, 0.161, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280402, 0.161, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280502, 0.161, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280602, 0.161, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60010, 10280702, 0.161, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 111082, 1.647, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 111083, 1.59, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 111084, 1.634, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 111085, 1.634, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113830, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113831, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113832, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113833, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113834, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113835, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113836, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113840, 3.05, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113930, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113931, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113932, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113933, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113934, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113935, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113936, 2.668, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113940, 3.05, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 113950, 3.05, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 114050, 3.05, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116830, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116831, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116832, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116833, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116834, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116835, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116836, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116840, 0.762, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116850, 0.762, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116860, 0.762, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 116870, 0.762, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240002, 1.982, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240012, 1.982, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240022, 1.982, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240032, 1.982, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240102, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240202, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240302, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240402, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240502, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240602, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10240702, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280002, 1.982, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280012, 1.982, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280022, 1.982, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280032, 1.982, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280102, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280202, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280302, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280402, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280502, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280602, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60015, 10280702, 1.734, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 111077, 0.823, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 111078, 0.102, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 111079, 0.102, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 111080, 0.051, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 111081, 0.143, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 111077, 0.314, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 111082, 0.103, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 111083, 0.103, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 111084, 0.103, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 111085, 0.103, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 111200, 11.06, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 111201, 11.06, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 113750, 6.199, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 113770, 6.199, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116730, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116731, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116732, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116733, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116734, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116735, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116736, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116740, 0.046, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116750, 0.046, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116760, 0.046, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 116770, 0.046, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 130063, 0.412, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 130467, 0.515, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 130543, 0.412, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120001, 10.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120002, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120011, 10.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120012, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120021, 10.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120022, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120031, 10.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120032, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120101, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120102, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120201, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120202, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120301, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120302, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120401, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120402, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120501, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120502, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120601, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120602, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120701, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10120702, 0.618, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160002, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160012, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160022, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160032, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160102, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160202, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160302, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160402, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160502, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160602, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10160702, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200002, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200012, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200022, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200032, 1.038, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200102, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200202, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200302, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200402, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200502, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200602, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60000, 10200702, 0.115, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 111082, 1.12, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 111083, 1.117, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 111084, 1.117, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 111085, 1.117, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 113750, 11.733, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 113770, 11.733, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116730, 0.223, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116731, 0.223, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116732, 0.223, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116733, 0.223, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116734, 0.223, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116735, 0.223, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116736, 0.223, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116740, 0.503, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116750, 0.503, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116760, 0.503, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 116770, 0.503, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120002, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120012, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120022, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120032, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120102, 1.892, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120202, 1.892, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120302, 1.892, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120402, 1.892, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120502, 1.892, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120602, 1.892, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10120702, 1.892, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160002, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160012, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160022, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160032, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160102, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160202, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160302, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160402, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160502, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160602, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10160702, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200002, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200012, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200022, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200032, 2.414, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200102, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200202, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200302, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200402, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200502, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200602, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60005, 10200702, 1.877, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 111077, 0.519, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 111082, 0.156, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 111083, 0.156, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 111084, 0.156, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 111085, 0.156, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 111202, 11.867, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 111203, 11.867, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113830, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113831, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113832, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113833, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113834, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113835, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113836, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113840, 2.108, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113930, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113931, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113932, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113933, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113934, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113935, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113936, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113940, 2.108, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 113950, 2.108, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 114050, 2.108, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116830, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116831, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116832, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116833, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116834, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116835, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116836, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116840, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116850, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116860, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 116870, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 130063, 0.623, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 130467, 0.727, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 130543, 0.623, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240001, 10.174, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240002, 1.308, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240011, 10.174, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240012, 1.308, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240021, 10.174, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240022, 1.308, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240031, 10.174, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240032, 1.308, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240101, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240102, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240201, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240202, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240301, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240302, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240401, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240402, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240501, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240502, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240601, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240602, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240701, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10240702, 0.638, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280002, 1.308, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280012, 1.308, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280022, 1.308, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280032, 1.308, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280102, 0.145, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280202, 0.145, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280302, 0.145, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280402, 0.145, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280502, 0.145, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280602, 0.145, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60010, 10280702, 0.145, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 111082, 1.766, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 111083, 1.713, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 111084, 1.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 111085, 1.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113830, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113831, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113832, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113833, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113834, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113835, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113836, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113840, 3.285, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113930, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113931, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113932, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113933, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113934, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113935, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113936, 2.555, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113940, 3.285, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 113950, 3.285, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 114050, 3.285, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116830, 0.235, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116831, 0.235, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116832, 0.235, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116833, 0.235, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116834, 0.235, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116835, 0.235, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116836, 0.235, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116840, 0.528, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116850, 0.528, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116860, 0.528, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 116870, 0.528, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240002, 2.135, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240012, 2.135, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240022, 2.135, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240032, 2.135, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240102, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240202, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240302, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240402, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240502, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240602, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10240702, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280002, 2.135, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280012, 2.135, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280022, 2.135, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280032, 2.135, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280102, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280202, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280302, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280402, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280502, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280602, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60015, 10280702, 1.661, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 111077, 0.824, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 111078, 0.104, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 111079, 0.104, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 111080, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 111081, 0.145, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60020, 111086, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 111204, 12.685, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 111205, 12.685, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114030, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114031, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114032, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114033, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114034, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114035, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114036, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114040, 1.57, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114130, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114131, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114132, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114133, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114134, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114135, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114136, 0.196, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114140, 1.57, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114150, 1.57, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114160, 1.57, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 114170, 1.57, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116930, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116931, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116932, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116933, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116934, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116935, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116936, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116940, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116950, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116960, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 116970, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 130063, 0.306, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 130467, 0.51, 0, 2 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 130544, 0.51, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320001, 9.917, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320002, 0.533, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320011, 9.917, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320012, 0.533, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320021, 9.917, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320022, 0.533, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320031, 9.917, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320032, 0.533, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320101, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320102, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320201, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320202, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320301, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320302, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320401, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320402, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320501, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320502, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320601, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320602, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320701, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10320702, 0.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360002, 0.457, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360012, 0.457, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360022, 0.457, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360032, 0.457, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360102, 0.057, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360202, 0.057, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360302, 0.057, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360402, 0.057, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360502, 0.057, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360602, 0.057, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10360702, 0.057, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400002, 1.632, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400012, 1.632, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400022, 1.632, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400032, 1.632, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400102, 0.204, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400202, 0.204, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400302, 0.204, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400402, 0.204, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400502, 0.204, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400602, 0.204, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60020, 10400702, 0.204, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 111078, 1.587, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 111079, 1.582, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 111080, 1.055, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 111081, 1.603, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114030, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114031, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114032, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114033, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114034, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114035, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114036, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114040, 7.384, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114130, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114131, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114132, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114133, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114134, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114135, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114136, 0.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114140, 7.384, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114150, 7.384, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114160, 7.384, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 114170, 7.384, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116930, 0.105, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116931, 0.105, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116932, 0.105, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116933, 0.105, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116934, 0.105, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116935, 0.105, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116936, 0.105, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116940, 0.738, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116950, 0.738, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116960, 0.738, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 116970, 0.738, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320002, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320012, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320022, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320032, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320102, 1.202, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320202, 1.202, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320302, 1.202, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320402, 1.202, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320502, 1.202, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320602, 1.202, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10320702, 1.202, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360002, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360012, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360022, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360032, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360102, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360202, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360302, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360402, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360502, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360602, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10360702, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400002, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400012, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400022, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400032, 1.329, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400102, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400202, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400302, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400402, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400502, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400602, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60025, 10400702, 1.163, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 111077, 0.712, 0, 2 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 111078, 0.153, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 111079, 0.153, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 111080, 0.082, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 111081, 0.224, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 111204, 12.885, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 111205, 12.885, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114030, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114031, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114032, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114033, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114034, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114035, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114036, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114040, 1.595, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114130, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114131, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114132, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114133, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114134, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114135, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114136, 0.177, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114140, 1.595, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114150, 1.595, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114160, 1.595, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 114170, 1.595, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116930, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116931, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116932, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116933, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116934, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116935, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116936, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116940, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116950, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116960, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 116970, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 130063, 0.311, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 130467, 0.518, 0, 2 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 130544, 0.518, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320001, 10.073, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320002, 0.542, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320011, 10.073, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320012, 0.542, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320021, 10.073, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320022, 0.542, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320031, 10.073, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320032, 0.542, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320101, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320102, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320201, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320202, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320301, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320302, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320401, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320402, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320501, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320502, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320601, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320602, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320701, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10320702, 0.59, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360002, 0.464, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360012, 0.464, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360022, 0.464, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360032, 0.464, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360102, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360202, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360302, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360402, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360502, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360602, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10360702, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400002, 1.657, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400012, 1.657, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400022, 1.657, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400032, 1.657, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400102, 0.184, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400202, 0.184, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400302, 0.184, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400402, 0.184, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400502, 0.184, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400602, 0.184, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60020, 10400702, 0.184, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 111078, 1.659, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 111079, 1.657, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 111080, 1.104, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 111081, 1.679, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114030, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114031, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114032, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114033, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114034, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114035, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114036, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114040, 7.731, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114130, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114131, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114132, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114133, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114134, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114135, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114136, 0.859, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114140, 7.731, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114150, 7.731, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114160, 7.731, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 114170, 7.731, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116930, 0.221, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116931, 0.221, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116932, 0.221, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116933, 0.221, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116934, 0.221, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116935, 0.221, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116936, 0.221, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116940, 0.497, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116950, 0.497, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116960, 0.497, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 116970, 0.497, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320002, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320012, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320022, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320032, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320102, 1.119, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320202, 1.119, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320302, 1.119, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320402, 1.119, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320502, 1.119, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320602, 1.119, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10320702, 1.119, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360002, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360012, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360022, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360032, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360102, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360202, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360302, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360402, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360502, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360602, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10360702, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400002, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400012, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400022, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400032, 1.392, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400102, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400202, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400302, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400402, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400502, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400602, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60025, 10400702, 1.082, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 111077, 0.711, 0, 2 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 111078, 0.155, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 111079, 0.155, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 111080, 0.083, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 111081, 0.228, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60030, 111086, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 111087, 0.612, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 111206, 11.523, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 111207, 11.656, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 114930, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 114931, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 114932, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 114933, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 114934, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 114935, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 114936, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115130, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115131, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115132, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115133, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115134, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115135, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115136, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115140, 0.928, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115150, 0.928, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115160, 0.928, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115170, 0.928, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115330, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115331, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115332, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115333, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115334, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115335, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115336, 0.116, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115340, 0.928, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115350, 0.928, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115360, 0.928, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 115370, 0.928, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117030, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117031, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117032, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117033, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117034, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117035, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117036, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117040, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117050, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117060, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 117070, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 130063, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 130467, 0.714, 0, 2 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 130544, 0.816, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440001, 9.178, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440002, 2.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440011, 9.178, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440012, 2.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440021, 9.178, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440022, 2.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440031, 9.178, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440032, 2.706, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440101, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440102, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440201, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440202, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440301, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440302, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440401, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440402, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440501, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440502, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440601, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440602, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440701, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10440702, 0.743, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480002, 1.046, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480012, 1.046, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480022, 1.046, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480032, 1.046, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480102, 0.131, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480202, 0.131, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480302, 0.131, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480402, 0.131, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480502, 0.131, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480602, 0.131, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60030, 10480702, 0.131, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 111078, 1.735, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 111079, 1.74, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 111080, 1.087, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 111081, 1.098, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 114930, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 114931, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 114932, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 114933, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 114934, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 114935, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 114936, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115130, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115131, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115132, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115133, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115134, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115135, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115136, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115140, 2.164, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115150, 2.164, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115160, 2.164, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115170, 2.164, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115330, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115331, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115332, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115333, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115334, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115335, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115336, 1.893, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115340, 2.164, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115350, 2.164, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115360, 2.164, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 115370, 2.164, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117030, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117031, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117032, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117033, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117034, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117035, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117036, 0.109, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117040, 0.761, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117050, 0.761, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117060, 0.761, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 117070, 0.761, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440002, 1.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440012, 1.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440022, 1.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440032, 1.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440102, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440202, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440302, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440402, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440502, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440602, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10440702, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480002, 1.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480012, 1.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480022, 1.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480032, 1.653, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480102, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480202, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480302, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480402, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480502, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480602, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60035, 10480702, 1.446, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111077, 1.553, 0, 2 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111086, 0.02, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111087, 1.465, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111208, 12.207, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111209, 12.207, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111611, 0.051, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111612, 0.051, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111613, 0.02, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111614, 0.02, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111615, 0.02, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111616, 0.02, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111617, 0.02, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 111618, 0.02, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115530, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115531, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115532, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115533, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115534, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115535, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115536, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115540, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115550, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115560, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115570, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115730, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115731, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115732, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115733, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115734, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115735, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115736, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115740, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115750, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115760, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115770, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115930, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115931, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115932, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115933, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115934, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115935, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115936, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115940, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115950, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115960, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 115970, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116130, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116131, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116132, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116133, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116134, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116135, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116136, 0.062, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116140, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116150, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116160, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 116170, 0.498, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117130, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117131, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117132, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117133, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117134, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117135, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117136, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117140, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117150, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117160, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 117170, 0.071, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 130544, 0.834, 0, 2 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520002, 0.85, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520012, 0.85, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520022, 0.85, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520032, 0.85, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520102, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520202, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520302, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520402, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520502, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520602, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10520702, 0.106, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560001, 10.03, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560002, 1.913, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560011, 10.03, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560012, 1.913, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560021, 10.03, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560022, 1.913, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560031, 10.03, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560032, 1.913, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560101, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560102, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560201, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560202, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560301, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560302, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560401, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560402, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560501, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560502, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560601, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560602, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560701, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60040, 10560702, 0.68, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 111611, 0.854, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 111612, 0.847, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 111613, 0.896, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 111614, 0.896, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 111615, 0.896, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 111616, 0.896, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 111617, 0.896, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 111618, 0.896, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115530, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115531, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115532, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115533, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115534, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115535, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115536, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115540, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115550, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115560, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115570, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115730, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115731, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115732, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115733, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115734, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115735, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115736, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115740, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115750, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115760, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115770, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115930, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115931, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115932, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115933, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115934, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115935, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115936, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115940, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115950, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115960, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 115970, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116130, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116131, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116132, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116133, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116134, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116135, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116136, 0.365, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116140, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116150, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116160, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 116170, 2.923, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117130, 0.104, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117131, 0.104, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117132, 0.104, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117133, 0.104, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117134, 0.104, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117135, 0.104, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117136, 0.104, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117140, 0.731, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117150, 0.731, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117160, 0.731, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 117170, 0.731, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520002, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520012, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520022, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520032, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520102, 0.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520202, 0.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520302, 0.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520402, 0.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520502, 0.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520602, 0.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10520702, 0.961, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560002, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560012, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560022, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560032, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560102, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560202, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560302, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560402, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560502, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560602, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10560702, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600002, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600012, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600022, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600032, 1.054, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600102, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600202, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600302, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600402, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600502, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600602, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60045, 10600702, 0.922, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 111077, 1.753, 0, 2 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 111086, 0.023, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 111087, 1.625, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 111616, 0.045, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 111617, 0.045, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 111618, 0.045, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 113279, 13.541, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 113280, 13.541, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 113281, 0.09, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 113282, 0.09, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 113283, 0.045, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 113284, 0.045, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 113285, 0.045, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 133554, 0.925, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600002, 0.943, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600012, 0.943, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600022, 0.943, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600032, 0.943, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600102, 0.118, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600202, 0.118, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600302, 0.118, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600402, 0.118, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600502, 0.118, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600602, 0.118, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10600702, 0.118, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640001, 11.125, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640002, 2.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640011, 11.125, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640012, 2.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640021, 11.125, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640022, 2.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640031, 11.125, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640032, 2.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640101, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640102, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640201, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640202, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640301, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640302, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640401, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640402, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640501, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640502, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640601, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640602, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640701, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60050, 10640702, 0.754, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 111616, 3.638, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 111617, 3.638, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 111618, 3.638, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 113281, 3.483, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 113282, 3.477, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 113283, 3.638, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 113284, 3.638, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 113285, 3.638, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600002, 3.473, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600012, 3.473, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600022, 3.473, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600032, 3.473, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600102, 3.167, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600202, 3.167, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600302, 3.167, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600402, 3.167, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600502, 3.167, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600602, 3.167, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10600702, 3.167, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640002, 3.473, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640012, 3.473, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640022, 3.473, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640032, 3.473, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640102, 3.037, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640202, 3.037, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640302, 3.037, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640402, 3.037, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640502, 3.037, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640602, 3.037, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60055, 10640702, 3.037, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 111087, 0.622, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 111206, 11.705, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 111207, 11.84, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 114930, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 114931, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 114932, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 114933, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 114934, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 114935, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 114936, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115130, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115131, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115132, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115133, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115134, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115135, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115136, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115140, 0.943, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115150, 0.943, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115160, 0.943, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115170, 0.943, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115330, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115331, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115332, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115333, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115334, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115335, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115336, 0.105, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115340, 0.943, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115350, 0.943, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115360, 0.943, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 115370, 0.943, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117030, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117031, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117032, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117033, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117034, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117035, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117036, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117040, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117050, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117060, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 117070, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 130063, 0.093, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 130467, 0.725, 0, 2 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 130544, 0.829, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440001, 9.323, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440002, 2.749, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440011, 9.323, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440012, 2.749, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440021, 9.323, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440022, 2.749, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440031, 9.323, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440032, 2.749, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440101, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440102, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440201, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440202, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440301, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440302, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440401, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440402, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440501, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440502, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440601, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440602, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440701, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10440702, 0.671, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480002, 1.063, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480012, 1.063, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480022, 1.063, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480032, 1.063, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480102, 0.118, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480202, 0.118, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480302, 0.118, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480402, 0.118, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480502, 0.118, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480602, 0.118, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60030, 10480702, 0.118, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 111078, 1.866, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 111079, 1.87, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 111080, 1.169, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 111081, 1.18, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 114930, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 114931, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 114932, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 114933, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 114934, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 114935, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 114936, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115130, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115131, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115132, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115133, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115134, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115135, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115136, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115140, 2.325, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115150, 2.325, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115160, 2.325, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115170, 2.325, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115330, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115331, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115332, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115333, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115334, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115335, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115336, 1.809, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115340, 2.325, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115350, 2.325, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115360, 2.325, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 115370, 2.325, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117030, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117031, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117032, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117033, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117034, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117035, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117036, 0.234, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117040, 0.526, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117050, 0.526, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117060, 0.526, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 117070, 0.526, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440002, 1.776, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440012, 1.776, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440022, 1.776, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440032, 1.776, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440102, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440202, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440302, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440402, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440502, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440602, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10440702, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480002, 1.776, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480012, 1.776, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480022, 1.776, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480032, 1.776, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480102, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480202, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480302, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480402, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480502, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480602, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60035, 10480702, 1.384, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111077, 1.549, 0, 2 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111086, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111087, 1.485, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111208, 12.376, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111209, 12.376, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111611, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111612, 0.052, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111613, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111614, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111615, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111616, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111617, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 111618, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115530, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115531, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115532, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115533, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115534, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115535, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115536, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115540, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115550, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115560, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115570, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115730, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115731, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115732, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115733, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115734, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115735, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115736, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115740, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115750, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115760, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115770, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115930, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115931, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115932, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115933, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115934, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115935, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115936, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115940, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115950, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115960, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 115970, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116130, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116131, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116132, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116133, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116134, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116135, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116136, 0.056, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116140, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116150, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116160, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 116170, 0.505, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117130, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117131, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117132, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117133, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117134, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117135, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117136, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117140, 0.046, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117150, 0.046, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117160, 0.046, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 117170, 0.046, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 130544, 0.846, 0, 2 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520002, 0.862, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520012, 0.862, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520022, 0.862, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520032, 0.862, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520102, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520202, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520302, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520402, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520502, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520602, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10520702, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560001, 10.169, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560002, 1.94, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560011, 10.169, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560012, 1.94, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560021, 10.169, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560022, 1.94, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560031, 10.169, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560032, 1.94, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560101, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560102, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560201, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560202, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560301, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560302, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560401, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560402, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560501, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560502, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560601, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560602, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560701, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60040, 10560702, 0.613, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 111611, 0.873, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 111612, 0.878, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 111613, 0.929, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 111614, 0.929, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 111615, 0.929, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 111616, 0.929, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 111617, 0.929, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 111618, 0.929, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115530, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115531, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115532, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115533, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115534, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115535, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115536, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115540, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115550, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115560, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115570, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115730, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115731, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115732, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115733, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115734, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115735, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115736, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115740, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115750, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115760, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115770, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115930, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115931, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115932, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115933, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115934, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115935, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115936, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115940, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115950, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115960, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 115970, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116130, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116131, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116132, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116133, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116134, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116135, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116136, 0.337, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116140, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116150, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116160, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 116170, 3.033, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117130, 0.217, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117131, 0.217, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117132, 0.217, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117133, 0.217, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117134, 0.217, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117135, 0.217, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117136, 0.217, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117140, 0.487, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117150, 0.487, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117160, 0.487, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 117170, 0.487, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520002, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520012, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520022, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520032, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520102, 0.888, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520202, 0.888, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520302, 0.888, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520402, 0.888, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520502, 0.888, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520602, 0.888, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10520702, 0.888, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560002, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560012, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560022, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560032, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560102, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560202, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560302, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560402, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560502, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560602, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10560702, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600002, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600012, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600022, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600032, 1.094, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600102, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600202, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600302, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600402, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600502, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600602, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60045, 10600702, 0.85, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 111077, 1.608, 0, 2 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 111086, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 111087, 1.495, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 111616, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 111617, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 111618, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 113279, 12.456, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 113280, 12.456, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 113281, 0.083, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 113282, 0.083, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 113283, 0.083, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 113284, 0.083, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 113285, 0.083, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117243, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117244, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117245, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117246, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117248, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117249, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117250, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117251, 0.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117252, 0.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117253, 0.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117254, 0.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117267, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117268, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117269, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117270, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117272, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117273, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117274, 0.306, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117275, 0.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117276, 0.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117277, 0.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117278, 0.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117291, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117292, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117293, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117294, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117295, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117296, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117297, 0.021, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117299, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117300, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117301, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 117302, 0.047, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 133554, 0.851, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600002, 0.868, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600012, 0.868, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600022, 0.868, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600032, 0.868, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600102, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600202, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600302, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600402, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600502, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600602, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10600702, 0.096, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640001, 10.233, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640002, 1.952, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640011, 10.233, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640012, 1.952, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640021, 10.233, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640022, 1.952, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640031, 10.233, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640032, 1.952, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640101, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640102, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640201, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640202, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640301, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640302, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640401, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640402, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640501, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640502, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640601, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640602, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640701, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60050, 10640702, 0.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 111616, 3.632, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 111617, 3.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 111618, 3.617, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 113281, 1.664, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 113282, 1.664, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 113283, 1.664, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 113284, 1.664, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 113285, 1.664, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117243, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117244, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117245, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117246, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117248, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117249, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117250, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117251, 3.878, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117252, 3.878, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117253, 3.878, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117254, 3.878, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117267, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117268, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117269, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117270, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117272, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117273, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117274, 1.281, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117275, 3.878, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117276, 3.878, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117277, 3.878, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117278, 3.878, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117291, 0.199, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117292, 0.199, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117293, 0.199, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117294, 0.199, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117295, 0.199, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117296, 0.199, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117297, 0.199, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117299, 0.447, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117300, 0.447, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117301, 0.447, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 117302, 0.447, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600002, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600012, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600022, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600032, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600102, 0.816, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600202, 0.816, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600302, 0.815, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600402, 0.815, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600502, 0.815, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600602, 0.815, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10600702, 0.815, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640002, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640012, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640022, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640032, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640102, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640202, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640302, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640402, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640502, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640602, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10640702, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680002, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680012, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680022, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680032, 1.004, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680102, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680202, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680302, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680402, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680502, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680602, 0.78, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60055, 10680702, 0.78, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60100, 10360102, 80, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60100, 10360103, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60101, 10360202, 80, 0, 1 )
@@ -66790,6 +67770,28 @@ g_pRandomItemManager:AddRandomItemGroup( 60137, 10600022, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60137, 10600023, 5, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60137, 10600032, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60137, 10600033, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60139, 10680102, 80, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60139, 10680103, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60140, 10680202, 80, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60140, 10680203, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60141, 10680302, 80, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60141, 10680303, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60142, 10680402, 80, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60142, 10680403, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60144, 10680502, 80, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60144, 10680503, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60145, 10680602, 80, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60145, 10680603, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60146, 10680702, 80, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60146, 10680703, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60147, 10680002, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60147, 10680003, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60147, 10680012, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60147, 10680013, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60147, 10680022, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60147, 10680023, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60147, 10680032, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60147, 10680033, 5, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60200, 30163, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60200, 30164, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60200, 30165, 25, 0, 1 )
@@ -66864,6 +67866,10 @@ g_pRandomItemManager:AddRandomItemGroup( 60218, 30166, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60218, 30167, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60218, 30168, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60218, 30200, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60219, 30166, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60219, 30167, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60219, 30168, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60219, 30200, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60220, 30158, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60220, 30169, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60220, 30170, 25, 0, 1 )
@@ -66889,7 +67895,7 @@ g_pRandomItemManager:AddRandomItemGroup( 60224, 30236, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60225, 30169, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60225, 30170, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60225, 30171, 25, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60225, 30237, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60225, 30305, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60226, 30169, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60226, 30170, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60226, 30171, 25, 0, 1 )
@@ -66897,6 +67903,9 @@ g_pRandomItemManager:AddRandomItemGroup( 60226, 30238, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60227, 30169, 33.334, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60227, 30170, 33.333, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60227, 30171, 33.333, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60228, 30169, 33.334, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60228, 30170, 33.333, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60228, 30171, 33.333, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60230, 30159, 10, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60230, 30172, 16, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60230, 30173, 24, 0, 1 )
@@ -66942,6 +67951,11 @@ g_pRandomItemManager:AddRandomItemGroup( 60237, 30173, 26.667, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60237, 30174, 26.667, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60237, 30175, 11.111, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60237, 30206, 17.778, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60238, 30172, 17.777, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60238, 30173, 26.667, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60238, 30174, 26.667, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60238, 30175, 11.111, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60238, 30206, 17.778, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60240, 30157, 30, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60240, 30177, 15, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60240, 30178, 15, 0, 1 )
@@ -66996,6 +68010,12 @@ g_pRandomItemManager:AddRandomItemGroup( 60247, 30179, 17.143, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60247, 30180, 17.143, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60247, 30181, 11.429, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60247, 30182, 11.429, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60248, 30177, 21.427, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60248, 30178, 21.429, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60248, 30179, 17.143, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60248, 30180, 17.143, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60248, 30181, 11.429, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60248, 30182, 11.429, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60250, 30155, 12.5, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60250, 30183, 12.5, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60250, 30184, 12.5, 0, 1 )
@@ -67057,6 +68077,13 @@ g_pRandomItemManager:AddRandomItemGroup( 60257, 30186, 14.286, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60257, 30187, 14.286, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60257, 30188, 14.286, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60257, 30189, 14.286, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60258, 30183, 14.284, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60258, 30184, 14.286, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60258, 30185, 14.286, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60258, 30186, 14.286, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60258, 30187, 14.286, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60258, 30188, 14.286, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60258, 30189, 14.286, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60260, 30156, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60260, 30160, 8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60260, 30190, 12, 0, 1 )
@@ -67074,7 +68101,7 @@ g_pRandomItemManager:AddRandomItemGroup( 60261, 30194, 8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60261, 30195, 8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60261, 30196, 8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60261, 30219, 8, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 60261, 30232, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60261, 30309, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60262, 30190, 12, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60262, 30191, 12, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60262, 30192, 12, 0, 1 )
@@ -67126,6 +68153,196 @@ g_pRandomItemManager:AddRandomItemGroup( 60267, 30193, 16.667, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60267, 30194, 11.111, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60267, 30195, 11.111, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 60267, 30196, 11.111, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60268, 30190, 16.666, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60268, 30191, 16.667, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60268, 30192, 16.667, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60268, 30193, 16.667, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60268, 30194, 11.111, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60268, 30195, 11.111, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60268, 30196, 11.111, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30162, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30247, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30248, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30249, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30250, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30253, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30254, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30255, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30263, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30264, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30265, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30266, 4.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30267, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30268, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30269, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30270, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30271, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30272, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30273, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30274, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60270, 30284, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30243, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30247, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30248, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30249, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30253, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30254, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30255, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30259, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30263, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30264, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30265, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30266, 4.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30267, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30268, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30269, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30270, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30271, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30272, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30273, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30274, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60271, 30285, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30247, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30248, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30249, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30251, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30253, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30254, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30255, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30257, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30263, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30264, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30265, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30266, 4.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30267, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30268, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30269, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30270, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30271, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30272, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30273, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30274, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60272, 30286, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30244, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30247, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30248, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30249, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30253, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30254, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30255, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30260, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30263, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30264, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30265, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30266, 4.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30267, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30268, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30269, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30270, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30271, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30272, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30273, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30274, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60273, 30287, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30245, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30247, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30248, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30249, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30253, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30254, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30255, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30261, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30263, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30264, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30265, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30266, 4.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30267, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30268, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30269, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30270, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30271, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30272, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30273, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30274, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60274, 30289, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30247, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30248, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30249, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30252, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30253, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30254, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30255, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30258, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30263, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30264, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30265, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30266, 4.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30267, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30268, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30269, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30270, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30271, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30272, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30273, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30274, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60275, 30290, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30246, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30247, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30248, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30249, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30253, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30254, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30255, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30262, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30263, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30264, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30265, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30266, 4.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30267, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30268, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30269, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30270, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30271, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30272, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30273, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30274, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60276, 30291, 4.76, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30247, 5.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30248, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30249, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30253, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30254, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30255, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30263, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30264, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30265, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30266, 5.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30267, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30268, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30269, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30270, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30271, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30272, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30273, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60277, 30274, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30247, 5.552, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30248, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30249, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30253, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30254, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30255, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30263, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30264, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30265, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30266, 5.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30267, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30268, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30269, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30270, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30271, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30272, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30273, 5.553, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 60278, 30274, 5.553, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 99789, 99799, 100, 0, 10 )
 g_pRandomItemManager:AddRandomItemGroup( 99790, 99800, 100, 0, 10 )
 g_pRandomItemManager:AddRandomItemGroup( 99791, 99801, 100, 0, 10 )
@@ -84886,6 +86103,213 @@ g_pRandomItemManager:AddRandomItemGroup( 161280, 500720, 0.15, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 161280, 550000, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 161280, 550020, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 161280, 550030, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161370, 67006490, 100, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161371, 67006491, 100, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161372, 67006492, 100, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161373, 67006493, 100, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161374, 67006494, 100, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161375, 67006495, 100, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161376, 67006496, 100, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161377, 67006497, 100, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161380, 67006490, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161381, 67006491, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161382, 67006492, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161383, 67006493, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161384, 67006494, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161385, 67006495, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161386, 67006496, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161387, 67006497, 100, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 72510, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 72520, 6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 132197, 11, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 132198, 12, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 132199, 13, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 132200, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 132201, 6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 132202, 13, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 132203, 14, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 132204, 7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161500, 132205, 8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161501, 130047, 15, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161501, 130048, 15, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161501, 130049, 14, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161501, 130050, 14, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161501, 130051, 14, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161501, 130052, 14, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161501, 130053, 14, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161502, 111701, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161502, 111702, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161502, 111703, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161502, 111704, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161502, 111705, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161503, 60007260, 70, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161503, 60007270, 30, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161504, 67006210, 33, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161504, 67006698, 34, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161504, 67006703, 33, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161505, 77200, 25, 0, 2 )
+g_pRandomItemManager:AddRandomItemGroup( 161505, 67006210, 25, 0, 2 )
+g_pRandomItemManager:AddRandomItemGroup( 161505, 67006699, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161505, 67006704, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161506, 77200, 25, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161506, 67006210, 25, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161506, 67006700, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161506, 67006705, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161507, 67006451, 20, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161507, 67006701, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161507, 67006706, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161507, 152000121, 20, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 161507, 152000122, 20, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 161508, 60007580, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161508, 67006451, 20, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 161508, 67006689, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161508, 67006702, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161508, 67006707, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161509, 67006451, 20, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 161509, 67006708, 20, 0, 2 )
+g_pRandomItemManager:AddRandomItemGroup( 161509, 67006713, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161509, 67006714, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161509, 85002094, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161510, 65000430, 25, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161510, 67006673, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161510, 67006711, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161510, 67006712, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161511, 129940, 100, 1, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161512, 129940, 100, 2, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161513, 129940, 100, 3, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161514, 129940, 100, 4, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161515, 129940, 100, 5, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161516, 129940, 100, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161517, 129940, 100, 6, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161520, 65000430, 12.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161520, 67006210, 12.5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 161520, 67006451, 12.5, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161520, 67006452, 12.5, 0, 7 )
+g_pRandomItemManager:AddRandomItemGroup( 161520, 67006726, 12.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161520, 67006727, 12.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161520, 90001414, 12.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161520, 90001415, 12.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161521, 78360, 17, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161521, 78370, 17, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161521, 78380, 17, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161521, 78390, 17, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161521, 78400, 16, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161521, 78410, 16, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 161530, 250001900, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161530, 250001920, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161530, 250001940, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161530, 250001960, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161530, 250001980, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161530, 250002000, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161531, 67006678, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161531, 67006679, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161531, 67006680, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161531, 67006681, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161531, 67006682, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161531, 67006683, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161532, 250001905, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161532, 250001925, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161532, 250001945, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161532, 250001965, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161532, 250001985, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161532, 250002005, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161534, 250001901, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161534, 250001921, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161534, 250001941, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161534, 250001961, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161534, 250001981, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161534, 250002001, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161535, 250001902, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161535, 250001922, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161535, 250001942, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161535, 250001962, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161535, 250001982, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161535, 250002002, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161536, 250001903, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161536, 250001923, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161536, 250001943, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161536, 250001963, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161536, 250001983, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161536, 250002003, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161537, 250001904, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161537, 250001924, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161537, 250001944, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161537, 250001964, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161537, 250001984, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161537, 250002004, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161538, 250001900, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161538, 250001901, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161538, 250001902, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161538, 250001903, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161538, 250001904, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161538, 250001905, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161539, 250001920, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161539, 250001921, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161539, 250001922, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161539, 250001923, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161539, 250001924, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161539, 250001925, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161540, 250001940, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161540, 250001941, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161540, 250001942, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161540, 250001943, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161540, 250001944, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161540, 250001945, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161541, 250001960, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161541, 250001961, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161541, 250001962, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161541, 250001963, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161541, 250001964, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161541, 250001965, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161542, 250001980, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161542, 250001981, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161542, 250001982, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161542, 250001983, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161542, 250001984, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161542, 250001985, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161543, 250002000, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161543, 250002001, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161543, 250002002, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161543, 250002003, 16.7, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161543, 250002004, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161543, 250002005, 16.6, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161560, 250001900, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161560, 250001901, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161560, 250001902, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161560, 250001903, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161560, 250001904, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161560, 250001905, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161561, 250001920, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161561, 250001921, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161561, 250001922, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161561, 250001923, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161561, 250001924, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161561, 250001925, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161562, 250001940, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161562, 250001941, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161562, 250001942, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161562, 250001943, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161562, 250001944, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161562, 250001945, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161563, 250001960, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161563, 250001961, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161563, 250001962, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161563, 250001963, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161563, 250001964, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161563, 250001965, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161564, 250001980, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161564, 250001981, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161564, 250001982, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161564, 250001983, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161564, 250001984, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161564, 250001985, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161565, 250002000, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161565, 250002001, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161565, 250002002, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161565, 250002003, 16.7, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161565, 250002004, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 161565, 250002005, 16.6, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 170023, 85003830, 100, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 212180, 60000987, 20, 1, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 212180, 60000988, 20, 1, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 212180, 60000989, 20, 1, 1 )
@@ -100314,9 +101738,14 @@ g_pRandomItemManager:AddRandomItemGroup( 235443, 132469, 25, 0, 3 )
 g_pRandomItemManager:AddRandomItemGroup( 235443, 60007856, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 235443, 60008001, 25, 0, 3 )
 g_pRandomItemManager:AddRandomItemGroup( 235443, 67004636, 25, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 235446, 267370, 34, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 235446, 270822, 33, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 235446, 250001520, 33, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235445, 152000699, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235445, 152000700, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235445, 152000701, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235445, 152000702, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235445, 152000703, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235446, 250001100, 34, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235446, 250001120, 33, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235446, 250001160, 33, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 235447, 268650, 16, 30, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 235447, 268660, 16, 30, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 235447, 268670, 17, 30, 1 )
@@ -100457,6 +101886,13 @@ g_pRandomItemManager:AddRandomItemGroup( 235499, 60008040, 100, 3, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 235500, 60008041, 100, 3, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 235501, 60008057, 100, 3, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 235502, 60008042, 100, 3, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235510, 67006705, 33.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235510, 67006720, 33.3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235510, 67006722, 33.3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235520, 260351, 25, 7, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235520, 60008008, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235520, 60008080, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 235520, 70007030, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 300000, 130147, 50, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 300000, 131815, 50, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 300001, 200600, 3, 1, 1 )
@@ -102313,23 +103749,59 @@ g_pRandomItemManager:AddRandomItemGroup( 300495, 111121, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 300495, 111122, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 300495, 111123, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 300500, 128015, 40, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 300500, 128016, 40, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300500, 128016, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300500, 80001820, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300500, 80001821, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300500, 84000405, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300500, 84000405, 20, 0, 3000 )
+g_pRandomItemManager:AddRandomItemGroup( 300500, 84000406, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300501, 128017, 40, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 300501, 128018, 40, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300501, 128018, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300501, 80001820, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300501, 80001821, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300501, 84000405, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300501, 84000405, 20, 0, 3000 )
+g_pRandomItemManager:AddRandomItemGroup( 300501, 84000406, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300502, 128019, 40, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 300502, 128020, 40, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300502, 128020, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300502, 80001820, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300502, 80001821, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300502, 84000405, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300502, 84000405, 20, 0, 3000 )
+g_pRandomItemManager:AddRandomItemGroup( 300502, 84000406, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300503, 128078, 40, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 300503, 128079, 40, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300503, 128079, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300503, 80001820, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300503, 80001821, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300503, 84000405, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300503, 84000405, 20, 0, 3000 )
+g_pRandomItemManager:AddRandomItemGroup( 300503, 84000406, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300504, 28005, 40, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 300504, 28006, 40, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300504, 28006, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300504, 80001820, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300504, 80001821, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300504, 84000405, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300504, 84000405, 20, 0, 3000 )
+g_pRandomItemManager:AddRandomItemGroup( 300504, 84000406, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300505, 128080, 40, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 300505, 128081, 40, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300505, 128081, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300505, 80001820, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300505, 80001821, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300505, 84000405, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300505, 84000405, 20, 0, 3000 )
+g_pRandomItemManager:AddRandomItemGroup( 300505, 84000406, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300506, 181869, 40, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300506, 181870, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300506, 80001820, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300506, 80001821, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300506, 84000405, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300506, 84000406, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300507, 183248, 40, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300507, 183249, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 300507, 80001820, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300507, 80001821, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300507, 84000405, 10, 0, 1000 )
+g_pRandomItemManager:AddRandomItemGroup( 300507, 84000406, 10, 0, 1000 )
 g_pRandomItemManager:AddRandomItemGroup( 300510, 80000561, 50, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 300510, 80000570, 50, 30, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 300520, 109950, 80, 0, 3 )
@@ -115538,132 +117010,38 @@ g_pRandomItemManager:AddRandomItemGroup( 401530, 66000, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 67000, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 67010, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 68000, 0.8, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81390, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81391, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81392, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81393, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81394, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81395, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81396, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81400, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81401, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81402, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81403, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81404, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81405, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81406, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81410, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81411, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81412, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81413, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81414, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81415, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81416, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81420, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81421, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81422, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81423, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81424, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81425, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81426, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81430, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81431, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81432, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81433, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81434, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81435, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81436, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81440, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81441, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81442, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81443, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81444, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81445, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81446, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81450, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81451, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81452, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81453, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81454, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81455, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81456, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81457, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81458, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81459, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81460, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81461, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81462, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81463, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81464, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81465, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81466, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81467, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81468, 0.058, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81470, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81471, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81472, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81473, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81474, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81475, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81476, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81480, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81481, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81482, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81483, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81484, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81485, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81486, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81490, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81491, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81492, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81493, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81494, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81495, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81496, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81500, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81501, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81502, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81503, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81504, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81505, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81506, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81510, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81511, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81512, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81513, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81514, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81515, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81516, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81520, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81521, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81522, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81523, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81524, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81525, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81526, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81530, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81531, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81532, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81533, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81534, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81535, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81536, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81537, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81538, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81539, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81540, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81541, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81542, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81543, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81544, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81545, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81546, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81547, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 81548, 0.058, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81300, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81301, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81302, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81303, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81310, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81311, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81312, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81313, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81320, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81321, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81322, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81323, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81330, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81331, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81332, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81333, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81340, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81341, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81342, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81343, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81350, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81351, 0.092, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81352, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81353, 0.122, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81971, 0.093, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81972, 0.093, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81973, 0.123, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 81974, 0.123, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 109945, 5, 0, 20 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 109950, 4, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 109955, 5, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 109965, 4, 0, 20 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 109950, 3, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 109955, 4, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 109965, 3, 0, 20 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 129820, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 129825, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 129830, 0.8, 0, 1 )
@@ -115672,7 +117050,7 @@ g_pRandomItemManager:AddRandomItemGroup( 401530, 129840, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 129985, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 129986, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 129987, 0.8, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 130047, 5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 130047, 4, 0, 5 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130048, 4, 0, 5 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130049, 4, 0, 5 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130050, 4, 0, 5 )
@@ -115684,10 +117062,10 @@ g_pRandomItemManager:AddRandomItemGroup( 401530, 130148, 0.4, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130149, 0.15, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130150, 0.1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130151, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 130159, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 130159, 1.2, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130160, 1.2, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130161, 1.2, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 130162, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 130162, 1.2, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130165, 5, 0, 20 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130167, 0.5, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130168, 0.4, 0, 1 )
@@ -115703,37 +117081,20 @@ g_pRandomItemManager:AddRandomItemGroup( 401530, 130177, 0.4, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130178, 0.4, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130269, 0.6, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 130506, 0.02, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 130645, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 130645, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 131262, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 133252, 2, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133253, 2, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133254, 2.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133255, 2.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133256, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 133253, 3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 133254, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 133255, 3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 133256, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 133257, 2, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133258, 1.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133259, 1.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133471, 0.72, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133489, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133490, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133491, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133492, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133493, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133494, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133495, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133496, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133497, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133498, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133499, 0.008, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133500, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133501, 0.025, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133502, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133503, 0.034, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133504, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133505, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133506, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133507, 0.016, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401530, 133508, 0.016, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 133258, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 133259, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 133471, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 133517, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 133518, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401530, 160662, 0.72, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401530, 208150, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401540, 85002620, 30, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401540, 85002680, 30, 0, 1 )
@@ -116075,38 +117436,52 @@ g_pRandomItemManager:AddRandomItemGroup( 401632, 66000, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 67000, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 67010, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 68000, 0.8, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81300, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81301, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81302, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81303, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81310, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81311, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81312, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81313, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81320, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81321, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81322, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81323, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81330, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81331, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81332, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81333, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81340, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81341, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81342, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81343, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81350, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81351, 0.092, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81352, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81353, 0.122, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81971, 0.093, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81972, 0.093, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81973, 0.123, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 81974, 0.123, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81300, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81301, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81302, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81303, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81304, 0.05, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81305, 0.025, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81310, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81311, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81312, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81313, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81314, 0.05, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81315, 0.025, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81320, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81321, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81322, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81323, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81324, 0.05, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81325, 0.025, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81330, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81331, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81332, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81333, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81334, 0.05, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81335, 0.025, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81340, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81341, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81342, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81343, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81344, 0.05, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81345, 0.025, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81350, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81351, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81352, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81353, 0.101, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81354, 0.05, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81355, 0.025, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81971, 0.076, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81972, 0.075, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81973, 0.1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81974, 0.1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81975, 0.05, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 81976, 0.025, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 109945, 5, 0, 20 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 109950, 4, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 109955, 5, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 109965, 4, 0, 20 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 109950, 3, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 109955, 4, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 109965, 3, 0, 20 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 129820, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 129825, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 129830, 0.8, 0, 1 )
@@ -116115,7 +117490,7 @@ g_pRandomItemManager:AddRandomItemGroup( 401632, 129840, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 129985, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 129986, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 129987, 0.8, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 130047, 5, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 130047, 4, 0, 5 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130048, 4, 0, 5 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130049, 4, 0, 5 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130050, 4, 0, 5 )
@@ -116127,10 +117502,10 @@ g_pRandomItemManager:AddRandomItemGroup( 401632, 130148, 0.4, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130149, 0.15, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130150, 0.1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130151, 0.01, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 130159, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 130159, 1.2, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130160, 1.2, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130161, 1.2, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 130162, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 130162, 1.2, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130165, 5, 0, 20 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130167, 0.5, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130168, 0.4, 0, 1 )
@@ -116146,17 +117521,20 @@ g_pRandomItemManager:AddRandomItemGroup( 401632, 130177, 0.4, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130178, 0.4, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130269, 0.6, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 130506, 0.02, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 130645, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 130645, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 131262, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 133252, 2, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 133253, 2, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 133254, 2.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 133255, 2.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 133256, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 133253, 3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 133254, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 133255, 3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 133256, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 133257, 2, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 133258, 1.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 133259, 1.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 401632, 133471, 0.72, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 133258, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 133259, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 133471, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 133517, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 133518, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 401632, 160662, 0.72, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401632, 208150, 0.8, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 401640, 109945, 20, 0, 3 )
 g_pRandomItemManager:AddRandomItemGroup( 401640, 109955, 20, 0, 3 )
@@ -118195,17 +119573,17 @@ g_pRandomItemManager:AddRandomItemGroup( 402256, 85003723, 100, 0, 5 )
 g_pRandomItemManager:AddRandomItemGroup( 402257, 85003723, 100, 0, 10 )
 g_pRandomItemManager:AddRandomItemGroup( 402258, 85003723, 100, 0, 100 )
 g_pRandomItemManager:AddRandomItemGroup( 402290, 77200, 7, 0, 3 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 109945, 7, 0, 15 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 109950, 5, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 109955, 5, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 109965, 7, 0, 20 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 130047, 5, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 130048, 4, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 130049, 4, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 130050, 3, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 130051, 4, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 130052, 3, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 130053, 6, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 109945, 7.2, 0, 15 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 109950, 5.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 109955, 5.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 109965, 7.2, 0, 20 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 130047, 5.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 130048, 4.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 130049, 4.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 130050, 3.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 130051, 4.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 130052, 3.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 130053, 6.2, 0, 10 )
 g_pRandomItemManager:AddRandomItemGroup( 402290, 130147, 7, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402290, 130148, 3, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402290, 130149, 0.1, 0, 1 )
@@ -118223,18 +119601,17 @@ g_pRandomItemManager:AddRandomItemGroup( 402290, 160814, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402290, 160815, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402290, 248390, 0.3, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402290, 272424, 0.15, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 500010, 0.05, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 500020, 0.05, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 500030, 7, 0, 10 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 500040, 4.54, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 500150, 0.05, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 500230, 0.05, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 273060, 0.13, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 500010, 0.04, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 500020, 0.04, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 500030, 7.85, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 500150, 0.04, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 500230, 0.04, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402290, 500540, 0.04, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 500580, 0.1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402290, 500600, 0.04, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 550000, 0.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 550010, 0.5, 0, 1 )
-g_pRandomItemManager:AddRandomItemGroup( 402290, 550020, 0.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 550000, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 550010, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402290, 550020, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402300, 81925, 20, 3, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402300, 81926, 20, 3, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402300, 81927, 10, 3, 1 )
@@ -118378,6 +119755,20 @@ g_pRandomItemManager:AddRandomItemGroup( 402333, 152000700, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402333, 152000701, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402333, 152000702, 20, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 402333, 152000703, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402340, 130050, 50, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402340, 85500080, 50, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402350, 78160, 33.3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402350, 78260, 33.3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402350, 78390, 33.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402360, 109950, 20, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402360, 109965, 20, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 402360, 67006451, 20, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 402360, 67006701, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402360, 67006706, 20, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402370, 130633, 25, 15, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402370, 60007240, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402370, 67006711, 25, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 402370, 67006712, 25, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 500000, 109945, 33.3, 1, 10 )
 g_pRandomItemManager:AddRandomItemGroup( 500000, 109955, 33.4, 1, 10 )
 g_pRandomItemManager:AddRandomItemGroup( 500001, 30000, 25, 7, 1 )
@@ -122715,6 +124106,127 @@ g_pRandomItemManager:AddRandomItemGroup( 600024, 212100, 2.3, 30, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 600024, 212110, 2.3, 30, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 600024, 213210, 2.3, 30, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 600024, 213240, 2.2, 30, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 77200, 7, 0, 3 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 109945, 7.2, 0, 15 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 109950, 5.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 109955, 5.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 109965, 7.2, 0, 20 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130047, 5.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130048, 4.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130049, 4.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130050, 3.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130051, 4.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130052, 3.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130053, 6.2, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130147, 7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130148, 3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130149, 0.1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130150, 0.02, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130151, 0.01, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130165, 1, 0, 20 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 130167, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 135080, 5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 135342, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 135345, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 160613, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 160658, 3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 160813, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 160814, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 160815, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 248390, 0.3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 272424, 0.15, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 273060, 0.13, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 500010, 0.04, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 500020, 0.04, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 500030, 7.85, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 500150, 0.04, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 500230, 0.04, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 500540, 0.04, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 500600, 0.04, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 550000, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 550020, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600030, 550030, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 63000, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 64000, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 65000, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 65500, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 66000, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 67000, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 67010, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 68000, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 81941, 0.13, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 81942, 0.391, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 81943, 0.391, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 81944, 0.522, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 81945, 0.522, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 81946, 0.261, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 81947, 0.261, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 81948, 0.261, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 109945, 5, 0, 20 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 109950, 3, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 109955, 4, 0, 10 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 109965, 3, 0, 20 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 129820, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 129825, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 129830, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 129835, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 129840, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 129985, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 129986, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 129987, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130047, 4, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130048, 4, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130049, 4, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130050, 4, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130051, 4, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130052, 4, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130053, 4, 0, 5 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130147, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130148, 0.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130149, 0.15, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130150, 0.1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130151, 0.01, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130159, 1.2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130160, 1.2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130161, 1.2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130162, 1.2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130165, 5, 0, 20 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130167, 0.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130168, 0.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130169, 0.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130170, 0.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130171, 0.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130172, 0.5, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130173, 0.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130174, 0.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130175, 0.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130176, 0.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130177, 0.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130178, 0.4, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130269, 0.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130506, 0.02, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130645, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 130722, 0.261, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 131262, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133252, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133253, 3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133254, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133255, 3, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133256, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133257, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133258, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133259, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133471, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133517, 1, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 133518, 2, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 160662, 0.72, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600040, 208150, 0.8, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600120, 60008090, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600120, 60008091, 16.6, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600120, 60008092, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600120, 60008093, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600120, 60008094, 16.7, 0, 1 )
+g_pRandomItemManager:AddRandomItemGroup( 600120, 60008095, 16.7, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 700000, 63000, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 700000, 64000, 1, 0, 1 )
 g_pRandomItemManager:AddRandomItemGroup( 700000, 65000, 1, 0, 1 )

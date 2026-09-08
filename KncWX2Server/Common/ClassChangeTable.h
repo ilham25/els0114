@@ -4,11 +4,10 @@
 #include "RefreshSingleton.h"
 #include <map>
 #include <vector>
-#include <set>	// Iruha : 2026-08-27 // VS2010 port: was pulled in transitively under VC7.1; needed explicitly now
 //#include "ServerDefine.h"
 
 
-//{{ 2011. 11. 21  ï¿½ï¿½Î¼ï¿½	ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+//{{ 2011. 11. 21  ±è¹Î¼º	ÀüÁ÷ º¯°æ ¾ÆÀÌÅÛ
 #ifdef SERV_UNIT_CLASS_CHANGE_ITEM
 
 class KClassChangeTable
@@ -23,23 +22,23 @@ public:
 	KClassChangeTable();
 	~KClassChangeTable();
 
-// ï¿½ï¿½Å©ï¿½ï¿½Æ® ï¿½Ä½ï¿½ ï¿½Ô¼ï¿½
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×·ï¿½id ï¿½ï¿½ï¿½
+// ½ºÅ©¸³Æ® ÆÄ½Ì ÇÔ¼ö
+	// Á÷¾÷º° ±×·ìid µî·Ï
 	void SetClassGroupID_Lua( IN int iClassGroup, IN int iUnitClass );
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	// ÀåÂø½ºÅ³ ¸ÊÇÎ
 	void SetClassChange_Skill_Lua( IN int iSkillGroup, IN int iSkill, IN int iUnitClass );
 	
-	// ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ÀåÂø¸Þ¸ð ¸ÊÇÎ
 	void SetClassChange_Memo_Lua( IN int iMemoGroup, IN int iMemo, IN int iUnitClass );
 	
-	// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, Ä³ï¿½ï¿½ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ÀÎº¥Åä¸® ³» ±³º», Ä³½¬¸Þ¸ð ¸ÊÇÎ
 	void SetClassChange_InventoryItem_Lua( IN int iItemGroup, IN int iItem, IN int iUnitClass );
 	
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	// ¼öÇà Áß Äù½ºÆ® ¸ÊÇÎ
 	void SetClassChange_Quest_Lua( IN int iQuestGroup, IN int iQuest, IN int iUnitClass );
 	
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	// »èÁ¦ ÇØ¾ß ÇÒ Äù½ºÆ® ¸ÊÇÎ
 	void SetClassChange_DelQuest_Lua( IN int iQuest );
 
 //////////////////////////////////////////////////////////////////////////
@@ -50,7 +49,11 @@ public:
 	bool GetQuestGroupID( IN int& iQuest, OUT int& iQuestGroupID );
 
 	bool GetUnitClassList( IN int& iClassGroupID, OUT std::vector< int >& vecClassList );
+#ifdef _CONVERT_VS_2010
+	bool GetClassChange_NewSkill( IN int& iNewUnitClass, IN int iOldSkill, OUT int& iNewSkill );
+#else
 	bool GetClassChange_NewSkill( IN int& iNewUnitClass, IN int& iOldSkill, OUT int& iNewSkill );
+#endif _CONVERT_VS_2010
 	bool GetClassChange_NewMemo( IN int& iNewUnitClass, IN int& iOldMemo, OUT int& iNewMemo );
 	bool GetClassChange_NewItem( IN int& iNewUnitClass, IN int& iOldItem, OUT int& iNewItem );
 	bool GetClassChange_NewQuest( IN int& iNewUnitClass, IN int& iOldQuest, OUT int& iNewQuest );
@@ -62,29 +65,29 @@ public:
 	void GetClassChangeDeleteQuest( OUT std::set<int>& setQuest )	{	setQuest = m_setClassChangeDeleteQuest;	}
 
 private:
-	// ClassChange ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æµï¿½
+	// ClassChange °¡´ÉÇÑ Á÷¾÷À» ¸ð¾ÆµÒ
 	std::map< int, int >								m_mapClassGroupID;			// std::map< iClass, iClassGroup >
 	std::map< int, std::vector< int > >					m_mapUnitClassGroupID;		// std::map< iClassGroup, std::vector< iClass > >
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	// ÀåÂø½ºÅ³ ¸ÊÇÎ
 	std::map< int, int >								m_mapSkillGroupID;			// std::map< iSkill, iClassGroup >
 	std::map< int, std::map< int, int > >				m_mapClassChangeSkill;		// std::map< iSkillGroup, std::map< iUnitClass, iSkill >>
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½Þ¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// ÀåÂø¸Þ¸ð ¸ÊÇÎ
 	std::map< int, int >								m_mapMemoGroupID;			// std::map< iMemo, iClassGroup >
 	std::map< int, std::map< int, int > >				m_mapClassChangeMemo;		// std::map< iMemoGroup, std::map< iUnitClass, iMemo >>
 
-	// ï¿½Îºï¿½ï¿½ä¸® ï¿½ï¿½ item ï¿½ï¿½ï¿½ï¿½
+	// ÀÎº¥Åä¸® ³» item ¸ÊÇÎ
 	std::map< int, int >								m_mapItemGroupID;			// std::map< iItem, iClassGroup >
 	std::map< int, std::map< int, int > >				m_mapClassChangeItem;		// std::map< iItemGroup, std::map< iUnitClass, iItem >>
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
+	// ¼öÇà Áß Äù½ºÆ® ¸ÊÇÎ
 	std::map< int, int >								m_mapQuestGroupID;			// std::map< iQuest, iClassGroup >
 	std::map< int, std::map< int, int > >				m_mapClassChangeQuest;		// std::map< iQuestGroup, std::map< iUnitClass, iQuest >>
 	std::map< int, std::map< int, int > >				m_mapClassChangeQuestList;	// std::map< iUnitClass, std::map< iQuest, iQuestGroup >>
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
-	std::set< int >										m_setClassChangeDeleteQuest; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	// »èÁ¦ ÇØ¾ß ÇÒ Äù½ºÆ® ¸ÊÇÎ
+	std::set< int >										m_setClassChangeDeleteQuest; // »èÁ¦°¡ ÇÊ¿äÇÑ Äù½ºÆ®
 	
 };
 

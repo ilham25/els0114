@@ -10,7 +10,7 @@
 class CX2Item;
 class CX2Inventory;
 class CX2Eqip;
-class CX2Unit : public CKTDXDeviceHolder
+class CX2Unit : public CKTDXDeviceHolder, public CX2Unit_PreHeader
 {
 	public: 
 		enum UNIT_TYPE
@@ -21,12 +21,13 @@ class CX2Unit : public CKTDXDeviceHolder
 			UT_LIRE,
 			UT_RAVEN,
 			UT_EVE,
-			UT_CHUNG,		// kimhc // 2010-12-23 에 추가될 신캐릭터 청
+			UT_CHUNG,		/// kimhc // 2010-12-23 에 추가될 신캐릭터 청
 			UT_ARA,			/// JHKang / 신 캐릭터 아라
-			UT_ELESIS,			/// 오현빈 // 2013-05-28 // 신캐릭터 엘
+			UT_ELESIS,		/// 오현빈 // 2013-05-28 // 신캐릭터 엘리시스
+			UT_ADD,			/// 김태환 // 2013-10-25 // 신캐릭터 애드
 
 
-			UT_END,			// 
+			UT_END,
 		};
 
 		enum UNIT_CLASS
@@ -41,7 +42,8 @@ class CX2Unit : public CKTDXDeviceHolder
 			UC_EVE_NASOD,				// 5
 			UC_CHUNG_IRON_CANNON,		// 6 // kimhc // 2010-12-23 에 추가될 신캐릭터 청
 			UC_ARA_MARTIAL_ARTIST,		/// 7 아라 노전직, 무술가
-			UC_ELESIS_KNIGHT,				// 8 /// 오현빈 // 2013-05-28 // 신캐릭터 엘리시스
+			UC_ELESIS_KNIGHT,			// 8 /// 오현빈 // 2013-05-28 // 신캐릭터 엘리시스
+			UC_ADD_NASOD_RULER,// 9 /// 김태환 // 2013-10-25 // 신캐릭터 애드
 
 		
 			// 1차 전직
@@ -64,7 +66,7 @@ class CX2Unit : public CKTDXDeviceHolder
 			UC_ARME_BATTLE_MAGICIAN,	// 23
 #endif
 //#ifdef	SERV_TRAPPING_RANGER_TEST
-			UC_LIRE_TRAPPING_RANGER = 24,		// 24	레나 트래핑 레인저
+			UC_LIRE_TRAPPING_RANGER		= 24,		// 24	레나 트래핑 레인저
 //#endif	SERV_TRAPPING_RANGER_TEST
 #ifdef RAVEN_WEAPON_TAKER
 			UC_RAVEN_WEAPON_TAKER		= 25,
@@ -77,23 +79,17 @@ class CX2Unit : public CKTDXDeviceHolder
 			UC_CHUNG_SHELLING_GUARDIAN	= 27,
 #endif
 #ifdef ARA_CHANGE_CLASS_FIRST
-			UC_ARA_LITTLE_HSIEN,		/// 아라 1-1차, 소선
+			UC_ARA_LITTLE_HSIEN			= 28,	/// 아라 1-1차, 소선
 #endif
-			UC_ELESIS_SABER_KNIGHT			= 29, // 엘리시스 1-1차 세이버 나이트
-			UC_ELESIS_PYRO_KNIGHT			= 30, // 엘리시스 1-2차 파이로 나이트
+			UC_ELESIS_SABER_KNIGHT		= 29,	/// 엘리시스 1-1차 세이버 나이트
+			UC_ELESIS_PYRO_KNIGHT		= 30,	/// 엘리시스 1-2차 파이로 나이트
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+			UC_ARA_LITTLE_DEVIL			= 31,	/// 소마 - 아라 1차 전직
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
 
-			//#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
-			UC_ARA_LITTLE_DEVIL				= 31,	// 소마 - 아라 1차 전직
-			//#endif // SERV_ARA_CHANGE_CLASS_SECOND
-
-			// 해외팀 해외 신 전직 enum 값 추가 2013.07.03 김창한
-			UC_ELSWORD_SHIELD_KNIGHT   = 32,
-			UC_AISHA_SWORD_MAGICIAN    = 33,
-			UC_RENA_STRING_RANGER      = 34,
-			UC_RAVEN_GLOBAL_1          = 35,
-			UC_EVE_GLOBAL_1            = 36,
-			UC_CHUNG_PRINCESS_GUARDIAN = 37,
-			UC_ARA_GLOBAL_1            = 38,
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			UC_ADD_PSYCHIC_TRACER		= 32,	/// 사이킥 트레이서 - 애드 1차 전직
+#endif //SERV_9TH_NEW_CHARACTER
 
 
 			// 2차 전직
@@ -133,12 +129,18 @@ class CX2Unit : public CKTDXDeviceHolder
 #ifdef ARA_CHANGE_CLASS_FIRST
 			UC_ARA_SAKRA_DEVANAM,		/// 아라 1-2차, 제천
 #endif
-
-//#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
 			UC_ARA_YAMA_RAJA			= 119,	// 명왕 - 아라 2차 전직
-//#endif // SERV_ARA_CHANGE_CLASS_SECOND
+#endif // SERV_ARA_CHANGE_CLASS_SECOND
+// #ifdef SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 2차 전직, 그랜드 마스터 / 블레이징 하트
+			UC_ELESIS_GRAND_MASTER		= 120,	// 김종훈 // 2013-09-04 // 엘리시스 1-2 그랜드 마스터
+			UC_ELESIS_BLAZING_HEART		= 121,	// 김종훈 // 2013-09-04 // 엘리시스 2-2 블레이징 하트
+// #endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 2차 전직, 그랜드 마스터 / 블레이징 하트
 
-		
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+			UC_ADD_LUNATIC_PSYKER		= 122,	// 루나틱 사이커 - 애드 2차 전직
+#endif //SERV_ADD_LUNATIC_PSYKER
+			
 			// 오현빈 // 2013-07-04 // 2차전직 enum 순회를 위해 추가
 			UC_VALIDE_END,
 
@@ -160,63 +162,15 @@ class CX2Unit : public CKTDXDeviceHolder
 		};
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
-
-		enum EQIP_POSITION
+// #ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		enum UNIT_CLASS_LINE
 		{
-			EP_NONE		= 0,
-			EP_QUICK_SLOT,			//퀵슬롯 아이템
-
-			//무기
-			EP_WEAPON_HAND,			//무기
-			EP_WEAPON_TEMP1,		//임시1
-			EP_WEAPON_TEMP2,		//임시2
-			EP_WEAPON_TEMP3,		//임시3
-
-			//방어구
-			EP_DEFENCE_HAIR,		//헤어스타일
-			EP_DEFENCE_FACE,		//얼굴
-			EP_DEFENCE_BODY,		//상의
-			EP_DEFENCE_LEG,			//하의
-			EP_DEFENCE_HAND,		//장갑
-			EP_DEFENCE_FOOT,		//신발
-			EP_DEFENCE_TEMP1,		//임시1
-			EP_DEFENCE_TEMP2,		//임시2
-			EP_DEFENCE_TEMP3,		//임시3
-
-			//액세서리
-			EP_AC_TITLE,			//칭호
-			EP_AC_HAIR,				//헤어
-			EP_AC_FACE1,			//얼굴(상)
-			EP_AC_FACE2,			//얼굴(중)
-			EP_AC_FACE3,			//얼굴(하)
-			EP_AC_BODY,				//상의
-			EP_AC_LEG,				//다리
-			EP_AC_ARM,				//팔
-			EP_AC_RING,				//반지
-			EP_AC_NECKLESS,			//목걸이
-			EP_AC_WEAPON,			// 무기 악세사리
-			EP_AC_TEMP2,			//임시2
-			EP_AC_TEMP3,			//임시3
-			EP_AC_TEMP4,			//임시4
-			EP_AC_TEMP5,			//임시5
-
-			//필살기
-			EP_SKILL_1,				//1단계 필살기
-			EP_SKILL_2,				//2단계 필살기
-			EP_SKILL_3,				//3단계 필살기
-			EP_SKILL_TEMP1,			//임시1
-			EP_SKILL_TEMP2,			//임시2
-			EP_SKILL_TEMP3,			//임시3
-			
-			EP_RAVEN_LEFT_ARM,		// dmlee 2008.07.31 - 레이븐 왼팔, 오른팔 나누면서	
-			EP_WEAPON_SECOND,		// dmlee 2008.12.12 - 두 번째 무기
-
-#ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
-			EP_ONEPIECE_FASHION,	// 원피스 아바타
-#endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
-
-			EP_END,
+			UCL_NONE			= 0,
+			UCL_FIRST,		
+			UCL_SECOND,		
+			UCL_THIRD,	
 		};
+// #endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 		enum NOW_EQIP_SLOT_ID
 		{
@@ -247,7 +201,6 @@ class CX2Unit : public CKTDXDeviceHolder
 			NESI_AC_NECKLESS,			//목걸이
 
 			NESI_AC_WEAPON,				// 무기 악세사리
-
 #ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
 			NESI_ONEPIECE_FASHION,		//원피스 아바타
 #endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
@@ -302,13 +255,19 @@ class CX2Unit : public CKTDXDeviceHolder
 			ET_SAD,			
 			ET_SMILE,
 
-#ifdef AVATAR_EMOTION
 			ET_EMOTION_AVATAR1,	// 빅뱅 춤
 			ET_EMOTION_AVATAR2, // 한복 절
 			ET_EMOTION_AVATAR3, // 에이핑크 허쉬
 			ET_EMOTION_AVATAR4, // 에이핑크 천사
 			ET_EMOTION_AVATAR5,	// CRAYONPOP
-#endif //AVATAR_EMOTION
+	#ifdef CRAYONPOP_SECOND_EMOTION // 김태환
+			ET_EMOTION_AVATAR6,	// CRAYONPOP 한벌
+	#endif // CRAYONPOP_SECOND_EMOTION
+	
+	#ifdef CRAYONPOP_EMOTION_WITH_MUSIC
+			ET_EMOTION_AVATAR7,
+	#endif // CRAYONPOP_EMOTION_WITH_MUSIC
+	
 		};
 #endif
 
@@ -355,6 +314,17 @@ class CX2Unit : public CKTDXDeviceHolder
 			wstring				m_GameMotion1;
 			wstring				m_GameMotion2;			
 #endif
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+			// 프로모션 아이템 ID
+			int					m_PromotionWeaponItemID;	// 무기
+			int					m_PromotionBodyItemID;		// 상의
+			int					m_PromotionLegItemID;		// 하의
+			int					m_PromotionHandItemID;		// 장갑
+			int					m_PromotionFootItemID;		// 신발
+			
+			wstring				m_IntroMovieFileName;		// 캐릭터 생성 창에서 사용 할 동영상 이름
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 		};
 
 		struct UnitData
@@ -454,13 +424,17 @@ class CX2Unit : public CKTDXDeviceHolder
 #endif GUILD_SKILL
 
 			vector<UidType>			m_NowEqipItemUIDList;
-			CX2Inventory*			m_pInventory;
+			//CX2Inventory*			m_pInventory;
+            CX2Inventory            m_Inventory;
 
 			KProtectedType<int>		m_nStraightVictories;
 			KProtectedType<int>		m_nMapID;
 #ifdef REMEMBER_LOGOUT_POSITION_TEST
 			unsigned char			m_ucLastTouchLineIndex;		// 캐릭터 선택해서 마을로 진입할 때에만 유효하다
 			unsigned short			m_usLastPosValue;			// 캐릭터 선택해서 마을로 진입할 때에만 유효하다
+	#ifdef FIELD_BOSS_RAID
+			bool					m_bIgnoreLastTouch;			// LastTouch를 사용하지 않고 m_iMapID에 해당하는 기본 위치를 사용하도록 알린다.
+	#endif // FIELD_BOSS_RAID
 #endif REMEMBER_LOGOUT_POSITION_TEST
 
 			bool					m_bIsGameBang;
@@ -492,9 +466,9 @@ class CX2Unit : public CKTDXDeviceHolder
 			DailyAchievement			m_DailyAchievement;
 #endif TODAY_RECORD_TEST
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
             int							m_iTitleId;
-#endif
+//#endif
 
 #ifdef BUFF_TEMPLET_SYSTEM	
 			vector<int>					m_vecPremiumBuffList;
@@ -502,21 +476,20 @@ class CX2Unit : public CKTDXDeviceHolder
 
 			//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
 #ifdef SERV_UNIT_WAIT_DELETE
-			std::wstring						m_wstrLastDate;			// 최종 Logout 타임
-			bool								m_bDeleted;				// 삭제 대기 상태 구분
-			__int64								m_trDelAbleDate;		// 삭제 가능 일시
-			__int64								m_trRestoreAbleDate;	// 복구 가능 일시
-			bool								m_bDeletedMotionPlay;	// 삭제 모션 재생 중인지 //2012.03.07 lygan_조성욱 // 캐릭터 삭제 모션 제어용
+			std::wstring				m_wstrLastDate;			// 최종 Logout 타임
+			bool						m_bDeleted;				// 삭제 대기 상태 구분
+			__int64						m_trDelAbleDate;		// 삭제 가능 일시
+			__int64						m_trRestoreAbleDate;	// 복구 가능 일시
+			bool						m_bDeletedMotionPlay;	// 삭제 모션 재생 중인지 //2012.03.07 lygan_조성욱 // 캐릭터 삭제 모션 제어용
 #endif SERV_UNIT_WAIT_DELETE
 			//}}
-
 #ifdef SERV_ADD_WARP_BUTTON
-			__int64								m_trWarpVipEndDate;	// 코보 VIP 끝나는 시간
-			bool								m_bWarpVip;
+			__int64						m_trWarpVipEndDate;	// 코보 VIP 끝나는 시간
+			bool						m_bWarpVip;
 #endif // SERV_ADD_WARP_BUTTON
 
 #ifdef SERV_INVISIBLE_GM
-			bool								m_bInvisible;
+			bool						m_bInvisible;
 #endif SERV_INVISIBLE_GM
 
 			//{{ 2013. 04. 01	 인연 시스템 - 김민성
@@ -527,25 +500,60 @@ class CX2Unit : public CKTDXDeviceHolder
 			//}
 
 #ifdef SERV_GROW_UP_SOCKET
-			std::map<GROW_UP_TYPE, int>			m_mapGrowUpPoint;	// 성장 포인트
+			std::map<GROW_UP_TYPE, int>	m_mapGrowUpPoint;	// 성장 포인트
 #endif//SERV_GROW_UP_SOCKET
+
 #ifdef SERV_GROW_UP_TITLE
-			int									m_iOldLevel;
-#endif
+			int							m_iOldLevel;
+#endif SERV_GROW_UP_TITLE
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
-			u_char				m_ucOldYearMissionRewardedLevel;
-			int					m_iNewYearMissionStepID;
+			u_char						m_ucOldYearMissionRewardedLevel;
+			int							m_iNewYearMissionStepID;
 #endif SERV_NEW_YEAR_EVENT_2014
+
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 			int							m_iGateOfDarknessSupportEventTime;
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+			UidType						m_iRelationTargetUserUid;
+			wstring						m_wstrRelationTargetUserNickname;
+			bool						m_bCouple;
+#endif SERV_RELATIONSHIP_EVENT_INT
+			
+#ifdef SERV_ELESIS_UPDATE_EVENT
+			int							m_iNoteViewCount;
+			bool						m_bReserveShow;
+#endif SERV_ELESIS_UPDATE_EVENT
+
+#ifdef SERV_EVENT_CHECK_POWER
+			unsigned char				m_ucCheckPowerCount;
+			__int64						m_iCheckPowerTime;
+			bool						m_bCheckPowerShowPopUp;
+			unsigned char				m_ucCheckPowerScore;
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+			int							m_iValentineItemCount;
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+			int							m_iAccountPVPLoseCount;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
+
+        private:
+
+			void Init();
+
 		public:
-			UnitData( CX2Unit* pOwnerUnit, const KUnitInfo& data );
-			UnitData( CX2Unit* pOwnerUnit, const KRoomUserInfo& data );
-			UnitData( CX2Unit* pOwnerUnit, const KSquareUserInfo& pKSquareUserInfo );
-			UnitData(CX2Unit* pOwnerUnit, const KFieldUserInfo& pKFieldUserInfo );
+            UnitData() { Init(); }
 			~UnitData();
+
+            void    Init( CX2Unit* pOwnerUnit, const KUnitInfo& data );
+            void    Init( CX2Unit* pOwnerUnit, const KRoomUserInfo& data );
+            void    Init( CX2Unit* pOwnerUnit, const KSquareUserInfo& pKSquareUserInfo );
+            void    Init( CX2Unit* pOwnerUnit, const KFieldUserInfo& pKFieldUserInfo );
 			
 			void SetKUnitInfo( const KUnitInfo& data );
 			void SetKRoomUserInfo( const KRoomUserInfo& data );
@@ -556,7 +564,7 @@ class CX2Unit : public CKTDXDeviceHolder
 			bool AddBlackList( KChatBlackListUnit blackList );
 			bool RemoveBlackList( UidType unitUID );
 			const vector<KChatBlackListUnit>& GetBlackList() const { return m_BlackList; }
-			UidType GetBlackListUnitUID( const WCHAR* wszNickName );
+			UidType GetBlackListUnitUID( const WCHAR* wszNickName ) const;
 		
 #ifdef BUFF_TEMPLET_SYSTEM
 			const vector<int>&	GetPremiumBuffList() const { return m_vecPremiumBuffList; }
@@ -566,9 +574,9 @@ class CX2Unit : public CKTDXDeviceHolder
 			void				ClearPremiumBuffInfo();
 #endif
 #endif BUFF_TEMPLET_SYSTEM
-						
-			void Init();
-			void Verify();
+					
+
+			void Verify() const;
 
 #ifdef SERV_INVISIBLE_GM
 			void SetInvisible( bool bInvisible ) { m_bInvisible = bInvisible; }
@@ -588,10 +596,30 @@ class CX2Unit : public CKTDXDeviceHolder
 #endif //SERV_GROW_UP_SOCKET
 
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-			void SetGateOfDarknessSupportEventTime( int iGateOfDarknessSupportEventTime ) { m_iGateOfDarknessSupportEventTime = iGateOfDarknessSupportEventTime; }
-			int GetGateOfDarknessSupportEventTime() const { return m_iGateOfDarknessSupportEventTime; }
+		void SetGateOfDarknessSupportEventTime( int iGateOfDarknessSupportEventTime ) { m_iGateOfDarknessSupportEventTime = iGateOfDarknessSupportEventTime; }
+		int GetGateOfDarknessSupportEventTime() const { return m_iGateOfDarknessSupportEventTime; }
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		void SetRelationTargetUserUID( UidType iRelationTargetUserUid ) { m_iRelationTargetUserUid = iRelationTargetUserUid; }
+		UidType GetRelationTargetUserUID() const { return m_iRelationTargetUserUid; }
+		void SetRelationTargetUserNickname( wstring wstrRelationTargetUserNickname ) { m_wstrRelationTargetUserNickname = wstrRelationTargetUserNickname; }
+		wstring GetRelationTargetUserNickname() const { return m_wstrRelationTargetUserNickname; }
+		void SetCouple( bool bCouple ) { m_bCouple = bCouple; }
+		bool GetCouple() const { return m_bCouple; }
+#endif SERV_RELATIONSHIP_EVENT_INT
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		void SetNoteViewCount( int iNoteViewCount ) { m_iNoteViewCount = iNoteViewCount; }
+		int GetNoteViewCount() { return m_iNoteViewCount; }
+		void SetReserveShow( bool bReserveShow ) { m_bReserveShow = bReserveShow; }
+		bool GetReserveShow() { return m_bReserveShow; }
+#endif SERV_ELESIS_UPDATE_EVENT
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		void SetValentineItemCount(int iTempCount) { m_iValentineItemCount = iTempCount; }
+		int GetValentineItemCount(void) const { return m_iValentineItemCount; }
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 		};
 
 		//{{ kimhc // 2009-12-09 // 크리스마스 이벤트
@@ -630,19 +658,24 @@ class CX2Unit : public CKTDXDeviceHolder
 #endif	PC_BANG_WORK
 		//}} kimhc // 2010-01-04 // 기존의 EGS_SELECT_UNIT_ACK에 인벤정보가 포함되어 오던 것 분할
 
-
-		UnitData*		GetUnitData() const							{ return m_pUnitData;							}
+//{{ robobeg : 2013-11-01
+        //UnitData*		GetUnitData()							    { return &m_UnitData;							}
+  //      const CX2Inventory*	GetInventory() const					{ return m_UnitData.m_pInventory;				}
+		const UnitData&		GetUnitData() const							{ return m_UnitData;							}
+		UnitData&		AccessUnitData()							{ return m_UnitData;							}
+		const CX2Inventory&	GetInventory() const					{ return m_UnitData.m_Inventory;				}
+        CX2Inventory&   AccessInventory()                           { return m_UnitData.m_Inventory;				}
+//}} robobeg : 2013-11-01
 		const UnitTemplet*	GetUnitTemplet() const					{ return m_pUnitTemplet;						}
-		CX2Inventory*	GetInventory() const						{ return m_pUnitData->m_pInventory;				}
 
-		UidType			GetUID() const								{ return m_pUnitData->m_UnitUID;				}
-		UidType			GetOwnerUserUID() const						{ return m_pUnitData->m_UserUID;				}
-		void			SetOwnerUserUID( UidType uidType )			{ m_pUnitData->m_UserUID = uidType;				}
+		UidType			GetUID() const								{ return m_UnitData.m_UnitUID;				}
+		UidType			GetOwnerUserUID() const						{ return m_UnitData.m_UserUID;				}
+		void			SetOwnerUserUID( UidType uidType )			{ m_UnitData.m_UserUID = uidType;				}
 		UNIT_TYPE		GetType() const								{ return m_pUnitTemplet->m_UnitType;			}
 		UNIT_CLASS		GetClass() const							{ return m_pUnitTemplet->m_UnitClass;			}
 
 		int				GetClassLevel();
-		const WCHAR*	GetNickName() const						{ return m_pUnitData->m_NickName.c_str();		}
+		const WCHAR*	GetNickName() const						{ return m_UnitData.m_NickName.c_str();		}
 
 		int				GetViewEqipNum() const					{ return (int)m_ViewEqipItemUIDList.size();		}
 		UidType			GetViewEqipUID( int index )	const		{ return m_ViewEqipItemUIDList[index];			}
@@ -663,8 +696,8 @@ class CX2Unit : public CKTDXDeviceHolder
 		bool			IsPossibleAddEqip( UidType itemUID );
 		bool			IsPossibleAddEqip( CX2Item* pItem );
 
-		void			SetUnitData( UnitData*	pUnitData )				{ m_pUnitData = pUnitData;				}
-		void			SetUnitData( const KUnitInfo* pUnitInfo )		{ m_pUnitData->SetKUnitInfo( *pUnitInfo );	}
+		//void			SetUnitData( UnitData*	pUnitData )				{ m_pUnitData = pUnitData;				}
+		void			SetUnitData( const KUnitInfo* pUnitInfo )		{ m_UnitData.SetKUnitInfo( *pUnitInfo );	}
 		void			SetUnitTemplet( const UnitTemplet* pUnitTemplet )		{ m_pUnitTemplet = pUnitTemplet;		}
 
 		bool			GetIsLevelUp() { return m_bIsLevelUp; }
@@ -691,42 +724,42 @@ class CX2Unit : public CKTDXDeviceHolder
 		{ 
 #ifdef SERV_PVP_NEW_SYSTEM
 #ifdef PVP_SEASON2
-			if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_D )
+			if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_D )
 				return CX2PVPEmblem::PE_RANK_E;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_C )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_C )
 				return CX2PVPEmblem::PE_RANK_D;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_B )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_B )
 				return CX2PVPEmblem::PE_RANK_C;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_A )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_A )
 				return CX2PVPEmblem::PE_RANK_B;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_S )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_S )
 				return CX2PVPEmblem::PE_RANK_A;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_SS )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_SS )
 				return CX2PVPEmblem::PE_RANK_S;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_SSS )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_SSS )
 				return CX2PVPEmblem::PE_RANK_SS;
 			else 
 				return CX2PVPEmblem::PE_RANK_SSS;
 #else
-			if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_E )
+			if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_E )
 				return CX2PVPEmblem::PE_RANK_F;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_D )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_D )
 				return CX2PVPEmblem::PE_RANK_E;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_C )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_C )
 				return CX2PVPEmblem::PE_RANK_D;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_B )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_B )
 				return CX2PVPEmblem::PE_RANK_C;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_A )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_A )
 				return CX2PVPEmblem::PE_RANK_B;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_S )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_S )
 				return CX2PVPEmblem::PE_RANK_A;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_SS )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_SS )
 				return CX2PVPEmblem::PE_RANK_S;
 			else 
 				return CX2PVPEmblem::PE_RANK_SS;
 #endif
 #else
-			return m_pUnitData->m_PVPEmblem;
+			return m_UnitData.m_PVPEmblem;
 #endif
 		}
 
@@ -734,22 +767,22 @@ class CX2Unit : public CKTDXDeviceHolder
 		CX2PVPEmblem::PVP_RANK GetPvpRank()
 		{
 #ifdef PVP_SEASON2
-			char cRank = m_pUnitData->m_cRank;
+			char cRank = m_UnitData.m_cRank;
 			return CX2PVPEmblem::PVP_RANK( cRank );
 #else
-			if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_E )
+			if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_E )
 				return CX2PVPEmblem::PVPRANK_RANK_F;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_D )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_D )
 				return CX2PVPEmblem::PVPRANK_RANK_E;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_C )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_C )
 				return CX2PVPEmblem::PVPRANK_RANK_D;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_B )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_B )
 				return CX2PVPEmblem::PVPRANK_RANK_C;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_A )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_A )
 				return CX2PVPEmblem::PVPRANK_RANK_B;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_S )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_S )
 				return CX2PVPEmblem::PVPRANK_RANK_A;
-			else if( m_pUnitData->m_iRating < CX2PVPEmblem::PE_RANK_SS )
+			else if( m_UnitData.m_iRating < CX2PVPEmblem::PE_RANK_SS )
 				return CX2PVPEmblem::PVPRANK_RANK_S;
 			else 
 				return CX2PVPEmblem::PVPRANK_RANK_SS;
@@ -758,8 +791,8 @@ class CX2Unit : public CKTDXDeviceHolder
 #endif
 
 		//{{ 2007. 10. 5  최육사  근성도 함수
-		int				GetSpirit() { return m_pUnitData->m_iSpirit; }
-		void			SetSpirit( int val ) { m_pUnitData->m_iSpirit = val; }
+		int				GetSpirit() { return m_UnitData.m_iSpirit; }
+		void			SetSpirit( int val ) { m_UnitData.m_iSpirit = val; }
 		//}}
 
 #ifdef SERV_CHINA_SPIRIT_EVENT
@@ -902,11 +935,11 @@ class CX2Unit : public CKTDXDeviceHolder
 
 		void GetSetIDNPartsNum( map<int,int>& mapSetIDNPartsNum );
 
-#ifdef TITLE_SYSTEM
-        int GetTitleId() { return m_pUnitData->m_iTitleId; }
-        void SetTitleId(int val) { m_pUnitData->m_iTitleId = val; }
-        void ClearTitle() { m_pUnitData->m_iTitleId = 0; }
-#endif
+//#ifdef TITLE_SYSTEM
+        int GetTitleId() { return m_UnitData.m_iTitleId; }
+        void SetTitleId(int val) { m_UnitData.m_iTitleId = val; }
+        void ClearTitle() { m_UnitData.m_iTitleId = 0; }
+//#endif
 
 
 		static bool CanUse( int itemID, CX2Unit* pUnit, int iUnitLevel = -1 );
@@ -919,7 +952,7 @@ class CX2Unit : public CKTDXDeviceHolder
 		int	GetStartPos() { return m_iStartPos; }
 
 #ifdef UNIT_EMOTION
-		wstring GetEmotionName(EMOTION_TYPE eEmotionType);
+		const char* GetEmotionName(EMOTION_TYPE eEmotionType);
 		wstring GetEmotionAniNameById(EMOTION_TYPE eEmotionType);
 #endif
 
@@ -927,7 +960,7 @@ class CX2Unit : public CKTDXDeviceHolder
 		void SetSkillNoteMaxPage(char cVal) { m_iMaxSKillNotePage = cVal; }
 		void SetSkillNote( std::map<char, int> &mapSkillNote, char iMaxNotePage );
 		int GetSkillMemoIdBySlot( char slotId );
-		char GetMaxSkillNoteSlot() { return m_iMaxSKillNotePage; }
+		char GetMaxSkillNoteSlot() const { return m_iMaxSKillNotePage; }
 		void SetSkillNotePage(char iPage, int iMemo);
 #endif
 
@@ -968,11 +1001,9 @@ class CX2Unit : public CKTDXDeviceHolder
 #endif	CHUNG_FIRST_CLASS_CHANGE
 		//}} kimhc // 2011.1.14 // 청 1차 전직
 
-#ifdef AVATAR_EMOTION
 		bool CheckNowEquipItemByItemId( UidType itemID ); 		
 		bool GetAvatarEmotion(wstring &wstrEmotionName, CX2Unit::EMOTION_TYPE &eEmotionID);
 		bool GetAvatarEmotionID(CX2Unit::EMOTION_TYPE &eEmotionID);
-#endif //AVATAR_EMOTION
 #ifdef NEW_HENIR_TEST
 		void SetHenirRewardCountInfo(KEGS_HENIR_REWARD_COUNT_NOT& kHenirRewardCountInfo){ m_HenirRewardCountInfo = kHenirRewardCountInfo; }
 		KEGS_HENIR_REWARD_COUNT_NOT& GetHenirRewardCountInfo() { return m_HenirRewardCountInfo; }
@@ -980,19 +1011,18 @@ class CX2Unit : public CKTDXDeviceHolder
 
 #ifdef	SERV_EXPAND_QUICK_SLOT
 		void		SetExpandQuickSlot(bool bExpandQuickSlot) { m_bExpandQuickSlot = bExpandQuickSlot; }
-//{{ Iruha : 2026-08-27 // All 6 consumable quick slots open by default
-#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-		bool		IsExpandQuickSlot() const { return true; }
-#else
 		bool		IsExpandQuickSlot() const { return m_bExpandQuickSlot; }
-#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-//}}
 #endif  SERV_EXPAND_QUICK_SLOT
 
 		int GetAverageItemlevel() const;
 		void			UpdateItemLevel();
 
+#ifdef SET_WORLD_BUFF_AT_RESURRECTION // 김태환
+		/// 서버에서 걸어주는 버프 항목을 지우기 위해, 버프 펙터 아이디 저장
+		vector<BUFF_FACTOR_ID>& GetWorldBuffFactorID() { return m_vecWorldBuffFactorID; }
+#else // SET_WORLD_BUFF_AT_RESURRECTION
 		vector<CX2BuffFactorPtr>& GetWorldBuffFactorPtr() { return m_vecWorldBuffFactorPtr; }
+#endif // SET_WORLD_BUFF_AT_RESURRECTION
 
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
 		void		SetUnitCreateDate( wstring wstrUnitCreateDate )			{ m_wstrUnitCreateDate = wstrUnitCreateDate; }
@@ -1007,11 +1037,6 @@ class CX2Unit : public CKTDXDeviceHolder
 		int			GetNewUnitTradeBlockUnitClass() const		{ return m_iNewUnitTradeBlockUnitClass; }
 #endif SERV_NEW_UNIT_TRADE_LIMIT
 
-#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-        float           GetAvgPingTime() const { return m_fAvgPingTime; }
-        void            UpdateAvgPingTime( float fAvgPingTime ) { m_fAvgPingTime = fAvgPingTime; }
-#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-
 #ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-16
 		int GetRecentEnterDungeonID() const { return m_iRecentEnterDungeonID; }
 		void SetRecentEnterDungeonID(int val) { m_iRecentEnterDungeonID = val; }
@@ -1023,9 +1048,9 @@ class CX2Unit : public CKTDXDeviceHolder
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
 #ifdef SERV_RELATIONSHIP_SYSTEM
-		char GetWeddingStatus() const { if( NULL != m_pUnitData ) return m_pUnitData->m_cWeddingStatus; return 0; }
-		UidType GetLoverUnitUID() const { if( NULL != m_pUnitData) return m_pUnitData->m_iLoverUnitUID; return 0; }
-		void SetLoverUnitUID( UidType UID_ ) { if ( NULL != m_pUnitData) m_pUnitData->m_iLoverUnitUID = UID_; }
+		char GetWeddingStatus() const { return m_UnitData.m_cWeddingStatus; }
+		UidType GetLoverUnitUID() const { return m_UnitData.m_iLoverUnitUID; }
+		void SetLoverUnitUID( UidType UID_ ) { m_UnitData.m_iLoverUnitUID = UID_; }
 #endif //SERV_RELATIONSHIP_SYSTEM
 
 		static bool IsAvatarEmotion( const CX2Unit::EMOTION_TYPE eEmotioID_ )
@@ -1037,6 +1062,13 @@ class CX2Unit : public CKTDXDeviceHolder
 			case ET_EMOTION_AVATAR3:
 			case ET_EMOTION_AVATAR4:
 			case ET_EMOTION_AVATAR5:
+#ifdef CRAYONPOP_SECOND_EMOTION
+			case ET_EMOTION_AVATAR6:
+#endif // CRAYONPOP_SECOND_EMOTION
+#ifdef CRAYONPOP_EMOTION_WITH_MUSIC		// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+			case ET_EMOTION_AVATAR7:
+#endif // CRAYONPOP_EMOTION_WITH_MUSIC	// 크래용 팝 한벌 아바타 이모션, 사운드가 출력됨
+
 				return true;
 				break;
 
@@ -1056,17 +1088,53 @@ class CX2Unit : public CKTDXDeviceHolder
 
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		void					SetServerGroupID ( const SEnum::SERVER_GROUP_ID eServerGroupID ) { m_eServerGroupID = eServerGroupID;  }
+		SEnum::SERVER_GROUP_ID	GetServerGroupID () const 
+		{ 
+#ifdef FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+			if( SEnum::SGI_END <= m_eServerGroupID)
+			{
+				return SEnum::SGI_SOLES;
+			}
+			else
+				return m_eServerGroupID;	
+#else
+			return m_eServerGroupID;
+#endif // FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR	
+		}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
 #ifdef SERV_LIMITED_DUNGEON_PLAY_TIMES
 		wstring		GetLocalMapPlayTimesDesc( int iDungeonID );
 #endif SERV_LIMITED_DUNGEON_PLAY_TIMES
 
 #ifdef SERV_NEW_YEAR_EVENT_2014
-		u_char		GetOldYearMissionRewardedLevel() const { return m_pUnitData->m_ucOldYearMissionRewardedLevel; }
-		void		SetOldYearMissionRewardedLevel( u_char ucOldYearMissionRewardedLevel ) { m_pUnitData->m_ucOldYearMissionRewardedLevel = ucOldYearMissionRewardedLevel; }
-		int			GetNewYearMissionStepID() const { return m_pUnitData->m_iNewYearMissionStepID; }
-		void		SetNewYearMissionStepID( int iNewYearMissionStepID ) { m_pUnitData->m_iNewYearMissionStepID = iNewYearMissionStepID; }
+		u_char		GetOldYearMissionRewardedLevel() const { return m_UnitData.m_ucOldYearMissionRewardedLevel; }
+		void		SetOldYearMissionRewardedLevel( u_char ucOldYearMissionRewardedLevel ) { m_UnitData.m_ucOldYearMissionRewardedLevel = ucOldYearMissionRewardedLevel; }
+		int			GetNewYearMissionStepID() const { return m_UnitData.m_iNewYearMissionStepID; }
+		void		SetNewYearMissionStepID( int iNewYearMissionStepID ) { m_UnitData.m_iNewYearMissionStepID = iNewYearMissionStepID; }
 #endif SERV_NEW_YEAR_EVENT_2014
 
+#ifdef SERV_EVENT_CHECK_POWER
+		bool		IsShowCheckPowerPopUp() const { return m_UnitData.m_bCheckPowerShowPopUp; }
+		void		SetShowCheckPowerPopUp( bool bCheckPowerShowPopUp ) { m_UnitData.m_bCheckPowerShowPopUp = bCheckPowerShowPopUp; }
+
+		unsigned char	GetCheckPowerCount() const { return m_UnitData.m_ucCheckPowerCount; }
+		void			SetCheckPowerCount( unsigned char ucCount ) { m_UnitData.m_ucCheckPowerCount = ucCount; }
+
+		unsigned char	GetCheckPowerScore() const { return m_UnitData.m_ucCheckPowerScore; }
+		void			SetCheckPowerScore( unsigned char ucScore ) { m_UnitData.m_ucCheckPowerScore = ucScore; }
+
+		__int64		GetCheckPowerTime() const { return m_UnitData.m_iCheckPowerTime; }
+		void		SetCheckPowerTime( __int64 iTime ) { m_UnitData.m_iCheckPowerTime = iTime; }
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		bool		IsInfinityElEssence() const;
+		float		GetSkillCoolTimeDecreaseRate(CX2SkillTree::SKILL_ID eSkillID, CX2SkillTree::SKILL_TYPE eSkillType) const;
+		float		GetSkillMpDecreaseRate(CX2SkillTree::SKILL_ID eSkillID, CX2SkillTree::SKILL_TYPE eSkillType) const;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
 
 	protected:		
 		bool			UpdateViewEqipPosition();
@@ -1086,7 +1154,8 @@ class CX2Unit : public CKTDXDeviceHolder
 		bool			IsShowDungeonOnly( bool bDungeonOnlyItem_, bool bShowDungeonOptionUI_ = false );
 		bool			IsShowPvpOnly( bool bPvpOnlyItem_, bool bShowPvpOptionUI_ = false );
 		
-		UnitData*					m_pUnitData;
+		//UnitData*					m_pUnitData;
+        UnitData					m_UnitData;
 		const UnitTemplet*			m_pUnitTemplet;
 
 		bool						m_bIsLevelUp;
@@ -1181,7 +1250,12 @@ class CX2Unit : public CKTDXDeviceHolder
 		bool				m_bExpandQuickSlot;
 #endif  SERV_EXPAND_QUICK_SLOT
 
+#ifdef SET_WORLD_BUFF_AT_RESURRECTION // 김태환
+		/// 유저 부활시 해당 버프들을 다시 적용해 줘야 하기 때문에, 펙터 아이디를 저장
+		vector<BUFF_FACTOR_ID>		m_vecWorldBuffFactorID;			/// 마을 버프 컨테이너
+#else // SET_WORLD_BUFF_AT_RESURRECTION
 		vector<CX2BuffFactorPtr>	m_vecWorldBuffFactorPtr;		/// 마을 버프 컨테이너
+#endif // SET_WORLD_BUFF_AT_RESURRECTION
 
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
 		wstring				m_wstrUnitCreateDate;
@@ -1191,13 +1265,13 @@ class CX2Unit : public CKTDXDeviceHolder
 		int					m_iNewUnitTradeBlockDay;
 #endif SERV_NEW_UNIT_TRADE_LIMIT
 
-#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-        float               m_fAvgPingTime;
-#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-
 #ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-16
 		int					m_iRecentEnterDungeonID;	/// 가장 최근에 입장한 던전 아이디
 #endif // SERV_NEW_DEFENCE_DUNGEON
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		SEnum::SERVER_GROUP_ID		m_eServerGroupID;				/// 진입 구조 개편, 서버 그룹 ID 추가
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 		int					m_iGateOfDarknessSupportEventTime;
@@ -1841,12 +1915,88 @@ inline bool GetX2UnitClassCompatibility( CX2Unit::UNIT_CLASS unitClass, CX2Unit:
 				break;
 			}
 		} break;
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case CX2Unit::UC_ELESIS_GRAND_MASTER:
+		{
+			switch( stuffClass )
+			{
+			case CX2Unit::UC_ELESIS_KNIGHT:
+			case CX2Unit::UC_ELESIS_SABER_KNIGHT:
+			case CX2Unit::UC_ELESIS_GRAND_MASTER:
+				return true;
+				break;
+			default:
+				break;
+			}
+		} break;
+	case CX2Unit::UC_ELESIS_BLAZING_HEART:
+		{
+			switch( stuffClass )
+			{
+			case CX2Unit::UC_ELESIS_KNIGHT:
+			case CX2Unit::UC_ELESIS_PYRO_KNIGHT:
+			case CX2Unit::UC_ELESIS_BLAZING_HEART :
+				return true;
+				break;
+			default:
+				break;
+			}
+		} break;
+
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UC_ADD_NASOD_RULER:
+		{
+			switch( stuffClass )
+			{
+			case CX2Unit::UC_ADD_NASOD_RULER:
+				return true;
+				break;
+			default:
+				break;
+			}
+		} break;
+
+	case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+		{
+			switch( stuffClass )
+			{
+			case CX2Unit::UC_ADD_NASOD_RULER:
+			case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+				return true;
+				break;
+			default:
+				break;
+			}
+		} break;
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+		{
+			switch( stuffClass )
+			{
+			case CX2Unit::UC_ADD_NASOD_RULER:
+			case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+			case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+				return true;
+				break;
+			default:
+				break;
+			}
+		} break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
+#endif //SERV_9TH_NEW_CHARACTER
 
 	}
 
 	return false;
 }
+
+typedef CX2Unit::EQIP_POSITION  CX2UnitEQIP_POSITION;
 
 #ifdef SEPARATION_MOTION
 inline int GetX2UnitClassGrade( CX2Unit::UNIT_CLASS unitClass )
@@ -1865,3 +2015,712 @@ inline int GetX2UnitClassGrade( CX2Unit::UNIT_CLASS unitClass )
 	return -1;
 }
 #endif
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+
+inline CX2Unit::UNIT_CLASS GetFirstLineElswordClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ELSWORD_SWORDMAN;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ELSWORD_KNIGHT;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ELSWORD_LORD_KNIGHT;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Class Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetSecondLineElswordClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ELSWORD_SWORDMAN;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ELSWORD_MAGIC_KNIGHT;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ELSWORD_RUNE_SLAYER;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Class Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetThirdLineElswordClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ELSWORD_SWORDMAN;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ELSWORD_SHEATH_KNIGHT;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ELSWORD_INFINITY_SWORD;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Class Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetElswordClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitClassLine_ )
+	{
+	case CX2Unit::UCL_FIRST :
+		return GetFirstLineElswordClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_SECOND :
+		return GetSecondLineElswordClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_THIRD :
+		return GetThirdLineElswordClassTypeByUnitClassType ( eUnitClassType_ );
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit LINE Type" );
+	return CX2Unit::UC_NONE;
+}
+
+
+inline CX2Unit::UNIT_CLASS GetFirstLineArmeClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ARME_VIOLET_MAGE;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ARME_HIGH_MAGICIAN;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ARME_ELEMENTAL_MASTER;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetSecondLineArmeClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ARME_VIOLET_MAGE;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ARME_DARK_MAGICIAN;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ARME_VOID_PRINCESS;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetThirdLineArmeClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ARME_VIOLET_MAGE;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ARME_BATTLE_MAGICIAN;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ARME_DIMENSION_WITCH;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetArmeClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitClassLine_ )
+	{
+	case CX2Unit::UCL_FIRST :
+		return GetFirstLineArmeClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_SECOND :
+		return GetSecondLineArmeClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_THIRD :
+		return GetThirdLineArmeClassTypeByUnitClassType ( eUnitClassType_ );
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit LINE Type" );
+	return CX2Unit::UC_NONE;
+}
+
+
+inline CX2Unit::UNIT_CLASS GetFirstLineLireClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_LIRE_ELVEN_RANGER;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_LIRE_COMBAT_RANGER;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_LIRE_WIND_SNEAKER;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetSecondLineLireClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_LIRE_ELVEN_RANGER;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_LIRE_SNIPING_RANGER;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_LIRE_GRAND_ARCHER;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetThirdLineLireClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_LIRE_ELVEN_RANGER;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_LIRE_TRAPPING_RANGER;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_LIRE_NIGHT_WATCHER;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetLireClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitClassLine_ )
+	{
+	case CX2Unit::UCL_FIRST :
+		return GetFirstLineLireClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_SECOND :
+		return GetSecondLineLireClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_THIRD :
+		return GetThirdLineLireClassTypeByUnitClassType ( eUnitClassType_ );
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit LINE Type" );
+	return CX2Unit::UC_NONE;
+}
+
+
+inline CX2Unit::UNIT_CLASS GetFirstLineRavenClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_RAVEN_FIGHTER;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_RAVEN_SOUL_TAKER;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_RAVEN_BLADE_MASTER;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetSecondLineRavenClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_RAVEN_FIGHTER;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_RAVEN_OVER_TAKER;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_RAVEN_RECKLESS_FIST;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetThirdLineRavenClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_RAVEN_FIGHTER;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_RAVEN_WEAPON_TAKER;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_RAVEN_VETERAN_COMMANDER;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetRavenClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitClassLine_ )
+	{
+	case CX2Unit::UCL_FIRST :
+		return GetFirstLineRavenClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_SECOND :
+		return GetSecondLineRavenClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_THIRD :
+		return GetThirdLineRavenClassTypeByUnitClassType ( eUnitClassType_ );
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit LINE Type" );
+	return CX2Unit::UC_NONE;
+}
+
+
+inline CX2Unit::UNIT_CLASS GetFirstLineEveClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_EVE_NASOD;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_EVE_EXOTIC_GEAR;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_EVE_CODE_NEMESIS;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetSecondLineEveClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_EVE_NASOD;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_EVE_ARCHITECTURE;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_EVE_CODE_EMPRESS;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetThirdLineEveClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_EVE_NASOD;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_EVE_ELECTRA;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_EVE_BATTLE_SERAPH;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetEveClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitClassLine_ )
+	{
+	case CX2Unit::UCL_FIRST :
+		return GetFirstLineEveClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_SECOND :
+		return GetSecondLineEveClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_THIRD :
+		return GetThirdLineEveClassTypeByUnitClassType ( eUnitClassType_ );
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit LINE Type" );
+	return CX2Unit::UC_NONE;
+}
+
+#ifdef NEW_CHARACTER_CHUNG
+
+inline CX2Unit::UNIT_CLASS GetFirstLineChungClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_CHUNG_IRON_CANNON;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_CHUNG_FURY_GUARDIAN;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_CHUNG_IRON_PALADIN;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetSecondLineChungClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_CHUNG_IRON_CANNON;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_CHUNG_DEADLY_CHASER;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetThirdLineChungClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_CHUNG_IRON_CANNON;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_CHUNG_SHELLING_GUARDIAN;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_CHUNG_TACTICAL_TROOPER;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetChungClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitClassLine_ )
+	{
+	case CX2Unit::UCL_FIRST :
+		return GetFirstLineChungClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_SECOND :
+		return GetSecondLineChungClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_THIRD :
+		return GetThirdLineChungClassTypeByUnitClassType ( eUnitClassType_ );
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit LINE Type" );
+	return CX2Unit::UC_NONE;
+}
+
+#endif // NEW_CHARACTER_CHUNG
+
+
+#ifdef ARA_CHARACTER_BASE
+
+inline CX2Unit::UNIT_CLASS GetFirstLineAraClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ARA_MARTIAL_ARTIST;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ARA_LITTLE_HSIEN;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ARA_SAKRA_DEVANAM;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetSecondLineAraClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ARA_MARTIAL_ARTIST;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ARA_LITTLE_DEVIL;
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ARA_YAMA_RAJA;
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetThirdLineAraClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{	
+	case CX2Unit::UCT_BASIC_CLASS :
+	case CX2Unit::UCT_FIRST_CLASS :
+	case CX2Unit::UCT_SECOND_CLASS :
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetAraClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitClassLine_ )
+	{
+	case CX2Unit::UCL_FIRST :
+		return GetFirstLineAraClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_SECOND :
+		return GetSecondLineAraClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_THIRD :
+		return GetThirdLineAraClassTypeByUnitClassType ( eUnitClassType_ );
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit LINE Type" );
+	return CX2Unit::UC_NONE;
+}
+
+#endif // #ifdef ARA_CHARACTER_BASE
+
+
+#ifdef NEW_CHARACTER_EL
+
+inline CX2Unit::UNIT_CLASS GetFirstLineElesisClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ELESIS_KNIGHT;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ELESIS_SABER_KNIGHT;
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ELESIS_GRAND_MASTER;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+		return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetSecondLineElesisClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ELESIS_KNIGHT;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ELESIS_PYRO_KNIGHT;
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE
+	case CX2Unit::UCT_SECOND_CLASS :
+		return CX2Unit::UC_ELESIS_BLAZING_HEART;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetThirdLineElesisClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+	case CX2Unit::UCT_FIRST_CLASS :
+	case CX2Unit::UCT_SECOND_CLASS :
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetElesisClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitClassLine_ )
+	{
+	case CX2Unit::UCL_FIRST :
+		return GetFirstLineElesisClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_SECOND :
+		return GetSecondLineElesisClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_THIRD :
+		return GetThirdLineElesisClassTypeByUnitClassType ( eUnitClassType_ );
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit LINE Type" );
+	return CX2Unit::UC_NONE;
+}
+
+#endif // NEW_CHARACTER_EL
+
+
+#ifdef SERV_9TH_NEW_CHARACTER
+
+inline CX2Unit::UNIT_CLASS GetFirstLineNewCharacterClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+		return CX2Unit::UC_ADD_NASOD_RULER;
+	case CX2Unit::UCT_FIRST_CLASS :
+		return CX2Unit::UC_ADD_PSYCHIC_TRACER;
+	case CX2Unit::UCT_SECOND_CLASS :
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		return CX2Unit::UC_ADD_LUNATIC_PSYKER;
+#endif //SERV_ADD_LUNATIC_PSYKER
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetSecondLineNewCharacterClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+	case CX2Unit::UCT_FIRST_CLASS :
+	case CX2Unit::UCT_SECOND_CLASS :
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetThirdLineNewCharacterClassTypeByUnitClassType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_ )
+{
+	switch ( eUnitClassType_ )
+	{
+	case CX2Unit::UCT_BASIC_CLASS :
+	case CX2Unit::UCT_FIRST_CLASS :
+	case CX2Unit::UCT_SECOND_CLASS :
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+inline CX2Unit::UNIT_CLASS GetNewCharacterClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitClassLine_ )
+	{
+	case CX2Unit::UCL_FIRST :
+		return GetFirstLineNewCharacterClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_SECOND :
+		return GetSecondLineNewCharacterClassTypeByUnitClassType ( eUnitClassType_ );
+	case CX2Unit::UCL_THIRD :
+		return GetThirdLineNewCharacterClassTypeByUnitClassType ( eUnitClassType_ );
+	default:
+		break;
+	}
+	ASSERT ( !L"Wrong Unit LINE Type" );
+	return CX2Unit::UC_NONE;
+}
+
+#endif //  SERV_9TH_NEW_CHARACTER
+
+inline CX2Unit::UNIT_CLASS GetUnitClassByUnitClassTypeAndLineType ( CX2Unit::UNIT_TYPE eUnitType_, CX2Unit::UNIT_CLASS_TYPE eUnitClassType_, CX2Unit::UNIT_CLASS_LINE eUnitClassLine_ )
+{
+	switch ( eUnitType_ )
+	{
+	case CX2Unit::UT_ELSWORD :
+		return GetElswordClassByUnitClassTypeAndLineType ( eUnitClassType_, eUnitClassLine_ );
+	case CX2Unit::UT_ARME :
+		return GetArmeClassByUnitClassTypeAndLineType ( eUnitClassType_, eUnitClassLine_ );
+	case CX2Unit::UT_LIRE :
+		return GetLireClassByUnitClassTypeAndLineType ( eUnitClassType_, eUnitClassLine_ );
+	case CX2Unit::UT_RAVEN :
+		return GetRavenClassByUnitClassTypeAndLineType ( eUnitClassType_, eUnitClassLine_ );
+	case CX2Unit::UT_EVE :
+		return GetEveClassByUnitClassTypeAndLineType ( eUnitClassType_, eUnitClassLine_ );
+#ifdef NEW_CHARACTER_CHUNG
+	case CX2Unit::UT_CHUNG :
+		return GetChungClassByUnitClassTypeAndLineType ( eUnitClassType_, eUnitClassLine_ );
+#endif // NEW_CHARACTER_CHUNG
+#ifdef ARA_CHARACTER_BASE
+	case CX2Unit::UT_ARA:
+		return GetAraClassByUnitClassTypeAndLineType ( eUnitClassType_, eUnitClassLine_ );
+#endif // ARA_CHARACTER_BASE
+#ifdef NEW_CHARACTER_EL
+	case CX2Unit::UT_ELESIS :
+		return GetElesisClassByUnitClassTypeAndLineType ( eUnitClassType_, eUnitClassLine_ );
+#endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER
+	case CX2Unit::UT_ADD :
+		return GetNewCharacterClassByUnitClassTypeAndLineType ( eUnitClassType_, eUnitClassLine_ );	
+#endif // SERV_9TH_NEW_CHARACTER
+	default :
+		break;
+	}
+
+	ASSERT ( !L"Wrong Unit Type" );
+	return CX2Unit::UC_NONE;
+}
+
+
+inline D3DXCOLOR GetUnitKeyColorByUnitType ( CX2Unit::UNIT_TYPE eUnitType_ )
+{
+	switch ( eUnitType_ )
+	{
+	case CX2Unit::UT_ELSWORD :
+		return D3DXCOLOR ( 1.000f, 0.000f, 0.000f, 1.0f );
+	case CX2Unit::UT_ARME :
+		return D3DXCOLOR ( 0.666f, 0.254f, 0.862f, 1.0f );
+	case CX2Unit::UT_LIRE :
+		return D3DXCOLOR ( 0.470f, 0.803f, 0.009f, 1.0f );
+	case CX2Unit::UT_RAVEN :
+		return D3DXCOLOR ( 0.941f, 0.823f, 0.745f, 1.0f );
+	case CX2Unit::UT_EVE :
+		return D3DXCOLOR ( 1.000f, 0.411f, 0.980f, 1.0f );
+#ifdef NEW_CHARACTER_CHUNG
+	case CX2Unit::UT_CHUNG :
+		return D3DXCOLOR ( 0.294f, 0.843f, 0.901f, 1.0f );
+#endif // NEW_CHARACTER_CHUNG
+#ifdef ARA_CHARACTER_BASE
+	case CX2Unit::UT_ARA:
+		return D3DXCOLOR ( 1.000f, 0.549f, 0.156f, 1.0f );
+#endif // ARA_CHARACTER_BASE
+#ifdef NEW_CHARACTER_EL
+	case CX2Unit::UT_ELESIS :
+		return D3DXCOLOR ( 1.000f, 0.117f, 0.215f, 1.0f );
+#endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER
+	case CX2Unit::UT_ADD :
+		return D3DXCOLOR ( 0.647f, 0.588f, 1.0f, 1.0f );
+#endif // SERV_9TH_NEW_CHARACTER
+	default :
+		break;
+	}
+
+	ASSERT ( !L"Wrong Unit Type" );
+	return D3DXCOLOR ( 0.0f, 0.0f, 0.0f, 0.0f );
+}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh

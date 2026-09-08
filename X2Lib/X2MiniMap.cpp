@@ -11,28 +11,19 @@ CX2MiniMap::CX2MiniMap( CX2MiniMapUI* pMiniMapUI )
 	m_pFont = NULL;
 	m_pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( XUF_DODUM_11_NORMAL );
 
-#ifdef REFORM_UI_MINIMAP
 	m_vMiniMapWindowPos		= D3DXVECTOR2( 0, 0 );
-#else
-	m_vMiniMapWindowPos		= D3DXVECTOR2( 768, 32 );
-#endif
 	//m_vMiniMapWindowSize	= D3DXVECTOR2( 248, 105 );
 	m_vMiniMapWindowSize	= D3DXVECTOR2( 248, 105 );
 	
 	m_fEyeDistance			= 2000.f;
 
-#ifdef REFORM_UI_MINIMAP
 	m_fRenderTargetTextureScale		= 1.0f;
-#else
-	m_fRenderTargetTextureScale		= 0.5f;
-#endif
 	const int iRenderTargetWidth	= (int)(m_vMiniMapWindowSize.x*m_fRenderTargetTextureScale);
 	const int iRenderTargetHeight	= (int)(m_vMiniMapWindowSize.y*m_fRenderTargetTextureScale);
 
 	m_pRenderTargetTexture	= g_pKTDXApp->GetDeviceManager()->OpenRenderTargetTexture( L"MiniMapTex", iRenderTargetWidth, iRenderTargetHeight, D3DFMT_A8R8G8B8 );
 	m_pTextureMiniMap		= g_pKTDXApp->GetDeviceManager()->OpenTexture( L"HQ_MiniMap.tga" );
 
-#ifdef REFORM_UI_MINIMAP
 	for( int i=0; i<ARRAY_SIZE(m_pTextureIcon); i++ )
 	{
 		m_pTextureIcon[i] = NULL;
@@ -59,7 +50,6 @@ CX2MiniMap::CX2MiniMap( CX2MiniMapUI* pMiniMapUI )
 	m_pTextureIcon[MI_NPC_AVAIL_EVENT_QUEST]		= g_pKTDXApp->GetDeviceManager()->OpenTexture( L"Event_Notice.dds" );
 
 	m_pTextureIcon[MI_BOARD]				= g_pKTDXApp->GetDeviceManager()->OpenTexture( L"MiniMap_Board.dds" );
-#endif
 
 //	m_pTextureMonsterCount	= g_pKTDXApp->GetDeviceManager()->OpenTexture( L"DLG_Monster_Num.tga" );
 
@@ -73,12 +63,10 @@ CX2MiniMap::~CX2MiniMap(void)
 	SAFE_CLOSE( m_pRenderTargetTexture );
 	SAFE_CLOSE( m_pTextureMiniMap );
 
-#ifdef REFORM_UI_MINIMAP
 	for( int i=0; i<ARRAY_SIZE(m_pTextureIcon); i++ )
 	{
 		SAFE_CLOSE( m_pTextureIcon[i] );
 	}
-#endif
 
 	g_pInstanceData->GetMiniMapUI()->SetShowMiniMap( CX2MiniMapUI::MMT_DUNGEON, false );	
 }
@@ -121,12 +109,10 @@ void    CX2MiniMap::OnFrameRender_Draw()
 			RenderSquare();
 		} break;
 
-#ifdef REFORM_UI_MINIMAP
 	case CX2Main::XS_VILLAGE_MAP:
 		{
 			RenderVillage();
 		}
-#endif
 	}
 
 //	return S_OK;
@@ -480,7 +466,6 @@ HRESULT CX2MiniMap::RenderSquare()
 	return S_OK;
 }
 
-#ifdef REFORM_UI_MINIMAP
 void CX2MiniMap::NomalDirectCameraVillage( CX2SquareUnit* pFocusUnit, float distance, float height, float angleDegree, float eyeDistance, float lookatDistance )
 {
 	KTDXPROFILE();
@@ -643,91 +628,42 @@ void CX2MiniMap::RenderMiniMapTextureVillage()
 		{
 		case CX2TFieldNpc::NT_EQUIP:
 			{
-#ifdef REFORM_UI_MINIMAP
 				m_pTextureMiniMap->Draw( vProjectedPos.x - MAGIC_NPC_UNIT_SIZE * 0.5f, vProjectedPos.y - MAGIC_NPC_UNIT_SIZE, 
 					MAGIC_NPC_UNIT_SIZE, MAGIC_NPC_UNIT_SIZE, 28, 131, 12, 12 );
-#else
-				if ( m_pTextureIcon[MI_NPC_WEAPON_SHOP] != NULL )
-					m_pTextureIcon[MI_NPC_WEAPON_SHOP]->Draw( static_cast<int>(vProjectedPos.x) - MAGIC_ICON_SIZE_X,
-					static_cast<int>(vProjectedPos.y) - MAGIC_ICON_SIZE_Y + MAGIC_BIG_ICON_OFFSET_Y,
-					MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y );
-#endif
 			} break;
 		case CX2TFieldNpc::NT_ACCESSORY:
 			{
-#ifdef REFORM_UI_MINIMAP
 				m_pTextureMiniMap->Draw( vProjectedPos.x - MAGIC_NPC_UNIT_SIZE * 0.5f, vProjectedPos.y - MAGIC_NPC_UNIT_SIZE, 
 					MAGIC_NPC_UNIT_SIZE, MAGIC_NPC_UNIT_SIZE, 28, 131, 12, 12 );
-#else
-				if ( m_pTextureIcon[MI_NPC_ACCESSARY_SHOP] != NULL )
-					m_pTextureIcon[MI_NPC_ACCESSARY_SHOP]->Draw( static_cast<int>(vProjectedPos.x) - MAGIC_ICON_SIZE_X,
-																 static_cast<int>(vProjectedPos.y) - MAGIC_ICON_SIZE_Y + MAGIC_BIG_ICON_OFFSET_Y,
-																 MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y );
-#endif
 			} break;
 		case CX2TFieldNpc::NT_PVP:
 			{
-#ifdef REFORM_UI_MINIMAP
 				m_pTextureMiniMap->Draw( vProjectedPos.x - MAGIC_NPC_UNIT_SIZE * 0.5f, vProjectedPos.y - MAGIC_NPC_UNIT_SIZE, 
 					MAGIC_NPC_UNIT_SIZE, MAGIC_NPC_UNIT_SIZE, 28, 131, 12, 12 );
-#else
-				if ( m_pTextureIcon[MI_PVP_ARENA] != NULL )
-					m_pTextureIcon[MI_PVP_ARENA]->Draw( static_cast<int>(vProjectedPos.x) - MAGIC_ICON_SIZE_X, 
-														static_cast<int>(vProjectedPos.y) - MAGIC_ICON_SIZE_Y + MAGIC_BIG_ICON_OFFSET_Y,
-														MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y );
-#endif
 			} break;
 
 		case CX2TFieldNpc::NT_ALCHEMIST:
 			{
-#ifdef REFORM_UI_MINIMAP
 				m_pTextureMiniMap->Draw( vProjectedPos.x - MAGIC_NPC_UNIT_SIZE * 0.5f, vProjectedPos.y - MAGIC_NPC_UNIT_SIZE, 
 					MAGIC_NPC_UNIT_SIZE, MAGIC_NPC_UNIT_SIZE, 28, 131, 12, 12 );
-#else
-				if ( m_pTextureIcon[MI_NPC_ALCHEMIST] != NULL )
-					m_pTextureIcon[MI_NPC_ALCHEMIST]->Draw( static_cast<int>(vProjectedPos.x) - MAGIC_ICON_SIZE_X, 
-															static_cast<int>(vProjectedPos.y) - MAGIC_ICON_SIZE_Y + MAGIC_BIG_ICON_OFFSET_Y,
-															MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y );
-#endif
 			} break;
 
 		case CX2TFieldNpc::NT_POSTBOX:
 			{
-#ifdef REFORM_UI_MINIMAP
 				m_pTextureMiniMap->Draw( vProjectedPos.x - MAGIC_NPC_UNIT_SIZE * 0.5f, vProjectedPos.y - MAGIC_NPC_UNIT_SIZE, 
 					MAGIC_NPC_UNIT_SIZE, MAGIC_NPC_UNIT_SIZE, 28, 131, 12, 12 );
-#else
-				if ( m_pTextureIcon[MI_POSTBOX] != NULL )
-					m_pTextureIcon[MI_POSTBOX]->Draw( static_cast<int>(vProjectedPos.x) - MAGIC_ICON_SIZE_X, 
-													  static_cast<int>(vProjectedPos.y) - MAGIC_ICON_SIZE_Y + MAGIC_BIG_ICON_OFFSET_Y,
-													  MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y );
-#endif
 			} break;
 
 		case CX2TFieldNpc::NT_RANKING:
 			{
-#ifdef REFORM_UI_MINIMAP
 				m_pTextureMiniMap->Draw( vProjectedPos.x-MAGIC_NPC_UNIT_SIZE*0.5f, vProjectedPos.y-MAGIC_NPC_UNIT_SIZE, 
 					MAGIC_NPC_UNIT_SIZE, MAGIC_NPC_UNIT_SIZE, 28, 131, 12, 12 );
-#else
-				if ( m_pTextureIcon[MI_BOARD] != NULL )
-					m_pTextureIcon[MI_BOARD]->Draw( static_cast<int>(vProjectedPos.x) - MAGIC_ICON_SIZE_X, 
-													static_cast<int>(vProjectedPos.y) - MAGIC_ICON_SIZE_Y + MAGIC_BIG_ICON_OFFSET_Y,
-													MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y );
-#endif
 			} break;
 
 		case CX2TFieldNpc::NT_PRIVATE_BANK:
 			{
-#ifdef REFORM_UI_MINIMAP
 				m_pTextureMiniMap->Draw( vProjectedPos.x - MAGIC_NPC_UNIT_SIZE * 0.5f, vProjectedPos.y - MAGIC_NPC_UNIT_SIZE, 
 					MAGIC_NPC_UNIT_SIZE, MAGIC_NPC_UNIT_SIZE, 28, 131, 12, 12 );
-#else
-				if ( m_pTextureIcon[MI_BANK] != NULL )
-					m_pTextureIcon[MI_BANK]->Draw( static_cast<int>(vProjectedPos.x) - MAGIC_ICON_SIZE_X,
-												   static_cast<int>(vProjectedPos.y) - MAGIC_ICON_SIZE_Y + MAGIC_BIG_ICON_OFFSET_Y,
-												   MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y );
-#endif
 			} break;
 
 			//{{ kimhc // 2009-12-08 // 미니맵 Render 안함
@@ -740,64 +676,11 @@ void CX2MiniMap::RenderMiniMapTextureVillage()
 		case CX2TFieldNpc::NT_NORMAL:
 		default:
 			{
-#ifdef REFORM_UI_MINIMAP
 				m_pTextureMiniMap->Draw( vProjectedPos.x - MAGIC_NPC_UNIT_SIZE * 0.5f, vProjectedPos.y - MAGIC_NPC_UNIT_SIZE, 
 					MAGIC_NPC_UNIT_SIZE, MAGIC_NPC_UNIT_SIZE, 28, 131, 12, 12 );
-#else
-				if ( m_pTextureIcon[MI_NPC_COMMON] != NULL )
-					m_pTextureIcon[MI_NPC_COMMON]->Draw( static_cast<int>(vProjectedPos.x) - MAGIC_ICON_SIZE_X,
-														 static_cast<int>(vProjectedPos.y) - MAGIC_ICON_SIZE_Y + MAGIC_BIG_ICON_OFFSET_Y,
-														 MAGIC_ICON_SIZE_X, MAGIC_ICON_SIZE_Y );
-#endif
 			} break;
 		}
 
-#ifndef REFORM_UI_MINIMAP
-		const int MAGIC_QUEST_ICON_OFFSET_X = 1;
-		const int MAGIC_QUEST_ICON_OFFSET_Y = MAGIC_ICON_SIZE_Y+MAGIC_SMALL_ICON_SIZE_Y - 4;
-
-		int iQuestIconPositionX = (int)vProjectedPos.x + MAGIC_QUEST_ICON_OFFSET_X;
-		int iQuestIconPositionY = (int)vProjectedPos.y - MAGIC_QUEST_ICON_OFFSET_Y + MAGIC_BIG_ICON_OFFSET_Y;
-		int iEventQuestIconPositionX = (int)vProjectedPos.x - MAGIC_QUEST_ICON_OFFSET_X - MAGIC_SMALL_ICON_SIZE_X;
-		int iEventQuestIconPositionY = (int)vProjectedPos.y - MAGIC_QUEST_ICON_OFFSET_Y + MAGIC_BIG_ICON_OFFSET_Y;
-
-		// 퀘스트 정보 출력
-		if( pFieldNPC->GetCompleteQuestNormal() > 0 )
-		{
-			if ( m_pTextureIcon[MI_NPC_COMPLETE_QUEST] != NULL )
-				m_pTextureIcon[MI_NPC_COMPLETE_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_SMALL_ICON_SIZE_X), (int) (MAGIC_SMALL_ICON_SIZE_Y) );		
-		}
-		else if( pFieldNPC->GetCompleteQuestRepeat() > 0 )
-		{
-			if ( m_pTextureIcon[MI_NPC_COMPLETE_REPEAT_QUEST] != NULL )
-				m_pTextureIcon[MI_NPC_COMPLETE_REPEAT_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_SMALL_ICON_SIZE_X), (int) (MAGIC_SMALL_ICON_SIZE_Y) );		
-		}
-		else if( pFieldNPC->GetFairLvQuest() > 0) // ( pFieldNPC->GetNewQuestNormal() > 0 )
-		{
-			if ( m_pTextureIcon[MI_NPC_AVAIL_QUEST] != NULL )
-				m_pTextureIcon[MI_NPC_AVAIL_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_SMALL_ICON_SIZE_X), (int) (MAGIC_SMALL_ICON_SIZE_Y) );		
-		}
-		else if( pFieldNPC->GetNewQuestRepeat() > 0 )
-		{
-			if ( m_pTextureIcon[MI_NPC_AVAIL_REPEAT_QUEST] != NULL )
-				m_pTextureIcon[MI_NPC_AVAIL_REPEAT_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_SMALL_ICON_SIZE_X), (int) (MAGIC_SMALL_ICON_SIZE_Y) );		
-		}
-		else if( pFieldNPC->GetDoQuest() > 0 )
-		{
-			if ( m_pTextureIcon[MI_NPC_INCOMPLETE_QUEST] != NULL )
-				m_pTextureIcon[MI_NPC_INCOMPLETE_QUEST]->Draw( iQuestIconPositionX, iQuestIconPositionY, (int) (MAGIC_SMALL_ICON_SIZE_X), (int) (MAGIC_SMALL_ICON_SIZE_Y) );		
-		}
-
-
-		if( pFieldNPC->GetEventQuest() > 0 )
-		{
-			// 아이콘 튀어나가는 현상 때문에 이것만 위치 검사를 따로 해준다..
-			// Y축은 검사하지 말자. x축만..
-			if ( m_pTextureIcon[MI_NPC_AVAIL_EVENT_QUEST] != NULL )
-				m_pTextureIcon[MI_NPC_AVAIL_EVENT_QUEST]->Draw( iEventQuestIconPositionX , iEventQuestIconPositionY, (int) (MAGIC_SMALL_ICON_SIZE_X), (int) (MAGIC_SMALL_ICON_SIZE_Y) );
-
-		}
-#endif
 	}
 	KTDXPROFILE_END();
 
@@ -807,7 +690,6 @@ void CX2MiniMap::RenderMiniMapTextureVillage()
 	{
 		D3DXVECTOR3 vPos = g_pTFieldGame->GetMyUnit()->GetPos();
 
-#ifdef REFORM_UI_MINIMAP	// 라인 거리 체크
 		if ( g_pTFieldGame->GetWorld() &&
 			g_pTFieldGame->GetWorld()->GetLineMap() )
 		{
@@ -816,7 +698,6 @@ void CX2MiniMap::RenderMiniMapTextureVillage()
 			else
 				g_pTFieldGame->GetWorld()->GetLineMap()->CheckNearLines( vPos, false );
 		}
-#endif
 
 		D3DXVec3Project( &vPos, &vPos, &vp, &matProj, &matView, &matWorld );
 
@@ -957,7 +838,6 @@ HRESULT CX2MiniMap::RenderVillage()
 
 	return S_OK;
 }
-#endif
 
 void CX2MiniMap::NotifyShowObjectChanged()   
 {
@@ -967,7 +847,6 @@ void CX2MiniMap::NotifyShowObjectChanged()
 	}
 }
 
-#ifdef REFORM_UI_MINIMAP
 bool CX2MiniMap::IsInWindowTexture( const D3DXVECTOR3& vProjectedPos )
 {
 	if( vProjectedPos.x * m_fRenderTargetTextureScale < 0.f )
@@ -984,7 +863,6 @@ bool CX2MiniMap::IsInWindowTexture( const D3DXVECTOR3& vProjectedPos )
 
 	return true;
 }
-#endif
 
 void CX2MiniMap::RenderGameUnitTexture()
 {

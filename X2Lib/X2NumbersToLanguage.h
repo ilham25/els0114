@@ -29,9 +29,9 @@ public:
 		TL_ENG,
 		TL_JPN,
 		TL_KOR,
-//#ifdef NUMBER_TO_LANGUAGE_CN
+//#ifdef _LANGUAGE_FIX_CHINESE_
 		TL_CHN_SIMPLIFIED,
-//#endif NUMBER_TO_LANGUAGE_CN
+//#endif _LANGUAGE_FIX_CHINESE_
 	};
 
 	/**
@@ -46,9 +46,9 @@ public:
 #ifdef NUMBER_TO_LANGUAGE_JPN
 		string LD_JPN[3][10];
 #endif // NUMBER_TO_LANGUAGE_JPN
-#ifdef NUMBER_TO_LANGUAGE_CN
+#ifdef _LANGUAGE_FIX_CHINESE_
 		wstring LD_CHN_SIMPLIFIED[3][10];
-#endif NUMBER_TO_LANGUAGE_CN
+#endif _LANGUAGE_FIX_CHINESE_
 		
 		LanguageData()
 		{
@@ -77,7 +77,7 @@ public:
 			memcpy(LD_JPN[2], jpn3, sizeof(string) * 10);
 #endif // NUMBER_TO_LANGUAGE_JPN
 
-#ifdef NUMBER_TO_LANGUAGE_CN
+#ifdef _LANGUAGE_FIX_CHINESE_
 			/// Chinese (Simplified)
 			wstring chn_simple1[10]	= {L"",	L"一", L"二", L"三", L"四", L"五", L"六", L"七", L"八", L"九"};
 			memcpy(LD_CHN_SIMPLIFIED[0], chn_simple1, sizeof(wstring) * 10);
@@ -85,7 +85,7 @@ public:
 			memcpy(LD_CHN_SIMPLIFIED[1], chn_simple2, sizeof(wstring) * 10);
 			wstring chn_simple3[10]	= {L"", L"万", L"亿", L"兆", L"京", L"", L"", L"", L"", L""};
 			memcpy(LD_CHN_SIMPLIFIED[2], chn_simple3, sizeof(wstring) * 10);
-#endif NUMBER_TO_LANGUAGE_CN
+#endif _LANGUAGE_FIX_CHINESE_
 		}
 
 	};
@@ -156,11 +156,11 @@ public:
 	}
 
 	/// 변환 함수
-#ifdef NUMBER_TO_LANGUAGE_CN
+#ifdef _LANGUAGE_FIX_CHINESE_
 	void TranslateDigits(TypeLanguage, __int64, wstring&);
-#else NUMBER_TO_LANGUAGE_CN
+#else _LANGUAGE_FIX_CHINESE_
 	void TranslateDigits(TypeLanguage, __int64, string&);
-#endif NUMBER_TO_LANGUAGE_CN
+#endif _LANGUAGE_FIX_CHINESE_
 
 	//void TranslateDigits(TypeLanguage, string, string&);
 

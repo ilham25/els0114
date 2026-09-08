@@ -5,6 +5,10 @@
 #include "XSLDungeonManager.h"
 #endif SERV_DUNGEON_OPTION_IN_LUA
 
+#ifdef _CONVERT_VS_2010
+#define ARRAY_SIZE(a)       (sizeof(a)/sizeof((a)[0]))
+#endif _CONVERT_VS_2010
+
 CXSLDungeon::CXSLDungeon( const DungeonData& dungeonData )
 {
 	m_sDungeonData = dungeonData;
@@ -73,6 +77,17 @@ bool CXSLDungeon::OpenScriptFile()
 		return false;
 	}
 
+	strFile = "DungeonEnum.lua";
+	kautoPaht.GetPullPath( strFile );
+	if( luaManager.DoFile( strFile.c_str() ) == E_FAIL )
+	{
+		START_LOG( cerr, strFile )
+			<< BUILD_LOG( szFile )
+			<< END_LOG;
+
+		return false;
+	}
+
 	strFile = "DLG_Map_Enum.lua";
 	kautoPaht.GetPullPath( strFile );
 
@@ -106,7 +121,11 @@ bool CXSLDungeon::OpenScriptFile()
 		char strTable[MAX_PATH] = "";
 		while( true )
 		{
+#ifdef _CONVERT_VS_2010
+			sprintf_s( strTable, ARRAY_SIZE(strTable), "STAGE%d", stageIndex );
+#else
 			sprintf( strTable, "STAGE%d", stageIndex );
+#endif _CONVERT_VS_2010
 			if( luaManager.BeginTable( strTable ) == E_FAIL )
 				break;
 
@@ -202,6 +221,38 @@ int CXSLDungeon::GetNPCDropTime( IN const int iStageIndex, IN const int iSubStag
 }
 #endif SERV_CREATED_NPC_LIMITED_DROPS
 
+#ifdef SERV_DUNGEON_NPC_DATA_EXP_RATE		// 적용날짜: 2013-08-13
+float CXSLDungeon::GetNPCExpRate( IN const int iStageIndex, IN const int iSubStageIndex, IN const int iNPCID ) const
+{
+	//{{ 2009. 7. 15  최육사	index 범위 체크
+	if( iStageIndex < 0 || iStageIndex >= (int)m_vecStageData.size() )
+	{
+		START_LOG( cerr, L"stage index값이 이상합니다." )
+			<< BUILD_LOG( m_sDungeonData.m_DungeonID )
+			<< BUILD_LOG( iStageIndex )
+			<< BUILD_LOG( m_vecStageData.size() )
+			<< END_LOG;
+		return 1.f;
+	}
+	//}}
+	CXSLDungeonStage::StageData* pStageData = m_vecStageData[iStageIndex];
+
+	if( iSubStageIndex < 0 || iSubStageIndex >= (int)pStageData->m_SubStageDataList.size() )
+	{
+		START_LOG( cerr, L"substage index값이 이상합니다." )
+			<< BUILD_LOG( m_sDungeonData.m_DungeonID )
+			<< BUILD_LOG( iStageIndex )
+			<< BUILD_LOG( iSubStageIndex )
+			<< BUILD_LOG( pStageData->m_SubStageDataList.size() )
+			<< END_LOG;
+		return 1.f;;
+	}
+	CXSLDungeonSubStage::SubStageData* pSubStageData = pStageData->m_SubStageDataList[iSubStageIndex];
+
+	return pSubStageData->GetNpcExpRate( iNPCID );
+}
+#endif // SERV_DUNGEON_NPC_DATA_EXP_RATE
+
 //{{ 2012. 12. 21  던전 몬스터 그룹 랜던 배치 - 김민성
 #ifdef SERV_DUNGEON_RANDOM_NPC_GROUP
 bool CXSLDungeon::GetNPCData( IN const int iStageIndex, IN const int iRelativeMonsterLevel, OUT KEGS_DUNGEON_STAGE_LOAD_NOT& kNot, OUT bool& bIsBossStage ) const
@@ -235,6 +286,11 @@ bool CXSLDungeon::GetNPCData( IN const int iStageIndex, IN const int iRelativeMo
 		bool		nSubNPCCheck = false;
 
 		int iNpcGroupID = pSubStageData->GetRandomNpcGruopID();
+
+#ifdef SERV_TEST_LOG_FOR_SUB_STAGE_NPC_GROUP_ID// 작업날짜: 2013-09-03	// 박세훈
+		kNot.m_mapSubStageNpcGroupID.insert( std::map< int, int >::value_type( i, iNpcGroupID ) );
+#endif // SERV_TEST_LOG_FOR_SUB_STAGE_NPC_GROUP_ID
+
 		std::map< int, std::vector<CXSLDungeonSubStage::NPCData*> >::iterator mit = pSubStageData->m_mapNPCDataList.find( iNpcGroupID );
 		if( mit == pSubStageData->m_mapNPCDataList.end() )
 		{
@@ -733,25 +789,25 @@ const wchar_t* CXSLDungeon::GetRankString( IN RANK_TYPE eRankType )
 {
 	switch ( eRankType )
 	{
-	case RANK_TYPE::RT_NONE:
+	case RT_NONE:
 		return L"None";
-	case RANK_TYPE::RT_F:
+	case RT_F:
 		return L"F";
-	case RANK_TYPE::RT_E:
+	case RT_E:
 		return L"E";
-	case RANK_TYPE::RT_D:
+	case RT_D:
 		return L"D";
-	case RANK_TYPE::RT_C:
+	case RT_C:
 		return L"C";
-	case RANK_TYPE::RT_B:
+	case RT_B:
 		return L"B";
-	case RANK_TYPE::RT_A:
+	case RT_A:
 		return L"A";
-	case RANK_TYPE::RT_S:
+	case RT_S:
 		return L"S";
 		//{{ 2011. 02. 22	최육사	던전 랭크 개편
 #ifdef SERV_DUNGEON_RANK_NEW
-	case RANK_TYPE::RT_SS:
+	case RT_SS:
 		return L"SS";
 #endif SERV_DUNGEON_RANK_NEW
 		//}}
@@ -765,20 +821,21 @@ bool CXSLDungeon::IsTutorialDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_TUTORIAL_ELSWORD:
-	case DI_TUTORIAL_ARME:
-	case DI_TUTORIAL_LIRE:
-	case DI_TUTORIAL_RAVEN:
-	case DI_TUTORIAL_EVE:
-	case DI_TUTORIAL_CHUNG:
-	case DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
-	case DI_BATTLE_FIELD_TUTORIAL_AISHA:
-	case DI_BATTLE_FIELD_TUTORIAL_LENA:
-	case DI_BATTLE_FIELD_TUTORIAL_RAVEN:
-	case DI_BATTLE_FIELD_TUTORIAL_EVE:
-	case DI_BATTLE_FIELD_TUTORIAL_CHUNG:
-	case DI_BATTLE_FIELD_TUTORIAL_ARA:
-	case DI_BATTLE_FIELD_TUTORIAL_EL:
+	case SEnum::DI_TUTORIAL_ELSWORD:
+	case SEnum::DI_TUTORIAL_ARME:
+	case SEnum::DI_TUTORIAL_LIRE:
+	case SEnum::DI_TUTORIAL_RAVEN:
+	case SEnum::DI_TUTORIAL_EVE:
+	case SEnum::DI_TUTORIAL_CHUNG:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_AISHA:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_LENA:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_RAVEN:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_EVE:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_CHUNG:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_ARA:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_EL:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_ADD:
 		return true;
 	}
 
@@ -787,8 +844,8 @@ bool CXSLDungeon::IsTutorialDungeon( IN int iDungeonID )
 
 bool CXSLDungeon::IsTCDungeon( IN int iDungeonID )
 {
-	if( iDungeonID >= CXSLDungeon::DUNGEON_ID::DI_TRAINING_FREE &&
-		iDungeonID <=  CXSLDungeon::DUNGEON_ID::DI_TRAINING_RAVEN_6 )
+	if( iDungeonID >= SEnum::DI_TRAINING_FREE &&
+		iDungeonID <  SEnum::DI_END )
 	{
 		return true;
 	}
@@ -801,24 +858,22 @@ bool CXSLDungeon::IsRubenDungeon( IN int iDungeonID )
 	switch( iDungeonID )
 	{
 	//case DI_EL_FOREST_MAIN_NORMAL:
-	case DI_EL_FOREST_WEST_NORMAL:
-	case DI_EL_FOREST_NORTH_NORMAL:
-	case DI_EL_FOREST_GATE_NORMAL:
-	//case DI_EL_FOREST_MONKEY_NORMAL:
-	//case DI_EL_FOREST_EXTRA_NORMAL:
-	case DI_EL_FOREST_HELL_NORMAL:
+	case SEnum::DI_EL_FOREST_WEST_NORMAL:
+	case SEnum::DI_EL_FOREST_NORTH_NORMAL:
+	case SEnum::DI_EL_FOREST_GATE_NORMAL:
+	case SEnum::DI_EL_FOREST_HELL_NORMAL:
 		//{{ 2009. 4. 24  최육사	이벤트던전
-	case DI_EVENT_KIDDAY_RUBEN:
+	case SEnum::DI_EVENT_KIDDAY_RUBEN:
 		//}}
-	case DI_MONSTER_TEST_NORMAL:		// dmlee 2009/11/17 몬스터 테스트 던전 사내에서 입장가능하도록
+	case SEnum::DI_MONSTER_TEST_NORMAL:		// dmlee 2009/11/17 몬스터 테스트 던전 사내에서 입장가능하도록
 		//{{ 2010. 04. 05  최육사	비밀던전 헬모드
-	case DI_RUBEN_SECRET_COMMON:
-	case DI_RUBEN_SECRET_HELL:
+	case SEnum::DI_RUBEN_SECRET_COMMON:
+	case SEnum::DI_RUBEN_SECRET_HELL:
 		//}}
 
-	case DI_RUBEN_EL_TREE_NORMAL:
-	case DI_RUBEN_RUIN_OF_ELF_NORMAL:
-	case DI_RUBEN_SWAMP_NORMAL:
+	case SEnum::DI_RUBEN_EL_TREE_NORMAL:
+	case SEnum::DI_RUBEN_RUIN_OF_ELF_NORMAL:
+	case SEnum::DI_RUBEN_SWAMP_NORMAL:
 		return true;
 	}
 
@@ -829,27 +884,27 @@ bool CXSLDungeon::IsElderDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_ELDER_BENDERS_CAVE_NORMAL:
-	case DI_ELDER_NATURE_CAVE_NORMAL:
-	case DI_ELDER_DRUID_FOREST_NORMAL:
-	case DI_ELDER_WALLY_CASTLE_CENTER_NORMAL:
-	case DI_ELDER_WALLY_CASTLE_ROOF_NORMAL:
-	case DI_ELDER_BELOW_PASSAGE_NORMAL:
-	case DI_ELDER_WALLY_CASTLE_LAB_NORMAL:
+	case SEnum::DI_ELDER_BENDERS_CAVE_NORMAL:
+	case SEnum::DI_ELDER_NATURE_CAVE_NORMAL:
+	case SEnum::DI_ELDER_DRUID_FOREST_NORMAL:
+	case SEnum::DI_ELDER_WALLY_CASTLE_CENTER_NORMAL:
+	case SEnum::DI_ELDER_WALLY_CASTLE_ROOF_NORMAL:
+	case SEnum::DI_ELDER_BELOW_PASSAGE_NORMAL:
+	case SEnum::DI_ELDER_WALLY_CASTLE_LAB_NORMAL:
 		//{{ 2009. 4. 24  최육사	이벤트던전
-	case DI_EVENT_KIDDAY_ELDER:
+	case SEnum::DI_EVENT_KIDDAY_ELDER:
 		//}}
 		//{{ 2009. 7. 26  최육사	헤니르 시공
-	case DI_ELDER_HENIR_SPACE:
+	case SEnum::DI_ELDER_HENIR_SPACE:
 		//}}
-	case DI_EVENT_TREE_DAY_ELDER:		// 식목일 이벤트 던전
+	case SEnum::DI_EVENT_TREE_DAY_ELDER:		// 식목일 이벤트 던전
 		//{{ 2010. 04. 05  최육사	비밀던전 헬모드
-	case DI_ELDER_SECRET_COMMON:
-	case DI_ELDER_SECRET_HELL:
+	case SEnum::DI_ELDER_SECRET_COMMON:
+	case SEnum::DI_ELDER_SECRET_HELL:
 		//}}
-	case DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
+	case SEnum::DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
 		//{{ 허상형 : [2011/2/20/] //	월드 미션
-	case DI_DEFENCE_DUNGEON_ELDER_NORMAL:
+	case SEnum::DI_DEFENCE_DUNGEON_ELDER_NORMAL:
 		//}} 허상형 : [2011/2/20/] //	월드 미션
 		return true;
 	}
@@ -861,33 +916,28 @@ bool CXSLDungeon::IsBesmaDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_BESMA_DRAGON_ROAD_NORMAL:
-	case DI_BESMA_MINE_NORMAL:
-	case DI_BESMA_LAKE_NORMAL:
-	case DI_BESMA_DRAGON_NEST_NORMAL:
-	case DI_BESMA_AIRSHIP_NORMAL:
-	case DI_BESMA_LAKE_NIGHT_NORMAL:
-	case DI_BESMA_MINE2_NORMAL:
-	case DI_BESMA_CANYON_NORMAL:
-	case DI_BESMA_SECRET_NORMAL:
+	case SEnum::DI_BESMA_DRAGON_ROAD_NORMAL:
+	case SEnum::DI_BESMA_MINE_NORMAL:
+	case SEnum::DI_BESMA_LAKE_NORMAL:
+	case SEnum::DI_BESMA_DRAGON_NEST_NORMAL:
+	case SEnum::DI_BESMA_AIRSHIP_NORMAL:
+	case SEnum::DI_BESMA_LAKE_NIGHT_NORMAL:
+	case SEnum::DI_BESMA_MINE2_NORMAL:
+	case SEnum::DI_BESMA_CANYON_NORMAL:
+	case SEnum::DI_BESMA_SECRET_NORMAL:
 		//{{ 2009. 4. 24  최육사	이벤트던전
-	case DI_EVENT_KIDDAY_BESMA:
+	case SEnum::DI_EVENT_KIDDAY_BESMA:
 		//}}
-		//{{ 2009. 7. 26  최육사	헤니르 시공
-	case DI_BESMA_HENIR_SPACE:
-		//}}
-	case DI_EVENT_TREE_DAY_BESMA:		// 식목일 이벤트 던전
+		
+	case SEnum::DI_EVENT_TREE_DAY_BESMA:		// 식목일 이벤트 던전
 		//{{ 2010. 04. 05  최육사	비밀던전 헬모드
-	case DI_BESMA_SECRET_COMMON:
-	case DI_BESMA_SECRET_HELL:
+	case SEnum::DI_BESMA_SECRET_COMMON:
+	case SEnum::DI_BESMA_SECRET_HELL:
 		//}}
-		//{{ 허상형 : [2011/2/20/] //	월드 미션
-	case DI_DEFENCE_DUNGEON_BESMA_NORMAL:
-		//}} 허상형 : [2011/2/20/] //	월드 미션
-
+		
 		//{{ 2011. 10.10	할로윈 던전 하드코딩
 #ifdef SERV_HALLOWEEN_DUNGEON
-	case DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
+	case SEnum::DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
 #endif SERV_HALLOWEEN_DUNGEON
 			//}}
 		return true;
@@ -900,31 +950,26 @@ bool CXSLDungeon::IsAlteraDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_ALTERA_BATTLE_AIR_SHIP_NORMAL:
-	case DI_ALTERA_PLAIN_RECYCLE_NORMAL:
-	case DI_ALTERA_BELOW_TUNNEL_NORMAL:
-	case DI_ALTERA_PLAIN_NORMAL:
-	case DI_ALTERA_NASOD_FACTORY_NORMAL:
-	case DI_ALTERA_CORE_NORMAL:
-	case DI_ALTERA_SECRET_NORMAL:
+	case SEnum::DI_ALTERA_BATTLE_AIR_SHIP_NORMAL:
+	case SEnum::DI_ALTERA_PLAIN_RECYCLE_NORMAL:
+	case SEnum::DI_ALTERA_BELOW_TUNNEL_NORMAL:
+	case SEnum::DI_ALTERA_PLAIN_NORMAL:
+	case SEnum::DI_ALTERA_NASOD_FACTORY_NORMAL:
+	case SEnum::DI_ALTERA_CORE_NORMAL:
+	case SEnum::DI_ALTERA_SECRET_NORMAL:
 		//{{ 2009. 4. 24  최육사	이벤트던전
-	case DI_EVENT_KIDDAY_ALTERA:
+	case SEnum::DI_EVENT_KIDDAY_ALTERA:
 		//}}
-		//{{ 2009. 7. 26  최육사	헤니르 시공
-	case DI_ALTERA_HENIR_SPACE:
-		//}}
-	case DI_EVENT_TREE_DAY_ALTERA:		// 식목일 이벤트 던전
+		
+	case SEnum::DI_EVENT_TREE_DAY_ALTERA:		// 식목일 이벤트 던전
 		//{{ 2010. 04. 05  최육사	비밀던전 헬모드
-	case DI_ALTERA_SECRET_COMMON:
-	case DI_ALTERA_SECRET_HELL:
+	case SEnum::DI_ALTERA_SECRET_COMMON:
+	case SEnum::DI_ALTERA_SECRET_HELL:
 		//}}
-		//{{ 허상형 : [2011/2/20/] //	월드 미션
-	case DI_DEFENCE_DUNGEON_ALTERA_NORMAL:
-		//}} 허상형 : [2011/2/20/] //	월드 미션
-
+		
 		//{{ 2011. 10.10	할로윈 던전 하드코딩
 #ifdef SERV_HALLOWEEN_DUNGEON
-	case DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
+	case SEnum::DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
 #endif SERV_HALLOWEEN_DUNGEON
 		//}}
 		return true;		
@@ -937,23 +982,17 @@ bool CXSLDungeon::IsPeitaDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_PEITA_OFFERINGS_NORMAL:
-	case DI_PEITA_SPIRAL_CORRIDOR_NORMAL:
-	case DI_PEITA_CHAPEL_NORMAL:
-	case DI_PEITA_UNDER_GARDEN_NORMAL:
-	case DI_PEITA_TOWER_HEART_NORMAL:
-	case DI_PEITA_OFFERINGS_ALTER_NORMAL:
-		//{{ 2009. 7. 26  최육사	헤니르 시공
-	case DI_FEITA_HENIR_SPACE:
-		//}}
-	case DI_EVENT_TREE_DAY_PEITA:		// 식목일 이벤트 던전		
-		//{{ 허상형 : [2011/2/20/] //	월드 미션
-	case DI_DEFENCE_DUNGEON_PEITA_NORMAL:
-		//}} 허상형 : [2011/2/20/] //	월드 미션
+	case SEnum::DI_PEITA_OFFERINGS_NORMAL:
+	case SEnum::DI_PEITA_SPIRAL_CORRIDOR_NORMAL:
+	case SEnum::DI_PEITA_CHAPEL_NORMAL:
+	case SEnum::DI_PEITA_UNDER_GARDEN_NORMAL:
+	case SEnum::DI_PEITA_TOWER_HEART_NORMAL:
+	case SEnum::DI_PEITA_OFFERINGS_ALTER_NORMAL:
+	case SEnum::DI_EVENT_TREE_DAY_PEITA:		// 식목일 이벤트 던전		
 		
 		//{{ 2011. 10.10	할로윈 던전 하드코딩
 #ifdef SERV_HALLOWEEN_DUNGEON
-	case DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
+	case SEnum::DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
 #endif SERV_HALLOWEEN_DUNGEON
 		//}}
 		return true;
@@ -967,27 +1006,22 @@ bool CXSLDungeon::IsVelderDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_VELDER_THIRD_DWELLING_NORMAL:
-	case DI_VELDER_BRIDGE_HOPE_NORMAL:
-		// kimhc // 벨더 헤니르 // 2009-10-27
-	case DI_VELDER_HENIR_SPACE:
-	case DI_EVENT_TREE_DAY_VELDER:		// 식목일 이벤트 던전	
+	case SEnum::DI_VELDER_THIRD_DWELLING_NORMAL:
+	case SEnum::DI_VELDER_BRIDGE_HOPE_NORMAL:
+	case SEnum::DI_EVENT_TREE_DAY_VELDER:		// 식목일 이벤트 던전	
 
-	case DI_VELDER_PALACE_ENTRANCE_NORMAL:
-	case DI_VELDER_BRIDGE_BUNNING_NORMAL:
-	case DI_VELDER_MARKET_NORMAL:
-	case DI_VELDER_GATE_NORMAL:
-	//{{ 허상형 : [2011/2/20/] //	월드 미션
-	case DI_DEFENCE_DUNGEON_VELDER_NORMAL:
-	//}} 허상형 : [2011/2/20/] //	월드 미션
-	case DI_BATTLE_SHIP_VELDER:	// 벨더 배던전
+	case SEnum::DI_VELDER_PALACE_ENTRANCE_NORMAL:
+	case SEnum::DI_VELDER_BRIDGE_BUNNING_NORMAL:
+	case SEnum::DI_VELDER_MARKET_NORMAL:
+	case SEnum::DI_VELDER_GATE_NORMAL:
+	case SEnum::DI_BATTLE_SHIP_VELDER:	// 벨더 배던전
 		//{{ JHKang / 강정훈 / 2011.8.24
-	case DI_VELDER_SECRET_COMMON:
-	case DI_VELDER_SECRET_HELL:
+	case SEnum::DI_VELDER_SECRET_COMMON:
+	case SEnum::DI_VELDER_SECRET_HELL:
 		//}}
 		//{{ 2011. 10.10	할로윈 던전 하드코딩
 #ifdef SERV_HALLOWEEN_DUNGEON
-	case DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
+	case SEnum::DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
 #endif SERV_HALLOWEEN_DUNGEON
 		//}}	
 		return true;
@@ -1001,22 +1035,22 @@ bool CXSLDungeon::IsHamelDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_BATTLE_SHIP_HAMEL:
-	case DI_HAMEL_OUTSKIRTS_RESIAM_NORMAL:
-	case DI_HAMEL_BREAK_RESIAM_NORMAL:
-	case DI_HAMEL_ANCIENT_WATERWAY_NORMAL:
-	case DI_HAMEL_ANCIENT_WATERWAY_CORE_NORMAL:
-	case DI_HAMEL_HENIR_SPACE:
-	case DI_EVENT_TREE_DAY_HAMEL:
-		//{{ 허상형 : [2011/2/20/] //	월드 미션
-	case DI_DEFENCE_DUNGEON_HAMEL_NORMAL:
-		//}} 허상형 : [2011/2/20/] //	월드 미션
-	case DI_HAMEL_CAVE_OF_MAGMANTA_NORMAL:
-	case DI_HAMEL_FROZEN_WATER_TEMPLE_NORMAL:
-	case DI_HAMEL_FROZEN_WATER_HALL_NORMAL:
+	case SEnum::DI_BATTLE_SHIP_HAMEL:
+	case SEnum::DI_HAMEL_OUTSKIRTS_RESIAM_NORMAL:
+	case SEnum::DI_HAMEL_BREAK_RESIAM_NORMAL:
+	case SEnum::DI_HAMEL_ANCIENT_WATERWAY_NORMAL:
+	case SEnum::DI_HAMEL_ANCIENT_WATERWAY_CORE_NORMAL:
+	case SEnum::DI_EVENT_TREE_DAY_HAMEL:
+	case SEnum::DI_HAMEL_CAVE_OF_MAGMANTA_NORMAL:
+	case SEnum::DI_HAMEL_FROZEN_WATER_TEMPLE_NORMAL:
+	case SEnum::DI_HAMEL_FROZEN_WATER_HALL_NORMAL:
+
+	// cocy33 / 김창한 / 2013.08.14 / 하멜 비던
+	case SEnum::DI_HAMEL_SECRET_COMMON:
+	case SEnum::DI_HAMEL_SECRET_HELL:
 		//{{ 2011. 10.10	할로윈 던전 하드코딩
 #ifdef SERV_HALLOWEEN_DUNGEON
-	case DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
+	case SEnum::DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
 #endif SERV_HALLOWEEN_DUNGEON
 		//}}
 		return true;
@@ -1031,21 +1065,21 @@ bool CXSLDungeon::IsSanderDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_EVENT_TREE_DAY_HAMEL:
+	case SEnum::DI_EVENT_TREE_DAY_HAMEL:
 		//{{ 허상형 : [2011/2/20/] //	월드 미션
 	//case DI_DEFENCE_DUNGEON_HAMEL_NORMAL:
 		//{{ 2011. 10.10	할로윈 던전 하드코딩
 #ifdef SERV_HALLOWEEN_DUNGEON
-	case DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
+	case SEnum::DI_ELDER_HALLOWEEN_NORMAL: // 할로윈 이벤트 던전
 #endif SERV_HALLOWEEN_DUNGEON
 		//}}
 
-	case DI_SANDER_DRY_SANDER_NORMAL:
-	case DI_SANDER_GARPAI_ROCK_NORMAL:
-	case DI_SANDER_DEN_OF_TROCK_NORMAL:
-	case DI_SANDER_KARUSO_VILLAGE_NORMAL:
-	case DI_SANDER_SANTILUS_SHIP_NORMAL :
-	case DI_SANDER_BEHIMOSS_HEART_NORMAL :
+	case SEnum::DI_SANDER_DRY_SANDER_NORMAL:
+	case SEnum::DI_SANDER_GARPAI_ROCK_NORMAL:
+	case SEnum::DI_SANDER_DEN_OF_TROCK_NORMAL:
+	case SEnum::DI_SANDER_KARUSO_VILLAGE_NORMAL:
+	case SEnum::DI_SANDER_SANTILUS_SHIP_NORMAL :
+	case SEnum::DI_SANDER_BEHIMOSS_HEART_NORMAL :
 		return true;
 	}
 
@@ -1075,23 +1109,23 @@ bool CXSLDungeon::IsEventDungeon( IN int iDungeonID )
 
 	switch( iDungeonID )
 	{
-	case DI_EVENT_KIDDAY_RUBEN:
-	case DI_EVENT_KIDDAY_ELDER:
-	case DI_EVENT_KIDDAY_BESMA:
-	case DI_EVENT_KIDDAY_ALTERA:
+	case SEnum::DI_EVENT_KIDDAY_RUBEN:
+	case SEnum::DI_EVENT_KIDDAY_ELDER:
+	case SEnum::DI_EVENT_KIDDAY_BESMA:
+	case SEnum::DI_EVENT_KIDDAY_ALTERA:
 
-	case DI_EVENT_TREE_DAY_ELDER:		// 식목일 이벤트 던전
-	case DI_EVENT_TREE_DAY_BESMA:
-	case DI_EVENT_TREE_DAY_ALTERA:
-	case DI_EVENT_TREE_DAY_PEITA:
-	case DI_EVENT_TREE_DAY_VELDER:
-	case DI_EVENT_TREE_DAY_HAMEL:
+	case SEnum::DI_EVENT_TREE_DAY_ELDER:		// 식목일 이벤트 던전
+	case SEnum::DI_EVENT_TREE_DAY_BESMA:
+	case SEnum::DI_EVENT_TREE_DAY_ALTERA:
+	case SEnum::DI_EVENT_TREE_DAY_PEITA:
+	case SEnum::DI_EVENT_TREE_DAY_VELDER:
+	case SEnum::DI_EVENT_TREE_DAY_HAMEL:
 
 		//{{ 2010. 10. 19	최육사	비밀던전 이벤트 업데이트
 #ifdef SERV_SECRET_DUNGEON_EVENT
-	case DI_ELDER_HALLOWEEN_NORMAL:
-	case DI_ELDER_HALLOWEEN_HARD:
-	case DI_ELDER_HALLOWEEN_EXPERT:
+	case SEnum::DI_ELDER_HALLOWEEN_NORMAL:
+	case SEnum::DI_ELDER_HALLOWEEN_HARD:
+	case SEnum::DI_ELDER_HALLOWEEN_EXPERT:
 #endif SERV_SECRET_DUNGEON_EVENT
 		//}}
 		//{{ 2011. 04. 13  김민성  글로벌 서버 추가
@@ -1101,9 +1135,12 @@ bool CXSLDungeon::IsEventDungeon( IN int iDungeonID )
 		//}} 2011. 04. 13  김민성  글로벌 서버 추가
 		//{{ 2013. 02. 01  이벤트 발렌타인 던전 - 김민성
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
-	case DI_EVENT_VALENTINE_DAY:
+	case SEnum::DI_EVENT_VALENTINE_DAY:
 #endif SERV_EVENT_VALENTINE_DUNGEON
 		//}
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / 강정훈
+	case SEnum::DI_EVENT_HALLOWEEN_DAY:
+#endif //SERV_HALLOWEEN_EVENT_2013
 		return true;
 	}
 
@@ -1116,14 +1153,7 @@ bool CXSLDungeon::IsHenirDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_ELDER_HENIR_SPACE:
-	case DI_BESMA_HENIR_SPACE:
-	case DI_ALTERA_HENIR_SPACE:
-	case DI_FEITA_HENIR_SPACE:
-		//{{ 2009. 10. 27  최육사	벨더
-	case DI_VELDER_HENIR_SPACE:
-		//}}
-	case DI_HAMEL_HENIR_SPACE:
+	case SEnum::DI_ELDER_HENIR_SPACE:
 		return true;
 	}
 
@@ -1135,21 +1165,22 @@ bool CXSLDungeon::IsSinglePlayDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_EL_FOREST_GATE_NORMAL:
-	case DI_TUTORIAL_ELSWORD:
-	case DI_TUTORIAL_ARME:
-	case DI_TUTORIAL_LIRE:
-	case DI_TUTORIAL_RAVEN:
-	case DI_TUTORIAL_EVE:
-	case DI_TUTORIAL_CHUNG:
-	case DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
-	case DI_BATTLE_FIELD_TUTORIAL_AISHA:
-	case DI_BATTLE_FIELD_TUTORIAL_LENA:
-	case DI_BATTLE_FIELD_TUTORIAL_RAVEN:
-	case DI_BATTLE_FIELD_TUTORIAL_EVE:
-	case DI_BATTLE_FIELD_TUTORIAL_CHUNG:
-	case DI_BATTLE_FIELD_TUTORIAL_ARA:
-	case DI_BATTLE_FIELD_TUTORIAL_EL:
+	case SEnum::DI_EL_FOREST_GATE_NORMAL:
+	case SEnum::DI_TUTORIAL_ELSWORD:
+	case SEnum::DI_TUTORIAL_ARME:
+	case SEnum::DI_TUTORIAL_LIRE:
+	case SEnum::DI_TUTORIAL_RAVEN:
+	case SEnum::DI_TUTORIAL_EVE:
+	case SEnum::DI_TUTORIAL_CHUNG:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_ELSWORD:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_AISHA:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_LENA:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_RAVEN:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_EVE:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_CHUNG:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_ARA:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_EL:
+	case SEnum::DI_BATTLE_FIELD_TUTORIAL_ADD:
 		return true;
 	}
 
@@ -1164,7 +1195,7 @@ bool CXSLDungeon::IsItemDropDungeon( IN int iItemID, IN int iDungeonID )
 	case 91620:  // 마법의 얼음가루
 	case 91630:  // 연금술의 비약
 		{
-			if( CXSLDungeon::DI_EL_FOREST_GATE_NORMAL == iDungeonID ||
+			if( SEnum::DI_EL_FOREST_GATE_NORMAL == iDungeonID ||
 				CXSLDungeon::IsTutorialDungeon( iDungeonID ) || 
 				CXSLDungeon::IsTCDungeon( iDungeonID ) )
 			{
@@ -1205,19 +1236,19 @@ bool CXSLDungeon::IsScriptCheckDungeon( IN int iDungeonID )
 
 	switch( iDungeonID )
 	{
-	case DI_ELDER_NEWYEAR_NORMAL:
-	case DI_TEST_DUNGEON_NORMAL:
-	case DI_TEST_DUNGEON_HARD:
-	case DI_TEST_DUNGEON_EXPERT:
-	case DI_TEST1_DUNGEON_NORMAL:
-	case DI_TEST1_DUNGEON_HARD:
-	case DI_TEST1_DUNGEON_EXPERT:
-	case DI_TEST2_DUNGEON_NORMAL:
-	case DI_TEST2_DUNGEON_HARD:
-	case DI_TEST2_DUNGEON_EXPERT:
-	case DI_TEST3_DUNGEON_NORMAL:
-	case DI_TEST3_DUNGEON_HARD:
-	case DI_TEST3_DUNGEON_EXPERT:
+	case SEnum::DI_ELDER_NEWYEAR_NORMAL:
+	case SEnum::DI_TEST_DUNGEON_NORMAL:
+	case SEnum::DI_TEST_DUNGEON_HARD:
+	case SEnum::DI_TEST_DUNGEON_EXPERT:
+	case SEnum::DI_TEST1_DUNGEON_NORMAL:
+	case SEnum::DI_TEST1_DUNGEON_HARD:
+	case SEnum::DI_TEST1_DUNGEON_EXPERT:
+	case SEnum::DI_TEST2_DUNGEON_NORMAL:
+	case SEnum::DI_TEST2_DUNGEON_HARD:
+	case SEnum::DI_TEST2_DUNGEON_EXPERT:
+	case SEnum::DI_TEST3_DUNGEON_NORMAL:
+	case SEnum::DI_TEST3_DUNGEON_HARD:
+	case SEnum::DI_TEST3_DUNGEON_EXPERT:
 		return false;
 	}
 
@@ -1230,32 +1261,34 @@ bool CXSLDungeon::IsSecretDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_EL_FOREST_HELL_NORMAL:
-	case DI_EL_FOREST_HELL_HARD:
-	case DI_EL_FOREST_HELL_EXPERT:
-	case DI_ELDER_WALLY_CASTLE_LAB_NORMAL:
-	case DI_ELDER_WALLY_CASTLE_LAB_HARD:
-	case DI_ELDER_WALLY_CASTLE_LAB_EXPERT:
-	case DI_BESMA_SECRET_NORMAL:
-	case DI_BESMA_SECRET_HARD:
-	case DI_BESMA_SECRET_EXPERT:
-	case DI_ALTERA_SECRET_NORMAL:
-	case DI_ALTERA_SECRET_HARD:
-	case DI_ALTERA_SECRET_EXPERT:
+	case SEnum::DI_EL_FOREST_HELL_NORMAL:
+	case SEnum::DI_EL_FOREST_HELL_HARD:
+	case SEnum::DI_EL_FOREST_HELL_EXPERT:
+	case SEnum::DI_ELDER_WALLY_CASTLE_LAB_NORMAL:
+	case SEnum::DI_ELDER_WALLY_CASTLE_LAB_HARD:
+	case SEnum::DI_ELDER_WALLY_CASTLE_LAB_EXPERT:
+	case SEnum::DI_BESMA_SECRET_NORMAL:
+	case SEnum::DI_BESMA_SECRET_HARD:
+	case SEnum::DI_BESMA_SECRET_EXPERT:
+	case SEnum::DI_ALTERA_SECRET_NORMAL:
+	case SEnum::DI_ALTERA_SECRET_HARD:
+	case SEnum::DI_ALTERA_SECRET_EXPERT:
 		//{{ 2010. 04. 05  최육사	비밀던전 헬모드
-	case DI_RUBEN_SECRET_COMMON:
-	case DI_RUBEN_SECRET_HELL:
-	case DI_ELDER_SECRET_COMMON:
-	case DI_ELDER_SECRET_HELL:
-	case DI_BESMA_SECRET_COMMON:
-	case DI_BESMA_SECRET_HELL:
-	case DI_ALTERA_SECRET_COMMON:
-	case DI_ALTERA_SECRET_HELL:
+	case SEnum::DI_RUBEN_SECRET_COMMON:
+	case SEnum::DI_RUBEN_SECRET_HELL:
+	case SEnum::DI_ELDER_SECRET_COMMON:
+	case SEnum::DI_ELDER_SECRET_HELL:
+	case SEnum::DI_BESMA_SECRET_COMMON:
+	case SEnum::DI_BESMA_SECRET_HELL:
+	case SEnum::DI_ALTERA_SECRET_COMMON:
+	case SEnum::DI_ALTERA_SECRET_HELL:
 		//}}
 		//{{ JHKang / 강정훈 / 2011.8.24
-	case DI_VELDER_SECRET_COMMON:
-	case DI_VELDER_SECRET_HELL:
+	case SEnum::DI_VELDER_SECRET_COMMON:
+	case SEnum::DI_VELDER_SECRET_HELL:
 		//}} 
+	case SEnum::DI_HAMEL_SECRET_COMMON:
+	case SEnum::DI_HAMEL_SECRET_HELL:
 		return true;
 	}
 
@@ -1269,8 +1302,8 @@ bool CXSLDungeon::IsShipDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_BATTLE_SHIP_VELDER:
-	case DI_BATTLE_SHIP_HAMEL:
+	case SEnum::DI_BATTLE_SHIP_VELDER:
+	case SEnum::DI_BATTLE_SHIP_HAMEL:
 		return true;
 	}
 
@@ -1303,7 +1336,7 @@ bool CXSLDungeon::IsValentineDungeon( IN int iDungeonID )
 {
 	switch( iDungeonID )
 	{
-	case DI_EVENT_VALENTINE_DAY:
+	case SEnum::DI_EVENT_VALENTINE_DAY:
 		return true;
 	}
 
@@ -1311,6 +1344,32 @@ bool CXSLDungeon::IsValentineDungeon( IN int iDungeonID )
 }
 #endif SERV_EVENT_VALENTINE_DUNGEON
 //}
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+bool CXSLDungeon::IsValentineDungeonInt( IN int iDungeonID )
+{
+	switch( iDungeonID )
+	{
+	case SEnum::DI_EVENT_VALENTINE_DUNGEON_INT:
+		return true;
+	}
+
+	return false;
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / 강정훈
+bool CXSLDungeon::IsHalloweenDungeon( IN int iDungeonID )
+{
+	switch( iDungeonID )
+	{
+	case SEnum::DI_EVENT_HALLOWEEN_DAY:
+		return true;
+	}
+
+	return false;
+}
+#endif //SERV_HALLOWEEN_EVENT_2013
 
 //{{ 2010. 04. 30  최육사	비밀던전 헬모드
 #ifdef SERV_SECRET_HELL
@@ -1354,7 +1413,30 @@ float CXSLDungeon::GetMonsterLevelBalanceRate( IN const int iUnitLevel, IN const
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_HENIR_EVENT_SORT_NORMAL_CHALLENGE
+bool CXSLDungeon::IsHenirChallengeMode( IN int iDungeonModeID )
+{
+	switch( iDungeonModeID )
+	{
+	case DM_HENIR_CHALLENGE:
+		return true;
+	}
+
+	return false;
+}
+bool CXSLDungeon::IsHenirPracticeMode( IN int iDungeonModeID )
+{
+	switch( iDungeonModeID )
+	{
+	case DM_HENIR_PRACTICE:
+		return true;
+	}
+
+	return false;
+}
+#endif SERV_HENIR_EVENT_SORT_NORMAL_CHALLENGE
+
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 int CXSLDungeon::GetSecretStageEnteringEvent( IN const int iStageIndex, IN const int iSubStageIndex, IN int iClearConditionIndex ) const
 {
 	//{{ 2009. 7. 15  최육사	index 범위 체크
@@ -1408,4 +1490,4 @@ bool CXSLDungeon::GetNextStage( OUT CXSLDungeonSubStage::NextStageData& kNextSta
 
 	return pSubStageData->GetNextStage( kNextStageData, iClearConditionIndex, iSecretPadIndex );
 }
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER

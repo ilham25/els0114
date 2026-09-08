@@ -102,11 +102,11 @@ protected:
         double m_LastStatsUpdateTime;       // last time the stats were updated
         DWORD m_LastStatsUpdateFrames;      // frames count since last time the stats were updated
         float m_FPS;                        // frames per second
-#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 		double m_LastStatsUpdateTime2;       // last time the stats were updated
 		DWORD m_LastStatsUpdateFrames2;      // frames count since last time the stats were updated
 		float m_FPS2;                        // frames per second
-#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
         int   m_CurrentFrameNumber;         // the current frame number
         HHOOK m_KeyboardHook;               // handle to keyboard hook
         bool  m_AllowShortcutKeysWhenFullscreen; // if true, when fullscreen enable shortcut keys (Windows keys, StickyKeys shortcut, ToggleKeys shortcut, FilterKeys shortcut) 
@@ -280,11 +280,11 @@ public:
     GET_SET_ACCESSOR( double, LastStatsUpdateTime );   
     GET_SET_ACCESSOR( DWORD, LastStatsUpdateFrames );   
     GET_SET_ACCESSOR( float, FPS );    
-#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 	GET_SET_ACCESSOR( double, LastStatsUpdateTime2 );   
 	GET_SET_ACCESSOR( DWORD, LastStatsUpdateFrames2 );   
 	GET_SET_ACCESSOR( float, FPS2 );    
-#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
     GET_SET_ACCESSOR( int, CurrentFrameNumber );
     GET_SET_ACCESSOR( HHOOK, KeyboardHook );
     GET_SET_ACCESSOR( bool, AllowShortcutKeysWhenFullscreen );
@@ -3585,7 +3585,7 @@ HRESULT DXUTCreate3DEnvironment( IDirect3DDevice9* pd3dDeviceFromApp )
 		hr = pD3D->CreateDevice( AdapterToUse,                                
 			DeviceType,                                  
 			DXUTGetHWNDFocus(),                                  
-			D3DCREATE_HARDWARE_VERTEXPROCESSING,                                  
+			pNewDeviceSettings->BehaviorFlags,                                  
 			&pNewDeviceSettings->pp,                                  
 			&pd3dDevice );
 
@@ -4027,12 +4027,7 @@ HRESULT DXUTMainLoop( HACCEL hAccel )
         if( bGotMsg )
         {
 			//{{ dmlee 2008.04.07 - 넥슨캐시충전페이지에서 주민번호입력시 다음 editbox로 자동이동할 수 있도록 keyup event 처리
-#ifdef CASH_CHARGE_IN_GAME_BROWSER
-			if( msg.message == WM_KEYDOWN || msg.message == WM_KEYUP 
-				|| msg.message == WM_SYSKEYDOWN || msg.message == WM_SYSKEYUP )
-#else //CASH_CHARGE_IN_GAME_BROWSER
 			if( WM_KEYUP == msg.message )
-#endif //CASH_CHARGE_IN_GAME_BROWSER
 			{
 				if( NULL != g_pKTDXApp )
 				{
@@ -4108,7 +4103,9 @@ float			g_fAddElapsedTimebyOnFrameRender = 0.f;
 #endif RENDER_SKIP_TEST
 void DXUTRender3DEnvironment()
 {
+#ifndef X2VIEWER //JHKang
 	KLagCheck( eUnKnown_LagCheckType_OnIdle );
+#endif //X2VIEWER
 
     HRESULT hr;
    
@@ -4439,7 +4436,7 @@ void DXUTUpdateFrameStats()
         pstrFrameStats[255] = 0;
     }
 
-#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 	//게임성능측정 전용으로 하나 사용함.
 	{
 		// Keep track of the frame count
@@ -4457,7 +4454,7 @@ void DXUTUpdateFrameStats()
 			GetDXUTState().SetLastStatsUpdateFrames2( 0 );
 		}
 	}
-#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 }
 
 
@@ -4921,9 +4918,9 @@ LRESULT CALLBACK DXUTStaticWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                    // upon resume.
                    DXUTGetGlobalTimer()->Reset();                   
                    GetDXUTState().SetLastStatsUpdateTime( 0 );
-#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 				   GetDXUTState().SetLastStatsUpdateTime2( 0 );
-#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
                    return true;
             }
             break;
@@ -5334,9 +5331,9 @@ void DXUTSetFullscreenClientRectAtModeChange(int width, int height)       { GetD
 double DXUTGetTime()                                { return GetDXUTState().GetTime(); }
 float DXUTGetElapsedTime()                          { return GetDXUTState().GetElapsedTime(); }
 float DXUTGetFPS()                                  { return GetDXUTState().GetFPS(); }
-#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 float DXUTGetFPS2()                                  { return GetDXUTState().GetFPS2(); }
-#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 LPCWSTR DXUTGetWindowTitle()                        { return GetDXUTState().GetWindowTitle(); }
 LPCWSTR DXUTGetFrameStats()                         { return GetDXUTState().GetFrameStats(); }
 LPCWSTR DXUTGetDeviceStats()                        { return GetDXUTState().GetDeviceStats(); }
@@ -5918,7 +5915,19 @@ bool    DXUTGetDeviceLost()
 {
 	return  GetDXUTState().GetDeviceLost();
 }
+#else
 //}} robobeg : 2011-12-16
+#if defined(CLIENT_COUNTRY_TH)
+void    DXUTSetDeviceLost( bool bLost )
+{
+	GetDXUTState().SetDeviceLost( bLost );
+}//DXUTSetDeviceLost()
+
+bool    DXUTGetDeviceLost()
+{
+	return  GetDXUTState().GetDeviceLost();
+}
+#endif 
 #endif
 
 #ifdef DXUT_KTDXLIB_SAFE_ON_RESET
@@ -5940,11 +5949,18 @@ void CheckAliveXTrap()	// XTRAP 클라 - 정해진 시간마다 살아있는지 체크
 }
 #endif // CLIENT_USE_XTRAP
 
-#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 void DXUTResetStatsUpdateFrame2()
 {
 	GetDXUTState().SetLastStatsUpdateTime2( DXUTGetGlobalTimer()->GetAbsoluteTime() );
 	GetDXUTState().SetLastStatsUpdateFrames2( 0 );
 	GetDXUTState().SetFPS2( 0.0f );
 }
-#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+//#endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+void DXUTResetStatsUpdateFrame()
+{
+	GetDXUTState().SetLastStatsUpdateTime( DXUTGetGlobalTimer()->GetAbsoluteTime() );
+	GetDXUTState().SetLastStatsUpdateFrames( 0 );
+	GetDXUTState().SetFPS( 0.0f );
+}

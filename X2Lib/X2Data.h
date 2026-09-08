@@ -49,10 +49,12 @@ class CX2Data : public CKTDXStage
 		CIT_20by20,
 		CIT_ClassInitial,
 		CIT_MyGage,
-#ifdef REFORM_UI_CHARACTER_INFO
 		CIT_Party,
-#endif
+// #ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		CIT_UnitSlot,
+// #endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 		CIT_END,
+
 	};
 
 
@@ -80,6 +82,9 @@ class CX2Data : public CKTDXStage
 #ifdef NEW_CHARACTER_EL
 		void LoadUserUnitMotion8();
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		void LoadUserUnitMotion9();
+#endif //SERV_9TH_NEW_CHARACTER
 
 		void LoadCommonDevice();
 
@@ -187,7 +192,8 @@ class CX2Data : public CKTDXStage
 		CX2ServerProtocol* GetServerProtocol(){ return m_pServerProtocol; }
 		void DeleteServerProtocol(){ SAFE_DELETE(m_pServerProtocol); }
 		
-		CX2User* ResetMyUser( CX2User::UserData* pUserData );
+		//CX2User* ResetMyUser( CX2User::UserData* pUserData );
+        CX2User* ResetMyUser( const CX2User::UserData& kUserData );
 		CX2User* GetMyUser(){ return m_pMyUser; }
 		void DeleteMyUser(){ SAFE_DELETE(m_pMyUser); }
 
@@ -276,7 +282,7 @@ class CX2Data : public CKTDXStage
 		void DeleteLocationManager() { SAFE_DELETE( m_pLocationManager ); }
 
 		CX2BattleFieldManager& GetBattleFieldManager() { return m_BattleFieldManager; }
-		void ResetBattleFieldManager( const char* szScriptFileName_ );
+		void ResetBattleFieldManager( const wchar_t* szScriptFileName_ );
 
 		CX2Community* ResetMessenger();
 		CX2Community* GetMessenger() { return m_pMessenger; }
@@ -292,11 +298,7 @@ class CX2Data : public CKTDXStage
 		void DeleteSlideShot() { SAFE_DELETE( m_pSlideShot); }
 
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		CX2SocketItem* ResetSocketItem( const WCHAR* pFileName, const WCHAR* pFormulaFileName_ );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		CX2SocketItem* ResetSocketItem( WCHAR* pFileName );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 		
@@ -308,11 +310,11 @@ class CX2Data : public CKTDXStage
 		void DeleteEnchantItem(){ SAFE_DELETE( m_pCX2EnchantItem); }
 
 		//{{ 2008. 10. 1  최육사
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 		CX2TitleManager* ResetTitleManager();
 		CX2TitleManager* GetTitleManager(){ return m_pCX2TitleManager; }
 		void DeleteTitleManager(){ SAFE_DELETE( m_pCX2TitleManager ); }
-#endif
+//#endif
 		//}}
 
 		//{{ 2009. 6. 24  최육사	보상테이블
@@ -373,6 +375,7 @@ class CX2Data : public CKTDXStage
 		int	GetModelDetailPercent() { return m_ModelDetailPercent; }
 		void SetModelDetailPercent( int detailPercent ) { m_ModelDetailPercent = detailPercent; }
 #ifdef NEW_VILLAGE_UI
+		void			DeleteUIManager() { SAFE_DELETE( m_pUIManager ); }
         CX2UIManager*   ResetUIManager();
         CX2UIManager*   GetUIManager() { return m_pUIManager; }
 		CX2SlotItem::CX2Slot**		GetSlotBeforeDragging(){ return &m_pSlotBeforeDragging; }
@@ -430,11 +433,15 @@ class CX2Data : public CKTDXStage
 		//}}
 
 		//오현빈 // 2012-12-14 // 널체크 코드 길이 줄이기 위해 추가 했습니다.
-		const int GetSelectUnitLevel() const;
-		CX2Unit::UNIT_CLASS GetSelectUnitClass() const;
-		CX2Unit::UNIT_TYPE GetSelectUnitType() const;
-		void SetSelectUnitED( int iED_ );
+		const int				GetSelectUnitLevel() const;
+		CX2Unit::UNIT_CLASS		GetSelectUnitClass() const;
+		CX2Unit::UNIT_TYPE		GetSelectUnitType() const;
+		SEnum::DUNGEON_ID		GetCurrentDungeonID();
+		BYTE					GetSelectUnitMemberShipGrade() const;
+		SEnum::SERVER_GROUP_ID	GetSelectUnitServerGroupID () const;
 
+		void					SetSelectUnitED( int iED_ );
+		
 #ifdef CUBE_OPEN_IMAGE_MANAGER
 		CX2CubeOpenImageManager* ResetCubeOpenImageManager();
 		CX2CubeOpenImageManager* GetCubeOpenImageManager() { return m_pCubeOpenImageManager; }
@@ -467,6 +474,9 @@ class CX2Data : public CKTDXStage
 		void ResetItemStatCalculator(){ m_ItemStatCalculator.ResetItemStatCalculator(); }
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
 
+#ifdef REFORM_ENTRY_POINT //JHKang
+		float RotateYSelectCharacterType( CX2Unit::UNIT_CLASS eClass_ );
+#endif //REFORM_ENTRY_POINT
 		//{{ 2012.09.08	임홍락	글로벌 미션 매니저
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 		CX2GlobalMissionManager* ResetGlobalMissionManager();
@@ -474,6 +484,10 @@ class CX2Data : public CKTDXStage
 #endif SERV_GLOBAL_MISSION_MANAGER
 		//}} 2012.09.08	임홍락	글로벌 미션 매니저
 	public:
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+		vector<CX2EffectSet*>		m_vecGameEFfectSet;
+		vector<CKTDGXMeshPlayer*>	m_vecGameMajorXMeshPlayer;
+#endif // EXPAND_DEVELOPER_SCRIPT  // 김종훈, 개발자 스크립트 확장 기능 추가
 		//vector<KServerSetData>	m_ServerSetList; // 채널서버 접속 방식으로 바뀌면서, 사용안되는 변수임. 삭제해야함.
 
 //#ifdef USER_DEFINED_KEYBOARD_SETTING
@@ -564,9 +578,9 @@ class CX2Data : public CKTDXStage
 		CX2EnchantItem*			m_pCX2EnchantItem;
 
 		//{{ 2008. 10. 1  최육사
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 		CX2TitleManager*		m_pCX2TitleManager;
-#endif
+//#endif
 		//}}
 
 		CX2CashShop*			m_pCashShop;

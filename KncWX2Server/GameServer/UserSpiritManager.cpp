@@ -5,6 +5,9 @@
 #include "SpiritTable.h"
 
 
+#ifdef SERV_BURNING_CHAR_EVENT_SUB_QUEST
+#include "UserQuestManager.h"
+#endif //SERV_BURNING_CHAR_EVENT_SUB_QUEST
 
 //{{ 2012. 03. 20	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
@@ -23,13 +26,23 @@ void KUserSpiritManager::Clear()
 {
 	SetSpiritMax( 0 );
 	SetSpirit( 0 );
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+	SetAccumulationSpirit( 0 );
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 	SetIsSpiritUpdated( false );
 }
 
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+void KUserSpiritManager::Init( IN const int iSpirit, IN const int iSpiritMax, IN const int iAccumulationSpirit )
+#else
 void KUserSpiritManager::Init( IN const int iSpirit, IN const int iSpiritMax )
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 {
 	SetSpirit( iSpirit );
 	SetSpiritMax( iSpiritMax );
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+	SetAccumulationSpirit( iAccumulationSpirit );
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 }
 
 void KUserSpiritManager::GetDBUpdateInfo( OUT int& iSpirit, OUT bool& bIsSpiritUpdated )
@@ -275,7 +288,14 @@ bool KUserSpiritManager::DecreaseSpirit( IN const int iDungeonID,
 										 IN const bool bIsPcBang,
 					   					 IN const bool bIsBattleField,
 										 OUT int& iDecreaseSpirit,
-										 OUT bool& bIsSpiritUpdated )
+										 OUT bool& bIsSpiritUpdated
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+										 , OUT bool& bReward
+#ifdef SERV_BURNING_CHAR_EVENT_SUB_QUEST
+										 ,IN const bool bCharQuest
+#endif //SERV_BURNING_CHAR_EVENT_SUB_QUEST
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
+										 )
 {
 	iDecreaseSpirit = 0;
 	bIsSpiritUpdated = false;
@@ -320,6 +340,26 @@ bool KUserSpiritManager::DecreaseSpirit( IN const int iDungeonID,
 	{
 		return false;
 	}
+
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+#ifdef SERV_BURNING_CHAR_EVENT_SUB_QUEST
+	// 특정 서브 퀘스트 보유했을 때 근성도 깎는다.
+	// 현재 퀘스트 관련 정보와 캐릭터 성별 정보 비교에서 같을 경우에만 아이템 지급
+	if(true == bCharQuest)
+	{
+		CalculateAccumulationSpirit( cUserCount, sStageNpcCount, bIsTutorial, false, bIsBattleField, bReward );
+
+		START_LOG( cout2, L"김석근_캐릭터 버닝이벤트_엘리오스의 짐승남" )
+			<< BUILD_LOG( _CONST_BURNING_CHAR_EVENT_SUB_QUEST_::iBestSpiritQuest )
+			<< END_LOG;
+	}
+#else //SERV_BURNING_CHAR_EVENT_SUB_QUEST
+	IF_EVENT_ENABLED( CEI_ACCUMULATION_SPIRIT_EVENT )
+	{
+		CalculateAccumulationSpirit( cUserCount, sStageNpcCount, bIsTutorial, false, bIsBattleField, bReward );
+	}	
+#endif //SERV_BURNING_CHAR_EVENT_SUB_QUEST
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 
 	// 5. 사제관계가 아닌경우 근성도 이벤트와 PC방혜택 검사
 	if( bIsTutorial == false )
@@ -374,6 +414,48 @@ bool KUserSpiritManager::DecreaseSpirit( IN const int iDungeonID,
 	return true;
 }
 #endif	// SERV_LOCAL_RANKING_SYSTEM
+
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+void KUserSpiritManager::GetDBUpdateInfo2( OUT int& iAccumulationSpirit )
+{
+	iAccumulationSpirit = m_iAccumulationSpirit;
+}
+
+void KUserSpiritManager::CalculateAccumulationSpirit( IN char cUserCount, IN short sStageNpcCount, IN bool bIsTutorial, IN bool bHalfDecreaseEvent, IN bool bIsBattleField, OUT bool& bReward )
+{
+	int iDecreaseSpirit = CalculateDecreaseSpirit( cUserCount, sStageNpcCount, bIsTutorial, bHalfDecreaseEvent, bIsBattleField ); // [주의] 사제관계일경우 근성도가 보충된다.
+
+	const int iRemain = GetSpirit() - iDecreaseSpirit;
+	if( iRemain < 0 )
+	{
+		iDecreaseSpirit += iRemain;
+	}
+
+	if( iDecreaseSpirit > 0 )
+	{
+		m_iAccumulationSpirit += iDecreaseSpirit;
+
+#ifdef SERV_BURNING_CHAR_EVENT_SUB_QUEST
+		START_LOG( cout2, L"김석근_캐릭터 버닝이벤트_엘리오스의 짐승남 확인" )
+			<< BUILD_LOG( m_iAccumulationSpirit )
+			<< BUILD_LOG( iDecreaseSpirit )
+			<< END_LOG;
+
+		if( m_iAccumulationSpirit >= 3360 )					// 960은 최대 근성도의 70% 수치
+		{			
+			bReward = true;
+			m_iAccumulationSpirit -= 3360;
+		}
+#else //SERV_BURNING_CHAR_EVENT_SUB_QUEST
+		if( m_iAccumulationSpirit >= 960 )					// 960은 최대 근성도의 20% 수치
+		{			
+			bReward = true;
+			m_iAccumulationSpirit -= 960;
+		}
+#endif //SERV_BURNING_CHAR_EVENT_SUB_QUEST
+	}
+}
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 

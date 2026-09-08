@@ -41,6 +41,11 @@
 #endif SERV_LOG_SYSTEM_NEW
 //}}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	#include "X2Data/XSLBattleFieldManager.h"
+	#include "X2Data/XSLFieldBossData.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+
 
 #define CASE_REFRESH_SCRIPT( flag, classname )	_CASE_REFRESH_SCRIPT( flag, classname, OpenScriptFile )
 
@@ -149,6 +154,11 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_REQ, KESR_SCRIPT_REFRESH_ORDER_NOT )
 	CASE_REFRESH_SCRIPT( OT_GB_LOG_MANAGER, KLogManager );
 #endif SERV_LOG_SYSTEM_NEW
 	//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	_CASE_REFRESH_SCRIPT( OT_GB_BATTLE_FIELD_MANAGER, CXSLBattleFieldManager, OpenScriptFile_AllBattleFieldScriptLoad );
+	CASE_REFRESH_SCRIPT( OT_GB_FIELD_BOSS_DATA, CXSLFieldBossData );
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	default:
 		{

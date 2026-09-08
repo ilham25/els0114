@@ -254,7 +254,7 @@ protected:
 public:
 	//{{ kimhc // 2009-12-15 // 서버군 추가
 #ifdef	ADD_SERVER_GROUP
-	bool OpenScriptServerGroupFile();			// 이전에 플레이 했던 서버군 읽기
+	//bool OpenScriptServerGroupFile();			// 이전에 플레이 했던 서버군 읽기
 	void UpdateServerSelectButton( SERVER_GROUP_ID eID );
 #endif	ADD_SERVER_GROUP
 	//}} kimhc // 2009-12-15 // 서버군 추가

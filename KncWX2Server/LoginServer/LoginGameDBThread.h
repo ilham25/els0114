@@ -53,6 +53,10 @@ protected:
 	bool DeleteApplyJoinGuildList( IN const std::vector< KApplyDeleteInfo >& vecInfo );
 #endif SERV_GUILD_AD
     
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+    void GetPShopItem( IN const UidType& iUnitUID_, OUT std::vector< KSellPersonalShopItemInfo >& vecSellItemInfo_ );
+#endif SERV_UPGRADE_TRADE_SYSTEM
+
 	//{{ 2009. 7. 6  최육사		랭킹 개편
 	DECL_ON_FUNC_NOPARAM( DBE_GET_WEB_RANKING_INFO_REQ );
 	//}}
@@ -111,11 +115,6 @@ protected:
 	DECL_ON_FUNC( DBE_STOP_SALE_PSHOP_AGENCY_REQ );
 	DECL_ON_FUNC( DBE_PICK_UP_FROM_PSHOP_AGENCY_REQ );
 #endif SERV_PSHOP_AGENCY
-	//}}
-	//{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-	DECL_ON_FUNC_NOPARAM( DBE_CHECK_DB_HACKING_TRAP_REQ );
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
 	//}}
 	//{{ 2011. 11. 3	최육사	헤니르 시공 랭킹 보상 안전성 패치
 #ifdef SERV_HENIR_RANKING_TITLE_REWARD_FIX

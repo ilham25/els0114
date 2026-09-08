@@ -590,10 +590,28 @@ LUALIB_API int luaL_loadfile (lua_State *L, const char *filename) {
 //{{ robobeg : 2008-06-13
   //ungetc(c, lf.f);
   // utf8 signature ¾ø¾Ö±â
-  if ( bBinary == false && lua_getencoding( L ) == LUA_ENCODING_UTF8 && filename )
+  int iEncoding = lua_getencoding( L );
+  if ( bBinary == false && iEncoding != LUA_ENCODING_LEGACY && filename )
   {
-      if ( !( c == 0xef && getc( lf.f ) == 0xbb && getc( lf.f ) == 0xbf ) )
-          return errfile(L, "non-utf8 encoding", fnameindex );
+      if ( c == 0xef )
+      {
+          if ( getc( lf.f ) == 0xbb && getc( lf.f ) == 0xbf )
+          {
+          }
+          else
+          {
+            return errfile(L, "non-utf8 encoding", fnameindex );
+          }//if.. else..
+      }
+      else 
+      {
+          if ( iEncoding == LUA_ENCODING_UNKNOWN )
+              ungetc( c, lf.f);
+          else
+          {
+            return errfile(L, "non-utf8 encoding", fnameindex );
+          }
+      }//if.. else..
   }
   else
   {

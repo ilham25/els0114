@@ -98,6 +98,9 @@ CKTDGUIIMEEditBox::CKTDGUIIMEEditBox()
 : m_pFont( NULL )
 , m_rcText( RECT() )
 , m_rcIndicator( RECT() )
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+, m_bIsForceSendCustomMsgChange( false )
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 {
 	m_bBGCheck		= false;
 
@@ -173,23 +176,17 @@ CKTDGUIIMEEditBox::CKTDGUIIMEEditBox()
 	KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 	//}} robobeg : 2008-10-28
 
-	if(  g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
+	if(  g_pKTDXApp->LoadAndDoMemory( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
 	{
 		return;
 	}
 
-	string keyDownSndFileName;
+	wstring keyDownSndFileName;
 
-	LUA_GET_VALUE( kLuaManager, "EditBox_KeyDown", keyDownSndFileName, "" );
+	LUA_GET_VALUE( kLuaManager, "EditBox_KeyDown", keyDownSndFileName, L"" );
+	m_pSndKeyDown = g_pKTDXApp->GetDeviceManager()->OpenSound( keyDownSndFileName );
 
-	wstring sndFileName;
-
-	ConvertCharToWCHAR( sndFileName, keyDownSndFileName.c_str() );
-	m_pSndKeyDown = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
-
-#ifdef POSTBOX_FILTER
 	m_bEnablePaste = true;
-#endif
 
 #ifdef KTDGDEVICEFONT_SIMULATE_DIRECTX_FONT
 	ClearText();
@@ -201,6 +198,12 @@ CKTDGUIIMEEditBox::CKTDGUIIMEEditBox()
 	m_rcText.right = 0;
 	m_rcText.bottom = 0;
 #endif FIX_IME_EDITBOX_LOSE_FIRST_CHAR
+
+#ifdef DLL_BUILD
+	m_pCheckedEdgeTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"UIEdge.tga" );
+	m_bEditEdge = false;
+	m_bUpdate = false;		// GUITool에서 실행될때는 모든 메세지를 차단.
+#endif
 }
 
 
@@ -215,6 +218,10 @@ CKTDGUIIMEEditBox::~CKTDGUIIMEEditBox()
 	SAFE_DELETE( m_pTextPoint );
 
 	SAFE_CLOSE( m_pSndKeyDown );
+
+#ifdef DLL_BUILD
+	SAFE_CLOSE( m_pCheckedEdgeTexture );
+#endif
 }
 
 //--------------------------------------------------------------------------------------
@@ -395,10 +402,8 @@ void CKTDGUIIMEEditBox::PasteFromClipboard()
 {
 	DeleteSelectionText();
 
-#ifdef POSTBOX_FILTER
 	if( m_bEnablePaste == false )
 		return;
-#endif
 
 	if( OpenClipboard( NULL ) )
 	{
@@ -482,6 +487,106 @@ void CKTDGUIIMEEditBox::SetMultiLineOption_LUA( int groupID, int groupSequence )
 	m_GroupID = groupID;
 	m_GroupSequence = groupSequence;
 }
+
+#ifdef DLL_BUILD	// GUITool
+void CKTDGUIIMEEditBox::MoveControl( float fx, float fy )
+{
+	if( NULL != m_pTextPoint )
+		return m_pTextPoint->Move(fx, fy);
+}
+
+D3DXVECTOR2 CKTDGUIIMEEditBox::GetPos()
+{
+	if( NULL != m_pTextPoint )
+		return m_pTextPoint->leftTopPoint;
+
+	return D3DXVECTOR2(0, 0);
+}
+
+vector<D3DXVECTOR2> CKTDGUIIMEEditBox::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;	
+
+	if( NULL != m_pTextPoint )
+	{
+		ret.push_back(m_pTextPoint->leftTopPoint);
+		ret.push_back(m_pTextPoint->rightBottomPoint);
+	}
+
+	return ret;
+}
+
+void CKTDGUIIMEEditBox::SetEditGUI( bool bEdit )
+{
+	SetColor(D3DXCOLOR(0xffffffff));
+	m_bEditEdge = bEdit;
+}
+
+bool CKTDGUIIMEEditBox::IsSelectByEditGui( POINT pt )
+{
+	return Pick2DRect( pt, m_NowPoint.leftTopPoint, m_NowPoint.rightTopPoint, m_NowPoint.leftBottomPoint ,m_NowPoint.rightBottomPoint );	
+}
+
+void CKTDGUIIMEEditBox::DrawEditEdge()
+{
+	if( false == m_bEditEdge )
+		return;	
+
+	if ( m_pCheckedEdgeTexture == NULL )
+		return;	
+
+	//const CKTDGUIControl::UIPointData & point = *m_pEditEdgePoint;
+	D3DXCOLOR tempColor;
+
+	int edgeWidth = 2;
+	D3DXCOLOR edgeColor = D3DXCOLOR(0xffff0000);
+
+	tempColor.a = edgeColor.a * m_pDialog->GetColor().a * m_Color.a;
+	tempColor.r = edgeColor.r * m_pDialog->GetColor().r * m_Color.r;
+	tempColor.g = edgeColor.g * m_pDialog->GetColor().g * m_Color.g;
+	tempColor.b = edgeColor.b * m_pDialog->GetColor().b * m_Color.b;
+
+	RECT edgeRect;
+	edgeRect.left = (int)m_NowPoint.leftTopPoint.x;
+	edgeRect.top = (int)m_NowPoint.leftTopPoint.y;
+	edgeRect.right = (int)m_NowPoint.rightBottomPoint.x;
+	edgeRect.bottom = (int)m_NowPoint.rightBottomPoint.y;
+
+	int _width = (int)(edgeRect.right - edgeRect.left);
+	int _height = (int)(edgeRect.bottom - edgeRect.top);
+
+	//if ( m_bDrawEdgeOut == true )
+	{
+		// 좌 left/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth), 
+			edgeWidth , 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 하left/bottom
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.bottom ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+
+		// 우right/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.right ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top ), 
+			edgeWidth, 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 상left/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+	}
+}
+#endif
 
 
 //--------------------------------------------------------------------------------------
@@ -1474,6 +1579,11 @@ bool CKTDGUIIMEEditBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM 
 	if( m_bEnable == false || m_bShow == false )
 		return false;
 
+#ifdef DLL_BUILD
+	if( m_bUpdate == false )
+		return false;
+#endif
+
 	pt.x = GET_X_LPARAM(lParam); 
 	pt.y = GET_Y_LPARAM(lParam); 
 
@@ -1661,7 +1771,9 @@ bool CKTDGUIIMEEditBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM 
 			}
 
 			m_bMouseDrag = true;
+#ifndef DLL_BUILD
 			SetCapture( DXUTGetHWND() );
+#endif
 			// Determine the character corresponding to the coordinates.
 			int nCP, nTrail, nX1st;
 			m_Buffer.CPtoX( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
@@ -1728,6 +1840,11 @@ bool CKTDGUIIMEEditBox::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 {
 	if( m_bEnable == false || m_bShow == false )
 		return false;
+
+#ifdef DLL_BUILD
+	if( m_bUpdate == false )
+		return false;
+#endif
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// KTDGUIIMEEditBox.cpp used to call CKTDGUIIMEEditBox::MsgProc() so that, but now
@@ -1884,6 +2001,12 @@ bool CKTDGUIIMEEditBox::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 						SendMessage( DXUTGetHWND(), WM_KEYUP, VK_LEFT, 0 );
 					}
 				}
+
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+				/// 한글 글자 하나만 변경 되어도 메시지 전송
+				if( true == m_bIsForceSendCustomMsgChange )
+					SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_EVENT, m_CustomMsgEditBoxChange, (LPARAM)this );
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 
 				ResetCaretBlink();
 			}
@@ -2276,11 +2399,7 @@ bool CKTDGUIIMEEditBox::EBProc( UINT uMsg, WPARAM wParam, LPARAM lParam )
 					{
 						//{{09.03.27 태완 : IME 엔터와 다이얼로그 엔터가 한 번에 중복처리되지 않게 하기 위해서 락을 건다
 						//g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock( DIK_RETURN, TRUE );
-#ifdef REFORM_UI_KEYPAD
 						g_pKTDXApp->GetDIManager()->Getkeyboard()->SetLock( DIK_RETURN, TRUE );
-#else
-						SET_KEYLOCK(GA_RETURN, TRUE);
-#endif
 						//}}
 						SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_EVENT, m_CustomMsgEditBoxEnter, (LPARAM)this );
 					}
@@ -2829,7 +2948,7 @@ HRESULT CKTDGUIIMEEditBox::OnFrameMove( double fTime, float fElapsedTime )
 	m_rcText.right	= (LONG)(m_pTextPoint->rightBottomPoint.x) + (LONG)m_OffsetPos.x;
 	m_rcText.bottom	= (LONG)(m_pTextPoint->rightBottomPoint.y) + (LONG)m_OffsetPos.y;
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	//{{10.05.25 정협 : 패드로도 채팅창 열고 닫게
 	if(GET_KEY_STATE(GA_RETURN) == TRUE)
 	{
@@ -2855,7 +2974,7 @@ HRESULT CKTDGUIIMEEditBox::OnFrameMove( double fTime, float fElapsedTime )
 			}
 		}
 	}
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 	//}}10.05.25 정협 : 패드로도 채팅창 열고 닫게
 
 	UpdateTextAlignOffset();
@@ -2876,6 +2995,9 @@ HRESULT CKTDGUIIMEEditBox::OnFrameRender()
 	if( m_bShow == false )
 		return S_OK;
 
+#ifdef DLL_BUILD
+	DrawEditEdge();
+#endif
 	// Let the parent render first (edit control)
 	// EditBox Render
 	{
@@ -3354,10 +3476,21 @@ HRESULT CKTDGUIIMEEditBox::DrawRect( RECT* prcDest, D3DCOLOR color )
 	rcScreen.top		+= m_ptTextAlignOffset.y;
 	rcScreen.bottom		+= m_ptTextAlignOffset.y;
 
+// 오현빈 // 2013-12-06 // 좌/우 해상도 늘어났을 때, 커서 텍스쳐때문에 반각 처럼 보이는 문제 수정
+#ifdef FIX_CARET_POSITION_AND_FONT_SIZE
+	long lScreenRight = static_cast<long>((rcScreen.right + m_pDialog->GetPos().x) - (rcScreen.left + m_pDialog->GetPos().x));
+	long lScreenBottom = static_cast<long>((rcScreen.bottom + m_pDialog->GetPos().y) - (rcScreen.top + m_pDialog->GetPos().y));
+#endif // FIX_CARET_POSITION_AND_FONT_SIZE
+	
 	rcScreen.left		= (LONG)(rcScreen.left * g_pKTDXApp->GetResolutionScaleX() + m_pDialog->GetPos().x * g_pKTDXApp->GetResolutionScaleX());
 	rcScreen.top		= (LONG)(rcScreen.top * g_pKTDXApp->GetResolutionScaleY() + m_pDialog->GetPos().y * g_pKTDXApp->GetResolutionScaleY());
+#ifdef FIX_CARET_POSITION_AND_FONT_SIZE
+	rcScreen.right		= rcScreen.left + lScreenRight;
+	rcScreen.bottom		= rcScreen.top + lScreenBottom;
+#else
 	rcScreen.right		= (LONG)(rcScreen.right * g_pKTDXApp->GetResolutionScaleX() + m_pDialog->GetPos().x * g_pKTDXApp->GetResolutionScaleX());
 	rcScreen.bottom		= (LONG)(rcScreen.bottom * g_pKTDXApp->GetResolutionScaleY() + m_pDialog->GetPos().y * g_pKTDXApp->GetResolutionScaleY());
+#endif // FIX_CARET_POSITION_AND_FONT_SIZE
 	
 	
 	CKTDGUIControl::VERTEX_UI vertices[4] =
@@ -3491,3 +3624,20 @@ void CKTDGUIIMEEditBox::UpdateTextAlignOffset()
 		m_ptTextAlignOffset.y = 0;
 	}
 }
+
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+/** @function	: GetNowText
+	@brief		: 현재 작성중인 모든 문자 반환
+*/
+const wstring CKTDGUIIMEEditBox::GetNowText()		
+{ 
+	/// 완성된 문자들 저장
+	wstring wstrResultText = m_Buffer.GetBuffer();
+
+	/// 만약 미완성된 문자가 있다면, 해당 문자도 저장
+	if ( true == s_bHideCaret )
+		wstrResultText += s_CompString.GetBuffer();
+
+	return   wstrResultText;
+}
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION

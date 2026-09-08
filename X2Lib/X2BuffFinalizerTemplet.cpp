@@ -11,7 +11,7 @@
 case type_: \
 	{ \
 	CX2BuffFinalizerTempletPtr ptrFinalizerTemplet = class_::CreateBuffFinalizerTempletPtr(); \
-	if ( NULL != ptrFinalizerTemplet && ptrFinalizerTemplet->ParsingFinalizerTemplateMethod( luaManager_, STRINGIZE2(type_) ) ) \
+	if ( NULL != ptrFinalizerTemplet && ptrFinalizerTemplet->ParsingFinalizerTemplateMethod( luaManager_, STRINGIZEA2(type_) ) ) \
 		{ \
 		ptrFinalizerTemplet->SetType( type_ ); \
 		vecBuffFinalizerTempletPtr_.push_back( ptrFinalizerTemplet ); \
@@ -39,7 +39,6 @@ case type_: \
 		vector<UINT>::iterator vItr = vecFinalizerType.begin();
 		while ( vecFinalizerType.end() != vItr )	/// 조합에 포함된 종료요소들을 파싱
 		{
-
 #ifdef EXCEPTION_BUFF_FACTOR
 			if(static_cast<BUFF_FINALIZER_TYPE>( *vItr ) != BFT_RIDING_ON_OR_NOT)
 				bExceptionCase = false;
@@ -99,9 +98,9 @@ case type_: \
 	@param : 읽어들이고 있는 루아스크립트의 루아매니저(luaManager_), 파싱성공한 FinalizerTempletPtr을 담을 vector(vecBuffFinalizerTempletPtr_)
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
-bool CX2BuffFinalizerTemplet::ParsingFinalizerTemplateMethod( KLuaManager& luaManager_, const WCHAR* pwszTableName_ )
+bool CX2BuffFinalizerTemplet::ParsingFinalizerTemplateMethod( KLuaManager& luaManager_, const char* pszTableName_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableName_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -110,7 +109,7 @@ bool CX2BuffFinalizerTemplet::ParsingFinalizerTemplateMethod( KLuaManager& luaMa
 		return ParsingFinalizer( luaManager_ );
 	}
 	else
-		return DISPLAY_ERROR( pwszTableName_ );	
+		return DISPLAY_ERROR( pszTableName_ );	
 }
 
 /** @function : SetFactorFromPacketTemplateMothod
@@ -150,9 +149,18 @@ bool CX2BuffFinalizerTemplet::SetFactorFromPacketTemplateMothod( const KBuffFact
 	@param : 버프에 걸린 유닛의 포인터(pGameUnit_)
 	@return : 
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffTimeFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffTimeFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_fDurationTime -= fElapsedTime_;	
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_fDurationTime -= g_pKTDXApp->GetElapsedTime();	
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 #ifdef BUFF_ICON_UI //버프 남은 지속 시간 얻기	
 	if( false == m_bIsAlreadyNotifyDurationTime // 남은시간에 대한 알림을 보내지 않았을 때
 		&& 5.f >= m_fDurationTime )
@@ -160,6 +168,15 @@ bool CX2BuffFinalizerTemplet::SetFactorFromPacketTemplateMothod( const KBuffFact
 		CX2GageManager::GetInstance()->NotifyDurationTime5sec( pGameUnit_->GetUnitUID(), m_eBuffTempleteID );
 		m_bIsAlreadyNotifyDurationTime = true;
 	}
+#ifdef DISPLAY_BUFF_DURATION_TIME
+	int iDurationSec = (false == IsSamef(m_fDurationTime,0.f)) ? static_cast<int>(m_fDurationTime) + 1 : 0;
+	if( iDurationSec != m_iDurationSec )
+	{
+		m_iDurationSec = iDurationSec;
+		CX2GageManager::GetInstance()->SetDurationTime( pGameUnit_->GetUnitUID(), m_eBuffTempleteID, m_iDurationSec );
+	}
+#endif // DISPLAY_BUFF_DURATION_TIME
+
 #endif //BUFF_ICON_UI
 }
 
@@ -272,12 +289,12 @@ bool CX2BuffFinalizerTemplet::SetFactorFromPacketTemplateMothod( const KBuffFact
 	FinalizerFactor.m_vecValues.push_back( m_fDurationTime );
 
 	/// 전송시의 FrameMoveCount;
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     DWORD dwCurFrameMoveCount = ( g_pX2Game != NULL ) ? g_pX2Game->GetFrameUDPPack().GetFrameMoveCount() : 0;
 	FinalizerFactor.m_vecValues.push_back( static_cast<float>( dwCurFrameMoveCount ) );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	FinalizerFactor.m_vecValues.push_back( static_cast<float>( pGameUnit_->GetFrameMoveCountNow() ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	FinalizerFactor.m_vecValues.push_back( static_cast<float>( pGameUnit_->GetFrameMoveCountNow() ) );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 }
 
 /** @function : SetFactorFromPacket
@@ -290,20 +307,20 @@ bool CX2BuffFinalizerTemplet::SetFactorFromPacketTemplateMothod( const KBuffFact
 	m_fDurationTime = kFactor_[0];
 
 	const DWORD dwFrameMoveCount = static_cast<DWORD>( kFactor_[1] );
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     DWORD dwCurFrameMoveCount = ( g_pX2Game != NULL ) ? g_pX2Game->GetFrameUDPPack().GetFrameMoveCount() : 0;
 	if ( dwCurFrameMoveCount > dwFrameMoveCount )
 	{
 		const float fElapsedTime = static_cast<float>( ( dwCurFrameMoveCount - dwFrameMoveCount ) / g_pKTDXApp->GetFrameMoveFPS() );
 		m_fDurationTime -= fElapsedTime;
 	}
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	if ( pGameUnit_->GetFrameMoveCountNow() > dwFrameMoveCount )
-	{
-		const float fElapsedTime = static_cast<float>( ( pGameUnit_->GetFrameMoveCountNow() - dwFrameMoveCount ) / g_pKTDXApp->GetFrameMoveFPS() );
-		m_fDurationTime -= fElapsedTime;
-	}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	if ( pGameUnit_->GetFrameMoveCountNow() > dwFrameMoveCount )
+//	{
+//		const float fElapsedTime = static_cast<float>( ( pGameUnit_->GetFrameMoveCountNow() - dwFrameMoveCount ) / g_pKTDXApp->GetFrameMoveFPS() );
+//		m_fDurationTime -= fElapsedTime;
+//	}
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -326,7 +343,11 @@ bool CX2BuffFinalizerTemplet::SetFactorFromPacketTemplateMothod( const KBuffFact
 	@brief : 타격카운트가 유효범위를 벗어나면 m_iCountToBeFinished를 재설정 한다.
 	@param : 버프에 걸린 유닛(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2BuffHitCountFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffHitCountFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	/// 이번 프레임에 타격한 수만큼을 카운트에서 제한다.
 	if ( m_bStart && MAX_COUNT <= m_iCountToBeFinished )
@@ -481,7 +502,12 @@ UINT CX2BuffHitCountFinalizerTemplet::GetNewCount( const KBuffFinalizerFactor* p
 	@brief : 피격카운트가 유효범위를 벗어나면 m_iCountToBeFinished를 재설정 한다.
 	@param : 버프에 걸린 유닛(pGameUnit_)
 */
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2BuffHittedCountFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffHittedCountFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	/// 이번 프레임에 타격한 수만큼을 카운트에서 제한다.
 	if ( m_bStart && MAX_COUNT <= m_iCountToBeFinished )
@@ -709,18 +735,27 @@ UINT CX2BuffHittedCountFinalizerTemplet::GetNewCount( const KBuffFinalizerFactor
 	@brief : 변경된 HP가 이전 프레임의 HP보다 작으면 버프가 유지될 수 있는 데미지를 감소 시킴
 	@param : 버프에 걸린 유닛(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffDamageValueFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffDamageValueFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( m_bStart )
 	{
 		ModifyDamageValue( pGameUnit_ );
+
 		const float fHpNowFrame = pGameUnit_->GetNowHp();
-	
+
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 이중으로 Damage Value 감소 시키는 문제 수정
 		/// kimhc // 이전 프레임의 Hp 가 더 크면 공격받은 것이라고 간주(한프레임에 타격을 받고 회복한다면?)
 		if ( fHpNowFrame < m_fNowHpOldFrame )
 			m_fDamageValue -= (m_fNowHpOldFrame - fHpNowFrame);
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 		m_fNowHpOldFrame = fHpNowFrame;	/// 프레임의 HP가 이전프레임의 HP가 됨
+
 	}	
 }
 
@@ -1309,7 +1344,11 @@ float CX2BuffPassMpFinalizerTemplet::GetCriterionByPercent( CX2GameUnit* pGameUn
 	@param : 버프에 걸린 유닛의 포인터(pGameUnit_)
 	@return : 
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffLiveCreatorFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffLiveCreatorFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if( null == m_optrCreatorUnit || 0.f >= m_optrCreatorUnit->GetNowHp() )		/// 시전자가 죽거나 없는지 검사
 		m_bIsLiveCreator = false;
@@ -1549,7 +1588,11 @@ float CX2BuffPassMpFinalizerTemplet::GetCriterionByPercent( CX2GameUnit* pGameUn
 	@brief : 매 프레임 확인
 	@return : 
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffFinishHyperFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffFinishHyperFinalizerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( NULL != pGameUnit_ )
 	{
@@ -1631,7 +1674,7 @@ float CX2BuffPassMpFinalizerTemplet::GetCriterionByPercent( CX2GameUnit* pGameUn
 	@param : 읽어들이고 있는 루아스크립트의 루아매니저(luaManager_), 파싱성공한 FinalizerTempletPtr을 담을 vector(vecBuffFinalizerTempletPtr_)
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
-bool CX2BuffFinishRidingPetOnOrNotFinalizerTemplet::ParsingFinalizerTemplateMethod( KLuaManager& luaManager_, const WCHAR* pwszTableName_ )
+bool CX2BuffFinishRidingPetOnOrNotFinalizerTemplet::ParsingFinalizerTemplateMethod( KLuaManager& luaManager_, const char* pszTableName_ )
 {
 	LUA_GET_VALUE_RETURN( luaManager_, "FINISH_WHEN_RIDING_ON", m_bFinishRidingOn, false, 
 		return DISPLAY_ERROR( L"FINISH_WHEN_RIDING_ON" ) );

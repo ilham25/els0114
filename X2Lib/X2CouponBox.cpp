@@ -2,7 +2,7 @@
 #include ".\x2couponbox.h"
 
 
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 CX2CouponBox::CX2CouponBox( CKTDXStage* pNowState ) :
 CX2ItemSlotManager( pNowState, NULL ),
 m_bOpen( false ),
@@ -151,9 +151,8 @@ bool CX2CouponBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				wstring wstrCouponNumber = L"";
 				WCHAR wszControlName[64] = L"";
 				bool bOK = false;
-				
 
-#if defined (SERV_COUNTRY_TWHK) || defined (SERV_COUNTRY_CN) || defined (SERV_COUNTRY_ID)
+#if defined (SERV_COUNTRY_TWHK) || defined (SERV_COUNTRY_CN) || defined (SERV_COUNTRY_ID) || defined(SERV_COUNTRY_TH) || defined (SERV_COUNTRY_IN)
 				int iMaxCouponSize = 1;	
 #elif defined (SERV_COUNTRY_US)
 				int iMaxCouponSize = 4;	
@@ -167,8 +166,6 @@ bool CX2CouponBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				Not Configure Coupon	// 없는 국가는 넣으세요. 아래 코드 문제 없는지 검증 하시고요
 #endif //SERV_COUNTRY_XX
 
-
-
 #if defined (SERV_GLOBAL_BILLING)
 				for( int i=0; i<iMaxCouponSize; i++ )
 				{
@@ -178,9 +175,9 @@ bool CX2CouponBox::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					wstrCouponNumber += pEditBox->GetText();
 				
 				}
-#else	//
+#else
 				Not Configure Coupon
-#endif // SERV_GLOBAL_BILLING
+#endif //defined (SERV_GLOBAL_BILLING)
 
 				if ( wstrCouponNumber.size() > 0 )
 					Handler_EGS_APPLY_COUPON_REQ( wstrCouponNumber.c_str() );
@@ -298,7 +295,7 @@ bool CX2CouponBox::Handler_EGS_GET_PURCHASED_CASH_ITEM_ACK( HWND hWnd, UINT uMsg
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 			Handler_EGS_PURCHASED_CASH_ITEM_LIST_REQ( m_iNowPageIndex, s_nItemPerPage );
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 		
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_109 ), (CKTDXStage*) m_pNowState );
 
@@ -332,17 +329,14 @@ bool CX2CouponBox::Handler_EGS_APPLY_COUPON_ACK( HWND hWnd, UINT uMsg, WPARAM wP
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 #ifdef SERV_GLOBAL_BILLING
-			
 			g_pData->GetCashShop()->Handler_EGS_BILL_INVENTORY_INQUIRY_REQ(1, CASH_SHOP_DEPOSIT_SLOT_NUM);
 
 			// 캐시 갱신
 			CX2State* pNowState = (CX2State*)g_pMain->GetNowState();
 			pNowState->Handler_EGS_CHECK_BALANCE_REQ();	
-
 #else // SERV_GLOBAL_BILLING
 			Handler_EGS_PURCHASED_CASH_ITEM_LIST_REQ( m_iNowPageIndex, s_nItemPerPage );
 #endif // SERV_GLOBAL_BILLING
-
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_110 ), (CKTDXStage*) m_pNowState );
 
 			return true;
@@ -551,4 +545,5 @@ bool CX2CouponBox::GetCheckOperationCondition()
 	return true;
 }
 #endif // COUPON_SYSTEM
+
 

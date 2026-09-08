@@ -168,7 +168,7 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 	}
 
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-700, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-700, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), true );
 
 	//GetServerSetDataReq();
@@ -181,7 +181,7 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 
 	// fix!! 이 부분 수정해야 합니다. 기존에는 GetMyuser가 NULL되는 경우가 없었으나, 신마을 클라이언트에서는 최초 접속시 getmyuser가 NULL이 됩니다.
 	if( NULL != g_pData->GetMyUser() &&
-		false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser ) // 체험 아이디 제한
+		false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 	{
 		if( g_pMain->GetNexonLoginMessenger() == true && g_pMain->GetNexonVirtualLogin() == true )
 		{
@@ -233,7 +233,7 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGUnitSelectFront );	
 	
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-700, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-700, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(),
 		g_pKTDXApp->GetDGManager()->GetFar(), true );
 
@@ -241,7 +241,7 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 
 	if( NULL != g_pData->GetMyUser() )
 	{
-		m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData()->maxUnitCount;
+		m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData().maxUnitCount;
 
 		m_NowPage		= 1;
 		const int SLOT_COUNT_FOR_CREATE_UNIT = 1;
@@ -326,7 +326,10 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 	//{{ kimhc // 2009-12-15 // 이전에 플레이했던 채널 서버군
 #ifdef	ADD_SERVER_GROUP
 	if ( g_pInstanceData->GetServerGroupID() == SGI_INVALID )
-		OpenScriptServerGroupFile();
+    {
+		//OpenScriptServerGroupFile();
+        g_pInstanceData->OpenScriptServerGroupFile();
+    }
 
 	UpdateServerSelectButton( g_pInstanceData->GetServerGroupID() );
 	
@@ -339,13 +342,13 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 //	OpenGlobalURL( L"http://Elsword.nexon.com/Elsword/etc/gameinstall.aspx?Section=chceck5" );
 //#endif
 
-	//if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_DISAGREE_HACK_USER )
+	//if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_DISAGREE_HACK_USER )
 	//{
 	//	m_pDLGCheckHack = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), 
 	//	L"회사가 제공하지 아니한 프로그램 등을 사용하는 경우, 회사는 해당 프로그램 등의 정보를 수집할 수 있으며 회원은 약관 및 운영정책에 따라 서비스 이용이 제한될 수 있습니다. 동의 하시겠습니까?", 
 	//	SSSUCM_HACK_USER_PROCESS_CHECK_OK, this, SSSUCM_HACK_USER_PROCESS_CHECK_CANCEL );
 	//}
-	//else if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+	//else if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 	//{
 	//	g_pMain->UpdateProcessList();
 	//	g_pMain->SendHackMail();
@@ -566,10 +569,10 @@ HRESULT CX2StateBeginning::OnFrameMove( double fTime, float fElapsedTime )
 		UnitButtonUp( pUnit );
 
 
-		Handler_EGS_SELECT_UNIT_REQ( pUnit->GetUID(), pUnit->GetUnitData()->m_Level );
+		Handler_EGS_SELECT_UNIT_REQ( pUnit->GetUID(), pUnit->GetUnitData().m_Level );
 	}
 
-	//	g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( fElapsedTime );
+	//	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( fElapsedTime );
 
 
 
@@ -768,11 +771,11 @@ void CX2StateBeginning::OnFrameMove_GameServerConnect( double fTime, float fElap
 					ErrorLogMsg( XEM_ERROR89, L"PortCheckFail" );
 
 					KXPT_PORT_CHECK_ACK kXPT_PORT_CHECK_ACK;
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                     kXPT_PORT_CHECK_ACK.m_IPAddress	= g_pData->GetGameUDP()->GetMyIPAddress();
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-					kXPT_PORT_CHECK_ACK.m_IP	= g_pData->GetGameUDP()->GetMyIP();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//					kXPT_PORT_CHECK_ACK.m_IP	= g_pData->GetGameUDP()->GetMyIP();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 					kXPT_PORT_CHECK_ACK.m_Port	= g_pData->GetGameUDP()->GetMyPort();
 					Handler_KXPT_PORT_CHECK_ACK( kXPT_PORT_CHECK_ACK );
 				}				
@@ -844,7 +847,7 @@ bool CX2StateBeginning::EnterTutorial()
 	if( NULL != m_pSelectUnit )
 	{
 		m_bReserveEnterTutorial = true;
-		Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData()->m_Level );	
+		Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData().m_Level );	
 #ifdef ELSWORD_NEW_BEGINNING
 		SAFE_DELETE(g_pBeginningGame);
 #endif ELSWORD_NEW_BEGINNING
@@ -931,7 +934,12 @@ bool CX2StateBeginning::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				g_pBeginningGame->SetEnableCreateUnit(true);
 				g_pBeginningGame->PlayWorldCamera(3);
 #else
+
+#ifdef REFORM_ENTRY_POINT
+				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_701 ), L"DLG_UI_Selection_MessageBox_No_Button.lua", L"UI_PopUp_Positive_01.ogg"  );
+#else  // REFORM_ENTRY_POINT
 				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_701 ) );
+#endif // REFORM_ENTRY_POINT
 				g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_CREATE_UNIT, NULL, false );
 #endif ELSWORD_NEW_BEGINNING
 			}
@@ -953,7 +961,7 @@ bool CX2StateBeginning::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				if( NULL != m_pSelectUnit )
 				{
 					m_bReserveEnterTutorial = false;
-					Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData()->m_Level );
+					Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData().m_Level );
 				}
 				return true;
 			}
@@ -983,7 +991,7 @@ bool CX2StateBeginning::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				m_pDLGDeleteUnitCheck = NULL;
 				
 #ifdef REMOVE_USER_ONLY_IF_REMOVED_NM_VIRTUAL_USER
-				if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+				if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 				{
 					return Handler_EGS_DELETE_UNIT_REQ();
 				}
@@ -1125,7 +1133,7 @@ bool CX2StateBeginning::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 				CX2StateAutoChanger::TARGET_DETAIL targetDetail;
 				targetDetail.m_iChannelID = (int) 104; // fix!!! 채널번호 일단 하드코딩
-				targetDetail.m_iDungeonID = (int) CX2Dungeon::DI_EL_FOREST_GATE_NORMAL;
+				targetDetail.m_iDungeonID = (int) SEnum::DI_EL_FOREST_GATE_NORMAL;
 				targetDetail.m_iRoomUID = -1;
 
 				g_pMain->GetStateAutoChanger().StartStateChange( (int)g_pMain->GetNowStateID(), CX2Main::XS_DUNGEON_GAME, targetDetail, m_pSelectUnit->GetUID() );
@@ -1348,7 +1356,6 @@ bool CX2StateBeginning::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			}
 			break;
 #endif DISABLE_DISAGREE_HACK_USER
-
 		case SSSUCM_SERVER_SELECT_EXIT:
 			{
 				CX2State::QuitGame();
@@ -1594,22 +1601,7 @@ void CX2StateBeginning::CreateUnitButton()
 
 		CKTDGUIStatic* pStaticEmblem = (CKTDGUIStatic*)pUnitSlot->GetControl( L"UnitEmblem" );
 		pStaticEmblem->GetPicture(0)->SetShow( true );
-		//{{ Author: Iruha
-		// Date: 2026-09-05
-		// Description: Offline mode - phase 16. GetPVPEmblem() returns a
-		// CX2PVPEmblem::PVP_EMBLEM rating bucket (0, 251, 551, ...), but under
-		// PVP_SEASON2 GetPVPEmblemData() is keyed by PVP_RANK (0-9), so this call
-		// was passing a rating value into a rank lookup - for m_iRating in
-		// [0,251) that bucket is PE_RANK_E, numerically 0, which collides with
-		// PVPRANK_NONE and finds nothing in the map PVPEmblem_Season2.lua built,
-		// leaving the picture with no texture (a black swatch). GetPvpRank()
-		// reads m_cRank directly, which is what that map is actually keyed on.
-#ifdef SERV_IRUHADEV_OFFLINE
-		CX2PVPEmblem::PVPEmblemData* pPVPEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pUnit->GetPvpRank() );
-#else
 		CX2PVPEmblem::PVPEmblemData* pPVPEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pUnit->GetPVPEmblem() );
-#endif SERV_IRUHADEV_OFFLINE
-		//}}
 		if ( pPVPEmblemData != NULL )
 		{
 			pStaticEmblem->GetPicture(0)->SetTex( pPVPEmblemData->m_TextureName.c_str(), pPVPEmblemData->m_TextureKey.c_str() );
@@ -1645,8 +1637,8 @@ void CX2StateBeginning::CreateUnitButton()
 
 		//{{ kimhc // 2010-01-06 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
-		if ( pUnit->GetInventory() != NULL )
-			pUnit->GetInventory()->RemovePCBangEquips();
+        if ( pUnit != NULL )
+		    pUnit->AccessInventory().RemovePCBangEquips();
 #endif	PC_BANG_WORK
 		//}} kimhc // 2010-01-06 // PC방 프리미엄 서비스
 
@@ -1748,8 +1740,8 @@ void CX2StateBeginning::CreateUnitButton()
 		
 
 		WCHAR buff[256] = {0,};
-		//wsprintf( buff, L"%d", (int)pUnit->GetUnitData()->m_Level );
-		StringCchPrintf( buff, 256, L"%d", (int)pUnit->GetUnitData()->m_Level );
+		//wsprintf( buff, L"%d", (int)pUnit->GetUnitData().m_Level );
+		StringCchPrintf( buff, 256, L"%d", (int)pUnit->GetUnitData().m_Level );
 		CKTDGUIStatic* pStaticLVNum = (CKTDGUIStatic*)pUnitSlot->GetControl( L"StaticUnitSelectStringLVNum" );
 		pStaticLVNum->GetString(0)->msg = buff;
 
@@ -1819,8 +1811,8 @@ void CX2StateBeginning::CreateUnitButton()
 		pStaticUnitInfo->GetString(1)->msg = L"콤보의제왕님";
 
 		WCHAR arLV[8] = {0,};
-		//wsprintf(arLV, 7, L"%d", pUnit->GetUnitData()->m_Level );
-		StringCchPrintf( buff, 8, L"%d", pUnit->GetUnitData()->m_Level );
+		//wsprintf(arLV, 7, L"%d", pUnit->GetUnitData().m_Level );
+		StringCchPrintf( buff, 8, L"%d", pUnit->GetUnitData().m_Level );
 		pStaticUnitInfo->GetString(2)->msg = arLV;
 		*/
 		//		buttonPos.x -= 12;
@@ -1934,7 +1926,7 @@ void CX2StateBeginning::UnitButtonUp( CX2Unit* pUnit )
 	if ( m_pSelectUnit == pUnit )
 	{
 		m_bReserveEnterTutorial = false;
-		Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData()->m_Level );
+		Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData().m_Level );
 		return;
 	}
 
@@ -2091,7 +2083,7 @@ void CX2StateBeginning::UnitButtonUp( CX2Unit* pUnit )
 bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_REQ( UidType unitUID, int iUnitLevel )
 {
 	// 체험 아이디 제한 
-	if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser &&
+	if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser &&
 		iUnitLevel >= 20 )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
@@ -2200,12 +2192,12 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 		//}} 허상형 : [2009/10/14] //	자동 결제 부활석
 
 		// skill list
-		pUnit->GetUnitData()->m_UserSkillTree.SetUnitClass( (int) kEvent.m_kUnitInfo.m_cUnitClass );
-		pUnit->GetUnitData()->m_UserSkillTree.SetAcquiredSkill( kEvent.m_vecSkillAcquired );
-		pUnit->GetUnitData()->m_UserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
-		pUnit->GetUnitData()->m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
-		pUnit->GetUnitData()->m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
-		pUnit->GetUnitData()->m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
+		pUnit->AccessUnitData().m_UserSkillTree.SetUnitClass( (int) kEvent.m_kUnitInfo.m_cUnitClass );
+		pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredSkill( kEvent.m_vecSkillAcquired );
+		pUnit->AccessUnitData().m_UserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
+		pUnit->AccessUnitData().m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
+		pUnit->AccessUnitData().m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
+		pUnit->AccessUnitData().m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
 
 
 		if( g_pData->GetUIManager() != NULL)
@@ -2219,18 +2211,18 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 		// 임시: 서버에게서 GuildUserSkillTree 정보를 받았다 가정
 /*
 		// skill list
-		pUnit->GetUnitData()->m_UserSkillTree.SetGuildClass(0);
-		pUnit->GetUnitData()->m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_vecSkillAcquired ); // 함수 임시 변경
+		pUnit->AccessUnitData().m_UserSkillTree.SetGuildClass(0);
+		pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_vecSkillAcquired ); // 함수 임시 변경
 */		
 		
-		//pUnit->GetUnitData()->m_GuildUserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
+		//pUnit->AccessUnitData().m_GuildUserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
 
 
 		// 함수 임시 변경
-		//pUnit->GetUnitData()->m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
+		//pUnit->AccessUnitData().m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
 
-		//pUnit->GetUnitData()->m_GuildUserSkillTree.SetSkillSlotBExpirationState( (CX2GuildUserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
-		//pUnit->GetUnitData()->m_GuildUserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
+		//pUnit->AccessUnitData().m_GuildUserSkillTree.SetSkillSlotBExpirationState( (CX2GuildUserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
+		//pUnit->AccessUnitData().m_GuildUserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
 
 /*
 		if( g_pData->GetGuildManager()->GetUIGuild()->GetUIGuildSkillTree() != NULL)
@@ -2244,25 +2236,25 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 
 #ifdef SERV_SKILL_NOTE		
 		pUnit->SetSkillNote( kEvent.m_mapSkillNote, kEvent.m_cSkillNoteMaxPageNum );
-		pUnit->GetUnitData()->m_UserSkillTree.SetEqipSkillMemo( kEvent.m_kUnitInfo.m_UnitSkillData.m_vecSkillNote );
+		pUnit->AccessUnitData().m_UserSkillTree.SetEqipSkillMemo( kEvent.m_kUnitInfo.m_UnitSkillData.m_vecSkillNote );
 #endif
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 #ifdef SERV_TITLE_DATA_SIZE
-		pUnit->GetUnitData()->m_iTitleId = kEvent.m_kUnitInfo.m_iTitleID;
+		pUnit->AccessUnitData().m_iTitleId = kEvent.m_kUnitInfo.m_iTitleID;
 #else
-		pUnit->GetUnitData()->m_iTitleId = kEvent.m_kUnitInfo.m_sTitleID;
+		pUnit->AccessUnitData().m_iTitleId = kEvent.m_kUnitInfo.m_sTitleID;
 #endif
 
 		if(g_pData != NULL && g_pData->GetTitleManager() != NULL)
 		{
 			g_pData->GetTitleManager()->InitRecord();
-			g_pData->GetTitleManager()->AttachTitle(pUnit->GetUnitData()->m_iTitleId);
+			g_pData->GetTitleManager()->AttachTitle(pUnit->GetUnitData().m_iTitleId);
 
 			g_pData->GetTitleManager()->TakeTitle(kEvent.m_vecTitle);     
 			g_pData->GetTitleManager()->UpdateMission(kEvent.m_vecMission);
 		}                
-#endif
+//#endif
 
 #ifdef SERV_PET_SYSTEM
 
@@ -2290,7 +2282,7 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 			int iInvenSlotSize = g_pData->GetPetManager()->GetPetInventorySlotSize((CX2PetManager::PET_UNIT_ID) kPetInfo.m_cPetID, EvolutionStep);
 #endif //SERV_PETID_DATA_TYPE_CHANGE
 
-			pUnit->GetInventory()->SetItemMaxNum(CX2Inventory::ST_PET, iInvenSlotSize);
+			pUnit->AccessInventory().SetItemMaxNum(CX2Inventory::ST_PET, iInvenSlotSize);
 		
 		
 
@@ -2305,21 +2297,21 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 #endif
 
 
-		g_pMain->GetGameOption()->SetDenyInviteGuild( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyInviteGuild );				
-		g_pMain->GetGameOption()->SetDenyPersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
-		g_pMain->GetGameOption()->SetDenyFriendship( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
-		g_pMain->GetGameOption()->SetDenyParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
+		g_pMain->GetGameOption().SetDenyInviteGuild( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyInviteGuild );				
+		g_pMain->GetGameOption().SetDenyPersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
+		g_pMain->GetGameOption().SetDenyFriendship( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
+		g_pMain->GetGameOption().SetDenyParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
 
-		g_pMain->GetGameOption()->SetRefuseParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
-		g_pMain->GetGameOption()->SetRefuseFriend( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
-		g_pMain->GetGameOption()->SetRefusePersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
+		g_pMain->GetGameOption().SetRefuseParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
+		g_pMain->GetGameOption().SetRefuseFriend( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
+		g_pMain->GetGameOption().SetRefusePersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
 		//{{ kimhc // 2009-10-12 // 길드 초대 거부 추가
 #ifdef	GUILD_MANAGEMENT
-		g_pMain->GetGameOption()->SetRefuseGuildInvitation( static_cast< CX2GameOption::BlackListDenyState >( kEvent.m_kDenyOptions.m_cDenyInviteGuild ) );
+		g_pMain->GetGameOption().SetRefuseGuildInvitation( static_cast< CX2GameOption::BlackListDenyState >( kEvent.m_kDenyOptions.m_cDenyInviteGuild ) );
 #endif	GUILD_MANAGEMENT
 		//}} kimhc // 2009-10-12 // 길드 초대 거부 추가
 		
-		//g_pMain->GetGameOption()->SetBlackList( kEvent.m_mapBlackList );
+		//g_pMain->GetGameOption().SetBlackList( kEvent.m_mapBlackList );
 		
 
 
@@ -2332,16 +2324,16 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 			switch( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID )
 			{
 			case -1:
-			case CX2Dungeon::DI_NONE:
-			case CX2Dungeon::DI_EL_FOREST_GATE_NORMAL:
+			case SEnum::DI_NONE:
+			case SEnum::DI_EL_FOREST_GATE_NORMAL:
 				//{{ kimhc // 2010-07-09 // 루벤던전 개편으로 추가
-			case CX2Dungeon::DI_EL_FOREST_NORTH_NORMAL:
-			case CX2Dungeon::DI_EL_FOREST_WEST_NORMAL:
-			case CX2Dungeon::DI_EL_FOREST_HELL_NORMAL:
-			case CX2Dungeon::DI_RUBEN_SECRET_COMMON:
+			case SEnum::DI_EL_FOREST_NORTH_NORMAL:
+			case SEnum::DI_EL_FOREST_WEST_NORMAL:
+			case SEnum::DI_EL_FOREST_HELL_NORMAL:
+			case SEnum::DI_RUBEN_SECRET_COMMON:
 				//}} kimc	// 2010-07-09 // 루벤던전 개편으로 추가
 				{
-					g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID = CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL;
+					g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID = SEnum::DI_RUBEN_EL_TREE_NORMAL;
 				} break;
 			}
 
@@ -2386,7 +2378,7 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 #endif	SERV_EPIC_QUEST
 
 		g_pMain->GetInformerManager()->Reset();
-		g_pMain->GetLVUpEventMgr()->Reset( pUnit->GetUnitData()->m_Level );
+		g_pMain->GetLVUpEventMgr()->Reset( pUnit->GetUnitData().m_Level );
 
 		if ( g_pData->GetCashShop() != NULL )
 			g_pData->GetCashShop()->ResetUnitViewer( pUnit );
@@ -2405,12 +2397,12 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 				case CX2Main::XP_NEXON_KOREA:
 					{
 #ifdef _USE_NEXON_MSG_INHOUSE // 접속할 캐릭터의 serialnum을 하드코딩시켜준후 넥슨로그인한다.
-						pUnit->GetUnitData()->m_iNMKSerialNum = 52890;	// "지끄무" 캐릭터
-						//pUnit->GetUnitData()->m_iNMKSerialNum = 3712941;	// "피똥싼이브" 캐릭터
-						//pUnit->GetUnitData()->m_iNMKSerialNum = 1928754;	// "툩" 캐릭터
+						pUnit->AccessUnitData().m_iNMKSerialNum = 52890;	// "지끄무" 캐릭터
+						//pUnit->AccessUnitData().m_iNMKSerialNum = 3712941;	// "피똥싼이브" 캐릭터
+						//pUnit->AccessUnitData().m_iNMKSerialNum = 1928754;	// "툩" 캐릭터
 #endif
 
-						if( CNMCOClientObject::GetInstance().LoginVirtual( tempNickName.c_str(), (_UInt32_)pUnit->GetUnitData()->m_iNMKSerialNum, GET_STRING( STR_ID_0 ) ) == FALSE )						
+						if( CNMCOClientObject::GetInstance().LoginVirtual( tempNickName.c_str(), (_UInt32_)pUnit->GetUnitData().m_iNMKSerialNum, GET_STRING( STR_ID_0 ) ) == FALSE )						
 						{
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_710 ), g_pMain->GetNowState() );
 						}
@@ -2419,7 +2411,7 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 							g_pMain->SetNexonVirtualLogin( true );							
 						}
 
-						CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)pUnit->GetUnitData()->m_UnitClass << 24 ) | (UINT32)pUnit->GetUnitData()->m_Level );
+						CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)pUnit->GetUnitData().m_UnitClass << 24 ) | (UINT32)pUnit->GetUnitData().m_Level );
 
 
 
@@ -2430,9 +2422,9 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 
 							NMVirtualKey nmVirtualKey;
 							nmVirtualKey.uGameCode		= NEXON_KOREA_ELSWORD_GAMECODE;
-							nmVirtualKey.uVirtualIDCode = (UINT32) pUnit->GetUnitData()->m_iNMKSerialNum;
+							nmVirtualKey.uVirtualIDCode = (UINT32) pUnit->GetUnitData().m_iNMKSerialNum;
 
-							if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser ) // 체험 아이디 제한
+							if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 							{
 								if ( CNMCOClientObject::GetInstance().ChangeNickname( nmVirtualKey, tempNickName.c_str() ) == FALSE )
 								{
@@ -2459,14 +2451,14 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 #else	PC_BANG_WORK
 		
 		// 체험 아이디 제한 
-		if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser &&
+		if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser &&
 			kEvent.m_bIsRecommend == false && m_bCheckRecommend == true )
 		{
 			OpenRecommendMsgBox( true );
 		}
 		else
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_PartyTalkBoxInfo.m_iPartyUID = 0;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_PartyTalkBoxInfo.m_iPartyUID = 0;
 
 			if(g_pMain->GetIsPlayingTutorial() == true)
 			{
@@ -2528,7 +2520,11 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WPARA
 		{
 			g_pInstanceData->SetShowCSPandSlotBDate( true );
 #ifdef SERV_HACKING_TOOL_LIST
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+            g_pInstanceData->ReSetHackList_MainThread();
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 			g_pInstanceData->SetChangeHackList(true);
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 #endif
 		}
 
@@ -2798,9 +2794,9 @@ bool CX2StateBeginning::Handler_EGS_SELECT_UNIT_INVENTORY_INFO_NOT( HWND hWnd, U
 
 	CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 
-	if ( pMyUnit != NULL && pMyUnit->GetInventory() != NULL )
+	if ( pMyUnit != NULL )
 	{
-		pMyUnit->GetInventory()->ResetItems( kEvent.m_mapItem );
+		pMyUnit->AccessInventory().ResetItems( kEvent.m_mapItem );
 		return true;
 	}
 
@@ -2829,7 +2825,7 @@ bool CX2StateBeginning::Handler_EGS_GET_MY_INVENTORY_ACK( HWND hWnd, UINT uMsg, 
 		g_pData->Set_ShowRecommendUI( !kEvent.m_bIsRecommend );
 #endif //SERV_RECOMMEND_LIST_EVENT		
 		// 체험 아이디 제한 
-		if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser &&
+		if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser &&
 			kEvent.m_bIsRecommend == false && m_bCheckRecommend == true )
 
 		{
@@ -2837,7 +2833,7 @@ bool CX2StateBeginning::Handler_EGS_GET_MY_INVENTORY_ACK( HWND hWnd, UINT uMsg, 
 		}
 		else
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_PartyTalkBoxInfo.m_iPartyUID = 0;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_PartyTalkBoxInfo.m_iPartyUID = 0;
 
 			if(g_pMain->GetIsPlayingTutorial() == true)
 			{
@@ -3145,7 +3141,7 @@ bool CX2StateBeginning::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK( HWND hW
 
 			g_pData->GetMyUser()->DeleteAllUnit();
 
-			g_pData->GetMyUser()->GetUserData()->maxUnitCount = kEvent.m_nUnitSlot; //생성가능 유닛 슬롯?
+			g_pData->GetMyUser()->AccessUserData().maxUnitCount = kEvent.m_nUnitSlot; //생성가능 유닛 슬롯?
 
 			m_MaxUnitNum	= kEvent.m_nUnitSlot;
 
@@ -3159,11 +3155,11 @@ bool CX2StateBeginning::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK( HWND hW
 
 				pUnit->SetOwnerUserUID( g_pData->GetMyUser()->GetUID() );
 				wstring nickNameToChange = L"__DELETED__";
-				if ( nickNameToChange == pUnit->GetUnitData()->m_NickName )
+				if ( nickNameToChange == pUnit->GetUnitData().m_NickName )
 				{
 					wstringstream tempNickName;
 					tempNickName << nickNameToChange.c_str() << i;
-					pUnit->GetUnitData()->m_NickName = tempNickName.str().c_str();
+					pUnit->AccessUnitData().m_NickName = tempNickName.str().c_str();
 				}
 				g_pData->GetMyUser()->AddUnit( pUnit );
 			}
@@ -3230,7 +3226,7 @@ bool CX2StateBeginning::Handler_EGS_AGREE_HACK_USER_ACK( HWND hWnd, UINT uMsg, W
 #ifndef PROCESSLIST
 			g_pMain->UpdateProcessList();
 #endif
-			g_pData->GetMyUser()->GetUserData()->hackingUserType = (CX2User::HACKING_USER_TYPE)kEvent.m_cHackingUserType;
+			g_pData->GetMyUser()->AccessUserData().hackingUserType = (CX2User::HACKING_USER_TYPE)kEvent.m_cHackingUserType;
 			SAFE_DELETE_DIALOG( m_pDLGCheckHack );
 		}
 		else
@@ -3857,7 +3853,7 @@ bool CX2StateBeginning::Handler_EGS_STATE_CHANGE_FIELD_REQ(bool bForceMove)
 
 	int iMapId = 0;
 	if(g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL)
-		iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_nMapID;
+		iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_nMapID;
 
 	if( g_pData->GetLocationManager()->GetVillageMapTemplet((SEnum::VILLAGE_MAP_ID)iMapId) == NULL || 
 		bForceMove == true )
@@ -3869,7 +3865,7 @@ bool CX2StateBeginning::Handler_EGS_STATE_CHANGE_FIELD_REQ(bool bForceMove)
 	}	
 	else
 	{
-		if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP <= 0 )
+		if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP <= 0 )
 		{
 			// 초기진입으로 본다.
 
@@ -3893,10 +3889,10 @@ bool CX2StateBeginning::Handler_EGS_STATE_CHANGE_FIELD_REQ(bool bForceMove)
 					CKTDGLineMap* pLineMap = pWorld->GetLineMap();
 					if( NULL != pLineMap )
 					{
-						CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ucLastTouchLineIndex );
+						const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ucLastTouchLineIndex );
 						if( NULL != pLineData )
 						{
-							float fLastPosValue = halfToFloat( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_usLastPosValue );
+							float fLastPosValue = halfToFloat( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_usLastPosValue );
 							if( fLastPosValue < 0.f )
 								fLastPosValue = 0.f;
 							if( fLastPosValue > 1.f )
@@ -3948,7 +3944,11 @@ bool CX2StateBeginning::Handler_EGS_STATE_CHANGE_FIELD_ACK( HWND hWnd, UINT uMsg
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
+#ifdef REFORM_ENTRY_POINT
+			g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_541 ), L"DLG_UI_Selection_MessageBox_No_Button.lua" );
+#else //REFORM_ENTRY_POINT
 			g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_541 ) );			
+#endif //REFORM_ENTRY_POINT
 
 			bool bCanCreateWorld = true;
 			CX2World::WORLD_ID	m_iWorldId;
@@ -4046,32 +4046,32 @@ void CX2StateBeginning::Handler_EGS_CREATE_TUTORIAL_ROOM_REQ()
 	default:
 	case CX2Unit::UT_ELSWORD:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_ELSWORD;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_TUTORIAL_ELSWORD;
 		} break;
 
 	case CX2Unit::UT_ARME:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_ARME;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_TUTORIAL_ARME;
 		} break;
 
 	case CX2Unit::UT_LIRE:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_LIRE;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_TUTORIAL_LIRE;
 		} break;
 
 	case CX2Unit::UT_RAVEN:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_RAVEN;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_TUTORIAL_RAVEN;
 		} break;
 
 	case CX2Unit::UT_EVE:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_EVE;		
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_TUTORIAL_EVE;		
 		} break;
 #ifdef	NEW_CHARACTER_CHUNG
 	case CX2Unit::UT_CHUNG:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_CHUNG;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_TUTORIAL_CHUNG;
 		} break;
 #endif	NEW_CHARACTER_CHUNG
 
@@ -4097,7 +4097,7 @@ bool CX2StateBeginning::Handler_EGS_CREATE_TUTORIAL_ROOM_ACK( HWND hWnd, UINT uM
 			int startPos = 0;
 			int iMapId;			
 			if(g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL)
-				iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_nMapID;
+				iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_nMapID;
 
 			if(g_pData->GetLocationManager()->GetVillageMapTemplet((SEnum::VILLAGE_MAP_ID)iMapId) == NULL)
 			{
@@ -4134,10 +4134,10 @@ bool CX2StateBeginning::Handler_EGS_CREATE_TUTORIAL_ROOM_ACK( HWND hWnd, UINT uM
 			pCX2DungeonRoom->ConnectRelayServer( kEvent.m_RoomInfo.m_wstrUDPRelayIP.c_str(), kEvent.m_RoomInfo.m_usUDPRelayPort );
 			pCX2DungeonRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
            if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
                 g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_DUNGEON ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #endif // HEAP_BROKEN_BY_ROOM
 
@@ -4258,8 +4258,12 @@ bool CX2StateBeginning::Handler_EGS_CONNECT_REQ( const wstring& wstrGameServerIP
 			m_bSentEGS_CONNECT_REQ = true;
 
 			SAFE_DELETE_DIALOG( m_pDLGMsgBox );
-			m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_725 ), this );
 
+#ifdef REFORM_ENTRY_POINT
+			m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_725 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT
+			m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_725 ), this );
+#endif	// REFORM_ENTRY_POINT
 
 			g_pInstanceData->SetConnectChannelServerID( m_iTryConnectChannelID );
 			m_iTryConnectChannelID = -1;
@@ -4416,7 +4420,15 @@ bool CX2StateBeginning::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg, WP
 			wstringstream wstrstm;
 			wstrstm << GET_REPLACED_STRING( ( STR_ID_728, "L", kEvent.m_kAccountInfo.m_wstrID ) );
 			g_pMain->SetMailNameToFindHack( wstrstm.str().c_str() );
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+            {
+                std::string strID;
+                ConvertWCHARToChar( strID, kEvent.m_kAccountInfo.m_wstrID );
+                g_pMain->SetUserIdToFindHack_ThreadSafe( strID );
+            }
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 			g_pMain->SetUserIdToFindHack( kEvent.m_kAccountInfo.m_wstrID.c_str() );
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 
 #ifdef SERV_CLIENT_PUBLIC_IP
 			g_pMain->SetPublicIp( kEvent.m_wstrClientIP );
@@ -4426,28 +4438,27 @@ bool CX2StateBeginning::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg, WP
 				g_pMain->SetHackingUser(true);
 
 			m_bEGS_VERIFY_ACCOUNT_ACK = true;
-			CX2User::UserData* pUserData = new CX2User::UserData();
-			*pUserData = kEvent;
-			g_pData->ResetMyUser( pUserData );
+            {
+			    CX2User::UserData kUserData;
+			    kUserData = kEvent;
+			    g_pData->ResetMyUser( kUserData );
+            }
 
-
-
-
-			//m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData()->maxUnitCount;
+			//m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData().maxUnitCount;
 			//const int SLOT_COUNT_FOR_CREATE_UNIT = 1;
 			//m_MaxPage		= (g_pData->GetMyUser()->GetUnitNum()+SLOT_COUNT_FOR_CREATE_UNIT+UNIT_SELECT_UI_MAX_UNIT_NUM-1) / UNIT_SELECT_UI_MAX_UNIT_NUM;
 
 
 
 #ifndef DISABLE_DISAGREE_HACK_USER
-			if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_DISAGREE_HACK_USER )
+			if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_DISAGREE_HACK_USER )
 			{
 				m_pDLGCheckHack = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), 
 					GET_STRING( STR_ID_729 ), 
 					SSSUCM_HACK_USER_PROCESS_CHECK_OK, this, SSSUCM_HACK_USER_PROCESS_CHECK_CANCEL );
 			}
 //#if 0	// 핵 의심유저라면 접속시 무조건 메일을 날리므로 제거
-			else if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+			else if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 			{
 #ifndef PROCESSLIST
 				g_pMain->UpdateProcessList();
@@ -4459,7 +4470,7 @@ bool CX2StateBeginning::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg, WP
 
 
 
-			g_pMain->GetGameOption()->SetPlayGuide( kEvent.m_kAccountInfo.m_kAccountOption.m_bPlayGuide, false );
+			g_pMain->GetGameOption().SetPlayGuide( kEvent.m_kAccountInfo.m_kAccountOption.m_bPlayGuide, false );
 
 #ifndef OPEN_TEST_1_NO_MESSENGER_CASHSHOP
 #ifndef NEW_MESSENGER
@@ -4612,33 +4623,33 @@ bool CX2StateBeginning::Handler_KXPT_PORT_CHECK_REQ()
 	KXPT_PORT_CHECK_REQ kXPT_PORT_CHECK_REQ;
 	kXPT_PORT_CHECK_REQ.m_UserUID = g_pData->GetMyUser()->GetUID();
 //#ifdef SERV_KTDX_RETRY_USING_INTERNAL_IP
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     kXPT_PORT_CHECK_REQ.m_InternalIPAddress = g_pData->GetGameUDP()->GetMyIPAddress();
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	kXPT_PORT_CHECK_REQ.m_wstrInternalIP = g_pData->GetGameUDP()->GetMyIP();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	kXPT_PORT_CHECK_REQ.m_wstrInternalIP = g_pData->GetGameUDP()->GetMyIP();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	kXPT_PORT_CHECK_REQ.m_usInternalPort = g_pData->GetGameUDP()->GetMyPort();
 //#endif SERV_KTDX_RETRY_USING_INTERNAL_IP
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     return g_pData->GetGameUDP()->SendToIP( CKTDNUDP::ConvertIPToAddress( g_pMain->GetConnectedGameServerIP() ), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, 
         &kXPT_PORT_CHECK_REQ, sizeof(kXPT_PORT_CHECK_REQ) );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	KSerBuffer buff;
-	Serialize( &buff, &kXPT_PORT_CHECK_REQ );
-	return g_pData->GetGameUDP()->Send( g_pMain->GetConnectedGameServerIP(), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, (char*)buff.GetData(), buff.GetLength() );
-	//return g_pData->GetGameUDP()->Send( g_pMain->GetServerIP(), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, (char*)buff.GetData(), buff.GetLength() );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	KSerBuffer buff;
+//	Serialize( &buff, &kXPT_PORT_CHECK_REQ );
+//	return g_pData->GetGameUDP()->Send( g_pMain->GetConnectedGameServerIP(), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, (char*)buff.GetData(), buff.GetLength() );
+//	//return g_pData->GetGameUDP()->Send( g_pMain->GetServerIP(), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, (char*)buff.GetData(), buff.GetLength() );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 }
 
 bool CX2StateBeginning::Handler_KXPT_PORT_CHECK_ACK( const KXPT_PORT_CHECK_ACK& kXPT_PORT_CHECK_ACK )
 {
 	dbg::clog << L"MY IP : " 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         << CKTDNUDP::ConvertAddressToIP( kXPT_PORT_CHECK_ACK.m_IPAddress )
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-        << kXPT_PORT_CHECK_ACK.m_IP.c_str() 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//        << kXPT_PORT_CHECK_ACK.m_IP.c_str() 
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         << dbg::endl;
 	dbg::clog << L"MY Port : " << g_pMain->GetGameP2PPort() << dbg::endl;
 	dbg::clog << L"MY Ext Port : " << kXPT_PORT_CHECK_ACK.m_Port << dbg::endl;
@@ -4961,9 +4972,9 @@ bool CX2StateBeginning::ConnectToChannelServer()
 		//{{ 09.08. 태완 : 서버-클라 접속시 패킷 변경.
 //#ifdef SERV_KOG_OTP_VERIFY
 		return Handler_ECH_VERIFY_ACCOUNT_REQ();
-// #else SERV_KOG_OTP_VERIFY
+// #else
 // 		return Handler_ECH_GET_CHANNEL_LIST_REQ();
-// #endif SERV_KOG_OTP_VERIFY
+// #endif
 		//}}
 	}
 	else
@@ -5119,63 +5130,63 @@ void CX2StateBeginning::UnitSelectExit()
 
 //{{ kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 읽기
 #ifdef	ADD_SERVER_GROUP
-bool CX2StateBeginning::OpenScriptServerGroupFile()
-{
-	string			strFileName;
-	SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
-	bool			bParsingOK		= false;
-
-	ConvertWCHARToChar( strFileName, g_pData->GetSavedServerGroupFileName() );
-
-	ConvertFileAnsiToUTF8( strFileName, strFileName );
-
-	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( g_pData->GetSavedServerGroupFileName() );
-	if( Info != NULL )
-	{
-		if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-		{
-			if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-			{
-				LUA_GET_VALUE_ENUM( luaManager, L"SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
-			}
-		}
-	}
-
-	switch ( eServerGroupID )
-	{
-	case SGI_SOLES:
-	case SGI_GAIA:
-		{
-			g_pInstanceData->SetServerGroupID( eServerGroupID );
-			bParsingOK = true;
-		}
-		break;
-
-	default:
-		{
-#ifdef RANDOM_SERVER
-			if( g_pMain->GetDefaultChannelServerIPIndex() == SGI_INVALID )
-			{
-				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( (rand() % 2) ) );
-			}
-			else
-			{
-				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
-			}
-#else
-			g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
-#endif
-		}
-		break;
-
-	}
-
-	return bParsingOK;
-
-}
+//bool CX2StateBeginning::OpenScriptServerGroupFile()
+//{
+//	string			strFileName;
+//	SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
+//	bool			bParsingOK		= false;
+//
+//	ConvertWCHARToChar( strFileName, g_pData->GetSavedServerGroupFileName() );
+//	ConvertFileAnsiToUTF8( strFileName, strFileName );
+//
+//	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
+//
+//	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
+//	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( g_pData->GetSavedServerGroupFileName() );
+//	if( Info != NULL )
+//	{
+//		if( true == g_pKTDXApp->LoadLuaTinker( g_pData->GetSavedServerGroupFileName().c_str(), false ) )
+//		{
+//			if( true == g_pKTDXApp->LoadAndDoMemory( &luaManager, g_pData->GetSavedServerGroupFileName().c_str(), false ) )
+//			{
+//				LUA_GET_VALUE_ENUM( luaManager, "SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
+//			}
+//		}
+//	}
+//#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+//
+//	switch ( eServerGroupID )
+//	{
+//	case SGI_SOLES:
+//	case SGI_GAIA:
+//		{
+//			g_pInstanceData->SetServerGroupID( eServerGroupID );
+//			bParsingOK = true;
+//		}
+//		break;
+//
+//	default:
+//		{
+//#ifdef RANDOM_SERVER
+//			if( g_pMain->GetDefaultChannelServerIPIndex() == SGI_INVALID )
+//			{
+//				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( (rand() % 2) ) );
+//			}
+//			else
+//			{
+//				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
+//			}
+//#else
+//			g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
+//#endif
+//		}
+//		break;
+//
+//	}
+//
+//	return bParsingOK;
+//
+//}
 
 void CX2StateBeginning::UpdateServerSelectButton( SERVER_GROUP_ID eID )
 {
@@ -5288,7 +5299,7 @@ void CX2StateBeginning::ReInitUnitSelect()
 /*
 	if( NULL != g_pData->GetMyUser() )
 	{
-		m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData()->maxUnitCount;
+		m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData().maxUnitCount;
 
 		m_NowPage		= 1;
 		const int SLOT_COUNT_FOR_CREATE_UNIT = 1;

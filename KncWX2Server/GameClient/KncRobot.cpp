@@ -1294,7 +1294,7 @@ IMPL_ON_ACTION_FUNC( A_CREATE_PARTY )
 	kPacket.m_bPublic = true;
 	kPacket.m_cGetItemType = CXSLRoom::DGIT_RANDOM;
 	kPacket.m_DifficultyLevel = 0;
-	kPacket.m_iDungeonID = CXSLDungeon::DI_EL_FOREST_WEST_NORMAL;
+	kPacket.m_iDungeonID = SEnum::DI_EL_FOREST_WEST_NORMAL;
 	kPacket.m_iPartyUID = 0;
 	kPacket.m_MaxSlot = 4;
 	kPacket.m_JoinSlot = 1;

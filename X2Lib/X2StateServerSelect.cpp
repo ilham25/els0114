@@ -2,11 +2,27 @@
 #ifndef ELSWORD_NEW_BEGINNING
 #include ".\x2stateserverselect.h"
 
-//{{ Iruha : 2026-08-31 // offline mode
-#ifdef SERV_IRUHADEV_OFFLINE
-#include "OfflineHook.h"
-#endif SERV_IRUHADEV_OFFLINE
-//}}
+bool CX2StateServerSelect::m_sbSelectedServerSet = false;
+#ifdef FIX_REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+bool CX2StateServerSelect::m_bCanNotConenctToBusyServer = false;		// 해당 서버로 재진입 할 수 없다는 메시지 박스를 띄울 것인가?
+#endif // FIX_REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
+#ifdef FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW		// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+bool CX2StateServerSelect::m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection = false;
+#endif // FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW	// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+#ifdef FIX_REFORM_ENTRY_POINT_CREATE_UNIT_UNLIMITED
+const int TODAY_CREATE_UNIT_MAX_NUMBER = 500;	// 하루에 생성 가능한 유닛 최대 숫자 ( 가이아, 솔레스 서버 모두 포함 )
+#else  // FIX_REFORM_ENTRY_POINT_CREATE_UNIT_UNLIMITED
+const int TODAY_CREATE_UNIT_MAX_NUMBER = 8;	// 하루에 생성 가능한 유닛 최대 숫자 ( 가이아, 솔레스 서버 모두 포함 )
+#endif // FIX_REFORM_ENTRY_POINT_CREATE_UNIT_UNLIMITED
+
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+const float MAX_WAITING_TIME_RECEIVE_CHARACTER_LIST = 5.f;
+#endif // FIX_REFORM_ENTRY_POINT_10TH	// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 #ifdef CLIENT_PURPLE_MODULE	// 임규수 일본 추가
 #include "OnlyGlobal/JP/Auth/PurpleForClient.h"
@@ -20,8 +36,6 @@ const int MAX_SERVERGROUP_SIZE = 5;
 #define UDP_REQUEST_MAX_COUNT 1 // 2013.05.10 lygan_조성욱 // X2State.cpp 에도 똑같은거 있으니 수정시 같이 수정해줘야 한다.
 #endif //CLIENT_PORT_CHANGE_REQUEST
 
-bool CX2StateServerSelect::m_sbSelectedServerSet = false;
-
 // dmlee 2009.03.11
 // 기존의 로그인 과정은 로그인 -> 게임서버 접속 -> 계정인증 -> 로딩 100% -> 마을 진입
 // 새로 바뀐 로그인 과정은 로그인 -> 로딩 100% -> 채널서버 접속 -> 게임서버선택 -> 게임서버접속 -> 계정인증 -> 마을
@@ -32,7 +46,13 @@ bool CX2StateServerSelect::m_sbSelectedServerSet = false;
 
 // 게임서버에 연결이 되면 채널서버 연결을 끊기 위한 REQ를 보낸다. 채널서버에 연결하기전에 게임서버 연결을 끊기 위한 REQ를 보낸다
 
-
+#ifdef FIX_REFORM_ENTRY_POINT_6TH		// kimjh, 채널 버튼 관련 소스 변경, 진입 구조를 한 곳에서 관리 할 수 있도록 수정
+float CHANNEL_CONGESTION_SCOPE_TEMP[] = {0.1f, 0.2f, 0.3f, 0.9f, };		
+// 각 버튼의 상태, 현재 유저 수 * CHANNEL_CONGESTION_SCOPE_TEMP[0] = 원할
+// 각 버튼의 상태, 현재 유저 수 * CHANNEL_CONGESTION_SCOPE_TEMP[1] = 보통
+// 각 버튼의 상태, 현재 유저 수 * CHANNEL_CONGESTION_SCOPE_TEMP[2] = 혼잡
+// 각 버튼의 상태, 현재 유저 수 * CHANNEL_CONGESTION_SCOPE_TEMP[3] = FULL
+#endif // FIX_REFORM_ENTRY_POINT_6TH	// kimjh, 채널 버튼 관련 소스 변경, 진입 구조를 한 곳에서 관리 할 수 있도록 수정
 
 CX2StateServerSelect::CX2StateServerSelect(void) :
 m_pDLGServerSelectBack(NULL),
@@ -85,9 +105,8 @@ m_pDLGServerGroupSelectBack(NULL),
 #endif SERVER_GROUP_UI_ADVANCED
 //{{ //2012.02.28 lygan_조성욱 // 버튼에 unitUID를 설정하여 캐릭터 삭제 할때 사용할 용도
 #ifdef SERV_UNIT_WAIT_DELETE
-m_pFinalDeleteUnitInfo( NULL ),
-m_pRestoreUnitInfo( NULL ),
-m_pBeforeSelectUnit( NULL ),
+m_iSelectUnitUID( 0 ),
+m_bMaintainNowUnitButton( false ),
 #endif SERV_UNIT_WAIT_DELETE
 //}}
 m_bReceivedChannelList( false ),
@@ -112,9 +131,7 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 #ifdef SERV_SECOND_SECURITY
 , m_bEnableUnitSelectBySecondSecurity( false )
 #endif SERV_SECOND_SECURITY
-#ifdef REFORM_UI_KEYPAD
 , m_bRecivedKeyMap( false )
-#endif
 #ifdef SERV_CHANGE_NEXON_AUTH_ATL_LEVEL
 , m_pDLGATLLimitCheckMsgBox (NULL)
 #endif //SERV_CHANGE_NEXON_AUTH_ATL_LEVEL
@@ -131,50 +148,111 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 #ifdef ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
 , m_pDLGInfoCreateJumpingChar ( NULL )		// 점핑 캐릭터 DLG
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+, m_pUnitViewerUI ( NULL )
+, m_iChannelNowPage ( 1 )
+, m_iChannelMaxPage ( 1 )
+, m_hStandEffect( INVALID_EFFECTSET_HANDLE )
+, m_iCreateUnitTodayCount ( 0 )
+#ifndef FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW		// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+, m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection ( false )
+#endif // FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW	// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+
+, m_fFadeTitleControlValue ( 0.f )
+, m_iReservedEntryPointServerChannelIndex ( -1 )
+, m_bSend_EGS_SELECT_UNIT_REQ_For_Auto_Connection ( false )
+, m_pSelectChannelButton ( NULL )
+, m_bIsAbledStateCreateUnitButton ( true )
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+#ifdef ADD_PLAY_SOUND //김창한
+, m_pSound( NULL )
+#endif //ADD_PLAY_SOUND
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+, m_bOrgSound( false )
+, m_bOrgMusic( false )
+#endif //PLAY_PROMOTION_MOVIE
+
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2
+, m_pDLGReConnectChannelServer ( NULL )
+, m_bReservedSecurityPad ( false )
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+
+#ifdef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+, m_bWaitingEGS_CONNECT_REQ_ChannelButtonUp ( false )
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+
+#ifdef FIX_REFORM_ENTRY_POINT_5TH				// 김종훈, 진입 구조 개편 5차 수정
+, m_bReservedHackingUserAgreeDlg ( false )
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_5TH		// 김종훈, 진입 구조 개편 5차 수정
+
+#ifdef FIX_REFORM_ENTRY_POINT_8TH		// kimjh, 진입 구조 개편, 8차 수정 사항 
+, m_uidCreatedUnit ( -1 )
+#endif // FIX_REFORM_ENTRY_POINT_8TH
+
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 진입 구조 개편, 10차 수정 사항 
+, m_fElapsedTime_WaitingCharacterList ( 0.f )
+#endif // FIX_REFORM_ENTRY_POINT_10TH
+
 {
+	m_bReConnectChannelServer = true;
 #ifndef NEW_SKILL_TREE
 	g_pInstanceData->DeleteSkillTreeUI();
 #endif
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	g_pMain->SoundReady( L"UI_MouseClick_01.ogg" );
+	g_pMain->SoundReady( L"UI_MouseClick_Keypad.ogg" );
+	g_pMain->SoundReady( L"UI_MouseOver_01.ogg" );
+	g_pMain->SoundReady( L"UI_PopUp_Negative_01.ogg" );
+	g_pMain->SoundReady( L"UI_PopUp_Positive_01.ogg" );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 #ifndef NEW_VILLAGE_UI
-#ifdef CLIENT_COUNTRY_TW
-	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back_TW.lua" );
-#elif CLIENT_COUNTRY_HK
-	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back_HK.lua" );
-#else
 	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back.lua" );
-#endif
 #else
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 #if defined CLIENT_COUNTRY_TW
-	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_Unit_Select_Back_TW.lua" );
+	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_Unit_Select_Back_New_TW.lua" );
 #elif defined CLIENT_COUNTRY_HK
-	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_Unit_Select_Back_HK.lua" );
+	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_Unit_Select_Back_New_HK.lua" );
 #else
-	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_Unit_Select_Back.lua" );
+	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_Unit_Select_Back_New.lua" );
 #endif
-#endif NEW_VILLAGE_UI
+#else  // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	m_pDLGUnitSelectBack = new CKTDGUIDialog( this, L"DLG_Unit_Select_Back.lua" );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
+#endif
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGUnitSelectBack );	
 
-#ifdef MODIFY_ADVERTISEMENT // 적용날짜: 2013-03-28
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+#ifdef MODIFY_ADVERTISEMENT // 적용날짜: 2013-03-28	
 	AddMeshAdvertisement_Back();
 #endif // MODIFY_ADVERTISEMENT
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+#if defined CLIENT_COUNTRY_TW
+	m_pDLGServerSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Server_Chanal_Selection_New_TW.lua" );
+#elif defined CLIENT_COUNTRY_HK
+	m_pDLGServerSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Server_Chanal_Selection_New_HK.lua" );
+#else
+	m_pDLGServerSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Server_Chanal_Selection_New.lua" ); 
+#endif
+#else  // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 #ifdef NEW_VILLAGE_UI
 #ifdef EXPAND_CHANNEL_24
 	m_pDLGServerSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Server_Chanal_Selection_Expansion.lua" ); 
 #else
-#if defined CLIENT_COUNTRY_TW
-	m_pDLGServerSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Server_Chanal_Selection_TW.lua" );
-#elif defined CLIENT_COUNTRY_HK
-	m_pDLGServerSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Server_Chanal_Selection_HK.lua" );
-#else
-	m_pDLGServerSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Server_Chanal_Selection.lua" );
-#endif
+	m_pDLGServerSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Server_Chanal_Selection.lua" ); 
 #endif //EXPAND_CHANNEL_24
 #else
 	m_pDLGServerSelectBack = new CKTDGUIDialog( this, L"DLG_Server_Select_Back.lua" );
 #endif
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
+
+
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGServerSelectBack );
 
 	
@@ -191,13 +269,27 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 		pStatic->GetString(0)->msg = wstrClientVersion;
 	}
 
-
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-700, 0,0,0 );
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	//g_pKTDXApp->GetDGManager()->GetCamera().Point( 0.f, 232.83f, -848.49f, 0, 100.f, 0 );
+	
+	//g_pMain->SetProjectionFov( 4.f );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-700, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), true );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 	//GetServerSetDataReq();
+
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+	m_bOrgSound = g_pMain->GetGameOption().GetOptionList().m_bSound;
+	m_bOrgMusic = g_pMain->GetGameOption().GetOptionList().m_bMusic;
+
+	g_pMain->GetGameOption().SetSound( false );
+	g_pMain->GetGameOption().SetMusic( false );
+#endif //PLAY_PROMOTION_MOVIE
+
 #ifdef CHANGE_SERVER_SELECT_BGM
-	g_pData->PlayLobbyBGM( L"Lobby2.ogg", true );
+	g_pData->PlayLobbyBGM( L"CharacterSelect.ogg", true );
 #else
 	g_pData->PlayLobbyBGM( L"Lobby.ogg", true );
 #endif //CHANGE_SERVER_SELECT_BGM
@@ -208,12 +300,18 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 
 	// fix!! 이 부분 수정해야 합니다. 기존에는 GetMyuser가 NULL되는 경우가 없었으나, 신마을 클라이언트에서는 최초 접속시 getmyuser가 NULL이 됩니다.
 	if( NULL != g_pData->GetMyUser() &&
-		false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser ) // 체험 아이디 제한
+		false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 	{
 		if( g_pMain->GetNexonLoginMessenger() == true && g_pMain->GetNexonVirtualLogin() == true )
 		{
 			if ( CNMCOClientObject::GetInstance().LogoutVirtual() == FALSE )
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_699 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_699 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
+				
 
 			g_pMain->SetNexonVirtualLogin( false );
 		}
@@ -242,16 +340,19 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 
 	//g_pData->DeleteCharacterRoom();
 	g_pMain->GetMemoryHolder()->RelaseCommonDLG();
-
 	
 #ifdef NEW_VILLAGE_UI
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
 #if defined CLIENT_COUNTRY_TW
-	m_pDLGUnitSelectFront = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back_TW.lua" );
+	m_pDLGUnitSelectFront = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back_New_TW.lua" );
 #elif defined CLIENT_COUNTRY_HK
-	m_pDLGUnitSelectFront = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back_HK.lua" );
+	m_pDLGUnitSelectFront = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back_New_HK.lua" );
 #else
-	m_pDLGUnitSelectFront = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back.lua" );
+	m_pDLGUnitSelectFront = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back_New.lua" );	
 #endif
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+	m_pDLGUnitSelectFront = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Back.lua" );	
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 #else
 	m_pDLGUnitSelectFront = new CKTDGUIDialog( this, L"DLG_Unit_Select_Front.lua" );
 #endif
@@ -265,7 +366,7 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 	//캐릭터 많은 개발자 계정들, 캐릭생성 편하게 하는 기능. 개발사내에만 있어야 함.
 	if( NULL != m_pDLGUnitSelectFront )
 	{
-		CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectFront->GetControl(L"Create"));
+		CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectFront->GetControl(L"createUnit"));
 		if( NULL != pStatic )
 		{
 			pStatic->SetShowEnable(true,true);
@@ -273,16 +374,18 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 	}
 #endif //ADD_CREATE_CHARACTER_BUTTON
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-700, 0,0,0 );
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-700, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(),
 		g_pKTDXApp->GetDGManager()->GetFar(), false );
-
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+	
 
 
 
 	if( NULL != g_pData->GetMyUser() )
 	{
-		m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData()->maxUnitCount;
+		m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData().maxUnitCount;
 
 		m_NowPage		= 1;
 		const int SLOT_COUNT_FOR_CREATE_UNIT = 1;
@@ -301,7 +404,7 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 	if( NULL != g_pMain && NULL != g_pData && NULL != g_pData->GetUIMajorParticle() )
 	{
 		CKTDGParticleSystem::CParticleEventSequenceHandle SeqFestivalUI = g_pMain->GetFestivalSeq();
-		if( INVALID_PARTICLE_HANDLE != SeqFestivalUI)
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != SeqFestivalUI)
 		{		
 			CKTDGParticleSystem::CParticleEventSequence* pParticle = g_pData->GetUIMajorParticle()->GetInstanceSequence( SeqFestivalUI );
 			if( pParticle != NULL )
@@ -311,7 +414,7 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 			}
 			else
 			{
-				SeqFestivalUI = INVALID_PARTICLE_HANDLE;
+				SeqFestivalUI = INVALID_PARTICLE_SEQUENCE_HANDLE;
 				g_pMain->SetFestivalSeq( SeqFestivalUI );
 			}
 		}
@@ -320,12 +423,27 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 
 	//CreateUnitButton();
 
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT
+	if( 0 != g_pInstanceData->GetPreEventElesisUID() )
+	{
+		Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ();
+	}
+	else
+#endif // SERV_ELISIS_PREVIOUS_SIS_EVENT
 	if ( m_sbSelectedServerSet == true )
 	{
 		ClearBeforeUnit( m_pSelectUnit );
-		ClearUnitButton();
+		
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh				
+		Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ ();
+		Handler_EGS_GET_CREATE_UNIT_TODAY_COUNT_REQ ();
+		Handler_EGS_CHARACTER_LIST_REQ ();
+#else  // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+     	ClearUnitButton();
 		CreateUnitButton();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
+	
 		m_bReceivedEGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK = true;
 
 #ifdef SERVER_GROUP_UI_ADVANCED
@@ -342,9 +460,27 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 #ifdef SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
 		Handler_EGS_CHECK_THE_ARCHUANGEL_S_COIN_EVENT_LETTER_REQ();
 #endif //SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
+
 	}
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+#if defined CLIENT_COUNTRY_TW
+	m_pDLGShowBeforeConnect = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Before_Connect_TW.lua" );
+#elif defined CLIENT_COUNTRY_HK
+	m_pDLGShowBeforeConnect = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Before_Connect_HK.lua" );
+#else
+	m_pDLGShowBeforeConnect = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Before_Connect.lua" );
+#endif
+	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGShowBeforeConnect );	
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 
+#ifdef FIX_REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	if ( true == m_bCanNotConenctToBusyServer )
+	{
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING ( STR_ID_29885 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+		m_bCanNotConenctToBusyServer = false;
+	}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 	if( NULL != g_pMain->GetTutorSystem() )
 	{
 		g_pMain->GetTutorSystem()->SetBeenUnitSelect( true );
@@ -391,31 +527,34 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 #ifdef EXTEND_SERVER_GROUP_MASK
 #else EXTEND_SERVER_GROUP_MASK
 	if ( g_pInstanceData->GetServerGroupID() == SGI_INVALID )
-		OpenScriptServerGroupFile();
+    {
+		//OpenScriptServerGroupFile();
+        g_pInstanceData->OpenScriptServerGroupFile();
+    }
 #endif EXTEND_SERVER_GROUP_MASK
 
 #ifdef SERVER_GROUP_UI_ADVANCED
 	UpdateServerGroupListUI();
 #endif SERVER_GROUP_UI_ADVANCED
-
 	UpdateServerSelectButton( g_pInstanceData->GetServerGroupID() );
-	
 #endif	ADD_SERVER_GROUP
 	//}} kimhc // 2009-12-15 // 이전에 플레이했던 채널 서버군
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 	UpdateChannelListUI();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 
 //#ifdef _SERVICE_
 //	OpenGlobalURL( L"http://Elsword.nexon.com/Elsword/etc/gameinstall.aspx?Section=chceck5" );
 //#endif
 
-	//if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_DISAGREE_HACK_USER )
+	//if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_DISAGREE_HACK_USER )
 	//{
 	//	m_pDLGCheckHack = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), 
 	//	L"회사가 제공하지 아니한 프로그램 등을 사용하는 경우, 회사는 해당 프로그램 등의 정보를 수집할 수 있으며 회원은 약관 및 운영정책에 따라 서비스 이용이 제한될 수 있습니다. 동의 하시겠습니까?", 
 	//	SSSUCM_HACK_USER_PROCESS_CHECK_OK, this, SSSUCM_HACK_USER_PROCESS_CHECK_CANCEL );
 	//}
-	//else if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+	//else if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 	//{
 	//	g_pMain->UpdateProcessList();
 	//	g_pMain->SendHackMail();
@@ -438,16 +577,29 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 
 		m_bSentEGS_CONNECT_REQ 		= false;
 		m_bReceivedChannelList 		= false;
-		
 
 		// 게임서버와의 접속을 끊는다
 		Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ();
 	}
-	
+
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	if( false == m_sbSelectedServerSet )
+	{
+		ConnectToChannelServer();
+		SetShowServerStateButtonSet ( false, false );
+	}
+	else
+	{
+		SetShowServerStateButtonSet ( true, false );
+	}
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	if( false == m_sbSelectedServerSet )
 	{
 		ConnectToChannelServer();
 	}
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+	
 
 
 // 윈도우 title 변경 검사
@@ -462,12 +614,13 @@ m_bRemoveUnitAfterReceiveNMSerialNum( false )
 // 	}
 // #endif //_SERVIC
 
-#if 0 // 기능 테스트가 더 필요해 우선 제거한다.
-#ifdef CHECKFILTER_IN_MAIN
-	if( g_pInstanceData->GetChangeHackList() == false )
-		g_pMain->GetCheckWindowInfo()->CheckProcess();
-#endif
-#endif
+// robobeg : CheckProcess 가 별도 thread 에서 돌고 있으면 쪽남!!!, 2013-12-31
+//#if 0 // 기능 테스트가 더 필요해 우선 제거한다.
+//#ifdef CHECKFILTER_IN_MAIN
+//	if( g_pInstanceData->GetChangeHackList() == false )
+//		g_pMain->GetCheckWindowInfo()->CheckProcess();
+//#endif
+//#endif
 
 
 #ifdef BANDICAM_RECORDING
@@ -547,21 +700,55 @@ CX2StateServerSelect::~CX2StateServerSelect(void)
 	SAFE_DELETE_DIALOG ( m_pDLGInfoCreateJumpingChar );
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
 
-
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+	SAFE_DELETE_DIALOG ( m_pDLGReConnectChannelServer );		
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
 
 #ifdef MODIFY_ADVERTISEMENT // 적용날짜: 2013-03-28
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshAddAdvertisement_Back )	
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshAddAdvertisement_Back );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshAddAdvertisement_Back );
 
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshAddAdvertisement_Front )
-		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshAddAdvertisement_Front );
+		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshAddAdvertisement_Front );
 #endif // MODIFY_ADVERTISEMENT
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	SAFE_DELETE_DIALOG ( m_pDLGShowBeforeConnect );
+
+	if ( NULL != g_pData->GetUIMajorXMeshPlayer() )
+	{
+		BOOST_FOREACH( CKTDGXMeshPlayer::CXMeshInstanceHandle hStandMeshInst, m_vecStandMeshInst )
+		{	
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( hStandMeshInst );
+		}
+		m_vecStandMeshInst.clear();
+	}
+	if( NULL != g_pData->GetUIEffectSet() )
+	{
+		g_pData->GetUIEffectSet()->StopEffectSet( m_hStandEffect );
+	}
+	CX2UnitViewerUI::DeleteKTDGObject( m_pUnitViewerUI );
+	m_pUnitViewerUI = NULL;
+	
+	ClearChannelButton ();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
+#ifdef ADD_PLAY_SOUND //김창한
+	if( NULL != m_pSound )
+	{
+		m_pSound->Stop();
+		SAFE_CLOSE( m_pSound );
+	}
+#endif //ADD_PLAY_SOUND
 }
 
 HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 {
 	CX2State::OnFrameMove( fTime, fElapsedTime );
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( fElapsedTime );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 	OnFrameMove_GameServerConnect( fTime, fElapsedTime );
 
@@ -570,7 +757,7 @@ HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 	{
 		m_bOneTimeInit = false;
 
-		if( 0 == g_pData->GetMyUser()->GetUnitNum() )
+		if( NULL != g_pData->GetMyUser() && 0 == g_pData->GetMyUser()->GetUnitNum() )
 		{
 			//{{ kimhc // 2009-12-23 // 서버군에 유닛이 없는 경우의 이동 수정
 #ifdef   ADD_SERVER_GROUP
@@ -584,7 +771,12 @@ HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 			else
 #endif   ADD_SERVER_GROUP
 			{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_701 ), L"DLG_UI_Selection_MessageBox_No_Button.lua", L"UI_PopUp_Positive_01.ogg"  );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_701 ) );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 				g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_CREATE_UNIT, NULL, false );
 				m_bStateChangingToUnitCreate = true;
 			}
@@ -593,7 +785,9 @@ HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 
 		}
 	}
-
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	UnitHandling( fTime, fElapsedTime );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 	if ( m_pDLGUnitSelectFront != NULL )
 	{
@@ -610,7 +804,7 @@ HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 			m_pDLGChannelSelectBack->SetShowEnable( false, false );
 #endif	ADD_SERVER_GROUP
 			//}}  kimhc // 2009-12-15 // 서버군 추가 작업에 따른 채널 다이얼로그 분리
-
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 			// 채널번호 표시
 			if( g_pInstanceData != NULL && g_pInstanceData->GetConnectChannelServerID() > 0 )
 			{
@@ -621,6 +815,8 @@ HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 					pStatic->GetString(0)->msg = g_pInstanceData->GetConnectChannelServerName();
 				}
 			}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
 #ifdef SHOW_ONLY_ADVERTISEMENT
 			if( NULL != m_pDLGShowOnlyAdvertise )
 				m_pDLGShowOnlyAdvertise->SetShow(false);
@@ -628,7 +824,6 @@ HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 		}
 		else
 		{
-		
 #ifdef SERVER_GROUP_UI_ADVANCED
 			if(m_pDLGServerGroupSelectBack != NULL)
 				m_pDLGServerGroupSelectBack->SetShowEnable(true, true);
@@ -647,10 +842,76 @@ HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 #ifdef	ADD_SERVER_GROUP
 				m_pDLGChannelSelectBack->SetShowEnable( true, true );
 #endif	//ADD_SERVER_GROUP
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+				SetShowServerStateButtonSet( false, false );
+				SetBackgroundImageBySelectUnitType ( CX2Unit::UT_NONE ); 
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 				//}}  kimhc // 2009-12-15 // 서버군 추가 작업에 따른 채널 다이얼로그 분리
 
 			}
 		}
+
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+		CKTDGUIStatic * pMovieStatic = reinterpret_cast<CKTDGUIStatic*>( m_pDLGUnitSelectBack->GetControl( L"PromotionMovie" ) );
+
+		if ( NULL != pMovieStatic )
+		{
+
+			CKTDGUIControl::CMovieData* pIntroMovieData = pMovieStatic->GetMovie( 0 );
+
+			if ( NULL != pIntroMovieData )
+			{
+				if ( g_pMain->m_bPlayIntroMovie == true )
+				{
+					BVL_STATUS status;
+					pIntroMovieData->m_Bvl.GetStatus( status );
+					pIntroMovieData->SetLoop( false );
+
+					if ( status == BVL_STATUS_READY )
+					{
+						pIntroMovieData->SetShow( false );
+						pMovieStatic->SetShow( false );
+						g_pMain->GetGameOption().SetSound( m_bOrgSound );
+						g_pMain->GetGameOption().SetMusic( m_bOrgMusic );
+						g_pMain->m_bPlayIntroMovie = false;
+
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+	#ifdef FIX_REFORM_ENTRY_POINT_5TH // 김종훈, 진입 구조 개편 수정 5차
+						ProcessIntroMovieEnd();		// 인트로 동영상이 끝났을 때 처리해줘야 할 것
+	#else  // FIX_REFORM_ENTRY_POINT_5TH // 김종훈, 진입 구조 개편 수정 5차
+						// 보안 패드를 동영상 재생 이후에 출력되도록 한다.
+						if ( true == m_bReservedSecurityPad )
+						{
+							m_bReservedSecurityPad = false;
+							g_pMain->GetSecurityPad()->SetShow(true, CX2SecurityPad::SPS_GAME_START);
+							g_pMain->GetSecurityPad()->SetUseSecondPW(true);
+						}
+	#endif // FIX_REFORM_ENTRY_POINT_5TH // 김종훈, 진입 구조 개편 수정 5차
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+
+					}
+#ifdef STOP_INTRO_MOVIE_ON_ERROR
+					else if( status == BVL_STATUS_ERROR )
+					{
+						pIntroMovieData->m_Bvl.Stop();
+						pMovieStatic->SetShow( false );
+						g_pMain->GetGameOption().SetSound( m_bOrgSound );
+						g_pMain->GetGameOption().SetMusic( m_bOrgMusic );
+						g_pMain->m_bPlayIntroMovie = false;
+					}
+#endif //STOP_INTRO_MOVIE_ON_ERROR
+				}
+				else
+				{
+					pIntroMovieData->m_Bvl.Stop();
+					pMovieStatic->SetShow( false );
+					g_pMain->GetGameOption().SetSound( m_bOrgSound );
+					g_pMain->GetGameOption().SetMusic( m_bOrgMusic );
+				}
+			}
+		}
+#endif //PLAY_PROMOTION_MOVIE
 	}
 
 	static bool bAutoStart = true;
@@ -667,15 +928,18 @@ HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 		UnitButtonUp( pUnit );
 
 
-		Handler_EGS_SELECT_UNIT_REQ( pUnit->GetUID(), pUnit->GetUnitData()->m_Level );
+		Handler_EGS_SELECT_UNIT_REQ( pUnit->GetUID(), pUnit->GetUnitData().m_Level );
 	}
 
-	//	g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( fElapsedTime );
+	//	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( fElapsedTime );
 
 
 
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 	UnitHandling( fTime, fElapsedTime );
 	DownAnimFrameMove( fTime, fElapsedTime );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+	
 
 	if ( m_pOveredButton != NULL && m_pOveredName != NULL )
 	{
@@ -725,46 +989,122 @@ HRESULT CX2StateServerSelect::OnFrameMove( double fTime, float fElapsedTime )
 	}
 
 	if ( NULL != g_pData->GetMyUser() )
-		//g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_DEV )
 	{
-#ifdef KEY_MAPPING_INT
-		if( GET_KEY_STATE( GA_LEFT ) == TRUE )
-#else // KEY_MAPPING_INT
-		if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_LEFT ) == TRUE )
-#endif // KEY_MAPPING_INT
+		// 채널 선택창에서는 방향키 동작하지 않도록 변경
+		if( false == IsChannelSelectMode() )
 		{
-			if ( m_NowPage > 1 )
+#ifdef SERV_KEY_MAPPING_INT
+			if( GET_KEY_STATE( GA_LEFT ) == TRUE )
+#else // SERV_KEY_MAPPING_INT
+			if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_LEFT ) == TRUE )
+#endif // SERV_KEY_MAPPING_INT
 			{
-				ClearBeforeUnit( m_pSelectUnit );
-				ClearUnitButton();
+				if ( m_NowPage > 1 )
+				{
 
-				m_NowPage--;
-
-
-				CreateUnitButton();
-
-			}
-		}
-#ifdef KEY_MAPPING_INT
-		else if( GET_KEY_STATE( GA_RIGHT ) == TRUE )
-#else // KEY_MAPPING_INT
-		else if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_RIGHT ) == TRUE )
-#endif // KEY_MAPPING_INT
-		{
-			if ( m_NowPage < m_MaxPage )
-			{
-				if( (m_NowPage * UNIT_SELECT_UI_MAX_UNIT_NUM) <= g_pData->GetMyUser()->GetUnitNum()+1 )
-				{	
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					ClearUnitButton( false );
+					m_NowPage--;
+					ChangeUnitButtonInfo();
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					ClearBeforeUnit( m_pSelectUnit );
 					ClearUnitButton();
-
-					m_NowPage++;
-
+					m_NowPage--;
 					CreateUnitButton();
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편			
+				}
+			}
+#ifdef SERV_KEY_MAPPING_INT
+			else if( GET_KEY_STATE( GA_RIGHT ) == TRUE )
+#else // SERV_KEY_MAPPING_INT
+			else if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_RIGHT ) == TRUE )
+#endif // SERV_KEY_MAPPING_INT
+			{
+				if ( m_NowPage < m_MaxPage )
+				{
+					if( (m_NowPage * UNIT_SELECT_UI_MAX_UNIT_NUM) <= g_pData->GetMyUser()->GetUnitNum()+1 )
+					{	
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+						ClearUnitButton( false );
+						m_NowPage++;
+						ChangeUnitButtonInfo();
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+						ClearBeforeUnit( m_pSelectUnit );
+						ClearUnitButton();
+						m_NowPage++;
+						CreateUnitButton();
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편					
+					}
 				}
 			}
 		}
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 	}
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	if ( NULL != m_pDLGUnitSelectBack )
+	{
+		CKTDGUIStatic * pFadeStatic = NULL;
+		if ( NULL != m_pDLGUnitSelectBack->GetControl( L"FadeNotice1" ) && true == m_pDLGUnitSelectBack->GetControl( L"FadeNotice1" )->GetShow() )
+		{
+			pFadeStatic = static_cast<CKTDGUIStatic *> ( m_pDLGUnitSelectBack->GetControl( L"FadeNotice1" ) );
+		}
+		if ( NULL != m_pDLGUnitSelectBack->GetControl( L"FadeNotice2" ) && true == m_pDLGUnitSelectBack->GetControl( L"FadeNotice2" )->GetShow() )
+		{
+			pFadeStatic = static_cast<CKTDGUIStatic *> ( m_pDLGUnitSelectBack->GetControl( L"FadeNotice2" ) );
+		}
+
+		if ( NULL != pFadeStatic )
+		{
+			m_fFadeTitleControlValue += fElapsedTime / 3;
+
+			if ( m_fFadeTitleControlValue > 2.f )
+			{
+				m_fFadeTitleControlValue = 0.f;
+			}
+			float m_fFadeTitlePercentage = m_fFadeTitleControlValue;
+			if ( m_fFadeTitleControlValue > 1.f ) 
+			{
+				m_fFadeTitlePercentage = 2.f - m_fFadeTitleControlValue;
+			}
+			pFadeStatic->SetColor( D3DXCOLOR ( 1.f, 1.f, 1.f, m_fFadeTitlePercentage ) );
+		}
+		else
+		{
+			m_fFadeTitleControlValue = 0.f;
+		}
+	}
+
+	if ( false == m_bIsAbledStateCreateUnitButton )
+	{
+		if ( true == m_pDLGUnitSelectFront->CheckControl( L"createUnit" ) )
+		{
+			CKTDGUIButton * pCreateUnitButton = static_cast<CKTDGUIButton *> ( m_pDLGUnitSelectFront->GetControl ( L"createUnit" ) );
+			if ( NULL != pCreateUnitButton )
+			{
+				if ( pCreateUnitButton->GetShow () == true )
+					pCreateUnitButton->ChangeState( CKTDGUIButton::BCS_DISABLE, true );
+			}
+		}
+	}
+
+
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+	
+	if ( NULL != m_pDLGWaitingCharacterList && true == m_pDLGWaitingCharacterList->GetShow() )
+	{
+		m_fElapsedTime_WaitingCharacterList += fElapsedTime;
+		if ( m_fElapsedTime_WaitingCharacterList >= MAX_WAITING_TIME_RECEIVE_CHARACTER_LIST )
+		{		
+			m_pDLGReConnectChannelServer = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 305, 375 ),  GET_STRING ( STR_ID_29884 ), 
+				SUSUCM_RE_CONNECT_CHANNEL_SERVER_OK, this, SUCM_EXIT, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+			SAFE_DELETE_DIALOG ( m_pDLGWaitingCharacterList );
+		}	 
+	}
+#endif // FIX_REFORM_ENTRY_POINT_10TH	// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+	
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 	return S_OK;
 }
@@ -849,9 +1189,7 @@ void CX2StateServerSelect::OnFrameMove_GameServerConnect( double fTime, float fE
 #ifdef CLIENT_PORT_CHANGE_REQUEST
 					m_iUDPRequestCount < UDP_REQUEST_MAX_COUNT &&
 #endif //CLIENT_PORT_CHANGE_REQUEST
-					g_pData->GetGameUDP()->IncreaseMyIPIndex() == true 
-
-					)
+					g_pData->GetGameUDP()->IncreaseMyIPIndex() == true )
 				{
 					Handler_KXPT_PORT_CHECK_REQ();
 #ifdef CLIENT_PORT_CHANGE_REQUEST
@@ -876,11 +1214,11 @@ void CX2StateServerSelect::OnFrameMove_GameServerConnect( double fTime, float fE
 #endif //CLIENT_PORT_CHANGE_REQUEST
 
 					KXPT_PORT_CHECK_ACK kXPT_PORT_CHECK_ACK;
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                     kXPT_PORT_CHECK_ACK.m_IPAddress	= g_pData->GetGameUDP()->GetMyIPAddress();
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-					kXPT_PORT_CHECK_ACK.m_IP	= g_pData->GetGameUDP()->GetMyIP();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//					kXPT_PORT_CHECK_ACK.m_IP	= g_pData->GetGameUDP()->GetMyIP();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 					kXPT_PORT_CHECK_ACK.m_Port	= g_pData->GetGameUDP()->GetMyPort();
 
 #ifdef CLIENT_PORT_CHANGE_REQUEST
@@ -919,18 +1257,18 @@ void CX2StateServerSelect::OnFrameMove_GameServerConnect( double fTime, float fE
 			{
 				if( m_bPortCheckWait == true )
 				{
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
                     if ( pRecvData->m_Size == sizeof(KXPT_PORT_CHECK_ACK) )
                     {
                         Handler_KXPT_PORT_CHECK_ACK( *( (const KXPT_PORT_CHECK_ACK*) pRecvData->m_pRecvBuffer ) );
                     }
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-					KSerBuffer ksBuff;
-					ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-					KXPT_PORT_CHECK_ACK kXPT_PORT_CHECK_ACK;
-					DeSerialize( &ksBuff, &kXPT_PORT_CHECK_ACK );
-					Handler_KXPT_PORT_CHECK_ACK( kXPT_PORT_CHECK_ACK );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//					KSerBuffer ksBuff;
+//					ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//					KXPT_PORT_CHECK_ACK kXPT_PORT_CHECK_ACK;
+//					DeSerialize( &ksBuff, &kXPT_PORT_CHECK_ACK );
+//					Handler_KXPT_PORT_CHECK_ACK( kXPT_PORT_CHECK_ACK );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 				}
 			}
 			break;
@@ -949,7 +1287,7 @@ HRESULT CX2StateServerSelect::OnFrameRender()
 	{
 		return S_OK;
 	}
-
+	
 	CX2State::OnFrameRender();
 
 	return S_OK;
@@ -961,7 +1299,24 @@ bool CX2StateServerSelect::EnterTutorial()
 	if( NULL != m_pSelectUnit )
 	{
 		m_bReserveEnterTutorial = true;
-		Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData()->m_Level );	
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+
+		m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection = true;
+		m_bSend_EGS_SELECT_UNIT_REQ_For_Auto_Connection = true;
+		m_bENX_USER_LOGIN_NOT		= false;
+		m_bEGS_VERIFY_ACCOUNT_REQ	= false;
+		m_bEGS_VERIFY_ACCOUNT_ACK	= false;
+		m_bPortCheckReq				= false;
+
+		m_bSentEGS_CONNECT_REQ 		= false;
+		m_bReceivedChannelList 		= false;
+		m_iReservedEntryPointServerChannelIndex = -2;
+	
+		Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ();
+#else  // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData().m_Level );	
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
 		return true;
 	}
 
@@ -989,6 +1344,11 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			return true;
 	}
 #endif
+
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+	if ( g_pMain != NULL && g_pMain->m_bPlayIntroMovie == true )
+		return true;
+#endif //PLAY_PROMOTION_MOVIE
 
 	switch(wParam)
 	{
@@ -1051,10 +1411,20 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 				UidType unitUID = _wtoi64( tempButtonName.c_str() ); 
 				CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByUID( unitUID );
 
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				
+				// if ( )
 				if( pUnit == NULL )
 					return true;
 
 				UnitButtonUp( pUnit );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+				if( pUnit == NULL )
+					return true;
+
+				UnitButtonUp( pUnit );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 				//SetShowCharacterName( false );
 
@@ -1080,30 +1450,44 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 
 			if ( m_sbSelectedServerSet == false )
 			{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING( STR_ID_700 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_700 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				return true;
 			}
-
+#ifdef FIX_REFORM_ENTRY_POINT_CREATE_UNIT_UNLIMITED
+			if ( 1 )
+#else  // FIX_REFORM_ENTRY_POINT_CREATE_UNIT_UNLIMITED
 			if ( g_pData->GetMyUser()->GetUnitNum() < m_MaxUnitNum )
+#endif // FIX_REFORM_ENTRY_POINT_CREATE_UNIT_UNLIMITED
 			{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_701 ), L"DLG_UI_Selection_MessageBox_No_Button.lua", L"UI_PopUp_Positive_01.ogg"  );
+				//Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ ();
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_701 ) );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
+
 				g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_CREATE_UNIT, NULL, false );
 			}
 			else
 			{
-				//if( m_MaxUnitNum == 6 )
-				//{
-				//	g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"캐릭터 슬롯이 부족하여\n더 이상 캐릭터를 생성할 수 없습니다.", this );
-				//}
-				//else
-				//{
-					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_702 ), this );
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING( STR_ID_702 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_702 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편					
 				//}
 			}
 			break;	
 
 		case SUSUCM_SELECT_UNIT:
 			{
+
 #ifdef SERV_SECOND_SECURITY
 				if(m_bEnableUnitSelectBySecondSecurity == false)
 				{
@@ -1111,14 +1495,68 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 				}
 #endif SERV_SECOND_SECURITY
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+
+				if ( NULL != m_pSelectChannelButton )
+				{
+#ifdef FIX_REFORM_ENTRY_POINT
+					vector< KChannelInfo > * vecChannelInfo = NULL;
+					if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_GAIA )
+					{
+						vecChannelInfo = &m_vecGaiaChannelInfo;
+					}
+					else if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_SOLES )
+					{
+						vecChannelInfo = &m_vecSolesChannelInfo;
+					}
+					else 
+					{
+						ASSERT (!L"Can't Find Server Group ID !! ");
+					}
+			
+					int iCheckEntryPointServerChannelIndex = m_pSelectChannelButton->GetDummyInt( 0 );
+					
+					if ( (*vecChannelInfo)[ iCheckEntryPointServerChannelIndex ].m_iCurrentUser >= (*vecChannelInfo)[ iCheckEntryPointServerChannelIndex ].m_iMaxUser )
+					{
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING ( STR_ID_29885 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 ( 0, 0 ), L"UI_PopUp_Negative_01.ogg" );
+					}
+
+					else
+#endif // FIX_REFORM_ENTRY_POINT
+					{
+						m_iReservedEntryPointServerChannelIndex = m_pSelectChannelButton->GetDummyInt( 0 );
+						m_bReserveEnterTutorial = false;
+						m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection = true;
+						m_bSend_EGS_SELECT_UNIT_REQ_For_Auto_Connection = true;
+						m_bENX_USER_LOGIN_NOT		= false;
+						m_bEGS_VERIFY_ACCOUNT_REQ	= false;
+						m_bEGS_VERIFY_ACCOUNT_ACK	= false;
+						m_bPortCheckReq				= false;
+
+						m_bSentEGS_CONNECT_REQ 		= false;
+						m_bReceivedChannelList 		= false;
+						
+						// 게임서버와의 접속을 끊는다					
+						Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ();
+					}
+
+				}
+				else
+				{
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING(STR_ID_29403), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 ( 0, 0 ), L"UI_PopUp_Negative_01.ogg" );
+				}
+				
+#else  // REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
 				if( NULL != m_pSelectUnit )
 				{
 					m_bReserveEnterTutorial = false;
-					Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData()->m_Level );
+					Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData().m_Level );
 				}
 				return true;
+#endif // REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
 			}
 
+		
 			break;
 		case SUSUCM_DELETE_UNIT:
 			{	
@@ -1126,33 +1564,41 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 				{
 					//DeleteUnitReq();
 
-					//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
 #ifdef SERV_UNIT_WAIT_DELETE
-
 					wstring tempNickName = m_pSelectUnit->GetNickName();
 					if(tempNickName.length() != 0 )
 					{
 						if ( tempNickName.find( L"_") != -1 )
 						{
-							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_713 ), this );
+							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_713 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 ( 0, -130 ),  L"UI_PopUp_Negative_01.ogg" );
+							return false;
+						}
+						else if( m_pSelectUnit->GetUnitData().m_bDeleted == true )		// 삭제 대기 상태
+						{
+							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_30402 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 ( 0, -130 ),  L"UI_PopUp_Negative_01.ogg" );
 							return false;
 						}
 						else
 						{
-							wstring tempEx = GET_REPLACED_STRING( ( STR_ID_16102, "SI", m_pSelectUnit->GetNickName(), KHanSungPostWordUnicodeWrapper( (WCHAR*) m_pSelectUnit->GetNickName(), STR_ID_198, STR_ID_199 ) ) );
-							m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 250, 300 ), tempEx.c_str(), SUSUCM_DELETE_UNIT_CHECK ,this );
+							m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), L"", SUSUCM_DELETE_UNIT_CHECK, this, -1, L"DLG_UI_Character_Selection_Delete_Unit_New.lua" );
 						}
 					}
-
 #else SERV_UNIT_WAIT_DELETE
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), L"", SUSUCM_DELETE_UNIT_CHECK, this, -1, L"DLG_UI_Character_Selection_Delete_Unit_New.lua" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					wstring tempEx = GET_REPLACED_STRING( ( STR_ID_703, "SI", m_pSelectUnit->GetNickName(), KHanSungPostWordUnicodeWrapper( (WCHAR*) m_pSelectUnit->GetNickName(), STR_ID_198, STR_ID_199 ) ) );
 					m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 250, 300 ), tempEx.c_str(), SUSUCM_DELETE_UNIT_CHECK ,this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 #endif SERV_UNIT_WAIT_DELETE
-					//}}
 				}
 				else
 				{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING( STR_ID_704 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_704 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				}
 
 			}
@@ -1165,7 +1611,7 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 				m_pDLGDeleteUnitCheck = NULL;
 				
 #ifdef REMOVE_USER_ONLY_IF_REMOVED_NM_VIRTUAL_USER
-				if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+				if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 				{
 					return Handler_EGS_DELETE_UNIT_REQ();
 				}
@@ -1186,75 +1632,53 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
 #ifdef SERV_UNIT_WAIT_DELETE
 		case SUSUCM_FINAL_DELETE_UNIT:
-			{	
-
-				//{{ 2012.02.28 lygan_조성욱 // 버튼에 캐릭터 UID 정보 빼기
-				m_pFinalDeleteUnitInfo = NULL;
-				CKTDGUIButton* pButton = (CKTDGUIButton*)lParam;
-				wstring tempButtonName = pButton->GetName();
-				tempButtonName = tempButtonName.substr( 14 );
-				UidType unitUID = _wtoi64( tempButtonName.c_str() ); 
-				m_pFinalDeleteUnitInfo = g_pData->GetMyUser()->GetUnitByUID( unitUID );
-
-				if( m_pFinalDeleteUnitInfo == NULL )
+			{
+				if( m_pSelectUnit == NULL )
 				{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING( STR_ID_704 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_704 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					return true;
 				}
-				//}} 2012.02.28 lygan_조성욱 // 버튼에 캐릭터 UID 정보 빼기
-
-				wstring tempEx = GET_REPLACED_STRING( ( STR_ID_16107, "SI", m_pFinalDeleteUnitInfo->GetNickName(), KHanSungPostWordUnicodeWrapper( (WCHAR*) m_pFinalDeleteUnitInfo->GetNickName(), STR_ID_198, STR_ID_199 ) ) );
+				
+				wstring tempEx = GET_REPLACED_STRING( ( STR_ID_16107, "SI", m_pSelectUnit->GetNickName(), KHanSungPostWordUnicodeWrapper( (WCHAR*) m_pSelectUnit->GetNickName(), STR_ID_198, STR_ID_199 ) ) );
+#ifdef REFORM_ENTRY_POINT
+				m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 305, 375 ), tempEx.c_str(), SUSUCM_FINAL_DELETE_UNIT_CHECK ,this, -1, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+#else
 				m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 250, 300 ), tempEx.c_str(), SUSUCM_FINAL_DELETE_UNIT_CHECK ,this );
-
-			}
-
+#endif REFORM_ENTRY_POINT
+			} 
 			break;
-
 		case SUSUCM_FINAL_DELETE_UNIT_CHECK:
 			{
 				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGDeleteUnitCheck, NULL, false );
 				m_pDLGDeleteUnitCheck = NULL;
 
 				return Handler_EGS_FINAL_DELETE_UNIT_REQ();
-
-				// 				if( true == g_pData->GetMyUser().GetUserData().m_bIsGuestUser )
-				// 				{
-				// 					return Handler_EGS_DELETE_UNIT_REQ();
-				// 				}
-				// 				else
-				// 				{
-				// 					m_bRemoveUnitAfterReceiveNMSerialNum = true;
-				// 					return Handler_EGS_GET_MY_MESSENGER_SN_REQ( m_pSelectUnit->GetUID() );
-				// 				}
 			}
 			break;
-
 		case SUSUCM_RESTORE_UNIT:
 			{	
-				//{{ 2012.02.28 lygan_조성욱 // 버튼에 캐릭터 UID 정보 빼기
-				m_pRestoreUnitInfo = NULL;
-				CKTDGUIButton* pButton = (CKTDGUIButton*)lParam;
-
-				wstring tempButtonName = pButton->GetName();
-				tempButtonName = tempButtonName.substr( 15 );
-				UidType unitUID = _wtoi64( tempButtonName.c_str() ); 
-				assert(errno != ERANGE);	// Overflow!
-				m_pRestoreUnitInfo = g_pData->GetMyUser()->GetUnitByUID( unitUID );
-
-				if( m_pRestoreUnitInfo == NULL )
+				if( m_pSelectUnit == NULL )
 				{
-					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_705 ), this );	// 캐릭터를 선택해 주세요
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING( STR_ID_705 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_705 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					return true;
 				}
-				//}} 2012.02.28 lygan_조성욱 // 버튼에 캐릭터 UID 정보 빼기
-
-				wstring tempEx = GET_REPLACED_STRING( ( STR_ID_16106, "SI", m_pRestoreUnitInfo->GetNickName(), KHanSungPostWordUnicodeWrapper( (WCHAR*) m_pRestoreUnitInfo->GetNickName(), STR_ID_198, STR_ID_199 ) ) );
+								
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_16106 ), SUSUCM_RESTORE_UNIT_CHECK, this, -1, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+				wstring tempEx = GET_REPLACED_STRING( ( STR_ID_703, "SI", m_pSelectUnit->GetNickName(), KHanSungPostWordUnicodeWrapper( (WCHAR*) m_pSelectUnit->GetNickName(), STR_ID_198, STR_ID_199 ) ) );
 				m_pDLGDeleteUnitCheck = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 250, 300 ), tempEx.c_str(), SUSUCM_RESTORE_UNIT_CHECK ,this );
-
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			}
-
 			break;
-
 		case SUSUCM_RESTORE_UNIT_CHECK:
 			{
 				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGDeleteUnitCheck, NULL, false );
@@ -1288,7 +1712,12 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 				}
 				else
 				{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING( STR_ID_705 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_705 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+					
 				}
 			}
 			break;
@@ -1309,8 +1738,11 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 							SetRenameMsgBoxError( wstrErrorMessage );
 							return true;
 						}
-
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+						Handler_EGS_ENTRY_POINT_CHANGE_NICK_NAME_REQ ( m_NickNameChangeUnitUID, m_NickNameChangeUnitNickName.c_str(), true, m_pSelectUnit->GetServerGroupID() );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 						Handler_EGS_CHANGE_NICK_NAME_REQ( m_NickNameChangeUnitUID, m_NickNameChangeUnitNickName.c_str(), true );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					}
 				}
 				return true;
@@ -1328,7 +1760,11 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGRenameConfirmMsgBox, NULL, false );
 				m_pDLGRenameConfirmMsgBox = NULL;
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				Handler_EGS_ENTRY_POINT_CHANGE_NICK_NAME_REQ ( m_NickNameChangeUnitUID, m_NickNameChangeUnitNickName.c_str(), false, m_pSelectUnit->GetServerGroupID() );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				Handler_EGS_CHANGE_NICK_NAME_REQ( m_NickNameChangeUnitUID, m_NickNameChangeUnitNickName.c_str(), false );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				return true;
 			} break;
 
@@ -1348,9 +1784,15 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 
 				
 				m_bJustChangedNickName = true;
-				
+
 				const int MAGIC_UNIT_LEVEL = -1;
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+				Handler_EGS_CHARACTER_LIST_REQ ();
+#else  // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 				Handler_EGS_SELECT_UNIT_REQ( m_NickNameChangeUnitUID, MAGIC_UNIT_LEVEL );
+
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 				return true;
 			} break;
 
@@ -1372,8 +1814,13 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 
 				g_pMain->SetIsPlayingTutorial( false );
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				m_pDLGGoToFirstDungeon = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_706 ), 
+					SUSUCM_START_FIRST_DUNGEON_OK, this, SUSUCM_START_FIRST_DUNGEON_CANCEL, L"DLG_UI_Selection_MessageBox_Ok_Exit_Button_New.lua", D3DXVECTOR2 ( 0, 0 ), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				m_pDLGGoToFirstDungeon = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_706 ), 
 					SUSUCM_START_FIRST_DUNGEON_OK, this, SUSUCM_START_FIRST_DUNGEON_CANCEL );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 
 				return true;
@@ -1390,7 +1837,7 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 
 				CX2StateAutoChanger::TARGET_DETAIL targetDetail;
 				targetDetail.m_iChannelID = (int) 104; // fix!!! 채널번호 일단 하드코딩
-				targetDetail.m_iDungeonID = (int) CX2Dungeon::DI_EL_FOREST_GATE_NORMAL;
+				targetDetail.m_iDungeonID = (int) SEnum::DI_EL_FOREST_GATE_NORMAL;
 				targetDetail.m_iRoomUID = -1;
 
 				g_pMain->GetStateAutoChanger().StartStateChange( (int)g_pMain->GetNowStateID(), CX2Main::XS_DUNGEON_GAME, targetDetail, m_pSelectUnit->GetUID() );
@@ -1449,13 +1896,21 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			{
 				if ( m_NowPage > 1 )
 				{
+					
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					ClearUnitButton( false );
+					--m_NowPage;
+					ChangeUnitButtonInfo();
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					ClearBeforeUnit( m_pSelectUnit );
 					ClearUnitButton();
-
 					--m_NowPage;
-
-
 					CreateUnitButton();
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
+
+
+					
 				}
 				//else
 				//{
@@ -1475,12 +1930,21 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 				{
 					if( (m_NowPage * UNIT_SELECT_UI_MAX_UNIT_NUM) <= g_pData->GetMyUser()->GetUnitNum() + 1)
 					{	
+						
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+						ClearUnitButton( false );
+						++m_NowPage;
+						ChangeUnitButtonInfo();
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 						ClearBeforeUnit( m_pSelectUnit );
 						ClearUnitButton();
-
 						++m_NowPage;
-
 						CreateUnitButton();
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
+
+
+						
 					}
 				}
 				//else
@@ -1673,6 +2137,158 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			} break;
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터			
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		case SSSUCM_UNIT_VIEWER_UP :
+			{
+				CX2UnitViewerUI::SetUnitClicked( false );
+			}
+			break;
+
+		case SSSUCM_UNIT_VIEWER_DOWN :
+			{
+				CX2UnitViewerUI::SetUnitClicked( true );
+			}
+			break;
+		case SSSUCM_UNIT_VIEWER_OVER: 
+			{
+			}
+			break;
+		case SUSUCM_SELECT_CHANNEL_LIST_STEP: 
+			{
+#ifdef FIX_REFORM_ENTRY_POINT_3RD		// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+				if ( NULL != m_pSelectUnit )
+#endif // FIX_REFORM_ENTRY_POINT_3RD	// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+				{
+					wstring tempNickName = m_pSelectUnit->GetNickName();
+					if ( tempNickName.find( GET_STRING(STR_ID_29404) ) != -1 )
+					{
+						//닉네임이 없는 캐릭터는 닉네임을 새로 입력하라는 팝업창을 띄운다.
+						OpenRenameMsgBox( true );
+						SetRenameMsgBoxError( GET_STRING(STR_ID_29411) );
+					}
+					else
+					{
+	#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT //김창한
+						if( NULL != m_pSelectUnit && m_pSelectUnit->GetType() == CX2Unit::UT_ADD )
+						{
+							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_29409 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 ( 0, -130 ),  L"UI_PopUp_Negative_01.ogg" );
+
+							break;
+						}
+	#endif //SERV_ELISIS_PREVIOUS_SIS_EVENT
+
+#ifdef SERV_UNIT_WAIT_DELETE
+						if( NULL != m_pSelectUnit && m_pSelectUnit->GetUnitData().m_bDeleted == true )
+						{
+							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_30401 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 ( 0, -130 ),  L"UI_PopUp_Negative_01.ogg" );
+							break;
+						}
+#endif SERV_UNIT_WAIT_DELETE
+
+						Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ ();
+						m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_READY ); 
+						m_bPlayDownAnim = false;
+					
+	// 					SetShowServerStateButtonSet ( false, true );
+	// 					ClearUnitButton ( false );		
+	// 					CreateChannelButton ( );
+
+	#ifdef ADD_PLAY_SOUND //김창한
+						if( m_pSelectUnit != NULL )
+							PlaySoundSelect( m_pSelectUnit->GetType(), SPT_SERVER_SELECT );
+	#endif //ADD_PLAY_SOUND
+	//					SAFE_DELETE_DIALOG ( m_pDLGMsgBox );
+	//					m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), L"채널 목록을 받아오는 중 입니다.", this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg" );		
+	//					m_bWaiting_EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK = true;
+	//					Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ ();
+#ifndef FIX_REFORM_ENTRY_POINT_3RD		// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+						m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_READY ); 
+						m_bPlayDownAnim = false;
+#endif // FIX_REFORM_ENTRY_POINT_3RD	// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+					}
+				}
+#ifdef FIX_REFORM_ENTRY_POINT_3RD		// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+				return true;
+#endif // FIX_REFORM_ENTRY_POINT_3RD	// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+			}
+			break;
+
+		case SUSUCM_SECURITY_PAD:
+			{
+				if( NULL != g_pMain && NULL != g_pMain->GetSecurityPad() )
+					g_pMain->GetSecurityPad()->SetShow(true, CX2SecurityPad::SPC_SELECT_STATE);
+			}
+			break;
+
+		case SUSUCM_SELECT_UNIT_LIST_STEP: 
+			{
+				MoveToCharacterSelectUI();
+			}
+			break;
+
+
+		case SUSUCM_PREV_CHANNEL_LIST :
+			{
+				if ( m_iChannelNowPage > 1 )
+				{
+					ClearChannelButton();
+					--m_iChannelNowPage;
+					CreateChannelButton();
+				}
+			}
+			break;
+
+		case SUSUCM_NEXT_CHANNEL_LIST :
+			{	
+				if ( m_iChannelNowPage < m_iChannelMaxPage )
+				{
+					ClearChannelButton();
+					++m_iChannelNowPage;
+					CreateChannelButton();
+				}
+			}
+			break;
+
+		case SUSUCM_CHANNEL_BUTTON_UP :
+			{
+				CKTDGUIButton* pButton = reinterpret_cast<CKTDGUIButton*> ( lParam );
+				if ( NULL != pButton )
+				{
+					return ChannelButtonUp( pButton );
+				}
+			}
+			break;
+
+		case SUSUCM_SECURITY_PAD_CREATE :
+			{
+				if( NULL != g_pMain && NULL != g_pMain->GetSecurityPad() )
+					g_pMain->GetSecurityPad()->SetShow(true, CX2SecurityPad::SPS_CREATE_PASSWORD );
+			}
+			break;
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+
+		case SUSUCM_RE_CONNECT_CHANNEL_SERVER_OK :
+			{
+#ifdef FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW		// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+				if ( g_pMain->GetIsPlayingTutorial() == true )
+				{
+					g_pMain->SetIsPlayingTutorial( false );		
+				}
+				m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection = false; 
+				m_sbSelectedServerSet = false;
+				if ( true == g_pData->GetServerProtocol()->IsConnected() )
+					g_pData->GetServerProtocol()->DisconnectFromGameServer();
+				if ( true == g_pData->GetServerProtocol()->IsChConnected() )
+					g_pData->GetServerProtocol()->DisconnectFromChannelServer();
+				g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_SERVER_SELECT, NULL, false );
+#else  // FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW	// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+				g_pData->GetServerProtocol()->DisconnectFromChannelServer();
+				ConnectToChannelServer ( true );
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGReConnectChannelServer, NULL, false );
+#endif // FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW	// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+			} break;
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
 
 #ifdef NEW_OPTION_SECURITYPAD
 		case SSSUCM_SECURITYPAD:
@@ -1682,6 +2298,13 @@ bool CX2StateServerSelect::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			}
 			break;
 #endif NEW_OPTION_SECURITYPAD
+#ifdef SIMPLE_BUG_FIX
+		case SSSUCM_DOUBLE_CONNECT:
+			{
+				g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_DOUBLE_CONNECT );
+				g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, NULL, NULL, false );
+			}break;
+#endif SIMPLE_BUG_FIX
 	}
 
 	return false;
@@ -1791,7 +2414,7 @@ bool CX2StateServerSelect::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 		return Handler_EGS_CREATE_TUTORIAL_ROOM_ACK( hWnd, uMsg, wParam, lParam );
 		break;
 
-//#ifdef SERV_KOG_OTP_VERIFY  -- 2009-08-31  최육사 : 주석처리함
+//#ifdef SERV_KOG_OTP_VERIFY -- 2009-08-31  최육사 : 주석처리함
 	case ECH_VERIFY_ACCOUNT_ACK:
 		return Handler_ECH_VERIFY_ACCOUNT_ACK(hWnd, uMsg, wParam, lParam);
 		break;
@@ -1823,7 +2446,7 @@ bool CX2StateServerSelect::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 		{
 			return Handler_ECH_GET_SERVERGROUP_LIST_ACK( hWnd, uMsg, wParam, lParam );
 		} break;
-
+		
 	case ECH_GET_SERVERGROUP_LIST_NOT:
 		{
 			return Handler_ECH_GET_SERVERGROUP_LIST_NOT( hWnd, uMsg, wParam, lParam );
@@ -1837,7 +2460,18 @@ bool CX2StateServerSelect::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 
 	case ECH_GET_CHANNEL_LIST_NOT:
 		{
+#ifdef FIX_REFORM_ENTRY_POINT_10TH // kimjh, 캐릭터 리스트 못받으면 재접속 유도
+			if ( true == Handler_ECH_GET_CHANNEL_LIST_NOT( hWnd, uMsg, wParam, lParam ) )
+				return true;
+
+			// m_bCanNotConenctToBusyServer = true;
+			if ( true == g_pData->GetServerProtocol()->IsConnected() )
+				g_pData->GetServerProtocol()->DisconnectFromGameServer();
+			g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_SERVER_SELECT, NULL, false ); 
+			return true;
+#else //  FIX_REFORM_ENTRY_POINT_10TH // kimjh, 캐릭터 리스트 못받으면 재접속 유도
 			return Handler_ECH_GET_CHANNEL_LIST_NOT( hWnd, uMsg, wParam, lParam );
+#endif // FIX_REFORM_ENTRY_POINT_10TH // kimjh, 캐릭터 리스트 못받으면 재접속 유도
 		} break;
 
 
@@ -1848,7 +2482,20 @@ bool CX2StateServerSelect::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 
 	case EGS_DISCONNECT_FOR_SERVER_SELECT_ACK:
 		{
+#ifdef FIX_REFORM_ENTRY_POINT_10TH // kimjh, 캐릭터 리스트 못받으면 재접속 유도
+			if ( true == Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK( hWnd, uMsg, wParam, lParam ) )
+				return true;
+
+			m_bCanNotConenctToBusyServer = true;
+
+			if ( true == g_pData->GetServerProtocol()->IsConnected() )
+				g_pData->GetServerProtocol()->DisconnectFromGameServer();
+			g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_SERVER_SELECT, NULL, false ); 
+			return true;
+#else //  FIX_REFORM_ENTRY_POINT_10TH // kimjh, 캐릭터 리스트 못받으면 재접속 유도
 			return Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK( hWnd, uMsg, wParam, lParam );
+#endif // FIX_REFORM_ENTRY_POINT_10TH // kimjh, 캐릭터 리스트 못받으면 재접속 유도
+
 		} break;
 
 	case EGS_GET_MY_MESSENGER_SN_ACK:
@@ -1876,24 +2523,11 @@ bool CX2StateServerSelect::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			return Handler_EGS_SECOND_SECURITY_INFO_NOT( hWnd, uMsg, wParam, lParam );
 		} break;
 #endif SERV_SECOND_SECURITY
-		//{{ //2012.03.05 lygan_조성욱 // 조효진이 작업 누락된부분 추가 작업
-#ifdef SERV_UNIT_WAIT_DELETE
-	case EGS_FINAL_DELETE_UNIT_ACK:
-		{
-			return Handler_EGS_FINAL_DELETE_UNIT_ACK( hWnd, uMsg, wParam, lParam );
-		} break;
-	case EGS_RESTORE_UNIT_ACK:
-		{
-			return Handler_EGS_RESTORE_UNIT_ACK( hWnd, uMsg, wParam, lParam );
-		} break;
-#endif //SERV_UNIT_WAIT_DELETE
-		//}}
-#ifdef REFORM_UI_KEYPAD
+
 	case EGS_KEYBOARD_MAPPING_INFO_NOT:
 		{
 			return Handler_EGS_KEYBOARD_MAPPING_INFO_NOT( hWnd, uMsg, wParam, lParam );
 		} break;
-#endif
 	case EGS_CHAT_OPTION_INFO_NOT:
 		{
 			return Handler_EGS_CHAT_OPTION_INFO_NOT( hWnd, uMsg, wParam, lParam ); 
@@ -1912,12 +2546,7 @@ bool CX2StateServerSelect::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			return Handler_EGS_EXIST_FIRST_SELECT_UNIT_REWARD_NOT( hWnd, uMsg, wParam, lParam );
 		}break;
 #endif //SERV_FIRST_SELECT_UNIT_REWARD_SYSTEM
-#ifdef SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
-	case EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_ACK:
-		{
-			return Handler_EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_ACK( hWnd, uMsg, wParam, lParam );
-		}break;
-#endif //SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
+
 #ifdef ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
 	case EGS_JUMPING_CHARACTER_GUIDE_NOT :
 		{
@@ -1925,14 +2554,219 @@ bool CX2StateServerSelect::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wPara
 			return Handler_EGS_JUMPING_CHARACTER_GUIDE_NOT ( hWnd, uMsg, wParam, lParam);	
 		} break;
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
+
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	case EGS_CHARACTER_LIST_ACK :
+		{
+			return Handler_EGS_CHARACTER_LIST_ACK ( hWnd, uMsg, wParam, lParam);
+		} break;
+
+	case EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK :
+		{
+			Handler_EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK ( hWnd, uMsg, wParam, lParam);
+		} break;
+
+	case EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK :
+		{
+			Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK ( hWnd, uMsg, wParam, lParam);
+		} break;
+
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+		//{{ //2012.03.05 lygan_조성욱 // 조효진이 작업 누락된부분 추가 작업
+#ifdef SERV_UNIT_WAIT_DELETE
+	case EGS_FINAL_DELETE_UNIT_ACK:
+		{
+			return Handler_EGS_FINAL_DELETE_UNIT_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+	case EGS_RESTORE_UNIT_ACK:
+		{
+			return Handler_EGS_RESTORE_UNIT_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+#endif //SERV_UNIT_WAIT_DELETE
+		//}}
+#ifdef SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
+	case EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_ACK:
+		{
+			return Handler_EGS_CLIENT_DIRECT_CONNECT_AUTH_PCBAG_ACK( hWnd, uMsg, wParam, lParam );
+		}break;
+#endif //SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
 	}
 	return false;
 }
 
 
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+void CX2StateServerSelect::CreateChannelButton( bool bSelectTopChannelButton /* = false */ )
+{
+	CKTDGUIDialogType pChannelSlot = NULL;
+	CKTDGUIButton* pButton = NULL;
+
+	D3DXVECTOR3 dummyPos;
+
+	ClearChannelButton();
 
 
+
+	vector< KChannelInfo > * vecChannelInfo = NULL;
+	if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_GAIA )
+	{
+
+		m_iChannelMaxPage = static_cast <int> ( m_vecGaiaChannelInfo.size() ) / CHANNEL_SELECT_UI_MAX_CHANNEL_NUM + 1;
+
+		if ( static_cast <int> ( m_vecGaiaChannelInfo.size() ) > 0 )
+		{
+			if ( ( static_cast <int> ( m_vecGaiaChannelInfo.size() ) % CHANNEL_SELECT_UI_MAX_CHANNEL_NUM )  == 0 )
+			{
+				if ( m_iChannelMaxPage > 1 )
+					m_iChannelMaxPage -= 1;
+			}
+		}
+		vecChannelInfo = &m_vecGaiaChannelInfo;
+	}
+	else if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_SOLES )
+	{
+		m_iChannelMaxPage = static_cast <int> ( m_vecSolesChannelInfo.size() ) / CHANNEL_SELECT_UI_MAX_CHANNEL_NUM + 1;
+
+		if ( static_cast <int> ( m_vecSolesChannelInfo.size() ) > 0 )
+		{
+			if ( ( static_cast <int> ( m_vecSolesChannelInfo.size() ) % CHANNEL_SELECT_UI_MAX_CHANNEL_NUM ) == 0 )
+			{
+				if ( m_iChannelMaxPage > 1 )
+					m_iChannelMaxPage -= 1;
+			}
+		}
+		vecChannelInfo = &m_vecSolesChannelInfo;
+	}
+	else
+	{
+#ifdef FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+		m_iChannelMaxPage = static_cast <int> ( m_vecSolesChannelInfo.size() ) / CHANNEL_SELECT_UI_MAX_CHANNEL_NUM + 1;
+
+		if ( static_cast <int> ( m_vecGaiaChannelInfo.size() ) > 0 )
+		{
+			if ( ( static_cast <int> ( m_vecGaiaChannelInfo.size() ) % CHANNEL_SELECT_UI_MAX_CHANNEL_NUM ) == 0 )
+			{
+				if ( m_iChannelMaxPage > 1 )
+					m_iChannelMaxPage -= 1;
+			}
+		}
+		vecChannelInfo = &m_vecSolesChannelInfo;
+#else
+		ASSERT (! "Worng Server Group ID !! ");	
+#endif // FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+		return ;
+	}
+
+	CKTDGUIStatic* pStaticUnitPage = ( CKTDGUIStatic* ) m_pDLGUnitSelectFront->GetControl( L"number" );
+	WCHAR buff[256] = {0,};
+	StringCchPrintf( buff, 256, L"%d / %d", m_iChannelNowPage, m_iChannelMaxPage );	
+	pStaticUnitPage->GetString(0)->msg = buff;
+
+
+	int i = (m_iChannelNowPage - 1) * CHANNEL_SELECT_UI_MAX_CHANNEL_NUM;
+	int j = 0;
+
+	for( ; i < static_cast<int> ( vecChannelInfo->size() ) && j < CHANNEL_SELECT_UI_MAX_CHANNEL_NUM; i++, j++ )
+	{
+		const KChannelInfo& channelInfo = (*vecChannelInfo)[i];
+		pChannelSlot = new CKTDGUIDialog( this, L"DLG_UI_Channel_Selection_Slot_New.lua" );
+
+		dummyPos = m_pDLGUnitSelectFront->GetDummyPos( 8 + j );		
+	
+		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( pChannelSlot );
+		pChannelSlot->SetShowEnable(true, true);
+		pChannelSlot->SetPos ( D3DXVECTOR2 ( dummyPos.x, dummyPos.y ) );
+		
+		wstring wstrChannelButtonName = g_pInstanceData->GetChannelButtonNameByChannelName ( channelInfo.m_wstrChannelName );
+
+		CKTDGUIButton * pSelectChannelButton = static_cast<CKTDGUIButton *> ( pChannelSlot->GetControl( wstrChannelButtonName.c_str() ) );		
+		if ( NULL != pSelectChannelButton )
+		{
+			pSelectChannelButton->SetShowEnable( true, true );
+			pSelectChannelButton->AddDummyInt(i);
+		}
+
+		float fChannelCongestionRate = static_cast< float >( channelInfo.m_iCurrentUser ) / static_cast< float >( channelInfo.m_iMaxUser );
+
+		wstring wstrChannelCongestion = L"";
+		if(fChannelCongestionRate >= CHANNEL_CONGESTION_SCOPE_TEMP[3])
+		{
+			wstrChannelCongestion += L"#Cff383f"; // FULL
+			wstrChannelCongestion += GET_STRING(STR_ID_724);
+		}
+		else if(fChannelCongestionRate > CHANNEL_CONGESTION_SCOPE_TEMP[2])
+		{
+			wstrChannelCongestion += L"#Cf7941d"; // 혼잡
+			wstrChannelCongestion += GET_STRING(STR_ID_723);
+		}
+		else if(fChannelCongestionRate > CHANNEL_CONGESTION_SCOPE_TEMP[1])
+		{
+			wstrChannelCongestion += L"#Cfff200"; // 보통
+			wstrChannelCongestion += GET_STRING(STR_ID_722);
+		}
+		else if(fChannelCongestionRate > CHANNEL_CONGESTION_SCOPE_TEMP[0])
+		{
+			wstrChannelCongestion += L"#C93fe20"; // 원활
+			wstrChannelCongestion += GET_STRING(STR_ID_721);
+		}
+		else
+		{
+			wstrChannelCongestion += L"#C93fe20"; // 원활
+			wstrChannelCongestion += GET_STRING(STR_ID_721);
+		}
+		std::map<int, KChannelBonusInfo>::const_iterator mit;
+
+		if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_GAIA )
+		{
+			mit = m_mapGaiaChannelBonusInfo.find(channelInfo.m_iChannelID);
+			if ( mit == m_mapGaiaChannelBonusInfo.end() )
+			{
+				ASSERT ( !L"Can't Find Server Info !!");
+				return ;
+			}
+		}
+		else if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_SOLES )
+		{
+			mit = m_mapSolesChannelBonusInfo.find(channelInfo.m_iChannelID);
+			if ( mit == m_mapSolesChannelBonusInfo.end() )
+			{
+				ASSERT ( !L"Can't Find Server Info !!");
+				return ;
+			}
+		}
+		
+		else
+		{
+			ASSERT ( !L"Wrong Server Group ID ! ");
+			return ;
+		}
+		wstringstream wstrChannelButtonLevelInfo;
+		wstrChannelButtonLevelInfo << L" (Lv." << mit->second.m_iBeginLv << L"~" << mit->second.m_iEndLv << L")";			
+
+		CKTDGUIStatic * pChannelInfoStatic = static_cast<CKTDGUIStatic *> ( pChannelSlot->GetControl( L"ChannelButtonInfo" ) );		
+		if ( NULL != pChannelInfoStatic )
+		{
+			pChannelInfoStatic->SetString ( 0, channelInfo.m_wstrChannelName.c_str() );
+			pChannelInfoStatic->SetString ( 1, wstrChannelButtonLevelInfo.str().c_str() );
+			pChannelInfoStatic->SetString ( 2, wstrChannelCongestion.c_str() );
+		}
+			
+		m_vecChannelSlot.push_back(pChannelSlot);		
+		pChannelSlot->OnFrameMove( g_pKTDXApp->GetTime(),g_pKTDXApp->GetElapsedTime() );
+
+		if ( true == bSelectTopChannelButton )
+		{
+			if ( j == 0 )
+			{
+				ChannelButtonUp ( pSelectChannelButton );
+			}
+		}
+	}
+}
+
+#endif // REFORM_ENTRY_POINT 13-11-11, 진입 구조 개편, kimjh
 
 void CX2StateServerSelect::CreateUnitButton()
 {
@@ -1985,10 +2819,15 @@ void CX2StateServerSelect::CreateUnitButton()
 		
 		dummyPos = m_pDLGUnitSelectFront->GetDummyPos( j );		
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		pUnitSlot = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Slot_New.lua" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		pUnitSlot = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Slot.lua" );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( pUnitSlot );
 		pUnitSlot->SetShowEnable(true, true);
-		m_vecUnitSlot.push_back(pUnitSlot);
+		m_vecUnitSlot.push_back(pUnitSlot);		
 
 		CKTDGUIStatic* pStaticEmblem = (CKTDGUIStatic*)pUnitSlot->GetControl( L"UnitEmblem" );
 		pStaticEmblem->GetPicture(0)->SetShow( true );
@@ -2004,13 +2843,19 @@ void CX2StateServerSelect::CreateUnitButton()
 			{
 				pStaticEmblem->GetPicture(0)->SetTex( pPVPEmblemData->m_TextureName.c_str(), pPVPEmblemData->m_TextureKey.c_str() );
 			}
+#ifdef NO_RANK_ICON_OF_NEW_CHARACTER
+			else
+			{
+				pStaticEmblem->GetPicture(0)->SetShow( false );
+			}
+#endif NO_RANK_ICON_OF_NEW_CHARACTER
 		}
 		
-
-
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 		CX2UnitViewerUI* pUnitViewerUI = CX2UnitViewerUI::CreateUnitViewerUI();
 		//pUnitViewerUI->SetLightPos( 1000, 1000, -200 );
-		pUnitViewerUI->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+		//pUnitViewerUI->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+		pUnitViewerUI->SetLightPos( -250, 100, -600 );	// 캐릭터뷰어 라이트 위치 변경
 		g_pKTDXApp->GetDGManager()->AddObjectChain( pUnitViewerUI );
 
 		D3DXVECTOR3 vUnitPos = dummyPos;
@@ -2025,8 +2870,8 @@ void CX2StateServerSelect::CreateUnitButton()
 
 		//{{ kimhc // 2010-01-06 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
-		if ( pUnit->GetInventory() != NULL )
-			pUnit->GetInventory()->RemovePCBangEquips();
+		if ( pUnit != NULL )
+			pUnit->AccessInventory().RemovePCBangEquips();
 #endif	PC_BANG_WORK
 		//}} kimhc // 2010-01-06 // PC방 프리미엄 서비스
 
@@ -2050,7 +2895,7 @@ void CX2StateServerSelect::CreateUnitButton()
 		pUnitViewerUI->SetShowObject( false );
 
 		m_UnitViewerUIList.push_back( pUnitViewerUI );
-
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 		pButton = (CKTDGUIButton*)pUnitSlot->GetControl( L"character1" );
 
 		switch( pUnit->GetType() )
@@ -2069,12 +2914,20 @@ void CX2StateServerSelect::CreateUnitButton()
 		case CX2Unit::UT_ARA:
 #endif
 		case CX2Unit::UT_ELESIS:
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		case CX2Unit::UT_ADD:
+#endif //SERV_9TH_NEW_CHARACTER
 			break;
 
 
 		default:
 			{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING( STR_ID_707 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_707 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편				
 			}break;
 		}
 		XSkinMeshReady( pUnit->GetUnitTemplet()->m_MotionFile.c_str() );
@@ -2087,191 +2940,9 @@ void CX2StateServerSelect::CreateUnitButton()
 			pButton->SetName( buttonName.str().c_str() );
 		}
 		
-		//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
-#ifdef SERV_UNIT_WAIT_DELETE
-		
-		// 초기에 값을 세팅하고 여기서는 생성과 출력만 하는게 깔끔할듯
-		if( pUnit == NULL )
-			continue;	
-
-		CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
-		
-		// 지워진 캐릭인 경우 캐릭 위에 다이얼로그 창을 출력해야 함 
-		if( NULL == pUnitViewerUI->m_pNewDeleteDlg )
-		{
-			pUnitViewerUI->m_pNewDeleteDlg = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Slot_Delete.lua" );
-			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( pUnitViewerUI->m_pNewDeleteDlg );
-			pUnitViewerUI->m_pNewDeleteDlg->SetShowEnable(true, true);
-		}
-
-		// 창 생성 정상적으로 처리 됐으면
-		if( NULL != pUnitViewerUI->m_pNewDeleteDlg )
-		{
-
-
-			//{{ 2012.02.27 lygan_조성욱 // 캐릭터 삭제 대기 문구와 배경 표시용
-			CKTDGUIStatic* pStatic_UnitDeleteInfo = (CKTDGUIStatic*) (pUnitViewerUI->m_pNewDeleteDlg)->GetControl( L"StaticUnitSelectDeleteInfo" );
-			CKTDGUIStatic* pStatic_UnitDeleteInfoName = (CKTDGUIStatic*) (pUnitViewerUI->m_pNewDeleteDlg)->GetControl( L"StaticUnitSelectDeleteInfoName" );
-
-			if(NULL != pStatic_UnitDeleteInfo)
-			{
-				if( pUnitData->m_bDeleted )
-				{
-					
-					//{{ //2012.03.06 lygan_조성욱 // 삭제후 1일지나서 복구 가능한 날짜 알림용
-					std::wstring year = L"";
-					std::wstring month = L"";
-					std::wstring day = L"";
-					std::wstring hour = L"";
-					std::wstring min = L"";
-
-					CTime tDeleAbleDate(pUnitData->m_trDelAbleDate);
-
-					year = (CStringW)( tDeleAbleDate.Format(_T( "%Y" )) );
-					month = (CStringW)( tDeleAbleDate.Format(_T( "%m" )) );
-					day = (CStringW)( tDeleAbleDate.Format(_T( "%d" )) );
-					hour = (CStringW)( tDeleAbleDate.Format(_T( "%H" )) );
-					min = (CStringW)( tDeleAbleDate.Format(_T( "%M" )) );
-
-#ifdef CLIENT_GLOBAL_LINEBREAK
-					wstring wstrMessage = CWordLineHandler::GetStrByLineBreakInX2Main(GET_REPLACED_STRING( ( STR_ID_16109, "SSSSS", day.c_str(), month.c_str(), year.c_str(),hour.c_str(), min.c_str())), 200, XUF_DODUM_15_BOLD );
-					pStatic_UnitDeleteInfo->GetString(0)->msg = wstrMessage;
-#else //CLIENT_GLOBAL_LINEBREAK
-	#ifdef CLIENT_GLOBAL_LINEBREAK_FOR_CN
-					wstring wstrMessage = g_pMain->GetStrByLienBreak(GET_REPLACED_STRING( ( STR_ID_16109, "SSSSS", day.c_str(), month.c_str(), year.c_str(),hour.c_str(), min.c_str())), 180, pStatic_UnitDeleteInfo->GetString(0)->fontIndex );
-					pStatic_UnitDeleteInfo->GetString(0)->msg = wstrMessage;
-	#else //CLIENT_GLOBAL_LINEBREAK_FOR_CN
-					pStatic_UnitDeleteInfo->GetString(0)->msg = GET_REPLACED_STRING( ( STR_ID_16109, "SSSSS", day.c_str(), month.c_str(), year.c_str(),hour.c_str(), min.c_str()));
-	#endif //CLIENT_GLOBAL_LINEBREAK_FOR_CN
-#endif //CLIENT_GLOBAL_LINEBREAK
-
-					
-					
-
-
-					pStatic_UnitDeleteInfo->SetOffsetPos(D3DXVECTOR2(dummyPos.x, dummyPos.y));
-					pStatic_UnitDeleteInfoName->SetOffsetPos(D3DXVECTOR2(dummyPos.x, dummyPos.y));
-
-					
-
-					CKTDGUIStatic* pStaticID = (CKTDGUIStatic*)pUnitSlot->GetControl( L"StaticUnitSelectStringID" );
-					pStaticID->SetShow(false);
-
-					wstring tempNickName = pUnit->GetNickName();
-					if ( tempNickName.find( L"_") != -1 )
-					{
-						pStatic_UnitDeleteInfoName->GetString(0)->msg = L"     ?";
-					}
-					else
-					{
-						pStatic_UnitDeleteInfoName->GetString(0)->msg = pUnit->GetNickName();
-					}
-
-					pStatic_UnitDeleteInfo->SetShow(true);
-					pStatic_UnitDeleteInfoName->SetShow(true);
-					
-
-				}
-				else
-				{
-					pStatic_UnitDeleteInfo->SetShow(false);
-					pStatic_UnitDeleteInfoName->SetShow(false);
-					
-				}
-			}
-			//}}  2012.02.27 lygan_조성욱 // 캐릭터 삭제 대기 문구와 배경 표시용
-
-			// 최종 삭제 버튼 //
-			CKTDGUIButton* pBtn_FinalDelete = (CKTDGUIButton*)(pUnitViewerUI->m_pNewDeleteDlg)->GetControl( L"final_delete_unit" );
-			if(NULL != pBtn_FinalDelete)
-			{
-				if( pUnitData->m_bDeleted )
-				{
-					
-					pBtn_FinalDelete->SetOffsetPos(D3DXVECTOR2(dummyPos.x, dummyPos.y)); //2012.02.27 lygan_조성욱 // 캐릭터 삭제 정보 UI 캐릭터 위치에 맞게 자동 조정용
-					bool bCheckEnable = false;
-
-
-					//CTime cClientTime = CTime::GetCurrentTime();
-					//__int64 tint64TimeGap = g_pData->GetServerCurrentTime() - cClientTime.GetTime();
-
-
-					//if(pUnitData->m_trDelAbleDate <  ( g_pData->GetServerCurrentTime() + tint64TimeGap) ) // 2013.01.30 lygan_조성욱 // 시차가 다른 지역에서 게임을 할때도 버튼이 활성화 되게 처리하기
-					if(pUnitData->m_trDelAbleDate <  g_pData->GetServerCurrentTime64() )
-						bCheckEnable = true;
-					
-					pBtn_FinalDelete->SetShowEnable(true,bCheckEnable);
-					
-					//{{ 2012.02.28 lygan_조성욱 // 버튼에 캐릭터 UID 정보 넣기
-					if( NULL != pBtn_FinalDelete )
-					{
-
-						wstring buttonNameDelete = boost::str(boost::wformat(L"DELETE_BUTTON_%1%") %pUnit->GetUID());
-
-						if( NULL != pBtn_FinalDelete )
-						{
-							pBtn_FinalDelete->SetName( buttonNameDelete.c_str() );
-						}
-						/*wstringstream buttonNameDelete;
-						buttonNameDelete.clear();
-						buttonNameDelete << L"SLOT_BUTTON_" << pUnit->GetUID();
-						if( NULL != pBtn_FinalDelete )
-						{
-							pBtn_FinalDelete->SetName( buttonNameDelete.str().c_str() );
-						}*/
-
-
-						//StringCchPrintfW( buttonName.c_str(), ARRAY_SIZE( buttonName.c_str() ), L"SLOT_BUTTON_%I64d", pUnit->GetUID() );
-						
-					}
-					//}}
-				}
-				else
-				{
-					pBtn_FinalDelete->SetShowEnable(false,false);
-				}
-			}
-
-			// 복구 버튼 //
-			CKTDGUIButton* pBtn_Restore = (CKTDGUIButton*)(pUnitViewerUI->m_pNewDeleteDlg)->GetControl( L"restore_unit" );
-			if(NULL != pBtn_Restore)
-			{
-				if( pUnitData->m_bDeleted )
-				{
-					pBtn_Restore->SetOffsetPos(D3DXVECTOR2(dummyPos.x, dummyPos.y)); //2012.02.27 lygan_조성욱 // 캐릭터 삭제 정보 UI 캐릭터 위치에 맞게 자동 조정용
-					pBtn_Restore->SetShowEnable(true,true);
-					//{{ 2012.02.28 lygan_조성욱 // 버튼에 캐릭터 UID 정보 넣기
-					if( NULL != pBtn_Restore )
-					{
-						wstring buttonNameRestore = boost::str(boost::wformat(L"RESTORE_BUTTON_%1%") %pUnit->GetUID());
-						if( NULL != pBtn_Restore )
-						{
-							pBtn_Restore->SetName( buttonNameRestore.c_str() );
-						}
-
-						/*wstringstream buttonNameRestore;
-						buttonNameRestore.clear();
-						buttonNameRestore << L"SLOT_BUTTON_" << pUnit->GetUID();
-						if( NULL != pBtn_Restore )
-						{
-							pBtn_Restore->SetName( buttonNameRestore.str().c_str() );
-						}*/
-					}
-					//}}
-				}
-				else
-				{
-					pBtn_Restore->SetShowEnable(false,false);
-				}
-			}
-		}
-		
-#endif SERV_UNIT_WAIT_DELETE
-		//}}
-
 		WCHAR buff[256] = {0,};
-		//wsprintf( buff, L"%d", (int)pUnit->GetUnitData()->m_Level );
-		StringCchPrintf( buff, 256, L"%d", (int)pUnit->GetUnitData()->m_Level );
+		//wsprintf( buff, L"%d", (int)pUnit->GetUnitData().m_Level );
+		StringCchPrintf( buff, 256, L"%d", (int)pUnit->GetUnitData().m_Level );
 		CKTDGUIStatic* pStaticLVNum = (CKTDGUIStatic*)pUnitSlot->GetControl( L"StaticUnitSelectStringLVNum" );
 		pStaticLVNum->GetString(0)->msg = buff;
 
@@ -2286,10 +2957,15 @@ void CX2StateServerSelect::CreateUnitButton()
 		wstring tempNickName = pUnit->GetNickName();
 		if ( tempNickName.find( L"__DELETED__") != -1 )
 		{
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+			pStaticID->GetString(0)->msg = GET_STRING(STR_ID_29404);
+#else  // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 			pStaticID->GetString(0)->msg = L"     ?";
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 			pStaticChangeNickEmblem->SetShowEnable( true, true );
 			pStaticChangeNickMessage->SetShowEnable( true, true );
+
 		}
 		else
 		{
@@ -2298,6 +2974,33 @@ void CX2StateServerSelect::CreateUnitButton()
 			pStaticChangeNickEmblem->SetShowEnable( false, false );
 			pStaticChangeNickMessage->SetShowEnable( false, false );
 		}
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		CKTDGUIStatic* pStaticLastPlace = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"StaticUnitSelectStringID_LastPlace" ) );
+		wstring wstringLastPlace = L"임시스트링어둠의전당물의전당빛의전당";
+		
+
+
+		wstringLastPlace = wstringLastPlace.substr(0, 11);
+		wstringLastPlace += L"..";
+
+		pStaticLastPlace->GetString(0)->msg = wstringLastPlace.c_str();
+
+		CKTDGUIStatic* pStaticUnitFace = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"UnitFace" ) );
+
+		wstring fileName, pieceName;		
+		if ( true == CX2Data::GetCharacterImageName( fileName, pieceName, pUnit->GetClass(), CX2Data::CIT_UnitSlot ) )
+		{
+			CKTDGUIControl::CPictureData* pPictureData = pUnitSlot->CreatePicture();
+			pStaticUnitFace->AddPicture ( pPictureData );
+			pPictureData->SetTex ( fileName.c_str(), pieceName.c_str() );
+			CKTDGUIControl::UIPointData* pPointData = new CKTDGUIControl::UIPointData();
+			pPointData->leftTopPoint = D3DXVECTOR2 ( 32, 8 );
+			pPointData->color = D3DXCOLOR ( 1.0f, 1.0f, 1.0f, 1.0f );
+			pPictureData->SetPoint ( pPointData );
+			pPictureData->SetSize( D3DXVECTOR2 ( 38, 38 ) );
+		}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 		
 		D3DXVECTOR2 buttonPos = D3DXVECTOR2( dummyPos.x, dummyPos.y );
@@ -2341,8 +3044,8 @@ void CX2StateServerSelect::CreateUnitButton()
 		pStaticUnitInfo->GetString(1)->msg = L"콤보의제왕님";
 
 		WCHAR arLV[8] = {0,};
-		//wsprintf(arLV, 7, L"%d", pUnit->GetUnitData()->m_Level );
-		StringCchPrintf( buff, 8, L"%d", pUnit->GetUnitData()->m_Level );
+		//wsprintf(arLV, 7, L"%d", pUnit->GetUnitData().m_Level );
+		StringCchPrintf( buff, 8, L"%d", pUnit->GetUnitData().m_Level );
 		pStaticUnitInfo->GetString(2)->msg = arLV;
 		*/
 		//		buttonPos.x -= 12;
@@ -2357,7 +3060,17 @@ void CX2StateServerSelect::CreateUnitButton()
 		if ( j == UNIT_SELECT_UI_MAX_UNIT_NUM - 1 )
 			bAllSlotOccupiedInAPage = true;
 		//		pStaticUnitInfo->SetOffsetPos( staticPos );
+// #ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+// 		if ( pUnit == m_pSelectUnit )
+// 		{
+// 			CKTDGUIButton* pCharButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 0 ) );
+// 			pCharButton->SetDownStateAtNormal( true );
+// 		}
+// 
+// #endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 	}
+
+
 
 	dummyPos = m_pDLGUnitSelectFront->GetDummyPos( j );
 	D3DXVECTOR2 buttonPos = D3DXVECTOR2( dummyPos.x, dummyPos.y );
@@ -2388,10 +3101,19 @@ void CX2StateServerSelect::CreateUnitButton()
 	buttonPos = D3DXVECTOR2( 795, 404 );
 	}
 	*/
+
 	if( false == bAllSlotOccupiedInAPage &&
 		g_pData->GetMyUser()->GetUnitNum() < m_MaxUnitNum )
 	{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		if ( TODAY_CREATE_UNIT_MAX_NUMBER > m_iCreateUnitTodayCount )
+			pUnitSlot = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Make_New.lua" );
+		else
+			pUnitSlot = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Dont_Make_New.lua" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		pUnitSlot = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Make.lua" );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+		
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( pUnitSlot );
 		pUnitSlot->SetShowEnable(true, true);
 		m_vecUnitSlot.push_back(pUnitSlot);	
@@ -2400,27 +3122,109 @@ void CX2StateServerSelect::CreateUnitButton()
 		pButton = (CKTDGUIButton*)pUnitSlot->GetControl( L"character2" );
 		pButton->SetName( L"EmptySlot" );
 		pUnitSlot->SetPos(buttonPos);
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		for ( j = j + 1; j < UNIT_SELECT_UI_MAX_UNIT_NUM; j++ )
+		{
+			pUnitSlot = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Empty_Slot_New.lua" );
+			dummyPos = m_pDLGUnitSelectFront->GetDummyPos( j );
+			D3DXVECTOR2 buttonPos = D3DXVECTOR2( dummyPos.x, dummyPos.y );
+			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( pUnitSlot );
+			pUnitSlot->SetShowEnable(true, true);
+			m_vecUnitSlot.push_back(pUnitSlot);	
+			pUnitSlot->SetPos(buttonPos);
+		}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+	}
+
+	PlayDownAnim();
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	g_pKTDXApp->SkipFrame();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+	
+#endif
+}
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+bool CX2StateServerSelect::ClearUnitButton( bool bIsClearUnitViewer_ /* = true */ )
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+bool CX2StateServerSelect::ClearUnitButton()
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+{
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	for(UINT i=0; i<m_vecUnitSlot.size(); ++i)
+	{
+		CKTDGUIDialogType pUnitSlot =  m_vecUnitSlot[i];
+		CKTDGUIButton* pSelectUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 0 ) );
+		CKTDGUIButton* pCreateUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 1 ) );
+		CKTDGUIButton* pNoCreateUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 2 ) );
+		CKTDGUIButton* pEmptyUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 3 ) );
+		CKTDGUIButton* pFullUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 4 ) );
+		if ( NULL != pSelectUnitButton && NULL != pCreateUnitButton && NULL != pNoCreateUnitButton && NULL != pEmptyUnitButton && NULL != pFullUnitButton )
+		{	
+			pSelectUnitButton->SetShowEnable( false, false );
+			pSelectUnitButton->SetName ( L"ButtonSelectUnit");
+			pCreateUnitButton->SetShowEnable( false, false );
+			pNoCreateUnitButton->SetShowEnable( false, false );
+			pEmptyUnitButton->SetShowEnable( false, false );
+			pFullUnitButton->SetShowEnable( false, false );
+		}
+
+		CKTDGUIStatic* pStaticEmblem = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"UnitEmblem" ) );
+		if ( NULL != pStaticEmblem )
+			pStaticEmblem->SetShow ( false );
+
+		CKTDGUIStatic* pStaticLV = (CKTDGUIStatic*)pUnitSlot->GetControl( L"lv" );
+		if ( NULL != pStaticLV )
+			pStaticLV->SetShow ( false );
+
+		CKTDGUIStatic* pStaticLVNum = (CKTDGUIStatic*)pUnitSlot->GetControl( L"StaticUnitSelectStringLVNum" );
+		if ( NULL != pStaticLVNum )
+			pStaticLVNum->SetShow ( false );
+
+		CKTDGUIStatic* pStaticID = (CKTDGUIStatic*)pUnitSlot->GetControl( L"StaticUnitSelectStringID" );
+		if ( NULL != pStaticID )
+			pStaticID->SetShow ( false );
+
+		CKTDGUIStatic* pStaticLastPlace = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"StaticUnitSelectStringID_LastPlace" ) );
+		if ( NULL != pStaticLastPlace )
+			pStaticLastPlace->SetShow ( false );
+
+		CKTDGUIStatic* pStaticUnitFace = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"UnitFace" ) );
+		if ( NULL != pStaticUnitFace )
+			pStaticUnitFace->SetShow ( false );
+
+		CKTDGUIStatic* pStaticChangeNickEmblem = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"ChangeNick" ) );
+		if ( NULL != pStaticChangeNickEmblem )
+		{
+			pStaticChangeNickEmblem->SetShowEnable ( false, false );
+		}
+
+		CKTDGUIStatic* pStaticChangeNickMessage = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"standby" ) );
+		if ( NULL != pStaticChangeNickMessage )
+		{
+			pStaticChangeNickMessage->SetShowEnable ( false, false );
+		}
+
 	}
 
 
-	PlayDownAnim();
+	if ( true == bIsClearUnitViewer_ )
+	{
+		ClearUnitViewerList();
+	}
 
-	
+	m_iChannelNowPage = 1;
+	m_iChannelMaxPage = 1;
 
-	g_pKTDXApp->SkipFrame();
-#endif
-}
-
-bool CX2StateServerSelect::ClearUnitButton()
-{
+#else // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 	for(UINT i=0; i<m_vecUnitSlot.size(); ++i)
 	{
 		CKTDGUIDialogType pUnitSlot =  m_vecUnitSlot[i];
 		SAFE_DELETE_DIALOG(pUnitSlot);
 	}
 	m_vecUnitSlot.clear();
-
 	ClearUnitViewerList();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh	
 
 	return true;
 }
@@ -2437,19 +3241,66 @@ void CX2StateServerSelect::UnitButtonUp( CX2Unit* pUnit )
 {
 	if ( m_pSelectUnit == pUnit )
 	{
-		m_bReserveEnterTutorial = false;
-#ifdef SERV_UNIT_WAIT_DELETE
-		CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
-		if( pUnitData->m_bDeleted != true)
-			Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData()->m_Level );
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		wstring tempNickName = m_pSelectUnit->GetNickName();
+		if ( tempNickName.find( GET_STRING(STR_ID_29404) ) != -1 || 
+			 tempNickName.find( L"__DELETED__") != -1 )
+		{
+			//닉네임이 없는 캐릭터는 닉네임을 새로 입력하라는 팝업창을 띄운다.
+			OpenRenameMsgBox( true );
+		}
+		else
+		{
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT //김창한
+			if( NULL != m_pSelectUnit && m_pSelectUnit->GetType() == CX2Unit::UT_ADD )
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_29409 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 ( 0, -130 ),  L"UI_PopUp_Negative_01.ogg" );
 
-#else //SERV_UNIT_WAIT_DELETE
-		Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData()->m_Level );
-#endif //SERV_UNIT_WAIT_DELETE
+				return;
+			}
+#endif //SERV_ELISIS_PREVIOUS_SIS_EVENT
+#ifdef SERV_UNIT_WAIT_DELETE
+			CX2Unit::UnitData* pUnitData = &(pUnit->AccessUnitData());
+			if( pUnitData->m_bDeleted != true)
+			{
+#ifdef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+				m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_2558 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+				Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ ();
+				m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_READY ); 
+				m_bPlayDownAnim = false;
+
+#ifdef ADD_PLAY_SOUND //김창한
+				if( m_pSelectUnit != NULL )
+					PlaySoundSelect( m_pSelectUnit->GetType(), SPT_SERVER_SELECT );
+#endif //ADD_PLAY_SOUND
+			}
+			else
+			{
+				m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 275), GET_STRING( STR_ID_30401 ), this, -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2 (0, -130), L"UI_PopUp_Negative_01.ogg" );
+			}
+#else
+#ifdef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+			m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_2558 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+			Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ ();
+			m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_READY ); 
+			m_bPlayDownAnim = false;
+
+#ifdef ADD_PLAY_SOUND //김창한
+			if( m_pSelectUnit != NULL )
+				PlaySoundSelect( m_pSelectUnit->GetType(), SPT_SERVER_SELECT );
+#endif //ADD_PLAY_SOUND
+#endif SERV_UNIT_WAIT_DELETE
+		}
+#else  // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		
+		Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData().m_Level );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 		return;
 	}
-
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 	if ( m_pSelectUnit != NULL )
 	{
 		CX2UnitViewerUI* pUnitViewer = GetUnitViewer( m_pSelectUnit );
@@ -2458,7 +3309,7 @@ void CX2StateServerSelect::UnitButtonUp( CX2Unit* pUnit )
 			pUnitViewer->PlayByMotionType( CX2UnitViewerUI::UVUMT_WAIT );
 		}
 	}
-
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 	ClearBeforeUnit( m_pSelectUnit );
 
 
@@ -2516,7 +3367,17 @@ void CX2StateServerSelect::UnitButtonUp( CX2Unit* pUnit )
 	}
 */
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	CreateServerSelectUnitViewerUI ( pUnit );
+	SetRightSideFlagColor ( GetUnitKeyColorByUnitType ( pUnit->GetType() ) );
+	SetShowSelectUnitInfo ( pUnit );	
+	ChangeSelectUnitStandMeshInstance ( pUnit->GetType() );
+	SetBackgroundImageBySelectUnitType ( pUnit->GetType() );
+#ifdef ADD_PLAY_SOUND //김창한
+	PlaySoundSelect( pUnit->GetType(), SPT_UNIT_SELECT );
+#endif //ADD_PLAY_SOUND
 
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	CX2UnitViewerUI* pUnitViewer = GetUnitViewer( pUnit );
 	if ( pUnitViewer != NULL  )
 	{
@@ -2524,14 +3385,12 @@ void CX2StateServerSelect::UnitButtonUp( CX2Unit* pUnit )
 #ifdef SERV_UNIT_WAIT_DELETE //2012.03.07 lygan_조성욱 // 캐릭터별 삭제 대기시에 애니메이션 설정
 		if(m_pBeforeSelectUnit != NULL)
 		{
-			CX2Unit::UnitData* pUnitData = m_pBeforeSelectUnit->GetUnitData();
-			if (pUnitData != NULL )
-				pUnitData->m_bDeletedMotionPlay = false;
+			m_pBeforeSelectUnit->AccessUnitData().m_bDeletedMotionPlay = false;
 		}
 		m_pBeforeSelectUnit = pUnit;
-
 #endif //SERV_UNIT_WAIT_DELETE
 	}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 	/*
 	D3DXVECTOR3 unitSize = D3DXVECTOR3( 1.6f, 1.6f, 1.6f );
 
@@ -2610,14 +3469,23 @@ void CX2StateServerSelect::UnitButtonUp( CX2Unit* pUnit )
 }
 
 
+#ifdef FIX_REFORM_ENTRY_POINT_7TH		// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 )
+bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_REQ( UidType unitUID /* = -1 */, int iUnitLevel /* = -1 */ )
+#else // FIX_REFORM_ENTRY_POINT_7TH		// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 )
 bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_REQ( UidType unitUID, int iUnitLevel )
+#endif // FIX_REFORM_ENTRY_POINT_7TH	// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 )
+
 {
-#ifdef SERV_SECOND_SECURITY
-	if(m_bEnableUnitSelectBySecondSecurity == false)
+#ifdef FIX_REFORM_ENTRY_POINT_7TH		// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 )
+	if ( unitUID < 0 )
 	{
-		return true;
+		unitUID = m_pSelectUnit->GetUID();
 	}
-#endif SERV_SECOND_SECURITY
+	if ( iUnitLevel < 0 )
+	{
+		iUnitLevel = m_pSelectUnit->GetUnitData().m_Level;
+	}
+#endif // FIX_REFORM_ENTRY_POINT_7TH	// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 )
 
 #ifdef SERV_KOM_FILE_CHECK_ADVANCED
 #ifdef SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
@@ -2626,14 +3494,36 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_REQ( UidType unitUID, int iUn
 		g_pMain->SetQuitType( NetError::ERR_CLIENT_QUIT_03 );
 		g_pMain->SendQuitMsgToServer();
 	}
-#endif SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
-#endif SERV_KOM_FILE_CHECK_ADVANCED
+#endif // SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
+
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT // 캐릭터 선택 할 수 없도록 설정
+	if( NULL != m_pSelectUnit )
+	{
+		if( CX2Unit::UC_ELESIS_KNIGHT == static_cast<CX2Unit::UNIT_CLASS>(m_pSelectUnit->GetUnitData().m_UnitClass) )
+		{
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_25374 ), g_pMain->GetNowState() );
+			return true;
+		}
+	}
+#endif // SERV_ELISIS_PREVIOUS_SIS_EVENT
+
+#ifdef SERV_SECOND_SECURITY
+	if(m_bEnableUnitSelectBySecondSecurity == false)
+	{
+		return true;
+	}
+#endif SERV_SECOND_SECURITY
 
 	// 체험 아이디 제한 
-	if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser &&
+	if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser &&
 		iUnitLevel >= 20 )
 	{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING( STR_ID_40 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_40 ), g_pMain->GetNowState() );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		return true;
 	}
 
@@ -2643,15 +3533,22 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_REQ( UidType unitUID, int iUn
 	g_pData->GetServerProtocol()->SendPacket( EGS_SELECT_UNIT_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_SELECT_UNIT_ACK, 30.0f );
 
-#ifdef LIST_SORT_AT_CHARACTER_SELECT
-	g_pData->GetMyUser()->SortFirstByUID(unitUID); 
-#endif LIST_SORT_AT_CHARACTER_SELECT
 	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+	
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_709 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_709 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 #ifdef NEW_EMBLEM_MANAGER
 	CX2EmblemManager::GetInstance()->InitEmbelmPlayInfo(true);
 #endif // NEW_EMBLEM_MANAGER
+
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+	// 접속 성공 시, 접속했던 채널의 아이디를 초기화 한다.
+	g_pInstanceData->ResetConnectedChannelID();
+#endif // FIX_REFORM_ENTRY_POINT_10TH	// kimjh, 캐릭터 리스트 못받으면 재접속 유도
 	return true;
 }
 
@@ -2676,10 +3573,22 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_1_NOT( HWND hWnd, UINT uMsg, 
 
 			if( NULL != pUnit )
 			{
+#ifdef LIST_SORT_AT_CHARACTER_SELECT
+				g_pData->GetMyUser()->SortFirstByUID(pUnit->GetUID());
+#endif LIST_SORT_AT_CHARACTER_SELECT
+
 				g_pData->GetMyUser()->SelectUnit( pUnit );
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 				g_pData->GetItemStatCalculator().SetUnitData( pUnit->GetType(), pUnit->GetClass() );
 #endif //SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef REFORM_SKILL_NOTE_UI
+				if( pUnit->GetClass() != CX2SkillNoteManager::GetInstance()->GetUnitClass() )
+				{
+					CX2SkillNoteManager::GetInstance()->SetUnitClass( pUnit->GetClass() );
+					CX2SkillNoteManager::GetInstance()->ResetMemoList();
+				}
+#endif // REFORM_SKILL_NOTE_UI
+
 				//{{ 오현빈 // 2012-04-06 // 이벤트 받아오기 전 타이머 초기화 시킬 수 있도록 수정
 #ifdef FIX_EVENT_TIMER	
 				pUnit->m_mapEventData.clear();
@@ -2747,36 +3656,58 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_1_NOT( HWND hWnd, UINT uMsg, 
 
 			
 				// skill list
-				if( NULL != pUnit->GetUnitData() )
 				{
-					//pUnit->GetUnitData()->m_UserSkillTree.SetUnitClass( (int) kEvent.m_kUnitInfo.m_cUnitClass );
-					pUnit->GetUnitData()->m_UserSkillTree.SetAcquiredSkill( kEvent.m_vecSkillAcquired );
-					pUnit->GetUnitData()->m_UserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
-					pUnit->GetUnitData()->m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
-					// 		pUnit->GetUnitData()->m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
-					// 		pUnit->GetUnitData()->m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
+			#ifdef SKILL_PAGE_SYSTEM //JHKang
+					pUnit->AccessUnitData().m_UserSkillTree.SetUsingPage( 
+						static_cast<USHORT>( kEvent.m_kUnitInfo.m_UnitSkillData.m_nActiveSkillPagesNumber ) );
+					pUnit->AccessUnitData().m_UserSkillTree.SetOpenedPage( 
+						static_cast<USHORT>( kEvent.m_kUnitInfo.m_UnitSkillData.m_nTheNumberOfSkillPagesAvailable ) );
+					pUnit->AccessUnitData().m_UserSkillTree.SetSelectPage( 
+						static_cast<USHORT>( kEvent.m_kUnitInfo.m_UnitSkillData.m_nActiveSkillPagesNumber ) );
 
+					pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredSkill( kEvent.m_vecUserSkillPageData );
+					pUnit->AccessUnitData().m_UserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
+					pUnit->AccessUnitData().m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill,
+						kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
 
-#ifdef ADDED_RELATIONSHIP_SYSTEM
+				#ifdef ADDED_RELATIONSHIP_SYSTEM
 					if ( NULL != g_pData->GetRelationshipManager() &&
-					 	 NULL != g_pData->GetRelationshipManager()->GetMyRelationshipInfo() )
+						NULL != g_pData->GetRelationshipManager()->GetMyRelationshipInfo() )
 					{
 						int iSkillLevel = static_cast<int>(g_pData->GetRelationshipManager()->GetMyRelationshipInfo()->m_eRelationStateType);
-						pUnit->GetUnitData()->m_UserSkillTree.SetSkillLevelAndCSP( CX2SkillTree::SI_ETC_WS_COMMON_LOVE, iSkillLevel, 0 );
+						pUnit->AccessUnitData().m_UserSkillTree.SetSkillLevelAndCSP( CX2SkillTree::SI_ETC_WS_COMMON_LOVE,
+							iSkillLevel, 0, pUnit->AccessUnitData().m_UserSkillTree.GetUsingPage() );
 					}
-#endif // ADDED_RELATIONSHIP_SYSTEM
+				#endif // ADDED_RELATIONSHIP_SYSTEM
+			#else //SKILL_PAGE_SYSTEM
+					//pUnit->AccessUnitData().m_UserSkillTree.SetUnitClass( (int) kEvent.m_kUnitInfo.m_cUnitClass );
+					pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredSkill( kEvent.m_vecSkillAcquired );
+					pUnit->AccessUnitData().m_UserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
+					pUnit->AccessUnitData().m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
+					// 		pUnit->AccessUnitData().m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
+					// 		pUnit->AccessUnitData().m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
+
+				#ifdef ADDED_RELATIONSHIP_SYSTEM
+					if ( NULL != g_pData->GetRelationshipManager() &&
+						NULL != g_pData->GetRelationshipManager()->GetMyRelationshipInfo() )
+					{
+						int iSkillLevel = static_cast<int>(g_pData->GetRelationshipManager()->GetMyRelationshipInfo()->m_eRelationStateType);
+						pUnit->AccessUnitData().m_UserSkillTree.SetSkillLevelAndCSP( CX2SkillTree::SI_ETC_WS_COMMON_LOVE, iSkillLevel, 0 );
+					}
+				#endif // ADDED_RELATIONSHIP_SYSTEM
+			#endif //SKILL_PAGE_SYSTEM
 #ifdef SERV_SKILL_NOTE		
 					pUnit->SetSkillNote( kEvent.m_mapSkillNote, kEvent.m_cSkillNoteMaxPageNum );
-					pUnit->GetUnitData()->m_UserSkillTree.SetEqipSkillMemo( kEvent.m_kUnitInfo.m_UnitSkillData.m_vecSkillNote );
+					pUnit->AccessUnitData().m_UserSkillTree.SetEqipSkillMemo( kEvent.m_kUnitInfo.m_UnitSkillData.m_vecSkillNote );
 #endif
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 #ifdef SERV_TITLE_DATA_SIZE
-					pUnit->GetUnitData()->m_iTitleId = kEvent.m_kUnitInfo.m_iTitleID;
+					pUnit->AccessUnitData().m_iTitleId = kEvent.m_kUnitInfo.m_iTitleID;
 #else
-					pUnit->GetUnitData()->m_iTitleId = kEvent.m_kUnitInfo.m_sTitleID;
+					pUnit->AccessUnitData().m_iTitleId = kEvent.m_kUnitInfo.m_sTitleID;
 #endif
-#endif TITLE_SYSTEM
+//#endif TITLE_SYSTEM
 				}
 
 				if( NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUISkillTree() )
@@ -2791,18 +3722,18 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_1_NOT( HWND hWnd, UINT uMsg, 
 				// 임시: 서버에게서 GuildUserSkillTree 정보를 받았다 가정
 				/*
 				// skill list
-				pUnit->GetUnitData()->m_UserSkillTree.SetGuildClass(0);
-				pUnit->GetUnitData()->m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_vecSkillAcquired ); // 함수 임시 변경
+				pUnit->AccessUnitData().m_UserSkillTree.SetGuildClass(0);
+				pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_vecSkillAcquired ); // 함수 임시 변경
 				*/		
 		
-				//pUnit->GetUnitData()->m_GuildUserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
+				//pUnit->AccessUnitData().m_GuildUserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
 
 
 				// 함수 임시 변경
-				//pUnit->GetUnitData()->m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
+				//pUnit->AccessUnitData().m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
 
-				//pUnit->GetUnitData()->m_GuildUserSkillTree.SetSkillSlotBExpirationState( (CX2GuildUserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
-				//pUnit->GetUnitData()->m_GuildUserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
+				//pUnit->AccessUnitData().m_GuildUserSkillTree.SetSkillSlotBExpirationState( (CX2GuildUserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
+				//pUnit->AccessUnitData().m_GuildUserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
 
 				/*
 				if( g_pData->GetGuildManager()->GetUIGuild()->GetUIGuildSkillTree() != NULL)
@@ -2815,9 +3746,9 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_1_NOT( HWND hWnd, UINT uMsg, 
 #endif GUILD_SKILL
 
 #ifdef SERV_TITLE_DATA_SIZE
-				pUnit->GetUnitData()->m_iTitleId = kEvent.m_kUnitInfo.m_iTitleID;
+				pUnit->AccessUnitData().m_iTitleId = kEvent.m_kUnitInfo.m_iTitleID;
 #else
-				pUnit->GetUnitData()->m_iTitleId = kEvent.m_kUnitInfo.m_sTitleID;
+				pUnit->AccessUnitData().m_iTitleId = kEvent.m_kUnitInfo.m_sTitleID;
 #endif
 
 				//{{ kimhc // 2010-01-04 // 기존의 EGS_SELECT_UNIT_ACK에 인벤정보가 포함되어 오던 것 분할
@@ -2876,7 +3807,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_1_NOT( HWND hWnd, UINT uMsg, 
 			}
 		}
 
-		if( g_pData->GetUIManager() != NULL)
+		if( g_pData->GetUIManager() != NULL )
 		{
 			g_pData->GetUIManager()->CreateUISkillTree();
 			g_pData->GetUIManager()->GetUISkillTree()->InitSkillTreeUI();
@@ -2889,7 +3820,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_1_NOT( HWND hWnd, UINT uMsg, 
 		g_pMain->AddServerPacket( EGS_GET_MY_INVENTORY_ACK  );
 #else	PC_BANG_WORK
 		// 체험 아이디 제한 
-		if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser &&
+		if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser &&
 			kEvent.m_bIsRecommend == false && m_bCheckRecommend == true )
 		{
 			OpenRecommendMsgBox( true );
@@ -2897,7 +3828,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_1_NOT( HWND hWnd, UINT uMsg, 
 		else
 		{
 
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_PartyTalkBoxInfo.m_iPartyUID = 0;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_PartyTalkBoxInfo.m_iPartyUID = 0;
 
 			if(g_pMain->GetIsPlayingTutorial() == true)
 			{
@@ -2966,7 +3897,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_2_NOT( HWND hWnd, UINT uMsg, 
 			if( NULL != pUnit && NULL != g_pMain && NULL != g_pMain->GetInformerManager() && NULL != g_pMain->GetLVUpEventMgr() )
 			{
 				g_pMain->GetInformerManager()->Reset();
-				g_pMain->GetLVUpEventMgr()->Reset( pUnit->GetUnitData()->m_Level );
+				g_pMain->GetLVUpEventMgr()->Reset( pUnit->GetUnitData().m_Level );
 			}
 
 			if ( g_pData->GetCashShop() != NULL )
@@ -3010,16 +3941,16 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_3_NOT( HWND hWnd, UINT uMsg, 
 
 			if( NULL != pUnit )
 			{
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 				if(g_pData != NULL && g_pData->GetTitleManager() != NULL)
 				{
 					g_pData->GetTitleManager()->InitRecord();
-					g_pData->GetTitleManager()->AttachTitle(pUnit->GetUnitData()->m_iTitleId);
+					g_pData->GetTitleManager()->AttachTitle(pUnit->GetUnitData().m_iTitleId);
 
 					g_pData->GetTitleManager()->TakeTitle(kEvent.m_vecTitle);
 					g_pData->GetTitleManager()->UpdateMission(kEvent.m_vecMission);
 				}                
-#endif
+//#endif
 
 #ifdef SERV_PET_SYSTEM
 
@@ -3045,8 +3976,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_3_NOT( HWND hWnd, UINT uMsg, 
 						int iInvenSlotSize = g_pData->GetPetManager()->GetPetInventorySlotSize((CX2PetManager::PET_UNIT_ID) kPetInfo.m_cPetID, EvolutionStep);
 #endif //SERV_PETID_DATA_TYPE_CHANGE
 
-						if( NULL != pUnit->GetInventory() )
-							pUnit->GetInventory()->SetItemMaxNum(CX2Inventory::ST_PET, iInvenSlotSize);
+						pUnit->AccessInventory().SetItemMaxNum(CX2Inventory::ST_PET, iInvenSlotSize);
 
 						// oasis907 : 김상윤 [2010.9.8] // 자동 먹이 주기 기능
 						if( g_pData->GetUIManager()->GetUIInventory() != NULL)
@@ -3105,11 +4035,11 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_4_NOT( HWND hWnd, UINT uMsg, 
 
 				CX2GageManager* pGageManager = CX2GageManager::GetInstance();
 
-				if( NULL != pGageManager && NULL != pUnit->GetUnitData() )
+				if( NULL != pGageManager )
 				{
 					pGageManager->CreateMyGageUI( pUnit->GetClass(), pUnit->GetUID() );
-					pGageManager->InitMySkillCoolTimeList( pUnit->GetUnitData()->m_UserSkillTree );
-					//pGageManager->InitMyQuickSlotCoolTimeList( pUnit->GetInventory()->GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );
+					pGageManager->InitMySkillCoolTimeList( pUnit->GetUnitData().m_UserSkillTree );
+					//pGageManager->InitMyQuickSlotCoolTimeList( pUnit->GetInventory().GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );
 
 
 					ASSERT( !kEvent.m_kGamePlayStatus.m_vecGamePlayStatus.empty() );
@@ -3120,7 +4050,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_4_NOT( HWND hWnd, UINT uMsg, 
 						pGageManager->UpdateNowMpPercent();
 					}
 
-					pUnit->GetUnitData()->m_UserSkillTree.InitSkillCoolTimeFromGageManager( pGageManager->GetSkillCoolTimeList() );
+					pUnit->AccessUnitData().m_UserSkillTree.InitSkillCoolTimeFromGageManager( pGageManager->GetSkillCoolTimeList() );
 
 					if( NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUIQuickSlot() )
 						g_pData->GetUIManager()->GetUIQuickSlot()->InitMyQuickSlotCoolTimeFromGageManager( pGageManager->GetQuickSlotCoolTimeList() );
@@ -3155,25 +4085,29 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_4_NOT( HWND hWnd, UINT uMsg, 
 			}
 		}
 
-		if( NULL != g_pMain->GetGameOption() )
 		{
-			g_pMain->GetGameOption()->SetDenyInviteGuild( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyInviteGuild );
-			g_pMain->GetGameOption()->SetDenyPersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
-			g_pMain->GetGameOption()->SetDenyFriendship( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
-			g_pMain->GetGameOption()->SetDenyParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
+			g_pMain->GetGameOption().SetDenyInviteGuild( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyInviteGuild );
+			g_pMain->GetGameOption().SetDenyPersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
+			g_pMain->GetGameOption().SetDenyFriendship( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
+			g_pMain->GetGameOption().SetDenyParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
 
-			g_pMain->GetGameOption()->SetRefuseParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
-			g_pMain->GetGameOption()->SetRefuseFriend( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
-			g_pMain->GetGameOption()->SetRefusePersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
+			g_pMain->GetGameOption().SetRefuseParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
+			g_pMain->GetGameOption().SetRefuseFriend( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
+			g_pMain->GetGameOption().SetRefusePersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
 			//{{ kimhc // 2009-10-12 // 길드 초대 거부 추가
 #ifdef	GUILD_MANAGEMENT
-			g_pMain->GetGameOption()->SetRefuseGuildInvitation( static_cast< CX2GameOption::BlackListDenyState >( kEvent.m_kDenyOptions.m_cDenyInviteGuild ) );
+			g_pMain->GetGameOption().SetRefuseGuildInvitation( static_cast< CX2GameOption::BlackListDenyState >( kEvent.m_kDenyOptions.m_cDenyInviteGuild ) );
 #endif	GUILD_MANAGEMENT
 			//}} kimhc // 2009-10-12 // 길드 초대 거부 추가
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM	/// 커플신청 거부 추가
-			g_pMain->GetGameOption()->SetRefuseRequestCouple( static_cast< CX2GameOption::BlackListDenyState >( kEvent.m_kDenyOptions.m_cDenyRequestCouple ) );
+			g_pMain->GetGameOption().SetRefuseRequestCouple( static_cast< CX2GameOption::BlackListDenyState >( kEvent.m_kDenyOptions.m_cDenyRequestCouple ) );
 #endif // ADDED_RELATIONSHIP_SYSTEM
+
+#ifdef FIX_INVITE_PVP_PLAYER // 김태환	/// 대전 초대 거부 추가
+			g_pMain->GetGameOption().SetRefuseInvitePVP( static_cast< CX2GameOption::BlackListDenyState >( kEvent.m_kDenyOptions.m_cDenyInvitePracticePVP ) );
+#endif // FIX_INVITE_PVP_PLAYER
+
 		}
 
 		// 친구채팅창 히스토리 초기화 및 친구리스트 초기 설정
@@ -3216,10 +4150,23 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_5_NOT( HWND hWnd, UINT uMsg, 
 
 	if( NULL != g_pMain && g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 	{
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		if( g_pInstanceData != NULL )
+		{
+			g_pInstanceData->Set4ThAnnivEventRewardInfo( kEvent.m_vec4ThAnnivEventRewardInfo );
+		}		
+#endif //SERV_4TH_ANNIVERSARY_EVENT
+
 #ifdef SERV_PSHOP_AGENCY
 		if( g_pInstanceData != NULL )
 		{
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			g_pInstanceData->SetPShopAgencyInfo( kEvent.m_kPShopAgencyInfo.m_bIsPShopOpen, 
+												 kEvent.m_kPShopAgencyInfo.m_wstrAgencyExpirationDate,
+												 static_cast<SEnum::AGENCY_SHOP_TYPE>( kEvent.m_kPShopAgencyInfo.m_cShopType ) );
+	#else // SERV_UPGRADE_TRADE_SYSTEM
 			g_pInstanceData->SetPShopAgencyInfo( kEvent.m_kPShopAgencyInfo.m_bIsPShopOpen, kEvent.m_kPShopAgencyInfo.m_wstrAgencyExpirationDate );
+	#endif // SERV_UPGRADE_TRADE_SYSTEM
 		}
 #endif
 
@@ -3266,17 +4213,38 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_5_NOT( HWND hWnd, UINT uMsg, 
 
 #ifdef SERV_ARA_FIRST_SELECT_TUTORIAL
 		/// 캐릭터의 첫 접속이면
-		if ( 1 == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level &&
-			0 == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP )
+		if ( 1 == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level &&
+			0 == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP )
 		{
 			m_bReserveEnterTutorial = true;
 			g_pMain->SetIsPlayingTutorial( true );	/// 튜토리얼 실행
 		}
 #endif // SERV_ARA_FIRST_SELECT_TUTORIAL
 
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+		if ( 1 == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level &&
+			0 == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP 
+			&& 2 == kEvent.m_iConnectExperienceAck  // 신규 계정인데, 7일이 안지났을 경우.
+			)
+		{
+			// 어떤 아이템 7일 후에 받을 수 있다는 메시지 출력
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_25378 ), g_pMain->GetNowState() ); //STR_ID_25378
+		}
+#endif //SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->SetGateOfDarknessSupportEventTime( kEvent.m_iGateOfDarknessSupportEventTime );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetGateOfDarknessSupportEventTime( kEvent.m_iGateOfDarknessSupportEventTime );
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetCouple( kEvent.m_bCouple );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetRelationTargetUserNickname( kEvent.m_wstrRelationTargetUserNickname );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetRelationTargetUserUID( kEvent.m_iRelationTargetUserUid );
+#endif SERV_RELATIONSHIP_EVENT_INT
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().SetNoteViewCount( kEvent.m_iNoteViewCount );
+#endif SERV_ELESIS_UPDATE_EVENT
 
 		return true;
 	}
@@ -3335,16 +4303,16 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 			switch( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID )
 			{
 			case -1:
-			case CX2Dungeon::DI_NONE:
-			case CX2Dungeon::DI_EL_FOREST_GATE_NORMAL:
+			case SEnum::DI_NONE:
+			case SEnum::DI_EL_FOREST_GATE_NORMAL:
 				//{{ kimhc // 2010-07-09 // 루벤던전 개편으로 추가
-			case CX2Dungeon::DI_EL_FOREST_NORTH_NORMAL:
-			case CX2Dungeon::DI_EL_FOREST_WEST_NORMAL:
-			case CX2Dungeon::DI_EL_FOREST_HELL_NORMAL:
-			case CX2Dungeon::DI_RUBEN_SECRET_COMMON:
+			case SEnum::DI_EL_FOREST_NORTH_NORMAL:
+			case SEnum::DI_EL_FOREST_WEST_NORMAL:
+			case SEnum::DI_EL_FOREST_HELL_NORMAL:
+			case SEnum::DI_RUBEN_SECRET_COMMON:
 				//}} kimc	// 2010-07-09 // 루벤던전 개편으로 추가
 				{
-					g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID = CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL;
+					g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID = SEnum::DI_RUBEN_EL_TREE_NORMAL;
 				} break;
 			}
 
@@ -3387,21 +4355,25 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 					case CX2Main::XP_NEXON_KOREA:
 						{
 #ifdef _USE_NEXON_MSG_INHOUSE // 접속할 캐릭터의 serialnum을 하드코딩시켜준후 넥슨로그인한다.
-							pUnit->GetUnitData()->m_iNMKSerialNum = 52890;	// "지끄무" 캐릭터
-							//pUnit->GetUnitData()->m_iNMKSerialNum = 3712941;	// "피똥싼이브" 캐릭터
-							//pUnit->GetUnitData()->m_iNMKSerialNum = 1928754;	// "툩" 캐릭터
+							pUnit->AccessUnitData().m_iNMKSerialNum = 52890;	// "지끄무" 캐릭터
+							//pUnit->AccessUnitData().m_iNMKSerialNum = 3712941;	// "피똥싼이브" 캐릭터
+							//pUnit->AccessUnitData().m_iNMKSerialNum = 1928754;	// "툩" 캐릭터
 #endif
 
-							if( CNMCOClientObject::GetInstance().LoginVirtual( tempNickName.c_str(), (_UInt32_)pUnit->GetUnitData()->m_iNMKSerialNum, GET_STRING( STR_ID_0 ) ) == FALSE )						
+							if( CNMCOClientObject::GetInstance().LoginVirtual( tempNickName.c_str(), (_UInt32_)pUnit->GetUnitData().m_iNMKSerialNum, GET_STRING( STR_ID_0 ) ) == FALSE )						
 							{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+								g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING( STR_ID_710 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 								g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_710 ), g_pMain->GetNowState() );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편								
 							}
 							else
 							{
 								g_pMain->SetNexonVirtualLogin( true );							
 							}
 
-							CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)pUnit->GetUnitData()->m_UnitClass << 24 ) | (UINT32)pUnit->GetUnitData()->m_Level );
+							CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)pUnit->GetUnitData().m_UnitClass << 24 ) | (UINT32)pUnit->GetUnitData().m_Level );
 
 
 
@@ -3412,13 +4384,17 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 
 								NMVirtualKey nmVirtualKey;
 								nmVirtualKey.uGameCode		= NEXON_KOREA_ELSWORD_GAMECODE;
-								nmVirtualKey.uVirtualIDCode = (UINT32) pUnit->GetUnitData()->m_iNMKSerialNum;
+								nmVirtualKey.uVirtualIDCode = (UINT32) pUnit->GetUnitData().m_iNMKSerialNum;
 
-								if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser ) // 체험 아이디 제한
+								if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 								{
 									if ( CNMCOClientObject::GetInstance().ChangeNickname( nmVirtualKey, tempNickName.c_str() ) == FALSE )
 									{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+										g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_711 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 										g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_711 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 									}
 								}
 							}
@@ -3428,9 +4404,9 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 							if( bSended == false )
 							{
 #ifdef SEND_NEXON_WISE_LOG_BY_URL // 김태환
-								CX2User::UserData* pUserData = g_pData->GetMyUser()->GetUserData();
+								const CX2User::UserData& kUserData = g_pData->GetMyUser()->GetUserData();
 
-								if ( NULL != g_pMain->GetBrowserWrapper() && NULL != pUserData )
+								if ( NULL != g_pMain->GetBrowserWrapper() )
 								{
 									if( false == g_pMain->GetBrowserWrapper()->IsClosed() )
 										g_pMain->GetBrowserWrapper()->CloseBrowser();
@@ -3438,10 +4414,10 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 									RECT		rcWebPage;
 									char		buf[255]	= {0,};
 									std::string strURL		= "http://elsword.nexon.com/wiselog/gamestart.aspx";				/// 로그 URL
-									::WideCharToMultiByte( CP_ACP, 0, pUserData->userID.c_str(), -1, buf, 255, NULL, NULL );	/// wstring을 string 으로 변환
+									::WideCharToMultiByte( CP_ACP, 0, kUserData.userID.c_str(), -1, buf, 255, NULL, NULL );	/// wstring을 string 으로 변환
 
 									std::string strNXID		= buf;					/// 넥슨 아이디
-									UidType		uidNXUID	= pUserData->userUID;	/// 넥슨 UID
+									UidType		uidNXUID	= kUserData.userUID;	/// 넥슨 UID
 
 									g_pMain->GetBrowserWrapper()->Create( rcWebPage, g_pKTDXApp->GetHWND() );
 
@@ -3476,7 +4452,11 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 		{
 			g_pInstanceData->SetShowCSPandSlotBDate( true );
 #ifdef SERV_HACKING_TOOL_LIST
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+            g_pInstanceData->ReSetHackList_MainThread();
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 			g_pInstanceData->SetChangeHackList(true);
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 #endif
 		}
 
@@ -3488,9 +4468,8 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 		}
 
 #ifdef SKILL_SLOT_UI_TYPE_B
-		if( NULL != g_pMain->GetGameOption())
 		{
-			g_pMain->GetGameOption()->SetIsSkillUITypeA( g_pMain->GetGameOption()->GetIsSkillUITypeA(), false );				
+			g_pMain->GetGameOption().SetIsSkillUITypeA( g_pMain->GetGameOption().GetIsSkillUITypeA(), false );				
 		}
 #endif //SKILL_SLOT_UI_TYPE_B
 
@@ -3577,12 +4556,12 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 		//}} 허상형 : [2009/10/14] //	자동 결제 부활석
 
 		// skill list
-		//pUnit->GetUnitData()->m_UserSkillTree.SetUnitClass( (int) kEvent.m_kUnitInfo.m_cUnitClass );
-		pUnit->GetUnitData()->m_UserSkillTree.SetAcquiredSkill( kEvent.m_vecSkillAcquired );
-		pUnit->GetUnitData()->m_UserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
- 		pUnit->GetUnitData()->m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
-// 		pUnit->GetUnitData()->m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
-// 		pUnit->GetUnitData()->m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
+		//pUnit->AccessUnitData().m_UserSkillTree.SetUnitClass( (int) kEvent.m_kUnitInfo.m_cUnitClass );
+		pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredSkill( kEvent.m_vecSkillAcquired );
+		pUnit->AccessUnitData().m_UserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
+ 		pUnit->AccessUnitData().m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
+// 		pUnit->AccessUnitData().m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
+// 		pUnit->AccessUnitData().m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
 
 
 		if( g_pData->GetUIManager() != NULL)
@@ -3596,18 +4575,18 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 		// 임시: 서버에게서 GuildUserSkillTree 정보를 받았다 가정
 /*
 		// skill list
-		pUnit->GetUnitData()->m_UserSkillTree.SetGuildClass(0);
-		pUnit->GetUnitData()->m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_vecSkillAcquired ); // 함수 임시 변경
+		pUnit->AccessUnitData().m_UserSkillTree.SetGuildClass(0);
+		pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_vecSkillAcquired ); // 함수 임시 변경
 */		
 		
-		//pUnit->GetUnitData()->m_GuildUserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
+		//pUnit->AccessUnitData().m_GuildUserSkillTree.SetUnsealedSkill( kEvent.m_vecSkillUnsealed );
 
 
 		// 함수 임시 변경
-		//pUnit->GetUnitData()->m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
+		//pUnit->AccessUnitData().m_UserSkillTree.SetEquippedSkill( kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkill, kEvent.m_kUnitInfo.m_UnitSkillData.m_aEquippedSkillSlotB );
 
-		//pUnit->GetUnitData()->m_GuildUserSkillTree.SetSkillSlotBExpirationState( (CX2GuildUserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
-		//pUnit->GetUnitData()->m_GuildUserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
+		//pUnit->AccessUnitData().m_GuildUserSkillTree.SetSkillSlotBExpirationState( (CX2GuildUserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_kUnitInfo.m_UnitSkillData.m_cSkillSlotBExpirationState );
+		//pUnit->AccessUnitData().m_GuildUserSkillTree.SetSkillSlotBEndDateString( kEvent.m_kUnitInfo.m_UnitSkillData.m_wstrSkillSlotBEndDate );
 
 /*
 		if( g_pData->GetGuildManager()->GetUIGuild()->GetUIGuildSkillTree() != NULL)
@@ -3621,25 +4600,25 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 
 #ifdef SERV_SKILL_NOTE		
 		pUnit->SetSkillNote( kEvent.m_mapSkillNote, kEvent.m_cSkillNoteMaxPageNum );
-		pUnit->GetUnitData()->m_UserSkillTree.SetEqipSkillMemo( kEvent.m_kUnitInfo.m_UnitSkillData.m_vecSkillNote );
+		pUnit->AccessUnitData().m_UserSkillTree.SetEqipSkillMemo( kEvent.m_kUnitInfo.m_UnitSkillData.m_vecSkillNote );
 #endif
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 #ifdef SERV_TITLE_DATA_SIZE
-		pUnit->GetUnitData()->m_iTitleId = kEvent.m_kUnitInfo.m_iTitleID;
+		pUnit->AccessUnitData().m_iTitleId = kEvent.m_kUnitInfo.m_iTitleID;
 #else
-		pUnit->GetUnitData()->m_iTitleId = kEvent.m_kUnitInfo.m_sTitleID;
+		pUnit->AccessUnitData().m_iTitleId = kEvent.m_kUnitInfo.m_sTitleID;
 #endif
 
 		if(g_pData != NULL && g_pData->GetTitleManager() != NULL)
 		{
 			g_pData->GetTitleManager()->InitRecord();
-			g_pData->GetTitleManager()->AttachTitle(pUnit->GetUnitData()->m_iTitleId);
+			g_pData->GetTitleManager()->AttachTitle(pUnit->GetUnitData().m_iTitleId);
 
 			g_pData->GetTitleManager()->TakeTitle(kEvent.m_vecTitle);     
 			g_pData->GetTitleManager()->UpdateMission(kEvent.m_vecMission);
 		}                
-#endif
+//#endif
 
 #ifdef SERV_PET_SYSTEM
 
@@ -3667,7 +4646,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 			int iInvenSlotSize = g_pData->GetPetManager()->GetPetInventorySlotSize((CX2PetManager::PET_UNIT_ID) kPetInfo.m_cPetID, EvolutionStep);
 #endif //SERV_PETID_DATA_TYPE_CHANGE
 
-			pUnit->GetInventory()->SetItemMaxNum(CX2Inventory::ST_PET, iInvenSlotSize);
+			pUnit->AccessInventory().SetItemMaxNum(CX2Inventory::ST_PET, iInvenSlotSize);
 		
 		
 
@@ -3681,17 +4660,17 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 		//}}
 #endif
 
-		g_pMain->GetGameOption()->SetDenyInviteGuild( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyInviteGuild );				
-		g_pMain->GetGameOption()->SetDenyPersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
-		g_pMain->GetGameOption()->SetDenyFriendship( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
-		g_pMain->GetGameOption()->SetDenyParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
+		g_pMain->GetGameOption().SetDenyInviteGuild( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyInviteGuild );				
+		g_pMain->GetGameOption().SetDenyPersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
+		g_pMain->GetGameOption().SetDenyFriendship( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
+		g_pMain->GetGameOption().SetDenyParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
 
-		g_pMain->GetGameOption()->SetRefuseParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
-		g_pMain->GetGameOption()->SetRefuseFriend( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
-		g_pMain->GetGameOption()->SetRefusePersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
+		g_pMain->GetGameOption().SetRefuseParty( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyParty );
+		g_pMain->GetGameOption().SetRefuseFriend( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyFriendShip );
+		g_pMain->GetGameOption().SetRefusePersonalTrade( (CX2GameOption::BlackListDenyState) kEvent.m_kDenyOptions.m_cDenyPersonalTrade );
 		//{{ kimhc // 2009-10-12 // 길드 초대 거부 추가
 #ifdef	GUILD_MANAGEMENT
-		g_pMain->GetGameOption()->SetRefuseGuildInvitation( static_cast< CX2GameOption::BlackListDenyState >( kEvent.m_kDenyOptions.m_cDenyInviteGuild ) );
+		g_pMain->GetGameOption().SetRefuseGuildInvitation( static_cast< CX2GameOption::BlackListDenyState >( kEvent.m_kDenyOptions.m_cDenyInviteGuild ) );
 #endif	GUILD_MANAGEMENT
 		//}} kimhc // 2009-10-12 // 길드 초대 거부 추가
 
@@ -3708,16 +4687,16 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 			switch( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID )
 			{
 			case -1:
-			case CX2Dungeon::DI_NONE:
-			case CX2Dungeon::DI_EL_FOREST_GATE_NORMAL:
+			case SEnum::DI_NONE:
+			case SEnum::DI_EL_FOREST_GATE_NORMAL:
 				//{{ kimhc // 2010-07-09 // 루벤던전 개편으로 추가
-			case CX2Dungeon::DI_EL_FOREST_NORTH_NORMAL:
-			case CX2Dungeon::DI_EL_FOREST_WEST_NORMAL:
-			case CX2Dungeon::DI_EL_FOREST_HELL_NORMAL:
-			case CX2Dungeon::DI_RUBEN_SECRET_COMMON:
+			case SEnum::DI_EL_FOREST_NORTH_NORMAL:
+			case SEnum::DI_EL_FOREST_WEST_NORMAL:
+			case SEnum::DI_EL_FOREST_HELL_NORMAL:
+			case SEnum::DI_RUBEN_SECRET_COMMON:
 				//}} kimc	// 2010-07-09 // 루벤던전 개편으로 추가
 				{
-					g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID = CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL;
+					g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID = SEnum::DI_RUBEN_EL_TREE_NORMAL;
 				} break;
 			}
 
@@ -3762,7 +4741,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 #endif	SERV_EPIC_QUEST
 
 		g_pMain->GetInformerManager()->Reset();
-		g_pMain->GetLVUpEventMgr()->Reset( pUnit->GetUnitData()->m_Level );
+		g_pMain->GetLVUpEventMgr()->Reset( pUnit->GetUnitData().m_Level );
 
 		if ( g_pData->GetCashShop() != NULL )
 			g_pData->GetCashShop()->ResetUnitViewer( pUnit );
@@ -3781,12 +4760,12 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 				case CX2Main::XP_NEXON_KOREA:
 					{
 #ifdef _USE_NEXON_MSG_INHOUSE // 접속할 캐릭터의 serialnum을 하드코딩시켜준후 넥슨로그인한다.
-						pUnit->GetUnitData()->m_iNMKSerialNum = 52890;	// "지끄무" 캐릭터
-						//pUnit->GetUnitData()->m_iNMKSerialNum = 3712941;	// "피똥싼이브" 캐릭터
-						//pUnit->GetUnitData()->m_iNMKSerialNum = 1928754;	// "툩" 캐릭터
+						pUnit->AccessUnitData().m_iNMKSerialNum = 52890;	// "지끄무" 캐릭터
+						//pUnit->AccessUnitData().m_iNMKSerialNum = 3712941;	// "피똥싼이브" 캐릭터
+						//pUnit->AccessUnitData().m_iNMKSerialNum = 1928754;	// "툩" 캐릭터
 #endif
 
-						if( CNMCOClientObject::GetInstance().LoginVirtual( tempNickName.c_str(), (_UInt32_)pUnit->GetUnitData()->m_iNMKSerialNum, GET_STRING( STR_ID_0 ) ) == FALSE )						
+						if( CNMCOClientObject::GetInstance().LoginVirtual( tempNickName.c_str(), (_UInt32_)pUnit->GetUnitData().m_iNMKSerialNum, GET_STRING( STR_ID_0 ) ) == FALSE )						
 						{
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_710 ), g_pMain->GetNowState() );
 						}
@@ -3795,7 +4774,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 							g_pMain->SetNexonVirtualLogin( true );							
 						}
 
-						CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)pUnit->GetUnitData()->m_UnitClass << 24 ) | (UINT32)pUnit->GetUnitData()->m_Level );
+						CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)pUnit->GetUnitData().m_UnitClass << 24 ) | (UINT32)pUnit->GetUnitData().m_Level );
 
 
 
@@ -3806,9 +4785,9 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 
 							NMVirtualKey nmVirtualKey;
 							nmVirtualKey.uGameCode		= NEXON_KOREA_ELSWORD_GAMECODE;
-							nmVirtualKey.uVirtualIDCode = (UINT32) pUnit->GetUnitData()->m_iNMKSerialNum;
+							nmVirtualKey.uVirtualIDCode = (UINT32) pUnit->GetUnitData().m_iNMKSerialNum;
 
-							if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser ) // 체험 아이디 제한
+							if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 							{
 								if ( CNMCOClientObject::GetInstance().ChangeNickname( nmVirtualKey, tempNickName.c_str() ) == FALSE )
 								{
@@ -3845,7 +4824,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 #else	PC_BANG_WORK
 		
 		// 체험 아이디 제한 
-		if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser &&
+		if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser &&
 			kEvent.m_bIsRecommend == false && m_bCheckRecommend == true )
 		{
 #ifdef SERV_NO_GAMEINVITE
@@ -3857,7 +4836,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 		else
 		{
 
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_PartyTalkBoxInfo.m_iPartyUID = 0;
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_PartyTalkBoxInfo.m_iPartyUID = 0;
 
 			if(g_pMain->GetIsPlayingTutorial() == true)
 			{
@@ -3924,7 +4903,11 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 		{
 			g_pInstanceData->SetShowCSPandSlotBDate( true );
 #ifdef SERV_HACKING_TOOL_LIST
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+            g_pInstanceData->ReSetHackList_MainThread();
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 			g_pInstanceData->SetChangeHackList(true);
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 #endif
 		}
 
@@ -3945,8 +4928,8 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 
 		CX2GageManager* pGageManager = CX2GageManager::GetInstance();
 		pGageManager->CreateMyGageUI( pUnit->GetClass(), pUnit->GetUID() );
-		pGageManager->InitMySkillCoolTimeList( pUnit->GetUnitData()->m_UserSkillTree );
-		//pGageManager->InitMyQuickSlotCoolTimeList( pUnit->GetInventory()->GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );
+		pGageManager->InitMySkillCoolTimeList( pUnit->GetUnitData().m_UserSkillTree );
+		//pGageManager->InitMyQuickSlotCoolTimeList( pUnit->GetInventory().GetItemMaxNum( CX2Inventory::ST_E_QUICK_SLOT ) );
 
 		
 		ASSERT( !kEvent.m_kGamePlayStatus.m_vecGamePlayStatus.empty() );
@@ -3957,7 +4940,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 			pGageManager->UpdateNowMpPercent();
 		}
 
-		pUnit->GetUnitData()->m_UserSkillTree.InitSkillCoolTimeFromGageManager( pGageManager->GetSkillCoolTimeList() );
+		pUnit->AccessUnitData().m_UserSkillTree.InitSkillCoolTimeFromGageManager( pGageManager->GetSkillCoolTimeList() );
 		g_pData->GetUIManager()->GetUIQuickSlot()->InitMyQuickSlotCoolTimeFromGageManager( pGageManager->GetQuickSlotCoolTimeList() );
 //		const float fResultMaxMp = pUnit->ResetMaxMp( ONE_CHARGE * 3.0f );
 //		pGageManager->SetMaxMp( pUnit->GetUID(), fResultMaxMp );
@@ -3986,9 +4969,9 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 #endif //SERV_EVENT_MONEY
 
 #ifdef SKILL_SLOT_UI_TYPE_B
-		if( NULL != g_pMain && NULL != g_pMain->GetGameOption())
+		if( NULL != g_pMain )
 		{
-			g_pMain->GetGameOption()->SetIsSkillUITypeA( g_pMain->GetGameOption()->GetIsSkillUITypeA(), false );				
+			g_pMain->GetGameOption().SetIsSkillUITypeA( g_pMain->GetGameOption().GetIsSkillUITypeA(), false );				
 		}
 #endif //SKILL_SLOT_UI_TYPE_B
 
@@ -3998,7 +4981,6 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 	{
 		//닉네임이 없는 캐릭터는 닉네임을 새로 입력하라는 팝업창을 띄운다.
 		OpenRenameMsgBox( true );
-		SetRenameMsgBoxError( L"" );
 	}
 	//{{ 2009. 4. 29  최육사	잘못된 상태에서 SELECT_UNIT_REQ를 보내면 돌아오는 ACK 에러 코드에 대한 처리
 	else if( kEvent.m_iOK == NetError::ERR_WRONG_STATE_00 )
@@ -4109,7 +5091,7 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 		CKTDGParticleSystem::CParticleEventSequenceHandle SeqFestivalUI = 
 			g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, L"UI_Festival_StartEffect", 512.f+20.f, 284.f+60.f+20.f, 0.f, 9999.f, 9999.f, -1, 1, -1.0f, true, 2.5f, false );
 
-		if( INVALID_PARTICLE_HANDLE != SeqFestivalUI )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != SeqFestivalUI )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pParticle = g_pData->GetUIMajorParticle()->GetInstanceSequence( SeqFestivalUI );
 			g_pMain->SetFestivalSeq( SeqFestivalUI );
@@ -4122,6 +5104,11 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 #endif //NEW_EMBLEM_MANAGER
 #endif //FESTIVAL_UI
 
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID> ( m_pSelectUnit->GetServerGroupID() ) );
+	g_pData->GetMyUser()->AccessUserData().maxUnitCount = g_pInstanceData->GetMaxUserUnitManyInServer( m_pSelectUnit->GetServerGroupID() );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 	return true;
 }
 
@@ -4137,13 +5124,24 @@ bool CX2StateServerSelect::Handler_EGS_DELETE_UNIT_REQ()
 	if( m_pSelectUnit == NULL )
 		return true;
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	KEGS_ENTRY_POINT_DELETE_UNIT_REQ kPacket;
+	kPacket.m_iUnitUID		= m_pSelectUnit->GetUID();
+	kPacket.m_iServerGroup	= m_pSelectUnit->GetServerGroupID();	
+	g_pData->GetServerProtocol()->SendPacket( EGS_ENTRY_POINT_DELETE_UNIT_REQ, kPacket );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	KEGS_DELETE_UNIT_REQ kPacket;
 	kPacket.m_iUnitUID		= m_pSelectUnit->GetUID();
-
 	g_pData->GetServerProtocol()->SendPacket( EGS_DELETE_UNIT_REQ, kPacket );
-	g_pMain->AddServerPacket( EGS_DELETE_UNIT_ACK  );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
+	g_pMain->AddServerPacket( EGS_DELETE_UNIT_ACK );
 	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_712 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_712 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 	return true;
 }
@@ -4162,79 +5160,83 @@ bool CX2StateServerSelect::Handler_EGS_DELETE_UNIT_ACK( HWND hWnd, UINT uMsg, WP
 			CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByUID( kEvent.m_iUnitUID );
 			if ( pUnit == NULL )
 			{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_713 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_713 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+				
 				return true;
 			}
 
-			//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
+#ifdef _NEXON_KR_
+			CNMCOClientObject::GetInstance().RemoveMyVirtualUser( g_pMain->GetNMVirtualKey() );
+#endif // _NEXON_KR_
+
 #ifdef SERV_UNIT_WAIT_DELETE
-			// 캐릭터 삭제 상태로 바꾸는 함수가 들어가야 함 
-			//{{ //2012.03.06 lygan_조성욱 // 완전 삭제 가능한 날짜 알림용
-			std::wstring buffer = L"";
-			std::wstring year = L"";
-			std::wstring month = L"";
-			std::wstring day = L"";
-			std::wstring hour = L"";
-			std::wstring min = L"";
+			pUnit->AccessUnitData().m_bDeleted = true;
+			pUnit->AccessUnitData().m_trDelAbleDate = kEvent.m_tDelAbleDate;
 
 			CTime tDeleAbleDate(kEvent.m_tDelAbleDate);
-
-			year = (CStringW)( tDeleAbleDate.Format(_T( "%Y" )) );
-			month = (CStringW)( tDeleAbleDate.Format(_T( "%m" )) );
-			day = (CStringW)( tDeleAbleDate.Format(_T( "%d" )) );
-			hour = (CStringW)( tDeleAbleDate.Format(_T( "%H" )) );
-			min = (CStringW)( tDeleAbleDate.Format(_T( "%M" )) );
-
-			buffer =  GET_REPLACED_STRING( ( STR_ID_16103, "SSSSS", day.c_str(), month.c_str(), year.c_str(),hour.c_str(), min.c_str()));
-			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), buffer.c_str(), this );
-			//}}
-			//{{ 2012.03.05 lygan_조성욱 // 조효진이 작업 누락된부분 추가 작업
-			ClearBeforeUnit( pUnit );
-			ClearUnitButton();
-			CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
-			pUnitData->m_bDeleted = true;
-			pUnitData->m_trDelAbleDate = kEvent.m_tDelAbleDate;
-			CreateUnitButton();
-			//}}
+			std::wstring wstrYear = (CStringW)( tDeleAbleDate.Format(_T( "%Y" )) );
+			std::wstring wstrMonth = (CStringW)( tDeleAbleDate.Format(_T( "%m" )) );
+			std::wstring wstrDay = (CStringW)( tDeleAbleDate.Format(_T( "%d" )) );
+			std::wstring wstrHour = (CStringW)( tDeleAbleDate.Format(_T( "%H" )) );
+			std::wstring wstrMinute = (CStringW)( tDeleAbleDate.Format(_T( "%M" )) );
+			std::wstring wstrMessage = GET_REPLACED_STRING( ( STR_ID_16103, "SSSSS", wstrDay.c_str(), wstrMonth.c_str(), wstrYear.c_str(), wstrHour.c_str(), wstrMinute.c_str()));			
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), wstrMessage.c_str(), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+			// ChangeUnitButtonInfo();
 #else SERV_UNIT_WAIT_DELETE
-			ClearBeforeUnit( pUnit );
-			ClearUnitButton();
-			g_pData->GetMyUser()->DeleteUnitByUID(kEvent.m_iUnitUID);
-			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_714 ), this );
-			CreateUnitButton();
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305,375), GET_STRING( STR_ID_714 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+			// ChangeUnitButtonInfo();
 #endif SERV_UNIT_WAIT_DELETE
-			//}}
+			
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편						int iTopCharacterIndex = (m_NowPage - 1) * UNIT_SELECT_UI_MAX_UNIT_NUM;
+			if ( g_pData->GetMyUser()->GetUnitNum() <= 0 )
+			{
+				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_701 ), L"DLG_UI_Selection_MessageBox_No_Button.lua", L"UI_PopUp_Positive_01.ogg"  );
+				g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_CREATE_UNIT, NULL, false );
+			}
+			else
+			{
+#ifdef SERV_UNIT_WAIT_DELETE
+				m_bMaintainNowUnitButton = true;
+				m_iSelectUnitUID = pUnit->GetUID();		// 캐릭터 리스트를 새로 받을 때는 m_pSelectUnit이 초기화 되므로 이 데이터를 별도로 저장
+#endif SERV_UNIT_WAIT_DELETE
+
+				Handler_EGS_CHARACTER_LIST_REQ();
+			}
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		}
 #ifdef SERV_UNIT_WAIT_DELETE
 		else if( kEvent.m_iOK == NetError::ERR_DELETE_UNIT_02)
 		{
 			CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByUID( kEvent.m_iUnitUID );
-			if ( pUnit == NULL )
+			if( pUnit == NULL )
 			{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_713 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_713 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 				return true;
 			}
 
-			std::wstring buffer = L"";
-			std::wstring year = L"";
-			std::wstring month = L"";
-			std::wstring day = L"";
-			std::wstring hour = L"";
-			std::wstring min = L"";
+			pUnit->AccessUnitData().m_trDelAbleDate = kEvent.m_tReDelAbleDate;
 
 			CTime tReDeleAbleDate(kEvent.m_tReDelAbleDate);
-
-			year = (CStringW)( tReDeleAbleDate.Format(_T( "%Y" )) );
-			month = (CStringW)( tReDeleAbleDate.Format(_T( "%m" )) );
-			day = (CStringW)( tReDeleAbleDate.Format(_T( "%d" )) );
-			hour = (CStringW)( tReDeleAbleDate.Format(_T( "%H" )) );
-			min = (CStringW)( tReDeleAbleDate.Format(_T( "%M" )) );
-
-			CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
-			pUnitData->m_trDelAbleDate = kEvent.m_tReDelAbleDate;
-
-			buffer =  GET_REPLACED_STRING( ( STR_ID_16112, "SSSSS", day.c_str(), month.c_str(), year.c_str(),hour.c_str(), min.c_str()));
-			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), buffer.c_str(), this );
+			std::wstring wstrYear = (CStringW)( tReDeleAbleDate.Format(_T( "%Y" )) );
+			std::wstring wstrMonth = (CStringW)( tReDeleAbleDate.Format(_T( "%m" )) );
+			std::wstring wstrDay = (CStringW)( tReDeleAbleDate.Format(_T( "%d" )) );
+			std::wstring wstrHour = (CStringW)( tReDeleAbleDate.Format(_T( "%H" )) );
+			std::wstring wstrMinute = (CStringW)( tReDeleAbleDate.Format(_T( "%M" )) );
+			std::wstring wstrMessage = GET_REPLACED_STRING( ( STR_ID_16109, "SSSSS", wstrDay.c_str(), wstrMonth.c_str(), wstrYear.c_str(), wstrHour.c_str(), wstrMinute.c_str()));			
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), wstrMessage.c_str(), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), wstrMessage.c_str(), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		}
 #endif SERV_UNIT_WAIT_DELETE
 	}
@@ -4255,13 +5257,23 @@ bool CX2StateServerSelect::Handler_EGS_STATE_CHANGE_VILLAGE_MAP_REQ()
 	if ( g_pMain->GetIsPlayingTutorial() == true )
 	{
 		SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_716 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_716 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+		
 		Handler_EGS_CREATE_TUTORIAL_ROOM_REQ();
 	}
 	else
 	{
 		SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_545 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_545 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 		Handler_EGS_STATE_CHANGE_FIELD_REQ();
 	}
 
@@ -4348,9 +5360,13 @@ bool CX2StateServerSelect::Handler_EGS_CHANGE_NICK_NAME_ACK( HWND hWnd, UINT uMs
 			{
 				// 닉네임 변경 가능 확인 완료. 진짜 바꿀지 확인 팝업창 띄우기
 				SAFE_DELETE_DIALOG( m_pDLGRenameConfirmMsgBox );
+				
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				m_pDLGRenameConfirmMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), GET_REPLACED_STRING( ( STR_ID_2556, "S", m_NickNameChangeUnitNickName.c_str() ) ), SUSUCM_RENAME_CONFIRM_OK, this, SUSUCM_RENAME_CONFIRM_CANCEL, L"DLG_UI_Selection_MessageBox_Ok_Exit_Button_New.lua", D3DXVECTOR2 ( 0, 0 ),  L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				m_pDLGRenameConfirmMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), GET_REPLACED_STRING( ( STR_ID_2556, "S", m_NickNameChangeUnitNickName.c_str() ) ), SUSUCM_RENAME_CONFIRM_OK, this, SUSUCM_RENAME_CONFIRM_CANCEL );
-
 				SetRenameMsgBoxError( L"" );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			}
 		}
 		else
@@ -4360,7 +5376,12 @@ bool CX2StateServerSelect::Handler_EGS_CHANGE_NICK_NAME_ACK( HWND hWnd, UINT uMs
 				// 닉네임 변경 완료. 캐릭터 선택해서 게임입장.
 				OpenRenameMsgBox( false );
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				m_pDLGRenameSuccessMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_REPLACED_STRING( ( STR_ID_2557, "S", kEvent.m_wstrNickName.c_str() ) ), this, SUSUCM_RENAME_SUCCESS_OK, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				m_pDLGRenameSuccessMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_REPLACED_STRING( ( STR_ID_2557, "S", kEvent.m_wstrNickName.c_str() ) ), this, SUSUCM_RENAME_SUCCESS_OK );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 			}
 		}
 	}
@@ -4388,9 +5409,9 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_UNIT_INVENTORY_INFO_NOT( HWND hWnd
 
 	CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 
-	if ( pMyUnit != NULL && pMyUnit->GetInventory() != NULL )
+	if ( pMyUnit != NULL )
 	{
-		pMyUnit->GetInventory()->ResetItems( kEvent.m_mapItem );
+		pMyUnit->AccessInventory().ResetItems( kEvent.m_mapItem );
 		return true;
 	}
 	if( g_pData != NULL )
@@ -4421,7 +5442,7 @@ bool CX2StateServerSelect::Handler_EGS_GET_MY_INVENTORY_ACK( HWND hWnd, UINT uMs
 		g_pData->Set_ShowRecommendUI( !kEvent.m_bIsRecommend );
 #endif //SERV_RECOMMEND_LIST_EVENT		
 		// 체험 아이디 제한 
-		if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser &&
+		if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser &&
 			kEvent.m_bIsRecommend == false && m_bCheckRecommend == true )
 		{
 #ifdef SERV_NO_GAMEINVITE
@@ -4439,7 +5460,7 @@ bool CX2StateServerSelect::Handler_EGS_GET_MY_INVENTORY_ACK( HWND hWnd, UINT uMs
 			}
 			else
 			{
-				CX2Unit::UnitData* pUnitData = 	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+				const CX2Unit::UnitData* pUnitData = 	&g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 				if ( SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01 <= pUnitData->m_nMapID && 
 					 SEnum::VMI_BATTLE_FIELD_END > pUnitData->m_nMapID )
@@ -4476,20 +5497,22 @@ bool CX2StateServerSelect::Handler_EGS_GET_MY_INVENTORY_ACK( HWND hWnd, UINT uMs
 
 void CX2StateServerSelect::SetRenameMsgBoxError( const wstring& wstrErrorMessage )
 {
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), wstrErrorMessage.c_str(), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	if( NULL == m_pDLGRenameMsgBox )
 		return;
-
 
 	CKTDGUIStatic* pStaticErrorMessage = (CKTDGUIStatic*) m_pDLGRenameMsgBox->GetControl( L"NickNameErrorMessage" );
 	if( NULL == pStaticErrorMessage )
 		return;
-
-
+	
 	if( NULL == pStaticErrorMessage->GetString(0) )
 		return;
 
-	
 	pStaticErrorMessage->GetString(0)->msg = wstrErrorMessage;
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 }
 
 
@@ -4499,7 +5522,13 @@ void CX2StateServerSelect::OpenRenameMsgBox( bool bOpen )
 	{
 		if( NULL == m_pDLGRenameMsgBox )
 		{
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+			m_pDLGRenameMsgBox = new CKTDGUIDialog( this, L"DLG_Change_Nickname_New.lua" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			m_pDLGRenameMsgBox = new CKTDGUIDialog( this, L"DLG_Change_Nickname.lua" );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGRenameMsgBox );
 		}
 
@@ -4524,7 +5553,11 @@ bool CX2StateServerSelect::Handler_EGS_RECOMMEND_USER_REQ( const WCHAR* wszNickN
 
 	if ( kPacket.m_bCancel == false && g_pMain->GetStringFilter()->CheckIsValidString( CX2StringFilter::FT_NICKNAME, kPacket.m_wstrNickName.c_str() ) == false )
 	{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_717 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_717 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		return true;
 	}
 
@@ -4554,7 +5587,12 @@ bool CX2StateServerSelect::Handler_EGS_RECOMMEND_USER_ACK( HWND hWnd, UINT uMsg,
 				m_bCheckRecommendSuccess = true;
 				wstringstream wstrstm;
 				wstrstm << GET_REPLACED_STRING( ( STR_ID_718, "i", kEvent.m_iRewardResurrectionStone ) );
+				
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				m_pDLGRecommendSuccess = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), wstrstm.str().c_str(), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				m_pDLGRecommendSuccess = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), wstrstm.str().c_str(), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			}
 			else
 			{
@@ -4631,7 +5669,12 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_SERVER_SET_ACK( HWND hWnd, UINT uM
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )	
 		{
 			m_sbSelectedServerSet = true;
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+			Handler_EGS_CHARACTER_LIST_REQ();
+#else  // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 			Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+			
 		}
 		else
 		{
@@ -4655,12 +5698,23 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_SERVER_SET_ACK( HWND hWnd, UINT uM
 				{
                     wstring wstrMsg = GET_REPLACED_STRING( ( STR_ID_719, "L", kEvent.m_kAccountBlockInfo.m_wstrEndTime ) );
 					wstrMsg += kEvent.m_kAccountBlockInfo.m_wstrBlockReason;
+					
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), wstrMsg.c_str(), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,150), wstrMsg.c_str(), (CKTDXStage*)this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				} break;
 
 			case -4:
 				{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), kEvent.m_kAccountBlockInfo.m_wstrBlockReason.c_str(), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,150), kEvent.m_kAccountBlockInfo.m_wstrBlockReason.c_str(), (CKTDXStage*)this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
+					
 				} break;
 			default:
 #ifdef SERV_HACKING_USER_CHECK_COUNT// 작업날짜: 2013-06-04	// 박세훈
@@ -4683,12 +5737,22 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_SERVER_SET_ACK( HWND hWnd, UINT uM
 								wstrMsg += kEvent.m_kAccountBlockInfo.m_wstrBlockReason2;
 							}
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), wstrMsg.c_str(), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,150), wstrMsg.c_str(), (CKTDXStage*)this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+							
 						}
 						else if( kEvent.m_kAccountBlockInfo.m_wstrBlockReason2.empty() == false )
 						{
 							wstrMsg = kEvent.m_kAccountBlockInfo.m_wstrBlockReason2;
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), wstrMsg.c_str(), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편							
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,150), wstrMsg.c_str(), (CKTDXStage*)this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 						}
 					}
 				}
@@ -4715,12 +5779,15 @@ bool CX2StateServerSelect::Handler_EGS_SELECT_SERVER_SET_ACK( HWND hWnd, UINT uM
 #endif	ADD_SERVER_GROUP
 	//}}  kimhc // 2009-12-15 // 서버군 추가 작업에 따른 채널 다이얼로그 분리
 
+#ifndef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 	// 채널번호 표시
 	if( g_pInstanceData->GetConnectChannelServerID() > 0 )
 	{
 		CKTDGUIStatic* pStatic = (CKTDGUIStatic*)m_pDLGUnitSelectFront->GetControl( L"Channel_Name" );
+
 		pStatic->GetString(0)->msg = g_pInstanceData->GetConnectChannelServerName();
 	}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 	
 
 	return true;
@@ -4732,13 +5799,11 @@ bool CX2StateServerSelect::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ()
 	KEVENT_X2_SERVER_UNIT_INFO_LIST_REQ	kEVENT_X2_SERVER_UNIT_INFO_LIST_REQ;
 	kEVENT_X2_SERVER_UNIT_INFO_LIST_REQ.userUID = g_pData->GetMyUser()->GetUID();
 */
-
 #ifdef SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
 	if ( g_pMain != NULL )
 	{
 		bool bCheckPcBang = false;
 		bCheckPcBang = g_pMain->IsStartPcBang();
-
 	}
 #endif //SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
 
@@ -4746,7 +5811,33 @@ bool CX2StateServerSelect::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ()
 	g_pMain->AddServerPacket( EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK );
 
 	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_720 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_720 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT
+	IF_EVENT_ENABLED( CEI_ELISIS_PREVIOUS_SIS_EVENT )
+	{
+#ifdef CLIENT_COUNTRY_CN
+		int iMaxCreateCount = 1000;
+		if( 1 == g_pInstanceData->GetServerGroupID() ) // 화동1
+			iMaxCreateCount = 3000;
+		else if( 4 == g_pInstanceData->GetServerGroupID() ) // 화중
+			iMaxCreateCount = 2000;
+		else if( 6 == g_pInstanceData->GetServerGroupID() ) // 화동2
+			iMaxCreateCount = 3000;
+		else if( 101 == g_pInstanceData->GetServerGroupID() ) //화북
+			iMaxCreateCount = 1000;
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_REPLACED_STRING(( STR_ID_27072, "i", iMaxCreateCount )), g_pMain->GetNowState() );
+#else // CLIENT_COUNTRY_CN
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_27072 ), g_pMain->GetNowState() );
+#endif // CLIENT_COUNTRY_CN
+	}
+#endif //SERV_ELISIS_PREVIOUS_SIS_EVENT
+
 	return true;
 }
 
@@ -4756,6 +5847,19 @@ bool CX2StateServerSelect::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK( HWND
 	KEGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK kEvent;
 	DeSerialize( pBuff, &kEvent );
 	
+#ifdef SERV_SHARING_BANK_QUEST_CASH
+	// 지헌 : 은행 공유 열었다고 클라에 저장하자.
+	g_pData->GetMyUser()->SetSharingBankOpen(kEvent.m_bSharingBank);
+	// 은행 퀘스트를 진행중이던 캐릭터라면 포기 시키자
+	// 			if( NULL != g_pData->GetQuestManager() && g_pData->GetMyUser()->IsSharingBankOpen() == true )
+	// 			{
+	// 				g_pData->GetQuestManager()->GiveUpForbiddenQuest(); 
+	// 			}
+#endif // SERV_SHARING_BANK_QUEST_CASH
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	g_pInstanceData->SetK4ThAnnivEventInfo( kEvent.m_4ThAnnivEventInfo );
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 	
 	if( g_pMain->DeleteServerPacket( EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK ) == true )
 	{
@@ -4763,22 +5867,26 @@ bool CX2StateServerSelect::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK( HWND
 		{
 			ClearBeforeUnit( m_pSelectUnit );
 			ClearUnitButton();
-
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+			SetShowSelectUnitInfo( NULL );
+			if ( NULL != g_pData->GetUIMajorXMeshPlayer() )
+			{
+				BOOST_FOREACH( CKTDGXMeshPlayer::CXMeshInstanceHandle hStandMeshInst, m_vecStandMeshInst )
+				{	
+					g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( hStandMeshInst );
+				}
+				m_vecStandMeshInst.clear();
+			}
+			if( NULL != g_pData->GetUIEffectSet() )
+			{
+				g_pData->GetUIEffectSet()->StopEffectSet( m_hStandEffect );
+			}
+#endif // 13-11-11, 진입 구조 개편, kimjh
 			g_pData->GetMyUser()->DeleteAllUnit();
 
-			g_pData->GetMyUser()->GetUserData()->maxUnitCount = kEvent.m_nUnitSlot; //생성가능 유닛 슬롯?
+			g_pData->GetMyUser()->AccessUserData().maxUnitCount = kEvent.m_nUnitSlot; //생성가능 유닛 슬롯?
 
 			m_MaxUnitNum	= kEvent.m_nUnitSlot;
-
-#ifdef SERV_SHARING_BANK_QUEST_CASH
-			// 지헌 : 은행 공유 열었다고 클라에 저장하자.
-			g_pData->GetMyUser()->SetSharingBankOpen(kEvent.m_bSharingBank);
-			// 은행 퀘스트를 진행중이던 캐릭터라면 포기 시키자
-			// 			if( NULL != g_pData->GetQuestManager() && g_pData->GetMyUser()->IsSharingBankOpen() == true )
-			// 			{
-			// 				g_pData->GetQuestManager()->GiveUpForbiddenQuest(); 
-			// 			}
-#endif // SERV_SHARING_BANK_QUEST_CASH
 
             for( int i =0; i < (int)kEvent.m_vecUnitInfo.size(); i++ )
 			{	 
@@ -4787,12 +5895,13 @@ bool CX2StateServerSelect::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK( HWND
 				CX2Unit* pUnit = new CX2Unit( kUnitInfo );
 
 				pUnit->SetOwnerUserUID( g_pData->GetMyUser()->GetUID() );
-				wstring nickNameToChange = L"__DELETED__";
-				if ( nickNameToChange == pUnit->GetUnitData()->m_NickName )
+				wstring nickNameToChange = L"__DELETED__";			
+				
+				if ( nickNameToChange == pUnit->GetUnitData().m_NickName )
 				{
 					wstringstream tempNickName;
 					tempNickName << nickNameToChange.c_str() << i;
-					pUnit->GetUnitData()->m_NickName = tempNickName.str().c_str();
+					pUnit->AccessUnitData().m_NickName = tempNickName.str().c_str();
 				}
 				g_pData->GetMyUser()->AddUnit( pUnit );
 			}
@@ -4810,17 +5919,28 @@ bool CX2StateServerSelect::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK( HWND
 
 
 
-			
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+			CreateUnitButtonNew();
+			ClearUnitButton();
+			ChangeUnitButtonInfo();
+			int iTopCharacterIndex = (m_NowPage - 1) * UNIT_SELECT_UI_MAX_UNIT_NUM;
+			CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByIndex( iTopCharacterIndex );
+			if ( NULL != pUnit )
+			{
+				CreateServerSelectUnitViewerUI ( pUnit );
+				SetFocusUnitButtonByIndex ( 0 );
+				m_pSelectUnit = pUnit;
+				SetRightSideFlagColor ( GetUnitKeyColorByUnitType ( m_pSelectUnit->GetType() ) );
+				SetShowSelectUnitInfo ( pUnit );
+				ChangeSelectUnitStandMeshInstance ( pUnit->GetType () );
+				SetBackgroundImageBySelectUnitType ( pUnit->GetType() );
+			}
+			SetShowServerStateButtonSet ( true, false );			
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			CreateUnitButton();
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 			m_bReceivedEGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK = true;
-
-#ifdef SERV_EVENT_RETURN_USER_MARK
-			if( true == kEvent.m_bEventMark )
-			{
-				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING(  STR_ID_20325 ), g_pMain->GetNowState() );
-			}			
-#endif //SERV_EVENT_RETURN_USER_MARK
 
 #ifdef SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
 			if( NULL != g_pMain && NULL != g_pMain->GetSecurityPad() 
@@ -4829,18 +5949,13 @@ bool CX2StateServerSelect::Handler_EGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK( HWND
 				Handler_EGS_CHECK_THE_ARCHUANGEL_S_COIN_EVENT_LETTER_REQ();
 			}
 #endif //SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
-
-#ifdef SERV_ELIOS_INVESTIGATIONS
-			if( false == kEvent.m_bEliosInvestigationsReward )
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT
+			if( 0 != g_pInstanceData->GetPreEventElesisUID() )
 			{
-				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_20325 ), g_pMain->GetNowState() );
+//				g_pData->GetMyUser()->SortFirstByUID( g_pInstanceData->GetPreEventElesisUID());
+				g_pInstanceData->SetPreEventElesisUID(0);
 			}
-#endif SERV_ELIOS_INVESTIGATIONS
-
-#ifdef SERV_CLIENT_DIRECT_CONNECT_AUTH_PCBANG
-
-#endif //CLIENT_DIRECT_CONNECT_AUTH_PCBANG
-
+#endif // SERV_ELISIS_PREVIOUS_SIS_EVENT
 		}
 		else
 		{
@@ -4878,7 +5993,7 @@ bool CX2StateServerSelect::Handler_EGS_AGREE_HACK_USER_ACK( HWND hWnd, UINT uMsg
 #ifndef PROCESSLIST
 			g_pMain->UpdateProcessList();
 #endif
-			g_pData->GetMyUser()->GetUserData()->hackingUserType = (CX2User::HACKING_USER_TYPE)kEvent.m_cHackingUserType;
+			g_pData->GetMyUser()->AccessUserData().hackingUserType = (CX2User::HACKING_USER_TYPE)kEvent.m_cHackingUserType;
 			SAFE_DELETE_DIALOG( m_pDLGCheckHack );
 		}
 		else
@@ -4902,10 +6017,14 @@ void CX2StateServerSelect::UpdateChannelListUI()
 		
 #ifdef SERV_CHANNEL_LIST_RENEWAL
 	int ServerGroupNum = g_pInstanceData->GetServerGroupID();
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	m_pDLGChannelSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Channel_Selection_New.lua" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	m_pDLGChannelSelectBack = new CKTDGUIDialog( this, L"DLG_UI_Channel_Selection.lua" );
 
 	if(m_pDLGChannelSelectBack == NULL)
 		m_pDLGChannelSelectBack =  new CKTDGUIDialog( this, L"DLG_UI_Channel_Selection_Auto.lua" );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 #else //SERV_CHANNEL_LIST_RENEWAL
 
@@ -4932,8 +6051,11 @@ void CX2StateServerSelect::UpdateChannelListUI()
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGChannelSelectBack );
 
 	// 여기서 부터 채널 리스트 셋팅
-
+#if defined(CLIENT_COUNTRY_TH)
+	const int MAX_CHANNEL_COUNT = 16;	// 채널 갯수
+#else
 	const int MAX_CHANNEL_COUNT = m_iChannelNum;	// 채널 갯수
+#endif 
 
 	// 채널 리스트 버튼 초기화
 	WCHAR wszControlName[32] = L"";
@@ -4965,7 +6087,6 @@ void CX2StateServerSelect::UpdateChannelListUI()
 		if(pStaticCHCongestionStr != NULL)
 			pStaticCHCongestionStr->SetShowEnable(false, false);
 
-
 #ifdef MODIFY_CHANNEL_MODE_RATE_INT
 		const int	iCntChannelGageMode = 4;
 		for( int j=0; j< iCntChannelGageMode; ++j )
@@ -4975,19 +6096,27 @@ void CX2StateServerSelect::UpdateChannelListUI()
 			    pStaticCHCongestionGage->GetPicture( (i * iCntChannelGageMode) + j )->SetShow(false);
 		}
 #else MODIFY_CHANNEL_MODE_RATE_INT
-		pStaticCHCongestionGage->GetPicture( i * 3 )->SetShow(false);
-		pStaticCHCongestionGage->GetPicture( i * 3 + 1 )->SetShow(false);
-		pStaticCHCongestionGage->GetPicture( i * 3 + 2 )->SetShow(false);
+        if ( pStaticCHCongestionGage->GetPicture( i * 3 ) != NULL )
+		    pStaticCHCongestionGage->GetPicture( i * 3 )->SetShow(false);
+        if ( pStaticCHCongestionGage->GetPicture( i * 3 + 1 ) != NULL )
+		    pStaticCHCongestionGage->GetPicture( i * 3 + 1 )->SetShow(false);
+        if ( pStaticCHCongestionGage->GetPicture( i * 3 + 2 ) != NULL )
+		    pStaticCHCongestionGage->GetPicture( i * 3 + 2 )->SetShow(false);
 #endif MODIFY_CHANNEL_MODE_RATE_INT
 
-		pStaticCHBox->GetPicture( i * 3 )->SetShow(false);
-		pStaticCHBox->GetPicture( i * 3 + 1 )->SetShow(false);
-		pStaticCHBox->GetPicture( i * 3 + 2 )->SetShow(false);
+        if ( pStaticCHBox->GetPicture( i * 3 ) != NULL )
+		    pStaticCHBox->GetPicture( i * 3 )->SetShow(false);
+        if ( pStaticCHBox->GetPicture( i * 3 + 1 ) != NULL )
+		    pStaticCHBox->GetPicture( i * 3 + 1 )->SetShow(false);
+        if ( pStaticCHBox->GetPicture( i * 3 + 2 ) != NULL )
+		    pStaticCHBox->GetPicture( i * 3 + 2 )->SetShow(false);
 
 #ifndef SERV_CHANNEL_LIST_RENEWAL
-		pStaticCHName->GetPicture( i )->SetShow(false);
+        if ( pStaticCHName->GetPicture( i ) != NULL )
+		    pStaticCHName->GetPicture( i )->SetShow(false);
 #else
-		pStaticCHBar->GetPicture( i + 1 )->SetShow(false);
+        if ( pStaticCHBar->GetPicture( i + 1 ) != NULL )
+		    pStaticCHBar->GetPicture( i + 1 )->SetShow(false);
 #endif
 	}				
 
@@ -5003,19 +6132,16 @@ void CX2StateServerSelect::UpdateChannelListUI()
 #endif
 
 #ifdef MODIFY_CHANNEL_MODE_RATE_INT
-
 	float			CHANNEL_CONGESTION_SCOPE_TEMP[] = { 0.1f,	0.2f,	0.5f,	0.99f, };
-	const float		CHANNEL_CONGESTION_DISPLAY[]	= { 0.25f,	0.5f,	0.5f,	0.75f,	};
-
-#else // MODIFY_CHANNEL_MODE_RATE_INT
-
-	// 채널 게이지 표기법 변경
-	float			CHANNEL_CONGESTION_SCOPE_TEMP[] = { 0.1f,	0.2f,	0.3f,	0.999f, };
 #ifndef CHANNEL_CONGESTION_SCOPE_NO_CHEAT
-	const float		CHANNEL_CONGESTION_SCOPE[]		= { 0.1f,	0.2f,	0.3f,	0.999f, };//{ 0.2f,	0.4f,	0.6f,	0.999f, };
-#endif // CHANNEL_CONGESTION_SCOPE_NO_CHEAT
-	const float		CHANNEL_CONGESTION_DISPLAY[]	= { 0.25f,	0.5f,	0.75f,	0.99f,	};
-
+	const float		CHANNEL_CONGESTION_SCOPE[]		= { 0.1f,	0.2f,	0.3f,	0.9f, };//{ 0.2f,	0.4f,	0.6f,	0.999f, };
+#endif CHANNEL_CONGESTION_SCOPE_NO_CHEAT
+	const float		CHANNEL_CONGESTION_DISPLAY[]	= { 0.25f,	0.5f,	0.5f,	0.75f,	};
+#else // MODIFY_CHANNEL_MODE_RATE_INT
+	// 채널 게이지 표기법 변경
+	float			CHANNEL_CONGESTION_SCOPE_TEMP[] = { 0.1f,	0.2f,	0.3f,	0.9f, };
+	const float		CHANNEL_CONGESTION_SCOPE[]		= { 0.1f,	0.2f,	0.3f,	0.9f, };//{ 0.2f,	0.4f,	0.6f,	0.999f, };
+	const float		CHANNEL_CONGESTION_DISPLAY[]	= { 0.25f,	0.5f,	0.75f,	0.9f, };
 #endif // MODIFY_CHANNEL_MODE_RATE_INT	
 
 	// 채널 리스트 정보 갱신
@@ -5040,10 +6166,9 @@ void CX2StateServerSelect::UpdateChannelListUI()
 		// 채널 혼잡도 스트링 ex) 보통, 원활
 		StringCchPrintf( wszControlName, ARRAY_SIZE(wszControlName), L"statechanal%d", i + 1);
 		CKTDGUIStatic* pStaticCHCongestionStr = static_cast< CKTDGUIStatic* >( m_pDLGChannelSelectBack->GetControl( wszControlName ) );
-
 #ifndef CHANNEL_CONGESTION_SCOPE_NO_CHEAT
 		g_pInstanceData->SetChannelDistributionByServerGroup( CHANNEL_CONGESTION_SCOPE_TEMP, CHANNEL_CONGESTION_SCOPE, i );
-#endif // CHANNEL_CONGESTION_SCOPE_NO_CHEAT
+#endif CHANNEL_CONGESTION_SCOPE_NO_CHEAT
 		// Show 설정
 		pChannelButton->SetShowEnable(true, true);
 		pStaticCHCongestionStr->SetShowEnable(true, true);
@@ -5066,7 +6191,6 @@ void CX2StateServerSelect::UpdateChannelListUI()
 		float fChannelCongestionRateDisplay = 0.f;
 
 #ifdef MODIFY_CHANNEL_MODE_RATE_INT
-
 		if(fChannelCongestionRate >= CHANNEL_CONGESTION_SCOPE_TEMP[3])	// 99%~100%
 		{
 			// FULL 빨간색 , 게이지 길이 100%
@@ -5104,7 +6228,6 @@ void CX2StateServerSelect::UpdateChannelListUI()
 			pStaticCHCongestionStr->GetString( 0 )->msg = GET_STRING( STR_ID_721 );
 		}
 #else // MODIFY_CHANNEL_MODE_RATE_INT
-
 		if( fChannelCongestionRate > CHANNEL_CONGESTION_SCOPE_TEMP[3] )
 		{
 			fChannelCongestionRateDisplay = 1.f;
@@ -5152,9 +6275,7 @@ void CX2StateServerSelect::UpdateChannelListUI()
 
 			pChannelButton->SetShowEnable(true, false);
 		}
-
 #endif // MODIFY_CHANNEL_MODE_RATE_INT
-
 	}
 
 
@@ -5217,7 +6338,7 @@ void CX2StateServerSelect::UpdateChannelListUI()
 			{
 				wstring wstrtempField = L"RUBEN"; //2011.11.22 lygan_조성욱 //DLG_UI_Title02_A.tet 에 있는 이름을 사용한다
 				wstrtempField += wstrtempFieldNameNum;	
-#ifdef CHANNEL_UI_EU
+#if defined ( CHANNEL_UI_EU ) || defined ( CHANNEL_UI_BR ) || defined ( CHANNEL_UI_TH )
 				pPicture->SetTex(L"DLG_UI_Title02_B.TGA", wstrtempField.c_str());
 #else //CHANNEL_UI_EU
 				pPicture->SetTex(L"DLG_UI_Title02_A.TGA", wstrtempField.c_str());
@@ -5233,7 +6354,7 @@ void CX2StateServerSelect::UpdateChannelListUI()
 
 				wstring wstrtempField = L"ELDER";
 				wstrtempField += wstrtempFieldNameNum;
-#ifdef CHANNEL_UI_EU
+#if defined ( CHANNEL_UI_EU ) || defined ( CHANNEL_UI_BR ) ||  defined ( CHANNEL_UI_TH )
 				pPicture->SetTex(L"DLG_UI_Title02_B.TGA", wstrtempField.c_str());
 #else //CHANNEL_UI_EU
 				pPicture->SetTex(L"DLG_UI_Title02_A.TGA", wstrtempField.c_str());	
@@ -5248,7 +6369,7 @@ void CX2StateServerSelect::UpdateChannelListUI()
 			{
 				wstring wstrtempField = L"BESMA";
 				wstrtempField += wstrtempFieldNameNum;
-#ifdef CHANNEL_UI_EU
+#if defined ( CHANNEL_UI_EU ) || defined ( CHANNEL_UI_BR ) ||  defined ( CHANNEL_UI_TH )
 				pPicture->SetTex(L"DLG_UI_Title02_B.TGA", wstrtempField.c_str());
 #else //CHANNEL_UI_EU
 				pPicture->SetTex(L"DLG_UI_Title02_A.TGA", wstrtempField.c_str());	
@@ -5259,7 +6380,7 @@ void CX2StateServerSelect::UpdateChannelListUI()
 			{
 				wstring wstrtempField = L"ALTERA";
 				wstrtempField += wstrtempFieldNameNum;
-#ifdef CHANNEL_UI_EU
+#if defined ( CHANNEL_UI_EU ) || defined ( CHANNEL_UI_BR ) ||  defined ( CHANNEL_UI_TH )
 				pPicture->SetTex(L"DLG_UI_Title02_B.TGA", wstrtempField.c_str());
 #else //CHANNEL_UI_EU
 				pPicture->SetTex(L"DLG_UI_Title02_A.TGA", wstrtempField.c_str());	
@@ -5269,7 +6390,7 @@ void CX2StateServerSelect::UpdateChannelListUI()
 			{
 				wstring wstrtempField = L"PEITA";
 				wstrtempField += wstrtempFieldNameNum;
-#ifdef CHANNEL_UI_EU
+#if defined ( CHANNEL_UI_EU ) || defined ( CHANNEL_UI_BR ) ||  defined ( CHANNEL_UI_TH )
 				pPicture->SetTex(L"DLG_UI_Title02_B.TGA", wstrtempField.c_str());
 #else //CHANNEL_UI_EU
 				pPicture->SetTex(L"DLG_UI_Title02_A.TGA", wstrtempField.c_str());	
@@ -5286,7 +6407,7 @@ void CX2StateServerSelect::UpdateChannelListUI()
 
 				wstring wstrtempField = L"VELDER";
 				wstrtempField += wstrtempFieldNameNum;
-#ifdef CHANNEL_UI_EU
+#if defined ( CHANNEL_UI_EU ) || defined ( CHANNEL_UI_BR ) ||  defined ( CHANNEL_UI_TH )
 				pPicture->SetTex(L"DLG_UI_Title02_B.TGA", wstrtempField.c_str());
 #else //CHANNEL_UI_EU
 				pPicture->SetTex(L"DLG_UI_Title02_A.TGA", wstrtempField.c_str());	
@@ -5302,7 +6423,7 @@ void CX2StateServerSelect::UpdateChannelListUI()
 			{
 				wstring wstrtempField = L"HAMEL";
 				wstrtempField += wstrtempFieldNameNum;
-#ifdef CHANNEL_UI_EU
+#if defined ( CHANNEL_UI_EU ) || defined ( CHANNEL_UI_BR ) ||  defined ( CHANNEL_UI_TH )
 				pPicture->SetTex(L"DLG_UI_Title02_B.TGA", wstrtempField.c_str());
 #else //CHANNEL_UI_EU
 				pPicture->SetTex(L"DLG_UI_Title02_A.TGA", wstrtempField.c_str());	
@@ -5325,25 +6446,25 @@ void CX2StateServerSelect::UpdateChannelListUI()
 			if((j+1)%2 == 0)
 			{
 #ifdef CHANNEL_UI_EU
+				pPointData->leftTopPoint = D3DXVECTOR2(678.f+iChannelNameOffset,126 + static_cast< float >( (j/2) * 48));
+#else
 #ifdef CHANNEL_UI_TH
-				pPointData->leftTopPoint = D3DXVECTOR2(678.f+iChannelNameOffset,126 + static_cast< float >( (j/2) * 48));
-#else //CHANNEL_UI_TH
 				pPointData->leftTopPoint = D3DXVECTOR2(678.f+iChannelNameOffset,132 + static_cast< float >( (j/2) * 48));
-#endif CHANNEL_UI_TH
-#else //CHANNEL_UI_EU
+#else 
 				pPointData->leftTopPoint = D3DXVECTOR2(678.f+iChannelNameOffset,126 + static_cast< float >( (j/2) * 48));
+#endif //CHANNEL_UI_TH
 #endif //CHANNEL_UI_EU
 			}
 			else
 			{
 #ifdef CHANNEL_UI_EU
+				pPointData->leftTopPoint = D3DXVECTOR2(355.f+iChannelNameOffset,126 + static_cast< float >( (j/2) * 48));
+#else //CHANNEL_UI_EU
 #ifdef CHANNEL_UI_TH
 				pPointData->leftTopPoint = D3DXVECTOR2(355.f+iChannelNameOffset,126 + static_cast< float >( (j/2) * 48));
 #else //CHANNEL_UI_TH
 				pPointData->leftTopPoint = D3DXVECTOR2(355.f+iChannelNameOffset,132 + static_cast< float >( (j/2) * 48));
 #endif CHANNEL_UI_TH
-#else //CHANNEL_UI_EU
-				pPointData->leftTopPoint = D3DXVECTOR2(355.f+iChannelNameOffset,126 + static_cast< float >( (j/2) * 48));
 #endif //CHANNEL_UI_EU
 			}
 
@@ -5359,11 +6480,7 @@ void CX2StateServerSelect::UpdateChannelListUI()
 
 		if(mit2 != g_pInstanceData->m_mapChannelBonusInfo.end() )
 		{
-
-
 			wstring wstrChannelLv = KncUtil::toWideString( boost::str(boost::format("(LV%1%~%2%)") % mit2->second.m_iBeginLv % mit2->second.m_iEndLv) );
-
-
 			float fRightChannelStrPos = 678.f;
 			float fLeftChannelStrPos = 355.f;
 			wstring wstrLvWordCheck = L"";
@@ -5379,12 +6496,10 @@ void CX2StateServerSelect::UpdateChannelListUI()
 				if(pStaticCHName == NULL && pLvPicture == NULL && pLvPointData == NULL)
 					continue;
 
-				
 				wstrsubChannelLv = wstrChannelLv[istrNumCheck];
 
 				if ( wstrsubChannelLv == L"L" || wstrsubChannelLv == L"V" )
 				{
-					
 					wstrLvWordCheck += wstrChannelLv[istrNumCheck];
 					if ( wstrLvWordCheck == L"LV")
 					{
@@ -5394,7 +6509,6 @@ void CX2StateServerSelect::UpdateChannelListUI()
 					{
 						continue;	
 					}
-			
 				}
 
 				if((j+1)%2 == 0)
@@ -5424,22 +6538,27 @@ void CX2StateServerSelect::UpdateChannelListUI()
 					
 				}
 
-
-
 				if ( bStrLvWordCheck == false )
 				{
+#if defined ( CHANNEL_UI_BR ) || defined ( CHANNEL_UI_TH )
+					pLvPicture->SetTex(L"DLG_UI_Title02_B.TGA", wstrsubChannelLv.c_str() );
+#else // CHANNEL_UI_BR
 					pLvPicture->SetTex(L"DLG_UI_Title02_A.TGA", wstrsubChannelLv.c_str() );
+#endif // CHANNEL_UI_BR
 				}
 				else
 				{
+#if defined ( CHANNEL_UI_BR ) ||  defined ( CHANNEL_UI_TH )
+					pLvPicture->SetTex(L"DLG_UI_Title02_B.TGA", wstrLvWordCheck.c_str() );
+#else // CHANNEL_UI_BR
 					pLvPicture->SetTex(L"DLG_UI_Title02_A.TGA", wstrLvWordCheck.c_str() );
+#endif // CHANNEL_UI_BR
 					bStrLvWordCheck = false;
 				}
 
 				pLvPicture->SetPoint(pLvPointData);
 				pLvPicture->SetShow(true);
 				pStaticCHName->AddPicture(pLvPicture);
-
 			}
 
 			pStaticCHName->SetShow(true);
@@ -5766,61 +6885,165 @@ void CX2StateServerSelect::UpdateChannelListUI()
 
 void CX2StateServerSelect::UnitHandling( double fTime, float fElapsedTime )
 {
-#ifdef SERV_UNIT_WAIT_DELETE //2012.03.07 lygan_조성욱 // 캐릭터별 삭제 대기시에 애니메이션 설정
-	if(g_pData->GetMyUser() != NULL && m_UnitViewerUIList.empty() == false )
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	if ( NULL != m_pUnitViewerUI )
 	{
-		int i = (m_NowPage - 1)*UNIT_SELECT_UI_MAX_UNIT_NUM, j = 0;
-		for( ; i < g_pData->GetMyUser()->GetUnitNum() && j < UNIT_SELECT_UI_MAX_UNIT_NUM; i++, j++ )
+		if ( CX2UnitViewerUI::GetUnitClicked() == true )
 		{
-			CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByIndex( i );
-			if( pUnit == NULL )
-				continue;	
-			CX2UnitViewerUI* pUnitViewerUI = GetUnitViewer(pUnit);
+			D3DXVECTOR3 RotateY = D3DXVECTOR3(0, -((float)g_pKTDXApp->GetDIManager()->GetMouse()->GetXDelta() * m_fMouseSensitivity), 0);
+			m_pUnitViewerUI->GetMatrix().RotateRel(RotateY);
+			m_bRotateReturn = false;
 
-			if ( pUnitViewerUI == NULL )
-				continue;
-
-
-			pUnitViewerUI->OnFrameMove( fTime, fElapsedTime );
-
-			CX2Unit::UnitData* pUnitData = pUnitViewerUI->GetUnit()->GetUnitData();
-
-			if ( pUnitViewerUI->GetXSkinAnim()->GetState() == CKTDGXSkinAnim::XAP_ONE_WAIT )
+			m_fRotSpeed = 13.0f;
+		}
+		else
+		{
+			D3DXVECTOR3 rot = m_pUnitViewerUI->GetMatrix().GetRotate();
+		#ifdef REFORM_ENTRY_POINT //JHKang
+			if ( g_pData != NULL && m_pUnitViewerUI->GetUnit() != NULL && NULL != m_pUnitViewerUI->GetUnit()->GetUnitTemplet()  )
 			{
-				if ( m_pSelectUnit != NULL )
-				{
-					if ( pUnitViewerUI == GetUnitViewer( m_pSelectUnit ) )
-						continue;
-				}
-
-
-				if(pUnitData->m_bDeleted == true)
-				{
-					if(pUnitData->m_bDeletedMotionPlay == false)
-					{
-						pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_WAIT_DELETE );
-						pUnitData->m_bDeletedMotionPlay = true;
-					}
-
-				}
-				else
-				{
-					pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_WAIT );
-				}
+				float fRotY = g_pData->RotateYSelectCharacterType( m_pUnitViewerUI->GetUnit()->GetClass() );
+				m_pUnitViewerUI->GetMatrix().Rotate( D3DXToRadian(0),D3DXToRadian(fRotY),D3DXToRadian(0) );
 			}
-			else if( pUnitData->m_bDeleted == true && pUnitViewerUI->GetXSkinAnim()->GetState() == CKTDGXSkinAnim::XAS_PLAYING )
+		#else //REFORM_ENTRY_POINT
+			m_pUnitViewerUI->GetMatrix().Rotate( D3DXVECTOR3(0,0,0) );
+		#endif //REFORM_ENTRY_POINT			
+			int addSpeed = 20;
+
+			if ( m_bRotateReturn == false )
 			{
-				if(pUnitData->m_bDeletedMotionPlay == false)
+				m_fRotSpeed -= (fElapsedTime * addSpeed);
+
+				if ( m_fRotSpeed <= 0 )
 				{
-					pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_WAIT_DELETE );
-					pUnitData->m_bDeletedMotionPlay = true;
+					m_fRotSpeed = fElapsedTime;
+				}
+
+				if (m_fRemainRotY >= 0.0f &&  m_fRemainRotY < 3.14f )
+				{
+
+					if ( m_fRemainRotY <= 0.0f )
+					{
+						m_pUnitViewerUI->GetMatrix().Rotate( D3DXVECTOR3(0,0,0) );
+						m_fRemainRotY = 0.0f;
+						m_bRotateReturn = true;
+					}
+					else
+					{
+						m_fRemainRotY -= (fElapsedTime*m_fRotSpeed);
+						m_pUnitViewerUI->GetMatrix().Rotate(D3DXVECTOR3(0,m_fRemainRotY,0));
+
+						if ( m_fRemainRotY <= 0.0f )
+						{
+							m_pUnitViewerUI->GetMatrix().Rotate( D3DXVECTOR3(0,0,0) );
+							m_fRemainRotY = 0.0f;
+							m_bRotateReturn = true;
+						}
+					}
+				}
+				else if ( m_fRemainRotY > 3.14f && m_fRemainRotY <= 6.18f  )
+				{
+					if ( m_fRemainRotY >= 6.18f )
+					{
+						m_bRotateReturn = true;
+						m_fRemainRotY = 0.0f;
+						m_pUnitViewerUI->GetMatrix().Rotate( D3DXVECTOR3(0,0,0) );
+					}
+					else
+					{
+						m_fRemainRotY += (fElapsedTime*m_fRotSpeed);
+						m_pUnitViewerUI->GetMatrix().Rotate(D3DXVECTOR3(0,m_fRemainRotY,0));
+
+						if ( m_fRemainRotY >= 6.18f )
+						{
+							m_bRotateReturn = true;
+							m_fRemainRotY = 0.0f;
+							m_pUnitViewerUI->GetMatrix().Rotate( D3DXVECTOR3(0,0,0) );
+						}
+					}
+				}
+				else if ( m_fRemainRotY >= -3.14f && m_fRemainRotY <= 0.0f )
+				{
+					if ( m_fRemainRotY >= 0.0f )
+					{
+						m_bRotateReturn = true;
+						m_fRemainRotY = 0.0f;
+						m_pUnitViewerUI->GetMatrix().Rotate( D3DXVECTOR3(0,0,0) );
+					}
+					else
+					{
+						m_fRemainRotY += (fElapsedTime*m_fRotSpeed);
+						m_pUnitViewerUI->GetMatrix().Rotate(D3DXVECTOR3(0,m_fRemainRotY,0));
+
+						if ( m_fRemainRotY >= 0.0f )
+						{
+							m_bRotateReturn = true;
+							m_fRemainRotY = 0.0f;
+							m_pUnitViewerUI->GetMatrix().Rotate( D3DXVECTOR3(0,0,0) );
+						}
+					}
+				}
+				else if (  m_fRemainRotY >= -6.28f && m_fRemainRotY <= -3.14f )
+				{
+					if ( m_fRemainRotY <= -6.28f )
+					{
+						m_bRotateReturn = true;
+						m_fRemainRotY = 0.0f;
+						m_pUnitViewerUI->GetMatrix().Rotate( D3DXVECTOR3(0,0,0) );
+					}
+					else
+					{
+						m_fRemainRotY -= (fElapsedTime*m_fRotSpeed);
+						m_pUnitViewerUI->GetMatrix().Rotate(D3DXVECTOR3(0,m_fRemainRotY,0));
+
+						if ( m_fRemainRotY <= -6.28f )
+						{
+							m_bRotateReturn = true;
+							m_fRemainRotY = 0.0f;
+							m_pUnitViewerUI->GetMatrix().Rotate( D3DXVECTOR3(0,0,0) );
+						}
+					}
 				}
 			}
 		}
+
+#ifdef SERV_UNIT_WAIT_DELETE
+		CX2Unit::UnitData* pUnitData = &m_pUnitViewerUI->GetUnit()->AccessUnitData();
+		
+		m_pUnitViewerUI->OnFrameMove( fTime, fElapsedTime );
+		if( true == pUnitData->m_bDeleted && m_pUnitViewerUI->GetXSkinAnim()->GetState() == CKTDGXSkinAnim::XAS_PLAYING )
+		{
+			if( false == pUnitData->m_bDeletedMotionPlay)
+			{
+				m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_WAIT_DELETE );
+				pUnitData->m_bDeletedMotionPlay = true;
+			}
+		}
+		else if( m_pUnitViewerUI->GetXSkinAnim()->GetState() == CKTDGXSkinAnim::XAP_ONE_WAIT )
+		{
+			if( true == m_bPlayDownAnim )
+			{
+				if( false == pUnitData->m_bDeleted )
+				{
+					m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_WAIT );
+				}
+				
+				m_bPlayDownAnim = false;
+			}
+		}
+#else
+		m_pUnitViewerUI->OnFrameMove( fTime, fElapsedTime );
+		if ( m_pUnitViewerUI->GetXSkinAnim()->GetState() == CKTDGXSkinAnim::XAP_ONE_WAIT )
+		{
+			if ( true == m_bPlayDownAnim )
+			{
+				m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_WAIT );
+				m_bPlayDownAnim = false;
+			}
+		}
+#endif SERV_UNIT_WAIT_DELETE
 	}
-
-#else //SERV_UNIT_WAIT_DELETE
-
+#else  // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 	for ( int i = 0; i < (int)m_UnitViewerUIList.size(); i++ )
 	{
 		CX2UnitViewerUI* pUnitViewerUI = m_UnitViewerUIList[i];
@@ -5842,7 +7065,7 @@ void CX2StateServerSelect::UnitHandling( double fTime, float fElapsedTime )
 
 
 	}
-#endif //SERV_UNIT_WAIT_DELETE
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 }
 
 
@@ -5850,34 +7073,24 @@ void CX2StateServerSelect::UnitHandling( double fTime, float fElapsedTime )
 
 void CX2StateServerSelect::ClearUnitViewerList()
 {
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+#ifdef SERV_UNIT_WAIT_DELETE
+	if( m_pUnitViewerUI != NULL )
+	{
+		m_pUnitViewerUI->GetUnit()->AccessUnitData().m_bDeletedMotionPlay = false;
+	}	
+#endif SERV_UNIT_WAIT_DELETE
+
+	CX2UnitViewerUI::DeleteKTDGObject( m_pUnitViewerUI );
+	m_pUnitViewerUI = NULL;
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	for ( int i = 0; i < (int)m_UnitViewerUIList.size(); i++ )
 	{
 		CX2UnitViewerUI* pUnitViewerUI = m_UnitViewerUIList[i];
 		CX2UnitViewerUI::DeleteKTDGObject( pUnitViewerUI );
 	}
 	m_UnitViewerUIList.resize(0);
-
-#ifdef SERV_UNIT_WAIT_DELETE
-
-	if(g_pData->GetMyUser() != NULL)
-	{
-		if(g_pData->GetMyUser()->GetUnitNum() != NULL)
-		{
-			int i = (m_NowPage - 1)*UNIT_SELECT_UI_MAX_UNIT_NUM, j = 0;
-			for( ; i < g_pData->GetMyUser()->GetUnitNum() && j < UNIT_SELECT_UI_MAX_UNIT_NUM; i++, j++ )
-			{
-				CX2Unit* pUnitCheck = g_pData->GetMyUser()->GetUnitByIndex( i );
-				if( pUnitCheck == NULL  )
-					continue;	
-
-				CX2Unit::UnitData* pUnitData = pUnitCheck->GetUnitData();
-				pUnitData->m_bDeletedMotionPlay = false;
-			}
-		}
-	}
-
-
-#endif //SERV_UNIT_WAIT_DELETE
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 }
 
 CX2UnitViewerUI* CX2StateServerSelect::GetUnitViewer( CX2Unit* pUnit )
@@ -5901,6 +7114,19 @@ void CX2StateServerSelect::DownAnimFrameMove( double fTime, float fElapsedTime )
 	{
 		m_fDownAnimTime += fElapsedTime;
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh	
+		if ( m_pUnitViewerUI != NULL && m_pUnitViewerUI->GetShowObject() == false )
+		{
+			if ( m_fDownAnimTime > 0.f )
+			{
+				m_pUnitViewerUI->SetShowObject( true );
+				m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVVMT_DOWN_LANDING );
+				m_pUnitViewerUI->OnFrameMove( g_pKTDXApp->GetTime(),g_pKTDXApp->GetElapsedTime() );
+				m_bPlayDownAnim = false;
+			}
+		}
+#else  // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+
 		for ( int i = 0; i < (int)m_UnitViewerUIList.size(); i++ )
 		{
 			CX2UnitViewerUI* pUnitViewerUI = m_UnitViewerUIList[i];
@@ -5919,6 +7145,7 @@ void CX2StateServerSelect::DownAnimFrameMove( double fTime, float fElapsedTime )
 		{
 			m_bPlayDownAnim = false;
 		}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 	}
 }
 
@@ -5937,84 +7164,96 @@ bool CX2StateServerSelect::Handler_EGS_STATE_CHANGE_FIELD_REQ(bool bForceMove)
 	D3DXVECTOR3 vStartPos(0, 0, 0);
 	int startPos = 0;
 
-	int iMapId = 0;
+	const CX2Unit::UnitData* pUnitData = NULL;
 	if(g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL)
-		iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_nMapID;
-
-	if( g_pData->GetLocationManager()->GetVillageMapTemplet((SEnum::VILLAGE_MAP_ID)iMapId) == NULL || 
-		bForceMove == true )
 	{
-		// 강제 루벤이동
-		iMapId = SEnum::VMI_RUBEN;
-		//vStartPos = D3DXVECTOR3(-16.f, 1445.f, -2873.f);
-		startPos = 1;
-	}	
-	else
-	{
-		if( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP <= 0 )
-		{
-			// 초기진입으로 본다.
-
-			// 강제 루벤이동
-			iMapId = SEnum::VMI_RUBEN;
-			startPos = 1;
-		}
-		else
-		{
-			startPos = g_pData->GetLocationManager()->GetLoginPos( iMapId );
-
-			// 로그아웃했던 위치를 계산한다.
-#ifdef REMEMBER_LOGOUT_POSITION_TEST
-			const CX2World::WorldData* pWorldData = g_pData->GetWorldManager()->GetWorldData( (CX2World::WORLD_ID) g_pData->GetLocationManager()->GetWorldID( (SEnum::VILLAGE_MAP_ID) iMapId ) );
-			if( NULL != pWorldData )
-			{
-				CX2World* pWorld = g_pData->GetWorldManager()->CreateWorld( pWorldData->worldID ); // fix!! 월드 생성하지 않고 라인맵 정보 가져올 수 있게 수정해야함
-				if( NULL != pWorld )
-				{
-					pWorld->SetShowObject( false );
-					CKTDGLineMap* pLineMap = pWorld->GetLineMap();
-					if( NULL != pLineMap )
-					{
-						CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ucLastTouchLineIndex );
-						if( NULL != pLineData )
-						{
-							float fLastPosValue = halfToFloat( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_usLastPosValue );
-							if( fLastPosValue < 0.f )
-								fLastPosValue = 0.f;
-							if( fLastPosValue > 1.f )
-								fLastPosValue = 1.f;
-
-							vStartPos = pLineData->startPos * (1.f - fLastPosValue) + pLineData->endPos * fLastPosValue;
-							vStartPos = pLineMap->GetLandPosition( vStartPos, LINE_RADIUS, (int*) NULL );
-
-							startPos = -1;
-						}
-					}
-					SAFE_DELETE( pWorld );
-				}
-			}
-#endif REMEMBER_LOGOUT_POSITION_TEST
-		}		
-	}	
-
-
-	if( startPos >= 0 )
-	{
-		vStartPos = g_pData->GetLocationManager()->GetStartPosLoc(startPos);	
+		pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 	}
 
-	g_pData->GetLocationManager()->SetLastPos(vStartPos);
-	//g_pData->GetLocationManager()->SetLastPosLineIndex();
+	if( NULL != pUnitData )
+	{
+		int iMapId = pUnitData->m_nMapID;
+
+		if( g_pData->GetLocationManager()->GetVillageMapTemplet((SEnum::VILLAGE_MAP_ID)iMapId) == NULL || 
+			bForceMove == true )
+		{
+			// 강제 루벤이동
+			iMapId = SEnum::VMI_RUBEN;
+			//vStartPos = D3DXVECTOR3(-16.f, 1445.f, -2873.f);
+			startPos = 1;
+		}	
+		else
+		{
+			if( pUnitData->m_EXP <= 0 )
+			{
+				// 초기진입으로 본다.
+
+				// 강제 루벤이동
+				iMapId = SEnum::VMI_RUBEN;
+				startPos = 1;
+			}
+			else
+			{
+				startPos = g_pData->GetLocationManager()->GetLoginPos( iMapId );
+
+				// 로그아웃했던 위치를 계산한다.
+#ifdef REMEMBER_LOGOUT_POSITION_TEST
+#ifdef FIELD_BOSS_RAID
+				if( false == pUnitData->m_bIgnoreLastTouch  )				
+#endif // FIELD_BOSS_RAID
+				{
+					const CX2World::WorldData* pWorldData = g_pData->GetWorldManager()->GetWorldData( (CX2World::WORLD_ID) g_pData->GetLocationManager()->GetWorldID( (SEnum::VILLAGE_MAP_ID) iMapId ) );
+					if( NULL != pWorldData )
+					{
+						CX2World* pWorld = g_pData->GetWorldManager()->CreateWorld( pWorldData->worldID ); // fix!! 월드 생성하지 않고 라인맵 정보 가져올 수 있게 수정해야함
+						if( NULL != pWorld )
+						{
+							pWorld->SetShowObject( false );
+							CKTDGLineMap* pLineMap = pWorld->GetLineMap();
+							if( NULL != pLineMap )
+							{
+								const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( pUnitData->m_ucLastTouchLineIndex );
+								if( NULL != pLineData )
+								{
+									float fLastPosValue = halfToFloat( pUnitData->m_usLastPosValue );
+									if( fLastPosValue < 0.f )
+										fLastPosValue = 0.f;
+									if( fLastPosValue > 1.f )
+										fLastPosValue = 1.f;
+
+									vStartPos = pLineData->startPos * (1.f - fLastPosValue) + pLineData->endPos * fLastPosValue;
+									vStartPos = pLineMap->GetLandPosition( vStartPos, LINE_RADIUS, (int*) NULL );
+
+									startPos = -1;
+								}
+							}
+							SAFE_DELETE( pWorld );
+						}
+					}
+				}
+#endif REMEMBER_LOGOUT_POSITION_TEST
+			}		
+		}	
 
 
-	kPacket.m_iMapID =  (int)iMapId;	
+		if( startPos >= 0 )
+		{
+			vStartPos = g_pData->GetLocationManager()->GetStartPosLoc(startPos);	
+		}
+
+		g_pData->GetLocationManager()->SetLastPos(vStartPos);
+		//g_pData->GetLocationManager()->SetLastPosLineIndex();
 
 
-	g_pData->GetLocationManager()->SetVillage( (SEnum::VILLAGE_MAP_ID)kPacket.m_iMapID, vStartPos );
+		kPacket.m_iMapID =  (int)iMapId;	
 
-	g_pData->GetServerProtocol()->SendPacket( EGS_STATE_CHANGE_FIELD_REQ, kPacket );
-	g_pMain->AddServerPacket( EGS_STATE_CHANGE_FIELD_ACK );
-	
+
+		g_pData->GetLocationManager()->SetVillage( (SEnum::VILLAGE_MAP_ID)kPacket.m_iMapID, vStartPos );
+
+		g_pData->GetServerProtocol()->SendPacket( EGS_STATE_CHANGE_FIELD_REQ, kPacket );
+		g_pMain->AddServerPacket( EGS_STATE_CHANGE_FIELD_ACK );
+
+	}
 
 	return true;
 }
@@ -6030,7 +7269,11 @@ bool CX2StateServerSelect::Handler_EGS_STATE_CHANGE_FIELD_ACK( HWND hWnd, UINT u
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
+#ifdef REFORM_ENTRY_POINT
+			g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_541 ), L"DLG_UI_Selection_MessageBox_No_Button.lua" );
+#else	// REFORM_ENTRY_POINT
 			g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_541 ) );			
+#endif	// REFORM_ENTRY_POINT
 
 			bool bCanCreateWorld = true;
 			CX2World::WORLD_ID	m_iWorldId = CX2World::WI_NONE;
@@ -6077,15 +7320,25 @@ bool CX2StateServerSelect::Handler_EGS_STATE_CHANGE_FIELD_ACK( HWND hWnd, UINT u
 			{
 			case NetError::ERR_FIELD_05:
 				{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_REPLACED_STRING((STR_ID_18892, "i",kEvent.m_iLimitLevel)), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_REPLACED_STRING((STR_ID_18892, "i",kEvent.m_iLimitLevel)) , g_pMain->GetNowState());
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 
 				} break;
 			case NetError::ERR_FIELD_06:
 				{
 					if( NULL != g_pData && NULL != g_pData->GetDungeonManager() )
 					{
-						wstring DungeonName = g_pData->GetDungeonManager()->MakeDungeonNameString( static_cast<CX2Dungeon::DUNGEON_ID>(kEvent.m_iRequireDungeonID));
+						wstring DungeonName = g_pData->GetDungeonManager()->MakeDungeonNameString( static_cast<SEnum::DUNGEON_ID>(kEvent.m_iRequireDungeonID));
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_REPLACED_STRING((STR_ID_18893, "L", DungeonName )), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), 	GET_REPLACED_STRING((STR_ID_18893, "L", DungeonName )),	g_pMain->GetNowState());
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편		
+					
 					}
 				} break;
 			}
@@ -6139,40 +7392,39 @@ void CX2StateServerSelect::Handler_EGS_CREATE_TUTORIAL_ROOM_REQ()
 	kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_fPlayTime			= 19999.0f;
 	kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_cGetItemType		= CX2DungeonRoom::DGIT_RANDOM;
 
-#ifdef REFORM_TUTORIAL
 	switch( g_pData->GetMyUser()->GetSelectUnit()->GetType() )
 	{
 	default:
 	case CX2Unit::UT_ELSWORD:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_ELSWORD;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_BATTLE_FIELD_TUTORIAL_ELSWORD;
 		} break;
 
 	case CX2Unit::UT_ARME:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_AISHA;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_BATTLE_FIELD_TUTORIAL_AISHA;
 		} break;
 
 	case CX2Unit::UT_LIRE:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_LENA;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_BATTLE_FIELD_TUTORIAL_LENA;
 		} break;
 
 	case CX2Unit::UT_RAVEN:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_RAVEN;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_BATTLE_FIELD_TUTORIAL_RAVEN;
 		} break;
 
 	case CX2Unit::UT_EVE:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_EVE;		
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_BATTLE_FIELD_TUTORIAL_EVE;		
 		} break;
 
 		//{{ kimhc // 2010.11.24 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
 	case CX2Unit::UT_CHUNG:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_CHUNG;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_BATTLE_FIELD_TUTORIAL_CHUNG;
 		} break;
 #endif	NEW_CHARACTER_CHUNG
 		//}} kimhc // 2010.11.24 //  2010-12-23 New Character CHUNG
@@ -6180,55 +7432,25 @@ void CX2StateServerSelect::Handler_EGS_CREATE_TUTORIAL_ROOM_REQ()
 #ifdef ARA_CHARACTER_BASE
 	case CX2Unit::UT_ARA:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_ARA;
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_BATTLE_FIELD_TUTORIAL_ARA;
 		} break;
 #endif
 #ifdef NEW_CHARACTER_EL
 	case CX2Unit::UT_ELESIS:
 		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_BATTLE_FIELD_TUTORIAL_EL;
+#ifdef SERV_ELISIS_PREVIOUS_SIS_EVENT
+			return;
+#endif SERV_ELISIS_PREVIOUS_SIS_EVENT
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_BATTLE_FIELD_TUTORIAL_EL;
 		} break;
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UT_ADD:		/// 변경이 필요 하다.
+		{
+			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= SEnum::DI_BATTLE_FIELD_TUTORIAL_ADD;
+		} break;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
-#else
-	switch( g_pData->GetMyUser()->GetSelectUnit()->GetType() )
-	{
-	default:
-	case CX2Unit::UT_ELSWORD:
-		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_ELSWORD;
-		} break;
-
-	case CX2Unit::UT_ARME:
-		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_ARME;
-		} break;
-
-	case CX2Unit::UT_LIRE:
-		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_LIRE;
-		} break;
-
-	case CX2Unit::UT_RAVEN:
-		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_RAVEN;
-		} break;
-
-	case CX2Unit::UT_EVE:
-		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_EVE;
-		} break;
-
-//{{ kimhc // 2010.11.24 // 2010-12-23 New Character CHUNG
-#ifdef	NEW_CHARACTER_CHUNG
-	case CX2Unit::UT_CHUNG:
-		{
-			kEGS_CREATE_ROOM_REQ.m_RoomInfo.m_iDungeonID	= CX2Dungeon::DI_TUTORIAL_CHUNG;
-		} break;
-#endif	NEW_CHARACTER_CHUNG
-//}} kimhc // 2010.11.24 //  2010-12-23 New Character CHUNG
-	}
-#endif //REFORM_TUTORIAL
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_CREATE_TUTORIAL_ROOM_REQ, kEGS_CREATE_ROOM_REQ );
 	g_pMain->AddServerPacket( EGS_CREATE_TUTORIAL_ROOM_ACK, 40.f );	
@@ -6251,7 +7473,7 @@ bool CX2StateServerSelect::Handler_EGS_CREATE_TUTORIAL_ROOM_ACK( HWND hWnd, UINT
 			int startPos = 0;
 			int iMapId;			
 			if(g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL)
-				iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_nMapID;
+				iMapId = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_nMapID;
 
 			if(g_pData->GetLocationManager()->GetVillageMapTemplet((SEnum::VILLAGE_MAP_ID)iMapId) == NULL)
 			{
@@ -6289,10 +7511,10 @@ bool CX2StateServerSelect::Handler_EGS_CREATE_TUTORIAL_ROOM_ACK( HWND hWnd, UINT
 			pCX2DungeonRoom->ConnectRelayServer( kEvent.m_RoomInfo.m_wstrUDPRelayIP.c_str(), kEvent.m_RoomInfo.m_usUDPRelayPort );
 			pCX2DungeonRoom->SetCenterServerIP( kEvent.m_wstrCNIP.c_str() );
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
            if ( g_pData != NULL && g_pData->GetGameUDP() != NULL && g_pMain != NULL )
                 g_pData->GetGameUDP()->SetForceConnectMode( g_pMain->GetUDPMode( CX2Game::GT_DUNGEON ) );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #endif // HEAP_BROKEN_BY_ROOM
 
@@ -6300,8 +7522,11 @@ bool CX2StateServerSelect::Handler_EGS_CREATE_TUTORIAL_ROOM_ACK( HWND hWnd, UINT
 			//방으로 스테이트 이동
 			if(g_pInstanceData != NULL)
 				g_pInstanceData->SetFirstJoinVillage(true);
-
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+			g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_645 ), L"DLG_UI_Selection_MessageBox_No_Button.lua", L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_645 ) );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_DUNGEON_ROOM, NULL, false );	
 			
 			//던전 시작위치 저장
@@ -6395,7 +7620,12 @@ bool CX2StateServerSelect::Handler_EGS_CONNECT_REQ( const wstring& wstrGameServe
 	{
 		//접속시도
 		//g_pData->ResetServerProtocol();
-
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+		if ( g_pData->GetServerProtocol()->IsConnected () )
+		{
+			g_pData->GetServerProtocol()->DisconnectFromGameServer();
+		}
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
 
 		if( true == g_pData->GetServerProtocol()->ConnectedToGameServer( wstrGameServerIP.c_str(), iGameServerPort ) )
 		{
@@ -6411,7 +7641,11 @@ bool CX2StateServerSelect::Handler_EGS_CONNECT_REQ( const wstring& wstrGameServe
 			m_bSentEGS_CONNECT_REQ = true;
 
 			SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+			m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_725 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_725 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 
 			g_pInstanceData->SetConnectChannelServerID( m_iTryConnectChannelID );
@@ -6430,13 +7664,57 @@ bool CX2StateServerSelect::Handler_EGS_CONNECT_REQ( const wstring& wstrGameServe
 		else
 		{
 #ifdef _SERVICE_
+	#ifndef FIX_REFORM_ENTRY_POINT_9TH 
 			m_pMsgOkFailToConnectServer = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_726 ), this );
+	#endif // FIX_REFORM_ENTRY_POINT_9TH 
 #else
-			m_pMsgOkFailToConnectServer = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_726 ), this );
+
 #endif _SERVICE_
 
-			//m_bFailToConnectServer = true;
-		}		
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+			if ( NULL == m_pDLGReConnectChannelServer )
+			{
+
+		#ifdef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+				if ( true == m_bWaitingEGS_CONNECT_REQ_ChannelButtonUp )
+				{	
+					m_bCanNotConenctToBusyServer = true;
+					m_sbSelectedServerSet = false;
+					// ConnectToChannelServer(true);
+					g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, /*CX2Main::XS_UNIT_SELECT*/ CX2Main::XS_SERVER_SELECT, NULL, false );						
+
+					if ( g_pData->GetServerProtocol()->IsConnected() == true )
+					{
+						g_pData->GetServerProtocol()->DisconnectFromGameServer();
+					}
+				}
+				else
+		#endif // FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+				{
+					m_pDLGReConnectChannelServer = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 305, 375 ),  GET_STRING ( STR_ID_29884 ), 
+						SUSUCM_RE_CONNECT_CHANNEL_SERVER_OK, this, SUCM_EXIT, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+				}
+		#ifdef PLAY_PROMOTION_MOVIE //kimjh
+				if ( true == g_pMain->m_bPlayIntroMovie )
+					m_pDLGReConnectChannelServer->SetShow ( false );
+		#endif // PLAY_PROMOTION_MOVIE //kimjh		
+			}
+		#ifdef FIX_REFORM_ENTRY_POINT_9TH 
+			else
+			{
+				m_pDLGReConnectChannelServer = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 305, 375 ),  GET_STRING ( STR_ID_29884 ), 
+					SUSUCM_RE_CONNECT_CHANNEL_SERVER_OK, this, SUCM_EXIT, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+			}		
+		#endif // FIX_REFORM_ENTRY_POINT_9TH 
+
+	#else  // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+			m_pMsgOkFailToConnectServer = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_726 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차					
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+			m_pMsgOkFailToConnectServer = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_726 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+		}
 	}
 	else
 	{
@@ -6445,6 +7723,10 @@ bool CX2StateServerSelect::Handler_EGS_CONNECT_REQ( const wstring& wstrGameServe
 		g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_INVALID_ID_OR_PASSWORD );
 		g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, NULL, NULL, false );
 	}
+
+#ifdef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+	m_bWaitingEGS_CONNECT_REQ_ChannelButtonUp = false;
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
 	return true;
 }
 
@@ -6467,7 +7749,6 @@ bool CX2StateServerSelect::Handler_EGS_CONNECT_ACK( HWND hWnd, UINT uMsg, WPARAM
 #ifdef UDP_CAN_NOT_SEND_USER_KICK
 			g_pInstanceData->SetUDPKickOff(kEvent.m_bUDPKickOff);
 #endif //UDP_CAN_NOT_SEND_USER_KICK
-
 			Handler_EGS_VERIFY_ACCOUNT_REQ();
 		}
 		else
@@ -6490,8 +7771,57 @@ bool CX2StateServerSelect::Handler_EGS_CONNECT_ACK( HWND hWnd, UINT uMsg, WPARAM
 
 			case NetError::ERR_CONNECT_04:
 				{
+					
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+
+	#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+					m_bReservedConnectionToChannelServer = true;
+					if ( NULL == m_pDLGReConnectChannelServer )
+					{
+						SAFE_DELETE_DIALOG ( m_pDLGMsgBox );
+						
+						m_bCanNotConenctToBusyServer = true;
+						m_sbSelectedServerSet = false;
+						// ConnectToChannelServer(true);
+						g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, /*CX2Main::XS_UNIT_SELECT*/ CX2Main::XS_SERVER_SELECT, NULL, false );						
+						
+						if ( g_pData->GetServerProtocol()->IsConnected() == true )
+						{
+							g_pData->GetServerProtocol()->DisconnectFromGameServer();
+						}
+
+						if ( true == g_pMain->GetIsPlayingTutorial() ) 
+						{
+							g_pMain->SetIsPlayingTutorial( false );
+						}
+
+	#ifndef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정						
+						else
+						{
+							m_pDLGReConnectChannelServer = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 305, 375 ),  GET_STRING ( STR_ID_29884 ), 
+								SUSUCM_RE_CONNECT_CHANNEL_SERVER_OK, this, SUCM_EXIT, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+						}
+	#endif // FIX_REFORM_ENTRY_POINT_4TH			// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+	
+	#ifdef PLAY_PROMOTION_MOVIE //kimjh
+						if ( true == g_pMain->m_bPlayIntroMovie )
+							m_pDLGReConnectChannelServer->SetShow ( false );
+	#endif // PLAY_PROMOTION_MOVIE //kimjh
+
+					}
+	#else // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+					m_bReservedConnectionToChannelServer = true;
+					ConnectToChannelServer(true);
+//					Handler_ECH_DISCONNECT_REQ ();
+	#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+
+
+#else  // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh					
+
 					m_bSentEGS_CONNECT_REQ = false;
 					m_bConnectFullChannel = true;
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh					
+
 					//g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"접속인원이 많아서 접속 할 수 없습니다.", this );
 				} break;
 			}
@@ -6512,14 +7842,13 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_REQ()
 	kPacket.m_wstrUserID = g_pInstanceData->GetUserID();
 	kPacket.m_wstrPasswd = g_pInstanceData->GetUserPassword();
 #else // CLIENT_PURPLE_MODULE
-
 	bool bUsePurpleModule = true;
 #ifdef CLIENT_PURPLE_MODULE_IN_HOUSE_AUTH
 	if(g_pInstanceData->GetInHouseAccount())
 		bUsePurpleModule = false;
 #endif // CLIENT_PURPLE_MODULE_IN_HOUSE_AUTH
 
-	if(bUsePurpleModule)
+	if( bUsePurpleModule )
 	{
 		ConvertCharToWCHAR( kPacket.m_wstrUserID, PurpleGetUserID() );
 #ifdef SERV_KOG_OTP_VERIFY
@@ -6538,11 +7867,9 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_REQ()
 	}
 #endif // CLIENT_PURPLE_MODULE
 	
-
 #ifdef SERV_COUNTRY_TH
 	kPacket.m_wstrSocketID = g_pInstanceData->GetSocketID();
 #endif // SERV_COUNTRY_TH
-
 
 #ifdef SERV_JAPAN_CHANNELING 
 	char szBuffer[256] = {0};
@@ -6569,11 +7896,11 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_REQ()
 	}
 #endif // CLIENT_PURPLE_MODULE_IN_HOUSE_AUTH
 
-	if(strcmp(szBuffer, "MS") == 0)
+	if( strcmp(szBuffer, "MS") == 0 )
 		kPacket.m_iChannelingCode = KNexonAccountInfo::JCE_MSN;
-	else if(strcmp(szBuffer, "NICO") == 0)
+	else if( strcmp(szBuffer, "NICO") == 0 )
 		kPacket.m_iChannelingCode = KNexonAccountInfo::JCE_NICO;
-	else if(strcmp(szBuffer, "NX") == 0)
+	else if( strcmp(szBuffer, "NX") == 0 )
 		kPacket.m_iChannelingCode = KNexonAccountInfo::JCE_NEXON;
 	else
 		kPacket.m_iChannelingCode = KNexonAccountInfo::JCE_NHN;
@@ -6637,6 +7964,7 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_REQ()
 #ifdef SERV_STEAM
 	kPacket.m_bSteamClient = CX2Steam::IsSteamUser();
 #endif //SERV_STEAM
+
 #ifdef SERV_CHANNELING_AERIA
 	kPacket.m_bAeriaClient = g_pInstanceData->IsAeriaChanneling();
 #endif //SERV_CHANNELING_AERIA
@@ -6680,8 +8008,23 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg,
 #ifdef SERV_EVENT_MONEY
 			//유닛 선택창에 들어갔을때 팝업 출력 여부 체크 2013-07-02 김창한 
 			if( kEvent.m_iEventMoney < 1 )
-				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_25386 ), g_pMain->GetNowState(), -1, -1.f, L"DLG_UI_OKMsgBoxPlus.lua" );
+				//g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(50,300), GET_STRING( STR_ID_25386 ), g_pMain->GetNowState(), -1, -1.f, L"", D3DXVECTOR2(0,250) );
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 270), GET_STRING( STR_ID_29369 ), g_pMain->GetNowState(), -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2(0, -100));
 #endif //SERV_EVENT_MONEY
+
+			//g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(260, 270), GET_STRING( STR_ID_29369 ), g_pMain->GetNowState(), -1, -1.f, L"DLG_UI_OKMsgBoxPlusNew.lua", D3DXVECTOR2(0, -100));
+
+#ifdef EVENT_NEW_HENIR
+			//유닛 선택창에 들어갔을때 팝업 출력 
+// 			{
+// 				static bool bIsAlreadyShow = false;
+// 				if( false == bIsAlreadyShow )
+// 				{
+// 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_25386 ), g_pMain->GetNowState(), -1, -1.f, L"DLG_UI_OKMsgBoxPlus.lua" );
+// 					bIsAlreadyShow = true;
+// 				}
+// 			}
+#endif // EVENT_NEW_HENIR
 
 #if defined(SERV_MACHINE_ID_BLOCK) && defined(MACHINE_ID)
 			ELSWORD_VIRTUALIZER_START
@@ -6722,7 +8065,15 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg,
 			wstringstream wstrstm;
 			wstrstm << GET_REPLACED_STRING( ( STR_ID_728, "L", kEvent.m_kAccountInfo.m_wstrID ) );
 			g_pMain->SetMailNameToFindHack( wstrstm.str().c_str() );
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+            {
+                std::string strID;
+                ConvertWCHARToChar( strID, kEvent.m_kAccountInfo.m_wstrID );
+                g_pMain->SetUserIdToFindHack_ThreadSafe( strID );
+            }
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 			g_pMain->SetUserIdToFindHack( kEvent.m_kAccountInfo.m_wstrID.c_str() );
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 #ifdef SERV_CLIENT_PUBLIC_IP
 			g_pMain->SetPublicIp( kEvent.m_wstrClientIP );
 #endif
@@ -6730,50 +8081,79 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg,
 				g_pMain->SetHackingUser(true);
 
 			m_bEGS_VERIFY_ACCOUNT_ACK = true;
-			CX2User::UserData* pUserData = new CX2User::UserData();
-			*pUserData = kEvent;
-			g_pData->ResetMyUser( pUserData );
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+			if ( false == m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection )
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+            {
+			    CX2User::UserData kUserData;
+			    kUserData = kEvent;
+			    g_pData->ResetMyUser( kUserData );
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+				Handler_EGS_GET_CREATE_UNIT_TODAY_COUNT_REQ ();
+				//Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ ();
+				//Handler_EGS_CHARACTER_LIST_REQ();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
+            }
 
-
-
-			//m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData()->maxUnitCount;
+			//m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData().maxUnitCount;
 			//const int SLOT_COUNT_FOR_CREATE_UNIT = 1;
 			//m_MaxPage		= (g_pData->GetMyUser()->GetUnitNum()+SLOT_COUNT_FOR_CREATE_UNIT+UNIT_SELECT_UI_MAX_UNIT_NUM-1) / UNIT_SELECT_UI_MAX_UNIT_NUM;
 
 
 
 #ifndef DISABLE_DISAGREE_HACK_USER
-			if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_DISAGREE_HACK_USER )
+			if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_DISAGREE_HACK_USER )
 			{
-				m_pDLGCheckHack = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), 
-					GET_STRING( STR_ID_729 ), 
-					SSSUCM_HACK_USER_PROCESS_CHECK_OK, this, SSSUCM_HACK_USER_PROCESS_CHECK_CANCEL );
+
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	#ifdef FIX_REFORM_ENTRY_POINT_5TH // 김종훈, 진입 구조 개편 수정 5차
+				if ( g_pMain->m_bPlayIntroMovie == true )
+				{
+					m_bReservedHackingUserAgreeDlg = true;
+				}
+				else
+	#endif // FIX_REFORM_ENTRY_POINT_5TH // 김종훈, 진입 구조 개편 수정 5차
+				{
+					m_pDLGCheckHack = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), 
+						GET_STRING( STR_ID_729 ), 
+						SSSUCM_HACK_USER_PROCESS_CHECK_OK, this, SSSUCM_HACK_USER_PROCESS_CHECK_CANCEL, L"DLG_UI_Selection_MessageBox_Ok_Exit_Button_New.lua", D3DXVECTOR2( 0, 10 ), L"UI_PopUp_Negative_01.ogg" );
+					// MsgBox 는 ESC 에 꺼지는 특성을 가지고 있다, 하지만 이 창은 계속 유지되어야 판단되어
+					// 해당 인자 값을 false 로 변경한다.	kimjh
+					if ( NULL != m_pDLGCheckHack )
+						m_pDLGCheckHack->SetOKAndCancelMsgBox( false );
+	#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+					m_pDLGCheckHack = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(250,300), 
+						GET_STRING( STR_ID_729 ), 
+						SSSUCM_HACK_USER_PROCESS_CHECK_OK, this, SSSUCM_HACK_USER_PROCESS_CHECK_CANCEL );
+	#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편				
+				}
 			}
-//#if 0 // 접속시 핵의심 유저라면 무조건 메일을 날리므로 제거
-			else if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+#if 0 // 접속시 핵의심 윶ㅓ라면 무조건 메일을 날리므로 제거
+			else if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 			{
 #ifndef PROCESSLIST
 				g_pMain->UpdateProcessList();
 #endif
 				g_pMain->SendHackMail();
 			}
+#endif
 #endif DISABLE_DISAGREE_HACK_USER
-
-			//{{ kimhc // 2010-12-01 // 웹 아바타 이미지 등록
-#ifdef	AVATAR_IMAGE_TEST
+		
+			/// 2014-01-17 // itexpertkim // 김현철 // 네이버 채널링 이슈로 다시 사용
+#ifdef SERV_NAVER_CHANNELING
 			g_pData->GetMyUser()->SetNexonSN( kEvent.m_uiNexonSN );
-#endif	AVATAR_IMAGE_TEST
-			//}} kimhc // 2010-12-01 // 웹 아바타 이미지 등록
+#endif // SERV_NAVER_CHANNELING
 
 
 
 
-			g_pMain->GetGameOption()->SetPlayGuide( kEvent.m_kAccountInfo.m_kAccountOption.m_bPlayGuide, false );
+			g_pMain->GetGameOption().SetPlayGuide( kEvent.m_kAccountInfo.m_kAccountOption.m_bPlayGuide, false );
 
 #ifndef OPEN_TEST_1_NO_MESSENGER_CASHSHOP
 #ifndef NEW_MESSENGER
-			if( false == pUserData->m_bIsGuestUser ) // 체험 아이디 제한
+			if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 			{
 				if( false == g_pMain->GetNexonLoginMessenger() )
 				{
@@ -6797,7 +8177,14 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg,
 									supportFlag |= kSupportFlag_ServerMessage;
 									if ( CNMCOClientObject::GetInstance().LoginMessenger( kSupportFlag_All  ) == FALSE )
 									{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+										if ( false == m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection )
+											g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_730 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg"  );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 										g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300), GET_STRING( STR_ID_730 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+	
+									
 									}
 									else
 									{
@@ -6809,25 +8196,46 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg,
 
 							case kLoginAuth_WrongID:
 								{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+									if ( false == m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection )
+										g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_731 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 									g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_731 ), g_pMain->GetNowState() );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+									
 								}
 								break;
 
 							case kLoginAuth_WrongPassword:
 								{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+									if ( false == m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection )
+										g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_732 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 									g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_732 ), g_pMain->GetNowState() );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 								}
 								break;
 
 							case kLoginAuth_ServiceShutdown:
 								{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+									if ( false == m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection )
+										g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_733 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 									g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_733 ), g_pMain->GetNowState() );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 								}
 								break;
 
 							default:
 								{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+									if ( false == m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection )
+										g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_734 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 									g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_734 ), g_pMain->GetNowState() );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 								}
 								break;
 							}
@@ -6886,6 +8294,8 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg,
 			//유저 pc 사양 정보 전송
 			_SendSystemInfo();
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
+
+
 		}
 		else
 		{
@@ -6899,12 +8309,23 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg,
 			case NetError::ERR_VERIFY_00:
 			case NetError::ERR_VERIFY_01:
 				{
+#ifdef SIMPLE_BUG_FIX
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), NetError::GetErrStrF( NetError::ERR_USER_REGISTRATION_00 ), g_pMain->GetNowState(),SSSUCM_DOUBLE_CONNECT);
+#else
 					g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_DOUBLE_CONNECT );
 					g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, NULL, NULL, false );
+#endif SIMPLE_BUG_FIX
 				} break;
 			case NetError::ERR_VERIFY_24:
 				{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					m_pDLGATLLimitCheckMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_17745 ), this, SSSUCM_ATL_LIMIT_CHECK_OK, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 					m_pDLGATLLimitCheckMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(270,350), GET_STRING( STR_ID_17745 ), g_pMain->GetNowState(), SSSUCM_ATL_LIMIT_CHECK_OK );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편	
+					
+				
+				
 				} break;
 			default:
 				{
@@ -6939,13 +8360,12 @@ bool CX2StateServerSelect::Handler_EGS_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg,
 #endif //SERV_CHANGE_NEXON_AUTH_ATL_LEVEL 
 
 		}
-	
 	}
+
 
 #ifdef _SERVICE_ 
 	ELSWORD_VIRTUALIZER_END
 #endif
-
 
 	return true;
 }
@@ -6958,8 +8378,8 @@ bool CX2StateServerSelect::Handler_ENX_USER_LOGIN_NOT( HWND hWnd, UINT uMsg, WPA
 
 	m_bENX_USER_LOGIN_NOT = true;
 	m_bIsGameBang = kEvent.m_bIsGameBang;
-#ifdef SERV_PC_BANG_TYPE
-	// 서버에서 받은 pc방 정보를 클라에 저장해 둡니다.
+
+#ifdef SERV_PC_BANG_TYPE 	// 서버에서 받은 pc방 정보를 클라에 저장해 둡니다.
 	if ( NULL != g_pData && NULL != g_pData->GetPremiumBuffManager() )
 		g_pData->GetPremiumBuffManager()->SetPcBangReward( kEvent.m_kPcBangReward );
 #endif SERV_PC_BANG_TYPE
@@ -6974,27 +8394,6 @@ bool CX2StateServerSelect::Handler_ENX_USER_LOGIN_NOT( HWND hWnd, UINT uMsg, WPA
 
 bool CX2StateServerSelect::Handler_KXPT_PORT_CHECK_REQ()
 {
-//{{ Iruha : 2026-08-31 // offline mode - there is no server to echo the UDP
-//            port check off. It is a raw UDP struct (Socket/LBSUdpEcho.cpp),
-//            not a KEvent, so the offline hook never sees it; without this the
-//            client burns 10 retries (~30s) before falling through to the same
-//            local-address fallback by itself.
-#ifdef SERV_IRUHADEV_OFFLINE
-	if( g_pX2OfflineHook != NULL )
-	{
-		m_bPortCheckWait		= false;
-		m_fPortCheckWaitTime	= 0.0f;
-		m_PortCheckRetryTime	= 0;
-
-		KXPT_PORT_CHECK_ACK kXPT_PORT_CHECK_ACK;
-		kXPT_PORT_CHECK_ACK.m_IPAddress	= g_pData->GetGameUDP()->GetMyIPAddress();
-		kXPT_PORT_CHECK_ACK.m_Port		= g_pData->GetGameUDP()->GetMyPort();
-
-		return Handler_KXPT_PORT_CHECK_ACK( kXPT_PORT_CHECK_ACK );
-	}
-#endif SERV_IRUHADEV_OFFLINE
-//}}
-
 	m_bPortCheckWait			= true;
 	m_fPortCheckWaitTime		= 0.5f;
 
@@ -7002,34 +8401,34 @@ bool CX2StateServerSelect::Handler_KXPT_PORT_CHECK_REQ()
 	kXPT_PORT_CHECK_REQ.m_UserUID = g_pData->GetMyUser()->GetUID();
 	//{{ 2013. 1. 9	박세훈	Merge 공인IP 연결 실패시 내부IP로 시도( 박진웅 )
 //#ifdef SERV_KTDX_RETRY_USING_INTERNAL_IP
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     kXPT_PORT_CHECK_REQ.m_InternalIPAddress = g_pData->GetGameUDP()->GetMyIPAddress();
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	kXPT_PORT_CHECK_REQ.m_wstrInternalIP = g_pData->GetGameUDP()->GetMyIP();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	kXPT_PORT_CHECK_REQ.m_wstrInternalIP = g_pData->GetGameUDP()->GetMyIP();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	kXPT_PORT_CHECK_REQ.m_usInternalPort = g_pData->GetGameUDP()->GetMyPort();
 //#endif SERV_KTDX_RETRY_USING_INTERNAL_IP
 	//}}
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     return g_pData->GetGameUDP()->SendToIP( CKTDNUDP::ConvertIPToAddress( g_pMain->GetConnectedGameServerIP() ), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, 
         &kXPT_PORT_CHECK_REQ, sizeof(kXPT_PORT_CHECK_REQ) );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	KSerBuffer buff;
-	Serialize( &buff, &kXPT_PORT_CHECK_REQ );
-	return g_pData->GetGameUDP()->Send( g_pMain->GetConnectedGameServerIP(), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, (char*)buff.GetData(), buff.GetLength() );
-	//return g_pData->GetGameUDP()->Send( g_pMain->GetServerIP(), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, (char*)buff.GetData(), buff.GetLength() );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	KSerBuffer buff;
+//	Serialize( &buff, &kXPT_PORT_CHECK_REQ );
+//	return g_pData->GetGameUDP()->Send( g_pMain->GetConnectedGameServerIP(), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, (char*)buff.GetData(), buff.GetLength() );
+//	//return g_pData->GetGameUDP()->Send( g_pMain->GetServerIP(), g_pMain->GetServerUDPPort(), XPT_PORT_CHECK_REQ, (char*)buff.GetData(), buff.GetLength() );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 }
 
 bool CX2StateServerSelect::Handler_KXPT_PORT_CHECK_ACK( const KXPT_PORT_CHECK_ACK& kXPT_PORT_CHECK_ACK )
 {
 	dbg::clog << L"MY IP : " 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         << CKTDNUDP::ConvertAddressToIP( kXPT_PORT_CHECK_ACK.m_IPAddress )
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-        << kXPT_PORT_CHECK_ACK.m_IP.c_str() 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//        << kXPT_PORT_CHECK_ACK.m_IP.c_str() 
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         << dbg::endl;
 	dbg::clog << L"MY Port : " << g_pMain->GetGameP2PPort() << dbg::endl;
 	dbg::clog << L"MY Ext Port : " << kXPT_PORT_CHECK_ACK.m_Port << dbg::endl;
@@ -7092,8 +8491,24 @@ bool CX2StateServerSelect::Handler_EGS_CURRENT_TIME_ACK( HWND hWnd, UINT uMsg, W
 		g_pData->SetServerCurrentTimeInt64(kEvent.m_tCurrentTime);
 #endif //SERVER_CURRENT_TIME_INT64
 		//StateChangeLoading();
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
 
-		Handler_EGS_SELECT_SERVER_SET_REQ();
+		if ( true == m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection &&
+			 true == m_bSend_EGS_SELECT_UNIT_REQ_For_Auto_Connection )
+		{
+#ifdef FIX_REFORM_ENTRY_POINT_7TH		// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 )
+			Handler_EGS_CHARACTER_LIST_REQ();
+#else // FIX_REFORM_ENTRY_POINT_7TH		// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 )
+			Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData().m_Level );	
+#endif //FIX_REFORM_ENTRY_POINT_7TH		// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 )
+
+		}
+		else
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+		{
+			Handler_EGS_SELECT_SERVER_SET_REQ();
+		}
+
 
 		return true;
 	}
@@ -7203,15 +8618,56 @@ bool CX2StateServerSelect::Handler_ECH_GET_CHANNEL_LIST_NOT( HWND hWnd, UINT uMs
 
 	//{{ kimhc // 2009-12-15 // 서버군 추가 작업
 #ifdef	ADD_SERVER_GROUP
-    if ( g_pInstanceData->GetMiniMapUI() != NULL )
-	    g_pInstanceData->GetMiniMapUI()->SetChannelComboBox();
+	g_pInstanceData->GetMiniMapUI()->SetChannelComboBox();
 	m_bReservedConnectionToChannelServer = false;
 #endif	ADD_SERVER_GROUP
-	//}}  kimhc // 2009-12-15 // 서버군 추가 작업
 
-	// 채널 리스트 UI를 Update한다
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+
+	// 다른 게임서버와의 연결이 끊어지길 기다리는 중이라면 게임서버에 접속하지 않고 기다리도록 한다.
+	if( true == m_bWaiting_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK )		
+		return true;
+	
+	int iLowerUserChannelIndex = -1;
+	int iLowerUserChannelCount = INT_MIN;
+
+	for ( int i = 0; i < static_cast<int> ( g_pInstanceData->m_vecChannelInfo.size() ); ++i )
+	{
+		KChannelInfo channelInfo = g_pInstanceData->m_vecChannelInfo[ i ];
+		if ( iLowerUserChannelCount < channelInfo.m_iMaxUser - channelInfo.m_iCurrentUser )
+		{
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+			if ( false == g_pInstanceData->IsConnectedChannel( channelInfo.m_iServerUID ) )
+#endif // FIX_REFORM_ENTRY_POINT_10TH	// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+			{
+				iLowerUserChannelCount = channelInfo.m_iMaxUser - channelInfo.m_iCurrentUser;
+				iLowerUserChannelIndex = i;
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+				g_pInstanceData->SetConnectedChannelID( channelInfo.m_iServerUID );
+#endif // FIX_REFORM_ENTRY_POINT_10TH	// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+			}
+		}
+	}
+	if ( iLowerUserChannelIndex == -1 || iLowerUserChannelCount == INT_MIN )
+	{
+		ASSERT( !L"Can't Find Auto Connecting Channel Index" );
+		iLowerUserChannelIndex = 0;
+#ifdef FIX_REFORM_ENTRY_POINT_10TH			// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+		return false;
+#endif // FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+	}
+		
+	const KChannelInfo& channelInfo = g_pInstanceData->m_vecChannelInfo[ iLowerUserChannelIndex ];
+
+	m_iTryConnectChannelID = channelInfo.m_iChannelID;
+
+	m_bSelectChannel = true;
+	Handler_EGS_CONNECT_REQ( channelInfo.m_wstrIP, channelInfo.m_usMasterPort );
+	
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	UpdateChannelListUI();
-
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+	
 	return true;
 }
 
@@ -7252,7 +8708,12 @@ bool CX2StateServerSelect::Handler_ECH_DISCONNECT_ACK( HWND hWnd, UINT uMsg, WPA
 
 	if( true == m_bReservedConnectionToChannelServer )
 	{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		ConnectToChannelServer(true);
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		ConnectToChannelServer();
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 	}
 
 	return true;
@@ -7298,9 +8759,129 @@ bool CX2StateServerSelect::Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK( HWND hW
 
 		g_pMain->SetConnectedGameServerIP( L"" );
 		g_pMain->SetConnectedGameServerPort( 0 );
-
-
 	}
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	if ( true == m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection )
+	{
+		if ( -1 == m_iReservedEntryPointServerChannelIndex )
+		{
+			int iLowerUserChannelIndex = -1;
+			int iLowerUserChannelCount = INT_MIN;
+			vector< KChannelInfo > * vecChannelInfo = NULL;
+			if ( m_pSelectUnit != NULL )
+			{
+				if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_GAIA )
+					vecChannelInfo = &m_vecGaiaChannelInfo;
+				else if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_SOLES )
+					vecChannelInfo = &m_vecSolesChannelInfo;
+			}
+
+			if ( vecChannelInfo == NULL )
+			{
+				ASSERT (!L"Can't Find Server Group ID !" );
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+				return false;
+#else // FIX_REFORM_ENTRY_POINT_10TH	// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+				vecChannelInfo = &m_vecGaiaChannelInfo;
+#endif // FIX_REFORM_ENTRY_POINT_10TH	// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+				
+			}
+
+			for ( int i = 0; i < static_cast<int> ( vecChannelInfo->size() ); ++i )
+			{
+				KChannelInfo channelInfo = (*vecChannelInfo)[ i ];
+#ifdef FIX_REFORM_ENTRY_POINT_10TH			// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+				if ( false == g_pInstanceData->IsConnectedChannel( channelInfo.m_iServerUID ) )
+#endif // FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+				{
+					if ( iLowerUserChannelCount < channelInfo.m_iMaxUser - channelInfo.m_iCurrentUser )
+					{
+						iLowerUserChannelCount = channelInfo.m_iMaxUser - channelInfo.m_iCurrentUser;
+						iLowerUserChannelIndex = i;
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+						g_pInstanceData->SetConnectedChannelID( channelInfo.m_iServerUID  );
+#endif // FIX_REFORM_ENTRY_POINT_10TH	// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+					}						
+				}
+			}
+			if ( iLowerUserChannelIndex == -1 || iLowerUserChannelCount == INT_MIN )
+			{
+				ASSERT( !L"Can't Find Auto Connecting Channel Index" );
+#ifdef FIX_REFORM_ENTRY_POINT_10TH			// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+				return false;
+#else // FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+				iLowerUserChannelIndex = 0;
+#endif // FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+			}
+
+			const KChannelInfo& channelInfo = (*vecChannelInfo)[ iLowerUserChannelIndex ];
+			m_iTryConnectChannelID = channelInfo.m_iChannelID;
+			m_bSelectChannel = true;
+			Handler_EGS_CONNECT_REQ ( channelInfo.m_wstrIP.c_str(), channelInfo.m_usMasterPort );
+		}
+
+#ifdef FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW		// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+		else if ( -2 == m_iReservedEntryPointServerChannelIndex )
+		{
+			
+			if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_GAIA )
+			{
+				m_iTryConnectChannelID = FindAndConnectMatchingLevelGameServer( 1, m_mapGaiaChannelBonusInfo, m_vecGaiaChannelInfo);
+				BOOST_FOREACH ( const KChannelInfo & kChannelInfo , m_vecGaiaChannelInfo )
+				{
+					if ( m_iTryConnectChannelID == kChannelInfo.m_iChannelID )
+					{
+						Handler_EGS_CONNECT_REQ ( kChannelInfo.m_wstrIP.c_str(), kChannelInfo.m_usMasterPort );
+					}
+				}
+			}
+			else if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_SOLES )
+			{
+				m_iTryConnectChannelID = FindAndConnectMatchingLevelGameServer( 1, m_mapSolesChannelBonusInfo, m_vecSolesChannelInfo);
+				BOOST_FOREACH ( const KChannelInfo & kChannelInfo , m_vecSolesChannelInfo )
+				{
+					if ( m_iTryConnectChannelID == kChannelInfo.m_iChannelID )
+					{
+						Handler_EGS_CONNECT_REQ ( kChannelInfo.m_wstrIP.c_str(), kChannelInfo.m_usMasterPort );
+					}
+				}
+			}
+			else
+			{
+				ASSERT( !L"Can't Find Server Group ID !" );
+				return false;
+			}			
+			m_bSelectChannel = true;			
+		}
+
+#endif // FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW	// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+		else
+		{
+			vector< KChannelInfo > * vecChannelInfo = NULL;
+			if ( m_pSelectUnit != NULL )
+			{
+				if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_GAIA )
+					vecChannelInfo = &m_vecGaiaChannelInfo;
+				else if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_SOLES )
+					vecChannelInfo = &m_vecSolesChannelInfo;
+			}
+
+			if ( vecChannelInfo == NULL )
+			{
+				ASSERT( ! L"Can't Find Server Group ID ! ");
+				vecChannelInfo = &m_vecGaiaChannelInfo;
+			}
+
+			const KChannelInfo& channelInfo = (*vecChannelInfo)[ m_iReservedEntryPointServerChannelIndex ];
+			m_iTryConnectChannelID = channelInfo.m_iChannelID;
+			m_bSelectChannel = true;
+			Handler_EGS_CONNECT_REQ ( channelInfo.m_wstrIP.c_str(), channelInfo.m_usMasterPort );
+		}
+	}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
+
 	return true;
 }
 
@@ -7315,10 +8896,19 @@ bool CX2StateServerSelect::Handler_EGS_GET_MY_MESSENGER_SN_REQ( UidType unitUID 
 	KEGS_GET_MY_MESSENGER_SN_REQ kPacket;
 	kPacket = unitUID;
 
+#ifdef _NEXON_KR_
+	g_pMain->SetNMVirtualKey( 0, 0 );
+#endif // _NEXON_KR_
+	
+
 	g_pData->GetServerProtocol()->SendPacket( EGS_GET_MY_MESSENGER_SN_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_GET_MY_MESSENGER_SN_ACK );
 	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_2558 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 	m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_2558 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 
 	return true;
 }
@@ -7342,29 +8932,37 @@ bool CX2StateServerSelect::Handler_EGS_GET_MY_MESSENGER_SN_ACK( HWND hWnd, UINT 
 
 #ifndef OPEN_TEST_1_NO_MESSENGER_CASHSHOP
 #ifndef NEW_MESSENGER
-				NMVirtualKey nmVirtualKey;
-				nmVirtualKey.uGameCode = NEXON_KOREA_ELSWORD_GAMECODE;
-				nmVirtualKey.uVirtualIDCode = kEvent.m_uiKNMSerialNum;
+				
+#ifdef _NEXON_KR_
+				g_pMain->SetNMVirtualKey( NEXON_KOREA_ELSWORD_GAMECODE, kEvent.m_uiKNMSerialNum );
+#endif // _NEXON_KR_
 
+				
 				if( true == g_pMain->GetNexonLoginMessenger() )
 				{
 					if( 0 == kEvent.m_uiKNMSerialNum )	// nmserial number가 없는 경우에는 바로 지운다~
 					{
 						// 2009.05.13.hoons. 바로삭제 조치가 변경되어 팝업으로 메세지만 전달
 						//Handler_EGS_DELETE_UNIT_REQ();
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_2559 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_2559 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+					
 						// hoons
 					}
 					else
 					{
-						if( CNMCOClientObject::GetInstance().RemoveMyVirtualUser( nmVirtualKey ) == TRUE )
-						{
-							Handler_EGS_DELETE_UNIT_REQ();
-						}
-						else
-						{
-							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_2560 ), this );
-						}
+						Handler_EGS_DELETE_UNIT_REQ();
+// 						if( CNMCOClientObject::GetInstance().RemoveMyVirtualUser( nmVirtualKey ) == TRUE )
+// 						{
+// 							Handler_EGS_DELETE_UNIT_REQ();
+// 						}
+// 						else
+// 						{
+// 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_2560 ), this );
+// 						}
 					}
 				}
 				else
@@ -7385,7 +8983,11 @@ bool CX2StateServerSelect::Handler_EGS_GET_MY_MESSENGER_SN_ACK( HWND hWnd, UINT 
 			if( true == m_bRemoveUnitAfterReceiveNMSerialNum )
 			{
 				m_bRemoveUnitAfterReceiveNMSerialNum = false;
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_2561 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_STRING( STR_ID_2561 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 			}
 		}
 		return true;
@@ -7395,27 +8997,64 @@ bool CX2StateServerSelect::Handler_EGS_GET_MY_MESSENGER_SN_ACK( HWND hWnd, UINT 
 }
 
 
-
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+bool CX2StateServerSelect::ConnectToChannelServer( bool bIsReversingConnect /* = false */ )
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 bool CX2StateServerSelect::ConnectToChannelServer()
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 {
 	ASSERT( NULL != g_pData->GetServerProtocol() );
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
 #ifdef SERVER_GROUP_UI_ADVANCED
 	if( g_pData->GetServerProtocol()->IsChConnected() == true )
 	{
 		g_pData->GetServerProtocol()->DisconnectFromChannelServer();
 	}
 
-	if( g_pData->GetServerProtocol()->ConnectedToChannelServer( g_pMain->GetPickedChannelServer().m_kServerIP.c_str(), g_pMain->GetPickedChannelServer().m_usMasterPort ) == true )
+	m_bSentEGS_CONNECT_REQ = false;
+	g_pData->GetServerProtocol()->DisconnectFromChannelServer();
 #else
-#ifdef RECONNECT_CHANNEL_SERVER
-	if( g_pData->GetServerProtocol()->IsChConnected() == true )
+	wstring wstrPickedChannelServerIP = L"";
+	int iChannelServerPort = g_pMain->GetChannelServerPort();
+
+
+	if ( true == bIsReversingConnect )
 	{
+		if ( g_pInstanceData->GetServerGroupID() == SEnum::SGI_GAIA )
+		{
+			g_pMain->SetPickedChannelServerIPIndex( static_cast< int >( SEnum::SGI_SOLES ) );
+			g_pInstanceData->SetServerGroupID ( SGI_SOLES );
+		}
+		else if ( g_pInstanceData->GetServerGroupID() == SEnum::SGI_SOLES )
+		{
+			g_pMain->SetPickedChannelServerIPIndex( static_cast< int >( SEnum::SGI_GAIA ) );
+			g_pInstanceData->SetServerGroupID ( SGI_GAIA );
+		}
+		else
+		{
+			ASSERT( !L"Can't Find Server Group ID !" );
+		}
+		wstrPickedChannelServerIP = g_pMain->GetPickedChannelServerIP().c_str();
+		m_bSentEGS_CONNECT_REQ = false;
 		g_pData->GetServerProtocol()->DisconnectFromChannelServer();
 	}
-#endif RECONNECT_CHANNEL_SERVER
-	if( g_pData->GetServerProtocol()->ConnectedToChannelServer( g_pMain->GetPickedChannelServerIP().c_str(), g_pMain->GetChannelServerPort() ) == true )
+	else
+	{
+		wstrPickedChannelServerIP = g_pMain->GetPickedChannelServerIP().c_str();
+	}
 #endif SERVER_GROUP_UI_ADVANCED
+#endif // REFORM_ENTRY_POINT
+
+#ifdef FIX_REFORM_ENTRY_POINT_2ND		// 김종훈, 진입 구조 개편 수정 2차
+#ifdef SERVER_GROUP_UI_ADVANCED
+	if( g_pData->GetServerProtocol()->ConnectedToChannelServer( g_pMain->GetPickedChannelServer().m_kServerIP.c_str(), g_pMain->GetPickedChannelServer().m_usMasterPort ) == true )
+#else
+	if( g_pData->GetServerProtocol()->ConnectedToChannelServer( wstrPickedChannelServerIP.c_str(), iChannelServerPort ) == true )
+#endif SERVER_GROUP_UI_ADVANCED
+#else	// FIX_REFORM_ENTRY_POINT_2TH	// 김종훈, 진입 구조 개편 수정 2차
+	if( g_pData->GetServerProtocol()->ConnectedToChannelServer( g_pMain->GetPickedChannelServerIP().c_str(), g_pMain->GetChannelServerPort() ) == true )
+#endif	// FIX_REFORM_ENTRY_POINT_2TH	// 김종훈, 진입 구조 개편 수정 2차
 	{
 		//{{ 09.08. 태완 : 서버-클라 접속시 패킷 변경.
 //#ifdef SERV_KOG_OTP_VERIFY
@@ -7427,11 +9066,42 @@ bool CX2StateServerSelect::ConnectToChannelServer()
 	}
 	else
 	{
-		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_735 ), this );	
 
-		g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_CONNECT_FAILED );									// fix!! id 변경
-		g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, NULL, NULL, false );
-	}	
+#ifndef FIX_REFORM_ENTRY_POINT
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		if ( true == m_bReConnectChannelServer )
+		{
+			m_bReConnectChannelServer = false;
+		}
+		else
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+#endif // FIX_REFORM_ENTRY_POINT
+		{			
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+			if ( NULL == m_pDLGReConnectChannelServer )
+			{
+				m_pDLGReConnectChannelServer = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2( 305, 375 ),  GET_STRING ( STR_ID_29884 ), 
+					SUSUCM_RE_CONNECT_CHANNEL_SERVER_OK, this, SUCM_EXIT, L"DLG_UI_Selection_MessageBox_Ok_Cancle_Button_New.lua" );
+#ifdef PLAY_PROMOTION_MOVIE //kimjh
+				if ( true == g_pMain->m_bPlayIntroMovie )
+					m_pDLGReConnectChannelServer->SetShow ( false );
+#endif // PLAY_PROMOTION_MOVIE //kimjh
+
+			}
+	#else  // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_735 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+			g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_CONNECT_FAILED );									// fix!! id 변경
+			g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, NULL, NULL, false );
+	#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+
+#else  // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_735 ), this );	
+			g_pKTDXApp->NoticeQuitType( CKTDXApp::KQT_CONNECT_FAILED );									// fix!! id 변경
+			g_pKTDXApp->SendGameMessage( XGM_QUIT_GAME, NULL, NULL, false );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh			
+		}
+	}
 
 	return false;
 }
@@ -7439,22 +9109,20 @@ bool CX2StateServerSelect::ConnectToChannelServer()
 bool CX2StateServerSelect::Handler_ECH_VERIFY_ACCOUNT_REQ()
 {
 	KECH_VERIFY_ACCOUNT_REQ kPacket;
-#ifndef CLIENT_PURPLE_MODULE
-	kPacket.m_wstrID = g_pInstanceData->GetUserID();
-	kPacket.m_wstrPassword = g_pInstanceData->GetUserPassword();
-#else // CLIENT_PURPLE_MODULE
-	
-	bool bUsePurpleModule = true;
-#ifdef CLIENT_PURPLE_MODULE_IN_HOUSE_AUTH
-	if(g_pInstanceData->GetInHouseAccount())
-		bUsePurpleModule = false;
-#endif // CLIENT_PURPLE_MODULE_IN_HOUSE_AUTH
 
-	if(bUsePurpleModule)
+#ifdef CLIENT_PURPLE_MODULE	
+	bool bUsePurpleModule = true;
+	
+#ifdef CLIENT_PURPLE_MODULE_IN_HOUSE_AUTH
+	if( g_pInstanceData->GetInHouseAccount() )
+		bUsePurpleModule = false;
+#endif CLIENT_PURPLE_MODULE_IN_HOUSE_AUTH
+
+	if( bUsePurpleModule )
 	{
 		ConvertCharToWCHAR( kPacket.m_wstrID, PurpleGetUserID() );
 #ifdef SERV_KOG_OTP_VERIFY
-		if (g_pInstanceData->IsIDVerified())
+		if( g_pInstanceData->IsIDVerified() )
 			kPacket.m_wstrPassword = g_pInstanceData->GetUserPassword();
 		else
 			ConvertCharToWCHAR( kPacket.m_wstrPassword, PurpleGetAuthString() );
@@ -7467,7 +9135,10 @@ bool CX2StateServerSelect::Handler_ECH_VERIFY_ACCOUNT_REQ()
 		kPacket.m_wstrID = g_pInstanceData->GetUserID();
 		kPacket.m_wstrPassword = g_pInstanceData->GetUserPassword();
 	}
-#endif // CLIENT_PURPLE_MODULE
+#else
+	kPacket.m_wstrID = g_pInstanceData->GetUserID();
+	kPacket.m_wstrPassword = g_pInstanceData->GetUserPassword();
+#endif CLIENT_PURPLE_MODULE
 
 #ifdef SERV_KOG_OTP_VERIFY
 	kPacket.m_bLogin = !(g_pInstanceData->IsIDVerified());
@@ -7566,18 +9237,55 @@ bool CX2StateServerSelect::Handler_EGS_SECOND_SECURITY_INFO_NOT( HWND hWnd, UINT
 
 	if( kEvent.m_iOK == NetError::ERR_SECOND_SECURITY_AUTH_FAILED_LIMIT )
 	{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_12352 ), this, CX2State::SUCM_EXIT, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_12352 ), g_pMain->GetNowState(), CX2State::SUCM_EXIT );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+		
+	
 	}
 	else if ( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 	{	
-		if(kEvent.m_bUseSecondPW == true)
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+		if ( g_pMain->GetSecurityPad()->GetIsAutoAuthoritySecondSecurityBegin() == true  )
 		{
-			g_pMain->GetSecurityPad()->SetShow(true, CX2SecurityPad::SPS_GAME_START);
-			g_pMain->GetSecurityPad()->SetUseSecondPW(true);
+			g_pMain->GetSecurityPad()->AutoAuthoritySecondSecurity();
 		}
 		else
+#else // FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
+	#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+			if ( m_bEnableUnitSelectBySecondSecurity == true 
+		#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+				&& g_pMain->GetSecurityPad()->GetIsAutoAuthoritySecondSecurityBegin() == true 
+		#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차						
+				)
+			{
+				g_pMain->GetSecurityPad()->AutoAuthoritySecondSecurity();
+			}
+
+			else
+	#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+#endif // FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도 
 		{
-			m_bEnableUnitSelectBySecondSecurity = true;
+			if(kEvent.m_bUseSecondPW == true)
+			{
+#if defined( FIX_REFORM_ENTRY_POINT_2ND ) && defined( PLAY_PROMOTION_MOVIE )
+				if ( g_pMain->m_bPlayIntroMovie == true )
+				{
+					m_bReservedSecurityPad = true;
+				}
+				else
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+				{
+					g_pMain->GetSecurityPad()->SetShow(true, CX2SecurityPad::SPS_GAME_START);
+					g_pMain->GetSecurityPad()->SetUseSecondPW(true);
+				}
+			}
+			else
+			{
+				m_bEnableUnitSelectBySecondSecurity = true;
+			}
 		}
 	}
 	return true;
@@ -7597,10 +9305,21 @@ bool CX2StateServerSelect::Handler_EGS_EXIST_FIRST_SELECT_UNIT_REWARD_NOT( HWND 
 	switch( kEvent)
 	{
 	case KFirstSelectUnitReward::FSUR_SYSTEM_ERROR:
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_22430 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_STRING( STR_ID_22430 ), NULL);
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+		
+		
 		return true;
 	case KFirstSelectUnitReward::FSUR_WEB_EVENT:
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_22429 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_STRING( STR_ID_22429 ), NULL);
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 		return true;
 	default:
 		return true;
@@ -7661,10 +9380,70 @@ bool CX2StateServerSelect::Handler_EGS_CHECK_THE_ARCHUANGEL_S_COIN_EVENT_LETTER_
 	}
 #endif SERV_SECOND_SECURITY
 
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+	#ifdef FIX_REFORM_ENTRY_POINT_5TH // 김종훈, 진입 구조 개편 수정 5차
+		if ( NULL != m_pDLGCheckHack && m_pDLGCheckHack->GetShow() == true )
+			return true;
+		ProcessIntroMovieEnd();		// 인트로 동영상이 끝났을 때 처리해줘야 할 것
+	#else  // FIX_REFORM_ENTRY_POINT_5TH // 김종훈, 진입 구조 개편 수정 5차
+		// 보안 패드를 동영상 재생 이후에 출력되도록 한다.
+		if ( true == m_bReservedSecurityPad )
+		{
+			m_bReservedSecurityPad = false;
+			g_pMain->GetSecurityPad()->SetShow(true, CX2SecurityPad::SPS_GAME_START);
+			g_pMain->GetSecurityPad()->SetUseSecondPW(true);
+		}
+	#endif // FIX_REFORM_ENTRY_POINT_5TH // 김종훈, 진입 구조 개편 수정 5차
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+
+#ifdef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+	// 게임에 접속 중이라면, ESC 가 먹히지 않도록
+	if ( true == m_bWaitingEGS_CONNECT_REQ_ChannelButtonUp )
+	{
+		return true;
+	}
+
+	if ( NULL != m_pDLGMsgBox )
+	{
+		return true;
+	}
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
 
 	if( true == CX2StateServerSelect::m_sbSelectedServerSet )
 	{
+#ifdef REFORM_ENTRY_POINT		
+		// 채널 선택창에서 ESC 입력 시 캐릭터 선택창으로 이동
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+		if( true == IsChannelSelectMode() )
+		{
+			MoveToCharacterSelectUI();
+		}
+		else if ( g_pMain->m_bPlayIntroMovie == true )
+		{
+			g_pMain->m_bPlayIntroMovie = false;
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+			// 재접속하는 상황이면 State 를 다시 불러온다.
+			if ( NULL != m_pDLGReConnectChannelServer && false == m_pDLGReConnectChannelServer->GetShow() )
+			{
+				m_sbSelectedServerSet = false;
+				m_bCanNotConenctToBusyServer = false;
+				g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, /*CX2Main::XS_UNIT_SELECT*/ CX2Main::XS_SERVER_SELECT, NULL, false );		
+			}
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+		}
+#else //PLAY_PROMOTION_MOVIE
+		if( true == IsChannelSelectMode() )
+		{		 
+			MoveToCharacterSelectUI();
+		}
+#endif //PLAY_PROMOTION_MOVIE
+		else
+		{
+			QuitGame();
+		}
+#else
 		OpenLastMsgPopUp( GET_STRING( STR_ID_736 ) );
+#endif	// REFORM_ENTRY_POINT
 	}
 	else
 	{
@@ -7701,8 +9480,11 @@ void CX2StateServerSelect::UnitSelectExit()
 	//}}  kimhc // 2009-12-15 // 서버군 추가 작업에 따른 채널 다이얼로그 분리
 
 	m_pSelectUnit = NULL;
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	SetRightSideFlagColor ( D3DXCOLOR ( 0.f, 0.f, 0.f, 0.f ) );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 #ifdef SERV_UNIT_WAIT_DELETE
-	m_pBeforeSelectUnit = NULL;
+	m_iSelectUnitUID = 0;
 #endif //SERV_UNIT_WAIT_DELETE	
 	m_sbSelectedServerSet = false;
 
@@ -7713,7 +9495,6 @@ void CX2StateServerSelect::UnitSelectExit()
 
 	m_bSentEGS_CONNECT_REQ 		= false;
 	m_bReceivedChannelList 		= false;
-
 	if( NULL != g_pData->GetServerProtocol() )
 	{
 		g_pData->GetServerProtocol()->SendTRID( ETR_UNIT_DISCONNECT );
@@ -7731,97 +9512,90 @@ void CX2StateServerSelect::UnitSelectExit()
 		g_pMain->GetSecurityPad()->SetShow(false);
 	}
 #endif SERV_SECOND_SECURITY
-	g_pKTDXApp->SkipFrame();
 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	ClearChannelButton();
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+	g_pKTDXApp->SkipFrame();
 }
 
 //{{ kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 읽기
 #ifdef	ADD_SERVER_GROUP
-bool CX2StateServerSelect::OpenScriptServerGroupFile()
-{
-	string			strFileName;
-#ifdef EXTEND_SERVER_GROUP_MASK
-	int iServerGroupID = 0;
-#else
-	SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
-#endif EXTEND_SERVER_GROUP_MASK
-	bool			bParsingOK		= false;
-
-	ConvertWCHARToChar( strFileName, g_pData->GetSavedServerGroupFileName() );
-
-	ConvertFileAnsiToUTF8( strFileName, strFileName );
-
-	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( g_pData->GetSavedServerGroupFileName() );
-	if( Info != NULL )
-	{
-		if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-		{
-			if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, g_pData->GetSavedServerGroupFileName().c_str(), false ) )
-			{
-#ifdef EXTEND_SERVER_GROUP_MASK //SERVER_GROUP_UI_ADVANCED 도 관련
-				LUA_GET_VALUE( luaManager, L"SERVER_GROUP", 				iServerGroupID,			0);
-#else
-				LUA_GET_VALUE_ENUM( luaManager, L"SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
-#endif EXTEND_SERVER_GROUP_MASK //SERVER_GROUP_UI_ADVANCED 도 관련
-			}
-		}
-	}
-
-#ifdef EXTEND_SERVER_GROUP_MASK
-	g_pInstanceData->SetServerGroupID( iServerGroupID );
-	return true;
-#else
-	switch ( eServerGroupID )
-	{
-	case SGI_SOLES:
-	case SGI_GAIA:
-		{
-			g_pInstanceData->SetServerGroupID( eServerGroupID );
-			bParsingOK = true;
-		}
-		break;
-
-	default:
-		{
-#ifdef RANDOM_SERVER
-			if( g_pMain->GetDefaultChannelServerIPIndex() == SGI_INVALID )
-			{
-				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( (rand() % 2) ) );
-			}
-			else
-			{
-				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
-			}
-#else
-			g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
-#endif
-		}
-		break;
-
-	}
-
-	return bParsingOK;
-#endif EXTEND_SERVER_GROUP_MASK
-}
+//bool CX2StateServerSelect::OpenScriptServerGroupFile()
+//{
+//	string			strFileName;
+//	SERVER_GROUP_ID eServerGroupID	= SGI_INVALID;
+//	bool			bParsingOK		= false;
+//
+//	ConvertWCHARToChar( strFileName, g_pData->GetSavedServerGroupFileName() );
+//
+//	ConvertFileAnsiToUTF8( strFileName, strFileName );
+//
+//	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
+//
+//	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
+//	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile_LocalFile( g_pData->GetSavedServerGroupFileName() );
+//	if( Info != NULL )
+//	{
+//		if( true == g_pKTDXApp->LoadLuaTinker_LocalFile( g_pData->GetSavedServerGroupFileName().c_str() ) )
+//		{
+//			if( true == g_pKTDXApp->LoadAndDoMemory_LocalFile( &luaManager, g_pData->GetSavedServerGroupFileName().c_str() ) )
+//			{
+//				LUA_GET_VALUE_ENUM( luaManager, L"SERVER_GROUP", 			eServerGroupID,			SERVER_GROUP_ID,		SGI_INVALID	);
+//			}
+//		}
+//	}
+//
+//	switch ( eServerGroupID )
+//	{
+//	case SGI_SOLES:
+//	case SGI_GAIA:
+//		{
+//			g_pInstanceData->SetServerGroupID( eServerGroupID );
+//			bParsingOK = true;
+//		}
+//		break;
+//
+//	default:
+//		{
+//#ifdef RANDOM_SERVER
+//			if( g_pMain->GetDefaultChannelServerIPIndex() == SGI_INVALID )
+//			{
+//				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( (rand() % 2) ) );
+//			}
+//			else
+//			{
+//				g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
+//			}
+//#else
+//			g_pInstanceData->SetServerGroupID( static_cast<SERVER_GROUP_ID>( g_pMain->GetDefaultChannelServerIPIndex() ) );
+//#endif
+//		}
+//		break;
+//
+//	}
+//
+//	return bParsingOK;
+//
+//}
 
 //{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
 #ifdef SERV_UNIT_WAIT_DELETE
 bool CX2StateServerSelect::Handler_EGS_FINAL_DELETE_UNIT_REQ()
 {
-	if( m_pFinalDeleteUnitInfo == NULL)
-		return true;
-
 	KEGS_FINAL_DELETE_UNIT_REQ kPacket;
-	kPacket.m_iUnitUID		= m_pFinalDeleteUnitInfo->GetUID();
+	kPacket.m_iUnitUID = m_pSelectUnit->GetUID();
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_FINAL_DELETE_UNIT_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_FINAL_DELETE_UNIT_ACK  );
-	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
-	m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_16104 ), this );
 
+	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+	m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_16104 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Positive_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+	m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_16104 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+	
 	return true;
 }
 
@@ -7839,15 +9613,37 @@ bool CX2StateServerSelect::Handler_EGS_FINAL_DELETE_UNIT_ACK( HWND hWnd, UINT uM
 			CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByUID( kEvent.m_iUnitUID );
 			if ( pUnit == NULL )
 			{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_713 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua",D3DXVECTOR2 (0, 0),  L"UI_PopUp_Negative_01.ogg" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_713 ), this );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
 				return true;
 			}
 
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편						int iTopCharacterIndex = (m_NowPage - 1) * UNIT_SELECT_UI_MAX_UNIT_NUM;
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305,375), GET_STRING( STR_ID_714 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+			// ChangeUnitButtonInfo();
+
+			if ( g_pData->GetMyUser()->GetUnitNum() <= 0 )
+			{
+				g_pMain->CreateStateChangeDLG( GET_STRING( STR_ID_701 ), L"DLG_UI_Selection_MessageBox_No_Button.lua", L"UI_PopUp_Positive_01.ogg"  );
+				g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_CREATE_UNIT, NULL, false );
+			}
+			else
+			{
+				Handler_EGS_CHARACTER_LIST_REQ();
+			}
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+/*
 			ClearBeforeUnit( pUnit );
 			ClearUnitButton();
 			g_pData->GetMyUser()->DeleteUnitByUID(kEvent.m_iUnitUID);
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_16108 ), this );
-			CreateUnitButton();
+			CreateUnitButtonNew();
+			ChangeUnitButtonInfo();
+*/
 		}
 	}
 	return true;
@@ -7855,16 +9651,18 @@ bool CX2StateServerSelect::Handler_EGS_FINAL_DELETE_UNIT_ACK( HWND hWnd, UINT uM
 
 bool CX2StateServerSelect::Handler_EGS_RESTORE_UNIT_REQ()
 {
-	if( m_pRestoreUnitInfo == NULL )
-		return true;
-
 	KEGS_RESTORE_UNIT_REQ kPacket;
-	kPacket.m_iUnitUID		= m_pRestoreUnitInfo->GetUID();
+	kPacket.m_iUnitUID = m_pSelectUnit->GetUID();
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_RESTORE_UNIT_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_RESTORE_UNIT_ACK  );
+
 	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+#ifdef REFORM_ENTRY_POINT
+	m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305,375), GET_STRING( STR_ID_16105 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#else
 	m_pDLGMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_16105 ), this );
+#endif REFORM_ENTRY_POINT
 
 	return true;
 }
@@ -7881,55 +9679,58 @@ bool CX2StateServerSelect::Handler_EGS_RESTORE_UNIT_ACK( HWND hWnd, UINT uMsg, W
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{			
 			CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByUID( kEvent.m_iUnitUID );
-			if ( pUnit == NULL )
+			if( pUnit == NULL )
 			{
+#ifdef REFORM_ENTRY_POINT
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305,375), GET_STRING( STR_ID_713 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_713 ), this );
+#endif REFORM_ENTRY_POINT
 				return true;
 			}
-			//{{ 2012.03.05 lygan_조성욱 // 조효진이 작업 누락된부분 추가 작업
+
+#ifdef REFORM_ENTRY_POINT
+#ifdef SERV_UNIT_WAIT_DELETE
+			m_bMaintainNowUnitButton = true;
+#endif SERV_UNIT_WAIT_DELETE
+			Handler_EGS_CHARACTER_LIST_REQ();			
+#else
 			ClearBeforeUnit( pUnit );
 			ClearUnitButton();
-			CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
-			pUnitData->m_bDeleted = false;
+			pUnit->AccessUnitData().m_bDeleted = false;
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_16111 ), this );
-			CreateUnitButton();
-
+			CreateUnitButtonNew();
+			ChangeUnitButtonInfo();
+#endif REFORM_ENTRY_POINT
 		}
 		else if(kEvent.m_iOK == NetError::ERR_RESTORE_UNIT_02)
 		{
 			CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByUID( kEvent.m_iUnitUID );
 			if ( pUnit == NULL )
 			{
+#ifdef REFORM_ENTRY_POINT
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305,375), GET_STRING( STR_ID_713 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_713 ), this );
+#endif REFORM_ENTRY_POINT
 				return true;
 			}
 
-			//{{ //2012.03.06 lygan_조성욱 // 삭제후 1일지나서 복구 가능한 날짜 알림용
-			std::wstring buffer = L"";
-			std::wstring year = L"";
-			std::wstring month = L"";
-			std::wstring day = L"";
-			std::wstring hour = L"";
-			std::wstring min = L"";
+			pUnit->AccessUnitData().m_trRestoreAbleDate = kEvent.m_tRestoreAbleDate;
 
 			CTime tRestoreAbleDate(kEvent.m_tRestoreAbleDate);
-
-			year = (CStringW)( tRestoreAbleDate.Format(_T( "%Y" )) );
-			month = (CStringW)( tRestoreAbleDate.Format(_T( "%m" )) );
-			day = (CStringW)( tRestoreAbleDate.Format(_T( "%d" )) );
-			hour = (CStringW)( tRestoreAbleDate.Format(_T( "%H" )) );
-			min = (CStringW)( tRestoreAbleDate.Format(_T( "%M" )) );
-
-			buffer =  GET_REPLACED_STRING( ( STR_ID_16113, "SSSSS", day.c_str(), month.c_str(), year.c_str(),hour.c_str(), min.c_str()));
-			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), buffer.c_str(), this );
-
-			CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
-			pUnitData->m_trRestoreAbleDate = kEvent.m_tRestoreAbleDate;
-
-
-			//}}
+			std::wstring wstrYear = (CStringW)( tRestoreAbleDate.Format(_T( "%Y" )) );
+			std::wstring wstrMonth = (CStringW)( tRestoreAbleDate.Format(_T( "%m" )) );
+			std::wstring wstrDay = (CStringW)( tRestoreAbleDate.Format(_T( "%d" )) );
+			std::wstring wstrHour = (CStringW)( tRestoreAbleDate.Format(_T( "%H" )) );
+			std::wstring wstrMinute = (CStringW)( tRestoreAbleDate.Format(_T( "%M" )) );
+			std::wstring wstrMessage = GET_REPLACED_STRING( ( STR_ID_16113, "SSSSS", wstrDay.c_str(), wstrMonth.c_str(), wstrYear.c_str(), wstrHour.c_str(), wstrMinute.c_str()));
+#ifdef REFORM_ENTRY_POINT
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305,375), wstrMessage.c_str(), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Negative_01.ogg" );
+#else
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), wstrMessage.c_str(), this );
+#endif REFORM_ENTRY_POINT
 		}
-		//}}
 	}
 	return true;
 }
@@ -7969,18 +9770,15 @@ bool CX2StateServerSelect::Handler_ECH_GET_SERVERGROUP_LIST_NOT( HWND hWnd, UINT
 
 	m_bReceivedServerGroupList = true;
 
-
 #ifdef CRASH_PROBE_LOG
 	CrashLog( "{E46CACFD-654A-4c77-9FD7-FABCBA0E703C}" );
 #endif CRASH_PROBE_LOG
 
 	g_pInstanceData->m_mapServerGroupInfo.clear();
-
 	g_pInstanceData->m_mapServerGroupInfo = kEvent.m_mapServerGroupList;
 
 	// 채널 리스트 UI를 Update한다
 	UpdateServerGroupListUI();
-
 
 #ifdef CRASH_PROBE_LOG
 	CrashLog( "{A45C0907-23CF-41d1-89BF-0D9F3594DA74}" );
@@ -8009,8 +9807,6 @@ void CX2StateServerSelect::UpdateServerGroupListUI()
 
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGServerGroupSelectBack );
 	m_pDLGServerGroupSelectBack->SetPos( posDLG );
-
-
 
 	// 업데이트
 	int iServerGroupSize = 0;
@@ -8099,7 +9895,6 @@ void CX2StateServerSelect::UpdateServerGroupListUI()
 			}
 		}
 
-
 		++button_index;
 	}
 
@@ -8178,7 +9973,6 @@ void CX2StateServerSelect::UpdateServerSelectButton( SERVER_GROUP_ID eID )
 //}}  kimhc // 2009-12-15 // 이전에 플레이 했던 서버군 읽기
 
 
-#ifdef REFORM_UI_KEYPAD
 bool CX2StateServerSelect::Handler_EGS_KEYBOARD_MAPPING_INFO_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
@@ -8190,7 +9984,6 @@ bool CX2StateServerSelect::Handler_EGS_KEYBOARD_MAPPING_INFO_NOT( HWND hWnd, UIN
 	if ( NULL != g_pKTDXApp->GetDIManager() && NULL != g_pKTDXApp->GetDIManager()->Getkeyboard()
 		 && true == g_pMain->IsValidPacket( kEvent.m_iOK ) )
 	{
-		int iTemp = GAMEACTION_END;
 		if ( kEvent.m_kKeyboardMappingInfo.m_mapKeyboardMappingInfo.empty() )
 		{
 			g_pKTDXApp->GetDIManager()->SetDefaultMap();
@@ -8206,7 +9999,11 @@ bool CX2StateServerSelect::Handler_EGS_KEYBOARD_MAPPING_INFO_NOT( HWND hWnd, UIN
 				}
 			}
 		}
+#ifdef SERV_KEY_MAPPING_INT
+		else if ( GAMEACTION_RETURN == kEvent.m_kKeyboardMappingInfo.m_mapKeyboardMappingInfo.size() )
+#else //SERV_KEY_MAPPING_INT
 		else if ( GAMEACTION_END == kEvent.m_kKeyboardMappingInfo.m_mapKeyboardMappingInfo.size() )
+#endif //SERV_KEY_MAPPING_INT
 		{
 			SettingUserKeyboardMappingInfo( kEvent.m_kKeyboardMappingInfo );
 		}
@@ -8220,6 +10017,21 @@ bool CX2StateServerSelect::Handler_EGS_KEYBOARD_MAPPING_INFO_NOT( HWND hWnd, UIN
 		}
 			
 	}
+
+#ifdef SERV_KEY_MAPPING_INT
+	if ( NULL != g_pKTDXApp->GetDIManager() && NULL != g_pKTDXApp->GetDIManager()->GetJoystic()
+		&& true == g_pMain->IsValidPacket( kEvent.m_iOK ) )
+	{
+		if ( kEvent.m_kKeyboardMappingInfo.m_mapGamePadMappingInfo.empty() )
+		{
+			g_pKTDXApp->GetDIManager()->SetGamePadDefaultMap();
+		}
+		else
+		{
+			SettingUserGamePadMappingInfo( kEvent.m_kKeyboardMappingInfo );
+		}
+	}
+#endif //SERV_KEY_MAPPING_INT
 	
 	return true;
 }
@@ -8249,7 +10061,18 @@ void CX2StateServerSelect::SettingUserKeyboardMappingInfo( const KKeyboardMappin
 	}
 }
 
-#endif
+#ifdef SERV_KEY_MAPPING_INT
+void CX2StateServerSelect::SettingUserGamePadMappingInfo( const KKeyboardMappingInfo& kKeyboardMappingInfo_ )
+{
+	std::map< short, short >::const_iterator constIter;
+
+	for ( constIter = kKeyboardMappingInfo_.m_mapGamePadMappingInfo.begin() ;
+		constIter != kKeyboardMappingInfo_.m_mapGamePadMappingInfo.end(); ++constIter )
+	{
+		g_pKTDXApp->GetDIManager()->GetJoystic()->SetAction( GAME_ACTION( constIter->first ), constIter->second );
+	}
+}
+#endif //SERV_KEY_MAPPING_INT
 
 bool CX2StateServerSelect::Handler_EGS_CHAT_OPTION_INFO_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
@@ -8304,7 +10127,7 @@ void CX2StateServerSelect::_SendSystemInfo()
 {
 	//서버로 전송
 	KEGS_SYSTEM_INFO kPacket;
-	kPacket.m_iAccountUID = g_pData->GetMyUser()->GetUserData()->userUID;
+	kPacket.m_iAccountUID = g_pData->GetMyUser()->GetUserData().userUID;
 	kPacket.m_iSystemKey = g_pMain->GetSystemInfo()->GetMacAddress();
 	kPacket.m_wstrCPU = g_pMain->GetSystemInfo()->GetCpuString();
 	kPacket.m_wstrMemory = g_pMain->GetSystemInfo()->GetMemString();
@@ -8387,3 +10210,1877 @@ bool CX2StateServerSelect::Handler_EGS_JUMPING_CHARACTER_GUIDE_NOT ( HWND hWnd, 
 }
 
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
+
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+void CX2StateServerSelect::HideAllUnitViewerUI ()
+{
+	for ( int i = 0; i < (int)m_UnitViewerUIList.size(); i++ )
+	{
+		CX2UnitViewerUI* pUnitViewerUI = m_UnitViewerUIList[i];
+		pUnitViewerUI->SetShowObject( false );
+		pUnitViewerUI->SetShowUnitViewerUI( false );
+	}
+}
+
+void CX2StateServerSelect::CreateServerSelectUnitViewerUI ( CX2Unit * pUnit_ )
+{
+	if ( NULL != m_pUnitViewerUI )
+	{
+		CX2UnitViewerUI::DeleteKTDGObject ( m_pUnitViewerUI );
+		m_pUnitViewerUI = NULL;
+	}		
+	
+	if ( NULL != pUnit_ )
+	{
+		m_pUnitViewerUI = CX2UnitViewerUI::CreateUnitViewerUI();
+		m_pUnitViewerUI->SetLightPos( -250, 100, -600 );	// 캐릭터뷰어 라이트 위치 변경
+		g_pKTDXApp->GetDGManager()->AddObjectChain( m_pUnitViewerUI );
+
+		if ( NULL != m_pDLGUnitSelectFront )
+		{
+			D3DXVECTOR3 vUnitPos	= m_pDLGUnitSelectFront->GetDummyPos( 18 );
+			D3DXVECTOR3 vEye		= m_pDLGUnitSelectFront->GetDummyPos( 19 );
+			D3DXVECTOR3 vLookAt		= m_pDLGUnitSelectFront->GetDummyPos( 20 );
+			D3DXVECTOR3 vFov		= m_pDLGUnitSelectFront->GetDummyPos( 21 );
+			
+			pUnit_->AccessInventory().RemovePCBangEquips();
+
+			m_pUnitViewerUI->SetClassChange( false );
+			m_pUnitViewerUI->SetUnit( pUnit_, CX2UnitViewerUI::UVS_SELECTUNIT );
+
+			g_pKTDXApp->GetDGManager()->GetCamera().Point( vEye.x, vEye.y, vEye.z, vLookAt.x, vLookAt.y, vLookAt.z );
+			g_pMain->SetProjectionFov( vFov.x );
+		
+			m_pUnitViewerUI->GetMatrix().Move( D3DXVECTOR3 ( vUnitPos.x, vUnitPos.y, vUnitPos.z ) );
+			m_pUnitViewerUI->GetMatrix().Scale( D3DXVECTOR3( 1.2f, 1.2f, 1.2f ) * m_pUnitViewerUI->GetScale() );
+			m_pUnitViewerUI->OnFrameMove( g_pKTDXApp->GetTime(),g_pKTDXApp->GetElapsedTime() );
+			m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVVMT_DOWN_LANDING );
+			m_bPlayDownAnim = true;
+
+#ifdef SERV_UNIT_WAIT_DELETE
+			CX2Unit::UnitData* pUnitData = &(pUnit_->AccessUnitData());
+			/* 설명 부분은 잠시 대기
+			CKTDGUIStatic* pStatic_UnitDeleteInfo = (CKTDGUIStatic*)(m_pDLGUnitSelectFront->GetControl( L"StaticUnitSelectDeleteInfo" ));
+			if( NULL != pStatic_UnitDeleteInfo )
+			{
+				if( pUnitData->m_bDeleted )
+				{
+					CTime tDeleAbleDate( pUnitData->m_trDelAbleDate );
+
+					// 복구 가능 일자 알림용
+					std::wstring wstrYear = (CStringW)( tDeleAbleDate.Format(_T("%Y")) );
+					std::wstring wstrMonth = (CStringW)( tDeleAbleDate.Format(_T("%m")) );
+					std::wstring wstrDay = (CStringW)( tDeleAbleDate.Format(_T("%d")) );
+					std::wstring wstrHour = (CStringW)( tDeleAbleDate.Format(_T("%H")) );
+					std::wstring wstrMinute = (CStringW)( tDeleAbleDate.Format(_T("%M")) );
+
+#if defined(CLIENT_GLOBAL_LINEBREAK)
+					pStatic_UnitDeleteInfo->GetString(0)->msg = CWordLineHandler::GetStrByLineBreakInX2Main(GET_REPLACED_STRING( ( STR_ID_16109, "SSSSS", wstrDay.c_str(), wstrMonth.c_str(), wstrYear.c_str(), wstrHour.c_str(), wstrMinute.c_str() ) ), 200, XUF_DODUM_15_BOLD );
+#elif defined(CLIENT_GLOBAL_LINEBREAK_FOR_CN)
+					pStatic_UnitDeleteInfo->GetString(0)->msg = g_pMain->GetStrByLienBreak(GET_REPLACED_STRING( ( STR_ID_16109, "SSSSS", wstrDay.c_str(), wstrMonth.c_str(), wstrYear.c_str(), wstrHour.c_str(), wstrMinute.c_str() ) ), 180, pStatic_UnitDeleteInfo->GetString(0)->fontIndex );
+#else
+					pStatic_UnitDeleteInfo->GetString(0)->msg = GET_REPLACED_STRING( ( STR_ID_16109, "SSSSS", wstrDay.c_str(), wstrMonth.c_str(), wstrYear.c_str(), wstrHour.c_str(), wstrMinute.c_str() ) );
+#endif //defined(CLIENT_GLOBAL_LINEBREAK)
+					pStatic_UnitDeleteInfo->SetShow( true );
+				}
+				else
+				{
+					pStatic_UnitDeleteInfo->SetShow( false );
+				}
+			}
+			*/
+			// 캐릭터 최종 삭제 버튼
+			CKTDGUIButton* pBtn_FinalDelete = (CKTDGUIButton*)(m_pDLGUnitSelectFront)->GetControl( L"final_delete_unit" );
+			if( NULL != pBtn_FinalDelete )
+			{
+				if( pUnitData->m_bDeleted )
+				{					
+					//CTime cClientTime = CTime::GetCurrentTime();
+					//__int64 tint64TimeGap = g_pData->GetServerCurrentTime() - cClientTime.GetTime();
+					//if(pUnitData->m_trDelAbleDate <  ( g_pData->GetServerCurrentTime() + tint64TimeGap) ) // 2013.01.30 lygan_조성욱 // 시차가 다른 지역에서 게임을 할때도 버튼이 활성화 되게 처리하기
+					if( pUnitData->m_trDelAbleDate <  g_pData->GetServerCurrentTime64() )
+					{
+						pBtn_FinalDelete->SetShowEnable( true, true );
+					}
+					else
+					{
+						pBtn_FinalDelete->SetShowEnable( true, false );
+					}				
+				}
+				else
+				{
+					pBtn_FinalDelete->SetShowEnable( false, false );
+				}
+			}
+
+			// 캐릭터 복구 버튼
+			CKTDGUIButton* pBtn_Restore = (CKTDGUIButton*)(m_pDLGUnitSelectFront)->GetControl( L"restore_unit" );
+			if( NULL != pBtn_Restore )
+			{
+				if( pUnitData->m_bDeleted )
+				{
+					if( pUnitData->m_trRestoreAbleDate < g_pData->GetServerCurrentTime64() )
+					{
+						pBtn_Restore->SetShowEnable( true, true );
+					}
+					else
+					{
+						pBtn_Restore->SetShowEnable( true, false );
+					}
+				}
+				else
+				{
+					pBtn_Restore->SetShowEnable( false, false );
+				}
+			}
+#endif SERV_UNIT_WAIT_DELETE
+		}
+	}
+}
+
+// 상황에 맞게 다 써줘야한다.
+void CX2StateServerSelect::SetFocusUnitButtonByIndex ( const int iIndex_ )
+{
+	for ( UINT i = 0; i < m_vecUnitSlot.size(); ++i )
+	{
+		CKTDGUIDialogType pUnitSlot =  m_vecUnitSlot[i];
+
+		if ( pUnitSlot == NULL )
+			continue;
+
+		CKTDGUIButton* pCharButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 0 ) );
+		if ( i == iIndex_ )
+			pCharButton->SetDownStateAtNormal( true );
+		else
+			pCharButton->SetDownStateAtNormal( false );
+	}	
+}
+
+void CX2StateServerSelect::SetRightSideFlagColor ( D3DXCOLOR colorFlag )
+{
+	if ( NULL != m_pDLGUnitSelectFront )
+	{
+		CKTDGUIStatic* pStaticSideFlag = m_pDLGUnitSelectFront->GetStatic_LUA("SideFlag");
+		// CKTDGUIControl::CPictureData* pPictureBattleFieldName = pStaticBattleFieldName->GetPicture( 0 );		
+		if ( NULL != pStaticSideFlag )
+		{
+			CKTDGUIControl::CPictureData* pSideFlagPictureData = pStaticSideFlag->GetPicture ( 0 );
+			if ( NULL != pSideFlagPictureData )
+			{
+				pSideFlagPictureData->SetColor ( colorFlag );
+			}
+		}	
+	}
+}
+
+void CX2StateServerSelect::SetShowServerStateButtonSet ( bool bIsShowUnitListState, bool bIsShowChannelListState )
+{
+	if( NULL != m_pDLGUnitSelectFront )
+	{
+		CKTDGUIButton* pEndGameButton = static_cast<CKTDGUIButton*>(m_pDLGUnitSelectFront->GetControl(L"new_finish_game") );
+
+		CKTDGUIStatic* pSlotNumberStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectFront->GetControl(L"number"));
+		if ( false == bIsShowUnitListState && false == bIsShowChannelListState )
+		{						
+			if( NULL != pEndGameButton )
+			{
+				pEndGameButton->SetShowEnable(false,false);
+			}
+
+			if( NULL != pSlotNumberStatic )
+			{
+				pSlotNumberStatic->SetShowEnable( false, false );
+			}
+			SetShowSelectUnitInfo ( NULL );
+		}
+		else
+		{
+			if( NULL != pEndGameButton )
+			{
+				pEndGameButton->SetShowEnable(true, true);
+			}
+
+			if( NULL != pSlotNumberStatic )
+			{
+				pSlotNumberStatic->SetShowEnable( true, true );
+			}
+		}
+		
+		// 타이틀, 캐릭터 생성 버튼, 채널 선택, 보안 패드, 유닛 슬롯, 캐릭터 삭제, 좌우 화살표 ( 유닛 슬롯 ), "현재 유닛 슬롯 페이지 / 최대 유닛 슬롯 페이지" 는 같은 그룹				
+		CKTDGUIStatic* pSelectUnitTitleStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectBack->GetControl(L"charac") );
+		if ( NULL != pSelectUnitTitleStatic )
+		{
+			pSelectUnitTitleStatic->SetShow ( bIsShowUnitListState );
+		}
+
+		for ( UINT i = 0; i < m_vecUnitSlot.size(); ++i )
+		{
+			CKTDGUIDialogType pUnitSlot =  m_vecUnitSlot[i];
+
+			if ( pUnitSlot == NULL )
+				break;
+			pUnitSlot->SetShowEnable( bIsShowUnitListState, bIsShowUnitListState );
+		}
+
+		CKTDGUIButton* pCreateUnitButton = static_cast<CKTDGUIButton*>(m_pDLGUnitSelectFront->GetControl(L"createUnit"));
+		if( NULL != pCreateUnitButton )
+		{
+			pCreateUnitButton->SetShowEnable(bIsShowUnitListState,bIsShowUnitListState);
+		}
+
+		CKTDGUIStatic* pSecurityPadStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectFront->GetControl(L"new_Securitypad"));
+		CKTDGUIStatic* pSecurityPadCreateStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectFront->GetControl(L"new_Securitypad_Create"));
+
+		if( NULL != pSecurityPadStatic && NULL != pSecurityPadCreateStatic )
+		{
+			if ( NULL != g_pMain && NULL != g_pMain->GetSecurityPad() )
+			{
+				if ( true == g_pMain->GetSecurityPad()->GetUseSecondPW() )
+				{
+					pSecurityPadStatic->SetShowEnable(bIsShowUnitListState,bIsShowUnitListState);
+					pSecurityPadCreateStatic->SetShowEnable( false,false );
+				}
+				else
+				{
+					pSecurityPadStatic->SetShowEnable(false , false );
+					pSecurityPadCreateStatic->SetShowEnable( bIsShowUnitListState,bIsShowUnitListState);
+				}
+			}
+#ifdef SERV_DISABLE_SECOND_SECURITY
+			pSecurityPadCreateStatic->SetShowEnable( false,false );
+#endif //SERV_DISABLE_SECOND_SECURITY
+		}
+		CKTDGUIStatic* pFadeNotice1 = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectBack->GetControl(L"FadeNotice1"));
+		if ( NULL != pFadeNotice1 )
+		{
+			pFadeNotice1->SetShow ( bIsShowUnitListState );
+		}
+		
+
+		
+
+		CKTDGUIStatic* pGoToChannelListStateStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectFront->GetControl(L"new_channel_select_bt"));
+		if( NULL != pGoToChannelListStateStatic )
+		{
+			pGoToChannelListStateStatic->SetShowEnable(bIsShowUnitListState,bIsShowUnitListState);
+		}
+
+		CKTDGUIStatic* pDeleteUnitStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectFront->GetControl(L"new_ChaDelete"));
+		if( NULL != pDeleteUnitStatic )
+		{
+			pDeleteUnitStatic->SetShowEnable(bIsShowUnitListState,bIsShowUnitListState);
+		}
+
+		CKTDGUIButton* pUnitSlotListLeftArrowButton = static_cast<CKTDGUIButton*>(m_pDLGUnitSelectFront->GetControl(L"ButtonUnitListLeftArrow"));
+		if( NULL != pUnitSlotListLeftArrowButton )
+		{
+			pUnitSlotListLeftArrowButton->SetShowEnable(bIsShowUnitListState,bIsShowUnitListState);
+		}
+
+		CKTDGUIButton* pUnitSlotListRightArrowButton = static_cast<CKTDGUIButton*>(m_pDLGUnitSelectFront->GetControl(L"ButtonUnitListRightArrow"));
+		if( NULL != pUnitSlotListRightArrowButton )
+		{
+			pUnitSlotListRightArrowButton->SetShowEnable(bIsShowUnitListState,bIsShowUnitListState);
+		}
+		
+		// 타이틀, 캐릭터 선택으로, 게임 시작, 튜토리얼, 이전으로, 좌우 화살표 ( 채널 슬롯 ) 는 같은 그룹
+		CKTDGUIStatic* pChannelListStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectBack->GetControl(L"ChannelListStatic") );
+		if ( NULL != pChannelListStatic )
+		{
+			pChannelListStatic->SetShow ( bIsShowChannelListState );
+		}
+
+
+
+		CKTDGUIButton* pTutorialButton = static_cast<CKTDGUIButton*>(m_pDLGUnitSelectFront->GetControl(L"new_Tutorial"));
+		if( NULL != pTutorialButton )
+		{
+			pTutorialButton->SetShowEnable(bIsShowChannelListState,bIsShowChannelListState);
+		}
+
+		CKTDGUIButton* pBackToUnitSelectButton = static_cast<CKTDGUIButton*>(m_pDLGUnitSelectFront->GetControl(L"new_BackToUnitSelect"));
+		if( NULL != pBackToUnitSelectButton )
+		{
+			pBackToUnitSelectButton->SetShowEnable(bIsShowChannelListState,bIsShowChannelListState);
+		}
+
+
+		CKTDGUIButton* pStartGameButton = static_cast<CKTDGUIButton*>(m_pDLGUnitSelectFront->GetControl(L"new_channel_select_start"));
+		if( NULL != pStartGameButton )
+		{
+			pStartGameButton->SetShowEnable(bIsShowChannelListState,bIsShowChannelListState);
+		}
+
+		CKTDGUIButton* pChannelSlotListLeftArrowButton = static_cast<CKTDGUIButton*>(m_pDLGUnitSelectFront->GetControl(L"ButtonChannelListLeftArrow"));
+		if( NULL != pChannelSlotListLeftArrowButton )
+		{
+			pChannelSlotListLeftArrowButton->SetShowEnable(bIsShowChannelListState,bIsShowChannelListState);
+		}
+
+		CKTDGUIButton* pChannelSlotListRightArrowButton = static_cast<CKTDGUIButton*>(m_pDLGUnitSelectFront->GetControl(L"ButtonChannelListRightArrow"));
+		if( NULL != pChannelSlotListRightArrowButton )
+		{
+			pChannelSlotListRightArrowButton->SetShowEnable(bIsShowChannelListState,bIsShowChannelListState);
+		}
+
+		CKTDGUIStatic* pFadeNotice2 = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectBack->GetControl(L"FadeNotice2"));
+		if ( NULL != pFadeNotice2 )
+		{
+			pFadeNotice2->SetShow ( bIsShowChannelListState );
+		}
+	}
+}
+
+/* virtual */ bool CX2StateServerSelect::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	switch( uMsg )
+	{
+	case WM_LBUTTONUP:
+		{
+			if ( CX2UnitViewerUI::GetUnitClicked() == true && m_pUnitViewerUI != NULL )
+			{
+				D3DXVECTOR3 rot = m_pUnitViewerUI->GetMatrix().GetRotate();
+				int degree = (int)D3DXToDegree( rot.y );
+				m_fRemainRotY = D3DXToRadian( degree % 360 );
+			}
+			CX2UnitViewerUI::SetUnitClicked( false );
+		}
+		break;
+	}
+
+	return CX2State::MsgProc( hWnd, uMsg, wParam, lParam );
+}
+
+void CX2StateServerSelect::SetShowSelectUnitInfo( CX2Unit * pUnit )
+{
+	if ( NULL != m_pDLGUnitSelectBack )
+	{
+		if ( NULL != static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectBack->GetControl(L"SelectUnitInfo") ) )
+		{
+			CKTDGUIStatic* pGameStartStatic = static_cast<CKTDGUIStatic*>(m_pDLGUnitSelectBack->GetControl(L"SelectUnitInfo") );
+
+			if ( NULL != pUnit )
+			{
+				wstringstream wstringstreamLevelInfo;
+				wstringstreamLevelInfo << L"Lv. " << pUnit->GetUnitData().m_Level;		
+				pGameStartStatic->SetShow( true );
+				pGameStartStatic->SetString( 0, wstringstreamLevelInfo.str().c_str() );
+				wstring wstrNickname = pUnit->GetNickName();
+				if ( -1 != wstrNickname.find ( L"__DELETED__") )
+				{
+					wstrNickname = GET_STRING(STR_ID_29404);//닉네임 변경
+				}
+				pGameStartStatic->SetString( 1, wstrNickname.c_str() );
+			}
+			else
+			{
+				pGameStartStatic->SetShow( false );
+			}
+		}
+	}
+}
+
+void CX2StateServerSelect::ClearChannelButton()
+{
+	for(UINT i=0; i<m_vecChannelSlot.size(); ++i)
+	{
+		CKTDGUIDialogType pChannelSlot =  m_vecChannelSlot[i];
+		SAFE_DELETE_DIALOG(pChannelSlot);
+	}
+	m_vecChannelSlot.resize(0);
+	m_pSelectChannelButton = NULL;
+}
+
+void CX2StateServerSelect::ChangeSelectUnitStandMeshInstance ( CX2Unit::UNIT_TYPE eUnitType_ )
+{
+
+	if ( NULL != g_pData->GetUIMajorXMeshPlayer() && NULL != g_pData->GetUIEffectSet() )
+	{
+		wstring wstrName = L"";
+		std::vector<wstring> vecWstrName;
+
+		if ( NULL != g_pData->GetUIMajorXMeshPlayer() )
+		{
+			BOOST_FOREACH( CKTDGXMeshPlayer::CXMeshInstanceHandle hStandMeshInst, m_vecStandMeshInst )
+			{	
+				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( hStandMeshInst );
+			}
+			m_vecStandMeshInst.clear();
+		}
+		g_pData->GetUIEffectSet()->StopEffectSet( m_hStandEffect );
+
+		switch ( eUnitType_ )	
+		{
+		case CX2Unit::UT_ELSWORD : 
+			vecWstrName.push_back(L"Dummy_Village_Board1");
+			wstrName = L"EffectSet_Elsword_Stand_Aura";
+			break;
+		case CX2Unit::UT_ARME : 
+			vecWstrName.push_back(L"Dummy_Village_Board2");
+			wstrName = L"EffectSet_Aisha_Stand_Aura";
+			break;
+		case CX2Unit::UT_LIRE : 
+			vecWstrName.push_back(L"Dummy_Village_Board3");
+			vecWstrName.push_back(L"Dummy_Village_Board10");
+			wstrName = L"EffectSet_Rena_Stand_Aura";
+			break;
+		case CX2Unit::UT_RAVEN : 
+			vecWstrName.push_back(L"Dummy_Village_Board4");
+			wstrName = L"EffectSet_Revan_Stand_Aura";
+			break;
+		case CX2Unit::UT_EVE : 
+			vecWstrName.push_back(L"Dummy_Village_Board5");
+			wstrName = L"EffectSet_Eve_Stand_Aura";
+			break;
+#ifdef NEW_CHARACTER_CHUNG
+		case CX2Unit::UT_CHUNG : 
+			vecWstrName.push_back(L"Dummy_Village_Board6");
+			wstrName = L"EffectSet_Chung_Stand_Aura";
+			break;
+#endif // NEW_CHARACTER_CHUNG
+
+#ifdef ARA_CHARACTER_BASE
+		case CX2Unit::UT_ARA : 
+			vecWstrName.push_back(L"Dummy_Village_Board7");
+			wstrName = L"EffectSet_Ara_Stand_Aura";
+			break;
+#endif // ARA_CHARACTER_BASE
+
+#ifdef NEW_CHARACTER_EL
+		case CX2Unit::UT_ELESIS : 
+			vecWstrName.push_back(L"Dummy_Village_Board8");
+			wstrName = L"EffectSet_Elsword_Stand_Aura";
+			break;
+#endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER
+		case CX2Unit::UT_ADD : 
+			vecWstrName.push_back(L"Dummy_Village_Board9");
+			wstrName = L"EffectSet_Add_Stand_Aura";
+			break;
+#endif // SERV_9TH_NEW_CHARACTER
+		default : 
+			ASSERT ( !L"Wrong Unit Type");
+			return ;
+		}
+		BOOST_FOREACH( wstring wstrName, vecWstrName )
+		{	
+			CKTDGXMeshPlayer::CXMeshInstance* pMeshStandInst = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( m_pUnitViewerUI, 
+				wstrName.c_str(), m_pUnitViewerUI->GetMatrix().GetPos(), 
+				D3DXVECTOR3( 0, 0, 0 ), D3DXVECTOR3( 0, 0, 0 ) );
+
+			if( NULL != pMeshStandInst )
+			{
+				D3DXVECTOR3 vRot = pMeshStandInst->GetRotateLocalDegree();
+				//vRot.y -= 7.45f;
+				//vRot.z -= 2.75f;
+				//pMeshStandInst->SetRotateLocalDegree( vRot );
+				m_vecStandMeshInst.push_back(pMeshStandInst->GetHandle());
+			}
+		}
+		if( m_vecStandMeshInst.empty() == false )
+			m_hStandEffect = g_pData->GetUIEffectSet()->PlayEffectSetByMeshPlayer(wstrName.c_str(), m_vecStandMeshInst[0], CX2EffectSet::ET_MESH_PLAYER_UI_MAJOR );
+	}
+}
+/** @function : ChangeToCharacterSelectUI
+	@brief : 채널 선택창에서 '캐릭터 선택창'으로 이동
+*/
+void CX2StateServerSelect::MoveToCharacterSelectUI()
+{
+	SetShowServerStateButtonSet ( true, false );
+	ClearUnitButton( false );
+	ChangeUnitButtonInfo();
+	ClearChannelButton ();
+	if( NULL != m_pUnitViewerUI )
+		m_pUnitViewerUI->PlayByMotionType( CX2UnitViewerUI::UVUMT_WAIT ); 
+	m_bPlayDownAnim = false;
+}
+bool CX2StateServerSelect::Handler_EGS_CHARACTER_LIST_REQ()
+{
+	g_pData->GetServerProtocol()->SendID( EGS_CHARACTER_LIST_REQ );
+	g_pMain->AddServerPacket( EGS_CHARACTER_LIST_ACK );
+	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+
+	m_pDLGMsgBox = g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_720 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_No_Button.lua", D3DXVECTOR2 (0, 0), L"UI_PopUp_Positive_01.ogg" );
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+	m_pDLGWaitingCharacterList = m_pDLGMsgBox;
+#endif // FIX_REFORM_ENTRY_POINT_10TH	// kimjh, 캐릭터 리스트 못받으면 재접속 유도
+	return true;
+}
+
+
+bool CX2StateServerSelect::Handler_EGS_CHARACTER_LIST_ACK ( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_CHARACTER_LIST_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if( true == g_pMain->DeleteServerPacket( EGS_CHARACTER_LIST_ACK ) )
+	{
+	
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+#ifdef FIX_REFORM_ENTRY_POINT_7TH		// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 )
+			if ( true == m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection &&
+				true == m_bSend_EGS_SELECT_UNIT_REQ_For_Auto_Connection &&
+				NULL != m_pSelectUnit )
+			{
+				if ( NULL != g_pMain->GetSecurityPad() )
+				{
+					if ( true == g_pMain->GetSecurityPad()->GetUseSecondPW () && 
+						( m_bEnableUnitSelectBySecondSecurity == true || 
+							g_pMain->GetSecurityPad()->GetIsAutoAuthoritySecondSecurityBegin() == true ) )
+					{
+						g_pMain->GetSecurityPad()->Handler_EGS_GET_SECOND_SECURITY_INFO_REQ();
+					}
+				
+					else
+					{
+						Handler_EGS_SELECT_UNIT_REQ( m_pSelectUnit->GetUID(), m_pSelectUnit->GetUnitData().m_Level );
+					}				
+				}				
+			}
+			else
+#endif // FIX_REFORM_ENTRY_POINT_7TH	// kimjh, 진입 구조 개편, 7차 수정 사항 ( 보안 큐브 및 복귀 유저 보상 받을 수 있도록 수정 ) 
+			{
+				ClearBeforeUnit( m_pSelectUnit );
+				ClearUnitButton();
+
+				SetShowSelectUnitInfo( NULL );
+				if ( NULL != g_pData->GetUIMajorXMeshPlayer() )
+				{
+					BOOST_FOREACH( CKTDGXMeshPlayer::CXMeshInstanceHandle hStandMeshInst, m_vecStandMeshInst )
+					{	
+						g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( hStandMeshInst );
+					}
+					m_vecStandMeshInst.clear();
+				}
+				if( NULL != g_pData->GetUIEffectSet() )
+				{
+					g_pData->GetUIEffectSet()->StopEffectSet(m_hStandEffect);
+				}
+
+				g_pData->GetMyUser()->DeleteAllUnit();
+				g_pInstanceData->ClearUserUnitDataInServer ();
+
+				typedef std::map< int, int > ServerGroupUnitMaxMany;
+				map < SEnum::SERVER_GROUP_ID, int > mapServerMaxUnitNumber;
+				int iMaxUnitNumberAllServerGroup = 0;
+				BOOST_TEST_FOREACH( const ServerGroupUnitMaxMany::value_type&, UnitSlotData, kEvent.m_mapServerGroupUnitSlot )
+				{
+					switch ( UnitSlotData.first )
+					{
+					case SEnum::SGI_SOLES :
+						mapServerMaxUnitNumber.insert( make_pair( SEnum::SGI_SOLES , UnitSlotData.second ) );
+						break;
+					case SEnum::SGI_GAIA :
+						mapServerMaxUnitNumber.insert( make_pair( SEnum::SGI_GAIA , UnitSlotData.second ) );
+						break;
+					}
+					iMaxUnitNumberAllServerGroup += UnitSlotData.second;
+				}
+
+
+				typedef std::map< int, std::vector<KUnitInfo>  > ServerGroupUnitNowMany;
+				map < SEnum::SERVER_GROUP_ID, int > mapServerNowUnitNumber;
+				int iNowUnitNumberAllServerGroup = 0;
+				BOOST_TEST_FOREACH( const ServerGroupUnitNowMany::value_type&, UnitInfo, kEvent.m_mapServerGroupUnitInfo )
+				{
+					int iGroupInfoSize = static_cast<int> ( UnitInfo.second.size() );
+					switch ( UnitInfo.first )
+					{
+					case SEnum::SGI_SOLES :					
+						mapServerNowUnitNumber.insert( make_pair( SEnum::SGI_SOLES , iGroupInfoSize ) );
+						break;
+					case SEnum::SGI_GAIA :
+						mapServerNowUnitNumber.insert( make_pair( SEnum::SGI_GAIA , iGroupInfoSize ) );
+						break;
+					}
+					iNowUnitNumberAllServerGroup += iGroupInfoSize;
+				}
+
+
+				typedef std::map< int, vector<KUnitInfo> >				ServerGroupUnitInfoBeforeSort;
+				typedef std::multimap< UnitInfoAddData, KUnitInfo, greater<UnitInfoAddData> >		ServerGroupUnitInfoAfterSort;
+
+				ServerGroupUnitInfoAfterSort mapServerGroupUnitInfo;
+
+				BOOST_TEST_FOREACH( const ServerGroupUnitInfoBeforeSort::value_type&, UnitinfoData, kEvent.m_mapServerGroupUnitInfo )
+				{
+					for( int i =0; i < (int)UnitinfoData.second.size(); i++ )
+					{	 
+						CTime ctLastLoginTime;
+#ifdef SERV_UNIT_WAIT_DELETE
+						KncUtil::ConvertStringToCTime( UnitinfoData.second[i].m_wstrLastDate, ctLastLoginTime );
+#else
+						KncUtil::ConvertStringToCTime( UnitinfoData.second[i].m_wstrLastLoginTime, ctLastLoginTime );
+#endif SERV_UNIT_WAIT_DELETE
+					
+						double dwLastLoginTime = KncUtil::TimeToInt( ctLastLoginTime );
+						SEnum::SERVER_GROUP_ID eServerGroupID = static_cast<SEnum::SERVER_GROUP_ID> ( UnitinfoData.first );
+					
+#ifdef FIX_REFORM_ENTRY_POINT_8TH		// kimjh, 진입 구조 개편, 8차 수정 사항 
+						// 유닛 생성 시 정렬하는 Key 값인 마지막 로그인 시간이 분 단위로 갱신됨에 따라 생기는 문제 수정
+						UnitInfoAddData sUnitInfoAddData ( dwLastLoginTime, eServerGroupID, ( GetUidCreatedUnit() == UnitinfoData.second[i].m_nUnitUID ) );
+
+#else // FIX_REFORM_ENTRY_POINT_8TH		// kimjh, 진입 구조 개편, 8차 수정 사항 
+						UnitInfoAddData sUnitInfoAddData ( dwLastLoginTime, eServerGroupID );
+#endif // FIX_REFORM_ENTRY_POINT_8TH	// kimjh, 진입 구조 개편, 8차 수정 사항 
+						mapServerGroupUnitInfo.insert ( std::make_pair( sUnitInfoAddData, UnitinfoData.second[i] ) ); 						
+					}
+				}
+
+				BOOST_TEST_FOREACH( const ServerGroupUnitInfoAfterSort::value_type &, ServerGroupUnitInfo, mapServerGroupUnitInfo )
+				{
+					KUnitInfo kUnitInfo = ServerGroupUnitInfo.second;
+					CX2Unit* pUnit = new CX2Unit( kUnitInfo );
+					pUnit->SetServerGroupID ( ServerGroupUnitInfo.first.m_eServerGroupID );
+					pUnit->SetOwnerUserUID( g_pData->GetMyUser()->GetUID() );
+					wstring nickNameToChange = L"__DELETED__";
+					if ( nickNameToChange == pUnit->GetUnitData().m_NickName )
+					{
+						wstringstream tempNickName;
+						tempNickName << nickNameToChange.c_str(); // << i;
+						pUnit->AccessUnitData().m_NickName = GET_STRING(STR_ID_29404); //닉네임 변경
+					}
+					g_pData->GetMyUser()->AddUnit( pUnit );
+				}
+
+
+				m_MaxUnitNum	= iMaxUnitNumberAllServerGroup;
+#ifdef SERV_UNIT_WAIT_DELETE
+				if( m_bMaintainNowUnitButton == false )
+				{
+					m_NowPage = 1;
+				}
+#else
+				m_NowPage		= 1;
+#endif SERV_UNIT_WAIT_DELETE
+				const int SLOT_COUNT_FOR_CREATE_UNIT = 1;
+
+				if( iNowUnitNumberAllServerGroup < m_MaxUnitNum )
+				{
+					m_MaxPage		= (iNowUnitNumberAllServerGroup + SLOT_COUNT_FOR_CREATE_UNIT+UNIT_SELECT_UI_MAX_UNIT_NUM-1) / UNIT_SELECT_UI_MAX_UNIT_NUM;
+				}
+				else
+				{
+					m_MaxPage		= (iNowUnitNumberAllServerGroup + UNIT_SELECT_UI_MAX_UNIT_NUM - 1 ) / UNIT_SELECT_UI_MAX_UNIT_NUM;
+				}
+
+				typedef std::map< SEnum::SERVER_GROUP_ID, int > ServerGroupUnitMany;
+				
+			
+
+				BOOST_TEST_FOREACH( const ServerGroupUnitMany::value_type &, UnitManyMaxData, mapServerMaxUnitNumber )
+				{
+					ServerGroupUnitMany::const_iterator cit = mapServerNowUnitNumber.find ( UnitManyMaxData.first );
+					if ( cit != mapServerMaxUnitNumber.end() )
+					{
+						g_pInstanceData->AddUserUnitDataInServer ( UnitManyMaxData.first, cit->second, UnitManyMaxData.second );
+					}
+					else
+					{
+						ASSERT ( !L"Can't Find Server Group ID !");
+					}
+				}
+			
+				CreateUnitButtonNew();
+				ClearUnitButton();
+				ChangeUnitButtonInfo();
+				int iTopCharacterIndex = (m_NowPage - 1) * UNIT_SELECT_UI_MAX_UNIT_NUM;
+#ifdef SERV_UNIT_WAIT_DELETE
+				int iSelectedCharacterIndex = 0;
+				CX2Unit* pUnit = NULL;
+				
+				if( m_bMaintainNowUnitButton == false )
+				{
+					pUnit = g_pData->GetMyUser()->GetUnitByIndex( iTopCharacterIndex );
+				}
+				else
+				{
+					iSelectedCharacterIndex = g_pData->GetMyUser()->GetIndexByUID( m_iSelectUnitUID );
+
+					if( iSelectedCharacterIndex < 0 )
+					{
+						iSelectedCharacterIndex = iTopCharacterIndex;
+					}
+
+					pUnit = g_pData->GetMyUser()->GetUnitByIndex( iSelectedCharacterIndex );
+				}
+#else
+				CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByIndex( iTopCharacterIndex );
+#endif SERV_UNIT_WAIT_DELETE
+				if ( NULL != pUnit )
+				{
+					CreateServerSelectUnitViewerUI ( pUnit );
+#ifdef SERV_UNIT_WAIT_DELETE
+					if( m_bMaintainNowUnitButton == false )
+					{
+						SetFocusUnitButtonByIndex( 0 );
+					}
+					else
+					{
+						SetFocusUnitButtonByIndex( iSelectedCharacterIndex );
+					}
+#else
+					SetFocusUnitButtonByIndex ( 0 );
+#endif SERV_UNIT_WAIT_DELETE
+					m_pSelectUnit = pUnit;
+					SetRightSideFlagColor ( GetUnitKeyColorByUnitType ( m_pSelectUnit->GetType() ) );
+					SetShowSelectUnitInfo ( pUnit );
+					ChangeSelectUnitStandMeshInstance ( pUnit->GetType () );
+					SetBackgroundImageBySelectUnitType ( pUnit->GetType() );
+					SAFE_DELETE_DIALOG ( m_pDLGShowBeforeConnect );
+				}
+				SetShowServerStateButtonSet ( true, false );			
+				m_bReceivedEGS_MY_UNIT_AND_INVENTORY_INFO_LIST_ACK = true;
+
+		#ifdef SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
+				if( NULL != g_pMain && NULL != g_pMain->GetSecurityPad() 
+					&& false == g_pMain->GetSecurityPad()->GetUseSecondPW() )
+				{
+					Handler_EGS_CHECK_THE_ARCHUANGEL_S_COIN_EVENT_LETTER_REQ();
+				}
+		#endif //SERV_ARCHUANGEL_S_COIN_EVENT_GUIDE
+			}
+#ifdef SERV_UNIT_WAIT_DELETE
+			m_bMaintainNowUnitButton = false;
+			m_iSelectUnitUID = 0;
+#endif SERV_UNIT_WAIT_DELETE
+#ifdef FIX_REFORM_ENTRY_POINT_10TH // kimjh, 캐릭터 리스트 못받으면 재접속 유도
+			g_pInstanceData->ResetConnectedChannelID();
+#endif // FIX_REFORM_ENTRY_POINT_10TH // kimjh, 캐릭터 리스트 못받으면 재접속 유도
+		}
+		else
+		{
+			g_pData->DeleteServerProtocol();
+			g_pData->DeleteMyUser();
+		}
+	}
+	SAFE_DELETE_DIALOG( m_pDLGMsgBox );
+	return true;
+}
+
+void CX2StateServerSelect::SetBackgroundImageBySelectUnitType ( CX2Unit::UNIT_TYPE eUnitType_ )
+{
+	if ( NULL != m_pDLGUnitSelectFront->GetStatic_LUA( "Unit_Select_background" ) &&
+		 NULL != m_pDLGUnitSelectFront->GetStatic_LUA( "Unit_Select_background" )->GetPicture(0) )
+	{
+		m_pDLGUnitSelectFront->GetStatic_LUA( "Unit_Select_background" )->GetPicture(0)->SetTex ( L"DLG_Unit_Background.tga", L"Unit_Background" );
+	}
+	m_pDLGUnitSelectFront->GetStatic_LUA( "Unit_Select_background" )->SetEnableLeftTop( D3DXVECTOR2 ( 0.f, 0.f ) );
+	wstring wstrFileName = L"";
+	switch ( eUnitType_ )
+	{
+		case CX2Unit::UT_NONE :
+			return ;
+		case CX2Unit::UT_ELSWORD :
+			wstrFileName = L"DLG_Unit_Background_elsword.tga";
+			break;
+		case CX2Unit::UT_LIRE :
+			wstrFileName = L"DLG_Unit_Background_rena.tga";
+			break;
+		case CX2Unit::UT_ARME :
+			wstrFileName = L"DLG_Unit_Background_aisha.tga";
+			break;
+		case CX2Unit::UT_RAVEN :
+			wstrFileName = L"DLG_Unit_Background_raven.tga";
+			break;
+		case CX2Unit::UT_EVE :
+			wstrFileName = L"DLG_Unit_Background_eve.tga";
+			break;
+#ifdef	NEW_CHARACTER_CHUNG
+		case CX2Unit::UT_CHUNG :
+			wstrFileName = L"DLG_Unit_Background_chung.tga";
+			break;
+#endif // NEW_CHARACTER_CHUNG
+
+#ifdef ARA_CHARACTER_BASE
+		case CX2Unit::UT_ARA :
+			wstrFileName = L"DLG_Unit_Background_ara.tga";
+			break;
+#endif // ARA_CHARACTER_BASE
+
+#ifdef NEW_CHARACTER_EL
+		case CX2Unit::UT_ELESIS :
+			wstrFileName = L"DLG_Unit_Background_elesis.tga";
+			break;
+#endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER
+		case CX2Unit::UT_ADD :
+			wstrFileName = L"DLG_Unit_Background_add.tga";
+			break;
+#endif // SERV_9TH_NEW_CHARACTER 
+	}
+	
+	if ( NULL != m_pDLGUnitSelectFront->GetStatic_LUA( "Unit_Select_background" ) && 
+		 NULL != m_pDLGUnitSelectFront->GetStatic_LUA( "Unit_Select_background" )->GetPicture(0) )
+	{
+		m_pDLGUnitSelectFront->GetStatic_LUA( "Unit_Select_background" )->GetPicture(0)->SetTex ( wstrFileName.c_str() );
+	}
+	
+}
+
+
+void CX2StateServerSelect::CreateUnitButtonNew ()
+{
+	
+	CKTDGUIDialogType pUnitSlot = NULL;
+	CKTDGUIButton* pButton = NULL;
+	
+	for(UINT i=0; i<m_vecUnitSlot.size(); ++i)
+	{
+		CKTDGUIDialogType pUnitSlot =  m_vecUnitSlot[i];
+		SAFE_DELETE_DIALOG(pUnitSlot);
+	}
+	m_vecUnitSlot.resize(0);
+	
+	
+	for( int j = 0; j < UNIT_SELECT_UI_MAX_UNIT_NUM; j++ )
+	{
+		pUnitSlot = new CKTDGUIDialog( this, L"DLG_UI_Character_Selection_Slot_New.lua" );
+
+		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( pUnitSlot );
+		pUnitSlot->SetShowEnable(true, true);
+		m_vecUnitSlot.push_back(pUnitSlot);		
+	}
+}
+void CX2StateServerSelect::ChangeUnitButtonInfo ()
+{
+	if ( NULL != m_pDLGUnitSelectFront && true != m_vecUnitSlot.empty() )
+	{
+		CKTDGUIStatic* pStaticUnitPage = static_cast<CKTDGUIStatic*> ( m_pDLGUnitSelectFront->GetControl( L"number" ) );
+		if ( NULL != pStaticUnitPage )
+		{
+			WCHAR buff[256] = {0,};
+			StringCchPrintf( buff, 256, L"%d / %d", m_NowPage, m_MaxPage );	
+			pStaticUnitPage->GetString(0)->msg = buff;
+		}
+
+
+		m_bIsAbledStateCreateUnitButton = true;
+#ifdef REFORM_ENTRY_POINT_FOR_ONE_SERVER_GROUP
+		if ( g_pInstanceData->GetMaxUserUnitManyInServer( SEnum::SGI_SOLES ) <= g_pInstanceData->GetNowUserUnitManyInServer( SEnum::SGI_SOLES ) )
+#else
+		if ( g_pInstanceData->GetMaxUserUnitManyInServer( SEnum::SGI_GAIA ) <= g_pInstanceData->GetNowUserUnitManyInServer( SEnum::SGI_GAIA ) 
+			&& g_pInstanceData->GetMaxUserUnitManyInServer( SEnum::SGI_SOLES ) <= g_pInstanceData->GetNowUserUnitManyInServer( SEnum::SGI_SOLES ) )
+#endif REFORM_ENTRY_POINT_FOR_ONE_SERVER_GROUP
+		{
+			m_bIsAbledStateCreateUnitButton = false;
+		}
+		else if ( m_iCreateUnitTodayCount >= TODAY_CREATE_UNIT_MAX_NUMBER )
+		{
+			m_bIsAbledStateCreateUnitButton = false;
+		}
+
+
+
+
+
+
+		bool bIsNoCreateUnitButtonDrow = false;
+		int i = (m_NowPage - 1)*UNIT_SELECT_UI_MAX_UNIT_NUM;
+		int j = 0;
+		for( ; j < UNIT_SELECT_UI_MAX_UNIT_NUM; i++, j++ )
+		{
+			CX2Unit* pUnit = g_pData->GetMyUser()->GetUnitByIndex( i );
+			
+			CKTDGUIDialogType pUnitSlot = m_vecUnitSlot[j];
+
+			D3DXVECTOR3 dummyPos = m_pDLGUnitSelectFront->GetDummyPos( j );
+			D3DXVECTOR2 buttonPos = D3DXVECTOR2( dummyPos.x, dummyPos.y );
+			pUnitSlot->SetPos(buttonPos);
+
+			CKTDGUIButton* pSelectUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 0 ) );
+			CKTDGUIButton* pCreateUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 1 ) );
+			CKTDGUIButton* pNoCreateUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 2 ) );
+			CKTDGUIButton* pEmptyUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 3 ) );
+			CKTDGUIButton* pFullUnitButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 4 ) );
+
+			if ( NULL != pSelectUnitButton && NULL != pCreateUnitButton && NULL != pNoCreateUnitButton && NULL != pEmptyUnitButton && NULL != pFullUnitButton )
+			{							
+				pSelectUnitButton->SetDownStateAtNormal( false );
+			
+				if( NULL == pUnit )
+				{			
+					if ( false == bIsNoCreateUnitButtonDrow )
+					{
+						if ( g_pInstanceData->GetMaxUserUnitManyInServer( SEnum::SGI_GAIA ) <= g_pInstanceData->GetNowUserUnitManyInServer( SEnum::SGI_GAIA ) 
+							&& g_pInstanceData->GetMaxUserUnitManyInServer( SEnum::SGI_SOLES ) <= g_pInstanceData->GetNowUserUnitManyInServer( SEnum::SGI_SOLES ) )
+						{
+							pFullUnitButton->SetShowEnable ( true, true );
+						}
+						else if ( m_iCreateUnitTodayCount >= TODAY_CREATE_UNIT_MAX_NUMBER )
+						{
+							pNoCreateUnitButton->SetShowEnable( true, true );
+						}
+						else
+						{
+							pCreateUnitButton->SetShowEnable ( true, true );
+						}
+						bIsNoCreateUnitButtonDrow = true;
+					}
+					else
+					{
+						pEmptyUnitButton->SetShowEnable( true, true );
+					}
+
+					continue;
+				}
+				else
+				{
+					pSelectUnitButton->SetShowEnable( true, true );
+				}
+			}
+			
+#ifndef REFORM_ENTRY_POINT
+			CKTDGUIStatic* pStaticEmblem = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"UnitEmblem" ) );
+			if ( NULL != pStaticEmblem )		
+			{
+				pStaticEmblem->SetShow ( true );
+				pStaticEmblem->GetPicture(0)->SetShow( true );
+
+				if ( NULL != g_pMain->GetPVPEmblem() )
+				{
+					CX2PVPEmblem::PVPEmblemData* pPVPEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pUnit->GetPvpRank() );
+					if ( pPVPEmblemData != NULL )
+					{
+						pStaticEmblem->GetPicture(0)->SetTex( pPVPEmblemData->m_TextureName.c_str(), pPVPEmblemData->m_TextureKey.c_str() );
+					}
+				}
+			}
+#endif //REFORM_ENTRY_POINT
+
+			switch( pUnit->GetType() )
+			{
+			case CX2Unit::UT_ELSWORD:
+			case CX2Unit::UT_LIRE:
+			case CX2Unit::UT_ARME:
+			case CX2Unit::UT_RAVEN:
+			case CX2Unit::UT_EVE:
+
+	#ifdef	NEW_CHARACTER_CHUNG
+			case CX2Unit::UT_CHUNG:
+	#endif	// NEW_CHARACTER_CHUNG
+
+	#ifdef ARA_CHARACTER_BASE
+			case CX2Unit::UT_ARA:
+	#endif // ARA_CHARACTER_BASE
+
+	#ifdef NEW_CHARACTER_EL
+			case CX2Unit::UT_ELESIS:
+	#endif // NEW_CHARACTER_EL
+
+	#ifdef SERV_9TH_NEW_CHARACTER 
+			case CX2Unit::UT_ADD:
+	#endif //SERV_9TH_NEW_CHARACTER
+				break;
+
+
+			default:
+				{
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375), GET_STRING( STR_ID_707 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 (0, 0),L"UI_PopUp_Negative_01.ogg" );
+				}break;
+			}
+			XSkinMeshReady( pUnit->GetUnitTemplet()->m_MotionFile.c_str() );
+
+
+			wstringstream buttonName;
+			buttonName << L"SLOT_BUTTON_" << pUnit->GetUID();
+			if( NULL != pSelectUnitButton )
+			{
+				pSelectUnitButton->SetName( buttonName.str().c_str() );
+			}
+		
+			CKTDGUIStatic* pStaticLV = (CKTDGUIStatic*)pUnitSlot->GetControl( L"lv" );
+			if ( NULL != pStaticLV)
+			{
+				pStaticLV->SetShow ( true );
+			}
+			
+			WCHAR buff[256] = {0,};
+			StringCchPrintf( buff, 256, L"%d", static_cast<int> ( pUnit->GetUnitData().m_Level ) );
+			CKTDGUIStatic* pStaticLVNum = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"StaticUnitSelectStringLVNum" ) );
+			
+			if ( NULL != pStaticLVNum )
+			{
+				pStaticLVNum->SetShow ( true );
+				pStaticLVNum->GetString(0)->msg = buff;
+			}
+
+			CKTDGUIStatic* pStaticID = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"StaticUnitSelectStringID" ) );
+			if ( NULL != pStaticID )
+			{
+				pStaticID->SetShow ( true );
+			}
+
+			CKTDGUIStatic* pStaticChangeNickEmblem = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"ChangeNick" ) );
+			
+
+			CKTDGUIStatic* pStaticChangeNickMessage = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"standby" ) );
+			
+			if ( pStaticChangeNickEmblem != NULL && pStaticChangeNickMessage != NULL )
+			{
+				wstring tempNickName = pUnit->GetNickName();
+
+				if ( tempNickName.find( L"__DELETED__") != -1 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+					|| tempNickName.find( GET_STRING(STR_ID_29404) ) != -1
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+					)
+				{
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+					if( NULL != pStaticID )
+					{
+						pStaticID->GetString(0)->msg = GET_STRING(STR_ID_29412);
+						pStaticID->SetOffsetPos(D3DXVECTOR2(-22,-3));
+					}
+					
+					pStaticChangeNickEmblem->SetShowEnable( true, true );
+					if( NULL != pStaticLVNum && NULL != pStaticLV )
+					{
+						pStaticLVNum->SetShow ( false );
+						pStaticLV->SetShow ( false );
+					}
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+					pStaticID->GetString(0)->msg = L"     ?";
+					pStaticChangeNickEmblem->SetShowEnable( true, true );
+					pStaticChangeNickMessage->SetShowEnable( true, true );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+				}
+				else
+				{
+					pStaticID->GetString(0)->msg = pUnit->GetNickName();
+					pStaticID->SetOffsetPos(D3DXVECTOR2(0,0));
+					pStaticChangeNickEmblem->SetShowEnable( false, false );
+					pStaticChangeNickMessage->SetShowEnable( false, false );
+				}
+			}
+			CKTDGUIStatic* pStaticLastPlace = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"StaticUnitSelectStringID_LastPlace" ) );
+			if ( NULL != pStaticLastPlace )
+			{
+				pStaticLastPlace->SetShow ( true );
+				
+				wstring wstringLastPlace = L"";
+				if ( pUnit->GetServerGroupID() == SEnum::SGI_GAIA )
+				{
+					wstringLastPlace = L"#C007000";
+					wstringLastPlace += GET_STRING(STR_ID_4835);
+					wstringLastPlace += L"#CX";
+					wstringLastPlace += L" : ";
+				}
+				else
+				{
+					wstringLastPlace = L"#CFF0000";
+					wstringLastPlace += GET_STRING(STR_ID_4836);
+					wstringLastPlace += L"#CX";
+					wstringLastPlace += L" : ";
+				}
+
+				if ( NULL != g_pData->GetLocationManager() )
+				{
+					int iMapID = pUnit->GetUnitData().m_nMapID;
+					
+					wstring wstrLastPlace = L""; 
+
+					if ( iMapID >= SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01 && SEnum::VMI_BATTLE_FIELD_END > iMapID )
+					{
+						CX2BattleFieldManager& battleFieldManager = g_pData->GetBattleFieldManager();
+						wstrLastPlace = battleFieldManager.GetBattleFieldNameByBattleFieldId( iMapID );
+					}
+
+					else if ( iMapID == SEnum::VMI_TUTORIAL )
+					{
+						wstrLastPlace = GET_STRING(STR_ID_2761);
+					}
+					else
+					{
+						CX2LocationManager::VillageTemplet* pVillageTemplet = g_pData->GetLocationManager()->GetVillageMapTemplet( (SEnum::VILLAGE_MAP_ID) iMapID );
+						if ( NULL != pVillageTemplet )
+						{
+							wstrLastPlace = pVillageTemplet->m_Name;
+						}
+
+					}
+					
+					wstringLastPlace += wstrLastPlace.c_str();
+#ifdef SERV_GLOBAL_COMMON
+					if ( wstringLastPlace.length() >= 40 )
+					{
+						wstringLastPlace = wstringLastPlace.substr(0, 38);
+						wstringLastPlace += L"..";
+					}
+#else //SERV_GLOBAL_COMMON
+					if ( wstringLastPlace.length() >= 24 )
+					{
+						wstringLastPlace = wstringLastPlace.substr(0, 22);
+						wstringLastPlace += L"..";
+					}
+#endif //SERV_GLOBAL_COMMON
+					pStaticLastPlace->GetString(0)->msg = wstringLastPlace.c_str();
+				}
+				
+
+			
+			}
+
+			CKTDGUIStatic* pStaticUnitFace = static_cast<CKTDGUIStatic*> ( pUnitSlot->GetControl( L"UnitFace" ) );
+			if ( NULL != pStaticUnitFace )
+			{
+				pStaticUnitFace->SetShow ( true );
+				wstring fileName, pieceName;		
+				if ( true == CX2Data::GetCharacterImageName( fileName, pieceName, pUnit->GetClass(), CX2Data::CIT_UnitSlot ) )
+				{				
+					CKTDGUIControl::CPictureData* pPictureData = pUnitSlot->CreatePicture();
+					pStaticUnitFace->AddPicture ( pPictureData );
+					pPictureData->SetTex ( fileName.c_str(), pieceName.c_str() );
+					CKTDGUIControl::UIPointData* pPointData = new CKTDGUIControl::UIPointData();
+					pPointData->leftTopPoint = D3DXVECTOR2 ( 23, 11 );
+#ifdef SERV_UNIT_WAIT_DELETE
+					if( pUnit->GetUnitData().m_bDeleted == true )
+					{
+						pPointData->color = D3DXCOLOR ( 0.5f, 0.5f, 0.5f, 0.5f );
+					}
+					else
+					{
+						pPointData->color = D3DXCOLOR ( 1.0f, 1.0f, 1.0f, 1.0f );
+					}
+#else
+					pPointData->color = D3DXCOLOR ( 1.0f, 1.0f, 1.0f, 1.0f );
+#endif SERV_UNIT_WAIT_DELETE
+					pPictureData->SetPoint ( pPointData );
+					pPictureData->SetSize( D3DXVECTOR2 ( 38, 38 ) );
+				}
+			}
+
+			if ( pUnit == m_pSelectUnit )
+			{
+				CKTDGUIButton* pCharButton = reinterpret_cast<CKTDGUIButton*>( pUnitSlot->GetControl( 0 ) );
+				pCharButton->SetDownStateAtNormal( true );
+			}
+		}
+		PlayDownAnim();
+	}
+}
+
+bool CX2StateServerSelect::Handler_EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{	
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_GET_CREATE_UNIT_TODAY_COUNT_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if( g_pMain->DeleteServerPacket( EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK ) == true )
+	{
+		typedef std::map< int, int > TodayCreateUnitCount;
+		
+		BOOST_TEST_FOREACH( const TodayCreateUnitCount::value_type&, Count, kEvent.m_mapCreateCharCountToday )
+		{
+			switch ( Count.first )
+			{
+				case SEnum::SGI_SOLES :
+					m_iCreateUnitTodayCount += Count.second;
+					break;
+
+				case SEnum::SGI_GAIA :
+					m_iCreateUnitTodayCount += Count.second;
+					break;
+
+				default :
+					break;
+			}
+		}		
+	}
+	return true;
+}
+
+bool CX2StateServerSelect::Handler_EGS_GET_CREATE_UNIT_TODAY_COUNT_REQ ()
+{
+	g_pData->GetServerProtocol()->SendID( EGS_GET_CREATE_UNIT_TODAY_COUNT_REQ );
+	g_pMain->AddServerPacket( EGS_GET_CREATE_UNIT_TODAY_COUNT_ACK );
+	return true;
+}
+
+
+void CX2StateServerSelect::Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ ()
+{
+	g_pData->GetServerProtocol()->SendID( EGS_ENTRY_POINT_GET_CHANNEL_LIST_REQ );
+	g_pMain->AddServerPacket( EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK );
+}
+bool CX2StateServerSelect::Handler_EGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_ENTRY_POINT_GET_CHANNEL_LIST_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+#ifdef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+	SAFE_DELETE_DIALOG ( m_pDLGMsgBox );
+	ClearUnitButton ( false );
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+
+#ifdef FIX_2ND_CHANNEL_TO_FIRST_ALIGN_BUG
+#pragma region Auto Keyword
+	//////////////////////////////////////////////////////////////////////////
+	// 1. 보너스 채널 설정하고,
+	// 1. 채널 보너스 정보를 순회하여, 추천 레벨에 해당하는 채널의 ID얻기
+	auto SetChannelBonusInfo = [](  IN const int iSelectedUnitLevel_, 
+									IN const std::map< int, KChannelBonusInfo >& kPacketChannelBonus_, 
+									OUT vector<int>& vecRecommandedLevelChannelID_,
+									OUT map< int, KChannelBonusInfo >& mapChannelBonusInfo_ ) 
+	{
+		std::map< int, KChannelBonusInfo >::const_iterator mitChannelBonusInfo = // key : 채널 ID, second : 보너스 정보
+			kPacketChannelBonus_.begin();
+				
+		for( ; mitChannelBonusInfo != kPacketChannelBonus_.end(); ++mitChannelBonusInfo )
+		{
+			const int& iChannelID = mitChannelBonusInfo->first;
+
+			if ( mitChannelBonusInfo->second.m_iBeginLv <= iSelectedUnitLevel_ && iSelectedUnitLevel_ <= mitChannelBonusInfo->second.m_iEndLv )
+				vecRecommandedLevelChannelID_.push_back( iChannelID );
+				
+			/*# TODO : 자료를 중복해서 저장하고 있음.
+			개선 방안 1 ) 전체 서버의 보너스 정보를 담는 컨테이너 제거.
+						2 ) 전체 서버의 보너스 정보 담는 곳에 , 서버 구분 추가하기.*/
+
+			g_pInstanceData->m_mapChannelBonusInfo.insert( std::make_pair(iChannelID, mitChannelBonusInfo->second) );
+			mapChannelBonusInfo_.insert( std::make_pair ( iChannelID, mitChannelBonusInfo->second ) ); 		
+		}
+
+	};
+
+	//////////////////////////////////////////////////////////////////////////
+	// 채널 리스트 설정(추천 레벨에 해당하는 채널은 상위에 배치)
+	auto SetChannelList = []( IN const std::map< int, KChannelInfo >& kPacketChannelList_, 
+							IN const vector<int>& vecRecommandedLevelChannelID_,
+							OUT vector< KChannelInfo >& vecChannelInfo ) 
+	{
+
+		// #1 추천 레벨에 해당하는 채널 먼저 추가하기
+		std::map< int, KChannelInfo >::const_iterator mitChannelInfo;
+		BOOST_FOREACH( const int& iChannelID, vecRecommandedLevelChannelID_ )
+		{
+			mitChannelInfo = kPacketChannelList_.find( iChannelID );
+			if( mitChannelInfo != kPacketChannelList_.end() )
+				vecChannelInfo.push_back( mitChannelInfo->second );
+		}
+
+		// #2 추천 레벨 이외 채널 추가하기
+
+		mitChannelInfo = kPacketChannelList_.begin();
+		for( ; mitChannelInfo != kPacketChannelList_.end(); ++ mitChannelInfo )
+		{
+			bool bAredyInsert = false;
+			BOOST_FOREACH( const int& iChannelID, vecRecommandedLevelChannelID_ )
+			{
+				if( iChannelID == mitChannelInfo->first )
+					bAredyInsert = true;
+			}
+
+			if( false == bAredyInsert )
+				vecChannelInfo.push_back( mitChannelInfo->second );
+
+			// 정렬되면 안 되기 때문에 g_pInstanceData->m_vecChannelInfo는 따로 처리
+			g_pInstanceData->m_vecChannelInfo.push_back( mitChannelInfo->second );
+		}
+	};
+#pragma endregion Auto Keyword
+
+	SEnum::SERVER_GROUP_ID eSelectedCharacterServerGroupID = SEnum::SGI_INVALID;
+	if ( NULL != m_pSelectUnit )
+	{
+		eSelectedCharacterServerGroupID = m_pSelectUnit->GetServerGroupID();
+#ifdef FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+		// 자기 자리에 서버 올렸을 때 발생하는 오류에 대한 임시 예외 처리
+		if( SEnum::SGI_END <= eSelectedCharacterServerGroupID)
+			eSelectedCharacterServerGroupID = SEnum::SGI_SOLES;
+#endif // FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+	}
+	else
+	{
+		// 캐릭터가 선택되지 않았다면 더 이상 진행 하면 안 됨.
+		return true;
+	}
+	ASSERT( SEnum::SGI_INVALID != eSelectedCharacterServerGroupID );
+
+	InitChannelInfo();
+
+	vector<int> vecRecommandedLevelChannelID;
+	switch( eSelectedCharacterServerGroupID )
+	{
+	case SEnum::SGI_SOLES:
+		{
+			// 채널 보너스 정보를 순회하여, 추천 레벨에 해당하는 채널의 ID얻기
+			// m_pSelectUnit 관련 널처리는 위에서 처리
+			SetChannelBonusInfo( m_pSelectUnit->GetUnitData().m_Level, kEvent.m_mapSolesChannelBonusList, 
+								vecRecommandedLevelChannelID, m_mapSolesChannelBonusInfo );
+
+			// 추천 레벨 채널을 상위에 배치 하여 채널 목록 추가
+			m_vecSolesChannelInfo.reserve( kEvent.m_mapSolesChannelList.size() );
+			SetChannelList( kEvent.m_mapSolesChannelList, vecRecommandedLevelChannelID, m_vecSolesChannelInfo );
+		} break;
+	case SEnum::SGI_GAIA:
+		{
+			// 채널 보너스 정보를 순회하여, 추천 레벨에 해당하는 채널의 ID얻기
+			SetChannelBonusInfo( m_pSelectUnit->GetUnitData().m_Level, kEvent.m_mapGaiaChannelBonusList, 
+								vecRecommandedLevelChannelID, m_mapGaiaChannelBonusInfo );
+
+			// 추천 레벨 채널을 상위에 배치 하여 채널 목록 추가
+			m_vecGaiaChannelInfo.reserve( kEvent.m_mapGaiaChannelList.size() );
+			SetChannelList( kEvent.m_mapGaiaChannelList, vecRecommandedLevelChannelID, m_vecGaiaChannelInfo );
+		} break;
+	default:
+		break;
+	}
+
+	m_bReserveEnterTutorial = false;
+	m_bReservedConnectionToChannelServer = false;
+
+	if( NULL != g_pInstanceData->GetMiniMapUI() )
+		g_pInstanceData->GetMiniMapUI()->SetChannelComboBox();
+
+	if( g_pMain->GetIsPlayingTutorial() == false )
+		CreateChannelButton ( true );	
+
+	SetShowServerStateButtonSet ( false, true );
+#ifndef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+	ClearUnitButton ( false );
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+	
+#else
+	std::map< int, KChannelBonusInfo >::const_iterator cmit;
+	SEnum::SERVER_GROUP_ID eServerGroupID = SEnum::SGI_INVALID;
+	if ( NULL != m_pSelectUnit )
+	{
+		eServerGroupID = m_pSelectUnit->GetServerGroupID();
+#ifdef FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+		if( SEnum::SGI_END <= eServerGroupID)
+		{
+			eServerGroupID = SEnum::SGI_SOLES;
+		}
+#endif // FORCE_SERVER_GROUP_ID_SETTING_WHEN_ERROR
+	}
+	vector<int> vecRecommandedLevelChannelID;
+	m_mapGaiaChannelBonusInfo.clear();
+	for( cmit = kEvent.m_mapGaiaChannelBonusList.begin() ; cmit != kEvent.m_mapGaiaChannelBonusList.end(); ++cmit )
+	{
+		if ( eServerGroupID == SEnum::SGI_GAIA )
+		{
+			if ( cmit->second.m_iBeginLv <= m_pSelectUnit->GetUnitData().m_Level && m_pSelectUnit->GetUnitData().m_Level <= cmit->second.m_iEndLv )
+				vecRecommandedLevelChannelID.push_back( cmit->first );
+			g_pInstanceData->m_mapChannelBonusInfo.insert( std::make_pair(cmit->first, cmit->second) );
+		}
+
+		m_mapGaiaChannelBonusInfo.insert( std::make_pair ( cmit->first, cmit->second ) ); 		
+	}
+
+	m_mapSolesChannelBonusInfo.clear();
+	for( cmit = kEvent.m_mapSolesChannelBonusList.begin() ; cmit != kEvent.m_mapSolesChannelBonusList.end(); ++cmit )
+	{
+		if ( eServerGroupID == SEnum::SGI_SOLES )
+		{
+			if ( cmit->second.m_iBeginLv <= m_pSelectUnit->GetUnitData().m_Level && m_pSelectUnit->GetUnitData().m_Level <= cmit->second.m_iEndLv )
+				vecRecommandedLevelChannelID.push_back( cmit->first );
+			g_pInstanceData->m_mapChannelBonusInfo.insert( std::make_pair(cmit->first, cmit->second) );
+		}
+		m_mapSolesChannelBonusInfo.insert( std::make_pair ( cmit->first, cmit->second ) ); 		
+	}
+
+
+	std::map< int, KChannelInfo >::const_iterator cit;
+	g_pInstanceData->m_vecChannelInfo.clear();
+	g_pInstanceData->m_mapChannelBonusInfo.clear();
+	m_vecGaiaChannelInfo.clear();
+	for( cit = kEvent.m_mapGaiaChannelList.begin(); cit != kEvent.m_mapGaiaChannelList.end(); cit++ )
+	{
+		KChannelInfo channelInfo = cit->second;
+
+		bool bInsertToFront = false;
+		if ( eServerGroupID == SEnum::SGI_GAIA )
+		{		
+			for ( vector<int>::iterator it = vecRecommandedLevelChannelID.begin(); it != vecRecommandedLevelChannelID.end(); ++it )
+			{
+				if ( (*it) == cit->first )
+				{
+					m_vecGaiaChannelInfo.insert ( m_vecGaiaChannelInfo.begin(), channelInfo );
+					bInsertToFront = true;
+				}
+			}
+			g_pInstanceData->m_vecChannelInfo.push_back( channelInfo );
+		}
+		if ( false == bInsertToFront )
+			m_vecGaiaChannelInfo.push_back( channelInfo );
+	}
+
+	m_vecSolesChannelInfo.clear();
+	for( cit = kEvent.m_mapSolesChannelList.begin(); cit != kEvent.m_mapSolesChannelList.end(); cit++ )
+	{
+		KChannelInfo channelInfo = cit->second;
+
+		bool bInsertToFront = false;
+		if ( eServerGroupID == SEnum::SGI_SOLES )
+		{
+			for ( vector<int>::iterator it = vecRecommandedLevelChannelID.begin(); it != vecRecommandedLevelChannelID.end(); ++it )
+			{
+				if ( (*it) == cit->first )
+				{
+					m_vecSolesChannelInfo.insert ( m_vecSolesChannelInfo.begin(), channelInfo );
+					bInsertToFront = true;
+				}
+			
+			}
+			g_pInstanceData->m_vecChannelInfo.push_back( channelInfo );
+		}
+		if ( false == bInsertToFront )
+			m_vecSolesChannelInfo.push_back( channelInfo );
+	}
+
+
+	if ( m_pSelectUnit != NULL )
+	{
+		g_pInstanceData->GetMiniMapUI()->SetChannelComboBox();
+		m_bReservedConnectionToChannelServer = false;
+
+		m_bReserveEnterTutorial = false;
+		SetShowServerStateButtonSet ( false, true );
+		ClearUnitButton ( false );		
+#ifdef REFORM_ENTRY_POINT
+		if( g_pMain->GetIsPlayingTutorial() == false )
+#endif //REFORM_ENTRY_POINT
+		{
+			CreateChannelButton ( true );	
+		}
+	}
+#endif // FIX_2ND_CHANNEL_TO_FIRST_ALIGN_BUG
+
+	return true;
+}
+#ifdef FIX_2ND_CHANNEL_TO_FIRST_ALIGN_BUG
+void CX2StateServerSelect::InitChannelInfo()
+{
+	// 채널의 보너스 정보 초기화
+	m_mapGaiaChannelBonusInfo.clear();
+	m_mapSolesChannelBonusInfo.clear();
+	g_pInstanceData->m_mapChannelBonusInfo.clear();
+	// 채널 정보 초기화
+	m_vecGaiaChannelInfo.clear();
+	m_vecSolesChannelInfo.clear();
+	g_pInstanceData->m_vecChannelInfo.clear();
+}
+#endif // FIX_2ND_CHANNEL_TO_FIRST_ALIGN_BUG
+
+bool CX2StateServerSelect::Handler_EGS_ENTRY_POINT_CHANGE_NICK_NAME_REQ ( UidType uid, const WCHAR* wszNickName, bool bCheckOnly, SEnum::SERVER_GROUP_ID eGroupID )
+{
+	KEGS_ENTRY_POINT_CHANGE_NICK_NAME_REQ kPacket;
+
+	kPacket.m_iUnitUID		= uid;
+	kPacket.m_wstrNickName	= wszNickName;
+	kPacket.m_bCheckOnly	= bCheckOnly;
+	kPacket.m_iServerGroup	= eGroupID;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_ENTRY_POINT_CHANGE_NICK_NAME_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_CHANGE_NICK_NAME_ACK );
+	return true;
+}
+
+bool CX2StateServerSelect::ChannelButtonUp( CKTDGUIButton * pButton )
+{
+
+#ifdef SERV_SECOND_SECURITY
+	if(m_bEnableUnitSelectBySecondSecurity == false)
+	{
+		return true;
+	}
+#endif SERV_SECOND_SECURITY
+
+#ifdef FIX_REFORM_ENTRY_POINT_3RD		// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+	if ( NULL == m_pSelectUnit )
+		return true;
+#endif // FIX_REFORM_ENTRY_POINT_3RD	// 김종훈, 진입 구조 개편 3차 ( 크래시 ) 수정
+
+	for ( int iChannel = 0;  iChannel < static_cast<int> ( m_vecChannelSlot.size() ); ++iChannel )
+	{
+		CKTDGUIDialogType pChannelSlot =  m_vecChannelSlot[iChannel];
+
+		if ( NULL != pChannelSlot )
+		{	
+			pChannelSlot->SetDownStateToAllButtonType ();
+		}
+	}
+
+	if ( NULL != pButton )
+		pButton->SetDownStateAtNormal( true );
+
+	if ( m_pSelectChannelButton == pButton )
+	{
+#ifdef FIX_REFORM_ENTRY_POINT
+		
+#ifndef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+		int iCheckEntryPointServerChannelIndex = m_pSelectChannelButton->GetDummyInt( 0 );
+		bool bIsConnectable = IsConnectableToGameServer ( m_pSelectUnit->GetServerGroupID(), iCheckEntryPointServerChannelIndex );
+		if ( true == bIsConnectable )
+		{
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING ( STR_ID_29885 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 ( 0, 0 ), L"UI_PopUp_Negative_01.ogg" );
+		}
+#else // FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+		vector< KChannelInfo > * vecChannelInfo = NULL;
+		if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_GAIA )
+		{
+			vecChannelInfo = &m_vecGaiaChannelInfo;
+		}
+		else if ( m_pSelectUnit->GetServerGroupID() == SEnum::SGI_SOLES )
+		{
+			vecChannelInfo = &m_vecSolesChannelInfo;
+		}
+		else 
+		{
+			ASSERT (!L"Can't Find Server Group ID !! ");
+		}
+
+		int iCheckEntryPointServerChannelIndex = m_pSelectChannelButton->GetDummyInt( 0 );
+
+	#ifdef FIX_REFORM_ENTRY_POINT_6TH		// kimjh, 채널 버튼 관련 소스 변경, 진입 구조를 한 곳에서 관리 할 수 있도록 수정
+		float fChannelCongestionRate = 
+			static_cast< float >(  (*vecChannelInfo)[ iCheckEntryPointServerChannelIndex ].m_iCurrentUser ) / static_cast< float >(  (*vecChannelInfo)[ iCheckEntryPointServerChannelIndex ].m_iMaxUser );
+		
+		if ( fChannelCongestionRate >= CHANNEL_CONGESTION_SCOPE_TEMP[3] )
+		{
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING ( STR_ID_29885 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 ( 0, 0 ), L"UI_PopUp_Negative_01.ogg" );
+		}
+	#else // FIX_REFORM_ENTRY_POINT_6TH		// kimjh, 채널 버튼 관련 소스 변경, 진입 구조를 한 곳에서 관리 할 수 있도록 수정
+		if ( (*vecChannelInfo)[ iCheckEntryPointServerChannelIndex ].m_iCurrentUser * 0.9 >= (*vecChannelInfo)[ iCheckEntryPointServerChannelIndex ].m_iMaxUser )
+		{
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(305, 375 ), GET_STRING ( STR_ID_29885 ), this, -1, -1.f, L"DLG_UI_Selection_MessageBox_Ok_Button_New.lua", D3DXVECTOR2 ( 0, 0 ), L"UI_PopUp_Negative_01.ogg" );
+		}
+	#endif // FIX_REFORM_ENTRY_POINT_6TH		// kimjh, 채널 버튼 관련 소스 변경, 진입 구조를 한 곳에서 관리 할 수 있도록 수정
+
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+		else
+#endif // FIX_REFORM_ENTRY_POINT
+		{
+			m_bReserveEnterTutorial = false;
+			m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection = true;
+			m_bSend_EGS_SELECT_UNIT_REQ_For_Auto_Connection = true;
+			m_bENX_USER_LOGIN_NOT		= false;
+			m_bEGS_VERIFY_ACCOUNT_REQ	= false;
+			m_bEGS_VERIFY_ACCOUNT_ACK	= false;
+			m_bPortCheckReq				= false;
+
+			m_bSentEGS_CONNECT_REQ 		= false;
+			m_bReceivedChannelList 		= false;
+#ifdef FIX_REFORM_ENTRY_POINT_4TH				// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+			m_bWaitingEGS_CONNECT_REQ_ChannelButtonUp = true;
+#endif // #ifdef FIX_REFORM_ENTRY_POINT_4TH		// 김종훈, 진입 구조 개편 4차 ( 무한 대기 ) 수정
+
+			if ( NULL != pButton )
+			{
+				int iChIndex = pButton->GetDummyInt ( 0 );// - 1 ) + ( m_iChannelNowPage - 1 ) * CHANNEL_SELECT_UI_MAX_CHANNEL_NUM;
+				m_iReservedEntryPointServerChannelIndex = iChIndex;
+			}
+
+
+			// 게임서버와의 접속을 끊는다				
+		
+			Handler_EGS_DISCONNECT_FOR_SERVER_SELECT_REQ();
+		}
+	}
+	else
+	{
+		m_pSelectChannelButton = pButton;
+	}
+	return true;
+}
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+void CX2StateServerSelect::ConnectToLowerUserCountGameServer ( bool bIsConnectAnotherServerGroup /* = false */  )
+#else  // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+void CX2StateServerSelect::ConnectToLowerUserCountGameServer ()
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+{
+#ifdef FIX_REFORM_ENTRY_POINT_2ND // 김종훈, 진입 구조 개편 수정 2차
+	SEnum::SERVER_GROUP_ID eConnectingServerGroupID = SEnum::SGI_INVALID;
+	if ( NULL != m_pSelectUnit )
+	{
+		eConnectingServerGroupID = m_pSelectUnit->GetServerGroupID();
+	}
+	else
+	{
+		eConnectingServerGroupID = static_cast<SEnum::SERVER_GROUP_ID> ( g_pInstanceData->GetServerGroupID() ); 
+	}
+
+	if ( true == bIsConnectAnotherServerGroup )
+	{
+		// 서버군이 3개 이상 일 시, 아래 소스를 수정해야 합니다.
+		if ( eConnectingServerGroupID == SEnum::SGI_GAIA)
+			eConnectingServerGroupID = SEnum::SGI_SOLES;
+		else if ( eConnectingServerGroupID == SEnum::SGI_SOLES)
+			eConnectingServerGroupID = SEnum::SGI_GAIA;
+		else
+			ASSERT ( !L"Can not Find Server Group ID !");
+	}
+	ASSERT ( eConnectingServerGroupID != SEnum::SGI_INVALID );
+	
+	if ( SEnum::SGI_GAIA == eConnectingServerGroupID )
+	{
+		FindAndConnectLowerUserCountGameServer ( m_vecGaiaChannelInfo );
+	}
+
+	else if ( SEnum::SGI_SOLES == eConnectingServerGroupID )
+	{
+		FindAndConnectLowerUserCountGameServer ( m_vecSolesChannelInfo );
+	}
+	else
+	{
+		ASSERT( !L"Can't Find Server Group ID !");
+	}
+#else  // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+	if ( NULL != m_pSelectUnit )
+	{
+		if ( SEnum::SGI_GAIA == m_pSelectUnit->GetServerGroupID() )
+		{
+			FindAndConnectLowerUserCountGameServer ( m_vecGaiaChannelInfo );
+		}
+
+		else if ( SEnum::SGI_SOLES == m_pSelectUnit->GetServerGroupID() )
+		{
+			FindAndConnectLowerUserCountGameServer ( m_vecSolesChannelInfo );
+		}
+		else
+		{
+			ASSERT( !L"Can't Find Server Group ID !");
+			m_bReConnectChannelServer = true;
+		}
+	}
+
+	else
+	{
+		m_bCanNotConenctToBusyServer = false;
+		if ( SEnum::SGI_GAIA == g_pInstanceData->GetServerGroupID() )
+		{
+			FindAndConnectLowerUserCountGameServer ( m_vecGaiaChannelInfo );
+		}
+		else if ( SEnum::SGI_SOLES == g_pInstanceData->GetServerGroupID() )
+		{
+			FindAndConnectLowerUserCountGameServer ( m_vecSolesChannelInfo );
+		}
+		else
+		{
+			ASSERT( !L"Can't Find Server Group ID !");
+			m_bReConnectChannelServer = true;
+		}
+	}
+#endif // FIX_REFORM_ENTRY_POINT_2TH // 김종훈, 진입 구조 개편 수정 2차
+	
+	
+}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
+#ifdef ADD_PLAY_SOUND //김창한
+void CX2StateServerSelect::PlaySoundSelect( CX2Unit::UNIT_TYPE eUnitType_, SOUND_PLAY_TYPE eSoundPlayType_ )
+{
+	if( g_pKTDXApp->GetDeviceManager() == NULL )
+		return;
+
+	wstring wstrSoundName = L"";
+
+	switch( eUnitType_ )
+	{
+	case CX2Unit::UT_ELSWORD:
+		{
+			wstrSoundName = L"Elsword";
+		} break;
+	case CX2Unit::UT_ARME:
+		{
+			wstrSoundName = L"Aisha";
+		} break;
+	case CX2Unit::UT_LIRE:
+		{
+			wstrSoundName = L"Rena";
+		} break;
+	case CX2Unit::UT_RAVEN:
+		{
+			wstrSoundName = L"Raven";
+		} break;
+	case CX2Unit::UT_EVE:
+		{
+			wstrSoundName = L"Eve";
+		} break;
+	case CX2Unit::UT_CHUNG:
+		{
+			wstrSoundName = L"Chung";
+		} break;
+	case CX2Unit::UT_ARA:
+		{
+			wstrSoundName = L"Ara";
+		} break;
+	case CX2Unit::UT_ELESIS:
+		{
+			wstrSoundName = L"Elesis";
+		} break;
+	case CX2Unit::UT_ADD:
+		{
+			wstrSoundName = L"Add";
+		} break;
+
+	default:
+		break;
+	}
+
+	switch( eSoundPlayType_)
+	{
+	case SPT_UNIT_SELECT:
+		{
+			wstrSoundName += L"Voice_Character_Select.ogg";
+		} break;
+	case SPT_SERVER_SELECT:
+		{
+			wstrSoundName += L"Voice_GameStart.ogg";
+		} break;
+
+	default:
+		break;
+	}
+
+	if( StrCmp( wstrSoundName.c_str(), L"" ) != 0 )
+	{
+		if( NULL != m_pSound )
+		{
+			m_pSound->Stop();
+			SAFE_CLOSE( m_pSound );
+		}
+		m_pSound = g_pKTDXApp->GetDeviceManager()->PlaySound(wstrSoundName.c_str(), false, false );
+	}
+}
+#endif //ADD_PLAY_SOUND
+
+/** @function : IsCharacterSelectUIMode
+	@brief : 현재 채널선택 창인지 확인.
+			 특별한 변수 추가하지 않기 위해 채널리스트로 검사 함
+*/
+bool CX2StateServerSelect::IsChannelSelectMode()
+{
+	// m_vecChannelSlot이 비어있지 않는 상태는 채널 선택창으로 간주 함
+	if( false == m_vecChannelSlot.empty() )
+		return true;
+
+	return false;
+}
+
+#ifdef FIX_REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+void CX2StateServerSelect::FindAndConnectLowerUserCountGameServer ( const vector< KChannelInfo > & vecChannelInfo )
+{
+	int iLowerUserChannelCount = INT_MIN;
+	int iLowerUserChannelIndex = -1;
+	int iLowerUserChannelID = -1;
+	if ( false == vecChannelInfo.empty () )
+	{
+		int iIndex = 0;
+		BOOST_FOREACH ( const KChannelInfo & kChannelInfo, vecChannelInfo )
+		{
+			if ( iLowerUserChannelCount < kChannelInfo.m_iMaxUser - kChannelInfo.m_iCurrentUser )
+			{
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		//	kimjh,  캐릭터 리스트 못받으면 재접속 유도
+				if ( false == g_pInstanceData->IsConnectedChannel( kChannelInfo.m_iServerUID ) )
+#endif // FIX_REFORM_ENTRY_POINT_10TH	//	kimjh,  캐릭터 리스트 못받으면 재접속 유도
+				{
+					iLowerUserChannelCount = kChannelInfo.m_iMaxUser - kChannelInfo.m_iCurrentUser;
+					iLowerUserChannelIndex = iIndex;
+					m_iTryConnectChannelID = kChannelInfo.m_iChannelID;
+					g_pMain->SetConnectedGameServerIP( kChannelInfo.m_wstrIP );
+					g_pMain->SetConnectedGameServerPort( kChannelInfo.m_usMasterPort );
+
+#ifdef FIX_REFORM_ENTRY_POINT_10TH		//	kimjh,  캐릭터 리스트 못받으면 재접속 유도
+					g_pInstanceData->SetConnectedChannelID( kChannelInfo.m_iServerUID  );
+#endif // FIX_REFORM_ENTRY_POINT_10TH	//	kimjh,  캐릭터 리스트 못받으면 재접속 유도
+				}	
+			}
+			++iIndex;
+		}
+		if ( iLowerUserChannelIndex < 0 || iLowerUserChannelCount < INT_MIN ) 
+		{
+			ASSERT ( L"Can't Find Channel Index !");
+			m_bReConnectChannelServer = true;
+			return ;			
+		}
+
+		m_bSelectChannel = true;
+		m_bSentEGS_CONNECT_REQ = false;
+		m_bSend_EGS_SELECT_UNIT_REQ_For_Auto_Connection = false;
+		m_bSend_EGS_DISCONNECT_FOR_SERVER_SELECT_ACK_For_Auto_Connection = false;
+		m_sbSelectedServerSet = false;
+
+
+		g_pData->GetServerProtocol()->DisconnectFromGameServer();
+		g_pKTDXApp->SendGameMessage( XGM_STATE_CHANGE, CX2Main::XS_SERVER_SELECT, NULL, false ); 
+	}
+}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
+#ifdef FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW		// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+
+int CX2StateServerSelect::FindAndConnectMatchingLevelGameServer ( int iMatchingUnitLevel, const map<int, KChannelBonusInfo > & mapChannelBonusInfo, const vector< KChannelInfo > & vecChannelInfo )
+{
+	if ( false == mapChannelBonusInfo.empty () )
+	{
+		vector <int> vecRecommandedLevelChannelID;
+
+		std::map< int, KChannelBonusInfo >::const_iterator cmit;
+		for( cmit = mapChannelBonusInfo.begin() ; cmit != mapChannelBonusInfo.end(); ++cmit )
+		{
+			if ( cmit->second.m_iBeginLv <= iMatchingUnitLevel && iMatchingUnitLevel <= cmit->second.m_iEndLv )
+				vecRecommandedLevelChannelID.push_back ( cmit->first );
+		}
+		if ( true == vecRecommandedLevelChannelID.empty() )
+			return -1;
+		
+		int iLowerUserChannelCount = INT_MIN;
+		int iPickedChannelID = -1;
+
+		BOOST_FOREACH ( const KChannelInfo & kChannelInfo, vecChannelInfo )
+		{
+			BOOST_FOREACH ( const int & iRecommandedLevelChannelID, vecRecommandedLevelChannelID )
+			{
+				if ( iRecommandedLevelChannelID == kChannelInfo.m_iChannelID )
+				{
+					if ( iLowerUserChannelCount < kChannelInfo.m_iMaxUser - kChannelInfo.m_iCurrentUser )
+					{
+						iLowerUserChannelCount = kChannelInfo.m_iMaxUser - kChannelInfo.m_iCurrentUser;
+						iPickedChannelID = iRecommandedLevelChannelID;
+					}	
+				}
+			}
+		}
+		return iPickedChannelID;		
+	}
+	return -1;
+}
+
+
+#endif // FIX_REFORM_ENTRY_POINT_RE_CONNECT_FLOW	// 김종훈, 진입구조 개편, 재접속 관련 알고리즘 수정
+
+#ifdef FIX_REFORM_ENTRY_POINT_5TH				// 김종훈, 진입 구조 개편 5차 수정
+void CX2StateServerSelect::ProcessIntroMovieEnd ()		// 인트로 무비 ( 애드 추가 동영상 등 ) 이 끝났을 때의 처리
+{
+	// 보안 패드를 동영상 재생 이후에 출력되도록 한다.
+	if ( true == m_bReservedSecurityPad )
+	{
+		m_bReservedSecurityPad = false;
+		g_pMain->GetSecurityPad()->SetShow(true, CX2SecurityPad::SPS_GAME_START);
+		g_pMain->GetSecurityPad()->SetUseSecondPW(true);
+	}
+
+	// 해킹 유저 관련 동의창을 동영상 재생 이후에 출력되도록 한다.
+	if ( true == m_bReservedHackingUserAgreeDlg )
+	{
+		m_bReservedHackingUserAgreeDlg = false;
+		m_pDLGCheckHack = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(305, 375), 
+			GET_STRING( STR_ID_729 ), 
+			SSSUCM_HACK_USER_PROCESS_CHECK_OK, this, SSSUCM_HACK_USER_PROCESS_CHECK_CANCEL, L"DLG_UI_Selection_MessageBox_Ok_Exit_Button_New.lua", D3DXVECTOR2( 0, 10 ), L"UI_PopUp_Negative_01.ogg" );
+
+		// MsgBox 는 ESC 에 꺼지는 특성을 가지고 있다, 하지만 이 창은 계속 유지되어야 판단되어
+		// 해당 인자 값을 false 로 변경한다.	kimjh
+		if ( NULL != m_pDLGCheckHack )
+			m_pDLGCheckHack->SetOKAndCancelMsgBox( false );
+		
+	}
+}
+#endif // FIX_REFORM_ENTRY_POINT_5TH				// 김종훈, 진입 구조 개편 5차 수정

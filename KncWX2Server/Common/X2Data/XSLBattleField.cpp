@@ -4,15 +4,15 @@
 #include "NetError.h"
 
 
-CXSLBattleField::CXSLBattleField() :
-m_luaState( NULL ),
-m_eBattleFieldID( SEnum::BFI_INVALID ),
-m_sWorldID( 0 ),
-m_iStandardMonsterLevel( 0 ),
-m_iMaxNumberMonster( 0 ),
-m_iMonsterRespawnFactorByUserCount( 0 ),
-m_iMaxJoinUserCount( SEnum::BATTLE_FIELD_MAX_NUM ),
-m_iRequireLevel( 0 )
+CXSLBattleField::CXSLBattleField()
+	: m_luaState( NULL )
+	, m_eBattleFieldID( SEnum::BFI_INVALID )
+	, m_sWorldID( 0 )
+	, m_iStandardMonsterLevel( 0 )
+	, m_iMaxNumberMonster( 0 )
+	, m_iMonsterRespawnFactorByUserCount( 0 )
+	, m_iMaxJoinUserCount( SEnum::BATTLE_FIELD_MAX_NUM )
+	, m_iRequireLevel( 0 )
 {
 }
 
@@ -38,6 +38,15 @@ bool CXSLBattleField::OpenScriptFile()
 		return false;
 	}
 
+	strFile = "DungeonEnum.lua";
+	kautoPaht.GetPullPath( strFile );
+	if( luaManager.DoFile( strFile.c_str() ) == E_FAIL )
+	{
+		START_LOG( cerr, strFile )
+			<< END_LOG;
+		return false;
+	}
+
 	strFile = "DLG_Map_Enum.lua";
 	kautoPaht.GetPullPath( strFile );
 
@@ -47,7 +56,7 @@ bool CXSLBattleField::OpenScriptFile()
 			<< END_LOG;
 		return false;
 	}
-
+	
 	lua_tinker::class_add<CXSLBattleField>( luaManager.GetLuaState(), "CXSLBattleField" );
 	lua_tinker::class_def<CXSLBattleField>( luaManager.GetLuaState(), "SetTeamStartPos",		&CXSLBattleField::SetTeamStartPos_LUA );
 	lua_tinker::class_def<CXSLBattleField>( luaManager.GetLuaState(), "AddStartPos",			&CXSLBattleField::LoadLineMapData_LUA );
@@ -59,7 +68,11 @@ bool CXSLBattleField::OpenScriptFile()
 	lua_tinker::decl( luaManager.GetLuaState(), "g_pBattleFieldManager", this );
 
 	lua_tinker::class_add<D3DXVECTOR3>( luaManager.GetLuaState(), "D3DXVECTOR3" );
+#ifdef _CONVERT_VS_2010
+	lua_tinker::class_con<D3DXVECTOR3>( luaManager.GetLuaState(), lua_tinker::constructor<float, float, float> );
+#else
 	lua_tinker::class_con<D3DXVECTOR3>( luaManager.GetLuaState(), lua_tinker::constructor<float, float, float>() );
+#endif _CONVERT_VS_2010
 	lua_tinker::class_mem<D3DXVECTOR3>( luaManager.GetLuaState(), "x", &D3DXVECTOR3::x );
 	lua_tinker::class_mem<D3DXVECTOR3>( luaManager.GetLuaState(), "y", &D3DXVECTOR3::y );
 	lua_tinker::class_mem<D3DXVECTOR3>( luaManager.GetLuaState(), "z", &D3DXVECTOR3::z );
@@ -220,8 +233,18 @@ bool CXSLBattleField::LoadBattleFieldData( IN const SEnum::BATTLE_FIELD_ID eBatt
 			LUA_GET_VALUE(			kLuaManager, L"SHOW_BOSS_NAME",			sRiskInfo.m_bShowBossName,		false );
 			LUA_GET_VALUE(			kLuaManager, L"BOSS_GAUGE_HP_LINES",	sRiskInfo.m_bBossGaugeHpLines,	false );
 
-
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+			if( sRiskInfo.m_iSpawnID > 100 )
+			{
+				m_vecEventBossInfo.push_back( sRiskInfo );
+			}
+			else
+			{
+				m_vecMiddleBossInfo.push_back( sRiskInfo );
+			}
+#else //SERV_BATTLEFIELD_EVENT_BOSS_INT
 			m_vecMiddleBossInfo.push_back( sRiskInfo );
+#endif //SERV_BATTLEFIELD_EVENT_BOSS_INT
 
 			index++;
 			kLuaManager.EndTable();
@@ -243,6 +266,26 @@ bool CXSLBattleField::LoadBattleFieldData( IN const SEnum::BATTLE_FIELD_ID eBatt
 				<< BUILD_LOG( iTotalRate )
 				<< END_LOG;
 		}
+
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+		// 예외처리 확률 확인
+		if( m_vecEventBossInfo.size() != 0 )
+		{
+			int iEventTotalRate = 0; 
+			BOOST_TEST_FOREACH( SRiskInfo&, sRiskInfo, m_vecEventBossInfo )
+			{
+				iEventTotalRate += sRiskInfo.m_iSpawnRate;
+			}
+
+			if( iEventTotalRate < 100 || iEventTotalRate > 100 )
+			{
+				START_LOG( cerr, L"이벤트보스 그룹 확률값이 이상합니다." )
+					<< BUILD_LOG( eBattleFieldID )
+					<< BUILD_LOG( iEventTotalRate )
+					<< END_LOG;
+			}
+		}	
+#endif //SERV_BATTLEFIELD_EVENT_BOSS_INT
 	}
 #else
 	if( kLuaManager.BeginTable( L"BATTLE_FIELD_RISK_INFO" ) == S_OK )
@@ -382,10 +425,14 @@ bool CXSLBattleField::AddSpawnMonsterGroup_LUA()
 	}
 
 	// 보스 몬스터 그룹이 아닌경우에만 리스트에 넣는다!
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	( sNpcGroup.m_bIsBossMonsterGroup == true ) ? m_vecBossNpcGroupList.push_back( sNpcGroup ) : m_vecRespawnNpcGroupList.push_back( sNpcGroup );
+#else // SERV_BATTLE_FIELD_BOSS
 	if( sNpcGroup.m_bIsBossMonsterGroup == false )
 	{
 		m_vecRespawnNpcGroupList.push_back( sNpcGroup );
 	}	
+#endif // SERV_BATTLE_FIELD_BOSS
 	m_mapNpcGroupList.insert( std::make_pair( sNpcGroup.m_iGroupID, sNpcGroup ) );
 	return true;
 }
@@ -619,6 +666,86 @@ bool CXSLBattleField::GetCreateMonsterList( IN const int iPlayerCount, OUT std::
 	return true;
 }
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+bool CXSLBattleField::GetCreateBossMonsterList( OUT std::vector<KNPCUnitReq>& vecCreateNPCList ) const
+{
+	vecCreateNPCList.clear();
+
+	//////////////////////////////////////////////////////////////////////////
+	// 필드내에 최소한으로 생성되어 있어야 하는 몬스터 생성!
+
+	CXSLBattleField::KBattleFieldMonsterCountInfo kCreateMonsterCountInfo;
+
+
+	//////////////////////////////////////////////////////////////////////////
+	// 생성할 몬스터 수 구하기!
+	int iCreateMonsterCount = 0;
+
+	{
+		// 현재 필드에서 최대 생성 가능한 몬스터 수 : 사람수에 비례한 몬스터수보다 필드 최대 몬스터수가 더 크다면 필드 최대 몬스터수를 적용한다.
+		//const int MAX_MONSTER_COUNT_IN_BATTLE_FIELD = GetMaxMonsterCountInThisBattleField( iPlayerCount );
+		iCreateMonsterCount = GetMaxNumberMonster(); // 현재 필드에서 등장하는 최대 몬스터 수!
+
+		// 현재 총 몬스터 수 보다 유저수에 비례한 최대값이 더 크다면 그만큼 몬스터를 더 생성하자!
+		//if( MAX_MONSTER_COUNT_IN_BATTLE_FIELD > kCreateMonsterCountInfo.GetTotalMonsterCount() )
+		//{
+		//	iCreateMonsterCount += ( MAX_MONSTER_COUNT_IN_BATTLE_FIELD - kCreateMonsterCountInfo.GetTotalMonsterCount() );
+		//}
+	}
+
+
+	//////////////////////////////////////////////////////////////////////////
+	// 몬스터 추가 또는 삭제
+
+	// 생성해야하는 몬스터 수가 0이될때까지 loop를 돌자!
+	while( 0 <= iCreateMonsterCount )
+	{
+		if( m_vecBossNpcGroupList.empty() == true )
+		{
+			START_LOG( cerr, L"몬스터 생성을 하려고 하는데 NPC 그룹이 비어있습니다! 절대 일어나서는 안되는 에러!" )
+				<< BUILD_LOG( m_eBattleFieldID )
+				<< BUILD_LOG( m_vecBossNpcGroupList.size() )
+				<< BUILD_LOG( iCreateMonsterCount )
+				<< END_LOG;
+			break;
+		}
+
+		bool bCreatedMonsterAnyGroup = false;
+
+		BOOST_TEST_FOREACH( const SSpawnNpcGroup&, sSpawnNpcGroup, m_vecBossNpcGroupList )
+		{
+			// 생성해야할 몬스터 수가 없다면 여기서 나가자!
+			if( iCreateMonsterCount <= 0 )
+				break;
+
+			KNPCUnitReq kInfo;
+			if( CreateMonsterFromSpawnNpcGroup( sSpawnNpcGroup, kCreateMonsterCountInfo, kInfo ) == true )
+			{
+				kInfo.m_cMonsterGrade = CXSLUnitManager::MG_BOSS_NPC;
+
+				// 몬스터 생성 성공했다면 리스트에 넣자!
+				vecCreateNPCList.push_back( kInfo );
+
+				// 전체 카운트에도 계산하자!
+				kCreateMonsterCountInfo.AddGroupMonsterCount( kInfo.m_iGroupID, kInfo.m_NPCID );
+
+				// 생성해야할 몬스터 수값을 하나 줄이자!
+				--iCreateMonsterCount;
+
+				// 어떤 그룹이든 한마리의 몬스터가 생성되었다.
+				bCreatedMonsterAnyGroup = true;
+			}
+		}
+
+		// 더이상 생성할 몬스터 그룹이 남지 않았다면 여기로!
+		if( bCreatedMonsterAnyGroup == false )
+			break;
+	}
+
+	return true;
+}
+#endif // SERV_BATTLE_FIELD_BOSS
+
 
 bool CXSLBattleField::GetRespawnMonsterList( IN const CXSLBattleField::KBattleFieldMonsterCountInfo& kAliveMonsterCountInfo,
 											 IN const std::map< int, int >& mapRespawnReadyNpcCount,
@@ -806,6 +933,22 @@ bool CXSLBattleField::GetBattieFieldMiddleBossMonsterInfo( IN const int iDangero
 		return true;
 	}
 
+#ifdef DELETE_INCORRECT_ERROR_LOG
+	// 중간 보스 몬스터를 의도해서 설정하지 않은 것에 대한 예외처리
+	if( true == m_vecMiddleBossInfo.empty() )
+	{
+		switch ( m_eBattleFieldID )
+		{
+		case SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01:
+			{
+				return true;
+			} break;
+		default:
+			break;
+		}
+	}
+#endif // DELETE_INCORRECT_ERROR_LOG
+
 	START_LOG( clog, L"위험도에 따른 보스 몬스터 정보를 찾지 못하였습니다!" )
 		<< BUILD_LOG( iDangerousValue )
 		<< END_LOG;
@@ -864,6 +1007,148 @@ bool CXSLBattleField::MakeMiddleBossMonsterInfo( IN const SSpawnNpcInfo& sSpawnN
 }
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 //}
+
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+bool CXSLBattleField::GetBattieFieldEventBossMonsterInfo( IN const int iDangerousValue, OUT std::vector<KNPCUnitReq>& vecNpcInfo )
+{
+	KLottery kEventBossLot;
+
+	BOOST_TEST_FOREACH( const SRiskInfo&, sRandomInfo, m_vecEventBossInfo )
+	{
+		if( kEventBossLot.AddCase( sRandomInfo.m_iSpawnID, static_cast<float>(sRandomInfo.m_iSpawnRate) ) == false )
+		{
+			START_LOG( cerr, L"몬스터 출현 확률 결정에 문제가 생겼다!" )
+				<< BUILD_LOG( sRandomInfo.m_iSpawnID )
+				<< BUILD_LOG( sRandomInfo.m_iSpawnRate )
+				<< END_LOG;
+		}
+	}
+
+	if( kEventBossLot.GetCaseNum() == 0 )
+	{
+		START_LOG( clog, L"위험도에 따른 보스 몬스터 정보를 찾지 못하였습니다!" )
+			<< BUILD_LOG( iDangerousValue )
+			<< END_LOG;
+
+		return false;
+	}
+
+	// 3. 출현할 몬스터를 결정하자!
+	int iSpawnID = kEventBossLot.Decision();
+	if( iSpawnID == KLottery::CASE_BLANK )
+	{
+		START_LOG( clog, L"위험도에 따른 보스 몬스터 정보를 찾지 못하였습니다!" )
+			<< BUILD_LOG( iDangerousValue )
+			<< END_LOG;
+
+		return false;
+	}
+
+	BOOST_TEST_FOREACH( const SRiskInfo&, sRiskInfo, m_vecEventBossInfo )
+	{
+		// 랜덤으로 찾은 중간보스 Spwan Monster ID 를 찾는다
+		if( sRiskInfo.m_iSpawnID != iSpawnID )
+			continue;
+
+		if( sRiskInfo.m_iRiskValue > iDangerousValue )			
+			continue;
+
+		BOOST_TEST_FOREACH( const int, iSpawnGroupID, sRiskInfo.m_vecSpawnGroupID )
+		{
+			const CXSLBattleField::SSpawnNpcGroup* pNpcSpawnGroup = GetSpawnNpcGroup( iSpawnGroupID );
+			if( IS_NULL( pNpcSpawnGroup ) )
+			{
+				START_LOG( cerr, L"보스 몬스터가 출현할 스폰 그룹이 없습니다!" )
+					<< BUILD_LOG( iSpawnGroupID )
+					<< END_LOG;
+				return false;
+			}
+
+			// 출현할 중보가 결정되었다면 출현 세팅을 하자!
+			std::map< int, SSpawnNpcInfo >::const_iterator mitSNG = pNpcSpawnGroup->m_mapSpawnNpcList.begin();
+			for( ; mitSNG != pNpcSpawnGroup->m_mapSpawnNpcList.end() ; ++mitSNG )
+			{
+				KNPCUnitReq kInfo;
+
+				// RATE 를 비교해서 한마리를 출현 시키도록 하자
+				KLottery kNpcLot;
+				kNpcLot.AddCase( mitSNG->first, mitSNG->second.m_fRate );
+				int iNpcID = kNpcLot.Decision();
+				if( iNpcID == KLottery::CASE_BLANK )
+					continue;
+
+				if( MakeEventBossMonsterInfo( mitSNG->second, pNpcSpawnGroup->IsSiegeMonster( mitSNG->first ), sRiskInfo, kInfo ) == false )
+				{
+					START_LOG( cerr, L"중간 보스 몬스터 정보를 생성하지 못하였습니다!" )
+						<< BUILD_LOG( iSpawnGroupID )
+						<< END_LOG;
+					return false;
+				}
+
+				vecNpcInfo.push_back( kInfo );
+			}
+		}
+
+		return true;
+	}
+
+	START_LOG( clog, L"위험도에 따른 보스 몬스터 정보를 찾지 못하였습니다!" )
+		<< BUILD_LOG( iDangerousValue )
+		<< END_LOG;
+
+	return false;
+}
+
+bool CXSLBattleField::MakeEventBossMonsterInfo( IN const SSpawnNpcInfo& sSpawnNpcInfo, IN const bool bSiegeMode, IN const SRiskInfo& sRiskInfo, OUT KNPCUnitReq& kInfo ) const
+{
+	kInfo.Init(); // 의도적으로 초기화 시킨다!
+	kInfo.m_bAggressive			= sSpawnNpcInfo.m_bAggressive;
+	kInfo.m_NPCID				= sSpawnNpcInfo.m_eNpcID;            
+	kInfo.m_iGroupID			= 0;
+	kInfo.m_iBossGroupID		= sRiskInfo.m_iSpawnID;		// Spawn Group ID 가 아님, 몬스터 그룹핑 구분용 ID
+	kInfo.m_Level				= m_iStandardMonsterLevel;  // 몬스터 기준 레벨
+	kInfo.m_bAggressive			= sSpawnNpcInfo.m_bAggressive;
+	if( sSpawnNpcInfo.m_StartPositionLot.Empty() == true )
+	{
+		kInfo.m_nStartPos		= GetMonsterStartPosByRandom( sSpawnNpcInfo.m_vecPetrolLineIndex );
+		if( kInfo.m_nStartPos == -1 )
+		{
+			START_LOG( cerr, L"중보 몬스터 등장위치를 얻지 못했습니다!" )
+				<< BUILD_LOG( m_eBattleFieldID )
+				<< BUILD_LOG( kInfo.m_iGroupID )
+				<< BUILD_LOG( kInfo.m_iBossGroupID )
+				<< BUILD_LOG( kInfo.m_NPCID )
+				<< BUILD_LOG( sSpawnNpcInfo.m_vecPetrolLineIndex.size() )
+				<< BUILD_LOG( kInfo.m_nStartPos )
+				<< END_LOG;
+		}
+	}
+	else
+	{
+		kInfo.m_nStartPos		= sSpawnNpcInfo.m_StartPositionLot.DecisionSameProb();
+	}
+	LIF( GetMonsterStartPosInfo( kInfo.m_nStartPos, kInfo.m_vPos, kInfo.m_bIsRight ) );
+	kInfo.m_vecPetrolLineIndex	= sSpawnNpcInfo.m_vecPetrolLineIndex;
+	kInfo.m_vecPlayLineIndex	= sSpawnNpcInfo.m_vecPlayLineIndex;
+	kInfo.m_bActive				= true;
+	//kInfo.m_fDelayTime;
+	//kInfo.m_KeyCode;
+	kInfo.m_bShowGage			= true;
+	kInfo.m_AddPos.y			= sSpawnNpcInfo.m_fAddPosY;
+	kInfo.m_bShowBossName		= sRiskInfo.m_bShowBossName;
+	kInfo.m_usBossGaugeHPLines	= sRiskInfo.m_bBossGaugeHpLines;
+	kInfo.m_bFocusCamera		= sSpawnNpcInfo.m_bFocusCamera;
+	//kInfo.m_bHasBossGage;
+	//kInfo.m_bShowSubBossName;
+	kInfo.m_bSiegeMode			= bSiegeMode;
+	kInfo.m_bNoDrop				= !(sSpawnNpcInfo.m_bDrop);
+	kInfo.m_fUnitScale			= 1.f;
+	kInfo.m_cMonsterGrade		= CXSLUnitManager::MG_EVENT_BOSS_NPC;
+	kInfo.m_cTeamNum			= CXSLRoom::TN_MONSTER;
+	kInfo.m_iAllyUID			= -1;
+	return true;
+}
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 
 bool CXSLBattleField::GetBattieFieldBossMonsterInfo( IN const int iDangerousValue, OUT KNPCUnitReq& kNpcInfo )
 {

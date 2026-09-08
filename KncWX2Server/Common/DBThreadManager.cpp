@@ -32,11 +32,11 @@ KThread* KDBThreadManager::CreateThread()
 	}
 }
 
-void KDBThreadManager::SetFileDSN( const char* szDSN )
+void KDBThreadManager::SetFileDSN( const std::string& strDSN_ )
 {
 	m_bDBConnStr = false;
 
-	m_wstrDSN = KncUtil::toWideString( szDSN );
+	m_wstrDSN = KncUtil::toWideString( strDSN_ );
 }
 
 void KDBThreadManager::SetDBConnString( const std::wstring& wstrDBConnStr, KClearString< std::wstring > wstrID, KClearString< std::wstring > wstrPW )

@@ -47,18 +47,7 @@ void CX2GageManager::CX2GageSet::UpNowHpAndMpInVillage()
 		m_pGageData->UpNowHp( m_pGageData->GetMaxHp() * 0.008f );
 		UpdateNowHpPercent();
 
-
-		//{{ Iruha : 2026-09-04 // the village map regens MP on this fixed tick
-		//   instead of through the unit's MP change rate, so the base-rate
-		//   floor in CX2GUUser does not reach it. The tick is 1.0 s -- see
-		//   m_ElapsedTimeCheckVillageBuff( 1.0f ) in the CX2GageManager ctor --
-		//   so one tick is worth exactly one second of the base rate.
-#ifdef SERV_IRUHADEV_MP_REGEN_BOOST
-		m_pGageData->UpNowMp( SERV_IRUHADEV_BASE_MP_REGEN_PER_SEC );
-#else
 		m_pGageData->UpNowMp( 1.f );
-#endif SERV_IRUHADEV_MP_REGEN_BOOST
-		//}} Iruha : 2026-09-04
 		UpdateNowMpPercent();
 	}
 }
@@ -196,12 +185,59 @@ void CX2GageManager::CreateMyGageUI( const CX2Unit::UNIT_CLASS eGameUnitClass_, 
 	case CX2Unit::UC_ELESIS_KNIGHT:
 	case CX2Unit::UC_ELESIS_SABER_KNIGHT:
 	case CX2Unit::UC_ELESIS_PYRO_KNIGHT:
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+	case CX2Unit::UC_ELESIS_GRAND_MASTER:
+	case CX2Unit::UC_ELESIS_BLAZING_HEART:
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+
 		{
 			pGageData = new CX2ElesisGageData();
 			pGageUI = new CX2ElesisMyGageUI( pGageData, eGameUnitClass_ );
 		} break;
 #endif
 
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UC_ADD_NASOD_RULER:
+	case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+#endif //SERV_ADD_LUNATIC_PSYKER
+		{
+			pGageData	= new CX2AddGageData();
+			pGageUI		= new CX2AddMyGageUI( pGageData, eGameUnitClass_ );
+		} break;
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	case CX2Unit::UC_LIRE_ELVEN_RANGER:
+	case CX2Unit::UC_LIRE_COMBAT_RANGER:
+	case CX2Unit::UC_LIRE_SNIPING_RANGER:
+	case CX2Unit::UC_LIRE_TRAPPING_RANGER:
+	case CX2Unit::UC_LIRE_WIND_SNEAKER:
+	case CX2Unit::UC_LIRE_GRAND_ARCHER:
+	case CX2Unit::UC_LIRE_NIGHT_WATCHER:
+		{
+			pGageData = new CX2RenaGageData();
+			pGageUI = new CX2RenaMyGageUI( pGageData, eGameUnitClass_ );
+		} break;
+#endif //ADD_RENA_SYSTEM
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	// 이브 3각성 구슬 변경
+	case CX2Unit::UC_EVE_NASOD:
+	case CX2Unit::UC_EVE_ELECTRA:
+	case CX2Unit::UC_EVE_BATTLE_SERAPH:
+	case CX2Unit::UC_EVE_EXOTIC_GEAR:
+	case CX2Unit::UC_EVE_CODE_NEMESIS:
+	case CX2Unit::UC_EVE_ARCHITECTURE:
+	case CX2Unit::UC_EVE_CODE_EMPRESS:
+		{
+			pGageData = new CX2GageData();
+			pGageUI = new CX2EveMyGageUI( pGageData, eGameUnitClass_ );
+		} break;
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 	default:
 		{
 			pGageData = new CX2GageData();
@@ -226,33 +262,49 @@ void CX2GageManager::CreateMyGageUI( const CX2Unit::UNIT_CLASS eGameUnitClass_, 
 	switch(wParam)
 	{	
 		case GUCM_BAN_FAULTY_PLAYER_BUTTON_CLICKED :		// 강퇴 하기 버튼이 눌렸음!
-		{	
-			if ( m_vecGageSetPartyMember.size() > 0 )		// m_vecGageSetPartyMember 가 있을 때
-			{
-				BOOST_FOREACH( CX2GageSetPtr ptrGageSet_, m_vecGageSetPartyMember )		// vector 의 각 컨테이너에 대해 
+			{	
+				if ( m_vecGageSetPartyMember.size() > 0 )		// m_vecGageSetPartyMember 가 있을 때
 				{
-					CX2PartyMemberGageUI* pPartyMemberGageUI = static_cast<CX2PartyMemberGageUI*>( ptrGageSet_->GetGageUI() );	// PartyMember 의 UI 를 얻어온다.
-					
-					if ( NULL != pPartyMemberGageUI )
+					BOOST_FOREACH( CX2GageSetPtr ptrGageSet_, m_vecGageSetPartyMember )		// vector 의 각 컨테이너에 대해 
 					{
-						if ( pPartyMemberGageUI->GetVoteButtonType() == CX2PartyMemberGageUI::BVBT_NEED_VOTE )
+						CX2PartyMemberGageUI* pPartyMemberGageUI = static_cast<CX2PartyMemberGageUI*>( ptrGageSet_->GetGageUI() );	// PartyMember 의 UI 를 얻어온다.
+					
+						if ( NULL != pPartyMemberGageUI )
 						{
-							CKTDGUIButton * pGUIButton = reinterpret_cast <CKTDGUIButton *> (lParam);
-
-							if ( NULL != pGUIButton )
+							if ( pPartyMemberGageUI->GetVoteButtonType() == CX2PartyMemberGageUI::BVBT_NEED_VOTE )
 							{
-								if( pPartyMemberGageUI->GetPositionIndex() == pGUIButton->GetDummyInt(0) )
+								CKTDGUIButton * pGUIButton = reinterpret_cast <CKTDGUIButton *> (lParam);
+
+								if ( NULL != pGUIButton )
 								{
-									if ( true == Handler_EGS_FORCED_EXIT_VOTE_REQ ( true, pPartyMemberGageUI->GetUidTypeThisPartyMember() ) )
-										return true;
+									if( pPartyMemberGageUI->GetPositionIndex() == pGUIButton->GetDummyInt(0) )
+									{
+										if ( true == Handler_EGS_FORCED_EXIT_VOTE_REQ ( true, pPartyMemberGageUI->GetUidTypeThisPartyMember() ) )
+											return true;
+									}
 								}
 							}
 						}
 					}
 				}
-			}
-		}
-		break;		
+			} break;
+#ifdef ERASE_BUFF_CHEAT
+		case GUCM_ERASE_BUFF_CHEAT:
+			{
+				if( NULL != g_pX2Game && 
+					NULL != g_pX2Game->GetMyUnit() )
+				{
+					CKTDGUIButton* pButton = reinterpret_cast<CKTDGUIButton*>(lParam);
+					if( NULL != pButton )
+					{
+						g_pX2Game->GetMyUnit()->EraseBuffTempletFromGameUnit( static_cast<BUFF_TEMPLET_ID>(pButton->GetDummyInt(0)) );
+					}
+				}
+			} break;
+#endif // ERASE_BUFF_CHEAT
+		default:
+			return false;
+			break;		
 	}
 	
 	
@@ -280,7 +332,11 @@ void CX2GageManager::SetAllPartyMemberVoteButtonType ( const CX2PartyMemberGageU
 
 #endif // SERV_DUNGEON_FORCED_EXIT_SYSTEM
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*static*/ void CX2GageManager::OnFrameMoveInSpecificX2State( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*static*/ void CX2GageManager::OnFrameMoveInSpecificX2State()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	switch ( g_pMain->GetNowStateID() )
 	{
@@ -292,7 +348,13 @@ void CX2GageManager::SetAllPartyMemberVoteButtonType ( const CX2PartyMemberGageU
 		{
 			CX2GageManager* pGageManager = CX2GageManager::GetInstance();
 			if ( NULL != pGageManager )
+            {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                pGageManager->OnFrameMove( fElapsedTime_ );			
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				pGageManager->OnFrameMove();			
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            }
 		} break;
 
 	default:
@@ -300,13 +362,20 @@ void CX2GageManager::SetAllPartyMemberVoteButtonType ( const CX2PartyMemberGageU
 	}
 }
 
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2GageManager::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2GageManager::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( CX2Main::XS_VILLAGE_MAP == g_pMain->GetNowStateID() )
 	{
 		// 일정 주기로 HP와 MP를 회복
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_ElapsedTimeCheckVillageBuff.OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_ElapsedTimeCheckVillageBuff.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 		if ( m_ElapsedTimeCheckVillageBuff.CheckAndResetElapsedTime() )
 			m_ptrMyGageSet->UpNowHpAndMpInVillage();
@@ -315,26 +384,48 @@ void CX2GageManager::OnFrameMove()
 	UpdateGageDataFromGameUnit();
 
 	if ( NULL != m_ptrMyGageSet )
+    {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_ptrMyGageSet->OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_ptrMyGageSet->OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    }
 
 	BOOST_FOREACH( CX2GageSetPtr ptrGageSet, m_vecGageSetPartyMember )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        ptrGageSet->OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		ptrGageSet->OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 
 	BOOST_FOREACH( CX2BossGageUIPtr ptrBossGageUI, m_vecBossGageUIList )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        ptrBossGageUI->OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		ptrBossGageUI->OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 
 	BOOST_FOREACH( CX2GageSetPtr ptrGageSet, m_vecGageSetPvpMyTeam )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        ptrGageSet->OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		ptrGageSet->OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 
 	BOOST_FOREACH( CX2GageSetPtr ptrGageSet, m_vecGageSetPvpOtherTeam )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        ptrGageSet->OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		ptrGageSet->OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 }
 
@@ -784,6 +875,19 @@ void CX2GageManager::CreateAndInsertBossGageUI(  CX2GameUnit* pBossGameUnit_, co
 
 void CX2GageManager::ShowBossGageUIByUIDAndNotShowOtherBossGageUI( const UidType uidBoss_ , bool bShow_ /*= true*/)
 {
+	// 시네메틱 UI상태에서는 보여주지 않기
+	if( true == bShow_ )
+	{
+		if( g_pMain->IsInheritStateMenu() )
+		{
+			CX2StateMenu* pStateMenu = static_cast<CX2StateMenu*>(g_pMain->GetNowState());
+			if( NULL != pStateMenu && false == pStateMenu->GetShowUI() )
+			{
+				return;
+			}
+		}
+	}
+
 	BOOST_FOREACH( CX2BossGageUIPtr val, m_vecBossGageUIList )
 	{
 		if ( val->IsOwnerGameUnit( uidBoss_ ) )
@@ -792,7 +896,13 @@ void CX2GageManager::ShowBossGageUIByUIDAndNotShowOtherBossGageUI( const UidType
 			val->SetShow( false );
 	}	
 }
-
+void CX2GageManager::ShowBossGageUI( bool bShow_ )
+{
+	BOOST_FOREACH( CX2BossGageUIPtr val, m_vecBossGageUIList )
+	{
+		val->SetShow( bShow_ );
+	}	
+}
 void CX2GageManager::ClearBossGageUIList()
 {
 	m_vecBossGageUIList.clear();
@@ -827,7 +937,6 @@ CX2GageData* CX2GageManager::GetMyGageData()
 	return const_cast<CX2GageData*>( static_cast<const CX2GageManager*>( this )->GetMyGageData() );
 }
 
-#ifdef REFORM_UI_CHARACTER_INFO
 const CX2MyGageUI* CX2GageManager::GetMyGageUI() const
 {
 	ASSERT( NULL != m_ptrMyGageSet );
@@ -838,18 +947,18 @@ const CX2MyGageUI* CX2GageManager::GetMyGageUI() const
 	else
 		return NULL;
 }
-#endif
 
 bool CX2GageManager::GetMyPlayStatusToPacket( OUT KGamePlayStatus& kGamePlayStatus_ ) const
 {
-	if ( NULL != GetMyGageData() )
+	if ( NULL != GetMyGageData()
+		 && GetMyGageData()->GetMyPlayStatusToPacket( OUT kGamePlayStatus_ ) )
 	{
-		GetMyGageData()->GetMyPlayStatusToPacket( OUT kGamePlayStatus_ );
 		GetMySkillCoolTimeListToPacket( OUT kGamePlayStatus_.m_mapSkillCoolTime );
 		GetMyQuickCoolTimeListToPacket( OUT kGamePlayStatus_.m_mapQuickSlotCoolTime );
 #ifdef RIDING_SYSTEM
 		GetMyRidingSkillCoolTimeListToPacket( OUT kGamePlayStatus_.m_mapRidingPetCoolTime );
 #endif //RIDING_SYSTEM
+
 		return true;
 	}
 	else
@@ -969,7 +1078,7 @@ void CX2GageManager::SaveGageData()
 		m_pGageDataForRestorationToPvpGame = GetMyGageData()->GetCloneGageData();
 	}
 	m_vecTempSkillCoolTime = m_vecSkillCoolTime;
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree;
 	refUserSkillTree.ResetLeftSkillCoolTimeAll();
 }
 
@@ -984,8 +1093,12 @@ void CX2GageManager::RestoreGageData()
 	}
 	if( !m_vecTempSkillCoolTime.empty() )
 	{
-		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree;
 		refUserSkillTree.InitSkillCoolTimeFromGageManager(m_vecTempSkillCoolTime);
+		
+		// 오현빈 // 2013-08-21 // m_vecSkillCoolTime값 갱신 전 대전에 입장할 경우 쿨타임 초기화 되지 않는 문제 수정을 위해 추가
+		m_vecSkillCoolTime.assign( m_vecTempSkillCoolTime.begin(), m_vecTempSkillCoolTime.end() );
+
 		m_vecTempSkillCoolTime.clear();
 	}
 }
@@ -1115,9 +1228,7 @@ CX2OldGageManager::CX2OldGageManager(void)
 	m_fChangeRateTimeByItem = 0.f;
 #endif
 
-#ifdef UNDERWATER_LINEMAP
 	m_pDlgAirGage = NULL;
-#endif
 
 #ifdef HP_RELATIVE_CHANGE_RATE
 	m_bHPRelativeChangeRate = false;
@@ -1138,12 +1249,10 @@ CX2OldGageManager::CX2OldGageManager(void)
 #endif SERV_BOSS_GAUGE_HP_LINES
 	//}} JHKang / 강정훈 / 2011/01/26 / 보스 HP Bar 여러 개로 구현
 
-#ifdef SWAP_GAGE
 	m_pHPGage = new Gage();
 	m_pMPGage = new Gage();
 
 	m_fSwapGageTime = 0.f;
-#endif
 }
 
 CX2OldGageManager::~CX2OldGageManager(void)
@@ -1153,14 +1262,10 @@ CX2OldGageManager::~CX2OldGageManager(void)
 	SAFE_DELETE_DIALOG( m_pDLGOtherUnit );
 	SAFE_DELETE_DIALOG( m_pDLGBossGage );
 		
-#ifdef UNDERWATER_LINEMAP
 	SAFE_DELETE_DIALOG( m_pDlgAirGage );
-#endif
 
-#ifdef SWAP_GAGE
 	SAFE_DELETE(m_pHPGage);
 	SAFE_DELETE(m_pMPGage);
-#endif
 
 	SAFE_DELETE( m_pGageUI );
 }
@@ -1199,7 +1304,6 @@ void CX2OldGageManager::Init( CX2GameUnit* pGameUnit, const GAGE_UI_TYPE eGageUi
 		if( (int)pGameUnit->GetUnitIndex() == pMySlot->m_Index && false == pMySlot->m_bObserver )
 		{
 			/*
-#ifdef UNDERWATER_LINEMAP
 			if( pGameUnit->IsMyUnit() == true )
 			{
 				m_pDlgAirGage = new CKTDGUIDialog( NULL, L"DLG_UI_AIR_GAGE.lua" );
@@ -1207,7 +1311,6 @@ void CX2OldGageManager::Init( CX2GameUnit* pGameUnit, const GAGE_UI_TYPE eGageUi
 				if( m_pDlgAirGage != NULL )
 					m_pDlgAirGage->SetShowEnable(false, false);
 			}			
-#endif
 			*/
 		}
 		else
@@ -1308,7 +1411,6 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 
 	m_fElapsedTime = fElapsedTime;
 
-#ifdef UNDERWATER_LINEMAP
 	if( m_pDlgAirGage != NULL &&
 		m_pGameUnit != NULL && m_pGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 	{
@@ -1344,10 +1446,8 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 			m_pDlgAirGage->SetShowEnable(false, false);
 		}
 	}
-#endif
 
 
-#ifdef SWAP_GAGE
 #if defined( _SERVICE_ )
 	ELSWORD_VIRTUALIZER_START
 #endif		
@@ -1369,7 +1469,6 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 #if defined( _SERVICE_ )
 		ELSWORD_VIRTUALIZER_END
 #endif
-#endif
 
 
 	if( g_pKTDXApp->GetIsNowVeryfy() == true )
@@ -1379,25 +1478,15 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 		bool bFindHacking = false;
 		string strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Verify;
 
-#ifdef SWAP_GAGE
 		if( m_pHPGage->fNow.Verify()						== false ||
 			m_pHPGage->fMax.Verify()						== false )
-#else
-		if( m_HPGage.fNow.Verify()						== false ||
-			m_HPGage.fMax.Verify()						== false )
-#endif
 		{
 			bIsVerify = false;
 			bFindHacking = true;
 			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Hp_Verify;
 		}
-#ifdef SWAP_GAGE
 		else if( m_pMPGage->fNow.Verify()					== false ||
 			m_pMPGage->fMax.Verify()					== false )
-#else
-		else if( m_MPGage.fNow.Verify()					== false ||
-			m_MPGage.fMax.Verify()					== false )
-#endif
 		{
 			bIsVerify = false;
 			bFindHacking = true;
@@ -1419,20 +1508,12 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_AttackDelay_Verify;
 		}
 #endif
-#ifdef SWAP_GAGE
 		else if( m_pHPGage->fChangeRate.Verify()			== false )
-#else
-		else if( m_HPGage.fChangeRate.Verify()			== false )
-#endif
 		{
 			bIsVerify = false;
 			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Hp_ChangeRate_Verify;
 		}		
-#ifdef SWAP_GAGE
 		else if( m_pMPGage->fChangeRate.Verify()			== false )
-#else
-		else if( m_MPGage.fChangeRate.Verify()			== false )
-#endif
 		{
 			bIsVerify = false;			
 			strAntiHackingDesc = ANTI_HACK_STRING_AntiHacking_GageManager_Mp_ChangeRate_Verify;
@@ -1463,7 +1544,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 
 		if( bIsVerify == false )
 		{			
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
+			if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER &&
 				g_pKTDXApp->GetFindHacking() == false )
 			{
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
@@ -1474,7 +1555,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 			{				
 				g_pMain->SendHackMail_DamageHistory(strAntiHackingDesc.c_str());
 
-				g_pInstanceData->SetVerifyGageManagerTimer(60.f);
+				g_pInstanceData->SetRemainedTimeByForceQuitGame( REMAINED_TIME_BY_FORCE_QUIT_GAME );
 
 				if( bFindHacking == true )
 				{
@@ -1489,7 +1570,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 
 		if ( m_OneSkillPlayCount.Verify() == false )
 		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
 			//g_pKTDXApp->SetFindHacking( true );
 			return;
@@ -1497,7 +1578,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 
 		if ( m_TwoSkillPlayCount.Verify() == false )
 		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
 			//g_pKTDXApp->SetFindHacking( true );
 			return;
@@ -1505,7 +1586,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 
 		if ( m_ThreeSkillPlayCount.Verify() == false )
 		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
 			//g_pKTDXApp->SetFindHacking( true );
 			return;
@@ -1514,14 +1595,14 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 #ifdef DUNGEON_ITEM
 		if( m_fChangeRateByItem.Verify() == false )
 		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
 			//g_pKTDXApp->SetFindHacking( true );
 			return;
 		}
 		if( m_fChangeRateTimeByItem.Verify() == false )
 		{
-			if( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER )
+			if( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER )
 				g_pData->GetServerProtocol()->SendID( EGS_REPORT_HACK_USER_NOT );
 			//g_pKTDXApp->SetFindHacking( true );
 			return;
@@ -1560,7 +1641,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 					}
 
 
-					if ( g_pData->GetMyUser()->GetUserData()->hackingUserType != CX2User::HUT_AGREE_HACK_USER
+					if ( g_pData->GetMyUser()->GetUserData().hackingUserType != CX2User::HUT_AGREE_HACK_USER
 						&& bTraningChannel == false )
 					{
 						if ( m_TimerCheckSkillPlayCount.elapsed() >= 60.0f )
@@ -1576,7 +1657,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 								//날아오는 유저 100%로가 핵이 아닌게 판명이 되면 이부분을 넣자.
 								//MessageBox( NULL, L"asdf", L"asdfasdf", MB_OK );
 
-								g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+								g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 							}
 							else if ( m_TwoSkillPlayCount >= 7 )
 							{
@@ -1585,7 +1666,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 								//g_pKTDXApp->SetFindHacking( true );
 								//return;
 
-								g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+								g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 							}
 							else if ( m_ThreeSkillPlayCount >= 5 )
 							{
@@ -1594,7 +1675,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 								//g_pKTDXApp->SetFindHacking( true );
 								//return;
 
-								g_pData->GetMyUser()->GetUserData()->hackingUserType = CX2User::HUT_AGREE_HACK_USER;
+								g_pData->GetMyUser()->AccessUserData().hackingUserType = CX2User::HUT_AGREE_HACK_USER;
 							}
 
 							m_OneSkillPlayCount = 0;
@@ -1615,33 +1696,21 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 
 	//{{ oasis : 김상윤 // 2009-10-6 //
 	// 몬스터 HP 리젠
-#ifdef SWAP_GAGE
 	if( m_pHPGage->fNow > 0)
-#else
-	if( m_HPGage.fNow > 0)
-#endif
 	{
 #ifdef HP_RELATIVE_CHANGE_RATE	
 		if(m_bHPRelativeChangeRate)
 		{
 			//m_HPGage.fNow		+= m_HPGage.fChangeRate	* m_HPGage.fMax * fElapsedTime;
 			// oasis907 : 김상윤 [2011.1.24] // UpHP 사용 (해킹 문제)
-#ifdef SWAP_GAGE
 			UpHP(m_pHPGage->fChangeRate * m_pHPGage->fMax * fElapsedTime);
-#else
-			UpHP(m_HPGage.fChangeRate * m_HPGage.fMax * fElapsedTime);
-#endif
 		}
 #endif HP_RELATIVE_CHANGE_RATE
 		else
 		{
 			//m_HPGage.fNow		+= m_HPGage.fChangeRate			* fElapsedTime;
 			// oasis907 : 김상윤 [2011.1.24] // UpHP 사용 (해킹 문제)
-#ifdef SWAP_GAGE
 			UpHP(m_pHPGage->fChangeRate * fElapsedTime);
-#else
-			UpHP(m_HPGage.fChangeRate * fElapsedTime);
-#endif
 		}
 	}
 	// 원본: m_HPGage.fNow		+= m_HPGage.fChangeRate			* fElapsedTime;
@@ -1658,33 +1727,16 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 		}
 	}
 
-#ifdef SWAP_GAGE
 	m_pMPGage->fNow		+= ((m_pMPGage->fChangeRate + m_fChangeRateByItem) * fElapsedTime);
 #else
-	m_MPGage.fNow		+= ((m_MPGage.fChangeRate + m_fChangeRateByItem) * fElapsedTime);
-#endif //SWAP_GAGE
-#else
-#ifdef SWAP_GAGE
 	m_pMPGage->fNow		+= m_pMPGage->fChangeRate			* fElapsedTime;
-#else
-	m_MPGage.fNow		+= m_MPGage.fChangeRate			* fElapsedTime;
-#endif //SWAP_GAGE
 #endif
 
-#ifdef GAGE_FACTOR
-#ifdef SWAP_GAGE
 	if( m_pHPGage->fNow <= 0)
 	{
 		m_pMPGage->ClearFactor();
 	}	
-#else
-	if( m_HPGage.fNow <= 0)
-	{
-		m_MPGage.ClearFactor();
-	}
-#endif
 
-#ifdef SWAP_GAGE
 	for(UINT i=0; i<m_pMPGage->vecFactor.size(); ++i)
 	{
 		GageFactor &gageFactor = m_pMPGage->vecFactor[i];
@@ -1700,32 +1752,9 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 			}
 		}
 	}
-#else
-	for(UINT i=0; i<m_MPGage.vecFactor.size(); ++i)
-	{
-		GageFactor &gageFactor = m_MPGage.vecFactor[i];
-		if( gageFactor.fTime > 0.f )
-		{
-			m_MPGage.fNow += gageFactor.fFactor * fElapsedTime;
-			gageFactor.fTime -= fElapsedTime;
 
-			if( gageFactor.fTime <= 0.f )
-			{
-				m_MPGage.vecFactor.erase( m_MPGage.vecFactor.begin() + i );
-				--i;
-			}
-		}
-	}
-#endif // SWAP_GAGE
-#endif
-
-#ifdef SWAP_GAGE
 	float fTempHPNow = m_pHPGage->fNow;
 	float fTempMPNow = m_pMPGage->fNow;
-#else
-	float fTempHPNow = m_HPGage.fNow;
-	float fTempMPNow = m_MPGage.fNow;
-#endif
 
 	CheckMaxHP();
 	CheckMaxMP();
@@ -1740,13 +1769,8 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 	if( m_ForceDownGage.fNow > m_ForceDownGage.fMax )
 		m_ForceDownGage.fNow = m_ForceDownGage.fMax;
 
-#ifdef SWAP_GAGE
 	float fTempHPAfter = m_pHPGage->fNow;
 	float fTempMPAfter = m_pMPGage->fNow;
-#else
-	float fTempHPAfter = m_HPGage.fNow;
-	float fTempMPAfter = m_MPGage.fNow;
-#endif
 
 	if( fTempHPNow < fTempHPAfter && fTempHPNow > 1.0f )
 	{
@@ -1761,11 +1785,7 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 
 	if( m_bCanChargeMP == true )
 	{
-#ifdef SWAP_GAGE
 		m_MPChargeGage.fMax = m_pMPGage->fNow;
-#else
-		m_MPChargeGage.fMax = m_MPGage.fNow;
-#endif
 		m_MPChargeGage.fNow	+= m_MPChargeGage.fChangeRate * fElapsedTime;
 
 		if( m_MPChargeGage.fNow > THREE_CHARGE )
@@ -1785,37 +1805,29 @@ void CX2OldGageManager::OnFrameMove( double fTime, float fElapsedTime )
 	}
 
 	if ( NULL != m_pGageUI )
+    {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_pGageUI->OnFrameMove( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_pGageUI->OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    }
 }
 
 void CX2OldGageManager::CheckMaxHP()
 {
-#ifdef SWAP_GAGE
 	if( m_pHPGage->fNow > m_pHPGage->fMax )
 		m_pHPGage->fNow = m_pHPGage->fMax;
 	else if( m_pHPGage->fNow < 0.0f )
 		m_pHPGage->fNow = 0.0f;
-#else
-	if( m_HPGage.fNow > m_HPGage.fMax )
-		m_HPGage.fNow = m_HPGage.fMax;
-	else if( m_HPGage.fNow < 0.0f )
-		m_HPGage.fNow = 0.0f;
-#endif
 }
 
 void CX2OldGageManager::CheckMaxMP()
 {
-#ifdef SWAP_GAGE
 	if( m_pMPGage->fNow > m_pMPGage->fMax )
 		m_pMPGage->fNow = m_pMPGage->fMax;
 	else if( m_pMPGage->fNow < 0.0f )
 		m_pMPGage->fNow = 0.0f;
-#else
-	if( m_MPGage.fNow > m_MPGage.fMax )
-		m_MPGage.fNow = m_MPGage.fMax;
-	else if( m_MPGage.fNow < 0.0f )
-		m_MPGage.fNow = 0.0f;
-#endif
 }
 
 
@@ -1900,11 +1912,7 @@ float CX2OldGageManager::FlushMP()
 
 	if( m_fMPCharge >= THREE_CHARGE )
 	{
-#ifdef SWAP_GAGE
 		m_pMPGage->fNow -= m_fMPCharge;
-#else
-		m_MPGage.fNow -= m_fMPCharge;
-#endif
 
 		m_fMPCharge = THREE_CHARGE;		
 		m_MPChargeGage.fNow = 0.0f;
@@ -1913,11 +1921,7 @@ float CX2OldGageManager::FlushMP()
 	}
 	else if( m_fMPCharge >= TWO_CHARGE )
 	{
-#ifdef SWAP_GAGE
 		m_pMPGage->fNow -= m_fMPCharge;
-#else
-		m_MPGage.fNow -= m_fMPCharge;
-#endif
 		m_fMPCharge = TWO_CHARGE;		
 		m_MPChargeGage.fNow = 0.0f;
 
@@ -1925,11 +1929,7 @@ float CX2OldGageManager::FlushMP()
 	}
 	else if( m_fMPCharge >= ONE_CHARGE )
 	{
-#ifdef SWAP_GAGE
 		m_pMPGage->fNow -= m_fMPCharge;
-#else
-		m_MPGage.fNow -= m_fMPCharge;
-#endif
 		m_fMPCharge = ONE_CHARGE;		
 		m_MPChargeGage.fNow = 0.0f;
 
@@ -1946,13 +1946,8 @@ float CX2OldGageManager::FlushMP()
 
 bool CX2OldGageManager::FlushMP( float fMP, bool bForce )
 {
-#ifdef SWAP_GAGE
 	if( m_pMPGage->fNow < fMP )
 		return false;
-#else
-	if( m_MPGage.fNow < fMP )
-		return false;
-#endif
 
 	m_pMPGage->fNow -= fMP;
 	return true;
@@ -1982,11 +1977,7 @@ bool CX2OldGageManager::DamageFlush()
 // 기폭 : 모인 만큼 터지게 변경
 	if( m_MPChargeGage.fNow >= ONE_CHARGE )	
 	{
-#ifdef SWAP_GAGE
 		m_pMPGage->fNow -= m_MPChargeGage.fNow;
-#else
-		m_MPGage.fNow -= m_MPChargeGage.fNow;
-#endif
 		m_MPChargeGage.fNow = 0.0f;
 		return true;
 	}
@@ -1996,21 +1987,13 @@ bool CX2OldGageManager::DamageFlush()
 
 void CX2OldGageManager::UpMP( float fMP )
 {
-#ifdef SWAP_GAGE
 	m_pMPGage->Increase( fMP, 0.f );
-#else
-	m_MPGage.Increase( fMP, 0.f );
-#endif
 }
 
 
 void CX2OldGageManager::UpHP( float fHP, const float hpMinimum /*= 0.f*/ )
 {
-#ifdef SWAP_GAGE
 	m_pHPGage->Increase( fHP, hpMinimum );
-#else
-	m_HPGage.Increase( fHP, hpMinimum );
-#endif
 }
 
 
@@ -2037,16 +2020,10 @@ bool CX2OldGageManager::OpenScript( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUIDialog", m_pDLGOtherUnit->Get() );
 
-	//파일 로드
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFileName );
-	if( Info == NULL )
-		return false;
 
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
-		return false;
-	}
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+        return false;
+
 
 	return true;
 
@@ -2153,7 +2130,7 @@ void CX2OldGageManager::UIFrameMove( double fTime, float fElapsedTime )
 // 						wstring wstrFileName;
 // 						wstring wstrPieceName;
 // 
-// 						CX2Unit::UNIT_CLASS eClassType = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass;
+// 						CX2Unit::UNIT_CLASS eClassType = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass;
 // 						if ( false == m_pCannonBallUIPtr->IsBerserkMode() )
 // 							CX2Data::GetCharacterImageName( wstrFileName, wstrPieceName, eClassType, CX2Data::CIT_MyGage );
 // 						// 광폭화 모드이면
@@ -2247,21 +2224,21 @@ void CX2OldGageManager::UIFrameMove( double fTime, float fElapsedTime )
 						{
 							switch(g_pData->GetDungeonRoom()->GetDungeonID())
 							{
-							case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-							case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:
-							case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:
-							case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+							case SEnum::DI_EVENT_KIDDAY_RUBEN:
+							case SEnum::DI_EVENT_KIDDAY_ELDER:
+							case SEnum::DI_EVENT_KIDDAY_BESMA:
+							case SEnum::DI_EVENT_KIDDAY_ALTERA:
 								{
 									pStaticResurrect->SetShow(false);
 								} break;
 
-							case CX2Dungeon::DI_ELDER_HENIR_SPACE:
-// 							case CX2Dungeon::DI_BESMA_HENIR_SPACE:
-// 							case CX2Dungeon::DI_ALTERA_HENIR_SPACE:
-// 							case CX2Dungeon::DI_FEITA_HENIR_SPACE:
+							case SEnum::DI_ELDER_HENIR_SPACE:
+// 							case SEnum::DI_BESMA_HENIR_SPACE:
+// 							case SEnum::DI_ALTERA_HENIR_SPACE:
+// 							case SEnum::DI_FEITA_HENIR_SPACE:
 // 								// kimhc // 벨더 헤니르 // 2009-10-27
-// 							case CX2Dungeon::DI_VELDER_HENIR_SPACE:
-// 							case CX2Dungeon::DI_HAMEL_HENIR_SPACE:
+// 							case SEnum::DI_VELDER_HENIR_SPACE:
+// 							case SEnum::DI_HAMEL_HENIR_SPACE:
 								{					
 									if( (CX2Dungeon::DUNGEON_MODE) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode == CX2Dungeon::DM_HENIR_CHALLENGE )
 										pStaticResurrect->SetShow(false);
@@ -2316,7 +2293,7 @@ void CX2OldGageManager::UIFrameMove( double fTime, float fElapsedTime )
 					if ( pSlotData != NULL && pSlotData->m_pUnit != NULL )
 					{
 						iTeamNum = pSlotData->m_TeamNum;
-						iLevel = (int)pSlotData->m_pUnit->GetUnitData()->m_Level;
+						iLevel = (int)pSlotData->m_pUnit->GetUnitData().m_Level;
 						wstrNickName = pSlotData->m_pUnit->GetNickName();
 						bFindSlot = true;				
 					}						
@@ -2331,7 +2308,7 @@ void CX2OldGageManager::UIFrameMove( double fTime, float fElapsedTime )
 				if ( pSlotData != NULL && pSlotData->m_pUnit != NULL )
 				{
 					iTeamNum = pSlotData->m_TeamNum;
-					iLevel = (int)pSlotData->m_pUnit->GetUnitData()->m_Level;
+					iLevel = (int)pSlotData->m_pUnit->GetUnitData().m_Level;
 					wstrNickName = pSlotData->m_pUnit->GetNickName();
 					bFindSlot = true;				
 				}	
@@ -2552,7 +2529,7 @@ void CX2OldGageManager::UIFrameMove( double fTime, float fElapsedTime )
 
 						wstring fileName;
 						wstring pieceName;
-						if( CX2Data::GetPvpNpcImageName( fileName, pieceName, pNpc->GetNPCTemplet()->m_nNPCUnitID ) == true )
+						if( CX2Data::GetPvpNpcImageName( fileName, pieceName, pNpc->GetNPCTemplet().m_nNPCUnitID ) == true )
 						{
 							pPicture->SetTex( fileName.c_str(), pieceName.c_str() );
 						}	
@@ -2605,13 +2582,8 @@ void CX2OldGageManager::UIFrameMove( double fTime, float fElapsedTime )
 					//pTempStatic->GetPicture(0)->SetShow(true);
 					if ( pTempStatic != NULL )
 					{
-#ifdef SWAP_GAGE
 						pTempStatic->GetPicture(0)->SetSizeX( pTempStatic->GetPicture(0)->GetOriginalSize().x *
 							m_pHPGage->fNow / m_pHPGage->fMax );
-#else
-						pTempStatic->GetPicture(0)->SetSizeX( pTempStatic->GetPicture(0)->GetOriginalSize().x *
-							m_HPGage.fNow / m_HPGage.fMax );
-#endif
 					}
 
 					if ( g_pX2Game->GetGameType() == CX2Game::GT_DUNGEON )
@@ -2654,13 +2626,13 @@ void CX2OldGageManager::UIFrameMove( double fTime, float fElapsedTime )
 					if( pRoom->GetMySlot()->m_bObserver == true ||
 						pRoom->GetMySlot()->m_TeamNum ==iTeamNum ||
 						( NULL != g_pX2Game->GetMyUnit() && 
-						true == g_pX2Game->GetMyUnit()->GetCashItemAbility()->m_bShowOppnentMP ) ||
+						true == g_pX2Game->GetMyUnit()->GetCashItemAbility().m_bShowOppnentMP ) ||
 						( NULL != g_pX2Room->GetMySlot() && g_pX2Room->GetMySlot()->m_bObserver == true ) )
 #else  FIX_OBSERVER_MODE
 						if( pRoom->GetMySlot()->m_bObserver == true ||
 							pRoom->GetMySlot()->m_TeamNum ==iTeamNum ||
 							( NULL != g_pX2Game->GetMyUnit() && 
-							true == g_pX2Game->GetMyUnit()->GetCashItemAbility()->m_bShowOppnentMP ) )
+							true == g_pX2Game->GetMyUnit()->GetCashItemAbility().m_bShowOppnentMP ) )
 #endif FIX_OBSERVER_MODE
 					{
 
@@ -3065,11 +3037,7 @@ void CX2OldGageManager::GetBerserkModeMyStateImage( OUT wstring& wstrFileName, O
 
 #ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
 	case CX2Unit::UC_CHUNG_SHELLING_GUARDIAN:
-#ifdef REFORM_UI_CHARACTER_INFO
 		wstrFileName	= L"DLG_UI_Common_Texture61_NEW.tga";
-#else
-		wstrFileName	= L"DLG_UI_Common_Texture67.tga";
-#endif
 		wstrPieceName	= L"SH_GUARDIAN_RAGE";
 		break;
 #endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
@@ -3388,6 +3356,27 @@ void CX2GageManager::ClearBuffList( UidType uiUnitUID )
 		}
 	}
 }
+bool CX2GageManager::IsNotUseNotifyTimeBuff( BUFF_TEMPLET_ID eBuffID_ )
+{
+	// 오현빈 // 2013-07-17
+	// 5초이하 깜빡임 적용시키지 않는 버프 템플릿 리스트
+	switch ( eBuffID_ )
+	{
+	case BTI_BUFF_CHIVALRY_ATTACK:
+	case BTI_BUFF_CHIVALRY_DEFENCE:
+	case BTI_HEALTH_POINT_IMMEDIATELY_CHANGE_ONCE:
+	case BTI_BUFF_SI_SA_CTT_TACTICAL_FIELD:
+	case BTI_BUFF_SI_SA_CTT_TACTICAL_FIELD_RAID:
+	case BTI_SI_SA_EEG_ATOMIC_SHIELD:
+	case BTI_DEBUFF_MOVE_JUMP_SLOWDOWN:
+		return true;
+
+	default:
+		return false;
+	}
+
+	return false;
+}
 
 /** @fucntion : NotifyDurationTime5sec
 	@brief : 지속시간 5초 이하 알림
@@ -3395,15 +3384,9 @@ void CX2GageManager::ClearBuffList( UidType uiUnitUID )
 */
 void CX2GageManager::NotifyDurationTime5sec( UidType uiUnitUID, BUFF_TEMPLET_ID eBuffID_)
 {
-	switch( eBuffID_ ) 
-	{
-	// 오현빈 // 2013-07-17
 	// 5초이하 깜빡임 적용시키지 않는 버프 템플릿 리스트
-	case BTI_BUFF_CHIVALRY_ATTACK:
-	case BTI_BUFF_CHIVALRY_DEFENCE:
-	default:
+	if( true == IsNotUseNotifyTimeBuff(eBuffID_) )
 		return;
-	}
 
 	if( uiUnitUID == m_ptrMyGageSet->GetUid() )
 	{
@@ -3524,6 +3507,18 @@ void CX2GageManager::InitBuffIconFlicker( UidType uiUnitUID, BUFF_TEMPLET_ID eBu
 }
 #endif //BUFF_ICON_UI
 
+#ifdef DISPLAY_BUFF_DURATION_TIME
+void CX2GageManager::SetDurationTime( UidType uiUnitUID, BUFF_TEMPLET_ID eBuffID_, int iTime_)
+{
+	if( uiUnitUID == m_ptrMyGageSet->GetUid() )
+	{
+		if( true == IsNotUseNotifyTimeBuff(eBuffID_) )
+			iTime_ = 0;
+
+		m_ptrMyGageSet->GetGageUI()->SetDurationTime(eBuffID_, iTime_);
+	}
+}
+#endif // DISPLAY_BUFF_DURATION_TIME
 /** @function : GetBuffFactorFromGameUnit
 	@brief : 인수로 전달된 GameUnit으로부터 BuffFactor를 얻어와 m_veTempBuffFactor에 저장하는 함수
 	@param : 일반적으로 자신의 게임유닛(pGameUnit_)
@@ -3534,7 +3529,6 @@ void CX2GageManager::GetBuffFactorFromGameUnit( const CX2GameUnit* pGameUnit_ )
 		pGameUnit_->GetBuffFactor( m_vecTempBuffFactor );
 }
 
-#ifdef REFORM_UI_CHARACTER_INFO //오현빈//파티원 레벨업 정보 갱신되지 않는 오류 수정
 /** @function : UpdatePartyMemberLevel
 	@brief : 파티원 레벨 정보 갱신
 	@param : 갱신할 파티원 UID( uiUnitUID_ ) , 갱신할 레벨 ( uiLevel_ ) 
@@ -3551,9 +3545,8 @@ void CX2GageManager::UpdatePartyMemberLevel( const UidType uiUnitUID_, const UIN
 		}
 	}
 }
-#endif //REFORM_UI_CHARACTER_INFO
 
-void CX2GageManager::InsertPvpMemberUI( const CX2Room::SlotData& slotData_, CX2GameUnit* pGameUnitPvpMember_ )
+void CX2GageManager::InsertPvpMemberUI( const CX2Room::SlotData& slotData_, CX2GUUser* pGameUnitPvpMember_ )
 {
 	if( NULL != pGameUnitPvpMember_ )
 	{
@@ -3562,7 +3555,7 @@ void CX2GageManager::InsertPvpMemberUI( const CX2Room::SlotData& slotData_, CX2G
 		if ( NULL != pGageData )
 		{
 			
-			char cRank = pGameUnitPvpMember_->GetUnit()->GetUnitData()->m_cRank;
+			char cRank = pGameUnitPvpMember_->GetUnit()->GetUnitData().m_cRank;
 			if ( NULL != g_pX2Game && NULL != g_pX2Game->GetMyUnit() &&
 				g_pX2Game->GetMyUnit()->GetTeam() == pGameUnitPvpMember_->GetTeam() )
 			{
@@ -3595,7 +3588,7 @@ void CX2GageManager::InsertPvpMemberUI( const CX2Room::SlotData& slotData_, CX2G
 	}
 }
 
-void CX2GageManager::InsertPvpMemberUI( const CX2Room::RoomNpcSlot& npcSlotData_, CX2GameUnit* pGameUnitPvpMember_ )
+void CX2GageManager::InsertPvpMemberUI( const CX2Room::RoomNpcSlot& npcSlotData_, CX2GUNPC* pGameUnitPvpMember_ )
 {
 	if( NULL != pGameUnitPvpMember_ )
 	{
@@ -3620,61 +3613,6 @@ void CX2GageManager::InsertPvpMemberUI( const CX2Room::RoomNpcSlot& npcSlotData_
 // 				}
 // 			}
 // 			else
-#ifdef SERV_IRUHADEV_OFFLINE
-			//{{ Iruha : 2026-09-06 // AI_PARTY_PLAN.md phase 4 - gate 3.
-			//
-			// An offline AI party member is an ally, and the studio's branch just
-			// above is written for one that is not: in PvP a bot IS the opponent,
-			// which is why the my-team half of this function is commented out with
-			// the note that an NPC has no allies. In a dungeon it has one - the
-			// player.
-			//
-			// Going on the my-team list rather than the other-team one buys two
-			// things beyond ordering. It puts the widget at x=6, y=121+i*44, which
-			// is exactly where CX2PartyMemberGageUI::SetPosition puts a REAL
-			// dungeon party's bars, so a bot's bar lands in the slot a human party
-			// member's would have. And UpdatePvpMemberGageData only fills MP in
-			// for the my-team list; the other-team one zeroes MP unless the viewer
-			// bought the show-opponent-MP cash item.
-			//
-			// The team has to be pushed into the widget because the RoomNpcSlot
-			// constructor hardcodes TN_BLUE - see SetOfflinePartyBotTeam - and it
-			// has to happen before InitUI(), which is what calls SetPosition.
-			if( NULL != g_pX2Game && CX2Game::GT_DUNGEON == g_pX2Game->GetGameType() )
-			{
-				CX2PVPPlayerGageUI* pBotGageUI =
-					new CX2PVPPlayerGageUI( npcSlotData_, pGageData, m_vecGageSetPvpMyTeam.size(), cRank );
-
-				pBotGageUI->SetOfflinePartyBotTeam( NULL != g_pX2Game->GetMyUnit() ?
-					(UINT)g_pX2Game->GetMyUnit()->GetTeam() : (UINT)CX2Room::TN_RED );
-
-				m_vecGageSetPvpMyTeam.push_back(
-					CX2GageSetPtr( new CX2GageSet( pBotGageUI, pGageData, npcSlotData_.m_iNpcUid ) ) );
-
-				// No SetPartyMemberGameUnit here, and the absence is deliberate.
-				// The overload taking an index reaches into m_vecGageSetPartyMember,
-				// NOT into the vector the bar was just pushed onto, so both PvP
-				// branches of this function write the owner unit into a different
-				// list - usually an empty one. Nothing here needs it:
-				// UpdateGageDataFromGameUnit only walks the party-member list, and a
-				// PvP bar is fed by UpdatePvpMemberGageData, which is handed the
-				// unit explicitly every frame - by CX2Game::TickOfflinePartyBots on
-				// this path.
-
-				pBotGageUI->InitUI();
-
-				// After InitUI, which sets the level string from the constructor's
-				// -1 - the value that means "hide it", correct for a PvP bot whose
-				// level is meaningless. A party member's is not: the offline server
-				// gives every bot the player's own level, and showing it is part of
-				// what makes the row read as a party list rather than as pets.
-				pBotGageUI->SetLevelString( (UINT)npcSlotData_.m_iLevel );
-
-				pGageUI = pBotGageUI;
-			}
-			else
-			//}}
-#endif SERV_IRUHADEV_OFFLINE
 			{
 				pGageUI = new CX2PVPPlayerGageUI( npcSlotData_, pGageData, m_vecGageSetPvpOtherTeam.size(), cRank );
 				if ( NULL != pGageUI )
@@ -3795,7 +3733,7 @@ void CX2GageManager::UpdatePvpMemberGageData( const UidType uidPartyMember_, CX2
 
 #ifdef FIX_OBSERVER_MODE		/// 옵저버 모드를 검사할 수 있도록 로직 수정
 				if ( ( NULL != g_pX2Game && NULL != g_pX2Game->GetMyUnit() && 
-					 true == g_pX2Game->GetMyUnit()->GetCashItemAbility()->m_bShowOppnentMP ) ||					/// 고성능 고글을 착용했을 때
+					 true == g_pX2Game->GetMyUnit()->GetCashItemAbility().m_bShowOppnentMP ) ||					/// 고성능 고글을 착용했을 때
 					 ( NULL != g_pX2Room->GetMySlot() && true == g_pX2Room->GetMySlot()->m_bObserver ) )			/// 옵저버일 때
 				{
 					ptrGageSet->UpdateNowMpFromPercent( pGameUnitPartyMember_->GetNowMp() / pGameUnitPartyMember_->GetMaxMp() );
@@ -3808,7 +3746,7 @@ void CX2GageManager::UpdatePvpMemberGageData( const UidType uidPartyMember_, CX2
 				if ( NULL != g_pX2Game && NULL != g_pX2Game->GetMyUnit() )
 				{
 					if ( ( NULL != g_pX2Room->GetMySlot() && true == g_pX2Room->GetMySlot()->m_bObserver ) ||	/// 옵저버일 때
-						true == g_pX2Game->GetMyUnit()->GetCashItemAbility()->m_bShowOppnentMP )				/// 고성능 고글을 착용했을 때
+						true == g_pX2Game->GetMyUnit()->GetCashItemAbility().m_bShowOppnentMP )				/// 고성능 고글을 착용했을 때
 						ptrGageSet->UpdateNowMpFromPercent( pGameUnitPartyMember_->GetNowMp() / pGameUnitPartyMember_->GetMaxMp() );
 					else
 						ptrGageSet->UpdateNowMpFromPercent( 0 );

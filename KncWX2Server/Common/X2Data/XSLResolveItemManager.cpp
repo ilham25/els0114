@@ -344,7 +344,7 @@ bool CXSLResolveItemManager::GetResultItem( IN const int iItemGrade,
 
 	// 2. ¿¤ÀÇ °¡·ç È¹µæ
 	{
-		ResolveResult_BrokenPiece( RESOLVE_RESULT_TYPE::RRT_EL_FLOUR, iEqipLevel, iSellPrice, mapResultItem );
+		ResolveResult_BrokenPiece( RRT_EL_FLOUR, iEqipLevel, iSellPrice, mapResultItem );
 	}
 
 	// 3. ¹«±â Á¶°¢ ¶Ç´Â ¹æ¾î±¸ ÆÄÆí È¹µæ
@@ -355,11 +355,11 @@ bool CXSLResolveItemManager::GetResultItem( IN const int iItemGrade,
 			const int iResolveItemType = m_kWeaponResolveLottery.Decision();
 			if( iResolveItemType == CXSLItem::IT_WEAPON )
 			{
-				ResolveResult_BrokenPiece( RESOLVE_RESULT_TYPE::RRT_WEAPON_BROKEN_PIECE, iEqipLevel, iSellPrice, mapResultItem );
+				ResolveResult_BrokenPiece( RRT_WEAPON_BROKEN_PIECE, iEqipLevel, iSellPrice, mapResultItem );
 			}
 			else if( iResolveItemType == CXSLItem::IT_DEFENCE )
 			{
-				ResolveResult_BrokenPiece( RESOLVE_RESULT_TYPE::RRT_ARMOR_BROKEN_PIECE, iEqipLevel, iSellPrice, mapResultItem );
+				ResolveResult_BrokenPiece( RRT_ARMOR_BROKEN_PIECE, iEqipLevel, iSellPrice, mapResultItem );
 			}
 			else
 			{
@@ -376,7 +376,7 @@ bool CXSLResolveItemManager::GetResultItem( IN const int iItemGrade,
 			int iResolveItemType = CXSLItem::IT_NONE;
 			int iWeaponMinUnitCost = 0;
 
-			BOOST_TEST_FOREACH( const BrokenPieceResolve&, kResolveData, m_vecBrokenPieceResolve[RESOLVE_RESULT_TYPE::RRT_WEAPON_BROKEN_PIECE] )
+			BOOST_TEST_FOREACH( const BrokenPieceResolve&, kResolveData, m_vecBrokenPieceResolve[RRT_WEAPON_BROKEN_PIECE] )
 			{
 				if( iEqipLevel < kResolveData.m_iBeginLv  ||  iEqipLevel > kResolveData.m_iEndLv )
 					continue;
@@ -398,11 +398,11 @@ bool CXSLResolveItemManager::GetResultItem( IN const int iItemGrade,
 
 			if( iResolveItemType == CXSLItem::IT_WEAPON )
 			{
-				ResolveResult_BrokenPiece( RESOLVE_RESULT_TYPE::RRT_WEAPON_BROKEN_PIECE, iEqipLevel, iSellPrice, mapResultItem );
+				ResolveResult_BrokenPiece( RRT_WEAPON_BROKEN_PIECE, iEqipLevel, iSellPrice, mapResultItem );
 			}
 			else if( iResolveItemType == CXSLItem::IT_DEFENCE )
 			{
-				ResolveResult_BrokenPiece( RESOLVE_RESULT_TYPE::RRT_ARMOR_BROKEN_PIECE, iEqipLevel, iSellPrice, mapResultItem );
+				ResolveResult_BrokenPiece( RRT_ARMOR_BROKEN_PIECE, iEqipLevel, iSellPrice, mapResultItem );
 			}
 			else
 			{

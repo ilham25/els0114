@@ -285,7 +285,11 @@ bool KNexonAuthPacket::WriteString( const std::wstring& wstrData, int& iCP )
 	}
 
     char szData[MAX_PATH];
-    strcpy( szData, strData.c_str() );
+#ifdef _CONVERT_VS_2010
+	strcpy_s( szData, strData.c_str() );
+#else
+	strcpy( szData, strData.c_str() );
+#endif _CONVERT_VS_2010
 
 	::memcpy( m_abytePacketContent + iCP, szData, ( size_t )byteLength );
 	iCP = iCP + ( int )byteLength;

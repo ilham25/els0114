@@ -59,10 +59,10 @@ void KPersonalShopItemManager::GetSellPersonalShopItemInfoList( OUT std::vector<
 
 		switch( eType )
 		{
-		case ITEM_LIST_TYPE::ILT_ALL_ITEMS:
+		case ILT_ALL_ITEMS:
 			break;
 
-		case ITEM_LIST_TYPE::ILT_ONLY_ON_SALE_ITEMS:
+		case ILT_ONLY_ON_SALE_ITEMS:
 			{
 				// 다 팔린것은 리스트에 담지 않는다!
 				if( spItemInfo->GetShopItemState() == KPersonalShopItem::SIS_SOLD_OUT  ||
@@ -71,7 +71,7 @@ void KPersonalShopItemManager::GetSellPersonalShopItemInfoList( OUT std::vector<
 			}
 			break;
 
-		case ITEM_LIST_TYPE::ILT_ONLY_SOLD_OUT_ITEMS:
+		case ILT_ONLY_SOLD_OUT_ITEMS:
 			{
 				// 덜 팔린것은 리스트에 담지 않는다!
 				if( spItemInfo->GetShopItemState() == KPersonalShopItem::SIS_SALE  ||
@@ -384,7 +384,7 @@ bool KPersonalShopItemManager::PrepareForBuyItem( IN const UidType iHostUnitUID,
 #ifdef SERV_PSHOP_AGENCY_NO_COMMISSION_EVENT
 	// 이벤트 기간 동안에는 수수료가 없다!
 #else
-	iTotalPrice += static_cast<int>(iTotalPrice * TD_COMMISSION); // 거래게시판을 통해서 왔으면 구매 수수료 3%를 붙인다.
+	//iTotalPrice += static_cast<int>(iTotalPrice * TD_COMMISSION); // 거래게시판을 통해서 왔으면 구매 수수료 3%를 붙인다.
 #endif SERV_PSHOP_AGENCY_NO_COMMISSION_EVENT
 	//}}	
 #endif DEF_TRADE_BOARD

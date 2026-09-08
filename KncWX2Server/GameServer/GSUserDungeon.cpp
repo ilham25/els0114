@@ -140,7 +140,7 @@ _IMPL_ON_FUNC( ERM_DUNGEON_STAGE_START_NOT, KEGS_DUNGEON_STAGE_START_NOT )
 	SendPacket( EGS_DUNGEON_STAGE_START_NOT, kPacket_ );
 }
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 IMPL_ON_FUNC( EGS_DUNGEON_SUB_STAGE_CLEAR_REQ )
 {
 	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
@@ -179,7 +179,7 @@ _IMPL_ON_FUNC( ERM_SECRET_STAGE_LOAD_ACK, KEGS_DUNGEON_STAGE_LOAD_REQ )
 
 	SendToCnRoom( ERM_DUNGEON_STAGE_LOAD_REQ, kPacket_ );
 }
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 IMPL_ON_FUNC( EGS_DUNGEON_SUB_STAGE_OPEN_REQ )
 {
@@ -331,21 +331,21 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SECRET_STAGE_ENTER_CHECK_ACK, KEGS_DUNGEON_SECRET_STA
 	SendPacket( EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_ACK, kPacket_ );
 }
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 _IMPL_ON_FUNC( ERM_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT, KEGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT )
 {
 	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
 
 	SendPacket( EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT, kPacket_ );
 }
-#else SERV_STAGE_CLEAR_IN_SERVER
+#else // SERV_STAGE_CLEAR_IN_SERVER
 IMPL_ON_FUNC_NOPARAM( ERM_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT )
 {
 	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
 
 	SendID( EGS_DUNGEON_SECRET_STAGE_ENTER_CHECK_NOT );
 }
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 IMPL_ON_FUNC( EGS_DUNGEON_SECRET_STAGE_ENTER_SELECT_NOT )
 {
@@ -365,6 +365,24 @@ _IMPL_ON_FUNC( ERM_DUNGEON_SECRET_STAGE_ENTER_RESULT_NOT, KEGS_DUNGEON_SECRET_ST
 _IMPL_ON_FUNC( ERM_END_GAME_DUNGEON_RESULT_DATA_NOT, KEGS_END_GAME_DUNGEON_RESULT_DATA_NOT )
 {
 	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
+
+#ifdef SERV_EVENT_CHECK_POWER
+	IF_EVENT_ENABLED( CEI_CHECK_POWER )
+	{
+		bool bSuitableLevelDungeon = false;
+		if( kPacket_.m_mapSuitableLevelInfo.find( GetCharUID() ) != kPacket_.m_mapSuitableLevelInfo.end() )
+			bSuitableLevelDungeon = kPacket_.m_mapSuitableLevelInfo[ GetCharUID() ];
+
+		BOOST_TEST_FOREACH( KDungeonUnitResultInfo&, kDungeonUnitResultInfo, kPacket_.m_vecDungeonUnitInfo )
+		{
+			if( kDungeonUnitResultInfo.m_UnitUID == GetCharUID() )
+			{
+				UpdateCheckPowerScore( kPacket_.m_iDungeonID, kDungeonUnitResultInfo.m_cTotalRank, kPacket_.m_vecDungeonUnitInfo.size(), bSuitableLevelDungeon, kPacket_.m_cDifficulty, kDungeonUnitResultInfo.m_bIsMVP, kPacket_.m_bIsWin );
+				break;
+			}
+		}
+	}
+#endif SERV_EVENT_CHECK_POWER
 
 	//{{ 2013. 04. 15	박세훈	어둠의 문 개편
 #ifdef SERV_NEW_DEFENCE_DUNGEON
@@ -426,7 +444,6 @@ _IMPL_ON_FUNC( ERM_END_GAME_DUNGEON_RESULT_DATA_NOT, KEGS_END_GAME_DUNGEON_RESUL
 #ifdef SERV_POINT_COUNT_SYSTEM
 		m_kUserQuestManager.SetUpdateQuestInstance(GetThisPtr<KGSUser>());
 #endif //SERV_POINT_COUNT_SYSTEM
-
 
 		goto end_proc;
 	}
@@ -604,8 +621,22 @@ _IMPL_ON_FUNC( ERM_END_GAME_DUNGEON_RESULT_DATA_NOT, KEGS_END_GAME_DUNGEON_RESUL
 #ifdef SERV_RECRUIT_EVENT_SUBQUEST
 			, bHasFriend
 #endif //SERV_RECRUIT_EVENT_SUBQUEST
+#ifdef SERV_THREE_COLOR_EVENT
+			, kPacket_.m_setEquippedTitle
+#endif SERV_THREE_COLOR_EVENT
 			);
 		//}}
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		IF_EVENT_ENABLED( CEI_EVENT_COBO_DUNGEON_AND_FIELD )
+		{
+			///여기서 던전 클리어 체크 해서 클라에 전달
+			DungeonClearCountNot(kPacket_.m_iDungeonID, kPacket_.m_mapSuitableLevelInfo );
+		}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		EventDungeonClearCountAdd( kPacket_.m_iDungeonID ); //던전 아이디를 넣어 주자
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 
 		//{{ 2013. 03. 21	 계정 퀘스트 - 적정 레벨 던전 클리어 조건 추가 - 김민성
 #ifdef SERV_ACCOUNT_QUEST_ADD_CONDITION
@@ -637,15 +668,6 @@ _IMPL_ON_FUNC( ERM_END_GAME_DUNGEON_RESULT_DATA_NOT, KEGS_END_GAME_DUNGEON_RESUL
 				kDungeonUnitResultInfo.ResetEXP();
 			}
 		}
-
-		//{{ 2011. 08. 12   김민성      헤니르 개편 
-#ifdef SERV_NEW_HENIR_TEST
-		if( CXSLDungeon::IsHenirDungeon( kPacket_.m_iDungeonID ) == true )
-		{
-			m_kUserDungeonManager.SetPossibleHenirReward();
-		}
-#endif SERV_NEW_HENIR_TEST
-		//}}
 
 		//{{ 박교현 : [2010/03/09] //	중국 중독방지 방침미 시스템
 #ifdef SERV_ANTI_ADDICTION_SYSTEM
@@ -722,7 +744,7 @@ IMPL_ON_FUNC( ERM_UPDATE_DUNGEON_UNIT_INFO_NOT )
 		//#첫번째 던전클리어인지는 룸서버에서 알수없고(현재 유저정보 최적화시 빠짐)
 		// 첫번째 던전인 초심자의 숲은 혼자플레이만 될수있게 진행되기때문에 이곳에서 직접해준다.
 		//if( m_mapDungeonClear.empty() == true &&
-		//	kPacket_.m_iDungeonID == CXSLDungeon::DI_EL_FOREST_GATE_NORMAL )
+		//	kPacket_.m_iDungeonID == SEnum::DI_EL_FOREST_GATE_NORMAL )
 		//{
 		//	kPacket_.m_iEXP += 800;
 		//}		
@@ -840,6 +862,7 @@ IMPL_ON_FUNC( ERM_UPDATE_DUNGEON_UNIT_INFO_NOT )
 	std::map< int, KDungeonPlayInfo >::iterator mitDungeonPlay = m_mapDungeonPlay.find( kPacket_.m_iDungeonID );
 	if( mitDungeonPlay == m_mapDungeonPlay.end() )
 	{
+		// 일단 이 놈들은 해킹유저. 큰 문제는 아니니 차감횟수만 셋팅하자.
 		KDungeonPlayInfo kDungeonPlayInfo;
 		kDungeonPlayInfo.m_iDungeonID = kPacket_.m_iDungeonID;
 		kDungeonPlayInfo.m_iPlayTimes = 1;
@@ -850,7 +873,6 @@ IMPL_ON_FUNC( ERM_UPDATE_DUNGEON_UNIT_INFO_NOT )
 	}
 	else
 	{
-		mitDungeonPlay->second.m_iPlayTimes += 1;
 		mitDungeonPlay->second.m_iClearTimes += static_cast<int>( kPacket_.m_bDungeonClear );
 		mitDungeonPlay->second.m_bNew = true;
 	}
@@ -1224,59 +1246,6 @@ IMPL_ON_FUNC( ERM_UPDATE_DUNGEON_UNIT_INFO_NOT )
 		}
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
 		//}}
-
-		//{{ 2012. 07. 09	김민성       현자의 마법석
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_STONE_EVENT
-		std::map< int, KItemInfo >::iterator mitEventStoneItemCheck = kPacket_.m_mapResultItem.find( CXSLItem::EI_WISE_MAN_STONE_ITEM );
-		if( mitEventStoneItemCheck != kPacket_.m_mapResultItem.end() )
-		{
-			if( kPacket_.m_bHaveExpInDungeon == true )
-			{
-				if( 41 > static_cast<int>(m_ucLevel) )
-				{
-					std::map< int, int >::iterator mitGetItem = kPacket_.m_mapGetItem.find( CXSLItem::EI_WISE_MAN_STONE_ITEM );
-					if( mitGetItem != kPacket_.m_mapGetItem.end() )
-					{
-						kPacket_.m_mapGetItem.erase( mitGetItem );	// 결과창에서 보여지는 아이템
-					}
-
-					kPacket_.m_mapResultItem.erase( mitEventStoneItemCheck ); // 실제 습득 아이템
-				}
-			}
-			else
-			{
-				std::map< int, int >::iterator mitGetItem = kPacket_.m_mapGetItem.find( CXSLItem::EI_WISE_MAN_STONE_ITEM );
-				if( mitGetItem != kPacket_.m_mapGetItem.end() )
-				{
-					kPacket_.m_mapGetItem.erase( mitGetItem );	// 결과창에서 보여지는 아이템
-				}
-
-				kPacket_.m_mapResultItem.erase( mitEventStoneItemCheck );	// 실제 습득 아이템
-			}
-		}
-#endif SERV_DUNGEON_CLEAR_PAYMENT_STONE_EVENT
-		//}}
-
-		//{{ 2013. 1. 11	박세훈	던전 결과창에서 현자의 주문서 중복 지급 불가에 따른 예외 처리
-#ifdef SERV_DO_NOT_REPEAT_PAYMENT_SCROLL_OF_SAGE
-		std::map<int, KItemInfo>::iterator mitEventItemCheck = kPacket_.m_mapResultItem.find( CXSLItem::EI_CHAR_LEVEL_UP_ITEM );
-		if( mitEventItemCheck != kPacket_.m_mapResultItem.end() )
-		{
-			int iQuantity = 0;
-			if( m_kInventory.GetQuantity( CXSLItem::EI_CHAR_LEVEL_UP_ITEM, iQuantity ) == true )   // 인벤토리에 현자의 주문서가 있다면 지급하지 않는다.
-			{
-				std::map<int, int>::iterator mitGetItem = kPacket_.m_mapGetItem.find( CXSLItem::EI_CHAR_LEVEL_UP_ITEM );
-				if( mitGetItem != kPacket_.m_mapGetItem.end() )
-				{
-					kPacket_.m_mapGetItem.erase( mitGetItem );	// 결과창에서 보여지는 아이템
-				}
-
-				kPacket_.m_mapResultItem.erase( mitEventItemCheck );	// 실제 습득 아이템
-			}
-		}
-#endif SERV_DO_NOT_REPEAT_PAYMENT_SCROLL_OF_SAGE
-		//}}
-
 #ifdef SERV_PAYMENT_ITEM_WITH_CONSUMING_OTHER_ITEM
 		// 삭제할 아이템 목록은 따로 관리
 		std::map< int, int > mapConsumingItem;
@@ -1563,6 +1532,8 @@ IMPL_ON_FUNC( EGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ )
 		const int ciResurrectionStoneID = 1000051;
 #elif defined SERV_COUNTRY_CN
 		const int ciResurrectionStoneID = 10001;
+#elif defined SERV_COUNTRY_BR
+		const int ciResurrectionStoneID = 50051;
 #else // SERV_COUNTRY_XX
 		const int ciResurrectionStoneID = 51;
 #endif //SERV_COUNTRY_XX
@@ -1620,7 +1591,24 @@ IMPL_ON_FUNC( EGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ )
 #endif // SERV_COUNTRY_CN
 		
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
-		
+
+#ifdef SERV_BALANCE_CHEAK_BEFORE_REALTIME_RESSTONE		
+		//잔액 검사
+		if( m_GlobalCashInfo.m_ulCash[kPacketReq.m_iUseCashType] < kBillProductInfo.m_iSalePrice )
+		{
+			START_LOG( cerr, L"잔액 없는데 실시간 부활석 사용 했다 " )
+				<< BUILD_LOG( GetCharUID() )
+				<< BUILD_LOG( GetCharName() )
+				<< BUILD_LOG( m_GlobalCashInfo.m_ulCash[kPacketReq.m_iUseCashType] )
+				<< BUILD_LOG( kBillProductInfo.m_iSalePrice )
+				<< END_LOG;
+
+			KEGS_RESURRECT_TO_CONTINUE_DUNGEON_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_16;
+			SendPacket( EGS_RESURRECT_TO_CONTINUE_DUNGEON_ACK, kPacket );
+			return;
+		}
+#endif //SERV_BALANCE_CHEAK_BEFORE_REALTIME_RESSTONE
 
 		KBillBuyInfo kInfo;
 		kInfo.m_wstrOrderID = MakeOrderID();
@@ -1628,6 +1616,9 @@ IMPL_ON_FUNC( EGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ )
 		kInfo.m_iPoint = kBillProductInfo.m_iSalePrice;
 		kInfo.m_iProductID = kBillProductInfo.m_iProductID;
 		kInfo.m_usOrderQuantity = 1;
+#if defined(SERV_COUNTRY_BR) || defined(SERV_COUNTRY_ID)
+		kInfo.m_wstrMemo = kBillProductInfo.m_wstrProductName;		
+#endif //SERV_COUNTRY_BR
 		kInfo.m_iCategory = ( int )kBillProductInfo.m_cCategoryNo;
 		kPacketReq.m_vecBillBuyInfo.push_back( kInfo );
 
@@ -1732,13 +1723,25 @@ IMPL_ON_FUNC( EGS_RESURRECT_TO_CONTINUE_DUNGEON_REQ )
 		CTime tCurrent = CTime::GetCurrentTime();
 		kPacketReq.m_wstrOrderID = ( CStringW )tCurrent.Format( _T( "%Y%m%d%H%M%S" ) );
 		wchar_t wszNumber[32];
+#ifdef _CONVERT_VS_2010
+		_i64tow_s( KBaseServer::GetKObj()->GetUID(), wszNumber, 32, 10 );
+#else
 		_i64tow( KBaseServer::GetKObj()->GetUID(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 		kPacketReq.m_wstrOrderID += L"_";
 		kPacketReq.m_wstrOrderID += wszNumber;
+#ifdef _CONVERT_VS_2010
+		_i64tow_s( GetUID(), wszNumber, 32, 10 );
+#else
 		_i64tow( GetUID(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 		kPacketReq.m_wstrOrderID += L"_";
 		kPacketReq.m_wstrOrderID += wszNumber;
+#ifdef _CONVERT_VS_2010
+		_i64tow_s( SiKNexonBillingTCPManager()->GetNextPurchaseNo(), wszNumber, 32, 10 );
+#else
 		_i64tow( SiKNexonBillingTCPManager()->GetNextPurchaseNo(), wszNumber, 10 );
+#endif _CONVERT_VS_2010
 		kPacketReq.m_wstrOrderID += L"_";
 		kPacketReq.m_wstrOrderID += wszNumber;
 
@@ -2267,10 +2270,15 @@ _IMPL_ON_FUNC( ERM_DEFENCE_DUNGEON_GAME_START_NOT, KEGS_DEFENCE_DUNGEON_GAME_STA
 #endif SERV_REFORM_QUEST
 	//}}
 
-	//{{ 2012. 12. 31 칭호 미션 오류 수정(파티인원수) - 김민성
-#ifdef SERV_PLAYER_WITH_DUNGEON_CLEAR_SUB_TITLE_MISSION_ERROR
+#ifdef SERV_ADD_TITLE_CONDITION
+	UseResurrectionStone( false );
 	SetStartedNumMember( kPacket_.m_RoomInfo.m_JoinSlot );
-#endif SERV_PLAYER_WITH_DUNGEON_CLEAR_SUB_TITLE_MISSION_ERROR
+#endif SERV_ADD_TITLE_CONDITION
+
+	//{{ 2013. 02. 05  칭호 획득 조건 추가(부활석 사용 횟수, 샌더 마을) - 김민성
+#ifdef SERV_ADD_TITLE_CONDITION_SANDER
+	ClearUseResurrectionStoneCount();
+#endif SERV_ADD_TITLE_CONDITION_SANDER
 	//}
 
 	//{{ 2009. 10. 8  최육사	길드
@@ -2362,7 +2370,12 @@ IMPL_ON_FUNC_NOPARAM( ERM_LEAVE_ROOM_BEFORE_DEFENCE_DUNGEON_START_NOT )
 	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
 
 	// 파티 소속이라면 자동으로 이탈 처리 하자!
+
+#ifdef LOG_PARTY_BREAK // 용의자1 여긴거같은데,..
+	SendLeaveParty( NetError::NOT_LEAVE_PARTY_REASON_10 );
+#else
 	SendLeaveParty( NetError::NOT_LEAVE_PARTY_REASON_02 );
+#endif // LOG_PARTY_BREAK 
 
 	// 임시 인벤토리 초기화
 	ClearTempInventory();

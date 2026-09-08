@@ -63,4 +63,7 @@ private:
 	CX2UnitViewerUI*	m_pUnitViewerUI;
 	CKTDGUIDialogType	m_pDLGClassChange;
 
+#ifdef ADD_PLAY_SOUND //±Ë√¢«—
+	void PlaySoundChangeClass( CX2Unit::UNIT_TYPE eUnitType );
+#endif //ADD_PLAY_SOUND
 };

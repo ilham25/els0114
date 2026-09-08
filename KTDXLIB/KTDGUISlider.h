@@ -45,6 +45,20 @@ class CKTDGUISlider : public CKTDGUIControl
 		int  ValueFromPos( int x ); 
 		void FromRectToPoint( RECT& rect, CKTDGUIControl::UIPointData& point );
 
+#ifdef DLL_BUILD
+		virtual bool IsSelectByEditGui( POINT pt ) override;
+		virtual void MoveControl( float fx, float fy ) override;
+		virtual void SetEditGUI( bool bEdit ) override;		// GUI 에디트 모드 설정
+		virtual D3DXVECTOR2 GetPos() override;		/// 컨트롤의 위치
+		virtual vector<D3DXVECTOR2> GetPosList() override;		// 컨트롤 내에 pictures의 위치 정보
+		void DrawEditEdge();		// UITool에서 편집용으로 사용된다.
+
+protected:
+	bool m_bEditEdge;
+	CKTDXDeviceTexture * m_pCheckedEdgeTexture;
+#endif
+
+protected:
 		int m_x, m_y;
 		int m_width, m_height;					// slider control 전체 영역 크기
 		int m_iButtonWidth, m_iButtonHeight;	// slider button 크기

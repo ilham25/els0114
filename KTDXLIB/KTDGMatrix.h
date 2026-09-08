@@ -73,7 +73,11 @@ class CKTDGMatrix
 //{{ robobeg : 2008-10-17
 		//void PushMatrix();
 		//int	 PopMatrix();
+#ifdef X2OPTIMIZE_CULLING_PARTICLE
+		CKTDGMatrixSet& GetMatrixSet() { return m_MatrixSet; }
+#else//X2OPTIMIZE_CULLING_PARTICLE
         const CKTDGMatrixSet& GetMatrixSet() const { return m_MatrixSet; }
+#endif//X2OPTIMIZE_CULLING_PARTICLE
         void    SetMatrixSet( const CKTDGMatrixSet& kIn_ ) { m_MatrixSet = kIn_; m_bChange = true; }
 //}} robobeg : 2008-10-17
 

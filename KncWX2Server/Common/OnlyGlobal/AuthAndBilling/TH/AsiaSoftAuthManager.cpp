@@ -100,25 +100,22 @@ void KAsiaSoftAuthManager::Init( int nThreadNum )
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	// thread setting : recvï¿½ï¿½ recvfrom() ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾Æ¼ï¿½ blockï¿½È´ï¿½.
-	//{{ Iruha : 2026-08-27 // VS2010 port: bare Class::Method as a member-function pointer
-	// was a VC7.1 extension; VC10 requires the explicit &.
+	// thread setting : recv´Â recvfrom() ÇÔ¼ö¿¡¼­ ¾Ë¾Æ¼­ blockµÈ´Ù.
 	m_spThreadRecv[ASP_AUTH] = boost::shared_ptr< KTThread< KAsiaSoftAuthManager > >
-		( new KTThread< KAsiaSoftAuthManager >( *this, &KAsiaSoftAuthManager::RecvFromAuth, 50 ) );
+		( new KTThread< KAsiaSoftAuthManager >( *this, KAsiaSoftAuthManager::RecvFromAuth, 50 ) );
 
 	m_spThreadSend[ASP_AUTH] = boost::shared_ptr< KTThread< KAsiaSoftAuthManager > >
-		( new KTThread< KAsiaSoftAuthManager >( *this, &KAsiaSoftAuthManager::SendToAuth, 100 ) );
+		( new KTThread< KAsiaSoftAuthManager >( *this, KAsiaSoftAuthManager::SendToAuth, 100 ) );
 
 	m_spThreadRecv[ASP_IPBONUS] = boost::shared_ptr< KTThread< KAsiaSoftAuthManager > >
-		( new KTThread< KAsiaSoftAuthManager >( *this, &KAsiaSoftAuthManager::RecvFromIPBonus, 50 ) );
+		( new KTThread< KAsiaSoftAuthManager >( *this, KAsiaSoftAuthManager::RecvFromIPBonus, 50 ) );
 
 	m_spThreadSend[ASP_IPBONUS] = boost::shared_ptr< KTThread< KAsiaSoftAuthManager > >
-		( new KTThread< KAsiaSoftAuthManager >( *this, &KAsiaSoftAuthManager::SendToIPBonus, 100 ) );
-	//}}
+		( new KTThread< KAsiaSoftAuthManager >( *this, KAsiaSoftAuthManager::SendToIPBonus, 100 ) );
 
 	KThreadManager::Init( nThreadNum );
 
-	START_LOG(cout, L"AsiaSoft TCP Thread ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½")
+	START_LOG(cout, L"AsiaSoft TCP Thread »ý¼º ¿Ï·á")
 		<< BUILD_LOG( nThreadNum )
 		<< END_LOG;
 }
@@ -149,7 +146,7 @@ void KAsiaSoftAuthManager::BeginThread()
 	{	
 		if( !Connect( iPortNum ) )
 		{
-			START_LOG( cerr, L"AsiaSoft ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½." )
+			START_LOG( cerr, L"AsiaSoft ºô¸µ ¼­¹ö Á¢¼Ó ½ÇÆÐ." )
 				<< BUILD_LOG( iPortNum )
 				<< END_LOG;
 		}
@@ -245,7 +242,7 @@ void KAsiaSoftAuthManager::ClearRequestInfo( int iPortEnum )
 	m_mapRequestInfo[iPortEnum].clear();
 }
 
-//{{ 2011.3.16 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ IP ï¿½Ö±ï¿½ (HK/TW)
+//{{ 2011.3.16 ÃÖÃÊ °èÁ¤ »ý¼º ½Ã IP ³Ö±â (HK/TW)
 #ifdef SERV_INSERT_ACCOUNT_IP
 void KAsiaSoftAuthManager::RegisterUserIDUserIP( std::string& strUserID, std::string& strUserIP )
 {
@@ -329,20 +326,20 @@ void KAsiaSoftAuthManager::SendTo( int iPortEnum )
 	{
 		if( !spPacket )
 		{
-			START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
+			START_LOG( cerr, L"Æ÷ÀÎÅÍ ÀÌ»ó." )
 				<< BUILD_LOG( m_kSendQueue[iPortEnum].size() )
 				<< END_LOG;
 
 			continue;
 		}
 
-		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶" )
+		START_LOG( clog, L"º¸³»´Â ÆÐÅ¶" )
 			<< BUILD_LOG( spPacket->c_str() )
 			<< END_LOG;
 
 		if( spPacket->size() > MAX_PACKET_SIZE_OF_GASH_AUTH )
 		{
-			START_LOG( cerr, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
+			START_LOG( cerr, L"ÆÐÅ¶ »çÀÌÁî ÀÌ»ó." )
 				<< BUILD_LOG( spPacket->size() )
 				<< END_LOG;
 
@@ -389,7 +386,7 @@ void KAsiaSoftAuthManager::RecvFrom(int iPortEnum)
 		MAX_PACKET_SIZE_OF_GASH_AUTH - m_iRecvCP[iPortEnum],
 		0 );
 
-	START_LOG( clog, L"ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½." )
+	START_LOG( clog, L"ÆÐÅ¶ ¹ÞÀ½." )
 		<< BUILD_LOG( ret );
 
 	if( ret == SOCKET_ERROR )
@@ -403,7 +400,7 @@ void KAsiaSoftAuthManager::RecvFrom(int iPortEnum)
 	{
 		CLOSE_SOCKET( m_sock[iPortEnum] );
 
-		START_LOG( cerr, L"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½." )
+		START_LOG( cerr, L"¼ÒÄÏ ¿¬°áÀÌ ²÷¾îÁü." )
 			<< END_LOG;
 
 		return;
@@ -411,7 +408,7 @@ void KAsiaSoftAuthManager::RecvFrom(int iPortEnum)
 
 	if( ret > MAX_PACKET_SIZE_OF_GASH_AUTH - m_iRecvCP[iPortEnum] )
 	{
-		START_LOG( cerr, L"ï¿½ï¿½ï¿½Ûµï¿½ Å©ï¿½â°¡ ï¿½Ê¹ï¿½ Å©ï¿½ï¿½." )
+		START_LOG( cerr, L"Àü¼ÛµÈ Å©±â°¡ ³Ê¹« Å©´Ù." )
 			<< BUILD_LOG( ret )
 			<< BUILD_LOG( MAX_PACKET_SIZE_OF_GASH_AUTH )
 			<< BUILD_LOG( m_iRecvCP[iPortEnum] )
@@ -429,7 +426,7 @@ void KAsiaSoftAuthManager::RecvFrom(int iPortEnum)
 		strRecv.push_back( m_cRecvBuffer[iPortEnum][i] );
 	}
 	strRecv.push_back( '\0' );
-	START_LOG( clog2, L"ï¿½ï¿½ï¿½ï¿½ AsiaSoft ï¿½ï¿½Å¶ ï¿½×³ï¿½" )
+	START_LOG( clog2, L"¹ÞÀº AsiaSoft ÆÐÅ¶ ±×³É" )
 		<< BUILD_LOG( strRecv )
 		<< END_LOG;
 	//////
@@ -445,7 +442,7 @@ void KAsiaSoftAuthManager::RecvFrom(int iPortEnum)
 			::memcpy( szPacket, m_cRecvBuffer[iPortEnum], iIndex + 1 );
 			std::string strPacket = szPacket;
 
-			START_LOG( clog2, L"ï¿½ï¿½ï¿½ï¿½ AsiaSoft ï¿½ï¿½Å¶" )
+			START_LOG( clog2, L"¹ÞÀº AsiaSoft ÆÐÅ¶" )
 				<< BUILD_LOG( strPacket )
 				<< END_LOG;
 
@@ -494,7 +491,7 @@ bool KAsiaSoftAuthManager::Connect( int iPortSelect )
 	}
 
 	m_iRecvCP[iPortSelect] = 0;
-	SOCKET sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	SOCKET sock = ::socket( AF_INET, SOCK_STREAM, 0 );    // ¼ÒÄÏ »ý¼º
 
 	if( INVALID_SOCKET == sock )
 	{
@@ -530,7 +527,7 @@ bool KAsiaSoftAuthManager::Connect( int iPortSelect )
 	{
 	case ASP_AUTH:
 		{
-			START_LOG( cout2, L"AsiaSoft ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
+			START_LOG( cout2, L"AsiaSoft ÀÎÁõ ¼­¹ö Á¢¼Ó ¼º°ø!" )
 				<< BUILD_LOG( m_kAsiaSoftAuthInfo.m_strIP[iPortSelect].c_str() )
 				<< BUILD_LOG( m_kAsiaSoftAuthInfo.m_usAsiaSoft_Port[iPortSelect] )
 				<< END_LOG;
@@ -538,7 +535,7 @@ bool KAsiaSoftAuthManager::Connect( int iPortSelect )
 		break;
 	case ASP_IPBONUS:
 		{
-			START_LOG( cout2, L"AsiaSoft IPBonus ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½!" )
+			START_LOG( cout2, L"AsiaSoft IPBonus ¼­¹ö Á¢¼Ó ¼º°ø!" )
 				<< BUILD_LOG( m_kAsiaSoftAuthInfo.m_strIP[iPortSelect].c_str() )
 				<< BUILD_LOG( m_kAsiaSoftAuthInfo.m_usAsiaSoft_Port[iPortSelect] )
 				<< END_LOG;
@@ -592,7 +589,7 @@ void KAsiaSoftAuthManager::KeepConnection()
 		
 		CTime tCurrentTime = CTime::GetCurrentTime();
 		boost::shared_ptr< std::string > spPacket( new std::string );
-		std::wstring wstrSockID = L"AF71B81311F0" + boost::str( boost::wformat( L"%02d%02d" ) % tCurrentTime.GetMinute() % tCurrentTime.GetSecond() );	//	ï¿½ï¿½ï¿½Ç¸Æ¾ï¿½å·¹ï¿½ï¿½(12) + ï¿½ï¿½ï¿½Óºï¿½ï¿½ï¿½(4) = (16ï¿½ï¿½)
+		std::wstring wstrSockID = L"AF71B81311F0" + boost::str( boost::wformat( L"%02d%02d" ) % tCurrentTime.GetMinute() % tCurrentTime.GetSecond() );	//	ÀÓÀÇ¸Æ¾îµå·¹½º(12) + Á¢¼ÓºÐÃÊ(4) = (16ÀÚ)
 
 		switch( iPortNum )
 		{
@@ -629,13 +626,13 @@ void KAsiaSoftAuthManager::KeepConnection()
 			}break;
 		default:
 			{
-				START_LOG( cerr, L"ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
+				START_LOG( cerr, L"Æ÷Æ® Á¾·ù ÀÌ»ó." )
 					<< BUILD_LOG( iPortNum )
 					<< END_LOG;
 			}break;
 		}
 
-		START_LOG( clog, L"ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ ï¿½ï¿½ï¿½ï¿½")
+		START_LOG( clog, L"»óÇü ·Î±× : Á¢¼ÓÀ¯Áö ÆÐÅ¶ º¸³¿")
 			<< BUILD_LOG( iPortNum )
 			<< END_LOG;
 	}
@@ -686,7 +683,7 @@ void KAsiaSoftAuthManager::MakeEventFromReceived(int iPortEnum, std::string& str
 		}break;
 	default:
 		{
-			START_LOG( cerr, L"ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½." )
+			START_LOG( cerr, L"Æ÷Æ® Á¾·ù ÀÌ»ó." )
 				<< BUILD_LOG( iPortEnum )
 				<< END_LOG;
 		}break;
@@ -694,7 +691,7 @@ void KAsiaSoftAuthManager::MakeEventFromReceived(int iPortEnum, std::string& str
 }
 
 
-//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2012/6/21] //	AsiaSoft Auth
+//{{ Çã»óÇü : [2012/6/21] //	AsiaSoft Auth
 std::string KAsiaSoftAuthManager::GetLoginPacket( IN KEPUBLISHER_AUTHENTICATION_REQ kPacket_ )
 {
 	std::string strPasswordMD5 = KncUtil::GetMD5( KncUtil::toNarrowString( kPacket_.m_wstrServicePassword ) );
@@ -717,7 +714,7 @@ std::string KAsiaSoftAuthManager::GetIPBonusPacket( IN KEAS_GET_IPBONUS_REQ kPac
 
 std::string KAsiaSoftAuthManager::GetAuthAkeyPacket( IN KEAS_AUTH_AKEY_REQ kPacket_ )
 {
-	//	note : @key ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¶ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½î°¡ï¿½ï¿½ ï¿½Ï±â¶§ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Â¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ä£ï¿½ï¿½.
+	//	note : @key ÀÎÁõ ÆÐÅ¶Àº Áß°£¿¡ ±æÀÌ °ªÀÌ µé¾î°¡¾ß ÇÏ±â¶§¹®¿¡ ±æÀÌ ÀÎÀÚ°ª ±âÁØ ÁÂ¿ì·Î ³ª´« ÈÄ ÇÕÄ£´Ù.
 	std::wstringstream wstrstmReturnResult, wstrstmReturnRight;
 	wstrstmReturnRight << L"|" << kPacket_.m_wstrDomain << L"|" << kPacket_.m_wstrAkeyUserID << L"||" 
 		<< kPacket_.m_wstrAkey << L"|" << kPacket_.m_wstrIP << L"|125|" 
@@ -725,7 +722,7 @@ std::string KAsiaSoftAuthManager::GetAuthAkeyPacket( IN KEAS_AUTH_AKEY_REQ kPack
 
 	int iSize = static_cast<int>( wstrstmReturnRight.str().size() ) + 6;	//	+6 = L"|1001|"
 
-	//	ï¿½Ú¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï±ï¿½
+	//	ÀÚ¸´¼ö ±¸ÇÏ±â
 	int iChiper, tmp;
 	iChiper = 1, tmp = iSize;
 	while( tmp >= 10 )
@@ -740,7 +737,7 @@ std::string KAsiaSoftAuthManager::GetAuthAkeyPacket( IN KEAS_AUTH_AKEY_REQ kPack
 	return KncUtil::toNarrowString( wstrstmReturnResult.str() );
 }
 
-//{{ ï¿½ï¿½ï¿½ï¿½ï¿½ : [2012/6/21] //	AsiaSoft Auth
+//{{ Çã»óÇü : [2012/6/21] //	AsiaSoft Auth
 bool KAsiaSoftAuthManager::ExtractLoginPacket( IN std::string strPacket, OUT KEAS_AUTH_LOGIN_ACK& kPacketAck )
 {
 	char cPacket[MAX_PACKET_SIZE_OF_GASH_AUTH];
@@ -1178,6 +1175,6 @@ void KAsiaSoftAuthManager::GetIDDomain( IN std::wstring wstrMasterID, OUT std::w
 	wstrDomain = wstrMasterID.substr(0, iDotLocation);
 	wstrUserID = wstrMasterID.substr(iDotLocation+1, wstrMasterID.length() - iDotLocation );
 }
-//}} ï¿½ï¿½ï¿½ï¿½ï¿½ : [2012/6/21] //	AsiaSoft Auth
+//}} Çã»óÇü : [2012/6/21] //	AsiaSoft Auth
 
 #endif // SERV_COUNTRY_TH

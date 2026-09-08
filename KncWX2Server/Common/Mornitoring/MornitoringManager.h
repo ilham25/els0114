@@ -115,6 +115,12 @@ protected:
 	template < class T > void SendToSMSDB( unsigned short usEventID, const T& data );
 	void	SendToSMSDB( unsigned short usEventID );
 
+	inline void MakeUpperCase(std::wstring &str) 
+	{
+		for( std::wstring::iterator i = str.begin(); i != str.end(); i++ ) 
+			*i = (WCHAR)towupper(*i);
+	}
+
 private:
 	std::map< ERR_TYPE, int >				m_mapErrStatistics[EST_MAX];
 	std::vector< std::wstring >				m_vecPhoneNumList;

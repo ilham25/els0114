@@ -106,6 +106,9 @@ m_LUMenu2nd(UI_MENU_END)
 , m_pDlgWeddingEventLetter( NULL )
 , m_hMeshHandleWedding( INVALID_MESH_INSTANCE_HANDLE )
 #endif //SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+,m_bShowAdamsShop(false)
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 {
 	// 변수 초기화
 	m_vLayer.clear();
@@ -466,7 +469,7 @@ bool CX2UIManager::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 				CX2Cursor* pCursor = pState->GetCursor();
 				if ( pCursor != NULL && pCursor->GetCurorState() != CX2Cursor::XCS_NORMAL )
 				{
-#ifdef SERV_ITEM_EXCHANGE_NEW	// 해외팀 디파인 명 변경
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 					if(true == g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_ITEM_EXCHANGE_SHOP))
 					{
 						g_pData->GetUIManager()->GetUIItemExchangeShop()->InvalidLastSelectExchange();
@@ -553,7 +556,6 @@ bool CX2UIManager::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 		}
 	}
 #endif CLIENT_SECOND_SECURITY
-
 
 	//{{ 2011.03.16   임규수 아바타 분해 시스템
 #ifdef SERV_MULTI_RESOLVE
@@ -920,7 +922,11 @@ bool CX2UIManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		if(m_pWatch->UICustomEventProc(hWnd, uMsg, wParam, lParam) == true)
 			return true;
 	}
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	if ( m_pPersonalShop != NULL )
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	if(m_pPersonalShop != NULL && m_pPersonalShop->GetShow() == true)
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	{
 		if(m_pPersonalShop->UICustomEventProc(hWnd, uMsg, wParam, lParam) == true)
 			return true;
@@ -1258,6 +1264,21 @@ bool CX2UIManager::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	case EGS_SEND_LOVE_LETTER_EVENT_ACK:
 		return Handler_EGS_SEND_LOVE_LETTER_EVENT_ACK( hWnd, uMsg, wParam, lParam );
 #endif //SERV_RELATIONSHIP_SYSTEM_LAUNCHING_EVENT
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	case EGS_BUY_UI_SETTING_ACK:
+		return Handler_EGS_BUY_UI_SETTING_ACK( hWnd, uMsg, wParam, lParam );
+
+	case EGS_GET_TIME_CONTROL_ITME_LIST_NOT:
+		return Handler_EGS_GET_TIME_CONTROL_ITME_LIST_NOT( hWnd, uMsg, wParam, lParam );
+
+	case EGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK:
+		return Handler_EGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK( hWnd, uMsg, wParam, lParam );
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+#ifdef SERV_MANUFACTURE_PERIOD_FIX	
+	case EGS_MANUFACTURE_PERIOD_SETTING_ACK:
+		return Handler_EGS_MANUFACTURE_PERIOD_SETTING_ACK( hWnd, uMsg, wParam, lParam );
+#endif //SERV_MANUFACTURE_PERIOD_FIX
 	}
 
     return false;
@@ -1559,7 +1580,18 @@ bool CX2UIManager::ToggleUI(UI_MENU menuInx, bool forOpen, UidType arg)
 	SetNowDragItemReturn();
 
 	//ToggleEnableCondition에서 다 막혀 있다..
-	
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+	int UnitType = (int) CX2LocationManager::HI_EVENT_ADAMS_UI_SHOP;
+	if( (int)arg == UnitType )
+	{
+		m_bShowAdamsShop = true;
+	}
+	else
+	{
+		m_bShowAdamsShop = false;
+	}
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+
     switch(menuInx)
     {
 #ifdef SERV_PET_SYSTEM
@@ -1847,12 +1879,24 @@ bool CX2UIManager::ToggleUI(UI_MENU menuInx, bool forOpen, UidType arg)
 			if(forOpen)
 			{
 				CloseAllNPCDlg();
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+				Handler_EGS_BUY_UI_SETTING_REQ((int)arg, UTCIT_MANUFACTURE );
+#else //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 			//{{ kimhc // 2009-11-23 // 제조 아이템 NPC 별로 가능하도록
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+				Handler_EGS_MANUFACTURE_PERIOD_SETTING_REQ( (int)arg );
+#else SERV_MANUFACTURE_PERIOD_FIX
 #ifdef	ADD_HOUSE_ID_TO_MANUFACTURE
 				m_pManufacture->SetHouseID( (int)arg );
 #endif	ADD_HOUSE_ID_TO_MANUFACTURE
+#endif //SERV_MANUFACTURE_PERIOD_FIX
+
+
 			//}} kimhc // 2009-11-23 // 제조 아이템 NPC 별로 가능하도록
 				m_pManufacture->SetShow(true);
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 				return true;
 			}
 			else
@@ -1872,8 +1916,25 @@ bool CX2UIManager::ToggleUI(UI_MENU menuInx, bool forOpen, UidType arg)
 					CreateUIShop();
 					//m_pShop = new CX2UIShop(g_pMain->GetNowState(), NULL);
 				}
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+				int UnitType = (int) CX2LocationManager::HI_EVENT_ADAMS_UI_SHOP;
+				if( (int)arg == UnitType )
+				{
+					m_pShop->SetHouseID((int)arg);
+					m_pShop->SetShow(true);
+				}
+				else
+				{
+					Handler_EGS_BUY_UI_SETTING_REQ((int)arg, UTCIT_SHOP );
+				}
+#else ALWAYS_EVENT_ADAMS_UI_SHOP
+				Handler_EGS_BUY_UI_SETTING_REQ((int)arg, UTCIT_SHOP );
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+#else //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 				m_pShop->SetHouseID((int)arg);
 				m_pShop->SetShow(true);
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 			}
 			else
 			{
@@ -2022,8 +2083,13 @@ bool CX2UIManager::ToggleUI(UI_MENU menuInx, bool forOpen, UidType arg)
 
 				if ( m_pItemExchangeShop == NULL )
 					CreateUIItemExchangeShop();
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+				Handler_EGS_BUY_UI_SETTING_REQ((int)arg, UTCIT_EXCHANGE_SHOP );
+#else //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 				m_pItemExchangeShop->SetHouseID( (int)arg );
 				m_pItemExchangeShop->SetShow( true );	
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 			}
 			else
 			{
@@ -2049,11 +2115,14 @@ bool CX2UIManager::ToggleUI(UI_MENU menuInx, bool forOpen, UidType arg)
 				if ( m_pPrivateBank != NULL )
 				{
 					// 캐릭터 선택 후 한번만
-					if ( m_pPrivateBank->GetInventory()->GetCoutForGetMyBankInfoReq() == 0 )
-					{
-						g_pData->GetServerProtocol()->SendID( EGS_GET_MY_BANK_INFO_REQ );
-						m_pPrivateBank->GetInventory()->SetCountForGetMyBankInfoReq( 1 );
-					}
+                    if ( m_pPrivateBank->GetMyInventory() != NULL )
+                    {
+					    if ( m_pPrivateBank->GetMyInventory()->GetCoutForGetMyBankInfoReq() == 0 )
+					    {
+						    g_pData->GetServerProtocol()->SendID( EGS_GET_MY_BANK_INFO_REQ );
+						    m_pPrivateBank->AccessMyInventory()->SetCountForGetMyBankInfoReq( 1 );
+					    }
+                    }
 					
 					m_pPrivateBank->SetShow( true );
 					if ( GetShow( UI_MENU_INVEN ) == false )
@@ -2282,7 +2351,6 @@ bool CX2UIManager::ToggleUI(UI_MENU menuInx, bool forOpen, UidType arg)
 			CloseAll();
 		}		
 		break;
-
 		//{{ 2011.05.04   임규수 아바타 합성 시스템
 #ifdef SERV_SYNTHESIS_AVATAR
 	case UI_MENU_SYNTHESIS:
@@ -2305,8 +2373,7 @@ bool CX2UIManager::ToggleUI(UI_MENU menuInx, bool forOpen, UidType arg)
 		}
 		break;
 #endif SERV_SYNTHESIS_AVATAR
-		//}}
-		
+		//}}		
 #ifdef REFORM_UI_SKILLSLOT
 	case UI_SKILL_SLOT:
 		{
@@ -2457,7 +2524,6 @@ void CX2UIManager::CloseAll()
 	}
 #endif	PRIVATE_BANK
 	//}} kimhc // 2009-08-04 // 캐릭터별 은행
-
 	//{{ 2011.05.04   임규수 아바타 분해 시스템
 #ifdef SERV_MULTI_RESOLVE
 	SAFE_DELETE(m_pResolveItem);
@@ -2484,10 +2550,6 @@ void CX2UIManager::CloseAll()
 		g_pData->GetProfileManager()->CloseAll();
 #endif //SERV_LOCAL_RANKING_SYSTEM
 
-#ifdef REFORM_UI_KEYPAD
-	if ( NULL != g_pMain->GetKeyPad() )
-		g_pMain->GetKeyPad()->ShowKeyPad( false );
-#endif
 }
 
 void CX2UIManager::CloseAllLUDlg()
@@ -3393,15 +3455,15 @@ void CX2UIManager::CreateUICharInfo()
 	SAFE_DELETE(m_pCharInfo);
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#if defined(NOT_USE_PERCENT_IN_OPTION_DATA) && defined(SERV_PVP_NEW_SYSTEM)
+#if defined(SERV_PVP_NEW_SYSTEM)
 	#ifdef PVP_SEASON2
 	m_pCharInfo = new CX2UICharInfo( g_pMain->GetNowState(),  L"DLG_UI_CHARACTER_NEW_2.lua");
 	#else
 	m_pCharInfo = new CX2UICharInfo(g_pMain->GetNowState(), L"DLG_UI_CHARACTER_NEW.lua");
 	#endif
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
+#else
 	m_pCharInfo = new CX2UICharInfo(g_pMain->GetNowState(), L"DLG_UI_CHARACTER.lua");
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+#endif
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 }
 
@@ -3442,6 +3504,15 @@ CX2UIPersonalShop* CX2UIManager::GetUIPersonalShop()
 { 
 	return m_pPersonalShop; 
 }
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+
+void CX2UIManager::DestroyPeronalShopUI()
+{
+	SAFE_DELETE( m_pPersonalShop );
+}
+
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 void CX2UIManager::CreateUIPersonalTrade()
 {
@@ -3734,7 +3805,11 @@ CX2UIPrivateBank*	CX2UIManager::GetUIPrivateBank() const
 void CX2UIManager::CreateUISkillNote()
 {
 	SAFE_DELETE( m_pSkillNote );
+	#ifdef REFORM_SKILL_NOTE_UI
+	m_pSkillNote		= new CX2UISkillNote( g_pMain->GetNowState(), L"DLG_Note_Of_Skill_New.lua" );
+	#else
 	m_pSkillNote		= new CX2UISkillNote( g_pMain->GetNowState(), L"DLG_Note_Of_Skill.lua" );
+	#endif // REFORM_SKILL_NOTE_UI
 }
 
 CX2UISkillNote*	CX2UIManager::GetUISkillNote() const
@@ -3792,7 +3867,7 @@ void CX2UIManager::ClearWeaddingXmesh()
 	{
 		if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshHandleWedding )
 		{
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance(m_hMeshHandleWedding);
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle(m_hMeshHandleWedding);
 			m_hMeshHandleWedding = INVALID_MESH_INSTANCE_HANDLE;
 
 			if( NULL != m_pDlgWeddingEventLetter )
@@ -3877,12 +3952,10 @@ bool CX2UIManager::Handler_EGS_SEND_LOVE_LETTER_EVENT_ACK( HWND hWnd, UINT uMsg,
 		if( true == g_pMain->IsValidPacket( kEvent.m_iOK ) )
 		{
 			if( NULL != g_pData && NULL != g_pData->GetMyUser() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED		= kEvent.m_iED;		
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED		= kEvent.m_iED;		
 
 				if( GetUIInventory() != NULL)
 				{
@@ -3962,7 +4035,7 @@ bool CX2UIManager::Handler_EGS_WATCH_UNIT_ACK( HWND hWnd, UINT uMsg, WPARAM wPar
 			CX2Unit *pTargetUnit = m_pWatch->GetUnitByUid( kEvent.m_kCUnitInfo.m_iUnitUID );
 			if(pTargetUnit != NULL)
 			{
-				CX2Unit::UnitData* pUnitData = pTargetUnit->GetUnitData();
+				CX2Unit::UnitData* pUnitData = &pTargetUnit->AccessUnitData();
 				if(pUnitData != NULL)
 				{
 					pUnitData->m_Win = kEvent.m_kCUnitInfo.m_iWin;
@@ -4061,7 +4134,11 @@ bool CX2UIManager::PetInventoryForceOpenCondition()
 			(UI_MENU)i != UI_MENU_PET_LIST &&
 			(UI_MENU)i != UI_MENU_SKILL &&
 			(UI_MENU)i != UI_MENU_COMBO_TREE &&
-			(UI_MENU)i != UI_MENU_QUEST_NEW )
+			(UI_MENU)i != UI_MENU_QUEST_NEW
+#ifdef RIDING_SYSTEM
+			&& (UI_MENU)i != UI_RIDING_SKILL_SLOT 
+#endif // RIDING_SYSTEM
+			)
 			////////////////////////////////////
 		{
 			return false;
@@ -4113,7 +4190,13 @@ void CX2UIManager::SetShowUI(bool bVal, bool bForce/* = false*/)
 	SetShowGageUI(m_bShowUI);
 	SetShowQucikQuest(m_bShowUI);
 	SetShowPlayGuide(m_bShowUI);
-	SetShowPartyMenu(m_bShowUI);
+
+#ifdef FIELD_BOSS_RAID
+	if( false == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+#endif // FIELD_BOSS_RAID
+	{
+		SetShowPartyMenu(m_bShowUI);
+	}
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	SetShowSkillDesc(m_bShowUI);
@@ -4136,6 +4219,20 @@ void CX2UIManager::SetShowUI(bool bVal, bool bForce/* = false*/)
 				if( NULL != pDungeonGame )
 					pDungeonGame->SetShowMonsterIndicator(m_bShowUI);
 
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+				if( NULL != g_pData->GetDungeonRoom() )
+				{
+					switch( g_pData->GetDungeonRoom()->GetDungeonID() )
+					{
+						case SEnum::DI_EVENT_HALLOWEEN_DAY:
+							{
+								g_pData->GetUIManager()->SetShowQuickSlot(false);
+							} break;
+						default:
+							break;
+					}
+				}
+#endif //SERV_HALLOWEEN_EVENT_2013
 				if( CX2Dungeon::DM_HENIR_CHALLENGE == g_pData->GetDungeonRoom()->GetDungeonMode() )
 					SetShowQuickSlot(false);
 			}
@@ -4144,15 +4241,30 @@ void CX2UIManager::SetShowUI(bool bVal, bool bForce/* = false*/)
 	case CX2Main::XS_BATTLE_FIELD:
 		{
 			SetShowFeverUI(bVal);
-			SetShowMenu(bVal);
 			SetShowResurrectionStone(bVal);
 			SetShowCinematicUI(bVal);
+			SetShowMenu(bVal);
 
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
 			CX2BattleFieldGame* pBattleFieldGame = static_cast<CX2BattleFieldGame*>(g_pX2Game);
 			if( NULL != pBattleFieldGame )		
 				pBattleFieldGame->SetShowMonsterIndicator(m_bShowUI); // 필드도 Indicator 추가
 #endif // SERV_BATTLEFIELD_MIDDLE_BOSS
+
+#ifdef FIELD_BOSS_RAID // 보스게이지
+			if( false == m_bShowUI )
+			{
+				if( true == g_pData->GetBattleFieldManager().GetIsBossRaidCurrentField() )
+					CX2GageManager::GetInstance()->ShowBossGageUI(false);
+			}
+#endif // FIELD_BOSS_RAID
+
+			if( NULL != g_pData &&
+				NULL != g_pData->GetWorldMissionManager() &&
+				NULL != g_pData->GetWorldMissionManager()->GetUIWorldMission() )
+			{
+				g_pData->GetWorldMissionManager()->GetUIWorldMission()->SetShowTimeDlg( m_bShowUI );
+			}
 		} break;
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	case CX2Main::XS_WEDDING_GAME:
@@ -4186,7 +4298,7 @@ void CX2UIManager::OpenWatchUIByOtherServerGroupUnitUid(UidType UnitUid_)
 	CX2Unit *pTargetUnit = m_pWatch->GetUnitByUid( UnitUid_ );
 	if(pTargetUnit != NULL)
 	{
-		CX2Unit::UnitData* pUnitData = pTargetUnit->GetUnitData();
+		CX2Unit::UnitData* pUnitData = &pTargetUnit->AccessUnitData();
 		if(pUnitData != NULL)
 		{
 			pUnitData->m_Win = -1;
@@ -4314,6 +4426,11 @@ void CX2UIManager::SetShowPartyMenu(bool bVal)
 #ifdef RIDING_SYSTEM
 void CX2UIManager::SetShowRidingPetSkillSlot(bool val)
 { 
+	// UI 모두 끈 상태인데, 스킬 슬롯 UI 켜려고 시도하면 무시하기
+	if( false == m_bShowUI &&
+		true == val )
+		return;
+
 	m_bShowRidingPetSkillSlot = val; 
 	
 	if( true == m_bShowRidingPetSkillSlot &&
@@ -4325,3 +4442,225 @@ void CX2UIManager::SetShowRidingPetSkillSlot(bool val)
 
 }
 #endif //RIDING_SYSTEM
+
+void CX2UIManager::SetShowSkillSlot(bool val)
+{
+	// UI가 꺼져있을 때는, 스킬트리가 열려있을 때만 보여주기
+	if( true == val )
+	{
+		if( false == m_bShowUI &&
+			NULL != GetUISkillTree() &&
+			false == GetUISkillTree()->GetShow() )
+		{
+			return;
+		}
+	}
+
+	m_bShowSkillSlot = val;
+}
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+bool CX2UIManager::Handler_EGS_BUY_UI_SETTING_REQ( int iHouseID, int iTimeControlItemType)
+{
+	KEGS_BUY_UI_SETTING_REQ kEvent;
+
+	switch( iTimeControlItemType )
+	{
+	case UTCIT_SHOP:
+		m_setBanBuyItem.clear();
+		break;
+	case UTCIT_MANUFACTURE:
+		m_setBanManufactureItem.clear();
+		break;
+	case UTCIT_EXCHANGE_SHOP:
+		m_setBanExchangeItem.clear();
+		break;
+	}
+
+	kEvent.m_iTimeControlItemType = iTimeControlItemType;
+	kEvent.m_iHouseID = iHouseID;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_BUY_UI_SETTING_REQ, kEvent );
+	g_pMain->AddServerPacket( EGS_BUY_UI_SETTING_ACK );
+
+	return true;
+}
+
+bool CX2UIManager::Handler_EGS_BUY_UI_SETTING_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_BUY_UI_SETTING_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if ( g_pMain->DeleteServerPacket( EGS_BUY_UI_SETTING_ACK ) == true )
+	{
+		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			switch(kEvent.m_iTimeControlItemType)
+			{
+			case UTCIT_SHOP:
+				{
+					if ( m_pShop != NULL )
+					{
+						m_setBanBuyItem.clear();
+						m_setBanBuyItem = kEvent.m_setGetItemOnOff;
+						m_pShop->SetHouseID( kEvent.m_iHouseID );
+						m_pShop->SetShow(true);
+					}
+				}
+				break;
+			case UTCIT_MANUFACTURE:
+				{
+					if ( m_pManufacture != NULL )
+					{
+						m_setBanManufactureItem.clear();
+						m_setBanManufactureItem = kEvent.m_setGetItemOnOff;
+						//{{ kimhc // 2009-11-23 // 제조 아이템 NPC 별로 가능하도록
+#ifdef	ADD_HOUSE_ID_TO_MANUFACTURE
+						m_pManufacture->SetHouseID( kEvent.m_iHouseID );
+#endif	ADD_HOUSE_ID_TO_MANUFACTURE
+						//}} kimhc // 2009-11-23 // 제조 아이템 NPC 별로 가능하도록
+						m_pManufacture->SetShow(true);
+					}
+				}
+				break;
+			case UTCIT_EXCHANGE_SHOP:
+				{
+					if ( m_pItemExchangeShop != NULL )
+					{
+						m_setBanExchangeItem.clear();
+						m_setBanExchangeItem = kEvent.m_setGetItemOnOff;
+						m_pItemExchangeShop->SetHouseID( kEvent.m_iHouseID );
+						m_pItemExchangeShop->SetShow( true );	
+					}
+				}
+				break;
+			}
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool CX2UIManager::Handler_EGS_GET_TIME_CONTROL_ITME_LIST_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_GET_TIME_CONTROL_ITME_LIST_NOT kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if ( kEvent.m_iOK == 0 )
+	{
+		if ( m_pShop != NULL )
+			m_pShop->SetShow(false);
+	
+		if ( m_pManufacture != NULL )
+			m_pManufacture->SetShow(false);
+	
+		if ( m_pItemExchangeShop != NULL )
+			m_pItemExchangeShop->SetShow( false );	
+
+		if ( g_pTFieldGame != NULL )
+		{
+			if(g_pTFieldGame->GetJoinNpc() == true)
+				g_pTFieldGame->SetShowNpcMessage(false);
+		}
+	}
+
+	return true;
+}
+
+bool CX2UIManager::Handler_EGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if ( g_pMain->DeleteServerPacket( EGS_GET_TIME_CONTROL_ITME_TALK_LIST_ACK ) == true )
+	{
+		m_setBanBuyItem.clear();
+		m_setBanManufactureItem.clear();
+		m_setBanExchangeItem.clear();
+
+		if ( kEvent.m_mapGetItemOnOff.empty() == false )
+		{
+			std::map<int , std::vector<KPacketGetItemOnOff> >::iterator mit = kEvent.m_mapGetItemOnOff.begin();
+
+			for ( ; mit != kEvent.m_mapGetItemOnOff.end(); ++mit )
+			{
+				switch( mit->first )
+				{
+				case UTCIT_SHOP:
+					{
+						BOOST_TEST_FOREACH(KPacketGetItemOnOff , iShopItemID , mit->second )
+						{
+							m_setBanBuyItem.insert(iShopItemID.m_iItemID  );
+						}
+					}
+
+					break;
+				case UTCIT_MANUFACTURE:
+					{
+						BOOST_TEST_FOREACH(KPacketGetItemOnOff , iManufactureItemID , mit->second )
+						{
+							m_setBanManufactureItem.insert(iManufactureItemID.m_iItemID  );
+						}
+					}
+					break;
+				case UTCIT_EXCHANGE_SHOP:
+					{
+						BOOST_TEST_FOREACH(KPacketGetItemOnOff , iExchangeItemID , mit->second )
+						{
+							m_setBanExchangeItem.insert(iExchangeItemID.m_iItemID  );
+						}
+					}
+
+					break;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+bool CX2UIManager::Handler_EGS_MANUFACTURE_PERIOD_SETTING_REQ( int iHouseID )
+{
+	KEGS_MANUFACTURE_PERIOD_SETTING_REQ kEvent;
+
+	kEvent.m_iHouseID = iHouseID;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_MANUFACTURE_PERIOD_SETTING_REQ, kEvent );
+	g_pMain->AddServerPacket( EGS_MANUFACTURE_PERIOD_SETTING_ACK );
+
+	return true;
+}
+bool CX2UIManager::Handler_EGS_MANUFACTURE_PERIOD_SETTING_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = (KSerBuffer*)lParam;
+	KEGS_MANUFACTURE_PERIOD_SETTING_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	if ( g_pMain->DeleteServerPacket( EGS_MANUFACTURE_PERIOD_SETTING_ACK ) == true )
+	{
+		if ( m_pManufacture != NULL )
+		{
+			m_pManufacture->SetPeriodGroup( kEvent.m_mapPeriodGroup );
+			//{{ kimhc // 2009-11-23 // 제조 아이템 NPC 별로 가능하도록
+#ifdef	ADD_HOUSE_ID_TO_MANUFACTURE
+			m_pManufacture->SetHouseID( kEvent.m_iHouseID );
+#endif	ADD_HOUSE_ID_TO_MANUFACTURE
+			//}} kimhc // 2009-11-23 // 제조 아이템 NPC 별로 가능하도록
+			m_pManufacture->SetShow(true);
+		}
+		return true;
+	}
+	return false;
+}
+#endif //SERV_MANUFACTURE_PERIOD_FIX

@@ -60,10 +60,8 @@ public:
 
 	void InitMyQuickSlotCoolTimeFromGageManager( const map<int, int>& mapQuickSlotCoolTime_ );
 	void GetQuickSlotStringByIndex( IN int iIndex_, OUT wstring& strQuickSlot_ ) const;
-#ifdef REFORM_UI_KEYPAD
 	void UpdateSlotKey();
 	
-#endif
 
 #ifdef CREATE_ALLY_NPC_BY_MONSTER
 	void UpdateCoolTimeByGroupID( int iCoolTimeGroupID );
@@ -90,11 +88,11 @@ protected:
 #endif //NEW_ITEM_NOTICE
 
 #ifdef SERV_NEW_DEFENCE_DUNGEON
-	void SetSlotItemIcon( vector< CX2Slot* >& m_SlotList, CX2Inventory* pInventory, CKTDGUIStatic* pStatic );			/// 퀵슬롯 아이콘 설정 함수
-	void SetSummonMonsterItemIcon( vector< CX2Slot* >& m_SlotList, CX2Inventory* pInventory, CKTDGUIStatic* pStatic );	/// 몬스터 소환 카드 슬롯 아이콘 설정 함수
+	void SetSlotItemIcon( vector< CX2Slot* >& m_SlotList, const CX2Inventory& kInventory, CKTDGUIStatic* pStatic );			/// 퀵슬롯 아이콘 설정 함수
+	void SetSummonMonsterItemIcon( vector< CX2Slot* >& m_SlotList, const CX2Inventory& kInventory, CKTDGUIStatic* pStatic );	/// 몬스터 소환 카드 슬롯 아이콘 설정 함수
 
-	void InputSummonCardSlotKey( CX2Inventory* pInven, CX2Item** pQuickItem, int& slotID );		/// 몬스터 소환 카드 슬롯 키보드 입력 함수
-	void InputQuickSlotKey( CX2Inventory* pInven, CX2Item** pQuickItem, int& slotID );			/// 퀵슬롯 키보드 입력 함수
+	void InputSummonCardSlotKey( const CX2Inventory& kInventory, CX2Item** pQuickItem, int& slotID );		/// 몬스터 소환 카드 슬롯 키보드 입력 함수
+	void InputQuickSlotKey( const CX2Inventory& kInventory, CX2Item** pQuickItem, int& slotID );			/// 퀵슬롯 키보드 입력 함수
 
 	bool Handler_EGS_USE_DEFENCE_DUNGEON_QUICK_SLOT_REQ( int slotID );											/// 몬스터 카드 퀵슬롯 사용 요청 함수
 	bool Handler_EGS_USE_DEFENCE_DUNGEON_QUICK_SLOT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );	/// 몬스터 카드 퀵슬롯 사용 응답 함수

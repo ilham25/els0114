@@ -75,6 +75,7 @@ end
 --#endif SERV_BATTLEFIELD_MIDDLE_BOSS
 --//}
 
+
 function GET_BOSS_MONSTER_DROP_RATE( iCurDangerousValue, iDangerousValueWarning )
 
 	local BOSS_DROP_D_VALUE = iCurDangerousValue - iDangerousValueWarning

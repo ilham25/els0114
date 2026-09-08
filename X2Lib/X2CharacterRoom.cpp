@@ -95,8 +95,8 @@
 //	m_NowInvenSortTypePageNum		= 1;
 //	m_NowInvenSortTypePageMaxNum	= 1;
 //
-//	m_pStat				= new CX2Stat();
-//	m_pStatEqip			= new CX2Stat();
+////	m_pStat				= new CX2Stat();
+////	m_pStatEqip			= new CX2Stat();
 //
 //	m_GarbageBoxPos		= D3DXVECTOR2( 527, 614 );
 //	m_GarbageBoxSize	= D3DXVECTOR2( 90, 105 );
@@ -140,7 +140,7 @@
 //	m_pDLGGetRandomItemBG	= NULL;
 //	m_hMeshInstRandomBox	= INVALID_MESH_INSTANCE_HANDLE;
 //	m_hMeshInstRandomBoxKey	= INVALID_MESH_INSTANCE_HANDLE;
-//	m_hSeqKeyTrace			= INVALID_PARTICLE_HANDLE;
+//	m_hSeqKeyTrace			= INVALID_PARTICLE_SEQUENCE_HANDLE;
 //
 //	m_pDLGSelectSellNumWindowPopup	= NULL;
 //	m_SellItemUID					= -1;
@@ -187,9 +187,9 @@
 //	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGWarningAllReady );
 //	m_pDLGWarningAllReady->SetColor( D3DXCOLOR(1,1,1,0) );
 //
-//	m_TotalExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP;
-//	m_TotalED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
-//	m_TotalVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint;
+//	m_TotalExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP;
+//	m_TotalED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
+//	m_TotalVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint;
 //	m_TotalLevel = g_pData->GetSelectUnitLevel();
 //
 //	CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->CreateSequence( L"MenuInfoPicChar", 0.0f, 0.0f, 0.0f,  0.0f, 0.0f );
@@ -215,8 +215,8 @@
 //	m_pDLGAttractionResult	= NULL;
 //	m_hMeshInstMeltMachine		= INVALID_MESH_INSTANCE_HANDLE;
 //	m_hMeshInstMeltMachineStart = INVALID_MESH_INSTANCE_HANDLE;
-//	m_hSeqSpreadLight			= INVALID_PARTICLE_HANDLE;
-//	m_hSeqEndLight = INVALID_PARTICLE_HANDLE;
+//	m_hSeqSpreadLight			= INVALID_PARTICLE_SEQUENCE_HANDLE;
+//	m_hSeqEndLight = INVALID_PARTICLE_SEQUENCE_HANDLE;
 //		
 //	m_bUseCoupon	= false;
 //	m_CouponTargetUid = 0;
@@ -269,15 +269,15 @@
 //	
 //	if ( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstRandomBox )
 //	{
-//		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstRandomBox );
+//		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstRandomBox );
 //	}
 //
 //	if ( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstRandomBoxKey )
 //	{
-//		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstRandomBoxKey );
+//		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstRandomBoxKey );
 //	}
 //
-//	if ( m_hSeqKeyTrace != INVALID_PARTICLE_HANDLE )
+//	if ( m_hSeqKeyTrace != INVALID_PARTICLE_SEQUENCE_HANDLE )
 //	{
 //		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqKeyTrace );
 //	}
@@ -290,20 +290,20 @@
 //
 //	if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstMeltMachineStart )
 //	{
-//		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachineStart );
+//		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachineStart );
 //	}
 //
 //	if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstMeltMachine )
 //	{
-//		g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+//		g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 //	}
 //
-//	if ( m_hSeqSpreadLight != INVALID_PARTICLE_HANDLE )
+//	if ( m_hSeqSpreadLight != INVALID_PARTICLE_SEQUENCE_HANDLE )
 //	{
 //		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqSpreadLight );
 //	}
 //
-//	if ( m_hSeqEndLight != INVALID_PARTICLE_HANDLE )
+//	if ( m_hSeqEndLight != INVALID_PARTICLE_SEQUENCE_HANDLE )
 //	{
 //		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEndLight );
 //	}
@@ -315,8 +315,8 @@
 //	SAFE_DELETE( m_pUnitViewerUI );
 //
 //
-//	SAFE_DELETE( m_pStat );
-//	SAFE_DELETE( m_pStatEqip );
+////	SAFE_DELETE( m_pStat );
+////	SAFE_DELETE( m_pStatEqip );
 //
 //	if ( m_pPicCharMenuPlusInfo != NULL )
 //		m_pPicCharMenuPlusInfo->Clear();
@@ -407,7 +407,7 @@
 //	{
 //		m_fPlayTime += fElapsedTime;
 //
-//		if( m_hSeqKeyTrace != INVALID_PARTICLE_HANDLE && m_hMeshInstRandomBoxKey != NULL )
+//		if( m_hSeqKeyTrace != INVALID_PARTICLE_SEQUENCE_HANDLE && m_hMeshInstRandomBoxKey != NULL )
 //		{
 //			if( g_pData->GetUIMajorXMeshPlayer()->IsLiveInstanceHandle( m_hMeshInstRandomBoxKey ) == false )
 //			{
@@ -416,7 +416,7 @@
 //			}
 //			else if( g_pData->GetUIMajorParticle()->IsLiveInstanceHandle( m_hSeqKeyTrace ) == false )
 //			{
-//				m_hSeqKeyTrace = INVALID_PARTICLE_HANDLE;
+//				m_hSeqKeyTrace = INVALID_PARTICLE_SEQUENCE_HANDLE;
 //			}
 //			else
 //			{
@@ -431,7 +431,7 @@
 //				}
 //				else
 //				{
-//					m_hSeqKeyTrace = INVALID_PARTICLE_HANDLE;
+//					m_hSeqKeyTrace = INVALID_PARTICLE_SEQUENCE_HANDLE;
 //				}
 //			}
 //		}
@@ -465,7 +465,7 @@
 //
 //			if ( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstRandomBox )
 //			{
-//				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstRandomBox );
+//				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstRandomBox );
 //			}
 //
 //			UpdateOpenRandomItemAck();
@@ -492,7 +492,7 @@
 //	else
 //	{
 //		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqSpreadLight );
-//		m_hSeqSpreadLight = INVALID_PARTICLE_HANDLE;
+//		m_hSeqSpreadLight = INVALID_PARTICLE_SEQUENCE_HANDLE;
 //	}
 //
 //
@@ -516,7 +516,7 @@
 //	else
 //	{
 //		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqEndLight );
-//		m_hSeqEndLight = INVALID_PARTICLE_HANDLE;
+//		m_hSeqEndLight = INVALID_PARTICLE_SEQUENCE_HANDLE;
 //	}
 //
 //
@@ -534,7 +534,7 @@
 //			}
 //			else if( g_pData->GetUIMajorParticle()->IsLiveInstanceHandle( m_hSeqSpreadLight ) == false )
 //			{
-//				m_hSeqSpreadLight = INVALID_PARTICLE_HANDLE;
+//				m_hSeqSpreadLight = INVALID_PARTICLE_SEQUENCE_HANDLE;
 //			}
 //		}
 //
@@ -597,7 +597,7 @@
 //
 //			if ( m_hMeshInstMeltMachineStart != INVALID_MESH_INSTANCE_HANDLE )
 //			{
-//				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachineStart );
+//				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachineStart );
 //			}
 //
 //			UpdateOpenAttractionItemAck();
@@ -1052,17 +1052,15 @@
 //			CKTDGUICheckBox* pCheckBox = (CKTDGUICheckBox*) lParam;
 //			m_bUseEnchantAdjuvant = pCheckBox->GetChecked();
 //
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnchantItemUID );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnchantItemUID );
 //			ASSERT( NULL != pItem );
 //			if( NULL == pItem )
 //				return true;
 //
 //			if( true == m_bUseEnchantAdjuvant )
 //			{
-//				ASSERT( NULL != pItem->GetItemData() );
-//				if( NULL != pItem->GetItemData() )
 //				{
-//					if( pItem->GetItemData()->m_EnchantLevel >= 10 )
+//					if( pItem->GetItemData().m_EnchantLevel >= 10 )
 //					{
 //						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
 //							L"강화 단계가 +10 이상인 아이템에는 플루오르 스톤을 사용할 수 없습니다.", m_pNowState );
@@ -1078,7 +1076,7 @@
 //				if( NULL != pItem->GetItemTemplet() )
 //				{
 //					int iAdjuvantItemID = GetRequiredEnchantAdjuvantItemID( pItem->GetItemTemplet()->m_UseLevel );
-//					int iAdjuvantCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( iAdjuvantItemID );
+//					int iAdjuvantCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( iAdjuvantItemID );
 //					if( iAdjuvantCount <= 0 )
 //					{
 //						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), L"플루오르 스톤이 부족합니다.", m_pNowState );
@@ -1210,7 +1208,7 @@
 //				}
 //				else
 //				{
-//					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID );
+//					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID );
 //					if ( pItem != NULL )
 //					{
 //						wstringstream wstrstm;
@@ -1246,7 +1244,7 @@
 //			}
 //			else
 //			{
-//				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID );
+//				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID );
 //				if ( pItem != NULL )
 //				{
 //					wstringstream wstrstm;
@@ -1273,7 +1271,7 @@
 //			m_bSocketRareMagicStone = false;
 //			m_bSocketRemove = true;
 //
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID );
 //			if ( pItem != NULL )
 //			{
 //				wstringstream wstrstm;
@@ -1327,10 +1325,10 @@
 //		{
 //			//Send Packet gogo
 //			CKTDGUIControl* pControlItem = (CKTDGUIControl*)lParam;
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_AttribEnchantItemUID );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_AttribEnchantItemUID );
 //			if ( pItem != NULL )
 //			{
-//				if ( pItem->GetItemData()->m_EnchantOption1 == 0 )
+//				if ( pItem->GetItemData().m_EnchantOption1 == 0 )
 //				{
 //					m_AttribEnchantSlotID = CX2EnchantItem::ESI_SLOT_1;
 //					m_AttribEnchantID = pControlItem->GetDummyInt(0);
@@ -1340,7 +1338,7 @@
 //					bool bDual = false;
 //					bool bWeapon = false;
 //					int eDForEnchant = 0;
-//					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_AttribEnchantItemUID );
+//					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_AttribEnchantItemUID );
 //					if ( pItem != NULL )
 //					{
 //						if ( pItem->GetItemTemplet()->m_ItemType == CX2Item::IT_WEAPON )
@@ -1352,7 +1350,7 @@
 //							bWeapon = false;
 //						}
 //
-//						if ( pItem->GetItemData()->m_EnchantOption1 == 0 && pItem->GetItemData()->m_EnchantOption2 == 0 )
+//						if ( pItem->GetItemData().m_EnchantOption1 == 0 && pItem->GetItemData().m_EnchantOption2 == 0 )
 //						{
 //							bDual = false;
 //						}
@@ -1370,7 +1368,7 @@
 //
 //					return true;
 //				}
-//				else if ( pItem->GetItemData()->m_EnchantOption2 == 0 )
+//				else if ( pItem->GetItemData().m_EnchantOption2 == 0 )
 //				{
 //					m_AttribEnchantSlotID = CX2EnchantItem::ESI_SLOT_2;
 //					m_AttribEnchantID = pControlItem->GetDummyInt(0);
@@ -1381,7 +1379,7 @@
 //					bool bDual = false;
 //					bool bWeapon = false;
 //					int eDForEnchant = 0;
-//					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_AttribEnchantItemUID );
+//					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_AttribEnchantItemUID );
 //					if ( pItem != NULL )
 //					{
 //						if ( pItem->GetItemTemplet()->m_ItemType == CX2Item::IT_WEAPON )
@@ -1393,7 +1391,7 @@
 //							bWeapon = false;
 //						}
 //
-//						if ( pItem->GetItemData()->m_EnchantOption1 == 0 && pItem->GetItemData()->m_EnchantOption2 == 0 )
+//						if ( pItem->GetItemData().m_EnchantOption1 == 0 && pItem->GetItemData().m_EnchantOption2 == 0 )
 //						{
 //							bDual = false;
 //						}
@@ -1428,7 +1426,7 @@
 //			bool bDual = false;
 //			bool bWeapon = false;
 //			int eDForEnchant = 0;
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_AttribEnchantItemUID );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_AttribEnchantItemUID );
 //			if ( pItem != NULL )
 //			{
 //				if ( pItem->GetItemTemplet()->m_ItemType == CX2Item::IT_WEAPON )
@@ -1440,7 +1438,7 @@
 //					bWeapon = false;
 //				}
 //
-//				if ( pItem->GetItemData()->m_EnchantOption1 != 0 && pItem->GetItemData()->m_EnchantOption2 != 0 )
+//				if ( pItem->GetItemData().m_EnchantOption1 != 0 && pItem->GetItemData().m_EnchantOption2 != 0 )
 //				{
 //					bDual = true;
 //				}
@@ -1578,7 +1576,7 @@
 //
 //			if( m_hMeshInstMeltMachine != INVALID_MESH_INSTANCE_HANDLE )
 //			{
-//				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+//				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 //			}
 //
 //			if ( m_pDLGOpenAttraction != NULL )
@@ -2097,7 +2095,7 @@
 //		{
 //			UidType itemUID = kEvent.m_vecItemUID[i];
 //
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( itemUID );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( itemUID );
 //
 //
 //			// 스킬 슬롯 B 확장 아이템인 경우에 UI update
@@ -2148,7 +2146,7 @@
 //			}
 //
 //			g_pData->GetMyUser()->GetSelectUnit()->RemoveEqip( itemUID );
-//			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->RemoveItem( itemUID );		
+//			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().RemoveItem( itemUID );		
 //		}
 //
 //		if ( tempString.empty() == false )
@@ -2213,7 +2211,7 @@
 //        {
 //            
 //            
-//            g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+//            g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 //
 //            UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 //
@@ -2398,7 +2396,7 @@
 //		return false;
 //
 //	KEGS_SELL_ED_ITEM_REQ kPacket;
-//	kPacket.m_iItemUID = pItem->GetItemData()->m_ItemUID;
+//	kPacket.m_iItemUID = pItem->GetItemData().m_ItemUID;
 //	kPacket.m_iQuantity = m_SellItemNum;
 //
 //	g_pData->GetServerProtocol()->SendPacket( EGS_SELL_ED_ITEM_REQ, kPacket );
@@ -2426,8 +2424,8 @@
 //		{
 //			std::vector< KInventoryItemInfo > vecInventoryItemInfo;
 //			vecInventoryItemInfo.push_back( kEvent.m_kInventorySlotInfo );
-//			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( vecInventoryItemInfo );
-//			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED		= kEvent.m_iED;		
+//			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( vecInventoryItemInfo );
+//			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED		= kEvent.m_iED;		
 //
 //			UpdateInventorySlotList( vecInventoryItemInfo );
 //
@@ -2449,7 +2447,7 @@
 //	
 //	m_pDLGToRepair = NULL;
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)m_TempSortType, m_TempSlotID );
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( (CX2Inventory::SORT_TYPE)m_TempSortType, m_TempSlotID );
 //	if ( pItem != NULL )
 //	{
 //		int edToRepair = pItem->GetEDToRepair();
@@ -2464,12 +2462,12 @@
 //
 //
 //
-//		if ( edToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+//		if ( edToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 //		{
 //			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), L"ED가 부족하여 수리할 수 없습니다!", m_pNowState );
 //			return true;
 //		}
-//		if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint )
+//		if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint )
 //		{
 //			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), L"VP가 부족하여 수리할 수 없습니다!", m_pNowState );
 //			return true;
@@ -2505,8 +2503,8 @@
 //			CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
 //			if ( pUnit != NULL )
 //			{
-//				pUnit->GetUnitData()->m_ED = kEvent.m_iED;
-//				pUnit->GetUnitData()->m_VSPoint = kEvent.m_iVP;
+//				pUnit->AccessUnitData().m_ED = kEvent.m_iED;
+//				pUnit->AccessUnitData().m_VSPoint = kEvent.m_iVP;
 //
 //				UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 //				ResetCharRoomEDnCashUInVP();
@@ -2910,7 +2908,7 @@
 //		}
 //		else
 //		{
-//			m_hSeqKeyTrace = INVALID_PARTICLE_HANDLE;
+//			m_hSeqKeyTrace = INVALID_PARTICLE_SEQUENCE_HANDLE;
 //		}
 //
 //		if ( m_pDLGRandomItem != NULL )
@@ -3022,13 +3020,13 @@
 //
 //								if ( m_hMeshInstMeltMachine != INVALID_MESH_INSTANCE_HANDLE )
 //								{
-//									g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+//									g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 //								}
 //
 //
 //								if ( m_hMeshInstMeltMachineStart != INVALID_MESH_INSTANCE_HANDLE )
 //								{
-//									g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachineStart );
+//									g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachineStart );
 //								}
 //
 //								UpdateOpenAttractionItemAck();
@@ -3093,7 +3091,7 @@
 //			// 실패-_-시 창을 없애자~
 //			if( m_hMeshInstMeltMachine != INVALID_MESH_INSTANCE_HANDLE )
 //			{
-//				g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+//				g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 //			}
 //
 //			if ( m_pDLGOpenAttraction != NULL )
@@ -3251,20 +3249,20 @@
 //			vector< short > vecOrgSocketOption;
 //			bool bCheckNewElementOption = false;
 //
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEvent.m_iSocketItemUID );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEvent.m_iSocketItemUID );
 //			if ( pItem != NULL )
 //			{
-//				vecOrgSocketOption = pItem->GetItemData()->m_SocketOption;
+//				vecOrgSocketOption = pItem->GetItemData().m_SocketOption;
 //			}
 //
 //			//특수 처리 고고싱
-//			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
-//			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+//			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
+//			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 //
-//			pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEvent.m_iSocketItemUID );
+//			pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEvent.m_iSocketItemUID );
 //			if ( pItem != NULL )
 //			{
-//				vector< short > vecNewSocketOption = pItem->GetItemData()->m_SocketOption;
+//				vector< short > vecNewSocketOption = pItem->GetItemData().m_SocketOption;
 //				for ( int i = 0; i < (int)vecNewSocketOption.size(); i++ )
 //				{
 //					int newSocketOption = vecNewSocketOption[i];
@@ -3279,7 +3277,7 @@
 //					}
 //					if ( bCheck == true )
 //					{
-//						CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( newSocketOption );
+//						const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( newSocketOption );
 //						if ( pSocketData != NULL )
 //						{
 //							if ( CX2DamageManager::EDT_NONE != pSocketData->m_SocketExtraDamage.m_ExtraDamageType && 
@@ -3332,8 +3330,8 @@
 //		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 //		{
 //			//특수 처리 고고싱
-//			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
-//			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+//			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
+//			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 //
 //			ResetCharRoomEDnCashUInVP();
 //
@@ -3394,7 +3392,7 @@
 //		return false;
 //
 //	KEGS_ITEM_EXCHANGE_REQ kPacket;
-//	kPacket.m_iItemUID	= pItem->GetItemData()->m_ItemUID;
+//	kPacket.m_iItemUID	= pItem->GetItemData().m_ItemUID;
 //
 //	g_pData->GetServerProtocol()->SendPacket( EGS_ITEM_EXCHANGE_REQ, kPacket );
 //	g_pMain->AddServerPacket( EGS_ITEM_EXCHANGE_ACK );
@@ -3415,7 +3413,7 @@
 //			CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
 //			if ( pUnit != NULL )
 //			{
-//				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+//				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 //				UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 //				m_pStateMenu->OnChangedInventory();
 //
@@ -3483,14 +3481,14 @@
 //					if( pSlot->GetSortType() == CX2Inventory::ST_EQUIP )
 //					{
 //						m_CouponTargetUid = pSlot->GetItemUID();
-//						CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_CouponUid );
-//						CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_CouponTargetUid );
+//						CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_CouponUid );
+//						CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_CouponTargetUid );
 //
 //						if(pCouponItem != NULL || pTargetItem != NULL)
 //						{
 //
 //							wstringstream wstrstm;
-//							wstrstm << L"[+" << pTargetItem->GetItemData()->m_EnchantLevel << L" " << pTargetItem->GetItemTemplet()->GetFullName().c_str() << L"]에\n";
+//							wstrstm << L"[+" << pTargetItem->GetItemData().m_EnchantLevel << L" " << pTargetItem->GetItemTemplet()->GetFullName().c_str() << L"]에\n";
 //							wstrstm << L"[" << pCouponItem->GetItemTemplet()->GetFullName().c_str() << L"] 아이템을\n";
 //							wstrstm << L"사용 하시겠습니까?";
 //
@@ -3735,7 +3733,7 @@
 //				return false;
 //			}
 //#endif
-//			if ( pItem->GetItemTemplet()->m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData()->m_Endurance <= 0 )
+//			if ( pItem->GetItemTemplet()->m_PeriodType == CX2Item::PT_ENDURANCE && pItem->GetItemData().m_Endurance <= 0 )
 //			{
 //				return false;
 //			}
@@ -3897,7 +3895,7 @@
 //	if ( pkItemTemplet == NULL )
 //		return false;
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlot->GetItemUID() );
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlot->GetItemUID() );
 //
 //#ifdef ITEM_RECOVERY_TEST
 //	// 사용불능인가여
@@ -3905,7 +3903,7 @@
 //	{
 //		// 1. 복원 아이템이 있는지 확인한다.
 //		int RecoveryItemID = GetRequiredRecoveryStoneID( pkItemTemplet->m_UseLevel );
-//		int iRecoveryItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( RecoveryItemID );
+//		int iRecoveryItemCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( RecoveryItemID );
 //
 //		if( iRecoveryItemCount > 0 )
 //		{
@@ -3932,11 +3930,11 @@
 //		/*
 //		else
 //		{
-//			CX2Item* pkEquipItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlotEquip->GetItemUID() );
+//			CX2Item* pkEquipItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlotEquip->GetItemUID() );
 //			CX2Item::ItemTemplet* pkEquipItemTemplet = g_pData->GetItemManager()->GetItemTemplet( pItemSlotEquip->GetItemTID() );
 //			if ( pkEquipItem != NULL && pkEquipItemTemplet != NULL )
 //			{
-//				if ( pkEquipItemTemplet->m_Quantity <= pkEquipItem->GetItemData()->m_Quantity )
+//				if ( pkEquipItemTemplet->m_Quantity <= pkEquipItem->GetItemData().m_Quantity )
 //					continue;
 //			}
 //		}
@@ -3957,12 +3955,12 @@
 //			//장비 아이템 내구도 다 닳았으면 거시기 해불자
 //			//드래그해서 거시기 하는부분도 해결해불자
 //
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlot->GetItemUID() );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlot->GetItemUID() );
 //			if ( pItem != NULL )
 //			{
-//				if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE )
+//				if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE )
 //				{
-//					if ( pItem->GetItemData()->m_Endurance <= 0 )
+//					if ( pItem->GetItemData().m_Endurance <= 0 )
 //					{
 //						continue;
 //					}
@@ -4001,7 +3999,7 @@
 //	
 //    // 인벤내 사용가능 아이템에 대한 처리
 //    bool bCanUse = false;
-//    CX2Item *pUseItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlot->GetItemUID() );
+//    CX2Item *pUseItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlot->GetItemUID() );
 //    if(pUseItem != NULL)
 //    {
 //        bCanUse = pUseItem->GetItemTemplet()->m_bCanUseInventory;
@@ -4019,10 +4017,9 @@
 //	//{{ 2007. 10. 8  최육사  인벤에서 랜덤템을 오른쪽 클릭했을 경우 [임시 테스트]
 //	if ( pItem != NULL )
 //	{
-//		CX2Item::ItemData* pItemData = pItem->GetItemData();
-//		if ( pItemData != NULL )
+//		const CX2Item::ItemData& kItemData = &pItem->GetItemData();
 //		{
-//			CX2ItemManager::RandomItemData* pRandomItem = g_pData->GetItemManager()->GetRandomItemData( pItemData->m_ItemID );
+//			CX2ItemManager::RandomItemData* pRandomItem = g_pData->GetItemManager()->GetRandomItemData( kItemData.m_ItemID );
 //			if( pRandomItem != NULL )
 //			{		
 //				// 랜덤 아이템인 경우~
@@ -4045,12 +4042,12 @@
 //#endif
 ////}}
 //
-//				m_RandomItemID = pItemData->m_ItemID;
+//				m_RandomItemID = kItemData.m_ItemID;
 //				m_iRandomItemUID = pItemSlot->GetItemUID();
 //
 //				WCHAR buf[256] = L"";
 //
-//				int keyItemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( pRandomItem->m_KeyItemID );
+//				int keyItemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( pRandomItem->m_KeyItemID );
 //
 //				if ( keyItemNum < pRandomItem->m_RequiredKeyCount )
 //				{
@@ -4066,7 +4063,7 @@
 //#ifdef ATTRACTION_ITEM_TEST
 //
 //				int MAGIC_ATTRACTION_ITEM_ID = 108900;
-//				if( MAGIC_ATTRACTION_ITEM_ID == pItemData->m_ItemID )
+//				if( MAGIC_ATTRACTION_ITEM_ID == kItemData.m_ItemID )
 //				{
 //					// 여기 추가...
 //					m_pDLGOpenAttraction = new CKTDGUIDialog( m_pNowState, L"DLG_Ice_Heater_Use.lua" );
@@ -4089,7 +4086,7 @@
 //			else // 랜덤 큐브가 아니면
 //			{
 //#ifdef ATTRACTION_ITEM_TEST
-//				if( IsEnchantCoupon(pItemData->m_ItemID))
+//				if( IsEnchantCoupon(kItemData.m_ItemID))
 //				{
 //					// 강화권 쓰는 곳
 //					if(m_pStateMenu->GetCursor() != NULL)
@@ -4114,7 +4111,7 @@
 //#endif
 //				const int MAGIC_RESET_ALL_SKILL_ITEM_ID = 203800;	
 //				//{{ 2009.01.19 김태완 : 코드정리
-//				switch(pItemData->m_ItemID)
+//				switch(kItemData.m_ItemID)
 //				{
 //				case MAGIC_RESET_ALL_SKILL_ITEM_ID:
 //					{
@@ -4131,7 +4128,7 @@
 //				case CX2EnchantItem::ATI_DARK:
 //					{
 //						//거시기 있는지 확인해보고 ..환원기
-//						if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE ) > 0 )
+//						if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE ) > 0 )
 //						{
 //							OpenElChangerWindow( false, pItem );
 //						}
@@ -4143,7 +4140,7 @@
 //				case CX2EnchantItem::ATI_UNKNOWN:
 //					{
 //						//거시기 있는지 확인해보자. 감정기
-//						if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE ) > 0 )
+//						if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE ) > 0 )
 //						{
 //							OpenElChangerWindow( true, pItem );
 //						}
@@ -4592,18 +4589,18 @@
 //
 //void CX2CharacterRoom::ResetStat()
 //{
-//	m_pStat->InitStat();
-//	m_pStatEqip->InitStat();
+//	m_Stat.InitStat();
+//	m_StatEqip.InitStat();
 //
-//	m_pStat->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetUnitStat() );
-//	m_pStatEqip->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetEqipStat(), true );
-//	m_pStatEqip->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetSkillStat(), true );
-//	m_pStatEqip->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetSetItemOptionStat(), true );
-//	//m_pStatEqip->AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetEnchantDefence(), true );
+//	m_Stat.AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetUnitStat() );
+//	m_StatEqip.AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetEqipStat(), true );
+//	m_StatEqip.AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetSkillStat(), true );
+//	m_StatEqip.AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetSetItemOptionStat(), true );
+//	//m_StatEqip.AddStat( g_pData->GetMyUser()->GetSelectUnit()->GetEnchantDefence(), true );
 //
 //    
 //#ifdef TITLE_SYSTEM
-//    m_pStatEqip->AddStat( g_pData->GetTitleManager()->GetSocketStat(), true );
+//    m_StatEqip.AddStat( g_pData->GetTitleManager()->GetSocketStat(), true );
 //#endif
 //	
 //
@@ -4627,14 +4624,14 @@
 //	pStaticUnitStatContent_add		= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"HP_Point_add" );
 //	pStaticUnitStatContent_NoEquip	= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"HP_Point_NoEquip" );
 //
-//	if( m_pStatEqip->GetStat()->m_fBaseHP == 0 &&
-//		m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseHPRate == 0.f )
+//	if( m_StatEqip.GetStat().m_fBaseHP == 0 &&
+//		m_StatEqip.GetStat().m_ExtraStat.m_fIncreaseHPRate == 0.f )
 //	{
 //		pStaticUnitStatContent -> SetShow(false);
 //		pStaticUnitStatContent_add -> SetShow(false);
 //		pStaticUnitStatContent_NoEquip -> SetShow(true);
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fBaseHP );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fBaseHP );
 //		pStaticUnitStatContent_NoEquip -> GetString(0)->msg = buff;
 //	}
 //	else
@@ -4645,17 +4642,17 @@
 //		pStaticUnitStatContent_NoEquip->SetShow(false);
 //
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fBaseHP );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fBaseHP );
 //		pStaticUnitStatContent->GetString(0)->msg = buff;
 //
 //
 //
 //		// 증가되는 HP 계산
-//		if( m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseHPRate > CX2SocketItem::SocketData::MAX_INCREASE_HP_RATE )
-//			m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseHPRate = CX2SocketItem::SocketData::MAX_INCREASE_HP_RATE;
+//		if( m_StatEqip.GetStat().m_ExtraStat.m_fIncreaseHPRate > CX2SocketItem::SocketData::MAX_INCREASE_HP_RATE )
+//			m_StatEqip.GetStat().m_ExtraStat.m_fIncreaseHPRate = CX2SocketItem::SocketData::MAX_INCREASE_HP_RATE;
 //
-//		float fAddHP = m_pStatEqip->GetStat()->m_fBaseHP;
-//		fAddHP += m_pStat->GetStat()->m_fBaseHP * m_pStatEqip->GetStat()->m_ExtraStat.m_fIncreaseHPRate;
+//		float fAddHP = m_StatEqip.GetStat().m_fBaseHP;
+//		fAddHP += m_Stat.GetStat().m_fBaseHP * m_StatEqip.GetStat().m_ExtraStat.m_fIncreaseHPRate;
 //
 //
 //
@@ -4672,13 +4669,13 @@
 //	pStaticUnitStatContent			= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Attack_Point" );
 //	pStaticUnitStatContent_add		= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Attack_Point_add" );
 //	pStaticUnitStatContent_NoEquip	= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Attack_Point_NoEquip" );
-//	if( m_pStatEqip->GetStat()->m_fAtkPhysic == 0 )
+//	if( m_StatEqip.GetStat().m_fAtkPhysic == 0 )
 //	{
 //		pStaticUnitStatContent -> SetShow(false);
 //		pStaticUnitStatContent_add -> SetShow(false);
 //		pStaticUnitStatContent_NoEquip -> SetShow(true);
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkPhysic );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkPhysic );
 //		pStaticUnitStatContent_NoEquip -> GetString(0)->msg = buff;
 //	}
 //	else
@@ -4687,13 +4684,13 @@
 //		pStaticUnitStatContent_add -> SetShow(true);
 //		pStaticUnitStatContent_NoEquip -> SetShow(false);
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkPhysic );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkPhysic );
 //		pStaticUnitStatContent->GetString(0)->msg = buff;
 //
-//		if( m_pStatEqip->GetStat()->m_fAtkPhysic > 0 )
-//			wsprintf( buff, L"+%d", (int)m_pStatEqip->GetStat()->m_fAtkPhysic );
+//		if( m_StatEqip.GetStat().m_fAtkPhysic > 0 )
+//			wsprintf( buff, L"+%d", (int)m_StatEqip.GetStat().m_fAtkPhysic );
 //		else
-//			wsprintf( buff, L"-%d", abs((int)m_pStatEqip->GetStat()->m_fAtkPhysic ));
+//			wsprintf( buff, L"-%d", abs((int)m_StatEqip.GetStat().m_fAtkPhysic ));
 //		pStaticUnitStatContent_add ->GetString(0)->msg = buff;
 //	}
 //
@@ -4701,13 +4698,13 @@
 //	pStaticUnitStatContent			= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Magic_Point" );
 //	pStaticUnitStatContent_add		= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Magic_Point_add" );
 //	pStaticUnitStatContent_NoEquip	= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Magic_Point_NoEquip" );
-//	if( m_pStatEqip->GetStat()->m_fAtkMagic == 0 )
+//	if( m_StatEqip.GetStat().m_fAtkMagic == 0 )
 //	{
 //		pStaticUnitStatContent -> SetShow(false);
 //		pStaticUnitStatContent_add -> SetShow(false);
 //		pStaticUnitStatContent_NoEquip -> SetShow(true);
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkMagic );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkMagic );
 //		pStaticUnitStatContent_NoEquip -> GetString(0)->msg = buff;
 //	}
 //	else
@@ -4716,13 +4713,13 @@
 //		pStaticUnitStatContent_add -> SetShow(true);
 //		pStaticUnitStatContent_NoEquip -> SetShow(false);
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkMagic );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkMagic );
 //		pStaticUnitStatContent->GetString(0)->msg = buff;
 //
-//		if( m_pStatEqip->GetStat()->m_fAtkMagic > 0 )
-//			wsprintf( buff, L"+%d", (int)m_pStatEqip->GetStat()->m_fAtkMagic );
+//		if( m_StatEqip.GetStat().m_fAtkMagic > 0 )
+//			wsprintf( buff, L"+%d", (int)m_StatEqip.GetStat().m_fAtkMagic );
 //		else
-//			wsprintf( buff, L"-%d", abs((int)m_pStatEqip->GetStat()->m_fAtkMagic) );
+//			wsprintf( buff, L"-%d", abs((int)m_StatEqip.GetStat().m_fAtkMagic) );
 //
 //		pStaticUnitStatContent_add ->GetString(0)->msg = buff;
 //
@@ -4734,13 +4731,13 @@
 //	pStaticUnitStatContent			= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Defense_Point" );
 //	pStaticUnitStatContent_add		= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Defense_Point_add" );
 //	pStaticUnitStatContent_NoEquip	= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Defense_Point_NoEquip" );
-//	if( m_pStatEqip->GetStat()->m_fDefPhysic == 0 )
+//	if( m_StatEqip.GetStat().m_fDefPhysic == 0 )
 //	{
 //		pStaticUnitStatContent -> SetShow(false);
 //		pStaticUnitStatContent_add -> SetShow(false);
 //		pStaticUnitStatContent_NoEquip -> SetShow(true);
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefPhysic );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefPhysic );
 //		pStaticUnitStatContent_NoEquip -> GetString(0)->msg = buff;
 //	}
 //	else
@@ -4749,13 +4746,13 @@
 //		pStaticUnitStatContent_add -> SetShow(true);
 //		pStaticUnitStatContent_NoEquip -> SetShow(false);
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefPhysic );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefPhysic );
 //		pStaticUnitStatContent->GetString(0)->msg = buff;
 //
-//		if( m_pStatEqip->GetStat()->m_fDefPhysic > 0 )
-//			wsprintf( buff, L"+%d", (int)m_pStatEqip->GetStat()->m_fDefPhysic );
+//		if( m_StatEqip.GetStat().m_fDefPhysic > 0 )
+//			wsprintf( buff, L"+%d", (int)m_StatEqip.GetStat().m_fDefPhysic );
 //		else
-//			wsprintf( buff, L"-%d", abs((int)m_pStatEqip->GetStat()->m_fDefPhysic) );
+//			wsprintf( buff, L"-%d", abs((int)m_StatEqip.GetStat().m_fDefPhysic) );
 //		pStaticUnitStatContent_add ->GetString(0)->msg = buff;
 //	}
 //
@@ -4764,13 +4761,13 @@
 //	pStaticUnitStatContent			= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Magic_Defense_Point" );
 //	pStaticUnitStatContent_add		= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Magic_Defense_Point_add" );
 //	pStaticUnitStatContent_NoEquip	= (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"Magic_Defense_Point_NoEquip" );
-//	if( m_pStatEqip->GetStat()->m_fDefMagic == 0 )
+//	if( m_StatEqip.GetStat().m_fDefMagic == 0 )
 //	{
 //		pStaticUnitStatContent -> SetShow(false);
 //		pStaticUnitStatContent_add -> SetShow(false);
 //		pStaticUnitStatContent_NoEquip -> SetShow(true);
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefMagic );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefMagic );
 //		pStaticUnitStatContent_NoEquip -> GetString(0)->msg = buff;
 //	}
 //	else
@@ -4779,13 +4776,13 @@
 //		pStaticUnitStatContent_add -> SetShow(true);
 //		pStaticUnitStatContent_NoEquip -> SetShow(false);
 //
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefMagic );
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefMagic );
 //		pStaticUnitStatContent->GetString(0)->msg = buff;
 //
-//		if( m_pStatEqip->GetStat()->m_fDefMagic > 0 )
-//			wsprintf( buff, L"+%d", (int)m_pStatEqip->GetStat()->m_fDefMagic );
+//		if( m_StatEqip.GetStat().m_fDefMagic > 0 )
+//			wsprintf( buff, L"+%d", (int)m_StatEqip.GetStat().m_fDefMagic );
 //		else
-//			wsprintf( buff, L"-%d", abs((int)m_pStatEqip->GetStat()->m_fDefMagic) );
+//			wsprintf( buff, L"-%d", abs((int)m_StatEqip.GetStat().m_fDefMagic) );
 //		pStaticUnitStatContent_add ->GetString(0)->msg = buff;
 //
 //	}
@@ -4821,17 +4818,17 @@
 //
 //	/*
 //	CKTDGUIStatic* pStaticUnitStatContent = (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"StaticHP_Point_Left" );
-//	if ( m_pStatEqip->GetStat()->m_fBaseHP == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fBaseHP );
+//	if ( m_StatEqip.GetStat().m_fBaseHP == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fBaseHP );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fBaseHP > 0 )
+//		if ( m_StatEqip.GetStat().m_fBaseHP > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fBaseHP, (int)m_pStatEqip->GetStat()->m_fBaseHP );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fBaseHP, (int)m_StatEqip.GetStat().m_fBaseHP );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fBaseHP, abs( (int)m_pStatEqip->GetStat()->m_fBaseHP ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fBaseHP, abs( (int)m_StatEqip.GetStat().m_fBaseHP ) );
 //		}
 //
 //		
@@ -4841,34 +4838,34 @@
 //
 //
 //	pStaticUnitStatContent = (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"StaticAttack_Point_Left" );
-//	if ( m_pStatEqip->GetStat()->m_fAtkPhysic == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkPhysic );
+//	if ( m_StatEqip.GetStat().m_fAtkPhysic == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkPhysic );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fAtkPhysic > 0 )
+//		if ( m_StatEqip.GetStat().m_fAtkPhysic > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fAtkPhysic, (int)m_pStatEqip->GetStat()->m_fAtkPhysic );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fAtkPhysic, (int)m_StatEqip.GetStat().m_fAtkPhysic );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fAtkPhysic, abs( (int)m_pStatEqip->GetStat()->m_fAtkPhysic ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fAtkPhysic, abs( (int)m_StatEqip.GetStat().m_fAtkPhysic ) );
 //		}
 //	}
 //	pStaticUnitStatContent->GetString(0)->msg = buff;
 //
 //	
 //	pStaticUnitStatContent = (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"StaticMagic_Point_Left" );
-//	if ( m_pStatEqip->GetStat()->m_fAtkMagic == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkMagic );
+//	if ( m_StatEqip.GetStat().m_fAtkMagic == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkMagic );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fAtkMagic > 0 )
+//		if ( m_StatEqip.GetStat().m_fAtkMagic > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fAtkMagic, (int)m_pStatEqip->GetStat()->m_fAtkMagic );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fAtkMagic, (int)m_StatEqip.GetStat().m_fAtkMagic );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fAtkMagic, abs( (int)m_pStatEqip->GetStat()->m_fAtkMagic ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fAtkMagic, abs( (int)m_StatEqip.GetStat().m_fAtkMagic ) );
 //		}
 //		
 //	}
@@ -4878,17 +4875,17 @@
 //
 //
 //	pStaticUnitStatContent = (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"StaticDefense_Point_Left" );
-//	if ( m_pStatEqip->GetStat()->m_fDefPhysic == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefPhysic );
+//	if ( m_StatEqip.GetStat().m_fDefPhysic == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefPhysic );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fDefPhysic > 0 )
+//		if ( m_StatEqip.GetStat().m_fDefPhysic > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fDefPhysic, (int)m_pStatEqip->GetStat()->m_fDefPhysic );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fDefPhysic, (int)m_StatEqip.GetStat().m_fDefPhysic );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fDefPhysic, abs( (int)m_pStatEqip->GetStat()->m_fDefPhysic ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fDefPhysic, abs( (int)m_StatEqip.GetStat().m_fDefPhysic ) );
 //		}	
 //
 //		
@@ -4897,17 +4894,17 @@
 //	pStaticUnitStatContent->GetString(0)->msg = buff;
 //
 //	pStaticUnitStatContent = (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"StaticMDefense_Point_Left" );
-//	if ( m_pStatEqip->GetStat()->m_fDefMagic == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefMagic );
+//	if ( m_StatEqip.GetStat().m_fDefMagic == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefMagic );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fDefMagic > 0 )
+//		if ( m_StatEqip.GetStat().m_fDefMagic > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fDefMagic, (int)m_pStatEqip->GetStat()->m_fDefMagic );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fDefMagic, (int)m_StatEqip.GetStat().m_fDefMagic );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fDefMagic, abs( (int)m_pStatEqip->GetStat()->m_fDefMagic ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fDefMagic, abs( (int)m_StatEqip.GetStat().m_fDefMagic ) );
 //		}
 //	}
 //
@@ -4918,17 +4915,17 @@
 //
 //	CKTDGUIStatic* pStaticUnitDetailStatContent = (CKTDGUIStatic*)m_pDLGMyInfoFront->GetControl( L"StaticPVP_Room_Unit_DetailStat_Content" );
 //
-//	if ( m_pStatEqip->GetStat()->m_fAtkFire == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkFire );
+//	if ( m_StatEqip.GetStat().m_fAtkFire == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkFire );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fAtkFire > 0 )
+//		if ( m_StatEqip.GetStat().m_fAtkFire > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fAtkFire, (int)m_pStatEqip->GetStat()->m_fAtkFire );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fAtkFire, (int)m_StatEqip.GetStat().m_fAtkFire );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fAtkFire, abs( (int)m_pStatEqip->GetStat()->m_fAtkFire ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fAtkFire, abs( (int)m_StatEqip.GetStat().m_fAtkFire ) );
 //		}
 //
 //		
@@ -4937,17 +4934,17 @@
 //	pStaticUnitDetailStatContent->GetString(0)->msg = buff;
 //
 //
-//	if ( m_pStatEqip->GetStat()->m_fAtkIce == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkIce );
+//	if ( m_StatEqip.GetStat().m_fAtkIce == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkIce );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fAtkIce > 0 )
+//		if ( m_StatEqip.GetStat().m_fAtkIce > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fAtkIce, (int)m_pStatEqip->GetStat()->m_fAtkIce );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fAtkIce, (int)m_StatEqip.GetStat().m_fAtkIce );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fAtkIce, abs( (int)m_pStatEqip->GetStat()->m_fAtkIce ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fAtkIce, abs( (int)m_StatEqip.GetStat().m_fAtkIce ) );
 //		}
 //	}
 //
@@ -4955,17 +4952,17 @@
 //
 //
 //
-//	if ( m_pStatEqip->GetStat()->m_fAtkLightning == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkLightning );
+//	if ( m_StatEqip.GetStat().m_fAtkLightning == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkLightning );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fAtkLightning > 0 )
+//		if ( m_StatEqip.GetStat().m_fAtkLightning > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fAtkLightning, (int)m_pStatEqip->GetStat()->m_fAtkLightning );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fAtkLightning, (int)m_StatEqip.GetStat().m_fAtkLightning );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fAtkLightning, abs( (int)m_pStatEqip->GetStat()->m_fAtkLightning ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fAtkLightning, abs( (int)m_StatEqip.GetStat().m_fAtkLightning ) );
 //		}
 //
 //		
@@ -4974,34 +4971,34 @@
 //	pStaticUnitDetailStatContent->GetString(2)->msg = buff;
 //
 //
-//	if ( m_pStatEqip->GetStat()->m_fAtkEarth == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fAtkEarth );
+//	if ( m_StatEqip.GetStat().m_fAtkEarth == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fAtkEarth );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fAtkEarth > 0 )
+//		if ( m_StatEqip.GetStat().m_fAtkEarth > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fAtkEarth, (int)m_pStatEqip->GetStat()->m_fAtkEarth );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fAtkEarth, (int)m_StatEqip.GetStat().m_fAtkEarth );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fAtkEarth, abs( (int)m_pStatEqip->GetStat()->m_fAtkEarth ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fAtkEarth, abs( (int)m_StatEqip.GetStat().m_fAtkEarth ) );
 //		}
 //	}
 //
 //	pStaticUnitDetailStatContent->GetString(3)->msg = buff;
 //
 //
-//	if ( m_pStatEqip->GetStat()->m_fDefFire == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefFire );
+//	if ( m_StatEqip.GetStat().m_fDefFire == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefFire );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fDefFire > 0 )
+//		if ( m_StatEqip.GetStat().m_fDefFire > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fDefFire, (int)m_pStatEqip->GetStat()->m_fDefFire );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fDefFire, (int)m_StatEqip.GetStat().m_fDefFire );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fDefFire, abs( (int)m_pStatEqip->GetStat()->m_fDefFire ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fDefFire, abs( (int)m_StatEqip.GetStat().m_fDefFire ) );
 //		}
 //
 //
@@ -5011,17 +5008,17 @@
 //
 //
 //
-//	if ( m_pStatEqip->GetStat()->m_fDefIce == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefIce );
+//	if ( m_StatEqip.GetStat().m_fDefIce == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefIce );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fDefIce > 0 )
+//		if ( m_StatEqip.GetStat().m_fDefIce > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fDefIce, (int)m_pStatEqip->GetStat()->m_fDefIce );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fDefIce, (int)m_StatEqip.GetStat().m_fDefIce );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fDefIce, abs( (int)m_pStatEqip->GetStat()->m_fDefIce ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fDefIce, abs( (int)m_StatEqip.GetStat().m_fDefIce ) );
 //		}
 //
 //		
@@ -5031,17 +5028,17 @@
 //
 //
 //
-//	if ( m_pStatEqip->GetStat()->m_fDefLightning == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefLightning );
+//	if ( m_StatEqip.GetStat().m_fDefLightning == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefLightning );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fDefLightning > 0 )
+//		if ( m_StatEqip.GetStat().m_fDefLightning > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fDefLightning, (int)m_pStatEqip->GetStat()->m_fDefLightning );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fDefLightning, (int)m_StatEqip.GetStat().m_fDefLightning );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fDefLightning, abs( (int)m_pStatEqip->GetStat()->m_fDefLightning ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fDefLightning, abs( (int)m_StatEqip.GetStat().m_fDefLightning ) );
 //		}
 //
 //		
@@ -5051,17 +5048,17 @@
 //
 //
 //
-//	if ( m_pStatEqip->GetStat()->m_fDefEarth == 0 )
-//		wsprintf( buff, L"%d", (int)m_pStat->GetStat()->m_fDefEarth );
+//	if ( m_StatEqip.GetStat().m_fDefEarth == 0 )
+//		wsprintf( buff, L"%d", (int)m_Stat.GetStat().m_fDefEarth );
 //	else
 //	{
-//		if ( m_pStatEqip->GetStat()->m_fDefEarth > 0 )
+//		if ( m_StatEqip.GetStat().m_fDefEarth > 0 )
 //		{
-//			wsprintf( buff, L"%d #C008000+%d", (int)m_pStat->GetStat()->m_fDefEarth, (int)m_pStatEqip->GetStat()->m_fDefEarth );
+//			wsprintf( buff, L"%d #C008000+%d", (int)m_Stat.GetStat().m_fDefEarth, (int)m_StatEqip.GetStat().m_fDefEarth );
 //		}
 //		else
 //		{
-//			wsprintf( buff, L"%d #C008000-%d", (int)m_pStat->GetStat()->m_fDefEarth, abs( (int)m_pStatEqip->GetStat()->m_fDefEarth ) );
+//			wsprintf( buff, L"%d #C008000-%d", (int)m_Stat.GetStat().m_fDefEarth, abs( (int)m_StatEqip.GetStat().m_fDefEarth ) );
 //		}
 //
 //		
@@ -5099,8 +5096,7 @@
 //		return;
 //
 //	if( NULL == g_pData->GetMyUser() ||
-//		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-//		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+//		NULL == g_pData->GetMyUser()->GetSelectUnit() )
 //		return;
 //
 //	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
@@ -5128,14 +5124,14 @@
 //				{
 //					UidType itemUID = pItemSlot->GetItemUID();
 //					CX2Item* pItem = pInventory->GetItem( itemUID );
-//					if ( pItem != NULL && pItem->GetItemData() != NULL )
+//					if ( pItem != NULL )
 //					{
-//						CX2Item::ItemData* pItemData = pItem->GetItemData();
-//						if ( pItemData->m_PeriodType == CX2Item::PT_ENDURANCE )
+//						const CX2Item::ItemData& kItemData = &pItem->GetItemData();
+//						if ( kItemData.m_PeriodType == CX2Item::PT_ENDURANCE )
 //						{
-//							if ( pItemData->m_Endurance == 0 )
+//							if ( kItemData.m_Endurance == 0 )
 //							{
-//								m_pUnitViewerUI->RemoveEqip( pItemData->m_ItemUID );
+//								m_pUnitViewerUI->RemoveEqip( kItemData.m_ItemUID );
 //							}
 //						}
 //					}
@@ -5236,7 +5232,7 @@
 //		KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
 //		if ( kInventorySlotInfo.m_iSlotCategory == CX2Inventory::ST_E_EQUIP )
 //		{
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem(
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem(
 //				(CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_iSlotCategory, kInventorySlotInfo.m_iSlotID );
 //			if ( pItem != NULL )
 //			{
@@ -5249,7 +5245,7 @@
 //	for ( int i = 0; i < (int)vecInventorySlotInfo.size(); i++ )
 //	{
 //		KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
-//		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->RemoveItem( 
+//		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().RemoveItem( 
 //			(CX2Inventory::SORT_TYPE) kInventorySlotInfo.m_iSlotCategory, kInventorySlotInfo.m_iSlotID );
 //	}
 //
@@ -5258,13 +5254,13 @@
 //		KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
 //		if ( kInventorySlotInfo.m_iItemUID > 0 )
 //		{
-//			CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
-//			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->AddItem( 
-//				(CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_iSlotCategory, kInventorySlotInfo.m_iSlotID, pItemData );
+//          CX2Item::ItemData kItemData( kInventorySlotInfo );
+//			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().AddItem( 
+//				(CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_iSlotCategory, kInventorySlotInfo.m_iSlotID, kItemData );
 //
 //			if ( kInventorySlotInfo.m_iSlotCategory == CX2Inventory::ST_E_EQUIP )
 //			{
-//				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( 
+//				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( 
 //					(CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_iSlotCategory, kInventorySlotInfo.m_iSlotID );
 //				if ( pItem != NULL )
 //				{
@@ -5324,8 +5320,7 @@
 //		return;
 //
 //	if( NULL == g_pData->GetMyUser() ||
-//		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-//		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+//		NULL == g_pData->GetMyUser()->GetSelectUnit() )
 //		return;
 //
 //
@@ -5348,9 +5343,9 @@
 //	CKTDGUIControl::CPictureData* pPictureEXP = pStaticEXP->GetPicture( 0 );
 //	D3DXVECTOR2 picOrgSize = pPictureEXP->GetOriginalSize();
 //
-//	int nowExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP;
-//	int nowBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NowBaseLevelEXP;
-//	int nextBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NextBaseLevelEXP;
+//	int nowExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP;
+//	int nowBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NowBaseLevelEXP;
+//	int nextBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NextBaseLevelEXP;
 //
 //	pPictureEXP->SetSizeX( (float)(nowExp - nowBaseExp) / (float)( nextBaseExp - nowBaseExp ) * picOrgSize.x );
 //
@@ -5720,11 +5715,11 @@
 //	else if ( m_TempOpenRandomItemAck.m_iRestoreSpirit != 0 )
 //	{
 //		wstringstream tempString;
-//		int getSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit;
-//		getSpirit = (int)(getSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpiritMax * 100.0f);
+//		int getSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpirit;
+//		getSpirit = (int)(getSpirit / (float)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSpiritMax * 100.0f);
 //		tempString << L"근성도 " << getSpirit << L"%를 회복하였습니다.";
 //
-//		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit;
+//		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_iSpirit = m_TempOpenRandomItemAck.m_iRestoreSpirit;
 //		ResetSpirit();
 //
 //		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), tempString.str().c_str(), m_pNowState );
@@ -5752,7 +5747,7 @@
 //	{
 //		m_TempItemUID = pSlot->GetItemUID();
 //
-//		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlot->GetItemUID() );
+//		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlot->GetItemUID() );
 //		if ( pItem != NULL )
 //		{
 //			if ( pItem->GetItemTemplet() != NULL )
@@ -5767,7 +5762,7 @@
 //					if ( m_sbCheckQuestionSellNum == false )
 //					{
 //						if ( pItem->GetItemTemplet() != NULL && pItem->GetItemTemplet()->m_PeriodType == CX2Item::PT_QUANTITY )
-//							m_SellItemNum = pItem->GetItemData()->m_Quantity;
+//							m_SellItemNum = pItem->GetItemData().m_Quantity;
 //						else
 //							m_SellItemNum = 1;
 //
@@ -5788,7 +5783,7 @@
 //					{
 //						if ( pItem->GetItemTemplet()->m_PeriodType == CX2Item::PT_QUANTITY )
 //						{
-//							OpenItemSellNumDLG( pItem->GetItemData()->m_ItemUID );
+//							OpenItemSellNumDLG( pItem->GetItemData().m_ItemUID );
 //						}
 //						else
 //						{
@@ -5824,7 +5819,7 @@
 //	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGSelectSellNumWindowPopup );
 //	m_pDLGSelectSellNumWindowPopup->SetPos( g_pMain->GetWindowPos( D3DXVECTOR2( 366, 212 ), D3DXVECTOR2( 211, 125 ) ) );
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SellItemUID );
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SellItemUID );
 //	if ( pItem != NULL )
 //	{
 //		WCHAR buff[256] = {0};
@@ -5845,14 +5840,14 @@
 //
 //void CX2CharacterRoom::OpenRepairWindow( CX2SlotItem* pSlot )
 //{
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( ((CX2SlotItem*)pSlot)->GetSortType(), 
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( ((CX2SlotItem*)pSlot)->GetSortType(), 
 //		((CX2SlotItem*)pSlot)->GetSlotID() );
 //
 //	if ( pItem != NULL )
 //	{
 //		if ( pItem->GetItemTemplet()->m_PeriodType == CX2Item::PT_ENDURANCE )
 //		{
-//			if ( pItem->GetItemData()->m_Endurance >= pItem->GetItemTemplet()->m_Endurance )
+//			if ( pItem->GetItemData().m_Endurance >= pItem->GetItemTemplet()->m_Endurance )
 //			{
 //				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
 //					L"내구도가 이미 꽉 차있습니다!", m_pNowState );
@@ -5919,7 +5914,7 @@
 //
 //	if ( pSlot->GetSlotType() == CX2Slot::ST_INVENTORY )
 //	{
-//		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlot->GetItemUID() );
+//		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlot->GetItemUID() );
 //#ifdef ITEM_RECOVERY_TEST
 //		if ( pItem == NULL )
 //		{
@@ -5950,8 +5945,8 @@
 //		{
 //			if ( pItem->GetItemTemplet()->m_bFashion == true )
 //			{
-//				if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY &&
-//					pItem->GetItemData()->m_Period > 0 )
+//				if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY &&
+//					pItem->GetItemData().m_Period > 0 )
 //				{
 //					//기간제로 판명.
 //					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
@@ -6271,7 +6266,7 @@
 //	if( NULL == m_pDLGEnchantItem )
 //		return;
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnchantItemUID );
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnchantItemUID );
 //	if( NULL == pItem )
 //		return;
 //
@@ -6282,7 +6277,7 @@
 //
 //
 //	int iAdjuvantItemID		= GetRequiredEnchantAdjuvantItemID( pItem->GetItemTemplet()->m_UseLevel );
-//	int iAdjuvantCount		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( iAdjuvantItemID );
+//	int iAdjuvantCount		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( iAdjuvantItemID );
 //
 //	wstring leftButtonDesc	= L"";
 //	wstring rightButtonDesc		= L"";
@@ -6293,8 +6288,8 @@
 //	{
 //	case CX2Item::IT_WEAPON:
 //		{
-//			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
-//			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NEW_WEAPON_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
+//			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
+//			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NEW_WEAPON_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
 //
 //			CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
 //			if ( pItemTemplet != NULL )
@@ -6312,8 +6307,8 @@
 //
 //	case CX2Item::IT_DEFENCE:
 //		{
-//			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
-//			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NEW_DEFENCE_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
+//			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
+//			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NEW_DEFENCE_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
 //
 //			CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
 //			if ( pItemTemplet != NULL )
@@ -6584,7 +6579,7 @@
 //		return;
 //	}
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( ((CX2SlotItem*)pSlot)->GetSortType(), 
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( ((CX2SlotItem*)pSlot)->GetSortType(), 
 //		((CX2SlotItem*)pSlot)->GetSlotID() );
 //	if( NULL == pItem )
 //	{
@@ -6615,7 +6610,7 @@
 //
 //
 //	int iAdjuvantItemID		= GetRequiredEnchantAdjuvantItemID( pItem->GetItemTemplet()->m_UseLevel );
-//	int iAdjuvantCount		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( iAdjuvantItemID );
+//	int iAdjuvantCount		= g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( iAdjuvantItemID );
 //
 //	wstring normalButtonDesc	= L"";
 //	wstring newButtonDesc		= L"";
@@ -6648,8 +6643,8 @@
 //	{
 //	case CX2Item::IT_WEAPON:
 //		{
-//			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
-//			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NEW_WEAPON_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
+//			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_WEAPON_ENCHANT_STONE_ITEM_ID );
+//			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NEW_WEAPON_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
 //
 //			if ( normalStoneCount <= 0 && newStoneCount <= 0 )
 //			{
@@ -6663,8 +6658,8 @@
 //
 //	case CX2Item::IT_DEFENCE:
 //		{
-//			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
-//			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NEW_DEFENCE_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
+//			normalStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_DEFENCE_ENCHANT_STONE_ITEM_ID );
+//			newStoneCount = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NEW_DEFENCE_ENCHANT_STONE_ITEM_ID[iNewStoneLevel] );
 //
 //			if ( normalStoneCount <= 0 && newStoneCount <= 0 )
 //			{
@@ -6707,7 +6702,7 @@
 //	if ( pStaticItemName != NULL && pStaticItemName->GetString(0) != NULL )
 //	{
 //		wstringstream wstrstm;
-//		wstrstm << L"+" << pItem->GetItemData()->m_EnchantLevel << L" " << pItem->GetItemTemplet()->GetFullName().c_str();
+//		wstrstm << L"+" << pItem->GetItemData().m_EnchantLevel << L" " << pItem->GetItemTemplet()->GetFullName().c_str();
 //		pStaticItemName->GetString(0)->msg = wstrstm.str().c_str();
 //	}
 //
@@ -6733,9 +6728,9 @@
 //			}
 //		}
 //
-//		if ( pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel ) != NULL )
+//		if ( pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel ) != NULL )
 //		{
-//			pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel )->SetShow( true );
+//			pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel )->SetShow( true );
 //		}
 //	}
 //
@@ -6751,7 +6746,7 @@
 //	//업데이트 해주기전에..
 //	//아이템 체크해서.. 업그레이드 됐는지, 초기화 됐는지, 변화없는지, 다운됐는지, 사라졌는지..
 //
-//	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEGS_ENCHANT_ITEM_ACK.m_iED;
+//	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEGS_ENCHANT_ITEM_ACK.m_iED;
 //
 //	ResetCharRoomEDnCashUInVP();
 //
@@ -6771,14 +6766,14 @@
 //
 //			//강화 성공한 경우 강화 단계 보여주고..
 //
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
 //			if ( pItem != NULL )
 //			{
 //				CKTDGUIStatic* pStaticComment = (CKTDGUIStatic*)m_pDLGEnchantItemResult->GetControl( L"Static_comment1" );
 //				if ( pStaticComment != NULL && pStaticComment->GetString(0) != NULL )
 //				{
 //					wstringstream wstrstm;
-//					wstrstm << L"축하드립니다! 아이템 강화에 성공하여\n      강화레벨 " << pItem->GetItemData()->m_EnchantLevel << L"이 되었습니다!";
+//					wstrstm << L"축하드립니다! 아이템 강화에 성공하여\n      강화레벨 " << pItem->GetItemData().m_EnchantLevel << L"이 되었습니다!";
 //					pStaticComment->GetString(0)->msg = wstrstm.str().c_str();
 //				}
 //
@@ -6793,9 +6788,9 @@
 //						}
 //					}
 //
-//					if ( pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel ) != NULL )
+//					if ( pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel ) != NULL )
 //					{
-//						pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel )->SetShow( true );
+//						pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel )->SetShow( true );
 //					}
 //				}
 //			}
@@ -6809,7 +6804,7 @@
 //
 //			m_pDLGEnchantItemResult = new CKTDGUIDialog( m_pNowState, L"DLG_Enchant_Item_Result_Fail_NoChange.lua" );
 //
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
 //			if ( pItem != NULL )
 //			{
 //				CKTDGUIStatic* pStaticNum = (CKTDGUIStatic*)m_pDLGEnchantItemResult->GetControl( L"g_pStatic_item_upgrade_Num_NoChange" );
@@ -6823,9 +6818,9 @@
 //						}
 //					}
 //
-//					if ( pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel ) != NULL )
+//					if ( pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel ) != NULL )
 //					{
-//						pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel )->SetShow( true );
+//						pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel )->SetShow( true );
 //					}
 //				}
 //			}
@@ -6838,7 +6833,7 @@
 //
 //			m_pDLGEnchantItemResult = new CKTDGUIDialog( m_pNowState, L"DLG_Enchant_Item_Result_Fail_Down.lua" );
 //
-//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
+//			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
 //			if ( pItem != NULL )
 //			{
 //				CKTDGUIStatic* pStaticComment = (CKTDGUIStatic*)m_pDLGEnchantItemResult->GetControl( L"Static_comment1" );
@@ -6846,7 +6841,7 @@
 //				{
 //					wstringstream wstrstm;
 //					wstrstm << L"아깝네요! \n강화에 실패하여 강화 레벨이 ";
-//					wstrstm << pItem->GetItemData()->m_EnchantLevel << L"이 되었습니다\n   하지만 더 큰 피해가 없어서 다행이에요.";
+//					wstrstm << pItem->GetItemData().m_EnchantLevel << L"이 되었습니다\n   하지만 더 큰 피해가 없어서 다행이에요.";
 //
 //					pStaticComment->GetString(0)->msg = wstrstm.str().c_str();
 //				}
@@ -6862,9 +6857,9 @@
 //						}
 //					}
 //
-//					if ( pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel ) != NULL )
+//					if ( pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel ) != NULL )
 //					{
-//						pStaticNum->GetPicture( pItem->GetItemData()->m_EnchantLevel )->SetShow( true );
+//						pStaticNum->GetPicture( pItem->GetItemData().m_EnchantLevel )->SetShow( true );
 //					}
 //				}
 //			}
@@ -6923,11 +6918,11 @@
 //				}
 //				else
 //				{
-//					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
+//					CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( kEGS_ENCHANT_ITEM_ACK.m_iEnchantedItemUID );
 //					if ( pItem != NULL )
 //					{
 //						wstringstream wstrstm;
-//						wstrstm << L"+" << pItem->GetItemData()->m_EnchantLevel << L" " << pItemTemplet->GetFullName().c_str();
+//						wstrstm << L"+" << pItem->GetItemData().m_EnchantLevel << L" " << pItemTemplet->GetFullName().c_str();
 //						pStaticName->GetString(0)->msg = wstrstm.str().c_str();
 //					}
 //					else
@@ -6961,10 +6956,10 @@
 //		return;
 //	}
 //
-//	int normalStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_MAGIC_STONE_ITEM_ID );
-//	int specialStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( SPECIAL_MAGIC_STONE_ITEM_ID );
+//	int normalStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_MAGIC_STONE_ITEM_ID );
+//	int specialStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( SPECIAL_MAGIC_STONE_ITEM_ID );
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pSlot->GetItemUID() );
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pSlot->GetItemUID() );
 //
 //#ifdef ITEM_RECOVERY_TEST
 //	// 강화 레벨 검사 (사용불능인가?)
@@ -6977,11 +6972,11 @@
 //#endif
 //
 //	bool bCheckHaveOption = false;
-//	if ( pItem != NULL && pItem->GetItemData() != NULL )
+//	if ( pItem != NULL )
 //	{
-//		for ( int i = 0; i < (int)pItem->GetItemData()->m_SocketOption.size(); i++ )
+//		for ( int i = 0; i < (int)pItem->GetItemData().m_SocketOption.size(); i++ )
 //		{
-//			int socketOption = pItem->GetItemData()->m_SocketOption[i];
+//			int socketOption = pItem->GetItemData().m_SocketOption[i];
 //			if ( socketOption != 0 )
 //				bCheckHaveOption = true;
 //		}
@@ -7036,7 +7031,7 @@
 //	if ( m_pDLGSocketItem == NULL )
 //		return;
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SocketItemUID ); 
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SocketItemUID ); 
 //
 //	if ( pItem == NULL )
 //		return;
@@ -7057,8 +7052,8 @@
 //
 //	int slotNum = pItem->GetItemTemplet()->GetSocketSlotNum();
 //
-//	int normalStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( NORMAL_MAGIC_STONE_ITEM_ID );
-//	int specialStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( SPECIAL_MAGIC_STONE_ITEM_ID );
+//	int normalStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( NORMAL_MAGIC_STONE_ITEM_ID );
+//	int specialStone = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( SPECIAL_MAGIC_STONE_ITEM_ID );
 //
 //	
 //	CKTDGUIStatic* pStaticMagicStoneNum = (CKTDGUIStatic*)m_pDLGSocketItem->GetControl( L"g_pStatic_Normal_Magic_Stone_Num" );
@@ -7209,10 +7204,10 @@
 //	{
 //		bool bCheckEmpty = true;
 //
-//		if ( i < (int)pItem->GetItemData()->m_SocketOption.size() )
+//		if ( i < (int)pItem->GetItemData().m_SocketOption.size() )
 //		{
 //			//0으로 채워져 있으면 비어있는거고 다른값으로 채워져 있는거면 있는거다..
-//			int socketOption = pItem->GetItemData()->m_SocketOption[i];
+//			int socketOption = pItem->GetItemData().m_SocketOption[i];
 //			if ( socketOption != 0 )
 //			{
 //				bCheckEmpty = false;
@@ -7235,7 +7230,7 @@
 //					pControl->SetShowEnable( true, true );
 //				}
 //				
-//				CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
+//				const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
 //				if ( pSocketData != NULL )
 //				{
 //					//여기다가.. 소켓 옵션 설명 가져와서 한줄 짜리인지 두줄짜리인지 보고.. 넣자잉..
@@ -7437,7 +7432,7 @@
 //	}
 //
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( ((CX2SlotItem*)pSlot)->GetSortType(), 
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( ((CX2SlotItem*)pSlot)->GetSortType(), 
 //		((CX2SlotItem*)pSlot)->GetSlotID() );
 //
 //	if( NULL == pItem ||
@@ -7479,7 +7474,7 @@
 //		return;
 //	}
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( ((CX2SlotItem*)pSlot)->GetSortType(), 
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( ((CX2SlotItem*)pSlot)->GetSortType(), 
 //		((CX2SlotItem*)pSlot)->GetSlotID() );
 //
 //	if ( pItem == NULL || pItem->GetItemTemplet() == NULL )
@@ -7564,7 +7559,7 @@
 //	if ( m_pDLGAttribEnchantItem == NULL )
 //		return;
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_AttribEnchantItemUID ); 
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_AttribEnchantItemUID ); 
 //
 //	if ( pItem == NULL )
 //		return;
@@ -7584,7 +7579,7 @@
 //		if ( pStaticItemName != NULL )
 //		{
 //			wstringstream wstrstm;
-//			wstrstm << L"+" << pItem->GetItemData()->m_EnchantLevel << L" " << pItem->GetItemTemplet()->GetFullName().c_str();
+//			wstrstm << L"+" << pItem->GetItemData().m_EnchantLevel << L" " << pItem->GetItemTemplet()->GetFullName().c_str();
 //
 //			pStaticItemName->SetString( 0, wstrstm.str().c_str() );
 //		}
@@ -7602,11 +7597,11 @@
 //		if ( pStaticAttribName != NULL )
 //		{
 //			vector< CX2EnchantItem::ENCHANT_TYPE > vecEnchantType;
-//			if( 0 != pItem->GetItemData()->m_EnchantOption1 )
-//				vecEnchantType.push_back( (CX2EnchantItem::ENCHANT_TYPE)pItem->GetItemData()->m_EnchantOption1 );
+//			if( 0 != pItem->GetItemData().m_EnchantOption1 )
+//				vecEnchantType.push_back( (CX2EnchantItem::ENCHANT_TYPE)pItem->GetItemData().m_EnchantOption1 );
 //
-//			if( 0 != pItem->GetItemData()->m_EnchantOption2 )
-//				vecEnchantType.push_back( (CX2EnchantItem::ENCHANT_TYPE)pItem->GetItemData()->m_EnchantOption2 );
+//			if( 0 != pItem->GetItemData().m_EnchantOption2 )
+//				vecEnchantType.push_back( (CX2EnchantItem::ENCHANT_TYPE)pItem->GetItemData().m_EnchantOption2 );
 //			
 //			pStaticAttribName->SetString( 0, g_pData->GetDamageManager()->GetExtraDamageName( g_pData->GetEnchantItem()->GetExtraDamageType( vecEnchantType ) ).c_str() );
 //		}
@@ -7661,7 +7656,7 @@
 //		
 //
 //		//아무런 속성이 없는 경우
-//		if ( pItem->GetItemData()->m_EnchantOption1 == 0 && pItem->GetItemData()->m_EnchantOption2 == 0 )
+//		if ( pItem->GetItemData().m_EnchantOption1 == 0 && pItem->GetItemData().m_EnchantOption2 == 0 )
 //		{
 //			//버튼.. 셋팅~~!!
 //			//엘의 조각이 20개가 필요!!
@@ -7675,7 +7670,7 @@
 //			pButtonSlot = (CKTDGUIButton*)m_pDLGAttribEnchantItem->GetControl( L"g_pButton_El_Slot_Big" );
 //			if ( pButtonSlot != NULL )
 //			{
-//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
+//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
 //				int needItemNum = 0;
 //				g_pData->GetEnchantItem()->GetAttribEnchantRequireCount( false, true, pItem->GetItemTemplet()->m_UseLevel,
 //																					pItem->GetItemTemplet()->m_ItemGrade, needItemNum );
@@ -7696,7 +7691,7 @@
 //
 //				int itemID = g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i );
 //
-//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( itemID );
+//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( itemID );
 //				int needItemNum = 0;
 //				g_pData->GetEnchantItem()->GetAttribEnchantRequireCount( false, true, pItem->GetItemTemplet()->m_UseLevel,
 //					pItem->GetItemTemplet()->m_ItemGrade, needItemNum );
@@ -7730,11 +7725,11 @@
 //					int itemNum = 0;
 //					if ( i == 0 )
 //					{
-//						itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
+//						itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
 //					}
 //					else
 //					{
-//						itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i ) );
+//						itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i ) );
 //					}
 //
 //					wstrstm << L"엘의 조각";
@@ -7797,7 +7792,7 @@
 //			}
 //		}
 //		//두개의 옵션이 같이 붙어있는 경우
-//		else if ( pItem->GetItemData()->m_EnchantOption1 != 0 && pItem->GetItemData()->m_EnchantOption2 != 0 )
+//		else if ( pItem->GetItemData().m_EnchantOption1 != 0 && pItem->GetItemData().m_EnchantOption2 != 0 )
 //		{
 //			if ( pStatic_Enable_Notice != NULL )
 //				pStatic_Enable_Notice->SetShow( true );
@@ -7815,11 +7810,11 @@
 //
 //			//엘의 조각이 60개가 필요!!
 //			int existingOption = 0;
-//			if ( pItem->GetItemData()->m_EnchantOption1 != 0 )
-//				existingOption = pItem->GetItemData()->m_EnchantOption1;
+//			if ( pItem->GetItemData().m_EnchantOption1 != 0 )
+//				existingOption = pItem->GetItemData().m_EnchantOption1;
 //
-//			if ( pItem->GetItemData()->m_EnchantOption2 != 0 )
-//				existingOption = pItem->GetItemData()->m_EnchantOption2;
+//			if ( pItem->GetItemData().m_EnchantOption2 != 0 )
+//				existingOption = pItem->GetItemData().m_EnchantOption2;
 //
 //			if ( pStaticUpgradeNotice != NULL )
 //			{
@@ -7845,7 +7840,7 @@
 //			pButtonSlot = (CKTDGUIButton*)m_pDLGAttribEnchantItem->GetControl( L"g_pButton_El_Slot_Big" );
 //			if ( pButtonSlot != NULL )
 //			{
-//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
+//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
 //				int needItemNum = 0;
 //				g_pData->GetEnchantItem()->GetAttribEnchantRequireCount( true, true, pItem->GetItemTemplet()->m_UseLevel,
 //					pItem->GetItemTemplet()->m_ItemGrade, needItemNum );
@@ -7894,11 +7889,11 @@
 //						int itemNum = 0;
 //						if ( i == 0 )
 //						{
-//							itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
+//							itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
 //						}
 //						else
 //						{
-//							itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i ) );
+//							itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i ) );
 //						}
 //
 //						wstrstm << L"엘의 조각";
@@ -7965,7 +7960,7 @@
 //					{
 //						int itemID = g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i );
 //
-//						int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( itemID );
+//						int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( itemID );
 //						if ( pButtonSlot != NULL )
 //						{
 //							int needItemNum = 0;
@@ -8052,7 +8047,7 @@
 //			pButtonRemoveSlot2->SetShowEnable( false, false );
 //		}
 //
-//		if ( pItem->GetItemData()->m_EnchantOption1 == 0 )
+//		if ( pItem->GetItemData().m_EnchantOption1 == 0 )
 //		{
 //			if ( pStaticEmptySlot1 != NULL )
 //				pStaticEmptySlot1->SetShow( true );
@@ -8062,8 +8057,8 @@
 //			if ( pStaticNoticeSlot != NULL )
 //			{
 //				vector< CX2EnchantItem::ENCHANT_TYPE > vecEnchantType;
-//				if( 0 != pItem->GetItemData()->m_EnchantOption1 )
-//					vecEnchantType.push_back( (CX2EnchantItem::ENCHANT_TYPE) pItem->GetItemData()->m_EnchantOption1 );
+//				if( 0 != pItem->GetItemData().m_EnchantOption1 )
+//					vecEnchantType.push_back( (CX2EnchantItem::ENCHANT_TYPE) pItem->GetItemData().m_EnchantOption1 );
 //
 //				pStaticNoticeSlot->SetString( 0, g_pData->GetDamageManager()->GetExtraDamageName( g_pData->GetEnchantItem()->GetExtraDamageType( vecEnchantType ) ).c_str() );
 //			}
@@ -8072,7 +8067,7 @@
 //				pButtonRemoveSlot->SetShowEnable( true, true );
 //		}
 //
-//		if ( pItem->GetItemData()->m_EnchantOption2 == 0 )
+//		if ( pItem->GetItemData().m_EnchantOption2 == 0 )
 //		{
 //			if ( pStaticEmptySlot2 != NULL )
 //				pStaticEmptySlot2->SetShow( true );
@@ -8082,8 +8077,8 @@
 //			if ( pStaticNoticeSlot != NULL )
 //			{
 //				vector< CX2EnchantItem::ENCHANT_TYPE > vecEnchantType;
-//				if( 0 != pItem->GetItemData()->m_EnchantOption2 )
-//					vecEnchantType.push_back( (CX2EnchantItem::ENCHANT_TYPE) pItem->GetItemData()->m_EnchantOption2 );
+//				if( 0 != pItem->GetItemData().m_EnchantOption2 )
+//					vecEnchantType.push_back( (CX2EnchantItem::ENCHANT_TYPE) pItem->GetItemData().m_EnchantOption2 );
 //
 //				pStaticNoticeSlot->SetString( 1, g_pData->GetDamageManager()->GetExtraDamageName( g_pData->GetEnchantItem()->GetExtraDamageType( vecEnchantType ) ).c_str() );
 //			}
@@ -8111,7 +8106,7 @@
 //		if ( pStaticItemName != NULL )
 //		{
 //			wstringstream wstrstm;
-//			wstrstm << L"+" << pItem->GetItemData()->m_EnchantLevel << L" " << pItem->GetItemTemplet()->GetFullName().c_str();
+//			wstrstm << L"+" << pItem->GetItemData().m_EnchantLevel << L" " << pItem->GetItemTemplet()->GetFullName().c_str();
 //
 //			pStaticItemName->SetString( 0, wstrstm.str().c_str() );
 //		}
@@ -8130,7 +8125,7 @@
 //		if ( pStaticAttribName != NULL )
 //		{
 //			
-//			pStaticAttribName->SetString( 0, g_pData->GetEnchantItem()->GetEnchantResistName( (CX2EnchantItem::ENCHANT_TYPE)pItem->GetItemData()->m_EnchantOption1 ).c_str() );
+//			pStaticAttribName->SetString( 0, g_pData->GetEnchantItem()->GetEnchantResistName( (CX2EnchantItem::ENCHANT_TYPE)pItem->GetItemData().m_EnchantOption1 ).c_str() );
 //		}
 //
 //		CKTDGUIStatic* pStaticElPieceEx = (CKTDGUIStatic*)m_pDLGAttribEnchantItem->GetControl( L"g_pStatic_El_Stone_Num" );
@@ -8163,7 +8158,7 @@
 //		
 //
 //		//아무런 속성이 없는 경우
-//		if ( pItem->GetItemData()->m_EnchantOption1 == 0 && pItem->GetItemData()->m_EnchantOption2 == 0 )
+//		if ( pItem->GetItemData().m_EnchantOption1 == 0 && pItem->GetItemData().m_EnchantOption2 == 0 )
 //		{
 //			if ( pStatic_Random_Attribute_Notice != NULL )
 //				pStatic_Random_Attribute_Notice->SetShow( true );
@@ -8183,7 +8178,7 @@
 //
 //			if ( pButtonRandom != NULL )
 //			{
-//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
+//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
 //				int needItemNum = 0;
 //				g_pData->GetEnchantItem()->GetAttribEnchantRequireCount( false, false, pItem->GetItemTemplet()->m_UseLevel,
 //					pItem->GetItemTemplet()->m_ItemGrade, needItemNum );
@@ -8204,7 +8199,7 @@
 //
 //				int itemID = g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i );
 //
-//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( itemID );
+//				int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( itemID );
 //				int needItemNum = 0;
 //				g_pData->GetEnchantItem()->GetAttribEnchantRequireCount( false, false, pItem->GetItemTemplet()->m_UseLevel,
 //					pItem->GetItemTemplet()->m_ItemGrade, needItemNum );
@@ -8234,11 +8229,11 @@
 //					int itemNum = 0;
 //					if ( i == 0 )
 //					{
-//						itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
+//						itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN );
 //					}
 //					else
 //					{
-//						itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i ) );
+//						itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( g_pData->GetEnchantItem()->GetItemID( (CX2EnchantItem::ENCHANT_TYPE)i ) );
 //
 //					}
 //
@@ -8320,7 +8315,7 @@
 //
 //		
 //
-//		if ( pItem->GetItemData()->m_EnchantOption1 == 0 )
+//		if ( pItem->GetItemData().m_EnchantOption1 == 0 )
 //		{
 //			if ( pStaticEmptySlot1 != NULL )
 //				pStaticEmptySlot1->SetShow( true );
@@ -8330,7 +8325,7 @@
 //			if ( pStaticNoticeSlot != NULL )
 //			{
 //				
-//				pStaticNoticeSlot->SetString( 0, g_pData->GetEnchantItem()->GetEnchantResistName( (CX2EnchantItem::ENCHANT_TYPE)pItem->GetItemData()->m_EnchantOption1 ).c_str() );
+//				pStaticNoticeSlot->SetString( 0, g_pData->GetEnchantItem()->GetEnchantResistName( (CX2EnchantItem::ENCHANT_TYPE)pItem->GetItemData().m_EnchantOption1 ).c_str() );
 //			}
 //
 //			if ( pButtonRemoveSlot != NULL )
@@ -8348,7 +8343,7 @@
 //	if ( pItem == NULL || pItem->GetItemTemplet() == NULL )
 //		return;
 //
-//	m_ElChangerItemUID		= pItem->GetItemData()->m_ItemUID;
+//	m_ElChangerItemUID		= pItem->GetItemData().m_ItemUID;
 //	m_ElChangerItemCount	= 1;
 //
 //	m_pDLGElChanger = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_El_Changer_Window.lua" );
@@ -8373,7 +8368,7 @@
 //	if ( pStaticItemNum3 != NULL )
 //	{
 //		wstringstream wstrstm3;
-//		wstrstm3 << pItem->GetItemData()->m_Quantity;
+//		wstrstm3 << pItem->GetItemData().m_Quantity;
 //		pStaticItemNum3->SetString(0, wstrstm3.str().c_str() );
 //	}
 //
@@ -8392,7 +8387,7 @@
 //		if ( pControl != NULL )
 //			pControl->SetShow( true );
 //
-//		int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE );
+//		int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE );
 //
 //		CKTDGUIStatic* pStaticItemNum2 = (CKTDGUIStatic*)m_pDLGElChanger->GetControl( L"Identify_Window_Num2" );
 //	
@@ -8410,7 +8405,7 @@
 //		if ( pControl != NULL )
 //			pControl->SetShow( true );
 //
-//		int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE );
+//		int itemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE );
 //
 //		CKTDGUIStatic* pStaticItemNum2 = (CKTDGUIStatic*)m_pDLGElChanger->GetControl( L"Identify_Window_Num2" );
 //
@@ -8427,22 +8422,22 @@
 //{
 //	//before, we must check the type if It is an Identifier or an returner.
 //
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_ElChangerItemUID );
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_ElChangerItemUID );
 //	if ( pItem == NULL || pItem->GetItemTemplet() == NULL )
 //		return;
 //
-//	int nowQuantity = pItem->GetItemData()->m_Quantity;
+//	int nowQuantity = pItem->GetItemData().m_Quantity;
 //
 //	int needStoneQuantity = 0;
 //	if ( pItem->GetItemTemplet()->m_ItemID == CX2EnchantItem::ATI_UNKNOWN )
 //	{
 //		//identifier
-//		needStoneQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE );
+//		needStoneQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_IDENTIFY_STONE );
 //	}
 //	else
 //	{
 //		//returner
-//		needStoneQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE );
+//		needStoneQuantity = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_UNKNOWN_STONE );
 //	}
 //
 //	if ( wcscmp( wszAdjustCommand, L"Up10" ) == 0 )
@@ -8496,57 +8491,57 @@
 //
 //void CX2CharacterRoom::CheckMyInfoChange()
 //{
-//	if ( m_TotalED < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+//	if ( m_TotalED < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 //	{
-//		int changeED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED - m_TotalED;
+//		int changeED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED - m_TotalED;
 //		wstringstream wstrstm;
 //		wstrstm << L"ED +" << changeED;
 //		m_pPicCharMenuPlusInfo->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 869,721,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 //	}
 //
-//	if ( m_TotalED > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+//	if ( m_TotalED > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 //	{
-//		int changeED = m_TotalED - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+//		int changeED = m_TotalED - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 //		wstringstream wstrstm;
 //		wstrstm << L"ED -" << changeED;
 //		m_pPicCharMenuPlusInfoRed->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 869,721,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 //	}
 //
-//	m_TotalED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+//	m_TotalED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 //
-//	if ( m_TotalExp < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP )
+//	if ( m_TotalExp < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP )
 //	{
-//		int changeEXP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP - m_TotalExp;
+//		int changeEXP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP - m_TotalExp;
 //		wstringstream wstrstm;
 //		wstrstm << L"EXP +" << changeEXP;
 //		m_pPicCharMenuPlusInfo->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 707,721,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 //	}
 //
-//	if ( m_TotalExp > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP )
+//	if ( m_TotalExp > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP )
 //	{
-//		int changeEXP = m_TotalExp - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP;
+//		int changeEXP = m_TotalExp - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP;
 //		wstringstream wstrstm;
 //		wstrstm << L"EXP -" << changeEXP;
 //		m_pPicCharMenuPlusInfoRed->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 707,721,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 //	}
-//	m_TotalExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP;
+//	m_TotalExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP;
 //
-//	if ( m_TotalVP < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint )
+//	if ( m_TotalVP < g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint )
 //	{
-//		int changeVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint - m_TotalVP;
+//		int changeVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint - m_TotalVP;
 //		wstringstream wstrstm;
 //		wstrstm << L"VP +" << changeVP;
 //		m_pPicCharMenuPlusInfo->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 969,721,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 //	}
 //
-//	if ( m_TotalVP > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint )
+//	if ( m_TotalVP > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint )
 //	{
-//		int changeVP = m_TotalVP - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint;
+//		int changeVP = m_TotalVP - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint;
 //		wstringstream wstrstm;
 //		wstrstm << L"VP -" << changeVP;
 //		m_pPicCharMenuPlusInfoRed->DrawText( wstrstm.str().c_str(), D3DXVECTOR3( 969,721,0 ), D3DXVECTOR3(1,0,0), CKTDGPicChar::AT_CENTER );
 //	}
-//	m_TotalVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint;
+//	m_TotalVP = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint;
 //
 //	if ( m_TotalLevel < g_pData->GetSelectUnitLevel() )
 //	{
@@ -8570,9 +8565,9 @@
 //				pSeq->SetOverUI( true );
 //		}
 //		
-//		if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser ) // 체험 아이디 제한
+//		if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 //		{
-//			CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass << 24 ) | (UINT32)g_pData->GetSelectUnitLevel(), kUserFlag_GeneralLevelUp );
+//			CNMCOClientObject::GetInstance().ChangeMyLevel( ( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass << 24 ) | (UINT32)g_pData->GetSelectUnitLevel(), kUserFlag_GeneralLevelUp );
 //		}
 //	}
 //
@@ -8591,7 +8586,7 @@
 //
 //void CX2CharacterRoom::ResetInvenPageUI()
 //{
-//	//m_NowInvenSortTypePageMaxNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetInvenSlot() m_NowInventorySortType
+//	//m_NowInvenSortTypePageMaxNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetInvenSlot() m_NowInventorySortType
 //	//int invenMaxSize = GetInvenMaxSize( m_NowInventorySortType );
 //
 //	if ( m_pDLGMyInfoInventory != NULL )
@@ -8694,10 +8689,10 @@
 //
 //void CX2CharacterRoom::SellItemNumChange( int iNum )
 //{
-//	CX2Item* pSellItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_SellItemUID );
+//	CX2Item* pSellItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_SellItemUID );
 //	if ( pSellItem != NULL )
 //	{
-//		int maxItemSellNum = pSellItem->GetItemData()->m_Quantity;
+//		int maxItemSellNum = pSellItem->GetItemData().m_Quantity;
 //		m_SellItemNum += iNum;
 //
 //		if ( m_SellItemNum <= 1 )
@@ -8794,7 +8789,7 @@
 //	for ( int i = 0; i < (int)m_vecAllEquippingItem.size(); i++ )
 //	{
 //		UidType itemUID = m_vecAllEquippingItem[i];
-//		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( itemUID );
+//		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( itemUID );
 //		if ( pItem == NULL || pItem->GetItemTemplet() == NULL || pItem->GetItemTemplet()->m_PeriodType != CX2Item::PT_ENDURANCE )
 //			continue;
 //
@@ -8812,12 +8807,12 @@
 //
 //
 //
-//	if ( edToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+//	if ( edToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 //	{
 //		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), L"ED가 부족하여 수리할 수 없습니다!", m_pNowState );
 //		return;
 //	}
-//	if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_VSPoint )
+//	if ( vpToRepair > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_VSPoint )
 //	{
 //		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), L"VP가 부족하여 수리할 수 없습니다!", m_pNowState );
 //		return;
@@ -9102,7 +9097,7 @@
 //bool CX2CharacterRoom::Handler_EGS_RESTORE_ITEM_REQ( UidType RecoveryItemUid )
 //{
 //	// 일단 아이템 있는지 다시 확인해주고
-//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( RecoveryItemUid );
+//	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( RecoveryItemUid );
 //	if(pItem == NULL) 
 //		return false;
 //	
@@ -9128,7 +9123,7 @@
 //	{
 //		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 //		{
-//			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+//			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 //
 //			UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 //			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), L"아이템이 복원되었습니다.", m_pNowState );
@@ -9271,7 +9266,7 @@
 //
 //		if( m_hMeshInstMeltMachine != INVALID_MESH_INSTANCE_HANDLE )
 //		{
-//			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshInstMeltMachine );
+//			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstMeltMachine );
 //		}
 //
 //		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst_MeltMachineStart = g_pData->GetUIMajorXMeshPlayer()->CreateInstance( L"FireMachineStart", boxPos.x, boxPos.y, boxPos.z , 0,0,0, 0,0,0 );
@@ -9289,7 +9284,7 @@
 //// 		}
 //// 		else
 //// 		{
-//// 			m_hSeqKeyTrace = INVALID_PARTICLE_HANDLE;
+//// 			m_hSeqKeyTrace = INVALID_PARTICLE_SEQUENCE_HANDLE;
 //// 		}
 //		
 //	}
@@ -9315,17 +9310,17 @@
 //bool CX2CharacterRoom::Handler_EGS_ATTACH_ITEM_REQ( UidType CouponItemUID, UidType TargetItemUID )
 //{
 //	// 일단 아이템 있는지 다시 확인해주고
-//	CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( CouponItemUID );
-//	CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( TargetItemUID );
+//	CX2Item* pCouponItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( CouponItemUID );
+//	CX2Item* pTargetItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( TargetItemUID );
 //
 //	// 사용가능한지도 확인한다
 //	if ( pCouponItem == NULL || pTargetItem == NULL ||
-//		pCouponItem->GetItemTemplet() == NULL || pTargetItem->GetItemData() == NULL )
+//		pCouponItem->GetItemTemplet() == NULL )
 //	{
 //		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), L"아이템 정보를 찾을 수 없습니다.", m_pNowState );
 //		return false;
 //	}
-//	if( IsEnchantCouponUseable( pCouponItem->GetItemTemplet()->m_ItemID, pTargetItem->GetItemData()->m_EnchantLevel ) )
+//	if( IsEnchantCouponUseable( pCouponItem->GetItemTemplet()->m_ItemID, pTargetItem->GetItemData().m_EnchantLevel ) )
 //	{
 //		KEGS_ATTACH_ITEM_REQ kEGS_ATTACH_ITEM_REQ;
 //
@@ -9353,7 +9348,7 @@
 //	{
 //		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 //		{
-//			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+//			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 //
 //			UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 //			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), L"아이템 사용에 성공했습니다!", m_pNowState );

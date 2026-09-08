@@ -53,24 +53,22 @@ CKTDGUIRadioButton::CKTDGUIRadioButton()
     KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
 
-	if(  g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
+	if(  g_pKTDXApp->LoadAndDoMemory( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
 	{
 		return;
 	}
 
-	string checkSndFileName;
-	wstring sndFileName;
+	wstring checkSndFileName;
 
-	LUA_GET_VALUE( kLuaManager, "RadioButton_Check", checkSndFileName, "" );
+	LUA_GET_VALUE( kLuaManager, "RadioButton_Check", checkSndFileName, L"" );
+	m_pSndCheck = g_pKTDXApp->GetDeviceManager()->OpenSound( checkSndFileName );
 
-	ConvertCharToWCHAR( sndFileName, checkSndFileName.c_str() );
-	m_pSndCheck = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
+	LUA_GET_VALUE( kLuaManager, "RadioButton_MouseOver", checkSndFileName, L"" );
+	m_pSndMouseOver = g_pKTDXApp->GetDeviceManager()->OpenSound( checkSndFileName );
 
-	LUA_GET_VALUE( kLuaManager, "RadioButton_MouseOver", checkSndFileName, "" );
-
-	ConvertCharToWCHAR( sndFileName, checkSndFileName.c_str() );
-	m_pSndMouseOver = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
-
+#ifdef DLL_BUILD
+	m_bEditEdge = false;
+#endif
 
 }
 
@@ -111,9 +109,13 @@ CKTDGUIRadioButton::~CKTDGUIRadioButton()
 
 HRESULT CKTDGUIRadioButton::OnFrameMove( double fTime, float fElapsedTime )
 {
-
 	if( m_bShow == false )
 		return S_OK;
+
+#ifdef DLL_BUILD
+	if( m_bUpdate == false )
+		return S_OK;
+#endif
 
 	CKTDGUIControl::OnFrameMove( fTime, fElapsedTime );
 
@@ -200,8 +202,21 @@ HRESULT CKTDGUIRadioButton::OnFrameRender()
 	if ( m_bChecked == true )
 		DrawCheckedEdge( true );
 
+#ifdef DLL_BUILD
+	DrawEditEdge(m_pRadioButtonPoint);
+#endif
+
 	if ( m_bChecked == true && m_bShowOffBGByCheck == true )
 	{
+/*
+		UpdateVertex( m_Vertex[CKTDGUIControl::VP_LEFT_TOP], 
+			m_Vertex[CKTDGUIControl::VP_RIGHT_TOP], 
+			m_Vertex[CKTDGUIControl::VP_LEFT_BOTTOM], 
+			m_Vertex[CKTDGUIControl::VP_RIGHT_BOTTOM],
+			*m_pCheckedPoint );
+
+		RenderVertex( m_Vertex, *m_pCheckedPoint );
+*/
 	}
 	else
 	{
@@ -268,8 +283,9 @@ bool CKTDGUIRadioButton::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM
 			if( ContainsPoint( pt ) )
 			{
 				m_bRButtonDown = true;
+#ifndef DLL_BUILD
 				SetCapture( DXUTGetHWND() );
-
+#endif
 				if( !m_bHasFocus )
 					m_pDialog->RequestFocus( this );
 
@@ -308,8 +324,9 @@ bool CKTDGUIRadioButton::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM
 			{
 				// Pressed while inside the control
 				m_bPressed = true;
+#ifndef DLL_BUILD
 				SetCapture( DXUTGetHWND() );
-
+#endif
 				if( !m_bHasFocus )
 					m_pDialog->RequestFocus( this );
 
@@ -539,7 +556,43 @@ void CKTDGUIRadioButton::SetCheckedTex_LUA( const char* pFileName, const char* k
 		m_pCheckedPoint->pUITextureData = m_pCheckedTex;
 }
 
+#ifdef DLL_BUILD
+void CKTDGUIRadioButton::SetNarmalTex( wstring fileName, wstring key )
+{
+	SAFE_DELETE( m_pNormalTex );
 
+	m_pDisableTex = SetTexureData_( fileName.c_str(), key.c_str() );
+	if( m_pDisabledPoint != NULL )
+		m_pDisabledPoint->pUITextureData = m_pDisableTex;
+}
+
+void CKTDGUIRadioButton::SetOverTex( wstring fileName, wstring key )
+{
+	SAFE_DELETE( m_pMouseOverTex );
+
+	m_pMouseOverTex = SetTexureData_( fileName.c_str(), key.c_str() );
+	if ( m_pBGMouseOverPoint != NULL )
+		m_pBGMouseOverPoint->pUITextureData = m_pMouseOverTex;
+}
+
+void CKTDGUIRadioButton::SetDisableTex( wstring fileName, wstring key )
+{
+	SAFE_DELETE( m_pDisableTex );
+
+	m_pDisableTex = SetTexureData_( fileName.c_str(), key.c_str() );
+	if( m_pDisabledPoint != NULL )
+		m_pDisabledPoint->pUITextureData = m_pDisableTex;
+}
+
+void CKTDGUIRadioButton::SetCheckedTex( wstring fileName, wstring key )
+{
+	SAFE_DELETE( m_pCheckedTex );
+
+	m_pCheckedTex = SetTexureData_( fileName.c_str(), key.c_str() );
+	if( m_pCheckedPoint != NULL )
+		m_pCheckedPoint->pUITextureData = m_pCheckedTex;
+}
+#endif
 
 void CKTDGUIRadioButton::SetDisabledPoint_LUA()
 {
@@ -881,8 +934,6 @@ void CKTDGUIRadioButton::DrawCheckedEdge( bool bDrawOut )
 			tempColor );
 
 	}
-
-
 }
 
 void CKTDGUIRadioButton::MoveControl( float fx, float fy )
@@ -894,8 +945,8 @@ void CKTDGUIRadioButton::MoveControl( float fx, float fy )
 	if( NULL != m_pBGPoint )
 	{
 		m_pBGPoint->Move( fx, fy );
-		m_NowPoint = *m_pBGPoint;
-		m_EndPoint = *m_pBGPoint;
+		m_MyNowPoint = *m_pBGPoint;
+		m_MyNowPoint = *m_pBGPoint;
 	}
 
 	if( NULL != m_pBGMouseOverPoint )
@@ -928,8 +979,8 @@ void CKTDGUIRadioButton::ScaleControl( float fx, float fy )
 	{
 		m_pBGPoint->Scale( fx, fy );
 		m_pBGPoint->bUseTextureSize = false;
-		m_NowPoint = *m_pBGPoint;
-		m_EndPoint = *m_pBGPoint;
+		m_MyNowPoint = *m_pBGPoint;
+		m_MyNowPoint = *m_pBGPoint;
 	}
 
 	if( NULL != m_pBGMouseOverPoint )
@@ -956,3 +1007,326 @@ void CKTDGUIRadioButton::ScaleControl( float fx, float fy )
 		m_pDisabledPoint->bUseTextureSize = false;
 	}
 }
+
+#ifdef DLL_BUILD
+void CKTDGUIRadioButton::MoveSubControl( float fx, float fy, wstring subControlName )
+{
+	if( fx == 0.f && fy == 0.f )
+		return;
+
+
+	if( NULL != m_pBGPoint && subControlName == L"BG" )
+	{
+		m_pBGPoint->Move( fx, fy );
+		m_MyNowPoint = *m_pBGPoint;
+	}
+
+	else if( NULL != m_pBGMouseOverPoint && subControlName == L"Over" )
+	{
+		m_pBGMouseOverPoint->Move( fx, fy );
+		m_MyNowPoint = *m_pBGMouseOverPoint;
+	}
+
+	else if( NULL != m_pCheckedPoint && subControlName == L"CheckPoint" )
+	{
+		m_pCheckedPoint->Move( fx, fy );
+		m_MyNowPoint = *m_pCheckedPoint;
+	}
+
+	else if( NULL != m_pRadioButtonPoint && subControlName == L"RB" )
+	{
+		m_pRadioButtonPoint->Move( fx, fy );
+		m_MyNowPoint = *m_pRadioButtonPoint;
+	}
+
+	else if( NULL != m_pDisabledPoint && subControlName == L"Disable" )
+	{
+		m_pDisabledPoint->Move( fx, fy );
+		m_MyNowPoint = *m_pDisabledPoint;
+	}
+}
+
+void CKTDGUIRadioButton::SetEditGUI( bool bEdit )
+{
+	m_bUpdate = !bEdit;
+
+	if( true == bEdit )
+	{
+		m_bChecked = false;		// 편집할때는 CheckPoint가 렌더링 되는 것을 막는다.		
+	}
+}
+
+void CKTDGUIRadioButton::ShowSubView( wstring name, bool bView )
+{
+	SetColor(D3DXCOLOR(0xffffffff));		// 하위 컨트롤을 선택했을때 edge(테두리)를 보여주기 위해 색을 해제한다.
+
+	if( true == bView )
+	{
+		if( name == L"BG" && NULL != m_pBGPoint )
+			m_MyNowPoint = *m_pBGPoint;
+		else if( name == L"Over" && NULL != m_pBGMouseOverPoint )
+			m_MyNowPoint = *m_pBGMouseOverPoint;
+		else if( name == L"RB" && NULL != m_pRadioButtonPoint )
+			m_MyNowPoint = *m_pRadioButtonPoint;
+		else if( name == L"CheckPoint" && NULL != m_pCheckedPoint )
+			m_MyNowPoint = *m_pCheckedPoint;
+		else if( name == L"Disable" && NULL != m_pDisabledPoint)
+			m_MyNowPoint = *m_pDisabledPoint;
+	}
+	else
+	{
+		if( NULL != m_pBGPoint )
+			m_MyNowPoint = *m_pBGPoint;
+	}
+
+	if( true == bView )
+		m_bEditEdge = true;
+	else
+		m_bEditEdge = false;
+
+}
+
+vector<D3DXVECTOR2> CKTDGUIRadioButton::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;	
+
+	if( NULL != m_pBGPoint )
+		ret.push_back(m_pBGPoint->leftTopPoint);
+
+	if( NULL != m_pBGMouseOverPoint )
+		ret.push_back(m_pBGMouseOverPoint->leftTopPoint);
+
+	if( NULL != m_pCheckedPoint )
+		ret.push_back(m_pCheckedPoint->leftTopPoint);
+
+	if( NULL != m_pRadioButtonPoint )		
+		ret.push_back(m_pRadioButtonPoint->leftTopPoint);
+
+	if( NULL != m_pDisabledPoint )		
+		ret.push_back(m_pDisabledPoint->leftTopPoint);
+
+	return ret;
+}
+
+D3DXVECTOR2 CKTDGUIRadioButton::GetPos(wstring name)
+{	
+	if( name == L"BG" && NULL != m_pBGPoint )
+		return m_pBGPoint->leftTopPoint;
+	else if( name == L"Over" && NULL != m_pBGMouseOverPoint )
+		return m_pBGMouseOverPoint->leftTopPoint;
+	else if( name == L"RB" && NULL != m_pRadioButtonPoint )
+		return m_pRadioButtonPoint->leftTopPoint;
+	else if( name == L"CheckPoint" && NULL != m_pCheckedPoint )
+		return m_pCheckedPoint->leftTopPoint;
+	else if( name == L"Disable" && NULL != m_pDisabledPoint)
+		return m_pDisabledPoint->leftTopPoint;
+	///////////////////////////////
+	if( name == L"RB_RIGHT_BOTTOM" && NULL != m_pRadioButtonPoint)
+		return m_pRadioButtonPoint->rightBottomPoint;
+
+	return D3DXVECTOR2(0,0);
+}
+
+void CKTDGUIRadioButton::DrawEditEdge( CKTDGUIControl::UIPointData*	m_pEditEdgePoint )
+{
+	if( false == m_bEditEdge )
+		return;
+
+	if(NULL == m_pEditEdgePoint) 
+		return;
+
+	if ( m_pCheckedEdgeTexture == NULL )
+		return;
+
+
+	const CKTDGUIControl::UIPointData & point = *m_pEditEdgePoint;
+	D3DXCOLOR tempColor;
+
+	int edgeWidth = 4;
+	D3DXCOLOR edgeColor = D3DXCOLOR(0xffff0000);
+
+	tempColor.a = edgeColor.a * m_pDialog->GetColor().a * m_Color.a;
+	tempColor.r = edgeColor.r * m_pDialog->GetColor().r * m_Color.r;
+	tempColor.g = edgeColor.g * m_pDialog->GetColor().g * m_Color.g;
+	tempColor.b = edgeColor.b * m_pDialog->GetColor().b * m_Color.b;
+
+
+	int _width = (int)(point.rightBottomPoint.x - point.leftTopPoint.x);
+	int _height = (int)(point.rightBottomPoint.y - point.leftTopPoint.y);
+
+	//if ( m_bDrawEdgeOut == true )
+	{
+		// 좌
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + point.leftTopPoint.x - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + point.leftTopPoint.y - edgeWidth), 
+			edgeWidth , 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 하
+
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + point.leftTopPoint.x - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + point.leftBottomPoint.y ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+
+		// 우
+
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + point.rightTopPoint.x ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + point.leftTopPoint.y ), 
+			edgeWidth, 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 상
+
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + point.leftTopPoint.x ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + point.leftTopPoint.y - edgeWidth ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+	}	
+}
+
+CKTDGUIControl::UIPointData * CKTDGUIRadioButton::_GetPointData( wstring name )
+{
+	if( NULL !=  m_pBGPoint && name == L"Normal" )
+		return m_pBGPoint;
+
+	else if( NULL != m_pBGMouseOverPoint && name == L"Over" )
+		return m_pBGMouseOverPoint;		
+
+	else if( NULL != m_pCheckedPoint && name == L"Check" )
+		return m_pCheckedPoint;
+
+	else if( NULL != m_pDisabledPoint && name == L"Disable" )
+		return m_pDisabledPoint;
+
+	return NULL;
+}
+
+wstring CKTDGUIRadioButton::GetTextureName( wstring name )
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	if( NULL != pPoint && NULL != pPoint->pUITextureData )
+	{
+		return pPoint->pUITextureData->texName;
+	}
+
+	return L"";
+}
+
+RECT CKTDGUIRadioButton::GetTextureUV( wstring name )
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	RECT rt;
+	if( NULL != pPoint && NULL != pPoint->pUITextureData )
+	{
+		D3DXVECTOR2 leftTop = pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_LEFT_TOP];
+		D3DXVECTOR2 rightBottom = pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_RIGHT_BOTTOM];
+
+		rt.left = leftTop.x;
+		rt.top = leftTop.y;
+		rt.right = rightBottom.x;
+		rt.bottom = rightBottom.y;
+	}
+
+	return rt;
+}
+
+wstring CKTDGUIRadioButton::GetTextureKey( wstring name )
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	if( NULL != pPoint && NULL != pPoint->pUITextureData )
+	{
+		return pPoint->pUITextureData->keyName;
+	}
+
+	return L"";
+}
+
+vector<wstring> CKTDGUIRadioButton::GetTextureKeyList( wstring name )
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	vector<wstring> ret;
+	if( NULL != pPoint && NULL != pPoint->pUITextureData && NULL != pPoint->pUITextureData->pTexture )
+	{
+		//GetMapTexUVRect
+		const CKTDXDeviceTexture::KeyTexUVMap & uvMap = pPoint->pUITextureData->pTexture->GetMapTexUVRect();
+
+		CKTDXDeviceTexture::KeyTexUVMap::const_iterator itor = uvMap.cbegin();
+		for( ; itor != uvMap.end() ; itor++)
+		{
+			ret.push_back(itor->first);
+		} 
+	}
+
+	return ret;
+}
+
+void CKTDGUIRadioButton::SetTexture( wstring name, wstring fileName )
+{
+	CKTDXDeviceTexture* pTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( fileName );
+	if( NULL == pTexture)
+		return;
+
+	wstring key = L"NONE";
+	const CKTDXDeviceTexture::KeyTexUVMap & uvMap = pTexture->GetMapTexUVRect();				
+	CKTDXDeviceTexture::KeyTexUVMap::const_iterator itor = uvMap.cbegin();
+	if( itor != uvMap.cend() )
+		key = itor->first;
+
+	// todo : SetNoarmlTex 인자에 CKTDXDeviceTexture 추가가 필요할것 같다.
+	if( name == L"Normal" )
+		SetNarmalTex( fileName, key );		
+
+	else if( name == L"Over" )
+		SetOverTex( fileName, key );
+
+	else if( name == L"Check" )
+		SetCheckedTex( fileName, key );
+
+	else if( name == L"Disable" )
+		SetDisableTex( fileName, key );	
+}
+
+void CKTDGUIRadioButton::SetTextureKey( wstring name, wstring key )
+{
+	CKTDGUIControl::UIPointData * pPoint = _GetPointData( name );
+
+	if( NULL != pPoint && NULL != pPoint->pUITextureData && pPoint->pUITextureData->pTexture )
+	{
+		pPoint->pUITextureData->keyName	= key;
+		MakeUpperCase(key);
+		const CKTDXDeviceTexture::TEXTURE_UV* pTexUV = pPoint->pUITextureData->pTexture->GetTexUV( key );
+		if( pTexUV != NULL )
+		{
+			pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_LEFT_TOP]		= pTexUV->leftTop;
+			pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_RIGHT_TOP]		= pTexUV->rightTop;
+			pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_LEFT_BOTTOM]	= pTexUV->leftBottom;
+			pPoint->pUITextureData->uvOrgTexture[CKTDGUIControl::VP_RIGHT_BOTTOM]	= pTexUV->rightBottom;
+
+			pPoint->pUITextureData->texSize = pTexUV->rectSize;
+
+			pPoint->pUITextureData->SetTextureUV();
+		}
+	}
+}
+
+#endif
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+/* virtual */	void	CKTDGUIRadioButton::SetCustomMouseOverSound ( wstring wstrSoundFileName )
+{
+	 m_pSndMouseOver = g_pKTDXApp->GetDeviceManager()->OpenSound( wstrSoundFileName );
+}
+/* virtual */	void	CKTDGUIRadioButton::SetCustomMouseUpSound  ( wstring wstrSoundFileName )
+{
+	 m_pSndCheck = g_pKTDXApp->GetDeviceManager()->OpenSound( wstrSoundFileName );
+}
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh

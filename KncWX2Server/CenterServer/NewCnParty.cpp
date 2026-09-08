@@ -601,7 +601,7 @@ void KCnParty::CheckAllMembersPlayCondition()
 		// 기존에 체크 완료 플래그 초기화
 		m_kPartyUserManager.ClearCheckedPlayCondition();
 #endif // CORRECT_CHECKING_TICKET_TO_DUNGEON
-
+		
 		// 수락 타이머 초기화
 		m_tTimer[TE_ACCEPT_FOR_PLAY].restart();
 
@@ -772,6 +772,7 @@ void KCnParty::CheckAllMembersAcceptForPlay()
 		kPacketReq.m_iPartyUID = GetUID();
 		kPacketReq.m_usEventID = m_kGameManager.GetGameStartEventID();
 		kPacketReq.m_sWorldID  = m_kGameManager.GetGameStartWorldID();
+		GetDungeonGameInfo( kPacketReq.m_kDungeonGameInfo );
 		BroadCast( EPM_CHECK_FOR_PARTY_GAME_START_REQ, kPacketReq );
 	}	
 }
@@ -839,7 +840,11 @@ bool KCnParty::LeaveCandidateMember( IN const UidType iUnitUID )
 	return true;
 }
 
-bool KCnParty::LeaveMember( IN const UidType iUnitUID )
+bool KCnParty::LeaveMember( IN const UidType iUnitUID 
+						#ifdef LOG_PARTY_BREAK
+							, IN const int iReason	
+						#endif // LOG_PARTY_BREAK
+							)
 {
 	SET_ERROR( NET_OK );
 
@@ -869,11 +874,15 @@ bool KCnParty::LeaveMember( IN const UidType iUnitUID )
 		kNot.m_iLeaveUnitUID	= iUnitUID;
 		kNot.m_iPartyUID		= GetUID();
 		kNot.m_bExistComeBackUser = false;
+#ifdef LOG_PARTY_BREAK
+		kNot.m_iReason			= iReason;
+#endif // LOG_PARTY_BREAK
+
 		SendToGSCharacter( iLeaveUnitGSUID, iUnitUID, EPM_LEAVE_PARTY_NOT, kNot );
 	}
 
 	// 파티에 아무도 없나.?
-	if( m_kPartyUserManager.GetNumMember() > PARTY_ENUM::PE_CLOSE_PARTY_NUM_MEMBER )
+	if( m_kPartyUserManager.GetNumMember() > PE_CLOSE_PARTY_NUM_MEMBER )
 	{	
 		// 파티원이 이탈할 경우 Party Fever값 감소
 		DecreaseFeverPoint( KCnPartyFeverManager::FEVER_DECREASE_POINT_BY_LEAVE_PARTY );
@@ -888,6 +897,9 @@ bool KCnParty::LeaveMember( IN const UidType iUnitUID )
 		m_kPartyUserManager.GetUnitUIDList( kNot.m_vecPartyUnitUIDList );
 		kNot.m_iPartyUID		= GetUID();
 		kNot.m_bExistComeBackUser = m_kPartyUserManager.CheckComeBackUserInParty();
+#ifdef LOG_PARTY_BREAK
+		kNot.m_iReason			= iReason;
+#endif // LOG_PARTY_BREAK
 		BroadCast( EPM_LEAVE_PARTY_NOT, kNot );
 
 		//파티정보 업데이트.
@@ -917,7 +929,7 @@ bool KCnParty::LeaveMember( IN const UidType iUnitUID )
 	//{{ 2012. 12. 07	최육사	배틀필드 시스템
 #ifdef SERV_CODE_CLEANUP_2012_12_07
 	// [2012-12-07][최육사] 파티원이 아무도 없는경우에는 해당 코드를 안타도록 수정.
-	else if( m_kPartyUserManager.GetNumMember() == PARTY_ENUM::PE_CLOSE_PARTY_NUM_MEMBER )
+	else if( m_kPartyUserManager.GetNumMember() == PE_CLOSE_PARTY_NUM_MEMBER )
 #else
 	else
 #endif SERV_CODE_CLEANUP_2012_12_07
@@ -930,6 +942,9 @@ bool KCnParty::LeaveMember( IN const UidType iUnitUID )
 		m_kPartyUserManager.GetUnitUIDList( kNot.m_vecPartyUnitUIDList );
 		kNot.m_iPartyUID		= GetUID();
 		kNot.m_bExistComeBackUser = m_kPartyUserManager.CheckComeBackUserInParty();
+#ifdef LOG_PARTY_BREAK
+		kNot.m_iReason			= iReason;
+#endif // LOG_PARTY_BREAK
 		BroadCast( EPM_LEAVE_PARTY_NOT, kNot );
 	}
 		
@@ -1640,7 +1655,11 @@ IMPL_ON_FUNC( EPM_LEAVE_PARTY_REQ )
 	}
 
 	// 파티 이탈 처리
-	if( LeaveMember( iLeavePartyUnitUID ) == false )
+	if( LeaveMember( iLeavePartyUnitUID
+				#ifdef LOG_PARTY_BREAK
+					, kPacket.m_iReason
+				#endif // LOG_PARTY_BREAK
+					) == false )
 	{
 		//삭제실패.
 		kPacket.m_iOK = NetError::GetLastError();
@@ -1679,7 +1698,7 @@ end_proc:
 	//}}
 
 	// 파티를 유지할 수 있을 만큼 파티원이 충분히 있는가?
-	if( m_kPartyUserManager.GetNumMember() <= PARTY_ENUM::PE_CLOSE_PARTY_NUM_MEMBER )
+	if( m_kPartyUserManager.GetNumMember() <= PE_CLOSE_PARTY_NUM_MEMBER )
 	{
 		CloseParty( NetError::NOT_CLOSE_PARTY_REASON_01 );
 	}
@@ -1896,7 +1915,7 @@ IMPL_ON_FUNC( EPM_PARTY_GAME_START_REQ )
 	}
 
 	// 파티장을 포함해서 파티원수가 1명뿐인경우 게임시작을 할수 없습니다!
-	if( m_kPartyUserManager.GetNumMember() <= PARTY_ENUM::PE_CLOSE_PARTY_NUM_MEMBER )
+	if( m_kPartyUserManager.GetNumMember() <= PE_CLOSE_PARTY_NUM_MEMBER )
 	{
 		START_LOG( cwarn, L"현재 파티원수가 부족하여 파티 게임 시작을 할 수 없습니다!" )
 			<< BUILD_LOG( kPacket_.m_iPartyUID )
@@ -2521,7 +2540,11 @@ IMPL_ON_FUNC( EPM_PARTY_BAN_USER_REQ )
 	spBanUser->SendToGSCharacter( EPM_PARTY_BAN_USER_NOT, kPacketNot );
 
 	//강퇴시킴.
-	if( LeaveMember( kPacket_.m_iUnitUID ) == false )
+	if( LeaveMember( kPacket_.m_iUnitUID
+			#ifdef LOG_PARTY_BREAK
+					, NetError::NOT_LEAVE_PARTY_REASON_07
+			#endif // LOG_PARTY_BREAK
+					) == false )
 	{
 		START_LOG( cerr, L"강퇴를 위한 파티원 정보 삭제 처리가 실패하였습니다!" )
 			<< BUILD_LOG( GetUID() )
@@ -2531,7 +2554,7 @@ IMPL_ON_FUNC( EPM_PARTY_BAN_USER_REQ )
 	}
 	
 	// 파티에 아무도 없나.?
-	if( m_kPartyUserManager.GetNumMember() <= PARTY_ENUM::PE_CLOSE_PARTY_NUM_MEMBER )
+	if( m_kPartyUserManager.GetNumMember() <= PE_CLOSE_PARTY_NUM_MEMBER )
 	{
 		CloseParty( NetError::NOT_CLOSE_PARTY_REASON_01 );
 	}
@@ -2732,7 +2755,12 @@ _IMPL_ON_FUNC( EPM_CHECK_INVALID_USER_NOT, UidType )
 	BOOST_TEST_FOREACH( const UidType, iDeleteUnitUID, vecDeleteUserList )
 	{
 		//파티에서 나갈유저를 빼주자.
-		if( LeaveMember( iDeleteUnitUID ) == false )
+		if( LeaveMember( iDeleteUnitUID 
+			#ifdef LOG_PARTY_BREAK
+						, NetError::NOT_LEAVE_PARTY_REASON_09
+			#endif // LOG_PARTY_BREAK
+						) == false )
+			
 		{
             START_LOG( cerr, L"유효하지 않은 파티원 정보를 삭제하다가 실패하였습니다!" )
 				<< BUILD_LOG( GetUID() )
@@ -2742,7 +2770,7 @@ _IMPL_ON_FUNC( EPM_CHECK_INVALID_USER_NOT, UidType )
 		}
 
 		// 파티에 아무도 없나.?
-		if( m_kPartyUserManager.GetNumMember() <= PARTY_ENUM::PE_CLOSE_PARTY_NUM_MEMBER )
+		if( m_kPartyUserManager.GetNumMember() <= PE_CLOSE_PARTY_NUM_MEMBER )
 		{
 			CloseParty( NetError::NOT_CLOSE_PARTY_REASON_01 );
 		}
@@ -2848,7 +2876,7 @@ _IMPL_ON_FUNC( EPM_CHANGE_PARTY_TYPE_REQ, KEGS_CHANGE_PARTY_TYPE_REQ )
 	if( kPacket_.m_cPartyType == KPartyInfo::PT_PVP_PARTY )
 	{
 		// 던전파티에서 대전파티로 변경할때 구성인원 수가 4명이면 변경하지 못한다.
-		if( m_kPartyUserManager.GetNumMember() >= PARTY_ENUM::PE_LIMIT_PARTY_MEBMER )
+		if( m_kPartyUserManager.GetNumMember() >= PE_LIMIT_PARTY_MEBMER )
 		{
 			START_LOG( cerr, L"파티인원이 4명일때는 대전파티로 변경이 불가능하다!" )
 				<< BUILD_LOG( GetUID() )
@@ -3483,7 +3511,11 @@ IMPL_ON_FUNC_NOPARAM( EPM_END_GAME_REGROUP_PARTY_NOT )
 		kLeavePartyNot.m_iPartyUID = GetUID();
 		spLeaveUser->SendToGSCharacter( EPM_LEAVE_PARTY_BY_AUTO_PARTY_NOT, kLeavePartyNot );
 
-        if( LeaveMember( iUnitUID ) == false )
+		if( LeaveMember( iUnitUID
+			#ifdef LOG_PARTY_BREAK
+						, NetError::NOT_LEAVE_PARTY_REASON_08
+			#endif // LOG_PARTY_BREAK
+						) == false )
 		{
 			START_LOG( cerr, L"파티 재결합을 위한 파티원 이탈 처리 실패!" )
 				<< BUILD_LOG( iUnitUID )
@@ -3512,7 +3544,7 @@ IMPL_ON_FUNC_NOPARAM( EPM_END_GAME_REGROUP_PARTY_NOT )
 	}
 
 	// 파티에 아무도 없나.?
-	if( m_kPartyUserManager.GetNumMember() <= PARTY_ENUM::PE_CLOSE_PARTY_NUM_MEMBER )
+	if( m_kPartyUserManager.GetNumMember() <= PE_CLOSE_PARTY_NUM_MEMBER )
 	{
 		CloseParty( NetError::NOT_CLOSE_PARTY_REASON_01 );
 	}

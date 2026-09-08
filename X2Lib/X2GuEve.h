@@ -129,15 +129,28 @@ public:
 		ENSI_SA_EEN_SWEEP_ROLLING_TRI_VULCAN_END,
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+		ENSI_PARRYING_SMALL,
+		ENSI_PARRYING,
+		ENSI_PARRYING_BLINK,
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+		ENSI_BERSERK_MODE,
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+
+
+
+
 		//////////////////////////////////////////////////////////////////////////
 		// 위쪽에 추가해주세요~ 이 아래는 테스트로 추가된 enum 입니다
 
 
 		ENSI_TRANSFORMED,
 
-#ifdef PVP_BOSS_COMBAT_TEST
-		ENSI_FROZEN,
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		ENSI_FROZEN,
+//#endif PVP_BOSS_COMBAT_TEST
 
 	};
 
@@ -346,7 +359,11 @@ public:
 	struct EveElectraSystem;
 	struct EveElectraLaserData
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        vector<CX2DamageEffect::CEffectHandle>	    m_vecDamageEffect;		/// 이펙트 포인터
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		vector<CX2DamageEffect::CEffect*>	m_vecDamageEffect;		/// 이펙트 포인터
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		D3DXVECTOR3					m_vLaserStartPos;				/// 레이저 시작 위치
 		D3DXVECTOR3					m_vDirVector;					/// 레이저 방향 벡터
 		D3DXVECTOR3					m_vInitRotateLocalDegree;		/// 회전각
@@ -379,7 +396,11 @@ public:
 
 	struct EveElectraEffectData
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle       m_hDamageEffect;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*	m_pDamageEffect;				/// 데미지 이펙트
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		D3DXVECTOR3					m_vPlaneIntersectPoint;			/// 교차점 위치
 		bool						m_bPlaneFront;					/// 장막 앞, 뒤
 		bool						m_bDie;							/// 소멸 확인
@@ -398,7 +419,11 @@ public:
 
 	struct EveElectraLockonData
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle       m_hDamageEffect;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*	m_pDamageEffect;				/// 데미지 이펙트
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		D3DXVECTOR3					m_vPlaneIntersectPoint;			/// 교차점 위치
 		bool						m_bPlaneFront;					/// 장막 앞, 뒤
 		bool						m_bDie;							/// 소멸 확인
@@ -476,9 +501,8 @@ public:
 		int							m_iPosteriorEffectID;	/// 뒷부분 이펙트 ID
 
 		CX2GUEve*					m_pGUEve;				/// 이브 포인트
-		
-		CX2DamageEffect::CEffect*	m_pEffectPlane;			/// 이펙트 평면
-		
+		//CX2DamageEffect::CEffect*	m_pEffectPlane;			/// 이펙트 평면
+
 		std::list<EveElectraLaserData>		m_EveElectraLaserDataList;		/// 레이저 데이터 리스트
 		std::list<EveElectraEffectData>		m_EveElectraEffectDataList;		/// 이펙트 데이터 리스트
 		std::list<EveElectraLockonData>		m_EveElectraLockonDataList;		/// 조준 데이터 리스트
@@ -503,7 +527,11 @@ public:
 		DelegateProcess				m_delegateChangePlaneFormation;		/// 일렉트라, 배틀 세라트의 ChangePlaneFormation 의 Delegate
 
 		EveElectraSystem( CX2GUEve* _pGUEve );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        void ProcessSystem( float fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		void ProcessSystem();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		void ProcessPlane( float _fElapsedTime );
 		void ProcessGigaPlane( float _fElapsedTime );
 		void ProcessFormation( float _fElapsedTime );
@@ -579,10 +607,18 @@ public:
 	{
 		D3DXVECTOR3					m_vOffsetPos;
 		D3DXVECTOR3					m_vOffsetRotate;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle       m_hEffect;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*	m_pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		FlyingImpactData();
 		~FlyingImpactData();
+
+//{{ robobeg : 2013-08-30
+        CX2DamageEffect::CEffect*   GetLiveDamageEffect();
+//}} robobeg : 2013-08-30
 	};
 
 
@@ -593,7 +629,12 @@ public:
 #ifdef EVE_FIRST_CHANGE_JOB
 	struct EG_QueensThroneData
 	{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		double	m_dMaxLifeTime;		/// 최대 실행시간.
+#else //ADD_MEMO_1ST_CLASS
 		const double	m_dMaxLifeTime;		/// 최대 실행시간.
+#endif //ADD_MEMO_1ST_CLASS
+		
 
 		CKTDXTimer		m_TimerElapsedTime;	/// 진행시간.
 		bool			m_bEnable;			/// 사용여부.
@@ -626,7 +667,7 @@ public:
 			}
 			for( int i = 0; i < ARRAY_SIZE(m_ahMajorParticleInstance); ++i )
 			{
-				m_ahMajorParticleInstance[i] = INVALID_PARTICLE_HANDLE;
+				m_ahMajorParticleInstance[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 			m_wstrBoneName[0] = L"Bip01";
 			m_wstrBoneName[1] = L"Bip01_L_UpperArm";
@@ -705,7 +746,7 @@ public:
 		{
 			for( int i = 0; i < ARRAY_SIZE(m_ahMajorParticleInstance); ++i )
 			{
-				m_ahMajorParticleInstance[i] = INVALID_PARTICLE_HANDLE;
+				m_ahMajorParticleInstance[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 
@@ -784,7 +825,7 @@ public:
 
 			for( int i = 0; i < ARRAY_SIZE(m_ahMajorParticleInstance); ++i )
 			{
-				m_ahMajorParticleInstance[i] = INVALID_PARTICLE_HANDLE;
+				m_ahMajorParticleInstance[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 
@@ -882,7 +923,7 @@ public:
 
 			for( int i = 0; i < ARRAY_SIZE(m_ahMajorParticleInstance); ++i )
 			{
-				m_ahMajorParticleInstance[i] = INVALID_PARTICLE_HANDLE;
+				m_ahMajorParticleInstance[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 
@@ -931,6 +972,50 @@ public:
 	};
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	enum MANEUVER_CORE_STATE
+	{	// 기동 코어 상태
+		MCS_NONE = 0,	
+		MCS_WAIT,			// 대기		
+		MCS_BEFORE_ATTACK,	// 공격 상태, 공격 전
+		MCS_ATTACK,			// 공격 상태, 공격 중
+		MCS_AFTER_ATTACK,	// 공격 상태, 공격 후
+		MCS_PARRYING,		// 방어 상태
+	};
+	
+	enum MANEUVER_CORE_ATTACK_TYPE
+	{	// 기동 코어 공격 타입
+		MCAT_NONE = 0,
+		MCAT_USE_MANEUVER_GAGE,					// 기동 게이지를 소모하는 공격
+	};
+	
+	enum USING_MANEUVER_GAGE_ATTACK_TYPE
+	{
+		// 기동 게이지를 소모하는 공격의 타입
+		UMGAT_NORMAL = 0,
+		UMGAT_HYPER = 1,
+	};
+
+	struct ManeuverCoreData	
+	{
+		D3DXVECTOR3						m_vOffsetPos;
+		D3DXVECTOR3						m_vOffsetRotate;
+		CX2DamageEffect::CEffectHandle  m_hEffect;
+		MANEUVER_CORE_STATE		m_eManeuverCoreState;
+		ManeuverCoreData();
+		~ManeuverCoreData();
+		void ChangeManeuverCoreState ( MANEUVER_CORE_STATE eManeuverCoreAttackState_ ) 
+		{ 
+			m_eManeuverCoreState = eManeuverCoreAttackState_;
+		}
+
+		D3DXVECTOR3 GetManeuverCorePosition ();
+		D3DXVECTOR3 GetManeuverCoreRotateExceptOffset ();
+	};
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
+
+
 	private:
 		CX2GUEve( int unitIndex, int teamNum, 
 #ifdef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
@@ -959,7 +1044,7 @@ public:
 //{{ kimhc // 2010.11.2 // 엠프레스 - 충전 추진기
 #ifdef	NEW_SKILL_2010_11
 		bool CanUseChargingBooster( CX2SkillTree::SKILL_TYPE eSkillType_, const IN CX2UserSkillTree& cUserSkillTree_ );
-		void UseChargingBooster( OUT CX2UserSkillTree* pcUserSkillTree_ );
+		void UseChargingBooster( CX2UserSkillTree& cUserSkillTree_ );
 #endif	NEW_SKILL_2010_11
 //}} kimhc // 2010.11.2 // 엠프레스 - 충전 추진기
 
@@ -1013,19 +1098,19 @@ public:
 	
 	ParticleEventSequenceHandle	GetHandleEveMajorParticleByEnum( EVE_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) const // 캐릭터만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 	{
-		ASSERT( EVE_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( EVE_MAJOR_PII_END > eVal_ && EVE_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		return m_ahEveMajorParticleInstance[eVal_];
 	}
 
 	ParticleEventSequenceHandle& GetHandleEveMajorParticleByEnum( EVE_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) // 캐릭터만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 	{
-		ASSERT( EVE_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( EVE_MAJOR_PII_END > eVal_ && EVE_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		return m_ahEveMajorParticleInstance[eVal_];
 	}
 
 	void				SetHandleEveMajorParticleByEnum( EVE_MAJOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ ) // 캐릭터만 쓰는 메이저 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함 // kimhc // 2010.11.5 
 	{
-		ASSERT( EVE_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( EVE_MAJOR_PII_END > eVal_ && EVE_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		m_ahEveMajorParticleInstance[eVal_] = hHandle_;
 	}
 	void				DeleteEveMajorParticle();
@@ -1040,19 +1125,19 @@ public:
 	
 	ParticleEventSequenceHandle	GetHandleEveMinorParticleByEnum( EVE_MINOR_PARTICLE_INSTANCE_ID eVal_ ) const	// 캐릭터만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴	// kimhc // 2010.11.5 
 	{
-		ASSERT( EVE_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( EVE_MINOR_PII_END > eVal_ && EVE_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		return m_ahEveMinorParticleInstance[eVal_];
 	}
 
 	ParticleEventSequenceHandle& GetHandleEveMinorParticleByEnum( EVE_MINOR_PARTICLE_INSTANCE_ID eVal_ ) // 캐릭터만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴	// kimhc // 2010.11.5 
 	{
-		ASSERT( EVE_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( EVE_MINOR_PII_END > eVal_ && EVE_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		return m_ahEveMinorParticleInstance[eVal_];
 	}
 
 	void				SetHandleEveMinorParticleByEnum( EVE_MINOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ )	// 캐릭터만 쓰는 마이너 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함	// kimhc // 2010.11.5 
 	{
-		ASSERT( EVE_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( EVE_MINOR_PII_END > eVal_ && EVE_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		m_ahEveMinorParticleInstance[eVal_] = hHandle_;
 	}
 	void				DeleteEveMinorParticle();
@@ -1096,6 +1181,14 @@ public:
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	void				ResetKugelBlitzCharge();
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	//엠프레스 궁극기 - 링크 오버 차지 썬더 볼트가 동작했는지 체크
+	const bool GetActiveLinkOverChargeIllusion() const { return m_bStartLinkOverChargeIllusion; }
+	void SetActiveLinkOverChargeIllusion( const bool bActive ) { m_bStartLinkOverChargeIllusion = bActive; }
+
+	void SaveFerdinandNPCUID( const int npcUid ) { m_iFerdinandNPCUID = npcUid; }
+	void ResetLinkOverChargeIllusion();
+#endif //FINALITY_SKILL_SYSTEM
 
 	virtual void HyperModeBuffEffectStart();
 	virtual void AddUnitSlashData( const CX2UnitSlashTraceManager::SLASH_TRACE_CONDITION eSlashTraceCondition_ );
@@ -1111,6 +1204,146 @@ public:
 
 	virtual int GetComboZStateID() const { return ENSI_COMBO_Z; }
 	virtual int GetComboXStateID() const { return ENSI_COMBO_X; }
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	void	OnFrameMove_ManeuverCore ();
+
+	void	ClearManeuverCore ( bool bClearManeuverGauge = false );
+	void	CreateManeuverCore ( bool bShowCreateEffect = true );
+	void	RestoreManeuverCore ();
+	void	AttackManeuverCore();
+	void	ChangePowerRateManeuverCore( CX2DamageEffect::CEffect* pEffect );
+
+	float			GetManeuverGauge() { return m_fManeuverGauge; }	
+	virtual void	AddManeuverGauge(float fVal);
+
+	bool	GetCanAttackManeuverCore ( CX2GameUnit * pTargetUnit ) 
+	{ 
+		return ( NULL != pTargetUnit && 0 < pTargetUnit->GetNowHp() && 0 < GetManeuverCoreLevelByGauge() && true == IsWaitManeuverCore()  );		
+	}
+	int		GetManeuverCoreLevel() { return m_iManeuverCoreLv; }
+	int		GetManeuverCoreLevelByGauge() { return static_cast<int> (m_fManeuverGauge / 30.f); }
+
+	void	MoveManeuverCoreByState ( MANEUVER_CORE_STATE eState );
+	void	RotateManeuverCoreByState ( MANEUVER_CORE_STATE eState );
+	void	FindAndSetManeuverCoreTargetGameUnit ( UidType iGameUnitUID_, bool bIsNPC_ );
+	CX2GameUnitoPtr	GetManeuverCoreTargetGameUnit ();
+	void			SetManeuverCoreTargetGameUnit ( CX2GameUnitoPtr pTargetUnit_ );
+	void			SetManeuverCoreRotateToTargetPos ( D3DXVECTOR3 vTargetPos_, D3DXVECTOR3 vOffsetRot_ );
+
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	D3DXVECTOR3			GetManeuverCoreTargetPosUsingCollisionData ();
+	wstring				GetBoneNameNearestImpactPoint ( const D3DXVECTOR3 & vImpactPoint );
+	virtual	const int	GetHyperModeStateID ();
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	
+
+
+	bool	CanParrying() { return m_bCanParrying; }		
+	bool	CanParryingState();
+	void	DoParrying();
+	
+	virtual void	HyperModeBuffEffectEnd() 
+	{
+		CX2GUUser::HyperModeBuffEffectEnd(); 
+		
+		SetFullHyperMode( false ); 
+
+		/// 남은 RageGage가 있으면 HP와 MP를 증가시킨다
+		if( IsMyUnit() == true && GetNowHp() > 0.f && m_fManeuverGauge > 0.f )
+		{			
+			UpNowHp( GetMaxHp() * (m_fManeuverGauge * 0.0005f) );
+			UpNowMp( m_fManeuverGauge );
+		}
+		ClearManeuverCore( true );
+	}
+	virtual bool	IsFullHyperMode() const { return m_bHyperState; }
+	virtual void	SetFullHyperMode( const bool bFullHyperMode_ ) { m_bHyperState = bFullHyperMode_; }
+
+	void	SetManeuverCoreEffectSetPosition ();
+	void	ClearManeuverCoreEffect ();
+	void	ChangeManeuverCoreState ( MANEUVER_CORE_STATE eState_ );
+
+	virtual void	SetAttackManeuverCore ( CX2DamageManager::DamageData & pDamageData );
+
+	virtual	bool	IsWaitManeuverCore ()
+	{
+		if ( NULL != m_pManeuverCore )
+		{
+			switch ( m_pManeuverCore->m_eManeuverCoreState )
+			{
+			case MCS_WAIT :
+				return true;
+			}
+		}		
+		return false;
+	}
+
+	virtual bool	IsAttackManeuverCore() 
+	{
+		if ( NULL != m_pManeuverCore )
+		{
+			switch ( m_pManeuverCore->m_eManeuverCoreState )
+			{
+				case MCS_BEFORE_ATTACK :
+				case MCS_ATTACK :
+				case MCS_AFTER_ATTACK :
+					return true;
+			}
+		}		
+		return false;
+	}
+	
+	virtual bool	IsSkillSummonedMonster ( CX2UnitManager::NPC_UNIT_ID eUnitID ) 
+	{ 
+		switch ( eUnitID )
+		{
+			case CX2UnitManager::NUI_NASOD_WATCH_EVE :
+			case CX2UnitManager::NUI_ATOMIC_SHIELD_EVE :
+			case CX2UnitManager::NUI_SI_HA_FERDINAND :
+			case CX2UnitManager::NUI_WALLY_9TH_EVE :
+			case CX2UnitManager::NUI_NASOD_ELEMENT_FIRE_EVE :
+			case CX2UnitManager::NUI_GUARDIAN_SP1_EVE :
+			case CX2UnitManager::NUI_GUARDIAN_SP1_EVE_MEMO :
+			case CX2UnitManager::NUI_GUARDIAN_SP2_EVE :
+			case CX2UnitManager::NUI_GUARDIAN_SP2_EVE_MEMO :
+				return true;
+
+			default :
+				return false;
+		}
+		return false; 
+	}
+
+	bool	GetParrying() 
+	{
+		return ( NULL != m_pManeuverCore && m_pManeuverCore->m_eManeuverCoreState == MCS_PARRYING );
+	}
+
+	void SetManeuverCoreTargetUnit ( CX2GameUnit::GAME_UNIT_TYPE eGameUnitType_, UidType uidType_, MANEUVER_CORE_ATTACK_TYPE eManeuverCoreAttackType_ );
+	
+	CKTDGXMeshPlayer::CXMeshInstance*	GetManeuverCoreMeshInstance ();
+	CX2DamageEffect::CEffectHandle		GetManeuverCoreEffectHandle();
+	CX2DamageEffect::CEffect *			GetManeuverCoreEffect();
+
+
+	void ENSI_PARRYING_Start ();
+	void ENSI_PARRYING_StartFuture ();
+	void ENSI_PARRYING_EventProcess ();
+	void ENSI_PARRYING_StateEnd ();
+
+	void ENSI_PARRYING_BLINK_Init ();
+	void ENSI_PARRYING_BLINK_Start ();
+	void ENSI_PARRYING_BLINK_StartFuture ();
+	void ENSI_PARRYING_BLINK_FrameMove ();
+	void ENSI_PARRYING_BLINK_FrameMoveFuture ();
+	void ENSI_PARRYING_BLINK_EventProcess ();
+	void ENSI_PARRYING_BLINK_End ();
+	void ENSI_PARRYING_BLINK_EndFuture ();
+
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+
+
 protected:
 	virtual void ParseCommonRandomState();
 	void				InitState();
@@ -1143,7 +1376,10 @@ protected:
 	virtual bool		SpecialAttackEventProcess( CX2SkillTree::ACTIVE_SKILL_USE_CONDITION eActiveSkillUseCondition = CX2SkillTree::ASUT_GROUND );
 	virtual void		NoStateChangeActionFrameMove();
 	
-	void				CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#ifndef SERV_9TH_NEW_CHARACTER // 김태환
+	/// 다른 캐릭터들 전부 똑같은 함수를 쓰고 있으니, X2GUUser로 옮기자.
+	virtual void		CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#endif // SERV_9TH_NEW_CHARACTER
 
 	virtual	void		CreateStepDust();
 
@@ -1178,6 +1414,9 @@ protected:
 	void OnFrameMove_EndElCrystalSystem();
 #endif // FIX_EVE_ELCRYSTAL_BUG
 
+#ifdef FIX_SHOOTING_MEGABALL_AT_JUMP_LINE_MAP
+	virtual void InitInpuDataProcess();
+#endif // FIX_SHOOTING_MEGABALL_AT_JUMP_LINE_MAP
 private:
 
 	CKTDGParticleSystem::CParticleEventSequenceHandle 	m_ahEveMajorParticleInstance[EVE_MAJOR_PII_END];
@@ -1219,7 +1458,7 @@ protected:
 //{{ kimhc // 2010.11.2 // 엠프레스 - 충전 추진기
 #ifdef	NEW_SKILL_2010_11
 	// 이후에 map or manager클래스 등을 만들고, damageManager와 연계하는 방법을 생각해 봐야함
-	CSkillDataBase::CSkillDataBasePtr	m_ChargingBoosterSkillDataBasePtr;	/// 엠프: 충전추진기 스킬 사용 데이터
+	CSkillDataBasePtr	m_ChargingBoosterSkillDataBasePtr;	/// 엠프: 충전추진기 스킬 사용 데이터
 #endif	NEW_SKILL_2010_11
 //}} kimhc // 2010.11.2 // 엠프레스 - 충전 추진기
 
@@ -1286,10 +1525,23 @@ protected:
 	float						m_fPhotonBlinkBackSpeedX;
 	float						m_fPhotonBlinkDummyLifeTime;
 
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CX2DamageEffect::CEffectHandle   	m_hEffectSweepParadeTriangle;
+	CX2DamageEffect::CEffectHandle	    m_hEffectSweepParadeElectric;	
+	CX2DamageEffect::CEffectHandle	    m_hEffectSweepParadeLight;
+	CX2DamageEffect::CEffectHandle	    m_hEffectElectraDashComboZ;
+	CX2DamageEffect::CEffectHandle	    m_hEffectElectraDashComboZZ;
+	CX2DamageEffect::CEffectHandle	    m_hEffectElectraLaserZZZfrontZ;
+	CX2DamageEffect::CEffectHandle	    m_hEffectElectraLaserXXZ;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CX2DamageEffect::CEffect*	m_EffectSweepParadeTriangle;
 	CX2DamageEffect::CEffect*	m_EffectSweepParadeElectric;	
 	CX2DamageEffect::CEffect*	m_EffectSweepParadeLight;
+	CX2DamageEffect::CEffect*	m_EffectElectraDashComboZ;
+	CX2DamageEffect::CEffect*	m_EffectElectraDashComboZZ;
+	CX2DamageEffect::CEffect*	m_EffectElectraLaserZZZfrontZ;
+	CX2DamageEffect::CEffect*	m_EffectElectraLaserXXZ;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	D3DXVECTOR3					m_vInitScaleByUnitSweepParade;
 	float						m_fInitDamageSweepParade;
 	float						m_fSweepParadeTriangleLIfeTime;
@@ -1299,13 +1551,11 @@ protected:
 	bool						m_bNotEnoughMPXXZLaser;
 	bool						m_bNotEnoughMPDashZZZ;
 
-	CX2DamageEffect::CEffect*	m_EffectElectraDashComboZ;
-	CX2DamageEffect::CEffect*	m_EffectElectraDashComboZZ;
-	CKTDGXMeshPlayer::CXMeshInstanceHandle				m_hEffectElectraDashComboZ;
-	CKTDGXMeshPlayer::CXMeshInstanceHandle				m_hEffectElectraDashComboZZ;
 
-	CX2DamageEffect::CEffect*	m_EffectElectraLaserZZZfrontZ;
-	CX2DamageEffect::CEffect*	m_EffectElectraLaserXXZ;
+	CKTDGXMeshPlayer::CXMeshInstanceHandle  m_hElectraDashComboZMesh;
+	//CKTDGXMeshPlayer::CXMeshInstanceHandle  m_hElectraDashComboZMeshZ;
+
+
 
 #ifdef BALANCE_PATCH_20120329
 	CKTDGParticleSystem::CParticleEventSequenceHandle	m_hCountDownThousandStar;
@@ -1335,10 +1585,14 @@ protected:
 	bool						m_bNotEnoughMPDashJumpXZLaser;		/// MP 불충분
 	bool						m_bExceptionPlane;					/// 예외적인 역장의 경우 확인
 	float						m_fExceptioncPlaneZAngle;			/// 예외적인 역장의 각도값
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffectHandle	    m_hEffectElectraLaserDashJumpXZ;		/// 대쉬 점프 XX 레이저
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CX2DamageEffect::CEffect*	m_EffectElectraLaserDashJumpXZ;		/// 대쉬 점프 XX 레이저
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		
 	CKTDGParticleSystem::CParticleEventSequenceHandle	m_hBoostDashParticle;		/// 부스트 대쉬 파티클 이펙트
-	CKTDGXMeshPlayer::CXMeshInstanceHandle				m_hBoostDashMesh;			/// 부스트 대쉬 메쉬 이펙트
+	//CKTDGXMeshPlayer::CXMeshInstanceHandle				m_hBoostDashMesh;			/// 부스트 대쉬 메쉬 이펙트
 	
 	TASER_PILUM_Data	m_sTaserPilumData;				/// 테이저 필라 데이터, 충전식 스킬( 메가 일렉트론볼 참고 )
 	bool				m_bHighPoweredElectrics;		/// 고출력 전자회로 패시브 
@@ -1375,11 +1629,60 @@ protected:
 	bool	m_bStartSpectroElCrystal;	/// 분광결정이 스킬 사용을 통해 시작 되었는지 여부
 #endif FIX_SPECTRO_EL_CRYSTAL_ACTIVE_BUG
 	
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	bool		m_bStartLinkOverChargeIllusion; //링크 오버차지 일루젼 스킬이 동작하였는지 여부
+	int			m_iFerdinandNPCUID;	//링크 오버차지 일루젼 npc 페르디난도
+	CKTDXTimer	m_timerFerdinandSummoned;	/// 링크 오버차지 일루젼 npc 페르디난도 소환 타이며
+	float		m_fFerdinandLifeTime;		/// 링크 오버차지 일루젼 npc 페르디난도 생명 시간
+#endif //FINALITY_SKILL_SYSTEM
+	
 #ifdef FIX_EVE_ELCRYSTAL_BUG
 	BUFF_TEMPLET_ID m_eReserveEndElCrystalBuffID;	// 역장 종료 예약한 버프 ID
 	bool			m_bIsCheckEndElCrystal;			// 역장 종료 체크 여부
 #endif // FIX_EVE_ELCRYSTAL_BUG
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	float										m_fDecraseInvisibilityMP;		// 클로킹 초당 마나 감소량, SA 에서는 마이너스 값으로 표기
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+
+	D3DXVECTOR3 m_vecBoneILLUSIONSTINGER1;
+	D3DXVECTOR3 m_vecBoneILLUSIONSTINGER2;
+
+
+#ifdef ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
+	// 후에 CX2GameUnit * 모두 Observe Pointer 로 바꿔야함!!! , 
+	ManeuverCoreData *		m_pManeuverCore;						// 각성 시 이브를 따라다니는 코어와 관련된 데이터
+	int						m_iManeuverCoreLv;						// 기동 코어 레벨
+	KProtectedType<float>	m_fManeuverGauge;						// 기동 게이지
+
+	bool					m_bManeuverCoreAttackLockOnNpc;			// 기동 코어가 NPC 를 LockOn 한 것인가?
+	UidType					m_iManeuverCoreAttackLockOnUid;			// 기동 코어가 Lock On 한 Unit 의 UID
+	CX2GameUnitoPtr			m_pManeuverCoreTargetGameUnit;			// 기동 코어가 타켓한 유닛
+
+	bool					m_bCanParrying;							// 방어형 코어를 전개 할 수 있는가?
+	bool					m_bAttackManeuverCore;					// 공격형 코어를 전개 중인가?
+	bool					m_bDelayAttackManeuverCore;				// 공격한 코어가 쿨타임 중인가?
+	float					m_fManeuverCoreStateTime;				// 특정 경우에 필요한 코어의 State 별로 돌아가는 Time	
+
+	bool					m_bHyperState;									// 3각성 상태인가?
+	
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	// 이펙트 셋에서 데미지 이펙트로 변경함에 따라 수정
+	CX2DamageEffect::CEffect*	m_pManeuverCoreParryingEffect;				// 방어형 코어 전개 시 이펙트 핸들
+#else // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	CX2EffectSet::Handle		m_hManeuverCoreParryingEffect;				// 방어형 코어 전개 시 이펙트 핸들
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	
+	
+	CKTDGParticleSystem::CParticleEventSequenceHandle	m_hSeqHyperBall;	// 3각성 시 구슬 이펙트
+	CX2DamageEffect::CEffect*	m_pManeuverCoreAttackDamageEffect;			// 기동 코어 공격의 데미지 이펙트 핸들
+	float						m_fManeuverCoreAttackParticleCreateCoolTime;	// 3각성 기동 게이지 사용 공격 시, 이펙트 뿌려주는 시간
+#ifdef FIX_ADD_EVE_SYSTEM_2014		// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+	wstring					m_wstrManeuverCoreTargetBoneName;				// 기동 코어가 타켓한 본 이름
+#endif // FIX_ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템 수정 사항
+
+#endif // ADD_EVE_SYSTEM_2014	// 김종훈, 2014 - 이브 추가 시스템, 나소드 코어
 
 protected:
 	//ENSI_DIE_FRONT
@@ -1478,7 +1781,7 @@ protected:
 	void RidingHyperModeFrameMove();
 	void CommonHyperModeFrameMove( float fTime1_, float fTime2_, bool bSound_ = false );
 #endif // MODIFY_RIDING_PET_AWAKE
-	
+
 	//ENSI_DAMAGE_GROGGY
 	//void ENSI_DAMAGE_GROGGY_FrameMoveFuture();
 	//void ENSI_DAMAGE_GROGGY_EventProcess();
@@ -2293,6 +2596,28 @@ protected:
 	// ENSI_SA_EPR_GIGA_STREAM
 
 #endif EVE_ELECTRA
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	//엠프레스, 링크 오버차지 일루전
+	void ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_Init();
+	void ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_Start();
+	void ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_FrameMove();
+	void ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_EventProcess();
+	void ENSI_HA_EEP_LINK_OVERCHARGE_ILLUSION_End();
+
+
+	//네메시스, 루나틱 스커드
+	void ENSI_HA_ENS_LUNATIC_SCUD_Init();
+	void ENSI_HA_ENS_LUNATIC_SCUD_EventProcess();
+
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+	// 배틀 세라프, 사이킥 아틸러리 
+	void ENSI_HA_EBS_PSYCHIC_ARTILLERY_Init();
+	void ENSI_HA_EBS_PSYCHIC_ARTILLERY_FrameMove();
+	void ENSI_HA_EBS_PSYCHIC_ARTILLERY_EventProcess();
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템	
 
 #ifdef ADD_FULL_CHARGING_VOICE
 

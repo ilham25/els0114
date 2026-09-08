@@ -19,7 +19,7 @@ m_bEnable(false),
 m_hClient(ANTICPX_INVALID_HANDLE_VALUE),
 m_bIsStarted(false),
 m_bIsSendReq(false),
-m_AuthTickTime( KHSAuth::ENUM_SET_TIME::ST_LOOP_AUTH_TIME_MAX )
+m_AuthTickTime( ST_LOOP_AUTH_TIME_MAX )
 {	
 }
 
@@ -58,7 +58,16 @@ bool KHSAuth::Tick( IN KGSUserPtr spUser, IN bool bForce /*= false*/ )
 
 					return true;
 				}
-				
+
+#ifdef HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+				// 캐시샵에서 클라이언트가 웹 페이지를 켰을 때, 
+				// 메인 스레드가 묶이는 문제로 인해, 캐시샵에서는 무조건 정상적으로 판단 함
+				if( true == spUser->GetEnterCashShop() )
+				{
+					return true;
+				}
+#endif // HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+
 				START_LOG( cerr, L"check req에 대한 ack응답이 오지 않았음." )
 					<< BUILD_LOG( spUser->GetUID() )
 					<< BUILD_LOG( spUser->GetCharUID() )
@@ -135,6 +144,16 @@ bool KHSAuth::SendHackShiendCheckReq( IN KGSUserPtr spUser )
 	}
 	//}}
 
+#ifdef HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+	// 캐시샵에서 클라이언트가 웹 페이지를 켰을 때, 
+	// 메인 스레드가 묶이는 문제로 인해, 캐시샵에서는 무조건 정상적으로 판단 함
+	if( true == spUser->GetEnterCashShop() )
+	{
+		// 정상적인 경우이기 때문에 true 리턴 함
+		return true;
+	}
+#endif // HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+
 	unsigned long ulRet = _AhnHS_MakeRequest( m_hClient, &stRequestBuf );
 
 	if( ulRet != ERROR_SUCCESS  ||  stRequestBuf.nLength == 0  || stRequestBuf.nLength > ANTICPX_TRANS_BUFFER_MAX )
@@ -174,6 +193,16 @@ bool KHSAuth::SendHackShiendCheckReq( IN KGSUserPtr spUser )
 
 bool KHSAuth::OnHackShieldCheckAck( IN KGSUserPtr spUser, IN KEGS_HACKSHIELD_CHECK_ACK& kInfo )
 {
+#ifdef HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+	// 캐시샵에서 클라이언트가 웹 페이지를 켰을 때, 
+	// 메인 스레드가 묶이는 문제로 인해, 캐시샵에서는 무조건 정상적으로 판단 함
+	if( true == spUser->GetEnterCashShop() )
+	{
+		m_bIsSendReq = false;
+		return true;
+	}
+#endif // HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+
 	if( kInfo.size() <= 0  ||  kInfo.size() > ANTICPX_TRANS_BUFFER_MAX )
 	{
 		START_LOG( cerr, L"HackShield Ack 패킷size가 이상함!" )
@@ -218,6 +247,7 @@ bool KHSAuth::OnHackShieldCheckAck( IN KGSUserPtr spUser, IN KEGS_HACKSHIELD_CHE
 		if( pnErrorCode == 0xe9040019 )
 		{
 			START_LOG( cout, L"HackShield Ack 패킷 인증 결과 : 클라이언트에서 해킹툴 감지" )
+				<< BUILD_LOG( spUser->GetName() )
 				<< BUILD_LOG( spUser->GetUID() )
 				<< BUILD_LOG( spUser->GetCharUID() )
 				<< BUILD_LOG( pnErrorCode )
@@ -226,6 +256,16 @@ bool KHSAuth::OnHackShieldCheckAck( IN KGSUserPtr spUser, IN KEGS_HACKSHIELD_CHE
 		else if( pnErrorCode == 0xe904000e )
 		{
 			START_LOG( cerr, L"HackShield Ack 패킷 인증 결과 : HSB파일이 클라이언트와 맞지 않습니다" )
+				<< BUILD_LOG( spUser->GetName() )
+				<< BUILD_LOG( spUser->GetUID() )
+				<< BUILD_LOG( spUser->GetCharUID() )
+				<< BUILD_LOG( pnErrorCode )
+				<< BUILD_LOG( cstrErrCode.GetBuffer() );
+		}
+		else if( pnErrorCode == 0xE9040018 )
+		{
+			START_LOG( cout, L"HackShield Ack 패킷 인증 결과 : 클라이언트에서 동작중인 핵쉴드에서 필요한 기능이 정상적으로 동작중이지 않습니다. 해킹툴 의심!" )
+				<< BUILD_LOG( spUser->GetName() )
 				<< BUILD_LOG( spUser->GetUID() )
 				<< BUILD_LOG( spUser->GetCharUID() )
 				<< BUILD_LOG( pnErrorCode )
@@ -234,6 +274,7 @@ bool KHSAuth::OnHackShieldCheckAck( IN KGSUserPtr spUser, IN KEGS_HACKSHIELD_CHE
 		else
 		{
 			START_LOG( cerr, L"HackShield Ack 패킷 인증 실패!" )
+				<< BUILD_LOG( spUser->GetName() )
 				<< BUILD_LOG( spUser->GetUID() )
 				<< BUILD_LOG( spUser->GetCharUID() )
 				<< BUILD_LOG( pnErrorCode )
@@ -241,9 +282,18 @@ bool KHSAuth::OnHackShieldCheckAck( IN KGSUserPtr spUser, IN KEGS_HACKSHIELD_CHE
 				<< END_LOG;
 		}
 		//}}
+
 		//종료 이유를 클라이언트에게 알려주어야 한다.
 		KPacketOK kShowDown;
 		kShowDown.m_iOK = NetError::ERR_KNP_00;
+
+#ifdef SERV_SECURITY_MODULE_AUTH_FILE_CHECK
+		if( pnErrorCode == 0xe904000e && spUser->GetAuthLevel() == SEnum::UAL_DEVELOPER )
+		{
+			kShowDown.m_iOK = NetError::ERR_HACKSHIELD_00;
+		}
+#endif SERV_SECURITY_MODULE_AUTH_FILE_CHECK
+
 		spUser->SendPacket( EGS_KNPROTECT_USER_SHOWDOWN_NOT, kShowDown );
 		return false;
 	}

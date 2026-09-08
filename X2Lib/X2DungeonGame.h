@@ -130,10 +130,10 @@ class CX2DungeonGame : public CX2Game
 		virtual bool			Handler_EGS_LEAVE_ROOM_ACK( KEGS_LEAVE_ROOM_ACK& kEGS_LEAVE_ROOM_ACK );
 		virtual bool			Handler_EGS_LEAVE_ROOM_NOT( KEGS_LEAVE_ROOM_NOT& kEGS_LEAVE_ROOM_NOT );
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 		virtual bool			Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_REQ( int iClearConditionIndex );
 		virtual bool			Handler_EGS_DUNGEON_SUB_STAGE_CLEAR_ACK( KEGS_DUNGEON_SUB_STAGE_CLEAR_ACK& kEGS_DUNGEON_SUB_STAGE_CLEAR_ACK );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 		virtual bool			Handler_EGS_DUNGEON_SUB_STAGE_OPEN_REQ( int subStageNum );
 		virtual bool			Handler_EGS_DUNGEON_SUB_STAGE_OPEN_ACK( KEGS_DUNGEON_SUB_STAGE_OPEN_ACK& kEGS_DUNGEON_SUB_STAGE_OPEN_ACK );
@@ -240,9 +240,7 @@ class CX2DungeonGame : public CX2Game
 		void					CloseDungeonName( float fTime );
 #endif
 
-#ifdef REFORM_TUTORIAL
 		bool					IsNearPortalLineMap();
-#endif //REFORM_TUTORIAL
 #ifdef MODIFY_DUNGEON_STAGING
 		void					SetShowMonsterIndicator(bool bVal){ if( NULL != m_pMonsterIndicator) m_pMonsterIndicator->SetShow(bVal);}
 #endif //MODIFY_DUNGEON_STAGING

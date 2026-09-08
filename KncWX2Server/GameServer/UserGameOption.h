@@ -46,7 +46,7 @@ private:
 	char								m_cDenyRequestCouple;
 #endif SERV_RELATIONSHIP_SYSTEM
 	//}
-
+    char                                m_cDenyInvitePractivePVP;
 	//{{ 2008. 1. 30  최육사  채팅 블랙 리스트
 	std::map< UidType, std::wstring >	m_mapChatBlackList;
 	//}}

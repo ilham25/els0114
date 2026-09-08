@@ -52,11 +52,15 @@ CX2EventScene::CX2EventScene(void)
 
 
 	//{{begin} CX2EventScene 에서 필요힌 함수 바인딩 및 루아 데이터 처리
-	if( g_pKTDXApp->GetDeviceManager()->LoadLuaTinker(L"Enum.lua") == false )
+	if( g_pKTDXApp->LoadLuaTinker(L"Enum.lua") == false )
 	{
 		return;
 	}
-	if( g_pKTDXApp->GetDeviceManager()->LoadLuaTinker(L"StringID_def.lua") == false )
+	if( g_pKTDXApp->LoadLuaTinker(L"DungeonEnum.lua") == false )
+	{
+		return;
+	}
+	if( g_pKTDXApp->LoadLuaTinker(L"StringID_def.lua") == false )
 	{
 		return;
 	}
@@ -306,27 +310,16 @@ void CX2EventScene::OnFrameMove( double fTime, float fElapsedTime )
 	{
 		if(false == g_pKTDXApp->GetDGManager()->GetDialogManager()->CheckFrontModalDlg( m_pDLGSlideShot ) )	// 앞에 모달 다이얼로그가 없으면
 		{
-#ifdef REFORM_UI_KEYPAD
 			GET_KEY_STATE( GA_UP );
 			GET_KEY_STATE( GA_DOWN );
 			GET_KEY_STATE( GA_LEFT );
 			GET_KEY_STATE( GA_RIGHT );
-#else
-			g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_UP );
-			g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_DOWN );
-			g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_LEFT );
-			g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_RIGHT );
-#endif
 			g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_F1 );
 #ifndef NOT_APPLY_F8
 			g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_F8 ); // 파티시작 키
 #endif
 			
-#ifdef REFORM_UI_KEYPAD
 			GET_KEY_STATE( GA_ATTACK_FAST );
-#else
-			g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_Z );
-#endif
 
 			if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_RETURN ) == TRUE )
 			{
@@ -386,7 +379,6 @@ void CX2EventScene::AddText( bool bTagLeft, int NameID, const WCHAR* wszMsg,
 
 #ifdef CLIENT_GLOBAL_LINEBREAK
 	CKTDGUIStatic* pStatic_Speech	= (CKTDGUIStatic*) m_pDLGSlideShot->GetControl( L"Speech" );
-
 	CKTDGFontManager::CUKFont* pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( pStatic_Speech->GetString(0)->fontIndex );
 	if( NULL == pFont )
 		return; 
@@ -399,7 +391,6 @@ void CX2EventScene::AddText( bool bTagLeft, int NameID, const WCHAR* wszMsg,
 	CKTDGUIStatic* pStatic_Name		= (CKTDGUIStatic*) m_pDLGSlideShot->GetControl( L"Name" );
 #else //#ifdef CLIENT_GLOBAL_LINEBREAK
 	int addRow = LineBreak( CHAT_LINE_WIDTH, chatContent, nextLineString.c_str(), wstrColor );
-
 	if( -1 == addRow )
 		return;
 
@@ -407,13 +398,34 @@ void CX2EventScene::AddText( bool bTagLeft, int NameID, const WCHAR* wszMsg,
 	CKTDGUIStatic* pStatic_Name		= (CKTDGUIStatic*) m_pDLGSlideShot->GetControl( L"Name" );
 	CKTDGUIStatic* pStatic_Speech	= (CKTDGUIStatic*) m_pDLGSlideShot->GetControl( L"Speech" );
 #endif //CLIENT_GLOBAL_LINEBREAK
-		
 
 
 	wstring wstrName = GET_STRING( NameID );
 
 	pStatic_Name->GetString(0)->msg		= wstrName;
 	pStatic_Speech->GetString(0)->msg	= chatContent;
+
+#ifdef FIX_EVENT_SCENE_LINE_BREAK_BUG
+	wstring::size_type sizeType = 0;
+	while(true)
+	{
+		// 개행문자 위치 찾기
+		sizeType = pStatic_Speech->GetString(0)->msg.find( L"\n", sizeType ) + 1;
+
+		// 더 이상 개행문자가 없으면 break
+		if( 0 == sizeType )
+		{
+			break;
+		}
+
+		// 색상코드가 들어가있지 않으면 색상 추가 
+		if( sizeType != pStatic_Speech->GetString(0)->msg.find(L"#", sizeType-1) )
+		{
+			pStatic_Speech->GetString(0)->msg.insert( sizeType, L"#C000000");
+		}
+	}
+#endif // FIX_EVENT_SCENE_LINE_BREAK_BUG
+
 
 	if( true == bSpread )
 	{
@@ -512,6 +524,11 @@ int CX2EventScene::LineBreak( int iWidth, wstring& wstrSpeech, const WCHAR* pNex
 		iUniCharSize = pFont->GetWidth( wChar );
 
 		iStringSize += iUniCharSize;
+
+#ifdef FIX_EVENT_SCENE_LINE_BREAK_BUG
+		if( *pNextLineString == wChar )
+			iStringSize = 0;
+#endif // FIX_EVENT_SCENE_LINE_BREAK_BUG
 
 		//{{ 허상형 : [2010/12/20/] //	이벤트씬에서 '\n' 안먹히는 문제 수정
 #ifdef FIX_EVENT_SCENE_ENTER_FLAG
@@ -827,18 +844,22 @@ bool CX2EventScene::PlaySceneObjectParticle(EventSceneObject* pEventSceneObject,
 
 	newSeq->SetShowObject(false);
 
+    CKTDGParticleSystem::CParticleEventSequenceHandle newSeqHandle =
 #ifdef EVENT_SCENE_TOOL
 	m_pParticleSystem->CreateInstanceNonTemplet(newSeq, D3DXVECTOR3(0,0,0), D3DXVECTOR2(-1,-1), D3DXVECTOR2(-1,-1) ); 
 #else
 //// 4. 파티클 생성, 재생 /////////////////////////////////
 	g_pData->GetUIMajorParticle()->CreateInstanceNonTemplet(newSeq, D3DXVECTOR3(0,0,0), D3DXVECTOR2(-1,-1), D3DXVECTOR2(-1,-1) ); 
 #endif EVENT_SCENE_TOOL	
-
-
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( newSeqHandle == INVALID_PARTICLE_SEQUENCE_HANDLE )
+    {
+        SAFE_DELETE_KTDGOBJECT( newSeq );
+        return false;
+    }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CKTDGParticleSystem::CParticleEventSequenceHandle newSeqHandle = newSeq->GetHandle();
-
-
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	// Layer 다이얼로그 생성, 벡터에 등록
 	CKTDGUIDialogType pDlgObjectLayer = NULL;
@@ -861,7 +882,12 @@ bool CX2EventScene::PlaySceneObjectParticle(EventSceneObject* pEventSceneObject,
 
 	pSceneObject->m_wstrObjectName = pSceneObjectPlay->m_wstrObjectName;
 	pSceneObject->m_eSceneObjectType = OT_TEXTURE;
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    pSceneObject->m_hSceneObjectParticleHandle = newSeqHandle;
+    pSceneObject->m_hSceneObjectMeshHandle = INVALID_MESH_INSTANCE_HANDLE;
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	pSceneObject->m_iSceneObjectHandle = newSeqHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	pSceneObject->m_DlgHandle = pDlgObjectLayer;
 
 	pSceneObject->m_eLastPosition = eFinalPos;
@@ -1047,7 +1073,14 @@ bool CX2EventScene::PlaySceneObjectXMesh(EventSceneObject* pEventSceneObject, Sc
 	//// 4. 파티클 생성, 재생 /////////////////////////////////
 	CKTDGXMeshPlayer::CXMeshInstance* newXmesh = g_pData->GetUIMajorXMeshPlayer()->CreateInstanceNonTemplet(g_pData->GetUIMajorXMeshPlayer(), newTemplet, D3DXVECTOR3(0,0,0), D3DXVECTOR3(0,0,0), D3DXVECTOR3(0,0,0) );
 #endif EVENT_SCENE_TOOL
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( newXmesh == NULL )
+    {
+        SAFE_DELETE( newTemplet );
+        SAFE_DELETE( pSceneObject );
+        return false;
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	newXmesh->SetShowObject(false);
 
@@ -1077,7 +1110,13 @@ bool CX2EventScene::PlaySceneObjectXMesh(EventSceneObject* pEventSceneObject, Sc
 
 	pSceneObject->m_wstrObjectName = pSceneObjectPlay->m_wstrObjectName;
 	pSceneObject->m_eSceneObjectType = OT_XSKINMESH;
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    pSceneObject->m_hSceneObjectParticleHandle = INVALID_PARTICLE_SEQUENCE_HANDLE;
+    pSceneObject->m_hSceneObjectMeshHandle = newXmeshHandle;
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 	pSceneObject->m_iSceneObjectHandle = newXmeshHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
 	pSceneObject->m_DlgHandle = pDlgObjectLayer;
 
 
@@ -1103,7 +1142,7 @@ bool CX2EventScene::LoadTextPlay( KLuaManager& luaManager, std::list<TextPlay>& 
 
 		//{{ 허상형 : [2010/11/5/] //	에픽 퀘스트 텍스트를 인덱스를사용해 출력할때 사용
 #ifdef	EVENT_SCENE_TEXT_USED_INDEX
-		LUA_GET_VALUE(	luaManager, L"TEXT",	kTextPlay.m_iTextIndex, 	STR_ID_EMPTY);
+		LUA_GET_VALUE(	luaManager, "TEXT",	kTextPlay.m_iTextIndex, 	STR_ID_EMPTY);
 #else	EVENT_SCENE_TEXT_USED_INDEX
 		LUA_GET_VALUE( luaManager, "TEXT",	kTextPlay.m_wstrText,	L"" );	
 #endif	EVENT_SCENE_TEXT_USED_INDEX
@@ -1112,9 +1151,9 @@ bool CX2EventScene::LoadTextPlay( KLuaManager& luaManager, std::list<TextPlay>& 
 		int index = 0;
 		while( true )
 		{
-			WCHAR key[100] = {0,};
+			char key[100] = {0,};
 			//wsprintf( key, L"PLAYER_TEXT%d", index );
-			StringCchPrintf( key, 100, L"PLAYER_TEXT%d", index );
+			StringCchPrintfA( key, 100, "PLAYER_TEXT%d", index );
 
 #ifdef	EVENT_SCENE_TEXT_USED_INDEX
 			int iTextIndex;
@@ -1229,9 +1268,9 @@ bool CX2EventScene::LoadEventSequence( KLuaManager& luaManager, std::list<EventS
 		int idxRemoveObject = 0;
 		while( true )
 		{
-			WCHAR key[100] = {0,};
+			char key[100] = {0,};
 			//wsprintf( key, L"REMOVE_OBJECT%d", idxRemoveObject );
-			StringCchPrintf( key, 100, L"REMOVE_OBJECT%d", idxRemoveObject );
+			StringCchPrintfA( key, 100, "REMOVE_OBJECT%d", idxRemoveObject );
 
 			wstring wstrRemoveObjectName;
 			if( luaManager.GetValue( key, wstrRemoveObjectName ) == false )
@@ -1285,7 +1324,9 @@ bool CX2EventScene::AddEventSceneObject_LUA()
 {
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	EventSceneObject kEventSceneObject;
 	std::map<wstring, EventSceneObject>::iterator mit;
@@ -1405,7 +1446,9 @@ bool CX2EventScene::AddEventScene_LUA()
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	EventScene kEventScene;
 	std::map<wstring, EventScene>::iterator mit;
@@ -1439,7 +1482,7 @@ LoadFail:
 bool CX2EventScene::OpenScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pEventScene", this );
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName );
+	return g_pKTDXApp->LoadLuaTinker( pFileName );
 }
 
 void CX2EventScene::PlayText()
@@ -1540,20 +1583,36 @@ void CX2EventScene::EndEventScene(bool bIgnoreWaitEventScene )
 
 		if(pCSceneObject->m_eSceneObjectType == OT_XSKINMESH)
 		{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
-			m_pXMeshPlayer->DestroyInstance(pCSceneObject->m_iSceneObjectHandle);
+			m_pXMeshPlayer->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectMeshHandle);
 #else
-			g_pData->GetUIMajorXMeshPlayer()->DestroyInstance(pCSceneObject->m_iSceneObjectHandle);
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectMeshHandle);
 #endif EVENT_SCENE_TOOL
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+			m_pXMeshPlayer->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
+#else
+			g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
+#endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 			SAFE_DELETE((CKTDGXMeshPlayer::XMeshTemplet*)pCSceneObject->m_pXMeshTemplet);// XMesh의 경우 임시 템플릿 메모리 해제
 		}
 		else if(pCSceneObject->m_eSceneObjectType == OT_TEXTURE) 
 		{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+			m_pParticleSystem->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectParticleHandle);
+#else
+			g_pData->GetUIMajorParticle()->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectParticleHandle);
+#endif EVENT_SCENE_TOOL
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
 			m_pParticleSystem->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
 #else
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
 #endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		}
 		SAFE_DELETE_DIALOG(pCSceneObject->m_DlgHandle);
 
@@ -1656,6 +1715,11 @@ int CX2EventScene::GetPlayerTagName()
 		iPlayerTagName = STR_ID_25873;
 		break;
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	case CX2Unit::UT_ADD:
+		iPlayerTagName = STR_ID_29422;
+		break;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 	return iPlayerTagName;
 }
@@ -1744,21 +1808,37 @@ bool CX2EventScene::PlayEventSequence()
 				
 				if(pCSceneObject->m_eSceneObjectType == OT_XSKINMESH)
 				{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
-					m_pXMeshPlayer->DestroyInstance(pCSceneObject->m_iSceneObjectHandle);
+					m_pXMeshPlayer->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectMeshHandle);
 #else
-					g_pData->GetUIMajorXMeshPlayer()->DestroyInstance(pCSceneObject->m_iSceneObjectHandle);
+					g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectMeshHandle);
 #endif EVENT_SCENE_TOOL
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+					m_pXMeshPlayer->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
+#else
+					g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
+#endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 					SAFE_DELETE((CKTDGXMeshPlayer::XMeshTemplet*) pCSceneObject->m_pXMeshTemplet);// XMesh의 경우 임시 템플릿 메모리 해제
 
 				}
 				else if(pCSceneObject->m_eSceneObjectType == OT_TEXTURE) 
 				{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+					m_pParticleSystem->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectParticleHandle);
+#else
+					g_pData->GetUIMajorParticle()->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectParticleHandle);
+#endif EVENT_SCENE_TOOL
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
 					m_pParticleSystem->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
 #else
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
 #endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 				}
 				SAFE_DELETE_DIALOG(pCSceneObject->m_DlgHandle);
 
@@ -1860,21 +1940,38 @@ bool CX2EventScene::PlayEventSequence()
 
 				if(pCSceneObject->m_eSceneObjectType == OT_XSKINMESH)
 				{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
-					m_pXMeshPlayer->DestroyInstance(pCSceneObject->m_iSceneObjectHandle);
+					m_pXMeshPlayer->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectMeshHandle);
 #else
-					g_pData->GetUIMajorXMeshPlayer()->DestroyInstance(pCSceneObject->m_iSceneObjectHandle);
+					g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectMeshHandle);
+#endif EVENT_SCENE_TOOL
+					SAFE_DELETE((CKTDGXMeshPlayer::XMeshTemplet*)pCSceneObject->m_pXMeshTemplet);// XMesh의 경우 임시 템플릿 메모리 해제
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+					m_pXMeshPlayer->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
+#else
+					g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
 
 					SAFE_DELETE((CKTDGXMeshPlayer::XMeshTemplet*)pCSceneObject->m_pXMeshTemplet);// XMesh의 경우 임시 템플릿 메모리 해제
 #endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 				}
 				else if(pCSceneObject->m_eSceneObjectType == OT_TEXTURE) 
 				{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+					m_pParticleSystem->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectParticleHandle);
+#else
+					g_pData->GetUIMajorParticle()->DestroyInstanceHandle(pCSceneObject->m_hSceneObjectParticleHandle);
+#endif EVENT_SCENE_TOOL
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
 					m_pParticleSystem->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
 #else
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle(pCSceneObject->m_iSceneObjectHandle);
 #endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 				}
 				SAFE_DELETE_DIALOG(pCSceneObject->m_DlgHandle);
 
@@ -2053,11 +2150,19 @@ void CX2EventScene::CSceneObject::OnFrameRender_Draw()
 {
 	if(m_eSceneObjectType == OT_XSKINMESH)
 	{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+		CKTDGXMeshPlayer::CXMeshInstance* pXmesh = m_pXMeshPlayer->GetMeshInstance( m_hSceneObjectMeshHandle );
+#else
+		CKTDGXMeshPlayer::CXMeshInstance* pXmesh = g_pData->GetUIMajorXMeshPlayer()->GetMeshInstance( m_hSceneObjectMeshHandle );
+#endif EVENT_SCENE_TOOL
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
 		CKTDGXMeshPlayer::CXMeshInstance* pXmesh = m_pXMeshPlayer->GetMeshInstance( m_iSceneObjectHandle );
 #else
 		CKTDGXMeshPlayer::CXMeshInstance* pXmesh = g_pData->GetUIMajorXMeshPlayer()->GetMeshInstance( m_iSceneObjectHandle );
 #endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		if(pXmesh != NULL)
 		{
 			CKTDGStateManager::PushStates( pXmesh->GetRenderStateID() );
@@ -2066,11 +2171,19 @@ void CX2EventScene::CSceneObject::OnFrameRender_Draw()
 	}
 	else if(m_eSceneObjectType == OT_TEXTURE) 
 	{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_hSceneObjectParticleHandle );
+#else
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSceneObjectParticleHandle );
+#endif EVENT_SCENE_TOOL
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_iSceneObjectHandle );
 #else
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_iSceneObjectHandle );
 #endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		if(pSeq != NULL)
 		{
 			CKTDGStateManager::PushStates( pSeq->GetRenderStateID() );
@@ -2088,11 +2201,19 @@ RENDER_HINT CX2EventScene::CSceneObject::OnFrameRender_Prepare()
 	RENDER_HINT renderHintResult;
 	if(m_eSceneObjectType == OT_XSKINMESH)
 	{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+		CKTDGXMeshPlayer::CXMeshInstance* pXmesh = m_pXMeshPlayer->GetMeshInstance( m_hSceneObjectMeshHandle );
+#else
+		CKTDGXMeshPlayer::CXMeshInstance* pXmesh = g_pData->GetUIMajorXMeshPlayer()->GetMeshInstance( m_hSceneObjectMeshHandle );
+#endif EVENT_SCENE_TOOL
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
 		CKTDGXMeshPlayer::CXMeshInstance* pXmesh = m_pXMeshPlayer->GetMeshInstance( m_iSceneObjectHandle );
 #else
 		CKTDGXMeshPlayer::CXMeshInstance* pXmesh = g_pData->GetUIMajorXMeshPlayer()->GetMeshInstance( m_iSceneObjectHandle );
 #endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		if(pXmesh == NULL)
 		{
 			renderHintResult = RENDER_HINT::NORENDER;
@@ -2105,11 +2226,19 @@ RENDER_HINT CX2EventScene::CSceneObject::OnFrameRender_Prepare()
 	}
 	else if(m_eSceneObjectType == OT_TEXTURE) 
 	{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifdef EVENT_SCENE_TOOL
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_hSceneObjectParticleHandle );
+#else
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSceneObjectParticleHandle );
+#endif EVENT_SCENE_TOOL
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 #ifdef EVENT_SCENE_TOOL
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_iSceneObjectHandle );
 #else
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_iSceneObjectHandle );
 #endif EVENT_SCENE_TOOL
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		if(pSeq == NULL)
 		{
 			renderHintResult = RENDER_HINT::NORENDER;

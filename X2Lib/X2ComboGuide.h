@@ -1,6 +1,5 @@
 #pragma once
 
-#ifdef COMBO_GUIDE
 
 class CX2ComboGuide
 {
@@ -66,5 +65,4 @@ private:
 	bool				m_bInitedGuide;	// 중복 생성 방지
 };
 
-#endif
 

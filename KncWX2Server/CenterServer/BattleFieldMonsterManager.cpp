@@ -23,6 +23,103 @@ KBattleFieldMonsterManager::~KBattleFieldMonsterManager()
 {
 }
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+void KBattleFieldMonsterManager::StartGame( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, IN const int iPlayerCount, IN const int iDangerousValue, IN const bool bBossField )
+{
+	KRoomMonsterManager::StartGame();
+
+	m_kNpcDieCount.Clear();
+	m_mapReserveMonsterRespawn.clear();
+	m_mapNpcInfoForClient.clear();
+
+#ifdef SERV_BATTLE_FIELD_NPC_CREATE_ERROR// 작업날짜: 2013-11-20	// 박세훈
+	m_mapNpcOwner.clear();
+#endif SERV_BATTLE_FIELD_NPC_CREATE_ERROR
+
+#ifdef SERV_FIELD_EVENT_MONSTER// 작업날짜: 2013-05-21	// 박세훈
+	m_mapReserveEventMonsterRespawn.clear();
+	m_mapEventMonster.clear();
+	m_mapEventNpcInfoForClient.clear();
+	m_mapAliveEventNpcList.clear();
+	m_mapDieEventNpcList.clear();
+#endif // SERV_FIELD_EVENT_MONSTER
+
+	//{{ 2013. 02. 15   필드 중간 보스 - 김민성
+#ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
+	m_mapAliveMiddleBossList.clear();
+	m_vecMiddleBossListForClient.clear();
+#endif SERV_BATTLEFIELD_MIDDLE_BOSS
+	//}
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	m_mapAliveEventBossList.clear();
+	m_vecEventBossListForClient.clear();
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
+
+	// 배틀필드가 생성된 직후에 몬스터 생성 처리!
+	if( bBossField == true )
+	{
+		if( FirstCreateBossMonster( eBattleFieldID ) == false )
+		{
+			START_LOG( cerr, L"몬스터 소환 실패! 절대 일어나서는 안되는 에러!" )
+				<< BUILD_LOG( eBattleFieldID )
+				<< BUILD_LOG( iPlayerCount )
+				<< END_LOG;
+		}
+	}
+	else
+	{
+		if( FirstCreateMonster( eBattleFieldID, iPlayerCount ) == false )
+		{
+			START_LOG( cerr, L"몬스터 소환 실패! 절대 일어나서는 안되는 에러!" )
+				<< BUILD_LOG( eBattleFieldID )
+				<< BUILD_LOG( iPlayerCount )
+				<< END_LOG;
+		}
+	}
+
+	// 배틀필드 젤 처음 시작했을때 몬스터 수
+	m_iAtStartedMonsterCount = GetAliveMonsterCount();
+}
+
+bool KBattleFieldMonsterManager::FirstCreateBossMonster( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID )
+{
+	// 1. 출현시킬 몬스터 리스트를 받아오자!
+	KNPCList kBattleFieldNpcList;
+	if( SiCXSLBattleFieldManager()->GetCreateBossMonsterList( eBattleFieldID, kBattleFieldNpcList ) == false )
+	{
+		START_LOG( cerr, L"배틀필드 NPC리스트 받아오기 실패!" )
+			<< BUILD_LOG( eBattleFieldID )
+			<< END_LOG;
+		return false;
+	}
+
+	// 2. 몬스터 생성 처리!
+	BOOST_TEST_FOREACH( KNPCUnitReq&, kNpcInfo, kBattleFieldNpcList.m_NPCList )
+	{
+		// 몬스터 생성!
+		if( CreateMonster( kNpcInfo, kNpcInfo.m_UID ) == false )
+		{
+			START_LOG( cerr, L"몬스터 생성을 실패하였습니다!" )
+				<< BUILD_LOG( kNpcInfo.m_NPCID )
+				<< END_LOG;
+			continue;
+		}
+	}
+
+	return true;
+}
+
+bool KBattleFieldMonsterManager::IsAliveBossMonster( IN const int iNpcUID ) const
+{
+	std::map< int, NPC_DATA >::const_iterator it = m_mapAliveNpcList.find( iNpcUID );	
+	if( it == m_mapAliveNpcList.end() )
+	{
+		return false;
+	}
+
+	return it->second.m_cMonsterGrade == CXSLUnitManager::MG_BOSS_NPC;
+}
+#else // SERV_BATTLE_FIELD_BOSS
 void KBattleFieldMonsterManager::StartGame( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, IN const int iPlayerCount, IN const int iDangerousValue )
 {
 	KRoomMonsterManager::StartGame();
@@ -46,7 +143,11 @@ void KBattleFieldMonsterManager::StartGame( IN const SEnum::BATTLE_FIELD_ID eBat
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
 
-	// 배틀필드가 생성된 직후에 몬스터 생성 처리!
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	m_mapAliveEventBossList.clear();
+	m_vecEventBossListForClient.clear();
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
+
 	if( FirstCreateMonster( eBattleFieldID, iPlayerCount ) == false )
 	{
         START_LOG( cerr, L"몬스터 소환 실패! 절대 일어나서는 안되는 에러!" )
@@ -58,6 +159,7 @@ void KBattleFieldMonsterManager::StartGame( IN const SEnum::BATTLE_FIELD_ID eBat
 	// 배틀필드 젤 처음 시작했을때 몬스터 수
 	m_iAtStartedMonsterCount = GetAliveMonsterCount();
 }
+#endif // SERV_BATTLE_FIELD_BOSS
 
 void KBattleFieldMonsterManager::EndGame()
 {
@@ -81,6 +183,10 @@ void KBattleFieldMonsterManager::EndGame()
 	m_vecMiddleBossListForClient.clear();
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	m_mapAliveEventBossList.clear();
+	m_vecEventBossListForClient.clear();
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 }
 
 void KBattleFieldMonsterManager::OnCloseRoom()
@@ -105,6 +211,10 @@ void KBattleFieldMonsterManager::OnCloseRoom()
 	m_vecMiddleBossListForClient.clear();
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	m_mapAliveEventBossList.clear();
+	m_vecEventBossListForClient.clear();
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 }
 
 bool KBattleFieldMonsterManager::FirstCreateMonster( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, IN const int iPlayerCount )
@@ -300,45 +410,6 @@ bool KBattleFieldMonsterManager::CheckRespawnMonster( IN const SEnum::BATTLE_FIE
 	return true;
 }
 
-bool KBattleFieldMonsterManager::CheckBossMonster( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, 
-													IN const int iDangerousValue,
-													IN OUT KDangerousEventInfo& kDangerousEvent,
-													OUT KEGS_NPC_UNIT_CREATE_NOT& kResultNot )
-{
-	// 보스 몬스터 출현인지 검사
-	if( kDangerousEvent.IsEventReserved( KDangerousEventInfo::DE_BOSS_MONSTER_DROP ) == false )
-		return false;
-
-	// 보스 몬스터 출현 예약을 지우자!
-	kDangerousEvent.DeleteEvent( KDangerousEventInfo::DE_BOSS_MONSTER_DROP );
-
-	// 해당 필드에 출현하는 보스 몬스터로 세팅을 바꿉니다.
-	KNPCUnitReq kBossNpcInfo;
-	if( SiCXSLBattleFieldManager()->GetBattieFieldBossMonsterInfo( eBattleFieldID, iDangerousValue, kBossNpcInfo ) == false )
-	{
-		START_LOG( cerr, L"보스 몬스터 출현 실패!" )
-			<< BUILD_LOG( eBattleFieldID )
-			<< BUILD_LOG( iDangerousValue )
-			<< END_LOG;
-		return false;
-	}
-
-	// 몬스터 생성!
-	if( CreateMonster( kBossNpcInfo, kBossNpcInfo.m_UID ) == false )
-	{
-		START_LOG( cerr, L"몬스터 생성을 실패하였습니다!" )
-			<< BUILD_LOG( kBossNpcInfo.m_NPCID )
-			<< END_LOG;
-		return false;
-	}
-
-	// 지금 바로 클라이언트에 전달하기 위한 것도 저장하자!
-	KNPCUnitNot kNot;
-	kNot.m_kNPCUnitReq = kBossNpcInfo;
-	kResultNot.m_vecNPCUnitAck.push_back( kNot );
-	return true;
-}
-
 void KBattleFieldMonsterManager::GetAliveMonsterList( OUT std::vector< KNPCUnitReq >& vecNpcList, OUT std::map< int, KAttribEnchantNpcInfo >& mapAttirbNpcInfo ) const
 {
 	vecNpcList.clear();
@@ -514,6 +585,9 @@ void KBattleFieldMonsterManager::IncreaseMonsterDieCount( IN const char cMonster
 	case CXSLUnitManager::MTF_HIGH_ELITE_NPC:	++m_kNpcDieCount.m_iHighEliteNpcDieCount;	break;
 	case CXSLUnitManager::MTF_MIDDLE_BOSS_NPC:	++m_kNpcDieCount.m_iMiddleBossDieCount;		break;
 	case CXSLUnitManager::MTF_BOSS_NPC:			++m_kNpcDieCount.m_iBossDieCount;			break;
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	case CXSLUnitManager::MTF_EVENT_BOSS_NPC:	++m_kNpcDieCount.m_iEventBossDieCount;			break;
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 	default:
 		START_LOG( cerr, L"이상한 몬스터 타입 입니다!" )
 			<< BUILD_LOGc( cMonsterTypeFator )
@@ -592,18 +666,16 @@ void KBattleFieldMonsterManager::ClassifyMonsterEvent( OUT std::vector<int>& vec
 				// 이미 진행 중인 몬스터 출현 이벤트이다.
 				++itRunEvent;
 				++itMyEvent;
-				continue;
 			}
 			else if( itMyEvent->first < *itRunEvent )
 			{
-				// 내가 들고 있는 이벤트의 UID가 더 작다면, 이것은 종료처리 되어야할 이벤트이다.
+				// 이것은 종료 처리 되어야할 이벤트이다.
 				vecEndEventID.push_back( itMyEvent->first );
 				++itMyEvent;
-				continue;
 			}
 			else
 			{
-				// 새로 추가되는 이벤트라면 들고 있는 이벤트보다 UID 값이 클 것이다.
+				// 이것은 시작 처리 되어야할 이벤트이다.
 				vecStartEventID.push_back( *itRunEvent );
 				++itRunEvent;
 			}
@@ -739,9 +811,9 @@ void KBattleFieldMonsterManager::EndedMonsterEventProcess( IN const std::vector<
 				// 난입자를 위한 npc 정보에서도 제거한다.
 				m_mapEventNpcInfoForClient.erase( iEventMonsterUID );
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 				DeleteReservedNpcUID( iEventMonsterUID );
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 				// 리스폰 예약 정보에서도 제거한다.
 				m_mapReserveEventMonsterRespawn.erase( iEventMonsterUID );
@@ -774,11 +846,11 @@ void KBattleFieldMonsterManager::CreateEventMonster( IN const KNPCUnitReq& kNpcI
 	}	
 
 	// 1. NPC UID 발급
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	iCreatedNpcUID = GetNewNpcUID();
-#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	iCreatedNpcUID = m_nNPCUID++;
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	iCreatedNpcUID = m_nNPCUID++;
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	// 3. NPC(Monster) 관리를 위한 data 보관
 	NPC_DATA npcData;
@@ -805,9 +877,9 @@ void KBattleFieldMonsterManager::CreateEventMonster( IN const KNPCUnitReq& kNpcI
 	// 클라이언트에 전달하기 위한 정보도 저장하자!
 	m_mapEventNpcInfoForClient.insert( std::make_pair( kCreateNpcInfo.m_kNpcInfo.m_UID, kCreateNpcInfo ) );
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	InsertReservedNpcUID( kCreateNpcInfo.m_kNpcInfo.m_UID );
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 }
 
 bool KBattleFieldMonsterManager::SetEventMonsterDie( IN const int iNpcUID, IN const UidType iAttUnitUID )
@@ -837,9 +909,9 @@ bool KBattleFieldMonsterManager::SetEventMonsterDie( IN const int iNpcUID, IN co
 		// 죽은 몬스터의 req정보는 삭제해도 좋다!
 		m_mapEventNpcInfoForClient.erase( iNpcUID );
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		DeleteReservedNpcUID( iNpcUID );
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 		// 몬스터 죽음 처리가 성공했다면 마지막으로 죽은 몬스터의 시각을 저장하자!
 		SMonsterRespawnInfo sRespawnInfo;
@@ -1157,11 +1229,11 @@ void KBattleFieldMonsterManager::CreateMiddleBossMonster( IN const KNPCUnitReq& 
 	}	
 
 	// 1. NPC UID 발급
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	iCreatedNpcUID = GetNewNpcUID();
-#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	iCreatedNpcUID = m_nNPCUID++;
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	iCreatedNpcUID = m_nNPCUID++;
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	// 3. NPC(Monster) 관리를 위한 data 보관
 	NPC_DATA npcData;
@@ -1273,6 +1345,190 @@ void KBattleFieldMonsterManager::GetMiddleBossMonsterList( OUT std::vector< std:
 }
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 //}
+
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+bool KBattleFieldMonsterManager::CheckEventBossMonster( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, 
+														IN const int iDangerousValue,
+														IN OUT KDangerousEventInfo& kDangerousEvent,
+														OUT KEGS_NPC_UNIT_CREATE_MIDDLE_BOSS_NOT& kResultNot )
+{
+	//코드 이벤트 걸리지 않았으면 나가자
+	if( SiKGameEventManager()->IsEnableCode( CEI_EVENT_BATTLEFIELD_EVENT_BOSS ) == false )
+		return false;	
+
+	// 지금 필드에 중보가 남아 있다면 나가자!
+	if( IsRemainEventBoss() == true )
+	{
+		kDangerousEvent.DeleteEvent( KDangerousEventInfo::DE_EVENT_BOSS_MONSTER_DROP );
+		return false;
+	}
+		
+
+	// 보스 몬스터 출현인지 검사
+	if( kDangerousEvent.IsEventReserved( KDangerousEventInfo::DE_EVENT_BOSS_MONSTER_DROP ) == false )
+		return false;
+
+	// 보스 몬스터 출현 예약을 지우자!
+	kDangerousEvent.DeleteEvent( KDangerousEventInfo::DE_EVENT_BOSS_MONSTER_DROP );
+
+	// 해당 필드에 출현하는 보스 몬스터로 세팅을 바꿉니다.
+
+	std::vector<KNPCUnitReq> vecEventBossNpcInfo;
+	if( SiCXSLBattleFieldManager()->GetBattieFieldEventBossMonsterInfo( eBattleFieldID, iDangerousValue, vecEventBossNpcInfo ) == false )
+	{
+		START_LOG( cerr, L"보스 몬스터 출현 실패!" )
+			<< BUILD_LOG( eBattleFieldID )
+			<< BUILD_LOG( iDangerousValue )
+			<< END_LOG;
+		return false;
+	}
+
+	BOOST_TEST_FOREACH( KNPCUnitReq&, kEventBossNpcInfo, vecEventBossNpcInfo )
+	{
+		// 몬스터 생성!
+		CreateEventBossMonster( kEventBossNpcInfo, kEventBossNpcInfo.m_UID );		
+
+		// 지금 바로 클라이언트에 전달하기 위한 것도 저장하자!
+		KNPCUnitNot kNot;
+		kNot.m_kNPCUnitReq = kEventBossNpcInfo;
+		kResultNot.m_kCreatePacket.m_vecNPCUnitAck.push_back( kNot );
+	}
+
+	m_vecEventBossListForClient.push_back( vecEventBossNpcInfo );
+
+	return true;
+}
+
+void KBattleFieldMonsterManager::CreateEventBossMonster( IN const KNPCUnitReq& kNpcInfo, OUT int& iCreatedNpcUID )
+{
+	// 복사본
+	SNpcInfoForClient kCreateNpcInfo;
+	kCreateNpcInfo.m_kNpcInfo = kNpcInfo;
+
+	if( CXSLUnitManager::IsValidMonsterGrade( static_cast<CXSLUnitManager::MONSTER_GRADE>( kNpcInfo.m_cMonsterGrade ) ) == false )
+	{
+		START_LOG( cerr, L"몬스터 등급 정보가 이상합니다!" )
+			<< BUILD_LOG( kNpcInfo.m_NPCID )
+			<< BUILD_LOGc( kNpcInfo.m_cMonsterGrade )
+			<< END_LOG;
+	}	
+
+	// 1. NPC UID 발급
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+	iCreatedNpcUID = GetNewNpcUID();
+//#else//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+	//iCreatedNpcUID = m_nNPCUID++;
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+
+	// 3. NPC(Monster) 관리를 위한 data 보관
+	NPC_DATA npcData;
+	npcData.m_cLevel	= kNpcInfo.m_Level;
+	npcData.m_iNPCID	= kNpcInfo.m_NPCID;
+	npcData.m_bActive	= kNpcInfo.m_bActive;
+	npcData.m_bNoDrop	= kNpcInfo.m_bNoDrop;
+	npcData.m_bIsBoss	= ( kNpcInfo.m_cMonsterGrade == CXSLUnitManager::MG_EVENT_BOSS_NPC );	// 몬스터 등급으로 보스몬스터인지 체크.
+	//npcData.m_bIsBoss	= kNPCList.m_NPCList[i].m_bHasBossGage;	//보스몬스터인지 체크.
+	//{{ 2009. 12. 18  최육사	던전경험치개편
+	npcData.m_cMonsterGrade = kNpcInfo.m_cMonsterGrade; //일반몹인지 중간보스인지 보스인지 체크.
+	//}}
+	npcData.m_iGroupID	= kNpcInfo.m_iGroupID;
+	npcData.m_iBossGroupID	= kNpcInfo.m_iBossGroupID;
+
+	m_mapAliveEventBossList.insert( std::make_pair( iCreatedNpcUID, npcData ) );
+
+	// 생성된 NpcUID값을 넘기자!
+	kCreateNpcInfo.m_kNpcInfo.m_UID = iCreatedNpcUID;
+}
+
+bool KBattleFieldMonsterManager::SetEventBossMonsterDie( IN const int iNpcUID )
+{
+	bool bRet = false;
+
+	// 서버가 생성한 몬스터 이면 몬스터를 죽은 몬스터로 처리하자!
+	{
+		std::map<int, NPC_DATA>::iterator mit;
+		mit = m_mapAliveEventBossList.find( iNpcUID );
+		if( mit == m_mapAliveEventBossList.end() )
+		{
+			// 살아있는 몬스터 리스트에 없으면 실패!
+			bRet = false;
+		}
+
+		// 살아있는 몬스터 리스트에서는 뺀다!
+		m_mapAliveEventBossList.erase( mit );
+		bRet = true;
+	}
+
+	if( bRet )
+	{
+		// 중보 관리 리스트 정보를 정리한다(해당 중보 삭제)
+		std::vector< std::vector<KNPCUnitReq> >	vecTempEventBossList = m_vecEventBossListForClient;
+		m_vecEventBossListForClient.clear();
+
+		BOOST_TEST_FOREACH( std::vector<KNPCUnitReq>&, vecList, vecTempEventBossList )
+		{
+			std::vector<KNPCUnitReq> vecNew;
+
+			BOOST_TEST_FOREACH( KNPCUnitReq&, kNpc, vecList )
+			{
+				if( kNpc.m_UID != iNpcUID )
+				{
+					vecNew.push_back( kNpc );
+				}
+			}
+
+			m_vecEventBossListForClient.push_back( vecNew );
+		}
+	}
+
+	return bRet;
+}
+
+bool KBattleFieldMonsterManager::IsEventBossMonster( IN const int iNpcUID ) const
+{
+	if( m_mapAliveEventBossList.find( iNpcUID ) != m_mapAliveEventBossList.end() )
+		return true;
+
+	bool bRet = false;
+
+	for( int index = 0 ; index < (int)m_vecEventBossListForClient.size() ; ++index )
+	{
+		std::vector<KNPCUnitReq> vecList = m_vecEventBossListForClient[index];
+
+		BOOST_TEST_FOREACH( KNPCUnitReq&, kNpc, vecList )
+		{
+			if( kNpc.m_UID == iNpcUID )
+			{
+				bRet = true;
+				break;
+			}
+		}
+
+		if( bRet == true )
+			break;
+	}
+
+	return bRet;
+}
+
+bool KBattleFieldMonsterManager::GetEventBossNpcData( IN const int iNpcUID, OUT NPC_DATA& kNpcData ) const
+{
+	std::map<int, NPC_DATA>::const_iterator mit;
+	mit = m_mapAliveEventBossList.find( iNpcUID );
+	if( mit == m_mapAliveEventBossList.end() )
+	{
+		return false;
+	}
+
+	kNpcData = mit->second;
+	return true;
+}
+
+void KBattleFieldMonsterManager::GetEventBossMonsterList( OUT std::vector< std::vector<KNPCUnitReq> >& vecNpcDataList )
+{
+	vecNpcDataList = m_vecEventBossListForClient;
+}
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}

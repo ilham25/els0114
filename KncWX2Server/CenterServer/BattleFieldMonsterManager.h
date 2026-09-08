@@ -18,6 +18,9 @@ public:
 		int		m_iHighEliteNpcDieCount;
 		int		m_iMiddleBossDieCount;
 		int		m_iBossDieCount;
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+		int		m_iEventBossDieCount;
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 
 		SNpcDieCount()
 		{
@@ -31,6 +34,9 @@ public:
 			m_iHighEliteNpcDieCount	= 0;
 			m_iMiddleBossDieCount		= 0;
 			m_iBossDieCount				= 0;
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+			m_iEventBossDieCount		= 0;
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 		}
 	};
 
@@ -41,6 +47,9 @@ public:
 		std::set< int > m_setNormalNpcUID;
 		std::set< int > m_setMiddleBossNpcUID;
 		std::set< int > m_setBossNpcUID;
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+		std::set< int > m_setEventBossNpcUID;
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 	};
 
 	// 몬스터 리스폰 예약 정보
@@ -74,7 +83,13 @@ public:
     virtual ~KBattleFieldMonsterManager();
 
 	// 게임 시작, 종료 처리
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-14	// 박세훈
+	void	StartGame( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, IN const int iPlayerCount, IN const int iDangerousValue, IN const bool bBossField );
+	bool	FirstCreateBossMonster( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID );
+	bool	IsAliveBossMonster( IN const int iNpcUID ) const;
+#else // SERV_BATTLE_FIELD_BOSS
 	void	StartGame( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, IN const int iPlayerCount, IN const int iDangerousValue );
+#endif // SERV_BATTLE_FIELD_BOSS
 	void	EndGame();
 	void	OnCloseRoom();
 
@@ -103,11 +118,20 @@ public:
 	void	GetMiddleBossMonsterList( OUT std::vector< std::vector<KNPCUnitReq> >& vecNpcDataList );
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	bool	CheckEventBossMonster( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, 
+									IN const int iDangerousValue,
+									IN OUT KDangerousEventInfo& kDangerousEvent,
+									OUT KEGS_NPC_UNIT_CREATE_MIDDLE_BOSS_NOT& kResultNot );
+	void	CreateEventBossMonster( IN const KNPCUnitReq& kNpcInfo, OUT int& iCreatedNpcUID );
+	bool	SetEventBossMonsterDie( IN const int iNpcUID );
+	bool	IsEventBossMonster( IN const int iNpcUID ) const;
+	bool	IsEventBossMonsterAlive( IN const int iNpcUID ) const	{ return ( m_mapAliveEventBossList.find( iNpcUID ) != m_mapAliveEventBossList.end() ); }
+	bool	IsRemainEventBoss()									{ return (m_mapAliveEventBossList.begin() != m_mapAliveEventBossList.end()); }
+	bool	GetEventBossNpcData( IN const int iNpcUID, OUT NPC_DATA& kNpcData ) const;
+	void	GetEventBossMonsterList( OUT std::vector< std::vector<KNPCUnitReq> >& vecNpcDataList );
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 
-	bool	CheckBossMonster( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, 
-								IN const int iDangerousValue,
-								IN OUT KDangerousEventInfo& kDangerousEvent,
-								OUT KEGS_NPC_UNIT_CREATE_NOT& kResultNot );
 
 	void	GetAliveMonsterList( OUT std::vector< KNPCUnitReq >& vecNpcList, OUT std::map< int, KAttribEnchantNpcInfo >& mapAttirbNpcInfo ) const;
 	int		GetAtStartedMonsterCount() const			{ return m_iAtStartedMonsterCount; }
@@ -202,6 +226,10 @@ protected:
 	std::vector< std::vector<KNPCUnitReq> >			m_vecMiddleBossListForClient;	// 중보가 생성된 순서대로 그룹별(spawn Group id - npc)
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	std::map<int, NPC_DATA>							m_mapAliveEventBossList;		// 현재 생성된 이벤트 보스 몬스터	[key:NpcUID,	 value:NPC_DATA]
+	std::vector< std::vector<KNPCUnitReq> >			m_vecEventBossListForClient;	// 이보가 생성된 순서대로 그룹별(spawn Group id - npc)
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 };
 
 

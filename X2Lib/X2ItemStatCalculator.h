@@ -83,7 +83,7 @@ public:
 						IN const CX2Item::ItemTemplet* pItemTemplet ) const;
 
 	void GetSocketOptionStatRelLV( OUT CX2SocketItem::KItemStatRelLVData& kItemStatRelLVData_,
-									IN const CX2Item::ItemData* pItemData_, IN const CX2Item::ItemTemplet* pItemTemplet_) const;
+									IN const CX2Item::ItemData& kItemData_, IN const CX2Item::ItemTemplet* pItemTemplet_) const;
 
 private:	
 	void OpenScriptFile();

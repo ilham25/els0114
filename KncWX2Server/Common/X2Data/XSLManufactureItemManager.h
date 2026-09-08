@@ -71,6 +71,10 @@ public:
 #endif SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
 	//}}
 	
+#ifdef SERV_CHECK_POSSIBLE_MANUFACTURE_ID	// 적용날짜: 미정
+	bool IsPossibleManufactureID( IN int iManufactureID )	{ return (m_setPossibleManufactureID.find( iManufactureID ) != m_setPossibleManufactureID.end()); }
+#endif	// SERV_CHECK_POSSIBLE_MANUFACTURE_ID
+
 private:
 	std::map< int, ManufactureData >	m_mapManufacture;
 	std::map< int, KLottery >			m_mapResultGroup;
@@ -84,6 +88,17 @@ private:
 	std::set< int >						m_setDifServerGroupManufactureID;
 #endif SERV_SERVER_ERROR_LOG_BUG_FIX
 	//}}
+#ifdef SERV_CHECK_POSSIBLE_MANUFACTURE_ID	// 적용날짜: 미정
+	std::set< int >						m_setPossibleManufactureID;
+#endif	// SERV_CHECK_POSSIBLE_MANUFACTURE_ID
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+	std::map< int, std::vector<int> >			m_mapManufactureVillage;
+#endif //SERV_MANUFACTURE_PERIOD_FIX
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+	public:
+	std::map< int, int >				m_mapPeriodGroup;
+#endif SERV_MANUFACTURE_PERIOD_FIX
 };
 
 DefRefreshSingletonInline( CXSLManufactureItemManager );

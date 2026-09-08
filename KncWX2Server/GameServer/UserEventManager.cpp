@@ -163,7 +163,11 @@ void KUserEventManager::CheckConnectTimeEvent( IN KGSUserPtr spUser, IN KGameEve
 	{
 		// 접속 시간 이벤트 보상 받으러 가자!
 		kPacketReq.m_iUnitUID = spUser->GetCharUID();
+#ifdef SERV_ADD_EVENT_DB
+		spUser->SendToEventDB( DBE_UPDATE_EVENT_TIME_REQ, kPacketReq );
+#else //SERV_ADD_EVENT_DB
 		spUser->SendToGameDB( DBE_UPDATE_EVENT_TIME_REQ, kPacketReq );
+#endif //SERV_ADD_EVENT_DB
 	}
 
 	// 종료된 이벤트가 있는지?
@@ -200,12 +204,6 @@ void KUserEventManager::InitTimeEvent( IN const u_char ucLevel,
 									   //}}
 									   IN const std::vector< KConnectTimeEventInfo >& vecEventTime, 
 									   IN const std::vector< KCumulativeTimeEventInfo >& vecCumulativeEventTime
-									   //{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-									   , IN const bool bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-									   //}}
-
 									   //{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 									   , IN const UidType& iUnitUID
@@ -295,13 +293,6 @@ void KUserEventManager::InitTimeEvent( IN const u_char ucLevel,
 
 		, m_mapConnectTimeEvent
 		, m_setCompletedEvent
-
-		//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-		, bEventReturnUserMark
-#endif SERV_EVENT_RETURN_USER_MARK
-		//}}
-
 		//{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 		, iUnitUID
@@ -371,11 +362,6 @@ void KUserEventManager::CheckConnectTimeEvent( IN KGSUserPtr spUser
 												  kPacketReq.m_vecConnectTimeEvent, 
 												  kPacketNotBegin.m_vecTimeEvent, 
 												  kPacketNotEnd.m_vecTimeEvent
-												  //{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-												  , spUser->IsEventReturnUser()
-#endif SERV_EVENT_RETURN_USER_MARK
-												  //}}
 												  //{{ 2012. 06. 07	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
 												  , iUnitUID
@@ -392,7 +378,11 @@ void KUserEventManager::CheckConnectTimeEvent( IN KGSUserPtr spUser
 	{
 		// 접속 시간 이벤트 보상 받으러 가자!
 		kPacketReq.m_iUnitUID = spUser->GetCharUID();
+#ifdef SERV_ADD_EVENT_DB
+		spUser->SendToEventDB( DBE_UPDATE_EVENT_TIME_REQ, kPacketReq );
+#else //SERV_ADD_EVENT_DB
 		spUser->SendToGameDB( DBE_UPDATE_EVENT_TIME_REQ, kPacketReq );
+#endif //SERV_ADD_EVENT_DB
 	}
 
 	// 종료된 이벤트가 있는지?
@@ -562,25 +552,13 @@ void KUserEventManager::CheckCumulativeTimeEvent( IN KGSUserPtr spUser )
 	{
 		// 접속 시간 이벤트 보상 받으러 가자!
 		kPacketReq.m_iUnitUID = spUser->GetCharUID();
+#ifdef SERV_ADD_EVENT_DB
+		spUser->SendToEventDB( DBE_UPDATE_EVENT_TIME_REQ, kPacketReq );
+#else //SERV_ADD_EVENT_DB
 		spUser->SendToGameDB( DBE_UPDATE_EVENT_TIME_REQ, kPacketReq );
+#endif //SERV_ADD_EVENT_DB
 	}
 
-	//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-	// 종료된 이벤트가 있는지?
-	if( !kPacketNotEnd.m_vecTimeEvent.empty() )
-	{
-		kPacketNotEnd.m_cNotifyType = KEGS_TIME_EVENT_INFO_NOT::TENT_END;
-		spUser->SendPacket( EGS_TIME_EVENT_INFO_NOT, kPacketNotEnd );
-	}
-
-	// 새로 시작되는 이벤트가 있는지?
-	if( !kPacketNotBegin.m_vecTimeEvent.empty() )
-	{
-		kPacketNotBegin.m_cNotifyType = KEGS_TIME_EVENT_INFO_NOT::TENT_BEGIN;
-		spUser->SendPacket( EGS_TIME_EVENT_INFO_NOT, kPacketNotBegin );
-	}
-#else
 	// 새로 시작되는 이벤트가 있는지?
 	if( !kPacketNotBegin.m_vecTimeEvent.empty() )
 	{
@@ -594,8 +572,6 @@ void KUserEventManager::CheckCumulativeTimeEvent( IN KGSUserPtr spUser )
 		kPacketNotEnd.m_cNotifyType = KEGS_TIME_EVENT_INFO_NOT::TENT_END;
 		spUser->SendPacket( EGS_TIME_EVENT_INFO_NOT, kPacketNotEnd );
 	}
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-	//}}
 }
 
 void KUserEventManager::GetDBUpdateInfo( OUT std::vector< KCumulativeTimeEventInfo >& vecEventTime )
@@ -816,7 +792,6 @@ void KUserEventManager::CheckAttendanceSuccess( IN KGSUserPtr spUser, IN bool bW
 #endif SERV_WEB_POINT_EVENT
 //}}
 
-
 #ifdef SERV_ADVERTISEMENT_EVENT
 void KUserEventManager::CheckAdvertisementEvent( IN KGSUserPtr spUser )
 {
@@ -828,7 +803,6 @@ void KUserEventManager::CheckAdvertisementEvent( IN KGSUserPtr spUser )
 	KDBE_INSERT_ADVERTISEMENT_EVENT_INFO_NOT kPacketDB;
 
 	SiKGameEventManager()->CheckEnableAdvertisementEvent( m_setCompletedEvent, kPacketNotBegin.m_vecTimeEvent, kPacketNotEnd.m_vecTimeEvent );
-
 
 	// 새로 시작되는 이벤트가 있다면 클라이언트에 알리고
 	if( !kPacketNotBegin.m_vecTimeEvent.empty() )
@@ -843,7 +817,11 @@ void KUserEventManager::CheckAdvertisementEvent( IN KGSUserPtr spUser )
 		}
 
 		kPacketDB.m_iUserUID = spUser->GetUID();
-		spUser->SendToGameDB( DBE_INSERT_ADVERTISEMENT_EVENT_INFO_NOT, kPacketDB );
+#ifdef SERV_ADD_EVENT_DB
+				spUser->SendToEventDB( DBE_INSERT_ADVERTISEMENT_EVENT_INFO_NOT, kPacketDB );
+#else //SERV_ADD_EVENT_DB
+				spUser->SendToGameDB( DBE_INSERT_ADVERTISEMENT_EVENT_INFO_NOT, kPacketDB );
+#endif //SERV_ADD_EVENT_DB
 	}
 }
 

@@ -49,13 +49,17 @@ m_pEdgeTexture(NULL)
 	m_eControlState	= SCS_NORMAL;
 	m_pEdgeTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"UIEdge.tga" );
 
+#ifdef DLL_BUILD
+	m_bEditEdge = false;
+#endif
+
 /*	기본 사운드 설정 : 일단 주석처리. 필요할때만 사운드를 설정해주도록 하자.
 	//{{ robobeg : 2008-10-28
 	//KLuaManager kLuaManager;
 	KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 	//}} robobeg : 2008-10-28
 
-	if(  g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
+	if(  g_pKTDXApp->LoadAndDoMemory( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
 	{
 		return;
 	}
@@ -109,6 +113,11 @@ bool CKTDGUISlot::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lParam
 {
 	if( m_bEnable == false || m_bShow == false )
 		return false;
+
+#ifdef DLL_BUILD
+	if( m_bUpdate == false )
+		return S_OK;
+#endif
 	
 	switch( uMsg )
 	{
@@ -267,6 +276,11 @@ void CKTDGUISlot::LButtonMouseUp()
 	if( m_bShow == false )
 		return S_OK;
 
+#ifdef DLL_BUILD
+	if( m_bUpdate == false )
+		return S_OK;
+#endif
+
 	CKTDGUIControl::OnFrameMove( fTime, fElapsedTime );
 	
 	m_fElapsedTime = fElapsedTime;
@@ -371,6 +385,10 @@ void CKTDGUISlot::LButtonMouseUp()
 	KTDXPROFILE();
 	if( m_bShow == false )
 		return S_OK;
+
+#ifdef DLL_BUILD
+	DrawEditEdge();
+#endif
 
 	UpdateVertex( m_Vertex[CKTDGUIControl::VP_LEFT_TOP], 
 		m_Vertex[CKTDGUIControl::VP_RIGHT_TOP], 
@@ -1151,9 +1169,138 @@ D3DXVECTOR2 CKTDGUISlot::GetPos()
 		return m_pNormalPoint->leftTopPoint;
 	else
 		return D3DXVECTOR2(0, 0);
-
-
 }
+
+#ifdef DLL_BUILD
+void CKTDGUISlot::MoveControl( float fx, float fy )
+{
+	if( m_pNormalPoint != NULL )
+		m_pNormalPoint->Move(fx, fy);
+
+	if( m_pMouseOverPoint != NULL )
+		m_pMouseOverPoint->Move(fx, fy);
+
+	m_NowPoint = *m_pNormalPoint;
+}
+
+void CKTDGUISlot::MoveSubControl( float fx, float fy, wstring subControlName )
+{
+	if( subControlName == L"Normal" && m_pNormalPoint != NULL )
+	{
+		m_pNormalPoint->Move(fx, fy);
+		m_NowPoint = *m_pNormalPoint;
+	}
+
+	else if( subControlName == L"Over" && m_pMouseOverPoint != NULL )
+	{
+		m_pMouseOverPoint->Move(fx, fy);
+		m_NowPoint = *m_pMouseOverPoint;
+	}
+}
+
+void CKTDGUISlot::SetEditGUI( bool bEdit )
+{
+	SetColor( D3DXCOLOR(0xffffffff) );
+
+	m_bUpdate = !bEdit;
+	m_bEditEdge = bEdit;
+
+	m_NowPoint = *m_pNormalPoint;
+}
+
+void CKTDGUISlot::ShowSubView( wstring name, bool bView )
+{
+	if( name == L"Normal" && m_pNormalPoint != NULL )
+		 m_NowPoint = *m_pNormalPoint;
+
+	else if( name == L"Over" && m_pMouseOverPoint != NULL )
+		 m_NowPoint = *m_pMouseOverPoint;
+}
+
+vector<D3DXVECTOR2> CKTDGUISlot::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;
+
+	ret.push_back( GetPos() );
+
+	if( m_pMouseOverPoint != NULL )
+		ret.push_back( m_pMouseOverPoint->leftTopPoint );
+
+	return ret;
+}
+
+D3DXVECTOR2 CKTDGUISlot::GetPos(wstring name)
+{
+	if( name == L"Normal" )
+		return GetPos();
+
+	else if( name == L"Over" &&  NULL != m_pMouseOverPoint )
+		return m_pMouseOverPoint->leftTopPoint;
+
+	return D3DXVECTOR2(0, 0);
+}
+
+void CKTDGUISlot::DrawEditEdge()
+{
+	if( false == m_bEditEdge )
+		return;	
+
+	if ( m_pEdgeTexture == NULL )
+		return;	
+
+	//const CKTDGUIControl::UIPointData & point = *m_pEditEdgePoint;
+	D3DXCOLOR tempColor;
+
+	int edgeWidth = 2;
+	D3DXCOLOR edgeColor = D3DXCOLOR(0xffff0000);
+
+	tempColor.a = edgeColor.a * m_pDialog->GetColor().a * m_Color.a;
+	tempColor.r = edgeColor.r * m_pDialog->GetColor().r * m_Color.r;
+	tempColor.g = edgeColor.g * m_pDialog->GetColor().g * m_Color.g;
+	tempColor.b = edgeColor.b * m_pDialog->GetColor().b * m_Color.b;
+
+	RECT edgeRect;
+	edgeRect.left = (int)m_NowPoint.leftTopPoint.x;
+	edgeRect.top = (int)m_NowPoint.leftTopPoint.y;
+	edgeRect.right = (int)m_NowPoint.rightBottomPoint.x;
+	edgeRect.bottom = (int)m_NowPoint.rightBottomPoint.y;
+
+	int _width = (int)(edgeRect.right - edgeRect.left);
+	int _height = (int)(edgeRect.bottom - edgeRect.top);
+
+	//if ( m_bDrawEdgeOut == true )
+	{
+		// 좌 left/top
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth), 
+			edgeWidth , 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 하left/bottom
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.bottom ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+
+		// 우right/top
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.right ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top ), 
+			edgeWidth, 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 상left/top
+		m_pEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+	}
+}
+
+#endif
 
 
 #endif // NEW_SKILL_TREE_UI

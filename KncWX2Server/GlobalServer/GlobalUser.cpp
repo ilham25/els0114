@@ -50,6 +50,9 @@
 	#include "BlockListManager.h"
 #endif SERV_BLOCK_LIST
 //}}
+#ifdef SERV_GLOBAL_MISSION_MANAGER
+#include "GlobalMissionManager.h"
+#endif SERV_GLOBAL_MISSION_MANAGER
 
 //{{ 2012. 12. 17	박세훈	잭팟 이벤트
 #ifdef SERV_EVENT_JACKPOT
@@ -57,9 +60,11 @@
 #endif SERV_EVENT_JACKPOT
 //}}
 
-#ifdef SERV_GLOBAL_MISSION_MANAGER
-#include "GlobalMissionManager.h"
-#endif SERV_GLOBAL_MISSION_MANAGER
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-30	// 박세훈
+	#include "FieldBossManager.h"
+	#include "X2Data/XSLFieldBossData.h"
+	#include "X2Data/XSLBattleFieldManager.h"
+#endif // SERV_BATTLE_FIELD_BOSS
 
 NiImplementRTTI( KGlobalUser, KActor );
 ImplPfID( KGlobalUser, PI_GLOBAL_USER );
@@ -152,7 +157,13 @@ void KGlobalUser::ProcessEvent( const KEventPtr& spEvent_ )
    _CASE( EGB_MODULE_INFO_UPDATE_NOT, KEGS_MODULE_INFO_UPDATE_NOT );
 #endif SERV_BLOCK_LIST
 	//}}
-
+   //{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
+#ifdef SERV_GLOBAL_MISSION_MANAGER
+   CASE( EGB_GET_GLOBAL_MISSION_INFO_REQ );
+   _CASE( EGB_GLOBAL_MISSION_UPDATE_NOT, KEGB_GLOBAL_MISSION_UPDATE_NOT );
+#endif SERV_GLOBAL_MISSION_MANAGER
+   //}} 2012. 09. 03	임홍락	글로벌 미션 매니저
+   	
 #ifdef SERV_TIME_ENCHANT_EVENT// 작업날짜: 2013-05-28	// 박세훈
    CASE_NOPARAM( EGB_TIME_ENCHANT_EVENT_INFO_REQ );
    CASE( EGB_TIME_ENCHANT_EVENT_NOT );
@@ -166,12 +177,15 @@ void KGlobalUser::ProcessEvent( const KEventPtr& spEvent_ )
    CASE( EGB_EXCHANGE_LIMIT_INFO_ROLLBACK_NOT );
 #endif // SERV_ITEM_EXCHANGE_LIMIT
 
-   //{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
-#ifdef SERV_GLOBAL_MISSION_MANAGER
-   CASE( EGB_GET_GLOBAL_MISSION_INFO_REQ );
-   _CASE( EGB_GLOBAL_MISSION_UPDATE_NOT, KEGB_GLOBAL_MISSION_UPDATE_NOT );
-#endif SERV_GLOBAL_MISSION_MANAGER
-   //}} 2012. 09. 03	임홍락	글로벌 미션 매니저
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-30	// 박세훈
+   CASE( EGB_UPDATE_TOTAL_DANGEROUS_VALUE_NOT );
+   CASE_NOPARAM( EGB_BATTLE_FIELD_BOSS_INFO_NOT );
+
+   CASE( EGB_ADMIN_BOSS_FIELD_GATE_OPEN_REQ );
+   CASE_NOPARAM( EGB_ADMIN_BOSS_FIELD_GATE_CLOSE_NOT );
+   CASE( EGB_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ );
+   CASE( EGB_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ );
+#endif // SERV_BATTLE_FIELD_BOSS
 
     CASE_NOPARAM( E_RESERVE_DESTROY );
 
@@ -824,6 +838,28 @@ _IMPL_ON_FUNC( EGB_MODULE_INFO_UPDATE_NOT, KEGS_MODULE_INFO_UPDATE_NOT )
 }
 #endif SERV_BLOCK_LIST
 //}}
+//{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
+#ifdef SERV_GLOBAL_MISSION_MANAGER
+IMPL_ON_FUNC( EGB_GET_GLOBAL_MISSION_INFO_REQ )
+{
+	if( SiKGlobalMissionManager()->GetIsFirstTick() == true )	// 첫 번째 틱이면 글로벌 미션 정보를 보내지 않음.
+	{
+		return;
+	}
+
+	KEGB_GET_GLOBAL_MISSION_INFO_ACK kPacket;
+	SiKGlobalMissionManager()->GetGlobalMissionInfo( KEGB_GET_GLOBAL_MISSION_INFO_ACK::FT_INIT, kPacket );
+
+	UidType anTrace[2] = { kPacket_.m_iServerUID, -1 };
+	KncSend( PI_GLOBAL_SERVER, KBaseServer::GetKObj()->GetUID(), PI_GS_SERVER, 0, anTrace, EGB_GET_GLOBAL_MISSION_INFO_ACK, kPacket );
+}
+
+_IMPL_ON_FUNC( EGB_GLOBAL_MISSION_UPDATE_NOT, KEGB_GLOBAL_MISSION_UPDATE_NOT )
+{
+	SiKGlobalMissionManager()->IncreaseGlobalMissionClearCount(kPacket_.m_wstrGlobalMissionDay, kPacket_.m_iNowCount);
+}
+#endif SERV_GLOBAL_MISSION_MANAGER
+//}} 2012. 09. 03	임홍락	글로벌 미션 매니저
 
 //{{ 2012. 11. 21	박세훈	영웅 대전 참가자 관리용 리스트
 #ifdef SERV_HERO_PVP_MANAGE_LIST
@@ -1087,25 +1123,195 @@ IMPL_ON_FUNC( EGB_EXCHANGE_LIMIT_INFO_ROLLBACK_NOT )
 }
 #endif // SERV_ITEM_EXCHANGE_LIMIT
 
-//{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
-#ifdef SERV_GLOBAL_MISSION_MANAGER
-IMPL_ON_FUNC( EGB_GET_GLOBAL_MISSION_INFO_REQ )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-30	// 박세훈
+int KGlobalUser::BossFieldOpenProcess( IN const int iVillageMapID, IN const __time64_t tCurrentTime ) const
 {
-	if( SiKGlobalMissionManager()->GetIsFirstTick() == true )	// 첫 번째 틱이면 글로벌 미션 정보를 보내지 않음.
+	int iPortalDestination;
+	if( SiCXSLBattleFieldManager()->GetRandomBossFieldID( iPortalDestination ) == false )
 	{
+		START_LOG( cerr, L"필드 보스 시스템에서 사용할 보스 필드정보가 존재하지 않습니다." )
+			<<END_LOG;
+		
+		return NetError::ERR_FIELD_BOSS_06;	// 보스 필드정보가 존재하지 않습니다.
+	}
+
+	SiKFieldBossManager()->OpenPortal( iVillageMapID, iPortalDestination, tCurrentTime );	// 정보 기록
+
+	// 모든 게임 서버에 알리자
+	const CTime tPortalAppearanceTime( SiKFieldBossManager()->GetPortalAppearanceTime() );
+	const CTime tPortalHoldingTime = tPortalAppearanceTime + CTimeSpan( 0, 0, SiCXSLFieldBossData()->GetFieldBossPortalHoldingTime_M(), 0 );
+	const CTime tFieldBossCoolTime = tPortalAppearanceTime + CTimeSpan( 0, 0, SiCXSLFieldBossData()->GetFieldBossCoolTime_M(), 0 );
+
+	KEGB_BATTLE_FIELD_BOSS_INFO_NOT kPacket;
+	kPacket.m_tRemainPortalTime			= tPortalHoldingTime.GetTime() - tCurrentTime;
+	kPacket.m_tRemainCoolTime			= tFieldBossCoolTime.GetTime() - tCurrentTime;
+	kPacket.m_iPortalAppearanceMap		= SiKFieldBossManager()->GetPortalAppearanceMap();
+	kPacket.m_iPortalDestination		= SiKFieldBossManager()->GetPortalDestination();
+	kPacket.m_bPortalOpen				= SiKFieldBossManager()->IsPortalOpen();
+	kPacket.m_bCoolTime					= SiKFieldBossManager()->IsCoolTime();
+
+	UidType anTrace[2] = { 0, -1 };
+	KncSend( PI_GLOBAL_SERVER, KBaseServer::GetKObj()->GetUID(), PI_GS_SERVER, 0, anTrace, EGB_BATTLE_FIELD_BOSS_INFO_NOT, kPacket );
+	
+	return NetError::NET_OK;
+}
+
+int KGlobalUser::TotalDangerousValueUpdateProcess( IN const int iBattleFieldID, IN const byte byteValue, IN const __time64_t tCurrentTime ) const
+{
+	// 필드 보스 시스템 CoolTime 중인가?
+	if( SiKFieldBossManager()->IsCoolTime() == true )
+	{
+		return NetError::ERR_FIELD_BOSS_05;	// 쿨 타임 상태입니다.
+	}
+
+	// 갱신 전 TotalDangerousValue를 보관하자
+	const byte byteOldTotalDangerousValue = SiKFieldBossManager()->GetTotalDangerousValue();
+
+	// 데이터 갱신
+	SiKFieldBossManager()->UpdateTotalDangerousValue( iBattleFieldID, byteValue );
+
+	const byte byteTotalDangerousVale = SiKFieldBossManager()->GetTotalDangerousValue();
+
+	// 갱신 이후 TotalDangerousValue 값이 증가하였고, 정해진 수치를 넘어섰다면 필드 보스를 출현시키자
+	if( ( byteOldTotalDangerousValue < byteTotalDangerousVale )
+		&& ( SiCXSLFieldBossData()->GetTotalDangerousValue() <= byteTotalDangerousVale )
+		)
+	{
+		int iPortalLocationID;
+		if( SiCXSLFieldBossData()->GetRandomPortalLocationID( iPortalLocationID ) == true )
+		{
+			BossFieldOpenProcess( iPortalLocationID, tCurrentTime );
+		}
+	}
+
+	return NetError::NET_OK;
+}
+
+IMPL_ON_FUNC( EGB_UPDATE_TOTAL_DANGEROUS_VALUE_NOT )
+{
+	// 현재 시간 기록
+	const CTime tCurrentTime = CTime::GetCurrentTime();
+	const byte byteValue = SiKFieldBossManager()->GetTotalDangerousValue( kPacket_.m_iBattleFieldID ) + kPacket_.m_byteIncreasedValue;
+	TotalDangerousValueUpdateProcess( kPacket_.m_iBattleFieldID, byteValue, tCurrentTime.GetTime() );
+}
+
+IMPL_ON_FUNC_NOPARAM( EGB_BATTLE_FIELD_BOSS_INFO_NOT )
+{
+	// 현재 시간 기록
+	const CTime tCurrentTime = CTime::GetCurrentTime();
+
+	const bool bPortalOpen	= SiKFieldBossManager()->IsPortalOpen();
+	const bool bCoolTime	= SiKFieldBossManager()->IsCoolTime();
+
+	const CTime tPortalAppearanceTime( SiKFieldBossManager()->GetPortalAppearanceTime() );
+	
+	KEGB_BATTLE_FIELD_BOSS_INFO_NOT kPacket;
+
+	// 포탈 정보
+	if( bPortalOpen == true )
+	{
+		const CTime tPortalHoldingTime = tPortalAppearanceTime + CTimeSpan( 0, 0, SiCXSLFieldBossData()->GetFieldBossPortalHoldingTime_M(), 0 );
+		kPacket.m_tRemainPortalTime = tPortalHoldingTime.GetTime() - tCurrentTime.GetTime();
+	}
+	else
+	{
+		kPacket.m_tRemainPortalTime = 0;
+	}
+
+	// 쿨 타임 정보
+	if( bCoolTime == true )
+	{
+		const CTime tFieldBossCoolTime = tPortalAppearanceTime + CTimeSpan( 0, 0, SiCXSLFieldBossData()->GetFieldBossCoolTime_M(), 0 );
+		kPacket.m_tRemainCoolTime = tFieldBossCoolTime.GetTime() - tCurrentTime.GetTime();
+	}
+	else
+	{
+		kPacket.m_tRemainCoolTime = 0;
+	}
+
+	kPacket.m_iPortalAppearanceMap	= SiKFieldBossManager()->GetPortalAppearanceMap();
+	kPacket.m_iPortalDestination	= SiKFieldBossManager()->GetPortalDestination();
+	kPacket.m_bPortalOpen			= bPortalOpen;
+	kPacket.m_bCoolTime				= bCoolTime;
+
+	SendToGameServer( EGB_BATTLE_FIELD_BOSS_INFO_NOT, kPacket );
+}
+
+IMPL_ON_FUNC( EGB_ADMIN_BOSS_FIELD_GATE_OPEN_REQ )
+{
+	KEGB_ADMIN_BOSS_FIELD_GATE_OPEN_ACK kPacket;
+
+	// 필드 보스 시스템 CoolTime 중인가?
+	if( SiKFieldBossManager()->IsCoolTime() == true )
+	{
+		kPacket.m_iOK = NetError::ERR_FIELD_BOSS_02;	// 보스 필드 쿨타임 상태입니다. 닫은 후에 다시 시도해주세요.
+		SendToGSUser( FIRST_SENDER_UID, EGB_ADMIN_BOSS_FIELD_GATE_OPEN_ACK, kPacket );
 		return;
 	}
 
-	KEGB_GET_GLOBAL_MISSION_INFO_ACK kPacket;
-	SiKGlobalMissionManager()->GetGlobalMissionInfo( KEGB_GET_GLOBAL_MISSION_INFO_ACK::FT_INIT, kPacket );
-
-	UidType anTrace[2] = { kPacket_.m_iServerUID, -1 };
-	KncSend( PI_GLOBAL_SERVER, KBaseServer::GetKObj()->GetUID(), PI_GS_SERVER, 0, anTrace, EGB_GET_GLOBAL_MISSION_INFO_ACK, kPacket );
+	kPacket.m_iOK = BossFieldOpenProcess( kPacket_.m_iBattleFieldID, CTime::GetCurrentTime().GetTime() );
+	SendToGSUser( FIRST_SENDER_UID, EGB_ADMIN_BOSS_FIELD_GATE_OPEN_ACK, kPacket );
 }
 
-_IMPL_ON_FUNC( EGB_GLOBAL_MISSION_UPDATE_NOT, KEGB_GLOBAL_MISSION_UPDATE_NOT )
+IMPL_ON_FUNC_NOPARAM( EGB_ADMIN_BOSS_FIELD_GATE_CLOSE_NOT )
 {
-	SiKGlobalMissionManager()->IncreaseGlobalMissionClearCount(kPacket_.m_wstrGlobalMissionDay, kPacket_.m_iNowCount);
+	const bool bPortalOpen	= SiKFieldBossManager()->IsPortalOpen();
+	const bool bCoolTime	= SiKFieldBossManager()->IsCoolTime();
+
+	// 포탈이 열려 있는지 확인
+	if( bPortalOpen == true )
+	{
+		// 포탈 닫힘 처리
+		SiKFieldBossManager()->ClosePortal();
+	}
+
+	// 쿨 타임 체크
+	if( bCoolTime == true )
+	{
+		// 쿨 타임 종료 처리
+		SiKFieldBossManager()->SetCoolTimeState( false );
+		SiKFieldBossManager()->ClearTotalDangerousValue();	// TotalDangerousValue를 처음부터 계산한다.
+	}
+
+	// 포탈이 닫히거나 쿨 타임이 종료되었다면 알림 패킷을 보내자
+	if( ( bPortalOpen != SiKFieldBossManager()->IsPortalOpen() ) || ( bCoolTime != SiKFieldBossManager()->IsCoolTime() ) )
+	{
+		KEGB_BATTLE_FIELD_BOSS_INFO_NOT kPacket;
+		kPacket.m_iPortalAppearanceMap	= SiKFieldBossManager()->GetPortalAppearanceMap();
+		kPacket.m_iPortalDestination	= SiKFieldBossManager()->GetPortalDestination();
+		kPacket.m_bPortalOpen			= SiKFieldBossManager()->IsPortalOpen();
+		kPacket.m_bCoolTime				= SiKFieldBossManager()->IsCoolTime();
+
+		UidType anTrace[2] = { 0, -1 };
+		KncSend( PI_GLOBAL_SERVER, KBaseServer::GetKObj()->GetUID(), PI_GS_SERVER, 0, anTrace, EGB_BATTLE_FIELD_BOSS_INFO_NOT, kPacket );
+	}
 }
-#endif SERV_GLOBAL_MISSION_MANAGER
-//}} 2012. 09. 03	임홍락	글로벌 미션 매니저
+
+IMPL_ON_FUNC( EGB_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ )
+{
+	KEGB_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK kPacket;
+	kPacket.m_iOK						= NetError::NET_OK;
+	kPacket.m_iBattleFieldID			= kPacket_.m_iBattleFieldID;
+	kPacket.m_byteTotalDangerousValue	= SiKFieldBossManager()->GetTotalDangerousValue( kPacket_.m_iBattleFieldID );
+	
+	SendToGSUser( FIRST_SENDER_UID, EGB_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK, kPacket );
+}
+
+IMPL_ON_FUNC( EGB_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ )
+{
+	// 현재 시간 기록
+	const CTime tCurrentTime = CTime::GetCurrentTime();
+	byte byteValue = kPacket_.m_iTotalDangerousValue;
+
+	if( kPacket_.m_bSet == false )
+	{
+		byteValue += SiKFieldBossManager()->GetTotalDangerousValue( kPacket_.m_iBattleFieldID );
+	}
+
+	KEGB_ADMIN_SET_TOTAL_DANGEROUS_VALUE_ACK kPacket;
+
+	kPacket.m_iOK = TotalDangerousValueUpdateProcess( kPacket_.m_iBattleFieldID, byteValue, tCurrentTime.GetTime() );
+
+	SendToGSUser( FIRST_SENDER_UID, EGB_ADMIN_SET_TOTAL_DANGEROUS_VALUE_ACK, kPacket );
+}
+#endif // SERV_BATTLE_FIELD_BOSS

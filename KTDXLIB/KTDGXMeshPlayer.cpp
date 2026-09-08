@@ -1,9 +1,9 @@
 #include "StdAfx.h"
 #include ".\ktdgxmeshplayer.h"
 
-
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 CKTDGXMeshPlayer::CXMeshInstanceHandle CKTDGXMeshPlayer::s_iNextMeshInstanceHandle = 0;
-
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
 
@@ -17,9 +17,26 @@ static const CKTDGStateManager::KState s_akStates[] =
 //}} robobeg : 2008-10-13
 
 
-CKTDGXMeshPlayer::CKTDGXMeshPlayer()
+CKTDGXMeshPlayer::CKTDGXMeshPlayer(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            unsigned char ucSystemID
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK     
+    )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    : m_coInstanceHandleList( LIST_NUM, 64 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 {
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    m_ucSystemID = ucSystemID & 0x3;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    m_bInCriticalLoop = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	InitializeCriticalSection( &m_csMeshPlayerLock );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 //{{ robobeg : 2008-10-13
 	m_RenderStateID = s_akStates;
@@ -28,7 +45,9 @@ CKTDGXMeshPlayer::CKTDGXMeshPlayer()
 	m_bEnable = true;
 	m_bEnableSlashTrace = true;
 
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_InstanceList.reserve( 64 );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	m_fElapsedTime = 0.f;
 #ifdef NOT_RENDER_EFFECT_MADE_BY_GAME_UNIT
@@ -42,9 +61,16 @@ CKTDGXMeshPlayer::CKTDGXMeshPlayer()
 
 CKTDGXMeshPlayer::~CKTDGXMeshPlayer(void)
 {
-	DestroyAllInstance();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    ASSERT( m_bInCriticalLoop == false );
+    m_bInCriticalLoop = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+	DestroyAllInstances();
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	EnterCriticalSection( &m_csMeshPlayerLock );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	map<wstring,XMeshTemplet*>::iterator iter;
 	XMeshTemplet* pInst;
 
@@ -54,38 +80,21 @@ CKTDGXMeshPlayer::~CKTDGXMeshPlayer(void)
 		SAFE_DELETE( pInst );
 	}
 	m_TempletMap.clear();
-	LeaveCriticalSection( &m_csMeshPlayerLock );
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	LeaveCriticalSection( &m_csMeshPlayerLock );
 	DeleteCriticalSection( &m_csMeshPlayerLock );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 void CKTDGXMeshPlayer::OpenScriptFile( const WCHAR* pFilename )
 {
-	////CKTDXThread::CLocker locker( m_csMeshPlayerLock );
-
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFilename );
-	if( Info == NULL )
-	{
-		string strName;
-		ConvertWCHARToChar(strName, pFilename );
-		ErrorLogMsg( KEM_ERROR43, strName.c_str() );
+    bool bRet = g_pKTDXApp->LoadAndDoMemory( this, pFilename );
+    if ( bRet == false )
+    {
+		ErrorLogMsg( KEM_ERROR43, pFilename );
 		return;
-	}
-
-	char* pBuffer = Info->pRealData;
-
-#ifdef _ENCRIPT_SCRIPT_
-	pBuffer = XORDecrypt( pBuffer, Info->size );
-#endif
-
-
-#ifdef _ENCRIPT_SCRIPT_
-	Compile( pBuffer, -1 );
-	SAFE_DELETE_ARRAY( pBuffer );	 // XORDecrypt() 함수에서 할당된 메모리 해제
-#else
-	Compile( pBuffer, Info->size );
-#endif _ENCRIPT_SCRIPT_
+    }
 }
 
 
@@ -181,8 +190,13 @@ CKTDGXMeshPlayer::CXMeshInstance* CKTDGXMeshPlayer::CreateInstanceParabolic( CKT
 	pMeshPlayerInstance->SetVelocity( D3DXVECTOR3( fSpeed, 0, 0 ) );
 	pMeshPlayerInstance->SetGravity( vAcceleration );
 	pMeshPlayerInstance->SetParabolicCurve( true );		
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    pMeshPlayerInstance->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	pMeshPlayerInstance->OnFrameMove( 0.f, 0.0001f );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    pMeshPlayerInstance->SetPerFrameSimulation( false );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 	return pMeshPlayerInstance;
 }
@@ -194,30 +208,70 @@ CKTDGXMeshPlayer::CXMeshInstance* CKTDGXMeshPlayer::CreateInstanceParabolic( CKT
 CKTDGXMeshPlayer::CXMeshInstance* CKTDGXMeshPlayer::CreateInstanceNonTemplet( CKTDGXMeshPlayer* pMeshPlayer, XMeshTemplet* pTemplet, 
 								 const D3DXVECTOR3& pos, const D3DXVECTOR3& angleDegree, const D3DXVECTOR3& moveAxisAngleDegree )
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+    if ( iterEmpty == m_coInstanceHandleList.end(LIST_FREE) )
+    {
+        if ( m_coInstanceHandleList.storage_size() >= 0x10000 )
+        {
+            return NULL;
+        }
+        m_coInstanceHandleList.push_back_default(LIST_FREE);
+        iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+        ASSERT( iterEmpty != m_coInstanceHandleList.end(LIST_FREE) );
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	CKTDGXMeshPlayer::CXMeshInstance* pXmesh = CKTDGXMeshPlayer::CXMeshInstance::CreateMeshInstance(pMeshPlayer, pTemplet, pos, angleDegree, moveAxisAngleDegree );
-
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( pXmesh == NULL )
+    {
+        return NULL;
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    pXmesh->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	pXmesh->OnFrameMove( 0.f, 0.0001f );
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    pXmesh->SetPerFrameSimulation( false );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	pXmesh->SetRenderStateID( m_RenderStateID );
 
 	// 핸들 등록
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_coInstanceHandleList.splice( m_coInstanceHandleList.end(LIST_LIVE), iterEmpty );
+    iterEmpty->m_pInstance = pXmesh;
+    WORD    wIndex = (WORD) iterEmpty.GetIndex();
+    CXMeshInstanceHandle    handle;
+    DWORD   dwHandle = 0;
+    do
+    {
+        ++iterEmpty->m_wStamp;
+        dwHandle = ComposeHandle( wIndex, iterEmpty->m_wStamp );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle.SetValue( (int) dwHandle );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle = (int) dwHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    } while ( handle == INVALID_MESH_INSTANCE_HANDLE );
+    pXmesh->SetHandle( handle );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	pXmesh->SetHandle( s_iNextMeshInstanceHandle );
 	s_iNextMeshInstanceHandle++;
 	if( s_iNextMeshInstanceHandle > INT_MAX-2 )
 	{
 		s_iNextMeshInstanceHandle = 0;
 	}
+	m_InstanceList.push_back( pXmesh );
+	ASSERT( m_mapInstance.find( pXmesh->GetHandle() ) == m_mapInstance.end() );
+	m_mapInstance[ pXmesh->GetHandle() ] = pXmesh;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	// 렌더 체인에 넣기
 	g_pKTDXApp->GetDGManager()->AddObjectChain( pXmesh );
-
-	m_InstanceList.push_back( pXmesh );
-
-	ASSERT( m_mapInstance.find( pXmesh->GetHandle() ) == m_mapInstance.end() );
-	m_mapInstance[ pXmesh->GetHandle() ] = pXmesh;
-
 
 	return pXmesh;
 }
@@ -268,12 +322,25 @@ CKTDGXMeshPlayer::CXMeshInstance* CKTDGXMeshPlayer::CreateInstance( CKTDGObject*
 		D3DXVECTOR3(angleXDegree,angleYDegree,angleZDegree),
 		D3DXVECTOR3(moveAxisXDegree,moveAxisYDegree,moveAxisZDegree) );
 
-	if( pInstance->GetXSkinMesh() == NULL && pInstance->GetXMesh() == NULL )
+	if( pInstance == NULL || ( pInstance->GetXSkinMesh() == NULL && pInstance->GetXMesh() == NULL ) )
 	{
 		SAFE_DELETE_KTDGOBJECT( pInstance );
 		return NULL;
 	}
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+    if ( iterEmpty == m_coInstanceHandleList.end(LIST_FREE) )
+    {
+        if ( m_coInstanceHandleList.storage_size() >= 0x10000 )
+        {
+            SAFE_DELETE_KTDGOBJECT( pInstance );
+            return NULL;
+        }
+        m_coInstanceHandleList.push_back_default(LIST_FREE);
+        iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+        ASSERT( iterEmpty != m_coInstanceHandleList.end(LIST_FREE) );
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef GIANT_UNIT_GIANT_EFFECT_TEST
 	if( NULL != pKTDGObject )
@@ -296,25 +363,46 @@ CKTDGXMeshPlayer::CXMeshInstance* CKTDGXMeshPlayer::CreateInstance( CKTDGObject*
 		}
 	}
 #endif GIANT_UNIT_GIANT_EFFECT_TEST
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    pInstance->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	pInstance->OnFrameMove( 0.f, 0.0001f );
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    pInstance->SetPerFrameSimulation( false );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	pInstance->SetRenderStateID( m_RenderStateID );
 	if( layer != -1 )
 		pInstance->SetLayer( layer );
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_coInstanceHandleList.splice( m_coInstanceHandleList.end(LIST_LIVE), iterEmpty );
+    iterEmpty->m_pInstance = pInstance;
+    WORD   wIndex = iterEmpty.GetIndex();
+    CXMeshInstanceHandle    handle;
+    DWORD   dwHandle = 0;
+    do
+    {
+        ++iterEmpty->m_wStamp;
+        dwHandle = ComposeHandle( wIndex, iterEmpty->m_wStamp );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle.SetValue( (int) dwHandle );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle = (int) dwHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    } while ( handle == INVALID_MESH_INSTANCE_HANDLE );
+    pInstance->SetHandle( handle );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	pInstance->SetHandle( s_iNextMeshInstanceHandle );
 	s_iNextMeshInstanceHandle++;
 	if( s_iNextMeshInstanceHandle > INT_MAX-2 )
 	{
 		s_iNextMeshInstanceHandle = 0;
 	}
-
-	g_pKTDXApp->GetDGManager()->AddObjectChain( pInstance );
 	m_InstanceList.push_back( pInstance );
-
 	ASSERT( m_mapInstance.find( pInstance->GetHandle() ) == m_mapInstance.end() );
 	m_mapInstance[ pInstance->GetHandle() ] = pInstance;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	g_pKTDXApp->GetDGManager()->AddObjectChain( pInstance );
 
 	return pInstance;
 }
@@ -326,6 +414,44 @@ HRESULT CKTDGXMeshPlayer::OnFrameMove( double fTime, float fElapsedTime )
 
 	m_fElapsedTime = fElapsedTime;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    ASSERT( m_bInCriticalLoop == false );
+    m_bInCriticalLoop = true;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterNext;
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        iter = iterNext )
+    {
+        iterNext = iter;    ++iterNext;
+        KInstanceHandleInfo& info = *iter;
+        CXMeshInstance* pInstance = iter->m_pInstance;
+        if ( pInstance == NULL )
+        {
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+            continue;
+        }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        if ( pInstance->GetState() == IS_DIE )
+        {
+            info.m_pInstance = NULL;
+            SAFE_DELETE_KTDGOBJECT( pInstance );
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+            continue;
+        }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        pInstance->OnFrameMove( fTime, fElapsedTime );
+        if ( pInstance->GetState() == IS_DIE )
+        {
+            info.m_pInstance = NULL;
+            SAFE_DELETE_KTDGOBJECT( pInstance );
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+        }
+    }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
 	{
 		CXMeshInstance* pInstance = m_InstanceList[i];
@@ -339,34 +465,118 @@ HRESULT CKTDGXMeshPlayer::OnFrameMove( double fTime, float fElapsedTime )
 			i--;
 		}
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    m_bInCriticalLoop = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 
 	return S_OK;
 }
 
-void CKTDGXMeshPlayer::DestroyAllInstance()
+void CKTDGXMeshPlayer::DestroyAllInstances()
 {
 	////CKTDXThread::CLocker locker( m_csMeshPlayerLock );
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( IsInCriticalLoop() == true )
+    {
+        KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+        for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+            iter != iterEnd;
+            ++iter )
+        {
+            CXMeshInstance* pInstance = iter->m_pInstance;
+            if ( pInstance != NULL )
+            {
+                pInstance->PlayEnd();
+            }
+        }
+    }
+    else
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    {
+        KInstanceHandleList::iterator iterNext;
+        KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+        for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+            iter != iterEnd;
+            iter = iterNext )
+        {
+            iterNext = iter; ++iterNext;
+            CXMeshInstance* pInstance = iter->m_pInstance;
+            iter->m_pInstance = NULL;
+            if ( pInstance != NULL )
+            {
+                SAFE_DELETE_KTDGOBJECT( pInstance );
+            }
+        }
+        m_coInstanceHandleList.splice_list( m_coInstanceHandleList.begin( LIST_FREE ), LIST_LIVE );
+    }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
 	{
 		SAFE_DELETE_KTDGOBJECT( m_InstanceList[i] );
 	}
 	m_InstanceList.resize(0);
 	m_mapInstance.clear();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
-void CKTDGXMeshPlayer::DestroyInstance( CXMeshInstanceHandle& handle )
+void CKTDGXMeshPlayer::DestroyInstanceHandle( CXMeshInstanceHandle& handle )
 {
 	if( INVALID_MESH_INSTANCE_HANDLE == handle )
 		return;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = handle.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( handle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        handle = INVALID_MESH_INSTANCE_HANDLE;
+        return;
+    }
+    if ( wIndex >= m_coInstanceHandleList.storage_size() )
+    {
+        handle = INVALID_MESH_INSTANCE_HANDLE;
+        return;
+    }
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    CXMeshInstance* pMeshInst = info.m_pInstance;
+    if ( pMeshInst == NULL || info.m_wStamp != wStamp )
+    {
+        handle = INVALID_MESH_INSTANCE_HANDLE;
+        return;
+    }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( IsInCriticalLoop() == true )
+    {
+        pMeshInst->PlayEnd();
+        handle = INVALID_MESH_INSTANCE_HANDLE;
+        return;
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    info.m_pInstance = NULL;
+    SAFE_DELETE_KTDGOBJECT( pMeshInst );
+    m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), wIndex );
+    handle = INVALID_MESH_INSTANCE_HANDLE;
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	if( true == m_mapInstance.empty() )
 	{
 		handle = INVALID_MESH_INSTANCE_HANDLE;
 		return;
 	}
-
 
 	CXMeshInstance* pMeshInst = GetMeshInstance( handle );
 	if( NULL != pMeshInst )
@@ -386,6 +596,8 @@ void CKTDGXMeshPlayer::DestroyInstance( CXMeshInstanceHandle& handle )
 	}
 
 	handle = INVALID_MESH_INSTANCE_HANDLE;
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
@@ -395,6 +607,34 @@ bool CKTDGXMeshPlayer::IsLiveInstanceHandle( const CXMeshInstanceHandle handle )
 {
 	if( INVALID_MESH_INSTANCE_HANDLE == handle )
 		return false;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = handle.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( handle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        return false;
+    }
+    if ( wIndex >= m_coInstanceHandleList.storage_size() )
+        return false;
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    if ( info.m_pInstance == NULL || info.m_wStamp != wStamp )
+        return false;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( info.m_pInstance->GetState() == IS_DIE )
+        return false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+    return true;
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	if( true == m_mapInstance.empty() )
 		return false;
@@ -407,15 +647,44 @@ bool CKTDGXMeshPlayer::IsLiveInstanceHandle( const CXMeshInstanceHandle handle )
 	}
 
 	return false;
+
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
 
 
-CKTDGXMeshPlayer::CXMeshInstance* CKTDGXMeshPlayer::GetMeshInstance( CXMeshInstanceHandle handle )
+CKTDGXMeshPlayer::CXMeshInstance* CKTDGXMeshPlayer::GetMeshInstance( CXMeshInstanceHandle handle, bool bLiveOnly )
 {
 	if( INVALID_MESH_INSTANCE_HANDLE == handle )
 		return NULL;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = handle.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( handle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        return NULL;
+    }
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    CXMeshInstance* pInstance = info.m_pInstance;
+    if ( pInstance== NULL || info.m_wStamp != wStamp )
+        return NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( bLiveOnly == true && info.m_pInstance->GetState() == IS_DIE )
+        return false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    return  pInstance;
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	if( true == m_mapInstance.empty() )
 		return NULL;
@@ -428,6 +697,8 @@ CKTDGXMeshPlayer::CXMeshInstance* CKTDGXMeshPlayer::GetMeshInstance( CXMeshInsta
 	}
 
 	return NULL;
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
@@ -639,9 +910,7 @@ bool CKTDGXMeshPlayer::ProcessTempletBlock(	XMeshTemplet &templet,
 					else if (savedtoken.IsLandPos())		{ templet.landPosition = number; }
 					else if (savedtoken.IsLayer())			{ templet.layer = (int)number.m_Max; }
 					else if (savedtoken.IsElasticCoeff())	{ templet.elasticCoeff = number; }
-#ifdef ADD_UPDATE_LANDPOS
 					else if (savedtoken.IsElasticCoeffX())	{ templet.elasticCoeffX = number; }
-#endif
 					else if (savedtoken.IsSlashTraceType())	{ templet.iSlashTraceType = (int)number.m_Max; }
 					else if (savedtoken.IsSlashTraceCurveType())	{ templet.slashTraceCurveType = (CKTDGSlashTrace::CURVE_TYPE)(int) number.m_Max; }
 					else if (savedtoken.IsNotCheckLandTime()) { templet.fNotCheckLandTime = (float)number.m_Max; }
@@ -728,10 +997,17 @@ bool CKTDGXMeshPlayer::ProcessTempletBlock(	XMeshTemplet &templet,
 
 					else if (savedtoken.IsForceLayer())			{ templet.bForceLayer		= bValue; }
 					else if (savedtoken.IsUseSlashTrace())		{ templet.bUseSlashTrace	= bValue; }
-					else if (savedtoken.IsCrashLand())			{ templet.bCrashLand		= bValue; }		
+					else if (savedtoken.IsCrashLand())			{ templet.bCrashLand		= bValue; }
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
-					else if (savedtoken.IsApplyUnitScale())		{ templet.bApplyUnitScale	= bValue; }				
+					else if (savedtoken.IsApplyUnitScale())		{ templet.bApplyUnitScale	= bValue; }
 #endif //PARTICLE_NOTAPPLY_UNITSCALE
+#ifdef FIX_TEMP_MESH_BILLBOARD //2013.10.09
+					else if ( savedtoken.IsUseMeshBillBoard())		{ templet.bUseMeshBillBoard	= bValue; }
+#endif //FIX_TEMP_MESH_BILLBOARD
+
+#ifdef ADD_ALPHATESTENABLE
+					else if ( savedtoken.IsAlphatest())		{ templet.bAlphaTestEnable	= bValue; }
+#endif //ADD_ALPHATESTENABLE
 					else 
 					{
 						throw("Unknown sequence bool property!");
@@ -942,9 +1218,7 @@ CKTDGXMeshPlayer::CXMeshInstance::CXMeshInstance( CKTDGXMeshPlayer* pMeshPlayer,
 , m_pFrame_TRACE_START0( NULL )
 , m_pFrame_TRACE_END0( NULL )
 , m_vScale( 1, 1, 1 )
-#ifdef ADD_UPDATE_LANDPOS
 , m_bToggleRotate(false)
-#endif
 #ifdef SHOW_ATTACK_BOX_DUMMY
 , m_pXMeshSphere ( NULL )
 , m_pMatrixSphere ( NULL )
@@ -957,6 +1231,10 @@ CKTDGXMeshPlayer::CXMeshInstance::CXMeshInstance( CKTDGXMeshPlayer* pMeshPlayer,
 	SetAlphaObject( true );
 
 	m_Handle = INVALID_MESH_INSTANCE_HANDLE;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    m_fAccumElapsedTime = 0.f;
+    m_bPerFrameSimulation = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 	m_State					= IS_PLAY;
 	//m_bShow					= true;
@@ -983,12 +1261,16 @@ CKTDGXMeshPlayer::CXMeshInstance::CXMeshInstance( CKTDGXMeshPlayer* pMeshPlayer,
 	m_fElapsedTime			= 0.0f;
 	m_fGlobalTimeBefore		= 0.0f;
 	m_fGlobalTime			= 0.0f;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    m_fGlobalTimeVelocity   = 0.0f;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 	m_fDieTimeBefore		= 0.0f;
 	m_fDieTime				= 0.0f;
+	m_fDieFinalTime			= 0.0f;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 	m_fAniTimeBefore		= 0.0f;
 	m_fAniTime				= 0.0f;
 	m_fFinalTime			= 0.0f;
-	m_fDieFinalTime			= 0.0f;
 
 	m_bManualDir			= false;
 	m_ManualDirDegree		= angleDegree;
@@ -1034,6 +1316,9 @@ CKTDGXMeshPlayer::CXMeshInstance::CXMeshInstance( CKTDGXMeshPlayer* pMeshPlayer,
 
 	INIT_VECTOR3( m_vVelocity, 0.0f,0.0f,0.0f );
 	INIT_VECTOR3( m_vVelocityFinal, 0.0f,0.0f,0.0f );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    INIT_VECTOR3( m_vVelocityToAccumPos, 0.0f,0.0f,0.0f );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 	INIT_VECTOR2( m_vTexStage0UV, 0.0f,0.0f );
 	INIT_VECTOR2( m_vTexStage0UVFinal, 0.0f,0.0f );
@@ -1059,7 +1344,7 @@ CKTDGXMeshPlayer::CXMeshInstance::CXMeshInstance( CKTDGXMeshPlayer* pMeshPlayer,
 	INIT_VECTOR3( m_LightFlowPoint, 0.0f,0.0f,0.0f );
 	INIT_VECTOR3( m_LightFlowPointFinal, 0.0f,0.0f,0.0f );
 
-	INIT_VECTOR3( m_BlackHoleSpeed, 0.0f,0.0f,0.0f );
+	INIT_VECTOR3( m_vBlackHoleSpeed, 0.0f,0.0f,0.0f );
 	m_BlackHoleTime		= 0.0f;
 
 	m_fResetCrash		= 0.01f;
@@ -1133,7 +1418,9 @@ CKTDGXMeshPlayer::CXMeshInstance::CXMeshInstance( CKTDGXMeshPlayer* pMeshPlayer,
 			//pRenderParam->texOffsetStage1.y		= m_vTexStage1UV.y;
 			//pRenderParam->texOffsetStage2.x		= m_vTexStage2UV.x;
 			//pRenderParam->texOffsetStage2.y		= m_vTexStage2UV.y;
-
+#ifdef ADD_ALPHATESTENABLE
+			pRenderParam->bAlphaTestEnable	= m_TempletData.bAlphaTestEnable;
+#endif //ADD_ALPHATESTENABLE
 
 
 
@@ -1167,7 +1454,12 @@ CKTDGXMeshPlayer::CXMeshInstance::CXMeshInstance( CKTDGXMeshPlayer* pMeshPlayer,
 	}
 
 	GetMatrix().Move( m_vPos );
+#ifdef FIX_TEMP_MESH_BILLBOARD //2013.10.09
+	if ( false == pTemplet->bUseMeshBillBoard )
+		m_vRotate = m_vAngleDegree;
+#else //FIX_TEMP_MESH_BILLBOARD
 	m_vRotate = m_vAngleDegree;
+#endif //FIX_TEMP_MESH_BILLBOARD
 	GetMatrix().Rotate( D3DXToRadian(m_vAngleDegree.x), D3DXToRadian(m_vAngleDegree.y), D3DXToRadian(m_vAngleDegree.z) );
 
 
@@ -1289,6 +1581,18 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 		return S_OK;
 	}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	m_fAccumElapsedTime += fElapsedTime;
+
+	if( m_bPerFrameSimulation == false && !g_pKTDXApp->IsFinalFrameOfSimulationLoop() )
+		return S_OK;
+
+	m_fElapsedTime = fElapsedTime = m_fAccumElapsedTime;
+	m_fAccumElapsedTime = 0.0f;
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 #ifdef STOP_UNIT_STOP_EFFECT_TEST
 
 	m_StopTime.OnFrameMove( fTime, fElapsedTime );
@@ -1299,7 +1603,15 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 
 #endif STOP_UNIT_STOP_EFFECT_TEST
 
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    m_fAniTimeBefore = m_fAniTime;
+    m_fGlobalTimeBefore = m_fGlobalTime;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    m_fGlobalTimeVelocity = m_fGlobalTime;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    m_fDieTimeBefore = m_fDieTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 
 	switch( m_State )
 	{
@@ -1307,9 +1619,11 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 			PlayProcess();
 			break;
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 		case IS_DYING:
 			DyingProcess();
 			break;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 
 		case IS_DIE:
 			break;
@@ -1330,12 +1644,16 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 	//중력 적용
 	m_vVelocity += m_Gravity * fElapsedTime;
 	//}}AFX
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    m_vVelocityToAccumPos += ( 0.5 * fElapsedTime * fElapsedTime ) * m_Gravity;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 #endif FIX_XMESH_PLAYER_GRAVITY_ERROR_TEST
 
 
 	//블랙홀 포인트
 	if( m_BlackHoleTime > 0.0f )
-		m_BlackHoleSpeed = (m_BlackHolePosition - m_vPos) / m_BlackHoleTime;
+		m_vBlackHoleSpeed = (m_BlackHolePosition - m_vPos) / m_BlackHoleTime;
 
 
 
@@ -1343,22 +1661,30 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 	D3DXMATRIX	mDir;
 	D3DXVECTOR4 dirVec4;
 
- #ifdef ADD_UPDATE_LANDPOS
  	if( GetToggleRotae() == true && IsSamef(m_TempletData.elasticCoeffX.GetRandomNumInRange(), 0.f) == false )
  	{ 		
 		//m_vVelocity.x *= m_TempletData.elasticCoeffX.GetRandomNumInRange();
 		m_bToggleRotate = false;
  	}
- #endif
 
   	if( m_MoveAxisAngleDegree == D3DXVECTOR3(0.0f,0.0f,0.0f) )
   	{
   #ifdef FIX_XMESH_PLAYER_GRAVITY_ERROR_TEST
   		//중력 적용
   		m_vVelocity += m_Gravity * fElapsedTime;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        m_vVelocityToAccumPos += ( 0.5f * fElapsedTime * fElapsedTime ) * m_Gravity;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
   #endif FIX_XMESH_PLAYER_GRAVITY_ERROR_TEST
   
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        m_vPos += m_vVelocityToAccumPos;
+        ResetVelocityToAccumPos();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
   		m_vPos += m_vVelocity * m_fElapsedTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
   	}
   	else
 	{
@@ -1371,14 +1697,27 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 			D3DXVECTOR3 vTransformedGravity;
 			D3DXVec3TransformCoord( &vTransformedGravity, &m_Gravity, &matInvDir );
 
-			m_vVelocity += vTransformedGravity * fElapsedTime;			
+			m_vVelocity += vTransformedGravity * fElapsedTime;	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            m_vVelocityToAccumPos += ( 0.5f * fElapsedTime * fElapsedTime ) * vTransformedGravity;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        D3DXVECTOR3 tempMoveGap = m_vVelocityToAccumPos;
+        ResetVelocityToAccumPos();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		D3DXVECTOR3 tempMoveGap = m_vVelocity * fElapsedTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		
 
 #else FIX_XMESH_PLAYER_GRAVITY_ERROR_TEST
 		//{{AFX
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        D3DXVECTOR3 tempMoveGap = m_vVelocityToAccumPos;
+        INIT_VECTOR3( m_vVelocityToAccumPos, 0, 0, 0 );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		D3DXVECTOR3 tempMoveGap = m_vVelocity * fElapsedTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		D3DXMatrixRotationYawPitchRoll( &mDir, D3DXToRadian(m_MoveAxisAngleDegree.y), D3DXToRadian(m_MoveAxisAngleDegree.x), D3DXToRadian(m_MoveAxisAngleDegree.z) );
 		//}}AFX
 #endif FIX_XMESH_PLAYER_GRAVITY_ERROR_TEST
@@ -1395,11 +1734,7 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 	
 
 		//랜드 포지션
-	if( m_TempletData.bUseLand == true 
-#ifdef ADD_UPDATE_LANDPOS
-		&& m_NowLifeTime > m_TempletData.fNotCheckLandTime 
-#endif
-		)
+	if( m_TempletData.bUseLand == true && m_NowLifeTime > m_TempletData.fNotCheckLandTime )
 	{
 		if( m_vPos.y < m_fLandPosition )
 		{
@@ -1413,24 +1748,35 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
  						&& m_vVelocity.y <= 50.0f )
  					{	
  						m_vVelocity.y = 0.0f;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                        m_vVelocityToAccumPos.y = 0.f;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
  					}
  					else
 					{	
-						m_vVelocity.y *= -m_TempletData.elasticCoeff.GetRandomNumInRange();						
+						m_vVelocity.y *= -m_TempletData.elasticCoeff.GetRandomNumInRange();	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                        m_vVelocityToAccumPos.y = m_vVelocity.y * fElapsedTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					}
 				}
 
-#ifdef ADD_UPDATE_LANDPOS
  				if( IsSamef( m_TempletData.elasticCoeffX.GetRandomNumInRange(), 0.f ) == false && IsSamef(m_vVelocity.x, 0.f) == false )
 				{ 					
 					if( m_vVelocity.x >= -10.0f && m_vVelocity.x <= 10.0f )
  					{
  						m_vVelocity.x = 0.0f;
 						m_TempletData.elasticCoeffX = CMinMax<float>(0.f, 0.f);
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                        m_vVelocityToAccumPos.x = 0.f;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
  					}
  					else
  					{
 						m_vVelocity.x *= m_TempletData.elasticCoeffX.GetRandomNumInRange();
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                        m_vVelocityToAccumPos.x = m_vVelocity.x * fElapsedTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
  					}
 
 					if( m_TempletData.meshType == X_SKIN_MESH && m_pXSkinAnim != NULL )
@@ -1439,7 +1785,6 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 						m_pXSkinAnim->SetPlaySpeed( m_fAniPlaySpeed );
 					}
 				}
-#endif
 			}
 		}
 	}
@@ -1485,7 +1830,7 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 		m_ManualDirDegree.y = D3DXToDegree(m_ManualDirDegree.y);
 		m_ManualDirDegree.z = D3DXToDegree(m_ManualDirDegree.z);
 	}
-	m_vPos		+= m_BlackHoleSpeed		* fElapsedTime;
+	m_vPos		+= m_vBlackHoleSpeed		* fElapsedTime;
 
 
 
@@ -1570,6 +1915,10 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 		pParam->texOffsetStage2.x	= m_vTexStage2UV.x;
 		pParam->texOffsetStage2.y	= m_vTexStage2UV.y;
 
+#ifdef ADD_ALPHATESTENABLE
+		pParam->bAlphaTestEnable	= m_TempletData.bAlphaTestEnable;
+#endif //ADD_ALPHATESTENABLE
+
 
 		m_pXSkinAnim->GetMatrix().Rotate( vRot );
 		m_pXSkinAnim->GetMatrix().Move( m_vPos );
@@ -1583,8 +1932,21 @@ HRESULT CKTDGXMeshPlayer::CXMeshInstance::OnFrameMove( double fTime, float fElap
 
 #endif GIANT_UNIT_GIANT_EFFECT_TEST
 
-
-		
+//#ifdef X2OPTIMIZE_CULLING_PARTICLE
+//		if( m_pXSkinAnim->GetAnimXSkinMesh() )
+//		{
+//			CKTDGCamera& kCamera = g_pKTDXApp->GetDGManager()->GetCamera();
+//			D3DXVECTOR3 vCenter;
+//			D3DXVECTOR3 vScale;
+//
+//			const D3DXMATRIX& kSkinAnimMatrix = m_pXSkinAnim->GetMatrix().GetMatrix( m_pXSkinAnim->GetBillBoardType() );
+//			D3DXVec3TransformCoord( &vCenter, &m_pXSkinAnim->GetAnimXSkinMesh()->GetCenter(), &kSkinAnimMatrix );
+//            vScale = GetDecomposeScale( &kSkinAnimMatrix ) * m_pXSkinAnim->GetAnimXSkinMesh()->GetBoundingRadius();
+//            float fRadius = __max( vScale.x, vScale.y );
+//            fRadius = __max( fRadius, vScale.z );
+//			_DecideWorldMatrix_SkinMesh( m_pXSkinAnim->GetMatrix().GetMatrixSet(), kCamera, vCenter, fRadius );
+//		}
+//#endif//X2OPTIMIZE_CULLING_PARTICLE
 
 		m_pXSkinAnim->OnFrameMove( fTime, m_fElapsedTime * m_fAniPlaySpeed );
 	}
@@ -1695,12 +2057,16 @@ D3DXVECTOR3 CKTDGXMeshPlayer::CXMeshInstance::GetDirVec()
 void CKTDGXMeshPlayer::CXMeshInstance::PlayProcess()
 {
     if( m_pXSkinAnim == NULL )
+    {
         return;
+    }
 
+#ifndef     X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	m_fGlobalTimeBefore		= m_fGlobalTime;
+	m_fAniTimeBefore		= m_fAniTime;
+#endif      X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	m_fGlobalTime			+= m_fElapsedTime;
 	m_fNowResetCrash		+= m_fElapsedTime;
-	m_fAniTimeBefore		= m_fAniTime;
     
 	//다이 체크
 	switch( m_TempletData.lifeType )
@@ -1789,15 +2155,18 @@ void CKTDGXMeshPlayer::CXMeshInstance::PlayProcess()
 	}
 }
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 void CKTDGXMeshPlayer::CXMeshInstance::DyingProcess()
 {
     if( m_pXSkinAnim == NULL )
         return;
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	m_fDieTimeBefore	= m_fDieTime;
+	m_fAniTimeBefore	= m_fAniTime;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	m_fDieTime			+= m_fElapsedTime;
 	m_fNowResetCrash	+= m_fElapsedTime;
-	m_fAniTimeBefore	= m_fAniTime;
 
 	//다이 체크
 	switch( m_TempletData.dieType )
@@ -1846,6 +2215,7 @@ void CKTDGXMeshPlayer::CXMeshInstance::DyingProcess()
 			break;
 	}
 }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 
 
 //{{ robobeg : 2008-10-24
@@ -1928,6 +2298,23 @@ void    CKTDGXMeshPlayer::CXMeshInstance::OnFrameRender_Draw()
 		renderParam.texOffsetStage1.y	= m_vTexStage1UV.y;
 		renderParam.texOffsetStage2.x	= m_vTexStage2UV.x;
         renderParam.texOffsetStage2.y	= m_vTexStage2UV.y;
+#ifdef ADD_ALPHATESTENABLE
+		renderParam.bAlphaTestEnable	= m_TempletData.bAlphaTestEnable;
+#endif //ADD_ALPHATESTENABLE
+
+//#ifdef X2OPTIMIZE_CULLING_PARTICLE
+//        {
+//		    CKTDGCamera& kCamera = g_pKTDXApp->GetDGManager()->GetCamera();
+//		    D3DXVECTOR3 vCenter;
+//		    D3DXVECTOR3 vScale;
+//
+//		    D3DXVec3TransformCoord( &vCenter, &m_pXMesh->GetCenter(), &mWorld );
+//            vScale = GetDecomposeScale( &mWorld ) * m_pXMesh->GetRadius();
+//            float fRadius = __max( vScale.x, vScale.y );
+//            fRadius = __max( fRadius, vScale.z );
+//		    _DecideWorldMatrix_Mesh( mWorld, kCamera, (D3DXVECTOR3)vCenter, fRadius );
+//        }
+//#endif//X2OPTIMIZE_CULLING_PARTICLE
 
         g_pKTDXApp->GetDGManager()->GetXRenderer()->OnFrameRender( renderParam, mWorld, *m_pXMesh, m_pChangeTexXET, m_pMultiTexXET, m_pAniData, m_fAniTime, m_DrawCount );
 	}
@@ -2055,6 +2442,14 @@ void CKTDGXMeshPlayer::CXMeshInstance::OpenResource()
 
 void CKTDGXMeshPlayer::CXMeshInstance::RunEvent()
 {
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    ResetVelocityToAccumPos();
+    AddVelocityToAccumPos( m_fElapsedTime, false );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+
+
     if( m_pXSkinAnim == NULL )
         return;
 
@@ -2078,10 +2473,19 @@ void CKTDGXMeshPlayer::CXMeshInstance::RunEvent()
 
 			if( pEvent->IsFade() == true )
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				if( m_fAniTime >= pEvent->GetActualTime().m_Min 
+					&& m_fAniTimeBefore < pEvent->GetActualTime().m_Max )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				if( m_fAniTime >= pEvent->GetActualTime().m_Min 
 					&& m_fAniTime < pEvent->GetActualTime().m_Max )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    pEvent->OnFrameMove( this, m_fElapsedTime, m_fAniTimeBefore, m_fAniTime, true );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					pEvent->OnFrameMove( this, m_fElapsedTime, m_fAniTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				}
 			}
 			else
@@ -2090,7 +2494,11 @@ void CKTDGXMeshPlayer::CXMeshInstance::RunEvent()
 					&& m_fAniTime >= pEvent->GetActualTime().m_Min)
 					|| (pEvent->GetActualTime().m_Min == 0.0f && m_fAniTimeBefore == 0.0f ) )
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    pEvent->OnFrameMove( this, m_fElapsedTime, m_fAniTimeBefore, m_fAniTime, true );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					pEvent->OnFrameMove( this, m_fElapsedTime, m_fAniTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				}
 			}
 		}
@@ -2102,10 +2510,19 @@ void CKTDGXMeshPlayer::CXMeshInstance::RunEvent()
 
 			if( pEvent->IsFade() == true )
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				if( m_fGlobalTime >= pEvent->GetActualTime().m_Min 
+					&& m_fGlobalTimeBefore < pEvent->GetActualTime().m_Max )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				if( m_fGlobalTime >= pEvent->GetActualTime().m_Min 
 					&& m_fGlobalTime < pEvent->GetActualTime().m_Max )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				{				
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    pEvent->OnFrameMove( this, m_fElapsedTime, m_fGlobalTimeBefore, m_fGlobalTime, false );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					pEvent->OnFrameMove( this, m_fElapsedTime, m_fGlobalTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				}
 			}
 			else
@@ -2114,11 +2531,16 @@ void CKTDGXMeshPlayer::CXMeshInstance::RunEvent()
 					&& m_fGlobalTime >= pEvent->GetActualTime().m_Min)
 					|| (pEvent->GetActualTime().m_Min == 0.0f && m_fGlobalTime == 0.0f ) )
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    pEvent->OnFrameMove( this, m_fElapsedTime, m_fGlobalTimeBefore, m_fGlobalTime, false );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					pEvent->OnFrameMove( this, m_fElapsedTime, m_fGlobalTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				}
 			}
 		}
 	}
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 	else if( m_State == IS_DYING )
 	{
 		//애니메이션 타임 이벤트
@@ -2139,10 +2561,19 @@ void CKTDGXMeshPlayer::CXMeshInstance::RunEvent()
 
 			if( pEvent->IsFade() == true )
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				if( m_fAniTime >= pEvent->GetActualTime().m_Min 
+					&& m_fAniTimeBefore < pEvent->GetActualTime().m_Max )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				if( m_fAniTime >= pEvent->GetActualTime().m_Min 
 					&& m_fAniTime < pEvent->GetActualTime().m_Max )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    pEvent->OnFrameMove( this, m_fElapsedTime, m_fAniTimeBefore, m_fAniTime, true );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					pEvent->OnFrameMove( this, m_fElapsedTime, m_fAniTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				}
 			}
 			else
@@ -2151,7 +2582,11 @@ void CKTDGXMeshPlayer::CXMeshInstance::RunEvent()
 					&& m_fAniTime >= pEvent->GetActualTime().m_Min)
 					|| (pEvent->GetActualTime().m_Min == 0.0f && m_fAniTimeBefore == 0.0f ) )
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    pEvent->OnFrameMove( this, m_fElapsedTime, m_fAniTimeBefore, m_fAniTime, true );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					pEvent->OnFrameMove( this, m_fElapsedTime, m_fAniTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				}
 			}
 		}
@@ -2163,10 +2598,19 @@ void CKTDGXMeshPlayer::CXMeshInstance::RunEvent()
 
 			if( pEvent->IsFade() == true )
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+				if( m_fDieTime >= pEvent->GetActualTime().m_Min 
+					&& m_fDieTimeBefore < pEvent->GetActualTime().m_Max )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				if( m_fDieTime >= pEvent->GetActualTime().m_Min 
 					&& m_fDieTime < pEvent->GetActualTime().m_Max )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    pEvent->OnFrameMove( this, m_fElapsedTime, m_fDieTimeBefore, m_fDieTime, false );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					pEvent->OnFrameMove( this, m_fElapsedTime, m_fDieTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				}
 			}
 			else
@@ -2175,11 +2619,20 @@ void CKTDGXMeshPlayer::CXMeshInstance::RunEvent()
 					&& m_fDieTime >= pEvent->GetActualTime().m_Min)
 					|| (pEvent->GetActualTime().m_Min == 0.0f && m_fDieTimeBefore == 0.0f ) )
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                    pEvent->OnFrameMove( this, m_fElapsedTime, m_fDieTimeBefore, m_fDieTime, false );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 					pEvent->OnFrameMove( this, m_fElapsedTime, m_fDieTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 				}
 			}
 		}
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    UpdateVelocityAccumPosAndEventTimer( m_fGlobalTime, false );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
 }
 
 void  CKTDGXMeshPlayer::CXMeshInstance::ChangeXSkinMesh( const WCHAR* wszMeshName, const WCHAR* wszChangeTexXETName, 
@@ -2223,6 +2676,12 @@ void  CKTDGXMeshPlayer::CXMeshInstance::ChangeXSkinMesh( const WCHAR* wszMeshNam
 
 bool CKTDGXMeshPlayer::CXMeshInstance::EventTimerGlobal( float fTime )
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    // 주의!!! 아래 함수가 제대로 동작하려면 해당 mesh instance 는 SetPerFrameSimulation( true )  설정되어 있어야 함!!!
+    //CX2DamageEffect::CEffect::GetMainEffect() 로 리턴되는 mesh instance 에는 기본으로 설정되어 있음.
+    ASSERT( m_bPerFrameSimulation == true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 #ifdef ELSWORD_SHEATH_KNIGHT
 	if( m_fGlobalTimeBefore <= fTime && m_fGlobalTime > fTime )
 		return true;
@@ -2264,6 +2723,91 @@ void CKTDGXMeshPlayer::CXMeshInstance::ChangeAnim( const WCHAR* wcAnimName, CKTD
 }
 #endif NEW_HENIR_TEST
 
+//#ifdef X2OPTIMIZE_CULLING_PARTICLE
+//void CKTDGXMeshPlayer::CXMeshInstance::_DecideWorldMatrix_SkinMesh( CKTDGMatrixSet& kWorldMatrix, CKTDGCamera& kCamera, D3DXVECTOR3& vCenter, float fRadius )
+//{
+//	if( fRadius <= 0.0f )
+//		return;
+//
+//	//frustum의 far에 걸치면 앞쪽으로 당기는 트릭을 사용한다.
+//	D3DXVECTOR3 dirVec = kCamera.GetLookAt() - kCamera.GetEye();
+//	D3DXVec3Normalize( &dirVec, &dirVec );
+//
+//	D3DXVECTOR3 vEyeToCenter = vCenter - kCamera.GetEye();
+//	float fCenterProjLength = D3DXVec3Dot( &vEyeToCenter, &dirVec );
+//
+//	if( fCenterProjLength > 0.0f )
+//	{
+//		float fFarLength = g_pKTDXApp->GetDGManager()->GetFar();
+//
+//		if( fCenterProjLength - fRadius < fFarLength && fCenterProjLength + fRadius > fFarLength )
+//		{
+//			D3DXVec3Normalize( &vEyeToCenter, &vEyeToCenter );
+//
+//			D3DXMATRIX TranslationMatrix1;
+//			D3DXMATRIX TranslationMatrix2;
+//			D3DXMATRIX TranslationMatrix3;
+//			D3DXMATRIX ScaleMatrix;
+//
+//			//scale을 위해 world space의 원점으로 이동
+//			D3DXMatrixTranslation(&TranslationMatrix1, -vCenter.x, -vCenter.y, -vCenter.z );
+//
+//			float fScale = ( fFarLength - fRadius * 2 ) / fFarLength;//지름만큼 가까워졌음으로 작아지도록 한다.
+//			D3DXMatrixScaling(&ScaleMatrix, fScale, fScale, fScale );
+//
+//			//원위치로...
+//			D3DXMatrixTranslation(&TranslationMatrix2, vCenter.x, vCenter.y, vCenter.z );
+//
+//			D3DXVECTOR3 vMove = -vEyeToCenter * ( fRadius * 2 );//지름만큼 강제로 이동
+//			D3DXMatrixTranslation(&TranslationMatrix3, vMove.x, vMove.y, vMove.z );
+//
+//			kWorldMatrix.m_FinalMatrix = kWorldMatrix.m_FinalMatrix * TranslationMatrix1 * ScaleMatrix * TranslationMatrix2 * TranslationMatrix3;
+//		}
+//	}
+//}
+//
+//void CKTDGXMeshPlayer::CXMeshInstance::_DecideWorldMatrix_Mesh( D3DXMATRIX& kWorldMatrix, CKTDGCamera& kCamera, D3DXVECTOR3& vCenter, float fRadius )
+//{
+//	if( fRadius <= 0.0f )
+//		return;
+//
+//	//frustum의 far에 걸치면 앞쪽으로 당기는 트릭을 사용한다.
+//	D3DXVECTOR3 dirVec = kCamera.GetLookAt() - kCamera.GetEye();
+//	D3DXVec3Normalize( &dirVec, &dirVec );
+//
+//	D3DXVECTOR3 vEyeToCenter = vCenter - kCamera.GetEye();
+//	float fCenterProjLength = D3DXVec3Dot( &vEyeToCenter, &dirVec );
+//
+//	if( fCenterProjLength > 0.0f )
+//	{
+//		float fFarLength = g_pKTDXApp->GetDGManager()->GetFar();
+//
+//		if( fCenterProjLength - fRadius < fFarLength && fCenterProjLength + fRadius > fFarLength )
+//		{
+//			D3DXVec3Normalize( &vEyeToCenter, &vEyeToCenter );
+//
+//			D3DXMATRIX TranslationMatrix1;
+//			D3DXMATRIX TranslationMatrix2;
+//			D3DXMATRIX TranslationMatrix3;
+//			D3DXMATRIX ScaleMatrix;
+//
+//			//scale을 위해 world space의 원점으로 이동
+//			D3DXMatrixTranslation(&TranslationMatrix1, -vCenter.x, -vCenter.y, -vCenter.z );
+//
+//			float fScale = ( fFarLength - fRadius * 2 ) / fFarLength;//지름만큼 가까워졌음으로 작아지도록 한다.
+//			D3DXMatrixScaling(&ScaleMatrix, fScale, fScale, fScale );
+//
+//			//원위치로...
+//			D3DXMatrixTranslation(&TranslationMatrix2, vCenter.x, vCenter.y, vCenter.z );
+//
+//			D3DXVECTOR3 vMove = -vEyeToCenter * ( fRadius * 2 );//지름만큼 강제로 이동
+//			D3DXMatrixTranslation(&TranslationMatrix3, vMove.x, vMove.y, vMove.z );
+//
+//			kWorldMatrix = kWorldMatrix * TranslationMatrix1 * ScaleMatrix * TranslationMatrix2 * TranslationMatrix3;
+//		}
+//	}
+//}
+//#endif//X2OPTIMIZE_CULLING_PARTICLE
 
 #ifdef BOOST_SINGLETON_POOL_TEST
 
@@ -2371,7 +2915,12 @@ void CKTDGXMeshPlayer::CXMeshEvent::ProcessPropEqualsValue(CKTDGXRenderer::RENDE
 
 
 
-void CKTDGXMeshPlayer::CXMeshEvent_AniName::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_AniName::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
     //{{ seojt // 2009-1-12, 14:23
     ASSERT( pInstance != NULL );
@@ -2425,7 +2974,12 @@ bool CKTDGXMeshPlayer::CXMeshEvent_AniName::ProcessTokenStream(std::vector<CXMes
 }
 
 
-void CKTDGXMeshPlayer::CXMeshEvent_SlashTrace::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_SlashTrace::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
 	pInstance->m_bSlashTrace = m_bSlashTrace;
 }
@@ -2440,7 +2994,12 @@ bool CKTDGXMeshPlayer::CXMeshEvent_SlashTrace::ProcessTokenStream(std::vector<CX
 
 
 
-void CKTDGXMeshPlayer::CXMeshEvent_AniSpeed::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_AniSpeed::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
 	pInstance->m_fAniPlaySpeed = m_AniSpeed.GetRandomNumInRange();
 }
@@ -2453,8 +3012,39 @@ bool CKTDGXMeshPlayer::CXMeshEvent_AniSpeed::ProcessTokenStream(std::vector<CXMe
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_Color::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Color::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+		pInstance->m_Color = m_Color.GetRandomNumInRange();
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_ColorFinal = m_Color.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+			pInstance->m_Color = pInstance->m_ColorFinal;
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			D3DXCOLOR	remainColor = pInstance->m_ColorFinal - pInstance->m_Color;
+			pInstance->m_Color += remainColor * fRatio;
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2472,6 +3062,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_Color::OnFrameMove( CXMeshInstance* pInstance
 			pInstance->m_Color += (remainColor / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_Color::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2482,8 +3074,39 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Color::ProcessTokenStream(std::vector<CXMeshP
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_OutLineColor::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_OutLineColor::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+		pInstance->m_OutLineColor = m_OutLineColor.GetRandomNumInRange();
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_OutLineColorFinal = m_OutLineColor.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+			pInstance->m_OutLineColor = pInstance->m_OutLineColorFinal;
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			D3DXCOLOR	remainOutLineColor = pInstance->m_OutLineColorFinal - pInstance->m_OutLineColor;
+			pInstance->m_OutLineColor += remainOutLineColor * fRatio;
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2501,6 +3124,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_OutLineColor::OnFrameMove( CXMeshInstance* pI
 			pInstance->m_OutLineColor += (remainOutLineColor / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_OutLineColor::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2520,8 +3145,47 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Position::ProcessTokenStream(std::vector<CXMe
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_Position::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Position::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+	{
+		pInstance->m_vPos = m_Position.GetRandomNumInRange();
+		INIT_VECTOR3( pInstance->m_vPositionGap, 0.0f, 0.0f, 0.0f );
+	}
+	else
+	{		
+		if( fOldTime <= m_ActualTime.m_Min )
+		{
+			pInstance->m_vPositionFinal = m_Position.GetRandomNumInRange();
+		}
+
+		if( m_ActualTime.m_Max <= fNowTime )
+		{
+			pInstance->m_vPos = m_Position.GetRandomNumInRange();
+			INIT_VECTOR3( pInstance->m_vPositionGap, 0.0f, 0.0f, 0.0f );
+		}
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			D3DXVECTOR3	remainPositionGap	= pInstance->m_vPositionFinal - pInstance->m_vPos;
+			pInstance->m_vPositionGap = remainPositionGap * fRatio;
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2547,11 +3211,44 @@ void CKTDGXMeshPlayer::CXMeshEvent_Position::OnFrameMove( CXMeshInstance* pInsta
 			pInstance->m_vPositionGap = (remainPositionGap / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 #endif EVENT_SCENE
 
-void CKTDGXMeshPlayer::CXMeshEvent_Size::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Size::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+        pInstance->m_vSize = m_Size.GetRandomNumInRange();
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_vSizeFinal = m_Size.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+			pInstance->m_vSize = pInstance->m_vSizeFinal;
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			D3DXVECTOR3	remainSize = pInstance->m_vSizeFinal - pInstance->m_vSize;
+			pInstance->m_vSize += remainSize * fRatio;
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2569,6 +3266,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_Size::OnFrameMove( CXMeshInstance* pInstance,
 			pInstance->m_vSize += (remainSize / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_Size::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2579,8 +3278,83 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Size::ProcessTokenStream(std::vector<CXMeshPl
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_Velocity::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Velocity::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    pInstance->ResetVelocityToAccumPos();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+
+	if( !IsFade() ) 
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+        pInstance->UpdateVelocityAccumPosAndEventTimer( m_ActualTime.m_Min, bAniTime );
+        pInstance->m_vVelocity = m_Velocity.GetRandomNumInRange();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+        if ( fOldTime <= m_ActualTime.m_Min )
+            pInstance->AddVelocityToAccumPos( m_ActualTime.m_Min - fOldTime, bAniTime );
+		pInstance->m_vVelocity = m_Velocity.GetRandomNumInRange();
+        if ( m_ActualTime.m_Min <= fNowTime )
+            pInstance->AddVelocityToAccumPos( fNowTime - m_ActualTime.m_Min, bAniTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+    }
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            pInstance->UpdateVelocityAccumPosAndEventTimer( m_ActualTime.m_Min, bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            pInstance->AddVelocityToAccumPos( m_ActualTime.m_Min - fOldTime, bAniTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+			pInstance->m_vVelocityFinal = m_Velocity.GetRandomNumInRange();
+        }
+
+		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            float   fOldTime2 = 0.f;
+            if ( bAniTime == true )
+                fOldTime2 = __max( pInstance->GetAniTimeVelocity(), m_ActualTime.m_Min );
+            else
+                fOldTime2 = __max( pInstance->GetGlobalTimeVelocity(), m_ActualTime.m_Min );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            float   fOldTime2 = __max( fOldTime, m_ActualTime.m_Min );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            float   fNowTime2 = __min( fNowTime, m_ActualTime.m_Max );
+            if ( fOldTime2 < fNowTime2 ) 
+            {
+                float fRatio = 0.f;
+                fRatio = ( fNowTime2 - fOldTime2 ) / ( m_ActualTime.m_Max - fOldTime2 );
+                fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+			    D3DXVECTOR3 remainVelocity = pInstance->m_vVelocityFinal - pInstance->m_vVelocity;
+                D3DXVECTOR3 vVelocityOld = pInstance->m_vVelocity;
+			    pInstance->m_vVelocity += remainVelocity * ( fRatio * 0.5f );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                pInstance->UpdateVelocityAccumPosAndEventTimer( fNowTime2, bAniTime );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                pInstance->AddVelocityToAccumPos( fNowTime2 - fOldTime2, bAniTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+                pInstance->m_vVelocity = vVelocityOld + remainVelocity * fRatio;
+            }
+		}
+
+		if( m_ActualTime.m_Max <= fNowTime )
+        {
+			pInstance->m_vVelocity = pInstance->m_vVelocityFinal;
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+            pInstance->AddVelocityToAccumPos( fNowTime - m_ActualTime.m_Max, bAniTime );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION_VELOCITY_ACCUM_BUG_FIX
+        }
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2598,6 +3372,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_Velocity::OnFrameMove( CXMeshInstance* pInsta
 			pInstance->m_vVelocity += (remainVelocity / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_Velocity::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2608,8 +3384,39 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Velocity::ProcessTokenStream(std::vector<CXMe
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_Tex0UV::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Tex0UV::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+		pInstance->m_vTexStage0UV = m_Tex0UV.GetRandomNumInRange();
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_vTexStage0UVFinal = m_Tex0UV.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+			pInstance->m_vTexStage0UV = pInstance->m_vTexStage0UVFinal;
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			D3DXVECTOR2 remainTex0UV = pInstance->m_vTexStage0UVFinal - pInstance->m_vTexStage0UV;
+			pInstance->m_vTexStage0UV += remainTex0UV * fRatio;
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2627,6 +3434,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_Tex0UV::OnFrameMove( CXMeshInstance* pInstanc
 			pInstance->m_vTexStage0UV += (remainTex0UV / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_Tex0UV::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2637,8 +3446,39 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Tex0UV::ProcessTokenStream(std::vector<CXMesh
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_Tex1UV::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Tex1UV::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+		pInstance->m_vTexStage1UV = m_Tex1UV.GetRandomNumInRange();
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_vTexStage1UVFinal = m_Tex1UV.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+			pInstance->m_vTexStage1UV = pInstance->m_vTexStage1UVFinal;
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			D3DXVECTOR2 remainTex1UV = pInstance->m_vTexStage1UVFinal - pInstance->m_vTexStage1UV;
+			pInstance->m_vTexStage1UV += remainTex1UV * fRatio;
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2656,6 +3496,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_Tex1UV::OnFrameMove( CXMeshInstance* pInstanc
 			pInstance->m_vTexStage1UV += (remainTex1UV / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_Tex1UV::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2666,8 +3508,39 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Tex1UV::ProcessTokenStream(std::vector<CXMesh
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_Tex2UV::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Tex2UV::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+		pInstance->m_vTexStage2UV = m_Tex2UV.GetRandomNumInRange();
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_vTexStage2UVFinal = m_Tex2UV.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+			pInstance->m_vTexStage2UV = pInstance->m_vTexStage2UVFinal;
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			D3DXVECTOR2 remainTex2UV = pInstance->m_vTexStage2UVFinal - pInstance->m_vTexStage2UV;
+			pInstance->m_vTexStage2UV += remainTex2UV * fRatio;
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2685,6 +3558,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_Tex2UV::OnFrameMove( CXMeshInstance* pInstanc
 			pInstance->m_vTexStage2UV += (remainTex2UV / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_Tex2UV::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2695,8 +3570,57 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Tex2UV::ProcessTokenStream(std::vector<CXMesh
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_Rotate::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Rotate::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+	{
+#ifdef LOCAL_ROTATE_EFFECT
+		pInstance->m_vRotateLocal = m_Rotate.GetRandomNumInRange();
+#else
+		pInstance->m_vRotate = m_Rotate.GetRandomNumInRange();
+#endif
+	}
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_vRotateFinal = m_Rotate.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+		{
+#ifdef LOCAL_ROTATE_EFFECT
+			pInstance->m_vRotateLocal = pInstance->m_vRotateFinal;
+#else
+			pInstance->m_vRotate = pInstance->m_vRotateFinal;
+#endif
+		}
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+#ifdef LOCAL_ROTATE_EFFECT
+			D3DXVECTOR3 remainRotate = pInstance->m_vRotateFinal - pInstance->m_vRotateLocal;
+			pInstance->m_vRotateLocal += remainRotate * fRatio;
+#else
+			D3DXVECTOR3 remainRotate = pInstance->m_vRotateFinal - pInstance->m_vRotate;
+			pInstance->m_vRotate += remainRotate * fRatio;
+#endif
+			
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;	
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2732,6 +3656,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_Rotate::OnFrameMove( CXMeshInstance* pInstanc
 			
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_Rotate::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2743,8 +3669,40 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Rotate::ProcessTokenStream(std::vector<CXMesh
 }
 
 
-void CKTDGXMeshPlayer::CXMeshEvent_DirSpeed::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_DirSpeed::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+		pInstance->m_fDirSpeed = m_DirSpeed.GetRandomNumInRange();
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_fDirSpeedFinal = m_DirSpeed.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+			pInstance->m_fDirSpeed = pInstance->m_fDirSpeedFinal;
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			float remainDirSpeed = pInstance->m_fDirSpeedFinal - pInstance->m_fDirSpeed;
+			pInstance->m_fDirSpeed += remainDirSpeed * fRatio;
+		}
+	}
+
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2762,6 +3720,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_DirSpeed::OnFrameMove( CXMeshInstance* pInsta
 			pInstance->m_fDirSpeed += (remainDirSpeed / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_DirSpeed::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2772,7 +3732,12 @@ bool CKTDGXMeshPlayer::CXMeshEvent_DirSpeed::ProcessTokenStream(std::vector<CXMe
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_BlackHoleTime::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_BlackHoleTime::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
 	pInstance->m_BlackHoleTime = m_BlackHoleTime.GetRandomNumInRange();
 }
@@ -2785,7 +3750,12 @@ bool CKTDGXMeshPlayer::CXMeshEvent_BlackHoleTime::ProcessTokenStream(std::vector
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_Crash::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Crash::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
 	if( pInstance->m_fNowResetCrash < pInstance->m_fResetCrash )
 	{
@@ -2795,8 +3765,11 @@ void CKTDGXMeshPlayer::CXMeshEvent_Crash::OnFrameMove( CXMeshInstance* pInstance
 	{
 		pInstance->m_fNowResetCrash = 0.0f;
 	}
-	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+	if( m_ActualTime.m_Max <= fNowTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	if( (m_ActualTime.m_Max - fNowTime) < fElapsedTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		pInstance->m_Crash = D3DXVECTOR3( 0.0f,0.0f,0.0f );
 	else
 		pInstance->m_Crash = m_Crash.GetRandomNumInRange();
@@ -2811,7 +3784,12 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Crash::ProcessTokenStream(std::vector<CXMeshP
 }
 
 
-void CKTDGXMeshPlayer::CXMeshEvent_ResetCrash::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_ResetCrash::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
 	pInstance->m_fResetCrash = m_ResetCrash.GetRandomNumInRange();
 }
@@ -2824,8 +3802,39 @@ bool CKTDGXMeshPlayer::CXMeshEvent_ResetCrash::ProcessTokenStream(std::vector<CX
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_LightFlowImpact::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_LightFlowImpact::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+		pInstance->m_fLightFlowImpact = m_LightFlowImpact.GetRandomNumInRange();
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_fLightFlowImpactFinal = m_LightFlowImpact.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+			pInstance->m_fLightFlowImpact = pInstance->m_fLightFlowImpactFinal;
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			float remainLightFlowImpact = pInstance->m_fLightFlowImpactFinal - pInstance->m_fLightFlowImpact;
+			pInstance->m_fLightFlowImpact += remainLightFlowImpact * fRatio;
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2843,6 +3852,8 @@ void CKTDGXMeshPlayer::CXMeshEvent_LightFlowImpact::OnFrameMove( CXMeshInstance*
 			pInstance->m_fLightFlowImpact += (remainLightFlowImpact / fRemainTime) * fElapsedTime;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_LightFlowImpact::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2854,8 +3865,38 @@ bool CKTDGXMeshPlayer::CXMeshEvent_LightFlowImpact::ProcessTokenStream(std::vect
 }
 
 
-void CKTDGXMeshPlayer::CXMeshEvent_LightFlowPoint::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_LightFlowPoint::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+
+	if( !IsFade() ) 
+		pInstance->m_LightFlowPoint = m_LightFlowPoint.GetRandomNumInRange();
+	else
+	{
+		if( fOldTime <= m_ActualTime.m_Min )
+			pInstance->m_LightFlowPointFinal = m_LightFlowPoint.GetRandomNumInRange();
+
+		if( m_ActualTime.m_Max <= fNowTime )
+			pInstance->m_LightFlowPoint = pInstance->m_LightFlowPointFinal;
+		else
+		{
+            float fRatio = 0.f;
+            if ( fOldTime < m_ActualTime.m_Min )
+                fOldTime = m_ActualTime.m_Min;
+            fRatio = ( fNowTime - fOldTime ) / ( m_ActualTime.m_Max - fOldTime );
+            fRatio = __max( 0.f, __min( 1.f, fRatio ) );
+
+			D3DXVECTOR3 remainLightFlowPoint = pInstance->m_LightFlowPointFinal - pInstance->m_LightFlowPoint;
+			pInstance->m_LightFlowPoint += remainLightFlowPoint * fRatio;
+		}
+	}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 	float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	if( !IsFade() || fRemainTime == 0 ) 
@@ -2873,6 +3914,7 @@ void CKTDGXMeshPlayer::CXMeshEvent_LightFlowPoint::OnFrameMove( CXMeshInstance* 
 			pInstance->m_LightFlowPoint += (remainLightFlowPoint / fRemainTime) * fElapsedTime;
 		}
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 }
 
 bool CKTDGXMeshPlayer::CXMeshEvent_LightFlowPoint::ProcessTokenStream(std::vector<CXMeshPlayerToken>::iterator &TokenIter, 
@@ -2883,7 +3925,12 @@ bool CKTDGXMeshPlayer::CXMeshEvent_LightFlowPoint::ProcessTokenStream(std::vecto
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_Sound::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_Sound::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
 	map<wstring,CKTDXDeviceSound*>::iterator iter;
 	iter = pInstance->m_SoundMap.find( m_SoundName );
@@ -2903,9 +3950,14 @@ bool CKTDGXMeshPlayer::CXMeshEvent_Sound::ProcessTokenStream(std::vector<CXMeshP
 	return(true);
 }
 
-void CKTDGXMeshPlayer::CXMeshEvent_RenderType::OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+void CKTDGXMeshPlayer::CXMeshEvent_RenderType::
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fOldTime, float fNowTime, bool bAniTime )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+    OnFrameMove( CXMeshInstance* pInstance, float fElapsedTime, float fNowTime )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 {
-	float fRemainTime = m_ActualTime.m_Max - fNowTime;
+	//float fRemainTime = m_ActualTime.m_Max - fNowTime;
 
 	pInstance->GetTempletData()->renderType = m_RenderType;
 }
@@ -2937,18 +3989,28 @@ void CKTDGXMeshPlayer::CXMeshPlayerTokenizer::Tokenize( const char *str, const i
 	const char*				p		= str;
 	CXMeshPlayerToken		token;
 
+#ifdef  MESHPLAYER_TOKEN_LINE_NUMBER
+    int     iLineNumber = 1;
+#endif  MESHPLAYER_TOKEN_LINE_NUMBER
 
-#ifdef _ENCRIPT_SCRIPT_
-	while( (*p) != 0 ) 
-#else
-	ASSERT( -1 != iLength ); 
-	int iCurrPos = 0;
-	while( (*p) != 0 && iCurrPos < iLength ) 
-#endif _ENCRIPT_SCRIPT_
+
+//#ifdef _ENCRIPT_SCRIPT_
+//	while( (*p) != 0 ) 
+//#else
+//	ASSERT( -1 != iLength ); 
+//	int iCurrPos = 0;
+//	while( (*p) != 0 && iCurrPos < iLength ) 
+//#endif _ENCRIPT_SCRIPT_
+    int iCurrPos = 0;
+    while( ( iLength < 0 || iCurrPos < iLength ) && (*p) != 0 ) 
 	{
 
 		ASSERT( InComment == cs || *p != ';' );
 
+#ifdef  MESHPLAYER_TOKEN_LINE_NUMBER
+        if ( token.m_iLineNumber < 0 )
+            token.m_iLineNumber = iLineNumber;
+#endif  MESHPLAYER_TOKEN_LINE_NUMBER
 
 		switch( cs ) 
 		{
@@ -2960,9 +4022,9 @@ void CKTDGXMeshPlayer::CXMeshPlayerTokenizer::Tokenize( const char *str, const i
 					// add it to the running buffer
 					token.m_strValue = (*p);
 					// switch to appropriate case
-					if( (*p) == '/' && *(p+1) == '/' ) // '//'는 주석
+					if( (*p) == '/' && ( iLength < 0 || iCurrPos +1 < iLength ) && *(p+1) == '/' ) // '//'는 주석
 						cs = InComment;
-					else if( (*p) == '-' && *(p+1) == '-' ) // '--'도 주석
+					else if( (*p) == '-' && ( iLength < 0 || iCurrPos +1 < iLength ) && *(p+1) == '-' ) // '--'도 주석
 						cs = InComment;
 					else 
 						cs = (*p == '\"') ? InQuote : InText;
@@ -2977,6 +4039,9 @@ void CKTDGXMeshPlayer::CXMeshPlayerTokenizer::Tokenize( const char *str, const i
 				{
 					// add the completed token to the vector
 					AddToken(token);
+#ifdef  MESHPLAYER_TOKEN_LINE_NUMBER
+                    token.m_iLineNumber = -1;
+#endif  MESHPLAYER_TOKEN_LINE_NUMBER
 					// switch to whitespace case
 					cs = InWhiteSpace;
 				} 
@@ -2985,13 +4050,16 @@ void CKTDGXMeshPlayer::CXMeshPlayerTokenizer::Tokenize( const char *str, const i
 					// if this letter is a token terminator
 					if ((*p) == '(' || (*p) == ')' || (*p) == ',' || (*p) == '\"' || (*p) == '{' || (*p) == '}' || (*p) == '/') 
 					{
-						if ((*p) == '/' && *(p+1) == '/') 
+						if ((*p) == '/' && ( iLength < 0 || iCurrPos +1 < iLength ) && *(p+1) == '/') 
 							cs = InComment;
 						else 
 						{
 							// add the completed token to the vector
 							DetermineTokenType(token);
 							AddToken(token);
+#ifdef  MESHPLAYER_TOKEN_LINE_NUMBER
+                            token.m_iLineNumber = -1;
+#endif  MESHPLAYER_TOKEN_LINE_NUMBER
 
 							// if it was a quote, transition to InQuote state
 							if ((*p) == '\"') 
@@ -3001,7 +4069,11 @@ void CKTDGXMeshPlayer::CXMeshPlayerTokenizer::Tokenize( const char *str, const i
 							{
 								token.m_strValue = (*p);
 								AddToken(token);
+#ifdef  MESHPLAYER_TOKEN_LINE_NUMBER
+                                token.m_iLineNumber = -1;
+#endif  MESHPLAYER_TOKEN_LINE_NUMBER
 								token.m_strValue = "";	
+
 							}
 						}
 					} 
@@ -3020,6 +4092,9 @@ void CKTDGXMeshPlayer::CXMeshPlayerTokenizer::Tokenize( const char *str, const i
 				if (*p == '\n') 
 				{
 					token.m_strValue = ""; 
+#ifdef  MESHPLAYER_TOKEN_LINE_NUMBER
+                    token.m_iLineNumber = -1;
+#endif  MESHPLAYER_TOKEN_LINE_NUMBER
 					cs = InWhiteSpace;
 				}
 			}
@@ -3032,17 +4107,33 @@ void CKTDGXMeshPlayer::CXMeshPlayerTokenizer::Tokenize( const char *str, const i
 				if (*p == '\"') 
 				{
 					AddToken(token);
+#ifdef  MESHPLAYER_TOKEN_LINE_NUMBER
+                    token.m_iLineNumber = -1;
+#endif  MESHPLAYER_TOKEN_LINE_NUMBER
 					// go back to whitespace
 					cs = InWhiteSpace;
 				}
 			}
 			break;
 		}
+
+#ifdef  MESHPLAYER_TOKEN_LINE_NUMBER
+        if ( (*p) == '\n' )
+        {
+            iLineNumber++;
+        }
+#endif  MESHPLAYER_TOKEN_LINE_NUMBER
+
 		p++;
-#ifdef _ENCRIPT_SCRIPT_
-#else
-		iCurrPos++;
-#endif _ENCRIPT_SCRIPT_
+
+
+
+
+//#ifdef _ENCRIPT_SCRIPT_
+//#else
+//		iCurrPos++;
+//#endif _ENCRIPT_SCRIPT_
+        iCurrPos++;
 
 	}
 	AddToken(token);
@@ -3122,6 +4213,12 @@ void CKTDGXMeshPlayer::CXMeshPlayerTokenizer::DetermineTokenType( CXMeshPlayerTo
 #ifdef PARTICLE_NOTAPPLY_UNITSCALE
 		|| token.m_strValue.compare("APPLYUNITSCALE")	== 0
 #endif //PARTICLE_NOTAPPLY_UNITSCALE
+#ifdef FIX_TEMP_MESH_BILLBOARD //2013.10.09
+		|| token.m_strValue.compare("USEMESHBILLBOARD")	== 0
+#endif //FIX_TEMP_MESH_BILLBOARD
+#ifdef ADD_ALPHATESTENABLE
+		|| token.m_strValue.compare("ALPHATEST")	== 0
+#endif //ADD_ALPHATESTENABLE
 		)
 	{ 
 		token.m_Type = SeqBoolProp; return; 
@@ -3137,9 +4234,7 @@ void CKTDGXMeshPlayer::CXMeshPlayerTokenizer::DetermineTokenType( CXMeshPlayerTo
 		|| token.m_strValue.compare("LANDPOS")				== 0
 		|| token.m_strValue.compare("LAYER")				== 0
 		|| token.m_strValue.compare("ELASTICCOEFF")			== 0
-#ifdef ADD_UPDATE_LANDPOS
-		|| token.m_strValue.compare("ELASTICCOEFF_X")		== 0 
-#endif
+		|| token.m_strValue.compare("ELASTICCOEFF_X")		== 0
 		|| token.m_strValue.compare("SLASH_TRACE_TYPE")		== 0
 		|| token.m_strValue.compare("SLASH_TRACE_CURVE_TYPE") == 0 
 		|| token.m_strValue.compare("NOT_CHECK_LAND_TIME")	== 0 )
@@ -3640,6 +4735,9 @@ bool CKTDGXMeshPlayer::CXMeshPlayerTokenizer::ProcessTime(CMinMax<float> &TimeRa
 			ProcessNumber(TimeRange, TokenIter, EndIter);
 
 			TimeRange.m_Min = startTime;
+
+            ASSERT( TimeRange.m_Max - TimeRange.m_Min > (1/70) );
+
 		}
 		break;
 
@@ -3772,3 +4870,84 @@ bool CKTDGXMeshPlayer::IsValidTemplet( const XMeshTemplet* pXMesshTemplet_ )
 
 	return true;
 }
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+UINT    CKTDGXMeshPlayer::EstimateInstanceNum()
+{
+    if ( m_coInstanceHandleList.empty( LIST_LIVE ) == true )
+        return 0;
+    UINT    uCount = 0;
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        ++iter )
+    {
+        uCount++;
+    }
+    return  uCount;
+}
+
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+
+bool CKTDGXMeshPlayer::MergeXMeshTemplet( CKTDGXMeshPlayer::XMeshTemplet* pNewXMeshTemplet_, CKTDGXMeshPlayer::XMeshTemplet* pOrgXMeshTemplet_ )
+{
+	if ( NULL != pNewXMeshTemplet_ ) 
+	{
+		if ( NULL != pOrgXMeshTemplet_ )
+		{
+			m_TempletMap.erase( pOrgXMeshTemplet_->templetName );
+			KLOG("DevScriptTable_Log.txt")  << L"Merge : " << pNewXMeshTemplet_->templetName.c_str() << L"\t: XMeshPlayer Templet 을 변경 하였습니다." << fileout;
+		}
+		else
+		{
+			m_TempletMap[pNewXMeshTemplet_->templetName] = pNewXMeshTemplet_;
+			KLOG("DevScriptTable_Log.txt")  << L"Merge : " << pNewXMeshTemplet_->templetName.c_str() << L"\t: XMeshPlayer Templet 을 추가 하였습니다." << fileout;
+
+		}
+		return true;
+	}
+	return false;
+}
+bool CKTDGXMeshPlayer::CreateXMeshTemplet( CKTDGXMeshPlayer::XMeshTemplet* pXMeshTemplet_ )
+{
+	std::map<wstring,XMeshTemplet*>::iterator it = m_TempletMap.find( pXMeshTemplet_->templetName );
+	if( it != m_TempletMap.end() )
+	{
+		MessageBox( NULL, pXMeshTemplet_->templetName.c_str() , L"Duplication" , NULL );
+		return false;
+	}
+	XMeshTemplet * newTemplet = new XMeshTemplet();
+	(*newTemplet) = (*pXMeshTemplet_);
+	m_TempletMap[newTemplet->templetName] = newTemplet;
+	return true; 
+}
+
+bool CKTDGXMeshPlayer::EraseXMeshTemplet( CKTDGXMeshPlayer::XMeshTemplet* pXMeshTemplet_ )
+{
+	std::map<wstring,XMeshTemplet*>::iterator it = m_TempletMap.find( pXMeshTemplet_->templetName );
+	if( it != m_TempletMap.end() )
+	{
+		m_TempletMap.erase( pXMeshTemplet_->templetName );
+		return true;
+	}
+	return false;
+}
+
+bool CKTDGXMeshPlayer::CopyXMeshTempletTimeEvent( CKTDGXMeshPlayer::XMeshTemplet* pXMeshTemplet_ )
+{
+	std::map<wstring,XMeshTemplet*>::iterator it = m_TempletMap.find( pXMeshTemplet_->templetName );
+	if( it != m_TempletMap.end() )
+	{
+		m_TempletMap[pXMeshTemplet_->templetName]->globalTimeEventList	= pXMeshTemplet_->globalTimeEventList;
+		m_TempletMap[pXMeshTemplet_->templetName]->animTimeEventList	= pXMeshTemplet_->animTimeEventList;
+		m_TempletMap[pXMeshTemplet_->templetName]->dieEventList			= pXMeshTemplet_->dieEventList;
+
+		return true;
+	}
+	return false;
+}
+#endif // EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가

@@ -11,6 +11,9 @@ public:
 	void		SetShowRidingSkillSlot( bool _Val );
 	void		UpdateRideOffSlotGuide();
 	void		UpdateSkillSlotString();
+#ifdef ADJUST_RIDINGPET_SKILLSLOT
+	void		SetSkillSlotTexture();
+#endif //ADJUST_RIDINGPET_SKILLSLOT
 	void		UpdateSkillSlotTexture();
 	void		UpdateStamina( IN const float fStamina_, IN const float fMaxStamina_ );
 	void		SetBlindSkillSlot( UINT _slotNum, bool _val );

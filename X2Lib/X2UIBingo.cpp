@@ -18,7 +18,7 @@ m_bIsExpandButton(false),
 m_pDLGBingo(NULL),
 m_pDLGEventOpenButton(NULL),
 m_pDLGRewardPopup(NULL),
-m_hBingoOpenButton(INVALID_PARTICLE_HANDLE),
+m_hBingoOpenButton(INVALID_PARTICLE_SEQUENCE_HANDLE),
 CX2ItemSlotManager( pNowStage, NULL)
 {
 	m_pDLGEventOpenButton = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Event_Bingo_Open_Button.lua" );
@@ -640,7 +640,7 @@ void CX2UIBingo::SetShowEventButton(bool bVal, bool bShowEffect/* = false*/)
 			if( true == bShowEffect && NULL != g_pData && NULL != g_pData->GetUIMajorParticle() )
 			{
 				CKTDGUIButton* pButton = static_cast<CKTDGUIButton*>(m_pDLGEventOpenButton->GetControl(L"Bingo_Minimize"));
-				if( NULL != pButton && INVALID_PARTICLE_HANDLE == m_hBingoOpenButton)
+				if( NULL != pButton && INVALID_PARTICLE_SEQUENCE_HANDLE == m_hBingoOpenButton)
 				{					
 					float fEffectPosX = (pButton->GetPos().x + 43);
 					float fEffectPosY = (pButton->GetPos().y + 41);

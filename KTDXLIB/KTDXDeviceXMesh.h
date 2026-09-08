@@ -29,7 +29,7 @@ class CKTDXDeviceXMesh	: public CKTDXDevice
 
 	public:
 		CKTDXDeviceXMesh( LPDIRECT3DDEVICE9 pd3dDevice, std::wstring fileName );
-		~CKTDXDeviceXMesh(void);
+
 
 
         /// managed된 리소스를 local memory에 preload한다.
@@ -38,8 +38,13 @@ class CKTDXDeviceXMesh	: public CKTDXDevice
 
 #ifndef _KSMTOOL
 
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 		virtual HRESULT	Render( CKTDXDeviceXET* pTexChangeXET = NULL, CKTDXDeviceXET* pMultiTexXET = NULL, 
-								CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0 );
+			const CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0, const std::vector<bool>* pvecDrawSubset = NULL );
+#else//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+		virtual HRESULT	Render( CKTDXDeviceXET* pTexChangeXET = NULL, CKTDXDeviceXET* pMultiTexXET = NULL, 
+			const CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0 );
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
 #endif // #ifndef _KSMTOOL
 		
@@ -64,10 +69,12 @@ class CKTDXDeviceXMesh	: public CKTDXDevice
 	//protected:
     protected:
 
+		virtual ~CKTDXDeviceXMesh(void);
+
 		virtual HRESULT _Load( bool bSkipStateCheck = false
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool bBackgroundQueueing = false
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD			
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD			
 			);
 		virtual HRESULT _UnLoad();
 	private:
@@ -77,9 +84,26 @@ class CKTDXDeviceXMesh	: public CKTDXDevice
 
 		CKTDXDeviceBaseTexture* SetNowTexture( CKTDXDeviceBaseTexture* orgTex, int stage,
 											CKTDXDeviceXET* pTexChangeXET = NULL, CKTDXDeviceXET* pMultiTexXET = NULL, 
-											CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0 );
+											const CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0 );
 		
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+	public:
+		struct KSubsetCullingInfo
+		{
+            KSubsetCullingInfo()
+                : m_vCenter(0,0,0)
+                , m_fRadius(0)
+            {
+            }
 
+			KSubsetCullingInfo( const D3DXVECTOR3& vCenter, float fRadius )
+				: m_vCenter( vCenter ), m_fRadius( fRadius )
+			{}
+
+			D3DXVECTOR3 m_vCenter;
+			float m_fRadius;
+		};
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 
     private:
         struct  XMeshProxy
@@ -102,8 +126,12 @@ class CKTDXDeviceXMesh	: public CKTDXDevice
             HRESULT                 LoadD3DXMesh( const void* pInData_, DWORD dwInSize_ );
             HRESULT                 LoadKMEMesh( const void* pInData_, DWORD dwInSize_ );
             void                    LoadTextures();
-            HRESULT                 Load_LuaData( DWORD dwParam_ );
+            HRESULT                 LoadXET();
 #endif // #ifndef _KSMTOOL
+
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+			std::vector< KSubsetCullingInfo > m_vecSubsetCullingInfo;
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
         };//struct  XMeshProxy
 
 		D3DXVECTOR3				m_vCenter;
@@ -130,4 +158,12 @@ class CKTDXDeviceXMesh	: public CKTDXDevice
 // 		bool					m_bLoadProgressiveMesh;
 //}} robobeg : 2008-01-06
 		LPD3DXMESH				m_pMesh;
+
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+	public:
+		const std::vector< KSubsetCullingInfo >& GetSubsetCullingInfoVec() { return m_vecSubsetCullingInfo; }
+
+	private:
+		std::vector< KSubsetCullingInfo > m_vecSubsetCullingInfo;
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 };//class CKTDXDeviceXMesh	: public CKTDXDevice

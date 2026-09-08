@@ -1,6 +1,25 @@
 #include "StdAfx.h"
 #include ".\ktdxdevicesound.h"
 
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+FMOD_RESULT F_CALLBACK FMODChannelCallback(FMOD_CHANNEL *channel, FMOD_CHANNEL_CALLBACKTYPE type, void *commanddata1, void *commanddata2)
+{
+	//FMOD::Channel *cppChannel = (FMOD::Channel*)channel;
+
+	switch( type )
+	{
+	case FMOD_CHANNEL_CALLBACKTYPE_END:
+		{
+
+		} break;
+	default:
+		break;
+	}
+
+
+	return FMOD_OK;
+}
+#endif //CHECK_VOICE_IN_SLIDESHOT
 
 
 CKTDXDeviceSound::CKTDXDeviceSound( FMOD_SYSTEM* pSystem, wstring fileName, bool bUse3D )
@@ -23,7 +42,7 @@ CKTDXDeviceSound::~CKTDXDeviceSound(void)
 	_UnLoad();
 }
 
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 void	CKTDXDeviceSound::_CheckLoadFMODSound()
 {
     if ( IsLoaded() == false 
@@ -81,7 +100,7 @@ void	CKTDXDeviceSound::_CheckLoadFMODSound()
 		}
 	}
 }
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 
 #ifdef CHECK_SOUND_LOADING_TIME
 void	CKTDXDeviceSound::_CheckCheckLoadFMODSound( bool& bCreateSound )
@@ -147,9 +166,9 @@ void	CKTDXDeviceSound::_CheckCheckLoadFMODSound( bool& bCreateSound )
 
 HRESULT CKTDXDeviceSound::_CheckLoad( bool& bCreateSound,
 	bool bSkipStateCheck
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 	, bool bBackgroundQueueing
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 	)
 {
 	if( g_pKTDXApp->GetDSManager()->GetInit() == false )
@@ -158,7 +177,7 @@ HRESULT CKTDXDeviceSound::_CheckLoad( bool& bCreateSound,
 	if( NULL == m_pSystem )
 		return S_OK;
 
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 
 	int     iSize = 0;
 	KGCMassFileBufferPtr	spMemoryBuffer;
@@ -214,15 +233,14 @@ HRESULT CKTDXDeviceSound::_CheckLoad( bool& bCreateSound,
 
 	return S_OK;
 
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 }
-
 #endif // CHECK_SOUND_LOADING_TIME
 
 HRESULT CKTDXDeviceSound::_Load( bool bSkipStateCheck
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool bBackgroundQueueing
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 	)
 {
 	if( g_pKTDXApp->GetDSManager()->GetInit() == false )
@@ -231,7 +249,7 @@ HRESULT CKTDXDeviceSound::_Load( bool bSkipStateCheck
 	if( NULL == m_pSystem )
 		return S_OK;
 
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 
     int     iSize = 0;
 	KGCMassFileBufferPtr	spMemoryBuffer;
@@ -288,7 +306,7 @@ HRESULT CKTDXDeviceSound::_Load( bool bSkipStateCheck
     return S_OK;
 
 
-#else	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#else	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 
 	FMOD_SOUND* pSound = NULL;
 
@@ -407,7 +425,7 @@ failed:
 
 	return E_FAIL;
 
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 }
 
 HRESULT CKTDXDeviceSound::_UnLoad()
@@ -427,9 +445,9 @@ HRESULT CKTDXDeviceSound::_UnLoad()
 	    }
     }//if
 
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 	m_spMemoryBuffer.reset();
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 
 	return S_OK;
 }
@@ -448,9 +466,9 @@ void CKTDXDeviceSound::Play( bool loop /*= false */, bool b3DSound /*= true*/ )
 	if( NULL == m_pSystem )
 		return;
 
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 	_CheckLoadFMODSound();
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 
 	if( NULL == m_pSound )
 		return;
@@ -584,7 +602,10 @@ void CKTDXDeviceSound::Play( bool loop /*= false */, bool b3DSound /*= true*/ )
 	{
 		ErrorLog( KEM_ERROR378 );
 	}
-	
+
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+	result = FMOD_Channel_SetCallback( m_pChannel, FMODChannelCallback );
+#endif //CHECK_VOICE_IN_SLIDESHOT	
 }
 
 #ifdef CHECK_SOUND_LOADING_TIME
@@ -602,9 +623,9 @@ void CKTDXDeviceSound::CheckPlay(bool& bCreateSound, bool loop /*= false */, boo
 	if( NULL == m_pSystem )
 		return;
 
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 	_CheckCheckLoadFMODSound( bCreateSound );
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 
 	if( NULL == m_pSound )
 		return;
@@ -836,9 +857,9 @@ void CKTDXDeviceSound::SetMax3DDistance( float fMaxDistance )
 		true == g_pKTDXApp->GetDSManager()->GetEnable3DSound() && 
 		true == m_b3DSound )
 	{
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 		_CheckLoadFMODSound();
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 
 		if ( m_pSound == NULL )
 			return;

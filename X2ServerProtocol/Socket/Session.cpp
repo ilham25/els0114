@@ -7,15 +7,6 @@
 #include "IOCP.h"
 //#endif
 
-//{{ Iruha : 2026-08-31 // offline mode - in-process server emulation
-#ifdef SERV_IRUHADEV_OFFLINE
-#include "../OfflineHook.h"
-
-/// Set by CX2OfflineServer::Instance() (X2Lib). NULL in every other build.
-IX2OfflineHook* g_pX2OfflineHook = NULL;
-#endif SERV_IRUHADEV_OFFLINE
-//}}
-
 void KSkSession::OnRecvCompleted( DWORD dwTransfered_ )
 {
     if( dwTransfered_ == 0 )
@@ -172,13 +163,6 @@ KSession::KSession( bool bIsProxy )
 
 KSession::~KSession(void)
 {
-//{{ Iruha : 2026-08-31 // offline mode
-#ifdef SERV_IRUHADEV_OFFLINE
-	if( g_pX2OfflineHook != NULL )
-		g_pX2OfflineHook->OnSessionClose( this );
-#endif SERV_IRUHADEV_OFFLINE
-//}}
-
 	if( m_spSockObj )
 	{
 		m_spSockObj->CloseSocket();
@@ -202,12 +186,22 @@ KSession::~KSession(void)
 		START_LOG( clog, L"SA 삭제. Name : " << m_strName << L", SPI : " << m_nSPIndex );
 		//{{ 2012. 03. 19	김민성		KSADatabase 를 Session 의 멤버로 이동(클라이언트만)
 #ifdef ADD_COLLECT_CLIENT_INFO_PROTOCOL
+#ifdef  X2OPTIMIZE_SESSION_THREAD_SAFETY
+        KncSecurity::KSADatabase* pSADatabase = static_cast<KncSecurity::KSADatabase*>( InterlockedExchangePointer( (void**) &m_pSADatabase, NULL ) );
+        if ( pSADatabase != NULL )
+        {
+			pSADatabase->Delete( m_nSPIndex );
+			delete pSADatabase;
+			pSADatabase = NULL;
+        }
+#else   X2OPTIMIZE_SESSION_THREAD_SAFETY
 		if( m_pSADatabase != NULL )
 		{
 			m_pSADatabase->Delete( m_nSPIndex );
 			delete m_pSADatabase;
 			m_pSADatabase = NULL;
 		}
+#endif  X2OPTIMIZE_SESSION_THREAD_SAFETY
 #else
 		KncSecurity::GetSADB().Delete( m_nSPIndex );
 #endif ADD_COLLECT_CLIENT_INFO_PROTOCOL
@@ -332,14 +326,6 @@ bool KSession::CheckExceedRefCount( int nCount_ )
 
 bool KSession::SendPacket( IN const KEvent& kEvent )
 {
-//{{ Iruha : 2026-08-31 // offline mode - consume the packet here, above the
-//            socket checks below: m_spSockObj is never connected offline.
-#ifdef SERV_IRUHADEV_OFFLINE
-	if( g_pX2OfflineHook != NULL )
-		return g_pX2OfflineHook->OnClientSend( this, kEvent );
-#endif SERV_IRUHADEV_OFFLINE
-//}}
-
     //if( m_bDestroyReserved ) return true;       ///< 종료가 예약되었을때 send 시도. 이런 경우가 다분하므로, true 인정.
     _JIF( m_spSockObj, return false );
     _JIF( m_spSockObj->IsConnected(), return false );    ///< 소켓이 유효하지 않음.
@@ -359,7 +345,14 @@ bool KSession::SendPacket( IN const KEvent& kEvent )
 
 	//{{ 2012. 03. 19	김민성		KSADatabase 를 Session 의 멤버로 이동(클라이언트만)
 #ifdef ADD_COLLECT_CLIENT_INFO_PROTOCOL
-	_JIF( kSecBuff.Create_Local( bsbuff, m_pSADatabase ), return false );				// 암호화 및 인증 절차 처리.
+#ifdef  X2OPTIMIZE_SESSION_THREAD_SAFETY
+	_JIF( kSecBuff.Create_Local( bsbuff, GetSADatabase()
+        ), return false );				// 암호화 및 인증 절차 처리.
+#else   X2OPTIMIZE_SESSION_THREAD_SAFETY
+	_JIF( kSecBuff.Create_Local( bsbuff, m_pSADatabase
+        ), return false );				// 암호화 및 인증 절차 처리.
+#endif  X2OPTIMIZE_SESSION_THREAD_SAFETY
+
 #else
 	_JIF( kSecBuff.Create( bsbuff ), return false );				// 암호화 및 인증 절차 처리.
 #endif ADD_COLLECT_CLIENT_INFO_PROTOCOL
@@ -439,22 +432,6 @@ void KSession::ResetMaxSendData()
 bool KSession::Connect( const char* szIP_, unsigned short usPort_ )
 {
     PROXY_ONLY;
-//{{ Iruha : 2026-08-31 // offline mode - no socket, no SPI key exchange.
-//            Begin() still runs, so Run() keeps calling Tick() and the
-//            offline server's replies drain on the usual worker thread.
-#ifdef SERV_IRUHADEV_OFFLINE
-    if( g_pX2OfflineHook != NULL )
-    {
-        g_pX2OfflineHook->OnSessionConnect( this, szIP_, usPort_ );
-
-        if( !m_bUseIocp )
-            Begin();    // thread run
-
-        m_bAuthKeyRecved = true;
-        return true;
-    }
-#endif SERV_IRUHADEV_OFFLINE
-//}}
     _JIF( m_spSockObj, return false );
 
     std::vector< std::pair<int,int> > vecOpt;
@@ -577,26 +554,10 @@ void KSession::Run()
 
     while( bLoop )
     {
-//{{ Iruha : 2026-08-31 // offline mode - a full login is ~15 chained
-//            round-trips; at the stock 100ms poll that costs ~1.5s.
-//            Deliberately NOT done with SetEvent( m_hEvents[EVENT_RECV_COMPLETED] ):
-//            that path calls m_spSockObj->OnIOCompleted( IO_RECV ), which on a
-//            socket that was never connected reports 0 bytes transferred and is
-//            treated as a close by the remote end.
-#ifdef SERV_IRUHADEV_OFFLINE
-        DWORD dwWaitMS = ( g_pX2OfflineHook != NULL ) ? 5 : 100;
-
-        ret = ::WaitForMultipleObjects( EVENT_MAX_VALUE,
-            m_hEvents, 
-            false, 
-            dwWaitMS );
-#else SERV_IRUHADEV_OFFLINE
         ret = ::WaitForMultipleObjects( EVENT_MAX_VALUE,
             m_hEvents, 
             false, 
             100 );     // 0.1s 간격
-#endif SERV_IRUHADEV_OFFLINE
-//}}
 
         switch( ret )
         {
@@ -679,13 +640,32 @@ void KSession::OnAuthenticFailed()
 #ifdef ADD_COLLECT_CLIENT_INFO_PROTOCOL
 KncSecurity::KSADatabase* KSession::GetSADatabase()
 {
+#ifdef  X2OPTIMIZE_SESSION_THREAD_SAFETY
+	if( m_pSADatabase == NULL )
+	{
+        KncSecurity::KSADatabase* pSADatabase = new KncSecurity::KSADatabase();
+        KncSecurity::KSADatabase* pSADatabaseRet = static_cast<KncSecurity::KSADatabase*>
+            ( InterlockedCompareExchangePointer( (volatile PVOID*) &m_pSADatabase, pSADatabase, NULL ) );
+        if ( pSADatabaseRet == NULL )
+        {
+            return pSADatabase;
+        }
+        else
+        {
+            delete pSADatabase;
+            pSADatabase = NULL;
+            return pSADatabaseRet;
+        }
+	}
+	return m_pSADatabase;
+#else   X2OPTIMIZE_SESSION_THREAD_SAFETY
 	if( m_pSADatabase == NULL )
 	{
 		m_pSADatabase = new KncSecurity::KSADatabase();
 		return m_pSADatabase;
 	}
-
 	return m_pSADatabase;
+#endif  X2OPTIMIZE_SESSION_THREAD_SAFETY
 }
 #endif ADD_COLLECT_CLIENT_INFO_PROTOCOL
 //}}

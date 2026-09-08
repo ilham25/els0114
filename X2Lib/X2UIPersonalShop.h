@@ -69,6 +69,10 @@ public:
 		UPSCM_AGENCY_SELL_BEGIN,
 		UPSCM_AGENCY_TAKE_ITEM,
 #endif
+
+//#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		UPSCM_BUY_CANCLE,
+//#endif //SERV_UPGRADE_TRADE_SYSTEM
 	};
 
 	enum X2_PERSONAL_SHOP_STATE
@@ -227,6 +231,24 @@ protected:
 	bool Handler_EGS_JOIN_PERSONAL_SHOP_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 public:
 	bool Handler_EGS_LEAVE_PERSONAL_SHOP_REQ();
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 외부 참조를 위해, Public으로 설정
+	bool CheckDoubleShopItem( UidType itemUID, int SlotIdToSetting ); //중복체크
+
+	/// 거래 개시판 리스트에서 선택한 아이템
+	UidType  GetSelectedItemID() const { return m_uidSelectedItemUID; }
+	void	 SetSelectedItemID( UidType val_ ) { m_uidSelectedItemUID = val_; }
+
+	/// 최종으로 개인 상점에 등록한 아이템 인덱스
+	int		GetPickedShopItemIndex() const { return m_PickedShopItemIndex; }
+	void	SetPickedShopItemIndex(int val_) { m_PickedShopItemIndex = val_; }
+
+	const int GetMaxItemPageIndex();
+
+	const bool CheckCanPaymentRegistTex();
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 protected:
 	bool Handler_EGS_LEAVE_PERSONAL_SHOP_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
@@ -260,7 +282,11 @@ protected:
 
 	void RegisterShopItem();
 
+#ifndef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	/// 외부 참조를 위해, Public으로 이동
 	bool CheckDoubleShopItem( UidType itemUID, int SlotIdToSetting ); //중복체크
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 	bool CheckShopItemListToReg(); //등록할 아이템 리스트가 정상적인지 확인 ( 예, 등록할려는 아이템이 한개 이상은 있어야겠지? )
 
 	void OpenDLGItemEnroll( UidType itemUID );
@@ -338,6 +364,10 @@ private:
 #ifdef SERV_PSHOP_AGENCY_NO_COMMISSION_EVENT
 	bool						m_bIsPShopAgency;		// 현재 상점이 대리상점인지 일반상점인지 구분
 #endif
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	UidType						m_uidSelectedItemUID;		/// 구입을 위해 선택한 아이템 유니크아이디
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 };
 
 #endif

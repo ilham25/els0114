@@ -32,6 +32,29 @@ void SendToChannelUser( UidType nToChannelUID, UidType nToChannelUser, unsigned 
 	}
 }
 
+template < class T >
+void SendToGameUser( UidType nToGameUID, UidType nToGameUser, unsigned short usEventID, const T& data )
+{
+	KEvent kEvent;
+	kEvent.SetData( PI_GS_USER, NULL, usEventID, data );
+	LIF( kEvent.m_kDestPerformer.AddUID( nToGameUser ) );
+
+	KActorPtr spActor = KActorManager::GetKObj()->Get( nToGameUID );
+
+	if( spActor != NULL )
+	{
+		spActor->SendPacket( kEvent );
+	}
+	else
+	{
+		START_LOG( cerr, L"다른 서버로 패킷 보내기 실패" )
+			<< BUILD_LOG( nToGameUID )
+			<< BUILD_LOG( nToGameUser )			
+			<< BUILD_LOG( KEvent::GetIDStr( usEventID ) )
+			<< END_LOG;
+	}
+}
+
 KGiantAuth::KGiantAuth( void )
 {
 }
@@ -55,6 +78,11 @@ void KGiantAuth::ProcessEvent( const KEventPtr& spEvent_ )
     CASE( EGIANT_AUTH_LOGIN_FAIL );
     
 	CASE( EPUBLISHER_SECURITY_AUTH_REQ );	// EGIANT_AUTH_LOGIN_MTCARD
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	CASE( EGIANT_AUTH_DIRECT_CHARGE_REQ );
+	CASE( EGIANT_AUTH_DIRECT_CHARGE_ACK );
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 
 	default:
 		START_LOG( cerr, "핸들러가 지정되지 않은 이벤트." )
@@ -294,5 +322,88 @@ IMPL_ON_FUNC( EPUBLISHER_SECURITY_AUTH_REQ )
 	SiKGiantAuthManager()->QueueingSendPacket( spPacket );
 
 }
+
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+IMPL_ON_FUNC( EGIANT_AUTH_DIRECT_CHARGE_REQ )
+{
+	START_LOG( cout, L"[TEST] Direct Charge 주소 요청 GiantAuthManager 에 도착" )
+		<< BUILD_LOG( kPacket_.m_uiUserUID )
+		<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
+		<< BUILD_LOG( kPacket_.m_ulGameZone )
+		<< BUILD_LOG( kPacket_.m_uiUnitUID )
+		<< BUILD_LOG( kPacket_.m_wstrUnitNickName )
+		<< BUILD_LOG( kPacket_.m_wstrIP )
+		<< END_LOG;
+
+	KGiantAuthManager::RequestInfo info(FIRST_SENDER_UID, kPacket_.m_uiUserUID, kPacket_.m_wstrIP);
+	unsigned int iRequestID = SiKGiantAuthManager()->RegisterRequest( info );
+	if( iRequestID == 0 )
+	{
+		START_LOG( cerr, L"RegisterRequest Failed" )
+			<< BUILD_LOG( kPacket_.m_uiUserUID )
+			<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
+			<< BUILD_LOG( kPacket_.m_ulGameZone )
+			<< BUILD_LOG( kPacket_.m_uiUnitUID )
+			<< BUILD_LOG( kPacket_.m_wstrUnitNickName )
+			<< BUILD_LOG( kPacket_.m_wstrIP )
+			<< END_LOG;
+
+		KEGIANT_AUTH_DIRECT_CHARGE_ACK kAck;
+		kAck.m_iOK = NetError::ERR_UNKNOWN;
+		SendToChannelUser( FIRST_SENDER_UID, kPacket_.m_uiUserUID, EGIANT_AUTH_DIRECT_CHARGE_ACK, kAck );
+		return;
+	}
+
+	START_LOG( clog, L"EGIANT_AUTH_DIRECT_CHARGE_REQ" )
+		<< BUILD_LOG( kPacket_.m_uiUserUID )
+		<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )
+		<< BUILD_LOG( kPacket_.m_ulGameZone )
+		<< BUILD_LOG( kPacket_.m_uiUnitUID )
+		<< BUILD_LOG( kPacket_.m_wstrUnitNickName )
+		<< BUILD_LOG( kPacket_.m_wstrIP )
+		<< END_LOG;
+
+	boost::shared_ptr< KGiantAuthPacket > spPacket( new KGiantAuthPacket );
+	spPacket->Write( kPacket_ );
+	SiKGiantAuthManager()->QueueingSendPacket( spPacket );
+}
+
+IMPL_ON_FUNC( EGIANT_AUTH_DIRECT_CHARGE_ACK )
+{
+	START_LOG( cout, L"[TEST] HLServer Get Token Ack" )
+		<< BUILD_LOG( kPacket_.m_uiUserUID )
+		<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )				
+		<< BUILD_LOG( kPacket_.m_uiUnitUID )
+		<< BUILD_LOG( kPacket_.m_wstrUnitNickName )
+		<< BUILD_LOG( kPacket_.m_usTokenLen )
+		<< BUILD_LOG( kPacket_.m_wstrToken )
+		<< END_LOG;
+
+
+	KGiantAuthManager::RequestInfo info;
+	bool bResult = SiKGiantAuthManager()->UnregisterRequest( kPacket_.m_uiUserUID, info );
+	if( bResult == false )
+	{
+		START_LOG( cerr, L"UnregisterRequest Failed" )
+			<< BUILD_LOG( kPacket_.m_uiUserUID )
+			<< BUILD_LOG( kPacket_.m_wstrServiceAccountID )				
+			<< BUILD_LOG( kPacket_.m_uiUnitUID )
+			<< BUILD_LOG( kPacket_.m_wstrUnitNickName )
+			<< BUILD_LOG( kPacket_.m_usTokenLen )
+			<< BUILD_LOG( kPacket_.m_wstrToken )
+			<< END_LOG;
+
+		return;
+	}
+
+	KEGS_CASH_DIRECT_CHARGE_CN_ACK kPacketAck;
+	kPacketAck.m_iOK = NetError::NET_OK;
+	kPacketAck.m_wstrToken = kPacketAck.m_wstrToken;
+
+
+	SendToGameUser( info.ServerUID, info.UserUID, ELG_CASH_DIRECT_CHARGE_CN_ACK, kPacketAck );
+}
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 
 #endif // SERV_COUNTRY_CN

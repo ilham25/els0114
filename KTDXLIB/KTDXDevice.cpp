@@ -2,9 +2,9 @@
 #include ".\ktdxdevice.h"
 
 bool CKTDXDevice::LoadDevice(
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				bool bBackgroundQueueing
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 	)
 { 
 	HRESULT hr;
@@ -43,9 +43,9 @@ bool CKTDXDevice::LoadDevice(
     }
 
     hr = _Load( false
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 			, bBackgroundQueueing
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 		);
     if( FAILED(hr) )
 	{
@@ -85,9 +85,9 @@ bool CKTDXDevice::LoadDevice(
 
 #ifdef CHECK_SOUND_LOADING_TIME
 bool CKTDXDevice::CheckLoadDevice( bool& bCreateSound,
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 	bool bBackgroundQueueing
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 	)
 { 
 	HRESULT hr;
@@ -126,9 +126,9 @@ bool CKTDXDevice::CheckLoadDevice( bool& bCreateSound,
 	}
 
 	hr = _CheckLoad( bCreateSound , false
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 		, bBackgroundQueueing
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 		);
 	if( FAILED(hr) )
 	{
@@ -209,6 +209,23 @@ bool CKTDXDevice::UnrefDevice()
 
     return false;
 }
+
+
+bool    CKTDXDevice::UnrefDeviceIfReferedOnce()
+{
+    {
+        CSLock  lock( m_csDeviceState );
+
+        if ( m_RefCount == 1 )
+        {
+            m_RefCount--;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 
 
 CKTDXDevice::EDeviceState    CKTDXDevice::PendDevice()

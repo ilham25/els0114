@@ -91,6 +91,10 @@
 #endif SERV_NEW_DEFENCE_DUNGEON
 //}}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	#include "X2Data/XSLFieldBossData.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+
 #include <lua_tinker.h>
 using namespace lua_tinker;
 
@@ -181,6 +185,25 @@ void KCnSimLayer::Init()
 		}
 	}
 
+	{
+		LoadingTimer lt(L"DungeonEnum.lua" );
+
+		strFile = "DungeonEnum.lua";
+		kAutoPath.GetPullPath( strFile );
+		if( 0 != LUA_DOFILE( L, strFile.c_str() ) )
+		{
+			START_LOG( cerr, L"DungeonEnum 정보 로드 실패.!" )
+				<< BUILD_LOG( KncUtil::toWideString( strFile ) );
+			//{{ 2011. 02. 07	최육사	스크립트 파싱 오류 리포트
+			KBaseServer::GetKObj()->AddFailScriptFileName( L"DungeonEnum.lua" );
+			//}}
+		}
+		else
+		{
+			START_LOG( cout, L"DungeonEnum 정보 로드 성공.!" );
+		}
+	}
+
 	//{{ 2010. 07. 16  최육사	이벤트 몬스터 시스템
 #ifdef SERV_EVENT_MONSTER
 	{
@@ -191,6 +214,9 @@ void KCnSimLayer::Init()
 #endif SERV_EVENT_SCRIPT_REFRESH
 		//}}
 		KGameEventScriptManager::RegScriptName( "EventMonsterData.lua" );
+#ifdef  SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		KGameEventScriptManager::RegScriptName( "ValenTineData.lua" );
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 		OPEN_SCRIPT_FILE( KGameEventScriptManager );
 	}
 #endif SERV_EVENT_MONSTER
@@ -515,6 +541,13 @@ void KCnSimLayer::Init()
 	}
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	{
+		CXSLFieldBossData::RegScriptName( "FieldBossData.lua" );
+		OPEN_SCRIPT_FILE( CXSLFieldBossData );
+	}
+#endif // SERV_BATTLE_FIELD_BOSS
 }
 
 
@@ -588,6 +621,11 @@ void KCnSimLayer::ShutDown()
 	CXSLDefenceDungeonManager::ReleaseInstance();
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-31	// 박세훈
+	CXSLFieldBossData::ReleaseInstance();
+#endif // SERV_BATTLE_FIELD_BOSS
+
     KSimLayer::ShutDown();
 }
 

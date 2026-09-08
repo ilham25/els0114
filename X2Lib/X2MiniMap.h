@@ -10,7 +10,6 @@ class CX2MiniMapUI;
 class CX2MiniMap : public CKTDGObject
 {
 public:
-#ifdef REFORM_UI_MINIMAP
 	enum MINIMAP_ICON
 	{
 		MI_MYSELF,
@@ -40,7 +39,6 @@ public:
 
 		MI_END,
 	};
-#endif
 
 	struct XYZ_DIFFUSE_TEX_VERTEX
 	{
@@ -95,12 +93,10 @@ protected:
 	void RenderMiniMapTextureSquare();
 	void NomalDirectCameraSquare( CX2SquareUnit* pFocusUnit, float distance = 1500.0f, float height = 200.0f, float angleDegree = 0.0f, float eyeDistance = 0.0f, float lookatDistance = 0.0f );
 
-#ifdef REFORM_UI_MINIMAP
 	HRESULT RenderVillage();
 	void RenderMiniMapTextureVillage();
 	void NomalDirectCameraVillage( CX2SquareUnit* pFocusUnit, float distance = 1500.0f, float height = 200.0f, float angleDegree = 0.0f, float eyeDistance = 0.0f, float lookatDistance = 0.0f );
 	bool IsInWindowTexture( const D3DXVECTOR3& vProjectedPos );
-#endif
 
 	//void ZoomDLGSetting();
 
@@ -108,9 +104,7 @@ private:
 	CKTDXDeviceRenderTargetTexture* 	m_pRenderTargetTexture;
 	CKTDXDeviceTexture*					m_pTextureMiniMap;
 //	CKTDXDeviceTexture*					m_pTextureMonsterCount;
-#ifdef REFORM_UI_MINIMAP
 	CKTDXDeviceTexture*	m_pTextureIcon[ MI_END ];
-#endif
 
 
 	//float								m_fX, m_fY, m_fWidth, m_fHeight;

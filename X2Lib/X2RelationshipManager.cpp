@@ -12,6 +12,12 @@ m_fRefreshDataCoolTime ( 0 ),
 m_pMyWeddingItemInfo ( NULL ),
 m_optrGameUnitRelationPartner (),
 m_pSquareUnitRelationPartner ()
+#ifdef ADJUST_THIRD_PERSON_BUG
+,m_bPropose(false)
+#endif //ADJUST_THIRD_PERSON_BUG
+#ifdef RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
+,m_bInviteGuildMember(false)
+#endif //RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
 {
 	m_pMyRelationshipInfo = new RelationshipInfo;
 	m_pUIRelationship = new CX2UIRelationship;
@@ -326,6 +332,7 @@ bool CX2RelationshipManager::Handler_EGS_COUPLE_PROPOSE_ACK ( HWND hWnd, UINT uM
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
+
 			return true;	
 		}
 	}
@@ -340,7 +347,7 @@ bool CX2RelationshipManager::Send_EGS_COUPLE_PROPOSE_REQ ( wstring wstrNickname_
 	userData.iMyUID			= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 	userData.iOpponentUID	= g_pData->GetMyUser()->GetSelectUnit()->GetUID();
 	
-	if ( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID ( COUPLE_RING_ITEM_ID, true ) )
+	if ( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID ( COUPLE_RING_ITEM_ID, true ) )
 	{
 		wstring wstrTextNotice= GET_REPLACED_STRING( ( STR_ID_24459, "L", wstrNickname_ ) );										
 
@@ -354,6 +361,10 @@ bool CX2RelationshipManager::Send_EGS_COUPLE_PROPOSE_REQ ( wstring wstrNickname_
 
 		g_pData->GetServerProtocol()->SendPacket( EGS_COUPLE_PROPOSE_REQ, kPacket ); 
 		g_pMain->AddServerPacket( EGS_COUPLE_PROPOSE_ACK, 60.f );
+
+#ifdef ADJUST_THIRD_PERSON_BUG
+		m_bPropose = true;
+#endif //ADJUST_THIRD_PERSON_BUG
 
 		return true;
 	}
@@ -419,11 +430,10 @@ bool CX2RelationshipManager::Handler_EGS_BREAK_UP_NOT ( HWND hWnd, UINT uMsg, WP
 			g_pData->GetRelationshipManager()->ResetRelationPartnerInGame();
 
 			if ( NULL != g_pData->GetMyUser() && 
-				NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				int iNowED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = iNowED - kEvent.m_iCost;
+				int iNowED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = iNowED - kEvent.m_iCost;
 			}
 
 
@@ -713,9 +723,7 @@ bool CX2RelationshipManager::Handler_EGS_RELATIONSHIP_EFFECT_NOT  ( HWND hWnd, U
 			return true;
 	}
 
-	if ( NULL != g_pData->GetRelationshipEffectManager() &&
-		 NULL != g_pMain->GetGameOption() &&
-		 NULL != g_pMain->GetGameOption()->GetOptionList() )
+	if ( NULL != g_pData->GetRelationshipEffectManager() )
 	{	
 		CX2RelationshipEffectManager::RelationEffectInfo RelationEffectInfo_;
 		RelationEffectInfo_ = ( *(g_pData->GetRelationshipEffectManager()->GetRelationEffectInfoIndex (kEvent.m_iEffectIndex ) ) );
@@ -723,7 +731,7 @@ bool CX2RelationshipManager::Handler_EGS_RELATIONSHIP_EFFECT_NOT  ( HWND hWnd, U
 		if ( RelationEffectInfo_.GetRelationCloseEffectDistance() > 0 )
 		// 거리로 체크하는 중!! 수정 바람
 		{
-			if ( TRUE == g_pMain->GetGameOption()->GetOptionList()->m_bParty )
+			if ( TRUE == g_pMain->GetGameOption().GetOptionList().m_bParty )
 			{
 				if ( FALSE == g_pData->GetPartyManager()->IsMyPartyMember( kEvent.m_iManUID ) ||
 					 FALSE == g_pData->GetPartyManager()->IsMyPartyMember( kEvent.m_iGirlUID ) )
@@ -886,7 +894,10 @@ bool CX2RelationshipManager::Handler_EGS_COUPLE_PROPOSE_RESULT_NOT ( HWND hWnd, 
 
 				case PRM_DISAGREE :
 				{
+#ifdef RELATIONSHIP_DISAGREE_MESSAGE_FIX
+#else // RELATIONSHIP_DISAGREE_MESSAGE_FIX
 					if ( g_pMain->IsThereTimedMessagePopup ( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE ) )
+#endif // RELATIONSHIP_DISAGREE_MESSAGE_FIX
 					{
 						wstring wstrTextNotice = GET_STRING( STR_ID_24602 );
 
@@ -918,6 +929,10 @@ bool CX2RelationshipManager::Handler_EGS_COUPLE_PROPOSE_RESULT_NOT ( HWND hWnd, 
 	g_pMain->RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_WAIT_CHOICE_COUPLE, userData );
 	g_pMain->RemoveTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_AGREE_COUPLE, userData );
 
+#ifdef ADJUST_THIRD_PERSON_BUG
+	m_bPropose = false;
+#endif //ADJUST_THIRD_PERSON_BUG
+
 	return true;
 }
 
@@ -934,10 +949,9 @@ bool CX2RelationshipManager::Handler_EGS_WEDDING_PROPOSE_ACK ( HWND hWnd, UINT u
 		{
 			//인벤토리 갱신
 			if( NULL != g_pData->GetMyUser() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );	
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecUpdatedInventorySlot );	
 			}
 
 			if ( NULL != g_pData && 
@@ -1027,9 +1041,9 @@ bool CX2RelationshipManager::Handler_EGS_COUPLE_PROPOSE_NOT( HWND hWnd, UINT uMs
 	if ( NULL != GetMyRelationshipInfo() )
 	{
 		/// 커플신청 거부 상태이면, 바로 거부 의사 전송
-		if ( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+		if ( NULL != g_pMain )
 		{
-			CX2GameOption::OptionList* pOptionList = g_pMain->GetGameOption()->GetOptionList();
+			CX2GameOption::OptionList* pOptionList = &g_pMain->GetGameOption().GetOptionList();
 
 			if ( NULL != pOptionList && true == pOptionList->m_bRefuseRequestCouple )
 			{
@@ -1041,7 +1055,11 @@ bool CX2RelationshipManager::Handler_EGS_COUPLE_PROPOSE_NOT( HWND hWnd, UINT uMs
 			}
 		}
 
-		if ( GetMyRelationshipInfo()->m_eRelationStateType == SEnum::RT_SOLO )
+		if ( GetMyRelationshipInfo()->m_eRelationStateType == SEnum::RT_SOLO 
+#ifdef ADJUST_THIRD_PERSON_BUG
+			&& m_bPropose == false
+#endif //ADJUST_THIRD_PERSON_BUG
+			)
 		{				
 			if ( g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP ||
 				 g_pMain->GetNowStateID() == CX2Main::XS_BATTLE_FIELD )
@@ -1051,6 +1069,11 @@ bool CX2RelationshipManager::Handler_EGS_COUPLE_PROPOSE_NOT( HWND hWnd, UINT uMs
 					GetMyRelationshipInfo()->m_wstrRelationTargetUserNickname = kEvent.m_wstrRequestUnitName;
 	
 					wstring wstrTextNotice= GET_REPLACED_STRING( ( STR_ID_24453, "L", kEvent.m_wstrRequestUnitName ) );										
+
+#ifdef CLIENT_COUNTRY_EU
+					// 커플 신청 받았을 때 뜨는 UI
+					wstrTextNotice = CWordLineHandler::GetStrByLineBreakInX2Main( wstrTextNotice.c_str(), 200, XUF_DODUM_11_NORMAL );
+#endif CLIENT_COUNTRY_EU
 
 					g_pMain->AddTimedMessagePopup( CX2Main::TimedMessagePopUp::MT_AGREE_COUPLE,
 						CX2Main::TimedMessagePopUp::MBT_OK_CANCEL, userData, 10.f, 
@@ -1087,6 +1110,10 @@ bool CX2RelationshipManager::Send_EGS_GET_GUILD_USER_LIST_REQ ()
 		kPacket.m_uiViewPage			= m_pUIRelationship->GetNowInviteUserPage();
 		kPacket.m_cGuildUserListType	= CX2Community::GVI_GUILD_MEMBER_INFO;
 
+#ifdef RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
+		m_bInviteGuildMember = true;
+#endif //RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
+
 		g_pData->GetServerProtocol()->SendPacket( EGS_GET_GUILD_USER_LIST_REQ, kPacket ); 
 		g_pMain->AddServerPacket( EGS_GET_GUILD_USER_LIST_ACK, 60.f );
 		
@@ -1096,10 +1123,13 @@ bool CX2RelationshipManager::Send_EGS_GET_GUILD_USER_LIST_REQ ()
 
 bool CX2RelationshipManager::Handler_EGS_GET_GUILD_USER_LIST_ACK ( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-
     if ( NULL != g_pData->GetMessenger() )
 	{
+#ifdef RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
+		if( m_bInviteGuildMember == true )
+#else
 		if ( g_pData->GetMessenger()->GetOpenTab() == CX2Community::XMUT_RELATION )
+#endif //RELATIONSHIP_SHOW_GUILD_MEMBER_FIX	
 		{
 			if ( NULL != m_pUIRelationship )
 			{
@@ -1107,23 +1137,31 @@ bool CX2RelationshipManager::Handler_EGS_GET_GUILD_USER_LIST_ACK ( HWND hWnd, UI
 				KEGS_GET_GUILD_USER_LIST_ACK kEvent;
 				DeSerialize( pBuff, &kEvent );
 
-				if ( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
-				{	
-					m_pUIRelationship->ResetInviteWeddingUserList();
-					m_pUIRelationship->SetMaxInviteUserPage ( static_cast< UINT >( kEvent.m_uiTotalPage ) );
-					m_pUIRelationship->SetNowInviteUserPage ( static_cast< UINT >( kEvent.m_uiViewPage ) );
-					BOOST_FOREACH ( KGuildMemberMessageInfo pGuildMemberInfo, kEvent.m_vecMemberMessageList )
-					{
-						m_pUIRelationship->AddInviteWeddingUserList
-							( CX2UIRelationship::InviteWeddingUserInfo ( pGuildMemberInfo.m_wstrNickName, pGuildMemberInfo.m_iUnitUID ) );
-					}
-//					m_pUIRelationship->ResetInvitingUserInfo(); // m_vecInviteWeddingUserList.clear();		
-					m_pUIRelationship->ShowInvitedWeddingUserListControlListDlg ( false );
-					m_pUIRelationship->ShowInvitedWeddingUserListControlListDlg ( true );
+#ifdef RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
+				if ( g_pMain->DeleteServerPacket( EGS_GET_GUILD_USER_LIST_ACK ) == true )
+#endif //RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
+				{
+					if ( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+					{	
+						m_pUIRelationship->ResetInviteWeddingUserList();
+						m_pUIRelationship->SetMaxInviteUserPage ( static_cast< UINT >( kEvent.m_uiTotalPage ) );
+						m_pUIRelationship->SetNowInviteUserPage ( static_cast< UINT >( kEvent.m_uiViewPage ) );
+						BOOST_FOREACH ( KGuildMemberMessageInfo pGuildMemberInfo, kEvent.m_vecMemberMessageList )
+						{
+							m_pUIRelationship->AddInviteWeddingUserList
+								( CX2UIRelationship::InviteWeddingUserInfo ( pGuildMemberInfo.m_wstrNickName, pGuildMemberInfo.m_iUnitUID ) );
+						}
+	//					m_pUIRelationship->ResetInvitingUserInfo(); // m_vecInviteWeddingUserList.clear();		
+						m_pUIRelationship->ShowInvitedWeddingUserListControlListDlg ( false );
+						m_pUIRelationship->ShowInvitedWeddingUserListControlListDlg ( true );
 				
-					return true;
+						return true;
+					}
 				}
 			}
+#ifdef RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
+			m_bInviteGuildMember = false;
+#endif //RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
 		}
 	}
 
@@ -1438,8 +1476,7 @@ void CX2RelationshipEffectManager::RelationEffectInfo::DrawRelationshipEffect ( 
 				if ( NULL != pSquareUnitPtr )
 				{
 					CX2EffectSet::Handle hEffectSet = g_pData->GetUIEffectSet()->PlayEffectSet( wstrEffectName_, pSquareUnitPtr);	
-					CX2EffectSet::EffectSetInstance* pEffectSetInstance = g_pData->GetUIEffectSet()->GetEffectSetInstance( hEffectSet );
-					if( NULL != pEffectSetInstance )
+					if ( CX2EffectSet::EffectSetInstance* pEffectSetInstance = g_pData->GetUIEffectSet()->GetEffectSetInstance( hEffectSet ) )
 					{
 						pEffectSetInstance->SetEffectPosition( vEffectPos );
 					}
@@ -1544,41 +1581,50 @@ void CX2RelationshipEffectManager::RelationEffectInfo::PopTalkBoxEffect( UidType
 			if( pCX2SquareUnit != NULL && pCX2SquareUnit->GetInit() == true && pCX2SquareUnit->GetShowObject() == true &&
 				pCX2SquareUnit->GetPersonalShopState() == CX2SquareUnit::PSS_NONE )
 			{
-				//컬링
-				float fScale;
-				if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetYScale() )
-				{			
-					if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
-					{
-						//X가 제일 큼
-						fScale = pCX2SquareUnit->GetMatrix().GetXScale();
-					}
-					else
-					{
-						//Z가 제일 큼
-						fScale = pCX2SquareUnit->GetMatrix().GetZScale();
-					}
-				}
-				else
-				{
-					if( pCX2SquareUnit->GetMatrix().GetYScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
-					{
-						//Y가 제일 큼
-						fScale = pCX2SquareUnit->GetMatrix().GetYScale();
-					}
-					else
-					{
-						//Z가 제일 큼
-						fScale = pCX2SquareUnit->GetMatrix().GetZScale();
-					}
-				}
-
 				D3DXVECTOR3 center;
 				pCX2SquareUnit->GetTransformCenter( &center );
 
-				if( pCX2SquareUnit->GetBoundingRadius() > 0
-					&& g_pKTDXApp->GetDGManager()->GetFrustum()->CheckSphere( center, pCX2SquareUnit->GetBoundingRadius() * fScale ) == false )
-					return;
+                if ( pCX2SquareUnit->GetBoundingRadius() > 0 )
+                {
+
+				//컬링
+
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+                    float fScaledBoundingRadius = pCX2SquareUnit->GetScaledBoundingRadius();
+#else   X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+				    float fScale;
+				    if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetYScale() )
+				    {			
+					    if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
+					    {
+						    //X가 제일 큼
+						    fScale = pCX2SquareUnit->GetMatrix().GetXScale();
+					    }
+					    else
+					    {
+						    //Z가 제일 큼
+						    fScale = pCX2SquareUnit->GetMatrix().GetZScale();
+					    }
+				    }
+				    else
+				    {
+					    if( pCX2SquareUnit->GetMatrix().GetYScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
+					    {
+						    //Y가 제일 큼
+						    fScale = pCX2SquareUnit->GetMatrix().GetYScale();
+					    }
+					    else
+					    {
+						    //Z가 제일 큼
+						    fScale = pCX2SquareUnit->GetMatrix().GetZScale();
+					    }
+				    }
+                    float fScaledBoundingRadius = pCX2SquareUnit->GetBoundingRadius() * fScale;
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+
+				    if( g_pKTDXApp->GetDGManager()->GetFrustum().CheckSphere( center, fScaledBoundingRadius ) == false )
+					    return;
+                }
 
 
 				CX2TalkBoxManagerImp::TalkBox talkBox;
@@ -1648,41 +1694,47 @@ void CX2RelationshipEffectManager::RelationEffectInfo::PopTalkBoxEffect( UidType
 			CX2GUUser* pGUUser = g_pX2Game->GetMyUnit();
 			if( NULL != pGUUser )
 			{
-				//컬링
-				float fScale;
-				if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetYScale() )
-				{
-					if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetZScale() )
-					{
-						//X가 제일 큼
-						fScale = pGUUser->GetMatrix().GetXScale();
-					}
-					else
-					{
-						//Z가 제일 큼
-						fScale = pGUUser->GetMatrix().GetZScale();
-					}
-				}
-				else
-				{
-					if( pGUUser->GetMatrix().GetYScale() > pGUUser->GetMatrix().GetZScale() )
-					{
-						//Y가 제일 큼
-						fScale = pGUUser->GetMatrix().GetYScale();
-					}
-					else
-					{
-						//Z가 제일 큼
-						fScale = pGUUser->GetMatrix().GetZScale();
-					}
-				}
-
 				D3DXVECTOR3 center;
 				pGUUser->GetTransformCenter( &center );
 
-				if( pGUUser->GetBoundingRadius() > 0
-					&& g_pKTDXApp->GetDGManager()->GetFrustum()->CheckSphere( center, pGUUser->GetBoundingRadius() * fScale ) == false )
-					return;
+				//컬링
+				if( pGUUser->GetBoundingRadius() > 0 )
+                {
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+                    float   fScaledBoundingRadius = pGUUser->GetScaledBoundingRadius();
+#else   X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+				    float fScale;
+				    if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetYScale() )
+				    {
+					    if( pGUUser->GetMatrix().GetXScale() > pGUUser->GetMatrix().GetZScale() )
+					    {
+						    //X가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetXScale();
+					    }
+					    else
+					    {
+						    //Z가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetZScale();
+					    }
+				    }
+				    else
+				    {
+					    if( pGUUser->GetMatrix().GetYScale() > pGUUser->GetMatrix().GetZScale() )
+					    {
+						    //Y가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetYScale();
+					    }
+					    else
+					    {
+						    //Z가 제일 큼
+						    fScale = pGUUser->GetMatrix().GetZScale();
+					    }
+				    }
+                     float   fScaledBoundingRadius = pGUUser->GetBoundingRadius() * fScale;
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+					if ( g_pKTDXApp->GetDGManager()->GetFrustum().CheckSphere( center, fScaledBoundingRadius ) == false )
+					    return;
+                }
 
 				CX2TalkBoxManagerImp::TalkBox talkBox;
 				talkBox.m_OwnerUnitUID		= -1;
@@ -1715,15 +1767,14 @@ void CX2RelationshipEffectManager::RelationEffectInfo::PopTalkBoxEffect( UidType
 
 void CX2RelationshipEffectManager::RelationEffectInfo::PrepareDrawRelationshipEffect( RELATION_EFFECT_PLAY_TYPE ePlayingEffectType_, UidType OwnerUID_ )
 {
-	if ( NULL != g_pMain->GetGameOption() )
 	{		
-		if ( TRUE == g_pMain->GetGameOption()->GetFieldSD() )
+		if ( TRUE == g_pMain->GetGameOption().GetFieldSD() )
 		{
 			return ;
 		}
 
 		/// 파티원만 보이는 옵션이 켜져있을 때
-		if ( TRUE == g_pMain->GetGameOption()->GetFieldParty() )
+		if ( TRUE == g_pMain->GetGameOption().GetFieldParty() )
 		{
 			/// 내 파티원도 아니고
 			if ( false == g_pData->GetPartyManager()->IsMyPartyMember( OwnerUID_ ) )
@@ -2020,17 +2071,16 @@ bool CX2RelationshipManager::IsEqipWeddingClothes() const
 
 	if( NULL != g_pData && 
 		NULL != g_pData->GetMyUser() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+		NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
 #ifdef SERV_NEW_ONE_PIECE_AVATAR_SLOT
 		// 한벌 아바타 체크
 		CX2Item* pItemBody = 
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_ONEPIECE_FASHION, true );
+			g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_ONEPIECE_FASHION, true );
 #else //SERV_NEW_ONE_PIECE_AVATAR_SLOT
 		// 상의 아바타 체크
 		CX2Item* pItemBody = 
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetEquippingItemByEquipPos( CX2Unit::EP_DEFENCE_BODY, true );
+			g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetEquippingItemByEquipPos( CX2Unit::EP_DEFENCE_BODY, true );
 #endif //SERV_NEW_ONE_PIECE_AVATAR_SLOT
 
 		if( NULL != pItemBody &&

@@ -1003,6 +1003,44 @@ IMPL_ON_FUNC( EGS_QUICK_START_DUNGEON_GAME_REQ )
 	KEGS_QUICK_START_DUNGEON_GAME_ACK kAck;
 	kAck.m_iOK = NetError::NET_OK;
 
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-09-26	// 박세훈
+	// 던전 자동 매칭 중인지 확인!!
+	if( m_kUserDungeonManager.GetAutoPartyWaitNumber() != 0  ||  m_kUserDungeonManager.GetAutoPartyUID() != 0 )
+	{
+		START_LOG( cerr, L"자동 매칭 중인데 바로 시작 요청이 들어왔다!!" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< END_LOG;
+
+		kAck.m_iOK = NetError::ERR_MATCH_MAKING_23;	// 던전 게임 신청 중에는 사용할 수 없는 기능입니다.
+		goto end_proc;
+	}
+
+	// 공식 대전 매칭 중인지 확인!!
+	if( GetMatchUID() != 0 )
+	{
+		START_LOG( cerr, L"공식 대전 매칭 중인데 던전 시작 요청이 들어왔다!!" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< END_LOG;
+
+		kAck.m_iOK = NetError::ERR_AUTO_PARTY_07;	// 공식 대전 신청 중에는 사용할 수 없는 기능입니다.
+		goto end_proc;
+	}
+
+	// 룸 리스트 조회 중인지 확인!!
+	if( GetRoomListID() != 0 )
+	{
+		START_LOG( cerr, L"룸 리스트 조회 중에 던전 시작 요청이 들어왔다!!" )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetCharName() )
+			<< END_LOG;
+
+		kAck.m_iOK = NetError::ERR_AUTO_PARTY_08;	// // 룸 리스트 조회 중에는 사용할 수 없는 기능입니다.
+		goto end_proc;
+	}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
+
 	//{{ 2011. 02. 21  김민성	특정 던전 입장 아이템 버그 수정
 #ifdef SERV_DUNGEON_REQUIRED_ITEM_BUG
 	// 정보 초기화
@@ -1269,10 +1307,15 @@ IMPL_ON_FUNC( ERM_PARTY_OPEN_DUNGEON_ROOM_NOT )
 #endif SERV_REFORM_QUEST
 	//}}
 
-	//{{ 2012. 12. 31 칭호 미션 오류 수정(파티인원수) - 김민성
-#ifdef SERV_PLAYER_WITH_DUNGEON_CLEAR_SUB_TITLE_MISSION_ERROR
+#ifdef SERV_ADD_TITLE_CONDITION
+	UseResurrectionStone( false );
 	SetStartedNumMember( kPacket_.m_RoomInfo.m_JoinSlot );
-#endif SERV_PLAYER_WITH_DUNGEON_CLEAR_SUB_TITLE_MISSION_ERROR
+#endif SERV_ADD_TITLE_CONDITION
+
+	//{{ 2013. 02. 05  칭호 획득 조건 추가(부활석 사용 횟수, 샌더 마을) - 김민성
+#ifdef SERV_ADD_TITLE_CONDITION_SANDER
+	ClearUseResurrectionStoneCount();
+#endif SERV_ADD_TITLE_CONDITION_SANDER
 	//}
 
 	StateTransition( KGSFSM::I_TO_ROOM );
@@ -1300,7 +1343,11 @@ IMPL_ON_FUNC( ERM_PARTY_OPEN_DUNGEON_ROOM_NOT )
 			// 헤니르 던전이라면 보상 받은 횟수를 증가시킨다.
 			if( CXSLDungeon::IsHenirDungeon( kPacket_.m_RoomInfo.m_iDungeonID ) == true )
 			{
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+				if( m_kUserDungeonManager.IncreaseHenirRewardCount( kPacket_.m_RoomInfo.m_cDungeonMode ) == false )
+#else // SERV_HENIR_RENEWAL_2013
 				if( m_kUserDungeonManager.IncreaseHenirRewardCount() == false )
+#endif // SERV_HENIR_RENEWAL_2013
 				{
 					START_LOG( clog, L"헤니르 보상 획득 횟수 증가 실패!! 더이상 증갈 할 수 없으니 보상 받을 수 없다." )
 						<< BUILD_LOG( GetCharName() )
@@ -1321,6 +1368,25 @@ IMPL_ON_FUNC( ERM_PARTY_OPEN_DUNGEON_ROOM_NOT )
 			}
 #endif SERV_NEW_HENIR_TEST
 			//}}
+
+#ifdef SERV_LIMITED_DUNGEON_PLAY_TIMES
+			std::map< int, KDungeonPlayInfo >::iterator mitDungeonPlay = m_mapDungeonPlay.find( kPacket_.m_RoomInfo.m_iDungeonID );
+			if( mitDungeonPlay == m_mapDungeonPlay.end() )
+			{
+				KDungeonPlayInfo kDungeonPlayInfo;
+				kDungeonPlayInfo.m_iDungeonID = kPacket_.m_RoomInfo.m_iDungeonID;
+				kDungeonPlayInfo.m_iPlayTimes = 1;
+				kDungeonPlayInfo.m_iClearTimes = 0;
+				kDungeonPlayInfo.m_bNew = true;
+
+				m_mapDungeonPlay.insert( std::make_pair( kPacket_.m_RoomInfo.m_iDungeonID, kDungeonPlayInfo ) );
+			}
+			else
+			{
+				mitDungeonPlay->second.m_iPlayTimes += 1;
+				mitDungeonPlay->second.m_bNew = true;
+			}
+#endif SERV_LIMITED_DUNGEON_PLAY_TIMES
 
 			//{{ 2011. 02. 21  김민성	특정 던전 입장 아이템 버그 수정
 #ifdef SERV_DUNGEON_REQUIRED_ITEM_BUG
@@ -2092,25 +2158,7 @@ IMPL_ON_FUNC( EPM_CHECK_FOR_PARTY_GAME_START_REQ )
 		break;
 	}
 
-	//{{ 2011. 05. 16  김민성	칭호 획득 조건 추가
-#ifdef SERV_ADD_TITLE_CONDITION
-	UseResurrectionStone( false );
-
-	int ipartynum = 0;
-	SiKPartyListManager()->GetPartyNumMember( GetPartyUID(), ipartynum );
-	SetStartedNumMember( ipartynum );
-#endif SERV_ADD_TITLE_CONDITION
-	//}}
-	//{{ 2013. 02. 05  칭호 획득 조건 추가(부활석 사용 횟수, 샌더 마을) - 김민성
-#ifdef SERV_ADD_TITLE_CONDITION_SANDER
-	ClearUseResurrectionStoneCount();
-#endif SERV_ADD_TITLE_CONDITION_SANDER
-	//}
-	//{{ 2011. 08. 12   김민성      헤니르 개편 
-#ifdef SERV_NEW_HENIR_TEST
-	m_kUserDungeonManager.SetPossibleHenirReward();
-#endif SERV_NEW_HENIR_TEST
-	//}}
+	m_kUserDungeonManager.SetDungeonGameInfo( kPacket_.m_kDungeonGameInfo );
 
 	// PartyRoomUserInfo얻기
 	KPartyRoomUserInfo kPartyRoomUserInfo;

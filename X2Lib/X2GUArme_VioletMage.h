@@ -77,6 +77,11 @@ class CX2GUArme_VioletMage : public CX2GUUser
 
 			AVSI_HELL_DROP_CONTROL_FIRE,
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 기존 Fire 이후 사망 -> 일정 시간 혹은 조건에 따라 사망 변경에 따라 State 추가
+			AVSI_HELL_DROP_CONTROL_DYING,
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 
 			AVSI_AEM_XZ, 
 			AVSI_AEM_XZZ, 
@@ -134,9 +139,9 @@ class CX2GUArme_VioletMage : public CX2GUUser
 
 			AVSI_TRANSFORMED,
 
-#ifdef PVP_BOSS_COMBAT_TEST
-			AVSI_FROZEN,
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//			AVSI_FROZEN,
+//#endif PVP_BOSS_COMBAT_TEST
 		};
 
 		enum AISHA_MAJOR_PARTICLE_INSTANCE_ID
@@ -197,6 +202,8 @@ class CX2GUArme_VioletMage : public CX2GUUser
 			EffSetID_END,
 		};
 #ifdef SKILL_CASH_10_TEST
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 블레이즈 스탭 구조체는 더 이상 사용되지 않습니다. ( 버프로 변경 )
 		struct BLAZE_STEP_DATA
 		{
 			const double	m_dRefreshTime;
@@ -221,7 +228,7 @@ class CX2GUArme_VioletMage : public CX2GUUser
 			m_bEnable(false),
 			m_fPowerRate(0.f),
 			m_ahMajorMeshInstance(INVALID_MESH_INSTANCE_HANDLE),
-			m_ahMajorParticleInstance(INVALID_PARTICLE_HANDLE)
+			m_ahMajorParticleInstance(INVALID_PARTICLE_SEQUENCE_HANDLE)
 			{
 			}
 			~BLAZE_STEP_DATA()
@@ -255,14 +262,18 @@ class CX2GUArme_VioletMage : public CX2GUUser
 				if( m_dMaxTime <= m_TimerElapsedTime.elapsed() )
 				{
 					m_bEnable = false;
+
 					DestroyEffect();
 					return true;
 				}
 				return false;
 			}
-
 			void DestroyEffect();
+			
 		};
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+
 #endif SKILL_CASH_10_TEST
 
 		struct StrongMindData : public TimeLimited
@@ -360,19 +371,19 @@ class CX2GUArme_VioletMage : public CX2GUUser
 		CKTDGParticleSystem::CParticleEventSequence* SetAishaMajorParticleByEnum( AISHA_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ );	// 각 캐릭터들만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		ParticleEventSequenceHandle	GetHandleAishaMajorParticleByEnum( AISHA_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) const // 캐릭터만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		{
-			ASSERT( AISHA_PII_MAJOR_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( AISHA_PII_MAJOR_END > eVal_ && AISHA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahAishaMajorParticleInstance[eVal_];
 		}
 
 		ParticleEventSequenceHandle& GetHandleReferenceAishaMajorParticleByEnum( AISHA_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) // 캐릭터만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 // kimhc // 2010.11.5 
 		{
-			ASSERT( AISHA_PII_MAJOR_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( AISHA_PII_MAJOR_END > eVal_ && AISHA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahAishaMajorParticleInstance[eVal_];
 		}
 
 		void				SetHandleAishaMajorParticleByEnum( AISHA_MAJOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ ) // 엘소드만 쓰는 메이저 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함 // kimhc // 2010.11.5 
 		{
-			ASSERT( AISHA_PII_MAJOR_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( AISHA_PII_MAJOR_END > eVal_ && AISHA_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			m_ahAishaMajorParticleInstance[eVal_] = hHandle_;
 		}
 		void				DeleteArmeMajorParticle();
@@ -387,19 +398,19 @@ class CX2GUArme_VioletMage : public CX2GUUser
 
 		ParticleEventSequenceHandle	GetHandleAishaMinorParticleByEnum( AISHA_MINOR_PARTICLE_INSTANCE_ID eVal_ ) const	// 캐릭터만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴	// kimhc // 2010.11.5 
 		{
-			ASSERT( AISHA_PII_MINOR_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( AISHA_PII_MINOR_END > eVal_ && AISHA_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahAishaMinorParticleInstance[eVal_];
 		}
 
 		ParticleEventSequenceHandle& GetHandleReferenceAishaMinorParticleByEnum( AISHA_MINOR_PARTICLE_INSTANCE_ID eVal_ ) // 캐릭터만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴	// kimhc // 2010.11.5 
 		{
-			ASSERT( AISHA_PII_MINOR_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( AISHA_PII_MINOR_END > eVal_ && AISHA_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			return m_ahAishaMinorParticleInstance[eVal_];
 		}
 
 		void				SetHandleAishaMinorParticleByEnum( AISHA_MINOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ )	// 캐릭터만 쓰는 마이너 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함	// kimhc // 2010.11.5 
 		{
-			ASSERT( AISHA_PII_MINOR_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+			ASSERT( AISHA_PII_MINOR_END > eVal_ && AISHA_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 			m_ahAishaMinorParticleInstance[eVal_] = hHandle_;
 		}
 		void				DeleteArmeMinorParticle();
@@ -496,9 +507,15 @@ class CX2GUArme_VioletMage : public CX2GUUser
 
 		virtual float		GetActualMPConsume( const CX2SkillTree::SKILL_ID eSkillID_, const int iSkillLevel_ ) const;
 
-		void				CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#ifndef SERV_9TH_NEW_CHARACTER // 김태환
+		/// 다른 캐릭터들 전부 똑같은 함수를 쓰고 있으니, X2GUUser로 옮기자.
+		virtual void		CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#endif // SERV_9TH_NEW_CHARACTER
 
-		
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		const CX2SkillTree::ACTIVE_SKILL_USE_CONDITION GetSkillUseCondition(const CX2SkillTree::SkillTemplet* pSkillTemplet_);
+#endif //ADD_MEMO_1ST_CLASS
+
 #ifdef SERV_ARME_DIMENSION_WITCH	// ADW_DISTORTION
 		void				SetSelfDestructSummonedNPC( CX2UnitManager::NPC_UNIT_ID eNPCID = CX2UnitManager::NUI_NONE );
 		void				AdaptAdvancedTeleportationBuff();	/// 공간도약 버프 적용
@@ -525,7 +542,10 @@ class CX2GUArme_VioletMage : public CX2GUUser
 		CX2EffectSet::Handle m_ahEffectSet[ EffSetID_END ];
 
 #ifdef SKILL_CASH_10_TEST
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편		
+		// 블레이즈 스탭 구조체는 더 이상 사용되지 않습니다. ( 버프로 변경 )
 		BLAZE_STEP_DATA	m_sBlazeStepData;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 #endif SKILL_CASH_10_TEST
 
 //{{ 김상훈 2010.10.29
@@ -592,13 +612,21 @@ class CX2GUArme_VioletMage : public CX2GUUser
 		CKTDGParticleSystem::CParticleEventSequenceHandle 		m_hSeqMPCharge2Up;
 		CKTDGParticleSystem::CParticleEventSequenceHandle 		m_hSeqMPCharge2Up2;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		CX2DamageEffect::CEffectHandle								    m_hHellStoneEffect;
+		CX2DamageEffect::CEffectHandle								    m_hCatastropheLaser;
+		CX2DamageEffect::CEffectHandle								    m_hCatastropheLaser1;
+		CX2DamageEffect::CEffectHandle								    m_hCatastropheLaser2;
+		CX2DamageEffect::CEffectHandle								    m_hCatastropheLaser3;
+		CX2DamageEffect::CEffectHandle								    m_hCatastropheLaser4;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*								m_pHellStoneEffect;
-
 		CX2DamageEffect::CEffect*								m_pCatastropheLaser;
 		CX2DamageEffect::CEffect*								m_pCatastropheLaser1;
 		CX2DamageEffect::CEffect*								m_pCatastropheLaser2;
 		CX2DamageEffect::CEffect*								m_pCatastropheLaser3;
 		CX2DamageEffect::CEffect*								m_pCatastropheLaser4;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
 
@@ -649,6 +677,11 @@ class CX2GUArme_VioletMage : public CX2GUUser
 		float						m_fFireGap;					/// 메테오 샤워 한발당 발사되는 간격
 #endif BALANCE_ELEMENTAL_MASTER_20130117
 
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		float							m_fHellDropCreateEffectCooltime;	/// 헬 드롭, 생성한 Effect 쿨타임
+		bool							m_bIsHellDropTimerStart;			/// 헬 드롭, 타이머가 시작되었는가?
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	private:
 
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_ahAishaMajorParticleInstance[AISHA_PII_MAJOR_END];
@@ -744,7 +777,7 @@ class CX2GUArme_VioletMage : public CX2GUUser
 		void RidingHyperModeCameraMove();
 		void CommonHyperModeFrameMove( float fTime1_, float fTime2_, bool bSound_ = false );
 #endif // MODIFY_RIDING_PET_AWAKE
-		
+
 		//AVSI_CHARGE_MP
 		void ChargeMPInit();
 		void ChargeMPStartFuture();
@@ -1190,6 +1223,10 @@ class CX2GUArme_VioletMage : public CX2GUUser
 		void AVSI_SI_A_AV_CIRCLE_FLAME_READY_EndFuture();
 
 		void AVSI_SI_A_AV_CIRCLE_FLAME_Init();
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 빙점 연구 적용에 따라 StateStart 구문 추가
+		void AVSI_SI_A_AV_CIRCLE_FLAME_StateStart();
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		void AVSI_SI_A_AV_CIRCLE_FLAME_StartFuture();
 		void AVSI_SI_A_AV_CIRCLE_FLAME_FrameMove();
 		void AVSI_SI_A_AV_CIRCLE_FLAME_EventProcess();
@@ -1309,6 +1346,9 @@ class CX2GUArme_VioletMage : public CX2GUUser
 		void AVSI_SA_AVP_HELL_DROP_StateEnd();
 
 			
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		void AVSI_HELL_DROP_CONTROL_FrameMove();
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 		void AVSI_HELL_DROP_CONTROL_EventProcess();
 
@@ -1326,6 +1366,9 @@ class CX2GUArme_VioletMage : public CX2GUUser
 		void AVSI_HELL_DROP_CONTROL_FIRE_StateStart();
 		void AVSI_HELL_DROP_CONTROL_FIRE_FrameMove();
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		void AVSI_HELL_DROP_CONTROL_FIRE_EventProcess();
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 
 
@@ -1462,6 +1505,10 @@ class CX2GUArme_VioletMage : public CX2GUUser
 
 	#pragma region SI_SA_AEM_CHAIN_LIGHTNING
 		void AVSI_SA_AEM_Chain_Lightning_Init();
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		void AVSI_SA_AEM_Chain_Lightning_StartFuture();
+		void AVSI_SA_AEM_Chain_Lightning_EndFuture();
+#endif //ADD_MEMO_1ST_CLASS
 		void AVSI_SA_AEM_Chain_Lightning_FrameMove();
 		void AVSI_SA_AEM_Chain_Lightning_EventProcess();
 	#pragma endregion 체인 라이트닝
@@ -1503,6 +1550,21 @@ class CX2GUArme_VioletMage : public CX2GUUser
 	#pragma endregion 스크류 드라이버 - 드릴러
 
 #endif //UPGRADE_SKILL_SYSTEM_2013_JHKang
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	#pragma region SI_SA_AEM_Elemental_Storm
+		void AVSI_HA_AEM_Elemental_Storm_Init();
+	#pragma endregion 엘리멘탈 스톰 - 궁극기
+
+	#pragma region SI_FS_AVP_Abyss_Angor
+		void AVSI_HA_AVP_Abyss_Angor_Init();
+	#pragma endregion 어비스 앙고르 - 궁극기
+
+	#pragma region SI_FS_ADW_Fate_space
+		void AVSI_HA_ADW_Fate_space_Init();
+	#pragma endregion 페이트 스페이스 - 궁극기
+
+#endif //FINALITY_SKILL_SYSTEM
 
 #ifdef FIX_NO_STATE_SKILL_BUG
 		virtual bool IsValideSkillRidingOn( CX2SkillTree::SKILL_ID eSkill_ID_ );

@@ -51,6 +51,16 @@ m_bRanking( false )
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 , m_bExchangeNewItem( false )
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_NEAR // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+, m_bIsPlayNearSound ( false )
+, m_wstrNearSoundFileName (L"")
+, m_fPlayMaxNearSoundCoolTime ( 0.f )
+, m_fPlayNowNearSoundCoolTime ( 0.f )
+, m_fPlayNearSoundDistance ( 0.f )
+, m_pNearPlaySound ( NULL )
+#endif // ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_CLOSE // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+
+
 {	
     ASSERT( ::GetCurrentThreadId() == g_pKTDXApp->GetMainThreadID() );
 
@@ -164,6 +174,14 @@ CX2TFieldNpc::~CX2TFieldNpc(void)
 	GetUiParticle()->DestroyInstanceHandle( m_hNpcDoQuest );
 	GetUiParticle()->DestroyInstanceHandle( m_hNpcCompleteQuest1 );
 	GetUiParticle()->DestroyInstanceHandle( m_hNpcCompleteQuest2 );
+
+#ifdef ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_NEAR // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+	if ( NULL != m_pNearPlaySound )
+	{
+		m_pNearPlaySound->Stop();
+		SAFE_CLOSE ( m_pNearPlaySound );		
+	}
+#endif // ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_NEAR // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
 
 }//CX2TFieldNpc::~CX2TFieldNpc()
 
@@ -394,25 +412,35 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 	if(m_pHouseTemplet != NULL && m_pHouseTemplet->m_bEventNpc == true)
 	{
 		__time64_t t0 = g_pData->GetServerCurrentTime();
+#ifdef	CONVERSION_VS
+        struct tm   ktm;
+        struct tm* ptm = &ktm;
+        bool bOK = _localtime64_s( ptm, &t0 ) == 0;
+#else   CONVERSION_VS
 		struct tm* ptm = _localtime64( &t0 );
-		unsigned long fNowSecond = (unsigned long)((float)ptm->tm_hour * 3600.f + (float)ptm->tm_min * 60.f + (float)ptm->tm_sec); 
-		
-		if( //m_pHouseTemplet->m_fStartYear >= ptm->tm_year && 
-			m_pHouseTemplet->m_fStartMonth <= ptm->tm_mon+1 && 
-			m_pHouseTemplet->m_fStartDay <= ptm->tm_mday &&
-			m_pHouseTemplet->m_fStartHour <= ptm->tm_hour )
+		bool bOK = ( ptm != NULL );
+#endif  CONVERSION_VS
+		if ( bOK == true )
 		{
-			unsigned long ulActiveStep = (unsigned long)((m_pHouseTemplet->m_fActiveMin * 60.f) + (m_pHouseTemplet->m_fWaitMin * 60.f));
-			unsigned long ulChunkTime = fNowSecond % ulActiveStep;
-			if(ulChunkTime < (unsigned long)(m_pHouseTemplet->m_fActiveMin * 60.f))
+			unsigned long fNowSecond = (unsigned long)((float)ptm->tm_hour * 3600.f + (float)ptm->tm_min * 60.f + (float)ptm->tm_sec); 
+		
+			if( //m_pHouseTemplet->m_fStartYear >= ptm->tm_year && 
+				m_pHouseTemplet->m_fStartMonth <= ptm->tm_mon+1 && 
+				m_pHouseTemplet->m_fStartDay <= ptm->tm_mday &&
+				m_pHouseTemplet->m_fStartHour <= ptm->tm_hour )
 			{
-				// active
-				SetCanTalkNpc(true);
-			}
-			else
-			{
-				// deactive & wait
-				SetCanTalkNpc(false);
+				unsigned long ulActiveStep = (unsigned long)((m_pHouseTemplet->m_fActiveMin * 60.f) + (m_pHouseTemplet->m_fWaitMin * 60.f));
+				unsigned long ulChunkTime = fNowSecond % ulActiveStep;
+				if(ulChunkTime < (unsigned long)(m_pHouseTemplet->m_fActiveMin * 60.f))
+				{
+					// active
+					SetCanTalkNpc(true);
+				}
+				else
+				{
+					// deactive & wait
+					SetCanTalkNpc(false);
+				}
 			}
 		}
 	}
@@ -534,7 +562,11 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 			// 퀘스트가 열려있을경우 npc message 포커스 처리 하지 않는다.
 			if( g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_QUEST_RECEIVE) == false &&
 #endif SERV_EPIC_QUEST
-				NULL != m_pDlgNpcMessage )
+				NULL != m_pDlgNpcMessage
+// #ifdef MODIFY_ACCEPT_QUEST
+// 				 && CX2LocationManager::HI_BILLBOARD != m_NpcHouseID 
+// #endif // MODIFY_ACCEPT_QUEST
+				)
 			{
 				bool bQuestButton = m_pDlgNpcMessage->GetShopType(CX2TFieldNpcShop::NSBT_QUEST);
 				if(bQuest == true)
@@ -672,9 +704,18 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 				{
 					m_pDlgNpcMessage->SetShow(true);				
 	#ifdef SERV_PSHOP_AGENCY
+		#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+					if( static_cast<CX2UnitManager::NPC_UNIT_ID>( m_iNpcIndex ) == CX2UnitManager::NUI_BILLBOARD)
+		#else // SERV_UPGRADE_TRADE_SYSTEM
 					if( (CX2UnitManager::NPC_UNIT_ID)m_iNpcIndex == CX2UnitManager::NUI_MU)
+		#endif // SERV_UPGRADE_TRADE_SYSTEM
 					{
+			#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+						wstring wstrRemainTime = GET_STRING( STR_ID_28380 );
+			#else // SERV_UPGRADE_TRADE_SYSTEM
 						wstring wstrRemainTime = GET_STRING( STR_ID_12235 );
+			#endif // SERV_UPGRADE_TRADE_SYSTEM
+						
 						wstring wstrAgencyShopExpirationDate = g_pInstanceData->GetAgencyShopExpirationDate();
 						if( wstrAgencyShopExpirationDate.empty() == false )
 						{
@@ -683,8 +724,14 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 							KncUtil::ConvertStringToCTime( wstrAgencyShopExpirationDate, cAgencyTime );
 							if( tCurrentTime < cAgencyTime )
 							{
+		#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+								// 남은 시간에 따른 안내 문구 출력
+								if ( NULL != g_pMain && g_pMain->GetNowState() )
+									wstrRemainTime = static_cast<CX2State*>( g_pMain->GetNowState() )->GetExpirationDataDesc( g_pInstanceData->GetAgencyShopType(), wstrAgencyShopExpirationDate );
+		#else // SERV_UPGRADE_TRADE_SYSTEM
 								// 남은 시간
 								wstrRemainTime = GET_REPLACED_STRING( ( STR_ID_12234, "L", GetExpirationDateDesc( wstrAgencyShopExpirationDate, g_pData->GetServerCurrentTime(), false ) ) );
+		#endif // SERV_UPGRADE_TRADE_SYSTEM
 							}	
 						}		
 
@@ -928,9 +975,19 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 					m_pDlgNpcMessage->SetHouseName(m_strHouseName);
 
 	#ifdef SERV_PSHOP_AGENCY
+
+		#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+					if( static_cast<CX2UnitManager::NPC_UNIT_ID>( m_iNpcIndex ) == CX2UnitManager::NUI_BILLBOARD)
+		#else // SERV_UPGRADE_TRADE_SYSTEM
 					if( (CX2UnitManager::NPC_UNIT_ID)m_iNpcIndex == CX2UnitManager::NUI_MU)
+		#endif // SERV_UPGRADE_TRADE_SYSTEM
 					{
+			#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+						wstring wstrRemainTime = GET_STRING( STR_ID_28380 );
+			#else // SERV_UPGRADE_TRADE_SYSTEM
 						wstring wstrRemainTime = GET_STRING( STR_ID_12235 );
+			#endif // SERV_UPGRADE_TRADE_SYSTEM
+						
 						wstring wstrAgencyShopExpirationDate = g_pInstanceData->GetAgencyShopExpirationDate();
 						if( wstrAgencyShopExpirationDate.empty() == false )
 						{
@@ -939,8 +996,14 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 							KncUtil::ConvertStringToCTime( wstrAgencyShopExpirationDate, cAgencyTime );
 							if( tCurrentTime < cAgencyTime )
 							{
+			#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+								// 남은 시간에 따른 안내 문구 출력
+								if ( NULL != g_pMain && g_pMain->GetNowState() )
+									wstrRemainTime = static_cast<CX2State*>( g_pMain->GetNowState() )->GetExpirationDataDesc( g_pInstanceData->GetAgencyShopType(), wstrAgencyShopExpirationDate );
+			#else // SERV_UPGRADE_TRADE_SYSTEM
 								// 남은 시간
 								wstrRemainTime = GET_REPLACED_STRING( ( STR_ID_12234, "L", GetExpirationDateDesc( wstrAgencyShopExpirationDate, g_pData->GetServerCurrentTime(), false ) ) );
+			#endif // SERV_UPGRADE_TRADE_SYSTEM
 							}	
 						}		
 						m_pDlgNpcMessage->SetNpcMessageWithEtc( m_strByeTalk, wstrRemainTime );
@@ -1035,10 +1098,19 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 
 		if(m_pDlgNpcMessage != NULL)
 		{
-#ifdef SERV_PSHOP_AGENCY
+	#ifdef SERV_PSHOP_AGENCY
+		#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			if( static_cast<CX2UnitManager::NPC_UNIT_ID>( m_iNpcIndex == CX2UnitManager::NUI_BILLBOARD ) )
+		#else // SERV_UPGRADE_TRADE_SYSTEM
 			if( (CX2UnitManager::NPC_UNIT_ID)m_iNpcIndex == CX2UnitManager::NUI_MU)
+		#endif // SERV_UPGRADE_TRADE_SYSTEM
 			{
+			#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+				wstring wstrRemainTime = GET_STRING( STR_ID_28380 );
+			#else // SERV_UPGRADE_TRADE_SYSTEM
 				wstring wstrRemainTime = GET_STRING( STR_ID_12235 );
+			#endif // SERV_UPGRADE_TRADE_SYSTEM
+				
 				wstring wstrAgencyShopExpirationDate = g_pInstanceData->GetAgencyShopExpirationDate();
 				if( wstrAgencyShopExpirationDate.empty() == false )
 				{
@@ -1047,8 +1119,14 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 					KncUtil::ConvertStringToCTime( wstrAgencyShopExpirationDate, cAgencyTime );
 					if( tCurrentTime < cAgencyTime )
 					{
+			#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+						// 남은 시간에 따른 안내 문구 출력
+						if ( NULL != g_pMain && g_pMain->GetNowState() )
+							wstrRemainTime = static_cast<CX2State*>( g_pMain->GetNowState() )->GetExpirationDataDesc( g_pInstanceData->GetAgencyShopType(), wstrAgencyShopExpirationDate );
+			#else // SERV_UPGRADE_TRADE_SYSTEM
 						// 남은 시간
 						wstrRemainTime = GET_REPLACED_STRING( ( STR_ID_12234, "L", GetExpirationDateDesc( wstrAgencyShopExpirationDate, g_pData->GetServerCurrentTime(), false ) ) );
+			#endif // SERV_UPGRADE_TRADE_SYSTEM
 					}	
 				}
 
@@ -1056,9 +1134,9 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 			}
 			else
 				m_pDlgNpcMessage->SetNpcMessage(m_strWaitTalk);
-#else
+	#else
 			m_pDlgNpcMessage->SetNpcMessage(m_strWaitTalk);
-#endif
+	#endif
 		}
 
 		// NPC ZoomIn Sound
@@ -1261,36 +1339,6 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 
 	if(m_bPlay == false && m_bStaticMesh == false)
 	{
-#ifdef EVENT_NPC_IN_VILLAGE
-//		if(m_NpcHouseID == CX2LocationManager::HI_EVENT_BENDERS )
-//		{
-//			switch(m_iMotionId)// 지헌 : 분석 - 여기서 필드 NPC의 모션을 재생시켜 준다. 아 하드코딩..
-//			{
-//			case 0:
-//				{
-//					m_pXSkinAnim->ChangeAnim( L"Wait", true );
-//					m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE_WAIT );
-#ifdef TALK_BOX_VILLAGE_NPC_IN_DATE
-//					_SetNpcTalkBoxString();
-#endif //TALK_BOX_VILLAGE_NPC_IN_DATE
-//				}
-//				break;
-//			case 1:
-//				m_pXSkinAnim->ChangeAnim( L"Wait", true );
-//				m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE_WAIT );
-//				break;
-//			case 2:
-//				m_pXSkinAnim->ChangeAnim( L"Wait", true );
-//				m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE_WAIT );
-//				break;
-//			default:
-//				m_pXSkinAnim->ChangeAnim( L"Wait", true );
-//				m_pXSkinAnim->Play( CKTDGXSkinAnim::XAP_ONE_WAIT );
-//				break;
-//			}
-//		}
-//		else
-#endif //EVENT_NPC_IN_VILLAGE
 		if(m_bEventNpc == false)
 		{
 			switch(m_iMotionId)
@@ -1484,6 +1532,61 @@ HRESULT	CX2TFieldNpc::OnFrameMove( double fTime, float fElapsedTime )
 #endif
 #endif
 
+#ifdef ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_NEAR // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+	if ( true == m_bIsPlayNearSound )
+	{
+		m_fPlayNowNearSoundCoolTime += fElapsedTime;
+		if ( NULL != g_pTFieldGame->GetMyUnit() )
+		{
+			float fDistance3Sq = GetDistance3Sq( GetPos(), g_pTFieldGame->GetMyUnit()->GetPos() );
+			if ( fDistance3Sq < m_fPlayNearSoundDistance * m_fPlayNearSoundDistance )
+			{
+				if ( m_fPlayNowNearSoundCoolTime >= m_fPlayMaxNearSoundCoolTime )
+				{
+					m_fPlayNowNearSoundCoolTime = 0;
+					if ( NULL != m_pNearPlaySound && true == m_pNearPlaySound->IsPlaying() )
+					{						
+						;
+					}
+					else
+					{
+						m_pNearPlaySound = g_pKTDXApp->GetDeviceManager()->PlaySound( m_wstrNearSoundFileName.c_str(), false, false );
+						if( m_pNearPlaySound != NULL )
+						{
+							m_pNearPlaySound->Set3DPosition( GetPos() );
+							m_pNearPlaySound->SetMax3DDistance( 3000.f );
+						}
+					}
+				}
+				
+				if ( NULL != m_pNearPlaySound && m_pNearPlaySound->IsPlaying() )
+				{
+					if ( true == g_pKTDXApp->GetDSManager()->GetSoundMute() )
+					{
+						g_pKTDXApp->GetDeviceManager()->StopSound( m_wstrNearSoundFileName.c_str() );
+					}						
+					else
+					{
+						const float MAGIC_BOUND = 3000.f;
+						float fVolume = MAGIC_BOUND + g_pKTDXApp->GetDSManager()->GetSoundVolume();
+						fVolume = (float) ( ( (int)fVolume ) % (int)MAGIC_BOUND );
+						fVolume /= MAGIC_BOUND;
+						m_pNearPlaySound->SetVolume( fVolume );
+					}
+				}
+				
+			}
+			else
+			{
+				if ( NULL != m_pNearPlaySound )
+				{
+					g_pKTDXApp->GetDeviceManager()->StopSound( m_wstrNearSoundFileName.c_str() );
+				}
+			}
+		}
+	}
+#endif // ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_CLOSE // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+
 	return S_OK;
 }
 
@@ -1506,7 +1609,11 @@ void CX2TFieldNpc::OnFrameRender_Draw()
 		pRenderParam->renderType		= CKTDGXRenderer::RT_CARTOON_BLACK_EDGE;
 		//pRenderParam->cartoonTexType	= CKTDGXRenderer::CTT_NORMAL;
 		pRenderParam->lightPos			= m_pWorld->GetLightPos();
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+		pRenderParam->fOutLineWide		= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 		pRenderParam->fOutLineWide		= 1.5f;
+#endif //UNIT_SCALE_COMBINE_ONE
 		pRenderParam->color				= 0xffffffff;
 		pRenderParam->bAlphaBlend		= false;			
 
@@ -1898,7 +2005,6 @@ void CX2TFieldNpc::CreateFieldNpc(CX2World *pWorld, CX2LocationManager::HouseTem
 			m_pDlgNpcMessage->SetShopType( CX2TFieldNpcShop::NSBT_AGENCY_TRADER_RECEIVE );
 		}
 #endif
-
 		//{{ 2011.05.04   임규수 아바타 합성 시스템
 #ifdef SERV_SYNTHESIS_AVATAR
 		if ( m_bSynthesisNpc )
@@ -2032,6 +2138,26 @@ void CX2TFieldNpc::CreateFieldNpc(CX2World *pWorld, CX2LocationManager::HouseTem
 		m_vecNPCTalkBox.push_back( *itr );
 	}
 #endif
+
+#ifdef ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_NEAR // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+	if ( L"" != pHouseTemplate->m_wstrNearSoundFileName )
+	{
+		if ( NULL != g_pKTDXApp->GetDeviceManager() )
+		{
+//			bool bResult = g_pKTDXApp->GetDeviceManager()->SoundReadyInBackground( pHouseTemplate->m_wstrNearSoundFileName.c_str(), CKTDXDeviceManager::PRIORITY_HIGH );
+	
+//			if( true == bResult )
+			{
+				m_bIsPlayNearSound = true;
+				m_wstrNearSoundFileName = pHouseTemplate->m_wstrNearSoundFileName;			
+				m_fPlayNowNearSoundCoolTime = m_fPlayMaxNearSoundCoolTime = pHouseTemplate->m_fPlayNearSoundCoolTime;
+				m_fPlayNearSoundDistance = pHouseTemplate->m_fPlayNearSoundDistance;
+			}
+		}
+	}	
+
+#endif // ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_CLOSE // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+
 }
 
 void CX2TFieldNpc::SetShowObject(bool val)
@@ -2155,6 +2281,17 @@ CX2TFieldNpc::NPCTYPE CX2TFieldNpc::GetHouseType()
 #ifdef DARKMOON_NPC
 				&& m_NpcHouseID != CX2LocationManager::HI_DARKMOON
 #endif
+#ifdef EVENT_NPC_STANDING_VILLAGE
+				&& m_NpcHouseID != CX2LocationManager::HI_EVENT_SHEATH_NIGHT
+				&& m_NpcHouseID != CX2LocationManager::HI_EVENT_INFINITY_SWORD
+				&& m_NpcHouseID != CX2LocationManager::HI_EVENT_DIMENSION_WITCH
+#endif EVENT_NPC_STANDING_VILLAGE
+#ifdef ALWAYS_EVENT_LIRE_NIGHT_WATCHER_NPC
+				&& m_NpcHouseID != CX2LocationManager::HI_EVENT_LIRE_NIGHT_WATCHER
+#endif ALWAYS_EVENT_LIRE_NIGHT_WATCHER_NPC
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+				&& m_NpcHouseID != CX2LocationManager::HI_EVENT_ADAMS_UI_SHOP
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
 				)
 				return NT_ALCHEMIST;
 			if(m_bTraining || m_bFreeTraining)

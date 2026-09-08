@@ -934,6 +934,19 @@ bool KPartyListManager::E_AddPartyList( IN const UidType iPartyUID )
 	}
 #endif SERV_EVENT_VALENTINE_DUNGEON
 	//}
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	if( CXSLDungeon::IsValentineDungeonInt( iDungeonID ) == true )
+	{
+		return true;
+	}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / °­Á¤ÈÆ
+	if( CXSLDungeon::IsHalloweenDungeon( iDungeonID ) == true )
+	{
+		return true;
+	}
+#endif //SERV_HALLOWEEN_EVENT_2013
 
 	const int iMapID = CXSLMapData::GetMapID( iDungeonID );
 	if( iMapID == SEnum::VMI_INVALID )
@@ -980,6 +993,19 @@ bool KPartyListManager::E_DelPartyList( IN const UidType iPartyUID )
 	}
 #endif SERV_EVENT_VALENTINE_DUNGEON
 	//}
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	if( CXSLDungeon::IsValentineDungeonInt( iDungeonID ) == true )
+	{
+		return true;
+	}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / °­Á¤ÈÆ
+	if( CXSLDungeon::IsHalloweenDungeon( iDungeonID ) == true )
+	{
+		return true;
+	}
+#endif //SERV_HALLOWEEN_EVENT_2013
 
 	const int iMapID = CXSLMapData::GetMapID( iDungeonID );
 

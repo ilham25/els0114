@@ -42,11 +42,9 @@ void KUserAbuserManager::Clear( bool bOnlyCharAbuser /*= false*/ )
 		m_bIsTradeBlock = false;
 #endif SERV_HACK_USER_TRADE_BLOCK
 		//}}
-
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
 		m_bIsTradeBlockUnit = false;
 #endif SERV_NEW_UNIT_TRADE_LIMIT
-
 	}
 
 	for( int i = 0; i < CAT_MAX; ++i )

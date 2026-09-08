@@ -131,7 +131,6 @@ public:
 	bool IsTradeBlockUser()			{ return m_bIsTradeBlock; }
 #endif SERV_HACK_USER_TRADE_BLOCK
 	//}}
-
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
 	void SetTradeBlockUnit( IN const bool bIsTradeBlockUnit ) { m_bIsTradeBlockUnit = bIsTradeBlockUnit; }
 	bool IsTradeBlockUnit()			{ return m_bIsTradeBlockUnit; }

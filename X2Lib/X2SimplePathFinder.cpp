@@ -52,7 +52,11 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 											const float fMaxJumpUp, const float fMaxJumpRight,
 											IN CKTDGLineMap* pLineMap, const float fDestArriveGap, const float fDestLeaveGap, const bool bFootOnLine,
 											const bool bStayOnCurrLineGroup, OUT bool& bTargetOnRight,
-											const float fLineEndDetectRange )
+											const float fLineEndDetectRange 
+#ifdef ADD_NPC_CONDITION_TABLE
+											, IN bool bIfCannotFindMoveStateDoWait /*= false*/
+#endif // ADD_NPC_CONDITION_TABLE
+											)
 {
 	KTDXPROFILE();
 
@@ -60,7 +64,7 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 	// 위에 이미 const로 되어 있는데 왜 또 const로 다시 받나?ㅡㅡ;
 	const float MAGIC_COLLISION_BOUND = fLineEndDetectRange;	// 라인 끝에 도착했는지 체크할 때 사용되는 범위 
 
-	CKTDGLineMap::LineData* pFinalDestLineData = pLineMap->GetLineData(iFinalDestLineDataIndex);
+	const CKTDGLineMap::LineData* pFinalDestLineData = pLineMap->GetLineData(iFinalDestLineDataIndex);
 #ifdef  X2OPTIMIZE_LINEMAP_LINEGROUP
     CKTDGLineMap::LineGroupID pFinalDestLineGroup;
     if ( pFinalDestLineData != NULL )
@@ -108,7 +112,7 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 	case MS_FORCE_LEFT:
 	case MS_FORCE_RIGHT:
 		{
-			CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
+			const CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
 
 			// pCurrLineData가 NULL일경우 처리는....????
 			if(pCurrLineData == NULL)
@@ -174,7 +178,7 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 						const BOOL MAGIC_USE_COMPENSATION = true;
 						if( true == MAGIC_USE_COMPENSATION )
 						{
-							CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 
 							const float MAGIC_LINE_RADIUS_EXT = LINE_RADIUS * 1.5f;
 							if( pLineData->beforeLine < 0 )
@@ -196,7 +200,7 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 
 						if( -1 != m_iDestLineDataIndex && m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
-							CKTDGLineMap::LineData* pDestLineData	= pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData* pDestLineData	= pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -243,7 +247,7 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 						vJumpPos = pLineMap->GetLandPosition( vJumpPos, LINE_RADIUS, &m_iDestLineDataIndex );
 						if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
 #ifndef  X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -310,7 +314,7 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 									vDownPos = pLineMap->GetLandPosition( vDownPos, LINE_RADIUS, &m_iDestLineDataIndex );
 									if( m_iDestLineDataIndex != iCurrLineDataIndex )
 									{
-										CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+										const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef  X2OPTIMIZE_LINEMAP_LINEGROUP
 										CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -347,7 +351,7 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 
 								if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 								{
-									CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+									const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 									CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -376,20 +380,30 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 
 							// 오른쪽으로 갈 수도 없고 jump도 할 수 없으면 왼쪽으로 이동
 							{
-								switch( m_MoveState )
-								{									
-								case MS_LEFT:
-								case MS_FORCE_LEFT:
-									{
-										m_MoveState = MS_FORCE_RIGHT;
-									} break;
+#ifdef ADD_NPC_CONDITION_TABLE
+								if( true == bIfCannotFindMoveStateDoWait )
+								{
+									m_MoveState = MS_WAIT;
+									return;
+								}
+								else
+#endif // ADD_NPC_CONDITION_TABLE
+								{
+									switch( m_MoveState )
+									{									
+									case MS_LEFT:
+									case MS_FORCE_LEFT:
+										{
+											m_MoveState = MS_FORCE_RIGHT;
+										} break;
 
-								case MS_WAIT:
-								case MS_RIGHT:
-								case MS_FORCE_RIGHT:
-									{
-										m_MoveState = MS_FORCE_LEFT;
-									} break;
+									case MS_WAIT:
+									case MS_RIGHT:
+									case MS_FORCE_RIGHT:
+										{
+											m_MoveState = MS_FORCE_LEFT;
+										} break;
+									}
 								}
 							}
 						}							
@@ -421,7 +435,7 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 									vDownPos = pLineMap->GetLandPosition( vDownPos, LINE_RADIUS, &m_iDestLineDataIndex );
 									if( m_iDestLineDataIndex != iCurrLineDataIndex )
 									{
-										CKTDGLineMap::LineData*   pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+										const CKTDGLineMap::LineData*   pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 										CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -459,7 +473,7 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 
 								if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 								{
-									CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
+									const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 									CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -487,18 +501,28 @@ void CX2SimplePathFinder::FollowTargetPath( /*float fElapsedTime,*/ const D3DXVE
 
 							// 왼쪽으로 갈 수도 없고 jump도 할 수 없으면 오른쪽으로 이동
 							{
-								switch( m_MoveState )
+#ifdef ADD_NPC_CONDITION_TABLE
+								if( true == bIfCannotFindMoveStateDoWait )
 								{
-								case MS_WAIT:
-								case MS_LEFT:
-								case MS_FORCE_LEFT:
-									m_MoveState = MS_FORCE_RIGHT;
-									break;
+									m_MoveState = MS_WAIT;
+									return;
+								}
+								else
+#endif // ADD_NPC_CONDITION_TABLE
+								{
+									switch( m_MoveState )
+									{
+									case MS_WAIT:
+									case MS_LEFT:
+									case MS_FORCE_LEFT:
+										m_MoveState = MS_FORCE_RIGHT;
+										break;
 
-								case MS_RIGHT:
-								case MS_FORCE_RIGHT:
-									m_MoveState = MS_FORCE_LEFT;
-									break;
+									case MS_RIGHT:
+									case MS_FORCE_RIGHT:
+										m_MoveState = MS_FORCE_LEFT;
+										break;
+									}
 								}
 							}
 						}
@@ -553,7 +577,7 @@ void CX2SimplePathFinder::EscapeTargetPath( /*float fElapsedTime,*/ const D3DXVE
 	//const float MAGIC_COLLISION_BOUND = LINE_RADIUS * 1.5f;	// 라인 끝에 도착했는지 체크할 때 사용되는 범위 
 	const float MAGIC_COLLISION_BOUND = fLineEndDetectRange;	// 라인 끝에 도착했는지 체크할 때 사용되는 범위 
 
-	CKTDGLineMap::LineData*			pFinalDestLineData	= pLineMap->GetLineData(iFinalDestLineDataIndex);
+	const CKTDGLineMap::LineData*			pFinalDestLineData	= pLineMap->GetLineData(iFinalDestLineDataIndex);
 #ifdef  X2OPTIMIZE_LINEMAP_LINEGROUP
     CKTDGLineMap::LineGroupID	    pFinalDestLineGroup;
     if ( pFinalDestLineData != NULL )
@@ -584,7 +608,7 @@ void CX2SimplePathFinder::EscapeTargetPath( /*float fElapsedTime,*/ const D3DXVE
 	case MS_FORCE_LEFT:
 	case MS_FORCE_RIGHT:
 		{
-			CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
+			const CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
 #ifdef  X2OPTIMIZE_LINEMAP_LINEGROUP
             if ( pCurrLineData == NULL )
                 m_pCurrLineGroup.Init();
@@ -647,7 +671,7 @@ void CX2SimplePathFinder::EscapeTargetPath( /*float fElapsedTime,*/ const D3DXVE
 						if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
 
@@ -689,7 +713,7 @@ void CX2SimplePathFinder::EscapeTargetPath( /*float fElapsedTime,*/ const D3DXVE
 						if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
 
@@ -746,7 +770,7 @@ void CX2SimplePathFinder::FollowTargetPathFly( /*float fElapsedTime,*/ const D3D
 	//const float MAGIC_COLLISION_BOUND = LINE_RADIUS * 1.5f;	// 라인 끝에 도착했는지 체크할 때 사용되는 범위 
 	const float MAGIC_COLLISION_BOUND = fLineEndDetectRange;	// 라인 끝에 도착했는지 체크할 때 사용되는 범위 
 
-	CKTDGLineMap::LineData* pFinalDestLineData = pLineMap->GetLineData(iFinalDestLineDataIndex);
+	const CKTDGLineMap::LineData* pFinalDestLineData = pLineMap->GetLineData(iFinalDestLineDataIndex);
 #ifdef  X2OPTIMIZE_LINEMAP_LINEGROUP
     CKTDGLineMap::LineGroupID   pFinalDestLineGroup;
     if ( pFinalDestLineData != NULL )
@@ -798,7 +822,7 @@ void CX2SimplePathFinder::FollowTargetPathFly( /*float fElapsedTime,*/ const D3D
 	case MS_FLY_RIGHT_BACK_UP:
 	case MS_FLY_RIGHT_BACK_DOWN:
 		{
-			CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
+			const CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
 
 			// pCurrLineData가 NULL일경우 처리는....????
 			if(pCurrLineData == NULL)
@@ -931,7 +955,7 @@ void CX2SimplePathFinder::FollowTargetPathFly( /*float fElapsedTime,*/ const D3D
 						vDownPos = pLineMap->GetLandPosition( vDownPos, LINE_RADIUS, &m_iDestLineDataIndex );
 						if( m_iDestLineDataIndex != iCurrLineDataIndex )
 						{
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -977,7 +1001,7 @@ void CX2SimplePathFinder::FollowTargetPathFly( /*float fElapsedTime,*/ const D3D
 
 						if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1037,7 +1061,7 @@ void CX2SimplePathFinder::FollowTargetPathFly( /*float fElapsedTime,*/ const D3D
 						vDownPos = pLineMap->GetLandPosition( vDownPos, LINE_RADIUS, &m_iDestLineDataIndex );
 						if( m_iDestLineDataIndex != iCurrLineDataIndex )
 						{
-							CKTDGLineMap::LineData*   pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData*   pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1084,7 +1108,7 @@ void CX2SimplePathFinder::FollowTargetPathFly( /*float fElapsedTime,*/ const D3D
 
 						if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );							
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1198,7 +1222,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPath( float fElapsedTime, D3DXVECTOR
 	//const float MAGIC_COLLISION_BOUND = LINE_RADIUS * 1.5f;	// 라인 끝에 도착했는지 체크할 때 사용되는 범위 
 	const float MAGIC_COLLISION_BOUND = fLineEndDetectRange;	// 라인 끝에 도착했는지 체크할 때 사용되는 범위 
 
-	CKTDGLineMap::LineData* pFinalDestLineData = pLineMap->GetLineData(iFinalDestLineDataIndex);
+	const CKTDGLineMap::LineData* pFinalDestLineData = pLineMap->GetLineData(iFinalDestLineDataIndex);
 #ifdef  X2OPTIMIZE_LINEMAP_LINEGROUP
     CKTDGLineMap::LineGroupID pFinalDestLineGroup;
     if ( pFinalDestLineData != NULL )
@@ -1230,7 +1254,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPath( float fElapsedTime, D3DXVECTOR
 	case MS_FORCE_LEFT:
 	case MS_FORCE_RIGHT:
 		{
-			CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
+			const CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
 
 			// pCurrLineData가 NULL일경우 처리는....????
 			if(pCurrLineData == NULL)
@@ -1295,7 +1319,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPath( float fElapsedTime, D3DXVECTOR
 						const BOOL MAGIC_USE_COMPENSATION = true;
 						if( true == MAGIC_USE_COMPENSATION )
 						{
-							CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 
 							const float MAGIC_LINE_RADIUS_EXT = LINE_RADIUS * 1.5f;
 							if( pLineData->beforeLine < 0 )
@@ -1319,7 +1343,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPath( float fElapsedTime, D3DXVECTOR
 
 						if( -1 != m_iDestLineDataIndex && m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
-							CKTDGLineMap::LineData* pDestLineData	= pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData* pDestLineData	= pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef  X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1366,7 +1390,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPath( float fElapsedTime, D3DXVECTOR
 						vJumpPos = pLineMap->GetLandPosition( vJumpPos, LINE_RADIUS, &m_iDestLineDataIndex );
 						if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
 #ifndef  X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1434,7 +1458,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPath( float fElapsedTime, D3DXVECTOR
 									vDownPos = pLineMap->GetLandPosition( vDownPos, LINE_RADIUS, &m_iDestLineDataIndex );
 									if( m_iDestLineDataIndex != iCurrLineDataIndex )
 									{
-										CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+										const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 										CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1471,7 +1495,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPath( float fElapsedTime, D3DXVECTOR
 
 								if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 								{
-									CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+									const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 									CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1545,7 +1569,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPath( float fElapsedTime, D3DXVECTOR
 									vDownPos = pLineMap->GetLandPosition( vDownPos, LINE_RADIUS, &m_iDestLineDataIndex );
 									if( m_iDestLineDataIndex != iCurrLineDataIndex )
 									{
-										CKTDGLineMap::LineData*   pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+										const CKTDGLineMap::LineData*   pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 										CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1582,7 +1606,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPath( float fElapsedTime, D3DXVECTOR
 
 								if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 								{
-									CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
+									const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 									CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1671,7 +1695,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPathFly( float fElapsedTime, D3DXVEC
 	//const float MAGIC_COLLISION_BOUND = LINE_RADIUS * 1.5f;	// 라인 끝에 도착했는지 체크할 때 사용되는 범위 
 	const float MAGIC_COLLISION_BOUND = fLineEndDetectRange;	// 라인 끝에 도착했는지 체크할 때 사용되는 범위 
 
-	CKTDGLineMap::LineData* pFinalDestLineData = pLineMap->GetLineData(iFinalDestLineDataIndex);
+	const CKTDGLineMap::LineData* pFinalDestLineData = pLineMap->GetLineData(iFinalDestLineDataIndex);
 #ifdef  X2OPTIMIZE_LINEMAP_LINEGROUP
     CKTDGLineMap::LineGroupID   pFinalDestLineGroup;
     if ( pFinalDestLineData != NULL )
@@ -1704,7 +1728,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPathFly( float fElapsedTime, D3DXVEC
 	case MS_FLY_RIGHT_BACK_UP:
 	case MS_FLY_RIGHT_BACK_DOWN:
 		{
-			CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
+			const CKTDGLineMap::LineData* pCurrLineData = pLineMap->GetLineData( iCurrLineDataIndex );
 
 			// pCurrLineData가 NULL일경우 처리는....????
 			if(pCurrLineData == NULL)
@@ -1832,7 +1856,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPathFly( float fElapsedTime, D3DXVEC
 						vDownPos = pLineMap->GetLandPosition( vDownPos, LINE_RADIUS, &m_iDestLineDataIndex );
 						if( m_iDestLineDataIndex != iCurrLineDataIndex )
 						{
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1878,7 +1902,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPathFly( float fElapsedTime, D3DXVEC
 
 						if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1938,7 +1962,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPathFly( float fElapsedTime, D3DXVEC
 						vDownPos = pLineMap->GetLandPosition( vDownPos, LINE_RADIUS, &m_iDestLineDataIndex );
 						if( m_iDestLineDataIndex != iCurrLineDataIndex )
 						{
-							CKTDGLineMap::LineData*   pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
+							const CKTDGLineMap::LineData*   pDestLineData = pLineMap->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -1985,7 +2009,7 @@ void CX2SimplePathFinder::SimpleFollowTargetPathFly( float fElapsedTime, D3DXVEC
 
 						if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 						{
-							CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
+							const CKTDGLineMap::LineData* pDestLineData = pLineMap->GetLineData(m_iDestLineDataIndex);
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 							CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP					
@@ -2088,12 +2112,12 @@ void CX2SimplePathFinder::SimpleFollowTargetPathFly( float fElapsedTime, D3DXVEC
 #endif // PET
 
 
-void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpcAi* pBattleFieldNpcAi_, IN CKTDGLineMap* pLineMap_, OUT bool& bTargetOnRight_ )
+void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpcAi* pBattleFieldNpcAi_, IN const CKTDGLineMap* pLineMap_, OUT bool& bTargetOnRight_ )
 {
 	KTDXPROFILE();
 
     int iFinalDestLineIndex = pBattleFieldNpcAi_->GetFinalDestLineIndex();
-	CKTDGLineMap::LineData* pFinalDestLineData = pLineMap_->GetLineData( iFinalDestLineIndex );
+	const CKTDGLineMap::LineData* pFinalDestLineData = pLineMap_->GetLineData( iFinalDestLineIndex );
 	
 #ifdef UNIT_ROAD
 	if( pFinalDestLineData != NULL )
@@ -2133,7 +2157,7 @@ void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpc
 	case MS_FORCE_RIGHT:
 		{
 			const int iCurrLineDataIndex = pBattleFieldNpcAi_->GetLastTouchLineIndex();
-			CKTDGLineMap::LineData* pCurrLineData = pLineMap_->GetLineData( iCurrLineDataIndex );
+			const CKTDGLineMap::LineData* pCurrLineData = pLineMap_->GetLineData( iCurrLineDataIndex );
 
 			if(pCurrLineData == NULL)
 				return;
@@ -2209,7 +2233,7 @@ void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpc
 					D3DXVECTOR3 vJumpPos = vCurrPos + vUpVec * pBattleFieldNpcAi_->GetMaxJumpUp();
 					vJumpPos = pLineMap_->GetLandPosition( vJumpPos, LINE_RADIUS, &m_iDestLineDataIndex );
 
-					CKTDGLineMap::LineData* pLineData = pLineMap_->GetLineData( m_iDestLineDataIndex );
+					const CKTDGLineMap::LineData* pLineData = pLineMap_->GetLineData( m_iDestLineDataIndex );
 
 					const float MAGIC_LINE_RADIUS_EXT = LINE_RADIUS * 1.5f;
 					if( pLineData->beforeLine < 0 )
@@ -2230,7 +2254,7 @@ void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpc
 
 					if( -1 != m_iDestLineDataIndex && m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 					{
-						CKTDGLineMap::LineData* pDestLineData	= pLineMap_->GetLineData( m_iDestLineDataIndex );
+						const CKTDGLineMap::LineData* pDestLineData	= pLineMap_->GetLineData( m_iDestLineDataIndex );
 #ifndef  X2OPTIMIZE_LINEMAP_LINEGROUP
 						CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap_->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -2280,7 +2304,7 @@ void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpc
 
 					if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 					{
-						CKTDGLineMap::LineData* pDestLineData = pLineMap_->GetLineData(m_iDestLineDataIndex);
+						const CKTDGLineMap::LineData* pDestLineData = pLineMap_->GetLineData(m_iDestLineDataIndex);
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 						CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap_->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -2353,7 +2377,7 @@ void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpc
 								// 걸어 내려가도 되면
 								if( m_iDestLineDataIndex != iCurrLineDataIndex )
 								{
-									CKTDGLineMap::LineData* pDestLineData = pLineMap_->GetLineData( m_iDestLineDataIndex );
+									const CKTDGLineMap::LineData* pDestLineData = pLineMap_->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 									CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap_->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -2392,7 +2416,7 @@ void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpc
 
 							if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 							{
-								CKTDGLineMap::LineData* pDestLineData = pLineMap_->GetLineData( m_iDestLineDataIndex );
+								const CKTDGLineMap::LineData* pDestLineData = pLineMap_->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 								CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap_->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -2468,7 +2492,7 @@ void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpc
 
 								if( m_iDestLineDataIndex != iCurrLineDataIndex )
 								{
-									CKTDGLineMap::LineData*   pDestLineData = pLineMap_->GetLineData( m_iDestLineDataIndex );
+									const CKTDGLineMap::LineData*   pDestLineData = pLineMap_->GetLineData( m_iDestLineDataIndex );
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 								    CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap_->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -2508,7 +2532,7 @@ void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpc
 
 							if( m_iDestLineDataIndex != iCurrLineDataIndex ) // jump해서 밟을 땅이 있으면
 							{
-								CKTDGLineMap::LineData* pDestLineData = pLineMap_->GetLineData(m_iDestLineDataIndex);
+								const CKTDGLineMap::LineData* pDestLineData = pLineMap_->GetLineData(m_iDestLineDataIndex);
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 								CKTDGLineMap::LineGroup* pDestLineGroup = pLineMap_->GetLineGroupIncludesLineData( pDestLineData );
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
@@ -2585,4 +2609,3 @@ void CX2SimplePathFinder::FollowTargetPathInBattleField( const CX2BattleFieldNpc
 
 	} // end of switch( m_MoveState )
 }
-

@@ -4540,7 +4540,9 @@ void CDXUTListBox::RemoveAllItems()
 {
 	// 오현빈 // 2013-03-22
 	// 선택 해제 되지 않은 상태의 항목을 재선택 했을 때 크래쉬 발생하는 문제 수정.
+#ifndef UPDATE_X2VIEWER_2013 //JHKang
 	SelectItem(-1);
+#endif //UPDATE_X2VIEWER_2013
 
     for( int i = 0; i < m_Items.GetSize(); ++i )
     {
@@ -5113,6 +5115,10 @@ CDXUTEditBox::CDXUTEditBox( CDXUTDialog *pDialog )
     m_bInsertMode = true;
 
     m_bMouseDrag = false;
+
+#ifdef UPDATE_X2VIEWER_2013 //JHKang
+	m_iDelta = 0;
+#endif //UPDATE_X2VIEWER_2013
 }
 
 
@@ -5486,6 +5492,15 @@ bool CDXUTEditBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lPara
                 }
             }
             break;
+
+		#ifdef UPDATE_X2VIEWER_2013 //JHKang
+		case WM_MOUSEWHEEL:
+			{
+				m_iDelta = (short) HIWORD(wParam) / WHEEL_DELTA;
+
+				return true;
+			} break;
+		#endif //UPDATE_X2VIEWER_2013
     }
 
     return false;

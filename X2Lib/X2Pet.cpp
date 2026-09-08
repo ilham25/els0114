@@ -72,19 +72,17 @@ CX2PET::CX2PET() :
 	m_vecSoundPlayData.resize(0);
 
 	m_fIconTimer = 0.f;
-	m_hEffectCheer = CX2EffectSet::INVALID_HANDLE;
-	m_hStateEffect = CX2EffectSet::INVALID_HANDLE;
-	m_hSeqIcon	= INVALID_PARTICLE_HANDLE;
+	m_hEffectCheer = INVALID_EFFECTSET_HANDLE;
+	m_hStateEffect = INVALID_EFFECTSET_HANDLE;
+	m_hSeqIcon	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 #ifdef PET_ATTACH_PARTICLE
 	m_vecSeqPetParticle.resize(0);
 #endif //PET_ATTACH_PARTICLE
 
-#ifdef UNDERWATER_LINEMAP
 	m_bUnderWaterHead = false;
 	m_bForceChagneColor = false;
 	m_cLineUnitColor = D3DXCOLOR( 0.f, 0.f, 0.f, 0.f );
-#endif
 
 #ifdef GHOST_PET
 	m_bForceColor = false;	
@@ -130,16 +128,19 @@ CX2PET::CX2PET() :
 
 	m_pDamageData = NULL;
 
-#ifdef SET_IN_PET_LUA
+#ifdef ADD_2013_CHRISTMAS_PET // 김태환
 	for( int i = 0; i < 10; i++ )
 	{
+	#ifdef SET_IN_PET_LUA
 		m_FlagList[i]		= false;
 		m_IntList[i]		= 0;
 		INIT_VECTOR3( m_VecList[i], 0, 0, 0 ); 
 		m_NumberList[i]     = 0.;
-	}
-#endif SET_IN_PET_LUA
+	#endif SET_IN_PET_LUA
 
+		m_hEffectSetHandle[i] = INVALID_EFFECTSET_HANDLE;
+	}
+#endif // ADD_2013_CHRISTMAS_PET
 }
 
 CX2PET::~CX2PET()
@@ -162,15 +163,23 @@ CX2PET::~CX2PET()
 	m_SoundCloseManager.CloseSound();
 #endif CLOSE_SOUND_TEST
 
-	if( g_pData != NULL && g_pData->GetUIEffectSet() != NULL && m_hEffectCheer != CX2EffectSet::INVALID_HANDLE )
+	if( g_pData != NULL && g_pData->GetUIEffectSet() != NULL && m_hEffectCheer != INVALID_EFFECTSET_HANDLE )
 		g_pData->GetUIEffectSet()->StopEffectSet( m_hEffectCheer );
 
-	if( g_pData != NULL && g_pData->GetUIEffectSet() != NULL && m_hStateEffect != CX2EffectSet::INVALID_HANDLE )
+	if( g_pData != NULL && g_pData->GetUIEffectSet() != NULL && m_hStateEffect != INVALID_EFFECTSET_HANDLE )
 		g_pData->GetUIEffectSet()->StopEffectSet( m_hStateEffect );
 	
 
 	if( g_pData != NULL && g_pData->GetUIMajorParticle() != NULL )
 		g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqIcon );	
+
+#ifdef ADD_2013_CHRISTMAS_PET // 김태환
+	for( int i = 0; i < 10; i++ )
+	{
+		if ( m_hEffectSetHandle[i] != INVALID_EFFECTSET_HANDLE )
+			g_pX2Game->GetEffectSet()->StopEffectSet( m_hEffectSetHandle[i] );
+	}
+#endif // ADD_2013_CHRISTMAS_PET
 
 #ifdef PET_ATTACH_PARTICLE
 	if( g_pData != NULL && g_pData->GetUIMajorParticle() != NULL )
@@ -198,8 +207,8 @@ void CX2PET::SetPet( wstring wstrPetScriptName, UidType masterUid )
 		m_LuaManager.AssignNewLuaState( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 #else	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 	m_ScriptFileName = wstrPetScriptName;
-	g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( m_ScriptFileName.c_str() );
-	if ( g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, m_ScriptFileName.c_str() ) == false )
+	g_pKTDXApp->LoadLuaTinker( m_ScriptFileName.c_str() );
+	if ( g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, m_ScriptFileName.c_str() ) == false )
 	{
 		ASSERT( !"gameunit lua script Parsing failed" );
 	}
@@ -237,7 +246,6 @@ void CX2PET::SetPet( wstring wstrPetScriptName, UidType masterUid )
 // 			ASSERT( SUCCEEDED(hr) );
 // 		}
 	}
-
 
 #ifdef PET_ATTACH_PARTICLE
 	if( NULL != g_pData &&
@@ -282,8 +290,8 @@ void CX2PET::SetGamePet( wstring wstrPetScriptName, UidType masterUid )
 
 #if 0
 	m_ScriptFileName = wstrPetScriptName;
-	g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( m_ScriptFileName.c_str() );
-	if ( g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, m_ScriptFileName.c_str() ) == false )
+	g_pKTDXApp->LoadLuaTinker( m_ScriptFileName.c_str() );
+	if ( g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, m_ScriptFileName.c_str() ) == false )
 	{
 		ASSERT( !"gameunit lua script Parsing failed" );
 	}
@@ -334,8 +342,8 @@ void CX2PET::SetGamePet( wstring wstrPetScriptName, UidType masterUid )
 		m_LuaManager.AssignNewLuaState( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 #else	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 	m_ScriptFileName = wstrPetScriptName;
-	g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( m_ScriptFileName.c_str() );
-	if ( g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &m_LuaManager, m_ScriptFileName.c_str() ) == false )
+	g_pKTDXApp->LoadLuaTinker( m_ScriptFileName.c_str() );
+	if ( g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, m_ScriptFileName.c_str() ) == false )
 	{
 		ASSERT( !"gameunit lua script Parsing failed" );
 	}
@@ -452,19 +460,11 @@ void CX2PET::SetInfo( PetInfo petData)
 	m_petData = petData;
 	m_bSetData = true;
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	if( m_bMyPet == true && ( g_pX2Game != NULL || g_pTFieldGame != NULL ) && g_pMain->GetIsPlayingTutorial() == false )
-#else
-	if( m_bMyPet == true && g_pX2Game != NULL && g_pMain->GetIsPlayingTutorial() == false )
-#endif
 	{		
 		if( m_pDlgPetGage == NULL )
 		{
-#ifdef REFORM_UI_CHARACTER_INFO
 			m_pDlgPetGage = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_PET_GAGE_BAR_NEW.lua" );
-#else
-			m_pDlgPetGage = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_PET_GAGE_BAR.lua" );
-#endif
 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDlgPetGage );
 		}
 
@@ -472,33 +472,6 @@ void CX2PET::SetInfo( PetInfo petData)
 		{
 			CX2PetManager::PetTemplet *pTemplet = g_pData->GetPetManager()->GetPetTemplet( (CX2PetManager::PET_UNIT_ID)petData.m_PetId );
 
-#ifndef REFORM_UI_CHARACTER_INFO
-			CKTDGUIButton *pButtonAttack = (CKTDGUIButton*)m_pDlgPetGage->GetControl( L"Pat_Btn_Attack_Skill" );
-			//if( pButtonAttack != NULL && petData.m_Evolution_Step > 0 )
-			if( pButtonAttack != NULL && g_pData->GetPetManager()->GetPetStatus( petData ) > 0 )			
-			{
-				int iStep = petData.m_Evolution_Step;
-				if( iStep > 0 )
-					iStep -= 1; 
-
-				CX2PetManager::PetSkillInfo petSkillInfo = pTemplet->m_AttackSkill_Step[ iStep ];
-				pButtonAttack->SetNormalTex( petSkillInfo.m_wstrImageName.c_str(), petSkillInfo.m_wstrKeyName.c_str() );
-				pButtonAttack->SetOverTex( petSkillInfo.m_wstrImageName.c_str(), petSkillInfo.m_wstrKeyName.c_str() );
-				pButtonAttack->SetDownTex( petSkillInfo.m_wstrImageName.c_str(), petSkillInfo.m_wstrKeyName.c_str() );
-				pButtonAttack->SetGuideDesc( petSkillInfo.m_wstrSkillDesc.c_str() );
-				pButtonAttack->SetGuideDescOffsetPos( D3DXVECTOR2( 50.f, 40.f ) );
-			}
-			else
-			{
-				if( pButtonAttack != NULL )
-				{
-					pButtonAttack->SetGuideDesc( L"" );
-					pButtonAttack->SetNormalTex( L"DLG_UI_Common_Texture41.tga", L"PAT_SKILL_INVENTORY" );
-					pButtonAttack->SetOverTex( L"DLG_UI_Common_Texture41.tga", L"PAT_SKILL_INVENTORY" );
-					pButtonAttack->SetDownTex( L"DLG_UI_Common_Texture41.tga", L"PAT_SKILL_INVENTORY" );
-				}
-			}
-#endif
 
 			CKTDGUIControl::CPictureData *pPicture = NULL;	
 			CKTDGUIStatic *pStatic = (CKTDGUIStatic*)m_pDlgPetGage->GetControl( L"g_pStatic_PET_GAGE_BAR" );
@@ -561,13 +534,13 @@ void CX2PET::DoFrameMove()
 		//m_petSyncData.nowState							= xPT_UNIT_PET_SYNC.nowState;
 		m_petCondition.nextState						= xPT_UNIT_PET_SYNC.nextState;
 		m_petSyncData.m_usRandomTableIndex				= xPT_UNIT_PET_SYNC.m_usRandomTableIndex;
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		m_PhysicParam.nowSpeed.x						= halfToFloat( xPT_UNIT_PET_SYNC.usNowSpeedX );
 		m_PhysicParam.nowSpeed.y						= halfToFloat( xPT_UNIT_PET_SYNC.usNowSpeedY );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		m_PhysicParam.nowSpeed.x						= xPT_UNIT_PET_SYNC.nowSpeedX;
-		m_PhysicParam.nowSpeed.y						= xPT_UNIT_PET_SYNC.nowSpeedY;		
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		m_PhysicParam.nowSpeed.x						= xPT_UNIT_PET_SYNC.nowSpeedX;
+//		m_PhysicParam.nowSpeed.y						= xPT_UNIT_PET_SYNC.nowSpeedY;		
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		//GetGageManager()->GetMPGage()->fNow					= halfToFloat(xPT_UNIT_PET_SYNC.fNowMP);
 
 		
@@ -624,7 +597,6 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 		case CX2Main::XS_TRAINING_GAME:
 		case CX2Main::XS_DUNGEON_GAME:
 		case CX2Main::XS_BATTLE_FIELD:
-#ifdef REFORM_UI_CHARACTER_INFO
 		case CX2Main::XS_VILLAGE_MAP:
 			{
 				if( true == g_pData->GetCashShop()->GetOpen() )
@@ -663,10 +635,15 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 				}
 #ifndef PET_AURA_BUFF
 				if ( m_TimerAuraSuspended.GetTargetTime() > 0.0f )
+                {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    m_TimerAuraSuspended.OnFrameMove( fElapsedTime);
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 					m_TimerAuraSuspended.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                }
 #endif
 			}
-#endif
 			break;
 		}
 	}
@@ -711,10 +688,10 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 		m_fIconTimer -= fElapsedTime;
 		if( m_fIconTimer < 0.f )
 		{
-			if( m_hSeqIcon != INVALID_PARTICLE_HANDLE )
+			if( m_hSeqIcon != INVALID_PARTICLE_SEQUENCE_HANDLE )
 			{
 				g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqIcon );
-				m_hSeqIcon = INVALID_PARTICLE_HANDLE;
+				m_hSeqIcon = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 
 			m_fIconTimer = 0.f;
@@ -730,21 +707,25 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 		}
 	}
 
-	if( NULL != pMasterUserUnit && NULL != pMasterUserUnit->GetPetCheer() )
+	if( NULL != pMasterUserUnit )
 	{
 #ifdef PET_AURA_BUFF
 		if ( m_TimerAuraSuspended.GetTargetTime() > 0.0f )
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_TimerAuraSuspended.OnFrameMove( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_TimerAuraSuspended.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 			if( m_TimerAuraSuspended.GetTargetTime() <= m_TimerAuraSuspended.GetSumOfElapsedTime() )
 			{
 				pMasterUserUnit->EraseBuffTempletFromGameUnit( BTI_BUFF_PET_AURA_SKILL );	/// 걸려있던 버프 삭제
 
-				if( m_hEffectCheer != CX2EffectSet::INVALID_HANDLE )
+				if( m_hEffectCheer != INVALID_EFFECTSET_HANDLE )
 				{
 					g_pData->GetUIEffectSet()->StopEffectSet( m_hEffectCheer );	/// 이펙트 삭제
-					m_hEffectCheer = CX2EffectSet::INVALID_HANDLE;
+					m_hEffectCheer = INVALID_EFFECTSET_HANDLE;
 				}
 
 				m_TimerAuraSuspended.SetTargetTime( -1.f );		/// 시간 초기화
@@ -752,17 +733,17 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 			}
 		}
 #else  PET_AURA_BUFF
-		if( m_hEffectCheer != CX2EffectSet::INVALID_HANDLE && pMasterUserUnit->GetPetCheer()->m_fTime <= 0.f )
+		if( m_hEffectCheer != INVALID_EFFECTSET_HANDLE && pMasterUserUnit->GetPetCheer().m_fTime <= 0.f )
 		{
 			g_pData->GetUIEffectSet()->StopEffectSet( m_hEffectCheer );
-			m_hEffectCheer = CX2EffectSet::INVALID_HANDLE;
+			m_hEffectCheer = INVALID_EFFECTSET_HANDLE;
 		}
 #endif PET_AURA_BUFF
 	}
 
 	if( NULL != g_pX2Game != NULL && NULL != pMasterUserUnit )
 	{
-		if( pMasterUserUnit->GetSyncData() != NULL && pMasterUserUnit->GetSyncData()->bFrameStop == true )
+		if( pMasterUserUnit->GetSyncData().bFrameStop == true )
 		{
 			return S_OK;
 		}
@@ -775,16 +756,16 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 
 		if( false == m_PetStateData.Lua_FrameMove.empty() )
 		{
-			string func;
-			ConvertWCHARToChar( func, m_PetStateData.Lua_FrameMove.c_str() );
+			//string func;
+			//ConvertWCHARToChar( func, m_PetStateData.Lua_FrameMove.c_str() );
 #ifdef LEAVE_LAST_ERROR_LOG_TEST
-			LastErrorLog( func.c_str() );
+			LastErrorLog( m_PetStateData.Lua_FrameMove.c_str() );
 #endif LEAVE_LAST_ERROR_LOG_TEST
 
 #ifdef	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
-			lua_tinker::call<void>( m_LuaManager.GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+			lua_tinker::call<void>( m_LuaManager.GetLuaState(), m_PetStateData.Lua_FrameMove.c_str(), g_pKTDXApp, g_pX2Game, this );
 #else	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
-			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_PetStateData.Lua_FrameMove.c_str(), g_pKTDXApp, g_pX2Game, this );
 #endif	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 		}
 
@@ -792,7 +773,11 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 		{
 			float fTime = m_vecSoundPlayData[i].m_SoundPlayTime;
 			int iRate	= m_vecSoundPlayData[i].m_SoundPlayRate;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            if( m_pXSkinAnim->EventTimerOneshot( fTime ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if( m_pXSkinAnim->EventTimer( fTime ) == true && EventCheck( fTime ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			{
 				if( rand()%100 < iRate )
 				{
@@ -905,7 +890,6 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 					{
 						if( m_optrMasterGameUnit->GetNowHp() / m_optrMasterGameUnit->GetMaxHp() <= 0.2f )
 					{
-#ifdef ADD_UPGRADE_PET01
 							if( GetActionSuccess(iActionStateId, false) == true )
 							{
 								bCheerAction = true;
@@ -914,26 +898,12 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 							{							
 								bCheerAction = true;
 							}
-#else
-							if( GetActionSuccess(iActionStateId) == true )
-							{
-								bCheerAction = true;
-							}
-							else
-							{
-								if( iActionStateId == m_NotKnowState )
-									bUnKnown = true;
-								else if( iActionStateId == m_HungryState )
-									bHungry = true;
-							}
-#endif
 						}				
 					}
 					else
 					{
 						if( m_optrMasterGameUnit->GetNowHp() / m_optrMasterGameUnit->GetMaxHp() <= 0.3f )
 						{
-#ifdef ADD_UPGRADE_PET01
 							if( GetActionSuccess(iActionStateId) == true )
 							{
 								bCheerAction = true;
@@ -942,19 +912,6 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 							{							
 								bCheerAction = true;
 							}
-#else
-							if( GetActionSuccess(iActionStateId) == true )
-							{
-								bCheerAction = true;
-							}
-							else
-							{
-								if( iActionStateId == m_NotKnowState )
-									bUnKnown = true;
-								else if( iActionStateId == m_HungryState )
-									bHungry = true;
-							}					
-#endif
 						}
 					}
 				}			
@@ -1157,7 +1114,7 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 					bool bEnableAttack = true;
 #ifdef FIX_PET_ATTACK					
 					if( NULL == pNpcUnitAttackedByMe ||
-						( NULL != pNpcUnitAttackedByMe->GetNPCTemplet() && pNpcUnitAttackedByMe->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC ) ||
+						( pNpcUnitAttackedByMe->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC ) ||
 						pNpcUnitAttackedByMe->GetNowHp() <= 0.f )
 						bEnableAttack = false;		
 #endif
@@ -1191,9 +1148,9 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 						CX2GUNPC *pNpc = static_cast<CX2GUNPC*>( pGameUnitWhoAttackedMe );
 #endif  X2OPTIMIZE_UNITTYPE_BUG_FIX
 
-						if ( NULL != pNpc && NULL != pNpc->GetNPCTemplet() )
+						if ( NULL != pNpc )
 						{
-							if ( pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC || pNpc->GetNowHp() <= 0.f )
+							if ( pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC || pNpc->GetNowHp() <= 0.f )
 								bEnableAttack = false;
 						}
 						else
@@ -1201,7 +1158,7 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 							bEnableAttack = false;
 						}
 						/*
-						if( NULL == pNpc || pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC || pNpc->GetNowHp() <= 0.f )
+						if( NULL == pNpc || pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC || pNpc->GetNowHp() <= 0.f )
 						{
 							bEnableAttack = false;
 						}
@@ -1277,17 +1234,23 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 	}
 
 
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	map<float,bool>::iterator iter;
 	for( iter = m_EventTimeStamp.begin(); iter != m_EventTimeStamp.end(); iter++ )
 	{
 		iter->second = true;
 	}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 	m_petCondition.fStateTimeBack	= m_petCondition.fStateTime;
 	m_petCondition.fStateTime		+= m_fElapsedTime;
 
 	if( g_pX2Game != NULL )
 		DoFrameMove();
 	
+#ifdef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    bool    bXSkinAnimOnFrameMoveCalled = false;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( GetLoaded() == true && 		
 		m_pMotion != NULL && m_pXSkinAnim != NULL &&
 		( g_pX2Game != NULL || g_pTFieldGame != NULL ) )
@@ -1327,6 +1290,9 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 		m_pXSkinAnim->GetMatrix().Move( m_petSyncData.position );		
 
 		m_pXSkinAnim->OnFrameMove( fTime, fElapsedTime );
+#ifdef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        bXSkinAnimOnFrameMoveCalled = true;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 	else if( GetLoaded() == true && 		
 		m_pMotion != NULL && m_pXSkinAnim != NULL &&
@@ -1383,6 +1349,9 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 				m_pXSkinAnim->GetMatrix().Move( vPetPos );		
 
 				m_pXSkinAnim->OnFrameMove( fTime, fElapsedTime );
+#ifdef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                bXSkinAnimOnFrameMoveCalled = true;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			}
 		}
 		else 
@@ -1390,20 +1359,26 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 			SetShowObject( false );
 		}		
 	}
-	
+#ifdef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( bXSkinAnimOnFrameMoveCalled == false )
+    {
+        if ( m_pXSkinAnim != NULL )
+            m_pXSkinAnim->UpdateBeforeAnimationTime();
+    }
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE	
 
 	if( false == m_PetStateData.Lua_FrameMove.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_PetStateData.Lua_FrameMove.c_str() );
+		//string func;
+		//ConvertWCHARToChar( func, m_PetStateData.Lua_FrameMove.c_str() );
 #ifdef LEAVE_LAST_ERROR_LOG_TEST
-		LastErrorLog( func.c_str() );
+		LastErrorLog( m_PetStateData.Lua_FrameMove.c_str() );
 #endif LEAVE_LAST_ERROR_LOG_TEST
 
 #ifdef	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
-		lua_tinker::call<void>( m_LuaManager.GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+		lua_tinker::call<void>( m_LuaManager.GetLuaState(), m_PetStateData.Lua_FrameMove.c_str(), g_pKTDXApp, g_pX2Game, this );
 #else	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
-		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_PetStateData.Lua_FrameMove.c_str(), g_pKTDXApp, g_pX2Game, this );
 #endif	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 	}
 
@@ -1448,7 +1423,11 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 	{
 		float fTime = m_vecSoundPlayData[i].m_SoundPlayTime;
 		int iRate	= m_vecSoundPlayData[i].m_SoundPlayRate;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if( m_pXSkinAnim->EventTimerOneshot( fTime ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( fTime ) == true && EventCheck( fTime ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			if( rand()%100 < iRate )
 			{
@@ -1462,7 +1441,7 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 		}
 	}
 
-	if( m_hSeqIcon != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqIcon != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqIcon );
 		ASSERT( NULL != pSeq );
@@ -1478,7 +1457,7 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 		}
 		else
 		{
-			m_hSeqIcon = INVALID_PARTICLE_HANDLE;
+			m_hSeqIcon = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -1486,7 +1465,7 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 	std::vector< AttachedPetParticleData >::iterator vit;
 	for( vit = m_vecSeqPetParticle.begin(); vit != m_vecSeqPetParticle.end(); ++vit )
 	{
-		if( vit->hSeq != INVALID_PARTICLE_HANDLE )
+		if( vit->hSeq != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( vit->hSeq );
 			ASSERT( NULL != pSeq );
@@ -1497,7 +1476,7 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 			}
 			else
 			{
-				vit->hSeq = INVALID_PARTICLE_HANDLE;
+				vit->hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
@@ -1508,11 +1487,7 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 	{		
 		CKTDGUIControl::CPictureData *pPicture1 = NULL;
 		CKTDGUIControl::CPictureData *pPicture2 = NULL;
-#ifdef REFORM_UI_CHARACTER_INFO
 		CKTDGUIStatic *pStatic = (CKTDGUIStatic*)m_pDlgPetGage->GetControl( L"g_pStatic_PET_GAGE_BAR" );
-#else
-		CKTDGUIStatic *pStatic = (CKTDGUIStatic*)m_pDlgPetGage->GetControl( L"g_pStatic_Pat_GAGE_BAR" );
-#endif
 		if( pStatic != NULL )
 		{
 			pPicture1 = pStatic->GetPictureIndex( 1 );
@@ -1535,12 +1510,11 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 		g_pData->GetPetManager()->SetSummonedPetMp( m_fNowMp );
 	}
 
-#ifdef UNDERWATER_LINEMAP	
 	if( g_pX2Game != NULL && 
 		g_pX2Game->GetWorld() != NULL &&
 		g_pX2Game->GetLineMap() != NULL )
 	{
-		CKTDGLineMap::LineData* pLineData = g_pX2Game->GetLineMap()->GetLineData( m_petSyncData.lastTouchLineIndex );
+		const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetLineMap()->GetLineData( m_petSyncData.lastTouchLineIndex );
 		if( pLineData != NULL && pLineData->m_bUnderWater == true && GetPos().y <= pLineData->m_fWaterHeight )
 		{			
 			m_bUnderWaterHead = true;
@@ -1560,7 +1534,6 @@ HRESULT	CX2PET::OnFrameMove( double fTime, float fElapsedTime )
 			m_cLineUnitColor = D3DXCOLOR( 0.f, 0.f, 0.f, 0.f );
 		}
 	}
-#endif
 	return S_OK;
 }
 
@@ -1609,31 +1582,29 @@ RENDER_HINT CX2PET::OnFrameRender_Prepare()
 
 	pRenderParam->color = m_cPetColor;
 
-#if defined(GHOST_PET) && defined(UNDERWATER_LINEMAP)
+#if defined(GHOST_PET)
 	if( m_bForceColor == false && (m_bUnderWaterHead == true || m_bForceChagneColor == true) )
 	{
 		pRenderParam->color.r -= m_cLineUnitColor.r;
 		pRenderParam->color.g -= m_cLineUnitColor.g;
 		pRenderParam->color.b -= m_cLineUnitColor.b;
 	}	
-#else //defined(GHOST_PET) && defined(UNDERWATER_LINEMAP)
-#ifdef UNDERWATER_LINEMAP
+#else //defined(GHOST_PET)
 	if( m_bUnderWaterHead == true || m_bForceChagneColor == true )
 	{
 		pRenderParam->color.r -= m_cLineUnitColor.r;
 		pRenderParam->color.g -= m_cLineUnitColor.g;
 		pRenderParam->color.b -= m_cLineUnitColor.b;
 	}	
-#endif
-#endif //defined(GHOST_PET) && defined(UNDERWATER_LINEMAP)
+#endif //defined(GHOST_PET)
 
 	pRenderParam->renderType = CKTDGXRenderer::RT_CARTOON_BLACK_EDGE;
 
-	if( g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail == CX2GameOption::OL_MEDIUM )
+	if( g_pMain->GetGameOption().GetOptionList().m_UnitDetail == CX2GameOption::OL_MEDIUM )
 	{
 		pRenderParam->renderType = CKTDGXRenderer::RT_CARTOON;
 	}
-	else if( g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail == CX2GameOption::OL_LOW )
+	else if( g_pMain->GetGameOption().GetOptionList().m_UnitDetail == CX2GameOption::OL_LOW )
 	{
 		pRenderParam->renderType = CKTDGXRenderer::RT_REAL_COLOR;
 	}
@@ -1757,7 +1728,6 @@ void	CX2PET::InitInit( InitData& OutInit_, KLuaManager& luaManager_ )
 {
 	InitDevice( OutInit_.m_device, luaManager_ );
 	InitMotion( OutInit_.m_device, luaManager_ );
-
 }//CX2GUUser::InitInit()
 
 void    CX2PET::InitData::AppendToDeviceList( CKTDXDeviceDataList& listInOut_ ) const
@@ -1929,11 +1899,11 @@ void CX2PET::InitDevice()
 			int index = 1; 
 			while( m_LuaManager.GetValue( index, soundName ) == true )
 			{
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 				SoundReadyInBackground( soundName.c_str() );
-#else	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#else	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 				SoundReady( soundName.c_str() );
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 				index++;
 			}
 			m_LuaManager.EndTable();
@@ -1941,13 +1911,13 @@ void CX2PET::InitDevice()
 
 		m_LuaManager.EndTable(); // INIT_DEVICE
 	}
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 	SoundReadyInBackground( L"Pet_Evolution.ogg" );
 	SoundReadyInBackground( L"Pet_Summon.ogg" );
-#else	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#else	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 	SoundReady( L"Pet_Evolution.ogg" );
 	SoundReady( L"Pet_Summon.ogg" );
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 	
 }
 
@@ -1965,7 +1935,11 @@ void CX2PET::InitSystem()
 		LUA_GET_VALUE( m_LuaManager, "UNIT_SCALE", m_fScale, 1.f );		
 		
 		LUA_GET_VALUE_ENUM( m_LuaManager, "RENDER_PARAM", m_RenderParam.renderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_CARTOON_BLACK_EDGE );
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+		m_RenderParam.fOutLineWide	= CARTOON_OUTLINE_WIDTH;
+#else //UNIT_SCALE_COMBINE_ONE
 		m_RenderParam.fOutLineWide	= 1.7f;
+#endif //UNIT_SCALE_COMBINE_ONE
 		
 
 
@@ -2067,7 +2041,7 @@ void CX2PET::InitMotion()
 			LUA_GET_VALUE( m_LuaManager, "PARTICLE_NAME", particleData.wstrParticleName, L"" );
 			LUA_GET_VALUE( m_LuaManager, "BONE_NAME",	particleData.wstrBoneName, L"" );
 
-			particleData.hSeq = INVALID_PARTICLE_HANDLE;
+			particleData.hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 			if( false == particleData.wstrParticleName.empty() &&
 				false == particleData.wstrBoneName.empty() )
@@ -2081,7 +2055,6 @@ void CX2PET::InitMotion()
 		m_LuaManager.EndTable();	// ATTACHED_PARTICLE
 	}
 #endif //PET_ATTACH_PARTICLE
-
 }
 
 void CX2PET::InitPhysic()
@@ -2111,32 +2084,32 @@ void CX2PET::InitState()
 
 
 		m_StateList.insert( std::make_pair( PSI_NONE, stateData ) );
-		m_StateNameIDMap.insert( std::make_pair( L"NONE", PSI_NONE ) );
+		m_StateNameIDMap.insert( std::make_pair( "NONE", PSI_NONE ) );
 
 		m_StateList.insert( std::make_pair( PSI_LOADING, stateData ) );
-		m_StateNameIDMap.insert( std::make_pair( L"LOADING", PSI_LOADING ) );
+		m_StateNameIDMap.insert( std::make_pair( "LOADING", PSI_LOADING ) );
 
 		m_StateList.insert( std::make_pair( PSI_READY, stateData ) );
-		m_StateNameIDMap.insert( std::make_pair( L"READY", PSI_READY ) );
+		m_StateNameIDMap.insert( std::make_pair( "READY", PSI_READY ) );
 
 		m_StateList.insert( std::make_pair( PSI_PLAY, stateData ) );
-		m_StateNameIDMap.insert( std::make_pair( L"PLAY", PSI_PLAY ) );
+		m_StateNameIDMap.insert( std::make_pair( "PLAY", PSI_PLAY ) );
 		
 		m_StateList.insert( std::make_pair( PSI_END, stateData ) );
-		m_StateNameIDMap.insert( std::make_pair( L"END", PSI_END ) );
+		m_StateNameIDMap.insert( std::make_pair( "END", PSI_END ) );
 
 		int index = 1;
 		while( m_LuaManager.BeginTable( index ) == true )
 		{
 			PetStateData stateData;
-			wstring stateTableName;
-			LUA_GET_VALUE( m_LuaManager, "STATE_NAME", stateTableName, L"" );
+			string stateTableName;
+			LUA_GET_VALUE_UTF8( m_LuaManager, "STATE_NAME", stateTableName, "" );
 			stateData.stateID = PSI_END + index;
 
 #ifdef GHOST_PET
-			LUA_GET_VALUE( m_LuaManager, "LUA_STATE_START_FUNC",		stateData.Lua_Start,	L"" );
+			LUA_GET_VALUE_UTF8( m_LuaManager, "LUA_STATE_START_FUNC",		stateData.Lua_Start,	"" );
 #endif
-			LUA_GET_VALUE( m_LuaManager, "LUA_FRAME_MOVE_FUNC",		stateData.Lua_FrameMove,	L"" );
+			LUA_GET_VALUE_UTF8( m_LuaManager, "LUA_FRAME_MOVE_FUNC",		stateData.Lua_FrameMove,	"" );
 			LUA_GET_VALUE( m_LuaManager, "STATE_COOL_TIME",			stateData.fStateCoolTime,	0.0f );
 			stateData.fStateElapsedTime = stateData.fStateCoolTime;
 
@@ -2148,57 +2121,57 @@ void CX2PET::InitState()
 		}
 		
 		
-		wstring			stateName = L"";
+		string			stateName = "";
 
-		LUA_GET_VALUE( m_LuaManager, "START_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "START_STATE", stateName, "" );
 		m_StartState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "WAIT_HABIT", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "WAIT_HABIT", stateName, "" );
 		m_WaitHabitState				= GetStateID( stateName );		
-		LUA_GET_VALUE( m_LuaManager, "WAIT_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "WAIT_STATE", stateName, "" );
 		m_WaitState					= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "EAT_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "EAT_STATE", stateName, "" );
 		m_EatState					= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "HUNGRY_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "HUNGRY_STATE", stateName, "" );
 		m_HungryState				= GetStateID( stateName );		
-		LUA_GET_VALUE( m_LuaManager, "STUFFED_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "STUFFED_STATE", stateName, "" );
 		m_StuffedState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "SLEEP_START_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SLEEP_START_STATE", stateName, "" );
 		m_SleepStartState			= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "SLEEP_LOOP_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SLEEP_LOOP_STATE", stateName, "" );
 		m_SleepLoopState			= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "SLEEP_END_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SLEEP_END_STATE", stateName, "" );
 		m_SleepEndState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "AFRAID_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "AFRAID_STATE", stateName, "" );
 		m_AfraidState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "HELLO_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "HELLO_STATE", stateName, "" );
 		m_HelloState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "HAPPY1_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "HAPPY1_STATE", stateName, "" );
 		m_Happy1State				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "HAPPY2_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "HAPPY2_STATE", stateName, "" );
 		m_Happy2State				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "CUTE1_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "CUTE1_STATE", stateName, "" );
 		m_Cute1State				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "CUTE2_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "CUTE2_STATE", stateName, "" );
 		m_Cute2State				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "SAD_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SAD_STATE", stateName, "" );
 		m_SadState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "CHEER_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "CHEER_STATE", stateName, "" );
 		m_CheerState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "SPECIAL_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SPECIAL_STATE", stateName, "" );
 		m_SpecialState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "ATTACK_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "ATTACK_STATE", stateName, "" );
 		m_AttackState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "SIT_START_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SIT_START_STATE", stateName, "" );
 		m_SitStartState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "SIT_LOOP_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SIT_LOOP_STATE", stateName, "" );
 		m_SitLoopState				= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "SIT_END_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SIT_END_STATE", stateName, "" );
 		m_SitEndState				= GetStateID( stateName );		       
-		LUA_GET_VALUE( m_LuaManager, "NOTKNOW_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "NOTKNOW_STATE", stateName, "" );
 		m_NotKnowState				= GetStateID( stateName );		 
-		LUA_GET_VALUE( m_LuaManager, "SLEEP_FALL_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SLEEP_FALL_STATE", stateName, "" );
 		m_SleepFallState			= GetStateID( stateName );
-		LUA_GET_VALUE( m_LuaManager, "SIT_FALL_STATE", stateName, L"" );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SIT_FALL_STATE", stateName, "" );
 		m_SitFallState				= GetStateID( stateName );		
 
 		m_LuaManager.EndTable();
@@ -2207,7 +2180,7 @@ void CX2PET::InitState()
 	// state table 을 state ID 로 참조하기 위해 m_LuaManager 에 reference 로 등록한다.
 	// state table 이 global table에 있기 때문에 위의 BeginTable, EndTable 블럭을 빠져나와서 등록함.
 
-	for( std::map<wstring,char>::const_iterator iter = m_StateNameIDMap.begin(); iter != m_StateNameIDMap.end(); iter++ )
+	for( std::map<string,char>::const_iterator iter = m_StateNameIDMap.begin(); iter != m_StateNameIDMap.end(); iter++ )
 	{
 		m_LuaManager.MakeTableReference( iter->first.c_str(), iter->second );
 	}//
@@ -2288,8 +2261,10 @@ void CX2PET::PlayCommonEffect( PET_COMMON_EFFECT eType )
 			if( g_pData != NULL && g_pData->GetUIEffectSet() != NULL )
 			{
 				CX2EffectSet::Handle hEffect =  g_pData->GetUIEffectSet()->PlayEffectSetByPet( L"EffectSet_Summon_Pet", this );
-				if ( CX2EffectSet::INVALID_HANDLE != hEffect)
-					g_pData->GetUIEffectSet()->GetEffectSetInstance( hEffect )->m_vPosition = vPos;
+				if ( CX2EffectSet::EffectSetInstance* pEffect = g_pData->GetUIEffectSet()->GetEffectSetInstance( hEffect ) )
+                {
+					pEffect->m_vPosition = vPos;
+                }
 			}			
 			PlaySound( L"Pet_Summon.ogg" );
 		}
@@ -2299,8 +2274,10 @@ void CX2PET::PlayCommonEffect( PET_COMMON_EFFECT eType )
 			if( g_pData != NULL && g_pData->GetUIEffectSet() != NULL )
 			{
 				CX2EffectSet::Handle hEffect =  g_pData->GetUIEffectSet()->PlayEffectSetByPet( L"EffectSet_Evolution_Pet", this );
-				if ( CX2EffectSet::INVALID_HANDLE != hEffect)
-					g_pData->GetUIEffectSet()->GetEffectSetInstance( hEffect )->m_vPosition = vPos;
+				if ( CX2EffectSet::EffectSetInstance* pEffect = g_pData->GetUIEffectSet()->GetEffectSetInstance( hEffect ) )
+                {
+					pEffect->m_vPosition = vPos;
+                }
 			}			
 			PlaySound( L"Pet_Evolution.ogg" );
 		}
@@ -2309,7 +2286,7 @@ void CX2PET::PlayCommonEffect( PET_COMMON_EFFECT eType )
 		{
 			if( g_pData != NULL && g_pData->GetUIEffectSet() != NULL )
 			{
-				if( m_hEffectCheer != CX2EffectSet::INVALID_HANDLE )
+				if( m_hEffectCheer != INVALID_EFFECTSET_HANDLE )
 				{
 					g_pData->GetUIEffectSet()->StopEffectSet( m_hEffectCheer );
 				}
@@ -2401,10 +2378,10 @@ bool CX2PET::StateChange( int iStateId, bool bForce, bool bCheck )
 	if( m_petSyncData.nowState != iStateId && bPassTimeState == false )
 		m_fNowStateTimer = 0.f;
 
-	if( g_pData != NULL && g_pData->GetUIEffectSet() != NULL && m_hStateEffect != CX2EffectSet::INVALID_HANDLE )
+	if( g_pData != NULL && g_pData->GetUIEffectSet() != NULL && m_hStateEffect != INVALID_EFFECTSET_HANDLE )
 	{
 		g_pData->GetUIEffectSet()->StopEffectSet( m_hStateEffect );
-		m_hStateEffect = CX2EffectSet::INVALID_HANDLE;
+		m_hStateEffect = INVALID_EFFECTSET_HANDLE;
 	}
 
 	//스테이트를 바꾼다
@@ -2412,7 +2389,12 @@ bool CX2PET::StateChange( int iStateId, bool bForce, bool bCheck )
 	m_petSyncData.bStateChange	= true;
 	m_PetStateData = m_StateList[m_petSyncData.nowState];
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim != NULL )
+        m_pXSkinAnim->ResetOneshotPerformed();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_EventTimeStamp.clear();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	//다음 스테이트를 시작한다
 	bTableOpen = m_LuaManager.BeginTableByReference( m_PetStateData.stateID );
@@ -2461,7 +2443,7 @@ bool CX2PET::StateChange( int iStateId, bool bForce, bool bCheck )
 #ifdef EXPAND_SPEED_TIME_SCRIPT_ON_PET
 		int index = 0;
 		m_vecSpeedFactor.clear();
-		while( m_LuaManager.BeginTable( L"SPEED_TIME", index ) == true )
+		while( m_LuaManager.BeginTable( "SPEED_TIME", index ) == true )
 		{
 			TIME_SPEED timeSpeed;
 
@@ -2581,8 +2563,8 @@ bool CX2PET::StateChange( int iStateId, bool bForce, bool bCheck )
 
 		while( true )
 		{
-			WCHAR key[100] = {0,};
-			StringCchPrintf( key, 100, L"EVENT_INTERVAL_TIME%d", index );
+			char key[100] = {0,};
+			StringCchPrintfA( key, 100, "EVENT_INTERVAL_TIME%d", index );
 			//wsprintf( key, L"EVENT_INTERVAL_TIME%d", index );
 
 			D3DXVECTOR3 Interval;
@@ -2610,11 +2592,11 @@ bool CX2PET::StateChange( int iStateId, bool bForce, bool bCheck )
 				PetEventProcessData* pEventProcessData = new PetEventProcessData;
 
 				LUA_GET_VALUE_ENUM( m_LuaManager,	1,	pEventProcessData->m_StateChangeType,		STATE_CHANGE_TYPE, SCT_NO_CHANGE );
-				wstring wstrNextState;
-				LUA_GET_VALUE( m_LuaManager,		2,	wstrNextState,			L"" );
-				pEventProcessData->m_NextStateID = GetStateID( wstrNextState );
+				string strNextState;
+				LUA_GET_VALUE_UTF8( m_LuaManager,		2,	strNextState,			"" );
+				pEventProcessData->m_NextStateID = GetStateID( strNextState );
 				ASSERT( pEventProcessData->m_NextStateID >= 0 );
-				LUA_GET_VALUE( m_LuaManager,		3,	pEventProcessData->m_wstrCustomCondition,	L"" );
+				LUA_GET_VALUE_UTF8( m_LuaManager,		3,	pEventProcessData->m_strCustomCondition,	"" );
 
 				// condition table 삭제함...
 
@@ -2628,7 +2610,7 @@ bool CX2PET::StateChange( int iStateId, bool bForce, bool bCheck )
 
 #ifdef AI_FLY
 		bool bFlyAI = false;
-		if( m_LuaManager.GetValue( L"FLY_AI", bFlyAI ) == true)
+		if( m_LuaManager.GetValue( "FLY_AI", bFlyAI ) == true)
 		{
 			if(m_pAI != NULL)
 			{
@@ -2750,16 +2732,16 @@ bool CX2PET::StateChange( int iStateId, bool bForce, bool bCheck )
 #ifdef GHOST_PET
 	if( false == m_PetStateData.Lua_Start.empty() )
 	{
-		string func;
-		ConvertWCHARToChar( func, m_PetStateData.Lua_Start.c_str() );
+		//string func;
+		//ConvertWCHARToChar( func, m_PetStateData.Lua_Start.c_str() );
 #ifdef LEAVE_LAST_ERROR_LOG_TEST
-		LastErrorLog( func.c_str() );
+		LastErrorLog( m_PetStateData.Lua_Start.c_str() );
 #endif LEAVE_LAST_ERROR_LOG_TEST
 
 #ifdef	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
-		lua_tinker::call<void>( m_LuaManager.GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+		lua_tinker::call<void>( m_LuaManager.GetLuaState(), m_PetStateData.Lua_Start.c_str(), g_pKTDXApp, g_pX2Game, this );
 #else	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
-		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), func.c_str(), g_pKTDXApp, g_pX2Game, this );
+		lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), m_PetStateData.Lua_Start.c_str(), g_pKTDXApp, g_pX2Game, this );
 #endif	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 	}
 #endif
@@ -3082,17 +3064,14 @@ void CX2PET::DoProcessEvent()
 
 		case SCT_CONDITION_FUNCTION:
 			{
-				string strConditionFunction;
-				ConvertWCHARToChar( strConditionFunction, pEventProcessData->m_wstrCustomCondition.c_str() );
-
 #ifdef LEAVE_LAST_ERROR_LOG_TEST
-				LastErrorLog( strConditionFunction.c_str() );
+				LastErrorLog( pEventProcessData->m_strCustomCondition.c_str() );
 #endif LEAVE_LAST_ERROR_LOG_TEST
 
 #ifdef	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
-				bool bRt = lua_tinker::call<bool>( m_LuaManager.GetLuaState(), strConditionFunction.c_str(), g_pKTDXApp, g_pX2Game, this );
+				bool bRt = lua_tinker::call<bool>( m_LuaManager.GetLuaState(), pEventProcessData->m_strCustomCondition.c_str(), g_pKTDXApp, g_pX2Game, this );
 #else	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
-				bool bRt = lua_tinker::call<bool>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), strConditionFunction.c_str(), g_pKTDXApp, g_pX2Game, this );
+				bool bRt = lua_tinker::call<bool>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), pEventProcessData->m_strCustomCondition.c_str(), g_pKTDXApp, g_pX2Game, this );
 #endif	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD
 
 				if( true == bRt )
@@ -3179,7 +3158,7 @@ bool CX2PET::SetPosition( D3DXVECTOR3& vPos, bool bIsRight )
 	//pLineMap->IsOnLineConnect( startPos, &lineIndex, LINE_RADIUS, &landPos );
 	pLineMap->IsOnLine( startPos, LINE_RADIUS, &startPos, &lineIndex, true );
 
-	CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( lineIndex );
+	const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( lineIndex );
 	if( NULL == pLineData )
 	{
 		ASSERT( !"CX2GUNPC::SetPosition, null linedata" );
@@ -3238,7 +3217,7 @@ void CX2PET::PhysicProcess()
 		return;	
 
 
-	CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( m_petSyncData.lastTouchLineIndex );
+	const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( m_petSyncData.lastTouchLineIndex );
 	if( pLineData == NULL )
 	{		
 		pLineData = pLineMap->GetLineData( m_petSyncData.lastTouchLineIndex );
@@ -3310,7 +3289,6 @@ void CX2PET::PhysicProcess()
 		if( m_PhysicParam.nowSpeed.x > 0.0f )
 			m_PhysicParam.nowSpeed.x = 0.0f;
 	}
-
 
 
 #ifdef AI_FLY
@@ -3410,7 +3388,7 @@ void CX2PET::PhysicProcess()
 		}
 		else
 		{
-			CKTDGLineMap::LineData* pDwnLineData = pLineMap->GetLineData( lastTouchLineIndex );
+			const CKTDGLineMap::LineData* pDwnLineData = pLineMap->GetLineData( lastTouchLineIndex );
 			bool bMeOnStart = false;
 			bool bMeOnEnd = false;
 			if( GetDistance(landPosition,pDwnLineData->startPos) < LINE_RADIUS )
@@ -3498,7 +3476,7 @@ void CX2PET::PhysicProcess()
 		}
 		else //이동 위치가 선 위가 아니라면
 		{
-			CKTDGLineMap::LineData* pDwnLineData = pLineMap->GetLineData( lastTouchLineIndex );
+			const CKTDGLineMap::LineData* pDwnLineData = pLineMap->GetLineData( lastTouchLineIndex );
 			bool bMeOnStart = false;
 			bool bMeOnEnd = false;
 			if( GetDistance(landPosition,pDwnLineData->startPos) < LINE_RADIUS )
@@ -3668,10 +3646,10 @@ void CX2PET::UpdateSpeedByUser()
 		CX2SquareUnit* pUser = (CX2SquareUnit*)g_pTFieldGame->GetSquareUnitByUID( m_MasterUid );
 		if( NULL != pUser )
 		{			
-			m_PhysicParam.fWalkSpeed = pUser->GetPhysicParam()->GetWalkSpeed();
-			m_PhysicParam.fRunSpeed = pUser->GetPhysicParam()->GetDashSpeed();
-			m_PhysicParam.fJumpSpeed = pUser->GetPhysicParam()->GetJumpSpeed();
-			m_PhysicParam.fDashJumpSpeed = pUser->GetPhysicParam()->GetDashJumpSpeed();
+			m_PhysicParam.fWalkSpeed = pUser->GetPhysicParam().GetWalkSpeed();
+			m_PhysicParam.fRunSpeed = pUser->GetPhysicParam().GetDashSpeed();
+			m_PhysicParam.fJumpSpeed = pUser->GetPhysicParam().GetJumpSpeed();
+			m_PhysicParam.fDashJumpSpeed = pUser->GetPhysicParam().GetDashJumpSpeed();
 		}			
 	}
 	else if( g_pSquareGame != NULL )
@@ -3679,10 +3657,10 @@ void CX2PET::UpdateSpeedByUser()
 		CX2SquareUnit* pUser = (CX2SquareUnit*)g_pSquareGame->GetSquareUnitByUID( m_MasterUid );
 		if( NULL != pUser )
 		{
-			m_PhysicParam.fWalkSpeed = pUser->GetPhysicParam()->GetWalkSpeed();
-			m_PhysicParam.fRunSpeed = pUser->GetPhysicParam()->GetDashSpeed();
-			m_PhysicParam.fJumpSpeed = pUser->GetPhysicParam()->GetJumpSpeed();
-			m_PhysicParam.fDashJumpSpeed = pUser->GetPhysicParam()->GetDashJumpSpeed();
+			m_PhysicParam.fWalkSpeed = pUser->GetPhysicParam().GetWalkSpeed();
+			m_PhysicParam.fRunSpeed = pUser->GetPhysicParam().GetDashSpeed();
+			m_PhysicParam.fJumpSpeed = pUser->GetPhysicParam().GetJumpSpeed();
+			m_PhysicParam.fDashJumpSpeed = pUser->GetPhysicParam().GetDashJumpSpeed();
 		}			
 	}	
 }
@@ -3766,7 +3744,7 @@ bool CX2PET::InitPos()
 		landPos = pLineMap->GetLandPosition( startPos, LINE_RADIUS, &lineIndex );	
 		pLineMap->IsOnLine( startPos, LINE_RADIUS, &startPos, &lineIndex, true );
 
-		CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( lineIndex );
+		const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( lineIndex );
 		if( NULL == pLineData )
 		{
 			return false;
@@ -3784,30 +3762,30 @@ bool CX2PET::InitPos()
 }
 
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 bool CX2PET::SendPacketImmediateForce( CX2FrameUDPPack& kFrameUDPPack )
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-void CX2PET::SendPacketImmediateForce( vector<KXPT_UNIT_PET_SYNC>& syncList )
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//void CX2PET::SendPacketImmediateForce( vector<KXPT_UNIT_PET_SYNC>& syncList )
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 {
 	KTDXPROFILE();	
 
 	if( m_petSyncData.nowState == m_PreState && m_bSendReserveStateChange == false )
     {
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK	
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK	
 		return false;
-#else	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
-		return;
-#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
+//#else	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
+//		return;
+//#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
     }
 
 	if( g_pX2Game->IsHost() == false )
 	{
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK	
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK	
 		return false;
-#else	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
-		return;
-#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
+//#else	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
+//		return;
+//#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
 	}
 
 	// 싱크 테스트용
@@ -3821,22 +3799,22 @@ void CX2PET::SendPacketImmediateForce( vector<KXPT_UNIT_PET_SYNC>& syncList )
 
 	kXPT_UNIT_PET_SYNC.unitUID				= m_MasterUid;
 	kXPT_UNIT_PET_SYNC.nextState			= m_petCondition.nextState;
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	kXPT_UNIT_PET_SYNC.usNowSpeedX			= floatToHalf( m_PhysicParam.nowSpeed.x );
 	kXPT_UNIT_PET_SYNC.usNowSpeedY			= floatToHalf( m_PhysicParam.nowSpeed.y );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	kXPT_UNIT_PET_SYNC.nowSpeedX			= m_PhysicParam.nowSpeed.x;
-	kXPT_UNIT_PET_SYNC.nowSpeedY			= m_PhysicParam.nowSpeed.y;	
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	kXPT_UNIT_PET_SYNC.nowSpeedX			= m_PhysicParam.nowSpeed.x;
+//	kXPT_UNIT_PET_SYNC.nowSpeedY			= m_PhysicParam.nowSpeed.y;	
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	kXPT_UNIT_PET_SYNC.fNowMP				= floatToHalf( 100.f );
 	kXPT_UNIT_PET_SYNC.nowState				= m_petSyncData.nowState;
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     _EncodePetSyncPos( kXPT_UNIT_PET_SYNC.ucPosX, kXPT_UNIT_PET_SYNC.ucPosY, kXPT_UNIT_PET_SYNC.ucPosZ, m_petSyncData.position, m_petSyncData.lastTouchLineIndex );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	kXPT_UNIT_PET_SYNC.posX					= m_petSyncData.position.x;
-	kXPT_UNIT_PET_SYNC.posY					= m_petSyncData.position.y;
-	kXPT_UNIT_PET_SYNC.posZ					= m_petSyncData.position.z;
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	kXPT_UNIT_PET_SYNC.posX					= m_petSyncData.position.x;
+//	kXPT_UNIT_PET_SYNC.posY					= m_petSyncData.position.y;
+//	kXPT_UNIT_PET_SYNC.posZ					= m_petSyncData.position.z;
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	kXPT_UNIT_PET_SYNC.lastTouchLineIndex	= m_petSyncData.lastTouchLineIndex;
 	kXPT_UNIT_PET_SYNC.bIsRight				= m_petSyncData.bIsRight;
 
@@ -3846,17 +3824,17 @@ void CX2PET::SendPacketImmediateForce( vector<KXPT_UNIT_PET_SYNC>& syncList )
 
 	m_PreState = m_petSyncData.nowState;
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     kFrameUDPPack.AddFrameUDPPack_IDPack( XPT_UNIT_PET_SYNC_PACK, &kXPT_UNIT_PET_SYNC, sizeof(KXPT_UNIT_PET_SYNC) );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	syncList.push_back( kXPT_UNIT_PET_SYNC );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	syncList.push_back( kXPT_UNIT_PET_SYNC );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	m_bSendReserveStateChange = false;
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK	
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK	
     return true;
-#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
+//#endif	SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK		
 }
 
 void CX2PET::ReceiveFrameData( const KXPT_UNIT_PET_SYNC& kXPT_UNIT_PET_SYNC )
@@ -3875,6 +3853,9 @@ bool CX2PET::EventTimer( float fTime )
 	if( m_petCondition.fStateTimeBack < fTime
 		&& m_petCondition.fStateTime >= fTime )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        return  true;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		map<float,bool>::iterator iter;
 		iter = m_EventTimeStamp.find( fTime );
 		if( iter == m_EventTimeStamp.end() )
@@ -3891,11 +3872,13 @@ bool CX2PET::EventTimer( float fTime )
 			else
 				return false;
 		}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 	else
 		return false;
 }
 
+#ifndef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 bool CX2PET::EventCheck( float fTime )
 {
 	KTDXPROFILE();
@@ -3916,6 +3899,7 @@ bool CX2PET::EventCheck( float fTime )
 			return false;
 	}
 }
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 void CX2PET::AttackResult( float fMp )
 {
@@ -4025,12 +4009,14 @@ bool CX2PET::GetEnableAi()
 
 	return false;
 }
+
 #ifdef EXPAND_SPEED_TIME_SCRIPT_ON_PET
 bool CX2PET::IsSpeedTime() 
 { 
 	return bSpeedTime;
 }
 #endif //EXPAND_SPEED_TIME_SCRIPT_ON_PET
+
 void CX2PET::DoCheer()
 {
 	if( null == m_optrMasterGameUnit || NULL == g_pData || NULL == g_pData->GetPetManager() )
@@ -4066,61 +4052,37 @@ void CX2PET::DoCheer()
 	float fCriticalRate = 0.f;
 	float fTime = (float)g_pData->GetPetManager()->GetDispositionVal( 0, m_petData.m_Emotion, m_petData.m_Extroversion );
 	float fIncreaseHp = 1.f;
-#ifdef ADD_UPGRADE_PET01
 	float fChargeHp = 0.f;
-#endif
 
 	int iPetStatus = g_pData->GetPetManager()->GetPetStatus( m_petData );
 	//switch( m_petData.m_Evolution_Step )
 	switch( iPetStatus )
 	{
 	case 1:
-#ifdef ADD_UPGRADE_PET01
 		fSpeedBuff = 1.05f;
 		fChageMp = 6.f;
 		fCriticalRate = 0.06f;
 		fIncreaseHp = 1.2f;
 		fChargeHp = 0.005f;
-#else
-		fSpeedBuff = 1.0f;
-		fChageMp = 10.f;
-		fCriticalRate = 0.03f;
-		fIncreaseHp = 1.2f;
-#endif
 		break;
 	case 2:
-#ifdef ADD_UPGRADE_PET01
 		fSpeedBuff = 1.1f;
 		fChageMp = 12.f;
 		fCriticalRate = 0.12f;
 		fIncreaseHp = 1.3f;
 		fChargeHp = 0.01f;
-#else
-		fSpeedBuff = 1.1f;
-		fChageMp = 10.f;
-		fCriticalRate = 0.06f;
-		fIncreaseHp = 1.3f;
-#endif
 		break;
 	case 3:
-#ifdef ADD_UPGRADE_PET01
 		fSpeedBuff = 1.15f;
 		fChageMp = 18.f;
 		fCriticalRate = 0.18f;
 		fIncreaseHp = 1.5f;
 		fChargeHp = 0.02f;
-#else
-		fSpeedBuff = 1.2f;
-		fChageMp = 10.f;
-		fCriticalRate = 0.1f;
-		fIncreaseHp = 1.4f;
-#endif
 		break;
 	default:
 		break;
 	}
 	
-#ifdef ADD_UPGRADE_PET01	
 	if( GetNowIntimacy() >= 0.7f )
 	{
 		float fUpRate = GetNowIntimacy() - 0.6f + 1.f;
@@ -4131,35 +4093,25 @@ void CX2PET::DoCheer()
 		fChageMp = fChageMp * fUpRate;
 		fChargeHp = fChargeHp * fUpRate;
 	}
-#endif
 
-#ifdef UPGRADE_SPEED_FACTOR
 	m_optrMasterGameUnit->SetAnimSpeedFactor( fSpeedBuff, fTime, CX2GameUnit::SFI_SPEED_3, CX2GameUnit::SFST_UPDATE );
 	m_optrMasterGameUnit->SetVecMoveSpeedFactor( fSpeedBuff, fTime, CX2GameUnit::SFI_SPEED_3, CX2GameUnit::SFST_UPDATE );
-#ifndef ADD_UPGRADE_PET01
-	m_optrMasterGameUnit->SetVecJumpSpeedFactor( fSpeedBuff, fTime, CX2GameUnit::SFI_SPEED_3, CX2GameUnit::SFST_UPDATE );
-#endif //ADD_UPGRADE_PET01
-#endif
 
 	m_optrMasterGameUnit->SetMaxHp( m_optrMasterGameUnit->GetMaxHp() * fIncreaseHp );
 	if( m_optrMasterGameUnit->GetNowHp() > 0.f )
 		m_optrMasterGameUnit->SetNowHp( m_optrMasterGameUnit->GetNowHp() * fIncreaseHp );
 
 	//m_pMasterGame->ResetMPChangeRate( m_pMasterGame->GetGageManager()->GetMPGage()->fChangeRate + fChageMp );
-#ifdef GAGE_FACTOR
 	m_optrMasterGameUnit->AddMPFactor( fChageMp, fTime );
-#endif
 
 	CX2GUUser* pMasterGUUser = static_cast<CX2GUUser*>( m_optrMasterGameUnit.GetObservable() );
-	pMasterGUUser->GetPetCheer()->m_fTime = fTime;
-	pMasterGUUser->GetPetCheer()->m_fChangeHp = fIncreaseHp;
-	pMasterGUUser->GetPetCheer()->m_fSpeed = fSpeedBuff;
-	pMasterGUUser->GetPetCheer()->m_fMoveSpeed = fSpeedBuff;
-	pMasterGUUser->GetPetCheer()->m_fCriticalRate = fCriticalRate;
-	pMasterGUUser->GetPetCheer()->m_fChargeMp = fChageMp;
-#ifdef ADD_UPGRADE_PET01
-	pMasterGUUser->GetPetCheer()->m_fChargeHp = fChargeHp;	
-#endif
+	pMasterGUUser->AccessPetCheer().m_fTime = fTime;
+	pMasterGUUser->AccessPetCheer().m_fChangeHp = fIncreaseHp;
+	pMasterGUUser->AccessPetCheer().m_fSpeed = fSpeedBuff;
+	pMasterGUUser->AccessPetCheer().m_fMoveSpeed = fSpeedBuff;
+	pMasterGUUser->AccessPetCheer().m_fCriticalRate = fCriticalRate;
+	pMasterGUUser->AccessPetCheer().m_fChargeMp = fChageMp;
+	pMasterGUUser->AccessPetCheer().m_fChargeHp = fChargeHp;
 
 #endif PET_AURA_BUFF
 
@@ -4330,7 +4282,7 @@ float CX2PET::GetNowSatiety()
 
 void CX2PET::SetShowEffect(bool bVal)
 {
-	if( m_hSeqIcon != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqIcon != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqIcon );
 		if( pSeq != NULL )
@@ -4342,7 +4294,7 @@ void CX2PET::SetShowEffect(bool bVal)
 #ifdef PET_ATTACH_PARTICLE
 	BOOST_TEST_FOREACH( AttachedPetParticleData, kSeq, m_vecSeqPetParticle )
 	{
-		if( kSeq.hSeq != INVALID_PARTICLE_HANDLE )
+		if( kSeq.hSeq != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( kSeq.hSeq );
 			if( pSeq != NULL )
@@ -4482,21 +4434,21 @@ void CX2PET::DrawPetIcon( int iStateId )
 	
 	if( bDelete == true )
 	{
-		if( m_hSeqIcon != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqIcon != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqIcon );
-			m_hSeqIcon = INVALID_PARTICLE_HANDLE;
+			m_hSeqIcon = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 	if( bCreate == true )
 	{
-		if( m_hSeqIcon != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqIcon != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hSeqIcon );
-			m_hSeqIcon = INVALID_PARTICLE_HANDLE;
+			m_hSeqIcon = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
-		if( INVALID_PARTICLE_HANDLE == m_hSeqIcon )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqIcon )
 		{
 			D3DXVECTOR3 vPos = GetBonePos(L"Bip01_Head");
 			if( wstrParticleName != L"Pet_Sleep" )
@@ -4510,7 +4462,6 @@ void CX2PET::DrawPetIcon( int iStateId )
 	}		
 }
 
-#ifdef ADD_PET_UNICORN
 CX2GameUnit* CX2PET::GetTargetUnit()
 {	
 	if( IsAttacking() == true && g_pX2Game != NULL )
@@ -4524,7 +4475,6 @@ CX2GameUnit* CX2PET::GetTargetUnit()
 	else
 		return GetMaster();
 }
-#endif
 
 #ifdef ADD_PET_NINE_TAIL_FOX
 void CX2PET::SetLockOnDamageEffect( CX2DamageEffect::CEffect* pEffect )		/// 현재 팻이 목표로 정한 유닛을 인자로 들어온 데미지 이펙트에 록온 시킨다.
@@ -4539,8 +4489,8 @@ void CX2PET::SetLockOnDamageEffect( CX2DamageEffect::CEffect* pEffect )		/// 현�
 		{
 			CX2GUNPC* pNpc = static_cast<CX2GUNPC*>( pMasterGameUnit->GetGameUnitAttackedByMe() );
 			/// 타겟이 유효할 때 동작
-			if( NULL != pNpc && NULL != pNpc->GetNPCTemplet() && 
-				CX2UnitManager::NCT_BASIC == pNpc->GetNPCTemplet()->m_ClassType && 0.f < pNpc->GetNowHp() )
+			if( NULL != pNpc && 
+				CX2UnitManager::NCT_BASIC == pNpc->GetNPCTemplet().m_ClassType && 0.f < pNpc->GetNowHp() )
 			{
 				pEffect->SetLockOnNPCUID( pNpc->GetUID() );		/// 해당 데미지 이펙트에 록온 데이터 설정
 			}
@@ -4593,7 +4543,7 @@ UINT CX2PET::GetBuffLevelByIntimacy()
 
 #endif PET_AURA_BUFF
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 void CX2PET::UpdateRandomTableIndex()
 {
 	if( m_petSyncData.nowState == m_PreState )
@@ -4608,7 +4558,7 @@ void CX2PET::UpdateRandomTableIndex()
 
 void CX2PET::_EncodePetSyncPos( USHORT& usPosX, USHORT& usPosY, USHORT& usPosZ, const D3DXVECTOR3& position, unsigned char lastTouchLineIndex )
 {
-    CKTDGLineMap::LineData* pLineData = NULL;
+    const CKTDGLineMap::LineData* pLineData = NULL;
 	if( !g_pX2Game || !g_pX2Game->GetLineMap() 
         || ( pLineData = g_pX2Game->GetLineMap()->GetLineData( ( int )lastTouchLineIndex ) ) == NULL )
     {
@@ -4627,7 +4577,7 @@ void CX2PET::_EncodePetSyncPos( USHORT& usPosX, USHORT& usPosY, USHORT& usPosZ, 
 
 void CX2PET::PetSyncData::_DecodePetSyncPos( D3DXVECTOR3& vPosition, USHORT usPosX, USHORT usPosY, USHORT usPosZ, unsigned char ucLastTouchLineIndex )
 {
-    CKTDGLineMap::LineData* pLineData = NULL;
+    const CKTDGLineMap::LineData* pLineData = NULL;
 	if( !g_pX2Game || !g_pX2Game->GetLineMap() 
         || ( pLineData = g_pX2Game->GetLineMap()->GetLineData( ( int )ucLastTouchLineIndex ) ) == NULL )
     {
@@ -4643,44 +4593,10 @@ void CX2PET::PetSyncData::_DecodePetSyncPos( D3DXVECTOR3& vPosition, USHORT usPo
 	vPosition.z = pLineData->startPos.z + halfToFloat( usPosZ );
 }
 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
-#ifdef X2OPTIMIZE_VIEWDISTANCE_AROUND_ME_BY_GAMEOPTION
-void CX2PET::IsInViewDistanceAroundMe()
-{
-	//필드 또는 던전이 아니라면 패스...
-	if( g_pMain->GetNowStateID() != CX2Main::XS_BATTLE_FIELD && g_pMain->GetNowStateID() !=CX2Main::XS_DUNGEON_GAME )
-	{
-		m_fAlphaByViewDistanceAroundMe = 1.0f;
-		return;
-	}
-
-	//시야 옵션 "상"이라면 패스...
-	if( g_pMain->GetGameOption()->GetOptionList()->m_eViewDistance == CX2GameOption::OL_HIGH )
-	{
-		m_fAlphaByViewDistanceAroundMe = 1.0f;
-		return;
-	}
-
-	if( g_pX2Game->GetWorld() )
-	{
-		float fViewDistanceAroundMe = g_pX2Game->GetWorld()->GetViewDistanceAroundMe_High();
-		if( g_pMain->GetGameOption()->GetOptionList()->m_eViewDistance == CX2GameOption::OL_LOW )
-			fViewDistanceAroundMe = g_pX2Game->GetWorld()->GetViewDistanceAroundMe_Low();
-		else if( g_pMain->GetGameOption()->GetOptionList()->m_eViewDistance == CX2GameOption::OL_MEDIUM )
-			fViewDistanceAroundMe = g_pX2Game->GetWorld()->GetViewDistanceAroundMe_Medium();
-
-		if( GetDistance3Sq( GetPos(), g_pKTDXApp->GetDGManager()->GetCamera()->GetLookAt() ) < fViewDistanceAroundMe * fViewDistanceAroundMe )
-		{
-			m_fAlphaByViewDistanceAroundMe += 0.014f;
-			m_fAlphaByViewDistanceAroundMe = min( m_fAlphaByViewDistanceAroundMe, 1.0f );
-			return;
-		}	
-
-		m_fAlphaByViewDistanceAroundMe -= 0.014f;
-		m_fAlphaByViewDistanceAroundMe = max( m_fAlphaByViewDistanceAroundMe, 0.0f );
-	}
-}
-#endif//X2OPTIMIZE_VIEWDISTANCE_AROUND_ME_BY_GAMEOPTION
 
 #endif //SERV_PET_SYSTEM
+
+
+

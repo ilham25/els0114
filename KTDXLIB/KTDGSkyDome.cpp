@@ -143,13 +143,13 @@ void CKTDGSkyDome::SetChangeTexXET_LUA( const char* pFileName )
 #ifdef FOG_WORLD
 void CKTDGSkyDome::SetFog(float xNear, float xFar, float yNear, float yFar, D3DXCOLOR color, float density)
 {
-    m_RenderParam.bFog          = true;
-    m_RenderParam.fogColor      = color;
-    m_RenderParam.fogDensity    = density;
-    m_RenderParam.fogFarX       = xFar;
-    m_RenderParam.fogFarY       = yFar;
-    m_RenderParam.fogNearX      = xNear;
-    m_RenderParam.fogNearY      = yNear;
-
+	m_RenderParam.bFog          = true;
+	m_RenderParam.fogColor      = color;
+	m_RenderParam.fogDensity    = density;
+	m_RenderParam.fogFarX       = xFar;
+	m_RenderParam.fogFarY       = yFar;
+	m_RenderParam.fogNearX      = xNear;
+	m_RenderParam.fogNearY      = yNear;
 }
 #endif
+

@@ -11,7 +11,7 @@ const wchar_t*  KRoomUserFSM::ms_szInput[] = {
 #   include "RoomUserFSMInput_def.h" 
 };
 
-KRoomUserFSM::KRoomUserFSM() : FSMclass( KRoomUserFSM::ENUM_STATE::S_INIT )
+KRoomUserFSM::KRoomUserFSM() : FSMclass( S_INIT )
 {
     // S_INIT
     FSMstate* pState = new FSMstate( S_INIT, 1 );

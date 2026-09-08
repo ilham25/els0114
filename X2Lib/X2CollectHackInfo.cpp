@@ -9,9 +9,16 @@ CX2CollectHackInfo::CX2CollectHackInfo(void)
 {
 	m_pCollectServer = NULL;
 	m_bSendPacket = false;
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+    m_vecHackImgBuf_Thread.resize(0);
+    m_iImageOffset_Thread = 0;
+    m_lCancelSendCSImg_Interlocked = 0;
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	m_pHackImgBuf = NULL;
 	m_lTotalSize = 0;
 	m_iImageOffset = 0;
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+
 	m_bRunThread = false;
 	::InitializeCriticalSection( &m_csEventQueue );
 }
@@ -25,10 +32,12 @@ CX2CollectHackInfo::~CX2CollectHackInfo(void)
 	EndThread(5000);
 
 	::DeleteCriticalSection( &m_csEventQueue );
-
+#ifndef X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	SAFE_DELETE_ARRAY( m_pHackImgBuf );
 	m_lTotalSize = 0;
 	m_iImageOffset = 0;
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+
 }
 
 bool CX2CollectHackInfo::BeginThread()
@@ -48,6 +57,10 @@ DWORD CX2CollectHackInfo::RunThread()
 	ELSWORD_VIRTUALIZER_START
 #endif
 
+#ifdef  X2OPTIMIZE_KTDXLOG_ENFORCE_THREAD_SAFETY
+    g_CKTDXLog.RegisterCurrentThread();
+#endif  X2OPTIMIZE_KTDXLOG_ENFORCE_THREAD_SAFETY
+
 	while(1)
 	{	
 		THEMIDA_ENCODE_START
@@ -55,7 +68,7 @@ DWORD CX2CollectHackInfo::RunThread()
 		if( m_bRunThread == false )
 			break;
 
-		DoProcessEvent();
+		DoProcessEvent_Thread();
 		Sleep(100);
 
 		THEMIDA_ENCODE_END
@@ -113,7 +126,7 @@ void CX2CollectHackInfo::EnQueue( unsigned short iEventID, KSerBuffer *pBuff, bo
 
 }
 
-bool CX2CollectHackInfo::ConnectCollectServer()
+bool CX2CollectHackInfo::ConnectCollectServer_Thread()
 {
 	bool bIsSERVICE = false;
 
@@ -141,7 +154,7 @@ bool CX2CollectHackInfo::ConnectCollectServer()
 	return false;
 }
 
-void CX2CollectHackInfo::LoadHackImg( std::string &strFileName )
+void CX2CollectHackInfo::LoadHackImg_Thread( const std::string &strFileName )
 {
 	FILE* hFile = NULL;
 
@@ -151,39 +164,74 @@ void CX2CollectHackInfo::LoadHackImg( std::string &strFileName )
 	if(hFile == NULL)
 	{
 		m_bSendPacket = false;
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+        m_vecHackImgBuf_Thread.resize( 0 );
+        m_iImageOffset_Thread = 0;
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 		SAFE_DELETE_ARRAY( m_pHackImgBuf );
 		m_lTotalSize = 0;
 		m_iImageOffset = 0;
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+
 		return;
 	}
 
 	fseek(hFile, 0, SEEK_END);
-	m_lTotalSize = ftell(hFile);	
+	long lTotalSize = ftell(hFile);	
 
-	if ( 0 <= m_lTotalSize )
+	if ( 0 < lTotalSize )
 	{
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+        m_vecHackImgBuf_Thread.resize( lTotalSize + 1 );
+        memset( &m_vecHackImgBuf_Thread.front(), 0, sizeof(char) * lTotalSize+1 );
+        m_iImageOffset_Thread = 0;
+        fseek (hFile,0,SEEK_SET);
+        fread(&m_vecHackImgBuf_Thread.front(), sizeof(char), lTotalSize, hFile);
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+        m_lTotalSize = lTotalSize;
 		m_pHackImgBuf = new char[m_lTotalSize+1];
 		memset( m_pHackImgBuf, 0, sizeof(char) * m_lTotalSize+1 );
 
-		m_iImageOffset = 0;
+        		m_iImageOffset = 0;
 
 		fseek (hFile,0,SEEK_SET);
 		fread(m_pHackImgBuf, sizeof(char), m_lTotalSize, hFile);
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	}
+    else
+    {
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+        m_vecHackImgBuf_Thread.resize( 0 );
+        m_iImageOffset_Thread = 0;
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+        m_lTotalSize = 0;
+        m_iImageOffset = 0;
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+    }
 
 	fclose(hFile);
 	DeleteFileA( strFileName.c_str() );
 }
 
-void CX2CollectHackInfo::SendCSImg( int iCount, std::string &strFileName, bool bExit )
+void CX2CollectHackInfo::SendCSImg_Thread( const std::string &strFileName, bool bExit )
 {
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+    if ( m_vecHackImgBuf_Thread.empty() == true 
+        || m_iImageOffset_Thread * CRASH_IMAGE_BUFF_MAX >= (int) m_vecHackImgBuf_Thread.size() )
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	if( m_pHackImgBuf == NULL || m_lTotalSize <= 0 )
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	{
 #if defined( _SERVICE_ )
 		ELSWORD_VIRTUALIZER_START
 #endif
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+        m_iImageOffset_Thread = 0;
+        m_vecHackImgBuf_Thread.resize( 0 );
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 		m_iImageOffset = 0;
 		m_lTotalSize = 0;
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 		m_bSendPacket = false;
 		if( g_pKTDXApp != NULL && bExit == true )
 		{
@@ -202,27 +250,50 @@ void CX2CollectHackInfo::SendCSImg( int iCount, std::string &strFileName, bool b
 	long lEndOffset = 0l;
 	bool bLast = false;
 
-	lStartOffset = iCount * CRASH_IMAGE_BUFF_MAX;
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+	lStartOffset = m_iImageOffset_Thread * CRASH_IMAGE_BUFF_MAX;
+	lEndOffset = lStartOffset + CRASH_IMAGE_BUFF_MAX - 1;
+	if( lEndOffset >= (long) m_vecHackImgBuf_Thread.size() - 1 )
+	{
+		bLast = true;
+		lEndOffset = m_vecHackImgBuf_Thread.size() - 1;
+	}	
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+	lStartOffset = m_iImageOffset * CRASH_IMAGE_BUFF_MAX;
 	lEndOffset = lStartOffset + CRASH_IMAGE_BUFF_MAX - 1;
 	if( lEndOffset >= m_lTotalSize - 1 )
 	{
 		bLast = true;
 		lEndOffset = m_lTotalSize - 1;
 	}		
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 
 	KECL_CRASH_IMAGE_INFO_REQ kEvent;
 	kEvent.m_strFileName = strFileName;
-	kEvent.m_sNo = iCount;
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+    kEvent.m_sNo = m_iImageOffset_Thread;
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+	kEvent.m_sNo = m_iImageOffset;
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	kEvent.m_bLast = bLast;
 	kEvent.m_bExit = bExit;
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+    kEvent.m_vecImageBuff.assign( m_vecHackImgBuf_Thread.begin() + lStartOffset, m_vecHackImgBuf_Thread.begin() + lEndOffset+1 );
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	kEvent.m_vecImageBuff = vector<char>( &m_pHackImgBuf[lStartOffset], &m_pHackImgBuf[lEndOffset+1] );
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 
 	kEvent.m_dwBuffSize	= lEndOffset - lStartOffset + 1;
 
 	bool bConnectedCollectServer = true;
 	if( m_pCollectServer == NULL || m_pCollectServer->IsCSConnected() == false )
 	{
-		bConnectedCollectServer = ConnectCollectServer();
+		bConnectedCollectServer = ConnectCollectServer_Thread();
+
+		if( g_pKTDXApp != NULL && bExit == true )
+		{
+			g_pKTDXApp->SetFindHacking(true);
+		}
 	}
 	if( bConnectedCollectServer == false )
 	{
@@ -231,10 +302,15 @@ void CX2CollectHackInfo::SendCSImg( int iCount, std::string &strFileName, bool b
 		g_pMain->SendHackMail_HackUserNot("Not Connect Server");
 				
 		m_bSendPacket = false;
+
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+		m_iImageOffset_Thread = 0;
+        m_vecHackImgBuf_Thread.resize( 0 );
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 		m_iImageOffset = 0;
 		m_lTotalSize = 0;
 		SAFE_DELETE_ARRAY( m_pHackImgBuf );
-		
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 
 		if( g_pKTDXApp != NULL && bExit == true )
 		{
@@ -245,16 +321,24 @@ void CX2CollectHackInfo::SendCSImg( int iCount, std::string &strFileName, bool b
 	}
 
 	m_pCollectServer->SendCSPacket( ECL_CRASH_IMAGE_INFO_REQ, kEvent );
-
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+    ++m_iImageOffset_Thread;
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	++m_iImageOffset;
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	//CRASH_IMAGE_BUFF_MAX
 
 // 이미지 파일들을 모두 보낸경우
 	if( bLast == true )
 	{
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+		m_iImageOffset_Thread = 0;
+        m_vecHackImgBuf_Thread.resize( 0 );
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 		m_iImageOffset = 0;
 		m_lTotalSize = 0;
 		SAFE_DELETE_ARRAY( m_pHackImgBuf );
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 						
 		m_bSendPacket = false;
 		
@@ -269,7 +353,7 @@ void CX2CollectHackInfo::SendCSImg( int iCount, std::string &strFileName, bool b
 #endif
 }
 
-void CX2CollectHackInfo::SendCSEvent( unsigned short iEventId, unsigned short usType, std::string &strHackInfo, bool bExit )
+void CX2CollectHackInfo::SendCSEvent_Thread( unsigned short iEventId, unsigned short usType, const std::string &strHackInfo, bool bExit )
 {
 
 #if defined( _SERVICE_ )
@@ -279,7 +363,7 @@ void CX2CollectHackInfo::SendCSEvent( unsigned short iEventId, unsigned short us
 	bool bConnectedCollectServer = true;
 	if( m_pCollectServer == NULL || m_pCollectServer->IsCSConnected() == false )
 	{
-		bConnectedCollectServer = ConnectCollectServer();
+		bConnectedCollectServer = ConnectCollectServer_Thread();
 		//g_pMain->EnQueue( iEventId, usType );
 		//return;
 	}
@@ -298,12 +382,25 @@ void CX2CollectHackInfo::SendCSEvent( unsigned short iEventId, unsigned short us
 		g_pMain->SendHackMail_HackUserNot("Not Connect Server");
 
 		m_bSendPacket = false;
+
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+		m_iImageOffset_Thread = 0;
+        m_vecHackImgBuf_Thread.resize( 0 );
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 		m_iImageOffset = 0;
 		m_lTotalSize = 0;
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 
 #if defined( _SERVICE_ )
 		ELSWORD_VIRTUALIZER_END
 #endif
+
+		// kimhc // 김현철 // 2013-11-20// 연결이 안된 경우에는 그냥 해킹 종료 시키자
+		if( g_pKTDXApp != NULL && bExit == true )
+		{
+			g_pKTDXApp->SetFindHacking(true);
+		}
+
 		return;
 	}
 
@@ -378,11 +475,16 @@ void CX2CollectHackInfo::SendCSEvent( unsigned short iEventId, unsigned short us
 			ELSWORD_VIRTUALIZER_START
 #endif
 			string strId = "";
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+            if ( g_pMain != NULL )
+                g_pMain->GetUserIdToFindHackIfNotEmpty_ThreadSafe( strId );
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 			if( g_pMain != NULL &&
 				g_pMain->GetUserIdToFindHack().size() > 0 )
 			{
 				ConvertWCHARToChar( strId, g_pMain->GetUserIdToFindHack() );				
 			}
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 
 			KECL_CRASH_INFO_REQ kEvent;
 			kEvent.m_kCrashInfo.m_sType = usType;
@@ -395,7 +497,7 @@ void CX2CollectHackInfo::SendCSEvent( unsigned short iEventId, unsigned short us
 			kEvent.m_kCrashInfo.m_iServerSN = 0;
 
 #ifdef SERV_SERIAL_NUMBER_AVAILABILITY_CHECK	// 빌드 오류로 해외팀 추가
-			memcpy(kEvent.m_kCrashInfo.m_charServerSN, g_pInstanceData->GetSN(), sizeof(unsigned char) * SERVER_SN);
+			memcpy(kEvent.m_kCrashInfo.m_charServerSN, g_pInstanceData->GetSN(), sizeof(unsigned char) * SERVER_SN);	
 #endif // SERV_SERIAL_NUMBER_AVAILABILITY_CHECK
 			kEvent.m_bExit = bExit;
 
@@ -412,7 +514,7 @@ void CX2CollectHackInfo::SendCSEvent( unsigned short iEventId, unsigned short us
 	}
 }
 
-void CX2CollectHackInfo::ReceiveCSEvent( COLLECT_SERVER_PACKET &spEvent )
+void CX2CollectHackInfo::ReceiveCSEvent_Thread( COLLECT_SERVER_PACKET &spEvent )
 {
 	//MessageBox(NULL, CX2ServerEvent::COLLECT_SERVER_EVENT_ID_STR[spEvent.m_iEventID], L"CSEvent!", MB_OK);
 
@@ -427,14 +529,18 @@ void CX2CollectHackInfo::ReceiveCSEvent( COLLECT_SERVER_PACKET &spEvent )
 
 			if( g_pMain != NULL && g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 			{
-				m_iImageOffset = 0;
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+				m_iImageOffset_Thread = 0;
+                m_vecHackImgBuf_Thread.resize( 0 );
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+                m_iImageOffset = 0;
 				m_lTotalSize = 0;
 				SAFE_DELETE_ARRAY(m_pHackImgBuf);
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 
-				if( m_iImageOffset == 0 )
-					LoadHackImg( kEvent.m_strFileName );
-
-				SendCSImg( m_iImageOffset, kEvent.m_strFileName, kEvent.m_bExit );
+				//if( m_iImageOffset == 0 )
+				LoadHackImg_Thread( kEvent.m_strFileName );
+                SendCSImg_Thread( kEvent.m_strFileName, kEvent.m_bExit );
 				//EnQueue( ECL_CRASH_IMAGE_INFO_REQ, NULL, true, 0,  kEvent.m_strFileName, kEvent.m_bExit );				
 			}
 		}
@@ -448,8 +554,20 @@ void CX2CollectHackInfo::ReceiveCSEvent( COLLECT_SERVER_PACKET &spEvent )
 			if( g_pMain != NULL && g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 			{
 				//EnQueue( ECL_CRASH_IMAGE_INFO_REQ, NULL, true, 0,  kEvent.m_strFileName, kEvent.m_bExit );
-				if( kEvent.m_dwRecvedTotalBuffSize < (DWORD)m_lTotalSize )
-					SendCSImg( m_iImageOffset, kEvent.m_strFileName, kEvent.m_bExit );
+				if( kEvent.m_dwRecvedTotalBuffSize < 
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+                    (DWORD) m_vecHackImgBuf_Thread.size()
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+                    (DWORD)m_lTotalSize 
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+                    )
+                {
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+                    SendCSImg_Thread( kEvent.m_strFileName, kEvent.m_bExit );
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+					SendCSImg_Thread( kEvent.m_strFileName, kEvent.m_bExit );
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+                }
 			}			
 		}
 		break;
@@ -460,10 +578,18 @@ void CX2CollectHackInfo::ReceiveCSEvent( COLLECT_SERVER_PACKET &spEvent )
 	SAFE_DELETE( spEvent.m_pSerBuff );
 }
 
-void CX2CollectHackInfo::DoProcessEvent()
+void CX2CollectHackInfo::DoProcessEvent_Thread()
 {	
 	if( m_bRunThread == false )
 		return;
+
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+    if ( ::InterlockedCompareExchange( &m_lCancelSendCSImg_Interlocked, 0L, 1L ) == 1L )
+    {
+        m_vecHackImgBuf_Thread.resize( 0 );
+        m_iImageOffset_Thread = 0;
+    }
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 
 	::EnterCriticalSection( &m_csEventQueue );  // 050630. 이벤트를 처리하는 동안 unlock 되도록 수정.
 
@@ -493,17 +619,17 @@ void CX2CollectHackInfo::DoProcessEvent()
 		// 2. call event handler
 		if( spEvent.m_bSend == true )
 		{
-			SendCSEvent( spEvent.m_iEventID, spEvent.m_usType, spEvent.m_strHackInfo, spEvent.m_bExit );
+			SendCSEvent_Thread( spEvent.m_iEventID, spEvent.m_usType, spEvent.m_strHackInfo, spEvent.m_bExit );
 		}
 		else
 		{
-			ReceiveCSEvent( spEvent );		
+			ReceiveCSEvent_Thread( spEvent );		
 		}
-
-		::EnterCriticalSection( &m_csEventQueue );
 	}
-
-	::LeaveCriticalSection( &m_csEventQueue );
+    else
+    {
+    	::LeaveCriticalSection( &m_csEventQueue );
+    }
 }
 
 bool CX2CollectHackInfo::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
@@ -518,9 +644,13 @@ bool CX2CollectHackInfo::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 			SAFE_DELETE( pBuff );
 			ClearQueue();
 			m_bSendPacket = false;
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+            ::InterlockedExchange( &m_lCancelSendCSImg_Interlocked, 1L );
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 			m_iImageOffset = 0;
 			m_lTotalSize = 0;
 			SAFE_DELETE_ARRAY( m_pHackImgBuf );
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 
 			if( m_pCollectServer != NULL )
 				m_pCollectServer->DisconnectFromCollectServer();

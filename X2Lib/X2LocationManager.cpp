@@ -134,23 +134,22 @@ void CX2LocationManager::OpenScript()
 //}} robobeg : 2008-10-28
 
 //{{ robobeg : 2008-10-28
-	//g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"Enum.lua"			);
-	//g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"DLG_Map_Enum.lua"	);
+	//g_pKTDXApp->LoadAndDoMemory( &kLuamanager, "Enum.lua"			);
+	//g_pKTDXApp->LoadAndDoMemory( &kLuamanager, "DLG_Map_Enum.lua"	);
 //}} robobeg : 2008-10-28
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"DLG_Map_World.lua"	);
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"DLG_Map_Local.lua"	);
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"DLG_Map_Village.lua");
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, L"DLG_Map_House.lua"	);
+	g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"DLG_Map_World.lua"	);
+	g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"DLG_Map_Local.lua"	);
+	g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"DLG_Map_Village.lua");
+	g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"DLG_Map_House.lua"	);
 
 	//World
 	for ( int worldID = CX2LocationManager::WMI_INVALID + 1; worldID < CX2LocationManager::WMI_END; worldID++ )
 	{
-		string dialogFileName;
 		wstring worldDialogFileName;
 
 		if( kLuamanager.BeginTable( "World" ) == true )
 		{
-			kLuamanager.GetValue( worldID, dialogFileName );
+			kLuamanager.GetValue( worldID, worldDialogFileName );
 
 			kLuamanager.EndTable();
 		}
@@ -159,11 +158,7 @@ void CX2LocationManager::OpenScript()
 			MessageBox( g_pKTDXApp->GetHWND(), L"CX2LocationManager World OpenScript Error", L"Error", MB_OK );
 			return;
 		}
-
-		ConvertCharToWCHAR(worldDialogFileName, dialogFileName.c_str());
-
-		g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, worldDialogFileName.c_str() );
-
+		g_pKTDXApp->LoadAndDoMemory( &kLuamanager, worldDialogFileName.c_str() );
 		vector< LOCAL_MAP_ID > vecLocalMapID;
 
 		if( kLuamanager.BeginTable( "LocalIDList" ) == true )
@@ -201,19 +196,16 @@ void CX2LocationManager::LocalParsing( KLuaManager& kLuamanager, const vector< L
 
 	for ( int i = 0; i < (int)vecLocalMapID.size(); i++ )
 	{
-		string dialogFileName;
 		wstring localDialogFileName;
 		int localMapID = vecLocalMapID[i];
 
 	
-		vector< CX2Dungeon::DUNGEON_ID > vecDungeonID;
-#ifdef REFORM_UI_WORLDMAP
+		vector< SEnum::DUNGEON_ID > vecDungeonID;
 		vector< SEnum::VILLAGE_MAP_ID > vecBattleFieldID;
-#endif
 
 		if( kLuamanager.BeginTable( "Local" ) == true )
 		{
-			kLuamanager.GetValue( localMapID, dialogFileName );
+			kLuamanager.GetValue( localMapID, localDialogFileName );
 
 			kLuamanager.EndTable();
 		}
@@ -223,8 +215,7 @@ void CX2LocationManager::LocalParsing( KLuaManager& kLuamanager, const vector< L
 			return;
 		}
 
-		ConvertCharToWCHAR(localDialogFileName, dialogFileName.c_str());
-		g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuamanager, localDialogFileName.c_str()	 );
+		g_pKTDXApp->LoadAndDoMemory( &kLuamanager, localDialogFileName.c_str()	 );
 
 		
 		villageID	= -1;
@@ -261,14 +252,13 @@ void CX2LocationManager::LocalParsing( KLuaManager& kLuamanager, const vector< L
 			int dungeonID = -1;
 			while( kLuamanager.GetValue( tableIndex, dungeonID ) == true )
 			{
-				vecDungeonID.push_back( (CX2Dungeon::DUNGEON_ID)dungeonID );
+				vecDungeonID.push_back( (SEnum::DUNGEON_ID)dungeonID );
 				tableIndex++;
 			}
 
 			kLuamanager.EndTable();
 		}
 
-#ifdef REFORM_UI_WORLDMAP
 		if( kLuamanager.BeginTable( "BattleFieldIDList" ) == true )
 		{
 			int tableIndex = 1;
@@ -287,17 +277,10 @@ void CX2LocationManager::LocalParsing( KLuaManager& kLuamanager, const vector< L
 			static_cast<const SEnum::VILLAGE_MAP_ID>( villageID ), static_cast<const SEnum::VILLAGE_MAP_ID>( villageDGID ), 
 			static_cast<const SEnum::VILLAGE_MAP_ID>( villageDungeonLoungeID ), static_cast<const SEnum::VILLAGE_MAP_ID>( iBattleFieldRestID ),
 			vecDungeonID, vecBattleFieldID, localDialogFileName, true );
-#else
-		CX2LocationManager::LocalMapTemplet* pLocalMapTemplet 
-			= new CX2LocationManager::LocalMapTemplet( static_cast<const LOCAL_MAP_ID>( localMapID ),
-			static_cast<const SEnum::VILLAGE_MAP_ID>( villageID ), static_cast<const SEnum::VILLAGE_MAP_ID>( villageDGID ), 
-			static_cast<const SEnum::VILLAGE_MAP_ID>( villageDungeonLoungeID ), static_cast<const SEnum::VILLAGE_MAP_ID>( iBattleFieldRestID ),
-			vecDungeonID, localDialogFileName, true );
-#endif
 		
-		if( kLuamanager.BeginTable( L"EnterCondition" ) == true )
+		if( kLuamanager.BeginTable( "EnterCondition" ) == true )
 		{			
-			//LUA_GET_VALUE_ENUM( kLuamanager, "RequireClearDungeonID", pLocalMapTemplet->m_RequireClearDungeonID, CX2Dungeon::DUNGEON_ID, CX2Dungeon::DI_NONE );
+			//LUA_GET_VALUE_ENUM( kLuamanager, "RequireClearDungeonID", pLocalMapTemplet->m_RequireClearDungeonID, SEnum::DUNGEON_ID, SEnum::DI_NONE );
 			if( kLuamanager.BeginTable( "RequireClearDungeonID" ) == true )
 			{
 				int tableIndex = 1;
@@ -391,26 +374,26 @@ void CX2LocationManager::VillageParsing( KLuaManager& kLuamanager, const int vil
 					VillageStartPos *pStartPosInfo = new CX2LocationManager::VillageStartPos();
 
 					// 현재 포지션의 id를 설정한다.
-					LUA_GET_VALUE( kLuamanager, L"StartPosId", startPosId , 0 );
+					LUA_GET_VALUE( kLuamanager, "StartPosId", startPosId , 0 );
 
 					// 현재 포지션을 가지는 마을번호를 설정한다.
 					pStartPosInfo->m_VillageID = (SEnum::VILLAGE_MAP_ID)villageID;
 
 					// 현재 포지션의 3d 위치를 설정한다.
-					LUA_GET_VALUE( kLuamanager, L"StartPosX", pStartPosInfo->m_StartPos.x , 0 );
-					LUA_GET_VALUE( kLuamanager, L"StartPosY", pStartPosInfo->m_StartPos.y , 0 );
-					LUA_GET_VALUE( kLuamanager, L"StartPosZ", pStartPosInfo->m_StartPos.z , 0 );
+					LUA_GET_VALUE( kLuamanager, "StartPosX", pStartPosInfo->m_StartPos.x , 0 );
+					LUA_GET_VALUE( kLuamanager, "StartPosY", pStartPosInfo->m_StartPos.y , 0 );
+					LUA_GET_VALUE( kLuamanager, "StartPosZ", pStartPosInfo->m_StartPos.z , 0 );
 					
-					LUA_GET_VALUE( kLuamanager, L"IsMarket",	pStartPosInfo->m_bIsMarket , false );
-					LUA_GET_VALUE( kLuamanager, L"IsSummon",	pStartPosInfo->m_bIsSummon , false );
-					LUA_GET_VALUE( kLuamanager, L"IsWarp",		pStartPosInfo->m_bIsWarp , false );
-					LUA_GET_VALUE( kLuamanager, L"IsRight",		pStartPosInfo->m_bIsRight, true );
+					LUA_GET_VALUE( kLuamanager, "IsMarket",	pStartPosInfo->m_bIsMarket , false );
+					LUA_GET_VALUE( kLuamanager, "IsSummon",	pStartPosInfo->m_bIsSummon , false );
+					LUA_GET_VALUE( kLuamanager, "IsWarp",		pStartPosInfo->m_bIsWarp , false );
+					LUA_GET_VALUE( kLuamanager, "IsRight",		pStartPosInfo->m_bIsRight, true );
 
-					LUA_GET_VALUE( kLuamanager, L"BattleFieldId",	pStartPosInfo->m_uiBattleFieldId , false );
-					LUA_GET_VALUE( kLuamanager, L"BattleFieldStartLineIndex",		pStartPosInfo->m_usBattleFieldStartLineIndex , false );
+					LUA_GET_VALUE( kLuamanager, "BattleFieldId",	pStartPosInfo->m_uiBattleFieldId , false );
+					LUA_GET_VALUE( kLuamanager, "BattleFieldStartLineIndex",		pStartPosInfo->m_usBattleFieldStartLineIndex , false );
 					
 					// 현재 포지션과 연결된 포지션을 설정한다.
-// 					if( kLuamanager.BeginTable( L"LinkPos" ) == true )
+// 					if( kLuamanager.BeginTable( "LinkPos" ) == true )
 // 					{
 // 						int LinkIndex	= 1; 
 // 						int linkPos		= -1;
@@ -462,7 +445,7 @@ void CX2LocationManager::VillageParsing( KLuaManager& kLuamanager, const int vil
 				while( kLuamanager.BeginTable( index ) == true )
 				{
 					CX2World::WORLD_ID eWorldID;
-					LUA_GET_VALUE_ENUM( kLuamanager, L"START_POS_WORLD_ID", eWorldID, CX2World::WORLD_ID, CX2World::WI_NONE );
+					LUA_GET_VALUE_ENUM( kLuamanager, "START_POS_WORLD_ID", eWorldID, CX2World::WORLD_ID, CX2World::WI_NONE );
 					
 					if( true == kLuamanager.BeginTable( "USER_START_POS" ) )
 					{
@@ -473,9 +456,9 @@ void CX2LocationManager::VillageParsing( KLuaManager& kLuamanager, const int vil
 						{
 							D3DXVECTOR3 vUserPos;
 							
-							LUA_GET_VALUE( kLuamanager, L"StartPosX", vUserPos.x , 0 );
-							LUA_GET_VALUE( kLuamanager, L"StartPosY", vUserPos.y , 0 );
-							LUA_GET_VALUE( kLuamanager, L"StartPosZ", vUserPos.z , 0 );
+							LUA_GET_VALUE( kLuamanager, "StartPosX", vUserPos.x , 0 );
+							LUA_GET_VALUE( kLuamanager, "StartPosY", vUserPos.y , 0 );
+							LUA_GET_VALUE( kLuamanager, "StartPosZ", vUserPos.z , 0 );
 
 							dungeonLoungeUserStartPos.m_vecStartPos.push_back( vUserPos );
 
@@ -499,7 +482,7 @@ void CX2LocationManager::VillageParsing( KLuaManager& kLuamanager, const int vil
 			}
 
 			wstring frameMoveFuncName;
-			LUA_GET_VALUE( kLuamanager, L"FrameMoveFunc", frameMoveFuncName, L"" );
+			LUA_GET_VALUE( kLuamanager, "FrameMoveFunc", frameMoveFuncName, L"" );
 
 			CX2LocationManager::VillageTemplet* pVillageTemplet = new CX2LocationManager::VillageTemplet();
 			pVillageTemplet->m_VillageID = (SEnum::VILLAGE_MAP_ID)villageID;
@@ -513,7 +496,7 @@ void CX2LocationManager::VillageParsing( KLuaManager& kLuamanager, const int vil
 			pVillageTemplet->m_mapDungeonLoungeUserStartPos = mapDungeonLoungeUserStartPos;
 
             int iIndex;
-			LUA_GET_VALUE( kLuamanager, L"NAME", iIndex,	STR_ID_EMPTY );
+			LUA_GET_VALUE( kLuamanager, "NAME", iIndex,	STR_ID_EMPTY );
             pVillageTemplet->m_Name = GET_STRING( iIndex );
 
 			LUA_GET_VALUE( kLuamanager, "IS_DUNGEON_RESULT_FIELD", pVillageTemplet->m_bIsDungeonResultField, false );
@@ -569,45 +552,45 @@ void CX2LocationManager::HouseParsing( KLuaManager& kLuamanager, const vector< H
 				LUA_GET_VALUE( kLuamanager, "Type", houseType, -1 );
 
 				wstring houseName;
-				LUA_GET_VALUE( kLuamanager, L"Name", iStringIndex, STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Name", iStringIndex, STR_ID_EMPTY );
                 houseName = GET_STRING( iStringIndex );
 
 				wstring npcTextureName;
-				LUA_GET_VALUE( kLuamanager, L"NPCTextureName", npcTextureName, L"" );
+				LUA_GET_VALUE( kLuamanager, "NPCTextureName", npcTextureName, L"" );
 
 				wstring npcTextureKey;
-				LUA_GET_VALUE( kLuamanager, L"NPCTextureKey", npcTextureKey, L"" );
+				LUA_GET_VALUE( kLuamanager, "NPCTextureKey", npcTextureKey, L"" );
 
 
 				float npcTexturePosX = 0.0f;
 				float npcTexturePosY = 0.0f;
 			
-				LUA_GET_VALUE( kLuamanager, L"NPCTexturePosX", npcTexturePosX, -999.0f );
-				LUA_GET_VALUE( kLuamanager, L"NPCTexturePosY", npcTexturePosY, -999.0f );
+				LUA_GET_VALUE( kLuamanager, "NPCTexturePosX", npcTexturePosX, -999.0f );
+				LUA_GET_VALUE( kLuamanager, "NPCTexturePosY", npcTexturePosY, -999.0f );
 
 				float questInfoPosX = 0.0f;
 				float questInfoPosY = 0.0f;
 
-				LUA_GET_VALUE( kLuamanager, L"QuestInfoPosX", questInfoPosX, 0.0f );
-				LUA_GET_VALUE( kLuamanager, L"QuestInfoPosY", questInfoPosY, 0.0f );
+				LUA_GET_VALUE( kLuamanager, "QuestInfoPosX", questInfoPosX, 0.0f );
+				LUA_GET_VALUE( kLuamanager, "QuestInfoPosY", questInfoPosY, 0.0f );
 
 				float eventQuestInfoPosX = 0.0f;
 				float eventQuestInfoPosY = 0.0f;
 
-				LUA_GET_VALUE( kLuamanager, L"EventQuestInfoPosX", eventQuestInfoPosX, 0.0f );
-				LUA_GET_VALUE( kLuamanager, L"EventQuestInfoPosY", eventQuestInfoPosY, 0.0f );
+				LUA_GET_VALUE( kLuamanager, "EventQuestInfoPosX", eventQuestInfoPosX, 0.0f );
+				LUA_GET_VALUE( kLuamanager, "EventQuestInfoPosY", eventQuestInfoPosY, 0.0f );
 
 
 				wstring			titleTextureName;
 				wstring			titleTextureKey;
 
-				LUA_GET_VALUE( kLuamanager, L"TitleTextureName", titleTextureName, L"" );
-				LUA_GET_VALUE( kLuamanager, L"TitleTextureKey", titleTextureKey, L"" );
+				LUA_GET_VALUE( kLuamanager, "TitleTextureName", titleTextureName, L"" );
+				LUA_GET_VALUE( kLuamanager, "TitleTextureKey", titleTextureKey, L"" );
 
 				wstring			npcMeshName;
-				LUA_GET_VALUE( kLuamanager, L"NPCMeshName", npcMeshName, L"" );
+				LUA_GET_VALUE( kLuamanager, "NPCMeshName", npcMeshName, L"" );
 				wstring			npcAniTex;
-				LUA_GET_VALUE( kLuamanager, L"NPCAniTex", npcAniTex, L"" );
+				LUA_GET_VALUE( kLuamanager, "NPCAniTex", npcAniTex, L"" );
 															
 				vector<wstring> vecNpcJoinTalk;
 				if( kLuamanager.BeginTable( "NPCJoinTalk" ) == true )
@@ -662,19 +645,19 @@ void CX2LocationManager::HouseParsing( KLuaManager& kLuamanager, const vector< H
 				}
 				
 				int joinArea;
-				LUA_GET_VALUE( kLuamanager, L"JoinArea", joinArea, 500 );
+				LUA_GET_VALUE( kLuamanager, "JoinArea", joinArea, 500 );
 
 				//{{ kimhc // 2009-12-04 // 크리스마스 이벤트 나무
 #ifdef	CHRISTMAS_TREE
 				// Zbutton 입력을 사용할 것인가?
 				bool	bCanTalkNpc = true;
-				LUA_GET_VALUE( kLuamanager, L"bCanTalkNpc",	bCanTalkNpc,	true );
+				LUA_GET_VALUE( kLuamanager, "bCanTalkNpc",	bCanTalkNpc,	true );
 #endif	CHRISTMAS_TREE
 				//}} kimhc // 2009-12-04 // 크리스마스 이벤트 나무
 
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 				bool	bExchangeNewItem = false;
-				LUA_GET_VALUE( kLuamanager, L"bExchangeNewItem",	bExchangeNewItem,	false );
+				LUA_GET_VALUE( kLuamanager, "bExchangeNewItem",	bExchangeNewItem,	false );
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 				bool bPvpNpc, bMakingNpc, bTraining, bFreeTraining, bEnchant, bAttribute, bRepair, bSell;
 #ifdef GUILD_BOARD // oasis907 : 김상윤 [2010.2.24] // 
@@ -709,57 +692,57 @@ void CX2LocationManager::HouseParsing( KLuaManager& kLuamanager, const vector< H
 				bool bEvent4 = false;
 #endif NPC_EVENT_BUTTON
 
-				LUA_GET_VALUE( kLuamanager, L"PVP_NPC",		bPvpNpc, false );
-				LUA_GET_VALUE( kLuamanager, L"MAKING_NPC",	bMakingNpc, false );
-				LUA_GET_VALUE( kLuamanager, L"TRAINING",	bTraining, false );
-				LUA_GET_VALUE( kLuamanager, L"FREE_TRAINING",bFreeTraining, false );
-				LUA_GET_VALUE( kLuamanager, L"ENCHANT",		bEnchant, false );
-				LUA_GET_VALUE( kLuamanager, L"ATTRIBUTE",	bAttribute, false );
-				LUA_GET_VALUE( kLuamanager, L"REPAIR_NPC",	bRepair, false );
-				LUA_GET_VALUE( kLuamanager, L"SELL_NPC",	bSell, false );
+				LUA_GET_VALUE( kLuamanager, "PVP_NPC",		bPvpNpc, false );
+				LUA_GET_VALUE( kLuamanager, "MAKING_NPC",	bMakingNpc, false );
+				LUA_GET_VALUE( kLuamanager, "TRAINING",	bTraining, false );
+				LUA_GET_VALUE( kLuamanager, "FREE_TRAINING",bFreeTraining, false );
+				LUA_GET_VALUE( kLuamanager, "ENCHANT",		bEnchant, false );
+				LUA_GET_VALUE( kLuamanager, "ATTRIBUTE",	bAttribute, false );
+				LUA_GET_VALUE( kLuamanager, "REPAIR_NPC",	bRepair, false );
+				LUA_GET_VALUE( kLuamanager, "SELL_NPC",	bSell, false );
 
 #ifdef GUILD_BOARD
-				LUA_GET_VALUE( kLuamanager, L"GUILD",		bGuild, false ); // oasis907 : 김상윤 [2009.11.24] // 길드 게시판
+				LUA_GET_VALUE( kLuamanager, "GUILD",		bGuild, false ); // oasis907 : 김상윤 [2009.11.24] // 길드 게시판
 #endif GUILD_BOARD
-				LUA_GET_VALUE( kLuamanager, L"RANKING",		bRanking, false );
+				LUA_GET_VALUE( kLuamanager, "RANKING",		bRanking, false );
 				//{{ kimhc // 2009-07-25 // 헤니르의 시공에 추가되는 ITEM_EXCHANGE_SHOP 작업
 #ifdef	ITEM_EXCHANGE_SHOP
-				LUA_GET_VALUE( kLuamanager, L"EXCHANGE",	bExchange, false );
+				LUA_GET_VALUE( kLuamanager, "EXCHANGE",	bExchange, false );
 #endif	ITEM_EXCHANGE_SHOP
 				//}} kimhc // 2009-07-25 // 헤니르의 시공에 추가되는 ITEM_EXCHANGE_SHOP 작업
 
 				//{{ kimhc // 2009-08-03 // 캐릭터별 은행
 #ifdef PRIVATE_BANK
-				LUA_GET_VALUE( kLuamanager, L"PRIVATE_BANK", bPrivateBank, false );
+				LUA_GET_VALUE( kLuamanager, "PRIVATE_BANK", bPrivateBank, false );
 #endif PRIVATE_BANK
 				//}} kimhc // 2009-08-03 // 캐릭터별 은행
 
 #ifdef WEB_POINT_EVENT // oasis907 : 김상윤 [2010.2.24] // 
-				LUA_GET_VALUE( kLuamanager, L"WEB_EVENT", bWebEvent, false );				
+				LUA_GET_VALUE( kLuamanager, "WEB_EVENT", bWebEvent, false );				
 #endif WEB_POINT_EVENT
 #ifdef DEF_TRADE_BOARD // oasis907 : 김상윤 [2010.3.12] // 
-				LUA_GET_VALUE( kLuamanager, L"PERSONAL_SHOP", bPersonalShop, false );				
+				LUA_GET_VALUE( kLuamanager, "PERSONAL_SHOP", bPersonalShop, false );				
 #endif DEF_TRADE_BOARD
 #ifdef SERV_PSHOP_AGENCY
 				bool bTraderRegister = false;
 				bool bTraderReceive = false;
-				LUA_GET_VALUE( kLuamanager, L"AGENCY_TRADER_REGISTER",	bTraderRegister, false );
-				LUA_GET_VALUE( kLuamanager, L"AGENCY_TRADER_RECEIVE",	bTraderReceive, false );
+				LUA_GET_VALUE( kLuamanager, "AGENCY_TRADER_REGISTER",	bTraderRegister, false );
+				LUA_GET_VALUE( kLuamanager, "AGENCY_TRADER_RECEIVE",	bTraderReceive, false );
 #endif
 				//{{ 2011.05.04   임규수 아바타 합성 시스템
 #ifdef SERV_SYNTHESIS_AVATAR
-				LUA_GET_VALUE( kLuamanager, L"SYNTHESIS", bSynthesis, false );				
+				LUA_GET_VALUE( kLuamanager, "SYNTHESIS", bSynthesis, false );				
 #endif SERV_SYNTHESIS_AVATAR
 				//}}
 #ifdef NPC_EVENT_BUTTON
-				LUA_GET_VALUE( kLuamanager, L"EVENT1", bEvent1, false );
-				LUA_GET_VALUE( kLuamanager, L"EVENT2", bEvent2, false );
-				LUA_GET_VALUE( kLuamanager, L"EVENT3", bEvent3, false );
-				LUA_GET_VALUE( kLuamanager, L"EVENT4", bEvent4, false );
+				LUA_GET_VALUE( kLuamanager, "EVENT1", bEvent1, false );
+				LUA_GET_VALUE( kLuamanager, "EVENT2", bEvent2, false );
+				LUA_GET_VALUE( kLuamanager, "EVENT3", bEvent3, false );
+				LUA_GET_VALUE( kLuamanager, "EVENT4", bEvent4, false );
 #endif NPC_EVENT_BUTTON
 				// 이벤트NPC 설정
 				bool bEventNpc;
-				LUA_GET_VALUE( kLuamanager, L"EVENT_NPC",	bEventNpc, false );
+				LUA_GET_VALUE( kLuamanager, "EVENT_NPC",	bEventNpc, false );
 				float fStartYear, fStartMonth, fStartDay, fStartHour, fWaitMin, fActiveMin;
 				fStartYear = fStartMonth = fStartDay = fStartHour = fWaitMin = fActiveMin = 0.f;
 				if( kLuamanager.BeginTable( "EVENT_NPC_TIME" ) == true )
@@ -874,58 +857,58 @@ void CX2LocationManager::HouseParsing( KLuaManager& kLuamanager, const vector< H
 				wstring SynthesisTalk;
 #endif SERV_SYNTHESIS_AVATAR
 				//}}
-				LUA_GET_VALUE( kLuamanager, L"Wait_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Wait_Talk",	iStringIndex,	STR_ID_EMPTY );
                 waitTalk = GET_STRING( iStringIndex );
-				LUA_GET_VALUE( kLuamanager, L"Make_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Make_Talk",	iStringIndex,	STR_ID_EMPTY );
                 MakeTalk = GET_STRING( iStringIndex );
-				LUA_GET_VALUE( kLuamanager, L"Shop_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Shop_Talk",	iStringIndex,	STR_ID_EMPTY );
                 shopTalk = GET_STRING( iStringIndex );
-				LUA_GET_VALUE( kLuamanager, L"Pvp_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Pvp_Talk",	iStringIndex,	STR_ID_EMPTY );
                 pvpTalk = GET_STRING( iStringIndex );
-				LUA_GET_VALUE( kLuamanager, L"Quest_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Quest_Talk",	iStringIndex,	STR_ID_EMPTY );
                 questTalk = GET_STRING( iStringIndex );
-				LUA_GET_VALUE( kLuamanager, L"Bye_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Bye_Talk",	iStringIndex,	STR_ID_EMPTY );
                 byeTalk = GET_STRING( iStringIndex );
-				LUA_GET_VALUE( kLuamanager, L"Exchange_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Exchange_Talk",	iStringIndex,	STR_ID_EMPTY );
 				exchangeTalk = GET_STRING( iStringIndex );
-				LUA_GET_VALUE( kLuamanager, L"Ranking_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Ranking_Talk",	iStringIndex,	STR_ID_EMPTY );
 				rankingTalk = GET_STRING( iStringIndex );
 				//{{ kimhc // 2009-08-03 // 캐릭터별 은행
 #ifdef PRIVATE_BANK
-				LUA_GET_VALUE( kLuamanager, L"PrivateBank_Talk", iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "PrivateBank_Talk", iStringIndex,	STR_ID_EMPTY );
 				privateBankTalk		= GET_STRING( iStringIndex );
 #endif PRIVATE_BANK
 				//}} kimhc // 2009-08-03 // 캐릭터별 은행
 				
 #ifdef GUILD_BOARD
 				//{{ oasis907 : 김상윤 [2010.2.2] // 길드 게시판
-				LUA_GET_VALUE( kLuamanager, L"GuildAD_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "GuildAD_Talk",	iStringIndex,	STR_ID_EMPTY );
 				guildADTalk = GET_STRING( iStringIndex );
 				//}}
 #endif GUILD_BOARD
 
 #ifdef DEF_TRADE_BOARD
 				//{{ oasis907 : 김상윤 [2010.2.2] // 길드 게시판
-				LUA_GET_VALUE( kLuamanager, L"PersonalShop_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "PersonalShop_Talk",	iStringIndex,	STR_ID_EMPTY );
 				personalShopTalk = GET_STRING( iStringIndex );
 				//}}
 #endif DEF_TRADE_BOARD
 
 #ifdef SERV_PSHOP_AGENCY
 				wstring wstrRegisterTalk, wstrReceiveTalk;
-				LUA_GET_VALUE( kLuamanager, L"Register_Talk", iStringIndex, STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Register_Talk", iStringIndex, STR_ID_EMPTY );
 				wstrRegisterTalk = GET_STRING( iStringIndex );
-				LUA_GET_VALUE( kLuamanager, L"Receive_Talk", iStringIndex, STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Receive_Talk", iStringIndex, STR_ID_EMPTY );
 				wstrReceiveTalk = GET_STRING( iStringIndex );
 #endif
 				//{{ 2011.05.04   임규수 아바타 합성 시스템
 #ifdef SERV_SYNTHESIS_AVATAR
-				LUA_GET_VALUE( kLuamanager, L"Synthesis_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Synthesis_Talk",	iStringIndex,	STR_ID_EMPTY );
 				SynthesisTalk = GET_STRING( iStringIndex );
 #endif SERV_SYNTHESIS_AVATAR
 				//}}
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-				LUA_GET_VALUE( kLuamanager, L"Exchange_New_Item_Talk",	iStringIndex,	STR_ID_EMPTY );
+				LUA_GET_VALUE( kLuamanager, "Exchange_New_Item_Talk",	iStringIndex,	STR_ID_EMPTY );
 				wstrExchangeNewItem = GET_STRING( iStringIndex );				
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
@@ -1089,6 +1072,23 @@ void CX2LocationManager::HouseParsing( KLuaManager& kLuamanager, const vector< H
 				}
 #endif
 
+#ifdef ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_NEAR // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+				if( kLuamanager.BeginTable( "NPCNearSound" ) == true )
+				{
+					int index = 1;
+					while( kLuamanager.BeginTable( index ) == true )
+					{
+
+						LUA_GET_VALUE( kLuamanager, 1,	pHouseTemplet->m_wstrNearSoundFileName,		L"" );
+						LUA_GET_VALUE( kLuamanager, 2,	pHouseTemplet->m_fPlayNearSoundCoolTime,	-1.f );
+						LUA_GET_VALUE( kLuamanager, 3,	pHouseTemplet->m_fPlayNearSoundDistance,	-1.f );
+						kLuamanager.EndTable();
+						++index;	
+					}
+					kLuamanager.EndTable();					
+				}
+#endif // ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_CLOSE // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+
 
 				m_mapHouseTemplet.insert( std::make_pair( (CX2LocationManager::HOUSE_ID)houseID, pHouseTemplet ) );
 
@@ -1107,13 +1107,13 @@ void CX2LocationManager::HouseParsing( KLuaManager& kLuamanager, const vector< H
 	}
 }
 
-SEnum::VILLAGE_MAP_ID CX2LocationManager::GetDungeonLoungeIDByDungeonID(  const CX2Dungeon::DUNGEON_ID eDungeonId_ )
+SEnum::VILLAGE_MAP_ID CX2LocationManager::GetDungeonLoungeIDByDungeonID(  const SEnum::DUNGEON_ID eDungeonId_ )
 {
 	map< LOCAL_MAP_ID,	LocalMapTemplet* >::const_iterator cmItr = m_mapLocalMapTemplet.begin();
 
 	while ( m_mapLocalMapTemplet.end() != cmItr )
 	{
-		BOOST_FOREACH( const CX2Dungeon::DUNGEON_ID eVal, cmItr->second->m_DungeonList )
+		BOOST_FOREACH( const SEnum::DUNGEON_ID eVal, cmItr->second->m_DungeonList )
 		{
 			// 던전아이디가 같은게 있으면
 			if ( eVal == eDungeonId_ )
@@ -1168,7 +1168,7 @@ SEnum::VILLAGE_MAP_ID CX2LocationManager::GetDungeonLoungeID( LOCAL_MAP_ID eLoca
 	}
 }
 
-CX2LocationManager::LOCAL_MAP_ID CX2LocationManager::GetLocalMapID( CX2Dungeon::DUNGEON_ID eDungeonID, WORLD_MAP_ID eWorldID /*= WMI_INVALID*/ )
+CX2LocationManager::LOCAL_MAP_ID CX2LocationManager::GetLocalMapID( SEnum::DUNGEON_ID eDungeonID, WORLD_MAP_ID eWorldID /*= WMI_INVALID*/ )
 {
 	WorldMapTemplet* pWorldMapTemplet = GetWorldMapTemplet( eWorldID );
 	if( NULL == pWorldMapTemplet )
@@ -1184,7 +1184,7 @@ CX2LocationManager::LOCAL_MAP_ID CX2LocationManager::GetLocalMapID( CX2Dungeon::
 
 				for( UINT j=0; j< pLocalMapTemplet->m_DungeonList.size(); j++ )
 				{
-					CX2Dungeon::DUNGEON_ID eTempDungeonID = pLocalMapTemplet->m_DungeonList[j];
+					SEnum::DUNGEON_ID eTempDungeonID = pLocalMapTemplet->m_DungeonList[j];
 					if( eTempDungeonID == eDungeonID )
 					{
 						return pLocalMapTemplet->m_LocalMapID;
@@ -1230,10 +1230,8 @@ CX2LocationManager::LOCAL_MAP_ID CX2LocationManager::GetLocalMapID( SEnum::VILLA
 				if( pLocalMapTemplet->m_VillageID == eVillageMapID ||
 					pLocalMapTemplet->m_DungeonGateID == eVillageMapID ||
 					pLocalMapTemplet->m_DungeonLoungeID == eVillageMapID 
-#ifdef REFORM_UI_WORLDMAP
 					|| pLocalMapTemplet->m_eBattleFieldRestID == eVillageMapID
 					|| pLocalMapTemplet->m_vecFieldList.end() != std::find( pLocalMapTemplet->m_vecFieldList.begin(), pLocalMapTemplet->m_vecFieldList.end(), eVillageMapID )
-#endif
 					)
 				{
 					return pLocalMapTemplet->m_LocalMapID;

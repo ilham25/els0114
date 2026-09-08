@@ -638,7 +638,7 @@ bool KBattleFieldUserManager::AddBattleFieldRewardEXP( IN const UidType iUnitUID
 	// 몬스터 레벨 보정 상수
 	AddHaveExpInDungeon( spExpRewardRoomUser->GetCID(), fLevelFactor > 0.0f );
 	
-	const int iBattleFieldPartyBonusEXP = static_cast<int>( iExp * GetBattleFieldPartyBonusRate( iUnitUID ) * SiKResultProcess()->GetDungeonPartyDifficultyBonusRate( CXSLDungeon::DL_EXPERT ) );
+	const int iBattleFieldPartyBonusEXP = static_cast<int>( iExp * GetBattleFieldPartyBonusRate( iUnitUID ) );
 
 
 	// GSUser에 업데이트하고 클라이언트 화면에 뿌릴 EXP 데이터
@@ -1055,7 +1055,7 @@ bool KBattleFieldUserManager::AddBattleFieldRewardED( IN const char cNpcLevel,
 
 	if( fPartyBonusRate > 0.0f )
 	{
-		kRewardED.m_iBonusED += static_cast<int>( iED * fPartyBonusRate * SiKResultProcess()->GetDungeonPartyDifficultyBonusRate( CXSLDungeon::DL_EXPERT ) );
+		kRewardED.m_iBonusED += static_cast<int>( iED * fPartyBonusRate );
 	}
 
 	if( IsComeBackUserInParty( iUserUID ) == true )
@@ -1654,14 +1654,14 @@ bool KBattleFieldUserManager::TradeAcceptedBy( UidType nCID, UidType nCIDAccepto
 
 //{{ 2013. 02. 15   필드 중간 보스 - 김민성
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
-void KBattleFieldUserManager::CalculatePartyRank( IN std::map< UidType, float >& mapDamageByUser, OUT std::map< UidType, bool >& mapBonusItem )
+void KBattleFieldUserManager::CalculatePartyRank( IN const std::map< UidType, float >& mapDamageByUser, OUT std::map< UidType, bool >& mapBonusItem )
 {
 	// 파티 수(솔플 이라면 파티 하나로 판단한다.)  < 파티 구분 index, 유저리스트 >
 	std::map< int, std::set<UidType> > mapPartyUserList;
 
 	// 파티 구분용 임시 값
 	int iPartyIndex = 1;	
-	std::map< UidType, float >::iterator mitDamage = mapDamageByUser.begin();
+	std::map< UidType, float >::const_iterator mitDamage = mapDamageByUser.begin();
 	for( ; mitDamage != mapDamageByUser.end() ; ++mitDamage )
 	{
 		KRoomUserPtr spUser = GetUser( mitDamage->first );
@@ -1715,7 +1715,7 @@ void KBattleFieldUserManager::CalculatePartyRank( IN std::map< UidType, float >&
 		std::set<UidType>::iterator sit = mitParty->second.begin();
 		for( ; sit != mitParty->second.end() ; ++sit )
 		{
-			std::map< UidType, float >::iterator mitUser = mapDamageByUser.find( *sit );
+			std::map< UidType, float >::const_iterator mitUser = mapDamageByUser.find( *sit );
 			if( mitUser != mapDamageByUser.end() )
 			{
 				fTatalDamage += mitUser->second;
@@ -1856,7 +1856,7 @@ bool KBattleFieldUserManager::ZombieAlert_CheckStart(  IN const UidType nCID )
 	if( ZombieAlert_IsCheck() == false )
 		return false;
 
-	KRoomUserPtr spRoomUser = GetUser( nCID, USERLIST_TYPE::UT_GAME );
+	KRoomUserPtr spRoomUser = GetUser( nCID, UT_GAME );
 	if( !spRoomUser )
 	{
 		START_LOG( cerr, L"룸 유저 검색 실패." )
@@ -1945,3 +1945,49 @@ bool KBattleFieldUserManager::ZombieAlert_Tick()
 }
 
 #endif  SERV_OPTIMIZE_DETECT_ZOMBIE_HOST
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-15	// 박세훈
+void KBattleFieldUserManager::GetUnitListGroupdByParty( OUT std::vector< std::set< UidType > >& vecUnitListGroupdByParty ) const
+{
+	const std::map<UidType, KRoomUserPtr>& mapRoomUser = m_mapRoomUser[UT_GAME];
+	std::set<UidType> setChecker;
+
+	for( std::map<UidType, KRoomUserPtr>::const_iterator it = mapRoomUser.begin(); it != mapRoomUser.end(); ++it )
+	{
+		if( it->second == NULL )
+		{
+			START_LOG( cwarn, L"룸 유저 포인터 이상." )
+				<< BUILD_LOG( it->first )
+				<< END_LOG;
+			continue;
+		}
+
+		if( setChecker.find( it->second->GetCID() ) != setChecker.end() )
+			continue;
+
+		const UidType		iPartyUID = it->second->GetPartyUID();
+		std::set<UidType>	setUnitList;
+
+		if( 0 < iPartyUID )
+		{
+			for( std::map<UidType, KRoomUserPtr>::const_iterator itTemp = mapRoomUser.begin(); itTemp != mapRoomUser.end(); ++itTemp )
+			{
+				if( iPartyUID == itTemp->second->GetPartyUID() )
+				{
+					const UidType iUnitUID = itTemp->second->GetCID();
+					setUnitList.insert( iUnitUID );
+					setChecker.insert( iUnitUID );
+				}
+			}
+		}
+		else
+		{
+			const UidType iUnitUID = it->second->GetCID();
+			setUnitList.insert( iUnitUID );
+			setChecker.insert( iUnitUID );
+		}
+
+		vecUnitListGroupdByParty.push_back( setUnitList );
+	}
+}
+#endif // SERV_BATTLE_FIELD_BOSS

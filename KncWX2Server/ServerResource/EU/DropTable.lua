@@ -1024,30 +1024,30 @@ DropTable:AddToGroup( 1151, 116540, 100 )
 DropTable:AddToGroup( 1152, 116550, 100 )
 DropTable:AddToGroup( 1153, 116560, 100 )
 DropTable:AddToGroup( 1154, 116570, 100 )
-DropTable:AddToGroup( 1160, 117243, 0 )
-DropTable:AddToGroup( 1160, 117244, 0 )
-DropTable:AddToGroup( 1160, 117245, 0 )
-DropTable:AddToGroup( 1160, 117246, 0 )
+DropTable:AddToGroup( 1160, 117243, 12.5 )
+DropTable:AddToGroup( 1160, 117244, 12.5 )
+DropTable:AddToGroup( 1160, 117245, 12.5 )
+DropTable:AddToGroup( 1160, 117246, 12.5 )
 DropTable:AddToGroup( 1160, 117247, 0 )
-DropTable:AddToGroup( 1160, 117248, 0 )
-DropTable:AddToGroup( 1160, 117249, 0 )
-DropTable:AddToGroup( 1160, 117250, 0 )
-DropTable:AddToGroup( 1161, 117251, 0 )
-DropTable:AddToGroup( 1162, 117252, 0 )
-DropTable:AddToGroup( 1163, 117253, 0 )
-DropTable:AddToGroup( 1164, 117254, 0 )
-DropTable:AddToGroup( 1170, 117267, 0 )
-DropTable:AddToGroup( 1170, 117268, 0 )
-DropTable:AddToGroup( 1170, 117269, 0 )
-DropTable:AddToGroup( 1170, 117270, 0 )
+DropTable:AddToGroup( 1160, 117248, 12.5 )
+DropTable:AddToGroup( 1160, 117249, 12.5 )
+DropTable:AddToGroup( 1160, 117250, 12.5 )
+DropTable:AddToGroup( 1161, 117251, 100 )
+DropTable:AddToGroup( 1162, 117252, 100 )
+DropTable:AddToGroup( 1163, 117253, 100 )
+DropTable:AddToGroup( 1164, 117254, 100 )
+DropTable:AddToGroup( 1170, 117267, 12.5 )
+DropTable:AddToGroup( 1170, 117268, 12.5 )
+DropTable:AddToGroup( 1170, 117269, 12.5 )
+DropTable:AddToGroup( 1170, 117270, 12.5 )
 DropTable:AddToGroup( 1170, 117271, 0 )
-DropTable:AddToGroup( 1170, 117272, 0 )
-DropTable:AddToGroup( 1170, 117273, 0 )
-DropTable:AddToGroup( 1170, 117274, 0 )
-DropTable:AddToGroup( 1171, 117275, 0 )
-DropTable:AddToGroup( 1172, 117276, 0 )
-DropTable:AddToGroup( 1173, 117277, 0 )
-DropTable:AddToGroup( 1174, 117278, 0 )
+DropTable:AddToGroup( 1170, 117272, 12.5 )
+DropTable:AddToGroup( 1170, 117273, 12.5 )
+DropTable:AddToGroup( 1170, 117274, 12.5 )
+DropTable:AddToGroup( 1171, 117275, 100 )
+DropTable:AddToGroup( 1172, 117276, 100 )
+DropTable:AddToGroup( 1173, 117277, 100 )
+DropTable:AddToGroup( 1174, 117278, 100 )
 DropTable:AddToGroup( 2000, 30154, 100 )
 DropTable:AddToGroup( 2001, 30155, 100 )
 DropTable:AddToGroup( 2002, 30156, 100 )
@@ -1126,12 +1126,12 @@ DropTable:AddToGroup( 2074, 30159, 100 )
 DropTable:AddToGroup( 2075, 30229, 100 )
 DropTable:AddToGroup( 2076, 30230, 100 )
 DropTable:AddToGroup( 2077, 30231, 100 )
-DropTable:AddToGroup( 2078, 30232, 100 )
+DropTable:AddToGroup( 2078, 30309, 100 )
 DropTable:AddToGroup( 2079, 30160, 100 )
 DropTable:AddToGroup( 2080, 30234, 100 )
 DropTable:AddToGroup( 2081, 30235, 100 )
 DropTable:AddToGroup( 2082, 30236, 100 )
-DropTable:AddToGroup( 2083, 30237, 100 )
+DropTable:AddToGroup( 2083, 30305, 100 )
 DropTable:AddToGroup( 2084, 30238, 100 )
 DropTable:AddToGroup( 2085, 30239, 100 )
 DropTable:AddToGroup( 2086, 30240, 100 )
@@ -1163,29 +1163,29 @@ DropTable:AddToGroup( 2111, 30265, 100 )
 DropTable:AddToGroup( 2112, 30266, 100 )
 DropTable:AddToGroup( 2113, 30267, 100 )
 DropTable:AddToGroup( 2114, 30268, 100 )
-DropTable:AddToGroup( 2115, 30275, 0 )
-DropTable:AddToGroup( 2116, 30276, 0 )
+DropTable:AddToGroup( 2115, 30302, 0 )
+DropTable:AddToGroup( 2116, 30306, 0 )
 DropTable:AddToGroup( 2117, 30277, 0 )
-DropTable:AddToGroup( 2118, 30278, 0 )
+DropTable:AddToGroup( 2118, 30307, 0 )
 DropTable:AddToGroup( 2119, 30279, 0 )
-DropTable:AddToGroup( 2120, 30280, 0 )
+DropTable:AddToGroup( 2120, 30308, 0 )
 DropTable:AddToGroup( 2121, 30281, 0 )
 DropTable:AddToGroup( 2122, 30282, 0 )
 DropTable:AddToGroup( 2123, 30283, 0 )
-DropTable:AddToGroup( 2124, 30269, 0 )
-DropTable:AddToGroup( 2125, 30270, 0 )
-DropTable:AddToGroup( 2126, 30271, 0 )
-DropTable:AddToGroup( 2127, 30272, 0 )
-DropTable:AddToGroup( 2128, 30273, 0 )
-DropTable:AddToGroup( 2129, 30274, 0 )
-DropTable:AddToGroup( 2130, 30284, 0 )
-DropTable:AddToGroup( 2131, 30285, 0 )
-DropTable:AddToGroup( 2132, 30286, 0 )
-DropTable:AddToGroup( 2133, 30287, 0 )
+DropTable:AddToGroup( 2124, 30269, 100 )
+DropTable:AddToGroup( 2125, 30270, 100 )
+DropTable:AddToGroup( 2126, 30271, 100 )
+DropTable:AddToGroup( 2127, 30272, 100 )
+DropTable:AddToGroup( 2128, 30273, 100 )
+DropTable:AddToGroup( 2129, 30274, 100 )
+DropTable:AddToGroup( 2130, 30284, 100 )
+DropTable:AddToGroup( 2131, 30285, 100 )
+DropTable:AddToGroup( 2132, 30286, 100 )
+DropTable:AddToGroup( 2133, 30287, 100 )
 DropTable:AddToGroup( 2134, 30288, 0 )
-DropTable:AddToGroup( 2135, 30289, 0 )
-DropTable:AddToGroup( 2136, 30290, 0 )
-DropTable:AddToGroup( 2137, 30291, 0 )
+DropTable:AddToGroup( 2135, 30289, 100 )
+DropTable:AddToGroup( 2136, 30290, 100 )
+DropTable:AddToGroup( 2137, 30291, 100 )
 DropTable:AddToGroup( 3030, 111890, 12.5 )
 DropTable:AddToGroup( 3030, 111891, 12.5 )
 DropTable:AddToGroup( 3030, 111892, 12.5 )
@@ -1586,47 +1586,6 @@ DropTable:AddToGroup( 10020, 109955, 4 )
 DropTable:AddToGroup( 10020, 130047, 2 )
 DropTable:AddToGroup( 10020, 130078, 20 )
 DropTable:AddToGroup( 10020, 130087, 20 )
-DropTable:AddToGroup( 10200, 77280, 25 )
-DropTable:AddToGroup( 10200, 77290, 25 )
-DropTable:AddToGroup( 10200, 77300, 25 )
-DropTable:AddToGroup( 10200, 77320, 25 )
-DropTable:AddToGroup( 10210, 70000, 40 )
-DropTable:AddToGroup( 10210, 70010, 30 )
-DropTable:AddToGroup( 10210, 70020, 20 )
-DropTable:AddToGroup( 10210, 70070, 10 )
-DropTable:AddToGroup( 10220, 70000, 54 )
-DropTable:AddToGroup( 10220, 70010, 30 )
-DropTable:AddToGroup( 10220, 70020, 14 )
-DropTable:AddToGroup( 10220, 70070, 2 )
-DropTable:AddToGroup( 10230, 70030, 30 )
-DropTable:AddToGroup( 10230, 70040, 30 )
-DropTable:AddToGroup( 10230, 70050, 40 )
-DropTable:AddToGroup( 10240, 70030, 60 )
-DropTable:AddToGroup( 10240, 70040, 20 )
-DropTable:AddToGroup( 10240, 70050, 20 )
-DropTable:AddToGroup( 10250, 77330, 25 )
-DropTable:AddToGroup( 10250, 77340, 25 )
-DropTable:AddToGroup( 10250, 77350, 25 )
-DropTable:AddToGroup( 10250, 77360, 25 )
-DropTable:AddToGroup( 28260, 99809, 10 )
-DropTable:AddToGroup( 28260, 99810, 10 )
-DropTable:AddToGroup( 28260, 99811, 10 )
-DropTable:AddToGroup( 28260, 99812, 10 )
-DropTable:AddToGroup( 28260, 109945, 20 )
-DropTable:AddToGroup( 28260, 109950, 6 )
-DropTable:AddToGroup( 28260, 109955, 5 )
-DropTable:AddToGroup( 28260, 109965, 26 )
-DropTable:AddToGroup( 28260, 130047, 3 )
-DropTable:AddToGroup( 30080, 70000, 0 )
-DropTable:AddToGroup( 30080, 70010, 0 )
-DropTable:AddToGroup( 30080, 70020, 10 )
-DropTable:AddToGroup( 30080, 70030, 0 )
-DropTable:AddToGroup( 30080, 70040, 15 )
-DropTable:AddToGroup( 30080, 70050, 15 )
-DropTable:AddToGroup( 30080, 77330, 15 )
-DropTable:AddToGroup( 30080, 77340, 15 )
-DropTable:AddToGroup( 30080, 77350, 15 )
-DropTable:AddToGroup( 30080, 77360, 15 )
 
 
 
@@ -3189,7 +3148,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -3444,6 +3403,17 @@ DropTable:AddMonsterDropInfo
 	EDProperty = 100,
 	DropItemList = { },
 	DropGroupList = { { 10000, 100 },},
+}
+
+DropTable:AddMonsterDropInfo
+{
+	DungeonID = 0,
+	MonsterID = 4070,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { { 85500100, 100 },},
+	DropGroupList = { },
 }
 
 DropTable:AddMonsterDropInfo
@@ -5258,7 +5228,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111073, 0.1 },{ 109991, 20 },},
-	DropGroupList = { { 38, 0.4 },{ 39, 0.08 },{ 41, 0.4 },{ 42, 0.4 },{ 43, 0.4 },{ 44, 0.4 },{ 45, 0.4 },{ 46, 0.76 },{ 47, 0.76 },{ 48, 1.8 },{ 4000, 20 },{ 4001, 20 },{ 1024, 9 },{ 2046, 6.8 },{ 5000, 1.25 },},
+	DropGroupList = { { 38, 0.4 },{ 39, 0.08 },{ 41, 0.4 },{ 42, 0.4 },{ 43, 0.4 },{ 44, 0.4 },{ 45, 0.4 },{ 46, 0.76 },{ 47, 0.76 },{ 48, 1.8 },{ 4000, 20 },{ 4001, 20 },{ 1024, 9 },{ 2046, 6.8 },{ 5000, 1.25 },{ 2115, 5 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -5346,7 +5316,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111073, 0.1 },{ 109991, 20 },},
-	DropGroupList = { { 38, 0.4 },{ 39, 0.08 },{ 41, 0.4 },{ 42, 0.4 },{ 43, 0.4 },{ 44, 0.4 },{ 45, 0.4 },{ 46, 0.76 },{ 47, 0.76 },{ 48, 1.8 },{ 4000, 20 },{ 4001, 20 },{ 1024, 13.5 },{ 2046, 10.1 },{ 5000, 1.25 },},
+	DropGroupList = { { 38, 0.4 },{ 39, 0.08 },{ 41, 0.4 },{ 42, 0.4 },{ 43, 0.4 },{ 44, 0.4 },{ 45, 0.4 },{ 46, 0.76 },{ 47, 0.76 },{ 48, 1.8 },{ 4000, 20 },{ 4001, 20 },{ 1024, 13.5 },{ 2046, 10.1 },{ 5000, 1.25 },{ 2115, 7.5 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -5434,7 +5404,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111073, 0.1 },{ 109991, 15 },},
-	DropGroupList = { { 38, 0.4 },{ 39, 0.08 },{ 41, 0.4 },{ 42, 0.4 },{ 43, 0.4 },{ 44, 0.4 },{ 45, 0.4 },{ 46, 0.76 },{ 47, 0.76 },{ 48, 1.8 },{ 4000, 20 },{ 4001, 20 },{ 1024, 16.2 },{ 2046, 12.2 },{ 5000, 1.25 },},
+	DropGroupList = { { 38, 0.4 },{ 39, 0.08 },{ 41, 0.4 },{ 42, 0.4 },{ 43, 0.4 },{ 44, 0.4 },{ 45, 0.4 },{ 46, 0.76 },{ 47, 0.76 },{ 48, 1.8 },{ 4000, 20 },{ 4001, 20 },{ 1024, 16.2 },{ 2046, 12.2 },{ 5000, 1.25 },{ 2115, 9 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -7106,7 +7076,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111074, 0.1 },{ 109992, 20 },},
-	DropGroupList = { { 50, 0.7 },{ 51, 1.05 },{ 53, 1.44 },{ 54, 2.16 },{ 55, 1.44 },{ 56, 2.16 },{ 57, 1.44 },{ 58, 2.16 },{ 59, 1.44 },{ 60, 2.16 },{ 4001, 20 },{ 4013, 20 },{ 1030, 4 },{ 2016, 1.2 },{ 2083, 4 },{ 5000, 1.25 },},
+	DropGroupList = { { 50, 0.7 },{ 51, 1.05 },{ 53, 1.44 },{ 54, 2.16 },{ 55, 1.44 },{ 56, 2.16 },{ 57, 1.44 },{ 58, 2.16 },{ 59, 1.44 },{ 60, 2.16 },{ 4001, 20 },{ 4013, 20 },{ 1030, 4 },{ 2016, 1.2 },{ 2083, 4 },{ 5000, 1.25 },{ 2116, 4 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -7216,7 +7186,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111074, 0.1 },{ 109992, 20 },},
-	DropGroupList = { { 62, 0.7 },{ 63, 1.05 },{ 65, 1.44 },{ 66, 2.16 },{ 67, 1.44 },{ 68, 2.16 },{ 69, 1.44 },{ 70, 2.16 },{ 71, 1.44 },{ 72, 2.16 },{ 4001, 20 },{ 4013, 20 },{ 1030, 6 },{ 2016, 1.8 },{ 2083, 6 },{ 5000, 1.25 },},
+	DropGroupList = { { 62, 0.7 },{ 63, 1.05 },{ 65, 1.44 },{ 66, 2.16 },{ 67, 1.44 },{ 68, 2.16 },{ 69, 1.44 },{ 70, 2.16 },{ 71, 1.44 },{ 72, 2.16 },{ 4001, 20 },{ 4013, 20 },{ 1030, 6 },{ 2016, 1.8 },{ 2083, 6 },{ 5000, 1.25 },{ 2116, 6 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -7326,7 +7296,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111074, 0.1 },{ 109992, 15 },},
-	DropGroupList = { { 62, 0.7 },{ 63, 1.05 },{ 65, 1.44 },{ 66, 2.16 },{ 67, 1.44 },{ 68, 2.16 },{ 69, 1.44 },{ 70, 2.16 },{ 71, 1.44 },{ 72, 2.16 },{ 4001, 20 },{ 4013, 20 },{ 1030, 7.2 },{ 2016, 2.2 },{ 2083, 7.2 },{ 5000, 1.25 },},
+	DropGroupList = { { 62, 0.7 },{ 63, 1.05 },{ 65, 1.44 },{ 66, 2.16 },{ 67, 1.44 },{ 68, 2.16 },{ 69, 1.44 },{ 70, 2.16 },{ 71, 1.44 },{ 72, 2.16 },{ 4001, 20 },{ 4013, 20 },{ 1030, 7.2 },{ 2016, 2.2 },{ 2083, 7.2 },{ 5000, 1.25 },{ 2116, 7.2 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -7744,7 +7714,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111075, 0.1 },{ 109994, 20 },},
-	DropGroupList = { { 86, 0.7 },{ 87, 1.05 },{ 89, 1.44 },{ 90, 2.16 },{ 91, 1.44 },{ 92, 2.16 },{ 93, 1.44 },{ 94, 2.16 },{ 95, 1.44 },{ 96, 2.16 },{ 4002, 20 },{ 4014, 20 },{ 1052, 7 },{ 2018, 1.1 },{ 5001, 1.25 },},
+	DropGroupList = { { 86, 0.7 },{ 87, 1.05 },{ 89, 1.44 },{ 90, 2.16 },{ 91, 1.44 },{ 92, 2.16 },{ 93, 1.44 },{ 94, 2.16 },{ 95, 1.44 },{ 96, 2.16 },{ 4002, 20 },{ 4014, 20 },{ 1052, 7 },{ 2018, 1.1 },{ 5001, 1.25 },{ 2117, 3.5 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -7821,7 +7791,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111075, 0.1 },{ 109994, 20 },},
-	DropGroupList = { { 86, 0.7 },{ 87, 1.05 },{ 89, 1.44 },{ 90, 2.16 },{ 91, 1.44 },{ 92, 2.16 },{ 93, 1.44 },{ 94, 2.16 },{ 95, 1.44 },{ 96, 2.16 },{ 4002, 20 },{ 4014, 20 },{ 1052, 10.5 },{ 2018, 1.6 },{ 5001, 1.25 },},
+	DropGroupList = { { 86, 0.7 },{ 87, 1.05 },{ 89, 1.44 },{ 90, 2.16 },{ 91, 1.44 },{ 92, 2.16 },{ 93, 1.44 },{ 94, 2.16 },{ 95, 1.44 },{ 96, 2.16 },{ 4002, 20 },{ 4014, 20 },{ 1052, 10.5 },{ 2018, 1.6 },{ 5001, 1.25 },{ 2117, 5.25 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -7898,7 +7868,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111075, 0.1 },{ 109994, 20 },},
-	DropGroupList = { { 86, 0.7 },{ 87, 1.05 },{ 89, 1.44 },{ 90, 2.16 },{ 91, 1.44 },{ 92, 2.16 },{ 93, 1.44 },{ 94, 2.16 },{ 95, 1.44 },{ 96, 2.16 },{ 4002, 20 },{ 4014, 20 },{ 1052, 12.6 },{ 2018, 1.9 },{ 5001, 1.25 },},
+	DropGroupList = { { 86, 0.7 },{ 87, 1.05 },{ 89, 1.44 },{ 90, 2.16 },{ 91, 1.44 },{ 92, 2.16 },{ 93, 1.44 },{ 94, 2.16 },{ 95, 1.44 },{ 96, 2.16 },{ 4002, 20 },{ 4014, 20 },{ 1052, 12.6 },{ 2018, 1.9 },{ 5001, 1.25 },{ 2117, 6.3 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -9922,7 +9892,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111074, 0.1 },},
-	DropGroupList = { { 98, 0.7 },{ 99, 1.05 },{ 101, 1.44 },{ 102, 2.16 },{ 103, 1.44 },{ 104, 2.16 },{ 105, 1.44 },{ 106, 2.16 },{ 107, 1.44 },{ 108, 2.16 },{ 4002, 0.76 },{ 4014, 0.76 },{ 1072, 7 },{ 1074, 10.5 },{ 2023, 1.1 },{ 5001, 1.25 },},
+	DropGroupList = { { 98, 0.7 },{ 99, 1.05 },{ 101, 1.44 },{ 102, 2.16 },{ 103, 1.44 },{ 104, 2.16 },{ 105, 1.44 },{ 106, 2.16 },{ 107, 1.44 },{ 108, 2.16 },{ 4002, 0.76 },{ 4014, 0.76 },{ 1072, 7 },{ 1074, 10.5 },{ 2023, 1.1 },{ 5001, 1.25 },{ 2118, 3.5 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -9999,7 +9969,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111074, 0.1 },},
-	DropGroupList = { { 110, 0.7 },{ 111, 1.05 },{ 113, 1.44 },{ 114, 2.16 },{ 115, 1.44 },{ 116, 2.16 },{ 117, 1.44 },{ 118, 2.16 },{ 119, 1.44 },{ 120, 2.16 },{ 4003, 0.76 },{ 4015, 0.76 },{ 1072, 10.5 },{ 1074, 15.8 },{ 2023, 1.6 },{ 5001, 1.25 },},
+	DropGroupList = { { 110, 0.7 },{ 111, 1.05 },{ 113, 1.44 },{ 114, 2.16 },{ 115, 1.44 },{ 116, 2.16 },{ 117, 1.44 },{ 118, 2.16 },{ 119, 1.44 },{ 120, 2.16 },{ 4003, 0.76 },{ 4015, 0.76 },{ 1072, 10.5 },{ 1074, 15.8 },{ 2023, 1.6 },{ 5001, 1.25 },{ 2118, 5.25 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -10076,7 +10046,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 111074, 0.1 },},
-	DropGroupList = { { 110, 0.7 },{ 111, 1.05 },{ 113, 1.44 },{ 114, 2.16 },{ 115, 1.44 },{ 116, 2.16 },{ 117, 1.44 },{ 118, 2.16 },{ 119, 1.44 },{ 120, 2.16 },{ 4003, 0.76 },{ 4015, 0.76 },{ 1072, 12.6 },{ 1074, 18.9 },{ 2023, 1.9 },{ 5001, 1.25 },},
+	DropGroupList = { { 110, 0.7 },{ 111, 1.05 },{ 113, 1.44 },{ 114, 2.16 },{ 115, 1.44 },{ 116, 2.16 },{ 117, 1.44 },{ 118, 2.16 },{ 119, 1.44 },{ 120, 2.16 },{ 4003, 0.76 },{ 4015, 0.76 },{ 1072, 12.6 },{ 1074, 18.9 },{ 2023, 1.9 },{ 5001, 1.25 },{ 2118, 6.3 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -11715,7 +11685,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 91880, 8 },{ 78678, 0.43 },},
-	DropGroupList = { { 122, 0.53 },{ 123, 1.23 },{ 125, 0.11 },{ 126, 2.52 },{ 127, 0.11 },{ 128, 2.52 },{ 129, 0.11 },{ 130, 2.52 },{ 131, 0.11 },{ 132, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 4.5 },{ 1082, 3 },},
+	DropGroupList = { { 122, 0.53 },{ 123, 1.23 },{ 125, 0.11 },{ 126, 2.52 },{ 127, 0.11 },{ 128, 2.52 },{ 129, 0.11 },{ 130, 2.52 },{ 131, 0.11 },{ 132, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 4.5 },{ 1082, 3 },{ 2119, 1.5 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -11869,7 +11839,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 91880, 8 },{ 78678, 0.43 },},
-	DropGroupList = { { 122, 0.53 },{ 123, 1.23 },{ 125, 0.11 },{ 126, 2.52 },{ 127, 0.11 },{ 128, 2.52 },{ 129, 0.11 },{ 130, 2.52 },{ 131, 0.11 },{ 132, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 6.8 },{ 1082, 4.5 },},
+	DropGroupList = { { 122, 0.53 },{ 123, 1.23 },{ 125, 0.11 },{ 126, 2.52 },{ 127, 0.11 },{ 128, 2.52 },{ 129, 0.11 },{ 130, 2.52 },{ 131, 0.11 },{ 132, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 6.8 },{ 1082, 4.5 },{ 2119, 2.25 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -12023,7 +11993,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 91880, 8 },{ 78678, 0.43 },},
-	DropGroupList = { { 134, 0.53 },{ 135, 1.23 },{ 137, 0.11 },{ 138, 2.52 },{ 139, 0.11 },{ 140, 2.52 },{ 141, 0.11 },{ 142, 2.52 },{ 143, 0.11 },{ 144, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 8.1 },{ 1082, 5.4 },},
+	DropGroupList = { { 134, 0.53 },{ 135, 1.23 },{ 137, 0.11 },{ 138, 2.52 },{ 139, 0.11 },{ 140, 2.52 },{ 141, 0.11 },{ 142, 2.52 },{ 143, 0.11 },{ 144, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 8.1 },{ 1082, 5.4 },{ 2119, 2.7 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -12188,7 +12158,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 91880, 8 },{ 78678, 0.43 },},
-	DropGroupList = { { 122, 0.53 },{ 123, 1.23 },{ 125, 0.11 },{ 126, 2.52 },{ 127, 0.11 },{ 128, 2.52 },{ 129, 0.11 },{ 130, 2.52 },{ 131, 0.11 },{ 132, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 4.5 },{ 1082, 3 },},
+	DropGroupList = { { 122, 0.53 },{ 123, 1.23 },{ 125, 0.11 },{ 126, 2.52 },{ 127, 0.11 },{ 128, 2.52 },{ 129, 0.11 },{ 130, 2.52 },{ 131, 0.11 },{ 132, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 4.5 },{ 1082, 3 },{ 2119, 4.5 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -12353,7 +12323,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 91880, 8 },{ 78678, 0.43 },},
-	DropGroupList = { { 134, 0.53 },{ 135, 1.23 },{ 137, 0.11 },{ 138, 2.52 },{ 139, 0.11 },{ 140, 2.52 },{ 141, 0.11 },{ 142, 2.52 },{ 143, 0.11 },{ 144, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 6.8 },{ 1082, 4.5 },},
+	DropGroupList = { { 134, 0.53 },{ 135, 1.23 },{ 137, 0.11 },{ 138, 2.52 },{ 139, 0.11 },{ 140, 2.52 },{ 141, 0.11 },{ 142, 2.52 },{ 143, 0.11 },{ 144, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 6.8 },{ 1082, 4.5 },{ 2119, 2.25 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -12518,7 +12488,7 @@ DropTable:AddMonsterDropInfo
 	ED = 16,
 	EDProperty = 100,
 	DropItemList = { { 91880, 8 },{ 78678, 0.43 },},
-	DropGroupList = { { 134, 0.53 },{ 135, 1.23 },{ 137, 0.11 },{ 138, 2.52 },{ 139, 0.11 },{ 140, 2.52 },{ 141, 0.11 },{ 142, 2.52 },{ 143, 0.11 },{ 144, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 8.1 },{ 1082, 5.4 },},
+	DropGroupList = { { 134, 0.53 },{ 135, 1.23 },{ 137, 0.11 },{ 138, 2.52 },{ 139, 0.11 },{ 140, 2.52 },{ 141, 0.11 },{ 142, 2.52 },{ 143, 0.11 },{ 144, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 8.1 },{ 1082, 5.4 },{ 2119, 2.7 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -15037,7 +15007,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 91880, 8 },{ 78678, 0.43 },},
-	DropGroupList = { { 134, 0.53 },{ 135, 1.23 },{ 137, 0.11 },{ 138, 2.52 },{ 139, 0.11 },{ 140, 2.52 },{ 141, 0.11 },{ 142, 2.52 },{ 143, 0.11 },{ 144, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 4.5 },{ 1082, 3 },},
+	DropGroupList = { { 134, 0.53 },{ 135, 1.23 },{ 137, 0.11 },{ 138, 2.52 },{ 139, 0.11 },{ 140, 2.52 },{ 141, 0.11 },{ 142, 2.52 },{ 143, 0.11 },{ 144, 2.52 },{ 4003, 20 },{ 4015, 20 },{ 1084, 4.5 },{ 1082, 3 },{ 2119, 1.5 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -15312,7 +15282,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 91880, 8 },{ 78678, 0.43 },},
-	DropGroupList = { { 146, 0.53 },{ 147, 1.23 },{ 149, 0.11 },{ 150, 2.52 },{ 151, 0.11 },{ 152, 2.52 },{ 153, 0.11 },{ 154, 2.52 },{ 155, 0.11 },{ 156, 2.52 },{ 4004, 20 },{ 4015, 20 },{ 1084, 6.8 },{ 1082, 4.5 },},
+	DropGroupList = { { 146, 0.53 },{ 147, 1.23 },{ 149, 0.11 },{ 150, 2.52 },{ 151, 0.11 },{ 152, 2.52 },{ 153, 0.11 },{ 154, 2.52 },{ 155, 0.11 },{ 156, 2.52 },{ 4004, 20 },{ 4015, 20 },{ 1084, 6.8 },{ 1082, 4.5 },{ 2119, 2.25 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -15587,7 +15557,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 91880, 8 },{ 78678, 0.43 },},
-	DropGroupList = { { 146, 0.53 },{ 147, 1.23 },{ 149, 0.11 },{ 150, 2.52 },{ 151, 0.11 },{ 152, 2.52 },{ 153, 0.11 },{ 154, 2.52 },{ 155, 0.11 },{ 156, 2.52 },{ 4004, 20 },{ 4015, 20 },{ 1084, 8.1 },{ 1082, 5.4 },},
+	DropGroupList = { { 146, 0.53 },{ 147, 1.23 },{ 149, 0.11 },{ 150, 2.52 },{ 151, 0.11 },{ 152, 2.52 },{ 153, 0.11 },{ 154, 2.52 },{ 155, 0.11 },{ 156, 2.52 },{ 4004, 20 },{ 4015, 20 },{ 1084, 8.1 },{ 1082, 5.4 },{ 2119, 2.7 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -17776,7 +17746,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 111610, 0.1 },},
-	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2042, 0.8 },{ 1121, 5 },{ 1131, 5 },{ 1123, 7.5 },{ 1133, 7.5 },{ 2076, 0.8 },{ 2077, 0.8 },},
+	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2042, 0.8 },{ 1121, 5 },{ 1131, 5 },{ 1123, 7.5 },{ 1133, 7.5 },{ 2120, 2.5 },{ 2076, 0.8 },{ 2077, 0.8 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -17919,7 +17889,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78691, 0.31 },},
-	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2006, 1.9 },{ 1121, 3.8 },{ 1131, 3.8 },{ 1123, 5.6 },{ 1133, 5.6 },{ 2080, 1.9 },},
+	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2006, 1.9 },{ 1121, 3.8 },{ 1131, 3.8 },{ 1123, 5.6 },{ 1133, 5.6 },{ 2080, 1.9 },{ 2121, 1.9 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -17930,7 +17900,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 111610, 0.1 },},
-	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2042, 1.1 },{ 1121, 7.6 },{ 1131, 7.6 },{ 1123, 11.2 },{ 1133, 11.2 },{ 2076, 1.1 },{ 2077, 1.1 },},
+	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2042, 1.1 },{ 1121, 7.6 },{ 1131, 7.6 },{ 1123, 11.2 },{ 1133, 11.2 },{ 2120, 3.75 },{ 2076, 1.1 },{ 2077, 1.1 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -18073,7 +18043,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78691, 0.31 },},
-	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2006, 2.3 },{ 1121, 4.5 },{ 1131, 4.5 },{ 1123, 6.8 },{ 1133, 6.8 },{ 2080, 2.3 },},
+	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2006, 2.3 },{ 1121, 4.5 },{ 1131, 4.5 },{ 1123, 6.8 },{ 1133, 6.8 },{ 2080, 2.3 },{ 2121, 2.3 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -18084,7 +18054,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 111610, 0.07 },},
-	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2042, 1.4 },{ 1121, 9 },{ 1131, 9 },{ 1123, 13.5 },{ 1133, 13.5 },{ 2076, 1.4 },{ 2077, 1.4 },},
+	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2042, 1.4 },{ 1121, 9 },{ 1131, 9 },{ 1123, 13.5 },{ 1133, 13.5 },{ 2120, 4.5 },{ 2076, 1.4 },{ 2077, 1.4 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -18799,7 +18769,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78691, 0.31 },},
-	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2006, 1.3 },{ 1121, 2.5 },{ 1131, 2.5 },{ 1123, 3.8 },{ 1133, 3.8 },{ 2080, 1.3 },},
+	DropGroupList = { { 158, 0.53 },{ 159, 1.23 },{ 161, 0.11 },{ 162, 2.52 },{ 163, 0.11 },{ 164, 2.52 },{ 165, 0.11 },{ 166, 2.52 },{ 167, 0.11 },{ 168, 2.52 },{ 4080, 20 },{ 2006, 1.3 },{ 1121, 2.5 },{ 1131, 2.5 },{ 1123, 3.8 },{ 1133, 3.8 },{ 2080, 1.3 },{ 2121, 1.3 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -18986,7 +18956,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78691, 0.31 },},
-	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4080, 20 },{ 2006, 1.9 },{ 1121, 3.8 },{ 1131, 3.8 },{ 1123, 5.6 },{ 1123, 5.6 },{ 2080, 1.9 },},
+	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4080, 20 },{ 2006, 1.9 },{ 1121, 3.8 },{ 1131, 3.8 },{ 1123, 5.6 },{ 1123, 5.6 },{ 2080, 1.9 },{ 2121, 1.9 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -19173,7 +19143,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78691, 0.31 },},
-	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4080, 20 },{ 2006, 2.3 },{ 1121, 4.5 },{ 1131, 4.5 },{ 1123, 6.8 },{ 1123, 6.8 },{ 2080, 2.3 },},
+	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4080, 20 },{ 2006, 2.3 },{ 1121, 4.5 },{ 1131, 4.5 },{ 1123, 6.8 },{ 1123, 6.8 },{ 2080, 2.3 },{ 2121, 2.3 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -19887,7 +19857,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4090, 20 },{ 2093, 0.6 },{ 2094, 0.6 },{ 2095, 3 },{ 1143, 6 },{ 1153, 6 },{ 1141, 4 },{ 1151, 4 },},
 }
 
@@ -20063,7 +20033,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4090, 20 },{ 2093, 0.9 },{ 2094, 0.9 },{ 2095, 4.5 },{ 1143, 9 },{ 1153, 9 },{ 1141, 6 },{ 1151, 6 },},
 }
 
@@ -20239,7 +20209,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4090, 20 },{ 2093, 1.1 },{ 2094, 1.1 },{ 2095, 5.4 },{ 1143, 10.8 },{ 1153, 10.8 },{ 1141, 7.2 },{ 1151, 7.2 },},
 }
 
@@ -20426,7 +20396,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4090, 20 },{ 2099, 0.6 },{ 2100, 0.6 },{ 2101, 0.6 },{ 1142, 4 },{ 1152, 4 },{ 1144, 6 },{ 1154, 6 },},
 }
 
@@ -20603,7 +20573,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78820, 0.3 },},
-	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4090, 20 },{ 2098, 1.5 },{ 1142, 3 },{ 1152, 3 },{ 1144, 4.5 },{ 1154, 4.5 },},
+	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4090, 20 },{ 2098, 1.5 },{ 2122, 1.5 },{ 1142, 3 },{ 1152, 3 },{ 1144, 4.5 },{ 1154, 4.5 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -20613,7 +20583,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4090, 20 },{ 2099, 0.9 },{ 2100, 0.9 },{ 2101, 0.9 },{ 1142, 6 },{ 1152, 6 },{ 1144, 9 },{ 1154, 9 },},
 }
 
@@ -20790,7 +20760,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78820, 0.3 },},
-	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2098, 1.8 },{ 1142, 3.6 },{ 1152, 3.6 },{ 1144, 5.4 },{ 1154, 5.4 },},
+	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2098, 1.8 },{ 2122, 1.8 },{ 1142, 3.6 },{ 1152, 3.6 },{ 1144, 5.4 },{ 1154, 5.4 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -20800,7 +20770,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2099, 1.1 },{ 2100, 1.1 },{ 2101, 1.1 },{ 1142, 7.2 },{ 1152, 7.2 },{ 1144, 10.8 },{ 1154, 10.8 },},
 }
 
@@ -20910,7 +20880,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 170, 0.53 },{ 171, 1.23 },{ 173, 0.11 },{ 174, 2.52 },{ 175, 0.11 },{ 176, 2.52 },{ 177, 0.11 },{ 178, 2.52 },{ 179, 0.11 },{ 180, 2.52 },{ 4090, 20 },{ 2109, 0.6 },{ 2111, 3 },{ 2110, 0.6 },{ 1150, 2 },{ 1140, 2 },},
 }
 
@@ -21119,7 +21089,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2109, 0.9 },{ 2111, 4.5 },{ 2110, 0.9 },{ 1150, 3 },{ 1140, 3 },},
 }
 
@@ -21328,7 +21298,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2109, 1.1 },{ 2111, 5.4 },{ 2110, 1.1 },{ 1150, 3.6 },{ 1140, 3.6 },},
 }
 
@@ -21505,7 +21475,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78831, 0.3 },},
-	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2106, 0.3 },{ 1161, 0.6 },{ 1163, 1 },{ 1171, 0.6 },{ 1173, 1 },},
+	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2106, 0.3 },{ 2123, 0.3 },{ 1161, 0.6 },{ 1163, 1 },{ 1171, 0.6 },{ 1173, 1 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -21537,7 +21507,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2112, 0.6 },{ 2114, 3 },{ 2113, 0.6 },{ 1161, 4 },{ 1163, 6 },{ 1171, 4 },{ 1173, 6 },},
 }
 
@@ -21648,7 +21618,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78831, 0.3 },},
-	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2106, 0.5 },{ 1161, 1 },{ 1163, 1.5 },{ 1171, 1 },{ 1173, 1.5 },},
+	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2106, 0.5 },{ 2123, 0.5 },{ 1161, 1 },{ 1163, 1.5 },{ 1171, 1 },{ 1173, 1.5 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -21680,7 +21650,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2112, 0.9 },{ 2114, 4.5 },{ 2113, 0.9 },{ 1161, 9 },{ 1163, 6 },{ 1171, 9 },{ 1173, 6 },},
 }
 
@@ -21791,7 +21761,7 @@ DropTable:AddMonsterDropInfo
 	ED = 17,
 	EDProperty = 100,
 	DropItemList = { { 78831, 0.3 },},
-	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2106, 0.6 },{ 1161, 1.2 },{ 1163, 1.8 },{ 1171, 1.2 },{ 1173, 1.8 },},
+	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2106, 0.6 },{ 2123, 0.6 },{ 1161, 1.2 },{ 1163, 1.8 },{ 1171, 1.2 },{ 1173, 1.8 },},
 }
 
 DropTable:AddMonsterDropInfo
@@ -21823,7 +21793,7 @@ DropTable:AddMonsterDropInfo
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
-	DropItemList = { { 111610, 0.07 },},
+	DropItemList = { { 113276, 0.07 },},
 	DropGroupList = { { 182, 0.53 },{ 183, 1.23 },{ 185, 0.11 },{ 186, 2.52 },{ 187, 0.11 },{ 188, 2.52 },{ 189, 0.11 },{ 190, 2.52 },{ 191, 0.11 },{ 192, 2.52 },{ 4090, 20 },{ 2112, 1.1 },{ 2114, 5.4 },{ 2113, 1.1 },{ 1161, 7.2 },{ 1163, 10.8 },{ 1171, 7.2 },{ 1173, 10.8 },},
 }
 
@@ -27015,7 +26985,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -27125,7 +27095,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -27213,7 +27183,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -27232,6 +27202,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40001,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40001,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40001,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -27345,7 +27337,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -27364,6 +27356,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40002,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40002,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40002,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -27477,7 +27491,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -27496,6 +27510,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40003,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40003,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40003,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -27549,6 +27585,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40003,
+	MonsterID = 5125,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40004,
 	MonsterID = 20,
 	Exp = 0,
@@ -27576,7 +27623,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -27595,6 +27642,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40004,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40004,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40004,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -27670,6 +27739,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40004,
+	MonsterID = 5125,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40005,
 	MonsterID = 20,
 	Exp = 0,
@@ -27697,7 +27777,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -27716,6 +27796,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40005,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40005,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40005,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -27802,6 +27904,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40005,
+	MonsterID = 5125,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40006,
 	MonsterID = 20,
 	Exp = 0,
@@ -27829,7 +27942,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -27848,6 +27961,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40006,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40006,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40006,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -27923,6 +28058,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40006,
+	MonsterID = 5126,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40007,
 	MonsterID = 20,
 	Exp = 0,
@@ -27950,7 +28096,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -27969,6 +28115,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40007,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40007,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40007,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -28066,6 +28234,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40007,
+	MonsterID = 5126,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40008,
 	MonsterID = 20,
 	Exp = 0,
@@ -28093,7 +28272,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -28112,6 +28291,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40008,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40008,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40008,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -28187,6 +28388,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40008,
+	MonsterID = 5126,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40009,
 	MonsterID = 20,
 	Exp = 0,
@@ -28214,7 +28426,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -28233,6 +28445,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40009,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40009,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40009,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -28308,6 +28542,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40009,
+	MonsterID = 5129,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40010,
 	MonsterID = 20,
 	Exp = 0,
@@ -28335,7 +28580,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -28354,6 +28599,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40010,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40010,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40010,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -28429,6 +28696,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40010,
+	MonsterID = 5129,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40011,
 	MonsterID = 20,
 	Exp = 0,
@@ -28456,7 +28734,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -28475,6 +28753,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40011,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40011,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40011,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -28561,6 +28861,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40011,
+	MonsterID = 5129,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40012,
 	MonsterID = 20,
 	Exp = 0,
@@ -28588,7 +28899,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -28607,6 +28918,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40012,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40012,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40012,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -28704,6 +29037,61 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40012,
+	MonsterID = 5130,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40012,
+	MonsterID = 5131,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40012,
+	MonsterID = 5132,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40012,
+	MonsterID = 5133,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40012,
+	MonsterID = 5134,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40013,
 	MonsterID = 20,
 	Exp = 0,
@@ -28731,7 +29119,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -28750,6 +29138,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40013,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40013,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40013,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -28847,6 +29257,61 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40013,
+	MonsterID = 5130,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40013,
+	MonsterID = 5131,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40013,
+	MonsterID = 5132,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40013,
+	MonsterID = 5133,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40013,
+	MonsterID = 5134,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40014,
 	MonsterID = 20,
 	Exp = 0,
@@ -28874,7 +29339,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -28893,6 +29358,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40014,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40014,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40014,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -29012,6 +29499,61 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40014,
+	MonsterID = 5130,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40014,
+	MonsterID = 5131,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40014,
+	MonsterID = 5132,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40014,
+	MonsterID = 5133,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40014,
+	MonsterID = 5134,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40015,
 	MonsterID = 20,
 	Exp = 0,
@@ -29039,7 +29581,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -29058,6 +29600,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40015,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40015,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40015,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -29177,6 +29741,61 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40015,
+	MonsterID = 5130,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40015,
+	MonsterID = 5131,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40015,
+	MonsterID = 5132,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40015,
+	MonsterID = 5133,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40015,
+	MonsterID = 5134,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40016,
 	MonsterID = 20,
 	Exp = 0,
@@ -29204,7 +29823,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -29223,6 +29842,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40016,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40016,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40016,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -29298,6 +29939,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40016,
+	MonsterID = 5135,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40017,
 	MonsterID = 20,
 	Exp = 0,
@@ -29325,7 +29977,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -29344,6 +29996,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40017,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40017,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40017,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -29441,6 +30115,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40017,
+	MonsterID = 5135,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40018,
 	MonsterID = 20,
 	Exp = 0,
@@ -29468,7 +30153,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -29487,6 +30172,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40018,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40018,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40018,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -29562,6 +30269,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40018,
+	MonsterID = 5135,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40019,
 	MonsterID = 20,
 	Exp = 0,
@@ -29589,7 +30307,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -29608,6 +30326,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40019,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40019,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40019,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -29705,12 +30445,23 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40019,
+	MonsterID = 5135,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40020,
 	MonsterID = 662,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -29729,6 +30480,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40020,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40020,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40020,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -29787,7 +30560,7 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -29806,6 +30579,28 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40021,
 	MonsterID = 1115,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40021,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40021,
+	MonsterID = 4042,
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
@@ -29864,7 +30659,29 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40022,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40022,
+	MonsterID = 4042,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -29947,6 +30764,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40022,
+	MonsterID = 5136,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40023,
 	MonsterID = 20,
 	Exp = 1,
@@ -29974,7 +30802,29 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40023,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40023,
+	MonsterID = 4042,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -30079,6 +30929,17 @@ DropTable:AddBattleFieldNpcDropInfo
 
 DropTable:AddBattleFieldNpcDropInfo
 {
+	BattleFieldID = 40023,
+	MonsterID = 5136,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
 	BattleFieldID = 40024,
 	MonsterID = 20,
 	Exp = 0,
@@ -30106,7 +30967,29 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40024,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40024,
+	MonsterID = 4042,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -30114,6 +30997,17 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40024,
 	MonsterID = 5124,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40024,
+	MonsterID = 5136,
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,
@@ -30282,7 +31176,29 @@ DropTable:AddBattleFieldNpcDropInfo
 	Exp = 0,
 	ED = 16,
 	EDProperty = 100,
-	DropItemList = { { 85003830, 100 },},
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40025,
+	MonsterID = 4041,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40025,
+	MonsterID = 4042,
+	Exp = 0,
+	ED = 16,
+	EDProperty = 100,
+	DropItemList = { },
 	DropGroupList = { },
 }
 
@@ -30290,6 +31206,17 @@ DropTable:AddBattleFieldNpcDropInfo
 {
 	BattleFieldID = 40025,
 	MonsterID = 5124,
+	Exp = 1,
+	ED = 17,
+	EDProperty = 100,
+	DropItemList = { },
+	DropGroupList = { },
+}
+
+DropTable:AddBattleFieldNpcDropInfo
+{
+	BattleFieldID = 40025,
+	MonsterID = 5136,
 	Exp = 1,
 	ED = 17,
 	EDProperty = 100,

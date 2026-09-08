@@ -251,7 +251,7 @@ KAutoPartyMakingProcess* KAutoPartyMakingManager::GetAutoPartyMakingProcess( IN 
 	case CXSLDungeon::DM_HENIR_PRACTICE:
 	case CXSLDungeon::DM_HENIR_CHALLENGE:
 		{
-			KMakingProcessKey kKey( iDungeonMode, CXSLDungeon::DI_ELDER_HENIR_SPACE );
+			KMakingProcessKey kKey( iDungeonMode, SEnum::DI_ELDER_HENIR_SPACE );
 
 			std::map< KMakingProcessKey, KAutoPartyMakingProcess >::iterator mit;
 			mit	= m_mapAutoPartyMakingProcess.find( kKey );

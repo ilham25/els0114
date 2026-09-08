@@ -114,8 +114,13 @@ bool CKTDGLineMap::AddLine_LUA()
 
 
 	// lua script에 값이 없는 경우가 있으면 lua_tinker::get() 사용하면 안됨
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "START_POS", pLineData->startPos, D3DXVECTOR3(0,0,0) );
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "END_POS", pLineData->endPos, D3DXVECTOR3(0,0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	pLineData->startPos		= lua_tinker::get<D3DXVECTOR3>( spLua.get(),  "START_POS" );
 	pLineData->endPos		= lua_tinker::get<D3DXVECTOR3>( spLua.get(),  "END_POS" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	//pLineData->m_vJumpSpeed	= lua_tinker::get<D3DXVECTOR3>( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "JUMP_SPEED" ); 
 
 	MakeLine( pLineData );

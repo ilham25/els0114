@@ -56,12 +56,11 @@ bool CX2UIEnduranceChecker::Update()
 	if( g_pData != NULL &&  g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() == NULL )
 		return false;
 
-	CX2Unit::UnitData* pMyUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Unit::UnitData* pMyUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 	bool bDamagedEquipExist = false;
 	D3DXVECTOR2 posOffset(0.0f, 0.0f);
-	if ( pMyUnitData != NULL && pInventory != NULL )
 	{
 		// 일단 싹 꺼주고..
 		CKTDGUIStatic* pStatic;
@@ -99,7 +98,7 @@ bool CX2UIEnduranceChecker::Update()
 		for ( int i = 0; i < (int)pMyUnitData->m_NowEqipItemUIDList.size(); i++ )
 		{
 			UidType uidType = pMyUnitData->m_NowEqipItemUIDList[i];
-			CX2Item* pItem = pInventory->GetItem( uidType );
+			CX2Item* pItem = kInventory.GetItem( uidType );
 			if ( pItem == NULL )
 				continue;
 
@@ -108,9 +107,9 @@ bool CX2UIEnduranceChecker::Update()
 			if(pItemTemplet == NULL) 
 				continue;
 
-			if ( pItemTemplet->GetPeriodType() == CX2Item::PT_ENDURANCE && pItem->GetItemData() != NULL )
+			if ( pItemTemplet->GetPeriodType() == CX2Item::PT_ENDURANCE )
 			{
-				int Endurance = pItem->GetItemData()->m_Endurance;
+				int Endurance = pItem->GetItemData().m_Endurance;
 				int PicTurnOn = 0;
 				// 장비템이고..
 				if( Endurance <= 0 )

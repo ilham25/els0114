@@ -304,6 +304,37 @@ void KDBLayer::QueueingEvent( const KEventPtr& spEvent_ )
 			return;
 		}
 		break;
+    case PC_GAME_DB_2ND:
+        mit = m_mapDBAgent.find( DC_GAME_2ND );
+        if( mit == m_mapDBAgent.end() )
+        {
+            START_LOG( cerr, L"GAME 2nd DB Agent 가 없음." )
+                << END_LOG;
+            return;
+        }
+        break;
+    case PC_LOG_DB_2ND:
+        mit = m_mapDBAgent.find( DC_LOG_2ND );
+        if( mit == m_mapDBAgent.end() )
+        {
+            START_LOG( cerr, L"LOG 2nd DB Agent 가 없음." )
+                << END_LOG;
+            return;
+        }
+        break;
+#ifdef SERV_GLOBAL_AUTH
+#ifdef SERV_COUNTRY_IN
+	case PC_PUBLISHER_AUTH_DB:
+		mit = m_mapDBAgent.find( DC_PUBLISHER_AUTH );
+		if( mit == m_mapDBAgent.end() )
+		{
+			START_LOG( cerr, L"Publisher Auth DB Agent 가 없음." )
+				<< END_LOG;
+			return;
+		}
+		break;
+#endif SERV_COUNTRY_IN
+#endif SERV_GLOBAL_AUTH
 #ifdef SERV_GLOBAL_BILLING
 	case PC_KOG_BILLING_DB:
 		mit = m_mapDBAgent.find( DC_KOG_BILLING );
@@ -362,6 +393,29 @@ void KDBLayer::QueueingEvent( const KEventPtr& spEvent_ )
 		break;
 #endif SERV_RELAY_DB_CONNECTION
 		//}}
+#ifdef SERV_ADD_EVENT_DB
+	case PC_EVENT_DB:
+		mit = m_mapDBAgent.find( DC_EVENT );
+		if( mit == m_mapDBAgent.end() )
+		{
+			START_LOG( cerr, L"게임 이벤트 DB Agent가 없음." )
+				<< END_LOG;
+			return;
+		}
+		break;
+#endif //SERV_ADD_EVENT_DB
+#ifdef SERV_ADD_SCRIPT_DB
+	case PC_SCRIPT_DB:
+		mit = m_mapDBAgent.find( DC_SCRIPT );
+		if( mit == m_mapDBAgent.end() )
+		{
+			START_LOG( cerr, L"스크립트 DB Agent가 없음." )
+				<< END_LOG;
+			return;
+		}
+		break;
+#endif //SERV_ADD_SCRIPT_DB
+
     default:
         START_LOG( cerr, L"무슨 DB를 찾는고?" )
             << BUILD_LOG( spEvent_->m_kDestPerformer.m_dwPerformerID )

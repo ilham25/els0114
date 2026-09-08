@@ -99,13 +99,22 @@ m_pDlgHeroRecruit(NULL)
 			//}} kimhc // 2011-04-27 // 디펜스 던전 시간에 따라, 던전 아이콘 비/활성화 여부 결정
 
 #ifdef NEW_HENIR_TEST
-			if ( true == g_pData->GetDungeonManager()->IsHenirDungeon( iDungeonID ) )
+			if ( CX2Dungeon::IsHenirDungeon( static_cast<const SEnum::DUNGEON_ID>( iDungeonID ) ) )
 			{
 				wstringstream wstrStreamDungeonIconDesc;
 				GetHenirDungeonIcnoDesc( wstrStreamDungeonIconDesc );
 				pButton_Dungeon->SetGuideDesc( wstrStreamDungeonIconDesc.str().c_str() );
 			}
 #endif NEW_HENIR_TEST
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+			if( CX2Dungeon::IsEventValentineDungeon( static_cast<const SEnum::DUNGEON_ID>( iDungeonID ) ) )
+			{
+				wstringstream wstrStreamDungeonIconDesc;
+				GetEventValentineDungeonIconDesc( wstrStreamDungeonIconDesc );
+				pButton_Dungeon->SetGuideDesc( wstrStreamDungeonIconDesc.str().c_str() );
+			}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 		}
 		break;
 	case LMUCM_DUNGEON_MOUSE_OUT:
@@ -168,7 +177,7 @@ m_pDlgHeroRecruit(NULL)
 			{
 				int iDungeonMode = CX2Dungeon::DM_HENIR_PRACTICE;
 				// 아직 파티를 만들지 않았다면
-				g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID			= ( iDungeonID > 0 ? iDungeonID : CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL );
+				g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID			= ( iDungeonID > 0 ? iDungeonID : SEnum::DI_RUBEN_EL_TREE_NORMAL );
 				g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonDifficulty	= (int) CX2Dungeon::DL_NORMAL;
 #ifdef HENIR_TEST
 					//{{ kimhc // 2010.3.19 //	비밀던전 개편 작업
@@ -223,7 +232,7 @@ m_pDlgHeroRecruit(NULL)
 			{
 				if( g_pTFieldGame->GetNoviceGuide()->GetIsPlayGuide() == true && g_pTFieldGame->GetNoviceGuide()->GetNowGuideStep() == CX2NoviceGuide::NGS_STEP6_2 )
 				{
-					if( iDungeonID == CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL )
+					if( iDungeonID == SEnum::DI_RUBEN_EL_TREE_NORMAL )
 					{
 						g_pTFieldGame->GetNoviceGuide()->SetNotifyGuide(CX2NoviceGuide::GE_COMPLETE);
 					}
@@ -298,7 +307,7 @@ void CX2LocalMapUI::OpenLocalMapDLG( bool bOpen, CX2LocationManager::LOCAL_MAP_I
 
 	if( CX2LocationManager::LMI_INVALID == eLocalMapID )
 	{
-		eLocalMapID = CX2LocationManager::LMI_VELDER_NORTH;
+		eLocalMapID = CX2LocationManager::LMI_RUBEN;
 	}
 
 	/************************************************************************/
@@ -441,12 +450,12 @@ void CX2LocalMapUI::UpdateLocalMapDLG()
 						CX2QuestManager* pQuestManager = g_pData->GetQuestManager();
 						if( NULL != pQuestManager )
 						{
-							map<CX2Dungeon::DUNGEON_ID, bool> SetNeedToClearDungeonList;
+							map<SEnum::DUNGEON_ID, bool> SetNeedToClearDungeonList;
 							if( true == pQuestManager->GetNeedToClearDungeonList(SetNeedToClearDungeonList) ) //클리어가 필요한 dungeon 목록	
 							{
 								for( UINT i=0; i< pLocalMapTemplet->m_DungeonList.size(); ++i )
 								{	
-									map<CX2Dungeon::DUNGEON_ID, bool>::iterator mitDungeon = SetNeedToClearDungeonList.find(pLocalMapTemplet->m_DungeonList[i]);
+									map<SEnum::DUNGEON_ID, bool>::iterator mitDungeon = SetNeedToClearDungeonList.find(pLocalMapTemplet->m_DungeonList[i]);
 									if( mitDungeon != SetNeedToClearDungeonList.end() && NULL != pPicture )
 									{
 										pPicture->SetFlicker( 0.5f, 1.0f, 0.1f );
@@ -493,12 +502,12 @@ void CX2LocalMapUI::UpdateLocalMapDLG()
 						CX2QuestManager* pQuestManager = g_pData->GetQuestManager();
 						if( NULL != pQuestManager )
 						{
-							map<CX2Dungeon::DUNGEON_ID, bool> SetNeedToClearDungeonList;
+							map<SEnum::DUNGEON_ID, bool> SetNeedToClearDungeonList;
 							if( true == pQuestManager->GetNeedToClearDungeonList(SetNeedToClearDungeonList) )//클리어가 필요한 dungeon 목록	
 							{
 								for( UINT i=0; i< pLocalMapTemplet->m_DungeonList.size(); ++i )
 								{
-									map<CX2Dungeon::DUNGEON_ID, bool>::iterator mitDungeon = SetNeedToClearDungeonList.find(pLocalMapTemplet->m_DungeonList[i]);
+									map<SEnum::DUNGEON_ID, bool>::iterator mitDungeon = SetNeedToClearDungeonList.find(pLocalMapTemplet->m_DungeonList[i]);
 									if( mitDungeon != SetNeedToClearDungeonList.end() && NULL != pPicture )
 									{
 										pPicture->SetShow(true);
@@ -530,29 +539,19 @@ CKTDGUIDialogType CX2LocalMapUI::CreateLocalMapDLG( CX2LocationManager::LOCAL_MA
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( pDialog );
 	m_mapLocalDLG[ eLocalMapID ] = pDialog;
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pLocalMapTemplet->m_ScriptFileName );
-	if( Info == NULL )
-	{
-		ASSERT( !"CreateLocalMapDLG() pLocalMapTemplet->m_ScriptFileName" ); 
-		return pDialog;
-	}
-
-
 	KLuaManager kLuamanager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	if( false == kLuamanager.DoMemory( Info->pRealData, Info->size ) )
-	{
+
+    if ( g_pKTDXApp->LoadAndDoMemory( &kLuamanager, pLocalMapTemplet->m_ScriptFileName.c_str() ) == false )
+    {
 		ASSERT( !"CreateLocalMapDLG() pLocalMapTemplet->m_ScriptFileName domemory" ); 
 		return pDialog;
-	}
-
-
+    }
 
 	wstring wstrFileName = L"";
 	//LUA_GET_VALUE( kLuamanager, "BaseWorldStateID", m_BaseWorldStateID, 0 );
 	//LUA_GET_VALUE( kLuamanager, "DLGFront", dlgFrontFileName, "" );
 
-	LUA_GET_VALUE( kLuamanager, L"LOCAL_MAP_DLG", wstrFileName, L"" );
+	LUA_GET_VALUE( kLuamanager, "LOCAL_MAP_DLG", wstrFileName, L"" );
 	ASSERT( false == wstrFileName.empty() );
 	if( true == wstrFileName.empty() )
 		return pDialog;
@@ -564,7 +563,7 @@ CKTDGUIDialogType CX2LocalMapUI::CreateLocalMapDLG( CX2LocationManager::LOCAL_MA
 	for( unsigned int uiControlIndex = 0; uiControlIndex < vecControlList.size(); ++uiControlIndex )
 	{
 		int iDungeonID = vecControlList[uiControlIndex]->GetDummyInt( 0 );
-		if( iDungeonID < CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL || iDungeonID > CX2Dungeon::DI_END )
+		if( iDungeonID < SEnum::DI_RUBEN_EL_TREE_NORMAL || iDungeonID > SEnum::DI_END )
 			continue;
 
 		if( g_pData->GetDungeonManager()->IsDungeonEnable( iDungeonID ) == false )
@@ -585,6 +584,14 @@ CKTDGUIDialogType CX2LocalMapUI::CreateLocalMapDLG( CX2LocationManager::LOCAL_MA
 		CreateLocalQuestPicture( eLocalMapID, pLocalMapTemplet->m_DungeonList[i] ); 
 	}
 #endif SERV_EPIC_QUEST
+
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+	for( UINT i=0; i< pLocalMapTemplet->m_DungeonList.size(); i++ )
+	{
+		CreateLocalTearOfELWoman( eLocalMapID, pLocalMapTemplet->m_DungeonList[i] ); 
+	}
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
+
 	return pDialog;
 }
 
@@ -628,7 +635,7 @@ void CX2LocalMapUI::UpdateDungeonButtons( CX2LocationManager::LOCAL_MAP_ID eLoca
 			pControl->GetDummyInt(1) != 2 )		//	  DLT_ARCADE,
 			continue;
 
-		CX2Dungeon::DUNGEON_ID eDungeonID = (CX2Dungeon::DUNGEON_ID) pControl->GetDummyInt( 0 );
+		SEnum::DUNGEON_ID eDungeonID = (SEnum::DUNGEON_ID) pControl->GetDummyInt( 0 );
 		const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( eDungeonID );
 		if( NULL == pDungeonData )
 		{
@@ -683,6 +690,9 @@ void CX2LocalMapUI::UpdateDungeonButtons( CX2LocationManager::LOCAL_MAP_ID eLoca
 #ifdef SERV_EPIC_QUEST
 			UdateLocalMapQuestDesc( eLocalMapID, eDungeonID, true );
 #endif SERV_EPIC_QUEST
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+			UpdateLocalTearOfELWoman( eLocalMapID, eDungeonID, true );
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 			if( true == pDungeonData->m_bHellMode )
 			{
 				wstring controlName = pDungeonData->m_DungeonName;
@@ -701,6 +711,9 @@ void CX2LocalMapUI::UpdateDungeonButtons( CX2LocationManager::LOCAL_MAP_ID eLoca
 #ifdef SERV_EPIC_QUEST
 			UdateLocalMapQuestDesc( eLocalMapID, eDungeonID, false );
 #endif SERV_EPIC_QUEST
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+			UpdateLocalTearOfELWoman( eLocalMapID, eDungeonID, false );
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 			if( true == pDungeonData->m_bHellMode )
 			{
 				wstring controlName = pDungeonData->m_DungeonName;
@@ -720,7 +733,7 @@ void CX2LocalMapUI::UpdateDungeonButtons( CX2LocationManager::LOCAL_MAP_ID eLoca
 			if( true == g_pData->GetMyUser()->GetSelectUnit()->IsNewlyOpenedDungeon( (int) eDungeonID ) )
 			{
 				// hardcode!!
-				if( eDungeonID == CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL )		// 할로윈 이벤트 던전이면
+				if( eDungeonID == SEnum::DI_ELDER_HALLOWEEN_NORMAL )		// 할로윈 이벤트 던전이면
 				{
 					CreateNewDungeonParticle( pControl, true );					
 				}
@@ -743,7 +756,7 @@ void CX2LocalMapUI::UpdateDungeonButtons( CX2LocationManager::LOCAL_MAP_ID eLoca
 
 void CX2LocalMapUI::UpdateDungeonClearStars( CX2LocationManager::LOCAL_MAP_ID eLocalMapID, int dungeonID, bool bShow )
 {
-	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) dungeonID );
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) dungeonID );
 	if( NULL == pDungeonData )
 		return;
 
@@ -775,34 +788,99 @@ void CX2LocalMapUI::UpdateDungeonClearStars( CX2LocationManager::LOCAL_MAP_ID eL
 		}
 		else
 		{
-			const int MAGIC_HENIR_NORMAL_REWARD_COUNT_MAX = 3;
+			int iHenirRewardCount = 0;
 
-			int iHenirRewardCount = m_HenirRewardCountInfo.m_iNormal;
-			if(m_HenirRewardCountInfo.m_iPremiumMAX > 0)
+#ifdef NEW_HENIR_DUNGEON // 일반 / 도전에서의 보상 횟수 UI 구분해서 보여주기
+
+			int iHenirChallengeRewareCount = 0;
 			{
-				iHenirRewardCount += m_HenirRewardCountInfo.m_iPremium;
+				iHenirChallengeRewareCount = m_HenirRewardCountInfo.m_iChallengeNormal;
+				if(m_HenirRewardCountInfo.m_iPremiumMAX > 0)
+				{
+					iHenirChallengeRewareCount += m_HenirRewardCountInfo.m_iChallengePremium;
+				}
+				if(m_HenirRewardCountInfo.m_iEventMAX > 0)
+				{
+					iHenirChallengeRewareCount += m_HenirRewardCountInfo.m_iChallengeEvent;
+				}
 			}
-			if(m_HenirRewardCountInfo.m_iEventMAX > 0)
+#endif // NEW_HENIR_DUNGEON
 			{
-				iHenirRewardCount += m_HenirRewardCountInfo.m_iEvent;
+				iHenirRewardCount = m_HenirRewardCountInfo.m_iNormal;
+				if(m_HenirRewardCountInfo.m_iPremiumMAX > 0)
+				{
+					iHenirRewardCount += m_HenirRewardCountInfo.m_iPremium;
+				}
+				if(m_HenirRewardCountInfo.m_iEventMAX > 0)
+				{
+					iHenirRewardCount += m_HenirRewardCountInfo.m_iEvent;
+				}
 			}
 
-			if(iHenirRewardCount >= 0 && iHenirRewardCount < 10 )
+			if( NULL != pStaticLimitInfo && NULL != pStaticLimitInfo->GetPicture(1) )
 			{
-				WCHAR RewardCountTextureName[100] = {0,};
-				StringCchPrintf( RewardCountTextureName,	100, L"PC_%d.dds", iHenirRewardCount );
+				if(iHenirRewardCount >= 0 && iHenirRewardCount < 10 )
+				{
+#ifdef NEW_HENIR_DUNGEON // 일반 / 도전에서의 보상 횟수 UI 구분해서 보여주기
+					WCHAR RewardCountKeyName[100] = {0,};
+					StringCchPrintf( RewardCountKeyName,	100, L"Bg_HenirNum_%d", iHenirRewardCount );
+					pStaticLimitInfo->GetPicture(1)->SetTex( L"DLG_UI_Button21_NEW.tga", RewardCountKeyName );
+#else
+					WCHAR RewardCountTextureName[100] = {0,};
+					StringCchPrintf( RewardCountTextureName,	100, L"PC_%d.dds", iHenirRewardCount );
 
-				pStaticLimitInfo->GetPicture(1)->SetTex(RewardCountTextureName);
-				pStaticLimitInfo->GetPicture(1)->SetShow( true );
+					pStaticLimitInfo->GetPicture(1)->SetTex(RewardCountTextureName);
+#endif // NEW_HENIR_DUNGEON
+					pStaticLimitInfo->GetPicture(1)->SetShow( true );
+				}
+				else
+				{
+					pStaticLimitInfo->GetPicture(1)->SetShow( false );
+				}
 			}
-			else
+
+#ifdef NEW_HENIR_DUNGEON // 일반 / 도전에서의 보상 횟수 UI 구분해서 보여주기
+			if( NULL != pStaticLimitInfo && NULL != pStaticLimitInfo->GetPicture(3) )
 			{
-				pStaticLimitInfo->GetPicture(1)->SetShow( false );
+				if(iHenirChallengeRewareCount >= 0 && iHenirChallengeRewareCount < 10 )
+				{
+					WCHAR RewardCountKeyName[100] = {0,};
+					StringCchPrintf( RewardCountKeyName,	100, L"Bg_HenirNum_%d_Challenge", iHenirChallengeRewareCount );
+					pStaticLimitInfo->GetPicture(3)->SetTex( L"DLG_UI_Button21_NEW.tga", RewardCountKeyName );
+					pStaticLimitInfo->GetPicture(3)->SetShow( true );
+				}
+				else
+				{
+					pStaticLimitInfo->GetPicture(3)->SetShow( false );
+				}
 			}
+#endif // NEW_HENIR_DUNGEON
+
 			pStaticLimitInfo_Unlimit->SetShow( false );
 		}
 	}
 #endif NEW_HENIR_TEST
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	if(pDungeonData->m_DungeonID == SEnum::DI_EVENT_VALENTINE_DUNGEON_INT )
+	{
+		int iRewardCount = 3 - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().GetValentineItemCount();
+
+		wstring LimitInfoName = pDungeonData->m_DungeonName;
+		LimitInfoName += L"_LimitInfo";
+		CKTDGUIStatic* pStaticLimitInfo = (CKTDGUIStatic*) pDialog->GetControl( LimitInfoName.c_str() );
+
+		int iHenirRewardCount = 0;
+
+		if( NULL != pStaticLimitInfo && NULL != pStaticLimitInfo->GetPicture(1) )
+		{
+			WCHAR RewardCountKeyName[100] = {0,};
+			StringCchPrintf( RewardCountKeyName,	100, L"PC_%d.dds", iRewardCount );
+			pStaticLimitInfo->GetPicture(1)->SetTex( RewardCountKeyName );
+			pStaticLimitInfo->GetPicture(1)->SetShow( true );
+		}
+	}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 
 	//{{ kimhc // 2010-07-15 // 임시 코드 // 구현방법이 다시 정해지면 삭제해야함
 	if ( pDungeonData->m_eDungeonType != CX2Dungeon::DT_NORMAL || 
@@ -843,7 +921,7 @@ void CX2LocalMapUI::UpdateDungeonClearStars( CX2LocationManager::LOCAL_MAP_ID eL
 // 던전 버튼 하단에 보통, 어려움, 매우 어려움 클리어 정보 표시 UI 생성
 void CX2LocalMapUI::CreateDungeonClearStars( CX2LocationManager::LOCAL_MAP_ID eLocalMapID, int dungeonID )
 {
-	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) dungeonID );
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) dungeonID );
 	if( NULL == pDungeonData )
 		return;
 
@@ -856,7 +934,7 @@ void CX2LocalMapUI::CreateDungeonClearStars( CX2LocationManager::LOCAL_MAP_ID eL
 		return; 
 
 
-	//CX2Dungeon::DUNGEON_ID dungeonIDToFind = (CX2Dungeon::DUNGEON_ID)dungeonID;
+	//SEnum::DUNGEON_ID dungeonIDToFind = (SEnum::DUNGEON_ID)dungeonID;
 
 	//CX2LocationManager::LocalMapTemplet* pLocalMapTemplet = 
 	//	g_pData->GetLocationManager()->GetLocalMapTemplet( (CX2LocationManager::LOCAL_MAP_ID)g_pMain->GetNowDetailStateID() );
@@ -866,7 +944,7 @@ void CX2LocalMapUI::CreateDungeonClearStars( CX2LocationManager::LOCAL_MAP_ID eL
 	//bool bCheckFind = false;
 	//for ( int i = 0; i < (int)pLocalMapTemplet->m_DungeonList.size(); i++ )
 	//{
-	//	CX2Dungeon::DUNGEON_ID tempDungeonID = pLocalMapTemplet->m_DungeonList[i];
+	//	SEnum::DUNGEON_ID tempDungeonID = pLocalMapTemplet->m_DungeonList[i];
 	//	if ( tempDungeonID == dungeonIDToFind )
 	//	{
 	//		bCheckFind = true;
@@ -883,9 +961,9 @@ void CX2LocalMapUI::CreateDungeonClearStars( CX2LocationManager::LOCAL_MAP_ID eL
 #ifdef SERV_HALLOWEEN_DUNGEON	// 페이타에서만 할로윈 던전 위치 수정에 따른 별 표시 위치 수정
 	if( eLocalMapID == CX2LocationManager::LMI_PEITA )
 	{
-			if( (CX2Dungeon::DUNGEON_ID) dungeonID == CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL 
-				|| (CX2Dungeon::DUNGEON_ID) dungeonID == CX2Dungeon::DI_ELDER_HALLOWEEN_HARD
-				|| (CX2Dungeon::DUNGEON_ID) dungeonID == CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT )
+			if( (SEnum::DUNGEON_ID) dungeonID == SEnum::DI_ELDER_HALLOWEEN_NORMAL 
+				|| (SEnum::DUNGEON_ID) dungeonID == SEnum::DI_ELDER_HALLOWEEN_HARD
+				|| (SEnum::DUNGEON_ID) dungeonID == SEnum::DI_ELDER_HALLOWEEN_EXPERT )
 			pStaticStar->MoveControl( -40.f, 0.f );
 	}
 #endif SERV_HALLOWEEN_DUNGEON
@@ -942,6 +1020,29 @@ void CX2LocalMapUI::CreateDungeonClearStars( CX2LocationManager::LOCAL_MAP_ID eL
 		pStaticLimitInfo_Unlimit->SetShow( false );
 	}
 #endif NEW_HENIR_TEST
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+	if ( pDungeonData->m_DungeonID == SEnum::DI_EVENT_VALENTINE_DUNGEON_INT )
+	{
+		pDialog->OpenScriptFile( L"DLG_Map_Local_Valentine_limit.lua" );
+		CKTDGUIStatic* pStaticLimitInfo = (CKTDGUIStatic*) pDialog->GetControl( L"limit_info" );
+
+		wstring LimitInfoName = pDungeonData->m_DungeonName;
+		LimitInfoName += L"_LimitInfo";
+		pStaticLimitInfo->SetName( LimitInfoName.c_str() );
+		wstring controlName = pDungeonData->m_DungeonName;
+		//발렌타인 보상 제한 횟수
+		D3DXVECTOR2 LocalQuestPos;
+		CKTDGUIStatic* pStaticStar = (CKTDGUIStatic*) pDialog->GetControl( controlName.c_str() );
+		if( NULL != pStaticStar )
+		{
+			LocalQuestPos = pStaticStar->GetPicture(0)->GetPos();
+		}
+
+		LocalQuestPos.y -= 30.f;		
+		pStaticLimitInfo->SetOffsetPos( LocalQuestPos );
+	}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 }
 
 
@@ -1090,7 +1191,7 @@ void CX2LocalMapUI::UdateLocalMapQuestDesc( CX2LocationManager::LOCAL_MAP_ID eLo
 		return;
 #endif //SERV_NEW_DEFENCE_DUNGEON
 
-	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) dungeonID );
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) dungeonID );
 	if( NULL == pDungeonData )
 		return;
 
@@ -1119,15 +1220,13 @@ void CX2LocalMapUI::UdateLocalMapQuestDesc( CX2LocationManager::LOCAL_MAP_ID eLo
 	if( true == bShowQuest )
 	{
 #ifdef HIDE_QUEST_MARK_INACTIVATION_SECRET_DUNGEON
-		if( CX2Dungeon::DT_SECRET == pDungeonData->m_eDungeonType
-			&& false == g_pData->GetDungeonManager()->IsActiveDungeon( dungeonID, 0 ) ) 
-		{
-			pStaticLocalQuest->SetShow(false);
-		} 
+
+		/// 활성화된 던전인 경우 와 개발자 계정인 경우에만 Q마크를 보여주기
+		if ( g_pData->GetDungeonManager()->IsActiveDungeon( dungeonID, 0 )
+			|| ( NULL != g_pData->GetMyUser() && g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR ) )
+			pStaticLocalQuest->SetShow( true );
 		else
-		{
-			pStaticLocalQuest->SetShow(true);  
-		}
+			pStaticLocalQuest->SetShow(false);  
 #else
 		pStaticLocalQuest->SetShow(true);   
 #endif HIDE_QUEST_MARK_INACTIVATION_SECRET_DUNGEON		
@@ -1150,7 +1249,7 @@ void CX2LocalMapUI::CreateLocalQuestPicture( CX2LocationManager::LOCAL_MAP_ID eL
 #endif // SERV_NEW_DEFENCE_DUNGEON
 
 
-	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) dungeonID );
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) dungeonID );
 	if( NULL == pDungeonData )
 		return;
 
@@ -1191,9 +1290,9 @@ void CX2LocalMapUI::CreateLocalQuestPicture( CX2LocationManager::LOCAL_MAP_ID eL
 #ifdef SERV_HALLOWEEN_DUNGEON	// 페이타에서만 할로윈 던전 위치 수정에 따른 별 표시 위치 수정
 	if( eLocalMapID == CX2LocationManager::LMI_PEITA )
 	{
-		if( (CX2Dungeon::DUNGEON_ID) dungeonID == CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL 
-			|| (CX2Dungeon::DUNGEON_ID) dungeonID == CX2Dungeon::DI_ELDER_HALLOWEEN_HARD
-			|| (CX2Dungeon::DUNGEON_ID) dungeonID == CX2Dungeon::DI_ELDER_HALLOWEEN_EXPERT )
+		if( (SEnum::DUNGEON_ID) dungeonID == SEnum::DI_ELDER_HALLOWEEN_NORMAL 
+			|| (SEnum::DUNGEON_ID) dungeonID == SEnum::DI_ELDER_HALLOWEEN_HARD
+			|| (SEnum::DUNGEON_ID) dungeonID == SEnum::DI_ELDER_HALLOWEEN_EXPERT )
 			pStatic->MoveControl( -40.f, 0.f );
 	}
 #endif SERV_HALLOWEEN_DUNGEON
@@ -1254,28 +1353,68 @@ void CX2LocalMapUI::GetHenirDungeonIcnoDesc( OUT wstringstream& wstrStreamDungeo
 	{
 		iHenirRewardCount += m_HenirRewardCountInfo.m_iEvent;
 	}	
+
+#ifdef NEW_HENIR_DUNGEON
+
+	int iChallengeHenirRewardCount = m_HenirRewardCountInfo.m_iChallengeNormal;
+
+	if(m_HenirRewardCountInfo.m_iPremiumMAX > 0)
+	{
+		iChallengeHenirRewardCount += m_HenirRewardCountInfo.m_iChallengePremium;
+	}
+	if(m_HenirRewardCountInfo.m_iEventMAX > 0)
+	{
+		iChallengeHenirRewardCount += m_HenirRewardCountInfo.m_iChallengeEvent;
+	}
+
+#endif // NEW_HENIR_DUNGEON
+
 		
-	wstrStreamDungeonIconDesc_ << GET_STRING( STR_ID_13759 ) << '\n' << '\n';
+	wstrStreamDungeonIconDesc_ << GET_STRING( STR_ID_13759 ) << '\n' << '\n'; // // 헤니르의 시공에 입장합니다.
 
 	if( m_HenirRewardCountInfo.m_bUnLimited == true )
 	{
-		wstrStreamDungeonIconDesc_ << GET_STRING( STR_ID_13766 ) << '\n';
+		wstrStreamDungeonIconDesc_ << GET_STRING( STR_ID_13766 ) << '\n'; // [이벤트] 진입 횟수에 상관없이 #CFF0000무제한#CX으로 \n보상을 받으실 수 있습니다.  
 	}
-	else if(iHenirRewardCount == 0)
+	else if(iHenirRewardCount == 0 
+#ifdef NEW_HENIR_DUNGEON
+			&& iChallengeHenirRewardCount == 0 
+#endif // NEW_HENIR_DUNGEON
+		)
 	{
-		wstrStreamDungeonIconDesc_ << GET_STRING( STR_ID_13760 ) << '\n';
+		wstrStreamDungeonIconDesc_ << GET_STRING( STR_ID_13760 ) << '\n'; // 오늘은 헤니르의 시공에서 더 이상 \n보상을 획득할 수 없습니다.\n (던전 입장에는 제한이 없습니다.)
 	}
 	else
 	{
-		wstrStreamDungeonIconDesc_ << GET_STRING( STR_ID_13761 ) << '\n';
-		wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13763, "i", iHenirRewardCount ) );
+#ifdef NEW_HENIR_DUNGEON // 보상 횟수 가이드 문구
+		wstrStreamDungeonIconDesc_ << GET_STRING( STR_ID_13761 ) << '\n'; // 오늘 보상을 받을 수 있는 횟수는
+		// 일반 보상 얻을 수 있는 횟수
+		wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_27305, "i", iHenirRewardCount ) ); // #CFF0000@1#CX번 
+		
+		if(m_HenirRewardCountInfo.m_iPremiumMAX > 0)
+			wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13764, "i", m_HenirRewardCountInfo.m_iPremiumMAX ) ); // [PC방+@1]
+		if(m_HenirRewardCountInfo.m_iEventMAX > 0)
+			wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13765, "i", m_HenirRewardCountInfo.m_iEventMAX ) ); // [이벤트+@1]
+
+
+		// 도전 보상 얻을 수 있는 횟수
+		wstrStreamDungeonIconDesc_  << '\n' << GET_REPLACED_STRING( ( STR_ID_27334, "i", iChallengeHenirRewardCount ) ); // #CFF0000@1#CX번 
 
 		if(m_HenirRewardCountInfo.m_iPremiumMAX > 0)
-			wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13764, "i", m_HenirRewardCountInfo.m_iPremiumMAX ) );
+			wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13764, "i", m_HenirRewardCountInfo.m_iPremiumMAX ) ); // [PC방+@1]
 		if(m_HenirRewardCountInfo.m_iEventMAX > 0)
-			wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13765, "i", m_HenirRewardCountInfo.m_iEventMAX ) );
+			wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13765, "i", m_HenirRewardCountInfo.m_iEventMAX ) ); // [이벤트+@1]
+#else
+		wstrStreamDungeonIconDesc_ << GET_STRING( STR_ID_13761 ) << '\n';
+		wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13763, "i", iHenirRewardCount ) ); // #CFF0000@1#CX번 
 
-		wstrStreamDungeonIconDesc_ << '\n' << GET_STRING( STR_ID_13762 ) << '\n';
+		if(m_HenirRewardCountInfo.m_iPremiumMAX > 0)
+			wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13764, "i", m_HenirRewardCountInfo.m_iPremiumMAX ) ); // [PC방+@1]
+		if(m_HenirRewardCountInfo.m_iEventMAX > 0)
+			wstrStreamDungeonIconDesc_ << GET_REPLACED_STRING( ( STR_ID_13765, "i", m_HenirRewardCountInfo.m_iEventMAX ) ); // [이벤트+@1]
+#endif // NEW_HENIR_DUNGEON
+
+		wstrStreamDungeonIconDesc_ << '\n' << GET_STRING( STR_ID_13762 ) << '\n';// 남았습니다.\n (던전 입장에는 제한이 없습니다.)
 	}
 }
 
@@ -1380,3 +1519,160 @@ void CX2LocalMapUI::CloseOtherUI()
 
 }
 #endif //DUNGEON_SELECT_ALL_CLOSE
+
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+// 김석근 [12.08.27] 엘의 여인의 눈물
+void CX2LocalMapUI::CreateLocalTearOfELWoman( CX2LocationManager::LOCAL_MAP_ID eLocalMapID, int dungeonID )
+{
+
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) dungeonID );
+	if( NULL == pDungeonData )
+		return;
+
+	CKTDGUIDialogType pDialog = GetLocalMapDLG( eLocalMapID );
+	if( NULL == pDialog )
+		return; 
+
+	CKTDGUIStatic* pStatic = new CKTDGUIStatic();
+	pDialog->AddControl( pStatic );
+	CKTDGUIControl::CPictureData* pPicture = new CKTDGUIControl::CPictureData();
+	pStatic->AddPicture( pPicture );
+	pPicture->SetTex( L"DLG_UI_Event_Tear_Of_ELWoman.tga",  L"DROP_B");
+	pPicture->SetPoint();
+	pPicture->SetFlicker( 1.0f, 1.0f, 0.1f );
+
+	wstring LocalTearName = pDungeonData->m_DungeonName;
+	LocalTearName += L"_TearOfELWoman";
+	pStatic->SetName( LocalTearName.c_str() );
+	wstring controlName = pDungeonData->m_DungeonName;
+	
+	CKTDGUIStatic* pStaticStar = (CKTDGUIStatic*) pDialog->GetControl( controlName.c_str() );
+	if( NULL == pStaticStar )
+		return;
+
+	D3DXVECTOR2 LocalTearPos = pStaticStar->GetPicture(0)->GetPos();
+	LocalTearPos.x += 10.f;	 
+	LocalTearPos.y -= 50.f;	 
+	pStatic->SetOffsetPos( LocalTearPos );
+	pStatic->ScaleControl( 1.0f, 1.0f );
+	pStatic->SetShow(false);
+}
+
+void CX2LocalMapUI::UpdateLocalTearOfELWoman( CX2LocationManager::LOCAL_MAP_ID eLocalMapID, int dungeonID, bool bShow )
+{
+#ifdef SERV_NEW_DEFENCE_DUNGEON 
+	if( NULL != g_pData->GetDungeonManager() &&
+		true == g_pData->GetDungeonManager()->IsDefenceDungeon( dungeonID ) )
+		return;
+#endif //SERV_NEW_DEFENCE_DUNGEON
+
+	const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) dungeonID );
+	if( NULL == pDungeonData )
+		return;
+
+#ifdef SERV_NEW_EVENT_TYPES
+	if( g_pData->GetDungeonManager()->IsDungeonEnable( dungeonID ) == false )
+		return;
+#endif SERV_NEW_EVENT_TYPES
+
+	CKTDGUIDialogType pDialog = GetLocalMapDLG( eLocalMapID );
+	if( NULL == pDialog )
+		return;
+
+	wstring tearOfWomanName = pDungeonData->m_DungeonName;
+	tearOfWomanName += L"_TearOfELWoman";
+
+	CKTDGUIStatic* pStaticTearOfELWoman = (CKTDGUIStatic*) pDialog->GetControl( tearOfWomanName.c_str() );
+	if( NULL == pStaticTearOfELWoman )
+	{
+		ASSERT( !L"pStaticTearOfELWoman is NULL" );
+		return;
+	}
+
+	pStaticTearOfELWoman->SetShow(false);
+
+	KProtectedType<int> checkCurrLevel = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_Level;
+
+
+	CX2Dungeon::DUNGEON_TYPE eDungeonType = static_cast<CX2Dungeon::DUNGEON_TYPE>( g_pData->GetDungeonManager()->GetDungeonType( pDungeonData->m_DungeonID ) );
+
+	bool dungeonTearCheck = false;
+	bool m_bCanHaveTear = true;
+
+	switch ( eDungeonType )
+	{
+	case CX2Dungeon::DT_SECRET:
+	case CX2Dungeon::DT_NORMAL: // 헤니르, 비던을 제외한 던전
+		switch( pDungeonData->m_DungeonID )
+		{
+		case SEnum::DUNGEON_ID::DI_RUBEN_EL_TREE_NORMAL:
+		case SEnum::DUNGEON_ID::DI_RUBEN_RUIN_OF_ELF_NORMAL:
+		case SEnum::DUNGEON_ID::DI_RUBEN_RUIN_OF_ELF_HARD:
+		case SEnum::DUNGEON_ID::DI_RUBEN_RUIN_OF_ELF_EXPERT:
+		case SEnum::DUNGEON_ID::DI_RUBEN_SWAMP_NORMAL:
+		case SEnum::DUNGEON_ID::DI_RUBEN_SWAMP_HARD:
+		case SEnum::DUNGEON_ID::DI_RUBEN_SWAMP_EXPERT:
+		case SEnum::DUNGEON_ID::DI_ELDER_HENIR_SPACE:
+			m_bCanHaveTear = false;
+			break;
+		}
+
+		if(m_bCanHaveTear)
+		{
+			for(int d = 0; d < 3; d++)
+			{
+				if(g_pData == NULL 
+					|| g_pData->GetDungeonManager() == NULL
+					|| g_pData->GetDungeonManager()->GetDungeonData((SEnum::DUNGEON_ID)(dungeonID + d)) == NULL)
+					return;
+
+				int iDungeonMinLevel = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)(dungeonID + d))->m_MinLevel;
+				int iDungeonMaxLevel = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID)(dungeonID + d))->m_MaxLevel;
+
+				if( (iDungeonMinLevel - 2) <= checkCurrLevel && checkCurrLevel <= (iDungeonMaxLevel + 2)) 
+				{	
+					IF_EVENT_ENABLED(CEI_TEAR_OF_ELWOMAN)
+					{
+						dungeonTearCheck = true;
+					}
+					ELSE
+					{
+						dungeonTearCheck = false;
+					}	
+					
+				}
+
+				if( eDungeonType == CX2Dungeon::DT_SECRET)
+				{
+					break;
+				}
+			}
+			pStaticTearOfELWoman->SetShow(dungeonTearCheck);
+			break;
+		}
+	default:
+		break;
+	}
+
+}
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+void CX2LocalMapUI::GetEventValentineDungeonIconDesc( OUT wstringstream& wstrStreamDungeonIconDesc )
+{
+	int iHenirRewardCount = 3 - g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().GetValentineItemCount();
+		
+	wstrStreamDungeonIconDesc << GET_STRING( STR_ID_30263 ) << '\n' << '\n'; // // 헤니르의 시공에 입장합니다.
+
+	if(iHenirRewardCount == 0 )
+	{
+		wstrStreamDungeonIconDesc << GET_STRING( STR_ID_30264 ) << '\n'; // 오늘은 헤니르의 시공에서 더 이상 \n보상을 획득할 수 없습니다.\n (던전 입장에는 제한이 없습니다.)
+	}
+	else
+	{
+		wstrStreamDungeonIconDesc << GET_STRING( STR_ID_13761 ) << '\n'; // 오늘 보상을 받을 수 있는 횟수는
+		wstrStreamDungeonIconDesc << GET_REPLACED_STRING( ( STR_ID_13763, "i", iHenirRewardCount ) ); // #CFF0000@1#CX번 
+		wstrStreamDungeonIconDesc << '\n' << GET_STRING( STR_ID_13762 ) << '\n';// 남았습니다.\n (던전 입장에는 제한이 없습니다.)
+	}
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT

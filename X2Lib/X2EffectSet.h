@@ -1,14 +1,19 @@
 #pragma once
 
-
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#include    "indexed_list.h"
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
 
 
 class CX2GameUnit;
 class CX2SquareUnit;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2SquareUnit>    CX2SquareUnitPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2SquareUnit>    CX2SquareUnitPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 #ifdef SERV_PET_SYSTEM
 class CX2PET;
@@ -16,12 +21,40 @@ class CX2PET;
 
 #ifdef RIDING_SYSTEM
 class CX2RidingPet;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2RidingPet> CX2RidingPetPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2RidingPet> CX2RidingPetPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 #endif //RIDING_SYSTEM
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+struct  CX2EffectSet_EffectSetInstance_TAG {};
+typedef KHandleType<int,CX2EffectSet_EffectSetInstance_TAG>     CX2EffectSet_EffectSetInstanceHandle;
+#define INVALID_EFFECTSET_HANDLE    (CX2EffectSet_EffectSetInstanceHandle::invalid_handle())
+
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
 
 class CX2EffectSet
 {
 public: 
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+    typedef CX2EffectSet_EffectSetInstanceHandle    Handle;
+
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    typedef int Handle;
+    static const Handle INVALID_HANDLE = Handle(-1);
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+
 	enum EFFECT_SET_MODE
 	{
 		ESM_INVALID,
@@ -31,8 +64,6 @@ public:
 		ESM_COMMON,			// 게임 & 마을
 #endif
 	};
-
-
 
 
 	enum EFFECT_TYPE
@@ -74,8 +105,9 @@ public:
 		int				m_iLookAtShakeCount;
 		CMinMax<float>	m_LookAtMoveSpeed;
 		CMinMax<float>	m_LookAtMoveRange;
-		
-#ifdef EFFECT_TOOL
+
+#if defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
+// #ifdef EFFECT_TOOL
 		static bool IsSamef_( float a, float b = 0.f )
 		{
 			if( fabs( a - b ) > 0.0009 )
@@ -108,7 +140,8 @@ public:
 
 			return true;
 		}
-#endif //EFFECT_TOOL
+// #endif // EFFECT_TOOL
+#endif //defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
 
 		CameraShakeData() :
 		m_eShakeType( CKTDGCamera::DECT_INVALID ),
@@ -152,9 +185,7 @@ public:
 		bool			m_bTraceMore;				// 파티클이 trace될 때 bone의 움직임 보다 느리게 따라오는 문제가 있을 때 사용
 
 		//{{kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
-#ifdef	TRACE_MAXTRIX_TEST
 		bool			m_bTraceMatrix;
-#endif	TRACE_MAXTRIX_TEST
 		//}}kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
 
 #ifdef ARA_CHANGE_CLASS_FIRST
@@ -187,12 +218,17 @@ public:
 		bool			m_bBoneTraceTargetMesh;
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
 
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+		bool			m_bTraceUserTargetForce;		// BoneTraceTargetMesh가 적용중 이라도, 해당 설정이 되어 있으면 유닛을 Trace 한다.
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
+
 #ifdef MODIFY_CREATE_EFFECT_SET_LIMIT_DISTANCE // 오현빈
 		// 이펙트셋보다 지정된 거리 이상 멀어지면 생성하지 않도록 하기 위한 거리 값 저장 변수
 		float			m_fLimitDistanceSq;
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
 
-#ifdef EFFECT_TOOL
+#if defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
+// #ifdef EFFECT_TOOL
 		static bool IsSamef_( float a, float b = 0.f )
 		{
 			if( fabs( a - b ) > 0.0009 )
@@ -226,16 +262,22 @@ public:
 			if( m_bPassiveEffect				!= rhs_.m_bPassiveEffect			) return false;
 			if( m_bUseSubAttackListSet			!= rhs_.m_bUseSubAttackListSet	    ) return false;
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE // 오현빈
-			if( m_bBoneTraceTargetMesh			!= rhs_.m_bBoneTraceTargetMesh				) return false;
+			if( m_bBoneTraceTargetMesh			!= rhs_.m_bBoneTraceTargetMesh		) return false;
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
 
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+			if( m_bTraceUserTargetForce			!= rhs_.m_bTraceUserTargetForce		) return false;
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
+
 #ifdef MODIFY_CREATE_EFFECT_SET_LIMIT_DISTANCE // 오현빈
-			if( m_fLimitDistanceSq			!= rhs_.m_fLimitDistanceSq				) return false;
+			if( m_fLimitDistanceSq				!= rhs_.m_fLimitDistanceSq			) return false;
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
 
 			return true;
 		}
-#endif //EFFECT_TOOL
+
+// #endif // EFFECT_TOOL
+#endif //defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
 
 		EffectData() 
 		: m_eEffectType( ET_INVALID )
@@ -253,9 +295,7 @@ public:
 		, m_bTrace( false )
 		, m_bTraceMore( false )
 		//{{kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
-#ifdef	TRACE_MAXTRIX_TEST
 		, m_bTraceMatrix( false )
-#endif	TRACE_MAXTRIX_TEST
 #ifdef ARA_CHANGE_CLASS_FIRST
 		, m_bReverseY( false )
 #endif
@@ -275,6 +315,9 @@ public:
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE // 오현빈
 		, m_bBoneTraceTargetMesh( false )
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+		, m_bTraceUserTargetForce( false )
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 #ifdef MODIFY_CREATE_EFFECT_SET_LIMIT_DISTANCE // 오현빈
 		, m_fLimitDistanceSq( -1.f )
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
@@ -295,8 +338,8 @@ public:
 
 		//bool			m_bDeleteWhenTraceTargetDead;			// m_pTraceTargetGameUnit이 죽거나 없어지면 이펙트도 사라진다
 		int				m_iDeleteShakeCount;					// 0보다 클 때 유효하고 이 회수만큼 흔들면 이펙트도 사라진다
-		
-#ifdef EFFECT_TOOL
+#if defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
+// #ifdef EFFECT_TOOL
 		bool operator==( const EffectSetData& rhs_) const
 		{
 			if( m_wstrEffectSetName != rhs_.m_wstrEffectSetName ) return false;
@@ -314,7 +357,7 @@ public:
 				else
 					return false;
 			}
-			
+
 			if( m_vecpCameraShakeData.size() != rhs_.m_vecpCameraShakeData.size() ) return false;
 			i = 0;
 			BOOST_FOREACH( CameraShakeData* pData, m_vecpCameraShakeData )
@@ -352,7 +395,9 @@ public:
 
 			return *this;
 		}
-#endif //EFFECT_TOOL
+// #endif // EFFECT_TOOL
+#endif // defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
+
 		EffectSetData()
 		: m_wstrEffectSetName( L"" )
 		, m_eEventTimerType( ESTT_ANIM )
@@ -385,7 +430,11 @@ public:
 	{
 		bool												m_bAlive;
 		EffectData*											m_pEffectData;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffectHandle       						m_hDamageEffect;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CX2DamageEffect::CEffect*							m_pDamageEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CKTDGXMeshPlayer::CXMeshInstanceHandle				m_hMeshPlayer;
 		CKTDGParticleSystem::CParticleEventSequenceHandle	m_hParticleSequence;
 		CX2GameUnitoPtr										m_optrGameUnit;
@@ -393,9 +442,13 @@ public:
 		EffectInstance() :
 		m_bAlive( true ),
 		m_pEffectData( NULL ),
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hDamageEffect( INVALID_DAMAGE_EFFECT_HANDLE ),
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pDamageEffect( NULL ),
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_hMeshPlayer( INVALID_MESH_INSTANCE_HANDLE ),
-		m_hParticleSequence( INVALID_PARTICLE_HANDLE ),
+		m_hParticleSequence( INVALID_PARTICLE_SEQUENCE_HANDLE ),
 		m_optrGameUnit()	/// Destructor 처리는 해주지 않는다
 		{
 		}
@@ -409,7 +462,11 @@ public:
 	{
 		EFFECT_SET_MODE					m_eMode;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        Handle                          m_hHandle;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CKTDXSimpleHandleInterface< EffectSetInstance >::Handle m_hHandle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CKTDGXSkinAnimPtr				m_pXSkinAnim;
 
 		CX2GameUnitoPtr					m_optrGameUnit;				// owner
@@ -455,9 +512,7 @@ public:
 		CX2PET *m_pPet;
 #endif
 
-#ifdef ROTATE_EFFECTSET
 		D3DXVECTOR3						m_vLocalRotateDegree;
-#endif
 
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE // 오현빈
 		// 이펙트셋은 기본적으로 게임 유닛 객체를 기준으로 이동 하게 되어 있음.
@@ -475,13 +530,22 @@ public:
 
 #ifdef FIX_TARGET_MESH_OFFSET_POS // 김태환
 		D3DXVECTOR3				m_vecTargetMeshDirVector;	/// 타겟 매시의 방향 벡터 ( 처음 생성시 유닛의 방향 벡터 값 )
-		D3DXVECTOR3				m_vecTargetMeshZVector;	/// 타겟 매시의 Z 벡터 ( 처음 생성시 유닛의 Z 벡터 값 )
+		D3DXVECTOR3				m_vecTargetMeshZVector;		/// 타겟 매시의 Z 벡터 ( 처음 생성시 유닛의 Z 벡터 값 )
 #endif // FIX_TARGET_MESH_OFFSET_POS
 
 
 #ifdef ADD_RESOURCE_ERROR_LOG
 		set<wstring>					m_setEmptyBoneName;
 #endif //ADD_RESOURCE_ERROR_LOG
+
+#ifdef ADD_RENA_SYSTEM //김창한
+		CX2DamageManager::FIRST_ATTACK_CHECK		m_eFirstAttack;					/// 첫번째 공격을 성공했는가?
+		CX2DamageManager::DamageRelateSkillData		m_RelateSkillData;
+#endif //ADD_RENA_SYSTEM
+
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+		D3DXVECTOR3		m_vBoneTraceTargetMeshScale;	/// 행렬 Trace일 때, BoneTraceTargetMesh의 스케일 값 빼주기 위한 저장 변수
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
 
 	private:
 		EffectSetInstance() {}; // do not use
@@ -511,9 +575,7 @@ public:
 #endif // EFFECT_TOOL
 
 		//{{kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
-#ifdef	TRACE_MAXTRIX_TEST
 		const D3DXMATRIX* GetCombineMatrix( const EffectData* pEffectData ) const;
-#endif	TRACE_MAXTRIX_TEST
 			//}}kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
 		
 		void SetPowerRateScale(const float val) { m_fPowerRateScale = val; }
@@ -524,13 +586,10 @@ public:
 			m_vScale = vScale;
 			m_bDamageEffectScale = bDamageEffectSclae;
 		}
-#ifdef ROTATE_EFFECTSET
 		void SetLocalRotateDegree( const D3DXVECTOR3& vRot )
 		{
 			m_vLocalRotateDegree = vRot;
 		}
-#endif
-#ifdef ADD_PET_UNICORN
 #ifdef ADD_PET_NINE_TAIL_FOX		/// bCustomPosition 설정 가능하도록 수정
 		void SetEffectPosition( const D3DXVECTOR3 &vPos, bool bCustomPosition = true )
 		{
@@ -544,30 +603,46 @@ public:
 			m_bCustomPosition = true;
 		}
 #endif // ADD_PET_NINE_TAIL_FOX
-#endif // ADD_PET_UNICORN
 
 		CX2GameUnit* GetOwnerUnit() const;
+
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+		void SetEffectSetOffset( OUT D3DXVECTOR3& vPos_, IN const D3DXVECTOR3& vOffsetPos_, IN const EffectData* pEffectData_ );
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		void SetEffectSetOffset( OUT D3DXVECTOR3& vPos_, IN const D3DXVECTOR3& vOffsetPos_ );
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE // 오현빈
 		CKTDGXMeshPlayer::CXMeshInstance* GetMeshInstanceByTargetMesh();
 		bool GetEffectPositionByTargetMesh( OUT D3DXVECTOR3& vPos, IN EffectData* pEffectData );
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
 
-#ifdef ADD_RESOURCE_ERROR_LOG
-		void FindBoneErrorLog( const WCHAR* EffectSetName, const WCHAR* wcBoneName_ );
-#endif // ADD_RESOURCE_ERROR_LOG
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        Handle  GetHandle() const { return m_hHandle; }
+        void    SetHandle( Handle handle )  { m_hHandle = handle; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		void SetPos( IN const D3DXVECTOR3& vOffsetPos_ );
+#endif //SERV_9TH_NEW_CHARACTER
 
 	};
+
+#ifndef X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	typedef CKTDXSimpleHandleInterface< CX2EffectSet::EffectSetInstance >::Handle Handle;
 	static const Handle INVALID_HANDLE = CKTDXSimpleHandleInterface< CX2EffectSet::EffectSetInstance >::INVALID_HANDLE;
 
-
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 
 public:
-	CX2EffectSet(void);
+	CX2EffectSet(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            unsigned char ucSystemID = 0
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK        
+        );
 	~CX2EffectSet(void);
 
 
@@ -591,11 +666,13 @@ public:
 #ifdef HANABI_VILLAGE
 	CX2EffectSet::Handle PlayEffectSetEvent( const wstring& wstrEffectSetName, CX2SquareUnitPtr pSquareUnit, D3DXVECTOR3 vPosition );
 #endif HANABI_VILLAGE
-
 	CX2EffectSet::Handle PlayEffectSetCustomPos( const wstring& wstrEffectSetName, CX2SquareUnitPtr pSquareUnit, const D3DXVECTOR3& vPos );
 	void StopEffectSet( CX2EffectSet::Handle& hHandle );
 	void StopEffectSetAll();
-	
+#ifdef CREATEINSTANCE_WITH_LIFETIME_IN_LUA
+	CX2EffectSet::Handle PlayEffectSetWithLifetime_LUA( const char* pEffectSetName, CX2GameUnit* pGameUnit, float fLifeTime );
+	CX2EffectSet::Handle PlayEffectSetWithLifetimePos_LUA( const char* pEffectSetName, CX2GameUnit* pGameUnit, float fLifeTime, D3DXVECTOR3 vPosition = D3DXVECTOR3( 0, 0, 0 ) );
+#endif //CREATEINSTANCE_WITH_LIFETIME_IN_LUA
 #ifdef GET_EFFECTSET_POSITION_IN_LUA
 	D3DXVECTOR3 GetEffectPosition_LUA( Handle hHandle, int iEffectIndex );
 #endif GET_EFFECTSET_POSITION_IN_LUA
@@ -620,6 +697,17 @@ public:
 	//}} JHKang / 강정훈 / 2011/01/19
 
 	EffectSetInstance* GetEffectSetInstance( CX2EffectSet::Handle hHandle );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    bool               IsLiveInstanceHandle( CX2EffectSet::Handle hHandle ) { return GetEffectSetInstance( hHandle ) != NULL; }
+    EffectSetInstance* ValidateInstanceHandle( CX2EffectSet::Handle& hHandle )
+    {
+        EffectSetInstance* pInstance = GetEffectSetInstance( hHandle );
+        if ( pInstance == NULL )
+            hHandle = INVALID_EFFECTSET_HANDLE;
+        return pInstance;
+    }
+    void                DestroyInstanceHandle( CX2EffectSet::Handle& hHandle ) { StopEffectSet( hHandle ); }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	EffectSetData* GetEffectSetTemplet( const wstring& wstrEffectSetName );
 
@@ -630,15 +718,13 @@ public:
 	
 	static D3DXVECTOR3 GetZVector( const D3DXVECTOR3& vDirVector );
 
-#ifdef ADD_PET_UNICORN
-
 #ifdef ADD_PET_NINE_TAIL_FOX		/// bCustomPosition 설정 가능하도록 수정
 	void SetEffectSetInstPos( CX2EffectSet::Handle hHandle, D3DXVECTOR3 vPos, bool bCustomPosition = true  )
 #else  ADD_PET_NINE_TAIL_FOX
 	void SetEffectSetInstPos( CX2EffectSet::Handle hHandle, D3DXVECTOR3 vPos )
 #endif ADD_PET_NINE_TAIL_FOX
 	{
-		if( hHandle == CX2EffectSet::INVALID_HANDLE )
+		if( hHandle == INVALID_EFFECTSET_HANDLE )
 			return;
 
 		EffectSetInstance *pInst = GetEffectSetInstance( hHandle );
@@ -651,7 +737,6 @@ public:
 #endif ADD_PET_NINE_TAIL_FOX
 		}
 	}
-#endif
 
 #ifdef FIX_ICE_HEATER_EVENT
 	CX2EffectSet::Handle PlayEffectSetByMeshPlayer( const WCHAR* wstrEffectSetName, 
@@ -660,7 +745,7 @@ public:
 	
 	void CX2EffectSet::SetEffectScale_LUA (CX2EffectSet::Handle hHandle, D3DXVECTOR3 vScale, bool bDamageEffectSclae )
 	{
-		if( hHandle == CX2EffectSet::INVALID_HANDLE )
+		if( hHandle == INVALID_EFFECTSET_HANDLE )
 			return;
 
 		EffectSetInstance *pInst = GetEffectSetInstance( hHandle );
@@ -669,8 +754,8 @@ public:
 			pInst->SetEffectScale( vScale, bDamageEffectSclae );
 		}
 	}
-	
-#ifdef EFFECT_TOOL
+
+#ifdef EFFECT_TOOL 
 	std::vector< EffectSetData* >* GetVecEffectSetTemplet(){ return &m_vecEffectSetTemplet;}
 	bool CreateEffectSetTemplet( EffectSetData* pEffectSetData_ );
 	bool DeleteEffectSetTemplet( const wstring& wstrEffectSetName_ ) ;
@@ -684,10 +769,84 @@ public:
 	wstring GetEffectToolVersion(){ return m_wstrToolVersion;}
 #endif //EFFECT_TOOL
 
-private:
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+public :
 	typedef std::map< std::wstring, EffectSetData* > EffectSetDataMap;
+	EffectSetDataMap & GetMapEffectSetTemplet(){ return m_mapEffectSetTemplet;}
+	bool MergeEffectSetTemplet( EffectSetData* pNewEffectSetTemplet_, EffectSetData * pOrgEffectSetTemplet_ );
+
+#ifndef EFFECT_TOOL
+	bool CreateEffectSetTemplet( EffectSetData* pEffectSetData_ );	
+	bool DeleteEffectSetTemplet( EffectSetData* pEffectSetData_ ) ;
+#endif // EFFECT_TOOL
+#endif // EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+
+    DWORD   ComposeHandle( WORD wIndex, OUT WORD& wStamp )
+    {
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        wStamp &= 0x3fff;
+        return wIndex | ( wStamp << 16L ) | ( m_ucSystemID << 30L );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        return wIndex | ( wStamp << 16L );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    }
+    bool    DecomposeHandle( DWORD dwHandle, OUT WORD& wIndex, OUT WORD& wStamp )
+    {
+        wIndex = (WORD) dwHandle;
+        wStamp = (WORD) ( ( dwHandle & 0xffff0000 ) >> 16L );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        unsigned char ucSystemID = (unsigned char) ( wStamp >> 14L );
+        wStamp &= 0x3fff;
+        return ucSystemID == m_ucSystemID;
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        return true;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    }
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    unsigned char GetSystemID()                     { return m_ucSystemID; }
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+
+private:
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    EffectSetInstance*  _CreateEffectSetInstance( 
+         EffectSetData* pEffectSetData, CKTDGXSkinAnimPtr pSkinAnim, CX2GameUnit* pGameUnit, CX2GameUnit* pTraceTargetGameUnit, CX2SquareUnitPtr pSquareUnit,
+#ifdef  SERV_PET_SYSTEM
+    CX2PET *pPet = NULL
+#endif  SERV_PET_SYSTEM
+    );
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifndef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+	typedef std::map< std::wstring, EffectSetData* > EffectSetDataMap;
+#endif // f EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
 	EffectSetDataMap					m_mapEffectSetTemplet;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    enum    EListType
+    {
+        LIST_LIVE = 0,
+        LIST_FREE = 1,
+        LIST_NUM
+    };
+    struct  KInstanceHandleInfo
+    {
+        EffectSetInstance*      m_pInstance;
+        WORD                    m_wStamp;
+        KInstanceHandleInfo()
+            : m_pInstance( NULL )
+            , m_wStamp(0)
+        {
+        }
+    };
+    typedef kog::indexed_list<KInstanceHandleInfo> KInstanceHandleList;
+    KInstanceHandleList             m_coInstanceHandleList;
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	std::vector< EffectSetInstance* >	m_vecpEffectSetInstance;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef EFFECT_TOOL
 	std::vector< EffectSetData* > m_vecEffectSetTemplet;
@@ -695,6 +854,12 @@ private:
 	wstring								m_wstrToolVersion;
 #endif //EFFECT_TOOL
 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	static CKTDXSimpleHandleInterface< CX2EffectSet::EffectSetInstance > CX2EffectSet::s_HandleManager;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        unsigned char                           m_ucSystemID;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 };
 

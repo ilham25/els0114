@@ -1,12 +1,11 @@
 #include "StdAfx.h"
 #include "X2KeyPad.h"
 
-#ifdef REFORM_UI_KEYPAD
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 // 이 클래스에선 게임패드용 매핑을 건드리면 안 됩니다. by 박진웅
 #define GAMEACTION_END GAMEACTION_RETURN
-#endif KEY_MAPPING_INT
+#endif SERV_KEY_MAPPING_INT
 
 #ifdef KEYPAD_MAPPING
 const int CX2KeyPad::USE_KEY_NUMBER = CX2KeyPad::KBI_END;
@@ -476,11 +475,7 @@ const wstring CX2KeyPad::KEYPAD_STRING[CX2KeyPad::KBI_END] =
 		int slotIndex = -1;
 
 		// 액션 키 설정
-//#ifdef KEY_MAPPING_INT
-//		for( int i = GAMEACTION_ATTACK_FAST; i < GAMEACTION_RETURN; ++i )
-//#else KEY_MAPPING_INT
 		for( int i = GAMEACTION_ATTACK_FAST; i < GAMEACTION_END; ++i )
-//#endif KEY_MAPPING_INT
 		{
 			int slotIndex = m_KeyPadMap[(GAME_ACTION)i];
 
@@ -856,9 +851,9 @@ const wstring CX2KeyPad::KEYPAD_STRING[CX2KeyPad::KBI_END] =
 			{
 				int iKeyIndex = m_KeyPadMap.at( GAME_ACTION(i) );
 				if ( iKeyIndex < USE_KEY_NUMBER 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 					&& iKeyIndex != GAME_ACTION_NONE
-#endif // KEY_MAPPING_INT					
+#endif // SERV_KEY_MAPPING_INT					
 					)
 				{
 					unsigned char ucKey = m_DeviceKeyMap.right.at( KEY_BUTTON_INDEX( iKeyIndex ) );
@@ -1919,4 +1914,3 @@ const wstring CX2KeyPad::KEYPAD_STRING[CX2KeyPad::KBI_END] =
 
 #pragma endregion 클래스
 
-#endif

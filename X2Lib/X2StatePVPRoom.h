@@ -336,7 +336,6 @@ class CX2StatePVPRoom : public CX2StateMenu
 
 
 
-
 	protected:
 		CX2PVPRoom*				m_pCX2PVPRoom;		
 		CKTDGUIDialogType		m_pDLGPVPRoomBack;

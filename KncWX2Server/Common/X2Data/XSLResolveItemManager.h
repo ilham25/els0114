@@ -59,7 +59,6 @@ class CXSLResolveItemManager
 	};
 #endif SERV_MULTI_RESOLVE
 	//}}
-
 public:
 	struct SResolveData
 	{
@@ -174,7 +173,6 @@ public:
 	bool GetResultItemAvatar( IN const int iItemGrade, IN const int iItemType, OUT std::map< int, KItemInfo >& mapResultItem , OUT int& iAfterItem, OUT int& iAfterItemQuantity) const;
 #endif SERV_MULTI_RESOLVE
 	//}}
-
 	// for resolve
 	double GetJackpotTime() const;
 	//{{ 2011. 01. 19	최육사	아이템 분해 개편
@@ -210,7 +208,6 @@ private:
 	std::map< int, SResolveDataAvatarGrade >	m_mapResolveDataAvatar;
 #endif SERV_MULTI_RESOLVE
 	//}}
-
 	// 대박
 	int												m_iMinJackpotTime;
 	int												m_iMaxJackpotTime;

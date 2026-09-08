@@ -42,19 +42,35 @@ void CX2UIHeroMatch::InitUI()
 
 		pStatic = static_cast<CKTDGUIStatic*>(m_pDlgHeroMatch->GetControl(L"Static_ALL"));
 		if( NULL != pStatic)
-			pStatic->GetString(0)->msg = L"전체";
+			pStatic->GetString(0)->msg = GET_STRING(STR_ID_28991);
 		pStatic = static_cast<CKTDGUIStatic*>(m_pDlgHeroMatch->GetControl(L"Static_Nickname"));
 		if( NULL != pStatic)
 			pStatic->GetString(0)->msg = GET_STRING(STR_ID_1127);
 		pStatic = static_cast<CKTDGUIStatic*>(m_pDlgHeroMatch->GetControl(L"Static_Server"));
 		if( NULL != pStatic)
-			pStatic->GetString(0)->msg = L"서버";
+			pStatic->GetString(0)->msg = GET_STRING(STR_ID_28992);
 		pStatic = static_cast<CKTDGUIStatic*>(m_pDlgHeroMatch->GetControl(L"Static_Login"));
 		if( NULL != pStatic)
-			pStatic->GetString(0)->msg = L"로그인";
+			pStatic->GetString(0)->msg = GET_STRING(STR_ID_28993);
 		pStatic = static_cast<CKTDGUIStatic*>(m_pDlgHeroMatch->GetControl(L"Static_Contact"));
 		if( NULL != pStatic)
-			pStatic->GetString(0)->msg = L"대회채널\n접속여부";
+			pStatic->GetString(0)->msg = GET_STRING(STR_ID_28994);
+
+		CKTDGUIListBox* pListBox = static_cast<CKTDGUIListBox*>(m_pDlgHeroMatch->GetControl( L"GameEdit_Help_Dev" ) );
+		if( NULL != pListBox )
+		{
+			pListBox->AddItem(GET_STRING(STR_ID_28995), NULL);
+			pListBox->AddItem(GET_STRING(STR_ID_28996), NULL);
+			pListBox->AddItem(GET_STRING(STR_ID_28997),  NULL);
+			pListBox->AddItem(L"", NULL);
+			pListBox->AddItem(L"", NULL);
+			pListBox->AddItem(L"", NULL);
+			pListBox->AddItem(GET_STRING(STR_ID_28998), NULL);
+			pListBox->AddItem(GET_STRING(STR_ID_28999), NULL);
+			pListBox->AddItem(GET_STRING(STR_ID_29000), NULL);
+			pListBox->AddItem(GET_STRING(STR_ID_29001), NULL);
+			pListBox->AddItem(GET_STRING(STR_ID_29002), NULL);
+		}
 	}
 	
 
@@ -72,7 +88,7 @@ void CX2UIHeroMatch::InitUI()
 			pStatic->GetString(0)->msg = GET_STRING(STR_ID_1127);
 		pStatic = static_cast<CKTDGUIStatic*>(m_pDlgHeroAdd->GetControl(L"Static_Server"));
 		if( NULL != pStatic)
-			pStatic->GetString(0)->msg = L"서버";
+			pStatic->GetString(0)->msg = GET_STRING(STR_ID_28992);
 
 		CKTDGUIComboBox* pComboBox = NULL;
 		for(int i = 0;i < 9;i++)
@@ -205,7 +221,8 @@ bool CX2UIHeroMatch::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPA
 
 	case XHMUM_SHOW_COMMAND:
 		{
-			Handler_EGS_ADMIN_NOTIFY_HERO_PVP_USER_REQ();
+			ToggleHelpList();
+			//Handler_EGS_ADMIN_NOTIFY_HERO_PVP_USER_REQ();
 		} return true;
 
 	case XHMUM_CLOSE_ADD_USER:
@@ -770,7 +787,6 @@ void CX2UIHeroMatch::UpdateUserList()
 			break;
 		}
 #endif EXTEND_SERVER_GROUP_MASK
-
 		
 		StringCchPrintf( temp, 256, L"MenuButton_%d", i );
 		pButtonMenu->SetName( temp );
@@ -798,6 +814,24 @@ void CX2UIHeroMatch::UpdateUserList()
 	}
 
 	pControlList->SetIndex( 0, 0);
+}
+
+void CX2UIHeroMatch::ToggleHelpList()
+{	
+	CKTDGUIListBox* pListBox = static_cast<CKTDGUIListBox*>(m_pDlgHeroMatch->GetControl( L"GameEdit_Help_Dev" ) );
+	CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDlgHeroMatch->GetControl( L"StaticGameEditCommandBG" ) );
+
+	if( pStatic != NULL )
+	{
+		pStatic->SetShow( !pStatic->GetShow() );
+		pStatic->SetEnable( !pStatic->GetEnable() );
+	}
+
+	if( NULL != pListBox )
+	{
+		pListBox->SetShow( !pListBox->GetShow() );
+		pListBox->SetEnable( !pListBox->GetEnable() );
+	}
 }
 
 #endif //SERV_HERO_PVP_MANAGE_LIST

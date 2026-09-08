@@ -6,11 +6,15 @@
 class CX2PETAI;
 
 class CX2PET;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2PET>   CX2PETPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2PET>   CX2PETPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 class   CX2FrameUDPPack;
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 class CX2PET : public CKTDGObject, public CKTDXDeviceHolder
 {	
@@ -222,7 +226,7 @@ public:
 		bool			bHit;
 		bool			bAttackerFront;
 
-		bool			bFrameBufferPass;
+		//bool			bFrameBufferPass;
 		char			stateChangeNum;
 
 
@@ -251,20 +255,19 @@ public:
 			bHit						= false;
 			bAttackerFront				= true;
 
-			bFrameBufferPass			= false;
+			//bFrameBufferPass			= false;
 			stateChangeNum				= 0;
 
 
 		}
 	};
-#ifdef EXPAND_SPEED_TIME_SCRIPT_ON_PET
 
+#ifdef EXPAND_SPEED_TIME_SCRIPT_ON_PET
 		struct TIME_SPEED
 		{
 			D3DXVECTOR3 vSpeed;		/// x는 X축, y는 Y축, z는 스피드가 적용될 애니메이션 타임 시점
 			int iFlag;				/// 1이면 m_PhysicParam.nowSpeed 의 x, y에 += 연산을\n
 									///	2이면 = 연산을 수행하게하는 플래그
-
 			TIME_SPEED() :
 			vSpeed( D3DXVECTOR3(0.f, 0.f, 0.f) ),
 			iFlag( 0 )
@@ -321,22 +324,22 @@ public:
 		{
 			nowState			= pXPT_UNIT_PET_SYNC->nowState;
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
             _DecodePetSyncPos( position, pXPT_UNIT_PET_SYNC->ucPosX, pXPT_UNIT_PET_SYNC->ucPosY, pXPT_UNIT_PET_SYNC->ucPosZ, pXPT_UNIT_PET_SYNC->lastTouchLineIndex );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-			position.x			= pXPT_UNIT_PET_SYNC->posX;
-			position.y			= pXPT_UNIT_PET_SYNC->posY;
-			position.z			= pXPT_UNIT_PET_SYNC->posZ;
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//			position.x			= pXPT_UNIT_PET_SYNC->posX;
+//			position.y			= pXPT_UNIT_PET_SYNC->posY;
+//			position.z			= pXPT_UNIT_PET_SYNC->posZ;
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 			lastTouchLineIndex	= pXPT_UNIT_PET_SYNC->lastTouchLineIndex;
 
 			bIsRight			= pXPT_UNIT_PET_SYNC->bIsRight;
 			m_usRandomTableIndex = pXPT_UNIT_PET_SYNC->m_usRandomTableIndex;
 		}
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         void _DecodePetSyncPos( D3DXVECTOR3& vPosition, USHORT usPosX, USHORT usPosY, USHORT usPosZ, unsigned char ucLastTouchLineIndex );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	};
 
 	struct ConditionTableData
@@ -362,10 +365,10 @@ public:
 		bool		m_bTargetBelowMe;
 		int			m_iHaveTarget;	// -1: don't care, 0: false, 1: true
 		float		m_fHigherThenPosY;
-		int			m_iAliveUserUnitMoreThan;								
-		int			m_iAliveUserUnitLessThan;
-		int			m_iUserUnitMoreThan;
-		int			m_iUserUnitLessThan;
+		//int			m_iAliveUserUnitMoreThan;								
+		//int			m_iAliveUserUnitLessThan;
+		//int			m_iUserUnitMoreThan;
+		//int			m_iUserUnitLessThan;
 		float 		m_fTimerElapsed[10];
 		int         m_iGEKeyCode; // added by wonpok
 		bool		m_bDirTarget; // 타켓이 왼쪽/오른쪽에 있는지에 대한 여부를 검사할지 설정
@@ -394,10 +397,10 @@ public:
 			m_bTargetBelowMe				= false;
 			m_iHaveTarget					= false;
 			m_fHigherThenPosY				= -1.0f;
-			m_iAliveUserUnitMoreThan		= -1;
-			m_iAliveUserUnitLessThan		= -1;
-			m_iUserUnitMoreThan				= -1;
-			m_iUserUnitLessThan				= -1;
+			//m_iAliveUserUnitMoreThan		= -1;
+			//m_iAliveUserUnitLessThan		= -1;
+			//m_iUserUnitMoreThan				= -1;
+			//m_iUserUnitLessThan				= -1;
 
 			m_iGEKeyCode                    = -1;
 			m_bDirTarget					= false;
@@ -414,14 +417,14 @@ public:
 	{
 		STATE_CHANGE_TYPE	m_StateChangeType;
 		char                m_NextStateID;
-		wstring				m_wstrCustomCondition;
+		string				m_strCustomCondition;
 		ConditionTableData*	m_pConditionTableData;
 
 		PetEventProcessData()
 		{
 			m_StateChangeType		= SCT_NO_CHANGE;
 			m_NextStateID			= PSI_NONE;
-			m_wstrCustomCondition	= L"";
+			m_strCustomCondition	= "";
 			m_pConditionTableData	= NULL;
 		}
 
@@ -436,9 +439,9 @@ public:
 		int				stateID;
 		
 #ifdef GHOST_PET
-		wstring			Lua_Start;
+		std::string		Lua_Start;
 #endif
-		wstring			Lua_FrameMove;
+		std::string		Lua_FrameMove;
 		
 		float			fStateCoolTime;
 		float			fStateElapsedTime;		
@@ -474,9 +477,9 @@ public:
 			stateID			= PSI_NONE;
 
 #ifdef GHOST_PET
-			Lua_Start			= L"";
+			Lua_Start			= "";
 #endif
-			Lua_FrameMove		= L"";
+			Lua_FrameMove		= "";
 			fStateCoolTime = 0.f;
 			fStateElapsedTime	= 0.0f;
 
@@ -526,7 +529,15 @@ public:
 #ifdef PET_DROP_ITEM_PICKUP
 		bool	m_bIsDropItemPickup;// 아이템 줍기 스킬 활성화 여부
 #endif //PET_DROP_ITEM_PICKUP
-
+#ifdef SERV_PET_SYSTEM_EX1
+		bool	m_bAlwaysMaxSatiety;// 항상 포만도 max 인가?
+#endif //SERV_PET_SYSTEM_EX1
+#ifdef SERV_EVENT_PET_INVENTORY
+		//펫 먹이를 먹었는지 안먹었는지 여기서 판단하는 변수를 만듬
+		//이벤트 펫 먹이 추가 
+		bool							m_bEventFoodEat;      // 이벤트 먹이의 사용 유무 
+		bool							m_bIsEventPetID;      // 이벤트 성 펫인지 확인 한다.
+#endif SERV_EVENT_PET_INVENTORY
 	public:
 		PetInfo()
 		{
@@ -542,6 +553,14 @@ public:
 #ifdef PET_DROP_ITEM_PICKUP
 			m_bIsDropItemPickup = false;	// 아이템 줍기 스킬 활성화 여부
 #endif //PET_DROP_ITEM_PICKUP
+#ifdef SERV_PET_SYSTEM_EX1
+			m_bAlwaysMaxSatiety = false;// 항상 포만도 max 인가?
+#endif //SERV_PET_SYSTEM_EX1
+#ifdef SERV_EVENT_PET_INVENTORY
+			//이벤트 펫먹이 변수 초기화 
+			m_bEventFoodEat = false;
+			m_bIsEventPetID = false;
+#endif SERV_EVENT_PET_INVENTORY
 		}
 	};
 
@@ -552,7 +571,11 @@ private:
 public:	
 	static CX2PETPtr CreatePet()
 	{
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        CX2PETPtr pObject( new CX2PET );
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		CX2PETPtr pObject( new CX2PET, CKTDGObject::KTDGObjectDeleter() );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		return pObject;
 	}//CreateWorldObjectMesh()
 
@@ -591,9 +614,9 @@ public:
 
 	void PushAIMessage( STATE_CHANGE_TYPE message, bool bIsRight );
 
-	PetCondition &GetCondition() { return m_petCondition; }
-	PetSyncData &GetSyncData() { return m_petSyncData; }
-	PhysicParam &GetPhysicParam() { return m_PhysicParam; }
+	const PetCondition& GetCondition() const { return m_petCondition; }
+	const PetSyncData& GetSyncData() const { return m_petSyncData; }
+	const PhysicParam& GetPhysicParam() const { return m_PhysicParam; }
 
 	UidType GetMasterUid() { return m_MasterUid; }
 	void SetMasterUid( UidType masteruid ) { m_MasterUid = masteruid; }
@@ -607,11 +630,11 @@ public:
 
 	//virtual bool OnThreadLoad(DWORD dwParam_, DWORD dwParam2_);
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
     bool    SendPacketImmediateForce( CX2FrameUDPPack& kFrameUDPPack );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	void    SendPacketImmediateForce( vector<KXPT_UNIT_PET_SYNC>& syncList );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	void    SendPacketImmediateForce( vector<KXPT_UNIT_PET_SYNC>& syncList );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	void ReceiveFrameData( const KXPT_UNIT_PET_SYNC& kXPT_UNIT_PET_SYNC );
 
 	bool StateChange( int iStateId, bool bForce = false, bool bCheck = true );
@@ -625,6 +648,7 @@ public:
 		return NULL;
 	}
 
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	void						ClearEventCheck( float fTime )
 	{
 		map<float,bool>::iterator iter;
@@ -634,14 +658,21 @@ public:
 			m_EventTimeStamp.erase( iter );
 		}
 	}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
 	bool						EventTimer( float fTime );
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	bool						EventCheck( float fTime );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	bool AnimEventTimer_LUA( float fTime )
 	{			
 		if( m_pXSkinAnim == NULL )
 			return false;
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if( m_pXSkinAnim->EventTimerOneshot( fTime ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( fTime ) == true && EventCheck( fTime ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			return true;
 		else
 			return false;
@@ -725,15 +756,15 @@ public:
 
 	void SetEvolution(bool bVal) { m_bEvolution = bVal; }
 
-	int							GetStateID( const WCHAR* state )
+	int							GetStateID( const char* state )
 	{
 		if ( state == NULL )
 			return PSI_NONE;
-		return GetStateID( std::wstring( state ) );
+		return GetStateID( std::string( state ) );
 	}
-	int                         GetStateID( const std::wstring& wstrInState_ )
+	int                         GetStateID( const std::string& strInState_ )
 	{
-		std::map<wstring,char>::iterator iter = m_StateNameIDMap.find( wstrInState_ );
+		std::map<string,char>::iterator iter = m_StateNameIDMap.find( strInState_ );
 		if ( iter == m_StateNameIDMap.end() )
 			return PSI_NONE;
 		return iter->second;
@@ -756,9 +787,7 @@ public:
 	bool GetSendReserveStateChange() const { return m_bSendReserveStateChange; }
 	void SetSendReserveStateChange( const bool bSendReserveStateChange_ ) { m_bSendReserveStateChange = bSendReserveStateChange_; }
 
-#ifdef ADD_PET_UNICORN
 	CX2GameUnit *GetTargetUnit();
-#endif
 
 #ifdef ADD_PET_NINE_TAIL_FOX
 	void	SetLockOnDamageEffect( CX2DamageEffect::CEffect* pEffect );		/// 현재 팻이 목표로 정한 유닛을 인자로 들어온 데미지 이펙트에 록온 시킨다.
@@ -772,10 +801,8 @@ public:
 	void						  ShowIncreaseValue( D3DXVECTOR3 vecPos, bool IsHP, float fValue );		/// HP or MP 회복 수치 표시
 #endif ADD_HALLOWEEN_PET_SYSTEM
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	bool GetOnPopup() { return m_bOnPopUp; }
 	void SetOnPopup( bool bVal_ ) { m_bOnPopUp = bVal_; }
-#endif
 
 	void SetAuraSuspendedTargetTime( const float fSuspendedTime_ )	// 오오라 스킬이 적용 되기 까지의 지연시간
 	{
@@ -798,6 +825,12 @@ public:
 	double						GetNumber_LUA( int index ) { return m_NumberList[ index ]; }
 	void						SetNumber_LUA( int index, double dValue_ ) { m_NumberList[ index ] = dValue_; }
 #endif SET_IN_PET_LUA
+
+#ifdef ADD_2013_CHRISTMAS_PET // 김태환
+	void								SetEffectSet_LUA( int iIndex, CX2EffectSet::Handle hHandle ) { m_hEffectSetHandle[iIndex] = hHandle; }
+	CX2EffectSet::Handle				GetEffectSet_LUA( int iIndex ) { return m_hEffectSetHandle[iIndex]; }
+	void								ClearEffectSet_LUA( int iIndex ) { m_hEffectSetHandle[iIndex] = INVALID_EFFECTSET_HANDLE; }
+#endif // ADD_2013_CHRISTMAS_PET
 
 private:
 	void InitDevice();
@@ -824,13 +857,13 @@ private:
 	UINT GetBuffLevelByIntimacy();		/// 친밀도에 따른 버프 레벨값 반환
 #endif PET_AURA_BUFF
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 public:
 	void    UpdateRandomTableIndex();
 
 private:
     void    _EncodePetSyncPos( USHORT& usPosX, USHORT& usPosY, USHORT& usPosZ, const D3DXVECTOR3& position, unsigned char lastTouchLineIndex );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 public:
 	int		m_StartState;
@@ -881,11 +914,13 @@ private:
 
 	PetStateData									m_PetStateData;	
 	map<char,PetStateData>							m_StateList;
-	std::map<wstring,char>                          m_StateNameIDMap;
+	std::map<string,char>                           m_StateNameIDMap;
 
 	int		m_PreState;
 	
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	map<float,bool>									m_EventTimeStamp;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	STATE_CHANGE_TYPE								m_AIMessage;
 	STATE_CHANGE_TYPE								m_UnUseAIMessage;
@@ -965,11 +1000,9 @@ private:
 
 	bool		m_bCheat;
 
-#ifdef UNDERWATER_LINEMAP
 	bool		m_bForceChagneColor;
 	bool		m_bUnderWaterHead;
 	D3DXCOLOR	m_cLineUnitColor;
-#endif
 
 #ifdef GHOST_PET
 	bool		m_bForceColor;
@@ -984,9 +1017,7 @@ private:
 	CX2DamageManager::DamageData*	m_pDamageData;
 #endif ADD_HALLOWEEN_PET_SYSTEM
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	bool	m_bOnPopUp;
-#endif
 
 	CKTDXCheckElapsedTime	m_TimerAuraSuspended;	/// 소환된 이후로 경과시간 /// 필드에서 기운효과 적용시 체크
 
@@ -999,6 +1030,10 @@ private:
 	D3DXVECTOR3										m_VecList[10];
 	double											m_NumberList[10];
 #endif SET_IN_PET_LUA
+
+#ifdef ADD_2013_CHRISTMAS_PET // 김태환
+	CX2EffectSet::Handle							m_hEffectSetHandle[10];
+#endif // ADD_2013_CHRISTMAS_PET
 };
 
 #ifdef	X2OPTIMIZE_GAME_PET_BACKGROUND_LOAD

@@ -529,7 +529,11 @@ HRESULT KLuaManager::GetValue(const char* pszName, char* pszValue, int iMaxLen, 
 {
     if (SUCCEEDED(Get(pszName)) && lua_isstring(m_pkLuaState, -1) != 0)
     {
-        strncpy(pszValue, lua_tostring(m_pkLuaState, -1), iMaxLen);
+#ifdef _CONVERT_VS_2010
+		strncpy_s(pszValue, iMaxLen+1, lua_tostring(m_pkLuaState, -1), iMaxLen);
+#else
+		strncpy(pszValue, lua_tostring(m_pkLuaState, -1), iMaxLen);
+#endif _CONVERT_VS_2010
         lua_pop(m_pkLuaState, 1);
         return S_OK;
     }
@@ -553,7 +557,11 @@ HRESULT KLuaManager::GetValue(int iIndex, char* pszValue, int iMaxLen, bool bLog
 {
     if (SUCCEEDED(Get(iIndex)) && lua_isstring(m_pkLuaState, -1) != 0)
     {
-        strncpy(pszValue, lua_tostring(m_pkLuaState, -1), iMaxLen);
+#ifdef _CONVERT_VS_2010
+		strncpy_s(pszValue, iMaxLen+1, lua_tostring(m_pkLuaState, -1), iMaxLen);
+#else
+		strncpy(pszValue, lua_tostring(m_pkLuaState, -1), iMaxLen);
+#endif _CONVERT_VS_2010
         lua_pop(m_pkLuaState, 1);
         return S_OK;
     }

@@ -59,13 +59,23 @@ void KncSend( DWORD dwPIFrom_, UidType nFrom_, KEventPtr spEvent_ )
             break;
         case PC_ACCOUNT_DB:
         case PC_GAME_DB:
+        case PC_GAME_DB_2ND:
         case PC_LOG_DB:
+        case PC_LOG_DB_2ND:
 		case PC_SMS_DB:	//sms는 동일레벨에서만 사용하게 됨..
         case PC_NX_WEB_DB:
 		case PC_CHAT_LOG_DB:				// SERV_RECORD_CHAT
 		case PC_KOG_BILLING_DB:				// SERV_GLOBAL_BILLING
 		case PC_PUBLISHER_BILLING_DB:		// SERV_GLOBAL_BILLING
 		case PC_ID_PCBANG_AUTH_DB:				// SERV_ID_NETMARBLE_PCBANG
+			//{{ 2013. 09. 23	최육사	일본 이벤트 중계DB작업
+			//#ifdef SERV_RELAY_DB_CONNECTION
+		case PC_JP_RELAY_DB:				// 일본 이벤트 중계DB
+			//#endif SERV_RELAY_DB_CONNECTION
+			//}}
+		case PC_EVENT_DB:					// SERV_ADD_EVENT_DB
+		case PC_PUBLISHER_AUTH_DB:			// SERV_GLOBAL_AUTH , SERV_COUNTRY_IN
+		case PC_SCRIPT_DB:					// SERV_ADD_SCRIPT_DB
             SiKDBLayer()->QueueingEvent( spEvent_ );
             break;
         case PC_USER:

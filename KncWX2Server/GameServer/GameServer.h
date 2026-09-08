@@ -90,6 +90,13 @@ protected:
 #endif SERV_SMS_TEST
 	//}}
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	void InitTimeControlItemReleaseTick();
+	bool TickCheckTimeControlItem();
+	int GetTimeControlItemReleaseTick(TimeControl_Item_Release_Tick_Type _enum);
+	void SetTimeControlItemReleaseTick(TimeControl_Item_Release_Tick_Type _enum ,std::map<int, int> &mapReleaseTick );
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 	void InitTimeControlCubeInItemMappingReleaseTick();
 	bool TickCheckTimeControlCubeInItemMapping();
@@ -123,11 +130,28 @@ protected:
 	template < class T > void SendToLogDB( unsigned short usEventID, const T& data );
 #endif SERV_KOG_STATISTICS
 
+#ifdef SERV_ENTRY_POINT
+    template < class T > void SendToLogDB2nd( unsigned short usEventID, const T& data );
+#endif SERV_ENTRY_POINT
+
 	//{{ 2010. 10. 19	최육사	SMS테스트
 #ifdef SERV_SMS_TEST
 	template < class T > void SendToSMSDB( unsigned short usEventID, const T& data );
 #endif SERV_SMS_TEST
 	//}}
+#ifdef SERV_CONTENT_MANAGER_INT
+	template < class T > void SendToKOGBillingDB( unsigned short usEventID, const T& data );
+#endif SERV_CONTENT_MANAGER_INT
+
+#ifdef SERV_ADD_SCRIPT_DB
+	template < class T > void SendToScriptDB( unsigned short usEventID, const T& data );
+	void	SendToScriptDB( unsigned short usEventID ){ SendToScriptDB( usEventID, char() ); }
+#endif //SERV_ADD_SCRIPT_DB
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-04	// 박세훈
+	void	CheckGSFieldBossSystemRequest( IN const CTime tCurrentTime );
+	void	CheckGSFieldBossSystem( IN const CTime tCurrentTime );
+#endif // SERV_BATTLE_FIELD_BOSS
 
    _DECL_ON_FUNC( DBE_SERVER_ON_ACK, KDBE_GAME_SERVER_ON_ACK );
    _DECL_ON_FUNC( DBE_UPDATE_SERVER_INFO_ACK, KServerList );
@@ -335,9 +359,13 @@ protected:
 #endif SERV_EVENT_JACKPOT
 	//}}
 	
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	DECL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK );
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 #ifdef SERV_REFRESH_EVENT_USING_RELEASE_TICK // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
 	DECL_ON_FUNC( DBE_CHECK_EVENT_UPDATE_ACK );
 #endif //SERV_REFRESH_EVENT_USING_RELEASE_TICK	
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 #ifdef SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK_VER2
 	DECL_ON_FUNC( ECN_SET_ACTIVE_LAGCHECK_NOT );
@@ -360,6 +388,17 @@ protected:
 	DECL_ON_FUNC( EGB_EXCHANGE_LIMIT_INFO_ACK );
 #endif // SERV_ITEM_EXCHANGE_LIMIT
 
+#ifdef SERV_CONTENT_MANAGER_INT
+	DECL_ON_FUNC( DBE_GET_CASHSHOP_ON_OFF_INFO_ACK );
+#endif SERV_CONTENT_MANAGER_INT
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	DECL_ON_FUNC( DBE_EVENT_DB_SCRIPT_ACK );
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	DECL_ON_FUNC( DBE_GET_ITEM_ONOFF_NPCSHOP_ACK );
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 	DECL_ON_FUNC( DBE_GET_CUBE_IN_ITEM_MAPPING_ONOFF_ACK );
@@ -372,6 +411,27 @@ protected:
 	DECL_ON_FUNC( EGB_UPDATE_GLOBAL_MISSION_START_TIME_NOT );
 #endif SERV_GLOBAL_MISSION_MANAGER
 	//}} 2012. 09. 03	임홍락	글로벌 미션 매니저
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-29	// 박세훈
+	DECL_ON_FUNC( ERM_UPDATE_TOTAL_DANGEROUS_VALUE_NOT );
+	DECL_ON_FUNC_NOPARAM( EGB_VERIFY_SERVER_CONNECT_NOT );
+	DECL_ON_FUNC_NOPARAM( EGB_VERIFY_SERVER_DISCONNECT_NOT );
+	DECL_ON_FUNC( EGB_BATTLE_FIELD_BOSS_INFO_NOT );
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_ENTRY_POINT
+    _DECL_ON_FUNC( DBE_CHANNEL_LIST_2ND_ACK, KDBE_CHANNEL_LIST_ACK );
+#endif SERV_ENTRY_POINT
+
+#ifdef SERV_MODFIY_FLAG_REALTIME_PATCH
+	_DECL_ON_FUNC( EGS_ADD_COMMON_FLAG_NOT, KEGS_ADD_COMMON_FLAG_NOT );
+	_DECL_ON_FUNC( EGS_DEL_COMMON_FLAG_NOT, KEGS_DEL_COMMON_FLAG_NOT );
+#endif // SERV_MODFIY_FLAG_REALTIME_PATCH
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	DECL_ON_FUNC( DBE_CHECK_STRING_FILTER_UPDATE_ACK );
+	DECL_ON_FUNC( DBE_STRING_FILTER_UPDATE_ACK );
+#endif //SERV_STRING_FILTER_USING_DB
 
 protected:
 
@@ -387,6 +447,11 @@ protected:
 #ifdef SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK_VER2
 	bool m_bActiveLagCheck;
 #endif//SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK_VER2
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	boost::timer					m_tTimeControlItemCheckTimer; // 2012.12.11 lygan_조성욱 // 통계 디비에 특정시간에만 판매 하는 아이템 리스트에 대한 릴리즈 틱 카운트 체크용
+	std::map<int, int>				m_mapTimeControlItem_StaticDBReleaseTick;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 	boost::timer					m_tTimeControlCubeInItemMappingCheckTimer; // 2014.01.10 86red_김석근 // 통계 디비에 랜덤아이템 매핑 릴리즈 틱 카운트 체크용
@@ -404,6 +469,11 @@ private:
 	int						m_iExchangeLimitUID;
 	std::map< int, int >	m_mapExchangeLimitInfo;	// <m_iDestItemID, m_iQuantity>
 #endif // SERV_ITEM_EXCHANGE_LIMIT
+
+#ifdef SERV_CONTENT_MANAGER_INT
+	boost::timer			m_tCashshopOnOffCheckTimer;
+	bool					m_bFirstCashshopOnOffCheck;
+#endif SERV_CONTENT_MANAGER_INT
 };
 
 DefKObjectInline( KGameServer, KBaseServer );
@@ -458,6 +528,15 @@ void KGameServer::SendToLogDB( unsigned short usEventID, const T& data )
 }
 #endif SERV_KOG_STATISTICS
 
+#ifdef SERV_ENTRY_POINT
+template < class T >
+void KGameServer::SendToLogDB2nd( unsigned short usEventID, const T& data )
+{
+    UidType anTrace[2] = { GetUID(), -1 };
+    KncSend( GetPfID(), GetUID(), PI_GS_LOG_DB_2ND, 0, anTrace, usEventID, data );
+}
+#endif SERV_ENTRY_POINT
+
 //{{ 2010. 10. 19	최육사	SMS테스트
 #ifdef SERV_SMS_TEST
 template < class T >
@@ -469,4 +548,20 @@ void KGameServer::SendToSMSDB( unsigned short usEventID, const T& data )
 #endif SERV_SMS_TEST
 //}}
 
+#ifdef SERV_CONTENT_MANAGER_INT
+template < class T >
+void KGameServer::SendToKOGBillingDB( unsigned short usEventID, const T& data )
+{
+	UidType anTrace[2] = { GetUID(), -1 };
+	KncSend( PI_GS_SERVER, GetUID(), PI_GS_KOG_BILLING_DB, 0, anTrace, usEventID, data );
+}
+#endif SERV_CONTENT_MANAGER_INT
 
+#ifdef SERV_ADD_SCRIPT_DB
+template < class T >
+void KGameServer::SendToScriptDB( unsigned short usEventID, const T& data )
+{
+	UidType anTrace[2] = { GetUID(), -1 };
+	KncSend( GetPfID(), GetUID(), PI_SCRIPT_DB, 0, anTrace, usEventID, data );
+}
+#endif //SERV_ADD_SCRIPT_DB

@@ -13,7 +13,7 @@
 
 #ifdef SERV_COUNTRY_BR
 
-#include "../Common/OnlyGlobal/AuthAndBilling/BR/SoapLevelUp/soapH.h" // or whatever it is called, you must already have it
+#include "SoapLevelUp/soapH.h" // or whatever it is called, you must already have it
 
 class KLevelUpAuth :public KSubThread
 {
@@ -82,6 +82,19 @@ public:
 
 
 protected:
+
+	inline void MakeUpperCase(char* str) 
+	{
+		for( char* i = str; (*i) != 0; i++ ) 
+			*i = (char)toupper(*i);
+	}
+
+	inline void MakeUpperCase(std::string &str) 
+	{
+		for( std::string::iterator i = str.begin(); i != str.end(); i++ ) 
+			*i = (char)toupper(*i);
+	}
+
 	struct soap* p_gf_soap;
 
 	std::string m_strWsdlPath;

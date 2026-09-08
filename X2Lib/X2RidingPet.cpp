@@ -138,6 +138,12 @@ CX2RidingPet::~CX2RidingPet(void)
 	else
 	{
 		SetShowObject( false );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if ( m_pXSkinAnim != NULL )
+        {
+            m_pXSkinAnim->UpdateBeforeAnimationTime();
+        }
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 	#pragma endregion
 	
@@ -188,22 +194,20 @@ CX2RidingPet::~CX2RidingPet(void)
 
 	pRenderParam->color = m_cColor;
 
-#ifdef UNDERWATER_LINEMAP
 	if ( false == m_bForceColor && ( true == m_bUnderWaterHead || true == m_bForceColorChange ) )
 	{
 		pRenderParam->color.r -= m_cLineUnitColor.r;
 		pRenderParam->color.g -= m_cLineUnitColor.b;
 		pRenderParam->color.b -= m_cLineUnitColor.b;
 	}
-#endif
 
 	pRenderParam->renderType = CKTDGXRenderer::RT_ADD_CARTOON_BLACK_EDGE;
 
-	if ( CX2GameOption::OL_MEDIUM == g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail )
+	if ( CX2GameOption::OL_MEDIUM == g_pMain->GetGameOption().GetOptionList().m_UnitDetail )
 	{
 		pRenderParam->renderType = CKTDGXRenderer::RT_ADD_CARTOON;
 	}
-	else if( CX2GameOption::OL_LOW == g_pMain->GetGameOption()->GetOptionList()->m_UnitDetail )
+	else if( CX2GameOption::OL_LOW == g_pMain->GetGameOption().GetOptionList().m_UnitDetail )
 	{
 		pRenderParam->renderType = CKTDGXRenderer::RT_REAL_COLOR;
 	}
@@ -433,6 +437,9 @@ void CX2RidingPet::SetGameRidingPet( IN lua_State* pPetLuaState_, IN UidType uUs
 	m_SyncData.Init();
 
 	InitSystem();
+#ifdef READY_PET_DEVICES_IN_DUNGEON
+	InitDevice();
+#endif READY_PET_DEVICES_IN_DUNGEON
 	InitMotion();
 	InitPhysic();
 	InitState();
@@ -538,11 +545,11 @@ void CX2RidingPet::InitDevice()
 			int index = 1; 
 			while( m_LuaManager.GetValue( index, soundName ) == true )
 			{
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 				SoundReadyInBackground( soundName.c_str() );
-#else	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#else	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 				SoundReady( soundName.c_str() );
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 				index++;
 			}
 			m_LuaManager.EndTable();
@@ -570,7 +577,11 @@ void CX2RidingPet::InitSystem()
 		LUA_GET_VALUE( m_LuaManager, "UNIT_SCALE", m_fScale, 1.f );		
 
 		LUA_GET_VALUE_ENUM( m_LuaManager, "RENDER_PARAM", m_RenderParam.renderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_CARTOON_BLACK_EDGE );
+#ifdef UNIT_SCALE_COMBINE_ONE		// 해외팀 오류 수정
+		LUA_GET_VALUE( m_LuaManager, "OUT_LINE_WIDTH_SCALE", m_RenderParam.fOutLineWide, CARTOON_OUTLINE_WIDTH );
+#else //UNIT_SCALE_COMBINE_ONE
 		LUA_GET_VALUE( m_LuaManager, "OUT_LINE_WIDTH_SCALE", m_RenderParam.fOutLineWide, 1.7f );
+#endif //UNIT_SCALE_COMBINE_ONE
 
 		LUA_GET_VALUE( m_LuaManager, "ALPHA_BLEND", m_RenderParam.bAlphaBlend, false );
 		if( m_RenderParam.bAlphaBlend == true )
@@ -645,86 +656,86 @@ void CX2RidingPet::InitState()
 		m_StateDataMap.clear();
 		
 		m_StateDataMap.insert( std::make_pair( RSI_NONE, stateData ) );
-		m_StateBiMap.insert( BiMapValue( RSI_NONE, L"NONE") );
+		m_StateBiMap.insert( BiMapValue( RSI_NONE, "NONE") );
 
 		m_StateDataMap.insert( std::make_pair( RSI_LOADING, stateData ) );
-		m_StateBiMap.insert( BiMapValue( RSI_LOADING, L"LOADING") );
+		m_StateBiMap.insert( BiMapValue( RSI_LOADING, "LOADING") );
 
 		m_StateDataMap.insert( std::make_pair( RSI_READY, stateData ) );
-		m_StateBiMap.insert( BiMapValue( RSI_READY, L"READY") );
+		m_StateBiMap.insert( BiMapValue( RSI_READY, "READY") );
 
 		m_StateDataMap.insert( std::make_pair( RSI_PLAY, stateData ) );
-		m_StateBiMap.insert( BiMapValue( RSI_PLAY, L"PLAY") );
+		m_StateBiMap.insert( BiMapValue( RSI_PLAY, "PLAY") );
 
 		m_StateDataMap.insert( std::make_pair( RSI_END, stateData ) );
-		m_StateBiMap.insert( BiMapValue( RSI_END, L"END") );
+		m_StateBiMap.insert( BiMapValue( RSI_END, "END") );
 		
 		int iIndex = 1;
 		while ( true == m_LuaManager.BeginTable( iIndex ) )
 		{
 			RidingPetStateData stateData;
-			std::wstring wstrStateTableName = L"";
-			LUA_GET_VALUE( m_LuaManager, "STATE_NAME", wstrStateTableName, L"" );
+			std::string strStateTableName;
+			LUA_GET_VALUE_UTF8( m_LuaManager, "STATE_NAME", strStateTableName, "" );
 			stateData.m_StateID = RSI_END + iIndex;
 
 			m_StateDataMap.insert( std::make_pair( stateData.m_StateID, stateData ) );
-			m_StateBiMap.insert( BiMapValue( stateData.m_StateID, wstrStateTableName ) );
+			m_StateBiMap.insert( BiMapValue( stateData.m_StateID, strStateTableName ) );
 
 			++iIndex;
 			m_LuaManager.EndTable();
 		}
 
-		std::wstring wstrStateName = L"";
-		LUA_GET_VALUE( m_LuaManager, "START_STATE", wstrStateName, L"" );
-		m_StartState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "WAIT_STATE", wstrStateName, L"" );
-		m_WaitState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "HABIT_STATE", wstrStateName, L"" );
-		m_WaitHabitState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "WALK_STATE", wstrStateName, L"" );
-		m_WalkState = GetStateID( wstrStateName );
+		std::string strStateName = "";
+		LUA_GET_VALUE_UTF8( m_LuaManager, "START_STATE", strStateName, "" );
+		m_StartState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "WAIT_STATE", strStateName, "" );
+		m_WaitState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "HABIT_STATE", strStateName, "" );
+		m_WaitHabitState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "WALK_STATE", strStateName, "" );
+		m_WalkState = GetStateID( strStateName );
 
-		LUA_GET_VALUE( m_LuaManager, "JUMP_UP_STATE", wstrStateName, L"" );
-		m_JumpUpState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "JUMP_DOWN_STATE", wstrStateName, L"" );
-		m_JumpDownState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "JUMP_LANDING_STATE", wstrStateName, L"" );
-		m_JumpLandingState = GetStateID( wstrStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "JUMP_UP_STATE", strStateName, "" );
+		m_JumpUpState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "JUMP_DOWN_STATE", strStateName, "" );
+		m_JumpDownState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "JUMP_LANDING_STATE", strStateName, "" );
+		m_JumpLandingState = GetStateID( strStateName );
 
-		LUA_GET_VALUE( m_LuaManager, "DASH_STATE", wstrStateName, L"" );
-		m_DashState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "DASH_END_STATE", wstrStateName, L"" );
-		m_DashEndState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "DASH_JUMP_UP_STATE", wstrStateName, L"" );
-		m_DashJumpUpState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "DASH_JUMP_LANDING_STATE", wstrStateName, L"" );
-		m_DashJumpLandingState = GetStateID( wstrStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DASH_STATE", strStateName, "" );
+		m_DashState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DASH_END_STATE", strStateName, "" );
+		m_DashEndState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DASH_JUMP_UP_STATE", strStateName, "" );
+		m_DashJumpUpState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DASH_JUMP_LANDING_STATE", strStateName, "" );
+		m_DashJumpLandingState = GetStateID( strStateName );
 
-		LUA_GET_VALUE( m_LuaManager, "DAMAGE_FRONT_STATE", wstrStateName, L"" );
-		m_DamageFrontState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "DAMAGE_BACK_STATE", wstrStateName, L"" );
-		m_DamageBackState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "DYING_STATE_STATE", wstrStateName, L"" );
-		m_DyingState = GetStateID( wstrStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DAMAGE_FRONT_STATE", strStateName, "" );
+		m_DamageFrontState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DAMAGE_BACK_STATE", strStateName, "" );
+		m_DamageBackState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "DYING_STATE_STATE", strStateName, "" );
+		m_DyingState = GetStateID( strStateName );
 
-		LUA_GET_VALUE( m_LuaManager, "ATTACK_Z_STATE", wstrStateName, L"" );
-		m_AttackZState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "JUMP_ATTACK_Z_STATE", wstrStateName, L"" );
-		m_JumpAttackZState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "ATTACK_X_STATE", wstrStateName, L"" );
-		m_AttackXState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "ATTACK_SPECIAL_STATE", wstrStateName, L"" );
-		m_SpecialAttackState = GetStateID( wstrStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "ATTACK_Z_STATE", strStateName, "" );
+		m_AttackZState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "JUMP_ATTACK_Z_STATE", strStateName, "" );
+		m_JumpAttackZState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "ATTACK_X_STATE", strStateName, "" );
+		m_AttackXState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "ATTACK_SPECIAL_STATE", strStateName, "" );
+		m_SpecialAttackState = GetStateID( strStateName );
 
-		LUA_GET_VALUE( m_LuaManager, "SIT_READY_STATE", wstrStateName, L"" );
-		m_SitReadyState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "SIT_WAIT_STATE", wstrStateName, L"" );
-		m_SitWaitState = GetStateID( wstrStateName );
-		LUA_GET_VALUE( m_LuaManager, "STAND_UP_STATE", wstrStateName, L"" );
-		m_StandUpState = GetStateID( wstrStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SIT_READY_STATE", strStateName, "" );
+		m_SitReadyState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SIT_WAIT_STATE", strStateName, "" );
+		m_SitWaitState = GetStateID( strStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "STAND_UP_STATE", strStateName, "" );
+		m_StandUpState = GetStateID( strStateName );
 
-		LUA_GET_VALUE( m_LuaManager, "SPECIAL_MOVE_STATE", wstrStateName, L"" );
-		m_SpecialMoveState = GetStateID( wstrStateName );
+		LUA_GET_VALUE_UTF8( m_LuaManager, "SPECIAL_MOVE_STATE", strStateName, "" );
+		m_SpecialMoveState = GetStateID( strStateName );
 
 		m_LuaManager.EndTable();
 	}
@@ -770,18 +781,18 @@ void CX2RidingPet::StateChangeFuture( IN int iStateID_ )
 
 	if ( leftIter != m_StateBiMap.left.end() )
 	{
-		wstring stateName = leftIter->second;
+		string stateName = leftIter->second;
 		StateChangeFuture( stateName.c_str() );
 	}
 }
 
-void CX2RidingPet::StateChangeFuture( IN const WCHAR* stateName_ )
+void CX2RidingPet::StateChangeFuture( IN const char* stateName_ )
 {
 	// 	if ( false == IsValidUser() )
 	// 		return;
 
 	bool bTableOpen = false;
-	std::wstring stateName = stateName_;
+	std::string stateName = stateName_;
 	StateBiMap::right_const_iterator rightIter = m_StateBiMap.right.find( stateName );
 
 	if ( rightIter != m_StateBiMap.right.end() )
@@ -821,21 +832,21 @@ void CX2RidingPet::StateChangeFuture( IN const WCHAR* stateName_ )
 				CX2GUUser* pUser = static_cast<CX2GUUser*>( g_pX2Game->GetUserUnitByUID( m_UserUid ) );
 				if ( NULL != pUser )
 				{
-					CX2GUUser::FrameData* pFrameData = pUser->GetFutureFrameData();
-					CX2GUUser::PhysicParam& pPhysicParam = pUser->GetPhysicParam();
-					std::vector<CX2GUUser::TIME_SPEED>& pVecSpeedFactor = pUser->GetSpeedFatorVector();
-					std::vector<CX2GUUser::SoundPlayData>& pVecSoundData = pUser->GetSoundPlayData();
+					CX2GUUser::FrameData& kFutureFrameData = pUser->AccessFutureFrameData();
+					//CX2GUUser::PhysicParam& pPhysicParam = pUser->GetPhysicParam();
+					//std::vector<CX2GUUser::TIME_SPEED>& vecSpeedFactor = pUser->GetSpeedFatorVector();
+					//std::vector<CX2GUUser::SoundPlayData>& vecSoundData = pUser->GetSoundPlayData();
 
-					if ( NULL != pFrameData )
+					//if ( NULL != pFrameData )
 					{
-						LUA_GET_VALUE( m_LuaManager, "LAND_CONNECT", pFrameData->stateParam.bLandConnect, true );
-						m_ConditionData.m_bLandConnection = pFrameData->stateParam.bLandConnect;
+						LUA_GET_VALUE( m_LuaManager, "LAND_CONNECT", kFutureFrameData.stateParam.bLandConnect, true );
+						m_ConditionData.m_bLandConnection = kFutureFrameData.stateParam.bLandConnect;
 						bool bCanPushUnit = true;
 						LUA_GET_VALUE( m_LuaManager, "CAN_PUSH_UNIT", bCanPushUnit, true );
-						pFrameData->stateParam.bCanPushUnit = bCanPushUnit;
+						kFutureFrameData.stateParam.bCanPushUnit = bCanPushUnit;
 						bool bCanPassUnit = false;
 						LUA_GET_VALUE( m_LuaManager, "CAN_PASS_UNIT",	bCanPassUnit,	false );
-						pFrameData->stateParam.bCanPassUnit = bCanPassUnit;
+						kFutureFrameData.stateParam.bCanPassUnit = bCanPassUnit;
 					}
 				}
 			}
@@ -857,18 +868,18 @@ void CX2RidingPet::StateChange( IN int iStateID_ )
 
 	if ( leftIter != m_StateBiMap.left.end() )
 	{
-		wstring stateName = leftIter->second;
+		string stateName = leftIter->second;
 		StateChange( stateName.c_str() );
 	}
 }
 
-void CX2RidingPet::StateChange( IN const WCHAR* stateName_ )
+void CX2RidingPet::StateChange( IN const char* stateName_ )
 {
 // 	if ( false == IsValidUser() )
 // 		return;
 
 	bool bTableOpen = false;
-	std::wstring stateName = stateName_;
+	std::string stateName = stateName_;
 	StateBiMap::right_const_iterator rightIter = m_StateBiMap.right.find( stateName );
 	
 	if ( rightIter != m_StateBiMap.right.end() )
@@ -908,33 +919,33 @@ void CX2RidingPet::StateChange( IN const WCHAR* stateName_ )
 				CX2GUUser* pUser = static_cast<CX2GUUser*>( g_pX2Game->GetUserUnitByUID( m_UserUid ) );
 				if ( NULL != pUser )
 				{
-					CX2GUUser::FrameData* pFrameData = pUser->GetNowFrameData();
-					CX2GUUser::PhysicParam& pPhysicParam = pUser->GetPhysicParam();
-					std::vector<CX2GUUser::TIME_SPEED>& pVecSpeedFactor = pUser->GetSpeedFatorVector();
-					std::vector<CX2GUUser::SoundPlayData>& pVecSoundData = pUser->GetSoundPlayData();
+					CX2GUUser::FrameData& kNowFrameData = pUser->AccessNowFrameData();
+					CX2GUUser::PhysicParam& kPhysicParam = pUser->AccessPhysicParam();
+					std::vector<CX2GUUser::TIME_SPEED>& vecSpeedFactor = pUser->AccessSpeedFatorVector();
+					std::vector<CX2GUUser::SoundPlayData>& vecSoundData = pUser->AccessSoundPlayData();
 
-					if ( NULL != pFrameData )
+					//if ( NULL != pFrameData )
 					{
 						bool bCanPushUnit = true;
 						LUA_GET_VALUE( m_LuaManager, "CAN_PUSH_UNIT", bCanPushUnit, true );
-						pFrameData->stateParam.bCanPushUnit = bCanPushUnit;
+						kNowFrameData.stateParam.bCanPushUnit = bCanPushUnit;
 						bool bCanPassUnit = false;
 						LUA_GET_VALUE( m_LuaManager, "CAN_PASS_UNIT",	bCanPassUnit,	false );
-						pFrameData->stateParam.bCanPassUnit = bCanPassUnit;
+						kNowFrameData.stateParam.bCanPassUnit = bCanPassUnit;
 					}
 
 					D3DXVECTOR3 speed( 0.f, 0.f, 0.f );
 					if( m_LuaManager.GetValue( "SPEED_X", speed.x ) == true )
-						pPhysicParam.nowSpeed.x = speed.x;
+						kPhysicParam.nowSpeed.x = speed.x;
 					if( m_LuaManager.GetValue( "SPEED_Y", speed.y ) == true )
-						pPhysicParam.nowSpeed.y = speed.y;
+						kPhysicParam.nowSpeed.y = speed.y;
 
-					LUA_GET_VALUE( m_LuaManager, "PASSIVE_SPEED_X", pPhysicParam.passiveSpeed.x, -1.f );
-					LUA_GET_VALUE( m_LuaManager, "PASSIVE_SPEED_Y", pPhysicParam.passiveSpeed.y, -1.f );
+					LUA_GET_VALUE( m_LuaManager, "PASSIVE_SPEED_X", kPhysicParam.passiveSpeed.x, -1.f );
+					LUA_GET_VALUE( m_LuaManager, "PASSIVE_SPEED_Y", kPhysicParam.passiveSpeed.y, -1.f );
 
 					int index = 0;
-					pVecSpeedFactor.clear();
-					while( m_LuaManager.BeginTable( L"SPEED_TIME", index ) == true )
+					vecSpeedFactor.clear();
+					while( m_LuaManager.BeginTable( "SPEED_TIME", index ) == true )
 					{
 						CX2GUUser::TIME_SPEED timeSpeed;
 
@@ -943,7 +954,7 @@ void CX2RidingPet::StateChange( IN const WCHAR* stateName_ )
 						LUA_GET_VALUE( m_LuaManager, 3, timeSpeed.vSpeed.z, -1.0f );		/// 적용될 애니메이션 타임
 						LUA_GET_VALUE( m_LuaManager, 4, timeSpeed.iFlag, 0 );			/// m_PhysicParam.nowSpeed, 1이면 +=, 2이면 = 연산을 수행함, 3이면 패시브 스피드 값 변경
 
-						pVecSpeedFactor.push_back( timeSpeed );
+						vecSpeedFactor.push_back( timeSpeed );
 						++index;
 						m_LuaManager.EndTable();
 					}
@@ -952,47 +963,45 @@ void CX2RidingPet::StateChange( IN const WCHAR* stateName_ )
 					{
 						float fInvin = -1.0f;
 						LUA_GET_VALUE( m_LuaManager, 1,	fInvin,	-1.0f );
-						pFrameData->stateParam.invincibleTime.m_fX = fInvin;
+						kNowFrameData.stateParam.invincibleTime.m_fX = fInvin;
 						fInvin = -1.0f;
 						LUA_GET_VALUE( m_LuaManager, 2,	fInvin,	-1.0f );
-						pFrameData->stateParam.invincibleTime.m_fY = fInvin;
+						kNowFrameData.stateParam.invincibleTime.m_fY = fInvin;
 
-						if( pFrameData->stateParam.invincibleTime.m_fX <= 0.0f && pFrameData->stateParam.invincibleTime.m_fY > 0.0f )
-							pFrameData->stateParam.bInvincible = true;
+						if( kNowFrameData.stateParam.invincibleTime.m_fX <= 0.0f && kNowFrameData.stateParam.invincibleTime.m_fY > 0.0f )
+							kNowFrameData.stateParam.bInvincible = true;
 						else
-							pFrameData->stateParam.bInvincible = false;
+							kNowFrameData.stateParam.bInvincible = false;
 
 						m_LuaManager.EndTable();
 					}
 					else
 					{
-						pFrameData->stateParam.invincibleTime.m_fX	= -1.0f;
-						pFrameData->stateParam.invincibleTime.m_fY	= -1.0f;
-						pFrameData->stateParam.bInvincible		= false;
+						kNowFrameData.stateParam.invincibleTime.m_fX	= -1.0f;
+						kNowFrameData.stateParam.invincibleTime.m_fY	= -1.0f;
+						kNowFrameData.stateParam.bInvincible		= false;
 					}
 
 					bool bSuperArmor = false;
 					LUA_GET_VALUE( m_LuaManager, "SUPER_ARMOR",			bSuperArmor,			false );
-					pFrameData->stateParam.bSuperArmor			= bSuperArmor;
+					kNowFrameData.stateParam.bSuperArmor			= bSuperArmor;
 
 					bool bSuperArmorNotRed = true;
 					LUA_GET_VALUE( m_LuaManager, "SUPER_ARMOR_NOT_RED", bSuperArmorNotRed,		true );
-					pFrameData->stateParam.bSuperArmorNotRed		= bSuperArmorNotRed;
+					kNowFrameData.stateParam.bSuperArmorNotRed		= bSuperArmorNotRed;
 
-				#ifdef FIX_SUPER_ARMOR_TIME
 					pUser->SetStateSuperArmor( bSuperArmor );
-				#endif
 
 				#ifdef SUPER_ARMOR_TIME
-#ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-                    std::vector<D3DXVECTOR2>& vecSuperArmorTime = pUser->AccessVecSuperArmorTime();
-#else   X2OPTIMIZE_NPC_NONHOST_SIMULATION
-					std::vector<D3DXVECTOR2>& vecSuperArmorTime = pFrameData->stateParam.m_vecSuperArmorTime;
-#endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                    std::vector<D3DXVECTOR2>& vecSuperArmorTime = pUser->AccessVecNowSuperArmorTime();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+					std::vector<D3DXVECTOR2>& vecSuperArmorTime = kNowFrameData.stateParam.m_vecSuperArmorTime;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
                     vecSuperArmorTime.clear();
 
 					int indexTimeTable = 0;
-					while( m_LuaManager.BeginTable( L"SUPER_ARMOR_TIME", indexTimeTable ) == true )
+					while( m_LuaManager.BeginTable( "SUPER_ARMOR_TIME", indexTimeTable ) == true )
 					{
 						D3DXVECTOR2 superArmorTime;
 						LUA_GET_VALUE( m_LuaManager, 1, superArmorTime.x, 0.f );
@@ -1005,7 +1014,7 @@ void CX2RidingPet::StateChange( IN const WCHAR* stateName_ )
 				#endif
 
 					index = 0;
-					pVecSoundData.resize(0);
+					vecSoundData.resize(0);
 					while( m_LuaManager.BeginTable( "SOUND_PLAY", index ) == true )
 					{
 						CX2GUUser::SoundPlayData sndPlayData;
@@ -1015,18 +1024,18 @@ void CX2RidingPet::StateChange( IN const WCHAR* stateName_ )
 						LUA_GET_VALUE( m_LuaManager, 3, sndPlayData.m_SoundPlayRate,		100		);
 						LUA_GET_VALUE( m_LuaManager, 4, sndPlayData.m_bOnlyIfMyUnit,		false	);
 
-						pVecSoundData.push_back( sndPlayData );
+						vecSoundData.push_back( sndPlayData );
 
 						index++;
 						m_LuaManager.EndTable();
 					}
 
-					if( pUser->IsFocusUnit() == true && pFrameData->stateParam.bResetCamera == true )
+					if( pUser->IsFocusUnit() == true && kNowFrameData.stateParam.bResetCamera == true )
 					{
-						pFrameData->stateParam.hitCamera = 0;
+						kNowFrameData.stateParam.hitCamera = 0;
 						if( g_pX2Game->GetX2Camera()->GetCameraState() != CX2Camera::CS_NORMAL )
 						{
-							g_pX2Game->GetX2Camera()->NomalDirectCamera( pUser, g_pMain->GetGameOption()->GetCameraDistance() );
+							g_pX2Game->GetX2Camera()->NomalDirectCamera( pUser, g_pMain->GetGameOption().GetCameraDistance() );
 						}
 
 						int camera0Rate = 100;
@@ -1040,18 +1049,18 @@ void CX2RidingPet::StateChange( IN const WCHAR* stateName_ )
 
 						if( ran < camera0Rate )
 						{
-							pFrameData->stateParam.normalCamera = 0;
+							kNowFrameData.stateParam.normalCamera = 0;
 						}
 						else if( ran < (camera0Rate + camera1Rate) )
 						{
-							pFrameData->stateParam.normalCamera = 1;
+							kNowFrameData.stateParam.normalCamera = 1;
 						}
 						else if( ran < (camera0Rate + camera1Rate + camera2Rate) )
 						{
-							pFrameData->stateParam.normalCamera = 2;
+							kNowFrameData.stateParam.normalCamera = 2;
 						}
 						else
-							pFrameData->stateParam.normalCamera = 0;
+							kNowFrameData.stateParam.normalCamera = 0;
 
 						ran = rand()%100 + 1;
 						LUA_GET_VALUE( m_LuaManager, "HIT_CAMERA0_RATE", camera0Rate, 0 );
@@ -1059,18 +1068,18 @@ void CX2RidingPet::StateChange( IN const WCHAR* stateName_ )
 						LUA_GET_VALUE( m_LuaManager, "HIT_CAMERA2_RATE", camera2Rate, 0 );
 						if( ran < camera0Rate )
 						{
-							pFrameData->stateParam.hitCamera = 0;
+							kNowFrameData.stateParam.hitCamera = 0;
 						}
 						else if( ran < (camera0Rate + camera1Rate) )
 						{
-							pFrameData->stateParam.hitCamera = 1;
+							kNowFrameData.stateParam.hitCamera = 1;
 						}
 						else if( ran < (camera0Rate + camera1Rate + camera2Rate) )
 						{
-							pFrameData->stateParam.hitCamera = 2;
+							kNowFrameData.stateParam.hitCamera = 2;
 						}
 						else
-							pFrameData->stateParam.hitCamera = pFrameData->stateParam.normalCamera;
+							kNowFrameData.stateParam.hitCamera = kNowFrameData.stateParam.normalCamera;
 					}
 
 					float fValue = 0.f;
@@ -1105,9 +1114,9 @@ void CX2RidingPet::StateChange( IN const WCHAR* stateName_ )
 
 void CX2RidingPet::StateChange_LUA( IN const char* stateName_ )
 {
-	wstring stateName;
-	ConvertUtf8ToWCHAR( stateName, stateName_ );
-	StateChange( stateName.c_str() );
+	//wstring stateName;
+	//ConvertUtf8ToWCHAR( stateName, stateName_ );
+	StateChange( stateName_ );
 }
 #pragma endregion 상태 변경
 
@@ -1247,7 +1256,7 @@ void CX2RidingPet::SetPos( IN D3DXVECTOR3& vPos_, IN bool bIsRight_ )
 	vLandPos = pLineMap->GetLandPosition( startPos, LINE_RADIUS, &iLineIndex );
 	pLineMap->IsOnLine( startPos, LINE_RADIUS + 10, &startPos, &iLineIndex, bIsRight_ );
 
-	CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( iLineIndex );
+	const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( iLineIndex );
 
 	if ( NULL == pLineData )
 	{
@@ -1311,7 +1320,7 @@ bool CX2RidingPet::InitPos()
 		vLandPos = pLineMap->GetLandPosition( vStartPos, LINE_RADIUS, &iLineIndex );
 		pLineMap->IsOnLine( vStartPos, LINE_RADIUS, &vStartPos, &iLineIndex, true );
 
-		CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( iLineIndex );
+		const CKTDGLineMap::LineData* pLineData = pLineMap->GetLineData( iLineIndex );
 
 		if ( NULL == pLineData )
 			return false;
@@ -1335,16 +1344,16 @@ void CX2RidingPet::CommonCameraFrameMove()
 		CX2GUUser* pUser = static_cast<CX2GUUser*>( g_pX2Game->GetUserUnitByUID( m_UserUid ) );
 		if ( NULL != pUser )
 		{
-			CX2GUUser::FrameData* pFrameData = pUser->GetNowFrameData();
-			CX2GUUser::FrameData* pFrameDataFuture = pUser->GetFutureFrameData();
+			CX2GUUser::FrameData& kNowFrameData = pUser->AccessNowFrameData();
+			CX2GUUser::FrameData& kFutureFrameData = pUser->AccessFutureFrameData();
 
-			if ( NULL == pFrameData || NULL == pFrameDataFuture )
-				return;
-			
-			int iCameraIndex = pFrameData->stateParam.normalCamera;
+			//if ( NULL == pFrameData || NULL == pFrameDataFuture )
+			//	return;
+			//
+			int iCameraIndex = kNowFrameData.stateParam.normalCamera;
 	
-			if( true == pFrameData->unitCondition.bHit )
-				iCameraIndex = pFrameData->stateParam.hitCamera;
+			if( true == kNowFrameData.unitCondition.bHit )
+				iCameraIndex = kNowFrameData.stateParam.hitCamera;
 
 		#ifdef CAMERA_SCRIPTING_TEST
 			g_pX2Game->GetX2Camera()->GetLineScriptedCameraData().m_vFinalRelativeEyePosition = D3DXVECTOR3( 0, 0, 0 );
@@ -1387,8 +1396,8 @@ void CX2RidingPet::CommonCameraFrameMove()
 
 							if( m_pXSkinAnim->GetNowAnimationTime() < fTiming )
 							{
-								WCHAR tableName[64] = L"";
-								StringCchPrintfW( tableName, ARRAY_SIZE(tableName), L"SUB_CAMERA%d", i );
+								char tableName[64] = "";
+								StringCchPrintfA( tableName, ARRAY_SIZE(tableName), "SUB_CAMERA%d", i );
 								g_pX2Game->GetX2Camera()->PlayLuaCamera( pUser, this->m_LuaManager, tableName );
 								bDone = true;
 								break;
@@ -1397,8 +1406,8 @@ void CX2RidingPet::CommonCameraFrameMove()
 
 						if( false == bDone )
 						{
-							WCHAR tableName[64] = L"";
-							StringCchPrintfW( tableName, ARRAY_SIZE(tableName), L"SUB_CAMERA%d", (int)vecSubCameraTiming.size() );
+							char tableName[64] = "";
+							StringCchPrintfA( tableName, ARRAY_SIZE(tableName), "SUB_CAMERA%d", (int)vecSubCameraTiming.size() );
 							g_pX2Game->GetX2Camera()->PlayLuaCamera( pUser, m_LuaManager, tableName );
 						}
 					}
@@ -1410,7 +1419,7 @@ void CX2RidingPet::CommonCameraFrameMove()
 
 				float eyeDistance = 0;
 				const CKTDGLineMap::CameraData* pCameraData = g_pX2Game->GetWorld()->GetLineMap()->GetCameraData(
-					pFrameDataFuture->syncData.lastTouchLineIndex );
+					kFutureFrameData.syncData.lastTouchLineIndex );
 
 				if( NULL != pCameraData )
 				{
@@ -1434,13 +1443,13 @@ void CX2RidingPet::CommonCameraFrameMove()
 							g_pX2Game->GetX2Camera()->GetLineScriptedCameraData().m_vFinalRelativeEyePosition = pCameraData->m_vRelativeEye;
 							g_pX2Game->GetX2Camera()->GetLineScriptedCameraData().m_fSpeed = pCameraData->m_fCameraRepositionSpeed;
 		#endif CAMERA_SCRIPTING_TEST
-							g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption()->GetCameraDistance(), 200,
+							g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption().GetCameraDistance(), 200,
 								pUser->GetCameraAngleDegree(), eyeDistance, 0.f, 0.3f );
 						} break;
 
 					default:
 						{
-							g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption()->GetCameraDistance(),
+							g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption().GetCameraDistance(),
 								200, pUser->GetCameraAngleDegree(), eyeDistance, 0.f, 0.3f );
 
 						} break;
@@ -1458,7 +1467,7 @@ void CX2RidingPet::CommonCameraFrameMove()
 		#ifdef SERV_CHUNG_TACTICAL_TROOPER
 					if( pUser->GetGameCameraOffset().bEnable == true )
 					{
-						g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption()->GetCameraDistance() + 
+						g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption().GetCameraDistance() + 
 							pUser->GetGameCameraOffset().fCameraDistance,
 							200.f + pUser->GetGameCameraOffset().fHeight,
 							pUser->GetCameraAngleDegree() + pUser->GetGameCameraOffset().fAngleDegree,				
@@ -1469,10 +1478,10 @@ void CX2RidingPet::CommonCameraFrameMove()
 
 					}
 					else
-						g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption()->GetCameraDistance(), 200,
+						g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption().GetCameraDistance(), 200,
 						pUser->GetCameraAngleDegree(), eyeDistance, 0.f, 0.3f );
 		#else
-					g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption()->GetCameraDistance(), 200, m_fAngleDegree, eyeDistance, 0.f, 0.3f );
+					g_pX2Game->GetX2Camera()->NomalTrackingCamera( pUser, g_pMain->GetGameOption().GetCameraDistance(), 200, m_fAngleDegree, eyeDistance, 0.f, 0.3f );
 		#endif SERV_CHUNG_TACTICAL_TROOPER
 					}
 				}

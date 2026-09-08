@@ -92,7 +92,7 @@ m_bSendRefreshRoomReq(false)
 	}
 	
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(),
 		g_pKTDXApp->GetDGManager()->GetFar(), false );
 
@@ -174,7 +174,7 @@ HRESULT CX2StatePVPResult::OnFrameMove( double fTime, float fElapsedTime )
 		return S_OK;
 
 	CX2StateCommonBG::OnFrameMove( fTime, fElapsedTime );
-	g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( fElapsedTime );
+	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( fElapsedTime );
 
 	m_fRemainTime -= fElapsedTime;
 
@@ -756,7 +756,6 @@ bool CX2StatePVPResult::InitUI()
 			if( pPVPResultInfo->m_iRematchCount == 0 )
 			{
 				m_bCanRematch = true;
-
 				m_pDLGRematch->GetControl( L"Popup" )->SetShowEnable( true, false );
 				m_pDLGRematch->GetControl( L"RematchAsk2" )->SetShowEnable( true, false );
 				m_pDLGRematch->GetControl( L"Yes" )->SetShowEnable( true, true );
@@ -765,7 +764,6 @@ bool CX2StatePVPResult::InitUI()
 			else if( pPVPResultInfo->m_iRematchCount == 1 )
 			{
 				m_bCanRematch = true;
-
 				m_pDLGRematch->GetControl( L"Popup" )->SetShowEnable( true, false );
 				m_pDLGRematch->GetControl( L"RematchAsk1" )->SetShowEnable( true, false );
 				m_pDLGRematch->GetControl( L"Yes" )->SetShowEnable( true, true );
@@ -777,7 +775,6 @@ bool CX2StatePVPResult::InitUI()
 			}
 		}
 #endif SERV_PVP_REMATCH
-
 
 		int winTeam = pPVPResultInfo->m_WinTeam;
 		int winTeamNum = 0;
@@ -989,7 +986,7 @@ bool CX2StatePVPResult::InitUI()
 				}				
 
 
-				if ( pSlotData->m_pUnit->GetUnitData()->m_bIsGameBang == true )
+				if ( pSlotData->m_pUnit->GetUnitData().m_bIsGameBang == true )
 				{
 					CKTDGUIStatic* pStaticPCRoomMark = (CKTDGUIStatic*)pDLGResultInfo->GetControl( L"PCRoomMark" );
 					if ( pStaticPCRoomMark != NULL )
@@ -1003,7 +1000,7 @@ bool CX2StatePVPResult::InitUI()
 				if( bMatchPvp == true )
 #endif
 				{
-					if ( pSlotData->m_pUnit->GetUnitData()->m_fAddExpRate > 0.f )
+					if ( pSlotData->m_pUnit->GetUnitData().m_fAddExpRate > 0.f )
 					{
 						CKTDGUIStatic* pStaticPremiumBonus = (CKTDGUIStatic*)pDLGResultInfo->GetControl( L"PremiumBonusMark" );
 						if ( pStaticPremiumBonus != NULL )
@@ -1023,10 +1020,10 @@ bool CX2StatePVPResult::InitUI()
 #ifdef PVP_SEASON2
 						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( static_cast<CX2PVPEmblem::PVP_RANK>( pSlotData->m_cRank ) );
 #else
-						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData()->m_iRating );
+						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData().m_iRating );
 #endif
 #else
-						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData()->m_PVPEmblem );
+						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData().m_PVPEmblem );
 #endif
 						if ( pEmblemData != NULL )
 							pStaticEmblem->GetPicture( 0 )->SetTex( pEmblemData->m_TextureName.c_str(), pEmblemData->m_TextureKey.c_str() );
@@ -1264,10 +1261,10 @@ bool CX2StatePVPResult::InitUI()
 #ifdef PVP_SEASON2
 						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( static_cast<CX2PVPEmblem::PVP_RANK>( pSlotData->m_cRank ) );
 #else
-						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData()->m_iRating );
+						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData().m_iRating );
 #endif
 #else
-						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData()->m_PVPEmblem );
+						CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData().m_PVPEmblem );
 #endif
 						if ( pEmblemData != NULL )
 							pStaticEmblem->GetPicture( 0 )->SetTex( pEmblemData->m_TextureName.c_str(), pEmblemData->m_TextureKey.c_str() );
@@ -1311,7 +1308,7 @@ bool CX2StatePVPResult::InitUI()
 
 				
 
-				if ( pSlotData->m_pUnit->GetUnitData()->m_bIsGameBang == true )
+				if ( pSlotData->m_pUnit->GetUnitData().m_bIsGameBang == true )
 				{
 					CKTDGUIStatic* pStaticPCRoomMark = (CKTDGUIStatic*)pDLGResultInfo->GetControl( L"PCRoomMark" );
 					if ( pStaticPCRoomMark != NULL )
@@ -1324,7 +1321,7 @@ bool CX2StatePVPResult::InitUI()
 				if( bMatchPvp == true )
 #endif
 				{
-					if ( pSlotData->m_pUnit->GetUnitData()->m_fAddExpRate > 0.f )
+					if ( pSlotData->m_pUnit->GetUnitData().m_fAddExpRate > 0.f )
 					{
 						CKTDGUIStatic* pStaticPremiumBonus = (CKTDGUIStatic*)pDLGResultInfo->GetControl( L"PremiumBonusMark" );
 						if ( pStaticPremiumBonus != NULL )
@@ -1708,7 +1705,7 @@ bool CX2StatePVPResult::InitUI()
 			}
 #endif
 
-			if ( pSlotData->m_pUnit->GetUnitData()->m_bIsGameBang == true )
+			if ( pSlotData->m_pUnit->GetUnitData().m_bIsGameBang == true )
 			{
 				CKTDGUIStatic* pStaticPCRoomMark = (CKTDGUIStatic*)pDLGResultInfo->GetControl( L"PCRoomMark" );
 				if ( pStaticPCRoomMark != NULL )
@@ -1721,7 +1718,7 @@ bool CX2StatePVPResult::InitUI()
 			if( bMatchPvp == true )
 #endif
 			{
-				if ( pSlotData->m_pUnit->GetUnitData()->m_fAddExpRate > 0.f )
+				if ( pSlotData->m_pUnit->GetUnitData().m_fAddExpRate > 0.f )
 				{
 					CKTDGUIStatic* pStaticPremiumBonus = (CKTDGUIStatic*)pDLGResultInfo->GetControl( L"PremiumBonusMark" );
 					if ( pStaticPremiumBonus != NULL )
@@ -1740,10 +1737,10 @@ bool CX2StatePVPResult::InitUI()
 #ifdef PVP_SEASON2
 					CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( static_cast<CX2PVPEmblem::PVP_RANK>( pSlotData->m_cRank ) );
 #else
-					CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData()->m_iRating );
+					CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData().m_iRating );
 #endif
 #else
-					CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData()->m_PVPEmblem );
+					CX2PVPEmblem::PVPEmblemData* pEmblemData = g_pMain->GetPVPEmblem()->GetPVPEmblemData( pSlotData->m_pUnit->GetUnitData().m_PVPEmblem );
 #endif
 					if ( pEmblemData != NULL )
 						pStaticEmblem->GetPicture( 0 )->SetTex( pEmblemData->m_TextureName.c_str(), pEmblemData->m_TextureKey.c_str() );
@@ -2039,7 +2036,8 @@ void CX2StatePVPResult::UnitViewerProcess( CX2UnitViewerUI* pViewer, int slotNum
 	}
 
 	//pViewer->SetLightPos( 1000, 1000, -200 );
-	pViewer->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+	//pViewer->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+	pViewer->SetLightPos( -250, 100, -600 );	// 캐릭터뷰어 라이트 위치 변경
 
 
 	if ( g_pKTDXApp->GetDGManager()->GetDialogManager()->CheckDlg( m_pDLGFront ) == false )
@@ -2304,6 +2302,13 @@ void CX2StatePVPResult::SetUnitCard( int index, CX2Unit* pUnit, int rankNum )
 						pStaticChar->GetPicture(7)->SetShow( true );
 				} break;
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+			case CX2Unit::UT_ADD:
+				{
+					if ( pStaticChar->GetPicture(8) != NULL )
+						pStaticChar->GetPicture(8)->SetShow( true );
+				} break;
+#endif //SERV_9TH_NEW_CHARACTER
 			default:
 				{
 					ASSERT( !"Unexpected UnitClass" );

@@ -674,10 +674,15 @@ private:
 		IN const float fLevelFactor,
 		IN const float fDungeonFactor,
 		IN const float fContribution,
+		IN const int iPartyUserCount_,	// kimhc // ±èÇöÃ¶ // 2013-12-16 // ±â¿©µµ º¯°æ ÀÛ¾÷
 		IN const float fPartyDropBonus,
 		//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// ÀÛ¾÷³¯Â¥: 2013-09-09	// ¹Ú¼¼ÈÆ
+		IN const float fDropRate,
+#else // SERV_DROP_EVENT_RENEWAL
 		IN const int iDropCount,
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 		//}}
 		OUT DROP_DATA& sDropData,
@@ -710,7 +715,11 @@ public:
 		IN const int iPartyUserCount,
 		//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// ÀÛ¾÷³¯Â¥: 2013-09-09	// ¹Ú¼¼ÈÆ
+		IN const float fDropRate,
+#else // SERV_DROP_EVENT_RENEWAL
 		IN const int iDropCount,
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 		//}}
 		OUT bool& bDecreaseEndurance,
@@ -726,7 +735,11 @@ public:
 		IN const int iPartyUserCount,
 		//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// ÀÛ¾÷³¯Â¥: 2013-09-09	// ¹Ú¼¼ÈÆ
+		IN const float fDropRate,
+#else // SERV_DROP_EVENT_RENEWAL
 		IN const int iDropCount,
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 		//}}
 		OUT bool& bDecreaseEndurance,
@@ -742,7 +755,11 @@ public:
 		IN const int iPartyUserCount,
 		//{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// ÀÛ¾÷³¯Â¥: 2013-09-09	// ¹Ú¼¼ÈÆ
+		IN const float fDropRate,
+#else // SERV_DROP_EVENT_RENEWAL
 		IN const int iDropCount,
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 		//}}
 		OUT bool& bDecreaseEndurance,
@@ -810,25 +827,34 @@ public:
 									IN const int iNpcID, 
 									OUT KBattleFieldNpcDropInfo& kDropInfo );
 
-	bool BattleFieldNpcDropItem( IN const KBattleFieldNpcDropInfo& kDropInfo, 
+	bool BattleFieldNpcDropItem( IN const KBattleFieldNpcDropInfo& kDropInfo
 		//{{ 2013. 03. 26	 ÇÊµå ED, EXP ÆÑÅÍ Ãß°¡ - ±è¹Î¼º
 #ifdef SERV_FIELD_ED_EXP_FACTOR
-		IN const float fFieldEDFactor, 
-		IN const float fFieldEXPFactor, 
+							   , IN const float fFieldEDFactor
+							   , IN const float fFieldEXPFactor
 #else
-		IN const float fFieldFactor, 
+							   , IN const float fFieldFactor
 #endif SERV_FIELD_ED_EXP_FACTOR
 		//}
-								 IN const float fLevelFactor, 
-								 IN const float fUserContribution, 
-								 IN const float fPartyDropBonus, 
+							   , IN const float fLevelFactor
+							   , IN const float fUserContribution
+							   , IN const int iPartyCount_	// kimhc // ±èÇöÃ¶ // 2013-12-16 // ±â¿©µµ º¯°æ ÀÛ¾÷
+							   , IN const float fPartyDropBonus
 								 //{{ 2012. 12. 16  µå·Ó ÀÌº¥Æ® - ±è¹Î¼º
 #ifdef SERV_ITEM_DROP_EVENT
-								 IN const int iDropCount, 
+#ifdef SERV_DROP_EVENT_RENEWAL// ÀÛ¾÷³¯Â¥: 2013-09-09	// ¹Ú¼¼ÈÆ
+							   , IN const float fDropRate
+#else // SERV_DROP_EVENT_RENEWAL
+							   , IN const int iDropCount
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 								 //}}
-								 OUT DROP_DATA& sDropData, 
-								 IN const bool bIsBoss  = false );
+							   , IN const bool bIsBoss
+#ifdef SERV_BATTLE_FIELD_BOSS// ÀÛ¾÷³¯Â¥: 2013-11-14	// ¹Ú¼¼ÈÆ
+							   , IN const float fBattleFieldBossFactor
+#endif // SERV_BATTLE_FIELD_BOSS
+							   , OUT DROP_DATA& sDropData
+							   );
 
 	bool BattleFieldStaticDropItem( IN const SEnum::BATTLE_FIELD_ID eBattleFieldID, 
 									OUT DROP_DATA& sDropData, 

@@ -82,9 +82,9 @@ class CX2StateLoading : public CX2State
 #endif NO_MORE_ERROR_TEST
 
 #if defined( SERV_HACKING_TOOL_LIST )
-#ifdef	ADD_SERVER_GROUP
-		bool OpenScriptServerGroupFile();
-#endif
+//#ifdef	ADD_SERVER_GROUP
+//		bool OpenScriptServerGroupFile();
+//#endif
 		bool ConnectToChannelServer();
 		bool Handler_ECH_VERIFY_ACCOUNT_REQ();
 		bool Handler_ECH_VERIFY_ACCOUNT_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );

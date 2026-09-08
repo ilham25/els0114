@@ -146,10 +146,8 @@ class CX2PVPGame : public CX2Game
 
 		void Handler_EGS_CREATE_PVP_ITEM_REQ(int iCreateIdPos);
 
-#ifdef MODIFY_PVP_ITEM
 		void Handler_EGS_CHANGE_PVP_ITEM_POS_REQ(); 
 		void Handler_EGS_CHANGE_PVP_ITEM_POS_NOT( UidType iItemUid, int iChangePos );
-#endif
 #endif
 	protected:
 #ifdef CHUNG_SECOND_CLASS_CHANGE
@@ -181,9 +179,7 @@ class CX2PVPGame : public CX2Game
 		int								m_iSepcialItemId;	/// 드랍아이템의 ID // CreatePvpReq를 날린 후 NOT를 받기 전까지 중복 생성 요청을 방지하기 위해 1을 임시 대입하기도 함
 		int								m_iSpecialItemUid;	/// 드랍아이템의 UID
 		float							m_fCreateItemTimer;	/// 드랍아이템이 없는 경우 30초 후에 생성되도록 하는 타이머
-#ifdef MODIFY_PVP_ITEM
 		float							m_fChangeItemPosTimer;
-#endif
 #endif
 
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK

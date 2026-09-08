@@ -248,9 +248,17 @@ HRESULT CD3DEnumeration::EnumerateDevices( CD3DEnumAdapterInfo* pAdapterInfo, CG
         pp.SwapEffect       = D3DSWAPEFFECT_COPY;
         pp.Windowed         = TRUE;
         pp.hDeviceWindow    = DXUTGetHWNDFocus();
-        IDirect3DDevice9 *pDevice;
+//{{ robobeg : 2014-01-13
+        // 초기화 안된 문제, heap damage 를 야기할 수 있다.
+        IDirect3DDevice9 *pDevice = NULL;
+//}} robobeg : 2014-01-13
         if( FAILED( hr = m_pD3D->CreateDevice( pAdapterInfo->AdapterOrdinal, pDeviceInfo->DeviceType, DXUTGetHWNDFocus(),
-                                          D3DCREATE_HARDWARE_VERTEXPROCESSING, &pp, &pDevice ) ) )
+//{{ robobeg : 2014-01-02
+// device enumeration 하는 과정에서 fpu 정밀도를 바꿔버리는 버그 수정
+                                          D3DCREATE_HARDWARE_VERTEXPROCESSING
+                                          | D3DCREATE_FPU_PRESERVE
+//}} robobeg : 2014-01-02
+                                          , &pp, &pDevice ) ) )
         {
             if( hr == D3DERR_NOTAVAILABLE )
             {

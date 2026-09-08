@@ -1167,13 +1167,16 @@ int KDropTable::GetEDItemID( int nED ) const
 {
     // 추후 이 함수만 동적 수정이 용이하도록 script 화 한다.
 
-    if( nED <= 0 ) return 0;
+	int iEDItemID = 0;
 
-	if( nED <= 50 ) return CXSLItem::EDI_BRONZE_ED; // 소량의 ED
+	if( 0 < nED )	{	iEDItemID = CXSLItem::EDI_BRONZE_ED;	}
+	if( 50 < nED )	{	iEDItemID = CXSLItem::EDI_SILVER_ED;	}
+	if( 150 < nED )	{	iEDItemID = CXSLItem::EDI_GOLD_ED;	}
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-15	// 박세훈
+	if( 1999 < nED )	{	iEDItemID = CXSLItem::EDI_GOLD_BAR;	}
+#endif // SERV_BATTLE_FIELD_BOSS
 
-	if( nED <= 150) return CXSLItem::EDI_SILVER_ED; // 중간량의 ED
-
-	return CXSLItem::EDI_GOLD_ED; // ED 많이 받을 때
+	return iEDItemID;
 }
 
 //{{ 필드 드롭 개편 - 김민성
@@ -1186,10 +1189,15 @@ bool KDropTable::NpcDropItem( IN const int iNpcID,
 							 IN const float fLevelFactor,
 							 IN const float fDungeonFactor,
 							 IN const float fContribution,
+							 IN const int iPartyUserCount_,
 							 IN const float fPartyDropBonus,
 							 //{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+							 IN const float fDropRate,
+#else // SERV_DROP_EVENT_RENEWAL
 							 IN const int iDropCount,
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 							 //}}
 							 OUT DROP_DATA& sDropData,
@@ -1227,7 +1235,11 @@ bool KDropTable::NpcDropItem( IN const int iNpcID,
 	// NPC로부터 얻게되는 ED
 	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	int iGetTotalED = static_cast<int>( iDropED * fContribution * fDungeonFactor * fLevelFactor * fDropRate );
+#else // SERV_DROP_EVENT_RENEWAL
 	int iGetTotalED = (int)(iDropED * fContribution * fDungeonFactor * fLevelFactor) * iDropCount;
+#endif // SERV_DROP_EVENT_RENEWAL
 #else
 	int iGetTotalED = (int)(iDropED * fContribution * fDungeonFactor * fLevelFactor);
 #endif SERV_ITEM_DROP_EVENT
@@ -1276,11 +1288,76 @@ bool KDropTable::NpcDropItem( IN const int iNpcID,
 	//	return true;
 
 	KLottery kDropInfoCopy = kLot;
-	kDropInfoCopy.AddMultiProbRate( fContribution );
+	kDropInfoCopy.AddMultiProbRate( fContribution * iPartyUserCount_ );
 //	kDropInfoCopy.AddMultiProbRate( fPartyDropBonus );
 
 	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	{
+		float fDropRateCopy = fDropRate;
+
+		while( 0.0f < fDropRateCopy )
+		{
+			if( fDropRateCopy < 1.0f )
+			{
+				kDropInfoCopy.AddMultiProbRate( fDropRateCopy );
+				fDropRateCopy = 0.0f;
+			}
+			else
+			{
+				fDropRateCopy -= 1.0f;
+			}
+
+			const int nCaseID = kDropInfoCopy.Decision();
+			if( nCaseID == KLottery::CASE_BLANK )   // 획득한 아이템 없음.
+				continue;
+
+			const int nCaseParam = kDropInfoCopy.GetParam1( nCaseID );
+
+			switch( nCaseParam )    // 단품 아이템, 아이템 그룹, 혹은 예상 못한 에러.
+			{
+			case DCP_UNARY_ITEM:    // 단품 아이템
+				{
+					sDropData.m_vecItemID.push_back( nCaseID );
+				}			
+				break;
+			case DCP_ITEM_GROUP:    // 아이템 그룹.
+				{
+					std::map< int, KLottery >::const_iterator mit;
+					mit = m_mapDropGroup.find( nCaseID );
+					if( mit == m_mapDropGroup.end() )
+					{
+						START_LOG( cerr, L"아이템 그룹 정보 오류" )
+							<< BUILD_LOG( nCaseID )
+							<< BUILD_LOG( nCaseParam )
+							<< BUILD_LOG( m_mapDropGroup.size() );
+						continue;
+					}
+
+					// 아이템 그룹 중에서 실제 아이템 하나 선택.
+					const int iResultItemID = mit->second.Decision();
+					if( iResultItemID == KLottery::CASE_BLANK )   // 획득한 아이템 없음.
+						continue;
+
+					sDropData.m_vecItemID.push_back( iResultItemID );
+				}
+				break;
+			default:
+				{
+					START_LOG( cerr, L"Never Get Here ~" )
+						<< BUILD_LOG( nCaseParam )
+						<< BUILD_LOG( nCaseID )
+						<< BUILD_LOG( kDropInfoCopy.GetCaseNum() )
+						<< BUILD_LOG( kDropInfoCopy.GetTotalProb() )
+						<< END_LOG;
+					continue;
+				}
+			}
+		}
+	}
+#else // SERV_DROP_EVENT_RENEWAL
 	for( int iCount = 0 ; iCount < iDropCount ; ++iCount )
 	{
 		const int nCaseID = kDropInfoCopy.Decision();
@@ -1329,6 +1406,8 @@ bool KDropTable::NpcDropItem( IN const int iNpcID,
 			}
 		}
 	}
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #else
 	const int nCaseID = kDropInfoCopy.Decision();
 	if( nCaseID == KLottery::CASE_BLANK )   // 획득한 아이템 없음.
@@ -1491,7 +1570,11 @@ bool KDropTable::NormalNpcDropItem( IN const int nDungeonID,
 									IN const int iPartyUserCount,
 									//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+									IN const float fDropRate,
+#else // SERV_DROP_EVENT_RENEWAL
 									IN const int iDropCount,
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 									//}}
 									OUT bool& bDecreaseEndurance,
@@ -1523,7 +1606,7 @@ bool KDropTable::NormalNpcDropItem( IN const int nDungeonID,
 	// 드롭 테이블에 경험치 정보가 세팅된 몬스터만 경험치를 준다.
 	if( kDropInfo.m_iExp > 0 )
 	{
-		kDropInfo.m_iExp = GetNpcExp( cNpcLevel ) / iPartyUserCount;
+		kDropInfo.m_iExp = GetNpcExp( cNpcLevel );
 
 		// 드롭 테이블에 경험치 정보가 세팅된 몬스터는 유저의 내구도를 감소 시킨다!
 		bDecreaseEndurance = true;
@@ -1531,7 +1614,7 @@ bool KDropTable::NormalNpcDropItem( IN const int nDungeonID,
 
 	if( kDropInfo.m_iED > 0 )
 	{
-		kDropInfo.m_iED = (10 + ( kDropInfo.m_iED * cNpcLevel )) / iPartyUserCount;
+		kDropInfo.m_iED = (10 + ( kDropInfo.m_iED * cNpcLevel ));
 	}
 
 	// 보정 던전 이라면 fLevelFactor 를 1.0f 로 고정된다.
@@ -1544,7 +1627,13 @@ bool KDropTable::NormalNpcDropItem( IN const int nDungeonID,
 	// NPC 드롭 처리
 	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	return NpcDropItem( iNpcID, kDropInfo.m_iExp, kDropInfo.m_fEDProperty, kDropInfo.m_iED, kDropInfo.m_kLottery, fCheckLevelFactor, fDungeonFactor, fContribution, iPartyUserCount, fPartyDropBonus, fDropRate, sDropData, bIsBoss );
+#else // SERV_DROP_EVENT_RENEWAL
 	return NpcDropItem( iNpcID, kDropInfo.m_iExp, kDropInfo.m_fEDProperty, kDropInfo.m_iED, kDropInfo.m_kLottery, fCheckLevelFactor, fDungeonFactor, fContribution, fPartyDropBonus, iDropCount, sDropData, bIsBoss );
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #else
 	return NpcDropItem( iNpcID, kDropInfo.m_iExp, kDropInfo.m_fEDProperty, kDropInfo.m_iED, kDropInfo.m_kLottery, fCheckLevelFactor, fDungeonFactor, fContribution, fPartyDropBonus, sDropData, bIsBoss );
 #endif SERV_ITEM_DROP_EVENT
@@ -1560,7 +1649,11 @@ bool KDropTable::HenirNpcDropItem( IN const CXSLDungeon::DUNGEON_MODE eDungeonMo
 								   IN const int iPartyUserCount,
 								   //{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+								   IN const float fDropRate,
+#else // SERV_DROP_EVENT_RENEWAL
 								   IN const int iDropCount,
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 								   //}}
 								   OUT bool& bDecreaseEndurance,
@@ -1592,7 +1685,7 @@ bool KDropTable::HenirNpcDropItem( IN const CXSLDungeon::DUNGEON_MODE eDungeonMo
 	// 경험치 세팅된 몬스터만 경험치를 주자!
 	if( kDropInfo.m_iExp > 0 )
 	{
-		kDropInfo.m_iExp = GetNpcExp( cNpcLevel ) / iPartyUserCount;
+		kDropInfo.m_iExp = GetNpcExp( cNpcLevel );
 
 		// 경험치가 세팅된 몬스터는 내구도를 깎자!
 		bDecreaseEndurance = true;
@@ -1600,14 +1693,18 @@ bool KDropTable::HenirNpcDropItem( IN const CXSLDungeon::DUNGEON_MODE eDungeonMo
 
 	if( kDropInfo.m_iED > 0 )
 	{
-		kDropInfo.m_iED = (10 + ( kDropInfo.m_iED * cNpcLevel )) / iPartyUserCount;
+		kDropInfo.m_iED = (10 + ( kDropInfo.m_iED * cNpcLevel ));
 	}
 
 	// NPC 드롭 처리
 	// 헤니르는 무조건 LevelFactor 는 1.0f 로 한다.
 	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	return NpcDropItem( iNpcID, kDropInfo.m_iExp, kDropInfo.m_fEDProperty, kDropInfo.m_iED, kDropInfo.m_kLottery, 1.0f, fDungeonFactor, fContribution, iPartyUserCount, fPartyDropBonus, fDropRate, sDropData, bIsBoss );
+#else // SERV_DROP_EVENT_RENEWAL
 	return NpcDropItem( iNpcID, kDropInfo.m_iExp, kDropInfo.m_fEDProperty, kDropInfo.m_iED, kDropInfo.m_kLottery, 1.0f, fDungeonFactor, fContribution, fPartyDropBonus, iDropCount, sDropData, bIsBoss );
+#endif // SERV_DROP_EVENT_RENEWAL
 #else
 	return NpcDropItem( iNpcID, kDropInfo.m_iExp, kDropInfo.m_fEDProperty, kDropInfo.m_iED, kDropInfo.m_kLottery, 1.0f, fDungeonFactor, fContribution, fPartyDropBonus, sDropData, bIsBoss );
 #endif SERV_ITEM_DROP_EVENT
@@ -1623,7 +1720,11 @@ bool KDropTable::ExtraStageNpcDropItem( IN const int iNpcID,
 										IN const int iPartyUserCount,
 										//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+										IN const float fDropRate,
+#else // SERV_DROP_EVENT_RENEWAL
 										IN const int iDropCount,
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 										//}}
 										OUT bool& bDecreaseEndurance,
@@ -1646,7 +1747,7 @@ bool KDropTable::ExtraStageNpcDropItem( IN const int iNpcID,
 	// 경험치 세팅된 몬스터만 경험치를 주자!
 	if( kDropInfo.m_iExp > 0 )
 	{
-		kDropInfo.m_iExp = GetNpcExp( cNpcLevel ) / iPartyUserCount;
+		kDropInfo.m_iExp = GetNpcExp( cNpcLevel );
 
 		// 경험치가 세팅된 몬스터는 내구도를 깎자!
 		bDecreaseEndurance = true;
@@ -1654,12 +1755,18 @@ bool KDropTable::ExtraStageNpcDropItem( IN const int iNpcID,
 
 	if( kDropInfo.m_iED > 0 )
 	{
-		kDropInfo.m_iED = (10 + ( kDropInfo.m_iED * cNpcLevel )) / iPartyUserCount;
+		kDropInfo.m_iED = (10 + ( kDropInfo.m_iED * cNpcLevel ));
 	}
 
 	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	return NpcDropItem( iNpcID, kDropInfo.m_iExp, kDropInfo.m_fEDProperty, kDropInfo.m_iED, kDropInfo.m_kLottery, fLevelFactor, fDungeonFactor, fContribution, iPartyUserCount, fPartyDropBonus, fDropRate, sDropData, bIsBoss );
+#else // SERV_DROP_EVENT_RENEWAL
 	return NpcDropItem( iNpcID, kDropInfo.m_iExp, kDropInfo.m_fEDProperty, kDropInfo.m_iED, kDropInfo.m_kLottery, fLevelFactor, fDungeonFactor, fContribution, fPartyDropBonus, iDropCount, sDropData, bIsBoss );
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #else
 	return NpcDropItem( iNpcID, kDropInfo.m_iExp, kDropInfo.m_fEDProperty, kDropInfo.m_iED, kDropInfo.m_kLottery, fLevelFactor, fDungeonFactor, fContribution, fPartyDropBonus, sDropData, bIsBoss );
 #endif SERV_ITEM_DROP_EVENT
@@ -1814,6 +1921,12 @@ void KDropTable::NpcSpecialDropItem( IN const int iNpcID, IN const char cMonster
 			vecItemID.push_back( 70058 ); // 70057
 		}
 		break;
+
+#ifdef SERV_ADD_MONSTER_GRADE_FOR_DEFINITELY_DROP_HP_BALL_ITEM// 작업날짜: 2013-08-28	// 박세훈
+	case CXSLUnitManager::MG_DEFINITELY_DROP_HP_BALL:
+		vecItemID.push_back( 70057 ); // 70057
+		break;
+#endif // SERV_ADD_MONSTER_GRADE_FOR_DEFINITELY_DROP_HP_BALL_ITEM
 	}
 #endif SERV_KILL_BOSS_MIDDLE_BOSS_DROP_ITEM
 	//}	
@@ -2131,6 +2244,7 @@ bool KDropTable::AddPaymentDungeon_LUA( IN int iDungeonID )
 #endif SERV_UNPAYMENT_CONDITION
 	//}}
 
+	// AddUnPaymentCondition_LUA 부분의 초기화 정보와 일치시킬 수 있도록 수정하는 것이 좋습니다.
 	LUA_GET_VALUE( luaMgr,		"iItemID",			sData.m_iItemID,		0 );
 	LUA_GET_VALUE( luaMgr,		"fRate",			sData.m_fRate,			0.f );
 	LUA_GET_VALUE( luaMgr,		"iQuestID",			sData.m_iQuestID,		0 );
@@ -2425,28 +2539,6 @@ bool KDropTable::CheckDungeonClearPaymentItem( IN int iDungeonID, IN char cDiffi
 			DungeonClearPaymentItem
 			);
 	}
-
-	//{{ 2012. 06. 28	김민성       이벤트 재화(천사의 깃털)
-#ifdef SERV_EVENT_MONEY
-	// 천사의 깃텃이 있다면 viewitem 에 넣자
-	std::vector< std::map<int,KItemInfo>::iterator > vecDelete;
-	std::map<int,KItemInfo>::iterator mitPaymentitem = DungeonClearPaymentItem.begin();
-	for( ; mitPaymentitem != DungeonClearPaymentItem.end() ; ++mitPaymentitem )
-	{
-		if( mitPaymentitem->first == CXSLItem::EI_ANGEL_FEATHER )
-		{
-			vecDelete.push_back( mitPaymentitem );
-		}
-	}
-
-	typedef std::map<int,KItemInfo>::iterator iteratorDelete;
-
-	BOOST_TEST_FOREACH( iteratorDelete&, vit, vecDelete )
-	{
-		DungeonClearPaymentItem.erase( vit );
-	}
-#endif SERV_EVENT_MONEY
-	//}}
 
 	return true;
 }
@@ -2791,6 +2883,7 @@ bool KDropTable::AddUnPaymentCondition_LUA( IN int iDungeonID )
 
 	sData.m_iDungeonID	= iDungeonID;
 
+	// AddPaymentDungeon_LUA 부분의 초기화 정보와 일치시킬 수 있도록 수정하는 것이 좋습니다.
 	LUA_GET_VALUE( luaMgr,		"iItemID",			sData.m_iItemID,		0 );
 	LUA_GET_VALUE( luaMgr,		"fRate",			sData.m_fRate,			0.f );
 	LUA_GET_VALUE( luaMgr,		"iQuestID",			sData.m_iQuestID,		0 );
@@ -2825,7 +2918,6 @@ bool KDropTable::AddUnPaymentCondition_LUA( IN int iDungeonID )
 }
 #endif SERV_UNPAYMENT_CONDITION
 //}}
-
 
 #ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_FIX
 bool KDropTable::_CheckPaymentCondition(IN const DUNGEON_CLEAR_REWARD& dcr, KRoomUserPtr spRoomUser, IN KRoomUserManagerPtr spRoomUserManager ) const
@@ -3141,7 +3233,6 @@ bool KDropTable::_CheckTitlePass( IN KRoomUserInfo& sRoomUserInfo, IN KRoomUserM
 }
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_FIX
 
-
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM
 //}}
 
@@ -3290,25 +3381,34 @@ bool KDropTable::GetBattleFieldNpcDropInfo( IN const SEnum::BATTLE_FIELD_ID eBat
     return true;
 }
 
-bool KDropTable::BattleFieldNpcDropItem( IN const KBattleFieldNpcDropInfo& kDropInfo, 
+bool KDropTable::BattleFieldNpcDropItem( IN const KBattleFieldNpcDropInfo& kDropInfo
 										//{{ 2013. 03. 26	 필드 ED, EXP 팩터 추가 - 김민성
 #ifdef SERV_FIELD_ED_EXP_FACTOR
-										IN const float fFieldEDFactor, 
-										IN const float fFieldEXPFactor, 
+									   , IN const float fFieldEDFactor
+									   , IN const float fFieldEXPFactor
 #else
-										IN const float fFieldFactor, 
+									   , IN const float fFieldFactor
 #endif SERV_FIELD_ED_EXP_FACTOR
 										//}
-										IN const float fLevelFactor, 
-										IN const float fUserContribution, 
-										IN const float fPartyDropBonus,		
+									   , IN const float fLevelFactor
+									   , IN const float fUserContribution
+									   , IN const int iPartyCount_	// kimhc // 김현철 // 2013-12-16 // 기여도 변경 작업
+									   , IN const float fPartyDropBonus
 										//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
-										IN const int iDropCount, 
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+									   , IN const float fDropRate
+#else // SERV_DROP_EVENT_RENEWAL
+									   , IN const int iDropCount
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 										//}}
-										OUT DROP_DATA& sDropData, 
-										IN const bool bIsBoss /* = false*/ )
+									   , IN const bool bIsBoss
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-14	// 박세훈
+									   , IN const float fBattleFieldBossFactor
+#endif // SERV_BATTLE_FIELD_BOSS
+									   , OUT DROP_DATA& sDropData
+									   )
 {
 	//////////////////////////////////////////////////////////////////////////
 	// X = 유저당 준데미지 / 몬스터HP (X 값은 최고 1.5를 넘지 않는다)
@@ -3336,29 +3436,47 @@ bool KDropTable::BattleFieldNpcDropItem( IN const KBattleFieldNpcDropInfo& kDrop
 
 	//////////////////////////////////////////////////////////////////////////	
 	// NPC로부터 얻게되는 EXP
+	float fTemp;
+
+	fTemp = kDropInfo.m_iExp * fUserContribution * fLevelFactor;
+
 	//{{ 2013. 03. 26	 필드 ED, EXP 팩터 추가 - 김민성
 #ifdef SERV_FIELD_ED_EXP_FACTOR
-	sDropData.m_iExp = (int)(kDropInfo.m_iExp * fUserContribution * fFieldEXPFactor *  fLevelFactor);
+	fTemp *= fFieldEXPFactor;
 #else
-	sDropData.m_iExp = (int)(kDropInfo.m_iExp * fUserContribution * fFieldFactor *  fLevelFactor);
+	fTemp *= fFieldFactor;
 #endif SERV_FIELD_ED_EXP_FACTOR
 	//}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-14	// 박세훈
+	fTemp *= fBattleFieldBossFactor;
+#endif // SERV_BATTLE_FIELD_BOSS
+
+	sDropData.m_iExp = static_cast<int>( fTemp );
+
 	//////////////////////////////////////////////////////////////////////////	
 	// NPC로부터 얻게되는 ED
-	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
-#ifdef SERV_ITEM_DROP_EVENT
+	fTemp = kDropInfo.m_iED * fUserContribution * fLevelFactor;
+	
 	//{{ 2013. 03. 26	 필드 ED, EXP 팩터 추가 - 김민성
 #ifdef SERV_FIELD_ED_EXP_FACTOR
-	int iGetTotalED = (int)(kDropInfo.m_iED * fUserContribution * fFieldEDFactor * fLevelFactor) * iDropCount;
+	fTemp *= fFieldEDFactor;
 #else
-	int iGetTotalED = (int)(kDropInfo.m_iED * fUserContribution * fFieldFactor * fLevelFactor) * iDropCount;
+	fTemp *= fFieldFactor;
 #endif SERV_FIELD_ED_EXP_FACTOR
 	//}
+
+	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
+#ifdef SERV_ITEM_DROP_EVENT
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	fTemp *= fDropRate;
 #else
-	int iGetTotalED = (int)(kDropInfo.m_iED * fUserContribution * fFieldFactor * fLevelFactor);
+	fTemp *= iDropCount;
+#endif // SERV_DROP_EVENT_RENEWAL
 #endif SERV_ITEM_DROP_EVENT
 	//}}
+
+	int iGetTotalED = static_cast<int>( fTemp );
 
 	//////////////////////////////////////////////////////////////////////////	
 	// NPC로부터 얻게되는 ED
@@ -3396,7 +3514,7 @@ bool KDropTable::BattleFieldNpcDropItem( IN const KBattleFieldNpcDropInfo& kDrop
 	//	return true;
 
 	KLottery kDropInfoCopy = kDropInfo.m_kLottery;
-	kDropInfoCopy.AddMultiProbRate( fUserContribution );
+	kDropInfoCopy.AddMultiProbRate( fUserContribution * iPartyCount_ );
 	//{{ 2013. 03. 26	 필드 ED, EXP 팩터 추가 - 김민성
 #ifdef SERV_FIELD_ED_EXP_FACTOR
 	kDropInfoCopy.AddMultiProbRate( fFieldEXPFactor );
@@ -3408,6 +3526,71 @@ bool KDropTable::BattleFieldNpcDropItem( IN const KBattleFieldNpcDropInfo& kDrop
 
 	//{{ 2012. 12. 16  드롭 이벤트 - 김민성
 #ifdef SERV_ITEM_DROP_EVENT
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	{
+		float fDropRateCopy = fDropRate;
+
+		while( 0.0f < fDropRateCopy )
+		{
+			if( fDropRateCopy < 1.0f )
+			{
+				kDropInfoCopy.AddMultiProbRate( fDropRateCopy );
+				fDropRateCopy = 0.0f;
+			}
+			else
+			{
+				fDropRateCopy -= 1.0f;
+			}
+
+			const int nCaseID = kDropInfoCopy.Decision();
+			if( nCaseID == KLottery::CASE_BLANK )   // 획득한 아이템 없음.
+				continue;
+
+			const int nCaseParam = kDropInfoCopy.GetParam1( nCaseID );
+
+			switch( nCaseParam )    // 단품 아이템, 아이템 그룹, 혹은 예상 못한 에러.
+			{
+			case DCP_UNARY_ITEM:    // 단품 아이템
+				{
+					sDropData.m_vecItemID.push_back( nCaseID );
+				}			
+				break;
+			case DCP_ITEM_GROUP:    // 아이템 그룹.
+				{
+					std::map< int, KLottery >::const_iterator mit;
+					mit = m_mapDropGroup.find( nCaseID );
+					if( mit == m_mapDropGroup.end() )
+					{
+						START_LOG( cerr, L"아이템 그룹 정보 오류" )
+							<< BUILD_LOG( nCaseID )
+							<< BUILD_LOG( nCaseParam )
+							<< BUILD_LOG( m_mapDropGroup.size() );
+						continue;
+					}
+
+					// 아이템 그룹 중에서 실제 아이템 하나 선택.
+					const int iResultItemID = mit->second.Decision();
+					if( iResultItemID == KLottery::CASE_BLANK )   // 획득한 아이템 없음.
+						continue;
+
+					sDropData.m_vecItemID.push_back( iResultItemID );
+				}
+				break;
+			default:
+				{
+					START_LOG( cerr, L"Never Get Here ~" )
+						<< BUILD_LOG( nCaseParam )
+						<< BUILD_LOG( nCaseID )
+						<< BUILD_LOG( kDropInfo.m_kLottery.GetCaseNum() )
+						<< BUILD_LOG( kDropInfo.m_kLottery.GetTotalProb() )
+						<< END_LOG;
+					continue;
+				}
+			}
+		}
+	}
+#else // SERV_DROP_EVENT_RENEWAL
 	for( int iCount = 0 ; iCount < iDropCount ; ++iCount )
 	{
 		const int nCaseID = kDropInfoCopy.Decision();
@@ -3456,6 +3639,8 @@ bool KDropTable::BattleFieldNpcDropItem( IN const KBattleFieldNpcDropInfo& kDrop
 			}
 		}
 	}
+#endif // SERV_DROP_EVENT_RENEWAL
+
 #else
 	const int nCaseID = kDropInfoCopy.Decision();
 	if( nCaseID == KLottery::CASE_BLANK )   // 획득한 아이템 없음.

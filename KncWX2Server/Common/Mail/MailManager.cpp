@@ -47,88 +47,102 @@ void KMailEventProcess::ProcessEvent( const KEventPtr& spEvent_ )
 
 IMPL_ON_FUNC( EMAIL_SEND_EMAIL_NOT )
 {
-	//CX2SMTPMail	localSMTP;
-	////////////////////////////////////////////////////////////////////////////
-	//// 초기화
-	//localSMTP.SMTPSetServer("mail.kog.co.kr",25);
-	//localSMTP.SMTPSetLogin("escrash");            // 계정 인증
-	//localSMTP.SMTPSetPassword("@Els.123");
+	CX2SMTPMail	localSMTP;
+	//////////////////////////////////////////////////////////////////////////
+	// 초기화
+	localSMTP.SMTPSetServer("mail.kog.co.kr",25);
+#ifdef SERV_INT_ONLY
+	localSMTP.SMTPSetLogin("testesint");            // 계정 인증
+	localSMTP.SMTPSetPassword("ElsInt@@201216");
+#else //SERV_INT_ONLY
+	localSMTP.SMTPSetLogin("escrash");            // 계정 인증
+	localSMTP.SMTPSetPassword("@Els.123");
+#endif //SERV_INT_ONLY	
 
-	//localSMTP.SMTPSetSenderName( "엘소드 서버 접속 감시자" );
+	localSMTP.SMTPSetSenderName( "엘소드 서버 접속 감시자" );
 
-	//localSMTP.SMTPSetSenderMail( "escrash@kog.co.kr" );
-	//localSMTP.SMTPSetReplyTo( "escrash@kog.co.kr" ); // 회신 주소
+#ifdef SERV_INT_ONLY
+	localSMTP.SMTPSetSenderMail( "testesint@kog.co.kr" );
+	localSMTP.SMTPSetReplyTo( "testesint@kog.co.kr" ); // 회신 주소
+#else //SERV_INT_ONLY
+	localSMTP.SMTPSetSenderMail( "escrash@kog.co.kr" );
+	localSMTP.SMTPSetReplyTo( "escrash@kog.co.kr" ); // 회신 주소
+#endif //SERV_INT_ONLY	
 
-	////////////////////////////////////////////////////////////////////////////
-	//// 제목
-	//{
-	//	localSMTP.SMTPSetSubject( KncUtil::toNarrowString( kPacket_.m_wstrTitle ).c_str() );
-	//}
-	//
-	////////////////////////////////////////////////////////////////////////////	
-	//// 받는 사람들
-	//{
-	//	std::vector< std::wstring >::const_iterator vit;
-	//	for( vit = kPacket_.m_vecRecvMailAddrList.begin(); vit != kPacket_.m_vecRecvMailAddrList.end(); ++vit )
-	//	{
-	//		localSMTP.SMTPAddRecipient( KncUtil::toNarrowString( *vit ).c_str() );
-	//	}
-	//}	
 
-	//localSMTP.SMTPSetXPriority( CX2SMTPMail::XPRIORITY_NORMAL );
-	//localSMTP.SMTPSetXMailer("The Bat! (v3.02) Professional");
+	//////////////////////////////////////////////////////////////////////////
+	// 제목
+	{
+		localSMTP.SMTPSetSubject( KncUtil::toNarrowString( kPacket_.m_wstrTitle ).c_str() );
+	}
+	
+	//////////////////////////////////////////////////////////////////////////	
+	// 받는 사람들
+	{
+		std::vector< std::wstring >::const_iterator vit;
+		for( vit = kPacket_.m_vecRecvMailAddrList.begin(); vit != kPacket_.m_vecRecvMailAddrList.end(); ++vit )
+		{
+			localSMTP.SMTPAddRecipient( KncUtil::toNarrowString( *vit ).c_str() );
+		}
+	}	
 
-	////////////////////////////////////////////////////////////////////////////
-	//// 본문 내용
-	//{
-	//	localSMTP.SMTPSetMessageBody( KncUtil::toNarrowString( kPacket_.m_wstrDesc ).c_str() );
-	//}	
+	localSMTP.SMTPSetXPriority( CX2SMTPMail::XPRIORITY_NORMAL );
+	localSMTP.SMTPSetXMailer("The Bat! (v3.02) Professional");
 
-	////////////////////////////////////////////////////////////////////////////
-	//// 파일 이름으로 첨부 파일 찾기
-	//{
-	//	BOOST_TEST_FOREACH( const std::wstring&, wstrFileName, kPacket_.m_vecAttachFileNameList )
-	//	{
-	//		char szFilePath[1024] = "";
-	//		GetCurrentDirectoryA( _MAX_PATH, szFilePath );
-	//		std::string strFileName = szFilePath;
-	//		strFileName += "\\";
-	//		strFileName += KncUtil::toNarrowString( wstrFileName ).c_str();
+	//////////////////////////////////////////////////////////////////////////
+	// 본문 내용
+	{
+		localSMTP.SMTPSetMessageBody( KncUtil::toNarrowString( kPacket_.m_wstrDesc ).c_str() );
+	}	
 
-	//		localSMTP.SMTPAddAttachment( strFileName.c_str() );
-	//	}
-	//}
+	//////////////////////////////////////////////////////////////////////////
+	// 파일 이름으로 첨부 파일 찾기
+	{
+		BOOST_TEST_FOREACH( const std::wstring&, wstrFileName, kPacket_.m_vecAttachFileNameList )
+		{
+			char szFilePath[1024] = "";
+			GetCurrentDirectoryA( _MAX_PATH, szFilePath );
+			std::string strFileName = szFilePath;
+			strFileName += "\\";
+			strFileName += KncUtil::toNarrowString( wstrFileName ).c_str();
 
-	////////////////////////////////////////////////////////////////////////////
-	//// 절대 경로로 첨부 파일 찾기
-	//{
-	//	BOOST_TEST_FOREACH( const std::wstring&, wstrFileFullPath, kPacket_.m_vecAttachFileFullPathList )
-	//	{
-	//		const std::string strFileName = KncUtil::toNarrowString( wstrFileFullPath );
-	//		localSMTP.SMTPAddAttachment( strFileName.c_str() );
-	//	}
-	//}
+			localSMTP.SMTPAddAttachment( strFileName.c_str() );
+		}
+	}
 
-	//if( localSMTP.SMTPSend() )
-	//{
-	//	//The mail was send successfully
-	//	START_LOG( cout, L"메일 전송 성공!" )
-	//		<< BUILD_LOG( kPacket_.m_wstrTitle )
-	//		<< BUILD_LOG( kPacket_.m_vecRecvMailAddrList.size() )
-	//		<< BUILD_LOG( kPacket_.m_vecAttachFileNameList.size() )
-	//		<< BUILD_LOG( kPacket_.m_vecAttachFileFullPathList.size() );
-	//}
-	//else
-	//{
-	//	//Unable to send the mail
-	//	START_LOG( cout, L"메일 전송 실패!" )
-	//		<< BUILD_LOG( kPacket_.m_wstrTitle )
-	//		<< BUILD_LOG( kPacket_.m_vecRecvMailAddrList.size() )
-	//		<< BUILD_LOG( kPacket_.m_vecAttachFileNameList.size() )
-	//		<< BUILD_LOG( kPacket_.m_vecAttachFileFullPathList.size() );
-	//}
-	//// 받는사람 주소, 첨부파일 초기화
-	//localSMTP.SMTPClearRecipient();
+	//////////////////////////////////////////////////////////////////////////
+	// 절대 경로로 첨부 파일 찾기
+	{
+		BOOST_TEST_FOREACH( const std::wstring&, wstrFileFullPath, kPacket_.m_vecAttachFileFullPathList )
+		{
+			const std::string strFileName = KncUtil::toNarrowString( wstrFileFullPath );
+			localSMTP.SMTPAddAttachment( strFileName.c_str() );
+		}
+	}
+
+#ifdef SERV_FIX_SCRIPT_PARSING_ERR_REPORT_ONLY_INTERNAL
+	if( localSMTP.SMTPSend() )
+	{
+		//The mail was send successfully
+		START_LOG( cout, L"메일 전송 성공!" )
+			<< BUILD_LOG( kPacket_.m_wstrTitle )
+			<< BUILD_LOG( kPacket_.m_vecRecvMailAddrList.size() )
+			<< BUILD_LOG( kPacket_.m_vecAttachFileNameList.size() )
+			<< BUILD_LOG( kPacket_.m_vecAttachFileFullPathList.size() );
+	}
+	else
+	{
+		//Unable to send the mail
+		START_LOG( cout, L"메일 전송 실패!" )
+			<< BUILD_LOG( kPacket_.m_wstrTitle )
+			<< BUILD_LOG( kPacket_.m_vecRecvMailAddrList.size() )
+			<< BUILD_LOG( kPacket_.m_vecAttachFileNameList.size() )
+			<< BUILD_LOG( kPacket_.m_vecAttachFileFullPathList.size() );
+	}
+#endif //SERV_FIX_SCRIPT_PARSING_ERR_REPORT_ONLY_INTERNAL
+
+	// 받는사람 주소, 첨부파일 초기화
+	localSMTP.SMTPClearRecipient();
 }
 
 

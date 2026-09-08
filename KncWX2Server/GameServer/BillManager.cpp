@@ -304,10 +304,7 @@ void KBillManager::ProcessEvent( const KEventPtr& spEvent_ )
 
 void KBillManager::CheckProductInfo()
 {
-
-
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
-
 	if( ::GetTickCount() - m_dwLasCashEvnetCheckTick > ms_dwCashEventCheckGap )
 	{
 		if(m_vecStartBonusTime.empty() == false && m_vecEndBonusTime.empty() == false)
@@ -326,7 +323,6 @@ void KBillManager::CheckProductInfo()
 
 					m_bCheckBonusTime = true;
 				}
-
 			}
 			else
 			{
@@ -342,14 +338,11 @@ void KBillManager::CheckProductInfo()
 
 					m_bCheckBonusTime = false;
 				}
-
 			}
 		}
 	
 		m_dwLasCashEvnetCheckTick = ::GetTickCount();
-
 	}
-
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 
 	if( ::GetTickCount() - m_dwLastProductCheckTick < ms_dwProductCheckGap )
@@ -366,24 +359,21 @@ void KBillManager::CheckProductInfo()
 		<< END_LOG;
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 
-
 	m_dwLastProductCheckTick = ::GetTickCount();
 
 	KEBILL_CHECK_PRODUCT_INFO_REQ kPacket_;
-	
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 	kPacket_.m_mapReleaseTick.clear();
 	kPacket_.m_mapReleaseTick.insert(std::make_pair(CSRTT_NORMAL,GetReleaseTick(CSRTT_NORMAL)));
 	kPacket_.m_mapReleaseTick.insert(std::make_pair(CSRTT_BONUS_EVENT,GetReleaseTick(CSRTT_BONUS_EVENT)));
-	
 #else
 	kPacket_.m_iReleaseTick = GetReleaseTick();
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
 
 	KncSend( PI_GS_KOG_BILLING_MANAGER, 0, PI_GS_KOG_BILLING_DB, 0, NULL, EBILL_CHECK_PRODUCT_INFO_REQ, kPacket_ );
 }
-#ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 
+#ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 void KBillManager::SetReleaseTick(CASH_SHOP_RELEASE_TICK_TYPE _enum ,std::map<int, int> &mapReleaseTick )
 {
 	std::map<int, int>::iterator sitstr = mapReleaseTick.find(_enum);
@@ -411,7 +401,6 @@ int KBillManager::GetReleaseTick(CASH_SHOP_RELEASE_TICK_TYPE _enum)
 	{
 		return 0;
 	}
-
 }
 
 bool KBillManager::CheckBonusPeriodTime(std::vector<std::wstring> &_vecStartTime, std::vector<std::wstring> &_vecEndTime )
@@ -460,19 +449,14 @@ bool KBillManager::CheckBonusPeriodTime(std::vector<std::wstring> &_vecStartTime
 				;
 			return true;
 		}
-
 	}
 	return false;
-
 }
 #endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
-
-
 
 IMPL_ON_FUNC( EBILL_CHECK_PRODUCT_INFO_ACK )
 {
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
-
 	std::map<int, int>::const_iterator sitNormalReq = kPacket_.m_mapReleaseTick.find(CSRTT_NORMAL);
 	std::map<int, int>::const_iterator sitBonusReq = kPacket_.m_mapReleaseTick.find(CSRTT_BONUS_EVENT);
 	int normalTick = 0;

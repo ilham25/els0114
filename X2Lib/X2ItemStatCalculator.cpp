@@ -17,10 +17,10 @@ CX2ItemStatCalculator::~CX2ItemStatCalculator()
 void CX2ItemStatCalculator::OpenScriptFile()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, false );
-	if( true == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( L"CharacterStatTable.lua" ) )
+	if( true == g_pKTDXApp->LoadLuaTinker( L"CharacterStatTable.lua" ) )
 	{
 		// 장비 장착 부위 별 능력치
-		if( true == luaManager.BeginTable( L"EQIP_POSITION_RELATIVE_STAT_TABLE" ) )
+		if( true == luaManager.BeginTable( "EQIP_POSITION_RELATIVE_STAT_TABLE" ) )
 		{
 			int iTableIndex = 1;
 			while( true == luaManager.BeginTable( iTableIndex  ) )
@@ -53,7 +53,7 @@ void CX2ItemStatCalculator::OpenScriptFile()
 		}
 
 		// 캐릭터별 능력치
-		if( true == luaManager.BeginTable( L"CHARACTER_RELATIVE_STAT_TABLE" ) )
+		if( true == luaManager.BeginTable( "CHARACTER_RELATIVE_STAT_TABLE" ) )
 		{
 			int iTableIndex = 1;
 			while( true == luaManager.BeginTable( iTableIndex  ) )
@@ -86,7 +86,7 @@ void CX2ItemStatCalculator::OpenScriptFile()
 		}
 
 		// 2차 전직별 능력치( 2차전직이 아니라면 캐릭터별 능력치 사용 )
-		if( true == luaManager.BeginTable( L"SECOND_CLASS_RELATIVE_STAT_TABLE" ) )
+		if( true == luaManager.BeginTable( "SECOND_CLASS_RELATIVE_STAT_TABLE" ) )
 		{
 			int iTableIndex = 1;
 			while( true == luaManager.BeginTable( iTableIndex  ) )
@@ -213,7 +213,8 @@ void CX2ItemStatCalculator::CalculateItemStat( OUT CX2Item::KItemFormatStatData&
 	}
 
 	// 연동 레벨이 설정되어있지 않다면 기본 스탯 구하기
-	if( false == kStatRelationAddLV.IsValideCheck() )
+	if( false == kStatRelationAddLV.IsValideCheck() || 
+		( CX2Unit::UC_NONE == eUnitType_ || CX2Unit::UC_NONE == eUnitClass_ ) )
 	{
 		sRealStatData_ = pItemTemplet_->GetStatData();
 		return;
@@ -440,7 +441,7 @@ bool CX2ItemStatCalculator::IsRandomSocketOptionItem( const CX2Item::ItemTemplet
 	@brief : 스탯 추가 레벨 적용 옵션 값 얻어오기
 */
 void CX2ItemStatCalculator::GetSocketOptionStatRelLV( OUT CX2SocketItem::KItemStatRelLVData& kItemStatRelLVData_,
-	IN const CX2Item::ItemData* pItemData_, IN const CX2Item::ItemTemplet* pItemTemplet_) const
+	IN const CX2Item::ItemData& kItemData_, IN const CX2Item::ItemTemplet* pItemTemplet_) const
 {
 	kItemStatRelLVData_.Init();
 	if( NULL != g_pData->GetSocketItem() )
@@ -456,16 +457,15 @@ void CX2ItemStatCalculator::GetSocketOptionStatRelLV( OUT CX2SocketItem::KItemSt
 			}
 		}
 
-		if( NULL != pItemData_ )
 		{
 			// 마법석으로 추가하는 소켓 옵션
-			BOOST_FOREACH( int iSocketID, pItemData_->m_SocketOption )
+			BOOST_FOREACH( int iSocketID, kItemData_.m_SocketOption )
 			{
 				kItemStatRelLVData_.AddStat( g_pData->GetSocketItem()->GetStatRelLVDataBySocktID( iSocketID ) );
 			}
 
 			// 감정을 통해 얻는 랜덤 소켓 옵션
-			BOOST_FOREACH( int iSocketID, pItemData_->m_vecRandomSocket )
+			BOOST_FOREACH( int iSocketID, kItemData_.m_vecRandomSocket )
 			{
 				kItemStatRelLVData_.AddStat( g_pData->GetSocketItem()->GetStatRelLVDataBySocktID( iSocketID ) );
 			}

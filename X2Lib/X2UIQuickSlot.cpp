@@ -175,10 +175,7 @@ CX2UIQuickSlot::~CX2UIQuickSlot(void)
 	}
 
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-
-	if ( NULL == pInventory )
-		return S_OK;
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 #ifdef SERV_NEW_DEFENCE_DUNGEON	// 적용날짜: 2013-03-25
 	int iSlotMaxNum = GetSlotMaxNum();
@@ -236,17 +233,16 @@ CX2UIQuickSlot::~CX2UIQuickSlot(void)
 
 		if ( true == GetIsSummonCardSlot() )	/// 어둠의 문 일 때, 어둠의 문 카드 슬롯 아이템 객체를 받아온다.
 		{
-			pItem = pInventory->GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, i );
+			pItem = kInventory.GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, i );
 		}
 		else
 		{
-			pItem = pInventory->GetItem( pSlotItem->GetItemUID() );
+			pItem = kInventory.GetItem( pSlotItem->GetItemUID() );
 		}
 #else // SERV_NEW_DEFENCE_DUNGEON
-		CX2Item* pItem = pInventory->GetItem( pSlotItem->GetItemUID() );
+		CX2Item* pItem = kInventory.GetItem( pSlotItem->GetItemUID() );
 #endif // SERV_NEW_DEFENCE_DUNGEON
 		if( NULL == pItem ||
-			NULL == pItem->GetItemData() ||
 			NULL == pItem->GetItemTemplet() 
             )
 		{
@@ -256,7 +252,7 @@ CX2UIQuickSlot::~CX2UIQuickSlot(void)
 		OnFrameMove_CoolTime( pItem, pSlotItem );
 	}
 #else
-		int itemID = pItem->GetItemData()->m_ItemID;
+		int itemID = pItem->GetItemData().m_ItemID;
 		bool bCheck = false;
 
 		map < int, CKTDXTimer >::iterator mit;
@@ -418,93 +414,59 @@ bool CX2UIQuickSlot::KeyEventProcess()
 	if ( g_pData->GetUIManager()->GetUIInventory()->GetOpenRegisterQuantityDLG() == true )
 		return false;
 	
-	CX2Inventory* pInven = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 	CX2Item* pQuickItem = NULL;
 	int slotID = -1;
-#ifdef REFORM_UI_KEYPAD
 
 	#ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-07
 
 		/// 어둠의 문 이라면, 몬스터 소환 카드 퀵슬롯을 사용
 		if ( true == GetIsSummonCardSlot() )
 		{
-			InputSummonCardSlotKey( pInven, &pQuickItem, slotID );	/// 몬스터 소환 카드 슬롯 키보드 입력 함수
+			InputSummonCardSlotKey(  kInventory, &pQuickItem, slotID );	/// 몬스터 소환 카드 슬롯 키보드 입력 함수
 		}
 		/// 일반 퀵슬롯 입력
 		else
 		{
-			InputQuickSlotKey( pInven, &pQuickItem, slotID );		/// 퀵슬롯 키보드 입력 함수
+			InputQuickSlotKey( kInventory, &pQuickItem, slotID );		/// 퀵슬롯 키보드 입력 함수
 		}
 
 	#else // SERV_NEW_DEFENCE_DUNGEON
 
 		if( GET_KEY_STATE( GA_QUICKSLOT1 ) == TRUE )
 		{
-			pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 0 );
+			pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 0 );
 			slotID = 0;
 		}
 		else if( GET_KEY_STATE( GA_QUICKSLOT2 ) == TRUE )
 		{
-			pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 1 );
+			pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 1 );
 			slotID = 1;
 		}
 		else if( GET_KEY_STATE( GA_QUICKSLOT3 ) == TRUE )
 		{
-			pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 2 );
+			pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 2 );
 			slotID = 2;
 		}
 		else if( GET_KEY_STATE( GA_QUICKSLOT4 ) == TRUE )
 		{
-			pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 3 );
+			pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 3 );
 			slotID = 3;
 		}
 		else if( GET_KEY_STATE( GA_QUICKSLOT5 ) == TRUE )
 		{
-			pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 4 );
+			pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 4 );
 			slotID = 4;
 		}
 		else if( GET_KEY_STATE( GA_QUICKSLOT6 ) == TRUE )
 		{
-			pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 5 );
+			pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 5 );
 			slotID = 5;
 		}
 
 	#endif // SERV_NEW_DEFENCE_DUNGEON
 
-#else
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_1 ) == TRUE )
-	{
-		pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 0 );
-		slotID = 0;
-	}
-	else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_2 ) == TRUE )
-	{
-		pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 1 );
-		slotID = 1;
-	}
-	else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_3 ) == TRUE )
-	{
-		pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 2 );
-		slotID = 2;
-	}
-	else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_4 ) == TRUE )
-	{
-		pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 3 );
-		slotID = 3;
-	}
-	else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_5 ) == TRUE )
-	{
-		pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 4 );
-		slotID = 4;
-	}
-	else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_6 ) == TRUE )
-	{
-		pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 5 );
-		slotID = 5;
-	}
-#endif	REFORM_UI_KEYPAD
 
 #ifdef PET_ITEM_GM
 	if ( pQuickItem != NULL && pQuickItem->GetItemTemplet() != NULL )
@@ -542,12 +504,12 @@ bool CX2UIQuickSlot::KeyEventProcess()
 	}
 #endif //PET_ITEM_GM
 
-	if ( pQuickItem != NULL && pQuickItem->GetItemData() != NULL && 
+	if ( pQuickItem != NULL && 
         pQuickItem->GetItemTemplet() != NULL 
         )
 	{
 #ifdef SERV_CHANGE_QUICK_SLOT_COOL_TIME_DB_SP
-		const int iGroupID = g_pData->GetItemManager()->GetCoolTimeGroupID( pQuickItem->GetItemData()->m_ItemID );
+		const int iGroupID = g_pData->GetItemManager()->GetCoolTimeGroupID( pQuickItem->GetItemData().m_ItemID );
 		std::map< int, CKTDXTimer >::iterator mit = m_mapQuickSlotItemCoolTime.find( iGroupID );
 		if( mit != m_mapQuickSlotItemCoolTime.end() )
 		{
@@ -560,7 +522,7 @@ bool CX2UIQuickSlot::KeyEventProcess()
 			}
 		}
 #else
-		std::map< int, CKTDXTimer >::iterator mit = m_mapQuickSlotItemCoolTime.find( pQuickItem->GetItemData()->m_ItemID );
+		std::map< int, CKTDXTimer >::iterator mit = m_mapQuickSlotItemCoolTime.find( pQuickItem->GetItemData().m_ItemID );
 		if( mit != m_mapQuickSlotItemCoolTime.end() )
 		{
 			if( mit->second.elapsed() < pQuickItem->GetItemTemplet()->GetCoolTime() )   // TODO : 쿨타임 정책 정해지면 아이템 템플릿에서 쿨타임을 추출하자.
@@ -603,9 +565,9 @@ bool CX2UIQuickSlot::KeyEventProcess()
 #endif SPECIAL_USE_ITEM
 							{
 #ifdef SPECIAL_USE_ITEM
-								if ( pMyGUUser->GetNowFrameData()->stateParam.bLandConnect == true && g_pX2Game->GetEnableAllKeyProcess() == true)
+								if ( pMyGUUser->GetNowFrameData().stateParam.bLandConnect == true && g_pX2Game->GetEnableAllKeyProcess() == true)
 #else
-								if ( pMyGUUser->GetNowFrameData()->stateParam.bLandConnect == true )
+								if ( pMyGUUser->GetNowFrameData().stateParam.bLandConnect == true )
 #endif SPECIAL_USE_ITEM
 								{
 #ifdef FIX_QUICK_SLOT_USE_DUNGEON_PLAY
@@ -628,13 +590,13 @@ bool CX2UIQuickSlot::KeyEventProcess()
 #endif //RIDING_SYSTEM
  									else
 #endif FIX_QUICK_SLOT_USE_DUNGEON_PLAY
-										if ( pMyGUUser->GetNowFrameData()->syncData.nowState == pMyGUUser->GetWaitStateID() ||
-											pMyGUUser->GetNowFrameData()->syncData.nowState == pMyGUUser->GetWalkStateID() ||
-											pMyGUUser->GetNowFrameData()->syncData.nowState == pMyGUUser->GetDashStateID() ||
+										if ( pMyGUUser->GetNowFrameData().syncData.nowState == pMyGUUser->GetWaitStateID() ||
+											pMyGUUser->GetNowFrameData().syncData.nowState == pMyGUUser->GetWalkStateID() ||
+											pMyGUUser->GetNowFrameData().syncData.nowState == pMyGUUser->GetDashStateID() ||
 #ifdef SPECIAL_USE_ITEM
-											pMyGUUser->GetNowFrameData()->syncData.nowState == pMyGUUser->GetChargeMpStateID() ||
+											pMyGUUser->GetNowFrameData().syncData.nowState == pMyGUUser->GetChargeMpStateID() ||
 #endif SPECIAL_USE_ITEM
-											pMyGUUser->GetNowFrameData()->syncData.nowState == pMyGUUser->GetDashEndStateID() )
+											pMyGUUser->GetNowFrameData().syncData.nowState == pMyGUUser->GetDashEndStateID() )
 										{
 											m_bWaiting_EGS_USE_QUICK_SLOT_ACK = true;
 											g_pX2Game->SetEnableAllKeyProcess( false );
@@ -799,6 +761,14 @@ bool CX2UIQuickSlot::Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2SlotItem* pFromCX
 		kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iToSlotID		= pToCX2SlotItem->GetSlotID();
 	}
 
+#ifdef SERV_SHARING_BANK_TEST
+	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = -1;
+	if( g_pData->GetUIManager() != NULL && g_pData->GetUIManager()->GetUIPrivateBank() != NULL )
+	{
+		kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = g_pData->GetUIManager()->GetUIPrivateBank()->GetShareUnitUID();
+	}
+#endif //SERV_SHARING_BANK_TEST
+
 	g_pData->GetServerProtocol()->SendPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ, kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ );
 	g_pMain->AddServerPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK );
 
@@ -819,6 +789,13 @@ bool CX2UIQuickSlot::Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2Inventory::SORT_T
 	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_cToSlotType	= toSortType;
 	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iToSlotID		= toSlotID;
 
+#ifdef SERV_SHARING_BANK_TEST
+	kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = -1;
+	if( g_pData->GetUIManager() != NULL && g_pData->GetUIManager()->GetUIPrivateBank() != NULL )
+	{
+		kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ.m_iShareUnitUID = g_pData->GetUIManager()->GetUIPrivateBank()->GetShareUnitUID();
+	}
+#endif //SERV_SHARING_BANK_TEST
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ, kEGS_CHANGE_INVENTORY_SLOT_ITEM_REQ );
 	g_pMain->AddServerPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK );
@@ -837,10 +814,10 @@ bool CX2UIQuickSlot::Handler_EGS_USE_QUICK_SLOT_REQ( int slotID )
 		CX2GUUser* pCX2GUUser = g_pX2Game->GetMyUnit();
 		if( pCX2GUUser != NULL )
 		{
-			if( -1 != pCX2GUUser->GetSummonMonsterCardData()->GetSummonMonsterUID() )
+			if( -1 != pCX2GUUser->AccessSummonMonsterCardData().GetSummonMonsterUID() )
 			{
 				CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
-				CX2Item* pItem = pMyUnit->GetInventory()->GetItem( CX2Inventory::ST_E_QUICK_SLOT, slotID );
+				CX2Item* pItem = pMyUnit->GetInventory().GetItem( CX2Inventory::ST_E_QUICK_SLOT, slotID );
 				int iCoolTimeGroupID = g_pData->GetItemManager()->GetCoolTimeGroupID( pItem->GetItemTemplet()->GetItemID() );
 
 				if( iCoolTimeGroupID == 7 )
@@ -889,12 +866,12 @@ bool CX2UIQuickSlot::Handler_EGS_USE_QUICK_SLOT_ACK( HWND hWnd, UINT uMsg, WPARA
 			KInventoryItemInfo& kInventorySlotInfo = kEvent.m_InventorySlotInfo;
 
 			CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
-			pMyUnit->GetInventory()->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+			pMyUnit->AccessInventory().RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 
 			if ( kInventorySlotInfo.m_iItemUID > 0 )
 			{
-				CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
-				pMyUnit->GetInventory()->AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, pItemData );
+				CX2Item::ItemData kItemData( kInventorySlotInfo );
+				pMyUnit->AccessInventory().AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, kItemData );
 			}
 
 			ResetQuickSlotUI();
@@ -1047,7 +1024,7 @@ bool CX2UIQuickSlot::Handler_EGS_USE_QUICK_SLOT_NOT( HWND hWnd, UINT uMsg, WPARA
 #endif //REMOVE_POSTPOSITION_IN_REPLACE_STRING
 			}
 			else
-			{
+			{ 
 #ifdef REMOVE_POSTPOSITION_IN_REPLACE_STRING
 				wstrBuff = GET_REPLACED_STRING( ( STR_ID_896, "SS", pItemTemplet->GetFullName_(),
 					L"" ) );
@@ -1171,11 +1148,7 @@ bool CX2UIQuickSlot::ResetCoolTime()
 		 NULL == g_pX2Game->GetMyUnit() ||
 		 NULL == g_pX2Game->GetMyUnit()->GetUnit() )
 		 return false;
-	CX2Inventory* pInven = g_pX2Game->GetMyUnit()->GetUnit()->GetInventory();
-	if ( pInven == NULL )
-	{
-		return false;
-	}
+	const CX2Inventory& kInventory = &g_pX2Game->GetMyUnit()->GetUnit()->GetInventory();
 
 	CX2Item* pQuickItem = NULL;
 #ifdef SPECIAL_USE_ITEM
@@ -1184,18 +1157,18 @@ bool CX2UIQuickSlot::ResetCoolTime()
 	for ( int i = 0; i < 5; i++ )
 #endif SPECIAL_USE_ITEM
 	{
-		pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, i );
+		pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, i );
 
-		if ( pQuickItem != NULL && pQuickItem->GetItemData() != NULL && 
+		if ( pQuickItem != NULL && 
             pQuickItem->GetItemTemplet() != NULL 
             )
 		{
 #ifdef SERV_CHANGE_QUICK_SLOT_COOL_TIME_DB_SP
-			const int iItemID = pItem_->GetItemData()->m_ItemID;
+			const int iItemID = pItem_->GetItemData().m_ItemID;
 			const int iGroupID = g_pData->GetItemManager()->GetCoolTimeGroupID( iItemID );
 			std::map< int, CKTDXTimer >::iterator mit = m_mapQuickSlotItemCoolTime.find( iGroupID );
 #else
-			std::map< int, CKTDXTimer >::iterator mit = m_mapQuickSlotItemCoolTime.find( pQuickItem->GetItemData()->m_ItemID );
+			std::map< int, CKTDXTimer >::iterator mit = m_mapQuickSlotItemCoolTime.find( pQuickItem->GetItemData().m_ItemID );
 #endif // SERV_CHANGE_QUICK_SLOT_COOL_TIME_DB_SP
 			if( mit != m_mapQuickSlotItemCoolTime.end() )
 			{
@@ -1216,15 +1189,10 @@ bool CX2UIQuickSlot::ResetCoolTime()
 
 void CX2UIQuickSlot::ResetQuickSlotUI()
 {
+	if( g_pData->GetMyUser() == NULL || g_pData->GetMyUser()->GetSelectUnit() == NULL )
+        return;
 
-	CX2Inventory* pInventory = NULL;
-	if( g_pData->GetMyUser() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit() != NULL )
-	{
-		pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	}
-	if(pInventory == NULL) 
-		return;
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 #ifdef NEW_ITEM_NOTICE 
 	CKTDGUIStatic* pStatic = NULL;
@@ -1248,9 +1216,9 @@ void CX2UIQuickSlot::ResetQuickSlotUI()
 #ifdef SERV_NEW_DEFENCE_DUNGEON		/// 일반 퀵슬롯과 몬스터 카드 퀵슬롯일 때의 아이콘 설정 구분
 
 	if( true == GetIsSummonCardSlot() )
-		SetSummonMonsterItemIcon( m_SlotList, pInventory, pStatic );	/// 몬스터 카드 퀵슬롯 아이콘 설정
+		SetSummonMonsterItemIcon( m_SlotList, kInventory, pStatic );	/// 몬스터 카드 퀵슬롯 아이콘 설정
 	else
-		SetSlotItemIcon( m_SlotList, pInventory, pStatic );				/// 퀵슬롯 아이콘 설정
+		SetSlotItemIcon( m_SlotList, kInventory, pStatic );				/// 퀵슬롯 아이콘 설정
 
 #else SERV_NEW_DEFENCE_DUNGEON
 
@@ -1262,15 +1230,14 @@ void CX2UIQuickSlot::ResetQuickSlotUI()
 
 		pItemSlot->DestroyItemUI();
 
-		CX2Item* pItem = pInventory->GetItem( CX2Inventory::ST_E_QUICK_SLOT, i );
+		CX2Item* pItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, i );
 		if ( pItem == NULL )
 			continue;
 	
 #ifdef NEW_ITEM_NOTICE 
-		if( NULL != pItem->GetItemData() )
 		{
-			UidType iItemUID = pItem->GetItemData()->m_ItemUID;
-			bool	bNewItem = pInventory->IsNewItem( CX2Inventory::ST_QUICK_SLOT, iItemUID );
+			UidType iItemUID = pItem->GetItemData().m_ItemUID;
+			bool	bNewItem = kInventory.IsNewItem( CX2Inventory::ST_QUICK_SLOT, iItemUID );
 
 			if( true == bNewItem && NULL != pStatic &&  NULL != pStatic->GetPicture(i) )
 			{//위에서 모두 초기화 시켜 주기 때문에, true일때만 수정
@@ -1400,9 +1367,9 @@ bool CX2UIQuickSlot::OnDropAnyItem( D3DXVECTOR2 mousePos )
 	//*m_DraggingItemUID = ((CX2SlotItem*)(*m_pSlotBeforeDragging))->GetItemUID();
 	//}}
 
-	CX2Inventory* pInventory	= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory& kInventory	= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 	CX2Item* pItem				= NULL;
-	pItem						= pInventory->GetItem( *m_DraggingItemUID, true );
+	pItem						= kInventory.GetItem( *m_DraggingItemUID, true );
 
 	if ( pItem == NULL )
 	{
@@ -1483,8 +1450,7 @@ bool CX2UIQuickSlot::OnRClickedItem( D3DXVECTOR2 mousePos )
 #endif	REAL_TIME_ELSWORD
 	//}} kimhc // 실시간 엘소드 중 던전내에서 유저가 죽었거나, wait, mpCharge 상태가 아닐때 장비 교체 막기
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	if ( pInventory != NULL )
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 	{
 		switch(g_pMain->GetNowStateID())
 		{
@@ -1497,9 +1463,9 @@ bool CX2UIQuickSlot::OnRClickedItem( D3DXVECTOR2 mousePos )
 
 		default:
 			{
-				for ( int i = 0; i < pInventory->GetItemMaxNum( CX2Inventory::ST_QUICK_SLOT ); i++ )
+				for ( int i = 0; i < kInventory.GetItemMaxNum( CX2Inventory::ST_QUICK_SLOT ); i++ )
 				{
-					CX2Item* pItem = pInventory->GetItem( CX2Inventory::ST_QUICK_SLOT , i );
+					CX2Item* pItem = kInventory.GetItem( CX2Inventory::ST_QUICK_SLOT , i );
 					if ( pItem == NULL )
 					{
 						g_pData->GetUIManager()->ToggleUI(CX2UIManager::UI_MENU_INVEN, true);;
@@ -1749,12 +1715,11 @@ void CX2UIQuickSlot::SetEnable( bool val )
 
 CX2SlotItem* CX2UIQuickSlot::GetEmptyslot()
 {
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	if(pInventory == NULL) return NULL;
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 	for ( int i = 0; i < (int)m_SlotList.size(); i++ )
 	{
-		CX2Item* pItem = pInventory->GetItem( CX2Inventory::ST_E_QUICK_SLOT, i );
+		CX2Item* pItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, i );
 		CX2SlotItem* pItemSlot = (CX2SlotItem*)m_SlotList[i];
 
 		if ( pItem == NULL )
@@ -1796,17 +1761,6 @@ CX2SlotItem* CX2UIQuickSlot::GetEmptyslot()
 #ifdef	SERV_EXPAND_QUICK_SLOT
 void	CX2UIQuickSlot::SetExpandQuickSlot( int iMaxNumOfSlot )
 {
-//{{ Iruha : 2026-08-27 // All 6 consumable quick slots open by default; skip the 3/6 clamp entirely
-#ifdef SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-#ifdef SERV_NEW_DEFENCE_DUNGEON	// 적용날짜: 2013-03-26
-	if( true == GetIsSummonCardSlot() )		/// 소환 카드 슬롯은 4칸으로 설정핝다.
-		iMaxNumOfSlot = _CONST_QUICK_SLOT_::MAX_CARD_SLOT_NUM;
-	else
-		iMaxNumOfSlot = 6;
-#else // SERV_NEW_DEFENCE_DUNGEON
-	iMaxNumOfSlot = 6;
-#endif // SERV_NEW_DEFENCE_DUNGEON
-#else // SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
 #ifdef SERV_NEW_DEFENCE_DUNGEON	// 적용날짜: 2013-03-26
 	if( true == GetIsSummonCardSlot() )		/// 소환 카드 슬롯은 4칸으로 설정핝다.
 		iMaxNumOfSlot = _CONST_QUICK_SLOT_::MAX_CARD_SLOT_NUM;
@@ -1821,9 +1775,6 @@ void	CX2UIQuickSlot::SetExpandQuickSlot( int iMaxNumOfSlot )
 	{
 		iMaxNumOfSlot = 6;
 	}
-
-#endif SERV_IRUHADEV_QUICK_SLOT_FULL_FREE
-//}}
 
 	CKTDGUIStatic* pStatic_Black = (CKTDGUIStatic*) m_pDLGQuickSlot->GetControl( L"Slot_Black" );
 
@@ -1934,13 +1885,11 @@ wstring CX2UIQuickSlot::GetSlotItemDesc()
 {
 	//마우스 오버 시 NewItem 하이라이트 꺼지도록 수정
 
-	if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit()
-		&& NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+	if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-		if( NULL != pInventory )
+		CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 		{
-			if( true == pInventory->EraseNewItem(m_pNowOverItemSlot->GetItemUID()) )
+			if( true == kInventory.EraseNewItem(m_pNowOverItemSlot->GetItemUID()) )
 			{
 				ResetQuickSlotUI();
 			}
@@ -2004,7 +1953,6 @@ void CX2UIQuickSlot::InitMyQuickSlotCoolTimeFromGageManager( const map<int, int>
 	}	
 }
 
-#ifdef REFORM_UI_KEYPAD
 void CX2UIQuickSlot::UpdateSlotKey()
 {
 	if ( NULL == m_pDLGQuickSlot )
@@ -2084,16 +2032,15 @@ void CX2UIQuickSlot::GetQuickSlotStringByIndex( IN int iIndex_, OUT wstring& str
 		break;
 	}		
 }
-#endif
 
 /** @function	: SetSlotItemIcon
 	@brief		: 퀵슬롯 아이콘 설정 함수 ( 기존의 코드를 함수로 분리 )
 	@param		: 아이템 슬롯들이 저장되어 있는 컨테이너, 인벤토리 객체, 아이콘 컨트롤 객체
 */
 #ifdef SERV_NEW_DEFENCE_DUNGEON
-void CX2UIQuickSlot::SetSlotItemIcon( vector< CX2Slot* >& m_SlotList, CX2Inventory* pInventory, CKTDGUIStatic* pStatic )
+void CX2UIQuickSlot::SetSlotItemIcon( vector< CX2Slot* >& m_SlotList, const CX2Inventory& kInventory, CKTDGUIStatic* pStatic )
 {
-	if( NULL == pInventory || NULL == pStatic )
+	if( NULL == pStatic )
 		return;
 
 	for ( int i = 0; i < (int)m_SlotList.size(); i++ )
@@ -2114,15 +2061,14 @@ void CX2UIQuickSlot::SetSlotItemIcon( vector< CX2Slot* >& m_SlotList, CX2Invento
 		pItemSlot->SetPos( D3DXVECTOR2( 9.f + ( static_cast<float>( i ) * 46.f ), 711.f ) );
 #endif //INT_WIDE_BAR
 
-		CX2Item* pItem = pInventory->GetItem( CX2Inventory::ST_E_QUICK_SLOT, i );
+		CX2Item* pItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, i );
 		if ( pItem == NULL )
 			continue;
 
 #ifdef NEW_ITEM_NOTICE 
-		if( NULL != pItem->GetItemData() )
 		{
-			UidType iItemUID = pItem->GetItemData()->m_ItemUID;
-			bool	bNewItem = pInventory->IsNewItem( CX2Inventory::ST_QUICK_SLOT, iItemUID );
+			UidType iItemUID = pItem->GetItemData().m_ItemUID;
+			bool	bNewItem = kInventory.IsNewItem( CX2Inventory::ST_QUICK_SLOT, iItemUID );
 
 			if( true == bNewItem && NULL != pStatic &&  NULL != pStatic->GetPicture(i) )
 			{//위에서 모두 초기화 시켜 주기 때문에, true일때만 수정
@@ -2176,9 +2122,9 @@ void CX2UIQuickSlot::SetSlotItemIcon( vector< CX2Slot* >& m_SlotList, CX2Invento
 	@brief		: 몬스터 소환 카드 퀵슬롯 아이콘 설정 함수
 	@param		: 아이템 슬롯들이 저장되어 있는 컨테이너, 인벤토리 객체, 아이콘 컨트롤 객체
 */
-void CX2UIQuickSlot::SetSummonMonsterItemIcon( vector< CX2Slot* >& m_SlotList, CX2Inventory* pInventory, CKTDGUIStatic* pStatic )
+void CX2UIQuickSlot::SetSummonMonsterItemIcon( vector< CX2Slot* >& m_SlotList, const CX2Inventory& kInventory, CKTDGUIStatic* pStatic )
 {
-	if( NULL == pInventory || NULL == pStatic )
+	if( NULL == pStatic )
 		return;
 
 	CKTDGUIStatic* pStaticBuyGuideQuickSlot = (CKTDGUIStatic*) m_pDLGQuickSlot->GetControl( L"Button_Buy_Guide_Quick_Slot" );
@@ -2211,15 +2157,14 @@ void CX2UIQuickSlot::SetSummonMonsterItemIcon( vector< CX2Slot* >& m_SlotList, C
 #endif //INT_WIDE_BAR
 		
 
-		CX2Item* pItem = pInventory->GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, i );
+		CX2Item* pItem = kInventory.GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, i );
 		if ( pItem == NULL )
 			continue;
 
 #ifdef NEW_ITEM_NOTICE 
-		if( NULL != pItem->GetItemData() )
 		{
-			UidType iItemUID = pItem->GetItemData()->m_ItemUID;
-			bool	bNewItem = pInventory->IsNewItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, iItemUID );
+			UidType iItemUID = pItem->GetItemData().m_ItemUID;
+			bool	bNewItem = kInventory.IsNewItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, iItemUID );
 
 			if( true == bNewItem && NULL != pStatic &&  NULL != pStatic->GetPicture(i) )
 			{//위에서 모두 초기화 시켜 주기 때문에, true일때만 수정
@@ -2275,35 +2220,33 @@ void CX2UIQuickSlot::SetSummonMonsterItemIcon( vector< CX2Slot* >& m_SlotList, C
 	@brief		: 몬스터 소환 카드 슬롯 키보드 입력 함수
 	@param		: 인벤토리 정보, 설정할 퀵슬롯 아이템, 설정할 슬롯 인덱스
 */
-void CX2UIQuickSlot::InputSummonCardSlotKey( CX2Inventory* pInven, CX2Item** pQuickItem, int& slotID )
+void CX2UIQuickSlot::InputSummonCardSlotKey( const CX2Inventory& kInventory, CX2Item** pQuickItem, int& slotID )
 {
-	if ( NULL == pInven )
-		return;
 
 	bool bUse = false;
 
 	/// 어둠의 문 일땐, 몬스터 카드 슬롯의 아이템 정보를 가져온다.
 	if( GET_KEY_STATE( GA_QUICKSLOT1 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, 0 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, 0 );
 		slotID = 0;
 		bUse = true;
 	}
 	else if( GET_KEY_STATE( GA_QUICKSLOT2 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, 1 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, 1 );
 		slotID = 1;
 		bUse = true;
 	}
 	else if( GET_KEY_STATE( GA_QUICKSLOT3 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, 2 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, 2 );
 		slotID = 2;
 		bUse = true;
 	}
 	else if( GET_KEY_STATE( GA_QUICKSLOT4 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, 3 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_DEFENCE_QUICK_SLOT, 3 );
 		slotID = 3;
 	}
 
@@ -2324,39 +2267,36 @@ void CX2UIQuickSlot::InputSummonCardSlotKey( CX2Inventory* pInven, CX2Item** pQu
 	@brief		: 퀵슬롯 키보드 입력 함수
 	@param		: 인벤토리 정보, 설정할 퀵슬롯 아이템, 설정할 슬롯 인덱스
 */
-void CX2UIQuickSlot::InputQuickSlotKey( CX2Inventory* pInven, CX2Item** pQuickItem, int& slotID )
+void CX2UIQuickSlot::InputQuickSlotKey( const CX2Inventory& kInventory, CX2Item** pQuickItem, int& slotID )
 {
-	if ( NULL == pInven )
-		return;
-
 	if( GET_KEY_STATE( GA_QUICKSLOT1 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 0 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 0 );
 		slotID = 0;
 	}
 	else if( GET_KEY_STATE( GA_QUICKSLOT2 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 1 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 1 );
 		slotID = 1;
 	}
 	else if( GET_KEY_STATE( GA_QUICKSLOT3 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 2 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 2 );
 		slotID = 2;
 	}
 	else if( GET_KEY_STATE( GA_QUICKSLOT4 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 3 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 3 );
 		slotID = 3;
 	}
 	else if( GET_KEY_STATE( GA_QUICKSLOT5 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 4 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 4 );
 		slotID = 4;
 	}
 	else if( GET_KEY_STATE( GA_QUICKSLOT6 ) == TRUE )
 	{
-		*pQuickItem = pInven->GetItem( CX2Inventory::ST_E_QUICK_SLOT, 5 );
+		*pQuickItem = kInventory.GetItem( CX2Inventory::ST_E_QUICK_SLOT, 5 );
 		slotID = 5;
 	}
 }
@@ -2408,12 +2348,12 @@ bool CX2UIQuickSlot::Handler_EGS_USE_DEFENCE_DUNGEON_QUICK_SLOT_ACK( HWND hWnd, 
 			KInventoryItemInfo& kInventorySlotInfo = kEvent.m_InventorySlotInfo;
 
 			CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
-			pMyUnit->GetInventory()->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+			pMyUnit->AccessInventory().RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 
 			if ( kInventorySlotInfo.m_iItemUID > 0 )
 			{
-				CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
-				pMyUnit->GetInventory()->AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, pItemData );
+				CX2Item::ItemData kItemData( kInventorySlotInfo );
+				pMyUnit->AccessInventory().AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, kItemData );
 			}
 
 			ResetQuickSlotUI();
@@ -2533,7 +2473,7 @@ void CX2UIQuickSlot::OnFrameMove_CoolTime( CX2Item* pItem_, CX2SlotItem* pSlotIt
 	if( NULL == g_pData || NULL == g_pData->GetItemManager() )
 		return;
 	
-	const int iItemID = pItem_->GetItemData()->m_ItemID;
+	const int iItemID = pItem_->GetItemData().m_ItemID;
 	const int iGroupID = g_pData->GetItemManager()->GetCoolTimeGroupID( iItemID );
 
 	bool bCheck = false;

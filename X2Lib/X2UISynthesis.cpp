@@ -389,9 +389,46 @@ wstring CX2UISynthesisItem::GetSlotItemDesc()
 {
 	std::wstring slotItemDesc = L"";
 
-	if ( m_bShowRBDownMessage == true )
-	{        
-		slotItemDesc = GET_STRING( STR_ID_399 );
+	if ( m_pNowOverItemSlot != NULL && m_bShowRBDownMessage == true )
+	{
+		if ( m_pNowOverItemSlot->GetDialog() == NULL )
+		{
+			slotItemDesc = m_pNowOverItemSlot->GetSlotDesc();
+		}
+		else
+		{	
+			CX2Item* pkItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( 
+				m_pNowOverItemSlot->GetItemUID() );
+			if ( pkItem != NULL )
+				slotItemDesc = GetSlotItemDescByUID( m_pNowOverItemSlot->GetItemUID(), false );
+			else
+			{
+				CX2Item* pItem = NULL;
+				map< int, int >::iterator mit;
+
+				if(m_pNowOverItemSlot->GetPeriod() != 0)
+				{
+					const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( m_pNowOverItemSlot->GetItemTID() );
+					if ( pItemTemplet != NULL )
+					{
+						CX2Item::ItemData kItemData;
+						kItemData.m_PeriodType = pItemTemplet->GetPeriodType();
+						kItemData.m_Period = m_pNowOverItemSlot->GetPeriod();
+						kItemData.m_Endurance = pItemTemplet->GetEndurance();
+						kItemData.m_ItemID = m_pNowOverItemSlot->GetItemTID();
+						CX2Item* pItem = new CX2Item( kItemData, NULL );
+						slotItemDesc = GetSlotItemDescByTID( pItem, m_pNowOverItemSlot->GetItemTID(), false );
+						SAFE_DELETE( pItem );
+					}
+				}
+				else
+				{
+					slotItemDesc = GetSlotItemDescByTID( pkItem, m_pNowOverItemSlot->GetItemTID() );
+				}
+			}
+		}
+
+		slotItemDesc += GET_STRING( STR_ID_399 );
 	}
 
 	return slotItemDesc;
@@ -413,7 +450,7 @@ void CX2UISynthesisItem::RegisterSynthesisItem(CX2SlotItem* pItemSlot)
 
 	if ( pItemSlot->GetSlotType() == CX2Slot::ST_INVENTORY )
 	{
-		pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlot->GetItemUID() );
+		pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlot->GetItemUID() );
 
 #ifdef ENABLE_RESOLVE_FASHION
 
@@ -479,10 +516,7 @@ void CX2UISynthesisItem::RegisterSynthesisItem(CX2SlotItem* pItemSlot)
 
 		//{{ kimhc // 2009-09-08 // 봉인된 아이템 분해 불가
 #ifdef	SEAL_ITEM
-		if ( pItem->GetItemData() == NULL )
-			return;
-
-		if ( pItem->GetItemData()->m_bIsSealed == true )
+		if ( pItem->GetItemData().m_bIsSealed == true )
 		{
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_4477 ), g_pMain->GetNowState() );
 			return; 
@@ -497,8 +531,8 @@ void CX2UISynthesisItem::RegisterSynthesisItem(CX2SlotItem* pItemSlot)
 			{
 				if ( pItem->GetItemTemplet()->GetFashion() == true )
 				{
-					if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY &&
-						pItem->GetItemData()->m_Period > 0 )
+					if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY &&
+						pItem->GetItemData().m_Period > 0 )
 					{
 						//기간제로 판명.
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
@@ -518,8 +552,8 @@ void CX2UISynthesisItem::RegisterSynthesisItem(CX2SlotItem* pItemSlot)
 					return;
 				}
 
-				if ( pItem->GetItemData()->m_PeriodType == CX2Item::PT_INFINITY &&
-					pItem->GetItemData()->m_Period > 0 )
+				if ( pItem->GetItemData().m_PeriodType == CX2Item::PT_INFINITY &&
+					pItem->GetItemData().m_Period > 0 )
 				{
 					//기간제로 판명.
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), 
@@ -661,7 +695,7 @@ bool CX2UISynthesisItem::CheckSameUnitEquip( CX2Item* pkItem )
 			return true;
 		}
 
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( target->second );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( target->second );
 
 			if(pItem->GetItemTemplet()->GetUnitType() != pkItem->GetItemTemplet()->GetUnitType()
 				|| pItem->GetItemTemplet()->GetEqipPosition() != pkItem->GetItemTemplet()->GetEqipPosition() )
@@ -897,7 +931,7 @@ bool CX2UISynthesisItem::UpdateInventorySlotList( std::vector< KInventoryItemInf
 		if ( kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
 		{
 			// 은행 공유 char -> short 로 변경
-			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+			CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 			if ( pItem != NULL )
 			{				
 				RemoveEqip( pItem->GetUID() );
@@ -909,7 +943,7 @@ bool CX2UISynthesisItem::UpdateInventorySlotList( std::vector< KInventoryItemInf
 	{
 		KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
 		// 은행 공유 char -> short 로 변경
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 	}
 
 	for ( int i = 0; i < (int)vecInventorySlotInfo.size(); i++ )
@@ -917,14 +951,14 @@ bool CX2UISynthesisItem::UpdateInventorySlotList( std::vector< KInventoryItemInf
 		KInventoryItemInfo& kInventorySlotInfo = vecInventorySlotInfo[i];
 		if ( kInventorySlotInfo.m_iItemUID > 0 )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
+			//CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
 			// 은행 공유 char -> short 로 변경
-			g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, pItemData );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, CX2Item::ItemData( kInventorySlotInfo ) );
 
 			if ( kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
 			{
 				// 은행 공유 char -> short 로 변경
-				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+				CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 				if ( pItem != NULL )
 				{
 					AddEqip( pItem->GetUID() );
@@ -972,7 +1006,7 @@ void CX2UISynthesisItem::AddOption()
 
 
 		std::map<int, UidType>::iterator target = m_mapItemData.begin();
-		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( target->second );
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( target->second );
 		if(pItem != NULL)
 		{
 			const CX2Item::ItemTemplet* pItemTemplet = pItem->GetItemTemplet();
@@ -999,7 +1033,7 @@ void CX2UISynthesisItem::AddOption()
 						// 얻어왔으면, 차례로 넣는다.
 						BOOST_FOREACH( const int iSocketID, vecSocketIdList )
 						{
-							CX2SocketItem::SocketData* pSocketData = pSocketItem->GetSocketData( iSocketID );
+							const CX2SocketItem::SocketData* pSocketData = pSocketItem->GetSocketData( iSocketID );
 							if ( NULL != pSocketData )
 								pComboBox->AddItem( pSocketData->GetSocketDesc( iLevel ).c_str(), NULL, false );
 						}
@@ -1032,7 +1066,7 @@ void CX2UISynthesisItem::SelectSocketNo()
 	m_iSocketNo = 0;
 
 	std::map<int, UidType>::iterator target = m_mapItemData.begin();
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( target->second );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( target->second );
 	if(pItem != NULL)
 	{
 		const CX2Item::ItemTemplet* pItemTemplet = pItem->GetItemTemplet();
@@ -1100,7 +1134,7 @@ bool CX2UISynthesisItem::MouseRButtonUp( D3DXVECTOR2 mousePos )
 	if( m_bPlaySynthesisItem == true )
 		return false;
 
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( pItemSlot->GetItemUID() );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( pItemSlot->GetItemUID() );
 
 	if( pItem == NULL )
 		return false; 

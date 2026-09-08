@@ -184,12 +184,9 @@ IMPL_ON_FUNC( ETR_PET_EVOLUTION_NOT )
 IMPL_ON_FUNC( ETR_TOGGLE_INVISIBLE_NOT )
 {
 	KEGS_TOGGLE_INVISIBLE_NOT kPacketNot;
-
 	kPacketNot.m_iUnitUID			= kPacket_.m_iUnitUID;
 	kPacketNot.m_kFieldUserInfo		= kPacket_.m_kFieldUserInfo;
-
 	BroadCast( kPacket_.m_vecUID, EGS_TOGGLE_INVISIBLE_NOT, kPacketNot );
-
 }
 #endif SERV_INVISIBLE_GM
 

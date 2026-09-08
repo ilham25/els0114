@@ -10,19 +10,23 @@ CX2EnchantItem::CX2EnchantItem(void)
 
 CX2EnchantItem::~CX2EnchantItem(void)
 {
-	map< CX2DamageManager::EXTRA_DAMAGE_TYPE, EnchantData* >::iterator iter;
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+	EnchantDataMap::iterator iter;
 	for( iter = m_mapEnchantData.begin(); iter != m_mapEnchantData.end(); iter++ )
 	{
 		EnchantData* pEnchantData = iter->second;
 		SAFE_DELETE( pEnchantData );
 	}
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	m_mapEnchantData.clear();
 
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	for( iter = m_mapEnchantDataForNPC.begin(); iter != m_mapEnchantDataForNPC.end(); iter++ )
 	{
 		EnchantData* pEnchantData = iter->second;
 		SAFE_DELETE( pEnchantData );
 	}
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	m_mapEnchantDataForNPC.clear();
 
 	
@@ -36,28 +40,36 @@ bool CX2EnchantItem::OpenScriptFile( WCHAR* pFileName )
 	//KLuaManager luaManager;
     //KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName );	
+	return g_pKTDXApp->LoadLuaTinker( pFileName );	
 }
 
-CX2EnchantItem::EnchantData* CX2EnchantItem::GetEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType )
+const CX2EnchantItem::EnchantData* CX2EnchantItem::GetEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType ) const
 {
-	map< CX2DamageManager::EXTRA_DAMAGE_TYPE, CX2EnchantItem::EnchantData* >::iterator mit;
+	EnchantDataMap::const_iterator mit;
 	mit = m_mapEnchantData.find( extraDamageType );
 	if ( mit != m_mapEnchantData.end() )
 	{
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+        return &mit->second;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 		return mit->second;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	}
 
 	return NULL;
 }
 
-CX2EnchantItem::EnchantData* CX2EnchantItem::GetNPCEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType )
+const CX2EnchantItem::EnchantData* CX2EnchantItem::GetNPCEnchantData( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType ) const
 {
-	map< CX2DamageManager::EXTRA_DAMAGE_TYPE, CX2EnchantItem::EnchantData* >::iterator mit;
+	EnchantDataMap::const_iterator mit;
 	mit = m_mapEnchantDataForNPC.find( extraDamageType );
 	if ( mit != m_mapEnchantDataForNPC.end() )
 	{
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+        return &mit->second;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 		return mit->second;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	}
 
 	return NULL;
@@ -66,41 +78,66 @@ CX2EnchantItem::EnchantData* CX2EnchantItem::GetNPCEnchantData( CX2DamageManager
 bool CX2EnchantItem::AddEnchantData_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    CX2EnchantItem::EnchantData* pEnchantData = NULL;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	CX2EnchantItem::EnchantData* pEnchantData = new CX2EnchantItem::EnchantData();
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 
-	LUA_GET_VALUE_ENUM( luaManager, "m_ExtraDamageType", pEnchantData->m_ExtraDamageType, CX2DamageManager::EXTRA_DAMAGE_TYPE,	CX2DamageManager::EDT_NONE );
+    CX2DamageManager::EXTRA_DAMAGE_TYPE eExtrDamageType;
+	LUA_GET_VALUE_ENUM( luaManager, "m_ExtraDamageType", eExtrDamageType, CX2DamageManager::EXTRA_DAMAGE_TYPE,	CX2DamageManager::EDT_NONE );
 
 	bool bIsForNPC = false;
-
-	LUA_GET_VALUE(		luaManager, L"bIsForNPC",					bIsForNPC,					false );
+	LUA_GET_VALUE(		luaManager, "bIsForNPC",					bIsForNPC,					false );
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    if ( bIsForNPC == false )
+    {
+        EnchantDataMap::_Pairib ib = m_mapEnchantData.insert( EnchantDataMap::value_type( eExtrDamageType, EnchantData() ) );
+        if ( ib.second == false )
+            return false;
+        pEnchantData = &ib.first->second;
+    }
+    else
+    {
+        EnchantDataMap::_Pairib ib = m_mapEnchantDataForNPC.insert( EnchantDataMap::value_type( eExtrDamageType, EnchantData() ) );
+        if ( ib.second == false )
+            return false;
+        pEnchantData = &ib.first->second;
+    }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+    pEnchantData->m_ExtraDamageType = eExtrDamageType;
 	
-	LUA_GET_VALUE(		luaManager, L"m_fRate",						pEnchantData->m_fRate,		0.0f );
-	LUA_GET_VALUE(		luaManager, L"m_Time",						pEnchantData->m_Time,		0 );
+	LUA_GET_VALUE(		luaManager, "m_fRate",						pEnchantData->m_fRate,		0.0f );
+	LUA_GET_VALUE(		luaManager, "m_Time",						pEnchantData->m_Time,		0 );
 
-	LUA_GET_VALUE(		luaManager, L"m_FirstDamagePercent",		pEnchantData->m_FirstDamagePercent,		0 );
-	LUA_GET_VALUE(		luaManager, L"m_SecondDamagePercent",		pEnchantData->m_SecondDamagePercent,	0 );
-	LUA_GET_VALUE(		luaManager, L"m_ThirdDamagePercent",		pEnchantData->m_ThirdDamagePercent,		0 );
+	LUA_GET_VALUE(		luaManager, "m_FirstDamagePercent",		pEnchantData->m_FirstDamagePercent,		0 );
+	LUA_GET_VALUE(		luaManager, "m_SecondDamagePercent",		pEnchantData->m_SecondDamagePercent,	0 );
+	LUA_GET_VALUE(		luaManager, "m_ThirdDamagePercent",		pEnchantData->m_ThirdDamagePercent,		0 );
 
-	LUA_GET_VALUE(		luaManager, L"m_FirstSlowPercent",			pEnchantData->m_FirstSlowPercent,		0 );
-	LUA_GET_VALUE(		luaManager, L"m_SecondSlowPercent",			pEnchantData->m_SecondSlowPercent,		0 );
-	LUA_GET_VALUE(		luaManager, L"m_ThirdSlowPercent",			pEnchantData->m_ThirdSlowPercent,		0 );
+	LUA_GET_VALUE(		luaManager, "m_FirstSlowPercent",			pEnchantData->m_FirstSlowPercent,		0 );
+	LUA_GET_VALUE(		luaManager, "m_SecondSlowPercent",			pEnchantData->m_SecondSlowPercent,		0 );
+	LUA_GET_VALUE(		luaManager, "m_ThirdSlowPercent",			pEnchantData->m_ThirdSlowPercent,		0 );
 
-	LUA_GET_VALUE(		luaManager, L"m_FirstDefenceDebuffPercent",			pEnchantData->m_FirstDefenceDebuffPercent,		0 );
-	LUA_GET_VALUE(		luaManager, L"m_SecondDefenceDebuffPercent",		pEnchantData->m_SecondDefenceDebuffPercent,		0 );
-	LUA_GET_VALUE(		luaManager, L"m_ThirdDefenceDebuffPercent",			pEnchantData->m_ThirdDefenceDebuffPercent,		0 );
+	LUA_GET_VALUE(		luaManager, "m_FirstDefenceDebuffPercent",			pEnchantData->m_FirstDefenceDebuffPercent,		0 );
+	LUA_GET_VALUE(		luaManager, "m_SecondDefenceDebuffPercent",		pEnchantData->m_SecondDefenceDebuffPercent,		0 );
+	LUA_GET_VALUE(		luaManager, "m_ThirdDefenceDebuffPercent",			pEnchantData->m_ThirdDefenceDebuffPercent,		0 );
 
 
-	LUA_GET_VALUE(		luaManager, L"m_fTimeStun",					pEnchantData->m_fTimeStun,				0.0f );
+	LUA_GET_VALUE(		luaManager, "m_fTimeStun",					pEnchantData->m_fTimeStun,				0.0f );
 	
-	LUA_GET_VALUE(		luaManager, L"m_HPDrainPercent",			pEnchantData->m_HPDrainPercent,			0 );
-	LUA_GET_VALUE(		luaManager, L"m_MPDrain",					pEnchantData->m_MPDrain,				0 );
+	LUA_GET_VALUE(		luaManager, "m_HPDrainPercent",			pEnchantData->m_HPDrainPercent,			0 );
+	LUA_GET_VALUE(		luaManager, "m_MPDrain",					pEnchantData->m_MPDrain,				0 );
 
+#ifndef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 	if ( bIsForNPC == false )
 		m_mapEnchantData.insert( std::make_pair( pEnchantData->m_ExtraDamageType, pEnchantData ) );
 	else
 		m_mapEnchantDataForNPC.insert( std::make_pair( pEnchantData->m_ExtraDamageType, pEnchantData ) );
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
 
 	return true;
 }
@@ -108,7 +145,9 @@ bool CX2EnchantItem::AddEnchantData_LUA()
 bool CX2EnchantItem::AddEnchantRequire_LUA( int iAttribEnchantType, int iCharLv )
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	std::map< int, int > mapItemGradeTable;
 	std::pair< int, int > pairKey;
@@ -649,7 +688,11 @@ bool CX2EnchantItem::ProcessEnchant( CX2GameUnit* pDefender, CX2DamageManager::D
 {
 	KTDXPROFILE();
 
-	if ( pDamageData->optrAttackerGameUnit->GetEnchantExtraDamageType() == CX2DamageManager::EDT_NONE )
+	if( NULL == pDamageData )
+		return false;
+
+	if( null != pDamageData->optrAttackerGameUnit &&
+	    pDamageData->optrAttackerGameUnit->GetEnchantExtraDamageType() == CX2DamageManager::EDT_NONE )
 		return false;
 
 	if ( pDamageData->attackType == CX2DamageManager::AT_SPECIAL )
@@ -672,7 +715,10 @@ bool CX2EnchantItem::ProcessEnchant( CX2GameUnit* pDefender, CX2DamageManager::D
 
 	CX2DamageManager::EXTRA_DAMAGE_TYPE eDecomposedEDT1 = CX2DamageManager::EDT_NONE;
 	CX2DamageManager::EXTRA_DAMAGE_TYPE eDecomposedEDT2 = CX2DamageManager::EDT_NONE;
-	int iCount = DecomposeEnchantExtraDamage( pDamageData->optrAttackerGameUnit->GetEnchantExtraDamageType(), eDecomposedEDT1, eDecomposedEDT2 );
+	int iCount = 0;
+	
+	if( null != pDamageData->optrAttackerGameUnit )
+		iCount = DecomposeEnchantExtraDamage( pDamageData->optrAttackerGameUnit->GetEnchantExtraDamageType(), eDecomposedEDT1, eDecomposedEDT2 );
 
 
 	CX2DamageManager::EXTRA_DAMAGE_TYPE eBaseDecomposedEDT1 = CX2DamageManager::EDT_NONE;
@@ -681,24 +727,27 @@ bool CX2EnchantItem::ProcessEnchant( CX2GameUnit* pDefender, CX2DamageManager::D
 
 	bool bGetExtraDamage = false;
 
-	if( 1 == iCount )
+	if( NULL != pDefender )
 	{
-		eBaseDecomposedEDT1 = GetBaseExtraDamageType( eDecomposedEDT1 );
+		if( 1 == iCount )
+		{
+			eBaseDecomposedEDT1 = GetBaseExtraDamageType( eDecomposedEDT1 );
 
-		bGetExtraDamage = pDefender->ProcessEnchantExtraDamage( pDamageData, eBaseDecomposedEDT1, eDecomposedEDT1, fRandValue1 );
-	}
-	else if( 2 == iCount )
-	{
-		eBaseDecomposedEDT1 = GetBaseExtraDamageType( eDecomposedEDT1 );
-		eBaseDecomposedEDT2 = GetBaseExtraDamageType( eDecomposedEDT2 );
+			bGetExtraDamage = pDefender->ProcessEnchantExtraDamage( pDamageData, eBaseDecomposedEDT1, eDecomposedEDT1, fRandValue1 );
+		}
+		else if( 2 == iCount )
+		{
+			eBaseDecomposedEDT1 = GetBaseExtraDamageType( eDecomposedEDT1 );
+			eBaseDecomposedEDT2 = GetBaseExtraDamageType( eDecomposedEDT2 );
 
-		bGetExtraDamage = pDefender->ProcessEnchantExtraDamage( pDamageData, eBaseDecomposedEDT1, eDecomposedEDT1, fRandValue1 );
-		if ( pDefender->ProcessEnchantExtraDamage( pDamageData, eBaseDecomposedEDT2, eDecomposedEDT2, fRandValue2 ) == true )
-			bGetExtraDamage = true;
-	}
-	else
-	{
-		ASSERT( !"impossible" );
+			bGetExtraDamage = pDefender->ProcessEnchantExtraDamage( pDamageData, eBaseDecomposedEDT1, eDecomposedEDT1, fRandValue1 );
+			if ( pDefender->ProcessEnchantExtraDamage( pDamageData, eBaseDecomposedEDT2, eDecomposedEDT2, fRandValue2 ) == true )
+				bGetExtraDamage = true;
+		}
+		else
+		{
+			ASSERT( !"impossible" );
+		}
 	}
 
 	return bGetExtraDamage;
@@ -915,7 +964,7 @@ wstring CX2EnchantItem::GetEnchantResistToolTip( CX2DamageManager::EXTRA_DAMAGE_
 
 wstring CX2EnchantItem::GetToolTipForPure( CX2DamageManager::EXTRA_DAMAGE_TYPE extraDamageType, CX2Item* pItem )
 {
-	CX2EnchantItem::EnchantData* pEnchantData = GetEnchantData( extraDamageType );
+	const CX2EnchantItem::EnchantData* pEnchantData = GetEnchantData( extraDamageType );
 	if ( pEnchantData == NULL )
 		return L"";
 
@@ -936,7 +985,7 @@ wstring CX2EnchantItem::GetToolTipForPure( CX2DamageManager::EXTRA_DAMAGE_TYPE e
 		if( 0 == socketOption )
 			continue;
 
-		CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
+		const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOption );
 		if( pSocketData == NULL )
 			continue;
 
@@ -1659,6 +1708,7 @@ CX2DamageManager::EXTRA_DAMAGE_TYPE CX2EnchantItem::GetBaseExtraDamageType( CX2D
 	case CX2Unit::UT_CHUNG:	
 	case CX2Unit::UT_ARA:
 	case CX2Unit::UT_ELESIS:
+	case CX2Unit::UT_ADD:
 		{
 			switch( eExtraDamageType )
 			{

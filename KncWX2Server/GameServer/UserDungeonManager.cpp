@@ -29,11 +29,15 @@ void KUserDungeonManager::Clear()
 	m_iHenirRewardCount				= 0;				// 헤니르 보상 가능 횟수 (일반)
 	m_iHenirRewardPremiumCount		= 0;				// 헤니르 보상 가능 횟수 (PC방)
 	m_iHenirRewardEventCount		= 0;				// 헤니르 보상 가능 횟수 (이벤트) 횟수
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+	m_iHenirChallengeRewardCount		= 0;				// 헤니르 도전 모드 보상 가능 횟수 (일반)
+	m_iHenirChallengeRewardPremiumCount	= 0;				// 헤니르 도전 모드 보상 가능 횟수 (PC방)
+	m_iHenirChallengeRewardEventCount	= 0;				// 헤니르 도전 모드 보상 가능 횟수 (이벤트) 횟수
+#endif // SERV_HENIR_RENEWAL_2013
 
 	m_iHenirRewardEventLimitCount	= 0;				// 헤니르 보상 가능 횟수 (이벤트) 제한
 	m_bUnLimitedHenirRewardEvnet	= false;			// 헤니르 보상 가능 횟수 (이벤트) 무제한
 
-	m_bPossibleHenirReward			= false;
 	m_bIsPcBang						= false;
 #ifdef SERV_PC_BANG_TYPE
 	m_iPcBangType					= -1;
@@ -47,99 +51,136 @@ void KUserDungeonManager::Clear()
 	//}}
 }
 
-void KUserDungeonManager::Init( IN const bool bUnlimitedEvent,			// 무제한 인가?
-								IN const int iLimitEvent,				// Event 추가 횟수 MAX
-								IN const int iNormalCnt,				// 보상 받은 횟수 일반
-								IN const int iPremiumCnt,				// 보상 받은 횟수 pc방
-								IN const int iEventCnt,					// 보상 받은 횟수 이벤트
-								IN const bool bIsPcBang					// PC방인지 정보 넣기
+void KUserDungeonManager::Init( IN const bool bUnlimitedEvent			// 무제한 인가?
+							  , IN const int iLimitEvent				// Event 추가 횟수 MAX
+							  , IN const int iNormalCnt					// 보상 받은 횟수 일반
+							  , IN const int iPremiumCnt				// 보상 받은 횟수 pc방
+							  , IN const int iEventCnt					// 보상 받은 횟수 이벤트
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+							  , IN const int iChallengeNormalCnt
+							  , IN const int iChallengePremiumCnt
+							  , IN const int iChallengeEventCnt
+#endif // SERV_HENIR_RENEWAL_2013
+							  , IN const bool bIsPcBang					// PC방인지 정보 넣기
 #ifdef SERV_PC_BANG_TYPE
 								, IN const int iPcBangType				// PC방 타입
-#endif SERV_PC_BANG_TYPE
-								)
+#endif SERV_PC_BANG_TYPE							  
+							  )
 {
-	if( iLimitEvent < 0 || iNormalCnt < 0 || iPremiumCnt < 0 || iEventCnt < 0  )
+	if( ( iLimitEvent < 0 )
+		|| ( iNormalCnt < 0 )
+		|| ( iPremiumCnt < 0 )
+		|| ( iEventCnt < 0 )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+		|| ( iChallengeNormalCnt < 0 )
+		|| ( iChallengePremiumCnt < 0 )
+		|| ( iChallengeEventCnt < 0 )
+#endif // SERV_HENIR_RENEWAL_2013
+		)
 	{
-		START_LOG( cerr, L"헤니르 보상 획득 - 0 보다 작업 값으로 초기화 한다?!")
+		START_LOG( cerr, L"헤니르 보상 획득 - 0 보다 작은 값으로 초기화 한다?!")
 			<< BUILD_LOG( bUnlimitedEvent )
 			<< BUILD_LOG( iLimitEvent )
 			<< BUILD_LOG( iNormalCnt )
 			<< BUILD_LOG( iPremiumCnt )
 			<< BUILD_LOG( iEventCnt )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+			<< BUILD_LOG( iChallengeNormalCnt )
+			<< BUILD_LOG( iChallengePremiumCnt )
+			<< BUILD_LOG( iChallengeEventCnt )
+#endif // SERV_HENIR_RENEWAL_2013
 			<< END_LOG;
 	}
 
 	m_iHenirRewardCount				= iNormalCnt;
 	m_iHenirRewardPremiumCount		= iPremiumCnt;
 	m_iHenirRewardEventCount		= iEventCnt;
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+	m_iHenirChallengeRewardCount		= iChallengeNormalCnt;
+	m_iHenirChallengeRewardPremiumCount	= iChallengePremiumCnt;
+	m_iHenirChallengeRewardEventCount	= iChallengeEventCnt;
+#endif // SERV_HENIR_RENEWAL_2013
 
 	m_iHenirRewardEventLimitCount	= iLimitEvent;
 	m_bUnLimitedHenirRewardEvnet	= bUnlimitedEvent;
+
 	m_bIsPcBang						= bIsPcBang;
 #ifdef SERV_PC_BANG_TYPE
 	m_iPcBangType					= iPcBangType;
 #endif SERV_PC_BANG_TYPE
 }
 
-void KUserDungeonManager::GetDBUpdateInfo( OUT int& iNormalCnt,
-										   OUT int& iPremiumCnt, 
-										   OUT int& iEventCnt )
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+bool KUserDungeonManager::IncreaseHenirRewardCount( IN const char cDungeonMode )
 {
-	iNormalCnt = m_iHenirRewardCount;
-	iPremiumCnt = m_iHenirRewardPremiumCount;
-	iEventCnt = m_iHenirRewardEventCount;
-}
+	// 보상 획득 감소 순서
+	// PC방 > Event > Normal
 
-void KUserDungeonManager::CheckRollbackInfo( IN const int iNormalCnt,
-											 IN const int iPremiumCnt,
-											 IN const int iEventCnt )
-{
-	m_iHenirRewardCount				= iNormalCnt;
-	m_iHenirRewardPremiumCount		= iPremiumCnt;
-	m_iHenirRewardEventCount		= iEventCnt;
-}
+	int	iHENIR_REWARD_LIMIT_COUNT	= 0;
+	int* pHenirRewardCount			= NULL;		// 헤니르 보상 사용한 횟수 (일반)
+	int* pHenirRewardPremiumCount	= NULL;		// 헤니르 보상 사용한 횟수 (PC방)
+	int* pHenirRewardEventCount		= NULL;		// 헤니르 보상 사용한 횟수 (이벤트) 횟수
 
-
-void KUserDungeonManager::SetPossibleHenirReward()
-{
-	m_bPossibleHenirReward = false;
-
-	if( m_bUnLimitedHenirRewardEvnet == true 
-	 || m_iHenirRewardCount < HRLC_NORMAL
-	 || m_iHenirRewardEventCount < m_iHenirRewardEventLimitCount )
+	switch( cDungeonMode )
 	{
-		m_bPossibleHenirReward = true;
+	case CXSLDungeon::DM_HENIR_PRACTICE:
+		iHENIR_REWARD_LIMIT_COUNT	= HRLC_NORMAL;
+		pHenirRewardCount			= &m_iHenirRewardCount;
+		pHenirRewardPremiumCount	= &m_iHenirRewardPremiumCount;
+		pHenirRewardEventCount		= &m_iHenirRewardEventCount;
+		break;
+
+	case CXSLDungeon::DM_HENIR_CHALLENGE:
+		iHENIR_REWARD_LIMIT_COUNT	= HRLC_NORMAL_CHALLENGE;
+		pHenirRewardCount			= &m_iHenirChallengeRewardCount;
+		pHenirRewardPremiumCount	= &m_iHenirChallengeRewardPremiumCount;
+		pHenirRewardEventCount		= &m_iHenirChallengeRewardEventCount;
+		break;
+
+	default:
+		START_LOG( cerr, L"잘못된 DungeonMode 정보입니다." )
+			<< BUILD_LOGc( cDungeonMode )
+			<< END_LOG;
+		return false;
 	}
-	
-	// PC 방 유저 일때 조건
-	if( IsPremiumUser() == true )
+
+	if( m_bUnLimitedHenirRewardEvnet == true )		// 헤니르 무제한 이벤트 중이면
+	{
+		return true;
+	}
+
+	// 1. PC 방
+	if( IsPremiumUser()== true )
 	{
 #ifdef SERV_PC_BANG_TYPE
 		int iAdditionalHenirRewardCount = SiKGameSysVal()->GetAdditionalHenirRewardCount( GetPcBangType() );
-		if( m_iHenirRewardPremiumCount < iAdditionalHenirRewardCount )
+		if( *pHenirRewardPremiumCount < iAdditionalHenirRewardCount )
 #else SERV_PC_BANG_TYPE
-		if( m_iHenirRewardPremiumCount < HRLC_PREMIUM )
+		if( *pHenirRewardPremiumCount < HRLC_PREMIUM )
 #endif SERV_PC_BANG_TYPE
 		{
-			START_LOG( clog, L"헤니르 보상 획득 - 보상 획득 가능 횟수가 있습니다..")
-				<< BUILD_LOG( m_bUnLimitedHenirRewardEvnet )
-				<< BUILD_LOG( m_iHenirRewardCount )
-				<< BUILD_LOG( HRLC_NORMAL )
-				<< BUILD_LOG( m_iHenirRewardPremiumCount )
-#ifdef SERV_PC_BANG_TYPE
-				<< BUILD_LOG( iAdditionalHenirRewardCount )
-#else SERV_PC_BANG_TYPE
-				<< BUILD_LOG( HRLC_PREMIUM )
-#endif SERV_PC_BANG_TYPE
-				<< BUILD_LOG( m_iHenirRewardEventCount )
-				<< BUILD_LOG( m_iHenirRewardEventLimitCount )
-				<< END_LOG;
-
-			m_bPossibleHenirReward = true;
+			*pHenirRewardPremiumCount += 1;
+			return true;
 		}
 	}
-}
 
+	// 2. Event
+	if( *pHenirRewardEventCount < m_iHenirRewardEventLimitCount )
+	{
+		*pHenirRewardEventCount += 1;
+		return true;
+	}
+
+	// 3. Normal
+	if( *pHenirRewardCount < iHENIR_REWARD_LIMIT_COUNT )
+	{
+		*pHenirRewardCount += 1;
+		return true;
+	}
+
+	return false;
+}
+#else
 bool KUserDungeonManager::IncreaseHenirRewardCount()
 {
 	if( m_bUnLimitedHenirRewardEvnet == true )		// 헤니르 무제한 이벤트 중이면
@@ -184,6 +225,7 @@ bool KUserDungeonManager::IncreaseHenirRewardCount()
 
 	return false;
 }
+#endif // SERV_HENIR_RENEWAL_2013
 
 void KUserDungeonManager::GetHenirRewardCountInfo( IN KEGS_HENIR_REWARD_COUNT_NOT& kNot )
 {
@@ -191,6 +233,11 @@ void KUserDungeonManager::GetHenirRewardCountInfo( IN KEGS_HENIR_REWARD_COUNT_NO
 	kNot.m_iEvent		= GetPossibleHenirRewardEventCount();
 	kNot.m_iPremium		= GetPossibleHenirRewardPremiumCount();
 	kNot.m_iNormal		= GetPossibleHenirRewardNormalCount();
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+	kNot.m_iChallengeNormal		= GetPossibleHenirChallengeRewardNormalCount();
+	kNot.m_iChallengePremium	= GetPossibleHenirChallengeRewardPremiumCount();
+	kNot.m_iChallengeEvent		= GetPossibleHenirChallengeRewardEventCount();
+#endif // SERV_HENIR_RENEWAL_2013
 	kNot.m_iEventMAX	= m_iHenirRewardEventLimitCount;
 
 #ifdef SERV_PC_BANG_TYPE
@@ -245,6 +292,49 @@ int KUserDungeonManager::GetPossibleHenirRewardPremiumCount()
 	
 	return 0; 
 }
+
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+int KUserDungeonManager::GetPossibleHenirChallengeRewardNormalCount( void ) const
+{
+	const int iResult = HRLC_NORMAL_CHALLENGE - m_iHenirChallengeRewardCount;
+
+	if( iResult < 0 )
+	{
+		return 0;
+	}
+
+	return iResult; 
+}
+
+int KUserDungeonManager::GetPossibleHenirChallengeRewardEventCount( void ) const
+{
+	const int iResult = m_iHenirRewardEventLimitCount - m_iHenirChallengeRewardEventCount;
+
+	if( iResult < 0 )
+	{
+		return 0;
+	}
+
+	return iResult; 
+}
+
+int KUserDungeonManager::GetPossibleHenirChallengeRewardPremiumCount( void ) const
+{
+	if( IsPremiumUser() == true )
+	{
+		const int iResult = HRLC_PREMIUM - m_iHenirChallengeRewardPremiumCount;
+		if( iResult < 0 )
+		{
+			return 0;
+		}
+
+		return iResult;
+	}
+
+	return 0;
+}
+#endif // SERV_HENIR_RENEWAL_2013
+
 #endif SERV_NEW_HENIR_TEST
 //}}
 

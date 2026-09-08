@@ -73,7 +73,6 @@ public:
 
 	virtual bool MouseRButtonUp( D3DXVECTOR2 mousePos );
 
-	void SetLayer(X2_DIALOG_LAYER layer);
 	D3DXVECTOR2 GetDLGSize(){ return m_DLGSize; }
 	void SetPosition(D3DXVECTOR2 vec, bool bAbsolute = true );
 

@@ -65,28 +65,35 @@ bool CX2UIRelationship::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 					> SEnum::RT_COUPLE ) 
 				{
 					CKTDGUIIMEEditBox * pEditBox = static_cast <CKTDGUIIMEEditBox *> ( m_pDLGChangeLoveMessage->GetControl( L"IME_Nicname") );
-					wstring wstrLoveMessage = pEditBox->GetText();
-					if ( wstrLoveMessage == L"초기화" )
+					if( NULL != pEditBox )
 					{
-						wstrLoveMessage = L"";
-						g_pData->GetRelationshipManager()->Send_EGS_CHANGE_LOVE_WORD_REQ ( m_UidSelectedIItemUID, wstrLoveMessage );
-						g_pData->GetRelationshipManager()->GetMyRelationshipInfo()->m_wstrNotifyLoveMessage = wstrLoveMessage;
+						wstring wstrLoveMessage = pEditBox->GetText();
+#ifdef SERV_RELATIONSHIP_SYSTEM_INT
+						if ( wstrLoveMessage == GET_STRING( STR_ID_28123 ) )
+#else
+						if ( wstrLoveMessage == L"초기화" )
+#endif SERV_RELATIONSHIP_SYSTEM_INT
+						{
+							wstrLoveMessage = L"";
+							g_pData->GetRelationshipManager()->Send_EGS_CHANGE_LOVE_WORD_REQ ( m_UidSelectedIItemUID, wstrLoveMessage );
+							g_pData->GetRelationshipManager()->GetMyRelationshipInfo()->m_wstrNotifyLoveMessage = wstrLoveMessage;
 
-						ShowChangeLoveMessageDlg ( false );
+							ShowChangeLoveMessageDlg ( false );
 
-					}
-					else if ( TRUE == wstrLoveMessage.empty() )
-					{
-						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_23609 ), g_pMain->GetNowState() );					
-					}
-					else
-					{
-						wstring wstrFilterMessage = g_pMain->GetStringFilter()->FilteringNoteString( wstrLoveMessage.c_str(), L'♡' );
+						}
+						else if ( TRUE == wstrLoveMessage.empty() )
+						{
+							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_23609 ), g_pMain->GetNowState() );					
+						}
+						else
+						{
+							wstring wstrFilterMessage = g_pMain->GetStringFilter()->FilteringNoteString( wstrLoveMessage.c_str(), L'♡' );
 
-						g_pData->GetRelationshipManager()->Send_EGS_CHANGE_LOVE_WORD_REQ ( m_UidSelectedIItemUID, wstrFilterMessage );
-						g_pData->GetRelationshipManager()->GetMyRelationshipInfo()->m_wstrNotifyLoveMessage = wstrFilterMessage;
+							g_pData->GetRelationshipManager()->Send_EGS_CHANGE_LOVE_WORD_REQ ( m_UidSelectedIItemUID, wstrFilterMessage );
+							g_pData->GetRelationshipManager()->GetMyRelationshipInfo()->m_wstrNotifyLoveMessage = wstrFilterMessage;
 
-						ShowChangeLoveMessageDlg ( false );
+							ShowChangeLoveMessageDlg ( false );
+						}
 					}
 				}
 			}
@@ -277,22 +284,14 @@ bool CX2UIRelationship::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				// 커플 경과 시간 체크
 				if ( true == g_pData->GetRelationshipManager()->CheckWeddingQualification() )
 				{
+                    CX2Item * pInviteLetterItem = NULL;
 					// 결혼 반지 소지 여부 체크
 					if ( NULL != g_pData->GetMyUser() &&
 						NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-						NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() &&
-						NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItemByTID ( WEDDING_RING_ITEM_ID) )
+						NULL != ( pInviteLetterItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID ( WEDDING_RING_ITEM_ID) ) )
 					{	
-						CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-
 						// 초대권 소지 개수 체크
-						int iWeddingLetterMany = 0;
-						CX2Item * pInviteLetterItem = pInventory->GetItemByTID ( INVITE_WEDDING_ITEM_ID);
-						if( NULL != pInviteLetterItem &&
-							NULL != pInviteLetterItem->GetItemData() )
-						{
-							iWeddingLetterMany = pInviteLetterItem->GetItemData()->m_Quantity;
-						}
+						int iWeddingLetterMany = pInviteLetterItem->GetItemData().m_Quantity;
 					
 						// 소지중엔 예약권으로 예식장 선택
 						SetSelecteWeddingHallByPropose( iWeddingLetterMany );
@@ -371,6 +370,9 @@ bool CX2UIRelationship::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				BOOST_FOREACH ( const InviteWeddingUserInfo & InviteUserInfo, m_vecInvitedWeddingUserList )
 					kEvent.m_vecInviteUnitList.push_back ( InviteUserInfo.m_uiUserUID );
 				
+#ifdef SERV_WEDING_PROPOSE_MSG_BUG_FIX
+				replace(kEvent.m_wstrWeddingMsg.begin(), kEvent.m_wstrWeddingMsg.end(), L'\'', L'`');
+#endif // SERV_WEDING_PROPOSE_MSG_BUG_FIX
 
 				g_pData->GetRelationshipManager()->Send_EGS_WEDDING_PROPOSE_REQ ( kEvent );
 			}
@@ -381,23 +383,19 @@ bool CX2UIRelationship::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 	case RUM_WEDDING_INVITE_CHANGE_WEDDING_HALL :
 		{	
-			CX2Inventory* pInventory = NULL;
+
 			if( NULL != g_pData && 
 				NULL != g_pData->GetMyUser() &&
 				NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-			}
-				
-			if( NULL != pInventory )
-			{
+			    const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+
 				// 초대권 개수 체크
 				int iWeddingLetterMany = 0;
-				CX2Item * pInviteLetterItem = pInventory->GetItemByTID( INVITE_WEDDING_ITEM_ID );
-				if( NULL != pInviteLetterItem &&
-					NULL != pInviteLetterItem->GetItemData() )
+				CX2Item * pInviteLetterItem = kInventory.GetItemByTID( INVITE_WEDDING_ITEM_ID );
+				if( NULL != pInviteLetterItem )
 				{
-					iWeddingLetterMany = pInviteLetterItem->GetItemData()->m_Quantity;
+					iWeddingLetterMany = pInviteLetterItem->GetItemData().m_Quantity;
 				}
 
 				// 선택 된 예식장 체크
@@ -433,11 +431,47 @@ bool CX2UIRelationship::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 						}
 						else
 						{
-							if( NULL != pInventory->GetItemByTID( ITEM_ID_RESERVED_WEDDING_HALL[iSelectedIndex] ) )
+							if( NULL != kInventory.GetItemByTID( ITEM_ID_RESERVED_WEDDING_HALL[iSelectedIndex] ) )
 							{// 예약권이 존재 한다면
 
+#ifdef ADDED_RELATIONSHIP_SYSTEM_BUG_FIX
+								int iWeddingLetterManyByWeddingHall = _CONST_UI_RELATIONSHIP_::g_iMaxInvitedUser;
+
+								switch(ITEM_ID_RESERVED_WEDDING_HALL[iSelectedIndex])
+								{
+								case 269712:/*루벤*/
+									iWeddingLetterManyByWeddingHall = _CONST_UI_RELATIONSHIP_::g_iInvitingRubenWeddingHallMany;
+									break;
+								case 269713:/*샌더*/
+									iWeddingLetterManyByWeddingHall = _CONST_UI_RELATIONSHIP_::g_iInvitingSanderWeddingHallMany;
+									break;
+								default:
+									iWeddingLetterManyByWeddingHall = _CONST_UI_RELATIONSHIP_::g_iMaxInvitedUser;
+									break;
+								}
+
+								// 최대 초대 가능 수는 30명으로 제한
+								SetMaxWeddingInviteNumber ( min(iWeddingLetterManyByWeddingHall, iWeddingLetterMany) );
+
+								// UI 표시도 변경
+								if(m_pDLGInviteWedding != NULL)
+								{
+									CKTDGUIStatic * pStatic_Many = static_cast<CKTDGUIStatic*> ( m_pDLGInviteWedding->GetControl( L"g_pStatic_RemainingMany" ) );	
+									wstringstream wstrUserMany;
+
+									if ( NULL != g_pData->GetRelationshipManager() &&
+										NULL != g_pData->GetRelationshipManager()->GetMyRelationshipInfo() )
+									{
+										CX2RelationshipManager::RelationshipInfo * pRelationshipInfo = g_pData->GetRelationshipManager()->GetMyRelationshipInfo();
+										wstrUserMany << static_cast<int> ( m_vecInvitedWeddingUserList.size() ) << L" / " << GetMaxWeddingInviteNumber();
+									}
+
+									pStatic_Many->SetString( 0, wstrUserMany.str().c_str() );
+								}
+#else //ADDED_RELATIONSHIP_SYSTEM_BUG_FIX
 								// 최대 초대 가능 수는 30명으로 제한
 								SetMaxWeddingInviteNumber ( min(_CONST_UI_RELATIONSHIP_::g_iMaxInvitedUser, iWeddingLetterMany) );
+#endif //ADDED_RELATIONSHIP_SYSTEM_BUG_FIX
 								m_vecInviteWeddingUserList.clear();
 
 								if( NULL != pStaticThumbnail &&
@@ -448,7 +482,11 @@ bool CX2UIRelationship::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 							}
 							else
 							{
+#ifdef SERV_RELATIONSHIP_SYSTEM_INT
+								g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_28126 ), g_pMain->GetNowState() );
+#else
 								g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), L"해당 예식장을 예약하기 위한 아이템이 존재하지 않습니다.", g_pMain->GetNowState() );
+#endif SERV_RELATIONSHIP_SYSTEM_INT
 
 								// 소지중엔 예약권으로 예식장 선택
 								if( false == SetSelecteWeddingHallByPropose( iWeddingLetterMany ) )
@@ -1359,7 +1397,10 @@ bool CX2UIRelationship::ShowJoinWeddingDlg( bool bEnable, bool bIsWeddingHeroine
 
 					CKTDGUIStatic * pStatic_WeddingDateRemaining = static_cast<CKTDGUIStatic*> ( m_pDLGJoinWedding->GetControl( L"g_pStaticpost_window_Font4" ) );	
 					pStatic_WeddingDateRemaining->GetString(0)->msg = wstrRemainingTime.str().c_str();
-
+#ifdef CLIENT_COUNTRY_EU
+					// 초대장 보낼 때 뜨는 UI
+					pStatic_WeddingDateRemaining->GetString(0)->msg = CWordLineHandler::GetStrByLineBreakInX2Main( pStatic_WeddingDateRemaining->GetString(0)->msg.c_str(), 200, XUF_DODUM_13_SEMIBOLD );
+#endif CLIENT_COUNTRY_EU
 					CKTDGUIStatic * pStatic_WeddingLetter = static_cast<CKTDGUIStatic*> ( m_pDLGJoinWedding->GetControl( L"g_pStaticpost_window_Font1" ) );	
 
 					wstring LetterMessage = pWeddingItemInfo->m_wstrLetterMessage;				 
@@ -1543,22 +1584,39 @@ void CX2UIRelationship::AddInvitingUserInfo ( InviteWeddingUserInfo UserInfo_, R
 */
 bool CX2UIRelationship::SetSelecteWeddingHallByPropose( int iWeddingLetterMany )
 {
-	CX2Inventory* pInventory = NULL;
+
 	if( NULL != g_pData && 
 		NULL != g_pData->GetMyUser() &&
 		NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	}
-	if( NULL != pInventory )
-	{
+        const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 		const int iWeddingHallItemNum = ARRAY_SIZE(ITEM_ID_RESERVED_WEDDING_HALL);
 		for( int i = 0 ; i < iWeddingHallItemNum; ++i )
 		{
-			if( NULL != pInventory->GetItemByTID( ITEM_ID_RESERVED_WEDDING_HALL[i] ) )
+			if( NULL != kInventory.GetItemByTID( ITEM_ID_RESERVED_WEDDING_HALL[i] ) )
 			{
+#ifdef ADDED_RELATIONSHIP_SYSTEM_BUG_FIX
+				int iWeddingLetterManyByWeddingHall = _CONST_UI_RELATIONSHIP_::g_iMaxInvitedUser;
+
+				switch(ITEM_ID_RESERVED_WEDDING_HALL[i])
+				{
+				case 269712:/*루벤*/
+					iWeddingLetterManyByWeddingHall = _CONST_UI_RELATIONSHIP_::g_iInvitingRubenWeddingHallMany;
+					break;
+				case 269713:/*샌더*/
+					iWeddingLetterManyByWeddingHall = _CONST_UI_RELATIONSHIP_::g_iInvitingSanderWeddingHallMany;
+					break;
+				default:
+					iWeddingLetterManyByWeddingHall = _CONST_UI_RELATIONSHIP_::g_iMaxInvitedUser;
+					break;
+				}
+
+				// 최대 초대 가능 수는 30명으로 제한
+				SetMaxWeddingInviteNumber ( min(iWeddingLetterManyByWeddingHall, iWeddingLetterMany) );
+#else //ADDED_RELATIONSHIP_SYSTEM_BUG_FIX
 				// 최대 초대 가능 수는 30명으로 제한
 				SetMaxWeddingInviteNumber ( min(_CONST_UI_RELATIONSHIP_::g_iMaxInvitedUser, iWeddingLetterMany) );
+#endif //ADDED_RELATIONSHIP_SYSTEM_BUG_FIX
 
 				if( NULL == m_pDLGInviteWedding || 
 					false == m_pDLGInviteWedding->GetShow() )
@@ -1586,7 +1644,11 @@ bool CX2UIRelationship::SetSelecteWeddingHallByPropose( int iWeddingLetterMany )
 
 
 	// for문에서 return 하지 못하면 에러 팝업 출력
+#ifdef SERV_RELATIONSHIP_SYSTEM_INT
+	g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING ( STR_ID_28119 ), g_pMain->GetNowState() );
+#else
 	g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"예식장 예약권이 존재하지 않습니다.", g_pMain->GetNowState() );
+#endif SERV_RELATIONSHIP_SYSTEM_INT
 	return false;
 }
 

@@ -19,7 +19,7 @@ bool CheckNPHackUser()
 	}
 
 	if ( g_pData != NULL && g_pData->GetMyUser() != NULL && 
-		g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+		g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 	{
 		return true;
 	}
@@ -90,9 +90,9 @@ LRESULT CALLBACK SendGameGuardMailDlgProc(HWND hDlg, UINT message, WPARAM wParam
 
 
 #ifdef ALWAYS_INTERNAL_NPGE_PACKING
-bool	KNP_Init( HINSTANCE hInst , string TempArg)
+bool KNP_Init( HINSTANCE hInst , string TempArg)
 #else //ALWAYS_INTERNAL_NPGE_PACKING
-bool	KNP_Init( HINSTANCE hInst )
+bool KNP_Init( HINSTANCE hInst )
 #endif ALWAYS_INTERNAL_NPGE_PACKING
 {
 #ifdef NO_GAMEGUARD
@@ -107,7 +107,11 @@ bool	KNP_Init( HINSTANCE hInst )
 #ifdef GAMEGUARD_INI_COUNTRY
 	// 해외팀 각국가 전용 디파인
 #if defined( CLIENT_COUNTRY_JP )
-	pNpgl = new CNPGameLib( L"elswordjp" );
+#ifdef _OPEN_TEST_
+	pNpgl = new CNPGameLib( L"ElswordJPTest" );
+#else // _OPEN_TEST_
+	pNpgl = new CNPGameLib( L"ElswordJP" );
+#endif
 #elif defined( CLIENT_COUNTRY_CN )
 	#ifdef _OPEN_TEST_
 		pNpgl = new CNPGameLib( L"ElswordCNTest" );
@@ -156,7 +160,6 @@ else
 	pNpgl = new CNPGameLib( L"ElswordID" );
 }
 #endif _OPEN_TEST_
-
 	
 #elif defined( CLIENT_COUNTRY_BR )
 #ifdef _OPEN_TEST_

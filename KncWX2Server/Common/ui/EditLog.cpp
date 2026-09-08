@@ -21,11 +21,11 @@
 
 #define MAX_EDIT_LOG_LINE_NUM  (100)
 
-//{{ Iruha : 2026-08-27 // VS2010 port: missing type specifier defaulted to int under VC7.1's
-// lenient implicit-int rule; VC10 makes that a hard error (C4430). UINT matches how the
-// value is used below (a Windows message ID).
-const UINT WM_ADDTEXT	= WM_USER + 500;
-//}}
+#ifdef _CONVERT_VS_2010
+#define WM_ADDTEXT	(WM_USER + 500)
+#else
+const WM_ADDTEXT	= WM_USER + 500;
+#endif _CONVERT_VS_2010
 
 // Converts a UNICODE string to ANSI using the stack for buffering
 #define _W2A(lpw) ( (lpw == NULL ) ? NULL : _W2AHelp(lpw, (LPSTR) _alloca( wcslen( lpw ) + 1 ) ) )

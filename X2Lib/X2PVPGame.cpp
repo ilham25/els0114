@@ -25,13 +25,11 @@ CX2PVPGame::CX2PVPGame(void)
 #endif TODAY_RECORD_TEST
 
 #ifdef DUNGEON_ITEM	
-	m_bFirstCreateItem	= false;
-	m_iSepcialItemId	= 0;
-	m_iSpecialItemUid	= 0;
-	m_fCreateItemTimer	= 0.f;
-#ifdef MODIFY_PVP_ITEM
+	m_bFirstCreateItem		= false;
+	m_iSepcialItemId		= 0;
+	m_iSpecialItemUid		= 0;
+	m_fCreateItemTimer		= 0.f;
 	m_fChangeItemPosTimer	= 0.f;
-#endif
 #endif
 
 //{{ kimhc // 2010.3.26 // 무한 스킬 버그 수정
@@ -96,54 +94,33 @@ HRESULT CX2PVPGame::OnFrameMove( double fTime, float fElapsedTime )
 				{
 					m_fCreateItemTimer = 0.f;
 
-#ifdef MODIFY_PVP_ITEM
 					m_fChangeItemPosTimer += fElapsedTime;
 					if( m_fChangeItemPosTimer >= 9.f )
 					{
 						Handler_EGS_CHANGE_PVP_ITEM_POS_REQ();
 						m_fChangeItemPosTimer = 0.f;
 					}
-#endif
 				}
-#ifdef MODIFY_PVP_ITEM
 				else
 				{
 					m_fChangeItemPosTimer = 0.f;
 				}
-#endif
 
-#ifndef MODIFY_PVP_ITEM
-				if( m_bFirstCreateItem == false )
+				if( m_iSepcialItemId <= 0 )
 				{
-					// 게임 시작시 아이템 생성요청
-					// 생성될 위치를 결정한다.
-					int iItemPos = GetPositionCreateItem();
-					if( iItemPos >= 0)
-					{
-						// 아이템 생성 요청
-						Handler_EGS_CREATE_PVP_ITEM_REQ(iItemPos);
-					}
-					m_bFirstCreateItem = true;
-				}
-				else
-#endif
-				{
-					if( m_iSepcialItemId <= 0 )
-					{
-						m_fCreateItemTimer += fElapsedTime;
-						if( m_fCreateItemTimer >= 30.f )
-						{						
-							// 아이템 없이 30초가 지났으므로 아이템 생성 요청
-							// 생성될 위치를 결정한다.
-							int iItemPos = GetPositionCreateItem();
-							if( iItemPos >= 0)
-							{
-								// 아이템 생성 요청
-								Handler_EGS_CREATE_PVP_ITEM_REQ(iItemPos);
-							}
-							m_fCreateItemTimer = 0.f;
-							m_iSepcialItemId = 1; // 중복 요청을 방지
+					m_fCreateItemTimer += fElapsedTime;
+					if( m_fCreateItemTimer >= 30.f )
+					{						
+						// 아이템 없이 30초가 지났으므로 아이템 생성 요청
+						// 생성될 위치를 결정한다.
+						int iItemPos = GetPositionCreateItem();
+						if( iItemPos >= 0)
+						{
+							// 아이템 생성 요청
+							Handler_EGS_CREATE_PVP_ITEM_REQ(iItemPos);
 						}
+						m_fCreateItemTimer = 0.f;
+						m_iSepcialItemId = 1; // 중복 요청을 방지
 					}
 				}
 			}
@@ -166,7 +143,7 @@ HRESULT CX2PVPGame::OnFrameMove( double fTime, float fElapsedTime )
 				if ( NULL != pGageManager )
 				{
 					CX2GameUnit* pGameUnitMember 
-						= ( NULL != g_pX2Game ? g_pX2Game->GetUserUnitByUID( pSlotData->m_pUnit->GetUID() ) : NULL );
+						= GetUserUnitByUID( pSlotData->m_pUnit->GetUID() );
 
 					pGageManager->UpdatePvpMemberGageData( pSlotData->m_pUnit->GetUID(), pGameUnitMember );
 				}
@@ -185,7 +162,7 @@ HRESULT CX2PVPGame::OnFrameMove( double fTime, float fElapsedTime )
 			if ( NULL != pGageManager )
 			{
 				CX2GameUnit* pGameUnitMember 
-					= ( NULL != g_pX2Game ? g_pX2Game->GetNPCUnitByUID( static_cast<int>( pSlotData->m_iNpcUid ) ) : NULL );
+					= GetNPCUnitByUID( static_cast<int>( pSlotData->m_iNpcUid ) );
 
 				pGageManager->UpdatePvpMemberGageData( pSlotData->m_iNpcUid, pGameUnitMember );
 			}
@@ -229,10 +206,10 @@ void CX2PVPGame::GameLoading( CX2Room* pRoom )
 	
 	m_fRemainPlayTime	= m_pPVPRoom->GetPlayTimeLimit();
 
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 	if ( g_pKTDXApp->GetDeviceManager() != NULL )
 		g_pKTDXApp->GetDeviceManager()->ReleaseAllMemoryBuffers();
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 }
 
 void CX2PVPGame::WorldLoading()
@@ -248,11 +225,11 @@ void CX2PVPGame::WorldLoading()
 	{
 		for( int i=0; i<m_pWorld->GetLineMap()->GetNumLineData(); i++ )
 		{
-			CKTDGLineMap::LineData* pLineData = m_pWorld->GetLineMap()->GetLineData( i );
+			const CKTDGLineMap::LineData* pLineData = m_pWorld->GetLineMap()->GetLineData( i );
 			if( NULL != pLineData &&
 				CKTDGLineMap::LT_POTAL == pLineData->lineType )
 			{
-				CX2WorldObjectParticle* pParticle = m_pWorld->CreateObjectParticle( g_pX2Game->GetMajorParticle(), "Peita_Teleport_MagicSquare01" );
+				CX2WorldObjectParticle* pParticle = m_pWorld->CreateObjectParticle( GetMajorParticle(), "Peita_Teleport_MagicSquare01" );
 				if( NULL != pParticle )
 				{
 					pParticle->SetParticlePos( ( pLineData->startPos + pLineData->endPos ) * 0.5f + D3DXVECTOR3(0, 3, 0 ) );
@@ -537,15 +514,14 @@ bool CX2PVPGame::Handler_EGS_END_GAME_PVP_RESULT_DATA_NOT( KEGS_END_GAME_PVP_RES
 #ifdef TODAY_RECORD_TEST
 						m_iConsecutiveLoseCount = 0;
 						if( NULL != GetMyUnit() && 
-							NULL != GetMyUnit()->GetUnit() &&
-							NULL != GetMyUnit()->GetUnit()->GetUnitData() )
+							NULL != GetMyUnit()->GetUnit() )
 						{
-							GetMyUnit()->GetUnit()->GetUnitData()->m_DailyAchievement.m_iWinCount += 1;
+							GetMyUnit()->GetUnit()->AccessUnitData().m_DailyAchievement.m_iWinCount += 1;
 							m_iConsecutiveWinCount += 1;
 
-							if( m_iConsecutiveWinCount > GetMyUnit()->GetUnit()->GetUnitData()->m_DailyAchievement.m_iMaxConsecutivePVPWinCount )
+							if( m_iConsecutiveWinCount > GetMyUnit()->GetUnit()->GetUnitData().m_DailyAchievement.m_iMaxConsecutivePVPWinCount )
 							{
-								GetMyUnit()->GetUnit()->GetUnitData()->m_DailyAchievement.m_iMaxConsecutivePVPWinCount = m_iConsecutiveWinCount;
+								GetMyUnit()->GetUnit()->AccessUnitData().m_DailyAchievement.m_iMaxConsecutivePVPWinCount = m_iConsecutiveWinCount;
 							}
 						}
 #endif TODAY_RECORD_TEST
@@ -559,15 +535,14 @@ bool CX2PVPGame::Handler_EGS_END_GAME_PVP_RESULT_DATA_NOT( KEGS_END_GAME_PVP_RES
 						m_iConsecutiveWinCount = 0;
 
 						if( NULL != GetMyUnit() && 
-							NULL != GetMyUnit()->GetUnit() &&
-							NULL != GetMyUnit()->GetUnit()->GetUnitData() )
+							NULL != GetMyUnit()->GetUnit() )
 						{
-							GetMyUnit()->GetUnit()->GetUnitData()->m_DailyAchievement.m_iLoseCount += 1;
+							GetMyUnit()->GetUnit()->AccessUnitData().m_DailyAchievement.m_iLoseCount += 1;
 							m_iConsecutiveLoseCount += 1;
 
-							if( m_iConsecutiveLoseCount > GetMyUnit()->GetUnit()->GetUnitData()->m_DailyAchievement.m_iMaxConsecutivePVPLoseCount )
+							if( m_iConsecutiveLoseCount > GetMyUnit()->GetUnit()->GetUnitData().m_DailyAchievement.m_iMaxConsecutivePVPLoseCount )
 							{
-								GetMyUnit()->GetUnit()->GetUnitData()->m_DailyAchievement.m_iMaxConsecutivePVPLoseCount = m_iConsecutiveLoseCount;
+								GetMyUnit()->GetUnit()->AccessUnitData().m_DailyAchievement.m_iMaxConsecutivePVPLoseCount = m_iConsecutiveLoseCount;
 							}
 						}
 #endif TODAY_RECORD_TEST
@@ -580,11 +555,11 @@ bool CX2PVPGame::Handler_EGS_END_GAME_PVP_RESULT_DATA_NOT( KEGS_END_GAME_PVP_RES
 	}
 
 #ifdef SERV_PVP_NEW_SYSTEM
-	if( g_pX2Game->IsHost() == true && g_pMain->GetConnectedChannelID() == KPVPChannelInfo::PCC_OFFICIAL )
+	if( IsHost() == true && g_pMain->GetConnectedChannelID() == KPVPChannelInfo::PCC_OFFICIAL )
 	{
-		for(int i=0; i<g_pX2Game->GetNPCUnitNum(); ++i)
+		for(int i=0; i<GetNPCUnitNum(); ++i)
 		{
-			CX2GUNPC *pNpc = g_pX2Game->GetNPCUnit(i);
+			CX2GUNPC *pNpc = GetNPCUnit(i);
 			if( pNpc != NULL && pNpc->IsPvpBot() == true && pNpc->GetNowHp() > 0.f )
 			{
 				if( kEGS_END_GAME_PVP_RESULT_DATA_NOT.m_bIsDrawn == true )
@@ -728,8 +703,6 @@ void CX2PVPGame::Handler_EGS_CREATE_PVP_ITEM_REQ(int iCreateIdPos)
 	g_pData->GetServerProtocol()->SendPacket( EGS_CREATE_PVP_ITEM_REQ, kKEGS_GET_ITEM_REQ );
 	
 }
-
-#ifdef MODIFY_PVP_ITEM
 void CX2PVPGame::Handler_EGS_CHANGE_PVP_ITEM_POS_REQ()
 {
 	if( m_pDropItemManager != NULL && m_iSpecialItemUid > 0 )
@@ -768,8 +741,6 @@ void CX2PVPGame::Handler_EGS_CHANGE_PVP_ITEM_POS_NOT( UidType iItemUid, int iCha
 		m_fChangeItemPosTimer = 0.f;
 	}
 }
-#endif
-
 #endif
 
 //CX2PVPGame::PVPResultInfo::PVPResultInfo( KEGS_END_GAME_PVP_NORMAL_TEAM_RESULT_DATA_NOT& kPacket )
@@ -880,12 +851,8 @@ CX2PVPGame::PVPResultInfo::~PVPResultInfo()
 		if( pCX2GUNPC != NULL )
 		{
 			//{{ kimhc // 2010.8.7 // 무조건 NPC에게 카메라가 가도록 하는 기능
-#ifdef	FOCUS_CAMERA_NPC_FORCE
 			if( pCX2GUNPC->GetFocusCameraForce() == true 
 				|| ( pCX2GUNPC->GetFocusCamera() == true && pCX2GUNPC->GetStartState() == (int)pCX2GUNPC->GetGameUnitState() ) )
-#else	FOCUS_CAMERA_NPC_FORCE
-			if( pCX2GUNPC->GetFocusCamera() == true && pCX2GUNPC->GetStartState() == (int)pCX2GUNPC->GetGameUnitState() )
-#endif	FOCUS_CAMERA_NPC_FORCE
 				//}} kimhc // 2010.8.7 // 무조건 NPC에게 카메라가 가도록 하는 기능
 			{
 				m_optrFocusUnit = pCX2GUNPC;
@@ -914,9 +881,9 @@ CX2PVPGame::PVPResultInfo::~PVPResultInfo()
 #ifdef SERV_PVP_NEW_SYSTEM
 	CX2GameUnit *pKilled = NULL;
 	if( kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID > 0 )
-		pKilled = g_pX2Game->GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
+		pKilled = GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
 	else
-		pKilled = g_pX2Game->GetNPCUnitByUID( (int)kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
+		pKilled = GetNPCUnitByUID( (int)kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
 
 	if( pKilled != NULL )
 	{
@@ -925,10 +892,10 @@ CX2PVPGame::PVPResultInfo::~PVPResultInfo()
 		if( kEGS_USER_UNIT_DIE_NOT.m_KillerNPCUID != -1 )
 		{
 			//몬스터에게 죽었다
-			CX2GUNPC* pKiller = g_pX2Game->GetNPCUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KillerNPCUID );
-			if( pKiller != NULL && pKiller->GetNPCTemplet() != NULL )
+			CX2GUNPC* pKiller = GetNPCUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KillerNPCUID );
+			if( pKiller != NULL )
 			{
-				buffer = GET_REPLACED_STRING( ( STR_ID_191, "LL", pKilled->GetUnitName(), pKiller->GetNPCTemplet()->m_Name ) );
+				buffer = GET_REPLACED_STRING( ( STR_ID_191, "LL", pKilled->GetUnitName(), pKiller->GetNPCTemplet().m_Name ) );
 			}
 			KillUnit( true, kEGS_USER_UNIT_DIE_NOT.m_KillerNPCUID, -1, false, kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
 		}
@@ -939,13 +906,13 @@ CX2PVPGame::PVPResultInfo::~PVPResultInfo()
 			CX2GameUnit *pMDKiller = NULL;
 
 			if( kEGS_USER_UNIT_DIE_NOT.m_KillerUserUnitUID > 0 )
-				pKiller = g_pX2Game->GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KillerUserUnitUID );
+				pKiller = GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KillerUserUnitUID );
 			else
-				pKiller = g_pX2Game->GetNPCUnitByUID( (int)kEGS_USER_UNIT_DIE_NOT.m_KillerUserUnitUID );
+				pKiller = GetNPCUnitByUID( (int)kEGS_USER_UNIT_DIE_NOT.m_KillerUserUnitUID );
 			if( kEGS_USER_UNIT_DIE_NOT.m_MaxDamageKillerUserUnitUID > 0 )
-				pKiller = g_pX2Game->GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_MaxDamageKillerUserUnitUID );
+				pKiller = GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_MaxDamageKillerUserUnitUID );
 			else
-				pKiller = g_pX2Game->GetNPCUnitByUID( (int)kEGS_USER_UNIT_DIE_NOT.m_MaxDamageKillerUserUnitUID );
+				pKiller = GetNPCUnitByUID( (int)kEGS_USER_UNIT_DIE_NOT.m_MaxDamageKillerUserUnitUID );
 
 			if( pKilled != NULL )
 			{
@@ -992,7 +959,7 @@ CX2PVPGame::PVPResultInfo::~PVPResultInfo()
 
 #else // SERV_PVP_NEW_SYSTEM
 
-	CX2GUUser* pKilled = g_pX2Game->GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
+	CX2GUUser* pKilled = GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
 	if( pKilled != NULL )
 	{
 		wstring buffer;
@@ -1001,18 +968,18 @@ CX2PVPGame::PVPResultInfo::~PVPResultInfo()
 		if( kEGS_USER_UNIT_DIE_NOT.m_KillerNPCUID != -1 )
 		{
 			//몬스터에게 죽었다
-			CX2GUNPC* pKiller = g_pX2Game->GetNPCUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KillerNPCUID );
-			if( pKiller != NULL && pKilled->GetUnit() != NULL && pKiller->GetNPCTemplet() != NULL )
+			CX2GUNPC* pKiller = GetNPCUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KillerNPCUID );
+			if( pKiller != NULL && pKilled->GetUnit() != NULL )
 			{
-				buffer = GET_REPLACED_STRING( ( STR_ID_191, "SL", pKilled->GetUnit()->GetNickName(), pKiller->GetNPCTemplet()->m_Name ) );
+				buffer = GET_REPLACED_STRING( ( STR_ID_191, "SL", pKilled->GetUnit()->GetNickName(), pKiller->GetNPCTemplet().m_Name ) );
 			}
 			KillUnit( true, kEGS_USER_UNIT_DIE_NOT.m_KillerNPCUID, -1, false, kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
 		}
 		else
 		{
 			//유저에게 죽었다
-			CX2GUUser* pKiller = g_pX2Game->GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KillerUserUnitUID );
-			CX2GUUser* pMDKiller = g_pX2Game->GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_MaxDamageKillerUserUnitUID  );
+			CX2GUUser* pKiller = GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KillerUserUnitUID );
+			CX2GUUser* pMDKiller = GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_MaxDamageKillerUserUnitUID  );
 			if ( pKilled->GetUnit() != NULL )
 			{
 				if( pKiller != NULL && pKiller->GetUnit() != NULL )

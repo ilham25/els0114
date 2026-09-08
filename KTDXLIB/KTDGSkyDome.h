@@ -128,4 +128,5 @@ class CKTDGSkyDome : public CKTDGObject
 		bool							m_bUseWorldColor;
 		D3DXCOLOR						m_vColorFactor;
 		D3DXCOLOR						m_vSkyDomeColorFactor;
+
 };

@@ -4,13 +4,13 @@
 
 #include ".\x2uiskilltreeNew.h"
 
-const int	MAGIC_SKILL_DESC_WIDTH					= 370;		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ù´ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-const int	MAX_ONE_CLASS_SKILL_ROW_NUM				= 5;		/// ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-const int	SKILL_USE_IMAGE_WIDTH_SIZE				= 70;		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½
-const float SKILL_MAIN_DESC_OFFSET_Y				= 65.f;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
+const int	MAGIC_SKILL_DESC_WIDTH					= 370;		/// ½ºÅ³ ÅøÆÁ ½ºÆ®¸µ ÇÑÁÙ´ç ÃÖ´ë °¡·Î ±æÀÌ
+const int	MAX_ONE_CLASS_SKILL_ROW_NUM				= 5;		/// ÇÏ³ªÀÇ ÀüÁ÷´ç ½ºÅ³ Æ®¸® ÃÖ´ë Çà °³¼ö
+const int	SKILL_USE_IMAGE_WIDTH_SIZE				= 70;		/// ½ºÅ³ ½ÃÀü »ùÇÃ ÀÌ¹ÌÁö °¡·Î Å©±â
+const float SKILL_MAIN_DESC_OFFSET_Y				= 65.f;		/// ¸ÞÀÎ ÅøÆÁÀÇ ¿ÀÇÁ¼Â ¼¼·Î À§Ä¡
 
 //////////////////////////////////////////////////////////////////////////
-/// CX2SkillTreeSlot : ï¿½ï¿½Å³ Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+/// CX2SkillTreeSlot : ½ºÅ³ Æ®¸®¿¡ ³ª¿À´Â ½½·Ô
 //////////////////////////////////////////////////////////////////////////
 CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 {
@@ -27,7 +27,6 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 	if ( NULL == g_pData ||
 		 NULL == g_pData->GetMyUser() ||
 		 NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		 NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() ||
 		 NULL == g_pData->GetSkillTree() ||
 		 NULL == g_pData->GetUIManager() ||
 		 NULL == g_pData->GetUIManager()->GetUISkillTree() )
@@ -37,38 +36,38 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 
 	CX2SkillTree*		pSkillTree			= g_pData->GetSkillTree();
 
-	CX2UserSkillTree&	refUserSkillTree	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	CX2UserSkillTree&	refUserSkillTree	= g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree;
 
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½Ö´Â°ï¿½
+	/// ÇöÀç ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖ´Â°¡
 	const bool			bLearnMode			= g_pData->GetUIManager()->GetUISkillTree()->GetNowLearnSkill();
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ï°ï¿½ ï¿½Ö´Â°ï¿½
+	/// ÇöÀç ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ÃÊ±âÈ­ ÇÏ°í ÀÖ´Â°¡
 	const bool			bInitSkill			= g_pData->GetUIManager()->GetUISkillTree()->GetNowInitSkill();
 
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ --------------------------------------------------------------------------------------------------------------------------------
+	/// ÇöÀç ½½·Ô ¾ÆÀÌÄÜÀÇ ·¹º§ ¼³Á¤ --------------------------------------------------------------------------------------------------------------------------------
 	int iSkillLevel = g_pData->GetUIManager()->GetUISkillTree()->GetSkillLevelInSkillWimdow( m_eSkillID );
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ------------------------------------------------------------------------------------------------------------------------------------------
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ ( Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ )
+	/// ½ºÅ³ ÅÛÇÃ¸´ °´Ã¼µé ------------------------------------------------------------------------------------------------------------------------------------------
+		/// ½ºÅ³ ÅÛÇÃ¸´ ( Æ¯Á¤ ·¹º§ÀÇ Á¤º¸¸¸ ÀÖ´Â ½ºÅ³ ÅÛÇÃ¸´ )
 	const CX2SkillTree::SkillTemplet*		pSkillTemplet		= g_pData->GetSkillTree()->GetSkillTemplet( m_eSkillID );
 
-		/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½
+		/// ½ºÅ³ Æ®¸® ÅÛÇÃ¸´
 	int										iUnitClass			= static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );
 	const CX2SkillTree::SkillTreeTemplet*	pSkillTreeTemplet	= g_pData->GetSkillTree()->GetSkillTreeTemplet( iUnitClass, m_eSkillID );
 
-		/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½
+		/// ½ºÅ³ Æ®¸® ´ÙÀÌ¾ó·Î±×
 	CKTDGUIDialogType						pDLGUISkillTree		= g_pData->GetUIManager()->GetUISkillTree()->GetDLGUISkillTree();
 
 	if( NULL == pSkillTree || NULL == pSkillTemplet || NULL == pSkillTreeTemplet || NULL == pDLGUISkillTree )
 		return;
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ---------------------------------------------------------------------------------------------------------------------------
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½Ñµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½Ã¼
+	/// ½ºÅ³ ¾ÆÀÌÄÜ °ü·Ã ÄÁÆ®·Ñ ÀúÀå °´Ã¼ ---------------------------------------------------------------------------------------------------------------------------
+		/// ½ºÅ³ ¾ÆÀÌÄÜ °ü·Ã ÄÁÆ®·ÑµéÀ» ÀúÀåÇÏ´Â °´Ã¼
 	const map<CX2SkillTree::SKILL_ID, CX2UISkillTreeNew::SkillSlotUI>& refmapSkillSlotUISet = g_pData->GetUIManager()->GetUISkillTree()->GetMapSkillSlotUISet();
 
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½Ë»ï¿½
+		/// ½ºÅ³ ¾ÆÀÌµð¿¡ ´ëÇÑ ½ºÅ³ ¾ÆÀÌÄÜ ÄÁÆ®·Ñ °´Ã¼ °Ë»ö
 	map<CX2SkillTree::SKILL_ID, CX2UISkillTreeNew::SkillSlotUI>::const_iterator it = refmapSkillSlotUISet.find(m_eSkillID);
 
 	if(it == refmapSkillSlotUISet.end())
@@ -76,30 +75,30 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 		return;
 	}
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
+	/// ½ºÅ³ ¾ÆÀÌÄÜ ÄÁÆ®·Ñ °´Ã¼ ¼³Á¤
 	const CX2UISkillTreeNew::SkillSlotUI& refSkillSlotUI = it->second;
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½È¯ ---------------------------------------------------------------------------------------------------------------------------------------
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ( ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ )
-	const int iNoUseSP		= true == bLearnMode ? g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSPoint - pSkillTree->GetUsedSPoint() 
-												 : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSPoint;
-		/// ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ( ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ë·®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ )
-	const int iNoUseCP		= true == bLearnMode ? g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iCSPoint - pSkillTree->GetUsedCSPoint()
-												 : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iCSPoint;
+	/// ³²Àº ½ºÅ³ Æ÷ÀÎÆ® ¹ÝÈ¯ ---------------------------------------------------------------------------------------------------------------------------------------
+		/// ³²Àº ½ºÅ³ Æ÷ÀÎÆ® ( ½ºÅ³ ½Àµæ ¹× °­È­ »óÅÂÀÌ¸é ½ºÅ³ Æ÷ÀÎÆ® »ç¿ë·®À» ÀúÀåÁßÀÎ º¯¼ö¸¦ ¹ÝÈ¯ )
+	const int iNoUseSP		= true == bLearnMode ? g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSPoint - pSkillTree->GetUsedSPoint() 
+												 : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSPoint;
+		/// ³²Àº Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® ( ½ºÅ³ ½Àµæ ¹× °­È­ »óÅÂÀÌ¸é Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® »ç¿ë·®À» ÀúÀåÁßÀÎ º¯¼ö¸¦ ¹ÝÈ¯ )
+	const int iNoUseCP		= true == bLearnMode ? g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iCSPoint - pSkillTree->GetUsedCSPoint()
+												 : g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iCSPoint;
 
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ----------------------------------------------------------------------------------------------------------------------------------------------
-	const int iUnitLevel	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ÇöÀç À¯Àú ·¹º§ ----------------------------------------------------------------------------------------------------------------------------------------------
+	const int iUnitLevel	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level;	/// ÇöÀç À¯Àú ·¹º§
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½È¿ ï¿½Ë»ï¿½ ---------------------------------------------------------------------------------------------------------------------------------------
-	CKTDGUIStatic*	pStaticSkillLock	= refSkillSlotUI.m_pStaticSkillLock;			/// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
-	CKTDGUIStatic*	pStaticRequireSP	= refSkillSlotUI.m_pStaticStringRequireSP;		/// ï¿½ï¿½Å³ ï¿½ä±¸ SP
-	CKTDGUIButton*	pButtonSkillLearn	= refSkillSlotUI.m_pButtonSkillLearn;			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°
-	CKTDGUIButton*	pButtonSkillDesc	= refSkillSlotUI.m_pButtonSkillDesc;			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°
-	CKTDGUIButton*	pButtonSkillInit	= refSkillSlotUI.m_pButtonSkillInit;			/// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ°
-	CKTDGUIStatic*	pPictureSkillMaster	= refSkillSlotUI.m_pStaticSkillMaster;			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ Ã³ï¿½ï¿½ UI
-	CKTDGUIStatic*	pStaticSkillNoLearn = refSkillSlotUI.m_pStaticSkillNoLearn;			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ Ã³ï¿½ï¿½ UI
-	CKTDGUIStatic*	pStaticSkillBG		= refSkillSlotUI.m_pStaticSkillBG;				/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	/// °¢Á¾ ÄÁÆ®·Ñ À¯È¿ °Ë»ç ---------------------------------------------------------------------------------------------------------------------------------------
+	CKTDGUIStatic*	pStaticSkillLock	= refSkillSlotUI.m_pStaticSkillLock;			/// Àá±è ½ºÅ³
+	CKTDGUIStatic*	pStaticRequireSP	= refSkillSlotUI.m_pStaticStringRequireSP;		/// ½ºÅ³ ¿ä±¸ SP
+	CKTDGUIButton*	pButtonSkillLearn	= refSkillSlotUI.m_pButtonSkillLearn;			/// ½ºÅ³ ½Àµæ ¹öÆ°
+	CKTDGUIButton*	pButtonSkillDesc	= refSkillSlotUI.m_pButtonSkillDesc;			/// ½ºÅ³ ÅøÆÁ¿ë ¹öÆ°
+	CKTDGUIButton*	pButtonSkillInit	= refSkillSlotUI.m_pButtonSkillInit;			/// ½ºÅ³ ÃÊ±âÈ­ ¹öÆ°
+	CKTDGUIStatic*	pPictureSkillMaster	= refSkillSlotUI.m_pStaticSkillMaster;			/// ¸¶½ºÅÍ ½ºÅ³ Ã³¸® UI
+	CKTDGUIStatic*	pStaticSkillNoLearn = refSkillSlotUI.m_pStaticSkillNoLearn;			/// ½ºÅ³ ½Àµæ ºÒ°¡ Ã³¸® UI
+	CKTDGUIStatic*	pStaticSkillBG		= refSkillSlotUI.m_pStaticSkillBG;				/// ½ºÅ³ ½½·Ô ¹è°æ
 
 	if ( NULL == pStaticSkillLock ||
 		 NULL == pStaticRequireSP ||
@@ -111,13 +110,25 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 		 NULL == pStaticSkillBG )
 		return;
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	USHORT usUsingPage = refUserSkillTree.GetUsingPage();
+	const USHORT usSelectPage = refUserSkillTree.GetSelectPage();
+	bool bUsingPage = true;
+
+	if ( usUsingPage != usSelectPage - 1 )
+		bUsingPage = false;
+
+	if ( usSelectPage > 0 )
+		usUsingPage = usSelectPage - 1;
+#endif //SKILL_PAGE_SYSTEM
+
 #ifdef ADDED_RELATIONSHIP_SYSTEM
-	// ï¿½Î¿ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+	// ÀÎ¿¬ ½ºÅ³¿¡ ´ëÇÑ ¿¹¿Ü Ã³¸®
 	if ( pSkillTemplet->m_eType == CX2SkillTree::ST_RELATIONSHIP_SKILL )
 	{
-		int iRelationshipLevel = 0; // ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ ï¿½Ü°ï¿½, 0 = ï¿½Ö·ï¿½, 1 = Ä¿ï¿½ï¿½, 2 = ï¿½ï¿½È¥
+		int iRelationshipLevel = 0; // ÇöÀç ÀÎ¿¬ ´Ü°è, 0 = ¼Ö·Î, 1 = Ä¿ÇÃ, 2 = °áÈ¥
 
-		/// ï¿½Ê±ï¿½È­ ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ -----------------------------------------------------------------------------------
+		/// ÃÊ±âÈ­ ¹× ½ºÅ³ ·¹º§ Ç¥±â -----------------------------------------------------------------------------------
 		if ( NULL != g_pData->GetRelationshipManager() &&
 			NULL != g_pData->GetRelationshipManager()->GetMyRelationshipInfo() )
 		{
@@ -126,7 +137,7 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 			case SEnum::RT_SOLO :
 				{
 					iRelationshipLevel = 0;
-					// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					// ÀåÂøÁßÀÎ ÀÎ¿¬ ½ºÅ³ ÀåÂø ÇØÁ¦
 					if( NULL != g_pData && NULL != g_pData->GetSkillTree() )
 					{
 						g_pData->GetSkillTree()->UnequipRelationSkill();
@@ -144,30 +155,42 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 
 		}
 
-		// ï¿½Ø½ï¿½Ã³ ï¿½ï¿½ï¿½ï¿½ -------------------------------------------------------------------------------------------------
+		// ÅØ½ºÃ³ ¼³Á¤ -------------------------------------------------------------------------------------------------
 		pSlot->SetItemTex( pSkillTemplet->m_wstrIconName.c_str(), pSkillTemplet->m_wstrIconPieceName.c_str() );
 
-		/// ï¿½ï¿½È¥ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ---------------------------------------------------------------------------------------------
+		/// °áÈ¥ ½ºÅ³ ¼³Á¤ ---------------------------------------------------------------------------------------------
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		refUserSkillTree.SetSkillLevelAndCSP( m_eSkillID, iRelationshipLevel, 0, usUsingPage );
+#else //SKILL_PAGE_SYSTEM
 		refUserSkillTree.SetSkillLevelAndCSP( m_eSkillID, iRelationshipLevel, 0 );
+#endif //SKILL_PAGE_SYSTEM
 
-		// if(true == refUserSkillTree.DoIHaveThisSkill(m_eSkillID)) // ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½..
-		// ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í´ï¿½ ï¿½Î¿ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½
+		// if(true == refUserSkillTree.DoIHaveThisSkill(m_eSkillID)) // ÀÌ ½ºÅ³À» °®°í ÀÖ´Ù¸é..
+		// ¸ðµç Ä³¸¯ÅÍ´Â ÀÎ¿¬ ½ºÅ³À» °®°í ÀÖ¾î¾ßÇÔ
 		{
-			// Ä¿ï¿½ï¿½ ï¿½Ì»ï¿½ ï¿½Ü°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ "Lv. 1" Static ï¿½ï¿½ Drag ï¿½ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
-			// RButtonUp ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ö´ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù½ï¿½ ï¿½Úµï¿½
-			// ï¿½×³ï¿½ ï¿½ï¿½ï¿½Â¿ï¿½ï¿½ï¿½ï¿½ï¿½ Drag ï¿½Ò°ï¿½
-			if( iRelationshipLevel > 0 )		
+			// Ä¿ÇÃ ÀÌ»ó ´Ü°èÀÏ ¶§´Â "Lv. 1" Static °ú Drag ¸¦ ¸·´Â´Ù.
+			// RButtonUp À¸·Î ½ºÅ³ ³Ö´Â ºÎºÐÀº ÇØ´ç ¸Þ½ÃÁö¿¡¼­ ´Ù½Ã ÄÚµù
+			// ±×³É »óÅÂ¿¡¼­´Â Drag ºÒ°¡
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			if( iRelationshipLevel > 0 && bUsingPage == true )
+#else //SKILL_PAGE_SYSTEM
+			if( iRelationshipLevel > 0 )
+#endif //SKILL_PAGE_SYSTEM
 				pSlot->SetDragable( true );
 			else
 				pSlot->SetDragable( false );
 		}
 
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ---------------------------------------------------------------------------------------
-		/// È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Èºï¿½ï¿½ï¿½ï¿½ï¿½	
-		/// ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½, ï¿½ï¿½ ï¿½ï¿½È²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		/// ½ºÅ³ ¾ÆÀÌÄÜ ¾÷µ¥ÀÌÆ® ---------------------------------------------------------------------------------------
+		/// È¹µæ °¡´É, Àº ¹«Á¶°Ç ¾Èº¸¿©ÁÜ	
+		/// »ç¿ë ºÒ°¡, ´Â »óÈ²¿¡ ¸ÂÃç º¸¿©ÁÜ
 		ShowSlotPicture( false, pSlot, STSAPT_CANLEARN ); 
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		if ( iRelationshipLevel > 0 && bUsingPage == true )
+#else //SKILL_PAGE_SYSTEM
 		if ( iRelationshipLevel > 0 )
+#endif //SKILL_PAGE_SYSTEM
 		{
 			ShowSlotPicture( false, pSlot, STSAPT_DISABLE );
 		}
@@ -179,7 +202,7 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 		//if( -1 != refUserSkillTree.GetSkillEquippedSlotIndex( m_eSkillID, false ) || 
 		//	-1 != refUserSkillTree.GetSkillEquippedSlotIndex( m_eSkillID, true ) )
 		//{
-		//	// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½
+		//	// ½ºÅ³À» ÀåÂø ÁßÀÌ¸é
 		//	ShowSlotPicture( true, pSlot, STSAPT_EQUIPPED );
 		//}
 		//else
@@ -188,48 +211,48 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 		//}
 
 
-		/// ï¿½ä±¸ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® --------------------------------------------------------------------------
+		/// ¿ä±¸ ·¹º§ ¹× ¸¶½ºÅÍ ·¹º§ ¾÷µ¥ÀÌÆ® --------------------------------------------------------------------------
 		if ( NULL != pStaticRequireSP->GetString( 0 ) && 
 			 NULL != pPictureSkillMaster->GetPicture(0) )
 		{
-			if ( 2 > iRelationshipLevel )	/// ï¿½ï¿½È¥ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+			if ( 2 > iRelationshipLevel )	/// °áÈ¥ ÀÌÀüÀÌ¸é, °ü·Ã Á¤º¸ Ç¥½Ã
 			{
 				pStaticRequireSP->SetShow( true );
 				pPictureSkillMaster->GetPicture(0)->SetShow( false );
 
-				/// ï¿½ä±¸ SP ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ -------------------------------------------------------------------------
+				/// ¿ä±¸ SP ´ë½Å ÇÊ¿äÇÑ ¿¬ÀÎ »óÅÂ Ç¥½Ã -------------------------------------------------------------------------
 				wstring wstrRelationState = L"";
 
 				switch ( iRelationshipLevel ) 
 				{
 				case 0:
-					wstrRelationState = GET_STRING ( STR_ID_24461 );	/// Ä¿ï¿½ï¿½
+					wstrRelationState = GET_STRING ( STR_ID_24461 );	/// Ä¿ÇÃ
 					break;
 				default:
-					wstrRelationState = GET_STRING ( STR_ID_24462 );	/// ï¿½ï¿½È¥
+					wstrRelationState = GET_STRING ( STR_ID_24462 );	/// °áÈ¥
 					break;
 				}
 
 				WCHAR buf[256] = {0,};
 
-				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì´ï¿½ Ç¥ï¿½ï¿½
+				/// ¹«Á¶°Ç ½Àµæ Á¶°Ç ¹Ì´Þ Ç¥½Ã
 				StringCchPrintf( buf, 255, L"#CFF8000%s#CX", wstrRelationState.c_str() );
 				pStaticRequireSP->GetString( 0 )->msg = buf;
 			}
-			else		/// ï¿½ï¿½È¥ ï¿½Ì»ï¿½ï¿½Ì¸ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ Ã³ï¿½ï¿½
+			else		/// °áÈ¥ ÀÌ»óÀÌ¸é, ¸¶½ºÅÍ ½ºÅ³ Ã³¸®
 			{
 				pStaticRequireSP->SetShow( false );
-				pPictureSkillMaster->GetPicture(0)->SetShow( true );	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				pPictureSkillMaster->GetPicture(0)->SetShow( true );	/// ¸¶½ºÅÍ ·¹º§ ¼³Á¤
 			}
 			
 		}
 
-		/// ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ----------------------------------------------------------------------------------------------
-		pButtonSkillLearn->SetEnableClick( false );		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ï¹Ç·ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
+		/// ¹öÆ° ¾÷µ¥ÀÌÆ® ----------------------------------------------------------------------------------------------
+		pButtonSkillLearn->SetEnableClick( false );		/// ½ºÅ³ Æ÷ÀÎÆ®·Î ¹è¿ï ¼ö ÀÖ´Â ½ºÅ³ÀÌ ¾Æ´Ï¹Ç·Î, ¹«Á¶°Ç ºñÈ°¼º
 		pButtonSkillLearn->SetEnable( false );
-		pButtonSkillLearn->SetShow( 2 > iRelationshipLevel ? true : false );		/// ï¿½ï¿½È¥ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½
+		pButtonSkillLearn->SetShow( 2 > iRelationshipLevel ? true : false );		/// °áÈ¥ ÁßÀÌ¶ó¸é, ¹öÆ° ¼û±è
 
-		/// ï¿½Ú¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® --------------------------------------------------------------------------------------------
+		/// ÀÚ¹°¼è ¾÷µ¥ÀÌÆ® --------------------------------------------------------------------------------------------
 		if ( iRelationshipLevel > 0 )
 			pStaticSkillLock->SetShow( false );
 
@@ -240,46 +263,46 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 	else
 #endif // ADDED_RELATIONSHIP_SYSTEM
 	{
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ---------------------------------------------------------------------------------------------
-		bool bIsLockSkill			= false;	/// ï¿½ï¿½ï¿½Î½ï¿½Å³ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		bool bMasterLevel			= false;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		bool bCanLearnLevel			= false;	/// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		bool bHaveLearnSP			= false;	/// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ SP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		bool bLearnPrecedingSkill	= true;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½, true )
+		/// ½ºÅ³ Á¶°Ç °Ë»ç ---------------------------------------------------------------------------------------------
+		bool bIsLockSkill			= false;	/// ºÀÀÎ½ºÅ³ Àá±è ¿©ºÎ
+		bool bMasterLevel			= false;	/// ¸¶½ºÅÍ ½ºÅ³ ·¹º§ ¿©ºÎ
+		bool bCanLearnLevel			= false;	/// ½ºÅ³À» ¹è¿ï ¼ö ÀÖ´Â ·¹º§ ¿©ºÎ
+		bool bHaveLearnSP			= false;	/// ½ºÅ³À» ¹è¿ï ¼ö ÀÖ´Â SP ¼ÒÁö ¿©ºÎ
+		bool bLearnPrecedingSkill	= true;		/// ¼±Çà ½ºÅ³ ½Àµæ ¿©ºÎ ( ¼±Çà ½ºÅ³ÀÌ ¾ø´Ù¸é, true )
 
-		const int iMaxLearnLevel = pSkillTreeTemplet->m_iMaxSkillLevel;	/// ï¿½Ö´ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+		const int iMaxLearnLevel = pSkillTreeTemplet->m_iMaxSkillLevel;	/// ÃÖ´ë·Î ÂïÀ» ¼ö ÀÖ´Â ½ºÅ³ ·¹º§
 
-			/// ï¿½ï¿½ï¿½Î½ï¿½Å³ï¿½Ì¸ï¿½, Ç®ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ ï¿½ï¿½
+			/// ºÀÀÎ½ºÅ³ÀÌ¸ç, Ç®¸®Áö ¾Ê¾ÒÀ» ¶§
 		if( true == pSkillTemplet->m_bBornSealed && false == refUserSkillTree.IsSkillUnsealed( m_eSkillID ) )
 		{
-			bIsLockSkill = true;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½
+			bIsLockSkill = true;		/// ºÀÀÎ ½ºÅ³ Àá±è
 
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½			pDLGUISkillTree->ChangeSequence( refSkillSlotUI.m_pStaticSkillLock, true );
+			/// ºÀÀÎ ½ºÅ³ ¾ÆÀÌÄÜÀº ¹«Á¶°Ç »óÀ§·Î ¼³			pDLGUISkillTree->ChangeSequence( refSkillSlotUI.m_pStaticSkillLock, true );
 		}
 
 		refSkillSlotUI.m_pStaticSkillLock->SetShow( bIsLockSkill );
 
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
-		if ( iMaxLearnLevel <= iSkillLevel )		/// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UI Ã³ï¿½ï¿½
+			/// ¸¶½ºÅÍ ·¹º§ÀÇ ½ºÅ³ÀÎÁö °Ë»ç
+		if ( iMaxLearnLevel <= iSkillLevel )		/// ½ºÅ³À» ´õÀÌ»ó ÂïÀ» ¼ö ¾ø´Ù¸é, ¸¶½ºÅÍ ·¹º§ UI Ã³¸®
 			bMasterLevel = true;
 
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+			/// ´ÙÀ½ ·¹º§ÀÇ ½ºÅ³À» ½ÀµæÇÒ ¼ö ÀÖ´ÂÁö °Ë»ç
 		if ( pSkillTemplet->GetSkillRequireLevelValue( iSkillLevel + 1 ) <= iUnitLevel )
 			bCanLearnLevel = true;
 
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+			/// ¼±Çà ½ºÅ³ ½Àµæ ¿©ºÎ °Ë»ç
 		if ( 0 < pSkillTreeTemplet->m_iPrecedingSkill )
 		{
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ¼±Çà ½ºÅ³ÀÇ ·¹º§
 			int iPrecedingSkillLevel = g_pData->GetUIManager()->GetUISkillTree()->GetSkillLevelInSkillWimdow
 				( static_cast<CX2SkillTree::SKILL_ID>( pSkillTreeTemplet->m_iPrecedingSkill ) );
 
 			if ( 0 >= iPrecedingSkillLevel )
-				bLearnPrecedingSkill = false;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ 0 ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½, ï¿½Ì½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+				bLearnPrecedingSkill = false;	/// ¼±Çà ½ºÅ³ÀÌ 0 ÀÌÇÏÀÌ¸é, ¹Ì½Àµæ Ã³¸®
 		}
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ----------------------------------------------------------------------------------------------
+		/// ½½·Ô ¾÷µ¥ÀÌÆ® ----------------------------------------------------------------------------------------------
 		pSlot->SetItemTex( pSkillTemplet->m_wstrIconName.c_str(), pSkillTemplet->m_wstrIconPieceName.c_str() );
 
 		if(true == refUserSkillTree.DoIHaveThisSkill(m_eSkillID))
@@ -289,9 +312,16 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 			case CX2SkillTree::ST_ACTIVE:
 			case CX2SkillTree::ST_BUFF:
 			case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+			case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 				{
-					/// ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì°Å³ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½, ï¿½å·¡ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+					/// ºí¶óÀÎµå Ã³¸®µÈ ½ºÅ³ÀÌ°Å³ª ½ºÅ³ ·¹º§À» ¿Ã¸®´Â ÁßÀÌ¶ó¸é, µå·¡±× ÇÒ ¼ö ¾ø´Ù.
+				#ifdef SKILL_PAGE_SYSTEM //JHKang
+					if ( true == refSkillSlotUI.m_bSelectSkillBlind || true == bLearnMode || true == bIsLockSkill || bUsingPage == false )
+				#else //SKILL_PAGE_SYSTEM
 					if ( true == refSkillSlotUI.m_bSelectSkillBlind || true == bLearnMode || true == bIsLockSkill )
+				#endif //SKILL_PAGE_SYSTEM
 						pSlot->SetDragable(false);
 					else
 						pSlot->SetDragable(true);
@@ -308,42 +338,55 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 			pSlot->SetDragable(false);
 		}
 
-			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½  Ç¥ï¿½ï¿½
+			/// ½ºÅ³ ·¹º§  Ç¥½Ã
 		if ( 0 < iSkillLevel )
 			ShowSlotPicture( true, pSlot, STSAPT_LEVEL, iSkillLevel );
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		if ( 0 == iSkillLevel && bUsingPage == false )
+			ShowSlotPicture( false, pSlot, STSAPT_LEVEL, iSkillLevel );
+#endif //SKILL_PAGE_SYSTEM
+
 
 			
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® -----------------------------------------------------------------------------------------
-		if( false == refUserSkillTree.DoIHaveThisSkill(m_eSkillID) || true == bIsLockSkill )		/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì°Å³ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ó°ï¿½ Ã³ï¿½ï¿½
+		/// ½½·Ô »óÅÂ ¾÷µ¥ÀÌÆ® -----------------------------------------------------------------------------------------
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		if( false == refUserSkillTree.DoIHaveThisSkill(m_eSkillID) || true == bIsLockSkill || bUsingPage == false )	// ¹è¿ìÁö ¾ÊÀº ½ºÅ³ÀÌ°Å³ª Àá±ä ½ºÅ³Àº ¾ÆÀÌÄÜ ¾îµÓ°Ô Ã³¸®
+#else //SKILL_PAGE_SYSTEM
+		if( false == refUserSkillTree.DoIHaveThisSkill(m_eSkillID) || true == bIsLockSkill )		/// ¹è¿ìÁö ¾ÊÀº ½ºÅ³ÀÌ°Å³ª Àá±ä ½ºÅ³Àº ¾ÆÀÌÄÜ ¾îµÓ°Ô Ã³¸®
+#endif //SKILL_PAGE_SYSTEM
 			ShowSlotPicture( true, pSlot, STSAPT_DISABLE );
 		else
 			ShowSlotPicture( false, pSlot, STSAPT_DISABLE );
 
-		// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+		// ½ºÅ³ ÀåÂøÁß Ç¥½Ã
 		/*if( -1 != refUserSkillTree.GetSkillEquippedSlotIndex( m_eSkillID, false ) || 
 			-1 != refUserSkillTree.GetSkillEquippedSlotIndex( m_eSkillID, true ) )
 			ShowSlotPicture( true, pSlot, STSAPT_EQUIPPED );
 		else
 			ShowSlotPicture( false, pSlot, STSAPT_EQUIPPED );*/
 
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ ï¿½Ø½ï¿½Ã³ Ç¥ï¿½ï¿½
-		if ( 0 >= iSkillLevel && false == refSkillSlotUI.m_bSkillLineBlind )			/// ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½
+		/// ½ºÅ³ ½Àµæ °¡´É ¿©ºÎ ¾È³» ÅØ½ºÃ³ Ç¥½Ã
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		if ( 0 >= iSkillLevel && false == refSkillSlotUI.m_bSkillLineBlind && bUsingPage == true )	// ¹è¿ï ¼ö ÀÖ´Â ½ºÅ³ÀÏ ¶§
+#else //SKILL_PAGE_SYSTEM
+		if ( 0 >= iSkillLevel && false == refSkillSlotUI.m_bSkillLineBlind )			/// ¹è¿ï ¼ö ÀÖ´Â ½ºÅ³ÀÏ ¶§
+#endif //SKILL_PAGE_SYSTEM
 		{
-			const int	iIndexInTier			= pSkillTreeTemplet->m_iIndexInTier;	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½
-			bool		bIsSelectAnotherSkill	= false;								/// ï¿½Ý´ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			const int	iIndexInTier			= pSkillTreeTemplet->m_iIndexInTier;	/// ½ºÅ³ ¶óÀÎ °¡·Î ÀÎµ¦½º
+			bool		bIsSelectAnotherSkill	= false;								/// ¹Ý´ëÆí ½ºÅ³ ¼±ÅÃ °¡´É ¿©ºÎ
 
-			/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½, ï¿½Ý´ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+			/// 2Áö ¼±´Ù ½ºÅ³ÀÏ ¶§, ¹Ý´ëÆí ½ºÅ³ ¾ÆÀÌµð°¡ Á¸ÀçÇÏ°Å³ª ¼±ÅÃ °¡´ÉÇÑ ½ºÅ³ÀÎÁö °Ë»ç
 			if ( CX2UISkillTreeNew::STST_SINGLE_SKILL != iIndexInTier )
 			{
 				const CX2SkillTree::SKILL_ID eAnotherSkillID = g_pData->GetUIManager()->GetUISkillTree()->GetAnotherSelectSkillID( m_eSkillID );
 
-				/// ï¿½Ý´ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+				/// ¹Ý´ëÆí ½ºÅ³ ¾ÆÀÌµð°¡ ¼±ÅÃ °¡´ÉÇÑ ½ºÅ³ÀÎÁö °Ë»ç
 				if ( CX2SkillTree::SI_NONE != eAnotherSkillID )
 				{
 					const CX2SkillTree::SkillTemplet* pSkillTemplet	= g_pData->GetSkillTree()->GetSkillTemplet( eAnotherSkillID );
 
-					/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ï°Å³ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ý´ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					/// ºÀÀÎ ½ºÅ³ÀÌ ¾Æ´Ï°Å³ª, ÇØÁ¦µÈ ºÀÀÎ½ºÅ³ÀÌ¸é, ¼±ÅÃ °¡´ÉÇÑ ¹Ý´ëÆí ½ºÅ³·Î ¼³Á¤
 					if ( NULL != pSkillTemplet && 
 							false == pSkillTemplet->m_bBornSealed || 
 							( true == pSkillTemplet->m_bBornSealed && true == refUserSkillTree.IsSkillUnsealed( eAnotherSkillID ) ) )
@@ -354,64 +397,58 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 			}
 
 
-			if ( CX2UISkillTreeNew::STST_SINGLE_SKILL != iIndexInTier &&	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½,
-			 	 false == refSkillSlotUI.m_bSelectSkillBlind &&				/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½,
-				 false == bIsLockSkill &&									/// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½,
-				 true  == bIsSelectAnotherSkill )							/// ï¿½Ý´ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½
+			if ( CX2UISkillTreeNew::STST_SINGLE_SKILL != iIndexInTier &&	/// 2Áö¼±´Ù ½ºÅ³ÀÌ¸ç,
+			 	 false == refSkillSlotUI.m_bSelectSkillBlind &&				/// ¼±ÅÃÀ» ¹ÞÁö ¸øÇÑ ½ºÅ³ÀÌ ¾Æ´Ï¸ç,
+				 false == bIsLockSkill &&									/// Àá±ä ½ºÅ³ÀÌ ¾Æ´Ï¸ç,
+				 true  == bIsSelectAnotherSkill )							/// ¹Ý´ëÆí ½ºÅ³ÀÌ ¼±ÅÃ °¡´ÉÇÑ ½ºÅ³ÀÏ ¶§
 			{
-				if ( CX2UISkillTreeNew::STST_SELECT_SKILL_LEFT == iIndexInTier )	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+				if ( CX2UISkillTreeNew::STST_SELECT_SKILL_LEFT == iIndexInTier )	/// ¿ÞÂÊ ½ºÅ³ÀÌ¸é, ¼±ÅÃ °¡´É Ç¥½Ã
 				{
-//{{ Iruha : 2026-08-27 // SKILLTREE_NO_LOCK removes the choice restriction, so the "AbleChoice" indicator no longer applies
-#ifdef SERV_IRUHADEV_SKILLTREE_NO_LOCK
-					ShowSlotPicture( false, pSlot, STSAPT_SELECT );
-#else
 					ShowSlotPicture( true, pSlot, STSAPT_SELECT );
 
-					pDLGUISkillTree->ChangeSequence( pSlot, true );		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-#endif SERV_IRUHADEV_SKILLTREE_NO_LOCK
-//}}
+					pDLGUISkillTree->ChangeSequence( pSlot, true );		/// 2Áö¼±´Ù ¼±ÅÃ °¡´É ÃÖ»óÀ§·Î ¼³Á¤
 				}
-				else	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì´ï¿½. )
+				else	/// ¿À¸¥ÂÊ ½ºÅ³ÀÌ¸é, ¼±ÅÃ °¡´É ÇØÁ¦ ( ¿ÞÂÊ¿¡¼­ Ãâ·ÂÇÒ °ÍÀÌ´Ù. )
 					ShowSlotPicture( false, pSlot, STSAPT_SELECT );
 
-				ShowSlotPicture( false, pSlot, STSAPT_CANLEARN );		/// È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				ShowSlotPicture( false, pSlot, STSAPT_CANLEARN );		/// È¹µæ °¡´É ÇØÁ¦
 			}
-			else		/// ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			else		/// ÇÏ³ªÀÇ ½ºÅ³¸¸ ½Àµæ °¡´É »óÅÂ
 			{
-				ShowSlotPicture( false, pSlot, STSAPT_SELECT );			/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				ShowSlotPicture( false, pSlot, STSAPT_SELECT );			/// 2Áö¼±´Ù ¼±ÅÃ °¡´É ÇØÁ¦
 
 				if ( false == bIsLockSkill )
-					ShowSlotPicture( true, pSlot, STSAPT_CANLEARN );	/// È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					ShowSlotPicture( true, pSlot, STSAPT_CANLEARN );	/// È¹µæ °¡´É ¼³Á¤
 			}
 		}
-		else			/// ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½
+		else			/// ¹è¿ï ¼ö ¾ø´Â ½ºÅ³ÀÏ ¶§
 		{
-			ShowSlotPicture( false, pSlot, STSAPT_SELECT );				/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-			ShowSlotPicture( false, pSlot, STSAPT_CANLEARN );			/// È¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			ShowSlotPicture( false, pSlot, STSAPT_SELECT );				/// 2Áö¼±´Ù ¼±ÅÃ °¡´É ÇØÁ¦
+			ShowSlotPicture( false, pSlot, STSAPT_CANLEARN );			/// È¹µæ °¡´É ÇØÁ¦
 		}
 
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½Ã¿ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ------------------------------------------------------------------------------------
+		/// Á¤º¸ Ç¥½Ã¿ë ½ºÆ®¸µ ¼³Á¤ ------------------------------------------------------------------------------------
 		if ( NULL != pStaticRequireSP->GetString( 0 ) )
 		{
 			
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ¸¶½ºÅÍ ·¹º§ÀÌ ¾Æ´Ò ¶§ °ª ¼³Á¤
 			if ( false == bMasterLevel && false == bInitSkill )
 			{
-				/// ï¿½ä±¸ SP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® -------------------------------------------------------------------------------------------
+				/// ¿ä±¸ SP ¾÷µ¥ÀÌÆ® -------------------------------------------------------------------------------------------
 				int iOutputREquireSPValue = 0 == iSkillLevel ? pSkillTemplet->m_iRequireLearnSkillPoint : 
-																pSkillTemplet->m_iRequireUpgradeSkillPoint;		/// ï¿½ï¿½Å³ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ä±¸ï¿½Ç´ï¿½ SP ï¿½ï¿½
+																pSkillTemplet->m_iRequireUpgradeSkillPoint;		/// ½ºÅ³ °­È­½Ã ¿ä±¸µÇ´Â SP ¾ç
 
-				wstring wstrOutputMsg = L"";	/// ï¿½ï¿½Â½ï¿½Å³ ï¿½ï¿½Æ®ï¿½ï¿½
+				wstring wstrOutputMsg = L"";	/// Ãâ·Â½ÃÅ³ ½ºÆ®¸µ
 
-				/// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½Âµï¿½ ï¿½ä±¸ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½Ä¶ï¿½ ï¿½ï¿½( ï¿½âº» )ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+				/// ½ºÅ³À» ¹è¿ì´Âµ¥ ¿ä±¸µÇ´Â Æ÷ÀÎÆ®¸¦ °®°íÀÖÀ» ¶§, ÆÄ¶õ »ö( ±âº» )À¸·Î Ç¥±â
 				if ( iOutputREquireSPValue <= iNoUseSP + iNoUseCP )
 				{
 					wstrOutputMsg	+= GET_REPLACED_STRING( ( STR_ID_25073, "i", iOutputREquireSPValue ) );
 					bHaveLearnSP	=  true;
 				}
-				/// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½Âµï¿½ ï¿½ä±¸ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+				/// ½ºÅ³À» ¹è¿ì´Âµ¥ ¿ä±¸µÇ´Â Æ÷ÀÎÆ®¸¦ °®°íÀÖÁö ¾ÊÀ» ¶§, ºÓÀº »öÀ¸·Î Ç¥±â
 				else
 				{
 					wstrOutputMsg	=  L"#CFF8000";
@@ -419,7 +456,7 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 					wstrOutputMsg	+=  L"#CX";
 				}
 
-				/// ï¿½ï¿½ï¿½
+				/// Ãâ·Â
 				pStaticRequireSP->GetString( 0 )->msg = wstrOutputMsg;
 
 				pStaticRequireSP->SetShow( true );
@@ -432,46 +469,50 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 			
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ UI ï¿½ï¿½ï¿½ï¿½ ----------------------------------------------------------------------------------------
+		/// ¸¶½ºÅÍ ½ºÅ³ UI ¼³Á¤ ----------------------------------------------------------------------------------------
 		if ( NULL != pPictureSkillMaster->GetPicture(0) )
 		{
 			if ( true == bInitSkill )
-				pPictureSkillMaster->GetPicture(0)->SetShow( false );		 /// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½, Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				pPictureSkillMaster->GetPicture(0)->SetShow( false );		 /// ½ºÅ³ ÃÊ±âÈ­ ¸ðµå¶ó¸é, Ç¥½Ã ÇØÁ¦
 			else
-				pPictureSkillMaster->GetPicture(0)->SetShow( bMasterLevel ); /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ È°ï¿½ï¿½
+				pPictureSkillMaster->GetPicture(0)->SetShow( bMasterLevel ); /// ¸¶½ºÅÍ ·¹º§ÀÌ¸é È°¼º
 		}
 
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½, ï¿½ï¿½ ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+			/// ½Àµæ ¹öÆ°Àº ÃÊ±âÈ­ »óÅÂÀÌ¸é ¹«Á¶°Ç Ç¥½Ã, ±× ¿Ü¿£ ¸¶½ºÅÍ ·¹º§ÀÌ ¾Æ´Ò ¶§¸¸ Ç¥½Ã
 		pButtonSkillLearn->SetShow( true == bInitSkill ? false : !bMasterLevel );
 
-			/// ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+			/// ÃÊ±âÈ­ ¹öÆ°Àº ÃÊ±âÈ­½Ã ¹«Á¶°Ç Ç¥½Ã
 		pButtonSkillInit->SetShow( bInitSkill );
 
-			/// ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½Û½ï¿½, SP Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ÃÊ±âÈ­ ¹öÆ° µ¿ÀÛ½Ã, SP Ç¥½Ã ¹éÆÇ ¼û±è
 		if ( NULL != pStaticSkillBG->GetPicture( 1 ) )
 			pStaticSkillBG->GetPicture( 1 )->SetShow( !bInitSkill );
 
-			/// ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½, ï¿½ï¿½ ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+			/// ÃÊ±âÈ­ »óÅÂÀÌ¸é, ¹«Á¶°Ç ¸¶½ºÅÍ ·¹º§ ÀÌ¹ÌÁö ¹ÌÇ¥½Ã, ±× ¿Ü¿£ ¸¶½ºÅÍ ·¹º§ÀÏ ¶§¸¸ Ç¥½Ã
 		if ( NULL != pPictureSkillMaster->GetPicture( 0 ) )
 			pPictureSkillMaster->GetPicture( 0 )->SetShow( true == bInitSkill ? false : bMasterLevel );
 
 
 
-		/// ï¿½ï¿½Æ° Ã³ï¿½ï¿½ --------------------------------------------------------------------------------------------------
-		if ( true == bInitSkill )		/// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+		/// ¹öÆ° Ã³¸® --------------------------------------------------------------------------------------------------
+		if ( true == bInitSkill )		/// ½ºÅ³ ÃÊ±âÈ­ »óÅÂÀÏ ¶§
 		{
-			pButtonSkillDesc->SetEnable( false );	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½
+			pButtonSkillDesc->SetEnable( false );	/// ÅøÆÁ¿ë ¹öÆ° ÇØÁ¦
 
-			const bool bIsDefaultSkill = g_pData->GetSkillTree()->isDefaultSkill( m_eSkillID );		/// ï¿½âº» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+			const bool bIsDefaultSkill = g_pData->GetSkillTree()->isDefaultSkill( m_eSkillID );		/// ±âº» ½ºÅ³ ¿©ºÎ
 
-			/// ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ø½ï¿½Ã³ ï¿½ï¿½ï¿½ï¿½
+			/// ¸Þ½ÃÁö ¹× ÅØ½ºÃ³ ¼³Á¤
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			if ( ( ( false == bIsDefaultSkill && 0 < iSkillLevel ) || ( true == bIsDefaultSkill && 1 < iSkillLevel ) ) && bUsingPage == true )	// ±âº» ½ºÅ³ÀÌ ¾Æ´Ï¸é¼­ 0·¹º§ º¸´Ù Å©°Å³ª, ±âº» ½ºÅ³ÀÌ¸é¼­ 1·¹º§ º¸´Ù Å¬ ¶§
+#else //SKILL_PAGE_SYSTEM
 			if ( ( false == bIsDefaultSkill && 0 < iSkillLevel ) || 
-				 ( true == bIsDefaultSkill && 1 < iSkillLevel ) )		/// ï¿½âº» ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ï¸é¼­ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å©ï¿½Å³ï¿½, ï¿½âº» ï¿½ï¿½Å³ï¿½Ì¸é¼­ 1ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ ï¿½ï¿½
+				( true == bIsDefaultSkill && 1 < iSkillLevel ) )		/// ±âº» ½ºÅ³ÀÌ ¾Æ´Ï¸é¼­ 0·¹º§ º¸´Ù Å©°Å³ª, ±âº» ½ºÅ³ÀÌ¸é¼­ 1·¹º§ º¸´Ù Å¬ ¶§
+#endif //SKILL_PAGE_SYSTEM
 			{
 				pButtonSkillInit->SetEnableClick( true );
 				pButtonSkillInit->SetEnable( true );
 			}
-			else						/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½
+			else						/// ¹è¿ìÁö ¾Ê¾ÒÀ¸¸é, ¹öÆ° ¹«Á¶°Ç ºñÈ°¼º
 			{
 				pButtonSkillInit->SetEnableClick( false );
 				pButtonSkillInit->SetEnable( false );
@@ -481,42 +522,46 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 		{
 			if ( false == bMasterLevel )
 			{
-				/// ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° È°ï¿½ï¿½
-				if ( true  == bCanLearnLevel &&							/// ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½
-					 true  == bHaveLearnSP &&							/// ï¿½ï¿½ï¿½ï¿½ï¿½ SP ï¿½ï¿½ï¿½ï¿½
-					 false == bIsLockSkill &&							/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
-					 true  == bLearnPrecedingSkill &&					/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-					 false == refSkillSlotUI.m_bSelectSkillBlind &&		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¹ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
-					 false == refSkillSlotUI.m_bSkillLineBlind )		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½Å³
+				/// ¹è¿ï ¼ö ÀÖ´Â Á¶°ÇÀÏ ¶§, ½ºÅ³ ½Àµæ ¹öÆ° È°¼º
+				if ( true  == bCanLearnLevel &&							/// ¹è¿ï ¼ö ÀÖ´Â ·¹º§
+					 true  == bHaveLearnSP &&							/// ÃæºÐÇÑ SP ¼ÒÁö
+					 false == bIsLockSkill &&							/// ºñºÀÀÎ ½ºÅ³
+					 true  == bLearnPrecedingSkill &&					/// ¼±Çà ½ºÅ³ ½Àµæ ¿©ºÎ
+					 false == refSkillSlotUI.m_bSelectSkillBlind &&		/// 2Áö¼±´ÙÁß ¼±ÅÃ¹ÞÀº ½ºÅ³
+					 false == refSkillSlotUI.m_bSkillLineBlind			/// ½ºÅ³ ¶óÀÎÀÌ ¿­·ÁÀÖ´Â ½ºÅ³
+				#ifdef SKILL_PAGE_SYSTEM //JHKang
+					 && true == bUsingPage
+				#endif //SKILL_PAGE_SYSTEM
+					  )
 				{
 					pButtonSkillLearn->SetEnable( true );
 					pButtonSkillLearn->SetEnableClick( true );
-					pButtonSkillDesc->SetEnable( false );	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½
+					pButtonSkillDesc->SetEnable( false );	/// ÅøÆÁ¿ë ¹öÆ° ÇØÁ¦
 
-					if ( 0 >= iSkillLevel )		/// ï¿½ï¿½ï¿½ï¿½
+					if ( 0 >= iSkillLevel )		/// ½Àµæ
 						pButtonSkillLearn->SetCustomMsgMouseUp( CX2UISkillTreeNew::STUCM_BUTTON_SKILL_LEVEL_PLUS );
-					else						/// ï¿½ï¿½È­
+					else						/// °­È­
 						pButtonSkillLearn->SetCustomMsgMouseUp( CX2UISkillTreeNew::STUCM_BUTTON_SKILL_LEVEL_UPGRADE );
 				}
-				else	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°Å³ï¿½ SPï¿½ï¿½ ï¿½ï¿½ï¿½Ú¶ï¿½ ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½È°ï¿½ï¿½
+				else	/// ·¹º§ÀÌ ºÎÁ·ÇÏ°Å³ª SP°¡ ¸ðÀÚ¶ö ¶§, ½ºÅ³ ½Àµæ ¹öÆ° ºñÈ°¼º
 				{
 					pButtonSkillLearn->SetEnable( false );
 					pButtonSkillLearn->SetEnableClick( false );
 
-					/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+					/// ½ºÅ³ ¶óÀÎ ¼³Á¤À¸·Î ÀÎÇÏ¿© °¡·ÁÁ® ÀÖÁö ¾ÊÀ¸¸é, ÅøÆÁ Ç¥½Ã
 					if ( false == refSkillSlotUI.m_bSkillLineBlind )
 					{
-						pButtonSkillDesc->SetEnable( true );	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° È°ï¿½ï¿½
+						pButtonSkillDesc->SetEnable( true );	/// ÅøÆÁ¿ë ¹öÆ° È°¼º
 
-						/// ï¿½ï¿½È°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+						/// ºñÈ°¼ºµÈ Á¶°Ç¿¡ µû¸¥ ÅøÆÁ ¼³Á¤
 						wstring wstrNotLearnSkillDesc = L"";
 
-						if ( false == bCanLearnLevel )	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+						if ( false == bCanLearnLevel )	/// ·¹º§ ºÎÁ·
 							wstrNotLearnSkillDesc += GET_REPLACED_STRING( ( STR_ID_25111, "i", pSkillTemplet->GetSkillRequireLevelValue( iSkillLevel + 1 ) ) );
 
-						if ( false == bHaveLearnSP )	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+						if ( false == bHaveLearnSP )	/// ½ºÅ³ Æ÷ÀÎÆ®°¡ ºÎÁ·
 						{
-							if ( wstrNotLearnSkillDesc != L"" )		/// ï¿½ï¿½Ä­ï¿½ï¿½ ï¿½Æ´Ï¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½î¾²ï¿½ï¿½
+							if ( wstrNotLearnSkillDesc != L"" )		/// ºóÄ­ÀÌ ¾Æ´Ï¸é, ÇÑÁÙ ¶ç¾î¾²±â
 								wstrNotLearnSkillDesc += L"\n";
 
 							wstrNotLearnSkillDesc += GET_STRING( STR_ID_25107 );
@@ -524,11 +569,11 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 
 						pButtonSkillDesc->SetGuideDesc( wstrNotLearnSkillDesc.c_str() );
 					}
-					else		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ï¿½ï¿½
-						pButtonSkillDesc->SetEnable( false );	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½È°ï¿½ï¿½
+					else		/// ½ºÅ³ ¶óÀÎ ¼³Á¤À¸·Î ÀÎÇÏ¿© °¡·ÁÁ³À¸¸é, ÅøÆÁ ¹ÌÇ¥±â
+						pButtonSkillDesc->SetEnable( false );	/// ÅøÆÁ¿ë ¹öÆ° ºñÈ°¼º
 				}
 			}
-			else	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½, Å¬ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			else	/// ¸¶½ºÅÍ ·¹º§ »óÅÂÀÌ¸é, Å¬¸¯ ÇØÁ¦
 			{
 				pButtonSkillLearn->SetEnableClick( false );
 			}
@@ -536,14 +581,24 @@ CX2SkillTreeSlotData::CX2SkillTreeSlotData()
 
 
 
-		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò´ï¿½ UI ï¿½ï¿½ï¿½ï¿½ -----------------------------------------------------------------------------
+		/// 2Áö¼±´Ù ½ºÅ³ ¼±ÅÃ ºÒ´É UI ¼³Á¤ -----------------------------------------------------------------------------
 		if ( NULL != pStaticSkillNoLearn->GetPicture( 0 ) )
 		{
 			pStaticSkillNoLearn->GetPicture( 0 )->SetShow( refSkillSlotUI.m_bSelectSkillBlind );
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			if ( true == refSkillSlotUI.m_bSelectSkillBlind )
+			{
+				pDLGUISkillTree->ChangeSequence( pStaticSkillNoLearn, true );
+				CKTDGUIStatic* pStaticBlind = reinterpret_cast<CKTDGUIStatic*>( pDLGUISkillTree->GetControl( L"g_pStaticBlind" ) );
+				
+				if ( pStaticBlind != NULL )
+					pDLGUISkillTree->ChangeSequence( pStaticBlind, true );
+			}
+#else //SKILL_PAGE_SYSTEM
 			if ( true == refSkillSlotUI.m_bSelectSkillBlind )
 				pDLGUISkillTree->ChangeSequence( pStaticSkillNoLearn, true );
-					
+#endif //SKILL_PAGE_SYSTEM					
 		}
 	}
 }
@@ -576,7 +631,7 @@ void CX2SkillTreeSlotData::ShowSlotPicture(bool bShow, CKTDGUISlot* pSlot, SKILL
 				} break;
 			case STSAPT_LEVEL:
 				{
-					// ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½Ò½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½...
+					// ·¹º§ ÅØ½ºÃÄ. ¸®¼Ò½º ³ª¿À¸é...
 					wstring wstrLevelTextureName = g_pData->GetSkillTree()->GetSkillLevelTextureName( val );
 					wstring wstrLevelTextureKey = g_pData->GetSkillTree()->GetSkillLevelTextureKey( val );
 					if( false == pPicture->SetTex( wstrLevelTextureName.c_str(), wstrLevelTextureKey.c_str() ) )
@@ -585,7 +640,7 @@ void CX2SkillTreeSlotData::ShowSlotPicture(bool bShow, CKTDGUISlot* pSlot, SKILL
 					}
 					pPicture->pPoint->color = D3DXCOLOR( 1,1,1,1 );
 
-					/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½Ã³ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+					/// ·¹º§ ÅØ½ºÃ³ À§Ä¡ Á¶Á¤
 					D3DXVECTOR2 vecPos					= pPicture->GetPos();
 					pPicture->SetPos( D3DXVECTOR2( vecPos.x, vecPos.y + 33.f ) );
 
@@ -612,8 +667,13 @@ void CX2SkillTreeSlotData::ShowSlotPicture(bool bShow, CKTDGUISlot* pSlot, SKILL
 					pPicture->SetFlicker( 2.0f, 1.4f, 0.2f );
 
 					D3DXVECTOR2 vecPos = pPicture->GetPos();
-
+#if defined(CLIENT_COUNTRY_ID)
+					pPicture->SetPos( D3DXVECTOR2( vecPos.x + 44.0f, vecPos.y ) );
+#elif defined(CLIENT_COUNTRY_TH) 
+					pPicture->SetPos( D3DXVECTOR2( vecPos.x + 18.0f, vecPos.y ) );
+#else
 					pPicture->SetPos( D3DXVECTOR2( vecPos.x + 20.f, vecPos.y ) );
+#endif 
 					pPicture->SetSizeX( 90.f );
 				} break;
 			default:
@@ -655,7 +715,7 @@ void CX2SkillTreeSlotData::ShowSlotPicture(bool bShow, CKTDGUISlot* pSlot, SKILL
 }
 
 //////////////////////////////////////////////////////////////////////////
-/// CX2EquippedSkillSlot : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+/// CX2EquippedSkillSlot : ³»°¡ ÀåºñÁßÀÎ ½ºÅ³ ½½·Ô
 //////////////////////////////////////////////////////////////////////////
 CX2EquippedSkillSlotData::CX2EquippedSkillSlotData()
 {
@@ -682,11 +742,11 @@ CX2EquippedSkillSlotData::CX2EquippedSkillSlotData(int index, bool bSlotb )
 }
 /*virtual*/ void CX2EquippedSkillSlotData::UpdateUI( CKTDGUISlot* pSlot )
 {
-	// 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½Æ°ï¿½ï¿½ È°ï¿½ï¿½È­/ï¿½ï¿½È°ï¿½ï¿½È­. bool ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	// 2. 1ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½å·¡ï¿½ï¿½ È°ï¿½ï¿½È­ / ï¿½ï¿½È°ï¿½ï¿½È­(ï¿½Ð½Ãºï¿½ï¿½ ï¿½å·¡ï¿½ï¿½ ï¿½ï¿½ ï¿½Ç°ï¿½), ï¿½Ø½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½/ï¿½Ö´ë·¹ï¿½ï¿½)
+	// 1. Áö±Ý ÀÍÈú ¼ö ÀÖ´Â ½ºÅ³ ¿©ºÎ : ¹öÆ°ÀÇ È°¼ºÈ­/ºñÈ°¼ºÈ­. bool °ª¿¡ µû¶ó¼­
+	// 2. 1·¹º§ÀÌ¶óµµ ÀÍÈù ½ºÅ³ ¿©ºÎ : ½ºÅ³ ½½·ÔÀÇ µå·¡±× È°¼ºÈ­ / ºñÈ°¼ºÈ­(ÆÐ½Ãºê¸é µå·¡±× ¾È µÇ°Ô), ÅØ½ºÃÄ º¯°æ. ½ºÆ®¸µ ¼³Á¤ (·¹º§/ÃÖ´ë·¹º§)
 
 
-	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 
 
 	if(m_bSlotb == true && false == refUserSkillTree.GetEnabledSkillSlotB() )
@@ -727,7 +787,7 @@ CX2EquippedSkillSlotData::CX2EquippedSkillSlotData(int index, bool bSlotb )
 		{
 			ASSERT( !"Skill Level 0 Equipped!" );
 
-			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			/// ½ºÅ³ ·¹º§ÀÌ 0ÀÎ ½ºÅ³À» ÀåÂøÁßÀÌ¶ó¸é, »¾¹ö¸®ÀÚ
 			CX2EquippedSkillSlotData* pSlotData = (CX2EquippedSkillSlotData*)pSlot->GetSlotData();
 
 			g_pData->GetSkillTree()->Handler_EGS_CHANGE_SKILL_SLOT_REQ( pSlotData->GetSlotID(), CX2SkillTree::SI_NONE );
@@ -739,7 +799,7 @@ CX2EquippedSkillSlotData::CX2EquippedSkillSlotData(int index, bool bSlotb )
 		{
 			int ilevelUpNum = 0;
 
-			/// ï¿½Î¿ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ò¶ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ÀÎ¿¬ ½ºÅ³ÀÌ ¾Æ´Ò¶§¸¸ Ãß°¡ ·¹º§ Áõ°¡ È¿°ú Àû¿ë
 			if ( pSkillTemplet->m_eType != CX2SkillTree::ST_RELATIONSHIP_SKILL )
 				ilevelUpNum = refUserSkillTree.GetIncreaseSkillLevel( m_eSkillID );
 
@@ -748,8 +808,8 @@ CX2EquippedSkillSlotData::CX2EquippedSkillSlotData(int index, bool bSlotb )
 		else
 			ShowSlotPicture(false, pSlot, SESAPT_LEVEL);
 
-#ifdef FIX_SPECTRO_EL_CRYSTAL_ACTIVE_BUG	/// ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, CKTDGUISlot ï¿½ï¿½ OnFrameMove Å¸ï¿½é¼­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½Ç¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		if( NULL != g_pX2Game && CX2SkillTree::SI_A_EEL_SPECTRO_EL_CRYSTAL == pSkillTemplet->m_eID )	/// ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#ifdef FIX_SPECTRO_EL_CRYSTAL_ACTIVE_BUG	/// ºÐ±¤°áÁ¤ ¾ÆÀÌÄÜ °»½Å ÈÄ, CKTDGUISlot ÀÇ OnFrameMove Å¸¸é¼­ ¾ÆÀÌÄÜ ÃÊ±âÈ­ µÇ¹ö¸®´Â ¹®Á¦ ¼öÁ¤
+		if( NULL != g_pX2Game && CX2SkillTree::SI_A_EEL_SPECTRO_EL_CRYSTAL == pSkillTemplet->m_eID )	/// ºÐ±¤°áÁ¤ ½ºÅ³ÀÏ ¶§, ¾ÆÀÌÄÜ °»½Å½ÃÄÑÁÖÀÚ
 		{
 			g_pX2Game->UpdateEveElectraSkillSlotIcon();
 		}
@@ -757,12 +817,12 @@ CX2EquippedSkillSlotData::CX2EquippedSkillSlotData(int index, bool bSlotb )
 	}
 	else
 	{
-		if ( CX2SkillTree::SI_NONE != m_eSkillID )		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ 0ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½
+		if ( CX2SkillTree::SI_NONE != m_eSkillID )		/// ½ºÅ³ ÅÛÇÃ¸´¿¡ ¾øÀ¸¸ç, ½ºÅ³ ¾ÆÀÌµð°¡ 0µµ ¾Æ´Ò ¶§
 		{
-			/// ï¿½Ì»ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö¾ï¿½ï¿½!!
+			/// ÀÌ»óÇÑ ½ºÅ³À» ÀåÂøÇÏ°í ÀÖ¾î¿ä!!
 			ASSERT( !L"Equipped Unknown SKill!!!" );
 
-			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			/// ½ºÅ³ ÅÛÇÃ¸´¿¡ ¾ø´Â ¾ÆÀÌµðÀÇ ½ºÅ³À» ÀåÂøÁßÀÌ¶ó¸é, »¾¹ö¸®ÀÚ
 			CX2EquippedSkillSlotData* pSlotData = (CX2EquippedSkillSlotData*)pSlot->GetSlotData();
 
 			g_pData->GetSkillTree()->Handler_EGS_CHANGE_SKILL_SLOT_REQ( pSlotData->GetSlotID(), CX2SkillTree::SI_NONE );
@@ -811,7 +871,7 @@ void CX2EquippedSkillSlotData::ShowSlotPicture(bool bShow, CKTDGUISlot* pSlot, S
 					}
 					pPicture->pPoint->color = D3DXCOLOR( 1,1,1,1 );
 
-					/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½Ã³ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+					/// ·¹º§ ÅØ½ºÃ³ À§Ä¡ Á¶Á¤
 					D3DXVECTOR2 vecPos					= pPicture->GetPos();
 					pPicture->SetPos( D3DXVECTOR2( vecPos.x, vecPos.y + 30.f ) );
 
@@ -876,7 +936,7 @@ void CX2EquippedSkillSlotData::ShowSlotPicture(bool bShow, CKTDGUISlot* pSlot, S
 
 }
 
-int CX2EquippedSkillSlotData::GetSlotID()		// 0~8ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ IDï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½
+int CX2EquippedSkillSlotData::GetSlotID()		// 0~8·Î °è»êµÇ´Â ID¸¦ µ¹·ÁÁØ´Ù
 {
 	if(m_bSlotb)
 	{
@@ -925,11 +985,14 @@ m_pTalkBoxManager(NULL)
 , m_bNowLearnSkill( false )
 , m_bNowInitSkill(false)
 , m_bReplacedEsCounter( false )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+, m_iConfirmED( 0 )
+#endif //SKILL_PAGE_SYSTEM
 {
 	m_pTalkBoxManager = CX2TalkBoxManager::CreateTalkBoxManger();
 	g_pKTDXApp->GetDGManager()->AddObjectChain( m_pTalkBoxManager );
 	m_pTalkBoxManager->SetOverUI( true );
-	m_bUsingCSP = false;	// ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Âµï¿½ ï¿½Ñµï¿½.....
+	m_bUsingCSP = false;	// »ç¿ëÇÏ´Â °÷ÀÌ ¾ø´Âµí ÇÑµ¥.....
 #ifdef REFORM_UI_SKILLSLOT
 	m_pDLGGameSkillSlot	= new CKTDGUIDialog( pNowStage, L"DLG_GAME_SKILL_SLOT_NEW.lua" );
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGGameSkillSlot );
@@ -961,6 +1024,10 @@ CX2UISkillTreeNew::~CX2UISkillTreeNew(void)
 
 	SAFE_DELETE_KTDGOBJECT( m_pTalkBoxManager );
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	SAFE_DELETE_DIALOG( m_pDLGBuyConfirm );
+#endif //SKILL_PAGE_SYSTEM
+
 
 	m_mapSkillSlotUISet.clear();
 
@@ -977,7 +1044,7 @@ void CX2UISkillTreeNew::SetLayer( X2_DIALOG_LAYER layer )
 
 void CX2UISkillTreeNew::SetPosition( D3DXVECTOR2 vec )
 {
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½
+	// ½½·Ô ´ÙÀÌ¾ó·Î±×
 	m_pDLGUISkillTree->SetPos(vec);
 	//m_MovedPosition = vec;
 	
@@ -990,14 +1057,14 @@ HRESULT CX2UISkillTreeNew::OnFrameMove( double fTime, float fElapsedTime )
 
 bool CX2UISkillTreeNew::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-	// ï¿½Õ¿ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±×°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Â´ï¿½
+	// ¾Õ¿¡ ¸ð´Þ ´ÙÀÌ¾ó·Î±×°¡ ÀÖÀ¸¸é ¸Þ½ÃÁö¸¦ Ã³¸®ÇÏÁö ¾Ê´Â´Ù
 	if( true == g_pKTDXApp->GetDGManager()->GetDialogManager()->CheckFrontModalDlg( m_pDLGUISkillTree ) )
 		return false;
 
 	bool bFlag = false;
 	switch( uMsg )
 	{
-		// ï¿½ï¿½ï¿½ì½º ï¿½Þ½ï¿½ï¿½ï¿½ï¿½é¿¡ ï¿½ï¿½ï¿½ï¿½
+		// ¸¶¿ì½º ¸Þ½ÃÁöµé¿¡ ´ëÇØ
 	case WM_MOUSEMOVE:
 	case WM_LBUTTONUP:
 	case WM_MBUTTONUP:
@@ -1010,13 +1077,13 @@ bool CX2UISkillTreeNew::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 		//case WM_MOUSEWHEEL:
 		{
 #ifdef REFORM_UI_SKILLSLOT
-			//ï¿½ï¿½Å³ ï¿½å·¡ï¿½×½Ã¿ï¿½ ï¿½Ë¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//½ºÅ³ µå·¡±×½Ã¿¡ ¾Ë¸² º¸¿©ÁÖµµ·Ï ¼³Á¤
 			for(map<CX2SkillTree::SKILL_ID, SkillSlotUI>::iterator it =	m_mapSkillSlotUISet.begin(); it != m_mapSkillSlotUISet.end(); ++it)
 			{
 				SkillSlotUI& refSkillSlotUI = it->second;
 				if ( NULL != refSkillSlotUI.m_pSlot && NULL != refSkillSlotUI.m_pSlot->GetSlotData() )
 				{
-					if( refSkillSlotUI.m_pSlot->GetState() == CKTDGUISlot::SCS_ONDRAG && uMsg != WM_LBUTTONUP) //ï¿½å·¡ï¿½ï¿½ ï¿½ï¿½
+					if( refSkillSlotUI.m_pSlot->GetState() == CKTDGUISlot::SCS_ONDRAG && uMsg != WM_LBUTTONUP) //µå·¡±× Áß
 					{
 						ShowSkillDesc(false);
 						refSkillSlotUI.m_pSlot->SetGuideDescLT(false);
@@ -1116,7 +1183,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 	case STUCM_UNSEAL_SKILL_BUY:
 		{
-			//** ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½â¿¡ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.
+			//** ½ºÅ³ ±¸¸Å ¹öÆ°À» ´­·¶À» ¶§ ¿©±â¿¡ ÀÛ¾÷ÇØ ÁÖ¼¼¿ä.
 
 		} break;
 
@@ -1129,19 +1196,18 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 						
 			if( NULL != g_pData->GetSkillTree() &&
 				NULL != g_pData->GetMyUser() &&
-				NULL != g_pData->GetMyUser()->GetSelectUnit() && 
-				NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+				NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
-				int			iSPoint			= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSPoint;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
-				int			iCSPoint		= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iCSPoint;	/// ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
-				const int	iUnitLevel		= g_pData->GetSelectUnitLevel();	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-				const int	iInitSkillPoint	= g_pData->GetSkillTree()->GetCalcInitSkillPoint( iUnitLevel );		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½
-				int			iUsedSPoint		= 0;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
-				int			iUsedCSPoint	= 0;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
+				const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
+				int			iSPoint			= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSPoint;	/// ÇöÀç ½ºÅ³ Æ÷ÀÎÆ®
+				int			iCSPoint		= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iCSPoint;	/// ÇöÀç Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®
+				const int	iUnitLevel		= g_pData->GetSelectUnitLevel();	/// À¯´Ö ·¹º§
+				const int	iInitSkillPoint	= g_pData->GetSkillTree()->GetCalcInitSkillPoint( iUnitLevel );		/// À¯´ÖÀÌ Æ¯Á¤ ·¹º§¿¡ °¡Áú ¼ö ÀÖ´Â ½ºÅ³ Æ÷ÀÎÆ®·®
+				int			iUsedSPoint		= 0;	/// »ç¿ëÇÑ ½ºÅ³ Æ÷ÀÎÆ®
+				int			iUsedCSPoint	= 0;	/// »ç¿ëÇÑ Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®
 
-				refUserSkillTree.CalcUsedSPointAndCSPoint( iUsedSPoint,iUsedCSPoint );	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
-				const int iMaxCSPoint = iSPoint + iCSPoint + iUsedSPoint + iUsedCSPoint - iInitSkillPoint;	/// ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¶ï¿½ ï¿½ï¿½ SP ï¿½ï¿½ï¿½ï¿½
+				refUserSkillTree.CalcUsedSPointAndCSPoint( iUsedSPoint,iUsedCSPoint );	/// »ç¿ëÇÑ ½ºÅ³ Æ÷ÀÎÆ® ¿¬»ê
+				const int iMaxCSPoint = iSPoint + iCSPoint + iUsedSPoint + iUsedCSPoint - iInitSkillPoint;	/// ±×³ë½Ã½º¸¦ ÅëÇØ ¿Ã¶ó°£ ÃÑ SP ¿¬»ê
 
 				WCHAR wszText[32] = L"";
 				StringCchPrintfW( wszText, ARRAY_SIZE(wszText), L"(%dSP)\n", iMaxCSPoint );
@@ -1149,7 +1215,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				wstring wstr = L"";
 				wstr += GET_STRING(STR_ID_2689);
 				wstr += wszText;
-				wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrCSPointEndDate, g_pData->GetServerCurrentTime() );
+				wstr += GetExpirationDateDesc( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrCSPointEndDate, g_pData->GetServerCurrentTime() );
 
 				ShowUIDesc(true, wstr, pos, CX2TalkBoxManagerImp::TBT_FROM_UP_LEFT, D3DXCOLOR(1,1,1,1), D3DXCOLOR(0.97f, 0.23f, 0.06f, 1) );			
 			}
@@ -1171,10 +1237,9 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			pos.x += pControl->GetWidth() / 2.f;
 			
 			if(g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{
-				CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 				wstring wstr = L"";
 				wstr += GET_STRING(STR_ID_2690);
 				wstr += GetExpirationDateDesc( refUserSkillTree.GetSkillSlotBEndDateString(), g_pData->GetServerCurrentTime() );
@@ -1331,9 +1396,9 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 	case STUCM_CONTROLLIST_SCROLL:
 		{
-			UpdateAtMoveScrollBar();	/// ï¿½ï¿½Å©ï¿½ï¿½ ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+			UpdateAtMoveScrollBar();	/// ½ºÅ©·Ñ ¹Ù°¡ ¿òÁ÷ÀÏ ¶§ º¯°æµÇ¾î¾ß ÇÒ Á¤º¸¸¦ Ã³¸®ÇÏ´Â ÇÔ¼ö
 
-			UpdateBlind();			/// ï¿½ï¿½Å³ ï¿½ï¿½È²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			UpdateBlind();			/// ½ºÅ³ »óÈ²¿¡ µû¶ó Ã³¸®ÇØ¾ß ÇÏ´Â ½ºÅ³ ½½·Ô ¼³Á¤
 		
 			return true;
 		} break;
@@ -1387,7 +1452,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 	case STUCM_SKILLTREESLOT_RMOUSEUP:
 		{
-		//{{ kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		//{{ kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤
 		#ifdef	MODIFY_INFINITE_SKILL_BUG
 			if ( g_pMain->GetNowState() != NULL)
 			{
@@ -1399,7 +1464,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				}
 			}
 		#endif	MODIFY_INFINITE_SKILL_BUG
-			//}} kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½			
+			//}} kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤			
 
 			return ProcessSkillTreeSlotRMouseUp( lParam );
 
@@ -1409,7 +1474,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 		{
 			if ( NULL != g_pData && NULL != g_pData->GetSkillTree() )
 			{
-				/// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´Ï°ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½ ï¿½ï¿½ï¿½ï¿½
+				/// ½ºÅ³ ÃÊ±âÈ­ »óÅÂ°¡ ¾Æ´Ï°í, ·¹º§À» ¿Ã¸®°íÀÚ ÇÏ´Â ½ºÅ³ÀÌ ÀÖÀ» ¶§ ¼±ÅÃ ÆË¾÷ »ý¼º
 				if ( false == m_bNowInitSkill && false == g_pData->GetSkillTree()->GetMapSkillInfo().empty() )
 				{
 					g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_25109 ), 
@@ -1417,7 +1482,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 					m_bNowLearnSkill = false;
 				}
-				/// ï¿½ï¿½ï¿½Ù¸ï¿½, ï¿½Ù·ï¿½ ï¿½Ý±ï¿½
+				/// ¾ø´Ù¸é, ¹Ù·Î ´Ý±â
 				else
 				{
 					m_bNowInitSkill = false;
@@ -1458,7 +1523,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 					return true;
 			}
 
-			//{{ kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//{{ kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤
 #ifdef	MODIFY_INFINITE_SKILL_BUG
 			if ( g_pMain->GetNowState() != NULL)
 			{
@@ -1473,20 +1538,20 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 #endif //REFORM_UI_SKILLSLOT
 			}
 #endif	MODIFY_INFINITE_SKILL_BUG
-			//}} kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//}} kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤
 
 			return ProcessEquipSlotDropped( lParam );
 
 		} break;
 
-	case STUCM_BUTTON_SKILL_LEVEL_PLUS:					/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	case STUCM_BUTTON_SKILL_LEVEL_PLUS:					/// ½ºÅ³ ½Àµæ ¹öÆ°À» ´­·¶À» ¶§
 		{
 			CKTDGUIButton* pControl = (CKTDGUIButton*)lParam;
 			CX2SkillTree::SKILL_ID eSkillID = static_cast<CX2SkillTree::SKILL_ID>( pControl->GetDummyInt(0) );
 
 			if ( NULL != g_pData && NULL != g_pData->GetSkillTree() )
 			{
-				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );	/// ½ºÅ³ ÅÛÇÃ¸´
 
 				if ( NULL != pSkillTemplet )
 				{
@@ -1494,7 +1559,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 					wstrSkillName			+= pSkillTemplet->m_wstrName;
 					wstrSkillName			+= L"#CX";
 
-					/// ï¿½Þ½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½
+					/// ¸Þ½ÃÁö ¹Ú½º ½ºÆ®¸µ
 					const wstring wstrMsgString	= GET_REPLACED_STRING( ( STR_ID_25106, "L", wstrSkillName ) );
 
 					CKTDGUIDialogType m_pDLGMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrMsgString.c_str(), 
@@ -1507,7 +1572,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return true;
 		} break;
 
-	case STUCM_CHANGE_SKILL_LEVEL_PLUS:					/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+	case STUCM_CHANGE_SKILL_LEVEL_PLUS:					/// ½ºÅ³ ½Àµæ Ã³¸®
 		{
 			CKTDGUIControl* pControl = (CKTDGUIControl*)lParam;
 
@@ -1531,7 +1596,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return true;
 		} break;
 
-	case STUCM_BUTTON_SKILL_LEVEL_UPGRADE:				/// ï¿½ï¿½Å³ ï¿½ï¿½È­ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	case STUCM_BUTTON_SKILL_LEVEL_UPGRADE:				/// ½ºÅ³ °­È­ ¹öÆ°À» ´­·¶À» ¶§
 		{
 			CKTDGUIButton* pControl = (CKTDGUIButton*)lParam;
 			CX2SkillTree::SKILL_ID eSkillID = static_cast<CX2SkillTree::SKILL_ID>( pControl->GetDummyInt(0) );
@@ -1548,7 +1613,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				SetLearnSkillInfo( eSkillID );
 		} break;
 
-	case STUCM_BUTTON_SKILL_LEVEL_PLUS_RESULT:			/// ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	case STUCM_BUTTON_SKILL_LEVEL_PLUS_RESULT:			/// °áÁ¤ÇÏ±â ¹öÆ° ´­·¶À» ¶§
 		{
 
 			if ( NULL != g_pData && NULL != g_pData->GetSkillTree() )
@@ -1565,7 +1630,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return true;
 		}  break;
 
-	case STUCM_BUTTON_SKILL_LEVEL_PLUS_CANCEL:			/// ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	case STUCM_BUTTON_SKILL_LEVEL_PLUS_CANCEL:			/// Ãë¼Ò ¹öÆ°À» ´­·¶À» ¶§
 		{
 			if ( NULL != g_pData && NULL != g_pData->GetSkillTree() )
 			{
@@ -1581,7 +1646,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return true;
 		} break;
 
-	case STUCM_EXIT_WITH_SKILL_LEVEL_PLUS:				/// ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+	case STUCM_EXIT_WITH_SKILL_LEVEL_PLUS:				/// ´ÝÀ¸¸é¼­ ½ºÅ³ ·¹º§ Áõ°¡ Ã³¸®
 		{
 			CKTDGUIControl* pControl = (CKTDGUIControl*)lParam;
 
@@ -1604,7 +1669,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 	
 	case STUCM_EQUIPSLOT_RMOUSEUP:
 		{
-	//{{ kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//{{ kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤
 	#ifdef	MODIFY_INFINITE_SKILL_BUG
 			if ( g_pMain->GetNowState() != NULL)
 			{
@@ -1616,13 +1681,13 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 				}
 			}
 	#endif	MODIFY_INFINITE_SKILL_BUG
-			//}} kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			//}} kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤
 
-			// ï¿½Ù»ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
+			// ¹Ù»Û »óÅÂ Ã¼Å©
 			if ( NULL != g_pX2Game && g_pX2Game->CheckAndWarningBusyStateNow() )
 				return true;
 
-#ifdef REFORM_UI_SKILLSLOT // ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef REFORM_UI_SKILLSLOT // ½ºÅ³Ã¢ ´ÝÇôÀÖÀ» ¶§ ¸¸ ÀåÂøµÈ ½ºÅ³ Á¦°Å ÇÒ ¼ö ÀÖµµ·Ï ¼öÁ¤
 			if ( false == m_bShow ) 
 			{
 				return true;
@@ -1640,51 +1705,56 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return true;
 		} break;
 
-	case STUCM_BUTTON_ENABLE_INIT_SKILL:		/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ°
+	case STUCM_BUTTON_ENABLE_INIT_SKILL:		/// ½ºÅ³ Æ®¸® ³» ÃÊ±âÈ­ ¹öÆ°
 		{
-			m_bNowLearnSkill	= false;					/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½Ù¸ï¿½, Äµï¿½ï¿½
-			g_pData->GetSkillTree()->ClearMapSkillInfo();	/// ï¿½Ó½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
+			m_bNowLearnSkill	= false;					/// ½ºÅ³ ·¹º§ Á¶Á¤ÁßÀÌ¾ú´Ù¸é, Äµ½½
+			g_pData->GetSkillTree()->ClearMapSkillInfo();	/// ÀÓ½Ã·Î Âï¾î³õÀº ½ºÅ³ Á¤º¸ ÃÊ±âÈ­
 
-			if ( false == m_bNowInitSkill )	/// ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ° È°ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½, È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+			if ( false == m_bNowInitSkill )	/// ÃÊ±âÈ­ ¹öÆ° È°¼º ½ÃÅ³ ¶§, È°¼º Á¶°Ç °Ë»ç
 			{
 				if ( NULL != g_pData && NULL != g_pData->GetMyUser()  )
 				{
 					CX2Unit* pMyUnit = g_pData->GetMyUser()->GetSelectUnit();
 
-					if( NULL != pMyUnit && NULL != pMyUnit->GetInventory() )
+					if( NULL != pMyUnit )
 					{
-						/// ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö´Â°ï¿½
-						if( NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_ITEM_ID ) ||
-							NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_EVENT_ITEM_ID ) ||
+						/// ÃÊ±âÈ­ ¾ÆÀÌÅÛÀ» ¼ÒÁöÇÏ°í ÀÖ´Â°¡
+						if( NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_ITEM_ID ) ||
+							NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_EVENT_ITEM_ID ) ||
+#ifdef SERV_UNLIMITED_SKILL_RESET_ITEM
+							NULL != pMyUnit->GetInventory().GetItemByTID( UNLIMITED_SKILL_RESET_ITEM ) ||
+#endif //SERV_UNLIMITED_SKILL_RESET_ITEM
 #ifdef SERV_EVENT_RESET_A_SKILL_ITEM
-							NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_ITEM ) ||
+							NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_ITEM ) ||
 #endif SERV_EVENT_RESET_A_SKILL_ITEM
 #ifdef SERV_QUEST_SKILL_RESET
-							NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_QUEST_ITEM_ID ) ||
+							NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_QUEST_ITEM_ID ) ||
 #endif SERV_QUEST_SKILL_RESET
 #ifdef SERV_2ND_CLASS_SKILL_RESET
-							NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_2ND_CLASS_CHANGE_EVENT_ITEM_ID ) ||
+							NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_2ND_CLASS_CHANGE_EVENT_ITEM_ID ) ||
 #endif SERV_2ND_CLASS_SKILL_RESET
 #ifdef SERV_EVENT_RURIEL_RESET_SKILL_ITEM
-							NULL != pMyUnit->GetInventory()->GetItemByTID( RURIEL_RESET_A_SKILL_ITEM ) ||
-							NULL != pMyUnit->GetInventory()->GetItemByTID( RURIEL_RESET_A_SKILL_EVENT_ITEM ) ||
+							NULL != pMyUnit->GetInventory().GetItemByTID( RURIEL_RESET_A_SKILL_ITEM ) ||
+							NULL != pMyUnit->GetInventory().GetItemByTID( RURIEL_RESET_A_SKILL_EVENT_ITEM ) ||
 #endif SERV_EVENT_RURIEL_RESET_SKILL_ITEM
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-							NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_EVENT_ITEM_ID_BY_JP ) ||
+							NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_EVENT_ITEM_ID_BY_JP ) ||
+							NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_EVENT_ITEM_ID_BY_JP2 ) ||
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-							NULL != pMyUnit->GetInventory()->GetItemByTID( RESET_A_SKILL_ITEM_NOT_TRADE_ID ) )
+							NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_ITEM_NOT_TRADE_ID ) ||
+							NULL != pMyUnit->GetInventory().GetItemByTID( RESET_A_SKILL_EVENT_ITEM2 ) )
 						{
-							m_bNowInitSkill = true;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ê±ï¿½È­ È°ï¿½ï¿½
+							m_bNowInitSkill = true;		/// ¼ÒÁö ÇßÀ¸´Ï, ÃÊ±âÈ­ È°¼º
 						}
 						else
 						{
-							/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¶ï¿½ï¿½, ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¹ï¿½ï¿½ ï¿½È³ï¿½Ã¢ Ç¥ï¿½ï¿½
+							/// ¹Ì ¼ÒÁö Áß ÀÌ¶ó¸é, ÃÊ±âÈ­ ¾ÆÀÌÅÛ È¹µæ ¾È³»Ã¢ Ç¥½Ã
 							g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_25175 ), g_pMain->GetNowState() );
 						}
 					}
 				}
 			}
-			else	/// ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ° ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È°ï¿½ï¿½ ï¿½ï¿½Å°ï¿½ï¿½
+			else	/// ÃÊ±âÈ­ ¹öÆ° ºñÈ°¼º ÇÒ ¶§´Â Á¶°Ç °Ë»ç ÇÊ¿ä¾øÀÌ ºñÈ°¼º ½ÃÅ°ÀÚ
 			{
 				m_bNowInitSkill = false;
 			}
@@ -1694,7 +1764,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return true;
 		} break;
 
-	case STUCM_BUTTON_INIT_SKILL:		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ°
+	case STUCM_BUTTON_INIT_SKILL:		/// ½ºÅ³ ½½·Ô ÃÊ±âÈ­ ¹öÆ°
 		{
 			CKTDGUIButton* pControl = (CKTDGUIButton*)lParam;
 			CX2SkillTree::SKILL_ID eSkillID = static_cast<CX2SkillTree::SKILL_ID>( pControl->GetDummyInt(0) );
@@ -1702,32 +1772,31 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			if ( NULL != g_pData && 
 				 NULL != g_pData->GetSkillTree() &&
 				 NULL != g_pData->GetMyUser() &&
-				 NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-				 NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+				 NULL != g_pData->GetMyUser()->GetSelectUnit() )
 			{
-				/// ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
+				/// À¯´Ö Å¬·¹½º Å¸ÀÔ
 				CX2Unit::UNIT_CLASS						eUnitClass			= static_cast<CX2Unit::UNIT_CLASS>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );
-				/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½
+				/// ½ºÅ³ Æ®¸® ÅÛÇÃ¸´
 				const CX2SkillTree::SkillTreeTemplet*	pSkillTreeTemplet	= g_pData->GetSkillTree()->GetSkillTreeTemplet( eUnitClass, eSkillID );
-				/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½
-				const CX2SkillTree::SkillTemplet*		pSkillTemplet		= g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½
-				/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-				CX2UserSkillTree&						refUserSkillTree	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+				/// ½ºÅ³ ÅÛÇÃ¸´
+				const CX2SkillTree::SkillTemplet*		pSkillTemplet		= g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );	/// ½ºÅ³ ÅÛÇÃ¸´
+				/// À¯Àú ½ºÅ³ Á¤º¸
+				const CX2UserSkillTree&						refUserSkillTree	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 
 				if ( NULL != pSkillTreeTemplet && NULL != pSkillTemplet )
 				{
-					const int				iSkillLevel				= refUserSkillTree.GetSkillLevel( eSkillID );						/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
-					const int				iUnitLevel				= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-					CX2SkillTree::SKILL_ID	eAnotherSkillID			= GetAnotherSelectSkillID( eSkillID );	/// ï¿½Ý´ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
-					bool					bEnoughLevel			= false;								/// ï¿½ä±¸ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					const int				iSkillLevel				= refUserSkillTree.GetSkillLevel( eSkillID );						/// ½ºÅ³ ·¹º§
+					const int				iUnitLevel				= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level;	/// À¯´Ö ·¹º§
+					CX2SkillTree::SKILL_ID	eAnotherSkillID			= GetAnotherSelectSkillID( eSkillID );	/// ¹Ý´ëÆí ½ºÅ³ ¾ÆÀÌµð
+					bool					bEnoughLevel			= false;								/// ¿ä±¸ ½Àµæ ·¹º§ ¸¸Á· ¿©ºÎ
 					
-					/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+					/// ÇöÀç ½ºÅ³À» ¼±Çà ½ºÅ³·Î ÇÑ ½ºÅ³ÀÌ ÂïÇô ÀÖ´ÂÁö °Ë»ç
 					const bool bHaveFollowingSkill = 0 < refUserSkillTree.GetSkillLevel( static_cast<CX2SkillTree::SKILL_ID>( pSkillTreeTemplet->m_iFollowingSkill ) ) ? true : false ;
 
-					/// ï¿½âº» ï¿½ï¿½Å³ ï¿½Ì°Å³ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½
+					/// ±âº» ½ºÅ³ ÀÌ°Å³ª, ÇöÀç ½ºÅ³À» ¼±Çà ½ºÅ³·Î ÇÑ ½ºÅ³ÀÌ ÂïÇô ÀÖ´Ù¸é
 					if ( true == g_pData->GetSkillTree()->isDefaultSkill( eSkillID ) || true == bHaveFollowingSkill )
 					{
-						/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½Å²ï¿½Ù´ï¿½ ï¿½Ë¾ï¿½ ï¿½È³ï¿½
+						/// ½ºÅ³ ·¹º§ 1·Î ÃÊ±âÈ­ ½ÃÅ²´Ù´Â ÆË¾÷ ¾È³»
 						CKTDGUIDialogType m_pDLGMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), 
 							GET_REPLACED_STRING( ( STR_ID_25295, "L", pSkillTemplet->m_wstrName ) ), STUCM_INIT_SKILL_ONE_POINT, g_pMain->GetNowState() );
 
@@ -1736,7 +1805,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 					}
 					else
 					{
-						/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ ï¿½ï¿½Å²ï¿½Ù´ï¿½ ï¿½Ë¾ï¿½ ï¿½È³ï¿½
+						/// ½ºÅ³ ·¹º§ 0À¸·Î ÃÊ±âÈ­ ½ÃÅ²´Ù´Â ÆË¾÷ ¾È³»
 						CKTDGUIDialogType m_pDLGMsgBox = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), 
 							GET_REPLACED_STRING( ( STR_ID_25174, "L", pSkillTemplet->m_wstrName ) ), STUCM_INIT_SKILL, g_pMain->GetNowState() );
 
@@ -1749,7 +1818,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return true;
 		} break;
 
-	case STUCM_INIT_SKILL:				/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ Ã³ï¿½ï¿½ ( 0ï¿½ï¿½ï¿½ï¿½ )
+	case STUCM_INIT_SKILL:				/// ½ºÅ³ ½½·Ô ÃÊ±âÈ­ Ã³¸® ( 0À¸·Î )
 		{
 			CKTDGUIControl* pControl = (CKTDGUIControl*)lParam;
 
@@ -1769,7 +1838,7 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return true;
 		} break;
 
-	case STUCM_INIT_SKILL_ONE_POINT:	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ Ã³ï¿½ï¿½ ( 1ï¿½ï¿½ )
+	case STUCM_INIT_SKILL_ONE_POINT:	/// ½ºÅ³ ½½·Ô ÃÊ±âÈ­ Ã³¸® ( 1·Î )
 		{
 			CKTDGUIControl* pControl = (CKTDGUIControl*)lParam;
 
@@ -1788,6 +1857,197 @@ bool CX2UISkillTreeNew::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 			return true;
 		} break;
+
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	case STUCM_SKILL_PAGE1:
+		{
+			if ( g_pData == NULL || g_pData->GetMyUser() == NULL || g_pData->GetMyUser()->GetSelectUnit() == NULL )
+				return false;
+			
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
+
+			pUnitData->m_UserSkillTree.SetSelectPage( 1 );
+			pUnitData->m_iSPoint = pUnitData->m_UserSkillTree.GetSkillPoint( 1 );
+			pUnitData->m_iCSPoint = pUnitData->m_UserSkillTree.GetCashSkillPoint( 1 );
+			UpdateUI( false, true, true, true );
+			
+			return true;
+		} break;
+
+	case STUCM_SKILL_PAGE2:
+		{
+			if ( g_pData == NULL || g_pData->GetMyUser() == NULL || g_pData->GetMyUser()->GetSelectUnit() == NULL )
+				return false;
+
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
+
+			pUnitData->m_UserSkillTree.SetSelectPage( 2 );
+			pUnitData->m_iSPoint = pUnitData->m_UserSkillTree.GetSkillPoint( 2 );
+			pUnitData->m_iCSPoint = pUnitData->m_UserSkillTree.GetCashSkillPoint( 2 );
+			UpdateUI( false, true, true, true );
+
+			return true;
+		} break;
+
+	case STUCM_SKILL_PAGE3:
+		{
+			if ( g_pData == NULL || g_pData->GetMyUser() == NULL || g_pData->GetMyUser()->GetSelectUnit() == NULL )
+				return false;
+
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
+
+			pUnitData->m_UserSkillTree.SetSelectPage( 3 );
+			pUnitData->m_iSPoint = pUnitData->m_UserSkillTree.GetSkillPoint( 3 );
+			pUnitData->m_iCSPoint = pUnitData->m_UserSkillTree.GetCashSkillPoint( 3 );
+			UpdateUI( false, true, true, true );
+
+			return true;
+		} break;
+
+	case STUCM_ADD_SKILL_PAGE_ED:
+		{
+			if ( g_pMain->GetNowStateID() != CX2Main::XS_VILLAGE_MAP )
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_29410 ), g_pMain->GetNowState() );
+				return false;
+			}
+
+			if( true == g_pMain->IsWaitingServerPacket( EGS_GET_NEXT_SKILL_PAGE_ED_ACK ) )
+				return false;
+
+			g_pData->GetServerProtocol()->SendID( EGS_GET_NEXT_SKILL_PAGE_ED_REQ );
+			g_pMain->AddServerPacket( EGS_GET_NEXT_SKILL_PAGE_ED_ACK );
+
+			return true;
+		} break;
+
+	case STUCM_ADD_SKILL_PAGE_CASH:
+		{
+			if ( g_pData && g_pData->GetMyUser() && g_pData->GetMyUser()->GetSelectUnit() )
+			{
+				CX2StateField*	pStateField	=	NULL;
+				pStateField		=  static_cast< CX2StateField* >( g_pMain->GetNowState() );
+
+				if ( pStateField != NULL )
+				{
+					if ( g_pTFieldGame != NULL )
+					{
+						g_pTFieldGame->CloseFieldName( 0.0f );
+					}
+
+					g_pData->GetCashShop()->SetMenuTypeCallingCashShop( CX2UIManager::UI_MENU_PRIVATE_BANK );
+					pStateField->ToggleCashShop();
+				}
+
+				return true;
+			}
+
+			return false;
+		} break;
+
+	case STUCM_DECIDE_SKILL_PAGE:
+		{
+			if( true == g_pMain->IsWaitingServerPacket( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK ) )
+				return false;
+
+			if ( g_pData && g_pData->GetMyUser() && g_pData->GetMyUser()->GetSelectUnit() &&
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.GetUsingPage() ==
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.GetSelectPage() - 1 )
+				return false;
+
+			if ( g_pMain->GetNowStateID() != CX2Main::XS_VILLAGE_MAP )
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_29368 ), g_pMain->GetNowState() );
+				return false;
+			}
+
+			if ( g_pData->GetSkillTree() != NULL )
+			{
+				/// ½ºÅ³ ÃÊ±âÈ­ »óÅÂ°¡ ¾Æ´Ï°í, ·¹º§À» ¿Ã¸®°íÀÚ ÇÏ´Â ½ºÅ³ÀÌ ÀÖÀ» ¶§ ¼±ÅÃ ÆË¾÷ »ý¼º
+				if ( false == m_bNowInitSkill && false == g_pData->GetSkillTree()->GetMapSkillInfo().empty() )
+				{
+					int iPage = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.GetUsingPage() + 1;
+
+					g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), GET_REPLACED_STRING( ( STR_ID_29387, "i", iPage ) ), 
+						STUCM_DECIDE_WITH_SKILL_LEVEL_PLUS, g_pMain->GetNowState(), STUCM_CANCEL_DECIDE_WITH_SKILL_LEVEL_PLUS );
+
+					m_bNowLearnSkill = false;
+				}
+				/// ¾ø´Ù¸é, ¹Ù·Î ´Ý±â
+				else
+				{
+					return g_pData->GetSkillTree()->Handler_EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ( 
+						g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.GetSelectPage() );
+				}
+			}
+
+			return false;
+
+		} break;
+
+	case STUCM_BUY_CONFIRM:
+		{
+			if ( m_pDLGBuyConfirm != NULL )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGBuyConfirm, NULL, false );
+
+			m_pDLGBuyConfirm = NULL;
+
+			if ( g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED >= m_iConfirmED )
+				return g_pData->GetSkillTree()->Handler_EGS_EXPAND_SKILL_PAGE_REQ();
+			else
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28961 ), g_pMain->GetNowState() );
+		} break;
+
+	case STUCM_BUY_CANCEL:
+		{
+			if ( m_pDLGBuyConfirm != NULL )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGBuyConfirm, NULL, false );
+
+			m_pDLGBuyConfirm = NULL;
+
+			return true;
+		} break;
+
+	case STUCM_DECIDE_WITH_SKILL_LEVEL_PLUS:
+		{
+			CKTDGUIControl* pControl = (CKTDGUIControl*)lParam;
+
+			if ( NULL != pControl )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+
+			if ( NULL != g_pData && NULL != g_pData->GetSkillTree() )
+			{
+				g_pData->GetSkillTree()->Handler_EGS_GET_SKILL_REQ();
+
+				g_pData->GetSkillTree()->SetUsedSPoint( 0 );
+				g_pData->GetSkillTree()->SetUsedCSPoint( 0 );
+				g_pData->GetSkillTree()->ClearMapSkillInfo();
+			}
+			m_bNowLearnSkill = false;
+
+			return g_pData->GetSkillTree()->Handler_EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ( 
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.GetSelectPage() );
+		} break;
+
+	case STUCM_CANCEL_DECIDE_WITH_SKILL_LEVEL_PLUS:
+		{
+			CKTDGUIControl* pControl = (CKTDGUIControl*)lParam;
+
+			if ( NULL != pControl )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, pControl->GetDialog(), NULL, false );
+
+			if ( NULL != g_pData && NULL != g_pData->GetSkillTree() )
+			{
+				g_pData->GetSkillTree()->SetUsedSPoint( 0 );
+				g_pData->GetSkillTree()->SetUsedCSPoint( 0 );
+				g_pData->GetSkillTree()->ClearMapSkillInfo();
+			}
+			m_bNowLearnSkill = false;
+
+			return g_pData->GetSkillTree()->Handler_EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ( 
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.GetSelectPage() );
+		} break;
+#endif //SKILL_PAGE_SYSTEM
 
 	default:
 		break;
@@ -1799,10 +2059,10 @@ void CX2UISkillTreeNew::SetShow(bool val)
 {
 	m_bShow = val;
 
-	if(val)	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½Îºï¿½
+	if(val)	// ÄÑÁú ¶§ Ã³¸®ÇØ¾ß ÇÒ ºÎºÐ
 	{
 #ifdef FIX_INTRUSION_SKILL_BUG
-		//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½ï¿½ ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		//°ÔÀÓ ½ÃÀÛ½Ã ½ºÅ³Ã¢ ¿­ ¼ö ¾øµµ·Ï ¼öÁ¤
 		if( CX2Main::XS_PVP_ROOM == g_pMain->GetNowStateID())
 		{
 			CX2StatePVPRoom* pState = (CX2StatePVPRoom*) g_pMain->GetNowState();
@@ -1843,7 +2103,11 @@ void CX2UISkillTreeNew::SetShow(bool val)
 #endif OPEN_SKILL_GUIDE_FIRST_TIME
 
 		m_bSkillRemoveMode = false;
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		UpdateUI( true, true, true, true );
+#else //SKILL_PAGE_SYSTEM
 		UpdateUI(true, true, true);
+#endif //SKILL_PAGE_SYSTEM
 
 		g_pData->GetUIManager()->UIOpened( CX2UIManager::UI_MENU_SKILL );
 
@@ -1857,7 +2121,7 @@ void CX2UISkillTreeNew::SetShow(bool val)
 		SetSkillUIType(true);
 #endif //SKILL_SLOT_UI_TYPE_B
 	}
-	else	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½Îºï¿½
+	else	// ²¨Áú ¶§ Ã³¸®ÇØ¾ß ÇÒ ºÎºÐ
 	{
 #ifdef OPEN_SKILL_GUIDE_FIRST_TIME
 		if(m_pDLGFirstGuide != NULL)
@@ -1877,15 +2141,15 @@ void CX2UISkillTreeNew::SetShow(bool val)
 			g_pData->GetUIManager()->SetShowSkillSlot(false);
 #endif //REFORM_UI_SKILLSLOT
 
-#ifdef SKILL_SLOT_UI_TYPE_B //ï¿½É¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï°ÔµÇ¸ï¿½ ï¿½É¼ï¿½ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+#ifdef SKILL_SLOT_UI_TYPE_B //¿É¼ÇÀ¸·Î ÀúÀå ÇÏ°ÔµÇ¸é ¿É¼ÇÂÊ¿¡¼­ °¡Á®¿Àµµ·Ï ¼öÁ¤
+		if( NULL != g_pMain )
 		{
-			SetSkillUIType(g_pMain->GetGameOption()->GetIsSkillUITypeA());
+			SetSkillUIType(g_pMain->GetGameOption().GetIsSkillUITypeA());
 		}
 #endif //SKILL_SLOT_UI_TYPE_B
 
-		m_bNowLearnSkill	= false;	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		m_bNowInitSkill		= false;	/// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		m_bNowLearnSkill	= false;	/// ½ºÅ³ ½Àµæ »óÅÂ ÇØÁ¦
+		m_bNowInitSkill		= false;	/// ½ºÅ³ ÃÊ±âÈ­ »óÅÂ ÇØÁ¦
 
 		if (	NULL != g_pData &&
 			NULL != g_pData->GetSkillTree() )
@@ -1894,12 +2158,19 @@ void CX2UISkillTreeNew::SetShow(bool val)
 			g_pData->GetSkillTree()->SetUsedSPoint( 0 );
 			g_pData->GetSkillTree()->SetUsedCSPoint( 0 );
 		}
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		if ( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
+		{
+			CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree;
+			refUserSkillTree.SetSelectPage( refUserSkillTree.GetUsingPage() + 1 );
+		}
+#endif //SKILL_PAGE_SYSTEM
 	}
 	if( NULL != m_pDLGUISkillTree )
 		m_pDLGUISkillTree->SetShowEnable(m_bShow, m_bShow);
 }
 
-// Ä³ï¿½ï¿½ï¿½Í°ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ ï¿½ï¿½ / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½.
+// Ä³¸¯ÅÍ°¡ ¼±ÅÃµÆÀ» ¶§ / ÀüÁ÷ÇßÀ» ¶§¸¸ ÇØ ÁØ´Ù.
 void CX2UISkillTreeNew::InitSkillTreeUI()
 {
 	SAFE_DELETE_DIALOG(m_pDLGUISkillTree);
@@ -1922,16 +2193,18 @@ void CX2UISkillTreeNew::InitSkillTreeUI()
 
 	if( g_pData->GetMyUser() != NULL &&
 		g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+		g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet() != NULL )
 	{
-		m_pUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree);
+		m_pUserSkillTree = &(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree);
 
 		const CX2Unit::UnitTemplet* pUnitTemplet = g_pData->GetMyUser()->GetSelectUnit()->GetUnitTemplet();
 
 		CreateSkillTree( pUnitTemplet->m_UnitClass );
 		InitEquippedSkillSlotData();
 
+	#ifdef SKILL_PAGE_SYSTEM //JHKang
+		UpdateSkillPageUI();
+	#endif //SKILL_PAGE_SYSTEM
 	}	
 }
 
@@ -1942,17 +2215,16 @@ void CX2UISkillTreeNew::CreateSkillTree( CX2Unit::UNIT_CLASS eUnitClass )
 		NULL == g_pData ||
 		NULL == g_pData->GetSkillTree() ||
 		NULL == g_pData->GetMyUser() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		NULL == g_pData->GetMyUser()->GetSelectUnit()  )
 	{
 		return;
 	}
 
-	CKTDGUIContolList*	pControlList	= static_cast<CKTDGUIContolList*>( m_pDLGUISkillTree->GetControl( L"SkillTreeControlList" ) );	/// ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½Ã¼
+	CKTDGUIContolList*	pControlList	= static_cast<CKTDGUIContolList*>( m_pDLGUISkillTree->GetControl( L"SkillTreeControlList" ) );	/// ½ºÅ©·Ñ °´Ã¼
 	if ( NULL == pControlList )
 		return;
 
-	// Unit Classï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½Ø¼ï¿½ ï¿½Ø´ï¿½ Mapï¿½ï¿½ ï¿½î¶»ï¿½Ôµï¿½ ï¿½Þ¾Æ¿Â´ï¿½. ï¿½Ô´Ù°ï¿½ Ä¡ï¿½ï¿½.
+	// Unit Class¸¦ ÀÌ¿ëÇØ¼­ ÇØ´ç MapÀ» ¾î¶»°Ôµç ¹Þ¾Æ¿Â´Ù. ¿Ô´Ù°í Ä¡ÀÚ.
 	const CX2SkillTree::SkillTreeTempletMap& refSkillTreeTempletMap = g_pData->GetSkillTree()->GetSkillTreeTempletMap( (int)eUnitClass );
 
 	for( CX2SkillTree::SkillTreeTempletMap::const_iterator mapit = refSkillTreeTempletMap.begin(); mapit != refSkillTreeTempletMap.end(); ++mapit )
@@ -1961,20 +2233,20 @@ void CX2UISkillTreeNew::CreateSkillTree( CX2Unit::UNIT_CLASS eUnitClass )
 		const CX2SkillTree::SkillTreeTemplet& refSkillTreeTemplet = mapit->second;
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ SP ï¿½ï¿½È¯
-		CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+		/// ÇöÀç ³²Àº SP ¹ÝÈ¯
+		const CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 		int iNoUseSP = 0;
 		int iNoUseCP = 0;
 
 		if ( NULL != pUnitData )
 		{
-			iNoUseSP = pUnitData->m_iSPoint;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
-			iNoUseCP = pUnitData->m_iCSPoint;	/// ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ( ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½àº¹ )
+			iNoUseSP = pUnitData->m_iSPoint;		/// ³²Àº ½ºÅ³ Æ÷ÀÎÆ®
+			iNoUseCP = pUnitData->m_iCSPoint;	/// ³²Àº Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ® ( ±×³ë½Ã½ºÀÇ Ãàº¹ )
 		}
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-		CX2UserSkillTree&	refUserSkillTree	= pUnitData->m_UserSkillTree;
+		/// ÇöÀç ½ºÅ³ ½½·ÔÀÇ ·¹º§ ¹ÝÈ¯
+		const CX2UserSkillTree&	refUserSkillTree	= pUnitData->m_UserSkillTree;
 		const int			iSkillLevel			= refUserSkillTree.GetSkillLevel( eSkillID );
 
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
@@ -1992,7 +2264,7 @@ void CX2UISkillTreeNew::CreateSkillTree( CX2Unit::UNIT_CLASS eUnitClass )
 		int row = refSkillTreeTemplet.m_iTier;
 		int col = refSkillTreeTemplet.m_iIndexInTier;
 		
-		/// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// Çà°ú ¿­¿¡ µû¸¥ ½ºÅ³ ¾ÆÀÌµð ÀúÀå
 		std::map<SkillPositionKey, CX2SkillTree::SKILL_ID>::iterator it = m_mapSkillPosition.find( SkillPositionKey( col, row ) );
 		if( it == m_mapSkillPosition.end() )
 		{
@@ -2001,9 +2273,9 @@ void CX2UISkillTreeNew::CreateSkillTree( CX2Unit::UNIT_CLASS eUnitClass )
 
 		SkillSlotUI UISet;
 
-		CreateSlotUIPreset( UISet, static_cast<int>( eSkillID ), col );		/// ï¿½ï¿½ ï¿½ï¿½ï¿½Ôºï¿½ UI ï¿½ï¿½ï¿½ï¿½
+		CreateSlotUIPreset( UISet, static_cast<int>( eSkillID ), col );		/// °¢ ½½·Ôº° UI ¼³Á¤
 
-		/// ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ß°ï¿½
+		/// ½ºÅ©·Ñ ¸®½ºÆ®¿¡ ½½·Ô °ü·Ã UI ÄÁÆ®·Ñ Ãß°¡
 		pControlList->InsertItem( UISet.m_pSlot,					row, col );
 		pControlList->InsertItem( UISet.m_pStaticBG,				row, col );
 		pControlList->InsertItem( UISet.m_pStaticSkillBG,			row, col );
@@ -2015,10 +2287,10 @@ void CX2UISkillTreeNew::CreateSkillTree( CX2Unit::UNIT_CLASS eUnitClass )
 		pControlList->InsertItem( UISet.m_pStaticSkillNoLearn,		row, col );
 		pControlList->InsertItem( UISet.m_pStaticStringRequireSP,	row, col );
 
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Mapï¿½ï¿½ ï¿½ß°ï¿½
+		/// °ü¸®¿ë Map¿¡ Ãß°¡
 		m_mapSkillSlotUISet.insert(std::make_pair(eSkillID, UISet));
 
-		/// ï¿½ï¿½ï¿½ï¿½ Dataï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½				
+		/// ÀÌÁ¦ Data¸¦ ¸¸µé¾î ³ÖÀ» Â÷·Ê				
 		CX2SkillTreeSlotData* pSkillTreeSlotData = new CX2SkillTreeSlotData;
 		pSkillTreeSlotData->m_eSkillID = eSkillID;
 
@@ -2028,26 +2300,26 @@ void CX2UISkillTreeNew::CreateSkillTree( CX2Unit::UNIT_CLASS eUnitClass )
 		pSkillTreeSlotData->m_eSkillID = eSkillID;
 		pSkillTreeSlotData->m_bDataUpdated = true;
 
-		/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½è¿­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ½ºÅ³ Æ®¸® ÃÊ»óÈ­ µî·ÏÀ» À§ÇÑ ÃÖ´ë ½ºÅ³ ¹è¿­ ³ôÀÌ ¿¬»ê
 		if ( row > m_iMaxSkillRowNum )
 			m_iMaxSkillRowNum = row;
 	}
 
-	SetBlindSelectSkill();						/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
+	SetBlindSelectSkill();						/// 2Áö¼±´Ù ½ºÅ³ Áß ¼±ÅÃµÇÁö ¾ÊÀº ½ºÅ³¿¡ ´ëÇÑ ºí¶óÀÎµå ¼³Á¤
 
-	CreateSkillTreePortrait( pControlList );	/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ï¿½
+	CreateSkillTreePortrait( pControlList );	/// ½ºÅ³ Æ®¸® ÃÊ»óÈ­ ¼³Á¤
 
-	SetSelectSkillSlotPosition();				/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	SetSelectSkillSlotPosition();				/// 2Áö¼±´Ù ½ºÅ³ À§Ä¡ Á¶Á¤
 
-	SetDivisionLine( pControlList );			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ð¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+	SetDivisionLine( pControlList );			/// ½ºÅ³ ±¸ºÐ¼± ¼³Á¤
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ã¢ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ½ºÅ³ ¸ÞÀÎ Ã¢À» °¡Àå ÇÏÀ§ ·¹ÀÌ¾î·Î ¼³Á¤
 	CKTDGUIStatic* pStaticSkill = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStaticSkill" ) );
 
 	if ( NULL != pStaticSkill )
 		m_pDLGUISkillTree->ChangeSequence( pStaticSkill, false );
 
-	/// ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ½ºÅ©·Ñ ¸®½ºÆ® °¡Àå À§·Î ¼³Á¤
 	pControlList->SetIndex(0, 0);
 }
 
@@ -2056,7 +2328,7 @@ CX2EquippedSkillSlotData* CX2UISkillTreeNew::GetEquippedSlotData( int index, boo
 	CX2EquippedSkillSlotData* pSlotData = NULL;
 
 #ifdef REFORM_UI_SKILLSLOT
-	if(false == bSlotB)	// ï¿½ï¿½ï¿½ï¿½ A
+	if(false == bSlotB)	// ½½·Ô A
 	{
 		switch(index)
 		{
@@ -2088,7 +2360,7 @@ CX2EquippedSkillSlotData* CX2UISkillTreeNew::GetEquippedSlotData( int index, boo
 			break;
 		}
 	}
-	else	// ï¿½ï¿½ï¿½ï¿½ B
+	else	// ½½·Ô B
 	{
 		switch(index)
 		{
@@ -2121,7 +2393,7 @@ CX2EquippedSkillSlotData* CX2UISkillTreeNew::GetEquippedSlotData( int index, boo
 		}
 	}
 #else
-	if(false == bSlotB)	// ï¿½ï¿½ï¿½ï¿½ A
+	if(false == bSlotB)	// ½½·Ô A
 	{
 		switch(index)
 		{
@@ -2153,7 +2425,7 @@ CX2EquippedSkillSlotData* CX2UISkillTreeNew::GetEquippedSlotData( int index, boo
 			break;
 		}
 	}
-	else	// ï¿½ï¿½ï¿½ï¿½ B
+	else	// ½½·Ô B
 	{
 		switch(index)
 		{
@@ -2197,14 +2469,14 @@ CKTDGUISlot* CX2UISkillTreeNew::GetEquippedSlot( int index , bool bSlotB /* = fa
 
 	CKTDGUISlot* pSlot = NULL ;
 
-	//ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 4ï¿½Ì»ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½
+	//ÀÎµ¦½º°ªÀÌ 4ÀÌ»óÀ¸·Î ¿À¸é ¹«Á¶°Ç B½½·ÔÀ¸·Î ÆÇ´Ü
 	if( index >= 4 )
 	{
 		index -= 4;
 		bSlotB = true;
 	}
 		
-	if(false == bSlotB)	// ï¿½ï¿½ï¿½ï¿½ A
+	if(false == bSlotB)	// ½½·Ô A
 	{
 		switch(index)
 		{
@@ -2228,7 +2500,7 @@ CKTDGUISlot* CX2UISkillTreeNew::GetEquippedSlot( int index , bool bSlotB /* = fa
 			break;
 		}
 	}
-	else	// ï¿½ï¿½ï¿½ï¿½ B
+	else	// ½½·Ô B
 	{
 		switch(index)
 		{
@@ -2358,7 +2630,7 @@ void CX2UISkillTreeNew::UpdateSkillEquipedSlotUI()
 		{
 			switch(m_pUserSkillTree->GetSkillSlotBExpirationState())
 			{
-			case CX2UserSkillTree::SSBES_NOT_EXPIRED: //ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2UserSkillTree::SSBES_NOT_EXPIRED: //½½·Ô È®Àå »óÅÂ
 			case CX2UserSkillTree::SSBES_PERMANENT: 
 				{
 					m_bIsExpandSkillSlot = true;
@@ -2375,7 +2647,7 @@ void CX2UISkillTreeNew::UpdateSkillEquipedSlotUI()
 						pStaticSkillHotKey->SetColor(D3DXCOLOR(1.f,1.f,1.f,1.f));
 				}
 				break;
-			case CX2UserSkillTree::SSBES_EXPIRED: //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2UserSkillTree::SSBES_EXPIRED: //½½·Ô ¹ÌÈ®Àå »óÅÂ
 			default:
 				{
 					m_bIsExpandSkillSlot =false;
@@ -2401,11 +2673,11 @@ void CX2UISkillTreeNew::UpdateSkillEquipedSlotUI()
 			{
 				switch(m_pUserSkillTree->GetSkillSlotBExpirationState())
 				{
-				case CX2UserSkillTree::SSBES_NOT_EXPIRED: //ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				case CX2UserSkillTree::SSBES_NOT_EXPIRED: //½½·Ô È®Àå »óÅÂ
 					{
 						pButton->SetShowEnable(true, true);
 					} break;
-				case CX2UserSkillTree::SSBES_PERMANENT: //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				case CX2UserSkillTree::SSBES_PERMANENT: //½½·Ô ¹ÌÈ®Àå »óÅÂ
 				case CX2UserSkillTree::SSBES_EXPIRED:
 				default:
 					{
@@ -2459,7 +2731,11 @@ void CX2UISkillTreeNew::UpdateSkillEquipedSlotUI()
 	}
 }
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+void CX2UISkillTreeNew::UpdateUI( bool bEquipped, bool bSP /*= true*/, bool bSkillTree /*= false*/, bool bSkillPage_ /*= false*/ )
+#else //SKILL_PAGE_SYSTEM
 void CX2UISkillTreeNew::UpdateUI( bool bEquipped, bool bSP /*= true*/, bool bSkillTree /*= false*/ )
+#endif //SKILL_PAGE_SYSTEM
 {
 	if(bEquipped)
 	{
@@ -2476,21 +2752,24 @@ void CX2UISkillTreeNew::UpdateUI( bool bEquipped, bool bSP /*= true*/, bool bSki
 		UpdateSkillTree();
 	}
 
-	
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	if ( bSkillPage_ )
+		UpdateSkillPageUI();
+#endif //SKILL_PAGE_SYSTEM
 
 }
 
 void CX2UISkillTreeNew::UpdateSkillTree()
 {
-	// ControlListï¿½ï¿½ Mapï¿½ï¿½ ï¿½ï¿½ï¿½Ê·ï¿½ Iterationï¿½ï¿½ ï¿½ï¿½ï¿½é¼­ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½!)
-	// ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ð¾ï¿½Í¼ï¿½
-	// ï¿½×³ï¿½ ï¿½ï¿½ï¿½ï¿½Å¸ ï¿½Ù²ï¿½ï¿½ï¿½Ù¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ ï¿½Ç³ï¿½? -_-
-	// 1. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½Æ°ï¿½ï¿½ È°ï¿½ï¿½È­/ï¿½ï¿½È°ï¿½ï¿½È­. bool ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	// 2. 1ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ : ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½å·¡ï¿½ï¿½ È°ï¿½ï¿½È­ / ï¿½ï¿½È°ï¿½ï¿½È­(ï¿½Ð½Ãºï¿½ï¿½ ï¿½å·¡ï¿½ï¿½ ï¿½ï¿½ ï¿½Ç°ï¿½), ï¿½Ø½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½/ï¿½Ö´ë·¹ï¿½ï¿½)
+	// ControlListÀÇ MapÀ» Â÷·Ê·Î IterationÇØ °¡¸é¼­ (ÀÌÂÊÀÌ ºü¸£´Ù!)
+	// ½½·ÔÀÌ¶û ¹öÆ°ÀÌ Á¸ÀçÇÏ¸é ÇØ´ç ½½·ÔÀÇ µ¥ÀÌÅÍ¸¦ ÀÐ¾î¿Í¼­
+	// ±×³É µ¥ÀÌÅ¸ ¹Ù²î¾ú´Ù¶ó°í ´­·¯ÁÖ¸é µÇ³×? -_-
+	// 1. Áö±Ý ÀÍÈú ¼ö ÀÖ´Â ½ºÅ³ ¿©ºÎ : ¹öÆ°ÀÇ È°¼ºÈ­/ºñÈ°¼ºÈ­. bool °ª¿¡ µû¶ó¼­
+	// 2. 1·¹º§ÀÌ¶óµµ ÀÍÈù ½ºÅ³ ¿©ºÎ : ½ºÅ³ ½½·ÔÀÇ µå·¡±× È°¼ºÈ­ / ºñÈ°¼ºÈ­(ÆÐ½Ãºê¸é µå·¡±× ¾È µÇ°Ô), ÅØ½ºÃÄ º¯°æ. ½ºÆ®¸µ ¼³Á¤ (·¹º§/ÃÖ´ë·¹º§)
 
-	SetBlindSelectSkill();		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
+	SetBlindSelectSkill();		/// 2Áö¼±´Ù ½ºÅ³ Áß ¼±ÅÃµÇÁö ¾ÊÀº ½ºÅ³¿¡ ´ëÇÑ ºí¶óÀÎµå ¼³Á¤
 
-	/// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ¸ðµç ½ºÅ³ ½½·Ô °»½Å
 	for(map<CX2SkillTree::SKILL_ID, SkillSlotUI>::iterator it =	m_mapSkillSlotUISet.begin(); it != m_mapSkillSlotUISet.end(); ++it)
 	{
 		SkillSlotUI& refSkillSlotUI = it->second;
@@ -2503,7 +2782,7 @@ void CX2UISkillTreeNew::UpdateSkillTree()
 		}
 	}
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° È°ï¿½ï¿½
+	/// ÇöÀç ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖ´Â »óÅÂÀÏ ¶§¸¸ ¹öÆ° È°¼º
 	CKTDGUIButton* pButtonDecide = static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"Decide" ) );
 	CKTDGUIButton* pButtonCancel = static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"Cancel" ) );
 
@@ -2512,6 +2791,19 @@ void CX2UISkillTreeNew::UpdateSkillTree()
 		pButtonDecide->SetEnable( m_bNowLearnSkill );
 		pButtonCancel->SetEnable( m_bNowLearnSkill );
 	}
+
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	CKTDGUIButton* pButtonInitializeSkill = static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"InitializeSkill" ) );
+	if ( pButtonInitializeSkill != NULL )
+	{
+		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree;
+		
+		if ( refUserSkillTree.IsUsingPage() )
+			pButtonInitializeSkill->SetEnable( true );
+		else
+			pButtonInitializeSkill->SetEnable( false );
+	}
+#endif //SKILL_PAGE_SYSTEM
 
 	UpdateBlind();
 }
@@ -2529,7 +2821,7 @@ void CX2UISkillTreeNew::UpdateSkillTree( CX2SkillTree::SKILL_ID eSkillID )
 		const CX2SkillTree::SkillTreeTemplet* pSkillTreeTemplet = g_pData->GetSkillTree()->GetSkillTreeTemplet((int)g_pData->GetMyUser()->GetSelectUnit()->GetClass(), eSkillID);
 		if(pSkillTreeTemplet != NULL)
 		{
-#ifdef UPGRADE_SKILL_SYSTEM_2013 // ï¿½ï¿½ï¿½ï¿½È¯ - ï¿½ï¿½Å³ ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // ±èÅÂÈ¯ - ½ºÅ³ ½Ã½ºÅÛ º¯°æ
 			CX2SkillTree::SKILL_ID eFollowingSkillID = static_cast<CX2SkillTree::SKILL_ID>( pSkillTreeTemplet->m_iFollowingSkill );
 			map<CX2SkillTree::SKILL_ID, SkillSlotUI>::iterator itfol =	m_mapSkillSlotUISet.find(eFollowingSkillID);
 			if( itfol != m_mapSkillSlotUISet.end())
@@ -2569,46 +2861,65 @@ void CX2UISkillTreeNew::UpdateBlind()
 {
 	CKTDGUIContolList*	pControlList = static_cast<CKTDGUIContolList*>( m_pDLGUISkillTree->GetControl( L"SkillTreeControlList" ) );
 	CKTDGUIStatic*		pStaticBlind = (CKTDGUIStatic*) m_pDLGUISkillTree->GetControl( L"g_pStaticBlind" );
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	bool bUsingPage = false;
+#endif //SKILL_PAGE_SYSTEM
 	
 	if( NULL != pStaticBlind &&
 		NULL != pControlList && 
 		NULL != g_pData &&
 		NULL != g_pData->GetMyUser() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
+
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		USHORT usUsingPage = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetUsingPage();
+		USHORT usSelectPage = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetSelectPage();
+
+		if ( usUsingPage == usSelectPage - 1 )
+			bUsingPage = true;
+
+		if ( usSelectPage > 0 )
+			usUsingPage = usSelectPage - 1;
+#endif //SKILL_PAGE_SYSTEM
+
 #if defined( _IN_HOUSE_ ) || defined( _IN_HOUSE_SERVICE_READY_QA_ ) || defined( _OPEN_TEST_ ) || defined( _OPEN_TEST_2_ )
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// °³¹ßÀÚ ±â´É - ½ºÅ³ ¸ðµÎ ¿ÀÇÂÇØ¾ß ÇÒ ¶§, ºí¶óÀÎµå Ã³¸® ÇØÁ¦
 
-		int iLearnSkillNum	= 0;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½
-		int	iiLimitSkillnum	= 0;		/// ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½
+		int iLearnSkillNum	= 0;		/// ÇöÀç ¹è¿î ½ºÅ³ ¼ö
+		int	iiLimitSkillnum	= 0;		/// ºí¶óÀÎµå ÇØÁ¦ Á¶°Ç ½ºÅ³ ¼ö
 
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// °³¹ßÀÚ µî±Þ¿¡¼± ºí¶óÀÎµå Ã³¸® ÇØÁ¦
 		if( true == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
 		{
-			const int iClassLevel = g_pData->GetMyUser()->GetSelectUnit()->GetClassLevel();	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+			const int iClassLevel = g_pData->GetMyUser()->GetSelectUnit()->GetClassLevel();	/// ÀüÁ÷ µî±Þ
 
 			switch ( iClassLevel )
 			{
-			case 0:		/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å³ 10ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case 0:		/// ±âº» ÀüÁ÷ÀÏ ¶§ ½ºÅ³ 10°³ ÂïÀ¸¸é, ¸ðµÎ ¿ÀÇÂ
 				iiLimitSkillnum = 10;
 				break;
-			case 1:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å³ 20ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case 1:		/// 1Â÷ ÀüÁ÷ÀÏ ¶§ ½ºÅ³ 20°³ ÂïÀ¸¸é, ¸ðµÎ ¿ÀÇÂ
 				iiLimitSkillnum = 20;
 				break;
-			default:	/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å³ 30ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			default:	/// 2Â÷ ÀüÁ÷ÀÏ ¶§ ½ºÅ³ 30°³ ÂïÀ¸¸é, ¸ðµÎ ¿ÀÇÂ
 				iiLimitSkillnum = 30;
 			}
 
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½È¯
-			iLearnSkillNum = static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetMapSkillAcquired().size() );
+			/// ÇöÀç ¹è¿î ½ºÅ³¼ö ¹ÝÈ¯
+		#ifdef SKILL_PAGE_SYSTEM //JHKang
+			iLearnSkillNum = static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree
+				.GetMapSkillAcquired( usUsingPage ).size() );
+		#else //SKILL_PAGE_SYSTEM
+			iLearnSkillNum = static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetMapSkillAcquired().size() );
+		#endif //SKILL_PAGE_SYSTEM
 		}
 #endif // _SERVICE_
-		int							iTopTier				= pControlList->GetIndexY();											/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½Îµï¿½ï¿½ï¿½
-		int							iUnitLevel				= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		CX2Unit::UNIT_CLASS_TYPE	eUnitClassType			= static_cast<CX2Unit::UNIT_CLASS_TYPE>( g_pData->GetMyUser()->GetSelectUnit()->GetClassLevel() );	/// ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½
-		const int					iNotLearnTierIndex		= GetNotLearnTierIndex();											/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö»ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-		const int					iEnoughLevelTierIndex	= GetNotEnoughLevelTierIndex( iUnitLevel );							/// ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö»ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+		int							iTopTier				= pControlList->GetIndexY();											/// ÇöÀç ½ºÅ³Ã¢ÀÇ ½ºÅ©·Ñ ¹Ù À§Ä¡ ÀÎµ¦½º
+		int							iUnitLevel				= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level;	/// À¯´Ö ·¹º§
+		CX2Unit::UNIT_CLASS_TYPE	eUnitClassType			= static_cast<CX2Unit::UNIT_CLASS_TYPE>( g_pData->GetMyUser()->GetSelectUnit()->GetClassLevel() );	/// À¯´Ö Å¬·¹½º Å¸ÀÔ
+		const int					iNotLearnTierIndex		= GetNotLearnTierIndex();											/// ¹è¿ìÁö ¸øÇÑ ÃÖ»óÀ§ ½ºÅ³ ¶óÀÎ ¹ÝÈ¯
+		const int					iEnoughLevelTierIndex	= GetNotEnoughLevelTierIndex( iUnitLevel );							/// ¹è¿ï ¼ö ¾ø´Â ·¹º§ÀÇ ÃÖ»óÀ§ ½ºÅ³ ¶óÀÎ ¹ÝÈ¯
 
 
 		for( int i = 0; i < pControlList->GetViewSizeY(); ++i )
@@ -2620,39 +2931,40 @@ void CX2UISkillTreeNew::UpdateBlind()
 
 			const float fOffSet = static_cast<float>( 92.f * i );
 
-			/// ï¿½ï¿½ï¿½ï¿½Ç¥ ï¿½Ø½ï¿½Ã³ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+			/// ´À³¦Ç¥ ÅØ½ºÃ³ À§Ä¡ Á¶Á¤
 			const float fPictureXPos = pStaticBlind->GetPicture( 5 + i )->GetPos().x;
 			pStaticBlind->GetPicture( 5 + i )->SetPos( D3DXVECTOR2( fPictureXPos, 120.f + fOffSet ) );
 
-			/// ï¿½È³ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+			/// ¾È³» ½ºÆ®¸µ À§Ä¡ Á¶Á¤
 			pStaticBlind->GetString( i )->pos.y = 121.f + fOffSet;
 
 
-			const int	iNowSkillLineLevel	= iTopTier + i;		/// ï¿½Ø´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-			bool		bButtonBlind		= false;			/// ï¿½Ø´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			const int	iNowSkillLineLevel	= iTopTier + i;		/// ÇØ´ç ½ºÅ³ ¶óÀÎ ·¹º§
+			bool		bButtonBlind		= false;			/// ÇØ´ç ½ºÅ³ ¶óÀÎÀÇ ½ºÅ³ ½Àµæ ¹öÆ° ¼û±è ¿©ºÎ
 
-			bool		bEnoughLevel		= false;			/// ï¿½ä±¸ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-			bool		bLearnBeforeSkill	= false;			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			bool		bEnoughLevel		= false;			/// ¿ä±¸ ½Àµæ ·¹º§ ¸¸Á· ¿©ºÎ
+			bool		bLearnBeforeSkill	= false;			/// ÀÌÀü ½ºÅ³ ½Àµæ ¿©ºÎ
 
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½âº» ï¿½ï¿½Å³ï¿½Ì°Å³ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ä±¸ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+			/// ÇöÀç ½ºÅ³ÀÌ ±âº» ½ºÅ³ÀÌ°Å³ª, ÇöÀç À¯´Ö ·¹º§ÀÌ ÇØ´ç ½ºÅ³ ¶óÀÎ ¿ÀÇÂ ¿ä±¸ ·¹º§À» ¸¸Á·ÇÒ ¶§
 			if ( 0 == GetRequireSkillLineLevel( iNowSkillLineLevel ) || 
 				 iUnitLevel >= GetRequireSkillLineLevel( iNowSkillLineLevel ) )
 			{
 				bEnoughLevel = true;
 			}
 
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+			/// ·¹º§µµ ºÎÁ·ÇÏ¸é, ·¹º§ ºÎÁ· Ç¥½Ã
 			if ( false == bEnoughLevel )
 			{
-				/// ï¿½ï¿½ï¿½ï¿½Ç¥ ï¿½Ø½ï¿½Ã³ È°ï¿½ï¿½
+				/// ´À³¦Ç¥ ÅØ½ºÃ³ È°¼º
 				pStaticBlind->GetPicture( 5 + i )->SetShow( true );
 
 				pStaticBlind->GetString( i )->msg = GET_REPLACED_STRING( ( STR_ID_25172, "i", GetRequireSkillLineLevel( iNowSkillLineLevel ) ) );
+				pStaticBlind->GetString( i )->fontIndex = XUF_DODUM_11_NORMAL;
 
-				bButtonBlind = true;		/// ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½
+				bButtonBlind = true;		/// ¹öÆ° ºí¶óÀÎµå
 			}
 
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ºí¶óÀÎµå Á¶°ÇÀÌ ¾Æ´Ï¶ó¸é, ºí¶óÀÎµå ÇØÁ¦
 			if ( false == bButtonBlind )
 			{
 				pStaticBlind->GetPicture( 5 + i )->SetShow( false );
@@ -2660,16 +2972,32 @@ void CX2UISkillTreeNew::UpdateBlind()
 				pStaticBlind->GetString( i )->msg = L"";
 			}
 
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½Ø½ï¿½Ã³ Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ºí¶óÀÎµå ¿©ºÎ¿¡ µû¶ó¼­ ºí¶óÀÎµå ÅØ½ºÃ³ Ç¥½Ã ¼³Á¤
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			if ( bUsingPage == true )
+				pStaticBlind->GetPicture(i)->SetShow( bButtonBlind );
+			else
+			{
+				pStaticBlind->GetPicture(i)->SetShow( true );
+				pStaticBlind->GetPicture( 5 )->SetShow( true );
+				pStaticBlind->GetString( 0 )->fontIndex = XUF_DODUM_13_SEMIBOLD;
+				pStaticBlind->GetString( 0 )->msg = GET_STRING( STR_ID_29929 );
+			}
+#else //SKILL_PAGE_SYSTEM
 			pStaticBlind->GetPicture(i)->SetShow( bButtonBlind );
+#endif //SKILL_PAGE_SYSTEM
 
 #if defined( _IN_HOUSE_ ) || defined( _IN_HOUSE_SERVICE_READY_QA_ ) || defined( _OPEN_TEST_ ) || defined( _OPEN_TEST_2_ )
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ Ã³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// °³¹ßÀÚ ±â´É - ½ºÅ³ ¸ðµÎ ¿ÀÇÂÇØ¾ß ÇÒ ¶§, ºí¶óÀÎµå Ã³¸® ÇØÁ¦
 			if( true == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
 			{
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+				if ( iiLimitSkillnum <= iLearnSkillNum && bUsingPage == true )
+#else //SKILL_PAGE_SYSTEM
 				if ( iiLimitSkillnum <= iLearnSkillNum )
+#endif //SKILL_PAGE_SYSTEM
 				{
-					pStaticBlind->GetPicture(i)->SetShow( false );	/// ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½È°ï¿½ï¿½
+					pStaticBlind->GetPicture(i)->SetShow( false );	/// ºí¶óÀÎµå ºñÈ°¼º
 					pStaticBlind->GetPicture( 5 + i )->SetShow( false );
 					pStaticBlind->GetString( i )->msg = L"";
 
@@ -2678,18 +3006,18 @@ void CX2UISkillTreeNew::UpdateBlind()
 			}
 #endif // _SERVICE_
 
-			/// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ï¿ï¿½, ï¿½ï¿½Æ° È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ÇØ´ç ¶óÀÎÀÇ ½ºÅ³À» °Ë»çÇÏ¿©, ¹öÆ° È°¼º ¿©ºÎ ¼³Á¤
 			for ( int index = 0; index < 3; ++index )
 			{
-				/// ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯
+				/// À§Ä¡¿¡ ÇØ´çÇÏ´Â ½ºÅ³ ¾ÆÀÌµð ¹ÝÈ¯
 				std::map<SkillPositionKey, CX2SkillTree::SKILL_ID>::iterator it = m_mapSkillPosition.find( SkillPositionKey( index, iNowSkillLineLevel ) );
 
 				if ( it != m_mapSkillPosition.end() )
 				{
-					/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ø´ï¿½ï¿½Ï´ï¿½ UI Set ï¿½ï¿½È¯
+					/// ½ºÅ³ ¾ÆÀÌµð¿¡ ÇØ´çÇÏ´Â UI Set ¹ÝÈ¯
 					map<CX2SkillTree::SKILL_ID, CX2UISkillTreeNew::SkillSlotUI>::iterator itUISet = m_mapSkillSlotUISet.find( it->second );
 
-					if ( itUISet != m_mapSkillSlotUISet.end() )		/// ï¿½ï¿½Æ° È°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					if ( itUISet != m_mapSkillSlotUISet.end() )		/// ¹öÆ° È°¼º ¿©ºÎ ¼³Á¤
 						itUISet->second.SetSkillLineBlind( bButtonBlind );
 				}
 			}
@@ -2701,7 +3029,7 @@ void CX2UISkillTreeNew::UpdateBlind()
 
 void CX2UISkillTreeNew::UpdateSPInfo()
 {
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ½ºÅ³ Æ÷ÀÎÆ® Á¤º¸ ½ºÆ®¸µ ¼³Á¤
 	CKTDGUIStatic* pNowSPString = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStaticSPBox" ) );
 
 	if( NULL != pNowSPString && 
@@ -2710,19 +3038,19 @@ void CX2UISkillTreeNew::UpdateSPInfo()
 		NULL != g_pData->GetMyUser() &&
 		NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		CX2Unit::UnitData*	pUnitData	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+		const CX2Unit::UnitData*	pUnitData	= &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 		CKTDGUIButton*		pButton		= (CKTDGUIButton*) m_pDLGUISkillTree->GetControl( L"Button_Notice_Notice_SP" );
 
 		if ( NULL != pUnitData && NULL != pButton )
 		{
-			const int iHaveSPAndCSP	= pUnitData->m_iSPoint + pUnitData->m_iCSPoint;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® + ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
+			const int iHaveSPAndCSP	= pUnitData->m_iSPoint + pUnitData->m_iCSPoint;		/// ³²Àº ½ºÅ³ Æ÷ÀÎÆ® + ³²Àº Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®
 
 			WCHAR	buf[255]	= {0,};
-			/// ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ÃÑ ½ºÅ³ Æ÷ÀÎÆ® »ö»ó ¿¬»ê
 
-			/// Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®( ï¿½×³ï¿½Ã½ï¿½ï¿½ï¿½ ï¿½àº¹ )ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+			/// Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®( ±×³ë½Ã½ºÀÇ Ãàº¹ )°¡ Àû¿ëÁßÀÎÁö °Ë»ç
 			CTime cTime;
-			KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_wstrCSPointEndDate, cTime );
+			KncUtil::ConvertStringToCTime( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_wstrCSPointEndDate, cTime );
 			CTime tCurrentTime = g_pData->GetServerCurrentTime();
 
 			bool bUsingCSP = tCurrentTime >= cTime ? false : true;
@@ -2731,27 +3059,31 @@ void CX2UISkillTreeNew::UpdateSPInfo()
 
 			if (true == bUsingCSP )
 			{
-				StringCchPrintf(buf, 256, L"#CEC008C%d#CX", iHaveSPAndCSP );	/// Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
-				pButton->SetShowEnable(true, true);								/// ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½ Ç¥ï¿½ï¿½
+				StringCchPrintf(buf, 256, L"#CEC008C%d#CX", iHaveSPAndCSP );	/// Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®°¡ Àû¿ë Áß ÀÌ¶ó¸é, ºÓÀº»öÀ¸·Î Ç¥±â
+				pButton->SetShowEnable(true, true);								/// ±×³ë½Ã½º »ç¿ëÁß ÆË¾÷ Ç¥½Ã
 			}
 			else
 			{
-				StringCchPrintf(buf, 256, L"%d", iHaveSPAndCSP );				/// Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Oï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ )
-				pButton->SetShowEnable(false, false);							/// ï¿½×³ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¾ï¿½ ï¿½ï¿½ï¿½ï¿½
+				StringCchPrintf(buf, 256, L"%d", iHaveSPAndCSP );				/// Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®°¡ Àû¿ë£OÀÌÁö ¾ÊÀ¸¸é, ±âº» »öÀ¸·Î Ç¥±â ( ³ë¶û»ö )
+				pButton->SetShowEnable(false, false);							/// ±×³ë½Ã½º »ç¿ëÁß ÆË¾÷ ÇØÁ¦
 			}
 
 			wstrUsedSkillString = buf;
 
 
-			if ( true == m_bNowLearnSkill )		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ì¶ï¿½ï¿½
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			if ( true == m_bNowLearnSkill && pUnitData->m_UserSkillTree.IsUsingPage() )		/// ½ºÅ³ ·¹º§ ¿Ã¸®´Â Áß ÀÌ¶ó¸é
+#else //SKILL_PAGE_SYSTEM
+			if ( true == m_bNowLearnSkill )		/// ½ºÅ³ ·¹º§ ¿Ã¸®´Â Áß ÀÌ¶ó¸é
+#endif //SKILL_PAGE_SYSTEM
 			{
 				if ( NULL != g_pData->GetSkillTree() )
 				{
-					const int iUsedSPoint	= g_pData->GetSkillTree()->GetUsedSPoint();			/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
-					const int iUsedCSPoint	= g_pData->GetSkillTree()->GetUsedCSPoint();		/// ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
-					const int iUsedSPAndCSP	= iHaveSPAndCSP - ( iUsedSPoint + iUsedCSPoint );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
+					const int iUsedSPoint	= g_pData->GetSkillTree()->GetUsedSPoint();			/// »ç¿ëÇÑ ½ºÅ³ Æ÷ÀÎÆ®
+					const int iUsedCSPoint	= g_pData->GetSkillTree()->GetUsedCSPoint();		/// »ç¿ëÇÑ Ä³½Ã ½ºÅ³ Æ÷ÀÎÆ®
+					const int iUsedSPAndCSP	= iHaveSPAndCSP - ( iUsedSPoint + iUsedCSPoint );	/// ³²Àº ½ºÅ³ Æ÷ÀÎÆ®
 
-					StringCchPrintf( buf, 256, L"#CFF0000%d#CX / %s", iUsedSPAndCSP, wstrUsedSkillString.c_str() );		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ) / ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½Æ®
+					StringCchPrintf( buf, 256, L"#CFF0000%d#CX / %s", iUsedSPAndCSP, wstrUsedSkillString.c_str() );		/// ³²Àº Æ÷ÀÎÆ® ( ºÓÀº»ö ) / ÃÑ ½ºÅ³ Æ÷ÀÎÆ®
 
 					wstrUsedSkillString = buf;
 				}
@@ -2767,10 +3099,10 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 	if( m_pDLGUISkillTree == NULL )
 		return;
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ --------------------------------------------------------------------------------------------------------------------
+	/// ½½·Ô ¼³Á¤ --------------------------------------------------------------------------------------------------------------------
  	m_pDLGUISkillTree->OpenScriptFile( L"DLG_UI_Skill_Icon_New.lua" );
 
-	UISet.m_pSlot = static_cast<CKTDGUISlot*>( m_pDLGUISkillTree->GetControl( L"g_pSlot_SkillTree" ) );		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	UISet.m_pSlot = static_cast<CKTDGUISlot*>( m_pDLGUISkillTree->GetControl( L"g_pSlot_SkillTree" ) );		/// ½½·Ô ¼³Á¤
 
 	SKILL_TREE_SLOT_TYPE eSkillTreeSlotType = static_cast<SKILL_TREE_SLOT_TYPE>( iCol );
 
@@ -2797,7 +3129,7 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 			UISet.m_pSlot->SetPoint( pPoint );
 			UISet.m_pSlot->SetMouseOverPoint( pOverPoint );
 		}
-		if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 		{
 			CKTDGUIControl::UIPointData* pPoint		= new CKTDGUIControl::UIPointData();
 			pPoint->fChangeTime						= 0.0f;
@@ -2815,7 +3147,7 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		}
 	}
 
-	/// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ --------------------------------------------------------------------------------------------------------------------
+	/// ¹è°æ ¹éÆÇ --------------------------------------------------------------------------------------------------------------------
 	UISet.m_pStaticBG = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_BackGround" ) );
 
 	if( UISet.m_pStaticBG != NULL && 
@@ -2826,13 +3158,13 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		StringCchPrintf( buf, 256, L"g_pStatic_BackGround_%d", eSkillID );
 		UISet.m_pStaticBG->SetName( buf );
 
-		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
+		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³
 		{
 			UISet.m_pStaticBG->GetPicture( 0 )->SetShow( false );
 			UISet.m_pStaticBG->GetPicture( 1 )->SetPos( D3DXVECTOR2( 97.f, 8.f ) );
 			UISet.m_pStaticBG->GetPicture( 2 )->SetShow( true );
 		}
-		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³
+		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³
 		{
 			UISet.m_pStaticBG->GetPicture( 0 )->SetShow( false );
 			UISet.m_pStaticBG->GetPicture( 1 )->SetShow( false );
@@ -2844,11 +3176,11 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 			UISet.m_pStaticBG->GetPicture( 2 )->SetShow( false );
 		}
 
-		/// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ÇµÚ·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		/// ¹è°æ ¹éÆÇÀº ¸ÇµÚ·Î °¡¼¼¿ä
 		m_pDLGUISkillTree->ChangeSequence( UISet.m_pStaticBG, false );
 	}
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ---------------------------------------------------------------------------------------------------------------
+	/// ½ºÅ³ ¹éÆÇ ¼³Á¤ ---------------------------------------------------------------------------------------------------------------
 	UISet.m_pStaticSkillBG	= static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_SkillBackGround" ) );
 
 	if ( NULL != UISet.m_pStaticSkillBG && NULL != UISet.m_pStaticSkillBG->GetPicture(0) && NULL != UISet.m_pStaticSkillBG->GetPicture(1) )
@@ -2859,9 +3191,9 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( static_cast<CX2SkillTree::SKILL_ID>( eSkillID ) );
 		if(pSkillTemplet != NULL)
 		{
-			wstring wstrSkillBGKeyName = L"";	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½Ã³ Å°ï¿½ï¿½
+			wstring wstrSkillBGKeyName = L"";	/// ½ºÅ³ ¹éÆÇ ÅØ½ºÃ³ Å°°ª
 
-			switch(pSkillTemplet->m_eType)		/// ï¿½ï¿½Å³ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch(pSkillTemplet->m_eType)		/// ½ºÅ³ Å¸ÀÔ¿¡ µû¸¥ ÅØ½ºÃÄ º¯°æ
 			{
 			case CX2SkillTree::ST_ACTIVE:
 		#ifdef ADDED_RELATIONSHIP_SYSTEM
@@ -2871,6 +3203,9 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 					wstrSkillBGKeyName = L"Skill_BG_Active";
 				} break;
 			case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+			case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 				{
 					wstrSkillBGKeyName = L"Skill_BG_Active_Special";
 				} break;
@@ -2884,30 +3219,30 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 				} break;
 			}
 
-			UISet.m_pStaticSkillBG->GetPicture( 0 )->SetTex( L"DLG_UI_Common_Texture10.TGA", wstrSkillBGKeyName.c_str() );	/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			UISet.m_pStaticSkillBG->GetPicture( 0 )->SetTex( L"DLG_UI_Common_Texture10.TGA", wstrSkillBGKeyName.c_str() );	/// º¯°æµÈ ÅØ½ºÃÄ ¼³Á¤
 		}
 
-		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 			UISet.m_pStaticSkillBG->GetPicture( 0 )->SetPos( D3DXVECTOR2( 116.f, 13.f ) );
-		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 			UISet.m_pStaticSkillBG->GetPicture( 0 )->SetPos( D3DXVECTOR2( 86.f, 13.f ) );
 
-		/// ï¿½ä±¸ SP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+		/// ¿ä±¸ SP ¹éÆÇ À§Ä¡ ÁöÁ¤
 		D3DXVECTOR2 vecSkillBGPos = UISet.m_pStaticSkillBG->GetPicture( 0 )->GetPos();
 		UISet.m_pStaticSkillBG->GetPicture( 1 )->SetPos( D3DXVECTOR2( vecSkillBGPos.x + 21.f, vecSkillBGPos.y + 52.f ) );
 	}
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ ----------------------------------------------------------------------------------------------------------
+	/// ½ºÅ³ ½Àµæ ¹öÆ° ¼³Á¤ ----------------------------------------------------------------------------------------------------------
 	UISet.m_pButtonSkillLearn =	static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"g_pButton_SkillLearn" ) );
 
 	if( UISet.m_pButtonSkillLearn != NULL )
 	{
 		StringCchPrintf( buf, 256, L"ButtonSkillLearn_%d", eSkillID );
 		UISet.m_pButtonSkillLearn->SetName( buf );
-		UISet.m_pButtonSkillLearn->AddDummyInt( static_cast<int>( eSkillID ) );			/// ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
+		UISet.m_pButtonSkillLearn->AddDummyInt( static_cast<int>( eSkillID ) );			/// ¹öÆ°¿¡ ½ºÅ³ ¾ÆÀÌµð ¼³Á¤
 
 
-		if ( STST_SELECT_SKILL_LEFT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		if ( STST_SELECT_SKILL_LEFT == iCol )		/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 		{
 			CKTDGUIControl::UIPointData* pNormalPoint = new CKTDGUIControl::UIPointData();
 			pNormalPoint->fChangeTime	= 0.0f;
@@ -2936,7 +3271,7 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 			UISet.m_pButtonSkillLearn->SetDisablePoint( pDisablePoint );
 			UISet.m_pButtonSkillLearn->SetGuideDescAbsolutePos( pNormalPoint->leftTopPoint );
 		}
-		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 		{
 			CKTDGUIControl::UIPointData* pNormalPoint = new CKTDGUIControl::UIPointData();
 			pNormalPoint->fChangeTime	= 0.0f;
@@ -2967,7 +3302,7 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		}
 	}
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ --------------------------------------------------------------------------------------------------------
+	/// ½ºÅ³ ÅøÆÁ¿ë ¹öÆ° ¼³Á¤ --------------------------------------------------------------------------------------------------------
 	UISet.m_pButtonSkillDesc =	static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"g_pButton_SkillDesc" ) );
 
 	if( UISet.m_pButtonSkillDesc != NULL )
@@ -2976,7 +3311,7 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		UISet.m_pButtonSkillDesc->SetName( buf );
 
 
-		if ( STST_SELECT_SKILL_LEFT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		if ( STST_SELECT_SKILL_LEFT == iCol )		/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 		{
 			CKTDGUIControl::UIPointData* pNormalPoint = new CKTDGUIControl::UIPointData();
 			pNormalPoint->fChangeTime	= 0.0f;
@@ -3005,7 +3340,7 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 			UISet.m_pButtonSkillDesc->SetDisablePoint( pDisablePoint );
 			UISet.m_pButtonSkillDesc->SetGuideDescAbsolutePos( pNormalPoint->leftTopPoint );
 		}
-		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 		{
 			CKTDGUIControl::UIPointData* pNormalPoint = new CKTDGUIControl::UIPointData();
 			pNormalPoint->fChangeTime	= 0.0f;
@@ -3047,17 +3382,17 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		UISet.m_pButtonSkillDesc->SetGuideDesc(L"");
 	}
 
-	/// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ --------------------------------------------------------------------------------------------------------
+	/// ½ºÅ³ ÃÊ±âÈ­ ¹öÆ° ¼³Á¤ --------------------------------------------------------------------------------------------------------
 	UISet.m_pButtonSkillInit =	static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"g_pButton_SkillInit" ) );
 
 	if( UISet.m_pButtonSkillInit != NULL )
 	{
 		StringCchPrintf( buf, 256, L"ButtonSkillInit_%d", eSkillID );
 		UISet.m_pButtonSkillInit->SetName( buf );
-		UISet.m_pButtonSkillInit->AddDummyInt( static_cast<int>( eSkillID ) );			/// ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½
+		UISet.m_pButtonSkillInit->AddDummyInt( static_cast<int>( eSkillID ) );			/// ¹öÆ°¿¡ ½ºÅ³ ¾ÆÀÌµð ¼³Á¤
 
 
-		if ( STST_SELECT_SKILL_LEFT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		if ( STST_SELECT_SKILL_LEFT == iCol )		/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 		{
 			CKTDGUIControl::UIPointData* pNormalPoint = new CKTDGUIControl::UIPointData();
 			pNormalPoint->fChangeTime	= 0.0f;
@@ -3086,7 +3421,7 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 			UISet.m_pButtonSkillInit->SetDisablePoint( pDisablePoint );
 			UISet.m_pButtonSkillInit->SetGuideDescAbsolutePos( pNormalPoint->leftTopPoint );
 		}
-		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 		{
 			CKTDGUIControl::UIPointData* pNormalPoint = new CKTDGUIControl::UIPointData();
 			pNormalPoint->fChangeTime	= 0.0f;
@@ -3119,7 +3454,7 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		UISet.m_pButtonSkillInit->SetShow( false );
 	}
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -------------------------------------------------------------------------------------------------------------
+	/// Á¤º¸ ½ºÆ®¸µ ¼³Á¤ -------------------------------------------------------------------------------------------------------------
 	UISet.m_pStaticStringRequireSP = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_StringInfo" ) );
 
 	if( UISet.m_pStaticStringRequireSP != NULL )
@@ -3127,13 +3462,13 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		StringCchPrintf( buf, 256, L"g_pStaticStringInfo_%d", eSkillID );
 		UISet.m_pStaticStringRequireSP->SetName( buf );
 
-		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 			UISet.m_pStaticStringRequireSP->GetString( 0 )->pos = D3DXVECTOR2( 151.f, 66.f );
-		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 			UISet.m_pStaticStringRequireSP->GetString( 0 )->pos = D3DXVECTOR2( 121.f, 66.f );
 	}
 
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ------------------------------------------------------------------------------------------------------
+	/// ¸¶½ºÅÍ ½ºÅ³ ÀÌ¹ÌÁö ¼³Á¤ ------------------------------------------------------------------------------------------------------
 	UISet.m_pStaticSkillMaster = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_SkillMaster" ) );
 
 	if( UISet.m_pStaticSkillMaster != NULL )
@@ -3141,15 +3476,15 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		StringCchPrintf( buf, 256, L"g_pStaticSkillMaster_%d", eSkillID );
 		UISet.m_pStaticSkillMaster->SetName( buf );
 
-		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 			UISet.m_pStaticSkillMaster->GetPicture(0)->SetPos( D3DXVECTOR2( 119.f, 65.f ) );
-		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 			UISet.m_pStaticSkillMaster->GetPicture(0)->SetPos( D3DXVECTOR2( 89.f, 65.f ) );
 
 		UISet.m_pStaticSkillMaster->GetPicture( 0 )->SetShow( false );
 	}
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò°ï¿½ ï¿½ï¿½ï¿½ï¿½ ----------------------------------------------------------------------------------------------------------
+	/// ½ºÅ³ ½Àµæ ºÒ°¡ ¼³Á¤ ----------------------------------------------------------------------------------------------------------
 	UISet.m_pStaticSkillNoLearn = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_SkillNoLearn" ) );
 
 	if( UISet.m_pStaticSkillNoLearn != NULL )
@@ -3158,13 +3493,13 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		UISet.m_pStaticSkillNoLearn->SetName( buf );
 		UISet.m_pStaticSkillNoLearn->GetPicture(0)->SetShow( false );
 
-		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 			UISet.m_pStaticSkillNoLearn->GetPicture(0)->SetPos( D3DXVECTOR2( 114.f, 12.f ) );
-		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 			UISet.m_pStaticSkillNoLearn->GetPicture(0)->SetPos( D3DXVECTOR2( 84.f, 12.f ) );
 	}
 
-	/// ï¿½Ú¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ----------------------------------------------------------------------------------------------------------
+	/// ÀÚ¹°¼è ¼³Á¤ ----------------------------------------------------------------------------------------------------------
 	UISet.m_pStaticSkillLock = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStaticSkill_Lock" ) );
 
 	if( UISet.m_pStaticSkillLock != NULL )
@@ -3173,10 +3508,13 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 		UISet.m_pStaticSkillLock->SetName( buf );
 		UISet.m_pStaticSkillLock->SetShow( false );
 
-		if ( STST_SELECT_SKILL_RIGHT == iCol )			/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
+		if ( STST_SELECT_SKILL_LEFT == iCol )			/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
+			UISet.m_pStaticSkillLock->GetPicture(0)->SetPos( D3DXVECTOR2( 126.f, 19.f ) );
+		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ÀÌ¸é, À§Ä¡ ÀÌµ¿
 			UISet.m_pStaticSkillLock->GetPicture(0)->SetPos( D3DXVECTOR2( 97.f, 19.f ) );
-		else if ( STST_SELECT_SKILL_RIGHT == iCol )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¸ï¿½, ï¿½ï¿½Ä¡ ï¿½Ìµï¿½
-			UISet.m_pStaticSkillLock->GetPicture(0)->SetPos( D3DXVECTOR2( 197.f, 19.f ) );
+
+		/// ÀÚ¹°¼è ÃÖ»óÀ§¿¡ ¹èÄ¡
+		m_pDLGUISkillTree->ChangeSequence( UISet.m_pStaticSkillLock, true );
 	}
 
 	return;
@@ -3208,10 +3546,10 @@ void CX2UISkillTreeNew::CreateSlotUIPreset(SkillSlotUI& UISet, int eSkillID, int
 // }
 
 
-// ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±×¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½.
-// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½Ì±ï¿½ï¿½ï¿½ï¿½Ì¹Ç·ï¿½ ï¿½ï¿½Ý¸ï¿½ ï¿½Û¾ï¿½ ï¿½Ð´ï¿½.
-// ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿½Ý´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½×½ï¿½ï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½ï¿½Íµï¿½ ï¿½ï¿½ ï¿½Ï°ï¿½ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½Ð²ï¿½ï¿½ï¿½ï¿½ï¿½ 
-// UICustomMsgProcï¿½ï¿½ï¿½ï¿½ case STUCM_UNSEAL_SKILL_BUY ï¿½×¸ï¿½ ï¿½ï¿½ ï¿½Îºï¿½ï¿½ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½.
+// Àá±ä ½ºÅ³¿¡ ¿ìÅ¬¸¯À» ÇÏ¸é ³ªÅ¸³ª´Â ´ÙÀÌ¾ó·Î±×¸¦ ¿­±â À§ÇÑ ÇÔ¼ö.
+// ¾ÆÁ÷ ½ºÅ³ ºÀÀÎÇØÁ¦ ÀÚÃ¼°¡ ¹Ì±¸ÇöÀÌ¹Ç·Î ±â¹Ý¸¸ ´Û¾Æ µÐ´Ù.
+// ´ÙÀÌ¾ó·Î±× ´Ý´Â °æ¿ì±îÁö¸¸ ¸¸µé¾î µ×½À´Ï´Ù. ±¸¸Å ¹öÆ°À» ´­·¶À» ¶§´Â ¾Æ¹«°Íµµ ¾È ÇÏ°Ô µÇ¾î ÀÖÀ¸´Ï ´ÙÀ½ ÀÛ¾÷ÀÚ ºÐ²²¼­´Â 
+// UICustomMsgProc¿¡¼­ case STUCM_UNSEAL_SKILL_BUY Ç×¸ñ¿¡ ±× ºÎºÐÀ» ÀÛ¾÷ÇØ ÁÖ¼¼¿ä.
 void CX2UISkillTreeNew::OpenSkillUnsealInformDLG( const CX2SkillTree::SkillTemplet* pSkillTemplet, D3DXVECTOR2 SlotCenterPos )
 {	
 	SAFE_DELETE_DIALOG( m_pDLGSkillUnsealInform );
@@ -3220,7 +3558,7 @@ void CX2UISkillTreeNew::OpenSkillUnsealInformDLG( const CX2SkillTree::SkillTempl
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGSkillUnsealInform );
 	m_pDLGSkillUnsealInform->SetDisableUnderWindow(true);
 
-	// ï¿½ï¿½ï¿½Ì¾ï¿½Î±×°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ä¡(ï¿½ï¿½ï¿½ï¿½ ï¿½ß½É¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ë°ª) : ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö¾ï¿½ ï¿½ï¿½. DLG_Skill_Purchase_Window.lua ï¿½Ö»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+	// ´ÙÀÌ¾ó·Î±×°¡ ¿­·Á¾ß ÇÒ À§Ä¡(½½·Ô Áß½É¿¡¼­ºÎÅÍÀÇ »ó´ë°ª) : ½ºÅ©¸³Æ®¿¡ ³Ö¾î µÒ. DLG_Skill_Purchase_Window.lua ÃÖ»ó´Ü ÂüÁ¶.
 	D3DXVECTOR2 OffsetPos((float)m_pDLGSkillUnsealInform->GetDummyInt(0), (float)m_pDLGSkillUnsealInform->GetDummyInt(1));	
 	m_pDLGSkillUnsealInform->SetPos( SlotCenterPos + OffsetPos );
 
@@ -3228,12 +3566,12 @@ void CX2UISkillTreeNew::OpenSkillUnsealInformDLG( const CX2SkillTree::SkillTempl
 	CKTDGUIStatic* pStaticRequireCash = (CKTDGUIStatic*) m_pDLGSkillUnsealInform->GetControl( L"StaticPrice" );
 	
 
-//#if 0		//** ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½î°¥ ï¿½ï¿½ ï¿½ï¿½ï¿½â¿¡ ï¿½ß°ï¿½ï¿½Û¾ï¿½ ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½. 
+//#if 0		//** ½ºÅ³ ºÀÀÎÇØÁ¦ ±â´ÉÀÌ µé¾î°¥ ¶§ ¿©±â¿¡ Ãß°¡ÀÛ¾÷ ÇØ ÁÖ¼¼¿ä. 
 ////{{AFX
 //	if( NULL != pStaticRequireCash->GetString(0) )
 //	{
-//		//** ï¿½ï¿½ï¿½â¿¡ ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½
-//		int iRequireCash = pSkillTemplet->ï¿½ï¿½ï¿½ï¿½;
+//		//** ¿©±â¿¡ ÇØ´ç ½ºÅ³ÀÇ ºÀÀÎÇØÁ¦¼­ °¡°ÝÀ» ½á ÁÖ¼¼¿ä
+//		int iRequireCash = pSkillTemplet->°¡°Ý;
 //		WCHAR buf[256] = {0,};
 //		//wsprintf( buf, L"(%d%s)", iRequireCash, GET_STRING(STR_ID_34) );
 //		StringCchPrintf( buf, 256, L"(%d%s)", iRequireCash, GET_STRING(STR_ID_34) );
@@ -3249,10 +3587,10 @@ void CX2UISkillTreeNew::OpenSkillUnsealInformDLG( const CX2SkillTree::SkillTempl
 //	if( NULL != pStaticRequireItem->GetString(0) )
 //	{
 //
-//		//** ï¿½ï¿½ï¿½â¿¡ ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö¼ï¿½ï¿½ï¿½
+//		//** ¿©±â¿¡ ÇØ´ç ½ºÅ³ÀÇ ºÀÀÎÇØÁ¦¼­ ÀÌ¸§À» ½á ÁÖ¼¼¿ä
 //		WCHAR buf[256] = {0,};
-//		wsprintf( buf, L"%s", pSkillTemplet->ï¿½Ê¿ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ );
-//		StringCchPrintf( buf, 256, L"%s", pSkillTemplet->ï¿½Ê¿ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ );
+//		wsprintf( buf, L"%s", pSkillTemplet->ÇÊ¿äÇÑ¾ÆÀÌÅÛÀÌ¸§ );
+//		StringCchPrintf( buf, 256, L"%s", pSkillTemplet->ÇÊ¿äÇÑ¾ÆÀÌÅÛÀÌ¸§ );
 //		pStaticRequireCash->GetString(0)->msg = buf;
 //	}
 //	else
@@ -3269,14 +3607,20 @@ void CX2UISkillTreeNew::OpenSkillUnsealInformDLG( const CX2SkillTree::SkillTempl
 		
 }
 
-// SlotManagerï¿½ï¿½ ItemDesc ï¿½ï¿½ ï¿½Úµå¸¦ ï¿½Ü¾ï¿½ï¿½ï¿½ï¿½
+// SlotManagerÀÇ ItemDesc ÂÊ ÄÚµå¸¦ ±Ü¾î¿ÔÀ½
 void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkillID /*= CX2SkillTree::SI_NONE*/, D3DXVECTOR2 pos /*= D3DXVECTOR2(0,0)*/, 
 								    D3DXVECTOR2 size /*= D3DXVECTOR2(0,0)*/, bool bEquipped /*= false*/ )
 {
 	if(m_pDLGSkillToolTip == NULL )
 	{
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¾ï¿½Î±ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÅøÆÁ ´ÙÀÌ¾ó·Î±× »ý¼º
+		
+#ifdef MOVIE_TEST
+		m_pDLGSkillToolTip = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Skill_Desc_Video.lua", 0.07f, XDL_POP_UP );
+#else	// MOVIE_TEST
 		m_pDLGSkillToolTip = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Skill_Desc.lua", 0.07f, XDL_POP_UP );
+#endif // MOVIE_TEST
+
 
 		if ( NULL != m_pDLGSkillToolTip )
 			g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGSkillToolTip );
@@ -3284,7 +3628,7 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 			return;
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½..
+	// ¿©±âºÎÅÍ..
 
 	if(bShow)
 	{	
@@ -3295,7 +3639,6 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 			 NULL == g_pData->GetTitleManager() ||
 			 NULL == g_pData->GetMyUser() ||
 			 NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-			 NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() ||
 			 NULL == g_pKTDXApp ||
 			 NULL == g_pKTDXApp->GetDGManager() ||
 			 NULL == g_pKTDXApp->GetDGManager()->GetDialogManager() ||
@@ -3305,33 +3648,49 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 			return;
 		}
 
-		CKTDGUIControl::UIStringData* pTitleStringData		= pItemDesc->GetString( 0 );	/// Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½Å³ ï¿½Ì¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
-		CKTDGUIControl::UIStringData* pMainStringData		= pItemDesc->GetString( 1 );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È¿ï¿½ï¿½ )
-		CKTDGUIControl::UIStringData* pSubStringData		= pItemDesc->GetString( 2 );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½Å³ Å¸ï¿½ï¿½, ï¿½Ò¸ï¿½ MP, ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ )
+		CKTDGUIControl::UIStringData* pTitleStringData		= pItemDesc->GetString( 0 );	/// Å¸ÀÌÆ² ÅøÆÁ ½ºÆ®¸µ µ¥ÀÌÅÍ ( ½ºÅ³ ÀÌ¸§ ¹× ·¹º§ )
+		CKTDGUIControl::UIStringData* pMainStringData		= pItemDesc->GetString( 1 );	/// ¸ÞÀÎ ½ºÅ³ ¼³¸í ÅøÆÁ ½ºÆ®¸µ µ¥ÀÌÅÍ ( ½ºÅ³ ¼³¸í ¹× È¿°ú )
+		CKTDGUIControl::UIStringData* pSubStringData		= pItemDesc->GetString( 2 );	/// ¼­ºê ½ºÅ³ ÅøÆÁ ½ºÆ®¸µ µ¥ÀÌÅÍ ( ½ºÅ³ Å¸ÀÔ, ¼Ò¸ð MP, Àç»ç¿ë ½Ã°£ )
 
-		CKTDGUIControl::CPictureData* pMainPictureData		= pItemDesc->GetPicture( 0 );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		CKTDGUIControl::CPictureData* pIconPictureData		= pItemDesc->GetPicture( 1 );	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-		CKTDGUIControl::CPictureData* pUseSkillPictureData	= pItemDesc->GetPicture( 2 );	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		CKTDGUIControl::CPictureData* pMainPictureData		= pItemDesc->GetPicture( 0 );	/// ¸ÞÀÎ ½ºÅ³ ¼³¸í ÅøÆÁ ¹è°æ ÀÌ¹ÌÁö µ¥ÀÌÅÍ
+		CKTDGUIControl::CPictureData* pIconPictureData		= pItemDesc->GetPicture( 1 );	/// ½ºÅ³ ¾ÆÀÌÄÜ ÀÌ¹ÌÁö µ¥ÀÌÅÍ
+		
+#ifdef MOVIE_TEST
+		CKTDGUIControl::CMovieData* pUseSkillMovieData				= pItemDesc->GetMovie( 0 );		/// ½ºÅ³ ½ÃÀü ¿µ»ó
+#else	// MOVIE_TEST
+		CKTDGUIControl::CPictureData* pUseSkillPictureData	= pItemDesc->GetPicture( 2 );	/// ½ºÅ³ ½ÃÀü »ùÇÃ ÀÌ¹ÌÁö µ¥ÀÌÅÍ
+#endif // MOVIE_TEST
+
 
 		if ( NULL == pTitleStringData ||
 			 NULL == pMainStringData ||
 			 NULL == pSubStringData ||
 			 NULL == pMainPictureData ||
 			 NULL == pIconPictureData ||
-			 NULL == pUseSkillPictureData )
+#ifdef MOVIE_TEST
+			 NULL == pUseSkillMovieData
+#else	// MOVIE_TEST
+			NULL == pUseSkillPictureData
+#endif // MOVIE_TEST
+
+			 )
 		{
 			m_pDLGSkillToolTip->SetShow(false);
 			return;
 		}
 
 		
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -------------------------------------------------------------------------------------
-		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+		/// ½ºÅ³ ·¹º§ ¿¬»ê -------------------------------------------------------------------------------------
+		const CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;
 		
-		int iSkillLevel = refUserSkillTree.GetSkillLevel( eSkillID , true );		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+		int iSkillLevel = refUserSkillTree.GetSkillLevel( eSkillID , true );		/// ½ºÅ³ ·¹º§ ( ½ÇÁ¦·Î ¼³Á¤µÇ¾î ÀÖ´Â ·¹º§ )
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½
+		/// ¸¸¾à ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖÀ¸¸ç, ÀåºñµÈ ½ºÅ³ÀÇ ÅøÆÁÀÌ ¾Æ´Ò ¶§
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+		if ( true == m_bNowLearnSkill && false == bEquipped && refUserSkillTree.IsUsingPage() )
+#else //SKILL_PAGE_SYSTEM
 		if ( true == m_bNowLearnSkill && false == bEquipped )
+#endif //SKILL_PAGE_SYSTEM
 		{
 			const std::map<int, KGetSkillInfo> mapSkillInfo = g_pData->GetSkillTree()->GetMapSkillInfo();
 
@@ -3341,7 +3700,7 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 				iSkillLevel = it->second.m_iSkillLevel;
 		}
 
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½È¯ -----------------------------------------------------------------------------------
+		/// ½ºÅ³ ÅÛÇÃ¸´ ¹ÝÈ¯ -----------------------------------------------------------------------------------
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 		m_bReplacedEsCounter = false;
 		if( bEquipped == true && eSkillID == CX2SkillTree::SI_A_ES_COUNTER )
@@ -3360,125 +3719,141 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( eSkillID );
 
-		if ( NULL == pSkillTemplet )	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		if ( NULL == pSkillTemplet )	/// ½ºÅ³ ÅÛÇÃ¸´ÀÌ ¾øÀ¸¸é, ÅøÆÁÀ» ¼û°Ü ¹ö¸®ÀÚ
 		{
 			m_pDLGSkillToolTip->SetShow(false);
 			return;
 		}
 		
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ --------------------------------------------------------
-		/// È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½Ä¡
+		/// ½ºÅ³ ·¹º§ Áõ°¡ ¹öÇÁ ¹× ¼ÒÄÏÀ¸·Î Áõ°¡µÈ ·¹º§ --------------------------------------------------------
+		/// È¿°ú·Î ÀÎÇØ Áõ°¡µÈ ½ºÅ³ ¼öÄ¡
 		int iIncreasekillLevel = 0;
 
-		/// ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ò¶ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÆÐ½Ãºê ½ºÅ³ÀÌ ¾Æ´Ò¶§¸¸ Ãß°¡ ½ºÅ³ ·¹º§ ¿¬»ê
 		switch( pSkillTemplet->m_eType )
 		{
 		case CX2SkillTree::ST_BUFF:		
 		case CX2SkillTree::ST_ACTIVE:
 		case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM		// ÇØ¿ÜÆÀ ¿À·ù ¼öÁ¤
+		case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif FINALITY_SKILL_SYSTEM
 			{
 				iIncreasekillLevel = g_pData->GetMyUser()->GetSelectUnit()->GetIncreaseSkillLevelByBuff() + 
 									 g_pData->GetMyUser()->GetSelectUnit()->GetIncreaseSkillLevelBySocket( eSkillID );
 			} break;
 		}
 
-		/// ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½Ñ°ï¿½Ä¡ï¿½ï¿½ ï¿½Ñ´Â´Ù¸ï¿½, ï¿½Ñ°ï¿½Ä¡ï¿½ï¿½ ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// Áõ°¡Ä¡±îÁö ÇÕÇØ¼­ ÇÑ°èÄ¡¸¦ ³Ñ´Â´Ù¸é, ÇÑ°èÄ¡¿¡ ¸Â°Ô Á¶Á¤
 		if ( iSkillLevel + iIncreasekillLevel > MAX_LIMITED_SKILL_LEVEL )
 			iIncreasekillLevel = MAX_LIMITED_SKILL_LEVEL - iSkillLevel;
 
 		
-		/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½È¯ ------------------------------------------------------------------------------
+		/// ½ºÅ³ Æ®¸® ÅÛÇÃ¸´ ¹ÝÈ¯ ------------------------------------------------------------------------------
 		int										iUnitClass			= static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );
 		const CX2SkillTree::SkillTreeTemplet*	pSkillTreeTemplet	= g_pData->GetSkillTree()->GetSkillTreeTemplet( iUnitClass, pSkillTemplet->m_eID );
 
 
-		if ( NULL == pSkillTreeTemplet )	/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		if ( NULL == pSkillTreeTemplet )	/// ½ºÅ³ Æ®¸® ÅÛÇÃ¸´ÀÌ ¾øÀ¸¸é, ÅøÆÁÀ» ¼û°Ü ¹ö¸®ÀÚ
 		{
 			m_pDLGSkillToolTip->SetShow(false);
 			return;
 		}
 
 
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -----------------------------------------------------------------------------------
+		/// ½ºÅ³ ¾ÆÀÌÄÜ ¼³Á¤ -----------------------------------------------------------------------------------
 		pIconPictureData->SetTex( pSkillTemplet->m_wstrIconName.c_str(), pSkillTemplet->m_wstrIconPieceName.c_str() );
 		//pIconPictureData->SetSize( D3DXVECTOR2( 30.f, 30.f ) );
 
 
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -------------------------------------------------------------------------
+		/// ½ºÅ³ ½ÃÀü »ùÇÃ ÀÌ¹ÌÁö ¼³Á¤ -------------------------------------------------------------------------
+		
+		
+#ifdef MOVIE_TEST
+		if ( !pSkillTemplet->m_wstrImageName.empty() )
+		{
+			pUseSkillMovieData->SetShow( true );
+			pUseSkillMovieData->SetMovieFileName( pSkillTemplet->m_wstrImageName.c_str() );
+		}
+		else
+			pUseSkillMovieData->SetShow( false );
+#else	// MOVIE_TEST
 		if ( L"" != pSkillTemplet->m_wstrImageName && L"" != pSkillTemplet->m_wstrImagePieceName )
 		{
-			pUseSkillPictureData->SetShow( true );		/// ï¿½ï¿½Å³ ï¿½Ì¹ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+			pUseSkillPictureData->SetShow( true );		/// ½ºÅ³ ÀÌ¹ÌÁö°¡ ¼³Á¤µÇ¾î ÀÖÀ» ¶§¸¸ Ç¥½Ã
 			pUseSkillPictureData->SetTex( pSkillTemplet->m_wstrImageName.c_str(), pSkillTemplet->m_wstrImagePieceName.c_str() );
 		}
 		else
 		{
 			pUseSkillPictureData->SetShow( false );
 		}
+#endif // MOVIE_TEST
+
 
 		
-		/// Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -----------------------------------------------------------------------------------
+		/// Å¸ÀÌÆ² ÅøÆÁ ¼³Á¤ -----------------------------------------------------------------------------------
 		wstring SkillSkillNameAndLevelDesc = L""; 
 
-		GetSkillTitleDesc( SkillSkillNameAndLevelDesc, pSkillTemplet, pSkillTreeTemplet, iSkillLevel, iIncreasekillLevel );		/// ï¿½ï¿½Å³ ï¿½Ì¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		GetSkillTitleDesc( SkillSkillNameAndLevelDesc, pSkillTemplet, pSkillTreeTemplet, iSkillLevel, iIncreasekillLevel );		/// ½ºÅ³ ÀÌ¸§ ¹× ·¹º§ ½ºÆ®¸µ »ý¼º
 
-		if( SkillSkillNameAndLevelDesc.empty() == true )		/// ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		if( SkillSkillNameAndLevelDesc.empty() == true )		/// ½ºÆ®¸µÀÌ ¾øÀ¸¸é, ÅøÆÁÀ» ¼û°Ü ¹ö¸®ÀÚ
 		{
 			m_pDLGSkillToolTip->SetShow(false);
 			return;
 		}
 
-		/// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ½ºÆ®¸µ ¼³Á¤
 		pTitleStringData->msg	= SkillSkillNameAndLevelDesc;
 
-		/// ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+		/// À§Ä¡ ¼³Á¤ ( ½ºÅ³ ¾ÆÀÌÄÜ ¿·À¸·Î Á¶Á¤ )
 		pTitleStringData->pos.x	= pMainStringData->pos.x + 45.f;
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -------------------------------------------------------------------------------------
+		/// ¼­ºê ÅøÆÁ »ý¼º -------------------------------------------------------------------------------------
 		wstring SkillSubDesc = L"";
 
 		const int iSubDeskSkillLevel = 0 < iSkillLevel ? iSkillLevel + iIncreasekillLevel : 1;
 
-		GetSkillSubDesc( pSkillTemplet, iSubDeskSkillLevel, SkillSubDesc );		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		GetSkillSubDesc( pSkillTemplet, iSubDeskSkillLevel, SkillSubDesc );		/// ¼­ºê ÅøÆÁ ½ºÆ®¸µ »ý¼º
 
-		if( SkillSubDesc.empty() == true )			/// ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		if( SkillSubDesc.empty() == true )			/// ½ºÆ®¸µÀÌ ¾øÀ¸¸é, ÅøÆÁÀ» ¼û°Ü ¹ö¸®ÀÚ
 		{
 			m_pDLGSkillToolTip->SetShow(false);
 			return;
 		}
 
-		/// ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ½ºÆ®¸µ ¼³Á¤
 		pSubStringData->msg		= SkillSubDesc;
 
 		
 		wstring wstrMainSkillDesc = L"";
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ --------------------------------------------------------------------------------
-		if ( 0 < pSkillTreeTemplet->m_iPrecedingSkill )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ 
+		/// ¼±Çà ½ºÅ³ ÅøÆÁ ¼³Á¤ --------------------------------------------------------------------------------
+		if ( 0 < pSkillTreeTemplet->m_iPrecedingSkill )		/// ¼±Çà ½ºÅ³ÀÌ ÀÖÀ» ¶§, ¼±Çà ½ºÅ³ 
 			GetPrecedingSkillDesc( wstrMainSkillDesc, static_cast<CX2SkillTree::SKILL_ID>( pSkillTreeTemplet->m_iPrecedingSkill ) );
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ---------------------------------------------------------------
+		/// ºÀÀÎ ½ºÅ³ ¾ÆÀÌÅÛ ±¸ÀÔ ¾È³» ÅøÆÁ ¼³Á¤ ---------------------------------------------------------------
 		if( true == pSkillTemplet->m_bBornSealed && false == refUserSkillTree.IsSkillUnsealed( eSkillID ) )
 			GetSkillUnSealedDesc( wstrMainSkillDesc, eSkillID );
 
 		
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -------------------------------------------------------------------------------------
-		wstrMainSkillDesc += pSkillTemplet->m_wstrMainDesc;					/// ï¿½ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ß°ï¿½ ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½ )
+		/// ÅøÆÁ º»¹® ¼³Á¤ -------------------------------------------------------------------------------------
+		wstrMainSkillDesc += pSkillTemplet->m_wstrMainDesc;					/// °øÅëµÇ´Â ½ºÅ³ ¼³¸í ½ºÆ®¸µ Ãß°¡ ( °øÅë ¼³¸í°ú ½ºÅ³ È¿°ú »çÀÌ¿¡ ¼±À» ³Ö±â À§ÇØ, º»¹® ºÐ¸® )
 
 		wstrMainSkillDesc += L"\n";
 
-		/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÁÙ Á¤¸®
 		wstrMainSkillDesc = g_pMain->GetStrByLineBreakColor
 			( wstrMainSkillDesc.c_str(), static_cast<int>( MAGIC_SKILL_DESC_WIDTH ), SLOT_MANAGER_FONT_INDEX );
 
 		
-		/// ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -------------------------------------------------------------------------------------
+		/// ÅøÆÁ Å©±â ¼³Á¤ -------------------------------------------------------------------------------------
 		CKTDGFontManager::CUKFont* pItemDescFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( SLOT_MANAGER_FONT_INDEX );	/// XUF_DODUM_13_SEMIBOLD
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ¸ÞÀÎ ÅøÆÁ ½ºÆ®¸µ ³ôÀÌ
 		int iMainDescHeight = static_cast<int>( pItemDescFont->GetHeight( wstrMainSkillDesc.c_str() ) );
 
-		/// ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+		/// ±ÛÀÚ°£ °£°Ý Ã³¸®
 		int iLineNum = 0;
 		int iOffSetSize = wstrMainSkillDesc.find( L"\n", 0 );
 		while( iOffSetSize != -1 )
@@ -3489,16 +3864,16 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 		}
 		iMainDescHeight += iLineNum;
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Y ï¿½ï¿½Ä¡
+		/// ¸ÞÀÎ ÅøÆÁ Y À§Ä¡
 		int iMainDescYPos = static_cast<int>( pTitleStringData->pos.y + SKILL_MAIN_DESC_OFFSET_Y );
 
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÅøÆÁÀÇ °¡·Î »çÀÌÁî °­Á¦ ¼³Á¤
 		int			itemDescWidth		= static_cast<int>( MAGIC_SKILL_DESC_WIDTH ) + ITEM_DESC_ADD_SIZE_X;
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÅøÆÁÀÇ ¼¼·Î »çÀÌÁî ¿¬»ê
 		int			itemDescHeight		= static_cast<int>( iMainDescHeight / g_pKTDXApp->GetResolutionScaleY() );
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ò¼ï¿½ ï¿½ß°ï¿½ ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+		/// ÅøÆÁ ³» ºÐÇÒ¼± Ãß°¡ ( °øÅë ¼³¸í°ú ½ºÅ³ È¿°ú »çÀÌ )
 		CKTDGUIStatic* pDevideLine = static_cast<CKTDGUIStatic*>( m_pDLGSkillToolTip->GetControl(L"g_pStatic_HorizonLine") );
 		if ( NULL != pDevideLine && 
 			 NULL != pDevideLine->GetPicture( 0 ) && 
@@ -3512,20 +3887,20 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 		}
 
 
-		/// ï¿½ï¿½Å³ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï¼ï¿½ )
+		/// ½ºÅ³ È¿°ú ÅøÆÁ ¹ÝÈ¯ ( °øÅë ¼³¸í±îÁöÀÇ ±æÀÌ¸¸ ±¸ÇÑ ÈÄ ÇØ´ç À§Ä¡¿¡ ¼± »ðÀÔ, ÀÌÈÄ ³ª¸ÓÁö ½ºÆ®¸µ ¿¬°áÇÏ¿© ÅøÆÁ ¿Ï¼º )
 		GetSkillEffectiveDesc( wstrMainSkillDesc, iSkillLevel, iIncreasekillLevel, pSkillTemplet );
 
-		/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÁÙ Á¤¸®
 		wstrMainSkillDesc = g_pMain->GetStrByLineBreakColor
 			( wstrMainSkillDesc.c_str(), static_cast<int>( MAGIC_SKILL_DESC_WIDTH ), SLOT_MANAGER_FONT_INDEX );
 
-		pMainStringData->msg = wstrMainSkillDesc;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		pMainStringData->msg = wstrMainSkillDesc;		/// ÅøÆÁ ¸ÞÀÎ º»¹® ½ºÆ®¸µ ¼³Á¤
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ + ï¿½ï¿½Å³ È¿ï¿½ï¿½ )
+		/// ¸ÞÀÎ ÅøÆÁ ½ºÆ®¸µ ³ôÀÌ ( °øÅë ¼³¸í + ½ºÅ³ È¿°ú )
 		iMainDescHeight = static_cast<int>( pItemDescFont->GetHeight( pMainStringData->msg.c_str() ) + SKILL_MAIN_DESC_OFFSET_Y );
 
-		/// ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+		/// ±ÛÀÚ°£ °£°Ý Ã³¸®
 		iLineNum = 0;
 		iOffSetSize = wstrMainSkillDesc.find( L"\n", 0 );
 		while( iOffSetSize != -1 )
@@ -3537,22 +3912,30 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 		iMainDescHeight += iLineNum;
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ + ï¿½ï¿½Å³ È¿ï¿½ï¿½ )
+		/// ÅøÆÁ ³ôÀÌ Àç ¿¬»ê ( °øÅë ¼³¸í + ½ºÅ³ È¿°ú )
 		itemDescHeight	= static_cast<int>( iMainDescHeight / g_pKTDXApp->GetResolutionScaleY() ) + ITEM_DESC_ADD_SIZE_Y;
 
-		pTitleStringData->fontIndex	= SLOT_MANAGER_FONT_INDEX;	/// Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pMainStringData->fontIndex	= SLOT_MANAGER_FONT_INDEX;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pSubStringData->fontIndex	= SLOT_MANAGER_FONT_INDEX;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ® Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		pTitleStringData->fontIndex	= SLOT_MANAGER_FONT_INDEX;	/// Å¸ÀÌÆ² ÅøÆÁ ÆùÆ® Å©±â º¯°æ
+		pMainStringData->fontIndex	= SLOT_MANAGER_FONT_INDEX;	/// ¸ÞÀÎ ÅøÆÁ ÆùÆ® Å©±â º¯°æ
+		pSubStringData->fontIndex	= SLOT_MANAGER_FONT_INDEX;	/// ¼­ºê ÅøÆÁ ÆùÆ® Å©±â º¯°æ
 
 
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ---------------------------------------------------------------------------
+		/// ½ºÅ³ ÅøÆÁ »ý¼º À§Ä¡ ÁöÁ¤ ---------------------------------------------------------------------------
 		int itemDescPosX = 0;
 		int itemDescPosY = 0;
 
-		int iDescWidthWithPicture = true == pUseSkillPictureData->GetShow() ?
-			static_cast<int>( itemDescWidth + ( 10.f * g_pKTDXApp->GetResolutionScaleX() ) + pUseSkillPictureData->GetSize().x ) : itemDescWidth;
+		int iDescWidthWithPicture = 
+			
+#ifdef MOVIE_TEST
+		( true == pUseSkillMovieData->GetShow() ?
+			static_cast<int>( itemDescWidth + ( 10.f * g_pKTDXApp->GetResolutionScaleX() ) + pUseSkillMovieData->GetSize().x ) : itemDescWidth );
+#else	// MOVIE_TEST
+		( true == pUseSkillPictureData->GetShow() ?
+			static_cast<int>( itemDescWidth + ( 10.f * g_pKTDXApp->GetResolutionScaleX() ) + pUseSkillPictureData->GetSize().x ) : itemDescWidth );
+#endif // MOVIE_TEST
 
-		if ( pos.x + ( size.x / 2 ) - ( iDescWidthWithPicture / 2 ) >= 0 ) /// ï¿½ï¿½ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+
+		if ( pos.x + ( size.x / 2 ) - ( iDescWidthWithPicture / 2 ) >= 0 ) /// ¿ÞÂÊ¿¡ °ø°£ÀÌ ÃæºÐÇÑ °æ¿ì
 		{
 			if ( pos.x+ ( size.x / 2 ) - ( iDescWidthWithPicture / 2 ) + iDescWidthWithPicture > 1024 )
 			{
@@ -3568,47 +3951,53 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 			itemDescPosX = 0;
 		}
 
-		/// ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö´Â°ï¿½ï¿½
+		/// °¡¸®Å°°í ÀÖ´Â ½ºÅ³ ½½·Ô À§ÂÊÀ¸·Î ÅøÆÁÀ» Ç¥½ÃÇÒ ¼ö ÀÖ´Â°æ¿ì
 		if ( static_cast<int>( pos.y ) - itemDescHeight >= 0 )
 		{
-			/// ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ + ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			/// °¡¸®Å°°í ÀÖ´Â ½ºÅ³ ½½·Ô À§Ä¡ + ÅøÆÁ »çÀÌÁî
 			itemDescPosY =  static_cast<int>( pos.y ) - itemDescHeight;
 		}
-		else	/// ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+		else	/// °¡¸®Å°°í ÀÖ´Â ½ºÅ³ ½½·Ô ¾Æ·¡¿¡ Ç¥½Ã
 		{
-			itemDescPosY = static_cast<int>( pos.y + size.y );		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Bottom ï¿½ï¿½Ä¡
+			itemDescPosY = static_cast<int>( pos.y + size.y );		/// ½ºÅ³ ½½·ÔÀÇ Bottom À§Ä¡
 
-			int iBottomOverSize = 768 - (itemDescPosY + itemDescHeight );	/// È­ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ¾î°¡ï¿½ï¿½ Å©ï¿½â¸¦ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Bottom ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½.
+			int iBottomOverSize = 768 - (itemDescPosY + itemDescHeight );	/// È­¸éÀ» ³Ñ¾î°¡´Â Å©±â¸¦ °è»êÇÏ¿©, ½ºÅ³ ½½·ÔÀÇ Bottom À§Ä¡¿¡ Áõ°¡ ½ÃÄÑ ÁØ´Ù.
 
 			if ( iBottomOverSize < 0 )
 				itemDescPosY += iBottomOverSize;
 		}
 
-		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Îºï¿½ï¿½ï¿½ È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ¼³¸í À§ºÎºÐÀÌ È­¸é ¹ÛÀ¸·Î ³ª°¡Áö ¾Êµµ·Ï Á¦ÇÑ
 		if( itemDescPosY < 0 )
 			itemDescPosY = 0;
 		
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+		/// ÅøÆÁ À§Ä¡ ¼³Á¤
 		m_pDLGSkillToolTip->SetPos( D3DXVECTOR2( static_cast<float>( itemDescPosX ), static_cast<float>( itemDescPosY ) ) );
 		
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ÅøÆÁ ¹è°æ ¼³Á¤
 		pMainPictureData->SetSize( D3DXVECTOR2( static_cast<float>( itemDescWidth ), static_cast<float>( itemDescHeight ) ) );
 		pMainPictureData->pPoint->color = D3DXCOLOR( 1,1,1,0.7f );
 
 		bool bCheckEquipping = false;
 
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ yï¿½ï¿½Ç¥ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 
-		/// ( Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ + Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ + Å¸ï¿½ï¿½Æ² ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+		/// ¸ÞÀÎ ¼³¸í ÅøÆÁÀÇ yÁÂÇ¥¸¦ Å¸ÀÌÆ² ÅøÆÁÀÇ À§Ä¡¿¡ ¸ÂÃç ¼³Á¤ 
+		/// ( Å¸ÀÌÆ² ÅøÆÁÀÌ °¡Àå »ó´Ü¿¡ ÀÖÀ¸¹Ç·Î, ±âÁØÀ¸·Î ¼³Á¤ÇÏ¿© Á¶Á¤ + Å¸ÀÌÆ² »ó´Ü ½ºÆ®¸µ ³ôÀÌ + Å¸ÀÌÆ² ½ºÆ®¸µ°ú ¸ÞÀÎ ¼³¸í Å¸ÀÌÆ² »çÀÌÀÇ °£°Ý )
 		pMainStringData->pos.y = static_cast<float>( iMainDescYPos );
 
-		/// Å¸ï¿½ï¿½Æ² ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+		/// Å¸ÀÌÆ² ½ºÆ®¸µ À§Ä¡ ¼³Á¤ ( ½ºÅ³ ¾ÆÀÌÄÜ ¿·À¸·Î Á¶Á¤ )
 		pTitleStringData->pos.x	= pMainStringData->pos.x + 45.f;
 
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 'ï¿½Ø½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½'ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+		/// ¼­ºê ÅøÆÁ À§Ä¡¸¦ ¸ÞÀÎ ÅøÆÁ °¡·Î ±æÀÌ¿¡ ¸ÂÃç ¼³Á¤ ( ÅøÆÁ Å©±âÀÇ °¡Àå ¿ìÃø¿¡¼­ 'ÅØ½ºÆ® ¿À¸¥ÂÊ Á¤·Ä'·Î ¼³Á¤ )
 		pSubStringData->pos.x	= static_cast<float>( pMainStringData->pos.x + MAGIC_SKILL_DESC_WIDTH - 15.f );
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ + Offset )
+		
+		/// ½ºÅ³ ½ÃÀü »ùÇÃ ÀÌ¹ÌÁö À§Ä¡ Á¶Á¤ ( ÅøÆÁ ¿À¸¥ÂÊ ³¡ + Offset )
+#ifdef MOVIE_TEST
+		pUseSkillMovieData->SetOriginPos( D3DXVECTOR2( static_cast<float>(itemDescWidth ) + ( 10.f * g_pKTDXApp->GetResolutionScaleX() ), 0.f ) );
+#else	// MOVIE_TEST
 		pUseSkillPictureData->SetPos( D3DXVECTOR2( static_cast<float>(itemDescWidth ) + ( 10.f * g_pKTDXApp->GetResolutionScaleX() ), 0.f ) );
+#endif // MOVIE_TEST
+
 
 
 		m_pDLGSkillToolTip->SetShow( true );
@@ -3622,8 +4011,8 @@ void CX2UISkillTreeNew::ShowSkillDesc( bool bShow, CX2SkillTree::SKILL_ID eSkill
 }
 
 /** @function	: GetSkillDesc
-	@brief		: ï¿½ï¿½Å³ È¿ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param		: ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ß°ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½
+	@brief		: ½ºÅ³ È¿°ú¸¦ Ç¥½ÃÇÏ´Â ¸ÞÀÎ ÅøÆÁ »ý¼º
+	@param		: ½ºÆ®¸µ ÂüÁ¶ÀÚ, ½ºÅ³ ·¹º§, Ãß°¡ ½ºÅ³ ·¹º§, ½ºÅ³ ÅÛÇÃ¸´
 */
 void CX2UISkillTreeNew::GetSkillEffectiveDesc( OUT wstring& wstrDesc, IN int iSkillLevel, int iIncreasekillLevel, IN const CX2SkillTree::SkillTemplet* pSkillTemplet ) const
 {
@@ -3634,75 +4023,99 @@ void CX2UISkillTreeNew::GetSkillEffectiveDesc( OUT wstring& wstrDesc, IN int iSk
 
 	wstrDesc += L"\n";
 
-	if ( 0 < iSkillLevel )		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ Å¬ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½
+	if ( 0 < iSkillLevel )		/// ½ºÅ³ ·¹º§ÀÌ 0º¸´Ù Å¬ ¶§¸¸, ÇöÀç ·¹º§ ½ºÅ³ È¿°ú Ãâ·Â
 	{
 		wstrDesc += L"\n";
 
-		wstrDesc += GET_STRING( STR_ID_25071 );	/// <ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½>
+		wstrDesc += GET_STRING( STR_ID_25071 );	/// <ÇöÀç ·¹º§>
 
 		wstrDesc += L"\n";
 
-		wstrDesc += pSkillTemplet->GetSkillEffectiveDescValue( iSkillLevel + iIncreasekillLevel );			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		wstrDesc += pSkillTemplet->GetSkillEffectiveDescValue( iSkillLevel + iIncreasekillLevel );			/// ÇöÀç ·¹º§¿¡ ´ëÇÑ ½ºÅ³ È¿°ú ÅøÆÁ ¼³Á¤
 	}
 
 
-	if ( MAX_LIMITED_SKILL_LEVEL > iSkillLevel )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ°èº¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+	if ( MAX_LIMITED_SKILL_LEVEL > iSkillLevel )		/// ÇöÀç ½ºÅ³ ·¹º§ÀÌ ÃÖ´ë ½ºÅ³ ·¹º§ ÇÑ°èº¸´Ù ³·À» ¶§, ´ÙÀ½ ·¹º§ Ç¥½Ã
 	{
 		if ( NULL != g_pData &&
 			 NULL != g_pData->GetMyUser() && 
-			 NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-			 NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+			 NULL != g_pData->GetMyUser()->GetSelectUnit() )
 		{
-			const int iUnitLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-			const int iNextLevel = 0 == iSkillLevel ? 1 : iSkillLevel + iIncreasekillLevel + 1;		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½Ì¸ï¿½, 1ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+			const int iUnitLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level;	/// À¯´ÖÀÇ ·¹º§
+			const int iNextLevel = 0 == iSkillLevel ? 1 : iSkillLevel + iIncreasekillLevel + 1;		/// ·¹º§ÀÌ 0ÀÌ¸é, 1·¹º§ Ç¥½Ã
 
-			/// ï¿½ä±¸ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-			wstring wstrRequireLevel = L"";
 
-			/// ï¿½ä±¸ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½Âµï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¹Ç·ï¿½, ï¿½ß°ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½. )
-			const int iRequireLevel = pSkillTemplet->GetSkillRequireLevelValue( iSkillLevel + 1 );
+#ifdef HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC // ±èÅÂÈ¯
+			/// ´ÙÀ½ ·¹º§ÀÇ ÅøÆÁÀÌ ÀÖÀ»¶§¸¸ Ãâ·Â ÇÑ´Ù.
+			const wstring wstrNextEffectiveDesc =  pSkillTemplet->GetSkillEffectiveDescValue( iNextLevel );
 
-			if ( iUnitLevel >= iRequireLevel )
-				wstrRequireLevel = GET_REPLACED_STRING( ( STR_ID_25173, "i", iRequireLevel ) );		/// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ @1 ï¿½Ì»ï¿½
-			else	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+			if ( 0 != wstrNextEffectiveDesc.compare( L"" ) )
+#endif //HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC
 			{
-				wstrRequireLevel =  L"#CFF0000";
-				wstrRequireLevel += GET_REPLACED_STRING( ( STR_ID_25173, "i", iRequireLevel ) );	/// Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ @1 ï¿½Ì»ï¿½
-				wstrRequireLevel += L"#C878787";
-			}
+				/// ¿ä±¸ ·¹º§ Ç¥½Ã ½ºÆ®¸µ ¼³Á¤
+				wstring wstrRequireLevel = L"";
 
-			if ( 0 < iSkillLevel )
+				/// ¿ä±¸ ·¹º§ ¹ÝÈ¯ ( ´ÙÀ½ ½ºÅ³ ·¹º§À» ¿Ã¸®´Âµ¥ ÇÊ¿äÇÑ ·¹º§ÀÌ¹Ç·Î, Ãß°¡µÇ´Â ·¹º§Àº º£Á¦ÇÑ´Ù. )
+				const int iRequireLevel = pSkillTemplet->GetSkillRequireLevelValue( iSkillLevel + 1 );
+
+				if ( iUnitLevel >= iRequireLevel )
+					wstrRequireLevel = GET_REPLACED_STRING( ( STR_ID_25173, "i", iRequireLevel ) );		/// Ä³¸¯ÅÍ ·¹º§ @1 ÀÌ»ó
+				else	/// ÇöÀç À¯´Ö ·¹º§ÀÌ ºÎÁ·ÇÏ¸é, »¡°£»ö Ã³¸®
+				{
+					wstrRequireLevel =  L"#CFF0000";
+					wstrRequireLevel += GET_REPLACED_STRING( ( STR_ID_25173, "i", iRequireLevel ) );	/// Ä³¸¯ÅÍ ·¹º§ @1 ÀÌ»ó
+					wstrRequireLevel += L"#C878787";
+				}
+
+				if ( 0 < iSkillLevel )
+					wstrDesc += L"\n";
+
+				wstrDesc += L"\n#C878787";			/// ½ºÆ®¸µ È¸»ö Ã³¸® ( R:135, G: 135, B: 135 )
+
+#ifdef BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+				// ÇØ´ç ½ºÅ³ÀÌ ÂïÀ» ¼ö ÀÖ´Â ÃÖ°í ·¹º§ ÀÌ¶ó¸é ( ±âº» 20 )
+				// ´ÙÀ½ ·¹º§¿¡ ´ëÇØ º¸¿©ÁÖÁö ¾Ê´Â´Ù.
+				int										iUnitClass			= static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );		/// À¯´Ö Å¬·¹½º
+				const CX2SkillTree::SkillTreeTemplet*	pSkillTreeTemplet	= g_pData->GetSkillTree()->GetSkillTreeTemplet( iUnitClass, pSkillTemplet->m_eID );	/// ½ºÅ³ Æ®¸® ÅÛÇÃ¸´
+
+				if ( NULL != pSkillTreeTemplet && pSkillTreeTemplet->m_iMaxSkillLevel <= iSkillLevel )
+				{
+
+					wstrDesc += GET_STRING ( STR_ID_25375 );
+				}
+
+				else
+#endif // BALANCE_PATCH_20131107					// ±èÁ¾ÈÆ / 13-10-16, 2013³â ÈÄ¹Ý±â ¹ë·±½º °³Æí
+				{
+					wstrDesc += GET_REPLACED_STRING( ( STR_ID_25072, "L", wstrRequireLevel ) );				/// <´ÙÀ½ ·¹º§ : @1>
+				}
+
 				wstrDesc += L"\n";
 
-			wstrDesc += L"\n#C878787";			/// ï¿½ï¿½Æ®ï¿½ï¿½ È¸ï¿½ï¿½ Ã³ï¿½ï¿½ ( R:135, G: 135, B: 135 )
+				/// ´ÙÀ½ ·¹º§¿¡ ´ëÇÑ ½ºÅ³ È¿°ú ÅøÆÁ ¼³Á¤ ( Ãß°¡µÇ´Â ·¹º§ È¿°ú°¡ ÀÖ´Ù¸é, ÇØ´ç ·¹º§À» Æ÷ÇÔÇÏ¿© ¹ÝÈ¯ )
+				wstrDesc += pSkillTemplet->GetSkillEffectiveDescValue( iNextLevel );
 
-			wstrDesc += GET_REPLACED_STRING( ( STR_ID_25072, "L", wstrRequireLevel ) );				/// <ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ : @1>
+				wstrDesc += L"#CX";
 
-			wstrDesc += L"\n";
+				const int iRequireLearnSkillPoint	= pSkillTemplet->m_iRequireLearnSkillPoint;		/// ½Àµæ½Ã ÇÊ¿äÇÑ SP·®
+				const int iRequireUpgradeSkillPoint = pSkillTemplet->m_iRequireUpgradeSkillPoint;	/// °­È­½Ã ÇÊ¿äÇÑ SP·®
 
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ß°ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½, ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½È¯ )
-			wstrDesc += pSkillTemplet->GetSkillEffectiveDescValue( iNextLevel );
+				/// ½ÇÁ¦ ½ÀµæÁß ·¹º§ ¹ÝÈ¯
+				const int iLearnLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( pSkillTemplet->m_eID );
 
-			wstrDesc += L"#CX";
+				/// ¸¸¾à ½Àµæ°ú °­È­½Ã ÇÊ¿äÇÑ SP·®ÀÌ ´Ù¸£°í, ¾ÆÁ÷ ¹è¿ìÁö ¸øÇÑ ½ºÅ³ÀÏ ¶§, ¾È³» ¹®±¸ Ãâ·Â
+				if ( iRequireLearnSkillPoint != iRequireUpgradeSkillPoint && 0 >= iLearnLevel )
+				{
+					wstrDesc += L"\n\n";
 
-			const int iRequireLearnSkillPoint	= pSkillTemplet->m_iRequireLearnSkillPoint;		/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ SPï¿½ï¿½
-			const int iRequireUpgradeSkillPoint = pSkillTemplet->m_iRequireUpgradeSkillPoint;	/// ï¿½ï¿½È­ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ SPï¿½ï¿½
-
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-			const int iLearnLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( pSkillTemplet->m_eID );
-
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ SPï¿½ï¿½ï¿½ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½, ï¿½È³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-			if ( iRequireLearnSkillPoint != iRequireUpgradeSkillPoint && 0 >= iLearnLevel )
-			{
-				wstrDesc += L"\n\n";
-
-				wstrDesc += GET_REPLACED_STRING( ( STR_ID_25398, "ii", iRequireLearnSkillPoint, iRequireUpgradeSkillPoint ) );
+					wstrDesc += GET_REPLACED_STRING( ( STR_ID_25398, "ii", iRequireLearnSkillPoint, iRequireUpgradeSkillPoint ) );
+				}
 			}
 		}
 	}
 
 #if defined( _IN_HOUSE_ ) || defined( _IN_HOUSE_SERVICE_READY_QA_ ) || defined( _OPEN_TEST_ ) || defined( _OPEN_TEST_2_ )
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½
+	/// °³¹ßÀÚ ±â´É - ½ºÅ³ ¾ÆÀÌµð Ãâ·Â
 	if( true == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
 	{
 		WCHAR buf[256] = {0,};
@@ -3738,21 +4151,21 @@ void CX2UISkillTreeNew::ShowUIDesc( bool bShow, wstring wstr /*= L""*/, D3DXVECT
 }
 
 
-// kimhc // KTDXCommonFuncï¿½ï¿½ ï¿½Å±ï¿½ // 2009-06-16
+// kimhc // KTDXCommonFunc·Î ¿Å±è // 2009-06-16
 //wstring CX2UISkillTreeNew::GetExpirationDateDesc( const wstring& wstrExpirationDate )
 //{
 //	wstring tempDesc = L"";
 //
 //	
 //	tempDesc = GET_STRING( STR_ID_309 );
-//	//tempDesc = L"ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ : ";
+//	//tempDesc = L"¸¸·á ½Ã°£ : ";
 //
 //	CTime cTime;
 //	KncUtil::ConvertStringToCTime( wstrExpirationDate, cTime );
 //
 //	wstringstream wstrstm;
 //
-//	//wstrstm << cTime.GetYear() << L"ï¿½ï¿½ " << cTime.GetMonth() << L"ï¿½ï¿½ " << cTime.GetDay() << L"ï¿½ï¿½ " << cTime.GetHour() << L"ï¿½ï¿½ " << cTime.GetMinute() << L"ï¿½ï¿½"; 
+//	//wstrstm << cTime.GetYear() << L"³â " << cTime.GetMonth() << L"¿ù " << cTime.GetDay() << L"ÀÏ " << cTime.GetHour() << L"½Ã " << cTime.GetMinute() << L"ºÐ"; 
 //	//tempDesc += wstrstm.str().c_str();
 //	//tempDesc += L"\n";
 //
@@ -3850,29 +4263,28 @@ void CX2UISkillTreeNew::UpdateDLGSkillUnsealed( CX2SkillTree::SKILL_ID eSkillID 
 		pStaticSkillName->GetString(0)->msg = pSkillTemplet->m_wstrName;
 	}
 
-	/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+	/// ½ºÅ³ Æ®¸® ¾÷µ¥ÀÌÆ®
 	g_pData->GetUIManager()->GetUISkillTree()->UpdateUI( false, false, true );
 }
 
-//{{ kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//{{ kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤
 #ifdef MODIFY_INFINITE_SKILL_BUG
 bool CX2UISkillTreeNew::ProcessSkillTreeSlotRMouseUp( LPARAM lParam )
 {
 	CX2State* pNowState = static_cast<CX2State*>( g_pMain->GetNowState() );
-	if ( NULL != pNowState && false == pNowState->GetEnableShortCutKey() )	/// ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½
-		return true;	/// ï¿½å·¡ï¿½×¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if ( NULL != pNowState && false == pNowState->GetEnableShortCutKey() )	/// ´ÜÃàÅ°¸¦ »ç¿ë ¸øÇÏ´Â ¶§ÀÌ¸é
+		return true;	/// µå·¡±×¾Ø µå¶øÀ» ¸øÇÏ°Ô ¸·À½
 
 	CKTDGUISlot* pSlot = (CKTDGUISlot*) lParam;
 	CX2SkillTreeSlotData* pSlotData = (CX2SkillTreeSlotData*)pSlot->GetSlotData();
 	if( pSlotData != NULL)
 	{
-		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½Ì¸ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ¸¸¾à Àû¿ëÇÒ ½ºÅ³ ½½·ÔÀÇ ·¹º§ÀÌ 0ÀÌ¸é, ½ºÅ³ ½½·Ô ¼³Á¤ ÁøÇà ÁßÁö
 		if ( NULL != g_pData && 
 			 NULL != g_pData->GetMyUser() &&
-			 NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-			 NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+			 NULL != g_pData->GetMyUser()->GetSelectUnit() )
 		{
-			const int iSkillLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( pSlotData->m_eSkillID );
+			const int iSkillLevel = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( pSlotData->m_eSkillID );
 
 			if ( 0 >= iSkillLevel )
 			{
@@ -3901,13 +4313,16 @@ bool CX2UISkillTreeNew::ProcessSkillTreeSlotRMouseUp( LPARAM lParam )
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 				case CX2SkillTree::ST_RELATIONSHIP_SKILL:
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+				case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 					{
 						int iAlreadyEquippedSlotID = m_pUserSkillTree->GetSkillEquippedSlotIndex(pSlotData->m_eSkillID, false );
 						int iAlreadyEquippedSlotBID = m_pUserSkillTree->GetSkillEquippedSlotIndex(pSlotData->m_eSkillID, true );
-						// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+						// °°Àº ½ºÅ³ÀÌ ÀåÂøµÇ¾î ÀÖÁö ¾ÊÀ¸¸é
 						if( -1 == iAlreadyEquippedSlotID && -1 == iAlreadyEquippedSlotBID )					
 						{
-							/// A ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+							/// A ½½·ÔÀÌ ºñ¾îÀÖ´ÂÁö È®ÀÎ
 							iAlreadyEquippedSlotID = m_pUserSkillTree->GetSkillEquippedSlotIndex(CX2SkillTree::SI_NONE, false );
 							if( -1 != iAlreadyEquippedSlotID )
 							{
@@ -3917,7 +4332,7 @@ bool CX2UISkillTreeNew::ProcessSkillTreeSlotRMouseUp( LPARAM lParam )
 							}
 							else
 							{
-								// B  ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½
+								// B  ºó ½½·ÔÀ» Ã£¾Æ¼­ ÀåÂøÇÑ´Ù
 								if( true == m_bIsExpandSkillSlot )
 								{
 									iAlreadyEquippedSlotID = m_pUserSkillTree->GetSkillEquippedSlotIndex(CX2SkillTree::SI_NONE, true );
@@ -3946,8 +4361,8 @@ bool CX2UISkillTreeNew::ProcessEquipSlotDropped( LPARAM lParam )
 	CX2EquippedSkillSlotData* pSlotData = (CX2EquippedSkillSlotData*)pSlot->GetSlotData();
 
 	CX2State* pNowState = static_cast<CX2State*>( g_pMain->GetNowState() );
-	if ( NULL != pNowState && false == pNowState->GetEnableShortCutKey() )	/// ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½
-		return false;	/// ï¿½å·¡ï¿½×¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if ( NULL != pNowState && false == pNowState->GetEnableShortCutKey() )	/// ´ÜÃàÅ°¸¦ »ç¿ë ¸øÇÏ´Â ¶§ÀÌ¸é
+		return false;	/// µå·¡±×¾Ø µå¶øÀ» ¸øÇÏ°Ô ¸·À½
 
 	CKTDGUISlot* pDroppedSlot = pSlot->GetDroppedSlot();
 	CKTDGUISlotData* pDroppedSlotData = NULL;
@@ -3967,7 +4382,7 @@ bool CX2UISkillTreeNew::ProcessEquipSlotDropped( LPARAM lParam )
 					int iAlreadyEquippedSlotID = m_pUserSkillTree->GetSkillEquippedSlotIndex(pDropData->m_eSkillID, false );
 					int iAlreadyEquippedSlotBID = m_pUserSkillTree->GetSkillEquippedSlotIndex(pDropData->m_eSkillID, true );
 
-					// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					// °°Àº ½ºÅ³ÀÌ ½ºÅ³½½·Ô¿¡ ÀåÂø µÇ¾î ÀÖÀ¸¸é ÇØÁ¦
 					if( -1 != iAlreadyEquippedSlotID )					
 					{
 						g_pData->GetSkillTree()->Handler_EGS_CHANGE_SKILL_SLOT_REQ( iAlreadyEquippedSlotID, CX2SkillTree::SI_NONE );
@@ -4012,8 +4427,8 @@ bool CX2UISkillTreeNew::ProcessEquipSlotDropped( LPARAM lParam )
 bool CX2UISkillTreeNew::ProcessEquipSlotRMouseUp( LPARAM lParam )
 {
 	CX2State* pNowState = static_cast<CX2State*>( g_pMain->GetNowState() );
-	if ( NULL != pNowState && false == pNowState->GetEnableShortCutKey() )	/// ï¿½ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½
-		return true;	/// ï¿½å·¡ï¿½×¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if ( NULL != pNowState && false == pNowState->GetEnableShortCutKey() )	/// ´ÜÃàÅ°¸¦ »ç¿ë ¸øÇÏ´Â ¶§ÀÌ¸é
+		return true;	/// µå·¡±×¾Ø µå¶øÀ» ¸øÇÏ°Ô ¸·À½
 
 	CKTDGUISlot* pSlot = (CKTDGUISlot*) lParam;
 	CX2EquippedSkillSlotData* pSlotData = (CX2EquippedSkillSlotData*)pSlot->GetSlotData();
@@ -4065,8 +4480,8 @@ bool CX2UISkillTreeNew::ProcessEquipSlotRMouseUp( LPARAM lParam )
 // 		STUCM_UNREADY_OK, g_pMain->GetNowState(), STUCM_UNREADY_CANCEL );
 // 	
 // 	m_pDLGUnReady->ClearDummyInt();
-// 	m_pDLGUnReady->AddDummyInt( static_cast<int>(lParam) );	// Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½Ì¿ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ MSGï¿½ï¿½ lParam ï¿½ï¿½( ï¿½ï¿½ï¿½â¼­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
-// 	m_pDLGUnReady->AddDummyInt( static_cast<int>(eSTUCM) );	// ï¿½Î¹ï¿½Â° ï¿½ï¿½ï¿½ï¿½ intï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ MSGï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î°ï¿½
+// 	m_pDLGUnReady->AddDummyInt( static_cast<int>(lParam) );	// Ã¹¹øÂ° ´õ¹Ì¿¡ ÀÌÀü Ä¿½ºÅÒ MSGÀÇ lParam °ª( ¿©±â¼­´Â ½½·Ô )
+// 	m_pDLGUnReady->AddDummyInt( static_cast<int>(eSTUCM) );	// µÎ¹øÂ° ´õ¹Ì int¿¡ ÀÌÀü¿¡ ½ÇÇàÇß´ø Ä¿½ºÅÒ MSG°¡ ¹«¾ùÀÎ°¡
 // }
 // 
 // void CX2UISkillTreeNew::ProcessChangeEquipSlotAfterUnReady()
@@ -4098,7 +4513,7 @@ bool CX2UISkillTreeNew::ProcessEquipSlotRMouseUp( LPARAM lParam )
 // 	g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGUnReady, NULL, false );
 // }
 #endif MODIFY_INFINITE_SKILL_BUG
-//}} kimhc // 2010.3.26 // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+//}} kimhc // 2010.3.26 // ¹«ÇÑ ½ºÅ³ ¹ö±× ¼öÁ¤
 
 #ifdef ELSWORD_WAY_OF_SWORD
 void CX2UISkillTreeNew::DrawElswordWSSDesc( D3DXVECTOR2 vDrawPos_ )
@@ -4207,15 +4622,14 @@ void CX2UISkillTreeNew::DrawElswordWSSDesc( D3DXVECTOR2 vDrawPos_ )
 
 #endif ELSWORD_WAY_OF_SWORD
 
-//x2gameï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½Å¸ï¿½Ó°ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½.
+//x2gameÀÌ »ý¼ºµÇ¾î ÀÖÁö ¾ÊÀ» ¶§ »ç¿ëÇÏ´Â ÄðÅ¸ÀÓ°»½Å ÇÔ¼ö.
 void CX2UISkillTreeNew::UpdateSkillCoolTime( float fElapsedTime )
 {
 	if( g_pData != NULL &&
 		g_pData->GetMyUser() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL)
+		g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+		CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree;
 		
 		if ( m_pDLGGameSkillSlot != NULL )
 		{
@@ -4230,14 +4644,14 @@ void CX2UISkillTreeNew::UpdateSkillCoolTime( float fElapsedTime )
 				pStaticSlot_B->GetPicture(i)->SetColor( D3DXCOLOR(1.f,1.f,1.f,0.3f));
 			}
 			if ( pStaticCoolTime != NULL && pStatic_Skill_Cool_Time_Fade != NULL )
-			{  //Bï¿½ï¿½ï¿½Ôµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½Ø¼ï¿½ EQUIPPED_SKILL_SLOT_COUNT*2
+			{  //B½½·Ôµµ °°ÀÌ ÇÏ±â À§ÇØ¼­ EQUIPPED_SKILL_SLOT_COUNT*2
 				for ( int i = 0; i < EQUIPPED_SKILL_SLOT_COUNT*2; i++ )
 				{				
 					bool bSlotB = (i > 3) ? true : false;
 					int iSlotIndex = (i > 3) ? i-4 : i;
 
-					//ï¿½ï¿½ï¿½ï¿½ Bï¿½ï¿½ È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Aï¿½ï¿½ È®ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ break;
-					if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() 
+					//½½·Ô B°¡ È°¼ºÈ­ µÇÁö ¾ÊÀ¸¸é ½½·Ô A¸¸ È®ÀÎÇÏµµ·Ï break;
+					if( false == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() 
 						&& bSlotB == true)
 					{
 						break;
@@ -4262,7 +4676,7 @@ void CX2UISkillTreeNew::UpdateSkillCoolTime( float fElapsedTime )
 						if( NULL != pStaticSlot_A && NULL != pStaticSlot_B )
 						{
 							if( CX2SkillTree::SI_NONE != pSlotData->m_eID )
-							{// 0~3 : Bï¿½ï¿½ï¿½ï¿½, 4~8 : Aï¿½ï¿½ï¿½ï¿½				
+							{// 0~3 : B½½·Ô, 4~8 : A½½·Ô				
 								if( true == bSlotB )
 								{
 									pStaticSlot_B->GetPicture(iSlotIndex)->SetColor( D3DXCOLOR(1.f,1.f,1.f,1.f));
@@ -4300,7 +4714,7 @@ void CX2UISkillTreeNew::UpdateSkillCoolTime( float fElapsedTime )
 }
 
 /** @function : SwapSkillSlot
-	@brief  : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ È£ï¿½ï¿½
+	@brief  : ÇöÀç ½ºÅ³½½·Ô Å¸ÀÔ¿¡ µû¶ó ½º¿Ò ÇÔ¼ö È£Ãâ
 */
 void CX2UISkillTreeNew::SwapSkillSlot(bool bVal, bool bForce/* = false*/)
 {
@@ -4349,7 +4763,7 @@ void CX2UISkillTreeNew::SwapSkillSlot(bool bVal, bool bForce/* = false*/)
 }
 
 /** @function : SetOffsetPosSkillSLotStatic
-	@brief : ï¿½ï¿½Å³ï¿½ï¿½ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½	
+	@brief : ½ºÅ³½½·Ô¿¡ »ç¿ëµÈ ½ºÅÂÆ½µé ¿ÀÇÁ¼Â ÁöÁ¤	
 */
 void CX2UISkillTreeNew::SetOffsetPosSkillSLotStatic(const D3DXVECTOR2& vPos_, const D3DXVECTOR2& vAddPos_/* = D3DXVECTOR2(0,0)*/)
 {
@@ -4369,9 +4783,9 @@ void CX2UISkillTreeNew::SetOffsetPosSkillSLotStatic(const D3DXVECTOR2& vPos_, co
 }
 
 /** @function : SetOffsetStatic
-	@brief : ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ì¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½
-			SetOffsetPosSkillSLotStaticï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½Ô¼ï¿½( ï¿½Úµï¿½ï¿½ßºï¿½ ï¿½ï¿½ï¿½ï¿½ )
-	@param : ï¿½ï¿½Æ®ï¿½ï¿½ï¿½Ì¸ï¿½ (strControl_), ï¿½ï¿½ï¿½ï¿½ï¿½Â°ï¿½(vPos)
+	@brief : ÄÁÆ®·Ñ ÀÌ¸§À¸·Î ¾òÀº ½ºÅÂÆ½ °´Ã¼ÀÇ ¿ÀÇÁ¼Â°ª ÁöÁ¤
+			SetOffsetPosSkillSLotStatic¿¡¼­ »ç¿ëµÇ´Â ÇÔ¼ö( ÄÚµåÁßº¹ Á¦°Å )
+	@param : ÄÁÆ®·ÑÀÌ¸§ (strControl_), ¿ÀÇÁ¼Â°ª(vPos)
 */
 void CX2UISkillTreeNew::SetOffsetStatic( const WCHAR* strControl_, const D3DXVECTOR2& vPos_)
 {
@@ -4382,16 +4796,20 @@ void CX2UISkillTreeNew::SetOffsetStatic( const WCHAR* strControl_, const D3DXVEC
 	}
 }
 
-#ifdef REFORM_UI_KEYPAD
 void CX2UISkillTreeNew::UpdateSkillSlotString()
 {
-	if ( NULL == m_pDLGGameSkillSlot )
+	if ( NULL == m_pDLGGameSkillSlot || NULL == g_pMain || NULL == g_pMain->GetKeyPad() )
 		return;
 
 	if ( NULL != g_pMain->GetKeyPad() )
 	{
 		CKTDGUIStatic* pStaticSkillHotKey = (CKTDGUIStatic*) m_pDLGGameSkillSlot->GetControl( L"SkillHotKeyEx" );
-		if( NULL != pStaticSkillHotKey )
+
+		if( NULL != pStaticSkillHotKey &&
+			NULL != pStaticSkillHotKey->GetString(0) &&
+			NULL != pStaticSkillHotKey->GetString(1) &&
+			NULL != pStaticSkillHotKey->GetString(2) &&
+			NULL != pStaticSkillHotKey->GetString(3)  )
 		{
 	#ifdef SKILL_SLOT_UI_TYPE_B
 			if( false == m_bIsSkillUITypeA )
@@ -4412,6 +4830,12 @@ void CX2UISkillTreeNew::UpdateSkillSlotString()
 		}
 
 		pStaticSkillHotKey = (CKTDGUIStatic*) m_pDLGGameSkillSlot->GetControl( L"SkillHotKey" );
+
+		if( NULL != pStaticSkillHotKey &&
+			NULL != pStaticSkillHotKey->GetString(0) &&
+			NULL != pStaticSkillHotKey->GetString(1) &&
+			NULL != pStaticSkillHotKey->GetString(2) &&
+			NULL != pStaticSkillHotKey->GetString(3)  )
 		{
 			pStaticSkillHotKey->GetString(0)->msg = g_pMain->GetKeyPad()->GetKeyString( GAMEACTION_SKILL1 );
 			pStaticSkillHotKey->GetString(1)->msg = g_pMain->GetKeyPad()->GetKeyString( GAMEACTION_SKILL2 );
@@ -4420,7 +4844,6 @@ void CX2UISkillTreeNew::UpdateSkillSlotString()
 		}
 	}
 }
-#endif
 
 #ifdef SKILL_SLOT_UI_TYPE_B
 void CX2UISkillTreeNew::SetSkillUIType( bool bIsTypeA_ )
@@ -4441,21 +4864,20 @@ void CX2UISkillTreeNew::SetSkillUIType( bool bIsTypeA_ )
 		vSlotPos.y = -619.f;
 #endif // INT_WIDE_BAR
 	}
-	//ï¿½ï¿½ï¿½ï¿½ B È°ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½
+	//½½·Ô B È°¼ºÈ­ ¿©ºÎ
 	bool bEnableSlotB = false;
-	if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+	if( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetEnabledSkillSlotB() )
+		if( true == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetEnabledSkillSlotB() )
 			bEnableSlotB = true;
 	}
 
-	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë·ï¿½ï¿½Ö´ï¿½ UI
+	//ÇöÀç ½½·ÔÀÌ A½½·ÔÀÎÁö B½½·ÔÀÎÁö ¾Ë·ÁÁÖ´Â UI
 	CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDLGGameSkillSlot->GetControl( L"g_pStatic_Slot_Guide" ));
 	if( NULL != pStatic )
 	{
-		if( false == m_bIsSkillUITypeA && //ï¿½ï¿½Å³ï¿½ï¿½ï¿½ï¿½ BÅ¸ï¿½ï¿½ï¿½Ì°ï¿½
-			true == bEnableSlotB ) //ï¿½ï¿½ï¿½ï¿½ Bï¿½ï¿½ È°ï¿½ï¿½È­ ï¿½Ç¾ï¿½ ï¿½Ö´Ù¸ï¿½
+		if( false == m_bIsSkillUITypeA && //½ºÅ³½½·Ô BÅ¸ÀÔÀÌ°í
+			true == bEnableSlotB ) //½½·Ô B°¡ È°¼ºÈ­ µÇ¾î ÀÖ´Ù¸é
 			pStatic->SetShow(true); 
 		else
 			pStatic->SetShow(false);
@@ -4465,9 +4887,11 @@ void CX2UISkillTreeNew::SetSkillUIType( bool bIsTypeA_ )
 	
 
  	m_pDLGGameSkillSlot->SetPos( vSlotPos );
+	
+	m_pDLGGameSkillSlot->GetShow( );
 
-	SetOffsetPosEtcSkillSlotUI();// Bï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½Å°ï¿½ï¿½Ìµï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
-	UpdateSkillSlotString();// Bï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Å° ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	SetOffsetPosEtcSkillSlotUI();// B½½·Ô Àá±Ý/±¸¸Å°¡ÀÌµå À§Ä¡ º¯°æ
+	UpdateSkillSlotString();// B½½·Ô ´ÜÃàÅ° ½ºÆ®¸µ º¯°æ
 	SwapSkillSlot( m_bSkillSlotSwap, true );
 }
 
@@ -4490,7 +4914,7 @@ void CX2UISkillTreeNew::SetOffsetPosEtcSkillSlotUI()
 }
 
 /** @function : SwapSkillSlotTypeA
-	@brief  : ï¿½ï¿½ï¿½/ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	@brief  : »ó´Ü/ÇÏ´Ü ½½·Ô ¼­·Î À§Ä¡ º¯°æ
 */
 void CX2UISkillTreeNew::SwapSkillSlotTypeA(bool bVal, bool bForce/* = false*/)
 {
@@ -4528,7 +4952,7 @@ void CX2UISkillTreeNew::SwapSkillSlotTypeA(bool bVal, bool bForce/* = false*/)
 
 
 /** @function : SwapSkillSlotTypeB
-	@brief  : ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È­ï¿½é¿¡ï¿½ï¿½ ï¿½Èºï¿½ï¿½Ìµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½é¼­ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	@brief  : »ó´Ü ½½·ÔÀº È­¸é¿¡¼­ ¾Èº¸ÀÌµµ·Ï À§·Î º¸³»¸é¼­ À§Ä¡ º¯°æ
 */
 void CX2UISkillTreeNew::SwapSkillSlotTypeB(bool bVal_, bool bForce_/* = false */)
 {
@@ -4537,12 +4961,12 @@ void CX2UISkillTreeNew::SwapSkillSlotTypeB(bool bVal_, bool bForce_/* = false */
 
 	m_bSkillSlotSwap = bVal_;
 
-	D3DXVECTOR2 vOffsetPos(0,0);	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
-	D3DXVECTOR2 vOffsetAddPos(0,0); // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	D3DXVECTOR2 vOffsetPos(0,0);	// ½½·Ô ±³Ã¼¸¦ À§ÇÑ ±âº» ¿ÀÇÁ¼Â °ª
+	D3DXVECTOR2 vOffsetAddPos(0,0); // »ó´Ü ½½·ÔÀ» À§·Î ´õ º¸³»±â À§ÇÑ Ãß°¡ ¿ÀÇÁ¼Â °ª
 
-	if( true == m_bSkillSlotSwap ) //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½(Bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	if( true == m_bSkillSlotSwap ) //½½·Ô ±³Ã¼ Áß(B½½·ÔÀÌ ÇÏ´Ü¿¡ ³»·Á¿Â »óÅÂ)
 	{
-		for( int i = 0 ; i < EQUIPPED_SKILL_SLOT_COUNT * 2; ++i )//4~7 ï¿½ï¿½Ü½ï¿½ï¿½ï¿½
+		for( int i = 0 ; i < EQUIPPED_SKILL_SLOT_COUNT * 2; ++i )//4~7 »ó´Ü½½·Ô
 		{
 			vOffsetPos.y = ( i >= 4 ) ? 51.f : -200.f;
 			if( NULL != GetEquippedSlot(i) )
@@ -4552,9 +4976,9 @@ void CX2UISkillTreeNew::SwapSkillSlotTypeB(bool bVal_, bool bForce_/* = false */
 		vOffsetAddPos.y = 200.f;
 
 	}
-	else //ï¿½âº» ï¿½ï¿½ï¿½ï¿½( Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´Ü¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+	else //±âº» »óÅÂ( A½½·ÔÀÌ ÇÏ´Ü¿¡ ³»·Á¿Â »óÅÂ)
 	{
-		for( int i = 0 ; i < EQUIPPED_SKILL_SLOT_COUNT * 2; ++i ) //4~7 ï¿½ï¿½Ü½ï¿½ï¿½ï¿½
+		for( int i = 0 ; i < EQUIPPED_SKILL_SLOT_COUNT * 2; ++i ) //4~7 »ó´Ü½½·Ô
 		{
 			if( NULL != GetEquippedSlot(i) )
 				vOffsetPos.y = ( i >= 4 ) ? -150.f : 0.f;
@@ -4569,8 +4993,8 @@ void CX2UISkillTreeNew::SwapSkillSlotTypeB(bool bVal_, bool bForce_/* = false */
 #endif //SKILL_SLOT_UI_TYPE_B
 
 /** @function	: CreateSkillTreePortrait
-	@brief		: ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù´ï¿½ ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param		: ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½è¿­ ï¿½ï¿½ï¿½ï¿½
+	@brief		: ½ºÅ³ Æ®¸® °¡Àå ÁÂÃø¿¡ ºÙ´Â ÃÊ»óÈ­ °ü·Ã ÀÌ¹ÌÁö ¼³Á¤ ÇÔ¼ö
+	@param		: ÄÁÆ®·Ñ ¸®½ºÆ® Æ÷ÀÎÅÍ, ÃÖ´ë ½ºÅ³ ¹è¿­ ³ôÀÌ
 */
 void CX2UISkillTreeNew::CreateSkillTreePortrait( CKTDGUIContolList* pControlList )
 {
@@ -4589,26 +5013,26 @@ void CX2UISkillTreeNew::CreateSkillTreePortrait( CKTDGUIContolList* pControlList
 
 	WCHAR buf[255] = {0,};
 
-	/// ï¿½Ê»ï¿½È­ UI ï¿½ï¿½ï¿½ï¿½ ( ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 5ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê»ï¿½È­ UI Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½  )
+	/// ÃÊ»óÈ­ UI °³¼ö ( ÇÏ³ªÀÇ ÀüÁ÷´ç 5ÁÙ, ÃÖÁ¾ ÁÙÀ» °è»êÇÏ¿© ÀüÁ÷º° ÃÊ»óÈ­ UI Ç¥½Ã ¼ö·® ¼³Á¤  )
 	int iPortraitUINum = pUnit->GetClassLevel() + 1;
 
-	/// ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ï¿½
+	/// ÃÊ»óÈ­ ¼³Á¤
 	for ( int i = 0; i < iPortraitUINum; ++i )
 	{
 		m_pDLGUISkillTree->OpenScriptFile( L"DLG_UI_Skill_Tree_Portrait.lua" );
 
-		/// ï¿½Ê»ï¿½È­ ï¿½Ú½ï¿½ ------------------------------------------------------------------------------------------------------------------
+		/// ÃÊ»óÈ­ ¹Ú½º ------------------------------------------------------------------------------------------------------------------
 		CKTDGUIStatic* pStaticPortraitBox = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_PortraitBox" ) );
 
 		if ( NULL != pStaticPortraitBox )
 		{
-			wstring wstrTectureKey = L"Bg_Portrait_Aisha";	/// ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ ï¿½Ø½ï¿½Ã³ Å°ï¿½ï¿½
+			wstring wstrTectureKey = L"Bg_Portrait_Aisha";	/// ÃÊ»óÈ­ ¹è°æ ÅØ½ºÃ³ Å°°ª
 
-			/// ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// À¯´Ö Å¸ÀÔ¿¡ µû¸¥ ÃÊ»óÈ­ ¹è°æ ¼³Á¤
 			switch ( pUnit->GetType() )
 			{
 			case CX2Unit::UT_ELSWORD:
-#ifdef NEW_CHARACTER_EL // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef NEW_CHARACTER_EL // µðÆÄÀÎ Á¦°Å ¿¹Á¤
 			case CX2Unit::UT_ELESIS:
 #endif //NEW_CHARACTER_EL
 				{
@@ -4645,6 +5069,13 @@ void CX2UISkillTreeNew::CreateSkillTreePortrait( CKTDGUIContolList* pControlList
 					wstrTectureKey = L"Bg_Portrait_Ara";
 				}
 				break;
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯ ( Ä³¸¯ÅÍ Ãß°¡¿ë )
+			case CX2Unit::UT_ADD:
+				{
+					wstrTectureKey = L"Bg_Portrait_Add";
+				}
+				break;
+#endif //SERV_9TH_NEW_CHARACTER
 			}
 
 			pStaticPortraitBox->GetPicture( 0 )->SetTex( L"DLG_UI_Common_Texture_NewSkill_01.tga", wstrTectureKey.c_str() );
@@ -4652,12 +5083,12 @@ void CX2UISkillTreeNew::CreateSkillTreePortrait( CKTDGUIContolList* pControlList
 			StringCchPrintf( buf, 255, L"pStaticPortraitBox_%d", i );
 			pStaticPortraitBox->SetName(buf);
 
-			pControlList->InsertItem( pStaticPortraitBox, ( i * MAX_ONE_CLASS_SKILL_ROW_NUM ), 0 );							/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 5ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö»ï¿½ï¿½
+			pControlList->InsertItem( pStaticPortraitBox, ( i * MAX_ONE_CLASS_SKILL_ROW_NUM ), 0 );							/// ÇÑ ÀüÁ÷ 5°³ÀÇÁÙÁß ÃÖ»ó´Ü
 
-			SetUnitClassImageAndName( pStaticPortraitBox, pUnit->GetClass(), static_cast<CX2Unit::UNIT_CLASS_TYPE>( i ) );	/// ï¿½Ê»ï¿½È­ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			SetUnitClassImageAndName( pStaticPortraitBox, pUnit->GetClass(), static_cast<CX2Unit::UNIT_CLASS_TYPE>( i ) );	/// ÃÊ»óÈ­ ¹× ÀüÁ÷¸í ½ºÆ®¸µ ¼³Á¤
 		}
 
-		/// ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ --------------------------------------------------------------------------------------------------------
+		/// ÃÊ»óÈ­ ¶óÀÎ ÇÏ´Ü ½ÃÀÛ --------------------------------------------------------------------------------------------------------
 		CKTDGUIStatic* pStaticPortraitBottomStart = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_PortraitBottomStart" ) );
 
 		if ( NULL != pStaticPortraitBottomStart )
@@ -4665,10 +5096,10 @@ void CX2UISkillTreeNew::CreateSkillTreePortrait( CKTDGUIContolList* pControlList
 			StringCchPrintf( buf, 255, L"g_pStatic_PortraitBottomStart_%d", i );
 			pStaticPortraitBottomStart->SetName(buf);
 
-			pControlList->InsertItem( pStaticPortraitBottomStart, ( i * MAX_ONE_CLASS_SKILL_ROW_NUM ) + 1, 0 );		/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 5ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½
+			pControlList->InsertItem( pStaticPortraitBottomStart, ( i * MAX_ONE_CLASS_SKILL_ROW_NUM ) + 1, 0 );		/// ÇÑ ÀüÁ÷ 5°³ÀÇÁÙÁß Áß°£ »ó´Ü
 		}
 
-		/// ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ï¿½	ï¿½Ï´ï¿½ ï¿½ß°ï¿½ ----------------------------------------------------------------------------------------------------------
+		/// ÃÊ»óÈ­ ¶óÀÎ	ÇÏ´Ü Áß°£ ----------------------------------------------------------------------------------------------------------
 		CKTDGUIStatic* pStaticPortraitBottomMiddle = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_PortraitBottomMiddle" ) );
 
 		if ( NULL != pStaticPortraitBottomMiddle )
@@ -4676,10 +5107,10 @@ void CX2UISkillTreeNew::CreateSkillTreePortrait( CKTDGUIContolList* pControlList
 			StringCchPrintf( buf, 255, L"g_pStatic_PortraitBottomMiddle_%d", i );
 			pStaticPortraitBottomMiddle->SetName(buf);
 
-			pControlList->InsertItem( pStaticPortraitBottomMiddle, ( i * MAX_ONE_CLASS_SKILL_ROW_NUM ) + 2, 0 );	/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 5ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½Ï´ï¿½
+			pControlList->InsertItem( pStaticPortraitBottomMiddle, ( i * MAX_ONE_CLASS_SKILL_ROW_NUM ) + 2, 0 );	/// ÇÑ ÀüÁ÷ 5°³ÀÇÁÙÁß Áß°£ ÇÏ´Ü
 		}
 
-		/// ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ï¿½	ï¿½Ï´ï¿½ ï¿½ï¿½ ----------------------------------------------------------------------------------------------------------
+		/// ÃÊ»óÈ­ ¶óÀÎ	ÇÏ´Ü ³¡ ----------------------------------------------------------------------------------------------------------
 		CKTDGUIStatic* pStaticPortraitBottomEnd = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_PortraitBottomEnd" ) );
 
 		if ( NULL != pStaticPortraitBottomEnd )
@@ -4687,7 +5118,7 @@ void CX2UISkillTreeNew::CreateSkillTreePortrait( CKTDGUIContolList* pControlList
 			StringCchPrintf( buf, 255, L"g_pStatic_PortraitBottomEnd_%d", i );
 			pStaticPortraitBottomEnd->SetName(buf);
 
-			pControlList->InsertItem( pStaticPortraitBottomEnd, ( i * MAX_ONE_CLASS_SKILL_ROW_NUM ) + 3, 0 );		/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 5ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½
+			pControlList->InsertItem( pStaticPortraitBottomEnd, ( i * MAX_ONE_CLASS_SKILL_ROW_NUM ) + 3, 0 );		/// ÇÑ ÀüÁ÷ 5°³ÀÇÁÙÁß ÃÖÇÏ´Ü
 		}
 	}
 
@@ -4695,20 +5126,20 @@ void CX2UISkillTreeNew::CreateSkillTreePortrait( CKTDGUIContolList* pControlList
 }
 
 /** @function	: SetSelectSkillSlotPosition
-	@brief		: 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½, 1ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½Ìµï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param		: ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½è¿­ ï¿½ï¿½ï¿½ï¿½
+	@brief		: 2Áö¼±´Ù ½ºÅ³ Áß, 1°³¸¸ ÀÖÀ» ¶§ Áß¾ÓÀ¸·Î À§Ä¡ ÀÌµ¿½ÃÅ°´Â ÇÔ¼ö
+	@param		: ÃÖ´ë ½ºÅ³ ¹è¿­ ³ôÀÌ
 */
 void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 {
-	for ( int i = 0; i < m_iMaxSkillRowNum; ++i )
+	for ( int i = 0; i <= m_iMaxSkillRowNum; ++i )
 	{
-		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+		/// 2Áö ¼±´Ù ½ºÅ³ Áß, ¿ìÃø ½ºÅ³ÀÌ Á¸ÀçÇÏ´ÂÁö °Ë»ç
 		std::map<SkillPositionKey, CX2SkillTree::SKILL_ID>::iterator itSecond = m_mapSkillPosition.find( SkillPositionKey( 1, i ) );
 
-		if( itSecond != m_mapSkillPosition.end() )	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½Ä¡ ï¿½Ìµï¿½ ï¿½ï¿½Å³ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½.
+		if( itSecond != m_mapSkillPosition.end() )	/// ¿ìÃø ½ºÅ³ÀÌ Á¸ÀçÇÑ´Ù¸é, ÁÂÃø ½ºÅ³ À§Ä¡ ÀÌµ¿ ½ÃÅ³ ÇÊ¿ä ¾ø´Ù.
 			continue;
 
-		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯
+		/// 2Áö ¼±´Ù ÁÂÃø ½ºÅ³ ¾ÆÀÌµð ¹ÝÈ¯
 		std::map<SkillPositionKey, CX2SkillTree::SKILL_ID>::iterator itFirst = m_mapSkillPosition.find( SkillPositionKey( 0, i ) );
 
 		if ( itFirst != m_mapSkillPosition.end() )
@@ -4717,7 +5148,7 @@ void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 
 			WCHAR buf[256] = {0,};
 
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+			/// ½½·Ô À§Ä¡ º¯°æ
 			StringCchPrintf( buf, 255, L"g_pSlot_SkillTree_%d", eSkillID );
 
 			CKTDGUISlot* pSlotSkillTree = static_cast<CKTDGUISlot*>( m_pDLGUISkillTree->GetControl( buf ) );
@@ -4739,18 +5170,18 @@ void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 				pSlotSkillTree->SetMouseOverPoint( pOverPoint );
 			}
 
-			/// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½îµ¥ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ¹è°æ ¹éÆÇ °¡¿îµ¥ ¶óÀÎ ¼³Á¤
 			StringCchPrintf( buf, 256, L"g_pStatic_BackGround_%d", eSkillID );
 			
 			CKTDGUIStatic* pStaticBackGround = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( buf ) );
 
 			if ( NULL != pStaticBackGround && NULL != pStaticBackGround->GetPicture( 2 ) )
 			{
-				pStaticBackGround->GetPicture( 2 )->SetShow( false );	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Îµï¿½ ï¿½Ñ°ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½, ï¿½ï¿½ï¿½îµ¥ ï¿½ï¿½ï¿½Ð¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+				pStaticBackGround->GetPicture( 2 )->SetShow( false );	/// 2Áö¼±´Ù ½ºÅ³ÀÎµ¥ ÇÑ°³¸¸ ÀÖ´Ù¸é, °¡¿îµ¥ ±¸ºÐ¼± ÇØÁ¦
 			}
 
 
-			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ 
+			/// ½ºÅ³ ¹éÆÇ À§Ä¡ º¯°æ 
 			StringCchPrintf( buf, 255, L"g_pStaticSkillBackGround_%d", eSkillID );
 
 			CKTDGUIStatic* pStaticSkillBackGround = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( buf ) );
@@ -4761,13 +5192,13 @@ void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 			{
 				pStaticSkillBackGround->GetPicture( 0 )->SetPos( D3DXVECTOR2( 159.f, 13.f ) );
 
-				/// ï¿½ä±¸ SP ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+				/// ¿ä±¸ SP ¹éÆÇ À§Ä¡ ÁöÁ¤
 				D3DXVECTOR2 vecSkillBGPos = pStaticSkillBackGround->GetPicture( 0 )->GetPos();
 				pStaticSkillBackGround->GetPicture( 1 )->SetPos( D3DXVECTOR2( vecSkillBGPos.x + 21.f, vecSkillBGPos.y + 52.f ) );
 			}
 
 
-			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ 
+			/// ½ºÅ³ ½Àµæ ¹öÆ° À§Ä¡ º¯°æ 
 			StringCchPrintf( buf, 255, L"ButtonSkillLearn_%d", eSkillID );
 
 			CKTDGUIButton* pButtonSkillLearn = static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( buf ) );
@@ -4803,7 +5234,7 @@ void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 
 
 
-			/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ 
+			/// ½ºÅ³ ÅøÆÁ¿ë ¹öÆ° À§Ä¡ º¯°æ 
 			StringCchPrintf( buf, 255, L"ButtonSkillDesc_%d", eSkillID );
 
 			CKTDGUIButton* pButtonSkillDesc = static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( buf ) );
@@ -4840,7 +5271,7 @@ void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 
 
 
-			/// ï¿½ï¿½Å³ ï¿½Ê±ï¿½È­ ï¿½ï¿½Æ° ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ 
+			/// ½ºÅ³ ÃÊ±âÈ­ ¹öÆ° À§Ä¡ º¯°æ 
 			StringCchPrintf( buf, 255, L"ButtonSkillInit_%d", eSkillID );
 
 			CKTDGUIButton* pButtonSkillInit = static_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( buf ) );
@@ -4876,7 +5307,7 @@ void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 
 
 
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ 
+			/// Á¤º¸ ½ºÆ®¸µ À§Ä¡ º¯°æ 
 			StringCchPrintf( buf, 255, L"g_pStaticStringInfo_%d", eSkillID );
 
 			CKTDGUIStatic* pStaticStringInfo = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( buf ) );
@@ -4887,7 +5318,7 @@ void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 			}
 
 
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ 
+			/// ¸¶½ºÅÍ ½ºÅ³ ÀÌ¹ÌÁö À§Ä¡ º¯°æ 
 			StringCchPrintf( buf, 255, L"g_pStaticSkillMaster_%d", eSkillID );
 
 			CKTDGUIStatic* pStaticSkillMaster = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( buf ) );
@@ -4898,7 +5329,7 @@ void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 			}
 
 
-			/// ï¿½Ú¹ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ 
+			/// ÀÚ¹°¼è ÀÌ¹ÌÁö À§Ä¡ º¯°æ 
 			StringCchPrintf( buf, 255, L"g_pStaticSkill_Lock_%d", eSkillID );
 
 			CKTDGUIStatic* pStaticSkill_Lock = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( buf ) );
@@ -4912,8 +5343,8 @@ void CX2UISkillTreeNew::SetSelectSkillSlotPosition()
 }
 
 /** @function	: SetDivisionLine
-	@brief		: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ð¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@param		: ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief		: ÀüÁ÷º° ½ºÅ³ ±¸ºÐ¼± ¼³Á¤ ÇÔ¼ö
+	@param		: ÄÁÆ®·Ñ ¸®½ºÆ® Æ÷ÀÎÅÍ
 */
 void CX2UISkillTreeNew::SetDivisionLine( CKTDGUIContolList* pControlList )
 {
@@ -4931,11 +5362,11 @@ void CX2UISkillTreeNew::SetDivisionLine( CKTDGUIContolList* pControlList )
 	{
 		WCHAR buf[255] = {0,};
 
-		/// ï¿½Ê»ï¿½È­ UI ï¿½ï¿½ï¿½ï¿½ ( ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 5ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê»ï¿½È­ UI Ç¥ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½  )
+		/// ÃÊ»óÈ­ UI °³¼ö ( ÇÏ³ªÀÇ ÀüÁ÷´ç 5ÁÙ, ÃÖÁ¾ ÁÙÀ» °è»êÇÏ¿© ÀüÁ÷º° ÃÊ»óÈ­ UI Ç¥½Ã ¼ö·® ¼³Á¤  )
 		CX2Unit::UNIT_CLASS_TYPE eUnitClassLevel = static_cast<CX2Unit::UNIT_CLASS_TYPE>( pUnit->GetClassLevel() );
 
 
-		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ð¼ï¿½( ï¿½ï¿½ï¿½ï¿½ ) ï¿½ï¿½ï¿½ï¿½ ---------------------------------------------------------------------------------------------------------
+		/// ½ºÅ³ ±¸ºÐ¼±( °¡·Î ) ¼³Á¤ ---------------------------------------------------------------------------------------------------------
 		CKTDGUIStatic* pStatic_HorizonLine1 = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_HorizonLine1" ) );
 		CKTDGUIStatic* pStatic_HorizonLine2 = static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_HorizonLine2" ) );
 
@@ -4943,24 +5374,24 @@ void CX2UISkillTreeNew::SetDivisionLine( CKTDGUIContolList* pControlList )
 		{
 			switch ( eUnitClassLevel )
 			{
-			case CX2Unit::UCT_FIRST_CLASS:	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// ³ëÀüÁ÷ -> 1Â÷ ÀüÁ÷
 				{
 					pStatic_HorizonLine1->SetShow(true);
 					pStatic_HorizonLine2->SetShow(false);
 
-					pControlList->InsertItem( pStatic_HorizonLine1, MAX_ONE_CLASS_SKILL_ROW_NUM - 1 , 0 );			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ ï¿½ï¿½ï¿½Ð¼ï¿½ ï¿½ß°ï¿½
+					pControlList->InsertItem( pStatic_HorizonLine1, MAX_ONE_CLASS_SKILL_ROW_NUM - 1 , 0 );			/// ³ëÀüÁ÷ ½ºÅ³ ¸¶Áö¸· ÁÙ¿¡ ±¸ºÐ¼± Ãß°¡
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS: /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -> 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -> 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS: /// ³ëÀüÁ÷ -> 1Â÷ ÀüÁ÷ -> 2Â÷ ÀüÁ÷
 				{
 					pStatic_HorizonLine1->SetShow(true);
 					pStatic_HorizonLine2->SetShow(true);
 
-					pControlList->InsertItem( pStatic_HorizonLine1, MAX_ONE_CLASS_SKILL_ROW_NUM - 1 , 0 );			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ ï¿½ï¿½ï¿½Ð¼ï¿½ ï¿½ß°ï¿½
-					pControlList->InsertItem( pStatic_HorizonLine2, ( MAX_ONE_CLASS_SKILL_ROW_NUM * 2 ) - 1, 0 );	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ù¿ï¿½ ï¿½ï¿½ï¿½Ð¼ï¿½ ï¿½ß°ï¿½
+					pControlList->InsertItem( pStatic_HorizonLine1, MAX_ONE_CLASS_SKILL_ROW_NUM - 1 , 0 );			/// ³ëÀüÁ÷ ½ºÅ³ ¸¶Áö¸· ÁÙ¿¡ ±¸ºÐ¼± Ãß°¡
+					pControlList->InsertItem( pStatic_HorizonLine2, ( MAX_ONE_CLASS_SKILL_ROW_NUM * 2 ) - 1, 0 );	/// 1Â÷ ÀüÁ÷ ½ºÅ³ ¸¶Áö¸· ÁÙ¿¡ ±¸ºÐ¼± Ãß°¡
 				} break;
-			default: /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			default: /// ³ëÀüÁ÷
 				{
-					pStatic_HorizonLine1->SetShow(false);	/// ï¿½ï¿½ï¿½Ð¼ï¿½ ï¿½ï¿½ï¿½ï¿½
+					pStatic_HorizonLine1->SetShow(false);	/// ±¸ºÐ¼± ¾øÀ½
 					pStatic_HorizonLine2->SetShow(false);
 				} break;
 			}
@@ -4969,7 +5400,7 @@ void CX2UISkillTreeNew::SetDivisionLine( CKTDGUIContolList* pControlList )
 }
 
 /** @function	: UpdateAtMoveScrollBar
-	@brief		: ï¿½ï¿½Å©ï¿½ï¿½ ï¿½Ù°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+	@brief		: ½ºÅ©·Ñ ¹Ù°¡ ¿òÁ÷ÀÏ ¶§ º¯°æµÇ¾î¾ß ÇÒ Á¤º¸¸¦ Ã³¸®ÇÏ´Â ÇÔ¼ö
 */
 void CX2UISkillTreeNew::UpdateAtMoveScrollBar()
 {
@@ -4981,7 +5412,7 @@ void CX2UISkillTreeNew::UpdateAtMoveScrollBar()
 			return;
 		}
 
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ Ã¢ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½
+	/// ÀüÁ÷º° ½ºÅ³ ±¸ºÐ¼±ÀÌ ½ºÅ³ Ã¢ ¾Æ·¡¿¡ ÀÖÀ» ¶§, ¿¹¿ÜÀûÀ¸·Î ¼û°ÜÁÖ±â
 	CKTDGUIContolList*	pControlList			= static_cast<CKTDGUIContolList*>( m_pDLGUISkillTree->GetControl( L"SkillTreeControlList" ) );
 	CKTDGUIStatic*		pStatic_HorizonLine1	= static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_HorizonLine1" ) );
 	CKTDGUIStatic*		pStatic_HorizonLine2	= static_cast<CKTDGUIStatic*>( m_pDLGUISkillTree->GetControl( L"g_pStatic_HorizonLine2" ) );
@@ -4989,21 +5420,21 @@ void CX2UISkillTreeNew::UpdateAtMoveScrollBar()
 
 	if ( NULL != pUnit && NULL != pControlList && NULL != pStatic_HorizonLine1 && NULL != pStatic_HorizonLine2 )
 	{
-		CX2Unit::UNIT_CLASS_TYPE	eUnitClassType	= static_cast<CX2Unit::UNIT_CLASS_TYPE >( pUnit->GetClassLevel() );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
-		int							iTopTier		= pControlList->GetIndexY();	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½
+		CX2Unit::UNIT_CLASS_TYPE	eUnitClassType	= static_cast<CX2Unit::UNIT_CLASS_TYPE >( pUnit->GetClassLevel() );	/// ÇöÁ¦ ÀüÁ÷ µî±Þ
+		int							iTopTier		= pControlList->GetIndexY();	/// ÇöÀç ½ºÅ©·Ñ ÀÎµ¦½º
 
 		{
-			if ( CX2Unit::UCT_FIRST_CLASS <= eUnitClassType )	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ( ï¿½âº» ï¿½ï¿½ï¿½ï¿½ -> 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ )
+			if ( CX2Unit::UCT_FIRST_CLASS <= eUnitClassType )	/// 1Â÷ ÀüÁ÷ÀÏ ¶§ ( ±âº» ÀüÁ÷ -> 1Â÷ ÀüÁ÷ ½ºÅ³ ±¸ºÐ¼±ÀÌ Á¸ÀçÇÒ ¶§ )
 			{
-				if ( 0 == iTopTier )		/// ï¿½ï¿½ï¿½ï¿½ Ã¹ï¿½ï¿½Â° ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ ï¿½ï¿½Ä¡ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½
+				if ( 0 == iTopTier )		/// ÇöÀç Ã¹¹øÂ° ½ºÅ³ ±¸ºÐ¼±ÀÌ ½ºÅ³Ã¢ °¡Àå ¹Ø¿¡ ¹èÄ¡µÇ¾î ÀÖÀ» ¶§, ¼û±è
 					pStatic_HorizonLine1->SetShow( false );
 				else
 					pStatic_HorizonLine1->SetShow( true );
 			}
 
-			if ( CX2Unit::UCT_SECOND_CLASS <= eUnitClassType )	/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ( 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ -> 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ )
+			if ( CX2Unit::UCT_SECOND_CLASS <= eUnitClassType )	/// 2Â÷ ÀüÁ÷ÀÏ ¶§ ( 1Â÷ ÀüÁ÷ -> 2Â÷ ÀüÁ÷ ½ºÅ³ ±¸ºÐ¼±ÀÌ Á¸ÀçÇÒ ¶§ )
 			{
-				if ( 5 == iTopTier )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½Î¹ï¿½Â° ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ð¼ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ ï¿½ï¿½Ä¡ï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½
+				if ( 5 == iTopTier )		/// ÇöÀç µÎ¹øÂ° ½ºÅ³ ±¸ºÐ¼±ÀÌ ½ºÅ³Ã¢ °¡Àå ¹Ø¿¡ ¹èÄ¡µÇ¾î ÀÖÀ» ¶§, ¼û±è
 					pStatic_HorizonLine2->SetShow( false );
 				else
 					pStatic_HorizonLine2->SetShow( true );
@@ -5012,8 +5443,8 @@ void CX2UISkillTreeNew::UpdateAtMoveScrollBar()
 	}
 }
 /** @function	: SetUnitClassImageAndName
-	@brief		: ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½Ê»ï¿½È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	@Param		: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê»ï¿½È­ ï¿½ï¿½Æ®ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
+	@brief		: ½ºÅ³ Æ®¸® ÃÊ»óÈ­ÀÇ ÀüÁ÷ ÀÌ¹ÌÁö ¹× ÀüÁ÷¸í ¼³Á¤ ÇÔ¼ö
+	@Param		: º¯°æÇÒ ÃÊ»óÈ­ ÄÁÆ®·Ñ, ÇöÀç À¯´Ö Å¬·¹½º
 */
 void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 													CX2Unit::UNIT_CLASS eUnitClass /*= CX2Unit::UC_ARME_VOID_PRINCESS*/,
@@ -5027,75 +5458,75 @@ void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 
 	switch ( eUnitClass )
 	{
-		/// ï¿½ï¿½ï¿½Òµï¿½
-	case CX2Unit::UC_ELSWORD_SWORDMAN:			/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½
+		/// ¿¤¼Òµå
+	case CX2Unit::UC_ELSWORD_SWORDMAN:			/// ±âº» ÀüÁ÷
 		{
-			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 			{
 				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25010 );
 				eUnitClass = CX2Unit::UC_ELSWORD_SWORDMAN;
 			}
 		} break;
-	case CX2Unit::UC_ELSWORD_KNIGHT:			/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_ELSWORD_LORD_KNIGHT:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_ELSWORD_KNIGHT:			/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_ELSWORD_LORD_KNIGHT:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25010 );
 					eUnitClass = CX2Unit::UC_ELSWORD_SWORDMAN;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25011 );
 					eUnitClass = CX2Unit::UC_ELSWORD_KNIGHT;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25012 );
 					eUnitClass = CX2Unit::UC_ELSWORD_LORD_KNIGHT;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_ELSWORD_MAGIC_KNIGHT:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_ELSWORD_RUNE_SLAYER:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_ELSWORD_MAGIC_KNIGHT:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_ELSWORD_RUNE_SLAYER:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25010 );
 					eUnitClass = CX2Unit::UC_ELSWORD_SWORDMAN;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25013 );
 					eUnitClass = CX2Unit::UC_ELSWORD_MAGIC_KNIGHT;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25014 );
 					eUnitClass = CX2Unit::UC_ELSWORD_RUNE_SLAYER;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_ELSWORD_SHEATH_KNIGHT:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_ELSWORD_INFINITY_SWORD:	/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_ELSWORD_SHEATH_KNIGHT:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_ELSWORD_INFINITY_SWORD:	/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25010 );
 					eUnitClass = CX2Unit::UC_ELSWORD_SWORDMAN;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25015 );
 					eUnitClass = CX2Unit::UC_ELSWORD_SHEATH_KNIGHT;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25016 );
 					eUnitClass = CX2Unit::UC_ELSWORD_INFINITY_SWORD;
@@ -5103,75 +5534,75 @@ void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 			}
 		} break;
 
-		/// ï¿½ï¿½ï¿½Ì»ï¿½
-	case CX2Unit::UC_ARME_VIOLET_MAGE:			/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½
+		/// ¾ÆÀÌ»þ
+	case CX2Unit::UC_ARME_VIOLET_MAGE:			/// ±âº» ÀüÁ÷
 		{
-			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 			{
 				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25017 );
 				eUnitClass = CX2Unit::UC_ARME_VIOLET_MAGE;
 			}
 		} break;
-	case CX2Unit::UC_ARME_HIGH_MAGICIAN:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_ARME_ELEMENTAL_MASTER:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_ARME_HIGH_MAGICIAN:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_ARME_ELEMENTAL_MASTER:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25017 );
 					eUnitClass = CX2Unit::UC_ARME_VIOLET_MAGE;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25018 );
 					eUnitClass = CX2Unit::UC_ARME_HIGH_MAGICIAN;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25019 );
 					eUnitClass = CX2Unit::UC_ARME_ELEMENTAL_MASTER;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_ARME_DARK_MAGICIAN:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_ARME_VOID_PRINCESS:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_ARME_DARK_MAGICIAN:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_ARME_VOID_PRINCESS:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25017 );
 					eUnitClass = CX2Unit::UC_ARME_VIOLET_MAGE;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25020 );
 					eUnitClass = CX2Unit::UC_ARME_DARK_MAGICIAN;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25021 );
 					eUnitClass = CX2Unit::UC_ARME_VOID_PRINCESS;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_ARME_BATTLE_MAGICIAN:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_ARME_DIMENSION_WITCH:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_ARME_BATTLE_MAGICIAN:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_ARME_DIMENSION_WITCH:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25017 );
 					eUnitClass = CX2Unit::UC_ARME_VIOLET_MAGE;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25022 );
 					eUnitClass = CX2Unit::UC_ARME_BATTLE_MAGICIAN;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25023 );
 					eUnitClass = CX2Unit::UC_ARME_DIMENSION_WITCH;
@@ -5179,75 +5610,75 @@ void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 			}
 		} break;
 
-		/// ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_LIRE_ELVEN_RANGER:			/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½
+		/// ·¹³ª
+	case CX2Unit::UC_LIRE_ELVEN_RANGER:			/// ±âº» ÀüÁ÷
 		{
-			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 			{
 				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25024 );
 				eUnitClass = CX2Unit::UC_LIRE_ELVEN_RANGER;
 			}
 		} break;
-	case CX2Unit::UC_LIRE_COMBAT_RANGER:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_LIRE_WIND_SNEAKER:			/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_LIRE_COMBAT_RANGER:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_LIRE_WIND_SNEAKER:			/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25024 );
 					eUnitClass = CX2Unit::UC_LIRE_ELVEN_RANGER;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25025 );
 					eUnitClass = CX2Unit::UC_LIRE_COMBAT_RANGER;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25026 );
 					eUnitClass = CX2Unit::UC_LIRE_WIND_SNEAKER;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_LIRE_SNIPING_RANGER:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_LIRE_GRAND_ARCHER:			/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_LIRE_SNIPING_RANGER:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_LIRE_GRAND_ARCHER:			/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25024 );
 					eUnitClass = CX2Unit::UC_LIRE_ELVEN_RANGER;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25027 );
 					eUnitClass = CX2Unit::UC_LIRE_SNIPING_RANGER;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25028 );
 					eUnitClass = CX2Unit::UC_LIRE_GRAND_ARCHER;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_LIRE_TRAPPING_RANGER:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_LIRE_NIGHT_WATCHER:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_LIRE_TRAPPING_RANGER:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_LIRE_NIGHT_WATCHER:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25024 );
 					eUnitClass = CX2Unit::UC_LIRE_ELVEN_RANGER;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25029 );
 					eUnitClass = CX2Unit::UC_LIRE_TRAPPING_RANGER;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25030 );
 					eUnitClass = CX2Unit::UC_LIRE_NIGHT_WATCHER;
@@ -5255,75 +5686,75 @@ void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 			}
 		} break;
 
-		/// ï¿½ï¿½ï¿½Ìºï¿½
-	case CX2Unit::UC_RAVEN_FIGHTER:				/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½
+		/// ·¹ÀÌºì
+	case CX2Unit::UC_RAVEN_FIGHTER:				/// ±âº» ÀüÁ÷
 		{
-			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 			{
 				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25031 );
 				eUnitClass = CX2Unit::UC_RAVEN_FIGHTER;
 			}
 		} break;
-	case CX2Unit::UC_RAVEN_SOUL_TAKER:			/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_RAVEN_BLADE_MASTER:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_RAVEN_SOUL_TAKER:			/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_RAVEN_BLADE_MASTER:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25031 );
 					eUnitClass = CX2Unit::UC_RAVEN_FIGHTER;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25032 );
 					eUnitClass = CX2Unit::UC_RAVEN_SOUL_TAKER;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25033 );
 					eUnitClass = CX2Unit::UC_RAVEN_BLADE_MASTER;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_RAVEN_OVER_TAKER:			/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_RAVEN_RECKLESS_FIST:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_RAVEN_OVER_TAKER:			/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_RAVEN_RECKLESS_FIST:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25031 );
 					eUnitClass = CX2Unit::UC_RAVEN_FIGHTER;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25034 );
 					eUnitClass = CX2Unit::UC_RAVEN_OVER_TAKER;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25035 );
 					eUnitClass = CX2Unit::UC_RAVEN_RECKLESS_FIST;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_RAVEN_WEAPON_TAKER:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_RAVEN_VETERAN_COMMANDER:	/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_RAVEN_WEAPON_TAKER:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_RAVEN_VETERAN_COMMANDER:	/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25031 );
 					eUnitClass = CX2Unit::UC_RAVEN_FIGHTER;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25036 );
 					eUnitClass = CX2Unit::UC_RAVEN_WEAPON_TAKER;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25037 );
 					eUnitClass = CX2Unit::UC_RAVEN_VETERAN_COMMANDER;
@@ -5331,75 +5762,75 @@ void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 			}
 		} break;
 
-		/// ï¿½Ìºï¿½
-	case CX2Unit::UC_EVE_NASOD:					/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½
+		/// ÀÌºê
+	case CX2Unit::UC_EVE_NASOD:					/// ±âº» ÀüÁ÷
 		{
-			if ( CX2Unit::UCT_BASIC_CLASS == UnitClassType )	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( CX2Unit::UCT_BASIC_CLASS == UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 			{
 				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25038 );
 				eUnitClass = CX2Unit::UC_EVE_NASOD;
 			}
 		} break;
-	case CX2Unit::UC_EVE_EXOTIC_GEAR:			/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_EVE_CODE_NEMESIS:			/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_EVE_EXOTIC_GEAR:			/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_EVE_CODE_NEMESIS:			/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25038 );
 					eUnitClass = CX2Unit::UC_EVE_NASOD;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25039 );
 					eUnitClass = CX2Unit::UC_EVE_EXOTIC_GEAR;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25040 );
 					eUnitClass = CX2Unit::UC_EVE_CODE_NEMESIS;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_EVE_ARCHITECTURE:			/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_EVE_CODE_EMPRESS:			/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_EVE_ARCHITECTURE:			/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_EVE_CODE_EMPRESS:			/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25038 );
 					eUnitClass = CX2Unit::UC_EVE_NASOD;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25041 );
 					eUnitClass = CX2Unit::UC_EVE_ARCHITECTURE;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25042 );
 					eUnitClass = CX2Unit::UC_EVE_CODE_EMPRESS;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_EVE_ELECTRA:				/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_EVE_BATTLE_SERAPH:			/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_EVE_ELECTRA:				/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_EVE_BATTLE_SERAPH:			/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25038 );
 					eUnitClass = CX2Unit::UC_EVE_NASOD;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25043 );
 					eUnitClass = CX2Unit::UC_EVE_ELECTRA;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25044 );
 					eUnitClass = CX2Unit::UC_EVE_BATTLE_SERAPH;
@@ -5408,105 +5839,105 @@ void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 		} break;
 
 		/// Ã»
-	case CX2Unit::UC_CHUNG_IRON_CANNON:			/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_CHUNG_IRON_CANNON:			/// ±âº» ÀüÁ÷
 		{
-			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 			{
 				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25045 );
 				eUnitClass = CX2Unit::UC_CHUNG_IRON_CANNON;
 			}
 		} break;
-	case CX2Unit::UC_CHUNG_FURY_GUARDIAN:		/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_CHUNG_IRON_PALADIN:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_CHUNG_FURY_GUARDIAN:		/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_CHUNG_IRON_PALADIN:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25045 );
 					eUnitClass = CX2Unit::UC_CHUNG_IRON_CANNON;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25046 );
 					eUnitClass = CX2Unit::UC_CHUNG_FURY_GUARDIAN;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25047 );
 					eUnitClass = CX2Unit::UC_CHUNG_IRON_PALADIN;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_CHUNG_DEADLY_CHASER:		/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN:	/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_CHUNG_DEADLY_CHASER:		/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25045 );
 					eUnitClass = CX2Unit::UC_CHUNG_IRON_CANNON;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25048 );
 					eUnitClass = CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25049 );
 					eUnitClass = CX2Unit::UC_CHUNG_DEADLY_CHASER;
 				} break;
 			}
 		} break;
-	case CX2Unit::UC_CHUNG_SHELLING_GUARDIAN:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_CHUNG_TACTICAL_TROOPER:	/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_CHUNG_SHELLING_GUARDIAN:	/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_CHUNG_TACTICAL_TROOPER:	/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25045 );
 					eUnitClass = CX2Unit::UC_CHUNG_IRON_CANNON;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25050 );
 					eUnitClass = CX2Unit::UC_CHUNG_SHELLING_GUARDIAN;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25051 );
 					eUnitClass = CX2Unit::UC_CHUNG_TACTICAL_TROOPER;
 				} break;
 			}
 		} break;
-		/// ï¿½Æ¶ï¿½
-	case CX2Unit::UC_ARA_MARTIAL_ARTIST:		/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½
+		/// ¾Æ¶ó
+	case CX2Unit::UC_ARA_MARTIAL_ARTIST:		/// ±âº» ÀüÁ÷
 		{
-			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 			{
 				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25052 );
 				eUnitClass = CX2Unit::UC_ARA_MARTIAL_ARTIST;
 			}
 		} break;
-	case CX2Unit::UC_ARA_LITTLE_HSIEN:			/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_ARA_SAKRA_DEVANAM:			/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	case CX2Unit::UC_ARA_LITTLE_HSIEN:			/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_ARA_SAKRA_DEVANAM:			/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25052 );
 					eUnitClass = CX2Unit::UC_ARA_MARTIAL_ARTIST;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25053 );
 					eUnitClass = CX2Unit::UC_ARA_LITTLE_HSIEN;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25054 );
 					eUnitClass = CX2Unit::UC_ARA_SAKRA_DEVANAM;
@@ -5515,61 +5946,85 @@ void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 		} break;
 	case CX2Unit::UC_ELESIS_KNIGHT:
 		{
-			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 			{
 				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25873 );
 				eUnitClass = CX2Unit::UC_ELESIS_KNIGHT;
 			}
 		} break;
 	case CX2Unit::UC_ELESIS_SABER_KNIGHT:
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 1-2 ±×·£µå ¸¶½ºÅÍ
+	case CX2Unit::UC_ELESIS_GRAND_MASTER :
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 1-2 ±×·£µå ¸¶½ºÅÍ
+
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25873 );
 					eUnitClass = CX2Unit::UC_ELESIS_KNIGHT;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_26114 );
 					eUnitClass = CX2Unit::UC_ELESIS_SABER_KNIGHT;
 				} break;
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 1-2 ±×·£µå ¸¶½ºÅÍ
+			case CX2Unit::UCT_SECOND_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
+				{
+					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_28263 );
+					eUnitClass = CX2Unit::UC_ELESIS_GRAND_MASTER;
+				} break;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 1-2 ±×·£µå ¸¶½ºÅÍ
 			}
 		} break;
 	case CX2Unit::UC_ELESIS_PYRO_KNIGHT:
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 2-2 ºí·¹ÀÌÂ¡ ÇÏÆ®
+	case CX2Unit::UC_ELESIS_BLAZING_HEART :
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 2-2 ºí·¹ÀÌÂ¡ ÇÏÆ®
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25873 );
 					eUnitClass = CX2Unit::UC_ELESIS_KNIGHT;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_26115 );
 					eUnitClass = CX2Unit::UC_ELESIS_PYRO_KNIGHT;
 				} break;
+				
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 2-2 ºí·¹ÀÌÂ¡ ÇÏÆ®
+			case CX2Unit::UCT_SECOND_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
+				{
+					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_28264 );
+					eUnitClass = CX2Unit::UC_ELESIS_BLAZING_HEART;
+				} break;
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE	// ±èÁ¾ÈÆ, ¿¤¸®½Ã½º 2-2 ºí·¹ÀÌÂ¡ ÇÏÆ®
+
 			}
 		} break;
-#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
-	case CX2Unit::UC_ARA_LITTLE_DEVIL:			/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	case CX2Unit::UC_ARA_YAMA_RAJA:					/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
+	case CX2Unit::UC_ARA_LITTLE_DEVIL:			/// 1Â÷ ÀüÁ÷
+	case CX2Unit::UC_ARA_YAMA_RAJA:					/// 2Â÷ ÀüÁ÷
 		{
-			switch ( UnitClassType )					/// ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Þ¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			switch ( UnitClassType )					/// ¿øÇÏ´Â ÀüÁ÷ µî±Þ¿¡ µû¸¥ Á¤º¸ ¼³Á¤
 			{
-			case CX2Unit::UCT_BASIC_CLASS:	/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_BASIC_CLASS:	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25052 );
 					eUnitClass = CX2Unit::UC_ARA_MARTIAL_ARTIST;
 				} break;
-			case CX2Unit::UCT_FIRST_CLASS:	/// 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_FIRST_CLASS:	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_26771 );
 					eUnitClass = CX2Unit::UC_ARA_LITTLE_DEVIL;
 				} break;
-			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			case CX2Unit::UCT_SECOND_CLASS:	/// 2Ä¡ ÀüÁ÷ Á¤º¸ ¼³Á¤
 				{
 					pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_26772 );
 					eUnitClass = CX2Unit::UC_ARA_YAMA_RAJA;
@@ -5577,31 +6032,67 @@ void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 			}
 		} break;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
-		/// ï¿½ï¿½ï¿½ï¿½ È¤ï¿½ï¿½ ï¿½É¸ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½, ï¿½Ø´ï¿½ caseï¿½ï¿½ ï¿½ß°ï¿½ï¿½Ø¾ï¿½ ï¿½Õ´Ï´ï¿½!
-		/// ï¿½ï¿½ï¿½ï¿½ : 
-		/// ï¿½âº» ï¿½ï¿½ï¿½ï¿½						- ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
-		/// 1ï¿½ï¿½ È¤ï¿½ï¿½ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½Æ® 1 )	- ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ~ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ( ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¿ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ )
-		/// 1ï¿½ï¿½ È¤ï¿½ï¿½ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½Æ® 2 )	- ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ~ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
-		/// 1ï¿½ï¿½ È¤ï¿½ï¿½ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½Æ® 3 )	- ï¿½âº» ï¿½ï¿½ï¿½ï¿½ ~ 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯ ( Ä³¸¯ÅÍ Ãß°¡¿ë )
+	case CX2Unit::UC_ADD_NASOD_RULER:
+		{
+			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
+			{
+				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_29422 );
+				eUnitClass = CX2Unit::UC_ADD_NASOD_RULER;
+			}
+		}
+
+	case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+	case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+#endif //SERV_ADD_LUNATIC_PSYKER
+		{
+			if ( CX2Unit::UCT_BASIC_CLASS ==  UnitClassType )	/// ±âº» ÀüÁ÷ Á¤º¸ ¼³Á¤
+			{
+				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_29422 );
+				eUnitClass = CX2Unit::UC_ADD_NASOD_RULER;
+			}
+			if ( CX2Unit::UCT_FIRST_CLASS ==  UnitClassType )	/// 1Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
+			{
+				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_29887 );
+				eUnitClass = CX2Unit::UC_ADD_PSYCHIC_TRACER;
+			}
+	#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+			if ( CX2Unit::UCT_SECOND_CLASS ==  UnitClassType )	/// 2Â÷ ÀüÁ÷ Á¤º¸ ¼³Á¤
+			{
+				pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_30044 );
+				eUnitClass = CX2Unit::UC_ADD_LUNATIC_PSYKER;
+			}
+	#endif //SERV_ADD_LUNATIC_PSYKER
+		} break;
+
+#endif //SERV_9TH_NEW_CHARACTER
+		/// ÀüÁ÷ È¤Àº ÄÉ¸¯ÅÍ Ãß°¡½Ã, ÇØ´ç case¹® Ãß°¡ÇØ¾ß ÇÕ´Ï´Ù!
+		/// ±¸Á¶ : 
+		/// ±âº» ÀüÁ÷						- ±âº» ÀüÁ÷¸¸ Ãß°¡
+		/// 1Â÷ È¤Àº 2Â÷ ÀüÁ÷ ( ·çÆ® 1 )	- ±âº» ÀüÁ÷ ~ 2Â÷ ÀüÁ÷±îÁö Ãß°¡ ( ÇØ´ç ÀüÁ÷¿¡¼­ ÀÌÀü ÀüÁ÷ÀÇ Á¤º¸¸¦ ¹Þ¾Æ¿Ã ¼ö ÀÖµµ·Ï )
+		/// 1Â÷ È¤Àº 2Â÷ ÀüÁ÷ ( ·çÆ® 2 )	- ±âº» ÀüÁ÷ ~ 2Â÷ ÀüÁ÷±îÁö Ãß°¡
+		/// 1Â÷ È¤Àº 2Â÷ ÀüÁ÷ ( ·çÆ® 3 )	- ±âº» ÀüÁ÷ ~ 2Â÷ ÀüÁ÷±îÁö Ãß°¡
 	}
 
-	/// ï¿½Ê»ï¿½È­ ï¿½Ì¹ï¿½ï¿½ï¿½ Å° ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ÃÊ»óÈ­ ÀÌ¹ÌÁö Å° °ª ¼³Á¤
 	if( false == CX2Data::GetCharacterImageName( wstrFileName, wstrPieceName, eUnitClass, CX2Data::CIT_50by50 ) )
 	{
-		/// Unit Class ï¿½ï¿½ï¿½Ú°ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!
+		/// Unit Class ÀÎÀÚ°ªÀ» Àß¸ø ¼³Á¤ÇÏ¿´´Ù!
 		ASSERT( !"Skill Tree Portrait Unit Class Is Wrong!!!" );
 
-		/// ï¿½ï¿½ï¿½Ì»ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ ï¿½Ç¹Ì´ï¿½ ï¿½ï¿½ï¿½ï¿½. )
+		/// ¾ÆÀÌ»þ º¸ÀÌµå ÇÁ¸°¼¼½º¸¦ µðÆúÆ®·Î ¼³Á¤ ( º° ÀÇ¹Ì´Â ¾ø´Ù. )
 		wstrFileName	= L"DLG_UI_Common_Texture21_NEW.tga";
 		wstrPieceName	= L"V_PRINCESS_SMALL";
 	}
 
-	pStatic->GetPicture( 1 )->SetTex( wstrFileName.c_str(),	wstrPieceName.c_str() );	/// ï¿½Ê»ï¿½È­ ï¿½ï¿½ï¿½ï¿½
+	pStatic->GetPicture( 1 )->SetTex( wstrFileName.c_str(),	wstrPieceName.c_str() );	/// ÃÊ»óÈ­ ¼³Á¤
 
-	/// Unit Class Type ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+	/// Unit Class Type ¿¹¿Ü Ã³¸®
 	if ( L"None" == pStatic->GetString( 0 )->msg )
 	{
-		/// Unit Class Type ï¿½ï¿½ï¿½Ú°ï¿½ï¿½ï¿½ ï¿½ß¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½!
+		/// Unit Class Type ÀÎÀÚ°ªÀ» Àß¸ø ¼³Á¤ÇÏ¿´´Ù!
 		ASSERT( !"Skill Tree Portrait Unit Class Type Is Wrong!!!" );
 
 		pStatic->GetString( 0 )->msg = GET_STRING( STR_ID_25021 );
@@ -5611,9 +6102,9 @@ void CX2UISkillTreeNew::SetUnitClassImageAndName(	CKTDGUIStatic* pStatic,
 }
 
 /** @function	: GetSkillTitleDesc
-	@brief		: ï¿½ï¿½Å³ ï¿½Ì¸ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param		: ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
-	@return		: ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½, ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief		: ½ºÅ³ ÀÌ¸§, ½ºÅ³ ·¹º§À» Ç¥½ÃÇÏ´Â »óÀ§ ÅøÆÁ »ý¼º
+	@param		: ½ºÅ³ ¾ÆÀÌµð
+	@return		: ½ºÅ³ ÅÛÇÃ¸´, ½ºÆ®¸µ ÂüÁ¶ÀÚ
 */
 void CX2UISkillTreeNew::GetSkillTitleDesc( OUT wstring& wstrTitleDesc, IN const CX2SkillTree::SkillTemplet* pSkillTemplet, 
 										   IN const CX2SkillTree::SkillTreeTemplet* pSkillTreeTemplet, IN int iSkillLevel, IN int iIncreasekillLevel ) const
@@ -5623,7 +6114,6 @@ void CX2UISkillTreeNew::GetSkillTitleDesc( OUT wstring& wstrTitleDesc, IN const 
 		NULL == g_pData ||
 		NULL == g_pData->GetMyUser() ||
 		NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() ||
 		NULL == g_pData->GetSocketItem() ||
 		NULL == g_pData->GetSkillTree() )
 		return;
@@ -5631,21 +6121,21 @@ void CX2UISkillTreeNew::GetSkillTitleDesc( OUT wstring& wstrTitleDesc, IN const 
 #ifdef CLIENT_GLOBAL_LINEBREAK
 	wstrTitleDesc = CWordLineHandler::GetStrByLineBreakInX2Main( pSkillTemplet->m_wstrName.c_str(), 150, XUF_DODUM_11_NORMAL );
 #else //CLIENT_GLOBAL_LINEBREAK
-	wstrTitleDesc = pSkillTemplet->m_wstrName;		/// ï¿½ï¿½Å³ï¿½ï¿½
+	wstrTitleDesc = pSkillTemplet->m_wstrName;		/// ½ºÅ³¸í
 #endif //CLIENT_GLOBAL_LINEBREAK
 
 	wstrTitleDesc += L"\n";
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	/// ½ºÅ³ ·¹º§
 	wstring wstrLevelTitle = L"";
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½Ú¿ï¿½ (ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½) ï¿½ß°ï¿½
+	/// ¸¸¾à ¸¶½ºÅÍ ·¹º§ÀÏ ¶§, ·¹º§ µÚ¿¡ (¸¶½ºÅÍ) Ãß°¡
 	if ( pSkillTreeTemplet->m_iMaxSkillLevel <= iSkillLevel )
 		wstrLevelTitle = GET_STRING(STR_ID_25113);
 
 	WCHAR buf[256] = {0,};
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ ï¿½Æ´Ï°ï¿½, ï¿½ß°ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	/// ÇöÀç ½ºÅ³ ·¹º§ÀÌ 0ÀÌ ¾Æ´Ï°í, Ãß°¡ ½ºÅ³ ·¹º§ÀÌ ÀÖÀ¸¸é
 	if ( 0 < iSkillLevel && 0 < iIncreasekillLevel )
 		StringCchPrintf( buf, 256, L"#C0DBE26%s.%d (+%d)#CX #CFF0000%s#CX\n", GET_STRING(STR_ID_489), iSkillLevel, iIncreasekillLevel, wstrLevelTitle.c_str() );
 	else
@@ -5655,78 +6145,132 @@ void CX2UISkillTreeNew::GetSkillTitleDesc( OUT wstring& wstrTitleDesc, IN const 
 }
 
 /** @function	: GetSkillSubDesc
-	@brief		: ï¿½ï¿½Å³ Å¸ï¿½ï¿½, ï¿½Ò¸ï¿½ MP, ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param		: ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½, ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief		: ½ºÅ³ Å¸ÀÔ, ¼Ò¸ð MP, Àç»ç¿ë ½Ã°£À» Ç¥½ÃÇÏ´Â ¼­ºê ÅøÆÁ »ý¼º
+	@param		: ½ºÅ³ ÅÛÇÃ¸´, ÃÑ ½ºÅ³ ·¹º§, ½ºÆ®¸µ ÂüÁ¶ÀÚ
 */
 void  CX2UISkillTreeNew::GetSkillSubDesc( IN const CX2SkillTree::SkillTemplet* pSkillTemplet, IN const int iTotalSkillLevel, OUT wstring& wstrSubDesc ) const
 {
+	
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯
+	if( NULL == pSkillTemplet ||
+		NULL == g_pData ||
+		NULL == g_pData->GetMyUser() ||
+		NULL == g_pData->GetMyUser()->GetSelectUnit() )
+		return;
+#else //SERV_9TH_NEW_CHARACTER
 	if( NULL == pSkillTemplet )
 		return;
+#endif //SERV_9TH_NEW_CHARACTER
+		
 
-	bool bIsPassive = false;	/// ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ( ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ 0ï¿½Ï¶ï¿½, ï¿½ï¿½Ç¥ï¿½ï¿½ )
+	bool bIsPassive = false;	/// ÆÐ½Ãºê ½ºÅ³ ¿©ºÎ ( ÆÐ½Ãºê ½ºÅ³Àº Àç»ç¿ë ½Ã°£ 0ÀÏ¶§, ¹ÌÇ¥±â )
 
-	/// ï¿½ï¿½Å³ Å¸ï¿½ï¿½
+	/// ½ºÅ³ Å¸ÀÔ
 	WCHAR buf[256] = {0,};
 
 	switch(pSkillTemplet->m_eType)
 	{	
 	case CX2SkillTree::ST_SPECIAL_ACTIVE:
 		{
-			StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2672) );		/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½
+			StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2672) );		/// ½ºÆä¼È ¾×Æ¼ºê
 
 		} break;
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+		{
+			StringCchPrintf( buf, 256, L"[%s]", GET_STRING( STR_ID_26134 ) );		/// ÇÏÀÌÆÛ ¾×Æ¼ºê
+
+		} break;
+#endif //FINALITY_SKILL_SYSTEM
 	case CX2SkillTree::ST_ACTIVE:
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	case CX2SkillTree::ST_RELATIONSHIP_SKILL:
 #endif // ADDED_RELATIONSHIP_SYSTEM
 		{
-			StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2673) );		/// ï¿½ï¿½Æ¼ï¿½ï¿½
+			StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2673) );		/// ¾×Æ¼ºê
 
 		} break;
 	case CX2SkillTree::ST_BUFF:
 		{
-			StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2674) );		/// ï¿½ï¿½ï¿½ï¿½
+			StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2674) );		/// ¹öÇÁ
 
 		} break;
 	default:
 		{
 			if ( true == m_bReplacedEsCounter )
 			{
-				StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2673) );		/// ï¿½ï¿½Æ¼ï¿½ï¿½
+				StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2673) );		/// ¾×Æ¼ºê
 			}
 			else
 			{
-				StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2675) );		/// ï¿½Ð½Ãºï¿½
-				bIsPassive = true;		/// ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³ï¿½ï¿½
+				StringCchPrintf( buf, 256, L"[%s]", GET_STRING(STR_ID_2675) );		/// ÆÐ½Ãºê
+				bIsPassive = true;		/// ÆÐ½Ãºê ½ºÅ³ÀÓ
 			}
 		} break;
 	}
-	wstrSubDesc = buf;	/// ï¿½ï¿½Å³ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	wstrSubDesc = buf;	/// ½ºÅ³ Å¸ÀÔ ¼³Á¤
 
-	/// ï¿½Ò¸ï¿½ MP
-	const int iMPConsumption = static_cast<int>( pSkillTemplet->GetSkillMPConsumptionValue( iTotalSkillLevel ) );	/// ï¿½Ò¸ï¿½ MP ï¿½ï¿½
+	/// ¼Ò¸ð MP
+	const int iMPConsumption = static_cast<int>( pSkillTemplet->GetSkillMPConsumptionValue( iTotalSkillLevel ) );	/// ¼Ò¸ð MP °ª
 
-	/// ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³ï¿½Ì°ï¿½ ï¿½Ò¸ï¿½ MPï¿½ï¿½ ï¿½Ö°Å³ï¿½, ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ ï¿½Ò¸ï¿½ MP Ç¥ï¿½ï¿½
+	/// ÆÐ½Ãºê ½ºÅ³ÀÌ°í ¼Ò¸ð MP°¡ ÀÖ°Å³ª, ÆÐ½Ãºê ½ºÅ³ÀÌ ¾Æ´Ò ¶§ ¼Ò¸ð MP Ç¥±â
 	if ( ( true == bIsPassive && 0 < iMPConsumption ) || false == bIsPassive )
 	{
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯
+		/// ¾ÖµåÀÏ ¶§¸¸ DP¿¡ ´ëÇÑ ¼Ò¸ð·® Ç¥½Ã
+		if ( CX2Unit::UT_ADD == g_pData->GetMyUser()->GetSelectUnit()->GetType() )
+		{
+			const int iConsumeMP = static_cast<int>( pSkillTemplet->GetSkillMPConsumptionValue( iTotalSkillLevel ) );
+			const int iConsumeDP = static_cast<int>( pSkillTemplet->m_usFPConsumtion / DISPLAY_DP_RATE );
+
+			if ( 0 < iConsumeMP )		/// MP ¼Ò¸ð·® Ç¥½Ã
+			{
+				StringCchPrintf( buf, 256, L"\n%s%d", GET_STRING(STR_ID_2648), iConsumeMP );
+
+				wstrSubDesc += buf;
+
+				if ( 0 < iConsumeDP )	/// + DP ¼Ò¸ð·® Ç¥½Ã
+				{
+					StringCchPrintf( buf, 256, L" / %s%d", GET_STRING(STR_ID_29866), iConsumeDP );
+
+					wstrSubDesc += buf;
+				}
+			}
+			else if ( 0 < iConsumeDP )						/// DP ¼Ò¸ð·® Ç¥½Ã
+			{
+				StringCchPrintf( buf, 256, L"\n%s%d", GET_STRING(STR_ID_29866), iConsumeDP );
+
+				wstrSubDesc += buf;
+			}
+		}
+		else
+		{
+			StringCchPrintf( buf, 256, L"\n%s%d", GET_STRING(STR_ID_2648), static_cast<int>( pSkillTemplet->GetSkillMPConsumptionValue( iTotalSkillLevel ) ) );
+
+			wstrSubDesc += buf;
+		}
+#else //SERV_9TH_NEW_CHARACTER
 		StringCchPrintf( buf, 256, L"\n%s%d", GET_STRING(STR_ID_2648), static_cast<int>( pSkillTemplet->GetSkillMPConsumptionValue( iTotalSkillLevel ) ) );
+	
+
 		wstrSubDesc += buf;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½
-	const int iSkillCoolTime = static_cast<int>( pSkillTemplet->GetSkillCoolTimeValue( iTotalSkillLevel ) );		/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½
+	/// Àç»ç¿ë ½Ã°£
+	const int iSkillCoolTime = static_cast<int>( pSkillTemplet->GetSkillCoolTimeValue( iTotalSkillLevel ) );		/// Àç»ç¿ë ½Ã°£ °ª
 
-	/// ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³ï¿½Ì°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ö°Å³ï¿½, ï¿½Ð½Ãºï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ Ç¥ï¿½ï¿½
+	/// ÆÐ½Ãºê ½ºÅ³ÀÌ°í Àç»ç¿ë ½Ã°£ÀÌ ÀÖ°Å³ª, ÆÐ½Ãºê ½ºÅ³ÀÌ ¾Æ´Ò ¶§ Àç»ç¿ë ½Ã°£ Ç¥±â
 	if ( ( true == bIsPassive && 0 < iSkillCoolTime ) || false == bIsPassive )
 	{
 		wstrSubDesc += L"\n";
-		wstrSubDesc += GET_REPLACED_STRING( ( STR_ID_25070, "i", static_cast<int>( pSkillTemplet->GetSkillCoolTimeValue( iTotalSkillLevel ) ) ) );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ @1
+		wstrSubDesc += GET_REPLACED_STRING( ( STR_ID_25070, "i", static_cast<int>( pSkillTemplet->GetSkillCoolTimeValue( iTotalSkillLevel ) ) ) );	/// Àç»ç¿ë ½Ã°£ @1
 	}
 }
 
 /** @function	: SetLearnSkillInfo
-	@brief		: ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°Å³ï¿½ ï¿½ï¿½È­ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½æ°ª ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-	@param		: ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
+	@brief		: ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ½ÀµæÇÏ°Å³ª °­È­ÇÒ ¶§, º¯°æ°ª ¼³Á¤ÇÏ´Â ÇÔ¼ö
+	@param		: ½ºÅ³ ¾ÆÀÌµð
 */
 void CX2UISkillTreeNew::SetLearnSkillInfo( CX2SkillTree::SKILL_ID eSkillID )
 {
@@ -5738,37 +6282,43 @@ void CX2UISkillTreeNew::SetLearnSkillInfo( CX2SkillTree::SKILL_ID eSkillID )
 
 	g_pData->GetSkillTree()->FixOrInsertMapSkillInfoValue( eSkillID );
 
-	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® Ã³ï¿½ï¿½
+	/// ½ºÅ³ ½½·Ô ¾÷µ¥ÀÌÆ® Ã³¸®
 	UpdateUI( false, true, true );
 }
 
 /** @function	: SetBlindSelectSkill
-	@brief		: 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief		: 2Áö¼±´Ù ½ºÅ³ Áß ¼±ÅÃµÇÁö ¾ÊÀº ½ºÅ³¿¡ ´ëÇÑ ºí¶óÀÎµå ¼³Á¤
 */
 void CX2UISkillTreeNew::SetBlindSelectSkill()
 {
 	if (	NULL == m_pDLGUISkillTree ||
 			NULL == g_pData ||
 			NULL == g_pData->GetMyUser() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+			NULL == g_pData->GetMyUser()->GetSelectUnit() )
 	{
 		return;
 	}
 	
 	for ( int iTier = 0; iTier < m_iMaxSkillRowNum + 1; ++iTier )
 	{
-		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ë»ï¿½
+		/// 2Áö¼±´Ù ¿ìÃø¿¡ ÀÖ´Â ½ºÅ³ ¾ÆÀÌµð °Ë»ç
 		std::map<CX2UISkillTreeNew::SkillPositionKey, CX2SkillTree::SKILL_ID>::iterator itRight
 			= m_mapSkillPosition.find( CX2UISkillTreeNew::SkillPositionKey( 1, iTier ) );
 
-		if ( itRight != m_mapSkillPosition.end() )	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+		if ( itRight != m_mapSkillPosition.end() )	/// 2Áö¼±´Ù ¿ìÃø¿¡ ½ºÅ³ÀÌ Á¸ÀçÇÒ ¶§
 		{
-			const CX2UserSkillTree&	refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½Ã¼
+			const CX2UserSkillTree&	refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;	/// ½ÀµæÇÑ ½ºÅ³ °´Ã¼
 
-			int						iSkillLevelRight = refUserSkillTree.GetSkillLevel( itRight->second );		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			int iSkillLevelRight = refUserSkillTree.GetSkillLevel( itRight->second, false, refUserSkillTree.GetSelectPage() );	// 2Áö¼±´Ù ¿ìÃøÀÇ ½ºÅ³ ·¹º§ ( ½ÇÁ¦·Î ¼³Á¤µÇ¾î ÀÖ´Â ·¹º§ )
 
-			if ( true == m_bNowLearnSkill )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( true == m_bNowLearnSkill /*&& refUserSkillTree.IsUsingPage()*/ )		/// ¸¸¾à ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖÀ¸¸ç, ÇØ´ç ½ºÅ³ÀÇ ·¹º§À» ¿Ã¸°ÀûÀÌ ÀÖ´Ù¸é ½ºÅ³Ã¢ ³»¿¡¼­ ¿Ã¶ó°£ ·¹º§À» ¼³Á¤
+#else //SKILL_PAGE_SYSTEM
+			int						iSkillLevelRight = refUserSkillTree.GetSkillLevel( itRight->second );		/// 2Áö¼±´Ù ¿ìÃøÀÇ ½ºÅ³ ·¹º§ ( ½ÇÁ¦·Î ¼³Á¤µÇ¾î ÀÖ´Â ·¹º§ )
+
+			if ( true == m_bNowLearnSkill )		/// ¸¸¾à ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖÀ¸¸ç, ÇØ´ç ½ºÅ³ÀÇ ·¹º§À» ¿Ã¸°ÀûÀÌ ÀÖ´Ù¸é ½ºÅ³Ã¢ ³»¿¡¼­ ¿Ã¶ó°£ ·¹º§À» ¼³Á¤
+#endif //SKILL_PAGE_SYSTEM
+
 			{
 				const std::map<int, KGetSkillInfo> mapSkillInfo = g_pData->GetSkillTree()->GetMapSkillInfo();
 
@@ -5778,51 +6328,55 @@ void CX2UISkillTreeNew::SetBlindSelectSkill()
 					iSkillLevelRight = it->second.m_iSkillLevel;
 			}
 
-			std::map<CX2UISkillTreeNew::SkillPositionKey, CX2SkillTree::SKILL_ID>::iterator itLeft		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ë»ï¿½
+			std::map<CX2UISkillTreeNew::SkillPositionKey, CX2SkillTree::SKILL_ID>::iterator itLeft		/// 2Áö¼±´Ù ÁÂÃøÀÇ ½ºÅ³ ¾ÆÀÌµð °Ë»ç
 				= m_mapSkillPosition.find( CX2UISkillTreeNew::SkillPositionKey( 0, iTier ) );
 
-			/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½Ã¼ ï¿½Ë»ï¿½
+			/// 2Áö¼±´Ù ÁÂ, ¿ìÃø ½½·Ô UI °´Ã¼ °Ë»ö
 			std::map<CX2SkillTree::SKILL_ID, SkillSlotUI>::iterator itLeftUISet		= m_mapSkillSlotUISet.find( itLeft->second );
 			std::map<CX2SkillTree::SKILL_ID, SkillSlotUI>::iterator itRightUISet	= m_mapSkillSlotUISet.find( itRight->second );
 
 			if ( itLeft == m_mapSkillPosition.end() || itLeftUISet == m_mapSkillSlotUISet.end() || itRightUISet == m_mapSkillSlotUISet.end() )
 			{
-				ASSERT( !"Skill Tree Slot Information Is Error!!!" );	/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì»ï¿½ï¿½Ï´ï¿½!!!
+				ASSERT( !"Skill Tree Slot Information Is Error!!!" );	/// ½ºÅ³ ½½·Ô ³» Á¤º¸°¡ ¹º°¡ ÀÌ»óÇÏ´Ù!!!
 				return;
 			}
 
-#ifdef SERV_IRUHADEV_SKILLTREE_NO_LOCK
-			itLeftUISet->second.m_bSelectSkillBlind	= false;	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
-			itRightUISet->second.m_bSelectSkillBlind	= false;	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
-
-			continue;
-#else
 #if defined( _IN_HOUSE_ ) || defined( _IN_HOUSE_SERVICE_READY_QA_ ) || defined( _OPEN_TEST_ ) || defined( _OPEN_TEST_2_ )
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// °³¹ßÀÚ ±â´É - ¾çÂÊ ¸ðµÎ ½ºÅ³ÀÌ ÂïÇôÀÖ´Ù¸é, ºí¶óÀÎµå ÇØÁ¦
 			if( true == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
 			{
-				int iSkillLevelLeft = refUserSkillTree.GetSkillLevel( itLeft->second );		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+				int iSkillLevelLeft = refUserSkillTree.GetSkillLevel( itLeft->second, false, refUserSkillTree.GetSelectPage() );		// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ ·¹º§ ( ½ÇÁ¦·Î ¼³Á¤µÇ¾î ÀÖ´Â ·¹º§ )
+#else //SKILL_PAGE_SYSTEM
+				int iSkillLevelLeft = refUserSkillTree.GetSkillLevel( itLeft->second );		/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ ·¹º§ ( ½ÇÁ¦·Î ¼³Á¤µÇ¾î ÀÖ´Â ·¹º§ )
+#endif //SKILL_PAGE_SYSTEM
 
 				if ( 0 < iSkillLevelLeft && 0 < iSkillLevelRight )
 				{
-					itLeftUISet->second.m_bSelectSkillBlind		= false;	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
-					itRightUISet->second.m_bSelectSkillBlind	= false;	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
+					itLeftUISet->second.m_bSelectSkillBlind		= false;	/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ ºí¶óÀÎµå ÇØÁ¦
+					itRightUISet->second.m_bSelectSkillBlind	= false;	/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ ºí¶óÀÎµå ÇØÁ¦
 
 					continue;
 				}
 			}
 #endif // _SERVICE_
 
-			if ( 0 < iSkillLevelRight )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ÚµÇ¾ï¿½ ï¿½Ö´Ù¸ï¿½,
+			if ( 0 < iSkillLevelRight )		/// 2Áö¼±´Ù ¿ìÃøÀÇ ½ºÅ³ÀÌ ÅõÀÚµÇ¾î ÀÖ´Ù¸é,
 			{
-				itLeftUISet->second.m_bSelectSkillBlind		= true;		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ Ã³ï¿½ï¿½
-				itRightUISet->second.m_bSelectSkillBlind	= false;	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
+				itLeftUISet->second.m_bSelectSkillBlind		= true;		/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ ºí¶óÀÎµå Ã³¸®
+				itRightUISet->second.m_bSelectSkillBlind	= false;	/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ ºí¶óÀÎµå ÇØÁ¦
 			}
-			else	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ÚµÇ¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½,
+			else	/// 2Áö¼±´Ù ¿ìÃøÀÇ ½ºÅ³ÀÌ ÅõÀÚµÇ¾î ÀÖÁö ¾Ê´Ù¸é,
 			{
-				int iSkillLevelLeft = refUserSkillTree.GetSkillLevel( itLeft->second );		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+				int iSkillLevelLeft = refUserSkillTree.GetSkillLevel( itLeft->second, false, refUserSkillTree.GetSelectPage() );	/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ ·¹º§ ( ½ÇÁ¦·Î ¼³Á¤µÇ¾î ÀÖ´Â ·¹º§ )
 
-				if ( true == m_bNowLearnSkill )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				if ( true == m_bNowLearnSkill && refUserSkillTree.IsUsingPage() )		/// ¸¸¾à ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖÀ¸¸ç, ÇØ´ç ½ºÅ³ÀÇ ·¹º§À» ¿Ã¸°ÀûÀÌ ÀÖ´Ù¸é ½ºÅ³Ã¢ ³»¿¡¼­ ¿Ã¶ó°£ ·¹º§À» ¼³Á¤
+#else //SKILL_PAGE_SYSTEM
+				int iSkillLevelLeft = refUserSkillTree.GetSkillLevel( itLeft->second );		/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ ·¹º§ ( ½ÇÁ¦·Î ¼³Á¤µÇ¾î ÀÖ´Â ·¹º§ )
+
+				if ( true == m_bNowLearnSkill )		/// ¸¸¾à ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖÀ¸¸ç, ÇØ´ç ½ºÅ³ÀÇ ·¹º§À» ¿Ã¸°ÀûÀÌ ÀÖ´Ù¸é ½ºÅ³Ã¢ ³»¿¡¼­ ¿Ã¶ó°£ ·¹º§À» ¼³Á¤
+#endif //SKILL_PAGE_SYSTEM
 				{
 					const std::map<int, KGetSkillInfo> mapSkillInfo = g_pData->GetSkillTree()->GetMapSkillInfo();
 
@@ -5832,55 +6386,53 @@ void CX2UISkillTreeNew::SetBlindSelectSkill()
 						iSkillLevelLeft = it->second.m_iSkillLevel;
 				}
 
-				if( 0 < iSkillLevelLeft )		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ÚµÇ¾ï¿½ ï¿½Ö´Ù¸ï¿½,
+				if( 0 < iSkillLevelLeft )		/// 2Áö¼±´Ù ÁÂÃøÀÇ ½ºÅ³ÀÌ ÅõÀÚµÇ¾î ÀÖ´Ù¸é,
 				{
-					itLeftUISet->second.m_bSelectSkillBlind		= false;	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
-					itRightUISet->second.m_bSelectSkillBlind	= true;		/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ Ã³ï¿½ï¿½
+					itLeftUISet->second.m_bSelectSkillBlind		= false;	/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ ºí¶óÀÎµå ÇØÁ¦
+					itRightUISet->second.m_bSelectSkillBlind	= true;		/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ ºí¶óÀÎµå Ã³¸®
 				}
-				else							/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Úµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½,
+				else							/// 2Áö¼±´Ù ½ºÅ³ ¸ðµÎ ÅõÀÚµÈ Àû ¾ø´Ù¸é,
 				{
-					itLeftUISet->second.m_bSelectSkillBlind		= false;	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
-					itRightUISet->second.m_bSelectSkillBlind	= false;	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½
+					itLeftUISet->second.m_bSelectSkillBlind		= false;	/// 2Áö¼±´Ù ÁÂÃø ½ºÅ³ ºí¶óÀÎµå ÇØÁ¦
+					itRightUISet->second.m_bSelectSkillBlind	= false;	/// 2Áö¼±´Ù ¿ìÃø ½ºÅ³ ºí¶óÀÎµå ÇØÁ¦
 				}
 			}
-#endif SERV_IRUHADEV_SKILLTREE_NO_LOCK
 		}
 	}
 }
 
 /** @function	: GetAnotherSelectSkillID
-	@brief		: 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ ï¿½Ý´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯
-	#param		: ï¿½Ë»ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
-	@return		: ï¿½Ý´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
+	@brief		: 2Áö¼±´Ù ½ºÅ³ Áß ¹Ý´ëÆí¿¡ ÀÖ´Â ½ºÅ³ ¾ÆÀÌµð¸¦ ¹ÝÈ¯
+	#param		: °Ë»çÇÒ ½ºÅ³ ¾ÆÀÌµð
+	@return		: ¹Ý´ëÆí¿¡ ÀÖ´Â ½ºÅ³ ¾ÆÀÌµð
 */
 const CX2SkillTree::SKILL_ID CX2UISkillTreeNew::GetAnotherSelectSkillID( CX2SkillTree::SKILL_ID eCheckSkillID ) const
 {
 	if (	NULL == g_pData ||
 			NULL == g_pData->GetSkillTree() ||
 			NULL == g_pData->GetMyUser() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+			NULL == g_pData->GetMyUser()->GetSelectUnit() )
 	{
 		return CX2SkillTree::SI_NONE;
 	}
 
-	int										iUnitClass			= static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );		/// ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½
-	const CX2SkillTree::SkillTreeTemplet*	pSkillTreeTemplet	= g_pData->GetSkillTree()->GetSkillTreeTemplet( iUnitClass, eCheckSkillID );	/// ï¿½ï¿½Å³ Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ã¸ï¿½
+	int										iUnitClass			= static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );		/// À¯´Ö Å¬·¹½º
+	const CX2SkillTree::SkillTreeTemplet*	pSkillTreeTemplet	= g_pData->GetSkillTree()->GetSkillTreeTemplet( iUnitClass, eCheckSkillID );	/// ½ºÅ³ Æ®¸® ÅÛÇÃ¸´
 
 	if ( NULL != pSkillTreeTemplet )
 	{
-		int iIndexInTier	= pSkillTreeTemplet->m_iIndexInTier;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½
+		int iIndexInTier	= pSkillTreeTemplet->m_iIndexInTier;	/// °¡·Î ÀÎµ¦½º
 
-		if ( STST_SINGLE_SKILL == iIndexInTier )	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½
+		if ( STST_SINGLE_SKILL == iIndexInTier )	/// 2Áö¼±´Ù ½ºÅ³ÀÌ ¾Æ´Ï¶ó¸é, ÁßÁö
 			return CX2SkillTree::SI_NONE;
 
-		int iTier			= pSkillTreeTemplet->m_iTier;			/// ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½
+		int iTier			= pSkillTreeTemplet->m_iTier;			/// ¼¼·Î ÀÎµ¦½º
 
-		/// ï¿½Ý´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ë»ï¿½
+		/// ¹Ý´ëÆíÀÇ ½ºÅ³ ¾ÆÀÌµð °Ë»ç
 		std::map<CX2UISkillTreeNew::SkillPositionKey, CX2SkillTree::SKILL_ID>::const_iterator it
 									= m_mapSkillPosition.find( CX2UISkillTreeNew::SkillPositionKey( 1 == iIndexInTier ? 0 : 1, iTier ) );
 
-		/// ï¿½Ý´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ö´Ù¸ï¿½, ï¿½Ø´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯
+		/// ¹Ý´ëÆíÀÇ ½ºÅ³ ¾ÆÀÌµð°¡ ÀÖ´Ù¸é, ÇØ´ç ½ºÅ³ ¾ÆÀÌµð ¹ÝÈ¯
 		if ( it != m_mapSkillPosition.end() )
 			return it->second;
 	}
@@ -5889,25 +6441,30 @@ const CX2SkillTree::SKILL_ID CX2UISkillTreeNew::GetAnotherSelectSkillID( CX2Skil
 }
 
 /** @function	: GetSkillLevelInSkillWimdow
-	@brief		: ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯ ï¿½Ô¼ï¿½ ( ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½Ó½Ã·ï¿½ ï¿½ï¿½îº» ï¿½ï¿½Å³ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ )
-	#param		: ï¿½Ë»ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
-	@return		: ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½
+	@brief		: ½ºÅ³Ã¢ ³» ½ºÅ³ ¾ÆÀÌµð ¹ÝÈ¯ ÇÔ¼ö ( ½ÇÁ¦ Àû¿ëÁßÀÎ ½ºÅ³ÀÌ¶ó¸é Àû¿ëÁß ·¹º§, Àû¿ëÁßÀº ¾Æ´ÏÁö¸¸ ½ºÅ³Ã¢¿¡¼­ ÀÓ½Ã·Î Âï¾îº» ½ºÅ³ÀÌ¶ó¸é ÂïÀº ·¹º§ )
+	#param		: °Ë»çÇÒ ½ºÅ³ ¾ÆÀÌµð
+	@return		: ½ºÅ³ ·¹º§
 */
 const int CX2UISkillTreeNew::GetSkillLevelInSkillWimdow( const CX2SkillTree::SKILL_ID eSkillID ) const
 {
 	if (	NULL == g_pData ||
 			NULL == g_pData->GetMyUser() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+			NULL == g_pData->GetMyUser()->GetSelectUnit() )
 	{
 		return 0;
 	}
 
-	const CX2UserSkillTree&	refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½Ã¼
+	const CX2UserSkillTree&	refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;	/// ½ÀµæÇÑ ½ºÅ³ °´Ã¼
 
-	int iSkillLevel = refUserSkillTree.GetSkillLevel( eSkillID, true );		/// ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ( ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ )
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	int iSkillLevel = refUserSkillTree.GetSkillLevel( eSkillID, true, refUserSkillTree.GetSelectPage() );		/// ½ºÅ³ ·¹º§ ( ½ÇÁ¦·Î ¼³Á¤µÇ¾î ÀÖ´Â ·¹º§ )
 
-	if ( true == m_bNowLearnSkill )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½ ï¿½ï¿½Å³Ã¢ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if ( true == m_bNowLearnSkill && refUserSkillTree.IsUsingPage() )		/// ¸¸¾à ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖÀ¸¸ç, ÇØ´ç ½ºÅ³ÀÇ ·¹º§À» ¿Ã¸°ÀûÀÌ ÀÖ´Ù¸é ½ºÅ³Ã¢ ³»¿¡¼­ ¿Ã¶ó°£ ·¹º§À» ¼³Á¤
+#else //SKILL_PAGE_SYSTEM
+	int iSkillLevel = refUserSkillTree.GetSkillLevel( eSkillID, true );		/// ½ºÅ³ ·¹º§ ( ½ÇÁ¦·Î ¼³Á¤µÇ¾î ÀÖ´Â ·¹º§ )
+
+	if ( true == m_bNowLearnSkill )		/// ¸¸¾à ½ºÅ³Ã¢¿¡¼­ ½ºÅ³ ·¹º§À» ¿Ã¸®°í ÀÖÀ¸¸ç, ÇØ´ç ½ºÅ³ÀÇ ·¹º§À» ¿Ã¸°ÀûÀÌ ÀÖ´Ù¸é ½ºÅ³Ã¢ ³»¿¡¼­ ¿Ã¶ó°£ ·¹º§À» ¼³Á¤
+#endif //SKILL_PAGE_SYSTEM
 	{
 		const std::map<int, KGetSkillInfo> mapSkillInfo = g_pData->GetSkillTree()->GetMapSkillInfo();
 
@@ -5921,8 +6478,8 @@ const int CX2UISkillTreeNew::GetSkillLevelInSkillWimdow( const CX2SkillTree::SKI
 }
 
 /** @function	: GetPrecedingSkillDesc
-	@brief		: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	#param		: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
+	@brief		: ¼±Çà ½ºÅ³¿¡ ´ëÇÑ ÅøÆÁ ¼³Á¤
+	#param		: ÅøÆÁ ½ºÆ®¸µ, ¼±Çà ½ºÅ³ ¾ÆÀÌµð
 */
 void CX2UISkillTreeNew::GetPrecedingSkillDesc( OUT wstring& wstrDesc, CX2SkillTree::SKILL_ID ePrecedingSkill ) const
 {
@@ -5932,25 +6489,25 @@ void CX2UISkillTreeNew::GetPrecedingSkillDesc( OUT wstring& wstrDesc, CX2SkillTr
 		return;
 	}
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	/// ¼±Çà ½ºÅ³ÀÇ ·¹º§
 	const int iPrecedingSkillLevel = GetSkillLevelInSkillWimdow( ePrecedingSkill );
 
-	if ( 0 >= iPrecedingSkillLevel )		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½È³ï¿½ ï¿½Ë¾ï¿½ ï¿½ï¿½ï¿½ï¿½
+	if ( 0 >= iPrecedingSkillLevel )		/// ¼±Çà ½ºÅ³À» ¹è¿ìÁö ¾Ê¾ÒÀ» ¶§¸¸, ¼±Çà ½ºÅ³ ¾È³» ÆË¾÷ ¼³Á¤
 	{
 		const CX2SkillTree::SkillTemplet* pPrecedingSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( ePrecedingSkill );
 
 		if ( NULL != pPrecedingSkillTemplet )
 		{
 			WCHAR buf[256] = {0,};
-			StringCchPrintf( buf, 256, L"\n#CFF0000%s#CX\n\n", GET_REPLACED_STRING( ( STR_ID_25114, "L", pPrecedingSkillTemplet->m_wstrName ) ) );	/// ï¿½ï¿½ï¿½à½ºÅ³ : @1 Lv.1 ï¿½Ê¿ï¿½
+			StringCchPrintf( buf, 256, L"\n#CFF0000%s#CX\n\n", GET_REPLACED_STRING( ( STR_ID_25114, "L", pPrecedingSkillTemplet->m_wstrName ) ) );	/// ¼±Çà½ºÅ³ : @1 Lv.1 ÇÊ¿ä
 			wstrDesc += buf;
 		}
 	}
 }
 
 /** @function	: SetSkillSlotButton
-	@brief		: ï¿½ï¿½Å³ Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
-	#param		: ï¿½ï¿½Æ° ï¿½ï¿½Ã¼, ï¿½ï¿½Æ° Å¸ï¿½ï¿½
+	@brief		: ½ºÅ³ Æ®¸®ÀÇ ½ºÅ³ ½½·Ô ¹öÆ° ¼³Á¤ ÇÔ¼ö
+	#param		: ¹öÆ° °´Ã¼, ¹öÆ° Å¸ÀÔ
 */
 void CX2UISkillTreeNew::SetSkillSlotButton( CKTDGUIButton* pSlotButton, SKILL_TREE_SLOT_BUTTON_TYPE eButtonType )
 {
@@ -5983,80 +6540,79 @@ void CX2UISkillTreeNew::SetSkillSlotButton( CKTDGUIButton* pSlotButton, SKILL_TR
 }
 
 /** @function	: IsLearnBeforeSelectSkill
-	@brief		: ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½ï¿½ï¿½ 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¸ï¿½ ï¿½ï¿½È¯
-	@param		: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Tier ï¿½Îµï¿½ï¿½ï¿½
-	@return		: ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½ 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief		: ÀÌÀü ´Ü°èÀÇ 2Áö¼±´Ù ½ºÅ³À» ¹è¿ü´ÂÁö ¿©ºÎ¸¦ ¹ÝÈ¯
+	@param		: ÇöÀç ½ºÅ³ ¶óÀÎÀÇ Tier ÀÎµ¦½º
+	@return		: ÀÌÀü ´Ü°è 2Áö¼±´Ù ½ºÅ³ ½Àµæ ¿©ºÎ
 */
 bool CX2UISkillTreeNew::IsLearnBeforeSelectSkill( const int iNowTierIndex )
 {
-	/// ï¿½Ë»ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ Tier ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½Å³ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+	/// °Ë»çÇÏ·Á´Â Tier ÀÎµ¦½º°¡ ±âº» ½ºÅ³ÀÌ¶ó¸é, ¹«Á¶°Ç ½Àµæ Ã³¸®
 	if ( 0 == GetRequireSkillLineLevel( iNowTierIndex ) )
 		return true;
 
 	if ( NULL == g_pData ||
 		 NULL == g_pData->GetMyUser() ||
-		 NULL == g_pData->GetMyUser()->GetSelectUnit() || 
-		 NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		 NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		 return true;
 
 	const CX2Unit::UNIT_CLASS				eUnitClass			= g_pData->GetMyUser()->GetSelectUnit()->GetClass();
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¹ï¿½ï¿½Â° ï¿½ï¿½( ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½Å³ )ï¿½Ì°Å³ï¿½ ï¿½Î¹ï¿½Â° ï¿½ï¿½( ï¿½âº» ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Å³ ) ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+	/// ¸¸¾à °¡Àå Ã¹¹øÂ° ÁÙ( ±âº» ÀüÁ÷ÀÇ ±âº» ½ºÅ³ )ÀÌ°Å³ª µÎ¹øÂ° ÁÙ( ±âº» ½ºÅ³À» ¼±ÇàÀ¸·Î µÐ ½ºÅ³ ) ÀÌ¶ó¸é, ¹«Á¶°Ç ½ºÅ³ ½Àµæ Ã³¸®
 	if ( 0 == iNowTierIndex || 1 == iNowTierIndex )
 		return true;
 
-	int BeforeSkillLineIndex = iNowTierIndex - 1;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½
+	int BeforeSkillLineIndex = iNowTierIndex - 1;	/// ÀÌÀü ½ºÅ³ ¶óÀÎÀÇ ¼¼·Î ÀÎµ¦½º
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½âº» ï¿½ï¿½Å³ï¿½Ì¶ï¿½ï¿½, ï¿½âº» ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½ ( 2ï¿½Ü°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ )
+	/// ÀÌÀü ¶óÀÎÀÇ ½ºÅ³ÀÌ ±âº» ½ºÅ³ÀÌ¶ó¸é, ±âº» ½ºÅ³ ÀÌÀüÀÇ ÀÎµ¦½º¸¦ °Ë»ç ( 2´Ü°è ÀÌÀü ½ºÅ³ ¶óÀÎ )
 	if ( 0 == GetRequireSkillLineLevel( BeforeSkillLineIndex ) )
 		--BeforeSkillLineIndex;
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ë»ï¿½
+	/// ÀÌÀü ´Ü°èÀÇ ½ºÅ³ ¾ÆÀÌµð °Ë»ö
 	const SkillPositionKey skillPositionKey	= SkillPositionKey( 0, BeforeSkillLineIndex );
 
 	std::map<SkillPositionKey, CX2SkillTree::SKILL_ID>::const_iterator mit = m_mapSkillPosition.find( skillPositionKey );
 
-	if ( m_mapSkillPosition.end() != mit )	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ü°ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+	if ( m_mapSkillPosition.end() != mit )	/// ÀÌÀü ´Ü°èÀÇ ½ºÅ³ ¾ÆÀÌµð°¡ ÀÖÀ» ¶§
 	{
 		CX2SkillTree::SKILL_ID eSkillID = mit->second;
 
-		/// ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½È°ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+		/// ÇØ´ç ½ºÅ³ÀÇ ·¹º§ÀÌ 1º¸´Ù Å©¸é, ½Àµæ µÈ°ÍÀ¸·Î Ã³¸®
 		if ( 0 < GetSkillLevelInSkillWimdow( eSkillID ) )
 			return true;
-		/// ï¿½Æ´Ï¸ï¿½, 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ý´ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½Ë»ï¿½
+		/// ¾Æ´Ï¸é, 2Áö¼±´Ù ¹Ý´ëÆí ¾ÆÀÌµð °Ë»ç
 		else
 		{
 			const CX2SkillTree::SKILL_ID eAnotherSkillID = GetAnotherSelectSkillID( mit->second );
 
-			/// ï¿½Ý´ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Ø´ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ Å©ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È°ï¿½ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
+			/// ¹Ý´ëÆí ½ºÅ³ ¾ÆÀÌµð°¡ ÀÖÀ¸¸ç, ÇØ´ç ½ºÅ³ÀÇ ·¹º§ÀÌ 1º¸´Ù Å©¸é ½Àµæ µÈ°ÍÀ¸·Î Ã³¸®
 			if ( CX2SkillTree::SI_NONE != eAnotherSkillID && 0 < GetSkillLevelInSkillWimdow( eAnotherSkillID ) )
 				return true;
 		}
 	}
 
-	return false;	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´ï¿½.
+	return false;	/// ÀÌÀü ¶óÀÎÀÇ ½ºÅ³À» ¹è¿ìÁö ¾Ê¾Ò´Ù.
 }
 
 /** @function	: GetNotLearnTierIndex
-	@brief		: ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö»ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-	@return		: ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Tier ï¿½Îµï¿½ï¿½ï¿½
+	@brief		: ¹è¿ìÁö ¸øÇÑ ÃÖ»óÀ§ ½ºÅ³ ¶óÀÎ ¹ÝÈ¯
+	@return		: ½ºÅ³ ¶óÀÎ Tier ÀÎµ¦½º
 */
 const int CX2UISkillTreeNew::GetNotLearnTierIndex()
 {
 	std::map<SkillPositionKey, CX2SkillTree::SKILL_ID>::iterator mit = m_mapSkillPosition.find( SkillPositionKey( 0, 0 ) );
 	int iTierIndex = 0;
 
-	/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê´ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ï¿ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ³ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ Tier ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½Å°ï¿½ï¿½
+	/// ¸Ç À§¿¡¼­ºÎÅÍ ¾Æ·¡·Î Â÷·Ê´ë·Î °Ë»çÇÏ¿©, ¸ø¹è¿î ½ºÅ³ ¶óÀÎÀ» Ã£¾Æ³»¸é ÇØ´ç Tier ÀÎµ¦½º¸¦ ¹ÝÈ¯½ÃÅ°ÀÚ
 	while ( m_mapSkillPosition.end() != mit )
 	{
-		const CX2SkillTree::SKILL_ID eLeftSkillID = mit->second;	/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
+		const CX2SkillTree::SKILL_ID eLeftSkillID = mit->second;	/// 2Áö¼±´Ù ¿ÞÂÊ ½ºÅ³ ¾ÆÀÌµð
 
-		if ( 0 != GetRequireSkillLineLevel( iTierIndex ) && 0 >= GetSkillLevelInSkillWimdow( eLeftSkillID ) )	/// ï¿½âº» ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ï°ï¿½, ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Ù¸ï¿½
+		if ( 0 != GetRequireSkillLineLevel( iTierIndex ) && 0 >= GetSkillLevelInSkillWimdow( eLeftSkillID ) )	/// ±âº» ½ºÅ³ÀÌ ¾Æ´Ï°í, ½ºÅ³À» ¹è¿ìÁö ¾Ê¾Ò´Ù¸é
 		{
-			const CX2SkillTree::SKILL_ID eRightSkillID = GetAnotherSelectSkillID( eLeftSkillID );				/// 2ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯
+			const CX2SkillTree::SKILL_ID eRightSkillID = GetAnotherSelectSkillID( eLeftSkillID );				/// 2Áö¼±´Ù ¿À¸¥ÂÊ ½ºÅ³ ¾ÆÀÌµð ¹ÝÈ¯
 
-			if ( CX2SkillTree::SI_NONE == eRightSkillID || 0 >= GetSkillLevelInSkillWimdow( eRightSkillID ) )	/// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½Å³ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´ï¿½
-				break;		/// ï¿½Ø´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, Tier ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½
+			if ( CX2SkillTree::SI_NONE == eRightSkillID || 0 >= GetSkillLevelInSkillWimdow( eRightSkillID ) )	/// 2Áö ¼±´Ù ¿À¸¥ÂÊ ½ºÅ³ÀÌ ¾ø°Å³ª, ¹è¿ìÁö ¾Ê¾Ò´Ù
+				break;		/// ÇØ´ç ½ºÅ³ ¶óÀÎÀ» ¾Ê¹è¿üÀ¸´Ï, Tier ÀÎµ¦½º ¹ÝÈ¯ ÇÏÀÚ
 		}
 
 		++iTierIndex;
@@ -6068,8 +6624,8 @@ const int CX2UISkillTreeNew::GetNotLearnTierIndex()
 }
 
 /** @function	: GetEnoughLevelSelectSkillTierIndex
-	@brief		: ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö»ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
-	@return		: ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ Tier ï¿½Îµï¿½ï¿½ï¿½
+	@brief		: ¹è¿ï ¼ö ¾ø´Â ·¹º§ÀÇ ÃÖ»óÀ§ ½ºÅ³ ¶óÀÎ ¹ÝÈ¯
+	@return		: ½ºÅ³ ¶óÀÎ Tier ÀÎµ¦½º
 */
 const int CX2UISkillTreeNew::GetNotEnoughLevelTierIndex( const int iLevel )
 {
@@ -6081,13 +6637,13 @@ const int CX2UISkillTreeNew::GetNotEnoughLevelTierIndex( const int iLevel )
 
 		if ( NULL != pControlList )
 		{
-			/// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê´ï¿½ï¿½ ï¿½Ë»ï¿½ï¿½Ï¿ï¿½, ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Æ³ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ Tier ï¿½Îµï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯ï¿½ï¿½Å°ï¿½ï¿½
+			/// ¸Ç À§¿¡¼­ºÎÅÍ ¾Æ·¡·Î Â÷·Ê´ë·Î °Ë»çÇÏ¿©, ¹è¿ï ¼ö ¾ø´Â ·¹º§ÀÇ ½ºÅ³ ¶óÀÎÀ» Ã£¾Æ³»¸é ÇØ´ç Tier ÀÎµ¦½º¸¦ ¹ÝÈ¯½ÃÅ°ÀÚ
 			while ( pControlList->GetMaxIndexY() >= iTierIndex )
 			{
 				int iRequireSkillLevel = GetRequireSkillLineLevel( iTierIndex );
 
-				if ( 0 != iRequireSkillLevel && iRequireSkillLevel > iLevel )	/// ï¿½âº» ï¿½ï¿½Å³ï¿½ï¿½ ï¿½Æ´Ï°ï¿½, ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¾Ò´Ù¸ï¿½
-					break;		/// ï¿½Ø´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, Tier ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½
+				if ( 0 != iRequireSkillLevel && iRequireSkillLevel > iLevel )	/// ±âº» ½ºÅ³ÀÌ ¾Æ´Ï°í, ½ºÅ³À» ¹è¿ìÁö ¾Ê¾Ò´Ù¸é
+					break;		/// ÇØ´ç ½ºÅ³ ¶óÀÎÀ» ¾Ê¹è¿üÀ¸´Ï, Tier ÀÎµ¦½º ¹ÝÈ¯ ÇÏÀÚ
 
 				++iTierIndex;
 			}
@@ -6098,8 +6654,8 @@ const int CX2UISkillTreeNew::GetNotEnoughLevelTierIndex( const int iLevel )
 }
 
 /** @function	: GetSkillUnSealedDesc
-	@brief		: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-	@param		: ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½
+	@brief		: ºÀÀÎ ½ºÅ³ ¾ÆÀÌÅÛ ±¸ÀÔ ¾È³» ÅøÆÁ »ý¼º
+	@param		: ½ºÆ®¸µ ÂüÁ¶ÀÚ, ½ºÅ³ ¾ÆÀÌµð
 */
 void CX2UISkillTreeNew::GetSkillUnSealedDesc( OUT wstring& wstrDesc, IN const CX2SkillTree::SKILL_ID eSkillID ) const
 {
@@ -6108,13 +6664,13 @@ void CX2UISkillTreeNew::GetSkillUnSealedDesc( OUT wstring& wstrDesc, IN const CX
 		 NULL == g_pData->GetItemManager() )
 		 return;
 
-	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ã¸ï¿½ ï¿½ï¿½È¯
+	/// ºÀÀÎ ½ºÅ³ ÅÛÇÃ¸´ ¹ÝÈ¯
 	const std::map<int, CX2SkillTree::SealSkillItemInfo>& mapSealSkillItemTemplet = g_pData->GetSkillTree()->GetSealSkillItemTemplet();
 
-	int iUnSealedItemID = 0;		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½
+	int iUnSealedItemID = 0;		/// ºÀÀÎ ½ºÅ³ ¾ÆÀÌÅÛ ¾ÆÀÌµð
 
 	
-	/// ï¿½Ø´ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë»ï¿½
+	/// ÇØ´ç ½ºÅ³ ¾ÆÀÌµð¸¦ Áö´Ñ ºÀÀÎ ½ºÅ³ ¾ÆÀÌÅÛÀ» °Ë»ç
 	std::map<int, CX2SkillTree::SealSkillItemInfo>::const_iterator mit = mapSealSkillItemTemplet.begin();
 
 	for ( mit; mit != mapSealSkillItemTemplet.end(); ++mit )
@@ -6123,13 +6679,13 @@ void CX2UISkillTreeNew::GetSkillUnSealedDesc( OUT wstring& wstrDesc, IN const CX
 
 		BOOST_FOREACH( CX2SkillTree::SKILL_ID eValue, vecValue )
 		{
-			/// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã£ï¿½Ò´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½È¯
+			/// ÇØ´ç ºÀÀÎ ½ºÅ³ ¾ÆÀÌÅÛÀ» Ã£¾Ò´Ù¸é, ¾ÆÀÌÅÛ ¾ÆÀÌµð ¹ÝÈ¯
 			if ( eSkillID == eValue )
 				iUnSealedItemID = mit->first;
 		}
 	}
 
-	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ Ã£ï¿½Ò´Ù¸ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½È³ï¿½ Ç¥ï¿½ï¿½
+	/// ¾ÆÀÌÅÛ ¾ÆÀÌµð¸¦ Ã£¾Ò´Ù¸é, ÅøÆÁ¿¡ ¾ÆÀÌÅÛ ±¸¸Å ¾È³» Ç¥½Ã
 	if ( iUnSealedItemID != 0 )
 	{
 		const CX2Item::ItemTemplet * pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( iUnSealedItemID );
@@ -6145,3 +6701,126 @@ void CX2UISkillTreeNew::GetSkillUnSealedDesc( OUT wstring& wstrDesc, IN const CX
 
 }
 #endif // UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+#pragma region InitSkillPageUI
+void CX2UISkillTreeNew::UpdateSkillPageUI()
+{
+	CX2UserSkillTree& refUserSkillTree = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree;
+
+	const USHORT usUsingPage = refUserSkillTree.GetUsingPage();
+	const USHORT usOpenedPage = refUserSkillTree.GetOpenedPage();
+	const USHORT usSelectPage = refUserSkillTree.GetSelectPage();
+	D3DXVECTOR2 vPos( 0.f, 0.f );
+		
+	CKTDGUIRadioButton* pRadioButton_Page1 = reinterpret_cast<CKTDGUIRadioButton*>( m_pDLGUISkillTree->GetControl( L"Skill_Page1" ) );
+	CKTDGUIRadioButton* pRadioButton_Page2 = reinterpret_cast<CKTDGUIRadioButton*>( m_pDLGUISkillTree->GetControl( L"Skill_Page2" ) );
+	CKTDGUIRadioButton* pRadioButton_Page3 = reinterpret_cast<CKTDGUIRadioButton*>( m_pDLGUISkillTree->GetControl( L"Skill_Page3" ) );
+	CKTDGUIButton* pButton_Add_Page_ED = reinterpret_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"Add_Skill_Page_ED" ) );
+	CKTDGUIButton* pButton_Add_Page_Cash = reinterpret_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"Add_Skill_Page_Cash" ) );
+	CKTDGUIButton* pButton_Decide_Page = reinterpret_cast<CKTDGUIButton*>( m_pDLGUISkillTree->GetControl( L"Decide_Skill_Page" ) );
+
+	if ( pRadioButton_Page1 == NULL || pRadioButton_Page2 == NULL || pRadioButton_Page3 == NULL || pButton_Add_Page_ED == NULL 
+		|| pButton_Decide_Page == NULL )
+		return;
+
+	if ( refUserSkillTree.IsUsingPage() )
+		pButton_Decide_Page->SetShowEnable( true, false );
+	else
+		pButton_Decide_Page->SetShowEnable( true, true );
+
+	switch ( usSelectPage )
+	{
+	case 1:
+		{
+			pRadioButton_Page1->SetChecked( true );
+		} break;
+
+	case 2:
+		{
+			pRadioButton_Page2->SetChecked( true );
+		} break;
+
+	case 3:
+		{
+			pRadioButton_Page3->SetChecked( true );
+		} break;
+	default:
+		break;
+	}
+
+	bool bPage1, bPage2, bPage3, bAdd;
+	bPage1 = bPage2 = bPage3 = bAdd = false;
+
+	switch ( usOpenedPage )
+	{
+	case 1:
+		{
+			bPage1 = bAdd = true;
+			bPage2 = bPage3 = false;
+			
+			vPos = pRadioButton_Page2->GetPos();
+		} break;
+
+	case 2:
+		{
+			bPage1 = bPage2 = bAdd = true;
+			bPage3 = false;
+
+			vPos = pRadioButton_Page3->GetPos();
+		} break;
+
+	case 3:
+		{
+			bPage1 = bPage2 = bPage3 = true;
+			bAdd = false;
+		} break;
+
+	default:
+		{
+			bPage1 = bPage2 = bPage3 = bAdd = false;
+		} break;
+	}
+
+	pRadioButton_Page1->SetShowEnable( bPage1, bPage1 );
+	pRadioButton_Page2->SetShowEnable( bPage2, bPage2 );
+	pRadioButton_Page3->SetShowEnable( bPage3, bPage3 );
+
+	if ( g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP )
+	{
+		pButton_Add_Page_ED->SetOffsetPos( vPos );
+		pButton_Add_Page_ED->SetShowEnable( bAdd, bAdd );
+		pButton_Add_Page_ED->SetGuideDesc( GET_STRING( STR_ID_29366 ) );
+		pButton_Add_Page_ED->SetGuideDescOffsetPos( D3DXVECTOR2( 100, 0 ) );
+		vPos.x += 27.f;
+		pButton_Add_Page_Cash->SetOffsetPos( vPos );
+		pButton_Add_Page_Cash->SetShowEnable( bAdd, bAdd );
+		pButton_Add_Page_Cash->SetGuideDesc( GET_STRING( STR_ID_29367 ) );
+		pButton_Add_Page_Cash->SetGuideDescOffsetPos( D3DXVECTOR2( 100, 0 ) );
+	}
+	else
+	{
+		pButton_Add_Page_ED->SetShowEnable( false, false );
+		pButton_Add_Page_Cash->SetShowEnable( false, false );
+	}
+}
+#pragma endregion ½ºÅ³ ÆäÀÌÁö UI ÃÊ±âÈ­
+
+#pragma region BuySkillPageDialog
+void CX2UISkillTreeNew::BuySkillPageDialog( const int iED_ )
+{
+	if ( g_pData && g_pData->GetMyUser() && g_pData->GetMyUser()->GetSelectUnit() )
+	{
+		wstringstream	wstrstm;
+
+		m_iConfirmED = iED_;
+
+		wstrstm << GET_REPLACED_STRING( ( STR_ID_29037, "LL", g_pMain->GetEDString( m_iConfirmED  ),
+			g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED ) ) );
+
+		m_pDLGBuyConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrstm.str().c_str(), STUCM_BUY_CONFIRM,
+			g_pMain->GetNowState(), STUCM_BUY_CANCEL, L"", D3DXVECTOR2( 0, 40 ) );
+	}
+}
+#pragma endregion ±¸ÀÔ ¿äÃ» ´ëÈ­»óÀÚ Ãâ·Â
+#endif //SKILL_PAGE_SYSTEM

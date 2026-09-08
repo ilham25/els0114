@@ -247,16 +247,16 @@ class CXSLLineMap
 			LineAnimData*		m_pLineAnimData;
 
 
-#ifdef LINEMAP_SLOW_WIND_TEST
-			D3DXVECTOR2			m_vWindSpeed;
-			float				m_fWindRange;	// m_vWindSpeed가 적용되는 높이제한
-#endif LINEMAP_SLOW_WIND_TEST
+//#ifdef LINEMAP_SLOW_WIND_TEST
+//			D3DXVECTOR2			m_vWindSpeed;
+//			float				m_fWindRange;	// m_vWindSpeed가 적용되는 높이제한
+//#endif LINEMAP_SLOW_WIND_TEST
 			
 
-#ifdef LINEMAP_FAST_WIND_TEST
-			float m_fUpsideWindAccelaration;
-			float m_fUpsideWindRange;			// m_fUpsideWindAccelaration가 적용되는 높이 제한
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//			float m_fUpsideWindAccelaration;
+//			float m_fUpsideWindRange;			// m_fUpsideWindAccelaration가 적용되는 높이 제한
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 
@@ -268,7 +268,6 @@ class CXSLLineMap
 
 			float m_fCliffHeight;
 
-#ifdef UNDERWATER_LINEMAP
 			bool	m_bUnderWater;		// 수중라인맵여부
 			float	m_fWaterHeight;		// 수중높이(월드상의 절대Y위치)
 			float	m_fBuoyancy;		// 부력값
@@ -277,7 +276,6 @@ class CXSLLineMap
 			float	m_fVarianceOxyen;	// 산소변동량
 			D3DXCOLOR m_cLineColor;		// 라인에 따른 유닛칼라
 			bool	m_bForceChangeColor; // 해당 라인맵에 위치할시 강제로 유닛색상 변경
-#endif
 #ifdef ATTACH_MESH_LINE
 			bool		m_bMoveLine;
 			D3DXVECTOR3 m_vPivotPos;	// 라인 중심값
@@ -347,17 +345,17 @@ class CXSLLineMap
 #endif
 
 
-#ifdef LINEMAP_SLOW_WIND_TEST
-				m_vWindSpeed		= D3DXVECTOR2( 0, 0 );
-				m_fWindRange		= 0.f;
-#endif LINEMAP_SLOW_WIND_TEST
+//#ifdef LINEMAP_SLOW_WIND_TEST
+//				m_vWindSpeed		= D3DXVECTOR2( 0, 0 );
+//				m_fWindRange		= 0.f;
+//#endif LINEMAP_SLOW_WIND_TEST
+//				
 				
-				
-#ifdef LINEMAP_FAST_WIND_TEST
-				m_fUpsideWindAccelaration	= 0.f;
-				m_fUpsideWindRange			= 0.f;
-#endif LINEMAP_FAST_WIND_TEST
-				
+//#ifdef LINEMAP_FAST_WIND_TEST
+//				m_fUpsideWindAccelaration	= 0.f;
+//				m_fUpsideWindRange			= 0.f;
+//#endif LINEMAP_FAST_WIND_TEST
+//				
 
 
 
@@ -374,7 +372,6 @@ class CXSLLineMap
 #endif	LINE_MAP_CREATED_BY_MONSTER
 //}} kimhc // 2010.7.6 // 몬스터가 생성한 라인맵
 
-#ifdef UNDERWATER_LINEMAP
 				m_bUnderWater = false;
 				m_fWaterHeight	= 0.f;
 				m_fBuoyancy	= 0.f;
@@ -382,7 +379,6 @@ class CXSLLineMap
 				m_fAnimSpeed = 1.f;
 				m_fVarianceOxyen = 0.f;
 				m_bForceChangeColor = false;
-#endif
 #ifdef ATTACH_MESH_LINE
 				m_bMoveLine = false;
 				m_vPivotPos = D3DXVECTOR3(0.f, 0.f, 0.f);

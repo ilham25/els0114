@@ -157,6 +157,11 @@ public:
 		SOUCM_OPTION_OTHER_COUPLE_VETO_OFF,
 // #endif // ADDED_RELATIONSHIP_SYSTEM
 
+//#ifdef FIX_INVITE_PVP_PLAYER // ±èÅÂÈ¯
+		SOUCM_OPTION_OTHER_INVITE_PVP_ON,
+		SOUCM_OPTION_OTHER_INVITE_PVP_OFF,
+//#endif // FIX_INVITE_PVP_PLAYER
+
 //#ifdef SERV_JOIN_IN_CLIENT_FOR_TW_TEST_SERVER	
 		SOUCM_SERVER_G							= 2350,
 		SOUCM_SERVER_S							= 2351,
@@ -166,7 +171,7 @@ public:
 		SOUCM_OPTION_IDENTITY					=	2415,
 //#endif IDENTITY_CONFIRM
 
-//#ifdef KEY_MAPPING_INT
+//#ifdef SERV_KEY_MAPPING_INT
 		SOUCM_KEY_CONFIG_OPEN					= 2420,
 		SOUCM_KEY_CONFIG_CLOSE_SAVE				= 2421,
 		SOUCM_KEY_CONFIG_CLOSE_CANCEL			= 2422,
@@ -176,7 +181,7 @@ public:
 		SOUCM_KEY_CONFIG_DISABLE				= 2426,
 		SOUCM_KEY_CONFIG_RESET					= 2427,
 		SOUCM_OPTION_INPUT						= 2428,
-//#endif KEY_MAPPING_INT
+//#endif SERV_KEY_MAPPING_INT
 
 #ifdef BANDICAM_RECORDING
 		SOUCM_OPTION_CAM	 =   2500,//Ä· ÅÇ
@@ -222,9 +227,10 @@ public:
 	virtual bool MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 	
 	void InitSoundOption();
-#ifdef KEY_MAPPING_INT  
+#ifdef SERV_KEY_MAPPING_INT  
 	void InitInputOption();
-#endif // KEY_MAPPING_INT
+	bool Handler_EGS_KEYBOARD_MAPPING_INFO_WRITE_REQ();
+#endif // SERV_KEY_MAPPING_INT
 	void InitOtherOption();
 	bool OpenOptionWindow();
 	bool CloseOptionWindow();
@@ -244,18 +250,18 @@ protected:
 
 	void ShowGraphicOption( bool bShow );
 	void ShowSoundOption( bool bShow );
-#ifdef KEY_MAPPING_INT  
+#ifdef SERV_KEY_MAPPING_INT  
 	void ShowInputOption( bool bShow );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 	void ShowOtherOption( bool bShow );
 	void ShowCommunityOption( bool bShow );
 
 
 	void ShowStaticGraphic( bool bShow );
 	void ShowStaticSound( bool bShow );
-#ifdef KEY_MAPPING_INT  
+#ifdef SERV_KEY_MAPPING_INT  
 	void ShowStaticInput( bool bShow );
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 	void ShowStaticOther( bool bShow );
 #ifdef SERV_SECOND_SECURITY
 	void ShowStaticSecurity( bool bShow );
@@ -287,7 +293,7 @@ protected:
 
 	void ResetResolutionToOriginal();	
 
-#ifdef KEY_MAPPING_INT  
+#ifdef SERV_KEY_MAPPING_INT  
 	void ShowKeyConfigDLG( bool bShow );
 	void SetKeyConfig( GAME_ACTION Action, unsigned char input, InputDevices eType );
 	wstring GetJoystickButtonName( unsigned char input );
@@ -302,8 +308,7 @@ protected:
 	CKTDGUIDialogType			m_DLGWaitKeyConfig;
 	float						m_fKeyconfigTimer;
 	GAME_ACTION					m_eSelectedGameAction;
-
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 protected:
 	CKTDGUIDialogType			m_pDLGOptionWindow;
 	CKTDGUIDialogType			m_pDLGBlackList;
@@ -320,8 +325,8 @@ protected:
 	ConfirmDialog*			m_pResolutionChangeConfirmDialog;
 	D3DXVECTOR2				m_vOriginalResolution;
 	bool					m_bResetOriginalResolution;
-#ifdef KEY_MAPPING_INT  
+#ifdef SERV_KEY_MAPPING_INT  
 	int						m_iInputDevice;
-#endif // KEY_MAPPING_INT
-
+	std::map<short, short>	m_mapGamePadActionKeys;
+#endif // SERV_KEY_MAPPING_INT
 };

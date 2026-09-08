@@ -119,8 +119,13 @@ private:
 	bool												m_bShowArrow;
 	CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hGuideLeft;
 	CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hGuideRight;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CKTDGParticleSystem::CParticleHandle				m_hGuideLeftParticle;
+	CKTDGParticleSystem::CParticleHandle				m_hGuideRightParticle;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CKTDGParticleSystem::CParticle*						m_pGuideLeftParticle;
 	CKTDGParticleSystem::CParticle*						m_pGuideRightParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	
 	CX2UIUnit*											m_pUINPC;		
 	CKTDGUIDialogType										m_pDLGNpcName;

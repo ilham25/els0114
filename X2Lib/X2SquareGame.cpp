@@ -49,7 +49,7 @@ CX2SquareGame::CX2SquareGame( SquareData* pSquareData, CX2World::WORLD_ID worldI
             
         - jintaeks on 2008-10-24, 10:31 */
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-18
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-18
 
     /** 광장에 대해 thread 로딩 테스트를 하고 있다. - jintaeks on 2008-10-18, 13:54
         광장에 대한 thread 테스트가 성공적으로 완료되었으므로, BACKGROUND_LOADING_TEST관련
@@ -57,25 +57,25 @@ CX2SquareGame::CX2SquareGame( SquareData* pSquareData, CX2World::WORLD_ID worldI
 		//background!!!
 	m_pWorld = g_pData->GetWorldManager()->CreateWorld( worldID, NULL, true );
 
-#else // BACKGROUND_LOADING_TEST // 2008-10-18
-
-    /** EnableWritingPreprocessingData()의 의미:
-        백그라운드 로딩을 하기 위해서는 게임 객체의 전처리된 정보가 필요하다.
-        현재 - jintaeks on 2008-10-24, 10:34 - 의 경우 그 정보는, bounding sphere의 반지름
-        및 메시의 local 중심 좌표이다. 이 값들을 "스크립트파일이름.ppd"로 생성하려면
-
-            EnableWritingPreprocessingData( true );
-
-        로 설정하면 된다.
-        이 부분은 게임에 통합하지 말고, 별도의 툴로 작성되어야 할 것이다.
-
-        - jintaeks on 2008-10-24, 10:34 */
-
-	//g_pData->GetWorldManager()->EnableWritingPreprocessingData( true );
-	m_pWorld = g_pData->GetWorldManager()->CreateWorld( worldID );
-    //g_pData->GetWorldManager()->EnableWritingPreprocessingData( false );
-
-#endif // BACKGROUND_LOADING_TEST // 2008-10-18
+//#else // BACKGROUND_LOADING_TEST // 2008-10-18
+//
+//    /** EnableWritingPreprocessingData()의 의미:
+//        백그라운드 로딩을 하기 위해서는 게임 객체의 전처리된 정보가 필요하다.
+//        현재 - jintaeks on 2008-10-24, 10:34 - 의 경우 그 정보는, bounding sphere의 반지름
+//        및 메시의 local 중심 좌표이다. 이 값들을 "스크립트파일이름.ppd"로 생성하려면
+//
+//            EnableWritingPreprocessingData( true );
+//
+//        로 설정하면 된다.
+//        이 부분은 게임에 통합하지 말고, 별도의 툴로 작성되어야 할 것이다.
+//
+//        - jintaeks on 2008-10-24, 10:34 */
+//
+//	//g_pData->GetWorldManager()->EnableWritingPreprocessingData( true );
+//	m_pWorld = g_pData->GetWorldManager()->CreateWorld( worldID );
+//    //g_pData->GetWorldManager()->EnableWritingPreprocessingData( false );
+//
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-18
 
 	m_pCamera		= new CX2Camera();
 	if( m_pWorld != NULL )
@@ -88,10 +88,28 @@ CX2SquareGame::CX2SquareGame( SquareData* pSquareData, CX2World::WORLD_ID worldI
 
 	srand((unsigned int)time(NULL));
 
-	m_pMajorParticle	= new CKTDGParticleSystem( g_pKTDXApp->GetDevice() );
-	m_pMinorParticle	= new CKTDGParticleSystem( g_pKTDXApp->GetDevice() );
-	m_pMajorXMeshPlayer	= new CKTDGXMeshPlayer();
-	m_pMinorXMeshPlayer	= new CKTDGXMeshPlayer();
+	m_pMajorParticle	= new CKTDGParticleSystem( g_pKTDXApp->GetDevice()
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        , 2
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK 
+        );
+	m_pMinorParticle	= new CKTDGParticleSystem( g_pKTDXApp->GetDevice()
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        , 3
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK         
+        );
+	m_pMajorXMeshPlayer	= new CKTDGXMeshPlayer(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        2
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK         
+        );
+    ASSERT( m_pMajorXMeshPlayer != NULL );
+	m_pMinorXMeshPlayer	= new CKTDGXMeshPlayer(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        3
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK         
+        );
+    ASSERT( m_pMinorXMeshPlayer != NULL );
 
 	m_pMajorParticle->OpenScriptFile( L"GameMajorParticle.txt" );
 	m_pMajorParticle->OpenScriptFile( L"GameMajorParticle2.txt" );
@@ -113,6 +131,9 @@ CX2SquareGame::CX2SquareGame( SquareData* pSquareData, CX2World::WORLD_ID worldI
 	m_pMajorParticle->OpenScriptFile( L"GameMajorParticle18.txt" );
 	m_pMajorParticle->OpenScriptFile( L"GameMajorParticle19.txt" );
 	m_pMajorParticle->OpenScriptFile( L"GameMajorParticle20.txt" );
+	m_pMajorParticle->OpenScriptFile( L"GameMajorParticle21.txt" );
+	m_pMajorParticle->OpenScriptFile( L"GameMajorParticle22.txt" );
+	m_pMajorParticle->OpenScriptFile( L"GameMajorParticle23.txt" );
 
 	m_pMinorParticle->OpenScriptFile( L"GameMinorParticle.txt" );
 
@@ -131,14 +152,14 @@ CX2SquareGame::CX2SquareGame( SquareData* pSquareData, CX2World::WORLD_ID worldI
 	m_bEnableKeyProcess		= true;
 	m_bEnableCameraProcess	= true;
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	g_pData->GetGameUDP()->ClearPeer();
-
-	g_pData->GetGameUDP()->SetMyUID( g_pData->GetMyUser()->GetSelectUnit()->GetUID() );
-	g_pData->GetGameUDP()->SetRelayIP( m_SquareData.m_RelayIP.c_str() );
-	g_pData->GetGameUDP()->SetRelayPort( m_SquareData.m_Port );
-	g_pData->GetGameUDP()->ConnectTestToRelay();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	g_pData->GetGameUDP()->ClearPeer();
+//
+//	g_pData->GetGameUDP()->SetMyUID( g_pData->GetMyUser()->GetSelectUnit()->GetUID() );
+//	g_pData->GetGameUDP()->SetRelayIP( m_SquareData.m_RelayIP.c_str() );
+//	g_pData->GetGameUDP()->SetRelayPort( m_SquareData.m_Port );
+//	g_pData->GetGameUDP()->ConnectTestToRelay();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	g_pKTDXApp->GetDIManager()->SetEnable( true );
 
 
@@ -151,9 +172,6 @@ CX2SquareGame::CX2SquareGame( SquareData* pSquareData, CX2World::WORLD_ID worldI
 
 	if( NULL != g_pInstanceData->GetMiniMapUI() )
 	{
-#ifndef REFORM_UI_MINIMAP
-		g_pInstanceData->GetMiniMapUI()->SetShowMiniMap( CX2MiniMapUI::MMT_FIELD, false );
-#endif
 		g_pInstanceData->GetMiniMapUI()->SetShowMiniMap( CX2MiniMapUI::MMT_DUNGEON, true );
 		g_pInstanceData->GetMiniMapUI()->GetDungeonMiniMap()->SetEyeDistance( 4000.f );
 		g_pInstanceData->GetMiniMapUI()->SetTitle( m_SquareData.m_SquareName.c_str() );
@@ -164,25 +182,26 @@ CX2SquareGame::CX2SquareGame( SquareData* pSquareData, CX2World::WORLD_ID worldI
 
 	m_fTimeCheckShopTalkBox = 0.0f;
 
-#ifndef DISABLE_DISAGREE_HACK_USER // #if 0 // 핵의심유저인경우 거래광장에 진입할경우 무조건적으로 메일을 날리므로 삭제함
-	if ( g_pData->GetMyUser()->GetUserData()->hackingUserType == CX2User::HUT_AGREE_HACK_USER )
+#if 0 // 핵의심유저인경우 거래광장에 진입할경우 무조건적으로 메일을 날리므로 삭제함
+	if ( g_pData->GetMyUser()->GetUserData().hackingUserType == CX2User::HUT_AGREE_HACK_USER )
 	{
 #ifndef PROCESSLIST		
 		g_pMain->UpdateProcessList();		
 #endif		
 		g_pMain->SendHackMail();
 	}
-#endif DISABLE_DISAGREE_HACK_USER
+#endif
 
-	m_pOutAreaParticle = NULL;
+	//m_pOutAreaParticle = NULL;
 	m_hMarketOutArea = GetMajorParticle()->CreateSequenceHandle( NULL,  L"MarketOutArea", 0.0f, 0.0f, 0.0f, 0.0f, 0.0f );
 	CKTDGParticleSystem::CParticleEventSequence* pSeqMarket	= GetMajorParticle()->GetInstanceSequence( m_hMarketOutArea );
 	if( pSeqMarket != NULL )
 	{		
-		if( m_pOutAreaParticle == NULL )
-		{
-			m_pOutAreaParticle = pSeqMarket->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
-		}
+		//if( m_pOutAreaParticle == NULL )
+		//{
+			//m_pOutAreaParticle = 
+                pSeqMarket->CreateNewParticle( D3DXVECTOR3(0.0f,0.0f,0.0f) );
+		//}
 		pSeqMarket->SetShowObject(false);
 	}
 
@@ -239,9 +258,9 @@ CX2SquareGame::~CX2SquareGame(void)
 	SAFE_DELETE( m_pMinorXMeshPlayer );
 
 	
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	g_pData->GetGameUDP()->DisconnectToRelay();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	g_pData->GetGameUDP()->DisconnectToRelay();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	g_pKTDXApp->GetDIManager()->SetEnable( true );
 
 	g_pSquareGame = NULL;
@@ -255,31 +274,36 @@ void CX2SquareGame::JoinSquareUnit( KSquareUserInfo* pKSquareUserInfo )
 
 	if( pKSquareUserInfo->m_iUnitUID == g_pData->GetMyUser()->GetSelectUnit()->GetUID() )
 	{
-#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
+//#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
 		//background!!!
 		pCX2SquareUnit = AddUnit( g_pData->GetMyUser()->GetSelectUnit(), true, true );
-#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
-		pCX2SquareUnit = AddUnit( g_pData->GetMyUser()->GetSelectUnit(), true, true );
-#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
+//#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
+//		pCX2SquareUnit = AddUnit( g_pData->GetMyUser()->GetSelectUnit(), true, true );
+//#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
 	}
 	else
 	{			
 		CX2Unit* pCX2Unit = new CX2Unit( *pKSquareUserInfo );
 		//장착 정보 업데이트
 		pCX2Unit->ResetEqip();
-#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
+//#ifdef EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
 		//background!!!
         pCX2SquareUnit = AddUnit( pCX2Unit, false, false );
-#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
-		pCX2SquareUnit = AddUnit( pCX2Unit, false, false );
-#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
+//#else // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
+//		pCX2SquareUnit = AddUnit( pCX2Unit, false, false );
+//#endif // EQUIP_BACKGROUND_LOADING_TEST // 2008-12-14
 	}
 
 	if ( pCX2SquareUnit != NULL )
 	{
 		pCX2SquareUnit->SetPersonalShopName( pKSquareUserInfo->m_wstrPersonalShopName.c_str() );
 		pCX2SquareUnit->SetPersonalShopState( (CX2SquareUnit::PERSONAL_SHOP_STATE)pKSquareUserInfo->m_cPersonalShopState );
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		pCX2SquareUnit->SetShopType( static_cast<SEnum::AGENCY_SHOP_TYPE>( pKSquareUserInfo->m_cPersonalShopType ) );
+#else // SERV_UPGRADE_TRADE_SYSTEM
 		pCX2SquareUnit->SetShopType( (CX2SquareUnit::PERSONAL_SHOP_TYPE) pKSquareUserInfo->m_cPersonalShopType );
+#endif // SERV_UPGRADE_TRADE_SYSTEM
 	}
 
 #ifdef DISABLE_CHANNEL_CHANGE_IN_SQUARE
@@ -303,10 +327,10 @@ CX2SquareUnit* CX2SquareGame::AddUnit( CX2Unit* pUnit, bool bMyUnit, bool bInit 
 	if( bInit == true )
 		pCX2SquareUnit->Init();
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
     if( bInit == false )
         pCX2SquareUnit->UpdateEquippedEmblem();
-#endif
+//#endif
 
 	pCX2SquareUnit->StateChange( pCX2SquareUnit->GetStateID().m_Wait  );
 
@@ -317,7 +341,7 @@ CX2SquareUnit* CX2SquareGame::AddUnit( CX2Unit* pUnit, bool bMyUnit, bool bInit 
 	{
 		m_pMyUnit = pCX2SquareUnit;
 
-#ifdef BACKGROUND_LOADING_TEST // 2008-10-23
+//#ifdef BACKGROUND_LOADING_TEST // 2008-10-23
         //{{ seojt // 2008-10-22, 16:48
         /** 내 unit의 위치가 결정되고 나면, 내 unit을 가리키는
             view matrix를 설정하고, viewing frustum을 갱신한다.
@@ -340,25 +364,25 @@ CX2SquareUnit* CX2SquareGame::AddUnit( CX2Unit* pUnit, bool bMyUnit, bool bInit 
                     - jintaeks on 2008-10-23, 15:57 */
 
         //}} seojt // 2008-10-22, 16:48
-#endif // BACKGROUND_LOADING_TEST // 2008-10-23
+//#endif // BACKGROUND_LOADING_TEST // 2008-10-23
 	}//if
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
-	if( pUnitData != NULL )
-	{
-		if( g_pData->GetMyUser()->GetUID() == pUnit->GetOwnerUserUID() )
-		{
-			g_pData->GetGameUDP()->SetMyUID( pUnitData->m_UnitUID );
-			g_pData->GetGameUDP()->AddPeer( pUnitData->m_UnitUID, g_pData->GetGameUDP()->GetMyIP(), g_pData->GetGameUDP()->GetMyExtPort() );
-		}
-		else
-		{
-			g_pData->GetGameUDP()->AddPeer( pUnitData->m_UnitUID, pUnitData->m_IP.c_str(), pUnitData->m_Port );
-		}
-	}
-	g_pData->GetGameUDP()->ConnectTestToPeer();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	CX2Unit::UnitData* pUnitData = pUnit->GetUnitData();
+//	if( pUnitData != NULL )
+//	{
+//		if( g_pData->GetMyUser()->GetUID() == pUnit->GetOwnerUserUID() )
+//		{
+//			g_pData->GetGameUDP()->SetMyUID( pUnitData->m_UnitUID );
+//			g_pData->GetGameUDP()->AddPeer( pUnitData->m_UnitUID, g_pData->GetGameUDP()->GetMyIP(), g_pData->GetGameUDP()->GetMyExtPort() );
+//		}
+//		else
+//		{
+//			g_pData->GetGameUDP()->AddPeer( pUnitData->m_UnitUID, pUnitData->m_IP.c_str(), pUnitData->m_Port );
+//		}
+//	}
+//	g_pData->GetGameUDP()->ConnectTestToPeer();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 	return pCX2SquareUnit.get();
 }
@@ -373,9 +397,9 @@ void CX2SquareGame::RemoveUnit( UidType unitUID )
 			//CX2SquareUnit::DeleteKTDGObject( pCX2SquareUnit );
 				 
 			m_UserUnitList.erase( m_UserUnitList.begin() + i );
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-			g_pData->GetGameUDP()->RemovePeer( unitUID );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//			g_pData->GetGameUDP()->RemovePeer( unitUID );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 			break;
 		}
 	}
@@ -519,9 +543,9 @@ HRESULT	CX2SquareGame::OnFrameMove( double fTime, float fElapsedTime )
 		}
 	}
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-	P2PPacketHandler();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//	P2PPacketHandler();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 	m_pWorld->OnFrameMove( fTime, fElapsedTime );
 
 	int count = 0;
@@ -547,7 +571,7 @@ HRESULT	CX2SquareGame::OnFrameMove( double fTime, float fElapsedTime )
 				else
 				{
 					pCX2SquareUnit->SetShowObject( true );
-					if(g_pMain->GetGameOption()->GetFieldSD())
+					if(g_pMain->GetGameOption().GetFieldSD())
 					{
 						// SD 모드
 						pCX2SquareUnit->SetPlanRender( true );
@@ -616,7 +640,7 @@ HRESULT	CX2SquareGame::OnFrameMove( double fTime, float fElapsedTime )
 			{
 				pCX2SquareUnit->SendPacketP2P( 0, 100 );
 				//CX2Unit* pUnit = pCX2SquareUnit->GetUnit();
-				//g_pData->GetGameUDP()->Send( pUnit->GetUnitData()->m_IP.c_str(), pUnit->GetUnitData()->m_Port, XPT_SQUARE_UNIT_SYNC, (char*)buff.GetData(), buff.GetLength() );
+				//g_pData->GetGameUDP()->Send( pUnit->GetUnitData().m_IP.c_str(), pUnit->GetUnitData().m_Port, XPT_SQUARE_UNIT_SYNC, (char*)buff.GetData(), buff.GetLength() );
 
 				//p2pCount++;
 				//if( p2pCount > 20 )
@@ -737,10 +761,10 @@ HRESULT	CX2SquareGame::OnFrameMove( double fTime, float fElapsedTime )
 			m_FPSCamera.SetEnablePositionMovement( true );
 
 			m_FPSCamera.FrameMove( fElapsedTime * 300.f );			
-			m_pCamera->GetCamera()->Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
+			m_pCamera->GetCamera().Move( m_FPSCamera.GetEyePt()->x, m_FPSCamera.GetEyePt()->y, m_FPSCamera.GetEyePt()->z );
 			D3DXVECTOR3 vLookAt = *m_FPSCamera.GetWorldAhead() * 500.f + *m_FPSCamera.GetEyePt();
-			m_pCamera->GetCamera()->LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
-			m_pCamera->GetCamera()->UpdateCamera( fElapsedTime );
+			m_pCamera->GetCamera().LookAt( vLookAt.x, vLookAt.y, vLookAt.z );
+			m_pCamera->GetCamera().UpdateCamera( fElapsedTime );
 		}
 
 	}
@@ -750,11 +774,16 @@ HRESULT	CX2SquareGame::OnFrameMove( double fTime, float fElapsedTime )
 
 HRESULT	CX2SquareGame::OnFrameRender()
 {
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+    CKTDGParticleSystem::EnableParticleCulling( true );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 	g_pKTDXApp->GetDGManager()->ObjectChainSort();
 
 	g_pKTDXApp->GetDGManager()->ObjectChainNonAlphaRender();
     g_pKTDXApp->GetDGManager()->ObjectChainAlphaRender();
-
+#ifdef  X2OPTIMIZE_CULLING_PARTICLE
+    CKTDGParticleSystem::EnableParticleCulling( false );
+#endif  X2OPTIMIZE_CULLING_PARTICLE
 	
 	for( UINT i = 0; i < m_UserUnitList.size(); i++ )
 	{
@@ -829,59 +858,59 @@ HRESULT	CX2SquareGame::OnLostDevice()
 	return S_OK;
 }
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-void CX2SquareGame::P2PPacketHandler()
-{
-	KTDXPROFILE();
-
-	CKTDNUDP::RecvData* pRecvData = g_pData->GetGameUDP()->PopRecvData();
-	while( pRecvData != NULL )
-	{
-		//switch( pRecvData->m_ID )
-		//{
-		//	case XPT_SQUARE_UNIT_SYNC:
-		//		{
-		//			KSerBuffer ksBuff;
-		//			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-		//			KXPT_SQUARE_UNIT_SYNC kXPT_SQUARE_UNIT_SYNC;
-		//			DeSerialize( &ksBuff, &kXPT_SQUARE_UNIT_SYNC );
-		//			CX2SquareUnit* pCX2SquareUnit = GetSquareUnitByUID( kXPT_SQUARE_UNIT_SYNC.m_UnitUID );
-		//			if( pCX2SquareUnit != NULL )
-		//				pCX2SquareUnit->RecvPacketP2P( kXPT_SQUARE_UNIT_SYNC );
-		//		}
-		//		break;
-
-		//	case XPT_SQUARE_UNIT_SYNC_RIGHT:
-		//		{
-		//			KSerBuffer ksBuff;
-		//			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-		//			KXPT_SQUARE_UNIT_SYNC_RIGHT kXPT_SQUARE_UNIT_SYNC_RIGHT;
-		//			DeSerialize( &ksBuff, &kXPT_SQUARE_UNIT_SYNC_RIGHT );
-		//			CX2SquareUnit* pCX2SquareUnit = GetSquareUnitByUID( kXPT_SQUARE_UNIT_SYNC_RIGHT.m_UnitUID );
-		//			if( pCX2SquareUnit != NULL )
-		//				pCX2SquareUnit->RecvPacketRightP2P( kXPT_SQUARE_UNIT_SYNC_RIGHT );
-		//		}
-		//		break;
-
-		//	case XPT_SQUARE_UNIT_SYNC_REQ:
-		//		{
-		//			if( m_pMyUnit != NULL )
-		//			{
-		//				KSerBuffer ksBuff;
-		//				ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
-		//				KXPT_SQUARE_UNIT_SYNC_REQ kXPT_SQUARE_UNIT_SYNC_REQ;
-		//				DeSerialize( &ksBuff, &kXPT_SQUARE_UNIT_SYNC_REQ );
-
-		//				m_pMyUnit->SendPacketP2P( kXPT_SQUARE_UNIT_SYNC_REQ.m_UnitUID );
-		//			}					
-		//		}
-		//		break;
-		//}
-		SAFE_DELETE( pRecvData );
-		pRecvData = g_pData->GetGameUDP()->PopRecvData();
-	}
-}
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//void CX2SquareGame::P2PPacketHandler()
+//{
+//	KTDXPROFILE();
+//
+//	CKTDNUDP::RecvData* pRecvData = g_pData->GetGameUDP()->PopRecvData();
+//	while( pRecvData != NULL )
+//	{
+//		//switch( pRecvData->m_ID )
+//		//{
+//		//	case XPT_SQUARE_UNIT_SYNC:
+//		//		{
+//		//			KSerBuffer ksBuff;
+//		//			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//		//			KXPT_SQUARE_UNIT_SYNC kXPT_SQUARE_UNIT_SYNC;
+//		//			DeSerialize( &ksBuff, &kXPT_SQUARE_UNIT_SYNC );
+//		//			CX2SquareUnit* pCX2SquareUnit = GetSquareUnitByUID( kXPT_SQUARE_UNIT_SYNC.m_UnitUID );
+//		//			if( pCX2SquareUnit != NULL )
+//		//				pCX2SquareUnit->RecvPacketP2P( kXPT_SQUARE_UNIT_SYNC );
+//		//		}
+//		//		break;
+//
+//		//	case XPT_SQUARE_UNIT_SYNC_RIGHT:
+//		//		{
+//		//			KSerBuffer ksBuff;
+//		//			ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//		//			KXPT_SQUARE_UNIT_SYNC_RIGHT kXPT_SQUARE_UNIT_SYNC_RIGHT;
+//		//			DeSerialize( &ksBuff, &kXPT_SQUARE_UNIT_SYNC_RIGHT );
+//		//			CX2SquareUnit* pCX2SquareUnit = GetSquareUnitByUID( kXPT_SQUARE_UNIT_SYNC_RIGHT.m_UnitUID );
+//		//			if( pCX2SquareUnit != NULL )
+//		//				pCX2SquareUnit->RecvPacketRightP2P( kXPT_SQUARE_UNIT_SYNC_RIGHT );
+//		//		}
+//		//		break;
+//
+//		//	case XPT_SQUARE_UNIT_SYNC_REQ:
+//		//		{
+//		//			if( m_pMyUnit != NULL )
+//		//			{
+//		//				KSerBuffer ksBuff;
+//		//				ksBuff.Write( pRecvData->m_pRecvBuffer, pRecvData->m_Size );
+//		//				KXPT_SQUARE_UNIT_SYNC_REQ kXPT_SQUARE_UNIT_SYNC_REQ;
+//		//				DeSerialize( &ksBuff, &kXPT_SQUARE_UNIT_SYNC_REQ );
+//
+//		//				m_pMyUnit->SendPacketP2P( kXPT_SQUARE_UNIT_SYNC_REQ.m_UnitUID );
+//		//			}					
+//		//		}
+//		//		break;
+//		//}
+//		SAFE_DELETE( pRecvData );
+//		pRecvData = g_pData->GetGameUDP()->PopRecvData();
+//	}
+//}
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 
 void CX2SquareGame::KeyProcess()
@@ -890,7 +919,6 @@ void CX2SquareGame::KeyProcess()
 
 	m_InputData.Init();
 
-#ifdef REFORM_UI_KEYPAD
 	if ( GET_DOUBLEKEYPURE_STATE( GA_LEFT ) == TRUE )
 	{
 		m_InputData.pureDoubleLeft = true;
@@ -975,75 +1003,6 @@ void CX2SquareGame::KeyProcess()
 		m_pMyUnit->PlayEmotion( CX2Unit::ET_SITREADY );
 #endif //RIDING_SYSTEM
 	}
-#else
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_LEFT) == TRUE )
-	{
-		m_InputData.pureDoubleLeft = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_LEFT) == TRUE )
-	{
-		m_InputData.oneDoubleLeft = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_LEFT) == TRUE )
-	{
-		m_InputData.pureLeft = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_LEFT) == TRUE )
-	{
-		m_InputData.oneLeft = true;
-	}
-
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_RIGHT) == TRUE )
-	{
-		m_InputData.pureDoubleRight = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_RIGHT) == TRUE )
-	{
-		m_InputData.oneDoubleRight = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_RIGHT) == TRUE )
-	{
-		m_InputData.pureRight = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_RIGHT) == TRUE )
-	{
-		m_InputData.oneRight = true;
-	}
-
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_UP) == TRUE )
-	{
-		m_InputData.pureDoubleUp = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_UP) == TRUE )
-	{
-		m_InputData.oneDoubleUp = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_UP) == TRUE )
-	{
-		m_InputData.pureUp = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_UP) == TRUE )
-	{
-		m_InputData.oneUp = true;
-	}
-
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyPureState(DIK_DOWN) == TRUE )
-	{
-		m_InputData.pureDoubleDown = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetDoubleKeyState(DIK_DOWN) == TRUE )
-	{
-		m_InputData.oneDoubleDown = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetPureKeyState(DIK_DOWN) == TRUE )
-	{
-		m_InputData.pureDown = true;
-	}
-	if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_DOWN) == TRUE )
-	{
-		m_InputData.oneDown = true;
-	}
-#endif
 
 	m_pMyUnit->SetInputData( &m_InputData );
 }
@@ -1091,7 +1050,7 @@ bool CX2SquareGame::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_SQUARE_NOT( KEGS_CHANGE_
 
 
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 	if( true == kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_vecInventorySlotInfo.empty() )
 	{
 #ifdef SERV_TITLE_DATA_SIZE
@@ -1103,7 +1062,7 @@ bool CX2SquareGame::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_SQUARE_NOT( KEGS_CHANGE_
 		pCX2SquareUnit->UpdateEquippedEmblem();
 		return true;
 	}
-#endif TITLE_SYSTEM
+//#endif TITLE_SYSTEM
 
 
 	CX2UnitViewerUI* pCX2UnitViewerUI = pCX2SquareUnit->GetUnitViewer();
@@ -1146,7 +1105,7 @@ bool CX2SquareGame::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_SQUARE_NOT( KEGS_CHANGE_
 			kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_ACCESSORY ||
 			kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_AVARTA )
 		{
-			CX2Item* pItem = pCX2Unit->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+			CX2Item* pItem = pCX2Unit->GetInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 			if( pItem != NULL )
 			{
 				pCX2Unit->RemoveEqip( pItem->GetUID() );
@@ -1164,7 +1123,7 @@ bool CX2SquareGame::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_SQUARE_NOT( KEGS_CHANGE_
 	for( int i = 0; i < (int)kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_vecInventorySlotInfo.size(); i++ )
 	{
 		KInventoryItemInfo& kInventorySlotInfo = kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_vecInventorySlotInfo[i];
-		pCX2Unit->GetInventory()->RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+		pCX2Unit->AccessInventory().RemoveItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 	}
 
 	for( int i = 0; i < (int)kEGS_CHANGE_EQUIPPED_ITEM_NOT.m_vecInventorySlotInfo.size(); i++ )
@@ -1173,12 +1132,14 @@ bool CX2SquareGame::Handler_EGS_CHANGE_EQUIPPED_ITEM_IN_SQUARE_NOT( KEGS_CHANGE_
 		if( kInventorySlotInfo.m_iItemUID <= 0 )
 			continue;
 
-		CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInventorySlotInfo );
-		pCX2Unit->GetInventory()->AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, pItemData );
+        {
+		    CX2Item::ItemData kItemData( kInventorySlotInfo );
+		    pCX2Unit->AccessInventory().AddItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID, kItemData );
+        }
 
 		if( kInventorySlotInfo.m_cSlotCategory == CX2Inventory::ST_E_EQUIP )
 		{
-			CX2Item* pItem = pCX2Unit->GetInventory()->GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
+			CX2Item* pItem = pCX2Unit->GetInventory().GetItem( (CX2Inventory::SORT_TYPE)kInventorySlotInfo.m_cSlotCategory, kInventorySlotInfo.m_sSlotID );
 			if( pItem != NULL )
 			{
 				if( true == pCX2Unit->AddEqip( pItem->GetUID() ) )
@@ -1221,7 +1182,12 @@ bool CX2SquareGame::Handler_EGS_UPDATE_SQUARE_PERSONAL_SHOP_INFO_NOT( KEGS_UPDAT
 			{
 				pSquareUnit->SetPersonalShopState( (CX2SquareUnit::PERSONAL_SHOP_STATE)kEGS_UPDATE_SQUARE_PERSONAL_SHOP_INFO_NOT.m_cPersonalShopState );
 				pSquareUnit->SetPersonalShopName( kEGS_UPDATE_SQUARE_PERSONAL_SHOP_INFO_NOT.m_wstrPersonalShopName.c_str() );
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+				pSquareUnit->SetShopType( static_cast<SEnum::AGENCY_SHOP_TYPE>( kEGS_UPDATE_SQUARE_PERSONAL_SHOP_INFO_NOT.m_cPersonalShopType ) );
+#else // SERV_UPGRADE_TRADE_SYSTEM
 				pSquareUnit->SetShopType( (CX2SquareUnit::PERSONAL_SHOP_TYPE) kEGS_UPDATE_SQUARE_PERSONAL_SHOP_INFO_NOT.m_cPersonalShopType );
+#endif // SERV_UPGRADE_TRADE_SYSTEM
 			}
 		}
 	}
@@ -1284,42 +1250,47 @@ void CX2SquareGame::PopTalkBox( UidType iUnitUID_, const WCHAR* pWstrMsg_,
 		if( g_pChatBox != NULL && bCommandEmotion == false )
 #endif
 		{
-			//컬링
-			float fScale;
-			if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetYScale() )
-			{
-				if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
-				{
-					//X가 제일 큼
-					fScale = pCX2SquareUnit->GetMatrix().GetXScale();
-				}
-				else
-				{
-					//Z가 제일 큼
-					fScale = pCX2SquareUnit->GetMatrix().GetZScale();
-				}
-			}
-			else
-			{
-				if( pCX2SquareUnit->GetMatrix().GetYScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
-				{
-					//Y가 제일 큼
-					fScale = pCX2SquareUnit->GetMatrix().GetYScale();
-				}
-				else
-				{
-					//Z가 제일 큼
-					fScale = pCX2SquareUnit->GetMatrix().GetZScale();
-				}
-			}
+            if( pCX2SquareUnit->GetBoundingRadius() > 0 )
+            {
+			    D3DXVECTOR3 center;
+			    pCX2SquareUnit->GetTransformCenter( &center );
 
-			D3DXVECTOR3 center;
-			pCX2SquareUnit->GetTransformCenter( &center );
-
-			if( pCX2SquareUnit->GetBoundingRadius() > 0
-				&& g_pKTDXApp->GetDGManager()->GetFrustum()->CheckSphere( center, pCX2SquareUnit->GetBoundingRadius() * fScale ) == false )
-				return;
-
+			    //컬링
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+                float fScaledBoundingRadius = pCX2SquareUnit->GetScaledBoundingRadius();
+#else   X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+			    float fScale;
+			    if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetYScale() )
+			    {
+				    if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
+				    {
+					    //X가 제일 큼
+					    fScale = pCX2SquareUnit->GetMatrix().GetXScale();
+				    }
+				    else
+				    {
+					    //Z가 제일 큼
+					    fScale = pCX2SquareUnit->GetMatrix().GetZScale();
+				    }
+			    }
+			    else
+			    {
+				    if( pCX2SquareUnit->GetMatrix().GetYScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
+				    {
+					    //Y가 제일 큼
+					    fScale = pCX2SquareUnit->GetMatrix().GetYScale();
+				    }
+				    else
+				    {
+					    //Z가 제일 큼
+					    fScale = pCX2SquareUnit->GetMatrix().GetZScale();
+				    }
+			    }
+                float fScaledBoundingRadius = pCX2SquareUnit->GetBoundingRadius() * fScale;
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+			    if( g_pKTDXApp->GetDGManager()->GetFrustum().CheckSphere( center, fScaledBoundingRadius ) == false )
+				    return;
+            }
 
 			CX2TalkBoxManagerImp::TalkBox talkBox;
 			talkBox.m_OwnerUnitUID		= iUnitUID_;
@@ -1414,8 +1385,8 @@ void CX2SquareGame::SetFreeCamera( bool bFreeCamera )
 
 	if( true == m_bFreeCamera )
 	{
-		D3DXVECTOR3 vEye	= m_pCamera->GetCamera()->GetEye();
-		D3DXVECTOR3 vLookAt = m_pCamera->GetCamera()->GetLookAt();
+		D3DXVECTOR3 vEye	= m_pCamera->GetCamera().GetEye();
+		D3DXVECTOR3 vLookAt = m_pCamera->GetCamera().GetLookAt();
 
 		m_FPSCamera.SetViewParams( &vEye, &vLookAt );
 	}
@@ -1478,45 +1449,57 @@ void CX2SquareGame::PopPersoanlShopTalkBox( UidType iUnitUID, wstring& wstrMsg, 
 	if( pCX2SquareUnit != NULL && pCX2SquareUnit->GetInit() == true )
 	{
 
-		//컬링
-		float fScale;
-		if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetYScale() )
-		{
-			if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
-			{
-				//X가 제일 큼
-				fScale = pCX2SquareUnit->GetMatrix().GetXScale();
-			}
-			else
-			{
-				//Z가 제일 큼
-				fScale = pCX2SquareUnit->GetMatrix().GetZScale();
-			}
-		}
-		else
-		{
-			if( pCX2SquareUnit->GetMatrix().GetYScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
-			{
-				//Y가 제일 큼
-				fScale = pCX2SquareUnit->GetMatrix().GetYScale();
-			}
-			else
-			{
-				//Z가 제일 큼
-				fScale = pCX2SquareUnit->GetMatrix().GetZScale();
-			}
-		}
-
-		D3DXVECTOR3 center;
-		pCX2SquareUnit->GetTransformCenter( &center );
-
-		if( ( pCX2SquareUnit->GetBoundingRadius() > 0
-			&& g_pKTDXApp->GetDGManager()->GetFrustum()->CheckSphere( center, pCX2SquareUnit->GetBoundingRadius() * fScale ) == false ) ||
-			pCX2SquareUnit->GetPersonalShopState() != CX2SquareUnit::PSS_SHOP  )
+		if( pCX2SquareUnit->GetPersonalShopState() != CX2SquareUnit::PSS_SHOP  )
 		{
 			m_pTalkBoxMgrForPersonalShop->Delete( iUnitUID, true );
 			return;
 		}
+
+        if( pCX2SquareUnit->GetBoundingRadius() > 0 )
+        {
+		    D3DXVECTOR3 center;
+		    pCX2SquareUnit->GetTransformCenter( &center );
+		//컬링
+
+#ifdef  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+            float   fScaledBoundingRadius = pCX2SquareUnit->GetScaledBoundingRadius();
+#else   X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+		    float fScale;
+		    if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetYScale() )
+		    {
+			    if( pCX2SquareUnit->GetMatrix().GetXScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
+			    {
+				    //X가 제일 큼
+				    fScale = pCX2SquareUnit->GetMatrix().GetXScale();
+			    }
+			    else
+			    {
+				    //Z가 제일 큼
+				    fScale = pCX2SquareUnit->GetMatrix().GetZScale();
+			    }
+		    }
+		    else
+		    {
+			    if( pCX2SquareUnit->GetMatrix().GetYScale() > pCX2SquareUnit->GetMatrix().GetZScale() )
+			    {
+				    //Y가 제일 큼
+				    fScale = pCX2SquareUnit->GetMatrix().GetYScale();
+			    }
+			    else
+			    {
+				    //Z가 제일 큼
+				    fScale = pCX2SquareUnit->GetMatrix().GetZScale();
+			    }
+		    }
+            float   fScaledBoundingRadius = pCX2SquareUnit->GetBoundingRadius() * fScale;
+#endif  X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+
+		    if( g_pKTDXApp->GetDGManager()->GetFrustum().CheckSphere( center, fScaledBoundingRadius ) == false )
+		    {
+			    m_pTalkBoxMgrForPersonalShop->Delete( iUnitUID, true );
+			    return;
+		    }
+        }
 
 		if ( m_pTalkBoxMgrForPersonalShop->CheckTalkBox( iUnitUID ) == true )
 			return;

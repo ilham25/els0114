@@ -68,7 +68,7 @@ void KAutoPartyCompleteTimeManager::AddCompleteTime( IN const int iCompleteTime 
 	m_listCompleteTime.push_back( kTemp );
 
 	// 12개가 될때까지 옛날것을 지운다.
-	while( COMPLETE_TIME_ENUM::CTE_MAX_COUNT < m_listCompleteTime.size() )
+	while( CTE_MAX_COUNT < m_listCompleteTime.size() )
 	{
 		m_listCompleteTime.pop_front();
 	}

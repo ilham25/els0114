@@ -77,7 +77,7 @@ IMPL_ON_FUNC( EGS_PARTY_LIST_REQ )
 			{
 				//{{ 2011. 10.10	할로윈 던전 하드코딩
 #ifdef SERV_HALLOWEEN_DUNGEON
-				if( kPacket_.m_iID == CXSLDungeon::DI_ELDER_HALLOWEEN_NORMAL || kPacket_.m_iID == CXSLDungeon::DI_ELDER_HALLOWEEN_HARD || kPacket_.m_iID == CXSLDungeon::DI_ELDER_HALLOWEEN_EXPERT )
+				if( kPacket_.m_iID == SEnum::DI_ELDER_HALLOWEEN_NORMAL || kPacket_.m_iID == SEnum::DI_ELDER_HALLOWEEN_HARD || kPacket_.m_iID == SEnum::DI_ELDER_HALLOWEEN_EXPERT )
 				{
 					// 소속 던전 게이트 검사 안함
 				}
@@ -946,7 +946,7 @@ IMPL_ON_FUNC( EGS_PARTY_CHANGE_READY_REQ )
 
 			//{{ 2011. 10.10	할로윈 던전 하드코딩
 #ifdef SERV_HALLOWEEN_DUNGEON
-		if( iDungeonID == CXSLDungeon::DI_ELDER_HALLOWEEN_NORMAL || iDungeonID == CXSLDungeon::DI_ELDER_HALLOWEEN_HARD || iDungeonID == CXSLDungeon::DI_ELDER_HALLOWEEN_EXPERT )
+		if( iDungeonID == SEnum::DI_ELDER_HALLOWEEN_NORMAL || iDungeonID == SEnum::DI_ELDER_HALLOWEEN_HARD || iDungeonID == SEnum::DI_ELDER_HALLOWEEN_EXPERT )
 		{
 			// 소속 던전 게이트 검사 안함
 		}
@@ -1409,7 +1409,7 @@ IMPL_ON_FUNC( EGS_PARTY_GAME_START_REQ )
 
 		//{{ 2011. 10.10	할로윈 던전 하드코딩
 #ifdef SERV_HALLOWEEN_DUNGEON
-		if( iDungeonID == CXSLDungeon::DI_ELDER_HALLOWEEN_NORMAL || iDungeonID == CXSLDungeon::DI_ELDER_HALLOWEEN_HARD || iDungeonID == CXSLDungeon::DI_ELDER_HALLOWEEN_EXPERT )
+		if( iDungeonID == SEnum::DI_ELDER_HALLOWEEN_NORMAL || iDungeonID == SEnum::DI_ELDER_HALLOWEEN_HARD || iDungeonID == SEnum::DI_ELDER_HALLOWEEN_EXPERT )
 		{
 			// 소속 던전 게이트 검사 안함
 		}
@@ -2925,24 +2925,6 @@ IMPL_ON_FUNC( EPM_CHECK_FOR_PARTY_GAME_START_REQ )
 #ifdef SERV_NEW_HENIR_TEST
 	m_kUserDungeonManager.SetPossibleHenirReward();
 #endif SERV_NEW_HENIR_TEST
-	//}}
-
-	//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	KGSPartyPtr kGspartyPtr = SiKPartyListManager()->GetParty( m_iPartyUID );
-	if( kGspartyPtr != NULL )
-	{
-		kGspartyPtr->SetRoomBuffType( kPacket_.m_iBuffType );
-		kPacket.m_iBuffType = kPacket_.m_iBuffType;
-	}
-	else
-	{
-		START_LOG( cerr, L"파티UID 가 이상하다. 있으면 안된다." )
-			<< BUILD_LOG( GetCharUID() )
-			<< BUILD_LOG( m_iPartyUID )
-			<< END_LOG;
-	}
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
 	//}}
 
 	// PartyRoomUserInfo얻기

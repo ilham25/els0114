@@ -6,27 +6,32 @@
 #include ".\X2UIPrivateBank.h"
 
 CX2UIPrivateBank::CX2UIPrivateBank( const CKTDXStage* const pNowStage, const WCHAR* const pFileName )
-: CX2UIDragable(  const_cast< CKTDXStage* >( pNowStage ), NULL ),
-m_pDlgPrivateBank( NULL ),
-m_bShow( false ),
-m_vDlgSize( 0, 0 ),
-//m_eMembershipGrade( CX2Inventory::MPB_NORMAL ),
-m_iMaxNumOfSlot( 0 ),
-m_iUsedNumOfSlot( 0 )
+	: CX2UIDragable(  const_cast< CKTDXStage* >( pNowStage ), NULL )
+	, m_pDlgPrivateBank( NULL )
+	, m_bShow( false )
+	, m_vDlgSize( 0, 0 )
+	, m_iMaxNumOfSlot( 0 )
+	, m_iUsedNumOfSlot( 0 )
+#ifdef GOOD_ELSWORD //JHKang
+	, m_iConfirmED( 0 )
+	, m_pDLGBuyConfirm( NULL )
+#endif //GOOD_ELSWORD
 {
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 	m_bReserveResetDialog = false;
 	//	내 캐릭터로 초기화
-	wstring wstrMyName = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NickName;
+	wstring wstrMyName = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName;
 	SetShareNickName(wstrMyName);
 	SetIsShareBank(false);
 	SetShareBankSize(CX2Inventory::MPB_NORMAL);
 
 	m_pDlgWantBuySharingBank = NULL;
-#endif	SERV_SHARING_BANK_TEST
-#ifdef	SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
+	m_ShareUnitUID = 0;
+#endif SERV_SHARING_BANK_TEST
+
+#ifdef SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
 	m_pDLGWaitingMsgBox = NULL;
-#endif	SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
+#endif SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
 
 	m_wstrDlgFileName = pFileName;
 
@@ -40,8 +45,8 @@ CX2UIPrivateBank::~CX2UIPrivateBank()
 
 bool		CX2UIPrivateBank::InitUIPrivateBank( const CKTDXStage* const pNowStage, const WCHAR* const pFileName )
 {
-	CX2Inventory* pInventory	= NULL;
-	pInventory	= GetInventory();
+	const CX2Inventory* pInventory	= NULL;
+	pInventory	= GetMyInventory();
 
 	if ( pInventory == NULL )
 		return false;					// ASSERT 처리는 위의 GetInventory에서 해줌
@@ -79,7 +84,6 @@ bool		CX2UIPrivateBank::InitUIPrivateBank( const CKTDXStage* const pNowStage, co
 
 #ifdef SERV_SHARING_BANK_TEST
 	//	유저 리스트 불러오기
-	
 	if(m_pDlgPrivateBank != NULL && g_pData != NULL && g_pData->GetMyUser() != NULL)
 	{
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
@@ -100,7 +104,7 @@ bool		CX2UIPrivateBank::InitUIPrivateBank( const CKTDXStage* const pNowStage, co
 				pComboBox->RemoveAllItems();
 
 				//	내캐릭터 먼저등록
-				wstring wstrMyName = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NickName;
+				wstring wstrMyName = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName;
 				pComboBox->AddItem(wstrMyName.c_str(), NULL);
 
 				//	나머지 등록
@@ -133,24 +137,27 @@ bool		CX2UIPrivateBank::InitUIPrivateBank( const CKTDXStage* const pNowStage, co
 
 void		CX2UIPrivateBank::DestoryPrivateBank()
 {
+#ifdef GOOD_ELSWORD //JHKang
+	SAFE_DELETE_DIALOG( m_pDLGBuyConfirm );
+#endif //GOOD_ELSWORD
 	SAFE_DELETE_DIALOG( m_pDlgPrivateBank );
 #ifdef SERV_SHARING_BANK_TEST
 	SAFE_DELETE_DIALOG( m_pDlgWantBuySharingBank );
-#endif
+#endif SERV_SHARING_BANK_TEST
 }
 
 HRESULT		CX2UIPrivateBank::OnFrameMove( double fTime, float fElapsedTime )
 {
 	KTDXPROFILE();
 
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 	if( m_bReserveResetDialog == true )
 	{
 		ResetPrivateBank();
 
 		m_bReserveResetDialog = false;
 	}
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 
 	if ( m_pDlgPrivateBank != NULL && m_pDlgPrivateBank->GetIsMouseOver() == true )
 	{
@@ -287,15 +294,6 @@ bool		CX2UIPrivateBank::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 						pJoinNpc->GetNpcShop()->SetKeyEvent();
 				}
 			}
-//#ifdef	SERV_SHARING_BANK_TEST
-//			g_pData->GetServerProtocol()->SendID( EGS_CLOSE_BANK_NOT );
-//#endif	SERV_SHARING_BANK_TEST
-// #ifdef	SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
-// 			if(m_pDLGWaitingMsgBox == NULL)
-// 			{
-// 				m_pDLGWaitingMsgBox = g_pMain->KTDGUIMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_815 ), g_pMain->GetNowState() );
-// 			}
-// #endif	SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
 
 			return true;
 		}
@@ -328,6 +326,63 @@ bool		CX2UIPrivateBank::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return true;		
 		}
 		break;
+
+#ifdef GOOD_ELSWORD //JHKang
+#ifndef NO_GOOD_ELSWORD_INT
+	case UPBCM_ED:
+		{
+			CX2StateField*	pStateField	=	NULL;
+			pStateField		=  static_cast< CX2StateField* >( g_pMain->GetNowState() );
+
+			if ( pStateField != NULL )
+			{
+				if ( g_pTFieldGame != NULL )
+				{
+					g_pTFieldGame->CloseFieldName( 0.0f );
+				}
+
+                const CX2Inventory* pMyInventory = GetMyInventory();
+				if ( pMyInventory != NULL && pMyInventory->GetBankMembershipGrade() != CX2Inventory::MPB_PLATINUM )
+					return Handler_EGS_GET_NEXT_BANK_ED_REQ();
+			}
+		} break;
+	case UPBCM_BUY_CONFIRM:
+		{
+			if ( m_pDLGBuyConfirm != NULL )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGBuyConfirm, NULL, false );
+
+			m_pDLGBuyConfirm = NULL;
+
+			g_pData->GetUIManager()->ToggleUI( CX2UIManager::UI_MENU_PRIVATE_BANK, false );
+			
+			if ( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED >= m_iConfirmED )
+			{
+				m_iConfirmED = 0;
+				return Handler_EGS_EXPAND_BANK_SLOT_ED_REQ();
+			}
+			else
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28961 ), g_pMain->GetNowState() );
+				m_iConfirmED = 0;
+
+				g_pData->GetUIManager()->ToggleUI( CX2UIManager::UI_MENU_PRIVATE_BANK, true );
+				
+				return false;
+			}
+		} break;
+
+	case UPBCM_BUY_CANCEL:
+		{
+			if ( m_pDLGBuyConfirm != NULL )
+				g_pKTDXApp->SendGameDlgMessage( XGM_DELETE_DIALOG, m_pDLGBuyConfirm, NULL, false );
+
+			m_iConfirmED = 0;
+			m_pDLGBuyConfirm = NULL;
+
+			return true;
+		} break;
+#endif NO_GOOD_ELSWORD_INT
+#endif //GOOD_ELSWORD
 #ifdef SERV_SHARING_BANK_TEST
 	case UPBCM_USER_CHANGE:
 		{
@@ -363,7 +418,7 @@ bool		CX2UIPrivateBank::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 			if(g_pData->GetMyUser()->IsSharingBankOpen() == true)
 			{
-				wstring wstrMyName = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NickName;
+				wstring wstrMyName = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NickName;
 				wstring wstrSelectName;
 
 				CKTDGUIStatic* pStatic = (CKTDGUIStatic*)m_pDlgPrivateBank->GetControl(L"Static_Select_User");
@@ -480,22 +535,35 @@ bool		CX2UIPrivateBank::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 			return Handler_EGS_GET_MY_BANK_INFO_ACK( hWnd, uMsg, wParam, lParam );
 
 		} break;
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef GOOD_ELSWORD //JHKang
+#ifndef NO_GOOD_ELSWORD_INT
+	case EGS_GET_NEXT_BANK_ED_ACK:
+		{
+			return Handler_EGS_GET_NEXT_BANK_ED_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+
+	case EGS_EXPAND_BANK_SLOT_ED_ACK:
+		{
+			return Handler_EGS_EXPAND_BANK_SLOT_ED_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+#endif NO_GOOD_ELSWORD_INT
+#endif //HALLOWEEN_EVENT_2013
+#ifdef SERV_SHARING_BANK_TEST
 	case EGS_GET_SHARE_BANK_ACK:
 		{
 			return Handler_EGS_GET_SHARE_BANK_ACK( hWnd, uMsg, wParam, lParam );
 
 		} break;
-#endif	SERV_SHARING_BANK_TEST
-#ifdef	SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
+#endif SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
 	case EGS_SHARE_BANK_UPDATE_OK_NOT:
 		{
 			return Handler_EGS_SHARE_BANK_UPDATE_OK_NOT();
 		}
 		break;
-#endif	SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
+#endif SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
 	}
-	
+
 	return false;
 }
 
@@ -538,7 +606,7 @@ void CX2UIPrivateBank::SetPosition( D3DXVECTOR2 vec, bool bAbsolute /* = true */
 
 }
 
-CX2Inventory*	CX2UIPrivateBank::GetInventory()
+const CX2Inventory*	CX2UIPrivateBank::GetMyInventory() const
 {
 	if ( g_pData->GetMyUser() == NULL )
 	{
@@ -552,13 +620,24 @@ CX2Inventory*	CX2UIPrivateBank::GetInventory()
 		return NULL;
 	}
 
-	if ( g_pData->GetMyUser()->GetSelectUnit()->GetInventory() == NULL  )
+	return &g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+}
+
+CX2Inventory*	CX2UIPrivateBank::AccessMyInventory()
+{
+	if ( g_pData->GetMyUser() == NULL )
 	{
-		ASSERT( !"Inventory Is NULL");
+		ASSERT( !"User Is NULL");
 		return NULL;
 	}
 
-	return g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	if ( g_pData->GetMyUser()->GetSelectUnit() == NULL )
+	{
+		ASSERT( !"SelectUnit Is NULL");
+		return NULL;
+	}
+
+	return &g_pData->GetMyUser()->GetSelectUnit()->AccessInventory();
 }
 
 std::wstring	CX2UIPrivateBank::GetStrMembership( CX2Inventory::MEMBERSHIP_PRIVATE_BANK membershipGrade ) const
@@ -601,6 +680,43 @@ std::wstring	CX2UIPrivateBank::GetStrMembership( CX2Inventory::MEMBERSHIP_PRIVAT
 	return	wstrMembership;
 }
 
+#ifdef GOOD_ELSWORD //JHKang
+UINT	CX2UIPrivateBank::GetGradeSize( IN CX2Inventory::MEMBERSHIP_PRIVATE_BANK membershipGrade_ ) const
+{
+	switch ( membershipGrade_ )
+	{
+	case CX2Inventory::MPB_NORMAL:
+		return 8;
+		break;
+
+	case CX2Inventory::MPB_SILVER:
+		return 16;
+		break;
+
+	case CX2Inventory::MPB_GOLD:
+		return 24;
+		break;
+
+	case CX2Inventory::MPB_EMERALD:
+		return 32;
+		break;
+
+	case CX2Inventory::MPB_DIAMOND:
+		return 40;
+		break;
+
+	case CX2Inventory::MPB_PLATINUM:
+		return 48;
+		break;
+		
+	default:
+		ASSERT( !"Wrong Grade" );
+		return 0;
+		break;
+	}
+}
+#endif //GOOD_ELSWORD
+
 void	CX2UIPrivateBank::UpdateUICashShopButton()
 {
 	if ( m_pDlgPrivateBank != NULL )
@@ -608,7 +724,7 @@ void	CX2UIPrivateBank::UpdateUICashShopButton()
 		CKTDGUIButton*	pCashShopButton		= NULL;
 		CKTDGUIStatic*	pMembershipIcon		= NULL;
 
-		pCashShopButton		=	static_cast< CKTDGUIButton* >( m_pDlgPrivateBank->GetControl( L"g_pButton_Upgrade" ) );
+		pCashShopButton		=	reinterpret_cast< CKTDGUIButton* >( m_pDlgPrivateBank->GetControl( L"g_pButton_Upgrade" ) );
 
 		if ( pCashShopButton == NULL )
 		{
@@ -616,9 +732,23 @@ void	CX2UIPrivateBank::UpdateUICashShopButton()
 			return;
 		}
 
-		pMembershipIcon		=	static_cast< CKTDGUIStatic* >( m_pDlgPrivateBank->GetControl( L"g_pMembershipIcon" ) );
+		#ifdef GOOD_ELSWORD //JHKang
+#ifndef NO_GOOD_ELSWORD_INT
+		CKTDGUIButton* pEDButton = NULL;
 
-		if ( pCashShopButton == NULL )
+		pEDButton = reinterpret_cast< CKTDGUIButton* >( m_pDlgPrivateBank->GetControl( L"g_pButton_Upgrade_ED" ) );
+
+		if ( pEDButton == NULL )
+		{
+			ASSERT( !"ED Button error" );
+			return;
+		}
+#endif NO_GOOD_ELSWORD_INT
+		#endif //GOOD_ELSWORD
+
+		pMembershipIcon		=	reinterpret_cast< CKTDGUIStatic* >( m_pDlgPrivateBank->GetControl( L"g_pMembershipIcon" ) );
+
+		if ( pMembershipIcon == NULL )
 		{
 			ASSERT( !"MembershipIcon error" );
 			return;
@@ -631,7 +761,7 @@ void	CX2UIPrivateBank::UpdateUICashShopButton()
 			pMembershipIcon->GetPicture( i )->SetShow( false );
 		}
 
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 		//	은행 공유 상태일때는 확장 UI 표시 하지않는다
 		if( GetIsShareBank() == true )
 		{
@@ -640,80 +770,108 @@ void	CX2UIPrivateBank::UpdateUICashShopButton()
 
 			return;
 		}
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 
-		switch ( GetInventory()->GetBankMembershipGrade() )
-		{
-		case CX2Inventory::MPB_NORMAL:
-			{
-				pMembershipIcon->GetPicture( 0 )->SetShow( true );
-				membershipGrade	= CX2Inventory::MPB_SILVER;
-			}
-			break;
+        const CX2Inventory* pMyInventory = GetMyInventory();
+        if ( pMyInventory != NULL )
+        {
+		    switch ( pMyInventory->GetBankMembershipGrade() )
+		    {
+		    case CX2Inventory::MPB_NORMAL:
+			    {
+				    pMembershipIcon->GetPicture( 0 )->SetShow( true );
+				    membershipGrade	= CX2Inventory::MPB_SILVER;
+			    }
+			    break;
 
-		case CX2Inventory::MPB_SILVER:
-			{
-				pMembershipIcon->GetPicture( 1 )->SetShow( true );
-				membershipGrade	= CX2Inventory::MPB_GOLD;
-			}
-			break;
+		    case CX2Inventory::MPB_SILVER:
+			    {
+				    pMembershipIcon->GetPicture( 1 )->SetShow( true );
+				    membershipGrade	= CX2Inventory::MPB_GOLD;
+			    }
+			    break;
 
-		case CX2Inventory::MPB_GOLD:
-			{
-				pMembershipIcon->GetPicture( 2 )->SetShow( true );
-				membershipGrade	= CX2Inventory::MPB_EMERALD;
-			}
-			break;
+		    case CX2Inventory::MPB_GOLD:
+			    {
+				    pMembershipIcon->GetPicture( 2 )->SetShow( true );
+				    membershipGrade	= CX2Inventory::MPB_EMERALD;
+			    }
+			    break;
 
-		case CX2Inventory::MPB_EMERALD:
-			{
-				pMembershipIcon->GetPicture( 3 )->SetShow( true );
-				membershipGrade	= CX2Inventory::MPB_DIAMOND;
-			}
-			break;
+		    case CX2Inventory::MPB_EMERALD:
+			    {
+				    pMembershipIcon->GetPicture( 3 )->SetShow( true );
+				    membershipGrade	= CX2Inventory::MPB_DIAMOND;
+			    }
+			    break;
 
-		case CX2Inventory::MPB_DIAMOND:
-			{
-				if ( GetInventory()->GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) != NULL )
-				{
-					pMembershipIcon->SetShow( false );
+		    case CX2Inventory::MPB_DIAMOND:
+			    {
+				    if ( pMyInventory->GetItemByTID( _CONST_UI_PRIVATE_BANK_::g_iBankQuestItemID, true ) != NULL )
+				    {
+					    pMembershipIcon->SetShow( false );
+					    pCashShopButton->SetShowEnable( false, false );
+						#ifdef GOOD_ELSWORD //JHKang
+#ifndef NO_GOOD_ELSWORD_INT
+						pEDButton->SetShowEnable( false, false );
+#endif NO_GOOD_ELSWORD_INT
+						#endif //GOOD_ELSWORD
+				    }
+				    else
+				    {
+					    pMembershipIcon->GetPicture( 4 )->SetShow( true );
+					    membershipGrade	= CX2Inventory::MPB_PLATINUM;
+				    }
+			    }
+			    break;
+
+		    }
+
+		    switch ( pMyInventory->GetBankMembershipGrade() )
+		    {
+		    case CX2Inventory::MPB_NORMAL:
+		    case CX2Inventory::MPB_SILVER:
+		    case CX2Inventory::MPB_GOLD:
+		    case CX2Inventory::MPB_EMERALD:
+		    case CX2Inventory::MPB_DIAMOND:
+			    {
+				    // 다음 등급을 타나내기 위해 MPB_NORMAL을 더함
+				#ifdef GOOD_ELSWORD //JHKang
+					pCashShopButton->SetGuideDesc( GET_REPLACED_STRING( ( STR_ID_28663, "L", GetStrMembership( membershipGrade ) ) ) );
+					pCashShopButton->SetGuideDescOffsetPos( D3DXVECTOR2( 100, 0 ) );
+#ifndef NO_GOOD_ELSWORD_INT
+					pEDButton->SetGuideDesc( GET_REPLACED_STRING( ( STR_ID_28664, "LL", GetStrMembership( membershipGrade ), 
+																	g_pMain->GetEDString( GetGradeSize( membershipGrade ) ) ) ) );
+					pEDButton->SetGuideDescOffsetPos( D3DXVECTOR2( 100, 0 ) );
+#endif NO_GOOD_ELSWORD_INT
+				#else //GOOD_ELSWORD
+					pCashShopButton->SetGuideDesc( GET_REPLACED_STRING( ( STR_ID_3864, "L", GetStrMembership( membershipGrade ) ) ) );
+				#endif //GOOD_ELSWORD
+			    }
+			    break;
+
+		    case CX2Inventory::MPB_PLATINUM:
+			    {
+					pCashShopButton->SetGuideDesc( L"" );
 					pCashShopButton->SetShowEnable( false, false );
-				}
-				else
-				{
-					pMembershipIcon->GetPicture( 4 )->SetShow( true );
-					membershipGrade	= CX2Inventory::MPB_PLATINUM;
-				}
-			}
-			break;
+					#ifdef GOOD_ELSWORD //JHKang
+#ifndef NO_GOOD_ELSWORD_INT
+					pEDButton->SetGuideDesc( L"" );
+					pEDButton->SetShowEnable( false, false );
+#endif NO_GOOD_ELSWORD_INT
+					#endif //GOOD_ELSWORD
+			    }
+			    break;
 
-		}
-
-		switch ( GetInventory()->GetBankMembershipGrade() )
-		{
-		case CX2Inventory::MPB_NORMAL:
-		case CX2Inventory::MPB_SILVER:
-		case CX2Inventory::MPB_GOLD:
-		case CX2Inventory::MPB_EMERALD:
-		case CX2Inventory::MPB_DIAMOND:
-			{
-				// 다음 등급을 타나내기 위해 MPB_NORMAL을 더함
-				pCashShopButton->SetGuideDesc( GET_REPLACED_STRING( ( STR_ID_3864, "L", GetStrMembership( membershipGrade ) ) ) );
-				pCashShopButton->SetGuideDescOffsetPos( D3DXVECTOR2( 100, 0 ) );
-			}
-			break;
-
-		case CX2Inventory::MPB_PLATINUM:
-			{
-				pCashShopButton->SetGuideDesc( L"" );
-				pCashShopButton->SetShowEnable( false, false );
-			}
-			break;
-
-		default:
-			ASSERT( !"Wrong path UpdateUICashShopButton" );
-			break;
-		}
+		    default:
+			    ASSERT( !"Wrong path UpdateUICashShopButton" );
+			    break;
+		    }
+        }
+        else
+        {
+            ASSERT( !"NULL Inventory" );
+        }
 	}
 }
 
@@ -730,18 +888,21 @@ void	CX2UIPrivateBank::UpdateUIStrMembership()
 		CKTDGUIStatic* pStatic	=	NULL;
 
 		pStatic = static_cast< CKTDGUIStatic* >( m_pDlgPrivateBank->GetControl( L"Static_Notice" ) );
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 		if( GetIsShareBank() == true )
 		{
 			pStatic->SetString( 0, GET_REPLACED_STRING( ( STR_ID_3865, "LL", GetShareNickName(), GetStrMembership( static_cast<CX2Inventory::MEMBERSHIP_PRIVATE_BANK>(GetShareBankSize()) ) ) ) );
 		}
-		else
-		{
-			pStatic->SetString( 0, GET_REPLACED_STRING( ( STR_ID_3865, "LL", wstrNickName, GetStrMembership( GetInventory()->GetBankMembershipGrade() ) ) ) );
-		}
-#else	SERV_SHARING_BANK_TEST
-		pStatic->SetString( 0, GET_REPLACED_STRING( ( STR_ID_3865, "LL", wstrNickName, GetStrMembership( GetInventory()->GetBankMembershipGrade() ) ) ) );
-#endif	SERV_SHARING_BANK_TEST
+		else if ( GetMyInventory() != NULL )
+        {
+		    pStatic->SetString( 0, GET_REPLACED_STRING( ( STR_ID_3865, "LL", wstrNickName, GetStrMembership( GetMyInventory()->GetBankMembershipGrade() ) ) ) );
+        }
+#else SERV_SHARING_BANK_TEST
+        if ( GetMyInventory() != NULL )
+        {
+		    pStatic->SetString( 0, GET_REPLACED_STRING( ( STR_ID_3865, "LL", wstrNickName, GetStrMembership( GetMyInventory()->GetBankMembershipGrade() ) ) ) );
+        }
+#endif SERV_SHARING_BANK_TEST
 	}
 }
 
@@ -749,15 +910,15 @@ void	CX2UIPrivateBank::UpdateUIUsedAndMaxNumOfSlot()
 {
 	if ( m_pDlgPrivateBank != NULL )
 	{
-		CX2Inventory*	pInventory	= NULL;
+		const CX2Inventory*	pInventory	= NULL;
 		CKTDGUIStatic*	pStatic		= NULL;
 
-		pInventory	= GetInventory();
+		pInventory	= GetMyInventory();
 		pStatic		= static_cast< CKTDGUIStatic* >( m_pDlgPrivateBank->GetControl( L"Staticnumber" ) );
 
 		if ( pInventory != NULL )
 		{
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 			if( GetIsShareBank() == true )
 			{
 				m_iUsedNumOfSlot	= pInventory->GetUsedShareBankNum();
@@ -768,10 +929,10 @@ void	CX2UIPrivateBank::UpdateUIUsedAndMaxNumOfSlot()
 				m_iUsedNumOfSlot	= pInventory->GetUsedSlotNum( CX2Inventory::ST_BANK );
 				m_iMaxNumOfSlot		= pInventory->GetItemMaxNum( CX2Inventory::ST_BANK );
 			}
-#else	SERV_SHARING_BANK_TEST
+#else SERV_SHARING_BANK_TEST
 			m_iUsedNumOfSlot	= pInventory->GetUsedSlotNum( CX2Inventory::ST_BANK );
 			m_iMaxNumOfSlot		= pInventory->GetItemMaxNum( CX2Inventory::ST_BANK );
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 		}
 
 		if ( pStatic != NULL )
@@ -788,9 +949,9 @@ void	CX2UIPrivateBank::UpdateSlotList()
 {
 	CX2Item*		pItem			=	NULL;
 	CX2SlotItem*	pSlotItem		=	NULL;
-	CX2Inventory*	pInventory		=	NULL;
+	const CX2Inventory*	pInventory		=	NULL;
 
-	pInventory		=	GetInventory();
+	pInventory		=	GetMyInventory();
 
 	if ( pInventory == NULL )
 	{
@@ -798,7 +959,7 @@ void	CX2UIPrivateBank::UpdateSlotList()
 		return;
 	}
 
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 	if( GetIsShareBank() == true )
 	{
 		for ( UINT slotID = 0; slotID < m_SlotList.size(); slotID++ )
@@ -832,7 +993,7 @@ void	CX2UIPrivateBank::UpdateSlotList()
 
 		return;
 	}
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 
 	for ( UINT slotID = 0; slotID < m_SlotList.size(); slotID++ )
 	{
@@ -924,9 +1085,10 @@ bool	CX2UIPrivateBank::MouseDown( D3DXVECTOR2 mousePos )
 		g_pData->GetUIManager()->ToggleUI( CX2UIManager::UI_MENU_INVEN, true );
 	}
 	
-	if ( g_pData->GetUIManager()->GetUIInventory()->GetSortType() != GetInventory()->GetSortTypeByItemTemplet( pItemTemplet ) )
+	if ( GetMyInventory() != NULL
+        && g_pData->GetUIManager()->GetUIInventory()->GetSortType() != GetMyInventory()->GetSortTypeByItemTemplet( pItemTemplet ) )
 	{
-		g_pData->GetUIManager()->GetUIInventory()->ChangeInventoryTab( GetInventory()->GetSortTypeByItemTemplet( pItemTemplet ) );
+		g_pData->GetUIManager()->GetUIInventory()->ChangeInventoryTab( GetMyInventory()->GetSortTypeByItemTemplet( pItemTemplet ) );
 	}
 	
 	
@@ -966,10 +1128,10 @@ bool	CX2UIPrivateBank::MouseUp( D3DXVECTOR2 mousePos )
 	}
 	else									// 드래그 앤 드랍이 아닐때
 	{
-		CX2Inventory*	pInventory	= NULL;	
+		const CX2Inventory*	pInventory	= NULL;	
 		CX2Item*		pItem		= NULL;
 
-		pInventory		= GetInventory();
+		pInventory		= GetMyInventory();
 
 		if ( pInventory == NULL )
 			return false;
@@ -1067,7 +1229,9 @@ bool CX2UIPrivateBank::OnDropAnyItem( D3DXVECTOR2 mousePos )
 	if ( (*m_pSlotBeforeDragging)->IsItem() == false )
 		return false;
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	const CX2Inventory* pInventory = GetMyInventory();
+    if ( pInventory == NULL )
+        return false;
 
 	switch ( (*m_pSlotBeforeDragging)->GetSlotType() )
 	{
@@ -1086,6 +1250,22 @@ bool CX2UIPrivateBank::OnDropAnyItem( D3DXVECTOR2 mousePos )
 				ASSERT( !"X2UIPrivateBank OnDropAnyItem" );
 				return false;
 			}
+
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN //pItemSlot->GetSlotType()
+			// 펫인벤토리와 유저인벤토리, 은행과 유저 인벤토리 시, 엘의 여인의 눈물 이동 차단
+			if ( (*m_pSlotBeforeDragging)->GetSlotType() == CX2Slot::ST_INVENTORY )
+			{
+				if( NULL == pToItemTemplet->GetItemID() )
+					return false;
+
+				if( pToItemTemplet->GetItemID() == TEAR_OF_ELWOMAN_ITEM_ID )
+				{
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_18422 ), g_pMain->GetNowState() ); //18422
+					SetNowDragItemReturn();
+					return true;
+				}	
+			}
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 
 			//{{ kimhc // 2010-01-05 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
@@ -1110,14 +1290,13 @@ bool CX2UIPrivateBank::OnDropAnyItem( D3DXVECTOR2 mousePos )
 			}	
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
 
-
 			if ( ( pInventory->GetSortTypeByItemTemplet( pFromItemTemplet ) == pInventory->GetSortTypeByItemTemplet( pToItemTemplet ) ) 
 #ifdef PET_INVENTORY_BUG_FIX_01
 				|| ( ( pSlotItem->GetSlotType() == CX2SlotItem::ST_BANK ) && ( (*m_pSlotBeforeDragging)->GetSlotType() == CX2SlotItem::ST_BANK ) ) 
 #endif PET_INVENTORY_BUG_FIX_01
 				|| ( pInventory->IsPossibleAddItem( pInventory->GetSortTypeByItemTemplet( pFromItemTemplet ) ) == true ) )
 			{
-#ifdef	SERV_SHARING_BANK_TEST_EME			
+#ifdef SERV_SHARING_BANK_TEST_EME			
 				if( g_pData->GetUIManager()->GetUIInventory()->Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( static_cast< CX2SlotItem* >( *m_pSlotBeforeDragging ),
 					pSlotItem ) == true )	// 확실히 열려 잇으므로 예외처리 안함 
 				{
@@ -1171,10 +1350,10 @@ bool CX2UIPrivateBank::OnRClickedItem( D3DXVECTOR2 mousePos )
 	//g_pData->GetUIManager()->GetUIInventory()->ChangeInventoryTabByUid( pSlotItem->GetItemUID() );
 	
 	CX2Inventory::SORT_TYPE	nowInvenSortType	= CX2Inventory::ST_NONE;
-	CX2Inventory*			pInventory			= NULL;
+	const CX2Inventory*			pInventory			= NULL;
 
 	//nowInvenSortType	=	g_pData->GetUIManager()->GetUIInventory()->GetSortType();
-	pInventory			=	GetInventory();
+	pInventory			=	GetMyInventory();
 
 	if ( pInventory == NULL )
 		return false;
@@ -1189,7 +1368,7 @@ bool CX2UIPrivateBank::OnRClickedItem( D3DXVECTOR2 mousePos )
 		pItem	=	pInventory->GetItem( nowInvenSortType, i );
 		if ( pItem	== NULL )
 		{
-#ifdef	SERV_SHARING_BANK_TEST_EME
+#ifdef SERV_SHARING_BANK_TEST_EME
 			if( g_pData->GetUIManager()->GetUIInventory()->Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( pSlotItem->GetSortType(), 
 				pSlotItem->GetSlotID(), nowInvenSortType, i ) == true )
 			{
@@ -1206,7 +1385,7 @@ bool CX2UIPrivateBank::OnRClickedItem( D3DXVECTOR2 mousePos )
 
 			pSlotItem->DestroyItemUI();
 			InvalidSlotDesc();
-#endif	SERV_SHARING_BANK_TEST_EME
+#endif SERV_SHARING_BANK_TEST_EME
 			return true;
 		}
 		pItem	= NULL;
@@ -1228,7 +1407,7 @@ bool CX2UIPrivateBank::Handler_EGS_GET_MY_BANK_INFO_ACK( HWND hWnd, UINT uMsg, W
 			return false;
 
 		CX2Inventory*	pInventory		=	NULL;
-		pInventory		= GetInventory();
+		pInventory		= AccessMyInventory();
 
 		if ( pInventory != NULL )
 		{
@@ -1242,8 +1421,8 @@ bool CX2UIPrivateBank::Handler_EGS_GET_MY_BANK_INFO_ACK( HWND hWnd, UINT uMsg, W
 	return false;
 }
 
-#ifdef	SERV_SHARING_BANK_TEST
-void		CX2UIPrivateBank::ResetPrivateBank()
+#ifdef SERV_SHARING_BANK_TEST
+void CX2UIPrivateBank::ResetPrivateBank()
 {
 	LostItemSlotList();
 	m_SlotList.clear();
@@ -1267,13 +1446,14 @@ bool CX2UIPrivateBank::Handler_EGS_GET_SHARE_BANK_ACK( HWND hWnd, UINT uMsg, WPA
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
 			CX2Inventory*	pInventory		=	NULL;
-			pInventory		= GetInventory();
+			pInventory		= AccessMyInventory();
 
 			if ( pInventory != NULL )
 			{
 				pInventory->SetShareBank( kEvent.m_mapItem );
 			}				
 
+			SetShareUnitUID( kEvent.m_iUnitUID );
 			SetShareNickName( kEvent.m_wstrNickName );
 			SetShareBankSize( kEvent.m_iBankSize );
 			SetIsShareBank(true);
@@ -1287,9 +1467,9 @@ bool CX2UIPrivateBank::Handler_EGS_GET_SHARE_BANK_ACK( HWND hWnd, UINT uMsg, WPA
 
 	return false;
 }
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 
-#ifdef	SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
+#ifdef SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
 bool CX2UIPrivateBank::Handler_EGS_SHARE_BANK_UPDATE_OK_NOT()
 {
 	if( m_pDLGWaitingMsgBox != NULL )
@@ -1300,7 +1480,7 @@ bool CX2UIPrivateBank::Handler_EGS_SHARE_BANK_UPDATE_OK_NOT()
 
 	return true;
 }
-#endif	SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
+#endif SERV_SHARE_BANK_WAIT_SERVER_RECIEVE
 
 wstring CX2UIPrivateBank::GetSlotItemDesc()
 {
@@ -1315,10 +1495,10 @@ wstring CX2UIPrivateBank::GetSlotItemDesc()
 		}
 		else
 		{	
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 			if( GetIsShareBank() )
 			{
-				CX2Inventory* pInventory	= GetInventory();
+				CX2Inventory* pInventory	= AccessMyInventory();
 
 				if ( pInventory == NULL )
 				{
@@ -1340,9 +1520,9 @@ wstring CX2UIPrivateBank::GetSlotItemDesc()
 			{
 				itemDesc = GetSlotItemDescByUID( m_pNowOverItemSlot->GetItemUID() );
 			}
-#else	SERV_SHARING_BANK_TEST
+#else
 			itemDesc = GetSlotItemDescByUID( m_pNowOverItemSlot->GetItemUID() );
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 		}
 	}
 
@@ -1351,3 +1531,148 @@ wstring CX2UIPrivateBank::GetSlotItemDesc()
 
 #endif	PRIVATE_BANK
 //}} kimhc // 2009-08-04 // 캐릭터별 은행
+
+#pragma region GOOD_ELSWORD
+#ifdef GOOD_ELSWORD //JHKang
+#ifndef NO_GOOD_ELSWORD_INT
+bool CX2UIPrivateBank::Handler_EGS_GET_NEXT_BANK_ED_REQ()
+{
+	if( true == g_pMain->IsWaitingServerPacket( EGS_GET_NEXT_BANK_ED_ACK ) )
+		return false;
+
+	g_pData->GetServerProtocol()->SendID( EGS_GET_NEXT_BANK_ED_REQ );
+	g_pMain->AddServerPacket( EGS_GET_NEXT_BANK_ED_ACK );
+
+	return true;
+}
+
+bool CX2UIPrivateBank::Handler_EGS_GET_NEXT_BANK_ED_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>( lParam );
+	KEGS_GET_NEXT_BANK_ED_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	g_pMain->DeleteServerPacket( EGS_GET_NEXT_BANK_ED_ACK );
+	{
+		if (g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			wstringstream	wstrstm;
+			const 	CX2Inventory*	pMyInventory		= GetMyInventory();
+			if ( pMyInventory == NULL )
+				return false;
+			
+			CX2Inventory::MEMBERSHIP_PRIVATE_BANK eGrade = pMyInventory->GetBankMembershipGrade();
+
+			switch ( eGrade )
+			{
+			case CX2Inventory::MPB_NORMAL:
+				eGrade = CX2Inventory::MPB_SILVER;
+				break;
+
+			case CX2Inventory::MPB_SILVER:
+				eGrade = CX2Inventory::MPB_GOLD;
+				break;
+
+			case CX2Inventory::MPB_GOLD:
+				eGrade = CX2Inventory::MPB_EMERALD;
+				break;
+
+			case CX2Inventory::MPB_EMERALD:
+				eGrade = CX2Inventory::MPB_DIAMOND;
+				break;
+
+			case CX2Inventory::MPB_DIAMOND:
+				eGrade = CX2Inventory::MPB_PLATINUM;
+				break;
+
+			default:
+				ASSERT( !"Wrong Grade" );
+				eGrade = CX2Inventory::MPB_NORMAL;
+				break; 
+			}
+
+			m_iConfirmED = kEvent.m_iED;
+			
+			wstrstm << GET_REPLACED_STRING( ( STR_ID_28661, "LLLL", GetStrMembership( eGrade ), g_pMain->GetEDString( GetGradeSize( eGrade ) ),
+				g_pMain->GetEDString( kEvent.m_iED ), g_pMain->GetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED ) ) );
+
+			m_pDLGBuyConfirm = g_pMain->KTDGUIOkAndCancelMsgBox( D3DXVECTOR2(-999,-999), wstrstm.str().c_str(), UPBCM_BUY_CONFIRM, 
+																 g_pMain->GetNowState(), UPBCM_BUY_CANCEL, L"", D3DXVECTOR2( 0, 40 ) );
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CX2UIPrivateBank::Handler_EGS_EXPAND_BANK_SLOT_ED_REQ()
+{
+	if( true == g_pMain->IsWaitingServerPacket( EGS_EXPAND_BANK_SLOT_ED_ACK ) )
+		return false;
+
+	g_pData->GetServerProtocol()->SendID( EGS_EXPAND_BANK_SLOT_ED_REQ );
+	g_pMain->AddServerPacket( EGS_EXPAND_BANK_SLOT_ED_ACK );
+
+	return true;
+}
+
+bool CX2UIPrivateBank::Handler_EGS_EXPAND_BANK_SLOT_ED_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>( lParam );
+	KEGS_EXPAND_BANK_SLOT_ED_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	CX2User*	  pUser		 = g_pData->GetMyUser();
+	if( pUser == NULL )
+	{
+		ASSERT( !"User is NULL(X2User)" );
+		return false;
+	}
+
+	CX2Unit*	  pUnit		 = pUser->GetSelectUnit();
+	if( pUnit == NULL)
+	{
+		ASSERT( !"Unit is NULL(X2Unit)" );
+		return false;
+	}
+
+	CX2Inventory& kInventory = pUnit->AccessInventory();
+
+
+	g_pMain->DeleteServerPacket( EGS_EXPAND_BANK_SLOT_ED_ACK );
+	{
+		if (g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			map< int, int >::iterator mit;
+			for ( mit = kEvent.m_mapExpandedCategorySlot.begin(); mit != kEvent.m_mapExpandedCategorySlot.end(); mit++ )
+			{
+				kInventory.SetItemMaxNum( (CX2Inventory::SORT_TYPE)mit->first, 
+					kInventory.GetItemMaxNum((CX2Inventory::SORT_TYPE)mit->first) + mit->second );
+
+				switch( static_cast< CX2Inventory::SORT_TYPE >( mit->first ) )
+				{
+				case CX2Inventory::ST_BANK:
+					g_pMain->KTDGUIOKMsgBox ( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_3868 ),g_pMain->GetNowState() );
+					break;
+				}
+			}
+
+			if( NULL != g_pData->GetQuestManager() )
+			{
+				g_pData->GetQuestManager()->GiveUpForbiddenQuest(); 
+			}
+			
+			g_pData->GetUIManager()->ToggleUI( CX2UIManager::UI_MENU_PRIVATE_BANK, true );
+
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
+
+			return true;
+		}
+	}
+
+	return false;
+}
+#endif NO_GOOD_ELSWORD_INT
+#endif //GOOD_ELSWORD
+#pragma endregion ED로 은행 확장 패킷 함수

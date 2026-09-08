@@ -2,8 +2,12 @@
 
 //{{ seojt // 2009-1-9, 15:01
 class CKTDGXSkinAnim;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CKTDGXSkinAnim>    CKTDGXSkinAnimPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CKTDGXSkinAnim>   CKTDGXSkinAnimPtr;
-typedef boost::weak_ptr<CKTDGXSkinAnim>     CKTDGXSkinAnimWeakPtr;
+//typedef boost::weak_ptr<CKTDGXSkinAnim>     CKTDGXSkinAnimWeakPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 //}} seojt // 2009-1-9, 15:01
 
 class CKTDGXSkinAnim : public CKTDGObject
@@ -44,7 +48,11 @@ class CKTDGXSkinAnim : public CKTDGObject
 		static CKTDGXSkinAnim* CreateSkinAnim() { return new CKTDGXSkinAnim; }
 		static CKTDGXSkinAnimPtr CreateSkinAnimPtr() 
 		{
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            CKTDGXSkinAnimPtr ptrXSkinAnim( new CKTDGXSkinAnim ); 
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 			CKTDGXSkinAnimPtr ptrXSkinAnim( new CKTDGXSkinAnim, CKTDGObject::KTDGObjectDeleter() ); 
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 			return ptrXSkinAnim;
 		}
 
@@ -100,9 +108,7 @@ class CKTDGXSkinAnim : public CKTDGObject
 		void AddModelXSkinMesh( CKTDXDeviceXSkinMesh* pModelXSkinMesh, CKTDXDeviceXET* pModelAniXET = NULL, 
 			CKTDXDeviceXET* pModelMultiTexXET = NULL, CKTDXDeviceXET* pModelTexChangeXET = NULL,
 			bool bCloseDeviceAtDestructor = false
-#ifdef FIELD_NOT_COLLISIONDATA
 			, bool bAddCollisionData = true 
-#endif
 			);
 
 		void AddAnimXSkinMesh( CKTDXDeviceXSkinMesh* pModelXSkinMesh );	// 툴잡없을 위한 애니메이션 메쉬 삽입함수
@@ -171,12 +177,92 @@ class CKTDGXSkinAnim : public CKTDGObject
 		bool IsAnimationEnd(){ return m_bAnimEnd; }
 		D3DXVECTOR3 GetMotionOffset(){ return m_MotionOffset; }
 		void SetApplyMotionOffset( bool bApply ){ m_bApplyMotionOffset = bApply; }
+
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
+        float   GetNowAnimationSpeed() const    { return m_fAnimCurrSpeed; }
+
+        bool    Predict_IsAnimationEnd( float fElapsedTime_ )
+        {
+            return  ( m_AnimState == XAS_PLAYING && m_fAnimCurrTime <= m_fAnimMaxTime - m_fTransitionTime
+                && m_fAnimCurrTime + m_fAnimCurrSpeed * fElapsedTime_ > m_fAnimMaxTime - m_fTransitionTime );
+        }
+        bool    Predict_EventTimer( float fTime, float fElapsedTime_ )
+        {
+	        return ( m_fAnimCurrTime < fTime
+		        && m_fAnimCurrTime + m_fAnimCurrSpeed * fElapsedTime_ >= fTime );
+        }
+
+        bool EventTimer( const std::vector<float>& vecfTime_ )
+        {
+            if ( vecfTime_.empty() == true )
+                return false;
+            std::vector<float>::const_iterator iterGreaterThanBeforeTime = std::upper_bound( vecfTime_.begin(), vecfTime_.end(), m_fAnimBeforeTime );
+            if ( iterGreaterThanBeforeTime == vecfTime_.end()
+                || m_fAnimCurrTime < *iterGreaterThanBeforeTime )
+                return false;
+            return true;
+        }//EventTimer()
+
+        bool Predict_EventTimer( const std::vector<float>& vecfTime_, float fElapsedTime_ )
+        {
+            if ( vecfTime_.empty() == true )
+                return false;
+            std::vector<float>::const_iterator iterGreaterThanBeforeTime = std::upper_bound( vecfTime_.begin(), vecfTime_.end(), m_fAnimCurrTime );
+            if ( iterGreaterThanBeforeTime == vecfTime_.end()
+                || m_fAnimCurrTime + m_fAnimCurrSpeed * fElapsedTime_ < *iterGreaterThanBeforeTime )
+                return false;
+            return true;
+        }//EventTimer()
+        bool    IntervalTimer( float fStartTime_, float fEndTime_ )
+        {
+            return fStartTime_ <= fEndTime_ && m_fAnimCurrTime >= fStartTime_ && ( m_fAnimCurrTime <= fEndTime_ || m_fAnimBeforeTime <= fEndTime_ );
+        }//IntervalTimer()
+
+        bool    Predict_IntervalTimer( float fStartTime_, float fEndTime_, float fElapsedTime )
+        {
+            float   fEstimatedFuture = m_fAnimCurrTime + m_fAnimCurrSpeed * fElapsedTime;
+            return fStartTime_ <= fEndTime_ && fEstimatedFuture >= fStartTime_ && ( fEstimatedFuture <= fEndTime_ || m_fAnimCurrTime <= fEndTime_ );
+        }//
+        bool    EventTimerOneshot( float fTime )
+        {
+	        return m_fAnimOneshotTimer < fTime && EventTimer( fTime );
+        }//
+        bool    Predict_EventTimerOneshot( float fTime, float fElapsedTime )
+        {
+	        return ( __max( m_fAnimOneshotTimer, m_fAnimCurrTime ) < fTime
+		        && m_fAnimCurrTime + m_fAnimCurrSpeed * fElapsedTime >= fTime );
+
+        }//
+        bool    Predict_EventTimerOneshot( const std::vector<float>& vecfTime_, float fElapsedTime )
+        {
+            if ( vecfTime_.empty() == true )
+                return false;
+            float   fMax = __max( m_fAnimOneshotTimer, m_fAnimCurrTime );
+            std::vector<float>::const_iterator iterGreaterThanBeforeTime = std::upper_bound( vecfTime_.begin(), vecfTime_.end(), fMax );
+            if ( iterGreaterThanBeforeTime == vecfTime_.end()
+                || m_fAnimCurrTime + m_fAnimCurrSpeed * fElapsedTime < *iterGreaterThanBeforeTime )
+                return false;
+            return true;
+        }//
+        void    UpdateBeforeAnimationTime()
+        {
+            m_fAnimBeforeTime = m_fAnimCurrTime;
+            m_fAnimOneshotTimer = __max( m_fAnimOneshotTimer, m_fAnimBeforeTime );
+        }//
+        void    ResetOneshotPerformed()  { m_fAnimOneshotTimer = 0.f; }
+
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		bool EventTimer( float fTime );
 
 		void SetDXMatrix( const D3DXMATRIX& DXMatrix ){ m_DXMatrix = DXMatrix; }
 		D3DXMATRIX GetDXMatrix(){ return m_DXMatrix; }
 		void UseDXMatrix( bool use ){ m_bUseDXMatrix = use; }
 		void SetBillBoardType( CKTDGMatrix::BILLBOARD_TYPE billBoardType ) { m_BillBoardType = billBoardType; }
+#ifdef X2OPTIMIZE_CULLING_PARTICLE
+		CKTDGMatrix::BILLBOARD_TYPE GetBillBoardType() { return m_BillBoardType; }
+#endif//X2OPTIMIZE_CULLING_PARTICLE
 
 		__forceinline CKTDXDeviceXSkinMesh::MultiAnimFrame* GetCloneFrameRoot(){ return m_pCloneFrameRoot; }
 		__forceinline CKTDXDeviceXSkinMesh::MultiAnimFrame* GetCloneFrame( const WCHAR* name );
@@ -233,7 +319,6 @@ class CKTDGXSkinAnim : public CKTDGObject
 		CKTDGXRenderer::RenderParam* GetRenderParam(){ return &m_RenderParam; }
 
 		void SetModelDetailPercent( int detailPercent );
-		void SetUpdatePassedNeedTime( float fTime ) { m_fUpdatePassedNeedTime = fTime; }
 
 		static bool GetTestUpdate() { return m_sbTestUpdateAnimation; }
 		static void SetTestUpdate( bool bCheck ) { m_sbTestUpdateAnimation = bCheck; }
@@ -270,10 +355,8 @@ class CKTDGXSkinAnim : public CKTDGObject
 	void SetNotCull() { this->SetBoundingRadius(0.0f); }	
 	//}}
 
-#ifdef UNIT_MOVE_BONE_TOGGLE
 	void SetApplyMoveBone(bool bVal) { m_bApplyMoveBone = bVal; }
 	bool GetApplyMoveBone() { return m_bApplyMoveBone; }
-#endif
 #ifdef FACE_OFF_MONSTER_HEAD_TEST
 	void SetHideNoRenderable( bool bVal ){ m_bHideNoRenderable = bVal; }
 #endif FACE_OFF_MONSTER_HEAD_TEST
@@ -294,11 +377,19 @@ class CKTDGXSkinAnim : public CKTDGObject
 		void BuildCloneFrame( CKTDXDeviceXSkinMesh::MultiAnimFrame* pCloneFrame, CKTDXDeviceXSkinMesh::MultiAnimFrame* pSrcFrame );
 		void BuildCloneFrameList( CKTDXDeviceXSkinMesh::MultiAnimFrame* pCloneFrame );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        __forceinline void UpdateAnimationFrameStructure( float fElapsedTime )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		__forceinline void UpdateAnimationFrameStructure()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{           
 			KTDXPROFILE();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_fAnimGlobalTime += fElapsedTime;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_fAnimGlobalTime += m_fElapsedTime;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 			if( NULL == m_pAC )
 				return;
@@ -307,19 +398,27 @@ class CKTDGXSkinAnim : public CKTDGObject
 				return;
 
 			KTDXPROFILE_BEGIN("AdvanceTime");
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_pAC->AdvanceTime( fElapsedTime, NULL );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_pAC->AdvanceTime( m_fElapsedTime, NULL );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			KTDXPROFILE_END();
-
-
 
 			KTDXPROFILE_BEGIN("GetTrackDesc");
 			D3DXTRACK_DESC td;
 			m_pAC->GetTrackDesc( m_NowTrack, &td );
 			m_fAnimBeforeTime = m_fAnimCurrTime;
 			m_fAnimCurrTime = (float)td.Position;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_fAnimOneshotTimer = __max( m_fAnimOneshotTimer, m_fAnimBeforeTime );
+            if ( m_fAnimCurrTime < 0.f )
+                m_fAnimCurrTime = 0.f;
+            if ( m_fAnimCurrTime > m_fAnimMaxTime )
+                m_fAnimCurrTime = m_fAnimMaxTime;
+            m_fAnimCurrSpeed = (float)td.Speed;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			KTDXPROFILE_END();
-
-
 
 			KTDXPROFILE_BEGIN("UpdateAnimationFrame");
 			if( m_bUseDXMatrix == false )
@@ -339,11 +438,7 @@ class CKTDGXSkinAnim : public CKTDGObject
 		{
 			KTDXPROFILE();
  
-#ifdef UNIT_MOVE_BONE_TOGGLE
 			if( m_bApplyMoveBone == true && pFrame->m_bMoveBone == true )
-#else
-			if( pFrame->m_bMoveBone == true )
-#endif
 			{
 				m_MotionMoveBack = m_MotionMoveNow;
 
@@ -534,6 +629,9 @@ class CKTDGXSkinAnim : public CKTDGObject
 		{
 			KTDXPROFILE();
 
+#ifdef  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
+            CKTDXDeviceXSkinMesh::MultiAnimFrame* pFrame = NULL;
+#endif  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
 			CKTDXDeviceXSkinMesh* pModel = NULL;
 			for( int i = 0; i < (int)m_pModelXSkinMeshList.size(); i++ )
 			{
@@ -547,7 +645,13 @@ class CKTDGXSkinAnim : public CKTDGObject
 				{
 //{{ robobeg : 2008-01-05
 					//*pModel->m_FrameMatrixList[j] = *m_FrameMatrixList[j];
+#ifdef  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
+                    pFrame = pModel->GetFrame( j );
+                    if ( pFrame != NULL )
+                        pFrame->combineMatrix = *m_FrameMatrixList[j];
+#else   X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
                     pModel->GetFrame( j )->combineMatrix = *m_FrameMatrixList[j];
+#endif  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
 //}} robobeg : 2008-01-05
 				}
 			}
@@ -556,6 +660,11 @@ class CKTDGXSkinAnim : public CKTDGObject
 		__forceinline void CopyFrame( CKTDXDeviceXSkinMesh::MultiAnimFrame* pDestFrame, CKTDXDeviceXSkinMesh::MultiAnimFrame* pSrcFrame )
 		{
 			KTDXPROFILE();
+#ifdef  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
+            if ( pDestFrame == NULL || pSrcFrame == NULL )
+                return;
+#endif  X2OPTIMIZE_SKIN_ANIM_MESH_CRASH_BUG_FIX
+
 			pDestFrame->combineMatrix	= pSrcFrame->combineMatrix;
 
 			// transform siblings by the same matrix
@@ -595,7 +704,7 @@ class CKTDGXSkinAnim : public CKTDGObject
 		bool LinkCollisionDataFrame( CKTDXCollision::CollisionData* pCollisionData );
 		__forceinline CKTDXDeviceBaseTexture* SetNowTexture( CKTDXDeviceBaseTexture* orgTex, int stage,
 											CKTDXDeviceXET* pTexChangeXET = NULL, CKTDXDeviceXET* pMultiTexXET = NULL, 
-											CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0 );
+											const CKTDXDeviceXET::AniData* pAniData = NULL, float fAniTime = 0 );
 
 		__forceinline bool SphereToSphere( const D3DXVECTOR3& center1, const float& radius1, 
 			const D3DXVECTOR3& center2, const float& radius2, 
@@ -628,7 +737,7 @@ class CKTDGXSkinAnim : public CKTDGObject
 		CKTDXDeviceXET*						m_pAnimAniXET;
 		vector<CKTDXDeviceXSkinMesh*>		m_pModelXSkinMeshList;
 		vector<CKTDXDeviceXET*>				m_pModelAniXETList;
-		vector<CKTDXDeviceXET::AniData*>	m_pModelAniDataList;
+		vector<const CKTDXDeviceXET::AniData*>	m_pModelAniDataList;
 		vector<CKTDXDeviceXET*>				m_pModelMultiTexXETList;
 		vector<CKTDXDeviceXET*>				m_pModelTexChangeXETList;
 		CKTDGXRenderer*					    m_pRenderer;
@@ -640,9 +749,14 @@ class CKTDGXSkinAnim : public CKTDGObject
 
 		int									m_NowTrack;
 		int									m_NewTrack;
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		float								m_fElapsedTime;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		float								m_fAnimGlobalTime;
 		float								m_fAnimCurrTime;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        float                               m_fAnimCurrSpeed;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		float								m_fAnimBeforeTime;
 		float								m_fAnimMaxTime;
 		int									m_NowAnimIndex;
@@ -650,6 +764,9 @@ class CKTDGXSkinAnim : public CKTDGObject
 		LPD3DXANIMATIONCONTROLLER			m_pAC;
 
 		int									m_NowPlayCount;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        float                               m_fAnimOneshotTimer;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		float								m_fPlaySpeed;
 
 		vector<LPD3DXANIMATIONSET>			m_vAnimSetList;
@@ -699,10 +816,6 @@ class CKTDGXSkinAnim : public CKTDGObject
 		std::vector<RenderParam_SkinMesh> m_vecRenderParamSkinMesh;
 #endif
 
-		float										m_fPassedElapsedTime;
-		float										m_fUpdatePassedElapsedTime;
-		float										m_fUpdatePassedNeedTime;
-
 		static bool									m_sbTestUpdateAnimation;
 
 
@@ -715,9 +828,7 @@ class CKTDGXSkinAnim : public CKTDGObject
 		CKTDGXSkinAnimPtr           m_pUnitXSkinAnim;		
 #endif
 
-#ifdef UNIT_MOVE_BONE_TOGGLE
 		bool	m_bApplyMoveBone;
-#endif
 #ifdef FACE_OFF_MONSTER_HEAD_TEST
 		bool			m_bHideNoRenderable;
 #endif FACE_OFF_MONSTER_HEAD_TEST

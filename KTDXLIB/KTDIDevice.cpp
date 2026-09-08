@@ -818,7 +818,7 @@ POINT CKTDIDevice::GetMouseDeltaPosition()
 #ifdef KEY_MAPPING
 bool CKTDIDevice::GetActionState( int Action, long* lpData )
 {	
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 	if( m_Type == JOYSTICK )
 	{
 		switch( m_ActionMap[Action] )
@@ -865,7 +865,7 @@ bool CKTDIDevice::GetActionState( int Action, long* lpData )
 			break;
 		}
 	}
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 
 	return (m_State[m_ActionMap[Action]] ? true : false);
 }
@@ -926,7 +926,7 @@ unsigned char CKTDIDevice::GetActionKey( int Action )
 	return m_ActionMap[Action];
 }
 
-#ifdef KEY_MAPPING_INT
+#ifdef SERV_KEY_MAPPING_INT
 bool CKTDIDevice::ListenDeviceInput( unsigned char& ucoutUserInput )
 {
 	switch( m_Type ) 
@@ -989,7 +989,20 @@ bool CKTDIDevice::ListenDeviceInput( unsigned char& ucoutUserInput )
 		return false;
 	}
 }
-#endif KEY_MAPPING_INT
-
+void CKTDIDevice::GetActionKeys( OUT std::map<short, short>& mapMappingInfo )
+{
+	for( short sGameAction = 0; sGameAction < GAMEACTION_END; ++sGameAction )
+	{
+		mapMappingInfo[ sGameAction ]	= m_ActionMap[ sGameAction ];
+	}
+}
+void CKTDIDevice::SetActionKeys( IN const std::map<short, short>& mapMappingInfo )
+{
+	for each( const std::pair< short, short >& pAction in mapMappingInfo )
+	{
+		m_ActionMap[ pAction.first ] = pAction.second;
+	}
+}
+#endif SERV_KEY_MAPPING_INT
 
 #endif KEY_MAPPING

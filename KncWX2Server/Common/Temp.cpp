@@ -412,6 +412,7 @@ ImplementLuaScriptParser( KGSBingoEventInfo )
 	lua_tinker::class_def<KGSBingoEventInfo>( GetLuaState(), "AddPackageItemPrice",			&KGSBingoEventInfo::AddPackageItemPrice_LUA );
 	lua_tinker::class_def<KGSBingoEventInfo>( GetLuaState(), "AddPresentInfo",				&KGSBingoEventInfo::AddPresentInfo_LUA );
 	lua_tinker::class_def<KGSBingoEventInfo>( GetLuaState(), "AddBanSpotInfo",				&KGSBingoEventInfo::AddBanSpotInfo_LUA );
+	lua_tinker::class_def<KGSBingoEventInfo>( GetLuaState(), "CheckBillingIP",				&KGSBingoEventInfo::CheckBillingIP_LUA );
 
 	lua_tinker::decl( GetLuaState(), "KGSBingoEventInfo", this );
 }
@@ -1261,7 +1262,7 @@ int KGSBingoEvent::_InsertLotteryNum( IN const byte byteNum, IN OUT std::vector<
 	iValue = BSV_BINGOBOARD_LINE_SIZE - 1;
 
 	// 대각2에 포함되는 숫자인가?
-	if( ( ( iPos % iValue ) == 0 ) && ( ( iPos / iValue ) < BSV_BINGOBOARD_LINE_SIZE ) )
+	if( ( ( iPos % iValue ) == 0 ) && ( ( iPos / iValue ) <= BSV_BINGOBOARD_LINE_SIZE ) )
 	{
 		for( i=1; i <= BSV_BINGOBOARD_LINE_SIZE; ++i )
 		{

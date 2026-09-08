@@ -22,12 +22,12 @@ public:
 	virtual DWORD RunThread();
 
 private:
-	bool ConnectCollectServer();
-	void SendCSImg( int iCount, std::string &strFileName, bool bExit );
-	void SendCSEvent( unsigned short iEventId, unsigned short usType, std::string &strHackInfo, bool bExit );
-	void ReceiveCSEvent( COLLECT_SERVER_PACKET &spEvent );
-	void DoProcessEvent();
-	void LoadHackImg( std::string &strFileName );
+	bool ConnectCollectServer_Thread();
+	void SendCSImg_Thread( const std::string &strFileName, bool bExit );
+	void SendCSEvent_Thread( unsigned short iEventId, unsigned short usType, const std::string &strHackInfo, bool bExit );
+	void ReceiveCSEvent_Thread( COLLECT_SERVER_PACKET &spEvent );
+	void DoProcessEvent_Thread();
+	void LoadHackImg_Thread( const std::string &strFileName );
 
 public:
 	void ClearQueue();
@@ -41,9 +41,16 @@ private:
 	CRITICAL_SECTION		                    m_csEventQueue;
 	std::queue<COLLECT_SERVER_PACKET>           m_queEvent;
 	CX2ServerProtocol*							m_pCollectServer;
+#ifdef  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+    std::vector<char>                           m_vecHackImgBuf_Thread;
+    int                                         m_iImageOffset_Thread;
+    LONG volatile                               m_lCancelSendCSImg_Interlocked;
+#else   X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
 	char*										m_pHackImgBuf;
 	long										m_lTotalSize;
-	int											m_iImageOffset;
+    int											m_iImageOffset;
+#endif  X2OPTIMIZE_COLLECTHACKINFO_MULTITHREAD_DAMAGE_HEAP_BUG_FIX
+	
 	bool										m_bRunThread;
 };
 

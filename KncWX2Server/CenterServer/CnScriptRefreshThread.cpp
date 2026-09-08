@@ -66,6 +66,10 @@
 #endif SERV_NEW_DEFENCE_DUNGEON
 //}}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	#include "X2Data/XSLFieldBossData.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+
 #define CASE_REFRESH_SCRIPT( flag, classname )	_CASE_REFRESH_SCRIPT( flag, classname, OpenScriptFile )
 
 #define _CASE_REFRESH_SCRIPT( flag, classname, functionname ) \
@@ -206,6 +210,11 @@ _IMPL_ON_FUNC( ESR_ORDER_TO_REFRESH_MANAGER_REQ, KESR_SCRIPT_REFRESH_ORDER_NOT )
 	CASE_REFRESH_SCRIPT( OT_CN_BUFF_MANAGER, CXSLBuffManager );
 #endif SERV_NEW_DEFENCE_DUNGEON
 	//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-11	// 박세훈
+	CASE_REFRESH_SCRIPT( OT_CN_FIELD_BOSS_DATA, CXSLFieldBossData );
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	default:
 		{
 			START_LOG( cerr, L"이쪽으로 오면 안되는 타입인데?" )

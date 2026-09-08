@@ -21,11 +21,11 @@ CKTDXDeviceRenderTargetTexture::CKTDXDeviceRenderTargetTexture( LPDIRECT3DDEVICE
 	m_pDisplayVertexBuffer		= NULL;
 
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	m_pVB_RHW_VERTEX				= NULL;
-	m_pVB_RENDERTARGET_RHW_VERTEX	= NULL;
-	m_pVB_RENDERTARGET_VERTEX		= NULL;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	m_pVB_RHW_VERTEX				= NULL;
+//	m_pVB_RENDERTARGET_RHW_VERTEX	= NULL;
+//	m_pVB_RENDERTARGET_VERTEX		= NULL;
+//#endif
 
 //{{ robobeg : 2011-03-18
     m_bWithoutFile = true;
@@ -52,32 +52,32 @@ HRESULT CKTDXDeviceRenderTargetTexture::OnResetDevice()
 	OnLostDevice();
 	
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-
-	if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(CKTDXDeviceTexture::TEXTURE_RHW_VERTEX), 
-		D3DUSAGE_WRITEONLY|D3DUSAGE_DYNAMIC, D3DFVF_TEXTURE_RHW_VERTEX, 
-		D3DPOOL_DEFAULT, &m_pVB_RHW_VERTEX, NULL) ))
-	{
-		ErrorLogMsg( KEM_ERROR88, L"oops 이게 뭥미" );
-		return false;
-	}
-
-	if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(RENDERTARGET_RHW_VERTEX), 
-		D3DUSAGE_WRITEONLY|D3DUSAGE_DYNAMIC, D3DFVF_RENDERTARGET_RHW_VERTEX, 
-		D3DPOOL_DEFAULT, &m_pVB_RENDERTARGET_RHW_VERTEX, NULL) ))
-	{
-		ErrorLogMsg( KEM_ERROR88, L"oops 이게 뭥미2" );
-		return false;
-	}
-
-	if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(RENDERTARGET_VERTEX), 
-		D3DUSAGE_WRITEONLY|D3DUSAGE_DYNAMIC, D3DFVF_RENDERTARGET_VERTEX, 
-		D3DPOOL_DEFAULT, &m_pVB_RENDERTARGET_VERTEX, NULL) ))
-	{
-		ErrorLogMsg( KEM_ERROR88, L"oops 이게 뭥미3" );
-		return false;
-	}
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//
+//	if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(CKTDXDeviceTexture::TEXTURE_RHW_VERTEX), 
+//		D3DUSAGE_WRITEONLY|D3DUSAGE_DYNAMIC, D3DFVF_TEXTURE_RHW_VERTEX, 
+//		D3DPOOL_DEFAULT, &m_pVB_RHW_VERTEX, NULL) ))
+//	{
+//		ErrorLogMsg( KEM_ERROR88, L"oops 이게 뭥미" );
+//		return false;
+//	}
+//
+//	if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(RENDERTARGET_RHW_VERTEX), 
+//		D3DUSAGE_WRITEONLY|D3DUSAGE_DYNAMIC, D3DFVF_RENDERTARGET_RHW_VERTEX, 
+//		D3DPOOL_DEFAULT, &m_pVB_RENDERTARGET_RHW_VERTEX, NULL) ))
+//	{
+//		ErrorLogMsg( KEM_ERROR88, L"oops 이게 뭥미2" );
+//		return false;
+//	}
+//
+//	if(FAILED(hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(RENDERTARGET_VERTEX), 
+//		D3DUSAGE_WRITEONLY|D3DUSAGE_DYNAMIC, D3DFVF_RENDERTARGET_VERTEX, 
+//		D3DPOOL_DEFAULT, &m_pVB_RENDERTARGET_VERTEX, NULL) ))
+//	{
+//		ErrorLogMsg( KEM_ERROR88, L"oops 이게 뭥미3" );
+//		return false;
+//	}
+//#endif
 
 	//Keep a handle to the back buffer for easy swapping
 	if(FAILED( hr = g_pKTDXApp->GetDevice()->GetRenderTarget( 0, &m_pBackupBuffer )))
@@ -152,11 +152,11 @@ HRESULT CKTDXDeviceRenderTargetTexture::OnResetDevice()
 
 HRESULT CKTDXDeviceRenderTargetTexture::OnLostDevice()
 {
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	SAFE_RELEASE( m_pVB_RHW_VERTEX );
-	SAFE_RELEASE( m_pVB_RENDERTARGET_RHW_VERTEX );
-	SAFE_RELEASE( m_pVB_RENDERTARGET_VERTEX );
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	SAFE_RELEASE( m_pVB_RHW_VERTEX );
+//	SAFE_RELEASE( m_pVB_RENDERTARGET_RHW_VERTEX );
+//	SAFE_RELEASE( m_pVB_RENDERTARGET_VERTEX );
+//#endif
 
 	SAFE_RELEASE( m_pRenderTargetTexture );
 	SAFE_RELEASE( m_pRenderTargetSurface );
@@ -217,7 +217,7 @@ void CKTDXDeviceRenderTargetTexture::Draw( int nX, int nY, int nWidth, int nHeig
 	float UMax = 1.0f;
 	float VMax = 1.0f;
 
-#ifdef REMOVE_DRAW_PRIMITIVE_UP_2
+//#ifdef REMOVE_DRAW_PRIMITIVE_UP_2
 	CKTDXDeviceTexture::TEXTURE_RHW_VERTEX vertex[4];
 	ZeroMemory( vertex, sizeof(CKTDXDeviceTexture::TEXTURE_RHW_VERTEX) * 4 );
 
@@ -240,20 +240,20 @@ void CKTDXDeviceRenderTargetTexture::Draw( int nX, int nY, int nWidth, int nHeig
 
 	vertex[0].color = vertex[1].color = 
 	vertex[2].color = vertex[3].color = color;
-#endif
+//#endif
 
 	SetDeviceTexture();
 
 //#endif //REMOVE_DRAW_PRIMITIVE_UP_2
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_TEXTURE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 		, D3DPT_TRIANGLESTRIP, 2, vertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(CKTDXDeviceTexture::TEXTURE_RHW_VERTEX) );
-#endif //REMOVE_DRAW_PRIMITIVE_UP_2
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_TEXTURE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(CKTDXDeviceTexture::TEXTURE_RHW_VERTEX) );
+//#endif DYNAMIC_VERTEX_BUFFER_OPT
 	KD3DEND()
 }
 
@@ -285,7 +285,7 @@ void CKTDXDeviceRenderTargetTexture::RenderQuadRHW( D3DCOLOR color, float fX, fl
 	float UMax = 1.0f;
 	float VMax = 1.0f;
 
-#ifdef REMOVE_DRAW_PRIMITIVE_UP_2
+//#ifdef REMOVE_DRAW_PRIMITIVE_UP_2
 	RENDERTARGET_RHW_VERTEX vertex[4];
 	ZeroMemory( vertex, sizeof(RENDERTARGET_RHW_VERTEX) * 4 );
 
@@ -309,17 +309,17 @@ void CKTDXDeviceRenderTargetTexture::RenderQuadRHW( D3DCOLOR color, float fX, fl
 	vertex[0].color = vertex[1].color = 
 		vertex[2].color = vertex[3].color = color;
 
-#endif
+//#endif
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_RENDERTARGET_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 		, D3DPT_TRIANGLESTRIP, 2, vertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_RENDERTARGET_RHW_VERTEX );
-	
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(RENDERTARGET_RHW_VERTEX) );
-#endif  //REMOVE_DRAW_PRIMITIVE_UP_2
+//#else   DYNAMIC_VERTEX_BUFFER_OPT
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_RENDERTARGET_RHW_VERTEX );
+//	
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(RENDERTARGET_RHW_VERTEX) );
+//#endif  DYNAMIC_VERTEX_BUFFER_OPT
 
 	KD3DEND()
 }
@@ -362,15 +362,15 @@ void CKTDXDeviceRenderTargetTexture::RenderQuad( D3DCOLOR color )
 			*/
 //#endif //REMOVE_DRAW_PRIMITIVE_UP_2
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef  DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_RENDERTARGET_VERTEX == D3DFVF_XYZ_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 		, D3DPT_TRIANGLELIST, 2, vertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_RENDERTARGET_VERTEX );	
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, 2, (void*)vertex, sizeof(RENDERTARGET_VERTEX) );
-
-#endif
+//#else   DYNAMIC_VERTEX_BUFFER_OPT
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_RENDERTARGET_VERTEX );	
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLELIST, 2, (void*)vertex, sizeof(RENDERTARGET_VERTEX) );
+//
+//#endif  DYNAMIC_VERTEX_BUFFER_OPT
 	KD3DEND()
 }
 

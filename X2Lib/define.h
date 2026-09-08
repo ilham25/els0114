@@ -3,25 +3,24 @@
 
 #if defined( CLIENT_COUNTRY_TWHK )
 
-#ifdef _GAMANIA_TW_
-#	define PATCH_ORG_SRC				"http://patch.elsword.com.tw/"			// 대만 라이브
-#if defined(PATCHER_TEST) && !defined(INTERNAL_PATCHER_TEST)
-#	define PATCH_TEST_SRC				"http://210.208.90.241/Patch/"			// 대만 테스트
-#else
-#	define PATCH_TEST_SRC				"http://192.168.71.247/"				// 대만 사내 테스트
-#endif
-#else
-#	define PATCH_ORG_SRC				"http://202.80.110.19/elsword/"			// 홍콩 라이브
-#	define PATCH_TEST_SRC				""										// 홍콩 테스트
-#endif
+#ifdef _OPEN_TEST_
+#define PATCH_ORG_SRC		"http://210.208.90.241/Patch/"						// 테섭
+#else _OPEN_TEST_
+#define PATCH_ORG_SRC		"http://patch.elsword.com.tw/"						// 본섭
+#endif _OPEN_TEST_
 
-#define PATCH_PATH_FILE			"PatchPath.dat"     // 테스트 
+#define PATCH_TEST_SRC		"http://192.168.71.247/"							// 사내
+#define PATCH_PATH_FILE		"PatchPath.dat"
 
 #elif defined( CLIENT_COUNTRY_JP )
 
-//#define PATCH_ORG_SRC		"http://pubdownt.hangame.co.jp/downbase/pudn/j_es/"		// 테섭
-#define PATCH_ORG_SRC		"http://down.hangame.co.jp/jp/pudn/j_es/"				// 본섭
-#define PATCH_TEST_SRC		"http://192.168.71.62/"
+#ifdef _OPEN_TEST_
+#define PATCH_ORG_SRC		"http://192.168.71.24/client/patch/"				// 테섭
+#else _OPEN_TEST_
+#define PATCH_ORG_SRC		"http://192.168.71.57/JP_Client_Real/"				// 본섭
+#endif _OPEN_TEST_
+
+#define PATCH_TEST_SRC		"http://192.168.71.239/"							// 사내
 #define PATCH_PATH_FILE		"PatchPath.dat"
 
 #elif defined( CLIENT_COUNTRY_EU )
@@ -107,22 +106,27 @@ const char g_pcGameServerListXmlPath[] = "patch/srvlist_test.xml";
 // 해외팀 사용 안함 국내 것!
 #if defined(TAIWAN)
 #define PATCH_ORG_SRC       "http://elsword.nefficient.co.kr/elsword/SERVICE/PATCH/"	// 넥슨 패치 경로
-#define PATCH_TEST_SRC		"http://210.208.90.241/Patch/"                  // 대만사내버전
+#define PATCH_TEST_SRC		"http://210.208.90.241/Patch/"								// 대만사내버전
 #else
-#if defined (_OPEN_TEST_)
-#	define PATCH_ORG_SRC		"http://elsword-nexon17.ktics.co.kr/BETA/Patch/"	// 오픈테섭
-#	define PATCH_PATH_FILE		"PatchPathBeta.dat"   // 오픈테섭
-#elif defined (_SERVICE_)
-#	define PATCH_ORG_SRC		"http://elsword-nexon17.ktics.co.kr/SERVICE/PATCH/"	// 본섭
-#	define PATCH_PATH_FILE		"PatchPath.dat"     // 본섭
-#elif defined (_IN_HOUSE_SERVICE_READY_QA_)
-#	define PATCH_TEST_SRC		"http://sekinternal2.kog.co.kr/Patch/"                  // 국내사내버전
-#	define PATCH_PATH_FILE		"PatchPathQA_.dat"     // 테스트 
-#else
-#	define PATCH_TEST_SRC		"http://sekinternal.kog.co.kr/Patch/"                  // 국내사내버전
-#	define PATCH_PATH_FILE		"PatchPath_.dat"     // 테스트 
-#endif
-#endif
+	#if defined (_OPEN_TEST_2_)
+	#	define PATCH_ORG_SRC		"http://elsword-nexon17.ktics.co.kr/BATTLE_FIELD_BETA/Patch/"
+	#	define PATCH_PATH_FILE		"PatchPathBattleFieldBeta.dat"
+	#elif defined (_OPEN_TEST_)
+	#	define PATCH_ORG_SRC		"http://elsword-nexon17.ktics.co.kr/BETA/Patch/"	// 오픈테섭
+	#	define PATCH_PATH_FILE		"PatchPathBeta.dat"
+	#elif defined (_SERVICE_)
+	#	define PATCH_ORG_SRC		"http://elsword-nexon17.ktics.co.kr/SERVICE/PATCH/"	// 본섭
+	#	define PATCH_PATH_FILE		"PatchPath.dat"
+	#elif defined (_IN_HOUSE_SERVICE_READY_QA_)
+	#	define PATCH_TEST_SRC		"http://192.168.66.204/Patch/"						// 국내 QA버전
+	#	define PATCH_PATH_FILE		"PatchPathQA_.dat"
+	#else
+	#	define PATCH_TEST_SRC		"http://192.168.66.204/Patch/"						// 국내사내버전
+	#	define PATCH_PATH_FILE		"PatchPath_.dat"
+	//#	define PATCH_TEST_SRC		"http://192.168.66.204/Patch/"						// 국내 장기 프로젝트 서버버전
+	//#	define PATCH_PATH_FILE		"PatchPathBattleField_.dat"
+	#endif
+#endif	
 //---------------------------------------------------------------------------------
 #endif
 

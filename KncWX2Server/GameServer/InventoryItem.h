@@ -163,6 +163,11 @@ public:
 	inline	bool	IsPeriod( void ) const{	return ( 0 < m_sPeriod );	}
 #endif // SERV_PERIOD_ITEM_MANUFACTURE_EXCHANGE_FIX
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	void	UpdateExpandedSocketNum( IN const byte byteExpandedSocketNum ){	m_byteExpandedSocketNum = byteExpandedSocketNum;	}
+	int		GetMaxSocketCount( void ) const;
+#endif // SERV_BATTLE_FIELD_BOSS
+
 protected:
     UidType						m_iItemUID;
     int							m_iItemID;
@@ -201,6 +206,10 @@ protected:
 	//{{ 2010. 01. 04  최육사	PC방 프리미엄
 	bool						m_bIsDBUpdate;
 	//}}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	byte						m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 };
 
 #pragma pack( pop )

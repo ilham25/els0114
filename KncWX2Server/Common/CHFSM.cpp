@@ -11,7 +11,7 @@ const wchar_t*  KCHFSM::ms_szInput[] = {
 #   include "CHFSMInput_def.h" 
 };
 
-KCHFSM::KCHFSM() : FSMclass( KCHFSM::ENUM_STATE::S_INIT )
+KCHFSM::KCHFSM() : FSMclass( KCHFSM::S_INIT )
 {
 	// S_INIT
 	FSMstate* pState = new FSMstate( S_INIT, 2 );

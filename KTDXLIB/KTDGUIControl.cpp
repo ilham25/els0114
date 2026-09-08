@@ -15,6 +15,9 @@ CKTDGUIControl::CKTDGUIControl()
 	m_bEnable		= true;
 	m_bShow			= true;
 	m_bSound		= true;
+#ifdef DLL_BUILD
+	m_bUpdate		= true;
+#endif
 	m_bMaximize		= false;
 #ifdef NEW_SKILL_TREE_UI
 	m_bOutofList	= false;
@@ -46,13 +49,13 @@ CKTDGUIControl::CKTDGUIControl()
 
     m_bGuideDescPosLT = false;
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	m_pVB = NULL;
-	HRESULT hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(CKTDGUIControl::VERTEX_UI), 
-		D3DUSAGE_WRITEONLY, D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1, 
-		D3DPOOL_MANAGED, &m_pVB, NULL );
-	ASSERT( SUCCEEDED( hr ) );
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	m_pVB = NULL;
+//	HRESULT hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * sizeof(CKTDGUIControl::VERTEX_UI), 
+//		D3DUSAGE_WRITEONLY, D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1, 
+//		D3DPOOL_MANAGED, &m_pVB, NULL );
+//	ASSERT( SUCCEEDED( hr ) );
+//#endif
 }
 
 CKTDGUIControl::~CKTDGUIControl(void)
@@ -61,9 +64,9 @@ CKTDGUIControl::~CKTDGUIControl(void)
 	m_Name.clear();
 	//m_Name_MB.clear();
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	SAFE_RELEASE( m_pVB );
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	SAFE_RELEASE( m_pVB );
+//#endif
 }
 
 HRESULT	CKTDGUIControl::OnFrameMove( double fTime, float fElapsedTime )
@@ -265,7 +268,9 @@ void CKTDGUIControl::Move_LUA()
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	bool bDirect;
 	float fChangeTime;
@@ -281,9 +286,15 @@ void CKTDGUIControl::Move_LUA()
 	LUA_GET_VALUE( luaManager, "IS_PINGPONG", bPingPong, false );
 	LUA_GET_VALUE( luaManager, "REPEAT_NUM", repeatNum, 1 );
 
-
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    D3DXVECTOR2    pos;
+    D3DXCOLOR       color;
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "POS", pos, D3DXVECTOR2(0,0) );
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "COLOR", color, D3DXCOLOR(1,1,1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	D3DXVECTOR2 pos	= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "POS" );
 	D3DXCOLOR color = lua_tinker::get<D3DXCOLOR>( luaManager.GetLuaState(),  "COLOR" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	Move( pos, color, fChangeTime, bDirect, bAutoDelete, bPingPong, repeatNum );
 
@@ -584,7 +595,7 @@ D3DXVECTOR2 CKTDGUIControl::GetAxisPos( VERTEX_UI* pVertex, CKTDGUIControl::TEX_
 	return axisPos;
 }
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 HRESULT CKTDGUIControl::RenderVertex( VERTEX_UI* pVertex, bool bRestoreVertexDecl )
 {
 	CKTDGUIControl* pThis = this;
@@ -603,9 +614,9 @@ HRESULT CKTDGUIControl::RenderVertex( VERTEX_UI* pVertex, bool bRestoreVertexDec
 		return E_FAIL; 
 	}
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	HRESULT hr;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	HRESULT hr;
+//#endif
 
 	IDirect3DVertexDeclaration9 *pDecl = NULL;
 	if ( bRestoreVertexDecl == true )
@@ -613,15 +624,15 @@ HRESULT CKTDGUIControl::RenderVertex( VERTEX_UI* pVertex, bool bRestoreVertexDec
 		g_pKTDXApp->GetDevice()->GetVertexDeclaration( &pDecl );
 	}//if
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_VERTEX_UI == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 		, D3DPT_TRIANGLESTRIP, 2, pVertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(VERTEX_UI) );
-
-#endif
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(VERTEX_UI) );
+//
+//#endif
 
 	if ( bRestoreVertexDecl == true )
 	{
@@ -629,14 +640,14 @@ HRESULT CKTDGUIControl::RenderVertex( VERTEX_UI* pVertex, bool bRestoreVertexDec
 		SAFE_RELEASE( pDecl );
 	}//if
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	return S_OK;
-#else
-	return hr;
-#endif
+//#else
+//	return hr;
+//#endif
 }//
 
-#endif
+//#endif
 
 HRESULT CKTDGUIControl::RenderVertex( VERTEX_UI* pVertex, const UIPointData& pointData, int renderCount )
 {
@@ -668,33 +679,33 @@ HRESULT CKTDGUIControl::RenderVertex( VERTEX_UI* pVertex, const UIPointData& poi
 
 	pointData.pUITextureData->pTexture->SetDeviceTexture();
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_VERTEX_UI == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 		, D3DPT_TRIANGLESTRIP, 2, pVertex, renderCount );
 
 	return S_OK;
-#else
-	HRESULT hr;
-	hr = g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 );
-
-	if ( hr != S_OK )
-	{
-		WCHAR buff[256] = {0};
-		StringCchPrintfW( buff, ARRAY_SIZE(buff), L"D3DERR_INVALIDCALL %s", m_Name.c_str() );
-		ErrorLogMsg( KEM_ERROR35, buff );
-
-		return hr;
-	}
-
-	g_pKTDXApp->GetDevice()->SetFVF(D3DFVF_VERTEX_UI );
-	for( int i = 0; i < renderCount; i++ )
-	{
-		g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(VERTEX_UI) );
-	}//for
-
-	return hr;
-#endif
+//#else
+//	HRESULT hr;
+//	hr = g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1 );
+//
+//	if ( hr != S_OK )
+//	{
+//		WCHAR buff[256] = {0};
+//		StringCchPrintfW( buff, ARRAY_SIZE(buff), L"D3DERR_INVALIDCALL %s", m_Name.c_str() );
+//		ErrorLogMsg( KEM_ERROR35, buff );
+//
+//		return hr;
+//	}
+//
+//	g_pKTDXApp->GetDevice()->SetFVF(D3DFVF_VERTEX_UI );
+//	for( int i = 0; i < renderCount; i++ )
+//	{
+//		g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, pVertex, sizeof(VERTEX_UI) );
+//	}//for
+//
+//	return hr;
+//#endif
 }
 
 CKTDGUIControl::UITextureData* CKTDGUIControl::SetTexureData_( const WCHAR* pFileName, const WCHAR* pKeyName )
@@ -720,7 +731,7 @@ CKTDGUIControl::UITextureData* CKTDGUIControl::SetTexureData_( const WCHAR* pFil
 	}
 
 	MakeUpperCase(key);
-	CKTDXDeviceTexture::TEXTURE_UV* pTexUV = pTexData->pTexture->GetTexUV( key );
+	const CKTDXDeviceTexture::TEXTURE_UV* pTexUV = pTexData->pTexture->GetTexUV( key );
 	if( pTexUV != NULL )
 	{
 		pTexData->uvOrgTexture[CKTDGUIControl::VP_LEFT_TOP]			= pTexUV->leftTop;
@@ -743,7 +754,9 @@ CKTDGUIControl::UIPointData* CKTDGUIControl::SetPointData_()
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	UIPointData* pPointData = new UIPointData();
 
@@ -752,6 +765,10 @@ CKTDGUIControl::UIPointData* CKTDGUIControl::SetPointData_()
 
 	LUA_GET_VALUE( luaManager, "ADD_SIZE_X", pPointData->addSize.x, 0.0f );
 	LUA_GET_VALUE( luaManager, "ADD_SIZE_Y", pPointData->addSize.y, 0.0f );
+
+#ifdef DLL_BUILD
+	LUA_GET_VALUE( luaManager, "ROTATION", pPointData->fRotDegree, 0.0f );
+#endif
 
 #ifdef RESIZE_TEXTURE
 	LUA_GET_VALUE( luaManager, "RESIZE_X", pPointData->kResize.x, 1.0f );
@@ -765,14 +782,22 @@ CKTDGUIControl::UIPointData* CKTDGUIControl::SetPointData_()
 
 	bool bRect = true;
 	LUA_GET_VALUE( luaManager, "IS_RECT", bRect, true );
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "LEFT_TOP", pPointData->leftTopPoint, D3DXVECTOR2(0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	pPointData->leftTopPoint		= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "LEFT_TOP" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	if ( pPointData->bUseTextureSize == false )
 	{
 		if ( bRect == true )
 		{
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+            LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "RIGHT_BOTTOM", pPointData->rightBottomPoint, D3DXVECTOR2(0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 			pPointData->rightBottomPoint	= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "RIGHT_BOTTOM" );
-	
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+
 			pPointData->rightTopPoint.x = pPointData->rightBottomPoint.x;
 			pPointData->rightTopPoint.y = pPointData->leftTopPoint.y;
 
@@ -781,14 +806,23 @@ CKTDGUIControl::UIPointData* CKTDGUIControl::SetPointData_()
 		}
 		else
 		{
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+            LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "RIGHT_TOP", pPointData->rightTopPoint, D3DXVECTOR2(0,0) );
+            LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "LEFT_BOTTOM", pPointData->leftBottomPoint, D3DXVECTOR2(0,0) );
+            LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "RIGHT_BOTTOM", pPointData->rightBottomPoint, D3DXVECTOR2(0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 			pPointData->rightTopPoint		= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "RIGHT_TOP" );
 			pPointData->leftBottomPoint		= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "LEFT_BOTTOM" );
 			pPointData->rightBottomPoint	= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "RIGHT_BOTTOM" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 		}
 	}
-
-
+	
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "COLOR", pPointData->color, D3DXCOLOR(1,1,1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	pPointData->color				= lua_tinker::get<D3DXCOLOR>( luaManager.GetLuaState(),  "COLOR" );	
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	return pPointData;
 
@@ -803,7 +837,9 @@ CKTDGUIControl::UIStringData* CKTDGUIControl::SetStringData_()
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	//string msg;	
 	wstring wMsg;
@@ -814,7 +850,14 @@ CKTDGUIControl::UIStringData* CKTDGUIControl::SetStringData_()
 
 	int iIndex;
 	LUA_GET_VALUE( luaManager, "MSG", iIndex, STR_ID_EMPTY );
-    wMsg = GET_STRING( iIndex );		
+	if( STR_ID_EMPTY == iIndex )
+	{
+		LUA_GET_VALUE( luaManager, "STRING", wMsg, L"" );
+	}
+	else
+	{
+		wMsg = GET_STRING( iIndex );		
+	}
 
 	LUA_GET_VALUE( luaManager, "FONT_STYLE", fontStyle, CKTDGFontManager::FS_NONE );
 
@@ -823,6 +866,7 @@ CKTDGUIControl::UIStringData* CKTDGUIControl::SetStringData_()
 	LUA_GET_VALUE( luaManager, "FONT_INDEX", pStringData->fontIndex, 0 );	
 	LUA_GET_VALUE( luaManager, "SORT_FLAG", pStringData->sortFlag, DT_LEFT );
 	pStringData->msg			= wMsg.c_str();
+	pStringData->stringTableID	= iIndex;
 
 
 	LUA_GET_VALUE( luaManager, "SPREAD", pStringData->bSpread, false );
@@ -833,9 +877,15 @@ CKTDGUIControl::UIStringData* CKTDGUIControl::SetStringData_()
 	LUA_GET_VALUE( luaManager, "USE_UK_FONT", pStringData->bUseUkFont, true );
 
 	pStringData->fontStyle		= (CKTDGFontManager::FONT_STYLE)fontStyle;
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "POS", pStringData->pos, D3DXVECTOR2(0,0) );
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "COLOR", pStringData->color, D3DXCOLOR(1,1,1,1) );
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "OUTLINE_COLOR", pStringData->outlineColor, D3DXCOLOR(1,1,1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	pStringData->pos			= lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "POS" );
 	pStringData->color			= lua_tinker::get<D3DXCOLOR>( luaManager.GetLuaState(),  "COLOR" );
 	pStringData->outlineColor	= lua_tinker::get<D3DXCOLOR>( luaManager.GetLuaState(),  "OUTLINE_COLOR" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	return pStringData;
 
@@ -863,7 +913,9 @@ CKTDGUIControl::TexChangeData* CKTDGUIControl::SetTexChangeData_()
 
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LUA_GET_VALUE( luaManager, "FileName", FileName, L"" );
 	LUA_GET_VALUE( luaManager, "KeyName", key, L"" );
@@ -881,17 +933,39 @@ CKTDGUIControl::TexChangeData* CKTDGUIControl::SetTexChangeData_()
 
 	LUA_GET_VALUE( luaManager, "SequenceIDToGo", sequenceIDToGo, -1 );
 
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "POS", pos, D3DXVECTOR2(0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	pos = lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "POS" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 
 	if ( scaleAxis != CKTDGUIControl::TA_NONE )
+    {
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+        LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "SCALE", scale, D3DXVECTOR2(1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 		scale = lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "SCALE" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    }
 
 	if ( scaleAxis == CKTDGUIControl::TA_WORLD )
+    {
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+        LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "SCALE_AXIS_POS", scaleAxisPos, D3DXVECTOR2(0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 		scaleAxisPos = lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "SCALE_AXIS_POS" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    }
 
 	if ( rotateAxis == CKTDGUIControl::TA_WORLD )
+    {
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+        LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager, "ROTATE_AXIS_POS", rotateAxisPos, D3DXVECTOR2(0,0) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 		rotateAxisPos = lua_tinker::get<D3DXVECTOR2>( luaManager.GetLuaState(),  "ROTATE_AXIS_POS" );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    }
 	
 
 
@@ -923,10 +997,12 @@ CKTDGUIControl::TexChangeData* CKTDGUIControl::SetTexChangeData_()
 
 void CKTDGUIControl::ShowGuideDesc()
 {
+#ifndef DLL_BUILD
 	if ( m_GuideDesc.empty() == false && m_pDialog != NULL )
     {
 		m_pDialog->ShowGuideDesc( this );
     }//if
+#endif
 }
 
 
@@ -1363,6 +1439,9 @@ void CKTDGUIControl::CPictureData::SetSizeAsTextureSize()
 	if( NULL != pPoint )
 	{
 		pPoint->SetAutoPointByTextureSize();
+
+		size.x = pPoint->rightTopPoint.x - pPoint->leftTopPoint.x;
+		size.y = pPoint->rightBottomPoint.y - pPoint->leftTopPoint.y;
 	}
 }
 
@@ -1442,6 +1521,11 @@ void CKTDGUIControl::CPictureData::SetPoint_LUA()
 	size.y = pPoint->rightBottomPoint.y - pPoint->leftTopPoint.y;
 	originalPos = pos;
 	originalSize = size;
+
+#ifdef DLL_BUILD
+	if( pPoint->fRotDegree != 0 )
+		pPoint->Rotate( pPoint->fRotDegree );
+#endif
 }
 
 void CKTDGUIControl::CPictureData::SetPoint( CKTDGUIControl::UIPointData* pNewPoint )
@@ -1458,12 +1542,18 @@ void CKTDGUIControl::CPictureData::SetPoint( CKTDGUIControl::UIPointData* pNewPo
 	size.y = pPoint->rightBottomPoint.y - pPoint->leftTopPoint.y;
 	originalPos = pos;
 	originalSize = size;
+
+#ifdef DLL_BUILD
+	if( pPoint->fRotDegree != 0 )
+		pPoint->Rotate( pPoint->fRotDegree );
+#endif
 }
 
 void CKTDGUIControl::CPictureData::SetPoint()
 {
 	KTDXPROFILE();
 
+#ifndef DLL_BUILD
 	if ( pPoint == NULL && pTexture != NULL )
 	{
 		pPoint = new CKTDGUIControl::UIPointData();
@@ -1475,6 +1565,10 @@ void CKTDGUIControl::CPictureData::SetPoint()
 		size = pTexture->texSize;
 		originalSize = size;
 	}
+#else
+	SetPoint( new CKTDGUIControl::UIPointData() );
+#endif
+
 }
 
 void CKTDGUIControl::CPictureData::SetSize( D3DXVECTOR2 _size )
@@ -1665,3 +1759,208 @@ void CKTDGUIControl::SetGuideDescByString_LUA( const char* pGuideDesc )
     ConvertUtf8ToWCHAR( m_GuideDesc, pGuideDesc );
 }
 //////////////////////////////////////////////////////////////////////////
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+
+CKTDGUIControl::CMovieData::CMovieData()
+	: m_pBvt( NULL ), /*m_pInfo( NULL ),*/ /*m_pPointData( NULL ),*/
+	m_pRenderTargetTexture( NULL ),
+	/*m_pReader( NULL ),*/
+	m_wstrMovieFileName( L"" ),
+	m_vSize(0.0f, 0.0f), m_vOriginPos(0.0f, 0.0f), m_vPos(0.0f, 0.0f), m_bShow( false )
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+	, m_bLoop( false )
+#endif //PLAY_PROMOTION_MOVIE
+{
+// 	if ( !m_Bvl.IsCreated() )
+// 		m_Bvl.Create( BANDIVIDEO_RELEASE_DLL_FILE_NAME, NULL, NULL );
+}
+
+CKTDGUIControl::CMovieData::~CMovieData()
+{
+	SAFE_CLOSE( m_pRenderTargetTexture );
+
+	if ( m_Bvl.IsCreated() )
+		m_Bvl.Destroy();
+
+	if ( m_pBvt )
+		m_pBvt->Close();
+
+	//SAFE_DELETE( m_pReader );
+	SAFE_DELETE( m_pBvt );
+}
+
+void CKTDGUIControl::CMovieData::SetMovieFileName_LUA( const char* strMoiveFileName_ )
+{
+	wstring wstrFileName;
+	ConvertUtf8ToWCHAR( wstrFileName, strMoiveFileName_ );
+	SetMovieFileName( wstrFileName.c_str() );	
+	
+}
+
+
+void CKTDGUIControl::CMovieData::SetMovieFileName( const WCHAR* wstrMovieFileName_ )
+{
+	if ( !m_Bvl.IsCreated() )
+	{
+// 		if ( NULL == m_pReader )
+// 			m_pReader = new CBandiVideoFileReader();
+		m_Bvl.Create( BANDIVIDEO_RELEASE_DLL_FILE_NAME, NULL, NULL );
+	}
+#ifdef VERIFY_BANDI_VIDEO_LIBRARY
+	m_Bvl.Verify("KOG_ELSWORD_20131203", "1b9b533c");
+#endif // VERIFY_BANDI_VIDEO_LIBRARY
+
+	WCHAR buff[MAX_PATH] = {0, };
+	GetCurrentDirectory( MAX_PATH, buff );	
+	m_wstrMovieFileName = buff;
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) 
+	m_wstrMovieFileName += L"\\movie\\";
+#else  // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) 
+	m_wstrMovieFileName += L"\\music\\";
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) 
+	m_wstrMovieFileName += wstrMovieFileName_;
+
+// 	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info
+// 		= g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( wstrMovieFileName_ );
+
+	m_Bvl.Close();
+	if(SUCCEEDED(m_Bvl.Open( m_wstrMovieFileName.c_str(), FALSE)))
+	//if ( SUCCEEDED( m_pReader->Read( reinterpret_cast<BYTE*>( Info->pRealData ), Info->size ) ) )
+	{
+#ifndef X2OPTIMIZE_BANDI_DYNAMICVB
+		BV_DEVICE_DX9 bvd = { DXUTGetD3DObject(), g_pKTDXApp->GetDevice(), DXUTGetHWND() };
+#endif  X2OPTIMIZE_BANDI_DYNAMICVB
+
+		m_Bvl.GetVideoInfo(m_Info);
+
+		if ( NULL == m_pBvt )
+        {
+#ifdef  X2OPTIMIZE_BANDI_DYNAMICVB
+            m_pBvt = new CBandiVideoTexture_DX9();
+#else   X2OPTIMIZE_BANDI_DYNAMICVB
+			m_pBvt = new CBandiVideoTexture_DX9(&bvd);
+#endif  X2OPTIMIZE_BANDI_DYNAMICVB
+        }
+		else
+			m_pBvt->Close();
+
+		m_pBvt->Open(m_Info.width, m_Info.height);
+		m_Bvl.Play();
+	}
+}
+
+void CKTDGUIControl::CMovieData::SetRect_LUA( const float fX_, const float fY_, const float fWidth_, const float fHeight_ )
+{
+	m_vOriginPos.x	= fX_;
+	m_vOriginPos.y	= fY_;
+	m_vSize.x	= fWidth_;
+	m_vSize.y	= fHeight_;
+
+	m_pRenderTargetTexture
+		= g_pKTDXApp->GetDeviceManager()->OpenRenderTargetTexture( L"MoveData", 
+		static_cast<int>( fWidth_ ), static_cast<int>( fHeight_ ), D3DFMT_A8R8G8B8 );
+}
+
+// void CKTDGUIControl::CMovieData::SetMoivePoint_LUA()
+// {
+// 	SAFE_DELETE( m_pPointData );
+// 	m_pPointData = SetPointData_();
+// 	m_pPointData->SetAutoPointByTextureSize();
+// 
+// 	m_pRenderTargetTexture
+// 		= g_pKTDXApp->GetDeviceManager()->OpenRenderTargetTexture( L"MoveData", m_pPointData->leftBottomPoint, iRenderTargetHeight, D3DFMT_A8R8G8B8 }
+// }
+
+
+void CKTDGUIControl::CMovieData::OnFrameMove()
+{
+	BVL_STATUS status;
+	m_Bvl.GetStatus(status);
+
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+	if ( status == BVL_STATUS_PLAYEND )
+	{
+		m_Bvl.Seek(0, BVL_SEEK_TIME);
+		
+		if ( m_bLoop )
+			m_Bvl.Play();
+		else
+			m_Bvl.Stop();
+	}
+#else //PLAY_PROMOTION_MOVIE
+	if ( status == BVL_STATUS_PLAYEND )
+	{
+		m_Bvl.Seek(0, BVL_SEEK_TIME);
+		m_Bvl.Play();
+	}
+#endif //PLAY_PROMOTION_MOVIE
+
+	if(m_Bvl.IsNextFrame())
+	{
+		if ( NULL != m_pBvt )
+		{
+			INT pitch;
+			BYTE* buf = m_pBvt->Lock(pitch);
+			if(buf)
+			{
+				// Get frame
+				BVL_FRAME frame;
+				frame.frame_buf = buf;
+				frame.frame_buf_size = m_Info.height*pitch;
+				frame.pitch = pitch;
+				frame.width = m_Info.width;
+				frame.height = m_Info.height;
+				frame.pixel_format = m_pBvt->GetFormat();
+
+				m_Bvl.GetFrame(frame, TRUE);
+
+				m_pBvt->Unlock();
+			}
+		}
+	}
+}
+
+void CKTDGUIControl::CMovieData::OnFrameRender()
+{
+	m_pRenderTargetTexture->BeginRender( true );
+	m_pRenderTargetTexture->Clear( D3DCOLOR_RGBA( 0, 0, 0, 0 ) );
+	
+	// Draw frame
+	if ( NULL != m_pBvt )
+	{
+
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		// 해상도 변경 시 ( 기준 1024 by 768 ) 
+		// 원본이 되는 사이즈는 변경되지 않아야 하기 때문에
+		// 해당 부분 수정
+		m_pBvt->Draw(0, 0, static_cast<int>(m_vSize.x), static_cast<int>( m_vSize.y ) );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+		m_pBvt->Draw(0, 0, 
+			static_cast<DWORD>( m_vSize.x  * g_pKTDXApp->GetResolutionScaleX() ), 
+			static_cast<DWORD>( m_vSize.y * g_pKTDXApp->GetResolutionScaleY() ) );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+	}
+
+	m_pRenderTargetTexture->EndRender();    
+
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	// 해당도 변경 시 ( 기준 1024 by 768 ) 
+	// 시작점은 현재 스크린의 실 좌표에 영향을 받고 크기는 기준 값에 영향을 받기 때문에
+	// 해당 부분 수정
+	m_pRenderTargetTexture->Draw( static_cast<int> (m_vPos.x / g_pKTDXApp->GetResolutionScaleX() ),	
+		static_cast<int>(m_vPos.y / g_pKTDXApp->GetResolutionScaleY() ), 
+		static_cast<DWORD>( m_vSize.x ), 
+		static_cast<DWORD>( m_vSize.y ) );
+#else  // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+	m_pRenderTargetTexture->Draw( static_cast<int>(m_vPos.x),	static_cast<int>(m_vPos.y), 
+		static_cast<DWORD>( m_vSize.x  * g_pKTDXApp->GetResolutionScaleX() ), 
+		static_cast<DWORD>( m_vSize.y * g_pKTDXApp->GetResolutionScaleY() ) );
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+}
+
+
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+

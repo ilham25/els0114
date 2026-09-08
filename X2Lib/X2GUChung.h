@@ -342,13 +342,11 @@ public:
 
 #endif // UPGRADE_SKILL_SYSTEM_2013 // 청 스킬 개편, 김종훈
 
-#ifdef ADD_HEAVYSTANCE_TIMER
 	struct GUARD_STATE_INFO
 	{
 		CHUNG_STATE_ID	m_eStateId;
 		D3DXVECTOR2		m_vecGuardTimer;
 	};
-#endif
 
 	///////////////////////////////////////////////////////
 
@@ -423,19 +421,34 @@ public:
 	@brief : 청 1차 전직 퓨리가디언이 사용하는 Guard 액티브스킬의 클래스
 	@date  : 2011/01/11
 	*/
+
+    class   CFuryGuardianGuardSkill;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    typedef boost::intrusive_ptr<CFuryGuardianGuardSkill> CFuryGuardianGuardSkillPtr;	/// 퓨리가디언이 사용하는 Guard 액티브스킬 클래스의 스마트포인터Type
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+	typedef boost::shared_ptr<CFuryGuardianGuardSkill> CFuryGuardianGuardSkillPtr;	/// 퓨리가디언이 사용하는 Guard 액티브스킬 클래스의 스마트포인터Type
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	class CFuryGuardianGuardSkill : boost::noncopyable
 	{
 	private:
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 		CHUNG_STATE_ID	m_eSkillSlotID_Guard;			/// 퓨리가디언의 Guard가 어느 스킬슬롯에 장착되어 있는지를 담는 변수
 		const bool*		m_pGuardKey;					/// 퓨리가디언의 Guard가 장착되어 있는 스킬슬롯의 Key(A, S, D, C 등)	
 		bool			m_bGuardEquippedAtSlotB;		/// 퓨리가디언의 Guard가 B슬롯에 장착되어 있는지를 담는 변수
 		int				m_iDamageReducePercent;			/// 퓨리가디언의 Guard 상태에서 데미지 감소율
 		CFuryGuardianGuardSkill() : m_eSkillSlotID_Guard( CSI_BASE ),
 			m_pGuardKey( NULL ), m_bGuardEquippedAtSlotB( false ), m_iDamageReducePercent( 0 )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+            , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 		{}
 
 	public:
-		static boost::shared_ptr<CFuryGuardianGuardSkill> CreateFuryGuardianGuardSkill() { return boost::shared_ptr<CFuryGuardianGuardSkill>( new CFuryGuardianGuardSkill ); }
+		static CFuryGuardianGuardSkillPtr   CreateFuryGuardianGuardSkill() { return CFuryGuardianGuardSkillPtr( new CFuryGuardianGuardSkill ); }
 
 		CX2GUChung::CHUNG_STATE_ID GetSkillSlotID_Guard() const { return m_eSkillSlotID_Guard; }	// 퓨리가디언의 Guard가 어느 스킬슬롯에 장착되어 있는지를 담는 변수값을 얻어옴
 		void SetSkillSlotID_Guard(CX2GUChung::CHUNG_STATE_ID eSkillSlotID_Guard_) { m_eSkillSlotID_Guard = eSkillSlotID_Guard_; } // 퓨리가디언의 Guard가 어느 스킬슬롯에 장착되어 있는지를 담는 변수값을 Set함
@@ -449,9 +462,14 @@ public:
 		int GetDamageReducePercent() const { return m_iDamageReducePercent; }
 		void SetDamageReducePercent(int iDamageReducePercent_) { m_iDamageReducePercent = iDamageReducePercent_; }
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        void    AddRef()    {   ++m_uRefCount; }
+        void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	};
 
-	typedef boost::shared_ptr<CFuryGuardianGuardSkill> CFuryGuardianGuardSkillPtr;	/// 퓨리가디언이 사용하는 Guard 액티브스킬 클래스의 스마트포인터Type
+
 #endif	CHUNG_FIRST_CLASS_CHANGE
 	//}} kimhc // 2011.1.11 // 청 1차 전직
 
@@ -511,7 +529,8 @@ protected:
 
 	bool				IsThisStateCanBeChangedToGuardStateOnHit();	// 타격을 받았을 때 Guard 상태로 변경 될 수 있는 스테이트 인가?
 	
-	void				ChangeAnimationChargeCannonBall( const FrameData& refFrameData_ );
+	void				ChangeAnimationChargeCannonBallNow();
+	void				ChangeAnimationChargeCannonBallFuture();
 
 #ifdef BALANCE_PATCH_20120329
 
@@ -609,7 +628,10 @@ protected:
 
 	///////////////////////////////////////////////////////
 	//{{ 장훈 : 2011-01-19
-	void CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#ifndef SERV_9TH_NEW_CHARACTER // 김태환
+	/// 다른 캐릭터들 전부 똑같은 함수를 쓰고 있으니, X2GUUser로 옮기자.
+	virtual void		CreateNotEnoughMPEffect( D3DXVECTOR3 vPos, float fDegreeX, float fDegreeY, float fDegreeZ );
+#endif // SERV_9TH_NEW_CHARACTER
 	//}} 장훈 : 2011-01-19
 	///////////////////////////////////////////////////////
 #ifdef CHUNG_SECOND_CLASS_CHANGE
@@ -618,13 +640,18 @@ protected:
 #endif CHUNG_SECOND_CLASS_CHANGE
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	void SetSelfDestructSummonedNPC( CX2UnitManager::NPC_UNIT_ID eNPCID = CX2UnitManager::NUI_NONE, float fDeleteTime = 3.f );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	void SetSelfDestructSummonedNPC( CX2UnitManager::NPC_UNIT_ID eNPCID = CX2UnitManager::NUI_NONE );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 #endif
 
 	virtual CX2GageData*	CreateGageData();
 
 #ifdef BALANCE_DEADLY_CHASER_20130214
-	void SetExtraDamageMiniGun( CX2DamageManager::DamageData* pDamageData_, float fRate_ ); // 
+	void SetExtraDamageMiniGun( CX2DamageManager::DamageData& DamageData_, float fRate_ ); // 
 #endif //BALANCE_DEADLY_CHASER_20130214
 
 public:
@@ -671,13 +698,13 @@ public:
 	CKTDGParticleSystem::CParticleEventSequence* SetChungMajorParticleByEnum( CHUNG_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ = -1 );	// 각 캐릭터들만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴 
 	ParticleEventSequenceHandle	GetHandleChungMajorParticleByEnum( CHUNG_MAJOR_PARTICLE_INSTANCE_ID eVal_ ) const // 청만 쓰는 메이저 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴
 	{
-		ASSERT( CHUNG_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( CHUNG_MAJOR_PII_END > eVal_ && CHUNG_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		return m_ahChungMajorParticleInstance[eVal_];
 	}
 
 	void				SetHandleChungMajorParticleByEnum( CHUNG_MAJOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ ) // 청만 쓰는 메이저 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함
 	{
-		ASSERT( CHUNG_MAJOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( CHUNG_MAJOR_PII_END > eVal_ && CHUNG_MAJOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		m_ahChungMajorParticleInstance[eVal_] = hHandle_;
 	}
 	void				DeleteChungMajorParticle();
@@ -690,13 +717,13 @@ public:
 	CKTDGParticleSystem::CParticleEventSequence* SetChungMinorParticleByEnum( CHUNG_MINOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ = -1 );	// 각 캐릭터들만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴
 	ParticleEventSequenceHandle	GetHandleChungMinorParticleByEnum( CHUNG_MINOR_PARTICLE_INSTANCE_ID eVal_ ) const	// 청만 쓰는 마이너 파티클 중 ENUM 값에 해당하는 파티클 핸들 하나를 얻어옴
 	{
-		ASSERT( CHUNG_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( CHUNG_MINOR_PII_END > eVal_ && CHUNG_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		return m_ahChungMinorParticleInstance[eVal_];
 	}
 
 	void				SetHandleChungMinorParticleByEnum( CHUNG_MINOR_PARTICLE_INSTANCE_ID eVal_, ParticleEventSequenceHandle hHandle_ )	// 청만 쓰는 마이너 파티클 핸들 중 ENUM 값에 해당하는 핸들을 셋팅함
 	{
-		ASSERT( CHUNG_MINOR_PII_END > eVal_ && INVALID_PARTICLE_HANDLE < eVal_ );
+		ASSERT( CHUNG_MINOR_PII_END > eVal_ && CHUNG_MINOR_PARTICLE_INSTANCE_ID(0) <= eVal_ );
 		m_ahChungMinorParticleInstance[eVal_] = hHandle_;
 	}
 	///////////////////////////////////////////////////////
@@ -705,7 +732,11 @@ public:
 	void DeleteMajorMesh();
 	CKTDGXMeshPlayer::CXMeshInstanceHandle GetHandleChungMajorMeshByEnum( CHUNG_MAJOR_MESH_INSTANCE_ID eVal_ ) const
 	{
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        ASSERT( CHUNG_MAJOR_MII_END > eVal_ && CHUNG_MAJOR_MESH_INSTANCE_ID(0) <= eVal_ );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		ASSERT( CHUNG_MAJOR_MII_END > eVal_ && INVALID_MESH_INSTANCE_HANDLE < eVal_ );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		return m_ahChungMajorMeshInstance[eVal_];
 	}
 	void SetHandleChungMajorMeshByEnum( CHUNG_MAJOR_MESH_INSTANCE_ID eVal_, CKTDGXMeshPlayer::CXMeshInstanceHandle hHandle_ );
@@ -738,9 +769,7 @@ public:
 
 	virtual		HRESULT OnFrameMove( double fTime, float fElapsedTime );
 	
-#ifdef	ADD_TRAININGGAME_NPC
 	virtual void ChargeMpAndEtcInTrainingGame();
-#endif	ADD_TRAININGGAME_NPC
 
 	virtual void		ApplyHyperModeBuff();
 	virtual void		HyperModeBuffEffectStart();
@@ -830,7 +859,6 @@ protected:
 	void RidingHyperModeFrameMove();
 	void CommonHyperModeFrameMove( float fTime1_, float fTime2_, float fTime3_, bool bSound_ = false );
 #endif // MODIFY_RIDING_PET_AWAKE
-	
 	// CSI_DAMAGE_SMALL_FRONT and CSI_DAMAGE_SMALL_BACK
 	void DamageSmallEventProcess();
 
@@ -1715,10 +1743,40 @@ protected:
 	void CSI_SA_CTT_TACTICAL_FIELD_EventProcess();
 
 #endif SERV_CHUNG_TACTICAL_TROOPER
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+#pragma region SI_FS_CIP_DOOM_STRIKER
+	void CSI_HA_CIP_DOOM_STRIKER_Init();
+#pragma endregion 둠 스트라이커 - 궁극기
+
+#pragma region SI_FS_CDC_OUTRAGE_STRIKE
+	void CSI_HA_CDC_OUTRAGE_STRIKE_Init();
+#pragma endregion 아웃 레이지 스트라크 - 궁극기
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+	// 새틀라이트 레인
+	void CSI_HA_CTT_SATELITE_RAIN_Init ();
+	void CSI_HA_CTT_SATELITE_RAIN_FrameMove();		
+	void CSI_HA_CTT_SATELITE_RAIN_EventProcess();
+
+	void DoSateliteRain ();		// 세틀라이트 레인 실행 함수
+	void ResetSateliteRain ();	// 세틀라이트 레인 관련 데이터 초기화
+	void SateliteRainFrameMove ();	// 세틀라이트 레인, CommonFrameMove 
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+
+
 	virtual void ApplyRenderParam( CKTDGXRenderer::RenderParam* pRenderParam_ );
 
-
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	void ChaosCannonAttackStateChange ( int iOffset_ );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	virtual float GetActualCoolTime( IN const CX2SkillTree::SkillTemplet* pSkillTemplet_, IN int iSkillLevel ) const;
+#endif //ADD_MEMO_1ST_CLASS
+
 protected:
 
 	CKTDGParticleSystem::CParticleEventSequenceHandle		m_ahChungMajorParticleInstance[CHUNG_MAJOR_PII_END];
@@ -1732,11 +1790,8 @@ protected:
 	CGuardSystem			m_GuardSystem;			/// 가드 시스템에 대한 정보
 	CCannonBallSystem		m_CannonBallSystem;		/// 캐논볼 시스템에 대한 정보
 
-#ifdef ADD_HEAVYSTANCE_TIMER
 	vector<GUARD_STATE_INFO> m_vecStateIDCanBeChangedToGuardState;	/// 가드 스테이트로 넘어갈 수 있는 스테이트 ID 리스트
-#else
-	vector<CHUNG_STATE_ID> m_vecStateIDCanBeChangedToGuardState;	/// 가드 스테이트로 넘어갈 수 있는 스테이트 ID 리스트
-#endif
+
 	vector<CX2EqipPtr> m_vecPromotionEquipList;		/// 외형 장비 리스트로 각성 구슬 3개를 소모한 각성을 했을때 보여진다.
 	vector<int> m_vecPromotionItemIDList;			/// 프로모션 장비의 ID 리스트
 	bool		m_bBerserkMode;						/// 최대 갯수의 각성 구슬을 가지고 각성한 상태인가?(광폭화)		
@@ -1847,15 +1902,42 @@ protected:
 	int			m_iArtilleryStrikeNowPlayCount;					// 아틸러리 스트라이크, 현재 몇개째?
 	CKTDXTimer	m_TimerCheckArtilleryStrikeFire;				// 아틸러리 스트라이크 발사 타이머
 	bool		m_bArtilleryStrikeFire;							// 아틸러리 스트라이크 발사?
-	int			m_iBombardServiceTarget;						// 지원 폭격 타켓 UID
-	CX2EffectSet::Handle	 m_hBombardServiceEffect;			// 지원 폭격 대미지 이펙트
 	float		m_fArtilleryStrikePowerRate;					// 아틸러리 스트라이크, 쏘고 나서 1초 후 데미지 이펙트가 떨어져 PowerRate 를 받아오지 못함으로 
 																// PowerRate 를 따로 저장해둔다.
+	int			m_iBombardServiceTarget;						// 지원 폭격 타켓 UID
+	CX2EffectSet::Handle	 m_hBombardServiceEffect;			// 지원 폭격 대미지 이펙트
 	int			m_iFireCount;									// 발사 횟수
 	float		m_fChargeTime;									// 차지 시간
-	float		m_fPassiveCriticalRateChung;							// 크리티컬 증가값
+	float		m_fPassiveCriticalRateChung;					// 크리티컬 증가값
 #endif // UPGRADE_SKILL_SYSTEM_2013 // 청 스킬 개편, 김종훈
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+	CX2EffectSet::Handle			m_hSateliteRainBigMissileSummonEffect;		// 새틀라이트 레인 이펙트
+	CKTDXTimer						m_TimerCheckSateliteRain;	// 새틀라이트 레인 이펙트 타이머
+	bool							m_bSateliteRainFire;		// 새틀라이트 레인 발사?
+	float							m_fSateliteRainPowerRate;	// 새틀라이트 레인 쏘고 나서 1초 후 데미지 이펙트가 떨어져 PowerRate 를 받아오지 못함으로 
+																// PowerRate 를 따로 저장해둔다.
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffectHandle   		m_hCEffectSateliteRain;		// 새틀라이트 레인 이펙트
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CX2DamageEffect::CEffect*		m_pCEffectSateliteRain;		// 새틀라이트 레인 이펙트
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	double							m_fSateliteRainPhase;		// 새틀라이트 레인 진행 중인 상태, 1초 마다 한번씩
+	bool							m_bIsFireSateliteRainBigMissile; // 새틀라이트 레인, 큰 미사일 발사 했는가?
+	
+	D3DXVECTOR3						m_vSateliteRainSummonMagicZonePosition;		// 새틀라이트 레인, 큰 미사일 발사하기 전 마법진 좌표
+	D3DXVECTOR3						m_vSateliteRainSummonMagicZoneRotate;		// 새틀라이트 레인, 마법진 회전값
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	float		m_fArtilleryStrikeCreateDamageEffectGapTime;				// 아틸러리 스트라이크 미슬 샤워의 데미지 이펙트 생성 시간 Gap, 미슬 샤워 오류 수정으로 인해 추가됨
+	float		m_fSiegeShellingIncraseMPRel;									// 탄두 개조 패시브, MP 증가량 추가
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+
 };
+
+IMPLEMENT_INTRUSIVE_PTR(  CX2GUChung::CFuryGuardianGuardSkill );
 
 #endif	NEW_CHARACTER_CHUNG
 //}} kimhc // 2010.11.18 //  2010-12-23 New Character CHUNG

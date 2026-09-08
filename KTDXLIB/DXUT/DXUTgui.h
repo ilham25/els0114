@@ -733,6 +733,9 @@ public:
 
     void*   GetSelectedData();
     DXUTComboBoxItem* GetSelectedItem();
+#ifdef UPDATE_X2VIEWER_2013 //JHKang
+	int		GetSelectedIndex() { return m_iSelected; }
+#endif //UPDATE_X2VIEWER_2013
 
     UINT    GetNumItems() { return m_Items.GetSize(); }
     DXUTComboBoxItem* GetItem( UINT index ) { return m_Items.GetAt( index ); }
@@ -899,6 +902,11 @@ public:
     void ParseFloatArray( float *pNumbers, int nCount );
     void SetTextFloatArray( const float *pNumbers, int nCount );
 
+#ifdef UPDATE_X2VIEWER_2013 //JHKang
+	int GetWheelDeltaValue() { return m_iDelta; }
+	void SetWheelDeltaValue( int iValue_ ) { m_iDelta = iValue_; }
+#endif //UPDATE_X2VIEWER_2013
+
 protected:
     void PlaceCaret( int nCP );
     void DeleteSelectionText();
@@ -928,6 +936,10 @@ protected:
 
     // Static
     static bool s_bHideCaret;   // If true, we don't render the caret.
+
+#ifdef UPDATE_X2VIEWER_2013 //JHKang
+	int		m_iDelta;
+#endif //UPDATE_X2VIEWER_2013
 };
 
 

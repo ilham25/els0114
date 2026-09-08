@@ -1,23 +1,27 @@
 #define KX2ITEMMANAGER_FORMAT_MAGIC           (MAKEFOURCC('K','I','M',' '))
 #define KX2ITEMMANAGER_FORMAT_VERSION         0x1201
 
-static const int        MAX_MODEL_COUNT_A_ITEM = 2;
+static const int        MAX_MODEL_COUNT_A_ITEM = 6;
 
 enum ITEM_TYPE
 {
-    IT_NONE = 0,        /// 에러
-    IT_WEAPON,            /// 무기
-    IT_DEFENCE,            /// 방어구
-    IT_ACCESSORY,        /// 액세서리
-    IT_SKILL,            /// 스킬
-    IT_QICK_SLOT,        /// 퀵슬롯 아이템(소비성)
-    IT_MATERIAL,        /// 재료
-    IT_SPECIAL,            /// 특수            
-    IT_QUEST,            /// 퀘스트
-    IT_OUTLAY,            /// 순간소비성
-    IT_ETC,                /// 기타
-    IT_SKILL_MEMO,        /// 스킬메모
-    IT_NUM,
+    IT_NONE = 0,		/// 에러
+    IT_WEAPON,			/// 무기
+    IT_DEFENCE,			/// 방어구
+    IT_ACCESSORY,		/// 액세서리
+    IT_SKILL,			/// 스킬
+    IT_QICK_SLOT,		/// 퀵슬롯 아이템(소비성)
+    IT_MATERIAL,		/// 재료
+    IT_SPECIAL,			/// 특수            
+    IT_QUEST,			/// 퀘스트
+    IT_OUTLAY,			/// 순간소비성
+    IT_ETC,				/// 기타
+    IT_SKILL_MEMO,		/// 스킬메모
+//#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	IT_PET,				/// 펫
+	IT_RIDING,			/// 탈것
+//#endif //SERV_UPGRADE_TRADE_SYSTEM
+	IT_NUM,
 };
 
 enum ITEM_GRADE
@@ -101,9 +105,7 @@ enum SPECIAL_ABILITY_TYPE
     SAT_SUPERARMOR,                    /// 슈퍼아머    
     SAT_SUMMON_SPIRIT,                /// 정령소환
 //#endif //DUNGEON_ITEM
-//#ifdef ADD_SA_FORZEN
     SAT_REMOVE_FROZEN,                // 냉기제거
-//#endif //ADD_SA_FORZEN
     SAT_TRANSFORM_MONSTER,            // 몬스터 변신            
     SAT_WAY_OF_SWORD_GAUGE_UP,        // 검의길 게이지 증가                
 //#ifdef SUMMON_MONSTER_CARD_SYSTEM
@@ -114,7 +116,12 @@ enum SPECIAL_ABILITY_TYPE
 //#ifdef ARA_FORCE_POWER_ITEM
 	SAT_ARA_FORCE_POWER_PERCENT_UP,    // 해외 아라 기력 증가 (%)
 //#endif ARA_FORCE_POWER_ITEM
-
+//#ifdef RETURN_TO_BASE_AT_PVE
+	SAT_RETURN_TO_BASE_AT_PVE,			// PVE 귀환석
+//#endif // RETURN_TO_BASE_AT_PVE
+//#ifdef RIDINGPET_STAMINA_ITEM
+	SAT_RIDINGPET_STAMINA_PERCENT_UP,    // 해외 라이딩펫 스테미너 증가 (%)
+//#endif RIDINGPET_STAMINA_ITEM
     SAT_END,
 };
 
@@ -248,13 +255,13 @@ struct KItemFormatStatData
 		statOut_.m_fDefMagic		= m_fDefMagic;
 
 		statOut_.m_ExtraStat.m_fIncreaseHPRate = 0.f;
-//#ifdef PET_AURA_SKILL
+#ifdef PET_AURA_SKILL
 		statOut_.m_ExtraStat.m_fIncreaseMPRate = 0.f;
 		statOut_.m_ExtraStat.m_fIncreaseAtkPhysicRate = 0.f;
 		statOut_.m_ExtraStat.m_fIncreaseAtkMagicRate = 0.f;
 		statOut_.m_ExtraStat.m_fIncreaseDefPhysicRate = 0.f;
 		statOut_.m_ExtraStat.m_fIncreaseDefMagicRate = 0.f;
-//#endif
+#endif
     }
 
 	void AddToStat( CX2Stat::Stat& statInOut_ ) const
@@ -397,9 +404,9 @@ struct    KItemFormatSetItemData
 	KItemFormatSetItemData()
     {
         m_dwSetID = 0;
-//#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
+#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
         m_iMaxLevel = 0;
-//#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+#endif	NOT_USE_PERCENT_IN_OPTION_DATA
         m_dwOffset_SetName = 0;
         m_dwOffset_NeedPartsNumNOptions = 0;
         m_dwOffset_ItemIDs = 0;
@@ -415,7 +422,7 @@ struct    KItemFormatSetItemData
 
 
 
-struct    KItemFormatTemplet
+struct    KItemFormatTemplet : public CX2ItemTemplet_Base
 {
     friend class    CX2ItemManager;
 
@@ -462,12 +469,12 @@ struct    KItemFormatTemplet
     void    SetVested( bool bVested )                       { _SetBit( FLAG_BIT_VESTED, bVested ); }
     bool    GetVested() const                               { return _GetBit( FLAG_BIT_VESTED ); }
 //#ifdef HIDE_SET_DESCRIPTION
-	void    SetHideSetDesc( bool bHideSetDesc )         { _SetBit( FLAG_BIT_HIDE_SET_DESC, bHideSetDesc ); }
+    void    SetHideSetDesc( bool bHideSetDesc )     	    { _SetBit( FLAG_BIT_HIDE_SET_DESC, bHideSetDesc ); }
     bool    GetHideSetDesc() const                          { return _GetBit( FLAG_BIT_HIDE_SET_DESC ); }
 //#endif HIDE_SET_DESCRIPTION
 //#ifdef SERV_PVP_EQUIPMENT
-	void    SetPvpItem( bool bPvpItem )                 { _SetBit2( FLAG_BIT_PVP_ITEM, bPvpItem ); }
-	bool    GetPvpItem() const                          { return _GetBit2( FLAG_BIT_PVP_ITEM ); }
+    void    SetPvpItem( bool bPvpItem )              	    { _SetBit2( FLAG_BIT_PVP_ITEM, bPvpItem ); }
+    bool    GetPvpItem() const               		    { return _GetBit2( FLAG_BIT_PVP_ITEM ); }
 //#endif SERV_PVP_EQUIPMENT
     void    SetCanEnchant( bool bCanEnchant )               { _SetBit( FLAG_BIT_CAN_ENCHANT, bCanEnchant ); }
     bool    GetCanEnchant() const                           { return _GetBit( FLAG_BIT_CAN_ENCHANT ); }
@@ -785,9 +792,8 @@ private:
     DWORD       m_dwItemID;
     DWORD       m_dwFlags;
 //#ifdef ADD_FLAGS_ITEM_PREPROCESSING
-	DWORD       m_dwFlags2;
+    DWORD       m_dwFlags2;
 //#endif ADD_FLAGS_ITEM_PREPROCESSING
-
     // USE_TYPE m_UseType(4bit)
     // USE_CONDITION m_UseCondition(4bit)
     // ITEM_TYPE m_ItemType(4bit)

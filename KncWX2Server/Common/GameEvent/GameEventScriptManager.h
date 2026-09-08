@@ -65,21 +65,8 @@ public:
 		}
 	};
 
-	//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-	enum EVENT_USER_TYPE
-	{
-		EUT_NONE				= 0,
-		EUT_NEW					= 1,
-		EUT_COMEBACK			= 2,
-		EUT_NEW_EXIST			= 3,	// 생성 일자 기준의 기존 유저 체크
-		EUT_COMEBACK_EXIST		= 4,	// 로그 아웃 일자 기준의 기존 유저 체크
-		EUT_NEW_COMEBACK_EXIST	= 5,	// 생성 및 로그 아웃 일자 기준의 기존 유저 체크
-		EUT_MAX					= 6,
-	};
-#endif SERV_FIXED_DATE_EVENT
-	//}}
-
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 	//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
 #ifdef SERV_EVENT_SCRIPT_REFRESH
 	struct EVENT_DATA
@@ -111,7 +98,11 @@ public:
 		bool	m_bPcBangEvent;
 		bool	m_bDirectReward;
 		bool	m_bAccountEvent;
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+		float	m_fDropRate;
+#else // SERV_DROP_EVENT_RENEWAL
 		int		m_iDropCount;
+#endif // SERV_DROP_EVENT_RENEWAL
 		bool	m_bWithPlayPcBang;
 		//{{ 2011. 08. 09	최육사	투니 랜드 채널링 이벤트
 #ifdef SERV_TOONILAND_CHANNELING_CONNECT_EVENT
@@ -145,11 +136,6 @@ public:
 		int		m_iEndLevel;
 #endif DROPEVENT_RENEWAL
 		//}}
-		//{{ 2012. 04. 04	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		std::wstring	m_wstrLastConnectDate;
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
 		//{{ 2012. 06. 29	김민성       접속 시간에 따라 아이템 반복 지급
 #ifdef SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
 		bool	m_bRepeatEvent;
@@ -161,18 +147,6 @@ public:
 		int		m_iBeforeEventID;
 #endif //SERV_CONNECT_EVENT_CONSECUTIVELY_REWARD
 
-		//{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-		bool	m_bComeBackUserEvent;
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-		//}}
-
-		//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-		std::wstring	m_wstrFixedDate;
-		int				m_iEventUserType;
-#endif SERV_FIXED_DATE_EVENT
-		//}}
 		//{{ 2012. 12. 17	최육사	아라 파티 플레이 보너스 경험치
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 		bool	m_bPlayWithCharEXP;
@@ -227,6 +201,10 @@ public:
 		int		m_iUnitClassLevel;
 #endif SERV_UNIT_CLASS_LEVEL_EVENT
 
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+		bool	m_bAccumulate;
+#endif // SERV_HENIR_REWARD_EVENT
+
 		EVENT_DATA()
 			: m_fEXPRate( 0.f )
 			, m_fVPRate( 0.f )
@@ -247,7 +225,11 @@ public:
 			, m_bPcBangEvent( false )
 			, m_bDirectReward( false )
 			, m_bAccountEvent( false )
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+			, m_fDropRate( 0.0f )
+#else // SERV_DROP_EVENT_RENEWAL
 			, m_iDropCount( 0 )
+#endif // SERV_DROP_EVENT_RENEWAL
 			, m_bWithPlayPcBang( false )
 			//{{ 2011. 08. 09	최육사	투니 랜드 채널링 이벤트
 #ifdef SERV_TOONILAND_CHANNELING_CONNECT_EVENT
@@ -291,16 +273,6 @@ public:
 			, m_iBeforeEventID( -1 )			
 #endif //SERV_CONNECT_EVENT_CONSECUTIVELY_REWARD			
 
-			//{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-			, m_bComeBackUserEvent( false )
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-			//}}
-			//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-			, m_iEventUserType( 0 )
-#endif SERV_FIXED_DATE_EVENT
-			//}}
 			//{{ 2012. 12. 17	최육사	아라 파티 플레이 보너스 경험치
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
 			, m_bPlayWithCharEXP( false )
@@ -343,11 +315,15 @@ public:
 #ifdef SERV_UNIT_CLASS_LEVEL_EVENT
 			, m_iUnitClassLevel( -1 )
 #endif SERV_UNIT_CLASS_LEVEL_EVENT
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+			, m_bAccumulate( false )
+#endif // SERV_HENIR_REWARD_EVENT
 		{
 		}
 	};
 #endif SERV_EVENT_SCRIPT_REFRESH
 	//}}
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 public:
 	KGameEventScriptManager(void);
@@ -386,6 +362,27 @@ public:
 	bool IsExistEvent( IN int iEventID )	{ return ( m_mapEventMonster.find( iEventID ) != m_mapEventMonster.end() ); }
 	void GetAdventNpcEventInfo( IN const std::vector< int >& vecEventID, OUT std::vector< KAdventNpcEventInfo >& vecInfo );
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+	const std::map< int, EVENT_DATA >&	GetMapEventScriptData() const { return m_mapEventData; }
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	///스크립트에서 정보 받을 함수
+	void AddCoboEventData_LUA(const char* szChangeEventDate, const char* szWeekEndStartDate_One, const char* szWeekEndEndDate_One,const char* szWeekEndStartDate_Two, const char* szWeekEndEndDate_Two, const char* szWeekNextDay,int remaind );
+	std::vector<CTime> GetCoboEventData(void);
+	int GetRemainTime(void);
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+	void	AddValenTineEventData_LUA( int iTemp_1, int iTemp_2, int iTemp_3, const char* szChangeEventDate, int iItemID,int iItemNum_1,int iItemNum_2,int iItemNum_3, int iItemGetCount );
+	int		GetBeginnerTime(void);
+	int		GetIntermediateTime(void);
+	int		GetExpertTime(void);
+	CTime	GetNextDayTime(void);
+	int		GetValenItemID(void);
+	int     GetValenItemNum_1(void);
+	int     GetValenItemNum_2(void);
+	int     GetValenItemNum_3(void);
+	int     GetValenTinePlayCount(void);
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 private:
 	std::map< int, KAdventNpcEventInfo >	m_mapEventMonster;
 	//{{ 2010. 11. 15	최육사	이벤트 스크립트 실시간 패치
@@ -406,6 +403,17 @@ private:
 #ifdef SERV_ADVERTISEMENT_EVENT
 	std::map< int, EVENT_DATA >				m_mapAdvertisementData;
 #endif SERV_ADVERTISEMENT_EVENT
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+	int m_iTemp_1;
+	int m_iTemp_2;
+	int m_iTemp_3;
+	CTime m_cTimeNextDay;
+	int m_iItemID;
+	int m_iItemNum_1;
+	int m_iItemNum_2;
+	int m_iItemNum_3;
+	int m_iItemGetCount;
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 };
 
 DefRefreshSingletonInline( KGameEventScriptManager );

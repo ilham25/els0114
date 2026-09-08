@@ -90,7 +90,6 @@ const char*      CKTDGXRenderer::GetEffectParameterName( CKTDGXRenderer::EFFECT_
         { EP_g_fEye,            "g_fEye" },
         { EP_g_fColor,          "g_fColor" },
         { EP_g_fDensity,        "g_fDensity" },
-
 #endif // #ifdef FOG_WORLD
 
         { EP_g_amWorldPalette, "g_amWorldPalette" },
@@ -130,7 +129,9 @@ CKTDGXRenderer::CKTDGXRenderer( LPDIRECT3DDEVICE9 pd3dDevice )
     m_bFog = false;
     m_uMaxSkinningVertices = 0;
 
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
     m_bCommitChangesPending = false;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
     m_eCurrentRenderType = RENDER_TYPE(0);
     m_iCurrentShaderIndex = 0;
     m_dxcCurrentColor = D3DXCOLOR( 0, 0, 0, 0 );
@@ -159,7 +160,9 @@ void CKTDGXRenderer::SetColor( const D3DXCOLOR& dxcInColor_ )
         HRESULT hr = m_pEffect->SetVector( EPHANDLE( g_Color ), (const D3DXVECTOR4*) &dxcInColor_ );
         ASSERT( SUCCEEDED( hr ) );
         m_dxcCurrentColor = dxcInColor_;
-        m_bCommitChangesPending = true;
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+		m_bCommitChangesPending = true;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
     }//if
 }//CKTDGXRenderer::SetColor()
 
@@ -189,14 +192,24 @@ void    CKTDGXRenderer::_CommitChanges()
     {
         m_iCurrentShaderIndex = iMaxBones;
         m_pEffect->SetInt( EPHANDLE( g_iShaderIndex ), m_iCurrentShaderIndex );
-        m_bCommitChangesPending = true;
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+		m_bCommitChangesPending = true;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
     }//if
 
-    if ( m_bCommitChangesPending && m_bInBeginPass )
-    {
-        m_pEffect->CommitChanges();
-        m_bCommitChangesPending = false;
-    }//if
+#ifdef X2OPTIMIZE_SETSHADERCONSTANT
+	if( m_bInBeginPass )
+	{
+		m_pEffect->CommitChanges();
+		g_pEffectStateManager->PostCommitChanges();
+	}
+#else//X2OPTIMIZE_SETSHADERCONSTANT
+	if ( m_bCommitChangesPending && m_bInBeginPass )
+	{
+	    m_pEffect->CommitChanges();
+	    m_bCommitChangesPending = false;
+	}//if
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 }//CKTDGXRenderer::_CommitChanges()
 
 
@@ -327,7 +340,9 @@ HRESULT CKTDGXRenderer::BeginRender(  const CKTDGXRenderer::RenderParam& InRende
 #endif
     }//if.. else..
 
-    m_bCommitChangesPending = true;
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+	m_bCommitChangesPending = true;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 
 
 #ifdef FOG_WORLD
@@ -347,38 +362,37 @@ HRESULT CKTDGXRenderer::BeginRender(  const CKTDGXRenderer::RenderParam& InRende
         float m_yFar                    = InRenderParam_.fogFarY; //500.0f;
         float m_fogDensity              = InRenderParam_.fogDensity;
         D3DXCOLOR m_fogColor            = InRenderParam_.fogColor;                        
-        D3DXVECTOR3 m_Eye = g_pKTDXApp->GetDGManager()->GetCamera()->GetEye();
-
+        D3DXVECTOR3 m_Eye = g_pKTDXApp->GetDGManager()->GetCamera().GetEye();
 
         m_pEffect->SetBool( EPHANDLE( g_bFog ), true );
 
         // 선형포그
-        if(m_xFar-m_xNear != 0.0f)
-        {
-            v.x = m_xFar/(m_xFar-m_xNear);
-            v.y = -1.0f/(m_xFar-m_xNear);    
-        }
-        else
-        {
-            v.x = 0.0f;
-            v.y = 0.0f;
-        }
+		if(m_xFar-m_xNear != 0.0f)
+		{
+			v.x = m_xFar/(m_xFar-m_xNear);
+			v.y = -1.0f/(m_xFar-m_xNear);    
+		}
+		else
+		{
+			v.x = 0.0f;
+			v.y = 0.0f;
+		}
 
-        // 높이포그
-        if(m_yFar-m_yNear != 0.0f)
-        {
-            v.z = m_yFar/(m_yFar-m_yNear);
-            v.w = -1.0f/(m_yFar-m_yNear);
-			
+		// 높이포그
+		if(m_yFar-m_yNear != 0.0f)
+		{
+			v.z = m_yFar/(m_yFar-m_yNear);
+			v.w = -1.0f/(m_yFar-m_yNear);
+
 			// note!! CKTDGXRenderer::BeginRender에서 pdxInWorldMatrix_가 null이면 skin, null 아니면 그냥 mesh, 요고 보고 v.w 부호를 반대로 해버리면 안개 OK
 			if(pdxInWorldMatrix_ == NULL)
 				v.w *= -1.f;
-        }
-        else
-        {
-            v.z = 0.0f;
-            v.w = 0.0f;
-        }
+		}
+		else
+		{
+			v.z = 0.0f;
+			v.w = 0.0f;
+		}
 
         m_pEffect->SetVector( EPHANDLE( g_fFog ), &v );   
 
@@ -387,6 +401,7 @@ HRESULT CKTDGXRenderer::BeginRender(  const CKTDGXRenderer::RenderParam& InRende
         //D3DXVec3Transform( &v, &m_Eye, &m );
         v = D3DXVECTOR4(m_Eye.x, m_Eye.y, m_Eye.z, 1.0f);
         m_pEffect->SetVector( EPHANDLE( g_fEye ), &v );
+		
 
         m_pEffect->SetVector( EPHANDLE( g_fColor ), &(D3DXVECTOR4)m_fogColor );   
         m_pEffect->SetFloat( EPHANDLE( g_fDensity ), m_fogDensity );
@@ -649,7 +664,9 @@ HRESULT CKTDGXRenderer::BeginRender(  const CKTDGXRenderer::RenderParam& InRende
             ASSERT( SUCCEEDED( hr ) );
             if ( SUCCEEDED( hr ) )
             {
-                m_bCommitChangesPending = false;
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+				m_bCommitChangesPending = false;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
                 m_bInBeginPass = true;
                 m_uNumPasses = uNumPasses;
                 m_uCurPass = 0;
@@ -679,7 +696,10 @@ HRESULT CKTDGXRenderer::BeginRender(  const CKTDGXRenderer::RenderParam& InRende
                 m_iStackTop = -1;
                 return hr;
             }//if
-            m_bCommitChangesPending = false;
+
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+			m_bCommitChangesPending = false;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
             m_bInBeginPass = true;
         }//if
         m_iStackTop = CKTDGStateManager::GetStackTop();
@@ -734,7 +754,9 @@ HRESULT CKTDGXRenderer::NextRender()
                 ASSERT( SUCCEEDED( hr ) );
                 if ( SUCCEEDED( hr ) )
                 {
-                    m_bCommitChangesPending = false;
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+					m_bCommitChangesPending = false;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
                     m_bInBeginPass = true;
                     return hr;
                 }//if
@@ -770,11 +792,18 @@ HRESULT CKTDGXRenderer::NextRender()
     }//if.. else..
 }//CKTDGXRenderer::NextRender()
 
-
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 HRESULT CKTDGXRenderer::OnFrameRender( const RenderParam& InRenderParam_, const D3DXMATRIX& mInWorld_, CKTDXDeviceXMesh& pXMesh, 
-									  CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET* pMultiTexXET, 
-									  CKTDXDeviceXET::AniData* pAniData, float fAniTime
-                                      , unsigned uInDrawCount )
+	CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET* pMultiTexXET, 
+	const CKTDXDeviceXET::AniData* pAniData, float fAniTime
+	, unsigned uInDrawCount
+	, std::vector<bool>* pvecDrawSubset )
+#else//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+HRESULT CKTDGXRenderer::OnFrameRender( const RenderParam& InRenderParam_, const D3DXMATRIX& mInWorld_, CKTDXDeviceXMesh& pXMesh, 
+	CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET* pMultiTexXET, 
+	const CKTDXDeviceXET::AniData* pAniData, float fAniTime
+	, unsigned uInDrawCount )
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
 {
 	KTDXPROFILE();
 
@@ -789,7 +818,11 @@ HRESULT CKTDGXRenderer::OnFrameRender( const RenderParam& InRenderParam_, const 
     {
         _CommitChanges();
         for( unsigned uCount = 0; uCount < uInDrawCount; uCount++ )
-	        pXMesh.Render( pTexChangeXET, pMultiTexXET, pAniData, fAniTime );
+#ifdef X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+			pXMesh.Render( pTexChangeXET, pMultiTexXET, pAniData, fAniTime, pvecDrawSubset );
+#else//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
+			pXMesh.Render( pTexChangeXET, pMultiTexXET, pAniData, fAniTime );
+#endif//X2OPTIMIZE_CULLING_WORLDOBJECTMESH_SUBSET
     }//for
 
 	return S_OK;
@@ -799,7 +832,7 @@ HRESULT CKTDGXRenderer::OnFrameRender( const RenderParam& InRenderParam_, const 
 
 void CKTDGXRenderer::DrawFrame( CKTDXDeviceXSkinMesh& kInXSkinMesh_, CKTDXDeviceXSkinMesh::MultiAnimFrame& kInFrame_
             , CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET* pMultiTexXET
-            , CKTDXDeviceXET::AniData* pAniData, float fAniTime, int iInDetailPercent_, bool abInUseTex_[3]
+            , const CKTDXDeviceXET::AniData* pAniData, float fAniTime, int iInDetailPercent_, bool abInUseTex_[3]
             , CKTDXDeviceXET* pAnimAniExt, const wchar_t* pwszInNowAnimName_ )
 {
     ASSERT( m_bInBeginPass );
@@ -891,7 +924,9 @@ void CKTDGXRenderer::DrawFrame( CKTDXDeviceXSkinMesh& kInXSkinMesh_, CKTDXDevice
             
 			KTDXPROFILE_BEGIN( "DrawFrame_DRAW" );
 
-            m_bCommitChangesPending = true;
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+			m_bCommitChangesPending = true;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
             _CommitChanges();    
 
 // 			if ( pMC->m_pPMeshFull != NULL )
@@ -983,7 +1018,9 @@ void CKTDGXRenderer::DrawFrame( CKTDXDeviceXSkinMesh& kInXSkinMesh_, CKTDXDevice
 
 			KTDXPROFILE_BEGIN( "DrawFrame_DRAW2" );
 
-            m_bCommitChangesPending = true;
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+			m_bCommitChangesPending = true;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
             _CommitChanges();    
 
 
@@ -1018,7 +1055,7 @@ void CKTDGXRenderer::DrawFrame( CKTDXDeviceXSkinMesh& kInXSkinMesh_, CKTDXDevice
 
 CKTDXDeviceBaseTexture* CKTDGXRenderer::_SetNowTexture( CKTDXDeviceBaseTexture* orgTex, int stage,
 													CKTDXDeviceXET* pTexChangeXET, CKTDXDeviceXET* pMultiTexXET, 
-													CKTDXDeviceXET::AniData* pAniData, float fAniTime,
+													const CKTDXDeviceXET::AniData* pAniData, float fAniTime,
                                                     bool abInUseTex_[3], CKTDXDeviceXET* pAnimAniExt, const wchar_t* pwszInNowAnimName_ )
 {
 	KTDXPROFILE();
@@ -1071,7 +1108,7 @@ CKTDXDeviceBaseTexture* CKTDGXRenderer::_SetNowTexture( CKTDXDeviceBaseTexture* 
 			// X2Viewer에서 NPC XET 보이도록 하기 위해서 수정 
 			if( NULL != pAnimAniExt )
 			{
-				CKTDXDeviceXET::AniData* pAniData = pAnimAniExt->GetAniData( pwszInNowAnimName_ );
+				const CKTDXDeviceXET::AniData* pAniData = pAnimAniExt->GetAniData( pwszInNowAnimName_ );
 				if( NULL != pAniData )
 				{
 					pResultTexture = pAniData->GetAniTexture( fAniTime, pOrgTexName );
@@ -1181,7 +1218,9 @@ HRESULT CKTDGXRenderer::OnResetDevice()
         hr = m_pEffect->SetVector( EPHANDLE( g_Color ), (const D3DXVECTOR4*) &m_dxcCurrentColor );
         ASSERT( SUCCEEDED( hr ) );
 
-        m_bCommitChangesPending = true;
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
+		m_bCommitChangesPending = true;
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 	}
 
 	if( m_pCartoonTexList[CTT_NORMAL] == NULL )
@@ -1237,8 +1276,20 @@ HRESULT	CKTDGXRenderer::OnLostDevice()
 { 
 	//if(m_pEffect_Fog != NULL)
 	//    m_pEffect_Fog->OnLostDevice();
+#ifdef X2OPTIMIZE_SETSHADERCONSTANT
+	if ( m_pEffect != NULL )
+	{
+		HRESULT hr = m_pEffect->OnLostDevice();
+		if( SUCCEEDED( hr ) && g_pEffectStateManager )
+		{
+			g_pEffectStateManager->OnLostDevice();
+		}
+		return hr; 
+	}
+#else//X2OPTIMIZE_SETSHADERCONSTANT
 	if ( m_pEffect != NULL )
 		return m_pEffect->OnLostDevice(); 
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 
 	return S_OK;
 }

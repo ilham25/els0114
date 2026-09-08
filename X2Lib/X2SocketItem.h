@@ -202,6 +202,10 @@ class CX2SocketItem
 			SIEE_POISON_BURST,					/// 피격 시 Poison 세트 효과
 			SIEE_ABSORB_HP,						/// 피격 시 HP 흡수 세트 효과
 #endif
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+			SIEE_ABSORB_HP_NO_REACT,			/// 피격 시 HP 흡수 세트 효과 ( 경직 제거 )
+			SIEE_ACTIVE_BUFF,					/// 피격 시 버프 적용 효과
+#endif // HAMEL_SECRET_DUNGEON
 
 		};
 
@@ -217,6 +221,49 @@ class CX2SocketItem
 			SUT_ALL,				// HP를 제외한 모든 스탯
 		};
 #endif SERV_SECRET_HELL
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+		enum POSSIBLE_USE_PLACE			/// 사용 가능한 위치
+		{
+			PUP_NONE							= -1,
+			PUP_ALL								= 0,	/// 모든곳
+			PUP_DUNGEON_ONLY					= 1,	/// 던전 전용
+			PUP_PVP_ONLY						= 2,	/// 대전 전용
+			PUP_END								= 3,
+		};
+
+		enum HYPER_MODE_EFFECTIVE_TYPE	/// 각성시 사용할 효과 타입
+		{
+			HMET_NONE									= -1,
+			HMET_USE_BUFF								= 0,	/// 버프 사용
+			HMET_ERASE_DEBUFF_AND_ADD_MP				= 1,	/// (define ADJUST_SECRET_ITEM_OPTION) 디버프 삭제, 삭제 갯수에 관계없이 mp 회복으로 수정 <- 디버프 삭제 및 삭제 개수당 MP 회복
+			HMET_ADD_HP_IMMEDIATELY						= 2,	/// HP 즉시 회복
+			HMET_END									= 3,
+		};
+
+		struct InfoByUseHyperMode
+		{
+			InfoByUseHyperMode()
+			{
+				m_ePossibleUsePlace			= PUP_ALL;
+				m_eHyperModeEffectiveType	= HMET_NONE;
+				m_fEffectiveValue			= 0.f;
+#ifdef ADJUST_SECRET_ITEM_OPTION //김창한
+				m_fCoolTime					= 0.f;
+#endif //ADJUST_SECRET_ITEM_OPTION
+			}
+
+			POSSIBLE_USE_PLACE				m_ePossibleUsePlace;		/// 사용 가능한 지역
+			HYPER_MODE_EFFECTIVE_TYPE		m_eHyperModeEffectiveType;	/// 각성시 사용할 효과 타입
+			CX2BuffFactorPtr				m_pBuffFactorPtr;			/// 사용할 버프
+			float							m_fEffectiveValue;			/// 적용 값
+#ifdef ADJUST_SECRET_ITEM_OPTION //김창한
+			float							m_fCoolTime;				/// 적용 후 재사용 가능할때까지의 시간
+#endif //ADJUST_SECRET_ITEM_OPTION
+		};
+		typedef std::pair<POSSIBLE_USE_PLACE, CX2BuffFactorPtr> BuffInfoByUseHyperMode;
+#endif // HAMEL_SECRET_DUNGEON
+
 			//}} kimhc // 2010.3.31 // 비밀던전 작업(셋트아이템효과)
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		struct KItemStatRelLVData
@@ -306,15 +353,6 @@ class CX2SocketItem
 		{
 		public:
 //{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifndef	NOT_USE_PERCENT_IN_OPTION_DATA
-			static const float		MAX_MOVESPEED;
-			static const float		MAX_JUMPSPEED;
-			static const float		MAX_ANIMATION_SPEED_RATE;		
-			static const float 		MAX_CRITICAL_RATE;
-			static const float 		MAX_ANTI_EVADE_RATE;
-			static const float		MAX_EVADE_RATE;
-			static const float		MAX_HYPERMODECHARGERATE;
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 			static const float		MAX_HYPERMODETIME;
@@ -368,26 +406,22 @@ class CX2SocketItem
 
 
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			float					m_fAdditionalDefenceValue;	/// 최종적인 데미지에 계산될 데미지 감소 수치 (이 수치를 가지고 % 연산을 함)
 			float					m_fAdditionalAttackValue;	/// 최종적인 데미지에 계산될 추가 데미지
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 			vector<D3DXVECTOR2>		m_vecHpUpByAttack;				// 공격을 했을 때 증가하는 HP %, x: 발동확률, y: 증가하는 HP %
 			vector<D3DXVECTOR2>		m_vecHpUpByAttacked;			// 공격을 당했을 때 증가하는 HP % x: 발동확률, y: 증가하는 HP %
 
 			//{{ kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
-#ifdef	OPTION_ITEM_DATA_MODIFY
 			vector<D3DXVECTOR2>		m_vecMpUpByAttack;				// 공격을 했을 때 증가하는 MP양, x: 발동확률, y: 증가하는 MP양
-			vector<D3DXVECTOR2>		m_vecMpUpByAttacked;			// 공격을 당했을 때 증가하는 MP양 x: 발동확률, y: 증가하는 MP양
-#else	OPTION_ITEM_DATA_MODIFY
-			float					m_fPercentMPUpByAttacked;		//피격시 엠피 오를 확률
-			float					m_fMPUpByAttacked;				//피격시 엠피 오를 수치
 
-			float					m_fPercentMPUpByAttack;			//타격시 엠피 오를 확률
-			float					m_fMPUpByAttack;				//타격시 엠피 오름 수치
-#endif	OPTION_ITEM_DATA_MODIFY
+#ifdef ADJUST_SECRET_ITEM_OPTION //김창한
+			vector<D3DXVECTOR4>		m_vecMpUpByAttacked;			// 공격을 당했을 때 증가하는 MP양 x: 발동확률, y: 증가하는 MP양, z: 제한 쿨타임, w: 현재 쿨타임.
+#else //ADJUST_SECRET_ITEM_OPTION
+			vector<D3DXVECTOR2>		m_vecMpUpByAttacked;			// 공격을 당했을 때 증가하는 MP양 x: 발동확률, y: 증가하는 MP양
+#endif //ADJUST_SECRET_ITEM_OPTION
+
 			//}} kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
 
 			//{{ 2011.09.05 / 이지헌 / 대만/홍콩 / 마법의 목걸이 개편 / 병합 : 강정훈
@@ -459,11 +493,9 @@ class CX2SocketItem
 			float					m_fAllAttackEnchantRate;			// 속성 발동 확률 % 증가
 #endif BUFF_TEMPLET_SYSTEM
 
-#ifdef SUMMON_NPC_SOCKET
 			int						m_iSummonNpcId;			// 소환할 npc id
 			float					m_fSummonNpcRate;		// 타격시 소환확율
 			float					m_fSummonNpcCoolTime;	// 소켓 쿨타임
-#endif
 
 #ifdef PVP_SEASON2_SOCKET
 			bool					m_bIsLevelLinkedStat;	/// 레벨 적용 아이템 여부
@@ -477,6 +509,14 @@ class CX2SocketItem
 			// POWER_RATE_TYPE 상수 값을 곱해서 증가시켜주는 스킬 레벨업 소켓 옵션
 			int						m_iAllSkillLevelUpEx;
 #endif // SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+			CX2BuffFactorPtr			m_ptrBuffFactorCustomUse;		/// 특별한 목적으로 사용되는 버프 펙터 저장 컨테이너
+																		/// ( 타격시 특정 디버프 적용, 피격시 특정 버프 적용, 각성시 특정 버프 적용 )
+			HYPER_MODE_EFFECTIVE_TYPE	m_eHyperModeEffectiveType;		/// 각성시 사용하는 효과 설정값
+			vector<InfoByUseHyperMode>	m_vecInfoByUseHyperMode;		/// 각성시 사용하는 버프 설정 저장 컨테이너
+			float						m_fEffectiveValue;				/// 효과 값
+#endif // HAMEL_SECRET_DUNGEON
 
 #ifdef SERV_GROW_UP_SOCKET
 			map<int, vector<int>>	m_mapGrowUpSocketID;		// 성장 소켓 그룹
@@ -511,20 +551,11 @@ class CX2SocketItem
 				m_fCritical							= 0.0f;		
 
 				//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 				m_fAdditionalDefenceValue	= 0.0f;	// 최종적인 데미지에 계산될 데미지 감소 수치 (이 수치를 가지고 % 연산을 함)
 				m_fAdditionalAttackValue	= 0.0f;	// 최종적인 데미지에 계산될 추가 데미지
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 				//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 		//{{ kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
-#ifndef	OPTION_ITEM_DATA_MODIFY
-				m_fPercentMPUpByAttacked			= 0.0f;	
-				m_fMPUpByAttacked					= 0.0f;	
-				
-				m_fPercentMPUpByAttack				= 0.0f;	
-				m_fMPUpByAttack						= 0.0f;	
-#endif	OPTION_ITEM_DATA_MODIFY
 		//}} kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
 
 				//{{ 2011.09.05 / 이지헌 / 대만/홍콩 / 마법의 목걸이 개편 / 병합 : 강정훈
@@ -596,11 +627,9 @@ class CX2SocketItem
 				m_fAllAttackEnchantRate				= 1.0f;			// 속성 발동 확률 % 증가
 #endif BUFF_TEMPLET_SYSTEM
 
-#ifdef SUMMON_NPC_SOCKET
 				m_iSummonNpcId						= 0;			// 소환할 npc id
 				m_fSummonNpcRate					= 0.f;		// 타격시 소환확율
 				m_fSummonNpcCoolTime				= 0.f;
-#endif
 
 #ifdef PVP_SEASON2_SOCKET
 				m_bIsLevelLinkedStat	= false;
@@ -611,6 +640,10 @@ class CX2SocketItem
 				m_iAllSkillLevelUpEx = 0;
 #endif // SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
 
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+				m_eHyperModeEffectiveType	= HMET_NONE;
+				m_fEffectiveValue			= 0.f;
+#endif // HAMEL_SECRET_DUNGEON
 			}
 
 			//{{ // kimhc // 실시간 엘소드 중 실시간 아바타 및 장비 교체 중 소켓 옵션
@@ -638,26 +671,16 @@ class CX2SocketItem
 				m_fCritical					= 0.0f;
 
 				//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 				m_fAdditionalDefenceValue	= 0.0f;	// 최종적인 데미지에 계산될 데미지 감소 수치 (이 수치를 가지고 % 연산을 함)
 				m_fAdditionalAttackValue	= 0.0f;	// 최종적인 데미지에 계산될 추가 데미지
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 				//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 				//{{ kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
-#ifdef	OPTION_ITEM_DATA_MODIFY
 				m_vecHpUpByAttack.resize( 0  );
 				m_vecHpUpByAttacked.resize( 0 );
 
 				m_vecMpUpByAttack.resize( 0 );				// 공격을 했을 때 증가하는 MP양, x: 발동확률, y: 증가하는 MP양
 				m_vecMpUpByAttacked.resize( 0 );			// 공격을 당했을 때 증가하는 MP양 x: 발동확률, y: 증가하는 MP양
-#else	OPTION_ITEM_DATA_MODIFY
-				m_fPercentMPUpByAttacked	= 0.0f;
-				m_fMPUpByAttacked			= 0.0f;
-
-				m_fPercentMPUpByAttack		= 0.0f;
-				m_fMPUpByAttack				= 0.0f;
-#endif	OPTION_ITEM_DATA_MODIFY
 				//}} kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
 
 				//{{ 2011.09.05 / 이지헌 / 대만/홍콩 / 마법의 목걸이 개편 / 병합 : 강정훈
@@ -719,11 +742,9 @@ class CX2SocketItem
 				m_fAllAttackEnchantRate				= 1.0f;			// 속성 발동 확률 % 증가
 #endif BUFF_TEMPLET_SYSTEM
 
-#ifdef SUMMON_NPC_SOCKET
 				m_iSummonNpcId						= 0;			// 소환할 npc id
 				m_fSummonNpcRate					= 0.f;		// 타격시 소환확율
 				m_fSummonNpcCoolTime				= 0.f;
-#endif
 
 #ifdef PVP_SEASON2_SOCKET
 				m_bIsLevelLinkedStat	= false;
@@ -738,6 +759,9 @@ class CX2SocketItem
 				m_iAllSkillLevelUpEx = 0;
 #endif // SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
 
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+				m_vecInfoByUseHyperMode.clear();	/// 각성시 사용하는 효과 설정 저장 컨테이너
+#endif // HAMEL_SECRET_DUNGEON
 			}
 #endif REAL_TIME_ELSWORD
 			//}} // kimhc // 실시간 엘소드 중 실시간 아바타 및 장비 교체 중 소켓 옵션
@@ -768,11 +792,9 @@ class CX2SocketItem
 				m_fCritical += rhs.m_fCritical;
 
 				//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 				m_fAdditionalDefenceValue = rhs.m_fAdditionalDefenceValue;	// 최종적인 데미지에 계산될 데미지 감소 수치 (이 수치를 가지고 % 연산을 함)
 				m_fAdditionalDefenceValue = rhs.m_fAdditionalAttackValue;	// 최종적인 데미지에 계산될 추가 데미지
 				// 최종적인 데미지에 계산될 데미지 감소 수치 (이 수치를 가지고 % 연산을 함)
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 				//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 				if ( false == rhs.m_vecHpUpByAttack.empty() )
@@ -782,19 +804,11 @@ class CX2SocketItem
 					m_vecHpUpByAttacked.insert( m_vecHpUpByAttacked.end(), rhs.m_vecHpUpByAttacked.begin(), rhs.m_vecHpUpByAttacked.end() );
 
 				//{{ kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
-#ifdef	OPTION_ITEM_DATA_MODIFY
 				if ( false == rhs.m_vecMpUpByAttack.empty() )
 					m_vecMpUpByAttack.insert( m_vecMpUpByAttack.end(), rhs.m_vecMpUpByAttack.begin(), rhs.m_vecMpUpByAttack.end() );
 
 				if ( false == rhs.m_vecMpUpByAttacked.empty() )
 					m_vecMpUpByAttacked.insert( m_vecMpUpByAttacked.end(), rhs.m_vecMpUpByAttacked.begin(), rhs.m_vecMpUpByAttacked.end() );
-#else	OPTION_ITEM_DATA_MODIFY
-				m_fPercentMPUpByAttacked += rhs.m_fPercentMPUpByAttacked;
-				m_fMPUpByAttacked += rhs.m_fMPUpByAttacked;
-
-				m_fPercentMPUpByAttack += rhs.m_fPercentMPUpByAttack;
-				m_fMPUpByAttack += rhs.m_fMPUpByAttack;
-#endif	OPTION_ITEM_DATA_MODIFY
 				//}} kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
 
 				//{{ 2011.09.05 / 이지헌 / 대만/홍콩 / 마법의 목걸이 개편 / 병합 : 강정훈
@@ -833,20 +847,16 @@ class CX2SocketItem
 			}
 
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // 오현빈
-			wstring GetSocketDesc( const int iSocketLevel_, bool bCompact = false, CX2Unit::UNIT_CLASS eUnitClass_ = CX2Unit::UC_NONE );
+			wstring GetSocketDesc( const int iSocketLevel_, bool bCompact = false, CX2Unit::UNIT_CLASS eUnitClass_ = CX2Unit::UC_NONE ) const;
 	#else
-			wstring GetSocketDesc( const int iSocketLevel_, bool bCompact = false );
+			wstring GetSocketDesc( const int iSocketLevel_, bool bCompact = false ) const;
 	#endif // SERV_NEW_ITEM_SYSTEM_2013_05
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-			wstring GetSocketDesc(bool bCompact = false );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 //{{ kimhc // 2010.4.9 // 비밀던전 작업(셋트아이템효과)
 #ifdef SERV_SECRET_HELL
-			wstring GetSocketDescEx();			// SOCKET_ITEM_EFFECT_EX가 NONE이 아닌 타입의 디스크립션
+			wstring GetSocketDescEx() const;			// SOCKET_ITEM_EFFECT_EX가 NONE이 아닌 타입의 디스크립션
 #endif SERV_SECRET_HELL
 //}} kimhc // 2010.4.9 // 비밀던전 작업(셋트아이템효과)
 
@@ -856,34 +866,6 @@ class CX2SocketItem
 				m_Stat.LimitMaximum();
 
 //{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifndef	NOT_USE_PERCENT_IN_OPTION_DATA
-				if( m_fMoveSpeed > CX2SocketItem::SocketData::MAX_MOVESPEED )
-					m_fMoveSpeed = CX2SocketItem::SocketData::MAX_MOVESPEED;
-
-				if( m_fJumpSpeed > CX2SocketItem::SocketData::MAX_JUMPSPEED )
-					m_fJumpSpeed = CX2SocketItem::SocketData::MAX_JUMPSPEED;
-
-				
-				if( m_fAnimationSpeedRate > CX2SocketItem::SocketData::MAX_ANIMATION_SPEED_RATE )
-					m_fAnimationSpeedRate = CX2SocketItem::SocketData::MAX_ANIMATION_SPEED_RATE;
-
-				if( m_fAntiEvadePercent > CX2SocketItem::SocketData::MAX_ANTI_EVADE_RATE )
-					m_fAntiEvadePercent = CX2SocketItem::SocketData::MAX_ANTI_EVADE_RATE;
-
-				if( m_fEvadePercent > CX2SocketItem::SocketData::MAX_EVADE_RATE )
-					m_fEvadePercent = CX2SocketItem::SocketData::MAX_EVADE_RATE;		
-
-				// 내부적으로 제한된 경우에는 필요한 경우에만 제한수치 계산
-				if( false == bExcludeInternalLimit )
-				{
-					if( m_fPercentCritical > CX2SocketItem::SocketData::MAX_CRITICAL_RATE )
-						m_fPercentCritical = CX2SocketItem::SocketData::MAX_CRITICAL_RATE;
-				}
-
-				if( m_fHyperModeChargeRate > CX2SocketItem::SocketData::MAX_HYPERMODECHARGERATE )
-					m_fHyperModeChargeRate = CX2SocketItem::SocketData::MAX_HYPERMODECHARGERATE;
-
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 				//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 				// 다른 수치의 제한은 SocketOptionForm.lua에서 수행
@@ -899,7 +881,6 @@ class CX2SocketItem
 			}
 
 			//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 			// 정수로 변환 시 반올림을 위해서 0.5f를 더해준다.
 			int GetLinearCriticalValue( const int iSocketLevel_ ) const
 			{
@@ -950,7 +931,12 @@ class CX2SocketItem
 			{
 				return static_cast<int>( m_fAdditionalAttackValue * lua_tinker::call<float>( g_pKTDXApp->GetLuaBinder()->GetLuaState(), "CalculateLinearAdditionalAttackValue", iSocketLevel_ ) + 0.5f );
 			}
+
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			void ConvertAndAdd( const SocketData& rhs_, const int iSocketLevel_, const CX2Unit::UNIT_TYPE eUnitType_ )
+	#else // SERV_9TH_NEW_CHARACTER
 			void ConvertAndAdd( const SocketData& rhs_, const int iSocketLevel_ )
+	#endif // SERV_9TH_NEW_CHARACTER
 			{
 
 				// 2011-07-07 현재까지는 Stat중에서 m_fIncreaseHPRate 만 옵션 수치화에 영향을 받는다
@@ -961,8 +947,19 @@ class CX2SocketItem
 				m_fJumpSpeed += rhs_.GetLinearJumpSpeedValue( iSocketLevel_ );
 
 				m_fAnimationSpeedRate += rhs_.GetLinearAnimationSpeedValue( iSocketLevel_ );
+
+
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+				/// 애드일 땐, 절반만 적용하자
+				const float fReformValue = ( CX2Unit::UT_ADD == eUnitType_ ) ? 0.5f : 1.f;
+
+				m_fHyperModeChargeRate	+= ( rhs_.GetLinearHyperGageChargeSpeedValue( iSocketLevel_ ) * fReformValue );
+				m_fHyperModeTime		+= rhs_.m_fHyperModeTime * fReformValue;
+	#else // SERV_9TH_NEW_CHARACTER
 				m_fHyperModeChargeRate += rhs_.GetLinearHyperGageChargeSpeedValue( iSocketLevel_ );
 				m_fHyperModeTime += rhs_.m_fHyperModeTime;
+	#endif // SERV_9TH_NEW_CHARACTER
+				
 				m_fRepairPriceSale += rhs_.m_fRepairPriceSale;
 				
 			
@@ -987,19 +984,11 @@ class CX2SocketItem
 					m_vecHpUpByAttacked.insert( m_vecHpUpByAttacked.end(), rhs_.m_vecHpUpByAttacked.begin(), rhs_.m_vecHpUpByAttacked.end() );
 
 				//{{ kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
-	#ifdef	OPTION_ITEM_DATA_MODIFY
 				if ( false == rhs_.m_vecMpUpByAttack.empty() )
 					m_vecMpUpByAttack.insert( m_vecMpUpByAttack.end(), rhs_.m_vecMpUpByAttack.begin(), rhs_.m_vecMpUpByAttack.end() );
 
 				if ( false == rhs_.m_vecMpUpByAttacked.empty() )
 					m_vecMpUpByAttacked.insert( m_vecMpUpByAttacked.end(), rhs_.m_vecMpUpByAttacked.begin(), rhs_.m_vecMpUpByAttacked.end() );
-	#else	OPTION_ITEM_DATA_MODIFY
-				m_fPercentMPUpByAttacked += rhs_.m_fPercentMPUpByAttacked;
-				m_fMPUpByAttacked += rhs_.m_fMPUpByAttacked;
-
-				m_fPercentMPUpByAttack += rhs_.m_fPercentMPUpByAttack;
-				m_fMPUpByAttack += rhs_.m_fMPUpByAttack;
-	#endif	OPTION_ITEM_DATA_MODIFY
 				//}} kimhc // 2011-05-25 // SetOption, TitleOption에만 적용 되는 option 모든 itemOption에 적용 되도록 수정
 
 				m_fDamageUpByAMADS += rhs_.m_fDamageUpByAMADS;
@@ -1057,7 +1046,6 @@ class CX2SocketItem
 				m_iAllSkillLevelUpEx += rhs_.m_iAllSkillLevelUpEx;
 #endif // SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
 			}
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 			//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 #ifdef VIEW_SPECIAL_OPTIONDATA	
 			/** @function : LevelLinkedStatAdd
@@ -1079,7 +1067,6 @@ class CX2SocketItem
 		~CX2SocketItem(void);
 
 		//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		void			OpenScriptFile( const WCHAR* pFileName, const WCHAR* pFormulaFileName_ );
 
 		static float GetFinalCriticalPercent( const float fSumValue_, const int iUserLevel_ )
@@ -1138,12 +1125,9 @@ class CX2SocketItem
 		// 옵션 점감선
 		static float GetOptionRateCorrection( const float fOptionRate_ );
 #endif ELSWORD_WAY_OF_SWORD
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-		void			OpenScriptFile( WCHAR* pFileName );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
-		SocketData*		GetSocketData( int key ) const;
+		const SocketData*   GetSocketData( int key ) const;
 		
 		bool			AddSocketData_LUA();
 #ifdef LUA_TRANS_DEVIDE
@@ -1194,7 +1178,12 @@ class CX2SocketItem
 #endif //SERV_GROW_UP_SOCKET
 
 	private:
-		std::map<int,SocketData*>	m_mapSocketOptionPool;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+        typedef std::map<int,SocketData>    SocketDataMap;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+        typedef std::map<int,SocketData*>   SocketDataMap;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_PTR
+		SocketDataMap                       m_mapSocketOptionPool;
 
 #ifdef SERV_CASH_ITEM_SOCKET_OPTION
 		typedef std::map<int, vector<int>> MapSocketGroupDataForCashAvartar;

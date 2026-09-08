@@ -1,5 +1,4 @@
-#include "StdAfx.h"
-#include "CRC_32.h"
+#include <StdAfx.h>
 #include <iomanip>
 #include <sstream>
 

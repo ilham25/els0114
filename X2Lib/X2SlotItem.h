@@ -72,7 +72,7 @@ class CX2SlotItem : public CX2SlotManager::CX2Slot
 		void SetShowSocketUseImage( UidType Uid );
 		//}}
 #endif SERV_SOCKET_NEW
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 		void SetShowExchangeSelectImage( bool bShow );
 		void SetShowExchangeUseImage( int itemID );
 		void ExchangeReadyEffectStart();
@@ -82,6 +82,14 @@ class CX2SlotItem : public CX2SlotManager::CX2Slot
 #ifdef QUEST_REWARD_PERIOD
 		int GetPeriod() { return m_Period; }
 #endif QUEST_REWARD_PERIOD
+#ifdef SERV_EXCHANGE_PERIOD_ITEM
+		void SetPeriod( IN int iPeriod ) { m_Period = iPeriod; }
+#endif //SERV_EXCHANGE_PERIOD_ITEM
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		void CreateSellWaitingStatic();						/// 개인 상점에 등록중인 아이템 표시 아이콘 생성
+		void SetShowWaitingSellImage( IN bool bShow_ );		/// 개인 상점에 등록중인 아이템 표시 아이콘 활성 여부
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
 #ifdef PACKAGEITEM_SET_NOT_EQUIP_ITEM
 		bool CheckPackageitemSetNotEquipItem( const CX2Item::ItemTemplet* pItemTemplet);
@@ -115,8 +123,7 @@ class CX2SlotItem : public CX2SlotManager::CX2Slot
 		KNXBTOrderInfo			m_KNXBTOrderInfo; //원래는 넥슨쪽 캐시 아이템 슬롯으로 상속받아서 써야하는데 시간이 없으니까 일단 요로코롬
 #endif // SERV_GLOBAL_BILLING
 
-
-#ifdef SERV_ITEM_EXCHANGE_NEW
+#ifdef SERV_ITEM_EXCHANGE_NEW // 디파인 잘 못 두른 것 해외팀 수정
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hEffectExchangeReady;
 #endif SERV_ITEM_EXCHANGE_NEW
 

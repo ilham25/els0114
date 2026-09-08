@@ -315,9 +315,9 @@ void CX2UIGuildBoard::SetShowColumn( ColumnForAdvertise* const pColumnForAdverti
 
 	if(bShow)
 	{
-		BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
+		BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
 		if(byMemberShipGrade != CX2GuildManager::GUG_INVALID || // 길드원은 제한
-			true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )		// 체험아이디 제한
+			true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )		// 체험아이디 제한
 		{
 
 			pColumnForAdvertise->m_pStaticButtonJoin->GetString(0)->color = D3DXCOLOR( 0.95f,0.95f, 0.95f, 1.0f );
@@ -596,10 +596,9 @@ bool CX2UIGuildBoard::Handler_EGS_MODIFY_REG_GUILD_AD_ACK(  HWND hWnd, UINT uMsg
 		{	
 
 			if(g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{														// 길드 광고 등록시 ED 소모
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
 
 				if ( NULL != g_pData && NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUIInventory() )
 				{
@@ -648,10 +647,9 @@ bool CX2UIGuildBoard::Handler_EGS_REGISTRATION_GUILD_AD_ACK(  HWND hWnd, UINT uM
 		{	
 			
 			if(g_pData->GetMyUser() != NULL &&
-				g_pData->GetMyUser()->GetSelectUnit() != NULL && 
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() != NULL )
+				g_pData->GetMyUser()->GetSelectUnit() != NULL )
 			{														// 길드 광고 등록시 ED 소모
-				g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED = kEvent.m_iED;
+				g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED = kEvent.m_iED;
 
 				if ( NULL != g_pData && NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUIInventory() )
 				{
@@ -1023,7 +1021,7 @@ void CX2UIGuildBoard::UpdateButtonUI(bool bCanShowApplyList) // 길드광고등록, 신
 {
 	if(m_pButtonAdvertise)
 	{
-		BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
+		BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
 		if(byMemberShipGrade != CX2GuildManager::GUG_MASTER &&
 			byMemberShipGrade != CX2GuildManager::GUG_SYSOP ) 
 		{
@@ -1057,7 +1055,7 @@ void CX2UIGuildBoard::UpdateJoinListButtonUI(UINT uiJoinListIndex) // 가입신청목
 	if(m_pButtonAccept)
 	{
 		// 길드 마스터, 관리자는 활성화
-		BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
+		BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
 		if(byMemberShipGrade != CX2GuildManager::GUG_MASTER &&
 			byMemberShipGrade != CX2GuildManager::GUG_SYSOP ) 
 		{
@@ -1072,7 +1070,7 @@ void CX2UIGuildBoard::UpdateJoinListButtonUI(UINT uiJoinListIndex) // 가입신청목
 	if(m_pButtonRemove)
 	{
 		// 길드 마스터, 관리자는 활성화
-		BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
+		BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
 		if(byMemberShipGrade != CX2GuildManager::GUG_MASTER &&
 			byMemberShipGrade != CX2GuildManager::GUG_SYSOP ) 
 		{
@@ -1083,7 +1081,7 @@ void CX2UIGuildBoard::UpdateJoinListButtonUI(UINT uiJoinListIndex) // 가입신청목
 			SetEnableButtonRemove(true);
 		}
 		// 신청자일 경우 삭제 버튼 활성화
-		if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitUID == 
+		if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitUID == 
 			m_columnForJoinList[uiJoinListIndex].m_KApplyJoinGuildInfo.m_iUnitUID)
 		{
 			SetEnableButtonRemove(true);
@@ -1495,7 +1493,7 @@ bool		CX2UIGuildBoard::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 
 	case UGBCM_PUSH_JOIN:
 		{
-			BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade;
+			BYTE byMemberShipGrade = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade;
 			if(byMemberShipGrade != CX2GuildManager::GUG_INVALID)
 			{
 				// 이미 가입한 길드가 있습니다.
@@ -1503,7 +1501,7 @@ bool		CX2UIGuildBoard::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 				return true;
 			}
 
-			bool bRefuseGuildInvitation = g_pMain->GetGameOption()->GetOptionList()->m_bRefuseGuildInvitation;
+			bool bRefuseGuildInvitation = g_pMain->GetGameOption().GetOptionList().m_bRefuseGuildInvitation;
 			if(bRefuseGuildInvitation == true)
 			{
 				// 길드 초대 거부한 상태입니다. 길드를 신청하시려면 옵션에서 길드 초대 거부 메뉴를 해제해야 합니다.
@@ -1639,7 +1637,7 @@ bool		CX2UIGuildBoard::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, L
 					SetShowGuildAdvertiseMessageDlg(false);
 						
 					int iUsedED = m_sAdvertisePeriod * 3000;
-					if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED < iUsedED )
+					if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED < iUsedED )
 					{
 						// 광고 등록 비용이 부족하므로 광고를 등록할 수 없습니다.
 						g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING(STR_ID_4894), g_pMain->GetNowState() );

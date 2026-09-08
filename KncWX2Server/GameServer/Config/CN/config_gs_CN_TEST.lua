@@ -6,14 +6,14 @@
 Server:SetUseVersion( VE_OPEN_TEST )
 
 -- 크래쉬 리포트 메일링 리스트 --
-Server:SetMailingList( "kknd345@kog.co.kr, bowrain@kog.co.kr" )
+Server:SetMailingList( "ninil@kog.co.kr, bowrain@kog.co.kr" )
 
 -- 종료시 db 처리 대기시간 --
 Server:SetShutDownWait( 60 * 1000 )
 
 -- 스크립트 파싱 실패 리포트
 Server:SetScriptParsingErrReport( true )
-Server:AddScriptParsingErrReportMail( 'kknd345@kog.co.kr' )	-- 조효진
+Server:AddScriptParsingErrReportMail( 'ninil@kog.co.kr' )	-- 조효진
 Server:AddScriptParsingErrReportMail( 'bowrain@kog.co.kr' ) -- 임규수
 
 -- Add moritoring server's IP for checking port of elsword's server ( SERV_PERMIT_PORT_CHECK )

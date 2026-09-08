@@ -1,15 +1,23 @@
 #include "StdAfx.h"
 #include ".\x2inventory.h"
 
-CX2Inventory::CX2Inventory( CX2Unit* pOwnerUnit )
+
+CX2Inventory::InvenSlotData::~InvenSlotData()
+{
+    SAFE_DELETE( m_pItem );
+}
+
+
+CX2Inventory::CX2Inventory()
 //{{ kimhc // 2009-08-07 // 캐릭터별 은행
+: m_pOwnerUnit( NULL )
 #ifdef	PRIVATE_BANK
-: m_iCoutForGetMyBankInfoReq( 0 ) , // 은행 정보를 받아온 횟수
-m_eBankMembershipGrade( CX2Inventory::MPB_NORMAL )
+, m_iCoutForGetMyBankInfoReq( 0 ) // 은행 정보를 받아온 횟수
+, m_eBankMembershipGrade( CX2Inventory::MPB_NORMAL )
 #endif	PRIVATE_BANK
 //}} kimhc // 2009-08-07 // 캐릭터별 은행
 {
-	m_pOwnerUnit = pOwnerUnit;
+	//m_pOwnerUnit = pOwnerUnit;
 
 //Reset할 때 서버에서 날아오는 정보가 정확해지면 이 밑에 코드는 빠져야함.
 	for( int i = ST_NONE; i < ST_END; i++ )
@@ -17,13 +25,13 @@ m_eBankMembershipGrade( CX2Inventory::MPB_NORMAL )
 		m_MaxSize[i] = MAX_INVENTORY_SIZE;
 	}
 /*
-	m_MaxSize[ST_EQUIP]			= m_pOwnerUnit->GetUnitData()->m_EquipInventorySize;
-	m_MaxSize[ST_SKILL]			= m_pOwnerUnit->GetUnitData()->m_SkillInventorySize;
-	m_MaxSize[ST_MATERIAL]		= m_pOwnerUnit->GetUnitData()->m_MaterialInventorySize;
-	m_MaxSize[ST_SPECIAL]		= m_pOwnerUnit->GetUnitData()->m_SpecialInventorySize;
-	m_MaxSize[ST_CARD]			= m_pOwnerUnit->GetUnitData()->m_CardInventorySize;
-	m_MaxSize[ST_QUICK_SLOT]	= m_pOwnerUnit->GetUnitData()->m_QuickSlotInventorySize;
-	m_MaxSize[ST_AVARTA]		= m_pOwnerUnit->GetUnitData()->m_AvartaInventorySize;
+	m_MaxSize[ST_EQUIP]			= m_pOwnerUnit->GetUnitData().m_EquipInventorySize;
+	m_MaxSize[ST_SKILL]			= m_pOwnerUnit->GetUnitData().m_SkillInventorySize;
+	m_MaxSize[ST_MATERIAL]		= m_pOwnerUnit->GetUnitData().m_MaterialInventorySize;
+	m_MaxSize[ST_SPECIAL]		= m_pOwnerUnit->GetUnitData().m_SpecialInventorySize;
+	m_MaxSize[ST_CARD]			= m_pOwnerUnit->GetUnitData().m_CardInventorySize;
+	m_MaxSize[ST_QUICK_SLOT]	= m_pOwnerUnit->GetUnitData().m_QuickSlotInventorySize;
+	m_MaxSize[ST_AVARTA]		= m_pOwnerUnit->GetUnitData().m_AvartaInventorySize;
 	*/
 }
 
@@ -56,7 +64,7 @@ void CX2Inventory::Clear()
 #endif //NEW_ITEM_NOTICE
 }
 
-#ifdef	SERV_SHARING_BANK_TEST
+#ifdef SERV_SHARING_BANK_TEST
 void CX2Inventory::ClearShareBank()
 {
 	map<int,InvenSlotData*>::iterator mit;
@@ -81,7 +89,6 @@ void CX2Inventory::ClearShareBank()
 	}		
 
 	m_ItemMap[ST_SHARE_BANK].clear();
-
 }
 
 bool CX2Inventory::UpdateItemUID( UidType iBeforeUID, UidType iNewUID )
@@ -95,17 +102,17 @@ bool CX2Inventory::UpdateItemUID( UidType iBeforeUID, UidType iNewUID )
 	}
 
 	InvenSlotData* pSlotData = mit->second;
-	pSlotData->m_pItem->GetItemData()->m_ItemUID = iNewUID;
+	pSlotData->m_pItem->AccessItemData().m_ItemUID = iNewUID;
 
 	m_ItemMapTotal.erase( mit );
 	m_ItemMapTotal.insert( std::make_pair(iNewUID, pSlotData) );
 
 	return true;
 }
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 
-#ifdef	SERV_SHARING_BANK_TEST
-void	CX2Inventory::SetShareBank( std::map< UidType, KInventoryItemInfo >& mapItem )
+#ifdef SERV_SHARING_BANK_TEST
+void CX2Inventory::SetShareBank( std::map< UidType, KInventoryItemInfo >& mapItem )
 {
 	ClearShareBank();
 
@@ -127,12 +134,12 @@ void	CX2Inventory::SetShareBank( std::map< UidType, KInventoryItemInfo >& mapIte
 				ErrorLogMsg( XEM_ERROR124, wstrstm.str().c_str() );
 			}
 
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInfo );			
-			AddItem( static_cast< CX2Inventory::SORT_TYPE >( kInfo.m_cSlotCategory ), kInfo.m_sSlotID, pItemData );
+			//CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInfo );			
+			AddItem( static_cast< CX2Inventory::SORT_TYPE >( kInfo.m_cSlotCategory ), kInfo.m_sSlotID, CX2Item::ItemData( kInfo ) );
 		}		
 	}
 }
-#endif	SERV_SHARING_BANK_TEST
+#endif SERV_SHARING_BANK_TEST
 
 void CX2Inventory::Reset( std::map< int, int >& mapInventorySlotSize, 
 						 std::map< UidType, KInventoryItemInfo >& mapItem )
@@ -175,10 +182,12 @@ void CX2Inventory::Reset( std::map< int, int >& mapInventorySlotSize,
 				wstrstm << L"1 : " << iItemUID << L", 2 : " << kInfo.m_iItemUID;
 				ErrorLogMsg( XEM_ERROR124, wstrstm.str().c_str() );
 			}
-
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInfo );			
+	
 			RemoveItem( (CX2Inventory::SORT_TYPE) kInfo.m_cSlotCategory, kInfo.m_sSlotID );
-			AddItem( (CX2Inventory::SORT_TYPE) kInfo.m_cSlotCategory, kInfo.m_sSlotID, pItemData );
+            {
+			    CX2Item::ItemData kItemData( kInfo );	
+			    AddItem( (CX2Inventory::SORT_TYPE) kInfo.m_cSlotCategory, kInfo.m_sSlotID, kItemData );
+            }
 		}
 	}
 
@@ -219,8 +228,10 @@ void	CX2Inventory::SetBank( std::map< UidType, KInventoryItemInfo >& mapItem )
 				ErrorLogMsg( XEM_ERROR124, wstrstm.str().c_str() );
 			}
 
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInfo );			
-			AddItem( static_cast< CX2Inventory::SORT_TYPE >( kInfo.m_cSlotCategory ), kInfo.m_sSlotID, pItemData );
+            {
+			    CX2Item::ItemData kItemData( kInfo );			
+			    AddItem( static_cast< CX2Inventory::SORT_TYPE >( kInfo.m_cSlotCategory ), kInfo.m_sSlotID, kItemData );
+            }
 		}		
 	}
 
@@ -249,8 +260,8 @@ void CX2Inventory::UpdateInventorySlotList( const std::vector<KInventoryItemInfo
 
 		if( itemInfo.m_iItemUID > 0 )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( itemInfo );
-			AddItem( (CX2Inventory::SORT_TYPE)itemInfo.m_cSlotCategory, itemInfo.m_sSlotID, pItemData );
+			CX2Item::ItemData kItemData( itemInfo );
+			AddItem( (CX2Inventory::SORT_TYPE)itemInfo.m_cSlotCategory, itemInfo.m_sSlotID, kItemData );
 		}
 
 		//{{ mauntain : 김태환 [2012.07.10] 장착중인 소비성 아이템 획득시 퀵슬롯 갱신
@@ -282,8 +293,14 @@ void CX2Inventory::UpdateInventorySlotList( const std::vector<KInventoryItemInfo
 
 	if ( NULL != g_pData && NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUIInventory() )
 	{
-		g_pData->GetUIManager()->GetUIInventory()->SetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED );
-		g_pData->GetUIManager()->GetUIInventory()->SetAPString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iAPoint );
+		g_pData->GetUIManager()->GetUIInventory()->SetEDString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED );
+		g_pData->GetUIManager()->GetUIInventory()->SetAPString( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iAPoint );
+
+#ifdef REFORM_SKILL_NOTE_UI // 메모 소지량 갱신
+		// 메모 열려 있다면 메모 UI도 갱신)
+		if( NULL != g_pData->GetUIManager()->GetUISkillNote() )
+			g_pData->GetUIManager()->GetUISkillNote()->UpdateMemoList_MemoItemNum();
+#endif // REFORM_SKILL_NOTE_UI
 	}
 
 #ifdef SERV_NEW_YEAR_EVENT_2014
@@ -303,7 +320,7 @@ bool CX2Inventory::AddItem( CX2Inventory::SORT_TYPE sortType, int slotID, CX2Ite
 	{
 		//중복된 UID 아이템이 인벤토리에 있음
 		wstringstream errorMsg;
-		errorMsg << m_pOwnerUnit->GetNickName() << L", " << pItem->GetItemData()->m_ItemID << ", " << pItem->GetUID();
+		errorMsg << m_pOwnerUnit->GetNickName() << L", " << pItem->GetItemData().m_ItemID << ", " << pItem->GetUID();
 		ErrorLogMsg(XEM_ERROR73, errorMsg.str().c_str() );
 
 		return false;
@@ -342,27 +359,26 @@ bool CX2Inventory::AddItem( CX2Inventory::SORT_TYPE sortType, int slotID, CX2Ite
 #endif //NEW_ITEM_NOTICE
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
-	if ( pItem->GetItemData()->m_ItemID == RESERVED_WEDDING_LETTER_ITEM_ID ||
-		 pItem->GetItemData()->m_ItemID == INVITE_WEDDING_LETTER_ITEM_ID )
+	if ( pItem->GetItemData().m_ItemID == RESERVED_WEDDING_LETTER_ITEM_ID ||
+		 pItem->GetItemData().m_ItemID == INVITE_WEDDING_LETTER_ITEM_ID )
 		GetRelationItemInfoFromServer ();
 #endif // ADDED_RELATIONSHIP_SYSTEM
 	return true;
 }
 
-bool CX2Inventory::AddItem( CX2Inventory::SORT_TYPE sortType, int slotID, CX2Item::ItemData* pItemData )
+bool CX2Inventory::AddItem( CX2Inventory::SORT_TYPE sortType, int slotID, CX2ItemData_Base& kItemData_ )
 {
-	if ( pItemData == NULL )
-		return false;
+    CX2Item::ItemData& kItemData = static_cast<CX2Item::ItemData&>( kItemData_ );
 
 	if ( sortType < CX2Inventory::ST_NONE || sortType >= CX2Inventory::ST_END )
 		return false;
 
 	if( 
-        g_pData->GetItemManager()->GetItemTemplet( pItemData->m_ItemID ) == NULL 
+        g_pData->GetItemManager()->GetItemTemplet( kItemData.m_ItemID ) == NULL 
         )
 	{
 		//WCHAR buff[256] = {0};
-		//wsprintf( buff, L"아이템 번호로 아이템 템플릿찾기 실패, 닉네임 : %s, 아이템 번호 : %d", m_pOwnerUnit->GetNickName(), pItemData->m_ItemID );
+		//wsprintf( buff, L"아이템 번호로 아이템 템플릿찾기 실패, 닉네임 : %s, 아이템 번호 : %d", m_pOwnerUnit->GetNickName(), kItemData.m_ItemID );
 		//ErrorLogMsg(XEM_ERROR74, buff );
 
 		//KEGS_DELETE_ITEM_REQ kPacket;
@@ -375,7 +391,7 @@ bool CX2Inventory::AddItem( CX2Inventory::SORT_TYPE sortType, int slotID, CX2Ite
 		return false;
 	}
 
-	CX2Item* pItem = new CX2Item( pItemData, m_pOwnerUnit );
+	CX2Item* pItem = new CX2Item( kItemData, m_pOwnerUnit );
 	bool bRetVal = AddItem( sortType, slotID, pItem );
 	if( bRetVal == false )
 	{
@@ -387,13 +403,13 @@ bool CX2Inventory::AddItem( CX2Inventory::SORT_TYPE sortType, int slotID, CX2Ite
 
 
 // @bExcludeEquipped : 장착장비는 제외하고
-int CX2Inventory::GetNumItemByTID( int itemTID, bool bExcludeEquipped /*= false*/, bool bIncludeBankType /* = false */)
+int CX2Inventory::GetNumItemByTID( int itemTID, bool bExcludeEquipped /*= false*/, bool bIncludeBankType /* = false */) const
 {
 	int nCount = 0;
-	map<UidType,InvenSlotData*>::iterator iter;
+	map<UidType,InvenSlotData*>::const_iterator iter;
 	for ( iter = m_ItemMapTotal.begin(); iter != m_ItemMapTotal.end(); ++iter )
 	{
-		InvenSlotData* pInvenSlotData = iter->second;
+		const InvenSlotData* pInvenSlotData = iter->second;
 		if ( pInvenSlotData->m_pItem != NULL &&
 			pInvenSlotData->m_pItem->GetItemTemplet() &&
 			pInvenSlotData->m_pItem->GetItemTemplet()->GetItemID() == itemTID 
@@ -437,7 +453,7 @@ int CX2Inventory::GetNumItemByTID( int itemTID, bool bExcludeEquipped /*= false*
 			}
 #endif SERV_PET_SYSTEM
 
-			nCount += pInvenSlotData->m_pItem->GetItemData()->m_Quantity;
+			nCount += pInvenSlotData->m_pItem->GetItemData().m_Quantity;
 		}
 	}
 
@@ -446,13 +462,13 @@ int CX2Inventory::GetNumItemByTID( int itemTID, bool bExcludeEquipped /*= false*
 
 //{{ mauntain : 김태환 [2012.07.16] 인벤토리 및 슬롯을 고려한 아이템 구입 갯수 연산
 #ifdef SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
-int CX2Inventory::GetNumSlotByTID( int itemTID )		/// 해당 아이템 아이디가 있는 Slot의 갯수를 반환
+int CX2Inventory::GetNumSlotByTID( int itemTID ) const		/// 해당 아이템 아이디가 있는 Slot의 갯수를 반환
 {
 	int nCount = 0;
-	map<UidType,InvenSlotData*>::iterator iter;
+	map<UidType,InvenSlotData*>::const_iterator iter;
 	for ( iter = m_ItemMapTotal.begin(); iter != m_ItemMapTotal.end(); ++iter )
 	{
-		InvenSlotData* pInvenSlotData = iter->second;
+		const InvenSlotData* pInvenSlotData = iter->second;
 		if ( pInvenSlotData->m_pItem != NULL &&
 			 pInvenSlotData->m_pItem->GetItemTemplet() &&
 			 pInvenSlotData->m_pItem->GetItemTemplet()->GetItemID() == itemTID 
@@ -467,12 +483,12 @@ int CX2Inventory::GetNumSlotByTID( int itemTID )		/// 해당 아이템 아이디가 있는 
 #endif SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
 //}}
 
-CX2Item* CX2Inventory::GetItemByTID( int itemTID, bool bIncludeBankType /* = false */ )
+CX2Item* CX2Inventory::GetItemByTID( int itemTID, bool bIncludeBankType /* = false */, bool bIncludeEEquipType /*= true */ ) const
 {
-	map<UidType,InvenSlotData*>::iterator iter;
+	map<UidType,InvenSlotData*>::const_iterator iter;
 	for ( iter = m_ItemMapTotal.begin(); iter != m_ItemMapTotal.end(); ++iter )
 	{
-		InvenSlotData* pInvenSlotData = iter->second;
+		const InvenSlotData* pInvenSlotData = iter->second;
 		if ( pInvenSlotData->m_pItem != NULL &&
 			pInvenSlotData->m_pItem->GetItemTemplet() &&
 			pInvenSlotData->m_pItem->GetItemTemplet()->GetItemID() == itemTID 
@@ -496,6 +512,12 @@ CX2Item* CX2Inventory::GetItemByTID( int itemTID, bool bIncludeBankType /* = fal
 			}
 #endif SERV_PET_SYSTEM
 
+			// 오현빈 // 2013-08-21 // 장착 중인 장비는 포함하지 않는 예외 추가
+			if( false == bIncludeEEquipType && ST_E_EQUIP == pInvenSlotData->m_SortType )
+			{
+				continue;
+			}
+
 			return pInvenSlotData->m_pItem;
 		}
 	}
@@ -503,14 +525,42 @@ CX2Item* CX2Inventory::GetItemByTID( int itemTID, bool bIncludeBankType /* = fal
 	return NULL;
 }
 
-CX2Item* CX2Inventory::GetItem( UidType itemUID, bool bIncludeBankType /* = false */ )
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN  
+int CX2Inventory::GetItemByTIDCheckAll( int itemTID, bool bIncludeBankType /* = false */ )
+{
+	int ItemCountByitemTID = 0;
+
+	map<UidType,InvenSlotData*>::iterator iter;
+	for ( iter = m_ItemMapTotal.begin(); iter != m_ItemMapTotal.end(); ++iter )
+	{
+		InvenSlotData* pInvenSlotData = iter->second;
+		if ( pInvenSlotData->m_pItem != NULL &&
+			pInvenSlotData->m_pItem->GetItemTemplet() &&
+			pInvenSlotData->m_pItem->GetItemTemplet()->GetItemID() == itemTID )
+		{
+			//{{ kimhc // 2009-08-08 // SortType이 ST_BANK인 것을 찾을 것인가?
+			//}} kimhc // 2009-08-08 // SortType이 ST_BANK인 것을 찾을 것인가?
+#ifdef	SERV_SHARING_BANK_TEST
+			if ( pInvenSlotData->m_SortType	== ST_SHARE_BANK )
+				continue;						
+#endif	SERV_SHARING_BANK_TEST
+
+			ItemCountByitemTID += pInvenSlotData->m_pItem->GetItemData().m_Quantity;
+		}
+	}
+
+	return ItemCountByitemTID;
+}
+#endif SERV_EVENT_TEAR_OF_ELWOMAN 
+
+CX2Item* CX2Inventory::GetItem( UidType itemUID, bool bIncludeBankType /* = false */ ) const
 {
 	CX2Item* pItem = NULL;
-	map<UidType,InvenSlotData*>::iterator iter;
+	map<UidType,InvenSlotData*>::const_iterator iter;
 	iter = m_ItemMapTotal.find( itemUID );
 	if( iter != m_ItemMapTotal.end() )
 	{
-		InvenSlotData* pInvenSlotData = iter->second;
+		const InvenSlotData* pInvenSlotData = iter->second;
 		if ( pInvenSlotData != NULL )
 		{
 			//{{ kimhc // 2009-08-08 // SortType이 ST_BANK인 것을 찾을 것인가?
@@ -532,7 +582,7 @@ CX2Item* CX2Inventory::GetItem( UidType itemUID, bool bIncludeBankType /* = fals
 	return pItem;
 }
 
-CX2Item* CX2Inventory::GetItem( SORT_TYPE sortType, int slotID )
+CX2Item* CX2Inventory::GetItem( SORT_TYPE sortType, int slotID ) const
 {
 	ASSERT( sortType > CX2Inventory::ST_NONE && sortType < CX2Inventory::ST_END );
 
@@ -540,11 +590,11 @@ CX2Item* CX2Inventory::GetItem( SORT_TYPE sortType, int slotID )
 		return NULL;
 
 	CX2Item* pItem = NULL;
-	map < int, InvenSlotData* >::iterator iter;
+	map < int, InvenSlotData* >::const_iterator iter;
     iter = m_ItemMap[sortType].find( slotID );
 	if ( iter != m_ItemMap[sortType].end() )
 	{
-		InvenSlotData* pInvenSlotData = iter->second;
+		const InvenSlotData* pInvenSlotData = iter->second;
 
 		if ( pInvenSlotData != NULL )
 			pItem = pInvenSlotData->m_pItem;
@@ -555,15 +605,15 @@ CX2Item* CX2Inventory::GetItem( SORT_TYPE sortType, int slotID )
 
 
 
-CX2Inventory::SORT_TYPE CX2Inventory::GetItemSortType( UidType itemUID )
+CX2Inventory::SORT_TYPE CX2Inventory::GetItemSortType( UidType itemUID ) const
 {
 	CX2Inventory::SORT_TYPE sortType = CX2Inventory::ST_NONE;
 
-	map<UidType,InvenSlotData*>::iterator iter;
+	map<UidType,InvenSlotData*>::const_iterator iter;
 	iter = m_ItemMapTotal.find( itemUID );
 	if( iter != m_ItemMapTotal.end() )
 	{
-		InvenSlotData* pInvenSlotData = iter->second;
+		const InvenSlotData* pInvenSlotData = iter->second;
 		if ( pInvenSlotData != NULL )
 			sortType = pInvenSlotData->m_SortType;
 	}
@@ -571,8 +621,11 @@ CX2Inventory::SORT_TYPE CX2Inventory::GetItemSortType( UidType itemUID )
 	return sortType;
 }
 
-int CX2Inventory::GetUsedSlotNum( CX2Inventory::SORT_TYPE sortType )
+int CX2Inventory::GetUsedSlotNum( CX2Inventory::SORT_TYPE sortType ) const
 {
+    if ( false == ( sortType >= SORT_TYPE(0) && sortType < ST_END ) )
+        return 0;
+
 	int slotCount = 0;
 
 	for ( int i = 0; i < GetItemMaxNum( sortType ); i++ )
@@ -645,12 +698,15 @@ bool CX2Inventory::RemoveItem( SORT_TYPE sortType, int slotID )
 
 
 
-CX2Inventory::SORT_TYPE CX2Inventory::GetSortTypeByItemTemplet( const CX2Item::ItemTemplet* pItemTemplet )
+CX2Inventory::SORT_TYPE CX2Inventory::GetSortTypeByItemTemplet( const CX2ItemTemplet_Base* pItemTemplet_ ) const
 {
 	CX2Inventory::SORT_TYPE sortType = ST_NONE;
 
-	if ( pItemTemplet == NULL )
+	if ( pItemTemplet_ == NULL )
 		return sortType;
+
+    const CX2Item::ItemTemplet* pItemTemplet = static_cast<const CX2Item::ItemTemplet*>( pItemTemplet_ );
+
 
 	//{{ kimhc // 2010-01-05 // PC방 프리미엄 서비스
 #ifdef	PC_BANG_WORK
@@ -721,7 +777,7 @@ CX2Inventory::SORT_TYPE CX2Inventory::GetSortTypeByItemTemplet( const CX2Item::I
 }
 
 
-CX2Inventory::SORT_TYPE CX2Inventory::GetSortTypeByID( int itemID )
+CX2Inventory::SORT_TYPE CX2Inventory::GetSortTypeByID( int itemID ) const
 {
     return GetSortTypeByItemTemplet( g_pData->GetItemManager()->GetItemTemplet( itemID ) );
 }
@@ -729,7 +785,7 @@ CX2Inventory::SORT_TYPE CX2Inventory::GetSortTypeByID( int itemID )
 
 
 
-bool CX2Inventory::IsPossibleAddItem( SORT_TYPE sortType )
+bool CX2Inventory::IsPossibleAddItem( SORT_TYPE sortType ) const
 {
 	if ( sortType < CX2Inventory::ST_NONE || sortType >= CX2Inventory::ST_END )
 		return false;
@@ -740,7 +796,7 @@ bool CX2Inventory::IsPossibleAddItem( SORT_TYPE sortType )
 	return true;
 }
 
-wstring	CX2Inventory::GetInvenSortTypeName( SORT_TYPE sortType )
+wstring	CX2Inventory::GetInvenSortTypeName( SORT_TYPE sortType ) const
 {
 	wstring invenSortTypeName = L"";
 
@@ -819,13 +875,13 @@ wstring	CX2Inventory::GetInvenSortTypeName( SORT_TYPE sortType )
 	return invenSortTypeName;
 }
 
-CX2Item* CX2Inventory::GetEquippingItemByEquipPos( CX2Unit::EQIP_POSITION equipPos, bool bFashion )
+CX2Item* CX2Inventory::GetEquippingItemByEquipPos( CX2Unit::EQIP_POSITION equipPos, bool bFashion ) const
 {
-	map< int, InvenSlotData* >::iterator it;
+	map< int, InvenSlotData* >::const_iterator it;
 
 	for( it = m_ItemMap[ST_E_EQUIP].begin(); it != m_ItemMap[ST_E_EQUIP].end(); it++ )
 	{
-		InvenSlotData* pInvenSlotData = it->second;
+		const InvenSlotData* pInvenSlotData = it->second;
 		if ( pInvenSlotData != NULL )
 		{
 			if ( pInvenSlotData->m_pItem != NULL 
@@ -845,19 +901,18 @@ CX2Item* CX2Inventory::GetEquippingItemByEquipPos( CX2Unit::EQIP_POSITION equipP
 	return NULL;
 }
 #ifdef MODIFY_INFORMER_INVEN
-void CX2Inventory::GetItemIDAndNum( OUT set<int>& setItemPackage )
+void CX2Inventory::GetItemIDAndNum( OUT set<int>& setItemPackage ) const
 #else
-void CX2Inventory::GetItemIDAndNum( map<int, int>& mapItemPackage )
+void CX2Inventory::GetItemIDAndNum( map<int, int>& mapItemPackage ) const
 #endif //MODIFY_INFORMER_INVEN
 {
 	int nCount = 0;
-	map<UidType,InvenSlotData*>::iterator iter;
+	map<UidType,InvenSlotData*>::const_iterator iter;
 	for ( iter = m_ItemMapTotal.begin(); iter != m_ItemMapTotal.end(); ++iter )
 	{
-		InvenSlotData* pInvenSlotData = iter->second;
+		const InvenSlotData* pInvenSlotData = iter->second;
 		if ( pInvenSlotData->m_pItem != NULL &&
-			pInvenSlotData->m_pItem->GetItemTemplet() != NULL &&
-			pInvenSlotData->m_pItem->GetItemData() != NULL )
+			pInvenSlotData->m_pItem->GetItemTemplet() != NULL )
 		{
             int itemID = pInvenSlotData->m_pItem->GetItemTemplet()->GetItemID();
 
@@ -872,26 +927,26 @@ void CX2Inventory::GetItemIDAndNum( map<int, int>& mapItemPackage )
 			mit = mapItemPackage.find( itemID );
 			if ( mit != mapItemPackage.end() )
 			{
-				mit->second += pInvenSlotData->m_pItem->GetItemData()->m_Quantity;
+				mit->second += pInvenSlotData->m_pItem->GetItemData().m_Quantity;
 			}
 			else
 			{
-				mapItemPackage.insert( std::make_pair( itemID, pInvenSlotData->m_pItem->GetItemData()->m_Quantity ) );
+				mapItemPackage.insert( std::make_pair( itemID, pInvenSlotData->m_pItem->GetItemData().m_Quantity ) );
 			}
 #endif //MODIFY_INFORMER_INVEN
 		}
 	}
 }
 
-int CX2Inventory::GetEqiuppingSetItemNum( int setID )
+int CX2Inventory::GetEqiuppingSetItemNum( int setID ) const
 {
 	int itemNum = 0;
 
-	map< int, InvenSlotData* >::iterator it;
+	map< int, InvenSlotData* >::const_iterator it;
 
 	for( it = m_ItemMap[ST_E_EQUIP].begin(); it != m_ItemMap[ST_E_EQUIP].end(); it++ )
 	{
-		InvenSlotData* pInvenSlotData = it->second;
+		const InvenSlotData* pInvenSlotData = it->second;
 		if ( pInvenSlotData != NULL )
 		{
 			if ( pInvenSlotData->m_pItem != NULL && 
@@ -910,16 +965,16 @@ int CX2Inventory::GetEqiuppingSetItemNum( int setID )
 }
 
 #ifdef ITEM_EXPIRE_USING_ITEM_UID
-bool CX2Inventory::CheckEquippingItem( int itemID, UidType itemUID /*= -1*/ )
+bool CX2Inventory::CheckEquippingItem( int itemID, UidType itemUID /*= -1*/ ) const
 #else ITEM_EXPIRE_USING_ITEM_UID
-bool CX2Inventory::CheckEquippingItem( int itemID )
+bool CX2Inventory::CheckEquippingItem( int itemID ) const
 #endif ITEM_EXPIRE_USING_ITEM_UID
 {
-	map< int, InvenSlotData* >::iterator it;
+	map< int, InvenSlotData* >::const_iterator it;
 
 	for( it = m_ItemMap[ST_E_EQUIP].begin(); it != m_ItemMap[ST_E_EQUIP].end(); it++ )
 	{
-		InvenSlotData* pInvenSlotData = it->second;
+		const InvenSlotData* pInvenSlotData = it->second;
 		if ( pInvenSlotData != NULL )
 		{
 			if ( pInvenSlotData->m_pItem != NULL 
@@ -942,17 +997,17 @@ bool CX2Inventory::CheckEquippingItem( int itemID )
 
 
 // note!! UI에 정보 update용으로만 사용해야 함
-CX2Stat::Stat CX2Inventory::GetSetItemOptionStat()
+CX2Stat::Stat CX2Inventory::GetSetItemOptionStat() const
 {
 	CX2Stat::Stat tempStat;
 
 	map<int,int> mapSetIDNPartsNum;
 
-	map< int, InvenSlotData* >::iterator it;
+	map< int, InvenSlotData* >::const_iterator it;
 
 	for( it = m_ItemMap[ST_E_EQUIP].begin(); it != m_ItemMap[ST_E_EQUIP].end(); it++ )
 	{
-		InvenSlotData* pInvenSlotData = it->second;
+		const InvenSlotData* pInvenSlotData = it->second;
 		if ( pInvenSlotData != NULL )
 		{
 			if ( pInvenSlotData->m_pItem != NULL &&
@@ -961,9 +1016,8 @@ CX2Stat::Stat CX2Inventory::GetSetItemOptionStat()
 			{
 				//{{ kimhc // 실시간 엘소드 중 실시간 내구도 감소
 #ifdef REAL_TIME_ELSWORD
-				if ( pInvenSlotData->m_pItem->GetItemData() == NULL || 
-					( pInvenSlotData->m_pItem->GetItemData()->m_PeriodType == CX2Item::PT_ENDURANCE && 
-					pInvenSlotData->m_pItem->GetItemData()->m_Endurance <= 0 ) )
+				if ( pInvenSlotData->m_pItem->GetItemData().m_PeriodType == CX2Item::PT_ENDURANCE && 
+					pInvenSlotData->m_pItem->GetItemData().m_Endurance <= 0 )
 					continue;
 #endif REAL_TIME_ELSWORD
 				//}} kimhc // 실시간 엘소드 중 실시간 내구도 감소
@@ -995,7 +1049,7 @@ CX2Stat::Stat CX2Inventory::GetSetItemOptionStat()
 	for ( int i = 0; i < (int)vecSetItemOptions.size(); i++ )
 	{
 		int socketOptionID = vecSetItemOptions[i];
-		CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
+		const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( socketOptionID );
 		if( NULL == pSocketData )
 			continue;
 
@@ -1017,15 +1071,15 @@ CX2Stat::Stat CX2Inventory::GetSetItemOptionStat()
 	return tempStat;
 }
 
-CX2Inventory::InvenSlotData* CX2Inventory::GetInvenSlot( CX2Inventory::SORT_TYPE sortType, int slotID )
+const CX2Inventory::InvenSlotData* CX2Inventory::GetInvenSlot( CX2Inventory::SORT_TYPE sortType, int slotID ) const
 {
-	InvenSlotData* pInvenSlotData = NULL;
+	const InvenSlotData* pInvenSlotData = NULL;
 
 	if ( sortType < CX2Inventory::ST_NONE || sortType >= CX2Inventory::ST_END )
 		return pInvenSlotData;
 
 
-	map< int, InvenSlotData* >::iterator iter;
+	map< int, InvenSlotData* >::const_iterator iter;
 	iter = m_ItemMap[sortType].find( slotID );
 	if ( iter != m_ItemMap[sortType].end() )
 	{
@@ -1037,12 +1091,15 @@ CX2Inventory::InvenSlotData* CX2Inventory::GetInvenSlot( CX2Inventory::SORT_TYPE
 
 void CX2Inventory::SetItemMaxNum( SORT_TYPE sortType, int maxNum )
 {
-	m_MaxSize[sortType] = maxNum;
+    if ( sortType >= SORT_TYPE(0) && sortType < ST_END )
+    {
+	    m_MaxSize[sortType] = maxNum;
 
-	if( ST_BANK == sortType )
-	{
-		m_eBankMembershipGrade	= static_cast< CX2Inventory::MEMBERSHIP_PRIVATE_BANK >( maxNum );
-	}
+	    if( ST_BANK == sortType )
+	    {
+		    m_eBankMembershipGrade	= static_cast< CX2Inventory::MEMBERSHIP_PRIVATE_BANK >( maxNum );
+	    }
+    }
 }
 
 //{{ kimhc // 2009-10-19 // 최대 MP 증가 값 얻어오기
@@ -1131,9 +1188,11 @@ void	CX2Inventory::ResetItems( const std::map< UidType, KInventoryItemInfo >& ma
 //				g_pData->GetRelationshipManager()
 			}
 #endif // ADDED_RELATIONSHIP_SYSTEM
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( kInfo );	
-			//RemoveItem( static_cast< SORT_TYPE >( kInfo.m_cSlotCategory ), kInfo.m_sSlotID );
-			AddItem( static_cast< SORT_TYPE >( kInfo.m_cSlotCategory ), kInfo.m_sSlotID, pItemData );
+            {
+			    CX2Item::ItemData kItemData( kInfo );	
+			    //RemoveItem( static_cast< SORT_TYPE >( kInfo.m_cSlotCategory ), kInfo.m_sSlotID );
+			    AddItem( static_cast< SORT_TYPE >( kInfo.m_cSlotCategory ), kInfo.m_sSlotID, kItemData );
+            }
 		}
 	}
 
@@ -1217,8 +1276,8 @@ void	CX2Inventory::SetPetInventory( const std::vector<KInventoryItemInfo>& vecIn
 	{
 		if( itemInfo.m_iItemUID > 0 )
 		{
-			CX2Item::ItemData* pItemData = new CX2Item::ItemData( itemInfo );
-			AddItem( (CX2Inventory::SORT_TYPE)itemInfo.m_cSlotCategory, itemInfo.m_sSlotID, pItemData );
+			CX2Item::ItemData kItemDat( itemInfo );
+			AddItem( (CX2Inventory::SORT_TYPE)itemInfo.m_cSlotCategory, itemInfo.m_sSlotID, kItemDat );
 		}
 	}
 
@@ -1268,12 +1327,12 @@ bool CX2Inventory::UpdateCategorySlotList( SORT_TYPE sortType, std::vector<UidTy
 //}}
 
 #ifdef NEW_ITEM_NOTICE
-bool CX2Inventory::IsNewItem( SORT_TYPE sortType, UidType iItemUID)
+bool CX2Inventory::IsNewItem( SORT_TYPE sortType, UidType iItemUID) const
 {
 	if( true == m_SetNewItem.empty() )
 		return false;
 
-	set<UidType>::iterator it = m_SetNewItem.find(iItemUID);
+	set<UidType>::const_iterator it = m_SetNewItem.find(iItemUID);
 	if( it != m_SetNewItem.end() )
 	{
 		return true;
@@ -1317,20 +1376,19 @@ bool CX2Inventory::EraseNewItem( UidType iItemUID )
     param	 : sortType : 정렬 타입 , ItemID : 아이템ID
 	return   : 해당 아이템의 UID
 */
-UidType CX2Inventory::GetItemUIDBySortTypeAndItemID( CX2Inventory::SORT_TYPE sortType_, int ItemID_ )
+UidType CX2Inventory::GetItemUIDBySortTypeAndItemID( CX2Inventory::SORT_TYPE sortType_, int ItemID_ ) const
 {
 	if ( sortType_ < CX2Inventory::ST_NONE || sortType_ >= CX2Inventory::ST_END )
 		return 0;
 
-	map< int, InvenSlotData* >::iterator it;
+	map< int, InvenSlotData* >::const_iterator it;
 
 	for( it = m_ItemMap[sortType_].begin(); it != m_ItemMap[sortType_].end(); it++ )
 	{	
-		InvenSlotData* pSlotData = it->second;
-		if( NULL != pSlotData && NULL != pSlotData->m_pItem && 
-			NULL != pSlotData->m_pItem->GetItemData() )
+		const InvenSlotData* pSlotData = it->second;
+		if( NULL != pSlotData && NULL != pSlotData->m_pItem )
 		{
-			if( ItemID_ == pSlotData->m_pItem->GetItemData()->m_ItemID )
+			if( ItemID_ == pSlotData->m_pItem->GetItemData().m_ItemID )
 			{
 				return pSlotData->m_pItem->GetUID();
 			}
@@ -1343,13 +1401,13 @@ UidType CX2Inventory::GetItemUIDBySortTypeAndItemID( CX2Inventory::SORT_TYPE sor
 
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM			
-bool CX2Inventory::GetRelationItemInfoFromServer ()
+bool CX2Inventory::GetRelationItemInfoFromServer () const
 {
-	map<UidType,InvenSlotData*>::iterator iter;
+	map<UidType,InvenSlotData*>::const_iterator iter;
 	vector <UidType> vecItemUID;
 	for ( iter = m_ItemMapTotal.begin(); iter != m_ItemMapTotal.end(); ++iter )
 	{
-		InvenSlotData* pInvenSlotData = iter->second;
+		const InvenSlotData* pInvenSlotData = iter->second;
 		if ( pInvenSlotData->m_pItem != NULL &&
 			pInvenSlotData->m_pItem->GetItemTemplet() )
 		{
@@ -1373,3 +1431,25 @@ bool CX2Inventory::GetRelationItemInfoFromServer ()
 	return false;
 }
 #endif // ADDED_RELATIONSHIP_SYSTEM
+
+#ifdef GOOD_ELSWORD //JHKang 
+bool CX2Inventory::IsAbleToExpandSlot() const
+{
+	if ( GetItemMaxNum( ST_EQUIP ) == s_iMaxInventorySize )
+		return false;
+
+	if ( GetItemMaxNum( ST_ACCESSORY ) == s_iMaxInventorySize )
+		return false;
+
+	if ( GetItemMaxNum( ST_MATERIAL ) == s_iMaxInventorySize )
+		return false;
+
+	if ( GetItemMaxNum( ST_SPECIAL ) == s_iMaxInventorySize )
+		return false;
+
+	if( GetItemMaxNum( ST_QUEST ) == s_iMaxInventorySize )
+		return false;
+	
+	return true;
+}
+#endif //GOOD_ELSWORD

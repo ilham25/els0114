@@ -39,7 +39,7 @@ bool CXSLRidingPetManager::AddRidingPetTemplet_LUA()
 	RidingPetTemplet kData;
 	float fStaminaIncreaseRate;
 
-	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"RIDING_PET_ID",			kData.m_iRidingPetID,			RIDING_PET_UNIT_ID,	RIDING_PET_UNIT_ID::RPUI_NONE,	goto end_proc );
+	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"RIDING_PET_ID",			kData.m_iRidingPetID,			RIDING_PET_UNIT_ID,	RPUI_NONE,	goto end_proc );
 	LUA_GET_VALUE_RETURN(		luaManager, L"STAMINA_INCREASE_RATE",	fStaminaIncreaseRate,			0.0f,	goto end_proc );
 	LUA_GET_VALUE_RETURN(		luaManager, L"STAMINA_RECOVERY_RATE",	kData.m_fStaminaRecoveryRate,	0.0f,	goto end_proc );
 

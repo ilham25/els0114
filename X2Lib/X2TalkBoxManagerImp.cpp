@@ -87,47 +87,47 @@ CX2TalkBoxManagerImp::CX2TalkBoxManagerImp(void)
 
 	m_nMaxStrLen = 0;	// 관련 함수들 사용하지 않는듯.. 필요없다면 삭제해야함
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	m_pVB = NULL;
-	m_pIB = NULL;
-	HRESULT hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * CX2TalkBoxManagerImp_NUM_FACEUV * sizeof(DRAWFACE_RHW_VERTEX), 
-		D3DUSAGE_WRITEONLY, D3DFVF_DRAWFACE_RHW_VERTEX, D3DPOOL_MANAGED, &m_pVB, NULL );
-	ASSERT( SUCCEEDED( hr ) );
-	hr = g_pKTDXApp->GetDevice()->CreateIndexBuffer( 6 * CX2TalkBoxManagerImp_NUM_FACEUV * sizeof(WORD),
-		D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_MANAGED, &m_pIB, NULL);
-	ASSERT( SUCCEEDED( hr ) );
-
-	if ( m_pIB != NULL )
-	{
-		WORD*    pIndices = NULL;
-		hr = m_pIB->Lock(0, 0, (void**)&pIndices, 0 );
-		ASSERT( SUCCEEDED( hr ) );
-		if ( SUCCEEDED( hr ) )
-		{
-			int iFace = 0;
-			for( int i = 0; i < CX2TalkBoxManagerImp_NUM_FACEUV; i++, iFace += 4 )
-			{
-				*(pIndices++) = iFace + 0;
-				*(pIndices++) = iFace + 1;
-				*(pIndices++) = iFace + 2;
-				*(pIndices++) = iFace + 2;
-				*(pIndices++) = iFace + 1;
-				*(pIndices++) = iFace + 3;
-			}
-			m_pIB->Unlock();
-		}//if
-	}
-
-	m__fX_VB = 0.f;
-	m__fY_VB = 0.f;
-	m_fX_VB = 0.f;
-	m_fY_VB = 0.f;
-	m_fCenterWidth_VB = 0.f;
-	m_fCenterHeight_VB = 0.f;
-	m_fWidthScale_VB = 0.f;
-	m_fHeightScale_VB = 0.f;
-	m_d3dxBackTexColor_VB = D3DXCOLOR(0,0,0,0);
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	m_pVB = NULL;
+//	m_pIB = NULL;
+//	HRESULT hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer( 4 * CX2TalkBoxManagerImp_NUM_FACEUV * sizeof(DRAWFACE_RHW_VERTEX), 
+//		D3DUSAGE_WRITEONLY, D3DFVF_DRAWFACE_RHW_VERTEX, D3DPOOL_MANAGED, &m_pVB, NULL );
+//	ASSERT( SUCCEEDED( hr ) );
+//	hr = g_pKTDXApp->GetDevice()->CreateIndexBuffer( 6 * CX2TalkBoxManagerImp_NUM_FACEUV * sizeof(WORD),
+//		D3DUSAGE_WRITEONLY, D3DFMT_INDEX16, D3DPOOL_MANAGED, &m_pIB, NULL);
+//	ASSERT( SUCCEEDED( hr ) );
+//
+//	if ( m_pIB != NULL )
+//	{
+//		WORD*    pIndices = NULL;
+//		hr = m_pIB->Lock(0, 0, (void**)&pIndices, 0 );
+//		ASSERT( SUCCEEDED( hr ) );
+//		if ( SUCCEEDED( hr ) )
+//		{
+//			int iFace = 0;
+//			for( int i = 0; i < CX2TalkBoxManagerImp_NUM_FACEUV; i++, iFace += 4 )
+//			{
+//				*(pIndices++) = iFace + 0;
+//				*(pIndices++) = iFace + 1;
+//				*(pIndices++) = iFace + 2;
+//				*(pIndices++) = iFace + 2;
+//				*(pIndices++) = iFace + 1;
+//				*(pIndices++) = iFace + 3;
+//			}
+//			m_pIB->Unlock();
+//		}//if
+//	}
+//
+//	m__fX_VB = 0.f;
+//	m__fY_VB = 0.f;
+//	m_fX_VB = 0.f;
+//	m_fY_VB = 0.f;
+//	m_fCenterWidth_VB = 0.f;
+//	m_fCenterHeight_VB = 0.f;
+//	m_fWidthScale_VB = 0.f;
+//	m_fHeightScale_VB = 0.f;
+//	m_d3dxBackTexColor_VB = D3DXCOLOR(0,0,0,0);
+//#endif
 }
 
 CX2TalkBoxManagerImp::~CX2TalkBoxManagerImp(void)
@@ -146,10 +146,10 @@ CX2TalkBoxManagerImp::~CX2TalkBoxManagerImp(void)
 #endif // ADDED_RELATIONSHIP_SYSTEM
 	SAFE_CLOSE( m_pSoundOver );
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	SAFE_RELEASE( m_pVB );
-	SAFE_RELEASE( m_pIB );
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	SAFE_RELEASE( m_pVB );
+//	SAFE_RELEASE( m_pIB );
+//#endif
 }
 
 bool CX2TalkBoxManagerImp::MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
@@ -381,18 +381,47 @@ HRESULT CX2TalkBoxManagerImp::OnFrameRender()
 #endif // ADDED_RELATIONSHIP_SYSTEM
 		{
 
-		DrawBalloon( talkBox.m_TalkBoxType, 
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == false )
+			{
+				DrawBalloon( talkBox.m_TalkBoxType, 
+					talkBox.m_vPos.x * g_pKTDXApp->GetResolutionScaleX(),
+					talkBox.m_vPos.y * g_pKTDXApp->GetResolutionScaleY(),
+					(talkBox.m_vTalkBoxSize.x - m_fTalkBoxCornerWidth * 2.f) * g_pKTDXApp->GetResolutionScaleX(),
+					(talkBox.m_vTalkBoxSize.y - m_fTalkBoxCornerHeight * 2.f) * g_pKTDXApp->GetResolutionScaleY(), 
+					talkBox.m_vTalkBoxSizeScale.x, talkBox.m_vTalkBoxSizeScale.y, talkBox.m_fTalkBoxTipLerpCoef, talkBox.m_BackTexColor 
+					);
+			}
+#else
+			DrawBalloon( talkBox.m_TalkBoxType, 
 			talkBox.m_vPos.x * g_pKTDXApp->GetResolutionScaleX(),
 			talkBox.m_vPos.y * g_pKTDXApp->GetResolutionScaleY(),
 			(talkBox.m_vTalkBoxSize.x - m_fTalkBoxCornerWidth * 2.f) * g_pKTDXApp->GetResolutionScaleX(),
 			(talkBox.m_vTalkBoxSize.y - m_fTalkBoxCornerHeight * 2.f) * g_pKTDXApp->GetResolutionScaleY(), 
 			talkBox.m_vTalkBoxSizeScale.x, talkBox.m_vTalkBoxSizeScale.y, talkBox.m_fTalkBoxTipLerpCoef, talkBox.m_BackTexColor 
 			);
+#endif ALWAYS_SCREEN_SHOT_TEST
 		}
 		
 		CKTDGFontManager::FontArticle* pFontArticle = m_pFont->Get2DArticle( talkBox.m_iFontArticleID );
 		if ( pFontArticle != NULL )
 		{	
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() ==  false )
+			{
+				//{{ 허상형 : [2009/10/28] //	m_bUseOutLine이 true 면 FS_SHELL로 그리도록 조건문 추가
+				if( talkBox.m_bUseOutLine == true )
+				{
+					m_pFont->Draw2DText( talkBox.m_wstrTalkContent.c_str(), (int)pFontArticle->pos.x, (int)pFontArticle->pos.y, pFontArticle->color, pFontArticle->outLineColor,
+						DT_LEFT, CKTDGFontManager::FS_SHELL, pFontArticle->iSpreadCount );
+				}
+				else
+				{
+					m_pFont->Draw2DText( talkBox.m_wstrTalkContent.c_str(), (int)pFontArticle->pos.x, (int)pFontArticle->pos.y, pFontArticle->color, pFontArticle->outLineColor,
+						DT_LEFT, CKTDGFontManager::FS_NONE, pFontArticle->iSpreadCount );
+				}
+			}
+#else 
 			//{{ 허상형 : [2009/10/28] //	m_bUseOutLine이 true 면 FS_SHELL로 그리도록 조건문 추가
 			if( talkBox.m_bUseOutLine == true )
 			{
@@ -404,6 +433,7 @@ HRESULT CX2TalkBoxManagerImp::OnFrameRender()
 				m_pFont->Draw2DText( talkBox.m_wstrTalkContent.c_str(), (int)pFontArticle->pos.x, (int)pFontArticle->pos.y, pFontArticle->color, pFontArticle->outLineColor,
 				DT_LEFT, CKTDGFontManager::FS_NONE, pFontArticle->iSpreadCount );
 			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 		}
 	}
 
@@ -664,13 +694,13 @@ bool CX2TalkBoxManagerImp::CheckMousePointInTalkbox( D3DXVECTOR2 mousePos, UidTy
 
 		talkBox.m_bOverTalkBox = false;
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		if ( mousePos.x >= _pos.x + fCornerWidthScaled && mousePos.x <= _pos.x + fCenterWidthScaled &&
 			mousePos.y >= _pos.y - fCenterHeightScaled - fCornerHeightScaled && mousePos.y <= _pos.y + fCenterHeightScaled - fCornerHeightScaled - fCornerHeightScaled )
-#else
-		if ( mousePos.x >= _pos.x + fCornerWidthScaled - m_OffsetPosX  && mousePos.x <= _pos.x + fCenterWidthScaled + m_OffsetPosX * 2 &&
-			mousePos.y >= _pos.y - fCenterHeightScaled - fCornerHeightScaled && mousePos.y <= _pos.y + fCenterHeightScaled - fCornerHeightScaled - fCornerHeightScaled )
-#endif
+//#else
+//		if ( mousePos.x >= _pos.x + fCornerWidthScaled - m_OffsetPosX  && mousePos.x <= _pos.x + fCenterWidthScaled + m_OffsetPosX * 2 &&
+//			mousePos.y >= _pos.y - fCenterHeightScaled - fCornerHeightScaled && mousePos.y <= _pos.y + fCenterHeightScaled - fCornerHeightScaled - fCornerHeightScaled )
+//#endif
 		{
 			uidType = talkBox.m_OwnerUnitUID;
 			if(m_bOverTalkBox == true)
@@ -767,12 +797,12 @@ void CX2TalkBoxManagerImp::DrawBalloon( int iType, float fX, float fY, float fCe
 		*/
 	}
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	DrawBalloonBodyAndTip( iType, _fX, _fY, fX, fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
-#else
-	DrawBalloonBody( _fX, _fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
-	DrawBalloonTip( iType, fX, fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
-#endif
+//#else
+//	DrawBalloonBody( _fX, _fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
+//	DrawBalloonTip( iType, fX, fY, fCenterWidth, fCenterHeight, fWidthScale, fHeightScale, backTexColor );
+//#endif
 
 	//{{ robobeg : 2008-10-24
 	//g_pKTDXApp->SetNULLTexture( 0 );
@@ -830,24 +860,24 @@ void CX2TalkBoxManagerImp::DrawTalkBoxEffectInnerFrame ( int iType, float _fX, f
 
 	KD3DPUSH( m_RenderStateID );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_DRAWFACE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 		g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1, 
 			D3DPT_TRIANGLESTRIP, 2, &aFaces[ 0 ] );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
-	for( int i = 0; i < CX2TalkBoxManagerImp_EffectTalkBox_NUM_FACEUV; i++ )
-	{
-		g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, &aFaces[ i * 4 ], sizeof(DRAWFACE_RHW_VERTEX) );
-	}//for
-#endif
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
+//	for( int i = 0; i < CX2TalkBoxManagerImp_EffectTalkBox_NUM_FACEUV; i++ )
+//	{
+//		g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, &aFaces[ i * 4 ], sizeof(DRAWFACE_RHW_VERTEX) );
+//	}//for
+//#endif
 
 	KD3DEND();
 
 }
 #endif // ADDED_RELATIONSHIP_SYSTEM
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 // fx, fy는 left bottom의 좌표, 말풍선의 사각형을 그린다
 void CX2TalkBoxManagerImp::DrawBalloonBodyAndTip( int iType, float _fX, float _fY, float fX, float fY, float fCenterWidth, float fCenterHeight, 
 										   float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor )
@@ -916,20 +946,20 @@ void CX2TalkBoxManagerImp::DrawBalloonBodyAndTip( int iType, float _fX, float _f
 
 	KD3DPUSH( m_RenderStateID );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_DRAWFACE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	for( int i = 0; i < CX2TalkBoxManagerImp_NUM_FACEUV; i++ )
 	{
 		g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 			, D3DPT_TRIANGLESTRIP, 2, &aFaces[ i * 4 ] );
 	}//for
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
-	for( int i = 0; i < CX2TalkBoxManagerImp_NUM_FACEUV; i++ )
-	{
-		g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, &aFaces[ i * 4 ], sizeof(DRAWFACE_RHW_VERTEX) );
-	}//for
-#endif
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
+//	for( int i = 0; i < CX2TalkBoxManagerImp_NUM_FACEUV; i++ )
+//	{
+//		g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, &aFaces[ i * 4 ], sizeof(DRAWFACE_RHW_VERTEX) );
+//	}//for
+//#endif
 
     KD3DEND();
 }
@@ -1125,323 +1155,323 @@ void CX2TalkBoxManagerImp::SetFaceUV( DRAWFACE_RHW_VERTEX vertex[4], float nX, f
 }
 
 
-#else
-void CX2TalkBoxManagerImp::DrawFaceUV( float nX, float nY, float nWidth, float nHeight, float fU, float fV, float fTexWidth, float fTexHeight,								    
-									  float fClockWiseRotate, int iFlipType, D3DCOLOR color /* = 0xffffffff  */)
-{
-	KTDXPROFILE();
-
-	KD3DPUSH( m_RenderStateID );
-
-	DRAWFACE_RHW_VERTEX vertex[4];
-	ZeroMemory( vertex, sizeof(DRAWFACE_RHW_VERTEX) * 4 );
-
-	float X1 = (float)nX - 0.5f;
-	float Y1 = (float)nY - 0.5f;
-	float X2 = (float)(nX + nWidth) - 0.5f;
-	float Y2 = (float)(nY + nHeight) - 0.5f;
-
-	//float temp =  1.0f / nHeight;
-
-	float UMin = fU;
-	float VMin = fV;
-	float UMax = fU + fTexWidth;
-	float VMax = fV + fTexHeight;
-
-	//Set up the 4 corners of a small square
-	vertex[0].x = X1;     vertex[0].y = Y1;
-	vertex[0].u = UMin;   vertex[0].v = VMin;
-	vertex[0].z = 1.0f;   vertex[0].rhw = 1.0f;	
-
-	vertex[1].x = X1;     vertex[1].y = Y2;
-	vertex[1].u = UMin;   vertex[1].v = VMax;
-	vertex[1].z = 1.0f;   vertex[1].rhw = 1.0f;
-
-	vertex[2].x = X2;     vertex[2].y = Y1;
-	vertex[2].u = UMax;   vertex[2].v = VMin;
-	vertex[2].z = 1.0f;   vertex[2].rhw = 1.0f;
-
-	vertex[3].x = X2;     vertex[3].y = Y2;
-	vertex[3].u = UMax;   vertex[3].v = VMax;
-	vertex[3].z = 1.0f;   vertex[3].rhw = 1.0f;
-
-	if ( fClockWiseRotate == 0.0f )
-	{
-		if( iFlipType == 1 ) // x축을 기준으로 flip
-		{
-		}
-		else if( iFlipType == 2 ) // y축을 기준으로 flip
-		{		
-			vertex[2].u = UMin;   vertex[2].v = VMin;
-			vertex[3].u = UMin;   vertex[3].v = VMax;
-			vertex[0].u = UMax;   vertex[0].v = VMin;
-			vertex[1].u = UMax;   vertex[1].v = VMax;
-		}
-		else // no flip
-		{		
-			vertex[0].u = UMin;   vertex[0].v = VMin;
-			vertex[1].u = UMin;   vertex[1].v = VMax;
-			vertex[2].u = UMax;   vertex[2].v = VMin;
-			vertex[3].u = UMax;   vertex[3].v = VMax;
-		}
-	}
-	else if( 90.f == fClockWiseRotate )
-	{
-		if( iFlipType == 1 ) // x축을 기준으로 flip
-		{
-			vertex[0].u = UMin;   vertex[0].v = VMin;
-			vertex[2].u = UMin;   vertex[2].v = VMax;
-			vertex[1].u = UMax;   vertex[1].v = VMin;
-			vertex[3].u = UMax;   vertex[3].v = VMax;
-		}
-		else if( iFlipType == 2 ) // y축을 기준으로 flip
-		{		
-			vertex[3].u = UMin;   vertex[3].v = VMin;
-			vertex[1].u = UMin;   vertex[1].v = VMax;
-			vertex[2].u = UMax;   vertex[2].v = VMin;
-			vertex[0].u = UMax;   vertex[0].v = VMax;
-		}
-		else // no flip
-		{		
-			vertex[2].u = UMin;   vertex[2].v = VMin;
-			vertex[0].u = UMin;   vertex[0].v = VMax;
-			vertex[3].u = UMax;   vertex[3].v = VMin;
-			vertex[1].u = UMax;   vertex[1].v = VMax;
-		}
-	}
-	else if( 180.f == fClockWiseRotate )
-	{
-		if( iFlipType == 1 ) // x축을 기준으로 flip
-		{
-
-		}
-		else if( iFlipType == 2 ) // y축을 기준으로 flip
-		{		
-			vertex[1].u = UMin;   vertex[1].v = VMin;
-			vertex[0].u = UMin;   vertex[0].v = VMax;
-			vertex[3].u = UMax;   vertex[3].v = VMin;
-			vertex[2].u = UMax;   vertex[2].v = VMax;
-		}
-		else // no flip
-		{		
-			// fix!! flip 구현 덜 됬음
-			vertex[3].u = UMin;   vertex[3].v = VMin;
-			vertex[2].u = UMin;   vertex[2].v = VMax;
-			vertex[1].u = UMax;   vertex[1].v = VMin;
-			vertex[0].u = UMax;   vertex[0].v = VMax;
-		}
-
-	}
-	else if ( 270.f == fClockWiseRotate )
-	{
-		vertex[1].u = UMin;   vertex[1].v = VMin;
-		vertex[3].u = UMin;   vertex[3].v = VMax;
-		vertex[0].u = UMax;   vertex[0].v = VMin;
-		vertex[2].u = UMax;   vertex[2].v = VMax;
-	}
-
-	vertex[0].color = vertex[1].color = vertex[2].color = vertex[3].color = color;
-
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
-
-
-	KD3DEND()
-}
-
-
-// fx, fy는 left bottom의 좌표, 말풍선의 사각형을 그린다
-void CX2TalkBoxManagerImp::DrawBalloonBody( float fX, float fY, float fCenterWidth, float fCenterHeight, 
-										   float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor )
-{
-	KTDXPROFILE();
-
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
-    DRAWFACE_RHW_VERTEX aFaces[CX2TalkBoxManagerImp_NUM_FACEUV * 4];
-#endif
-
-	const float MAGIC_TEX_OFFSET = 0.f / 512.f;
-	const float MAGIC_TEX_BLOCK_WIDTH  = 85.f / 512.f;
-	const float MAGIC_TEX_BLOCK_HEIGHT = 85.f / 512.f;
-
-	const float fCornerWidthScaled  = m_fTalkBoxCornerWidth * fWidthScale;
-	const float fCornerHeightScaled = m_fTalkBoxCornerHeight * fHeightScale;
-
-	const float fCenterWidthScaled  = fCenterWidth * fWidthScale;
-	const float fCenterHeightScaled = fCenterHeight * fHeightScale;
-
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
-	// bottom_left_corner
-	DrawFaceUV( &aFaces[ 0 * 4 ], fX, fY, fCornerWidthScaled, fCornerHeightScaled, 
-		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// bottom_center
-	DrawFaceUV( &aFaces[ 1 * 4 ], fX+fCornerWidthScaled, fY, fCenterWidthScaled, fCornerHeightScaled, 
-		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_HEIGHT, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT,
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// bottom_right_corner
-	DrawFaceUV( &aFaces[ 2 * 4 ], fX+fCornerWidthScaled+fCenterWidthScaled, fY, fCornerWidthScaled, fCornerHeightScaled, 
-		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT,
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// center_left
-	DrawFaceUV( &aFaces[ 3 * 4 ], fX, fY-fCenterHeightScaled, fCornerWidthScaled, fCenterHeightScaled, 
-		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// center_center	
-	DrawFaceUV( &aFaces[ 4 * 4 ], fX+fCornerWidthScaled, fY-fCenterHeightScaled, fCenterWidthScaled, fCenterHeightScaled, 
-		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// center_right
-	DrawFaceUV( &aFaces[ 5 * 4 ], fX+fCornerWidthScaled+fCenterWidthScaled, fY-fCenterHeightScaled, fCornerWidthScaled, fCenterHeightScaled, 
-		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// upper_left
-	DrawFaceUV( &aFaces[ 6 * 4 ], fX, fY-fCornerHeightScaled-fCenterHeightScaled, fCornerWidthScaled, fCornerHeightScaled,
-		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 0.f, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// upper_center
-	DrawFaceUV( &aFaces[ 7 * 4 ], fX+fCornerWidthScaled, fY-fCornerHeightScaled-fCenterHeightScaled, fCenterWidthScaled, fCornerHeightScaled,
-		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 0.f, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// upper_right
-	DrawFaceUV( &aFaces[ 8 * 4 ], fX+fCornerWidthScaled+fCenterWidthScaled, fY-fCornerHeightScaled-fCenterHeightScaled, fCornerWidthScaled, fCornerHeightScaled,
-		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 0.f, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-#else
-	// bottom_left_corner
-	DrawFaceUV( fX, fY, fCornerWidthScaled, fCornerHeightScaled, 
-		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// bottom_center
-	DrawFaceUV( fX+fCornerWidthScaled, fY, fCenterWidthScaled, fCornerHeightScaled, 
-		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_HEIGHT, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT,
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// bottom_right_corner
-	DrawFaceUV( fX+fCornerWidthScaled+fCenterWidthScaled, fY, fCornerWidthScaled, fCornerHeightScaled, 
-		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT,
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// center_left
-	DrawFaceUV( fX, fY-fCenterHeightScaled, fCornerWidthScaled, fCenterHeightScaled, 
-		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// center_center	
-	DrawFaceUV( fX+fCornerWidthScaled, fY-fCenterHeightScaled, fCenterWidthScaled, fCenterHeightScaled, 
-		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// center_right
-	DrawFaceUV( fX+fCornerWidthScaled+fCenterWidthScaled, fY-fCenterHeightScaled, fCornerWidthScaled, fCenterHeightScaled, 
-		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// upper_left
-	DrawFaceUV( fX, fY-fCornerHeightScaled-fCenterHeightScaled, fCornerWidthScaled, fCornerHeightScaled,
-		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 0.f, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// upper_center
-	DrawFaceUV( fX+fCornerWidthScaled, fY-fCornerHeightScaled-fCenterHeightScaled, fCenterWidthScaled, fCornerHeightScaled,
-		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 0.f, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-
-	// upper_right
-	DrawFaceUV( fX+fCornerWidthScaled+fCenterWidthScaled, fY-fCornerHeightScaled-fCenterHeightScaled, fCornerWidthScaled, fCornerHeightScaled,
-		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 0.f, 
-		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
-#endif
-}
-
-// 말풍선의 뾰족한 부분을 뾰족한 부분의 시작점(fX, fY)를 중심으로 그린다
-void CX2TalkBoxManagerImp::DrawBalloonTip( int iType, float fX, float fY, float fCenterWidth, float fCenterHeight, 
-										  float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor )
-{
-	KTDXPROFILE();
-
-
-	const float MAGIC_TEX_BLOCK_WIDTH  = 85.f / 512.f;
-	const float MAGIC_TEX_BLOCK_HEIGHT = 85.f / 512.f;
-
-	const float fCornerWidthScaled  = m_fTalkBoxCornerWidth  * fWidthScale;
-	const float fCornerHeightScaled = m_fTalkBoxCornerHeight * fHeightScale;
-
-
-	const float MAGIC_OFFSET_Y = fCornerHeightScaled * 0.2f; // tip이 balloon 사각형을 약간 덮을 수 있도록
-
-	float _fX = 0.0f;
-	float _fY = 0.0f; 
-	float _fRotAngle = 0.0f;
-	int _flip = 0;
-	switch( iType )
-	{
-	case TBT_FROM_DOWN_LEFT: 
-		{
-			_fX = fX - fCornerWidthScaled * 0.5f;
-			_fY = fY - MAGIC_OFFSET_Y;
-			_fRotAngle = 0.f;
-		} 
-		break;
-
-	case TBT_FROM_DOWN_RIGHT: 
-		{
-			_fX = fX - fCornerWidthScaled * 0.5f;
-			_fY = fY - MAGIC_OFFSET_Y;
-			_flip = 2;
-			_fRotAngle = 0.0f;
-
-		} 
-		break;
-
-	case TBT_FROM_UP_RIGHT: 
-		{
-			_fX = fX - fCornerWidthScaled * 0.5f;
-			_fY = fY + fCornerHeightScaled + MAGIC_OFFSET_Y;
-			_fRotAngle = 180.f;
-		} 
-		break;
-
-	case TBT_FROM_UP_LEFT: 
-		{
-			_fX = fX - fCornerWidthScaled * 0.5f;
-			_fY = fY + fCornerHeightScaled + MAGIC_OFFSET_Y;
-			_fRotAngle = 180.f;
-			_flip = 2;
-		} 
-		break;
-		/*
-		case TBT_FROM_LEFT: // LEFT
-		{
-		_fX = fX;
-		_fY = fY + fCornerHeightScaled * 0.5f;
-		_fRotAngle = 90.f;
-		} break;
-
-		case TBT_FROM_RIGHT: // RIGHT
-		{
-		_fX = fX - fCornerWidthScaled;
-		_fY = fY + fCornerHeightScaled * 0.5f;
-		_fRotAngle = 270.f;
-		} break;
-		*/
-	}
-
-	DrawFaceUV( _fX, _fY, fCornerWidthScaled, fCornerHeightScaled,
-		259.f/512.f, 1.f/512.f, 88.f/512.f, 121.f/512.f, 
-		_fRotAngle, _flip, backTexColor );
-
-}
-#endif
+//#else
+//void CX2TalkBoxManagerImp::DrawFaceUV( float nX, float nY, float nWidth, float nHeight, float fU, float fV, float fTexWidth, float fTexHeight,								    
+//									  float fClockWiseRotate, int iFlipType, D3DCOLOR color /* = 0xffffffff  */)
+//{
+//	KTDXPROFILE();
+//
+//	KD3DPUSH( m_RenderStateID );
+//
+//	DRAWFACE_RHW_VERTEX vertex[4];
+//	ZeroMemory( vertex, sizeof(DRAWFACE_RHW_VERTEX) * 4 );
+//
+//	float X1 = (float)nX - 0.5f;
+//	float Y1 = (float)nY - 0.5f;
+//	float X2 = (float)(nX + nWidth) - 0.5f;
+//	float Y2 = (float)(nY + nHeight) - 0.5f;
+//
+//	//float temp =  1.0f / nHeight;
+//
+//	float UMin = fU;
+//	float VMin = fV;
+//	float UMax = fU + fTexWidth;
+//	float VMax = fV + fTexHeight;
+//
+//	//Set up the 4 corners of a small square
+//	vertex[0].x = X1;     vertex[0].y = Y1;
+//	vertex[0].u = UMin;   vertex[0].v = VMin;
+//	vertex[0].z = 1.0f;   vertex[0].rhw = 1.0f;	
+//
+//	vertex[1].x = X1;     vertex[1].y = Y2;
+//	vertex[1].u = UMin;   vertex[1].v = VMax;
+//	vertex[1].z = 1.0f;   vertex[1].rhw = 1.0f;
+//
+//	vertex[2].x = X2;     vertex[2].y = Y1;
+//	vertex[2].u = UMax;   vertex[2].v = VMin;
+//	vertex[2].z = 1.0f;   vertex[2].rhw = 1.0f;
+//
+//	vertex[3].x = X2;     vertex[3].y = Y2;
+//	vertex[3].u = UMax;   vertex[3].v = VMax;
+//	vertex[3].z = 1.0f;   vertex[3].rhw = 1.0f;
+//
+//	if ( fClockWiseRotate == 0.0f )
+//	{
+//		if( iFlipType == 1 ) // x축을 기준으로 flip
+//		{
+//		}
+//		else if( iFlipType == 2 ) // y축을 기준으로 flip
+//		{		
+//			vertex[2].u = UMin;   vertex[2].v = VMin;
+//			vertex[3].u = UMin;   vertex[3].v = VMax;
+//			vertex[0].u = UMax;   vertex[0].v = VMin;
+//			vertex[1].u = UMax;   vertex[1].v = VMax;
+//		}
+//		else // no flip
+//		{		
+//			vertex[0].u = UMin;   vertex[0].v = VMin;
+//			vertex[1].u = UMin;   vertex[1].v = VMax;
+//			vertex[2].u = UMax;   vertex[2].v = VMin;
+//			vertex[3].u = UMax;   vertex[3].v = VMax;
+//		}
+//	}
+//	else if( 90.f == fClockWiseRotate )
+//	{
+//		if( iFlipType == 1 ) // x축을 기준으로 flip
+//		{
+//			vertex[0].u = UMin;   vertex[0].v = VMin;
+//			vertex[2].u = UMin;   vertex[2].v = VMax;
+//			vertex[1].u = UMax;   vertex[1].v = VMin;
+//			vertex[3].u = UMax;   vertex[3].v = VMax;
+//		}
+//		else if( iFlipType == 2 ) // y축을 기준으로 flip
+//		{		
+//			vertex[3].u = UMin;   vertex[3].v = VMin;
+//			vertex[1].u = UMin;   vertex[1].v = VMax;
+//			vertex[2].u = UMax;   vertex[2].v = VMin;
+//			vertex[0].u = UMax;   vertex[0].v = VMax;
+//		}
+//		else // no flip
+//		{		
+//			vertex[2].u = UMin;   vertex[2].v = VMin;
+//			vertex[0].u = UMin;   vertex[0].v = VMax;
+//			vertex[3].u = UMax;   vertex[3].v = VMin;
+//			vertex[1].u = UMax;   vertex[1].v = VMax;
+//		}
+//	}
+//	else if( 180.f == fClockWiseRotate )
+//	{
+//		if( iFlipType == 1 ) // x축을 기준으로 flip
+//		{
+//
+//		}
+//		else if( iFlipType == 2 ) // y축을 기준으로 flip
+//		{		
+//			vertex[1].u = UMin;   vertex[1].v = VMin;
+//			vertex[0].u = UMin;   vertex[0].v = VMax;
+//			vertex[3].u = UMax;   vertex[3].v = VMin;
+//			vertex[2].u = UMax;   vertex[2].v = VMax;
+//		}
+//		else // no flip
+//		{		
+//			// fix!! flip 구현 덜 됬음
+//			vertex[3].u = UMin;   vertex[3].v = VMin;
+//			vertex[2].u = UMin;   vertex[2].v = VMax;
+//			vertex[1].u = UMax;   vertex[1].v = VMin;
+//			vertex[0].u = UMax;   vertex[0].v = VMax;
+//		}
+//
+//	}
+//	else if ( 270.f == fClockWiseRotate )
+//	{
+//		vertex[1].u = UMin;   vertex[1].v = VMin;
+//		vertex[3].u = UMin;   vertex[3].v = VMax;
+//		vertex[0].u = UMax;   vertex[0].v = VMin;
+//		vertex[2].u = UMax;   vertex[2].v = VMax;
+//	}
+//
+//	vertex[0].color = vertex[1].color = vertex[2].color = vertex[3].color = color;
+//
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
+//
+//
+//	KD3DEND()
+//}
+//
+//
+//// fx, fy는 left bottom의 좌표, 말풍선의 사각형을 그린다
+//void CX2TalkBoxManagerImp::DrawBalloonBody( float fX, float fY, float fCenterWidth, float fCenterHeight, 
+//										   float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor )
+//{
+//	KTDXPROFILE();
+//
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//    DRAWFACE_RHW_VERTEX aFaces[CX2TalkBoxManagerImp_NUM_FACEUV * 4];
+//#endif
+//
+//	const float MAGIC_TEX_OFFSET = 0.f / 512.f;
+//	const float MAGIC_TEX_BLOCK_WIDTH  = 85.f / 512.f;
+//	const float MAGIC_TEX_BLOCK_HEIGHT = 85.f / 512.f;
+//
+//	const float fCornerWidthScaled  = m_fTalkBoxCornerWidth * fWidthScale;
+//	const float fCornerHeightScaled = m_fTalkBoxCornerHeight * fHeightScale;
+//
+//	const float fCenterWidthScaled  = fCenterWidth * fWidthScale;
+//	const float fCenterHeightScaled = fCenterHeight * fHeightScale;
+//
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//	// bottom_left_corner
+//	DrawFaceUV( &aFaces[ 0 * 4 ], fX, fY, fCornerWidthScaled, fCornerHeightScaled, 
+//		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// bottom_center
+//	DrawFaceUV( &aFaces[ 1 * 4 ], fX+fCornerWidthScaled, fY, fCenterWidthScaled, fCornerHeightScaled, 
+//		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_HEIGHT, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT,
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// bottom_right_corner
+//	DrawFaceUV( &aFaces[ 2 * 4 ], fX+fCornerWidthScaled+fCenterWidthScaled, fY, fCornerWidthScaled, fCornerHeightScaled, 
+//		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT,
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// center_left
+//	DrawFaceUV( &aFaces[ 3 * 4 ], fX, fY-fCenterHeightScaled, fCornerWidthScaled, fCenterHeightScaled, 
+//		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// center_center	
+//	DrawFaceUV( &aFaces[ 4 * 4 ], fX+fCornerWidthScaled, fY-fCenterHeightScaled, fCenterWidthScaled, fCenterHeightScaled, 
+//		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// center_right
+//	DrawFaceUV( &aFaces[ 5 * 4 ], fX+fCornerWidthScaled+fCenterWidthScaled, fY-fCenterHeightScaled, fCornerWidthScaled, fCenterHeightScaled, 
+//		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// upper_left
+//	DrawFaceUV( &aFaces[ 6 * 4 ], fX, fY-fCornerHeightScaled-fCenterHeightScaled, fCornerWidthScaled, fCornerHeightScaled,
+//		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 0.f, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// upper_center
+//	DrawFaceUV( &aFaces[ 7 * 4 ], fX+fCornerWidthScaled, fY-fCornerHeightScaled-fCenterHeightScaled, fCenterWidthScaled, fCornerHeightScaled,
+//		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 0.f, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// upper_right
+//	DrawFaceUV( &aFaces[ 8 * 4 ], fX+fCornerWidthScaled+fCenterWidthScaled, fY-fCornerHeightScaled-fCenterHeightScaled, fCornerWidthScaled, fCornerHeightScaled,
+//		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 0.f, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//#else
+//	// bottom_left_corner
+//	DrawFaceUV( fX, fY, fCornerWidthScaled, fCornerHeightScaled, 
+//		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// bottom_center
+//	DrawFaceUV( fX+fCornerWidthScaled, fY, fCenterWidthScaled, fCornerHeightScaled, 
+//		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_HEIGHT, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT,
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// bottom_right_corner
+//	DrawFaceUV( fX+fCornerWidthScaled+fCenterWidthScaled, fY, fCornerWidthScaled, fCornerHeightScaled, 
+//		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT, MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_HEIGHT,
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// center_left
+//	DrawFaceUV( fX, fY-fCenterHeightScaled, fCornerWidthScaled, fCenterHeightScaled, 
+//		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// center_center	
+//	DrawFaceUV( fX+fCornerWidthScaled, fY-fCenterHeightScaled, fCenterWidthScaled, fCenterHeightScaled, 
+//		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// center_right
+//	DrawFaceUV( fX+fCornerWidthScaled+fCenterWidthScaled, fY-fCenterHeightScaled, fCornerWidthScaled, fCenterHeightScaled, 
+//		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 1.f * MAGIC_TEX_BLOCK_HEIGHT, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// upper_left
+//	DrawFaceUV( fX, fY-fCornerHeightScaled-fCenterHeightScaled, fCornerWidthScaled, fCornerHeightScaled,
+//		MAGIC_TEX_OFFSET + 0.f, MAGIC_TEX_OFFSET + 0.f, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// upper_center
+//	DrawFaceUV( fX+fCornerWidthScaled, fY-fCornerHeightScaled-fCenterHeightScaled, fCenterWidthScaled, fCornerHeightScaled,
+//		MAGIC_TEX_OFFSET + MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 0.f, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//
+//	// upper_right
+//	DrawFaceUV( fX+fCornerWidthScaled+fCenterWidthScaled, fY-fCornerHeightScaled-fCenterHeightScaled, fCornerWidthScaled, fCornerHeightScaled,
+//		MAGIC_TEX_OFFSET + 2.f * MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_OFFSET + 0.f, 
+//		MAGIC_TEX_BLOCK_WIDTH, MAGIC_TEX_BLOCK_HEIGHT, 0.f, 0, backTexColor );
+//#endif
+//}
+//
+//// 말풍선의 뾰족한 부분을 뾰족한 부분의 시작점(fX, fY)를 중심으로 그린다
+//void CX2TalkBoxManagerImp::DrawBalloonTip( int iType, float fX, float fY, float fCenterWidth, float fCenterHeight, 
+//										  float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor )
+//{
+//	KTDXPROFILE();
+//
+//
+//	const float MAGIC_TEX_BLOCK_WIDTH  = 85.f / 512.f;
+//	const float MAGIC_TEX_BLOCK_HEIGHT = 85.f / 512.f;
+//
+//	const float fCornerWidthScaled  = m_fTalkBoxCornerWidth  * fWidthScale;
+//	const float fCornerHeightScaled = m_fTalkBoxCornerHeight * fHeightScale;
+//
+//
+//	const float MAGIC_OFFSET_Y = fCornerHeightScaled * 0.2f; // tip이 balloon 사각형을 약간 덮을 수 있도록
+//
+//	float _fX = 0.0f;
+//	float _fY = 0.0f; 
+//	float _fRotAngle = 0.0f;
+//	int _flip = 0;
+//	switch( iType )
+//	{
+//	case TBT_FROM_DOWN_LEFT: 
+//		{
+//			_fX = fX - fCornerWidthScaled * 0.5f;
+//			_fY = fY - MAGIC_OFFSET_Y;
+//			_fRotAngle = 0.f;
+//		} 
+//		break;
+//
+//	case TBT_FROM_DOWN_RIGHT: 
+//		{
+//			_fX = fX - fCornerWidthScaled * 0.5f;
+//			_fY = fY - MAGIC_OFFSET_Y;
+//			_flip = 2;
+//			_fRotAngle = 0.0f;
+//
+//		} 
+//		break;
+//
+//	case TBT_FROM_UP_RIGHT: 
+//		{
+//			_fX = fX - fCornerWidthScaled * 0.5f;
+//			_fY = fY + fCornerHeightScaled + MAGIC_OFFSET_Y;
+//			_fRotAngle = 180.f;
+//		} 
+//		break;
+//
+//	case TBT_FROM_UP_LEFT: 
+//		{
+//			_fX = fX - fCornerWidthScaled * 0.5f;
+//			_fY = fY + fCornerHeightScaled + MAGIC_OFFSET_Y;
+//			_fRotAngle = 180.f;
+//			_flip = 2;
+//		} 
+//		break;
+//		/*
+//		case TBT_FROM_LEFT: // LEFT
+//		{
+//		_fX = fX;
+//		_fY = fY + fCornerHeightScaled * 0.5f;
+//		_fRotAngle = 90.f;
+//		} break;
+//
+//		case TBT_FROM_RIGHT: // RIGHT
+//		{
+//		_fX = fX - fCornerWidthScaled;
+//		_fY = fY + fCornerHeightScaled * 0.5f;
+//		_fRotAngle = 270.f;
+//		} break;
+//		*/
+//	}
+//
+//	DrawFaceUV( _fX, _fY, fCornerWidthScaled, fCornerHeightScaled,
+//		259.f/512.f, 1.f/512.f, 88.f/512.f, 121.f/512.f, 
+//		_fRotAngle, _flip, backTexColor );
+//
+//}
+//#endif
 
 #ifdef NUMBER_TO_LANGUAGE
 void CX2TalkBoxManagerImp::LineBreak( int& nRow, int& iColumnSize, wstring& wstrSpeech, bool bTrade  )
@@ -1708,95 +1738,95 @@ void CX2TalkBoxManagerImp::ResetTalkBox( TalkBox& talkBox )
 	}
 }
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-void CX2TalkBoxManagerImp::DrawFace( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color /* = 0xffffffff  */)
-{
-	KTDXPROFILE();
-
-	KD3DPUSH( m_RenderStateID )
-
-		DRAWFACE_RHW_VERTEX vertex[4];
-	ZeroMemory( vertex, sizeof(DRAWFACE_RHW_VERTEX) * 4 );
-
-	float X1 = (float)nX - 0.5f;
-	float Y1 = (float)nY - 0.5f;
-	float X2 = (float)(nX + nWidth) - 0.5f;
-	float Y2 = (float)(nY + nHeight) - 0.5f;
-
-	float temp =  1.0f / nHeight;
-
-	float UMax = 1.0f;
-	float VMax = 1.0f - temp;
-
-	//Set up the 4 corners of a small square
-	vertex[0].x = X1;     vertex[0].y = Y1;
-	vertex[0].z = 1.0f;   vertex[0].rhw = 1.0f;
-	vertex[0].u = 0.0f;   vertex[0].v = temp;
-
-	vertex[1].x = X1;     vertex[1].y = Y2;
-	vertex[1].u = 0.0f;   vertex[1].v = VMax;
-	vertex[1].z = 1.0f;   vertex[1].rhw = 1.0f;
-
-	vertex[2].x = X2;     vertex[2].y = Y1;
-	vertex[2].u = UMax;   vertex[2].v = temp;
-	vertex[2].z = 1.0f;   vertex[2].rhw = 1.0f;
-
-	vertex[3].x = X2;     vertex[3].y = Y2;
-	vertex[3].u = UMax;   vertex[3].v = VMax;
-	vertex[3].z = 1.0f;   vertex[3].rhw = 1.0f;
-
-	vertex[0].color = vertex[1].color = vertex[2].color = vertex[3].color = color;
-
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
-
-	KD3DEND()
-}
-
-void CX2TalkBoxManagerImp::DrawReverseFace( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color /* = 0xffffffff  */)
-{
-	KTDXPROFILE();
-
-	KD3DPUSH( m_RenderStateID )
-
-		DRAWFACE_RHW_VERTEX vertex[4];
-	ZeroMemory( vertex, sizeof(DRAWFACE_RHW_VERTEX) * 4 );
-
-	float X1 = (float)nX - 0.5f;
-	float Y1 = (float)nY - 0.5f;
-	float X2 = (float)(nX + nWidth);
-	float Y2 = (float)(nY + nHeight);
-
-	float temp =  1.0f / nHeight;
-
-	float UMax = 1.0f;
-	float VMax = 1.0f - temp;
-
-	//Set up the 4 corners of a small square
-	vertex[0].x = X2;     vertex[0].y = Y2;
-	vertex[0].z = 1.0f;   vertex[0].rhw = 1.0f;
-	vertex[0].u = 0.0f;   vertex[0].v = temp;
-
-	vertex[1].x = X2;     vertex[1].y = Y1;
-	vertex[1].z = 1.0f;   vertex[1].rhw = 1.0f;
-	vertex[1].u = 0.0f;   vertex[1].v = VMax;
-
-	vertex[2].x = X1;     vertex[2].y = Y2;
-	vertex[2].z = 1.0f;   vertex[2].rhw = 1.0f;
-	vertex[2].u = UMax;   vertex[2].v = temp;
-
-	vertex[3].x = X1;     vertex[3].y = Y1;
-	vertex[3].z = 1.0f;   vertex[3].rhw = 1.0f;
-	vertex[3].u = UMax;   vertex[3].v = VMax;
-
-	vertex[0].color = vertex[1].color = vertex[2].color = vertex[3].color = color;
-
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
-
-	KD3DEND()
-}
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//void CX2TalkBoxManagerImp::DrawFace( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color /* = 0xffffffff  */)
+//{
+//	KTDXPROFILE();
+//
+//	KD3DPUSH( m_RenderStateID )
+//
+//		DRAWFACE_RHW_VERTEX vertex[4];
+//	ZeroMemory( vertex, sizeof(DRAWFACE_RHW_VERTEX) * 4 );
+//
+//	float X1 = (float)nX - 0.5f;
+//	float Y1 = (float)nY - 0.5f;
+//	float X2 = (float)(nX + nWidth) - 0.5f;
+//	float Y2 = (float)(nY + nHeight) - 0.5f;
+//
+//	float temp =  1.0f / nHeight;
+//
+//	float UMax = 1.0f;
+//	float VMax = 1.0f - temp;
+//
+//	//Set up the 4 corners of a small square
+//	vertex[0].x = X1;     vertex[0].y = Y1;
+//	vertex[0].z = 1.0f;   vertex[0].rhw = 1.0f;
+//	vertex[0].u = 0.0f;   vertex[0].v = temp;
+//
+//	vertex[1].x = X1;     vertex[1].y = Y2;
+//	vertex[1].u = 0.0f;   vertex[1].v = VMax;
+//	vertex[1].z = 1.0f;   vertex[1].rhw = 1.0f;
+//
+//	vertex[2].x = X2;     vertex[2].y = Y1;
+//	vertex[2].u = UMax;   vertex[2].v = temp;
+//	vertex[2].z = 1.0f;   vertex[2].rhw = 1.0f;
+//
+//	vertex[3].x = X2;     vertex[3].y = Y2;
+//	vertex[3].u = UMax;   vertex[3].v = VMax;
+//	vertex[3].z = 1.0f;   vertex[3].rhw = 1.0f;
+//
+//	vertex[0].color = vertex[1].color = vertex[2].color = vertex[3].color = color;
+//
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
+//
+//	KD3DEND()
+//}
+//
+//void CX2TalkBoxManagerImp::DrawReverseFace( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color /* = 0xffffffff  */)
+//{
+//	KTDXPROFILE();
+//
+//	KD3DPUSH( m_RenderStateID )
+//
+//		DRAWFACE_RHW_VERTEX vertex[4];
+//	ZeroMemory( vertex, sizeof(DRAWFACE_RHW_VERTEX) * 4 );
+//
+//	float X1 = (float)nX - 0.5f;
+//	float Y1 = (float)nY - 0.5f;
+//	float X2 = (float)(nX + nWidth);
+//	float Y2 = (float)(nY + nHeight);
+//
+//	float temp =  1.0f / nHeight;
+//
+//	float UMax = 1.0f;
+//	float VMax = 1.0f - temp;
+//
+//	//Set up the 4 corners of a small square
+//	vertex[0].x = X2;     vertex[0].y = Y2;
+//	vertex[0].z = 1.0f;   vertex[0].rhw = 1.0f;
+//	vertex[0].u = 0.0f;   vertex[0].v = temp;
+//
+//	vertex[1].x = X2;     vertex[1].y = Y1;
+//	vertex[1].z = 1.0f;   vertex[1].rhw = 1.0f;
+//	vertex[1].u = 0.0f;   vertex[1].v = VMax;
+//
+//	vertex[2].x = X1;     vertex[2].y = Y2;
+//	vertex[2].z = 1.0f;   vertex[2].rhw = 1.0f;
+//	vertex[2].u = UMax;   vertex[2].v = temp;
+//
+//	vertex[3].x = X1;     vertex[3].y = Y1;
+//	vertex[3].z = 1.0f;   vertex[3].rhw = 1.0f;
+//	vertex[3].u = UMax;   vertex[3].v = VMax;
+//
+//	vertex[0].color = vertex[1].color = vertex[2].color = vertex[3].color = color;
+//
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
+//
+//	KD3DEND()
+//}
+//#endif
 
 
 
@@ -2044,7 +2074,7 @@ void CX2TalkBoxManagerImp::TalkBox::GetTalkBoxPosByUnitUID( IN UidType uiOwnerUn
 					if( NULL != pSquareUnit )
 					{
 						{
-							if( CX2SquareUnit::PSS_SHOP == pSquareUnit->GetPersonalShopState() || g_pMain->GetGameOption()->GetFieldSD() == true )
+							if( CX2SquareUnit::PSS_SHOP == pSquareUnit->GetPersonalShopState() || g_pMain->GetGameOption().GetFieldSD() == true )
 							{
 								vPos_ = pSquareUnit->GetPos() + D3DXVECTOR3(0, 150, 0);
 							}

@@ -100,3 +100,33 @@ int KValentineManager::GetRemainTime( IN int iEnum )
 }
 #endif SERV_EVENT_VALENTINE_DUNGEON
 //}
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+void KValentineManager::CheckTimerForInt( IN int iEnum, OUT int& iType )
+{
+	// 타이머 enum 확인
+	if( iEnum < TEM_AFTER_DUNGEON_START || iEnum >= TEM_TOTAL_NUM )
+	{
+		iType = TT_NONE;
+		return;
+	}
+
+	if( IsOnTimer( iEnum ) == false )
+	{
+		iType = TT_NONE;
+		return;
+	}
+
+	switch( iEnum )
+	{
+	case TEM_AFTER_DUNGEON_START:
+		{
+			if( m_kTimer[TEM_AFTER_DUNGEON_START_5_SEC].elapsed() >= 5.f ) // 이벤트 던전 시간 동기화
+			{
+				iType = TT_SYNC_TIME;
+				m_kTimer[TEM_AFTER_DUNGEON_START_5_SEC].restart();
+			}
+		}
+		break;
+	}
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT

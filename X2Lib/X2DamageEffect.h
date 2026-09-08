@@ -1,17 +1,22 @@
 #pragma once
 #include "./X2SoundCloseManager.h"
 
-
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 class CX2DamageEffectBasic
 {
 	public:
 		CX2DamageEffectBasic(){}
 		virtual	~CX2DamageEffectBasic(){}
 };
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 class CX2DamageEffect
 {
 	public:
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        typedef CX2DamageEffect_CEffectHandle   CEffectHandle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 		enum EFFECT_TYPE
 		{
 			DEET_NONE = 0,
@@ -50,7 +55,17 @@ class CX2DamageEffect
 		//#ifdef CHUNG_SECOND_CLASS_CHANGE
 			LOT_NEARST_UID_VECTOR_IN_RANGE,
 		//#endif
+			LOT_UID_BONE_POS,		/// 록온된 유저의 특정 본을 록온
 		};
+
+#ifdef BALANCE_PATCH_20131107
+		enum LOCK_ON_CHECK_SAVE_DIRSPEED
+		{
+			LOCSD_NONE = 0,				//NOT_FIND_TARGET_MOVE_STOP 옵션이 설정되지 않은 일반 LOCK_ON_DATA
+			LOCSD_SAVE_DIR_SPEED,		// NOT_FIND_TARGET_MOVE_STOP 옵션이 설정됨. 현재 DIR_SPEED값을 저장하고 있음.
+			LOCSD_NOT_SAVE_DIR_SPEED,	// NOT_FIND_TARGET_MOVE_STOP 옵션이 설정됨. 현재 DIR_SPEED값을 저장하고 있지 않음.
+		};
+#endif //BALANCE_PATCH_20131107
 
 #ifdef SERV_RENA_NIGHT_WATCHER		// mauntain : 김태환 [2012.05.21] 레나 2차 전직 나이트 와쳐 - 공격용 DamageEffect Type 구분
 		enum  DAMAGE_EFFECT_TYPE
@@ -118,6 +133,9 @@ class CX2DamageEffect
 #ifdef ARA_CHANGE_CLASS_FIRST
 			bool			m_bReverseY;
 #endif // ARA_CHANGE_CLASS_FIRST
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			int             m_iShowLevel;
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 
 			CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hSeq;
 
@@ -165,7 +183,11 @@ class CX2DamageEffect
 #ifdef ARA_CHANGE_CLASS_FIRST
 				m_bReverseY = false;
 #endif // ARA_CHANGE_CLASS_FIRST
-				m_hSeq			= INVALID_PARTICLE_HANDLE;				
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+				m_iShowLevel = CX2GameOption::OL_LOW;
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
+				m_hSeq			= INVALID_PARTICLE_SEQUENCE_HANDLE;				
 			}
 
 			//{{ kimhc // 2009-10-20 // 독구름 작업 관련 추가
@@ -214,7 +236,11 @@ class CX2DamageEffect
 				
 #ifdef ARA_CHANGE_CLASS_FIRST
 				m_bReverseY = t.m_bReverseY;
-#endif // ARA_CHANGE_CLASS_FIRST
+#endif // ARA_CHANGE_CLASS_FIRST				
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+				m_iShowLevel = t.m_iShowLevel;
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 				return *this;
 			}
 #endif	DAMAGE_EFFECT_WORK
@@ -262,6 +288,18 @@ class CX2DamageEffect
 			//int			triggerCount;
 			//float			triggerTime;
 			//CX2DamageEffect	pDamageEffect;
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+			float			fLifeTime; //코드상에서 DieDamageEffect, HitDamageEffect의 lifetime을 변화시키기 위해 추가
+			bool			bOnlyApplyRotateOffset; //vAxisAngleDegree 값은 Hit, Die DamageEffect를 생성하는 DamageEffect의 값을 따라가고
+													// vRotateAngleDegree 값만 Hit, Die DamageEffect괄호 안에 정의된 ROTATE_ 값을 받아와서 쓰도록 만듬.
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+#ifdef LOOP_CREATE_DAMAGE_EFFECT // 김태환
+			float			fLoopInterval;		/// 반복 생성 간격
+			UINT			uiLoopEndCount;		/// 반복 생성 종료 횟수
+			float			fLoopEndTime;		/// 반복 생성 종료 시간
+
+			UINT			uiCreateCount;		/// 해당 이펙트 생성 수
+#endif //LOOP_CREATE_DAMAGE_EFFECT
 
 			DamageEffectData()
 			{
@@ -293,6 +331,17 @@ class CX2DamageEffect
 				//triggerCount	= -1;
 				//triggerTime		= -1.0f;
 				//pDamageEffect	= NULL;
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+				fLifeTime				= -1.f;
+				bOnlyApplyRotateOffset	= false;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+#ifdef LOOP_CREATE_DAMAGE_EFFECT // 김태환
+				fLoopInterval			= 0.f;
+				uiLoopEndCount			= 1;
+				fLoopEndTime			= 99999.f;
+
+				uiCreateCount			= 0;
+#endif //LOOP_CREATE_DAMAGE_EFFECT
 			}
 
 			//{{ kimhc // 2009-10-20 // 독구름 작업 관련 추가
@@ -324,6 +373,11 @@ class CX2DamageEffect
 				iGroupID				= t.iGroupID;			/// 그룹 데미지 설정 추가
 #endif SERV_RAVEN_VETERAN_COMMANDER
 				bInheritBuffFactor		= t.bInheritBuffFactor;
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+				fLifeTime				= t.fLifeTime;
+				bOnlyApplyRotateOffset	= t.bOnlyApplyRotateOffset;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 
 				return *this;
 			}
@@ -425,7 +479,22 @@ class CX2DamageEffect
 #ifdef BALANCE_DEADLY_CHASER_20130214
 			bool			m_bIsNotTargetPreLockOnTarget; /// 이전 타겟팅 한 대상을 재 타겟 하지 않도록 하는 기능
 #endif //BALANCE_DEADLY_CHASER_20130214
-
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+			bool			m_bIsOnlyFront; /// 시전자 위치 기준으로 전방으로만 타겟팅 되도록 하는 기능
+			bool			m_bSaveIsRight;	/// 시전한 타이밍에 시전자 방향 저장.
+			int				m_iSaveLastTouchLineIndex; /// 시전한 타이밍에 시전자의 마지막 라인맵 인덱스 저장.
+			D3DXVECTOR3		m_vecSaveOwnerPos; /// 시전한 타이밍에 시전자 위치 저장.
+#endif //FINALITY_SKILL_SYSTEM
+#ifdef LOCK_ON_USER_ONLY_ON
+			bool			m_bIsOnlyTargetAttack; /// targetunit만 데미지를 입도록 하는 기능
+#endif //LOCK_ON_USER_ONLY_ON
+#ifdef BALANCE_PATCH_20131107
+			LOCK_ON_CHECK_SAVE_DIRSPEED	m_eNotFindTargetMoveStop;	/// 타겟을 찾지 못했으면 제자리에 멈춰있도록 하는 기능.
+			float			m_fSaveDirSpeed;						/// Dir Speed를 저장해둘 변수.
+#endif //BALANCE_PATCH_20131107
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			wstring			m_wstrTargetBoneName;					/// 특정 본을 타겟으로 잡음
+#endif //SERV_9TH_NEW_CHARACTER
 			//}}
 			LockOnData()
 			{
@@ -456,6 +525,22 @@ class CX2DamageEffect
 #ifdef BALANCE_DEADLY_CHASER_20130214
 				m_bIsNotTargetPreLockOnTarget = false; /// 이전 타겟팅 한 대상을 재 타겟 하지 않도록 하는 기능
 #endif //BALANCE_DEADLY_CHASER_20130214
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+				m_bIsOnlyFront = false;
+				m_bSaveIsRight = false;
+				m_iSaveLastTouchLineIndex = -1;
+				m_vecSaveOwnerPos = D3DXVECTOR3(0,0,0);
+#endif //FINALITY_SKILL_SYSTEM
+#ifdef LOCK_ON_USER_ONLY_ON
+				m_bIsOnlyTargetAttack = false;
+#endif //LOCK_ON_USER_ONLY_ON
+#ifdef BALANCE_PATCH_20131107
+				m_eNotFindTargetMoveStop = LOCSD_NONE;
+				m_fSaveDirSpeed = 0.f;
+#endif //BALANCE_PATCH_20131107
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+				m_wstrTargetBoneName = L"";
+#endif //SERV_9TH_NEW_CHARACTER
 			};
 		};
 
@@ -530,13 +615,25 @@ class CX2DamageEffect
 #endif	DAMAGE_EFFECT_WORK
 		//}} kimhc // 2009-10-20 // DamageEffect.lua에 있는 데이터를 저장할 수 있는 구조체
 
-		class CEffect : public CX2DamageEffectBasic
+		class CEffect 
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            : public CX2DamageEffectBasic
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			public:
-				virtual ~CEffect();			
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+				~CEffect();	
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+				virtual    ~CEffect();	
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+               		
 				CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaManager, CX2GameUnit* pGameUnit, const WCHAR* pName, float fPowerRate,
 							D3DXVECTOR3 pos, D3DXVECTOR3 angleDegree, D3DXVECTOR3 moveAxisDegree, float fLandPos = 0.f, float fCreationDelayTime = -1.f, 
-							float fParabolicTimeToReachTarget = 0.f, float fParabolicTimeToLive = 0.f, const int iMeshPlayerIndex = 0, float fHitAddMp = -1.f
+							float fParabolicTimeToReachTarget = 0.f, float fParabolicTimeToLive = 0.f, const int iMeshPlayerIndex = 0, 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                            CEffectHandle hHandle = INVALID_DAMAGE_EFFECT_HANDLE,
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                            float fHitAddMp = -1.f
 #ifdef PET_SKILL_EFFECT_LINE_MAP
 							, bool bPetSkillEffect = false
 #endif //PET_SKILL_EFFECT_LINE_MAP
@@ -560,10 +657,14 @@ class CX2DamageEffect
 
 				//virtual void OnFrameRender();
 
-				virtual void DamageReact( CX2DamageManager::DamageData* pDamageData );
-				virtual void AttackResult();
+				void DamageReact( CX2DamageManager::DamageData* pDamageData );
+				void AttackResult();
 
 				bool			GetLive(){ return m_bLive; }
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+                // CX2DamageEffect 내에서만 사용됨! 외부에서 사용하지 말 것
+                void            _SetDead()  { m_bLive = false; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 				CX2GameUnit*	GetOwnerUnit(){ return ( null != m_optrOwnerUnit ? m_optrOwnerUnit.GetObservable() : NULL ); }
 				const WCHAR*	GetName(){ return m_Name.c_str(); }
 				bool			GetAttackedByUnit(){ return m_bAttackedByUnit; }
@@ -573,7 +674,7 @@ class CX2DamageEffect
 				CKTDGXMeshPlayer::CXMeshInstance* GetMainEffect();
 
 
-				LockOnData*		GetLockOnData(){ return &m_LockOnData; }
+				LockOnData&		GetLockOnData(){ return m_LockOnData; }
 				void			SetLockOnUnitUID( UidType unitUID ){ m_LockOnData.m_LockOnUnitUID = unitUID; }
 				void			SetLockOnNPCUID( int NPCUID ){ m_LockOnData.m_LockOnNPCUID = NPCUID; }
 				void			SetLockOnPos( D3DXVECTOR3 vPos ) { m_LockOnData.m_LockOnPos = vPos; }
@@ -592,7 +693,7 @@ class CX2DamageEffect
 				D3DXVECTOR3		GetBeforePos() { return m_BeforePos; }
 #endif EVE_ELECTRA
 
-				void			SetPos( D3DXVECTOR3 pos );
+				void			SetPos( const D3DXVECTOR3& pos );
 				void			SetAngleDegree( D3DXVECTOR3 angleDegree ){ m_AngleDegree = angleDegree; }
 				D3DXVECTOR3		GetMoveAxisDegree() const { return m_MoveAxisDegree; }
 				void			SetMoveAxisDegree( D3DXVECTOR3 moveAxisDegree ){ m_MoveAxisDegree = moveAxisDegree; }
@@ -622,7 +723,8 @@ class CX2DamageEffect
 				}
 
 #ifdef NEW_SKILL_TREE
-				CX2DamageManager::DamageData* GetDamageData() { return &m_DamageData; }
+				CX2DamageManager::DamageData& GetDamageData() { return m_DamageData; }
+				CX2DamageManager::DamageData* GetDamageDataPtr() { return &m_DamageData; }
 				void SetDamageTime( int iHitCount ) { m_DamageTime = iHitCount; }
 				int GetDamageTime() { return m_DamageTime; }
 
@@ -704,6 +806,10 @@ class CX2DamageEffect
 				void	SetReflectCount( IN int iReflectCount_ ) { m_iReflectCount = iReflectCount_;  }
 #endif
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                CEffectHandle   GetHandle() const { return m_hHandle; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 #ifdef SERV_RENA_NIGHT_WATCHER
 				/// 데미지 이펙트 인덱스 제어
 				int		GetIndex() const { return m_iIndex; }
@@ -740,7 +846,19 @@ class CX2DamageEffect
 				// 청 택트 궁극기 추가로 메인 이펙트의 회전값 받아오거나 설정하는 부분 추가, 김종훈
 				D3DXVECTOR3 GetMainEffectAxisAngleDegree() const		  { return m_vMainEffectAxisAngleDegree; }
 				void		SetMainEffectAxisAngleDegree(D3DXVECTOR3 val) { m_vMainEffectAxisAngleDegree = val; }
-				
+
+#ifdef FIELD_BOSS_RAID // 지정한 위치에서 가까운 적 유도 시키기
+				void SetLockOnNearstTarget( IN const D3DXVECTOR3& vMyPos_, int iTeam_ , int randomOffset = 0 );
+#endif // FIELD_BOSS_RAID
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+				const bool SetLinkMainEffectByPos( IN const D3DXVECTOR3& vMyPos_, IN const D3DXVECTOR3& vTargetPos_, 
+												   IN const float fDistance_ = 99999.f );
+
+				/// SetLinkMainEffectByPos() 를 쓰기 위해 필요한 길이 배율 반환
+				const float GetLinkEffectRate() { return m_fLinkEffectRate; }
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 			protected:
 				void SetStartParticle();
 				void SetPassiveParticle();
@@ -806,6 +924,10 @@ class CX2DamageEffect
 #ifdef FIX_AFTER_IMAGE
 				void LoadAfterImage();
 #endif
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                CEffectHandle                     m_hHandle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 								
 				float								m_fElapsedTime;
 				bool								m_bFirstFrame;
@@ -983,11 +1105,45 @@ class CX2DamageEffect
 #endif
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM
-				bool					m_bOnlyRelationShip;
+				bool	m_bOnlyRelationShip;
 #endif // ADDED_RELATIONSHIP_SYSTEM
+
+#ifdef NOTIFY_TO_OWNER_UNIT_WHEN_DAMAGE_EFFECT_DIE
+				bool	m_bShouldNotifyToOwnerUnitWhenDie;
+#endif // NOTIFY_TO_OWNER_UNIT_WHEN_DAMAGE_EFFECT_DIE
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+				float	m_fLinkEffectRate;	/// SetLinkMainEffectByPos() 를 쓰기 위해 필요한 길이 배율
+#endif //SERV_ADD_LUNATIC_PSYKER
 
 		}; // CEffect
 
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+        enum    EListType
+        {
+            LIST_LIVE = 0,
+            LIST_RESERVE = 1,
+            LIST_FREE = 2,
+            LIST_NUM
+        };
+        struct  KInstanceHandleInfo
+        {
+            CEffect*         m_pInstance;
+            WORD             m_wStamp;
+            EListType        m_eListType;
+            KInstanceHandleInfo()
+                : m_pInstance( NULL )
+                , m_wStamp(0)
+                , m_eListType(LIST_FREE)
+            {
+            }
+        };
+        typedef kog::indexed_list<KInstanceHandleInfo>          KInstanceHandleList;
+        typedef KInstanceHandleList::iterator                   KInstanceHandleIterator;
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	public:
 		CX2DamageEffect(void);
@@ -998,90 +1154,168 @@ class CX2DamageEffect
 
 		CEffect* CreateInstance_LUA( CX2GameUnit* pGameUnit, const char* pName, D3DXVECTOR3 pos, float fLandPos );
 		CEffect* CreateInstance_LUA2( CX2GameUnit* pGameUnit, const char* pName, D3DXVECTOR3 pos, float fLandPos, D3DXVECTOR3 vRot );
+#ifdef CREATEINSTANCE_WITH_LIFETIME_IN_LUA
+		CEffect* CreateInstanceWithLifeTime_LUA( CX2GameUnit* pGameUnit, const char* pName, D3DXVECTOR3 pos, float fLandPos, float fLifeTimeRate  );
+#endif //#ifdef CREATEINSTANCE_WITH_LIFETIME_IN_LUA
 #ifdef SERV_PET_SYSTEM
 		CEffect*  CreateInstanceByPet_LUA( CX2GameUnit* pGameUnit, const char* pName, D3DXVECTOR3 pos, float fLandPos, D3DXVECTOR3 vRot );
 #endif
 
 		CEffect* CreateInstance_LUA3( CX2GameUnit* pGameUnit, const char* pName, D3DXVECTOR3 pos, float fLandPos, D3DXVECTOR3 vRot, float fReserveTime );
 
-		CX2DamageEffect::CEffect* CreateInstanceParabolic_LUA( CX2GameUnit* pGameUnit, const char* pName, D3DXVECTOR3 vPos, D3DXVECTOR3 vTargetPos, D3DXVECTOR3 vAcceleration,
+		CEffect* CreateInstanceParabolic_LUA( CX2GameUnit* pGameUnit, const char* pName, D3DXVECTOR3 vPos, D3DXVECTOR3 vTargetPos, D3DXVECTOR3 vAcceleration,
 			float fTimeToReachTarget, float fTimeToLive );
 
-		CX2DamageEffect::CEffect* CreateInstanceParabolic( CX2GameUnit* pGameUnit, const WCHAR* pName, float fPowerRate, 
+		CEffect* CreateInstanceParabolic( CX2GameUnit* pGameUnit, const WCHAR* pName, float fPowerRate, 
 			const D3DXVECTOR3& vPos, const D3DXVECTOR3& vTargetPos, const D3DXVECTOR3& vAcceleration, 
 			const float fTimeToReachTarget, const float fTimeToLive, const int iMeshPlayerIndex = 0 );
 
 
-#ifdef EVE_ELECTRA
 		CEffect* CreateInstance( CX2GameUnit* pGameUnit, const WCHAR* pName, float fPowerRate,
 									D3DXVECTOR3 pos, 
 									D3DXVECTOR3 angleDegree,
 									D3DXVECTOR3 moveAxisDegree,
 									float fLandPos = 0, bool bReserve = false, 
-									
-									float fReserveTime = -1.f, float fForceDownValueRate = 1.f, float fLifeTimeRate = 1.f, 
-									int iHitCount = -1, float fHitGap = -1.f, const int iMeshPlayerIndex = 0, float fHitAddMp = -1.f, bool bInsertFront = false 
-#ifdef PET_SKILL_EFFECT_LINE_MAP
-									, bool bPetSkillEffect = false
-#endif //PET_SKILL_EFFECT_LINE_MAP
-									)
-		{
-			return CreateInstance( pGameUnit, pName, fPowerRate, pos.x, pos.y, pos.z, 
-									angleDegree.x, angleDegree.y, angleDegree.z,
-									moveAxisDegree.x, moveAxisDegree.y, moveAxisDegree.z, fLandPos, bReserve, 
-									fReserveTime, fForceDownValueRate, fLifeTimeRate, 
-									iHitCount, fHitGap, iMeshPlayerIndex, fHitAddMp, bInsertFront 
-#ifdef PET_SKILL_EFFECT_LINE_MAP
-									, bPetSkillEffect
-#endif //PET_SKILL_EFFECT_LINE_MAP
-									);
-		}
-
-		CEffect* CreateInstance( CX2GameUnit* pGameUnit, const WCHAR* pName, float fPowerRate,
-									float x, float y, float z, 
-									float angleXDegree, float angleYDegree, float angleZDegree,
-									float moveAxisXDegree, float moveAxisYDegree, float moveAxisZDegree,
-									float fLandPos = 0, bool bReserve = false, 
-									float fReserveTime = -1.f, float fForceDownValueRate = 1.f, float fLifeTimeRate = 1.f,
-									int iHitCount = -1, float fHitGap = -1.f, const int iMeshPlayerIndex = 0, float fHitAddMp = -1.f, bool bInsertFront = false 
-#ifdef PET_SKILL_EFFECT_LINE_MAP
-									, bool bPetSkillEffect = false
-#endif //PET_SKILL_EFFECT_LINE_MAP
-									);
-
-#else
-		CEffect* CreateInstance( CX2GameUnit* pGameUnit, const WCHAR* pName, float fPowerRate,
-									D3DXVECTOR3 pos, 
-									D3DXVECTOR3 angleDegree,
-									D3DXVECTOR3 moveAxisDegree,
-									float fLandPos = 0, bool bReserve = false, float fReserveTime = -1.f, float fForceDownValueRate = 1.f, float fLifeTimeRate = 1.f, 
-									int iHitCount = -1, float fHitGap = -1.f, const int iMeshPlayerIndex = 0, float fHitAddMp = -1.f )
+                                    float fReserveTime = -1.f, float fForceDownValueRate = 1.f, float fLifeTimeRate = 1.f, 
+									int iHitCount = -1, float fHitGap = -1.f, const int iMeshPlayerIndex = 0, float fHitAddMp = -1.f
+#ifdef  EVE_ELECTRA
+                                    , bool bInsertFront = false 
+#ifdef  PET_SKILL_EFFECT_LINE_MAP
+                                    , bool bPetSkillEffect = false
+#endif  PET_SKILL_EFFECT_LINE_MAP
+#endif  EVE_ELECTRA
+                                    )
 		{
 			return CreateInstance( pGameUnit, pName, fPowerRate, pos.x, pos.y, pos.z, 
 									angleDegree.x, angleDegree.y, angleDegree.z,
 									moveAxisDegree.x, moveAxisDegree.y, moveAxisDegree.z, fLandPos, bReserve, fReserveTime, fForceDownValueRate, fLifeTimeRate, 
-									iHitCount, fHitGap, iMeshPlayerIndex, fHitAddMp );
+									iHitCount, fHitGap, iMeshPlayerIndex, fHitAddMp
+#ifdef  EVE_ELECTRA
+                                    , bInsertFront
+#ifdef  PET_SKILL_EFFECT_LINE_MAP
+                                    , bPetSkillEffect
+#endif  PET_SKILL_EFFECT_LINE_MAP
+#endif  EVE_ELECTRA
+                                    );
 		}
 
 		CEffect* CreateInstance( CX2GameUnit* pGameUnit, const WCHAR* pName, float fPowerRate,
 									float x, float y, float z, 
 									float angleXDegree, float angleYDegree, float angleZDegree,
 									float moveAxisXDegree, float moveAxisYDegree, float moveAxisZDegree,
-									float fLandPos = 0, bool bReserve = false, float fReserveTime = -1.f, float fForceDownValueRate = 1.f, float fLifeTimeRate = 1.f,
-									int iHitCount = -1, float fHitGap = -1.f, const int iMeshPlayerIndex = 0, float fHitAddMp = -1.f );
-#endif EVE_ELECTRA
+									float fLandPos = 0, bool bReserve = false, 
+                                    float fReserveTime = -1.f, float fForceDownValueRate = 1.f, float fLifeTimeRate = 1.f,
+									int iHitCount = -1, float fHitGap = -1.f, const int iMeshPlayerIndex = 0, float fHitAddMp = -1.f
+#ifdef  EVE_ELECTRA
+                                    , bool bInsertFront = false 
+#ifdef  PET_SKILL_EFFECT_LINE_MAP
+                                    , bool bPetSkillEffect = false
+#endif  PET_SKILL_EFFECT_LINE_MAP
+#endif  EVE_ELECTRA
+                                    );
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+		CEffectHandle   CreateInstanceHandle( CX2GameUnit* pGameUnit, const WCHAR* pName, float fPowerRate,
+									D3DXVECTOR3 pos, 
+									D3DXVECTOR3 angleDegree,
+									D3DXVECTOR3 moveAxisDegree,
+									float fLandPos = 0, bool bReserve = false, 
+                                    float fReserveTime = -1.f, float fForceDownValueRate = 1.f, float fLifeTimeRate = 1.f, 
+									int iHitCount = -1, float fHitGap = -1.f, const int iMeshPlayerIndex = 0, float fHitAddMp = -1.f
+#ifdef  EVE_ELECTRA
+                                    , bool bInsertFront = false 
+#ifdef  PET_SKILL_EFFECT_LINE_MAP
+                                    , bool bPetSkillEffect = false
+#endif  PET_SKILL_EFFECT_LINE_MAP
+#endif  EVE_ELECTRA
+                                    )
+		{
+			CEffect* pEffect = CreateInstance( pGameUnit, pName, fPowerRate, pos, angleDegree, moveAxisDegree, 
+									fLandPos, bReserve, fReserveTime, fForceDownValueRate, fLifeTimeRate, 
+									iHitCount, fHitGap, iMeshPlayerIndex, fHitAddMp
+#ifdef  EVE_ELECTRA
+                                    , bInsertFront
+#ifdef  PET_SKILL_EFFECT_LINE_MAP
+                                    , bPetSkillEffect
+#endif  PET_SKILL_EFFECT_LINE_MAP
+#endif  EVE_ELECTRA
+                                    );
+            return  ( pEffect != NULL ) ? pEffect->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+		}
+
+		CEffectHandle   CreateInstanceHandle( CX2GameUnit* pGameUnit, const WCHAR* pName, float fPowerRate,
+									float x, float y, float z, 
+									float angleXDegree, float angleYDegree, float angleZDegree,
+									float moveAxisXDegree, float moveAxisYDegree, float moveAxisZDegree,
+									float fLandPos = 0, bool bReserve = false, 
+                                    float fReserveTime = -1.f, float fForceDownValueRate = 1.f, float fLifeTimeRate = 1.f,
+									int iHitCount = -1, float fHitGap = -1.f, const int iMeshPlayerIndex = 0, float fHitAddMp = -1.f
+#ifdef  EVE_ELECTRA
+                                    , bool bInsertFront = false 
+#ifdef  PET_SKILL_EFFECT_LINE_MAP
+                                    , bool bPetSkillEffect = false
+#endif  PET_SKILL_EFFECT_LINE_MAP
+#endif  EVE_ELECTRA
+                                    )
+        {
+			CEffect* pEffect = CreateInstance( pGameUnit, pName, fPowerRate, x, y, z,
+									angleXDegree, angleYDegree, angleZDegree,
+									moveAxisXDegree, moveAxisYDegree, moveAxisZDegree, fLandPos, bReserve, fReserveTime, fForceDownValueRate, fLifeTimeRate, 
+									iHitCount, fHitGap, iMeshPlayerIndex, fHitAddMp
+#ifdef  EVE_ELECTRA
+                                    , bInsertFront
+#ifdef  PET_SKILL_EFFECT_LINE_MAP
+                                    , bPetSkillEffect
+#endif  PET_SKILL_EFFECT_LINE_MAP
+#endif  EVE_ELECTRA
+                                    );
+            return  ( pEffect != NULL ) ? pEffect->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+        }
+
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 
 		void PostProcessCreateInstance( CEffect* pCEffect, float fForceDownValueRate, float fLifeTimeRate, int iAddHitCount, float fHitGap );
+		void DestroyAllInstances();
+//{{ robobeg : 2013-08-30
+		//void DestroyInstance( CEffect* pInstance );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        void DestroyInstanceHandle( CEffectHandle& hInstance, bool bSilently = false );
+        void DestroyInstance( CEffect*& pInstance, bool bSilently = false );
+        void DestroyInstance_LUA( CEffect* pInstance );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        void DestroyInstance( CEffect* pInstance );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+//}} robobeg : 2013-08-30
 
-
-		void DestroyAllInstance();
-		void DestroyInstance( CEffect* pInstance );
 #ifdef EVE_ELECTRA
 		void DestroyInstanceSilently( CEffect*& pInstance );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        void DestroyInstanceHandleSilently( CEffectHandle& hInstance );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		void AddLaserGroupHitUnit( int _iLaserGroupID, CX2DamageManager::HitUnit _hitUnit );
 #endif EVE_ELECTRA
+
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		bool IsLiveInstance( CEffect* pInstance );
+        bool IsLiveInstanceHandle( CEffectHandle handle );
+        CEffect*  GetInstance( CEffectHandle handle, bool bLiveOnly = true );
+        CEffect*  ValidateInstanceHandle( CEffectHandle& handle, bool bLiveOnly = true )
+        {
+            CEffect* pEffect = GetInstance( handle, bLiveOnly );
+            if ( pEffect == NULL )
+                handle = INVALID_DAMAGE_EFFECT_HANDLE;
+            return  pEffect;
+        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 		bool IsLiveInstance( CEffect* pInstance )
 		{
+            if ( pInstance == NULL )
+                return false;
 			for( int i = 0; i < (int)m_InstanceList.size(); i++ )
 			{
 				CEffect* pInst = m_InstanceList[i];
@@ -1092,20 +1326,34 @@ class CX2DamageEffect
 			}
 			return false;
 		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		void UnitDeleteProcess( CX2GameUnit* pGameUnit );
+
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 		CEffect* GetInstance( int index )
 		{
 			if( index < 0 || index >= (int)m_InstanceList.size() )
 				return NULL;
 			return m_InstanceList[index]; 
 		}
-
 		int GetInstanceNum(){ return m_InstanceList.size(); }
 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+
 #ifdef SERV_RENA_NIGHT_WATCHER
-		const vector<CEffect*>& GetInstaceList() const { return m_InstanceList; }		/// 데미지 이펙트 벡터 반환 함수
-		CEffect*				GetInstaceByIndex( int iIndex );				/// 해당 인덱스를 지닌 데미지 이펙트 반환 함수
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+        template< typename FUNCTION >
+        void        ApplyFunctionToLiveInstances( FUNCTION fn );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		const vector<CEffect*>&         GetInstanceList() const { return m_InstanceList; }		/// 데미지 이펙트 벡터 반환 함수
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+		CEffect*				        GetInstanceByIndex( int iIndex );				/// 해당 인덱스를 지닌 데미지 이펙트 반환 함수
 #endif SERV_RENA_NIGHT_WATCHER
 		
 //#ifdef	X2OPTIMIZE_REFACTORING_RESOURCE_BACKGROUND_LOAD
@@ -1120,11 +1368,72 @@ class CX2DamageEffect
 		void GetDamageEffectListByEffectName( IN const WCHAR* pName_,  OUT vector<wstring>& vecEffectList_ );
 		ParticleData* LoadParticleTable();
 #endif //EFFECT_TOOL
+
+
+    DWORD   ComposeHandle( WORD wIndex, WORD wStamp )
+    {
+        return wIndex | ( wStamp << 16L );
+    }
+    void    DecomposeHandle( DWORD dwHandle, OUT WORD& wIndex, OUT WORD& wStamp )
+    {
+        wIndex = (WORD) dwHandle;
+        wStamp = (WORD) ( ( ( dwHandle ) & 0xffff0000 ) >> 16L );
+    }
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    bool                    IsInCriticalLoop() const { return m_bInCriticalLoop; }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
 	private:
 		float				m_fElapsedTime;
 		KLuaManager			m_LuaManager;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+        KInstanceHandleList             m_coInstanceHandleList;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        bool                            m_bInCriticalLoop;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 		vector<CEffect*>	m_InstanceList;
 		vector<CEffect*>	m_ReserveInstanceList;
 
-		int					m_iCurrUniqueIndex;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+		//int					m_iCurrUniqueIndex;
 };
+
+
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+template< typename FUNCTION >
+void        CX2DamageEffect::ApplyFunctionToLiveInstances( FUNCTION fn )
+{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    bool bOldInCriticalLoop = m_bInCriticalLoop;
+    m_bInCriticalLoop = true;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+    KInstanceHandleIterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+    for( KInstanceHandleIterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        ++iter )
+    {
+        KInstanceHandleInfo& info = *iter;
+        CEffect* pEffect = info.m_pInstance;
+		if( NULL == pEffect
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            || pEffect->GetLive() == false
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            )
+		   continue;
+        fn( *pEffect );
+    }
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    m_bInCriticalLoop = bOldInCriticalLoop;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE

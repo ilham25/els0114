@@ -6,7 +6,7 @@ LocationManager:Village
 {
 	VillageMapID		= VILLAGE_MAP_ID["VMI_RUBEN"],
 
-	BaseLocalStateID	= LOCAL_MAP_ID["LMI_VELDER_NORTH"],			-- 해당 마을을 품는 로컬 ID
+	BaseLocalStateID	= LOCAL_MAP_ID["LMI_RUBEN"],			-- 해당 마을을 품는 로컬 ID
 
 	START_POS = 
 	{
@@ -39,7 +39,7 @@ LocationManager:Village
 {
 	VillageMapID		= VILLAGE_MAP_ID["VMI_DUNGEON_GATE_RUBEN"],
 
-	BaseLocalStateID	= LOCAL_MAP_ID["LMI_VELDER_NORTH"],			-- 해당 마을을 품는 로컬 ID
+	BaseLocalStateID	= LOCAL_MAP_ID["LMI_RUBEN"],			-- 해당 마을을 품는 로컬 ID
 	
 	START_POS = 
 	{
@@ -80,7 +80,7 @@ LocationManager:Village
 {
 	VillageMapID		= VILLAGE_MAP_ID["VMI_ELDER"],
 
-	BaseLocalStateID	= LOCAL_MAP_ID["LMI_VELDER_EAST"],			-- 해당 마을을 품는 로컬 ID
+	BaseLocalStateID	= LOCAL_MAP_ID["LMI_ELDER"],			-- 해당 마을을 품는 로컬 ID
 	
 	START_POS = 
 	{
@@ -119,7 +119,7 @@ LocationManager:Village
 {
 	VillageMapID		= VILLAGE_MAP_ID["VMI_DUNGEON_GATE_ELDER"],
 
-	BaseLocalStateID	= LOCAL_MAP_ID["LMI_VELDER_EAST"],			-- 해당 마을을 품는 로컬 ID
+	BaseLocalStateID	= LOCAL_MAP_ID["LMI_ELDER"],			-- 해당 마을을 품는 로컬 ID
 	
 	START_POS = 
 	{
@@ -159,7 +159,7 @@ LocationManager:Village
 {
 	VillageMapID		= VILLAGE_MAP_ID["VMI_BESMA"],
 
-	BaseLocalStateID	= LOCAL_MAP_ID["LMI_VELDER_SOUTH"],			-- 해당 마을을 품는 로컬 ID
+	BaseLocalStateID	= LOCAL_MAP_ID["LMI_BESMA"],			-- 해당 마을을 품는 로컬 ID
 	
 	START_POS = 
 	{
@@ -199,7 +199,7 @@ LocationManager:Village
 {
 	VillageMapID		= VILLAGE_MAP_ID["VMI_DUNGEON_GATE_BESMA"],
 
-	BaseLocalStateID	= LOCAL_MAP_ID["LMI_VELDER_SOUTH"],			-- 해당 마을을 품는 로컬 ID
+	BaseLocalStateID	= LOCAL_MAP_ID["LMI_BESMA"],			-- 해당 마을을 품는 로컬 ID
 	
 	START_POS = 
 	{

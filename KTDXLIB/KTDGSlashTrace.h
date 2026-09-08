@@ -69,10 +69,10 @@ class CKTDGSlashTrace : public CKTDGObject
         virtual void          OnFrameRender_Draw();
 //}} robobeg : 2008-10-24
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		virtual HRESULT OnResetDevice();
-		virtual HRESULT OnLostDevice();
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		virtual HRESULT OnResetDevice();
+//		virtual HRESULT OnLostDevice();
+//#endif
 
 		void SetDisableTime( float fTime ){ m_DisableTime = fTime; }
 		
@@ -134,18 +134,24 @@ protected:
 
 private:
 		int						m_VertexNum;
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		LPDIRECT3DVERTEXBUFFER9	m_pSlashVB;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		LPDIRECT3DVERTEXBUFFER9	m_pSlashVB;
+//#endif
 		VERTEX_SLASH_TRACE*		m_pSlashVertexList;
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+        int                     m_iSlashVertexList_StartIndex;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 		bool					m_bHasVisibleVertex;
 
 #ifdef TEXTURED_SLASH_TRACE_TEST
 		bool							m_bEnabledSlashTraceTexture;
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		LPDIRECT3DVERTEXBUFFER9			m_pSlashTexturedVB;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		LPDIRECT3DVERTEXBUFFER9			m_pSlashTexturedVB;
+//#endif
 		VERTEX_SLASH_TRACE_TEXTURED*	m_pSlashVertexTexturedList;
+#ifdef  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
+        int                             m_iSlashVertexTexturedList_StartIndex;
+#endif  X2OPTIMIZE_DYNAMICVB_SUPPORT_SPLIT_DATA
 		bool							m_bHasVisibleVertexTextured;
 
 		wstring							m_DefaultSlashTraceTextureName;		
@@ -178,9 +184,9 @@ private:
 		D3DXVECTOR3				m_SplineBufDown3;
 		D3DXVECTOR3				m_SplineBufDown4;
 		
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		bool					m_bUseDynamic;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		bool					m_bUseDynamic;
+//#endif
 
 
 		D3DXVECTOR3				m_vOldCenter;		

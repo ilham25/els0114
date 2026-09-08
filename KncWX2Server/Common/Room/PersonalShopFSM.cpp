@@ -13,7 +13,7 @@ const wchar_t*  KPersonalShopFSM::ms_szInput[] =
 #   include "PersonalShopFSMInput_def.h" 
 };
 
-KPersonalShopFSM::KPersonalShopFSM() : FSMclass( KPersonalShopFSM::ENUM_STATE::S_INIT )
+KPersonalShopFSM::KPersonalShopFSM() : FSMclass( S_INIT )
 {
 	// S_INIT
 	FSMstate* pState = new FSMstate( S_INIT, 1 );

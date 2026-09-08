@@ -240,9 +240,9 @@ bool CX2ProfileManager::Handler_EGS_LOCAL_RANKING_USER_INFO_READ_ACK( HWND hWnd,
 			m_sProfile.area				= kEvent.m_kInfo.m_iCategory;
 			m_sProfile.introduce		= kEvent.m_kInfo.m_wstrProfile;
 			m_sProfile.filter			= kEvent.m_kInfo.m_byteFilter;
-			CX2Unit::UnitData* pUnitData = NULL;
+			const CX2Unit::UnitData* pUnitData = NULL;
 			if( NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit())
-				pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+				pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 			if( NULL != pUnitData )
 			{
 				m_sProfile.nickname		= pUnitData->m_NickName;
@@ -268,7 +268,7 @@ bool CX2ProfileManager::Handler_EGS_LOCAL_RANKING_USER_INFO_READ_ACK( HWND hWnd,
 }
 
 
-bool CX2ProfileManager::Handler_EGS_LOCAL_RANKING_USER_INFO_READ_REQ( wstring _password )
+bool CX2ProfileManager::Handler_EGS_LOCAL_RANKING_USER_INFO_READ_REQ( const wstring& _password )
 {
 	KEGS_LOCAL_RANKING_USER_INFO_READ_REQ kpacket;
 	m_wstrPassword = _password;
@@ -363,7 +363,28 @@ bool CX2ProfileManager::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, 
 
 	case PMUM_PROFILE_CHANGE:
 		{
+#ifdef SERV_NAVER_CHANNELING
+			if ( NULL != g_pData && NULL != g_pData->GetMyUser() )
+			{
+				switch ( g_pData->GetMyUser()->GetUserData().m_uChannelCode )
+				{
+				case KNexonAccountInfo::CE_NEXON_ACCOUNT:
+					Create_Password();
+					break;
+
+				default:
+					{
+						if( NULL != g_pData->GetProfileManager() )
+						{
+							m_bIsOpenSelect = true;
+							g_pData->GetProfileManager()->Handler_EGS_LOCAL_RANKING_USER_INFO_READ_REQ( L"" );
+						}
+					} break;
+				}
+			}					
+#else // SERV_NAVER_CHANNELING
 			Create_Password();
+#endif // SERV_NAVER_CHANNELING
 		}
 		return true;
 
@@ -942,9 +963,9 @@ void CX2ProfileManager::CloseProfileInput()
 */
 void CX2ProfileManager::OpenRankup( KEGS_LOCAL_RANKING_RANK_UP_NOT& kEvent )
 {
-	CX2Unit::UnitData* pUnitData = NULL;
+	const CX2Unit::UnitData* pUnitData = NULL;
 	if( NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit())
-		pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+		pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 	if( NULL == pUnitData )
 		return;
 	
@@ -1188,9 +1209,9 @@ bool CX2ProfileManager::SaveInformation()
 	CKTDGUIComboBox* pComboBox = static_cast<CKTDGUIComboBox*>(m_pDlgProfileInput->GetControl(L"Location_choice2"));
 
 	//닉네임, 클래스, 레벨 저장
-	CX2Unit::UnitData* pUnitData = NULL;
+	const CX2Unit::UnitData* pUnitData = NULL;
 	if( NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit())
-		pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+		pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 	if( NULL != pUnitData )
 	{
 		m_sProfile.nickname		= pUnitData->m_NickName;

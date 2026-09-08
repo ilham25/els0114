@@ -10,7 +10,7 @@
 //{
 //
 //	// note!! 전직 추가되면 수정
-//	switch(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass)
+//	switch(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass)
 //	{
 //	case CX2Unit::UC_ELSWORD_KNIGHT:
 //		{
@@ -61,10 +61,10 @@
 //	}
 //	
 //#ifdef _NEXON_KR_
-//	if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )	// 체험 아이디 제한	
+//	if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )	// 체험 아이디 제한	
 //	{
 //		CNMCOClientObject::GetInstance().ChangeMyLevel( 
-//			( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass << 24 ) | (UINT32)g_pData->GetSelectUnitLevel(), kUserFlag_ClassChanged );
+//			( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass << 24 ) | (UINT32)g_pData->GetSelectUnitLevel(), kUserFlag_ClassChanged );
 //	}
 //#endif
 //
@@ -88,7 +88,7 @@
 //
 //	m_pUnitViewerUI->OnFrameMove( g_pKTDXApp->GetTime(),g_pKTDXApp->GetElapsedTime() );
 //
-//	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+//	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 //	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(),
 //		g_pKTDXApp->GetDGManager()->GetFar(), false );
 //
@@ -191,7 +191,27 @@ bool CX2ClassChangePopup::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam
 				{
 					CX2State* pState = static_cast<CX2State*>(g_pMain->GetNowState());
 					if( NULL != pState )
+					{
 						pState->Handler_EGS_STATE_CHANGE_FIELD_REQ(g_pData->GetBattleFieldManager().GetReturnVillageId());
+
+#ifdef NOT_RENDER_EFFECT_MADE_BY_GAME_UNIT	//김창한
+						//필드에서 전직시 아래 조건들을 true로 돌려주지 않아 이펙트가 제대로 나오지 않는 문제 수정.
+						if( NULL != g_pX2Game )
+						{
+							if( NULL != g_pX2Game->GetMajorParticle() )
+								g_pX2Game->GetMajorParticle()->SetRenderEffectMadeByGameUnit( true );
+
+							if( NULL != g_pX2Game->GetMinorParticle() )
+								g_pX2Game->GetMinorParticle()->SetRenderEffectMadeByGameUnit( true );
+
+							if( NULL != g_pX2Game->GetMajorXMeshPlayer() )
+								g_pX2Game->GetMajorXMeshPlayer()->SetRenderEffectMadeByGameUnit( true );
+
+							if( NULL != g_pX2Game->GetMinorXMeshPlayer() )
+								g_pX2Game->GetMinorXMeshPlayer()->SetRenderEffectMadeByGameUnit( true );
+						}
+#endif //NOT_RENDER_EFFECT_MADE_BY_GAME_UNIT
+					}
 				} break;
 			default:
 				{			
@@ -279,15 +299,15 @@ void CX2ClassChangePopup::SetShow( bool bShow )
 	{
 
 #ifdef _NEXON_KR_
-		if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )	// 체험 아이디 제한	
+		if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )	// 체험 아이디 제한	
 		{
 			CNMCOClientObject::GetInstance().ChangeMyLevel( 
-				( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass << 24 ) | (UINT32)g_pData->GetSelectUnitLevel(), kUserFlag_ClassChanged );
+				( (UINT32)g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass << 24 ) | (UINT32)g_pData->GetSelectUnitLevel(), kUserFlag_ClassChanged );
 		}
 #endif
 
 		// note!! 전직 추가되면 수정
-		switch(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass)
+		switch(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass)
 		{
 		case CX2Unit::UC_ELSWORD_KNIGHT:
 			{
@@ -515,6 +535,31 @@ void CX2ClassChangePopup::SetShow( bool bShow )
 			} break;
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+		case CX2Unit::UC_ELESIS_GRAND_MASTER:
+			{
+				m_pDLGClassChange = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_Class_Change_Elesis_GM.lua" );
+			} break;
+		case CX2Unit::UC_ELESIS_BLAZING_HEART:
+			{
+				m_pDLGClassChange = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_Class_Change_Elesis_BH.lua" );
+			} break;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+		case CX2Unit::UC_ADD_PSYCHIC_TRACER:
+			{
+				m_pDLGClassChange = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_Class_Change_Add_PT.lua" );
+			} break;
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+		case CX2Unit::UC_ADD_LUNATIC_PSYKER:
+			{
+				m_pDLGClassChange = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_Class_Change_Add_LP.lua" );
+			} break;
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 		default:
 			{
 				ASSERT( !"ClassChange State error : Unexpected UnitClass" );
@@ -529,7 +574,8 @@ void CX2ClassChangePopup::SetShow( bool bShow )
 
 
 		m_pUnitViewerUI = CX2UnitViewerUI::CreateUnitViewerUI();
-		m_pUnitViewerUI->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+		//m_pUnitViewerUI->SetLightPos( 300, 300, -500 );	// 캐릭터뷰어 라이트 위치 변경
+		m_pUnitViewerUI->SetLightPos( -250, 100, -600 );	// 캐릭터뷰어 라이트 위치 변경
 		//g_pKTDXApp->GetDGManager()->AddObjectChain( m_pUnitViewerUI );
 #ifdef FIX_CLASS_CHANGE_MESH
 		m_pUnitViewerUI->SetClassChange( true );
@@ -560,6 +606,92 @@ void CX2ClassChangePopup::SetShow( bool bShow )
 
 
 		//g_pKTDXApp->SkipFrame();
+
+#ifdef ADD_PLAY_SOUND //김창한
+		if( NULL != g_pData->GetMyUser() &&
+			NULL != g_pData->GetMyUser()->GetSelectUnit() )
+			PlaySoundChangeClass(g_pData->GetMyUser()->GetSelectUnit()->GetType() );
+#endif //ADD_PLAY_SOUND
 	}
 
 }
+
+#ifdef ADD_PLAY_SOUND //김창한
+void CX2ClassChangePopup::PlaySoundChangeClass( CX2Unit::UNIT_TYPE eUnitType )
+{
+	if( g_pKTDXApp->GetDeviceManager() == NULL )
+		return;
+
+	if( eUnitType <= CX2Unit::UT_NONE || eUnitType >= CX2Unit::UT_END )
+		return;
+
+	wstring wstrSoundName = L"";
+	int iRandom = -1;
+
+	switch( eUnitType )
+	{
+	case CX2Unit::UT_ELSWORD: // 2
+		{
+			wstrSoundName = L"ElswordVoice_ClassUpFinish0";
+			iRandom = RandomInt() % 2 + 1;
+		} break;
+
+	case CX2Unit::UT_ARME: // 1
+		{
+			wstrSoundName = L"AishaVoice_ClassUpFinish01.ogg";
+		} break;
+
+	case CX2Unit::UT_LIRE: // 1
+		{
+			wstrSoundName = L"LenaVoice_ClassUpFinish01.ogg";
+		} break;
+
+	case CX2Unit::UT_RAVEN: // 1
+		{
+			wstrSoundName = L"RavenVoice_ClassUpFinish01.ogg";
+		} break;
+
+	case CX2Unit::UT_EVE: // 1
+		{
+			wstrSoundName = L"EveVoice_ClassUpFinish01.ogg";
+		} break;
+
+	case CX2Unit::UT_CHUNG: // 2
+		{
+			wstrSoundName = L"ChungVoice_ClassUpFinish0";
+			iRandom = RandomInt() % 2 + 1;
+		} break;
+
+	case CX2Unit::UT_ARA: // 2
+		{
+			wstrSoundName = L"AraVoice_ClassUpFinish0";
+			iRandom = RandomInt() % 2 + 1;
+		} break;
+
+	case CX2Unit::UT_ELESIS: // 2
+		{
+			wstrSoundName = L"ElesisVoice_ClassUpFinish0";
+			iRandom = RandomInt() % 2 + 1;
+		} break;
+
+	case CX2Unit::UT_ADD: // 2
+		{
+			wstrSoundName =L"AddVoice_ClassUpFinish0";
+			iRandom = RandomInt() % 2 + 1;
+		} break;
+
+	default:
+		break;
+	}
+
+	if( iRandom > -1 )
+	{
+		WCHAR buff[6];
+		StringCchPrintf( buff, ARRAY_SIZE(buff), L"%d.ogg ", iRandom );
+		wstrSoundName += std::wstring(buff);
+	}
+
+	if( wstrSoundName.compare(L"") != 0 )
+		g_pKTDXApp->GetDeviceManager()->PlaySound(wstrSoundName.c_str(), false, false );
+}
+#endif //ADD_PLAY_SOUND

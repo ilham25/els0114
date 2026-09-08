@@ -1,26 +1,62 @@
 #pragma once
 
+
+class   CKTDXDeviceTexture;
+
 class CKTDXDeviceXET : public CKTDXDevice
 {
-	public:
+public:
+
+	struct MultiTexureData
+	{
+		//wstring					orgTexName;
+		CKTDXDeviceTexture* 	    pTexture;
+		D3DTEXTUREOP				colorOP;
+
+        MultiTexureData() : pTexture(NULL), colorOP(D3DTOP_MODULATE) {}
+        ~MultiTexureData()          { Release(); }
+        void    Release();
+        void    Swap( MultiTexureData& rhs_ )
+        {
+            std::swap( pTexture, rhs_.pTexture );
+            std::swap( colorOP, rhs_.colorOP );
+        }
+	};
+
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+
+    struct  AniData
+    {
+        friend class CKTDXDeviceXET;
+
+        AniData()
+            : m_pDeviceXET( NULL )
+            , m_pAniData( NULL )
+            , fTransitionTime( 0.f )
+            , fAniMaxTime( 0.f )
+        {
+        }
+
+        CKTDXDeviceTexture*     GetAniTexture( float fAniTime, const wchar_t* pTexName ) const;
+        
+        float                   fTransitionTime;
+        float                   fAniMaxTime;
+
+    private:
+
+        CKTDXDeviceXET*          m_pDeviceXET;
+        const KXETFormatAniData* m_pAniData;
+    };
+
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
+
 		struct ChangeTexture
 		{
 			wstring						orgTexName;
-			CKTDXDeviceBaseTexture* 	pTexture;
+			CKTDXDeviceTexture* 	pTexture;
 
 			ChangeTexture();
 			~ChangeTexture();
-            void    Release();
-		};
-
-		struct MultiTexureData
-		{
-			wstring						orgTexName;
-			CKTDXDeviceBaseTexture* 	pTexture;
-			D3DTEXTUREOP				colorOP;
-
-			MultiTexureData();
-			~MultiTexureData();
             void    Release();
 		};
 
@@ -28,7 +64,7 @@ class CKTDXDeviceXET : public CKTDXDevice
 		{
 			D3DXVECTOR2					eventTime;
 			wstring						orgTexName;
-			CKTDXDeviceBaseTexture* 	pTexture;
+			CKTDXDeviceTexture* 	pTexture;
 
 			AniEventTexChange();
 			~AniEventTexChange();
@@ -46,10 +82,9 @@ class CKTDXDeviceXET : public CKTDXDevice
 			AniData();
 			~AniData();
 
-			CKTDXDeviceBaseTexture* GetAniTexture( float fAniTime, const WCHAR* pTexName );
+			CKTDXDeviceTexture* GetAniTexture( float fAniTime, const WCHAR* pTexName ) const;
 			void SetTexChangeEvent_LUA( D3DXVECTOR2 eventTime, const char* pOrgTexName, const char* pChangeTexName );
 		};
-
 		
         typedef map<wstring, ChangeTexture*>    ChangeTextureMap;
         typedef map<wstring, AniData*>          NameAniDataMap;
@@ -66,53 +101,61 @@ class CKTDXDeviceXET : public CKTDXDevice
 		    void AddChangeTexture_LUA( const char* pOrgTexName, const char* pChangeTexName );
 		    void SetMultiTexStage1_LUA( const char* pOrgTexName, const char* pBlendTexName, int colorOP );
 		    void SetMultiTexStage2_LUA( const char* pOrgTexName, const char* pBlendTexName, int colorOP );
-		    const AniData* AddAniData_LUA( const char* pAniName, float fTransitionTime = 0.0f, float	fAniMaxTime = 0.0f );
-		    const AniData* AddAniDataByFrame_LUA( const char* pAniName, int transitionFrame = 0, float	fAniMaxTime = 0.0f );
+		    AniData* AddAniData_LUA( const char* pAniName, float fTransitionTime = 0.0f, float	fAniMaxTime = 0.0f );
+		    AniData* AddAniDataByFrame_LUA( const char* pAniName, int transitionFrame = 0, float	fAniMaxTime = 0.0f );
         };//struct  XETProxy
+
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
+
 	public:
-		CKTDXDeviceXET( const WCHAR* pFileName, CKTDXDevice* pMesh = NULL );
-		 virtual ~CKTDXDeviceXET(void);
+
+		CKTDXDeviceXET( const WCHAR* pFileName ); //, CKTDXDevice* pMesh = NULL );
 
 
-		CKTDXDeviceBaseTexture* GetChangeTexture( const WCHAR* pTexName );
-
+		CKTDXDeviceTexture*     GetChangeTexture( const wchar_t* pTexName );
 		const MultiTexureData*  GetMultiTex( int stage ) const;
-		AniData*				GetAniData( const WCHAR* pAniName );
-
-		void AddChangeTexture( const WCHAR* wszOrgTexName, CKTDXDeviceBaseTexture* pChangeTexture );
-
 		void SetMultiTexStage1( const char* pOrgTexName, const char* pBlendTexName, int colorOP );
 		void SetMultiTexStage2( const char* pOrgTexName, const char* pBlendTexName, int colorOP );
+        void DeleteMultiTexStage1()	    { m_MultiTexStage1.Release(); }
+        void DeleteMultiTexStage2()	    { m_MultiTexStage2.Release(); }
+		const AniData*  GetAniData( const wchar_t* pAniName );
 
-		void DeleteMultiTexStage1()	
-		{
-            m_MultiTexStage1.Release();
-		}
-		void DeleteMultiTexStage2()	
-		{
-            m_MultiTexStage2.Release();
-		}
-// 		CKTDXCollision::CollisionData* CreateCollisionData_LUA( const char* pCollisionName, int collisionType, bool bCollision );
-// 
-//         const CKTDXCollision::CollisionDataList&         GetCollisionList() const { return m_CollisionList; }
-//         const CKTDXCollision::CollisionDataList&         GetAttackList() const { return m_AttackList; }
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+        CKTDXDeviceTexture*    GetAniTexture( const KXETFormatAniData& kAniData, float fAniTime, const wchar_t* pwszTexName ) const;
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
+		void AddChangeTexture( const WCHAR* wszOrgTexName, CKTDXDeviceTexture* pChangeTexture );
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
 
     protected:
 
 		virtual HRESULT _Load( bool bSkipStateCheck = false
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool bBackgroundQueueing = false
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD			
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD			
 			);
 		virtual HRESULT _UnLoad();
+
+		virtual ~CKTDXDeviceXET(void);
+
 	private:
-		CKTDXDevice*				m_pMesh;
+
+		//CKTDXDevice*				m_pMesh;
 				
-		ChangeTextureMap            m_ChangeTextureList;
 		MultiTexureData			    m_MultiTexStage1;
 		MultiTexureData			    m_MultiTexStage2;
 
+#ifdef  X2OPTIMIZE_TET_XET_PREPROCESSING
+
+        CKTDXDeviceXET_Preprocessing        m_preprocessed;
+        std::vector<CKTDXDeviceTexture*>    m_vecTexture;
+        std::vector<AniData>                m_vecAniData;
+
+#else   X2OPTIMIZE_TET_XET_PREPROCESSING
+
+		ChangeTextureMap            m_ChangeTextureList;
 		NameAniDataMap              m_AniDataList;
+
+#endif  X2OPTIMIZE_TET_XET_PREPROCESSING
 
 // 		CKTDXCollision::CollisionDataList                m_CollisionList;
 // 		CKTDXCollision::CollisionDataList                m_AttackList;        

@@ -123,6 +123,7 @@ public:
 		US_Etc_OpenCubeSpendED,
 //#endif SERV_CUBE_OPEN_ED_CONDITION
 		//}
+
 //#ifdef SERV_SEPARATE_DUNGEON_FIELD_ED_LOG// 작업날짜: 2013-05-08	// 박세훈
 		US_Etc_PBattleFieldED,				// 배틀 필드에서 획득한 ED
 		US_Etc_MCoboExpressTicketED,		// 마을 이동서를 통해 소모한 ED

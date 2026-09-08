@@ -140,10 +140,14 @@ class CKTDGUIControl : private boost::noncopyable
 			bool			bUseTextureSize;
 
 			D3DXVECTOR2		addSize;
+
+#ifdef DLL_BUILD
+			float			fRotDegree;
+#endif
+
 #ifdef RESIZE_TEXTURE
 			D3DXVECTOR2		kResize;
 #endif RESIZE_TEXTURE
-
 			
 			int				m_iDrawCount;
 			D3DBLEND		m_eSrcBlend;
@@ -163,6 +167,9 @@ class CKTDGUIControl : private boost::noncopyable
 				bUseTextureSize = true;
 
 				addSize = D3DXVECTOR2( 0, 0 );
+#ifdef DLL_BUILD
+				fRotDegree = 0.f;
+#endif
 #ifdef RESIZE_TEXTURE
 				kResize = D3DXVECTOR2( 1, 1 );
 #endif RESIZE_TEXTURE
@@ -224,12 +231,24 @@ class CKTDGUIControl : private boost::noncopyable
 				vTemp = rightBottomPoint - vCenter;
 				rightBottomPoint.x = vTemp.x * fCos - vTemp.y * fSin + vCenter.x;
 				rightBottomPoint.y = vTemp.x * fSin + vTemp.y * fCos + vCenter.y;
+
 			}
 
-
-
+#ifdef DLL_BUILD
+			void Rotate( float fDegree )
+			{
+				Rotate( (leftTopPoint + rightBottomPoint)/2, fDegree );
+			}
+#endif
 			void Scale( float fx, float fy )
 			{
+#ifdef DLL_BUILD
+				addSize.x += fx;
+				addSize.y += fy;
+
+				SetAutoPointByTextureSize();
+
+#else
 				leftTopPoint.x        *= fx;
 				rightTopPoint.x       *= fx;
 				leftBottomPoint.x     *= fx;
@@ -239,6 +258,7 @@ class CKTDGUIControl : private boost::noncopyable
 				rightTopPoint.y       *= fy;
 				leftBottomPoint.y     *= fy;
 				rightBottomPoint.y    *= fy;
+#endif
 			}
 
 
@@ -259,6 +279,7 @@ class CKTDGUIControl : private boost::noncopyable
 		struct UIStringData
 		{
 			int								fontIndex;
+			int								stringTableID;
 			wstring							msg;
 			D3DXVECTOR2						pos;
 			D3DXCOLOR						color;
@@ -269,7 +290,7 @@ class CKTDGUIControl : private boost::noncopyable
 
 			bool							bSpread;
 			float							fSpreadTimeGap;
-			
+
 			int								iSpreadCount;			
 			float							fNowSpreadTime;			
 
@@ -285,6 +306,11 @@ class CKTDGUIControl : private boost::noncopyable
 				sortFlag = 0;
 				fontStyle = CKTDGFontManager::FS_NONE;
 				fSpreadTimeGap = 0.f;
+
+				INIT_VECTOR2( pos, 0.0f, 0.0f );
+				stringTableID = -1;
+				color = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
+				outlineColor = D3DXCOLOR(0.0f, 0.0f, 0.0f, 1.0f);
 			}
 
 			void SetMsg_LUA( const char* pMsg ) { ConvertUtf8ToWCHAR( msg, pMsg ); }
@@ -517,6 +543,64 @@ class CKTDGUIControl : private boost::noncopyable
 
 		};
 
+#if defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #ifdef MOVIE_TEST	 	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+		class CMovieData
+		{
+		public:
+			CMovieData();
+			~CMovieData();
+			
+			void SetMovieFileName_LUA( const char* strMoiveFileName_ );
+			void SetMovieFileName( const WCHAR* wstrMovieFileName_ );
+			void SetRect_LUA( const float fX_, const float fY_, const float fWidth_, const float fHeight_ );
+			//void SetMoivePoint_LUA();
+			void OnFrameMove();
+			void OnFrameRender();
+			
+			bool GetShow() const { return m_bShow; }
+			void SetShow(bool val) { m_bShow = val; }
+
+		#ifdef PLAY_PROMOTION_MOVIE //JHKang
+			bool GetLoop() const { return m_bLoop; }
+			void SetLoop( bool bLoop_ ) { m_bLoop = bLoop_; }
+		#endif //PLAY_PROMOTION_MOVIE
+
+			const D3DXVECTOR2& GetSize() const { return m_vSize; }
+			void SetSize(const D3DXVECTOR2& val) { m_vSize = val; }
+
+			const D3DXVECTOR2& GetOriginPos() const { return m_vOriginPos; }
+			void SetOriginPos(const D3DXVECTOR2& val) { m_vOriginPos = val; }
+
+			const D3DXVECTOR2& GetPos() const { return m_vPos; }
+			void SetPos(const D3DXVECTOR2& val) { m_vPos = val; }
+
+		public:
+			CBandiVideoLibrary	m_Bvl;
+
+		private:
+			
+			BVL_VIDEO_INFO		m_Info;
+			CBandiVideoTexture*	m_pBvt;			
+			CKTDXDeviceRenderTargetTexture* 	m_pRenderTargetTexture;
+			//CBandiVideoFileReader*			m_pReader;
+			wstring							m_wstrMovieFileName;
+			D3DXVECTOR2			m_vSize;
+			D3DXVECTOR2			m_vOriginPos;
+			
+			D3DXVECTOR2			m_vPos;
+			bool				m_bShow;
+		#ifdef PLAY_PROMOTION_MOVIE //JHKang
+			bool				m_bLoop;	/// 반복 재생
+		#endif //PLAY_PROMOTION_MOVIE
+		};
+
+#endif // defined(REFORM_ENTRY_POINT) && defined( MOVIE_TEST_BASE ) || defined( MOVIE_TEST ) 
+// #endif //  MOVIE_TEST	// 13-11-11, 진입 구조 개편, kimjh, MOVIE_TEST 중 사용에 필요한 Define 을 MOVIE_TEST_BASE 로 변경
+
+
+
 		enum TEX_AXIS
 		{
 			TA_NONE = 0,
@@ -694,9 +778,8 @@ class CKTDGUIControl : private boost::noncopyable
 
 
 
-		virtual void	ScaleControl( float fx, float fy ) {};
-		virtual void	MoveControl( float fx, float fy ) {};
-
+		virtual void	ScaleControl( float fx, float fy ) {}
+		virtual void	MoveControl( float fx, float fy ) {}
 
 		D3DXVECTOR2		GetOffsetPos()						{ return m_OffsetPos; }
 
@@ -706,6 +789,50 @@ class CKTDGUIControl : private boost::noncopyable
 		virtual bool GetEnable()				{ return m_bEnable; }
 		virtual void SetShow( bool bShow )		{ m_bShow = bShow; }
 		virtual bool GetShow()					{ return m_bShow; }
+
+		virtual D3DXVECTOR2 GetPos() { return D3DXVECTOR2(); }		/// 컨트롤의 위치
+		
+
+#ifdef DLL_BUILD
+		// ContainsPoint 대신에 IsSelectByEditGui 이용해 쓰는 이유는 
+		// ContainsPoint는 Dialog에서 MouseEvent에 쓰이고 있기때문에
+		// 사용에 제약이 따른다. 
+		virtual bool IsSelectByEditGui( POINT pt ) { return false; }
+		/////////////////////////////////////////////////////
+
+		virtual void SetEditGUI( bool bEdit )	{}		// GUI 에디트 모드 설정
+
+		virtual void ScaleSubControl( float fx, float fy, wstring subControlName ) {}	// 하위 이미지 사이즈 조절
+		virtual void MoveSubControl( float fx, float fy, wstring subControlName ) {}	// 하위 컨트롤(이미지) 위치 조절
+		virtual void ShowSubView( wstring name, bool bView ) {}							// 하위 컨트롤 활성화
+
+		virtual vector<D3DXVECTOR2> GetPosList() { return vector<D3DXVECTOR2>();  }		// 컨트롤 내에 pictures의 위치 정보
+		virtual vector<D3DXVECTOR2> GetPosList( wstring name ) { return vector<D3DXVECTOR2>();  }	// 컨트롤 내에 그룹들의 위치정보
+
+		virtual D3DXVECTOR2 GetPos( wstring name ) { return D3DXVECTOR2(); }			// 특정 하위 컨트롤의 위치
+		virtual D3DXVECTOR2 GetSize( wstring name ) { return D3DXVECTOR2(); }			// 특정 하위 컨트롤의 사이즈
+		virtual D3DXVECTOR2 GetAddSize( wstring name ) { return D3DXVECTOR2(); }		// 특정 하위 컨트롤의 사이즈
+
+		virtual vector<wstring> GetNameList( wstring name ) { return vector<wstring>(); }	// 하위 컨트롤의 유닉크한 이름		
+		
+		virtual vector<D3DXVECTOR2> GetAddScaleList() { return vector<D3DXVECTOR2>(); }	// 컨트롤 내에 picture들의 사이즈 정보		
+
+		virtual void Retate( wstring name, float fDegree ) {}			// 이미지를 회전시킨다.
+		virtual float GetRotation( wstring name ) { return 0.f; }		// 이미지의 회전정보를 얻는다.
+		virtual vector<float> GetRotationList() { return vector<float>(); }
+
+		//// texture
+		virtual wstring GetTextureName( wstring name ) { return L""; }		// 하위 컨트롤에서 사용되는 texture의 이름을 얻는다.
+		virtual RECT GetTextureUV(wstring name){ return RECT(); }			// 하위 컨트롤에서 사용되는 texture의 uv 정보를 얻는다.
+		virtual wstring GetTextureKey( wstring name ) { return L""; }		// 하위 컨트롤에 key 값을 얻어온다.	
+		virtual vector<wstring> GetTextureKeyList( wstring name ) { return vector<wstring>(); }	// 하위 컨트롤에서 Texture의 key정보를 모두 가지고 온다.
+		virtual void SetTexture( wstring name, wstring fileName ) {}		// 하위 컨트롤에서 사용되는 texture를 변경한다.
+		virtual void SetTextureKey( wstring name, wstring key ) {}			// 하위 컨트롤에 key 값을 변경한다.
+
+		//// Attribute Data
+		virtual wstring GetAttributeData( wstring name ) { return L""; }				// 콘트롤의 속성값을 스트링형태로 받는다.
+#endif
+
 #ifdef NEW_SKILL_TREE_UI
 		bool GetOutOfControlList(){ return m_bOutofList; }
 		void SetOutOfControlList( bool bOut ){ m_bOutofList = bOut; }
@@ -720,7 +847,7 @@ class CKTDGUIControl : private boost::noncopyable
 
 		bool GetIsAutoDeleteEnd()				{ return m_bCheckAutoDeleteEnd; }
 
-		void SetColor( D3DXCOLOR color ) { m_Color = color; }
+		virtual void SetColor( D3DXCOLOR color ) { m_Color = color; }
 		D3DXCOLOR GetColor() { return m_Color; }
 
 		void Move( const D3DXVECTOR2& pos, D3DXCOLOR color, float fChangeTime, bool bDirect = false, bool bAutoDelete = false,
@@ -770,6 +897,14 @@ class CKTDGUIControl : private boost::noncopyable
         
         void            SetGuideDescLT(bool val) { m_bGuideDescPosLT = val; }
         bool            GetGuideDescLT() { return m_bGuideDescPosLT; } 
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		virtual	void	SetCustomMouseOverSound ( wstring wstrSoundFileName ) { }
+		virtual	void	SetCustomMouseUpSound  ( wstring wstrSoundFileName ) { }
+		virtual	void	SetCustomRadioButtonMouseOverSound ( wstring wstrSoundFileName ) { }
+		virtual	void	SetCustomRadioButtonMouseUpSound  ( wstring wstrSoundFileName ) { }
+
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
+
 
 	protected:
 		void					ChangePoint( UIPointData* pNowPoint, UIPointData* pEndPoint );
@@ -780,9 +915,9 @@ class CKTDGUIControl : private boost::noncopyable
 		D3DXVECTOR2				GetAxisPos( VERTEX_UI* pVertex, TEX_AXIS texAxis );
 
 		HRESULT					RenderVertex( VERTEX_UI* vertex, const UIPointData& pointData, int renderCount = 1 );
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		HRESULT                 RenderVertex( VERTEX_UI* vertex, bool bRestoreVertexDecl = false );
-#endif
+//#endif
 		static UITextureData*	SetTexureData_( const WCHAR* pFileName, const WCHAR* pKeyName );
 		static UIPointData*		SetPointData_();
 		static UIStringData*	SetStringData_();
@@ -825,6 +960,9 @@ class CKTDGUIControl : private boost::noncopyable
 #ifdef NEW_SKILL_TREE_UI
 		bool				m_bOutofList;
 #endif
+#ifdef DLL_BUILD
+		bool				m_bUpdate;			// frame을 멈출지 말지 제어한다.(guiTool 사용에서만 사용)
+#endif
 
 		float				m_fElapsedTime;
 		
@@ -850,9 +988,9 @@ class CKTDGUIControl : private boost::noncopyable
 
         bool m_bGuideDescPosLT;
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		LPDIRECT3DVERTEXBUFFER9 m_pVB;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		LPDIRECT3DVERTEXBUFFER9 m_pVB;
+//#endif
 
 #ifdef SHOW_DESCRIPTION_WHEN_DISABLE
 		bool	m_bShowDescriptionWhenDisable;

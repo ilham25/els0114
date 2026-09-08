@@ -35,8 +35,8 @@ m_fElapsedTime(3.f)
 , m_fWaitPvpTime(0.f)
 , m_iEstimatedTime(0)
 #ifdef SERV_EVENT_VALENTINE_DUNGEON		/// 발렌타인 던전 안내 이펙트
-, m_hValentineHeart1( INVALID_PARTICLE_HANDLE )
-, m_hValentineHeart2( INVALID_PARTICLE_HANDLE )
+, m_hValentineHeart1( INVALID_PARTICLE_SEQUENCE_HANDLE )
+, m_hValentineHeart2( INVALID_PARTICLE_SEQUENCE_HANDLE )
 #endif SERV_EVENT_VALENTINE_DUNGEON
 #endif
 
@@ -383,18 +383,6 @@ m_fElapsedTime(3.f)
 
 	case PUCM_PARTY_OPEN_LOCAL_MAP:
 		{
-#ifdef FIX_DUNGEON_CHANGESTART
-//{{ 오현빈 // 2012-7-19 // 필드버전에서는 게이트던전이 사라졌기 때문에 정상동작 하지 않는 코드이므로 제거.
-/*
-			if( g_pTFieldGame != NULL && m_pLocalMapUI != NULL && g_pTFieldGame->GetGateDungeon() == true )
- 			{
- 				m_pLocalMapUI->OpenLocalMapDLG( false );
- 				return true;
- 			}
-*/
-//}} 오현빈 // 2012-7-19 // 필드버전에서는 게이트던전이 사라졌기 때문에 정상동작 하지 않는 코드이므로 제거.
-#endif
-
 			if(g_pData->GetPartyManager()->DoIHaveParty() == true && m_fElapsedTime <= fPartyChangeTime)
 				return true;
 			m_fElapsedTime = 0.f;
@@ -402,7 +390,7 @@ m_fElapsedTime(3.f)
 			if( NULL != m_pLocalMapUI )
 			{
 				//CX2LocationManager::LOCAL_MAP_ID eLocalMapID = 
-				//	g_pData->GetLocationManager()->GetLocalMapID( (CX2Dungeon::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
+				//	g_pData->GetLocationManager()->GetLocalMapID( (SEnum::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
 
 
 				CX2LocationManager::LOCAL_MAP_ID eLocalMapID = 
@@ -410,7 +398,7 @@ m_fElapsedTime(3.f)
 					m_pLocalMapUI->GetPickedLocalMapID() : g_pData->GetLocationManager()->GetLocalMapID( g_pData->GetLocationManager()->GetCurrentVillageID() ) );
 				
 				if( CX2LocationManager::LMI_INVALID == eLocalMapID )
-					eLocalMapID = CX2LocationManager::LMI_VELDER_NORTH;
+					eLocalMapID = CX2LocationManager::LMI_RUBEN;
 
 				m_pLocalMapUI->OpenLocalMapDLG( true, eLocalMapID );
 				m_pLocalMapUI->UpdateLocalMapDLG();
@@ -727,7 +715,6 @@ m_fElapsedTime(3.f)
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_12715 ), m_pCurrStage );					
 					return true;
 				}
-#ifndef SERV_FREE_PVP
 				for(int iParty=0; iParty<g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberCount(); ++iParty)
 				{
 					if( g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberData( iParty ) != NULL &&
@@ -744,7 +731,6 @@ m_fElapsedTime(3.f)
 						return true;
 					}
 				}
-#endif SERV_FREE_PVP
 
 				// 대전파티로 변경
 				if( g_pData->GetPartyManager()->ChangePartyType(true) == false )
@@ -872,6 +858,14 @@ m_fElapsedTime(3.f)
 		break;
 	case PUCM_PVP_START_MATCH:
 		{
+#ifdef FIX_JOIN_OFFICIAL_PVP_ROOM // 김태환
+			/// 현재 연습 대전 대기실 혹은 방 이라면, 공식 대전 신청 못함
+			if ( NULL != g_pMain && 
+				 ( g_pMain->GetNowStateID() == CX2Main::XS_PVP_LOBBY ||
+				   g_pMain->GetNowStateID() == CX2Main::XS_PVP_ROOM ) )
+				return true;
+#endif //FIX_JOIN_OFFICIAL_PVP_ROOM
+
 			// 게임내에서 바쁜 상태인 경우 던전을 시작 할 수 없음
 			if ( NULL != g_pX2Game && g_pX2Game->CheckAndWarningBusyStateNow() )
 				return true;
@@ -884,7 +878,7 @@ m_fElapsedTime(3.f)
 				return false;
 			}
 
-#ifndef SERV_FREE_PVP
+
 			if( g_pData->GetPartyManager()->DoIHaveParty() == true )
 			{
 				for(int iParty=0; iParty<g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberCount(); ++iParty)
@@ -897,7 +891,6 @@ m_fElapsedTime(3.f)
 					}
 				}
 			}
-#endif SERV_FREE_PVP
 
 			char cPlayNum = GetPvpMatchPlayerNum();
 			char cPlayPvpMode = GetPvpMatchMode();
@@ -1191,11 +1184,11 @@ void CX2PartyUI::ShortCutKeyProcess()
 			GameStartCurrentMember();
 		}
 	}
-#ifdef KEY_MAPPING_INT  
+#ifdef SERV_KEY_MAPPING_INT  
 	else if( GET_KEY_STATE( GA_PARTYREADY ) == TRUE || g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F8) == TRUE )
-#else // KEY_MAPPING_INT
+#else // SERV_KEY_MAPPING_INT
 	else if( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_F8) == TRUE )
-#endif // KEY_MAPPING_INT
+#endif // SERV_KEY_MAPPING_INT
 	{
 		if( true == bShowParty &&
 			true == IsReadyPossible() && false == g_pData->GetPartyManager()->GetProcessDungeonMatch() )
@@ -1216,6 +1209,14 @@ void CX2PartyUI::ShortCutKeyProcess()
 				// 드래깅중인게 없으면
 				if ( NULL == *ppSlotBeforeDragging )
 				{
+		#ifdef FIX_JOIN_OFFICIAL_PVP_ROOM // 김태환
+					/// 현재 연습 대전 대기실 혹은 방 이라면, 신청 못함
+					if ( NULL != g_pMain && 
+						( g_pMain->GetNowStateID() == CX2Main::XS_PVP_LOBBY ||
+						  g_pMain->GetNowStateID() == CX2Main::XS_PVP_ROOM ) )
+						return;
+		#endif //FIX_JOIN_OFFICIAL_PVP_ROOM
+
 					// 게임내에서 바쁜 상태인 경우 던전을 시작 할 수 없음
 					if ( NULL != g_pX2Game && g_pX2Game->CheckAndWarningBusyStateNow() )
 						return ;			
@@ -1546,12 +1547,13 @@ void CX2PartyUI::OpenPartyDLG( bool bOpen )
 #endif //REFORM_QUEST
 
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
+#ifndef SERV_EVENT_VALENTINE_DUNGEON_INT
 		if( NULL != g_pData && NULL != g_pData->GetUIMajorParticle() )		/// 발렌타인 던전 안내 이펙트
 		{
 			m_hValentineHeart1 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, L"UI_Heart_Valentine_Arrow", 
 				316, 74, 0, 9999, 9999, -1, 1, -1.0f, true, 1.2f, false );
 
-			if( INVALID_PARTICLE_HANDLE != m_hValentineHeart1 )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hValentineHeart1 )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pParticle = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hValentineHeart1 );
 				if( pParticle != NULL )
@@ -1563,7 +1565,7 @@ void CX2PartyUI::OpenPartyDLG( bool bOpen )
 			m_hValentineHeart2 = g_pData->GetUIMajorParticle()->CreateSequenceHandle( NULL, L"UI_Heart_Valentine_Arrow_Dest", 
 				316, 74, 0, 9999, 9999, -1, 1, -1.0f, true, 1.2f, false );
 
-			if( INVALID_PARTICLE_HANDLE != m_hValentineHeart2 )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hValentineHeart2 )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pParticle = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hValentineHeart2 );
 				if( pParticle != NULL )
@@ -1572,6 +1574,7 @@ void CX2PartyUI::OpenPartyDLG( bool bOpen )
 				}
 			}
 		}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 #endif SERV_EVENT_VALENTINE_DUNGEON
 	}
 
@@ -1615,7 +1618,7 @@ void CX2PartyUI::OpenLocalMapDlg()
 
 			if( CX2LocationManager::LMI_INVALID == eLocalMapID )
 			{
-				eLocalMapID = CX2LocationManager::LMI_VELDER_NORTH;
+				eLocalMapID = CX2LocationManager::LMI_RUBEN;
 			}
 
 			m_pLocalMapUI->OpenLocalMapDLG( true, eLocalMapID );
@@ -1684,7 +1687,7 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 	{
 		pPartyData->m_iDungeonDifficulty	= CX2Dungeon::DL_NORMAL;
 		pPartyData->m_iDungeonMode			= CX2Dungeon::DM_INVALID;
-		pPartyData->m_iDungeonID			= CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL;
+		pPartyData->m_iDungeonID			= SEnum::DI_RUBEN_EL_TREE_NORMAL;
 	}
 #endif SERV_NEW_EVENT_TYPES
 
@@ -1700,10 +1703,10 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 		{
 			const int iLastEnterDungeonID = g_pData->GetMyUser()->GetSelectUnit()->GetRecentEnterDungeonID();
 
-			pPartyData->m_iDungeonID		= (iLastEnterDungeonID > 0 ? iLastEnterDungeonID : CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL);
+			pPartyData->m_iDungeonID		= (iLastEnterDungeonID > 0 ? iLastEnterDungeonID : SEnum::DI_RUBEN_EL_TREE_NORMAL);
 		}
 		else
-			pPartyData->m_iDungeonID = CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL;
+			pPartyData->m_iDungeonID = SEnum::DI_RUBEN_EL_TREE_NORMAL;
 
 #else // SERV_NEW_DEFENCE_DUNGEON
 
@@ -1713,7 +1716,7 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 			pPartyData->m_iDungeonMode			= CX2Dungeon::DM_INVALID;
 
 			//그 외 - 엘의 나무
-			pPartyData->m_iDungeonID = CX2Dungeon::DI_RUBEN_EL_TREE_NORMAL;
+			pPartyData->m_iDungeonID = SEnum::DI_RUBEN_EL_TREE_NORMAL;
 
 			if( true == g_pData->GetPartyManager()->DoIHaveParty() )
 			{
@@ -1730,11 +1733,11 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 //}} mauntain : 김태환 [2012.05.08] 어둠의 문 개장 시간 종료시 이전 던전으로 강제 변경
 
 
-	CX2Dungeon::DUNGEON_ID eDungeonIDWithDifficulty = 
-		(CX2Dungeon::DUNGEON_ID) ( pPartyData->m_iDungeonID + g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonDifficulty );
+	SEnum::DUNGEON_ID eDungeonIDWithDifficulty = 
+		(SEnum::DUNGEON_ID) ( pPartyData->m_iDungeonID + g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonDifficulty );
 
 	const CX2Dungeon::DungeonData* pDungeonData			= g_pData->GetDungeonManager()->GetDungeonData( eDungeonIDWithDifficulty );
-	const CX2Dungeon::DungeonData* pDungeonData_Normal	= g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
+	const CX2Dungeon::DungeonData* pDungeonData_Normal	= g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
 
 
 	ASSERT( NULL != pDungeonData );
@@ -1814,7 +1817,7 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 	{
 		if( NULL != pDungeonData )
 		{
-#ifdef ELLIPSE_GLOBAL
+#ifdef INTEGRATE_TOOLTIP
 			bool bEllipse = false;
 			
 			pStatic_DungeonDescription->GetString(0)->msg = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse( pDungeonData->m_DungeonDescription.c_str(), 170, pStatic_DungeonDescription->GetString(0)->fontIndex, 3, bEllipse);
@@ -1834,7 +1837,6 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 					DungeonDescriptionToolTip->SetShow(false);
 				}
 			}
-
 #else
 			pStatic_DungeonDescription->GetString(0)->msg = g_pMain->GetStrByLienBreak( pDungeonData->m_DungeonDescription.c_str(), 170, pStatic_DungeonDescription->GetString(0)->fontIndex );
 #endif
@@ -1853,28 +1855,28 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 			}
 		}
 
-		if ( false == CX2Dungeon::IsHenirDungeon( pDungeonData->m_DungeonID, false ) && 
+		if ( false == CX2Dungeon::IsHenirDungeon( pDungeonData->m_DungeonID ) && 
 			 false == CX2Dungeon::IsEventDungeon( pDungeonData->m_DungeonID ) )
 
 		{
 			CX2LocationManager::LOCAL_MAP_ID eLocalIDForDungeon = 
-				g_pData->GetLocationManager()->GetLocalMapID( (CX2Dungeon::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
+				g_pData->GetLocationManager()->GetLocalMapID( (SEnum::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
 
 			switch( eLocalIDForDungeon )
 			{
-			case CX2LocationManager::LMI_VELDER_NORTH:
+			case CX2LocationManager::LMI_RUBEN:
 				{
 					if( NULL != pStatic_FieldName->GetPicture(0) )
 					{
 						pStatic_FieldName->GetPicture(0)->SetShow( true );
 					}
 				} break;
-			case CX2LocationManager::LMI_VELDER_EAST:
+			case CX2LocationManager::LMI_ELDER:
 				{
 #ifdef SERV_HALLOWEEN_DUNGEON
 					// oasis907 : 김상윤 [2011.10.26] 할로윈 던전 예외 처리
 					int DungeonId = g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID;
-					if( DungeonId  == (int)CX2Dungeon::DI_ELDER_HALLOWEEN_NORMAL ) 
+					if( DungeonId  == (int)SEnum::DI_ELDER_HALLOWEEN_NORMAL ) 
 					{
 						pStatic_FieldName->GetPicture(1)->SetShow( false );
 					}
@@ -1885,7 +1887,7 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 							pStatic_FieldName->GetPicture(1)->SetShow( true );
 						}
 				} break;
-			case CX2LocationManager::LMI_VELDER_SOUTH:
+			case CX2LocationManager::LMI_BESMA:
 				{
 					if( NULL != pStatic_FieldName->GetPicture(2) )
 					{
@@ -1933,7 +1935,7 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 						pStatic_FieldName->GetPicture(7)->SetShow( true );
 					}
 
-				} break;
+				} break;	
 #ifdef SERV_CHINA_ADVENTURE	
 			case CX2LocationManager::LMI_CHINA:
 				{
@@ -2185,7 +2187,7 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 
 		// 선택된 던전 그림
 
-		UpdateBossItemList(pDungeonData->m_mapBossDropItem);
+		UpdateBossItemList(pDungeonData->m_mapBossDropItem, (pPartyData->m_iDungeonMode == CX2Dungeon::DM_HENIR_CHALLENGE) );
 
 		if( NULL != pStatic_DungeonImage && NULL != pStatic_DungeonImage->GetPicture(0) )
 		{
@@ -2380,7 +2382,7 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 // 							true == g_pData->GetPartyManager()->IsDungeonInLocal( localID, g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) )
 // 						{
 // 							const CX2Dungeon::DungeonData* pDungeonData_Normal = 
-// 								g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
+// 								g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID );
 // 
 // 
 // 							int iRequireItemID = 0;
@@ -2426,8 +2428,7 @@ void CX2PartyUI::UpdatePartyDLG( bool bRenamePartyTitle /*= false*/ )
 // 
 // 							if( iRequireItemCount > 0 )
 // 							{
-// 								if( NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() &&
-// 									g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( iRequireItemID ) >= iRequireItemCount )
+// 								if( g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( iRequireItemID ) >= iRequireItemCount )
 // 								{
 // 									pStatic_MemberReady[i]->SetShowEnable(true, true);
 // 								}
@@ -2787,7 +2788,6 @@ void CX2PartyUI::UpdatePartyListMemberPreviewDLG( int iPartyIndex )
 
 #ifdef SERVER_INTEGRATION_CHANNEL_NAME_FIX
 				std::wstring wstrStatic_Channel;
-
 #ifdef EXTEND_SERVER_GROUP_MASK
 				if(g_pInstanceData->GetServerGroupID() != iServerGroupID)
 				{
@@ -2978,12 +2978,30 @@ void CX2PartyUI::UpdatePartyFeverDLG()
 // 마을간 이동할 때 업데이트 해줘야하는 것들 update
 void CX2PartyUI::OnChangeState()
 {
+	UpdatePartyMenu();
+	SetStage( (CKTDXStage*) g_pMain->GetNowState() );
+}
+
+void CX2PartyUI::UpdatePartyMenu()
+{
 	switch( g_pMain->GetNowStateID() )
 	{
 	case CX2Main::XS_VILLAGE_MAP:
 	case CX2Main::XS_BATTLE_FIELD:
-		{
-			OpenPartyMenu( true );
+		{						
+#ifdef FIELD_BOSS_RAID // 던전/대전 버튼 제거
+			CX2BattleFieldManager& battleFieldManager = g_pData->GetBattleFieldManager();
+			if( true == battleFieldManager.GetIsBossRaidCurrentField() )
+			{
+				OpenPartyMenu( false );
+				OpenPartyDLG( false );
+			}
+			else
+#endif // FIELD_BOSS_RAID
+			{
+				OpenPartyMenu( true );
+			}
+
 			if( g_pData->GetPartyManager()->GetMyPartyData()->GetPartyMemberCount() >= 2 ) 
 			{
 				OpenPartyFeverDLG( true );
@@ -3019,9 +3037,7 @@ void CX2PartyUI::OnChangeState()
 
 	UpdatePartyDLG();
 	m_timerPartyListRefresh.restart();
-	SetStage( (CKTDXStage*) g_pMain->GetNowState() );
 }
-
 
 
 
@@ -3049,14 +3065,14 @@ void CX2PartyUI::OnJoinParty()
 
 #ifdef SERV_DUNGEON_DIFFICULTY_REVISION
 
-		CX2Dungeon::DUNGEON_ID eDungeonIDWithDifficulty = 
-			(CX2Dungeon::DUNGEON_ID) ( m_aPartyData[m_iPickedPartyListSlotIndex].m_iDungeonID + m_aPartyData[m_iPickedPartyListSlotIndex].m_iDungeonDifficulty );
+		SEnum::DUNGEON_ID eDungeonIDWithDifficulty = 
+			(SEnum::DUNGEON_ID) ( m_aPartyData[m_iPickedPartyListSlotIndex].m_iDungeonID + m_aPartyData[m_iPickedPartyListSlotIndex].m_iDungeonDifficulty );
 
 		const CX2Dungeon::DungeonData* pDungeonData	= g_pData->GetDungeonManager()->GetDungeonData( eDungeonIDWithDifficulty );
 
 		if( g_pData->GetSelectUnitLevel() < pDungeonData->m_MinLevel - 2)
 #else
-		const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (CX2Dungeon::DUNGEON_ID) m_aPartyData[m_iPickedPartyListSlotIndex].m_iDungeonID );
+		const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( (SEnum::DUNGEON_ID) m_aPartyData[m_iPickedPartyListSlotIndex].m_iDungeonID );
 
 		if( g_pData->GetSelectUnitLevel() < pDungeonData->m_MinLevel)
 #endif SERV_DUNGEON_DIFFICULTY_REVISION
@@ -3269,7 +3285,7 @@ bool CX2PartyUI::IsGameStartable( CX2LocationManager::LOCAL_MAP_ID eCurrLocalMap
 #if 0 // 입장권여부로 시작하기/준비하기 버튼 비활성화 시키지 않는다.
 	if( true == bGameStartable &&
 		pDungeonData->m_RequireItemCount > 0 &&
-		g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetNumItemByTID( pDungeonData->m_RequireItemID ) < pDungeonData->m_RequireItemCount )
+		g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( pDungeonData->m_RequireItemID ) < pDungeonData->m_RequireItemCount )
 	{
 		bGameStartable = false;
 	}
@@ -3504,9 +3520,9 @@ void CX2PartyUI::ResetePvpMapSetting()
 		StringCchPrintf(wMapId, 256, L"Map_CheckBox_%d", i);
 		CKTDGUICheckBox *pCheckBox = (CKTDGUICheckBox *)m_pDlgPartyPvpMapSetting->GetControl( wMapId );
 		pCheckBox->SetChecked(false);
-		for(int j=0; j<(int)g_pMain->GetGameOption()->GetOptionList()->m_vecPvpMap.size(); ++j)
+		for(int j=0; j<(int)g_pMain->GetGameOption().GetOptionList().m_vecPvpMap.size(); ++j)
 		{
-			if( m_vecPvpMapInfo[i].m_WorldID == g_pMain->GetGameOption()->GetOptionList()->m_vecPvpMap[j] )
+			if( m_vecPvpMapInfo[i].m_WorldID == g_pMain->GetGameOption().GetOptionList().m_vecPvpMap[j] )
 			{
 				pCheckBox->SetChecked(true);
 				break;
@@ -3517,7 +3533,7 @@ void CX2PartyUI::ResetePvpMapSetting()
 
 void CX2PartyUI::SavePvpMapSetting()
 {
-	g_pMain->GetGameOption()->GetOptionList()->m_vecPvpMap.clear();
+	g_pMain->GetGameOption().GetOptionList().m_vecPvpMap.clear();
 	for(int i=0; i<(int)m_vecPvpMapInfo.size(); ++i)
 	{
 		WCHAR wMapId[256] = {0,};
@@ -3525,17 +3541,17 @@ void CX2PartyUI::SavePvpMapSetting()
 		CKTDGUICheckBox *pCheckBox = (CKTDGUICheckBox *)m_pDlgPartyPvpMapSetting->GetControl( wMapId );
 		if( pCheckBox->GetChecked() == true )
 		{
-			g_pMain->GetGameOption()->GetOptionList()->m_vecPvpMap.push_back( m_vecPvpMapInfo[i].m_WorldID );
+			g_pMain->GetGameOption().GetOptionList().m_vecPvpMap.push_back( m_vecPvpMapInfo[i].m_WorldID );
 		}
 	}
 
-	g_pMain->GetGameOption()->SaveScriptFile();
+	g_pMain->GetGameOption().SaveScriptFile();
 }
 
 void CX2PartyUI::LoadPvpMap()
 {	
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, L"PVP_Map_List.lua"	);
+	g_pKTDXApp->LoadAndDoMemory( &luaManager, L"PVP_Map_List.lua"	);
 
 	//KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
 	//TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
@@ -3613,7 +3629,13 @@ void CX2PartyUI::AddPvpMapList(CKTDGUIContolList *pControlList, int row, int pvp
 
 #ifdef ELLIPSE_GLOBAL
 	bool bEllipse = false;
+
+#ifdef LINE_COUNT_FOR_BR
+	pStatic->GetString(0)->msg = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(stPvpMapInfo.m_MapName.c_str(), 120, pStatic->GetString(0)->fontIndex, 1, bEllipse);
+#else // LINE_COUNT_FOR_BR
 	pStatic->GetString(0)->msg = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(stPvpMapInfo.m_MapName.c_str(), 160, pStatic->GetString(0)->fontIndex, 1, bEllipse);
+#endif // LINE_COUNT_FOR_BR
+
 	if( pButton != NULL )
 	{
 		if(bEllipse == true)
@@ -3621,7 +3643,6 @@ void CX2PartyUI::AddPvpMapList(CKTDGUIContolList *pControlList, int row, int pvp
 				pButton->SetGuideDesc( stPvpMapInfo.m_MapName.c_str() );
 		}
 	}
-
 #else
 	pStatic->GetString(0)->msg = stPvpMapInfo.m_MapName; // 대전맵 이름
 #endif ELLIPSE_GLOBAL
@@ -3694,7 +3715,13 @@ void CX2PartyUI::UpdateMapInfo(int iMapIndex)
 #ifdef CLIENT_GLOBAL_LINEBREAK
 		pViewBodyStatic->GetString(0)->msg = CWordLineHandler::GetStrByLineBreakInX2Main( wstrMapName.c_str(), 145, pViewBodyStatic->GetString(0)->fontIndex );
 		pViewBodyStatic->GetString(1)->msg = wstrMapSize;
+		
+#ifdef LINE_COUNT_FOR_BR
+		pViewBodyStatic->GetString(2)->msg = CWordLineHandler::GetStrByLineBreakInX2Main( wstrMapDesc.c_str(), 165, pViewBodyStatic->GetString(2)->fontIndex );
+#else // LINE_COUNT_FOR_BR
 		pViewBodyStatic->GetString(2)->msg = CWordLineHandler::GetStrByLineBreakInX2Main( wstrMapDesc.c_str(), 185, pViewBodyStatic->GetString(2)->fontIndex );
+#endif // LINE_COUNT_FOR_BR		
+
 #else //CLIENT_GLOBAL_LINEBREAK
 		pViewBodyStatic->GetString(0)->msg = wstrMapName;
 		pViewBodyStatic->GetString(1)->msg = wstrMapSize;		
@@ -4181,10 +4208,10 @@ void CX2PartyUI::OpenRewardItemInfoPopup ( bool bOpen, D3DXVECTOR2 vPos, int iIt
 	if( false == bOpen )
 		return;
 
-	CX2Item::ItemData* pItemData = new CX2Item::ItemData();
-	if ( NULL != pItemData )
-	{
-		pItemData->m_ItemID = iItemID;
+    CX2Item* pItem = NULL;
+    {
+	    CX2Item::ItemData kItemData;
+		kItemData.m_ItemID = iItemID;
 		
 #ifdef FIXED_DIALOG_REWARD_ITEM_ENDURANCE						
 		if ( NULL != g_pData && NULL != g_pData->GetItemManager()  )
@@ -4192,13 +4219,14 @@ void CX2PartyUI::OpenRewardItemInfoPopup ( bool bOpen, D3DXVECTOR2 vPos, int iIt
             const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( iItemID );		// 아이템 템플릿에서 아이템 ID 얻어옴
 			if( NULL != pItemTemplet ) 
 			{
-				pItemData->m_Endurance = pItemTemplet->GetEndurance();											// 아이템 템플릿의 내구도 복사
+				kItemData.m_Endurance = pItemTemplet->GetEndurance();											// 아이템 템플릿의 내구도 복사
 			}
 		}
 #endif	// FIXED_DIALOG_REWARD_ITEM_ENDURANCE
-	}
 
-	CX2Item* pItem = new CX2Item( pItemData, NULL );
+	    pItem = new CX2Item( kItemData, NULL );
+        ASSERT( pItem != NULL );
+    }
 	wstring wstrItemDesc = L"";
 
 	if ( NULL != pItem )
@@ -4715,12 +4743,28 @@ void CX2PartyUI::UpdateAdequateMemberCount(CX2Dungeon::DUNGEON_TYPE eDungeonType
 		case CX2Dungeon::DL_NORMAL:
 			{
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
-				if( CX2Dungeon::DI_EVENT_VALENTINE_DAY == pPartyData->m_iDungeonID )
+				if( SEnum::DI_EVENT_VALENTINE_DAY == pPartyData->m_iDungeonID )
 				{
 					pStatic_AdequateMemberCount->GetString(1)->msg = L"3~4";
 				}
 				else
 #endif //SERV_EVENT_VALENTINE_DUNGEON
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+				if( SEnum::DI_EVENT_VALENTINE_DUNGEON_INT == pPartyData->m_iDungeonID )
+				{
+					pStatic_AdequateMemberCount->GetString(1)->msg = L"3~4";
+				}
+				else
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+				if( SEnum::DI_EVENT_HALLOWEEN_DAY == pPartyData->m_iDungeonID )
+				{
+					pStatic_AdequateMemberCount->GetString(1)->msg = L"3~4";
+				}
+				else
+#endif //SERV_HALLOWEEN_EVENT_2013
 				pStatic_AdequateMemberCount->GetString(1)->msg = L"1";
 			} break;
 		case CX2Dungeon::DL_HARD:
@@ -4806,7 +4850,7 @@ void CX2PartyUI::UpdateAdequateItemLevel(int iItemLevel_)
 }
 
 
-void CX2PartyUI::UpdateBossItemList(const CX2Dungeon::DungeonData::mapBossDropItem& BossDropItemList_)
+void CX2PartyUI::UpdateBossItemList(const CX2Dungeon::DungeonData::mapBossDropItem& BossDropItemList_, bool bIsHenirChallenge /*= false*/)
 {
 	CKTDGUIStatic* pStaticItem = static_cast<CKTDGUIStatic*>(m_pDLGParty->GetControl( L"ITEM")); // 보상 아이템
 	if( NULL != pStaticItem )
@@ -4865,6 +4909,13 @@ void CX2PartyUI::UpdateBossItemList(const CX2Dungeon::DungeonData::mapBossDropIt
 			}			
 		}
 
+#ifdef NEW_HENIR_DUNGEON // 시공 헬 모드 보상 아이템 추가
+		if( true == bIsHenirChallenge && iBossDropItemIndex < 6)
+		{
+			SetBossDropItemTexture( iBossDropItemIndex++, 61538, true ); // 시공간의 오오라 조각
+		}
+#endif // NEW_HENIR_DUNGEON
+
 		for( int i = iBossDropItemIndex; i < 6; ++i )
 		{
 			SetBossDropItemTexture(i);
@@ -4903,7 +4954,7 @@ void CX2PartyUI::UpdateDungeonThumbnailQuestMark()
 bool CX2PartyUI::SelectDungeonDifficulty(const int iSelectDungeonDifficulty_)
 {
 	CX2PartyManager::PartyData* pPartyData = g_pData->GetPartyManager()->GetMyPartyData();
-	const CX2Dungeon::DungeonData* pDungeonData_Normal	= g_pData->GetDungeonManager()->GetDungeonData( static_cast<CX2Dungeon::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) );
+	const CX2Dungeon::DungeonData* pDungeonData_Normal	= g_pData->GetDungeonManager()->GetDungeonData( static_cast<SEnum::DUNGEON_ID>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonID ) );
 	if ( NULL != pDungeonData_Normal && NULL != pPartyData )
 	{
 		if( true == g_pData->GetDungeonManager()->IsDefenceDungeon( pDungeonData_Normal->m_DungeonID ) )
@@ -4935,6 +4986,11 @@ bool CX2PartyUI::SelectDungeonDifficulty(const int iSelectDungeonDifficulty_)
 				{
 					pPartyData->m_iDungeonMode = CX2Dungeon::DM_HENIR_CHALLENGE;
 				}
+#ifdef NEW_HENIR_DUNGEON
+				if( NULL != GetLocalMapUI() )
+					GetLocalMapUI()->UpdateLocalMapDLG();
+#endif // NEW_HENIR_DUNGEON
+
 			} break;
 		case CX2Dungeon::DT_SECRET:
 			{
@@ -4955,14 +5011,14 @@ bool CX2PartyUI::SelectDungeonDifficulty(const int iSelectDungeonDifficulty_)
 
 		UpdateDifficultyUI( static_cast<CX2Dungeon::DIFFICULTY_LEVEL>(iSelectDungeonDifficulty_), pDungeonData_Normal->m_eDungeonType);
 
-		CX2Dungeon::DUNGEON_ID eDungeonIDWithDifficulty = 
-			static_cast<CX2Dungeon::DUNGEON_ID>( pPartyData->m_iDungeonID + pPartyData->m_iDungeonDifficulty );
+		SEnum::DUNGEON_ID eDungeonIDWithDifficulty = 
+			static_cast<SEnum::DUNGEON_ID>( pPartyData->m_iDungeonID + pPartyData->m_iDungeonDifficulty );
 
 		const CX2Dungeon::DungeonData* pDungeonData = g_pData->GetDungeonManager()->GetDungeonData( eDungeonIDWithDifficulty );
 		if( NULL != pDungeonData )
 		{
 			UpdateAdequateItemLevel(pDungeonData->m_RequireItemLevel);
-			UpdateBossItemList(pDungeonData->m_mapBossDropItem);
+			UpdateBossItemList(pDungeonData->m_mapBossDropItem, (pPartyData->m_iDungeonMode == CX2Dungeon::DM_HENIR_CHALLENGE) );
 		}
 		UpdateDungeonThumbnailQuestMark();
 	}
@@ -4999,8 +5055,8 @@ void CX2PartyUI::GameStartCurrentMember()
 	{
 		const CX2PartyManager::PartyData* pPartydata = g_pData->GetPartyManager()->GetMyPartyData();
 
-		CX2Dungeon::DUNGEON_ID eDungeonIDWithDifficulty = 
-			static_cast<CX2Dungeon::DUNGEON_ID>( pPartydata->m_iDungeonID + pPartydata->m_iDungeonDifficulty );
+		SEnum::DUNGEON_ID eDungeonIDWithDifficulty = 
+			static_cast<SEnum::DUNGEON_ID>( pPartydata->m_iDungeonID + pPartydata->m_iDungeonDifficulty );
 
 		const CX2Dungeon::DungeonData* pDungeonData	= g_pData->GetDungeonManager()->GetDungeonData( eDungeonIDWithDifficulty );
 		if ( NULL != pDungeonData )
@@ -5053,9 +5109,7 @@ void CX2PartyUI::SetPVPButton(GAME_TOOL_BUTTON_STATE eButtonState_ /*= BUTTON_ST
 	bool bShowPvp = true;
 	if( NULL != g_pData )
 	{
-#ifndef SERV_FREE_PVP
 		bShowPvp = (g_pData->GetSelectUnitLevel() >= 10) ;
-#endif SERV_FREE_PVP
 	}
 
 	if( true == bForceDisable )

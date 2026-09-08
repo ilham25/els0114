@@ -17,7 +17,7 @@ public:
 	KChannelingUserManager(void);
 	~KChannelingUserManager(void);
 
-	void UpdateChannelingUserList( IN bool bLogIn , IN int iChannelingCode );
+	void UpdateChannelingUserList( IN bool bLogIn , IN int iChannelingCode , IN bool bGameServerLogin );
 	void GetChannelingUserList( OUT std::map<int,int> &mapChannelingUserList );
 	
 private:

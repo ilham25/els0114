@@ -107,12 +107,12 @@ void CX2PVPGameSurvival::UserUnitDieNot( KEGS_USER_UNIT_DIE_NOT& kEGS_USER_UNIT_
 
 	if( KPVPChannelInfo::PCC_PLAY != g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) )
 	{
-		CX2GUUser* pKilled = g_pX2Game->GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
+		CX2GUUser* pKilled = GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
 		if( pKilled != NULL && m_bLastKillCheck == false )
 		{
-			for ( int i = 0; i < g_pX2Game->GetUserUnitListSize(); i++ )
+			for ( int i = 0; i < GetUserUnitListSize(); i++ )
 			{
-				CX2GUUser* pGUUser = g_pX2Game->GetUserUnit(i);
+				CX2GUUser* pGUUser = GetUserUnit(i);
 				if ( pGUUser == NULL )
 					continue;
 

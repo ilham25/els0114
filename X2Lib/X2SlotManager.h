@@ -196,6 +196,12 @@ public:
 #endif SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
 	//}}
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+
+	CX2SlotItem* GetSlotByItemUID( IN UidType uidItemUID_ );		/// ItemUID를 통해 SlotItem 객체를 반환하는 함수
+
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 protected:
 
 	//////////////////////////////////////////////////////////////////////////

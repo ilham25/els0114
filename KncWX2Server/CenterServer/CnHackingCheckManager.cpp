@@ -23,6 +23,9 @@ KCnHackingCheckManager::KCnHackingCheckManager(void)
 	m_iDungeonClearTimeCheckCount = 0;
 #endif SERV_DUNGEON_CLEAR_TIME_HACK_USER_CHECK
 	//}}
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+    m_bHenirClearTimeCheckEnable = false;
+#endif SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
 }
 
 KCnHackingCheckManager::~KCnHackingCheckManager(void)
@@ -56,6 +59,11 @@ ImplToStringW( KCnHackingCheckManager )
 			<< TOSTRINGW( m_setDungeonClearTimeCheckUserList.size() )
 #endif SERV_DUNGEON_CLEAR_TIME_HACK_USER_CHECK
 			//}}
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+            << TOSTRINGW( m_bHenirClearTimeCheckEnable )
+            //<< TOSTRINGW( m_kHenirClearTimeCheckData.m_iCheckPlayTime )
+            << TOSTRINGW( m_kHenirClearTimeCheckData.m_mapStageClearTime.size() )
+#endif SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
 			;
 
 	return stm_;
@@ -73,6 +81,11 @@ ImplementLuaScriptParser( KCnHackingCheckManager )
 	lua_tinker::class_def<KCnHackingCheckManager>( GetLuaState(), "AddPhoneNum",							&KCnHackingCheckManager::AddPhoneNum_LUA );
 #endif SERV_DUNGEON_CLEAR_TIME_HACK_USER_CHECK
 	//}}
+
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+    lua_tinker::class_def<KCnHackingCheckManager>( GetLuaState(), "SetHenirClearTimeCheckEnable",			&KCnHackingCheckManager::SetHenirClearTimeCheckEnable_LUA );
+    lua_tinker::class_def<KCnHackingCheckManager>( GetLuaState(), "SetHenirClearTimeHackUserCheckData",	    &KCnHackingCheckManager::SetHenirClearTimeHackUserCheckData_LUA );
+#endif SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
 
 	lua_tinker::decl( GetLuaState(), "g_pCnHackingCheckManager", this );
 }
@@ -220,6 +233,38 @@ void KCnHackingCheckManager::AddPhoneNum_LUA( const char* pszPhoneNum )
 
 #endif SERV_DUNGEON_CLEAR_TIME_HACK_USER_CHECK
 //}}
+
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
+void KCnHackingCheckManager::SetHenirClearTimeCheckEnable_LUA( bool bVal )
+{
+    m_bHenirClearTimeCheckEnable = bVal;
+
+    START_LOG( cout, L"헤니르시공 클리어 타임 핵 유저 체크 동작 여부 설정!" )
+        << BUILD_LOG( IsHenirClearTimeCheckEnable() );
+}
+bool KCnHackingCheckManager::SetHenirClearTimeHackUserCheckData_LUA()
+{
+    KLuaManager luaManager( GetLuaState() );
+
+    //LUA_GET_VALUE_RETURN( luaManager, L"m_iCheckPlayTime", m_kHenirClearTimeCheckData.m_iCheckPlayTime, 0, return false; );
+
+    int nTableIndex = 1;
+    while( luaManager.BeginTable( nTableIndex ) == S_OK )
+    {
+        int iStageID = -1;
+        int iClearTime = 0;
+        LUA_GET_VALUE( luaManager, L"m_iStageID", iStageID, -1 );
+        LUA_GET_VALUE( luaManager, L"m_iClearTime", iClearTime, 0 );
+
+        m_kHenirClearTimeCheckData.m_mapStageClearTime.insert( std::make_pair( iStageID, iClearTime ) );
+
+        luaManager.EndTable();
+        ++nTableIndex;
+    }
+
+    return true;
+}
+#endif SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
 
 bool KCnHackingCheckManager::CheckDungeonResultAutoHackUser( IN const int iDungeonID, 
 															IN const char cDifficultyLevel,
@@ -403,4 +448,84 @@ void KCnHackingCheckManager::Tick()
 //}}
 
 
+#ifdef SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK
 
+bool KCnHackingCheckManager::CheckHenirClearTimeHackUser( IN const char cAuthLevel_,
+    IN const UidType iUserUID_,
+    IN const int iDungeonID_, 
+    IN const int iStageID_,
+    //IN const char cDifficultyLevel,
+    //IN const u_char ucUnitClass,
+    //IN const int iUnitLevel,
+    //IN const bool bClear,
+    //IN const int iStartedMember, 
+    IN const int iPlayTime_
+    )
+{
+    // 헤니르 시공인지 확인
+    if ( iDungeonID_ != SEnum::DI_ELDER_HENIR_SPACE ) 
+    {
+        return false;
+    }
+
+    // 스테이지별 클리어 타임 체크
+    if ( CheckStageMinimumClearTime( iStageID_, iPlayTime_ ) == false )
+    {
+        return false;
+    }
+    // 1. 클리어 타임.
+    //if( m_kHenirClearTimeCheckData.m_iCheckPlayTime < iPlayTime_ )
+        //return false;
+
+    // 2. 운영자라면 패스!
+    //if( cAuthLevel_ >= SEnum::UAL_GM )
+    //{
+    //    START_LOG( cout, L"헤니르 시공에서 비정상적인 플레이를 했지만 운영자 등급이므로 핵유저로 처리하지 않습니다!" )
+    //        << BUILD_LOGc( cAuthLevel_ )
+    //        << BUILD_LOG( iUserUID_ )
+    //        << BUILD_LOG( iDungeonID_ )
+    //        //<< BUILD_LOGc( cDifficultyLevel )
+    //        //<< BUILD_LOGc( ucUnitClass )
+    //        //<< BUILD_LOG( iUnitLevel )
+    //        //<< BUILD_LOG( bClear )
+    //        //<< BUILD_LOG( iStartedMember )
+    //        << BUILD_LOG( iPlayTime_ );
+    //    return false;
+    //}
+
+    return true;
+}
+
+bool KCnHackingCheckManager::CheckStageMinimumClearTime( IN const int iStageID_, IN const int iPlayTime_ )
+{
+    //std::map< int, int >::const_iterator mit;
+
+    //mit = m_kHenirClearTimeCheckData.m_mapStageClearTime.find( iStageID_ );
+
+    //if ( mit == m_kHenirClearTimeCheckData.m_mapStageClearTime.end() ) 
+    //{ // 스테이지 설정 안된 경우가 있으므로, 해킹 아닌 것으로 간주. (모든 스테이지를 스크립트에 등록하지는 않는다) 
+    //    return false;
+    //}
+
+    //if ( mit->second > iPlayTime_ ) 
+    //{
+    //    return true;
+    //}
+    
+    // 설계 의도 : 하멜이 스테이지ID 40 번, 샌더가 50번이라고 가정하면, 45번 스테이지에서 던전을 클리어한 경우에 40번 기준 시간보다 짧으면 해킹으로 탐지
+    BOOST_TEST_FOREACH( const KMapStageClearTime::value_type& , data, m_kHenirClearTimeCheckData.m_mapStageClearTime )
+    {
+        if ( data.first > iStageID_ ) // 스테이지 ID > 클리어한 스테이지 ID = 해킹 기준 스테이지 범위가 아니다
+        {
+            continue;
+        }
+
+        if ( data.second > iPlayTime_ ) // 기준 스테이지 이상의 스테이지인데  기준 스테이지 클리어 시간보다 짧으면 해킹
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+#endif SERV_HENIR_CLEAR_TIME_HACK_USER_CHECK

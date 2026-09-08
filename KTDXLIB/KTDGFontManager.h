@@ -1,13 +1,5 @@
 #pragma once
 
-//{{ 허상형 : [2012/8/17] //		폰트 설정
-//#ifdef	_ASIASOFT_TH_
-//#define	CKTDGDeviceFont CKTDGDeviceFontTH
-//#else
-//#define	CKTDGDeviceFont	CKTDGDeviceFontBase
-//#endif
-//}} 허상형 : [2012/8/17] //		폰트 설정
-
 class CKTDGFontManager
 {
 	public:
@@ -131,11 +123,11 @@ class CKTDGFontManager
 		{
 			public:
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 				CUKFont(const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight = FW_NORMAL, int enlargeNum = 1, bool bNoRes = false );
-#else
-				CUKFont(const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight = FW_NORMAL, int enlargeNum = 1 );
-#endif
+//#else
+//				CUKFont(const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight = FW_NORMAL, int enlargeNum = 1 );
+//#endif
 				virtual ~CUKFont(void);
 
 				void OnResetDevice();
@@ -168,15 +160,15 @@ class CKTDGFontManager
 				/// @param  iLeft: left-position of first char of text string(screen coordinate)
 				/// @param  iTop: top-position of first char of text string
 				/// @param  pszText: [in] output text
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 				void OutTextXY( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color = 0xffffffff,
 					CKTDGFontManager::FONT_STYLE fontStyle = FS_NONE, D3DCOLOR colorOutLine = 0x00000000, 
 					RECT* pRt = NULL, DWORD dwFlag = DT_LEFT|DT_TOP, int nCount = -1, float fScaleX = 1.f, float fScaleY = 1.f );
-#else
-				void OutTextXY( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color = 0xffffffff,
-								CKTDGFontManager::FONT_STYLE fontStyle = FS_NONE, D3DCOLOR colorOutLine = 0x00000000, 
-								RECT* pRt = NULL, DWORD dwFlag = DT_LEFT|DT_TOP );
-#endif
+//#else
+//				void OutTextXY( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color = 0xffffffff,
+//								CKTDGFontManager::FONT_STYLE fontStyle = FS_NONE, D3DCOLOR colorOutLine = 0x00000000, 
+//								RECT* pRt = NULL, DWORD dwFlag = DT_LEFT|DT_TOP );
+//#endif
 				void OutProjectionText( const D3DXVECTOR3& pos, const WCHAR* wszText, D3DCOLOR color = 0xffffffff, 
 									CKTDGFontManager::FONT_STYLE fontStyle = FS_NONE, D3DCOLOR colorOutLine = 0x00000000, 
 									RECT* pRt = NULL, DWORD dwFlag = DT_LEFT|DT_TOP );
@@ -189,13 +181,13 @@ class CKTDGFontManager
 				///         - ex) fLineSpace == 2.f means double space
 				/// @note   we use '\n' and "\\n" as line breaking special characters
 				///         so "Hello\nWorld" and "Hello\\nWorld" will be rendered same format.
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 				void OutTextMultiline( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color = 0xffffffff, CKTDGFontManager::FONT_STYLE fontStyle = FS_NONE, D3DCOLOR colorOutLine = 0x00000000, float fLineSpace = 1.0f, RECT* pRt = NULL, DWORD dwFlag = DT_LEFT|DT_TOP, int nCount = -1, float  fScaleX = 1.f, float fScaleY = 1.f );
-#else
-				void OutTextMultiline( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color = 0xffffffff, 
-									CKTDGFontManager::FONT_STYLE fontStyle = FS_NONE, D3DCOLOR colorOutLine = 0x00000000,
-									float fLineSpace = 1.0f, RECT* pRt = NULL, DWORD dwFlag = DT_LEFT|DT_TOP);
-#endif
+//#else
+//				void OutTextMultiline( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color = 0xffffffff, 
+//									CKTDGFontManager::FONT_STYLE fontStyle = FS_NONE, D3DCOLOR colorOutLine = 0x00000000,
+//									float fLineSpace = 1.0f, RECT* pRt = NULL, DWORD dwFlag = DT_LEFT|DT_TOP);
+//#endif
 
 #ifdef  KTDGDEVICEFONT_SIMULATE_DIRECTX_FONT
 
@@ -248,9 +240,12 @@ class CKTDGFontManager
 #ifdef USE_FREE_TYPE
 		FT_Library	GetFreeTypeLibrary() const { return m_FreeTypeLibrary; }
 
+#ifdef  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+		const std::vector<BYTE>& GetFontMemory( string strFontName ) const;
+#else   X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 		KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER GetFontMemory( string strFontName )
 		{
-			map< string, KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER >::iterator mitUseFontMemory = m_mapUseFontMemory.find( strFontName );
+			UseFontMemoryMap::iterator mitUseFontMemory = m_mapUseFontMemory.find( strFontName );
 			if( mitUseFontMemory == m_mapUseFontMemory.end() )
 			{
 				KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER retInfo;
@@ -259,6 +254,7 @@ class CKTDGFontManager
 
 			return mitUseFontMemory->second;
 		}
+#endif  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 		void InstallFont( string strFontName, string strFontPath );
 #endif //USE_FREE_TYPE
 
@@ -284,17 +280,17 @@ class CKTDGFontManager
 		bool		DestroyFont( CKTDGFont* pFont );
 #endif
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		CUKFont*	CreateNewUKFont( const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight = FW_NORMAL, int enlargeNum = 1, bool bNoRes = false );
-#else
-		CUKFont*	CreateNewUKFont( const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight = FW_NORMAL, int enlargeNum = 1 );
-#endif
+//#else
+//		CUKFont*	CreateNewUKFont( const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight = FW_NORMAL, int enlargeNum = 1 );
+//#endif
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		void		CreateNewUIUKFont_LUA( int fontID, const char* pFontName, int Height, int Weight, int enlargeNum, int iOutlineSize = 1, bool bNoRes = false );
-#else
-		void		CreateNewUIUKFont_LUA( int fontID, const char* pFontName, int Height, int Weight, int enlargeNum );
-#endif
+//#else
+//		void		CreateNewUIUKFont_LUA( int fontID, const char* pFontName, int Height, int Weight, int enlargeNum );
+//#endif
 		bool		DestroyUKFont( CUKFont* pFont );
 
 #ifdef  KTDGDEVICEFONT_SIMULATE_DIRECTX_FONT
@@ -314,8 +310,15 @@ class CKTDGFontManager
 
 
 #ifdef USE_FREE_TYPE
-		map< string, KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER >
-			m_mapUseFontMemory;
+#ifdef  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+        typedef std::map< std::string, std::string >       FontNameFileMap;
+        typedef std::map< std::string, std::vector<BYTE> > FontFileMemoryMap;
+        FontNameFileMap     m_mapFontNameFile;
+        FontFileMemoryMap   m_mapFontFileMemory;
+#else   X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+        typedef std::map< std::string, KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER >  UseFontMemoryMap;
+		UseFontMemoryMap    m_mapUseFontMemory;
+#endif  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 
 		FT_Library			m_FreeTypeLibrary;
 #endif //USE_FREE_TYPE

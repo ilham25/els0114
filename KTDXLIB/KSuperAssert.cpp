@@ -118,20 +118,21 @@ void KSuperAssert::_fileout( bool bFlush = true )
 
 #ifdef	CONVERSION_VS
 			struct tm newTime;
-			localtime_s( &newTime, &t0);
+			bool bOK = localtime_s( &newTime, &t0) == 0;
 			tm* t = &newTime;
 #else	CONVERSION_VS
 			tm* t = localtime(&t0);
+            bool bOK = ( t != NULL );
 #endif	CONVERSION_VS
-			
 
 			std::fstream fout(m_strLogFilename.c_str(), std::ios::out | std::ios::app);
 			//fout << "//---------------------------------------------------------------------------" << std::endl;
+            if ( bOK == true )
 #ifdef CHAT_LOG_TO_TXT
-			// 미국 요청으로 형식을 조금 바꿨습니다.
-			fout << 1900+t->tm_year << "/" << 1+t->tm_mon << "/" << t->tm_mday << " " << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << "\t";
+				// 미국 요청으로 형식을 조금 바꿨습니다.
+				fout << 1900+t->tm_year << "/" << 1+t->tm_mon << "/" << t->tm_mday << " " << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << "\t";
 #else // CHAT_LOG_TO_TXT
-			fout << 1900+t->tm_year << "/" << 1+t->tm_mon << "/" << t->tm_mday << ", " << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << " > ";
+			    fout << 1900+t->tm_year << "/" << 1+t->tm_mon << "/" << t->tm_mday << ", " << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << " > ";
 #endif //CHAT_LOG_TO_TXT
 			//fout << __DATE__ << ", " << __TIME__ << " > ";
 			//fout << "// file: " << __FILE__ << std::endl;

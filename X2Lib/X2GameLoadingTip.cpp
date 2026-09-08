@@ -77,20 +77,11 @@ bool CX2GameLoadingTip::Init()
 	//}
 //}} robobeg : 2008-10-28
 
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( "Game_Loading_Tip.lua" );
-	if( Info == NULL )
-	{
-		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_221 ), g_pMain->GetNowState() );
-		return false;
-	}
-
-
-	if( kLuamanager.DoMemory( Info->pRealData, Info->size ) == false )
-	{
+    if ( g_pKTDXApp->LoadAndDoMemory( &kLuamanager, L"Game_Loading_Tip.lua" ) == false )
+    {
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_222 ), g_pMain->GetNowState() );
 		return false;
-	}
-
+    }
 
 	if ( kLuamanager.BeginTable( "LoadingTip" ) == true )
 	{
@@ -200,7 +191,7 @@ void CX2GameLoadingTip::CreateLoadingTipUI()
 		CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
 		if ( pUnit != NULL )
 		{
-			CX2GameLoadingTip::TipGroup* pTipGroup = GetTipGroup( pUnit->GetUnitData()->m_Level );
+			CX2GameLoadingTip::TipGroup* pTipGroup = GetTipGroup( pUnit->GetUnitData().m_Level );
 			if ( pTipGroup != NULL )
 			{
 				wstring textureName = GetRandomTextureName( pTipGroup );
@@ -355,7 +346,6 @@ void CX2GameLoadingTip::CreateLoadingOneLineTip()
 			pStaticLoadingTip->GetString(0)->pos.y += 20;
 			break;
 		}
-
 #endif EU_LOADING_TIP_STRING_POS_MODIFY		
 
 		pStaticLoadingTip->SetShow(true);		
@@ -370,6 +360,14 @@ void CX2GameLoadingTip::SetOneLineTipString( int iStrID_)
 	wstring OneLineTip = GET_STRING(iStrID_);
 	if( true == OneLineTip.empty() )
 		return;
+
+#ifdef REFORM_ENTRY_POINT
+#ifdef HARDCODING_STRING_TO_INDEX
+	OneLineTip = GET_STRING( STR_ID_30362 ) + OneLineTip;
+#else
+	OneLineTip = L"Tip. " + OneLineTip;
+#endif HARDCODING_STRING_TO_INDEX
+#endif //REFORM_ENTRY_POINT
 
 	CKTDGUIStatic* pStaticLoadingTip = (CKTDGUIStatic*) m_pDLGLoadingTip->GetControl( L"Static_OneLineTip" );
 
@@ -426,7 +424,6 @@ void CX2GameLoadingTip::SetOneLineTipString( int iStrID_)
 #endif CLIENT_GLOBAL_LINEBREAK
 	pStaticLoadingTip->GetString(0)->msg = wstrLineBuf.c_str();
 
-	// 각 줄마다 위치 수정
 #ifdef EU_LOADING_TIP_STRING_POS_MODIFY
 	wstring wstrCopiedText = OneLineTip;
 	int iLineCount = CWordLineHandler::LineBreakInX2Main( wstrCopiedText, pFont, MAGIC_MAX_WIDTH, L"", true );
@@ -450,10 +447,26 @@ void CX2GameLoadingTip::SetOneLineTipString( int iStrID_)
 		pStaticLoadingTip->GetString(0)->pos.y += 20;
 		break;
 	}
-
-#endif EU_LOADING_TIP_STRING_POS_MODIFY		
+#endif EU_LOADING_TIP_STRING_POS_MODIFY
 	pStaticLoadingTip->SetShow(true);	
 }
 #endif //ONE_LINE_TIP_BY_LEVEL
 #endif
 //}}
+
+
+
+#ifdef REFORM_ENTRY_POINT
+void CX2GameLoadingTip::SetVillageSetting()
+{
+	if( NULL != m_pDLGLoadingTip )
+	{
+		m_pDLGLoadingTip->SetPos( D3DXVECTOR2(512, 740) );
+		CKTDGUIStatic* pStaticLoadingTip = (CKTDGUIStatic*) m_pDLGLoadingTip->GetControl( L"Static_OneLineTip" );
+		if( NULL != pStaticLoadingTip && NULL != pStaticLoadingTip->GetString(0) )
+		{
+			pStaticLoadingTip->GetString(0)->sortFlag = 1;
+		}
+	}
+}
+#endif //REFORM_ENTRY_POINT

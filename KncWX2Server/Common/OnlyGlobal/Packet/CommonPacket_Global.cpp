@@ -30,56 +30,64 @@ SERIALIZE_DEFINE_GET( KGlobalCashInfo, obj, ks )
 
 SERIALIZE_DEFINE_PUT( KBillProductCategory, obj, ks )
 {
-	return  PUT( m_cCategoryNo ) &&
-		PUT( m_wstrCategoryName ) &&
-		PUT( m_cParentCategoryNo ) &&
-		PUT( m_cDisplayNo );
+	return PUT( m_cCategoryNo )
+		&& PUT( m_wstrCategoryName )
+		&& PUT( m_cParentCategoryNo )
+		&& PUT( m_cDisplayNo );
 }
 
 SERIALIZE_DEFINE_GET( KBillProductCategory, obj, ks )
 {
-	return  GET( m_cCategoryNo ) &&
-		GET( m_wstrCategoryName ) &&
-		GET( m_cParentCategoryNo ) &&
-		GET( m_cDisplayNo );
+	return GET( m_cCategoryNo )
+		&& GET( m_wstrCategoryName )
+		&& GET( m_cParentCategoryNo )
+		&& GET( m_cDisplayNo );
 }
 
 SERIALIZE_DEFINE_PUT( KBillProductInfo, obj, ks )
 {
-	return  PUT( m_iProductNo ) &&
-		PUT( m_iProductID ) &&
-		PUT( m_bSale ) &&
-		PUT( m_bEvent ) &&
-		PUT( m_bShow ) &&
-		PUT( m_bIsCashInvenSkip ) &&
-		PUT( m_wstrProductName ) &&
-		PUT( m_cCategoryNo ) &&
-		PUT( m_iSalePrice ) &&
-		PUT( m_iRealPrice ) &&
-		PUT( m_cPeriod ) &&
-		PUT( m_cQuantity ) &&
-		PUT( m_bEnableGift ) &&
-		PUT( m_cLimitLevel ) &&
-		PUT( m_wstrEndDate );
+	return PUT( m_iProductNo )
+		&& PUT( m_iProductID )
+		&& PUT( m_bSale )
+		&& PUT( m_bEvent )
+		&& PUT( m_bShow )
+		&& PUT( m_bIsCashInvenSkip )
+		&& PUT( m_wstrProductName )
+		&& PUT( m_cCategoryNo )
+		&& PUT( m_iSalePrice )
+		&& PUT( m_iRealPrice )
+		&& PUT( m_cPeriod )
+		&& PUT( m_cQuantity )
+		&& PUT( m_bEnableGift )
+		&& PUT( m_cLimitLevel )
+		&& PUT( m_wstrEndDate )
+#ifdef SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
+		&& PUT( m_setSalePeriod )
+#endif SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
+		;
 }
 
 SERIALIZE_DEFINE_GET( KBillProductInfo, obj, ks )
 {
-	return  GET( m_iProductNo ) &&
-		GET( m_iProductID ) &&
-		GET( m_bSale ) &&
-		GET( m_bEvent ) &&
-		GET( m_bShow ) &&
-		GET( m_bIsCashInvenSkip ) &&
-		GET( m_wstrProductName ) &&
-		GET( m_cCategoryNo ) &&
-		GET( m_iSalePrice ) &&
-		GET( m_iRealPrice ) &&
-		GET( m_cPeriod ) &&
-		GET( m_cQuantity ) &&
-		GET( m_bEnableGift ) &&
-		GET( m_cLimitLevel ) &&
-		GET( m_wstrEndDate );
+	return GET( m_iProductNo )
+		&& GET( m_iProductID )
+		&& GET( m_bSale )
+		&& GET( m_bEvent )
+		&& GET( m_bShow )
+		&& GET( m_bIsCashInvenSkip )
+		&& GET( m_wstrProductName )
+		&& GET( m_cCategoryNo )
+		&& GET( m_iSalePrice )
+		&& GET( m_iRealPrice )
+		&& GET( m_cPeriod )
+		&& GET( m_cQuantity )
+		&& GET( m_bEnableGift )
+		&& GET( m_cLimitLevel )
+		&& GET( m_wstrEndDate )
+#ifdef SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
+		&& GET( m_setSalePeriod )
+#endif SERV_REAL_TIME_SALE_PERIOD_DESCRIPTION
+		;
 }
 
 SERIALIZE_DEFINE_PUT( KBillProductAttribute, obj, ks )
@@ -500,6 +508,222 @@ SERIALIZE_DEFINE_GET( KJPEventRewardInfo, obj, ks )
 //}}
 
 
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+SERIALIZE_DEFINE_PUT( KEventCharacterRanking, obj, ks )
+{
+	return PUT( m_iDungeonCharacter1 )
+		&& PUT( m_iDungeonCharacter2 )
+		&& PUT( m_iDungeonCharacter3 )
+		&& PUT( m_iDungeonCharacter4 )
+		&& PUT( m_iPVPCharacter1 )
+		&& PUT( m_iPVPCharacter2 )
+		&& PUT( m_iPVPCharacter3 )
+		&& PUT( m_iPVPCharacter4 )
+		&& PUT( m_iFieldCharacter1 )
+		&& PUT( m_iFieldCharacter2 )
+		&& PUT( m_iFieldCharacter3 )
+		&& PUT( m_iFieldCharacter4 )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KEventCharacterRanking, obj, ks )
+{
+	return GET( m_iDungeonCharacter1 )
+		&& GET( m_iDungeonCharacter2 )
+		&& GET( m_iDungeonCharacter3 )
+		&& GET( m_iDungeonCharacter4 )
+		&& GET( m_iPVPCharacter1 )
+		&& GET( m_iPVPCharacter2 )
+		&& GET( m_iPVPCharacter3 )
+		&& GET( m_iPVPCharacter4 )
+		&& GET( m_iFieldCharacter1 )
+		&& GET( m_iFieldCharacter2 )
+		&& GET( m_iFieldCharacter3 )
+		&& GET( m_iFieldCharacter4 )
+		;
+}
+#endif //SERV_EVENT_CHARACTER_QUEST_RANKING
+
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+SERIALIZE_DEFINE_PUT( EVENT_DATA, obj, ks )
+{
+	return PUT( m_fEXPRate )
+		&& PUT( m_fVPRate )
+		&& PUT( m_fEDRate )
+		&& PUT( m_fRankingPointRate )
+		&& PUT( m_iDungeonID )
+		&& PUT( m_iDungeonMode )
+		&& PUT( m_iUnitLevel )
+		&& PUT( m_cUnitType )
+		&& PUT( m_cUnitClass )
+		&& PUT( m_iPartyNum )
+		&& PUT( m_fEventTime )
+		&& PUT( m_iEventReward )
+		&& PUT( m_mapMinMaxReward )
+		&& PUT( m_bGiveOnce )
+		&& PUT( m_bDelEndEvent )
+		&& PUT( m_bPcBangEvent )
+		&& PUT( m_bDirectReward )
+		&& PUT( m_bAccountEvent )
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+		&& PUT( m_fDropRate )
+#else // SERV_DROP_EVENT_RENEWAL
+		&& PUT( m_iDropCount )
+#endif // SERV_DROP_EVENT_RENEWAL
+		&& PUT( m_bWithPlayPcBang )
+		&& PUT( m_iChannelCode )
+		&& PUT( m_iBF_Team )
+		&& PUT( m_iHenirRewardEventCount )
+		&& PUT( m_bHenirRewardUnLimited )
+		&& PUT( m_iServerGroup )
+		&& PUT( m_bAccumulateEXP )
+#ifdef DROPEVENT_RENEWAL
+		&& PUT( m_iStartLevel )
+		&& PUT( m_iEndLevel )
+#endif DROPEVENT_RENEWAL
+		&& PUT( m_bRepeatEvent )
+		&& PUT( m_bRepeatRewardEvent )
+		&& PUT( m_iBeforeEventID )		
+#ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+		&& PUT( m_bPlayWithCharEXP )
+#endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+		&& PUT( m_iEventGroupID )
+		&& PUT( m_fQuestItemDropRate )
+#ifdef SERV_ADVERTISEMENT_EVENT
+		&& PUT( m_wstrAdvertisementURL )
+#endif SERV_ADVERTISEMENT_EVENT		
+		&& PUT( m_iEventItemID )
+		&& PUT( m_iCustomEventID )
+#ifdef	SERV_DEFENSE_DUNGEON_OPEN_RATE_EVENT		
+		&& PUT( m_fDefenseDungeonOpenRate )
+#endif	// SERV_DEFENSE_DUNGEON_OPEN_RATE_EVENT
+#ifdef	SERV_CRITERION_DATE_EVENT
+		&& PUT( m_byteCriterionUserType )
+		&& PUT( m_byteCriterionPresentUserType )
+#endif	// SERV_CRITERION_DATE_EVENT
+#ifdef SERV_STEAM_USER_CONNECT_EVENT
+		&& PUT( m_bOnlySteamUser )
+		&& PUT( m_bOnlyNotSteamUser )
+#endif //SERV_STEAM_USER_CONNECT_EVENT
+#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+		&& PUT( m_bNewUnitEvent )
+		&& PUT( m_bNewUnitEvent2 )
+		&& PUT( m_bCurrentUnitEvent )
+#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+#ifdef SERV_UNIT_CLASS_LEVEL_EVENT
+		&& PUT( m_iUnitClassLevel )
+#endif SERV_UNIT_CLASS_LEVEL_EVENT
+#ifdef SERV_HENIR_REWARD_EVENT // 작업날짜: 2013-09-09	// 박세훈
+		&& PUT( m_bAccumulate )
+#endif // SERV_HENIR_REWARD_EVENT
+		;
+}
+
+SERIALIZE_DEFINE_GET( EVENT_DATA, obj, ks )
+{
+	return GET( m_fEXPRate )
+		&& GET( m_fVPRate )
+		&& GET( m_fEDRate )
+		&& GET( m_fRankingPointRate )
+		&& GET( m_iDungeonID )
+		&& GET( m_iDungeonMode )
+		&& GET( m_iUnitLevel )
+		&& GET( m_cUnitType )
+		&& GET( m_cUnitClass )
+		&& GET( m_iPartyNum )
+		&& GET( m_fEventTime )
+		&& GET( m_iEventReward )
+		&& GET( m_mapMinMaxReward )
+		&& GET( m_bGiveOnce )
+		&& GET( m_bDelEndEvent )
+		&& GET( m_bPcBangEvent )
+		&& GET( m_bDirectReward )
+		&& GET( m_bAccountEvent )
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+		&& GET( m_fDropRate )
+#else // SERV_DROP_EVENT_RENEWAL
+		&& GET( m_iDropCount )
+#endif // SERV_DROP_EVENT_RENEWAL
+		&& GET( m_bWithPlayPcBang )
+		&& GET( m_iChannelCode )
+		&& GET( m_iBF_Team )
+		&& GET( m_iHenirRewardEventCount )
+		
+		&& GET( m_bHenirRewardUnLimited )
+		&& GET( m_iServerGroup )
+		&& GET( m_bAccumulateEXP )
+#ifdef DROPEVENT_RENEWAL
+		&& GET( m_iStartLevel )
+		&& GET( m_iEndLevel )
+#endif DROPEVENT_RENEWAL
+		&& GET( m_bRepeatEvent )
+		&& GET( m_bRepeatRewardEvent )
+		&& GET( m_iBeforeEventID )
+#ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+		&& GET( m_bPlayWithCharEXP )
+#endif SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
+		&& GET( m_iEventGroupID )
+		&& GET( m_fQuestItemDropRate )
+#ifdef SERV_ADVERTISEMENT_EVENT
+		&& GET( m_wstrAdvertisementURL )
+#endif SERV_ADVERTISEMENT_EVENT
+		&& GET( m_iEventItemID )
+		&& GET( m_iCustomEventID )
+#ifdef	SERV_DEFENSE_DUNGEON_OPEN_RATE_EVENT		
+		&& GET( m_fDefenseDungeonOpenRate )
+#endif	// SERV_DEFENSE_DUNGEON_OPEN_RATE_EVENT
+#ifdef	SERV_CRITERION_DATE_EVENT
+		&& GET( m_byteCriterionUserType )
+		&& GET( m_byteCriterionPresentUserType )
+#endif	// SERV_CRITERION_DATE_EVENT
+#ifdef SERV_STEAM_USER_CONNECT_EVENT
+		&& GET( m_bOnlySteamUser )
+		&& GET( m_bOnlyNotSteamUser )
+#endif //SERV_STEAM_USER_CONNECT_EVENT
+#ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+		&& GET( m_bNewUnitEvent )
+		&& GET( m_bNewUnitEvent2 )
+		&& GET( m_bCurrentUnitEvent )
+#endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+#ifdef SERV_UNIT_CLASS_LEVEL_EVENT
+		&& GET( m_iUnitClassLevel )
+#endif SERV_UNIT_CLASS_LEVEL_EVENT
+#ifdef SERV_HENIR_REWARD_EVENT // 작업날짜: 2013-09-09	// 박세훈
+		&& GET( m_bAccumulate )
+#endif // SERV_HENIR_REWARD_EVENT
+		;
+}
+
+
+SERIALIZE_DEFINE_PUT( KRewardData, obj, ks )
+{
+	return PUT( m_iRewardItemID )
+		&& PUT( m_iQuantity )
+		&& PUT( m_sPeriod )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KRewardData, obj, ks )
+{
+	return GET( m_iRewardItemID )
+		&& GET( m_iQuantity )
+		&& GET( m_sPeriod )
+		;
+}
+
+SERIALIZE_DEFINE_PUT( KESG_REWARD_DB_DATA_NOT, obj, ks )
+{
+	return PUT( m_mapTotalRewardData )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KESG_REWARD_DB_DATA_NOT, obj, ks )
+{
+	return GET( m_mapTotalRewardData )
+		;
+}
+
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
 SERIALIZE_DEFINE_PUT( kRandomItemMappingToInfoClient, obj, ks )
@@ -550,6 +774,23 @@ SERIALIZE_DEFINE_GET( KRandomItemMappingToInfoServer, obj, ks )
 #endif SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 #endif //SERV_CUBE_IN_ITEM_MAPPING
 
+#ifdef SERV_USE_GM_TOOL_INFO
+SERIALIZE_DEFINE_PUT( KItemName, obj, ks )
+{
+	return PUT( m_wstrKRItemName )
+		&& PUT( m_wstrTransItemName )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KItemName, obj, ks )
+{
+	return GET( m_wstrKRItemName )
+		&& GET( m_wstrTransItemName )
+		;
+}
+#endif //SERV_USE_GM_TOOL_INFO
+
+
 //{{ 2012. 09. 03	임홍락	글로벌 미션 매니저
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 SERIALIZE_DEFINE_PUT( KGlobalMissionReward, obj, ks )
@@ -593,3 +834,39 @@ SERIALIZE_DEFINE_GET( KGlobalMissionInfo, obj, ks )
 }
 #endif SERV_GLOBAL_MISSION_MANAGER
 //}} 2012. 09. 03	임홍락	글로벌 미션 매니저
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING 
+SERIALIZE_DEFINE_PUT( KPacketGetItemOnOff, obj, ks )
+{
+	return PUT( m_iType )
+		&& PUT( m_iItemID )
+		&& PUT( m_wstrStartTime )
+		&& PUT( m_wstrEndTime )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KPacketGetItemOnOff, obj, ks )
+{
+	return GET( m_iType )
+		&& GET( m_iItemID )
+		&& GET( m_wstrStartTime )
+		&& GET( m_wstrEndTime )
+		;
+}
+#endif SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
+#ifdef SERV_STRING_FILTER_USING_DB 
+SERIALIZE_DEFINE_PUT( KStringFilterInfo, obj, ks )
+{
+	return PUT( m_sStringFilterType )
+		&& PUT( m_wstrFilter )
+		;
+}
+
+SERIALIZE_DEFINE_GET( KStringFilterInfo, obj, ks )
+{
+	return GET( m_sStringFilterType )
+		&& GET( m_wstrFilter )
+		;
+}
+#endif //SERV_STRING_FILTER_USING_DB

@@ -20,7 +20,7 @@ HRESULT CX2StateTrainingResult::OnFrameMove( double fTime, float fElapsedTime )
 		return S_OK;
 
 	CX2StateCommonBG::OnFrameMove( fTime, fElapsedTime );
-	g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( fElapsedTime );
+	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( fElapsedTime );
 
 	if ( m_bStartTimer == true )
 		m_fRemainTime -= fElapsedTime;
@@ -83,7 +83,7 @@ HRESULT CX2StateTrainingResult::OnFrameMove( double fTime, float fElapsedTime )
 		{
 		case DRAO_ED_BG:
 			{
-				g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+				g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 				g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(),
 					g_pKTDXApp->GetDGManager()->GetFar(), false );
 
@@ -243,9 +243,9 @@ HRESULT CX2StateTrainingResult::OnFrameMove( double fTime, float fElapsedTime )
 						D3DXVECTOR2 picOrgSize = pStaticEXPBG->GetPicture( (pStaticEXPBG->GetPictureNum() - 1) )->GetOriginalSize();
 						CKTDGUIControl::CPictureData* pPictureEXP = pStaticEXPBG->GetPicture( (pStaticEXPBG->GetPictureNum() - 1) );
 
-						int nowExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_EXP;
-						int nowBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NowBaseLevelEXP;
-						int nextBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_NextBaseLevelEXP;
+						int nowExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_EXP;
+						int nowBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NowBaseLevelEXP;
+						int nextBaseExp = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_NextBaseLevelEXP;
 
 						pPictureEXP->SetSizeX( (float)(nowExp - nowBaseExp) / (float)( nextBaseExp - nowBaseExp ) * picOrgSize.x );
 
@@ -417,16 +417,16 @@ HRESULT CX2StateTrainingResult::OnFrameMove( double fTime, float fElapsedTime )
 				CKTDGUIStatic* pStaticEXPBG = (CKTDGUIStatic*)m_pDLGBack->GetControl( L"Dungeon_Result_EXP_BG" );
 				D3DXVECTOR2 picOrgSize = pStaticEXPBG->GetPicture(27)->GetOriginalSize();
 
-				int nowExp = pSlotData->m_pUnit->GetUnitData()->m_EXP;
-				int nowBaseExp = pSlotData->m_pUnit->GetUnitData()->m_NowBaseLevelEXP;
-				int nextBaseExp = pSlotData->m_pUnit->GetUnitData()->m_NextBaseLevelEXP;
+				int nowExp = pSlotData->m_pUnit->GetUnitData().m_EXP;
+				int nowBaseExp = pSlotData->m_pUnit->GetUnitData().m_NowBaseLevelEXP;
+				int nextBaseExp = pSlotData->m_pUnit->GetUnitData().m_NextBaseLevelEXP;
 
 
 
 				m_fEXPSize += (fElapsedTime*X2_MAGIC_MULTY_NUM4);
 
 				float maxSize = 0;
-				if ( pSlotData->m_pUnit->GetPrevLevel() == pSlotData->m_pUnit->GetUnitData()->m_Level )
+				if ( pSlotData->m_pUnit->GetPrevLevel() == pSlotData->m_pUnit->GetUnitData().m_Level )
 				{
 				maxSize = (float)(nowExp - nowBaseExp) / (float)( nextBaseExp - nowBaseExp ) * picOrgSize.x;
 				}
@@ -441,7 +441,7 @@ HRESULT CX2StateTrainingResult::OnFrameMove( double fTime, float fElapsedTime )
 				{
 				m_fEXPSize = maxSize;
 
-				if ( pSlotData->m_pUnit->GetPrevLevel() < pSlotData->m_pUnit->GetUnitData()->m_Level )
+				if ( pSlotData->m_pUnit->GetPrevLevel() < pSlotData->m_pUnit->GetUnitData().m_Level )
 				{
 				m_fEXPSize = 0;
 				//pStaticEXPBG->GetPicture(28)->SetSizeX( 0 );

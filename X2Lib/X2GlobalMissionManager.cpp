@@ -95,6 +95,22 @@ bool CX2GlobalMissionManager::Handler_EGS_GLOBAL_MISSION_UPDATE_NOT( HWND hWnd, 
 
 bool CX2GlobalMissionManager::CheckShowGlobalMissionUI()
 {
+#ifdef SERV_SECOND_CLASS_WORLD_WAR_EVENT
+	bool bElesis35Level = false;
+	if( _CONST_SECOND_CLASS_WORLD_WAR_EVENT::bWorldWarEventForElesis1stClass == true &&
+		g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit() != NULL )
+	{
+		if( g_pData->GetMyUser()->GetSelectUnit()->GetClass() == CX2Unit::UC_ELESIS_SABER_KNIGHT ||
+			g_pData->GetMyUser()->GetSelectUnit()->GetClass() == CX2Unit::UC_ELESIS_PYRO_KNIGHT )
+		{
+			if( g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_Level >= 35 )
+			{
+				bElesis35Level = true;
+			}
+		}
+	}
+#endif //SERV_SECOND_CLASS_WORLD_WAR_EVENT
+
 	if( IsActive() == true &&																					// 기본적으로 글로벌 미션이 진행 중일때
 		(g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP													// 마을, 던전, 던전 라운지에 있을 때
 		|| g_pMain->GetNowStateID() == CX2Main::XS_DUNGEON_ROOM
@@ -102,7 +118,7 @@ bool CX2GlobalMissionManager::CheckShowGlobalMissionUI()
 		|| g_pMain->GetNowStateID() == CX2Main::XS_BATTLE_FIELD ) &&											// 배틀필드 추가했음	
 		( g_pData == NULL || g_pData->GetCashShop() == NULL || g_pData->GetCashShop()->GetOpen() == false ) &&	// 캐쉬샵이 열지 않았을 때
 #ifdef SERV_SECOND_CLASS_WORLD_WAR_EVENT
-		( g_pData != NULL && g_pData->GetMyUser() != NULL && g_pData->GetMyUser()->GetSelectUnit()->GetClassLevel() == 2 ) &&
+		( g_pData != NULL && g_pData->GetMyUser() != NULL && ( g_pData->GetMyUser()->GetSelectUnit()->GetClassLevel() == 2 || bElesis35Level == true ) )&&
 #endif SERV_SECOND_CLASS_WORLD_WAR_EVENT
 		g_pMain->GetIsPlayingTutorial() == false )
 	{

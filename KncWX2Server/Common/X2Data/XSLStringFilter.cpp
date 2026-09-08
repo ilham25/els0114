@@ -150,10 +150,6 @@ bool CXSLStringFilter::CheckIsValidString( FILTER_TYPE filterType, std::wstring&
                 continue;
             }
 
-
-
-
-
 			if ( tempChar >= 'A' && tempChar <= 'Z' )
 			{
 				continue;
@@ -368,3 +364,38 @@ void CXSLStringFilter::AddPostWordFilter_LUA( char* szFilter )
 }
 #endif //SERV_POST_BAN_WORD_FILTER
 
+#ifdef SERV_STRING_FILTER_USING_DB
+void CXSLStringFilter::GetStringFilter( OUT StringFilterVector& vecStringFilter )
+{
+	std::vector< std::wstring >::iterator vit;
+	KStringFilterInfo kStringFilter;
+
+	kStringFilter.m_sStringFilterType = FWT_NICKNAME;
+	for( vit = m_BanNickNameList.begin(); vit != m_BanNickNameList.end(); ++vit )
+	{
+		kStringFilter.m_wstrFilter = *vit;
+		vecStringFilter.push_back( kStringFilter );
+	}
+
+	kStringFilter.m_sStringFilterType = FWT_NICKNAMEWORD;
+	for( vit = m_BanNickNameWordList.begin(); vit != m_BanNickNameWordList.end(); ++vit )
+	{
+		kStringFilter.m_wstrFilter = *vit;
+		vecStringFilter.push_back( kStringFilter );
+	}
+
+	kStringFilter.m_sStringFilterType = FWT_WORD;
+	for( vit = m_BanWordList.begin(); vit != m_BanWordList.end(); ++vit )
+	{
+		kStringFilter.m_wstrFilter = *vit;
+		vecStringFilter.push_back( kStringFilter );
+	}
+
+	kStringFilter.m_sStringFilterType = FWT_POSTWORD;
+	for( vit = m_BanPostWordList.begin(); vit != m_BanPostWordList.end(); ++vit )
+	{
+		kStringFilter.m_wstrFilter = *vit;
+		vecStringFilter.push_back( kStringFilter );
+	}
+}
+#endif //SERV_STRING_FILTER_USING_DB

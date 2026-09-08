@@ -21,6 +21,15 @@ public:
 		int     m_nParam2;
     };
 
+//#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+	struct KDuplicateCaseResult    // Decision 1회로 결정한 결과. 확률과 여분의 정보기록을 위한 param을 가짐.
+	{
+		int		m_iItemID;
+		int     m_nParam1;
+		int     m_nParam2;
+	};
+//#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
+
     KLottery();
     ~KLottery();
     KLottery( const KLottery& t ) { *this = t; }    // copy constructor
@@ -39,7 +48,16 @@ public:
 
     bool	AddCase( int nCaseID, double dProbability, int nParam1 = PARAM_BLANK, int nParam2 = PARAM_BLANK );
 	bool	AddCaseIntegerCast( int nCaseID, double dProbability, int nParam1 = PARAM_BLANK, int nParam2 = PARAM_BLANK );
-    
+//#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+	bool	AddDuplicateCaseIntegerCast( int nCaseID, double dProbability, int nParam1 /*= PARAM_BLANK*/, int nParam2 /*= PARAM_BLANK*/ );
+	
+	KDuplicateCaseResult DuplicateDecision( double& dCheckRoulette ) const;
+	KDuplicateCaseResult DuplicateDecision() const;
+	
+	int		GetDuplicateParam1( int nCaseID, int iPeriod, int iQuantity  ) const;
+	int		GetDuplicateParam2( int nCaseID, int iPeriod, int iQuantity  ) const;
+//#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP   
+
     int		Decision( double& dCheckRoulette ) const;
 	int		Decision() const;
 
@@ -70,6 +88,9 @@ public:
 public:
 //protected:
     std::map< int, KCaseUnit >	m_mapCase;          // key : case id, element : KCaseUnit struct.
+//#ifdef SERV_DUPLICATE_RANDOM_ITEM_GROUP
+	std::multimap< int, KCaseUnit >	m_multimapCase;          // key : case id, element : KCaseUnit struct.
+//#endif //SERV_DUPLICATE_RANDOM_ITEM_GROUP
     double						m_dTotalProb;       // 단위는 퍼센트(%)로 한다. 100이면 항상 일어남.
 };
 

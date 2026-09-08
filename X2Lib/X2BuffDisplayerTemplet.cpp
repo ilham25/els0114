@@ -11,7 +11,7 @@
 case type_: \
 	{ \
 	CX2BuffDisplayerTempletPtr ptrDisplayerTemplet = class_::CreateBuffDisplayerTempletPtr(); \
-	if ( NULL != ptrDisplayerTemplet && ptrDisplayerTemplet->ParsingDisplayerTemplateMethod( luaManager_, STRINGIZE2(type_) ) ) \
+	if ( NULL != ptrDisplayerTemplet && ptrDisplayerTemplet->ParsingDisplayerTemplateMethod( luaManager_, STRINGIZEA2(type_) ) ) \
 		{ \
 		ptrDisplayerTemplet->SetType( type_ ); \
 		vecBuffDisplayerTempletPtr_.push_back( ptrDisplayerTemplet ); \
@@ -74,18 +74,16 @@ case type_: \
 			CASE_DISPLAYER_TEMPLET( CX2BuffEffectSetImpactPointDisplayerTemplet, BDT_EFFECT_SET_NORMAL_ATTACK )
 //#endif // SERV_NEW_DEFENCE_DUNGEON
 
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+			CASE_DISPLAYER_TEMPLET( CX2BuffEffectSetOnlyMyClassDisplayerTemplet, BDT_EFFECT_SET_ONLY_MY_CLASS )
+#endif // HAMEL_SECRET_DUNGEON
+
 #ifdef EXCEPTION_BUFF_FACTOR
 			case BDT_EFFECT_SET_CREATE_GAP:
 			case BDT_EFFECT_SET_NORMAL_ATTACK:
 				++vItr;
 				continue;
 #endif // EXCEPTION_BUFF_FACTOR
-#ifdef EXCEPTION_BUFF_FACTOR_VER2
-			case BDT_EFFECT_SET_ONLY_MY_CLASS:
-				++vItr;
-				continue;
-#endif EXCEPTION_BUFF_FACTOR_VER2
-
 			default:
 				return DISPLAY_ERROR( L"Unknown Displayer Templet Type" );	/// false 리턴
 				break;
@@ -115,9 +113,9 @@ case type_: \
 	@param : 읽어들이고 있는 루아스크립트의 루아매니저(luaManager_), 파싱성공한 DisplayerTempletPtr을 담을 vector(vecBuffDisplayerTempletPtr_)
 	@return : 파싱 성공시 true, 실패시 false 리턴
 */
-bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaManager_, const WCHAR* pwszTableName_ )
+bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaManager_, const char* pszTableNameUTF8_ )
 {
-	if ( luaManager_.BeginTable( pwszTableName_ ) )
+	if ( luaManager_.BeginTable( pszTableNameUTF8_ ) )
 	{
 		BOOST_SCOPE_EXIT( (&luaManager_) ) {
 			luaManager_.EndTable();
@@ -126,7 +124,7 @@ bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaMa
 		return ParsingDisplayer( luaManager_ );
 	}
 	else
-		return DISPLAY_ERROR( pwszTableName_ );	
+		return DISPLAY_ERROR( pszTableNameUTF8_ );	
 }
 
 /** @function : ParsingDisplayer
@@ -136,18 +134,28 @@ bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaMa
 */
 /*virtual*/ bool CX2BuffRenderParamDisplayerTemplet::ParsingDisplayer( KLuaManager& luaManager_ )
 {
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager_, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
-	LUA_GET_VALUE_ENUM( luaManager_, L"RENDER_TYPE", m_stBuffRenderParam.m_eRenderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_REAL_COLOR );
-	LUA_GET_VALUE_ENUM( luaManager_, L"CARTOON_TEX_TYPE", m_stBuffRenderParam.m_eCartoonTexType, CKTDGXRenderer::CARTOON_TEX_TYPE, CKTDGXRenderer::CTT_NORMAL );
-	LUA_GET_VALUE( luaManager_, L"OUT_LINE_WIDE", m_stBuffRenderParam.m_fOutLineWide, 0.0f );
+	LUA_GET_VALUE_ENUM( luaManager_, "RENDER_TYPE", m_stBuffRenderParam.m_eRenderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_REAL_COLOR );
+	LUA_GET_VALUE_ENUM( luaManager_, "CARTOON_TEX_TYPE", m_stBuffRenderParam.m_eCartoonTexType, CKTDGXRenderer::CARTOON_TEX_TYPE, CKTDGXRenderer::CTT_NORMAL );
+	LUA_GET_VALUE( luaManager_, "OUT_LINE_WIDE", m_stBuffRenderParam.m_fOutLineWide, 0.0f );
 
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager_, "COLOR_OUT_LINE", m_stBuffRenderParam.m_d3dxColorOutLine, D3DXCOLOR(1,1,1,1) );
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager_, "COLOR", m_stBuffRenderParam.m_d3dxColor, D3DXCOLOR(1,1,1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	m_stBuffRenderParam.m_d3dxColorOutLine 
 		= lua_tinker::get<D3DXCOLOR>( luaManager_.GetLuaState(),  "COLOR_OUT_LINE" );	
 	m_stBuffRenderParam.m_d3dxColor	
 		= lua_tinker::get<D3DXCOLOR>( luaManager_.GetLuaState(),  "COLOR" );	
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
-	LUA_GET_VALUE( luaManager_, L"ALPHA_BLEND", m_stBuffRenderParam.m_bAlphaBlend, false );
+	LUA_GET_VALUE( luaManager_, "ALPHA_BLEND", m_stBuffRenderParam.m_bAlphaBlend, false );
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	LUA_GET_VALUE( luaManager_, "FLICKER_COLOR_GAP", m_stBuffRenderParam.m_fFlickerColorGap, 0.f );
+#endif //SERV_ADD_LUNATIC_PSYKER
 
 	return true;
 }
@@ -200,24 +208,31 @@ bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaMa
 			luaManager_.EndTable();
 		} BOOST_SCOPE_EXIT_END
 
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 		TableBind( &luaManager_, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 		StBuffRenderParamPtr ptrStBuffRenderParam( new StBuffRenderParam );
 		if ( NULL != ptrStBuffRenderParam )
 		{
 			CX2Unit::UNIT_TYPE eUnitType = CX2Unit::UT_NONE;
-			LUA_GET_VALUE_ENUM( luaManager_, L"UNIT_TYPE", eUnitType, CX2Unit::UNIT_TYPE, CX2Unit::UT_NONE );
+			LUA_GET_VALUE_ENUM( luaManager_, "UNIT_TYPE", eUnitType, CX2Unit::UNIT_TYPE, CX2Unit::UT_NONE );
 
-			LUA_GET_VALUE_ENUM( luaManager_, L"RENDER_TYPE", ptrStBuffRenderParam->m_eRenderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_REAL_COLOR );
-			LUA_GET_VALUE_ENUM( luaManager_, L"CARTOON_TEX_TYPE", ptrStBuffRenderParam->m_eCartoonTexType, CKTDGXRenderer::CARTOON_TEX_TYPE, CKTDGXRenderer::CTT_NORMAL );
-			LUA_GET_VALUE( luaManager_, L"OUT_LINE_WIDE", ptrStBuffRenderParam->m_fOutLineWide, 0.0f );
+			LUA_GET_VALUE_ENUM( luaManager_, "RENDER_TYPE", ptrStBuffRenderParam->m_eRenderType, CKTDGXRenderer::RENDER_TYPE, CKTDGXRenderer::RT_REAL_COLOR );
+			LUA_GET_VALUE_ENUM( luaManager_, "CARTOON_TEX_TYPE", ptrStBuffRenderParam->m_eCartoonTexType, CKTDGXRenderer::CARTOON_TEX_TYPE, CKTDGXRenderer::CTT_NORMAL );
+			LUA_GET_VALUE( luaManager_, "OUT_LINE_WIDE", ptrStBuffRenderParam->m_fOutLineWide, 0.0f );
 
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+            LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager_, "COLOR_OUT_LINE", ptrStBuffRenderParam->m_d3dxColorOutLine, D3DXCOLOR(1,1,1,1) );
+            LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager_, "COLOR", ptrStBuffRenderParam->m_d3dxColor, D3DXCOLOR(1,1,1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 			ptrStBuffRenderParam->m_d3dxColorOutLine 
 				= lua_tinker::get<D3DXCOLOR>( luaManager_.GetLuaState(),  "COLOR_OUT_LINE" );	
 			ptrStBuffRenderParam->m_d3dxColor	
 				= lua_tinker::get<D3DXCOLOR>( luaManager_.GetLuaState(),  "COLOR" );	
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
-			LUA_GET_VALUE( luaManager_, L"ALPHA_BLEND", ptrStBuffRenderParam->m_bAlphaBlend, false );
+			LUA_GET_VALUE( luaManager_, "ALPHA_BLEND", ptrStBuffRenderParam->m_bAlphaBlend, false );
 
 			pair<map<CX2Unit::UNIT_TYPE, StBuffRenderParamPtr>::iterator, bool> pairReturn 
 				= m_mapStBuffRenderParamPtr.insert( make_pair( eUnitType, ptrStBuffRenderParam ) );
@@ -281,10 +296,15 @@ bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaMa
 	while( luaManager_.GetValue( iIndex, wstrEffectSetName ) )
 	{
 		m_vecWstrEffectSetName.push_back( wstrEffectSetName );
-		m_vecHandleEffectSet.push_back( CX2EffectSet::INVALID_HANDLE );
+		m_vecHandleEffectSet.push_back( INVALID_EFFECTSET_HANDLE );
 		wstrEffectSetName.resize(0);
 		++iIndex;
 	}
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 교체 되는 타입의 버프일 경우 해당 Flag 가 True 일 때, 이펙트 셋을 다시 뿌려준다.
+	LUA_GET_VALUE( luaManager_, "REPLAY_EFFECT_SET_ACCUMULATION_LIMIT1", m_bIsReplayEffectSetAccumulationType1, false );
+	++iIndex;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	
 	if ( 1 != iIndex )	
 		return true;
@@ -306,7 +326,7 @@ bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaMa
 			/// 기존의 이펙트 삭제 (레퍼런스로 실행해야함)
 			BOOST_FOREACH( CX2EffectSet::Handle& hHandle, m_vecHandleEffectSet )
 			{
-				if ( CX2EffectSet::INVALID_HANDLE != hHandle )
+				if ( INVALID_EFFECTSET_HANDLE != hHandle )
 					g_pX2Game->GetEffectSet()->StopEffectSet( hHandle );
 			}
 
@@ -321,8 +341,20 @@ bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaMa
 		}
 		else
 		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 교체 되는 타입의 버프일 경우 해당 Flag 가 True 일 때, 이펙트 셋을 다시 뿌려준다.
+			if ( ( !DidStart() || m_bIsReplayEffectSetAccumulationType1 == true ) && !m_vecWstrEffectSetName.empty() )
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			if ( !DidStart() && !m_vecWstrEffectSetName.empty() )
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				if ( true == m_bIsReplayEffectSetAccumulationType1 )
+				{
+					if ( INVALID_EFFECTSET_HANDLE != m_vecHandleEffectSet[0] )
+						g_pX2Game->GetEffectSet()->StopEffectSet( m_vecHandleEffectSet[0] );
+				}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				m_vecHandleEffectSet[0] =
 					g_pX2Game->GetEffectSet()->PlayEffectSet( m_vecWstrEffectSetName[0], pGameUnit_,
 					NULL, ( 0 < pGameUnit_->GetRemainHyperModeTime() ), pGameUnit_->GetPowerRate() );
@@ -350,7 +382,7 @@ bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaMa
 	{
 		BOOST_FOREACH( CX2EffectSet::Handle& hHandle, m_vecHandleEffectSet )
 		{
-			if ( CX2EffectSet::INVALID_HANDLE != hHandle )
+			if ( INVALID_EFFECTSET_HANDLE != hHandle )
 				g_pX2Game->GetEffectSet()->StopEffectSet( hHandle );
 		}
 	}
@@ -401,7 +433,7 @@ bool CX2BuffDisplayerTemplet::ParsingDisplayerTemplateMethod( KLuaManager& luaMa
 */
 /*virtual*/ bool CX2BuffUnitSlashTraceDisplayerTemplet::ParsingDisplayer( KLuaManager& luaManager_ )
 {
-	LUA_GET_VALUE_ENUM( luaManager_, L"SLASH_TRACE_CONDITION", m_eSlashTraceCondition, CX2UnitSlashTraceManager::SLASH_TRACE_CONDITION, CX2UnitSlashTraceManager::STC_NONE );
+	LUA_GET_VALUE_ENUM( luaManager_, "SLASH_TRACE_CONDITION", m_eSlashTraceCondition, CX2UnitSlashTraceManager::SLASH_TRACE_CONDITION, CX2UnitSlashTraceManager::STC_NONE );
 	return true;
 }
 
@@ -566,9 +598,27 @@ void CX2BuffEffectSetImpactPointDisplayerTemplet::DoFinishByType( CX2GameUnit* p
 	@brief : Displayer의 OnFrameMove
 	@param : 버프에 걸린 게임유닛(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    switch( m_eFrameMoveType )
+    {
+    case FMT_SWORD_FIRE:
+        OnFrameMoveSwordFire( pGameUnit_ );
+        break;
+    case FMT_ENCHANT:
+        OnFrameMoveSwordEnchant( pGameUnit_ );
+        break;
+    default:
+        CX2BuffDisplayerTemplet::OnFrameMove( pGameUnit_, fElapsedTime_ );
+    }
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_delegateOnFrameMove( pGameUnit_ );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 }
 
 /** @function : StartDisplayerByBuffTempletID
@@ -588,8 +638,11 @@ void CX2BuffWeaponParticleDisplayerTemplet::StartDisplayerByBuffTempletID( CX2Ga
 				m_vecHandleParticle[uiIndex]
 					= pMajorParticleSystem->CreateSequenceHandle( pGameUnit_,  m_vecWstrParticleName[uiIndex].c_str(), 0,0,0 );
 			}
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_eFrameMoveType = FMT_SWORD_FIRE;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_delegateOnFrameMove = DelegateOnFrameMoveByType::from_method<CX2BuffWeaponParticleDisplayerTemplet, &CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordFire>( this );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		} break;
 
 	case BTI_BUFF_SWORD_ENCHANT_ICE:
@@ -603,19 +656,29 @@ void CX2BuffWeaponParticleDisplayerTemplet::StartDisplayerByBuffTempletID( CX2Ga
 				m_vecHandleParticle[uiIndex]
 				= pMajorParticleSystem->CreateSequenceHandle( pGameUnit_,  m_vecWstrParticleName[uiIndex].c_str(), 0,0,0 );
 			}
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_eFrameMoveType = FMT_ENCHANT;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_delegateOnFrameMove = DelegateOnFrameMoveByType::from_method<CX2BuffWeaponParticleDisplayerTemplet, &CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordEnchant>( this );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		} break;
 	default:
 		{
 			// 오현빈 // CX2BuffWeaponParticleDisplayerTemplet 은 무조건 예외처리를 해주어야 합니다.
 			DISPLAY_ERROR( L"Empty WeaponDisplayer OnFrameMove" );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_eFrameMoveType = FMT_DEFAULT;
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_delegateOnFrameMove = DelegateOnFrameMoveByType::from_method<CX2BuffDisplayerTemplet, &CX2BuffDisplayerTemplet::OnFrameMove>( this );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		}
 		break;
 	}
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    OnFrameMove( pGameUnit_, 0.f );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_delegateOnFrameMove( pGameUnit_ );	/// 위치등 셋팅으로 한번 미리 실행
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 }
 
 /** @function : ParsingDisplayer
@@ -631,7 +694,7 @@ void CX2BuffWeaponParticleDisplayerTemplet::StartDisplayerByBuffTempletID( CX2Ga
 	while( luaManager_.GetValue( iIndex, wstrParticleName ) )
 	{
 		m_vecWstrParticleName.push_back( wstrParticleName );
-		m_vecHandleParticle.push_back( INVALID_PARTICLE_HANDLE );
+		m_vecHandleParticle.push_back( INVALID_PARTICLE_SEQUENCE_HANDLE );
 		wstrParticleName.resize(0);
 		++iIndex;
 	}
@@ -745,10 +808,15 @@ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordEnchant( CX2GameUnit
 */
 /*virtual*/ bool CX2BuffAfterImageDisplayerTemplet::ParsingDisplayer( KLuaManager& luaManager_ )
 {
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager_, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
-	m_d3dxColor	
-		= lua_tinker::get<D3DXCOLOR>( luaManager_.GetLuaState(),  "COLOR" );	
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager_, "COLOR", m_d3dxColor, D3DXCOLOR(1,1,1,1) );
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+	m_d3dxColor	= lua_tinker::get<D3DXCOLOR>( luaManager_.GetLuaState(),  "COLOR" );	
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	return true;
 }
@@ -794,10 +862,15 @@ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordEnchant( CX2GameUnit
 */
 /*virtual*/ bool CX2BuffWeaponAfterImageDisplayerTemplet::ParsingDisplayer( KLuaManager& luaManager_ )
 {
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager_, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
-	m_d3dxColor	
-		= lua_tinker::get<D3DXCOLOR>( luaManager_.GetLuaState(),  "COLOR" );	
+#ifdef  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+    LUA_GET_USER_DEFINED_TYPE_VALUE( luaManager_, "COLOR", m_d3dxColor, D3DXCOLOR(1,1,1,1) );	
+#else   X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+	m_d3dxColor	= lua_tinker::get<D3DXCOLOR>( luaManager_.GetLuaState(),  "COLOR" );	
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	return true;
 }
@@ -842,7 +915,7 @@ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordEnchant( CX2GameUnit
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//#ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-12	// 해외팀 주석 처리
+#ifdef SERV_NEW_DEFENCE_DUNGEON // 적용날짜: 2013-04-12
 /** @function : ParsingDisplayer
 	@brief : 게임유닛에 적용할 이펙트셋 명과 생성 간격을 루아로 부터 읽어들이는 함수
 	@param : 읽어들이려는 스크립트의 루아매니저(luaManager_)
@@ -859,6 +932,7 @@ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordEnchant( CX2GameUnit
 
 		if ( true == luaManager_.GetValue( iIndex + 1, iCreateGap ) )
 		{
+			ASSERT( 0 != iCreateGap );
 			m_vecPairEffectSetNameAndGap.push_back( std::make_pair( wstrEffectSetName, static_cast<float>( iCreateGap ) ) );
 		}
 		else	/// 생성 쿨타임이 누락되었다!
@@ -917,7 +991,7 @@ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordEnchant( CX2GameUnit
 	{
 		BOOST_FOREACH( CX2EffectSet::Handle& hHandle, m_vecHandleEffectSet )
 		{
-			if ( CX2EffectSet::INVALID_HANDLE != hHandle )
+			if ( INVALID_EFFECTSET_HANDLE != hHandle )
 				g_pX2Game->GetEffectSet()->StopEffectSet( hHandle );
 		}
 	}
@@ -927,7 +1001,11 @@ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordEnchant( CX2GameUnit
 	@brief : Displayer의 OnFrameMove
 	@param : 버프에 걸린 게임유닛(pGameUnit_)
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BuffEffectSetCreateGapDisplayerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_, float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BuffEffectSetCreateGapDisplayerTemplet::OnFrameMove( CX2GameUnit* pGameUnit_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( NULL != g_pX2Game && CX2Game::GS_PLAY == g_pX2Game->GetGameState() )
 	{
@@ -936,7 +1014,11 @@ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordEnchant( CX2GameUnit
 		BOOST_FOREACH( PairElapsedTimeForEffectSet& PairValue, m_vecCheckElapsedTimeForEffectSet )
 		{
 			CKTDXCheckElapsedTime& CreateEffectSetGap = PairValue.second;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            CreateEffectSetGap.OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			CreateEffectSetGap.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 			if ( true == CreateEffectSetGap.CheckAndResetElapsedTime() )
 			{
@@ -947,4 +1029,116 @@ void CX2BuffWeaponParticleDisplayerTemplet::OnFrameMoveSwordEnchant( CX2GameUnit
 	}
 }
 
-//#endif // SERV_NEW_DEFENCE_DUNGEON
+#endif // SERV_NEW_DEFENCE_DUNGEON
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+
+/** @function : ParsingDisplayer
+	@brief : 게임유닛에 적용할 이펙트셋 명을 템플릿을 루아로 부터 읽어들이는 함수
+	@param : 읽어들이려는 스크립트의 루아매니저(luaManager_)
+	@return : 파싱 성공시 true, 실패시 false 리턴
+*/
+/*virtual*/ bool CX2BuffEffectSetOnlyMyClassDisplayerTemplet::ParsingDisplayer( KLuaManager& luaManager_ )
+{
+	const int iMaxUnitNum = static_cast<int>( CX2Unit::UT_END ) - 1;		/// 최대 유닛 수
+
+	/// 유닛수 만큼 순회
+	for ( int i = 0; i < iMaxUnitNum; ++i )
+	{
+		wstring wstrEffectSetName = L"";	/// 이펙트셋 이름
+
+		/// 유닛 타입 인덱스에 따라 이펙트셋 이름 파싱
+		switch ( i )
+		{
+			case 0: LUA_GET_VALUE( luaManager_, "ELSWORD", wstrEffectSetName, L"" );break;
+			case 1: LUA_GET_VALUE( luaManager_, "AISHA",	wstrEffectSetName, L"" );break;
+			case 2: LUA_GET_VALUE( luaManager_, "RENA",	wstrEffectSetName, L"" );break;
+			case 3: LUA_GET_VALUE( luaManager_, "RAVEN",	wstrEffectSetName, L"" );break;
+			case 4: LUA_GET_VALUE( luaManager_, "EVE",		wstrEffectSetName, L"" );break;
+			case 5: LUA_GET_VALUE( luaManager_, "CHUNG",	wstrEffectSetName, L"" );break;
+			case 6: LUA_GET_VALUE( luaManager_, "ARA",		wstrEffectSetName, L"" );break;
+			case 7: LUA_GET_VALUE( luaManager_, "ELESIS",	wstrEffectSetName, L"" );break;
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+			case 8: LUA_GET_VALUE( luaManager_, "NEW_CHARACTER",	wstrEffectSetName, L"" );break;
+#endif //SERV_9TH_NEW_CHARACTER
+			default: DISPLAY_ERROR( L"DISPLAYER EFFECTSET ONLY MY CLASS - UNKNOWN CLASS" ) break;
+		}
+
+		/// 저장
+		m_vecEffectSetName.push_back( wstrEffectSetName );
+	}
+
+	/// 저장한 인자수가 최대 유닛 수가 아니라면, 오류로 설정
+	if ( static_cast<int>( m_vecEffectSetName.size() ) != iMaxUnitNum )
+	{
+		DISPLAY_ERROR( L"DISPLAYER EFFECTSET ONLY MY CLASS - PARSING ERROR" );
+
+		return false;
+	}
+
+	return true;
+}
+
+/** @function : StartDisplayer
+	@brief : 버프의 표현요소로 이펙트셋을 Play시키는 함수
+	@param : 표현을 적용할 유닛(pGameUnit_), 버프 정보(pBuffTemplet_)
+*/
+/*virtual*/ void CX2BuffEffectSetOnlyMyClassDisplayerTemplet::StartDisplayer( CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ )
+{
+	if ( NULL != g_pX2Game && 
+        NULL != pGameUnit_ &&
+		 CX2GameUnit::GUT_USER == pGameUnit_->GetGameUnitType() && 
+		 NULL != static_cast<CX2GUUser*>(pGameUnit_)->GetUnit() )
+	{
+		if ( !DidStart() )	/// 처음 걸렸을 때
+		{
+			/// 기존의 이펙트 삭제 (레퍼런스로 실행해야함)
+			if ( INVALID_EFFECTSET_HANDLE != m_hEffectSetHandle )
+				g_pX2Game->GetEffectSet()->StopEffectSet( m_hEffectSetHandle );
+
+			/// 버프에 적용된 유닛의 타입
+			int iUnitTypeIndex = static_cast<int>( static_cast<CX2GUUser*>(pGameUnit_)->GetUnit()->GetType() ) - 1;
+
+			/// 컨테이너 내 유요한 인덱스일 때, 이펙트셋 적용
+			if ( iUnitTypeIndex < static_cast<int>( m_vecEffectSetName.size() ) )
+			{
+				m_hEffectSetHandle =
+					g_pX2Game->GetEffectSet()->PlayEffectSet( m_vecEffectSetName[iUnitTypeIndex], pGameUnit_,
+					NULL, ( 0 < pGameUnit_->GetRemainHyperModeTime() ), pGameUnit_->GetPowerRate() );
+
+				/// 이펙트셋 생성 실패 했어요!!!
+				if ( INVALID_EFFECTSET_HANDLE == m_hEffectSetHandle )
+					DISPLAY_ERROR( L"DISPLAYER EFFECTSET ONLY MY CLASS - UNKNOWN EFFECTSET NAME" );
+			}
+
+		}
+	}
+}
+
+/** @function : GetClonePtr
+	@brief : 템플릿의 클론 스마트 포인터를 반환
+	@return : 클론 스마트포인터(CX2BuffDisplayerTempletPtr) 
+*/
+/*virtual*/ CX2BuffDisplayerTempletPtr CX2BuffEffectSetOnlyMyClassDisplayerTemplet::GetClonePtr() const
+{
+	return CX2BuffDisplayerTempletPtr( new CX2BuffEffectSetOnlyMyClassDisplayerTemplet( *this ) );
+}
+
+/** @function : DoFinish
+	@brief : 버프에 의해 출력 중인 EffectSet을 종료하는 함수
+	@param : 표현 종료를 적용할 유닛(pGameUnit_), 버프 정보(pBuffTemplet_)
+*/
+/*virtual*/ void CX2BuffEffectSetOnlyMyClassDisplayerTemplet::DoFinish( CX2GameUnit* pGameUnit_, const CX2BuffTemplet* pBuffTemplet_ )
+{
+	if ( NULL != g_pX2Game )
+	{
+		if ( INVALID_EFFECTSET_HANDLE != m_hEffectSetHandle )
+			g_pX2Game->GetEffectSet()->StopEffectSet( m_hEffectSetHandle );
+	}
+}
+
+#endif // HAMEL_SECRET_DUNGEON

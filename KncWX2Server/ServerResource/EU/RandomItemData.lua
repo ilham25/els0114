@@ -90,6 +90,7 @@ g_pRandomItemManager:AddSealRandomItemInfo(	85003500 )	-- 빛나는 할로윈 �
 g_pRandomItemManager:AddSealRandomItemInfo(	85003722 )	-- 봉인된 얼음 조각상(아라 엘 수색대 장교)
 g_pRandomItemManager:AddSealRandomItemInfo(	85003720 )	-- 봉인된 황금 얼음 조각상
 g_pRandomItemManager:AddSealRandomItemInfo(	85003820 )	-- 봉인된 얼음 조각상(아라 아크엔젤)
+g_pRandomItemManager:AddSealRandomItemInfo(	80002730 )	-- 봉인된 얼음 조각상(아라, 아크엔젤, 엘 수색대)
 
 g_pRandomItemManager:AddSealRandomItemInfo(	90000595 )	-- 봉인된 얼음 조각상(이브 엘 수색대 장교)
 g_pRandomItemManager:AddSealRandomItemInfo(	90001060 )	-- 봉인된 얼음 조각상(청 엘 수색대 장교)
@@ -149,6 +150,7 @@ g_pRandomItemManager:AddCharmItem(	160953,  91610	)	-- 봉인된 얼음 조각�
 g_pRandomItemManager:AddCharmItem(	160954,  91610	)	--봉인된 얼음 조각상(아라 금강야차)
 g_pRandomItemManager:AddCharmItem(	160955,  91610	)	--봉인된 얼음 조각상(엘리시스 금강야차)
 g_pRandomItemManager:AddCharmItem(	161029,  91610	)	--봉인된 얼음 조각상(애드 아크엔젤)
+g_pRandomItemManager:AddCharmItem(	161051,  91610	)	--봉인된 얼음 조각상(애드 엘 수색대 장교)
 
 
 
@@ -187,6 +189,8 @@ g_pRandomItemManager:AddCharmItem(	85003500,	0	)	-- 빛나는 할로윈 몬스�
 g_pRandomItemManager:AddCharmItem(	85003722,	91610	)	-- 봉인된 얼음 조각상(아라 엘 수색대 장교)
 g_pRandomItemManager:AddCharmItem(	85003720,	91610	)	-- 봉인된 황금 얼음 조각상
 g_pRandomItemManager:AddCharmItem(	85003820,	91610	)	-- 봉인된 얼음 조각상(아라 아크엔젤)
+
+g_pRandomItemManager:AddCharmItem(	80002730,	91610	)	-- 봉인된 얼음 조각상(아라, 아크엔젤, 엘 수색대)
 
 g_pRandomItemManager:AddCharmItem(	90000595,	91610	)	-- 봉인된 얼음 조각상(이브 엘 수색대 장교)
 g_pRandomItemManager:AddCharmItem(	90001060,	91610	)	-- 봉인된 얼음 조각상(청 엘 수색대 장교)
@@ -324,7 +328,7 @@ g_pRandomItemManager:AddNotifyResultItemInfo(	117189	)	--	고대 마룡의 발�
 g_pRandomItemManager:AddNotifyResultItemInfo(	117190	)	--	고대 마룡의 발톱 (이브)
 g_pRandomItemManager:AddNotifyResultItemInfo(	117191	)	--	고대 마룡의 발톱 (청)
 g_pRandomItemManager:AddNotifyResultItemInfo(	117192	)	--	고대 마룡의 발톱 (아라)
-
+g_pRandomItemManager:AddNotifyResultItemInfo(	117194	)	--	고대 마룡의 발톱 (엘리시스)
 
 
 -- 매력 아이템 사용하여 획득시 공지 되는 아이템 리스트 ( itemID, 공지여부, [isSealed] )
@@ -1610,6 +1614,7 @@ g_pRandomItemManager:AddAttractionItemInfo(	88389	,	true)      --	나소드 배�
 g_pRandomItemManager:AddAttractionItemInfo(	550000	,	true)      --	소환석 : 나소드 모비
 g_pRandomItemManager:AddAttractionItemInfo(	550010	,	true)      --	소환석 : 신속의 코카
 g_pRandomItemManager:AddAttractionItemInfo(	550020	,	true)      --	소환석 : 에이션트 뽀루
+g_pRandomItemManager:AddAttractionItemInfo(	550030	,	true)      --	소환석 : 퐁고 스콜피온 TYPE-R
 g_pRandomItemManager:AddAttractionItemInfo(	550040	,	true)      --	소환석 : 아이스 하멜링
 g_pRandomItemManager:AddAttractionItemInfo(	550041	,	true)      --	소환석 : 다크 하멜링
 g_pRandomItemManager:AddAttractionItemInfo(	550042	,	true)      --	소환석 : 레드 하멜링
@@ -1623,6 +1628,22 @@ g_pRandomItemManager:AddAttractionItemInfo(	500600	,	true)      --	생명의 결
 g_pRandomItemManager:AddAttractionItemInfo(	500826	,	true)      --	생명의 결정 (그림 리퍼-데스)
 g_pRandomItemManager:AddAttractionItemInfo(	500830	,	true)      --	생명의 결정 (우비 입은 고양이-검정)
 g_pRandomItemManager:AddAttractionItemInfo(	500831	,	true)      --	생명의 결정 (우비 입은 고양이-하양)
+
+--판별기 공지 추가 1/22 /중국 전용 
+g_pRandomItemManager:AddAttractionItemInfo(	82550000	,	true)      --	소환석 : 돌진 전차 모비RT
+g_pRandomItemManager:AddAttractionItemInfo(	82550010	,	true)      --	소환석 : 바람의 코우시카
+g_pRandomItemManager:AddAttractionItemInfo(	82550020	,	true)      --	소환석 : 에이션트 라이딩 뽀루
+g_pRandomItemManager:AddAttractionItemInfo(	82550030	,	true)      --	소환석 : 퐁고 스콜피온 TYPE-R
+g_pRandomItemManager:AddAttractionItemInfo(	82550040	,	true)      --	소환석 : 아이스 하멜링
+g_pRandomItemManager:AddAttractionItemInfo(	82550041	,	true)      --	소환석 : 다크 하멜링
+g_pRandomItemManager:AddAttractionItemInfo(	82550042	,	true)      --	소환석 : 파이어 하멜링
+g_pRandomItemManager:AddAttractionItemInfo(	82500010	,	true)      --	생명의 결정 (쁘띠 에인션트 뽀루)
+g_pRandomItemManager:AddAttractionItemInfo(	82500020	,	true)      --	생명의 결정 (트리 나이트)
+g_pRandomItemManager:AddAttractionItemInfo(	82500150	,	true)      --	생명의 결정 (미스틱)
+g_pRandomItemManager:AddAttractionItemInfo(	82500230	,	true)      --	생명의 결정 (해츨링)
+g_pRandomItemManager:AddAttractionItemInfo(	82500540	,	true)      --	생명의 결정 (유니엘-더 라이트 브링어)
+g_pRandomItemManager:AddAttractionItemInfo(	82500600	,	true)      --	생명의 결정 (은여우 미호)
+
 
 -- 가열기 공지 추가	2013-06-19	박세훈	
 g_pRandomItemManager:AddAttractionItemInfo(	160836	,	true)      --	나소드 배틀 슈트 MK2 올 세트 큐브
@@ -1989,6 +2010,17 @@ g_pRandomItemManager:AddAttractionItemInfo(	82088	,	true)      --	데몬 슬레�
 g_pRandomItemManager:AddAttractionItemInfo(	82089	,	true)      --	데몬 슬레이어 헤어 (애드)
 g_pRandomItemManager:AddAttractionItemInfo(	82090	,	true)      --	데몬 슬레이어 투구 (애드)
 g_pRandomItemManager:AddAttractionItemInfo(	82091	,	true)      --	데몬 슬레이어 윙 (애드)
+
+-- 가열기 공지 추가	2014.01.13	우원식
+g_pRandomItemManager:AddAttractionItemInfo(	82122	,	true)      --	엘 수색대 장교 다이너모 (애드)
+g_pRandomItemManager:AddAttractionItemInfo(	82123	,	true)      --	엘 수색대 장교 제복 상의 (애드)
+g_pRandomItemManager:AddAttractionItemInfo(	82124	,	true)      --	엘 수색대 장교 제복 하의 (애드)
+g_pRandomItemManager:AddAttractionItemInfo(	82125	,	true)      --	엘 수색대 장교 제복 장갑 (애드)
+g_pRandomItemManager:AddAttractionItemInfo(	82126	,	true)      --	엘 수색대 장교 제복 신발 (애드)
+g_pRandomItemManager:AddAttractionItemInfo(	82127	,	true)      --	엘 수색대 장교 제복 헤어 (애드)
+g_pRandomItemManager:AddAttractionItemInfo(	82128	,	true)      --	엘 수색대 장교 제복 망토 (애드)
+g_pRandomItemManager:AddAttractionItemInfo(	82129	,	true)      --	엘 수색대 장교 모자 (애드)
+g_pRandomItemManager:AddAttractionItemInfo(	130722	,	true)      --	예식검
 
 
 
@@ -2393,3 +2425,14 @@ g_pRandomItemManager:AddAttractionItemInfo(	81384	, true )	--	로열 서번트-�
 g_pRandomItemManager:AddAttractionItemInfo(	81385	, true )	--	로열 서번트-다크로드 가드 헤어(청)
 g_pRandomItemManager:AddAttractionItemInfo(	81386	, true )	--	로열 서번트 실버 윙 모노클(청)
 g_pRandomItemManager:AddAttractionItemInfo(	81387	, true )	--	로열 배틀 블랙 미니미(청)
+
+
+-- 140319/박필홍/엘리시스 로열 블러드
+g_pRandomItemManager:AddAttractionItemInfo(	85712	, true )	--	로열 블러드 디그너티 클레이모어 (엘리시스)
+g_pRandomItemManager:AddAttractionItemInfo(	85713	, true )	--	로열 블러드 디그너티 상의 (엘리시스)
+g_pRandomItemManager:AddAttractionItemInfo(	85714	, true )	--	로열 블러드 디그너티 하의 (엘리시스)
+g_pRandomItemManager:AddAttractionItemInfo(	85715	, true )	--	로열 블러드 디그너티 장갑 (엘리시스)
+g_pRandomItemManager:AddAttractionItemInfo(	85716	, true )	--	로열 블러드 디그너티 신발 (엘리시스)
+g_pRandomItemManager:AddAttractionItemInfo(	85717	, true )	--	로열 블러드 디그너티 헤어 (엘리시스)
+g_pRandomItemManager:AddAttractionItemInfo(	85718	, true )	--	로열 블러드 디그너티 골든 크라운 (엘리시스)
+g_pRandomItemManager:AddAttractionItemInfo(	85719	, true )	--	로열 블러드 디그너티 글로리아 (엘리시스)

@@ -2,8 +2,9 @@
 
 #include    "KTDGEffectStateManager.h"
 
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
 extern LPDIRECT3DDEVICE9        g_pd3dDevice;
-
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 
 CKTDGEffectStateManager::CKTDGEffectStateManager()
 {
@@ -24,6 +25,20 @@ CKTDGEffectStateManager::CKTDGEffectStateManager()
 
     //ZeroMemory( m_apd3dTextures, sizeof( m_apd3dTextures ) );
 
+#ifdef X2OPTIMIZE_SETSHADERCONSTANT
+	const D3DCAPS9* pd3dCaps = DXUTGetDeviceCaps();
+	m_uiNumFloatVSConstants = pd3dCaps->MaxVertexShaderConst;
+
+	m_uiFirstDirtyFloatVSReg = m_uiNumFloatVSConstants;
+	m_uiFirstCleanFloatVSReg = 0;
+    m_pfFloatVSConstantData = NULL;
+	if (m_uiNumFloatVSConstants > 0)
+	{
+		unsigned int uiNumElements = m_uiNumFloatVSConstants * 4;
+		m_pfFloatVSConstantData = new float[uiNumElements];
+		memset(m_pfFloatVSConstantData, 0, uiNumElements * sizeof(*m_pfFloatVSConstantData));
+	}
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 }//CKTDGEffectStateManager::CKTDGEffectStateManager()
 
 
@@ -32,6 +47,10 @@ CKTDGEffectStateManager::~CKTDGEffectStateManager()
     ASSERT( !m_bInEffect );
     if ( m_bInEffect )
         RestoreEffectState();
+
+#ifdef X2OPTIMIZE_SETSHADERCONSTANT
+	SAFE_DELETE_ARRAY( m_pfFloatVSConstantData );
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 }//CKTDGEffectStateManager::~CKTDGEffectStateManager()
 
 
@@ -320,13 +339,13 @@ HRESULT STDMETHODCALLTYPE CKTDGEffectStateManager::SetVertexShader(THIS_ LPDIREC
     return  g_pd3dDevice->SetVertexShader( pShader );
 }//CKTDGEffectStateManager::SetVertexShader()
 
-
+#ifndef X2OPTIMIZE_SETSHADERCONSTANT
 HRESULT STDMETHODCALLTYPE CKTDGEffectStateManager::SetVertexShaderConstantF(THIS_ UINT RegisterIndex, CONST FLOAT *pConstantData, UINT RegisterCount)
 {
     ASSERT( m_bInEffect );
     return  g_pd3dDevice->SetVertexShaderConstantF( RegisterIndex, pConstantData, RegisterCount );
 }//CKTDGEffectStateManager::SetVertexShaderConstantF()
-
+#endif//X2OPTIMIZE_SETSHADERCONSTANT
 
 HRESULT STDMETHODCALLTYPE CKTDGEffectStateManager::SetVertexShaderConstantI(THIS_ UINT RegisterIndex, CONST INT *pConstantData, UINT RegisterCount)
 {

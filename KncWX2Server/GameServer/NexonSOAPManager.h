@@ -28,7 +28,12 @@ public:
 
 	void RegToLua();
 
-	void Init( int nThreadNum );
+	void Init( IN int nThreadNum
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-11-06	// 박세훈
+			 , IN char* szSoapServerAddressForUser
+			 , IN char* szSoapServerAddressForCoupon
+#endif // SERV_NEXON_COUPON_SYSTEM
+			 );
 
 	void AddWebServiceAddress( const char* szWSDL );
 	void AddWebMethod( int iSoapAction, const char* szMethod );

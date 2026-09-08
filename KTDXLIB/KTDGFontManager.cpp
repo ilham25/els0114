@@ -51,7 +51,9 @@ CKTDGFontManager::~CKTDGFontManager(void)
 
 void CKTDGFontManager::OnFrameMove( float fTime, float fElapsedTime )
 {
+#ifndef X2VIEWER //JHKang
 	KLagCheck( eKnown_LagCheckType_KTDGFontManager_FrameMove );
+#endif //X2VIEWER
 
 #ifndef KTDGDEVICEFONT_SIMULATE_DIRECTX_FONT
 	for( int i = 0; i < (int)m_FontList.size(); i++ )
@@ -165,21 +167,21 @@ void CKTDGFontManager::CreateNewUIFont_LUA( int fontID, const char* pFontName, i
 #endif
 }
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 void CKTDGFontManager::CreateNewUIUKFont_LUA( int fontID, const char* pFontName, int Height, int Weight, int enlargeNum, int iOutlineSize, bool bNoRes )
-#else
-void CKTDGFontManager::CreateNewUIUKFont_LUA( int fontID, const char* pFontName, int Height, int Weight, int enlargeNum )
-#endif
+//#else
+//void CKTDGFontManager::CreateNewUIUKFont_LUA( int fontID, const char* pFontName, int Height, int Weight, int enlargeNum )
+//#endif
 {
 	wstring fontName;
 	ConvertUtf8ToWCHAR( fontName, pFontName );
 	CUKFont* pFont;
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	pFont = CreateNewUKFont( fontName.c_str(), Height, iOutlineSize, true, Weight, enlargeNum, bNoRes );
-#else
-	pFont = CreateNewUKFont( fontName.c_str(), Height, 1, true, Weight, enlargeNum );
-#endif
+//#else
+//	pFont = CreateNewUKFont( fontName.c_str(), Height, 1, true, Weight, enlargeNum );
+//#endif
 	
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->SetUKFont( fontID, pFont );
 }
@@ -208,17 +210,17 @@ void CKTDGFontManager::MapUIFontToUKFont( int fontID, int ukFontID )
 #endif
 
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 CKTDGFontManager::CUKFont*	CKTDGFontManager::CreateNewUKFont( const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight /*= FW_NORMAL*/, int enlargeNum /*= 1*/, bool bNoRes )
-#else
-CKTDGFontManager::CUKFont*	CKTDGFontManager::CreateNewUKFont( const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight /*= FW_NORMAL*/, int enlargeNum /*= 1*/ )
-#endif
+//#else
+//CKTDGFontManager::CUKFont*	CKTDGFontManager::CreateNewUKFont( const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, bool bRHW, int fontWeight /*= FW_NORMAL*/, int enlargeNum /*= 1*/ )
+//#endif
 {
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	CUKFont* pFont = new CUKFont( wstrFontName, iFontSize, iOutLineSize, bRHW, fontWeight, enlargeNum, bNoRes );
-#else
-	CUKFont* pFont = new CUKFont( wstrFontName, iFontSize, iOutLineSize, bRHW, fontWeight, enlargeNum );
-#endif
+//#else
+//	CUKFont* pFont = new CUKFont( wstrFontName, iFontSize, iOutLineSize, bRHW, fontWeight, enlargeNum );
+//#endif
 	m_UKFontList.push_back( pFont );
 
 	//m_mapUKFontList.insert(map<string, string>::value_type( fontIndex, pFont );
@@ -694,7 +696,7 @@ void CKTDGFontManager::CKTDGFont::CalcTextRect( const WCHAR* strMsg, RECT* pos, 
 	*/
 }
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 void CKTDGFontManager::CKTDGFont::Flush()
 {
 	int nFontNum = 0;
@@ -754,133 +756,133 @@ void CKTDGFontManager::CKTDGFont::Flush()
 		nFontNum = 0;
 	}
 }
-#else
-void CKTDGFontManager::CKTDGFont::Flush()
-{
-	int nFontNum = 0;
-	int i = 0;
-
-	m_pTextSprite->Begin( D3DXSPRITE_ALPHABLEND | D3DXSPRITE_SORT_TEXTURE );
-
-	D3DXMATRIX matTransform;
-	D3DXMatrixScaling( &matTransform, g_pKTDXApp->GetResolutionScaleX(), g_pKTDXApp->GetResolutionScaleY(), g_pKTDXApp->GetResolutionScaleX() );
-	m_pTextSprite->SetTransform( &matTransform );
-
-	nFontNum = (int)m_vecFont2D.size();
-
-	if( nFontNum != 0 )
-	{
-		for( i = 0; i < nFontNum; ++i )
-		{
-			FontArticle* pArticle	= m_vecFont2D[i];
-
-			if ( pArticle == NULL )
-				continue;
-
-			pArticle->rect.left		= (int)pArticle->pos.x;
-			pArticle->rect.top		= (int)pArticle->pos.y;
-
-
-			if( true == pArticle->bSpread )
-			{
-				wstring wstrTemp = pArticle->strMsg.substr(0, pArticle->iSpreadCount );
-
-				DrawFont( wstrTemp.c_str(), pArticle->rect, pArticle->sortFlag, pArticle->color, pArticle->outLineColor, pArticle->fontStyle );
-			}
-			else
-			{
-				DrawFont( pArticle->strMsg.c_str(), pArticle->rect, pArticle->sortFlag, pArticle->color, pArticle->outLineColor, pArticle->fontStyle );
-			}		
-
-			if( pArticle->bInstance == true )
-			{
-				SAFE_DELETE( pArticle );
-				m_vecFont2D.erase( m_vecFont2D.begin() + i );
-				--nFontNum;
-				--i;
-			}
-		}
-
-		nFontNum = 0;
-	}
-
-	nFontNum = (int)m_vecFontProjects.size();
-
-	if( nFontNum != 0 )
-	{
-		D3DXVECTOR3	vOut = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
-
-		m_pTextSprite->SetTransform( &m_matIdentityWorld );
-		g_pKTDXApp->SetWorldTransform( &m_matIdentityWorld );
-		g_pKTDXApp->GetProjectionTransform( &m_matProjection );
-		g_pKTDXApp->GetViewTransform( &m_matView );
-		
-		for( i = 0; i < nFontNum; ++i )
-		{
-			FontArticle* pArticle	= m_vecFontProjects[i];
-			if ( pArticle == NULL )
-				continue;
-
-			D3DXVec3Project( &vOut, &pArticle->pos, &g_pKTDXApp->GetViewport(), &m_matProjection, &m_matView, &m_matIdentityWorld );
-
-			// Cull
-			if ( 0.f > vOut.z || vOut.z > 1.f )
-			{
-				//KDbgStm << "Text Out Cull" << trace;
-				continue;
-			}
-
-			pArticle->rect.left	= (LONG)vOut.x;
-			pArticle->rect.top	= (LONG)vOut.y;
-
-			DrawFont( pArticle->strMsg.c_str(), pArticle->rect, pArticle->sortFlag, pArticle->color, pArticle->outLineColor, pArticle->fontStyle );
-			
-			if( pArticle->bInstance == true )
-			{
-				SAFE_DELETE( pArticle );
-				m_vecFontProjects.erase( m_vecFontProjects.begin() + i );
-				--nFontNum;
-				--i;
-			}
-		}
-
-		nFontNum = 0;
-	}
-	m_pTextSprite->End();
-
-	nFontNum = (int)m_vecFont3D.size();
-
-	m_pTextSprite->Begin( D3DXSPRITE_ALPHABLEND | D3DXSPRITE_OBJECTSPACE );
-
-	if( nFontNum != 0 )
-	{
-		for( i = 0; i < nFontNum; ++i )
-		{
-			FontArticle* pArticle	= m_vecFont3D[i];
-			pArticle->rect.left		= 0;
-			pArticle->rect.top		= 0;
-			pArticle->rect.right	= 0;
-			pArticle->rect.bottom	= 0;
-
-			m_pMatrix->Move( pArticle->pos );
-			m_pMatrix->Rotate( D3DXVECTOR3( D3DX_PI, 0.0f, 0.0f ) );
-			m_pMatrix->UpdateWorldMatrix( CKTDGMatrix::BT_ALL );
-
-			DrawFont( pArticle->strMsg.c_str(), pArticle->rect, pArticle->sortFlag, pArticle->color, pArticle->outLineColor, pArticle->fontStyle );
-			
-			if( pArticle->bInstance == true )
-			{
-				SAFE_DELETE( pArticle );
-				m_vecFont3D.erase( m_vecFont3D.begin() + i );
-				--nFontNum;
-				--i;
-			}
-		}
-	}
-
-	m_pTextSprite->End();
-}
-#endif
+//#else
+//void CKTDGFontManager::CKTDGFont::Flush()
+//{
+//	int nFontNum = 0;
+//	int i = 0;
+//
+//	m_pTextSprite->Begin( D3DXSPRITE_ALPHABLEND | D3DXSPRITE_SORT_TEXTURE );
+//
+//	D3DXMATRIX matTransform;
+//	D3DXMatrixScaling( &matTransform, g_pKTDXApp->GetResolutionScaleX(), g_pKTDXApp->GetResolutionScaleY(), g_pKTDXApp->GetResolutionScaleX() );
+//	m_pTextSprite->SetTransform( &matTransform );
+//
+//	nFontNum = (int)m_vecFont2D.size();
+//
+//	if( nFontNum != 0 )
+//	{
+//		for( i = 0; i < nFontNum; ++i )
+//		{
+//			FontArticle* pArticle	= m_vecFont2D[i];
+//
+//			if ( pArticle == NULL )
+//				continue;
+//
+//			pArticle->rect.left		= (int)pArticle->pos.x;
+//			pArticle->rect.top		= (int)pArticle->pos.y;
+//
+//
+//			if( true == pArticle->bSpread )
+//			{
+//				wstring wstrTemp = pArticle->strMsg.substr(0, pArticle->iSpreadCount );
+//
+//				DrawFont( wstrTemp.c_str(), pArticle->rect, pArticle->sortFlag, pArticle->color, pArticle->outLineColor, pArticle->fontStyle );
+//			}
+//			else
+//			{
+//				DrawFont( pArticle->strMsg.c_str(), pArticle->rect, pArticle->sortFlag, pArticle->color, pArticle->outLineColor, pArticle->fontStyle );
+//			}		
+//
+//			if( pArticle->bInstance == true )
+//			{
+//				SAFE_DELETE( pArticle );
+//				m_vecFont2D.erase( m_vecFont2D.begin() + i );
+//				--nFontNum;
+//				--i;
+//			}
+//		}
+//
+//		nFontNum = 0;
+//	}
+//
+//	nFontNum = (int)m_vecFontProjects.size();
+//
+//	if( nFontNum != 0 )
+//	{
+//		D3DXVECTOR3	vOut = D3DXVECTOR3( 0.0f, 0.0f, 0.0f );
+//
+//		m_pTextSprite->SetTransform( &m_matIdentityWorld );
+//		g_pKTDXApp->SetWorldTransform( &m_matIdentityWorld );
+//		g_pKTDXApp->GetProjectionTransform( &m_matProjection );
+//		g_pKTDXApp->GetViewTransform( &m_matView );
+//		
+//		for( i = 0; i < nFontNum; ++i )
+//		{
+//			FontArticle* pArticle	= m_vecFontProjects[i];
+//			if ( pArticle == NULL )
+//				continue;
+//
+//			D3DXVec3Project( &vOut, &pArticle->pos, &g_pKTDXApp->GetViewport(), &m_matProjection, &m_matView, &m_matIdentityWorld );
+//
+//			// Cull
+//			if ( 0.f > vOut.z || vOut.z > 1.f )
+//			{
+//				//KDbgStm << "Text Out Cull" << trace;
+//				continue;
+//			}
+//
+//			pArticle->rect.left	= (LONG)vOut.x;
+//			pArticle->rect.top	= (LONG)vOut.y;
+//
+//			DrawFont( pArticle->strMsg.c_str(), pArticle->rect, pArticle->sortFlag, pArticle->color, pArticle->outLineColor, pArticle->fontStyle );
+//			
+//			if( pArticle->bInstance == true )
+//			{
+//				SAFE_DELETE( pArticle );
+//				m_vecFontProjects.erase( m_vecFontProjects.begin() + i );
+//				--nFontNum;
+//				--i;
+//			}
+//		}
+//
+//		nFontNum = 0;
+//	}
+//	m_pTextSprite->End();
+//
+//	nFontNum = (int)m_vecFont3D.size();
+//
+//	m_pTextSprite->Begin( D3DXSPRITE_ALPHABLEND | D3DXSPRITE_OBJECTSPACE );
+//
+//	if( nFontNum != 0 )
+//	{
+//		for( i = 0; i < nFontNum; ++i )
+//		{
+//			FontArticle* pArticle	= m_vecFont3D[i];
+//			pArticle->rect.left		= 0;
+//			pArticle->rect.top		= 0;
+//			pArticle->rect.right	= 0;
+//			pArticle->rect.bottom	= 0;
+//
+//			m_pMatrix->Move( pArticle->pos );
+//			m_pMatrix->Rotate( D3DXVECTOR3( D3DX_PI, 0.0f, 0.0f ) );
+//			m_pMatrix->UpdateWorldMatrix( CKTDGMatrix::BT_ALL );
+//
+//			DrawFont( pArticle->strMsg.c_str(), pArticle->rect, pArticle->sortFlag, pArticle->color, pArticle->outLineColor, pArticle->fontStyle );
+//			
+//			if( pArticle->bInstance == true )
+//			{
+//				SAFE_DELETE( pArticle );
+//				m_vecFont3D.erase( m_vecFont3D.begin() + i );
+//				--nFontNum;
+//				--i;
+//			}
+//		}
+//	}
+//
+//	m_pTextSprite->End();
+//}
+//#endif
 
 void CKTDGFontManager::CKTDGFont::DrawFont( const WCHAR* strMsg, RECT rt, DWORD sortFlag, D3DXCOLOR color, D3DXCOLOR outlineColor, FONT_STYLE fontStyle, int nCount /* = -1  */)
 {
@@ -1090,13 +1092,13 @@ HRESULT CKTDGFontManager::CKTDGFont::OnLostDevice()
 
 
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 CKTDGFontManager::CUKFont::CUKFont( const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, 
 	bool bRHW, int fontWeight/* = FW_NORMAL */, int enlargeNum /* = 1 */, bool bNoRes )
-#else
-CKTDGFontManager::CUKFont::CUKFont( const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, 
-								   bool bRHW, int fontWeight/* = FW_NORMAL */, int enlargeNum /* = 1 */ )
-#endif
+//#else
+//CKTDGFontManager::CUKFont::CUKFont( const WCHAR* wstrFontName, int iFontSize, int iOutLineSize, 
+//								   bool bRHW, int fontWeight/* = FW_NORMAL */, int enlargeNum /* = 1 */ )
+//#endif
 {
 	string strFontName;
 	ConvertWCHARToChar( strFontName, wstrFontName );
@@ -1105,11 +1107,11 @@ CKTDGFontManager::CUKFont::CUKFont( const WCHAR* wstrFontName, int iFontSize, in
 	m_pUKFont = new CKTDGFreeTypeFont( strFontName, iFontSize, iOutLineSize, bRHW, fontWeight, enlargeNum, bNoRes );
 #else //USE_FREE_TYPE
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	m_pUKFont = new CKTDGDeviceFont( strFontName, iFontSize, iOutLineSize, bRHW, fontWeight, enlargeNum, bNoRes );
-#else
-	m_pUKFont = new CKTDGDeviceFont( strFontName, iFontSize, iOutLineSize, bRHW, fontWeight, enlargeNum );
-#endif //DYNAMIC_VERTEX_BUFFER_OPT
+//#else
+//	m_pUKFont = new CKTDGDeviceFont( strFontName, iFontSize, iOutLineSize, bRHW, fontWeight, enlargeNum );
+//#endif //DYNAMIC_VERTEX_BUFFER_OPT
 
 #endif //USE_FREE_TYPE
 	m_pUKFont->Load();
@@ -1247,20 +1249,20 @@ int CKTDGFontManager::CUKFont::GetPaddedHeight( const WCHAR* wszText, int iAddHe
 }
 
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 void CKTDGFontManager::CUKFont::OutTextXY( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color /*= 0xffffffff*/, CKTDGFontManager::FONT_STYLE fontStyle /* = FS_NONE */, D3DCOLOR colorOutLine /*= 0xff000000*/, RECT* pRt /* = NULL */, DWORD dwFlag /* = DT_LEFT|DT_TOP  */, int nCount /*= -1 */, float fScaleX, float fScaleY )
-#else
-void CKTDGFontManager::CUKFont::OutTextXY( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color /*= 0xffffffff*/, 
-										  CKTDGFontManager::FONT_STYLE fontStyle /* = FS_NONE */, D3DCOLOR colorOutLine /*= 0xff000000*/,
-										  RECT* pRt /* = NULL */, DWORD dwFlag /* = DT_LEFT|DT_TOP  */)
-#endif
+//#else
+//void CKTDGFontManager::CUKFont::OutTextXY( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color /*= 0xffffffff*/, 
+//										  CKTDGFontManager::FONT_STYLE fontStyle /* = FS_NONE */, D3DCOLOR colorOutLine /*= 0xff000000*/,
+//										  RECT* pRt /* = NULL */, DWORD dwFlag /* = DT_LEFT|DT_TOP  */)
+//#endif
 {
 	KTDXPROFILE();
 
 	if ( fontStyle == FS_NONE || fontStyle == FS_SHADOW )
 		colorOutLine = D3DXCOLOR( 0, 0, 0, 0 );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	RECT    rtScale;
 
 	if ( pRt != NULL )
@@ -1275,9 +1277,9 @@ void CKTDGFontManager::CUKFont::OutTextXY( const int& iLeft, const int& iTop, co
 	m_pUKFont->OutTextXY( (int)( iLeft * g_pKTDXApp->GetResolutionScaleX() )
 		, (int)( iTop * g_pKTDXApp->GetResolutionScaleY() ), wszText, color, colorOutLine, pRt, dwFlag, nCount
 		, fScaleX, fScaleY );
-#else
-	m_pUKFont->OutTextXY( (int)( iLeft * g_pKTDXApp->GetResolutionScaleX() ), (int)( iTop * g_pKTDXApp->GetResolutionScaleY() ), wszText, color, colorOutLine, pRt, dwFlag );
-#endif
+//#else
+//	m_pUKFont->OutTextXY( (int)( iLeft * g_pKTDXApp->GetResolutionScaleX() ), (int)( iTop * g_pKTDXApp->GetResolutionScaleY() ), wszText, color, colorOutLine, pRt, dwFlag );
+//#endif
 }
 
 void CKTDGFontManager::CUKFont::OutProjectionText( const D3DXVECTOR3& pos, const WCHAR* wszText, D3DCOLOR color /*= 0xffffffff*/, 
@@ -1317,20 +1319,20 @@ void CKTDGFontManager::CUKFont::OutProjectionText( const D3DXVECTOR3& pos, const
 	KTDXPROFILE_END();
 }
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 void CKTDGFontManager::CUKFont::OutTextMultiline( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color /*= 0xffffffff*/, CKTDGFontManager::FONT_STYLE fontStyle /* = FS_NONE */, D3DCOLOR colorOutLine /*= 0xff000000*/, float fLineSpace /* = 1.0f */, RECT* pRt /* = NULL */, DWORD dwFlag /* = DT_LEFT|DT_TOP */, int nCount /* = -1 */, float fScaleX, float fScaleY )
-#else
-void CKTDGFontManager::CUKFont::OutTextMultiline( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color /*= 0xffffffff*/, 
-												 CKTDGFontManager::FONT_STYLE fontStyle /* = FS_NONE */, D3DCOLOR colorOutLine /*= 0xff000000*/, 
-												 float fLineSpace /* = 1.0f */, RECT* pRt /* = NULL */, DWORD dwFlag /* = DT_LEFT|DT_TOP */)
-#endif
+//#else
+//void CKTDGFontManager::CUKFont::OutTextMultiline( const int& iLeft, const int& iTop, const WCHAR* wszText, D3DCOLOR color /*= 0xffffffff*/, 
+//												 CKTDGFontManager::FONT_STYLE fontStyle /* = FS_NONE */, D3DCOLOR colorOutLine /*= 0xff000000*/, 
+//												 float fLineSpace /* = 1.0f */, RECT* pRt /* = NULL */, DWORD dwFlag /* = DT_LEFT|DT_TOP */)
+//#endif
 {
 	KTDXPROFILE();
 
 	if ( fontStyle == FS_NONE || fontStyle == FS_SHADOW )
 		colorOutLine = D3DXCOLOR( 0, 0, 0, 0 );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	RECT    rtScale;
 	if ( pRt != NULL )
 	{
@@ -1345,9 +1347,9 @@ void CKTDGFontManager::CUKFont::OutTextMultiline( const int& iLeft, const int& i
 								(int)( iTop * g_pKTDXApp->GetResolutionScaleY() ), 
 								wszText, color, colorOutLine, fLineSpace, pRt, dwFlag, nCount, 
 								fScaleX, fScaleY );
-#else
-	m_pUKFont->OutTextMultiline( (int)( iLeft * g_pKTDXApp->GetResolutionScaleX() ), (int)( iTop * g_pKTDXApp->GetResolutionScaleY() ), wszText, color, colorOutLine, fLineSpace, pRt, dwFlag );
-#endif
+//#else
+//	m_pUKFont->OutTextMultiline( (int)( iLeft * g_pKTDXApp->GetResolutionScaleX() ), (int)( iTop * g_pKTDXApp->GetResolutionScaleY() ), wszText, color, colorOutLine, fLineSpace, pRt, dwFlag );
+//#endif
 }
 
 #ifdef KTDGDEVICEFONT_SIMULATE_DIRECTX_FONT
@@ -1872,16 +1874,73 @@ bool CKTDGFontManager::InstallFont( const char* pValueName, const char* pFontFil
 #ifdef USE_FREE_TYPE
 void CKTDGFontManager::InstallFont( string strFontName, string strFontPath )
 {
+#ifdef  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+    if ( strFontName.empty() == true || strFontPath.empty() == true )
+        return;
+    MakeUpperCase( strFontName );
+    MakeUpperCase( strFontPath );
+
+	if( m_mapFontNameFile.find( strFontName ) != m_mapFontNameFile.end() )
+		return;
+    m_mapFontNameFile[ strFontName ] = strFontPath;
+    
+    FontFileMemoryMap::const_iterator iter = m_mapFontFileMemory.find( strFontPath );
+    if ( iter != m_mapFontFileMemory.end() )
+        return;
+
+#ifdef NO_LOCAL_FONT
+	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER  info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( strFontPath );
+#else //NO_LOCAL_FONT
+	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER  info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile_LocalFile( strFontPath );
+#endif //NO_LOCAL_FONT
+	if( info->pRealData == NULL || info->size <= 0 )
+	{
+		ErrorLogMsg( KEM_ERROR16, strFontPath.c_str() );
+		MessageBoxA( NULL, strFontPath.c_str(), "Font Error!", NULL );
+		return;
+	}
+    FontFileMemoryMap::_Pairib ib = m_mapFontFileMemory.insert( FontFileMemoryMap::value_type( strFontPath, std::vector<BYTE>() ) );
+    ib.first->second.reserve( info->size );
+    ib.first->second.assign( (const BYTE*) info->pRealData, (const BYTE*) ( info->pRealData + info->size ) );
+
+#else   X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+
 	// 이미 등록된 폰트는 무시합니다.
 	if( m_mapUseFontMemory.find( strFontName ) != m_mapUseFontMemory.end() )
 		return;
-
-	m_mapUseFontMemory[ strFontName ] = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( strFontPath );
+	m_mapUseFontMemory[ strFontName ] = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile_LocalFile( strFontPath );
 	if( m_mapUseFontMemory[ strFontName ]->size <= 0 )
 	{
 		ErrorLogMsg( KEM_ERROR16, strFontPath.c_str() );
 		MessageBoxA( NULL, strFontPath.c_str(), "Font Error!", NULL );
 		return;
 	}
+
+#endif  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
 }
+
+#ifdef  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+const std::vector<BYTE>& CKTDGFontManager::GetFontMemory( string strFontName ) const
+{
+    static std::vector<BYTE>    s_vecDummy;
+
+    if ( strFontName.empty() == true )
+        return s_vecDummy;
+    MakeUpperCase( strFontName );
+
+	FontNameFileMap::const_iterator iter = m_mapFontNameFile.find( strFontName );
+    if ( iter == m_mapFontNameFile.end() )
+        return  s_vecDummy;
+
+	FontFileMemoryMap::const_iterator mitUseFontMemory = m_mapFontFileMemory.find( iter->second );
+	if( mitUseFontMemory == m_mapFontFileMemory.end() )
+	{
+		return s_vecDummy;
+	}
+    return  mitUseFontMemory->second;
+}
+
+
+#endif  X2OPTIMIZE_FREE_TYPE_FONT_MEMORY
+
 #endif //USE_FREE_TYPE

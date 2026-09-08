@@ -174,7 +174,12 @@ void KSMSPhoneNumberManager::GetPhoneNumberList( IN const FUNTIONAL_SET eType, O
 		BOOST_TEST_FOREACH( const std::wstring&, wstrPhoneNum, m_vecTeamPhoneNumList[eTeam] )
 		{
 			// 저장되어 있는지를 체크한 뒤 없다면 추가한다.
+#ifdef _CONVERT_VS_2010
+			unsigned int i = 0;
+			for( ; i < vecPhoneNumList.size(); ++i )
+#else
 			for( unsigned int i=0; i < vecPhoneNumList.size(); ++i )
+#endif _CONVERT_VS_2010
 			{
 				if( wcscmp( wstrPhoneNum.c_str(), vecPhoneNumList[i].c_str() ) == 0 )
 				{

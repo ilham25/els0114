@@ -20,6 +20,12 @@
 	#include "X2Data/XSLBuffManager.h"	
 #endif // SERV_COEXISTENCE_FESTIVAL
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+	#include "GSFieldBossManager.h"
+	#include "X2Data/XSLBuffManager.h"
+	#include "X2Data/XSLFieldBossData.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+
 
 #define CLASS_TYPE      KGSUser
 
@@ -27,6 +33,66 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 {
 	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_JOIN_BATTLE_FIELD_REQ, EGS_JOIN_BATTLE_FIELD_ACK );
 
+
+#ifdef SERV_ALTERA_AUTO_OPEN_HARD_CODE
+	IF_EVENT_ENABLED( CEI_ALTERA_AUTO_OPEN_HARD_CODE )
+	{
+		// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+	}
+	ELSE
+	{
+		if( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_ALTERA_FIELD_01 ||
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_ALTERA_FIELD_02 ||
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_ALTERA_FIELD_03 )
+		{
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
+		}
+	}
+#endif //SERV_ALTERA_AUTO_OPEN_HARD_CODE
+#ifdef SERV_PEITA_AUTO_OPEN_HARD_CODE
+	IF_EVENT_ENABLED( CEI_PEITA_AUTO_OPEN_HARD_CODE )
+	{
+		// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+	}
+	ELSE
+	{
+		if( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_PEITA_FIELD_01 ||
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_PEITA_FIELD_02 ||
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_PEITA_FIELD_03 )
+		{
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
+		}
+	}
+#endif //SERV_PEITA_AUTO_OPEN_HARD_CODE
+#ifdef SERV_VELDER_AUTO_OPEN_HARD_CODE
+	IF_EVENT_ENABLED( CEI_VELDER_AUTO_OPEN_HARD_CODE )
+	{
+		// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+	}
+	ELSE
+	{
+		if( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_01 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_02 ||
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_03 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_04 )
+		{
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
+		}
+	}
+#endif //SERV_VELDER_AUTO_OPEN_HARD_CODE
+#ifdef SERV_HAMEL_AUTO_OPEN_HARD_CODE
+	IF_EVENT_ENABLED( CEI_HAMEL_AUTO_OPEN_HARD_CODE )
+	{
+		// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+	}
+	ELSE
+	{
+		if( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_01 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_02 ||
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_03 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_04 ||
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_VELDER_SHIP_STAGE || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_HAMEL_SHIP_STAGE )
+		{
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
+		}
+	}
+#endif //SERV_HAMEL_AUTO_OPEN_HARD_CODE
 #ifdef SERV_SANDER_AUTO_OPEN_HARD_CODE
 	IF_EVENT_ENABLED( CEI_SANDER_AUTO_OPEN_HARD_CODE )
 	{
@@ -34,28 +100,55 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 	}
 	ELSE
 	{
-		if( kPacket_.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_01 || kPacket_.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_02 ||
-			kPacket_.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_03 || kPacket_.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_04 )
+		if( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_01 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_02 ||
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_03 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_04 )
 		{
-			kPacket_.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
+			kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
 		}
 	}
 #endif //SERV_SANDER_AUTO_OPEN_HARD_CODE
 
 #ifdef NO_SANDER_VILLIAGE
-	if( kPacket_.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_01 || kPacket_.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_02 )
+	if( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_01 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_SANDER_FIELD_02 )
 	{
-		kPacket_.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
+		kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
 	}
 #endif // NO_SANDER_VILLIAGE
 
+#ifdef SERV_NO_VELDER_VILLIAGE
+	if( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_01 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_02 
+		|| kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_03 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_VELDER_FIELD_04
+		)
+	{
+		kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
+	}
+#endif //SERV_NO_VELDER_VILLIAGE
+
+#ifdef SERV_NO_HAMEL_VILLIAGE
+	if( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_01 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_02
+		|| kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_03 || kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_HAMEL_FIELD_04)
+	{
+		kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID = SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01;
+	}
+#endif //SERV_NO_HAMEL_VILLIAGE
+
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+	int iBattleFieldID = kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID;
+	int	iStartPosIndex = kPacket_.m_kBattleFieldJoinInfo.m_iStartPosIndex;
+	bool bMoveForMyParty = kPacket_.m_kBattleFieldJoinInfo.m_bMoveForMyParty;
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+	int iBattleFieldID = kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID;
+	int	iStartPosIndex = kPacket_.m_StartPosIndex;
+	bool bMoveForMyParty = kPacket_.m_bMoveForMyParty;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+
 	// 배틀필드ID검증
-	if( SiCXSLBattleFieldManager()->IsExistBattleFieldID( static_cast<SEnum::BATTLE_FIELD_ID>(kPacket_.m_iBattleFieldID) ) == false )
+	if( SiCXSLBattleFieldManager()->IsExistBattleFieldID( static_cast<SEnum::BATTLE_FIELD_ID>(iBattleFieldID) ) == false )
 	{
 		START_LOG( cerr, L"유효하지 않은 배틀필드ID입니다!" )
-			<< BUILD_LOG( kPacket_.m_iBattleFieldID )
-			<< BUILD_LOG( kPacket_.m_StartPosIndex )
-			<< BUILD_LOG( kPacket_.m_bMoveForMyParty )
+			<< BUILD_LOG( iBattleFieldID )
+			<< BUILD_LOG( iStartPosIndex )
+			<< BUILD_LOG( bMoveForMyParty )
 			<< END_LOG;
 
 		KEGS_JOIN_BATTLE_FIELD_ACK kAck;
@@ -67,7 +160,7 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 	// 입장 조건 체크
 	int iRequireLevel = 0;
 	int iRequireDungeonID = 0;
-	if( SiCXSLBattleFieldManager()->IsCanEnterBattleField( static_cast<SEnum::BATTLE_FIELD_ID>( kPacket_.m_iBattleFieldID ), GetLevel(), m_mapDungeonClear, iRequireLevel, iRequireDungeonID ) == false )
+	if( SiCXSLBattleFieldManager()->IsCanEnterBattleField( static_cast<SEnum::BATTLE_FIELD_ID>( iBattleFieldID ), GetLevel(), m_mapDungeonClear, iRequireLevel, iRequireDungeonID ) == false )
 	{
 		KEGS_JOIN_BATTLE_FIELD_ACK kAck;
 		kAck.m_iRequireLevel = iRequireLevel;
@@ -77,6 +170,40 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 		return;
 	}
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+	const bool bBossField = SiCXSLBattleFieldManager()->IsBossFieldID( iBattleFieldID );
+	if( bBossField == true )
+	{
+		if( ( GetAuthLevel() < SEnum::UAL_DEVELOPER )
+			&& ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_DEBUFF_REST_OF_RECHALLENGE ) == true )
+			)
+		{
+			KEGS_JOIN_BATTLE_FIELD_ACK kAck;
+			kAck.m_iOK = NetError::ERR_BATTLEFIELD_20;	// 재도전을 위한 휴식 버프로 인해 시간의 포탈에 입장 할 수 없습니다. 다음 포탈 생성시까지 기다려 주세요.
+			SendPacket( EGS_JOIN_BATTLE_FIELD_ACK, kAck );
+			return;
+		}
+
+		// 현재 배틀 필드가 포탈이 열려있는 배틀 필드가 아니라면 입장을 제한한다.
+		if( GetMapID() != SiKGSFieldBossManager()->GetPortalAppearanceMap() )
+		{
+			KEGS_JOIN_BATTLE_FIELD_ACK kAck;
+			kAck.m_iOK = NetError::ERR_BATTLEFIELD_18;	// 현재 필드에서는 입장할 수 없습니다.
+			SendPacket( EGS_JOIN_BATTLE_FIELD_ACK, kAck );
+			return;
+		}
+
+		// 입장하고자 하는 배틀 필드가 현재 열려있는 포탈과 연결된 배틀 필드가 아니라면 입장을 제한한다.
+		if( iBattleFieldID != SiKGSFieldBossManager()->GetPortalDestination() )
+		{
+			KEGS_JOIN_BATTLE_FIELD_ACK kAck;
+			kAck.m_iOK = NetError::ERR_BATTLEFIELD_19;	// 해당 필드는 열려있지 않습니다.
+			SendPacket( EGS_JOIN_BATTLE_FIELD_ACK, kAck );
+			return;
+		}
+	}
+#endif // SERV_BATTLE_FIELD_BOSS
+
 	// 배틀필드에 입장가능한 상태인지 검사한다.
 	if( GetStateID() == KGSFSM::S_ROOM )
 	{
@@ -85,14 +212,14 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 		case CXSLRoom::RT_BATTLE_FIELD:
 			{
 				// 현재 입장해있는 배틀필드와 같은 곳으로 이동하려고 하는것이라면 최적의 장소인지 보자!
-				if( GetMapID() == kPacket_.m_iBattleFieldID )
+				if( GetMapID() == iBattleFieldID )
 				{
 					UidType iJoinBFRoomUID = 0;
-					if( SiKBattleFieldListManager()->GetRoomUIDForJoinBattleField( kPacket_.m_iBattleFieldID, GetCharUID(), GetRoomUID(), GetPartyUID(), iJoinBFRoomUID ) == false )
+					if( SiKBattleFieldListManager()->GetRoomUIDForJoinBattleField( iBattleFieldID, GetCharUID(), GetRoomUID(), GetPartyUID(), iJoinBFRoomUID ) == false )
 					{
 						START_LOG( clog, L"필드에 들어갈 수 없는 상태입니다." )
 							<< BUILD_LOG( GetCharUID() )
-							<< BUILD_LOG( kPacket_.m_iBattleFieldID )
+							<< BUILD_LOG( iBattleFieldID )
 							<< END_LOG;
 
 						KEGS_JOIN_BATTLE_FIELD_ACK kAck;
@@ -122,7 +249,7 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 				START_LOG( cerr, L"해당 방에서 배틀필드로는 이동할 수 없습니다!" )
 					<< BUILD_LOG( GetUID() )
 					<< BUILD_LOG( GetCharUID() )
-					<< BUILD_LOG( kPacket_.m_iBattleFieldID )
+					<< BUILD_LOG( iBattleFieldID )
 					<< END_LOG;
 
 				KEGS_JOIN_BATTLE_FIELD_ACK kAck;
@@ -139,7 +266,7 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 			START_LOG( cerr, L"필드 상태인데 RoomUID값이 존재한다! 버그다!" )
 				<< BUILD_LOG( GetUID() )
 				<< BUILD_LOG( GetCharUID() )
-				<< BUILD_LOG( kPacket_.m_iBattleFieldID )
+				<< BUILD_LOG( iBattleFieldID )
 				<< BUILD_LOG( GetRoomUID() )
 				<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
 				<< END_LOG;
@@ -160,9 +287,13 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 
 	// 배틀필드 입장 정보 만들기
 	KBattleFieldJoinInfo kBattleFieldJoinInfo;
-	kBattleFieldJoinInfo.m_iBattleFieldID = kPacket_.m_iBattleFieldID;
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+    kBattleFieldJoinInfo = kPacket_.m_kBattleFieldJoinInfo;
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+	kBattleFieldJoinInfo.m_iBattleFieldID = kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID;
 	kBattleFieldJoinInfo.m_iStartPosIndex = kPacket_.m_StartPosIndex;
 	kBattleFieldJoinInfo.m_bMoveForMyParty = kPacket_.m_bMoveForMyParty;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	
 	// 현재 파티에 소속이면 파티에서 파티원 정보를 얻어온다.
 	if( GetPartyUID() != 0 )
@@ -181,7 +312,7 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 		case CXSLRoom::RT_BATTLE_FIELD:
 			{
 				KERM_LEAVE_ROOM_REQ kPacket;
-				if( kPacket_.m_bMoveForMyParty )
+				if( bMoveForMyParty )
 				{
 					kPacket.m_iReason = NetError::NOT_LEAVE_ROOM_REASON_31;
 				}
@@ -234,11 +365,11 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 
 	// 배틀필드 리스트를 검색해서 들어갈만한 곳을 찾아보자!
 	UidType iJoinBFRoomUID = 0;
-	if( SiKBattleFieldListManager()->GetRoomUIDForJoinBattleField( kPacket_.m_iBattleFieldID, GetCharUID(), GetBeforeRoomUID(), GetPartyUID(), iJoinBFRoomUID ) == false )
+	if( SiKBattleFieldListManager()->GetRoomUIDForJoinBattleField( iBattleFieldID, GetCharUID(), GetBeforeRoomUID(), GetPartyUID(), iJoinBFRoomUID ) == false )
 	{
 		START_LOG( clog, L"필드에 들어갈 수 없는 상태입니다." )
 			<< BUILD_LOG( GetCharUID() )
-			<< BUILD_LOG( kPacket_.m_iBattleFieldID )
+			<< BUILD_LOG( iBattleFieldID )
 			<< END_LOG;
 
 		KEGS_JOIN_BATTLE_FIELD_ACK kAck;
@@ -267,11 +398,18 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 
 		KERM_OPEN_BATTLE_FIELD_REQ kPacket;
 		kPacket.m_kRoomInfo.m_RoomType = CXSLRoom::RT_BATTLE_FIELD;
-		kPacket.m_kRoomInfo.m_iBattleFieldID = kPacket_.m_iBattleFieldID;
+		kPacket.m_kRoomInfo.m_iBattleFieldID = iBattleFieldID;
 		kPacket.m_kBattleFieldJoinInfo = kBattleFieldJoinInfo;
 		GetRoomUserInfo( kPacket.m_kRoomUserInfo, CXSLRoom::RT_BATTLE_FIELD );
 		GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 		m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+		if( bBossField == true )
+		{
+			GetBossFieldCreateInfo( iBattleFieldID, kPacket.m_KBossFieldCreateInfo );
+			CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 		SendToCnRoom( ERM_OPEN_BATTLE_FIELD_REQ, kPacket );
 	}
 	else
@@ -281,6 +419,12 @@ IMPL_ON_FUNC( EGS_JOIN_BATTLE_FIELD_REQ )
 		GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 		kPacket.m_kBattleFieldJoinInfo = kBattleFieldJoinInfo;
 		m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		if( bBossField == true )
+		{
+			CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 		_SendToCnRoom( iJoinBFRoomUID, ERM_JOIN_BATTLE_FIELD_REQ, kPacket );
 	}
 }
@@ -392,6 +536,13 @@ IMPL_ON_FUNC( EPM_GET_PARTY_INFO_FOR_JOIN_BATTLE_FIELD_ACK )
 		GetRoomUserInfo( kPacket.m_kRoomUserInfo, CXSLRoom::RT_BATTLE_FIELD );
 		GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 		m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+		if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID ) == true )
+		{
+			GetBossFieldCreateInfo( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID, kPacket.m_KBossFieldCreateInfo );
+			CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 		SendToCnRoom( ERM_OPEN_BATTLE_FIELD_REQ, kPacket );
 	}
 	else
@@ -401,6 +552,12 @@ IMPL_ON_FUNC( EPM_GET_PARTY_INFO_FOR_JOIN_BATTLE_FIELD_ACK )
 		GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 		kPacket.m_kBattleFieldJoinInfo = kPacket_.m_kBattleFieldJoinInfo;
 		m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID ) == true )
+		{
+			CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 		_SendToCnRoom( iJoinBFRoomUID, ERM_JOIN_BATTLE_FIELD_REQ, kPacket );
 	}
 }
@@ -428,6 +585,7 @@ _IMPL_ON_FUNC( ERM_LEAVE_ROOM_FOR_JOIN_BATTLE_FIELD_ACK, KEGS_LEAVE_ROOM_ACK )
 
 	// 성공적으로 방 이탈 처리!
 	SetRoomUID( 0 );
+	m_kUserDungeonManager.SetDungeonGameInfo( 0, 0, 0 );
 
 	StateTransition( KGSFSM::I_TO_FIELD_MAP );
 
@@ -478,6 +636,13 @@ _IMPL_ON_FUNC( ERM_LEAVE_ROOM_FOR_JOIN_BATTLE_FIELD_ACK, KEGS_LEAVE_ROOM_ACK )
 		GetRoomUserInfo( kPacket.m_kRoomUserInfo, CXSLRoom::RT_BATTLE_FIELD );
 		GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 		m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+		if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID ) == true )
+		{
+			GetBossFieldCreateInfo( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID, kPacket.m_KBossFieldCreateInfo );
+			CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 		SendToCnRoom( ERM_OPEN_BATTLE_FIELD_REQ, kPacket );
 	}
 	else
@@ -487,6 +652,12 @@ _IMPL_ON_FUNC( ERM_LEAVE_ROOM_FOR_JOIN_BATTLE_FIELD_ACK, KEGS_LEAVE_ROOM_ACK )
 		GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 		kPacket.m_kBattleFieldJoinInfo = kPacket_.m_kBattleFieldJoinInfo;
 		m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID ) == true )
+		{
+			CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 		_SendToCnRoom( iJoinBFRoomUID, ERM_JOIN_BATTLE_FIELD_REQ, kPacket );
 	}
 }
@@ -564,6 +735,13 @@ _IMPL_ON_FUNC( ERM_LEAVE_BATTLE_FIELD_FOR_JOIN_BATTLE_FIELD_ACK, KEGS_LEAVE_ROOM
 		GetRoomUserInfo( kPacket.m_kRoomUserInfo, CXSLRoom::RT_BATTLE_FIELD );
 		GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 		m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+		if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID ) == true )
+		{
+			GetBossFieldCreateInfo( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID, kPacket.m_KBossFieldCreateInfo );
+			CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 		SendToCnRoom( ERM_OPEN_BATTLE_FIELD_REQ, kPacket );
 	}
 	else
@@ -573,6 +751,12 @@ _IMPL_ON_FUNC( ERM_LEAVE_BATTLE_FIELD_FOR_JOIN_BATTLE_FIELD_ACK, KEGS_LEAVE_ROOM
 		GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 		kPacket.m_kBattleFieldJoinInfo = kPacket_.m_kBattleFieldJoinInfo;
 		m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID ) == true )
+		{
+			CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 		_SendToCnRoom( iJoinBFRoomUID, ERM_JOIN_BATTLE_FIELD_REQ, kPacket );
 	}
 }
@@ -589,6 +773,27 @@ IMPL_ON_FUNC( ERM_OPEN_BATTLE_FIELD_ACK )
 
 		// 배틀필드RoomUID저장
 		SetRoomUID( kPacket_.m_RoomInfo.m_RoomUID );
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		if( kPacket_.m_bBossField == true )
+		{
+			SetBossFieldJoinInfo( kPacket_.m_kBossFieldJoinInfo );
+
+			// 보스 필드 입장에 성공했으니 재입장 불가 디버프를 걸어준다.
+			KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
+
+			DeactivateBuff( CXSLBuffManager::BTI_DEBUFF_REST_OF_RECHALLENGE, kReq.m_vecDeActivateBuff );
+			ActivateBuff( CXSLBuffManager::BTI_DEBUFF_REST_OF_RECHALLENGE, kReq.m_vecActivateBuff );
+
+			if( ( kReq.m_vecDeActivateBuff.empty() == false )
+				|| ( kReq.m_vecActivateBuff.empty() == false )
+				)
+			{
+				kReq.m_iUnitUID = GetCharUID();
+				SendToLoginServer( ELG_UPDATE_USER_UNIT_BUFF_INFO_REQ, kReq );
+			}
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 
 		//{{ 2007. 11. 7  최육사  예외처리로 인해 소스코드 위치이동
 		StateTransition( KGSFSM::I_TO_ROOM );
@@ -632,20 +837,39 @@ IMPL_ON_FUNC( ERM_OPEN_BATTLE_FIELD_ACK )
 	kPacket.m_RoomInfo = kPacket_.m_RoomInfo;
 	kPacket.m_vecSlot = kPacket_.m_vecSlot;
 	kPacket.m_wstrCNIP = kPacket_.m_wstrCNIP;
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+    kPacket.m_kBattleFieldJoinInfo = kPacket_.m_kBattleFieldJoinInfo;
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	kPacket.m_iLastTouchIndex = kPacket_.m_StartPosIndex;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+
 	//{{ 핑 상태체크 호스트 변경 - 김민성
 #ifdef SERV_CHOOSE_FASTEST_HOST
 	kPacket.m_wstrUDPRelayIP = kPacket_.m_wstrUDPRelayIP;
 	kPacket.m_usUDPRelayPort = kPacket_.m_usUDPRelayPort;
 #endif SERV_CHOOSE_FASTEST_HOST
 	//}
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+	kPacket.m_tRemainFieldHoldingTime = kPacket_.m_tRemainFieldHoldingTime;
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	SendPacket( EGS_JOIN_BATTLE_FIELD_ACK, kPacket );
 }
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+IMPL_ON_FUNC( ERM_JOIN_BATTLE_FIELD_ACK )
+#else // SERV_BATTLE_FIELD_BOSS
 _IMPL_ON_FUNC( ERM_JOIN_BATTLE_FIELD_ACK, KEGS_JOIN_BATTLE_FIELD_ACK )
+#endif // SERV_BATTLE_FIELD_BOSS
 {
 	VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_JOIN_BATTLE_FIELD_ACK );
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+	KEGS_JOIN_BATTLE_FIELD_ACK kPacket;
+	kPacket.m_iOK				= kPacket_.m_iOK;
+	kPacket.m_iRequireLevel		= kPacket_.m_iRequireLevel;
+	kPacket.m_iRequireDungeonID	= kPacket_.m_iRequireDungeonID;
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	if( kPacket_.m_iOK != NetError::NET_OK )
 	{
@@ -713,6 +937,13 @@ _IMPL_ON_FUNC( ERM_JOIN_BATTLE_FIELD_ACK, KEGS_JOIN_BATTLE_FIELD_ACK )
 				GetRoomUserInfo( kPacket.m_kRoomUserInfo, CXSLRoom::RT_BATTLE_FIELD );
 				GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 				m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+				if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID ) == true )
+				{
+					GetBossFieldCreateInfo( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID, kPacket.m_KBossFieldCreateInfo );
+					CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+				}
+#endif // SERV_BATTLE_FIELD_BOSS
 				SendToCnRoom( ERM_OPEN_BATTLE_FIELD_REQ, kPacket );
 				return;
 			}
@@ -734,6 +965,13 @@ _IMPL_ON_FUNC( ERM_JOIN_BATTLE_FIELD_ACK, KEGS_JOIN_BATTLE_FIELD_ACK )
 					GetRoomUserInfo( kPacket.m_kRoomUserInfo, CXSLRoom::RT_BATTLE_FIELD );
 					GetTutorUnitUIDList( kPacket.m_vecStudentUnitUID );
 					m_kUserUnitManager.GetAndDeleteResevedReturnToFieldInfo( kPacket.m_kReturnToFieldInfo );
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-05	// 박세훈
+					if( SiCXSLBattleFieldManager()->IsBossFieldID( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID ) == true )
+					{
+						GetBossFieldCreateInfo( kPacket_.m_kBattleFieldJoinInfo.m_iBattleFieldID, kPacket.m_KBossFieldCreateInfo );
+						CreateBossFieldJoinInfo( kPacket.m_kBossFieldJoinInfo );
+					}
+#endif // SERV_BATTLE_FIELD_BOSS
 					SendToCnRoom( ERM_OPEN_BATTLE_FIELD_REQ, kPacket );
 					return;
 				}
@@ -754,6 +992,27 @@ _IMPL_ON_FUNC( ERM_JOIN_BATTLE_FIELD_ACK, KEGS_JOIN_BATTLE_FIELD_ACK )
 
 		// 배틀필드 RoomUID값 저장!
 		SetRoomUID( kPacket_.m_RoomInfo.m_RoomUID );
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		if( kPacket_.m_bBossField == true )
+		{
+			SetBossFieldJoinInfo( kPacket_.m_kBossFieldJoinInfo );
+
+			// 보스 필드 입장에 성공했으니 재입장 불가 디버프를 걸어준다.
+			KELG_UPDATE_USER_UNIT_BUFF_INFO_REQ kReq;
+
+			DeactivateBuff( CXSLBuffManager::BTI_DEBUFF_REST_OF_RECHALLENGE, kReq.m_vecDeActivateBuff );
+			ActivateBuff( CXSLBuffManager::BTI_DEBUFF_REST_OF_RECHALLENGE, kReq.m_vecActivateBuff );
+
+			if( ( kReq.m_vecDeActivateBuff.empty() == false )
+				|| ( kReq.m_vecActivateBuff.empty() == false )
+				)
+			{
+				kReq.m_iUnitUID = GetCharUID();
+				SendToLoginServer( ELG_UPDATE_USER_UNIT_BUFF_INFO_REQ, kReq );
+			}
+		}
+#endif // SERV_BATTLE_FIELD_BOSS
 
 		//{{ 2007. 11. 7  최육사  예외처리로 인해 소스코드 위치이동
 		StateTransition( KGSFSM::I_TO_ROOM );
@@ -792,6 +1051,28 @@ _IMPL_ON_FUNC( ERM_JOIN_BATTLE_FIELD_ACK, KEGS_JOIN_BATTLE_FIELD_ACK )
 			SendToLoginServer( ELG_UPDATE_USER_UNIT_BUFF_INFO_REQ, kReq );
 		}
 #endif // SERV_COEXISTENCE_FESTIVAL
+
+#ifdef SERV_BATTLE_FIELD_BOSS
+		kPacket.m_kBattleFieldJoinInfo		= kPacket_.m_kBattleFieldJoinInfo;
+		kPacket.m_RoomInfo					= kPacket_.m_RoomInfo;
+		kPacket.m_vecSlot					= kPacket_.m_vecSlot;
+		kPacket.m_wstrCNIP					= kPacket_.m_wstrCNIP;
+#ifndef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		kPacket.m_iLastTouchIndex			= kPacket_.m_iLastTouchIndex;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		//{{ 핑 상태체크 호스트 변경 - 김민성
+#ifdef SERV_CHOOSE_FASTEST_HOST
+		kPacket.m_wstrUDPRelayIP			= kPacket_.m_wstrUDPRelayIP;
+		kPacket.m_usUDPRelayPort			= kPacket_.m_usUDPRelayPort;
+#endif SERV_CHOOSE_FASTEST_HOST
+		//}
+		//{{ 2012. 11. 21	최육사		난입자에게 캐쉬샵 유저 정보 보내기
+#ifdef SERV_VIEW_CASH_SHOP_USER_LIST_IN_BATTLE_FIELD
+		kPacket.m_vecEnterCashShopUser		= kPacket_.m_vecEnterCashShopUser;
+#endif SERV_VIEW_CASH_SHOP_USER_LIST_IN_BATTLE_FIELD
+		//}}
+		kPacket.m_tRemainFieldHoldingTime	= kPacket_.m_tRemainFieldHoldingTime;	// 보스 필드가 닫힐 때까지 남은 시간
+#endif // SERV_BATTLE_FIELD_BOSS
 	}
 
 	SendPacket( EGS_JOIN_BATTLE_FIELD_ACK, kPacket_ );
@@ -884,41 +1165,6 @@ _IMPL_ON_FUNC( ERM_BATTLE_FIELD_NPC_LOAD_NOT, KEGS_BATTLE_FIELD_NPC_LOAD_NOT )
 		return;
 	}
 
-	//{{ 2013. 3. 1	박세훈	 필드 이벤트 몬스터 테스트 로그
-#ifdef SERV_FIELD_EVENT_MONSTER_TEST_LOG
-	if( kPacket_.m_iBattleFieldID == SEnum::VMI_BATTLE_FIELD_RUBEN_FIELD_01 )
-	{
-		BOOST_TEST_FOREACH( const KNPCUnitReq&, kNPCUnitReq, kPacket_.m_vecNPCData )
-		{
-			if( kNPCUnitReq.m_NPCID == CXSLUnitManager::NUI_EVENT_KIM_WALLY )
-			{
-				START_LOG( cout, L"TESTLOG - 01 : 루벤 필드의 김월리" )
-					<< BUILD_LOG( GetCharName() )
-					<< BUILD_LOG( GetPartyUID() )
-					<< BUILD_LOG( GetRoomUID() )
-					<< BUILD_LOG( kPacket_.m_vecNPCData.size() )
-					<< BUILD_LOG( kNPCUnitReq.m_nStartPos )
-					<< END_LOG;
-
-				BOOST_TEST_FOREACH( int, iPetrol, kNPCUnitReq.m_vecPetrolLineIndex )
-				{
-					START_LOG( cout2, L"m_vecPetrolLineIndex" )
-						<< BUILD_LOG( iPetrol )
-						<< END_LOG;
-				}
-
-				BOOST_TEST_FOREACH( int, iPlay, kNPCUnitReq.m_vecPlayLineIndex )
-				{
-					START_LOG( cout2, L"m_vecPlayLineIndex" )
-						<< BUILD_LOG( iPlay )
-						<< END_LOG;
-				}
-			}
-		}
-	}
-#endif SERV_FIELD_EVENT_MONSTER_TEST_LOG
-	//}}
-
 	SendPacket( EGS_BATTLE_FIELD_NPC_LOAD_NOT, kPacket_ );
 }
 
@@ -980,35 +1226,35 @@ _IMPL_ON_FUNC( ERM_BATTLE_FIELD_NPC_P2P_SYNC_NOT, KEGS_BATTLE_FIELD_NPC_P2P_SYNC
 	SendPacket( EGS_BATTLE_FIELD_NPC_P2P_SYNC_NOT, kPacket_ );
 }
 
-#ifndef SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-IMPL_ON_FUNC_NOPARAM( EGS_BATTLE_FIELD_NPC_P2P_SYNC_COMPLETE_NOT )
-{
-	// 시간차로 발생할수 있는 상태 오류. cwarn으로 로그 레벨을 낮춘다.
-	VERIFY_STATE_WARN( ( 1, KGSFSM::S_ROOM ) );
-
-	if( GetRoomUID() == 0 )
-	{
-		START_LOG( cwarn, L"RoomUID값이 유효하지 않은데 배틀필드 몬스터 동기화 패킷이 왔네?" )
-			<< BUILD_LOG( GetCharUID() )
-			<< BUILD_LOG( GetCharName() )
-			<< END_LOG;
-		return;
-	}
-
-	if( CXSLRoom::GetRoomType( GetRoomUID() ) != CXSLRoom::RT_BATTLE_FIELD )
-	{
-		// 시간차로 발생할수 있는 문제다. cwarn으로 에러 로그 레벨을 낮춤.
-		START_LOG( cwarn, L"현재 배틀필드에 입장한 상태가 아닌데 배틀필드 몬스터 동기화 패킷이 왔네?" )
-			<< BUILD_LOG( GetCharUID() )
-			<< BUILD_LOG( GetCharName() )
-			<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
-			<< END_LOG;
-		return;
-	}
-
-	SendToCnRoom( ERM_BATTLE_FIELD_NPC_P2P_SYNC_COMPLETE_NOT, char() );
-}
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifndef SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//IMPL_ON_FUNC_NOPARAM( EGS_BATTLE_FIELD_NPC_P2P_SYNC_COMPLETE_NOT )
+//{
+//	// 시간차로 발생할수 있는 상태 오류. cwarn으로 로그 레벨을 낮춘다.
+//	VERIFY_STATE_WARN( ( 1, KGSFSM::S_ROOM ) );
+//
+//	if( GetRoomUID() == 0 )
+//	{
+//		START_LOG( cwarn, L"RoomUID값이 유효하지 않은데 배틀필드 몬스터 동기화 패킷이 왔네?" )
+//			<< BUILD_LOG( GetCharUID() )
+//			<< BUILD_LOG( GetCharName() )
+//			<< END_LOG;
+//		return;
+//	}
+//
+//	if( CXSLRoom::GetRoomType( GetRoomUID() ) != CXSLRoom::RT_BATTLE_FIELD )
+//	{
+//		// 시간차로 발생할수 있는 문제다. cwarn으로 에러 로그 레벨을 낮춤.
+//		START_LOG( cwarn, L"현재 배틀필드에 입장한 상태가 아닌데 배틀필드 몬스터 동기화 패킷이 왔네?" )
+//			<< BUILD_LOG( GetCharUID() )
+//			<< BUILD_LOG( GetCharName() )
+//			<< BUILD_LOG( CXSLRoom::GetRoomType( GetRoomUID() ) )
+//			<< END_LOG;
+//		return;
+//	}
+//
+//	SendToCnRoom( ERM_BATTLE_FIELD_NPC_P2P_SYNC_COMPLETE_NOT, char() );
+//}
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
 _IMPL_ON_FUNC( ERM_BATTLE_FIELD_EVENT_MESSAGE_NOT, KEGS_BATTLE_FIELD_EVENT_MESSAGE_NOT )
 {
@@ -1231,3 +1477,40 @@ IMPL_ON_FUNC( EGS_FIELD_WORKINGS_BLOCK_LOG_ACK )
 	SendToLogDB( DBE_FIELD_WORKINGS_BLOCK_LOG_NOT, kPacketToDB );
 }
 #endif // SERV_FIELD_WORKINGS_BLOCK_LOG
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-07	// 박세훈
+IMPL_ON_FUNC_NOPARAM( EGS_BOSS_FIELD_INTRUDE_RESTRICTION_REQ )
+{
+	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
+
+	if( ( GetRoomUID() <= 0 ) || ( CXSLRoom::GetRoomType( GetRoomUID() ) != CXSLRoom::RT_BATTLE_FIELD ) )
+	{
+		return;
+	}
+
+	SendToCnRoom( ERM_BOSS_FIELD_INTRUDE_RESTRICTION_REQ );
+}
+
+IMPL_ON_FUNC( ERM_BOSS_FIELD_INTRUDE_RESTRICTION_ACK )
+{
+	SendPacket( EGS_BOSS_FIELD_INTRUDE_RESTRICTION_ACK, kPacket_ );
+}
+
+IMPL_ON_FUNC_NOPARAM( ERM_BOSS_FIELD_CLOSE_PROCESS_NOT )
+{
+	SendID( EGS_BOSS_FIELD_CLOSE_PROCESS_NOT );
+}
+
+IMPL_ON_FUNC_NOPARAM( ERM_BOSS_FIELD_RETURN_PROCESS_NOT )
+{
+	KEGS_BOSS_FIELD_RETURN_PROCESS_NOT kPacket;
+	GetBossFieldJoinInfo( kPacket );
+	SendPacket( EGS_BOSS_FIELD_RETURN_PROCESS_NOT, kPacket );
+}
+
+IMPL_ON_FUNC( EGS_BOSS_FIELD_LOG_NOT )
+{
+	VERIFY_STATE( ( 1, KGSFSM::S_ROOM ) );
+	SendToCnRoom( ERM_BOSS_FIELD_LOG_NOT, kPacket_ );
+}
+#endif // SERV_BATTLE_FIELD_BOSS

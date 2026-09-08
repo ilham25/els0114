@@ -110,7 +110,7 @@ protected:
 	std::map< int, NPC_DATA >	m_mapAliveNpcList;		// 현재 생성된 몬스터	[key:NpcUID,	 value:NPC_DATA]
 	std::map< int, NPC_DATA >	m_mapDieNpcList;		// 죽은 몬스터 리스트	[key:NpcUID,	 value:NPC_DATA]
 
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 protected:
 	void InsertReservedNpcUID( int iNpcUID ) { m_setReservedNpcUID.insert( iNpcUID ); }
 	void DeleteReservedNpcUID( int iNpcUID ) { m_setReservedNpcUID.erase( iNpcUID ); }
@@ -118,7 +118,7 @@ protected:
 
 private:
 	std::set< int > m_setReservedNpcUID;
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 };
 
 

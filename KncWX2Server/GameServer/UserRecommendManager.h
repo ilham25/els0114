@@ -25,7 +25,6 @@ public:
 	bool IsInitRecommendUserList()		{ return m_bInitRecommendUserList; }
 	void SetRecommendUserList( IN std::vector< KRecommendUserInfo >& vecUserList );
 	void GetRecommendUserList( IN OUT u_int& uiViewPage, OUT u_int& uiTotalPage, OUT std::vector< KRecommendUserInfo >& vecUserList );
-
 #ifdef SERV_RECRUIT_EVENT_BASE
 	bool IsInitRecruitRecruiterList()	{ return m_bInitRecruitRecruiterList; }
 

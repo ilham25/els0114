@@ -29,9 +29,9 @@ class CXSLRoom
 //#endif SERV_BATTLE_FIELD_SYSTEM
 			//}}
 			//{{ 2013. 04. 01	 ¿Œø¨ Ω√Ω∫≈€ - ±ËπŒº∫
-#ifdef SERV_RELATIONSHIP_SYSTEM
+//#ifdef SERV_RELATIONSHIP_SYSTEM
 			RT_WEDDING_HALL		= 8,
-#endif SERV_RELATIONSHIP_SYSTEM
+//#endif SERV_RELATIONSHIP_SYSTEM
 			//}
 
             RT_TOTAL_NUM,

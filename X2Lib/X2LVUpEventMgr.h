@@ -8,9 +8,9 @@ class CX2LVUpEventMgr
 		{
 			LUEI_NONE = 0,
 			LUEI_PVP_PR,
-			LUEI_CHANGE_CLASS_GUIDE_FIRST,		//1차 전직
+			LUEI_CHANGE_CLASS_GUIDE_FIRST,		// 1차 전직
 			LUEI_LEVEL_10,
-
+			LUEI_CHANGE_CLASS_GUIDE_SECOND,		// 2차 전직
 		};
 
 		enum LV_UP_EVENT_MGR_CUSTOM_UI_MSG
@@ -53,6 +53,10 @@ class CX2LVUpEventMgr
 			vector< CX2Unit::UNIT_CLASS >	m_vecCondUnitClass;
 
 			vector< wstring >				m_vecReactDialogFile;
+
+#ifdef ADD_PLAY_SOUND //김창한
+			vector< wstring >				m_vecSoundFileName;
+#endif //ADD_PLAY_SOUND
 		};
 
 		struct LVUpEvent 

@@ -16,11 +16,7 @@ m_pStage(NULL)
 	// 	m_vMiniMapWindowSize	= D3DXVECTOR2( 242, 102 );				
 	// 	m_vWindowTextureSize	= D3DXVECTOR2( 242, 102 );				
 
-#ifdef REFORM_UI_MINIMAP
 	m_vMiniMapWindowPos		= D3DXVECTOR2( 0, 0 );
-#else
-	m_vMiniMapWindowPos		= D3DXVECTOR2( 768, 32 );
-#endif
 	m_vMiniMapWindowSize	= D3DXVECTOR2( 248, 105 );				
 	m_vWindowTextureSize	= D3DXVECTOR2( 248, 105 );				
 				
@@ -285,11 +281,7 @@ m_pStage(NULL)
 				// 화살표로 파티원이 있는 방향을 표시해야 한다. 
 				vProjectedPos = CalcPosOnScreen( vProjectedPos );
 
-#ifdef REFORM_UI_MINIMAP
 				D3DXVECTOR2 vMiniMapCenterPos = (m_vMiniMapWindowPos + D3DXVECTOR2( 824, 558 )) + m_vMiniMapWindowSize * 0.5f;
-#else
-				D3DXVECTOR2 vMiniMapCenterPos = m_vMiniMapWindowPos + m_vMiniMapWindowSize * 0.5f;
-#endif
 				D3DXVECTOR2 vDirToUnit = vProjectedPos - vMiniMapCenterPos;
 				D3DXVec2Normalize( &vDirToUnit, &vDirToUnit );
 

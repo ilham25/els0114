@@ -73,6 +73,9 @@ void KUserPet::Clear()
 #ifdef SERV_PERIOD_PET
 	m_bDestroy				= false;
 #endif SERV_PERIOD_PET
+#ifdef SERV_PET_SYSTEM_EX1
+	m_bAlwaysMaxSatiety = false;
+#endif //SERV_PET_SYSTEM_EX1
 }
 
 void KUserPet::GetPetInfo( OUT KPetInfo& kInfo ) const
@@ -97,6 +100,10 @@ void KUserPet::GetPetInfo( OUT KPetInfo& kInfo ) const
 	kInfo.m_bAutoLooting		= m_bAutoLooting;
 #endif SERV_PET_AUTO_LOOTING
 	//}}
+#ifdef SERV_EVENT_PET_INVENTORY
+	kInfo.m_bEventFoodEat		= m_bEventFoodEat;
+	kInfo.m_bIsEventPetID       = m_bIsEventPetID;
+#endif SERV_EVENT_PET_INVENTORY
 #ifdef SERV_PERIOD_PET
 	kInfo.m_wstrDestroyDate		= L"";
 	if( m_bDestroy == true )
@@ -104,6 +111,9 @@ void KUserPet::GetPetInfo( OUT KPetInfo& kInfo ) const
 		kInfo.m_wstrDestroyDate = ( std::wstring )( m_tDestroyDate.Format( _T( "%Y-%m-%d %H:%M:%S" ) ) );
 	}
 #endif SERV_PERIOD_PET
+#ifdef SERV_PET_SYSTEM_EX1
+	kInfo.m_bAlwaysMaxSatiety	= m_bAlwaysMaxSatiety;
+#endif //SERV_PET_SYSTEM_EX1
 }
 
 int KUserPet::GetPetInventorySlotSize() const
@@ -292,7 +302,13 @@ void KUserPet::UpdatePetInfo( IN const KPetInfo& kPetInfo )
 	m_bAutoLooting		= kPetInfo.m_bAutoLooting;			// 오토 루팅 기능 여부
 #endif SERV_PET_AUTO_LOOTING
 	//}}
-
+#ifdef SERV_PET_SYSTEM_EX1
+	m_bAlwaysMaxSatiety = kPetInfo.m_bAlwaysMaxSatiety;	// 항상 최대 포만도
+#endif//SERV_PET_SYSTEM_EX1
+#ifdef SERV_EVENT_PET_INVENTORY
+		m_bEventFoodEat		= kPetInfo.m_bEventFoodEat;
+		m_bIsEventPetID		= kPetInfo.m_bIsEventPetID;
+#endif SERV_EVENT_PET_INVENTORY
 	if( KncUtil::ConvertStringToCTime( kPetInfo.m_wstrLastFeedDate, m_tFirstFeedDate ) == false )
 	{
 		START_LOG( cerr, L"첫 먹이 시각 정보 변환 실패." )
@@ -691,6 +707,10 @@ short KUserPet::DecreaseSatiety( IN short sDecreaseSatiety )
 	// 너무 많이 깎아서 마이너스값이 되지 않도록 한다!
 	sDecreased = std::min< short >( GetSatiety(), sDecreaseSatiety );
 
+#ifdef SERV_PET_SYSTEM_EX1
+	if( m_bAlwaysMaxSatiety == true )
+		sDecreased = 0;
+#endif //SERV_PET_SYSTEM_EX1
 	// 깎자!
 	m_sSatiety -= sDecreased;
 
@@ -785,8 +805,8 @@ short KUserPet::IncreaseExtroversion( IN short sIncreaseExtroversion )
 	}
 
 	//{{edit : 장훈
-	if( GetExtroversion() < CXSLPetManager::PET_ENUM::PE_MIN_EXTROVERSION ||
-		GetExtroversion() > CXSLPetManager::PET_ENUM::PE_MAX_EXTROVERSION )
+	if( GetExtroversion() < CXSLPetManager::PE_MIN_EXTROVERSION ||
+		GetExtroversion() > CXSLPetManager::PE_MAX_EXTROVERSION )
 	{
 		START_LOG( cerr, L"외향성 값이 이상함." )
 			<< BUILD_LOG( GetExtroversion() )
@@ -794,13 +814,13 @@ short KUserPet::IncreaseExtroversion( IN short sIncreaseExtroversion )
 		return GetExtroversion();
 	}
 
-	if( (GetExtroversion() + sIncreaseExtroversion) > CXSLPetManager::PET_ENUM::PE_MAX_EXTROVERSION )
+	if( (GetExtroversion() + sIncreaseExtroversion) > CXSLPetManager::PE_MAX_EXTROVERSION )
 	{
 		//START_LOG( cerr, L"외향성 값이 이상함." )
 		//	<< BUILD_LOG( GetExtroversion() )
 		//	<< END_LOG;
 
-		short sTemp = (GetExtroversion() + sIncreaseExtroversion) - static_cast<short>(CXSLPetManager::PET_ENUM::PE_MAX_EXTROVERSION);
+		short sTemp = (GetExtroversion() + sIncreaseExtroversion) - static_cast<short>(CXSLPetManager::PE_MAX_EXTROVERSION);
 		m_sExtroversion += (sIncreaseExtroversion - sTemp);
 
 		return GetExtroversion();
@@ -833,21 +853,21 @@ short KUserPet::DecreaseExtroversion( IN short sDecreaseExtroversion )
 	}
 
 	//{{edit : 장훈
-	if( GetExtroversion() < CXSLPetManager::PET_ENUM::PE_MIN_EXTROVERSION ||
-		GetExtroversion() > CXSLPetManager::PET_ENUM::PE_MAX_EXTROVERSION )
+	if( GetExtroversion() < CXSLPetManager::PE_MIN_EXTROVERSION ||
+		GetExtroversion() > CXSLPetManager::PE_MAX_EXTROVERSION )
 	{
 		START_LOG( cerr, L"외향성 값이 이상함." )
 			<< BUILD_LOG( GetExtroversion() )
 			<< END_LOG;
 	}
 
-	if( (GetExtroversion() - sDecreaseExtroversion) < CXSLPetManager::PET_ENUM::PE_MIN_EXTROVERSION )
+	if( (GetExtroversion() - sDecreaseExtroversion) < CXSLPetManager::PE_MIN_EXTROVERSION )
 	{
 		//START_LOG( cerr, L"외향성 값이 이상함." )
 		//	<< BUILD_LOG( GetExtroversion() )
 		//	<< END_LOG;
 
-		short sTemp = (GetExtroversion() - sDecreaseExtroversion) - static_cast<short>(CXSLPetManager::PET_ENUM::PE_MIN_EXTROVERSION);
+		short sTemp = (GetExtroversion() - sDecreaseExtroversion) - static_cast<short>(CXSLPetManager::PE_MIN_EXTROVERSION);
 		m_sExtroversion -= (sDecreaseExtroversion + sTemp); // sDes 값에서 빼줌
 
 		return GetExtroversion();
@@ -880,21 +900,21 @@ short KUserPet::IncreaseEmotion( IN short sIncreaseEmotion )
 		return GetEmotion();
 	}
 	//{{edit : 장훈
-	if( GetEmotion() < CXSLPetManager::PET_ENUM::PE_MIN_EMOTION ||
-		GetEmotion() > CXSLPetManager::PET_ENUM::PE_MAX_EMOTION )
+	if( GetEmotion() < CXSLPetManager::PE_MIN_EMOTION ||
+		GetEmotion() > CXSLPetManager::PE_MAX_EMOTION )
 	{
 		START_LOG( cerr, L"감수성 값이 이상함." )
 			<< BUILD_LOG( GetEmotion() )
 			<< END_LOG;
 	}
 
-	if( (GetEmotion() + sIncreaseEmotion) > CXSLPetManager::PET_ENUM::PE_MAX_EMOTION )
+	if( (GetEmotion() + sIncreaseEmotion) > CXSLPetManager::PE_MAX_EMOTION )
 	{
 		//START_LOG( cerr, L"감수성 값이 이상함." )
 		//	<< BUILD_LOG( GetEmotion() )
 		//	<< END_LOG;
 
-		short sTemp = (GetEmotion() + sIncreaseEmotion) - static_cast<short>(CXSLPetManager::PET_ENUM::PE_MAX_EMOTION);
+		short sTemp = (GetEmotion() + sIncreaseEmotion) - static_cast<short>(CXSLPetManager::PE_MAX_EMOTION);
 		m_sEmotion += (sIncreaseEmotion - sTemp);
 
 		return GetEmotion();
@@ -928,20 +948,20 @@ short KUserPet::DecreaseEmotion( IN short sDecreaseEmotion )
 	}
 
 	//{{edit : 장훈
-	if( GetEmotion() < CXSLPetManager::PET_ENUM::PE_MIN_EMOTION ||
-		GetEmotion() > CXSLPetManager::PET_ENUM::PE_MAX_EMOTION )
+	if( GetEmotion() < CXSLPetManager::PE_MIN_EMOTION ||
+		GetEmotion() > CXSLPetManager::PE_MAX_EMOTION )
 	{
 		START_LOG( cerr, L"감수성 값이 이상함." )
 			<< BUILD_LOG( GetEmotion() )
 			<< END_LOG;
 	}
 
-	if( (GetEmotion() - sDecreaseEmotion) < CXSLPetManager::PET_ENUM::PE_MIN_EMOTION )
+	if( (GetEmotion() - sDecreaseEmotion) < CXSLPetManager::PE_MIN_EMOTION )
 	{
 		//START_LOG( cerr, L"감수성 값이 이상함." )
 		//	<< BUILD_LOG( GetEmotion() )
 		//	<< END_LOG;
-		short sTemp = (GetEmotion() - sDecreaseEmotion) - static_cast<short>(CXSLPetManager::PET_ENUM::PE_MIN_EMOTION);
+		short sTemp = (GetEmotion() - sDecreaseEmotion) - static_cast<short>(CXSLPetManager::PE_MIN_EMOTION);
 		m_sEmotion -= (sDecreaseEmotion + sTemp);
 
 		return GetEmotion();
@@ -999,7 +1019,33 @@ bool KUserPet::Feed( IN char cLevel, IN int iFeedItemID, OUT bool& bIsFirstFeed,
 //}}
 {
 	SET_ERROR( NET_OK );	
-
+#ifdef SERV_EVENT_PET_INVENTORY
+///현재 펫 먹이가 이벤트 먹이고 펫 ID가 이벤트 펫 ID라면 먹이를 먹이고 true를 반환한다.
+///대신 한번 먹었던 먹이를 또 먹게 하면 안되니까 먹었는지 안먹었는지 체크 한다.
+///이벤트 펫이 아닌데 펫 먹이가 이벤트 먹이라면 먹이지 말고 리턴 시킨다.
+	if( iFeedItemID == 141000440 )
+	{
+		if( m_bIsEventPetID )
+		{
+			if( m_bEventFoodEat == false ) //먹이를 먹지 않았다.
+			{
+				m_bEventFoodEat = true; //먹이를 먹인다.
+				return true;
+			}
+			else
+			{
+				//이벤트 펫이지만 이미 먹이를 먹었기 떄문에 패스한다
+				SET_ERROR( ERR_PET_11 );
+				return false;
+			}
+		}
+		else
+		{
+			SET_ERROR( ERR_PET_11 );
+			return false;
+		}
+	}
+#endif SERV_EVENT_PET_INVENTORY
 	// 포만도가 80% 이상이면 먹이를 안먹어요!
 	if( IsPetStuffed() == true )
 	{
@@ -1138,7 +1184,7 @@ bool KUserPet::Feed( IN char cLevel, IN int iFeedItemID, OUT bool& bIsFirstFeed,
 	CTime tCurTime = CTime::GetCurrentTime();
 
 	// 현재 시각이 첫 먹이 체크 시각보다 크면 첫먹이다!
-	if( m_tFirstFeedDate < tCurTime )
+	if( m_tFirstFeedDate <= tCurTime )
 	{
 		// 2%만큼 친밀도 증가 시키자!
         const int iIncreaseIntimacy = static_cast<int>( static_cast<double>(GetMaxIntimacy()) * 0.0201 );
@@ -1375,3 +1421,35 @@ bool KUserPet::ExistItemInInventory( IN int& iItemID )
 }
 #endif // SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT || SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT_EX
 //}}
+
+#ifdef SERV_EVENT_VC
+bool KUserPet::IncreaseIntimacyByItem( OUT int& iCurrentIntimacy, OUT int& iUpPercent )
+{
+	// 2%만큼 친밀도 증가 시키자!
+	// 나중에 증가값을 아이템별로 다르게 하고 싶으면, 칼럼 추가하고 여기서 수정하자
+	int iIncreaseIntimacy = static_cast<int>( static_cast<double>(GetMaxIntimacy()) * 0.0201 );
+
+	if( iIncreaseIntimacy == 0 )
+	{
+		// 최대 친밀도가 200 이하일수도 있으니 이경우는 100% 상승시켜 준다
+		iIncreaseIntimacy = GetMaxIntimacy();
+		iUpPercent = 100;
+	}
+	else
+	{
+		iUpPercent = 2;
+	}
+
+	if( iIncreaseIntimacy != 0 )
+	{
+
+		IncreaseIntimacy( iIncreaseIntimacy );
+
+		// 현재 포만도와 친밀도 얻기
+		iCurrentIntimacy = GetIntimacy();
+		return true;
+	}
+	else
+		return false;
+}
+#endif //SERV_EVENT_VC

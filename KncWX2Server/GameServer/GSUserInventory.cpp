@@ -71,9 +71,20 @@
 	#include "odbc/Odbc.h"
 #endif //defined(SERV_RELATIONSHIP_EVENT_INT) || defined(SERV_RECRUIT_EVENT_BASE)
 
+#if defined(SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING) || defined(SERV_ITEM_ACTION_BY_DBTIME_SETTING)
+#include "GSSimLayer.h"
+#endif // defined(SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING) || defined(SERV_ITEM_ACTION_BY_DBTIME_SETTING)
+
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 #include "GSSimLayer.h"
 #endif SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	#include "X2Data/XSLFieldBossData.h"
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#include "../Common/X2Data/XSLItem.h"
+#include <boost/bind.hpp>
 
 #define CLASS_TYPE      KGSUser
 
@@ -158,6 +169,64 @@ IMPL_ON_FUNC( EGS_BUY_ED_ITEM_REQ )
 #ifdef SERV_GET_ITEM_REASON_BY_CHEAT
 	kPacket.m_bCheat = kPacket_.m_bDebug;
 #endif SERV_GET_ITEM_REASON_BY_CHEAT
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING
+	std::set<int> setBanBuyItemInven;
+	CTime m_tStartDate;
+	CTime m_tEndDate;
+	std::vector<KPacketGetItemOnOff>::iterator vitrGetItemOnOff;
+	std::map<int , std::vector<KPacketGetItemOnOff> > mapGetItemOnOff =  GetKGSSimLayer()->GetTimeControlItem_Info();
+	std::map<int , std::vector<KPacketGetItemOnOff> >::iterator mitGetItemOnOff = mapGetItemOnOff.find( TCIT_SHOP );
+
+	if ( mitGetItemOnOff != mapGetItemOnOff.end() )
+	{
+		for ( vitrGetItemOnOff = mitGetItemOnOff->second.begin(); vitrGetItemOnOff != mitGetItemOnOff->second.end(); ++vitrGetItemOnOff )
+		{
+			KncUtil::ConvertStringToCTime(vitrGetItemOnOff->m_wstrStartTime , m_tStartDate);
+			KncUtil::ConvertStringToCTime(vitrGetItemOnOff->m_wstrEndTime , m_tEndDate);
+
+			if( CTime::GetCurrentTime() >= m_tStartDate && CTime::GetCurrentTime() <= m_tEndDate )
+			{
+				setBanBuyItemInven.insert(vitrGetItemOnOff->m_iItemID);
+			}
+		}
+	}
+	
+	std::map< int, int >::const_iterator mitBanItem = kPacket_.m_mapItem.begin();
+	bool m_bBanItemCheck = false;
+
+	for( ; mitBanItem != kPacket_.m_mapItem.end() ; mitBanItem++)
+	{
+		if ( setBanBuyItemInven.find(mitBanItem->first) != setBanBuyItemInven.end())
+		{
+			m_bBanItemCheck = true;
+
+			if( m_bBanItemCheck )
+			{
+				kPacketAck.m_iOK = NetError::ERR_ITEM_22;
+				SendPacket( EGS_BUY_ED_ITEM_ACK, kPacketAck );
+				return;
+			}
+		}
+	}
+#endif SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
+#ifdef SERV_EVENT_ADAMS_UI_SHOP
+	std::map< int, int >::iterator mit2;
+	for( mit2 = kPacket_.m_mapItem.begin(); mit2 != kPacket_.m_mapItem.end() ; ++mit2 )
+	{
+		if( mit2->first == 141000894 || mit2->first == 67006451 || mit2->first == 141000906 || mit2->first == 141000895 || mit2->first == 141000897
+			|| mit2->first == 141000802 || mit2->first == 141000898 )
+		{
+			kPacketAck.m_iOK = NetError::ERR_BUY_ED_ITEM_06;
+			SendPacket( EGS_BUY_ED_ITEM_ACK, kPacketAck );
+			START_LOG( cout, L"교환상품인데 ED로 구매하려고하네?이벤트 상점" )
+				<< BUILD_LOG( GetCharUID() )
+				<< END_LOG;
+			return;
+		}
+	}
+#endif SERV_EVENT_ADAMS_UI_SHOP
 
 	//{{ 2011. 06. 18	최육사	ED아이템 구매 체크
 //#ifdef SERV_CHECK_BUY_ED_ITEM
@@ -537,7 +606,6 @@ IMPL_ON_FUNC( EGS_SELL_ED_ITEM_REQ )
 		KSIManager.IncreaseCount( KStatistics::SI_ED, kKey, KStatistics::eSIColDB_ED_PItemSell, iED );
 
 		// 유저 통계
-		
 #ifdef SERV_USER_STATISTICS_RENEWAL
 		m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EDData, 0, KUserStatistics::US_ED_PItemSell, iED );
 #else //SERV_USER_STATISTICS_RENEWAL
@@ -549,37 +617,7 @@ IMPL_ON_FUNC( EGS_SELL_ED_ITEM_REQ )
 	kPacket.m_iED = GetED();
 	SendPacket( EGS_SELL_ED_ITEM_ACK, kPacket );
 
-	//방상태이고 pvp & dungeon 방이면 아이템처리후 정보업데이트 한다.
-	if( GetStateID() == KGSFSM::S_ROOM )
-	{
-		switch( CXSLRoom::GetRoomType( GetRoomUID() ) )
-		{
-		case CXSLRoom::RT_DUNGEON:
-			//{{ 필드 드롭 개편 - 김민성
-#ifdef SERV_REFORM_ITEM_DROP
-		case CXSLRoom::RT_BATTLE_FIELD:
-#endif SERV_REFORM_ITEM_DROP
-			//}}
-			{
-				//Update Server quest item data 
-				KERM_SET_QUEST_ITEM_INFO_NOT kInfo;
-
-				//{{ 2010. 10. 26	최육사	퀘스트 조건 추가
-#ifdef SERV_QUEST_CLEAR_EXPAND
-				m_kUserQuestManager.GetOngoingQuestForRoom( GetThisPtr<KGSUser>(), kInfo.m_mapDropQuestItembyIngQuest );
-#else
-				m_kUserQuestManager.GetDropQuestitembyIngQuest( kInfo.m_mapDropQuestItembyIngQuest, GetThisPtr<KGSUser>() );
-#endif SERV_QUEST_CLEAR_EXPAND
-				//}}
-
-				SendToCnRoom( ERM_SET_QUEST_ITEM_INFO_NOT, kInfo );
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
+	SendUpdateDropQuestItemByIngQuest();
 
 	// 아이템 판매 정보 기록
 	{
@@ -638,7 +676,6 @@ IMPL_ON_FUNC( ERM_CHECK_SELL_ED_ITEM_ACK )
 		KSIManager.IncreaseCount( KStatistics::SI_ED, kKey, KStatistics::eSIColDB_ED_PItemSell, iED );
 
 		// 유저 통계
-
 #ifdef SERV_USER_STATISTICS_RENEWAL
 		m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EDData, 0, KUserStatistics::US_ED_PItemSell, iED );
 #else //SERV_USER_STATISTICS_RENEWAL
@@ -650,37 +687,7 @@ IMPL_ON_FUNC( ERM_CHECK_SELL_ED_ITEM_ACK )
 	kPacket.m_iED = GetED();
 	SendPacket( EGS_SELL_ED_ITEM_ACK, kPacket );
 
-	//방상태이고 pvp & dungeon 방이면 아이템처리후 정보업데이트 한다.
-	if( GetStateID() == KGSFSM::S_ROOM )
-	{
-		switch( CXSLRoom::GetRoomType( GetRoomUID() ) )
-		{
-		case CXSLRoom::RT_DUNGEON:
-			//{{ 필드 드롭 개편 - 김민성
-#ifdef SERV_REFORM_ITEM_DROP
-		case CXSLRoom::RT_BATTLE_FIELD:
-#endif SERV_REFORM_ITEM_DROP
-			//}}
-			{
-				//Update Server quest item data 
-				KERM_SET_QUEST_ITEM_INFO_NOT kInfo;
-
-				//{{ 2010. 10. 26	최육사	퀘스트 조건 추가
-#ifdef SERV_QUEST_CLEAR_EXPAND
-				m_kUserQuestManager.GetOngoingQuestForRoom( GetThisPtr<KGSUser>(), kInfo.m_mapDropQuestItembyIngQuest );
-#else
-				m_kUserQuestManager.GetDropQuestitembyIngQuest( kInfo.m_mapDropQuestItembyIngQuest, GetThisPtr<KGSUser>() );
-#endif SERV_QUEST_CLEAR_EXPAND
-				//}}
-
-				SendToCnRoom( ERM_SET_QUEST_ITEM_INFO_NOT, kInfo );
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
+	SendUpdateDropQuestItemByIngQuest();
 
 	// 아이템 판매 정보 기록
 	{
@@ -752,7 +759,7 @@ IMPL_ON_FUNC( DBE_INSERT_ITEM_ACK )
 
 IMPL_ON_FUNC( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ )
 {
-	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ, EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK );
+	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
 
 	//////////////////////////////////////////////////////////////////////////
 	// 예외처리
@@ -777,7 +784,6 @@ IMPL_ON_FUNC( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ )
 #endif SERV_INVENTORY_LOCK
 		//}}
 	}
-
 #ifdef SERV_RESTRICTED_TO_MOVE_TO_BANK
 	if( kPacket_.m_cToSlotType == CXSLInventory::ST_BANK ||
 		kPacket_.m_cToSlotType == CXSLInventory::ST_PET ||
@@ -797,6 +803,37 @@ IMPL_ON_FUNC( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ )
 #ifdef	SERV_SHARING_BANK_TEST
 	if( kPacket_.m_cFromSlotType == CXSLInventory::ST_SHARE_BANK  ||  kPacket_.m_cToSlotType == CXSLInventory::ST_SHARE_BANK )
 	{
+		if( kPacket_.m_iShareUnitUID != m_kInventory.GetShareUnitUID() )
+		{
+			START_LOG( cwarn, L"클라이언트와 서버가 보고 있는 캐릭터가 다르다!" )
+				<< BUILD_LOG( (int)kPacket_.m_cFromSlotType )
+				<< BUILD_LOG( kPacket_.m_iFromSlotID )
+				<< BUILD_LOG( (int)kPacket_.m_cToSlotType )
+				<< BUILD_LOG( kPacket_.m_iToSlotID )
+				<< BUILD_LOG( kPacket_.m_iShareUnitUID )
+				<< BUILD_LOG( m_kInventory.GetShareUnitUID() )
+				<< END_LOG;
+
+			KEGS_CHANGE_INVENTORY_SLOT_ITEM_ACK kAck;
+			SendPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK, kAck );
+			return;
+		}
+
+		if( kPacket_.m_cToSlotType == CXSLInventory::ST_SHARE_BANK && m_kInventory.GetShareBankSize() <= kPacket_.m_iToSlotID )
+		{
+			START_LOG( cwarn, L"공유은행 크기보다 큰 곳에 넣으려 했다!" )
+				<< BUILD_LOG( (int)kPacket_.m_cFromSlotType )
+				<< BUILD_LOG( kPacket_.m_iFromSlotID )
+				<< BUILD_LOG( (int)kPacket_.m_cToSlotType )
+				<< BUILD_LOG( kPacket_.m_iToSlotID )
+				<< BUILD_LOG( m_kInventory.GetShareBankSize() )
+				<< END_LOG;
+
+			KEGS_CHANGE_INVENTORY_SLOT_ITEM_ACK kAck;
+			SendPacket( EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK, kAck );
+			return;
+		}
+
 		// 공유 은행과 관련된 슬롯 이동이라면 현재 DB에 업데이트 되지 않은 정보들을 미리 모두 업데이트 하자!
 		KDBE_CHANGE_INVENTORY_SLOT_ITEM_REQ kPacketToDB;
 		kPacketToDB.m_cFromSlotType = kPacket_.m_cFromSlotType;
@@ -923,7 +960,7 @@ IMPL_ON_FUNC( EGS_CHANGE_INVENTORY_SLOT_ITEM_REQ )
 #ifdef SERV_SHARING_BANK_TEST
 IMPL_ON_FUNC( DBE_CHANGE_INVENTORY_SLOT_ITEM_ACK )
 {
-	VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK );
+	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
 
 	// [2013.7.30] 최육사, SP 중복 호출로 펫 인벤 Item, 펫UID 0 되어서 보이지 않는 문제 수정
 	m_kInventory.RollBackInitQuantity( kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange );
@@ -1146,51 +1183,50 @@ IMPL_ON_FUNC( EGS_DELETE_ITEM_REQ )
 	KEGS_DELETE_ITEM_ACK kPacket;
 	if( m_kInventory.DiscardItem( kPacket_.m_iItemUID, kPacket_.m_iQuantity, kPacket.m_kInventoryItemInfo, bDebug ) == false )
 	{
-		kPacket.m_iOK = NetError::GetLastError();		
+		kPacket.m_iOK = NetError::GetLastError();
+		SendPacket( EGS_DELETE_ITEM_ACK, kPacket );
+		return;
 	}
-	else
-	{
-		kPacket.m_iOK = NetError::NET_OK;
-	}
+	
+	kPacket.m_iOK = NetError::NET_OK;
 	SendPacket( EGS_DELETE_ITEM_ACK, kPacket );
+
+	SendUpdateDropQuestItemByIngQuest();
 
 	//{{ 2011. 01. 06  김민성  스킬슬롯체인지 체크(인벤토리-기간제) 기능 구현
 #ifdef SERV_SKILL_SLOT_CHANGE_INVENTORY
-	if( kPacket.m_iOK == NetError::NET_OK )
+	switch( iItemID )
 	{
-		switch( iItemID )
+	case CXSLItem::EI_EXPAND_SKILL_SLOT_EVENT:
+	case CXSLItem::CI_EXPAND_SKILL_SLOT_IN_PACKAGE:
 		{
-		case CXSLItem::EI_EXPAND_SKILL_SLOT_EVENT:
-			{
 #ifdef	SERV_SKILL_SLOT_ITEM_BUG_FIX	// 적용날짜: 2013-07-04				
-				// 무제한 기준 (2049-12-31 23:59) 으로 기간 셋팅 되어 있음
-				CTime tLimitEndDate = CTime( 2049, 12, 31, 23, 59, 0 );
-				CTime tSkillSlotBEndDate;
-				m_kSkillTree.GetSkillSolotBEndDate( tSkillSlotBEndDate );		
-				if( tLimitEndDate == tSkillSlotBEndDate )
-				{
-					// 스킬 슬롯 무제한 구매했었다면 갱신 할 필요 없다.
-					break;
-				}
+			// 무제한 기준 (2049-12-31 23:59) 으로 기간 셋팅 되어 있음
+			CTime tLimitEndDate = CTime( 2049, 12, 31, 23, 59, 0 );
+			CTime tSkillSlotBEndDate;
+			m_kSkillTree.GetSkillSolotBEndDate( tSkillSlotBEndDate );		
+			if( tLimitEndDate == tSkillSlotBEndDate )
+			{
+				// 스킬 슬롯 무제한 구매했었다면 갱신 할 필요 없다.
+				break;
+			}
 #endif	// SERV_SKILL_SLOT_ITEM_BUG_FIX
 
-				// 비어있는걸로 넣으면 초기화 된다
-				std::wstring wstrSkillSlotBEndDate;
-				m_kSkillTree.SetSkillSolotBEndDate( wstrSkillSlotBEndDate );		
-				m_kSkillTree.ExpireSkillSlotB();
+			// 비어있는걸로 넣으면 초기화 된다
+			std::wstring wstrSkillSlotBEndDate;
+			m_kSkillTree.SetSkillSolotBEndDate( wstrSkillSlotBEndDate );		
+			m_kSkillTree.ExpireSkillSlotB();
 
-				KEGS_SKILL_SLOT_CHANGE_ITEM_NOT kpacket;
+			KEGS_SKILL_SLOT_CHANGE_ITEM_NOT kpacket;
 
-				kpacket.m_cSkillSlotBExpirationState = KUserSkillTree::SSBES_EXPIRED;
-				kpacket.m_wstrSkillSlotBEndDate = wstrSkillSlotBEndDate;
+			kpacket.m_cSkillSlotBExpirationState = KUserSkillTree::SSBES_EXPIRED;
+			kpacket.m_wstrSkillSlotBEndDate = wstrSkillSlotBEndDate;
 
-				SendPacket( EGS_SKILL_SLOT_CHANGE_ITEM_NOT, kpacket );
-			}
-			break;
+			SendPacket( EGS_SKILL_SLOT_CHANGE_ITEM_NOT, kpacket );
 		}
+		break;
 	}
 #endif SERV_SKILL_SLOT_CHANGE_INVENTORY
-
 }
 
 IMPL_ON_FUNC( EGS_USE_QUICK_SLOT_REQ )
@@ -1233,6 +1269,28 @@ IMPL_ON_FUNC( EGS_USE_QUICK_SLOT_REQ )
 		}
 #endif SERV_INVENTORY_LOCK
 		//}}
+        
+#ifdef SERV_BATTLE_FIELD_SYSTEM // 배틀필드에서 npc소환 카드 사용 금지
+        if ( CXSLRoom::GetRoomType( GetRoomUID() ) == CXSLRoom::RT_BATTLE_FIELD )
+        {
+            int iItemID = m_kInventory.GetItemID( CXSLInventory::ST_E_QUICK_SLOT, kPacket_.m_sSlotID );
+            const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( iItemID );
+
+            if ( pItemTemplet != NULL ) 
+            {
+                std::vector<CXSLItem::SpecialAbility>::const_iterator vit;
+                vit = std::find_if( pItemTemplet->m_SpecialAbilityList.begin(), pItemTemplet->m_SpecialAbilityList.end(), 
+                    boost::bind( &CXSLItem::SpecialAbility::m_Type, _1 ) == CXSLItem::SAT_SUMMON_MONSTER );
+
+                if ( vit != pItemTemplet->m_SpecialAbilityList.end() ) 
+                {
+                    kAck.m_iOK = NetError::ERR_USE_ITEM_IN_QUICKSLOT_00;
+                    SendPacket( EGS_USE_QUICK_SLOT_ACK, kAck );
+                    return;
+                }
+            }
+        }
+#endif SERV_BATTLE_FIELD_SYSTEM
 	}
 	//////////////////////////////////////////////////////////////////////////
 
@@ -1698,7 +1756,6 @@ IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_REQ )
 			}
 		}
 	}
-
 #endif SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 
 	std::map<int, RANDOMITEM_MAPPING_TIME>::iterator mitRITime = SiCXSLRandomItemManager()->m_mapRandomItemMappingTime.begin();
@@ -1721,9 +1778,6 @@ IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_REQ )
 		CTime tStartTime = mitRITime->second.tStartTime;
 		CTime tEndTime = mitRITime->second.tEndTime;
 
-		// 한번 오픈 관련 초기화 해주고, 시간되서 안에 들어가는 경우에 다시 해주자!
-		//SiCXSLRandomItemManager()->RestoreMapItemGroup(mitRIData->second);
-		
 		// 매핑 여부 확인해주자
 		kRandomItemMappingToInfoClient kRandomToInfoClient;
 		kRandomToInfoClient.m_bCheckMapping  = false;
@@ -1744,8 +1798,17 @@ IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_REQ )
 				<< BUILD_LOG( tEndTime.GetMinute() )
 				<< END_LOG;
 
-			SiCXSLRandomItemManager()->ModifyMapItemGroup(mitRIData->second);
-			kRandomToInfoClient.m_bCheckMapping = true;
+			if(!SiCXSLRandomItemManager()->ModifyMapItemGroup(mitRIData->second))
+			{
+				START_LOG( cerr, L"해당 랜덤 아이템에 대한 키템 정보가 없다. 있을수 없는에러!" )
+					<< BUILD_LOG( mitRIData->second.iCubeID )
+					<< BUILD_LOG( mitRIData->second.iKeyItemID )
+					<< END_LOG;
+			}
+			else
+			{
+				kRandomToInfoClient.m_bCheckMapping = true;
+			}
 		}
 		// 매핑 정보를 담아서 넘겨준다. 
 		int iCubeID = mitRIData->second.iCubeID;
@@ -1858,7 +1921,9 @@ IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_REQ )
 	// 랜덤 아이템 열기
 	if( m_kInventory.OpenRandomItem( GetUnitClass(), 
 		kPacket_.m_iItemUID, 
+#ifdef SERV_TIME_OPEN_RANDOM_ITEM_EVENT //SERV_ALL_RENEWAL_SP
 		0,
+#endif //SERV_TIME_OPEN_RANDOM_ITEM_EVENT //SERV_ALL_RENEWAL_SP
 		kPacketToDB.m_mapInsertedItem,
 		kPacketToDB.m_vecUpdatedInventorySlot, 
 		kPacketToDB.m_vecItemInfo, 
@@ -1983,7 +2048,7 @@ IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_REQ )
 	}
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 	//}}
-	
+
 	//{{ 2008. 12. 30  최육사	매력아이템 로그
 	if( bIsCharmItem )
 	{		
@@ -2003,7 +2068,6 @@ IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_REQ )
 					kPacket.m_iRandomItem = iRandomItemID;
 #endif SERV_GET_ITEM_NOTIFY
 					//}}
-
 #ifdef SERV_CUBE_AUTO_OPEN_NOTIFY_OFF
 					if( true == kPacket_.m_bNotifyGetItem )
 						SendToCnServer( ECN_NOTIFY_MSG_NOT, kPacket );
@@ -2144,31 +2208,6 @@ IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_REQ )
 			}			
 		}
 	}
-
-	//{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-	{
-		std::map< int, int >::const_iterator it = kPacketToDB.m_mapInsertedItem.find( CXSLItem::EI_ANGEL_FEATHER );
-
-		if( it != kPacketToDB.m_mapInsertedItem.end() )
-		{
-			// 폭발한 엘의 파편 정보도 DB에 업데이트 하자
-			CTime tCurr = CTime::GetCurrentTime();
-
-			KDBE_UPDATE_ANGEL_FEATHER_REQ kReq;
-			kReq.m_iUserUID = GetUID();
-			kReq.m_iUnitUID = GetCharUID();
-			kReq.m_iOldQuantity = GetAngelFeather();
-			kReq.m_iNewQuantity = it->second;
-			kReq.m_iRewardItemID = 0;
-			kReq.m_wstrRegDate = tCurr.Format( _T( "%Y-%m-%d %H:%M:%S" ) );
-
-			SetAngelFeather( GetAngelFeather() + it->second );
-			SendToAccountDB( DBE_UPDATE_ANGEL_FEATHER_REQ, kReq );
-		}
-	}
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-	//}}
 
 	//{{ 2011. 12. 19	최육사	랜덤큐브 DB실시간 적용
 #ifdef SERV_OPEN_CUBE_REALTIME_DB_UPDATE
@@ -2603,7 +2642,6 @@ IMPL_ON_FUNC( DBE_OPEN_RANDOM_ITEM_ACK )
 			break;
 		}
 	}
-
 #endif //SERV_EVENT_VIP_SYSTEM
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
@@ -2623,10 +2661,15 @@ IMPL_ON_FUNC( DBE_OPEN_RANDOM_ITEM_ACK )
 		CTime tEndTime = mitRITime->second.tEndTime;
 
 		// 한번 오픈 관련 초기화 해주고, 시간되서 안에 들어가는 경우에 다시 해주자!
-		SiCXSLRandomItemManager()->RestoreMapItemGroup(mitRIData->second);
+		if(!SiCXSLRandomItemManager()->RestoreMapItemGroup(mitRIData->second))
+		{
+			START_LOG( cerr, L"해당 랜덤 아이템에 대한 키템 정보가 없다. 있을수 없는에러!" )
+				<< BUILD_LOG( mitRIData->second.iCubeID )
+				<< BUILD_LOG( mitRIData->second.iKeyItemID )
+				<< END_LOG;
+		}
 
 	}
-
 #endif SERV_CUBE_IN_ITEM_MAPPING
 
 	SendPacket( EGS_OPEN_RANDOM_ITEM_ACK, kPacket );
@@ -2721,6 +2764,36 @@ IMPL_ON_FUNC( EGS_ITEM_MANUFACTURE_REQ )
 	}
 	//////////////////////////////////////////////////////////////////////////
 
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	std::set<int> setBanBuyItemInven;
+	CTime m_tStartDate;
+	CTime m_tEndDate;
+	std::vector<KPacketGetItemOnOff>::iterator vitrGetItemOnOff;
+	std::map<int , std::vector<KPacketGetItemOnOff> > mapGetItemOnOff =  GetKGSSimLayer()->GetTimeControlItem_Info();
+	std::map<int , std::vector<KPacketGetItemOnOff> >::iterator mitGetItemOnOff = mapGetItemOnOff.find( TCIT_MANUFACTURE );
+
+	if( mitGetItemOnOff != mapGetItemOnOff.end() )
+	{
+		for( vitrGetItemOnOff = mitGetItemOnOff->second.begin(); vitrGetItemOnOff != mitGetItemOnOff->second.end(); ++vitrGetItemOnOff )
+		{
+			KncUtil::ConvertStringToCTime(vitrGetItemOnOff->m_wstrStartTime , m_tStartDate);
+			KncUtil::ConvertStringToCTime(vitrGetItemOnOff->m_wstrEndTime , m_tEndDate);
+
+			if( CTime::GetCurrentTime() >= m_tStartDate && CTime::GetCurrentTime() <= m_tEndDate )
+			{
+				setBanBuyItemInven.insert(vitrGetItemOnOff->m_iItemID);
+			}
+		}
+	}
+
+	if( setBanBuyItemInven.find( kPacket_.m_iManufactureID ) != setBanBuyItemInven.end() )
+	{
+		KEGS_ITEM_MANUFACTURE_ACK kAck;
+		kAck.m_iOK	= NetError::ERR_ITEM_22;
+		SendPacket( EGS_ITEM_MANUFACTURE_ACK, kAck );
+		return;
+	}
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 	KDBE_ITEM_MANUFACTURE_REQ kPacket;
 	int iED;
 
@@ -2889,7 +2962,7 @@ IMPL_ON_FUNC( EGS_RESOLVE_ITEM_REQ )
 	KDBE_RESOLVE_ITEM_REQ kPacketToDB;
 	kPacketToDB.m_iUnitUID = GetCharUID();
 	int iResolveItemID = m_kInventory.GetItemID( kPacket_.m_iItemUID );
-
+	
 	// 대박 검사
 	bool bJackpot = false;
 	if( m_kTimer[TM_RESOLVE_JACKPOT].elapsed() > m_dResolveJackpotTime )
@@ -2903,17 +2976,14 @@ IMPL_ON_FUNC( EGS_RESOLVE_ITEM_REQ )
 	std::map< int, KItemInfo > mapResultItem;  // 결과템
 #endif SERV_MULTI_RESOLVE
 	//}}
-
 	// 아이템 분해
 	int iResolveQuantity = 0;
-	
 	//{{ 2011.03.16   임규수 아바타 분해 시스템
 #ifdef SERV_MULTI_RESOLVE
 	int iAfterItem = 0;
 	int iAfterItemQuantity = 0;
 #endif SERV_MULTI_RESOLVE
 	//}}
-
 	bool bFashion = false;
 	if( m_kInventory.ResolveItem( kPacket_.m_iItemUID, bJackpot, bFashion, iResolveQuantity, kPacketToDB.m_mapInsertedItem, kPacketToDB.m_vecUpdatedInventorySlot, kPacketToDB.m_vecItemInfo ) == false )
 	{
@@ -2995,6 +3065,10 @@ kPacketLog.m_iAfterItemID = iAfterItem;
 #endif SERV_QUEST_CLEAR_EXPAND
 	//}}
 
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+	m_kUserTitleManager.OnResolveItem( GetThisPtr<KGSUser>() );
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
+
 	//{{ 2010. 07. 05  최육사	유저 어뷰저 매니저
 #ifdef SERV_USER_ABUSER_MANAGER
 	// 아이템 어뷰저
@@ -3021,7 +3095,7 @@ IMPL_ON_FUNC( DBE_RESOLVE_ITEM_ACK )
 		// TODO : DB 에 아이템 삽입 실패. 추후에 로그 추가.
 
 		kPacket.m_iOK = NetError::NET_OK;
-	}	
+	}
 
 	kPacket.m_bJackpot = kPacket_.m_bJackpot;
 	kPacket.m_mapInsertedItem = kPacket_.m_mapInsertedItem;
@@ -3035,7 +3109,6 @@ IMPL_ON_FUNC( DBE_RESOLVE_ITEM_ACK )
 	kPacket.m_iED = GetED();
 #endif SERV_MULTI_RESOLVE
 	//}}
-		
 	SendPacket( EGS_RESOLVE_ITEM_ACK, kPacket );
 }
 
@@ -3385,6 +3458,19 @@ IMPL_ON_FUNC( DBE_ENCHANT_ITEM_ACK )
 		}
 #endif SERV_ENCHANT_ITEM_EVENT
 
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( kPacket_.m_iItemID );
+		if( pItemTemplet != NULL )
+		{
+			int iItemLevel = pItemTemplet->m_iItemLevel;
+			if( iItemLevel <= 0 )
+			{
+				iItemLevel = static_cast<int>( GetLevel() );
+			}
+			m_kUserTitleManager.OnEnchantItemLevel( GetThisPtr<KGSUser>(), iItemLevel, kPacket_.m_iLevelAfterEnchant, kPacket_.m_iEnchantResult == NetError::ERR_ENCHANT_RESULT_00 );
+		}
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
+
 		//{{ 2009. 6. 29  최육사	10강 이상 강화 성공시 전체 공지!
 		if( kPacket_.m_iEnchantResult == NetError::ERR_ENCHANT_RESULT_00  &&  
 			kPacket_.m_iLevelAfterEnchant >= 10  &&  
@@ -3501,7 +3587,17 @@ IMPL_ON_FUNC( EGS_SOCKET_ITEM_REQ )
 	int iED;
 
 	// 소켓 아이템ID 얻기
-	if( m_kInventory.SocketItem( kPacket_.m_iItemUID, kPacket_.m_mapSocketInfo, kPacket_.m_bCheat, kPacketReq.m_iItemID, iED, kPacketReq.m_vecSocketInfo, kPacketReq.m_vecUpdatedInventorySlot ) == false )
+	if( m_kInventory.SocketItem( kPacket_.m_iItemUID
+							   , kPacket_.m_mapSocketInfo
+							   , kPacket_.m_bCheat
+							   , kPacketReq.m_iItemID
+							   , iED
+							   , kPacketReq.m_vecSocketInfo
+							   , kPacketReq.m_vecUpdatedInventorySlot
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+							   , kPacketReq.m_byteExpandedSocketNum
+#endif //SERV_BATTLE_FIELD_BOSS
+							   ) == false )
 	{
 		kPacket.m_iOK = NetError::GetLastError();
 		SendPacket( EGS_SOCKET_ITEM_ACK, kPacket );
@@ -3564,9 +3660,25 @@ IMPL_ON_FUNC( DBE_SOCKET_ITEM_ACK )
 	if( kPacket_.m_iOK == NetError::NET_OK )
 	{
 		m_kUserQuestManager.Handler_OnSocketItem( GetThisPtr<KGSUser>(), kPacket_.m_iItemID, kPacket_.m_iSocketUseCount );
+
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( kPacket_.m_iItemID );
+		if( pItemTemplet != NULL )
+		{
+			int iItemLevel = pItemTemplet->m_iItemLevel;
+			if( iItemLevel <= 0 )
+			{
+				iItemLevel = static_cast<int>( GetLevel() );
+			}
+			m_kUserTitleManager.OnSocketItem( GetThisPtr<KGSUser>(), iItemLevel, kPacket_.m_iSocketUseCount );
+		}
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
 	}
 #endif SERV_QUEST_CLEAR_EXPAND
 	//}}
+
+
+	
 
 	KEGS_SOCKET_ITEM_ACK kPacket;
 	kPacket.m_iOK = NetError::NET_OK;
@@ -3732,7 +3844,6 @@ IMPL_ON_FUNC( EGS_ATTRIB_ENCHANT_ITEM_REQ )
 				<< BUILD_LOG( GetCharName() )
 #endif SERV_PRIVACY_AGREEMENT
 				<< BUILD_LOG( GetCharUID() );
-
 
 			kAck.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
 			SendPacket( EGS_ATTRIB_ENCHANT_ITEM_ACK, kAck );
@@ -4157,6 +4268,24 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 		}
 		break;
 		//}}
+    case CXSLItem::SI_PSHOP_AGENCY_7_DAYS_ED: // 캐시 대리상점이 열려있다면 ED , ED 프리미엄 아이템 사용 불가
+    case CXSLItem::SI_PSHOP_AGENCY_15_DAYS_ED:
+    case CXSLItem::SI_PSHOP_AGENCY_30_DAYS_ED:
+        {
+            if (
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+			 m_kUserPersonalShopManager.GetPShopType() == SEnum::AST_PREMIUM &&
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+                m_kUserPersonalShopManager.IsOpenPossiblePShopAgency() )
+            {
+                KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
+                kPacket.m_iOK = NetError::ERR_PERSONAL_SHOP_57; // 실패 사유
+                SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
+                return;
+            }
+        }
+        
+        break;
 
 		//{{ 2011. 08. 26	최육사	캐릭터 레벨업 아이템
 	case CXSLItem::EI_CHAR_LEVEL_UP_ITEM:
@@ -4200,16 +4329,43 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 	case CXSLItem::CI_CASH_SKILL_POINT_30_7:
 	case CXSLItem::CI_CASH_SKILL_POINT_60_7:
 #endif SERV_CASH_SKILL_POINT_TW
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_2:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 #ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
-	case CXSLItem::EI_SKILL_POINT_30_1DAY_USE_INVEN:
 	case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_30_1DAY_USE_INVEN:
 #endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
 	case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
 	case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
 	case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP:
-	case CXSLItem::EI_SKILL_POINT_5_7DAY_USE_INVEN_JP:
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
+#ifdef SERV_GNOSIS_BR
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+	case CXSLItem::EI_SKILL_POINT_30_14DAY_USE_INVEN:
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+	case CXSLItem::EI_LURIEL_GNOSIS_30_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_7DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_7DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 		{
 			if( m_kSkillTree.IsCashSkillPointExpired() == false )
 			{
@@ -4284,6 +4440,7 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 				|| ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_BELSSING_OF_AMON )				== true )
 				|| ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_BELSSING_OF_CRONOS )				== true )
 				//{{ 2013. 04. 12	박세훈	어둠의 문 개편
+#ifdef SERV_NEW_DEFENCE_DUNGEON
 				|| ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_ELIXIR_GIANT_POTION )			== true )
 				|| ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_ELIXIR_BLAZING_BOMB )			== true )
 				|| ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_ELIXIR_SPIRIT_OF_CHASER )		== true )
@@ -4292,6 +4449,7 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 				|| ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_ELIXIR_FEATHER_OF_VENTUS )		== true )
 				|| ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_ELIXIR_FLAME_RING_OF_ROSSO )		== true )
 				|| ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_ELIXIR_BIG_HAND_POTION )			== true )
+#endif SERV_NEW_DEFENCE_DUNGEON
 				//}}
 #ifdef SERV_EVENT_ARA_NEW_CHAR_THE_ESSENCE_OF_HERETIC
 				|| ( m_kUserBuffManager.IsBuffActivated( CXSLBuffManager::BTI_BUFF_THE_ESSENCE_OF_WEAK_HERETIC_POTION )		== true )
@@ -4351,6 +4509,9 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 
 		//{{ 2012. 12. 24	박세훈	펫 오토 루팅 기능 추가
 	case CXSLItem::SI_PET_AUTO_LOOTING_ITEM:
+#ifdef SERV_PET_AUTO_LOOTING_ITEM_CN
+	case CXSLItem::SI_PET_AUTO_LOOTING_ITEM_CN:
+#endif // SERV_PET_AUTO_LOOTING_ITEM_CN
 		{
 			int iOK = CanIUseTheAutoLootingItem( kPacket_.m_iTempCode );
 			if( iOK != NetError::NET_OK )
@@ -4496,6 +4657,16 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 					SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
 					return;
 				}
+
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+				if( isCanUseUnsealFinalitySkill( iUsedItemID, GetLevel() ) == false )
+				{
+					KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
+					kPacket.m_iOK = NetError::ERR_USE_ITEM_IN_INVENTORY_00;
+					SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
+					return;
+				}
+#endif // SERV_FINALITY_SKILL_SYSTEM
 			}
 
 			//{{ 2011. 04. 27	최육사	칭호 획득 아이템 개편
@@ -4641,15 +4812,58 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 	case CXSLItem::SI_PSHOP_AGENCY_10_DAYS:
 	case CXSLItem::SI_PSHOP_AGENCY_15_DAYS:
 	case CXSLItem::SI_PSHOP_AGENCY_30_DAYS:
-		{
-			KDBE_INSERT_PERIOD_PSHOP_AGENCY_REQ kPacketToDB;
-			kPacketToDB.m_iUnitUID = GetCharUID();
-			kPacketToDB.m_sAgencyPeriod = CXSLItem::GetPShopAgencyDays( kPacket.m_iUsedItemID );
-			kPacketToDB.m_usEventID = EGS_USE_ITEM_IN_INVENTORY_REQ;
-			SendToGameDB( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ, kPacketToDB );
+        {
+            //if (  m_kUserPersonalShopManager.GetPShopType() == SEnum::AST_PREMIUM ) // 캐시 보증서의 연장(기존과 동일)
+            {
+			    KDBE_INSERT_PERIOD_PSHOP_AGENCY_REQ kPacketToDB;
+			    kPacketToDB.m_iUnitUID = GetCharUID();
+			    kPacketToDB.m_sAgencyPeriod = CXSLItem::GetPShopAgencyDays( kPacket.m_iUsedItemID );
+			    kPacketToDB.m_usEventID = EGS_USE_ITEM_IN_INVENTORY_REQ;
+                kPacketToDB.m_cShopType = CXSLItem::GetPShopAgencyType( kPacket.m_iUsedItemID );
+			    SendToGameDB( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ, kPacketToDB );
+            }
+//            else
+//            { // ED 보증서 사용중이라면 등록된 아이템이 없어야 한다.
+//                //KEGS_JOIN_MY_PSHOP_AGENCY_REQ kPacketToLogin;
+//                //kPacketToLogin.m_cJoinType = KEGS_JOIN_MY_PSHOP_AGENCY_REQ::JT_CHECK_ENABLE_UPGRADE_PSHOP;
+//                //_SendToLoginRoom( GetPShopAgencyUID(), EGS_JOIN_MY_PSHOP_AGENCY_REQ, kPacketToLogin );
+//                
+//                KERM_JOIN_PERSONAL_SHOP_REQ kPacketToRoom;
+//                kPacketToRoom.m_iUserUID = GetUID();
+//                //{{ 2010. 05. 18  최육사	대전 던전 서버군 통합
+//#ifdef SERV_INTEGRATION
+//                kPacketToRoom.m_iUnitUID = GetCharUID();
+//#endif SERV_INTEGRATION
+//                //}}
+//                kPacketToRoom.m_wstrNickName = GetCharName();
+//                kPacketToRoom.m_bIsSquare = false;
+//                kPacketToRoom.m_cJoinType = KEGS_JOIN_MY_PSHOP_AGENCY_REQ::JT_CHECK_ENABLE_UPGRADE_PSHOP;
+//                kPacketToRoom.m_iUsedItemID = kPacket.m_iUsedItemID;
+//                _SendToLoginRoom( GetPShopAgencyUID(), ERM_CHECK_ENABLE_UPGRADE_PSHOP_AGENCY_REQ, kPacketToRoom );
+//            }
 		}
 		break;
 		//}}
+    case CXSLItem::SI_PSHOP_AGENCY_7_DAYS_ED:
+    case CXSLItem::SI_PSHOP_AGENCY_15_DAYS_ED:
+    case CXSLItem::SI_PSHOP_AGENCY_30_DAYS_ED:
+        {
+            // 현재 무료, ED 보증서 사용 상태이면 ok
+            if ( 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+				m_kUserPersonalShopManager.GetPShopType() <= SEnum::AST_NORMAL ||
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+                m_kUserPersonalShopManager.IsOpenPossiblePShopAgency() == false ) // 캐시보증서가 진행중일 때는 불가. 그 외에는 ok
+            {
+                KDBE_INSERT_PERIOD_PSHOP_AGENCY_REQ kPacketToDB;
+                kPacketToDB.m_iUnitUID = GetCharUID();
+                kPacketToDB.m_sAgencyPeriod = CXSLItem::GetPShopAgencyDays( kPacket.m_iUsedItemID );
+                kPacketToDB.m_usEventID = EGS_USE_ITEM_IN_INVENTORY_REQ;
+                kPacketToDB.m_cShopType = CXSLItem::GetPShopAgencyType( kPacket.m_iUsedItemID );
+                SendToGameDB( DBE_INSERT_PERIOD_PSHOP_AGENCY_REQ, kPacketToDB );
+            }
+        }
+        break;
 
 		//{{ 2011. 08. 26	최육사	캐릭터 레벨업 아이템
 	case CXSLItem::EI_CHAR_LEVEL_UP_ITEM:
@@ -4696,6 +4910,7 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN:
 	case CXSLItem::EI_SKILL_POINT_60_15DAY_USE_INVEN:
 	case CXSLItem::EI_SKILL_POINT_60_30DAY_USE_INVEN:
+	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
 #endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 #ifdef SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
 	case CXSLItem::EI_SKILL_POINT_60_1DAY_USE_INVEN:
@@ -4705,9 +4920,27 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 	case CXSLItem::EI_SKILL_POINT_30_USE_INVEN_JP:
 	case CXSLItem::EI_SKILL_POINT_10_30DAY_USE_INVEN_JP:
 	case CXSLItem::EI_SKILL_POINT_10_15DAY_USE_INVEN_JP:
-	case CXSLItem::EI_SKILL_POINT_5_7DAY_USE_INVEN_JP:
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP
-	case CXSLItem::EI_SKILL_POINT_60_7DAY_USE_INVEN_2:
+#ifdef SERV_GNOSIS_BR
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
+	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_15_DAY:
+#endif SERV_GNOSIS_BR
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+	case CXSLItem::EI_SKILL_POINT_30_14DAY_USE_INVEN:
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+	case CXSLItem::EI_LURIEL_GNOSIS_30_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_15DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_30DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_60DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_30_7DAY:
+	case CXSLItem::EI_LURIEL_GNOSIS_60_7DAY:
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+	case CXSLItem::EI_SKILL_POINT_30_7DAY_USE_INVEN_INT:
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 		{
 			if( true == m_kSkillTree.IsCashSkillPointExpired() )
 			{
@@ -4748,6 +4981,9 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 
 		//{{ 2012. 12. 24	박세훈	펫 오토 루팅 기능 추가
 	case CXSLItem::SI_PET_AUTO_LOOTING_ITEM:
+#ifdef SERV_PET_AUTO_LOOTING_ITEM_CN
+	case CXSLItem::SI_PET_AUTO_LOOTING_ITEM_CN:
+#endif // SERV_PET_AUTO_LOOTING_ITEM_CN
 		{
 			SetAutoLootingPet( kPacket_.m_iTempCode );
 			KDBE_PET_AUTO_LOOTING_NOT kPacketToDB;
@@ -4896,7 +5132,11 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 						SendToGameDB( DBE_UNSEAL_SKILL_REQ, kPacketToDB );
 
 						// 혹시나 해서 스킬찍었는지도 검사
-						if( m_kSkillTree.IsExist( iSkillID ) == true )
+#ifdef SERV_SKILL_PAGE_SYSTEM
+						if ( m_kSkillTree.IsExistOnUsedPage( iSkillID ) )
+#else // SERV_SKILL_PAGE_SYSTEM
+						if( m_kSkillTree.IsExist( iSkillID ) )
+#endif // SERV_SKILL_PAGE_SYSTEM
 						{
 							START_LOG( cerr, L"봉인해제도 안되었는데 스킬포인트를 어떻게 찍었지?" )
 								<< BUILD_LOG( GetCharUID() )
@@ -4951,12 +5191,10 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 		if( m_kInventory.IsLocked() == true )
 		{
 			START_LOG( cout, L"인벤토리 락이 걸려있는 상태입니다!" )
-#ifndef SERV_PRIVACY_AGREEMENT			
 				<< BUILD_LOG( GetUID() )
 				<< BUILD_LOG( GetName() )
-				<< BUILD_LOG( GetCharName() )
-#endif SERV_PRIVACY_AGREEMENT
-				<< BUILD_LOG( GetCharUID() );
+				<< BUILD_LOG( GetCharUID() )
+				<< BUILD_LOG( GetCharName() );
 
 			kAck.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
 			SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kAck );
@@ -4979,9 +5217,6 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 		//{{ 2009. 10. 9  최육사	길드
 #ifdef GUILD_TEST
 	case CXSLItem::SI_GUILD_MAX_MEMBER_UPGRADE:
-#ifdef EVENT_GUILD_ITEM
-	case CXSLItem::SI_EVENT_GUILD_MAX_MEMBER_UPGRADE:
-#endif //EVENT_GUILD_ITEM
 		{
 			KELG_CHECK_EXPAND_GUILD_MAX_MEMBER_REQ kPacketToLg;
 			kPacketToLg.m_iUnitUID = GetCharUID();
@@ -4997,9 +5232,6 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 		//{{ hoons.2009-10-19.
 		//자동결재 마을 이동아이템일 경우 이동할수 있는 지역인지 체크..(흠~ 인벤사용함수가 범용적이지 않게 사용중이라 이곳에서 직접 마을아이디만 체크)
 	case CXSLItem::SI_USE_FREE_BY_FIELD:
-#ifdef SERV_VIP_SYSTEM
-	case CXSLItem::SI_USE_FREE_BY_FIELD_VIP:
-#endif  //SERV_VIP_SYSTEM	
 		//{{ 2012. 10. 31	박세훈	코보 익스프레스 티켓 추가
 #ifdef SERV_ADD_COBO_EXPRESS_TICKET
 	case CXSLItem::SI_USE_COBO_EXPRESS_TICKET:
@@ -5098,12 +5330,6 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 		//{{ 2009. 11. 27  최육사	길드스킬
 #ifdef GUILD_SKILL_TEST
 	case CXSLItem::SI_GUILD_CASH_SKILL_POINT:
-#ifdef EVENT_GUILD_ITEM
-	case CXSLItem::SI_EVENT_GUILD_CASH_SKILL_POINT:
-#endif //EVENT_GUILD_ITEM
-#ifdef SERV_EVENT_GUILD_SKILL_GLOBAL
-	case CXSLItem::SI_EVENT_GUILD_SKILL_5_POINT_15_DAY:
-#endif //SERV_EVENT_GUILD_SKILL_GLOBAL
 		{
 			// 길드 가입 유저인지 검사
 			if( GetGuildUID() <= 0 )
@@ -5179,19 +5405,12 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 		//{{ 2011. 08. 26	최육사	캐릭터 레벨업 아이템
 #ifdef SERV_CHAR_LEVEL_UP_ITEM
 	case CXSLItem::EI_CHAR_LEVEL_UP_ITEM:
-#ifdef SERV_CHAR_LEVEL_UP_ITEM_EVENT_RENA
-	case CXSLItem::EL_CHAR_LEVEL_UP_ITEM2:
-#endif SERV_CHAR_LEVEL_UP_ITEM_EVENT_RENA
 		{
 			// 만렙이면 사용할 수 없다!
 			if( SiKGameSysVal()->GetLimitsLevel() == GetLevel() )
 			{
 				KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
-#ifdef SERV_LIMIT_LEVEL_NOT_USE_ITEM_MSG
-				kPacket.m_iOK = NetError::ERR_NOT_USE_01;
-#else //SERV_LIMIT_LEVEL_NOT_USE_ITEM_MSG
 				kPacket.m_iOK = NetError::ERR_UNKNOWN;
-#endif //SERV_LIMIT_LEVEL_NOT_USE_ITEM_MSG
 				SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
 				return;
 			}
@@ -5227,10 +5446,6 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 		//{{ 2011. 11. 30	최육사	패키지 상품 추가
 #ifdef SERV_ADD_PACKAGE_PRODUCT
 	case CXSLItem::CI_SKILL_POINT_5_USE_INVEN:
-#ifdef SERV_EVENT_SKILL_POINT
-		// 5포인트 아이템 추가시 넣어줘야함
-	case CXSLItem::CI_SKILL_5_POINT_30:
-#endif
 		{
 			if( m_kSkillTree.IsCashSkillPointExpired() == false )
 			{
@@ -5253,10 +5468,6 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 
 	case CXSLItem::CI_SKILL_POINT_10_USE_INVEN:
 	case CXSLItem::CI_SKILL_POINT_10_USE_INVEN_ARA:
-#ifdef SERV_EVENT_SKILL_POINT
-		// 10포인트 아이템 추가시 넣어줘야함
-	case CXSLItem::CI_SKILL_10_POINT_60:
-#endif
 		{
 			if( m_kSkillTree.IsCashSkillPointExpired() == false )
 			{
@@ -5278,20 +5489,6 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 		break;
 #endif SERV_ADD_PACKAGE_PRODUCT
 		//}}
-		//{{ 2011.10.24 이지헌 : 골드 티켓 작업 ( 사용하면 캐쉬 주는 아이템 )
-#ifdef SERV_GOLD_TICKET
-	case CXSLItem::SI_GOLD_TICKET_10_ID:
-	case CXSLItem::SI_GOLD_TICKET_50_ID:
-	case CXSLItem::SI_GOLD_TICKET_100_ID:
-	case CXSLItem::SI_GOLD_TICKET_500_ID:
-	case CXSLItem::SI_GOLD_TICKET_1000_ID:
-	case CXSLItem::SI_GOLD_TICKET_2000_ID:
-		{
-			// 현재는 딱히 제한 조건은 없음.
-		}
-		break;
-#endif
-
 		//{{ 2013. 03. 27	 그노시스의 축복 5point 7일 추가 - 김민성
 #ifdef SERV_EVENT_CASH_SKILL_5_POINT_7_DAY
 	case CXSLItem::EI_SKILL_POINT_5_DAY_7_USE_INVEN:
@@ -5342,28 +5539,7 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 		break;
 #endif SERV_COME_BACK_USER_REWARD
 		//}}
-#ifdef SERV_SKILL_5_POINT_7_DAY_EU
-	case CXSLItem::SI_EVENT_SKILL_5_POINT_7_DAY:
-		{
-			if( m_kSkillTree.IsCashSkillPointExpired() == false )
-			{
-				if( 5 != m_kSkillTree.GetMaxCSPoint() )
-				{
-					START_LOG( cwarn, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!!" )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
 
-					KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
-					kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_32;
-					SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
-					return;
-				}
-			}
-		}
-		break;
-#endif SERV_SKILL_5_POINT_7_DAY_EU
 		//{{ 2012. 04. 29	박세훈	어둠의 문 개편
 #ifdef SERV_REFORM_THE_GATE_OF_DARKNESS
 	case CXSLItem::SI_THE_GATE_OF_DARKNESS_ARCANUM_NUT:
@@ -5456,141 +5632,6 @@ IMPL_ON_FUNC( EGS_USE_ITEM_IN_INVENTORY_REQ )
 #endif SERV_PET_AUTO_LOOTING
 		//}}
 
-#ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
-	case CXSLItem::SI_HALLOWEEN_TRANSFORM_POSION_ITEM:
-		{
-			int iOK = CanIUseTransformItem( kPacket_.m_iTempCode );
-			if( iOK != NetError::NET_OK )
-			{
-				KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
-				kPacket.m_iOK = iOK;
-				SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
-				return;
-			}
-		}
-		break;
-#endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
-
-#ifdef SERV_EVENT_CHARACTER_SLOT_EXPAND_ITEM
-	case CXSLItem::SI_CHARACTER_SLOT_EXPAND_ITEM1:
-	case CXSLItem::SI_CHARACTER_SLOT_EXPAND_ITEM2:
-	case CXSLItem::SI_CHARACTER_SLOT_EXPAND_ITEM3:
-		{
-			if( ( m_nUnitSlot + 1 ) > CXSLUnit::CHAR_SLOT_MAX )
-			{
-				KEGS_BUY_CASH_ITEM_ACK kPacket;
-				kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_30;
-				SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
-				return;
-			}
-		}
-		break;
-#endif SERV_EVENT_CHARACTER_SLOT_EXPAND_ITEM
-#ifdef SERV_CN_GNOSIS
-	case CXSLItem::CI_EVENT_SKILL_POINT_10_USE_INVEN_7_DAY:
-		{
-			if( m_kSkillTree.IsCashSkillPointExpired() == false )
-			{
-				if( 10 != m_kSkillTree.GetMaxCSPoint() )
-				{
-					START_LOG( cwarn, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!!" )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-
-					KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
-					kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_32;
-					SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
-					return;
-				}
-			}
-		}
-		break;
-
-	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_1_DAY:
-		{
-			if( m_kSkillTree.IsCashSkillPointExpired() == false )
-			{
-				if( 5 != m_kSkillTree.GetMaxCSPoint() )
-				{
-					START_LOG( cwarn, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!!" )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-
-					KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
-					kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_32;
-					SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
-					return;
-				}
-			}
-		}
-		break;
-
-	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
-		{
-			if( m_kSkillTree.IsCashSkillPointExpired() == false )
-			{
-				if( 5 != m_kSkillTree.GetMaxCSPoint() )
-				{
-					START_LOG( cwarn, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!!" )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-
-					KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
-					kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_32;
-					SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
-					return;
-				}
-			}
-		}
-		break;
-	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY_TYPE2:
-		{
-			if( m_kSkillTree.IsCashSkillPointExpired() == false )
-			{
-				if( 5 != m_kSkillTree.GetMaxCSPoint() )
-				{
-					START_LOG( cwarn, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!!" )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-
-					KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
-					kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_32;
-					SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
-					return;
-				}
-			}
-		}
-		break;
-
-	case CXSLItem::CI_EVENT_SKILL_POINT_10_USE_INVEN_15_DAY:
-		{
-			if( m_kSkillTree.IsCashSkillPointExpired() == false )
-			{
-				if( 10 != m_kSkillTree.GetMaxCSPoint() )
-				{
-					START_LOG( cwarn, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!!" )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-
-					KEGS_USE_ITEM_IN_INVENTORY_ACK kPacket;
-					kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_32;
-					SendPacket( EGS_USE_ITEM_IN_INVENTORY_ACK, kPacket );
-					return;
-				}
-			}
-		}
-		break;
-#endif SERV_CN_GNOSIS
 	default:
 		{
 			//{{ 2009. 8. 4  최육사		캐쉬 스킬 아이템
@@ -5990,12 +6031,6 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 		//{{ 2009. 11. 27  최육사	길드스킬
 #ifdef GUILD_SKILL_TEST
 	case CXSLItem::SI_GUILD_CASH_SKILL_POINT:
-#ifdef EVENT_GUILD_ITEM
-	case CXSLItem::SI_EVENT_GUILD_CASH_SKILL_POINT:
-#endif //EVENT_GUILD_ITEM
-#ifdef SERV_EVENT_GUILD_SKILL_GLOBAL
-	case CXSLItem::SI_EVENT_GUILD_SKILL_5_POINT_15_DAY:
-#endif //SERV_EVENT_GUILD_SKILL_GLOBAL
 		{
 			// 길드매니저로 가서 길드 캐쉬 스킬포인트를 얻자!
 			KELG_INSERT_GUILD_CASH_SKILL_POINT_NOT kPacketToLg;
@@ -6062,9 +6097,6 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 		//{{ 2011. 08. 26	최육사	캐릭터 레벨업 아이템
 #ifdef SERV_CHAR_LEVEL_UP_ITEM
 	case CXSLItem::EI_CHAR_LEVEL_UP_ITEM:
-#ifdef SERV_CHAR_LEVEL_UP_ITEM_EVENT_RENA
-	case CXSLItem::EL_CHAR_LEVEL_UP_ITEM2:
-#endif SERV_CHAR_LEVEL_UP_ITEM_EVENT_RENA
 		{
 			// 1레벨업하기 위해서 필요한 경험치 구하기
 			const int iNextLevel = GetLevel() + 1;
@@ -6127,50 +6159,9 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 		break;
 #endif SERV_EVENT_CASH_SKILL_POINT_ITEM
 		//}}
-#ifdef SERV_SKILL_5_POINT_7_DAY_EU
-	case CXSLItem::SI_EVENT_SKILL_5_POINT_7_DAY:
-		{
-			if( true == m_kSkillTree.IsCashSkillPointExpired() )
-			{
-				KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-				kPacket.m_iUnitUID	= GetCharUID();
-				kPacket.m_iCSPoint	= 5;
-				kPacket.m_iPeriod	= 7;
-				kPacket.m_bUpdateEndDateOnly = false;
-				kPacket.m_iSkillPointItemID = CXSLItem::SI_EVENT_SKILL_5_POINT_7_DAY;
-				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-			}
-			else
-			{
-				if( 5 == m_kSkillTree.GetMaxCSPoint() )
-				{
-					KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-					kPacket.m_iUnitUID = GetCharUID();
-					kPacket.m_iCSPoint	= 5;
-					kPacket.m_iPeriod	= 7;
-					kPacket.m_bUpdateEndDateOnly = true;
-					kPacket.m_iSkillPointItemID = CXSLItem::SI_EVENT_SKILL_5_POINT_7_DAY;
-					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-				}
-				else
-				{
-					START_LOG( cerr, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!! 위에서 이미 검사했을텐데.." )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-				}
-			}
-		}
-		break;
-#endif SERV_SKILL_5_POINT_7_DAY_EU
 		//{{ 2011. 11. 30	최육사	패키지 상품 추가
 #ifdef SERV_ADD_PACKAGE_PRODUCT
 	case CXSLItem::CI_SKILL_POINT_5_USE_INVEN:
-#ifdef SERV_EVENT_SKILL_POINT
-		// 5포인트 넣어야함
-	case CXSLItem::CI_SKILL_5_POINT_30:
-#endif
 		{
 			if( true == m_kSkillTree.IsCashSkillPointExpired() )
 			{
@@ -6180,16 +6171,6 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 				kPacket.m_iPeriod	= 15;
 				kPacket.m_bUpdateEndDateOnly = false;
 				kPacket.m_iSkillPointItemID = CXSLItem::CI_SKILL_POINT_5_USE_INVEN;
-
-#ifdef SERV_EVENT_SKILL_POINT
-				// 기간이 15이 아니면 변경 필요 , 기록할 아이템 ID도 변경 필요
-				if( CXSLItem::CI_SKILL_5_POINT_30 == kPacket_.m_iUsedItemID )
-				{
-					kPacket.m_iPeriod	= 30;
-					kPacket.m_iSkillPointItemID = CXSLItem::CI_SKILL_5_POINT_30;
-				}
-#endif
-
 				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
 			}
 			else
@@ -6202,15 +6183,6 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 					kPacket.m_iPeriod	= 15;
 					kPacket.m_bUpdateEndDateOnly = true;
 					kPacket.m_iSkillPointItemID = CXSLItem::EI_SKILL_POINT_5_USE_INVEN;
-
-#ifdef SERV_EVENT_SKILL_POINT
-					// 기간이 15이 아니면 변경 필요 , 기록할 아이템 ID도 변경 필요
-					if( CXSLItem::CI_SKILL_5_POINT_30 == kPacket_.m_iUsedItemID )
-					{
-						kPacket.m_iPeriod	= 30;
-						kPacket.m_iSkillPointItemID = CXSLItem::CI_SKILL_5_POINT_30;
-					}
-#endif
 					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
 				}
 				else
@@ -6226,10 +6198,6 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 		break;
 
 	case CXSLItem::CI_SKILL_POINT_10_USE_INVEN:
-#ifdef SERV_EVENT_SKILL_POINT
-		// 10포인트 넣어야함
-	case CXSLItem::CI_SKILL_10_POINT_60:
-#endif
 		{
 			if( true == m_kSkillTree.IsCashSkillPointExpired() )
 			{
@@ -6239,15 +6207,6 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 				kPacket.m_iPeriod	= 15;
 				kPacket.m_bUpdateEndDateOnly = false;
 				kPacket.m_iSkillPointItemID = CXSLItem::CI_SKILL_POINT_10_USE_INVEN;
-
-#ifdef SERV_EVENT_SKILL_POINT
-				// 기간이 15이 아니면 변경 필요 , 기록할 아이템 ID도 변경 필요
-				if( CXSLItem::CI_SKILL_10_POINT_60 == kPacket_.m_iUsedItemID )
-				{
-					kPacket.m_iPeriod	= 60;
-					kPacket.m_iSkillPointItemID = CXSLItem::CI_SKILL_10_POINT_60;
-				}
-#endif
 				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
 			}
 			else
@@ -6260,15 +6219,6 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 					kPacket.m_iPeriod	= 15;
 					kPacket.m_bUpdateEndDateOnly = true;
 					kPacket.m_iSkillPointItemID = CXSLItem::CI_SKILL_POINT_10_USE_INVEN;
-
-#ifdef SERV_EVENT_SKILL_POINT
-					// 기간이 15이 아니면 변경 필요 , 기록할 아이템 ID도 변경 필요
-					if( CXSLItem::CI_SKILL_10_POINT_60 == kPacket_.m_iUsedItemID )
-					{
-						kPacket.m_iPeriod	= 60;
-						kPacket.m_iSkillPointItemID = CXSLItem::CI_SKILL_10_POINT_60;
-					}
-#endif
 					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
 				}
 				else
@@ -6400,212 +6350,7 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 		}
 		break;		
 #endif SERV_COME_BACK_USER_REWARD
-		//}} 
-#ifdef SERV_CN_GNOSIS
-	case CXSLItem::CI_EVENT_SKILL_POINT_10_USE_INVEN_7_DAY:
-		{
-			if( true == m_kSkillTree.IsCashSkillPointExpired() )
-			{
-				KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-				kPacket.m_iUnitUID	= GetCharUID();
-				kPacket.m_iCSPoint	= 10;
-				kPacket.m_iPeriod	= 7;
-				kPacket.m_bUpdateEndDateOnly = false;
-				kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_10_USE_INVEN_7_DAY;
-				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-			}
-			else
-			{
-				if( 10 == m_kSkillTree.GetMaxCSPoint() )
-				{
-					KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-					kPacket.m_iUnitUID = GetCharUID();
-					kPacket.m_iCSPoint	= 10;
-					kPacket.m_iPeriod	= 7;
-					kPacket.m_bUpdateEndDateOnly = true;
-					kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_10_USE_INVEN_7_DAY;
-					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-				}
-				else
-				{
-					START_LOG( cerr, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!! 위에서 이미 검사했을텐데.." )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-				}
-			}
-		}
-		break;
-
-	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_1_DAY:
-		{
-			if( true == m_kSkillTree.IsCashSkillPointExpired() )
-			{
-				KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-				kPacket.m_iUnitUID	= GetCharUID();
-				kPacket.m_iCSPoint	= 5;
-				kPacket.m_iPeriod	= 1;
-				kPacket.m_bUpdateEndDateOnly = false;
-				kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_1_DAY;
-				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-			}
-			else
-			{
-				if( 5 == m_kSkillTree.GetMaxCSPoint() )
-				{
-					KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-					kPacket.m_iUnitUID = GetCharUID();
-					kPacket.m_iCSPoint	= 5;
-					kPacket.m_iPeriod	= 1;
-					kPacket.m_bUpdateEndDateOnly = true;
-					kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_1_DAY;
-					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-				}
-				else
-				{
-					START_LOG( cerr, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!! 위에서 이미 검사했을텐데.." )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-				}
-			}
-		}
-		break;
-
-	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY:
-		{
-			if( true == m_kSkillTree.IsCashSkillPointExpired() )
-			{
-				KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-				kPacket.m_iUnitUID	= GetCharUID();
-				kPacket.m_iCSPoint	= 5;
-				kPacket.m_iPeriod	= 7;
-				kPacket.m_bUpdateEndDateOnly = false;
-				kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY;
-				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-			}
-			else
-			{
-				if( 5 == m_kSkillTree.GetMaxCSPoint() )
-				{
-					KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-					kPacket.m_iUnitUID = GetCharUID();
-					kPacket.m_iCSPoint	= 5;
-					kPacket.m_iPeriod	= 7;
-					kPacket.m_bUpdateEndDateOnly = true;
-					kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY;
-					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-				}
-				else
-				{
-					START_LOG( cerr, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!! 위에서 이미 검사했을텐데.." )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-				}
-			}
-		}
-		break;
-
-	case CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY_TYPE2:
-		{
-			if( true == m_kSkillTree.IsCashSkillPointExpired() )
-			{
-				KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-				kPacket.m_iUnitUID	= GetCharUID();
-				kPacket.m_iCSPoint	= 5;
-				kPacket.m_iPeriod	= 7;
-				kPacket.m_bUpdateEndDateOnly = false;
-				kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY_TYPE2;
-				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-			}
-			else
-			{
-				if( 5 == m_kSkillTree.GetMaxCSPoint() )
-				{
-					KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-					kPacket.m_iUnitUID = GetCharUID();
-					kPacket.m_iCSPoint	= 5;
-					kPacket.m_iPeriod	= 7;
-					kPacket.m_bUpdateEndDateOnly = true;
-					kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_5_USE_INVEN_7_DAY_TYPE2;
-					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-				}
-				else
-				{
-					START_LOG( cerr, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!! 위에서 이미 검사했을텐데.." )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-				}
-			}
-		}
-		break;
-
-	case CXSLItem::CI_EVENT_SKILL_POINT_10_USE_INVEN_15_DAY:
-		{
-			if( true == m_kSkillTree.IsCashSkillPointExpired() )
-			{
-				KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-				kPacket.m_iUnitUID	= GetCharUID();
-				kPacket.m_iCSPoint	= 10;
-				kPacket.m_iPeriod	= 15;
-				kPacket.m_bUpdateEndDateOnly = false;
-				kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_10_USE_INVEN_15_DAY;
-				SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-			}
-			else
-			{
-				if( 5 == m_kSkillTree.GetMaxCSPoint() )
-				{
-					KDBE_INSERT_CASH_SKILL_POINT_REQ kPacket;
-					kPacket.m_iUnitUID = GetCharUID();
-					kPacket.m_iCSPoint	= 10;
-					kPacket.m_iPeriod	= 15;
-					kPacket.m_bUpdateEndDateOnly = true;
-					kPacket.m_iSkillPointItemID = CXSLItem::CI_EVENT_SKILL_POINT_10_USE_INVEN_15_DAY;
-					SendToGameDB( DBE_INSERT_CASH_SKILL_POINT_REQ, kPacket );
-				}
-				else
-				{
-					START_LOG( cerr, L"현재 사용하고 있는 캐시스킬포인트와 다른 것으로 기간연장 하려고함!! 위에서 이미 검사했을텐데.." )
-						<< BUILD_LOG( GetCharUID() )
-						<< BUILD_LOG( m_kSkillTree.GetMaxCSPoint() )
-						<< BUILD_LOG( m_kSkillTree.GetCSPointEndDateString() )
-						<< END_LOG;
-				}
-			}
-		}
-		break;
-#endif SERV_CN_GNOSIS
-#ifdef SERV_GOLD_TICKET
-	case CXSLItem::SI_GOLD_TICKET_10_ID:
-	case CXSLItem::SI_GOLD_TICKET_50_ID:
-	case CXSLItem::SI_GOLD_TICKET_100_ID:
-	case CXSLItem::SI_GOLD_TICKET_500_ID:
-	case CXSLItem::SI_GOLD_TICKET_1000_ID:
-	case CXSLItem::SI_GOLD_TICKET_2000_ID:
-		{
-			// 골드 티켓이 사용 되면 처리할 곳
-			// 캐쉬 충전하라는 패킷을 날려 줘야겠지?
-			KEPUBLISHER_CHARGE_POINT_REQ kPacketToDB;
-			kPacketToDB.m_iItemUID = kPacket_.m_iItemUID;
-			kPacketToDB.m_iItemID =  kPacket.m_iUsedItemID;
-			kPacketToDB.m_iServerGroupID = KBaseServer::GetKObj()->GetServerGroupID();
-			kPacketToDB.m_wstrUserIP = KncUtil::toWideString(GetIPStr());
-			kPacketToDB.m_iCharUID = GetCharUID();
-			kPacketToDB.m_wstrUserID = GetName();
-			
-			// 대만만 사용하는 거라 그냥 PublisherBillingDB로 보냄
-			// 원래라면 체크해서 SendToPublisherBillingDB인지 SendToPublisherBilling인지 어디로 갈지 정해야함
-			SendToPublisherBillingDB( EPUBLISHER_CHARGE_POINT_REQ, kPacketToDB );
-		}
-		break;
-#endif //SERV_GOLD_TICKET
+		//}}
 
 		//{{ 2012. 12. 24	박세훈	펫 오토 루팅 기능 추가
 #ifdef SERV_PET_AUTO_LOOTING
@@ -6620,44 +6365,6 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 #endif SERV_PET_AUTO_LOOTING
 		//}}
 
-#ifdef SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
-	case CXSLItem::SI_HALLOWEEN_TRANSFORM_POSION_ITEM:
-		{
-			int iBeforePetID = 0;
-			int iAfterPetID = 0;
-			UseTransformItem( kPacket.m_iUsedItemID, kPacket_.m_iTempCode, iBeforePetID, iAfterPetID );
-
-			KDBE_CHANGE_PET_ID_REQ kPacketToDB;
-			kPacketToDB.m_iPetUID = kPacket_.m_iTempCode;
-			kPacketToDB.m_iBeforePetID = iBeforePetID;
-			kPacketToDB.m_iAfterPetID = iAfterPetID;
-			SendToGameDB( DBE_CHANGE_PET_ID_REQ, kPacketToDB );
-		}
-		break;
-#endif //SERV_HALLOWEEN_PUMPKIN_FAIRY_PET
-
-#ifdef SERV_EVENT_CHARACTER_SLOT_EXPAND_ITEM
-	case CXSLItem::SI_CHARACTER_SLOT_EXPAND_ITEM1:
-	case CXSLItem::SI_CHARACTER_SLOT_EXPAND_ITEM2:
-	case CXSLItem::SI_CHARACTER_SLOT_EXPAND_ITEM3:
-		{
-			KDBE_EXPAND_CHAR_SLOT_REQ kPacketToDB;
-			kPacketToDB.m_iExpandSlotSize = 1;
-			kPacketToDB.m_iCharSlotMax = CXSLUnit::CHAR_SLOT_MAX;
-
-			SendToGameDB( DBE_EXPAND_CHAR_SLOT_REQ, kPacketToDB );
-		}
-		break;
-#endif SERV_EVENT_CHARACTER_SLOT_EXPAND_ITEM
-#ifdef SERV_TOUR_TICKET_EVENT
-	case CXSLItem::SI_TOUR_TICKET_ITEM:
-		{
-			KDBE_REGIST_TOUR_TICKET_NOT kPacketToDB;
-			kPacketToDB.m_iUnitUID = GetCharUID();
-			SendToLogDB( DBE_REGIST_TOUR_TICKET_NOT, kPacketToDB );
-		}
-		break;
-#endif SERV_TOUR_TICKET_EVENT
 	default:
 		{
 			// unseal skill
@@ -6702,25 +6409,7 @@ IMPL_ON_FUNC( DBE_USE_ITEM_IN_INVENTORY_ACK )
 						kPacketToDB.m_iTitleID = kTitleInfo.m_iTitleID;
 						kPacketToDB.m_sPeriod  = kTitleInfo.m_sPeriod;
 						kPacketToDB.m_bGameServerEvent = false;
-#ifdef SERV_HENIR_RANKING_REWARD_TITLE_UPDATE
-						if( kTitleInfo.m_iTitleID == 20080 || // 시간의 군주
-							kTitleInfo.m_iTitleID == 20090 || // 시간의 정복자
-							kTitleInfo.m_iTitleID == 20095 || // 시간의 파괴자
-							kTitleInfo.m_iTitleID == 20100 || // 공간의 군주
-							kTitleInfo.m_iTitleID == 20110 || // 공간의 정복자
-							kTitleInfo.m_iTitleID == 20115 || // 공간의 파괴자
-							kTitleInfo.m_iTitleID == 20120 || // 창세신의 재림
-							kTitleInfo.m_iTitleID == 20130 )  // 창세신의 힘
-						{
-							// 헤니르 보상 타이틀이면, 칭호기간 연장안한다.
-						}
-						else
-						{
-							kPacketToDB.m_bExpandPeriod = true;
-						}
-#else //SERV_HENIR_RANKING_REWARD_TITLE_UPDATE
 						kPacketToDB.m_bExpandPeriod = true;
-#endif SERV_HENIR_RANKING_REWARD_TITLE_UPDATE
 						SendToGameDB( DBE_INSERT_TITLE_REQ, kPacketToDB );
 						return;
 					}
@@ -6989,6 +6678,36 @@ IMPL_ON_FUNC( EGS_ITEM_EXCHANGE_REQ )
 		//}}
 	}
 	//////////////////////////////////////////////////////////////////////////
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.12 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	std::set<int> setBanBuyItemInven;
+	CTime m_tStartDate;
+	CTime m_tEndDate;
+	std::vector<KPacketGetItemOnOff>::iterator vitrGetItemOnOff;
+	std::map<int , std::vector<KPacketGetItemOnOff> > mapGetItemOnOff =  GetKGSSimLayer()->GetTimeControlItem_Info();
+	std::map<int , std::vector<KPacketGetItemOnOff> >::iterator mitGetItemOnOff = mapGetItemOnOff.find( TCIT_EXCHANGE_SHOP );
+
+	if( mitGetItemOnOff != mapGetItemOnOff.end() )
+	{
+		for( vitrGetItemOnOff = mitGetItemOnOff->second.begin(); vitrGetItemOnOff != mitGetItemOnOff->second.end(); ++vitrGetItemOnOff )
+		{
+			KncUtil::ConvertStringToCTime(vitrGetItemOnOff->m_wstrStartTime , m_tStartDate);
+			KncUtil::ConvertStringToCTime(vitrGetItemOnOff->m_wstrEndTime , m_tEndDate);
+
+			if( CTime::GetCurrentTime() >= m_tStartDate && CTime::GetCurrentTime() <= m_tEndDate )
+			{
+				setBanBuyItemInven.insert(vitrGetItemOnOff->m_iItemID);
+			}
+		}
+	}
+
+	if( setBanBuyItemInven.find(kPacket_.m_iSourceItemID) != setBanBuyItemInven.end() )
+	{
+		KEGS_ITEM_EXCHANGE_ACK kPacket;
+		kPacket.m_iOK	= NetError::ERR_ITEM_22;
+		SendPacket( EGS_ITEM_EXCHANGE_ACK, kPacket );
+		return;
+	}
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 #ifdef SERV_EVENT_MONEY	// 김민성 // 적용날짜: 2013-07-04
 	int iEventMoney = GetEventMoney();
@@ -7302,6 +7021,9 @@ IMPL_ON_FUNC( DBE_ITEM_EXCHANGE_ACK )
 #endif SERV_GROW_UP_SOCKET
 
 #ifdef SERV_2013_JUNGCHU_TITLE
+#ifdef SERV_2013_SILVER_WEEK_TITLE
+	// 일본은 보상을 주지 않는다.
+#else //SERV_2013_SILVER_WEEK_TITLE
 	IF_EVENT_ENABLED( CEI_2013_JUNGCHU_TITLE )
 	{
 		if( kPacket_.m_b12TimesRewarded == true )
@@ -7315,8 +7037,8 @@ IMPL_ON_FUNC( DBE_ITEM_EXCHANGE_ACK )
 			SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
 		}
 	}
+#endif //SERV_2013_SILVER_WEEK_TITLE
 #endif SERV_2013_JUNGCHU_TITLE
-
 
 	//std::map< UidType, KItemInfo >::const_iterator mit = kPacket_.m_mapItemInfo.begin();
 	//if( mit != kPacket_.m_mapItemInfo.end() )
@@ -7708,6 +7430,26 @@ IMPL_ON_FUNC( DBE_ATTRIB_ATTACH_ITEM_ACK )
 	KEGS_ATTRIB_ATTACH_ITEM_ACK kPacket;
 	kPacket.m_iOK = NetError::NET_OK;
 	kPacket.m_vecInventorySlotInfo = kPacket_.m_vecUpdatedInventorySlot;
+
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+	if( kPacket_.m_iOK == NetError::NET_OK )
+	{
+		KItemInfo kInfo;
+		if( m_kInventory.GetItemInfo( kPacket_.m_iItemUID, kInfo ) == true )
+		{
+			const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( kInfo.m_iItemID );
+			if( pItemTemplet != NULL )
+			{
+				int iItemLevel = pItemTemplet->m_iItemLevel;
+				if( iItemLevel <= 0 )
+				{
+					iItemLevel = static_cast<int>( GetLevel() );
+				}
+				m_kUserTitleManager.OnAttribItem( GetThisPtr<KGSUser>(), iItemLevel );
+			}
+		}
+	}
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
 
 	if( kPacket_.m_iOK != NetError::NET_OK )
 	{
@@ -8244,6 +7986,10 @@ IMPL_ON_FUNC( EGS_RESOLVE_ITEM_AVATAR_REQ )
 #endif SERV_QUEST_CLEAR_EXPAND
 	//}}
 
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+	m_kUserTitleManager.OnResolveItem( GetThisPtr<KGSUser>() );
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
+
 	//{{ 2010. 07. 05  최육사	유저 어뷰저 매니저
 #ifdef SERV_USER_ABUSER_MANAGER
 	// 아이템 어뷰저
@@ -8436,7 +8182,7 @@ IMPL_ON_FUNC( EGS_GET_SHARE_BANK_REQ )
 	if( m_kUserAbuserManager.IsTradeBlockUnit() == true )
 	{
 		KEGS_GET_SHARE_BANK_ACK kAck;
-		kAck.m_iOK = NetError::ERR_TRADE_BLOCK_UNIT_00;
+		kAck.m_iOK = NetError::ERR_TRADE_BLOCK_UNIT_02;
 		SendPacket( EGS_GET_SHARE_BANK_ACK, kAck );
 		return;
 	}
@@ -8604,7 +8350,7 @@ IMPL_ON_FUNC( DBE_UPDATE_SHARE_ITEM_ACK )
 
 _IMPL_ON_FUNC( DBE_UPDATE_SHARE_ITEM_FOR_MOVE_SLOT_ACK, KDBE_UPDATE_SHARE_ITEM_ACK )
 {
-	VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_CHANGE_INVENTORY_SLOT_ITEM_ACK );
+	VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
 
 	// 일단 성공했든 실패했든 원래 전송했어야할 정보를 전달한다.
 	KEGS_CHANGE_INVENTORY_SLOT_ITEM_ACK kPacket;
@@ -8710,7 +8456,6 @@ IMPL_ON_FUNC( EPUBLISHER_CHARGE_POINT_ACK )
 }
 #endif //SERV_GOLD_TICKET
 
-
 #ifdef SERV_DEVELOPER_RANDOM_OPEN_ITEM_LOG
 IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_DEVELOPER_REQ )
 {
@@ -8729,6 +8474,83 @@ IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_DEVELOPER_REQ )
 	bool bCharmItem = false;
 	bool bIsSealItem = false;
 	bool bIsNotifyMsgAttration = false;
+
+#ifdef SERV_CUBE_IN_ITEM_MAPPING
+	std::map<int, RANDOMITEM_MAPPING_TIME>::iterator mitRITime = SiCXSLRandomItemManager()->m_mapRandomItemMappingTime.begin();
+	CTime tCurr = CTime::GetCurrentTime();
+
+	KEGS_CUBE_IN_ITEM_MAPPING_NOT kPacketCubeInItemMapping;
+	std::map<int, std::map<int, kRandomItemMappingToInfoClient> > mapNowMapping;
+	mapNowMapping.clear();
+
+	for(; mitRITime != SiCXSLRandomItemManager()->m_mapRandomItemMappingTime.end(); mitRITime++)
+	{
+		// 시작시간과 종료시간 안이면, 바꿔줌.
+		int nIndexData = mitRITime->first;
+		std::map<int, RANDOMITEM_MAPPING_DATA>::iterator mitRIData = SiCXSLRandomItemManager()->m_mapRandomItemMappingData.find(nIndexData);
+		//예외처리
+		if(mitRIData == SiCXSLRandomItemManager()->m_mapRandomItemMappingData.end())
+			continue;
+
+		CTime tStartTime = mitRITime->second.tStartTime;
+		CTime tEndTime = mitRITime->second.tEndTime;
+
+		// 매핑 여부 확인해주자
+		kRandomItemMappingToInfoClient kRandomToInfoClient;
+		kRandomToInfoClient.m_bCheckMapping  = false;
+		if(  tStartTime < tCurr && tEndTime > tCurr )
+		{
+
+			START_LOG( clog, L"ModifyMapItemGroup, 큐브매핑작업Start" )
+				<< BUILD_LOG( nIndexData )
+				<< BUILD_LOG( tStartTime.GetYear() )
+				<< BUILD_LOG( tStartTime.GetMonth() )
+				<< BUILD_LOG( tStartTime.GetDay() )
+				<< BUILD_LOG( tStartTime.GetHour() )
+				<< BUILD_LOG( tStartTime.GetMinute() )
+				<< BUILD_LOG( tEndTime.GetYear() )
+				<< BUILD_LOG( tEndTime.GetMonth() )
+				<< BUILD_LOG( tEndTime.GetDay() )
+				<< BUILD_LOG( tEndTime.GetHour() )
+				<< BUILD_LOG( tEndTime.GetMinute() )
+				<< END_LOG;
+
+			if(!SiCXSLRandomItemManager()->ModifyMapItemGroup(mitRIData->second))
+			{
+				START_LOG( cerr, L"해당 랜덤 아이템에 대한 키템 정보가 없다. 있을수 없는에러!" )
+					<< BUILD_LOG( mitRIData->second.iCubeID )
+					<< BUILD_LOG( mitRIData->second.iKeyItemID )
+					<< END_LOG;
+			}
+			else
+			{
+				kRandomToInfoClient.m_bCheckMapping = true;
+			}
+		}
+		// 매핑 정보를 담아서 넘겨준다. 
+		int iCubeID = mitRIData->second.iCubeID;
+		kRandomToInfoClient.m_iBeforeGroupID = mitRIData->second.iBeforeGroupID;
+		kRandomToInfoClient.m_iAfterGroupID = mitRIData->second.iAfterGroupID;
+		kRandomToInfoClient.m_tStartTime = (CStringW)(tStartTime.Format(_T("%Y-%m-%d %H:%M:%S")));
+		kRandomToInfoClient.m_tEndTime = (CStringW)(tEndTime.Format(_T("%Y-%m-%d %H:%M:%S")));
+
+		std::map<int, kRandomItemMappingToInfoClient> mapToInfoClient;
+
+		// 벡터에서 시간을 가져온다.
+		std::map<int, std::map<int,kRandomItemMappingToInfoClient> >::iterator mitToInfoC = mapNowMapping.find(iCubeID);
+		if(mitToInfoC == mapNowMapping.end())
+		{
+			mapToInfoClient.insert(std::make_pair(nIndexData, kRandomToInfoClient));
+			mapNowMapping.insert(std::make_pair(iCubeID,mapToInfoClient));
+		} 
+		else // 이미 존재하고 있는 아이템이라면
+		{
+			mitToInfoC->second.insert(std::make_pair(nIndexData, kRandomToInfoClient));
+		}
+	}
+	kPacketCubeInItemMapping.m_mapCubeInItemMapping = mapNowMapping;
+	SendPacket( EGS_CUBE_IN_ITEM_MAPPING_NOT, kPacketCubeInItemMapping );
+#endif SERV_CUBE_IN_ITEM_MAPPING
 
 	std::map<int, KRandomItemResult> m_map_RandomItemResult;
 
@@ -8806,18 +8628,11 @@ IMPL_ON_FUNC( EGS_OPEN_RANDOM_ITEM_DEVELOPER_REQ )
 		}
 	}
 
-
 	kPacket.m_iOK = NetError::GetLastError();
-
 	kPacket.m_map_RandomItemResult = m_map_RandomItemResult;
-
-
 	SendPacket( EGS_OPEN_RANDOM_ITEM_DEVELOPER_ACK, kPacket );
-
-
 }
 #endif//SERV_DEVELOPER_RANDOM_OPEN_ITEM_LOG
-
 
 //{{ 2013. 05. 15	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
@@ -9108,7 +8923,7 @@ IMPL_ON_FUNC( EGS_ITEM_CONVERT_REQ )
 
 	// 아이템 미감정
 	std::map< int, int > mapInsertedItem;
-	if( m_kInventory.ItemConvert( kPacket_.m_iItemUID, mapInsertedItem, kPacketToDB.m_vecItemInfo, kPacketToDB.m_vecUpdatedInventorySlot, kPacketToDB.m_iCommissionED ) == false )
+	if( m_kInventory.ItemConvert( kPacket_.m_iItemUID, kPacket_.m_iQuantity, mapInsertedItem, kPacketToDB.m_vecItemInfo, kPacketToDB.m_vecUpdatedInventorySlot, kPacketToDB.m_iCommissionED ) == false )
 	{
 		LIF( NetError::GetLastError() != NetError::NET_OK );
 
@@ -9477,7 +9292,12 @@ IMPL_ON_FUNC( EGB_TIME_ENCHANT_EVENT_CUBE_NOT )
 		kPacketAck.m_iED = m_iED;
 
 		// 유저 통계
+#ifdef SERV_USER_STATISTICS_RENEWAL
+		m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EDData, 0, KUserStatistics::US_ED_OpenCubeSpendED, kPacketToDB.m_iSpendED );
+#else //SERV_USER_STATISTICS_RENEWAL
 		m_kUserStatistics.IncreaseCount( KUserStatistics::USTable_EtcData, 0, KUserStatistics::US_ED_OpenCubeSpendED, kPacketToDB.m_iSpendED );
+#endif //SERV_USER_STATISTICS_RENEWAL
+
 
 		// ED 사용량 통계
 		KStatisticsKey kKey;
@@ -9668,6 +9488,796 @@ end_proc:
 	}
 }
 #endif // SERV_ITEM_EXCHANGE_LIMIT
+
+#ifdef SERV_COUPON_EVENT
+IMPL_ON_FUNC( EGS_COUPON_ITEM_CHECK_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_COUPON_ITEM_CHECK_REQ, EGS_COUPON_ITEM_CHECK_ACK );
+
+	// 이곳에서 버튼 타입을 체크하고, 인벤에 아이템 있는 지를 확인해서(시간을 기준으로) 리턴값을 정의해주어야 한다.
+	int iCouponType = 0;
+	int iItemID		= 0;
+	KEGS_COUPON_ITEM_CHECK_ACK kPacketAck;
+	kPacketAck.m_iOK = NetError::NET_OK;
+
+	// 아이템이 존재하고, 코드 이벤트에 해당하는 아이템이라면 보낸다.
+	IF_EVENT_ENABLED(CEI_EVENT_COUPON_WEEKDAY)		// 평일
+	{
+		if( kPacket_.m_iButtonType == 1 )
+		{
+			kPacketAck.m_iCouponType = 1;		// 골드티켓(100)
+			kPacketAck.m_iItemID = 60006512;
+		}
+		else if( kPacket_.m_iButtonType == 2 )
+		{
+			kPacketAck.m_iCouponType = 2;		// 골드티켓(100) 한번더!!
+			kPacketAck.m_iItemID = 60006519;
+		}
+		else
+		{
+			kPacketAck.m_iOK = NetError::ERR_DANO_EVENT_02;
+		}
+	}	
+	ELSE_IF_EVENT_ENABLED(CEI_EVENT_COUPON_WEEKEND)
+	{
+		if( kPacket_.m_iButtonType == 1 )
+		{
+			kPacketAck.m_iCouponType = 3;		// 골드티켓(500)
+			kPacketAck.m_iItemID = 60006513;
+		}
+		else if( kPacket_.m_iButtonType == 2 )
+		{
+			kPacketAck.m_iCouponType = 4;		// 골드티켓(500) 한번더!!
+			kPacketAck.m_iItemID = 60006520;
+		}
+		else
+		{
+			kPacketAck.m_iOK = NetError::ERR_DANO_EVENT_02;
+		}
+	}
+	ELSE
+	{
+		kPacketAck.m_iOK = NetError::ERR_DANO_EVENT_03;
+	}
+
+	if(m_kInventory.IsExistOnlyInventory(kPacketAck.m_iItemID) == false) 
+	{
+		kPacketAck.m_iOK = NetError::ERR_DANO_EVENT_01; // 인벤토리에 아이템이 존재하지 않으면
+	}
+
+	START_LOG( clog, L"COUPON_ITEM_CHECK_REQ 정보확인")
+		<< BUILD_LOG( GetCharUID() )
+		<< BUILD_LOG( GetCharName() )
+		<< BUILD_LOG( kPacketAck.m_iOK )
+		<< BUILD_LOG( kPacketAck.m_iCouponType )
+		<< BUILD_LOG( kPacketAck.m_iItemID )
+		<< END_LOG;
+
+	SendPacket( EGS_COUPON_ITEM_CHECK_ACK, kPacketAck );
+}
+
+IMPL_ON_FUNC( EGS_COUPON_ENTRY_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_COUPON_ENTRY_REQ, EGS_COUPON_ENTRY_ACK );
+
+	KEGS_COUPON_ENTRY_ACK kPacketAck;
+	int iItemID = 0;
+
+	switch(kPacket_.m_iCouponType)
+	{
+	case 1:					// 골드티켓(100)
+		{
+			iItemID = 60006512;
+		} break;
+	case 2:					// 골드티켓(100) 한번더!
+		{
+			iItemID = 60006519;
+		} break;
+	case 3:					// 골드티켓(500) 
+		{
+			iItemID = 60006513;
+		} break;
+	case 4:					// 골드티켓(500) 한번더!
+		{
+			iItemID = 60006520;
+		} break;
+	default:
+		{
+			kPacketAck.m_iOK = NetError::ERR_DANO_EVENT_02;
+			SendPacket(EGS_COUPON_ENTRY_ACK, kPacketAck);
+			return;
+		}		
+	}
+
+	KDBE_COUPON_ENTRY_REQ kPacketReq;
+	std::map< int, int > mapRequiredItem;
+	int iQuantity = 1;
+	mapRequiredItem.insert( std::make_pair( iItemID, iQuantity ) );
+
+	if( m_kInventory.DeleteItemOnlyInventory( mapRequiredItem, kPacketReq.m_vecUpdatedInventorySlot, KDeletedItemInfo::DR_NO_REASON ) == false )
+	{
+		kPacketAck.m_iOK = NetError::ERR_DANO_EVENT_02;
+		SendPacket(EGS_COUPON_ENTRY_ACK, kPacketAck);
+		return ;
+	}
+	else
+	{		
+		m_kInventory.FlushQuantityChange( kPacketReq.m_kItemQuantityUpdate.m_mapQuantityChange );
+		m_kInventory.FlushDeletedItem( kPacketReq.m_kItemQuantityUpdate.m_vecDeleted );
+		
+		kPacketReq.m_iUserUID = GetUID();
+		kPacketReq.m_iUnitUID = GetCharUID();
+		kPacketReq.m_iCouponType = kPacket_.m_iCouponType;
+		SendToGameDB(DBE_COUPON_ENTRY_REQ, kPacketReq);
+
+		KStatisticsKey kKeyES;
+		kKeyES.m_vecIntKey.push_back( iItemID );
+		KSIManager.IncreaseCount( KStatistics::SI_LOC_ITEM, kKeyES, KStatistics::SI_ITEM_USE, iQuantity );
+		//{{ 2011. 04. 13	최육사	아이템 통계 DB기록
+#ifdef SERV_ITEM_STATISTICS_TO_DB
+		KSIManager.IncreaseCount( KStatistics::SI_ITEM_DB, kKeyES, KStatistics::SI_ITEM_USE, iQuantity );
+#endif SERV_ITEM_STATISTICS_TO_DB
+		//}}
+	}
+}
+
+IMPL_ON_FUNC( DBE_COUPON_ENTRY_ACK )
+{
+	KEGS_COUPON_ENTRY_ACK kPacketAck;
+	kPacketAck.m_iOK = kPacket_.m_iOK;
+	m_kInventory.RollBackInitQuantity( kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange );
+	m_kInventory.RollBackDeletedItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted );
+	kPacketAck.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
+
+	SendPacket(EGS_COUPON_ENTRY_ACK, kPacketAck);
+}
+#endif SERV_COUPON_EVENT
+
+#ifdef SERV_READY_TO_SOSUN_EVENT
+IMPL_ON_FUNC_NOPARAM( EGS_READY_TO_SOSUN_EVENT_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_READY_TO_SOSUN_EVENT_REQ, EGS_READY_TO_SOSUN_EVENT_ACK );
+
+	// 소선이 나올 확률을 10%로 하기위해서 iFirstUnitClass가 28과 29가 나오면 소선이 나온것으로 함.(UnitClass 29는 존재하지 않지만 29가 나오면 소선이 나온 것처럼 처리)
+	KDBE_READY_TO_SOSUN_EVENT_REQ kPacketDB;
+	kPacketDB.m_iUnitUID = GetCharUID();
+	kPacketDB.m_iFirstUnitClass = 10 + (rand() % 20);
+
+	if( kPacketDB.m_iFirstUnitClass == 29 )
+	{
+		kPacketDB.m_iFirstUnitClass = 28;
+	}
+
+	if( m_kInventory.IsEnoughEmptySlot( CXSLInventory::ST_SPECIAL, 1 ) == false )
+	{
+		START_LOG(cerr, L"인벤토리 공간 부족")
+			<< END_LOG;
+
+		KEGS_READY_TO_SOSUN_EVENT_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_TRADE_09;
+		kPacketAck.m_iFirstUnitClass = kPacketDB.m_iFirstUnitClass;
+		SendPacket( EGS_READY_TO_SOSUN_EVENT_ACK, kPacketAck );
+	}
+
+	START_LOG(cout, L"아라 1차 전직 이름 맞추기 이벤트")
+		<< BUILD_LOG( kPacketDB.m_iFirstUnitClass )
+		<< END_LOG;
+
+	if( m_kInventory.ExchangeToEvent( CXSLItem::EI_READY_TO_SOSUN_EVENT_ITEM, 1, CXSLItem::EI_READY_TO_SOSUN_EVENT_WIN_ITEM, 1, kPacketDB.m_vecUpdatedInventorySlot, kPacketDB.m_vecItemInfo, kPacketDB.m_iFirstUnitClass ) == false )
+	{
+		LIF( NetError::GetLastError() != NetError::NET_OK );
+
+		START_LOG(cerr, L"아라 1차 전직 이름 맞추기 이벤트 보상 지급 실패?")
+			<< BUILD_LOG( kPacketDB.m_iFirstUnitClass )
+			<< END_LOG;
+
+		KEGS_READY_TO_SOSUN_EVENT_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::GetLastError();
+		kPacketAck.m_iFirstUnitClass = kPacketDB.m_iFirstUnitClass;
+		SendPacket( EGS_READY_TO_SOSUN_EVENT_ACK, kPacketAck );
+	}
+	else
+	{
+		// 새로 추가된 아이템이 있으면 DB로 보낸다.
+		if( kPacketDB.m_vecItemInfo.empty() == false )
+		{
+			m_kInventory.FlushQuantityChange( kPacketDB.m_kItemQuantityUpdate.m_mapQuantityChange );
+			m_kInventory.FlushDeletedItem( kPacketDB.m_kItemQuantityUpdate.m_vecDeleted );
+
+			SendToGameDB( DBE_READY_TO_SOSUN_EVENT_REQ, kPacketDB );
+		}
+		else
+		{
+			LIF( NetError::GetLastError() == NetError::NET_OK );
+
+			KEGS_READY_TO_SOSUN_EVENT_ACK kPacketAck;
+			kPacketAck.m_iOK = NetError::NET_OK;
+			kPacketAck.m_vecKInventorySlotInfo = kPacketDB.m_vecUpdatedInventorySlot;
+			kPacketAck.m_iFirstUnitClass = kPacketDB.m_iFirstUnitClass;
+			SendPacket( EGS_READY_TO_SOSUN_EVENT_ACK, kPacketAck );
+		}
+	}
+}
+
+IMPL_ON_FUNC( DBE_READY_TO_SOSUN_EVENT_ACK )
+{
+	VERIFY_STATE_ACK( ( 1, KGSFSM::S_FIELD_MAP ), EGS_READY_TO_SOSUN_EVENT_ACK );
+
+	KEGS_READY_TO_SOSUN_EVENT_ACK kPacket;
+	kPacket.m_iOK = kPacket_.m_iOK;
+	kPacket.m_iFirstUnitClass = kPacket_.m_iFirstUnitClass;
+
+	if( kPacket_.m_iOK == NetError::ERR_RANDOM_ITEM_06 )
+	{
+		// TODO : DB 에 아이템 삽입 실패. 추후에 로그 추가.
+		kPacket.m_iOK = NetError::NET_OK;
+	}
+
+	m_kInventory.RollBackInitQuantity( kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange );
+	m_kInventory.RollBackDeletedItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted );
+	m_kInventory.InsertItem( kPacket_.m_mapItemInfo, kPacket.m_vecKInventorySlotInfo );
+	kPacket.m_vecKInventorySlotInfo.insert( kPacket.m_vecKInventorySlotInfo.begin(), kPacket_.m_vecUpdatedInventorySlot.begin(), kPacket_.m_vecUpdatedInventorySlot.end() );
+
+	SendPacket( EGS_READY_TO_SOSUN_EVENT_ACK, kPacket );
+}
+#endif SERV_READY_TO_SOSUN_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+IMPL_ON_FUNC( EGS_USE_PROPOSE_ITEM_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_USE_PROPOSE_ITEM_REQ, EGS_USE_PROPOSE_ITEM_ACK );
+
+	//////////////////////////////////////////////////////////////////////////
+	// 조건 검사
+	//////////////////////////////////////////////////////////////////////////
+	IF_EVENT_ENABLED( CEI_RELATIONSHIP_CODE_EVENT )
+	{
+		
+	}
+	ELSE
+	{
+		// 가상 결혼 이벤트 종료
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_DANO_EVENT_03;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+
+	// 정상적인 문자열인지 검사
+	char charBuf[255] = {0};
+	std::string strUnitName;
+
+	WideCharToMultiByte( CP_ACP, 0, kPacket_.m_wstrNickName.c_str(), -1, charBuf, 255, NULL, NULL );
+	strUnitName = charBuf;
+
+	if( strUnitName.empty() == true || strUnitName.size() > 12 )   // 비어있는 값인지 확인
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_01;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+#else //SERV_STRING_FILTER_USING_DB
+	if( SiCXSLStringFilter()->CheckIsValidString( CXSLStringFilter::FT_NICKNAME, kPacket_.m_wstrNickName ) == false )
+#endif //SERV_STRING_FILTER_USING_DB
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_01;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+
+	// 쿼리에 직접 들어갈 문자열이므로 injection 대비 검사를 한다.
+	if( KODBC::IsInvalidMarkIn( kPacket_.m_wstrNickName ) == true )
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_01;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+
+	// 가상 결혼 신청서를 가지고 있는가?
+	if( m_kInventory.IsExistOnlyInventory( CXSLItem::EI_EVENT_PROPOSE_ITEM ) == false )
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_02;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+
+	// 자신이 가상 결혼 중인가
+	if( m_bCouple == true )
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_03;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+
+	SendToGameDB( DBE_EVENT_PROPOSE_USER_FIND_REQ, kPacket_ );
+}
+
+IMPL_ON_FUNC( DBE_EVENT_PROPOSE_USER_FIND_ACK )
+{
+	if( kPacket_.m_iOK != NetError::NET_OK )
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = kPacket_.m_iOK;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+
+	// 캐릭터 성별 비교
+#ifdef SERV_NEW_CHARACTER_EL	// 적용날짜: 2013-07-18
+	int iOK = m_kUserRelationshipManager.CheckChar( GetUnitClass(), kPacket_.m_cUnitClass );
+	if( iOK != NetError::NET_OK )
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = iOK;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+#else	// SERV_NEW_CHARACTER_EL
+	if( m_kUserRelationshipManager.CheckChar( GetUnitType(), kPacket_.m_cUnitClass ) == false )
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_05;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+#endif	// SERV_NEW_CHARACTER_EL
+
+	// 상대방 가상 결혼 상태 확인
+	if( kPacket_.m_bCouple == true )
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_06;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+
+	// 상대방 데이터 무결성 확인
+	if( kPacket_.m_wstrOtherNickName.empty() == true || kPacket_.m_iOtherUserUID <= 0 || kPacket_.m_iOtherUnitUID <= 0 )
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_07;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// 로그인 서버로 가서 접속 중인지 확인 하자
+	KELG_EVENT_PROPOSE_CHECK_CONNECT_USER_REQ kReq;
+	kReq.m_iOtherUserUID = kPacket_.m_iOtherUserUID;
+	kReq.m_iOtherUnitUID = kPacket_.m_iOtherUnitUID;
+	kReq.m_wstrRequestUnitName = GetCharName();
+	kReq.m_iRequestUserUID = GetUID();
+	kReq.m_iRequestUnitUID = GetCharUID();
+	kReq.m_wstrAcceptUnitName = kPacket_.m_wstrOtherNickName;
+
+	SendToLoginServer( ELG_EVENT_PROPOSE_CHECK_CONNECT_USER_REQ, kReq );
+}
+
+IMPL_ON_FUNC( ELG_EVENT_PROPOSE_CHECK_CONNECT_USER_ACK )
+{
+	KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+	kPacket.m_iOK = kPacket_.m_iOK;
+	kPacket.m_wstrNickName = kPacket_.m_wstrNickName;
+	SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+}
+
+IMPL_ON_FUNC( ELG_EVENT_PROPOSE_NOT )
+{
+	KEGS_COUPLE_PROPOSE_NOT kPacket;
+	kPacket.m_wstrRequestUnitName = kPacket_.m_wstrRequestUnitName;
+	kPacket.m_iRequestUnitUID = kPacket_.m_iRequestUnitUID;
+	SendPacket( EGS_EVENT_PROPOSE_NOT, kPacket );
+}
+
+IMPL_ON_FUNC( EGS_EVENT_PROPOSE_AGREE_NOT )
+{
+	VERIFY_STATE( ( 1, KGSFSM::S_FIELD_MAP ) );
+
+	if( kPacket_.m_cAnswer == KEGS_EVENT_PROPOSE_AGREE_NOT::CRT_YES )
+	{
+		// 수락 한 경우
+		// 인벤토리에서 가상 결혼 신청서를 찾아 지워라
+		bool bFindItem = false;
+
+		KInventoryItemInfo kResultItemInfo;
+		std::vector< UidType > vecItemUIDList;
+		m_kInventory.GetItemUIDListThisItem( CXSLItem::EI_EVENT_PROPOSE_ITEM, vecItemUIDList, true );
+
+		if( vecItemUIDList.empty() == true )	// 아이템이 없는 경우 자동으로 거절 처리하고, 수락자가 가진 아이템의 삭제 처리는 신청자의 요청에 의해 하도록 한다.
+		{
+			kPacket_.m_cAnswer = KEGS_EVENT_PROPOSE_AGREE_NOT::CRT_NO;
+		}
+		/*
+		std::map< UidType, int > mapDeleteItem;
+		std::map< int, KItemInfo> mapDummy;
+		std::vector<KItemInfo> vecNewItem;
+		std::vector< KInventoryItemInfo > vecUpdatedInventorySlot;
+		
+		if( vecItemUIDList.empty() == false )
+		{
+			// 아무거나 하나면 된다. 첫번째 꺼로 하자
+			mapDeleteItem.insert( std::make_pair( vecItemUIDList[0], 1 ) );
+			if( m_kInventory.DeleteAndInsert( mapDeleteItem, mapDummy, vecUpdatedInventorySlot, vecNewItem, KDeletedItemInfo::DR_RELATIONSHIP ) == true )
+			{
+				bFindItem = true;
+			}
+		}
+
+		if( bFindItem == false )
+		{
+			kPacket_.m_cAnswer = KEGS_EVENT_PROPOSE_AGREE_NOT::CRT_NO;
+		}
+		else
+		{
+			// 수락한 캐릭터의 아이템을 찾았으니 DB에 삭제 요청만 함. 나머지 처리는 프로포즈한 캐릭터가 처리
+			KDBE_EVENT_MAKING_SUCCESS_ACCEPTOR_REQ kPacketDB;
+			//kPacketDB.m_iRequestUnitUID = kPacket_.m_iRequestUnitUID;
+			//kPacketDB.m_wstrRequestUnitName = kPacket_.m_wstrRequestUnitName;
+			//kPacketDB.m_iAcceptUserUID = GetUID();
+			//kPacketDB.m_ucAcceptUnitLevel = GetLevel();
+			//kPacketDB.m_cAcceptUnitClass = GetUnitClass();
+			//kPacketDB.m_iAcceptUnitUID = GetCharUID();
+			//kPacketDB.m_wstrAcceptUnitName = GetCharName();
+			kPacketDB.m_vecUpdatedInventorySlot = vecUpdatedInventorySlot;
+			m_kInventory.FlushDeletedItem( kPacketDB.m_vecDeleted );
+
+			SendToGameDB( DBE_EVENT_MAKING_SUCCESS_ACCEPTOR_REQ, kPacketDB );
+		}
+		*/
+	}
+
+	// 신청자에게 결과를 전달한다.
+	kPacket_.m_iAcceptUnitUID = GetCharUID();
+	kPacket_.m_wstrAcceptUnitName = GetCharName();
+	kPacket_.m_iAcceptUserUID = GetUID();
+	kPacket_.m_ucAcceptUnitLevel = GetLevel();
+	kPacket_.m_cAcceptUnitClass = GetUnitClass();
+	SendToLoginServer( ELG_EVENT_PROPOSE_AGREE_CHECK_NOT, kPacket_ );
+}
+
+_IMPL_ON_FUNC( ELG_EVENT_PROPOSE_AGREE_CHECK_NOT, KEGS_EVENT_PROPOSE_AGREE_NOT )
+{
+	// 거절 한 경우 - 그냥 거절 결과만 전달
+	if( kPacket_.m_cAnswer != KEGS_EVENT_PROPOSE_AGREE_NOT::CRT_YES )
+	{
+		KEGS_EVENT_PROPOSE_RESULT_NOT kPacket;
+		kPacket.m_iOK = NetError::NET_OK;
+		kPacket.m_cResult = kPacket_.m_cAnswer;
+		kPacket.m_iUnitUID = kPacket_.m_iAcceptUnitUID;
+		kPacket.m_wstrUnitName = kPacket_.m_wstrAcceptUnitName;
+		SendPacket( EGS_EVENT_PROPOSE_RESULT_NOT, kPacket );
+
+		return;
+	}
+
+	// 수락 한 경우
+	// 인벤토리에서 가상 결혼 신청서를 찾아 지워라
+	bool bFindItem = false;
+
+	KInventoryItemInfo kResultItemInfo;
+	std::vector< UidType > vecItemUIDList;
+	m_kInventory.GetItemUIDListThisItem( CXSLItem::EI_EVENT_PROPOSE_ITEM, vecItemUIDList, true );
+
+	std::map< UidType, int > mapDeleteItem;
+	std::map< int, KItemInfo> mapDummy;
+	std::vector<KItemInfo> vecNewItem;
+	std::vector< KInventoryItemInfo > vecUpdatedInventorySlot;
+
+	if( vecItemUIDList.empty() == false )
+	{
+		// 아무거나 하나면 된다. 첫번째 꺼로 하자
+		mapDeleteItem.insert( std::make_pair( vecItemUIDList[0], 1 ) );
+		if( m_kInventory.DeleteAndInsert( mapDeleteItem, mapDummy, vecUpdatedInventorySlot, vecNewItem, KDeletedItemInfo::DR_RELATIONSHIP ) == true )
+		{
+			bFindItem = true;
+		}
+	}
+
+	if( bFindItem == false )
+	{
+		// 신청자에게 전달
+		KEGS_EVENT_PROPOSE_RESULT_NOT kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_EVENT_05;
+		kPacket.m_cResult = KEGS_EVENT_PROPOSE_AGREE_NOT::CRT_NO;
+		kPacket.m_iUnitUID = kPacket_.m_iAcceptUnitUID;
+		kPacket.m_wstrUnitName = kPacket_.m_wstrAcceptUnitName;
+		SendPacket( EGS_EVENT_PROPOSE_RESULT_NOT, kPacket );
+
+		// 수락자에게 전달
+		KERM_EVENT_PROPOSE_RESULT_FAIL_NOT kFail;
+		kFail.m_iOK = NetError::ERR_RELATIONSHIP_EVENT_06;
+		kFail.m_iRequestUnitUID = kPacket_.m_iRequestUnitUID;
+		kFail.m_wstrRequestUnitName = kPacket_.m_wstrRequestUnitName;
+		kFail.m_iAcceptUnitUID = kPacket_.m_iAcceptUnitUID;
+		kFail.m_wstrAcceptUnitName = kPacket_.m_wstrAcceptUnitName;
+		SendToLoginServer( ELG_EVENT_PROPOSE_RESULT_FAIL_NOT, kFail );
+
+		return;
+	}
+
+	// 아이템을 찾았으니 DB 에 삭제 요청 하고 커플 성사 시키자
+	KDBE_EVENT_MAKING_SUCCESS_REQ kPacketDB;
+	kPacketDB.m_iRequestUnitUID = kPacket_.m_iRequestUnitUID;
+	kPacketDB.m_wstrRequestUnitName = kPacket_.m_wstrRequestUnitName;
+	kPacketDB.m_iAcceptUserUID = kPacket_.m_iAcceptUserUID;
+	kPacketDB.m_ucAcceptUnitLevel = kPacket_.m_ucAcceptUnitLevel;
+	kPacketDB.m_cAcceptUnitClass = kPacket_.m_cAcceptUnitClass;
+	kPacketDB.m_iAcceptUnitUID = kPacket_.m_iAcceptUnitUID;
+	kPacketDB.m_wstrAcceptUnitName = kPacket_.m_wstrAcceptUnitName;
+	kPacketDB.m_vecUpdatedInventorySlot = vecUpdatedInventorySlot;
+	m_kInventory.FlushDeletedItem( kPacketDB.m_vecDeleted );
+
+	SendToGameDB( DBE_EVENT_MAKING_SUCCESS_REQ, kPacketDB );
+}
+
+IMPL_ON_FUNC( DBE_EVENT_MAKING_SUCCESS_ACK )
+{
+	if( kPacket_.m_iOK != NetError::NET_OK )
+	{
+		// 신청장에게 전달
+		KEGS_EVENT_PROPOSE_RESULT_NOT kPacket;
+		kPacket.m_iOK = kPacket_.m_iOK;
+		kPacket.m_cResult = KEGS_EVENT_PROPOSE_AGREE_NOT::CRT_NO;
+		kPacket.m_iUnitUID = kPacket_.m_iAcceptUnitUID;
+		kPacket.m_wstrUnitName = kPacket_.m_wstrAcceptUnitName;
+		SendPacket( EGS_EVENT_PROPOSE_RESULT_NOT, kPacket );
+
+		if( kPacket_.m_iOK == NetError::ERR_RELATIONSHIP_EVENT_01 )
+		{
+			m_kInventory.RollBackDeletedItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted );
+		}
+
+		return;
+	}
+
+	// 수락자에게는 커플 성공 정보를 보낸다.
+	KERM_EVENT_PROPOSE_RESULT_SUCCESS_NOT kPacket;
+	kPacket.m_iOK = NetError::NET_OK;
+	kPacket.m_iRequestUnitUID = kPacket_.m_iRequestUnitUID;
+	kPacket.m_wstrRequestUnitName = kPacket_.m_wstrRequestUnitName;
+	kPacket.m_iAcceptUnitUID = kPacket_.m_iAcceptUnitUID;
+	kPacket.m_wstrAcceptUnitName = kPacket_.m_wstrAcceptUnitName;
+	kPacket.m_tDate = kPacket_.m_tDate;
+	SendToLoginServer( ELG_EVENT_PROPOSE_RESULT_SUCCESS_NOT, kPacket );
+
+	// 신청자에게는 가상 결혼 신청서 삭제 정보와 가상 결혼 정보를 보낸다.
+	// 신청장에게 전달	
+	// 커플 정보 셋팅
+	m_bCouple = true;
+	m_iRelationTargetUserUid = kPacket_.m_iAcceptUnitUID;
+	m_wstrRelationTargetUserNickname = kPacket_.m_wstrAcceptUnitName;
+
+	// DB로 보상 정보를 보낸다.
+	KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+	kPacketToDB.m_iFromUnitUID = GetCharUID();
+	kPacketToDB.m_iToUnitUID   = GetCharUID();
+	kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // 보상 타입
+	kPacketToDB.m_iRewardID	   = _CONST_SERV_RELATIONSHIP_EVENT_INT_REWARD_ID::iRelationshipEventReward; // 로맨틱 조각 케이크, 로맨틱 샴페인, 가상 결혼 계약서
+	SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+
+	KEGS_EVENT_PROPOSE_RESULT_NOT kResult;
+	kResult.m_cResult = KEGS_EVENT_PROPOSE_AGREE_NOT::CRT_YES;
+	kResult.m_iUnitUID = kPacket_.m_iAcceptUnitUID;
+	kResult.m_wstrUnitName = kPacket_.m_wstrAcceptUnitName;
+	kResult.m_tDate = kPacket_.m_tDate;
+	kResult.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
+	SendPacket( EGS_EVENT_PROPOSE_RESULT_NOT, kResult );
+}
+
+_IMPL_ON_FUNC( ELG_EVENT_PROPOSE_RESULT_SUCCESS_NOT, KERM_EVENT_PROPOSE_RESULT_SUCCESS_NOT )
+{	
+	// 프로포즈 수락자만 받는 결과 패킷
+	bool bFindItem = false;
+
+	KInventoryItemInfo kResultItemInfo;
+	std::vector< UidType > vecItemUIDList;
+	m_kInventory.GetItemUIDListThisItem( CXSLItem::EI_EVENT_PROPOSE_ITEM, vecItemUIDList, true );
+
+	std::map< UidType, int > mapDeleteItem;
+	std::map< int, KItemInfo> mapDummy;
+	std::vector<KItemInfo> vecNewItem;
+	std::vector< KInventoryItemInfo > vecUpdatedInventorySlot;
+		
+	if( vecItemUIDList.empty() == false )
+	{
+		// 아무거나 하나면 된다. 첫번째 꺼로 하자
+		mapDeleteItem.insert( std::make_pair( vecItemUIDList[0], 1 ) );
+		if( m_kInventory.DeleteAndInsert( mapDeleteItem, mapDummy, vecUpdatedInventorySlot, vecNewItem, KDeletedItemInfo::DR_RELATIONSHIP ) == true )
+		{
+			bFindItem = true;
+		}
+	}
+
+	if( bFindItem == true )
+	{
+		KDBE_EVENT_MAKING_SUCCESS_ACCEPTOR_REQ kPacketDB;
+		//kPacketDB.m_iRequestUnitUID = kPacket_.m_iRequestUnitUID;
+		//kPacketDB.m_wstrRequestUnitName = kPacket_.m_wstrRequestUnitName;
+		//kPacketDB.m_iAcceptUserUID = GetUID();
+		//kPacketDB.m_ucAcceptUnitLevel = GetLevel();
+		//kPacketDB.m_cAcceptUnitClass = GetUnitClass();
+		//kPacketDB.m_iAcceptUnitUID = GetCharUID();
+		//kPacketDB.m_wstrAcceptUnitName = GetCharName();
+		kPacketDB.m_vecUpdatedInventorySlot = vecUpdatedInventorySlot;
+		m_kInventory.FlushDeletedItem( kPacketDB.m_vecDeleted );
+
+		SendToGameDB( DBE_EVENT_MAKING_SUCCESS_ACCEPTOR_REQ, kPacketDB );
+	}
+	
+	m_bCouple = true;
+	m_iRelationTargetUserUid = kPacket_.m_iRequestUnitUID;
+	m_wstrRelationTargetUserNickname = kPacket_.m_wstrRequestUnitName;
+
+	KEGS_EVENT_PROPOSE_RESULT_NOT kPacket;
+	kPacket.m_iOK = kPacket_.m_iOK;
+	kPacket.m_cResult = KEGS_EVENT_PROPOSE_AGREE_NOT::CRT_YES;
+	kPacket.m_iUnitUID = kPacket_.m_iRequestUnitUID;	// 상대방 
+	kPacket.m_wstrUnitName = kPacket_.m_wstrRequestUnitName;	// 상대방 
+	kPacket.m_tDate = kPacket_.m_tDate;
+
+	SendPacket( EGS_EVENT_PROPOSE_RESULT_NOT, kPacket );
+}
+
+IMPL_ON_FUNC( DBE_EVENT_MAKING_SUCCESS_ACCEPTOR_ACK )
+{
+	if( kPacket_.m_iOK != NetError::NET_OK )
+	{
+		if( kPacket_.m_iOK == NetError::ERR_RELATIONSHIP_EVENT_01 )
+		{
+			m_kInventory.RollBackDeletedItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted );
+		}
+
+		return;
+	}
+
+	// DB로 보상 정보를 보낸다.
+	KDBE_INSERT_REWARD_TO_POST_REQ kPacketToDB;
+	kPacketToDB.m_iFromUnitUID = GetCharUID();
+	kPacketToDB.m_iToUnitUID   = GetCharUID();
+	kPacketToDB.m_iRewardType  = KPostItemInfo::LT_EVENT; // 보상 타입
+	kPacketToDB.m_iRewardID	   = _CONST_SERV_RELATIONSHIP_EVENT_INT_REWARD_ID::iRelationshipEventReward; // 로맨틱 조각 케이크, 로맨틱 샴페인, 가상 결혼 계약서
+	SendToGameDB( DBE_INSERT_REWARD_TO_POST_REQ, kPacketToDB );
+
+	KEGS_EVENT_PROPOSE_RESULT_ACCEPTOR_NOT kResult;
+	kResult.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
+	SendPacket( EGS_EVENT_PROPOSE_RESULT_ACCEPTOR_NOT, kResult );
+}
+
+IMPL_ON_FUNC_NOPARAM( EGS_USE_DIVORCE_ITEM_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_USE_DIVORCE_ITEM_REQ, EGS_USE_DIVORCE_ITEM_ACK );
+
+	IF_EVENT_ENABLED( CEI_RELATIONSHIP_CODE_EVENT )
+	{
+
+	}
+	ELSE
+	{
+		// 가상 결혼 이벤트 종료
+		KEGS_USE_DIVORCE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_DANO_EVENT_03;
+		SendPacket( EGS_USE_DIVORCE_ITEM_ACK, kPacket );
+		return ;
+	}
+
+	if( m_bCouple == false )
+	{
+		KEGS_USE_DIVORCE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_EVENT_02;
+		SendPacket( EGS_USE_DIVORCE_ITEM_ACK, kPacket );
+		return ;
+	}
+
+	if( m_iRelationTargetUserUid <= 0 )
+	{
+		KEGS_USE_DIVORCE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_EVENT_02;
+		SendPacket( EGS_USE_DIVORCE_ITEM_ACK, kPacket );
+		return ;
+	}
+
+	// 가상 결혼 계약서를 가지고 있는가?
+	/*
+	if( m_kInventory.IsExistOnlyInventory( CXSLItem::EI_EVENT_DIVORCE_ITEM ) == false )
+	{
+		KEGS_USE_PROPOSE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_02;
+		SendPacket( EGS_USE_PROPOSE_ITEM_ACK, kPacket );
+		return;
+	}
+	*/
+
+	// 인벤토리에서 가상 결혼 계약서를 찾아 지워라
+	bool bFindItem = false;
+
+	KInventoryItemInfo kResultItemInfo;
+	std::vector< UidType > vecItemUIDList;
+	m_kInventory.GetItemUIDListThisItem( CXSLItem::EI_EVENT_DIVORCE_ITEM, vecItemUIDList, true );
+
+	std::map< UidType, int > mapDeleteItem;
+	std::map< int, KItemInfo> mapDummy;
+	std::vector<KItemInfo> vecNewItem;
+	std::vector< KInventoryItemInfo > vecUpdatedInventorySlot;
+
+	if( vecItemUIDList.empty() == false )
+	{
+		// 아무거나 하나면 된다. 첫번째 꺼로 하자
+		mapDeleteItem.insert( std::make_pair( vecItemUIDList[0], 1 ) );
+		if( m_kInventory.DeleteAndInsert( mapDeleteItem, mapDummy, vecUpdatedInventorySlot, vecNewItem, KDeletedItemInfo::DR_RELATIONSHIP ) == true )
+		{
+			bFindItem = true;
+		}
+	}
+
+	if( bFindItem == false )
+	{
+		KEGS_USE_DIVORCE_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_RELATIONSHIP_EVENT_03;
+		SendPacket( EGS_USE_DIVORCE_ITEM_ACK, kPacket );
+		return;
+	}
+	else
+	{
+		KDBE_EVENT_DIVORCE_REQ kPacketToDB;
+		kPacketToDB.m_iRelationTargetUserUid = m_iRelationTargetUserUid;
+		kPacketToDB.m_iUnitUID = GetCharUID();
+		kPacketToDB.m_vecUpdatedInventorySlot = vecUpdatedInventorySlot;
+		m_kInventory.FlushDeletedItem( kPacketToDB.m_vecDeleted );
+
+		SendToGameDB( DBE_EVENT_DIVORCE_REQ, kPacketToDB );
+	}	
+}
+
+IMPL_ON_FUNC( DBE_EVENT_DIVORCE_ACK )
+{
+	if( kPacket_.m_iOK != NetError::NET_OK )
+	{
+		if( kPacket_.m_iOK == NetError::ERR_RELATIONSHIP_EVENT_04 )
+		{
+			m_kInventory.RollBackDeletedItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted );
+		}
+
+		KEGS_USE_DIVORCE_ITEM_ACK kPacket;
+		kPacket.m_iOK = kPacket_.m_iOK;
+		SendPacket( EGS_USE_DIVORCE_ITEM_ACK, kPacket );
+
+		return ;
+	}
+
+	m_bCouple = false;
+	m_iRelationTargetUserUid = 0;
+	m_wstrRelationTargetUserNickname = L"";
+
+	KELG_DIVORCE_NOT kNot;
+	kNot.m_iLoverUnitUID = kPacket_.m_iRelationTargetUserUid;
+	SendToLoginServer( ELG_DIVORCE_NOT, kNot );
+
+	KEGS_USE_DIVORCE_ITEM_ACK kPacket;
+	kPacket.m_iOK = kPacket_.m_iOK;
+	kPacket.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
+	SendPacket( EGS_USE_DIVORCE_ITEM_ACK, kPacket );
+}
+
+IMPL_ON_FUNC( ELG_DIVORCE_NOT )
+{
+	m_bCouple = false;
+	m_iRelationTargetUserUid = 0;
+	m_wstrRelationTargetUserNickname = L"";
+
+	KEGS_DIVORCE_NOT kPacket;
+	kPacket.m_iCost = 0;
+	SendPacket( EGS_DIVORCE_NOT, kPacket );
+}
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 #ifdef SERV_RECRUIT_EVENT_BASE
 IMPL_ON_FUNC( EGS_USE_RECRUIT_TICKET_REQ )
 {
@@ -9715,6 +10325,16 @@ IMPL_ON_FUNC( EGS_REGISTER_RECRUITER_REQ )
 	VERIFY_STATE( ( 1, KGSFSM::S_FIELD_MAP ) );
 #endif SERV_ADD_REPEAT_FILTER
 	//}}
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	if( GetAuthLevel() < SEnum::UAL_GM && SiKStringFilterManager()->CheckIsValidString( CXSLStringFilter::FT_CHAT, kPacket_.m_wstrNickname ) == false )
+	{
+		KEGS_REGISTER_RECRUITER_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_STRING_FILTER_01;
+		SendPacket( EGS_REGISTER_RECRUITER_ACK, kPacketAck );
+		return;
+	}
+#endif //SERV_STRING_FILTER_USING_DB
 
 	// 자기 자신을 추천한 경우.
 #ifdef SERV_NICKNAME_CHECK_IGNORE_CASE
@@ -9807,91 +10427,745 @@ IMPL_ON_FUNC( DBE_REGISTER_RECRUITER_ACK )
 }
 #endif SERV_RECRUIT_EVENT_BASE
 
-#ifdef SERV_READY_TO_SOSUN_EVENT
-IMPL_ON_FUNC_NOPARAM( EGS_READY_TO_SOSUN_EVENT_REQ )
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+IMPL_ON_FUNC( EGS_ITEM_EXTRACT_REQ )
 {
-	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_FIELD_MAP ), EGS_READY_TO_SOSUN_EVENT_REQ, EGS_READY_TO_SOSUN_EVENT_ACK );
+	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_ITEM_EXTRACT_REQ, EGS_ITEM_EXTRACT_ACK );
 
-	// 소선이 나올 확률을 10%로 하기위해서 iFirstUnitClass가 28과 29가 나오면 소선이 나온것으로 함.(UnitClass 29는 존재하지 않지만 29가 나오면 소선이 나온 것처럼 처리)
-	KDBE_READY_TO_SOSUN_EVENT_REQ kPacketDB;
-	kPacketDB.m_iUnitUID = GetCharUID();
-	kPacketDB.m_iFirstUnitClass = 10 + (rand() % 20);
-
-	if( kPacketDB.m_iFirstUnitClass == 29 )
+	//////////////////////////////////////////////////////////////////////////
+	// 예외처리
 	{
-		kPacketDB.m_iFirstUnitClass = 28;
-	}
-
-	if( m_kInventory.IsEnoughEmptySlot( CXSLInventory::ST_SPECIAL, 1 ) == false )
-	{
-		START_LOG(cerr, L"인벤토리 공간 부족")
-			<< END_LOG;
-
-		KEGS_READY_TO_SOSUN_EVENT_ACK kPacketAck;
-		kPacketAck.m_iOK = NetError::ERR_TRADE_09;
-		kPacketAck.m_iFirstUnitClass = kPacketDB.m_iFirstUnitClass;
-		SendPacket( EGS_READY_TO_SOSUN_EVENT_ACK, kPacketAck );
-	}
-
-	START_LOG(cout, L"아라 1차 전직 이름 맞추기 이벤트")
-		<< BUILD_LOG( kPacketDB.m_iFirstUnitClass )
-		<< END_LOG;
-
-	if( m_kInventory.ExchangeToEvent( CXSLItem::EI_READY_TO_SOSUN_EVENT_ITEM, 1, CXSLItem::EI_READY_TO_SOSUN_EVENT_WIN_ITEM, 1, kPacketDB.m_vecUpdatedInventorySlot, kPacketDB.m_vecItemInfo, kPacketDB.m_iFirstUnitClass ) == false )
-	{
-		LIF( NetError::GetLastError() != NetError::NET_OK );
-
-		START_LOG(cerr, L"아라 1차 전직 이름 맞추기 이벤트 보상 지급 실패?")
-			<< BUILD_LOG( kPacketDB.m_iFirstUnitClass )
-			<< END_LOG;
-
-		KEGS_READY_TO_SOSUN_EVENT_ACK kPacketAck;
-		kPacketAck.m_iOK = NetError::GetLastError();
-		kPacketAck.m_iFirstUnitClass = kPacketDB.m_iFirstUnitClass;
-		SendPacket( EGS_READY_TO_SOSUN_EVENT_ACK, kPacketAck );
-	}
-	else
-	{
-		// 새로 추가된 아이템이 있으면 DB로 보낸다.
-		if( kPacketDB.m_vecItemInfo.empty() == false )
+		//{{ 2009. 10. 15  최육사	거래 예외처리
+		if( GetTradeUID() > 0  ||  GetPersonalShopUID() > 0 )
 		{
-			m_kInventory.FlushQuantityChange( kPacketDB.m_kItemQuantityUpdate.m_mapQuantityChange );
-			m_kInventory.FlushDeletedItem( kPacketDB.m_kItemQuantityUpdate.m_vecDeleted );
+			START_LOG( cwarn, L"거래중에는 사용할 수 없는 기능!" )
+				<< BUILD_LOG( GetCharUID() )
+				<< END_LOG;
 
-			SendToGameDB( DBE_READY_TO_SOSUN_EVENT_REQ, kPacketDB );
+			KEGS_ITEM_EXTRACT_ACK kPacket;
+			kPacket.m_iOK	= NetError::ERR_EXTRACT_00;
+			SendPacket( EGS_ITEM_EXCHANGE_ACK, kPacket );
+			return;
 		}
-		else
+		//}}
+
+		//{{ 2012. 03. 29	최육사	Inventory Lock 기능
+#ifdef SERV_INVENTORY_LOCK
+		if( m_kInventory.IsLocked() == true )
 		{
-			LIF( NetError::GetLastError() == NetError::NET_OK );
+			START_LOG( cout, L"인벤토리 락이 걸려있는 상태입니다!" )
+				<< BUILD_LOG( GetUID() )
+				<< BUILD_LOG( GetName() )
+				<< BUILD_LOG( GetCharUID() )
+				<< BUILD_LOG( GetCharName() );
 
-			KEGS_READY_TO_SOSUN_EVENT_ACK kPacketAck;
-			kPacketAck.m_iOK = NetError::NET_OK;
-			kPacketAck.m_vecKInventorySlotInfo = kPacketDB.m_vecUpdatedInventorySlot;
-			kPacketAck.m_iFirstUnitClass = kPacketDB.m_iFirstUnitClass;
-			SendPacket( EGS_READY_TO_SOSUN_EVENT_ACK, kPacketAck );
+			KEGS_ITEM_EXTRACT_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
+			SendPacket( EGS_ITEM_EXCHANGE_ACK, kPacket );
+			return;
 		}
+#endif SERV_INVENTORY_LOCK
+		//}}
 	}
+	//////////////////////////////////////////////////////////////////////////
+
+	// 1. 추출 가능 아이템인지 확인
+	int iItemID = m_kInventory.GetItemID( kPacket_.m_iItemUID );
+	if( m_kInventory.IsPossibleExtractItem( iItemID ) == false )
+	{
+		// 추출 가능한 아이템이 아닙니다.
+		KEGS_ITEM_EXTRACT_ACK kPacket;
+		kPacket.m_iOK	= NetError::ERR_EXTRACT_00;
+		SendPacket( EGS_ITEM_EXTRACT_ACK, kPacket );
+		return;
+	}
+
+	// 2. 수량 확인
+	KItemInfo kSourceItemInfo;
+	if( m_kInventory.GetItemInfo( kPacket_.m_iItemUID, kSourceItemInfo ) == false )
+	{
+		// 추출 아이템 정보가 이상합니다.
+		KEGS_ITEM_EXTRACT_ACK kPacket;
+		kPacket.m_iOK	= NetError::ERR_EXTRACT_01;
+		SendPacket( EGS_ITEM_EXTRACT_ACK, kPacket );
+		return;
+	}
+
+	if( kSourceItemInfo.m_iQuantity < kPacket_.m_iQuantity )
+	{
+		// 아이템 수량이 이상합니다.
+		KEGS_ITEM_EXTRACT_ACK kPacket;
+		kPacket.m_iOK	= NetError::ERR_EXTRACT_02;
+		SendPacket( EGS_ITEM_EXTRACT_ACK, kPacket );
+		return;
+	}
+
+	KDBE_ITEM_EXTRACT_REQ kPacketToDB;
+	std::map< int, int > mapInsertedItem;
+
+	// 3. 실제 추출 처리
+	if( m_kInventory.ItemExtract( kPacket_.m_iItemUID, 
+		kPacket_.m_iQuantity, 
+		mapInsertedItem, 
+		kPacketToDB.m_vecUpdatedInventorySlot, 
+		kPacketToDB.m_vecItemInfo	) == false )
+	{
+		// 아이템 추출이 실패 했습니다.
+		KEGS_ITEM_EXTRACT_ACK kPacket;
+		kPacket.m_iOK	= NetError::GetLastError();
+		SendPacket( EGS_ITEM_EXTRACT_ACK, kPacket );
+		return;
+	}
+
+	// 아이템 어뷰저	
+	m_kUserAbuserManager.CheckItemAbuser( GetThisPtr<KGSUser>(), KAbuserLogManager::RS_ITEM_EXTRACT, mapInsertedItem );
+
+	// 4. DB 기록 데이터 처리
+	kPacketToDB.m_mapResultItem	= mapInsertedItem;
+
+	// 교환된 아이템을 생성하기위해 DB로 간다
+	kPacketToDB.m_iUnitUID = GetCharUID();	
+	m_kInventory.FlushQuantityChange( kPacketToDB.m_kItemQuantityUpdate.m_mapQuantityChange );
+	m_kInventory.FlushDeletedItem( kPacketToDB.m_kItemQuantityUpdate.m_vecDeleted );
+
+	// Send DB Packet 
+	SendToGameDB( DBE_ITEM_EXTRACT_REQ, kPacketToDB );
 }
 
-IMPL_ON_FUNC( DBE_READY_TO_SOSUN_EVENT_ACK )
+IMPL_ON_FUNC( DBE_ITEM_EXTRACT_ACK )
 {
-	VERIFY_STATE_ACK( ( 1, KGSFSM::S_FIELD_MAP ), EGS_READY_TO_SOSUN_EVENT_ACK );
-
-	KEGS_READY_TO_SOSUN_EVENT_ACK kPacket;
+	KEGS_ITEM_EXTRACT_ACK kPacket;
 	kPacket.m_iOK = kPacket_.m_iOK;
-	kPacket.m_iFirstUnitClass = kPacket_.m_iFirstUnitClass;
-
-	if( kPacket_.m_iOK == NetError::ERR_RANDOM_ITEM_06 )
-	{
-		// TODO : DB 에 아이템 삽입 실패. 추후에 로그 추가.
-		kPacket.m_iOK = NetError::NET_OK;
-	}
-
+	kPacket.m_mapInsertedItem = kPacket_.m_mapResultItem;
 	m_kInventory.RollBackInitQuantity( kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange );
 	m_kInventory.RollBackDeletedItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted );
 	m_kInventory.InsertItem( kPacket_.m_mapItemInfo, kPacket.m_vecKInventorySlotInfo );
 	kPacket.m_vecKInventorySlotInfo.insert( kPacket.m_vecKInventorySlotInfo.begin(), kPacket_.m_vecUpdatedInventorySlot.begin(), kPacket_.m_vecUpdatedInventorySlot.end() );
 
-	SendPacket( EGS_READY_TO_SOSUN_EVENT_ACK, kPacket );
+	SendPacket( EGS_ITEM_EXTRACT_ACK, kPacket );	
 }
-#endif SERV_READY_TO_SOSUN_EVENT
+
+IMPL_ON_FUNC( EGS_USE_FINALITY_SKILL_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 1, KGSFSM::S_ROOM ), EGS_USE_FINALITY_SKILL_REQ, EGS_USE_FINALITY_SKILL_ACK );
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+	// 0. 궁극기 사용 아이템이 필요 없는 상태인지 확인(이벤트)
+	if( true == kPacket_.m_bNoConsume )
+	{
+		if( true == m_kInventory.IsExistOnlyInventory(CXSLItem::EI_INFINITY_EL_ESSENCE_ITEM_EVENT) )
+		{
+			START_LOG( clog, L"[TEST] 엘의 정수 공급기 소지하고 하엑 사용" )
+				<< BUILD_LOG( GetCharName() );
+
+			KEGS_USE_FINALITY_SKILL_ACK kPacket;
+			kPacket.m_iOK	= NetError::NET_OK;
+			kPacket.m_bNoConsume = true;
+			SendPacket( EGS_USE_FINALITY_SKILL_ACK, kPacket );
+			return;
+		}
+		else
+		{
+			START_LOG( cerr, L"엘의 정수 공급기 소지하고 있다고 클라에서 왔는데, 서버에는 없다?" )
+				<< BUILD_LOG( GetUID() )
+				<< BUILD_LOG( GetCharName() );
+
+			KEGS_USE_FINALITY_SKILL_ACK kPacket;
+			kPacket.m_iOK	= NetError::ERR_FINALITY_SKILL_00;
+			SendPacket( EGS_USE_FINALITY_SKILL_ACK, kPacket );
+			return;
+		}
+	}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+
+	// 1. 궁극기 사용 아이템인지 확인
+	int iItemID = m_kInventory.GetItemID( kPacket_.m_iItemUID );
+	if( iItemID != CXSLAttribEnchantItem::ATI_ESSENCE )
+	{
+		// 궁극기 사용 아이템이 아닙니다.
+		KEGS_USE_FINALITY_SKILL_ACK kPacket;
+		kPacket.m_iOK	= NetError::ERR_FINALITY_SKILL_00;
+		SendPacket( EGS_USE_FINALITY_SKILL_ACK, kPacket );
+		return;
+	}
+
+	// 2. 수량 확인
+	KItemInfo kSourceItemInfo;
+	if( m_kInventory.GetItemInfo( kPacket_.m_iItemUID, kSourceItemInfo ) == false )
+	{
+		// 추출 아이템 정보가 이상합니다.
+		KEGS_USE_FINALITY_SKILL_ACK kPacket;
+		kPacket.m_iOK	= NetError::ERR_FINALITY_SKILL_01;
+		SendPacket( EGS_USE_FINALITY_SKILL_ACK, kPacket );
+		return;
+	}
+
+	// 1회 - 1개 사용
+	if( kSourceItemInfo.m_iQuantity < 1 )
+	{
+		// 아이템 수량이 이상합니다.
+		KEGS_USE_FINALITY_SKILL_ACK kPacket;
+		kPacket.m_iOK	= NetError::ERR_FINALITY_SKILL_02;
+		SendPacket( EGS_USE_FINALITY_SKILL_ACK, kPacket );
+		return;
+	}
+
+	KDBE_USE_FINALITY_SKILL_REQ kPacketToDB;
+	std::map< int, int > mapInsertedItem;
+
+	// 3. 실제 삭제 처리
+	if( m_kInventory.UseFinalitySkill( kPacket_.m_iItemUID, 
+		1, 
+		mapInsertedItem, 
+		kPacketToDB.m_vecUpdatedInventorySlot, 
+		kPacketToDB.m_vecItemInfo	) == false )
+	{
+		// 아이템 사용 실패
+		KEGS_USE_FINALITY_SKILL_ACK kPacket;
+		kPacket.m_iOK	= NetError::ERR_FINALITY_SKILL_03;
+		SendPacket( EGS_USE_FINALITY_SKILL_ACK, kPacket );
+		return;
+	}
+
+	// 교환된 아이템을 생성하기위해 DB로 간다
+	kPacketToDB.m_iUnitUID = GetCharUID();	
+	m_kInventory.FlushQuantityChange( kPacketToDB.m_kItemQuantityUpdate.m_mapQuantityChange );
+	m_kInventory.FlushDeletedItem( kPacketToDB.m_kItemQuantityUpdate.m_vecDeleted );
+
+	// Send DB Packet 
+	SendToGameDB( DBE_USE_FINALITY_SKILL_REQ, kPacketToDB );
+}
+
+IMPL_ON_FUNC( DBE_USE_FINALITY_SKILL_ACK )
+{
+	KEGS_ITEM_EXTRACT_ACK kPacket;
+	kPacket.m_iOK = kPacket_.m_iOK;
+	m_kInventory.RollBackInitQuantity( kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange );
+	m_kInventory.RollBackDeletedItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted );
+	kPacket.m_vecKInventorySlotInfo.insert( kPacket.m_vecKInventorySlotInfo.begin(), kPacket_.m_vecUpdatedInventorySlot.begin(), kPacket_.m_vecUpdatedInventorySlot.end() );
+
+	SendPacket( EGS_USE_FINALITY_SKILL_ACK, kPacket );	
+}
+#endif // SERV_FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_GOOD_ELSWORD
+IMPL_ON_FUNC_NOPARAM( EGS_EXPAND_BANK_SLOT_ED_REQ )
+{
+    // 상태 체크, 중복 패킷 처리.
+    VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_EXPAND_BANK_SLOT_ED_ACK );
+    
+#ifdef SERV_CLOSE_GOOD_ELSWORD
+	 goto end_proc;
+#endif //SERV_CLOSE_GOOD_ELSWORD
+
+    // 현재 은행 등급
+    int iMyBankGrade = m_kInventory.GetBankMemberShip();
+
+    if ( iMyBankGrade == CXSLInventory::MPB_PLATINUM ) 
+    {
+        SET_ERROR( ERR_EXPAND_INVENTORY_ED_02 );
+        goto end_proc;
+    }
+
+    // 확장 요청한 은행 등급의 필요 ED 가져오기
+    int iNextED = m_kInventory.GetNextUpgradeBankED( CXSLInventory::GetNextBankMemberShip( m_kInventory.GetBankMemberShip() ) );
+
+    // 현재 ED 충분한가 
+    if ( m_iED < iNextED ) 
+    {
+        SET_ERROR( ERR_EXPAND_INVENTORY_ED_01 );
+        goto end_proc;
+    }
+    
+    m_iED -= iNextED;
+    // 디비로 큐잉
+    if( CXSLInventory::GetNextBankMemberShip( m_kInventory.GetBankMemberShip() ) != CXSLInventory::MPB_NONE )
+    {
+        // 은행 확장하러 가자!
+        KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
+        kPacket.m_usEventID = EGS_EXPAND_BANK_SLOT_ED_REQ;
+        kPacket.m_iUnitUID = GetCharUID();
+        kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_BANK, CXSLInventory::SLOT_COUNT_ONE_LINE ) );
+        kPacket.m_iED = iNextED;
+        SendToGameDB( DBE_EXPAND_BANK_INVENTORY_REQ, kPacket ); // TODO : 같은 기능에 + 디비 로그 남기는 sp 추가한 함수로 큐잉하도록 수정하기
+        SET_ERROR( NET_OK );
+    }
+
+end_proc:
+    if ( NetError::GetLastError() != NetError::NET_OK )
+    {
+        KEGS_EXPAND_BANK_SLOT_ED_ACK kPacket;
+        SendPacket( EGS_EXPAND_BANK_SLOT_ED_ACK, kPacket );
+    }
+    
+}
+
+//{{ 2009. 8. 7  최육사		은행
+IMPL_ON_FUNC( DBE_EXPAND_BANK_INVENTORY_ACK )
+{
+    VERIFY_STATE( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ) );
+
+    KEGS_EXPAND_BANK_SLOT_ED_ACK kAck; // == KEGS_EXPAND_INVENTORY_ED_ACK 동일하다. typedef
+    KELOG_EXPAND_BANK_INVENTORY_NOT kLog;
+
+    std::map< int, int >::const_iterator mit;
+    for( mit = kPacket_.m_mapExpandedSlot.begin(); mit != kPacket_.m_mapExpandedSlot.end(); ++mit )
+    {
+        int iExpanded = 0;
+        //{{ 2012. 12. 26	박세훈	인벤토리 개편 테스트	- 허상형 ( Merged by 박세훈 )
+#ifdef SERV_REFORM_INVENTORY_TEST
+        if( mit->first == CXSLInventory::ST_BANK )
+        {
+            m_kInventory.ExpandSlot( mit->first, mit->second, iExpanded );
+        }
+        else
+        {
+            m_kInventory.ExpandSlot( mit->first, mit->second - GetExpandedSlotSize( mit->first ), iExpanded );
+        }
+#else
+        m_kInventory.ExpandSlot( mit->first, mit->second, iExpanded );
+#endif SERV_REFORM_INVENTORY_TEST
+        //}}
+        kAck.m_mapExpandedCategorySlot.insert( std::make_pair( mit->first, iExpanded ) );
+    }
+
+    if ( kPacket_.m_iOK != NetError::NET_OK ) 
+    {
+        m_iED += kPacket_.m_iED;
+    }
+    kAck.m_iOK = kPacket_.m_iOK;
+    kAck.m_iED = m_iED;
+
+    switch( kPacket_.m_usEventID )
+    {
+    case EGS_EXPAND_BANK_SLOT_ED_REQ:
+        {
+            kLog.m_iCategory = CXSLInventory::ST_BANK;
+            SendPacket( EGS_EXPAND_BANK_SLOT_ED_ACK, kAck );
+
+            // DB통계 ED
+            KStatisticsKey kKey;
+            kKey.m_vecIntKey.push_back( 0 );
+            KSIManager.IncreaseCount( KStatistics::SI_ED, kKey, KStatistics::eSIColDB_ED_ExpandBank, ( kPacket_.m_iED ) );
+        }
+        break;
+    case EGS_EXPAND_INVENTORY_ED_REQ:
+        {
+            kLog.m_iCategory = CXSLInventory::ST_EQUIP;
+            SendPacket( EGS_EXPAND_INVENTORY_ED_ACK, kAck );
+
+            // DB통계 ED
+            KStatisticsKey kKey;
+            kKey.m_vecIntKey.push_back( 0 );
+            KSIManager.IncreaseCount( KStatistics::SI_ED, kKey, KStatistics::eSIColDB_ED_ExpandInventory, ( kPacket_.m_iED ) );
+        }
+        break;
+
+    default:
+        {
+            START_LOG( cerr, L"이상한 이벤트가 왔다?" )
+                << BUILD_LOG( GetCharUID() )
+                << BUILD_LOG( KEvent::GetIDStr( kPacket_.m_usEventID ) )
+                << END_LOG;
+        }
+        break;
+    }
+    
+    kLog.m_iUserUID = GetUID();
+    kLog.m_iUnitUID = GetCharUID();
+    kLog.m_iUnitLevel = GetLevel();
+    kLog.m_iBeforeED = m_iED - kPacket_.m_iED;
+    kLog.m_iUseED = kPacket_.m_iED;
+    
+	kLog.m_iNumSlot = CXSLInventory::SLOT_COUNT_ONE_LINE;
+	SendToLogDB( ELOG_EXPAND_BANK_INVENTORY_NOT, kLog );
+}
+
+IMPL_ON_FUNC_NOPARAM( EGS_GET_NEXT_BANK_ED_REQ )
+{
+    // 상태 체크
+    VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_GET_NEXT_BANK_ED_ACK );
+    KEGS_GET_NEXT_BANK_ED_ACK kPacket;
+#ifdef SERV_CLOSE_GOOD_ELSWORD
+	goto end_proc;
+#endif //SERV_CLOSE_GOOD_ELSWORD
+    int iMyBankGrade = m_kInventory.GetBankMemberShip();
+    if ( iMyBankGrade == CXSLItem::CI_BANK_MEMBERSHIP_PLATINUM ) 
+    {
+        SET_ERROR( ERR_EXPAND_INVENTORY_ED_02 );
+        goto end_proc;
+    }
+    
+    int iNextED = m_kInventory.GetNextUpgradeBankED( CXSLInventory::GetNextBankMemberShip( m_kInventory.GetBankMemberShip() ) );
+    if ( iNextED <= 0 ) 
+    {
+        SET_ERROR( ERR_EXPAND_INVENTORY_ED_03 );
+        goto end_proc;
+
+    }
+
+    kPacket.m_iED = iNextED;
+    SET_ERROR( NET_OK );
+    
+end_proc:
+    
+    kPacket.m_iOK = NetError::GetLastError();
+    SendPacket( EGS_GET_NEXT_BANK_ED_ACK, kPacket );
+}
+
+IMPL_ON_FUNC_NOPARAM( EGS_GET_NEXT_INVENTORY_ED_REQ )
+{
+    // 상태 체크
+    VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_GET_NEXT_INVENTORY_ED_ACK );
+    KEGS_GET_NEXT_INVENTORY_ED_ACK kPacket;
+#ifdef SERV_CLOSE_GOOD_ELSWORD
+	goto end_proc;
+#endif //SERV_CLOSE_GOOD_ELSWORD
+    if( !m_kInventory.IsAbleToExpandSlot( CXSLInventory::SLOT_COUNT_ONE_LINE ) )
+    {
+        SET_ERROR( ERR_EXPAND_INVENTORY_ED_02 );
+        goto end_proc;
+    }
+    
+    int iExtendedSlotSize = m_kInventory.GetExpandedSlotSize( CXSLInventory::ST_EQUIP );
+
+    int iExtendedTime = iExtendedSlotSize / CXSLInventory::SLOT_COUNT_ONE_LINE;
+
+    // 확장 요청한 인벤토리 필요 ED 가져오기
+    int iNextED = m_kInventory.GetNextUpgradeInventoryED( iExtendedTime + 1 );
+   
+    if ( iNextED <= 0 ) 
+    {
+        SET_ERROR( ERR_EXPAND_INVENTORY_ED_03 );
+        goto end_proc;
+
+    }
+
+    kPacket.m_iED = iNextED;
+    SET_ERROR( NET_OK );
+
+end_proc:
+    kPacket.m_iOK = NetError::GetLastError();
+    SendPacket( EGS_GET_NEXT_INVENTORY_ED_ACK, kPacket );
+}
+
+
+IMPL_ON_FUNC_NOPARAM( EGS_EXPAND_INVENTORY_ED_REQ )
+{
+    VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_EXPAND_INVENTORY_ED_ACK );
+
+    KDBE_EXPAND_INVENTORY_SLOT_REQ kPacket;
+    KEGS_EXPAND_INVENTORY_ED_ACK kAck;
+#ifdef SERV_CLOSE_GOOD_ELSWORD
+	goto end_proc;
+#endif //SERV_CLOSE_GOOD_ELSWORD
+    if( !m_kInventory.IsAbleToExpandSlot( CXSLInventory::SLOT_COUNT_ONE_LINE ) )
+    {
+        SET_ERROR( ERR_EXPAND_INVENTORY_ED_02 );
+        goto end_proc;
+    }
+
+    int iExtendedSlotSize = m_kInventory.GetExpandedSlotSize( CXSLInventory::ST_EQUIP ); // 확장한 슬롯 수
+
+    int iExtendedTime = iExtendedSlotSize / CXSLInventory::SLOT_COUNT_ONE_LINE; // 확장 횟수. 안했으면 0
+
+    // 확장 요청한 인벤토리 필요 ED 가져오기
+    int iNextED = m_kInventory.GetNextUpgradeInventoryED( iExtendedTime + 1 );
+
+    if ( iNextED <= 0 ) 
+    {
+        SET_ERROR( ERR_EXPAND_INVENTORY_ED_03 );
+        goto end_proc;
+
+    }
+
+    if ( m_iED < iNextED ) 
+    {
+        SET_ERROR( ERR_EXPAND_INVENTORY_ED_01 );
+        goto end_proc;
+    }
+
+    m_iED -= iNextED;
+
+    // DB로 이벤트를 보낸다.
+    int nSlot = CXSLInventory::SLOT_COUNT_ONE_LINE; // * kPacket_.m_usProductPieces * kPacket_.m_usOrderQuantity;
+    
+    kPacket.m_usEventID = EGS_EXPAND_INVENTORY_ED_REQ;
+    kPacket.m_iUnitUID = GetCharUID();
+    kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_EQUIP, nSlot + GetExpandedSlotSize( static_cast<int>( CXSLInventory::ST_EQUIP ) ) ) );
+    kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_ACCESSORY, nSlot + GetExpandedSlotSize( static_cast<int>( CXSLInventory::ST_ACCESSORY ) ) ) );
+    kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_MATERIAL, nSlot + GetExpandedSlotSize( static_cast<int>( CXSLInventory::ST_MATERIAL ) ) ) );
+    kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_SPECIAL, nSlot + GetExpandedSlotSize( static_cast<int>( CXSLInventory::ST_SPECIAL ) ) ) );
+    kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_QUEST, nSlot + GetExpandedSlotSize( static_cast<int>( CXSLInventory::ST_QUEST ) ) ) );
+    kPacket.m_mapExpandedSlot.insert( std::make_pair( ( int )CXSLInventory::ST_QUICK_SLOT, nSlot + GetExpandedSlotSize( static_cast<int>( CXSLInventory::ST_QUICK_SLOT ) ) ) );
+    kPacket.m_iED = iNextED;
+
+    SendToGameDB( DBE_EXPAND_BANK_INVENTORY_REQ, kPacket );
+
+    SET_ERROR( NET_OK );
+
+end_proc:
+    if ( NetError::GetLastError() != NetError::NET_OK ) 
+    {
+        kAck.m_iOK = NetError::GetLastError();
+        SendPacket( EGS_EXPAND_INVENTORY_ED_ACK, kAck );
+
+        START_LOG( cerr, L"인벤토리 ED 로 확장 실패 , User ID :" << GetUserID() )
+            << BUILD_LOG( NetError::GetLastErrMsg() )
+            << END_LOG;
+    }
+}
+
+#endif // SERV_GOOD_ELSWORD
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-17	// 박세훈
+IMPL_ON_FUNC( EGS_SOCKET_EXPAND_ITEM_REQ )
+{
+	VERIFY_STATE_REPEAT_FILTER( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_SOCKET_EXPAND_ITEM_REQ, EGS_SOCKET_EXPAND_ITEM_ACK );
+
+	//////////////////////////////////////////////////////////////////////////
+	// 예외처리
+	//{{ 2009. 10. 15  최육사	거래 예외처리
+	if( GetTradeUID() > 0  ||  GetPersonalShopUID() > 0 )
+	{
+		START_LOG( cwarn, L"거래중에는 사용할 수 없는 기능!" )
+			<< BUILD_LOG( GetCharUID() )
+			<< END_LOG;
+
+		KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_ITEM_14;
+		SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+		return;
+	}
+	//}}
+
+	//{{ 2012. 03. 29	최육사	Inventory Lock 기능
+#ifdef SERV_INVENTORY_LOCK
+	if( m_kInventory.IsLocked() == true )
+	{
+		START_LOG( cout, L"인벤토리 락이 걸려있는 상태입니다!" )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< BUILD_LOG( GetCharUID() )
+			<< BUILD_LOG( GetCharName() );
+
+		KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_INVENTORY_LOCK_00;
+		SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+		return;
+	}
+#endif SERV_INVENTORY_LOCK
+	//}}
+	//////////////////////////////////////////////////////////////////////////
+
+	// 소켓 슬롯을 추가할 수 있는지 검사하자.
+	CXSLItem::ITEM_TYPE typeItemType = CXSLItem::IT_NONE;
+	KDBE_SOCKET_EXPAND_ITEM_REQ kPacketToDB;
+	{
+		// 대상 아이템을 가지고 있는지 확인
+		KInventoryItemInfo kInfo;
+		if( m_kInventory.GetInventoryItemInfo( kPacket_.m_iTargetItemUID, kInfo ) == false )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_08;	// 소켓 슬롯 추가에 필요한 대상 아이템이 존재하지 않습니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+
+		// 인벤토리에 있는 것인지 확인
+		if( CXSLInventory::IsUserInventoryCategory( kInfo.m_cSlotCategory ) == false )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_09;	// 인벤토리의 아이템에만 사용할 수 있는 기능입니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+
+		// 파괴된 아이템에는 사용할 수 없다.
+		if( m_kInventory.IsBrokenItem( kPacket_.m_iTargetItemUID ) == true )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_10;	// 파괴된 아이템에는 사용할 수 없습니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+
+		// PC방 프리미엄 아이템에는 사용할 수 없다.
+		if( m_kInventory.IsDBUpdateItem( kPacket_.m_iTargetItemUID ) == false )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_11;	// PC방 프리미엄 아이템에는 사용할 수 없습니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+		
+		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( kInfo.m_kItemInfo.m_iItemID );
+
+		// 장착 불가 아이템에는 사용할 수 없다.
+		if( pItemTemplet->m_bNoEquip == true )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_12;	// 장착 불가 아이템에는 사용할 수 없습니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+
+		// 사용 가능한 부위인지 확인
+		if( ( pItemTemplet->m_ItemType != CXSLItem::IT_WEAPON ) && ( pItemTemplet->m_ItemType != CXSLItem::IT_DEFENCE ) )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_13;	// 무기와 방어구 아이템에만 사용 할 수 있습니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+
+		// 아바타에는 사용할 수 없다.
+		if( pItemTemplet->m_bFashion == true )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_13;	// 무기와 방어구 아이템에만 사용 할 수 있습니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+
+		// 추가 가능한 소켓 슬롯 수가 남아있는지 확인.
+		if( SiCXSLFieldBossData()->GetMaximumExpandedSocketCount() <= kInfo.m_kItemInfo.m_byteExpandedSocketNum )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_14;	// 더 이상 소켓 슬롯을 추가 할 수 없습니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+
+		typeItemType						= pItemTemplet->m_ItemType;
+		kPacketToDB.m_vecItemSocket			= kInfo.m_kItemInfo.m_vecItemSocket;
+		kPacketToDB.m_byteExpandedSocketNum	= kInfo.m_kItemInfo.m_byteExpandedSocketNum + 1;
+	}
+
+	// 소켓 슬롯을 추가하기 위해 필요한 재료 아이템 검사
+	int iMaterialItemCategory, iMaterialItemSlotID;
+	{
+		// 대상 아이템을 가지고 있는지 확인
+		KInventoryItemInfo kInfo;
+		if( m_kInventory.GetInventoryItemInfo( kPacket_.m_iMaterialItemUID, kInfo ) == false )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_15;	// 소켓 슬롯 추가에 필요한 재료 아이템이 존재하지 않습니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+
+		// 인벤토리에 있는 것인지 확인
+		if( CXSLInventory::IsUserInventoryCategory( kInfo.m_cSlotCategory ) == false )
+		{
+			KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_FIELD_BOSS_16;	// 인벤토리의 재료 아이템만 사용할 수 있습니다.
+			SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+			return;
+		}
+
+		if( typeItemType == CXSLItem::IT_WEAPON )
+		{
+			if( SiCXSLFieldBossData()->IsSocketExpandItemForWeapon( kInfo.m_kItemInfo.m_iItemID ) == false )
+			{
+				KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+				kPacket.m_iOK = NetError::ERR_FIELD_BOSS_17;	// 무기 소켓 슬롯을 추가하기 위한 재료 아이템을 가지고 있지 않습니다.
+				SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+				return;
+			}
+		}
+		else if( typeItemType == CXSLItem::IT_DEFENCE )
+		{
+			if( SiCXSLFieldBossData()->IsSocketExpandItemForDefence( kInfo.m_kItemInfo.m_iItemID ) == false )
+			{
+				KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+				kPacket.m_iOK = NetError::ERR_FIELD_BOSS_18;	// 방어구 소켓 슬롯을 추가하기 위한 재료 아이템을 가지고 있지 않습니다.
+				SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+				return;
+			}
+		}
+
+		iMaterialItemCategory	= kInfo.m_cSlotCategory;
+		iMaterialItemSlotID		= kInfo.m_sSlotID;
+	}
+
+	int iDecreased = 0;
+	m_kInventory.DecreaseQuantity( kPacket_.m_iMaterialItemUID, 1, iDecreased, KDeletedItemInfo::DR_EXPAND_SOCKET_SLOT );
+	if( iDecreased != 1 )
+	{
+		KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_FIELD_BOSS_19;	// 소켓 슬롯 추가에 실패하였습니다.
+		SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+		return;
+	}
+
+	KInventoryItemInfo kInventoryItemInfo_Material;
+	m_kInventory.GetInventorySlotInfo( iMaterialItemCategory, iMaterialItemSlotID, kInventoryItemInfo_Material );
+
+	kPacketToDB.m_iUnitUID				= GetCharUID();
+	kPacketToDB.m_iItemUID				= kPacket_.m_iTargetItemUID;
+	m_kInventory.FlushQuantityChange( kPacketToDB.m_kItemQuantityUpdate.m_mapQuantityChange );
+	m_kInventory.FlushDeletedItem( kPacketToDB.m_kItemQuantityUpdate.m_vecDeleted );
+	kPacketToDB.m_vecUpdatedInventorySlot.push_back( kInventoryItemInfo_Material );
+	SendToGameDB( DBE_SOCKET_EXPAND_ITEM_REQ, kPacketToDB );
+}
+
+IMPL_ON_FUNC( DBE_SOCKET_EXPAND_ITEM_ACK )
+{
+	KEGS_SOCKET_EXPAND_ITEM_ACK kPacket;
+
+	if( kPacket_.m_iOK == NetError::NET_OK )
+	{
+		// 추가 소켓 슬롯 정보는 처리되었는데, 수량이 변경된 아이템이나 삭제된 아이템에 대한 정보가 최신화되지 못하였다면,
+		// 다음 기회에 업데이트 시도하도록 하자
+		m_kInventory.RollBackInitQuantity( kPacket_.m_kItemQuantityUpdate.m_mapQuantityChange );
+		m_kInventory.RollBackDeletedItem( kPacket_.m_kItemQuantityUpdate.m_vecDeleted );
+
+		// 추가 소켓 슬롯 정보를 갱신할 아이템을 찾아보자
+		KItemInfo kInfo;
+		if( m_kInventory.UpdateExpandedSocketNum( kPacket_.m_iItemUID, kPacket_.m_byteExpandedSocketNum ) == false )
+		{
+			START_LOG( cerr, L"추가된 소켓 슬롯 정보를 갱신할 대상 아이템이 없습니다. 있어서는 안되는 오류입니다. 로직을 확인 해주세요." )
+				<< BUILD_LOG( GetCharUID() )
+				<< BUILD_LOG( kPacket_.m_iItemUID )
+				<< BUILD_LOG( kPacket_.m_byteExpandedSocketNum )
+				<< END_LOG;
+		}
+		else
+		{
+			int	iCategory, iSlotID;
+			if( m_kInventory.GetCategorySlot( kPacket_.m_iItemUID, iCategory, iSlotID ) == false )
+			{
+				START_LOG( cerr, L"아이템 정보를 찾지 못하였습니다." )
+					<< BUILD_LOG( GetCharUID() )
+					<< BUILD_LOG( kPacket_.m_iItemUID )
+					<< END_LOG;
+			}
+
+			// 갱신된 인벤토리 정보를 클라에 전달하자
+			kPacket.m_vecUpdatedInventorySlot = kPacket_.m_vecUpdatedInventorySlot;
+
+			KInventoryItemInfo kInventoryItemInfo;
+			if( m_kInventory.GetInventorySlotInfo( iCategory, iSlotID, kInventoryItemInfo ) == true )
+			{
+				kPacket.m_vecUpdatedInventorySlot.push_back( kInventoryItemInfo );
+			}
+			else
+			{
+				START_LOG( cerr, L"갱신 완료한 아이템의 정보를 찾을 수 없습니다. 이상한 문제입니다." )
+					<< BUILD_LOG( GetCharUID() )
+					<< BUILD_LOG( kPacket_.m_iItemUID )
+					<< END_LOG;
+			}
+		}
+		
+		kPacket.m_iOK = NetError::NET_OK;
+	}
+	else
+	{
+		kPacket.m_iOK = NetError::ERR_FIELD_BOSS_19;	// 소켓 슬롯 추가에 실패하였습니다.
+	}
+
+	SendPacket( EGS_SOCKET_EXPAND_ITEM_ACK, kPacket );
+}
+#endif // SERV_BATTLE_FIELD_BOSS

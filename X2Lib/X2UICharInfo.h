@@ -57,7 +57,6 @@ public:
 	void ResetResurrectionStoneUI();
 	
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	inline int	GetMyLevel() const;
 	inline float GetDamageDecrement( const float fTotalDefValue_ ) const;	// 방
 
@@ -80,9 +79,6 @@ public:
 	void SetStatInfoStatic( const WCHAR* wszStaticName_, const WCHAR* wszMsg_ );
 	void SetStatInfoGuideDesc( const WCHAR* wszButtonName_, const WCHAR* wszGuideMsg_ );
 	void SumSocketOption( const vector<int>& vecOptions_, OUT CX2SocketItem::SocketData& sumSocketData_, const int iSocketLevel_ );	
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-	void SumSocketOption( const vector<int>& vecOptions_, OUT CX2SocketItem::SocketData& sumSocketData_ );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 
 	CX2SocketItem::SocketData GetMyEquippedSocketData();
@@ -121,6 +117,10 @@ public:
 protected:
 	bool Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2SlotItem* pFromCX2SlotItem, CX2SlotItem* pToCX2SlotItem );
 	bool Handler_EGS_CHANGE_INVENTORY_SLOT_REQ( CX2Inventory::SORT_TYPE fromSortType, int fromSlotID, CX2Inventory::SORT_TYPE toSortType, int toSlotID );
+
+#ifdef SERV_LOCAL_RANKING_SYSTEM
+	void OpenProfilePasswordDlg();
+#endif // SERV_LOCAL_RANKING_SYSTEM
 
 	static float GetIntermediateCriticalValue( const float fSumValue_, const int iUserLevel_ )
 	{
@@ -174,9 +174,12 @@ private:
 #ifdef SERV_LOCAL_RANKING_SYSTEM
 	CKTDGUIDialogType		m_pDlgPassword;
 #endif //SERV_LOCAL_RANKING_SYSTEM
-
-	CX2Stat*				m_pStat;
-	CX2Stat*				m_pStatEqip;
+//{{ robobeg : 2013-11-04
+	//CX2Stat*				m_pStat;
+	//CX2Stat*				m_pStatEqip;
+	CX2Stat				    m_Stat;
+	CX2Stat				    m_StatEqip;
+//}} robobeg : 2013-11-04
 	CX2UnitViewerUI*		m_pUnitViewerUI;
 	D3DXVECTOR2				m_DLGPosition;
 	D3DXVECTOR2				m_DLGSize;
@@ -201,7 +204,10 @@ private:
 #endif MONSTER_TROPHY
 
 #ifdef PET_AURA_SKILL
-	CX2Stat*				m_pStatPet;
+//{{ robobeg : 2013-11-04
+	//CX2Stat*				m_pStatPet;
+    CX2Stat				    m_StatPet;
+//}} robobeg : 2013-11-04
 #endif
    
 #ifdef VIEW_SPECIAL_OPTIONDATA

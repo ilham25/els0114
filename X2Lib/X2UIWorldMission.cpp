@@ -108,6 +108,18 @@ CX2UIWorldMission::~CX2UIWorldMission()
 
 void CX2UIWorldMission::SetShowTimeDlg( bool bEnable )
 {
+
+	// 어문 활성화 상태가 아닌데 true로 변경시도하면 처리하지 않기
+	if( true == bEnable )
+	{
+		if( NULL != g_pData &&
+			NULL != g_pData->GetWorldMissionManager() )
+		{
+			if( false == g_pData->GetWorldMissionManager()->IsActiveDefenceDungeon() )
+				return;
+		}
+	}
+
 	if( false == bEnable )
 	{
 		if( NULL != m_pDlgTime )

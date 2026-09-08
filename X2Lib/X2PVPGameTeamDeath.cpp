@@ -67,16 +67,15 @@ HRESULT	CX2PVPGameTeamDeath::OnFrameMove( double fTime, float fElapsedTime )
 		CX2GUUser* pCX2GUUser = m_UserUnitList[i];
 		if( pCX2GUUser != NULL )
 		{
-			if( NULL != pCX2GUUser->GetUnit() &&
-				NULL != pCX2GUUser->GetUnit()->GetUnitData() )
+			if( NULL != pCX2GUUser->GetUnit() )
 			{
 				if( pCX2GUUser->GetTeam() == CX2Room::TN_RED )
 				{
-					redTeamVPMax += pCX2GUUser->GetUnit()->GetUnitData()->m_VSPointMax;
+					redTeamVPMax += pCX2GUUser->GetUnit()->GetUnitData().m_VSPointMax;
 				}
 				else if( pCX2GUUser->GetTeam() == CX2Room::TN_BLUE )
 				{
-					blueTeamVPMax += pCX2GUUser->GetUnit()->GetUnitData()->m_VSPointMax;
+					blueTeamVPMax += pCX2GUUser->GetUnit()->GetUnitData().m_VSPointMax;
 				}
 			}
 			else
@@ -179,42 +178,42 @@ void CX2PVPGameTeamDeath::UserUnitDieNot( KEGS_USER_UNIT_DIE_NOT& kEGS_USER_UNIT
 
 	if( KPVPChannelInfo::PCC_PLAY != g_pMain->GetPVPChannelClass( g_pMain->GetConnectedChannelID() ) )
 	{
-		CX2GUUser* pKilled = g_pX2Game->GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
+		CX2GUUser* pKilled = GetUserUnitByUID( kEGS_USER_UNIT_DIE_NOT.m_KilledUserUnitUID );
 		if( pKilled != NULL )
 		{
 			if( m_bLastKillCheck == false )
 			{
 
-#ifdef PVP_BOSS_COMBAT_TEST
-
-				if( NULL != g_pX2Room )
-				{
-					CX2Room::SlotData* pSlotData = g_pX2Room->GetSlotDataByUnitUID( pKilled->GetUnitUID() );
-					if( NULL != pSlotData )
-					{
-						if( true == pSlotData->GetIsBoss() )
-						{
-							m_bLastKillCheck = true;
-
-							g_pKTDXApp->StopFrame( 80 );
-							g_pKTDXApp->GetDGManager()->ClearScreen( 3 );
-							g_pKTDXApp->SlowFrame( 0.2f, 1.5f );
-
-							SetTimerFocusUnit( pKilled, 1.0f );
-
-							for( int i = 0; i < (int)GetUnitNum(); i++ )
-							{
-								CX2GameUnit* pCX2GameUnit = GetUnit( i );
-								if( pCX2GameUnit != NULL )
-								{
-									pCX2GameUnit->SetForceInvincible( 9999.0f );
-								}
-							}
-						}
-					}
-				}
-
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//
+//				if( NULL != g_pX2Room )
+//				{
+//					CX2Room::SlotData* pSlotData = g_pX2Room->GetSlotDataByUnitUID( pKilled->GetUnitUID() );
+//					if( NULL != pSlotData )
+//					{
+//						if( true == pSlotData->GetIsBoss() )
+//						{
+//							m_bLastKillCheck = true;
+//
+//							g_pKTDXApp->StopFrame( 80 );
+//							g_pKTDXApp->GetDGManager()->ClearScreen( 3 );
+//							g_pKTDXApp->SlowFrame( 0.2f, 1.5f );
+//
+//							SetTimerFocusUnit( pKilled, 1.0f );
+//
+//							for( int i = 0; i < (int)GetUnitNum(); i++ )
+//							{
+//								CX2GameUnit* pCX2GameUnit = GetUnit( i );
+//								if( pCX2GameUnit != NULL )
+//								{
+//									pCX2GameUnit->SetForceInvincible( 9999.0f );
+//								}
+//							}
+//						}
+//					}
+//				}
+//
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 				if( m_RedTeamKill == m_MaxKillNum -1 && pKilled->GetTeam() == CX2Room::TN_BLUE )

@@ -5,17 +5,54 @@ CX2DamageEffect::CX2DamageEffect(void)
 //{{ robobeg : 2008-10-28
 : m_LuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true )
 //}} robobeg : 2008-10-28
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+, m_coInstanceHandleList( LIST_NUM, 128 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    m_bInCriticalLoop = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 	m_fElapsedTime		= 0.0f;
-	m_iCurrUniqueIndex	 = 0;
+	//m_iCurrUniqueIndex	 = 0;
 
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_InstanceList.reserve( 64 );
 	m_ReserveInstanceList.reserve( 64 );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 }
 
 CX2DamageEffect::~CX2DamageEffect(void)
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    KInstanceHandleList::iterator iterNext;
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end(LIST_LIVE);
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin(LIST_LIVE);
+        iter != iterEnd;
+        iter = iterNext )
+    {
+        iterNext = iter; ++iterNext;
+        CEffect* pCEffect =iter->m_pInstance;
+        iter->m_pInstance = NULL;
+        iter->m_eListType = LIST_FREE;
+        SAFE_DELETE( pCEffect );
+    }
+    iterEnd = m_coInstanceHandleList.end(LIST_RESERVE);
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin(LIST_RESERVE);
+        iter != iterEnd;
+        iter = iterNext )
+    {
+        iterNext = iter; ++iterNext;
+        CEffect* pCEffect =iter->m_pInstance;
+        iter->m_pInstance = NULL;
+        iter->m_eListType = LIST_FREE;
+        SAFE_DELETE( pCEffect )
+    }
+    m_coInstanceHandleList.splice_list( m_coInstanceHandleList.begin(LIST_FREE), LIST_LIVE );
+    m_coInstanceHandleList.splice_list( m_coInstanceHandleList.begin(LIST_FREE), LIST_RESERVE );
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
 	{
 		CEffect* pCEffect = m_InstanceList[i];
@@ -29,26 +66,16 @@ CX2DamageEffect::~CX2DamageEffect(void)
 		SAFE_DELETE( pCEffect );
 	}
 	m_ReserveInstanceList.clear();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 void CX2DamageEffect::OpenScriptFile( const WCHAR* pFilename )
 {
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-//{{ robobeg : 2008-10-28
-	//Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( L"Enum.lua" );
-	//if( Info == NULL )
-	//	return;
 
-	//if( m_LuaManager.DoMemory( Info->pRealData, Info->size ) == false )
-	//	return;
-//}} robobeg : 2008-10-28
-
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( pFilename );
-	if( Info == NULL )
-		return;
-
-	if( m_LuaManager.DoMemory( Info->pRealData, Info->size ) == false )
-		return;
+    if ( g_pKTDXApp->LoadAndDoMemory( &m_LuaManager, pFilename ) == false )
+    {
+        return;
+    }
 }
 
 HRESULT CX2DamageEffect::OnFrameMove( double fTime, float fElapsedTime )
@@ -57,6 +84,25 @@ HRESULT CX2DamageEffect::OnFrameMove( double fTime, float fElapsedTime )
 
 	m_fElapsedTime = fElapsedTime;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_coInstanceHandleList.empty( LIST_RESERVE ) == false )
+    {
+        KInstanceHandleList::iterator iterNext;
+        KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_RESERVE );
+        for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_RESERVE );
+            iter != iterEnd;
+            iter = iterNext )
+        {
+            iterNext = iter; ++iterNext;
+            CEffect* pCEffect = iter->m_pInstance;
+            if ( pCEffect != NULL && true == pCEffect->IsCreationDelayElapsed() == true )
+            {
+                iter->m_eListType = LIST_LIVE;
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.end( LIST_LIVE ), iter );
+            }
+        }
+    }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for( int i = 0; i < (int)m_ReserveInstanceList.size(); i++ )
 	{
 		CEffect* pCEffect = m_ReserveInstanceList[i];
@@ -67,11 +113,33 @@ HRESULT CX2DamageEffect::OnFrameMove( double fTime, float fElapsedTime )
 			i--;
 		}
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    ASSERT( m_bInCriticalLoop == false );
+    m_bInCriticalLoop = true;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end(LIST_LIVE);
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+            iter != iterEnd;
+            ++iter )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CEffect* pCEffect = iter->m_pInstance;
+        if ( pCEffect == NULL
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            || pCEffect->GetLive() == false
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            )
+            continue;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CEffect* pCEffect = m_InstanceList[i];
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		//{{ kimhc // 2009-10-20 // CEffect 전과 후에 BeginTable, EndTable을 호출 하므로 삭제,(일명 독구름 작업)
 #ifdef	DAMAGE_EFFECT_WORK
@@ -86,16 +154,46 @@ HRESULT CX2DamageEffect::OnFrameMove( double fTime, float fElapsedTime )
 		//{{ kimhc // 2009-10-20 // CEffect 전과 후에 BeginTable, EndTable을 호출 하므로 삭제,(일명 독구름 작업)
 	}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    iterEnd = m_coInstanceHandleList.end(LIST_LIVE);
+    KInstanceHandleList::iterator iterNext;
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+            iter != iterEnd;
+            iter = iterNext )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        iterNext = iter; ++iterNext;
+        CEffect* pCEffect = iter->m_pInstance;
+        if ( pCEffect == NULL )
+        {
+            iter->m_eListType = LIST_FREE;
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+            continue;        
+        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		CEffect* pCEffect = m_InstanceList[i];
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( pCEffect->GetLive() == false )
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            iter->m_pInstance = NULL;
+            iter->m_eListType = LIST_FREE;
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+            SAFE_DELETE( pCEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			SAFE_DELETE( pCEffect );
 			m_InstanceList.erase( m_InstanceList.begin() + i );
 			i--;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 	}
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    m_bInCriticalLoop = false;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
 
 	return S_OK;
 }
@@ -155,7 +253,31 @@ CX2DamageEffect::CEffect*  CX2DamageEffect::CreateInstance_LUA( CX2GameUnit* pGa
 		pGameUnit->GetRotateDegree(), fLandPos, false );
 }
 
+#ifdef CREATEINSTANCE_WITH_LIFETIME_IN_LUA
+CX2DamageEffect::CEffect*  CX2DamageEffect::CreateInstanceWithLifeTime_LUA( CX2GameUnit* pGameUnit, const char* pName, D3DXVECTOR3 pos, float fLandPos, float fLifeTimeRate  )
+{
+	// 이 함수는 몬스터만 사용해야 합니다. power rate 에 기존 코드와의 호환성 유지를 위해 1이 더해지기 때문입니다.
+	if( NULL != pGameUnit )
+	{
+		ASSERT( CX2GameUnit::GUT_NPC == pGameUnit->GetGameUnitType() );
+	}
 
+	wstring wstrName = L"";
+	ConvertUtf8ToWCHAR( wstrName, pName );
+
+	// note!! 기존에 powerrate = 2.f를 기준으로 모든 몬스터의 projectile 공격력이 정해져 있어서 그대로 간다.
+	float fPowerRate = 1.f + 1.f;	
+	if( NULL != pGameUnit )
+	{
+		fPowerRate = pGameUnit->GetPowerRate() + 1.f;
+	}
+
+	return CreateInstance( 
+		pGameUnit, wstrName.c_str(), fPowerRate, pos,
+		pGameUnit->GetRotateDegree(),
+		pGameUnit->GetRotateDegree(), fLandPos, false, -1.f, 1.f, fLifeTimeRate  );
+}
+#endif //CREATEINSTANCE_WITH_LIFETIME_IN_LUA
 
 CX2DamageEffect::CEffect*  CX2DamageEffect::CreateInstance_LUA2( CX2GameUnit* pGameUnit, const char* pName, D3DXVECTOR3 pos, float fLandPos, D3DXVECTOR3 vRot )
 {
@@ -221,19 +343,11 @@ CX2DamageEffect::CEffect*  CX2DamageEffect::CreateInstanceByPet_LUA( CX2GameUnit
 
 	// note!! 기존에 powerrate = 2.f를 기준으로 모든 몬스터의 projectile 공격력이 정해져 있어서 그대로 간다.
 	float fPowerRate = 0.f;
-#ifdef PET_ATTACK_NOBUFF
 	fPowerRate = 1.f;	
 	if( pGameUnit->GetRemainHyperModeTime() > 0.f )
 		fPowerRate = 1.2f;
-#else
-	if( NULL != pGameUnit )
-	{
-		fPowerRate = pGameUnit->GetPowerRate();
-	}
-#endif
 
 	float fPowerRatePet = 1.f;
-#ifdef ADD_UPGRADE_PET01
 	// 펫 친밀도가 70%이상일 경우 배율 증가
 	if( pGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 	{
@@ -242,8 +356,7 @@ CX2DamageEffect::CEffect*  CX2DamageEffect::CreateInstanceByPet_LUA( CX2GameUnit
 		
 		if( pPet != NULL && pPet->GetNowIntimacy() >= 0.7f )
 			fPowerRatePet = ( pPet->GetNowIntimacy() - 0.6f + 1.f );
-	}	
-#endif
+	}
 
 	return CreateInstance( 
 		pGameUnit, wstrName.c_str(), fPowerRate * fPowerRatePet, pos,
@@ -270,21 +383,278 @@ CKTDGXMeshPlayer::CXMeshInstance* CX2DamageEffect::CEffect::GetMainEffect()
 }
 
 
-void CX2DamageEffect::DestroyAllInstance()
+void CX2DamageEffect::DestroyAllInstances()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( IsInCriticalLoop() == true )
+    {
+        KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end(LIST_LIVE);
+        for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin(LIST_LIVE);
+            iter != iterEnd;
+            ++iter )
+        {
+            CEffect* pCEffect =iter->m_pInstance;
+            if ( pCEffect != NULL )
+                pCEffect->_SetDead();
+        }
+        iterEnd = m_coInstanceHandleList.end(LIST_RESERVE);
+        for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin(LIST_RESERVE);
+            iter != iterEnd;
+            ++iter )
+        {
+            CEffect* pCEffect =iter->m_pInstance;
+            if ( pCEffect != NULL )
+                pCEffect->_SetDead();
+        }
+    }
+    else
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    {
+        KInstanceHandleList::iterator iterNext;
+        KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end(LIST_LIVE);
+        for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin(LIST_LIVE);
+            iter != iterEnd;
+            iter = iterNext )
+        {
+            iterNext = iter; ++iterNext;
+            CEffect* pCEffect =iter->m_pInstance;
+            iter->m_pInstance = NULL;
+            iter->m_eListType = LIST_FREE;
+            SAFE_DELETE( pCEffect );
+        }
+        iterEnd = m_coInstanceHandleList.end(LIST_RESERVE);
+        for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin(LIST_RESERVE);
+            iter != iterEnd;
+            iter = iterNext )
+        {
+            iterNext = iter; ++iterNext;
+            CEffect* pCEffect =iter->m_pInstance;
+            iter->m_pInstance = NULL;
+            iter->m_eListType = LIST_FREE;
+            SAFE_DELETE( pCEffect )
+        }
+        m_coInstanceHandleList.splice_list( m_coInstanceHandleList.begin(LIST_FREE), LIST_LIVE );
+        m_coInstanceHandleList.splice_list( m_coInstanceHandleList.begin(LIST_FREE), LIST_RESERVE );
+    }
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
 	{
 		CEffect* pCEffect = m_InstanceList[i];
 		SAFE_DELETE( pCEffect );
 	}
 	m_InstanceList.clear();
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 }
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+bool CX2DamageEffect::IsLiveInstance( CEffect* pInstance )
+{
+	if( NULL == pInstance )
+		return false;
+	CEffectHandle handle = pInstance->GetHandle();
+    if ( handle == INVALID_DAMAGE_EFFECT_HANDLE )
+        return false;
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = handle.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( handle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    DecomposeHandle( dwHandle, wIndex, wStamp );
+    if ( wIndex >= m_coInstanceHandleList.storage_size() )
+        return false;
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    if ( info.m_pInstance != pInstance || info.m_wStamp != wStamp || info.m_eListType != LIST_LIVE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        || pInstance->GetLive() == false
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        )
+        return false;
+    return true;
+}
+
+bool CX2DamageEffect::IsLiveInstanceHandle( CEffectHandle handle )
+{
+    if ( handle == INVALID_DAMAGE_EFFECT_HANDLE )
+        return false;
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = handle.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( handle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    DecomposeHandle( dwHandle, wIndex, wStamp );
+    if ( wIndex >= m_coInstanceHandleList.storage_size() )
+        return false;
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    if ( info.m_pInstance == NULL || info.m_wStamp != wStamp || info.m_eListType != LIST_LIVE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        || info.m_pInstance->GetLive() == false
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX        
+        )
+        return false;
+    return true;
+}
+
+CX2DamageEffect::CEffect*  CX2DamageEffect::GetInstance( CEffectHandle handle, bool bLiveOnly )
+{
+    if ( handle == INVALID_DAMAGE_EFFECT_HANDLE )
+        return NULL;
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = handle.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( handle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    DecomposeHandle( dwHandle, wIndex, wStamp );
+    if ( wIndex >= m_coInstanceHandleList.storage_size() )
+        return NULL;
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    if ( info.m_pInstance == NULL || info.m_wStamp != wStamp || bLiveOnly == true && 
+        ( info.m_eListType != LIST_LIVE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            || info.m_pInstance->GetLive() == false
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX     
+         )
+        )
+        return NULL;
+    return info.m_pInstance;
+}
+
+void    CX2DamageEffect::DestroyInstance_LUA( CEffect* pInstance )
+{
+    DestroyInstance( pInstance, false );
+}
+
+void    CX2DamageEffect::DestroyInstanceHandle( CEffectHandle& hInstance, bool bSilently )
+{
+	if( hInstance == INVALID_DAMAGE_EFFECT_HANDLE )
+		return;
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = hInstance.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hInstance );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    DecomposeHandle( dwHandle, wIndex, wStamp );
+    if ( wIndex >= m_coInstanceHandleList.storage_size() )
+    {
+        hInstance = INVALID_DAMAGE_EFFECT_HANDLE;
+        return;
+    }
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    CEffect* pInstance = info.m_pInstance;
+    if ( pInstance == NULL || info.m_wStamp != wStamp )
+    {
+        hInstance = INVALID_DAMAGE_EFFECT_HANDLE;
+        return;
+    }
+
+#ifdef NEW_SKILL_2010_11
+    if ( bSilently == false && info.m_eListType == LIST_LIVE
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        && pInstance->GetLive() == true
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+		)
+		pInstance->SetDieDamageEffect();
+#endif NEW_SKILL_2010_11
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( IsInCriticalLoop() == true )
+    {
+        pInstance->_SetDead();
+        hInstance = INVALID_DAMAGE_EFFECT_HANDLE;
+        return;
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+    info.m_pInstance = NULL;
+    info.m_eListType = LIST_FREE;
+    SAFE_DELETE( pInstance );
+    m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), wIndex );
+    hInstance = INVALID_DAMAGE_EFFECT_HANDLE;
+}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+void CX2DamageEffect::DestroyInstance( CEffect*& pInstance, bool bSilently )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 void CX2DamageEffect::DestroyInstance( CEffect* pInstance )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 {
 	if( NULL == pInstance )
 		return;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CEffectHandle handle = pInstance->GetHandle();
+    if ( handle == INVALID_DAMAGE_EFFECT_HANDLE )
+    {
+        pInstance = NULL;
+        return;
+    }
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = handle.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( handle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    DecomposeHandle( dwHandle, wIndex, wStamp );
+    if ( wIndex >= m_coInstanceHandleList.storage_size() )
+    {
+        pInstance = NULL;
+        return;
+    }
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    if ( info.m_pInstance != pInstance || info.m_wStamp != wStamp )
+    {
+        pInstance = NULL;
+        return;
+    }
+
+#ifdef NEW_SKILL_2010_11
+    if ( info.m_eListType == LIST_LIVE
+        && bSilently == false
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        && pInstance->GetLive() == true
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+        )
+	    pInstance->SetDieDamageEffect();
+#endif NEW_SKILL_2010_11
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( IsInCriticalLoop() == true )
+    {
+        pInstance->_SetDead();
+        pInstance = NULL;
+        return;
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+
+    info.m_pInstance = NULL;
+    info.m_eListType = LIST_FREE;
+    SAFE_DELETE( pInstance );
+    m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), wIndex );
+    pInstance = NULL;
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
 	{
@@ -302,13 +672,30 @@ void CX2DamageEffect::DestroyInstance( CEffect* pInstance )
 			return;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 }
 
 #ifdef EVE_ELECTRA
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+void CX2DamageEffect::DestroyInstanceHandleSilently( CEffectHandle& hInstance )
+{
+    DestroyInstanceHandle( hInstance, true );
+}
+
+
 void CX2DamageEffect::DestroyInstanceSilently( CEffect*& pInstance )
 {
-	if( NULL == pInstance )
-		return;
+    DestroyInstance( pInstance, true );
+}
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+void CX2DamageEffect::DestroyInstanceSilently( CEffect*& pInstance )
+{
 
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
 	{
@@ -321,10 +708,39 @@ void CX2DamageEffect::DestroyInstanceSilently( CEffect*& pInstance )
 			return;
 		}
 	}
+
+
 }
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 void CX2DamageEffect::AddLaserGroupHitUnit( int _iLaserGroupID, CX2DamageManager::HitUnit _hitUnit )
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end(LIST_LIVE);
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        ++iter )
+    {
+        CEffect* pCEffect = iter->m_pInstance;
+        if ( pCEffect != NULL && 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            pCEffect->GetLive() == true &&
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            _iLaserGroupID == pCEffect->GetLaserGroupID() )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            // 이 호출은 side effect 없음
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+			g_pData->GetDamageManager()->AddHitUnit( pCEffect->GetDamageData(), _hitUnit);
+
+			//int tmp = i;
+        }
+    }
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
 	{
 		CEffect* pCEffect = m_InstanceList[i];
@@ -335,6 +751,8 @@ void CX2DamageEffect::AddLaserGroupHitUnit( int _iLaserGroupID, CX2DamageManager
 			int tmp = i;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 #endif EVE_ELECTRA
 
@@ -347,13 +765,55 @@ CX2DamageEffect::CEffect* CX2DamageEffect::CreateInstanceParabolic( CX2GameUnit*
 
 
 	ASSERT( NULL != pName );
+	if( NULL == pName )
+	{
+#ifdef NO_MORE_ERROR_TEST
+		InHouseLog( "이름이 없는 데미지 이펙트 생성 시도" );
+#endif NO_MORE_ERROR_TEST
+
+		return NULL;
+	}
 
 	CEffect* pCEffect = NULL;
 
-	if( m_LuaManager.BeginTable( pName ) == true )
+    char aszBufUtf8[255] = {0,};
+    WideCharToMultiByte( CP_UTF8, 0, pName, -1, aszBufUtf8, 255, NULL, NULL );
+
+	if( m_LuaManager.BeginTable( aszBufUtf8 ) == true )
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        KInstanceHandleList::iterator iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+        if ( iterEmpty == m_coInstanceHandleList.end(LIST_FREE) )
+        {
+            if ( m_coInstanceHandleList.storage_size() >= 0x10000L )
+            {
+                return NULL;
+            }
+            m_coInstanceHandleList.push_back_default(LIST_FREE);
+            iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+            iterEmpty->m_eListType = LIST_FREE;
+            ASSERT( iterEmpty != m_coInstanceHandleList.end(LIST_FREE) );
+        }
+        WORD   wIndex = (WORD) iterEmpty.GetIndex();
+        CEffectHandle   hHandle;
+        DWORD   dwHandle = 0;
+        do
+        {
+            ++iterEmpty->m_wStamp;
+            dwHandle = ComposeHandle( wIndex, iterEmpty->m_wStamp );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            hHandle.SetValue( (int) dwHandle );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            hHandle = (int) dwHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        } while ( hHandle == INVALID_DAMAGE_EFFECT_HANDLE );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		pCEffect = new CEffect( this, &m_LuaManager, pGameUnit, pName, fPowerRate, 
-			vPos, vTargetPos, vAcceleration, 0.f, -1.f, fTimeToReachTarget, fTimeToLive, iMeshPlayerIndex );
+			vPos, vTargetPos, vAcceleration, 0.f, -1.f, fTimeToReachTarget, fTimeToLive, iMeshPlayerIndex
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            , hHandle
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            );
 
 		if( pCEffect->GetLive() == false )
 		{
@@ -361,8 +821,13 @@ CX2DamageEffect::CEffect* CX2DamageEffect::CreateInstanceParabolic( CX2GameUnit*
 			m_LuaManager.EndTable();
 			return NULL;
 		}
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        iterEmpty->m_pInstance = pCEffect;
+        iterEmpty->m_eListType = LIST_LIVE;
+        m_coInstanceHandleList.splice( m_coInstanceHandleList.end( LIST_LIVE ), iterEmpty );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_InstanceList.push_back( pCEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_LuaManager.EndTable();
 	}
 	else
@@ -417,14 +882,47 @@ CX2DamageEffect::CEffect* CX2DamageEffect::CreateInstance( CX2GameUnit* pGameUni
 
 	CEffect* pCEffect = NULL;
 
+    char aszBufUtf8[255] = {0,};
+    WideCharToMultiByte( CP_UTF8, 0, pName, -1, aszBufUtf8, 255, NULL, NULL );
 
-
-	if( m_LuaManager.BeginTable( pName ) == true )
+	if( m_LuaManager.BeginTable( aszBufUtf8 ) == true )
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        KInstanceHandleList::iterator iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+        if ( iterEmpty == m_coInstanceHandleList.end(LIST_FREE) )
+        {
+            if ( m_coInstanceHandleList.storage_size() >= 0x10000L )
+            {
+                return NULL;
+            }
+            m_coInstanceHandleList.push_back_default(LIST_FREE);
+            iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+            iterEmpty->m_eListType = LIST_FREE;
+            ASSERT( iterEmpty != m_coInstanceHandleList.end(LIST_FREE) );
+        }
+        WORD   wIndex = (WORD) iterEmpty.GetIndex();
+        CEffectHandle  hHandle;
+        DWORD   dwHandle = 0;
+        do
+        {
+            ++iterEmpty->m_wStamp;
+            dwHandle = ComposeHandle( wIndex, iterEmpty->m_wStamp );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            hHandle.SetValue( (int) dwHandle );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+            hHandle = (int) dwHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        } while ( hHandle == INVALID_DAMAGE_EFFECT_HANDLE );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 		pCEffect = new CEffect( this, &m_LuaManager, pGameUnit, pName, fPowerRate, D3DXVECTOR3(x,y,z),
 			D3DXVECTOR3(angleXDegree,angleYDegree,angleZDegree),
 			D3DXVECTOR3(moveAxisXDegree,moveAxisYDegree,moveAxisZDegree),
-			fLandPos, fReserveTime, 0.f, 0.f, iMeshPlayerIndex, fHitAddMp 
+			fLandPos, fReserveTime, 0.f, 0.f, iMeshPlayerIndex, 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            hHandle,
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            fHitAddMp 
 #ifdef PET_SKILL_EFFECT_LINE_MAP
 			, bPetSkillEffect
 #endif //PET_SKILL_EFFECT_LINE_MAP
@@ -441,8 +939,6 @@ CX2DamageEffect::CEffect* CX2DamageEffect::CreateInstance( CX2GameUnit* pGameUni
 			m_LuaManager.EndTable();
 			return NULL;
 		}
-
-
 
 #ifdef GIANT_UNIT_GIANT_EFFECT_TEST
 		
@@ -461,19 +957,38 @@ CX2DamageEffect::CEffect* CX2DamageEffect::CreateInstance( CX2GameUnit* pGameUni
 
 #endif GIANT_UNIT_GIANT_EFFECT_TEST
 
-
 		if( bReserve == true )
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            iterEmpty->m_pInstance = pCEffect;
+            iterEmpty->m_eListType = LIST_RESERVE;
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.end( LIST_RESERVE ), iterEmpty );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_ReserveInstanceList.push_back( pCEffect );
-			if( NULL != pCEffect && 
-				NULL != pCEffect->GetMainEffect() &&
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CKTDGXMeshPlayer::CXMeshInstance *pMeshInstance = ( pCEffect != NULL ) ? pCEffect->GetMainEffect() : NULL;
+			if( NULL != pMeshInstance &&
 				fReserveTime > 0.f )
 			{
-				pCEffect->GetMainEffect()->SetDelayTime( fReserveTime );
+				pMeshInstance->SetDelayTime( fReserveTime );
 			}
 		}
 		else
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            iterEmpty->m_pInstance = pCEffect;
+            iterEmpty->m_eListType = LIST_LIVE;
+#ifdef  EVE_ELECTRA
+            if ( bInsertFront == true )
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_LIVE ), iterEmpty );
+            else
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.end( LIST_LIVE ), iterEmpty );
+#else   EVE_ELECTRA
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.end( LIST_LIVE ), iterEmpty );
+#endif  EVE_ELECTRA
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 #ifdef EVE_ELECTRA
 			if( bInsertFront == true)
 			{
@@ -491,6 +1006,8 @@ CX2DamageEffect::CEffect* CX2DamageEffect::CreateInstance( CX2GameUnit* pGameUni
 #else
 			m_InstanceList.push_back( pCEffect );
 #endif EVE_ELECTRA
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 
 		m_LuaManager.EndTable();
@@ -537,7 +1054,7 @@ void CX2DamageEffect::PostProcessCreateInstance( CEffect* pCEffect, float fForce
 	{
 		if( 1.f != fForceDownValueRate )
 		{
-			pCEffect->GetDamageData()->fForceDownValue *= fForceDownValueRate;
+			pCEffect->GetDamageData().fForceDownValue *= fForceDownValueRate;
 #ifdef INHERIT_FORCEDOWNRATE
 			pCEffect->SetForceDownRate(fForceDownValueRate);
 #endif INHERIT_FORCEDOWNRATE
@@ -545,9 +1062,10 @@ void CX2DamageEffect::PostProcessCreateInstance( CEffect* pCEffect, float fForce
 
 		if( 1.f != fLifeTimeRate )
 		{
-			if( NULL != pCEffect->GetMainEffect() )
+            CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pCEffect->GetMainEffect();
+			if( NULL != pMeshInstance )
 			{
-				pCEffect->GetMainEffect()->SetMaxLifeTime( pCEffect->GetMainEffect()->GetMaxLifeTime() * fLifeTimeRate );
+				pMeshInstance->SetMaxLifeTime( pMeshInstance->GetMaxLifeTime() * fLifeTimeRate );
 			}
 
 			pCEffect->SetPassiveparticleTriggerTimeRate( fLifeTimeRate );
@@ -555,15 +1073,15 @@ void CX2DamageEffect::PostProcessCreateInstance( CEffect* pCEffect, float fForce
 
 		if( iAddHitCount > 0 && fHitGap <= 0.f )
 		{
-			fHitGap = pCEffect->GetDamageData()->fHitGap;
+			fHitGap = pCEffect->GetDamageData().fHitGap;
 		}
 
 		if( iAddHitCount > 0 && fHitGap >= 0.f )
 		{
 			int iNewHitCount = pCEffect->GetDamageTime() + iAddHitCount;
 			pCEffect->SetDamageTime( iNewHitCount );
-			pCEffect->GetDamageData()->fHitGap = fHitGap;
-			pCEffect->GetDamageData()->bReAttack = true;
+			pCEffect->GetDamageData().fHitGap = fHitGap;
+			pCEffect->GetDamageData().bReAttack = true;
 		}
 	}
 }
@@ -571,6 +1089,84 @@ void CX2DamageEffect::PostProcessCreateInstance( CEffect* pCEffect, float fForce
 
 void CX2DamageEffect::UnitDeleteProcess( CX2GameUnit* pGameUnit )
 {
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    if ( IsInCriticalLoop() == true )
+    {
+        KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end(LIST_LIVE);
+        for( KInstanceHandleIterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+            iter != iterEnd; 
+            ++iter )
+        {
+            CEffect* pCEffect = iter->m_pInstance;
+            if ( pCEffect != NULL && pGameUnit == pCEffect->GetOwnerUnit() )
+            {
+                pCEffect->_SetDead();
+            }
+        }
+        iterEnd = m_coInstanceHandleList.end( LIST_RESERVE );
+        for( KInstanceHandleIterator iter = m_coInstanceHandleList.begin( LIST_RESERVE );
+            iter != iterEnd; 
+            ++iter )
+        {
+            CEffect* pCEffect = iter->m_pInstance;
+            if ( pCEffect != NULL && pGameUnit == pCEffect->GetOwnerUnit() )
+            {
+                pCEffect->_SetDead();
+            }
+        }
+    }
+    else
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+    {
+        KInstanceHandleList::iterator iterNext;
+        KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end(LIST_LIVE);
+        for( KInstanceHandleIterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+            iter != iterEnd; 
+            iter = iterNext )
+        {
+            iterNext = iter; ++iterNext;
+            CEffect* pCEffect = iter->m_pInstance;
+            if ( pCEffect == NULL )
+            {
+                iter->m_eListType = LIST_FREE;
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+            }
+            else if ( pGameUnit == pCEffect->GetOwnerUnit() )
+            {
+                iter->m_pInstance = NULL;
+                iter->m_eListType = LIST_FREE;
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+                SAFE_DELETE( pCEffect );
+            }
+        }
+        iterEnd = m_coInstanceHandleList.end( LIST_RESERVE );
+        for( KInstanceHandleIterator iter = m_coInstanceHandleList.begin( LIST_RESERVE );
+            iter != iterEnd; 
+            iter = iterNext )
+        {
+            iterNext = iter; ++iterNext;
+            CEffect* pCEffect = iter->m_pInstance;
+            if ( pCEffect == NULL )
+            {
+                iter->m_eListType = LIST_FREE;
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+            }
+            else if ( pGameUnit == pCEffect->GetOwnerUnit() )
+            {
+                iter->m_pInstance = NULL;
+                iter->m_eListType = LIST_FREE;
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+                SAFE_DELETE( pCEffect );
+            }
+        }
+    }
+
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	for( int i = 0; i < (int)m_InstanceList.size(); i++ )
 	{
 		CEffect* pCEffect = m_InstanceList[i];
@@ -585,6 +1181,8 @@ void CX2DamageEffect::UnitDeleteProcess( CX2GameUnit* pGameUnit )
 			i--;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
@@ -599,7 +1197,11 @@ void CX2DamageEffect::UnitDeleteProcess( CX2GameUnit* pGameUnit )
 CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaManager, CX2GameUnit* pGameUnit, 
 								  const WCHAR* pName, float fPowerRate, D3DXVECTOR3 pos, D3DXVECTOR3 angleDegree, D3DXVECTOR3 moveAxisDegree, 
 								  float fLandPos /*= 0.f*/, float fCreationDelayTime /*= -1.f*/, float fParabolicTimeToReachTarget /*= 0.f*/, float fParabolicTimeToLive /*= 0.f*/,
-								  const int iMeshPlayerIndex /*= 0*/, float fHitAddMp /*=-1.f*/ 
+								  const int iMeshPlayerIndex /*= 0*/, 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                                  CEffectHandle  hHandle /*=INVALID_DAMAGE_EFFECT_HANDLE*/,
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                                  float fHitAddMp /*=-1.f*/ 
 #ifdef PET_SKILL_EFFECT_LINE_MAP
 								  , bool bPetSkillEffect /*= false*/
 #endif //PET_SKILL_EFFECT_LINE_MAP
@@ -608,7 +1210,9 @@ CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaM
 : m_vHitDamageScaleByUnit( 1, 1, 1 )
 , m_vDieDamageScaleByUnit( 1, 1, 1 )
 #endif GIANT_UNIT_GIANT_EFFECT_TEST
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+, m_hHandle( hHandle )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #ifdef STICKY_DAMAGE_EFFECT_TEST
 , m_bEnableAttack( true )
 , m_bTraceAttackedUnit( false )
@@ -638,6 +1242,9 @@ CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaM
 , m_bCheckSpectro( false )
 #endif
 , m_bFollowLineRight( false )
+#ifdef NOTIFY_TO_OWNER_UNIT_WHEN_DAMAGE_EFFECT_DIE
+, m_bShouldNotifyToOwnerUnitWhenDie( false )
+#endif // NOTIFY_TO_OWNER_UNIT_WHEN_DAMAGE_EFFECT_DIE
 {
 	KTDXPROFILE();
 
@@ -665,7 +1272,11 @@ CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaM
 	m_DamageData.attackerType		= CX2DamageManager::AT_EFFECT;
 	m_DamageData.m_bMeleeAttack		= false;	/// 데미지이펙트는 기본적으로 원거리 공격으로 셋팅
 	m_DamageData.optrAttackerGameUnit		= pGameUnit;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_DamageData.hAttackerEffect	= hHandle;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_DamageData.pAttackerEffect	= this;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	m_Name					= pName;
 
@@ -774,24 +1385,27 @@ CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaM
 	}
 	else
 	{
-		WCHAR tableName[32] = L"";
-		StringCchPrintfW( tableName, ARRAY_SIZE(tableName), L"MAIN_EFFECT_NAME%d", iMeshPlayerIndex );
+		char tableName[32] = "";
+		StringCchPrintfA( tableName, ARRAY_SIZE(tableName), "MAIN_EFFECT_NAME%d", iMeshPlayerIndex );
 		PLUA_GET_VALUE( m_pLuaManager, tableName, mainEffName, L"" );
 	}
 
 	ASSERT( false == mainEffName.empty() );
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
-	if( fParabolicTimeToLive > 0.f )
-	{
-		const D3DXVECTOR3 vTargetPos = m_AngleDegree;
-		const D3DXVECTOR3 vAcceleration = m_MoveAxisDegree;
-		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstanceParabolic( static_cast<CKTDGObject*>( m_optrOwnerUnit.GetObservable() ), mainEffName.c_str(), m_Pos, vTargetPos, vAcceleration, fParabolicTimeToReachTarget, fParabolicTimeToLive );
-	}
-	else
-	{
-		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( static_cast<CKTDGObject*>( m_optrOwnerUnit.GetObservable() ),  mainEffName.c_str(), m_Pos, m_AngleDegree, m_MoveAxisDegree );
-	}
+    if ( g_pX2Game != NULL )
+    {
+	    if( fParabolicTimeToLive > 0.f )
+	    {
+		    const D3DXVECTOR3 vTargetPos = m_AngleDegree;
+		    const D3DXVECTOR3 vAcceleration = m_MoveAxisDegree;
+		    pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstanceParabolic( static_cast<CKTDGObject*>( m_optrOwnerUnit.GetObservable() ), mainEffName.c_str(), m_Pos, vTargetPos, vAcceleration, fParabolicTimeToReachTarget, fParabolicTimeToLive );
+	    }
+	    else
+	    {
+		    pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( static_cast<CKTDGObject*>( m_optrOwnerUnit.GetObservable() ),  mainEffName.c_str(), m_Pos, m_AngleDegree, m_MoveAxisDegree );
+	    }
+    }
 
 
 	if( NULL == pMeshInst )
@@ -800,6 +1414,9 @@ CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaM
 	}
 	else
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 #ifdef RIDING_SYSTEM
 		float fLiveTime = -1.f;
 		PLUA_GET_VALUE( m_pLuaManager, "MAIN_EFFECT_TIME", fLiveTime, -1.f );
@@ -825,7 +1442,8 @@ CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaM
 	float fUseCannonBallDamageRel = 1.f;
 #endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
 
-	g_pData->GetDamageManager()->SetDamageDataFromLUA( &m_DamageData, *pLuaManager, L"DAMAGE_DATA", m_fPowerRate );
+	g_pData->GetDamageManager()->SetDamageDataFromLUA( &m_DamageData, *pLuaManager, "DAMAGE_DATA", m_fPowerRate );
+
 	
 	if(fHitAddMp >= 0.f)
 	{
@@ -874,16 +1492,11 @@ CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaM
 			float fCannonBallDamageUp = m_fPowerRate + (m_fPowerRate * fUpDamage);
 			m_DamageData.m_fDecreaseForceDown = fCannonBallDamageUp * pUser->GetForceDownRelDamageRateBase();
 			
-#ifdef FIXED_DAMAGE
 			if( m_DamageData.m_ExtraDamage.m_bFixedDamage == false )
 			{
 				m_DamageData.m_ExtraDamage.m_DamagePerSec	*= fCannonBallDamageUp;
 				m_DamageData.m_ExtraDamage.m_Damage			*= fCannonBallDamageUp;
 			}	
-#else
-			m_DamageData.m_ExtraDamage.m_DamagePerSec	*= fCannonBallDamageUp;
-			m_DamageData.m_ExtraDamage.m_Damage			*= fCannonBallDamageUp;
-#endif
 		}
 	}
 #endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
@@ -964,7 +1577,7 @@ CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaM
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	m_DamageEffectDataInLua.m_pDamageDataNext->m_vecBuffFactorPtr.clear();
 #endif //UPGRADE_SKILL_SYSTEM_2013
-	if ( false == g_pData->GetDamageManager()->SetDamageDataFromLUA( m_DamageEffectDataInLua.m_pDamageDataNext, *pLuaManager, L"DAMAGE_DATA_NEXT", m_fPowerRate ) )
+	if ( false == g_pData->GetDamageManager()->SetDamageDataFromLUA( m_DamageEffectDataInLua.m_pDamageDataNext, *pLuaManager, "DAMAGE_DATA_NEXT", m_fPowerRate ) )
 		SAFE_DELETE( m_DamageEffectDataInLua.m_pDamageDataNext );
 
 #endif	DAMAGE_EFFECT_WORK
@@ -1006,6 +1619,15 @@ CX2DamageEffect::CEffect::CEffect( CX2DamageEffect* pManager, KLuaManager* pLuaM
 
 	
 
+#ifdef NOTIFY_TO_OWNER_UNIT_WHEN_DAMAGE_EFFECT_DIE
+	PLUA_GET_VALUE( m_pLuaManager, "NOTIFY_TO_OWNER_WHEN_DIE",	m_bShouldNotifyToOwnerUnitWhenDie,	false );
+#endif // NOTIFY_TO_OWNER_UNIT_WHEN_DAMAGE_EFFECT_DIE
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	/// SetLinkMainEffectByPos() 를 쓰기 위해 필요한 길이 배율
+	PLUA_GET_VALUE( m_pLuaManager, "LINK_EFFECT_RATE",			m_fLinkEffectRate,		-1.f );
+#endif //SERV_ADD_LUNATIC_PSYKER
+
 	m_fElapsedTime = 0.f;
 }; 
 
@@ -1036,7 +1658,7 @@ CX2DamageEffect::CEffect::~CEffect()
 		g_pX2Game != NULL && 
 		g_pX2Game->GetMajorXMeshPlayer() )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMeshInstHandle );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshInstHandle );
 	}
 
 
@@ -1075,6 +1697,7 @@ CX2DamageEffect::CEffect::~CEffect()
 		SAFE_DELETE_KTDGOBJECT( m_pAfterImage );
 #endif
 
+
 	for ( int i = 0; i < (int)m_DamageEffectDataList.size(); i++ )
 	{
 		DamageEffectData* pDamageEffectData = m_DamageEffectDataList[i];
@@ -1097,6 +1720,15 @@ CX2DamageEffect::CEffect::~CEffect()
 	}
 	m_vecDieDamageEffect.clear();
 
+#ifdef NOTIFY_TO_OWNER_UNIT_WHEN_DAMAGE_EFFECT_DIE
+	// 데미지 이펙트를 생성한 유닛 객체에게만 불려 짐
+	if( true == m_bShouldNotifyToOwnerUnitWhenDie &&
+		null != m_optrOwnerUnit )
+	{
+		m_optrOwnerUnit->DieDamageEffectProc(m_DamageData);
+	}
+#endif // NOTIFY_TO_OWNER_UNIT_WHEN_DAMAGE_EFFECT_DIE
+
 	if( true == m_BlackHoleData.m_bEnabled && NULL != g_pX2Game )
 	{
 		for( int i=0; i<g_pX2Game->GetUnitNum(); i++ )
@@ -1108,7 +1740,11 @@ CX2DamageEffect::CEffect::~CEffect()
 			if( null != m_optrOwnerUnit && pUnit->GetTeam() == m_optrOwnerUnit->GetTeam() )
 				continue;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            pUnit->RemoveEffectiveBlackHoleDamageEffect( GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			pUnit->RemoveEffectiveBlackHoleDamageEffect( this );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 	}
 
@@ -1161,7 +1797,13 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 
 
 	m_fElapsedTime = fElapsedTime;
-	if( g_pX2Game->GetMajorXMeshPlayer()->IsLiveInstanceHandle( m_hMeshInstHandle ) == false
+    if ( g_pX2Game == NULL )
+    {
+		SetDieDamageEffect();
+		m_hMeshInstHandle = INVALID_MESH_INSTANCE_HANDLE;
+		m_bLive			= false;
+    }
+    else if( g_pX2Game->GetMajorXMeshPlayer()->IsLiveInstanceHandle( m_hMeshInstHandle ) == false
 #ifdef RAVEN_WEAPON_TAKER
 		|| g_pX2Game->GetMajorXMeshPlayer()->IsDyingByCrash( m_hMeshInstHandle ) == true
 #endif RAVEN_WEAPON_TAKER
@@ -1201,7 +1843,7 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 		{
 			ParticleData* pParticleData = m_TimeParticleDataList[i];
 
-			if( INVALID_PARTICLE_HANDLE != pParticleData->m_hSeq )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != pParticleData->m_hSeq )
 			{	
 				if( g_pX2Game->GetMajorParticle()->IsLiveInstanceHandle( pParticleData->m_hSeq ) == true 
 					&& true == pParticleData->bTrace )
@@ -1210,7 +1852,7 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 				}
 				else
 				{
-					pParticleData->m_hSeq = INVALID_PARTICLE_HANDLE;
+					pParticleData->m_hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
 				}
 			}
 #ifdef DAMAGE_EFFECT_TIMED_PARTICLE_GLOBAL_TIME
@@ -1246,7 +1888,7 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 			}
 		}
 
-		if( NULL != g_pX2Game && null != m_optrOwnerUnit )
+		if( null != m_optrOwnerUnit )
 		{
 			for( int i = 0; i < (int)m_CameraDataList.size(); i++ )
 			{
@@ -1261,43 +1903,43 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 					switch( pCameraData->crashType )
 					{
 					case CKTDGCamera::DECT_UP:
-						g_pX2Game->GetX2Camera()->GetCamera()->UpCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
+						g_pX2Game->GetX2Camera()->GetCamera().UpCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
 						break;
 
 					case CKTDGCamera::DECT_DOWN:
-						g_pX2Game->GetX2Camera()->GetCamera()->DownCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
+						g_pX2Game->GetX2Camera()->GetCamera().DownCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
 						break;
 
 					case CKTDGCamera::DECT_UP_DOWN:
-						g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( pCameraData->fGap, pCameraData->fTime );
+						g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( pCameraData->fGap, pCameraData->fTime );
 						break;
 
 					case CKTDGCamera::DECT_UP_DOWN_NO_RESET:
-						g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCameraNoReset( pCameraData->fGap, pCameraData->fTime );
+						g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCameraNoReset( pCameraData->fGap, pCameraData->fTime );
 						break;
 
 
 					case CKTDGCamera::DECT_LEFT:
 						{
-							g_pX2Game->GetX2Camera()->GetCamera()->LeftCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
+							g_pX2Game->GetX2Camera()->GetCamera().LeftCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
 						} break;
 					case CKTDGCamera::DECT_RIGHT:
 						{
-							g_pX2Game->GetX2Camera()->GetCamera()->RightCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
+							g_pX2Game->GetX2Camera()->GetCamera().RightCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
 						} break;
 					case CKTDGCamera::DECT_LEFT_RIGHT:
 						{
-							g_pX2Game->GetX2Camera()->GetCamera()->LeftRightCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
+							g_pX2Game->GetX2Camera()->GetCamera().LeftRightCrashCamera( pCameraData->fSpeed, pCameraData->fAccel );
 						} break;
 					case CKTDGCamera::DECT_LEFT_RIGHT_NO_RESET:
 						{
-							g_pX2Game->GetX2Camera()->GetCamera()->LeftRightCrashCameraNoReset( pCameraData->fSpeed, pCameraData->fAccel );
+							g_pX2Game->GetX2Camera()->GetCamera().LeftRightCrashCameraNoReset( pCameraData->fSpeed, pCameraData->fAccel );
 						} break;
 
 
 					case CKTDGCamera::DECT_RANDOM:
 						{
-							g_pX2Game->GetX2Camera()->GetCamera()->ShakeRandom( 15, pCameraData->fSpeed*0.8f, pCameraData->fSpeed*1.2f, pCameraData->fGap*0.8f, pCameraData->fGap*1.2f, 
+							g_pX2Game->GetX2Camera()->GetCamera().ShakeRandom( 15, pCameraData->fSpeed*0.8f, pCameraData->fSpeed*1.2f, pCameraData->fGap*0.8f, pCameraData->fGap*1.2f, 
 																						15, pCameraData->fSpeed*0.8f, pCameraData->fSpeed*1.2f, pCameraData->fGap*0.8f, pCameraData->fGap*1.2f, 
 																						true ); // todo!!!! 스크립트에 입력할 수 있게 해야함
 						} break;
@@ -1338,10 +1980,31 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 		
 		for( int i = 0; i < (int)m_DamageEffectDataList.size(); i++ )
 		{
-			DamageEffectData* pData = m_DamageEffectDataList[i];	
-			if( pMeshInst->EventTimerGlobal( pData->fEventTime ) == true )
+			DamageEffectData* pData = m_DamageEffectDataList[i];
+
+		#ifdef LOOP_CREATE_DAMAGE_EFFECT // 김태환
+			if ( NULL == pData )
+				continue;
+
+			/// 반복 종료 시간을 넘겼다면, 해당 정보는 제거
+			if ( pMeshInst->GetNowLifeTime() >= pData->fLoopEndTime )
 			{
-				if( NULL != g_pX2Game && null != m_optrOwnerUnit )
+				SAFE_DELETE( pData );
+				m_DamageEffectDataList.erase( m_DamageEffectDataList.begin() + i );
+				i--;
+
+				continue;
+			}
+
+			/// 반복 생성을 고려한 쿨타임 연산 = 생성 시간 + ( 반복 간격 * ( 생성된 횟수 ) )
+			const float fCheckEventTime = pData->fEventTime + ( pData->fLoopInterval * static_cast<float>( pData->uiCreateCount ) );
+
+			if( pMeshInst->EventTimerGlobal( fCheckEventTime ) == true )
+		#else //LOOP_CREATE_DAMAGE_EFFECT
+			if( pMeshInst->EventTimerGlobal( pData->fEventTime ) == true )
+		#endif //LOOP_CREATE_DAMAGE_EFFECT
+			{
+				if( null != m_optrOwnerUnit )
 				{
 
 					D3DXVECTOR3 vAxisAngleDegree( 0, 0, 0);
@@ -1363,17 +2026,17 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 								vAxisAngleDegree = pMeshInst->GetXSkinAnim()->GetMatrix().GetRotateDegree();
 								vRotateAngleDegree = vAxisAngleDegree;
 							}
-#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
+		#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
 							else if( pData->bApplyMatrix == true )
 							{
 								D3DXMATRIX* pCombineMatrix = &(pMeshInst->GetXSkinAnim()->GetCloneFrame(pData->boneName.c_str())->combineMatrix);
 								if( pCombineMatrix != NULL )
 								{
-#ifdef DAMAGE_EFFECT_BUG_FIX
+		#ifdef DAMAGE_EFFECT_BUG_FIX
 									D3DXVECTOR3 vRot = GetDecomposeAngle( pCombineMatrix, GetDecomposeScale(pCombineMatrix) );
-#else
+		#else
 									D3DXVECTOR3 vRot = GetDecomposeAngle( pCombineMatrix );
-#endif
+		#endif
 									vRot.x = D3DXToDegree(vRot.x);
 									vRot.y = D3DXToDegree(vRot.y);
 									vRot.z = D3DXToDegree(vRot.z);
@@ -1381,7 +2044,7 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 									vRotateAngleDegree = vAxisAngleDegree;
 								}
 							}
-#endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
+		#endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
 							else
 							{
 								vAxisAngleDegree = pData->vRotateAngleDegree;
@@ -1393,7 +2056,7 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 
 					case DEPT_UNIT_BONE:
 						{
-							if( NULL != g_pX2Game && null != m_optrOwnerUnit )
+							if( null != m_optrOwnerUnit )
 							{
 								vAxisAngleDegree = m_optrOwnerUnit->GetRotateDegree();
 
@@ -1417,13 +2080,13 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 							vPosition = m_DamageData.impactPoint;
 						}
 						break;
-#ifdef RAVEN_WEAPON_TAKER
+		#ifdef RAVEN_WEAPON_TAKER
 					case DEPT_DIE_POS:
 						{
 							vPosition = m_vLandPositionOnLineMap;
 						}
 						break;
-#endif RAVEN_WEAPON_TAKER
+		#endif RAVEN_WEAPON_TAKER
 
 					case DEPT_POS:
 						{
@@ -1437,12 +2100,12 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 								vAxisAngleDegree = pMeshInst->GetMatrix().GetRotateDegree();
 								vRotateAngleDegree = vAxisAngleDegree;
 
-#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
+		#ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
 								if( pData->bApplyRotatedOffset == true )
 								{
 									vRotateAngleDegree = vRotateAngleDegree + pData->vRotateAngleDegree;
 								}
-#endif
+		#endif
 							}
 							else
 							{
@@ -1498,61 +2161,93 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 						vPosition += pData->vOffset;
 					}
 
-					if( NULL != g_pX2Game && NULL != g_pX2Game->GetDamageEffect() )
+					if( m_pManager != NULL )
 					{
-#ifdef INHERIT_FORCEDOWNRATE
+		#ifdef INHERIT_FORCEDOWNRATE
 						float fForceDownRate = 1.f;
 						if(true == m_bInheritForceDownRate)
 						{
 							fForceDownRate *= m_fForceDownRate;
 						}
-						CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
+						CEffect* pEffect = m_pManager->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
 							vPosition, vRotateAngleDegree, vAxisAngleDegree, m_fLandPos, false, -1.f, fForceDownRate);
-#ifdef ADDITIONAL_MEMO
+		#ifdef ADDITIONAL_MEMO
 
 						if ( NULL != pEffect )
 						{
 							/// 버프팩터를 상속함
-							if ( pData->bInheritBuffFactor && !GetDamageData()->m_vecBuffFactorPtr.empty() )
-								pEffect->GetDamageData()->m_vecBuffFactorPtr = GetDamageData()->m_vecBuffFactorPtr;
+							if ( pData->bInheritBuffFactor && !GetDamageData().m_vecBuffFactorPtr.empty() )
+								pEffect->GetDamageData().m_vecBuffFactorPtr = GetDamageData().m_vecBuffFactorPtr;
 
-							if( GetLockOnData()->m_LockOnType != CX2DamageEffect::LOT_NONE && pEffect->GetLockOnData()->m_LockOnType != CX2DamageEffect::LOT_NONE )
+							if( GetLockOnData().m_LockOnType != CX2DamageEffect::LOT_NONE && pEffect->GetLockOnData().m_LockOnType != CX2DamageEffect::LOT_NONE )
 							{
-								LockOnData *pLockOnData = pEffect->GetLockOnData();
-								LOCK_ON_TYPE lockontype = pLockOnData->m_LockOnType;
+								LockOnData& kLockOnData = pEffect->GetLockOnData();
+								LOCK_ON_TYPE lockontype = kLockOnData.m_LockOnType;
 
-								*pLockOnData = *GetLockOnData();
-								pLockOnData->m_LockOnType = lockontype;
+								kLockOnData = GetLockOnData();
+								kLockOnData.m_LockOnType = lockontype;
 							}								
-#endif
+		#endif
 							
-#ifdef ADD_GAME_STAGE_DELETE_DAMAGEEFFECT
+		#ifdef ADD_GAME_STAGE_DELETE_DAMAGEEFFECT
 							if( pData->bAutoDie )
 							{
+		#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                                g_pX2Game->AddRemoveDamageEffect( pEffect->GetHandle() );
+		#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 								g_pX2Game->AddRemoveDamageEffect( pEffect );
+		#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 							}
-#endif //ADD_GAME_STAGE_DELETE_DAMAGEEFFECT
+		#endif //ADD_GAME_STAGE_DELETE_DAMAGEEFFECT
 
-#else //INHERIT_FORCEDOWNRATE
-							g_pX2Game->GetDamageEffect()->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
+		#else //INHERIT_FORCEDOWNRATE
+							CEffect* pEffect = m_pManager->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
 								vPosition, vRotateAngleDegree, vAxisAngleDegree, 
 								m_fLandPos, false );
-#endif INHERIT_FORCEDOWNRATE
+		#endif INHERIT_FORCEDOWNRATE
 
-#ifdef INHERIT_FORCEDOWNRATE
+		#ifdef INHERIT_FORCEDOWNRATE
 							pEffect->SetInheritForceDownRate(m_bInheritForceDownRate);
-	#ifdef SERV_RAVEN_VETERAN_COMMANDER
+		#ifdef SERV_RAVEN_VETERAN_COMMANDER
 							if( -1 != pData->iGroupID )		/// 그룹 데미지 설정
 								pEffect->SetLaserGroupID( pData->iGroupID );
-	#endif SERV_RAVEN_VETERAN_COMMANDER
+		#endif SERV_RAVEN_VETERAN_COMMANDER
 
-#endif INHERIT_FORCEDOWNRATE
+		#endif INHERIT_FORCEDOWNRATE
+
+		#ifdef ADD_RENA_SYSTEM //김창한
+							//스킬, 관련 데이터 값, 첫타인지 체크 하는 값을 상속함
+							pEffect->GetDamageData().m_eFirstAttack = m_DamageData.m_eFirstAttack;
+							pEffect->GetDamageData().m_RelateSkillData = m_DamageData.m_RelateSkillData;
+		#endif //ADD_RENA_SYSTEM
+
+		#ifdef LOOP_CREATE_DAMAGE_EFFECT // 김태환
+							++pData->uiCreateCount;		/// 생성 횟수 갱신
+
+							/////////////////////////////////////////////////////////////////////////////////////
+							/// 아래 구문에서 생성 횟수에 따라 지워버런 후 Continue를 시켜 버리니, 
+							/// 기능을 추가하시려면 이 주석 위에 작업해 주세요!
+							/////////////////////////////////////////////////////////////////////////////////////
+
+							/// 반복 생성 횟수를 만족하면, 지워 버리자.
+							if ( pData->uiLoopEndCount <= pData->uiCreateCount )
+							{
+								SAFE_DELETE( pData );
+								m_DamageEffectDataList.erase( m_DamageEffectDataList.begin() + i );
+								i--;
+
+								/// 혹시 이후 코드에서 pData를 쓸 지도 모르니, continue 시켜 버리자.
+								continue;
+							}
+
+							continue;
+		#endif //LOOP_CREATE_DAMAGE_EFFECT
 						}
 
 					}
 
 				}
-				
+
 				SAFE_DELETE( pData );
 				m_DamageEffectDataList.erase( m_DamageEffectDataList.begin() + i );
 				i--;
@@ -1568,15 +2263,23 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 
 		if( m_DamageData.bReAttack == true )
 		{
-			for( int i = 0; i < (int)m_DamageData.hitUnitList.size(); i++ )
+			for( CX2DamageManager::HitUnitVector::iterator iter = m_DamageData.hitUnitList.begin(); 
+                iter != m_DamageData.hitUnitList.end(); )
 			{
-				CX2DamageManager::HitUnit* pHitUnit = &m_DamageData.hitUnitList[i];
+				CX2DamageManager::HitUnit* pHitUnit = &*iter;
 				pHitUnit->fRemainGap -= fElapsedTime;
 				if( pHitUnit->fRemainGap <= 0.0f )
 				{
-					m_DamageData.hitUnitList.erase( m_DamageData.hitUnitList.begin() + i );
-					i--;
+#ifdef  X2OPTIMIZE_STL_CONTAINER_USAGE
+                    iter = EraseUnorderlyUsingSwap( m_DamageData.hitUnitList, iter );
+#else   X2OPTIMIZE_STL_CONTAINER_USAGE
+					iter = m_DamageData.hitUnitList.erase( iter );
+#endif  X2OPTIMIZE_STL_CONTAINER_USAGE
 				}
+                else
+                {
+                    ++iter;
+                }
 			}
 		}
 
@@ -1586,6 +2289,9 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 		if( true == m_bEnableAttack )
 #endif STICKY_DAMAGE_EFFECT_TEST
 
+#ifdef X2OPTIMIZE_DAMAGE_EFFECT_TEST
+		if( g_pMain->GetDamageEffectTest() == true )
+#endif//X2OPTIMIZE_DAMAGE_EFFECT_TEST
 		{
 			if ( m_bGlobalTime == true )
 			{
@@ -1633,7 +2339,7 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 				m_DamageData.hitUnitList.resize(0);
 			}
 		}
-		if(  pMeshInst->EventTimerGlobal( m_fDamageDataChangeTimeGlobalTime ) == true && m_fDamageDataChangeTimeGlobalTime != -1.0f )
+		if(  m_fDamageDataChangeTimeGlobalTime != -1.0f && pMeshInst->EventTimerGlobal( m_fDamageDataChangeTimeGlobalTime ) == true )
 		{
 			m_fDamageDataChangeTimeGlobalTime = -1.0f;
 
@@ -1666,8 +2372,11 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 		if ( IsSamef(m_afterImageTime.x, -1.f) == false 
 			 && IsSamef(m_afterImageTime.y, -1.f) == false )
 		{
-			
-			if( g_pMain->GetGameOption()->GetOptionList()->m_bEffect == true )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+			if( g_pMain->GetGameOption().GetOptionList().m_bEffect == true )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION			
 			{
 				if( m_pAfterImage != NULL && GetMainEffect() != NULL && 
 					GetMainEffect()->GetXSkinMesh() != NULL &&
@@ -1707,7 +2416,6 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 
 		m_BeforePos = pMeshInst->GetPos();
 		
-#ifdef ADD_UPDATE_LANDPOS
 		if( IsSamef(pMeshInst->GetTempletData()->elasticCoeffX.GetRandomNumInRange(), 0.f) == false && m_bRefreshLandPos == true )
 		{
 			int iLineIndex = -1;
@@ -1718,7 +2426,6 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 			}
 			pMeshInst->SetLandPosition( landPosition.y );
 		}
-#endif
 
 		//if ( pMeshInst->GetIsUsedLand() == true )
 		if( pMeshInst->GetIsCrashLand() == true 
@@ -1743,6 +2450,9 @@ void CX2DamageEffect::CEffect::OnFrameMove( double fTime, float fElapsedTime )
 
 void CX2DamageEffect::CEffect::OnFrameMove_SoundData()
 {
+    if ( g_pX2Game == NULL )
+        return;
+
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
 	ASSERT( pMeshInst != NULL );
 
@@ -1814,6 +2524,9 @@ void CX2DamageEffect::CEffect::OnFrameMove_SoundData()
 
 void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 {
+    if ( g_pX2Game == NULL )
+        return;
+
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
 	ASSERT( pMeshInst != NULL );
 
@@ -1823,7 +2536,6 @@ void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 
 
 	if( true == m_BlackHoleData.m_bEnabled && 
-		NULL != g_pX2Game && 
 		null != m_optrOwnerUnit )
 	{
 		D3DXVECTOR3 vPos = pMeshInst->GetPos();
@@ -1843,7 +2555,11 @@ void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 
 			if( true == m_BlackHoleData.m_bDragOnlyHittedUnit )
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                if( false == pUnit->IsEffectiveBlackHoleDamageEffect( GetHandle() ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				if( false == pUnit->IsEffectiveBlackHoleDamageEffect( this ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				{
 					continue;
 				}
@@ -1857,9 +2573,9 @@ void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 				{
 					CX2GUUser* pUser = (CX2GUUser*) pUnit;
 
-					if( pUser->GetSyncData()->nowState == pUser->GetDamageDownLandFront() ||
-						pUser->GetSyncData()->nowState == pUser->GetDamageDownLandBack() ||
-						pUser->GetSyncData()->nowState == pUser->GetDamageAirDownLanding() )
+					if( pUser->GetSyncData().nowState == pUser->GetDamageDownLandFront() ||
+						pUser->GetSyncData().nowState == pUser->GetDamageDownLandBack() ||
+						pUser->GetSyncData().nowState == pUser->GetDamageAirDownLanding() )
 					{
 						continue;
 					}
@@ -1885,7 +2601,7 @@ void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 						continue;
 					}
 
-					switch( pNPC->GetNPCTemplet()->m_ClassType )
+					switch( pNPC->GetNPCTemplet().m_ClassType )
 					{
 					case CX2UnitManager::NCT_THING_GATE:
 					case CX2UnitManager::NCT_THING_BOX:			
@@ -1893,9 +2609,7 @@ void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 					case CX2UnitManager::NCT_THING_DEVICE:		
 					case CX2UnitManager::NCT_THING_HOUSE:		
 					case CX2UnitManager::NCT_THING_WORLD_BLOCK:
-#ifdef DUNGEON_CHECKER_NPC
 					case CX2UnitManager::NCT_THING_CHECKER:
-#endif
 						//{{ JHKang / 강정훈 / 2010/12/07 / 버프 및 디버프 받지 않는 NPC TYPE
 #ifdef NEW_SKILL_2010_11
 					case CX2UnitManager::NCT_THING_NOBUFF:		/// 버프/디버프에 영향을 받지 않음()
@@ -1904,12 +2618,19 @@ void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 						continue;
 					}
 #ifdef SERV_EVENT_VALENTINE_DUNGEON
-					switch ( pNPC->GetNPCTemplet()->m_nNPCUnitID )
+					switch ( pNPC->GetNPCTemplet().m_nNPCUnitID )
 					{
 					case CX2UnitManager::NUI_VALENTINE_POISON_CUP_CAKE:
 						continue;
 					}
 #endif //SERV_EVENT_VALENTINE_DUNGEON
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+					switch( pNPC->GetNPCTemplet().m_nNPCUnitID )
+					{
+					case CX2UnitManager::NUI_EVENT_VALENTINEGIFT_BOX:
+						continue;
+					}
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
 				} break;
 			}
 
@@ -1921,7 +2642,11 @@ void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 				if( CX2GameUnit::GUT_USER == pUnit->GetGameUnitType() )
 				{
 					CX2GUUser* pUser = (CX2GUUser*) pUnit;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                    pUser->RemoveEffectiveBlackHoleDamageEffect( GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					pUser->RemoveEffectiveBlackHoleDamageEffect( this );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				}
 				continue;
 			}
@@ -1954,7 +2679,11 @@ void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 			if( CX2GameUnit::GUT_USER == pUnit->GetGameUnitType() )
 			{
 				CX2GUUser* pUser = (CX2GUUser*) pUnit;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                pUser->AddEffectiveBlackHoleDamageEffect( GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				pUser->AddEffectiveBlackHoleDamageEffect( this );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			}
 		}
 	}
@@ -1967,6 +2696,9 @@ void CX2DamageEffect::CEffect::OnFrameMove_BlackHoleData( float fElapsedTime )
 
 void CX2DamageEffect::CEffect::OnFrameMove_LockOnData(  float fElapsedTime_ )
 {
+    if ( g_pX2Game == NULL )
+        return;
+
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
 	ASSERT( pMeshInst != NULL );
 
@@ -2034,12 +2766,54 @@ void CX2DamageEffect::CEffect::OnFrameMove_LockOnData(  float fElapsedTime_ )
 			CX2GUUser* pCX2GUUser = g_pX2Game->GetUserUnitByUID( m_LockOnData.m_LockOnUnitUID );
 			if( pCX2GUUser != NULL )
 			{
-				D3DXVECTOR3 pos = pCX2GUUser->GetPos();
-				pos.y += 100.0f;
-				VectorLockOn( pos );
+				//D3DXVECTOR3 pos = pCX2GUUser->GetPos();
+				//pos.y += 100.0f;
+
+				D3DXVECTOR3 vPos( 0.f, 0.f, 0.f );
+
+				/*vPos = pCX2GUUser->GetPos();
+				vPos.y += 100.f;*/
+
+				CX2GameUnit* pOwnerUnit = GetOwnerUnit();
+				if ( NULL == pOwnerUnit )
+					pOwnerUnit = g_pX2Game->GetMyUnit();
+
+				const D3DXVECTOR3& vOwnerUnitPos = pOwnerUnit->GetPos();
+
+				const CKTDXCollision::CollisionDataListSet& AttackListSet = pCX2GUUser->GetCollisionListSet();
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+				bool    bInit = false;
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+				BOOST_FOREACH( const CKTDXCollision::CollisionDataList* collisionDataList, AttackListSet )
+				{
+					BOOST_FOREACH( CKTDXCollision::CollisionData* collisionData, *collisionDataList )
+					{
+						D3DXVECTOR3 vCollPos = collisionData->GetPointStart();
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+						if ( bInit == false )
+						{
+							bInit = true;
+							vPos = vCollPos;
+							continue;
+						}
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+						float fDist = GetDistance( vOwnerUnitPos, vCollPos );
+						float fOldDist = GetDistance( vOwnerUnitPos, vPos );
+
+						if ( fDist <= fOldDist )
+							vPos = vCollPos;
+					}
+				}
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+				if ( bInit == false )
+				{
+					vPos = pCX2GUUser->GetPos();
+					vPos.y += 100.0f;
+				}
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+				VectorLockOn( vPos );
 
 				if( pCX2GUUser->GetNowHp() <= 0.f && 
-					NULL != g_pX2Game &&
 					null != m_optrOwnerUnit )
 				{
 					m_LockOnData.m_LockOnUnitUID = -1;
@@ -2057,12 +2831,56 @@ void CX2DamageEffect::CEffect::OnFrameMove_LockOnData(  float fElapsedTime_ )
 				CX2GUNPC* pCX2GUNPC = g_pX2Game->GetNPCUnitByUID( m_LockOnData.m_LockOnNPCUID );
 				if( pCX2GUNPC != NULL )
 				{
-					D3DXVECTOR3 pos = pCX2GUNPC->GetPos();
-					pos.y += 100.0f;
-					VectorLockOn( pos );
+					//D3DXVECTOR3 pos = pCX2GUNPC->GetPos();
+					//pos.y += 100.0f;
+					D3DXVECTOR3 vPos( 0.f, 0.f, 0.f );
+					
+					CX2GameUnit* pOwnerUnit = GetOwnerUnit();
+					if ( NULL == pOwnerUnit )
+						pOwnerUnit = g_pX2Game->GetMyUnit();
+
+					const D3DXVECTOR3& vOwnerUnitPos = pOwnerUnit->GetPos();
+					
+					const CKTDXCollision::CollisionDataListSet& AttackListSet = pCX2GUNPC->GetCollisionListSet();
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+					bool    bInit = false;
+#else   X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+					const CKTDXCollision::CollisionDataList* collisionDataList = *AttackListSet.begin();
+					CKTDXCollision::CollisionData* collisionData = *collisionDataList->begin();
+					vPos = collisionData->GetPointStart();
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+
+					BOOST_FOREACH( const CKTDXCollision::CollisionDataList* collisionDataList, AttackListSet )
+					{
+						BOOST_FOREACH( CKTDXCollision::CollisionData* collisionData, *collisionDataList )
+						{
+							D3DXVECTOR3 vCollPos = collisionData->GetPointStart();
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+                            if ( bInit == false )
+                            {
+                                bInit = true;
+                                vPos = vCollPos;
+                                continue;
+                            }
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+							float fDist = GetDistance( vOwnerUnitPos, vCollPos );
+							float fOldDist = GetDistance( vOwnerUnitPos, vPos );
+
+							if ( fDist <= fOldDist )
+								vPos = vCollPos;
+						}
+					}
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+                    if ( bInit == false )
+                    {
+					    vPos = pCX2GUNPC->GetPos();
+					    vPos.y += 100.0f;
+                    }
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+					VectorLockOn( vPos );
+
 
 					if( pCX2GUNPC->GetNowHp() <= 0.f && 
-						NULL != g_pX2Game &&
 						null != m_optrOwnerUnit )
 					{
 						m_LockOnData.m_LockOnNPCUID = -1;
@@ -2094,12 +2912,58 @@ void CX2DamageEffect::CEffect::OnFrameMove_LockOnData(  float fElapsedTime_ )
 
 			if ( NULL != pGameUnit )
 			{
-				D3DXVECTOR3 vPos = pGameUnit->GetPos();
-				vPos.y += 100.0f;
+				/*D3DXVECTOR3 vPos = pGameUnit->GetPos();
+				vPos.y += 100.0f;*/
+
+				D3DXVECTOR3 vPos( 0.f, 0.f, 0.f );
+
+				CX2GameUnit* pOwnerUnit = GetOwnerUnit();
+				if ( NULL == pOwnerUnit )
+					pOwnerUnit = g_pX2Game->GetMyUnit();
+
+				const D3DXVECTOR3& vOwnerUnitPos = pOwnerUnit->GetPos();
+
+				const CKTDXCollision::CollisionDataListSet& AttackListSet = pGameUnit->GetCollisionListSet();
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+				bool    bInit = false;
+#else   X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+				const CKTDXCollision::CollisionDataList* collisionDataList = *AttackListSet.begin();
+				CKTDXCollision::CollisionData* collisionData = *collisionDataList->begin();
+				vPos = collisionData->GetPointStart();
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+
+				BOOST_FOREACH( const CKTDXCollision::CollisionDataList* collisionDataList, AttackListSet )
+				{
+					BOOST_FOREACH( CKTDXCollision::CollisionData* collisionData, *collisionDataList )
+					{
+						D3DXVECTOR3 vCollPos = collisionData->GetPointStart();
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+						if ( bInit == false )
+						{
+							bInit = true;
+							vPos = vCollPos;
+							continue;
+						}
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+						float fDist = GetDistance( vOwnerUnitPos, vCollPos );
+						float fOldDist = GetDistance( vOwnerUnitPos, vPos );
+
+						if ( fDist <= fOldDist )
+							vPos = vCollPos;
+					}
+				}
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+				if ( bInit == false )
+				{
+					vPos = pGameUnit->GetPos();
+					vPos.y += 100.0f;
+				}
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+
 				VectorLockOn( vPos );
 
 				// 타겟을 잃었으면
-				if( 0.f >= pGameUnit->GetNowHp() && NULL != g_pX2Game && null != m_optrOwnerUnit )
+				if( 0.f >= pGameUnit->GetNowHp() && null != m_optrOwnerUnit )
 				{
 					// 기존의 타켓을 초기화
 					m_LockOnData.m_LockOnUnitUID	= -1;
@@ -2138,8 +3002,70 @@ void CX2DamageEffect::CEffect::OnFrameMove_LockOnData(  float fElapsedTime_ )
 
 			if ( NULL != pGameUnit )
 			{
-				D3DXVECTOR3 vPos = pGameUnit->GetPos();
-				vPos.y += 100.f;
+
+#ifdef BALANCE_PATCH_20131107
+				if( LOCSD_SAVE_DIR_SPEED == m_LockOnData.m_eNotFindTargetMoveStop )
+				{// 이제 타겟을 찾았으므로 저장된 dir_speed 값이 있다면 그 값으로 바꿔준다.
+					CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
+					if( NULL != pMeshInst )
+					{
+						pMeshInst->SetDirSpeed(m_LockOnData.m_fSaveDirSpeed);
+						m_LockOnData.m_eNotFindTargetMoveStop = LOCSD_NOT_SAVE_DIR_SPEED;
+					}
+				}
+#endif //BALANCE_PATCH_20131107
+
+				D3DXVECTOR3 vPos( 0.f, 0.f, 0.f );
+				
+				//vPos = pGameUnit->GetPos();
+				//vPos.y += 100.f;
+
+				CX2GameUnit* pOwnerUnit = GetOwnerUnit();
+				if ( NULL == pOwnerUnit )
+					pOwnerUnit = g_pX2Game->GetMyUnit();
+
+				const D3DXVECTOR3& vOwnerUnitPos = pOwnerUnit->GetPos();
+
+				const CKTDXCollision::CollisionDataListSet& AttackListSet = pGameUnit->GetCollisionListSet();
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+                bool    bInit = false;
+#else   X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+				const CKTDXCollision::CollisionDataList* collisionDataList = *AttackListSet.begin();
+				CKTDXCollision::CollisionData* collisionData = *collisionDataList->begin();
+				vPos = collisionData->GetPointStart();
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+
+				BOOST_FOREACH( const CKTDXCollision::CollisionDataList* collisionDataList, AttackListSet )
+				{
+					BOOST_FOREACH( CKTDXCollision::CollisionData* collisionData, *collisionDataList )
+					{
+						D3DXVECTOR3 vCollPos = collisionData->GetPointStart();
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+                        if ( bInit == false )
+                        {
+                            bInit = true;
+                            vPos = vCollPos;
+                            continue;
+                        }
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+
+						float fDist = GetDistance( vOwnerUnitPos, vCollPos );
+						float fOldDist = GetDistance( vOwnerUnitPos, vPos );
+
+						if ( fDist <= fOldDist )
+							vPos = vCollPos;
+					}
+				}
+
+				//D3DXVECTOR3 vPos = pGameUnit->GetPos();
+				//vPos.y += 100.f;
+#ifdef  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
+                if ( bInit == false )
+                {
+					vPos = pGameUnit->GetPos();
+					vPos.y += 100.0f;
+                }
+#endif  X2OPTIMIZE_LOCKONDATA_COLLISION_CHECK_CRASH_BUG_FIX
 				VectorLockOn( vPos );
 
 				if ( m_DamageTimeNow > m_PrevDamageTime )
@@ -2168,7 +3094,7 @@ void CX2DamageEffect::CEffect::OnFrameMove_LockOnData(  float fElapsedTime_ )
 				}
 
 				// 타겟을 잃었으면
-				if( 0.f >= pGameUnit->GetNowHp() && NULL != g_pX2Game && null != m_optrOwnerUnit )
+				if( 0.f >= pGameUnit->GetNowHp() && null != m_optrOwnerUnit )
 				{
 					// 기존의 타켓을 초기화
 					m_LockOnData.m_LockOnUnitUID	= -1;
@@ -2249,9 +3175,60 @@ void CX2DamageEffect::CEffect::OnFrameMove_LockOnData(  float fElapsedTime_ )
 						m_LockOnData.m_LockOnUnitUID = gameUnitUID;
 					else
 						m_LockOnData.m_LockOnNPCUID = static_cast<int>( gameUnitUID );
+
+#ifdef BALANCE_PATCH_20131107
+					if( LOCSD_NOT_SAVE_DIR_SPEED == m_LockOnData.m_eNotFindTargetMoveStop )
+					{		
+						CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
+						if( NULL != pMeshInst )
+						{
+							if( ( m_LockOnData.m_LockOnUnitUID < 0 ) && ( m_LockOnData.m_LockOnNPCUID < 0 ) )
+							{//타겟이 없으므로 dir_Speed를 저장하고 dir_Speed값을 0으로 만든다.
+								m_LockOnData.m_fSaveDirSpeed = pMeshInst->GetDirSpeed();
+								pMeshInst->SetDirSpeed(0.f);
+								m_LockOnData.m_eNotFindTargetMoveStop = LOCSD_SAVE_DIR_SPEED;
+							}
+						}
+					}
+#endif //BALANCE_PATCH_20131107
+
 				}
 			}
 		} break;
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			case LOT_UID_BONE_POS:		/// 록온된 유저의 특정 본을 록온
+				{
+					CX2GUUser* pCX2GUUser = g_pX2Game->GetUserUnitByUID( m_LockOnData.m_LockOnUnitUID );
+
+					if( pCX2GUUser != NULL )
+					{
+						/// Bone Pos 반환
+						D3DXVECTOR3 vBonePos = pCX2GUUser->GetBonePos( m_LockOnData.m_wstrTargetBoneName.c_str() );
+
+						/// Bone Pos가 없다면, 그냥 해댱 유저 위치 설정 하자
+						if ( D3DXVECTOR3( 0.f, 0.f, 0.f ) == vBonePos )
+							vBonePos = pCX2GUUser->GetPos();
+
+						VectorLockOn( vBonePos );
+					}
+					else
+					{
+						CX2GUNPC* pCX2GUNPC = g_pX2Game->GetNPCUnitByUID( m_LockOnData.m_LockOnNPCUID );
+
+						if ( NULL != pCX2GUNPC )
+						{
+							/// Bone Pos 반환
+							D3DXVECTOR3 vBonePos = pCX2GUNPC->GetBonePos( m_LockOnData.m_wstrTargetBoneName.c_str() );
+
+							/// Bone Pos가 없다면, 그냥 해댱 NPC 위치 설정 하자
+							if ( D3DXVECTOR3( 0.f, 0.f, 0.f ) == vBonePos )
+								vBonePos = pCX2GUNPC->GetPos();
+
+							VectorLockOn( vBonePos );
+						}
+					}
+				} break;
+#endif //SERV_9TH_NEW_CHARACTER
 	}
 }
 
@@ -2262,6 +3239,9 @@ void CX2DamageEffect::CEffect::OnFrameMove_SineMoveData( float fElapsedTime )
 {
 #ifdef _SIN_MOVE_TEST_
 	//**
+
+    if ( g_pX2Game == NULL )
+        return;
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
 	//ASSERT( pMeshInst != NULL );
@@ -2318,7 +3298,7 @@ void CX2DamageEffect::CEffect::OnFrameMove_Trace()
 
 
 
-	if( NULL == m_pTraceUnit )
+	if( NULL == m_pTraceUnit || g_pX2Game == NULL )
 		return; 
 
 
@@ -2371,28 +3351,31 @@ void CX2DamageEffect::CEffect::DamageReact( CX2DamageManager::DamageData* pDamag
 
 	CX2GameUnit* pDefenderGameUnit = ( null != pDamageData->optrDefenderGameUnit ? pDamageData->optrDefenderGameUnit.GetObservable() : NULL );
 
-	g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pDefenderGameUnit ),  L"RevengeImpact", 
-													pDamageData->impactPoint,
-													50, 50, 1, 1 );
+    if ( g_pX2Game != NULL )
+    {
+	    g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pDefenderGameUnit ),  L"RevengeImpact", 
+													    pDamageData->impactPoint,
+													    50, 50, 1, 1 );
 
-	g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pDefenderGameUnit ),  L"DamageImpact", 
-		pDamageData->impactPoint,
-		100, 200, 2, 10 );
-	g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pDefenderGameUnit ),  L"DamageImpactCore", 
-		pDamageData->impactPoint,
-		100, 200, 2, 10 );
-	g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pDefenderGameUnit ),  L"DamageImpactSlash", 
-		pDamageData->impactPoint,
-		50, 50, 2, 2 );
+	    g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pDefenderGameUnit ),  L"DamageImpact", 
+		    pDamageData->impactPoint,
+		    100, 200, 2, 10 );
+	    g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pDefenderGameUnit ),  L"DamageImpactCore", 
+		    pDamageData->impactPoint,
+		    100, 200, 2, 10 );
+	    g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pDefenderGameUnit ),  L"DamageImpactSlash", 
+		    pDamageData->impactPoint,
+		    50, 50, 2, 2 );
 
-	g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera();
+	    g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera();
+    }
 
 	/*
 	if( m_bReflect == true )
 	{
 		D3DXVECTOR3 angle = pMeshInst->GetXSkinAnim()->GetMatrix().GetRotateDegree();
 		angle.z += 180.0f;
-		g_pX2Game->GetDamageEffect()->CreateInstance( NULL,  pDamageData->pAttackerUnit, m_Name.c_str(),
+		m_pManager->CreateInstance( NULL,  pDamageData->pAttackerUnit, m_Name.c_str(),
 														pMeshInst->GetXSkinAnim()->GetMatrix().GetPos(),
 														angle, angle, m_fLandPos, true );
 	}
@@ -2403,7 +3386,8 @@ void CX2DamageEffect::CEffect::DamageReact( CX2DamageManager::DamageData* pDamag
 		ParticleData* pParticleData = m_StartParticleDataList[i];
 		if( pParticleData->bForceDieHit == true )
 		{
-			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( pParticleData->m_hSeq );
+            if ( g_pX2Game != NULL )
+			    g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( pParticleData->m_hSeq );
 			SAFE_DELETE( pParticleData );
 			m_StartParticleDataList.erase( m_StartParticleDataList.begin() + i );
 			i--;
@@ -2415,7 +3399,8 @@ void CX2DamageEffect::CEffect::DamageReact( CX2DamageManager::DamageData* pDamag
 		ParticleData* pParticleData = m_PassiveParticleDataList[i];
 		if( pParticleData->bForceDieHit == true )
 		{
-			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( pParticleData->m_hSeq );
+            if ( g_pX2Game != NULL )
+			    g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( pParticleData->m_hSeq );
 			SAFE_DELETE( pParticleData );
 			m_PassiveParticleDataList.erase( m_PassiveParticleDataList.begin() + i );
 			i--;
@@ -2427,7 +3412,8 @@ void CX2DamageEffect::CEffect::DamageReact( CX2DamageManager::DamageData* pDamag
 		ParticleData* pParticleData = m_TimeParticleDataList[i];
 		if( pParticleData->bForceDieHit == true )
 		{
-			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( pParticleData->m_hSeq );
+            if ( g_pX2Game != NULL )
+			    g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( pParticleData->m_hSeq );
 			SAFE_DELETE( pParticleData );
 			m_TimeParticleDataList.erase( m_TimeParticleDataList.begin() + i );
 			i--;
@@ -2485,11 +3471,15 @@ void CX2DamageEffect::CEffect::AttackResult()
 		if ( 0.f < m_DamageData.fHitAddHPPer )		/// 공격 성공시, 체력 회복 설정
 			pOwnerGameUnit->UpNowHpPerHitOthers( m_DamageData.fHitAddHPPer );
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( 0.f < m_DamageData.fHitAddHPbyAttackPower ) /// 공격 성공시, 체력 회복 설정(공격자 물마공 평균에 비례)
+			pOwnerGameUnit->UpNowHpPerHitbyAttackPower( m_DamageData.fHitAddHPbyAttackPower );
+#endif //ADD_MEMO_1ST_CLASS
     }      
 
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
-	if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstHandle )
+	if( INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstHandle && g_pX2Game != NULL )
 		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
 
 
@@ -2498,7 +3488,11 @@ void CX2DamageEffect::CEffect::AttackResult()
 		if( true == m_BlackHoleData.m_bEnabled && 
 			true == m_BlackHoleData.m_bDragOnlyHittedUnit )
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            pDefenderGameUnit->AddEffectiveBlackHoleDamageEffect( GetHandle() );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			pDefenderGameUnit->AddEffectiveBlackHoleDamageEffect( this );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 
 
@@ -2536,9 +3530,19 @@ void CX2DamageEffect::CEffect::AttackResult()
 		case CX2DamageManager::RT_REFLECT:
 #endif NEW_SKILL_2010_11
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                int iReflectCount = 0;
+                if ( m_DamageData.hAttackerEffect == GetHandle() )
+                    iReflectCount = GetReflectCount();
+                else if ( CEffect* pEffect = m_pManager->GetInstance( m_DamageData.hAttackerEffect ) )
+                {
+                    iReflectCount = pEffect->GetReflectCount();
+                }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				int iReflectCount = ((CEffect*)m_DamageData.pAttackerEffect)->GetReflectCount();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				
-				if ( iReflectCount > 0 )
+				if ( iReflectCount > 0 && g_pX2Game != NULL )
 				{
 					g_pX2Game->GetMajorParticle()->CreateSequence( static_cast<CKTDGObject*>( pOwnerGameUnit ),  L"RevengeImpactSlashCW", 
 						m_DamageData.impactPoint, 
@@ -2558,8 +3562,11 @@ void CX2DamageEffect::CEffect::AttackResult()
 						pSeq->SetLandPosition( m_fLandPos );
 				}				
 
-				g_pX2Game->GetWorld()->SetWorldColor( 0xff000000 );
-				g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
+                if ( g_pX2Game != NULL )
+                {
+				    g_pX2Game->GetWorld()->SetWorldColor( 0xff000000 );
+				    g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
+                }
 
 #ifdef FIX_EFFECT_REFLECT
 				if( m_bReflect == true && iReflectCount > 0  )
@@ -2581,7 +3588,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 						angle = pMeshInst->GetXSkinAnim()->GetMatrix().GetRotateDegree();
 
 						angle.z += 180.0f;
-						CX2DamageEffect::CEffect* pReflectEffect = g_pX2Game->GetDamageEffect()->CreateInstance( pDefenderGameUnit, m_Name.c_str(), m_fPowerRate,
+						CX2DamageEffect::CEffect* pReflectEffect = m_pManager->CreateInstance( pDefenderGameUnit, m_Name.c_str(), m_fPowerRate,
 							pMeshInst->GetXSkinAnim()->GetMatrix().GetPos(),
 							angle, angle, m_fLandPos );
 
@@ -2595,7 +3602,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 #else
 					D3DXVECTOR3 angle = pMeshInst->GetXSkinAnim()->GetMatrix().GetRotateDegree();
 					angle.z += 180.0f;
-					CX2DamageEffect::CEffect* pReflectEffect = g_pX2Game->GetDamageEffect()->CreateInstance( pDefenderGameUnit, m_Name.c_str(), m_fPowerRate,
+					CX2DamageEffect::CEffect* pReflectEffect = m_pManager->CreateInstance( pDefenderGameUnit, m_Name.c_str(), m_fPowerRate,
 						pMeshInst->GetXSkinAnim()->GetMatrix().GetPos(),
 						angle, angle, m_fLandPos );
 
@@ -2625,8 +3632,21 @@ void CX2DamageEffect::CEffect::AttackResult()
 					if( NULL != pMeshInst )
 					{
 						D3DXVECTOR3 angle = pMeshInst->GetXSkinAnim()->GetMatrix().GetRotateDegree();
-						g_pX2Game->GetDamageEffect()->CreateInstance( pOwnerGameUnit,m_DamageData.m_wstrCreateDamageEffectName.c_str(), m_fPowerRate,
+#ifdef ADD_RENA_SYSTEM //김창한
+						//스킬, 관련 데이터 값, 첫타인지 체크 하는 값을 상속함
+						CX2DamageEffect::CEffect* pDamageEffect = m_pManager->CreateInstance( pOwnerGameUnit,m_DamageData.m_wstrCreateDamageEffectName.c_str(), m_fPowerRate,
 							m_DamageData.impactPoint, angle, angle, m_fLandPos );
+
+						if( NULL != pDamageEffect )
+						{
+							pDamageEffect->GetDamageData().m_eFirstAttack = m_DamageData.m_eFirstAttack;
+							pDamageEffect->GetDamageData().m_RelateSkillData = m_DamageData.m_RelateSkillData;
+						}
+#else //ADD_RENA_SYSTEM
+						m_pManager->CreateInstance( pOwnerGameUnit,m_DamageData.m_wstrCreateDamageEffectName.c_str(), m_fPowerRate,
+							m_DamageData.impactPoint, angle, angle, m_fLandPos );
+#endif //ADD_RENA_SYSTEM
+
 					}
 				}
 			} break;
@@ -2655,9 +3675,20 @@ void CX2DamageEffect::CEffect::AttackResult()
 						{
 							pInstance->m_bTraceUnitDieDeleteEffectSet = m_DamageData.m_bTraceUnitDieDeleteEffectSet;
 							pInstance->m_bCreateEffectSetTraceUnit = m_DamageData.m_bCreateEffectSetTraceUnit;
+
+#ifdef ADD_RENA_SYSTEM //김창한
+							//스킬, 관련 데이터 값, 첫타인지 체크 하는 값을 상속함
+							pInstance->m_eFirstAttack = m_DamageData.m_eFirstAttack;
+							pInstance->m_RelateSkillData = m_DamageData.m_RelateSkillData;
+#endif //ADD_RENA_SYSTEM
 						}
+
 #else //TRACE_UNIT_DIE_DELETE_EFFECTSET
-						g_pX2Game->GetEffectSet()->PlayEffectSet( m_DamageData.m_wstrCreateEffectSetName.c_str(), pOwnerGameUnit, pTraceUnit, false, m_fPowerRate );
+						CX2EffectSet::Handle hEffectSet = g_pX2Game->GetEffectSet()->PlayEffectSet( m_DamageData.m_wstrCreateEffectSetName.c_str(), pOwnerGameUnit, pTraceUnit, false, m_fPowerRate
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                            , -1.f, D3DXVECTOR3( 1, 1, 1 ), false, D3DXVECTOR3( 0, 0, 0 ), D3DXVECTOR3( 0, 0, 0 ), D3DXVECTOR3( 0, 0, 0 ), m_bSkipNpcReactionSimulation
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                            );
 #endif //TRACE_UNIT_DIE_DELETE_EFFECTSET
 					}
 				}
@@ -2696,7 +3727,6 @@ void CX2DamageEffect::CEffect::AttackResult()
 							}
 						}						
 #endif
-#ifdef ADD_COMBO_ALLYNPC
 						if( pOwnerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 						{
 							CX2GUNPC *pNpc = static_cast< CX2GUNPC* >( pOwnerGameUnit );
@@ -2709,7 +3739,6 @@ void CX2DamageEffect::CEffect::AttackResult()
 									pUser->GetComboManager()->AddCombo();
 							}
 						}
-#endif //ADD_COMBO_ALLYNPC
 
 #ifdef SERV_ARME_DIMENSION_WITCH
 						if( (	pOwnerGameUnit->GetHitCreateDamageEffectRate() > 0.f && 
@@ -2718,17 +3747,13 @@ void CX2DamageEffect::CEffect::AttackResult()
 								pOwnerGameUnit->GetRandomFloat() <= m_DamageData.m_fCreateDamageEffectRate ) )
 						{
 							D3DXVECTOR3 angle = pMeshInst->GetXSkinAnim()->GetMatrix().GetRotateDegree();
-							g_pX2Game->GetDamageEffect()->CreateInstance( pOwnerGameUnit,m_DamageData.m_wstrCreateDamageEffectName.c_str(), 
+							m_pManager->CreateInstance( pOwnerGameUnit,m_DamageData.m_wstrCreateDamageEffectName.c_str(), 
 								pOwnerGameUnit->GetHitCreateDamageEffectPowerRate(),
 								m_DamageData.impactPoint, angle, angle, m_fLandPos );
 						}						
 #endif
 
-#ifdef INT_SKILL_BUG_FIX
-						pOwnerGameUnit->DoDelegateProcessInAttackResult();
-#else
 						pOwnerGameUnit->DoDelegateProcessInAttackResult( m_DamageData );
-#endif INT_SKILL_BUG_FIX
 					}
 				}
 			}
@@ -2748,7 +3773,30 @@ void CX2DamageEffect::CEffect::AttackResult()
 	{
 		if( pOwnerGameUnit != NULL && pOwnerGameUnit->IsLocalUnit() == true )
 		{
-			if( pOwnerGameUnit->GetUpMPThisFrame() == false )
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			/// 애드일 땐, 타격시 DP 수치 올려 주자
+			if ( CX2GameUnit::GUT_USER == pOwnerGameUnit->GetGameUnitType() )
+			{
+				CX2GUUser* pUser = static_cast< CX2GUUser* >( pOwnerGameUnit );
+
+				if ( NULL != pUser && NULL != pUser->GetUnit() && CX2Unit::UT_ADD == pUser->GetUnit()->GetType() )
+				{
+					/// 프레임당 한번만 DP 회복 처리
+					if ( false == pUser->GetUpDPByAttackThisFrame() )
+					{
+						pOwnerGameUnit->UpNowDPValueByHit( m_DamageData );
+						pUser->SetUpDPByAttackThisFrame( true );
+					}
+				}
+			}
+#endif //SERV_9TH_NEW_CHARACTER
+
+
+			if( pOwnerGameUnit->GetUpMPThisFrame() == false 
+#ifdef ADD_DAMAGE_TYPE_BUFF
+				&& CX2DamageManager::DT_BUFF != m_DamageData.damageType 
+#endif //ADD_DAMAGE_TYPE_BUFF
+				)
 			{
 				int		redAdv						= 0;
 				int		blueAdv						= 0;
@@ -2790,18 +3838,18 @@ void CX2DamageEffect::CEffect::AttackResult()
 				if ( pOwnerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 				{
 					CX2GUUser* pUser = static_cast< CX2GUUser* >( pOwnerGameUnit );
-					BYTE byMemberShipGrade = pUser->GetUnit()->GetUnitData()->m_byMemberShipGrade;
+					BYTE byMemberShipGrade = pUser->GetUnit()->GetUnitData().m_byMemberShipGrade;
 
 					const CX2SkillTree::SkillTemplet* pSkillTemplet;
 
 					// 집중된 마력
 
-					pSkillTemplet = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_GP_COMMON_CONCENTRATION_MAGICAL_POWER, byMemberShipGrade);
+					pSkillTemplet = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_GP_COMMON_CONCENTRATION_MAGICAL_POWER, byMemberShipGrade);
 
 					if( NULL != pSkillTemplet )
 					{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 	
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_GP_COMMON_CONCENTRATION_MAGICAL_POWER, true ) );	/// 스킬 레벨
 	
@@ -2813,12 +3861,12 @@ void CX2DamageEffect::CEffect::AttackResult()
 					
 					// 분노해방
 
-					pSkillTemplet = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_GP_COMMON_LIBERATION_OF_ANGER, byMemberShipGrade);
+					pSkillTemplet = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_GP_COMMON_LIBERATION_OF_ANGER, byMemberShipGrade);
 
 					if( NULL != pSkillTemplet)
 					{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData()->m_UserSkillTree;
+						const CX2UserSkillTree& userSkillTree = pUser->GetUnit()->GetUnitData().m_UserSkillTree;
 
 						const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( CX2SkillTree::SI_GP_COMMON_LIBERATION_OF_ANGER, true ) );	/// 스킬 레벨
 
@@ -2857,9 +3905,9 @@ void CX2DamageEffect::CEffect::AttackResult()
 				case CX2GameUnit::GUT_USER:
 					{
 						CX2GUUser* pGUUser = static_cast<CX2GUUser*>( pOwnerGameUnit );
-						if( pGUUser->GetCashItemAbility()->m_fUpMPAtAttackOrDamage > 0.f )
+						if( pGUUser->GetCashItemAbility().m_fUpMPAtAttackOrDamage > 0.f )
 						{
-							pGUUser->UpNowMp( pGUUser->GetCashItemAbility()->m_fUpMPAtAttackOrDamage );
+							pGUUser->UpNowMp( pGUUser->GetCashItemAbility().m_fUpMPAtAttackOrDamage );
 						}
 					} break;
 				}
@@ -2881,7 +3929,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 					CX2GUUser* pUser = static_cast<CX2GUUser*>( pOwnerGameUnit );
 					
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-					int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ESK_GET_MANA_UP, true );
+					int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ESK_GET_MANA_UP, true );
 
 					if( iSkillLevel > 0 )
 					{
@@ -2893,7 +3941,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 						}
 					}
 #else //UPGRADE_SKILL_SYSTEM_2013
-					int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_GET_MANA_UP );
+					int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_GET_MANA_UP );
 
 					if( iSkillLevel > 0 )
 					{
@@ -2916,7 +3964,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 					CX2GUUser* pUser = static_cast<CX2GUUser*>( pOwnerGameUnit );
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-					int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LGA_COMMUNE_OF_NATURE, true );
+					int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LGA_COMMUNE_OF_NATURE, true );
 					if( iSkillLevel > 0 )
 					{
 						const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LGA_COMMUNE_OF_NATURE );
@@ -2927,7 +3975,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 						}
 					}
 	#else // UPGRADE_SKILL_SYSTEM_2013
-					int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LGA_COMMUNE_OF_NATURE );
+					int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_LGA_COMMUNE_OF_NATURE );
 					if( iSkillLevel > 0 )
 					{
 						const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_LGA_COMMUNE_OF_NATURE, iSkillLevel );
@@ -2948,7 +3996,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 					CX2GUUser* pUser = static_cast<CX2GUUser*>( pOwnerGameUnit );
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-					int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_CDC_ACCURATE_MARKMANSHIP, true );
+					int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_CDC_ACCURATE_MARKMANSHIP, true );
 					if ( iSkillLevel > 0 )
 					{
 						const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_CDC_ACCURATE_MARKMANSHIP );
@@ -2959,7 +4007,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 						}
 					}
 	#else // UPGRADE_SKILL_SYSTEM_2013
-					int iSkillLevel = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_CDC_ACCURATE_MARKMANSHIP );
+					int iSkillLevel = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_CDC_ACCURATE_MARKMANSHIP );
 					if ( iSkillLevel > 0 )
 					{
 						const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_CDC_ACCURATE_MARKMANSHIP, iSkillLevel );
@@ -2972,6 +4020,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 				}
 #endif
+
 				//}}
 				
 				if( pOwnerGameUnit->GetTeam() == CX2Room::TN_RED )
@@ -2992,11 +4041,12 @@ void CX2DamageEffect::CEffect::AttackResult()
 #endif
 					{
 						//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-		#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
-						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f + CX2SocketItem::GetFinalHyperGageChargeSpeedPercent( pOwnerGameUnit->GetSocketData()->m_fHyperModeChargeRate, pOwnerGameUnit->GetUnitLevel() ) ) ) + (2.0f * redAdv) ) * fIncreateSoulRate );
-		#else	NOT_USE_PERCENT_IN_OPTION_DATA
-						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f+pOwnerGameUnit->GetSocketData()->m_fHyperModeChargeRate)) + (2.0f * redAdv) ) * fIncreateSoulRate );
-		#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+			#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+						/// 버프 적용 구조로 변경
+						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f + pOwnerGameUnit->GetHyperChargeSpeed() ) ) + (2.0f * redAdv) ) * fIncreateSoulRate );
+			#else // SERV_ADD_LUNATIC_PSYKER
+						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f + CX2SocketItem::GetFinalHyperGageChargeSpeedPercent( pOwnerGameUnit->GetSocketData().m_fHyperModeChargeRate, pOwnerGameUnit->GetUnitLevel() ) ) ) + (2.0f * redAdv) ) * fIncreateSoulRate );
+			#endif //SERV_ADD_LUNATIC_PSYKER
 						//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 					}
 				}
@@ -3018,11 +4068,12 @@ void CX2DamageEffect::CEffect::AttackResult()
 #endif
 					{
 						//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
-						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f + CX2SocketItem::GetFinalHyperGageChargeSpeedPercent( pOwnerGameUnit->GetSocketData()->m_fHyperModeChargeRate, pOwnerGameUnit->GetUnitLevel() ) ) ) + (2.0f * blueAdv) ) * fIncreateSoulRate );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f+pOwnerGameUnit->GetSocketData()->m_fHyperModeChargeRate)) + (2.0f * blueAdv) ) * fIncreateSoulRate );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+		#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+						/// 버프 적용 구조로 변경
+						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f + pOwnerGameUnit->GetHyperChargeSpeed() ) ) + (2.0f * blueAdv) ) * fIncreateSoulRate );
+		#else // SERV_ADD_LUNATIC_PSYKER
+						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f + CX2SocketItem::GetFinalHyperGageChargeSpeedPercent( pOwnerGameUnit->GetSocketData().m_fHyperModeChargeRate, pOwnerGameUnit->GetUnitLevel() ) ) ) + (2.0f * blueAdv) ) * fIncreateSoulRate );
+		#endif //SERV_ADD_LUNATIC_PSYKER
 						//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 					}
 				}
@@ -3044,11 +4095,13 @@ void CX2DamageEffect::CEffect::AttackResult()
 #endif
 					{
 						//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
-						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f + CX2SocketItem::GetFinalHyperGageChargeSpeedPercent( pOwnerGameUnit->GetSocketData()->m_fHyperModeChargeRate, pOwnerGameUnit->GetUnitLevel() ) ) ) ) * fIncreateSoulRate );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-						pOwnerGameUnit->UpNowSoul( ( 1.0f * (1.0f+pOwnerGameUnit->GetSocketData()->m_fHyperModeChargeRate) ) * fIncreateSoulRate );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
+		#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+						/// 버프 적용 구조로 변경
+						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f + pOwnerGameUnit->GetHyperChargeSpeed() ) ) ) * fIncreateSoulRate );
+		#else // SERV_ADD_LUNATIC_PSYKER
+						pOwnerGameUnit->UpNowSoul( ( (1.0f * (1.0f + CX2SocketItem::GetFinalHyperGageChargeSpeedPercent( pOwnerGameUnit->GetSocketData().m_fHyperModeChargeRate, pOwnerGameUnit->GetUnitLevel() ) ) ) ) * fIncreateSoulRate );
+		#endif // SERV_ADD_LUNATIC_PSYKER
+						
 						//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 					}
 				}
@@ -3085,11 +4138,11 @@ void CX2DamageEffect::CEffect::AttackResult()
 
 					if( 0.f != m_DamageData.attackerGet.m_fMP )
 					{
-						if( g_pX2Game->GetGameType() == CX2Game::GT_PVP )
+						if( g_pX2Game != NULL && g_pX2Game->GetGameType() == CX2Game::GT_PVP )
 						{
 							pOwnerGameUnit->UpNowMp( m_DamageData.attackerGet.m_fMP * fUpMPScaleBySkill * fIncreaseMpRate );
 						}
-						else if( g_pX2Game->GetGameType() == CX2Game::GT_DUNGEON )
+						else if( g_pX2Game != NULL && g_pX2Game->GetGameType() == CX2Game::GT_DUNGEON )
 						{
 							pOwnerGameUnit->UpNowMp( m_DamageData.attackerGet.m_fMP*0.8f * fUpMPScaleBySkill * fIncreaseMpRate );
 						}
@@ -3106,11 +4159,11 @@ void CX2DamageEffect::CEffect::AttackResult()
 
 				if( 0.f != m_DamageData.attackerGet.m_fMP )
 				{
-					if( g_pX2Game->GetGameType() == CX2Game::GT_PVP )
+					if( g_pX2Game != NULL && g_pX2Game->GetGameType() == CX2Game::GT_PVP )
 					{
 						pOwnerGameUnit->UpNowMp( m_DamageData.attackerGet.m_fMP );
 					}
-					else if( g_pX2Game->GetGameType() == CX2Game::GT_DUNGEON )
+					else if( g_pX2Game != NULL && g_pX2Game->GetGameType() == CX2Game::GT_DUNGEON )
 					{
 						pOwnerGameUnit->UpNowMp( m_DamageData.attackerGet.m_fMP*0.8f );
 					}
@@ -3121,21 +4174,28 @@ void CX2DamageEffect::CEffect::AttackResult()
 				if( pUserNpc != NULL && pUserNpc->GetNPCAI() != NULL && 
 					pUserNpc->GetNPCAI()->GetAIType() == CX2NPCAI::NAT_ALLY &&
 					m_DamageData.fCameraCrashGap > 0.f &&
-					m_DamageData.fCameraCrashTime > 0.f )
+					m_DamageData.fCameraCrashTime > 0.f &&
+                    g_pX2Game != NULL )
 				{
-					g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( m_DamageData.fCameraCrashGap, m_DamageData.fCameraCrashTime );
+					g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( m_DamageData.fCameraCrashGap, m_DamageData.fCameraCrashTime );
 				}
 			}
 
 #ifdef SERV_CHUNG_TACTICAL_TROOPER		///  택티컬 필드의 스톱 타임( 0.f )은 적용되면 않된다.
+			
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+			if( 0.f >= m_DamageData.m_fIncreaseMP && CX2DamageManager::DT_BUFF != m_DamageData.damageType )
+	#else // SERV_9TH_NEW_CHARACTER
 			if( 0.f >= m_DamageData.m_fIncreaseMP )
+	#endif // SERV_9TH_NEW_CHARACTER
+			
 #endif SERV_CHUNG_TACTICAL_TROOPER
 				pOwnerGameUnit->SetStopTime( m_DamageData.fStopTimeAtt );	
 		}
 	
 		if( pOwnerGameUnit != NULL && pOwnerGameUnit->IsMyUnit() == true )
 		{
-			if( m_DamageData.techPoint > 0 )
+			if( m_DamageData.techPoint > 0 && g_pX2Game != NULL )
 				g_pX2Game->AddTechPoint( m_DamageData.techPoint );
 
 //#ifdef ATTACK_DELAY_GAGE
@@ -3152,12 +4212,13 @@ void CX2DamageEffect::CEffect::AttackResult()
 			if( m_DamageData.fCameraCrashGap > 0.f &&
 				m_DamageData.fCameraCrashTime > 0.f )
 			{
-				g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( m_DamageData.fCameraCrashGap, m_DamageData.fCameraCrashTime );
+                if ( g_pX2Game != NULL )
+				    g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( m_DamageData.fCameraCrashGap, m_DamageData.fCameraCrashTime );
 			}
 
 #ifdef CLEAR_SCREEN_ON_HIT
 	#ifdef VERTICAL_SYNC_OPTION
-			if ( false == g_pMain->GetGameOption()->GetFlashEffect() )
+			if ( false == g_pMain->GetGameOption().GetFlashEffect() )
 			{
 				g_pKTDXApp->GetDGManager()->ClearScreen( m_DamageData.clearScreen );
 				g_pKTDXApp->GetDGManager()->SetClearScreenColor( m_DamageData.clearScreenColor );
@@ -3209,7 +4270,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 
 		//{{ kimhc // 2010.02.10 //	네메시스 패시브 나소드 기어 강화
 #ifdef	EVE_SECOND_CLASS_CHANGE
-		if ( GetOwnerUnit()->GetGameUnitType() == CX2GameUnit::GUT_USER )
+		if ( NULL != GetOwnerUnit() && GetOwnerUnit()->GetGameUnitType() == CX2GameUnit::GUT_USER )
 		{
 			CX2GUUser* pUser = static_cast< CX2GUUser* >( GetOwnerUnit() );
 			if ( pUser->GetUnitClass() == CX2Unit::UC_EVE_CODE_NEMESIS )
@@ -3234,7 +4295,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 #ifdef SERV_ARME_DIMENSION_WITCH	// ADW_DISTORTION
 		CX2GUNPC* pGUNPC = (CX2GUNPC*) pDefenderGameUnit;
 		
-		if ( NULL != pGUNPC && true == pGUNPC->GetAbsorbMagicSpecial() )
+		if ( NULL != pGUNPC && true == pGUNPC->GetAbsorbMagicSpecial() && g_pX2Game != NULL )
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ABSORB_MAGIC_Distortion", pDefenderGameUnit, NULL, false, -1.f, -1.f,
 													  D3DXVECTOR3(1, 1, 1), true, m_DamageData.impactPoint );
@@ -3244,9 +4305,11 @@ void CX2DamageEffect::CEffect::AttackResult()
 		}
 		else
 		{
-			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ABSORB_MAGIC", pDefenderGameUnit);
+            if ( g_pX2Game != NULL )
+			    g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ABSORB_MAGIC", pDefenderGameUnit);
 		}
 #else
+        if ( g_pX2Game != NULL )
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ABSORB_MAGIC", pDefenderGameUnit);
 #endif
 	}
@@ -3258,7 +4321,8 @@ void CX2DamageEffect::CEffect::AttackResult()
 		SetSuckMagicParticle(L"Condense_Fire_Elsword_Phoenix_Talon01");
 		SetSuckMagicParticle(L"Condense_Fire_Elsword_Phoenix_Talon02");
 
-		g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera();
+        if ( g_pX2Game != NULL )    
+		g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera();
 	}
 
 	m_DamageTimeNow++;
@@ -3271,6 +4335,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 			ParticleData* pParticleData = m_StartParticleDataList[i];
 			if( pParticleData->bForceDieHit == true )
 			{
+                if ( g_pX2Game != NULL )     
 				g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( pParticleData->m_hSeq );
 				SAFE_DELETE( pParticleData );
 				m_StartParticleDataList.erase( m_StartParticleDataList.begin() + i );
@@ -3283,6 +4348,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 			ParticleData* pParticleData = m_PassiveParticleDataList[i];
 			if( pParticleData->bForceDieHit == true )
 			{
+                if ( g_pX2Game != NULL )
 				g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( pParticleData->m_hSeq );
 				SAFE_DELETE( pParticleData );
 				m_PassiveParticleDataList.erase( m_PassiveParticleDataList.begin() + i );
@@ -3294,6 +4360,7 @@ void CX2DamageEffect::CEffect::AttackResult()
 			ParticleData* pParticleData = m_TimeParticleDataList[i];
 			if( pParticleData->bForceDieHit == true )
 			{
+                if ( g_pX2Game != NULL )
 				g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( pParticleData->m_hSeq );
 				SAFE_DELETE( pParticleData );
 				m_TimeParticleDataList.erase( m_TimeParticleDataList.begin() + i );
@@ -3326,7 +4393,7 @@ bool CX2DamageEffect::CEffect::SetMainEffectScale( float fX, float fY, float fZ 
 {
 	if( m_hMeshInstHandle != INVALID_MESH_INSTANCE_HANDLE )
 	{
-		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
+		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = ( g_pX2Game != NULL ) ? g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle ) : NULL;
 		if( pMeshInst != NULL )
 		{
 			pMeshInst->SetScale( fX, fY, fZ );
@@ -3448,7 +4515,7 @@ void CX2DamageEffect::CEffect::SetScale(D3DXVECTOR3 vScale)
 	{
 		if( m_hMeshInstHandle != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
+			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = ( g_pX2Game != NULL ) ? g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle ) : NULL;
 			if( pMeshInst != NULL )
 			{
 				pMeshInst->SetScaleByUnit( vScale );
@@ -3467,7 +4534,7 @@ void CX2DamageEffect::CEffect::SetScale(D3DXVECTOR3 vScale)
 		D3DXVECTOR3	vScale = D3DXVECTOR3(1.f, 1.f, 1.f);
 		if( m_hMeshInstHandle != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
+			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = ( g_pX2Game != NULL ) ? g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle ) : NULL;
 			if( pMeshInst != NULL )
 			{
 #ifdef VERIFY_STAT_BY_BUFF
@@ -3516,7 +4583,7 @@ void CX2DamageEffect::CEffect::SetStartParticle()
 	KTDXPROFILE();
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"START_PARTICLE", index ) == true )
+	while( m_pLuaManager->BeginTable( "START_PARTICLE", index ) == true )
 	{
 		ParticleData* pData = LoadParticleTable();
 		if( pData != NULL )
@@ -3554,7 +4621,7 @@ void CX2DamageEffect::CEffect::SetPassiveParticle()
 				{
 					if( pPassiveParticleData->bApplyRotate == false )
 					{
-						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pPassiveParticleData->m_hSeq );
+						CKTDGParticleSystem::CParticleEventSequence* pSeq = ( g_pX2Game != NULL ) ? g_pX2Game->GetMajorParticle()->GetInstanceSequence( pPassiveParticleData->m_hSeq ) : NULL;
 						if(pSeq != NULL && pSeq->GetParticleType() == CKTDGParticleSystem::PT_3D_PLANE)
 						{
 							pPassiveParticleData->vScale.x = pPassiveParticleData->vScale.x * -1.f;
@@ -3593,7 +4660,7 @@ void CX2DamageEffect::CEffect::SetPassiveParticle()
 //{{AFX
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"PASSIVE_PARTICLE", index ) == true )
+	while( m_pLuaManager->BeginTable( "PASSIVE_PARTICLE", index ) == true )
 	{
 		ParticleData* pData = LoadParticleTable( true, GetPassiveparticleTriggerTimeRate() );	
 		if( pData != NULL )
@@ -3607,7 +4674,7 @@ void CX2DamageEffect::CEffect::SetPassiveParticle()
 			{
 				if( pData->bApplyRotate == false )
 				{
-					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pData->m_hSeq );
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = ( g_pX2Game != NULL ) ? g_pX2Game->GetMajorParticle()->GetInstanceSequence( pData->m_hSeq ) : NULL;
 					if(pSeq != NULL && pSeq->GetParticleType() == CKTDGParticleSystem::PT_3D_PLANE)
 					{
 						pData->vScale.x = pData->vScale.x * -1.f;
@@ -3668,7 +4735,7 @@ void CX2DamageEffect::CEffect::SetTimeParticle()
 	KTDXPROFILE();
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"TIME_PARTICLE", index ) == true )
+	while( m_pLuaManager->BeginTable( "TIME_PARTICLE", index ) == true )
 	{
 		ParticleData* pData = LoadParticleTable( false );	
 		if( pData != NULL )
@@ -3713,7 +4780,7 @@ void CX2DamageEffect::CEffect::SetHitParticle()
 	KTDXPROFILE();
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"HIT_PARTICLE", index ) == true )
+	while( m_pLuaManager->BeginTable( "HIT_PARTICLE", index ) == true )
 	{
 		ParticleData* pData = LoadParticleTable();
 		SAFE_DELETE( pData );
@@ -3751,7 +4818,7 @@ void CX2DamageEffect::CEffect::SetHitDamageEffect()
 
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"HIT_DAMAGE_EFFECT", index ) == true )
+	while( m_pLuaManager->BeginTable( "HIT_DAMAGE_EFFECT", index ) == true )
 	{
 
 		DamageEffectData* pData = new DamageEffectData;
@@ -3833,7 +4900,7 @@ void CX2DamageEffect::CEffect::SetDieDamageEffect()
 
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"DIE_DAMAGE_EFFECT", index ) == true )
+	while( m_pLuaManager->BeginTable( "DIE_DAMAGE_EFFECT", index ) == true )
 	{
 
 		DamageEffectData* pData = new DamageEffectData;
@@ -3884,6 +4951,11 @@ void CX2DamageEffect::CEffect::SetDieDamageEffect()
 
 void CX2DamageEffect::CEffect::SetCameraData()
 {
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_bDynamicCamera == false )
+		return;
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 	//{{ kimhc // 2009-10-20 // 기존의 Set함수를 Load와 Set 으로 분류(일명 독구름 작업)
 #ifdef	DAMAGE_EFFECT_WORK
 	if ( m_DamageEffectDataInLua.m_vecCameraData.size() == 0 )
@@ -4060,14 +5132,16 @@ CX2DamageEffect::ParticleData* CX2DamageEffect::CEffect::LoadParticleSuckMagic( 
 	pData->particleName = particleName;
 	pData->vScale = D3DXVECTOR3(1.f, 1.f, 1.f);
 
-	pData->m_hSeq = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL, pData->particleName.c_str(), 0,0,0 );
+	CKTDGParticleSystem::CParticleEventSequence* pSeq = ( g_pX2Game != NULL ) 
+        ? g_pX2Game->GetMajorParticle()->CreateSequence( NULL, pData->particleName.c_str(), 0,0,0 ) : NULL;
 
-	CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pData->m_hSeq );
 	if( NULL == pSeq )
 	{
 		SAFE_DELETE( pData );
 		return NULL;
 	}
+
+    pData->m_hSeq = pSeq->GetHandle();
 
 	pSeq->SetLandPosition( m_fLandPos );
 
@@ -4142,6 +5216,11 @@ CX2DamageEffect::ParticleData* CX2DamageEffect::CEffect::LoadParticleTable()
 #ifdef ARA_CHANGE_CLASS_FIRST
 	PLUA_GET_VALUE(			m_pLuaManager, "REVERSE_Y",					pData->m_bReverseY,		false	);
 #endif // ARA_CHANGE_CLASS_FIRST
+
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	PLUA_GET_VALUE_ENUM( m_pLuaManager, "SHOW_LEVEL", pData->m_iShowLevel, CX2GameOption::OptionLevel, (int) CX2GameOption::OL_LOW );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+
 	return pData;
 	
 }
@@ -4150,19 +5229,15 @@ void CX2DamageEffect::CEffect::SetParticleTable( ParticleData* pData, bool bCrea
 {
 	if( bCreate == true )
 	{
-		pData->m_hSeq = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( NULL, pData->particleName.c_str(), 0,0,0, -1, -1, -1, pData->triggerCount, pData->triggerTime );
-
-#ifdef BALANCE_PATCH_20120329
-		if ( NULL == pData->m_hSeq )
-			return;
-#endif
-
-		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pData->m_hSeq );
-		if( NULL == pSeq )
-		{
+        pData->m_hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = ( g_pX2Game != NULL )
+            ? g_pX2Game->GetMajorParticle()->CreateSequence( NULL, pData->particleName.c_str(), 0,0,0, -1, -1, -1, pData->triggerCount, pData->triggerTime ) : NULL;
+        if ( pSeq == NULL )
+        {
 			//SAFE_DELETE( pData );
-			return;
-		}
+            return;
+        }
+        pData->m_hSeq = pSeq->GetHandle();
 
 		pSeq->SetLandPosition( m_fLandPos );
 
@@ -4178,7 +5253,7 @@ void CX2DamageEffect::CEffect::SetParticleTable( ParticleData* pData, bool bCrea
 	}
 
 #ifdef HIT_PARTICLE_TRACE_UNIT
-	if( g_pX2Game->GetMajorParticle()->IsLiveInstanceHandle( pData->m_hSeq ) == true 
+	if( g_pX2Game != NULL && g_pX2Game->GetMajorParticle()->IsLiveInstanceHandle( pData->m_hSeq ) == true 
 		&& true == pData->bTraceDefenderUnit )
 	{
 		if( null != m_DamageData.optrDefenderGameUnit )
@@ -4288,9 +5363,9 @@ void CX2DamageEffect::CEffect::CreateHitDamageEffect( vector<DamageEffectData*>&
 		{
 			// 본섭 DamageEffect.lua 롤백하지 않고 반영시키기 위해 주석 해제
 			// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-			if(GetOwnerUnit() != NULL && GetDamageData() != NULL)
+			if(GetOwnerUnit() != NULL )
 			{
-				if(GetOwnerUnit()->GetRandomFloat() > GetDamageData()->m_fHitDamageEffectInvokeRate )
+				if(GetOwnerUnit()->GetRandomFloat() > GetDamageData().m_fHitDamageEffectInvokeRate )
 					continue;
 			}
 		}
@@ -4315,7 +5390,7 @@ void CX2DamageEffect::CEffect::CreateHitDamageEffect( vector<DamageEffectData*>&
 
 		case DEPT_UNIT_BONE:
 			{
-				if( NULL != g_pX2Game && null != m_optrOwnerUnit )
+				if( null != m_optrOwnerUnit )
 				{
 					vAxisAngleDegree = m_optrOwnerUnit->GetRotateDegree();
 
@@ -4349,17 +5424,26 @@ void CX2DamageEffect::CEffect::CreateHitDamageEffect( vector<DamageEffectData*>&
 #endif RAVEN_WEAPON_TAKER
 		case DEPT_POS:
 			{
-				if( pData->bApplyRotate == true )
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+				if( pData->bOnlyApplyRotateOffset == true )
 				{
 					vAxisAngleDegree = pMeshInst->GetMatrix().GetRotateDegree();
-					vRotateAngleDegree = vAxisAngleDegree;
+					vRotateAngleDegree = pData->vRotateAngleDegree + vAxisAngleDegree;
 				}
 				else
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 				{
-					vAxisAngleDegree = pData->vRotateAngleDegree;
-					vRotateAngleDegree = vAxisAngleDegree;
+					if( pData->bApplyRotate == true )
+					{
+						vAxisAngleDegree = pMeshInst->GetMatrix().GetRotateDegree();
+						vRotateAngleDegree = vAxisAngleDegree;
+					}
+					else
+					{
+						vAxisAngleDegree = pData->vRotateAngleDegree;
+						vRotateAngleDegree = vAxisAngleDegree;
+					}
 				}
-
 				vPosition = pMeshInst->GetMatrix().GetPos();			
 				
 			}
@@ -4413,7 +5497,7 @@ void CX2DamageEffect::CEffect::CreateHitDamageEffect( vector<DamageEffectData*>&
 		vPosition += pData->vOffset;
 #endif SPECIAL_USE_ITEM
 
-		if( NULL != g_pX2Game && NULL != g_pX2Game->GetDamageEffect() )
+		if( m_pManager != NULL )
 		{
 			float fLandPos = min( m_fLandPos, vPosition.y );
 
@@ -4423,11 +5507,11 @@ void CX2DamageEffect::CEffect::CreateHitDamageEffect( vector<DamageEffectData*>&
 			{
 				fForceDownRate *= m_fForceDownRate;
 			}
-			CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
+			CEffect* pEffect = m_pManager->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
 															vPosition, vRotateAngleDegree, vAxisAngleDegree, 
 															m_fLandPos, false, -1.f, fForceDownRate);
 #else
-			CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
+			CEffect* pEffect = m_pManager->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
 															vPosition, vRotateAngleDegree, vAxisAngleDegree, 
 															fLandPos, false );
 #endif INHERIT_FORCEDOWNRATE
@@ -4435,17 +5519,17 @@ void CX2DamageEffect::CEffect::CreateHitDamageEffect( vector<DamageEffectData*>&
 			if( pEffect != NULL )
 			{
 				/// 버프팩터를 상속함
-				if ( pData->bInheritBuffFactor && !GetDamageData()->m_vecBuffFactorPtr.empty() )
-					pEffect->GetDamageData()->m_vecBuffFactorPtr = GetDamageData()->m_vecBuffFactorPtr;
+				if ( pData->bInheritBuffFactor && !GetDamageData().m_vecBuffFactorPtr.empty() )
+					pEffect->GetDamageData().m_vecBuffFactorPtr = GetDamageData().m_vecBuffFactorPtr;
 
 #ifdef NEW_SKILL_2010_11
 	#ifdef SERV_RENA_NIGHT_WATCHER
-				if( 0.f < GetDamageData()->m_fHitDamageEffectDamageRate )
+				if( 0.f < GetDamageData().m_fHitDamageEffectDamageRate )
 	#endif SERV_RENA_NIGHT_WATCHER
 				{
 					// oasis907 : 김상윤 [2010.11.4] // 그랜드 아처 - 진동 사격(패시브)
-					pEffect->GetDamageData()->damage.fPhysic *= GetDamageData()->m_fHitDamageEffectDamageRate;
-					pEffect->GetDamageData()->damage.fMagic	*= GetDamageData()->m_fHitDamageEffectDamageRate;
+					pEffect->GetDamageData().damage.fPhysic *= GetDamageData().m_fHitDamageEffectDamageRate;
+					pEffect->GetDamageData().damage.fMagic	*= GetDamageData().m_fHitDamageEffectDamageRate;
 				}
 #endif NEW_SKILL_2010_11
 
@@ -4457,6 +5541,18 @@ void CX2DamageEffect::CEffect::CreateHitDamageEffect( vector<DamageEffectData*>&
 #ifdef INHERIT_FORCEDOWNRATE
 				pEffect->SetInheritForceDownRate(m_bInheritForceDownRate);
 #endif INHERIT_FORCEDOWNRATE
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+				CKTDGXMeshPlayer::CXMeshInstance* pMeshInstHitEffect = pEffect->GetMainEffect();
+				if( NULL != pMeshInstHitEffect && pData->fLifeTime > 0.f )
+					pMeshInstHitEffect->SetMaxLifeTime( pData->fLifeTime );
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				//스킬, 관련 데이터 값, 첫타인지 체크 하는 값을 상속함
+				pEffect->GetDamageData().m_eFirstAttack = m_DamageData.m_eFirstAttack;
+				pEffect->GetDamageData().m_RelateSkillData = m_DamageData.m_RelateSkillData;
+#endif //ADD_RENA_SYSTEM
 			}
 		}
 
@@ -4541,7 +5637,7 @@ void CX2DamageEffect::CEffect::CreateDieDamageEffect( vector<DamageEffectData*>&
 
 		case DEPT_UNIT_BONE:
 			{
-				if( NULL != g_pX2Game && null != m_optrOwnerUnit )
+				if( null != m_optrOwnerUnit )
 				{
 					vAxisAngleDegree = m_optrOwnerUnit->GetRotateDegree();
 					if( pData->bApplyRotate == true )
@@ -4571,8 +5667,7 @@ void CX2DamageEffect::CEffect::CreateDieDamageEffect( vector<DamageEffectData*>&
 #ifdef RAVEN_WEAPON_TAKER
 		case DEPT_DIE_POS:
 			{
-				if( g_pX2Game &&
-					g_pX2Game->GetMajorXMeshPlayer() &&
+				if( g_pX2Game->GetMajorXMeshPlayer() &&
 					INVALID_MESH_INSTANCE_HANDLE != m_hMeshInstHandle )
 				{
 					vPosition = m_vLandPositionOnLineMap;
@@ -4599,15 +5694,25 @@ void CX2DamageEffect::CEffect::CreateDieDamageEffect( vector<DamageEffectData*>&
 
 		case DEPT_POS:
 			{
-				if( pData->bApplyRotate == true )
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+				if( pData->bOnlyApplyRotateOffset == true )
 				{
 					vAxisAngleDegree = m_vMainEffectAxisAngleDegree;
-					vRotateAngleDegree = vAxisAngleDegree;
+					vRotateAngleDegree = pData->vRotateAngleDegree + vAxisAngleDegree;
 				}
 				else
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 				{
-					vAxisAngleDegree = pData->vRotateAngleDegree;
-					vRotateAngleDegree = vAxisAngleDegree;
+					if( pData->bApplyRotate == true )
+					{
+						vAxisAngleDegree = m_vMainEffectAxisAngleDegree;
+						vRotateAngleDegree = vAxisAngleDegree;
+					}
+					else
+					{
+						vAxisAngleDegree = pData->vRotateAngleDegree;
+						vRotateAngleDegree = vAxisAngleDegree;
+					}
 				}
 
 				vPosition = m_vMainEffectPosition;
@@ -4629,7 +5734,7 @@ void CX2DamageEffect::CEffect::CreateDieDamageEffect( vector<DamageEffectData*>&
 					int			lineIndex = 0;
 					if( g_pX2Game->GetWorld()->GetLineMap()->CanDown( GetPos() , LINE_RADIUS, &outPos, &lineIndex, false ) == true )
 					{
-						CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
+						const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
 						if( pLineData != NULL )
 						{
 							vDirVector = pLineData->dirVector;
@@ -4688,7 +5793,7 @@ void CX2DamageEffect::CEffect::CreateDieDamageEffect( vector<DamageEffectData*>&
 		vPosition += pData->vOffset;
 #endif SPECIAL_USE_ITEM
 
-		if( NULL != g_pX2Game && NULL != g_pX2Game->GetDamageEffect() )
+		if( m_pManager != NULL )
 		{
 			float fLandPos = min( m_fLandPos, vPosition.y );
 
@@ -4705,14 +5810,14 @@ void CX2DamageEffect::CEffect::CreateDieDamageEffect( vector<DamageEffectData*>&
 				if( (pData->bLandCrashOnly == true && g_pX2Game->GetMajorXMeshPlayer()->IsDyingByCrash( m_hMeshInstHandle ) == true ) ||
 					(pData->bLifeTimeOnly == true && g_pX2Game->GetMajorXMeshPlayer()->IsDyingByCrash( m_hMeshInstHandle ) == false ) )
 				{
-					pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
+					pEffect = m_pManager->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
 						vPosition, vRotateAngleDegree, vAxisAngleDegree, 
 						fLandPos, false, -1.f, fForceDownRate);
 				}
 			}   
 			else
 			{
-				pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
+				pEffect = m_pManager->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
 					vPosition, vRotateAngleDegree, vAxisAngleDegree, 
 					fLandPos, false, -1.f, fForceDownRate);
 			}
@@ -4720,21 +5825,21 @@ void CX2DamageEffect::CEffect::CreateDieDamageEffect( vector<DamageEffectData*>&
 
 
 #else
-			CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
+			CEffect* pEffect = m_pManager->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
 															vPosition, vRotateAngleDegree, vAxisAngleDegree, 
 															fLandPos, false, -1.f, fForceDownRate);
 #endif SERV_RENA_NIGHT_WATCHER
 
 #else
-			CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
+			CEffect* pEffect = m_pManager->CreateInstance( m_optrOwnerUnit.GetObservable(), pData->damageEffectName.c_str(), m_fPowerRate,
 															vPosition, vRotateAngleDegree, vAxisAngleDegree, 
 															fLandPos, false );
 #endif INHERIT_FORCEDOWNRATE
 			if( pEffect != NULL )
 			{	
 				/// 버프팩터를 상속함
-				if ( pData->bInheritBuffFactor && !GetDamageData()->m_vecBuffFactorPtr.empty() )
-					pEffect->GetDamageData()->m_vecBuffFactorPtr = GetDamageData()->m_vecBuffFactorPtr;
+				if ( pData->bInheritBuffFactor && !GetDamageData().m_vecBuffFactorPtr.empty() )
+					pEffect->GetDamageData().m_vecBuffFactorPtr = GetDamageData().m_vecBuffFactorPtr;
 
 				pEffect->SetScale( m_vDieDamageScale );
 #ifdef GIANT_UNIT_GIANT_EFFECT_TEST
@@ -4751,8 +5856,8 @@ void CX2DamageEffect::CEffect::CreateDieDamageEffect( vector<DamageEffectData*>&
 
 				if( DET_NONE != GetType() )		/// 설정된 타입에 해당하는 동작 검사
 				{
-					if( null != GetDamageData()->optrAttackerGameUnit )
-						GetDamageData()->optrAttackerGameUnit->CheckDamageEffectType( pEffect );
+					if( null != GetDamageData().optrAttackerGameUnit )
+						GetDamageData().optrAttackerGameUnit->CheckDamageEffectType( pEffect );
 				}
 #endif SERV_RENA_NIGHT_WATCHER
 
@@ -4764,6 +5869,17 @@ void CX2DamageEffect::CEffect::CreateDieDamageEffect( vector<DamageEffectData*>&
 				if( -1 != pData->iGroupID )		/// 그룹 데미지 설정
 					pEffect->SetLaserGroupID( pData->iGroupID );
 #endif SERV_RAVEN_VETERAN_COMMANDER
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+				CKTDGXMeshPlayer::CXMeshInstance* pMeshInstDieEffect = pEffect->GetMainEffect();
+				if( NULL != pMeshInstDieEffect && pData->fLifeTime > 0.f )
+					pMeshInstDieEffect->SetMaxLifeTime( pData->fLifeTime );
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
+
+#ifdef ADD_RENA_SYSTEM //김창한
+				//스킬, 관련 데이터 값, 첫타인지 체크 하는 값을 상속함
+				pEffect->GetDamageData().m_eFirstAttack = m_DamageData.m_eFirstAttack;
+				pEffect->GetDamageData().m_RelateSkillData = m_DamageData.m_RelateSkillData;
+#endif //ADD_RENA_SYSTEM
 			}
 		}
 	}
@@ -4783,13 +5899,13 @@ void CX2DamageEffect::CEffect::SetParticleData( ParticleData* pData )
 {
 	KTDXPROFILE();
 
-	if ( pData == NULL || pData->m_hSeq == INVALID_PARTICLE_HANDLE )
+	if ( g_pX2Game == NULL || pData == NULL || pData->m_hSeq == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		return;
 
 	CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pData->m_hSeq );
 	if( NULL == pSeq )
 	{
-		pData->m_hSeq = INVALID_PARTICLE_HANDLE;
+		pData->m_hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		return; 
 	}
 
@@ -4905,7 +6021,7 @@ void CX2DamageEffect::CEffect::SetParticleData( ParticleData* pData )
 			//pSeq->SetPosition( pMeshInst->GetXSkinAnim()->GetCloneFramePosition( pData->boneName.c_str() ) );
 
 #ifdef BALANCE_PATCH_20120329
-				if( pData->fShowLandHeight <= 50000.f && g_pX2Game != NULL && g_pX2Game->GetWorld() != NULL && g_pX2Game->GetWorld()->GetLineMap() != NULL )
+				if( pData->fShowLandHeight <= 50000.f && g_pX2Game->GetWorld() != NULL && g_pX2Game->GetWorld()->GetLineMap() != NULL )
 				{
 					int iLineIndex = 0;
 					D3DXVECTOR3 vPos = g_pX2Game->GetWorld()->GetLineMap()->GetLandPosition( framePosition, 3.f, &iLineIndex );
@@ -4923,7 +6039,7 @@ void CX2DamageEffect::CEffect::SetParticleData( ParticleData* pData )
 
 	case DEPT_UNIT_BONE:
 		{
-			if( NULL != g_pX2Game && null != m_optrOwnerUnit )
+			if( null != m_optrOwnerUnit )
 			{
 				
 
@@ -5045,6 +6161,9 @@ void CX2DamageEffect::CEffect::FollowLine()
 	D3DXVECTOR3 outPos;
 	int			lineIndex = 0;
 
+    if ( g_pX2Game == NULL )
+        return;
+
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
 	if( NULL == pMeshInst )
 	{
@@ -5053,7 +6172,6 @@ void CX2DamageEffect::CEffect::FollowLine()
 
 	if( g_pX2Game->GetWorld() != NULL && g_pX2Game->GetWorld()->GetLineMap() != NULL )
 	{
-#ifdef ADD_UPDATE_LANDPOS
 		bool bUpdateLandPos = false;
 		float fLineRadius = LINE_RADIUS;
 		if( IsSamef( pMeshInst->GetTempletData()->elasticCoeffX.GetRandomNumInRange(), 0.f ) == false )
@@ -5063,11 +6181,8 @@ void CX2DamageEffect::CEffect::FollowLine()
 		}
 
 		if( g_pX2Game->GetWorld()->GetLineMap()->CanDown( pMeshInst->GetPos() , fLineRadius, &outPos, &lineIndex, false ) == true )
-#else
-		if( g_pX2Game->GetWorld()->GetLineMap()->CanDown( pMeshInst->GetPos() , LINE_RADIUS, &outPos, &lineIndex, false ) == true )
-#endif
 		{
-			CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
+			const CKTDGLineMap::LineData* pLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( lineIndex );
 			if( pLineData != NULL )
 			{
 				D3DXVECTOR3 angle = pLineData->dirDegree;
@@ -5080,11 +6195,7 @@ void CX2DamageEffect::CEffect::FollowLine()
 				pMeshInst->SetRotateDegree( angle );
 				pMeshInst->SetMoveAxisAngleDegree( angle );
 
-#ifdef ADD_UPDATE_LANDPOS
 				if( IsSamef(m_BeforePos.x, outPos.x) == false || IsSamef(m_BeforePos.z, outPos.z) == false )
-#else
-				if( m_BeforePos.x != outPos.x || m_BeforePos.z != outPos.z )
-#endif
 				{
 					//pMeshInst->SetLandPosition( outPos.y );
 
@@ -5141,7 +6252,6 @@ void CX2DamageEffect::CEffect::FollowLine()
 				D3DXVECTOR3 vPos = m_BeforePos;
 				m_BeforePos.y = pMeshInst->GetPos().y;
 				pMeshInst->SetPos( m_BeforePos );
- #ifdef ADD_UPDATE_LANDPOS
 				if( bUpdateLandPos == true && pMeshInst->GetToggleRotae() == false )
 				{
  					pMeshInst->SetToggleRotate(true);
@@ -5158,7 +6268,6 @@ void CX2DamageEffect::CEffect::FollowLine()
  					pMeshInst->SetRotateDegree( vRot );
 					pMeshInst->SetMoveAxisAngleDegree( vRot );
 				}
- #endif
 			}
 
 #ifdef RAVEN_WEAPON_TAKER
@@ -5212,6 +6321,30 @@ void CX2DamageEffect::CEffect::LoadLockOnData()
 		}
 	#endif //_IN_HOUSE_
 #endif //BALANCE_DEADLY_CHASER_20130214
+
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+		PLUA_GET_VALUE( m_pLuaManager, "ONLY_FRONT",	m_LockOnData.m_bIsOnlyFront, false );
+		if( m_LockOnData.m_bIsOnlyFront == true && m_optrOwnerUnit != null )
+		{
+			m_LockOnData.m_bSaveIsRight = m_optrOwnerUnit->GetIsRight();
+			m_LockOnData.m_iSaveLastTouchLineIndex = m_optrOwnerUnit->GetLastTouchLineIndex();
+			m_LockOnData.m_vecSaveOwnerPos = m_optrOwnerUnit->GetPos();
+		}
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef LOCK_ON_USER_ONLY_ON
+		PLUA_GET_VALUE( m_pLuaManager, "ONLY_TARGET_ATTACK",	m_LockOnData.m_bIsOnlyTargetAttack, false );
+#endif //LOCK_ON_USER_ONLY_ON
+
+#ifdef BALANCE_PATCH_20131107
+		//기능 자체가 범위안에 적이 없으면 멈추는 기능이므로
+		//NOT_FIND_TARGET_MOVE_STOP 기능은 LOT_NEARST_UID_VECTOR_IN_RANGE 에서만 사용가능.
+		//또한 MeshPlayer 자체에서 DirSpeed값을 Initial로 했을때만을 고려해서 작업함.
+		//at 0.200 등으로 중간에 변하는 속도에 대해서는 고려되지 않음.
+		bool bNotFindTargetMoveStop = false;
+		PLUA_GET_VALUE( m_pLuaManager, "NOT_FIND_TARGET_MOVE_STOP",	bNotFindTargetMoveStop, false );
+		m_LockOnData.m_eNotFindTargetMoveStop = (bNotFindTargetMoveStop)? LOCSD_NOT_SAVE_DIR_SPEED : LOCSD_NONE;
+#endif //BALANCE_PATCH_20131107
 
 		m_pLuaManager->EndTable();
 	}
@@ -5276,6 +6409,9 @@ void CX2DamageEffect::CEffect::LoadSinMoveData()
 //kimhc // 2010-12-17 // D3DXVECTOR3를 인자로 넘기는 것을 const D3DXVECTOR3&로 변경함
 void CX2DamageEffect::CEffect::VectorLockOn( const D3DXVECTOR3& targetPos )
 {
+    if ( g_pX2Game == NULL )
+        return;
+
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hMeshInstHandle );
 	if( NULL == pMeshInst )
 	{
@@ -5297,6 +6433,29 @@ void CX2DamageEffect::CEffect::VectorLockOn( const D3DXVECTOR3& targetPos )
 	}
 #endif	NEW_CHARACTER_CHUNG
 //}} kimhc // 2010.12.17 //  2010-12-23 New Character CHUNG
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	if( true == m_LockOnData.m_bIsOnlyFront )
+	{
+		const CKTDGLineMap::LineData* pCurrLineData = g_pX2Game->GetWorld()->GetLineMap()->GetLineData( m_LockOnData.m_iSaveLastTouchLineIndex );
+		if(pCurrLineData != NULL)
+		{
+			D3DXVECTOR3 vFinalDestDir = targetPos - m_LockOnData.m_vecSaveOwnerPos;
+			D3DXVec3Normalize( &vFinalDestDir, &vFinalDestDir );
+			D3DXVECTOR3 vRightVec = pCurrLineData->dirVector;
+			D3DXVec3Normalize( &vRightVec, &vRightVec );
+
+			float fIsRight = D3DXVec3Dot( &vRightVec, &vFinalDestDir );
+			bool bRight = true;
+			if( fIsRight > 0.f )
+				bRight = true;
+			else
+				bRight = false;
+
+			if( bRight != m_LockOnData.m_bSaveIsRight )
+				return;
+		}
+	}
+#endif //FINALITY_SKILL_SYSTEM
 
 	D3DXVECTOR3 axis;	// 회전축
 	D3DXVECTOR3 relVec = targetPos - pMeshInst->GetPos();	// 목표와의 상대적 벡터
@@ -5377,7 +6536,7 @@ void CX2DamageEffect::CEffect::VectorLockOn( const D3DXVECTOR3& targetPos )
 
 
 
-void CX2DamageEffect::CEffect::SetPos( D3DXVECTOR3 pos )
+void CX2DamageEffect::CEffect::SetPos( const D3DXVECTOR3& pos )
 {
 	m_Pos = pos;
 
@@ -5393,7 +6552,7 @@ void CX2DamageEffect::CEffect::SetPos( D3DXVECTOR3 pos )
 
 		BOOST_TEST_FOREACH( ParticleData*, pParticleData, m_PassiveParticleDataList )
 		{
-			if( INVALID_PARTICLE_HANDLE != pParticleData->m_hSeq )
+			if( INVALID_PARTICLE_SEQUENCE_HANDLE != pParticleData->m_hSeq )
 			{
 				CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pParticleData->m_hSeq );
 				if( NULL != pSeq && pParticleData->posType == CX2DamageEffect::DEPT_POS)
@@ -5412,7 +6571,7 @@ void CX2DamageEffect::CEffect::LoadDieDamageEffect()
 	KTDXPROFILE();
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"DIE_DAMAGE_EFFECT", index ) == true )
+	while( m_pLuaManager->BeginTable( "DIE_DAMAGE_EFFECT", index ) == true )
 	{
 
 		DamageEffectData* pData = new DamageEffectData;
@@ -5426,6 +6585,9 @@ void CX2DamageEffect::CEffect::LoadDieDamageEffect()
 		PLUA_GET_VALUE(			m_pLuaManager, "APPLY_ROTATED_OFFSET",	pData->bApplyRotatedOffset,	false	);
 #endif SPECIAL_USE_ITEM
 
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+		PLUA_GET_VALUE(			m_pLuaManager, "ONLY_APPLY_ROTATE",		pData->bOnlyApplyRotateOffset,		false	);
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 
 		PLUA_GET_VALUE(			m_pLuaManager, "ROTATE_X",				pData->vRotateAngleDegree.x,	0.0f	);
 		PLUA_GET_VALUE(			m_pLuaManager, "ROTATE_Y",				pData->vRotateAngleDegree.y,	0.0f	);
@@ -5460,11 +6622,20 @@ void CX2DamageEffect::CEffect::LoadStartParticle()
 	KTDXPROFILE();
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"START_PARTICLE", index ) == true )
+	while( m_pLuaManager->BeginTable( "START_PARTICLE", index ) == true )
 	{
 		ParticleData* pData = LoadParticleTable();
+
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		if( pData != NULL )
+		{
+			if( pData->m_iShowLevel >= g_pMain->GetGameOption().GetOptionList().m_eEffect )
+				m_DamageEffectDataInLua.m_vecStartParticle.push_back( pData );
+		}
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		if( pData != NULL )
 			m_DamageEffectDataInLua.m_vecStartParticle.push_back( pData );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 
 		index++;
 
@@ -5477,11 +6648,20 @@ void CX2DamageEffect::CEffect::LoadPassiveParticle()
 	KTDXPROFILE();
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"PASSIVE_PARTICLE", index ) == true )
+	while( m_pLuaManager->BeginTable( "PASSIVE_PARTICLE", index ) == true )
 	{
-		ParticleData* pData = LoadParticleTable();	
+		ParticleData* pData = LoadParticleTable();
+
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		if( pData != NULL )
+		{
+			if( pData->m_iShowLevel >= g_pMain->GetGameOption().GetOptionList().m_eEffect )
+				m_DamageEffectDataInLua.m_vecPassiveParticle.push_back( pData );
+		}
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		if( pData != NULL )
 			m_DamageEffectDataInLua.m_vecPassiveParticle.push_back( pData );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 
 		index++;
 
@@ -5494,11 +6674,20 @@ void CX2DamageEffect::CEffect::LoadTimeParticle()
 	KTDXPROFILE();
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"TIME_PARTICLE", index ) == true )
+	while( m_pLuaManager->BeginTable( "TIME_PARTICLE", index ) == true )
 	{
-		ParticleData* pData = LoadParticleTable();	
+		ParticleData* pData = LoadParticleTable();
+
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		if( pData != NULL )
+		{
+			if( pData->m_iShowLevel >= g_pMain->GetGameOption().GetOptionList().m_eEffect )
+				m_DamageEffectDataInLua.m_vecTimeParticle.push_back( pData );
+		}
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		if( pData != NULL )
 			m_DamageEffectDataInLua.m_vecTimeParticle.push_back( pData );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 
 		index++;
 
@@ -5614,6 +6803,12 @@ void CX2DamageEffect::CEffect::LoadDamageEffect()
 		/// 버프팩터를 상속 받을 것인가?
 		PLUA_GET_VALUE(			m_pLuaManager, "INHERIT_BUFF_FACTOR",	pData->bInheritBuffFactor,	false );
 
+#ifdef LOOP_CREATE_DAMAGE_EFFECT // 김태환
+		PLUA_GET_VALUE(			m_pLuaManager, "LOOP_INTERVAL",			pData->fLoopInterval,	0.f		);	/// 반복 생성 간격
+		PLUA_GET_VALUE(			m_pLuaManager, "LOOP_END_COUNT",		pData->uiLoopEndCount,	1		);	/// 반복 생성 종료 횟수
+		PLUA_GET_VALUE(			m_pLuaManager, "LOOP_END_TIME",			pData->fLoopEndTime,	99999.f );	/// 반복 생성 종료 시간
+#endif //LOOP_CREATE_DAMAGE_EFFECT
+
 		
 		m_DamageEffectDataInLua.m_vecCreateDamageEffect.push_back( pData );
 		index++;
@@ -5626,12 +6821,20 @@ void CX2DamageEffect::CEffect::LoadHitParticle()
 	KTDXPROFILE();
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"HIT_PARTICLE", index ) == true )
+	while( m_pLuaManager->BeginTable( "HIT_PARTICLE", index ) == true )
 	{
 		ParticleData* pData = LoadParticleTable();
 		
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+		if( pData != NULL )
+		{
+			if( pData->m_iShowLevel >= g_pMain->GetGameOption().GetOptionList().m_eEffect )
+				m_DamageEffectDataInLua.m_vecHitParticle.push_back( pData );
+		}
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		if ( pData != NULL )
 			m_DamageEffectDataInLua.m_vecHitParticle.push_back( pData );
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 		
 		index++;
 
@@ -5644,7 +6847,7 @@ void CX2DamageEffect::CEffect::LoadHitDamageEffect()
 	KTDXPROFILE();
 
 	int index = 0;
-	while( m_pLuaManager->BeginTable( L"HIT_DAMAGE_EFFECT", index ) == true )
+	while( m_pLuaManager->BeginTable( "HIT_DAMAGE_EFFECT", index ) == true )
 	{
 
 		DamageEffectData* pData = new DamageEffectData;
@@ -5654,6 +6857,10 @@ void CX2DamageEffect::CEffect::LoadHitDamageEffect()
 		PLUA_GET_VALUE(			m_pLuaManager, "BONE_NAME",				pData->boneName,					L""		);
 		PLUA_GET_VALUE(			m_pLuaManager, "APPLY_ROTATE",			pData->bApplyRotate,				true	);
 		PLUA_GET_VALUE(			m_pLuaManager, "APPLY_ROTATE_ORIGIN",	pData->bApplyRotateOrigin,			false	);
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+		PLUA_GET_VALUE(			m_pLuaManager, "ONLY_APPLY_ROTATE",		pData->bOnlyApplyRotateOffset,		false	);
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 
 #ifdef SPECIAL_USE_ITEM
 		PLUA_GET_VALUE(			m_pLuaManager, "APPLY_ROTATED_OFFSET",	pData->bApplyRotatedOffset,			false	);
@@ -5709,6 +6916,12 @@ void CX2DamageEffect::CEffect::SetDamageDataNext( CX2DamageManager::DamageData* 
 		}
 #endif EVE_ELECTRA
 
+#ifdef ADD_RENA_SYSTEM //김창한
+		//스킬, 관련 데이터 값, 첫타인지 체크 하는 값을 상속함
+		m_DamageEffectDataInLua.m_pDamageDataNext->m_eFirstAttack = pDamageData->m_eFirstAttack;
+		m_DamageEffectDataInLua.m_pDamageDataNext->m_RelateSkillData = pDamageData->m_RelateSkillData;
+#endif //ADD_RENA_SYSTEM
+
 		// 다시 DamageData에 넣어줌
 		*pDamageData =  *(m_DamageEffectDataInLua.m_pDamageDataNext);
 	}	
@@ -5728,9 +6941,9 @@ void CX2DamageEffect::CEffect::SetLaserGroupID( int _iLaserGroupID )
 
 void CX2DamageEffect::ParticleData::DestroyParticleSequence()
 {
-	if( m_hSeq != INVALID_PARTICLE_HANDLE )
+	if( m_hSeq != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
-		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeq );
+		CKTDGParticleSystem::CParticleEventSequence* pSeq = ( g_pX2Game != NULL ) ? g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeq ) : NULL;
 		if( NULL != pSeq )
 		{
 			if( bForceDie == true )
@@ -5743,7 +6956,7 @@ void CX2DamageEffect::ParticleData::DestroyParticleSequence()
 			}
 		}
 
-		m_hSeq = INVALID_PARTICLE_HANDLE;
+		m_hSeq = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -5791,17 +7004,35 @@ void CX2DamageEffect::CEffect::AddDieEffectDamage( CX2DamageEffect::CEffect* pCE
 {
 	if( 0.f < GetAddDieEffectDamage() )		/// 추가 데미지 값이 설정되어 있을 때, 대입
 	{
-		if( 0.f < pCEffect->GetDamageData()->damage.fPhysic )
-			pCEffect->GetDamageData()->damage.fPhysic +=  GetAddDieEffectDamage();
-		if( 0.f < pCEffect->GetDamageData()->damage.fMagic )
-			pCEffect->GetDamageData()->damage.fMagic +=  GetAddDieEffectDamage();
+		if( 0.f < pCEffect->GetDamageData().damage.fPhysic )
+			pCEffect->GetDamageData().damage.fPhysic +=  GetAddDieEffectDamage();
+		if( 0.f < pCEffect->GetDamageData().damage.fMagic )
+			pCEffect->GetDamageData().damage.fMagic +=  GetAddDieEffectDamage();
 	}
 }
 #endif SERV_RENA_NIGHT_WATCHER
 
 #ifdef SERV_RENA_NIGHT_WATCHER
-CX2DamageEffect::CEffect* CX2DamageEffect::GetInstaceByIndex( int iIndex )
+CX2DamageEffect::CEffect* CX2DamageEffect::GetInstanceByIndex( int iIndex )
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end(LIST_LIVE);
+    for( KInstanceHandleIterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        ++iter )
+    {
+        CX2DamageEffect::CEffect* pEffect = iter->m_pInstance;
+        if ( pEffect != NULL && 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX
+            pEffect->GetLive() == true &&
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_INFINITE_LOOP_BUG_FIX            
+            pEffect->GetIndex() == iIndex )
+            return pEffect;
+    }
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	vector<CEffect*>::iterator vIt = m_InstanceList.begin();
 
 	while( vIt != m_InstanceList.end() )			//땅에 박힌 화살의 Index를 지닌 DamageEffedt를 현재 생성된 DamageEffect Vector에서 검색
@@ -5817,6 +7048,8 @@ CX2DamageEffect::CEffect* CX2DamageEffect::GetInstaceByIndex( int iIndex )
 			++vIt;
 		}
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	return NULL;
 }
@@ -5894,7 +7127,7 @@ void CX2DamageEffect::GetParticleListByEffectName( IN const WCHAR* pName_, OUT v
 	{
 		// START_PARTICLE
 		int index = 0;
-		while( m_LuaManager.BeginTable( L"START_PARTICLE", index ) == true )
+		while( m_LuaManager.BeginTable( "START_PARTICLE", index ) == true )
 		{
 			LUA_GET_VALUE( m_LuaManager, "PARTICLE_NAME",	wstrParticleName,	L""		);
 
@@ -5905,7 +7138,7 @@ void CX2DamageEffect::GetParticleListByEffectName( IN const WCHAR* pName_, OUT v
 
 		// PASSIVE_PARTICLE
 		index = 0;
-		while( m_LuaManager.BeginTable( L"PASSIVE_PARTICLE", index ) == true )
+		while( m_LuaManager.BeginTable( "PASSIVE_PARTICLE", index ) == true )
 		{
 			LUA_GET_VALUE( m_LuaManager, "PARTICLE_NAME",	wstrParticleName,	L""		);
 
@@ -5916,7 +7149,7 @@ void CX2DamageEffect::GetParticleListByEffectName( IN const WCHAR* pName_, OUT v
 
 		// TIME_PARTICLE
 		index = 0;
-		while( m_LuaManager.BeginTable( L"TIME_PARTICLE", index ) == true )
+		while( m_LuaManager.BeginTable( "TIME_PARTICLE", index ) == true )
 		{
 			LUA_GET_VALUE( m_LuaManager, "PARTICLE_NAME",	wstrParticleName,	L""		);
 
@@ -5942,7 +7175,7 @@ void CX2DamageEffect::GetParticleListByEffectName( IN const WCHAR* pName_, OUT v
 	if( true == m_LuaManager.BeginTable( pName_ ) )
 	{
 		int index = 0;
-		while( m_LuaManager.BeginTable( L"START_PARTICLE", index ) == true )
+		while( m_LuaManager.BeginTable( "START_PARTICLE", index ) == true )
 		{
 			ParticleData* pData = LoadParticleTable();
 			if( pData != NULL )
@@ -5952,7 +7185,7 @@ void CX2DamageEffect::GetParticleListByEffectName( IN const WCHAR* pName_, OUT v
 		}
 
 		index = 0;
-		while( m_LuaManager.BeginTable( L"PASSIVE_PARTICLE", index ) == true )
+		while( m_LuaManager.BeginTable( "PASSIVE_PARTICLE", index ) == true )
 		{
 			ParticleData* pData = LoadParticleTable();	
 			if( pData != NULL )
@@ -5962,7 +7195,7 @@ void CX2DamageEffect::GetParticleListByEffectName( IN const WCHAR* pName_, OUT v
 		}
 
 		index = 0;
-		while( m_LuaManager.BeginTable( L"TIME_PARTICLE", index ) == true )
+		while( m_LuaManager.BeginTable( "TIME_PARTICLE", index ) == true )
 		{
 			ParticleData* pData = LoadParticleTable();	
 			if( pData != NULL )
@@ -5984,7 +7217,7 @@ void CX2DamageEffect::GetDamageEffectListByEffectName( IN const WCHAR* pName_,  
 	{
 		// CREATE_DAMAGE_EFFECT
 		int index = 0;
-		while( m_LuaManager.BeginTable( L"CREATE_DAMAGE_EFFECT", index ) == true )
+		while( m_LuaManager.BeginTable( "CREATE_DAMAGE_EFFECT", index ) == true )
 		{
 			LUA_GET_VALUE( m_LuaManager, "DAMAGE_EFFECT_NAME",	wstrEffectName,	L""		);
 
@@ -5995,7 +7228,7 @@ void CX2DamageEffect::GetDamageEffectListByEffectName( IN const WCHAR* pName_,  
 
 		// DIE_DAMAGE_EFFECT0
 		index = 0;
-		while( m_LuaManager.BeginTable( L"DIE_DAMAGE_EFFECT", index ) == true )
+		while( m_LuaManager.BeginTable( "DIE_DAMAGE_EFFECT", index ) == true )
 		{
 			LUA_GET_VALUE( m_LuaManager, "DAMAGE_EFFECT_NAME",	wstrEffectName,	L""		);
 
@@ -6046,3 +7279,68 @@ CX2DamageEffect::ParticleData* CX2DamageEffect::LoadParticleTable()
 
 }
 #endif //EFFECT_TOOL
+
+
+
+#ifdef FIELD_BOSS_RAID // 지정한 위치에서 가까운 적 유도 시키기
+void CX2DamageEffect::CEffect::SetLockOnNearstTarget( IN const D3DXVECTOR3& vMyPos_, int iTeam_ , int randomOffset/* = 0 */)
+{
+	bool bUserUnit;
+	UidType uid = ( g_pX2Game != NULL ) ? g_pX2Game->GetLockOnNearstTarget( static_cast<CX2Room::TEAM_NUM>(iTeam_), vMyPos_, bUserUnit ) : 0;
+
+	if( bUserUnit == true )
+		SetLockOnUnitUID( uid );
+	else
+		SetLockOnNPCUID( (int)uid );
+
+	SetLockOnRandomSeed( randomOffset );
+}
+#endif // FIELD_BOSS_RAID
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+/** @function	: SetLinkMainEffectByPos
+	@brief		: 해당 데미지 이펙트의 Main Mesh를 두 위치 사이에 연결 시켜 주는 함수
+	@param		: 이펙트 위치, 상대 위치, 길이 배율 ( Main Effect 길이에 따른 스케일 설정 배율 ), 두 이펙트 간 거리
+				  ( 참고로, DamageEffect_APT_Pylon_Additional_Shock 의 길이 배율은 800.f 이다. )
+	@return		: 연결 성공 여부
+*/
+const bool CX2DamageEffect::CEffect::SetLinkMainEffectByPos( IN const D3DXVECTOR3& vMyPos_, IN const D3DXVECTOR3& vTargetPos_, 
+															 IN const float fDistance_ /*= 99999.f*/ )
+{
+	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = GetMainEffect();		/// 연결 데미지 이펙트의 Main Mesh
+
+	if ( NULL == pMeshInst )
+		return false;
+
+	/// 두 이펙트 사이 거리 설정 ( 거리 인자값 않들어 왔다면, 직접 구해주자 )
+	float fDistance = fDistance_;
+
+	if ( true == IsSamef( fDistance_, 99999.f ) )
+		fDistance = GetDistance( vMyPos_, vTargetPos_ );
+
+	if ( 0.f >= fDistance )
+		fDistance = 1.f;
+
+	float fLinkEffectRate = GetLinkEffectRate();
+
+	/// 길이 배율 ( Main Effect 길이에 따른 스케일 설정 배율 )
+	/// 작을수록 길어 진다.
+	/// ( 참고로, ADD_PYLON_DYNAMO_SPARK01.X 의 길이 배율은 800.f 이다. )
+	/// 동적으로 값을 연산할 수 있는 방법이 없을까...
+	if ( 0.f > fLinkEffectRate )
+	{
+		ASSERT( ! "LinkEffectRate is InValid!!!" );
+		fLinkEffectRate = 800.f;
+	}
+
+	/// 두 파일런 간 데미지 이펙트 매시 연결 설정 ( 셰도우 링커 참고 )
+	D3DXVECTOR3 vResultPos( vTargetPos_.x - vMyPos_.x, vTargetPos_.y - vMyPos_.y, vTargetPos_.z - vMyPos_.z );
+	pMeshInst->SetPos( vMyPos_ );
+	vResultPos = GetDirVecToDegree( vResultPos );
+	pMeshInst->SetRotateDegree( vResultPos );
+	pMeshInst->SetMoveAxisAngleDegree( vResultPos );
+	pMeshInst->SetScale( fDistance / fLinkEffectRate, 1.f, 1.f );
+
+	return true;
+}
+#endif //SERV_ADD_LUNATIC_PSYKER

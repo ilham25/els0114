@@ -47,9 +47,10 @@ void KStatisticsLocalLog::InitLocalLogInfo()
 	m_kLocalLog[LOG_ABUSER_MORNITORING].Init( KStatistics::SI_LOC_ABUSER_MORNITORING,	"SI_LOG_ABUSER_MORNITORING" );
 #endif SERV_AUTO_HACK_CHECK_GET_ITEM
 	//}}
-#ifdef SERV_WATCH_LOG
-	m_kLocalLog[LOG_WATCH].Init( KStatistics::SI_LOC_WATCH,	"SI_LOG_WATCH" );
-#endif //SERV_WATCH_LOG
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET
+	m_kLocalLog[LOG_UNDEFINED_QUEST_TEMPLET].Init( KStatistics::SI_LOC_UNDEFINED_QUEST_TEMPLET,	"SI_LOG_UNDEFINED_QUEST_TEMPLET" );
+#endif // SERV_LOG_UNDEFINED_QUEST_TEMPLET
+
 }
 
 void KStatisticsLocalLog::InitLocalLog( KLocalLog eEnum )
@@ -85,7 +86,7 @@ std::wfstream& KStatisticsLocalLog::LocalLogStm( KLocalLog eEnum )
 //{{ 2008. 10. 27  최육사	코드 통합
 void KStatisticsLocalLog::CloseLocalLogData()
 {	
-	for( int iIdx = 0; iIdx < KLocalLog::LOG_MAX; ++iIdx )
+	for( int iIdx = 0; iIdx < LOG_MAX; ++iIdx )
 	{
 		if( m_kLocalLog[iIdx].m_wfsLocalLog.is_open() )
 			m_kLocalLog[iIdx].m_wfsLocalLog.close();
@@ -166,12 +167,13 @@ void _DeleteFile(WIN32_FIND_DATA& wfd)
 		}
 #endif SERV_AUTO_HACK_CHECK_GET_ITEM
 		//}}
-#ifdef SERV_WATCH_LOG
-		if ( strFilename.find( L"SI_LOG_WATCH" ) != std::wstring::npos )
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET
+		if ( strFilename.find( L"SI_LOG_UNDEFINED_QUEST_TEMPLET" ) != std::wstring::npos )
 		{
 			DeleteFile(KMakeAbsolutePath(wfd.cFileName).c_str());
 		}
-#endif SERV_WATCH_LOG
+#endif // SERV_LOG_UNDEFINED_QUEST_TEMPLET
+
 	}
 }
 
@@ -541,21 +543,16 @@ void KStatisticsLocalLog::WriteLocalLogHead( std::wfstream& fout, int iStatistic
 		break;
 #endif SERV_AUTO_HACK_CHECK_GET_ITEM
 		//}}
-#ifdef SERV_WATCH_LOG
-	case KStatistics::SI_LOC_WATCH:
+#ifdef SERV_LOG_UNDEFINED_QUEST_TEMPLET
+	case KStatistics::SI_LOC_UNDEFINED_QUEST_TEMPLET:
 		{
 			fout
-				<< L"  LogType  " << L"\t"
-				<< L"  UserUID  " << L"\t"
-				<< L" AuthLevel " << L"\t"
-				<< L" UnitClass " << L"\t"
-				<< L" NickName  " << L"\t"
-				<< L"    IP     " << L"\t"
-				<< L"   Port    " << L"\t"
+				<< L"  QuesitID  " << L"\t"
+				<< L"  RegDate  " << L"\t"
 				;
 		}
 		break;
-#endif SERV_WATCH_LOG
+#endif SERV_LOG_UNDEFINED_QUEST_TEMPLET
 	}
 }
 
@@ -633,7 +630,7 @@ void KStatisticsLocalLog::LoadLocalLogFromFile()
 
 void KStatisticsLocalLog::InitLocalLog_Henir_Ranking( int iRankingType )
 {
-	_JIF( iRankingType >= 0  &&  iRankingType < RT_MAX_NUM, return; );
+	_JIF( ( SEnum::IsHenirRankingType( iRankingType ) == true ), return; );
 
 	// 헤니르 시공 랭킹
 	if( m_wfsLocalLog_Henir_Ranking[iRankingType].is_open() )
@@ -660,7 +657,7 @@ void KStatisticsLocalLog::InitLocalLog_Henir_Ranking( int iRankingType )
 
 std::wfstream& KStatisticsLocalLog::LocalLogStm_Henir_Ranking( int iRankingType )
 {
-	_JIF( iRankingType >= 0  &&  iRankingType < RT_MAX_NUM, return m_wfsLocalLog_Henir_Ranking[RT_DAY_RANKING]; );
+	_JIF( ( SEnum::IsHenirRankingType( iRankingType ) == true ), return m_wfsLocalLog_Henir_Ranking[SEnum::RT_DAY_RANKING]; );
 
 	InitLocalLog_Henir_Ranking( iRankingType );
 
@@ -669,7 +666,7 @@ std::wfstream& KStatisticsLocalLog::LocalLogStm_Henir_Ranking( int iRankingType 
 
 void KStatisticsLocalLog::CloseHenirRankingLogData( int iRankingType )
 {
-	_JIF( iRankingType >= 0  &&  iRankingType < RT_MAX_NUM, return; );
+	_JIF( ( SEnum::IsHenirRankingType( iRankingType ) == true ), return; );
 
 	// 아케이드 랭킹
 	if( m_wfsLocalLog_Henir_Ranking[iRankingType].is_open() )

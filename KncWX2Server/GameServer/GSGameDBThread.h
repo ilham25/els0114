@@ -16,11 +16,11 @@
 //{{ 2009. 10. 6  최육사	길드
 #include "Enum/Enum.h"
 //}}
-
+#include "..\Common\ODBC\StoredProcedure.h"
 
 class KGSGameDBThread : public KSubThread
 {
-    DeclareDBThread( KGSGameDBThread );
+    DeclareDBThreadWithSP( KGSGameDBThread );
 	DeclareSPProfiler;
 
 public:
@@ -32,6 +32,8 @@ protected:
     virtual inline void ProcessEvent( const KEventPtr& spEvent );
 
 protected:
+    KStoredProcedure m_kSP;
+
     // DB query function
 	//{{ 2009. 5. 28  최육사	채널이동
 	//{{ 2012. 12. 10  캐릭터 선택 패킷 분할 - 김민성
@@ -103,7 +105,10 @@ protected:
 	bool Query_UpdateWishList( IN const UidType iUserUID, IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
 	bool Query_UpdateRankingInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
 	bool Query_UpdateGuildInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
+#ifdef SERV_ADD_EVENT_DB
+#else //SERV_ADD_EVENT_DB
 	bool Query_UpdateConnectTimeEventInfo( IN const UidType iUserUID, IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
+#endif //SERV_ADD_EVENT_DB
 	bool Query_UpdatePetInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq, OUT KDBE_UPDATE_UNIT_INFO_ACK& kAck );
 	bool Query_UpdateGameCountInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
 	bool Query_UpdateHenirRewardCount( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
@@ -128,6 +133,18 @@ protected:
 	bool Query_UpdateRidingPetInfo( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq, OUT KDBE_UPDATE_UNIT_INFO_ACK& kAck );
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+	bool Query_UpdateAccumulationSpirit( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
+
+#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+	bool Query_UpdateGateOfDarknessSupportEventTime( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
+#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+	bool Query_UpdateEventNoteViewCount( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
+#endif SERV_ELESIS_UPDATE_EVENT
+
 #endif SERV_DB_UPDATE_UNIT_INFO_REFACTORING
 	//}}
 	//{{ 2013. 07. 08	최육사	공유 은행
@@ -145,9 +162,12 @@ protected:
 	bool Query_UpdateLastLogOffDate( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
 #endif SERV_RELATIONSHIP_SYSTEM
 	//}
-#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-	bool Query_UpdateGateOfDarknessSupportEventTime( IN const KDBE_UPDATE_UNIT_INFO_REQ& kReq );
-#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	void LogAboutCheckingTooManySkillDatas( IN const KDBE_EXPIRE_CASH_SKILL_POINT_REQ& kPacket_ ) const;
+// 	void DoQueryUpdatingSkillInfo( OUT int& iOk_, IN const UidType lastSenderUID_, IN const UidType iUnitUID_,
+// 		IN const KRetrievedSkillPageData& retrievedSkillPageData_ );
+#endif // SERV_SKILL_PAGE_SYSTEM
 
 protected:
     // packet send function
@@ -162,22 +182,22 @@ protected:
 
 	//{{ 2010. 11. 25	조효진	추가 수정 임규수 일본 추가
 //#ifdef SERV_SELECT_UNIT_NEW
+	// 2014.02.28 이지헌 SendToLogDB 는 SERV_SELECT_UNIT_NEW 없어도 사용하는 곳이 있으므로 디파인 제거 했습니다.
 	template < class T > void SendToLogDB( unsigned short usEventID, const T& data );
 	void SendToLogDB( unsigned short usEventID );
 //#endif SERV_SELECT_UNIT_NEW
 	//}}
 
+#ifdef SERV_ADD_EVENT_DB
+	template < class T > void SendToEventDB( unsigned short usEventID, const T& data );
+	void SendToEventDB( unsigned short usEventID );
+#endif //SERV_ADD_EVENT_DB
+
 protected:
     // event handler
     DECL_ON_FUNC( DBE_UPDATE_UNIT_INFO_REQ );
-	
-	//{{ 2012. 03. 27	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-	_DECL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, KDBE_GET_SECOND_SECURITY_INFO_REQ_FOR_GameDB );
-#else
+
 	_DECL_ON_FUNC( DBE_MY_UNIT_AND_INVENTORY_INFO_LIST_REQ, std::wstring );
-#endif SERV_EVENT_RETURN_USER_MARK
-	//}}
 
    //{{ 2011. 08. 09  김민성 (2011.08.11) 특정일 이후 생성한 계정에 대하여 신규케릭터 생성 시 아이템 지급 이벤트
 #ifdef SERV_NEW_CREATE_CHAR_EVENT
@@ -275,7 +295,11 @@ protected:
 
     DECL_ON_FUNC( DBE_GET_WISH_LIST_REQ );
 
+#ifdef SERV_ADD_EVENT_DB
+#else //SERV_ADD_EVENT_DB
 	DECL_ON_FUNC( DBE_UPDATE_EVENT_TIME_REQ );
+#endif //SERV_ADD_EVENT_DB
+	
 
 	DECL_ON_FUNC( DBE_UPDATE_INVENTORY_ITEM_POS_NOT );
 
@@ -382,7 +406,10 @@ protected:
 	//////////////////////////////////////////////////////////////////////////
 
 	//{{ 2009. 12. 8  최육사	크리스마스이벤트
+#ifdef SERV_ADD_EVENT_DB
+#else //SERV_ADD_EVENT_DB
 	DECL_ON_FUNC( DBE_CHECK_TIME_EVENT_COMPLETE_REQ );
+#endif //SERV_ADD_EVENT_DB
 	//}}
 #ifdef SERV_GLOBAL_BILLING
 	//{{ 허상형 : [2010/8/19/] //	선물 기능 개편
@@ -473,7 +500,10 @@ protected:
 #endif //GIANT_RESURRECTION_CASHSTONE
 
 #ifdef SERV_ADVERTISEMENT_EVENT
+#ifdef SERV_ADD_EVENT_DB
+#else //SERV_ADD_EVENT_DB
 	DECL_ON_FUNC( DBE_INSERT_ADVERTISEMENT_EVENT_INFO_NOT );
+#endif //SERV_ADD_EVENT_DB
 #endif SERV_ADVERTISEMENT_EVENT
 
 	//{{ 2011. 08. 03	최육사	대전 강제 종료에 대한 예외처리
@@ -601,6 +631,14 @@ protected:
 	DECL_ON_FUNC( DBE_RELEASE_RIDING_PET_REQ );
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_MOMOTI_EVENT
+	DECL_ON_FUNC( DBE_MOMOTI_QUIZ_EVENT_REQ );
+#endif SERV_MOMOTI_EVENT
+
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+	DECL_ON_FUNC( DBE_CHECK_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL_REQ );
+#endif // SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+
 	//{{ 2013. 05. 15	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 	DECL_ON_FUNC( DBE_ITEM_EVALUATE_REQ );
@@ -623,6 +661,21 @@ protected:
 	DECL_ON_FUNC( DBE_JUMPING_CHARACTER_UPDATE_REQ );
 #endif // SERV_JUMPING_CHARACTER
 
+#ifdef SERV_COUPON_EVENT
+	DECL_ON_FUNC( DBE_COUPON_ENTRY_REQ );
+#endif SERV_COUPON_EVENT
+
+#ifdef SERV_READY_TO_SOSUN_EVENT
+	DECL_ON_FUNC( DBE_READY_TO_SOSUN_EVENT_REQ );
+#endif SERV_READY_TO_SOSUN_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	_DECL_ON_FUNC( DBE_EVENT_PROPOSE_USER_FIND_REQ, KEGS_USE_PROPOSE_ITEM_REQ );
+	DECL_ON_FUNC( DBE_EVENT_MAKING_SUCCESS_REQ );
+	DECL_ON_FUNC( DBE_EVENT_MAKING_SUCCESS_ACCEPTOR_REQ );
+	DECL_ON_FUNC( DBE_EVENT_DIVORCE_REQ );
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 #ifdef SERV_PERIOD_PET
 	DECL_ON_FUNC( DBE_RELEASE_PET_REQ );
 #endif SERV_PERIOD_PET
@@ -633,19 +686,69 @@ protected:
 	DECL_ON_FUNC( DBE_GET_RECRUIT_RECRUITER_LIST_REQ );
 #endif SERV_RECRUIT_EVENT_BASE
 
+#ifdef SERV_EVENT_CHARACTER_QUEST_RANKING
+	DECL_ON_FUNC_NOPARAM( DBE_GET_EVENT_INFO_REQ );
+	DECL_ON_FUNC( DBE_SET_EVENT_INFO_NOT );
+#endif //SERV_EVENT_CHARACTER_QUEST_RANKING
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
 	DECL_ON_FUNC( DBE_2013_EVENT_MISSION_COMPLETE_REQ );
 	DECL_ON_FUNC( DBE_2014_EVENT_MISSION_COMPLETE_REQ );
 #endif SERV_NEW_YEAR_EVENT_2014
 
-#ifdef SERV_READY_TO_SOSUN_EVENT
-	DECL_ON_FUNC( DBE_READY_TO_SOSUN_EVENT_REQ );
-#endif SERV_READY_TO_SOSUN_EVENT
+#ifdef SERV_USE_GM_TOOL_INFO
+	DECL_ON_FUNC( DBE_USE_GM_TOOL_INSERT_ITEM_INFO_NOT );
+#endif //SERV_USE_GM_TOOL_INFO
 
 #ifdef SERV_GLOBAL_MISSION_MANAGER
 	DECL_ON_FUNC( DBE_REGIST_GLOBAL_MISSION_CLEAR_NOT );
 #endif SERV_GLOBAL_MISSION_MANAGER
 
+#ifdef SERV_EVENT_CHECK_POWER
+	DECL_ON_FUNC( DBE_START_CHECK_POWER_REQ );
+	_DECL_ON_FUNC( DBE_UPDATE_CHECK_POWER_REQ, KDBE_START_CHECK_POWER_REQ );
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+	DECL_ON_FUNC( DBE_ITEM_EXTRACT_REQ );
+	DECL_ON_FUNC( DBE_USE_FINALITY_SKILL_REQ );
+#endif // SERV_FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_GOOD_ELSWORD
+    DECL_ON_FUNC( DBE_EXPAND_BANK_INVENTORY_REQ );
+#endif // SERV_GOOD_ELSWORD
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	DECL_ON_FUNC( DBE_SOCKET_EXPAND_ITEM_REQ );
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	DECL_ON_FUNC( DBE_EXPAND_SKILL_PAGE_REQ );
+	DECL_ON_FUNC( DBE_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ );
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+#ifdef SERV_ENTRY_POINT
+    _DECL_ON_FUNC( DBE_CHARACTER_LIST_REQ, std::wstring );
+    _DECL_ON_FUNC( DBE_ENTRY_POINT_CHECK_NICK_NAME_REQ, KEGS_ENTRY_POINT_CHECK_NICK_NAME_REQ );
+    DECL_ON_FUNC( DBE_GET_CREATE_UNIT_TODAY_COUNT_REQ );
+#endif //SERV_ENTRY_POINT
+
+#ifdef SERV_EVENT_PET_INVENTORY
+	DECL_ON_FUNC( DBE_EVENT_PET_EVENT_FOOD_EAT_REQ );
+#endif SERV_EVENT_PET_INVENTORY
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+	DECL_ON_FUNC( DBE_EVENT_CHUNG_GIVE_ITEM_REQ );
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	DECL_ON_FUNC( DBE_EVENT_COBO_DUNGEON_AND_FIELD_REQ );
+	DECL_ON_FUNC( DBE_EVENT_COBO_DUNGEON_AND_FIELD_NOT );
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+	DECL_ON_FUNC( DBE_EVENT_VALENTINE_DUNGEON_GIVE_ITEM_REQ );
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 };
 
 template < class T >
@@ -677,3 +780,11 @@ void KGSGameDBThread::SendToLogDB( unsigned short usEventID, const T& data )
 }
 //#endif SERV_SELECT_UNIT_NEW
 //}}
+
+#ifdef SERV_ADD_EVENT_DB
+template < class T >
+void KGSGameDBThread::SendToEventDB( unsigned short usEventID, const T& data )
+{
+	KncSend( PI_GS_GAME_DB, 0, PI_EVENT_DB, 0, NULL, usEventID, data );
+}
+#endif //SERV_ADD_EVENT_DB

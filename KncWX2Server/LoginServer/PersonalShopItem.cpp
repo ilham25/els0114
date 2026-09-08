@@ -88,7 +88,7 @@ bool KPersonalShopItem::BuyItem( IN const char cPersonalShopType,
 		return false;
 	}
 
-	if( GetShopItemState() != SHOP_ITEM_STATE::SIS_SALE )
+	if( GetShopItemState() != SIS_SALE )
 	{
 		START_LOG( cerr, L"해당 아이템은 현재 구매가능한 상태가 아닙니다!" )
 			<< BUILD_LOG( GetItemUID() )
@@ -122,8 +122,9 @@ bool KPersonalShopItem::BuyItem( IN const char cPersonalShopType,
 	// 이벤트 기간 동안에는 수수료가 없다!
 	iPriceCommissionED = 0;
 #else
-	iPriceCommissionED = static_cast<int>(iPriceUnitEDOUT * TD_COMMISSION);		// 거래게시판 수수료
-	iPriceUnitEDOUT += iPriceCommissionED;										// 지불 금액에 수수료 포함하기
+	//iPriceCommissionED = static_cast<int>(iPriceUnitEDOUT * TD_COMMISSION);		// 거래게시판 수수료
+	//iPriceUnitEDOUT += iPriceCommissionED;										// 지불 금액에 수수료 포함하기
+    iPriceCommissionED = 0;
 #endif SERV_PSHOP_AGENCY_NO_COMMISSION_EVENT
 	//}}	
 #endif DEF_TRADE_BOARD
@@ -161,7 +162,7 @@ bool KPersonalShopItem::BuyItem( IN const char cPersonalShopType,
 	//}}
     
 	// 판매 처리 중 상태로 변경!
-	SetShopItemState( SHOP_ITEM_STATE::SIS_PROCESSING );
+	SetShopItemState( SIS_PROCESSING );
 	return true;
 }
 
@@ -186,11 +187,11 @@ void KPersonalShopItem::Confirm( IN const bool bSuccess )
 	// 다시 판매 상태로 변경!
 	if( GetQuantity() > 0 )
 	{
-		SetShopItemState( SHOP_ITEM_STATE::SIS_SALE );
+		SetShopItemState( SIS_SALE );
 	}
 	else
 	{
-		SetShopItemState( SHOP_ITEM_STATE::SIS_SOLD_OUT );
+		SetShopItemState( SIS_SOLD_OUT );
 	}
 }
 

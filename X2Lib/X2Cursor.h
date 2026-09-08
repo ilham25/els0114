@@ -47,7 +47,9 @@ class CX2Cursor
 			XCS_ITEM_EVALUTE,		// 아이템 미감정 상태로 되돌리기
 			XCS_EXCHANGE_NEW_ITEM,	// 아이템 교환
 //#endif // SERV_NEW_ITEM_SYSTEM_2013_05
-
+//#ifdef FIELD_BOSS_RAID
+			XCS_ADD_SOCKET_SLOT,	// 소켓 슬롯 확장
+//#endif // FIELD_BOSS_RAID
 		};
 
 		CX2Cursor(void);
@@ -127,6 +129,10 @@ class CX2Cursor
 		CKTDXDeviceTexture* m_pCursorExchangeNewItem;			// 2013_5 개편 후 아이템으로 변경 커서
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
 
+#ifdef ADD_SOCKET_SLOT // 소켓 슬롯 확장
+		CKTDXDeviceTexture* m_pCursorAddSocketSlot;
+#endif // ADD_SOCKET_SLOT
+
 		D3DXVECTOR2			m_Pos;
 		D3DXVECTOR2			m_Size;
 
@@ -135,11 +141,11 @@ class CX2Cursor
 
 		X2_CURSOR_STATE		m_CursorState;
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		LPDIRECT3DVERTEXBUFFER9 m_pVB;
-		D3DXVECTOR2			m_PosVB;
-		D3DXVECTOR2			m_SizeVB;
-		D3DCOLOR            m_d3dColorVB;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		LPDIRECT3DVERTEXBUFFER9 m_pVB;
+//		D3DXVECTOR2			m_PosVB;
+//		D3DXVECTOR2			m_SizeVB;
+//		D3DCOLOR            m_d3dColorVB;
+//#endif
 };
 

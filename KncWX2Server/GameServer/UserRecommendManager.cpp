@@ -224,3 +224,4 @@ void KUserRecommendManager::ModifyRecruitRecruiterState( IN const KELG_RECRUIT_R
 	}
 }
 #endif SERV_RECRUIT_EVENT_BASE
+

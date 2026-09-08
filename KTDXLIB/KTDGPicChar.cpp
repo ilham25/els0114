@@ -7,7 +7,7 @@ CKTDGPicChar::CKTDGPicChar( const WCHAR* pPicCharGroup, CKTDGParticleSystem::CPa
 	m_StrDataList.reserve( 8 );
 	
 	m_pParticleSystem = NULL;
-	m_hSeqPicChar = INVALID_PARTICLE_HANDLE;
+	m_hSeqPicChar = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	if( NULL != pEff )
 	{
 		m_hSeqPicChar = pEff->GetHandle();
@@ -31,7 +31,7 @@ CKTDGPicChar::CKTDGPicChar( const WCHAR* pPicCharGroup, CKTDGParticleSystem::CPa
 : m_fElapsedTime( 0.f )
 {
 	m_pParticleSystem = NULL;
-	m_hSeqPicChar = INVALID_PARTICLE_HANDLE;
+	m_hSeqPicChar = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	if( NULL != pEff )
 	{
 		m_hSeqPicChar = pEff->GetHandle();
@@ -54,7 +54,7 @@ CKTDGPicChar::CKTDGPicChar( CKTDGPicChar* pPicChar, CKTDGParticleSystem::CPartic
 : m_fElapsedTime( 0.f )
 {
 	m_pParticleSystem = NULL;
-	m_hSeqPicChar = INVALID_PARTICLE_HANDLE;
+	m_hSeqPicChar = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	if( NULL != pEff )
 	{
 		m_hSeqPicChar = pEff->GetHandle();
@@ -77,7 +77,7 @@ CKTDGPicChar::~CKTDGPicChar(void)
 {
 	m_StrDataList.clear();
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqPicChar )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqPicChar )
 	{
 		if( NULL != m_pParticleSystem )
 		{
@@ -137,13 +137,16 @@ void CKTDGPicChar::DrawText( const WCHAR* pStr, D3DXVECTOR3 pos, D3DXVECTOR3 dir
 				const char ch = str.at(i);
 				if( ch < MAX_PIC_CHAR_GROUP_NUM )
 				{
+                    float fWidth = m_fWidth;
 					CKTDGParticleSystem::CParticle* pParticle = pSeq->CreateNewParticle( pos );
-					float fWidth = m_fWidth;
-					if( fWidth == -1.0f )
-						fWidth = pParticle->m_vSize.x;
-					pParticle->m_TextureID	= ch;
-					if( m_bUseColor == true )
-						pParticle->m_Color = m_Color;
+                    if ( pParticle != NULL )
+                    {
+					    if( fWidth == -1.0f )
+						    fWidth = pParticle->GetSize().x;
+					    pParticle->SetTextureID( ch );
+					    if( m_bUseColor == true )
+						    pParticle->SetColor( m_Color );
+                    }
 					if( i == 0 )
 					{
 						switch( alineType )
@@ -158,8 +161,9 @@ void CKTDGPicChar::DrawText( const WCHAR* pStr, D3DXVECTOR3 pos, D3DXVECTOR3 dir
 						case AT_CENTER:
 							pos -= dirVec * (fWidth * str.size() / 2);
 							break;
-						}					
-						pParticle->m_vPos = pos;
+						}			
+                        if ( pParticle != NULL )
+						    pParticle->SetPos( pos );
 					}
 					pos += dirVec * fWidth;
 				}			
@@ -174,28 +178,31 @@ void CKTDGPicChar::DrawText( const WCHAR* pStr, D3DXVECTOR3 pos, D3DXVECTOR3 dir
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_hSeqPicChar );
 			if( pSeq != NULL )
 			{
+                float fWidth = m_fWidth;
 				CKTDGParticleSystem::CParticle* pParticle = pSeq->CreateNewParticle( pos );
-				float fWidth = m_fWidth;
-				if( fWidth == -1.0f )
-					fWidth = pParticle->m_vSize.x;
-				pParticle->m_TextureID = ch;
-				if( m_bUseColor == true )
-					pParticle->m_Color = m_Color;
-
+                if ( pParticle != NULL )
+                {
+				    if( fWidth == -1.0f )
+					    fWidth = pParticle->GetSize().x;
+				    pParticle->SetTextureID( ch );
+				    if( m_bUseColor == true )
+					    pParticle->SetColor( m_Color );
+                }
 				switch( alineType )
 				{
 				case AT_LEFT:
 					break;
-
 				case AT_RIGHT:
 					pos -= dirVec * (fWidth * str.size());
 					break;
-
 				case AT_CENTER:
 					pos -= dirVec * (fWidth * str.size() / 2);
 					break;
 				}
-				pParticle->m_vPos	= pos;
+                if ( pParticle != NULL )
+                {
+				    pParticle->SetPos( pos );
+                }
 			}
 		}
 
@@ -231,13 +238,13 @@ void CKTDGPicChar::DrawText( const WCHAR* pStr, int index, D3DXVECTOR3 pos, D3DX
 			CKTDGParticleSystem::CParticle* pParticle = pSeq->CreateNewParticle( pos );
 			float fWidth = m_fWidth;
 			if( fWidth == -1.0f )
-				fWidth = pParticle->m_vSize.x;
-			pParticle->m_TextureID = ch;
+				fWidth = pParticle->GetSize().x;
+			pParticle->SetTextureID( ch );
 			if( m_bUseColor == true )
-				pParticle->m_Color = m_Color;
+				pParticle->SetColor( m_Color );
 
 			pos += dirVec * (fWidth * (index));
-			pParticle->m_vPos = pos;
+			pParticle->SetPos( pos );
 		}
 	}	
 }
@@ -260,7 +267,7 @@ void CKTDGPicChar::LoadPicCharGroup( const WCHAR* pPicCharGroup )
 	if( NULL == m_pParticleSystem )
 		return;
 
-	if( m_hSeqPicChar != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqPicChar != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_hSeqPicChar );
 		if( pSeq != NULL )
@@ -279,9 +286,15 @@ void CKTDGPicChar::LoadPicCharGroup( const WCHAR* pPicCharGroup )
 				StringCchPrintf( wFileName, 200 , L"%s%c.dds", pPicCharGroup, i );
 				//wsprintf( wFileName, L"%s%c.dds", pPicCharGroup, i );
 
+#ifdef DELETE_ERROR_LOG
+				// 아스키코드로 순회하면서, 파일명으로는 생성 할 수 없는 파일도 같이 접근 시도하고 있음.
+				// 로그 남기지 않도록 예외처리
+				CKTDXDeviceTexture* pTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( wFileName, D3DFMT_UNKNOWN, false, false );
+#else
 				CKTDXDeviceTexture* pTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( wFileName );
+#endif // DELETE_ERROR_LOG
 				if( pTexture != NULL && 
-					m_hSeqPicChar != INVALID_PARTICLE_HANDLE )
+					m_hSeqPicChar != INVALID_PARTICLE_SEQUENCE_HANDLE )
 					pSeq->m_TextureMap.insert( std::make_pair(i,pTexture) );
 
 				m_PicCharTexList[i] = pTexture;
@@ -296,7 +309,7 @@ void CKTDGPicChar::LoadPicCharGroup( const WCHAR* pPicCharGroup, wstring charLis
 	if( NULL == m_pParticleSystem )
 		return;
 
-	if( m_hSeqPicChar != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqPicChar != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_hSeqPicChar );
 		if( pSeq != NULL )
@@ -317,7 +330,7 @@ void CKTDGPicChar::LoadPicCharGroup( const WCHAR* pPicCharGroup, wstring charLis
 
 				CKTDXDeviceTexture* pTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( wFileName.str().c_str() );
 				if( pTexture != NULL &&
-					m_hSeqPicChar != INVALID_PARTICLE_HANDLE )
+					m_hSeqPicChar != INVALID_PARTICLE_SEQUENCE_HANDLE )
 					pSeq->m_TextureMap.insert( std::make_pair(index,pTexture) );
 
 				m_PicCharTexList[index] = pTexture;
@@ -334,7 +347,7 @@ void CKTDGPicChar::LoadPicCharGroup( CKTDGPicChar* pPicChar )
 		return;
 
 
-	if( m_hSeqPicChar != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqPicChar != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = m_pParticleSystem->GetInstanceSequence( m_hSeqPicChar );
 		if( pSeq != NULL )
@@ -384,7 +397,7 @@ CKTDGParticleSystem::CParticleEventSequence* CKTDGPicChar::GetSeq()
 	if( NULL == m_pParticleSystem )
 		return NULL;
     
-	if( m_hSeqPicChar == INVALID_PARTICLE_HANDLE )
+	if( m_hSeqPicChar == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		return NULL;
 	else
 		return m_pParticleSystem->GetInstanceSequence( m_hSeqPicChar );

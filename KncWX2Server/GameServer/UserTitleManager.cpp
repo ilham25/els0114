@@ -5,6 +5,8 @@
 #include "X2Data/XSLTitleManager.h"
 #include "X2Data/XSLSocketItem.h"
 
+#include "TrainingCenterTable.h"
+
 KUserTitleManager::KUserTitleManager(void)
 {
 }
@@ -70,6 +72,7 @@ void KUserTitleManager::Init( IN bool bIsPcBang, IN OUT std::vector< KMissionIns
 					<< END_LOG;
 				// 템플릿 읽기 실패한 미션을 추가되면 안됩니다.
 #ifdef SERV_SUB_TITLE_MISSION_BUG_FIX
+				kMission.m_vecSubMissionInstance.clear();
 				break;
 #else //SERV_SUB_TITLE_MISSION_BUG_FIX
 				continue;
@@ -222,6 +225,22 @@ void KUserTitleManager::Init( IN bool bIsPcBang, IN OUT std::vector< KMissionIns
 				break;
 #endif SERV_ADD_TITLE_CONDITION
 				//}}
+
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+			case CXSLTitleManager::TMCT_ITEM_SOCKET:
+			case CXSLTitleManager::TMCT_ITEM_ENCHANT_LEVEL:
+			case CXSLTitleManager::TMCT_ITEM_ENCHANT_COUNT:
+			case CXSLTitleManager::TMCT_ITEM_ATTRIB:
+			case CXSLTitleManager::TMCT_ITEM_RESOLVE:
+				{
+					if( kSubMission.m_sClearData != 0 && kSubMission.m_sClearData >= pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount )
+					{
+						kSubMission.m_bIsSuccess = true;
+						kMissionInstance.m_vecSubMissionInstance[iIdx].m_bIsSuccess = true;
+					}
+				}
+				break;
+#endif // SERV_ADD_TITLE_CONDITION_2013_08
 
 			default:
 				{
@@ -376,6 +395,7 @@ void KUserTitleManager::CheckNewMission( IN KGSUserPtr spUser, IN bool bFirst /*
 					<< BUILD_LOG( kMissionTemplet.m_vecSubMission[iIdx] )
 					<< END_LOG;
 #ifdef SERV_SUB_TITLE_MISSION_BUG_FIX
+				kMission.m_vecSubMissionInstance.clear();
 				break;
 #else //SERV_SUB_TITLE_MISSION_BUG_FIX
 				continue;
@@ -419,7 +439,7 @@ KMissionInstance* KUserTitleManager::GetMissionInstance( IN int iMissionID )
 	return &(mit->second);
 }
 
-void KUserTitleManager::OnNpcUnitDie( IN int iDungeonID, IN char cDifficulty, IN int iMonsterID, IN KGSUserPtr spUser )
+void KUserTitleManager::OnNpcUnitDie( IN const int iDungeonID, IN const char cDifficulty, IN const char cDungeonMode, IN const int iMonsterID, IN KGSUserPtr spUser )
 {
 	SET_ERROR( NET_OK );
 
@@ -472,11 +492,7 @@ void KUserTitleManager::OnNpcUnitDie( IN int iDungeonID, IN char cDifficulty, IN
 					<< END_LOG;
 
 				SET_ERROR( ERR_TITLE_03 );
-#ifdef SERV_SUB_TITLE_MISSION_BUG_FIX
-				break;
-#else //SERV_SUB_TITLE_MISSION_BUG_FIX
 				continue;
-#endif //SERV_SUB_TITLE_MISSION_BUG_FIX
 			}
 
 			if( pSubMissionTemplet->m_eClearType != CXSLTitleManager::TMCT_NPC_HUNT )
@@ -501,11 +517,30 @@ void KUserTitleManager::OnNpcUnitDie( IN int iDungeonID, IN char cDifficulty, IN
 				//그리고 난이도 조건이 있는지 확인한다.
 				if( pSubMissionTemplet->m_ClearCondition.m_cDifficulty >= 0 )
 				{
-					if( pSubMissionTemplet->m_ClearCondition.m_cDifficulty != cDifficulty )
-						continue;
+					// 특정 난이도 이상을 조건에 포함
+					if( pSubMissionTemplet->m_ClearCondition.m_bUpperDifficulty == false )
+					{
+						if( pSubMissionTemplet->m_ClearCondition.m_cDifficulty != cDifficulty )
+							continue;
+					}
+					else
+					{
+						if( pSubMissionTemplet->m_ClearCondition.m_cDifficulty > cDifficulty )
+							continue;
+					}
 				}
+
+				if( ( pSubMissionTemplet->m_ClearCondition.m_eDungeonMode != CXSLDungeon::DM_INVALID ) && ( pSubMissionTemplet->m_ClearCondition.m_eDungeonMode != cDungeonMode ) )
+					continue;
 			}
 
+#ifdef DO_NOT_COUNT_DEAD_NPC_RELATED_TO_TITLE_MISSION_IN_TRAINING_ROOM
+			/// 던전 조건을 지정하지 않았는데, 
+			/// 현재 플레이중인 던전이 자유훈련소라면 카운트 하지 않는다.
+			else if ( KTrainingCenterTable::GetInstance()->IsTrainingCenter( iDungeonID ) )
+				continue;
+#endif // DO_NOT_COUNT_DEAD_NPC_RELATED_TO_TITLE_MISSION_IN_TRAINING_ROOM
+			
 			if( pSubMissionTemplet->m_ClearCondition.m_iKillNum > kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
 			{
 				++kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData;
@@ -603,11 +638,7 @@ void KUserTitleManager::OnTalkWithNpc( IN int iNPCID, IN KGSUserPtr spUser )
 					<< END_LOG;
 
 				SET_ERROR( ERR_TITLE_03 );
-#ifdef SERV_SUB_TITLE_MISSION_BUG_FIX
-				break;
-#else //SERV_SUB_TITLE_MISSION_BUG_FIX
 				continue;
-#endif //SERV_SUB_TITLE_MISSION_BUG_FIX
 			}
 
 			if( pSubMissionTemplet->m_eClearType != CXSLTitleManager::TMCT_NPC_TALK )
@@ -717,13 +748,8 @@ void KUserTitleManager::OnDungeonClear( IN KGSUserPtr spUser, IN int iDungeonID,
 					<< END_LOG;
 
 				SET_ERROR( ERR_TITLE_03 );
-
-#ifdef SERV_SUB_TITLE_MISSION_BUG_FIX
-				break;
-#else //SERV_SUB_TITLE_MISSION_BUG_FIX
 				continue;
-#endif //SERV_SUB_TITLE_MISSION_BUG_FIX
-			}			
+			}
 
 			bool bRVal = false;
 
@@ -847,7 +873,7 @@ void KUserTitleManager::OnDungeonClear( IN KGSUserPtr spUser, IN int iDungeonID,
 					{
 						//던전 클리어 서브는 승리만 하면 되기때문에 이곳에서 처리
 						//## 초심자의 숲만 예외처리한다.
-						if( iDungeonID != CXSLDungeon::DI_EL_FOREST_GATE_NORMAL  &&
+						if( iDungeonID != SEnum::DI_EL_FOREST_GATE_NORMAL  &&
 							CXSLDungeon::IsTutorialDungeon( iDungeonID ) == false )
 						{
 							bRVal = true;
@@ -860,7 +886,7 @@ void KUserTitleManager::OnDungeonClear( IN KGSUserPtr spUser, IN int iDungeonID,
 			case CXSLTitleManager::TMCT_PLAYER_WITH_DUNGEON_CLEAR:
 			case CXSLTitleManager::TMCT_RESURRECTION_STONE:
 				{
-					if( iDungeonID != CXSLDungeon::DI_EL_FOREST_GATE_NORMAL  
+					if( iDungeonID != SEnum::DI_EL_FOREST_GATE_NORMAL  
 					&&	CXSLDungeon::IsTutorialDungeon( iDungeonID ) == false )
 					{
 						bRVal = true;
@@ -1029,6 +1055,9 @@ void KUserTitleManager::OnDungeonClear( IN KGSUserPtr spUser, IN int iDungeonID,
 								DeleteUpdateMission( kNot.m_vecMissionInst, kMissionInstance.m_iID );
 							}
 						}
+
+						// DB 업데이트 누락 되지 않도록 한번 add 해준다.
+						AddUpdateMission( kMissionInstance.m_iID );
 						continue;				// 성공으로 처리 되지 않게 건너뛰게 한다.
 					}
 
@@ -1136,11 +1165,7 @@ void KUserTitleManager::OnQuestComplete( IN int iQuestID, IN KGSUserPtr spUser )
 					<< END_LOG;
 
 				SET_ERROR( ERR_TITLE_03 );
-#ifdef SERV_SUB_TITLE_MISSION_BUG_FIX
-				break;
-#else //SERV_SUB_TITLE_MISSION_BUG_FIX
 				continue;
-#endif //SERV_SUB_TITLE_MISSION_BUG_FIX
 			}
 
 			if( pSubMissionTemplet->m_eClearType != CXSLTitleManager::TMCT_QUEST )
@@ -1240,11 +1265,7 @@ void KUserTitleManager::OnUseItem( IN const int iItemID, IN KGSUserPtr spUser )
 					<< END_LOG;
 
 				SET_ERROR( ERR_TITLE_03 );
-#ifdef SERV_SUB_TITLE_MISSION_BUG_FIX
-				break;
-#else //SERV_SUB_TITLE_MISSION_BUG_FIX
 				continue;
-#endif //SERV_SUB_TITLE_MISSION_BUG_FIX
 			}
 
 			if( pSubMissionTemplet->m_eClearType != CXSLTitleManager::TMCT_USE_ITEM )
@@ -1992,11 +2013,7 @@ void KUserTitleManager::OnUserUnitDie( IN KEGS_USER_UNIT_DIE_REQ::USER_UNIT_DIE_
 					<< END_LOG;
 
 				SET_ERROR( ERR_TITLE_03 );
-#ifdef SERV_SUB_TITLE_MISSION_BUG_FIX
-				break;
-#else //SERV_SUB_TITLE_MISSION_BUG_FIX
 				continue;
-#endif //SERV_SUB_TITLE_MISSION_BUG_FIX
 			}
 
 			if( pSubMissionTemplet->m_eClearType == CXSLTitleManager::TMCT_USER_UNIT_DIE )
@@ -2055,4 +2072,387 @@ void KUserTitleManager::OnUserUnitDie( IN KEGS_USER_UNIT_DIE_REQ::USER_UNIT_DIE_
 #endif SERV_ADD_TITLE_CONDITION
 //}}
 
+#ifdef SERV_ADD_TITLE_CONDITION_2013_08		// 적용날짜: 2013-08-13
+void KUserTitleManager::OnSocketItem( IN KGSUserPtr spUser, IN int iItemLevel, IN int iSocketUseCount )
+{
+	SET_ERROR( NET_OK );
 
+	if( m_mapMission.empty() )
+		return;
+
+	KEGS_UPDATE_MISSION_NOT	kNot;
+
+	std::map< int, KMissionInstance >::iterator mit;
+	for( mit = m_mapMission.begin(); mit != m_mapMission.end(); ++mit )
+	{
+		KMissionInstance& kMissionInstance = mit->second;
+
+		const CXSLTitleManager::MissionTemplet* pMissionTemplet = SiCXSLTitleManager()->GetMissionInfo( kMissionInstance.m_iID );
+		if( pMissionTemplet == NULL )
+		{
+			START_LOG( cerr, L"MISSION TEMPLET 얻어오기 실패.!" )
+				<< BUILD_LOG( kMissionInstance.m_iID )
+				<< BUILD_LOG( spUser->GetCharUID() )
+				<< BUILD_LOG( spUser->GetCharName() )
+				<< END_LOG;
+
+			SET_ERROR( ERR_TITLE_03 );
+			continue;
+		}
+
+		for( u_int nSub = 0; nSub < pMissionTemplet->m_vecSubMission.size(); ++nSub )
+		{
+			const CXSLTitleManager::SubMissionTemplet* pSubMissionTemplet = SiCXSLTitleManager()->GetSubMissionInfo( pMissionTemplet->m_vecSubMission[nSub] );
+			if( pSubMissionTemplet == NULL )
+			{
+				START_LOG( cerr, L"SUB MISSION TEMPLET 얻어오기 실패.!" )
+					<< BUILD_LOG( pMissionTemplet->m_vecSubMission[nSub] )
+					<< BUILD_LOG( spUser->GetCharUID() )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< END_LOG;
+
+				SET_ERROR( ERR_TITLE_03 );
+				continue;
+			}
+
+			if( pSubMissionTemplet->m_eClearType == CXSLTitleManager::TMCT_ITEM_SOCKET )
+			{
+				if( iItemLevel < pSubMissionTemplet->m_ClearCondition.m_iItemLevel )
+					continue;
+			}
+			else
+				continue;
+
+			if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount > kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+			{
+				kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData += static_cast<short>(iSocketUseCount);
+
+				if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount <= kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+					kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess = true;
+
+				kNot.m_vecMissionInst.push_back( kMissionInstance );
+
+				START_LOG( clog, L"미션 TMCT_ITEM_SOCKET 수행" )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< BUILD_LOG( spUser->GetUserName() )
+					<< BUILD_LOG( pSubMissionTemplet->m_wstrDescription )
+					<< BUILD_LOG( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount )
+					<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+					<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess )
+					;
+
+				// DB 업데이트
+				AddUpdateMission( kMissionInstance.m_iID );
+			}
+		}		
+	}
+
+	if( !kNot.m_vecMissionInst.empty() )
+	{
+		// 미션 중간결과 클라이언트 전송
+		spUser->SendPacket( EGS_UPDATE_MISSION_NOT, kNot );
+
+		// 미션 수행 완료 체크 및 보상
+		std::vector< KMissionInstance >::const_iterator vitMC;
+		for( vitMC = kNot.m_vecMissionInst.begin(); vitMC != kNot.m_vecMissionInst.end(); ++vitMC )
+		{
+			CheckCompleteMission( vitMC->m_iID, spUser );
+		}
+	}
+}
+
+void KUserTitleManager::OnEnchantItemLevel( IN KGSUserPtr spUser, IN int iItemLevel, IN int iEnchantLevel, IN bool bEnchantResult )
+{
+	// 인첸트 레벨 및 인첸트 횟수 같이 처리
+	SET_ERROR( NET_OK );
+
+	if( m_mapMission.empty() )
+		return;
+
+	KEGS_UPDATE_MISSION_NOT	kNot;
+
+	std::map< int, KMissionInstance >::iterator mit;
+	for( mit = m_mapMission.begin(); mit != m_mapMission.end(); ++mit )
+	{
+		KMissionInstance& kMissionInstance = mit->second;
+
+		const CXSLTitleManager::MissionTemplet* pMissionTemplet = SiCXSLTitleManager()->GetMissionInfo( kMissionInstance.m_iID );
+		if( pMissionTemplet == NULL )
+		{
+			START_LOG( cerr, L"MISSION TEMPLET 얻어오기 실패.!" )
+				<< BUILD_LOG( kMissionInstance.m_iID )
+				<< BUILD_LOG( spUser->GetCharUID() )
+				<< BUILD_LOG( spUser->GetCharName() )
+				<< END_LOG;
+
+			SET_ERROR( ERR_TITLE_03 );
+			continue;
+		}
+
+		for( u_int nSub = 0; nSub < pMissionTemplet->m_vecSubMission.size(); ++nSub )
+		{
+			const CXSLTitleManager::SubMissionTemplet* pSubMissionTemplet = SiCXSLTitleManager()->GetSubMissionInfo( pMissionTemplet->m_vecSubMission[nSub] );
+			if( pSubMissionTemplet == NULL )
+			{
+				START_LOG( cerr, L"SUB MISSION TEMPLET 얻어오기 실패.!" )
+					<< BUILD_LOG( pMissionTemplet->m_vecSubMission[nSub] )
+					<< BUILD_LOG( spUser->GetCharUID() )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< END_LOG;
+
+				SET_ERROR( ERR_TITLE_03 );
+				continue;
+			}
+
+			if( pSubMissionTemplet->m_eClearType == CXSLTitleManager::TMCT_ITEM_ENCHANT_LEVEL )
+			{
+				if( bEnchantResult == false )	// 강화 성공 시에만 처리하자
+					continue;
+
+				if( iItemLevel < pSubMissionTemplet->m_ClearCondition.m_iItemLevel )
+					continue;
+
+				if( iEnchantLevel < pSubMissionTemplet->m_ClearCondition.m_iEnchantLevel )
+					continue;
+
+				if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount > kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+				{
+					++kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData;
+
+					if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount <= kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+						kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess = true;
+
+					kNot.m_vecMissionInst.push_back( kMissionInstance );
+
+					START_LOG( clog, L"미션 TMCT_ITEM_ENCHANT_LEVEL 수행" )
+						<< BUILD_LOG( spUser->GetCharName() )
+						<< BUILD_LOG( spUser->GetUserName() )
+						<< BUILD_LOG( pSubMissionTemplet->m_wstrDescription )
+						<< BUILD_LOG( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount )
+						<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+						<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess )
+						;
+
+					// DB 업데이트
+					AddUpdateMission( kMissionInstance.m_iID );
+				}
+			}
+			else if( pSubMissionTemplet->m_eClearType == CXSLTitleManager::TMCT_ITEM_ENCHANT_COUNT )
+			{
+				if( iItemLevel < pSubMissionTemplet->m_ClearCondition.m_iItemLevel )
+					continue;
+
+				if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount > kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+				{
+					++kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData;
+
+					if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount <= kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+						kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess = true;
+
+					kNot.m_vecMissionInst.push_back( kMissionInstance );
+
+					START_LOG( clog, L"미션 TMCT_ITEM_ENCHANT_COUNT 수행" )
+						<< BUILD_LOG( spUser->GetCharName() )
+						<< BUILD_LOG( spUser->GetUserName() )
+						<< BUILD_LOG( pSubMissionTemplet->m_wstrDescription )
+						<< BUILD_LOG( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount )
+						<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+						<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess )
+						;
+
+					// DB 업데이트
+					AddUpdateMission( kMissionInstance.m_iID );
+				}
+			}
+		}		
+	}
+
+	if( !kNot.m_vecMissionInst.empty() )
+	{
+		// 미션 중간결과 클라이언트 전송
+		spUser->SendPacket( EGS_UPDATE_MISSION_NOT, kNot );
+
+		// 미션 수행 완료 체크 및 보상
+		std::vector< KMissionInstance >::const_iterator vitMC;
+		for( vitMC = kNot.m_vecMissionInst.begin(); vitMC != kNot.m_vecMissionInst.end(); ++vitMC )
+		{
+			CheckCompleteMission( vitMC->m_iID, spUser );
+		}
+	}
+}
+
+void KUserTitleManager::OnAttribItem( IN KGSUserPtr spUser, IN int iItemLevel )
+{
+	SET_ERROR( NET_OK );
+
+	if( m_mapMission.empty() )
+		return;
+
+	KEGS_UPDATE_MISSION_NOT	kNot;
+
+	std::map< int, KMissionInstance >::iterator mit;
+	for( mit = m_mapMission.begin(); mit != m_mapMission.end(); ++mit )
+	{
+		KMissionInstance& kMissionInstance = mit->second;
+
+		const CXSLTitleManager::MissionTemplet* pMissionTemplet = SiCXSLTitleManager()->GetMissionInfo( kMissionInstance.m_iID );
+		if( pMissionTemplet == NULL )
+		{
+			START_LOG( cerr, L"MISSION TEMPLET 얻어오기 실패.!" )
+				<< BUILD_LOG( kMissionInstance.m_iID )
+				<< BUILD_LOG( spUser->GetCharUID() )
+				<< BUILD_LOG( spUser->GetCharName() )
+				<< END_LOG;
+
+			SET_ERROR( ERR_TITLE_03 );
+			continue;
+		}
+
+		for( u_int nSub = 0; nSub < pMissionTemplet->m_vecSubMission.size(); ++nSub )
+		{
+			const CXSLTitleManager::SubMissionTemplet* pSubMissionTemplet = SiCXSLTitleManager()->GetSubMissionInfo( pMissionTemplet->m_vecSubMission[nSub] );
+			if( pSubMissionTemplet == NULL )
+			{
+				START_LOG( cerr, L"SUB MISSION TEMPLET 얻어오기 실패.!" )
+					<< BUILD_LOG( pMissionTemplet->m_vecSubMission[nSub] )
+					<< BUILD_LOG( spUser->GetCharUID() )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< END_LOG;
+
+				SET_ERROR( ERR_TITLE_03 );
+				continue;
+			}
+
+			if( pSubMissionTemplet->m_eClearType == CXSLTitleManager::TMCT_ITEM_ATTRIB )
+			{
+				if( iItemLevel < pSubMissionTemplet->m_ClearCondition.m_iItemLevel )
+					continue;
+			}
+			else
+				continue;
+
+			if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount > kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+			{
+				++kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData;
+
+				if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount <= kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+					kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess = true;
+
+				kNot.m_vecMissionInst.push_back( kMissionInstance );
+
+				START_LOG( clog, L"미션 TMCT_ITEM_ATTRIB 수행" )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< BUILD_LOG( spUser->GetUserName() )
+					<< BUILD_LOG( pSubMissionTemplet->m_wstrDescription )
+					<< BUILD_LOG( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount )
+					<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+					<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess )
+					;
+
+				// DB 업데이트
+				AddUpdateMission( kMissionInstance.m_iID );
+			}
+		}		
+	}
+
+	if( !kNot.m_vecMissionInst.empty() )
+	{
+		// 미션 중간결과 클라이언트 전송
+		spUser->SendPacket( EGS_UPDATE_MISSION_NOT, kNot );
+
+		// 미션 수행 완료 체크 및 보상
+		std::vector< KMissionInstance >::const_iterator vitMC;
+		for( vitMC = kNot.m_vecMissionInst.begin(); vitMC != kNot.m_vecMissionInst.end(); ++vitMC )
+		{
+			CheckCompleteMission( vitMC->m_iID, spUser );
+		}
+	}
+}
+
+void KUserTitleManager::OnResolveItem( IN KGSUserPtr spUser )
+{
+	SET_ERROR( NET_OK );
+
+	if( m_mapMission.empty() )
+		return;
+
+	KEGS_UPDATE_MISSION_NOT	kNot;
+
+	std::map< int, KMissionInstance >::iterator mit;
+	for( mit = m_mapMission.begin(); mit != m_mapMission.end(); ++mit )
+	{
+		KMissionInstance& kMissionInstance = mit->second;
+
+		const CXSLTitleManager::MissionTemplet* pMissionTemplet = SiCXSLTitleManager()->GetMissionInfo( kMissionInstance.m_iID );
+		if( pMissionTemplet == NULL )
+		{
+			START_LOG( cerr, L"MISSION TEMPLET 얻어오기 실패.!" )
+				<< BUILD_LOG( kMissionInstance.m_iID )
+				<< BUILD_LOG( spUser->GetCharUID() )
+				<< BUILD_LOG( spUser->GetCharName() )
+				<< END_LOG;
+
+			SET_ERROR( ERR_TITLE_03 );
+			continue;
+		}
+
+		for( u_int nSub = 0; nSub < pMissionTemplet->m_vecSubMission.size(); ++nSub )
+		{
+			const CXSLTitleManager::SubMissionTemplet* pSubMissionTemplet = SiCXSLTitleManager()->GetSubMissionInfo( pMissionTemplet->m_vecSubMission[nSub] );
+			if( pSubMissionTemplet == NULL )
+			{
+				START_LOG( cerr, L"SUB MISSION TEMPLET 얻어오기 실패.!" )
+					<< BUILD_LOG( pMissionTemplet->m_vecSubMission[nSub] )
+					<< BUILD_LOG( spUser->GetCharUID() )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< END_LOG;
+
+				SET_ERROR( ERR_TITLE_03 );
+				continue;
+			}
+
+			if( pSubMissionTemplet->m_eClearType == CXSLTitleManager::TMCT_ITEM_RESOLVE )
+			{
+				// 검사 조건이 없다. 그냥 통과
+			}
+			else
+				continue;
+
+			if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount > kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+			{
+				++kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData;
+
+				if( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount <= kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+					kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess = true;
+
+				kNot.m_vecMissionInst.push_back( kMissionInstance );
+
+				START_LOG( clog, L"미션 TMCT_ITEM_RESOLVE 수행" )
+					<< BUILD_LOG( spUser->GetCharName() )
+					<< BUILD_LOG( spUser->GetUserName() )
+					<< BUILD_LOG( pSubMissionTemplet->m_wstrDescription )
+					<< BUILD_LOG( pSubMissionTemplet->m_ClearCondition.m_iDungeonClearCount )
+					<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_sClearData )
+					<< BUILD_LOG( kMissionInstance.m_vecSubMissionInstance[nSub].m_bIsSuccess )
+					;
+
+				// DB 업데이트
+				AddUpdateMission( kMissionInstance.m_iID );
+			}
+		}		
+	}
+
+	if( !kNot.m_vecMissionInst.empty() )
+	{
+		// 미션 중간결과 클라이언트 전송
+		spUser->SendPacket( EGS_UPDATE_MISSION_NOT, kNot );
+
+		// 미션 수행 완료 체크 및 보상
+		std::vector< KMissionInstance >::const_iterator vitMC;
+		for( vitMC = kNot.m_vecMissionInst.begin(); vitMC != kNot.m_vecMissionInst.end(); ++vitMC )
+		{
+			CheckCompleteMission( vitMC->m_iID, spUser );
+		}
+	}
+}
+#endif // SERV_ADD_TITLE_CONDITION_2013_08

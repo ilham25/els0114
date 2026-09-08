@@ -147,6 +147,8 @@ DECL_DATA( KNexonAccountInfo )
 		CE_NONE				 = -1,
 		CE_NEXON_ACCOUNT	 = 0,
 		CE_TOONILAND_ACCOUNT = 3,
+        CE_NAVER_ACCOUNT     = 6, // NGM, SSO, 회원
+        CE_NAVER_SESSION    = 14, // 셧다운, PC방
 	};
 #endif SERV_TOONILAND_CHANNELING
 	//}}
@@ -386,11 +388,6 @@ DECL_DATA( KAccountInfo )
 	int						m_iChannelRandomKey;
 #endif SERV_DLL_LIST_CHECK_BEFOR_LOADING
 	//}}
-	//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-	std::wstring			m_wstrLogoutDate;
-#endif SERV_FIXED_DATE_EVENT
-	//}}
 };
 
 DECL_DATA( KItemAttributeEnchantInfo )
@@ -506,6 +503,10 @@ DECL_DATA( KItemInfo )
 	UidType						m_iGoldTicketKeyUID;
 #endif //SERV_GOLD_TICKET
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+	byte						m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
+
     KItemInfo()
 	{
         m_iItemID			 = 0;
@@ -525,6 +526,10 @@ DECL_DATA( KItemInfo )
 #ifdef SERV_GOLD_TICKET
 		m_iGoldTicketKeyUID	= 0;
 #endif //SERV_GOLD_TICKET
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+		m_byteExpandedSocketNum = 0;
+#endif // SERV_BATTLE_FIELD_BOSS
 	}
 
 	COPYCON_ASSIGNOP( KItemInfo, right )
@@ -548,6 +553,9 @@ DECL_DATA( KItemInfo )
 #ifdef SERV_GOLD_TICKET
 		m_iGoldTicketKeyUID	 = right.m_iGoldTicketKeyUID;
 #endif //SERV_GOLD_TICKET
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-18	// 박세훈
+		m_byteExpandedSocketNum = right.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 
 		return *this;
 	}
@@ -776,6 +784,14 @@ DECL_DATA( KDeletedItemInfo )
 //#ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-20
 		DR_RIDING_PET_CREATE_ITEM,		// [52] 라이딩 펫 생성 아이템
 //#endif	// SERV_RIDING_PET_SYSTM
+//#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+		DR_ITEM_EXTRACT,			// [53] 아이템 추출
+		DR_USE_FINALITY_SKILL,		// [54] 궁극기 사용 재료
+//#endif // SERV_FINALITY_SKILL_SYSTEM
+
+//#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-17	// 박세훈
+		DR_EXPAND_SOCKET_SLOT,		// [55] 소켓 슬롯 확장 재료
+//#endif // SERV_BATTLE_FIELD_BOSS
 	};
 
 	UidType					m_iItemUID;
@@ -1051,6 +1067,11 @@ DECL_DATA( KUnitSkillData )
 #endif SERV_SKILL_NOTE
 	//}}
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	unsigned char	m_nActiveSkillPagesNumber;
+	unsigned char	m_nTheNumberOfSkillPagesAvailable;
+#endif // SERV_SKILL_PAGE_SYSTEM
+	
 	KUnitSkillData()
 	{
 		Init();
@@ -1077,6 +1098,11 @@ DECL_DATA( KUnitSkillData )
 			m_aEquippedSkill[i].Init();
 			m_aEquippedSkillSlotB[i].Init();
 		}
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_nActiveSkillPagesNumber					= 1;
+		m_nTheNumberOfSkillPagesAvailable		= 1;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	}
 };
 
@@ -1158,6 +1184,9 @@ DECL_DATA( KLastPositionInfo )
 	int                             m_iMapID;
 	unsigned char 					m_ucLastTouchLineIndex;
 	unsigned short 					m_usLastPosValue;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+	bool							m_bIgnoreLastTouch;	// m_iMapID에 해당하는 기본 위치를 사용하도록 알린다.
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	KLastPositionInfo()
 	{
@@ -1169,6 +1198,9 @@ DECL_DATA( KLastPositionInfo )
 		m_iMapID = 0;
 		m_ucLastTouchLineIndex = 0;
 		m_usLastPosValue = 0;
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+		m_bIgnoreLastTouch = false;
+#endif // SERV_BATTLE_FIELD_BOSS
 	}
 };
 #endif SERV_BATTLE_FIELD_SYSTEM
@@ -1373,7 +1405,7 @@ DECL_DATA( KUnitInfo )
 #endif SERV_PVP_NEW_SYSTEM
 	//}}
 	
-	int									m_iSPoint;
+	int									m_iSPoint;						// 현재 사용중인 스킬 페이지의 스킬 포인트
 	int									m_iCSPoint;						// 가지고 있는 캐시 스킬 포인트									// fix!! data size 줄이기
 	int									m_iMaxCSPoint;					// 캐시 스킬 아이템 구입시 초기 캐시 스킬 포인트
 	std::wstring						m_wstrCSPointEndDate;			// 캐시스킬 아이템 사용 기한
@@ -1435,7 +1467,8 @@ DECL_DATA( KUnitInfo )
 	KUserGuildInfo						m_kUserGuildInfo;
 #endif GUILD_TEST
 	//}}
-
+    std::wstring                        m_wstrLastLoginTime;
+	
 	//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
 #ifdef SERV_UNIT_WAIT_DELETE
 	std::wstring						m_wstrLastDate;			// 최종 Logout 타임
@@ -1454,6 +1487,10 @@ DECL_DATA( KUnitInfo )
 	int									m_iExchangeCount;
 #endif SERV_GROW_UP_SOCKET
 
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+	int									m_iAccumulationSpirit;
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
+
 #ifdef SERV_CHINA_SPIRIT_EVENT
 	int									m_arrChinaSpirit[6];
 #endif SERV_CHINA_SPIRIT_EVENT
@@ -1466,6 +1503,17 @@ DECL_DATA( KUnitInfo )
 	u_char								m_ucOldYearMissionRewardedLevel;
 	int									m_iNewYearMissionStepID;
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+	unsigned char						m_ucCheckPowerCount;
+	__int64								m_iCheckPowerTime;
+	bool								m_bCheckPowerShowPopUp;
+	unsigned char						m_ucCheckPowerScore;
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	unsigned int						m_iAccountPVPLoseCount;
+#endif // SERV_4TH_ANNIVERSARY_EVENT
 
 	KUnitInfo() 
 	{
@@ -1542,7 +1590,8 @@ DECL_DATA( KUnitInfo )
 		m_sTitleID					= 0;
 #endif SERV_TITLE_DATA_SIZE
 		//}}
-
+        m_wstrLastLoginTime = L"";
+		
 		//{{ 2012.02.20 조효진	캐릭터 삭제 프로세스 변경 (삭제 대기 기간 도입)
 #ifdef SERV_UNIT_WAIT_DELETE
 		m_wstrLastDate				= L"";		// 최종 Logout 타임
@@ -1561,6 +1610,10 @@ DECL_DATA( KUnitInfo )
 		m_iExchangeCount			= 0;
 #endif SERV_GROW_UP_SOCKET
 
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+		m_iAccumulationSpirit		= 0;
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
+
 #ifdef SERV_CHINA_SPIRIT_EVENT
 		m_arrChinaSpirit[0]			= 0;
 		m_arrChinaSpirit[1]			= 0;
@@ -1578,6 +1631,17 @@ DECL_DATA( KUnitInfo )
 		m_ucOldYearMissionRewardedLevel		= 0;
 		m_iNewYearMissionStepID				= -1;
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+		m_ucCheckPowerCount			= 0;
+		m_bCheckPowerShowPopUp		= false;
+		m_ucCheckPowerScore			= 0;
+		m_iCheckPowerTime			= 0;
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		m_iAccountPVPLoseCount		= 0;
+#endif // SERV_4TH_ANNIVERSARY_EVENT
 	}
 };
 
@@ -1658,20 +1722,6 @@ DECL_DATA( KRoomInfo )
 	char					m_cDungeonMode;	
 	UidType					m_iPartyUID;
 
-	//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-	enum ROOM_BUFF_TYPE
-	{
-		RBT_NONE = 0,
-		RBT_COEXISTENCE_FESTIVAL1,	// 공존의 축제 ( 공격 )
-		RBT_COEXISTENCE_FESTIVAL2,	// 공존의 축제 ( 속도 )
-		RBT_COEXISTENCE_FESTIVAL3,	// 공존의 축제 ( 치명 )
-		RBT_COEXISTENCE_FESTIVAL4,	// 공존의 축제 ( 성장 )
-		RBT_COEXISTENCE_FESTIVAL5,	// 공존의 축제 ( 성장x2 )
-	};
-
-	int						m_iBuffType;
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
 	//{{ 2011. 10. 31	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	// 배틀필드 데이타
@@ -1732,10 +1782,6 @@ DECL_DATA( KRoomInfo )
 		m_cDungeonMode		= 0;
 		m_iPartyUID			= 0;
 
-		//{{ 2012. 02. 27	박세훈	공존의 축제
-#ifdef SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
-		m_iBuffType			= RBT_NONE;
-#endif SERV_COEXISTENCE_FESTIVAL_ROOMBUFF
 		//{{ 2011. 10. 31	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		m_iBattleFieldID	= 0;
@@ -1835,6 +1881,11 @@ DECL_DATA( KPetInfo )
 	bool							m_bAutoLooting;			// 오토 루팅 여부
 #endif SERV_PET_AUTO_LOOTING
 	//}}
+#ifdef SERV_EVENT_PET_INVENTORY
+	//이벤트 펫 먹이 추가 
+	bool							m_bEventFoodEat;      // 이벤트 먹이의 사용 유무 
+	bool							m_bIsEventPetID;      // 이벤트 성 펫인지 확인 한다.
+#endif SERV_EVENT_PET_INVENTORY
 
 #ifdef SERV_FREE_AUTO_LOOTING
 	bool							m_bFreeAutoLooting;
@@ -1858,6 +1909,10 @@ DECL_DATA( KPetInfo )
 		, m_sEmotion( 0 )
 		, m_bAutoFeed( false )
 		, m_bAutoLooting( false )
+#ifdef SERV_EVENT_PET_INVENTORY
+		, m_bEventFoodEat( false )
+		, m_bIsEventPetID( false )
+#endif SERV_EVENT_PET_INVENTORY
 #ifdef SERV_FREE_AUTO_LOOTING
 		, m_bFreeAutoLooting( false )
 #endif SERV_FREE_AUTO_LOOTING
@@ -1904,6 +1959,12 @@ DECL_DATA( KGamePlayStatus )
 		CAC_WSP,
 		CAC_CANNON_BALL_COUNT,
 		CAC_FORCE_POWER,
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		CAC_NP_AND_MUTATION_AND_FORMATION_MODE,
+	#endif //SERV_9TH_NEW_CHARACTER
+	#ifdef ADD_RENA_SYSTEM //김창한 // 해외팀 수정
+		CAC_NATURAL_FORCE,
+	#endif //ADD_RENA_SYSTEM
 	};
 
 	enum COOL_TIME_TYPE
@@ -1969,6 +2030,26 @@ DECL_DATA( KGamePlayStatus )
 
 		return m_iCharAbilCount;
 	}
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+	int GetNPAndMutationAndFormationMode() const
+	{
+		if( m_cCharAbilType != CAC_NP_AND_MUTATION_AND_FORMATION_MODE )
+			return 0;
+
+		return m_iCharAbilCount;
+	}
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	int GetNaturalForce() const
+	{
+		if( m_cCharAbilType != CAC_NATURAL_FORCE )
+			return 0;
+
+		return m_iCharAbilCount;
+	}
+#endif //ADD_RENA_SYSTEM
 };
 
 DECL_DATA( KGamePlayStatusContainer )
@@ -2247,6 +2328,7 @@ DECL_DATA( KRoomUserInfo )
 	bool					m_bEnterCashShop;
 #endif SERV_VISIT_CASH_SHOP
 	//}}
+
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-21
 	UidType					m_iRidingPetUID;
 	USHORT					m_usRidingPetID;
@@ -2264,14 +2346,32 @@ DECL_DATA( KRoomUserInfo )
 	int						m_iExchangeCount;
 #endif // SERV_GROW_UP_SOCKET
 
+#ifdef SERV_BLESS_OF_GODDESS_EVENT
+	bool					m_bMaxLevelUnitInAccount;
+#endif SERV_BLESS_OF_GODDESS_EVENT
+
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 	int						m_iGateOfDarknessSupportEventTime;
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	bool					m_bCouple;
+	UidType					m_iRelationTargetUserUid;
+	std::wstring			m_wstrRelationTargetUserNickname;
+#endif SERV_RELATIONSHIP_EVENT_INT
 
 #ifdef SERV_RECRUIT_EVENT_BASE
 	UidType					m_iRecruiterUnitUID;
 	std::vector< UidType >	m_vecRecruitUnitUID;
 #endif SERV_RECRUIT_EVENT_BASE
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+	int						m_iValentineItemCount;
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	unsigned int						m_iAccountPVPLoseCount;
+#endif // SERV_4TH_ANNIVERSARY_EVENT
 
 	KRoomUserInfo()
 	{
@@ -2370,6 +2470,7 @@ DECL_DATA( KRoomUserInfo )
 		m_bEnterCashShop = false;
 #endif SERV_VISIT_CASH_SHOP
 		//}}
+
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-21
 		m_iRidingPetUID			= 0;
 		m_usRidingPetID			= 0;
@@ -2384,17 +2485,40 @@ DECL_DATA( KRoomUserInfo )
 		m_iEventQuestClearCount		= 0;
 		m_iExchangeCount			= 0;
 #endif // SERV_GROW_UP_SOCKET
+
 #ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_FIX
 		m_bUseItem				= false;
 #endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_FIX
+
+#ifdef SERV_BLESS_OF_GODDESS_EVENT
+		m_bMaxLevelUnitInAccount		= false;
+#endif SERV_BLESS_OF_GODDESS_EVENT
 
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 		m_iGateOfDarknessSupportEventTime = 0;
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		m_bCouple					= false;
+        m_iRelationTargetUserUid	= 0;
+        m_wstrRelationTargetUserNickname = L"";
+#endif SERV_RELATIONSHIP_EVENT_INT
+
+#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_FIX
+		m_bUseItem				= false;
+#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_FIX
+
 #ifdef SERV_RECRUIT_EVENT_BASE
 		m_iRecruiterUnitUID			= 0;
 #endif SERV_RECRUIT_EVENT_BASE
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		m_iValentineItemCount		= -1;
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		m_iAccountPVPLoseCount		= 0;
+#endif // SERV_4TH_ANNIVERSARY_EVENT
 	}
 
 	//{{ 2010. 05. 11  최육사	이벤트 보상 코드 정리
@@ -2448,9 +2572,9 @@ DECL_DATA( KRoomSlotInfo )
     int						m_TeamNum;
     KRoomUserInfo           m_kRoomUserInfo;
 
-#ifdef PVP_BOSS_COMBAT_TEST
-	bool					m_bIsBoss;
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//	bool					m_bIsBoss;
+//#endif PVP_BOSS_COMBAT_TEST
 };
 
 //{{ 2010. 05. 12  최육사	서버 코드 정리
@@ -2532,6 +2656,37 @@ DECL_DATA( KDungeonPlayResultInfo )
 };
 //}}
 
+#ifdef SERV_GLOBAL_EVENT_TABLE
+DECL_DATA( KGlobalEventTableData )
+{
+	enum EVENT_ACCOUNT_ENUM
+	{
+		EAE_NONE				 = 0, // 일반 - 모든 유저 대상
+		EAE_ACCOUNT_NORMAL		 = 1, // 계정 - 계정 내에 한 캐릭터만
+		EAE_ACCOUNT_SUM			 = 2, // 계정 - 계정 내에 모든 캐릭터가 데이터 공유
+	};
+
+	UidType				m_iUserUID;
+	UidType				m_iUnitUID;
+	int					m_iEventID;
+	unsigned short		m_usCategory;
+	std::vector<int>	m_veciParamData;
+	int					m_iEventType;
+	int					m_iEventScriptID;
+	char				m_cEventAccountType;
+
+	KGlobalEventTableData()
+	{
+		m_iUserUID = -1;
+		m_iUnitUID = -1;
+		m_iEventID = -1;
+		m_usCategory = 0;
+		m_iEventType = 0;
+		m_iEventScriptID = 0;
+		m_cEventAccountType = 0;
+	}
+};
+#endif //SERV_GLOBAL_EVENT_TABLE
 
 //{{ 2011. 07. 19	최육사	서버간 접속 코드 리팩토링
 //#ifdef SERV_SERVER_CONNECT_CODE_REFACTORING
@@ -2588,6 +2743,14 @@ DECL_DATA( KPacketOK )
 {
     int             m_iOK;
 };
+
+//#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+DECL_DATA( KPacketReason )
+{
+    int             m_iReason;
+};
+//#endif	SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+
 
 // KERM_BAN_USER_NOT -> send id
 
@@ -2668,19 +2831,22 @@ DECL_DATA( KDenyOptions )
 #ifdef SERV_RELATIONSHIP_SYSTEM
 	char					m_cDenyRequestCouple;
 #endif SERV_RELATIONSHIP_SYSTEM
+    char                    m_cDenyInvitePracticePVP;
 	//}
 
     KDenyOptions() {}
 
 	//{{ 2013. 04. 01	 인연 시스템 - 김민성
 #ifdef SERV_RELATIONSHIP_SYSTEM
-	KDenyOptions( char cDenyFriendShip, char cDenyInviteGuild, char cDenyParty, char cDenyPersonalTrade, char cDenyRequestCouple )
+	KDenyOptions( char cDenyFriendShip, char cDenyInviteGuild, char cDenyParty, char cDenyPersonalTrade, char cDenyRequestCouple,
+        char cDenyInvitePracticePVP )
 	{
 		m_cDenyFriendShip	 = cDenyFriendShip;
 		m_cDenyInviteGuild	 = cDenyInviteGuild;
 		m_cDenyParty		 = cDenyParty;
 		m_cDenyPersonalTrade = cDenyPersonalTrade;
 		m_cDenyRequestCouple = cDenyRequestCouple;
+        m_cDenyInvitePracticePVP = cDenyInvitePracticePVP;
 	}
 #else
 	KDenyOptions( char cDenyFriendShip, char cDenyInviteGuild, char cDenyParty, char cDenyPersonalTrade )
@@ -2743,6 +2909,9 @@ DECL_DATA( KHenirRankingInfo )
 	std::wstring				m_wstrNickName;
 	char						m_cUnitClass;
 	UCHAR						m_ucLevel;
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+	byte						m_bytePlayStartedUserNum;	// 등록할 때만 체크하면 된다.
+#endif // SERV_HENIR_RENEWAL_2013
 
 	KHenirRankingInfo()
 	{
@@ -2755,6 +2924,9 @@ DECL_DATA( KHenirRankingInfo )
 		m_iUnitUID			= 0;
 		m_cUnitClass		= 0;
 		m_ucLevel			= 0;
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+		m_bytePlayStartedUserNum	= 0;
+#endif // SERV_HENIR_RENEWAL_2013
 	}
 
 	COPYCON_ASSIGNOP( KHenirRankingInfo, right )
@@ -2767,6 +2939,9 @@ DECL_DATA( KHenirRankingInfo )
 		m_wstrNickName		= right.m_wstrNickName;
 		m_cUnitClass		= right.m_cUnitClass;
 		m_ucLevel			= right.m_ucLevel;
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-16	// 박세훈
+		m_bytePlayStartedUserNum	= right.m_bytePlayStartedUserNum;
+#endif // SERV_HENIR_RENEWAL_2013
 
 		return *this;
 	}
@@ -2822,6 +2997,10 @@ DECL_DATA( KHenirRankingInfo )
 
 		return false;
 	}
+
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+	bool	QualificationForHeroRank( void ) const	{	return m_bytePlayStartedUserNum == 1;	}
+#endif // SERV_HENIR_RENEWAL_2013
 };
 //}}
 
@@ -2939,11 +3118,6 @@ DECL_DATA( KCumulativeTimeEventInfo )
 	bool			m_bAccountEvent;
 #endif SERV_ACC_TIME_EVENT
 	//}}
-	//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-	std::wstring	m_wstrEventTime;
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-	//}}
 
 	KCumulativeTimeEventInfo()
 		: m_iEventUID( 0 )
@@ -2973,15 +3147,26 @@ DECL_PACKET( EGS_HENIR_REWARD_COUNT_NOT )
 	int			            m_iPremiumMAX;		// PC방 MAX
 	int			            m_iEventMAX;		// 이벤트 MAX
 
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+	int			            m_iChallengeNormal;		// 도전 모드 일반
+	int			            m_iChallengePremium;	// 도전 모드 PC방
+	int			            m_iChallengeEvent;		// 도전 모드 이벤트
+#endif // SERV_HENIR_RENEWAL_2013
+
 	KEGS_HENIR_REWARD_COUNT_NOT()
 	{
-		m_bUnLimited		= false;
-		m_iNormal			= 0;
-		m_iPremium			= 0;
-		m_iEvent			= 0;
-		m_iPremiumMAX		= 0;
-		m_iEventMAX			= 0;
+		m_bUnLimited			= false;
+		m_iNormal				= 0;
+		m_iPremium				= 0;
+		m_iEvent				= 0;
+		m_iPremiumMAX			= 0;
+		m_iEventMAX				= 0;
 
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-24	// 박세훈
+		m_iChallengeNormal		= 0;
+		m_iChallengePremium		= 0;
+		m_iChallengeEvent		= 0;
+#endif // SERV_HENIR_RENEWAL_2013
 	}
 };
 #endif SERV_NEW_HENIR_TEST
@@ -3058,7 +3243,12 @@ DECL_PACKET( DBE_UPDATE_UNIT_INFO_REQ )
 	int									m_iVSPointMax;
 #endif SERV_PVP_NEW_SYSTEM
 	//}}
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+#else // SERV_SKILL_PAGE_SYSTEM
 	int									m_iSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	int								    m_iWin;
 	int								    m_iLose;
 	//{{ 2012. 02. 02	최육사	배틀필드 시스템
@@ -3087,7 +3277,14 @@ DECL_PACKET( DBE_UPDATE_UNIT_INFO_REQ )
 	short								m_sEquippedTitleID;
 #endif SERV_TITLE_DATA_SIZE
 	//}}
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	std::map< int, std::vector<int> >		m_mapSkillSlotVector;
+	std::wstring							m_wstrSkillSlotBEndDate;
+#else // SERV_SKILL_PAGE_SYSTEM
 	std::vector<int>					m_vecSkillSlot;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	KDenyOptions						m_kDenyOptions;
 	int									m_iSpirit;
 	bool								m_bIsSpiritUpdated;	
@@ -3100,6 +3297,9 @@ DECL_PACKET( DBE_UPDATE_UNIT_INFO_REQ )
 	std::map< int, int >				m_mapWishList;
 	//{{ 2009. 7. 7  최육사		랭킹 개편
 	std::vector< KHenirRankingInfo >	m_vecHenirRanking;
+#ifdef SERV_HENIR_RENEWAL_2013// 작업날짜: 2013-09-17	// 박세훈
+	std::vector< KHenirRankingInfo >	m_vecHenirHeroRanking;
+#endif // SERV_HENIR_RENEWAL_2013
 	//}}
 	//{{ 2009. 10. 7  최육사	길드
 #ifdef GUILD_TEST
@@ -3157,6 +3357,9 @@ DECL_PACKET( DBE_UPDATE_UNIT_INFO_REQ )
 	char								m_cUnitRelationshipType;
 #endif SERV_RELATIONSHIP_SYSTEM
 		//}
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+	int									m_iAccumultionSpirit;
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 	int									m_iGateOfDarknessSupportEventTime;
@@ -3165,6 +3368,10 @@ DECL_PACKET( DBE_UPDATE_UNIT_INFO_REQ )
 #ifdef SERV_CHINA_SPIRIT_EVENT
 	int									m_arrChinaSpirit[6];
 #endif SERV_CHINA_SPIRIT_EVENT
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+	int									m_iNoteViewCount;
+#endif SERV_ELESIS_UPDATE_EVENT
 };
 
 DECL_PACKET( DBE_UPDATE_UNIT_INFO_ACK )
@@ -3325,11 +3532,6 @@ DECL_PACKET( ERM_UPDATE_DUNGEON_UNIT_INFO_NOT )
 	//{{ 2009. 7. 1  최육사		헤니르 시공
 	std::vector< KHenirRankingInfo > m_kHenirRankingInfo;
 	//}}
-	//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	bool						m_bHaveExpInDungeon;			// 던전에서 경험치를 얻은적이 있는가?
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-	//}}
 	//{{ 2012. 04. 16	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	bool						m_bStartedByAutoParty;			// 자동파티에 의한 던전 여부
@@ -3356,11 +3558,6 @@ DECL_PACKET( ERM_UPDATE_DUNGEON_UNIT_INFO_NOT )
 		m_bGetWorldMissionReward = false;
 #endif SERV_INSERT_GLOBAL_SERVER
 		//}} 2011. 04. 13  김민성  글로벌 서버 추가
-		//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-		m_bHaveExpInDungeon		= false;			// 던전에서 경험치를 얻은적이 있는가?
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-		//}}
 		//{{ 2012. 04. 16	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		m_bStartedByAutoParty	= false;			// 자동파티에 의한 던전 여부
@@ -3396,11 +3593,6 @@ DECL_PACKET( ERM_UPDATE_DUNGEON_UNIT_INFO_NOT )
 #endif SERV_INSERT_GLOBAL_SERVER
 		//}} 2011. 04. 13  김민성  글로벌 서버 추가
 
-		//{{ 2011. 12.13    김민성	던전 클리어 시 아이템 지급 이벤트 - 현자의 주문서(중복 지급 금지)
-#ifdef SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-		m_bHaveExpInDungeon		= t.m_bHaveExpInDungeon;			// 던전에서 경험치를 얻은적이 있는가?
-#endif SERV_DUNGEON_CLEAR_PAYMENT_ITEM_EVENT
-		//}}
 		//{{ 2012. 04. 16	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		m_bStartedByAutoParty	= t.m_bStartedByAutoParty;
@@ -3760,6 +3952,10 @@ DECL_PACKET( DBE_QUEST_COMPLETE_REQ )
 	int									m_iNewDefaultSkill2;
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int									m_iTheNumberOfSkillPagesAvailable;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	KDBE_QUEST_COMPLETE_REQ()
 	{
 		m_UnitUID			= 0;
@@ -3778,6 +3974,10 @@ DECL_PACKET( DBE_QUEST_COMPLETE_REQ )
 		m_iNewDefaultSkill1 = 0;
 		m_iNewDefaultSkill2 = 0;
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+		m_iTheNumberOfSkillPagesAvailable = 1;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	}
 };
 
@@ -4079,6 +4279,10 @@ DECL_DATA( KSquareUserInfo )
 	int										m_iExchangeCount;
 #endif // SERV_GROW_UP_SOCKET
 
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	unsigned int							m_iAccountPVPLoseCount;
+#endif SERV_4TH_ANNIVERSARY_EVENT
+
 	CON_COPYCON_ASSIGNOP( KSquareUserInfo, right )
 	{
 		m_iGSUID				= right.m_iGSUID;		
@@ -4130,6 +4334,9 @@ DECL_DATA( KSquareUserInfo )
 		m_iExchangeCount			= right.m_iExchangeCount;
 #endif // SERV_GROW_UP_SOCKET
 
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		m_iAccountPVPLoseCount		= right.m_iAccountPVPLoseCount;
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		return *this;
 	}
 };
@@ -4559,7 +4766,7 @@ DECL_PACKET( ERM_SQUARE_LIST_INFO_NOT )
 
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 #else	// SERV_UPGRADE_SKILL_SYSTEM_2013
-
+/*
 DECL_PACKET( DBE_INSERT_SKILL_REQ )
 {
 	UidType				m_iUnitUID;
@@ -4577,7 +4784,7 @@ DECL_PACKET( DBE_INSERT_SKILL_ACK )
 	int					m_iSkillCSPoint;
 	int					m_iCSPoint;
 };
-
+*/
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 typedef std::pair< UidType, UidType > KGSCID;
@@ -4995,7 +5202,6 @@ DECL_DATA( KNXBTPickUpPackageInfo )
 #ifdef SERV_GLOBAL_CASH_PACKAGE
 	int					m_iSubProductNo;
 #endif //SERV_GLOBAL_CASH_PACKAGE
-
 
 	CON_COPYCON_ASSIGNOP( KNXBTPickUpPackageInfo, right )
 	{
@@ -5437,34 +5643,40 @@ DECL_DATA( KPostItemInfo )
 	bool			m_bSenderDeleted;
 #endif SERV_NETERROR_STR_GET_FROM_CLIENT
 	//}}	
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+	byte			m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	KPostItemInfo()
-	{
-		m_iPostNo		= 0;
-		m_iFromUnitUID	= 0;
-		m_iToUnitUID	= 0;
-		m_cScriptType	= 0;
-		m_iScriptIndex	= 0;
-		m_iQuantity		= 0;
-		m_cEnchantLevel = 0;		
-		m_ucSealData	= 0;
-		m_bRead			= false;
+		: m_iPostNo( 0 )
+		, m_iFromUnitUID( 0 )
+		, m_iToUnitUID( 0 )
+		, m_cScriptType( 0 )
+		, m_iScriptIndex( 0 )
+		, m_iQuantity( 0 )
+		, m_cEnchantLevel( 0 )
+		, m_ucSealData( 0 )
+		, m_bRead( false )
 		//{{ 2013. 05. 09	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
-		m_cItemState	= 0;
+		, m_cItemState( 0 )
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
 		//}}
 		//{{ 2012. 08. 21	박세훈	우편 로직 변경
 #ifdef SERV_TRADE_LOGIC_CHANGE_LETTER
-		m_iItemUID		= 0;
-		m_iUsageType	= 0;
+		, m_iItemUID( 0 )
+		, m_iUsageType( 0 )
 #endif SERV_TRADE_LOGIC_CHANGE_LETTER
 		//}}
 		//{{ 2011.09.16 조효진  넷 에러 스트링을 클라이언트쪽에서 가져와서 출력
 #ifdef SERV_NETERROR_STR_GET_FROM_CLIENT
-		m_bSenderDeleted = false;
+		, m_bSenderDeleted( false )
 #endif SERV_NETERROR_STR_GET_FROM_CLIENT
-		//}}	
+		//}}
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+		, m_byteExpandedSocketNum( 0 )
+#endif // SERV_BATTLE_FIELD_BOSS
+	{
 	}
 
 	COPYCON_ASSIGNOP( KPostItemInfo, right )
@@ -5490,7 +5702,6 @@ DECL_DATA( KPostItemInfo )
 		m_wstrTitle			 = right.m_wstrTitle;
 		m_wstrMessage		 = right.m_wstrMessage;
 		m_bRead				 = right.m_bRead;
-
 		//{{ 2012. 08. 21	박세훈	우편 로직 변경
 #ifdef SERV_TRADE_LOGIC_CHANGE_LETTER
 		m_iItemUID			 = right.m_iItemUID;
@@ -5502,6 +5713,9 @@ DECL_DATA( KPostItemInfo )
 		m_bSenderDeleted	= right.m_bSenderDeleted;
 #endif SERV_NETERROR_STR_GET_FROM_CLIENT
 		//}}
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+		m_byteExpandedSocketNum	= right.m_byteExpandedSocketNum;
+#endif // SERV_BATTLE_FIELD_BOSS
 
 		return *this;
 	}
@@ -5881,6 +6095,9 @@ DECL_DATA( KFieldUserInfo )
 	int										m_iEventQuestClearCount;
 	int										m_iExchangeCount;
 #endif SERV_GROW_UP_SOCKET
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	unsigned int							m_iAccountPVPLoseCount;
+#endif SERV_4TH_ANNIVERSARY_EVENT
 
 	CON_COPYCON_ASSIGNOP( KFieldUserInfo, right )
 	{
@@ -5946,6 +6163,9 @@ DECL_DATA( KFieldUserInfo )
 		m_iEventQuestClearCount		= right.m_iEventQuestClearCount;
 		m_iExchangeCount			= right.m_iExchangeCount;
 #endif SERV_GROW_UP_SOCKET
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		m_iAccountPVPLoseCount		= right.m_iAccountPVPLoseCount;
+#endif SERV_4TH_ANNIVERSARY_EVENT
 		return *this;
 	}
 };
@@ -6164,6 +6384,52 @@ DECL_DATA( KUserSkillData )
 	}
 };
 
+#define EQUIPPED_SKILL_SLOT_COUNT 4
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+DECL_DATA( KRetrievedSkillPageData )
+{
+	int								m_iRetrievedSPoint;
+	std::vector< KUserSkillData >	m_vecUserSkillData;		// DB에 갱신해야할 스킬 정보
+
+	KRetrievedSkillPageData()
+		: m_iRetrievedSPoint(0)
+	{
+		m_vecUserSkillData.clear();
+	}
+};
+
+DECL_DATA( KUserSkillPageData )
+{
+	KSkillData 					m_aEquippedSkill[ EQUIPPED_SKILL_SLOT_COUNT ];
+	KSkillData 					m_aEquippedSkillSlotB[ EQUIPPED_SKILL_SLOT_COUNT ];
+	
+	USHORT						m_usSkillPoint;
+	USHORT						m_usCashSkillPoint;
+
+	std::vector<KUserSkillData> m_vecUserSkillData;
+	
+
+	KUserSkillPageData()
+	{
+		Init();
+	}
+
+	void Init()
+	{
+		for ( int i = 0; i < EQUIPPED_SKILL_SLOT_COUNT; i++ )
+		{
+			m_aEquippedSkill[i].Init();
+			m_aEquippedSkillSlotB[i].Init();
+		}
+
+		m_usSkillPoint			= 0;
+		m_usCashSkillPoint		= 0;
+		m_vecUserSkillData.clear();
+	}	
+};
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 //////////////////////////////////////////////////////////////////////////
 //{{ 2009. 5. 11  최육사	실시간아이템
 DECL_DATA( KDungeonRewardED )
@@ -6265,6 +6531,15 @@ DECL_DATA( KUserPShopAgencyInfo )
 {
     bool						m_bIsPShopOpen;
 	std::wstring				m_wstrAgencyExpirationDate;
+    char                        m_cShopType;
+    std::vector< KSellPShopItemBackupData >		m_vecSellItemInfo;
+
+    UidType					m_iUserUID;
+    UidType					m_iUnitUID;
+    std::wstring			m_wstrNickName;
+    std::wstring			m_wstrAgencyOpenDate;
+    std::wstring			m_wstrPersonalShopName;
+    bool					m_bOnSale;
 
 	KUserPShopAgencyInfo()
 	{		
@@ -6347,7 +6622,6 @@ DECL_PACKET( EGS_VERIFY_ACCOUNT_ACK )
 	int						m_iEventMoney;
 #endif // SERV_EVENT_MONEY
 	
-
 	KEGS_VERIFY_ACCOUNT_ACK()
 	{
 //#ifdef SERV_TOONILAND_CHANNELING // SERV_JAPAN_CHANNELING
@@ -6711,6 +6985,7 @@ DECL_DATA( KUserConnectTimeEventInfo )
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 	int						 m_iEventItemID;
 #endif
+
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 	int					m_iCustomEventID;
 #endif //SERV_CUSTOM_CONNECT_EVENT
@@ -6762,9 +7037,11 @@ DECL_DATA( KUserConnectTimeEventInfo )
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT
 		m_iEventItemID	= 0;
 #endif
+
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		m_iCustomEventID = 0;
 #endif //SERV_CUSTOM_CONNECT_EVENT
+
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 		m_bOnlySteamUser = false;
 		m_bOnlyNotSteamUser = false;
@@ -6784,11 +7061,6 @@ DECL_DATA( KUserCumulativeTimeEventInfo )
 #ifdef SERV_ACC_TIME_EVENT
 	bool			m_bAccountEvent;
 #endif SERV_ACC_TIME_EVENT
-	//}}
-	//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-	bool			m_bRepeatEvent;
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
 	//}}
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 	int					m_iCustomEventID;
@@ -6811,14 +7083,10 @@ DECL_DATA( KUserCumulativeTimeEventInfo )
 		, m_bAccountEvent( false )
 #endif SERV_ACC_TIME_EVENT
 		//}}
-		//{{ 2013. 1. 8	박세훈	누적 이벤트에 반복 기능 추가
-#ifdef SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		, m_bRepeatEvent( false )
-#endif SERV_REPEAT_CUMULATIVE_REWARD_ITEM_EVENT
-		//}}
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		, m_iCustomEventID( 0 )
-#endif //SERV_CUSTOM_CONNECT_EVENT		
+#endif //SERV_CUSTOM_CONNECT_EVENT
+
 #ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 		, m_bNewUnitEvent( false )
 		, m_bNewUnitEvent2( false )
@@ -6923,6 +7191,21 @@ DECL_DATA( KChannelChangeInfo )
 	UidType										m_iSummonedRidingPetUID;
 #endif	// SERV_RIDING_PET_SYSTM
 
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	bool										m_ButtonStartUI;
+	bool										m_DungeonClearUI;
+	bool										m_FieldCountUI;
+	int											m_DungeonCount;
+	int											m_FieldMonsterKillCount;
+	std::wstring								m_wstrButtonClickTime;
+	int											m_RemaindTime;
+	bool										m_bCoboItemGive;
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_GLOBAL_EVENT_TABLE
+	std::map< int, KGlobalEventTableData >		m_mapGlobalEventData;
+#endif //SERV_GLOBAL_EVENT_TABLE
+
 	KChannelChangeInfo()
 		: m_bIsPcBang( false )
 #ifdef SERV_PC_BANG_TYPE
@@ -6948,6 +7231,16 @@ DECL_DATA( KChannelChangeInfo )
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-30
 		, m_iSummonedRidingPetUID( 0 )
 #endif	// SERV_RIDING_PET_SYSTM
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		, m_ButtonStartUI( false )
+		, m_DungeonClearUI( false )
+		, m_FieldCountUI( false )
+		, m_DungeonCount( 0 )
+		, m_FieldMonsterKillCount( 0 )
+		, m_wstrButtonClickTime( L"1900-01-01 00:00:00" )
+		, m_RemaindTime( 0 )
+		, m_bCoboItemGive( false )
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 	{
 	}
 };
@@ -7803,12 +8096,21 @@ DECL_PACKET( EGS_SELECT_UNIT_REQ )
 	std::set< int >			m_setCodeEventScriptID;
 #endif SERV_CODE_EVENT
 
+#ifdef SERV_GLOBAL_EVENT_TABLE
+	std::map< int, KGlobalEventTableData >	m_mapGlobalEventData;
+#endif //SERV_GLOBAL_EVENT_TABLE
+
 	KEGS_SELECT_UNIT_REQ()
 	{
 		m_iUnitUID = 0;
 #ifdef SERV_CODE_EVENT
 		m_setCodeEventScriptID.clear();
 #endif SERV_CODE_EVENT
+
+#ifdef SERV_GLOBAL_EVENT_TABLE
+		m_mapGlobalEventData.clear();
+#endif //SERV_GLOBAL_EVENT_TABLE
+
 	}
 };
 
@@ -7848,7 +8150,12 @@ DECL_PACKET( EGS_SELECT_UNIT_1_NOT )	// 유닛의 정보, 인벤토리, 스킬
 #endif AP_RESTONE
 	//}}
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	std::vector< KUserSkillPageData >								m_vecUserSkillPageData;		// 획득한 스킬 페이지
+#else //SERV_SKILL_PAGE_SYSTEM
 	std::vector< KUserSkillData >									m_vecSkillAcquired;		// 획득한 스킬 리스트
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 	std::vector< short >											m_vecSkillUnsealed;		// 봉인해제된 스킬 리스트
 
 	//{{ 2010. 03. 13  최육사	기술의 노트
@@ -8019,11 +8326,6 @@ DECL_PACKET( EGS_SELECT_UNIT_5_NOT )	// 1회성 데이터, ETC
 	bool										m_bCashShopOpen;
 #endif SERV_CONTENT_MANAGER
 	//}}
-	//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	std::vector< KCriterionEventInfo >			m_vecCriterionEvent;
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//}}
 #ifdef SERV_EVENT_MONEY	// 김민성 // 적용날짜: 2013-07-04
 	int											m_iEventMoney;
 #endif // SERV_EVENT_MONEY
@@ -8038,11 +8340,6 @@ DECL_PACKET( EGS_SELECT_UNIT_5_NOT )	// 1회성 데이터, ETC
 	KDBE_BINGO_EVENT_INFO_READ_ACK				m_kBingoEvent;
 #endif SERV_EVENT_BINGO
 	//}}
-	//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-	bool										m_bEliosInvestigationsReward;
-#endif SERV_ELIOS_INVESTIGATIONS
-	//}}
 	//{{ 2012. 12. 20	최육사	아라 첫 선택 튜토리얼
 #ifdef SERV_ARA_FIRST_SELECT_TUTORIAL
 	bool										m_bFirstSelect;
@@ -8055,14 +8352,40 @@ DECL_PACKET( EGS_SELECT_UNIT_5_NOT )	// 1회성 데이터, ETC
 	bool										m_bLocalRankingUser;
 #endif	// SERV_LOCAL_RANKING_SYSTEM
 
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+	int						m_iConnectExperienceAck;
+	int						m_iReward7DaysItem;
+#endif //SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+
+#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+	int											m_iGateOfDarknessSupportEventTime;
+#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	bool										m_bCouple;
+	UidType										m_iRelationTargetUserUid;
+	std::wstring								m_wstrRelationTargetUserNickname;
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 	bool				m_bOnlySteamUser;
 	bool				m_bOnlyNotSteamUser;
 #endif //SERV_STEAM_USER_CONNECT_EVENT
 
-#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-	int											m_iGateOfDarknessSupportEventTime;
-#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+#ifdef SERV_ELESIS_UPDATE_EVENT
+	int					m_iNoteViewCount;
+#endif SERV_ELESIS_UPDATE_EVENT
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+	std::wstring							m_wstrGiveMeTheItemTime_One;
+	std::wstring							m_wstrGiveMeTheItemTime_Two;
+	std::wstring							m_wstrGiveMeTheItemTime_Tree;
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	std::vector<bool>					m_vec4ThAnnivEventRewardInfo;		// 4주년 이벤트 보상 받은 정보
+	__int64								m_tLastRewardTime;	// 마지막으로 보상 받은 시간
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 
 	KEGS_SELECT_UNIT_5_NOT()
 	{
@@ -8082,11 +8405,6 @@ DECL_PACKET( EGS_SELECT_UNIT_5_NOT )	// 1회성 데이터, ETC
 		m_iPvpEventIndex		= 0;
 #endif SERV_2012_PVP_SEASON2_EVENT
 		//}}
-		//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		m_bEliosInvestigationsReward		 = true;
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 		//{{ 2012. 12. 20	최육사	아라 첫 선택 튜토리얼
 #ifdef SERV_ARA_FIRST_SELECT_TUTORIAL
 		m_bFirstSelect			= false;
@@ -8099,13 +8417,39 @@ DECL_PACKET( EGS_SELECT_UNIT_5_NOT )	// 1회성 데이터, ETC
 		m_bLocalRankingUser		= false;
 #endif	// SERV_LOCAL_RANKING_SYSTEM
 
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+		m_iConnectExperienceAck	= -1;
+		m_iReward7DaysItem		= -1;
+#endif // SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+
+#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+		m_iGateOfDarknessSupportEventTime = 0;
+#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		m_bCouple				= false;
+		m_iRelationTargetUserUid = 0;
+		m_wstrRelationTargetUserNickname = L"";
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 #ifdef SERV_STEAM_USER_CONNECT_EVENT
 		m_bOnlySteamUser	= false;
 		m_bOnlyNotSteamUser	 = false;
 #endif //SERV_STEAM_USER_CONNECT_EVENT
-#ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
-		m_iGateOfDarknessSupportEventTime = 0;
-#endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+		m_iNoteViewCount	= 0;
+#endif SERV_ELESIS_UPDATE_EVENT
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		m_wstrGiveMeTheItemTime_One	= L"1900-01-01 00:00:00";
+		m_wstrGiveMeTheItemTime_Two	= L"1900-01-01 00:00:00";
+		m_wstrGiveMeTheItemTime_Tree = L"1900-01-01 00:00:00";
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		m_tLastRewardTime = 0;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 	}
 };
 
@@ -8246,12 +8590,6 @@ DECL_PACKET( EGS_SELECT_UNIT_ACK )
 	bool									m_bCashShopOpen;
 #endif SERV_CONTENT_MANAGER
 	//}}
-
-	//{{ 2012. 04. 12	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	std::vector< KCriterionEventInfo >		m_vecCriterionEvent;
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//}}
 	//{{ 2012. 02. 21	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 	KGamePlayStatusContainer				m_kGamePlayStatus;
@@ -8274,23 +8612,12 @@ DECL_PACKET( EGS_SELECT_UNIT_ACK )
 #endif SERV_EVENT_BINGO
 	//}}
 
-	//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-	bool									m_bEliosInvestigationsReward;
-#endif SERV_ELIOS_INVESTIGATIONS
-	//}}
-
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 	bool									m_iCustomEventID;
 #endif //SERV_CUSTOM_CONNECT_EVENT
 
 	KEGS_SELECT_UNIT_ACK()
 		: m_iOK( 0 )
-		//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		, m_bEliosInvestigationsReward( true )
-#endif SERV_ELIOS_INVESTIGATIONS
-		//}}
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		, m_iCustomEventID( 0 )
 #endif //SERV_CUSTOM_CONNECT_EVENT
@@ -8427,6 +8754,10 @@ DECL_DATA( KBattleFieldJoinInfo )
 	int							m_iStartPosIndex;
 	std::vector< UidType >		m_vecPartyMemberList;
 	bool						m_bMoveForMyParty;
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+    bool                        m_bNowBattleFieldPositionInfoStartPosition;
+    unsigned short              m_usBattleFieldPositionValue;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 	KBattleFieldJoinInfo()
 	{
@@ -8439,7 +8770,26 @@ DECL_DATA( KBattleFieldJoinInfo )
 		m_iStartPosIndex = 0;
 		m_bMoveForMyParty = false;
 		m_vecPartyMemberList.clear();
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+        m_bNowBattleFieldPositionInfoStartPosition = false;
+        m_usBattleFieldPositionValue = 0;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 	}
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+	COPYCON_ASSIGNOP( KBattleFieldJoinInfo, right )
+	{
+		m_iBattleFieldID		= right.m_iBattleFieldID;
+		m_iStartPosIndex		= right.m_iStartPosIndex;
+		m_vecPartyMemberList	= right.m_vecPartyMemberList;
+		m_bMoveForMyParty		= right.m_bMoveForMyParty;
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+        m_bNowBattleFieldPositionInfoStartPosition = right.m_bNowBattleFieldPositionInfoStartPosition;
+        m_usBattleFieldPositionValue = right.m_usBattleFieldPositionValue;
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		return *this;
+	}
+#endif // SERV_BATTLE_FIELD_BOSS
 };
 
 DECL_DATA( KBattleFieldRoomInfo )
@@ -8449,12 +8799,18 @@ DECL_DATA( KBattleFieldRoomInfo )
 	char										m_MaxSlot;
 	std::map< UidType, UidType >				m_mapUnitUIDPartyUID;	// key : UnitUID, value : PartyUID
 	std::map< UidType, std::set< UidType > >	m_mapPartyList;			// key : PartyUID, value : Party Member UnitUID List
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-06	// 박세훈
+	byte										m_byteBossFieldState;
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	KBattleFieldRoomInfo()
+		: m_iBattleFieldID( 0 )
+		, m_RoomUID( 0 )
+		, m_MaxSlot( 0 )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-06	// 박세훈
+		, m_byteBossFieldState( 0 )
+#endif // SERV_BATTLE_FIELD_BOSS
 	{
-		m_iBattleFieldID = 0;
-		m_RoomUID = 0;
-		m_MaxSlot = 0;
 	}
 };
 
@@ -8469,6 +8825,10 @@ DECL_DATA( KDangerousEventInfo )
 #ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
 		DE_MIDDLE_BOSS_MONSTER_DROP,
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
+
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+		DE_EVENT_BOSS_MONSTER_DROP,
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT
 		//}
 	};
 
@@ -8697,6 +9057,9 @@ DECL_DATA( KUdpRelayCheckLog )
 DECL_DATA( KKeyboardMappingInfo )
 {
 	std::map<short, short>	m_mapKeyboardMappingInfo;
+#ifdef SERV_KEY_MAPPING_INT
+	std::map<short, short>	m_mapGamePadMappingInfo;
+#endif //SERV_KEY_MAPPING_INT
 };
 #endif SERV_KEYBOARD_MAPPING_INFO_RW
 //}}
@@ -8709,11 +9072,34 @@ DECL_DATA( KAdminCheatSkill )
 	int									m_iSkillCSPoint;
 };
 
+#ifdef SERV_SKILL_PAGE_SYSTEM
+DECL_PACKET( EGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ )
+{
+	int									m_iActiveSkillPageNumber;
+
+	KEGS_ADMIN_CHEAT_GET_ALL_SKILL_REQ()
+		: m_iActiveSkillPageNumber(0)
+	{}
+};
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 DECL_PACKET( EGS_ADMIN_CHEAT_GET_ALL_SKILL_ACK )
 {
 	int								m_iOK;
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int								m_iActiveSkillPageNumber;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	std::vector<short>				m_vecUnSealedSkill;
 	std::map<int, KAdminCheatSkill>	m_mapSkillInfo;	// m_iSkillID, KAdminCheatSkill
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	KEGS_ADMIN_CHEAT_GET_ALL_SKILL_ACK()
+		: m_iOK(0), m_iActiveSkillPageNumber(0)
+	{
+		m_vecUnSealedSkill.clear();
+		m_mapSkillInfo.clear();
+	}
+#endif // SERV_SKILL_PAGE_SYSTEM
 };
 #endif SERV_ADMIN_CHEAT_GET_ALL_SKILL
 //}}
@@ -9277,6 +9663,20 @@ DECL_DATA( KGetSkillInfo )
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-06-18	// 박세훈
+DECL_DATA( KCouponBoxTargetItem )
+{
+	int				m_iItemQuantity;
+	short			m_sItemUseDuration;
+	std::wstring	m_wstrItemCode;
+	std::wstring	m_wstrItemName;
+
+	KCouponBoxTargetItem()
+		: m_iItemQuantity( 0 )
+		, m_sItemUseDuration( 0 )
+	{
+	}
+};
+
 DECL_DATA( KClientCouponBox )
 {
 	std::wstring	m_wstrContractDetailName;
@@ -9284,24 +9684,21 @@ DECL_DATA( KClientCouponBox )
 	std::wstring	m_wstrCouponBoxType;
 	std::wstring	m_wstrCouponBoxTypeText;
 	int				m_iCouponCardNo;
-	std::wstring	m_wstrCouponCardStatus;
+	short			m_iCouponCardStatus;
 	std::wstring	m_wstrCouponCardStatusText;
 	std::wstring	m_wstrDiscountValue;
 	std::wstring	m_wstrExpireDateTime;
 	std::wstring	m_wstrObtainDateTime;
 	std::wstring	m_wstrValidDateRange;
+	std::wstring	m_wstrUsedDateTime;
+	std::vector<KCouponBoxTargetItem>	m_vecTargetItem;
 
 	KClientCouponBox()
 		: m_iContractDetailNo( 0 )
 		, m_iCouponCardNo( 0 )
+		, m_iCouponCardStatus( 0 )
 	{
 	}
-};
-
-DECL_DATA( KCouponBoxTargetItem )
-{
-	std::wstring	m_wstrItemCode;
-	std::wstring	m_wstrItemName;
 };
 
 DECL_DATA( KDiscountCoupon )
@@ -9330,8 +9727,214 @@ DECL_DATA( KDiscountCouponInquriyInfo )
 };
 #endif // SERV_NEXON_COUPON_SYSTEM
 
-#pragma pack( pop )
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+DECL_DATA( KBossFieldCreateInfo )
+{
+	// 보스 필드는 지정 시간 이후 무조건 닫힌다는 전제 하에 제작함.
 
+	__time64_t	m_tFieldHoldingTime;
+	__time64_t	m_tPortalOpenTime;
+	int			m_iBossFieldID;
+	int			m_iPortalMapID;			// 포탈이 생성된 배틀 필드 ID
+	bool		m_bBossField;
+
+	KBossFieldCreateInfo()
+	{
+		clear();
+	}
+
+	void	clear( void )
+	{
+		m_tFieldHoldingTime	= 0;
+		m_tPortalOpenTime	= 0;
+		m_iBossFieldID		= 0;
+		m_iPortalMapID		= 0;
+		m_bBossField		= false;
+	}
+};
+
+DECL_DATA( KBossFieldJoinInfo )
+{
+	int				m_iReturnMapID;			// 원래 있던 필드로 돌아가기 위함.
+	unsigned char 	m_ucLastTouchLineIndex;
+	unsigned short 	m_usLastPosValue;
+	bool			m_bIgnoreLastTouch;		// m_iMapID에 해당하는 기본 위치를 사용하도록 알린다.
+
+	KBossFieldJoinInfo()
+	{
+		clear();
+	}
+
+	COPYCON_ASSIGNOP( KBossFieldJoinInfo, right )
+	{
+		m_iReturnMapID			= right.m_iReturnMapID;
+		m_ucLastTouchLineIndex	= right.m_ucLastTouchLineIndex;
+		m_usLastPosValue		= right.m_usLastPosValue;
+		m_bIgnoreLastTouch		= right.m_bIgnoreLastTouch;
+		
+		return *this;
+	}
+
+	void	clear( void )
+	{
+		m_iReturnMapID			= 0;
+		m_ucLastTouchLineIndex	= 0;
+		m_usLastPosValue		= 0;
+		m_bIgnoreLastTouch		= false;
+	}
+};
+
+DECL_PACKET( EGS_ADMIN_BOSS_FIELD_GATE_OPEN_REQ )
+{
+	int		m_iBattleFieldID;
+
+	KEGS_ADMIN_BOSS_FIELD_GATE_OPEN_REQ()
+		: m_iBattleFieldID( 0 )
+	{
+	}
+};
+
+typedef	KPacketOK	KEGS_ADMIN_BOSS_FIELD_GATE_OPEN_ACK;
+
+DECL_PACKET( EGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ )
+{
+	int		m_iBattleFieldID;
+
+	KEGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_REQ()
+		: m_iBattleFieldID( 0 )
+	{
+	}
+};
+
+DECL_PACKET( EGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK )
+{
+	int		m_iOK;
+	int		m_iBattleFieldID;
+	byte	m_byteTotalDangerousValue;
+
+	KEGS_ADMIN_GET_TOTAL_DANGEROUS_VALUE_ACK()
+		: m_iOK( 0 )
+		, m_iBattleFieldID( 0 )
+		, m_byteTotalDangerousValue( 0 )
+	{
+	}
+};
+
+DECL_PACKET( EGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ )
+{
+	int		m_iBattleFieldID;
+	int		m_iTotalDangerousValue;
+	bool	m_bSet;
+
+	KEGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_REQ()
+		: m_iBattleFieldID( 0 )
+		, m_iTotalDangerousValue( 0 )
+		, m_bSet( true )
+	{
+	}
+};
+
+typedef	KPacketOK	KEGS_ADMIN_SET_TOTAL_DANGEROUS_VALUE_ACK;
+
+typedef	KPacketOK	KEGS_BOSS_FIELD_INTRUDE_RESTRICTION_ACK;
+
+DECL_DATA( KBossFieldLog )
+{
+	int				m_iBossFieldID;
+	int				m_iPortalMapID;			// 포탈이 생성된 배틀 필드 ID
+	int				m_iPlayTime;
+	byte			m_byteRemainUserCount;
+	bool			m_bSucceed;
+	std::wstring	m_wstrPortalOpenTime;
+
+	KBossFieldLog()
+	{
+		clear();
+	}
+
+	void	clear( void )
+	{
+		m_iBossFieldID			= 0;
+		m_iPortalMapID			= 0;			// 포탈이 생성된 배틀 필드 ID
+		m_iPlayTime				= 0;
+		m_byteRemainUserCount	= 0;
+		m_bSucceed				= false;
+		m_wstrPortalOpenTime.clear();
+	}
+};
+
+DECL_DATA( KBossFieldUserLog )
+{
+	UidType			m_iUnitUID;
+	__int64			m_iGivenDamage;
+	__int64			m_iAttackDamage;
+	int				m_iEXP;
+	int				m_iED;
+	short			m_sNumResurrectionStone;
+	byte			m_byteLevel;
+	byte			m_byteClass;
+	byte			m_byteCompletionType;
+	byte			m_byteContributionRank;
+	std::wstring	m_wstrNickName;
+
+	KBossFieldUserLog()
+		: m_iUnitUID( 0 )
+		, m_iGivenDamage( 0 )
+		, m_iAttackDamage( 0 )
+		, m_iEXP( 0 )
+		, m_iED( 0 )
+		, m_sNumResurrectionStone( 0 )
+		, m_byteLevel( 0 )
+		, m_byteClass( 0 )
+		, m_byteCompletionType( 0 )
+		, m_byteContributionRank( 0 )
+	{
+	}
+};
+
+DECL_PACKET( EGS_BOSS_FIELD_LOG_NOT )
+{
+	std::map<UidType, __int64>	m_mapGivenDamage;
+	std::map<UidType, __int64>	m_mapAttackDamage;
+};
+#endif // SERV_BATTLE_FIELD_BOSS
+
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+DECL_DATA( K4ThAnnivEventInfo )
+{
+	__int64 m_tTimeFirstPlay;			// 	첫 엘소드 플레이 한 날
+	__int64 m_tTimeFirstPet;			// 	첫 펫을 등록한 날
+	__int64 m_tTimeFirstHenir;		// 	헤니르의 시공 첫 플레이 한 날
+	__int64 m_tTimeFirstDeleteChar;	// 	첫 캐릭터 삭제일
+	int m_iItemIDFirstBuy;			// 	첫 구매 아이템
+	int m_iLongestConnectTime;	// 	최장 접속 시간( 1 = 1초)
+	int m_iCountQuestComplete;		// 	퀘스트 지금까지 완료한 횟수
+	int m_iCountReceivedPost;		// 	우편 받은 횟수
+	int m_iDayTotalConnect;			// 	계정 총 접속 일 수
+	int	m_iCountPvpLose;			// 	대전 총 패배 횟수
+	int m_iCountResurrect;			// 	총 던전 부활 횟수
+	int m_iCountDungeonClear;		// 	총 던전 클리어 횟수
+
+	K4ThAnnivEventInfo()
+	{
+		m_tTimeFirstPlay = 0;
+		m_tTimeFirstPet = 0;
+		m_tTimeFirstHenir = 0;
+		m_tTimeFirstDeleteChar = 0;
+		m_iItemIDFirstBuy = 0;
+		m_iLongestConnectTime = 0;
+		m_iCountQuestComplete = 0;		
+		m_iCountReceivedPost = 0;		
+		m_iDayTotalConnect = 0;			
+		m_iCountPvpLose = 0;			
+		m_iCountResurrect = 0;			
+		m_iCountDungeonClear = 0;		
+	}
+};
+#endif SERV_4TH_ANNIVERSARY_EVENT
+
+#pragma pack( pop )
 
 //{{ 2013.02.27 조효진	해외 기본 구조 작업 (SERV_GLOBAL_BASE)
 #   include "OnlyGlobal/Packet/CommonPacket_Global.h"

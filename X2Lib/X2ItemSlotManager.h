@@ -43,15 +43,11 @@ public:
 	//}} JHKang // 강정훈 // 2010. 10. 6 // 자동 줄나누기 두 번 실행 방지
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05 // 오현빈
 		virtual wstring GetSocketDesc( const vector<int>& vecSocketOption, const wstring& wstrTitle, const int iSocketLevel_,  CX2Unit::UNIT_CLASS eUnitClass_ = CX2Unit::UC_NONE );
 	#else
 		virtual wstring GetSocketDesc( const vector<int>& vecSocketOption, const wstring& wstrTitle, const int iSocketLevel_ );
 	#endif // SERV_NEW_ITEM_SYSTEM_2013_05
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-	virtual wstring GetSocketDesc( const vector<int>& vecSocketOption, const wstring& wstrTitle );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업	
 
 	virtual wstring GetExpirationDateDesc( CX2Item* pItem );
@@ -59,11 +55,7 @@ public:
 	virtual wstring GetSlotCashItemDesc( int itemTID ) { return L""; }
 
 	//{{ kimhc // 2011-07-05 // 옵션데이타 수치화 작업
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 	virtual wstring GetSetItemDesc( CX2Item* pItem, int itemTID, const int iUserLevel_ );
-#else	NOT_USE_PERCENT_IN_OPTION_DATA
-	virtual wstring GetSetItemDesc( CX2Item* pItem, int itemTID );
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 	//}} kimhc // 2011-07-05 // 옵션데이타 수치화 작업
 	
     const CX2Item::ItemTemplet* GetNowOverSlotItemTemplet();
@@ -85,7 +77,6 @@ public:
 public:
 	virtual bool GetCheckOperationCondition();
 	bool IsInEquippedItemSlotReact( D3DXVECTOR2 mousePos );
-
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
 	void SetToolTipUseOpenRandomID(std::map< int,std::map<int, kRandomItemMappingToInfoClient> > mapToolTip) {m_mapToolTipUseOpenRandomID = mapToolTip;}
 #endif //SERV_CUBE_IN_ITEM_MAPPING
@@ -143,7 +134,6 @@ protected:
 #ifdef USE_FREE_TYPE
 	static const int		m_iDescFontHeightOffset = 2;
 #endif // USE_FREE_TYPE
-
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
 	std::map< int,std::map<int, kRandomItemMappingToInfoClient> >		m_mapToolTipUseOpenRandomID;		// 마우스 오른 클릭으로 열었던 아이템 큐브 아이템과 그룹ID저장
 #endif //SERV_CUBE_IN_ITEM_MAPPING

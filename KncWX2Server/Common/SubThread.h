@@ -74,6 +74,12 @@ protected:
 		void ProfilerDump( const std::vector< KStoredProcedureProfiler::KSPInfo >& vecDump ); \
 		KStoredProcedureProfiler m_kProfiler
 
+#define DeclareDBThreadWithSP( classname ) \
+    public: \
+    classname( const wchar_t* szConnStr, bool bDBConnStr ):m_kSP(m_kODBC) { m_kODBC.DriverConnect( szConnStr, bDBConnStr ); } \
+    protected: \
+    KODBC               m_kODBC
+
 //////////////////////////////////////////////////////////////////////////
 // Do Query
 // 프로파일러 빼고싶으면 ProfilerHelper를 주석처리 하면됩니다 - 최육사

@@ -903,6 +903,9 @@ void KCnRoomManager::SetBattleFieldZUTickTime( double dfTickTime )
 		<< BUILD_LOG( m_dfBattleFieldZUTickTime )
 		<< BUILD_LOG( m_dfBattleFIeldZUEchoTime );
 }
+
+
+
 #endif SERV_BATTLE_FIELD_SYSTEM
 //}}
 

@@ -1,11 +1,37 @@
 #ifdef	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+struct ItemTransData
+{
+	std::wstring m_Name;
+	std::wstring m_Description;
+	std::wstring m_DescriptionInShop;
+	std::wstring m_DescriptionInSkillNote;
+	bool		 m_bItemTransData;
+
+	ItemTransData()
+	{
+		m_Name = L"";
+		m_Description = L"";
+		m_DescriptionInShop = L"";
+		m_DescriptionInSkillNote = L"";
+		m_bItemTransData = false;
+	}
+};
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
+
 struct	KProxy
 {
 	std::set<DWORD>		m_setItemIDs;
     std::set<DWORD>     m_setSetIDs;
 	bool	AddItemTemplet_LUA();
     bool    AddSetItemData_LUA();
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	std::map<DWORD, ItemTransData>		m_mapItemTrans;
+	std::map<DWORD, std::wstring>		m_mapSetItemTrans;
+    bool    AddItemTempletTrans_LUA();
+    bool    AddSetItemDataTrans_LUA();
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
 };//
 
 struct  D3DVECTOR3Compare
@@ -39,7 +65,13 @@ struct  KProxy2
     KD3DXVECTOR3OffsetMap       m_mapVectorOffset;
     std::set<DWORD>             m_setSetIDs;
     KSetItemDataMap             m_mapSetItemDataMap;
+#ifdef SERV_ITEM_LUA_TRANS_DEVIDE
+	std::map<DWORD, ItemTransData>	m_mapItemTrans;
+	std::map<DWORD, std::wstring>	m_mapSetItemTrans;
+	KProxy2( const std::set<DWORD>& setItemIDs, const std::set<DWORD>& setSetIDs, const std::map<DWORD, ItemTransData>& mapItemTrans, const std::map<DWORD, std::wstring>& mapSetItemTrans );
+#else //SERV_ITEM_LUA_TRANS_DEVIDE
     KProxy2( const std::set<DWORD>& setItemIDs, const std::set<DWORD>& setSetIDs );
+#endif //SERV_ITEM_LUA_TRANS_DEVIDE
     bool    AddItemTemplet_LUA();
     bool    AddSetItemData_LUA();
     DWORD   AppendD3DXVECTOR3( const D3DXVECTOR3& v, bool bDefaultOne = false );
@@ -58,6 +90,8 @@ static bool	TokenizeByScaleRotate( const std::string& strTokenInfo, D3DXVECTOR3&
 unsigned int    GetNumSetIDs() const;
 const CX2Item::KItemFormatSetItemData*          GetSetItem( DWORD dwSetID ) const;
 int     GetSetItemOptions( DWORD dwSetID, const int iNumOfEquippedItems_, IN vector< int >& vecOptions ) const;
+
+static void RegisterProxyLuabind( lua_State* L );
 
 
 #endif	X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING

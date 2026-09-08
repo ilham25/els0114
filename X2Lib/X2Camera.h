@@ -14,27 +14,27 @@ class CX2Camera : public CKTDXStage
 
 		enum CAMERA_TYPE
 		{
-			CT_NORMAL_TRACKING = 0,		/// 
-			CT_PARTS_LOOK_TRACKING,		/// 
-			CT_NORMAL_DIRECT,			/// 
-			CT_PARTS_LOOK_DIRECT,		/// 
-			CT_BONE_ATTACHED,			/// 
+			CT_NORMAL_TRACKING = 0,		/// 정해진 궤도를 따라가는 카메라
+			CT_PARTS_LOOK_TRACKING,		/// LOOK_PART를 바라보며 궤도를 따라가는 카메라
+			CT_NORMAL_DIRECT,			/// 카메라
+			CT_PARTS_LOOK_DIRECT,		/// LOOK_PART를 직접 바라보는 카메라
+			CT_BONE_ATTACHED,			/// 뼈대에 뿥은 카메라
 		};
 
 		enum LOOK_TYPE
 		{
-			LT_BONE = 0,
-			LT_IMPACT_POINT,
-			LT_WEAPON,
-			LT_UNIT_POSITION,
+			LT_BONE = 0,		/// 뼈대
+			LT_IMPACT_POINT,	/// 충돌 위치
+			LT_WEAPON,			/// 무기
+			LT_UNIT_POSITION,	/// 유닛 위치
 		};
 
 		enum EYE_TYPE
 		{
-			ET_BONE = 0,
-			ET_IMPACT_POINT,
-			ET_WEAPON,
-			ET_UNIT_POSITION,
+			ET_BONE = 0,		/// 뻐대
+			ET_IMPACT_POINT,	/// 충돌 위치
+			ET_WEAPON,			/// 무기
+			ET_UNIT_POSITION,	/// 유닛 위치
 		};
 
 
@@ -49,6 +49,11 @@ class CX2Camera : public CKTDXStage
 		};
 #endif BUBBLE_BOBBLE_TEST
 
+		enum EYE_POS_RELATIVE_UNIT
+		{
+			EPRU_FOUCS_UNIT,
+			EPRU_MY_UNIT,
+		};
 
 
 
@@ -252,7 +257,7 @@ class CX2Camera : public CKTDXStage
 		const float GetLandHeight() { return m_fLand; }
 		void SetLandHeight( float fLand ){ m_fLand = fLand; }
 		void PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger, int index );
-		void PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger, const WCHAR* pTableName );
+		void PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger, const char* pszTableNameUTF8 );
 		void PlayLuaCamera( CX2GameUnit* pFocusUnit, KLuaManager& luaManger );
 
 		void NomalTrackingCamera( CX2GameUnit* pFocusUnit, float distance = 1500.0f, float height = 200.0f, float angleDegree = 0.0f, float eyeDistance = 0.0f, float lookatDistance = 0.0f, float trackingTime = 0.3f, float trackingAtTime = 0.0f );
@@ -268,8 +273,8 @@ class CX2Camera : public CKTDXStage
 		void PartsLookDirectCameraFromPartsEye( CX2GameUnit* pFocusUnit, const D3DXVECTOR3& vLookPos_, const D3DXVECTOR3& vEyePos_ );
 
 
-		bool ParsingLookTypeAndPos( KLuaManager& luaManger_, CX2GameUnit* pFocusUnit_, OUT D3DXVECTOR3& vLookPos_ );
-		bool ParsingEyeTypeAndPos( KLuaManager& luaManger_, CX2GameUnit* pFocusUnit_, OUT D3DXVECTOR3& vEyePos_ );
+		bool ParsingLookTypeAndPos( KLuaManager& luaManger_, const CX2GameUnit* pFocusUnit_, OUT D3DXVECTOR3& vLookPos_ );
+		bool ParsingEyeTypeAndPos( KLuaManager& luaManger_, const CX2GameUnit* pFocusUnit_, OUT D3DXVECTOR3& vEyePos_ );
 
 		void NomalTrackingCamera_LUA( CX2GameUnit* pFocusUnit, D3DXVECTOR3 distance_Height_angleDegree, D3DXVECTOR3 eyeDistance_lookatDistance_trackingTime )
 		{
@@ -326,7 +331,8 @@ class CX2Camera : public CKTDXStage
 		}
 #endif
 
-		CKTDGCamera* GetCamera(){ return m_pCamera; }
+		//CKTDGCamera* GetCamera(){ return m_pCamera; }
+        CKTDGCamera& GetCamera(){ return m_kCamera; }
 		CAMERA_STATE GetCameraState(){ return m_CameraState; }
 
 
@@ -432,7 +438,8 @@ class CX2Camera : public CKTDXStage
 #endif //NPC_TRACKINGCAMERA
 	private:
 		CAMERA_STATE	m_CameraState;
-		CKTDGCamera*	m_pCamera;
+		//CKTDGCamera*	m_pCamera;
+        CKTDGCamera&	m_kCamera;
 		float			m_fLand;
 
 		float			m_fAngleDegree; //부드럽게 해보장.

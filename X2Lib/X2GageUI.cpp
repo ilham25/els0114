@@ -53,10 +53,10 @@ CX2BossGageUI::CX2BossGageUI( CX2GameUnit* pGameUnit_ ) : CX2GageUI(),
 	m_pDLGBossGage = new CKTDGUIDialog( NULL, L"DLG_BossState_NEW.lua" );
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGBossGage );
 #ifdef SKILL_SLOT_UI_TYPE_B
-	if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+	if( NULL != g_pMain )
 	{
 		D3DXVECTOR2 vPos(207,100);
-		m_bSkillSlotUITypeA = g_pMain->GetGameOption()->GetIsSkillUITypeA();
+		m_bSkillSlotUITypeA = g_pMain->GetGameOption().GetIsSkillUITypeA();
 
 		if( false == m_bSkillSlotUITypeA )
 		{
@@ -72,10 +72,10 @@ CX2BossGageUI::CX2BossGageUI( CX2GameUnit* pGameUnit_ ) : CX2GageUI(),
 #ifdef SKILL_SLOT_UI_TYPE_B
 void CX2BossGageUI::ResetBossUIPos()
 {
-	if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+	if( NULL != g_pMain )
 	{
 		D3DXVECTOR2 vPos(207,100);
-		if( false == g_pMain->GetGameOption()->GetIsSkillUITypeA() )
+		if( false == g_pMain->GetGameOption().GetIsSkillUITypeA() )
 			vPos.y += 44.f;
 
 		m_pDLGBossGage->SetPos(vPos);		
@@ -96,16 +96,20 @@ void CX2BossGageUI::SetBossGageTexture( const WCHAR* wszFaceTexName_, const WCHA
 	}
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2BossGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2BossGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( GetShow() && null != m_optrGameUnit)
 	{
 	#ifdef SKILL_SLOT_UI_TYPE_B
-		if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+		if( NULL != g_pMain )
 		{
-			if( m_bSkillSlotUITypeA != g_pMain->GetGameOption()->GetIsSkillUITypeA() )
+			if( m_bSkillSlotUITypeA != g_pMain->GetGameOption().GetIsSkillUITypeA() )
 			{
-				m_bSkillSlotUITypeA = g_pMain->GetGameOption()->GetIsSkillUITypeA();
+				m_bSkillSlotUITypeA = g_pMain->GetGameOption().GetIsSkillUITypeA();
 				ResetBossUIPos();
 			}
 		}
@@ -116,9 +120,9 @@ void CX2BossGageUI::SetBossGageTexture( const WCHAR* wszFaceTexName_, const WCHA
 		if ( NULL != pStatic_BossState )
 		{
 
-			//{{ JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/26 / HP ï¿½ï¿½ï¿½ // SERV_BOSS_GAUGE_HP_LINES
+			//{{ JHKang / °­Á¤ÈÆ / 2011/01/26 / HP °è»ê // SERV_BOSS_GAUGE_HP_LINES
 						
-			//{{ ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½ï¿½ï¿½
+			//{{ »ö»ó Ä«¿îÅÍ
 			const float fMaxHp = m_optrGameUnit->GetMaxHp();
 			const float fNowHp = m_optrGameUnit->GetNowHp();
 
@@ -139,7 +143,7 @@ void CX2BossGageUI::SetBossGageTexture( const WCHAR* wszFaceTexName_, const WCHA
 				sColor = KIND_OF_HP_GAGE_BAR_COLOR - 1;
 				fHPBarLength = MAGIC_HP_BAR_LENGTH * fNowHp / fPartialHP;
 			}
-			if ( GetNumOfGage() == iLineNumber )	// ï¿½ð°¡µï¿½ ï¿½ï¿½ ï¿½ï¿½È¯ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			if ( GetNumOfGage() == iLineNumber )	// ¹ð°¡µå ¹× ¼ÒÈ¯µÇ´Â ¸ó½ºÅÍ °í·Á
 			{
 				--iLineNumber;
 				sColor = (KIND_OF_HP_GAGE_BAR_COLOR - 2) - ( iLineNumber - 1 ) % (KIND_OF_HP_GAGE_BAR_COLOR - 1);
@@ -151,9 +155,9 @@ void CX2BossGageUI::SetBossGageTexture( const WCHAR* wszFaceTexName_, const WCHA
 
 				fHPBarLength = MAGIC_HP_BAR_LENGTH;
 			}
-			//}} ï¿½ï¿½ï¿½ï¿½ Ä«ï¿½ï¿½ï¿½ï¿½
+			//}} »ö»ó Ä«¿îÅÍ
 
-			//{{ ï¿½ï¿½È­ ï¿½Ç´ï¿½ HP Bar
+			//{{ º¯È­ µÇ´Â HP Bar
 			wstring tempString( L"BOSS_HP1" );
 			tempString += WCHAR_HP_BAR_POST_FIX[sColor];
 			
@@ -202,7 +206,7 @@ void CX2BossGageUI::SetBossGageTexture( const WCHAR* wszFaceTexName_, const WCHA
 				else if ( KIND_OF_HP_GAGE_BAR_COLOR <= sBottomBarColor )
 					sBottomBarColor = KIND_OF_HP_GAGE_BAR_COLOR - 1;
 
-				//{{ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ÃµÇ´ï¿½ HP Bar
+				//{{ ´ÙÀ½ »öÀ¸·Î Ç¥½ÃµÇ´Â HP Bar
 				tempString = L"BOSS_HP1";
 				tempString += WCHAR_HP_BAR_POST_FIX[sBottomBarColor];
 
@@ -225,7 +229,7 @@ void CX2BossGageUI::SetBossGageTexture( const WCHAR* wszFaceTexName_, const WCHA
 					pHPBar_Middle2->SetSizeX( MAGIC_HP_BAR_LENGTH - MAGIC_LEFT_HP_BAR_LENGTH );
 					pHPBar_Middle2->SetShow( true );
 					tempString.clear();
-					//}} ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ÃµÇ´ï¿½ HP Bar				
+					//}} ´ÙÀ½ »öÀ¸·Î Ç¥½ÃµÇ´Â HP Bar				
 				}				
 			}
 			else
@@ -244,7 +248,7 @@ void CX2BossGageUI::SetBossGageTexture( const WCHAR* wszFaceTexName_, const WCHA
 			if ( usBarNumber > GetNumOfGage() )
 				usBarNumber = GetNumOfGage();
 
-			// Bar ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+			// Bar ¶óÀÎ ¼ö ¼ýÀÚ Ç¥½Ã
 			if ( fNowHp <= 0 )
 			{
 				usBarNumber = 0;
@@ -297,7 +301,7 @@ void CX2BossGageUI::SetBossGageTexture( const WCHAR* wszFaceTexName_, const WCHA
 
 				pLineX->SetShow( true );
 			}
-			//}} JHKang / ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ / 2011/01/26 / HP ï¿½ï¿½ï¿½ // SERV_BOSS_GAUGE_HP_LINES
+			//}} JHKang / °­Á¤ÈÆ / 2011/01/26 / HP °è»ê // SERV_BOSS_GAUGE_HP_LINES
 			
 		}
 		//*/
@@ -378,27 +382,43 @@ CX2SmallGageUI::CX2SmallGageUI( CX2GameUnit* pGameUnit_ )
 	SAFE_CLOSE( m_pMPSmallBar );
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2SmallGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2SmallGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if( true == GetShow() )
 	{
 		if ( GetAlpha() >= 255.0f )
 			SetAlpha( 255.0f );
 		else
+        {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            SetAlpha( GetAlpha() + fElapsedTime_ * 400 );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			SetAlpha( GetAlpha() + g_pKTDXApp->GetElapsedTime() * 400 );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        }
 	}
 	else
 	{
 		if ( GetAlpha() <= 0.0f )
 			SetAlpha( 0.0f );
 		else
+        {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            SetAlpha( GetAlpha() - fElapsedTime_ * 400 );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			SetAlpha( GetAlpha() - g_pKTDXApp->GetElapsedTime() * 400 );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        }
 	}
 }
 
 /*virtual*/ void CX2SmallGageUI::OnFrameRender()
 {
-	// ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	// Æ÷Ä¿½º À¯´ÖÀÌ ÀÖ´Â ¾ø´ÂÁö´Â À§¿¡¼­ °è»ê
 	if ( GetShow() )
 		DrawSmallGage();
 }
@@ -443,14 +463,14 @@ void CX2SmallGageUI::DrawFace( float fX_, float fY_, float fWidth_, float fHeigh
 
 	KD3DPUSH( m_RenderStateID )
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	BOOST_STATIC_ASSERT( D3DFVF_DRAWFACE_RHW_VERTEX == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 	g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 		, D3DPT_TRIANGLESTRIP, 2, vertex );
-#else
-	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
-	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
-#endif
+//#else
+//	g_pKTDXApp->GetDevice()->SetFVF( D3DFVF_DRAWFACE_RHW_VERTEX );
+//	g_pKTDXApp->GetDevice()->DrawPrimitiveUP( D3DPT_TRIANGLESTRIP, 2, vertex, sizeof(DRAWFACE_RHW_VERTEX) );
+//#endif
 
 	KD3DEND()
 }
@@ -504,14 +524,14 @@ void CX2SmallGageUI::DrawSmallGage()
 						NULL != g_pX2Game->GetMyUnit() )
 					{
 						if( ( NULL != g_pX2Room->GetMySlot() && g_pX2Room->GetMySlot()->m_bObserver == true ) ||
-							true == g_pX2Game->GetMyUnit()->GetCashItemAbility()->m_bShowOppnentMP
+							true == g_pX2Game->GetMyUnit()->GetCashItemAbility().m_bShowOppnentMP
 							&& g_pX2Game->GetMyUnit()->GetTeam() != m_optrGameUnit->GetTeam() )
 						{
 							vOut.y += ( 5 * g_pKTDXApp->GetResolutionScaleY() );
 							DrawMpGage( vOut );
 						}
 					}
-					//}} dmlee 2008.04.11 Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ MP ï¿½ï¿½ï¿½ï¿½
+					//}} dmlee 2008.04.11 Ä³½ÃÅÛ »ó´ëÆÀ MP º¸±â
 				} break;
 			}
 		}	
@@ -522,7 +542,7 @@ void CX2SmallGageUI::DrawHpGage( const D3DXVECTOR3& vOut_ )
 {
 	CKTDGStateManager::SetTexture( 0, NULL );
 
-	DrawFace( vOut_.x, vOut_.y, 50.0f, 7.0f, D3DCOLOR_ARGB( static_cast<int>( GetAlpha() ), 0, 0, 0 ) );		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	DrawFace( vOut_.x, vOut_.y, 50.0f, 7.0f, D3DCOLOR_ARGB( static_cast<int>( GetAlpha() ), 0, 0, 0 ) );		// °ËÀº»ö °ÔÀÌÁö
 
 	const float fNowHp = m_optrGameUnit->GetNowHp();
 	const float fMaxHp = m_optrGameUnit->GetMaxHp();
@@ -594,23 +614,27 @@ CX2MySmallGageUI::~CX2MySmallGageUI()
 	SetShow( false );
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2MySmallGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2MySmallGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( null != m_optrGameUnit )
 	{
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½
+		// °ÔÀÌÁö UI °¡ ¾ø´Ù¸é
 		if ( NULL == m_pDlgAirGage )
 		{
-			// UIï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½
+			// UI°¡ »ý¼ºµÇ¾î¾ß ÇÏ¸é »ý¼º
 			if ( true == m_optrGameUnit->GetUnderWater() && m_optrGameUnit->GetNowHp() > 0.0f )
 				CreateAirGage();
 		}
-		else	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UIï¿½ï¿½ ï¿½Ö´Ù¸ï¿½
+		else	// °ÔÀÌÁö UI°¡ ÀÖ´Ù¸é
 		{
-			// ï¿½ï¿½ï¿½È¿ï¿½ ï¿½Ö°ï¿½, ï¿½ï¿½ï¿½ ï¿½Ö´Ù¸ï¿½
+			// ¹°¾È¿¡ ÀÖ°í, »ì¾Æ ÀÖ´Ù¸é
 			if ( true == m_optrGameUnit->GetUnderWater() && m_optrGameUnit->GetNowHp() > 0.0f )
 				UpdateAirGage();
-			else	// ï¿½×·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½
+			else	// ±×·¸Áö ¾ÊÀ¸¸é UI »èÁ¦
 				DestroyAirGage();
 		}		
 	}
@@ -642,7 +666,7 @@ void CX2MySmallGageUI::DestroyAirGage()
 
 void CX2MySmallGageUI::UpdateAirGage()
 {
-	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
+	// ¾÷µ¥ÀÌÆ®
 	const D3DXVECTOR3& vUserPos = m_optrGameUnit->GetPos();
 	D3DXVECTOR2 vAirGagePos = g_pKTDXApp->GetProj3DPos( D3DXVECTOR3( vUserPos.x, vUserPos.y + 400.0f, vUserPos.z ) );
 
@@ -681,13 +705,12 @@ void CX2MySmallGageUI::UpdateAirGage()
 #endif //BUFF_ICON_UI
 }
 
-#ifdef REFORM_UI_CHARACTER_INFO
 void CX2StatusGageUI::UpdateGageForUV( IN CKTDGUIStatic* pStaticBar_, IN int iPicNum, IN const WCHAR* pUVName_, IN float fPercent_, IN bool isWidth_ )
 {
 	CKTDGUIControl::CPictureData* pPicture = pStaticBar_->GetPicture( iPicNum );
 	if ( NULL != pPicture && NULL != pPicture->pTexture && NULL != pPicture->pTexture->pTexture )
 	{
-		CKTDXDeviceTexture::TEXTURE_UV* pTexUV = pPicture->pTexture->pTexture->GetTexUV( pUVName_ );
+		const CKTDXDeviceTexture::TEXTURE_UV* pTexUV = pPicture->pTexture->pTexture->GetTexUV( pUVName_ );
 		float fRate = 1.0f;
 
 		if ( NULL != pTexUV )
@@ -727,12 +750,11 @@ void CX2StatusGageUI::UpdateGageForUV( IN CKTDGUIStatic* pStaticBar_, IN int iPi
 		}
 	}
 }
-#endif
 
 #ifdef BUFF_ICON_UI
 /** @function : PushBuff
-	@brief : GameUnitï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ÏµÇ¾ï¿½ï¿½ï¿½ ï¿½ï¿½ UIï¿½ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ID,ï¿½Ø½ï¿½ï¿½Ä¸ï¿½(BuffIconInfo_), ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(bIsDeBuff)
+	@brief : GameUnit¿¡¼­ »õ·Î¿î ¹öÇÁ°¡ µî·ÏµÇ¾úÀ» ¶§ UIÃâ·Â¿¡ »ç¿ë µÇ´Â ¹öÇÁ ¸®½ºÆ® °»½Å
+	@param : ÇØ´ç ¹öÇÁ ID,ÅØ½ºÃÄ¸í(BuffIconInfo_), ¹öÇÁ,µð¹öÇÁ ±¸ºÐ(bIsDeBuff)
 */
 void CX2StatusGageUI::PushBuff(const BuffIcon& BuffIconInfo_, bool bIsDeBuff_)
 {
@@ -743,26 +765,21 @@ void CX2StatusGageUI::PushBuff(const BuffIcon& BuffIconInfo_, bool bIsDeBuff_)
 
 	vector<BuffIcon>* pVecBuffList = NULL;
 	(false == bIsDeBuff_) ? pVecBuffList = &m_vecBuffList : pVecBuffList = &m_vecDebuffList;
-
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ïµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
-	vector<BuffIcon>::iterator it = std::_Find_if( pVecBuffList->begin(),pVecBuffList->end(), FindFunc);
-	if( it == pVecBuffList->end() )
+	
+	//±âÁ¸¿¡ µî·ÏµÇÁö ¾ÊÀº ¹öÇÁ ÀÏ ¶§¸¸ Ãß°¡
+	if( std::_Find_if( pVecBuffList->begin(),pVecBuffList->end(), FindFunc) == pVecBuffList->end() )
 	{
 		pVecBuffList->push_back(BuffIconInfo_);
 		UpdateBuffIcon();
 	}
-	else //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ÏµÇ¾ï¿½ ï¿½Ö¾ï¿½ï¿½Ù¸ï¿½ ï¿½Ã¸ï¿½Ä¿ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­
-	{
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-		/// A second push for an already-tracked buff (e.g. two internal push sites for one apply, or a refresh/recast) must not be silently discarded
-		it->fRemainTime = BuffIconInfo_.fRemainTime;
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
+	else //±âÁ¸¿¡ µî·ÏµÇ¾î ÀÖ¾ú´Ù¸é ÇÃ¸®Ä¿ Á¤º¸¸¸ ÃÊ±âÈ­
+	{	
 		InitBuffIconFlicker( BuffIconInfo_.eBuffID );
 	}
 }
 /** @function : EraseBuff
-	@brief : GameUnitï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Åµï¿½ ï¿½ï¿½ UIï¿½ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Åµï¿½ ï¿½ï¿½ï¿½ï¿½UID(uiUnitUID), ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ID(eBuffID_), ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(bIsDeBuff)
+	@brief : GameUnit¿¡¼­ ¹öÇÁ°¡ Á¦°ÅµÉ ¶§ UIÃâ·Â¿¡ »ç¿ë µÇ´Â ¹öÇÁ ¸®½ºÆ® °»½Å
+	@param : ¹öÇÁ°¡ °»½ÅµÈ À¯´ÖUID(uiUnitUID), ÇØ´ç ¹öÇÁ ID(eBuffID_), ¹öÇÁ,µð¹öÇÁ ±¸ºÐ(bIsDeBuff)
 */
 void CX2StatusGageUI::EraseBuff(BUFF_TEMPLET_ID eBuffID_, bool bIsDeBuff_)
 {
@@ -778,7 +795,7 @@ void CX2StatusGageUI::EraseBuff(BUFF_TEMPLET_ID eBuffID_, bool bIsDeBuff_)
 	{
 		if( NULL != m_pDlgBuffIcon )
 		{
-			/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			/// ¹öÇÁ ÀÌ¹ÌÁö Á¦°Å
 			WCHAR szStaticName[20];
 			StringCchPrintfW( szStaticName, 20, L"Buff_%d", it->eBuffID );
 
@@ -789,7 +806,7 @@ void CX2StatusGageUI::EraseBuff(BUFF_TEMPLET_ID eBuffID_, bool bIsDeBuff_)
 				pStatic->SetShow(false);
 			}
 
-			/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½
+			/// ÅøÆÁ¿ë Åõ¸í ¹öÆ° Á¦°Å
 			WCHAR szButtonName[20];
 			StringCchPrintfW( szButtonName, 20, L"ButtonBuff_%d", it->eBuffID );
 
@@ -808,8 +825,8 @@ void CX2StatusGageUI::EraseBuff(BUFF_TEMPLET_ID eBuffID_, bool bIsDeBuff_)
 }
 
 /** @function : ClearBuffList
-	@brief : UIï¿½ï¿½Â¿ï¿½ ï¿½ï¿½ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ê±ï¿½È­
-	@param : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Åµï¿½ ï¿½ï¿½ï¿½ï¿½UID(uiUnitUID)
+	@brief : UIÃâ·Â¿¡ »ç¿ëµÇ´Â ¹öÇÁ ¸®½ºÆ® ÃÊ±âÈ­
+	@param : ¹öÇÁ°¡ °»½ÅµÈ À¯´ÖUID(uiUnitUID)
 */
 void CX2StatusGageUI::ClearBuffList()
 {
@@ -820,21 +837,21 @@ void CX2StatusGageUI::ClearBuffList()
 }
 
 /** @function : SetBuffIconStatic
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI STATICï¿½ß°ï¿½
-	@param : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ID,ï¿½Ø½ï¿½ï¿½Ä¸ï¿½(BuffIconInfo_), ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ index(iIndex), ï¿½ï¿½ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(bIsDeBuff)
+	@brief : ¹öÇÁ¾ÆÀÌÄÜ UI STATICÃß°¡
+	@param : ÇØ´ç ¹öÇÁ ID,ÅØ½ºÃÄ¸í(BuffIconInfo_), Ãâ·Â À§Ä¡¸¦ °è»êÇÏ±â À§ÇÑ index(iIndex), ¹öÇÁ,µð¹öÇÁ ±¸ºÐ(bIsDeBuff)
 */
 void CX2StatusGageUI::SetBuffIconStatic(const BuffIcon& BuffIconInfo_, int iIndex_, bool bIsDebuff_, const D3DXVECTOR2& vSize_ )
 {
 	if( NULL != m_pDlgBuffIcon )
 	{
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½
+		/// ÅøÆÁ¿ë Åõ¸í ¹öÆ° »ý¼º
 		WCHAR szSButtonName[20];
 		StringCchPrintfW( szSButtonName, 20, L"ButtonBuff_%d", BuffIconInfo_.eBuffID);
 		CKTDGUIButton* pButtonBuffIcon = NULL;
 
-		if( false == m_pDlgBuffIcon->CheckControl( szSButtonName ) )		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½Ì¸ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		if( false == m_pDlgBuffIcon->CheckControl( szSButtonName ) )		/// »ý¼ºµÈ Àû ¾ø´Â ¹öÆ°ÀÌ¸é, »õ·Î »ý¼º
 		{
-			pButtonBuffIcon = m_pDlgBuffIcon->CreateButton();		/// ï¿½ï¿½Æ° ï¿½ï¿½ï¿½ï¿½
+			pButtonBuffIcon = m_pDlgBuffIcon->CreateButton();		/// ¹öÆ° »ý¼º
 
 			pButtonBuffIcon->SetName( szSButtonName );
 			pButtonBuffIcon->SetSize( vSize_ );
@@ -863,6 +880,11 @@ void CX2StatusGageUI::SetBuffIconStatic(const BuffIcon& BuffIconInfo_, int iInde
 			pButtonBuffIcon->SetDownPoint( pDownPointData );
 			pButtonBuffIcon->SetShowEnable( true, true );
 
+#ifdef ERASE_BUFF_CHEAT
+			pButtonBuffIcon->SetCustomMsgMouseDblClk( CX2GageManager::GUCM_ERASE_BUFF_CHEAT );
+			pButtonBuffIcon->AddDummyInt( static_cast<int>(BuffIconInfo_.eBuffID) );
+#endif // ERASE_BUFF_CHEAT
+
 			m_pDlgBuffIcon->AddControl( pButtonBuffIcon );
 		}
 		else
@@ -874,7 +896,12 @@ void CX2StatusGageUI::SetBuffIconStatic(const BuffIcon& BuffIconInfo_, int iInde
 		{
 			float fOffsetY = 0.f;
 			if( true == bIsDebuff_ )
+			{
 				fOffsetY = vSize_.x +1.f;
+#ifdef DISPLAY_BUFF_DURATION_TIME
+				fOffsetY += 4.f;
+#endif // DISPLAY_BUFF_DURATION_TIME
+			}
 
 			D3DXVECTOR2 vPos( ( -vSize_.y - 1.f ) * iIndex_, fOffsetY );
 
@@ -882,7 +909,7 @@ void CX2StatusGageUI::SetBuffIconStatic(const BuffIcon& BuffIconInfo_, int iInde
 			pButtonBuffIcon->SetGuideDescOffsetPos( D3DXVECTOR2( vPos.x, vPos.y + 140.f  ) );
 		}
 
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		/// ¾ÆÀÌÄÜ ÀÌ¹ÌÁö »ý¼º
 		WCHAR szStaticName[20];
 		StringCchPrintfW( szStaticName, 20, L"Buff_%d", BuffIconInfo_.eBuffID);
 
@@ -899,24 +926,37 @@ void CX2StatusGageUI::SetBuffIconStatic(const BuffIcon& BuffIconInfo_, int iInde
 				pStaticBuffIcon->AddPicture( pPicture );
 				pPicture->SetTex( BuffIconInfo_.szTextureFileName.c_str(), BuffIconInfo_.szTextureKeyName.c_str());
 				pPicture->SetSize( vSize_ );
-
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-				/// Remaining-seconds countdown text drawn over the icon (string index 0)
-				CKTDGUIControl::UIStringData* pStringDuration = new CKTDGUIControl::UIStringData();
-				pStaticBuffIcon->AddString( pStringDuration );
-
-				pStringDuration->fontIndex    = XUF_DODUM_11_NORMAL;
-				pStringDuration->fontStyle    = CKTDGFontManager::FS_SHELL;
-				pStringDuration->sortFlag     = DT_CENTER;
-				pStringDuration->pos          = D3DXVECTOR2( vSize_.x * 0.5f, vSize_.y - 10.f );
-				pStringDuration->color        = D3DXCOLOR( 1.f, 1.f, 1.f, 1.f );
-				pStringDuration->outlineColor = D3DXCOLOR( 0.f, 0.f, 0.f, 1.f );
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 			}
+			
+#ifdef DISPLAY_BUFF_DURATION_TIME
+			// ³²Àº ½Ã°£ ÅøÆÁ Ãß°¡
+			{
+				CKTDGUIControl::UIStringData* pString = new CKTDGUIControl::UIStringData();
+				pStaticBuffIcon->AddString( pString );
+				pString->fontIndex = XUF_DODUM_11_NORMAL;
+				pString->color = D3DXCOLOR( 1,1,1,1 );
+				pString->outlineColor = D3DXCOLOR( 0,0,0,1 );
+				pString->msg = L"";
+				pString->fontStyle = CKTDGFontManager::FS_SHELL;
+				pString->sortFlag = DT_RIGHT;
+				pString->pos = D3DXVECTOR2( 12.f, 12.f+4.f);
+			}
+#endif // DISPLAY_BUFF_DURATION_TIME
+
 		}
 		else
 		{
 			pStaticBuffIcon = static_cast<CKTDGUIStatic*>(m_pDlgBuffIcon->GetControl(szStaticName)) ;
+
+#ifdef DISPLAY_BUFF_DURATION_TIME
+			// ³²Àº ½Ã°£ ÅøÆÁ Ãß°¡
+			{
+				if( NULL != pStaticBuffIcon->GetString(0) )
+				{
+					pStaticBuffIcon->GetString(0)->msg = L"";
+				}
+			}
+#endif // DISPLAY_BUFF_DURATION_TIME
 		}
 
 		if( NULL != pStaticBuffIcon )
@@ -946,16 +986,19 @@ void CX2StatusGageUI::SetBuffIconStatic(const BuffIcon& BuffIconInfo_, int iInde
 			if( true == bIsDebuff_ )
 			{
 				fOffsetY = vSize_.x +1.f;
+#ifdef DISPLAY_BUFF_DURATION_TIME
+				fOffsetY += 4.f;
+#endif // DISPLAY_BUFF_DURATION_TIME
 			}
 
-			pStaticBuffIcon->SetShow(true);
+			pStaticBuffIcon->SetShow(CX2GageManager::GetInstance()->GetShowMyGageUI());
 			pStaticBuffIcon->SetOffsetPos( D3DXVECTOR2( (-vSize_.y-1.f) * (iIndex_++), fOffsetY ) );
 		}
 	}
 }
 /** @function : NotifyDurationTime5sec
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ 5ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½
-	@param : ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ ID
+	@brief : Áö¼Ó ½Ã°£ÀÌ 5ÃÊ ³²Àº ¹öÇÁ ¾Ë¸²
+	@param : ÇØ´ç ¹öÇÁ ID
 */
 void CX2StatusGageUI::NotifyDurationTime5sec(BUFF_TEMPLET_ID eBuffID_)
 {
@@ -966,7 +1009,7 @@ void CX2StatusGageUI::NotifyDurationTime5sec(BUFF_TEMPLET_ID eBuffID_)
 	bool bCompleteNotify = false;
 	vector<BuffIcon>::iterator it;
 
-	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ï¿ï¿½ ï¿½Ö³ï¿½ È®ï¿½ï¿½
+	//¹öÇÁ ¸ñ·Ï¿¡ ÀÖ³ª È®ÀÎ
 	it = std::_Find_if( m_vecBuffList.begin(),m_vecBuffList.end(), FindFunc);
 	if( it != m_vecBuffList.end() )
 	{		
@@ -1014,54 +1057,13 @@ void CX2StatusGageUI::InitBuffIconFlicker( BUFF_TEMPLET_ID eBuffID_ )
 			pStaticBuffIcon->GetPicture(0)->SetFlicker(0.1f,1.f,1.f,false);
 			pStaticBuffIcon->GetPicture(0)->SetShow(true);
 		}
-	}
+	}			
 }
-
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-//////////////////////////////////////////////////////////////////////////
-// Author: Iruha
-// Date: 2026-08-25
-// Description: Tick down each buff/debuff icon's local remaining-time copy and refresh its countdown text
-void CX2StatusGageUI::UpdateBuffDurationText()
-{
-	if( NULL == m_pDlgBuffIcon )
-		return;
-
-	const float fElapsedTime = g_pKTDXApp->GetElapsedTime();
-
-	vector<BuffIcon>* apVecBuffList[2] = { &m_vecBuffList, &m_vecDebuffList };
-	for( int i = 0; i < 2; ++i )
-	{
-		vector<BuffIcon>::iterator it = apVecBuffList[i]->begin();
-		for( ; it != apVecBuffList[i]->end(); ++it )
-		{
-			if( 0.f > it->fRemainTime )
-				continue;	/// no timer on this buff, string was never attached
-
-			it->fRemainTime = max( 0.f, it->fRemainTime - fElapsedTime );
-
-			WCHAR szStaticName[20];
-			StringCchPrintfW( szStaticName, 20, L"Buff_%d", it->eBuffID );
-
-			CKTDGUIStatic* pStaticBuffIcon = static_cast<CKTDGUIStatic*>( m_pDlgBuffIcon->GetControl( szStaticName ) );
-			if( NULL != pStaticBuffIcon )
-			{
-				WCHAR szDuration[16];
-				StringCchPrintfW( szDuration, 16, L"%d", static_cast<int>( it->fRemainTime ) );
-				pStaticBuffIcon->SetString( 0, szDuration );
-			}
-		}
-	}
-}
-//////////////////////////////////////////////////////////////////////////
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 #endif //BUFF_ICON_UI
 
 CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOwnerUnitClass_ )
 	: CX2StatusGageUI( pGageData_, eOwnerUnitClass_ ), m_pDLGMyUnit( NULL )
-#ifdef REFORM_UI_CHARACTER_INFO
 	, m_bOnPopUp( false ), m_bIsShow( true )
-#endif
 {}
 
 
@@ -1074,19 +1076,6 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 {
 	InitStatusUI();	
 	InitWakeOrb();
-
-	/*
-
-#ifdef UNDERWATER_LINEMAP
-	if( pGameUnit->IsMyUnit() == true )
-	{
-		m_pDlgAirGage = new CKTDGUIDialog( NULL, L"DLG_UI_AIR_GAGE.lua" );
-		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDlgAirGage );
-		if( m_pDlgAirGage != NULL )
-			m_pDlgAirGage->SetShowEnable(false, false);
-	}			
-#endif
-	*/
 }
 
 
@@ -1095,18 +1084,24 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 	CKTDGUIStatic* pStaticWakeOrb = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeOrb") );
 	if ( NULL != pStaticWakeOrb )
 	{
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );			// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ·¹ÀÌºì ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ±¸½½ »èÁ¦
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// °¢¼º ±¸½½ ½½·Ô
 	CKTDGUIStatic* pStaticWakeSlot = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeSlot") );
 	if ( NULL != pStaticWakeSlot )
 	{
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );			// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ·¹ÀÌºì ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ±¸½½ »èÁ¦
 	}
 }
 
@@ -1114,7 +1109,7 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 {
 	CX2GageUI::SetShow( bShow_ );
 
-#ifdef FIX_OBSERVER_MODE	/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ü¹ï¿½ï¿½ï¿½ï¿½ï¿½.
+#ifdef FIX_OBSERVER_MODE	/// ¿ÉÀú¹ö¸®¸é ¼û°Ü¹ö¸®ÀÚ.
 	if ( NULL != g_pX2Room && NULL != g_pX2Room->GetMySlot() &&
 		true == g_pX2Room->GetMySlot()->m_bObserver )
 	{
@@ -1139,7 +1134,11 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 	}
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2MyGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2MyGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	if ( NULL == m_pDLGMyUnit )
 		return;
@@ -1152,13 +1151,8 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 	UpdateHyperModeRemainTime();
 	UpdatePartyLeaderUI();
 
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-	UpdateBuffDurationText();
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 
 
-
-#ifdef REFORM_UI_CHARACTER_INFO
 	UpdateInfoString();
 
 	if ( m_pDLGMyUnit != NULL && m_pDLGMyUnit->GetShow() == true )
@@ -1182,9 +1176,8 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 					{
 						m_bOnPopUp = true;
 						g_pData->GetPetManager()->ClosePetPopupMenu();
-						CX2Unit::UnitData* pMyUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+						const CX2Unit::UnitData& kMyUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 						
-						if ( NULL != pMyUnitData )
 						{
 							CX2PartyManager* pPartyManager = g_pData->GetPartyManager();
 							bool bIsParty = false;
@@ -1192,7 +1185,7 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 							if ( NULL != pPartyManager && true == pPartyManager->DoIHaveParty() )
 								bIsParty = true;
 
-							g_pData->GetUserMenu()->OpenUserPopupMenu( pMyUnitData->m_UnitUID, bIsParty );
+							g_pData->GetUserMenu()->OpenUserPopupMenu( kMyUnitData.m_UnitUID, bIsParty );
 						}
 					}
 					else
@@ -1209,13 +1202,12 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 			break;
 		}
 	}
-#endif
 
 
 	if ( NULL != g_pData->GetPlayGuide() )
 	{
 		if( m_pGageData->GetNowMp() >= 100.f )
-		{	//Ã¼ï¿½ï¿½ 100 ï¿½Ì»ï¿½ï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ë¿¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½
+		{	//Ã¼·Â 100 ÀÌ»óÀÌ¶ó¸é ½ºÅ³»ç¿ë¿¡ °üÇÑ °¡ÀÌµå Ãâ·Â
 
 			if( NULL != g_pMain && NULL != g_pMain->GetKeyPad() )
 			{
@@ -1231,7 +1223,7 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 	}
 	//{{ kimhc // 2010.12.13 // 2010-12-23 New Character CHUNG
 // #ifdef	NEW_CHARACTER_CHUNG
-// 	// Ã»ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ UIï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ï¸ï¿½
+// 	// Ã»ÀÇ Ä³³íº¼ UI¸¦ Ç¥½ÃÇØ Áà¾ß ÇÏ¸é
 // 	if ( 0 < m_pCannonBallUIPtr.use_count() && NULL != m_pCannonBallUIPtr->GetDLGMyUnit() )
 // 	{
 // 		if ( true == m_pCannonBallUIPtr->GetBerserkModeChanged() )
@@ -1243,10 +1235,10 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 // 				wstring wstrFileName;
 // 				wstring wstrPieceName;
 // 
-// 				CX2Unit::UNIT_CLASS eClassType = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UnitClass;
+// 				CX2Unit::UNIT_CLASS eClassType = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UnitClass;
 // 				if ( false == m_pCannonBallUIPtr->IsBerserkMode() )
 // 					CX2Data::GetCharacterImageName( wstrFileName, wstrPieceName, eClassType, CX2Data::CIT_MyGage );
-// 				// ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½
+// 				// ±¤ÆøÈ­ ¸ðµåÀÌ¸é
 // 				else
 // 				{
 // 					GetBerserkModeMyStateImage( wstrFileName, wstrPieceName, eClassType );
@@ -1264,7 +1256,7 @@ CX2MyGageUI::CX2MyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOw
 	//}} kimhc // 2010.12.13 //  2010-12-23 New Character CHUNG
 
 #ifdef BUFF_ICON_UI
-	SetBuffIconGuideDesc();		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	SetBuffIconGuideDesc();		/// ¹öÇÁ ¾ÆÀÌÄÜ ÅøÆÁ ¼³Á¤
 #endif // BUFF_ICON_UI
 }
 
@@ -1302,7 +1294,7 @@ void CX2MyGageUI::UpdateHyperModeOrb()
 			
 			if ( COUNT_OF_HYPER_MODE > uiIndex )
 			{
-				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+				// ÀÌÀü¿¡ ¾ø´ø °¢¼º ±¸½½ÀÌ »ý±ä °ÍÀÌ¸é ÀÌÆåÆ®¸¦ º¸¿©ÁÜ
 				if ( false == pPictureHyperModeOrb->GetShow() )
 				{
 					pPictureHyperModeOrb->SetShow( true );
@@ -1340,16 +1332,10 @@ void CX2MyGageUI::UpdateHpGage()
 	ASSERT( NULL != pStaticBar_HP );
 	if ( NULL != pStaticBar_HP && NULL != m_pGageData )
 	{
-#ifdef REFORM_UI_CHARACTER_INFO
 		const float fMaxHp = m_pGageData->GetMaxHp();
 		const float fHpPercent = m_pGageData->GetNowHp() / fMaxHp;
 
 		UpdateGageForUV( pStaticBar_HP, 0, L"HP", fHpPercent, true );
-#else
-		const float fHpPercent = m_pGageData->GetNowHp() / m_pGageData->GetMaxHp();
-		const float fWidth = pStaticBar_HP->GetPicture( 0 )->GetOriginalSize().x * fHpPercent;
-		pStaticBar_HP->GetPicture( 0 )->SetSizeX( fWidth );
-#endif
 	}
 }
 
@@ -1366,28 +1352,17 @@ void CX2MyGageUI::UpdateHpGage()
 
 void CX2MyGageUI::UpdateMpGageAndString( CKTDGUIStatic* pStaticStateBar_ )
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	if ( NULL != m_pGageData )
-#else
-	CKTDGUIControl::CPictureData* pPictureMyMpGage = pStaticStateBar_->GetPicture( PGUB_MY_MP );
-	if ( NULL != pPictureMyMpGage && NULL != m_pGageData )
-#endif
 	{
 		const float fNowMp = m_pGageData->GetNowMp();
 		const float fMaxMp = m_pGageData->GetMaxMp();
 		const float fMpPercent =  fNowMp / fMaxMp;
-#ifdef REFORM_UI_CHARACTER_INFO
 		UpdateGageForUV( pStaticStateBar_, PGUB_MY_MP, L"MP", fMpPercent, true );
-#else
-		const float fWidth = pPictureMyMpGage->GetOriginalSize().x * fMpPercent;
-
-		pPictureMyMpGage->SetSizeX( fWidth );
-#endif
 		CKTDGUIStatic* pStaticMp = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"g_pStatic_MP") );
 		if ( pStaticMp != NULL )
 		{
-			// mp ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ maxï¿½ï¿½ï¿½ï¿½Â½ï¿½ ï¿½Ò¼ï¿½ï¿½Îºï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ÎºÐ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½
-			// ex:) maxï¿½ï¿½ 10.3, nowï¿½ï¿½ 10.3ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Â½ï¿½ maxï¿½ï¿½ 11, nowï¿½ï¿½ 10ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½ï¿½ÂµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½
+			// mp ¹èÀ²Áõ°¡ ¿É¼Ç Ãß°¡·Î ÀÎÇØ max°ªÃâ·Â½Ã ¼Ò¼öºÎºÐ ¿Ã·Á¼­ Ãâ·ÂÇÏ´Â ºÎºÐ¿¡¼­ ¹®Á¦½Ã µÇ´Â ºÎºÐ ¼öÁ¤
+			// ex:) max°¡ 10.3, now°¡ 10.3ÀÌ µÇ¾úÀ» °æ¿ì Ãâ·Â½Ã max´Â 11, now´Â 10ÀÌ µÇ¾î Ãâ·ÂµÇ´Â Çö»ó ¹ß»ý
 			const UINT uiStrSize = 32;
 			WCHAR buf[uiStrSize];
 			ZeroMemory( buf, sizeof(WCHAR) * uiStrSize );
@@ -1400,11 +1375,11 @@ void CX2MyGageUI::UpdateMpGageAndString( CKTDGUIStatic* pStaticStateBar_ )
 	}
 }
 /** @function : UpdateMpGuidePoint
-	@brief : MPï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ MP ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	@brief : MP·®¿¡ µû¶ó MP °¡ÀÌµå Æ÷ÀÎÆ® À§Ä¡ º¯°æ
 */
 void CX2MyGageUI::UpdateMpGuidePoint()
 {
-	//ï¿½Ö´ï¿½ MPï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ MP ï¿½ï¿½ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½
+	//ÃÖ´ë MP·® º¯°æÀÌ ÀÖÀ» ¶§¸¸ MP °¡ÀÌµå Æ÷ÀÎÆ® À§Ä¡ º¯°æ
 	if( true == m_pGageData->GetUpdateMpPoint() ) 
 	{
 		const float fMaxGageWidth = 224.f;
@@ -1426,51 +1401,31 @@ void CX2MyGageUI::UpdateMpGuidePoint()
 		m_pGageData->SetUpdateMpPoint(false);
 	}
 }
-void CX2MyGageUI::UpdateHyperGage( CKTDGUIStatic* pStaticStateBar_ )
+/*virtual*/ void CX2MyGageUI::UpdateHyperGage( CKTDGUIStatic* pStaticStateBar_ )
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	if ( NULL != m_pGageData )
-#else
-	CKTDGUIControl::CPictureData* pPictureMyHyperGage = pStaticStateBar_->GetPicture( PGUB_MY_SOUL );
-	if ( NULL != pPictureMyHyperGage && NULL != m_pGageData )
-#endif
 	{
 		const float fNowHyper = m_pGageData->GetNowSoul();
 		const float fMaxHyper = m_pGageData->GetMaxSoul();
 		const float fHyperPercent = fNowHyper / fMaxHyper;
 
-#ifdef REFORM_UI_CHARACTER_INFO
 		UpdateGageForUV( pStaticStateBar_, PGUB_MY_SOUL, L"RAGE", fHyperPercent, false );
-#else
-		const float fWidth = pPictureMyHyperGage->GetOriginalSize().x * fHyperPercent;
-
-		pPictureMyHyperGage->SetSizeX( fWidth );
-
-		if ( g_pData->GetMyUser() != NULL 
-			&& g_pData->GetMyUser()->GetAuthLevel() >= CX2User::XUAL_OPERATOR )
-			UpdateHyperGageString( fNowHyper, fMaxHyper );
-#endif
 	}
 }
 
 /*virtual*/ void CX2MyGageUI::UpdateDetonationGage( CKTDGUIStatic* pStaticStateBar_ )
 {
-#ifdef REFORM_UI_CHARACTER_INFO
 	if ( NULL != m_pGageData )
-#else
-	CKTDGUIControl::CPictureData* pPictureMyDetonationGage = pStaticStateBar_->GetPicture( PGUB_MY_ACTIVE_MP );
-	if ( NULL != pPictureMyDetonationGage && NULL != m_pGageData )
-#endif
 	{
+	#ifdef SERV_ADD_LUNATIC_PSYKER // ±èÅÂÈ¯
+		/// °ÔÀÓÀÌ ¾Æ´Ñ °÷¿¡¼­´Â ±âÆø °ÔÀÌÁö Ã¤¿ìÁö ¸»ÀÚ.
+		const float fNowDetonation = ( NULL != g_pX2Game ) ? m_pGageData->GetNowChargeMpForDetonation() : 0.f;
+	#else //SERV_ADD_LUNATIC_PSYKER
 		const float fNowDetonation = m_pGageData->GetNowChargeMpForDetonation();
-		const float fDetonationPercent = fNowDetonation / THREE_CHARGE;
-#ifdef REFORM_UI_CHARACTER_INFO
-		UpdateGageForUV( pStaticStateBar_, PGUB_MY_ACTIVE_MP, L"MP_ACTIVE", fDetonationPercent, true );
-#else
-		const float fWidth = pPictureMyDetonationGage->GetOriginalSize().x * fDetonationPercent;
+	#endif //SERV_ADD_LUNATIC_PSYKER
 
-		pPictureMyDetonationGage->SetSizeX( fWidth );
-#endif
+		const float fDetonationPercent = fNowDetonation / THREE_CHARGE;
+		UpdateGageForUV( pStaticStateBar_, PGUB_MY_ACTIVE_MP, L"MP_ACTIVE", fDetonationPercent, true );
 	}
 }
 
@@ -1479,8 +1434,8 @@ void CX2MyGageUI::UpdateHyperGageString( const float fNowHyper_, const float fMa
 	CKTDGUIStatic* pStaticHyper = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"g_pStatic_Soul") );
 	if ( pStaticHyper != NULL )
 	{
-		// mp ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½É¼ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ maxï¿½ï¿½ï¿½ï¿½Â½ï¿½ ï¿½Ò¼ï¿½ï¿½Îºï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ÎºÐ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½Îºï¿½ ï¿½ï¿½ï¿½ï¿½
-		// ex:) maxï¿½ï¿½ 10.3, nowï¿½ï¿½ 10.3ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½Â½ï¿½ maxï¿½ï¿½ 11, nowï¿½ï¿½ 10ï¿½ï¿½ ï¿½Ç¾ï¿½ ï¿½ï¿½ÂµÇ´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½
+		// mp ¹èÀ²Áõ°¡ ¿É¼Ç Ãß°¡·Î ÀÎÇØ max°ªÃâ·Â½Ã ¼Ò¼öºÎºÐ ¿Ã·Á¼­ Ãâ·ÂÇÏ´Â ºÎºÐ¿¡¼­ ¹®Á¦½Ã µÇ´Â ºÎºÐ ¼öÁ¤
+		// ex:) max°¡ 10.3, now°¡ 10.3ÀÌ µÇ¾úÀ» °æ¿ì Ãâ·Â½Ã max´Â 11, now´Â 10ÀÌ µÇ¾î Ãâ·ÂµÇ´Â Çö»ó ¹ß»ý
 		const UINT uiNowHyper = static_cast<UINT>( floor( fNowHyper_ + 0.5f ) );
 		const UINT uiMaxHyper = static_cast<UINT>( floor( fMaxHyper_ + 0.5f ) );
 		const UINT uiStrSize = 32;
@@ -1497,7 +1452,10 @@ void CX2MyGageUI::UpdateHyperModeRemainTime()
 	
 	if ( NULL != pStatic_HyperMode_Time && NULL != m_pGageData )
 	{
-		const UINT uiHyperModeTime = static_cast<UINT>( m_pGageData->GetHyperModeRemainTime() );
+		const float fRemainTime = m_pGageData->GetHyperModeRemainTime();
+		UINT uiHyperModeTime = static_cast<UINT>( fRemainTime );
+		if( fRemainTime > 0.f)
+			++uiHyperModeTime;
 			
 		if ( uiHyperModeTime > 0 )
 		{
@@ -1562,37 +1520,34 @@ void CX2MyGageUI::SetCharacterImage( const CX2Unit::UNIT_CLASS eGameUnitClass_ )
 	}
 }
 
-#ifdef REFORM_UI_CHARACTER_INFO
 void CX2MyGageUI::UpdateInfoString()
 {
 	CKTDGUIStatic* pStaticText = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"NAME") );
 	ASSERT( NULL != pStaticText );
 	if ( NULL != pStaticText && NULL != g_pData )
 	{
-		CX2Unit::UnitData* pMyUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-		if ( NULL != pMyUnitData )
+		const CX2Unit::UnitData& kMyUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 		{
 			const UINT uiStrSize = 8;
 			WCHAR buf[uiStrSize];
 			ZeroMemory( buf, sizeof(WCHAR) * uiStrSize );
-			StringCchPrintf( buf, uiStrSize, L"%d", pMyUnitData->m_Level );
+			StringCchPrintf( buf, uiStrSize, L"%d", kMyUnitData.m_Level );
 
+#ifdef HARDCODING_STRING_BR
+			pStaticText->GetString(0)->msg = GET_STRING(STR_ID_489);
+#else // HARDCODING_STRING_BR
 			pStaticText->GetString(0)->msg = L"Lv";
+#endif // HARDCODING_STRING_BR
 			pStaticText->GetString(1)->msg = buf;
-			pStaticText->GetString(2)->msg = pMyUnitData->m_NickName;
+			pStaticText->GetString(2)->msg = kMyUnitData.m_NickName;
 		}
 	}
 }
-#endif
 
 void CX2MyGageUI::InitStatusUI()
 {
 	SAFE_DELETE_DIALOG( m_pDLGMyUnit );
-#ifdef REFORM_UI_CHARACTER_INFO
 	m_pDLGMyUnit = new CKTDGUIDialog( NULL, L"DLG_PVP_Game_My_State_NEW.lua" );
-#else
-	m_pDLGMyUnit = new CKTDGUIDialog( NULL, L"DLG_PVP_Game_My_State.lua" );
-#endif
 	m_pDLGMyUnit->SetShow( false );
 
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGMyUnit );
@@ -1617,12 +1572,12 @@ void CX2MyGageUI::InitStatusUI()
 
 #ifdef BUFF_ICON_UI
 /** @function : UpdateBuffIcon
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-			 ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ CX2MyGageUI, CX2PartyMemberGageUIï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ ¾ÆÀÌÄÜ UI ¸¦ °»½ÅÇÏ´Â ÇÔ¼ö
+			 À§Ä¡ ÁöÁ¤À» À§ÇØ CX2MyGageUI, CX2PartyMemberGageUI¿¡¼­ °¢°¢ ÀçÁ¤ÀÇ
 */
 void CX2MyGageUI::UpdateBuffIcon()
 {	
-#ifdef FIX_VISIBLE_BUFF_ICON_UI		/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½ Stateï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½.
+#ifdef FIX_VISIBLE_BUFF_ICON_UI		/// ±»ÀÌ ¹öÇÁ ¾ÆÀÌÄÜÀ» ¸¸µé ÇÊ¿ä°¡ ¾ø´Â State¸é ¸¸µéÁö ¸»ÀÚ.
 	if( NULL != g_pMain )
 	{
 		switch ( g_pMain->GetNowStateID() ) 
@@ -1646,10 +1601,14 @@ void CX2MyGageUI::UpdateBuffIcon()
 		g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDlgBuffIcon );		
 		m_pDlgBuffIcon->SetShow(true);		
 		//m_pDlgBuffIcon->SetPos(D3DXVECTOR2(720.f, 2.f));
+
+#ifdef ERASE_BUFF_CHEAT
+		m_pDlgBuffIcon->SetStage( g_pMain->GetNowState() );
+#endif // ERASE_BUFF_CHEAT
 	}	
 	
 	if( NULL != m_pDlgBuffIcon )
-	{	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	{	//¹öÇÁ ¸®½ºÆ®
 		int iIndex = 0;
 		bool bIsDebuff = false;
 		vector<BuffIcon>::iterator it = m_vecBuffList.begin();
@@ -1660,7 +1619,7 @@ void CX2MyGageUI::UpdateBuffIcon()
 			it->bNew = false;
 		}
 
-		//ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+		//µð¹öÇÁ ¸®½ºÆ®
 		iIndex = 0;
 		bIsDebuff = true;
 		for( it = m_vecDebuffList.begin(); it != m_vecDebuffList.end(); ++it)
@@ -1672,11 +1631,11 @@ void CX2MyGageUI::UpdateBuffIcon()
 }
 
 /** @function : SetBuffIconGuideDesc
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
+	@brief : ¹öÇÁ ¾ÆÀÌÄÜ ÅøÆÁÀ» ¼³Á¤ÇÏ´Â ÇÔ¼ö
 */
 void CX2MyGageUI::SetBuffIconGuideDesc()
 {
-	BOOST_FOREACH( BuffIcon BuffIconData ,m_vecBuffList )	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	BOOST_FOREACH( BuffIcon BuffIconData ,m_vecBuffList )	/// ¹öÇÁ ÅøÆÁ
 	{
 		if( -1 != BuffIconData.iBuffName )
 		{
@@ -1687,15 +1646,15 @@ void CX2MyGageUI::SetBuffIconGuideDesc()
 
 			if( NULL !=  pButtonBuffIcon )
 			{
-				std::wstring slotItemDesc = GET_STRING( BuffIconData.iBuffName );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½
+				std::wstring slotItemDesc = GET_STRING( BuffIconData.iBuffName );	/// ¹öÇÁ ÀÌ¸§
 				slotItemDesc += L"\n\n";
 #ifdef SERV_PC_BANG_TYPE
-				// PCï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ý´Ï´ï¿½.
+				// PC¹æ Å¸ÀÔ¿¡ µû¶ó ¹öÇÁ µð½ºÅ©¸³¼ÇÀ» º¯°æÇØ ÁÝ´Ï´Ù.
 				if ( NULL != g_pData->GetPremiumBuffManager() && BuffIconData.eBuffID == BTI_BUFF_PREMIUM_PC_ROOM )
 					slotItemDesc += g_pData->GetPremiumBuffManager()->GetPcBangBuffString();
 				else
 #endif SERV_PC_BANG_TYPE
-				slotItemDesc += GET_STRING( BuffIconData.iBuffDesc );				/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				slotItemDesc += GET_STRING( BuffIconData.iBuffDesc );				/// ¹öÇÁ ³»¿ë
 
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
 				if ( true == g_pData->GetMyUser()->GetSelectUnit()->IsTradeBlockUnit() && BuffIconData.eBuffID == BTI_BUFF_TRADE_BLOCK )
@@ -1707,12 +1666,16 @@ void CX2MyGageUI::SetBuffIconGuideDesc()
 				slotItemDesc += BuffIconData.szTextureKeyName;
 #endif //_IN_HOUSE_
 
+#ifdef ERASE_BUFF_CHEAT
+				slotItemDesc += L"\n´õºí Å¬¸¯ : ¹öÇÁ Á¦°Å(Ä¡Æ®)";
+#endif // ERASE_BUFF_CHEAT
+
 				pButtonBuffIcon->SetGuideDesc( slotItemDesc.c_str() );			
 			}
 		}
 	}
 
-	BOOST_FOREACH( BuffIcon BuffIconData ,m_vecDebuffList )		/// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	BOOST_FOREACH( BuffIcon BuffIconData ,m_vecDebuffList )		/// µð¹öÇÁ ÅøÆÁ
 	{
 		if( -1 != BuffIconData.iBuffName )
 		{
@@ -1723,9 +1686,9 @@ void CX2MyGageUI::SetBuffIconGuideDesc()
 
 			if( NULL !=  pButtonBuffIcon )
 			{
-				std::wstring slotItemDesc = GET_STRING( BuffIconData.iBuffName );	/// ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¸ï¿½
+				std::wstring slotItemDesc = GET_STRING( BuffIconData.iBuffName );	/// ¹öÇÁ ÀÌ¸§
 				slotItemDesc += L"\n\n";
-				slotItemDesc += GET_STRING( BuffIconData.iBuffDesc );				/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				slotItemDesc += GET_STRING( BuffIconData.iBuffDesc );				/// ¹öÇÁ ³»¿ë
 
 #ifdef _IN_HOUSE_
 				slotItemDesc += L"\n\nKey : ";
@@ -1738,6 +1701,29 @@ void CX2MyGageUI::SetBuffIconGuideDesc()
 	}
 }
 #endif //BUFF_ICON_UI
+#ifdef DISPLAY_BUFF_DURATION_TIME
+/*virtual*/ void CX2MyGageUI::SetDurationTime( BUFF_TEMPLET_ID eBuffID_, int iTime_)
+{
+	if( NULL != m_pDlgBuffIcon )
+	{
+		WCHAR szStaticName[20];
+		StringCchPrintfW( szStaticName, 20, L"Buff_%d", eBuffID_);
+		if( true == m_pDlgBuffIcon->CheckControl(szStaticName) )
+		{
+			CKTDGUIStatic* pStatic = static_cast<CKTDGUIStatic*>(m_pDlgBuffIcon->GetControl(szStaticName)) ;
+			if( NULL != pStatic && NULL != pStatic->GetString(0))
+			{
+				if( (iTime_ > 0) && (iTime_ < 999) ) 
+				{
+					pStatic->GetString(0)->msg = GET_REPLACED_STRING((STR_ID_2632, "i", iTime_));
+				}
+				else
+					pStatic->GetString(0)->msg = L"";
+			}
+		}
+	}
+}
+#endif // DISPLAY_BUFF_DURATION_TIME
 
 #ifdef SERV_NEW_UNIT_TRADE_LIMIT
 void CX2MyGageUI::UpdateTradeBlockDesc( std::wstring& wstrBuffDesc )
@@ -1752,8 +1738,8 @@ void CX2MyGageUI::UpdateTradeBlockDesc( std::wstring& wstrBuffDesc )
 	if( tTradeBlockReleaseTime < tCurrentTime &&  g_pData->GetMyUser()->GetSelectUnit()->GetNewUnitTradeBlockUnitClass() != 0 
 		&& g_pData->GetMyUser()->GetSelectUnit()->GetClass() < g_pData->GetMyUser()->GetSelectUnit()->GetNewUnitTradeBlockUnitClass() )
 	{
-		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¿ï¿½ ï¿½Å·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
-		wstrBuffDesc = GET_STRING( STR_ID_24523 );
+		// ÀüÁ÷ ÈÄ¿¡ °Å·¡°¡´ÉÇÕ´Ï´Ù.
+		wstrBuffDesc += GET_STRING( STR_ID_24523 );
 		return;
 	}
 
@@ -1796,11 +1782,7 @@ void CX2ChungMyGageUI::InitUI()
 {
 	InitStatusUI();
 
-#ifdef REFORM_UI_CHARACTER_INFO
 	m_pDLGMyUnit->OpenScriptFile( L"DLG_Chung_Cannonball_NEW.lua" );
-#else
-	m_pDLGMyUnit->OpenScriptFile( L"DLG_Chung_Cannonball.lua" );
-#endif
 
 	InitNumOfVerticalOfCannonBall( m_eOwnerGameUnitClass );
 	InitWakeOrb();
@@ -1812,18 +1794,24 @@ void CX2ChungMyGageUI::InitWakeOrb()
 	CKTDGUIStatic* pStaticWakeOrb = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeOrb") );
 	if ( NULL != pStaticWakeOrb )
 	{
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );				// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );			// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ·¹ÀÌºì ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );				// ÀÏ¹Ý ±¸½½ »èÁ¦
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// °¢¼º ±¸½½ ½½·Ô
 	CKTDGUIStatic* pStaticWakeSlot = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeSlot") );
 	if ( NULL != pStaticWakeSlot )
 	{
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );			// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );			// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ·¹ÀÌºì ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );			// ÀÏ¹Ý ±¸½½ »èÁ¦
 	}
 }
 
@@ -1897,9 +1885,17 @@ void CX2ChungMyGageUI::InitNumOfVerticalOfCannonBall( const CX2Unit::UNIT_CLASS 
 	}
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2ChungMyGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2ChungMyGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    CX2MyGageUI::OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	CX2MyGageUI::OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	UpdateCharacterImage();
 	UpdateCannonBallCountUI();
@@ -1925,16 +1921,16 @@ void CX2ChungMyGageUI::UpdateCannonBallCountUI()
 			{
 				int iNumOfPicture = pStaticVerticalCannonBall->GetPictureNum();
 
-				// ï¿½ï¿½ï¿½Î´ï¿½ ï¿½Ö¼ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (0ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½, 1ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 6ï¿½ï¿½ ï¿½ï¿½)
-				// Picture ï¿½ï¿½ï¿½ï¿½ BG Picture ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ 7ï¿½ï¿½ ï¿½Ì±ï¿½ ï¿½ï¿½ï¿½ï¿½ -1 ï¿½ï¿½ï¿½ï¿½
+				// ¶óÀÎ´ç ÃÖ¼Ò Ä³³íº¼ÀÇ °¹¼ö (0¹øÂ° ¶óÀÎÀº 0°³, 1¹øÂ° ¶óÀÎÀº 6°³ µî)
+				// Picture ¼ö´Â BG Picture Æ÷ÇÔÇØ¼­ 7°³ ÀÌ±â ¶§¹® -1 ÇØÁÜ
 				for ( int iPictureIndex = 0; iPictureIndex < iNumOfPicture ; ++iPictureIndex )
 				{
 					bool bShowPictureDataCannonBall = false;
 
-					// ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Full ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+					// ±¤ÆøÈ­ ¸ðµå¸é ¹«Á¶°Ç Full Â÷Áö·Î º¸¿©¾ß ÇÔ
 					if ( pChungGageData->GetBerserkMode() )
 						bShowPictureDataCannonBall = true;
-					// Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î´ï¿½ ï¿½Ö¼ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ + ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+					// Ä³³íº¼ÀÇ °¹¼ö°¡ ¶óÀÎ´ç ÃÖ¼Ò Ä³³íº¼ °¹¼ö + ±× ¶óÀÎÀÇ Ä³³íº¼ °¹¼ö(ÇÈÃÄÀÇ ÀÎµ¦½º) º¸´Ù ¸¹°Å³ª °°À¸¸é
 					else if ( pChungGageData->GetNowCannonBallCount() >= iStaticIndex * 6 + iPictureIndex  )
 						bShowPictureDataCannonBall = true;
 
@@ -1958,12 +1954,12 @@ void CX2ChungMyGageUI::UpdateCannonBallCountUI()
 			{
 				int iNumOfPicture = pStaticVerticalCannonBall->GetPictureNum();
 
-				// ï¿½ï¿½ï¿½Î´ï¿½ ï¿½Ö¼ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (0ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ )
+				// ¶óÀÎ´ç ÃÖ¼Ò Ä³³íº¼ÀÇ °¹¼ö (0¹øÂ° ¶óÀÎÀº 0°³ )
 				for ( int iPictureIndex = 0; iPictureIndex < iNumOfPicture; ++iPictureIndex )
 				{
 					bool bShowPictureDataCannonBall = false;
 
-					//ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+					//±× ¶óÀÎÀÇ Ä³³íº¼ °¹¼ö(ÇÈÃÄÀÇ ÀÎµ¦½º) º¸´Ù ¸¹°Å³ª °°À¸¸é
 					if ( pChungGageData->GetNowCannonBallCountEx() >= iPictureIndex  )
 						bShowPictureDataCannonBall = true;
 
@@ -2010,72 +2006,43 @@ void CX2ChungMyGageUI::GetBerserkModeMyStateImage( OUT wstring& wstrFileName, OU
 	switch ( eClassType )
 	{
 	case CX2Unit::UC_CHUNG_IRON_CANNON:
-#ifdef REFORM_UI_CHARACTER_INFO
 		wstrFileName	= L"DLG_UI_Common_Texture61_NEW.tga";
 		wstrPieceName	= L"CHUNG_STATE_RAGE";
-#else
-		wstrFileName	= L"DLG_UI_Character04.tga";
-		wstrPieceName	= L"Chung_State_Helmet";
-#endif
 		break;
 
-		//{{ kimhc // 2011.1.26 // Ã» 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		//{{ kimhc // 2011.1.26 // Ã» 1Â÷ ÀüÁ÷
 #ifdef	CHUNG_FIRST_CLASS_CHANGE
 	case CX2Unit::UC_CHUNG_FURY_GUARDIAN:
-#ifdef REFORM_UI_CHARACTER_INFO
 		wstrFileName	= L"DLG_UI_Common_Texture61_NEW.tga";
 		wstrPieceName	= L"F_GUARDIAN_RAGE";
-#else
-		wstrFileName	= L"DLG_UI_Common_Texture44.tga";
-		wstrPieceName	= L"F_GUARDIAN_HELMET";
-#endif
 		break;
 
 	case CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN:
-#ifdef REFORM_UI_CHARACTER_INFO
 		wstrFileName	= L"DLG_UI_Common_Texture61_NEW.tga";
 		wstrPieceName	= L"S_GUARDIAN_RAGE";
-#else
-		wstrFileName	= L"DLG_UI_Common_Texture44.tga";
-		wstrPieceName	= L"S_GUARDIAN_HELMET";
-#endif
 		break;
 #endif	CHUNG_FIRST_CLASS_CHANGE
-		//}} kimhc // 2011.1.26 // Ã» 1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		//}} kimhc // 2011.1.26 // Ã» 1Â÷ ÀüÁ÷
 
 #ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
 	case CX2Unit::UC_CHUNG_SHELLING_GUARDIAN:
-#ifdef REFORM_UI_CHARACTER_INFO
 		wstrFileName	= L"DLG_UI_Common_Texture61_NEW.tga";
-#else
-		wstrFileName	= L"DLG_UI_Common_Texture67.tga";
-#endif
 		wstrPieceName	= L"SH_GUARDIAN_RAGE";
 		break;
 #endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 	case CX2Unit::UC_CHUNG_IRON_PALADIN:
-#ifdef REFORM_UI_CHARACTER_INFO
 		wstrFileName	= L"DLG_UI_Common_Texture61_NEW.tga";
 		wstrPieceName	= L"I_PALADIN_RAGE";
-#else
-		wstrFileName	= L"DLG_UI_Common_Texture56.tga";
-		wstrPieceName	= L"I_PALADIN_HELMET";
-#endif
 		break;
 
 	case CX2Unit::UC_CHUNG_DEADLY_CHASER:
-#ifdef REFORM_UI_CHARACTER_INFO
 		wstrFileName	= L"DLG_UI_Common_Texture61_NEW.tga";
 		wstrPieceName	= L"D_CHASER_RAGE";
-#else
-		wstrFileName	= L"DLG_UI_Common_Texture56.tga";
-		wstrPieceName	= L"D_CHASER_HELMET";
-#endif
 		break;
 #endif CHUNG_SECOND_CLASS_CHANGE
-	//ï¿½ï¿½Æ¼ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½
+	//ÅÃÆ¼ÄÃÆ®·çÆÛ
 	#ifdef SERV_CHUNG_TACTICAL_TROOPER
 	case CX2Unit::UC_CHUNG_TACTICAL_TROOPER:
 		{
@@ -2117,14 +2084,14 @@ void CX2ElswordMyGageUI::InitUI()
 
 	for ( int i = 0; i < ARRAY_SIZE( m_hSeqVigorEffect ); ++i )
 	{
-		if( m_hSeqVigorEffect[i] != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqVigorEffect[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = pGameMinorParticle->GetInstanceSequence( m_hSeqVigorEffect[i] );
 			if( NULL != pSeq )
 				pSeq->SetShowObject( bShow_ );
 		}
 
-		if( m_hSeqDestEffect[i] != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqDestEffect[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = pGameMinorParticle->GetInstanceSequence( m_hSeqDestEffect[i] );
 			if( NULL != pSeq )
@@ -2139,13 +2106,21 @@ void CX2ElswordMyGageUI::InitUI()
 #endif //BUFF_ICON_UI
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2ElswordMyGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2ElswordMyGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    CX2MyGageUI::OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	CX2MyGageUI::OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	const bool bDialogHide = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetHideDialog();
 
-	// ï¿½ï¿½ï¿½Ì¾ï¿½Î±×¸ï¿½ ï¿½ï¿½ï¿½Ü¾ï¿½ ï¿½Ï´Âµï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½Ö´Ù¸ï¿½
+	// ´ÙÀÌ¾ó·Î±×¸¦ ¼û°Ü¾ß ÇÏ´Âµ¥ ÀÌÆåÆ®°¡ º¸ÀÌ°í ÀÖ´Ù¸é
 	if ( bDialogHide == GetShowWspParticle() )
 	{
 		SetShowWspParticle( !bDialogHide );
@@ -2167,17 +2142,17 @@ void CX2ElswordMyGageUI::StopUIEffectElswordWS()
 		NULL == g_pX2Game->GetMinorParticle() )
 		return;
 
-	if ( m_hSeqVigorEffect[0] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqVigorEffect[0] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqVigorEffect[0] );
-	if ( m_hSeqVigorEffect[1] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqVigorEffect[1] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqVigorEffect[1] );
-	if ( m_hSeqVigorEffect[2] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqVigorEffect[2] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqVigorEffect[2] );
-	if ( m_hSeqDestEffect[0] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqDestEffect[0] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqDestEffect[0] );
-	if ( m_hSeqDestEffect[1] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqDestEffect[1] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqDestEffect[1] );
-	if ( m_hSeqDestEffect[2] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqDestEffect[2] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqDestEffect[2] );
 
 	return;
@@ -2275,8 +2250,15 @@ void CX2ElswordMyGageUI::PlayUIEffectVigor()
 
 void CX2ElswordMyGageUI::UIFrameMoveElswordWSP()
 {
+	if ( NULL == g_pData && NULL == g_pData->GetDamageManager() )
+		return;
+
 	//CX2GUUser *pMyUser = static_cast< CX2GUUser* >( m_pGameUnit );
 	CX2ElswordGageData* pElswordGageData = static_cast<CX2ElswordGageData*>( m_pGageData );
+
+	if ( NULL == pElswordGageData )
+		return;
+
 	CKTDGUIControl::CPictureData* pGagePicture = NULL;
 	CKTDGUIControl::CPictureData* pGageEffectPicture = NULL;
 	float fGageMax = 1.f;
@@ -2286,20 +2268,29 @@ void CX2ElswordMyGageUI::UIFrameMoveElswordWSP()
 	{
 	case -2: // CX2GUElsword_SwordMan::WSS_DESTRUCTION
 		{
-			pGagePicture			= m_pStaticElswordDest->GetPicture( 1 );
-			pGageEffectPicture		= m_pStaticElswordDest->GetPicture( 2 );
-			fGageMax				= g_pData->GetDamageManager()->GetDestStateThreshold();
-			wstrTexPieceName		= L"EL_RED";
-			wstrTexEffectPieceName	= L"EL_EFFECT";
+			if ( NULL != m_pStaticElswordDest &&
+				 NULL != m_pStaticElswordDest->GetPicture( 1 ) &&
+				 NULL != m_pStaticElswordDest->GetPicture( 2 ) )
+			{
+				pGagePicture			= m_pStaticElswordDest->GetPicture( 1 );
+				pGageEffectPicture		= m_pStaticElswordDest->GetPicture( 2 );
+				fGageMax				= g_pData->GetDamageManager()->GetDestStateThreshold();
+				wstrTexPieceName		= L"EL_RED";
+				wstrTexEffectPieceName	= L"EL_EFFECT";
+			}
 		}
 		break;
 	case -1: // CX2GUElsword_SwordMan::WSS_TOWARD_DESTRUCTION
 		{
-			pGagePicture			= m_pStaticElswordDest->GetPicture( 1 );
-			pGageEffectPicture		= NULL;
-			fGageMax				= g_pData->GetDamageManager()->GetDestStateThreshold();
-			wstrTexPieceName		= L"EL_RED";
-			wstrTexEffectPieceName	= L"";
+			if ( NULL != m_pStaticElswordDest &&
+				 NULL != m_pStaticElswordDest->GetPicture( 1 ) )
+			{
+				pGagePicture			= m_pStaticElswordDest->GetPicture( 1 );
+				pGageEffectPicture		= NULL;
+				fGageMax				= g_pData->GetDamageManager()->GetDestStateThreshold();
+				wstrTexPieceName		= L"EL_RED";
+				wstrTexEffectPieceName	= L"";
+			}
 		}
 		break;
 	case 0: // CX2GUElsword_SwordMan::WSS_CENTER
@@ -2313,28 +2304,37 @@ void CX2ElswordMyGageUI::UIFrameMoveElswordWSP()
 		break;
 	case 1: // CX2GUElsword_SwordMan::WSS_TOWARD_VIGOR
 		{
-			pGagePicture			= m_pStaticElswordVigor->GetPicture( 1 );
-			pGageEffectPicture		= NULL;
-			fGageMax				= g_pData->GetDamageManager()->GetVigorStateThreshold();
-			wstrTexPieceName		= L"EL_BLUE";
-			wstrTexEffectPieceName	= L"";
+			if ( NULL != m_pStaticElswordVigor &&
+				 NULL != m_pStaticElswordVigor->GetPicture( 1 ) )
+			{
+				pGagePicture			= m_pStaticElswordVigor->GetPicture( 1 );
+				pGageEffectPicture		= NULL;
+				fGageMax				= g_pData->GetDamageManager()->GetVigorStateThreshold();
+				wstrTexPieceName		= L"EL_BLUE";
+				wstrTexEffectPieceName	= L"";
+			}
 
 		}
 		break;
 	case 2: // CX2GUElsword_SwordMan::WSS_VIGOR
 		{
-			pGagePicture			= m_pStaticElswordVigor->GetPicture( 1 );
-			pGageEffectPicture		= m_pStaticElswordVigor->GetPicture( 2 );
-			fGageMax				= g_pData->GetDamageManager()->GetVigorStateThreshold();
-			wstrTexPieceName		= L"EL_BLUE";
-			wstrTexEffectPieceName	= L"EL_EFFECT";
+			if ( NULL != m_pStaticElswordVigor &&
+				 NULL != m_pStaticElswordVigor->GetPicture( 1 ) &&
+				 NULL != m_pStaticElswordVigor->GetPicture( 2 ) )
+			{
+				pGagePicture			= m_pStaticElswordVigor->GetPicture( 1 );
+				pGageEffectPicture		= m_pStaticElswordVigor->GetPicture( 2 );
+				fGageMax				= g_pData->GetDamageManager()->GetVigorStateThreshold();
+				wstrTexPieceName		= L"EL_BLUE";
+				wstrTexEffectPieceName	= L"EL_EFFECT";
+			}
 		}
 		break;
 	}
 
-	if( pGagePicture != NULL )
+	if( NULL != pGagePicture && NULL != pGagePicture->pTexture && NULL != pGagePicture->pTexture->pTexture )
 	{
-		CKTDXDeviceTexture::TEXTURE_UV* pTexUV			= pGagePicture->pTexture->pTexture->GetTexUV( wstrTexPieceName );
+		const CKTDXDeviceTexture::TEXTURE_UV* pTexUV			= pGagePicture->pTexture->pTexture->GetTexUV( wstrTexPieceName );
 
 		if( pTexUV != NULL )
 		{
@@ -2355,9 +2355,9 @@ void CX2ElswordMyGageUI::UIFrameMoveElswordWSP()
 		pGagePicture->SetSizeX(fGageWidth);
 	}
 
-	if( pGageEffectPicture != NULL )
+	if( NULL != pGageEffectPicture && NULL != pGageEffectPicture->pTexture && NULL != pGageEffectPicture->pTexture->pTexture )
 	{
-		CKTDXDeviceTexture::TEXTURE_UV* pTexUV			= pGageEffectPicture->pTexture->pTexture->GetTexUV( wstrTexEffectPieceName );
+		const CKTDXDeviceTexture::TEXTURE_UV* pTexUV			= pGageEffectPicture->pTexture->pTexture->GetTexUV( wstrTexEffectPieceName );
 
 		if( pTexUV != NULL )
 		{
@@ -2386,7 +2386,7 @@ void CX2ElswordMyGageUI::UpdateUIElswordWSP()
 {
 	CX2ElswordGageData* pElswordGageData = static_cast<CX2ElswordGageData*>( m_pGageData );
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ì¿¡
+	// º¯°æ µÈ °ÍÀÌ ÀÖ´Â °æ¿ì¿¡
 	if ( pElswordGageData->GetChangedWayOfSwordState() )
 	{
 		StopUIEffectElswordWS();
@@ -2494,14 +2494,14 @@ void CX2ElswordMyGageUI::SetShowWspParticle( const bool bShowWspParticle_ )
 
 	for ( int i = 0; i < ARRAY_SIZE(m_hSeqVigorEffect); ++i)
 	{
-		if( m_hSeqVigorEffect[i] != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqVigorEffect[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = pGameMinorParticle->GetInstanceSequence( m_hSeqVigorEffect[i] );
 			if( NULL != pSeq )
 				pSeq->SetShowObject( bShowWspParticle_ );
 		}
 
-		if( m_hSeqDestEffect[i] != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqDestEffect[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = pGameMinorParticle->GetInstanceSequence( m_hSeqDestEffect[i] );
 			if( NULL != pSeq )
@@ -2511,13 +2511,13 @@ void CX2ElswordMyGageUI::SetShowWspParticle( const bool bShowWspParticle_ )
 }
 
 CX2RavenMyGageUI::CX2RavenMyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOwnerUnitClass_ )
-	: CX2MyGageUI( pGageData_, eOwnerUnitClass_ ), m_hSeqHyperBall( INVALID_PARTICLE_HANDLE )
+	: CX2MyGageUI( pGageData_, eOwnerUnitClass_ ), m_hSeqHyperBall( INVALID_PARTICLE_SEQUENCE_HANDLE )
 {}
 
 
 /*virtual*/ CX2RavenMyGageUI::~CX2RavenMyGageUI()
 {
-	if( m_hSeqHyperBall != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHyperBall != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle(m_hSeqHyperBall);
 }
 
@@ -2526,25 +2526,38 @@ CX2RavenMyGageUI::CX2RavenMyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT
 	CKTDGUIStatic* pStaticWakeOrb = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeOrb") );
 	if ( NULL != pStaticWakeOrb )
 	{
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );				// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );			// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );				// ÀÏ¹Ý ±¸½½ »èÁ¦
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// °¢¼º ±¸½½ ½½·Ô
 	CKTDGUIStatic* pStaticWakeSlot = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeSlot") );
 	if ( NULL != pStaticWakeSlot )
 	{
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ï¿½Æ¶ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );			// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );			// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );			// ÀÏ¹Ý ±¸½½ »èÁ¦
 	}
 }
 
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2RavenMyGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2RavenMyGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    CX2MyGageUI::OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	CX2MyGageUI::OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	UpdateHyperOrb();
 }
@@ -2557,7 +2570,7 @@ void CX2RavenMyGageUI::UpdateHyperOrb()
 
 		CKTDGParticleSystem* pUIMajorParticleSystem = g_pData->GetUIMajorParticle();
 
-		if( INVALID_PARTICLE_HANDLE == m_hSeqHyperBall)
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hSeqHyperBall)
 		{
 			D3DXVECTOR3 vHyperBallPos = D3DXVECTOR3( 100.f * g_pKTDXApp->GetResolutionScaleX(), 120.f *g_pKTDXApp->GetResolutionScaleY(), 0.f );
 			m_hSeqHyperBall = pUIMajorParticleSystem->CreateSequenceHandle( (CKTDGObject*) this,  L"raven_powrUp_UI_01", vHyperBallPos );
@@ -2589,7 +2602,7 @@ void CX2RavenMyGageUI::UpdateHyperOrb()
 	}
 	else
 	{
-		if( m_hSeqHyperBall != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqHyperBall != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem* pUIMajorParticleSystem = g_pData->GetUIMajorParticle();
 			pUIMajorParticleSystem->DestroyInstanceHandle(m_hSeqHyperBall);
@@ -2608,11 +2621,7 @@ void CX2RavenMyGageUI::UpdateHyperOrb()
 void CX2PartyMemberGageUI::InitUI()
 {
 	SAFE_DELETE_DIALOG( m_pDLGOtherUnit );
-#ifdef REFORM_UI_CHARACTER_INFO
 	m_pDLGOtherUnit = new CKTDGUIDialog( NULL, L"DLG_PVP_Game_Other_State_NEW.lua" );
-#else
-	m_pDLGOtherUnit = new CKTDGUIDialog( NULL, L"DLG_PVP_Game_Other_State.lua" );
-#endif
 	
 	CKTDGUIStatic* pStaticOtherPlayerMp 
 		= ( NULL != m_pDLGOtherUnit ? 
@@ -2630,21 +2639,21 @@ void CX2PartyMemberGageUI::InitUI()
 	SetPosition( m_uiPositionIndex );
 	SetCharacterImage( m_eOwnerGameUnitClass );
 
-#ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM		// 13-01-15 / ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
+#ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM		// 13-01-15 / ´øÀü ÇÃ·¹ÀÌ Áß, ºÒ·® À¯Àú °­Á¦ ÅðÀå ½Ã½ºÅÛ
 
 	SAFE_DELETE ( m_pButtonVotePlayer );
 	SAFE_DELETE ( m_pButtonVoteComplete );
 
-	m_pButtonVotePlayer = static_cast<CKTDGUIButton*> ( m_pDLGOtherUnit->GetControl ( L"BanPlayer" ) );		// BanPlayer ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ï¿½ï¿½
+	m_pButtonVotePlayer = static_cast<CKTDGUIButton*> ( m_pDLGOtherUnit->GetControl ( L"BanPlayer" ) );		// BanPlayer ¹öÆ°¿¡ ´ëÇÑ Á¤º¸¸¦ ÆÄ½ÌÇÔ
 
-	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ È®ï¿½ï¿½ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½ dummy int ï¿½ß°ï¿½
+	//´­·ÁÁø ¹öÆ°ÀÇ ¼ÒÀ¯ÁÖ¸¦ È®ÀÎÇÏ±â À§ÇØ dummy int Ãß°¡
 	if( false == m_pButtonVotePlayer->SetDummyInt(0, m_uiPositionIndex ) )
 		m_pButtonVotePlayer->AddDummyInt( m_uiPositionIndex );
 
-	m_pButtonVoteComplete = static_cast<CKTDGUIButton*> ( m_pDLGOtherUnit->GetControl ( L"VoteComplete" ) );// VoteComplete ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ä½ï¿½ï¿½ï¿½
+	m_pButtonVoteComplete = static_cast<CKTDGUIButton*> ( m_pDLGOtherUnit->GetControl ( L"VoteComplete" ) );// VoteComplete ¹öÆ°¿¡ ´ëÇÑ Á¤º¸¸¦ ÆÄ½ÌÇÔ
 
 	SetShowRelationVoteButtons( false, false );
-#endif // SERV_DUNGEON_FORCED_EXIT_SYSTEM		// 13-01-15 / ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
+#endif // SERV_DUNGEON_FORCED_EXIT_SYSTEM		// 13-01-15 / ´øÀü ÇÃ·¹ÀÌ Áß, ºÒ·® À¯Àú °­Á¦ ÅðÀå ½Ã½ºÅÛ
 
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGOtherUnit );
 }
@@ -2660,7 +2669,7 @@ void CX2PartyMemberGageUI::SetLevelString( const UINT uiLevel_ )
 		 if ( NULL != pStaticLevel )
 		 {
 			 if( -1 == uiLevel_ )
-			 {	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Èºï¿½ï¿½ï¿½ï¿½Ö±ï¿½( ï¿½ï¿½ï¿½ï¿½NPC)
+			 {	//·¹º§ÀÌ -1·Î ¼³Á¤µÇ¾îÀÖÀ¸¸é ¾Èº¸¿©ÁÖ±â( ´ëÀüNPC)
 				 pStaticLevel->SetShow(false);
 				 return;
 			 }
@@ -2668,14 +2677,13 @@ void CX2PartyMemberGageUI::SetLevelString( const UINT uiLevel_ )
 			 pStaticLevel->SetShow(true);
 			 WCHAR wstrLv[10];
 			 ZeroMemory( wstrLv, sizeof(WCHAR) * 10 );
-#ifdef REFORM_UI_CHARACTER_INFO
+#ifdef HARDCODING_STRING_BR
+			 pStaticLevel->SetString( 0, L"Niv" );
+#else // HARDCODING_STRING_BR
 			 pStaticLevel->SetString( 0, L"Lv" );
+#endif // HARDCODING_STRING_BR
 			 StringCchPrintf( wstrLv, ARRAY_SIZE(wstrLv), L"%d", uiLevel_ );
 			 pStaticLevel->SetString( 1, wstrLv );
-#else
-			 StringCchPrintf( wstrLv, ARRAY_SIZE(wstrLv), L"%d", uiLevel_ );
-			 pStaticLevel->SetString( 0, wstrLv );
-#endif
 		 }
 	}
 }
@@ -2698,27 +2706,23 @@ void CX2PartyMemberGageUI::SetPosition( const UINT uiPositionIndex_ )
 	SetPositionIndex( uiPositionIndex_ );
 	if ( NULL != m_pDLGOtherUnit )
 	{
-#ifdef REFORM_UI_CHARACTER_INFO
 		D3DXVECTOR2 vPos( 6.f, 121.f + ( ( uiPositionIndex_ )  * 44 ) );
 
 	#ifdef SKILL_SLOT_UI_TYPE_B
-		if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+		if( NULL != g_pMain )
 		{
-			if( false == g_pMain->GetGameOption()->GetIsSkillUITypeA() )
+			if( false == g_pMain->GetGameOption().GetIsSkillUITypeA() )
 				vPos.y += 20.f;
 		}
 	#endif //SKILL_SLOT_UI_TYPE_B
-#else
-		D3DXVECTOR2 vPos( 836.0f - (uiPositionIndex_ * 188), 650.0f );
-#endif
 		m_pDLGOtherUnit->SetPos( vPos );
 	}
 
-	if( NULL != m_pDlgBuffIcon && NULL != g_pMain->GetGameOption() )
+	if( NULL != m_pDlgBuffIcon )
 	{
-		m_bIsSkillUITypeA = g_pMain->GetGameOption()->GetIsSkillUITypeA();
+		m_bIsSkillUITypeA = g_pMain->GetGameOption().GetIsSkillUITypeA();
 		D3DXVECTOR2 vPos(150.f, 125.f+ (m_uiPositionIndex * 44));
-		if( false == g_pMain->GetGameOption()->GetIsSkillUITypeA() )
+		if( false == g_pMain->GetGameOption().GetIsSkillUITypeA() )
 			vPos.y += 20.f;
 		m_pDlgBuffIcon->SetPos( vPos );	
 	}
@@ -2738,11 +2742,7 @@ void CX2PartyMemberGageUI::SetPosition( const UINT uiPositionIndex_ )
 			wstring fileName;
 			wstring pieceName;
 
-#ifdef REFORM_UI_CHARACTER_INFO
 			if( true == CX2Data::GetCharacterImageName( fileName, pieceName, eGameUnitClass_, CX2Data::CIT_Party ) )
-#else
-			if( true == CX2Data::GetCharacterImageName( fileName, pieceName, eGameUnitClass_, CX2Data::CIT_50by50 ) )
-#endif
 			{
 				pStaticCharPictures->GetPicture( 0 )->SetTex( fileName.c_str(), pieceName.c_str() );
 			}
@@ -2768,8 +2768,11 @@ void CX2PartyMemberGageUI::SetPosition( const UINT uiPositionIndex_ )
 }
 
 
-
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2PartyMemberGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2PartyMemberGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	ASSERT( NULL != m_pGageData );
 	if ( NULL != m_pGageData )
@@ -2780,16 +2783,10 @@ void CX2PartyMemberGageUI::SetPosition( const UINT uiPositionIndex_ )
 
 		if ( NULL != pStaticOtherPlayerHp )
 		{
-#ifdef REFORM_UI_CHARACTER_INFO
 			const float fMaxHp = m_pGageData->GetMaxHp();
 			const float fHpPercent = m_pGageData->GetNowHp() / fMaxHp;
 
 			UpdateGageForUV( pStaticOtherPlayerHp, 0, L"PARTY_HP", fHpPercent, true );
-#else
-			CKTDGUIStatic::CPictureData* pPictureDataHp = pStaticOtherPlayerHp->GetPicture(0);
-			if ( NULL != pPictureDataHp )
-				pPictureDataHp->SetSizeX( pPictureDataHp->GetOriginalSize().x * m_pGageData->GetNowHp() / m_pGageData->GetMaxHp() );
-#endif
 		}
 
 		CKTDGUIStatic* pStaticOtherPlayerMp 
@@ -2798,23 +2795,11 @@ void CX2PartyMemberGageUI::SetPosition( const UINT uiPositionIndex_ )
 
 		if ( NULL != pStaticOtherPlayerMp )
 		{
-#ifdef REFORM_UI_CHARACTER_INFO
 			const float fMaxMp = m_pGageData->GetMaxMp();
 			const float fMpPercent = m_pGageData->GetNowMp() / fMaxMp;
 
 			UpdateGageForUV( pStaticOtherPlayerMp, 0, L"PARTY_MP", fMpPercent, true );
-#else
-			CKTDGUIStatic::CPictureData* pPictureDataMp = pStaticOtherPlayerMp->GetPicture(0);
-			if ( NULL != pPictureDataMp )
-				pPictureDataMp->SetSizeX( pPictureDataMp->GetOriginalSize().x * m_pGageData->GetNowMp() / m_pGageData->GetMaxMp() );
-#endif
 		}
-
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-		UpdateBuffDurationText();
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
-
-#ifdef REFORM_UI_CHARACTER_INFO
 		if ( m_pDLGOtherUnit != NULL && m_pDLGOtherUnit->GetShow() == true )
 		{
 			switch ( g_pMain->GetNowStateID() )
@@ -2861,14 +2846,13 @@ void CX2PartyMemberGageUI::SetPosition( const UINT uiPositionIndex_ )
 				break;
 			}
 		}
-#endif
 		UpdateResurrectShortKey();
 		UpdatePartyLeaderUI();
 
 #ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM
 		CX2GageManager * pGageManager = CX2GageManager::GetInstance();
 		if ( NULL != pGageManager )
-		{	// ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½Ñ´ï¿½.c
+		{	// ºÒ·® À¯Àú¿¡ ´ëÇÑ UI ¸¦ ¾÷µ¥ÀÌÆ® ÇÑ´Ù.c
 			UpdateFaultyPlayerUI ( pGageManager->GetMyUserIsFaultyPlayer()  );				
 		}
 #endif // SERV_DUNGEON_FORCED_EXIT_SYSTEM
@@ -2876,7 +2860,7 @@ void CX2PartyMemberGageUI::SetPosition( const UINT uiPositionIndex_ )
 	}
 }
 /** @function : UpdateResurrectString
-	@brief : ï¿½ï¿½Æ¼ï¿½ï¿½ ï¿½ï¿½È° ï¿½ï¿½ï¿½ï¿½Å° ï¿½È³ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief : ÆÄÆ¼¿ø ºÎÈ° ´ÜÃàÅ° ¾È³» °»½Å
 */
 void CX2PartyMemberGageUI::UpdateResurrectShortKey()
 {
@@ -2890,16 +2874,16 @@ void CX2PartyMemberGageUI::UpdateResurrectShortKey()
 			switch(g_pData->GetDungeonRoom()->GetDungeonID())
 			{
 	#ifdef CHILDRENS_DAY_EVENT_DUNGEON
-			case CX2Dungeon::DI_EVENT_KIDDAY_RUBEN:
-			case CX2Dungeon::DI_EVENT_KIDDAY_ELDER:
-			case CX2Dungeon::DI_EVENT_KIDDAY_BESMA:
-			case CX2Dungeon::DI_EVENT_KIDDAY_ALTERA:
+			case SEnum::DI_EVENT_KIDDAY_RUBEN:
+			case SEnum::DI_EVENT_KIDDAY_ELDER:
+			case SEnum::DI_EVENT_KIDDAY_BESMA:
+			case SEnum::DI_EVENT_KIDDAY_ALTERA:
 				{
 					pStaticResurrect->SetShow(false);
 					return;
 				} break;
 	#endif CHILDRENS_DAY_EVENT_DUNGEON
-			case CX2Dungeon::DI_ELDER_HENIR_SPACE:
+			case SEnum::DI_ELDER_HENIR_SPACE:
 				{					
 					if( (CX2Dungeon::DUNGEON_MODE) g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonMode == CX2Dungeon::DM_HENIR_CHALLENGE )
 					{
@@ -2917,11 +2901,12 @@ void CX2PartyMemberGageUI::UpdateResurrectShortKey()
 		pStaticResurrect->GetString(0)->msg = L"";
 
 		if ( NULL != g_pX2Game &&  NULL != g_pX2Game->GetMyUnit() &&
+			 NULL != g_pX2Game->GetMyUnit()->GetUnit() &&
 			CX2Game::GT_PVP != g_pX2Game->GetGameType() &&
 			m_pGageData->GetNowHp() <= 0 )
 		{
 			if ( g_pX2Game->GetMyUnit()->GetUnit()->GetResurrectionStoneNum() <= 0 
-#ifdef AUTO_PAYMENT	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¿ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
+#ifdef AUTO_PAYMENT	// ºôµå ¿À·ù·Î ÇØ¿ÜÆÀ Ãß°¡
 				&& g_pX2Game->GetMyUnit()->GetUnit()->GetAutoResStoneNum() <= 0
 #endif	//	AUTO_PAYMENT
 				 )
@@ -2964,8 +2949,8 @@ void CX2PartyMemberGageUI::UpdatePartyLeaderUI()
 
 #ifdef BUFF_ICON_UI
 /** @function : UpdateBuffIcon
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-			 ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ CX2MyGageUI, CX2PartyMemberGageUIï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ ¾ÆÀÌÄÜ UI ¸¦ °»½ÅÇÏ´Â ÇÔ¼ö
+			 À§Ä¡ ÁöÁ¤À» À§ÇØ CX2MyGageUI, CX2PartyMemberGageUI¿¡¼­ °¢°¢ ÀçÁ¤ÀÇ
 */
 void CX2PartyMemberGageUI::UpdateBuffIcon()
 {
@@ -2977,9 +2962,9 @@ void CX2PartyMemberGageUI::UpdateBuffIcon()
 
 		D3DXVECTOR2 vPos(150.f, 125.f+ (m_uiPositionIndex * 44));
 #ifdef SKILL_SLOT_UI_TYPE_B		
-		if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+		if( NULL != g_pMain )
 		{
-			m_bIsSkillUITypeA = g_pMain->GetGameOption()->GetIsSkillUITypeA();
+			m_bIsSkillUITypeA = g_pMain->GetGameOption().GetIsSkillUITypeA();
 			if( false == m_bIsSkillUITypeA )
 				vPos.y += 20.f;
 		}
@@ -2987,34 +2972,33 @@ void CX2PartyMemberGageUI::UpdateBuffIcon()
 		m_pDlgBuffIcon->SetPos( vPos );
 	}
 #ifdef SKILL_SLOT_UI_TYPE_B
-	if( NULL != g_pMain->GetGameOption() &&
-		m_bIsSkillUITypeA != g_pMain->GetGameOption()->GetIsSkillUITypeA() )
+	if( m_bIsSkillUITypeA != g_pMain->GetGameOption().GetIsSkillUITypeA() )
 	{
-		m_bIsSkillUITypeA = g_pMain->GetGameOption()->GetIsSkillUITypeA();
+		m_bIsSkillUITypeA = g_pMain->GetGameOption().GetIsSkillUITypeA();
 		D3DXVECTOR2 vPos(150.f, 125.f+ (m_uiPositionIndex * 44));
-		if( false == g_pMain->GetGameOption()->GetIsSkillUITypeA() )
+		if( false == g_pMain->GetGameOption().GetIsSkillUITypeA() )
 			vPos.y += 20.f;
 		m_pDlgBuffIcon->SetPos( vPos );
 	}
 #endif //SKILL_SLOT_UI_TYPE_B
 
 	if( NULL != m_pDlgBuffIcon )
-	{	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	{	//¹öÇÁ ¸®½ºÆ®
 		int iIndex = 0;
 		bool bIsDebuff = false;
 		vector<BuffIcon>::iterator it = m_vecBuffList.begin();
 		for( ; it != m_vecBuffList.end(); ++it)
 		{			
-			it->bNew = false; //ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			it->bNew = false; //ÆÄÆ¼¿øÀÇ ¹öÇÁ¾ÆÀÌÄÜÀº Ãâ·Â È¿°ú ¾øÀ½
 			SetBuffIconStatic( (*it), iIndex--, bIsDebuff, D3DXVECTOR2(16,16));
 		}
 
-		//ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+		//µð¹öÇÁ ¸®½ºÆ®
 		iIndex = 0;
 		bIsDebuff = true;
 		for( it = m_vecDebuffList.begin(); it != m_vecDebuffList.end(); ++it)
 		{
-			it->bNew = false; //ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			it->bNew = false; //ÆÄÆ¼¿øÀÇ ¹öÇÁ¾ÆÀÌÄÜÀº Ãâ·Â È¿°ú ¾øÀ½
 			SetBuffIconStatic( (*it), iIndex--, bIsDebuff, D3DXVECTOR2(16,16));
 		}
 	}
@@ -3022,7 +3006,7 @@ void CX2PartyMemberGageUI::UpdateBuffIcon()
 #endif //BUFF_ICON_UI
 
 
-#ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM		// 13-01-15 / ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
+#ifdef SERV_DUNGEON_FORCED_EXIT_SYSTEM		// 13-01-15 / ´øÀü ÇÃ·¹ÀÌ Áß, ºÒ·® À¯Àú °­Á¦ ÅðÀå ½Ã½ºÅÛ
 
 void CX2PartyMemberGageUI::SetShowRelationVoteButtons ( const bool bVote_, const bool bComplete_ )
 {
@@ -3030,26 +3014,26 @@ void CX2PartyMemberGageUI::SetShowRelationVoteButtons ( const bool bVote_, const
 
 	if ( NULL != m_pButtonVotePlayer )
 	{
-		m_pButtonVotePlayer->SetShowEnable( bVote_, bVote_ );				// ï¿½ï¿½ï¿½ï¿½ ï¿½Ï±ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö°ï¿½ È°ï¿½ï¿½È­ ï¿½ï¿½Å°ï¿½Å³ï¿½ ï¿½ï¿½ï¿½Å³ï¿½
+		m_pButtonVotePlayer->SetShowEnable( bVote_, bVote_ );				// °­Åð ÇÏ±â ¹öÆ°À» º¸¿©ÁÖ°í È°¼ºÈ­ ½ÃÅ°°Å³ª ¸»°Å³ª
 	}
 
 	if ( NULL != m_pButtonVoteComplete )
 	{
-		m_pButtonVoteComplete->SetShowEnable( bComplete_, false );	// ï¿½ï¿½Ç¥ ï¿½Ï·ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö°ï¿½ È°ï¿½ï¿½È­ ï¿½ï¿½Å°ï¿½Å³ï¿½ ï¿½ï¿½ï¿½Å³ï¿½
-		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ m_pButtonVoteComplete->SetShowEnable( bComplete_, bComplete_ ); ï¿½ï¿½ï¿½Âµï¿½ ï¿½Ô·ï¿½ ï¿½ï¿½ï¿½Æ´Þ¶ï¿½ï¿½ ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		m_pButtonVoteComplete->SetShowEnable( bComplete_, false );	// ÅõÇ¥ ¿Ï·á ¹öÆ°À» º¸¿©ÁÖ°í È°¼ºÈ­ ½ÃÅ°°Å³ª ¸»°Å³ª
+		// ¿ø·¡´Â m_pButtonVoteComplete->SetShowEnable( bComplete_, bComplete_ ); ¿´´Âµ¥ ÀÔ·Â ¸·¾Æ´Þ¶ó´Â ¿äÃ»À¸·Î º¯°æ
 	}
 }
 
 
-void CX2PartyMemberGageUI::UpdateFaultyPlayerUI( const bool b_faultyValue_ )			// ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ° Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½Þ¾Æ¼ï¿½ ï¿½ï¿½È²ï¿½ï¿½ ï¿½Â°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
+void CX2PartyMemberGageUI::UpdateFaultyPlayerUI( const bool b_faultyValue_ )			// ÇØ´ç À¯ÀúÀÇ ¹öÆ° Å¸ÀÔÀ» ¹Þ¾Æ¼­ »óÈ²¿¡ ¸Â°Ô º¸¿©ÁØ´Ù.
 {
 	
-	if ( true == b_faultyValue_ ) // UI ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	if ( true == b_faultyValue_ ) // UI ¸¦ °¡Áø ¼ÒÀ¯ÀÚ°¡ ºÒ·® À¯Àú¶ó¸é
 	{
-		SetShowRelationVoteButtons( false, false ); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
+		SetShowRelationVoteButtons( false, false ); // ¹«Á¶°Ç UI ¸¦ ¼û±ä´Ù.
 	}
 
-	else						// ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½ ï¿½ï¿½ Å¸ï¿½Ô¿ï¿½ ï¿½Â°ï¿½ ï¿½Ñ·ï¿½ï¿½Ø´ï¿½.
+	else						// ºÒ·® À¯Àú°¡ ¾Æ´Ï¶ó¸é °¢ Å¸ÀÔ¿¡ ¸Â°Ô »Ñ·ÁÁØ´Ù.
 	{
 		int iVoteButtonType = GetVoteButtonType ();
 		switch ( iVoteButtonType )
@@ -3059,17 +3043,17 @@ void CX2PartyMemberGageUI::UpdateFaultyPlayerUI( const bool b_faultyValue_ )			/
 			break;
 
 		case BVBT_NEED_VOTE :		
-			SetShowRelationVoteButtons( true, false );	// ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
+			SetShowRelationVoteButtons( true, false );	// ÅõÇ¥ °¡´É ¹öÆ°À¸·Î º¯°æÇÑ´Ù.
 			break;
 
 		case BVBT_COMPLETE_VOTE :
-			SetShowRelationVoteButtons( false, true );	 // UI ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			SetShowRelationVoteButtons( false, true );	 // UI ¸¦ °¡Áø ¼ÒÀ¯ÀÚ°¡ ºÒ·® À¯Àú¶ó¸é
 			break;
 		}
 	}
 }
 
-#endif // SERV_DUNGEON_FORCED_EXIT_SYSTEM		// 13-01-15 / ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½Ò·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã½ï¿½ï¿½ï¿½
+#endif // SERV_DUNGEON_FORCED_EXIT_SYSTEM		// 13-01-15 / ´øÀü ÇÃ·¹ÀÌ Áß, ºÒ·® À¯Àú °­Á¦ ÅðÀå ½Ã½ºÅÛ
 
 
 /*virtual*/ CX2PVPPlayerGageUI::~CX2PVPPlayerGageUI()
@@ -3080,11 +3064,7 @@ void CX2PartyMemberGageUI::UpdateFaultyPlayerUI( const bool b_faultyValue_ )			/
 void CX2PVPPlayerGageUI::InitUI()
 {
 	SAFE_DELETE_DIALOG( m_pDLGOtherUnit );
-#ifdef REFORM_UI_CHARACTER_INFO
 	m_pDLGOtherUnit = new CKTDGUIDialog( NULL, L"DLG_PVP_Game_Other_State_NEW.lua" );
-#else
-	m_pDLGOtherUnit = new CKTDGUIDialog( NULL, L"DLG_PVP_Game_Other_State.lua" );
-#endif
 
 	CKTDGUIStatic* pStaticOtherPlayerMp 
 		= ( NULL != m_pDLGOtherUnit ? 
@@ -3110,7 +3090,7 @@ void CX2PVPPlayerGageUI::InitUI()
 
 		wstring fileName;
 		wstring pieceName;
-		if( CX2Data::GetPvpNpcImageName( fileName, pieceName, pNpc->GetNPCTemplet()->m_nNPCUnitID ) == true )
+		if( CX2Data::GetPvpNpcImageName( fileName, pieceName, pNpc->GetNPCTemplet().m_nNPCUnitID ) == true )
 		{
 			pPicture->SetTex( fileName.c_str(), pieceName.c_str() );
 		}	
@@ -3150,7 +3130,7 @@ void CX2PVPPlayerGageUI::SetLevelString( const UINT uiLevel_ )
 		 if ( NULL != pStaticLevel )
 		 {
 			 if( -1 == uiLevel_ )
-			 {	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ -1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Èºï¿½ï¿½ï¿½ï¿½Ö±ï¿½( ï¿½ï¿½ï¿½ï¿½NPC)
+			 {	//·¹º§ÀÌ -1·Î ¼³Á¤µÇ¾îÀÖÀ¸¸é ¾Èº¸¿©ÁÖ±â( ´ëÀüNPC)
 				 pStaticLevel->SetShow(false);
 				 return;
 			 }
@@ -3158,14 +3138,13 @@ void CX2PVPPlayerGageUI::SetLevelString( const UINT uiLevel_ )
 
 			 WCHAR wstrLv[10];
 			 ZeroMemory( wstrLv, sizeof(WCHAR) * 10 );
-#ifdef REFORM_UI_CHARACTER_INFO
+#ifdef HARDCODING_STRING_BR
+			 pStaticLevel->SetString( 0, L"Niv" );
+#else // HARDCODING_STRING_BR
 			 pStaticLevel->SetString( 0, L"Lv" );
+#endif // HARDCODING_STRING_BR
 			 StringCchPrintf( wstrLv, ARRAY_SIZE(wstrLv), L"%d", uiLevel_ );
 			 pStaticLevel->SetString( 1, wstrLv );
-#else
-			 StringCchPrintf( wstrLv, ARRAY_SIZE(wstrLv), L"%d", uiLevel_ );
-			 pStaticLevel->SetString( 0, wstrLv );
-#endif
 		 }
 	}
 }
@@ -3191,7 +3170,7 @@ void CX2PVPPlayerGageUI::SetPosition( const UINT uiPositionIndex_ )
 	{
 		D3DXVECTOR2 vPos( 0, 0 );
 
-		if ( NULL != g_pX2Game && g_pX2Game->GetMyUnit() )
+		if ( NULL != g_pX2Game && NULL != g_pX2Game->GetMyUnit() )
 		{
 			UINT uiTeam = g_pX2Game->GetMyUnit()->GetTeam();
 
@@ -3200,9 +3179,9 @@ void CX2PVPPlayerGageUI::SetPosition( const UINT uiPositionIndex_ )
 				vPos.x = 6.f;
 				vPos.y = 121.f + ( uiPositionIndex_ * 44 );
 	#ifdef SKILL_SLOT_UI_TYPE_B
-				if( NULL != g_pMain && NULL != g_pMain->GetGameOption() )
+				if( NULL != g_pMain )
 				{
-					if( false == g_pMain->GetGameOption()->GetIsSkillUITypeA() )
+					if( false == g_pMain->GetGameOption().GetIsSkillUITypeA() )
 						vPos.y += 20.f;
 				}
 	#endif //SKILL_SLOT_UI_TYPE_B
@@ -3214,7 +3193,7 @@ void CX2PVPPlayerGageUI::SetPosition( const UINT uiPositionIndex_ )
 			}
 		}
 #ifdef FIX_OBSERVER_MODE
-		/// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½.
+		/// ¿ÉÀú¹öÀÏ ¶© °ÔÀÌÁö UI À§Ä¡ ¼³Á¤ »õ·Î ÇØÁÖÀÚ.
 		else if( g_pX2Room != NULL && g_pX2Room->GetMySlot() != NULL && g_pX2Room->GetMySlot()->m_bObserver == true )
 		{
 			if ( m_uiMyTeam == CX2Room::TN_RED )
@@ -3241,11 +3220,11 @@ void CX2PVPPlayerGageUI::SetPosition( const UINT uiPositionIndex_ )
 		m_pDLGOtherUnit->SetPos( vPos );
 	}
 
-	if( NULL != m_pDlgBuffIcon && NULL != g_pMain->GetGameOption() )
+	if( NULL != m_pDlgBuffIcon )
 	{
 		D3DXVECTOR2 vPos(150.f, 125.f+ (m_uiPositionIndex * 44));
-		m_bIsSkillUITypeA = g_pMain->GetGameOption()->GetIsSkillUITypeA();
-		if( false == g_pMain->GetGameOption()->GetIsSkillUITypeA() )
+		m_bIsSkillUITypeA = g_pMain->GetGameOption().GetIsSkillUITypeA();
+		if( false == g_pMain->GetGameOption().GetIsSkillUITypeA() )
 			vPos.y += 20.f;
 		m_pDlgBuffIcon->SetPos( vPos );
 	}
@@ -3304,7 +3283,11 @@ void CX2PVPPlayerGageUI::SetPosition( const UINT uiPositionIndex_ )
 #endif // BUFF_ICON_UI
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2PVPPlayerGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2PVPPlayerGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	ASSERT( NULL != m_pGageData );
 	if ( NULL != m_pGageData )
@@ -3315,16 +3298,10 @@ void CX2PVPPlayerGageUI::SetPosition( const UINT uiPositionIndex_ )
 
 		if ( NULL != pStaticOtherPlayerHp )
 		{
-#ifdef REFORM_UI_CHARACTER_INFO
 			const float fMaxHp = m_pGageData->GetMaxHp();
 			const float fHpPercent = m_pGageData->GetNowHp() / fMaxHp;
 
 			UpdateGageForUV( pStaticOtherPlayerHp, 0, L"PARTY_HP", fHpPercent, true );
-#else
-			CKTDGUIStatic::CPictureData* pPictureDataHp = pStaticOtherPlayerHp->GetPicture(0);
-			if ( NULL != pPictureDataHp )
-				pPictureDataHp->SetSizeX( pPictureDataHp->GetOriginalSize().x * m_pGageData->GetNowHp() / m_pGageData->GetMaxHp() );
-#endif
 		}
 
 		CKTDGUIStatic* pStaticOtherPlayerMp 
@@ -3333,22 +3310,12 @@ void CX2PVPPlayerGageUI::SetPosition( const UINT uiPositionIndex_ )
 
 		if ( NULL != pStaticOtherPlayerMp )
 		{
-#ifdef REFORM_UI_CHARACTER_INFO
 			const float fMaxMp = m_pGageData->GetMaxMp();
 			const float fMpPercent = m_pGageData->GetNowMp() / fMaxMp;
 
 			UpdateGageForUV( pStaticOtherPlayerMp, 0, L"PARTY_MP", fMpPercent, true );
-#else
-			CKTDGUIStatic::CPictureData* pPictureDataMp = pStaticOtherPlayerMp->GetPicture(0);
-			if ( NULL != pPictureDataMp )
-				pPictureDataMp->SetSizeX( pPictureDataMp->GetOriginalSize().x * m_pGageData->GetNowMp() / m_pGageData->GetMaxMp() );
-#endif
 		}
 		UpdatePvpRank();
-
-#ifdef SERV_IRUHADEV_BUFF_DURATION_TEXT
-		UpdateBuffDurationText();
-#endif //SERV_IRUHADEV_BUFF_DURATION_TEXT
 	}
 }
 
@@ -3370,8 +3337,8 @@ void CX2PVPPlayerGageUI::UpdatePvpRank()
 
 #ifdef BUFF_ICON_UI
 /** @function : UpdateBuffIcon
-	@brief : ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ UI ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
-			 ï¿½ï¿½Ä¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ CX2MyGageUI, CX2PVPPlayerGageUIï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : ¹öÇÁ ¾ÆÀÌÄÜ UI ¸¦ °»½ÅÇÏ´Â ÇÔ¼ö
+			 À§Ä¡ ÁöÁ¤À» À§ÇØ CX2MyGageUI, CX2PVPPlayerGageUI¿¡¼­ °¢°¢ ÀçÁ¤ÀÇ
 */
 void CX2PVPPlayerGageUI::UpdateBuffIcon()
 {
@@ -3383,9 +3350,8 @@ void CX2PVPPlayerGageUI::UpdateBuffIcon()
 
 		D3DXVECTOR2 vPos(150.f, 125.f+ (m_uiPositionIndex * 44));
 #ifdef SKILL_SLOT_UI_TYPE_B
-		if( NULL != g_pMain->GetGameOption())
 		{
-			m_bIsSkillUITypeA = g_pMain->GetGameOption()->GetIsSkillUITypeA();
+			m_bIsSkillUITypeA = g_pMain->GetGameOption().GetIsSkillUITypeA();
 			if( false == m_bIsSkillUITypeA )
 				vPos.y += 20.f;
 		}
@@ -3393,34 +3359,33 @@ void CX2PVPPlayerGageUI::UpdateBuffIcon()
 		m_pDlgBuffIcon->SetPos( vPos );
 	}
 #ifdef SKILL_SLOT_UI_TYPE_B
-	if( NULL != g_pMain->GetGameOption() &&
-		m_bIsSkillUITypeA != g_pMain->GetGameOption()->GetIsSkillUITypeA())
+	if( m_bIsSkillUITypeA != g_pMain->GetGameOption().GetIsSkillUITypeA())
 	{
-		m_bIsSkillUITypeA = g_pMain->GetGameOption()->GetIsSkillUITypeA();
+		m_bIsSkillUITypeA = g_pMain->GetGameOption().GetIsSkillUITypeA();
 		D3DXVECTOR2 vPos(150.f, 125.f+ (m_uiPositionIndex * 44));
-		if( false == g_pMain->GetGameOption()->GetIsSkillUITypeA() )
+		if( false == g_pMain->GetGameOption().GetIsSkillUITypeA() )
 			vPos.y += 20.f;
 		m_pDlgBuffIcon->SetPos( vPos );
 	}
 #endif //SKILL_SLOT_UI_TYPE_B
 
 	if( NULL != m_pDlgBuffIcon )
-	{	//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+	{	//¹öÇÁ ¸®½ºÆ®
 		int iIndex = 0;
 		bool bIsDebuff = false;
 		vector<BuffIcon>::iterator it = m_vecBuffList.begin();
 		for( ; it != m_vecBuffList.end(); ++it)
 		{			
-			it->bNew = false; //ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			it->bNew = false; //ÆÄÆ¼¿øÀÇ ¹öÇÁ¾ÆÀÌÄÜÀº Ãâ·Â È¿°ú ¾øÀ½
 			SetBuffIconStatic( (*it), iIndex--, bIsDebuff, D3DXVECTOR2(16,16));
 		}
 
-		//ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
+		//µð¹öÇÁ ¸®½ºÆ®
 		iIndex = 0;
 		bIsDebuff = true;
 		for( it = m_vecDebuffList.begin(); it != m_vecDebuffList.end(); ++it)
 		{
-			it->bNew = false; //ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+			it->bNew = false; //ÆÄÆ¼¿øÀÇ ¹öÇÁ¾ÆÀÌÄÜÀº Ãâ·Â È¿°ú ¾øÀ½
 			SetBuffIconStatic( (*it), iIndex--, bIsDebuff, D3DXVECTOR2(16,16));
 		}
 	}
@@ -3431,17 +3396,17 @@ void CX2PVPPlayerGageUI::UpdateBuffIcon()
 
 #pragma region CX2AraMyGageUI
 /** @function 	: CX2AraMyGageUI
-	@brief 		: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief 		: »ý¼ºÀÚ
 */
 CX2AraMyGageUI::CX2AraMyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOwnerUnitClass_ )
 	: CX2MyGageUI( pGageData_, eOwnerUnitClass_ )
 {
 }
-#pragma endregion ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#pragma endregion »ý¼ºÀÚ
 
 #pragma region InitUI
 /** @function 	: InitUI
-	@brief 		: UI ï¿½Ê±ï¿½È­
+	@brief 		: UI ÃÊ±âÈ­
 */
 /*virtual*/ void CX2AraMyGageUI::InitUI()
 {
@@ -3452,36 +3417,43 @@ CX2AraMyGageUI::CX2AraMyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLA
 	InitWakeOrb();
 	InitForcePowerUI();
 }
-#pragma endregion UI ï¿½Ê±ï¿½È­
+#pragma endregion UI ÃÊ±âÈ­
 
 #pragma region InitWakeOrb
 /** @function 	: InitWakeOrb
-	@brief 		: ï¿½Ù¸ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 3ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ´Ù¸¥ Ä³¸¯ÅÍÀÇ 3°¢¼º ±¸½½ ÀÌ¹ÌÁö Á¦°Å
 */
 /*virtual*/ void CX2AraMyGageUI::InitWakeOrb()
 {
 	CKTDGUIStatic* pStaticWakeOrb = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeOrb") );
 	if ( NULL != pStaticWakeOrb )
 	{
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );	// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );	// Ã» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );			// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );		// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );	// ·¹ÀÌºì ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );	// Ã» ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );			// ÀÏ¹Ý ±¸½½ »èÁ¦
 	}
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	// °¢¼º ±¸½½ ½½·Ô
 	CKTDGUIStatic* pStaticWakeSlot = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeSlot") );
 	if ( NULL != pStaticWakeSlot )
 	{
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );	// ï¿½ï¿½ï¿½Ìºï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );	// Ã» ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
-		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );		// ï¿½Ï¹ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );		// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );	// ·¹ÀÌºì ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );	// Ã» ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );		// ÀÏ¹Ý ±¸½½ »èÁ¦
+
 	}
 }
-#pragma endregion ï¿½Ù¸ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 3ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#pragma endregion ´Ù¸¥ Ä³¸¯ÅÍÀÇ 3°¢¼º ±¸½½ ÀÌ¹ÌÁö Á¦°Å
 
 #pragma region InitForcePowerUI
 /** @function 	: InitForcePowerUI
-	@brief 		: ï¿½ï¿½ï¿½ UI ï¿½Ê±ï¿½È­
+	@brief 		: ±â·Â UI ÃÊ±âÈ­
 */
 void CX2AraMyGageUI::InitForcePowerUI()
 {
@@ -3491,24 +3463,32 @@ void CX2AraMyGageUI::InitForcePowerUI()
 	if ( NULL != pStaticForcePower )
 		pStaticForcePower->SetShow( true );
 }
-#pragma endregion ï¿½ï¿½ï¿½ UI ï¿½Ê±ï¿½È­
+#pragma endregion ±â·Â UI ÃÊ±âÈ­
 
 #pragma region OnFrameMove
 /** @function 	: OnFrameMove
-	@brief 		: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¹ï¿½ï¿½ï¿½
+	@brief 		: ¿ÂÇÁ·¹ÀÓ¹«ºê
 */
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2AraMyGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 /*virtual*/ void CX2AraMyGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
-	CX2MyGageUI::OnFrameMove();
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    CX2MyGageUI::OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    CX2MyGageUI::OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	UpdateCharacterImage();
 	UpdateForcePowerUI();
 }
-#pragma endregion ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¹ï¿½ï¿½ï¿½
+#pragma endregion ¿ÂÇÁ·¹ÀÓ¹«ºê
 
 #pragma region UpdateCharacterImage
 /** @function 	: UpdateCharacterImage
-	@brief 		: Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	@brief 		: Ä³¸¯ÅÍ ÀÌ¹ÌÁö °»½Å
 */
 void CX2AraMyGageUI::UpdateCharacterImage()
 {
@@ -3538,11 +3518,11 @@ void CX2AraMyGageUI::UpdateCharacterImage()
 		pAraGageData->SetBerserkModeChanged( false );
 	}
 }
-#pragma endregion Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+#pragma endregion Ä³¸¯ÅÍ ÀÌ¹ÌÁö °»½Å
 
 #pragma region UpdateForcePowerCountUI
 /** @function 	: UpdateForcePowerUI
-	@brief 		: ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½
+	@brief 		: ±â·Â UI °»½Å
 */
 void CX2AraMyGageUI::UpdateForcePowerUI()
 {
@@ -3605,11 +3585,11 @@ void CX2AraMyGageUI::UpdateForcePowerUI()
 		}
 	}
 }
-#pragma endregion ï¿½ï¿½ï¿½ UI ï¿½ï¿½ï¿½ï¿½
+#pragma endregion ±â·Â UI °»½Å
 
 #pragma region GetBerserkModeMyStateImage
 /** @function 	: GetBerserkModeMyStateImage
-	@brief 		: ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+	@brief 		: ±¤ÆøÈ­ ¸ðµå ÀÌ¹ÌÁö ¾ò±â
 */
 void CX2AraMyGageUI::GetBerserkModeMyStateImage( OUT wstring& wstrFileName, OUT wstring& wstrPieceName
 												 , IN const CX2Unit::UNIT_CLASS eClassType  )
@@ -3630,7 +3610,7 @@ void CX2AraMyGageUI::GetBerserkModeMyStateImage( OUT wstring& wstrFileName, OUT 
 		wstrPieceName	= L"ARA_SD_FACE_RAGE";
 		break;
 #endif //ARA_CHANGE_CLASS_FIRST
-#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ï¿½ï¿½ï¿½ï¿½È¯
+#ifdef SERV_ARA_CHANGE_CLASS_SECOND // ±èÅÂÈ¯
 	case CX2Unit::UC_ARA_LITTLE_DEVIL:
 		wstrFileName	= L"DLG_UI_Common_Texture77_NEW.tga";
 		wstrPieceName	= L"L_DEVIL_STATE_RAGE";
@@ -3644,9 +3624,9 @@ void CX2AraMyGageUI::GetBerserkModeMyStateImage( OUT wstring& wstrFileName, OUT 
 		break;
 	} // switch
 }
-#pragma endregion ï¿½ï¿½ï¿½ï¿½È­ ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
+#pragma endregion ±¤ÆøÈ­ ¸ðµå ÀÌ¹ÌÁö ¾ò±â
 
-#pragma endregion Å¬ï¿½ï¿½ï¿½ï¿½
+#pragma endregion Å¬·¡½º
 
 #ifdef NEW_CHARACTER_EL
 CX2ElesisMyGageUI::~CX2ElesisMyGageUI()
@@ -3677,14 +3657,14 @@ void CX2ElesisMyGageUI::InitUI()
 
 	for ( int i = 0; i < ARRAY_SIZE( m_hSeqVigorEffect ); ++i )
 	{
-		if( m_hSeqVigorEffect[i] != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqVigorEffect[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = pGameMinorParticle->GetInstanceSequence( m_hSeqVigorEffect[i] );
 			if( NULL != pSeq )
 				pSeq->SetShowObject( bShow_ );
 		}
 
-		if( m_hSeqDestEffect[i] != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqDestEffect[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = pGameMinorParticle->GetInstanceSequence( m_hSeqDestEffect[i] );
 			if( NULL != pSeq )
@@ -3699,13 +3679,21 @@ void CX2ElesisMyGageUI::InitUI()
 #endif //BUFF_ICON_UI
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2ElesisMyGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2ElesisMyGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    CX2MyGageUI::OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	CX2MyGageUI::OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	const bool bDialogHide = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetHideDialog();
 
-	// ï¿½ï¿½ï¿½Ì¾ï¿½Î±×¸ï¿½ ï¿½ï¿½ï¿½Ü¾ï¿½ ï¿½Ï´Âµï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Ì°ï¿½ ï¿½Ö´Ù¸ï¿½
+	// ´ÙÀÌ¾ó·Î±×¸¦ ¼û°Ü¾ß ÇÏ´Âµ¥ ÀÌÆåÆ®°¡ º¸ÀÌ°í ÀÖ´Ù¸é
 	if ( bDialogHide == GetShowWspParticle() )
 	{
 		SetShowWspParticle( !bDialogHide );
@@ -3727,17 +3715,17 @@ void CX2ElesisMyGageUI::StopUIEffectElswordWS()
 		NULL == g_pX2Game->GetMinorParticle() )
 		return;
 
-	if ( m_hSeqVigorEffect[0] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqVigorEffect[0] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqVigorEffect[0] );
-	if ( m_hSeqVigorEffect[1] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqVigorEffect[1] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqVigorEffect[1] );
-	if ( m_hSeqVigorEffect[2] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqVigorEffect[2] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqVigorEffect[2] );
-	if ( m_hSeqDestEffect[0] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqDestEffect[0] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqDestEffect[0] );
-	if ( m_hSeqDestEffect[1] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqDestEffect[1] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqDestEffect[1] );
-	if ( m_hSeqDestEffect[2] != INVALID_PARTICLE_HANDLE )
+	if ( m_hSeqDestEffect[2] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hSeqDestEffect[2] );
 
 	return;
@@ -3894,7 +3882,7 @@ void CX2ElesisMyGageUI::UIFrameMoveElswordWSP()
 
 	if( pGagePicture != NULL )
 	{
-		CKTDXDeviceTexture::TEXTURE_UV* pTexUV			= pGagePicture->pTexture->pTexture->GetTexUV( wstrTexPieceName );
+		const CKTDXDeviceTexture::TEXTURE_UV* pTexUV			= pGagePicture->pTexture->pTexture->GetTexUV( wstrTexPieceName );
 
 		if( pTexUV != NULL )
 		{
@@ -3917,7 +3905,7 @@ void CX2ElesisMyGageUI::UIFrameMoveElswordWSP()
 
 	if( pGageEffectPicture != NULL )
 	{
-		CKTDXDeviceTexture::TEXTURE_UV* pTexUV			= pGageEffectPicture->pTexture->pTexture->GetTexUV( wstrTexEffectPieceName );
+		const CKTDXDeviceTexture::TEXTURE_UV* pTexUV			= pGageEffectPicture->pTexture->pTexture->GetTexUV( wstrTexEffectPieceName );
 
 		if( pTexUV != NULL )
 		{
@@ -3946,7 +3934,7 @@ void CX2ElesisMyGageUI::UpdateUIElswordWSP()
 {
 	CX2ElswordGageData* pElswordGageData = static_cast<CX2ElswordGageData*>( m_pGageData );
 
-	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ì¿¡
+	// º¯°æ µÈ °ÍÀÌ ÀÖ´Â °æ¿ì¿¡
 	if ( pElswordGageData->GetChangedWayOfSwordState() )
 	{
 		StopUIEffectElswordWS();
@@ -4056,14 +4044,14 @@ void CX2ElesisMyGageUI::SetShowWspParticle( const bool bShowWspParticle_ )
 
 	for ( int i = 0; i < ARRAY_SIZE(m_hSeqVigorEffect); ++i)
 	{
-		if( m_hSeqVigorEffect[i] != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqVigorEffect[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = pGameMinorParticle->GetInstanceSequence( m_hSeqVigorEffect[i] );
 			if( NULL != pSeq )
 				pSeq->SetShowObject( bShowWspParticle_ );
 		}
 
-		if( m_hSeqDestEffect[i] != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqDestEffect[i] != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = pGameMinorParticle->GetInstanceSequence( m_hSeqDestEffect[i] );
 			if( NULL != pSeq )
@@ -4072,7 +4060,7 @@ void CX2ElesisMyGageUI::SetShowWspParticle( const bool bShowWspParticle_ )
 	}
 }
 /** @function : UpdateMpAndHyperAndDetonationGage()
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : ¿¤¸®½Ã½º ¼¶¸ê »óÅÂÀÇ ±âÆø Ã³¸®¸¦ À§ÇØ ÀçÁ¤ÀÇ
 */
 /*virtual*/ void CX2ElesisMyGageUI::UpdateMpAndHyperAndDetonationGage()
 {
@@ -4086,7 +4074,7 @@ void CX2ElesisMyGageUI::SetShowWspParticle( const bool bShowWspParticle_ )
 		CX2ElesisGageData* pElesisGageData = static_cast<CX2ElesisGageData*>(m_pGageData);
 		if( NULL != pElesisGageData )
 		{
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ UIï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½
+			// ¼¶¸ê »óÅÂÀÏ °æ¿ì ±âÆø UI¸¦ ¼¶¸ê °ÔÀÌÁö¿¡ º¸¿©ÁÖ±â
 			if( CX2GUUser::WSS_DESTRUCTION == pElesisGageData->GetWayOfSwordState() )
 			{
 				if( NULL != m_pStaticElswordDest )
@@ -4095,7 +4083,7 @@ void CX2ElesisMyGageUI::SetShowWspParticle( const bool bShowWspParticle_ )
 					UpdateGageForUV( pStaticStateBar, PGUB_MY_ACTIVE_MP, L"MP_ACTIVE", 0.f, true );
 				}
 			}
-			// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â°ï¿½ ï¿½Æ´Ï¶ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ MPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½
+			// ¼¶¸ê »óÅÂ°¡ ¾Æ´Ï¶ó¸é ±âÆø °ÔÀÌÁö MP°ÔÀÌÁö¿¡ º¸¿©ÁÖ±â
 			else
 			{
 				UpdateDetonationGage( pStaticStateBar );
@@ -4107,9 +4095,9 @@ void CX2ElesisMyGageUI::SetShowWspParticle( const bool bShowWspParticle_ )
 	}
 }
 /** @function : UpdateDetonationGage()
-	@brief : ï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	@brief : ¿¤¸®½Ã½º ¼¶¸ê »óÅÂÀÇ ±âÆø Ã³¸®¸¦ À§ÇØ ÀçÁ¤ÀÇ
 */
-/*virtual*/ void CX2ElesisMyGageUI::UpdateDetonationGage( CKTDGUIStatic* pStaticStateBar_ )	/// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+/*virtual*/ void CX2ElesisMyGageUI::UpdateDetonationGage( CKTDGUIStatic* pStaticStateBar_ )	/// ±âÆø °ÔÀÌÁö
 {
 	CX2ElesisGageData* pElesisGageData = static_cast<CX2ElesisGageData*>(m_pGageData);
 	if( NULL != pElesisGageData )
@@ -4131,3 +4119,382 @@ void CX2ElesisMyGageUI::SetShowWspParticle( const bool bShowWspParticle_ )
 	}
 }
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // ±èÅÂÈ¯
+CX2AddMyGageUI::CX2AddMyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOwnerUnitClass_ )
+	: CX2MyGageUI( pGageData_, eOwnerUnitClass_ )
+{
+
+}
+
+void CX2AddMyGageUI::InitUI()
+{
+	InitStatusUI();
+
+	m_pDLGMyUnit->OpenScriptFile( L"DLG_Add_DP_And_Mutation.lua" );
+
+	InitWakeOrb();
+	InitDPGageUI();
+	InitMutationCountUI();
+	InitFormationModeConsumeDPGuide();
+}
+
+void CX2AddMyGageUI::InitWakeOrb()
+{
+	CKTDGUIStatic* pStaticWakeOrb = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeOrb") );
+	if ( NULL != pStaticWakeOrb )
+	{
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );			// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ·¹ÀÌºì ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );				// ¼¼¹øÂ° ÀÏ¹Ý ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB2 ) );				// µÎ¹øÂ° ÀÏ¹Ý ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB1 ) );				// Ã¹¹øÂ° ÀÏ¹Ý ±¸½½ »èÁ¦
+	}
+
+	// °¢¼º ±¸½½ ½½·Ô
+	CKTDGUIStatic* pStaticWakeSlot = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeSlot") );
+	if ( NULL != pStaticWakeSlot )
+	{
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_EVE ) );			// ÀÌºê ±¸½½ »èÁ¦
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ·¹ÀÌºì ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );			// ¼¼¹øÂ° ÀÏ¹Ý ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB2 ) );			// µÎ¹øÂ° ÀÏ¹Ý ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB1 ) );			// Ã¹¹øÂ° ÀÏ¹Ý ±¸½½ »èÁ¦
+	}
+}
+
+void CX2AddMyGageUI::InitDPGageUI()
+{
+	CKTDGUIStatic* pStaticDPGage = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl( L"g_pStatic_DP_Gage" ) );
+
+	if ( NULL != pStaticDPGage )
+		pStaticDPGage->SetShow( true );
+}
+
+void CX2AddMyGageUI::InitMutationCountUI()
+{	
+	CKTDGUIStatic* pStaticVerticalMutationCount = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl( L"g_pStatic_Mutation_Gage" ) );
+
+	ASSERT( NULL != pStaticVerticalMutationCount );
+	if ( NULL != pStaticVerticalMutationCount )
+		pStaticVerticalMutationCount->SetShow( true );
+}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2AddMyGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2AddMyGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		CX2MyGageUI::OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		CX2MyGageUI::OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
+	UpdateDPGage();
+	//UpdateCharacterImage();
+	UpdateMutationCountUI();
+}
+
+void CX2AddMyGageUI::InitFormationModeConsumeDPGuide()
+{
+	CX2AddGageData* pAddrGageData	= static_cast<CX2AddGageData*>( m_pGageData );
+	CKTDGUIStatic*	pStaticGuide	= static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"FormationConsumeDPGuide") );
+
+	if ( NULL != pAddrGageData && NULL != pStaticGuide )
+	{
+		const float fMaxGageWidth	= 193;
+		const float fUseDP			= 2000.f;		/// ±¸¼º ¸ðµå ÀüÈ¯¿¡ ÇÊ¿äÇÑ DP ·® ( ¿¬µ¿ÀÌ Èûµé´Ù... °­Á¦·Î ³Ö¾î³õÀÚ... )
+		const float fMaxDP			= pAddrGageData->GetMaxDPValue();
+
+		D3DXVECTOR2 vec100MpPointPos( fMaxGageWidth * ( fUseDP / fMaxDP ),0.f);
+
+		pStaticGuide->SetOffsetPos(vec100MpPointPos);
+	}
+}
+
+void CX2AddMyGageUI::UpdateMutationCountUI()
+{
+	CX2AddGageData* pAddrGageData = static_cast<CX2AddGageData*>( m_pGageData );
+
+	if ( NULL != pAddrGageData )
+	{
+		/// DP °ÔÀÌÁö
+		if ( true == pAddrGageData->GetChangedMutationCount() )
+		{
+			pAddrGageData->SetChangedMutationCount( false );
+
+			CKTDGUIStatic* pStaticVerticalMutationCount = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl( L"g_pStatic_Mutation_Gage" ) );
+
+			ASSERT( NULL != pStaticVerticalMutationCount );
+			if ( NULL != pStaticVerticalMutationCount )
+			{
+				int iNumOfPicture = pStaticVerticalMutationCount->GetPictureNum();
+
+				// ¶óÀÎ´ç ÃÖ¼Ò º¯ÀÌ ¼öÄ¡ÀÇ °¹¼ö (0¹øÂ° ¶óÀÎÀº 0°³, 1¹øÂ° ¶óÀÎÀº 6°³ µî)
+				// Picture ¼ö´Â BG Picture Æ÷ÇÔÇØ¼­ 7°³ ÀÌ±â ¶§¹® -1 ÇØÁÜ
+				for ( int iPictureIndex = 0; iPictureIndex < iNumOfPicture ; ++iPictureIndex )
+				{
+					bool bShowPictureDataMutationCount = false;
+
+					// º¯ÀÌ ¼öÄ¡ÀÇ °¹¼ö°¡ ¶óÀÎ´ç ÃÖ¼Ò º¯ÀÌ ¼öÄ¡ °¹¼ö + ±× ¶óÀÎÀÇ º¯ÀÌ ¼öÄ¡ °¹¼ö(ÇÈÃÄÀÇ ÀÎµ¦½º) º¸´Ù ¸¹°Å³ª °°À¸¸é
+					if ( pAddrGageData->GetMutationCount() >= iPictureIndex  )
+						bShowPictureDataMutationCount = true;
+
+					if( 0 == iPictureIndex )
+						bShowPictureDataMutationCount = true;
+
+					CKTDGUIControl::CPictureData* pPictureDataCannonBall = pStaticVerticalMutationCount->GetPicture( iPictureIndex );
+					ASSERT( NULL != pPictureDataCannonBall );
+					pPictureDataCannonBall->SetShow( bShowPictureDataMutationCount );
+				}
+			}
+		}
+
+		/// ±¸¼º ¸ðµå ÀüÈ¯ ¿©ºÎ ÄðÅ¸ÀÓ
+		CKTDGUIStatic*	pStaticCoolTime	= static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"FormationModeCoolTime") );
+
+		ASSERT( NULL != pStaticCoolTime );
+		if ( NULL != pStaticCoolTime )
+		{
+			int iShowPictureIndex = 5;	/// º¸¿©Áú ÇÈÃ³ ÀÎµ¦½º
+
+			/// ÄðÅ¸ÀÓÀÌ µ¹°í ÀÖ´Ù¸é
+			if ( 0.f < pAddrGageData->GetChangeFormationCoolTime() )
+			{
+				/// ³²Àº ÄðÅ¸ÀÓÀ» ÇÈÃ³ ÀÎµ¦½º·Î º¯È¯
+				iShowPictureIndex = static_cast<int>( pAddrGageData->GetChangeFormationCoolTime() );
+			}
+
+			/// ÅØ½ºÃ³ È°¼º ¿©ºÎ ¼³Á¤
+			for( int i = 0; i < 6; ++i )
+			{
+				CKTDGUIControl::CPictureData* pPictureCoolTime = pStaticCoolTime->GetPicture( i );
+
+				if ( NULL != pPictureCoolTime )
+				{
+					bool bShow = false;
+
+					/// º¸¿©ÁÙ ÀÎµ¦½º¸¸ Ç¥½Ã
+					if ( i == iShowPictureIndex )
+						bShow = true;
+
+					pPictureCoolTime->SetShow( bShow );
+				}
+			}
+		}
+	}	
+}
+
+/*virtual*/ void CX2AddMyGageUI::UpdateHyperGage( CKTDGUIStatic* pStaticStateBar_ )
+{
+	if ( NULL != m_pGageData )
+		UpdateGageForUV( pStaticStateBar_, PGUB_MY_SOUL, L"RAGE", 0.f, false );
+}
+
+void CX2AddMyGageUI::UpdateMpAndHyperAndDetonationGage()
+{
+	CKTDGUIStatic* pStaticStateBar = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateBar") );
+	if ( NULL != pStaticStateBar )
+	{
+		UpdateHyperGage( pStaticStateBar );
+		UpdateMpGageAndString( pStaticStateBar );
+		UpdateDetonationGage( pStaticStateBar );
+	}
+}
+
+void CX2AddMyGageUI::UpdateDPGage()
+{
+	if ( NULL != m_pDLGMyUnit && NULL != m_pGageData )
+	{
+		CKTDGUIStatic*	pStaticStateBar	= static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"g_pStatic_DP_Gage") );
+		CX2AddGageData* pAddrGageData	= static_cast<CX2AddGageData*>( m_pGageData );
+
+		if ( NULL != pStaticStateBar && NULL != pAddrGageData )
+		{
+			/// °ÔÀÌÁö ¼³Á¤
+			const float fNowDP		= pAddrGageData->GetDPValue();
+			const float fMaxDP		= pAddrGageData->GetMaxDPValue();
+			const float fNPPercent	= fNowDP / fMaxDP;
+
+			UpdateGageForUV( pStaticStateBar, 1, L"BG_DPSYSTEM_GAUGE", fNPPercent, true );
+
+			/// ±¸¼º ¸ðµå È°¼ºÀ» Ç¥½ÃÇÏ´Â DP °ÔÀÌÁö ¹ÝÂ¦ÀÓ
+			CKTDGUIControl::CPictureData* pFlickerBar = pStaticStateBar->GetPicture( 2 );
+
+			if ( NULL != pFlickerBar )
+			{
+				/// ±¸¼º ¸ðµåÀÏ ¶§¸¸ Ç¥½Ã
+				if ( NULL != g_pX2Game && true == pAddrGageData->GetIsFormationMode() )
+				{
+					/// ºñÈ°¼º ÁßÀÌ¸é, È°¼º ½ÃÅ°¸é¼­ ¹ÝÂ¦ÀÓ ¼³Á¤
+					if ( false == pFlickerBar->GetShow() )
+					{
+						pStaticStateBar->GetPicture( 2 )->SetFlicker( 0.4f, 1.f, 0.1f );
+						pFlickerBar->SetShow( true );
+					}
+
+					UpdateGageForUV( pStaticStateBar, 2, L"BG_ADDGAUGE_GLOW", fNPPercent, true );
+				}
+				else
+				{
+					pStaticStateBar->GetPicture( 2 )->SetShow( false );
+				}
+			}
+
+
+			/// ½ºÆ®¸µ ¼³Á¤
+			CKTDGUIStatic* pStaticString = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"g_pStatic_DP") );
+
+			if ( NULL != pStaticString )
+			{
+				const float fNowDp			= pAddrGageData->GetDPValue();
+				const float fMaxDp			= pAddrGageData->GetMaxDPValue();
+
+				const UINT uiStrSize = 32;
+				WCHAR buf[uiStrSize];
+				ZeroMemory( buf, sizeof(WCHAR) * uiStrSize );
+
+				StringCchPrintf( buf, uiStrSize, L"%ld/%ld", 
+					static_cast<UINT>( floor( fNowDp + 0.5f ) / DISPLAY_DP_RATE ), static_cast<UINT>( floor( fMaxDp + 0.5f ) / DISPLAY_DP_RATE ) );
+					pStaticString->GetString(0)->msg = buf;
+			}
+		}
+	}
+}
+
+void CX2AddMyGageUI::UpdateHyperModeRemainTime()
+{
+	return;
+}
+#endif //SERV_9TH_NEW_CHARACTER
+
+
+#ifdef ADD_RENA_SYSTEM //±èÃ¢ÇÑ
+/** @function 	: CX2RenaMyGageUI
+	@brief 		: »ý¼ºÀÚ
+*/
+CX2RenaMyGageUI::CX2RenaMyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOwnerUnitClass_ )
+	: CX2MyGageUI( pGageData_, eOwnerUnitClass_ )
+{
+}
+
+/** @function 	: InitUI
+	@brief 		: UI ÃÊ±âÈ­
+*/
+/*virtual*/ void CX2RenaMyGageUI::InitUI()
+{
+	InitStatusUI();
+
+	m_pDLGMyUnit->OpenScriptFile( L"DLG_Rena_NaturalForce.lua" );
+
+	InitWakeOrb();
+	InitNaturalForceUI();
+}
+
+/** @function 	: InitForcePowerUI
+	@brief 		: ±â·Â UI ÃÊ±âÈ­
+*/
+void CX2RenaMyGageUI::InitNaturalForceUI()
+{
+	CKTDGUIStatic* pStaticNaturalForce = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl( L"g_pStatic_NF_Gage_Back" ) );
+
+	ASSERT( NULL != pStaticNaturalForce );
+	if ( NULL != pStaticNaturalForce )
+		pStaticNaturalForce->SetShow( true );
+}
+
+/** @function 	: OnFrameMove
+	@brief 		: ¿ÂÇÁ·¹ÀÓ¹«ºê
+*/
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2RenaMyGageUI::OnFrameMove( float fElapsedTime_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+/*virtual*/ void CX2RenaMyGageUI::OnFrameMove()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    CX2MyGageUI::OnFrameMove( fElapsedTime_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    CX2MyGageUI::OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+
+	UpdateNaturalForceUI();
+}
+
+/** @function 	: UpdateNaturalForceUI
+	@brief 		: ÀÚ¿¬ÀÇ ±â¿î UI °»½Å
+*/
+void CX2RenaMyGageUI::UpdateNaturalForceUI()
+{
+	CX2RenaGageData* pRenaGageData = static_cast<CX2RenaGageData*>( m_pGageData );
+
+	if ( pRenaGageData->GetNaturalForceChanged() )
+	{
+		pRenaGageData->SetNaturalForceChanged( false );
+
+		CKTDGUIStatic* pStaticNaturalForce = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl( L"g_pStatic_NF_Gage" ) );
+
+		ASSERT( NULL != pStaticNaturalForce );
+		if ( NULL != pStaticNaturalForce )
+		{
+			int iNumOfPicture = pStaticNaturalForce->GetPictureNum();
+			D3DXVECTOR2 vPos( 0.f, 0.f );
+
+			for ( int iPictureIndex = 0; iPictureIndex < iNumOfPicture ; ++iPictureIndex )
+			{
+				bool bShowPictureDataForcePower = false;
+
+				if ( pRenaGageData->GetNowNaturalForce() > iPictureIndex  )
+					bShowPictureDataForcePower = true;
+
+				CKTDGUIControl::CPictureData* pPictureDataForcePower = pStaticNaturalForce->GetPicture( iPictureIndex );
+				ASSERT( NULL != pPictureDataForcePower );
+				pPictureDataForcePower->SetShow( bShowPictureDataForcePower );
+			}
+
+			pStaticNaturalForce->SetShow( true );
+		}
+	}
+}
+#endif //ADD_RENA_SYSTEM
+
+
+#ifdef ADD_EVE_SYSTEM_2014		// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î
+
+CX2EveMyGageUI::CX2EveMyGageUI( CX2GageData* pGageData_, const CX2Unit::UNIT_CLASS eOwnerUnitClass_ )
+	: CX2MyGageUI( pGageData_, eOwnerUnitClass_ )
+{}
+
+
+/*virtual*/ void CX2EveMyGageUI::InitWakeOrb()
+{
+	CKTDGUIStatic* pStaticWakeOrb = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeOrb") );
+	if ( NULL != pStaticWakeOrb )
+	{
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ·¹ÀÌºì ±¸½½ »èÁ¦		
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ±¸½½ »èÁ¦
+		pStaticWakeOrb->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );				// ÀÏ¹Ý ±¸½½ »èÁ¦
+	}
+
+	// °¢¼º ±¸½½ ½½·Ô
+	CKTDGUIStatic* pStaticWakeSlot = static_cast<CKTDGUIStatic*>( m_pDLGMyUnit->GetControl(L"StaticPVPGameStateWakeSlot") );
+	if ( NULL != pStaticWakeSlot )
+	{
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_ARA ) );			// ¾Æ¶ó ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_RAVEN ) );		// ·¹ÀÌºì ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB_CHUNG ) );		// Ã» ±¸½½ »èÁ¦
+		pStaticWakeSlot->RemovePictureByIndex( static_cast<int>( PGUWO_ORB3 ) );			// ÀÏ¹Ý ±¸½½ »èÁ¦
+	}
+}
+
+#endif // ADD_EVE_SYSTEM_2014	// ±èÁ¾ÈÆ, 2014 - ÀÌºê Ãß°¡ ½Ã½ºÅÛ, ³ª¼Òµå ÄÚ¾î

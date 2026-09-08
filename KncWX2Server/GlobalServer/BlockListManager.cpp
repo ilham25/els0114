@@ -59,6 +59,9 @@ void KBlockListManager::Tick()
 
 void KBlockListManager::UpdateblockList( IN const int iReleaseTick, IN const std::map< int, std::vector< KBlockInfo > >& mapBlockInfo, OUT std::vector< KBlockInfo >& vecNewBlock, OUT std::vector< KBlockInfo >& vecDelBlock )
 {
+	vecNewBlock.clear();
+	vecDelBlock.clear();
+
 	if( GetReleaseTick() > iReleaseTick )
 	{
 		START_LOG( cerr, L"DB로부터 받아온 ReleaseTick값이 이상합니다." )
@@ -98,7 +101,7 @@ void KBlockListManager::UpdateblockList( IN const int iReleaseTick, IN const std
 
 		case KBlockInfo::BT_ACCOUNT_BLOCK:
 			{
-				UpdateAccountBlock( vecBlockInfo );
+				UpdateAccountBlock( vecBlockInfo, vecNewBlock, vecDelBlock );
 			}
 			break;
 
@@ -128,8 +131,6 @@ void KBlockListManager::UpdateblockList( IN const int iReleaseTick, IN const std
 void KBlockListManager::UpdateTradeBlock( IN const std::vector< KBlockInfo >& vecBlockInfo, OUT std::vector< KBlockInfo >& vecNewBlock, OUT std::vector< KBlockInfo >& vecDelBlock )
 {
 	// 개인거래 블럭은 실시간으로 블럭을 풀어줘야하는 목적으로 수정된 항목에 대해서 리스트를 따로 유지하자.
-	vecNewBlock.clear();
-	vecDelBlock.clear();
 
 	std::set< UidType > setUpdateBlock;	// DB로부터 받아온 블럭 대상 리스트
 	std::set< UidType > setDelBlock;	// 제재 해제가 될 블럭 대상 리스트
@@ -199,8 +200,62 @@ void KBlockListManager::UpdateTradeBlock( IN const std::vector< KBlockInfo >& ve
 	}
 }
 
-void KBlockListManager::UpdateAccountBlock( IN const std::vector< KBlockInfo >& vecBlockInfo )
+void KBlockListManager::UpdateAccountBlock( IN const std::vector< KBlockInfo >& vecBlockInfo, OUT std::vector< KBlockInfo >& vecNewBlock, OUT std::vector< KBlockInfo >& vecDelBlock )
 {
+	// 개인거래 블럭은 실시간으로 블럭을 풀어줘야하는 목적으로 수정된 항목에 대해서 리스트를 따로 유지하자.
+
+	std::set< UidType > setUpdateBlock;	// DB로부터 받아온 블럭 대상 리스트
+	std::set< UidType > setDelBlock;	// 제재 해제가 될 블럭 대상 리스트
+
+	BOOST_TEST_FOREACH( const KBlockInfo&, kInfo, vecBlockInfo )
+	{
+		const UidType iBlockUserUID = kInfo.m_iBlockTarget;
+
+		// DB로 부터 받아온 데이터들을 따로 리스트로 담자
+		setUpdateBlock.insert( iBlockUserUID );
+
+		std::map< UidType, KBlockData >::iterator mit;
+		mit = m_mapAccountBlock.find( iBlockUserUID );
+		if( mit == m_mapAccountBlock.end() )
+		{
+			m_mapAccountBlock.insert( std::make_pair( iBlockUserUID, KBlockData( kInfo ) ) );
+
+			vecNewBlock.push_back( kInfo );
+		}
+		else
+		{
+			// 새로운 내용으로 업데이트
+			mit->second.SetBlockInfo( kInfo );
+		}
+	}
+
+	std::map< UidType, KBlockData >::const_iterator mit;
+	for( mit = m_mapAccountBlock.begin(); mit != m_mapAccountBlock.end(); ++mit )
+	{
+		if( setUpdateBlock.find( mit->first ) != setUpdateBlock.end() )
+			continue;
+
+		setDelBlock.insert( mit->first );
+	}
+
+	BOOST_TEST_FOREACH( const UidType, iBlockTarget, setDelBlock )
+	{
+		std::map< UidType, KBlockData >::iterator mit;
+		mit = m_mapAccountBlock.find( iBlockTarget );
+		if( mit == m_mapAccountBlock.end() )
+			continue;
+
+		// 블럭 정보 얻고
+		KBlockInfo kInfo;
+		mit->second.GetBlockInfo( kInfo );
+		vecDelBlock.push_back( kInfo );
+
+		// 차단 리스트에서는 삭제
+		m_mapAccountBlock.erase( iBlockTarget );
+	}
+
+
+
 	m_mapAccountBlock.clear();
 
 	BOOST_TEST_FOREACH( const KBlockInfo&, kInfo, vecBlockInfo )

@@ -26,12 +26,21 @@ m_eCurrentMiniMapType( MMT_DUNGEON )
 #ifdef SERV_EVENT_MONEY
 ,m_pDLGAngelsFeather( NULL )
 #endif //SERV_EVENT_MONEY
+#ifdef SERV_MOMOTI_EVENT
+,m_pDLGMomotiURLEvent( NULL )
+,m_pDLGMomotiQuizEvent( NULL )
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+,m_pDLGMomotiQuizEvent2( NULL )
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+#endif //SERV_MOMOTI_EVENT
+#ifdef SERV_INT_UI_SHOW_EVENT_UI
+,m_pDLGSIntUIShowEventUI( NULL )
+#endif //SERV_INT_UI_SHOW_EVENT_UI
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+,m_pDLGTearOfELWoman( NULL )
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 {
-#ifdef REFORM_UI_MINIMAP
 	m_pDLGFrameWindow		= new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Mini_Map_NEW.lua" );
-#else
-	m_pDLGFrameWindow		= new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_MINI_MAP.lua" );
-#endif
 	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGFrameWindow );
 	m_pDLGFrameWindow->SetShow(false);	
 
@@ -45,6 +54,40 @@ m_eCurrentMiniMapType( MMT_DUNGEON )
 		UpdateAngelsFeatherCount( g_pData->GetMyUser()->GetUserAngelsFeather() );
 	}	
 #endif //SERV_EVENT_MONEY
+
+#ifdef SERV_MOMOTI_EVENT
+	m_pDLGMomotiURLEvent		= new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Momoti_Event.lua" );
+	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGMomotiURLEvent );
+	m_pDLGMomotiURLEvent->SetShow(true);
+
+	m_pDLGMomotiQuizEvent		= new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Momoti_Event2.lua" );
+	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGMomotiQuizEvent );
+	m_pDLGMomotiQuizEvent->SetShow(true);
+
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+	m_pDLGMomotiQuizEvent2		= new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Momoti_Event3.lua" );
+	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGMomotiQuizEvent2 );
+	m_pDLGMomotiQuizEvent2->SetShow(true);
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_INT_UI_SHOW_EVENT_UI
+	m_pDLGSIntUIShowEventUI		= new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Event_INT_ShowUI.lua" );
+	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGSIntUIShowEventUI );
+	m_pDLGSIntUIShowEventUI->SetShow(false); // 기본은 꺼져 있는 상태로
+#endif //SERV_INT_UI_SHOW_EVENT_UI
+
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+	m_pDLGTearOfELWoman = new CKTDGUIDialog( g_pMain->GetNowState(), L"DLG_UI_Event_TearOfElWoman.lua" );
+	
+	g_pKTDXApp->GetDGManager()->GetDialogManager()->AddDlg( m_pDLGTearOfELWoman );
+	m_pDLGTearOfELWoman->SetShow(true);
+
+	if( NULL != g_pData && NULL != g_pData->GetMyUser() )
+	{  
+		UpdateTearOfELWomanCount( g_pData->GetMyUser()->GetUserTearOfELWoman() );
+	}	
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 }
 
 CX2MiniMapUI::~CX2MiniMapUI(void)
@@ -64,6 +107,21 @@ CX2MiniMapUI::~CX2MiniMapUI(void)
 #ifdef SERV_EVENT_MONEY
 	SAFE_DELETE_DIALOG( m_pDLGAngelsFeather );
 #endif //SERV_EVENT_MONEY
+
+#ifdef SERV_MOMOTI_EVENT
+	SAFE_DELETE_DIALOG( m_pDLGMomotiURLEvent );
+	SAFE_DELETE_DIALOG( m_pDLGMomotiQuizEvent );
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+	SAFE_DELETE_DIALOG( m_pDLGMomotiQuizEvent2 );
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_INT_UI_SHOW_EVENT_UI
+	SAFE_DELETE_DIALOG( m_pDLGSIntUIShowEventUI );
+#endif //SERV_INT_UI_SHOW_EVENT_UI
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+	SAFE_DELETE_DIALOG( m_pDLGTearOfELWoman );
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 }
 
 /*virtual*/ HRESULT	CX2MiniMapUI::OnFrameMove( double fTime, float fElapsedTime )
@@ -77,14 +135,22 @@ CX2MiniMapUI::~CX2MiniMapUI(void)
 	if(m_fChangeChannelTime > 5.f)
 		m_fChangeChannelTime = 5.f;
 
-#ifndef REFORM_UI_MINIMAP
-	ZoomDLGSetting();
-#endif
 
 #ifdef SERV_EVENT_MONEY
 	SetShowAngelsFeather();
 #endif //SERV_EVENT_MONEY
 
+#ifdef SERV_MOMOTI_EVENT
+	SetShowMomotiURLEvent();
+	SetShowMomotiQuizEvent();
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_INT_UI_SHOW_EVENT_UI
+	SetShowIntUIShowEventUI();
+#endif //SERV_INT_UI_SHOW_EVENT_UI
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+	SetShowTearOfELWoman();
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
 	return S_OK;
 }
 
@@ -110,24 +176,24 @@ CX2MiniMapUI::~CX2MiniMapUI(void)
 	case MMUCM_DUNGEON_ZOOM_IN:
 	case MMUCM_FIELD_ZOOM_IN:
 		{
-			g_pMain->GetGameOption()->CameraZoomIn( 1 );
+			g_pMain->GetGameOption().CameraZoomIn( 1 );
 			return true;
 		} break;
 
 	case MMUCM_DUNGEON_ZOOM_OUT:
 	case MMUCM_FIELD_ZOOM_OUT:
 		{
-			g_pMain->GetGameOption()->CameraZoomIn( -1 );
+			g_pMain->GetGameOption().CameraZoomIn( -1 );
 			return true;
 		} break;
 	
 	case MMUCM_ZOOM_BUTTON:
 		{
-			int iZoomLevel = g_pMain->GetGameOption()->GetOptionList()->m_iZoomLevel;
+			int iZoomLevel = g_pMain->GetGameOption().GetOptionList().m_iZoomLevel;
 			iZoomLevel = iZoomLevel - 1;
 			if( iZoomLevel < -1 )
 				iZoomLevel = 1;
-			g_pMain->GetGameOption()->GetOptionList()->m_iZoomLevel = iZoomLevel;
+			g_pMain->GetGameOption().GetOptionList().m_iZoomLevel = iZoomLevel;
 			
 		} break;
 			
@@ -147,7 +213,6 @@ CX2MiniMapUI::~CX2MiniMapUI(void)
 					//}}
 
 				} break;
-#ifdef REFORM_UI_WORLDMAP
 			case CX2Main::XS_SQUARE_GAME:
 			case CX2Main::XS_VILLAGE_MAP:
 			case CX2Main::XS_BATTLE_FIELD:
@@ -182,32 +247,6 @@ CX2MiniMapUI::~CX2MiniMapUI(void)
 						}
 					} break;
 				}
-#else
-			case CX2Main::XS_VILLAGE_MAP:
-			case CX2Main::XS_SQUARE_GAME:
-				{
-					if( NULL == m_pWorldMapUI )
-					{
-						m_pWorldMapUI = new CX2WorldMapUI;
-					}
-
-					if( NULL != m_pWorldMapUI )
-					{
-						m_pWorldMapUI->OpenWorldMap( true );
-						m_pWorldMapUI->UpdateWorldMap();
-
-						int villageID = g_pData->GetLocationManager()->GetCurrentVillageID();
-						m_pWorldMapUI->OpenFieldMap( true, villageID );
-						m_pWorldMapUI->UpdateFieldMap();
-					}
-				} break;
-
-
-			case CX2Main::XS_BATTLE_FIELD:
-				{
-
-				} break;
-#endif
 			}
 			return true;
 
@@ -218,9 +257,7 @@ CX2MiniMapUI::~CX2MiniMapUI(void)
 			{
 			case CX2Main::XS_VILLAGE_MAP:
 			case CX2Main::XS_SQUARE_GAME:
-#ifdef REFORM_UI_WORLDMAP
 			case CX2Main::XS_BATTLE_FIELD:
-#endif
 				{
 					if( NULL == m_pWorldMapUI )
 					{
@@ -442,193 +479,10 @@ void CX2MiniMapUI::SetShowMiniMap( MINI_MAP_TYPE eMiniMapType, bool bShow )
 			{
 				CreateDungeonMiniMap();
 			}
-#ifndef REFORM_UI_MINIMAP
-			if( NULL != m_pDungeonMiniMap )
-			{
-				m_pDungeonMiniMap->SetShowObject( bShow );
-
-				if( NULL != m_pDLGFrameWindow )
-				{
-					//{{ 허상형 : [2011/3/14/] //	미니맵 외부 텍스쳐 변경
-#ifdef SERV_INSERT_GLOBAL_SERVER
-					CKTDGUIStatic* pStaticSlot = (CKTDGUIStatic*)m_pDLGFrameWindow->GetControl( L"mini" );
-					if( NULL == pStaticSlot || NULL == pStaticSlot->GetPicture(0) )
-						return;
-
-					CKTDGUIControl::CPictureData* pPictureOutLine = pStaticSlot->GetPicture(0);
-
-					//	bShow가 false인 경우는 던전이 아니다.
-					if( bShow == true && NULL != g_pData->GetDungeonRoom() && g_pData->GetDungeonRoom()->IsDefenceDungeon( g_pData->GetDungeonRoom()->GetDungeonID() ) == true )
-					{
-						//기존의 미니맵 UI는 너무 커서 빈 공간이 생긴다.
-						pPictureOutLine->SetTex( L"DLG_UI_Common_Texture46.tga", L"MINI_MAP_2" );
-
-						if ( NULL != g_pData->GetPartyManager() &&
-							 NULL != g_pData->GetPartyManager()->GetMyPartyData() )
-						{
-							CX2WorldMissionManager* pWorldMissionManager = g_pData->GetWorldMissionManager();
-
-							// 미니맵 텍스쳐 교체
-							switch ( static_cast<CX2Dungeon::DIFFICULTY_LEVEL>( g_pData->GetPartyManager()->GetMyPartyData()->m_iDungeonDifficulty ) )
-							{
-#ifdef NEW_DEFENCE_DUNGEON
-							case CX2Dungeon::DL_NORMAL:
-							case CX2Dungeon::DL_HARD:
-								{
-									pWorldMissionManager->SetDefenceDungeonMiniMap( L"DLG_UI_Common_Texture47.tga", L"BG_MINIMAP_2" );
-									pWorldMissionManager->SetNumOfCrystals( 1 );	// 크리스탈 갯수 1개
-								}
-								break;
-
-							case CX2Dungeon::DL_EXPERT:
-								{
-									pWorldMissionManager->SetDefenceDungeonMiniMap( L"DLG_UI_Common_Texture47.tga", L"BG_MINIMAP_3" );
-									pWorldMissionManager->SetNumOfCrystals( 1 );	// 크리스탈 갯수 1개
-								}
-								//pPictureDefenceBackGround->SetTex( L"DLG_UI_Common_Texture51.tga", L"bg_minimap_3" );
-								break;
-#else  NEW_DEFENCE_DUNGEON
-							case CX2Dungeon::DL_NORMAL:
-								{
-									pWorldMissionManager->SetDefenceDungeonMiniMap( L"DLG_UI_Common_Texture46.tga", L"BG_MINIMAP_1" );
-									pWorldMissionManager->SetNumOfCrystals( 1 );	// 크리스탈 갯수 2개
-								}
-								break;
-
-							case CX2Dungeon::DL_HARD:
-								{
-									pWorldMissionManager->SetDefenceDungeonMiniMap( L"DLG_UI_Common_Texture47.tga", L"BG_MINIMAP_2" );
-									pWorldMissionManager->SetNumOfCrystals( 3 );	// 크리스탈 갯수 3개
-								}
-								//pPictureDefenceBackGround->SetTex( L"DLG_UI_Common_Texture51.tga", L"bg_minimap_2" );
-								break;
-
-							case CX2Dungeon::DL_EXPERT:
-								{
-									pWorldMissionManager->SetDefenceDungeonMiniMap( L"DLG_UI_Common_Texture47.tga", L"BG_MINIMAP_3" );
-									pWorldMissionManager->SetNumOfCrystals( 5 );	// 크리스탈 갯수 5개
-								}
-								//pPictureDefenceBackGround->SetTex( L"DLG_UI_Common_Texture51.tga", L"bg_minimap_3" );
-								break;
-#endif NEW_DEFENCE_DUNGEON
-
-							default:
-								ASSERT( !L"PartyManager or PartyData is invalid" );
-								return;
-								break;
-							}							
-						}						
-						
-						// 남은 몬스터수 이동
-						CKTDGUIStatic *pStaticMonster			= (CKTDGUIStatic*)m_pDLGFrameWindow->GetControl(L"Static_Monster");
-
-						if( pStaticMonster != NULL )
-						{
-							pStaticMonster->SetOffsetPos( D3DXVECTOR2( 0, 70 ) );
-						}
-
-						m_bIsOpenDefenceMinimap = true;
-					}
-					else
-					{
-#ifdef REFORM_UI_MINIMAP
-						//pPictureOutLine->SetTex( L"DLG_UI_Common_Texture64_NEW.TGA", L"MINIMAP_BG" );
-#else
-						pPictureOutLine->SetTex( L"DLG_UI_Common_Texture09.TGA", L"mini_map" );
-#endif
-						
-						// 남은 몬스터수 이동
-						CKTDGUIStatic *pStaticMonster			= (CKTDGUIStatic*)m_pDLGFrameWindow->GetControl(L"Static_Monster");
-
-						if( pStaticMonster != NULL )
-						{
-							pStaticMonster->SetOffsetPos( D3DXVECTOR2( 0, 0 ) );
-						}
-
-						m_bIsOpenDefenceMinimap = false;
-					}
-#endif SERV_INSERT_GLOBAL_SERVER
-					//}} 허상형 : [2011/3/14/] //	
-				
-					if(bShow)
-					{
-						//SetNoExpAtThisDungeon(false);
-						CKTDGUIButton* pButton = (CKTDGUIButton*) m_pDLGFrameWindow->GetControl( L"Button_NewQuest" );
-						pButton->SetEnable(false);
-					}
-
-				}
-			}
-#endif		
 		} break;
 
 	case MMT_FIELD:
 		{
-#ifndef REFORM_UI_MINIMAP
-			// 퀘스트 버튼을 Enable 시킬 것 : 그냥 업데이트로 해결.
-			// 몬스터 표시를 끌 것
-			// 이 던전에서는 경험치 안나옴 끌 것
-			if(m_pFieldMiniMap == NULL && bShow == true)
-			{
-				CreateFieldMiniMap();
-			}
-
-			if( NULL != m_pFieldMiniMap )
-			{
-				m_pFieldMiniMap->SetShowObject( bShow );
-				
-				if( NULL != m_pDLGFrameWindow )
-				{
-					if(bShow)
-					{
-						
-						SetMonsterNum(false);
-						SetNoExpAtThisDungeon(false);
-
-						//{{ kimhc // 2010.5.2 // 비밀던전 작업(경험치)
-				#ifdef	SERV_SECRET_HELL
-						SetWarningForGettingExp( false );
-				#endif	SERV_SECRET_HELL
-						//}} kimhc // 2010.5.2 // 비밀던전 작업(경험치)
-
-#ifndef REFORM_UI_MINIMAP						
-						if( m_bCreateNewQuestEffectWhenOpen && bShow )
-						{
-							m_bCreateNewQuestEffectWhenOpen = false;
-							CreateNewQuestEffect();
-						}
-#endif
-						if( m_bCreateNewMailEffectWhenOpen && bShow )
-						{
-							m_bCreateNewMailEffectWhenOpen = false;
-							CreateNewMailEffect();
-						}
-					}	
-
-					if(g_pMain->GetNowStateID() == CX2Main::XS_SQUARE_GAME)
-					{
-						// 광장에서는 카메라 줌인/줌아웃 버튼 끄자!
-#ifndef REFORM_UI_MINIMAP
-						CKTDGUIButton* pButton_Camera = (CKTDGUIButton*) m_pDLGFrameWindow->GetControl( L"Mini_Camera" );
-						CKTDGUIStatic* pStatic_ZoomNum = (CKTDGUIStatic*) m_pDLGFrameWindow->GetControl( L"Zoom_num" );
-						pButton_Camera->SetShow(false);
-						pStatic_ZoomNum->SetShow(false);
-#endif
-					}
-					else
-					{
-						// 광장이 아니니 켜면 좋다
-#ifndef REFORM_UI_MINIMAP
-						CKTDGUIButton* pButton_Camera = (CKTDGUIButton*) m_pDLGFrameWindow->GetControl( L"Mini_Camera" );
-						CKTDGUIStatic* pStatic_ZoomNum = (CKTDGUIStatic*) m_pDLGFrameWindow->GetControl( L"Zoom_num" );
-						pButton_Camera->SetShow(true);
-						pStatic_ZoomNum->SetShow(true);
-#endif
-					}
-				}
-				
-			}
-#endif
 		} break;
 	}
 
@@ -646,7 +500,11 @@ void CX2MiniMapUI::SetShowMiniMap( MINI_MAP_TYPE eMiniMapType, bool bShow )
 		if(pComboBox != NULL)
 		{
 #ifdef ALWAYS_CHANNEL_NAME_LIMIT
+#ifdef CLIENT_COUNTRY_US
+			pComboBox->SetDrawTextLimit(8);
+#else // CLIENT_COUNTRY_US
 			pComboBox->SetDrawTextLimit(7); //채널 네이밍에 맞게 수정이 필요합니다. 본섭에서 확인 하시고 case문 만드는게 좋을것 같네요.태국은 하멜은 없어서....
+#endif // CLIENT_COUNTRY_US
 #else //ALWAYS_CHANNEL_NAME_LIMIT
 			pComboBox->SetDrawTextLimit(5); //국내 기준 네이밍 길이 입니다.
 #endif ALWAYS_CHANNEL_NAME_LIMIT
@@ -677,15 +535,9 @@ void CX2MiniMapUI::SetShowMiniMap( MINI_MAP_TYPE eMiniMapType, bool bShow )
 				//}} kimhc // 2009-12-18 // 서버군 추가에 따른 ComboList의 Index 얻어오는 법 변경
 
 				if( m_fChangeChannelTime >= 5.f &&
-#ifndef REFORM_UI_MINIMAP
-					eMiniMapType == MMT_FIELD &&
-#endif
 					g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_PERSONAL_TRADE) == false &&
 					g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP &&
 					(true == g_pData->GetLocationManager()->IsVillage( g_pData->GetLocationManager()->GetCurrentVillageID() )
-#ifndef REFORM_UI_MINIMAP
-					|| true == g_pData->GetLocationManager()->IsDungeonGate( g_pData->GetLocationManager()->GetCurrentVillageID())
-#endif
 					 )
 				)
 				{
@@ -725,7 +577,6 @@ void CX2MiniMapUI::SetVillageMapID( int iMapID )
 		{
 		case MMT_DUNGEON:
 			{
-#ifdef REFORM_UI_MINIMAP
 				switch( g_pMain->GetNowStateID() )
 				{
 				case CX2Main::XS_BATTLE_FIELD:
@@ -737,7 +588,7 @@ void CX2MiniMapUI::SetVillageMapID( int iMapID )
 
 							if ( NULL != battleFieldManager.GetBattleFieldNameByBattleFieldId( iMapID ) )
 							{
-#ifdef ELLIPSE_GLOBAL
+#ifdef INTEGRATE_TOOLTIP
 								bool bEllipse = false;
 								wstring tempName = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(battleFieldManager.GetBattleFieldNameByBattleFieldId( iMapID ), 150, pStatic_MapName->GetString(0)->fontIndex, 1, bEllipse);
 
@@ -762,9 +613,9 @@ void CX2MiniMapUI::SetVillageMapID( int iMapID )
 								}
 
 								pStatic_MapName->GetString(0)->msg = tempName;
-#else //ELLIPSE_GLOBAL
+#else //INTEGRATE_TOOLTIP
 								pStatic_MapName->GetString(0)->msg = battleFieldManager.GetBattleFieldNameByBattleFieldId( iMapID );
-#endif //ELLIPSE_GLOBAL
+#endif //INTEGRATE_TOOLTIP
 							}
 						}
 					} break;
@@ -779,7 +630,7 @@ void CX2MiniMapUI::SetVillageMapID( int iMapID )
 									g_pData->GetLocationManager()->GetVillageMapTemplet( (SEnum::VILLAGE_MAP_ID) iMapID );
 								if( NULL != pVillageTemplet )
 								{
-#ifdef ELLIPSE_GLOBAL
+#ifdef INTEGRATE_TOOLTIP
 									bool bEllipse = false;
 									wstring tempName = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse( pVillageTemplet->m_Name.c_str(), 150, pStatic_MapName->GetString(0)->fontIndex, 1, bEllipse);
 
@@ -804,9 +655,9 @@ void CX2MiniMapUI::SetVillageMapID( int iMapID )
 									}
 
 									pStatic_MapName->GetString(0)->msg = tempName;
-#else //ELLIPSE_GLOBAL
+#else //INTEGRATE_TOOLTIP
 									pStatic_MapName->GetString(0)->msg = pVillageTemplet->m_Name;
-#endif //ELLIPSE_GLOBAL
+#endif //INTEGRATE_TOOLTIP
 								}
 								else
 								{
@@ -848,63 +699,10 @@ void CX2MiniMapUI::SetVillageMapID( int iMapID )
 					}
 				}*/
 
-#endif
 
 			} break;
 		case MMT_FIELD:
 			{
-#ifndef REFORM_UI_MINIMAP
-				if(g_pTFieldGame != NULL)		
-				{
-					CKTDGUIStatic* pStatic_MapName = (CKTDGUIStatic*) m_pDLGFrameWindow->GetControl( L"mini_map_title" );
-					if( NULL != pStatic_MapName )
-					{
-						CX2LocationManager::VillageTemplet* pVillageTemplet = 
-							g_pData->GetLocationManager()->GetVillageMapTemplet( (SEnum::VILLAGE_MAP_ID) iMapID );
-						if( NULL != pVillageTemplet )
-						{
-#ifdef ELLIPSE_GLOBAL
-							bool bEllipse = false;
-							wstring tempName = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(pVillageTemplet->m_Name.c_str(), 150, pStatic_MapName->GetString(0)->fontIndex, 1, bEllipse);
-
-							if(bEllipse == true)
-							{
-								CKTDGUIButton* pButton = (CKTDGUIButton*)m_pDLGFrameWindow->GetControl( L"miniMapTip" );
-
-								if(pButton != NULL)
-								{
-									pButton->SetGuideDesc(pVillageTemplet->m_Name.c_str());
-									pButton->SetShow(true);
-								}
-							}
-							else
-							{
-								CKTDGUIButton* pButton = (CKTDGUIButton*)m_pDLGFrameWindow->GetControl( L"miniMapTip" );
-
-								if(pButton != NULL)
-								{
-									pButton->SetShow(false);
-								}
-							}
-
-							pStatic_MapName->GetString(0)->msg = tempName;
-#else
-							pStatic_MapName->GetString(0)->msg = pVillageTemplet->m_Name;
-#endif //ELLIPSE_GLOBAL
-						}
-						else
-						{
-							ASSERT( !"village templet is null" );
-							pStatic_MapName->GetString(0)->msg = L"";
-						}
-					}
-					
-					if(m_pFieldMiniMap != NULL)
-					{
-						m_pFieldMiniMap->SetVillageID( iMapID );
-					}
-				}
-#endif
 			} break;
 		default:
 			{
@@ -919,7 +717,7 @@ void CX2MiniMapUI::SetTitle(const WCHAR* val)
 	CKTDGUIStatic* pStatic = (CKTDGUIStatic*) m_pDLGFrameWindow->GetControl( L"mini_map_title" );
 	if( pStatic != NULL )
 	{
-#ifdef ELLIPSE_GLOBAL
+#ifdef INTEGRATE_TOOLTIP
 		bool bEllipse = false;
 		wstring tempName = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(val, 140, pStatic->GetString(0)->fontIndex, 1, bEllipse);
 
@@ -944,9 +742,9 @@ void CX2MiniMapUI::SetTitle(const WCHAR* val)
 		}
 
 		pStatic->GetString(0)->msg = tempName;
-#else //ELLIPSE_GLOBAL
+#else //INTEGRATE_TOOLTIP
 		pStatic->GetString(0)->msg = val;
-#endif //ELLIPSE_GLOBAL
+#endif //INTEGRATE_TOOLTIP
 	}
 }
 
@@ -1054,8 +852,8 @@ void CX2MiniMapUI::ZoomDLGSetting()
 		{
 			WCHAR wszText[8] = L"";
 			// +2를 해 주는 이유 : 옵션은 -1~1까지라서 =3=
-			StringCchPrintf( wszText, 8, L"%d", g_pMain->GetGameOption()->GetOptionList()->m_iZoomLevel+2 );
-			//wsprintf( wszText, L"%d", g_pMain->GetGameOption()->GetOptionList()->m_iZoomLevel+2 );
+			StringCchPrintf( wszText, 8, L"%d", g_pMain->GetGameOption().GetOptionList().m_iZoomLevel+2 );
+			//wsprintf( wszText, L"%d", g_pMain->GetGameOption().GetOptionList().m_iZoomLevel+2 );
 
 			pStaticZoomGrade->GetString(0)->msg = wszText;
 			// 			for ( int i = 0; i < 3; i++ )
@@ -1066,7 +864,7 @@ void CX2MiniMapUI::ZoomDLGSetting()
 			// 				}
 			// 			}
 			// 
-			// 			switch( g_pMain->GetGameOption()->GetOptionList()->m_iZoomLevel )
+			// 			switch( g_pMain->GetGameOption().GetOptionList().m_iZoomLevel )
 			// 			{
 			// 			default:
 			// 			case 0:
@@ -1311,16 +1109,6 @@ void CX2MiniMapUI::SetMonsterNum( bool bShow, int iNum )
 void CX2MiniMapUI::SetNoExpAtThisDungeon(bool val)
 { 
 //{{오현빈 // 2012-07-18 // 경험치 얻을 수 없다는 것을 표현하는 방법을 기획적으로 변경할 예정, 요청에 의해 제거만 하기 위해 일단 함수 내부만 제거
-#ifndef REFORM_UI_MINIMAP
-	if(m_pDLGFrameWindow != NULL)
-	{
-		CKTDGUIStatic* pStatic = (CKTDGUIStatic*) m_pDLGFrameWindow->GetControl( L"Static_NoExp" );
-		if( NULL != pStatic )
-		{
-			pStatic->SetShow(val);
-		}
-	}
-#endif //REFORM_UI_MINIMAP
 //}}오현빈 // 2012-07-18 // 경험치 얻을 수 없다는 것을 표현하는 방법을 기획적으로 변경할 예정, 요청에 의해 제거만 하기 위해 일단 함수 내부만 제거
 }
 
@@ -1329,16 +1117,6 @@ void CX2MiniMapUI::SetNoExpAtThisDungeon(bool val)
 void CX2MiniMapUI::SetWarningForGettingExp( bool bVal )		// 비밀던전에서 경험치를 얻지 못할 수 도 있는 경우에 true
 {
 	//{{오현빈 // 2012-07-18 // 경험치 얻을 수 없다는 것을 표현하는 방법을 기획적으로 변경할 예정, 요청에 의해 제거만 하기 위해 일단 함수 내부만 제거
-#ifndef REFORM_UI_MINIMAP
-	if(m_pDLGFrameWindow != NULL)
-	{
-		CKTDGUIStatic* pStatic = (CKTDGUIStatic*) m_pDLGFrameWindow->GetControl( L"Static_Secret" );
-		if( NULL != pStatic )
-		{
-			pStatic->SetShow( bVal );
-		}
-	}
-#endif //REFORM_UI_MINIMAP
 	//}}오현빈 // 2012-07-18 // 경험치 얻을 수 없다는 것을 표현하는 방법을 기획적으로 변경할 예정, 요청에 의해 제거만 하기 위해 일단 함수 내부만 제거
 }
 #endif SERV_SECRET_HELL
@@ -1359,6 +1137,39 @@ void CX2MiniMapUI::SetShowEnduranceUI( bool bShow )
 {
 	m_UIEnduranceChecker.SetShow( bShow );
 }
+
+#ifdef EVENT_CARNIVAL_DECORATION
+void CX2MiniMapUI::UpdateCarnivalDeco()
+{
+	CKTDGUIStatic* pStatic_Carnival = (CKTDGUIStatic*) m_pDLGFrameWindow->GetControl( L"carnival_deco" );
+
+	if( NULL != pStatic_Carnival )
+	{
+		if( NULL != g_pData &&
+			NULL != g_pData->GetMyUser() &&
+			NULL != g_pData->GetMyUser()->GetSelectUnit() &&
+			CX2Main::XS_VILLAGE_MAP == g_pMain->GetNowStateID() )
+		{
+			IF_EVENT_ENABLED(CEI_CARNIVAL_DECORATION)
+			{
+				pStatic_Carnival->SetShow(true);
+			}
+			ELSE
+			{
+				pStatic_Carnival->SetShow(false);
+			}
+		}
+		else
+		{
+			pStatic_Carnival->SetShow(false);
+		}
+	}
+	
+
+
+
+}
+#endif EVENT_CARNIVAL_DECORATION
 
 void CX2MiniMapUI::UpdateEventNotice()
 {
@@ -1495,18 +1306,14 @@ void CX2MiniMapUI::UpdateChannelInfo()
 		return;
 
 #ifdef MODIFY_CHANNEL_MODE_RATE_INT
-	
 	float CHANNEL_CONGESTION_SCOPE_TEMP[]	= { 0.1f, 0.2f, 0.5f, 0.99f, };
-
-#else // MODIFY_CHANNEL_MODE_RATE_INT
-
-	float CHANNEL_CONGESTION_SCOPE_TEMP[]	= { 0.1f, 0.2f, 0.3f, 0.95f, };
 #ifndef CHANNEL_CONGESTION_SCOPE_NO_CHEAT
 	const float CHANNEL_CONGESTION_SCOPE[]	= { 0.1f, 0.2f, 0.3f, 0.95f, };//{ 0.2f, 0.4f, 0.6f, 0.95f, };
 #endif // CHANNEL_CONGESTION_SCOPE_NO_CHEAT
-
+#else // MODIFY_CHANNEL_MODE_RATE_INT
+	float CHANNEL_CONGESTION_SCOPE_TEMP[]	= { 0.1f, 0.2f, 0.3f, 0.9f, };
+	const float CHANNEL_CONGESTION_SCOPE[]	= { 0.1f, 0.2f, 0.3f, 0.9f, };//{ 0.2f, 0.4f, 0.6f, 0.95f, };
 #endif // MODIFY_CHANNEL_MODE_RATE_INT
-
 	CKTDGUIComboBox* pComboBox = (CKTDGUIComboBox*) m_pDLGFrameWindow->GetControl( L"g_pComboBoxPresent_Select_User" );		
 	if(pComboBox != NULL)
 	{
@@ -1688,7 +1495,6 @@ void CX2MiniMapUI::SetChannelComboBox()
 
 		m_vecChannelInfoInMinimap.push_back( info );
 	}
-
 	std::sort( m_vecChannelInfoInMinimap.begin(), m_vecChannelInfoInMinimap.end() );
 
 	// 테스트 용
@@ -1703,7 +1509,7 @@ void CX2MiniMapUI::SetChannelComboBox()
 
 	// 콤보박스에 아이템 한개당 높이 2.5로 셋팅	
 
-	const float fScaleResolutionY = g_pMain->GetGameOption()->GetOptionList()->m_vResolution.y / 768;
+	const float fScaleResolutionY = g_pMain->GetGameOption().GetOptionList().m_vResolution.y / 768;
 
 	UINT nHeight = (UINT)(m_vecChannelInfoInMinimap.size() * 3.5f * fScaleResolutionY );	
 	pComboBox->SetDropHeight(nHeight);
@@ -1836,6 +1642,145 @@ void CX2MiniMapUI::UpdateAngelsFeatherCount(int iVal)
 }
 #endif //SERV_EVENT_MONEY
 
+#ifdef SERV_MOMOTI_EVENT
+void CX2MiniMapUI::SetShowMomotiURLEvent()
+{
+	if( m_pDLGMomotiURLEvent == NULL )
+		return;
+
+	bool bIsVisibleState = false;
+
+	switch(  g_pMain->GetNowStateID() )		/// 마을, 필드에 이벤트 UI 노출
+	{
+	case CX2Main::XS_VILLAGE_MAP:
+	//case CX2Main::XS_DUNGEON_GAME:
+	//case CX2Main::XS_BATTLE_FIELD:
+		{
+			bIsVisibleState = true;
+		}
+		break;
+	}
+
+	IF_EVENT_ENABLED( CEI_MOMOTI_URL_EVENT )
+	{
+		if ( true == bIsVisibleState && true == m_bShow )
+		{
+			m_pDLGMomotiURLEvent->SetShowEnable(true,true);
+		}
+		else
+		{
+			m_pDLGMomotiURLEvent->SetShowEnable(false,false);
+		}
+	}
+	ELSE
+	{
+		m_pDLGMomotiURLEvent->SetShowEnable(false,false);
+	}
+}
+
+void CX2MiniMapUI::SetShowMomotiQuizEvent()
+{
+	if( m_pDLGMomotiQuizEvent == NULL
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+		|| m_pDLGMomotiQuizEvent2 == NULL
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+		)
+		return;
+
+	bool bIsVisibleState = false;
+
+	switch(  g_pMain->GetNowStateID() )		/// 마을, 필드에 이벤트 UI 노출
+	{
+	case CX2Main::XS_VILLAGE_MAP:
+	//case CX2Main::XS_DUNGEON_GAME:
+	//case CX2Main::XS_BATTLE_FIELD:
+		{
+			bIsVisibleState = true;
+		}
+		break;
+	}
+
+	IF_EVENT_ENABLED( CEI_MOMOTI_QUIZ_EVENT )
+	{
+		if ( true == bIsVisibleState && true == m_bShow )
+		{
+			m_pDLGMomotiQuizEvent->SetShowEnable(true,true);
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+			m_pDLGMomotiQuizEvent2->SetShowEnable(true,true);
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+		}
+		else
+		{
+			m_pDLGMomotiQuizEvent->SetShowEnable(false,false);
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+			m_pDLGMomotiQuizEvent2->SetShowEnable(false,false);
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+
+		}
+	}
+	ELSE
+	{
+		m_pDLGMomotiQuizEvent->SetShowEnable(false,false);
+#ifdef SERV_MOMOTI_EVENT_ADDQUIZ
+		m_pDLGMomotiQuizEvent2->SetShowEnable(false,false);
+#endif //SERV_MOMOTI_EVENT_ADDQUIZ
+	}
+}
+#endif //SERV_MOMOTI_EVENT
+
+#ifdef SERV_INT_UI_SHOW_EVENT_UI
+void CX2MiniMapUI::SetShowIntUIShowEventUI()
+{
+	if( m_pDLGSIntUIShowEventUI == NULL )
+		return;
+
+	bool bIsVisibleState = false;
+
+	switch(  g_pMain->GetNowStateID() )		/// 마을, 필드에 이벤트 UI 노출
+	{
+	case CX2Main::XS_VILLAGE_MAP:
+		case CX2Main::XS_DUNGEON_GAME:
+		case CX2Main::XS_BATTLE_FIELD:
+		{
+			bIsVisibleState = true;
+		}
+		break;
+	}
+
+	CKTDGUIStatic* pStatic = (CKTDGUIStatic*) m_pDLGSIntUIShowEventUI->GetControl(L"MouseOver");
+	if( NULL != pStatic && NULL != pStatic->GetString(0) )
+	{
+		wstring wstrM = GET_STRING( STR_ID_27249 );
+		wstring wstrMessage = g_pMain->GetStrByLienBreak( wstrM.c_str() , 220, pStatic->GetString(0)->fontIndex );
+
+		pStatic->GetString(0)->msg = wstrMessage; // 고정스트링(설명)
+	}
+
+	if( NULL != pStatic && NULL != pStatic->GetString(1) )
+	{
+		wstring wstrM = GET_STRING( STR_ID_27250 );
+		wstring wstrMessage = g_pMain->GetStrByLienBreak( wstrM.c_str() , 220, pStatic->GetString(1)->fontIndex );
+		pStatic->GetString(1)->msg = wstrMessage; // 고정스트링(설명)
+	}
+
+	// 현재 어둠의 문만 하드코딩(추후 수정예정)
+	IF_EVENT_ENABLED( CEI_NEW_DEFENCE_DUNGEON_ENTER_100_PERCENT_EVENT )
+	{
+		if ( true == bIsVisibleState && true == m_bShow )
+		{
+			m_pDLGSIntUIShowEventUI->SetShowEnable(true,true);
+		}
+		else
+		{
+			m_pDLGSIntUIShowEventUI->SetShowEnable(false,false);
+		}
+	}
+	ELSE
+	{
+		m_pDLGSIntUIShowEventUI->SetShowEnable(false,false);
+	}
+}
+#endif //SERV_INT_UI_SHOW_EVENT_UI
 
 #ifdef DISABLE_CHANNEL_CHANGE_IN_SQUARE
 void CX2MiniMapUI::SetEnableChannelComboBox( bool bVal_ )
@@ -1847,3 +1792,48 @@ void CX2MiniMapUI::SetEnableChannelComboBox( bool bVal_ )
 	}
 }
 #endif //DISABLE_CHANNEL_CHANGE_IN_SQUARE
+
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+void CX2MiniMapUI::SetShowTearOfELWoman()
+{
+	if( m_pDLGTearOfELWoman == NULL )
+		return;
+
+	if ( g_pMain->GetNowStateID() == CX2Main::XS_VILLAGE_MAP && true == m_bShow )
+	{
+		IF_EVENT_ENABLED(CEI_TEAR_OF_ELWOMAN)
+		{
+			m_pDLGTearOfELWoman->SetShowEnable(true,true);
+		}
+		ELSE
+		{
+			m_pDLGTearOfELWoman->SetShowEnable(false,false);
+		}		
+	}
+	else
+	{
+		m_pDLGTearOfELWoman->SetShowEnable(false,false);
+	}
+}
+void CX2MiniMapUI::UpdateTearOfELWomanCount(int iVal)
+{	
+	if( NULL != m_pDLGTearOfELWoman )
+	{
+		WCHAR wBuf1[10];		
+		StringCchPrintfW( wBuf1, 10, L"%d", iVal ) ;
+
+		CKTDGUIStatic* pStatic = (CKTDGUIStatic*)m_pDLGTearOfELWoman->GetControl(L"Wait");
+		if( NULL != pStatic && NULL != pStatic->GetString(0) )
+		{
+			pStatic->GetString(0)->msg = wBuf1; // 엘의 여인의 눈물
+		}
+
+		pStatic = (CKTDGUIStatic*) m_pDLGTearOfELWoman->GetControl(L"MouseOver");
+		if( NULL != pStatic && NULL != pStatic->GetString(0) )
+		{
+			pStatic->GetString(0)->msg = wBuf1; // 엘의 여인의 눈물 개수(툴팁)
+		}
+
+	}
+}
+#endif SERV_EVENT_TEAR_OF_ELWOMAN

@@ -16,6 +16,8 @@
 #include "ID/CJBillingManager.h"
 #elif defined (SERV_COUNTRY_BR)
 #include "BR/BRPayletterBillingManager.h"
+#elif defined (SERV_COUNTRY_IN)
+#include "IN/NaunBillingManager.h"
 #endif // SERV_COUNTRY_XX
 
 
@@ -38,6 +40,8 @@ void KncSendToPublisherBilling( DWORD dwPIFrom_, UidType nFrom_, DWORD dwPITo_, 
 	SiKCJBillingManager()->QueueingEvent( spEvent );
 #elif defined (SERV_COUNTRY_BR)
 	SiKBRPayletterBillingManager()->QueueingEvent( spEvent );
+#elif defined (SERV_COUNTRY_IN)
+	SiKNaunBillingManager()->QueueingEvent( spEvent );
 #else // SERV_COUNTRY_XX
 	START_LOG( cerr, L"해당 국가 Define에는 KncSendToPublisherBilling 호출하면 안됨" )
 		<< BUILD_LOG( dwPIFrom_ )

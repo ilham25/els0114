@@ -30,7 +30,7 @@ public:
 	void	SetRankingInfo( const std::vector< KHenirRankingInfo >& vecRankingInfo );
 	void	ClearRanking();
 
-private:
+private:	
 #ifdef SERV_HENIR_RANKING_GROUP_FIX
 	bool	RankingSort( const UidType& iUnitUID );
 #endif SERV_HENIR_RANKING_GROUP_FIX

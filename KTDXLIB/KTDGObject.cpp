@@ -5,7 +5,11 @@
 // constructor.
 CKTDGObject::CKTDGObject( CKTDGObject* pManagerObject_ )
 : m_eObjectType( OT_UNKNOWN )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+, m_uRefCounter( 0 )
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 , m_vScaleByUnit( 1, 1, 1 )
+
 {
 
     m_pManagerObject        = pManagerObject_;
@@ -41,7 +45,7 @@ CKTDGObject::CKTDGObject( CKTDGObject* pManagerObject_ )
 
     m_bCulled           = false;
     //{{ seojt: 2008.10.23
-    m_dwLastAccessTime  = 0.0;
+    //m_dwLastAccessTime  = 0.0;
     //}} seojt
 
 //{{ robobeg : 2008-10-13
@@ -81,6 +85,7 @@ void CKTDGObject::SetManagerObject( CKTDGObject* pManagerObject_ )
 }//CKTDGObject::SetRefMatrix()
 //}} robobeg : 2008-10-17
 
+#ifndef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 /** @function : CKTDGObject::KTDGObjectDeleter::operator()
 	@brief : 1. DGManager에 의해 관리 되는 객체이면 DGManager에서 삭제한다.\n
@@ -96,6 +101,8 @@ void CKTDGObject::KTDGObjectDeleter::operator()( CKTDGObject* pObject_ )
     DeleteKTDGObject( pObject_ );
 }//CKTDGObject::KTDGObjectDeleter::operator()()
 //}} seojt // 2009-1-14, 21:23
+
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 
 /*static*/ void CKTDGObject::DeleteKTDGObject( CKTDGObject* pObject_ )

@@ -100,6 +100,9 @@ SimLayer:SetBillingFlag( BF_GLOBAL_SERVICE )
 SimLayer:AddPath( "D:\\Elsword\\Server\\ServerResource" ) -- server ServerResource
 SimLayer:AddPath( "D:\\Elsword\\Server\\ClientScript" ) -- client script
 
+-- Server Group 수 설정 --
+SimLayer:SetServerGroupNum( 1 ) -- 서버군의 수(진입구조 개편 관련하여 필요)
+
 ----------     DB Layer 설정     ----------
 
 -- 접속 DB 목록 --

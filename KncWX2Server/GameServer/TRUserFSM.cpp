@@ -11,7 +11,7 @@ const wchar_t*  KTRUserFSM::ms_szInput[] = {
 #   include "TRUserFSMInput_def.h" 
 };
 
-KTRUserFSM::KTRUserFSM() : FSMclass( KTRUserFSM::ENUM_STATE::STATE_INIT )
+KTRUserFSM::KTRUserFSM() : FSMclass( STATE_INIT )
 {
 	// STATE_INIT
 	FSMstate* pState = new FSMstate( STATE_INIT, 1 );

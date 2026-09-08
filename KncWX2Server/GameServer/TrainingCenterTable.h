@@ -51,6 +51,10 @@ public:
 	float	GetPlayTime( IN int iTCID );
 	bool	GetReward( IN int iTCID, OUT int& iRewardED, OUT int& iRewardEXP );
 
+#ifdef DO_NOT_COUNT_DEAD_NPC_RELATED_TO_TITLE_MISSION_IN_TRAINING_ROOM
+	bool	IsTrainingCenter( IN int iDungeonID );
+#endif // DO_NOT_COUNT_DEAD_NPC_RELATED_TO_TITLE_MISSION_IN_TRAINING_ROOM
+
 
 private:
 	std::map<int, TC_TABLE_INFO>		m_mapTCInfo;

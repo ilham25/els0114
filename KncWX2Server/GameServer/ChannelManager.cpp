@@ -1,3 +1,4 @@
+#include "GSSimLayer.h"		// 해외팀 추가 의도적으로 디파인 걸지않음
 #include "GameServer.h"
 #include "ChannelManager.h"
 
@@ -67,6 +68,16 @@ void KChannelManager::Tick()
 		KDBE_CHANNEL_LIST_REQ kPacketToDB;
 		kPacketToDB.m_iServerGroupID = m_iServerGroupID;
 		SendToLogDB( DBE_CHANNEL_LIST_REQ, kPacketToDB );
+
+#ifdef SERV_ENTRY_POINT	// 해외팀 추가
+		// 서버군이 2개 국가에서만 동작
+		if ( GetKGSSimLayer()->GetServerGroupNum() == KGSSimLayer::DOUBLE_SERVER_GROUP )
+		{
+			KDBE_CHANNEL_LIST_REQ kPacketToDB2nd;
+			kPacketToDB2nd.m_iServerGroupID = ( m_iServerGroupID == SEnum::SGI_SOLES ? SEnum::SGI_GAIA : SEnum::SGI_SOLES );
+			SendToLogDB2nd( DBE_CHANNEL_LIST_REQ, kPacketToDB2nd );
+		}
+#endif SERV_ENTRY_POINT
 
 		m_kChannelListRefreshTimer.restart();
 	}
@@ -176,6 +187,29 @@ void KChannelManager::UpdateChannelList( const std::map< int, KChannelInfo >& ma
 	//}}
 }
 
+#ifdef SERV_ENTRY_POINT
+void KChannelManager::UpdateChannelList2nd( const std::map< int, KChannelInfo >& mapChannelList_ )
+{
+    m_mapChannelList2nd.clear();
+    m_mapChannelList2nd = mapChannelList_;
+
+    std::map< int, KChannelInfo >::iterator mit;
+    for( mit = m_mapChannelList2nd.begin(); mit != m_mapChannelList2nd.end(); ++mit )
+    {
+        KChannelSimpleInfo kInfo;
+        kInfo.m_iChannelID = mit->second.m_iChannelID;
+        kInfo.m_iCurrentUser = mit->second.m_iCurrentUser;
+        kInfo.m_iMaxUser = mit->second.m_iMaxUser;
+        m_vecChannelList2nd.push_back( kInfo );
+
+    }
+
+}
+
+#endif SERV_ENTRY_POINT
+
+
+
 //{{ 2012. 06. 29	박세훈	채널 UI 유동적으로 변경 가능한 시스템 ( Merge )
 #ifdef SERV_CHANNEL_LIST_RENEWAL
 void KChannelManager::UpdateChannelBonusList( const std::map< int, KChannelBonusInfo >& mapChannelBonusList )
@@ -189,14 +223,14 @@ void KChannelManager::UpdateChannelBonusList( const std::map< int, KChannelBonus
 
 	if( mit == mapChannelBonusList.end() )
 	{
-#ifdef SERV_COUNTRY_EU
+#if defined (SERV_COUNTRY_EU) || defined (SERV_COUNTRY_IN)
 			//유럽은 채널 보너스가 없다.
 #else //SERV_COUNTRY_EU
 		START_LOG(cerr, L"게임서버 채널 보너스 변경 할수가 없다")
 			<< BUILD_LOG( m_iGameServChannelID )
 			<< BUILD_LOG( m_mapChannelBonusList.size() )
 			<< END_LOG;
-#endif //SERV_COUNTRY_EU
+#endif //defined (SERV_COUNTRY_EU) || defined (SERV_COUNTRY_IN)
 		return;
 	}
 	else
@@ -208,6 +242,16 @@ void KChannelManager::UpdateChannelBonusList( const std::map< int, KChannelBonus
 
 #endif SERV_CHANNEL_LIST_RENEWAL
 //}}
+
+#ifdef SERV_ENTRY_POINT
+void KChannelManager::UpdateChannelBonusList2nd( const std::map< int, KChannelBonusInfo >& mapChannelBonusList_ )
+{
+    m_mapChannelBonusList2nd.clear();
+
+    m_mapChannelBonusList2nd = mapChannelBonusList_;
+
+}
+#endif SERV_ENTRY_POINT
 
 bool KChannelManager::GetServerUIDByChannelID( int iChannelID, UidType& iServerUID )
 {

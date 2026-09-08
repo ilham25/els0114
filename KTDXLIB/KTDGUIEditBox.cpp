@@ -52,25 +52,26 @@ CKTDGUIEditBox::CKTDGUIEditBox()
     KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
 
-	if(  g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
+	if(  g_pKTDXApp->LoadAndDoMemory( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
 	{
 		return;
 	}
 
-	string keyDownSndFileName;
+	wstring keyDownSndFileName;
 
-	LUA_GET_VALUE( kLuaManager, "EditBox_KeyDown", keyDownSndFileName, "" );
-
-	wstring sndFileName;
-
-	ConvertCharToWCHAR( sndFileName, keyDownSndFileName.c_str() );
-	m_pSndKeyDown = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
+	LUA_GET_VALUE( kLuaManager, "EditBox_KeyDown", keyDownSndFileName, L"" );
+	m_pSndKeyDown = g_pKTDXApp->GetDeviceManager()->OpenSound( keyDownSndFileName );
 #ifdef FIX_IME_EDITBOX_LOSE_FIRST_CHAR
 	m_rcText.left = 0;
 	m_rcText.top = 0;
 	m_rcText.right = 0;
 	m_rcText.bottom = 0;
 #endif FIX_IME_EDITBOX_LOSE_FIRST_CHAR
+
+#ifdef DLL_BUILD
+	m_pCheckedEdgeTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"UIEdge.tga" );
+	m_bEditEdge = false;
+#endif
 }
 
 CKTDGUIEditBox::~CKTDGUIEditBox(void)
@@ -83,6 +84,10 @@ CKTDGUIEditBox::~CKTDGUIEditBox(void)
 	SAFE_DELETE( m_pTextPoint );
 
 	SAFE_CLOSE( m_pSndKeyDown );
+
+#ifdef DLL_BUILD
+	SAFE_CLOSE( m_pCheckedEdgeTexture );
+#endif
 }
 
 HRESULT CKTDGUIEditBox::OnFrameMove( double fTime, float fElapsedTime )
@@ -126,6 +131,10 @@ HRESULT CKTDGUIEditBox::OnFrameRender()
 	KTDXPROFILE();
 	if( m_bShow == false )
 		return S_OK;
+
+#ifdef DLL_BUILD
+	DrawEditEdge();
+#endif
 
 	HRESULT hr;
 	int nSelStartX = 0, nCaretX = 0;  // Left and right X cordinates of the selection region
@@ -429,7 +438,9 @@ bool CKTDGUIEditBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lPa
 				return false;
 
 			m_bMouseDrag = true;
+#ifndef DLL_BUILD
 			SetCapture( DXUTGetHWND() );
+#endif
 			// Determine the character corresponding to the coordinates.
 			int nCP, nTrail, nX1st;
 			m_Buffer.CPtoX( m_nFirstVisible, FALSE, &nX1st );  // X offset of the 1st visible char
@@ -1038,3 +1049,105 @@ void CKTDGUIEditBox::OnFocusOut()
 		SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_EVENT, m_CustomMsgEditBoxFocusOut, (LPARAM)this );
 	}
 }
+
+#ifdef DLL_BUILD
+void CKTDGUIEditBox::MoveControl( float fx, float fy )
+{
+	if( NULL != m_pTextPoint )
+		return m_pTextPoint->Move(fx, fy);
+}
+
+D3DXVECTOR2 CKTDGUIEditBox::GetPos()
+{
+	if( NULL != m_pTextPoint )
+		return m_pTextPoint->leftTopPoint;
+
+	return D3DXVECTOR2(0, 0);
+}
+
+vector<D3DXVECTOR2> CKTDGUIEditBox::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;	
+
+	if( NULL != m_pTextPoint )
+	{
+		ret.push_back(m_pTextPoint->leftTopPoint);
+		ret.push_back(m_pTextPoint->rightTopPoint);
+		ret.push_back(m_pTextPoint->leftBottomPoint);
+		ret.push_back(m_pTextPoint->rightBottomPoint);
+	}
+
+	return ret;
+}
+
+void CKTDGUIEditBox::SetEditGUI( bool bEdit )
+{
+	SetColor(D3DXCOLOR(0xffffffff));
+	m_bEditEdge = bEdit;
+}
+
+bool CKTDGUIEditBox::IsSelectByEditGui( POINT pt )
+{
+	return Pick2DRect( pt, m_NowPoint.leftTopPoint, m_NowPoint.rightTopPoint, m_NowPoint.leftBottomPoint ,m_NowPoint.rightBottomPoint );	
+}
+
+void CKTDGUIEditBox::DrawEditEdge()
+{
+	if( false == m_bEditEdge )
+		return;	
+
+	if ( m_pCheckedEdgeTexture == NULL )
+		return;	
+
+	//const CKTDGUIControl::UIPointData & point = *m_pEditEdgePoint;
+	D3DXCOLOR tempColor;
+
+	int edgeWidth = 2;
+	D3DXCOLOR edgeColor = D3DXCOLOR(0xffff0000);
+
+	tempColor.a = edgeColor.a * m_pDialog->GetColor().a * m_Color.a;
+	tempColor.r = edgeColor.r * m_pDialog->GetColor().r * m_Color.r;
+	tempColor.g = edgeColor.g * m_pDialog->GetColor().g * m_Color.g;
+	tempColor.b = edgeColor.b * m_pDialog->GetColor().b * m_Color.b;
+
+	RECT edgeRect;
+	edgeRect.left = (int)m_NowPoint.leftTopPoint.x;
+	edgeRect.top = (int)m_NowPoint.leftTopPoint.y;
+	edgeRect.right = (int)m_NowPoint.rightBottomPoint.x;
+	edgeRect.bottom = (int)m_NowPoint.rightBottomPoint.y;
+
+	int _width = (int)(edgeRect.right - edgeRect.left);
+	int _height = (int)(edgeRect.bottom - edgeRect.top);
+
+	//if ( m_bDrawEdgeOut == true )
+	{
+		// ÁÂ left/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth), 
+			edgeWidth , 
+			_height + edgeWidth, 
+			tempColor );
+
+		// ÇÏleft/bottom
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.bottom ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+
+		// ¿ìright/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.right ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top ), 
+			edgeWidth, 
+			_height + edgeWidth, 
+			tempColor );
+
+		// »óleft/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+	}
+}
+#endif

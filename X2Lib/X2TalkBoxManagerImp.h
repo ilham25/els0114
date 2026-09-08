@@ -210,14 +210,14 @@ class CX2TalkBoxManagerImp
 
 	protected:
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		virtual void DrawFace( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color = 0xffffffff );
-		virtual void DrawReverseFace( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color = 0xffffffff );
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		virtual void DrawFace( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color = 0xffffffff );
+//		virtual void DrawReverseFace( float nX, float nY, float nWidth, float nHeight, D3DCOLOR color = 0xffffffff );
+//#endif
 		virtual void DrawBalloon( int iType, float fX, float fY, float fCenterWidth, float fCenterHeight, 
 			float fWidthScale, float fHeightScale, float fTipLerpCoeff, D3DXCOLOR backTexColor );
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		void SetFaceUV( DRAWFACE_RHW_VERTEX arvVertices[4], float nX, float nY, float nWidth, float nHeight, 
 			float fU, float fV, float fTexWidth, float fTexHeight, 
 			float fClockWiseRotate = 0.f, int iFlipType = 0, D3DCOLOR color = 0xffffffff );
@@ -227,17 +227,17 @@ class CX2TalkBoxManagerImp
 
 		void SetBalloonTip( DRAWFACE_RHW_VERTEX arvVertices[4], int iType, float fX, float fY, float fCenterWidth, float fCenterHeight, 
 			float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor );
-#else
-		virtual void DrawFaceUV( float nX, float nY, float nWidth, float nHeight, 
-								float fU, float fV, float fTexWidth, float fTexHeight, 
-								float fClockWiseRotate = 0.f, int iFlipType = 0, D3DCOLOR color = 0xffffffff );
-
-		void DrawBalloonBody( float fX, float fY, float fCenterWidth, float fCenterHeight, 
-							float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor );
-
-		void DrawBalloonTip( int iType, float fX, float fY, float fCenterWidth, float fCenterHeight, 
-							float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor );
-#endif
+//#else
+//		virtual void DrawFaceUV( float nX, float nY, float nWidth, float nHeight, 
+//								float fU, float fV, float fTexWidth, float fTexHeight, 
+//								float fClockWiseRotate = 0.f, int iFlipType = 0, D3DCOLOR color = 0xffffffff );
+//
+//		void DrawBalloonBody( float fX, float fY, float fCenterWidth, float fCenterHeight, 
+//							float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor );
+//
+//		void DrawBalloonTip( int iType, float fX, float fY, float fCenterWidth, float fCenterHeight, 
+//							float fWidthScale, float fHeightScale, D3DXCOLOR backTexColor );
+//#endif
 
 #ifdef NUMBER_TO_LANGUAGE
 		void LineBreak( int& nRow, int& iColumnSize, wstring& wstrSpeech, bool bTrade );
@@ -279,19 +279,19 @@ class CX2TalkBoxManagerImp
 	    CKTDGStateManager::KStateID m_RenderStateID;
 //}} robobeg : 2008-10-13
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		LPDIRECT3DVERTEXBUFFER9	m_pVB;
-		LPDIRECT3DINDEXBUFFER9	m_pIB;
-		float               m__fX_VB;
-		float               m__fY_VB;
-		float               m_fX_VB;
-		float               m_fY_VB;
-		float               m_fCenterWidth_VB;
-		float               m_fCenterHeight_VB;
-		float               m_fWidthScale_VB;
-		float               m_fHeightScale_VB;
-		D3DXCOLOR           m_d3dxBackTexColor_VB;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		LPDIRECT3DVERTEXBUFFER9	m_pVB;
+//		LPDIRECT3DINDEXBUFFER9	m_pIB;
+//		float               m__fX_VB;
+//		float               m__fY_VB;
+//		float               m_fX_VB;
+//		float               m_fY_VB;
+//		float               m_fCenterWidth_VB;
+//		float               m_fCenterHeight_VB;
+//		float               m_fWidthScale_VB;
+//		float               m_fHeightScale_VB;
+//		D3DXCOLOR           m_d3dxBackTexColor_VB;
+//#endif
 
 
 		int					m_OffsetPosX;

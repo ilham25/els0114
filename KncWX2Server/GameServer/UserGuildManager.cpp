@@ -93,9 +93,21 @@ void KUserGuildManager::OnDecreaseSpirit( IN KGSUserPtr spUser, IN int iDecrease
 
 	// 명예 포인트 얻기
 	const int iIncreaseHonorPoint = SiCXSLGuildManager()->GetHonorPoint_Dungeon( spUser->GetLevel(), GetMemberShipGrade(), iDecreaseSpirit, spUser->IsPcBang() );
-
+#ifdef SERV_GUILD_BONUSRATE_POINT
+	IF_EVENT_ENABLED(CEI_GUILD_BONUSRATE_POINT)
+	{
+		const int iTemp = iIncreaseHonorPoint * 2;
+		m_iHonorPoint += iTemp;
+	}
+	ELSE
+	{
+		// 명예 포인트를 채웁니다.
+		m_iHonorPoint += iIncreaseHonorPoint;
+	}
+#else
 	// 명예 포인트를 채웁니다.
 	m_iHonorPoint += iIncreaseHonorPoint;
+#endif SERV_GUILD_BONUSRATE_POINT
 
 	// 명예 포인트가 가득찼는지 확인
 	CheckHonorPoint( spUser );
@@ -121,8 +133,21 @@ void KUserGuildManager::OnUpdatePvpUnitInfo( IN KGSUserPtr spUser, IN int iPvpMe
 	// 명예 포인트 얻기
 	const int iIncreaseHonorPoint = SiCXSLGuildManager()->GetHonorPoint_Pvp( spUser->GetLevel(), GetMemberShipGrade(), iPvpMemberCount, spUser->IsPcBang() );
 
+#ifdef SERV_GUILD_BONUSRATE_POINT
+	IF_EVENT_ENABLED(CEI_GUILD_BONUSRATE_POINT)
+	{
+		const int iTemp = iIncreaseHonorPoint * 2;
+		m_iHonorPoint += iTemp;
+	}
+	ELSE
+	{
+		// 명예 포인트를 채웁니다.
+		m_iHonorPoint += iIncreaseHonorPoint;
+	}
+#else
 	// 명예 포인트를 채웁니다.
 	m_iHonorPoint += iIncreaseHonorPoint;
+#endif SERV_GUILD_BONUSRATE_POINT
 
 	// 명예 포인트가 가득찼는지 확인
 	CheckHonorPoint( spUser );

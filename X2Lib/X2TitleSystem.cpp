@@ -1,6 +1,6 @@
 #include "StdAfx.h"
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 
 #include ".\x2TitleSystem.h"
 
@@ -66,6 +66,75 @@ void CX2TitleSystem::OpenTitle()
             if(pDlgCheck != NULL)
                 pDlgCheck->SetChecked(m_bTakeTitle);
         }
+
+#ifdef SERV_ALTERA_AUTO_OPEN_HARD_CODE
+		IF_EVENT_ENABLED( CEI_ALTERA_AUTO_OPEN_HARD_CODE )
+		{
+			// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+		}
+		ELSE
+		{
+			if ( m_pDlgTitle != NULL )
+			{
+				CKTDGUIButton *pButton;
+				pButton = (CKTDGUIButton*)m_pDlgTitle->GetControl(L"TitleGroup4");
+				if ( pButton != NULL )
+					pButton->SetShowEnable(false, false);
+			}
+		}
+#endif //SERV_ALTERA_AUTO_OPEN_HARD_CODE
+
+#ifdef SERV_PEITA_AUTO_OPEN_HARD_CODE
+		IF_EVENT_ENABLED( CEI_PEITA_AUTO_OPEN_HARD_CODE )
+		{
+			// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+		}
+		ELSE
+		{
+			if ( m_pDlgTitle != NULL )
+			{
+				CKTDGUIButton *pButton;
+				pButton = (CKTDGUIButton*)m_pDlgTitle->GetControl(L"TitleGroup5");
+				if ( pButton != NULL )
+					pButton->SetShowEnable(false, false);
+			}
+		}
+#endif //SERV_PEITA_AUTO_OPEN_HARD_CODE
+
+#ifdef SERV_VELDER_AUTO_OPEN_HARD_CODE
+		IF_EVENT_ENABLED( CEI_VELDER_AUTO_OPEN_HARD_CODE )
+		{
+			// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+		}
+		ELSE
+		{
+			if ( m_pDlgTitle != NULL )
+			{
+				CKTDGUIButton *pButton;
+				pButton = (CKTDGUIButton*)m_pDlgTitle->GetControl(L"TitleGroup8");
+				if ( pButton != NULL )
+					pButton->SetShowEnable(false, false);
+			}
+		}
+#endif //SERV_VELDER_AUTO_OPEN_HARD_CODE
+
+#ifdef SERV_HAMEL_AUTO_OPEN_HARD_CODE
+		IF_EVENT_ENABLED( CEI_HAMEL_AUTO_OPEN_HARD_CODE )
+		{
+			// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+		}
+		ELSE
+		{
+			if ( m_pDlgTitle != NULL )
+			{
+				CKTDGUIButton *pButton;
+				pButton = (CKTDGUIButton*)m_pDlgTitle->GetControl(L"TitleGroup9");
+				if ( pButton != NULL )
+					pButton->SetShowEnable(false, false);
+			}
+		}
+#endif //SERV_HAMEL_AUTO_OPEN_HARD_CODE
+
 #ifdef SERV_SANDER_AUTO_OPEN_HARD_CODE
 		IF_EVENT_ENABLED( CEI_SANDER_AUTO_OPEN_HARD_CODE )
 		{
@@ -201,9 +270,6 @@ void CX2TitleSystem::ShowTitleList()
     
     D3DXCOLOR tempColor;
     wstring tempStr, periodDesc;
-#ifndef FIX_TITLE_ATTACH
-	wstring tempDesc;
-#endif
 
     CKTDGUIListBox *pListbox = (CKTDGUIListBox*)m_pDlgTitle->GetControl(L"TitleList");
     pListbox->RemoveAllItems();
@@ -217,23 +283,14 @@ void CX2TitleSystem::ShowTitleList()
         {
         case 0:            
             tempStr = m_vecTitleRecord[i].m_wstrTitleName;
-#ifndef FIX_TITLE_ATTACH
-            tempDesc = m_vecTitleRecord[i].m_wstrTitleDesc;
-#endif
             tempColor = D3DXCOLOR(0.f, 0.f, 0.f, 1.f);
             break;
         case 1:
             tempStr = GET_REPLACED_STRING( ( STR_ID_772, "L", m_vecTitleRecord[i].m_wstrTitleName ) );
-#ifndef FIX_TITLE_ATTACH
-            tempDesc = m_vecTitleRecord[i].m_wstrTitleDesc;
-#endif
             tempColor = D3DXCOLOR(0.5f, 0.5f, 0.5f, 1.f);
             break;
         case 2:            
             tempStr = GET_STRING( STR_ID_773 );
-#ifndef FIX_TITLE_ATTACH
-            tempDesc = GET_STRING( STR_ID_774 );
-#endif
             tempColor = D3DXCOLOR(1.f, 0.f, 0.f, 1.f);
 
 #ifdef SHOW_GM_TITILE_PREPEQUISITE_INFO
@@ -243,14 +300,9 @@ void CX2TitleSystem::ShowTitleList()
 				if ( g_pData->GetMyUser()->GetAuthLevel() == CX2User::XUAL_DEV )
 				{
 					tempStr = GET_REPLACED_STRING( ( STR_ID_772, "L", m_vecTitleRecord[i].m_wstrTitleName ) );
-#ifndef FIX_TITLE_ATTACH
-					tempDesc = m_vecTitleRecord[i].m_wstrTitleDesc;
-#endif
 					tempColor = D3DXCOLOR(1.f, 0.f, 0.f, 1.f);
 				}
-
 			}
-
 #endif //SHOW_GM_TITILE_PREPEQUISITE_INFO
 
             break;
@@ -295,14 +347,6 @@ void CX2TitleSystem::ShowTitleList()
 		
         if(bShow == true)
         {
-#ifndef FIX_TITLE_ATTACH
-             CKTDGUIControl* pControl = new CKTDGUIControl();
-             pControl->SetDialog(m_pDlgTitle);
-             pControl->SetType(CKTDGUIControl::UCT_BUTTON);
-             pControl->SetNameByForce(tempStr.c_str());
-             pControl->SetGuideDesc(tempDesc.c_str());
-#endif
-
             if(m_vecTitleRecord[i].m_nSecret == 0 && m_vecTitleRecord[i].m_bPeriod == true)
             {                
                 periodDesc = L" (";
@@ -342,6 +386,13 @@ void CX2TitleSystem::ShowTitleList()
                 tempStr += periodDesc;
             }
 #ifdef ELLIPSE_GLOBAL
+#ifdef TITLE_PERIOD_NO_ELLIPSE_GLOBAL
+		if( m_vecTitleRecord[i].m_bPeriod == false)
+		{
+			bool bEllipse = false;
+			tempStr = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(tempStr.c_str(), 200, pListbox->GetString()->fontIndex, 1, bEllipse);
+		}
+#else //TITLE_PERIOD_NO_ELLIPSE_GLOBAL
 			bool bEllipse = false;
 #if defined ( COUNTRY_WORDWRAP_WIDTH_US )
 			tempStr = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(tempStr.c_str(), 240, pListbox->GetString()->fontIndex, 1, bEllipse);
@@ -350,18 +401,14 @@ void CX2TitleSystem::ShowTitleList()
 #else
 			tempStr = CWordLineHandler::GetStrByLineBreakInX2MainWithEllipse(tempStr.c_str(), 200, pListbox->GetString()->fontIndex, 1, bEllipse);			
 #endif
+#endif //TITLE_PERIOD_NO_ELLIPSE_GLOBAL
 #endif ELLIPSE_GLOBAL
 
 #ifdef ELLIPSE_CN
 			bool bEllipse = false;
 			tempStr = CWordLineHandler::CutStringWithEllipse(tempStr.c_str(), 200, pListbox->GetString()->fontIndex, 1, bEllipse);
 #endif //ELLIPSE_CN
-
-#ifdef FIX_TITLE_ATTACH
 			pListbox->AddString(tempStr.c_str(), tempColor, &m_vecTitleRecord[i], NULL );
-#else
-            pListbox->AddString(tempStr.c_str(), tempColor, &m_vecTitleRecord[i], pControl);
-#endif
         }
     }
 
@@ -479,12 +526,11 @@ void CX2TitleSystem::ShowTitleDesc(TitleRecord* pData)
 {
 	CKTDGUIStatic *pStaticDesc = (CKTDGUIStatic*)m_pDlgTitle->GetControl(L"title_import");	
     CKTDGUIListBox *pListbox = (CKTDGUIListBox*)m_pDlgTitle->GetControl(L"TitleDesc");
-	pListbox->RemoveAllItems();
+    pListbox->RemoveAllItems();
 #ifdef TITLE_DESCRIPTION_RENEWAL
 	CKTDGUIListBox *pListboxMainTitle = (CKTDGUIListBox*)m_pDlgTitle->GetControl(L"MainTitle");
 	pListboxMainTitle->RemoveAllItems();
 #endif //TITLE_DESCRIPTION_RENEWAL
-    
 
     if(pData == NULL)    
         return;    
@@ -581,7 +627,6 @@ void CX2TitleSystem::ShowTitleDesc(TitleRecord* pData)
 
 	// 칭호 획득조건
 	// 획득 가능 칭호만 획득조건을 보여준다.
-
 	if(pData->m_nSecret == 1
 #ifdef SHOW_GM_TITILE_PREPEQUISITE_INFO
 		|| pData->m_nSecret == 2
@@ -609,7 +654,7 @@ void CX2TitleSystem::ShowTitleDesc(TitleRecord* pData)
 		strCondition = CWordLineHandler::GetStrByLineBreakInX2Main( strCondition.c_str(), 260, XUF_DODUM_13_SEMIBOLD );
 #endif //COUNTRY_WORDWRAP_WIDTH_US
 #else //CLIENT_GLOBAL_LINEBREAK
-		g_pMain->GetStrByLienBreak( str1.c_str(), 300, XUF_DODUM_13_SEMIBOLD );
+		g_pMain->GetStrByLienBreak( str1.c_str(), 260, XUF_DODUM_13_SEMIBOLD );
 #endif //CLIENT_GLOBAL_LINEBREAK
 		wstring::size_type lastPosCond = strCondition.find_first_not_of(L"\n", 0);
 		wstring::size_type posCond     = strCondition.find_first_of(L"\n", lastPosCond);
@@ -711,6 +756,4 @@ void CX2TitleSystem::SetPreviewTitle(wstring titleName)
 		}
 	}	
 }
-#endif
-
-
+//#endif

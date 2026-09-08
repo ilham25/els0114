@@ -146,6 +146,7 @@ protected:
 	DECL_ON_FUNC( ERM_CHECK_ZOMBIE_USER_ACK );
 #endif SERV_PSHOP_AGENCY_ZOMBIE_USER_BUG_FIX
 	//}}
+    DECL_ON_FUNC( ERM_CHECK_MY_PSHOP_AGENCY_INFO_REQ );
 
 protected:
 	KPersonalShopUserManager						m_kPersonalShopUserManager;
@@ -153,7 +154,11 @@ protected:
 	boost::timer									m_kTimer[TM_TOTAL_NUM];
 
 	std::wstring									m_wstrPersonalShopName;
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+	SEnum::AGENCY_SHOP_TYPE				            m_PersonalShopType;
+#else //SERV_UPGRADE_TRADE_SYSTEM
 	CXSLSquareUnit::PERSONAL_SHOP_TYPE				m_PersonalShopType;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	
 	std::wstring									m_wstrAgencyExpirationDate;
 	CTime											m_tAgencyExpirationDate;

@@ -55,6 +55,58 @@ IMPL_ON_FUNC( EGS_STATE_CHANGE_FIELD_REQ )
 
 	KEGS_STATE_CHANGE_FIELD_ACK kPacketAck;
 
+#ifdef SERV_ALTERA_AUTO_OPEN_HARD_CODE
+	IF_EVENT_ENABLED( CEI_ALTERA_AUTO_OPEN_HARD_CODE )
+	{
+		// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+	}
+	ELSE
+	{
+		if( kPacket_.m_iMapID == SEnum::VMI_ALTERA || kPacket_.m_iMapID == SEnum::VMI_BATTLE_FIELD_ALTERA_REST_00 )
+		{
+			kPacket_.m_iMapID = SEnum::VMI_RUBEN;
+		}
+	}
+#endif //SERV_ALTERA_AUTO_OPEN_HARD_CODE
+#ifdef SERV_PEITA_AUTO_OPEN_HARD_CODE
+	IF_EVENT_ENABLED( CEI_PEITA_AUTO_OPEN_HARD_CODE )
+	{
+		// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+	}
+	ELSE
+	{
+		if( kPacket_.m_iMapID == SEnum::VMI_PEITA || kPacket_.m_iMapID == SEnum::VMI_BATTLE_FIELD_PEITA_REST_00 )
+		{
+			kPacket_.m_iMapID = SEnum::VMI_RUBEN;
+		}
+	}
+#endif //SERV_PEITA_AUTO_OPEN_HARD_CODE
+#ifdef SERV_VELDER_AUTO_OPEN_HARD_CODE
+	IF_EVENT_ENABLED( CEI_VELDER_AUTO_OPEN_HARD_CODE )
+	{
+		// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+	}
+	ELSE
+	{
+		if( kPacket_.m_iMapID == SEnum::VMI_VELDER || kPacket_.m_iMapID == SEnum::VMI_BATTLE_FIELD_VELDER_REST_00 )
+		{
+			kPacket_.m_iMapID = SEnum::VMI_RUBEN;
+		}
+	}
+#endif //SERV_VELDER_AUTO_OPEN_HARD_CODE
+#ifdef SERV_HAMEL_AUTO_OPEN_HARD_CODE
+	IF_EVENT_ENABLED( CEI_HAMEL_AUTO_OPEN_HARD_CODE )
+	{
+		// 2013.03.14 lygan_조성욱 // 코드 비어 있는게 맞습니다.
+	}
+	ELSE
+	{
+		if( kPacket_.m_iMapID == SEnum::VMI_HAMEL || kPacket_.m_iMapID == SEnum::VMI_BATTLE_FIELD_HAMEL_REST_00 )
+		{
+			kPacket_.m_iMapID = SEnum::VMI_RUBEN;
+		}
+	}
+#endif //SERV_HAMEL_AUTO_OPEN_HARD_CODE
 #ifdef SERV_SANDER_AUTO_OPEN_HARD_CODE
 	IF_EVENT_ENABLED( CEI_SANDER_AUTO_OPEN_HARD_CODE )
 	{
@@ -75,6 +127,22 @@ IMPL_ON_FUNC( EGS_STATE_CHANGE_FIELD_REQ )
 		kPacket_.m_iMapID = SEnum::VMI_RUBEN;
 	}
 #endif // NO_SANDER_VILLIAGE
+
+#ifdef SERV_NO_VELDER_VILLIAGE
+	if( kPacket_.m_iMapID == SEnum::VMI_VELDER || kPacket_.m_iMapID == SEnum::VMI_BATTLE_FIELD_VELDER_REST_00 )
+	{
+		kPacket_.m_iMapID = SEnum::VMI_RUBEN;
+	}
+#endif //SERV_NO_VELDER_VILLIAGE
+
+#ifdef SERV_NO_HAMEL_VILLIAGE
+	if( kPacket_.m_iMapID == SEnum::VMI_HAMEL || kPacket_.m_iMapID == SEnum::VMI_BATTLE_FIELD_HAMEL_REST_00 )
+	{
+		kPacket_.m_iMapID = SEnum::VMI_RUBEN;
+	}
+#endif //SERV_NO_HAMEL_VILLIAGE
+
+
 
 	//{{ 2012. 09. 21   김민성   마을 입장 오류 메시지 구분
 #ifdef SERV_ENTER_VILLAGE_ERROR
@@ -498,37 +566,18 @@ IMPL_ON_FUNC( ERM_JOIN_FIELD_ACK )
 			kPacket2.m_iUnitUID = GetCharUID();
 			SendPacket( EGS_EPAY_INFO_NOT, kPacket2 );
 #endif //SERV_EPAY_SYSTEM
-		}
-		
+		}		
 #endif //SERV_IDENTITY_CONFIRM_POPUP_MESSAGE
-
 	}
 
 	KEGS_FIELD_LOADING_COMPLETE_ACK kPacket;
 	kPacket.m_iOK = kPacket_.m_iOK;
 	
-	//{{ 2012. 04. 10	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-#else
-	//{{ 2012. 03. 27	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-	kPacket.m_bEventReturnUserMark = m_bEventReturnUserMark;
-	m_bEventReturnUserMark = false;
-#endif SERV_EVENT_RETURN_USER_MARK
-	//}}
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//}}
-
-	//{{ 2012. 03. 27	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-#else
 	//{{ 2012. 05. 16	박세훈	첫 접속 시 가이드 라인 띄워주기
 #ifdef SERV_EVENT_GUIDELINE_POPUP
 	kPacket.m_bPopupTheGuideLine = m_bPopupTheGuideLine;
 	m_bPopupTheGuideLine = false;
 #endif SERV_EVENT_GUIDELINE_POPUP
-	//}}
-#endif SERV_EVENT_RETURN_USER_MARK
 	//}}
 
 	SendPacket( EGS_FIELD_LOADING_COMPLETE_ACK, kPacket );
@@ -620,6 +669,7 @@ _IMPL_ON_FUNC( ERM_LEAVE_ROOM_FOR_ENTER_THE_VILLAGE_ACK, KEGS_LEAVE_ROOM_ACK )
 	if( bIsSuccess == true )
 	{
 		SetRoomUID( 0 );
+		m_kUserDungeonManager.SetDungeonGameInfo( 0, 0, 0 );
 
 		StateTransition( KGSFSM::I_TO_FIELD_MAP );
 

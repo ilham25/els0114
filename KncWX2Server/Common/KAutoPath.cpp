@@ -31,7 +31,11 @@ KAutoPath::KAutoPath()
 	std::vector< std::string >::const_iterator vit;
 	for( vit = g_vecAddPath.begin(); vit != g_vecAddPath.end(); ++vit )
 	{
+#ifdef _CONVERT_VS_2010
+		strcpy_s( szCurDir, vit->c_str() );
+#else
 		strcpy( szCurDir, vit->c_str() );
+#endif _CONVERT_VS_2010
 		//szCurDir[0] = cFolder;
 		strCurDir = szCurDir;
 
@@ -58,8 +62,11 @@ bool KAutoPath::GetPullPath( std::string& strFileName )
 	for( int i = 0; i < (int)m_vecDirectory.size(); ++i )
 	{
 		strName = m_vecDirectory[i] + strFileName;
-
+#ifdef _CONVERT_VS_2010
+		fopen_s( &file, strName.c_str(), "rb" );
+#else
 		file = fopen( strName.c_str(), "rb" );
+#endif _CONVERT_VS_2010
 		if( file != NULL )
 		{
 			strFileName = strName;
@@ -88,8 +95,11 @@ bool KAutoPath::GetPullPath( std::wstring& wstrFileName )
 	for( int i = 0; i < (int)m_vecDirectory.size(); ++i )
 	{
 		strName = m_vecDirectory[i] + strFileName;
-
+#ifdef _CONVERT_VS_2010
+		fopen_s( &file, strName.c_str(), "rb" );
+#else
 		file = fopen( strName.c_str(), "rb" );
+#endif _CONVERT_VS_2010
 		if( file != NULL )
 		{
 			WCHAR wstrTemp[256] = L"";
@@ -114,9 +124,13 @@ void KAutoPath::InitDirectory( std::string strCurDir )
 	WIN32_FIND_DATAA	fd;
 	char				szSearchPath[256];
 
+#ifdef _CONVERT_VS_2010
+	strcpy_s( szSearchPath, strCurDir.c_str() );
+	strcat_s( szSearchPath, "\\*.*" );
+#else
 	strcpy( szSearchPath, strCurDir.c_str() );
 	strcat( szSearchPath, "\\*.*" );
-
+#endif _CONVERT_VS_2010
 	hSearch = FindFirstFileA( szSearchPath, &fd );
 
 	if( hSearch == INVALID_HANDLE_VALUE )
@@ -131,9 +145,15 @@ void KAutoPath::InitDirectory( std::string strCurDir )
 				char	szNewSearchDir[256];
 				std::string	strDir;
 
+#ifdef _CONVERT_VS_2010
+				strcpy_s( szNewSearchDir, strCurDir.c_str() );
+				strcat_s( szNewSearchDir, "\\" );
+				strcat_s( szNewSearchDir, fd.cFileName );
+#else
 				strcpy( szNewSearchDir, strCurDir.c_str() );
 				strcat( szNewSearchDir, "\\" );
 				strcat( szNewSearchDir, fd.cFileName );
+#endif _CONVERT_VS_2010
 
 				strDir = szNewSearchDir;
 				strDir += "\\";

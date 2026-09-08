@@ -48,10 +48,6 @@ class CX2MemoryHolder
 
 		CKTDGUIDialogType GetOptionDLG( CKTDXStage* pStage );
 
-//#ifdef FESTIVAL_UI //2013.05.10 <2013 공존의 축제 : 스킬 슬롯 UI 부분은 제외됨>
-//		CKTDGUIDialogType GetFestivalDLG( CKTDXStage* pStage );
-//#endif FESTIVAL_UI
-
 #ifdef XMAS_UI
 		CKTDGUIDialogType GetXMasDLG( CKTDXStage* pStage );
 #endif
@@ -64,6 +60,11 @@ class CX2MemoryHolder
 		void ShowRedPicture(bool bShow);
 #endif SERV_CHINA_SPIRIT_EVENT
 
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		CKTDGUIDialogType GetUseCoboEventDLG( CKTDXStage* pStage );
+		CKTDGUIDialogType GetCoboEventCountDLG( CKTDXStage* pStage );
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
 		void SetShowNewYear2014Event( bool bShow );
 		void SetShowNewYear2014EventBoard( bool bShow );
@@ -71,6 +72,32 @@ class CX2MemoryHolder
 		CKTDGUIDialogType GetNewYear2014EventDLG( CKTDXStage* pStage );
 		void UpdateNewYear2014Event();
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+		void SetShowCheckPowerEvent( bool bShow );
+		CKTDGUIDialogType GetCheckPowerEventDLG( CKTDXStage* pStage );
+		void UpdateCheckPowerEvent();
+
+		bool GetShowCheckPowerEventGuidePage() { return m_bShowCheckPowerGuide; }
+		void SetShowCheckPowerEventGuidePage( bool bShow ) { m_bShowCheckPowerGuide = bShow; }
+
+		void UpdateCheckPowerEventTimer();
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		CKTDGUIDialogType GetChungGiveItemDLG( CKTDXStage* pStage );
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		CKTDGUIDialogType GetUseAdamsEventShop(CKTDXStage* pStage );
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		void SetShow4thEvent( bool bShow );
+		void ToggleShow4thEvent() { SetShow4thEvent( !m_bShow4thYearEvent ); }
+		CKTDGUIDialogType Get4thEventDLG( CKTDXStage* pStage );
+		void Update4thEvent();
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 
 		void LoadVillageMemory( int villageID );
 		void ReleaseVillageMemory();
@@ -111,25 +138,44 @@ class CX2MemoryHolder
 
 		CKTDGUIDialogType	m_pDLGOptionWindow;
 
-//#ifdef FESTIVAL_UI       //2013.05.10 <2013 공존의 축제 : 스킬 슬롯 UI 부분은 제외됨>
-//		CKTDGUIDialogType m_pFestivalDLG;
-//#endif FESTIVAL_UI
-
 #ifdef XMAS_UI
 		CKTDGUIDialogType m_pXMasDLG;
 #endif
 
 #ifdef SERV_CHINA_SPIRIT_EVENT
-		CKTDGUIDialogType m_pUseSpiritEventDLG;
-
+		CKTDGUIDialogType 		m_pUseSpiritEventDLG;
 		bool					m_bShow;
 #endif SERV_CHINA_SPIRIT_EVENT
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		CKTDGUIDialogType		m_pUseCoboEventDLG;
+		CKTDGUIDialogType		m_pCoboEventCountDLG;
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
 
 #ifdef SERV_NEW_YEAR_EVENT_2014
 		CKTDGUIDialogType		m_pNewYear2014EventDLG;
 		bool					m_bShowNewYear2014Event;
 		bool					m_bShowNewYear2014EventBoard;
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+		CKTDGUIDialogType		m_pCheckPowerEventDLG;
+		bool					m_bShowCheckPowerEvent;
+		bool					m_bShowCheckPowerGuide;
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+		CKTDGUIDialogType 		m_pChungGiveItem;
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef ALWAYS_EVENT_ADAMS_UI_SHOP
+		CKTDGUIDialogType		m_pUseAdamsEventShopDLG;
+#endif ALWAYS_EVENT_ADAMS_UI_SHOP
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+		CKTDGUIDialogType		m_p4thYearEventDLG;
+		bool					m_bShow4thYearEvent;
+#endif //SERV_4TH_ANNIVERSARY_EVENT
 
 		int										m_VillageID;
 		vector<CKTDXDevice*>					m_vecVillageDevice;

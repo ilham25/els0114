@@ -211,8 +211,33 @@ bool CXSLManufactureItemManager::AddManufactureResultTemplet_LUA()
 
 bool CXSLManufactureItemManager::AddManufactureVillageData_LUA( int iManufactureID, int iVillageMapID )
 {
+#ifdef SERV_CHECK_POSSIBLE_MANUFACTURE_ID	// 적용날짜: 미정
+	if( iManufactureID <= 0  ||  iVillageMapID <= 0 )
+	{
+		START_LOG( cerr, L"Manufacture Village Data 정보가 이상합니다!" )
+			<< BUILD_LOG( iManufactureID )
+			<< BUILD_LOG( iVillageMapID )
+			<< END_LOG;
+		return false;
+	}
+
+	std::set<int>::iterator sit = m_setPossibleManufactureID.find(iManufactureID);
+	if( sit != m_setPossibleManufactureID.end() )
+	{
+		START_LOG( clog, L"Manufacture Village Data 정보가 중복입니다." )
+			<< BUILD_LOG( iManufactureID )
+			<< BUILD_LOG( iVillageMapID )
+			<< END_LOG;
+		return false;
+	}
+
+	m_setPossibleManufactureID.insert( iManufactureID );
+
+	return true;
+#else
 	// 마을별로 구분되는 제조정보를 서버에서도 파싱할지 생각해보자..
 	return true;
+#endif	// SERV_CHECK_POSSIBLE_MANUFACTURE_ID
 }
 
 bool CXSLManufactureItemManager::AddManufactureResultGroup_LUA( int iGroupID, int iItemID )
@@ -265,6 +290,18 @@ bool CXSLManufactureItemManager::AddManufactureResultGroupWithRate_LUA( int iGro
 		}
 #endif SERV_ADD_SEALED_ITEM_SIGN
 		//}}
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+		if( iPeriod != 0 )
+		{
+			m_mapPeriodGroup.insert( std::make_pair( iGroupID, iPeriod ) );
+			START_LOG( clog2, L"기간제 처음 읽었다." )
+				<< BUILD_LOG( iGroupID )
+				<< BUILD_LOG( iPeriod )
+				<< END_LOG;
+		}
+#endif SERV_MANUFACTURE_PERIOD_FIX
+
 	}
 	else
 	{
@@ -273,6 +310,32 @@ bool CXSLManufactureItemManager::AddManufactureResultGroupWithRate_LUA( int iGro
 #else //SERV_MANUFACTURE_PERIOD
 		mit->second.AddCase( iItemID, fRate );
 #endif //SERV_MANUFACTURE_PERIOD
+
+#ifdef SERV_MANUFACTURE_PERIOD_FIX
+		if( iPeriod != 0 )
+		{
+			//그룹ID가 여러 결과 ItemID를 가지고 있고 그 ITEMID중 기간제가 있다면 기간을 -1 로 넘긴다. 
+			//클라에서 기간이 -1이면 기간제 포함이라 뜬다.
+			std::map< int, int >::iterator mit;
+			mit = m_mapPeriodGroup.find( iGroupID );
+			if( mit == m_mapPeriodGroup.end() )
+			{
+				m_mapPeriodGroup.insert( std::make_pair( iGroupID, -1 ) );
+				START_LOG( clog2, L"기간제 그룹 ID 있는거 또 읽었는데 기간은 처음이네" )
+					<< BUILD_LOG( mit->first )
+					<< BUILD_LOG( mit->second )
+					<< END_LOG;
+			}
+			else
+			{
+				mit->second = -1;
+				START_LOG( clog2, L"기간제 그룹 ID 있는거 또 읽었는데 기간도 있었네!" )
+					<< BUILD_LOG( iGroupID )
+					<< END_LOG;
+			}
+			
+		}
+#endif SERV_MANUFACTURE_PERIOD_FIX
 
 	}
 

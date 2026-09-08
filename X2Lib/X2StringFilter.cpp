@@ -5,41 +5,26 @@ CX2StringFilter::CX2StringFilter()
 {
 	m_BanNickNameList.reserve( 512 );
 	m_BanWordList.reserve( 2048 );
-
 #ifdef SERV_POST_BAN_WORD_FILTER
 	m_BanPostWordList.reserve( 512 );
 #endif //SERV_POST_BAN_WORD_FILTER
 
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "StringFilter", this );
 
-	KGCMassFileManager::CMassFile::MASSFILE_MEMBERFILEINFO_POINTER Info;
-
 	//{{ 임홍락 [2012.05.16] 클라이언트 단일화 // CLIENT_USE_NATION_FLAG 필수 포함임
 #ifdef UNITED_CLIENT_EU
 	std::wstring wstrStringFilterFile = GetWstrStringFilterFile();
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( wstrStringFilterFile );
+    if ( g_pKTDXApp->LoadLuaTinker( wstrStringFilterFile ) == false )
 #else UNITED_CLIENT_EU
-	Info = g_pKTDXApp->GetDeviceManager()->GetMassFileManager()->LoadDataFile( L"StringFilter.lua" );
+    if ( g_pKTDXApp->LoadLuaTinker( L"StringFilter.lua" ) == false )
 #endif UNITED_CLIENT_EU
 	//}}
-
-	if( Info == NULL )
-	{
-		ErrorLogMsg( XEM_ERROR64, "StringFilter.lua 파일 불러오기 오류" );
-		//g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"StringFilter파일 불러오기 오류", this );
-		MessageBox( g_pKTDXApp->GetHWND(), L"StringFilter.lua", GET_STRING( STR_ID_745 ), MB_OK );
-		return;
-	}
-
-
-	//if( m_KLuaManager.DoMemory( Info->pRealData, Info->size ) == false )
-	if( g_pKTDXApp->GetLuaBinder()->DoMemory( Info->pRealData, Info->size ) == E_FAIL )
-	{
+    {
 		ErrorLogMsg( XEM_ERROR65, "StringFilter.lua 파일 불러오기 오류" );
 		//g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), L"StringFilter파일 불러오기 오류", this );
 		MessageBox( g_pKTDXApp->GetHWND(), L"StringFilter.lua", GET_STRING( STR_ID_745 ), MB_OK );
 		return;
-	}
+    }
 
 	//if( m_KLuaManager.BeginTable( "BanNickNameList" ) == true )
 	//{
@@ -135,7 +120,6 @@ bool CX2StringFilter::CheckIsValidPostWordString( FILTER_TYPE filterType, const 
 }
 #endif //SERV_POST_BAN_WORD_FILTER
 
-
 bool CX2StringFilter::CheckIsValidString( FILTER_TYPE filterType, const WCHAR* pString )
 {
 	wstring pStringForCheck = pString;
@@ -164,7 +148,6 @@ bool CX2StringFilter::CheckIsValidString( FILTER_TYPE filterType, const WCHAR* p
 			}
 #endif
 
-
 #ifdef _LANGUAGE_FIX_JAPANESE_
 			if( (tempChar >= 0x3040 && tempChar <= 0x309F) ||  //히라가나
 				(tempChar >= 0x30A0 && tempChar <= 0x30FF) ||  //카타카나
@@ -179,7 +162,14 @@ bool CX2StringFilter::CheckIsValidString( FILTER_TYPE filterType, const WCHAR* p
 			{
 				continue;
 			}
-#endif
+#endif _LANGUAGE_FIX_JAPANESE_
+
+#ifdef CLIENT_COUNTRY_TH 
+			if( tempChar >= 0x0E01 && tempChar <= 0x0E5B ) // Thiland Language Area
+			{
+				continue;
+			}
+#endif CLIENT_COUNTRY_TH
 
 			if ( tempChar >= 'A' && tempChar <= 'Z' )
 			{
@@ -344,10 +334,6 @@ wstring CX2StringFilter::FilteringNoteString( const WCHAR* pString, WCHAR wcharF
         return filteringErrorMsg;
     }
 
-	//{{ 허상형 : [2010/3/15/] //	필터링 수정
-	wstring stringOriginal = pString;
-	//}} 허상형 : [2010/3/15/] //	
-
 	wstring stringForCheck = pString;
 	wstring orgStringForCheck = pString;
 	MakeUpperCase( stringForCheck );
@@ -360,9 +346,9 @@ wstring CX2StringFilter::FilteringNoteString( const WCHAR* pString, WCHAR wcharF
 		if(banWord.compare(L"\n") == 0)
 			continue;
 
-		while( (int)stringOriginal.find( banWord.c_str(), iLocation ) != -1 ) //찾았다
+		while( (int)stringForCheck.find( banWord.c_str(), iLocation ) != -1 ) //찾았다
 		{
-			int index = stringOriginal.find( banWord.c_str(), iLocation );
+			int index = stringForCheck.find( banWord.c_str(), iLocation );
 			int banWordSize = (int)banWord.size();
 			WCHAR buff[256] = {0};
 			for ( int i = 0; i < banWordSize; i++ )
@@ -388,9 +374,6 @@ wstring CX2StringFilter::FilteringChatString( const WCHAR* pString, WCHAR wcharF
 		return filteringErrorMsg;
 	}
 
-	//{{ 허상형 : [2010/3/15/] //	필터링 수정
-	wstring stringOriginal = pString;
-	//}} 허상형 : [2010/3/15/] //	
 	wstring stringForCheck = pString;
 	wstring orgStringForCheck = pString;
 	MakeUpperCase( stringForCheck );
@@ -505,7 +488,6 @@ bool CX2StringFilter::CheckIsUseableUnicodeCharacterNickname( const WCHAR* pStri
 
 		return false;
 	}
-
 
 	return true;
 }

@@ -16,13 +16,7 @@
 #endif SERV_BOOST_ALLOCATOR
 //}}
 
-#ifdef SERV_ID_NETMARBLE_PCBANG
-#import "pikaClientCheck.dll" no_namespace named_guids
-#endif //SERV_ID_NETMARBLE_PCBANG
-
-//---------------------------------------------------------------------------------------------------//
 //----------- 2013.02.27 조효진	해외 기본 구조 작업 (SERV_GLOBAL_BASE)-------------------------------//
-//---------------------------------------------------------------------------------------------------//
 
 //{{ 2012.11.13 조효진 닉네임 관련 체크 검사 시 대소문자 구별 안하도록 수정
 //#ifdef SERV_STRING_CHECK_IGNORE_CASE
@@ -43,16 +37,10 @@
 //{{ 2010. 10. 04 조효진	빌링 관련 추가. 대만 코드 참조
 #ifdef SERV_GLOBAL_BILLING
 #include "BillManager.h"
-
 #include "../Common/OnlyGlobal/AuthAndBilling/KncSendToPublisher.h"
-
 #endif // SERV_GLOBAL_BILLING
 //}}
-
 //---------------------------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------------------------//	
-
 
 #include "Inventory.h"
 //{{ 2009. 5. 30  최육사	임시 인벤토리
@@ -246,7 +234,7 @@
 #define _VERIFY_STATE_REPEAT_FILTER( loglevel, varg, reqEventid, ackEventid, ackPacket ) \
 	if( m_kRepeatEventFilter.CheckReqEvent( reqEventid, ackEventid ) == false ) \
 	{ \
-		START_LOG( cwarn, L"Repaet Event Filtering!" ) \
+		START_LOG( cwarn, L"Repeat Event Filtering!" ) \
 			<< BUILD_LOG( GetCharUID() ) \
 			<< BUILD_LOG( KEvent::GetIDStr( reqEventid ) ); \
 		return; \
@@ -443,11 +431,6 @@ public:
 		TM_CHECK_BUFF_PERIOD,
 #endif SERV_REFORM_THE_GATE_OF_DARKNESS
 		//}}
-		//{{ 2012. 04. 15	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		TM_CRITERION_EVENT_CHECK,
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-		//}}
 		//{{ 2012. 05. 31	최육사	배틀필드 시스템
 #ifdef SERV_BATTLE_FIELD_SYSTEM
 		TM_AUTO_PARTY_BONUS_CHECK,				// 자동 파티 보너스 체크 타이머
@@ -500,8 +483,26 @@ public:
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 		TM_GATE_OF_DARKNESS_SUPPORT_EVENT_TIMER,
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+		TM_COBOEVENT_TIMER,
+		TM_COBOITEM_LIVE_TIMER,
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+		TM_VALENTINE_DUNGEON_NEXT_DAY,
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+#ifdef SERV_GLOBAL_EVENT_TABLE
+		TM_GLOBAL_EVENT_TABLE_GET_TIMER,
+#endif //SERV_GLOBAL_EVENT_TABLE
         TM_TOTAL_NUM,
     };
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	enum TIME_CONTROL_ITEM_TYPE
+	{
+        TCIT_SHOP						= 0,			// 일반 상점			
+		TCIT_MANUFACTURE				= 1,			// 제조
+		TCIT_EXCHANGE_SHOP				= 2,			// 교환
+	};
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 	//임시로 특정기능패킷중(현재는 방관련) 중복으로 날아오는 패킷체크를 위해.
 	struct KRepeatEvent
@@ -680,9 +681,7 @@ public:
 	// Public Member Function
 public:
 	//////////////////////////////////////////////////////////////////////////	
-	
-	
-	
+
 //---------------------------------------------------------------------------------------------------//
 //----------- 2013.02.27 조효진	해외 기본 구조 작업 (SERV_GLOBAL_BASE)-------------------------------//
 //---------------------------------------------------------------------------------------------------//
@@ -708,19 +707,18 @@ public:
 //---------------------------------------------------------------------------------------------------//
 //---------------------------------------------------------------------------------------------------//
 //---------------------------------------------------------------------------------------------------//	
-
 	
 	// User Info
 	//{{ 2011. 08. 09  김민성 KAccontInfo 추가로 삭제됨
 #ifdef SERV_NEW_CREATE_CHAR_EVENT
 	const std::wstring&	GetUserName() const{ return m_kAccountInfo.m_wstrName; }
-#ifdef	SERV_HACKING_USER_CHECK_COUNT// 작업날짜: 2013-06-02	// 김민성
-	int			GetAuthLevel()			{ return m_kAccountInfo.m_iAuthLevel; }
-#else	// SERV_HACKING_USER_CHECK_COUNT
-
+//#ifdef	SERV_HACKING_USER_CHECK_COUNT// 작업날짜: 2013-06-02	// 김민성 // 해외팀 주석 제거
+	int			GetAuthLevel() const { return m_kAccountInfo.m_iAuthLevel; }
+//#else // SERV_HACKING_USER_CHECK_COUNT
+	/*
 	char			GetAuthLevel()			{ return static_cast< char >(m_kAccountInfo.m_iAuthLevel); }
-	
-#endif	// SERV_HACKING_USER_CHECK_COUNT
+	*/
+//#endif // SERV_HACKING_USER_CHECK_COUNT
 	//{{ 2011.10.14     김민성    운영자 기능은 특정 IP 에서만 사용 가능
 #ifdef SERV_USE_GM_CHEAT_RESTRICTED_IP
 	bool			CheckAuthLevel();
@@ -743,14 +741,19 @@ public:
 	int				GetCustonEventID() const		{ return m_iCustomEventID; }
 #endif //SERV_CUSTOM_CONNECT_EVENT
 
+#ifdef SERV_BLESS_OF_GODDESS_EVENT
+	void			SetMaxLevelUnitInAccount( bool bMaxLevelUnitAccount )	{ m_bMaxLevelUnitInAccount = bMaxLevelUnitAccount; }
+	bool			IsMaxLevelUnitInAccount() const	{ return m_bMaxLevelUnitInAccount; }
+#endif SERV_BLESS_OF_GODDESS_EVENT
+
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 	void			SetGateOfDarknessSupportEventTime( int iGateOfDarknessSupportEventTime ) { m_iGateOfDarknessSupportEventTime = iGateOfDarknessSupportEventTime; }
 	int				GetGateOfDarknessSupportEventTime() { return m_iGateOfDarknessSupportEventTime; }
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
-#ifdef SERV_EVENT_RIDING_WITH_SUB_QUEST
-	int				GetiRidingPetSummoned();
-	bool			GetbIsEventRidingPetQuest();
+#if defined(SERV_EVENT_RIDING_WITH_SUB_QUEST) || defined(SERV_RIDING_PET_WITH_SUB_QUEST)
+	int				GetiRidingPetSummoned();				// 이벤트용 or 캐시용 펫 여부
+	int				GetiRidingSummonedPetID();				// 소환된 라이딩용 펫 ID
 #endif //SERV_EVENT_RIDING_WITH_SUB_QUEST
 
 #ifdef SERV_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT
@@ -760,6 +763,16 @@ public:
 	bool			IsbSC1()							{ return m_bSC1; }
 	bool			IsbSC2()							{ return m_bSC2; }
 #endif //SERV_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	void			SetCouple( bool bCouple ) { m_bCouple = bCouple; }
+	bool			GetCouple() const { return m_bCouple; }
+	void			SetRelationTargetUserUid( UidType iRelationTargetUserUid ) { m_iRelationTargetUserUid = iRelationTargetUserUid; }
+	UidType			GetRelationTargetUserUid() const { return m_iRelationTargetUserUid; }
+	void			SetRelationTargetUserNickname( std::wstring wstrRelationTargetUserNickname ) { m_wstrRelationTargetUserNickname = wstrRelationTargetUserNickname; }
+	std::wstring	GetRelationTargetUserNickname() const { return m_wstrRelationTargetUserNickname; }
+#endif SERV_RELATIONSHIP_EVENT_INT
+
 
 	//////////////////////////////////////////////////////////////////////////	
 	// Unit Info
@@ -785,6 +798,12 @@ public:
 	CTime&			GetUnitLoginTime()								{ return m_tCurUnitLoginTime; }
 #endif SERV_CHAR_CONNECT_LOG
 	//}}
+
+#ifdef SERV_LUNITCONNECTLOG_BUG_FIX
+	void			SetUnitLoginTime_INT( IN CTime& tLogin )			{ m_tCurUnitLoginTime_INT = tLogin; }
+	CTime&			GetUnitLoginTime_INT()								{ return m_tCurUnitLoginTime_INT; }
+#endif //SERV_LUNITCONNECTLOG_BUG_FIX
+
 	int				GetBaseHP()				{ return m_kStat.m_iBaseHP; }
 	//{{ 2012. 10. 02	최육사		ED&아이템 모니터링 시스템
 #ifdef SERV_ED_AND_ITEM_MORNITORING_SYSTEM
@@ -916,6 +935,9 @@ public:
 
 #endif SERV_PET_SYSTEM
 	//}}
+#ifdef SERV_EVENT_PET_INVENTORY
+	void			GetSummonePetInfo( OUT std::vector< KPetInfo >& vecPet ) { return m_kUserPetManager.GetSummonedPetInfo(vecPet); }
+#endif SERV_EVENT_PET_INVENTORY
 	//{{ 2011. 06. 23	최육사	대전 개편
 #ifdef SERV_PVP_NEW_SYSTEM
 	UidType			GetMatchUID()			{ return m_kUserPvpManager.GetMatchUID(); }
@@ -952,6 +974,14 @@ public:
 	bool			IsNewUnit2()				{ return m_bNewUnit2; }
 	bool			IsCurrentUnit()				{ return m_bCurrentUnit; }
 #endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
+
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+	void			SetConnectExperience ( int miConnectExperience )	{ m_iConnectExperience = miConnectExperience; }
+	int				GetConnectExperience()						{ return m_iConnectExperience; }
+
+	void			SetRewardBonusItem ( int miRewardBonusItem )	{ m_iRewardBonusItem = miRewardBonusItem; }
+	int				GetRewardBonusItem()						{ return m_iRewardBonusItem; }
+#endif //SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
 
 	//////////////////////////////////////////////////////////////////////////
 	// Get Info
@@ -1066,7 +1096,6 @@ public:
 	//]]
 	//{{ 2009. 8. 4  최육사		봉인스킬
 	bool			IsSkillUnsealed( int iSkillID ) { return ( m_kSkillTree.IsSkillUnsealed( iSkillID ) ); }
-	bool			IsExistSkillID( int iSkillID ) { return ( m_kSkillTree.IsExist( iSkillID ) ); }
 	//}}
 	//{{ 2009. 7. 3  최육사		헤니르 시공
 	bool			IsHenirDungeonChallengeMode();
@@ -1169,7 +1198,7 @@ public:
 	//}}
 	//{{ 2013. 09. 23	최육사	일본 이벤트 중계DB작업
 #ifdef SERV_RELAY_DB_CONNECTION
-	void			SendUpdateUnitInfoToRelayDB( IN const int iUpdateType, IN const bool bDeletedUnit = false ) const;
+	void			SendUpdateUnitInfoToRelayDB( IN const int iUpdateType, IN const bool bDeletedUnit = false, IN const UidType iUnitUID = 0 );
 #endif SERV_RELAY_DB_CONNECTION
 	//}}
 
@@ -1540,6 +1569,10 @@ public:
 	byte GetCriterionDateEventInfo( void ) const;
 #endif // SERV_CRITERION_DATE_EVENT
 
+#ifdef HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+	bool GetEnterCashShop() { return m_kUserUnitManager.GetEnterCashShop(); }
+#endif // HSB_ALWAYS_VALID_IN_THE_CASHSHOP
+
 #ifdef SERV_STEAM
 	void SetSteamClientUser( IN bool bVal_ ) { m_bSteamClient = bVal_; }
 	bool IsSteamClientUser() const { return m_bSteamClient; }
@@ -1555,6 +1588,30 @@ public:
 	void CheckUpdateGlobalMission();
 #endif SERV_GLOBAL_MISSION_MANAGER
 	//}} 2012. 09. 06	임홍락	글로벌 미션 매니저
+
+#ifdef SERV_EVENT_CHECK_POWER
+	void CheckCheckPowerResult();
+	void UpdateCheckPowerScore( int iDungeonID, char cTotalRank, int iPartySize, bool bSuitableLevelDungeon, char cDifficulty, bool bIsMVP, bool bIsClear );
+#endif SERV_EVENT_CHECK_POWER
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+	void SetChungGiveItem( bool bTemp)
+	{
+		m_bGiveItem = bTemp;
+	}
+	bool GetChungGiveItem(void)
+	{
+		return m_bGiveItem;
+	}
+	void SetChungGiveItemTime( CTime cTempTime)
+	{
+		m_cGetItemTime = cTempTime;
+	}
+	CTime GetChungGiveItemTime(void)
+	{
+		return m_cGetItemTime;
+	}
+	void ChungItemGiveTimeTick(void);
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
 
 	//////////////////////////////////////////////////////////////////////////
 	// protected member function
@@ -1595,12 +1652,6 @@ protected:
 	// Check Function
 	void			CheckTimeEvent();									// 접속 시간 이벤트
 
-	//{{ 2012. 04. 13	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	void			CheckCriterionEvent( void );
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//}}
-
 	//{{ 2009. 10. 14  최육사	자동결제
 #ifdef AP_RESTONE
 	void			CheckAutoPayment();									// 자동결제
@@ -1613,7 +1664,14 @@ protected:
 	//}}
 	//{{ 2010. 07. 04  최육사	스킬 포인트 오류 확인
 #ifdef SERV_CHECK_SKILL_POINT
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	bool			CheckSkillPointError() const;
+#else // SERV_SKILL_PAGE_SYSTEM
 	bool			CheckSkillPointError();
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+
 #endif SERV_CHECK_SKILL_POINT
 	//}}
 #ifdef SERV_SKILL_POINT_CORRECTION
@@ -1714,6 +1772,13 @@ protected:
 	bool			CheckLimitedPlayTimes( IN const int iDungeonID );
 #endif SERV_LIMITED_DUNGEON_PLAY_TIMES
 
+#ifdef SERV_GLOBAL_EVENT_TABLE
+	bool			GetGlobalEventTableData( OUT std::map< int, KGlobalEventTableData >&	mapGlobalEventData );
+	bool			SendEnableDBGlobalEventTableData( IN std::map< int, KGlobalEventTableData >	mapGlobalEventData );
+	void			CheckDisableCodeAndSetGlobalEventdata();
+	int				GetGlobalEventData( IN std::vector<int>& veciParamData, IN int iVecIndex );
+#endif //SERV_GLOBAL_EVENT_TABLE
+
 	//////////////////////////////////////////////////////////////////////////
 	// packet & event send function
 public:
@@ -1722,6 +1787,7 @@ public:
     
     template < class T > void SendToAccountDB( unsigned short usEventID, const T& data ) const;
     template < class T > void SendToGameDB( unsigned short usEventID, const T& data );
+    template < class T > void SendToGameDB2nd( unsigned short usEventID, const T& data );
     template < class T > void SendToLogDB( unsigned short usEventID, const T& data );
 	template < class T > void SendToSMSDB( unsigned short usEventID, const T& data );
 	//{{ 2010. 02. 23  최육사	웹 포인트 이벤트
@@ -1806,9 +1872,15 @@ public:
 	template < class T > void SendToIDPcbangDB( unsigned short usEventID, const T& data );
 	void SendToIDPcbangDB( unsigned short usEventID );
 #endif //SERV_ID_NETMARBLE_PCBANG
+
+#ifdef SERV_ADD_EVENT_DB
+	template < class T > void SendToEventDB( unsigned short usEventID, const T& data );
+	void SendToEventDB( unsigned short usEventID );
+#endif //SERV_ADD_EVENT_DB
 	
     void SendToAccountDB( unsigned short usEventID );
     void SendToGameDB( unsigned short usEventID );
+    //void SendToGameDB2nd( unsigned short usEventID );
     void SendToLogDB( unsigned short usEventID );
 	void SendToSMSDB( unsigned short usEventID );
 	//{{ 2010. 02. 23  최육사	웹 포인트 이벤트
@@ -1846,6 +1918,12 @@ public:
 	void SendToGlobalServer( unsigned short usEventID );
 #endif SERV_INSERT_GLOBAL_SERVER
 	//}} 2011. 04. 13  김민성  글로벌 서버 추가
+
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	int GetTheNumberOfSkillPagesAvailable() const { return m_kSkillTree.GetTheNumberOfSkillPagesAvailable(); }
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 
 	//////////////////////////////////////////////////////////////////////////
 	// event handler
@@ -1944,7 +2022,6 @@ protected:
 #endif SERV_ANTI_ADDICTION_SYSTEM
 	//}}
 	
-	//////////////////////////////////////////////////////////////////////////
 #ifdef SERV_COUNTRY_TH
 	//{{ 허상형 : [2012/10/17] //	AsiaSoft 인증
 	void			SetSocketID( IN std::wstring wstrSocketID )	{ m_wstrSocektID = wstrSocketID; }
@@ -1952,36 +2029,17 @@ protected:
 	//}} 허상형 : [2012/10/17] //	AsiaSoft 인증
 #endif //SERV_COUNTRY_TH
 
-
 #ifdef SERV_GLOBAL_BILLING
-	//
 	void OnBuyCashItemAck( IN const KEGS_BUY_CASH_ITEM_ACK& kPacket_ );
 	int OnGetPurchasedCashItemReq( IN const KEGS_GET_PURCHASED_CASH_ITEM_REQ& kPacket_, IN const KEGS_BILL_GET_PURCHASED_CASH_ITEM_REQ& kPacket2_ );
 
 	bool IsDirectPickUpItem( IN const int iItemID );
 	int OnPickUpAck( IN const KENX_BT_NISMS_INVENTORY_PICK_UP_ONCE_ACK& kPacket_, IN const KEBILL_PICK_UP_ACK& kPacket2_, OUT std::vector< KInventoryItemInfo >& vecInventorySlotInfo );
 	std::wstring MakeOrderID();
-	
 #ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
 	bool IsAbleToUseCashType(int iCashType);	// 국가별로 사용가능한 캐시 종류가 다름
 #endif // SERV_SUPPORT_SEVERAL_CASH_TYPES
-
 #endif // SERV_GLOBAL_BILLING
-	//////////////////////////////////////////////////////////////////////////
-	
-
-	//{{ 2012. 04. 06	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	const std::wstring&	GetLastConnectDate( void ) const { return m_tLastConnectDate; }
-#else
-	//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-public:
-	bool IsEventReturnUser( void ){ return m_bEventReturnUserMark; }
-#endif SERV_EVENT_RETURN_USER_MARK
-	//}}
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//}}
 	
 	//{{ 2012. 04. 30	박세훈	현자의 주문서 접속 이벤트 ( 우편함 중복 체크 )
 #ifdef SERV_SCROLL_OF_SAGE_CHECK_THE_LETTER_BOX
@@ -2015,12 +2073,10 @@ public:
 #endif SERV_EVENT_BINGO
 	//}}
 
-	//{{ 2012. 11. 1	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-	void	SetEliosInvestigationsReward( IN const bool bValue ){	m_bEliosInvestigationsReward = bValue;	}
-	bool	GetEliosInvestigationsReward( void ){	return m_bEliosInvestigationsReward;	}
-#endif SERV_ELIOS_INVESTIGATIONS
-	//}}
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	void SendExpandSkillPageReqToGameDB( const unsigned short usEventID_, const int iTheNumberOfSkillPagesToBeAdded_ );
+#endif // SERV_SKILL_PAGE_SYSTEM
+
 
 	//{{ 2012. 12. 26	박세훈	인벤토리 개편 테스트	- 허상형 ( Merged by 박세훈 )
 #ifdef SERV_REFORM_INVENTORY_TEST
@@ -2033,6 +2089,11 @@ public:
 	void			SetWarpVipEndDate( IN __int64 trDate_ ) { m_trWarpVipEndDate = trDate_; }
 #endif // SERV_ADD_WARP_BUTTON
 
+#ifdef SERV_CHANNELING_USER_MANAGER
+	void	SetGameServerLoginUser( IN const bool bValue ){	m_bGameServerLoginUser = bValue;	}
+	bool	GetGameServerLoginUser( void ){	return m_bGameServerLoginUser;	}
+#endif // SERV_CHANNELING_USER_MANAGER
+
 #ifdef	SERV_RIDING_PET_SYSTM// 적용날짜: 2013-04-21
 	void	CheckRidingPetProcess( void );
 #endif	// SERV_RIDING_PET_SYSTM
@@ -2043,14 +2104,12 @@ public:
 
 private:
 
-	
 //---------------------------------------------------------------------------------------------------//
 //----------- 2013.02.27 조효진	해외 기본 구조 작업 (SERV_GLOBAL_BASE)-------------------------------//
 //---------------------------------------------------------------------------------------------------//
 #ifdef SERV_COUNTRY_TH
 	std::wstring					m_wstrSocektID;
 #endif //SERV_COUNTRY_TH
-
 
 #ifdef SERV_GLOBAL_BILLING
 	KGlobalCashInfo					m_GlobalCashInfo;
@@ -2121,6 +2180,110 @@ private:
 	bool	isCanUseUnsealCashSkillItem( IN int iItemID );
 #endif	// SERV_UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef SERV_FINALITY_SKILL_SYSTEM	// 적용날짜: 2013-08-01
+	bool	isCanUseUnsealFinalitySkill( IN int iItemID, IN u_char ucLevel );
+#endif // SERV_FINALITY_SKILL_SYSTEM
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+	void	GetBossFieldCreateInfo( IN const int iBattleFieldID, OUT KBossFieldCreateInfo& kBossFieldCreateInfo ) const;
+	
+	void	CreateBossFieldJoinInfo( OUT KBossFieldJoinInfo& kBossFieldJoinInfo ) const;
+	void	SetBossFieldJoinInfo( IN const KBossFieldJoinInfo& kBossFieldJoinInfo )	{	m_kBossFieldJoinInfo = kBossFieldJoinInfo;	}
+	void	GetBossFieldJoinInfo( OUT KBossFieldJoinInfo& kBossFieldJoinInfo ) const;
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	void	AddLogWhenSkillPagesNumberIsWrong( const WCHAR* wszLog_ );
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+public:
+	void SetDungeonCount(int TempCount)
+	{
+		m_DungeonCount = TempCount;
+	}
+	int GetDungeonCount(void)
+	{
+		return m_DungeonCount;
+	}
+	void SetFieldMosterKillCount(int TempKill)
+	{
+		m_FieldMonsterKillCount = TempKill;
+	}
+	int GetFieldMonsterKillCOunt(void)
+	{
+		return m_FieldMonsterKillCount;
+	}
+	void SetDungeonClearUI(bool DungeonUI)
+	{
+		m_DungeonClearUI = DungeonUI;
+	}
+	bool GetDungeonClearUI(void)
+	{
+		return m_DungeonClearUI;
+	}
+	void SetFieldCountUI(bool FieldUI)
+	{
+		m_FieldCountUI = FieldUI;
+	}
+	bool GetFieldCountUI(void)
+	{
+		return m_FieldCountUI;
+	}
+	void SetButtonClickTime(CTime ButtonTime)
+	{
+		m_tButtonClickTime = ButtonTime;
+	}
+	CTime GetButtonClickTime(void)
+	{
+		return m_tButtonClickTime;
+	}
+	void SetRemaindTime(int TempRemaind)
+	{
+		m_RemaindTime = TempRemaind;
+	}
+	int GetRemaindTime(void)
+	{
+		return m_RemaindTime;
+	}
+	void SetStartButtonPush(bool PushButton)
+	{
+		m_ButtonStartUI = PushButton;
+	}
+	bool GetStartButtonPush(void)
+	{
+		return m_ButtonStartUI;
+	}
+	void SetCoboItemGive(bool ItemGive)
+	{
+		m_bCoboItemGive = ItemGive;
+	}
+	bool GetCoboItemGive(void)
+	{
+		return m_bCoboItemGive;
+	}
+	void RemaindTimeTick(void);
+	void NextDayItemGive(void);
+	void DungeonClearCountNot( IN const int iDungeonID, IN const std::map< UidType, bool >& mapSuitableLevelInfo);
+	void FieldMonsterKillCountNot(int iMonsterID, UidType AttUnit);
+	//레벨 10이상만 이벤트에 참여 할 수 있기 때문에 레벨 10되면 자동으로 UI 활성화 되야 한다.
+	void CoboEventLimitLevelStart(void);
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+	void SetValentineItemCount(int iTempCount)
+	{
+		m_iValentineItemCount = iTempCount;
+	}
+	int GetValentineItemCount(void)
+	{
+		return m_iValentineItemCount;
+	}
+	///다음날이 되면 새롭게 갱신이 되야함(접속 중에)
+	void NextValentineDungeonItemCount(void);
+	///던전 클리어 확인해서 카운트 올려 주자
+	void EventDungeonClearCountAdd(IN const int iDungeonID);
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 #ifdef SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
 	bool	IsRecruit()		{ return m_kUserRecommendManager.IsRecruit(); }
 #endif SERV_RECRUIT_EVENT_QUEST_FOR_NEW_USER
@@ -2154,7 +2317,13 @@ private:
 	//}}
 
 	KUserExpManager					m_kEXP;
+	
+#ifdef SERV_SKILL_PAGE_SYSTEM
+#else // SERV_SKILL_PAGE_SYSTEM
 	KCacheData< int >				m_iSPoint;
+#endif // SERV_SKILL_PAGE_SYSTEM
+
+
 	//{{ 2011. 06. 20	최육사	대전 개편
 #ifdef SERV_PVP_NEW_SYSTEM
 	KUserPvpManager					m_kUserPvpManager;
@@ -2259,6 +2428,9 @@ private:
 	//}}
 
     CTime                           m_tConnectTime;
+#ifdef SERV_LUNITCONNECTLOG_BUG_FIX // 2014.01.28 darkstarbt_조성욱 // 캐릭터 접속로그용으로 따로 하나 만들기 기존 사용 변수는 계정용 ( 국내 사용하는 변수가 있지만 해외랑 국내랑 따로 가기 때문에 개별 발급함 )
+	CTime							m_tCurUnitLoginTime_INT;
+#endif //SERV_LUNITCONNECTLOG_BUG_FIX
 
     std::map< int, KDungeonClearInfo >	m_mapDungeonClear;
 	std::map< int, KTCClearInfo >		m_mapTCClear;
@@ -2314,7 +2486,7 @@ private:
 
 	//{{ 2010. 01. 29  최육사	PC방 상용화
 	KUserPcBangManager				m_kUserPcBangManager;
-	//}}
+	//}}    
 
 #ifdef SERV_PARTYPLAY_WITH_DUNGEON_CLEAR_COUNT
 	bool							m_bSC1;
@@ -2473,7 +2645,6 @@ private:
 	bool							m_bIdentityConfirmCheck;
 #endif //SERV_IDENTITY_CONFIRM_POPUP_MESSAGE
 
-
 #ifdef SERV_GUARANTEE_UNIQUENESS_OF_NAME_CN
 	bool							m_bNickNameCheckOnly;
 	UidType							m_iBackUpUnitUID;
@@ -2484,6 +2655,7 @@ private:
 	unsigned short					m_usGiantZone; // 자이언트 정보
 	unsigned short					m_usGiantGame; // 자이언트 정보
 #endif //SERV_EPAY_SYSTEM
+
 #ifdef SERV_GLOBAL_CASH_PACKAGE
 	std::vector<int>				m_veciPackageBuyCheck; //2012.01.11 lygan_조성욱 // 캐쉬샵에서 동일 품목의 기간제 아이템 묶음에 대해서 한번만 캐릭터 인벤토리에 들어오게 체크용
 #endif //SERV_GLOBAL_CASH_PACKAGE
@@ -2516,29 +2688,11 @@ private:
 #endif SERV_SERVER_BUFF_SYSTEM
 	//}
 
-	//{{ 2012. 04. 06	박세훈	( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	CTime							m_tLastConnectDate;
-#else
-		//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-	#ifdef SERV_EVENT_RETURN_USER_MARK
-		bool							m_bEventMark;
-		bool							m_bEventReturnUserMark;
-	#endif SERV_EVENT_RETURN_USER_MARK
-		//}}
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//}}
-
-		//{{ 2012. 03. 26	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK
-#else
 	//{{ 2012. 05. 16	박세훈	첫 접속 시 가이드 라인 띄워주기
 #ifdef SERV_EVENT_GUIDELINE_POPUP
 		bool							m_bPopupTheGuideLine;
 #endif SERV_EVENT_GUIDELINE_POPUP
 	//}}
-#endif SERV_EVENT_RETURN_USER_MARK
-		//}}
 
 		//{{ 2012. 06. 06	박세훈	매일매일 선물 상자
 #ifdef SERV_EVENT_DAILY_GIFT_BOX
@@ -2561,11 +2715,6 @@ private:
 #ifdef SERV_EVENT_BINGO
 	KGSBingoEvent					m_kGSBingoEvent;
 #endif SERV_EVENT_BINGO
-		//}}
-	//{{ 2012. 10. 29	박세훈	엘리오스 조사단
-#ifdef SERV_ELIOS_INVESTIGATIONS
-		bool							m_bEliosInvestigationsReward;
-#endif SERV_ELIOS_INVESTIGATIONS
 		//}}
 		//{{ 2012. 12. 5	최육사		옵저버 대전 난입 모드
 #ifdef SERV_OBSERVER_PVP_INTRUDE_MODE
@@ -2598,20 +2747,35 @@ private:
 		int								m_iActiveDungeonTickCount;
 #endif //SERV_NEW_EVENT_TYPES		
 		
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING
+	std::vector<KPacketGetItemOnOff>	m_vecTypeBanItem;
+	std::set< int >						m_secTypeBanItemOld;
+	bool									m_bTimeControlItemCheckDungeonPlay;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
+
 #ifdef SERV_CODE_EVENT
 		int								m_iCodeEventTickCount;
 #endif SERV_CODE_EVENT		
 
 #ifdef SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
-		bool							m_bNewUnit;
-		bool							m_bNewUnit2;
-		bool							m_bCurrentUnit;
+	bool							m_bNewUnit;
+	bool							m_bNewUnit2;
+	bool							m_bCurrentUnit;
 #endif //SERV_TIME_EVENT_ONLY_CURRENT_USER_CHAR
 
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 		int								m_iCustomEventID;
 #endif //SERV_CUSTOM_CONNECT_EVENT
 
+#ifdef SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+		int								m_iConnectExperience;
+		int								m_iRewardBonusItem;
+#endif //SERV_EVENT_BOUNS_ITEM_AFTER_7DAYS_BY_LEVEL
+
+#ifdef SERV_CHANNELING_USER_MANAGER
+		bool							m_bGameServerLoginUser;
+#endif // SERV_CHANNELING_USER_MANAGER
+		
 #ifdef SERV_GROW_UP_SOCKET
 		int								m_iExchangeCount;
 #endif SERV_GROW_UP_SOCKET
@@ -2619,9 +2783,16 @@ private:
 #ifdef SERV_STEAM
 		bool							m_bSteamClient;
 #endif //SERV_STEAM
+
 #ifdef SERV_CHANNELING_AERIA
 		bool							m_bAeriaClient;
 #endif //SERV_CHANNELING_AERIA
+
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING
+		std::vector<KPacketGetItemOnOff>	m_vecTypeBanItem;
+		std::set< int >						m_secTypeBanItemOld;
+		bool									m_bTimeControlItemCheckDungeonPlay;
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 		
 #ifdef SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 private:
@@ -2630,10 +2801,6 @@ private:
 
 	bool m_bSendDBSystemInfoStatistics;
 #endif//SERV_ACTIVE_KOG_GAME_PERFORMANCE_CHECK
-
-#ifdef SERV_ID_NETMARBLE_PCBANG
-	IClientAuthPtr pAuthInfo;
-#endif //SERV_ID_NETMARBLE_PCBANG
 
 #ifdef SERV_COUNTRY_PH
 	unsigned short						m_usGarenaCyberCafe;
@@ -2668,23 +2835,88 @@ private:
 	JumpingCharacter::KUserJumpingCharacterManager	m_kUserJumpingCharacterManager;
 #endif // SERV_JUMPING_CHARACTER
 
-#ifdef SERV_EVENT_RIDING_WITH_SUB_QUEST
-	int									m_iRidingPetSummon;
-	bool								m_bIsEventRidingPetQuest;
-#endif //SERV_EVENT_RIDING_WITH_SUB_QUEST
-
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
-	CXSLDungeonSubStage::NextStageData	m_kNextStageData;
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_BLESS_OF_GODDESS_EVENT
+	bool								m_bMaxLevelUnitInAccount;
+#endif SERV_BLESS_OF_GODDESS_EVENT
 
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 	int									m_iGateOfDarknessSupportEventTime;
 #endif SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 
+#if defined(SERV_EVENT_RIDING_WITH_SUB_QUEST) || defined(SERV_RIDING_PET_WITH_SUB_QUEST)
+	int									m_iRidingPetSummon;
+	USHORT								m_usRidingSummonedPetID;
+#endif //SERV_EVENT_RIDING_WITH_SUB_QUEST
+
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+	bool								m_bCouple;
+	UidType								m_iRelationTargetUserUid;
+	std::wstring						m_wstrRelationTargetUserNickname;
+#endif SERV_RELATIONSHIP_EVENT_INT
+
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
+	CXSLDungeonSubStage::NextStageData	m_kNextStageData;
+#endif // SERV_STAGE_CLEAR_IN_SERVER
+
+#ifdef SERV_ELESIS_UPDATE_EVENT
+	int									m_iNoteViewCount;
+#endif SERV_ELESIS_UPDATE_EVENT
+
 #ifdef SERV_NEW_YEAR_EVENT_2014
 	u_char								m_ucOldYearMissionRewardedLevel;
 	int									m_iNewYearMissionStepID;
 #endif SERV_NEW_YEAR_EVENT_2014
+
+#ifdef SERV_EVENT_CHECK_POWER
+	unsigned char						m_ucCheckPowerCount;
+	__int64								m_iCheckPowerTime;
+	bool								m_bCheckPowerShowPopUp;
+	unsigned char						m_ucCheckPowerScore;
+#endif SERV_EVENT_CHECK_POWER
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-08	// 박세훈
+	KBossFieldJoinInfo					m_kBossFieldJoinInfo;
+#endif // SERV_BATTLE_FIELD_BOSS
+
+#ifdef SERV_EVENT_CHUNG_GIVE_ITEM
+public:
+	bool							   m_bGiveItem;
+	CTime							   m_cGetItemTime;
+#endif SERV_EVENT_CHUNG_GIVE_ITEM
+
+#ifdef SERV_4TH_ANNIVERSARY_EVENT
+	K4ThAnnivEventInfo					m_4ThAnnivEventInfo;	// 4주년 이벤트 출력용 정보( 첫 플레이 날 등..)
+	std::vector<bool>					m_vec4ThAnnivEventRewardInfo;		// 4주년 이벤트 보상 받은 정보
+	CTime								m_tLastRewardTime;	// 마지막으로 보상 받은 시간
+	bool								m_bGetEventRewardInfo;	// DB에서 이벤트 보상 정보를 받아 왔느냐?
+#endif // SERV_4TH_ANNIVERSARY_EVENT
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+public:
+	bool								m_ButtonStartUI;
+	bool								m_DungeonClearUI;
+	bool								m_FieldCountUI;
+	int									m_DungeonCount;
+	int									m_FieldMonsterKillCount;
+	CTime								m_tButtonClickTime;
+	int									m_RemaindTime;
+	bool								m_bCoboItemGive;
+	std::set<int>						m_setMonsterID;
+	int									m_iTimeCount; //10초마다 카운트 올려서 6되면 1분 되게 처리 하자
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+	int									m_iValentineItemCount;
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+
+#ifdef SERV_GLOBAL_EVENT_TABLE
+	std::map< int, KGlobalEventTableData >	m_mapGlobalEventData;
+	int										m_iDisableCodeEventTickCount;
+#endif //SERV_GLOBAL_EVENT_TABLE
+
+#ifdef SERV_STRING_FILTER_USING_DB
+	int									m_iAppliedStringFilterReleaseTick;
+#endif //SERV_STRING_FILTER_USING_DB
 };
 
 template < typename T >
@@ -2723,6 +2955,17 @@ void KGSUser::SendToGameDB( unsigned short usEventID, const T& data )
 
     UidType anTrace[2] = { GetUID(), -1 };
     KncSend( PI_GS_USER, GetUID(), PI_GS_GAME_DB, 0, anTrace, usEventID, data );
+}
+
+template < class T >
+void KGSUser::SendToGameDB2nd( unsigned short usEventID, const T& data )
+{
+    if( false == IsTransactionEnabled( usEventID ) )
+        return;
+    CheckTransactionReqEvent( usEventID ); // DBE_
+
+    UidType anTrace[2] = { GetUID(), -1 };
+    KncSend( PI_GS_USER, GetUID(), PI_GS_GAME_DB_2ND, 0, anTrace, usEventID, data );
 }
 
 template < class T >
@@ -2912,21 +3155,16 @@ void KGSUser::_SendToCharacter( UidType nTo, unsigned short usEventID, const T& 
 	KncSend( PI_GS_CHARACTER, GetCharUID(), PI_GS_CHARACTER, nTo, anTrace, usEventID, data );
 }
 
-
 #ifdef SERV_COUNTRY_CN
-
 template < class T >
 void KGSUser::SendToGiantRoleReg( unsigned short usEventID, const T& data )
 {
 	UidType anTrace[2] = { GetUID(), -1 };
 	KncSend( PI_GS_USER, GetUID(), PI_LOGIN_GIANT_ROLEREG, 0, anTrace, usEventID, data );
 }
-
 #endif // SERV_COUNTRY_CN
 
-
 #ifdef SERV_GLOBAL_BILLING
-
 template < class T >
 void KGSUser::SendToKOGBillingDB( unsigned short usEventID, const T& data )
 {
@@ -2959,9 +3197,7 @@ void KGSUser::SendToPublisherBillingDB( unsigned short usEventID, const T& data 
 	UidType anTrace[2] = { GetUID(), -1 };
 	KncSend( PI_GS_USER, GetUID(), PI_GS_PUBLISHER_BILLING_DB, 0, anTrace, usEventID, data );
 }
-
 #endif // SERV_GLOBAL_BILLING
-
 
 //{{ 2011. 04. 13  김민성  글로벌 서버 추가
 #ifdef SERV_INSERT_GLOBAL_SERVER
@@ -3027,3 +3263,12 @@ void KGSUser::SendToIDPcbangDB( unsigned short usEventID, const T& data )
 	KncSend( PI_GS_USER, GetUID(), PI_GS_ID_PUBLISHER_PCBANG_DB, 0, anTrace, usEventID, data );
 }
 #endif //SERV_ID_NETMARBLE_PCBANG
+
+#ifdef SERV_ADD_EVENT_DB
+template < class T >
+void KGSUser::SendToEventDB( unsigned short usEventID, const T& data )
+{
+	UidType anTrace[2] = { GetUID(), -1 };
+	KncSend( PI_GS_USER, GetUID(), PI_GS_EVENT_DB, 0, anTrace, usEventID, data );
+}
+#endif //SERV_ADD_EVENT_DB

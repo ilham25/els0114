@@ -226,6 +226,23 @@ g_pPetManager:AddPetCreateItemInfo( 84002211, PET_UNIT_ID["PUI_MYSTIC_EVENT_NORM
 g_pPetManager:AddPetCreateItemInfo( 67006630, PET_UNIT_ID["PUI_SONOKONG"], -1 ) -- 생명의 결정(손오공)
 g_pPetManager:AddPetCreateItemInfo( 67006632, PET_UNIT_ID["PUI_SONOKONG_F"], -1 ) -- 손오공 완전체
 
+--춘절이벤트 
+g_pPetManager:AddPetCreateItemInfo( 141000908, PET_UNIT_ID["PUI_TREE_KNIGHT"],-1 )		 		-- 트리 나이트
+g_pPetManager:AddPetCreateItemInfo( 141000909, PET_UNIT_ID["PUI_PETTE_ANCIENT_PPORU"],-1 ) 		-- 쁘띠 에인션트 뽀루
+g_pPetManager:AddPetCreateItemInfo( 141000910, PET_UNIT_ID["PUI_MYSTIC_NORM"],-1 )				-- 미스틱
+g_pPetManager:AddPetCreateItemInfo( 141000911, PET_UNIT_ID["PUI_HATCHLING_NORM"],-1 )				-- 해츨링
+
+-- 판별기 구성 이벤트 용 펫
+g_pPetManager:AddPetCreateItemInfo( 82500010, PET_UNIT_ID["PUI_PETTE_ANCIENT_PPORU"], -1 ) 		-- 쁘띠 에인션트 뽀루
+g_pPetManager:AddPetCreateItemInfo( 82500020, PET_UNIT_ID["PUI_TREE_KNIGHT"], -1 )		 		-- 트리 나이트
+g_pPetManager:AddPetCreateItemInfo( 82500150, PET_UNIT_ID["PUI_MYSTIC_NORM"], -1 )				-- 미스틱
+g_pPetManager:AddPetCreateItemInfo( 82500230, PET_UNIT_ID["PUI_HATCHLING_NORM"], -1 )				-- 해츨링
+g_pPetManager:AddPetCreateItemInfo( 82500540, PET_UNIT_ID["PUI_PETIT_LIGHTBRINGER_UNIEL"], -1 )	-- 유니콘-라이트브링어 유니엘
+g_pPetManager:AddPetCreateItemInfo( 82500600, PET_UNIT_ID["PUI_PET_SILVERFOX_MIHO"], -1 )			-- 구미호-은여우 미호
+
+-- 베르드 Jr.
+g_pPetManager:AddPetCreateItemInfo( 500843, PET_UNIT_ID["PUI_PETTE_BERTHE"], -1 )			-- 베르드 Jr.
+g_pPetManager:AddPetCreateItemInfo( 500846, PET_UNIT_ID["PUI_PETTE_BERTHE"], -1 )			-- 베르드 Jr.
 
 
 -- 펫 생성 아이템 ID , 펫 ID , 확률
@@ -240,7 +257,8 @@ g_pPetManager:AddRandomPetCreateItemInfo( 90002290, PET_UNIT_ID["PUI_HALLOWEEN_P
 -- ex) 자신이 타냐 펫을 가지고 있고 변신 아이템을 사용하면 엘데나 10 , 라엘 30 , 로제타 30 , 나르네아 30 확률로 지정됩니다.
 g_pPetManager:AddTransformPetItemInfo( 90002300, 90002290, PET_UNIT_ID["PUI_HALLOWEEN_PUMPKIN_ELDENA"], 10 )
 
-
+-- 이벤트 펫 먹이
+g_pPetManager:AddPetCashFeedItemInfo( 141000880, 234 ) -- 루리엘의 펫 시리얼
 
 
 -- 캐쉬템 펫 먹이
@@ -251,6 +269,8 @@ g_pPetManager:AddPetCashFeedItemInfo( 83000010, 936 ) -- (중국용) 엘의 나�
 g_pPetManager:AddPetCashFeedItemInfo( 210000074, 1404 ) -- 신비의 풀 SERV_PET_EVENT_EVOLUTION_ITEM
 g_pPetManager:AddPetCashFeedItemInfo( 84001302, 1404 ) -- (중국용) 대나무
 
+-- 이벤트 펫 먹이
+g_pPetManager:AddPetCashFeedItemInfo( 141000880, 234 ) -- 루리엘의 펫 시리얼
 
 -- 친밀도가 70% 이상인 경우에만 섭취하는 펫 먹이
 g_pPetManager:AddSpecialFeedItemID( 500030 )
@@ -260,6 +280,7 @@ g_pPetManager:AddSpecialFeedItemID( 83000010 )
 g_pPetManager:AddSpecialFeedItemID( 210000074 ) -- SERV_PET_EVENT_EVOLUTION_ITEM
 g_pPetManager:AddSpecialFeedItemID( 84001302 ) -- (중국용) 대나무
 
+g_pPetManager:AddSpecialFeedItemID( 141000880 ) -- 루리엘의 펫 시리얼
 
 -- 펫 포만도 감소 상수 ( 진화단계, 상수값 )
 g_pPetManager:AddPetSatietyDecreaseFactor( 0, 1 )

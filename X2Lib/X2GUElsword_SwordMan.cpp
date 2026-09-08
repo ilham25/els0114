@@ -49,6 +49,10 @@ static const CX2GUUser::SkillCutInSet s_SkillCutInSet[] =
 
 namespace _CONST_ELSWORD_
 {
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	const float SKILL_DEFENCE_MP_COST_PER_SEC = 3.f;		// 막기 스킬의 초당 마나 소모량
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 #ifdef BALANCE_PATCH_20120329
 	const float MAGIC_FIRE_BALL_MP_COST = 6.f;
 	const float MAGIC_ERS_XZ_MP_COST = 4.f;
@@ -76,6 +80,13 @@ namespace _CONST_ELSWORD_
 #endif ELSWORD_SHEATH_KNIGHT
 
 	const int	CONST_BRUTAL_SLAYER_LEVEL = 5;
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+	const int BLADE_RAIN_SKILL_RANGE = 250;								// 블레이드 레인 거리
+	const int BLADE_RAIN_GET_SUMMON_POS_CHECK_LINEMAP_COUNT = 10;		// 블레이드 레인 라인맵 체크 거리
+
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
 }
 
 
@@ -98,17 +109,30 @@ CX2GUElsword_SwordMan::CX2GUElsword_SwordMan( int unitIndex, int teamNum,
 	frameBufferNum, pUnit )
 , m_fRollingSmashDuration( 0.f )
 , m_bIsMagicKnightWinMotion2( false )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+, m_hRuneSlayerDashJumpXZ( INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 , m_pRuneSlayerDashJumpXZ( NULL )
-, m_hRuneSlayerComboXZ( CX2EffectSet::INVALID_HANDLE )
-, m_hSwordEnchant( CX2EffectSet::INVALID_HANDLE )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+, m_hRuneSlayerComboXZ( INVALID_EFFECTSET_HANDLE )
+, m_hSwordEnchant( INVALID_EFFECTSET_HANDLE )
 , m_bERS_DASH_JUMP_XZ_Rune_Created( false )
 , m_bERS_COMBO_XZ_Rune_Created( false )
 #ifdef BALANCE_RUNE_SLAYER_20130214
 , m_bShowWeaponEnchantEffect( true )
 #endif //BALANCE_RUNE_SLAYER_20130214
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+, m_hDamageEffectHarshChaserBlade( INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+, m_pDamageEffectHarshChaserBlade( NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 , m_fAutoGuardRate( 0.f )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+, m_hDamageEffectPiercingSword( INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 , m_pDamageEffectPiercingSword( NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 , m_fPiercingSwordProjectileRange( 0.f )
 , m_fRuneProjectileRangeIncPercent( 0.f )
 , m_fRuneProjectileSizeIncPercent( 0.f )
@@ -117,10 +141,12 @@ CX2GUElsword_SwordMan::CX2GUElsword_SwordMan( int unitIndex, int teamNum,
 , m_bIsGuardMotion( false )
 , m_fIncreaseCoolTimeRel( 1.f )
 , m_fActiveSkillAddPowerRate( 1.f )
-, m_hEffectSwordShield( CX2EffectSet::INVALID_HANDLE )
+, m_hEffectSwordShield( INVALID_EFFECTSET_HANDLE )
 , m_fSwordShieldEffectiveTime( 0.f )
-
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#ifdef BALANCE_PATCH_20131107
+, m_iSkillLevelInduranceOfRevenge( 0 )
+#endif //BALANCE_PATCH_20131107
 {
 	m_bReAttackZ1Right					= false;
 	m_fReAttackZ1Time					= 0.0f;
@@ -150,10 +176,10 @@ CX2GUElsword_SwordMan::CX2GUElsword_SwordMan( int unitIndex, int teamNum,
 	InitializeElswordMajorParticleArray();
 	InitializeElswordMinorParticleArray();
 
-	m_hSeqAssualtSlashRing				= INVALID_PARTICLE_HANDLE;
-	m_hSeqAssualtSlashDust				= INVALID_PARTICLE_HANDLE;
+	m_hSeqAssualtSlashRing				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqAssualtSlashDust				= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
-	m_hSeqHandFire						= INVALID_PARTICLE_HANDLE;
+	m_hSeqHandFire						= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	m_StartPosToLeap					= D3DXVECTOR3(0,0,0);
 	m_DirVecToLeap						= D3DXVECTOR3(0,0,0);
@@ -172,9 +198,9 @@ CX2GUElsword_SwordMan::CX2GUElsword_SwordMan( int unitIndex, int teamNum,
 	m_fAttackPowerRateFireBall = 1.f;
 	
 	m_fWindMillDuration = 0.f;
-	m_hWindMill = CX2EffectSet::INVALID_HANDLE;
-	m_hWindMillLand = CX2EffectSet::INVALID_HANDLE;	
-	m_hSwordFire = CX2EffectSet::INVALID_HANDLE;
+	m_hWindMill = INVALID_EFFECTSET_HANDLE;
+	m_hWindMillLand = INVALID_EFFECTSET_HANDLE;	
+	m_hSwordFire = INVALID_EFFECTSET_HANDLE;
 
 
 	m_pSoundWindMill = NULL;
@@ -183,13 +209,17 @@ CX2GUElsword_SwordMan::CX2GUElsword_SwordMan( int unitIndex, int teamNum,
 
 
 #ifdef SKILL_CASH_10_TEST
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hDoubleSlash = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pDoubleSlash = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif // SKILL_CASH_10_TEST
 
 #ifdef ELSWORD_WAY_OF_SWORD
 	//SetWayOfSwordState( static_cast<int>( WSS_CENTER ) );
-	m_hEffectVigor				= CX2EffectSet::INVALID_HANDLE;
-	m_hEffectDestruction		= CX2EffectSet::INVALID_HANDLE;
+	m_hEffectVigor				= INVALID_EFFECTSET_HANDLE;
+	m_hEffectDestruction		= INVALID_EFFECTSET_HANDLE;
 	m_fDestructionRageTime		= 0.f;
 	m_fAnimSpeedUpByVigor		= 0.f;
 #endif ELSWORD_WAY_OF_SWORD
@@ -213,7 +243,7 @@ CX2GUElsword_SwordMan::CX2GUElsword_SwordMan( int unitIndex, int teamNum,
 	m_hSwordFallBladeThird_Memo		= INVALID_MESH_INSTANCE_HANDLE;
 	m_hSwordFallBladeFourth_Memo	= INVALID_MESH_INSTANCE_HANDLE;
 #endif
-	m_pDamageEffectHarshChaserBlade	= NULL;
+
 
 	m_fRollingHpConsumeRel			= 0.f;
 	m_fRollingSpeedRel				= 0.f;
@@ -223,7 +253,11 @@ CX2GUElsword_SwordMan::CX2GUElsword_SwordMan( int unitIndex, int teamNum,
 	m_bCompactCounterEnable			= false;
 	m_fCompactCounterCoolTime		= 0.f;
 	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hFinalStrikeBlackHole			= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_FinalStrikeBlackHole			= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif ELSWORD_SHEATH_KNIGHT
 
 #ifdef SPECIAL_USE_ITEM
@@ -244,7 +278,13 @@ CX2GUElsword_SwordMan::CX2GUElsword_SwordMan( int unitIndex, int teamNum,
 	m_fMindOfFighterConsumeMpRate = 0.f;
 	m_iBrutalSlayerActivatedLevel = 0;
 	for(int i=0; i<3; ++i)
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hDamageSwordBlasting[i] = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pDamageSwordBlasting[i] = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    }
 #endif
 }
 
@@ -283,16 +323,27 @@ CX2GUElsword_SwordMan::~CX2GUElsword_SwordMan(void)
 	g_pX2Game->GetEffectSet()->StopEffectSet( m_hSwordEnchant );
 
 #ifdef ELSWORD_SHEATH_KNIGHT
-	g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hThirdBladeSheathMesh );
+	g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hThirdBladeSheathMesh );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hFinalStrikeBlackHole != INVALID_DAMAGE_EFFECT_HANDLE )
+	    g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hFinalStrikeBlackHole );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	g_pX2Game->GetDamageEffect()->DestroyInstance( m_FinalStrikeBlackHole );
-	m_FinalStrikeBlackHole	= NULL;
+    m_FinalStrikeBlackHole = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif ELSWORD_SHEATH_KNIGHT
 
 #ifdef SERV_ELSWORD_INFINITY_SWORD
 	for(int i=0; i<3; ++i)
 	{
-		if( m_pDamageSwordBlasting[i] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDamageSwordBlasting[i] ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( m_hDamageSwordBlasting[i] != INVALID_DAMAGE_EFFECT_HANDLE )
+            g_pX2Game->GetDamageEffect()->DestroyInstanceHandle(m_hDamageSwordBlasting[i]);
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( m_pDamageSwordBlasting[i] != NULL )
 			g_pX2Game->GetDamageEffect()->DestroyInstance(m_pDamageSwordBlasting[i] );
+        m_pDamageSwordBlasting[i] = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 #endif
 
@@ -475,11 +526,7 @@ void CX2GUElsword_SwordMan::End_SwordmanDestruction()
 }
 #endif ELSWORD_WAY_OF_SWORD
 #ifdef ELSWORD_SHEATH_KNIGHT
-#ifdef INT_SKILL_BUG_FIX
-void CX2GUElsword_SwordMan::AddComboToBrutalSlayer()
-#else
 void CX2GUElsword_SwordMan::AddComboToBrutalSlayer( const CX2DamageManager::DamageData& damageData_ )
-#endif INT_SKILL_BUG_FIX
 {
 	const int iComboNumber 
 		= ( NULL != GetComboManager() ? GetComboManager()->GetCombo() : 0 );
@@ -488,9 +535,9 @@ void CX2GUElsword_SwordMan::AddComboToBrutalSlayer( const CX2DamageManager::Dama
 		 && (iComboNumber % 5) == 0 )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_BRUTAL_SLAYER, true );
+		const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_BRUTAL_SLAYER, true );
 	#else // UPGRADE_SKILL_SYSTEM_2013
-		const int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_BRUTAL_SLAYER );
+		const int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_BRUTAL_SLAYER );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 		
 		if( iSkillLevel > 0 )
@@ -546,7 +593,7 @@ void CX2GUElsword_SwordMan::DamageReact( CX2DamageManager::DamageData* pDamageDa
 #endif //RIDING_SYSTEM 
 		)
 	{
-		if( true != IsSuperArmor() && true == GetFrameData()->unitCondition.bFootOnLine )
+		if( true != IsSuperArmor() && true == GetFrameData().unitCondition.bFootOnLine )
 		{
 
 			if( true == m_FrameDataFuture.unitCondition.bAttackerFront )
@@ -687,9 +734,9 @@ void CX2GUElsword_SwordMan::ApplyBuffToHarshSlayer( const CX2DamageManager::Dama
 	if( CX2DamageManager::AT_NORMAL == damageData_.attackType )
 	{	
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		const int iSkillLevelHarshSlayer = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_HARSH_SLAYER, true );
+		const int iSkillLevelHarshSlayer = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_HARSH_SLAYER, true );
 	#else // UPGRADE_SKILL_SYSTEM_2013
-		const int iSkillLevelHarshSlayer = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_HARSH_SLAYER );
+		const int iSkillLevelHarshSlayer = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_HARSH_SLAYER );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 		
 		if( iSkillLevelHarshSlayer > 0 )
@@ -715,9 +762,9 @@ void CX2GUElsword_SwordMan::ApplyBuffToHarshSlayer( const CX2DamageManager::Dama
 
 								//승부사의 기질을 배웠을 경우를 체크 해줘야 함.
 		#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-								const int iSkillLevelMindOfFighter = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_MIND_OF_FIGHTER, true );
+								const int iSkillLevelMindOfFighter = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_MIND_OF_FIGHTER, true );
 		#else // UPGRADE_SKILL_SYSTEM_2013
-								const int iSkillLevelMindOfFighter = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_MIND_OF_FIGHTER );
+								const int iSkillLevelMindOfFighter = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_MIND_OF_FIGHTER );
 		#endif // UPGRADE_SKILL_SYSTEM_2013
 								
 								if( iSkillLevelMindOfFighter > 0 )
@@ -787,8 +834,10 @@ void CX2GUElsword_SwordMan::InitStateID()
 	m_ChargeMpState			= USI_WAIT;
 
 	m_CommonState.m_Wait			= USI_WAIT;
+#ifdef GRAPPLING_TEST
 	m_CommonState.m_GrappledFront	= USI_DAMAGE_GRAPPLED_FRONT;
-	m_CommonState.m_GrappledBack	= USI_DAMAGE_GRAPPLED_BACK;
+	m_CommonState.m_GrappledBack	= USI_DAMAGE_GRAPPLED_FRONT;
+#endif // GRAPPLING_TEST
 	m_CommonState.m_Thrown			= USI_DAMAGE_AIR_FLY_FRONT;
 
 #ifdef CLIFF_CLIMBING_TEST
@@ -804,9 +853,9 @@ void CX2GUElsword_SwordMan::InitStateID()
 	m_CommonState.m_LinkJumpState		= ESSI_LINK_JUMP;
 #endif LINKED_LINEMAP_JUMP_USER_TEST
 
-#ifdef TRANSFORMER_TEST
-	m_CommonState.m_Transformed			= ESSI_TRANSFORMED;
-#endif TRANSFORMER_TEST
+//#ifdef TRANSFORMER_TEST
+//	m_CommonState.m_Transformed			= ESSI_TRANSFORMED;
+//#endif TRANSFORMER_TEST
 
 
 
@@ -816,10 +865,9 @@ void CX2GUElsword_SwordMan::InitStateID()
 
 void CX2GUElsword_SwordMan::InitState()
 {
-	ASSERT( NULL != m_pUnit );
-	ASSERT( NULL != m_pUnit->GetUnitData() );
+	ASSERT( NULL != GetUnit() );
 
-	CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+	const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 
 	switch( pUnitData->m_UnitClass )
@@ -858,15 +906,15 @@ void CX2GUElsword_SwordMan::InitState()
 
 
 	// 공통으로 쓰는 랜덤한 상태 start, win, lose 상태 초기화
-	std::wstring tableNameStart	= L"";
-	std::wstring tableNameWin	= L"";
-	std::wstring tableNameLose	= L"";
-	InitStateCommonRandom( tableNameStart, tableNameWin, tableNameLose );
+	std::string tableNameStartUTF8;
+	std::string tableNameWinUTF8;
+	std::string tableNameLoseUTF8;
+	InitStateCommonRandom( tableNameStartUTF8, tableNameWinUTF8, tableNameLoseUTF8 );
 
 	UserUnitStateData stateData;
 	stateData.Init();
 	stateData.stateID			= USI_START;
-	m_LuaManager.MakeTableReference( tableNameStart.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameStartUTF8.c_str(), stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, StartEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -874,7 +922,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_WIN;
-	m_LuaManager.MakeTableReference( tableNameWin.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameWinUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, WinStateStart );	
 #endif
@@ -885,7 +933,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_LOSE;
-	m_LuaManager.MakeTableReference( tableNameLose.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameLoseUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, LoseStateStart );	
 #endif
@@ -894,7 +942,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 
 	// 매직 나이트 win모션 예외 처리
-	if( 0 == tableNameWin.compare( L"ESSI_EMK_WIN2" ) )
+	if( 0 == tableNameWinUTF8.compare( "ESSI_EMK_WIN2" ) )
 	{
 		m_bIsMagicKnightWinMotion2 = true;
 	}
@@ -911,7 +959,7 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_ETK_COMBO_ZZZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ETK_COMBO_ZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ETK_COMBO_ZZZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_ZZZ_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_ZZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_ZZZ_EventProcess );
@@ -920,7 +968,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ETK_COMBO_ZZZZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ETK_COMBO_ZZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ETK_COMBO_ZZZZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_ZZZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_ZZZZ_EventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_ZZZZ_StateEnd );
@@ -928,7 +976,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ETK_COMBO_ZZZZZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ETK_COMBO_ZZZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ETK_COMBO_ZZZZZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_ZZZZZ_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_ZZZZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_ZZZZZ_EventProcess );
@@ -948,7 +996,7 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_ETK_COMBO_XX;
-			m_LuaManager.MakeTableReference( L"ESSI_ETK_COMBO_XX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ETK_COMBO_XX", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XX_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XX_EventProcess );
@@ -957,7 +1005,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ETK_COMBO_XXX_LOOP;
-			m_LuaManager.MakeTableReference( L"ESSI_ETK_COMBO_XXX_LOOP", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ETK_COMBO_XXX_LOOP", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XXX_LOOP_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XXX_LOOP_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XXX_LOOP_EventProcess );
@@ -966,7 +1014,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ETK_COMBO_XXXZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ETK_COMBO_XXXZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ETK_COMBO_XXXZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XXXZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XXXZ_EventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XXXZ_StateEnd );
@@ -974,7 +1022,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ETK_COMBO_XXX_END;
-			m_LuaManager.MakeTableReference( L"ESSI_ETK_COMBO_XXX_END", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ETK_COMBO_XXX_END", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XXX_END_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XXX_END_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_COMBO_XXX_END_EventProcess );
@@ -995,7 +1043,7 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_COMBO_Z2;
-			m_LuaManager.MakeTableReference( L"ESSI_DASH_COMBO_Z2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_DASH_COMBO_Z2", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashComboZ2StartFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashComboZ2FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashComboZ2EventProcess );
@@ -1007,21 +1055,21 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_COMBO_Z2;
-			m_LuaManager.MakeTableReference( L"ESSI_KNIGHT_DASH_COMBO_Z2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_KNIGHT_DASH_COMBO_Z2", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_COMBO_Z2_StateStartFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_COMBO_Z2_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_COMBO_Z3;
-			m_LuaManager.MakeTableReference( L"ESSI_KNIGHT_DASH_COMBO_Z3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_KNIGHT_DASH_COMBO_Z3", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_COMBO_Z3_StateStartFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_COMBO_Z3_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_COMBO_Z3a;
-			m_LuaManager.MakeTableReference( L"ESSI_KNIGHT_DASH_COMBO_Z3a", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_KNIGHT_DASH_COMBO_Z3a", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_COMBO_Z3a_StateStartFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_COMBO_Z3a_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1033,21 +1081,21 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_COMBO_Z2;
-			m_LuaManager.MakeTableReference( L"ESSI_KNIGHT_DASH_COMBO_Z2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_KNIGHT_DASH_COMBO_Z2", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_COMBO_Z2_StateStartFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_COMBO_Z2_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_COMBO_Z3;
-			m_LuaManager.MakeTableReference( L"ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3_StateStartFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_COMBO_Z3a;
-			m_LuaManager.MakeTableReference( L"ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3a", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3a", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3a_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3a_EventProcess );
 			stateData.StateEndFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3a_StateEndFuture );
@@ -1062,7 +1110,7 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_ETK_DASH_COMBO_ZZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ETK_DASH_COMBO_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ETK_DASH_COMBO_ZZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_DASH_COMBO_ZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_DASH_COMBO_ZZ_EventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ETK_DASH_COMBO_ZZ_StateEnd );
@@ -1084,7 +1132,7 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_JUMP_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_COMBO_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_COMBO_X2", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2EventProcess );
@@ -1100,7 +1148,7 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_JUMP_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"ESSI_KNIGHT_DASH_JUMP_COMBO_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_KNIGHT_DASH_JUMP_COMBO_X2", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_JUMP_COMBO_X2_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_JUMP_COMBO_X2_FrameMove ); 
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_JUMP_COMBO_X2_EventProcess );
@@ -1110,7 +1158,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_JUMP_COMBO_X3;
-			m_LuaManager.MakeTableReference( L"ESSI_KNIGHT_DASH_JUMP_COMBO_X3", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_KNIGHT_DASH_JUMP_COMBO_X3", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_KNIGHT_DASH_JUMP_COMBO_X3_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
@@ -1121,7 +1169,7 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_JUMP_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_COMBO_X2", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_COMBO_X2", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2EventProcess );
@@ -1133,7 +1181,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_JUMP_COMBO_X2a;
-			m_LuaManager.MakeTableReference( L"ESSI_MAGIC_KNIGHT_DASH_JUMP_COMBO_X2a", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_MAGIC_KNIGHT_DASH_JUMP_COMBO_X2a", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_MAGIC_KNIGHT_DASH_JUMP_COMBO_X2a_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_MAGIC_KNIGHT_DASH_JUMP_COMBO_X2a_FrameMove ); 
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_MAGIC_KNIGHT_DASH_JUMP_COMBO_X2a_EventProcess );				
@@ -1144,7 +1192,7 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_DASH_JUMP_COMBO_X2;
-			m_LuaManager.MakeTableReference( L"ESSI_EIS_DASHJUMP_COMBO_XX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_EIS_DASHJUMP_COMBO_XX", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_EIS_DASHJUMP_COMBO_XX_EventProcess );
@@ -1153,7 +1201,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_EIS_DASHJUMP_COMBO_XXX;
-			m_LuaManager.MakeTableReference( L"ESSI_EIS_DASHJUMP_COMBO_XXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_EIS_DASHJUMP_COMBO_XXX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_EIS_DASHJUMP_COMBO_XXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_EIS_DASHJUMP_COMBO_XXX_EventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_EIS_DASHJUMP_COMBO_XXX_End );
@@ -1181,7 +1229,7 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_ELK_ZZZfrontZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ELK_ZZZfrontZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ELK_ZZZfrontZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ELK_ZZZfrontZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ELK_ZZZfrontZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1189,7 +1237,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ELK_XXX;
-			m_LuaManager.MakeTableReference( L"ESSI_ELK_XXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ELK_XXX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ELK_XXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ELK_XXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1197,7 +1245,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ELK_XXXX;
-			m_LuaManager.MakeTableReference( L"ESSI_ELK_XXXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ELK_XXXX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ELK_XXXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ELK_XXXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1209,7 +1257,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ERS_XZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ERS_XZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ERS_XZ", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_XZ_StateStartFuture );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_XZ_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_XZ_FrameMove );
@@ -1219,7 +1267,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ERS_XZZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ERS_XZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ERS_XZZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_XZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_XZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1228,7 +1276,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ERS_DASH_JUMP_XZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ERS_DASH_JUMP_XZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ERS_DASH_JUMP_XZ", stateData.stateID );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_DASH_JUMP_XZ_StateStartFuture );
 			stateData.StateEndFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_DASH_JUMP_XZ_StateEndFuture );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_DASH_JUMP_XZ_FrameMoveFuture );
@@ -1239,7 +1287,7 @@ void CX2GUElsword_SwordMan::InitState()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_ERS_DASH_JUMP_XZZ;
-			m_LuaManager.MakeTableReference( L"ESSI_ERS_DASH_JUMP_XZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_ERS_DASH_JUMP_XZZ", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_DASH_JUMP_XZZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_ERS_DASH_JUMP_XZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -1249,13 +1297,13 @@ void CX2GUElsword_SwordMan::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= ESSI_EIS_DASH_COMBO_XX;
-			m_LuaManager.MakeTableReference( L"ESSI_EIS_DASH_COMBO_XX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_EIS_DASH_COMBO_XX", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_EIS_DASH_COMBO_XX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= ESSI_EIS_DASH_COMBO_XXX;
-			m_LuaManager.MakeTableReference( L"ESSI_EIS_DASH_COMBO_XXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_EIS_DASH_COMBO_XXX", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_EIS_DASH_COMBO_XXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		}
@@ -1281,7 +1329,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_DIE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DIE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DieFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DieFrontStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DieFrontFrameMove );
@@ -1290,7 +1338,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_DIE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DIE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DieBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DieBackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DieBackFrameMove );
@@ -1300,7 +1348,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_START_INTRUDE;
-	m_LuaManager.MakeTableReference( L"ESSI_START_INTRUDE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_START_INTRUDE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, StartIntrudeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, StartIntrudeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartIntrudeEventProcess );
@@ -1309,7 +1357,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WAIT;
-	m_LuaManager.MakeTableReference( L"ESSI_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, WaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, WaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, WaitEventProcess );
@@ -1317,7 +1365,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WALK;
-	m_LuaManager.MakeTableReference( L"ESSI_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_WALK", stateData.stateID );
 #ifdef TEST_MACRO_COMBO
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, WalkStart );
 #endif TEST_MACRO_COMBO
@@ -1327,34 +1375,34 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_READY;
-	m_LuaManager.MakeTableReference( L"ESSI_JUMP_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_JUMP_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpReadyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ESSI_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_JUMP_UP", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser,			JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ESSI_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_JUMP_DOWN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser,			JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ESSI_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_JUMP_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpLandingEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -1363,7 +1411,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_END;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_END", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashEndStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashEndStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashEndFrameMove );
@@ -1372,7 +1420,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpFrameMoveFuture );
@@ -1382,17 +1430,15 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_LANDING", stateData.stateID );
-#ifdef MODIFY_DASH_JUMP_LANDING_SPEED
+	m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
-#endif
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpLandingEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DASH_JUMP_POWER_LANDING;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_POWER_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_POWER_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpPowerLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpPowerLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpPowerLandingEventProcess );
@@ -1400,7 +1446,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"ESSI_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_HYPER_MODE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, HyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, HyperModeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, HyperModeEventProcess );
@@ -1412,86 +1458,86 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_GROGGY;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_GROGGY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_GROGGY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DAMAGE_GROGGY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_SMALL_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_SMALL_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageSmallFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_SMALL_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_SMALL_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageSmallBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_BIG_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_BIG_FRONT", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageBigFrontStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageBigFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_BIG_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_BIG_BACK", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageBigBackStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageBigBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_DOWN_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_DOWN_FRONT", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageDownFrontFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageDownFrontEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_DOWN_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_DOWN_BACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageDownBackFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageDownBackEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_STANDUP_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_STANDUP_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_STANDUP_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_STANDUP_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_SMALL;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_AIR_SMALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_AIR_SMALL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DamageAirSmallStartFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirSmallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_AIR_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_AIR_DOWN", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_INVINCIBLE;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownInvincibleEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_LANDING;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DamageAirDownLandingEventProcess );
@@ -1499,31 +1545,31 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FALL;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_AIR_FALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_AIR_FALL", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_UP;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_AIR_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_AIR_UP", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_REVENGE;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_REVENGE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_REVENGE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageRevengeStart );
 	stateData.OnCameraMove		= SET_CB_FUNC( CX2GUUser, DamageRevengeCameraMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageRevengeEventProcess );
@@ -1531,42 +1577,42 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_STANDUP_ROLLING_FRONT_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpRollingFrontFrontEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpRollingFrontFrontEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_STANDUP_ROLLING_FRONT_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpRollingFrontBackEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpRollingFrontBackEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_STANDUP_ROLLING_BACK_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpRollingBackFrontEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpRollingBackFrontEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_STANDUP_ROLLING_BACK_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpRollingBackBackEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpRollingBackBackEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_STANDUP_ATTACK_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_STANDUP_ATTACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_STANDUP_ATTACK_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpAttackFrontEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpAttackFrontEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_STANDUP_ATTACK_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_STANDUP_ATTACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_STANDUP_ATTACK_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpAttackBackEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpAttackBackEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -1575,14 +1621,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_STANDUP_ATTACK_FRONT_NO_DOWN;
-	m_LuaManager.MakeTableReference( L"ESSI_STANDUP_ATTACK_FRONT_NO_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_STANDUP_ATTACK_FRONT_NO_DOWN", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpAttackFrontNoDownEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpAttackFrontNoDownEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_STANDUP_ATTACK_BACK_NO_DOWN;
-	m_LuaManager.MakeTableReference( L"ESSI_STANDUP_ATTACK_BACK_NO_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_STANDUP_ATTACK_BACK_NO_DOWN", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpAttackBackNoDownEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, StandUpAttackBackNoDownEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -1590,7 +1636,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	stateData.Init();
 	stateData.stateID			= ESSI_SI_P_ESK_AUTO_GUARD;
-	m_LuaManager.MakeTableReference( L"ESSI_SI_P_ESK_AUTO_GUARD", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_SI_P_ESK_AUTO_GUARD", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_P_ESK_AUTO_GUARD_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_P_ESK_AUTO_GUARD_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_P_ESK_AUTO_GUARD_End );
@@ -1600,15 +1646,15 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 #ifdef ELSWORD_SHEATH_KNIGHT
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_COMPACT_COUNTER, true );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_COMPACT_COUNTER, true );
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_COMPACT_COUNTER );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_COMPACT_COUNTER );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	if( iSkillLevel > 0 )
 	{
 		stateData.Init();
 		stateData.stateID			= ESSI_REVENGE_ATTACK;
-		m_LuaManager.MakeTableReference( L"ESSI_SI_A_ETK_COMPACT_COUNTER_GUARD_ATTACK", stateData.stateID );
+		m_LuaManager.MakeTableReference( "ESSI_SI_A_ETK_COMPACT_COUNTER_GUARD_ATTACK", stateData.stateID );
 		stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, CompactCounterGuardAttackStart );
 		stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, CompactCounterGuardAttackStartFuture );
 		stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, CompactCounterGuardAttackFrameMoveFuture );
@@ -1622,7 +1668,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	{
 		stateData.Init();
 		stateData.stateID			= ESSI_REVENGE_ATTACK;
-		m_LuaManager.MakeTableReference( L"ESSI_REVENGE_ATTACK", stateData.stateID );
+		m_LuaManager.MakeTableReference( "ESSI_REVENGE_ATTACK", stateData.stateID );
 		stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, RevengeAttackStart );
 		stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, RevengeAttackFrameMoveFuture );
 		stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, RevengeAttackFrameMove );
@@ -1633,7 +1679,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #else
 	stateData.Init();
 	stateData.stateID			= ESSI_REVENGE_ATTACK;
-	m_LuaManager.MakeTableReference( L"ESSI_REVENGE_ATTACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_REVENGE_ATTACK", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, RevengeAttackStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, RevengeAttackFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, RevengeAttackFrameMove );
@@ -1644,7 +1690,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_COMBO_Z1;
-	m_LuaManager.MakeTableReference( L"ESSI_COMBO_Z1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_COMBO_Z1", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ1FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ1EventProcess );
@@ -1652,21 +1698,21 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_COMBO_Z2;
-	m_LuaManager.MakeTableReference( L"ESSI_COMBO_Z2", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_COMBO_Z2", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ2FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ2EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_COMBO_Z3;
-	m_LuaManager.MakeTableReference( L"ESSI_COMBO_Z3", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_COMBO_Z3", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ3FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ3EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_COMBO_Z4;
-	m_LuaManager.MakeTableReference( L"ESSI_COMBO_Z4", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_COMBO_Z4", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ4FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ4FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ4EventProcess );
@@ -1674,14 +1720,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_COMBO_Z4a;
-	m_LuaManager.MakeTableReference( L"ESSI_COMBO_Z4a", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_COMBO_Z4a", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ4aFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboZ4aEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_COMBO_X1;
-	m_LuaManager.MakeTableReference( L"ESSI_COMBO_X1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_COMBO_X1", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX1FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX1EventProcess );
@@ -1689,7 +1735,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_COMBO_X2;
-	m_LuaManager.MakeTableReference( L"ESSI_COMBO_X2", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_COMBO_X2", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX2FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX2FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX2EventProcess );
@@ -1697,7 +1743,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_COMBO_X3;
-	m_LuaManager.MakeTableReference( L"ESSI_COMBO_X3", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_COMBO_X3", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX3FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX3FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX3EventProcess );
@@ -1705,14 +1751,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_COMBO_X3a;
-	m_LuaManager.MakeTableReference( L"ESSI_COMBO_X3a", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_COMBO_X3a", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX3aFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ComboX3aEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DASH_COMBO_Z1;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_COMBO_Z1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_COMBO_Z1", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashComboZ1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashComboZ1EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1721,7 +1767,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DASH_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_ATTACK_X", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashAttackXStartFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashAttackXFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashAttackXEventProcess );
@@ -1729,7 +1775,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"ESSI_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpAttackZFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpAttackZFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpAttackZEventProcess );
@@ -1737,7 +1783,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_JUMP_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"ESSI_JUMP_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_JUMP_ATTACK_X", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpAttackXFrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpAttackXFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, JumpAttackXEventProcess );
@@ -1745,7 +1791,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DASH_JUMP_COMBO_Z1;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_COMBO_Z1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_COMBO_Z1", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboZ1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboZ1EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1753,21 +1799,21 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DASH_JUMP_COMBO_Z2;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_COMBO_Z2", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_COMBO_Z2", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboZ2FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboZ2EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DASH_JUMP_COMBO_Z3;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_COMBO_Z3", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_COMBO_Z3", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboZ3FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboZ3EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DASH_JUMP_COMBO_Z3_LANDING;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_COMBO_Z3_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_COMBO_Z3_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboZ3LandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboZ3LandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboZ3LandingEventProcess );
@@ -1777,7 +1823,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DASH_JUMP_COMBO_X1;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_COMBO_X1", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_COMBO_X1", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX1FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX1EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1789,7 +1835,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DASH_JUMP_COMBO_X2_LANDING;
-	m_LuaManager.MakeTableReference( L"ESSI_DASH_JUMP_COMBO_X2_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DASH_JUMP_COMBO_X2_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2LandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2LandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DashJumpComboX2LandingEventProcess );
@@ -1799,7 +1845,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_SWORD_WAIT;
-	m_LuaManager.MakeTableReference( L"ESSI_SWORD_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_SWORD_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, SwordWaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, SwordWaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, SwordWaitEventProcess );
@@ -1808,7 +1854,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_DESTRUCTION_RAGE;
-	m_LuaManager.MakeTableReference( L"ESSI_DESTRUCTION_RAGE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DESTRUCTION_RAGE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DestructionRageStateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DestructionRageStateFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, DestructionRageStateEventProcess );
@@ -1821,7 +1867,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef WALL_JUMP_TEST
 	stateData.Init();
 	stateData.stateID			= ESSI_WALL_LANDING;
-	m_LuaManager.MakeTableReference( L"ESSI_WALL_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_WALL_LANDING", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, WallLandingEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GUUser, WallLandingEndFuture );
 	m_StateList[stateData.stateID] = stateData;
@@ -1832,27 +1878,27 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_READY;
-	m_LuaManager.MakeTableReference( L"ESSI_PEPPER_RUN_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_PEPPER_RUN_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_READY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN;
-	m_LuaManager.MakeTableReference( L"ESSI_PEPPER_RUN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_PEPPER_RUN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_END;
-	m_LuaManager.MakeTableReference( L"ESSI_PEPPER_RUN_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_PEPPER_RUN_END", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ESSI_PEPPER_RUN_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_PEPPER_RUN_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_EventProcess );
@@ -1860,7 +1906,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ESSI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_EventProcess );
@@ -1869,7 +1915,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef SPECIAL_USE_ITEM
 	stateData.Init();
 	stateData.stateID			= USI_THROW_ITEM;
-	m_LuaManager.MakeTableReference( L"ESSI_THROW_ITEM", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_THROW_ITEM", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_StateStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMove );
@@ -1880,7 +1926,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #else SPECIAL_USE_ITEM
 	stateData.Init();
 	stateData.stateID			= ESSI_THROW_WOODEN_PIECE;
-	m_LuaManager.MakeTableReference( L"ESSI_THROW_WOODEN_PIECE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_THROW_WOODEN_PIECE", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, THROW_WOODEN_PIECE_FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, THROW_WOODEN_PIECE_FrameMove );
 #ifdef CONVERSION_VS
@@ -1899,7 +1945,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_START
 	stateData.Init();
 	stateData.stateID			= GetRidingStartStateID();
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_START", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingStartStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingStartStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingStartEventProcess );
@@ -1910,7 +1956,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_ON
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ON;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_ON", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_ON", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingOnStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingOnStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOnEventProcess );
@@ -1920,7 +1966,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_OFF
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_OFF;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_OFF", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_OFF", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOffEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, RidingOffEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -1929,7 +1975,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_WAIT_HABIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT_HABIT;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_WAIT_HABIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_WAIT_HABIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitEventProcess );
@@ -1939,7 +1985,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_WAIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitEventProcess );
@@ -1949,7 +1995,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_WALK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WALK;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_WALK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWalkStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWalkStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, WalkFrameMoveFuture );
@@ -1960,7 +2006,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_JUMP_UP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpUpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpUpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -1971,7 +2017,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_JUMP_DOWN
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpDownStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpDownStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -1982,7 +2028,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingEventProcess );
@@ -1992,7 +2038,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_DASH
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -2003,7 +2049,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_DASH_END
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_END;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_DASH_END", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashEndStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashEndStart );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashEndStartFuture );
@@ -2015,7 +2061,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_DASH_JUMP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpFrameMoveFuture );
@@ -2027,7 +2073,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_DASH_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingEventProcess );
@@ -2037,7 +2083,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_DAMAGE_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_DAMAGE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_DAMAGE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontEventProcess );
@@ -2047,7 +2093,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_DAMAGE_BACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_DAMAGE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_DAMAGE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageBackStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageBackEventProcess );
@@ -2057,7 +2103,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_DIE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DIE;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_DIE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_DIE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, DieFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, DieFrontStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, DieFrontFrameMove );
@@ -2068,7 +2114,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackZStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackZEventProcess );
@@ -2078,7 +2124,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_JUMP_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZFrameMoveFuture );
@@ -2089,7 +2135,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_ATTACK_X
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_ATTACK_X", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackXStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackXStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackXEventProcess );
@@ -2099,7 +2145,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_SPECIAL_ATTACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_ATTACK;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_ATTACK_SPECIAL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_ATTACK_SPECIAL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackFrameMove );
@@ -2110,7 +2156,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#pragma region ESSI_RIDING_SPECIAL_MOVE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_MOVE;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_SPECIAL_MOVE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_SPECIAL_MOVE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveFrameMoveFuture );
@@ -2125,7 +2171,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef MODIFY_RIDING_PET_AWAKE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"ESSI_RIDING_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_RIDING_HYPER_MODE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingHyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, RidingHyperModeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingHyperModeEventProcess );
@@ -2138,7 +2184,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_MACHINE_GUN_RIDE;
-	m_LuaManager.MakeTableReference( L"ESSI_MACHINE_GUN_RIDE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_MACHINE_GUN_RIDE", stateData.stateID );
 #ifdef CONVERSION_VS
 	stateData.StateStartFuture		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_RIDE_StartFuture ); 
 	stateData.StateStart			= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_RIDE_Start ); 
@@ -2158,7 +2204,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_MACHINE_GUN_WAIT;
-	m_LuaManager.MakeTableReference( L"ESSI_MACHINE_GUN_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_MACHINE_GUN_WAIT", stateData.stateID );
 #ifdef CONVERSION_VS
 	stateData.StateStartFuture		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_WAIT_StartFuture ); 
 	stateData.StateStart			= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_WAIT_Start ); 
@@ -2174,7 +2220,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_MACHINE_GUN_WALK;
-	m_LuaManager.MakeTableReference( L"ESSI_MACHINE_GUN_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_MACHINE_GUN_WALK", stateData.stateID );
 #ifdef CONVERSION_VS
 	stateData.OnFrameMoveFuture		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_WALK_FrameMoveFuture ); 
 	stateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_WALK_EventProcess ); 
@@ -2186,7 +2232,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_MACHINE_GUN_ATTACK;
-	m_LuaManager.MakeTableReference( L"ESSI_MACHINE_GUN_ATTACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_MACHINE_GUN_ATTACK", stateData.stateID );
 #ifdef CONVERSION_VS
 	stateData.OnFrameMoveFuture		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_ATTACK_FrameMoveFuture ); 
 	stateData.OnFrameMove			= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_ATTACK_FrameMove );
@@ -2202,7 +2248,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_MACHINE_GUN_LEAVE;
-	m_LuaManager.MakeTableReference( L"ESSI_MACHINE_GUN_LEAVE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_MACHINE_GUN_LEAVE", stateData.stateID );
 #ifdef CONVERSION_VS
 	stateData.StateStartFuture		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_LEAVE_StartFuture ); 
 	stateData.StateStart			= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_LEAVE_Start ); 
@@ -2222,7 +2268,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_MACHINE_GUN_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"ESSI_MACHINE_GUN_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_MACHINE_GUN_JUMP_UP", stateData.stateID );
 #ifdef CONVERSION_VS
 	stateData.OnFrameMoveFuture		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_JUMP_UP_FrameMoveFuture ); 
 	stateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_JUMP_UP_EventProcess ); 
@@ -2234,7 +2280,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_MACHINE_GUN_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"ESSI_MACHINE_GUN_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_MACHINE_GUN_JUMP_DOWN", stateData.stateID );
 #ifdef CONVERSION_VS
 	stateData.OnFrameMoveFuture		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_JUMP_DOWN_FrameMoveFuture ); 
 	stateData.OnEventProcess		= SET_CB_FUNC( CX2GUUser, MACHINE_GUN_JUMP_DOWN_EventProcess ); 
@@ -2246,7 +2292,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_SUMMON_MAGIC_SPEAR;
-	m_LuaManager.MakeTableReference( L"ESSI_SUMMON_MAGIC_SPEAR", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_SUMMON_MAGIC_SPEAR", stateData.stateID );
 #ifdef CONVERSION_VS
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, SUMMON_MAGIC_SPEAR_FrameMove ); 
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, SUMMON_MAGIC_SPEAR_EventProcess ); 
@@ -2259,7 +2305,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_LEAP;
-	m_LuaManager.MakeTableReference( L"ESSI_LEAP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_LEAP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_LEAP_StartFuture ); 
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_LEAP_FrameMoveFuture ); 
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_LEAP_EventProcess ); 
@@ -2276,7 +2322,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_GRAPPLED_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_GRAPPLED_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_GRAPPLED_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_DAMAGE_GRAPPLED_FRONT_StartFuture ); 
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_DAMAGE_GRAPPLED_FRONT_Start ); 
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_DAMAGE_GRAPPLED_FRONT_FrameMoveFuture ); 
@@ -2287,8 +2333,8 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 
 	stateData.Init();
-	stateData.stateID			= USI_DAMAGE_GRAPPLED_BACK;
-	m_LuaManager.MakeTableReference( L"ESSI_DAMAGE_GRAPPLED_BACK", stateData.stateID );
+	stateData.stateID			= USI_RIDING_HYPER_MODE;
+	m_LuaManager.MakeTableReference( "ESSI_DAMAGE_GRAPPLED_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_DAMAGE_GRAPPLED_FRONT_StartFuture ); 
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_DAMAGE_GRAPPLED_FRONT_Start ); 
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_DAMAGE_GRAPPLED_FRONT_FrameMoveFuture ); 
@@ -2302,7 +2348,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_GRAB_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_GRAB_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_GRAB_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_GRAB_FRONT_StartFuture ); 
 	stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_GRAB_FRONT_Start ); 
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_GRAB_FRONT_FrameMoveFuture ); 
@@ -2315,7 +2361,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_THROW_FORWARD;
-	m_LuaManager.MakeTableReference( L"ESSI_THROW_FORWARD", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_THROW_FORWARD", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_THROW_FORWARD_StartFuture ); 
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_THROW_FORWARD_FrameMoveFuture ); 
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_THROW_FORWARD_EventProcess ); 
@@ -2329,20 +2375,20 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-
-	stateData.Init();
-	stateData.stateID			= ESSI_FROZEN;
-	m_LuaManager.MakeTableReference( L"ESSI_FROZEN", stateData.stateID );
-	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
-	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
-	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
-	m_StateList[stateData.stateID] = stateData;
-
-
-	m_FrozenState = ESSI_FROZEN;
-
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//
+//	stateData.Init();
+//	stateData.stateID			= ESSI_FROZEN;
+//	m_LuaManager.MakeTableReference( "ESSI_FROZEN", stateData.stateID );
+//	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
+//	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
+//	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
+//	m_StateList[stateData.stateID] = stateData;
+//
+//
+//	m_FrozenState = ESSI_FROZEN;
+//
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 
@@ -2352,7 +2398,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef LINKED_LINEMAP_JUMP_USER_TEST
 	stateData.Init();
 	stateData.stateID			= ESSI_LINK_JUMP;
-	m_LuaManager.MakeTableReference( L"ESSI_LINK_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_LINK_JUMP", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, LinkJumpEventProcess );	
 	m_StateList[stateData.stateID] = stateData;
 #endif LINKED_LINEMAP_JUMP_USER_TEST
@@ -2365,7 +2411,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_CLIMB_WAIT;
-	m_LuaManager.MakeTableReference( L"ESSI_CLIMB_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_CLIMB_WAIT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, ClimbWaitEventProcess );	
 	m_StateList[stateData.stateID] = stateData;
 
@@ -2375,7 +2421,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_CLIMB_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_CLIMB_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_CLIMB_FRONT", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, ClimbFrontFrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, ClimbFrontEventProcess );	
 	m_StateList[stateData.stateID] = stateData;
@@ -2383,7 +2429,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_CLIMB_UP;
-	m_LuaManager.MakeTableReference( L"ESSI_CLIMB_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_CLIMB_UP", stateData.stateID );
 	//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, ClimbFrontFrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, ClimbUpEventProcess );	
 	m_StateList[stateData.stateID] = stateData;
@@ -2391,7 +2437,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_CLIMB_DOWN;
-	m_LuaManager.MakeTableReference( L"ESSI_CLIMB_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_CLIMB_DOWN", stateData.stateID );
 	//stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, ClimbFrontFrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, ClimbDownEventProcess );	
 	m_StateList[stateData.stateID] = stateData;
@@ -2402,7 +2448,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_CLIMB_UP_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_CLIMB_UP_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_CLIMB_UP_FRONT", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, ClimbUpFrontFrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, ClimbUpFrontEventProcess );	
 	m_StateList[stateData.stateID] = stateData;
@@ -2411,7 +2457,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= ESSI_CLIMB_DOWN_FRONT;
-	m_LuaManager.MakeTableReference( L"ESSI_CLIMB_DOWN_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "ESSI_CLIMB_DOWN_FRONT", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, ClimbDownFrontFrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, ClimbDownFrontEventProcess );	
 	m_StateList[stateData.stateID] = stateData;
@@ -2424,15 +2470,15 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 
 
-#ifdef TRANSFORMER_TEST
-
-	stateData.Init();
-	stateData.stateID			= ESSI_TRANSFORMED;
-	m_LuaManager.MakeTableReference( L"ESSI_TRANSFORMED", stateData.stateID );
-	m_StateList[stateData.stateID] = stateData;
-
-
-#endif TRANSFORMER_TEST
+//#ifdef TRANSFORMER_TEST
+//
+//	stateData.Init();
+//	stateData.stateID			= ESSI_TRANSFORMED;
+//	m_LuaManager.MakeTableReference( "ESSI_TRANSFORMED", stateData.stateID );
+//	m_StateList[stateData.stateID] = stateData;
+//
+//
+//#endif TRANSFORMER_TEST
 
 
 }
@@ -2445,11 +2491,15 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 {
 	CX2GUUser::InitPassiveSkillState();
 
+#ifdef BALANCE_PATCH_20131107
+	m_iSkillLevelInduranceOfRevenge = 0;
+#endif //BALANCE_PATCH_20131107
+
 	int iSkillLevel = 0;
 #ifdef SERV_ELSWORD_INFINITY_SWORD
 	
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP, true );
 	if( iSkillLevel > 0 )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP );
@@ -2463,7 +2513,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		}
 	}
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP );
 	if( iSkillLevel > 0 )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP, iSkillLevel );
@@ -2482,9 +2532,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	m_fAttackPowerRateFireBall = 1.f;
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ES_POWERFUL_FIREBALL, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ES_POWERFUL_FIREBALL, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ES_POWERFUL_FIREBALL );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ES_POWERFUL_FIREBALL );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevel > 0 )
@@ -2507,9 +2557,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	}
 	
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_STRONG_BONE, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_STRONG_BONE, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_STRONG_BONE );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_STRONG_BONE );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevel > 0 )
@@ -2534,9 +2584,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	}
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_SPELL_CHAIN, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_SPELL_CHAIN, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_SPELL_CHAIN );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_SPELL_CHAIN );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevel > 0 )
@@ -2559,9 +2609,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	m_fMagicReflectRate = 0.f;
 	
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_MAGIC_RESISTANCE, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_MAGIC_RESISTANCE, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_MAGIC_RESISTANCE );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_MAGIC_RESISTANCE );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevel > 0 )
@@ -2589,9 +2639,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	/// 잔혹한 학살자는 배웠는가?
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevelBrutalSlayer = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_BRUTAL_SLAYER, true );
+	const int iSkillLevelBrutalSlayer = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_BRUTAL_SLAYER, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevelBrutalSlayer = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_BRUTAL_SLAYER );
+	const int iSkillLevelBrutalSlayer = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_BRUTAL_SLAYER );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevelBrutalSlayer > 0 )
@@ -2606,13 +2656,12 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		const CX2SkillTree::SkillTemplet* pSkillTempletBrutalSlayer = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_ETK_BRUTAL_SLAYER, iSkillLevelBrutalSlayer );
 		if ( NULL != pSkillTempletBrutalSlayer && pSkillTempletBrutalSlayer->m_vecBuffFactorPtr.size() > 0 )
 		{
-			CreateAndInsertSkillAndSocketBuffFactorToList( pSkillTempletBrutalSlayer->m_vecBuffFactorPtr[1] );				
-			InsertDelegateProcessToAttackResult( SET_DELEGATE_PROCESS(CX2GUElsword_SwordMan, AddComboToBrutalSlayer ) );
+			InsertDelegateProcessToAttackResult( SET_DELEGATE_PROCESS_WITH_DAMAGE_DATA(CX2GUElsword_SwordMan, AddComboToBrutalSlayer ) );
 		}
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 	}
 
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ES_ROLLING );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ES_ROLLING );
 	if( iSkillLevel > 0 )
 	{
 
@@ -2648,9 +2697,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef SERV_ELSWORD_INFINITY_SWORD
 	/// 승부사의 기질을 배웠는가?
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevelFighter = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_MIND_OF_FIGHTER, true );
+	const int iSkillLevelFighter = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_MIND_OF_FIGHTER, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevelFighter = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_MIND_OF_FIGHTER );
+	const int iSkillLevelFighter = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_MIND_OF_FIGHTER );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if ( iSkillLevelFighter > 0 )
@@ -2676,7 +2725,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	//막기 - 액티브 스킬이지만 이 스킬의 방어율이 오토 가드에도 적용됨
-	const int iSkillLevelGuard = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ES_DEFENCE );
+	const int iSkillLevelGuard = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ES_DEFENCE );
 	if( iSkillLevelGuard > 0 )
 	{
 		if( NULL == m_GuardForElswordPtr )
@@ -2698,9 +2747,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	// 오토 가드
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevelAutoGuard = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ESK_AUTO_GUARD, true );
+	const int iSkillLevelAutoGuard = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ESK_AUTO_GUARD, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevelAutoGuard = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ESK_AUTO_GUARD );
+	const int iSkillLevelAutoGuard = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ESK_AUTO_GUARD );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevelAutoGuard > 0 && ( CX2Unit::UC_ELSWORD_LORD_KNIGHT == GetUnit()->GetClass() || CX2Unit::UC_ELSWORD_KNIGHT == GetUnit()->GetClass() ) )
@@ -2726,9 +2775,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	// 룬 마스터리
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevelRuneMastery = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_RUNE_MASTERY, true );
+	const int iSkillLevelRuneMastery = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_RUNE_MASTERY, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevelRuneMastery = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_RUNE_MASTERY );
+	const int iSkillLevelRuneMastery = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ERS_RUNE_MASTERY );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevelRuneMastery > 0 && CX2Unit::UC_ELSWORD_RUNE_SLAYER == GetUnit()->GetClass() )
@@ -2759,9 +2808,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	//날카로운 검
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevelCuttingSword = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_CUTTING_SWORD, true );
+	const int iSkillLevelCuttingSword = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_CUTTING_SWORD, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevelCuttingSword = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_CUTTING_SWORD );
+	const int iSkillLevelCuttingSword = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_CUTTING_SWORD );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevelCuttingSword > 0 && CX2Unit::UC_ELSWORD_INFINITY_SWORD == GetUnit()->GetClass() )
@@ -2771,7 +2820,13 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	#else // UPGRADE_SKILL_SYSTEM_2013
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_EIS_CUTTING_SWORD, iSkillLevelCuttingSword );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() &&
+			pSkillTemplet->m_eType != CX2SkillTree::ST_SPECIAL_ACTIVE && pSkillTemplet->m_eType != CX2SkillTree::ST_HYPER_ACTIVE_SKILL )
+#else //FINALITY_SKILL_SYSTEM
 		if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
+#endif //FINALITY_SKILL_SYSTEM
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			CreateAndInsertSkillAndSocketBuffFactorToList( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillLevelCuttingSword ) );
 #else //UPGRADE_SKILL_SYSTEM_2013
@@ -2781,9 +2836,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	//냉혹한 학살자
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevelHarshSlayer = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_HARSH_SLAYER, true );
+	const int iSkillLevelHarshSlayer = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_HARSH_SLAYER, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevelHarshSlayer = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_HARSH_SLAYER );
+	const int iSkillLevelHarshSlayer = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_HARSH_SLAYER );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevelHarshSlayer > 0 && ( CX2Unit::UC_ELSWORD_SHEATH_KNIGHT == GetUnit()->GetClass() || CX2Unit::UC_ELSWORD_INFINITY_SWORD == GetUnit()->GetClass() ) )
@@ -2793,9 +2848,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	
 	//강렬한 일격
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillLevelIntensiveAttack = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_INTENSIVE_ATTACK, true );
+	const int iSkillLevelIntensiveAttack = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_INTENSIVE_ATTACK, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	const int iSkillLevelIntensiveAttack = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_INTENSIVE_ATTACK );
+	const int iSkillLevelIntensiveAttack = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_INTENSIVE_ATTACK );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevelIntensiveAttack > 0 && CX2Unit::UC_ELSWORD_LORD_KNIGHT == GetUnit()->GetClass() )
@@ -2822,6 +2877,10 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		m_fActiveSkillAddPowerRate = 1.f;
 	}
 #endif //UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef BALANCE_PATCH_20131107
+	m_iSkillLevelInduranceOfRevenge = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_INDURANCE_OF_REVENGE, true );
+#endif //BALANCE_PATCH_20131107
 }
 
 /*virtual*/ void CX2GUElsword_SwordMan::SetEquippedSkillFuncBySkillSlotIndex( const CX2SkillTree::SKILL_ID eSkillID_, const int iSlotIndex_, const bool bSlotB_ )
@@ -2848,11 +2907,11 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	{	
 	case CX2SkillTree::ST_BUFF:
 		{	// 버프 필살기
-			m_LuaManager.MakeTableReference( L"ESSI_SI_ES_COMMON_BUFF", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_ES_COMMON_BUFF", normalStateData.stateID );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, COMMON_BUFF_FrameMove );	
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_ES_COMMON_BUFF_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_ES_COMMON_BUFF_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, COMMON_BUFF_FrameMove );	
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );
@@ -2861,6 +2920,9 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		} break;
 	case CX2SkillTree::ST_ACTIVE:
 	case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 		{
 			// ST_ACTIVE, ST_SPECIAL_ACTIVE는 아래 구문에서 수행
 		} break;
@@ -2871,11 +2933,11 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			{
 			case CX2SkillTree::SI_ETC_WS_COMMON_LOVE:
 				{
-					m_LuaManager.MakeTableReference( L"ESSI_THROW_ITEM", normalStateData.stateID );
+					m_LuaManager.MakeTableReference( "ESSI_THROW_ITEM", normalStateData.stateID );
 					normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_FrameMove );	
 					normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_EventProcess );	
 
-					m_LuaManager.MakeTableReference( L"ESSI_THROW_ITEM", hyperStateData.stateID );
+					m_LuaManager.MakeTableReference( "ESSI_THROW_ITEM", hyperStateData.stateID );
 					hyperStateData.m_bHyperState	= true;
 					hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 					hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
@@ -2903,7 +2965,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		case CX2SkillTree::SI_SA_ES_MEGASLASH:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_MEGA_SLASH", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI1_ES_MEGA_SLASH", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_MEGA_SLASH_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_MEGA_SLASH_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_MEGA_SLASH_FrameMove );
@@ -2911,7 +2973,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_MEGA_SLASH_EventProcess );	
 
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_MEGA_SLASH_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI1_ES_MEGA_SLASH_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_MEGA_SLASH_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_MEGA_SLASH_HYPER_FrameMove );
@@ -2921,33 +2983,33 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	case CX2SkillTree::SI_A_ELK_IMPACT_SMASH:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_A_ELK_IMPACT_SMASH", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ELK_IMPACT_SMASH", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_IMPACT_SMASH_Init );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_IMPACT_SMASH_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_A_ELK_IMPACT_SMASH", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ELK_IMPACT_SMASH", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 		} break;
 
 	case CX2SkillTree::SI_A_ES_SWORD_WAVE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_A_ES_SWORD_WAVE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ES_SWORD_WAVE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ES_SWORD_WAVE_Init );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ES_SWORD_WAVE_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ESSI_A_ES_SWORD_WAVE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ES_SWORD_WAVE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 		} break;
 
 	case CX2SkillTree::SI_A_ES_DEFENCE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_DEFENCE_READY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_DEFENCE_READY", normalStateData.stateID );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_DEFENCE_READY_StartFuture );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_DEFENCE_READY_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_DEFENCE_READY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_DEFENCE_READY", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStartFuture		= normalStateData.StateStartFuture;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
@@ -2957,7 +3019,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID				= ESSI_SI_A_ES_DEFENCE_WAIT;
-				m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_DEFENCE_WAIT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_DEFENCE_WAIT", stateData.stateID );
 				stateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_DEFENCE_WAIT_Start );
 				stateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_DEFENCE_WAIT_FrameMove );
 				stateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_DEFENCE_WAIT_EventProcess );
@@ -2965,14 +3027,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID				= ESSI_SI_A_ES_DEFENCE_END;
-				m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_DEFENCE_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_DEFENCE_END", stateData.stateID );
 				stateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_DEFENCE_END_Start );
 				stateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_DEFENCE_END_EventProcess );
 				m_StateList[stateData.stateID]	= stateData;
 
 				stateData.Init();
 				stateData.stateID				= ESSI_SI_A_ES_DEFENCE_DAMAGE;
-				m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_DEFENCE_DAMAGE", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_DEFENCE_DAMAGE", stateData.stateID );
 				stateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_DEFENCE_DAMAGE_FrameMove );
 				stateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_DEFENCE_DAMAGE_EventProcess );
 				m_StateList[stateData.stateID]	= stateData;
@@ -2990,11 +3052,11 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_EMK_RISING_WAVE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_EMK_RISING_SLASH_WAVE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_EMK_RISING_SLASH_WAVE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EMK_RISING_SLASH_WAVE_Init );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EMK_RISING_SLASH_WAVE_EventProcess );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EMK_RISING_SLASH_WAVE_FrameMove );
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_EMK_RISING_SLASH_WAVE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_EMK_RISING_SLASH_WAVE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EMK_RISING_SLASH_WAVE_HYPER_FrameMove );
@@ -3002,11 +3064,11 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ERS_CRITICAL_SWORD:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ERS_CRITICAL_SWORD", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ERS_CRITICAL_SWORD", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ERS_CRITICAL_SWORD_Init );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ERS_CRITICAL_SWORD_EventProcess );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ERS_CRITICAL_SWORD_FrameMove );
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ERS_CRITICAL_SWORD", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ERS_CRITICAL_SWORD", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
@@ -3014,11 +3076,11 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ERS_RUNE_OF_FIRE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ERS_RUNE_OF_FIRE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ERS_RUNE_OF_FIRE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ERS_RUNE_OF_FIRE_Init );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ERS_RUNE_OF_FIRE_EventProcess );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ERS_RUNE_OF_FIRE_FrameMove );
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ERS_RUNE_OF_FIRE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ERS_RUNE_OF_FIRE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
@@ -3026,11 +3088,11 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ERS_RUNE_OF_ICE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ERS_RUNE_OF_ICE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ERS_RUNE_OF_ICE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ERS_RUNE_OF_ICE_Init );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ERS_RUNE_OF_ICE_EventProcess );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ERS_RUNE_OF_ICE_FrameMove );
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ERS_RUNE_OF_ICE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ERS_RUNE_OF_ICE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
@@ -3038,13 +3100,13 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ETK_PIERCING_SWORD:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ETK_PIERCING_SWORD", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ETK_PIERCING_SWORD", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ETK_PIERCING_SWORD_Init );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ETK_PIERCING_SWORD_EventProcess );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ETK_PIERCING_SWORD_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ETK_PIERCING_SWORD_FrameMove );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ETK_PIERCING_SWORD_End );
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ETK_PIERCING_SWORD", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ETK_PIERCING_SWORD", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 			hyperStateData.StateStart			= normalStateData.StateStart;
@@ -3054,23 +3116,23 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_EIS_FATAL_SLAP:
 		{
-		m_LuaManager.MakeTableReference( L"ESSI_SI_A_EIS_FATAL_SLAP", normalStateData.stateID );
+		m_LuaManager.MakeTableReference( "ESSI_SI_A_EIS_FATAL_SLAP", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_EIS_FATAL_SLAP_Init );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_EIS_FATAL_SLAP_EventProcess );
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_EIS_FATAL_SLAP", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_EIS_FATAL_SLAP", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 		} break;
 
 	case CX2SkillTree::SI_A_ETK_SWORD_SHIELD:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_A_ETK_SWORD_SHIELD", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ETK_SWORD_SHIELD", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ETK_SWORD_SHIELD_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ETK_SWORD_SHIELD_StateStart );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ETK_SWORD_SHIELD_EventProcess );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ETK_SWORD_SHIELD_FrameMove );
 
-			m_LuaManager.MakeTableReference( L"ESSI_A_ETK_SWORD_SHIELD", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ETK_SWORD_SHIELD", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= normalStateData.StateInit;
 			hyperStateData.StateStart			= normalStateData.StateStart;
@@ -3081,15 +3143,19 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ESK_WEAPON_BREAK:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_A_ESK_WEAPON_BREAK", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ESK_WEAPON_BREAK", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_WEAPON_BREAK_Init );
+#ifndef ADD_MEMO_1ST_CLASS //김창한
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_WEAPON_BREAK_StateStart );
+#endif //ADD_MEMO_1ST_CLASS
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_WEAPON_BREAK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_A_ESK_WEAPON_BREAK", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ESK_WEAPON_BREAK", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= normalStateData.StateInit;
+#ifndef ADD_MEMO_1ST_CLASS //김창한
 			hyperStateData.StateStart			= normalStateData.StateStart;
+#endif //ADD_MEMO_1ST_CLASS
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 		} break;
 #endif //UPGRADE_SKILL_SYSTEM_2013
@@ -3099,14 +3165,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef SERV_SKILL_NOTE
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO3 ) == true )
 			{
-				m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_MEMO", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_MEMO", normalStateData.stateID );
 			}
 			else
 			{
-				m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH", normalStateData.stateID );
 			}					
 #else
-			m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH", normalStateData.stateID ); 
 #endif
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_AIR_SLASH_Init );			
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_AIR_SLASH_FrameMoveFuture );
@@ -3117,14 +3183,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef SERV_SKILL_NOTE
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO3 ) == true )
 			{
-				m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_MEMO_HYPER", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_MEMO_HYPER", hyperStateData.stateID );
 			}
 			else
 			{
-				m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_HYPER", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_HYPER", hyperStateData.stateID );
 			}					
 #else
-			m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_HYPER", hyperStateData.stateID );
 #endif
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_AIR_SLASH_HYPER_FrameMoveFuture );
@@ -3141,14 +3207,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef SERV_SKILL_NOTE
 				if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO3 ) == true )
 				{
-					m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_MEMO_NEXT", stateData.stateID );
+					m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_MEMO_NEXT", stateData.stateID );
 				}
 				else
 				{
-					m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_NEXT", stateData.stateID );
+					m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_NEXT", stateData.stateID );
 				}					
 #else
-				m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_NEXT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_NEXT", stateData.stateID );
 #endif
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_AIR_SLASH_NEXT_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_AIR_SLASH_NEXT_EventProcess );	
@@ -3159,14 +3225,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef SERV_SKILL_NOTE
 				if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO3 ) == true )
 				{
-					m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_MEMO_HYPER_NEXT", stateData.stateID );
+					m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_MEMO_HYPER_NEXT", stateData.stateID );
 				}
 				else
 				{
-					m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_HYPER_NEXT", stateData.stateID );
+					m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_HYPER_NEXT", stateData.stateID );
 				}					
 #else
-				m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_AIR_SLASH_HYPER_NEXT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI1_ES_AIR_SLASH_HYPER_NEXT", stateData.stateID );
 #endif
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_AIR_SLASH_HYPER_NEXT_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_AIR_SLASH_HYPER_NEXT_EventProcess );
@@ -3180,7 +3246,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		case CX2SkillTree::SI_SA_ES_ASSAULT_SLASH:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_ASSAULT_SLASH", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI1_ES_ASSAULT_SLASH", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_ASSAULT_SLASH_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_ASSAULT_SLASH_Start );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_ASSAULT_SLASH_FrameMoveFuture );
@@ -3188,7 +3254,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_ASSAULT_SLASH_CameraMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_ASSAULT_SLASH_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_ASSAULT_SLASH_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI1_ES_ASSAULT_SLASH_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_ASSAULT_SLASH_Start );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_ASSAULT_SLASH_HYPER_FrameMoveFuture );
@@ -3199,12 +3265,12 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_EMK_WIND_BLADE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_WIND_BLADE", normalStateData.stateID );	
+			m_LuaManager.MakeTableReference( "ESSI_SI1_ES_WIND_BLADE", normalStateData.stateID );	
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_WIND_BLADE_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_WIND_BLADE_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_WIND_BLADE_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI1_ES_WIND_BLADE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI1_ES_WIND_BLADE_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_WIND_BLADE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI1_ES_WIND_BLADE_HYPER_EventProcess );	
@@ -3213,7 +3279,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_ES_FLAME_GEYSER:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI2_ES_FLAME_GEYSER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI2_ES_FLAME_GEYSER", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FLAME_GEYSER_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FLAME_GEYSER_Start );
 			//normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FLAME_GEYSER_FrameMoveFuture );
@@ -3221,7 +3287,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FLAME_GEYSER_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FLAME_GEYSER_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI2_ES_FLAME_GEYSER_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI2_ES_FLAME_GEYSER_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FLAME_GEYSER_HYPER_Start );
 			//hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FLAME_GEYSER_HYPER_FrameMoveFuture );
@@ -3233,14 +3299,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_ES_FATAL_FURY:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI2_ES_FATAL_FURY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI2_ES_FATAL_FURY", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FATAL_FURY_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FATAL_FURY_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FATAL_FURY_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FATAL_FURY_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FATAL_FURY_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI2_ES_FATAL_FURY_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI2_ES_FATAL_FURY_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FATAL_FURY_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_FATAL_FURY_HYPER_FrameMove );
@@ -3251,55 +3317,39 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_ESK_SPIRAL_BLAST:
 		{
-#ifdef NEW_MEMO_01
-			wstring wstrStateName = L"ESSI_SI2_ES_SPIRAL_BLAST";
-			wstring wstrHyperStateName = L"ESSI_SI2_ES_SPIRAL_BLAST_HYPER";
+			const char* pszStateName = "ESSI_SI2_ES_SPIRAL_BLAST";
+			const char* pszHyperStateName = "ESSI_SI2_ES_SPIRAL_BLAST_HYPER";
 
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO9 ) == true )
 			{
-				wstrStateName = L"ESSI_SI2_ES_SPIRAL_BLAST_MEMO";
-				wstrHyperStateName = L"ESSI_SI2_ES_SPIRAL_BLAST_HYPER_MEMO";
+				pszStateName = "ESSI_SI2_ES_SPIRAL_BLAST_MEMO";
+				pszHyperStateName = "ESSI_SI2_ES_SPIRAL_BLAST_HYPER_MEMO";
 			}
 
-			m_LuaManager.MakeTableReference( wstrStateName.c_str(), normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( pszStateName, normalStateData.stateID ); 
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_FrameMove );
 			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_CameraMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_EventProcess );
 
-			m_LuaManager.MakeTableReference( wstrHyperStateName.c_str(), hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( pszHyperStateName, hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_HYPER_FrameMove );
 			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_HYPER_EventProcess );
-#else
-			m_LuaManager.MakeTableReference( L"ESSI_SI2_ES_SPIRAL_BLAST", normalStateData.stateID ); 
-			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_Init );
-			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_FrameMoveFuture );
-			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_FrameMove );
-			normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_CameraMove );
-			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_EventProcess );
-
-			m_LuaManager.MakeTableReference( L"ESSI_SI2_ES_SPIRAL_BLAST_HYPER", hyperStateData.stateID );
-			hyperStateData.m_bHyperState		= true;
-			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_HYPER_FrameMoveFuture );
-			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_HYPER_FrameMove );
-			hyperStateData.OnCameraMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_HYPER_CameraMove );
-			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_SPIRAL_BLAST_HYPER_EventProcess );
-#endif
 		}
 		break;
 
 	case CX2SkillTree::SI_SA_EMK_RISING_SLASH:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI2_ES_RISING_SLASH", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI2_ES_RISING_SLASH", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_RISING_SLASH_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_RISING_SLASH_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_RISING_SLASH_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI2_ES_RISING_SLASH_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI2_ES_RISING_SLASH_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_RISING_SLASH_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI2_ES_RISING_SLASH_HYPER_EventProcess );
@@ -3307,7 +3357,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		break;
 	case CX2SkillTree::SI_SA_ES_UNLIMITED_BLADE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI3_ES_UNLIMITED_BLADE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI3_ES_UNLIMITED_BLADE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_UNLIMITED_BLADE_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_UNLIMITED_BLADE_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_UNLIMITED_BLADE_FrameMove );
@@ -3315,7 +3365,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_UNLIMITED_BLADE_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI3_ES_UNLIMITED_BLADE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI3_ES_UNLIMITED_BLADE_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_Init );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_FrameMoveFuture );
@@ -3328,7 +3378,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_ES_TRIPLE_GEYSER:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI3_ES_TRIPLE_GEYSER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI3_ES_TRIPLE_GEYSER", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_TRIPLE_GEYSER_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_TRIPLE_GEYSER_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_TRIPLE_GEYSER_FrameMove );
@@ -3336,7 +3386,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_TRIPLE_GEYSER_EventProcess );
 
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI3_ES_TRIPLE_GEYSER_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI3_ES_TRIPLE_GEYSER_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_TRIPLE_GEYSER_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_TRIPLE_GEYSER_HYPER_FrameMove );
@@ -3347,12 +3397,12 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_ESK_ARMAGEDON_BLADE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI3_ES_ARMAGEDDON_BLADE", normalStateData.stateID );	
+			m_LuaManager.MakeTableReference( "ESSI_SI3_ES_ARMAGEDDON_BLADE", normalStateData.stateID );	
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_ARMAGEDDON_BLADE_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_ARMAGEDDON_BLADE_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_ARMAGEDDON_BLADE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI3_ES_ARMAGEDDON_BLADE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI3_ES_ARMAGEDDON_BLADE_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_ARMAGEDDON_BLADE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_ARMAGEDDON_BLADE_HYPER_EventProcess );
@@ -3360,12 +3410,12 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_ERS_STORM_BLADE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI3_ES_STORM_BLADE", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ESSI_SI3_ES_STORM_BLADE", normalStateData.stateID ); 
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_STORM_BLADE_Init );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_STORM_BLADE_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_STORM_BLADE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI3_ES_STORM_BLADE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI3_ES_STORM_BLADE_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_STORM_BLADE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI3_ES_STORM_BLADE_HYPER_EventProcess );
@@ -3377,7 +3427,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef ELSWORD_SHEATH_KNIGHT
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-			int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_COMPACT_COUNTER, true );
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_COMPACT_COUNTER, true );
 
 			if( iSkillLevel > 0 )
 			{
@@ -3387,17 +3437,17 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 				{
 					m_bCompactCounterEnable = true;
 
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit() )
 						return;
 
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 					const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID, true ) );	/// 스킬 레벨
 
 					m_fCompactCounterCoolTime = pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel );
 				}
 #else //UPGRADE_SKILL_SYSTEM_2013
-			int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_COMPACT_COUNTER );
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_COMPACT_COUNTER );
 
 			if( iSkillLevel > 0 )
 			{
@@ -3412,7 +3462,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 				}
 #endif //UPGRADE_SKILL_SYSTEM_2013
 			
-				m_LuaManager.MakeTableReference( L"ESSI_SI_A_ETK_COMPACT_COUNTER_ATTACK", normalStateData.stateID ); 
+				m_LuaManager.MakeTableReference( "ESSI_SI_A_ETK_COMPACT_COUNTER_ATTACK", normalStateData.stateID ); 
 				normalStateData.StateStart			= SET_CB_FUNC(CX2GUElsword_SwordMan, CompactCounterAttackStart);
 				normalStateData.StateStartFuture	= SET_CB_FUNC(CX2GUElsword_SwordMan, CompactCounterAttackStartFuture);
 				normalStateData.OnFrameMoveFuture	= SET_CB_FUNC(CX2GUElsword_SwordMan, CompactCounterAttackFrameMoveFuture);
@@ -3420,7 +3470,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 				normalStateData.OnEventProcess		= SET_CB_FUNC(CX2GUElsword_SwordMan, CompactCounterAttackEventProcess);
 				normalStateData.StateEnd			= SET_CB_FUNC(CX2GUElsword_SwordMan, CompactCounterAttackStateEnd);
 
-				m_LuaManager.MakeTableReference( L"ESSI_SI_A_ETK_COMPACT_COUNTER_ATTACK", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_A_ETK_COMPACT_COUNTER_ATTACK", hyperStateData.stateID );
 				hyperStateData.m_bHyperState		= true;
 				hyperStateData.StateStart			= SET_CB_FUNC(CX2GUElsword_SwordMan, CompactCounterAttackStart);
 				hyperStateData.StateStartFuture		= SET_CB_FUNC(CX2GUElsword_SwordMan, CompactCounterAttackStartFuture);
@@ -3431,13 +3481,13 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			}
 			else
 			{
-				m_LuaManager.MakeTableReference( L"ESSI_REVENGE_WAIT", normalStateData.stateID ); 
+				m_LuaManager.MakeTableReference( "ESSI_REVENGE_WAIT", normalStateData.stateID ); 
 				normalStateData.StateStart			= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitStart);
 				normalStateData.OnFrameMoveFuture	= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitFrameMoveFuture);
 				normalStateData.OnFrameMove			= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitFrameMove);
 				normalStateData.OnEventProcess		= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitEventProcess);
 
-				m_LuaManager.MakeTableReference( L"ESSI_REVENGE_WAIT", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_REVENGE_WAIT", hyperStateData.stateID );
 				hyperStateData.m_bHyperState		= true;
 				hyperStateData.StateStart			= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitStart);
 				hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitFrameMoveFuture);
@@ -3445,13 +3495,13 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 				hyperStateData.OnEventProcess		= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitEventProcess);
 			}
 #else
-			m_LuaManager.MakeTableReference( L"ESSI_REVENGE_WAIT", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ESSI_REVENGE_WAIT", normalStateData.stateID ); 
 			normalStateData.StateStart			= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitStart);
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitFrameMoveFuture);
 			normalStateData.OnFrameMove			= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitFrameMove);
 			normalStateData.OnEventProcess		= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitEventProcess);
 
-			m_LuaManager.MakeTableReference( L"ESSI_REVENGE_WAIT", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_REVENGE_WAIT", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStart			= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitStart);
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC(CX2GUElsword_SwordMan, RevengeWaitFrameMoveFuture);
@@ -3463,11 +3513,11 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ES_KICK:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_KICK", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_KICK", normalStateData.stateID ); 
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_KICK_Start );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_KICK_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_KICK", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_KICK", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_KICK_Start );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_KICK_EventProcess );	
@@ -3476,7 +3526,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_ELK_WINDMILL:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ESK_WINDMILL_START", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ESSI_SA_ESK_WINDMILL_START", normalStateData.stateID ); 
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_START_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_START_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_START_FrameMove );
@@ -3485,7 +3535,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ESK_WINDMILL_START_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ESK_WINDMILL_START_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_START_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_START_HYPER_FrameMove );
@@ -3498,7 +3548,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			UserUnitStateData stateData;
 			stateData.Init();
 			stateData.stateID			= ESSI_SA_ESK_WINDMILL;
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ESK_WINDMILL", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ESK_WINDMILL", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_FrameMove );	
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_EventProcess );	
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_StateEnd );
@@ -3506,7 +3556,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_SA_ESK_WINDMILL_HYPER;
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ESK_WINDMILL_HYPER", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ESK_WINDMILL_HYPER", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_HYPER_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_HYPER_EventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_HYPER_StateEnd );
@@ -3515,7 +3565,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_SA_ESK_WINDMILL_END;
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ESK_WINDMILL_END", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ESK_WINDMILL_END", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_END_FrameMove );	
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_END_EventProcess );	
 			m_StateList[stateData.stateID] = stateData;
@@ -3523,7 +3573,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 			stateData.Init();
 			stateData.stateID			= ESSI_SA_ESK_WINDMILL_END_HYPER;
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ESK_WINDMILL_END_HYPER", stateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ESK_WINDMILL_END_HYPER", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_END_HYPER_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_WINDMILL_END_HYPER_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -3534,7 +3584,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	case CX2SkillTree::SI_SA_EMK_SWORD_FIRE:
 		{
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_EMK_SWORD_FIRE", normalStateData.stateID );				
+			m_LuaManager.MakeTableReference( "ESSI_SA_EMK_SWORD_FIRE", normalStateData.stateID );				
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_StartFuture );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_FrameMoveFuture );
@@ -3542,7 +3592,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_EndFuture );				
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_EMK_SWORD_FIRE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_EMK_SWORD_FIRE_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_HYPER_Init );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_HYPER_StartFuture );
@@ -3556,7 +3606,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID			= ESSI_SA_EMK_SWORD_FIRE_LANDING;
-				m_LuaManager.MakeTableReference( L"ESSI_SA_EMK_SWORD_FIRE_LANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SA_EMK_SWORD_FIRE_LANDING", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_LANDING_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_LANDING_EventProcess );	
 				stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_LANDING_End );					
@@ -3564,7 +3614,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID			= ESSI_SA_EMK_SWORD_FIRE_LANDING_HYPER;
-				m_LuaManager.MakeTableReference( L"ESSI_SA_EMK_SWORD_FIRE_LANDING_HYPER", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SA_EMK_SWORD_FIRE_LANDING_HYPER", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_LANDING_HYPER_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_LANDING_HYPER_EventProcess );
 				stateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_SWORD_FIRE_LANDING_HYPER_End );					
@@ -3577,7 +3627,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ESK_ARMOR_BREAK:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_A_ESK_ARMOR_BREAK", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "ESSI_A_ESK_ARMOR_BREAK", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_ARMOR_BREAK_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_ARMOR_BREAK_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_ARMOR_BREAK_FrameMove );				
@@ -3585,7 +3635,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_ARMOR_BREAK_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"ESSI_A_ESK_ARMOR_BREAK_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ESK_ARMOR_BREAK_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_ARMOR_BREAK_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_ARMOR_BREAK_HYPER_FrameMove );		
@@ -3596,14 +3646,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_EMK_BIG_BURST:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SA_EMK_BIG_BURST", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_EMK_BIG_BURST", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_BIG_BURST_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_BIG_BURST_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_BIG_BURST_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_BIG_BURST_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_BIG_BURST_End );	
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_EMK_BIG_BURST", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_EMK_BIG_BURST", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_BIG_BURST_Init );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_EMK_BIG_BURST_FrameMoveFuture );
@@ -3620,14 +3670,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_EMK_PHOENIX_TALON:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SA_EMK_PHOENIX_TALON", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_EMK_PHOENIX_TALON", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_PHOENIX_TALON_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_PHOENIX_TALON_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_PHOENIX_TALON_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_PHOENIX_TALON_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_PHOENIX_TALON_StateEnd );	
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_EMK_PHOENIX_TALON_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_EMK_PHOENIX_TALON_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_PHOENIX_TALON_Init );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ESK_PHOENIX_TALON_StateStart );
@@ -3639,12 +3689,12 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		//{{ 허상형 : [2009/9/22] //	더블 슬래시
 	case CX2SkillTree::SI_SA_ESK_DOUBLE_SLASH:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ESK_DOUBLE_SLASH", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ESK_DOUBLE_SLASH", normalStateData.stateID );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_DOUBLE_SLASH_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_DOUBLE_SLASH_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_DOUBLE_SLASH_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ESK_DOUBLE_SLASH_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ESK_DOUBLE_SLASH_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ESK_DOUBLE_SLASH_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
@@ -3662,14 +3712,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ELK_SONIC_BLADE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ELK_SONIC_BLADE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ELK_SONIC_BLADE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SONIC_BLADE_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SONIC_BLADE_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SONIC_BLADE_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SONIC_BLADE_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SONIC_BLADE_StateEnd );	
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ELK_SONIC_BLADE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ELK_SONIC_BLADE_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SONIC_BLADE_HYPER_StateStart );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SONIC_BLADE_HYPER_FrameMove );
@@ -3683,7 +3733,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	case CX2SkillTree::SI_A_ERS_SPLASH_EXPLOSION:
 		{
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ERS_SPLASH_EXPLOSION", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ERS_SPLASH_EXPLOSION", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ERS_SPLASH_EXPLOSION_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ERS_SPLASH_EXPLOSION_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ERS_SPLASH_EXPLOSION_FrameMove );
@@ -3698,7 +3748,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #endif
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ERS_SPLASH_EXPLOSION_StateEnd );	
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ERS_SPLASH_EXPLOSION_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ERS_SPLASH_EXPLOSION_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ERS_SPLASH_EXPLOSION_HYPER_StateStart );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ERS_SPLASH_EXPLOSION_HYPER_FrameMove );
@@ -3724,14 +3774,14 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	case CX2SkillTree::SI_A_ELK_ROLLING_SMASH:
 		{
 
-			m_LuaManager.MakeTableReference( L"ESSI_A_ELK_ROLLING_SMASH_READY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ELK_ROLLING_SMASH_READY", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_READY_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_READY_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_READY_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_READY_EventProcess );
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_READY_StateEnd );	
 
-			m_LuaManager.MakeTableReference( L"ESSI_A_ELK_ROLLING_SMASH_READY_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ELK_ROLLING_SMASH_READY_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_READY_HYPER_StateStart );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_READY_HYPER_FrameMove );
@@ -3747,7 +3797,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID			= ESSI_A_ELK_ROLLING_SMASH;
-				m_LuaManager.MakeTableReference( L"ESSI_A_ELK_ROLLING_SMASH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_A_ELK_ROLLING_SMASH", stateData.stateID );
 				stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_StateStartFuture );	
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_EventProcess );	
@@ -3756,7 +3806,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID			= ESSI_A_ELK_ROLLING_SMASH_HYPER;
-				m_LuaManager.MakeTableReference( L"ESSI_A_ELK_ROLLING_SMASH_HYPER", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_A_ELK_ROLLING_SMASH_HYPER", stateData.stateID );
 				stateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_HYPER_StateStartFuture );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ELK_ROLLING_SMASH_HYPER_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
@@ -3767,7 +3817,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID			= ESSI_A_ELK_ROLLING_SMASH_LANDING;
-				m_LuaManager.MakeTableReference( L"ESSI_A_ELK_ROLLING_SMASH_LANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_A_ELK_ROLLING_SMASH_LANDING", stateData.stateID );
 #ifdef CONVERSION_VS
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
 #else CONVERSION_VS
@@ -3777,7 +3827,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID			= ESSI_A_ELK_ROLLING_SMASH_LANDING_HYPER;
-				m_LuaManager.MakeTableReference( L"ESSI_A_ELK_ROLLING_SMASH_LANDING_HYPER", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_A_ELK_ROLLING_SMASH_LANDING_HYPER", stateData.stateID );
 #ifdef CONVERSION_VS
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );	
 #else CONVERSION_VS
@@ -3796,12 +3846,12 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 	case CX2SkillTree::SI_A_ERS_SWORD_ENCHANT:
 		{
 
-			m_LuaManager.MakeTableReference( L"ESSI_A_ERS_SWORD_ENCHANT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ERS_SWORD_ENCHANT", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ERS_SWORD_ENCHANT_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ERS_SWORD_ENCHANT_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_A_ERS_SWORD_ENCHANT_EventProcess );
 			
-			m_LuaManager.MakeTableReference( L"ESSI_A_ERS_SWORD_ENCHANT_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_A_ERS_SWORD_ENCHANT_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
@@ -3816,12 +3866,12 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		//{{ oasis907 : 김상윤 [2010.11.5] // 로드 나이트 - 샌드 스톰
 	case CX2SkillTree::SI_SA_ELK_SAND_STORM:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ELK_SAND_STORM", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ELK_SAND_STORM", normalStateData.stateID );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SAND_STORM_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SAND_STORM_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ELK_SAND_STORM_EventProcess );
 			
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ELK_SAND_STORM_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ELK_SAND_STORM_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMoveFuture	= normalStateData.OnFrameMoveFuture;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
@@ -3835,12 +3885,12 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef NEW_SKILL_2010_11
 	case CX2SkillTree::SI_SA_ERS_LUNA_BLADE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ERS_LUNA_BLADE", normalStateData.stateID );	
+			m_LuaManager.MakeTableReference( "ESSI_SA_ERS_LUNA_BLADE", normalStateData.stateID );	
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ERS_LUNA_BLADE_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ERS_LUNA_BLADE_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SA_ERS_LUNA_BLADE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SA_ERS_LUNA_BLADE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SA_ERS_LUNA_BLADE_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
@@ -3851,13 +3901,13 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef ELSWORD_SHEATH_KNIGHT
 	case CX2SkillTree::SI_A_ES_ROLLING:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_ROLLING", normalStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_ROLLING", normalStateData.stateID ); 
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_ROLLING_StateStart );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_ROLLING_StateStartFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_ROLLING_FrameMove );				
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_ROLLING_EventProcess );				
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_ROLLING", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_ROLLING", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_ROLLING_StateStartFuture );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_ROLLING_FrameMove );		
@@ -3867,7 +3917,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID			= ESSI_SI_A_ES_ROLLING_END;
-				m_LuaManager.MakeTableReference( L"ESSI_SI_A_ES_ROLLING_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_A_ES_ROLLING_END", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_ROLLING_END_StateStart );	
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_ROLLING_END_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_ES_ROLLING_END_EventProcess );				
@@ -3877,13 +3927,13 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ETK_HARSH_CHASER:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_HARSH_CHASER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_HARSH_CHASER", normalStateData.stateID );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_HARSH_CHASER_StateStart );	
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_HARSH_CHASER_FrameMove );				
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_HARSH_CHASER_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_HARSH_CHASER_End );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_HARSH_CHASER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_HARSH_CHASER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState	= true;
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_HARSH_CHASER_StateStart );	
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_HARSH_CHASER_FrameMove );		
@@ -3894,7 +3944,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 				stateData.Init();
 				stateData.stateID			= ESSI_SI_SA_ETK_HARSH_CHASER_PULL;
-				m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_HARSH_CHASER_PULL", stateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_HARSH_CHASER_PULL", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_HARSH_CHASER_PULL_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_HARSH_CHASER_PULL_EventProcess );				
 				m_StateList[stateData.stateID] = stateData;
@@ -3903,7 +3953,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_EIS_MAELSTORM_RAGE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_MAELSTORM_RAGE", normalStateData.stateID );		
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_MAELSTORM_RAGE", normalStateData.stateID );		
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_MAELSTORM_RAGE_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_MAELSTORM_RAGE_StartFuture );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_MAELSTORM_RAGE_FrameMoveFuture );
@@ -3911,7 +3961,7 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_MAELSTORM_RAGE_EventProcess );	
 			normalStateData.StateEndFuture		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_MAELSTORM_RAGE_EndFuture );		
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_MAELSTORM_RAGE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_MAELSTORM_RAGE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_MAELSTORM_RAGE_Init );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_MAELSTORM_RAGE_StartFuture );
@@ -3922,13 +3972,13 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		} break;
 	case CX2SkillTree::SI_SA_ETK_FINAL_STRIKE:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_FINAL_STRIKE", normalStateData.stateID );		
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_FINAL_STRIKE", normalStateData.stateID );		
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_FINAL_STRIKE_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_FINAL_STRIKE_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_FINAL_STRIKE_EventProcess );		
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_FINAL_STRIKE_End );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_FINAL_STRIKE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_FINAL_STRIKE", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_FINAL_STRIKE_Init );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_FINAL_STRIKE_FrameMove );
@@ -3938,13 +3988,13 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_EIS_SWORD_FALL:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_SWORD_FALL", normalStateData.stateID );		
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_SWORD_FALL", normalStateData.stateID );		
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_SWORD_FALL_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_SWORD_FALL_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_SWORD_FALL_EventProcess );		
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_SWORD_FALL_End );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_SWORD_FALL", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_SWORD_FALL", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_SWORD_FALL_Init );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_SWORD_FALL_FrameMove );
@@ -3955,13 +4005,13 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_A_ETK_CRESCENT_CUT:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_CRESCENT_CUT", normalStateData.stateID );		
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_CRESCENT_CUT", normalStateData.stateID );		
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_CRESCENT_CUT_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_CRESCENT_CUT_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_CRESCENT_CUT_EventProcess );		
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_CRESCENT_CUT_End );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_CRESCENT_CUT", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_CRESCENT_CUT", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_CRESCENT_CUT_Init );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_CRESCENT_CUT_FrameMove );
@@ -3971,12 +4021,12 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 
 	case CX2SkillTree::SI_SA_ETK_PHANTOM_SWORD:
 		{
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_PHANTOM_SWORD", normalStateData.stateID );	
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_PHANTOM_SWORD", normalStateData.stateID );	
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_PHANTOM_SWORD_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_PHANTOM_SWORD_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_PHANTOM_SWORD_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"ESSI_SI_SA_ETK_PHANTOM_SWORD", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "ESSI_SI_SA_ETK_PHANTOM_SWORD", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_PHANTOM_SWORD_Init );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_ETK_PHANTOM_SWORD_FrameMove );
@@ -3988,39 +4038,88 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 #ifdef SERV_ELSWORD_INFINITY_SWORD
 		case CX2SkillTree::SI_A_EIS_MIRAGE_STING:
 			{
-				m_LuaManager.MakeTableReference( L"ESSI_SI_A_EIS_SPIRAL_STING", normalStateData.stateID );	
+				m_LuaManager.MakeTableReference( "ESSI_SI_A_EIS_SPIRAL_STING", normalStateData.stateID );	
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_EIS_SPIRAL_STING_FrameMove );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_EIS_SPIRAL_STING_EventProcess );
 
-				m_LuaManager.MakeTableReference( L"ESSI_SI_A_EIS_SPIRAL_STING", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_A_EIS_SPIRAL_STING", hyperStateData.stateID );
 				hyperStateData.m_bHyperState		= true;
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_EIS_SPIRAL_STING_FrameMove );
 				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_A_EIS_SPIRAL_STING_EventProcess );
 			} break;
 		case CX2SkillTree::SI_A_EIS_SWORD_BLASTING:
 			{
-				m_LuaManager.MakeTableReference( L"ESSI_SI_SA_EIS_SWORD_BLASTING", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_SA_EIS_SWORD_BLASTING", normalStateData.stateID );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EIS_SWORD_BLASTING_FrameMove );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EIS_SWORD_BLASTING_EventProcess );
 
-				m_LuaManager.MakeTableReference( L"ESSI_SI_SA_EIS_SWORD_BLASTING", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_SA_EIS_SWORD_BLASTING", hyperStateData.stateID );
 				hyperStateData.m_bHyperState		= true;
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EIS_SWORD_BLASTING_FrameMove );
 				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EIS_SWORD_BLASTING_EventProcess );
 			} break;
 		case CX2SkillTree::SI_SA_EIS_RAGE_CUTTER:
 			{
-				m_LuaManager.MakeTableReference( L"ESSI_SI_SA_EIS_RAGE_CUTTER", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_SA_EIS_RAGE_CUTTER", normalStateData.stateID );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EIS_RAGE_CUTTER_FrameMove );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EIS_RAGE_CUTTER_EventProcess );
 
-				m_LuaManager.MakeTableReference( L"ESSI_SI_SA_EIS_RAGE_CUTTER", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "ESSI_SI_SA_EIS_RAGE_CUTTER", hyperStateData.stateID );
 				hyperStateData.m_bHyperState		= true;
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EIS_RAGE_CUTTER_FrameMove );
 				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_SI_SA_EIS_RAGE_CUTTER_EventProcess );
 			} break;
 
 #endif //SERV_ELSWORD_INFINITY_SWORD
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		#pragma	region 
+		case CX2SkillTree::SI_HA_ELK_GIGANTIC_SLASH:
+			{
+				m_LuaManager.MakeTableReference( "ESSI_HA_ELK_GIGANTIC_SLASH", normalStateData.stateID );
+				normalStateData.StateInit		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_HA_ELK_Gigantic_Slash_Init );
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+
+				m_LuaManager.MakeTableReference( "ESSI_HA_ELK_GIGANTIC_SLASH", hyperStateData.stateID );
+				hyperStateData.m_bHyperState	= true;
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+			}
+			break;
+		#pragma endregion 기간틱 슬래시 : 궁극기
+
+		#pragma region SI_FS_ERS_Shining_Rune_Buster
+		case CX2SkillTree::SI_HA_ERS_SHINING_RUNE_BUSTER:
+			{
+				m_LuaManager.MakeTableReference( "ESSI_HA_ERS_SHINING_RUNE_BUSTER", normalStateData.stateID );
+				normalStateData.StateInit		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_HA_ERS_Shining_Rune_Buster_Init );
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_HA_ERS_Shining_Rune_Buster_EventProcess );
+				
+
+
+				m_LuaManager.MakeTableReference( "ESSI_HA_ERS_SHINING_RUNE_BUSTER", hyperStateData.stateID );
+				hyperStateData.m_bHyperState	= true;
+				hyperStateData.StateInit		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_HA_ERS_Shining_Rune_Buster_Init );
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_HA_ERS_Shining_Rune_Buster_EventProcess );
+			}
+			break;
+		#pragma endregion 샤이닝 룬 버스트 - 궁극기
+
+		#pragma region SI_FS_EIS_Blade_Rain
+		case CX2SkillTree::SI_HA_EIS_BLADE_RAIN:
+			{
+				m_LuaManager.MakeTableReference( "ESSI_HA_EIS_BLADE_RAIN", normalStateData.stateID );
+				normalStateData.StateInit		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_HA_EIS_Blade_Rain_Init );
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_HA_EIS_Blade_Rain_EventProcess );
+
+				m_LuaManager.MakeTableReference( "ESSI_HA_EIS_BLADE_RAIN", hyperStateData.stateID );
+				hyperStateData.m_bHyperState	= true;
+				hyperStateData.StateInit		= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_HA_EIS_Blade_Rain_Init );
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUElsword_SwordMan, ESSI_HA_EIS_Blade_Rain_EventProcess );
+			
+		}
+			break;
+		#pragma endregion 블레이드 레인 - 궁극기
+#endif //FINALITY_SKILL_SYSTEM
 	}
 }
 
@@ -4033,10 +4132,10 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4069,10 +4168,10 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -4137,10 +4236,10 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4180,10 +4279,10 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4250,10 +4349,10 @@ void CX2GUElsword_SwordMan::InitStateCommon()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
@@ -4365,49 +4464,49 @@ void CX2GUElsword_SwordMan::InitComponent()
 
 void CX2GUElsword_SwordMan::ParseCommonRandomState()
 {
-	if( true == m_LuaManager.BeginTable( L"INIT_COMMON_RANDOM_STATE" ) )
+	if( true == m_LuaManager.BeginTable( "INIT_COMMON_RANDOM_STATE" ) )
 	{
 
-		std::wstring tableName = L"";
-		switch( m_pUnit->GetClass() )
+		const char* tableName = "";
+		switch( GetUnit()->GetClass() )
 		{
 		case CX2Unit::UC_ELSWORD_SWORDMAN:
 			{
-				tableName = L"ELSWORD_SWORDMAN";
+				tableName = "ELSWORD_SWORDMAN";
 			} break;
 
 		case CX2Unit::UC_ELSWORD_KNIGHT:
 			{
-				tableName = L"ELSWORD_KNIGHT";
+				tableName = "ELSWORD_KNIGHT";
 			} break;
 
 #ifdef ELSWORD_SHEATH_KNIGHT
 		case CX2Unit::UC_ELSWORD_SHEATH_KNIGHT:
 			{
-				tableName = L"ELSWORD_SHEATH_KNIGHT";
+				tableName = "ELSWORD_SHEATH_KNIGHT";
 			} break;
 #endif ELSWORD_SHEATH_KNIGHT
 
 		case CX2Unit::UC_ELSWORD_MAGIC_KNIGHT:
 			{
-				tableName = L"ELSWORD_MAGIC_KNIGHT";
+				tableName = "ELSWORD_MAGIC_KNIGHT";
 			} break;
 
 		case CX2Unit::UC_ELSWORD_LORD_KNIGHT:
 			{
-				tableName = L"ELSWORD_LORD_KNIGHT";
+				tableName = "ELSWORD_LORD_KNIGHT";
 			} break;
 
 
 		case CX2Unit::UC_ELSWORD_RUNE_SLAYER:
 			{
-				tableName = L"ELSWORD_RUNE_SLAYER";
+				tableName = "ELSWORD_RUNE_SLAYER";
 			} break;
 
 #ifdef SERV_ELSWORD_INFINITY_SWORD
 		case CX2Unit::UC_ELSWORD_INFINITY_SWORD:
 			{
-				tableName = L"ELSWORD_INFINITY_SWORD";
+				tableName = "ELSWORD_INFINITY_SWORD";
 			} break;
 #endif
 
@@ -4511,7 +4610,7 @@ void CX2GUElsword_SwordMan::InitializeElswordMajorParticleArray()
 
 	for ( int index = 0; index < ELSWORD_MAJOR_PII_END; index++ )
 	{
-		m_ahElswordMajorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahElswordMajorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -4572,7 +4671,7 @@ void	CX2GUElsword_SwordMan::AppendMajorParticleToDeviceList( CKTDXDeviceDataList
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GUElsword_SwordMan::SetElswordMajorParticleByEnum( ELSWORD_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ /*= -1*/ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleElswordMajorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleElswordMajorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), D3DXVECTOR3( 0.0f, 0.0f, 0.0f ), 0, 0, iDrawCount_, 0 );
@@ -4592,7 +4691,7 @@ void CX2GUElsword_SwordMan::InitializeElswordMinorParticleArray()
 
 	for ( int index = 0; index < ELSWORD_MINOR_PII_END; index++ )
 	{
-		m_ahElswordMinorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahElswordMinorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -4653,7 +4752,7 @@ void	CX2GUElsword_SwordMan::AppendMinorParticleToDeviceList( CKTDXDeviceDataList
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GUElsword_SwordMan::SetElswordMinorParticleByEnum( ELSWORD_MINOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ /*= -1*/ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleElswordMinorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleElswordMinorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), D3DXVECTOR3( 0.0f, 0.0f, 0.0f ), 0, 0, iDrawCount_, 0 );
@@ -4746,8 +4845,8 @@ void CX2GUElsword_SwordMan::CommonFrameMove()
 	}
 #endif ELSWORD_SHEATH_KNIGHT
 	// 윈드밀 사용시작 시점에 아이샤 블리자드 샤워를 맞으면 윈드밀 이펙트가 사라지지 않는 오류가 있어서, 필살기 상태 혹은 윈드밀 상태가 아니면 강제로 윈드밀 이펙트를 지워주도록 한다.
-	if( CX2EffectSet::INVALID_HANDLE != m_hWindMill || 
-		CX2EffectSet::INVALID_HANDLE != m_hWindMillLand )
+	if( INVALID_EFFECTSET_HANDLE != m_hWindMill || 
+		INVALID_EFFECTSET_HANDLE != m_hWindMillLand )
 	{
 		switch( GetNowStateID() )
 		{
@@ -4871,9 +4970,10 @@ RENDER_HINT CX2GUElsword_SwordMan::CommonRender_Prepare()
 
 	int iPressedSkillSlotIndex = INVALID_SKILL_SLOT_INDEX;
 	const CX2UserSkillTree::SkillSlotData* pSkillSlotData = NULL;
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;	// 유저가 배운 스킬 트리
 
-	if ( false == CommonSpecialAttackEventProcess( cUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
+	CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree; 	// 유저가 배운 스킬 트리
+
+	if ( false == CommonSpecialAttackEventProcess( accessUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
 		return false;
 
 	if( NULL == pSkillSlotData )
@@ -4884,7 +4984,11 @@ RENDER_HINT CX2GUElsword_SwordMan::CommonRender_Prepare()
 	if( NULL == pSkillTempletUsing )
 		return false;
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTempletUsing->m_eActiveSkillUseCondtion ) )
+#else //ADD_MEMO_1ST_CLASS
 	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTempletUsing ) )
+#endif //ADD_MEMO_1ST_CLASS
 		return false;
 
 	// 공식대전에서 사용 가능한 스킬인지 검사
@@ -4892,7 +4996,7 @@ RENDER_HINT CX2GUElsword_SwordMan::CommonRender_Prepare()
 		return false;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTempletUsing->m_eID ) );	/// 스킬 레벨
+	const int iSkillTempletLevel = max( 1, accessUserSkillTree.GetSkillLevel( pSkillTempletUsing->m_eID ) );	/// 스킬 레벨
 
 	float fMPConsume = GetActualMPConsume( pSkillTempletUsing->m_eID, iSkillTempletLevel );
 #else // UPGRADE_SKILL_SYSTEM_2013
@@ -4920,22 +5024,63 @@ RENDER_HINT CX2GUElsword_SwordMan::CommonRender_Prepare()
 	}
 #endif ELSWORD_WAY_OF_SWORD
 
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+#if defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_OPERATOR ) || false == g_pMain->IsUnlimitedSkillUse() )
+#endif //defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+#else //TOGGLE_UNLIMITED_SKILL_USE
 #ifndef _SERVICE_
 	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
 #endif _SERVICE_
+#endif //TOGGLE_UNLIMITED_SKILL_USE
 	{
 
 		if( pSkillSlotData->m_fCoolTimeLeft > 0.f )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_226 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
 
 		if ( GetNowMp() < fMPConsume )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		if ( pSkillTempletUsing->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+		{
+			const int iItemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+			if( iItemNum <= 0
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+				&& false == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence()
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+				)
+			{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
+				g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_26119 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+				return false;
+			}
+		}
+#endif //FINALITY_SKILL_SYSTEM
 	}
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -4945,6 +5090,12 @@ RENDER_HINT CX2GUElsword_SwordMan::CommonRender_Prepare()
 		NULL != g_pData->GetUIManager()->GetUISkillTree() &&
 		true == g_pData->GetUIManager()->GetUISkillTree()->GetNowLearnSkill() )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_25110 ), D3DXCOLOR(1,1,1,1),
 				D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
@@ -4958,6 +5109,12 @@ RENDER_HINT CX2GUElsword_SwordMan::CommonRender_Prepare()
 		// HP 가 소모될 양보다 많은지 체크.
 		if( (GetMaxHp() * pSkillTempletUsing->GetSkillAbilityValue( CX2SkillTree::HP_CONSUME_REL, iSkillTempletLevel ) ) >= GetNowHp() )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, 
 				GET_STRING( STR_ID_2627 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 
@@ -4986,26 +5143,55 @@ RENDER_HINT CX2GUElsword_SwordMan::CommonRender_Prepare()
 
 	UpNowMp( -fMPConsume );
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	if ( pSkillTempletUsing->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+	{
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		if ( true == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence() )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ();
+		else
+		{
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+		if ( NULL != pItem )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ( pItem->GetItemData().m_ItemUID );
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+	}
+#endif //FINALITY_SKILL_SYSTEM
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	float fAdjustCoolTimeMemo = 0.f;
+	if( (pSkillTempletUsing->m_eID == CX2SkillTree::SI_SA_EMK_PHOENIX_TALON) && (GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO22 ) == true ) )
+		fAdjustCoolTimeMemo = -5.f;
+#endif //ADD_MEMO_1ST_CLASS
+
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) );
+		#ifdef ADD_MEMO_1ST_CLASS //김창한
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) + fAdjustCoolTimeMemo);
+		#else //ADD_MEMO_1ST_CLASS
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) );
+		#endif //ADD_MEMO_1ST_CLASS
 #else // UPGRADE_SKILL_SYSTEM_2013
-	cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->m_fSkillCoolTime );
+	accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->m_fSkillCoolTime );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	if( CX2SkillTree::ST_ACTIVE == pSkillTempletUsing->m_eType )
 	{
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) * m_fIncreaseCoolTimeRel );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) * m_fIncreaseCoolTimeRel );
 	}
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 #ifdef SERV_SKILL_NOTE
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO6 ) == true && pSkillTempletUsing->m_eID == CX2SkillTree::SI_A_ES_ENDURANCE )
 	{
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) - 5.f );
+	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경		
+			accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->GetSkillCoolTimeValue( iSkillTempletLevel ) - 5.f );
 	#else // UPGRADE_SKILL_SYSTEM_2013
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->m_fSkillCoolTime - 5.f );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, pSkillTempletUsing->m_fSkillCoolTime - 5.f );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 	}
 #endif
@@ -5014,7 +5200,7 @@ RENDER_HINT CX2GUElsword_SwordMan::CommonRender_Prepare()
 #ifdef ELSWORD_SHEATH_KNIGHT
 	if( m_bCompactCounterEnable == true && pSkillTempletUsing->m_eID == CX2SkillTree::SI_A_ES_COUNTER )
 	{
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, m_fCompactCounterCoolTime );
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTempletUsing->m_eID, m_fCompactCounterCoolTime );
 	}
 #endif ELSWORD_SHEATH_KNIGHT
 
@@ -5050,7 +5236,7 @@ RENDER_HINT CX2GUElsword_SwordMan::CommonRender_Prepare()
 
 //{{ kimhc // 2010.11.1 // 로드나이트 - 고통 억제
 #ifdef	NEW_SKILL_2010_11
-	ReducePain( pSkillTempletUsing->m_eType, cUserSkillTree );
+	ReducePain( pSkillTempletUsing->m_eType, accessUserSkillTree );
 #endif	NEW_SKILL_2010_11
 //}} kimhc // 2010.11.1 // 로드나이트 - 고통 억제
 
@@ -5270,7 +5456,7 @@ void CX2GUElsword_SwordMan::WinFrameMove()
 {
 	if( true == m_bIsMagicKnightWinMotion2 )
 	{
-		if( m_hSeqHandFire != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqHandFire != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( m_hSeqHandFire );
 
@@ -5283,7 +5469,7 @@ void CX2GUElsword_SwordMan::WinFrameMove()
 				}
 				else
 				{
-					m_hSeqHandFire = INVALID_PARTICLE_HANDLE;
+					m_hSeqHandFire = INVALID_PARTICLE_SEQUENCE_HANDLE;
 				}
 			}
 
@@ -5527,14 +5713,10 @@ void CX2GUElsword_SwordMan::JumpUpEventProcess()
 {
 	if( m_InputData.pureDoubleLeft == true || m_InputData.pureDoubleRight == true )
 	{
-#ifdef FIX_CUT_TENDON
 		if( GetEnableDash() == true )
 		{
 			StateChange( USI_DASH_JUMP );
 		}
-#else
-		StateChange( USI_DASH_JUMP );
-#endif
 	}
 	else if( true == SpecialAttackEventProcess( CX2SkillTree::ASUT_AIR ) )
 	{
@@ -5583,14 +5765,10 @@ void CX2GUElsword_SwordMan::JumpDownEventProcess()
 #endif WALL_JUMP_TEST
 	else if( m_InputData.pureDoubleLeft == true || m_InputData.pureDoubleRight == true )
 	{
-#ifdef FIX_CUT_TENDON
 		if( GetEnableDash() == true )
 		{
 			StateChange( USI_DASH_JUMP );
 		}
-#else
-		StateChange( USI_DASH_JUMP );
-#endif
 	}
 	else if( true == SpecialAttackEventProcess( CX2SkillTree::ASUT_AIR ) )
 	{
@@ -6137,7 +6315,7 @@ void CX2GUElsword_SwordMan::HyperModeFrameMove()
 	//g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.05f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.05f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.05f ) == true && EventCheck(0.05f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -6147,7 +6325,7 @@ void CX2GUElsword_SwordMan::HyperModeFrameMove()
 
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.83f ) == true && EventCheck(0.83f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -6156,7 +6334,7 @@ void CX2GUElsword_SwordMan::HyperModeFrameMove()
 
 		UpDownCrashCamera( 30.0f, 0.4f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
-
+		
 		ShowMinorParticleHyperModeTrace();
 		ApplyHyperModeBuff();
 	}
@@ -6300,7 +6478,11 @@ void CX2GUElsword_SwordMan::DamageBigBackEventProcess()
 //ESSI_DAMAGE_DOWN_FRONT
 void CX2GUElsword_SwordMan::DamageDownFrontFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.19f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.19f ) == true && EventCheck( 0.19f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		CreateStepDust();
@@ -6791,13 +6973,21 @@ void CX2GUElsword_SwordMan::RevengeWaitFrameMove()
 {
 #ifdef SERV_SKILL_NOTE
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO5 ) == true && 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		SetDefenceMemoTime(4.f);
 	}	
 #endif
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.09f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.09f ) == true && EventCheck( 0.09f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 pos = m_FrameDataNow.syncData.position;
@@ -6816,7 +7006,11 @@ void CX2GUElsword_SwordMan::RevengeWaitFrameMove()
 			pSeqRevengeWait->SetAddRotate( D3DXVECTOR3( 0.0f, m_FrameDataNow.unitCondition.dirDegree.y + 70.0f, 0.0f ) );
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeqQuestion = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hQuestionMark );
 		if( NULL != pSeqQuestion )
@@ -6860,7 +7054,7 @@ void CX2GUElsword_SwordMan::RevengeAttackStart()
 
 	if( NULL != pSkillTemplet )
 	{
-		int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ES_COUNTER );
+		int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ES_COUNTER );
 
 		m_DamageData.damage.fPhysic += m_fRevengeAddDamage * pSkillTemplet->GetSkillPowerRateValue( iSkillLevel );
 
@@ -6873,7 +7067,7 @@ void CX2GUElsword_SwordMan::RevengeAttackStart()
 #else //UPGRADE_SKILL_SYSTEM_2013
 	m_DamageData.damage.fPhysic += m_fRevengeAddDamage;
 
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ES_COUNTER_UP );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ES_COUNTER_UP );
 	if( iSkillLevel > 0 )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_ES_COUNTER_UP, iSkillLevel );
@@ -6924,8 +7118,8 @@ void CX2GUElsword_SwordMan::RevengeAttackCameraMove()
 					{
 						if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 						{
-							g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
-							g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+							g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
+							g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 							m_LuaManager.EndTable();
 						}
 					}
@@ -6935,8 +7129,8 @@ void CX2GUElsword_SwordMan::RevengeAttackCameraMove()
 					{
 						if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 						{
-							g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
-							g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+							g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
+							g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 							m_LuaManager.EndTable();
 						}
 					}
@@ -7156,7 +7350,7 @@ void CX2GUElsword_SwordMan::PlayAnimationSwordWaitStart( CKTDGXSkinAnim* pXSkinA
 		}
 	}
 
-	m_pXSkinAnim->Play( playType );
+	pXSkinAnim_->Play( playType );
 }
 
 
@@ -7295,9 +7489,14 @@ void CX2GUElsword_SwordMan::ComboZ1EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 #ifdef TEST_MACRO_COMBO
 	else if( m_pXSkinAnimFuture->GetNowAnimationTime() > 0.27f )
 	{
@@ -7422,9 +7621,13 @@ void CX2GUElsword_SwordMan::ComboZ3EventProcess()
 	{
 		StateChangeDashIfPossible();
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 #ifdef TEST_MACRO_COMBO
 	else if( m_pXSkinAnimFuture->GetNowAnimationTime() > 0.333f )
 	{
@@ -7459,7 +7662,11 @@ void CX2GUElsword_SwordMan::ComboZ3EventProcess()
 //ESSI_COMBO_Z4
 void CX2GUElsword_SwordMan::ComboZ4FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.17f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.17f ) == true && EventCheck( 0.17f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed() * 1.3f;
 	}
@@ -7531,7 +7738,11 @@ void CX2GUElsword_SwordMan::ComboX1FrameMoveFuture()
 {
 	m_PhysicParam.nowSpeed.y = 0.0f;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.2f ) == true && EventCheck( 0.2f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -7599,7 +7810,11 @@ void CX2GUElsword_SwordMan::ComboX1EventProcess()
 //ESSI_COMBO_X2
 void CX2GUElsword_SwordMan::ComboX2FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.31f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.31f ) == true && EventCheck( 0.31f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed() * 1.5f;
 	}
@@ -7700,7 +7915,11 @@ void CX2GUElsword_SwordMan::ComboX2EventProcess()
 //ESSI_COMBO_X3
 void CX2GUElsword_SwordMan::ComboX3FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.3f ) == true && EventCheck( 0.3f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
@@ -8040,7 +8259,11 @@ void CX2GUElsword_SwordMan::ESSI_KNIGHT_DASH_COMBO_Z3a_EventProcess()
 //ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3a
 void CX2GUElsword_SwordMan::ESSI_MAGIC_KNIGHT_DASH_COMBO_Z3a_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.515f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.515f ) == true && EventCheck( 0.515f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( _CONST_ELSWORD_::MAGIC_FIRE_BALL_MP_COST ) == true )
 		{
@@ -8240,9 +8463,9 @@ void CX2GUElsword_SwordMan::JumpAttackZFrameMove()
 
 void CX2GUElsword_SwordMan::JumpAttackZEventProcess()
 {
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 	if( true == IsOnSomethingFuture() )
@@ -8289,9 +8512,9 @@ void CX2GUElsword_SwordMan::JumpAttackXFrameMove()
 void CX2GUElsword_SwordMan::JumpAttackXEventProcess()
 {
 
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 	if( true == IsOnSomethingFuture() )
@@ -8317,9 +8540,9 @@ void CX2GUElsword_SwordMan::DashJumpComboZ1FrameMove()
 void CX2GUElsword_SwordMan::DashJumpComboZ1EventProcess()
 {
 
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 
@@ -8354,9 +8577,9 @@ void CX2GUElsword_SwordMan::DashJumpComboZ2FrameMove()
 void CX2GUElsword_SwordMan::DashJumpComboZ2EventProcess()
 {
 
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 	if( m_InputData.oneZ == true )
@@ -8399,9 +8622,9 @@ void CX2GUElsword_SwordMan::DashJumpComboZ3FrameMove()
 void CX2GUElsword_SwordMan::DashJumpComboZ3EventProcess()
 {
 
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 	if( true == IsOnSomethingFuture() )
@@ -8500,9 +8723,9 @@ void CX2GUElsword_SwordMan::DashJumpComboX1FrameMove()
 void CX2GUElsword_SwordMan::DashJumpComboX1EventProcess()
 {
 
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN );
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN );
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 
@@ -8568,7 +8791,11 @@ void CX2GUElsword_SwordMan::DashJumpComboX1EventProcess()
 //ESSI_DASH_JUMP_COMBO_X2
 void CX2GUElsword_SwordMan::DashJumpComboX2FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.23f ) == true && EventCheck( 0.23f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.y = m_PhysicParam.fMaxGSpeed;
 	}
@@ -8593,10 +8820,10 @@ void CX2GUElsword_SwordMan::DashJumpComboX2FrameMove()
 
 void CX2GUElsword_SwordMan::DashJumpComboX2EventProcess()
 {
-
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 
@@ -8652,7 +8879,11 @@ void CX2GUElsword_SwordMan::DashJumpComboX2LandingEventProcess()
 //ESSI_KNIGHT_DASH_JUMP_COMBO_X2
 void CX2GUElsword_SwordMan::ESSI_KNIGHT_DASH_JUMP_COMBO_X2_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.23f ) == true && EventCheck( 0.23f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.y = m_PhysicParam.fMaxGSpeed;
 	}
@@ -8677,9 +8908,9 @@ void CX2GUElsword_SwordMan::ESSI_KNIGHT_DASH_JUMP_COMBO_X2_FrameMove()
 void CX2GUElsword_SwordMan::ESSI_KNIGHT_DASH_JUMP_COMBO_X2_EventProcess()
 {
 
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 
@@ -8735,7 +8966,11 @@ void CX2GUElsword_SwordMan::ESSI_MAGIC_KNIGHT_DASH_JUMP_COMBO_X2a_FrameMoveFutur
 
 void CX2GUElsword_SwordMan::ESSI_MAGIC_KNIGHT_DASH_JUMP_COMBO_X2a_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( _CONST_ELSWORD_::MAGIC_FIRE_BALL_MP_COST ) == true )
 		{
@@ -8766,9 +9001,9 @@ void CX2GUElsword_SwordMan::ESSI_MAGIC_KNIGHT_DASH_JUMP_COMBO_X2a_FrameMove()
 void CX2GUElsword_SwordMan::ESSI_MAGIC_KNIGHT_DASH_JUMP_COMBO_X2a_EventProcess()
 {
 
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 	if( true == IsOnSomethingFuture() )
 	{
 		StateChange( USI_JUMP_LANDING );
@@ -8816,7 +9051,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_ES_POWER_ATTACK_FrameMoveFuture()
 {
 	m_PhysicParam.nowSpeed.y = 0.0f;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.2f ) == true && EventCheck( 0.2f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -8851,7 +9090,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_ES_POWER_ATTACK_HYPER_FrameMoveFuture()
 {
 	m_PhysicParam.nowSpeed.y = 0.0f;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.2f ) == true && EventCheck( 0.2f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -8936,7 +9179,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_Init()
 
 void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.5f ) == true && EventCheck( 0.5f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -8950,7 +9197,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_MEGA_SLASH", this );
 	}
@@ -8970,7 +9221,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -8978,7 +9229,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -8991,7 +9242,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -8999,7 +9250,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -9026,7 +9277,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_EventProcess()
 //ESSI_SI1_ES_MEGA_SLASH_HYPER
 void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.5f ) == true && EventCheck( 0.5f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -9040,7 +9295,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_MEGA_SLASH", this, NULL, true );
 	}
@@ -9061,9 +9320,9 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_HYPER_CameraMove()
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
 					if( GetIsRight() == true )
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					else
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9072,9 +9331,9 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_HYPER_CameraMove()
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
 					if( GetIsRight() == true )
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					else
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA3" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA3" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -9087,7 +9346,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9095,7 +9354,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_MEGA_SLASH_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -9205,7 +9464,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.004f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.7666f ) == true && EventCheck( 0.7666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		UpDownCrashCamera( 50.0f, 0.3f );
@@ -9239,17 +9502,12 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_FrameMove()
 
 #ifdef NO_MORE_EFFECT_HARD_CODING_TEST
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO8 ) == true )
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_FLAME_GEYSER_MEMO", this, NULL, false, -1.f, -1.f, D3DXVECTOR3( 1, 1, 1 ), 
 				true, pos, GetRotateDegree(), GetDirVector() );
 		else
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_FLAME_GEYSER", this, NULL, false, -1.f, -1.f, D3DXVECTOR3( 1, 1, 1 ), 
 				true, pos, GetRotateDegree(), GetDirVector() );
-#else
-		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_FLAME_GEYSER", this, NULL, false, -1.f, -1.f, D3DXVECTOR3( 1, 1, 1 ), 
-			true, pos, GetRotateDegree(), GetDirVector() );
-#endif
 
 #else NO_MORE_EFFECT_HARD_CODING_TEST
 //{{AFX
@@ -9291,9 +9549,9 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_CameraMove()
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
 					if( GetIsRight() == true )
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					else
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9301,7 +9559,7 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -9314,7 +9572,7 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9322,7 +9580,7 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -9382,7 +9640,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.004f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.7666f ) == true && EventCheck( 0.7666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		UpDownCrashCamera( 50.0f, 0.3f );
@@ -9414,17 +9676,12 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_HYPER_FrameMove()
 
 #ifdef NO_MORE_EFFECT_HARD_CODING_TEST
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO8 ) == true )
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_FLAME_GEYSER_MEMO", this, NULL, true, -1.f, -1.f, D3DXVECTOR3( 1, 1, 1 ), 
 				true, pos, GetRotateDegree(), GetDirVector() );
 		else
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_FLAME_GEYSER", this, NULL, true, -1.f, -1.f, D3DXVECTOR3( 1, 1, 1 ), 
 				true, pos, GetRotateDegree(), GetDirVector() );
-#else
-		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_FLAME_GEYSER", this, NULL, true, -1.f, -1.f, D3DXVECTOR3( 1, 1, 1 ), 
-			true, pos, GetRotateDegree(), GetDirVector() );
-#endif
 
 #else NO_MORE_EFFECT_HARD_CODING_TEST
 //{{AFX
@@ -9466,9 +9723,9 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_HYPER_CameraMove()
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
 					if( GetIsRight() == true )
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					else
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9476,7 +9733,7 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -9489,7 +9746,7 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9497,7 +9754,7 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FLAME_GEYSER_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}					
@@ -9560,43 +9817,75 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_Init()
 
 void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.08f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.08f ) == true && EventCheck( 0.08f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.5f;
 	}
 
 	//1타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.166f ) == true && EventCheck( 0.166f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//2타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.433f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.433f ) == true && EventCheck( 0.433f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//3타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.666f ) == true && EventCheck( 0.666f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//4타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.966f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.966f ) == true && EventCheck( 0.966f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//5타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 1.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 1.3f ) == true && EventCheck( 1.3f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//6타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 1.566f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 1.566f ) == true && EventCheck( 1.566f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 2.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 2.0f ) == true && EventCheck( 2.0f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.25f;
 	}
@@ -9614,25 +9903,41 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_FrameMove()
 	ShowActiveSkillCutInAndLight( 1.9f, 2, true );
 	
 	//1타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.166f ) == true && EventCheck( 0.166f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 		m_DamageData.hitUnitList.resize(0);
 	}
 	//2타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.433f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.433f ) == true && EventCheck( 0.433f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 		m_DamageData.hitUnitList.resize(0);
 	}
 	//3타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.666f ) == true && EventCheck( 0.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 		m_DamageData.hitUnitList.resize(0);
 	}
 	//4타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.966f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.966f ) == true && EventCheck( 0.966f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 
@@ -9641,14 +9946,22 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_FrameMove()
 
 	}
 	//5타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.3f ) == true && EventCheck( 1.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 
 		m_DamageData.hitUnitList.resize(0);
 	}
 	//6타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.566f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.566f ) == true && EventCheck( 1.566f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 		m_DamageData.hitUnitList.resize(0);
@@ -9657,14 +9970,21 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_FrameMove()
 
 
 	//최종타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.95f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.95f ) == true && EventCheck( 1.95f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 
 
 		m_DamageData.hitType			= CX2DamageManager::HT_SWORD_SLASH;
 		m_DamageData.reActType			= CX2DamageManager::RT_DOWN;
-
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 데미지 배율 수정 6.41 -> 10.68
+		m_DamageData.damage.fPhysic		= 10.68f * GetPowerRate();
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 
 		m_DamageData.damage.fPhysic		= 6.41f * GetPowerRate();
@@ -9678,6 +9998,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_FrameMove()
 #endif
 
 #endif //UPGRADE_SKILL_SYSTEM_2013
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 		m_DamageData.backSpeed.x		= GetDashSpeed() * 2.0f;
 		m_DamageData.fCameraCrashGap	= 40.0f;
@@ -9691,7 +10012,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_FrameMove()
 
 #ifdef NO_MORE_EFFECT_HARD_CODING_TEST
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.1f ) == true && EventCheck( 2.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_MAGNUM_BLADE", this );
 	}
@@ -9704,7 +10029,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_FrameMove()
 	m_pMagnumBlade->GetMatrix().RotateDegree( GetRotateDegree() );
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.2f ) == true && EventCheck( 2.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_pMagnumBlade->ChangeAnim( L"SpecialSword", false );
 		m_pMagnumBlade->Play( CKTDGXSkinAnim::XAP_ONE );
@@ -9727,7 +10056,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9736,9 +10065,9 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_CameraMove()
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
 					if( GetIsRight() == true )
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					else
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9746,7 +10075,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA3" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA3" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9759,7 +10088,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9767,7 +10096,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9775,7 +10104,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -9838,38 +10167,66 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_Init()
 
 void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.08f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.08f ) == true && EventCheck( 0.08f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.5f;
 	}
 
 	//1타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.166f ) == true && EventCheck( 0.166f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//2타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.433f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.433f ) == true && EventCheck( 0.433f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//3타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.666f ) == true && EventCheck( 0.666f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//4타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.966f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.966f ) == true && EventCheck( 0.966f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//5타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 1.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 1.3f ) == true && EventCheck( 1.3f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
 	//6타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 1.5f ) == true && EventCheck( 1.5f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
@@ -9886,28 +10243,44 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_FrameMove()
 	ShowActiveSkillCutInAndLight( 1.56f, 2, true );
 	
 	//1타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.166f ) == true && EventCheck( 0.166f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 
 		m_DamageData.hitUnitList.resize(0);
 	}
 	//2타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.433f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.433f ) == true && EventCheck( 0.433f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 
 		m_DamageData.hitUnitList.resize(0);
 	}
 	//3타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.666f ) == true && EventCheck( 0.666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 
 		m_DamageData.hitUnitList.resize(0);
 	}
 	//4타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.966f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.966f ) == true && EventCheck( 0.966f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 
@@ -9917,7 +10290,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_FrameMove()
 
 	}
 	//5타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.3f ) == true && EventCheck( 1.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 
@@ -9925,7 +10302,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_FrameMove()
 
 	}
 	//6타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CreateStepDust();
 
@@ -9951,7 +10332,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_FrameMove()
 
 
 	//최종타
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.73f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.73f ) == true && EventCheck( 1.73f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef NO_MORE_EFFECT_HARD_CODING_TEST
 
@@ -10019,7 +10404,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10028,9 +10413,9 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_CameraMove()
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
 					if( GetIsRight() == true )
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					else
-						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+						g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10038,7 +10423,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA3" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA3" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10046,7 +10431,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA4" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA4" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10059,7 +10444,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10067,7 +10452,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10075,7 +10460,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA2" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA2" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10083,7 +10468,7 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_UNLIMITED_BLADE_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA3" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA3" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10116,7 +10501,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_Init()
 
 void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.2f ) == true && EventCheck( 0.2f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -10130,7 +10519,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"AirSlash01", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
@@ -10171,7 +10564,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10179,7 +10572,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10202,7 +10595,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_NEXT_FrameMove()
 {
 	ChangeWorldColorByHyperMode();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 125.0f;
@@ -10236,7 +10633,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_NEXT_EventProcess()
 //ESSI_SI1_ES_AIR_SLASH_HYPER
 void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.2f ) == true && EventCheck( 0.2f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
@@ -10250,7 +10651,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"AirSlash01_Hyper", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
@@ -10292,7 +10697,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10300,7 +10705,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10326,7 +10731,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_AIR_SLASH_HYPER_NEXT_FrameMove()
 {
 	ChangeWorldColorByHyperMode();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.36f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.36f ) == true && EventCheck( 0.36f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 125.0f;
@@ -10390,7 +10799,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 0 );
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.37f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.37f ) == true && EventCheck( 0.37f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 tip;
 		GetFramePos( &tip, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -10410,7 +10823,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_FrameMove()
 			pSeq->SetAddRotate( GetRotateDegree() );
 		}
 	}
-	if( m_hSeqAssualtSlashRing != INVALID_PARTICLE_HANDLE ) 
+	if( m_hSeqAssualtSlashRing != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqAssualtSlashRing );
 		if( NULL != pSeq )
@@ -10422,7 +10835,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_FrameMove()
 			pSeq->SetAddRotate( GetRotateDegree() );
 		}
 	}
-	if( m_hSeqAssualtSlashDust != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqAssualtSlashDust != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqAssualtSlashDust );
 		if( NULL != pSeq )
@@ -10452,7 +10865,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10460,7 +10873,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10472,7 +10885,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10480,7 +10893,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10520,7 +10933,11 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.37f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.37f ) == true && EventCheck( 0.37f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 tip;
 		GetFramePos( &tip, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -10540,7 +10957,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_HYPER_FrameMove()
 			pSeq->SetAddRotate( GetRotateDegree() );
 		}
 	}
-	if( m_hSeqAssualtSlashRing != INVALID_PARTICLE_HANDLE ) 
+	if( m_hSeqAssualtSlashRing != INVALID_PARTICLE_SEQUENCE_HANDLE ) 
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqAssualtSlashRing );
 		if( NULL != pSeq )
@@ -10552,7 +10969,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_HYPER_FrameMove()
 			pSeq->SetAddRotate( GetRotateDegree() );
 		}
 	}
-	if( m_hSeqAssualtSlashDust != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqAssualtSlashDust != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hSeqAssualtSlashDust );
 		if( NULL != pSeq )
@@ -10583,7 +11000,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10591,7 +11008,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10603,7 +11020,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10611,7 +11028,7 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_ASSAULT_SLASH_HYPER_CameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -10785,7 +11202,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.1f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -10797,7 +11218,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_FrameMove()
 		}
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"FatalFury02", GetPos() );
 		if( pSeq != NULL )
@@ -10815,11 +11240,19 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_FrameMove()
 		
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.95f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.95f ) == true && EventCheck( 0.95f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 up;
 		GetFramePos( &up, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -10843,11 +11276,19 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_FrameMove()
 		CKTDGParticleSystem::CParticleEventSequence* pSeqGroundShockWave = g_pX2Game->GetMinorParticle()->GetInstanceSequence( GetHandleCommonMinorParticleByEnum( COMMON_MINOR_PII_GROUND_SHOCK_WAVE ) );
 		PlaySequenceByTriggerCount( pSeqGroundShockWave, m_FrameDataNow.unitCondition.landPosition.x, m_FrameDataNow.unitCondition.landPosition.y + 5.0f, m_FrameDataNow.unitCondition.landPosition.z,  5, 10,  2 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.54f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.54f ) == true && EventCheck( 1.54f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.2f ) == true && EventCheck( 2.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 up;
 		GetFramePos( &up, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -10872,13 +11313,21 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_FrameMove()
 		PlaySequenceByTriggerCount( pSeqGroundShockWave, m_FrameDataNow.unitCondition.landPosition.x, m_FrameDataNow.unitCondition.landPosition.y + 5.0f, m_FrameDataNow.unitCondition.landPosition.z,  5, 10,  3 );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.3f ) == true && EventCheck( 2.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 		m_DamageData.reActType = CX2DamageManager::RT_DOWN;
 		m_DamageData.backSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.5f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 3.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 3.0f ) == true && EventCheck( 3.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"FatalFury01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
@@ -10919,7 +11368,7 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_EventProcess()
 
 		if( m_pXSkinAnimFuture->GetNowAnimationTime() > 0.6f && m_bFirstAttackSuccess == false )
 		{
-			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_SA_ES_FATAL_FURY );
+			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_SA_ES_FATAL_FURY );
 			if ( NULL != pSkillSlotData )
 			{
 				float fMPConsume = pSkillSlotData->m_fMPConsumption / 2.f;
@@ -10962,7 +11411,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_EventProcess()
 //ESSI_SI2_ES_FATAL_FURY_HYPER
 void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.48f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.48f ) == true && EventCheck( 0.48f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		//m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.fRunSpeed * 1.5f;
 	}
@@ -10975,7 +11428,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.1f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -10987,7 +11444,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_HYPER_FrameMove()
 		}
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->CreateSequence( (CKTDGObject*) this,  L"FatalFury02", GetPos() );
 		if( pSeq != NULL )
@@ -11004,11 +11465,19 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_HYPER_FrameMove()
 		CKTDGParticleSystem::CParticleEventSequence* pSeqGroundShockWave = g_pX2Game->GetMinorParticle()->GetInstanceSequence( GetHandleCommonMinorParticleByEnum( COMMON_MINOR_PII_GROUND_SHOCK_WAVE ) );
 		PlaySequenceByTriggerCount( pSeqGroundShockWave, m_FrameDataNow.unitCondition.landPosition.x, m_FrameDataNow.unitCondition.landPosition.y + 5.0f, m_FrameDataNow.unitCondition.landPosition.z,  5, 10,  1 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.95f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.95f ) == true && EventCheck( 0.95f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 up;
 		GetFramePos( &up, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -11033,11 +11502,19 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_HYPER_FrameMove()
 		PlaySequenceByTriggerCount( pSeqGroundShockWave, m_FrameDataNow.unitCondition.landPosition.x, m_FrameDataNow.unitCondition.landPosition.y + 5.0f, m_FrameDataNow.unitCondition.landPosition.z,  5, 10,  2 );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.54f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.54f ) == true && EventCheck( 1.54f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.2f ) == true && EventCheck( 2.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 up;
 		GetFramePos( &up, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -11063,13 +11540,21 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_HYPER_FrameMove()
 		PlaySequenceByTriggerCount( pSeqGroundShockWave, m_FrameDataNow.unitCondition.landPosition.x, m_FrameDataNow.unitCondition.landPosition.y + 5.0f, m_FrameDataNow.unitCondition.landPosition.z,  5, 10,  3 );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.3f ) == true && EventCheck( 2.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 		m_DamageData.reActType = CX2DamageManager::RT_DOWN;
 		m_DamageData.backSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.5f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 3.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 3.0f ) == true && EventCheck( 3.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"FatalFury01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 		if( NULL != pMeshInst )
@@ -11111,7 +11596,7 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_FATAL_FURY_HYPER_EventProcess()
 
 		if( m_pXSkinAnimFuture->GetNowAnimationTime() > 0.6f && m_bFirstAttackSuccess == false )
 		{
-			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_SA_ES_FATAL_FURY );
+			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_SA_ES_FATAL_FURY );
 			if ( NULL != pSkillSlotData )
 			{
 				float fMPConsume = pSkillSlotData->m_fMPConsumption / 2.f;
@@ -11168,27 +11653,65 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_SPIRAL_BLAST_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		D3DXVECTOR3 vPos = GetBonePos ( L"Bip01");
+		if( true == GetIsRight() )
+		{
+			vPos += ( 300.f * GetDirVector() );
+		}
+		else
+		{
+			vPos -= ( 300.f * GetDirVector() );
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"SPIRAL_BLAST", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"SPIRAL_BLAST", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.93f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.93f ) == true && EventCheck( 0.93f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpiralBlast01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.07f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.07f ) == true && EventCheck( 1.07f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpiralBlast01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpiralBlast01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.33f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.33f ) == true && EventCheck( 1.33f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpiralBlast01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 up;
 		GetFramePos( &up, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -11198,7 +11721,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_SPIRAL_BLAST_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.03f ) == true && EventCheck( 1.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 up;
 		GetFramePos( &up, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -11210,7 +11737,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_SPIRAL_BLAST_FrameMove()
 	}
 	
 	/*
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.1f ) == true && EventCheck( 1.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorParticle()->DestroyInstance( m_pSpiralBlastSwordFriction );
 		m_pSpiralBlastSwordFriction = NULL;
@@ -11279,27 +11810,64 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_SPIRAL_BLAST_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		D3DXVECTOR3 vPos = GetBonePos ( L"Bip01");
+		if( true == GetIsRight() )
+		{
+			vPos += ( 300.f * GetDirVector() );
+		}
+		else
+		{
+			vPos -= ( 300.f * GetDirVector() );
+		}
+		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"SPIRAL_BLAST", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"SPIRAL_BLAST", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.93f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.93f ) == true && EventCheck( 0.93f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpiralBlast01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.07f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.07f ) == true && EventCheck( 1.07f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpiralBlast01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.2f ) == true && EventCheck( 1.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpiralBlast01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.33f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.33f ) == true && EventCheck( 1.33f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMinorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"SpiralBlast01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 up;
 		GetFramePos( &up, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -11309,7 +11877,11 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_SPIRAL_BLAST_HYPER_FrameMove()
 			m_pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.03f ) == true && EventCheck( 1.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 up;
 		GetFramePos( &up, m_vecpWeapon[0]->m_pFrame_TRACE_START[0] );
@@ -11365,7 +11937,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_TRIPLE_GEYSER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.004f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.7666f ) == true && EventCheck( 0.7666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetWeaponBonePos( 0,  L"TRACE_START0", 0 );
 
@@ -11405,7 +11981,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_TRIPLE_GEYSER_FrameMove()
 			PlaySequenceByTriggerCount( pSeqKuAAang, D3DXVECTOR3( projPos.x, projPos.y, 0.0f ), 100,100, 1 );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9666f ) == true && EventCheck( 0.9666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetWeaponBonePos( 0,  L"TRACE_START0", 0 );
 		if( GetIsRight() == true )
@@ -11444,7 +12024,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_TRIPLE_GEYSER_FrameMove()
 
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRIPLE_GEYSER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.1666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.1666f ) == true && EventCheck( 1.1666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetWeaponBonePos( 0,  L"TRACE_START0", 0 );
 		if( GetIsRight() == true )
@@ -11516,7 +12100,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_TRIPLE_GEYSER_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.004f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.7666f ) == true && EventCheck( 0.7666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 
@@ -11544,7 +12132,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_TRIPLE_GEYSER_HYPER_FrameMove()
 			PlaySequenceByTriggerCount( pSeqKuAAang, D3DXVECTOR3( projPos.x, projPos.y, 0.0f ), 100,100, 1 );
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9666f ) == true && EventCheck( 0.9666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -11569,7 +12161,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_TRIPLE_GEYSER_HYPER_FrameMove()
 
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"TRIPLE_GEYSER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.1666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.1666f ) == true && EventCheck( 1.1666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		if( GetIsRight() == true )
@@ -11629,19 +12225,38 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_ARMAGEDDON_BLADE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy1_Rhand" );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Knight_ArmageddonBlade01", pos );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Knight_ArmageddonBlade02", pos );
 	}	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.68f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.68f ) == true && EventCheck( 1.68f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_ESK_ARMAGEDON_BLADE );
 		if ( NULL != pSkillTemplet )
+		{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO18 ) == true )
+				SetBuffFactorToGameUnit( pSkillTemplet, 1 );
+			else
+#endif //ADD_MEMO_1ST_CLASS
 			SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.7f ) == true && EventCheck( 1.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy1_Rhand" );
 		D3DXVECTOR3 vDir = GetDirVector();
@@ -11680,19 +12295,38 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_ARMAGEDDON_BLADE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.06f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy1_Rhand" );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Knight_ArmageddonBlade01", pos );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Knight_ArmageddonBlade02", pos );
 	}	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.68f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.68f ) == true && EventCheck( 1.68f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_ESK_ARMAGEDON_BLADE );
 		if ( NULL != pSkillTemplet )
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO18 ) == true )
+				SetBuffFactorToGameUnit( pSkillTemplet, 3 );
+			else
+				SetBuffFactorToGameUnit( pSkillTemplet, 2 );
+#else //ADD_MEMO_1ST_CLASS
 			SetBuffFactorToGameUnit( pSkillTemplet, 1 );
+#endif //ADD_MEMO_1ST_CLASS
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.8f ) == true && EventCheck( 1.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetBonePos( L"Dummy1_Rhand" );
 		D3DXVECTOR3 vDir = GetDirVector();
@@ -11741,28 +12375,37 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_WIND_BLADE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.067f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.08f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.08f ) == true && EventCheck( 0.08f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade01_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade02_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade03_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade01_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade02_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade03_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO10 ) == true )
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"WIND_BLADE_MEMO", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );		
 		else
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"WIND_BLADE", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-#else
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"WIND_BLADE", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-#endif
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		D3DXVECTOR3 vDir = GetDirVector();
@@ -11802,28 +12445,37 @@ void CX2GUElsword_SwordMan::ESSI_SI1_ES_WIND_BLADE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.067f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.08f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.08f ) == true && EventCheck( 0.08f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade01_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade02_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade03_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade01_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade02_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_WindBlade03_Mesh", GetPos(), GetRotateDegree(), GetRotateDegree() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO10 ) == true )
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"WIND_BLADE_MEMO_HYPER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		else
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"WIND_BLADE_HYPER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-#else
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"WIND_BLADE_HYPER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-#endif
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		D3DXVECTOR3 vDir = GetDirVector();
@@ -11878,11 +12530,19 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_RISING_SLASH_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.1f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.55f ) == true && EventCheck( 0.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"LizardMan_Older_PowerBooster01", GetPos() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.65f ) == true && EventCheck( 0.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		D3DXVECTOR3 vec = GetDirVector();
@@ -11911,21 +12571,31 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_RISING_SLASH_FrameMove()
 		}
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.12f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.12f ) == true && EventCheck( 0.12f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 2.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh", pos, GetRotateDegree(), GetRotateDegree() );
 		CX2DamageEffect::CEffect *pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RISING_BLADE", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #ifdef SERV_SKILL_NOTE
 		if( pEffect != NULL && GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO4 ) == true )
 		{
-			pEffect->GetDamageData()->fHitGap = 0.03f;
+			pEffect->GetDamageData().fHitGap = 0.03f;
 		}
 #endif
 	}
 #ifdef SERV_SKILL_NOTE
-	else if( m_pXSkinAnim->EventTimer( 0.15f ) == true && EventCheck( 0.15f, false ) == true && GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO4 ) == true )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.15f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimer( 0.15f ) == true && EventCheck( 0.15f, false ) == true && 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO4 ) == true )
 	{
 		D3DXVECTOR3 pos = GetPos();
 		D3DXVECTOR3 vec = GetDirVector();
@@ -11934,12 +12604,13 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_RISING_SLASH_FrameMove()
 
 		pos = GetPos() + vec * fScalePos;
 		pos.y = oy + 2.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh_Memo", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh_Memo", pos, GetRotateDegree(), GetRotateDegree() );
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RISING_BLADE_MEMO", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
 		pos = GetPos() - vec * fScalePos;
 		pos.y = oy + 2.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh_Memo", pos, GetRotateDegree(), GetRotateDegree() );
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh_Memo", pos, GetRotateDegree(), GetRotateDegree() );
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RISING_BLADE_MEMO", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
 #endif
@@ -11966,11 +12637,19 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_RISING_SLASH_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.1f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.55f ) == true && EventCheck( 0.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"LizardMan_Older_PowerBooster01", GetPos() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.65f ) == true && EventCheck( 0.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		D3DXVECTOR3 vec = GetDirVector();
@@ -11999,22 +12678,32 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_RISING_SLASH_HYPER_FrameMove()
 		}
 #endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.12f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.12f ) == true && EventCheck( 0.12f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 2.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh", pos, GetRotateDegree(), GetRotateDegree() );
 		CX2DamageEffect::CEffect *pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RISING_BLADE_HYPER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
 #ifdef SERV_SKILL_NOTE
 		if( pEffect != NULL && GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO4 ) == true )
 		{
-			pEffect->GetDamageData()->fHitGap = 0.03f;
+			pEffect->GetDamageData().fHitGap = 0.03f;
 		}
 #endif
 	}
 #ifdef SERV_SKILL_NOTE
-	else if( m_pXSkinAnim->EventTimer( 0.15f ) == true && EventCheck( 0.15f, false ) == true && GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO4 ) == true )
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.15f ) &&
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	else if( m_pXSkinAnim->EventTimer( 0.15f ) == true && EventCheck( 0.15f, false ) == true && 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO4 ) == true )
 	{
 		D3DXVECTOR3 pos = GetPos();
 		D3DXVECTOR3 vec = GetDirVector();
@@ -12022,12 +12711,15 @@ void CX2GUElsword_SwordMan::ESSI_SI2_ES_RISING_SLASH_HYPER_FrameMove()
 
 		pos = GetPos() + vec * 670.0f;
 		pos.y = oy + 2.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh_Memo", pos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh_Memo", pos, GetRotateDegree(), GetRotateDegree() );
+
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RISING_BLADE_MEMO_HYPER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
 		pos = GetPos() - vec * 670.0f;
 		pos.y = oy + 2.0f;
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh_Memo", pos, GetRotateDegree(), GetRotateDegree() );
+		pMeshInstance  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Elsword_MagicKnight_RisingSlash01_Mesh_Memo", pos, GetRotateDegree(), GetRotateDegree() );
+
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RISING_BLADE_MEMO_HYPER", GetPowerRate(), pos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
 #endif
@@ -12062,7 +12754,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_STORM_BLADE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.2f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_PATCH_20120329
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_SI3_ES_STROM_BLADE", this, NULL, false, GetPowerRate() );
@@ -12070,7 +12766,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_STORM_BLADE_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"STORM_BLADE_CENTER", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"STORM_BLADE", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 65.0f;
@@ -12101,7 +12801,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_STORM_BLADE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.2f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef BALANCE_PATCH_20120329
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_SI3_ES_STROM_BLADE_HYPER", this, NULL, false, GetPowerRate() );
@@ -12109,7 +12813,11 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_STORM_BLADE_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"STORM_BLADE_CENTER_HYPER", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"STORM_BLADE_HYPER", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = GetPos();
 		pos.y += 65.0f;
@@ -12144,21 +12852,29 @@ void CX2GUElsword_SwordMan::ESSI_SI3_ES_STORM_BLADE_HYPER_EventProcess()
 	ShowActiveSkillCutInAndLight( 0.004f, 0 );
 #endif // UPGRADE_SKILL_SYSTEM_2013 // 공통 스킬 개편, 김종훈
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.83f ) == true && EventCheck( 0.83f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		PlayCommonBuffMinorParticle();
 		UpDownCrashCamera( 30.0f, 0.4f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.85f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.85f ) == true && EventCheck( 0.85f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		int	iSkillSlotIndex = 0;
 		bool bSlotB = false;
 
 		if ( true == GetSkillSlotIndexUsed( iSkillSlotIndex, bSlotB ) )
 		{
-			CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+			const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = pUnitData->m_UserSkillTree.GetSkillSlot( iSkillSlotIndex, bSlotB );
 			CX2SkillTree::SKILL_ID eSkillID = CX2SkillTree::SI_NONE;
@@ -12183,7 +12899,11 @@ void CX2GUElsword_SwordMan::THROW_WOODEN_PIECE_FrameMove()
 	D3DXVECTOR3 rotate;
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		pos = GetBonePos( L"Dummy1_Rhand" );
 
@@ -12216,7 +12936,11 @@ void CX2GUElsword_SwordMan::THROW_WOODEN_PIECE_FrameMove()
 		}
 	}
 	/*
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		
 		pos = GetBonePos( L"Dummy1_Rhand" );
@@ -12258,7 +12982,11 @@ void CX2GUElsword_SwordMan::THROW_WOODEN_PIECE_FrameMove()
 		SetStopTime( 1.5f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CX2Eqip* pEquipWeapon = NULL;
 		for( int i = 0; i < (int)m_ViewEqipList.size(); i++ )
@@ -12469,10 +13197,10 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ES_KICK_Start()
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
-		return;
+		if ( NULL == GetUnit() )
+		    return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -12604,7 +13332,11 @@ void CX2GUElsword_SwordMan::ESSI_SA_ESK_WINDMILL_START_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hWindMill		= g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_WINDMILL", this, NULL, false, GetPowerRate() ); 
 		m_hWindMillLand = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_WINDMILL_LAND", this ); 
@@ -12658,7 +13390,11 @@ void CX2GUElsword_SwordMan::ESSI_SA_ESK_WINDMILL_START_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hWindMill		= g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_WINDMILL", this, NULL, true, GetPowerRate() ); 
 		m_hWindMillLand = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_WINDMILL_LAND", this ); 
@@ -12723,6 +13459,22 @@ void CX2GUElsword_SwordMan::ESSI_SA_ESK_WINDMILL_FrameMove()
 	{
 		m_pSoundWindMill->Set3DPosition( GetPos() );
 	}
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else	X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif	X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE	
+	{
+		// 매 프레임 시작마다, 데미지 감소 버프가 걸려있는지 확인하고 걸려있지 않다면 걸어준다.
+		if ( false == HaveThisBuff ( BTI_BUFF_SA_ESK_WINDMILL ) )
+		{
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_ELK_WINDMILL );
+			if ( NULL != pSkillTemplet )
+				SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+		}
+	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 	CommonFrameMove();
 }
@@ -12960,7 +13712,11 @@ void CX2GUElsword_SwordMan::ESSI_SA_EMK_SWORD_FIRE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSwordFire = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_SWORDFIRE_NODAMAGE", this ); 			
 	}
@@ -13016,7 +13772,11 @@ void CX2GUElsword_SwordMan::ESSI_SA_EMK_SWORD_FIRE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSwordFire = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_SWORDFIRE_NODAMAGE", this ); 
 	}
@@ -13044,7 +13804,11 @@ void CX2GUElsword_SwordMan::ESSI_SA_EMK_SWORD_FIRE_HYPER_EndFuture()
 
 void CX2GUElsword_SwordMan::ESSI_SA_EMK_SWORD_FIRE_LANDING_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hSwordFire );
 	}
@@ -13075,7 +13839,11 @@ void CX2GUElsword_SwordMan::ESSI_SA_EMK_SWORD_FIRE_LANDING_End()
 void CX2GUElsword_SwordMan::ESSI_SA_EMK_SWORD_FIRE_LANDING_HYPER_FrameMove()
 {		
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.02f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.02f ) == true && EventCheck( 0.02f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hSwordFire );
 	}
@@ -13124,10 +13892,10 @@ void CX2GUElsword_SwordMan::ESSI_A_ESK_ARMOR_BREAK_StateStart()
 	{
 		/// 메모를 배웠으면
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
 		if ( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO11 ) && pSkillTemplet->m_vecBuffFactorPtr.size() > 1 )
@@ -13146,7 +13914,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ESK_ARMOR_BREAK_StateStart()
 
 void CX2GUElsword_SwordMan::ESSI_A_ESK_ARMOR_BREAK_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.22f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.22f ) == true && EventCheck( 0.22f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Elsword_Armor_Break", this );
 	}
@@ -13174,7 +13946,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ESK_ARMOR_BREAK_StateEnd()
 
 void CX2GUElsword_SwordMan::ESSI_A_ESK_ARMOR_BREAK_HYPER_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.22f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.22f ) == true && EventCheck( 0.22f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Elsword_Armor_Break", this );
 	}
@@ -13211,11 +13987,19 @@ void CX2GUElsword_SwordMan::ESSI_SA_EMK_BIG_BURST_Init()
 }
 void CX2GUElsword_SwordMan::ESSI_SA_EMK_BIG_BURST_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.2f ) == true && EventCheck( 0.2f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetDashSpeed();
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.65f ) == true && EventCheck( 0.65f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x -= 1600 * 0.8f;
 	}
@@ -13223,21 +14007,20 @@ void CX2GUElsword_SwordMan::ESSI_SA_EMK_BIG_BURST_FrameMoveFuture()
 }
 void CX2GUElsword_SwordMan::ESSI_SA_EMK_BIG_BURST_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.65f ) == true && EventCheck( 0.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos;
 		vPos = GetBonePos( L"Dummy2_Lhand" );
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO12) == true )
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMEGA_EFFECT_ELSWORD_MNK_BIG_BURST_MEMO", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), 
 				m_FrameDataNow.unitCondition.landPosition.y );
 		else
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMEGA_EFFECT_ELSWORD_MNK_BIG_BURST", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), 
 				m_FrameDataNow.unitCondition.landPosition.y );
-#else
-		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMEGA_EFFECT_ELSWORD_MNK_BIG_BURST", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), 
-			m_FrameDataNow.unitCondition.landPosition.y );
-#endif
 		vPos = GetBonePos( L"Dummy2_Lhand" );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Flare_Elsword_SI_A_Big_Burst04", vPos );
 		vPos = GetBonePos( L"Dummy2_Lhand" );
@@ -13325,18 +14108,7 @@ void CX2GUElsword_SwordMan::ESSI_ELK_XXX_EventProcess()
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
 	ELSE_IF_STATE_CHANGE_ON_( 0, 0.5f, 0.5f, m_InputData.oneX == true, ESSI_ELK_XXXX )
-#ifdef FIX_SKILL_CANCEL01
 	SKILL_CANCEL_AFTER( 0.67f )
-#else
-	else if(m_InputData.pureA == true || m_InputData.pureS == true || m_InputData.pureD == true || m_InputData.pureC == true
-			||m_InputData.pureQ == true || m_InputData.pureW == true || m_InputData.pureE == true || m_InputData.pureR == true)
-	{
-		if( m_pXSkinAnimFuture->GetNowAnimationTime() > 0.67f )
-		{
-			StateChange( USI_WAIT );
-		}
-	}
-#endif
 	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{	
 		StateChange( USI_WAIT );
@@ -13359,9 +14131,13 @@ void CX2GUElsword_SwordMan::ESSI_ELK_XXXX_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{	
 		StateChange( USI_WAIT );
@@ -13389,7 +14165,11 @@ void CX2GUElsword_SwordMan::ESSI_ERS_XZ_StateStartFuture()
 void CX2GUElsword_SwordMan::ESSI_ERS_XZ_FrameMoveFuture()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.3f ) == true && EventCheck( 0.3f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( GetNowMp() > _CONST_ELSWORD_::MAGIC_ERS_XZ_MP_COST )
 		{
@@ -13407,7 +14187,11 @@ void CX2GUElsword_SwordMan::ESSI_ERS_XZ_FrameMoveFuture()
 
 void CX2GUElsword_SwordMan::ESSI_ERS_XZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( _CONST_ELSWORD_::MAGIC_ERS_XZ_MP_COST ) == true )
 		{
@@ -13417,9 +14201,7 @@ void CX2GUElsword_SwordMan::ESSI_ERS_XZ_FrameMove()
 #else //UPGRADE_SKILL_SYSTEM_2013
 			m_hRuneSlayerComboXZ = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ERS_COMBO_XZ", this );
 #endif //UPGRADE_SKILL_SYSTEM_2013
-			CX2EffectSet::EffectSetInstance* pInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( m_hRuneSlayerComboXZ );
-
-			if( NULL != pInstance )
+			if ( CX2EffectSet::EffectSetInstance* pInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( m_hRuneSlayerComboXZ ) )
 			{
 				pInstance->SetPowerRateScale( m_fAttackPowerRateFireBall );
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
@@ -13487,7 +14269,11 @@ void CX2GUElsword_SwordMan::ESSI_ERS_XZ_EventProcess()
 
 void CX2GUElsword_SwordMan::ESSI_ERS_XZZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( _CONST_ELSWORD_::MAGIC_ERS_XZZ_MP_COST ) == true &&
 			true == m_bERS_COMBO_XZ_Rune_Created )
@@ -13499,8 +14285,7 @@ void CX2GUElsword_SwordMan::ESSI_ERS_XZZ_FrameMove()
 			CX2EffectSet::Handle hComboXZZ = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ERS_COMBO_XZZ", this );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
-			CX2EffectSet::EffectSetInstance* pInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hComboXZZ );
-			if( NULL != pInstance )
+			if ( CX2EffectSet::EffectSetInstance* pInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hComboXZZ ) )
 			{
 				pInstance->SetPowerRateScale( m_fAttackPowerRateFireBall );
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
@@ -13524,9 +14309,13 @@ void CX2GUElsword_SwordMan::ESSI_ERS_XZZ_FrameMove()
 
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.38f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.38f ) == true && EventCheck( 0.38f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		if( CX2EffectSet::INVALID_HANDLE != m_hRuneSlayerComboXZ )
+		if( INVALID_EFFECTSET_HANDLE != m_hRuneSlayerComboXZ )
 		{
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_hRuneSlayerComboXZ );
 		}
@@ -13573,7 +14362,11 @@ void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZ_StateEndFuture()
 
 void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZ_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.26f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.26f ) == true && EventCheck( 0.26f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( GetNowMp() > _CONST_ELSWORD_::MAGIC_ERS_DASH_JUMP_XZ_MP_COST )
 		{
@@ -13594,7 +14387,11 @@ void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZ_FrameMoveFuture()
 void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZ_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.26f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.26f ) == true && EventCheck( 0.26f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if(	FlushMp( _CONST_ELSWORD_::MAGIC_ERS_DASH_JUMP_XZ_MP_COST ) == true )
 		{
@@ -13612,22 +14409,31 @@ void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZ_FrameMove()
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 			D3DXVECTOR3 vSize( m_fRuneProjectileSizeIncPercent, m_fRuneProjectileSizeIncPercent, m_fRuneProjectileSizeIncPercent );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect*
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_pRuneSlayerDashJumpXZ = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_RUNE_SLAYER_DASH_JUMP_XZ", 
 				GetPowerRate() * m_fAttackPowerRateFireBall, posR, angle, angle, m_FrameDataNow.unitCondition.landPosition.y, false, -1.f, 1.f, m_fRuneProjectileRangeIncPercent );
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hRuneSlayerDashJumpXZ = ( m_pRuneSlayerDashJumpXZ != NULL ) ? m_pRuneSlayerDashJumpXZ->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			if( NULL != m_pRuneSlayerDashJumpXZ )
 			{
 				m_pRuneSlayerDashJumpXZ->SetScale( vSize );
 			}
 			CX2EffectSet::Handle hEffect = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_DASH_JUMP_XZ", this, NULL, false, -1.f, -1.f, vSize );
-			CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffect );
-			if( NULL != pEffectInstance )
+			if ( CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffect ) )
 			{
 				pEffectInstance->m_fLifeTime *= m_fRuneProjectileRangeIncPercent;
 				pEffectInstance->m_bDamageEffectScale = true;
 			}
 #else //UPGRADE_SKILL_SYSTEM_2013
-			m_pRuneSlayerDashJumpXZ = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_RUNE_SLAYER_DASH_JUMP_XZ", 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hRuneSlayerDashJumpXZ = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_pRuneSlayerDashJumpXZ = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                this, L"ELSWORD_RUNE_SLAYER_DASH_JUMP_XZ", 
 				GetPowerRate() * m_fAttackPowerRateFireBall, posR, angle, angle, m_FrameDataNow.unitCondition.landPosition.y );
 
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_DASH_JUMP_XZ", this );
@@ -13707,7 +14513,11 @@ void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZ_EventProcess()
 
 void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef ELSWORD_WAY_OF_SWORD
 		float fMagicERSDashJumpXZZMpCost = 0.f;
@@ -13727,11 +14537,14 @@ void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZZ_FrameMove()
 			true == m_bERS_DASH_JUMP_XZ_Rune_Created )
 #endif ELSWORD_WAY_OF_SWORD
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( m_hRuneSlayerDashJumpXZ != INVALID_DAMAGE_EFFECT_HANDLE )
+                g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hRuneSlayerDashJumpXZ );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			if( NULL != m_pRuneSlayerDashJumpXZ )
-			{
 				g_pX2Game->GetDamageEffect()->DestroyInstance( m_pRuneSlayerDashJumpXZ );
-				m_pRuneSlayerDashJumpXZ = NULL;
-			}
+            m_pRuneSlayerDashJumpXZ = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 			D3DXVECTOR3 posR = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 			posR.y += -90.f;
@@ -13778,9 +14591,9 @@ void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZZ_FrameMove()
 void CX2GUElsword_SwordMan::ESSI_ERS_DASH_JUMP_XZZ_EventProcess()
 {
 
-#ifdef LINEMAP_FAST_WIND_TEST 
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST 
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 
@@ -13915,8 +14728,7 @@ void CX2GUElsword_SwordMan::ESSI_SA_ERS_SPLASH_EXPLOSION_StateStart()
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
 	D3DXVECTOR3 vSize( m_fRuneProjectileSizeIncPercent,m_fRuneProjectileSizeIncPercent,m_fRuneProjectileSizeIncPercent);
 	CX2EffectSet::Handle hEffectExplosion = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_SPLASH_EXPLOSION", this, NULL,false,-1.f, -1.f, vSize );
-	CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectExplosion );
-	if( NULL != pEffectInstance )
+	if ( CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectExplosion ) )
 	{
 		pEffectInstance->m_fLifeTime *= m_fRuneProjectileRangeIncPercent;
 		pEffectInstance->m_bDamageEffectScale = true;
@@ -14052,10 +14864,10 @@ void CX2GUElsword_SwordMan::ESSI_A_ELK_ROLLING_SMASH_StateStartFuture()
 		m_fRollingSmashDuration = 2.f * m_PhysicParam.nowSpeed.y / m_PhysicParam.fGAccel;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 		return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -14106,10 +14918,10 @@ void CX2GUElsword_SwordMan::ESSI_A_ELK_ROLLING_SMASH_HYPER_StateStartFuture()
 	if( NULL != pSkillTemplet )
 	{			
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 		return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -14163,11 +14975,24 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_Init()
 
 void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.333f ) == true && EventCheck( 0.333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
+		int iRandBuffIndex = (GetRandomInt() % 3);
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( NULL != GetUnit() && GetEqippedSkillMemo(CX2SkillTree::SMI_ELSWORD_MEMO19) == true )
+		{
+			iRandBuffIndex += 3;
+			const int iSkillLevel = max( GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ERS_SWORD_ENCHANT ), 1 );
+			SetBuffFactorToGameUnitByBuffFactorID( BFI_BUFF_SWORD_ENCHANT_CHARGE_MP, iSkillLevel );
+		}
+#endif //ADD_MEMO_1ST_CLASS
+
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_ERS_SWORD_ENCHANT );
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
-		int iRandBuffIndex = (GetRandomInt() % 3);
 		SetBuffFactorToGameUnit( pSkillTemplet, iRandBuffIndex );
 #else //UPGRADE_SKILL_SYSTEM_2013
 		SetBuffFactorToGameUnit( pSkillTemplet, 0 );
@@ -14225,7 +15050,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 
 		ShowActiveSkillCutInAndLight( 0.002f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.75f ) == true && EventCheck( 1.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EMK_PHOENIX_TALON );
 			SetBuffFactorToGameUnit( pSkillTemplet, 0 );
@@ -14240,7 +15069,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 
 		ShowActiveSkillCutInAndLight( 0.002f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.75f ) == true && EventCheck( 1.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EMK_PHOENIX_TALON );
 			SetBuffFactorToGameUnit( pSkillTemplet, 0 );
@@ -14270,7 +15103,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 	{
 		ShowActiveSkillCutInAndLight( 0.002f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.004f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.004f ) == true && EventCheck( 0.004f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_DOUBLE_SLASH", this, NULL, false, GetPowerRate() );
 		}
@@ -14283,13 +15120,25 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.3666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 2.3666f ) == true && EventCheck( 2.3666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			//	멤버
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect* m_pDoubleSlash = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo(CX2SkillTree::SMI_ELSWORD_MEMO17) == true )
+				m_pDoubleSlash = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_SLASH_MEMO", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree() );
+			else
+#endif //ADD_MEMO_1ST_CLASS
 			m_pDoubleSlash = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_SLASH", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree() );
-
-			
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hDoubleSlash = ( m_pDoubleSlash != NULL ) ? m_pDoubleSlash->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 			if( m_pDoubleSlash != NULL )
 			{
@@ -14300,7 +15149,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 			}
 		}
 
-		if( m_pDoubleSlash != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_pDoubleSlash) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pDoubleShash = g_pX2Game->GetDamageEffect()->ValidateInstanceHandle( m_hDoubleSlash ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pDoubleShash = g_pX2Game->GetDamageEffect()->ValidateLiveInstance( m_pDoubleSlash ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			//	왼쪽 방향이면 방향 틀기
 			D3DXVECTOR3 vBone = GetBonePos(L"Bip01");
@@ -14325,15 +15178,15 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 				vBone.z = vBone.z + 0.0f * vDir.z;
 			}
 
-			m_pDoubleSlash->SetPos(vBone);
-		}
-		else
-		{
-			m_pDoubleSlash = NULL;
+			pDoubleShash->SetPos(vBone);
 		}
 
 		//	스턴 속성 삭제
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.9f ) == true && EventCheck( 1.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			m_DamageData.m_ExtraDamage.m_ExtraDamageType = CX2DamageManager::EDT_NONE;
 		}
@@ -14364,7 +15217,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 
 	void CX2GUElsword_SwordMan::ESSI_SA_ESK_DOUBLE_SLASH_StateEnd()
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hDoubleSlash = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pDoubleSlash = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		CommonStateEnd();
 	}
@@ -14373,7 +15230,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 	{
 		ShowActiveSkillCutInAndLight( 0.002f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.004f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.004f ) == true && EventCheck( 0.004f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ELSWORD_DOUBLE_SLASH_HYPER", this, NULL, false, GetPowerRate() );
 		}
@@ -14384,11 +15245,25 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 			g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.3666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 2.3666f ) == true && EventCheck( 2.3666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			//	멤버
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect* m_pDoubleSlash = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				if( GetEqippedSkillMemo(CX2SkillTree::SMI_ELSWORD_MEMO17) == true )
+					m_pDoubleSlash = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_SLASH_MEMO", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree() );
+				else
+#endif //ADD_MEMO_1ST_CLASS
 			m_pDoubleSlash = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DOUBLE_SLASH", GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree() );
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hDoubleSlash = ( m_pDoubleSlash != NULL ) ? m_pDoubleSlash->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			if( m_pDoubleSlash != NULL )
 			{
 				if( GetIsRight() == false )
@@ -14398,7 +15273,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 			}
 		}
 
-		if( m_pDoubleSlash != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_pDoubleSlash) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pDoubleShash = g_pX2Game->GetDamageEffect()->ValidateInstanceHandle( m_hDoubleSlash ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( CX2DamageEffect::CEffect* pDoubleShash = g_pX2Game->GetDamageEffect()->ValidateLiveInstance( m_pDoubleSlash ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			//	왼쪽 방향이면 방향 틀기
 			D3DXVECTOR3 vBone = GetBonePos(L"Bip01");
@@ -14423,15 +15302,15 @@ void CX2GUElsword_SwordMan::ESSI_A_ERS_SWORD_ENCHANT_EventProcess()
 				vBone.z = vBone.z + 0.0f * vDir.z;
 			}
 
-			m_pDoubleSlash->SetPos(vBone);
-		}
-		else
-		{
-			m_pDoubleSlash = NULL;
+			pDoubleShash->SetPos(vBone);
 		}
 
 		//	스턴 속성 삭제
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.9f ) == true && EventCheck( 1.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			m_DamageData.m_ExtraDamage.m_ExtraDamageType = CX2DamageManager::EDT_NONE;
 		}
@@ -14453,10 +15332,10 @@ void CX2GUElsword_SwordMan::ReducePain( CX2SkillTree::SKILL_TYPE eSkillType_, co
 		return;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+	if ( NULL == GetUnit() )
 		return;
 	
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 	const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTempletReducePain->m_eID, true ) );	/// 스킬 레벨
 	
@@ -14494,11 +15373,19 @@ void CX2GUElsword_SwordMan::ReducePain( CX2SkillTree::SKILL_TYPE eSkillType_, co
 //{{ oasis907 : 김상윤 [2010.11.5] // 로드 나이트 - 샌드 스톰
 void CX2GUElsword_SwordMan::ESSI_SA_ELK_SAND_STORM_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.3f ) == true && EventCheck( 0.3f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.2f;
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.9333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.9333f ) == true && EventCheck( 0.9333f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_PhysicParam.nowSpeed.x = GetDashSpeed() * 0.8f;
 
 	CommonFrameMoveFuture();
@@ -14511,7 +15398,11 @@ void CX2GUElsword_SwordMan::ESSI_SA_ELK_SAND_STORM_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.01f, 1 );
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1333f ) == true && EventCheck( 0.1333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 DamageEffectPos = GetPos();
 
@@ -14535,16 +15426,16 @@ void CX2GUElsword_SwordMan::ESSI_SA_ELK_SAND_STORM_FrameMove()
 			if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			{
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-				pDE->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+				pDE->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 			}
 #else //UPGRADE_SKILL_SYSTEM_2013
-				pDE->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+				pDE->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		}
 	}
@@ -14588,7 +15479,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZ_FrameMove()
 {
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"ElswordSheath02", GetPos(), GetRotateDegree(), GetRotateDegree() );
 		if( pMeshInst != NULL )
@@ -14600,7 +15495,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZ_FrameMove()
 
 	}
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDashCancelAfter ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDashCancelAfter ) == true && EventCheck( m_fDashCancelAfter, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSecondBladeSheath = INVALID_MESH_INSTANCE_HANDLE;
 	}
@@ -14608,7 +15507,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZ_FrameMove()
 
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -14617,8 +15520,10 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZ_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -14641,9 +15546,13 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZ_EventProcess()
 	{
 		StateChangeDashIfPossible();
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	ELSE_IF_STATE_CHANGE_ON_EX_( 0, m_fEventTime[0].keyInputStart, m_fEventTime[0].keyInputEnd, m_fEventTime[0].stateChange, m_InputData.oneZ == true, ESSI_ETK_COMBO_ZZZZ )
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 
@@ -14656,7 +15565,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZ_StateEnd()
 }
 void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -14665,8 +15578,10 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZZ_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -14709,7 +15624,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZZZ_StateStart()
 }
 void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZZZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -14718,8 +15637,10 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_ZZZZZ_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -14755,7 +15676,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XX_StateStart()
 }
 void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"ElswordSheath02", GetPos(), GetRotateDegree(), GetRotateDegree() );
 		if( pMeshInst != NULL )
@@ -14765,12 +15690,20 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XX_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDashCancelAfter ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDashCancelAfter ) == true && EventCheck( m_fDashCancelAfter, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSecondBladeSheath = INVALID_MESH_INSTANCE_HANDLE;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -14779,8 +15712,10 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XX_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -14818,7 +15753,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXX_LOOP_StateStart()
 }
 void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXX_LOOP_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -14827,8 +15766,10 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXX_LOOP_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -14861,7 +15802,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXX_LOOP_StateEnd()
 
 void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXXZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -14870,8 +15815,10 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXXZ_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -14909,7 +15856,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXX_END_StateStart()
 }
 void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXX_END_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -14918,8 +15869,10 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXX_END_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -14950,7 +15903,11 @@ void CX2GUElsword_SwordMan::ESSI_ETK_COMBO_XXX_END_StateEnd()
 
 void CX2GUElsword_SwordMan::ESSI_ETK_DASH_COMBO_ZZ_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"ElswordSheath02", GetPos(), GetRotateDegree(), GetRotateDegree() );
 		if( pMeshInst != NULL )
@@ -14960,13 +15917,21 @@ void CX2GUElsword_SwordMan::ESSI_ETK_DASH_COMBO_ZZ_FrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDashCancelAfter ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDashCancelAfter ) == true && EventCheck( m_fDashCancelAfter, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSecondBladeSheath = INVALID_MESH_INSTANCE_HANDLE;
 	}
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -14975,12 +15940,18 @@ void CX2GUElsword_SwordMan::ESSI_ETK_DASH_COMBO_ZZ_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime2 ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime2 ) == true && EventCheck( m_fDamageDataChangeTime2, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -14989,8 +15960,10 @@ void CX2GUElsword_SwordMan::ESSI_ETK_DASH_COMBO_ZZ_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_LAST" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_LAST" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -15027,10 +16000,10 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ES_ROLLING_StateStart()
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 		return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -15078,7 +16051,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ES_ROLLING_END_StateStart()
 void CX2GUElsword_SwordMan::ESSI_SI_A_ES_ROLLING_END_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.03333f ) == true && EventCheck( 0.03333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{			
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ES_ROLLING", this );
 	}
@@ -15108,14 +16085,18 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_HARSH_CHASER_StateStart()
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 		return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 		m_fHarshChaserProjectiveRange = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_RANGE_REL, iSkillTempletLevel );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO13 ) == true )
+			m_fHarshChaserProjectiveRange *= 1.1f;
+#endif //ADD_MEMO_1ST_CLASS
 	#else // UPGRADE_SKILL_SYSTEM_2013
 		m_fHarshChaserProjectiveRange = pSkillTemplet->GetSkillAbilityValue( CX2SkillTree::SA_PROJECTILE_RANGE_REL );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
@@ -15126,7 +16107,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_HARSH_CHASER_StateStart()
 void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_HARSH_CHASER_FrameMove()
 {
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDamageEffectPos = GetPos();
 		vDamageEffectPos.y += 130.f;
@@ -15139,6 +16124,9 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_HARSH_CHASER_FrameMove()
 			vDamageEffectPos -= (30.f * GetDirVector());
 		}
 		
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect* m_pDamageEffectHarshChaserBlade = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #ifdef ADDITIONAL_MEMO
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO13 ) == true )
 			m_pDamageEffectHarshChaserBlade = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_HASHCHASER_BLADE_MEMO", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
@@ -15147,14 +16135,31 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_HARSH_CHASER_FrameMove()
 #else
 		m_pDamageEffectHarshChaserBlade = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_HASHCHASER_BLADE", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 #endif
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hDamageEffectHarshChaserBlade = ( m_pDamageEffectHarshChaserBlade != NULL )
+            ? m_pDamageEffectHarshChaserBlade->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hDamageEffectHarshChaserBlade != INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( m_pDamageEffectHarshChaserBlade != NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( ( (m_fSkillCancelAfter - 0.3f) * m_fHarshChaserProjectiveRange ) + 0.3f ) == true  )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( ( (m_fSkillCancelAfter - 0.3f) * m_fHarshChaserProjectiveRange ) + 0.3f ) == true && EventCheck( ( (m_fSkillCancelAfter - 0.3f) * m_fHarshChaserProjectiveRange ) + 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
-			g_pX2Game->GetDamageEffect()->DestroyInstance( m_pDamageEffectHarshChaserBlade );
-			m_pDamageEffectHarshChaserBlade = NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hDamageEffectHarshChaserBlade );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	        g_pX2Game->GetDamageEffect()->DestroyInstance( m_pDamageEffectHarshChaserBlade );
+            m_pDamageEffectHarshChaserBlade = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 	}
 
@@ -15166,13 +16171,25 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_HARSH_CHASER_EventProcess()
 {
 	if( m_pXSkinAnim->GetNowAnimationTime() > 0.4f && m_pXSkinAnim->GetNowAnimationTime() < ( (m_fSkillCancelAfter - 0.3f) * m_fHarshChaserProjectiveRange ) + 0.3f )
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( m_hDamageEffectHarshChaserBlade != INVALID_DAMAGE_EFFECT_HANDLE )
+        {
+            if ( false == g_pX2Game->GetDamageEffect()->IsLiveInstanceHandle( m_hDamageEffectHarshChaserBlade ) )
+            {
+                m_hDamageEffectHarshChaserBlade = INVALID_DAMAGE_EFFECT_HANDLE;
+				StateChange( ESSI_SI_SA_ETK_HARSH_CHASER_PULL );
+            }
+        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( m_pDamageEffectHarshChaserBlade != NULL )
 		{
 			if ( false == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDamageEffectHarshChaserBlade ) )
 			{
+                m_pDamageEffectHarshChaserBlade = NULL;
 				StateChange( ESSI_SI_SA_ETK_HARSH_CHASER_PULL );
 			}
 		}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{	
@@ -15188,8 +16205,13 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_HARSH_CHASER_EventProcess()
 
 void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_HARSH_CHASER_End()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hDamageEffectHarshChaserBlade != INVALID_DAMAGE_EFFECT_HANDLE )
+	    g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hDamageEffectHarshChaserBlade );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	g_pX2Game->GetDamageEffect()->DestroyInstance( m_pDamageEffectHarshChaserBlade );
-	m_pDamageEffectHarshChaserBlade = NULL;
+    m_pDamageEffectHarshChaserBlade = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CommonStateEnd();
 }
 
@@ -15225,7 +16247,7 @@ void CX2GUElsword_SwordMan::CompactCounterAttackStart()
 
 #ifdef COMPACT_COUNTER_FIX
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_COMPACT_COUNTER, true );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_COMPACT_COUNTER, true );
 
 	if( iSkillLevel > 0 )
 	{
@@ -15237,7 +16259,7 @@ void CX2GUElsword_SwordMan::CompactCounterAttackStart()
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_COMPACT_COUNTER );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_COMPACT_COUNTER );
 
 	if( iSkillLevel > 0 )
 	{
@@ -15269,13 +16291,21 @@ void CX2GUElsword_SwordMan::CompactCounterAttackFrameMove()
 {
 #ifdef SERV_SKILL_NOTE
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO5 ) == true && 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		SetDefenceMemoTime(4.f);
 	}	
 #endif
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.09f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.09f ) == true && EventCheck( 0.09f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 pos = m_FrameDataNow.syncData.position;
@@ -15295,7 +16325,11 @@ void CX2GUElsword_SwordMan::CompactCounterAttackFrameMove()
 		}		
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"ElswordSheath02", GetPos(), GetRotateDegree(), GetRotateDegree() );
 		if( pMeshInst != NULL )
@@ -15305,12 +16339,20 @@ void CX2GUElsword_SwordMan::CompactCounterAttackFrameMove()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDashCancelAfter ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDashCancelAfter ) == true && EventCheck( m_fDashCancelAfter, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSecondBladeSheath = INVALID_MESH_INSTANCE_HANDLE;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -15319,12 +16361,14 @@ void CX2GUElsword_SwordMan::CompactCounterAttackFrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 
 #ifdef COMPACT_COUNTER_FIX 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-			int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_COMPACT_COUNTER, true );
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_COMPACT_COUNTER, true );
 
 			if( iSkillLevel > 0 ) 
 			{
@@ -15336,7 +16380,7 @@ void CX2GUElsword_SwordMan::CompactCounterAttackFrameMove()
 				} 
 			}
 #else //UPGRADE_SKILL_SYSTEM_2013
-			int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_COMPACT_COUNTER );
+			int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ETK_COMPACT_COUNTER );
 
 			if( iSkillLevel > 0 ) 
 			{
@@ -15388,7 +16432,7 @@ void CX2GUElsword_SwordMan::CompactCounterGuardAttackStart()
 	m_DamageData.damage.fPhysic += m_fRevengeAddDamage;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ES_COUNTER );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_ES_COUNTER );
 	const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_A_ES_COUNTER );
 
 	if( NULL != pSkillTemplet )
@@ -15400,7 +16444,7 @@ void CX2GUElsword_SwordMan::CompactCounterGuardAttackStart()
 		}
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ES_COUNTER_UP );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ES_COUNTER_UP );
 	if( iSkillLevel > 0 )
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_ES_COUNTER_UP, iSkillLevel );
@@ -15442,7 +16486,11 @@ void CX2GUElsword_SwordMan::CompactCounterGuardAttackFrameMoveFuture()
 
 void CX2GUElsword_SwordMan::CompactCounterGuardAttackFrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -15451,8 +16499,10 @@ void CX2GUElsword_SwordMan::CompactCounterGuardAttackFrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -15471,8 +16521,8 @@ void CX2GUElsword_SwordMan::CompactCounterGuardAttackCameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -15482,8 +16532,8 @@ void CX2GUElsword_SwordMan::CompactCounterGuardAttackCameraMove()
 			{
 				if( m_LuaManager.BeginTable( "CAMERA", m_FrameDataNow.stateParam.normalCamera ) == true )
 				{
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA0" );
-					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, L"SUB_CAMERA1" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA0" );
+					g_pX2Game->GetX2Camera()->PlayLuaCamera( this, m_LuaManager, "SUB_CAMERA1" );
 					m_LuaManager.EndTable();
 				}
 			}
@@ -15555,17 +16605,21 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_MAELSTORM_RAGE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.01f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1333f ) == true && EventCheck( 0.1333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		float fEffectiveTime = 0.f;
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_EIS_MAELSTORM_RAGE );
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit() )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -15578,7 +16632,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_MAELSTORM_RAGE_FrameMove()
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_ETK_MAELSTORM_RAGE", (CX2GameUnit*) this, NULL, false, GetPowerRate(), m_fMaelStormEffectiveTime );		
 	}
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 8.0f, m_fMaelStormEffectiveTime + 3.f );	
 	}
@@ -15639,7 +16697,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_FINAL_STRIKE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.633f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.633f ) == true && EventCheck( 0.633f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 DamageEffectPos = GetPos();
 
@@ -15659,24 +16721,55 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_FINAL_STRIKE_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_FINALSTRIKE_BLACKHOLE_EFFECT", GetPowerRate(), DamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.83333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.83333f ) == true && EventCheck( 0.83333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		m_FinalStrikeBlackHole = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_FINALSTRIKE_BLACKHOLE", GetPowerRate(), m_vFinalStrikeBlackHolePos, GetRotateDegree(), GetRotateDegree() );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO25 ) == true )
+			m_hFinalStrikeBlackHole = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( this, L"ELSWORD_FINALSTRIKE_BLACKHOLE_MEMO", GetPowerRate(), m_vFinalStrikeBlackHolePos, GetRotateDegree(), GetRotateDegree() );
+		else
+#endif //ADD_MEMO_1ST_CLASS
+        m_hFinalStrikeBlackHole = g_pX2Game->GetDamageEffect()->CreateInstanceHandle( 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_FinalStrikeBlackHole = g_pX2Game->GetDamageEffect()->CreateInstance( 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            this, L"ELSWORD_FINALSTRIKE_BLACKHOLE", GetPowerRate(), m_vFinalStrikeBlackHolePos, GetRotateDegree(), GetRotateDegree() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.53333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.53333f ) == true && EventCheck( 2.53333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( m_hFinalStrikeBlackHole != INVALID_DAMAGE_EFFECT_HANDLE )
+		    g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hFinalStrikeBlackHole );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_FinalStrikeBlackHole );
-		m_FinalStrikeBlackHole	= NULL;
+        m_FinalStrikeBlackHole = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.4f ) == true && EventCheck( 2.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_FINALSTRIKE", GetPowerRate(), m_vFinalStrikeBlackHolePos, GetRotateDegree(), GetRotateDegree() );
 		UpDownCrashCamera( 45.0f, 0.4f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.8f ) == true && EventCheck( 2.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 8.0f, 1.0f );
 	}
@@ -15703,8 +16796,13 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_FINAL_STRIKE_EventProcess()
 
 void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_FINAL_STRIKE_End()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hFinalStrikeBlackHole != INVALID_DAMAGE_EFFECT_HANDLE )
+	    g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hFinalStrikeBlackHole );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	g_pX2Game->GetDamageEffect()->DestroyInstance( m_FinalStrikeBlackHole );
-	m_FinalStrikeBlackHole	= NULL;
+    m_FinalStrikeBlackHole = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CommonStateEnd();
 }
 
@@ -15746,7 +16844,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.004f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_SECOND_BLADE", this );
 
@@ -15759,65 +16861,146 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 		else
 			vEffectPos -= (0.f * GetDirVector() );
 
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M01", vEffectPos, GetRotateDegree(), GetRotateDegree() );
-
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = NULL;
+		pMeshInstance = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M01", vEffectPos, GetRotateDegree(), GetRotateDegree() );
 		m_vSwordFallSheathPos = vEffectPos;
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.03333f ) == true && EventCheck( 0.03333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vEffectPos = m_vSwordFallSheathPos;
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M02", vEffectPos, GetRotateDegree(), GetRotateDegree() );
-		m_hSwordFallBladeFirst = pMeshInst->GetHandle();
+        if ( pMeshInst != NULL )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+		    m_hSwordFallBladeFirst = pMeshInst->GetHandle();
+        }
+
 	}
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.06666f ) == true && EventCheck( 0.06666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vEffectPos = m_vSwordFallSheathPos;
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M03", vEffectPos, GetRotateDegree(), GetRotateDegree() );
-		m_hSwordFallBladeSecond = pMeshInst->GetHandle();
+        if ( pMeshInst != NULL )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+		    m_hSwordFallBladeSecond = pMeshInst->GetHandle();
+        }
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vEffectPos = m_vSwordFallSheathPos;
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M04", vEffectPos, GetRotateDegree(), GetRotateDegree() );
-		m_hSwordFallBladeThird = pMeshInst->GetHandle();
+        if ( pMeshInst != NULL )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+		    m_hSwordFallBladeThird = pMeshInst->GetHandle();
+        }
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.15f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.15f ) == true && EventCheck( 0.15f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vEffectPos = m_vSwordFallSheathPos;
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M05", vEffectPos, GetRotateDegree(), GetRotateDegree() );
-		m_hSwordFallBladeFourth = pMeshInst->GetHandle();
+        if ( pMeshInst != NULL )
+        {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+            pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+		    m_hSwordFallBladeFourth = pMeshInst->GetHandle();
+        }
 	}
 
 #ifdef ADDITIONAL_MEMO
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO15 ) == true )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.05f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.05f ) == true && EventCheck( 0.05f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vEffectPos = m_vSwordFallSheathPos;
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M02_Memo", vEffectPos, GetRotateDegree(), GetRotateDegree() );
-			m_hSwordFallBladeFirst_Memo = pMeshInst->GetHandle();
+            if ( pMeshInst != NULL )
+            {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    m_hSwordFallBladeFirst_Memo = pMeshInst->GetHandle();
+            }
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.08f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.08f ) == true && EventCheck( 0.08f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vEffectPos = m_vSwordFallSheathPos;
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M03_Memo", vEffectPos, GetRotateDegree(), GetRotateDegree() );
-			m_hSwordFallBladeSecond_Memo = pMeshInst->GetHandle();
+            if ( pMeshInst != NULL )
+            {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    m_hSwordFallBladeSecond_Memo = pMeshInst->GetHandle();
+            }
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.125f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.125f ) == true && EventCheck( 0.125f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vEffectPos = m_vSwordFallSheathPos;
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M04_Memo", vEffectPos, GetRotateDegree(), GetRotateDegree() );
-			m_hSwordFallBladeThird_Memo = pMeshInst->GetHandle();
+            if ( pMeshInst != NULL )
+            {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    m_hSwordFallBladeThird_Memo = pMeshInst->GetHandle();
+            }
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.17f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.17f ) == true && EventCheck( 0.17f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vEffectPos = m_vSwordFallSheathPos;
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"elsword_A_swordFall_M05_Memo", vEffectPos, GetRotateDegree(), GetRotateDegree() );
-			m_hSwordFallBladeFourth_Memo = pMeshInst->GetHandle();
+            if ( pMeshInst != NULL )
+            {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+                pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+			    m_hSwordFallBladeFourth_Memo = pMeshInst->GetHandle();
+            }
 		}
 	}
 #endif
@@ -15833,7 +17016,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 #endif
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeFirst );
 		if( NULL != pMeshInst )
@@ -15855,11 +17042,15 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 #else
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_SWORDFALL_BLADE1", fPowerRate, vEffectPos, GetRotateDegree(), GetRotateDegree() );
 #endif
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeFirst );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeFirst );
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.16666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.16666f ) == true && EventCheck( 1.16666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeSecond );
 		if( NULL != pMeshInst )
@@ -15881,11 +17072,15 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 #else
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_SWORDFALL_BLADE2", fPowerRate, vEffectPos, GetRotateDegree(), GetRotateDegree() );
 #endif
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeSecond );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeSecond );
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.33333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.33333f ) == true && EventCheck( 1.33333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeThird );
 		if( NULL != pMeshInst )
@@ -15906,11 +17101,15 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 #else
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_SWORDFALL_BLADE3", fPowerRate, vEffectPos, GetRotateDegree(), GetRotateDegree() );
 #endif
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeThird );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeThird );
 		}
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeFourth );
 		if( NULL != pMeshInst )
@@ -15931,14 +17130,18 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 #else
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_SWORDFALL_BLADE4", fPowerRate, vEffectPos, GetRotateDegree(), GetRotateDegree() );
 #endif
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeFourth );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeFourth );
 		}
 	}
 
 #ifdef ADDITIONAL_MEMO
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO15 ) == true )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.917f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.917f ) == true && EventCheck( 0.917f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeFirst_Memo );
 			if( NULL != pMeshInst )
@@ -15954,11 +17157,15 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_SWORDFALL_BLADE1_MEMO", fPowerRate, vEffectPos, GetRotateDegree(), GetRotateDegree() );
 
-				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeFirst_Memo );
+				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeFirst_Memo );
 			}
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.083f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.083f ) == true && EventCheck( 1.083f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeSecond_Memo );
 			if( NULL != pMeshInst )
@@ -15974,11 +17181,15 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_SWORDFALL_BLADE2_MEMO", fPowerRate, vEffectPos, GetRotateDegree(), GetRotateDegree() );
 
-				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeSecond_Memo );
+				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeSecond_Memo );
 			}
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.25f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.25f ) == true && EventCheck( 1.25f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeThird_Memo );
 			if( NULL != pMeshInst )
@@ -15993,11 +17204,15 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_SWORDFALL_BLADE3_MEMO", fPowerRate, vEffectPos, GetRotateDegree(), GetRotateDegree() );
 
-				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeThird_Memo );
+				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeThird_Memo );
 			}
 		}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.416f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 1.416f ) == true && EventCheck( 1.416f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeFourth_Memo );
 			if( NULL != pMeshInst )
@@ -16012,7 +17227,7 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_FrameMove()
 
 				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_SWORDFALL_BLADE4_MEMO", fPowerRate, vEffectPos, GetRotateDegree(), GetRotateDegree() );
 
-				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeFourth_Memo );
+				g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeFourth_Memo );
 			}
 		}
 	}	
@@ -16042,47 +17257,47 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_SWORD_FALL_End()
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstFirst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeFirst );
 	if( NULL != pMeshInstFirst )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeFirst );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeFirst );
 	}
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstSecond = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeSecond );
 	if( NULL != pMeshInstSecond )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeSecond );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeSecond );
 	}
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstThird = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeThird );
 	if( NULL != pMeshInstThird )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeThird );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeThird );
 	}
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstFourth = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeFourth );
 	if( NULL != pMeshInstFourth )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeFourth );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeFourth );
 	}
 
 #ifdef ADDITIONAL_MEMO
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeFirst_Memo );
 	if( NULL != pMeshInstFirst )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeFirst_Memo );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeFirst_Memo );
 	}
 	pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeSecond_Memo );
 	if( NULL != pMeshInst )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeSecond_Memo );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeSecond_Memo );
 	}
 	pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeThird_Memo );
 	if( NULL != pMeshInst )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeThird_Memo );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeThird_Memo );
 	}
 	pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hSwordFallBladeFourth_Memo );
 	if( NULL != pMeshInst )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hSwordFallBladeFourth_Memo );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hSwordFallBladeFourth_Memo );
 	}
 #endif
 
@@ -16115,7 +17330,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_CRESCENT_CUT_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.01f, 0 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 DamageEffectPos = GetPos();
 
@@ -16133,7 +17352,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_CRESCENT_CUT_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_CRESCENT_ONE", GetPowerRate(), DamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 DamageEffectPos = GetPos();
 
@@ -16151,7 +17374,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_CRESCENT_CUT_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"ELSWORD_CRESCENT_TWO", GetPowerRate(), DamageEffectPos, GetRotateDegree(), GetRotateDegree() );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.48f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.48f ) == true && EventCheck( 1.48f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 DamageEffectPos = GetPos();
 
@@ -16214,7 +17441,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_PHANTOM_SWORD_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.05f, 0 );
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInstSheath = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"ElswordPhantomSwordSheath01", GetPos(), GetRotateDegree(), GetRotateDegree() );
 		if( pMeshInstSheath != NULL )
@@ -16235,25 +17466,42 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_ETK_PHANTOM_SWORD_FrameMove()
 	}
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInstSheath = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hThirdBladeSheathMesh );
 		if( NULL != pMeshInstSheath )
 		{
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hThirdBladeSheathMesh );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hThirdBladeSheathMesh );
 		}
 	}
 
 
 
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_SECOND_BLADE", this );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.0333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.0333f ) == true && EventCheck( 0.0333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_ETK_PHANTOM_SWORD );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if(GetEqippedSkillMemo(CX2SkillTree::SMI_ELSWORD_MEMO26) == true)
+			SetBuffFactorToGameUnit( pSkillTemplet, 1 );
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		SetBuffFactorToGameUnit( pSkillTemplet, 0 );
 	}
 
@@ -16313,9 +17561,9 @@ void CX2GUElsword_SwordMan::ESSI_EIS_DASH_COMBO_XXX_EventProcess()
 
 void CX2GUElsword_SwordMan::ESSI_EIS_DASHJUMP_COMBO_XX_EventProcess()
 {
-#ifdef LINEMAP_FAST_WIND_TEST
-	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//	IF_TIME_ELAPSED_IN_THE_AIR_THEN_STATE_CHANGE( 1.f, USI_JUMP_DOWN )
+//#endif LINEMAP_FAST_WIND_TEST
 
 	if( m_InputData.oneX == true )
 	{
@@ -16346,7 +17594,11 @@ void CX2GUElsword_SwordMan::ESSI_EIS_DASHJUMP_COMBO_XX_EventProcess()
 
 void CX2GUElsword_SwordMan::ESSI_EIS_DASHJUMP_COMBO_XXX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -16355,8 +17607,10 @@ void CX2GUElsword_SwordMan::ESSI_EIS_DASHJUMP_COMBO_XXX_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType		= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
-			m_DamageData.pAttackerEffect	= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -16384,7 +17638,11 @@ void CX2GUElsword_SwordMan::ESSI_EIS_DASHJUMP_COMBO_XXX_End()
 
 void CX2GUElsword_SwordMan::ESSI_SI_A_EIS_SPIRAL_STING_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -16393,8 +17651,10 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_EIS_SPIRAL_STING_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();		
 		}
 	}
@@ -16422,7 +17682,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EIS_SWORD_BLASTING_FrameMove()
 {
 	ChangeWorldColorByHyperMode();
 	ShowActiveSkillCutInAndLight( 0.01f, 0 );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vRotDegree = GetRotateDegree();
 		D3DXVECTOR3 vDirVec = GetDirVector();
@@ -16451,15 +17715,23 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EIS_SWORD_BLASTING_FrameMove()
 				fReserveTime = 0.1f;
 			else if( i == 2 )
 				fReserveTime = 0.05f;
-			m_pDamageSwordBlasting[i] = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"ELSWORD_EIS_SWORDBLASTING_PHANTOMSWORD", GetPowerRate(), vPos, 
+			CX2DamageEffect::CEffect* pDamageSwordBlasting = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"ELSWORD_EIS_SWORDBLASTING_PHANTOMSWORD", GetPowerRate(), vPos, 
 				vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y, true, fReserveTime  );
-
-			if( m_pDamageSwordBlasting[i] != NULL )
-				m_pDamageSwordBlasting[i]->SetLockOnPos( vTargetPos );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_hDamageSwordBlasting[i] = ( pDamageSwordBlasting != NULL ) ? pDamageSwordBlasting->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_pDamageSwordBlasting[i] = pDamageSwordBlasting;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			if( pDamageSwordBlasting != NULL )
+				pDamageSwordBlasting->SetLockOnPos( vTargetPos );
 
 		}		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.95f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.95f ) == true && EventCheck( 0.95f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDirVec = GetDirVector();
 		D3DXVECTOR3 vPos = GetPos();		
@@ -16475,12 +17747,20 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EIS_SWORD_BLASTING_FrameMove()
 
 		for(int i=0; i<3; ++i)
 		{
-			if( m_pDamageSwordBlasting[i] != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance(m_pDamageSwordBlasting[i]) == true && 
-				m_pDamageSwordBlasting[i]->GetMainEffect() != NULL )
-			{					
-				m_pDamageSwordBlasting[i]->SetLockOnPos( vPos );
-				m_pDamageSwordBlasting[i] = NULL;
-			}
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_hDamageSwordBlasting[i] );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect* pEffect = ( g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pDamageSwordBlasting[i] ) == true ) ? m_pDamageSwordBlasting[i] : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( pEffect != NULL && pEffect->GetMainEffect() != NULL )
+            {
+                pEffect->SetLockOnPos( vPos );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_hDamageSwordBlasting[i] = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_pDamageSwordBlasting[i] = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            }
 		}		
 	}
 	CommonFrameMove();
@@ -16504,7 +17784,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EIS_RAGE_CUTTER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.9f ) == true && EventCheck( 0.9f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet(CX2SkillTree::SI_SA_EIS_RAGE_CUTTER);
 		if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
@@ -16521,16 +17805,16 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EIS_RAGE_CUTTER_FrameMove()
 			if ( NULL != pDamageEffect )
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			{
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit() )
 					return;
 
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-				pDamageEffect->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+				pDamageEffect->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 			}
 #else //UPGRADE_SKILL_SYSTEM_2013
-				pDamageEffect->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+				pDamageEffect->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		}		
 	}
@@ -16820,7 +18104,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EIS_RAGE_CUTTER_EventProcess()
 
 		ShowActiveSkillCutInAndLight( 0.06f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.075f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.075f ) == true && EventCheck( 0.075f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 vPos = GetBonePos( L"Bip01_Head" );
 			if( true == GetIsRight() )
@@ -16844,16 +18132,16 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EIS_RAGE_CUTTER_EventProcess()
 				if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 				{
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit() )
 						return;
 
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 					const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-					pEffect->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+					pEffect->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 				}
 #else //UPGRADE_SKILL_SYSTEM_2013
-					pEffect->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+					pEffect->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 			}
 		}
@@ -16886,7 +18174,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EIS_RAGE_CUTTER_EventProcess()
 
 void CX2GUElsword_SwordMan::ShowActiveSkillCutInAndLight( const float fTimeToShow_, const UINT uiCutInIndex_, const bool bOnlyLight_ /*= false */ )
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( fTimeToShow_ ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
  	if( m_pXSkinAnim->EventTimer( fTimeToShow_ ) == true && EventCheck( fTimeToShow_, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
  		if ( GetShowCutInAndChangeWorldColor() && GetShowActiveSkillShow() )
 #ifdef SERV_APRIL_FOOLS_DAY
@@ -16938,16 +18230,16 @@ bool CX2GUElsword_SwordMan::ShouldResetNotBusyTimer()
 {
 	CX2GUUser::HyperModeBuffEffectStart();
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRFoot )
 		m_hHyperBoostRFoot	= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRight",	0, 0, 0, 0, 0);
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLFoot )
 		m_hHyperBoostLFoot	= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeft",	0, 0, 0, 0, 0);
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRArm )
 		m_hHyperBoostRArm	= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRight",	0, 0, 0, 0, 0);
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLArm )
 		m_hHyperBoostLArm	= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeft",	0, 0, 0, 0, 0);
 }
 
@@ -16960,9 +18252,9 @@ void CX2GUElsword_SwordMan::LightingStepFrameMove()
 		if( m_fDashStateTime > 1.f )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			const int iSkillLevelLightningStep = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP, true );
+			const int iSkillLevelLightningStep = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP, true );
 	#else // UPGRADE_SKILL_SYSTEM_2013
-			const int iSkillLevelLightningStep = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP );
+			const int iSkillLevelLightningStep = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_EIS_LIGHTNING_STEP );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 			
 			if ( iSkillLevelLightningStep > 0 )
@@ -17017,14 +18309,25 @@ void CX2GUElsword_SwordMan::LightingStepFrameMove()
 	}
 	
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //김창한
-
+#ifdef BALANCE_PATCH_20131107
+	if( 0 < m_iSkillLevelInduranceOfRevenge )
+	{
+		// 디버프가 걸렸을때인지 체크
+		CX2BuffTempletPtr ptrBuffTemplet = CX2BuffTempletManager::GetInstance()->GetBuffTempletPtr( eBuffTempletId_ );
+		if( NULL != ptrBuffTemplet && true == ptrBuffTemplet->IsDeBuff() && false == ptrBuffTemplet->IsWorldBuff() )
+		{
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_ELK_INDURANCE_OF_REVENGE );
+			SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+		}
+	}
+#else //BALANCE_PATCH_20131107
 	if( m_ucSaveDebuffCount < m_ucNumOfDeBuff )
 	{
 		m_ucSaveDebuffCount = m_ucNumOfDeBuff;
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		const int iSkillLevelInduranceOfRevenge = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_INDURANCE_OF_REVENGE, true );
+		const int iSkillLevelInduranceOfRevenge = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_INDURANCE_OF_REVENGE, true );
 	#else // UPGRADE_SKILL_SYSTEM_2013
-		const int iSkillLevelInduranceOfRevenge = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_INDURANCE_OF_REVENGE );
+		const int iSkillLevelInduranceOfRevenge = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ELK_INDURANCE_OF_REVENGE );
 	#endif // UPGRADE_SKILL_SYSTEM_2013
 
 		if( iSkillLevelInduranceOfRevenge > 0 )
@@ -17040,7 +18343,7 @@ void CX2GUElsword_SwordMan::LightingStepFrameMove()
 	}
 	else
 		 m_ucSaveDebuffCount = m_ucNumOfDeBuff;
-
+#endif //BALANCE_PATCH_20131107
 #endif //UPGRADE_SKILL_SYSTEM_2013
 
 }
@@ -17218,7 +18521,12 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ES_DEFENCE_WAIT_Start()
 }
 void CX2GUElsword_SwordMan::ESSI_SI_A_ES_DEFENCE_WAIT_FrameMove()
 {
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 마나 소모 수정 4 -> 3
+	UpNowMp( -_CONST_ELSWORD_::SKILL_DEFENCE_MP_COST_PER_SEC * m_fElapsedTime );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	UpNowMp(-4.f * m_fElapsedTime);
+#endif // BALANCE_PATCH_20131107				// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	CommonFrameMove();
 }
 void CX2GUElsword_SwordMan::ESSI_SI_A_ES_DEFENCE_WAIT_EventProcess()
@@ -17227,7 +18535,13 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ES_DEFENCE_WAIT_EventProcess()
 
 	if( iCountToBeAbleToCheckKey < m_pXSkinAnimFuture->GetNowPlayCount() )
 	{
-		if( 0.f >= GetNowMp() || 0.f >= GetNowHp() || NULL != m_GuardForElswordPtr && false == m_GuardForElswordPtr->GetGuardKeyValue() )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 가드 사용 중, MP 가 모두 소진되면 가드 상태 변환 수정
+		if( 0 >= static_cast<int> ( GetNowMp() ) 
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		if( 0.f >= GetNowMp() 
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			 || NULL != m_GuardForElswordPtr && false == m_GuardForElswordPtr->GetGuardKeyValue() )
 		{
 			StateChange( ESSI_SI_A_ES_DEFENCE_END );
 		}
@@ -17253,9 +18567,13 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ES_DEFENCE_END_EventProcess()
 	{
 		if( true == IsOnSomethingFuture() )
 		{
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+			IF_SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 			if( true == SpecialAttackEventProcess() )
 			{
 			}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 			else if( CAN_DASH_CANCEL )
 			{
 				StateChangeDashIfPossible();
@@ -17363,8 +18681,18 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EMK_RISING_SLASH_WAVE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.067f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO20 ) == true )
+			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effect_EMK_RISING_SLASH_WAVE_MEMO", this, NULL, false, GetPowerRate() );
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effect_EMK_RISING_SLASH_WAVE", this, NULL, false, GetPowerRate() );
 	}
 
@@ -17376,8 +18704,17 @@ void CX2GUElsword_SwordMan::ESSI_SI_SA_EMK_RISING_SLASH_WAVE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( 0.067f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO20 ) == true )
+			g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effect_EMK_RISING_SLASH_WAVE_MEMO", this, NULL, true, GetPowerRate() );
+		else
+#endif //ADD_MEMO_1ST_CLASS
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effect_EMK_RISING_SLASH_WAVE", this, NULL, true, GetPowerRate() );
 	}
 
@@ -17397,7 +18734,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ERS_CRITICAL_SWORD_Init()
 }
 void CX2GUElsword_SwordMan::ESSI_SI_A_ERS_CRITICAL_SWORD_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.333f ) == true && EventCheck( 0.333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_ERS_CRITICAL_SWORD );
 		if( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty())
@@ -17455,12 +18796,15 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ERS_RUNE_OF_FIRE_EventProcess()
 }
 void CX2GUElsword_SwordMan::ESSI_SI_A_ERS_RUNE_OF_FIRE_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vSize( m_fRuneProjectileSizeIncPercent,m_fRuneProjectileSizeIncPercent,m_fRuneProjectileSizeIncPercent);
 		CX2EffectSet::Handle hEffectRune = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RunSlayer_RUNE_GUARD_FIRE", this, NULL,false,-1.f, -1.f, vSize );
-		CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectRune );
-		if( NULL != pEffectInstance )
+		if ( CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectRune ) )
 		{
 			pEffectInstance->m_fLifeTime *= m_fRuneProjectileRangeIncPercent;
 			pEffectInstance->m_bDamageEffectScale = true;
@@ -17501,12 +18845,15 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ERS_RUNE_OF_ICE_EventProcess()
 }
 void CX2GUElsword_SwordMan::ESSI_SI_A_ERS_RUNE_OF_ICE_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vSize( m_fRuneProjectileSizeIncPercent,m_fRuneProjectileSizeIncPercent,m_fRuneProjectileSizeIncPercent);
 		CX2EffectSet::Handle hEffectRune = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RunSlayer_RUNE_GUARD_ICE", this, NULL,false,-1.f, -1.f, vSize );
-		CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectRune );
-		if( NULL != pEffectInstance )
+		if ( CX2EffectSet::EffectSetInstance* pEffectInstance = g_pX2Game->GetEffectSet()->GetEffectSetInstance( hEffectRune ) )
 		{
 			pEffectInstance->m_fLifeTime *= m_fRuneProjectileRangeIncPercent;
 			pEffectInstance->m_bDamageEffectScale = true;
@@ -17544,10 +18891,10 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ETK_PIERCING_SWORD_StateStart()
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 		return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -17559,7 +18906,11 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ETK_PIERCING_SWORD_StateStart()
 }
 void CX2GUElsword_SwordMan::ESSI_SI_A_ETK_PIERCING_SWORD_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDamageEffectPos = GetPos();
 		vDamageEffectPos.y += 130.f;
@@ -17571,15 +18922,42 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ETK_PIERCING_SWORD_FrameMove()
 		{
 			vDamageEffectPos -= (30.f * GetDirVector());
 		}
-		m_pDamageEffectPiercingSword = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_PIERCING_SWORD", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree(), 0.f, false, -1.f, 1.f, m_fPiercingSwordProjectileRange );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect* pEffect
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		m_pDamageEffectPiercingSword 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_PIERCING_SWORD", GetPowerRate(), vDamageEffectPos, GetRotateDegree(), GetRotateDegree(), 0.f, false, -1.f, 1.f, m_fPiercingSwordProjectileRange );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( NULL != pEffect && GetEqippedSkillMemo( CX2SkillTree::SMI_ELSWORD_MEMO24 ) )
+		{
+			pEffect->GetDamageData().m_bIgnoreStateDefence = true;
+		}
+#endif //ADD_MEMO_1ST_CLASS
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hDamageEffectPiercingSword = ( pEffect != NULL ) ? pEffect->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if( m_hDamageEffectPiercingSword != INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( m_pDamageEffectPiercingSword != NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		if( m_pXSkinAnim->EventTimerOneshot( ( (m_fSkillCancelAfter - 0.3f) * m_fPiercingSwordProjectileRange ) + 0.3f ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( ( (m_fSkillCancelAfter - 0.3f) * m_fPiercingSwordProjectileRange ) + 0.3f ) == true && EventCheck( ( (m_fSkillCancelAfter - 0.3f) * m_fPiercingSwordProjectileRange ) + 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
-			g_pX2Game->GetDamageEffect()->DestroyInstance( m_pDamageEffectPiercingSword );
-			m_pDamageEffectPiercingSword = NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	        g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hDamageEffectPiercingSword );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	        g_pX2Game->GetDamageEffect()->DestroyInstance( m_pDamageEffectPiercingSword );
+            m_pDamageEffectPiercingSword = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		}
 	}
 
@@ -17587,8 +18965,13 @@ void CX2GUElsword_SwordMan::ESSI_SI_A_ETK_PIERCING_SWORD_FrameMove()
 }
 void CX2GUElsword_SwordMan::ESSI_SI_A_ETK_PIERCING_SWORD_End()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hDamageEffectPiercingSword != INVALID_DAMAGE_EFFECT_HANDLE )
+	    g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hDamageEffectPiercingSword );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	g_pX2Game->GetDamageEffect()->DestroyInstance( m_pDamageEffectPiercingSword );
-	m_pDamageEffectPiercingSword = NULL;
+    m_pDamageEffectPiercingSword = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CommonStateEnd();
 }
 
@@ -17632,10 +19015,10 @@ void CX2GUElsword_SwordMan::ESSI_A_ETK_SWORD_SHIELD_StateStart()
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -17649,7 +19032,11 @@ void CX2GUElsword_SwordMan::ESSI_A_ETK_SWORD_SHIELD_StateStart()
 }
 void CX2GUElsword_SwordMan::ESSI_A_ETK_SWORD_SHIELD_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.68f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.68f ) == true && EventCheck( 0.68f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{		
 		m_hEffectSwordShield = g_pX2Game->GetEffectSet()->PlayEffectSet( L"Effectset_A_ETK_SWORD_SHIELD", this, NULL, false, -1.f, m_fSwordShieldEffectiveTime );
 	}
@@ -17678,6 +19065,7 @@ void CX2GUElsword_SwordMan::ESSI_A_ESK_WEAPON_BREAK_Init()
 {
 	TextureReadyInBackground( L"Break_Impact01.dds" );
 }
+#ifndef ADD_MEMO_1ST_CLASS //김창한
 void CX2GUElsword_SwordMan::ESSI_A_ESK_WEAPON_BREAK_StateStart()
 {
 	CommonStateStart();
@@ -17688,10 +19076,10 @@ void CX2GUElsword_SwordMan::ESSI_A_ESK_WEAPON_BREAK_StateStart()
 	if ( NULL != pSkillTemplet && pSkillTemplet->m_vecBuffFactorPtr.size() > 0 )
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit() )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
 		m_DamageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );	
@@ -17700,6 +19088,7 @@ void CX2GUElsword_SwordMan::ESSI_A_ESK_WEAPON_BREAK_StateStart()
 #endif //UPGRADE_SKILL_SYSTEM_2013
 	}
 }
+#endif //ADD_MEMO_1ST_CLASS
 void CX2GUElsword_SwordMan::ESSI_A_ESK_WEAPON_BREAK_EventProcess()
 {
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
@@ -17747,11 +19136,111 @@ void CX2GUElsword_SwordMan::ESSI_A_ESK_WEAPON_BREAK_EventProcess()
 }
 #endif //ELSWORD_WAY_OF_SWORD
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+#pragma region SI_FS_ELK_Gigantic_Slash
+void CX2GUElsword_SwordMan::ESSI_HA_ELK_Gigantic_Slash_Init()
+{
+	TextureReadyInBackground(L"Arme_Critical2.dds");
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"COMET_CRASHER_Explosion_02.tga");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Condense_Light01.dds");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50.X");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	XSkinMeshReadyInBackground(L"Lire_SI_SA_Gungnir_Mesh05.X");
+	TextureReadyInBackground(L"Mesh_Raven_Event_AC_Upbody21_Effect.tga");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	XSkinMeshReadyInBackground(L"UnoHound_AttackB_Mesh01.X");
+	TextureReadyInBackground(L"title_StarLight_Smash_spark.dds");
+}
+#pragma endregion 기간틱 슬래시 : 궁극기
+
+#pragma region SI_FS_ERS_Shining_Rune_Buster
+void CX2GUElsword_SwordMan::ESSI_HA_ERS_Shining_Rune_Buster_Init()
+{
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Condense_Light01.dds");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50.X");
+	XSkinMeshReadyInBackground(L"ERS_Luna_Buster_Dummy01.X");
+	XSkinMeshReadyInBackground(L"Elsword_RS_DashJumpComboXa_Mesh01_2.X");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	XSkinMeshReadyInBackground(L"LUNA_BLADE_Rune_02.X");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	TextureReadyInBackground(L"RTW_Flame_Buster.dds");
+	TextureReadyInBackground(L"Riding_Ancient_Pporu_Fireball02A.dds");
+	XSkinMeshReadyInBackground(L"SI_SA_ERS_LUNA_BLADE_BLADE_02.X");
+	TextureReadyInBackground(L"WhiteImage.dds");
+	TextureReadyInBackground(L"WhitePointSmall.dds");
+	TextureReadyInBackground(L"elsword_Rune_Buster_Deco01.dds");
+	TextureReadyInBackground(L"secretVelder_alchemystBoss_specialAttackA_outCircle_top.dds");
+	TextureReadyInBackground(L"state_potion_flare.DDS");
+	TextureReadyInBackground(L"title_StarLight_Smash_spark.dds");
+}
+
+void CX2GUElsword_SwordMan::ESSI_HA_ERS_Shining_Rune_Buster_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )	
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+
+	CommonEventProcess();
+}
+#pragma endregion 샤이닝 룬 버스트 : 궁극기
+
+
+
+#pragma region SI_FS_EIS_Blade_Rain
+void CX2GUElsword_SwordMan::ESSI_HA_EIS_Blade_Rain_Init()
+{
+	TextureReadyInBackground(L"Arme_Critical2.dds");
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50.X");
+	TextureReadyInBackground(L"Explosion_Fire01.dds");
+	TextureReadyInBackground(L"Mesh_Elsword_Event_AC_Upbody21A_Effect.tga");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	XSkinMeshReadyInBackground(L"SI_SA_EIS_Blade_Rain_Sheath.X");
+	TextureReadyInBackground(L"cube_light_P02.dds");
+	TextureReadyInBackground(L"elsword_active_crecentCut_mark.DDS");
+	TextureReadyInBackground(L"elswrod_demolition_edge.dds");
+	TextureReadyInBackground(L"title_StarLight_Smash_spark.dds");
+	TextureReadyInBackground(L"ColorBallGray.dds");
+	XSkinMeshReadyInBackground(L"Land_Dimolisher_M01.X");
+	TextureReadyInBackground(L"aisha_active_heavyPress_downCircle.dds");
+}
+
+
+void CX2GUElsword_SwordMan::ESSI_HA_EIS_Blade_Rain_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+
+	DASH_CANCEL_AFTER( m_fDashCancelAfter )
+	WALK_CANCEL_AFTER( m_fWalkCancelAfter )	
+	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
+
+	CommonEventProcess();
+}
+
+#pragma endregion 블레이드 레인 : 궁극기
+#endif //FINALITY_SKILL_SYSTEM
+
 /*virtual*/ void CX2GUElsword_SwordMan::ShowActiveSkillCutInAndLightByScript( float fTimeToShow_, bool bOnlyLight_ /*= false*/ )
 {
 	ShowActiveSkillCutInAndLight( fTimeToShow_, m_iSkillCutInSetSubIndex, bOnlyLight_ );
 }
-
 #ifdef MODIFY_RIDING_PET_AWAKE
 void CX2GUElsword_SwordMan::RidingHyperModeFrameMove()
 {
@@ -17763,7 +19252,7 @@ void CX2GUElsword_SwordMan::CommonHyperModeFrameMove( float fTime1_, float fTime
 	//g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( fTime1_ ) )
+    if( m_pXSkinAnim->EventTimerOneshot( fTime1_ ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( fTime1_ ) == true && EventCheck( fTime1_, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -17777,7 +19266,7 @@ void CX2GUElsword_SwordMan::CommonHyperModeFrameMove( float fTime1_, float fTime
 
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( fTime2_ ) )
+    if( m_pXSkinAnim->EventTimerOneshot( fTime2_ ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( (m_pXSkinAnim->EventTimer( fTime2_ ) == true && EventCheck( fTime2_, false) == true ) )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -17800,3 +19289,47 @@ void CX2GUElsword_SwordMan::CommonHyperModeFrameMove( float fTime1_, float fTime
 	CommonFrameMove();
 }
 #endif // MODIFY_RIDING_PET_AWAKE
+
+#ifdef BALANCE_PATCH_20131107
+void CX2GUElsword_SwordMan::SetSpecificValueByEnchant()
+{
+	//역전의 인내를 배웠다면 자신에게 걸린 무기 속성을 체크해서 자신에게 버프를 건다.
+	if( m_iSkillLevelInduranceOfRevenge > 0 )
+	{
+		if( CX2DamageManager::EDT_NONE != GetApplyWeaponExtraDamageType() && NULL != g_pData->GetSkillTree() )
+		{
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_ELK_INDURANCE_OF_REVENGE );
+			SetBuffFactorToGameUnit( pSkillTemplet, 0 );
+		}
+	}
+}
+#endif //BALANCE_PATCH_20131107
+
+/*virtual*/ float CX2GUElsword_SwordMan::GetActualMPConsume( const CX2SkillTree::SKILL_ID eSkillID_, const int iSkillLevel_ ) const
+{
+	float fMpConsumption = CX2GUUser::GetActualMPConsume( eSkillID_, iSkillLevel_ );
+
+
+	switch( eSkillID_ )
+	{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	case CX2SkillTree::SI_A_ERS_SWORD_ENCHANT:
+		{
+			if( GetEqippedSkillMemo(CX2SkillTree::SMI_ELSWORD_MEMO19) == true )
+				fMpConsumption -= 5.f;
+		} break;
+#endif //ADD_MEMO_1ST_CLASS
+
+	}
+
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT	
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( eSkillID_ );
+	float fMpDecreaseRate = 1.0f;
+	if( NULL != pSkillTemplet )
+		fMpDecreaseRate  =  g_pData->GetMyUser()->GetSelectUnit()->GetSkillMpDecreaseRate(eSkillID_, pSkillTemplet->m_eType);
+
+	return fMpConsumption * fMpDecreaseRate;
+#else SERV_BALANCE_FINALITY_SKILL_EVENT
+	return fMpConsumption;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+}

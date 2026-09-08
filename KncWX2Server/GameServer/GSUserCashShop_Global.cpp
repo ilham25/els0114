@@ -159,9 +159,11 @@ IMPL_ON_FUNC_NOPARAM( EGS_CHECK_BALANCE_REQ )
 		kPacket.m_wstrAccount = GetName();
 		kPacket.m_uiPublisherUID = m_kNexonAccountInfo.m_uiNexonSN;
 		kPacket.m_wstrIP = KncUtil::toWideString( GetIPStr() );
+#ifdef SERV_COUNTRY_IN
+		kPacket.m_wstrNickName = GetCharName();
+#endif SERV_COUNTRY_IN
 		SendToPublisherBilling( EPUBLISHER_BILLING_BALANCE_REQ, kPacket );
 	}
-
 }
 
 IMPL_ON_FUNC( EPUBLISHER_BILLING_BALANCE_ACK )
@@ -337,9 +339,7 @@ IMPL_ON_FUNC( EGS_APPLY_COUPON_REQ )
 		}
 		break;
 	}
-
 #else //SERV_COUNTRY_CN
-
 	// 사내 버전 테스트를 위해서 //
 	DWORD dwBillingFlag = KSimLayer::GetKObj()->GetBillingFlag();
 	if (dwBillingFlag == KSimLayer::BF_NONE || dwBillingFlag == KSimLayer::BF_INTERNAL)
@@ -347,8 +347,7 @@ IMPL_ON_FUNC( EGS_APPLY_COUPON_REQ )
 		SendToKOGBillingDB( EBILL_USE_COUPON_REQ, kPacketReq );
 		return;
 	}
-
-	
+		
 	if ( KSimLayer::GetKObj()->IsCheckCouponByPublisher() )
 	{
 		// 쿠폰 체크 퍼블리셔 하고나서 아이템 처리할 때 (실제 시리얼 코드 매칭을 할 수 없을 때)
@@ -361,7 +360,6 @@ IMPL_ON_FUNC( EGS_APPLY_COUPON_REQ )
 		// 퍼블 체크가 아니기에 바로 사용 요청
 		SendToKOGBillingDB( EBILL_USE_COUPON_REQ, kPacketReq );
 	}
-
 #endif //SERV_COUNTRY_CN
 //////////////////////////////////////////////////////////////////////////
 
@@ -454,7 +452,7 @@ IMPL_ON_FUNC( EBILL_USE_COUPON_RESERVE_ACK )
 	}
 	//}}
 
-#if defined(SERV_COUNTRY_TWHK) 
+#if defined(SERV_COUNTRY_TWHK)
 	// 대만, 홍콩 빌링 처리가 같고 대만 빌링 구조가 특이해서 이렇게 따로 분리
 	SendToPublisherBillingDB( EBILL_USE_COUPON_REQ, kPacket_.m_kPacketReq );
 #else //SERV_COUNTRY_XX
@@ -491,8 +489,7 @@ IMPL_ON_FUNC( EBILL_USE_COUPON_RESERVE_ACK )
 			<< BUILD_LOG( kPacket_.m_kPacketReq.m_wstrSerialCode )
 			<< END_LOG;
 	}
-
-#endif 
+#endif //defined(SERV_COUNTRY_TWHK)
 
 }
 
@@ -568,6 +565,21 @@ IMPL_ON_FUNC( EBILL_USE_COUPON_RESULT_ACK )
 IMPL_ON_FUNC( EGS_GET_PURCHASED_CASH_ITEM_REQ )
 {
 	VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_GET_PURCHASED_CASH_ITEM_ACK );
+
+	//{{ 2011. 10. 12	최육사	컨텐츠 관리자
+#ifdef SERV_CONTENT_MANAGER
+	if( SiKGSContentManager()->IsEnableCashShop() == false )
+	{
+		START_LOG( clog, L"캐쉬샵 점검중 쿠폰 사용 요청" )
+			<< BUILD_LOG( GetName() );
+
+		KEGS_APPLY_COUPON_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_CONTENT_00;
+		SendPacket( EGS_GET_PURCHASED_CASH_ITEM_ACK, kPacketAck );
+		return;
+	}
+#endif SERV_CONTENT_MANAGER
+	//}}
 
 	KEGS_BILL_GET_PURCHASED_CASH_ITEM_REQ kPacketDummy;
 	int iRet = OnGetPurchasedCashItemReq( kPacket_, kPacketDummy );
@@ -691,6 +703,17 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 			return;
 		}
 #endif //SERV_EXCEPT_NO_SELL
+
+#ifdef SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
+		if( ( kBillProductInfo.m_iProductID == 60007354 || kBillProductInfo.m_iProductID == 60007355 || kBillProductInfo.m_iProductID == 60007356) 
+			&& CXSLUnit::UC_ARA_LITTLE_HSIEN != GetUnitClass() )
+		{
+			// 현재 상품을 구매 할 수 없는 아이템이다!
+			kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_01;
+			SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
+			return;
+		}
+#endif SERV_BUY_ONLY_ARA_LITTLE_HSIEN_ITEM
 
 		//{{ 허상형 : [2012/12/5] //		특정 아이템 가지고 있어야 캐시샵에서 구매 가능
 #ifdef SERV_KEEP_ITEM_SHOW_CASHSHOP
@@ -1067,6 +1090,33 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 		}
 		break;
 #endif SERV_UNLIMITED_SECOND_CHANGE_JOB
+
+#ifdef SERV_UNLIMITED_SKILL_RESET_ITEM
+	case CXSLItem::CI_UNLIMITED_SKILL_RESET_ITEM:
+		{
+			//특수탭이 다 차있으면
+			std::map< int, int > mapItem; // 인벤토리 검사용
+			// 5. 여유공간 검사를 위한 준비
+			mapItem.insert( std::make_pair( pItemTemplet->m_ItemID, 1 ) );	
+
+			// 6. 인벤토리의 여유공간 검사
+			if( !m_kInventory.IsEnoughSpaceExist( mapItem ) )
+			{
+				KEGS_GET_PURCHASED_CASH_ITEM_ACK kPacket;
+				kPacket.m_iOK = NetError::ERR_NX_SHOP_02;
+				SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
+				return;
+			}
+			// 7. 아이템이 존재하면 못사게 한다. 
+			if( m_kInventory.IsExistWithBank( pItemTemplet->m_ItemID ) )
+			{
+				KEGS_GET_PURCHASED_CASH_ITEM_ACK kPacket;
+				kPacket.m_iOK = NetError::ERR_CLASS_CHANGE_EVENT_01;
+				SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
+				return;
+			}
+		} break;
+#endif SERV_UNLIMITED_SKILL_RESET_ITEM
 		//}}
 		//#ifdef SERV_VIP_SYSTEM
 		//		case 202970: // VIP 패키지 아이템 구매 제한
@@ -1101,7 +1151,61 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 		break;
 #endif SERV_EXPAND_QUICK_SLOT
 		//}}
+#ifdef SERV_SKILL_PAGE_SYSTEM
+	case CXSLItem::CI_EXPAND_SKILL_PAGE:
+		{
+			KNXBTProductInfo kProductInfo;
+			if( !SiKNexonBillingTCPManager()->GetProductInfo( vit->m_ulProductNo, kProductInfo ) )
+			{
+				START_LOG( cerr, L"프로덕트 정보 추출 실패." )
+					<< BUILD_LOG( GetCharUID() )
+					<< BUILD_LOG( GetCharName() )
+					<< BUILD_LOG( vit->m_ulProductNo )
+					<< END_LOG;
 
+				KEGS_BUY_CASH_ITEM_ACK kPacket;
+				kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_00;
+				SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
+				return;
+			}
+
+			switch ( GetStateID() )
+			{
+			case KGSFSM::S_FIELD_MAP:
+				break;
+
+			default:
+				{
+					KEGS_BUY_CASH_ITEM_ACK kPacket;
+					kPacket.m_iOK = NetError::ERR_SKILL_PAGE_08;
+					SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
+					return;
+				} break;
+			}
+
+			/// 구매한 확장권 개수가 최대로 확장할 수 있는 수보다 크면 구입 실패
+			const int iTheNumberOfSkillPagesToBeAdded
+				= kProductInfo.m_usProductPieces * vit->m_usOrderQuantity;
+
+			if ( !m_kSkillTree.CanExpandSkillPage( iTheNumberOfSkillPagesToBeAdded ) )
+			{
+				KEGS_BUY_CASH_ITEM_ACK kPacket;
+
+				const int iTheNumberOfSkillPagesRemainedToLimit
+					= KUserSkillTree::MAX_COUNT_OF_PAGES_AVAILABLE - static_cast<int>( m_kSkillTree.GetTheNumberOfSkillPagesAvailable() );
+
+				// 2개권을 사려고 하는데 1페이지만 확장 가능 할 때
+				if ( iTheNumberOfSkillPagesToBeAdded == 2 &&
+					iTheNumberOfSkillPagesRemainedToLimit == 1 )
+					kPacket.m_iOK = NetError::ERR_SKILL_PAGE_09;
+				else
+					kPacket.m_iOK = NetError::ERR_SKILL_PAGE_02;
+
+				SendPacket( EGS_BUY_CASH_ITEM_ACK, kPacket );
+				return;
+			}
+		}break;
+#endif // SERV_SKILL_PAGE_SYSTEM
 	default:
 		{
 			// 전직 캐쉬 아이템
@@ -1194,7 +1298,11 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 						}
 
 						// 혹시나해서 스킬찍었는지도 검사해봄
+#ifdef SERV_SKILL_PAGE_SYSTEM
+						if ( m_kSkillTree.IsExistOnUsedPage( iSkillID ) )
+#else // SERV_SKILL_PAGE_SYSTEM
 						if( m_kSkillTree.IsExist( iSkillID ) )
+#endif // SERV_SKILL_PAGE_SYSTEM
 						{
 							START_LOG( cerr, L"봉인해제도 안되었는데 스킬이 찍혔다? 절대 일어나서는 안되는 에러!" )
 								<< BUILD_LOG( GetCharUID() )
@@ -1480,6 +1588,21 @@ IMPL_ON_FUNC( EGS_BUY_CASH_ITEM_REQ )
 IMPL_ON_FUNC( EGS_BILL_PRODUCT_INFO_REQ )
 {
 	KEGS_BILL_PRODUCT_INFO_ACK kPacket;
+
+	//{{ 2011. 10. 12	최육사	컨텐츠 관리자
+#ifdef SERV_CONTENT_MANAGER
+	if( SiKGSContentManager()->IsEnableCashShop() == false )
+	{
+		START_LOG( clog, L"캐쉬샵 점검중 상품 리스트 요청" )
+			<< BUILD_LOG( GetName() );
+
+		kPacket.m_bFinal = true;
+		SendPacket( EGS_BILL_PRODUCT_INFO_ACK, kPacket );
+		return;
+	}
+#endif SERV_CONTENT_MANAGER
+	//}}
+
 	SiKBillManager()->GetBillProductPage( kPacket_.m_iPage, kPacket.m_vecProductInfo, kPacket.m_bFinal );
 
 #ifdef SERV_QUICK_CASH_SHOP
@@ -1507,6 +1630,9 @@ IMPL_ON_FUNC( EGS_BILL_PRODUCT_INFO_REQ )
 	kPacket.m_mapKeepShowItem = SiCXSLItemManager()->m_mapKeepShowItem;
 	kPacket.m_DisCountInfoMap = SiCXSLItemManager()->m_DisCountInfoMap;
 #endif SERV_KEEP_ITEM_SHOW_CASHSHOP
+#ifdef SERV_WISH_LIST_NO_ITEM
+	kPacket.m_setWishListNoItemList = SiCXSLItemManager()->m_setWishListNoItemList;
+#endif SERV_WISH_LIST_NO_ITEM
 	SendPacket( EGS_BILL_PRODUCT_INFO_ACK, kPacket );
 
 	START_LOG( clog2, L"product info ack" )
@@ -1521,6 +1647,21 @@ IMPL_ON_FUNC( EGS_BILL_PRODUCT_INFO_REQ )
 
 IMPL_ON_FUNC( EGS_BILL_INVENTORY_INQUIRY_REQ )
 {
+	//{{ 2011. 10. 12	최육사	컨텐츠 관리자
+#ifdef SERV_CONTENT_MANAGER
+	if( SiKGSContentManager()->IsEnableCashShop() == false )
+	{
+		START_LOG( clog, L"캐쉬샵 점검중 캐쉬샵 인벤토리 정보 요청" )
+			<< BUILD_LOG( GetName() );
+
+		KEGS_PURCHASED_CASH_ITEM_LIST_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_CONTENT_00;
+		SendPacket( EGS_BILL_INVENTORY_INQUIRY_ACK, kPacketAck );
+		return;
+	}
+#endif SERV_CONTENT_MANAGER
+	//}}
+
 	KEGS_BILL_INVENTORY_INQUIRY_ACK kPacket;
 	if( kPacket_.m_iCurrentPage < 1 )
 	{
@@ -1985,7 +2126,6 @@ IMPL_ON_FUNC( EGS_EXCHANGE_CASH_REQ )
 
 	if(kPacket_.m_uiExchangeValue > 0)
 	{
-
 #ifdef SERV_COUNTRY_CN
 		KELG_EXCHANGE_CASH_REQ kPacket;
 		kPacket.m_PurchaserInfo.m_iServerGroupID = KBaseServer::GetKObj()->GetServerGroupID();
@@ -2005,9 +2145,7 @@ IMPL_ON_FUNC( EGS_EXCHANGE_CASH_REQ )
 		kPacket.m_iPoint = 0;
 
 		SendPacket( EGS_EXCHANGE_CASH_ACK, kPacket );
-
 #endif // SERV_COUNTRY_CN
-
 	}
 	else
 	{
@@ -2017,7 +2155,6 @@ IMPL_ON_FUNC( EGS_EXCHANGE_CASH_REQ )
 
 		SendPacket( EGS_EXCHANGE_CASH_ACK, kPacket );
 	}
-
 }
 
 IMPL_ON_FUNC( EBILL_EXCHANGE_CASH_ACK )
@@ -2182,7 +2319,6 @@ IMPL_ON_FUNC( EBILL_PREPARE_GIFT_ITEM_ACK )
 				<< BUILD_LOG( kPacket_.m_kEBILL_GIFT_ITEM_REQ.m_iUseCashType )
 				<< END_LOG;
 		}
-
 	}
 	else if(dwPublisherBillingConnectType == KSimLayer::PBCT_DB)
 	{
@@ -2193,7 +2329,6 @@ IMPL_ON_FUNC( EBILL_PREPARE_GIFT_ITEM_ACK )
 		SendToPublisherBilling( EBILL_GIFT_ITEM_REQ, kPacket_.m_kEBILL_GIFT_ITEM_REQ );
 	}
 #endif // SERV_COUNTRY_CN
-
 }
 
 #ifdef SERV_EVENT_BUY_FAKE_ITEM
@@ -2232,13 +2367,14 @@ IMPL_ON_FUNC( EBILL_CHECK_BUY_FAKE_ITEM_ACK )
 }
 #endif //SERV_EVENT_BUY_FAKE_ITEM
 
+
 #ifdef SERV_COUNTRY_PH
 IMPL_ON_FUNC( EJSON_GN_CHANGE_GAME_CURRENCY_REQ )
 {
-	KEBILL_GN_CHANGE_GAME_CURRENCY_REQ kPacket;
-	
+	KEBILL_GN_CHANGE_GAME_CURRENCY_REQ kPacket;	
+
 	if (m_kNexonAccountInfo.m_uiNexonSN == kPacket_.m_uiGarenaUID)
-	{
+	{		
 		kPacket.m_kGarenaREQ = kPacket_;
 		kPacket.m_PurchaserInfo.m_iServerGroupID = KBaseServer::GetKObj()->GetServerGroupID();
 		kPacket.m_PurchaserInfo.m_iUserUID = GetUID();
@@ -2249,8 +2385,7 @@ IMPL_ON_FUNC( EJSON_GN_CHANGE_GAME_CURRENCY_REQ )
 		kPacket.m_PurchaserInfo.m_wstrIP = KncUtil::toWideString( GetIPStr() );
 		kPacket.m_PurchaserInfo.m_uiPublisherUID = m_kNexonAccountInfo.m_uiNexonSN;
 		kPacket.m_iResult = 0;
-
-		//SendToKOGBillingDB( EBILL_GN_CHANGE_GAME_CURRENCY_REQ, kPacket);
+		//SendToKOGBillingDB( EBILL_GN_CHANGE_GAME_CURRENCY_REQ, kPacket);		
 
 		START_LOG( clog, L"Garena 에서 캐쉬 전환을 위한 유저 조회 요청" )
 			<< BUILD_LOG( GetUID() )
@@ -2282,11 +2417,217 @@ IMPL_ON_FUNC( EGS_EXCHANGE_CASH_NOT )
 
 	SendPacket( EGS_EXCHANGE_CASH_CLIENT_NOT, kPacket_ );
 }
+
+IMPL_ON_FUNC( EBILL_GARENA_PREPARE_PRESENT_CHECK_ACK )
+{
+	if( kPacket_.m_iOK != NetError::NET_OK )
+	{
+		// 닉네임 검사 결과
+		KEGS_PRESENT_CASH_ITEM_ACK kPacket;
+		kPacket.m_iOK = kPacket_.m_iOK;
+		SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacket );
+		return;
+	}
+
+	// 체험ID 기능 제한
+	if( IsGuestUser() )
+	{
+		KEGS_PRESENT_CASH_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_GUEST_USER_00;
+		SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacket );
+		return;
+	}
+
+	// 쿼리에 직접 들어갈 문자열이므로 injection 대비 검사를 한다.
+	if( KODBC::IsInvalidMarkIn( kPacket_.m_kEGSPresentCashItemREQ.m_wstrReceiverNickName ) )
+	{
+		KEGS_PRESENT_CASH_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_ODBC_00;
+		SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacket );
+		return;
+	}
+	
+	// 본인에게 선물하려는건지 체크하기
+#ifdef SERV_STRING_CHECK_IGNORE_CASE
+	if( boost::iequals(kPacket_.m_kEGSPresentCashItemREQ.m_wstrReceiverNickName, GetCharName()) )
+#else 
+	if( kPacket_.m_kEGSPresentCashItemREQ.m_wstrReceiverNickName == GetCharName() )
+#endif SERV_STRING_CHECK_IGNORE_CASE
+	{
+		KEGS_PRESENT_CASH_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_20;
+		SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacket );
+		return;
+	}
+
+	// 정상적인 상품인지 검사 - 차후에 필요성 체크
+	std::vector< KNXBTPurchaseReqInfo >::iterator vit;
+	for( vit = kPacket_.m_kEGSPresentCashItemREQ.m_vecPurchaseReqInfo.begin(); vit != kPacket_.m_kEGSPresentCashItemREQ.m_vecPurchaseReqInfo.end(); vit++ )
+	{
+#ifdef SERV_GLOBAL_BILLING
+		int iItemID = SiKBillManager()->GetItemID( vit->m_ulProductNo );;
+#else // SERV_GLOBAL_BILLING
+		int iItemID = SiKNexonBillingTCPManager()->GetItemID( vit->m_ulProductNo );
+#endif // SERV_GLOBAL_BILLING
+		if( iItemID <= 0 )
+		{
+			START_LOG( cerr, L"아이템 ID 변환 실패." )
+				<< BUILD_LOG( vit->m_ulProductNo )
+				<< BUILD_LOG( iItemID )
+				<< END_LOG;
+
+			KEGS_PRESENT_CASH_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_00;
+			SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacket );
+			return;
+		}
+
+		const CXSLItem::ItemTemplet* pItemTemplet = SiCXSLItemManager()->GetItemTemplet( iItemID );
+		if( pItemTemplet == NULL )
+		{
+			START_LOG( cerr, L"아이템 템플릿을 얻지 못함." )
+				<< BUILD_LOG( iItemID )
+				<< END_LOG;
+
+			KEGS_PRESENT_CASH_ITEM_ACK kPacket;
+			kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_00;
+			SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacket );
+			return;
+		}
+
+#ifdef SERV_USE_ENABLE_GIFT
+		KBillProductInfo kBillProductInfo2;
+		if(SiKBillManager()->GetProductInfo((int)vit->m_ulProductNo, kBillProductInfo2))
+		{
+			if(kBillProductInfo2.m_bEnableGift == false)
+			{
+				START_LOG( cerr, L"선물할 수 없는 아이템" )
+					<< BUILD_LOG( vit->m_ulProductNo )
+					<< BUILD_LOG( iItemID )
+					<< END_LOG;
+
+				KEGS_PRESENT_CASH_ITEM_ACK kPacket;
+				kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_11;
+				SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacket );
+				return;
+			}
+		}
+#else SERV_USE_ENABLE_GIFT
+		// 소지품 확장과 슬롯 확장은 선물 불가능
+		switch( pItemTemplet->m_ItemID )
+		{
+		case CXSLItem::CI_EXPAND_INVENTORY:
+		case CXSLItem::CI_EXPAND_CHAR_SLOT_1:
+		case CXSLItem::CI_EXPAND_CHAR_SLOT_2:
+		case CXSLItem::CI_EXPAND_SKILL_SLOT_PERMANENT:
+			//{{ 2012. 12. 19	최육사	아라 전용 캐쉬템
+#ifdef SERV_EXPAND_SKILL_SLOT_CASH_ITEM_FOR_ARA
+		case CXSLItem::CI_EXPAND_SKILL_SLOT_ARA:
+#endif SERV_EXPAND_SKILL_SLOT_CASH_ITEM_FOR_ARA
+			//}}
+			{
+				KEGS_PRESENT_CASH_ITEM_ACK kPacket;
+				kPacket.m_iOK = NetError::ERR_BUY_CASH_ITEM_27;
+				SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacket );
+				return;
+			}
+			break;
+		}
+#endif SERV_USE_ENABLE_GIFT
+	}
+
+	// 찜에서 캐쉬구매
+	m_kUserWishList.SetBuyCashItemInWishList( kPacket_.m_kEGSPresentCashItemREQ.m_bIsWishList );
+
+	KDBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ kPacketToDB;
+	kPacketToDB.m_wstrReceiverNickName = kPacket_.m_kEGSPresentCashItemREQ.m_wstrReceiverNickName;
+	kPacketToDB.m_wstrMessage		   = kPacket_.m_kEGSPresentCashItemREQ.m_wstrMessage;
+	kPacketToDB.m_vecPurchaseReqInfo   = kPacket_.m_kEGSPresentCashItemREQ.m_vecPurchaseReqInfo;
+
+#ifdef SERV_SUPPORT_SEVERAL_CASH_TYPES
+	if(!IsAbleToUseCashType(kPacket_.m_kEGSPresentCashItemREQ.m_iUseCashType))
+	{
+		KEGS_PRESENT_CASH_ITEM_ACK kPacket;
+		kPacket.m_iOK = NetError::ERR_GLOBAL_BILLING_01;
+		SendPacket( EGS_PRESENT_CASH_ITEM_ACK, kPacket );
+		return;
+	}
+
+	kPacketToDB.m_iUseCashType = kPacket_.m_kEGSPresentCashItemREQ.m_iUseCashType;
+#endif //SERV_SUPPORT_SEVERAL_CASH_TYPES
+
+	SendToGameDB( DBE_PRESENT_CASH_ITEM_CHECK_NICKNAME_REQ, kPacketToDB );
+}
 #endif //SERV_COUNTRY_PH
 
-#endif SERV_GLOBAL_BILLING
-//======================================================================//
 
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+IMPL_ON_FUNC( EGS_CASH_DIRECT_CHARGE_CN_REQ )
+{
+	VERIFY_STATE_ACK( ( 2, KGSFSM::S_FIELD_MAP, KGSFSM::S_ROOM ), EGS_CASH_DIRECT_CHARGE_CN_ACK );
+
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH_TEST_MODE
+	if( GetAuthLevel() < SEnum::UAL_GM )
+	{
+		START_LOG( cerr, L"[CN] Direct Charge 주소 요청을 영자도 아닌데 했다!!." )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< END_LOG;
+
+		KEGS_CASH_DIRECT_CHARGE_CN_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_UNKNOWN;
+		SendPacket(EGS_CASH_DIRECT_CHARGE_CN_ACK, kPacketAck);
+
+		return;
+	}
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
+
+	if( kPacket_.m_iUserUID == GetUID())
+	{
+		START_LOG( cout, L"[TEST] Direct Charge 주소 요청." )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< END_LOG;
+
+		// 로그인 서버로 전달 (부족한 정보는 로그인서버가 채워서 마지막 전송) //
+
+		KELG_CASH_DIRECT_CHARGE_CN_REQ kPacketReq;
+		kPacketReq.m_iUserUID = GetUID();
+		kPacketReq.m_wstrIP = KncUtil::toWideString( GetIPStr() );;
+		kPacketReq.m_wstrServiceAccountID = GetName();
+		kPacketReq.m_iUnitUID = GetCharUID();
+		kPacketReq.m_wstrUnitNickName = GetCharName();
+
+		SendToLoginServer( ELG_CASH_DIRECT_CHARGE_CN_REQ, kPacketReq );	// SERV_FROM_CHANNEL_TO_LOGIN_PROXY
+	}
+	else
+	{
+		START_LOG( cerr, L"[CN] Direct Charge 주소 요청 보낸 유저와 서버 유저가 틀리다!?." )
+			<< BUILD_LOG( kPacket_.m_iUserUID )
+			<< BUILD_LOG( GetUID() )
+			<< BUILD_LOG( GetName() )
+			<< END_LOG;
+
+		// 오류 처리
+		KEGS_CASH_DIRECT_CHARGE_CN_ACK kPacketAck;
+		kPacketAck.m_iOK = NetError::ERR_UNKNOWN;
+		SendPacket(EGS_CASH_DIRECT_CHARGE_CN_ACK, kPacketAck);
+	}
+}
+
+_IMPL_ON_FUNC( ELG_CASH_DIRECT_CHARGE_CN_ACK, KEGS_CASH_DIRECT_CHARGE_CN_ACK)
+{
+	START_LOG( cout, L"[TEST] Direct Charge 주소 요청 값이 왔다!" )
+		<< BUILD_LOG( kPacket_.m_iOK )
+		<< BUILD_LOG( GetUID() )
+		<< BUILD_LOG( GetName() )
+		<< END_LOG;
+
+	SendPacket(EGS_CASH_DIRECT_CHARGE_CN_ACK, kPacket_);
+}
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
+
+#endif SERV_GLOBAL_BILLING
 
 //////////////////////////////////////////////////////////////////////////
 #endif SERV_GSUSER_CPP

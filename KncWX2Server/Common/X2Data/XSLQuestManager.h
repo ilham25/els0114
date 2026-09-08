@@ -218,9 +218,9 @@ public:
 		//::1. Dungeon ID
 		//{{ QUEST °³Æí - ±è¹Î¼º
 #ifdef SERV_REFORM_QUEST
-		std::set<CXSLDungeon::DUNGEON_ID>	m_setDungeonID;
+		std::set<SEnum::DUNGEON_ID>	m_setDungeonID;
 #else
-		CXSLDungeon::DUNGEON_ID			m_eDungeonID;
+		SEnum::DUNGEON_ID			m_eDungeonID;
 #endif SERV_REFORM_QUEST
 		//}} 
 
@@ -339,7 +339,7 @@ public:
 			//{{ QUEST °³Æí - ±è¹Î¼º
 #ifdef SERV_REFORM_QUEST
 #else
-			m_eDungeonID			= CXSLDungeon::DI_NONE;
+			m_eDungeonID			= SEnum::DI_NONE;
 			m_cDifficulty			= -1;
 #endif SERV_REFORM_QUEST
 			//}} 
@@ -354,7 +354,7 @@ public:
 			m_iDungeonClearTime		= 0;
 			m_eTalkNPCID			= CXSLUnitManager::NUI_NONE;
 			m_bTalkNPC				= false;
-			m_ePVPType				= CXSLRoom::PVP_GAME_TYPE::PGT_TEAM;
+			m_ePVPType				= CXSLRoom::PGT_TEAM;
 			m_iPVPPlay				= 0;
 			m_iPVPWin				= 0;
 			m_iPVPKill				= 0;
@@ -373,7 +373,7 @@ public:
 			//}}
 			//{{ 2011. 07. 25    ±è¹Î¼º    ´ëÀü Äù½ºÆ® Á¶°Ç Ãß°¡
 #ifdef SERV_NEW_PVP_QUEST
-			m_ePvpChannelClass		= KPVPChannelInfo::PVP_CHANNEL_CLASS::PCC_NONE;
+			m_ePvpChannelClass		= KPVPChannelInfo::PCC_NONE;
 #endif SERV_NEW_PVP_QUEST
 			//}} 
 			//{{ 2012. 04. 17	ÃÖÀ°»ç	DBÄõ¸® ¼º°ø Ã¼Å©
@@ -394,7 +394,7 @@ public:
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 			//}}
 #ifdef SERV_EVENT_TITLE_SUBQUEST
-		    m_iUseTitleID           = 0;
+		    m_iUseTitleID           = -1;
 #endif SERV_EVENT_TITLE_SUBQUEST
 #ifdef SERV_SUB_QUEST_USE_ITEM
 			m_iUseItemNum			= 0;
@@ -494,7 +494,7 @@ public:
 		SubQuestTemplet()
 		{
 			m_iID			= -1;
-			m_eClearType	= SUB_QUEST_TYPE::SQT_NONE;
+			m_eClearType	= SQT_NONE;
 			m_bAutomaticDescription = true;
 		}
 	};
@@ -579,6 +579,9 @@ public:
 		bool							m_bIsAccountQuest;	// °èÁ¤ Äù½ºÆ® ÀÎ°¡?
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 		//}}
+#ifdef SERV_NAVER_CHANNELING
+        KNexonAccountInfo::CHANNELING_ENUM    m_ePublisher; // Ã¤³Î¸µ Àü¿ë Äù½ºÆ®
+#endif SERV_NAVER_CHANNELING
 
 		QuestTemplet()
 		{
@@ -615,6 +618,10 @@ public:
 			m_bIsAccountQuest		= false;	// °èÁ¤ Äù½ºÆ® ÀÎ°¡?
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 			//}}
+#ifdef SERV_NAVER_CHANNELING
+            m_ePublisher = KNexonAccountInfo::CE_NEXON_ACCOUNT;
+#endif SERV_NAVER_CHANNELING
+
 		}
 		
 		~QuestTemplet()
@@ -707,6 +714,7 @@ public:
 	//}
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 	//}}
+	
 
 private:
 	bool	LoadQuestCondition( KLuaManager& luaManager, QuestCondition& questCondition );
@@ -749,6 +757,7 @@ private:
 	//}
 #endif SERV_ACCOUNT_MISSION_SYSTEM
 	//}}
+
 };
 
 DefRefreshSingletonInline( CXSLQuestManager );

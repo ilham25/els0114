@@ -35,7 +35,7 @@ public:
 	{
 		m_bLocked = false;
 		m_fLockTime = 0.0;
-		m_eLockType = LOCK_TYPE::LT_INFINITE;
+		m_eLockType = LT_INFINITE;
 	}
 
 	bool IsLocked()
@@ -47,7 +47,7 @@ public:
 		}
 
 		// 타임아웃 타입이면 타이머 체크!
-		if( m_eLockType == LOCK_TYPE::LT_TIME_OUT )
+		if( m_eLockType == LT_TIME_OUT )
 		{
 			// 시간이 오버했다면 lock을 풀자!
 			if( m_tTimer.elapsed() > m_fLockTime )
@@ -74,7 +74,7 @@ public:
 		// 잠금 처리!
 		m_bLocked = true;
 		m_eLockType = eLockType;
-		if( eLockType == LOCK_TYPE::LT_TIME_OUT )
+		if( eLockType == LT_TIME_OUT )
 		{
 			m_fLockTime = fLockTime;
 			m_tTimer.restart();

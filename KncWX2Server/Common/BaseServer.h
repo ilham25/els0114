@@ -84,6 +84,12 @@ public:
 		ESC_SIMULATION	= 5,
 		ESC_GLOBAL		= 6,
 	};
+#ifdef SERV_ITEM_ACTION_BY_DBTIME_SETTING // 2012.12.11 lygan_조성욱 // 석근이 작업 리뉴얼 ( DB에서 실시간 값 반영, 교환, 제조 쪽도 적용 )
+	enum TimeControl_Item_Release_Tick_Type
+	{
+		TCIRTT_TIME_CONTROL_ITEM_CHECK		= 20,
+	};
+#endif //SERV_ITEM_ACTION_BY_DBTIME_SETTING
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING 
 	enum TimeControl_CubeInItemMapping_Release_Tick_Type
@@ -115,6 +121,7 @@ public:
 	//{{ 2012. 12. 24	최육사	게임 서버 버전 세분화
 #ifdef SERV_GAME_SERVER_VERSION_DETAIL
 	void SetUseVersion( int iVersionEnum )			{ m_eUseVersion = static_cast<VERSION_ENUM>(iVersionEnum); ToString( std::wcout ); }
+	VERSION_ENUM	GetVersion( void ) const		{ return m_eUseVersion;	}
 #else	
 	void SetSecondVersion( bool bUseSecond )        { m_bUseSecondVer = bUseSecond; ToString( std::wcout ); }
 	void SetMainVersion( int nIndex, const char* szVersion );
@@ -164,6 +171,9 @@ public:
 	//}}    
     template < class T > void SendToAccountDB( unsigned short usEventID, const T& data );
     template < class T > void SendToLogDB( unsigned short usEventID, const T& data );
+#ifdef SERV_ADD_EVENT_DB
+    template < class T > void SendToEventDB( unsigned short usEventID, const T& data );
+#endif //SERV_ADD_EVENT_DB
 	//{{ 2010. 12. 7	최육사	메일 전송 시스템
 #ifdef SERV_MAIL_SYSTEM
 	template < class T > void QueueingEventToMailManager( unsigned short usEventID, const T& data );
@@ -171,6 +181,10 @@ public:
 	//}}
     void SendToAccountDB( unsigned short usEventID );
     void SendToLogDB( unsigned short usEventID );
+
+#ifdef SERV_ADD_EVENT_DB
+	void SendToEventDB( unsigned short usEventID );
+#endif //SERV_ADD_EVENT_DB
 
 	// 서버 로딩 상태
 	bool GetServerReady()							{ return m_bServerReady; }
@@ -206,7 +220,6 @@ public:
 	char GetServerRollType() const	{ return m_cServerRollType; }
 #endif SERV_SERVER_ROLL_TYPE
 	//}}
-
 	//{{ 2011.2.11  조효진  모니터링툴 서버 포트 체크 시 에러로그 남는거 수정
 #ifdef SERV_PERMIT_PORT_CHECK
 	void AddPortCheckMoritoringServer_LUA( const char* pStrIP );
@@ -315,7 +328,6 @@ public:
 	std::set<std::string>					m_PortCheckMoritoringServerIPList;	// 센터 서버 포트를 체크하는 모니터링 서버의 아이피 리스프
 #endif SERV_PERMIT_PORT_CHECK
 	//}}
-
 	//{{ 2011. 04. 13  우편 및 거래 감시 실시간 SMS 전송
 #ifdef SERV_MONITORING_LETTER_AND_TRADE_SMS
 	bool										m_bMonitoringLetterAndTradeSMS;
@@ -346,3 +358,11 @@ void KBaseServer::SendToLogDB( unsigned short usEventID, const T& data )
 {
     KncSend( GetPfID(), GetUID(), PI_LOG_DB, 0, NULL, usEventID, data );
 }
+
+#ifdef SERV_ADD_EVENT_DB
+template < class T >
+void KBaseServer::SendToEventDB( unsigned short usEventID, const T& data )
+{
+	KncSend( GetPfID(), GetUID(), PI_EVENT_DB, 0, NULL, usEventID, data );
+}
+#endif //SERV_ADD_EVENT_DB

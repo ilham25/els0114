@@ -39,8 +39,8 @@ class CKTDGUIButton : public CKTDGUIControl
 
 		virtual	bool	ContainsPoint( POINT pt );
 
-		virtual void	MoveControl( float fx, float fy );
-		virtual void	ScaleControl( float fx, float fy );
+		virtual void	MoveControl( float fx, float fy ) override;
+		virtual void	ScaleControl( float fx, float fy ) override;		
 
 
 		bool SetNormalTex( const WCHAR* pFileName, const WCHAR* key );
@@ -85,9 +85,9 @@ class CKTDGUIButton : public CKTDGUIControl
 		void SetCustomMsgMouseRightUp( int msg ){ m_CustomMsgMouseRightUp = msg; }
 		void SetCustomMsgMouseDblClk( int msg ){ m_CustomMsgMouseDblClk = msg; }
 
-		void SetCustomFuncMouseOver( const char* pFuncName ) { 	ConvertUtf8ToWCHAR( m_CustomFuncMouseOver, pFuncName ); }
-		void SetCustomFuncMouseDown( const char* pFuncName ) { 	ConvertUtf8ToWCHAR( m_CustomFuncMouseDown, pFuncName ); }
-		void SetCustomFuncMouseUp( const char* pFuncName ) { ConvertUtf8ToWCHAR( m_CustomFuncMouseUp, pFuncName ); }
+		void SetCustomFuncMouseOver( const char* pFuncName ) { 	m_CustomFuncMouseOver = ( pFuncName ) ? pFuncName : ""; }
+		void SetCustomFuncMouseDown( const char* pFuncName ) { 	 m_CustomFuncMouseDown = ( pFuncName ) ? pFuncName : ""; }
+		void SetCustomFuncMouseUp( const char* pFuncName ) { m_CustomFuncMouseUp = ( pFuncName ) ? pFuncName : ""; }
 
 
 		void SetNormalPoint( CKTDGUIControl::UIPointData* pUIPointData );
@@ -97,9 +97,29 @@ class CKTDGUIButton : public CKTDGUIControl
 		void SetDisablePoint( CKTDGUIControl::UIPointData* pUIPointData );
 #endif // UPGRADE_SKILL_SYSTEM_2013		
 
+		virtual D3DXVECTOR2 GetPos() override;		
 
+#ifdef DLL_BUILD
+		virtual vector<D3DXVECTOR2> GetPosList() override;
+		virtual D3DXVECTOR2 GetPos(wstring name) override;
+		virtual void    MoveSubControl( float fx, float fy, wstring subControlName ) override;
+		virtual void	SetEditGUI( bool bEdit ) override;
+		virtual void	ShowSubView( wstring name, bool bView ) override;		
 
-		D3DXVECTOR2 GetPos();
+		virtual bool IsSelectByEditGui( POINT pt ) override { return ContainsPoint(pt); }
+
+		//// 
+		CKTDGUIControl::UIPointData * _GetPointData( wstring name );
+		virtual wstring GetTextureName( wstring name ) override;
+		virtual RECT GetTextureUV( wstring name ) override;
+		virtual wstring GetTextureKey( wstring name ) override;
+		virtual vector<wstring> GetTextureKeyList( wstring name ) override;
+
+		virtual void SetTexture( wstring name, wstring fileName ) override;
+		virtual void SetTextureKey( wstring name, wstring key ) override;
+		
+#endif
+
 		int GetWidth();
 		int GetHeight();
 
@@ -136,6 +156,10 @@ class CKTDGUIButton : public CKTDGUIControl
 
 		void ChangeMouseOverSound( const WCHAR* wszFileName );
 		void ChangeMouseOverSound_LUA( const char* szFileName );
+#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		virtual	void	SetCustomMouseOverSound ( wstring wstrSoundFileName );
+		virtual	void	SetCustomMouseUpSound  ( wstring wstrSoundFileName ); 
+#endif // REFORM_ENTRY_POINT	// 13-11-11, 진입 구조 개편, kimjh
 
 	protected:
 
@@ -168,9 +192,9 @@ class CKTDGUIButton : public CKTDGUIControl
 		int									m_CustomMsgMouseRightUp;
 		int									m_CustomMsgMouseDblClk;
 
-		wstring								m_CustomFuncMouseOver;
-		wstring								m_CustomFuncMouseDown;
-		wstring								m_CustomFuncMouseUp;
+		string								m_CustomFuncMouseOver;
+		string								m_CustomFuncMouseDown;
+		string								m_CustomFuncMouseUp;
 
 		CKTDXDeviceSound*					m_pSndMouseOver;
 		CKTDXDeviceSound*					m_pSndMouseUp;
@@ -200,4 +224,6 @@ class CKTDGUIButton : public CKTDGUIControl
 		map< int, CKTDGUIControl::TexChangeData* >	m_mapMouseOverTex;
 		map< int, CKTDGUIControl::TexChangeData* >	m_mapMouseNormalTex;
 		map< int, CKTDGUIControl::TexChangeData* >	m_mapMouseDownTex;
+
+		UIPointData							m_edgePoint;	// button의 edge 모양을 상태에 존속하지 않게 하기 위해 추가
 };

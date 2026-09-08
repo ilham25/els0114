@@ -40,7 +40,7 @@ bool CX2CheckSumManager::OpenScript( const WCHAR* pFileName )
 	//KLuaManager kLuaManager;
     KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 //}} robobeg : 2008-10-28
-	g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, pFileName );
+	g_pKTDXApp->LoadAndDoMemory( &kLuaManager, pFileName );
 
 	if( kLuaManager.BeginTable( "CheckSumFileList" ) == true )
 	{

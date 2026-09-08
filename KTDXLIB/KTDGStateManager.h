@@ -7,8 +7,10 @@
             - example comment added
 */
 
-#pragma warning(disable: 4189 4100 4003 )
 #pragma once
+
+#pragma warning(push)
+#pragma warning(disable: 4189 4100 4003 )
 
 #define DEVICE_STATE_STACK_SIZE     512
 
@@ -875,6 +877,8 @@ private:
 
 #define KD3DEND()      }
 
+
+#pragma warning(pop)
 
 
 /** @example    class CKTDGStateManager

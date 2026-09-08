@@ -1,6 +1,7 @@
 #pragma once
 
 #define MAX_INVENTORY_SIZE 24
+const static int s_iMaxInventorySize = 64;
 
 class CX2Unit;
 class CX2Inventory
@@ -31,9 +32,10 @@ class CX2Inventory
 			//#endif	SERV_SHARING_BANK_TEST
 			//{{ 2013. 04. 10	최육사	어둠의 문 개편
 			//#ifdef SERV_NEW_DEFENCE_DUNGEON
-			ST_E_DEFENCE_QUICK_SLOT, // [15] 어둠의문 전용 퀵슬롯
+			ST_E_DEFENCE_QUICK_SLOT, // [14] 어둠의문 전용 퀵슬롯
 			//#endif SERV_NEW_DEFENCE_DUNGEON
 			//}}
+			
 			ST_END,
 		};
 
@@ -68,14 +70,15 @@ private:
 				m_SlotID	= -1;
 				m_pItem		= NULL;
 			}
-			~InvenSlotData()
-			{
-				SAFE_DELETE( m_pItem );
-			}
+			~InvenSlotData();
 		};
 
 	public:
-		CX2Inventory( CX2Unit* pOwnerUnit );
+//{{ robobeg : 2013-11-01
+		//CX2Inventory( CX2Unit* pOwnerUnit );
+        CX2Inventory();
+        void        SetOwnerUnit( CX2Unit* pOwnerUnit ) { m_pOwnerUnit = pOwnerUnit; }
+//}} robobeg : 2013-11-01
 		~CX2Inventory(void);
 
 		void		Clear();
@@ -110,53 +113,56 @@ private:
 		//}}
 
 		bool		AddItem( SORT_TYPE sortType, int slotID, CX2Item* pItem );
-		bool		AddItem( SORT_TYPE sortType, int slotID, CX2Item::ItemData* pItemData );
+		bool		AddItem( SORT_TYPE sortType, int slotID, CX2ItemData_Base& kItemData );
 	
-		int			GetNumItemByTID( int itemTID, bool bExcludeEquipped = false, bool bIncludeBankType = false );				// TID에 해당하는 아이템의 개수를 return
+		int			GetNumItemByTID( int itemTID, bool bExcludeEquipped = false, bool bIncludeBankType = false ) const;				// TID에 해당하는 아이템의 개수를 return
 
 		//{{ mauntain : 김태환 [2012.07.16] 인벤토리 및 슬롯을 고려한 아이템 구입 갯수 연산
 #ifdef SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
-		int			GetNumSlotByTID( int itemTID );			/// 해당 아이템 아이디가 있는 Slot의 갯수를 반환
+		int			GetNumSlotByTID( int itemTID ) const;			/// 해당 아이템 아이디가 있는 Slot의 갯수를 반환
 #endif SERV_AUTOMATICALLY_REGISTER_FOR_CONSUMABLE_ITEM
 		//}}
 
-		CX2Item*	GetItemByTID( int itemTID, bool bIncludeBankType = false );
-		CX2Item*	GetItem( UidType itemUID, bool bIncludeBankType	= false );
-		CX2Item*	GetItem( SORT_TYPE sortType, int slotID );
+		CX2Item*	GetItemByTID( int itemTID, bool bIncludeBankType = false, bool bIncludeEEquipType =  true ) const;
+#ifdef SERV_EVENT_TEAR_OF_ELWOMAN
+		int			GetItemByTIDCheckAll( int itemTID, bool bIncludeBankType = false );											// TID에 해당하는 아이템의 개수를 return하되, 전부더해서 리턴
+#endif SERV_EVENT_TEAR_OF_ELWOMAN
+		CX2Item*	GetItem( UidType itemUID, bool bIncludeBankType	= false ) const;
+		CX2Item*	GetItem( SORT_TYPE sortType, int slotID ) const;
 
-		SORT_TYPE	GetItemSortType( UidType itemUID );
+		SORT_TYPE	GetItemSortType( UidType itemUID ) const;
 
 		void		SetItemMaxNum( SORT_TYPE sortType, int maxNum );
 		// GetItemMaxNum에 인자로 ST_BANK를 전달해주면 슬롯의 사이즈를 알수 있고, 그 값으로 은행 회원 등급을 구분!!
-		int			GetItemMaxNum( SORT_TYPE sortType ) { return m_MaxSize[sortType]; }
-		int			GetUsedSlotNum( SORT_TYPE sortType );
+		int			GetItemMaxNum( SORT_TYPE sortType ) const { return ( sortType >= SORT_TYPE(0) && sortType < ST_END ) ? m_MaxSize[sortType] : 0; }
+		int			GetUsedSlotNum( SORT_TYPE sortType ) const;
 
 		bool		RemoveItem( UidType itemUID );	//	은행은 사용할 수 없음
 		bool		RemoveItem( SORT_TYPE sortType, int slotID );
 		
-		CX2Unit*	GetOwnerUnit() { return m_pOwnerUnit; }
-        SORT_TYPE	GetSortTypeByItemTemplet( const CX2Item::ItemTemplet* pItemTemplet );
-		SORT_TYPE	GetSortTypeByID( int itemID );
+		CX2Unit*	GetOwnerUnit() const { return m_pOwnerUnit; }
+        SORT_TYPE	GetSortTypeByItemTemplet( const CX2ItemTemplet_Base* pItemTemplet ) const ;
+		SORT_TYPE	GetSortTypeByID( int itemID ) const;
 		
-		bool		IsPossibleAddItem( SORT_TYPE sortType );
+		bool		IsPossibleAddItem( SORT_TYPE sortType ) const;
 
-		wstring		GetInvenSortTypeName( SORT_TYPE sortType );
-		CX2Item*	GetEquippingItemByEquipPos( CX2Unit::EQIP_POSITION equipPos, bool bFashion );
+		wstring		GetInvenSortTypeName( SORT_TYPE sortType ) const;
+		CX2Item*	GetEquippingItemByEquipPos( CX2Unit_PreHeader::EQIP_POSITION equipPos, bool bFashion ) const;
 
 #ifdef MODIFY_INFORMER_INVEN
-		void		GetItemIDAndNum( OUT set<int>& setItemPackage );	//가지고 있는 itemID, 수량
+		void		GetItemIDAndNum( OUT set<int>& setItemPackage ) const;	//가지고 있는 itemID, 수량
 #else
-		void		GetItemIDAndNum( map<int, int>& mapItemPackage );	//가지고 있는 itemID, 수량
+		void		GetItemIDAndNum( map<int, int>& mapItemPackage ) const;	//가지고 있는 itemID, 수량
 #endif //MODIFY_INFORMER_INVEN
 
-		int			GetEqiuppingSetItemNum( int setID );
+		int			GetEqiuppingSetItemNum( int setID ) const;
 #ifdef ITEM_EXPIRE_USING_ITEM_UID
-		bool		CheckEquippingItem( int itemID, UidType itemUID = -1 );
+		bool		CheckEquippingItem( int itemID, UidType itemUID = -1 ) const;
 #else ITEM_EXPIRE_USING_ITEM_UID
-		bool		CheckEquippingItem( int itemID );
+		bool		CheckEquippingItem( int itemID ) const;
 #endif ITEM_EXPIRE_USING_ITEM_UID
 
-		CX2Stat::Stat GetSetItemOptionStat();
+		CX2Stat::Stat GetSetItemOptionStat() const;
 
 		//{{ kimhc // 2009-10-19 // 최대 MP 증가 값 얻어오기
 		float		GetAddMaxMPValue() const;
@@ -174,29 +180,31 @@ private:
 
 #ifdef	SERV_SHARING_BANK_TEST
 		void SetShareBank( std::map< UidType, KInventoryItemInfo >& mapItem );
-		int	GetUsedShareBankNum() { return m_ItemMap[ST_SHARE_BANK].size(); }
+		int	GetUsedShareBankNum() const { return m_ItemMap[ST_SHARE_BANK].size(); }
 
-		//CX2Item*	GetShareItem( int slotID );
 		void ClearShareBank();
 		bool UpdateItemUID( UidType iBeforeUID, UidType iNewUID );
 #endif	SERV_SHARING_BANK_TEST
 
 #ifdef NEW_ITEM_NOTICE
-		bool		IsNewItem( SORT_TYPE sortType, UidType iItemUID);
+		bool		IsNewItem( SORT_TYPE sortType, UidType iItemUID) const;
 		void		ResetNewItem();
 		bool		EraseNewItem( UidType iItemUID );
 #endif //NEW_ITEM_NOTICE
 
 #ifdef PET_DROP_ITEM_PICKUP
-		UidType GetItemUIDBySortTypeAndItemID( CX2Inventory::SORT_TYPE sortType_, int ItemID_ );
+		UidType GetItemUIDBySortTypeAndItemID( SORT_TYPE sortType_, int ItemID_ ) const;
 #endif //PET_DROP_ITEM_PICKUP
 
 #ifdef ADDED_RELATIONSHIP_SYSTEM			
-		bool		GetRelationItemInfoFromServer ();
+		bool		GetRelationItemInfoFromServer () const;
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef GOOD_ELSWORD //JHKang
+		bool	IsAbleToExpandSlot() const;
+#endif //GOOD_ELSWORD
 
 	private:
-		InvenSlotData* GetInvenSlot( SORT_TYPE sortType, int slotID );
+		const InvenSlotData* GetInvenSlot( SORT_TYPE sortType, int slotID ) const;
 	
 private:
 		CX2Unit*						m_pOwnerUnit;

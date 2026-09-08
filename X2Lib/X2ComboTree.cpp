@@ -48,6 +48,15 @@ int CX2ComboTree::GetComboIconLayer( COMBO_TREE_ICON eIcon )
 //#ifdef BALANCE_ELEMENTAL_MASTER_20130117
 	case CTI_ICON_HURRICANE:					/// 엘리멘탈 마스터 허리케인
 //#endif BALANCE_ELEMENTAL_MASTER_20130117
+#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+	case CTI_ICON_DYNAMO_Z:
+	case CTI_ICON_DYNAMO_X:
+	case CTI_ICON_DYNAMO_ROLLING:
+	case CTI_ICON_DYNAMO_TELEPORT:
+	case CTI_ICON_FIST_NA:
+	case CTI_ICON_KICK_NA:
+	case CTI_ICON_NA:
+#endif //SERV_9TH_NEW_CHARACTER
 		{
 			return 2;
 		} break;
@@ -142,6 +151,15 @@ void CX2ComboTree::ParseComboSet( KLuaManager &luaManager, std::vector<ComboIcon
 #ifdef BALANCE_ELEMENTAL_MASTER_20130117
 		case CX2ComboTree::CTI_ICON_HURRICANE:					/// 엘리멘탈 마스터 허리케인
 #endif BALANCE_ELEMENTAL_MASTER_20130117
+#ifdef SERV_9TH_NEW_CHARACTER //JHKang
+		case CTI_ICON_DYNAMO_Z:
+		case CTI_ICON_DYNAMO_X:
+		case CTI_ICON_DYNAMO_ROLLING:
+		case CTI_ICON_DYNAMO_TELEPORT:
+		case CTI_ICON_FIST_NA:
+		case CTI_ICON_KICK_NA:
+		case CTI_ICON_NA:
+#endif //SERV_9TH_NEW_CHARACTER
 			{
 				iLayer = GetComboIconLayer( (COMBO_TREE_ICON) CTI_BACKGROUND );
 				vecComboSet.push_back( ComboIcon( fGridX, fGridY, CTI_BACKGROUND, iLayer ) );
@@ -167,9 +185,9 @@ bool CX2ComboTree::OpenScriptFile( const std::wstring& filename )
 		return false;
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-// 	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( filename.c_str() ) )
+// 	if( false == g_pKTDXApp->LoadLuaTinker( filename.c_str() ) )
 // 		return false;
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, filename.c_str() ) )
+	if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, filename.c_str() ) )
 		return false;
 
 	if ( false == luaManager.ExportFunctionsToGlobalEnv() )
@@ -177,115 +195,133 @@ bool CX2ComboTree::OpenScriptFile( const std::wstring& filename )
 
 	std::vector< UnitClassName > vecUnitClassName;
 	vecUnitClassName.reserve( 50 );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_SWORDMAN,			L"ELSWORD_SWORDMAN"		) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_VIOLET_MAGE,			L"ARME_VIOLET_MAGE"     ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_ELVEN_RANGER,			L"LIRE_ELVEN_RANGER"    ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_FIGHTER,				L"RAVEN_FIGHTER"        ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_NASOD,					L"EVE_NASOD"			) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_SWORDMAN,			"ELSWORD_SWORDMAN"		) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_VIOLET_MAGE,			"ARME_VIOLET_MAGE"     ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_ELVEN_RANGER,			"LIRE_ELVEN_RANGER"    ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_FIGHTER,				"RAVEN_FIGHTER"        ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_NASOD,					"EVE_NASOD"			) );
 	//{{ kimhc // 2010.11.24 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_IRON_CANNON,			L"CHUNG_IRON_CANNON"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_IRON_CANNON,			"CHUNG_IRON_CANNON"	) );
 #endif	NEW_CHARACTER_CHUNG
 	//}} kimhc // 2010.11.24 //  2010-12-23 New Character CHUNG
 #ifdef ARA_CHARACTER_BASE
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_MARTIAL_ARTIST,			L"ARA_MARTIAL_ARTIST"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_MARTIAL_ARTIST,			"ARA_MARTIAL_ARTIST"	) );
 #endif
 #ifdef NEW_CHARACTER_EL
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELESIS_KNIGHT,				L"ELESIS_KNIGHT"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELESIS_KNIGHT,				"ELESIS_KNIGHT"	) );
 #endif // NEW_CHARACTER_EL
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ADD_NASOD_RULER,				"ADD_NASOD_RULER"	) );
+#endif //SERV_9TH_NEW_CHARACTER
 
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_KNIGHT,				L"ELSWORD_KNIGHT"       ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_MAGIC_KNIGHT,		L"ELSWORD_MAGIC_KNIGHT" ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_KNIGHT,				"ELSWORD_KNIGHT"       ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_MAGIC_KNIGHT,		"ELSWORD_MAGIC_KNIGHT" ) );
 #ifdef ELSWORD_SHEATH_KNIGHT
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_SHEATH_KNIGHT,		L"ELSWORD_SHEATH_KNIGHT"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_SHEATH_KNIGHT,		"ELSWORD_SHEATH_KNIGHT"	) );
 #endif ELSWORD_SHEATH_KNIGHT
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_COMBAT_RANGER,			L"LIRE_COMBAT_RANGER"   ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_SNIPING_RANGER,			L"LIRE_SNIPING_RANGER"  ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_COMBAT_RANGER,			"LIRE_COMBAT_RANGER"   ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_SNIPING_RANGER,			"LIRE_SNIPING_RANGER"  ) );
 #ifdef SERV_TRAPPING_RANGER_TEST
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_TRAPPING_RANGER,		L"LIRE_TRAPPING_RANGER"  ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_TRAPPING_RANGER,		"LIRE_TRAPPING_RANGER"  ) );
 #endif SERV_TRAPPING_RANGER_TEST
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_HIGH_MAGICIAN,			L"ARME_HIGH_MAGICIAN"   ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_DARK_MAGICIAN,			L"ARME_DARK_MAGICIAN"   ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_HIGH_MAGICIAN,			"ARME_HIGH_MAGICIAN"   ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_DARK_MAGICIAN,			"ARME_DARK_MAGICIAN"   ) );
 #ifdef SERV_ADD_ARME_BATTLE_MAGICIAN
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_BATTLE_MAGICIAN,		L"ARME_BATTLE_MAGICIAN"   ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_BATTLE_MAGICIAN,		"ARME_BATTLE_MAGICIAN"   ) );
 #endif
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_SOUL_TAKER,			L"RAVEN_SOUL_TAKER"     ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_OVER_TAKER,			L"RAVEN_OVER_TAKER"     ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_SOUL_TAKER,			"RAVEN_SOUL_TAKER"     ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_OVER_TAKER,			"RAVEN_OVER_TAKER"     ) );
 #ifdef RAVEN_WEAPON_TAKER
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_WEAPON_TAKER,			L"RAVEN_WEAPON_TAKER"   ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_WEAPON_TAKER,			"RAVEN_WEAPON_TAKER"   ) );
 #endif RAVEN_WEAPON_TAKER
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_EXOTIC_GEAR,				L"EVE_EXOTIC_GEAR"      ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_ARCHITECTURE,			L"EVE_ARCHITECTURE"     ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_EXOTIC_GEAR,				"EVE_EXOTIC_GEAR"      ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_ARCHITECTURE,			"EVE_ARCHITECTURE"     ) );
 #ifdef EVE_ELECTRA
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_ELECTRA,					L"EVE_ELECTRA"     ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_ELECTRA,					"EVE_ELECTRA"     ) );
 #endif EVE_ELECTRA
 
 	//{{ kimhc // 2011.1.3 // 청 1차 전직
 #ifdef	CHUNG_FIRST_CLASS_CHANGE
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_FURY_GUARDIAN,			L"CHUNG_FURY_GUARDIAN"  ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN,		L"CHUNG_SHOOTING_GUARDIAN" ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_FURY_GUARDIAN,			"CHUNG_FURY_GUARDIAN"  ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_SHOOTING_GUARDIAN,		"CHUNG_SHOOTING_GUARDIAN" ) );
 #endif	CHUNG_FIRST_CLASS_CHANGE
 	//}} kimhc // 2011.1.3 // 청 1차 전직
 #ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_SHELLING_GUARDIAN,		L"CHUNG_SHELLING_GUARDIAN"  ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_SHELLING_GUARDIAN,		"CHUNG_SHELLING_GUARDIAN"  ) );
 #endif //SERV_ADD_CHUNG_SHELLING_GUARDIAN
 
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_LORD_KNIGHT,			L"ELSWORD_LORD_KNIGHT"  ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_RUNE_SLAYER,			L"ELSWORD_RUNE_SLAYER"  ) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_WIND_SNEAKER,			L"LIRE_WIND_SNEAKER"  	) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_GRAND_ARCHER,			L"LIRE_GRAND_ARCHER"  	) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_ELEMENTAL_MASTER,		L"ARME_ELEMENTAL_MASTER") );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_VOID_PRINCESS,			L"ARME_VOID_PRINCESS"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_LORD_KNIGHT,			"ELSWORD_LORD_KNIGHT"  ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_RUNE_SLAYER,			"ELSWORD_RUNE_SLAYER"  ) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_WIND_SNEAKER,			"LIRE_WIND_SNEAKER"  	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_GRAND_ARCHER,			"LIRE_GRAND_ARCHER"  	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_ELEMENTAL_MASTER,		"ARME_ELEMENTAL_MASTER") );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_VOID_PRINCESS,			"ARME_VOID_PRINCESS"	) );
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_BLADE_MASTER,			L"RAVEN_BLADE_MASTER"		) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_RECKLESS_FIST,			L"RAVEN_RECKLESS_FIST"		) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_BLADE_MASTER,			"RAVEN_BLADE_MASTER"		) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_RECKLESS_FIST,			"RAVEN_RECKLESS_FIST"		) );
 #endif
 //{{ kimhc // 2010.1.22 // 이브 2차 전직
 #ifdef EVE_SECOND_CLASS_CHANGE
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_CODE_NEMESIS,			L"EVE_CODE_NEMESIS"		) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_CODE_EMPRESS,			L"EVE_CODE_EMPRESS"		) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_CODE_NEMESIS,			"EVE_CODE_NEMESIS"		) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_CODE_EMPRESS,			"EVE_CODE_EMPRESS"		) );
 #endif EVE_SECOND_CLASS_CHANGE
 //}} kimhc // 2010.1.22 // 이브 2차 전직
 
 	//{{ JHKang / 강정훈 / 2011.6.13 / 청 2차 전직
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_IRON_PALADIN,			L"CHUNG_IRON_PALADIN"		) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_DEADLY_CHASER,			L"CHUNG_DEADLY_CHASER"		) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_IRON_PALADIN,			"CHUNG_IRON_PALADIN"		) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_DEADLY_CHASER,			"CHUNG_DEADLY_CHASER"		) );
 #endif
 
 #ifdef SERV_ELSWORD_INFINITY_SWORD
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_INFINITY_SWORD,		L"ELSWORD_INFINITY_SWORD"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELSWORD_INFINITY_SWORD,		"ELSWORD_INFINITY_SWORD"	) );
 #endif
 #ifdef SERV_ARME_DIMENSION_WITCH
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_DIMENSION_WITCH,		L"ARME_DIMENSION_WITCH"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARME_DIMENSION_WITCH,		"ARME_DIMENSION_WITCH"	) );
 #endif
 #ifdef SERV_RENA_NIGHT_WATCHER
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_NIGHT_WATCHER,			L"LIRE_NIGHT_WATCHER"		) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_LIRE_NIGHT_WATCHER,			"LIRE_NIGHT_WATCHER"		) );
 #endif
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_VETERAN_COMMANDER,		L"RAVEN_VETERAN_COMMANDER"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_RAVEN_VETERAN_COMMANDER,		"RAVEN_VETERAN_COMMANDER"	) );
 #endif
 #ifdef SERV_EVE_BATTLE_SERAPH
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_BATTLE_SERAPH,		L"EVE_BATTLE_SERAPH"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_EVE_BATTLE_SERAPH,		"EVE_BATTLE_SERAPH"	) );
 #endif
 #ifdef SERV_CHUNG_TACTICAL_TROOPER
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_TACTICAL_TROOPER,		L"CHUNG_TACTICAL_TROOPER"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_CHUNG_TACTICAL_TROOPER,		"CHUNG_TACTICAL_TROOPER"	) );
 #endif
 
 #ifdef ARA_CHANGE_CLASS_FIRST
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_LITTLE_HSIEN,			L"ARA_LITTLE_HSIEN"	) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_SAKRA_DEVANAM,			L"ARA_SAKRA_DEVANAM"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_LITTLE_HSIEN,			"ARA_LITTLE_HSIEN"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_SAKRA_DEVANAM,			"ARA_SAKRA_DEVANAM"	) );
 #endif //ARA_CHANGE_CLASS_FIRST
 
 #ifdef NEW_CHARACTER_EL
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELESIS_SABER_KNIGHT,			L"ELESIS_SABER_KNIGHT"	) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELESIS_PYRO_KNIGHT,			L"ELESIS_PYRO_KNIGHT"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELESIS_SABER_KNIGHT,			"ELESIS_SABER_KNIGHT"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELESIS_PYRO_KNIGHT,			"ELESIS_PYRO_KNIGHT"	) );
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELESIS_GRAND_MASTER,			"ELESIS_GRAND_MASTER"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ELESIS_BLAZING_HEART,		"ELESIS_BLAZING_HEART"	) );
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE //
+
+
 #endif //NEW_CHARACTER_EL
 
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND // 김태환
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_LITTLE_DEVIL,			L"ARA_LITTLE_DEVIL"	) );
-	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_YAMA_RAJA,				L"ARA_YAMA_RAJA"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_LITTLE_DEVIL,			"ARA_LITTLE_DEVIL"	) );
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ARA_YAMA_RAJA,				"ARA_YAMA_RAJA"	) );
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환 ( 캐릭터 추가용 )
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ADD_PSYCHIC_TRACER,	"ADD_PSYCHIC_TRACER"	) );
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+	vecUnitClassName.push_back( UnitClassName( CX2Unit::UC_ADD_LUNATIC_PSYKER,	"ADD_LUNATIC_PSYKER"	) );
+#endif //SERV_ADD_LUNATIC_PSYKER
 
 	BOOST_TEST_FOREACH( UnitClassName&, unitClassName, vecUnitClassName )
 	{
@@ -317,6 +353,14 @@ bool CX2ComboTree::OpenScriptFile( const std::wstring& filename )
 				ParseComboSet( luaManager, unitComboSet.m_vecDashJumpCombo );
 				luaManager.EndTable(); // DASH_JUMP_COMBO
 			}
+
+#ifdef SERV_ADD_LUNATIC_PSYKER // 김태환
+			if( true == luaManager.BeginTable( "SPECIAL_COMBO" ) )	/// 특수 콤보 트리
+			{
+				ParseComboSet( luaManager, unitComboSet.m_vecSpecialCombo );
+				luaManager.EndTable(); // SPECIAL_COMBO
+			}
+#endif //SERV_ADD_LUNATIC_PSYKER
 
 			luaManager.EndTable(); // tableName
 		}

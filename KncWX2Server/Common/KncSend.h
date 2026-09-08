@@ -30,21 +30,30 @@
 #define PC_AUTO_PARTY			0x00000011
 //#endif SERV_BATTLE_FIELD_SYSTEM
 //}}
-//#ifdef SERV_RECORD_CHAT
-#define PC_CHAT_LOG_DB			0x00000012
-//#endif SERV_RECORD_CHAT
+// 2013-11-21. 진입구조 개편
+#define PC_GAME_DB_2ND          0x00000012
+#define PC_LOG_DB_2ND           0x00000013
 
+//{{ 2013. 03. 13	최육사	넥슨 통합 운영툴 미들웨어
+//#ifdef SERV_NEXON_OPERATIONAL_TOOLS_MIDDLEWARE
+#define PC_NX_GMTOOL_TCP		0x00000014
+//#endif SERV_NEXON_OPERATIONAL_TOOLS_MIDDLEWARE
+//}}
+
+//#ifdef SERV_RECORD_CHAT
+#define PC_CHAT_LOG_DB			0x00000015
+//#endif SERV_RECORD_CHAT
 
 //#ifdef SERV_GLOBAL_BILLING
 //-------------------------------------------------------------//
 //-------------------- 해외 인증 빌링 관련 --------------------//
-#define PC_KOG_BILLING_MANAGER		0x00000051	// 자체 빌링 매니저
-#define PC_KOG_BILLING_DB           0x00000052	// 자체 빌링 DB
+#define PC_KOG_BILLING_MANAGER	0x00000051	// 자체 빌링 매니저
+#define PC_KOG_BILLING_DB		0x00000052	// 자체 빌링 DB
 
-#define PC_PUBLISHER_AUTH			0x00000053	// 일반적인 퍼블리셔 인증 시스템
-#define PC_PUBLISHER_BILLING		0x00000054	// 일반적인 퍼블리셔 빌링 시스템 (TCP 통신 사용 - Soap 포함)
-#define PC_PUBLISHER_BILLING_DB		0x00000055	// 일반적인 퍼블리셔 빌링 시스템 (DB SP 사용)
-
+#define PC_PUBLISHER_AUTH		0x00000053	// 일반적인 퍼블리셔 인증 시스템
+#define PC_PUBLISHER_BILLING	0x00000054	// 일반적인 퍼블리셔 빌링 시스템 (TCP 통신 사용 - Soap 포함)
+#define PC_PUBLISHER_BILLING_DB	0x00000055	// 일반적인 퍼블리셔 빌링 시스템 (DB SP 사용)
+#define PC_PUBLISHER_AUTH_DB	0x00000056	// 일반적인 퍼블리셔 인증 시스템 (DB SP 사용)
 
 //---------------- 특이 케이스 해외거 따로 분류 ---------------//
 //#ifdef SERV_AUTH_TCP_THREAD_MANAGER
@@ -60,10 +69,17 @@
 //-------------------------------------------------------------//
 //#endif SERV_GLOBAL_BILLING
 
-
 //#ifdef SERV_ID_NETMARBLE_PCBANG
-#define PC_ID_PCBANG_AUTH_DB			0x00000090	// 2013.07.01 lygan_조성욱 // 인도네시아 PC방 인증하기 위해 퍼블리셔 DB에 접속 용
+#define PC_ID_PCBANG_AUTH_DB	0x00000090	// 2013.07.01 lygan_조성욱 // 인도네시아 PC방 인증하기 위해 퍼블리셔 DB에 접속 용
 //#endif //SERV_ID_NETMARBLE_PCBANG
+
+//#ifdef SERV_ADD_EVENT_DB
+#define PC_EVENT_DB				0x00000091	// 2013.10.30 darkstarbt_조성욱 // Event DB 추가
+//#endif //SERV_ADD_EVENT_DB
+
+//#ifdef SERV_ADD_SCRIPT_DB
+#define PC_SCRIPT_DB					0x00000092	// 2014.02.24 orange82_박진웅 // Script DB 추가
+//#endif //SERV_ADD_SCRIPT_DB
 
 
 //{{ 2013. 09. 23	최육사	일본 이벤트 중계DB작업
@@ -71,7 +87,6 @@
 #define PC_JP_RELAY_DB			0x000000A0	// 일본 이벤트 중계DB
 //#endif SERV_RELAY_DB_CONNECTION
 //}}
-
 
 #define PC_MASK_BIT				0x000000FF
 
@@ -118,19 +133,24 @@ enum ePerformerID {
 	PI_GS_NX_SOAP		= SC_GAME | PC_NX_SOAP,						// 넥슨 SOAP
 #endif SERV_NEXON_AUTH_SOAP
 	//}}
-	//#ifdef SERV_RECORD_CHAT
+#ifdef SERV_ENTRY_POINT
+    PI_GS_GAME_DB_2ND   = SC_GAME | PC_GAME_DB_2ND,  // 진입구조 개편, 다른 서버군의 게임디비 접근용
+    PI_GS_LOG_DB_2ND    = SC_GAME | PC_LOG_DB_2ND,  
+#endif SERV_ENTRY_POINT
+
+//#ifdef SERV_RECORD_CHAT
 	PI_GS_CHAT_LOG_DB	= SC_GAME | PC_CHAT_LOG_DB,
-	//#endif SERV_RECORD_CHAT
+//#endif SERV_RECORD_CHAT
 
-	//#ifdef SERV_GLOBAL_BILLING // 2013.04.11 조효진 해외 빌링 정리 작업
-	PI_GS_KOG_BILLING_MANAGER	= SC_GAME | PC_KOG_BILLING_MANAGER,
-	PI_GS_KOG_BILLING_DB		= SC_GAME | PC_KOG_BILLING_DB,
+//#ifdef SERV_GLOBAL_BILLING // 2013.04.11 조효진 해외 빌링 정리 작업
+	PI_GS_KOG_BILLING_MANAGER		= SC_GAME | PC_KOG_BILLING_MANAGER,
+	PI_GS_KOG_BILLING_DB			= SC_GAME | PC_KOG_BILLING_DB,
 
-	PI_GS_PUBLISHER_AUTH		= SC_GAME | PC_PUBLISHER_AUTH,
+	PI_GS_PUBLISHER_AUTH			= SC_GAME | PC_PUBLISHER_AUTH,
 
-	PI_GS_PUBLISHER_BILLING		= SC_GAME | PC_PUBLISHER_BILLING,	// TCP 통신일 때 사용
-	PI_GS_PUBLISHER_BILLING_DB	= SC_GAME | PC_PUBLISHER_BILLING_DB,// DB 통신일 때 사용
-	//#endif SERV_GLOBAL_BILLING
+	PI_GS_PUBLISHER_BILLING			= SC_GAME | PC_PUBLISHER_BILLING,	// TCP 통신일 때 사용
+	PI_GS_PUBLISHER_BILLING_DB		= SC_GAME | PC_PUBLISHER_BILLING_DB,// DB 통신일 때 사용
+//#endif SERV_GLOBAL_BILLING
 
 //#ifdef SERV_ID_NETMARBLE_PCBANG
 	PI_GS_ID_PUBLISHER_PCBANG_DB	= SC_GAME | PC_ID_PCBANG_AUTH_DB,// 인도네시아 PC 방 인증 디비에 보낼때 사용
@@ -138,9 +158,17 @@ enum ePerformerID {
 
 //{{ 2013. 09. 23	최육사	일본 이벤트 중계DB작업
 //#ifdef SERV_RELAY_DB_CONNECTION
-	PI_GS_JP_RELAY_DB			= SC_GAME | PC_JP_RELAY_DB,	// 일본 이벤트 중계DB
+	PI_GS_JP_RELAY_DB				= SC_GAME | PC_JP_RELAY_DB,	// 일본 이벤트 중계DB
 //#endif SERV_RELAY_DB_CONNECTION
 //}}
+
+//#ifdef SERV_ADD_EVENT_DB
+	PI_GS_EVENT_DB					= SC_GAME | PC_EVENT_DB,
+//#endif //SERV_ADD_EVENT_DB
+
+//#ifdef SERV_ADD_SCRIPT_DB
+	PI_GS_SCRIPT_DB				= SC_GAME | PC_SCRIPT_DB,
+//#endif //SERV_ADD_SCRIPT_DB
 
 	
     // Center Server
@@ -157,6 +185,10 @@ enum ePerformerID {
     PI_CN_LOG_DB		= SC_CENTER | PC_LOG_DB,
 	PI_CN_SMS_DB		= SC_CENTER | PC_SMS_DB,
 
+//#ifdef SERV_ADD_EVENT_DB
+	PI_CN_EVENT_DB		= SC_CENTER | PC_EVENT_DB,
+//#endif //SERV_ADD_EVENT_DB
+
 	// Login Server
 	PI_LOGIN_USER		= SC_LOGIN | PC_USER,
 	PI_LOGIN_SERVER		= SC_LOGIN | PC_SERVER,
@@ -167,9 +199,13 @@ enum ePerformerID {
 	PI_LOGIN_SMS_DB		= SC_LOGIN | PC_SMS_DB,
 	PI_LOGIN_NX_AUTH	= SC_LOGIN | PC_NX_AUTH,	
 	PI_LOGIN_NX_WEB_DB	= SC_LOGIN | PC_NX_WEB_DB,
+
+//#ifdef SERV_ADD_EVENT_DB
+	PI_LOGIN_EVENT_DB	= SC_LOGIN | PC_EVENT_DB,
+//#endif //SERV_ADD_EVENT_DB
 	
-	//#ifdef SERV_GLOBAL_BILLING // 2013.04.11 조효진 해외 빌링 정리 작업
-	// 로그인 서버에서 빌링 처리할 때 사용
+//#ifdef SERV_GLOBAL_BILLING // 2013.04.11 조효진 해외 빌링 정리 작업
+// 로그인 서버에서 빌링 처리할 때 사용
 	PI_LOGIN_KOG_BILLING_MANAGER	= SC_LOGIN | PC_KOG_BILLING_MANAGER,
 	PI_LOGIN_KOG_BILLING_DB			= SC_LOGIN | PC_KOG_BILLING_DB,
 	
@@ -183,18 +219,17 @@ enum ePerformerID {
 	PI_LOGIN_GIANT_INFO			= SC_LOGIN | PC_GIANT_INFO,
 	PI_LOGIN_GIANT_BILLING		= SC_LOGIN | PC_GIANT_BILLING,
 	PI_LOGIN_GIANT_COUPON		= SC_LOGIN | PC_GIANT_COUPON,
-	//#endif SERV_GLOBAL_BILLING
+//#endif SERV_GLOBAL_BILLING
 
-	//{{ 최육사 : [2012/10/9] //	태국 OTP 인증 통신 모듈
-	//#ifdef SERV_AUTH_TCP_THREAD_MANAGER
+//{{ 최육사 : [2012/10/9] //	태국 OTP 인증 통신 모듈
+//#ifdef SERV_AUTH_TCP_THREAD_MANAGER
 	PI_LOGIN_AS_OTP_THREAD		= SC_LOGIN | PC_AS_OTP_THREAD,
-	//#endif SERV_AUTH_TCP_THREAD_MANAGER
-	//}}
+//#endif SERV_AUTH_TCP_THREAD_MANAGER
+//}}
 
-	//#ifdef SERV_COUNTRY_PH
+//#ifdef SERV_COUNTRY_PH
 	PI_LOGIN_GARENA_BILLING		= SC_LOGIN | PC_PUBLISHER_BILLING,
-	//#endif //SERV_COUNTRY_PH
-
+//#endif //SERV_COUNTRY_PH
 	
 	// Channel Server
 	PI_CHANNEL_USER		= SC_CHANNEL | PC_USER,
@@ -207,6 +242,15 @@ enum ePerformerID {
 	PI_CHANNEL_SMS_DB		= SC_CHANNEL | PC_SMS_DB,
 //#endif SERV_CHECK_DROP_CCU
 	//}}
+    // 2013.11.08 서버 진입구조 개편 ( 캐릭터 선택 후 서버 선택 )
+    PI_CHANNEL_GAME_DB = SC_CHANNEL | PC_GAME_DB, 
+//#ifdef SERV_ADD_EVENT_DB
+	PI_CHANNEL_EVENT_DB	= SC_CHANNEL | PC_EVENT_DB,
+//#endif //SERV_ADD_EVENT_DB
+
+//#ifdef SERV_GLOBAL_AUTH
+	PI_CHANNEL_AUTH_DB	= SC_CHANNEL | PC_PUBLISHER_AUTH_DB,
+//#endif SERV_GLOBAL_AUTH
 
 	// Global Server
 	PI_GLOBAL_USER			= SC_GLOBAL | PC_USER,
@@ -217,11 +261,6 @@ enum ePerformerID {
 	PI_GLOBAL_AUTO_PARTY	= SC_GLOBAL | PC_AUTO_PARTY,
 //#endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
-	//{{ 2013. 05. 14	최육사	제재 리스트 통합
-//#ifdef SERV_BLOCK_LIST
-	PI_GLOBAL_ACCOUNT_DB	= SC_GLOBAL | PC_ACCOUNT_DB,
-//#endif SERV_BLOCK_LIST
-	//}}
 	//{{ 2012. 10. 31	최육사	배틀필드 시스템
 //#ifdef SERV_BATTLE_FIELD_SYSTEM
 	PI_GLOBAL_GAME_DB		= SC_GLOBAL | PC_GAME_DB,
@@ -229,10 +268,26 @@ enum ePerformerID {
 	//}}
 	PI_GLOBAL_LOG_DB		= SC_GLOBAL | PC_LOG_DB,
 	PI_GLOBAL_SMS_DB		= SC_GLOBAL | PC_SMS_DB,
+	//{{ 2013. 03. 13	최육사	넥슨 통합 운영툴 미들웨어
+	//#ifdef SERV_NEXON_OPERATIONAL_TOOLS_MIDDLEWARE
+	PI_GLOBAL_ACCOUNT_DB	= SC_GLOBAL | PC_ACCOUNT_DB,
+	PI_GLOBAL_NX_GMTOOL_TCP	= SC_GLOBAL | PC_NX_GMTOOL_TCP,
+	//#endif SERV_NEXON_OPERATIONAL_TOOLS_MIDDLEWARE
+	//}}
+	
+//#ifdef SERV_ADD_EVENT_DB
+	PI_GLOBAL_EVENT_DB		= SC_GLOBAL | PC_EVENT_DB,
+//#endif //SERV_ADD_EVENT_DB
 
     // Common DB
     PI_ACCOUNT_DB		= PC_ACCOUNT_DB,
     PI_LOG_DB			= PC_LOG_DB,
+//#ifdef SERV_ADD_EVENT_DB
+	PI_EVENT_DB			= PC_EVENT_DB,
+//#endif //SERV_ADD_EVENT_DB
+//#ifdef SERV_ADD_SCRIPT_DB
+	PI_SCRIPT_DB		= PC_SCRIPT_DB,
+//#endif //SERV_ADD_SCRIPT_DB
     PI_NULL				= -1,
 };
 

@@ -82,24 +82,24 @@ void KUserStatistics::IncreaseCount( int iTableID, int iSubTableID , int iColumn
 
 	switch( iTableID )
 	{
-	case US_Table::USTable_PvpModeCount:
-	case US_Table::USTable_PvpPlayTime:
+	case USTable_PvpModeCount:
+	case USTable_PvpPlayTime:
 		IncreaseCount( m_mapPvpStatistics ,key, vecCount );
 		break;
 
-	case US_Table::USTable_Dungeon:
+	case USTable_Dungeon:
 		IncreaseCount( m_mapDungeonStatistics, key, vecCount );
 		break;
 
-	case US_Table::USTable_TrainingCenter:
+	case USTable_TrainingCenter:
 		IncreaseCount( m_mapTCenterStatistics, key, vecCount );
 		break;
 
-	case US_Table::USTable_EtcData:
+	case USTable_EtcData:
 		IncreaseCount( m_mapEtcStatistics, key, vecCount );
 		break;
 #ifdef SERV_USER_STATISTICS_RENEWAL
-	case US_Table::USTable_EDData:
+	case USTable_EDData:
 		IncreaseCount( m_mapEDStatistics, key, vecCount );
 		break;
 #endif //SERV_USER_STATISTICS_RENEWAL

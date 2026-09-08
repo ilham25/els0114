@@ -4,7 +4,7 @@
 /*
 CX2StateUnitSelect::CX2StateUnitSelect(void)
 {
-	if( false == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser ) // 체험 아이디 제한
+	if( false == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser ) // 체험 아이디 제한
 	{
 		if( g_pMain->GetNexonLoginMessenger() == true && g_pMain->GetNexonVirtualLogin() == true )
 		{
@@ -56,7 +56,7 @@ CX2StateUnitSelect::CX2StateUnitSelect(void)
 	m_bCheckRecommend = false;
 	m_bCheckRecommendSuccess = false;
 
-	g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-700, 0,0,0 );
+	g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-700, 0,0,0 );
 	g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(),
 		g_pKTDXApp->GetDGManager()->GetFar(),
 		false );
@@ -79,7 +79,7 @@ CX2StateUnitSelect::CX2StateUnitSelect(void)
 	m_bOneTimeInit = true;
 	m_bStateChangingToUnitCreate = false;
 
-	m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData()->maxUnitCount;
+	m_MaxUnitNum	= g_pData->GetMyUser()->GetUserData().maxUnitCount;
 
 	m_NowPage		= 1;
 	m_MaxPage		= (m_MaxUnitNum / UNIT_SELECT_UI_MAX_UNIT_NUM);
@@ -178,10 +178,10 @@ HRESULT CX2StateUnitSelect::OnFrameMove( double fTime, float fElapsedTime )
 		UnitButtonUp( pUnit );
 		
 
-		Handler_EGS_SELECT_UNIT_REQ( pUnit->GetUID(), pUnit->GetUnitData()->m_Level );
+		Handler_EGS_SELECT_UNIT_REQ( pUnit->GetUID(), pUnit->GetUnitData().m_Level );
 	}
 
-//	g_pKTDXApp->GetDGManager()->GetCamera()->UpdateCamera( fElapsedTime );
+//	g_pKTDXApp->GetDGManager()->GetCamera().UpdateCamera( fElapsedTime );
 
 
 

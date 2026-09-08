@@ -4,11 +4,65 @@
 #pragma comment(lib,"Psapi.lib")
 #include "psapi.h"
 
+#define XOR_KEY0 0xc6f8aa02
+#define XOR_KEY1 0x2647abdc
+#define XOR_KEY2 0x9800bbef
+#define XOR_KEY3 0xabcd3423
+#define XOR_KEY4 0x567893ad
+#define XOR_KEY5 0xcdcd3423
+#define XOR_KEY6 0x234ad423
+#define XOR_KEY7 0x2349097d
+#define XOR_KEY8 0x90902348
+#define XOR_KEY9 0x12349790
+#define XOR_KEY10 0xedfaeabe
+#define XOR_KEY11 0x12342377
+#define XOR_KEY12 0xabce7900
+#define XOR_KEY13 0xe80231bc
+#define XOR_KEY14 0xcf4235de
+#define XOR_KEY15 0x13bd2349
+#define XOR_KEY16 0x134bdeff
+#define XOR_KEY17 0x241bdeac
+#define XOR_KEY18 0x34fabedf
+#define XOR_KEY19 0x12334bde
+#define XOR_KEY20 0x2346cbad
+#define XOR_KEY21 0x313409bc
+#define XOR_KEY22 0xde34bd78
+#define XOR_KEY23 0xccad34ff
+#define XOR_KEY24 0x13caefac
+#define XOR_KEY25 0x13daeffa
+#define XOR_KEY26 0x349d013c
+#define XOR_KEY27 0x234face2
+#define XOR_KEY28 0x13403cd3
+#define XOR_KEY29 0x13dc34db
+#define XOR_KEY30 0xcc3d4ffb
+#define XOR_KEY31 0xc6f8aa02
+#define XOR_KEY32 0xa59d82de
+#define XOR_KEY33 0xa582142d
+#define XOR_KEY34 0xaa8fe329
+#define XOR_KEY35 0x56a3a4fb
+#define XOR_KEY36 0x2b3f57c8
+#define XOR_KEY37 0x347cf5c8
+#define XOR_KEY38 0x34cc7f5a
+#define XOR_KEY39 0x3b2da4d5
+#define XOR_KEY40 0x52b34a75
+#define XOR_KEY41 0x15b522a2
+#define XOR_KEY42 0x593cdeaf
+#define XOR_KEY43 0x892a53b4
+#define XOR_KEY44 0x12d34e90
+#define XOR_KEY45 0xc50ba734
+#define XOR_KEY46 0x3457b89d
+#define XOR_KEY47 0x298d570a
+#define XOR_KEY48 0x2d3479b0
+#define XOR_KEY49 0x38d2dfa4
+
 inline void MakeUpperCase(char* str) 
 {
 	KTDXPROFILE();
-	for( char* i = str; (*i) != 0; i++ ) 
-		*i = (char)toupper(*i);
+    if ( str != NULL )
+    {
+	    for( char* i = str; (*i) != 0; i++ ) 
+		    *i = (char)toupper(*i);
+    }
 }
 
 inline void MakeUpperCase(std::string &str) 
@@ -21,8 +75,11 @@ inline void MakeUpperCase(std::string &str)
 inline void MakeUpperCase(WCHAR* str) 
 {
 	KTDXPROFILE();
-	for( WCHAR* i = str; (*i) != 0; i++ ) 
-		*i = (WCHAR)towupper(*i);
+    if ( str != NULL )
+    {
+	    for( WCHAR* i = str; (*i) != 0; i++ ) 
+		    *i = (WCHAR)towupper(*i);
+    }
 }
 
 inline void MakeUpperCase(std::wstring &str) 
@@ -34,8 +91,13 @@ inline void MakeUpperCase(std::wstring &str)
 
 inline void MakeUpperCase(WCHAR* dest, size_t size, const WCHAR* str) 
 {
-	if ( dest == NULL || size == 0 )
+	if ( dest == NULL || size == 0  )
 		return;
+    if ( str == NULL )
+    {
+        *dest = NULL;
+        return;
+    }
 	//KTDXPROFILE();
 	WCHAR lower;
 	size_t  count = 0;
@@ -44,75 +106,64 @@ inline void MakeUpperCase(WCHAR* dest, size_t size, const WCHAR* str)
 		*dest = (WCHAR)towupper(lower);
 		dest++;
 		str++;
+        count++;
 	}//while
 	*dest = 0;
 }
 
-inline void ConvertCharToWCHAR( wstring& dest, const string& src )
+inline std::wstring& ConvertCharToWCHAR( std::wstring& dest, const std::string& src )
 {
-	dest.clear();
+	dest.resize( 0 );
 	if( src.empty() )
-		return;
+		return dest;
 	
 	int iSrcLength = src.length();
 	if ( iSrcLength <= 0 )
-	{
-		dest = L"";
-		return;
-	}//if
+		return dest;
 
 	int iDestSize = ::MultiByteToWideChar( CP_ACP, 0, src.c_str(), iSrcLength, NULL, 0 );
 	if ( iDestSize <= 0 )
-	{
-		dest = L"";
-		return;
-	}//if
+		return dest;
 
-	WCHAR* wcharBuf = (WCHAR*) _alloca( iDestSize * sizeof( WCHAR ) );
+	wchar_t* wcharBuf = (wchar_t*) _malloca( iDestSize * sizeof( wchar_t ) );
 	ASSERT( wcharBuf != NULL );
 	int iNewSize = ::MultiByteToWideChar( CP_ACP, 0, src.c_str(), iSrcLength, wcharBuf, iDestSize );
 	ASSERT( iNewSize == iDestSize );
 	dest.assign( wcharBuf, iNewSize );
+    _freea( wcharBuf );
+    return  dest;
 }
 
 
 
-inline void ConvertWCHARToChar( string& dest, const wstring& src )
+inline std::string& ConvertWCHARToChar( std::string& dest, const std::wstring& src )
 {
-	KTDXPROFILE();
-
-	dest.clear();
+	dest.resize( 0 );
 	if( src.empty() )
-		return; 
+		return dest; 
 
 	int iSrcLength = src.length();
 	if ( iSrcLength <= 0 )
-	{
-		dest = "";
-		return;
-	}//if
+		return dest; 
 
 	int iDestSize = ::WideCharToMultiByte( CP_ACP, 0, src.c_str(), iSrcLength, NULL, 0, NULL, NULL );
 	if ( iDestSize <= 0 )
-	{
-		dest = "";
-		return;
-	}//if
+		return dest; 
 
-	char* pszConv = (char*) _alloca( iDestSize * sizeof(char) );
+	char* pszConv = (char*) _malloca( iDestSize * sizeof(char) );
 	ASSERT( pszConv != NULL );
 	int iNewSize = ::WideCharToMultiByte( CP_ACP, 0, src.c_str(), iSrcLength, pszConv, iDestSize, NULL, NULL );
 	ASSERT( iNewSize == iDestSize );
 	dest.assign( pszConv, iNewSize );
+    _freea( pszConv );
+    return  dest;
 }
 
 
 
 
-inline void ConvertCharToWCHAR( wstring& dest, const char* pSrc, const int iLength = -1  )
+inline std::wstring& ConvertCharToWCHAR( std::wstring& dest, const char* pSrc, const int iLength = -1  )
 {
-	KTDXPROFILE();
-
 //{{ robobeg : 2008-01-08
 	//if ( pSrc == NULL )
 	//	return;
@@ -127,41 +178,35 @@ inline void ConvertCharToWCHAR( wstring& dest, const char* pSrc, const int iLeng
 	//MultiByteToWideChar( CP_ACP, 0, pSrc, -1, wcharBuf, iSize );
 	//dest = wcharBuf;
 
-    dest.clear();
+    dest.resize( 0 );
     if ( pSrc == NULL )
-        return;
+        return dest;
 
 	int iSrcLength = iLength;
-	if( -1 == iLength )
+	if( iSrcLength < 0 )
 	{
 		iSrcLength = strlen( pSrc );
 		if ( iSrcLength <= 0 )
-		{
-			dest = L"";
-			return;
-		}//if
+			return dest;
 	}
 
     int iDestSize = ::MultiByteToWideChar( CP_ACP, 0, pSrc, iSrcLength, NULL, 0 );
     if ( iDestSize <= 0 )
-    {
-        dest = L"";
-        return;
-    }//if
+	    return dest;
 
-	WCHAR* wcharBuf = (WCHAR*) _alloca( iDestSize * sizeof( WCHAR ) );
+	wchar_t* wcharBuf = (wchar_t*) _malloca( iDestSize * sizeof( wchar_t ) );
     ASSERT( wcharBuf != NULL );
     int iNewSize = ::MultiByteToWideChar( CP_ACP, 0, pSrc, iSrcLength, wcharBuf, iDestSize );
     ASSERT( iNewSize == iDestSize );
     dest.assign( wcharBuf, iNewSize );
+    _freea( wcharBuf );
+    return  dest;
 //}} robobeg : 2008-01-08
 }
 
 
-inline void ConvertWCHARToChar( string& dest, const WCHAR* pSrc, const int iLength = -1 )
+inline std::string& ConvertWCHARToChar( std::string& dest, const wchar_t* pSrc, const int iLength = -1 )
 {
-	KTDXPROFILE();
-
 //{{ robobeg : 2008-01-08
 	//if ( pSrc == NULL )
 	//	return;
@@ -176,70 +221,86 @@ inline void ConvertWCHARToChar( string& dest, const WCHAR* pSrc, const int iLeng
 	//WideCharToMultiByte( CP_ACP, 0, pSrc, -1, charBuf, iSize, NULL, NULL );
 	//dest = charBuf;
 
-    dest.clear();
+    dest.resize( 0 );
     if ( pSrc == NULL )
-        return;
+        return dest;
 
 	int iSrcLength = iLength;
-	if( -1 == iSrcLength )
+	if( iSrcLength < 0 )
 	{
 		iSrcLength = wcslen( pSrc );
 		if ( iSrcLength <= 0 )
-		{
-			dest = "";
-			return;
-		}//if
+			return dest;
 	}
 
     int iDestSize = ::WideCharToMultiByte( CP_ACP, 0, pSrc, iSrcLength, NULL, 0, NULL, NULL );
     if ( iDestSize <= 0 )
-    {
-        dest = "";
-        return;
-    }//if
+        return dest;
 
-    char* pszConv = (char*) _alloca( iDestSize * sizeof(char) );
+    char* pszConv = (char*) _malloca( iDestSize * sizeof(char) );
     ASSERT( pszConv != NULL );
     int iNewSize = ::WideCharToMultiByte( CP_ACP, 0, pSrc, iSrcLength, pszConv, iDestSize, NULL, NULL );
     ASSERT( iNewSize == iDestSize );
     dest.assign( pszConv, iNewSize );
+    _freea( pszConv );
+    return dest;
 //}} robobeg : 2008-01-08
 }
 
-inline void ConvertUtf8ToWCHAR( wstring& dest, const char* pSrc, const int iLength = -1 )
+inline std::wstring& ConvertUtf8ToWCHAR( std::wstring& dest, const char* pSrc, const int iLength = -1 )
 {
-    KTDXPROFILE();
-
-    dest.clear();
+    dest.resize( 0 );
     if( !pSrc )
-    {
-        return;
-    }
+        return dest;
 
     int iSrcLength = iLength;
-    if( -1 == iSrcLength )
+    if( iSrcLength < 0 )
     {
         iSrcLength = strlen( pSrc );
         if ( iSrcLength <= 0 )
-        {
-            dest = L"";
-            return;
-        }//if
+            return dest;
     }
 
     int iDestSize = ::MultiByteToWideChar( CP_UTF8, 0, pSrc, iSrcLength, NULL, 0 );
     if ( iDestSize <= 0 )
-    {
-        dest = L"";
-        return;
-    }//if
+        return dest;
 
-    WCHAR* wcharBuf = (WCHAR*) _alloca( iDestSize * sizeof( WCHAR ) );
+    wchar_t* wcharBuf = (wchar_t*) _malloca( iDestSize * sizeof( wchar_t ) );
     ASSERT( wcharBuf != NULL );
     int iNewSize = ::MultiByteToWideChar( CP_UTF8, 0, pSrc, iSrcLength, wcharBuf, iDestSize );
     ASSERT( iNewSize == iDestSize );
     dest.assign( wcharBuf, iNewSize );
+    _freea( wcharBuf );
+    return  dest;
 }
+
+
+inline std::wstring& ConvertUtf8ToWCHAR( std::wstring& dest, const std::string& src )
+{
+	dest.resize( 0 );
+	if( src.empty() )
+		return dest;
+	
+	int iSrcLength = src.length();
+	if ( iSrcLength <= 0 )
+		return dest;
+
+	int iDestSize = ::MultiByteToWideChar( CP_UTF8, 0, src.c_str(), iSrcLength, NULL, 0 );
+	if ( iDestSize <= 0 )
+		return dest;
+
+	wchar_t* wcharBuf = (wchar_t*) _malloca( iDestSize * sizeof( wchar_t ) );
+	ASSERT( wcharBuf != NULL );
+	int iNewSize = ::MultiByteToWideChar( CP_UTF8, 0, src.c_str(), iSrcLength, wcharBuf, iDestSize );
+	ASSERT( iNewSize == iDestSize );
+	dest.assign( wcharBuf, iNewSize );
+    _freea( wcharBuf );
+    return  dest;
+}
+
+
+
+
 
 inline float GetDistance( const float& x1, const float& y1, const float& z1, const float& x2, const float& y2, const float& z2 )
 {
@@ -311,19 +372,19 @@ inline CHAR* StrHeapCopy( CHAR *sName )
 
 inline std::string RemoveQuotes(std::string &str) 
 {
-	for (std::string::iterator i = str.begin(); i != str.end(); i++) 
+	for (std::string::iterator i = str.begin(); i != str.end();) 
 	{
 		if (*i == '\"') 
 		{
 			i = str.erase(i); 
-			if (i == str.end()) 
-				break;
 		}
+        else
+            i++;
 	}
 	return(str);
 }
 
-inline D3DXVECTOR3 GetDecomposeScale( D3DXMATRIX* pMat )
+inline D3DXVECTOR3 GetDecomposeScale( const D3DXMATRIX* pMat )
 {
 	KTDXPROFILE();
 
@@ -352,6 +413,40 @@ inline D3DXVECTOR3 GetDecomposeScale( D3DXMATRIX* pMat )
 
 	return scale;
 }
+
+
+#ifdef  X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+
+inline D3DXVECTOR3 GetDecomposeScaleXY( const D3DXMATRIX* pMat )
+{
+	KTDXPROFILE();
+
+	ASSERT( NULL != pMat );
+	
+	D3DXVECTOR3 scale;
+
+	// set scaling
+	float fBeforeSqrtf = pMat->m[0][0] * pMat->m[0][0] +
+		pMat->m[0][1] * pMat->m[0][1] +
+		pMat->m[0][2] * pMat->m[0][2];
+
+	scale.x = ( 0 < fBeforeSqrtf ? sqrtf( fBeforeSqrtf ) : 0.0f );
+
+	fBeforeSqrtf = pMat->m[1][0] * pMat->m[1][0] +
+		pMat->m[1][1] * pMat->m[1][1] +
+		pMat->m[1][2] * pMat->m[1][2];
+
+	scale.y = ( 0 < fBeforeSqrtf ? sqrtf( fBeforeSqrtf ) : 0.0f );
+
+	scale.z = 0.0f;
+
+	return scale;
+}
+
+#endif  X2OPTIMIZE_DAMAGEEFFECT_COLLISION
+
+
+
 
 inline D3DXVECTOR3 GetDecomposeAngle( D3DXMATRIX* pMat )
 {
@@ -647,10 +742,71 @@ inline int RandomInt( int iMinBound = 0, int iMaxBound = 100 )
 	return rand()%(iMaxBound-iMinBound) + iMinBound;
 }
 
+#ifdef  X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+// 미리 decrypt 될 버퍼까지 사용자가 제공하는 버전이다. 동적 메모리 할당을 줄이기 위해 사용
+__forceinline void  XORCRCDecrypt( char* pDecryptedBuffer, const char* pEncryptedBuffer, int iBufferSize, const wchar_t* pwszFilename )
+{
+    if ( pDecryptedBuffer == NULL || pEncryptedBuffer == NULL || iBufferSize <= 0 || pwszFilename == NULL || pwszFilename[0] == NULL )
+        return;
+	const static int	s_aiXorKeys[5] = { XOR_KEY30, XOR_KEY42, XOR_KEY14, XOR_KEY22, XOR_KEY40  };
+	const int iKeySize = 5 * sizeof(int);
+    BYTE    abyXORKey1[iKeySize];
+    memcpy( abyXORKey1, s_aiXorKeys, iKeySize );
+    for( int i = 0; i < 5; ++i )
+        ((int*) &abyXORKey1[0])[i] ^= XOR_KEY49;
+    
+	int iKeyIndex = 0;
+
+    DWORD   dwCRC = 0xFFFFFFFFU;
+    int iByteIndex = 0;
+    {
+        int iFileNameLength = wcslen( pwszFilename );
+        iFileNameLength = __min( MAX_PATH, iFileNameLength );
+        int iPrefixSize = iFileNameLength * 2 + 4;
+        BYTE    abyByte[ MAX_PATH*2 + 4 ];
+        std::locale loc;
+        for( int i = 0; i < iFileNameLength; i++ )
+        {
+            USHORT usValue = (USHORT) std::tolower( pwszFilename[ i ], loc );
+            abyByte[iByteIndex++] = (BYTE)( usValue & 0xFF );
+            usValue >>= 8;
+            if ( usValue != 0 )
+            {
+                abyByte[iByteIndex++] = (BYTE)( usValue & 0xFF );
+            }
+        }
+        DWORD   dwFileSize = (DWORD) iBufferSize;
+        for( int i = 0; i < 4 && dwFileSize != 0; ++i )
+        {
+            abyByte[iByteIndex++] = (BYTE)( dwFileSize & 0xFF );
+            dwFileSize >>= 8;
+        }
+        ASSERT( iPrefixSize >= iByteIndex );
+        CRC.CalculateWithoutEncrypt( abyByte, (UINT) iByteIndex, abyXORKey1, iKeySize, dwCRC );
+    }
+    iByteIndex %= iKeySize;
+    BYTE abyXORKey[iKeySize];
+    if ( iByteIndex == 0 )
+    {
+        memcpy( abyXORKey, abyXORKey1, iKeySize );
+    }
+    else
+    {
+        memcpy( &abyXORKey[0], abyXORKey1 + iByteIndex, iKeySize - iByteIndex );
+        memcpy( &abyXORKey[iKeySize - iByteIndex], abyXORKey1, iByteIndex );
+    }
+    if ( pDecryptedBuffer != pEncryptedBuffer )
+        memcpy( pDecryptedBuffer, pEncryptedBuffer, iBufferSize );
+    CRC.CalculateAndDecrypt( (BYTE*) pDecryptedBuffer, (UINT) iBufferSize, abyXORKey, iKeySize, dwCRC );
+}
+
+#endif  X2OPTIMIZE_ENFORCE_IMPORTANT_DATA_ENCRYPTION
+
+
 inline char* XORDecrypt( const char* pEncryptedBuffer, int iBufferSize )
 {
-	int	aDecryptionKey[3] = { XOR_KEY0, XOR_KEY1, XOR_KEY2 };
-
+	int	aDecryptionKey[5] = { XOR_KEY30, XOR_KEY42, XOR_KEY14, XOR_KEY22, XOR_KEY40  };
+	
 	char pBuf[5];
 
 	std::string strCryptBuffer;
@@ -659,7 +815,7 @@ inline char* XORDecrypt( const char* pEncryptedBuffer, int iBufferSize )
 		return NULL;
 
 	int iKeyIndex = 0;
-	int iKeySize = 3;
+	int iKeySize = 5;
 	int iRemainSize = iBufferSize;
 	int iCryptedSize = 0;
 
@@ -676,7 +832,7 @@ inline char* XORDecrypt( const char* pEncryptedBuffer, int iBufferSize )
 //}} robobeg : 2012-11-23
 
 		// 복호화
-		int iEncryptData = iBufTemp ^ aDecryptionKey[iKeyIndex];
+		int iEncryptData = iBufTemp ^ ( aDecryptionKey[iKeyIndex] ^ XOR_KEY49 );
 
 		memcpy( pBuf, &iEncryptData, 4 );
 
@@ -720,9 +876,11 @@ inline char* XOREncrypt( const char* pEncryptedBuffer, int iBufferSize )
 inline bool FileEncrypt( std::string strFileName )
 {
 	std::vector<int> vecEncryptionKey;
-	vecEncryptionKey.push_back( XOR_KEY0 );
-	vecEncryptionKey.push_back( XOR_KEY1 );
-	vecEncryptionKey.push_back( XOR_KEY2 );
+	vecEncryptionKey.push_back( XOR_KEY30 );
+	vecEncryptionKey.push_back( XOR_KEY42 );
+	vecEncryptionKey.push_back( XOR_KEY14 );
+	vecEncryptionKey.push_back( XOR_KEY22 );
+	vecEncryptionKey.push_back( XOR_KEY40 );
 
 	char pBuf[5];
 	std::string strEncryptedFileName;
@@ -757,7 +915,7 @@ inline bool FileEncrypt( std::string strFileName )
 		memcpy( &iBufTemp, pBuf, 4 );
 
 		// 암호화
-		int iEncryptData = iBufTemp ^ vecEncryptionKey[iKeyIndex];
+		int iEncryptData = iBufTemp ^ ( vecEncryptionKey[iKeyIndex] ^ XOR_KEY49 );
 
 		memcpy( pBuf, &iEncryptData, 4 );
 
@@ -1316,11 +1474,70 @@ inline bool DisplayErrorMessage( const WCHAR* wszError_ )
 	return false;
 }
 
+
+inline bool DisplayErrorMessage( const char* szError_ )
+{
+#if defined( EFFECT_TOOL ) && defined( NDEBUG )
+	return false;
+#endif //EFFECT_TOOL
+
+#ifndef	_SERVICE_
+	StateLog( szError_ );
+
+//hcsung_test
+//#if defined(_DEBUG )
+//	ASSERT( NULL );
+//	MessageBox( NULL, wszError_, wszError_, MB_OK );
+//#else
+//	MessageBox( NULL, wszError_, wszError_, MB_OK );
+//#endif
+
+#endif	_SERVICE_
+
+	return false;
+}
+
 #ifdef	_SERViCE_
 #define DISPLAY_ERROR( wszError_ ) DisplayErrorMessage( L"Error" );
 #else	_SERViCE_
 #define DISPLAY_ERROR( wszError_ ) DisplayErrorMessage( wszError_ );
 #endif	_SERViCE_
+
+inline HRESULT  ComputeBoundingSphere( const D3DXVECTOR3* pfirstposition, DWORD numvertices, DWORD dwstride, D3DXVECTOR3* pcenter, FLOAT *pradius )
+{
+    D3DXVECTOR3 temp, temp1;
+    FLOAT   d2, radius2;
+    unsigned int    i;
+
+    if ( !pfirstposition || !pcenter || !pradius )  return D3DERR_INVALIDCALL;
+    if ( numvertices == 0 )
+    {
+        *pcenter = D3DXVECTOR3(0,0,0);
+        *pradius = 0.f;
+        return S_OK;
+    }
+
+    temp.x = 0.0f;
+    temp.y = 0.0f;
+    temp.z = 0.0f;
+    temp1 = temp;
+    d2 = 0.0f;
+    radius2 = 0.0f;
+
+    for( i = 0; i < numvertices; i++ )
+    {
+        D3DXVec3Add( &temp1, &temp, (D3DXVECTOR3*)((char*)pfirstposition + dwstride * i ) );
+        temp = temp1;
+    }
+    D3DXVec3Scale(pcenter, &temp, 1.0f/((FLOAT)numvertices));
+    for( i = 0; i < numvertices; i++ )
+    {
+        d2 = D3DXVec3LengthSq(D3DXVec3Subtract(&temp, (D3DXVECTOR3*)((char*)pfirstposition + dwstride*i), pcenter));
+        if ( d2 > radius2 ) radius2 = d2;
+    }
+    *pradius = sqrtf(radius2);
+    return  D3D_OK;
+}
 
 #ifdef CHEAT_WCHART_TO_UTF8
 inline void ConvertWCHARToUtf8( std::string& dest, const WCHAR* pSrc, const int iLength = -1 )

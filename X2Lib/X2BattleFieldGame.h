@@ -114,6 +114,17 @@ public:
 	bool					Handler_EGS_CHECK_EXIST_MONSTER_UID_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif // SERV_CHECK_EXIST_MONSTER_UID
 
+#ifdef FIELD_BOSS_RAID
+	void					CreateRaidPotal();
+	void					DestoryRaidPotalParticle();
+	void					CreateLoadingUI();
+	bool					GetShowLoadUi() const { if(m_pDLGLoadingState == NULL) return false; return true; }
+#endif // FIELD_BOSS_RAID
+
+#ifdef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+	void					ResetTimerForSendingPositionInfo(){ m_TimerForSendingPositionInfo.ResetSumOfElapsedTime();}
+#endif // SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+
 protected:
 
 	virtual void			UpdateUnitPointer();	
@@ -129,10 +140,14 @@ protected:
 	virtual bool			GetIsExsitancePartyMemberHPLessThanPer( const float fHPRate_, const CX2GUUser* pGUUserWhoCallFunction_ ) const;
 #endif // NEW_CHARACTER_EL
 
+#ifdef FIELD_BOSS_RAID
+	void					OnFrameMove_LoadingUI(double fTime, float fElapsedTime);
+#endif // FIELD_BOSS_RAID
+
 private:
 
 	void					OpenBattleFieldName();
-	void					CreatePotalParticle() const;
+	void					CreatePotalParticle();
 #ifdef SERV_COMMON_AUTO_OPEN_HARD_CODE
 	void					CreatePotalParticle( const int& iLineIdx ) const;
 #endif // SERV_COMMON_AUTO_OPEN_HARD_CODE
@@ -168,7 +183,18 @@ protected:
 	bool						m_bCanCheckGettingFirstNpcSyncPacket;			/// NPC로 부터 첫 싱크 패킷을 받았는지 체크 하려면 true
 #endif	//	SERV_CHECK_EXIST_MONSTER_UID
 
-	//#ifdef SERV_COMMON_AUTO_OPEN_HARD_CODE
+#ifdef FIELD_BOSS_RAID
+	CKTDGParticleSystem::CParticleEventSequenceHandle			m_hRaidGateParticle;			// 레이드 게이트 파티클 핸들
+	CKTDGParticleSystem::CParticleEventSequenceHandle			m_hRaidPortalParticle;			// 레이드 포탈 파티클 핸들
+	vector<CKTDGParticleSystem::CParticleEventSequenceHandle>	m_vecRaidGateEffectParticle;	// 레이드 게이트 이펙트 파티클 핸들
+
+	CKTDGUIDialogType		m_pDLGLoadingState;		/// 워프로 이동 했을 때 생성 되는 로딩창
+
+	float					m_fLoadUIReaminTime;
+#endif // FIELD_BOSS_RAID
+
+//#ifdef SERV_COMMON_AUTO_OPEN_HARD_CODE
 	mutable bool						m_bOpenPotalParticle;
-	//#endif //SERV_COMMON_AUTO_OPEN_HARD_CODE
+//#endif //SERV_COMMON_AUTO_OPEN_HARD_CODE
+
 };

@@ -31,7 +31,7 @@ void CX2SystemInfo::InitLocaleMap()
 	// http://msdn.microsoft.com/en-us/library/dd318693(v=VS.85).aspx
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	if(  g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, L"LocaleInfo.lua" ) == false )
+	if(  g_pKTDXApp->LoadAndDoMemory( &luaManager, L"LocaleInfo.lua" ) == false )
 	{
 		return;
 	}
@@ -66,12 +66,12 @@ void CX2SystemInfo::InitLocaleMap()
 		}
 		luaManager.EndTable();
 	}
-}
+} 
 
 void CX2SystemInfo::LoadLanguageInfo(KLuaManager& luaManager, LanguageInfo& lang_info)
 {
 	LUA_GET_VALUE( luaManager,		"LANGID",			lang_info.LangID,		0		);
-	LUA_GET_VALUE( luaManager,		"NAME",				lang_info.Name,	""		);
+	LUA_GET_VALUE_UTF8( luaManager,	"NAME",				lang_info.Name,	""		);
 }
 
 string CX2SystemInfo::GetLocaleName(DWORD id) const

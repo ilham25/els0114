@@ -105,31 +105,38 @@ bool CX2SkillTree::OpenScriptFile( const WCHAR* pFileName, const WCHAR* pSkillDa
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 	/// 데미지 배율 정보를 먼저 얻기 위해, SkillData.lua를 먼저 파싱한다.
-	if( g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pSkillDataFileName ) == false )
+	if( g_pKTDXApp->LoadLuaTinker( pSkillDataFileName ) == false )
 	{
 		ErrorLogMsg( XEM_ERROR96, pSkillDataFileName );
 		return false;
 	}
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
-	if( g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName ) == false )
+	if( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
 	{
 		ErrorLogMsg( XEM_ERROR96, pFileName );
 		return false;
 	}
 	
 #ifdef LUA_TRANS_DEVIDE
-	if( g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( L"NewSkillTempletTrans.lua" ) == false )
+#ifdef UPGRADE_SKILL_SYSTEM_2013
+	if( g_pKTDXApp->LoadLuaTinker( L"NewSkillTempletVer2Trans.lua" ) == false )
+	{
+		ErrorLogMsg( XEM_ERROR96, L"NewSkillTempletVer2Trans.lua" );
+		return false;
+	}
+#else //UPGRADE_SKILL_SYSTEM_2013
+	if( g_pKTDXApp->LoadLuaTinker( L"NewSkillTempletTrans.lua" ) == false )
 	{
 		ErrorLogMsg( XEM_ERROR96, L"NewSkillTempletTrans.lua" );
 		return false;
 	}
+#endif //UPGRADE_SKILL_SYSTEM_2013
 #endif LUA_TRANS_DEVIDE
-
 
 #ifndef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 	/// 데미지 배율 정보를 먼저 얻기 위해, SkillData.lua를 먼저 파싱하도록 위치 이동
-	if( g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pSkillDataFileName ) == false )
+	if( g_pKTDXApp->LoadLuaTinker( pSkillDataFileName ) == false )
 	{
 		ErrorLogMsg( XEM_ERROR96, pSkillDataFileName );
 		return false;
@@ -241,7 +248,9 @@ void CX2SkillTree::OpenScriptFilePostProcess()
 bool CX2SkillTree::AddSkillTreeTemplet_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 
@@ -328,7 +337,9 @@ bool CX2SkillTree::AddSkillTreeTemplet_LUA()
 bool CX2SkillTree::AddSkillTemplet_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 
 	bool bInHouseTestOnly = false;
@@ -360,9 +371,9 @@ bool CX2SkillTree::AddSkillTemplet_LUA()
 
 	LUA_GET_VALUE_ENUM( luaManager,		"m_eID",						pSkillTemplet->m_eID,							SKILL_ID,			SI_NONE					);
 
-	if( true == luaManager.BeginTable( L"m_SkillCoolTime" ) )			SetSkillVlaue( luaManager,						pSkillTemplet->m_vecSkillCoolTime		);
-	if( true == luaManager.BeginTable( L"m_MPConsumption" ) )			SetSkillVlaue( luaManager,						pSkillTemplet->m_vecMPConsumption		);
-	if( true == luaManager.BeginTable( L"m_RequireCharacterLevel" ) )	SetSkillVlaue( luaManager,						pSkillTemplet->m_vecRequireCharacterLevel	);
+	if( true == luaManager.BeginTable( "m_SkillCoolTime" ) )			SetSkillVlaue( luaManager,						pSkillTemplet->m_vecSkillCoolTime		);
+	if( true == luaManager.BeginTable( "m_MPConsumption" ) )			SetSkillVlaue( luaManager,						pSkillTemplet->m_vecMPConsumption		);
+	if( true == luaManager.BeginTable( "m_RequireCharacterLevel" ) )	SetSkillVlaue( luaManager,						pSkillTemplet->m_vecRequireCharacterLevel	);
 
 //{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
@@ -378,7 +389,13 @@ bool CX2SkillTree::AddSkillTemplet_LUA()
 	LUA_GET_VALUE( luaManager,			"m_wstrName",					pSkillTemplet->m_wstrName,						L""		);
 
 	LUA_GET_VALUE( luaManager,			"m_wstrMainDesc",				pSkillTemplet->m_wstrMainDesc,					L""		);
-	if( true == luaManager.BeginTable( L"m_EffectiveDesc" ) )			SetSkillVlaue( luaManager,						pSkillTemplet->m_vecEffectiveDesc		);
+
+#ifdef HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC // 김태환
+	/// 스킬 효과 툴팁은 30레벨까지 설정 되어 있지 않다면, 자동으로 채우지 말자.
+	if( true == luaManager.BeginTable( "m_EffectiveDesc" ) )			SetSkillVlaue( luaManager,						pSkillTemplet->m_vecEffectiveDesc, false);
+#else //HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC
+	if( true == luaManager.BeginTable( "m_EffectiveDesc" ) )			SetSkillVlaue( luaManager,						pSkillTemplet->m_vecEffectiveDesc		);
+#endif //HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC
 
 	LUA_GET_VALUE( luaManager,			"m_bBornSealed",				pSkillTemplet->m_bBornSealed,					false	);
 
@@ -390,6 +407,9 @@ bool CX2SkillTree::AddSkillTemplet_LUA()
 	SKILL_POWER_RATE_TYPE ePowerRate = SPRT_BASIC_CLASS;
 	LUA_GET_VALUE_ENUM( luaManager,		"m_ePowerRate",					ePowerRate,										SKILL_POWER_RATE_TYPE,			SPRT_BASIC_CLASS	);
 	SetSkillPowerRate( ePowerRate, pSkillTemplet->m_vecPowerRate );
+#ifdef SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+	pSkillTemplet->m_eSkillPowerRateType = ePowerRate;
+#endif //SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
 
 	LUA_GET_VALUE_ENUM( luaManager,		"m_eActiveSkillUseCondtion",	pSkillTemplet->m_eActiveSkillUseCondtion,		ACTIVE_SKILL_USE_CONDITION,		ASUT_NONE	);
 
@@ -424,219 +444,222 @@ bool CX2SkillTree::AddSkillTemplet_LUA()
 
 	float fValue = 0.f;
 
-	if( true == luaManager.BeginTable( L"SA_EFFECTIVE_TIME" ) )					SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_TIME, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_EFFECTIVE_COUNT" ) )          		SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_COUNT, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_SKILL_ID" ) )                 		SetSkillAbilityMap( &luaManager, SA_SKILL_ID, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_COMBO_ID" ) )                 		SetSkillAbilityMap( &luaManager, SA_COMBO_ID, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_EFFECTIVE_RATE" ) )           		SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_RATE, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_REL" ) )                  		SetSkillAbilityMap( &luaManager, SA_ATK_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_PHYSIC_REL" ) )           		SetSkillAbilityMap( &luaManager, SA_ATK_PHYSIC_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_MAGIC_REL" ) )            		SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_DEF_PHYSIC_REL" ) )           		SetSkillAbilityMap( &luaManager, SA_DEF_PHYSIC_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_DEF_MAGIC_REL" ) )            		SetSkillAbilityMap( &luaManager, SA_DEF_MAGIC_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_TEAM_ATK_PHYSIC_REL" ) )      		SetSkillAbilityMap( &luaManager, SA_TEAM_ATK_PHYSIC_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_TEAM_ATK_MAGIC_REL" ) )       		SetSkillAbilityMap( &luaManager, SA_TEAM_DEF_PHYSIC_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_TEAM_DEF_PHYSIC_REL" ) )      		SetSkillAbilityMap( &luaManager, SA_TEAM_DEF_PHYSIC_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_TEAM_DEF_MAGIC_REL" ) )       		SetSkillAbilityMap( &luaManager, SA_TEAM_DEF_MAGIC_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_DAMAGE_REL" ) )               		SetSkillAbilityMap( &luaManager, SA_DAMAGE_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_DAMAGED_REL" ) )              		SetSkillAbilityMap( &luaManager, SA_DAMAGED_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_UNFIXED_DEFENSE_REL" ) )      		SetSkillAbilityMap( &luaManager, SA_UNFIXED_DEFENSE_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_SUMMON_ATK_REL" ) )           		SetSkillAbilityMap( &luaManager, SA_SUMMON_ATK_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MAX_HP_ABS" ) )               		SetSkillAbilityMap( &luaManager, SA_MAX_HP_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MAX_HP_REL" ) )               		SetSkillAbilityMap( &luaManager, SA_MAX_HP_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MAX_MP_ABS" ) )               		SetSkillAbilityMap( &luaManager, SA_MAX_MP_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MAX_MP_REL" ) )               		SetSkillAbilityMap( &luaManager, SA_MAX_MP_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_TELEPORT_RANGE_ABS" ) )       		SetSkillAbilityMap( &luaManager, SA_TELEPORT_RANGE_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_CHARGING_TIME" ) )            		SetSkillAbilityMap( &luaManager, SA_CHARGING_TIME, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_HP_REL_TO_MP_ABS_1" ) )       		SetSkillAbilityMap( &luaManager, SA_HP_REL_TO_MP_ABS_1, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_HP_REL_TO_MP_ABS_2" ) )       		SetSkillAbilityMap( &luaManager, SA_HP_REL_TO_MP_ABS_2, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MP_CONSUME_REL" ) )           		SetSkillAbilityMap( &luaManager, SA_MP_CONSUME_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MP_GAIN_ON_HIT_REL" ) )       		SetSkillAbilityMap( &luaManager, SA_MP_GAIN_ON_HIT_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_SCOPE_ABS" ) )                		SetSkillAbilityMap( &luaManager, SA_SCOPE_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_PROJECTILE_FIRE_COUNT" ) )    		SetSkillAbilityMap( &luaManager, SA_PROJECTILE_FIRE_COUNT, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_PROJECTILE_RANGE_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_PROJECTILE_RANGE_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_PROJECTILE_SIZE" ) )          		SetSkillAbilityMap( &luaManager, SA_PROJECTILE_SIZE, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_PROJECTILE_PIERCING" ) )      		SetSkillAbilityMap( &luaManager, SA_PROJECTILE_PIERCING, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MOVE_SPEED" ) )               		SetSkillAbilityMap( &luaManager, SA_MOVE_SPEED, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_JUMP_SPEED" ) )                   	SetSkillAbilityMap( &luaManager, SA_JUMP_SPEED, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_PHYSIC_TO_ATK_MAGIC" ) )      	SetSkillAbilityMap( &luaManager, SA_ATK_PHYSIC_TO_ATK_MAGIC, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_MAGIC_TO_ATK_PHYSIC" ) )      	SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_TO_ATK_PHYSIC, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_READY_TIME_REL" ) )               	SetSkillAbilityMap( &luaManager, SA_READY_TIME_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_FORCE_DOWN_REL" ) )               	SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_FORCE_DOWN_MELEE_REL" ) )         	SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_MELEE_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_FORCE_DOWN_RANGE_REL" ) )         	SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_RANGE_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_FORCE_DOWN_ABS" ) )               	SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MP_REGENERATION_ABS" ) )          	SetSkillAbilityMap( &luaManager, SA_MP_REGENERATION_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MP_INTAKE_ABS" ) )                	SetSkillAbilityMap( &luaManager, SA_MP_INTAKE_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_TARGET_ANI_SPEED" ) )             	SetSkillAbilityMap( &luaManager, SA_TARGET_ANI_SPEED, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_TARGET_MOVE_SPEED" ) )            	SetSkillAbilityMap( &luaManager, SA_TARGET_MOVE_SPEED, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_TARGET_JUMP_SPEED" ) )            	SetSkillAbilityMap( &luaManager, SA_TARGET_JUMP_SPEED, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_TARGET_ATK_REL" ) )               	SetSkillAbilityMap( &luaManager, SA_TARGET_ATK_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_HP_INTAKE_REL_DAMAGE" ) )         	SetSkillAbilityMap( &luaManager, SA_HP_INTAKE_REL_DAMAGE, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_CRITICAL_DAM_ABS" ) )         	SetSkillAbilityMap( &luaManager, SA_ATK_CRITICAL_DAM_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_CRITICAL_RATE_ABS" ) )        	SetSkillAbilityMap( &luaManager, SA_ATK_CRITICAL_RATE_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_DEF_CRITICAL_DAM_ABS" ) )         	SetSkillAbilityMap( &luaManager, SA_DEF_CRITICAL_DAM_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_EFFECTIVE_TIME" ) )					SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_TIME, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_EFFECTIVE_COUNT" ) )          		SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_COUNT, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_SKILL_ID" ) )                 		SetSkillAbilityMap( &luaManager, SA_SKILL_ID, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_COMBO_ID" ) )                 		SetSkillAbilityMap( &luaManager, SA_COMBO_ID, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_EFFECTIVE_RATE" ) )           		SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_RATE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_REL" ) )                  		SetSkillAbilityMap( &luaManager, SA_ATK_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_PHYSIC_REL" ) )           		SetSkillAbilityMap( &luaManager, SA_ATK_PHYSIC_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_MAGIC_REL" ) )            		SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_DEF_PHYSIC_REL" ) )           		SetSkillAbilityMap( &luaManager, SA_DEF_PHYSIC_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_DEF_MAGIC_REL" ) )            		SetSkillAbilityMap( &luaManager, SA_DEF_MAGIC_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_TEAM_ATK_PHYSIC_REL" ) )      		SetSkillAbilityMap( &luaManager, SA_TEAM_ATK_PHYSIC_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_TEAM_ATK_MAGIC_REL" ) )       		SetSkillAbilityMap( &luaManager, SA_TEAM_DEF_PHYSIC_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_TEAM_DEF_PHYSIC_REL" ) )      		SetSkillAbilityMap( &luaManager, SA_TEAM_DEF_PHYSIC_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_TEAM_DEF_MAGIC_REL" ) )       		SetSkillAbilityMap( &luaManager, SA_TEAM_DEF_MAGIC_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_DAMAGE_REL" ) )               		SetSkillAbilityMap( &luaManager, SA_DAMAGE_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_DAMAGED_REL" ) )              		SetSkillAbilityMap( &luaManager, SA_DAMAGED_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_UNFIXED_DEFENSE_REL" ) )      		SetSkillAbilityMap( &luaManager, SA_UNFIXED_DEFENSE_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_SUMMON_ATK_REL" ) )           		SetSkillAbilityMap( &luaManager, SA_SUMMON_ATK_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MAX_HP_ABS" ) )               		SetSkillAbilityMap( &luaManager, SA_MAX_HP_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MAX_HP_REL" ) )               		SetSkillAbilityMap( &luaManager, SA_MAX_HP_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MAX_MP_ABS" ) )               		SetSkillAbilityMap( &luaManager, SA_MAX_MP_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MAX_MP_REL" ) )               		SetSkillAbilityMap( &luaManager, SA_MAX_MP_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_TELEPORT_RANGE_ABS" ) )       		SetSkillAbilityMap( &luaManager, SA_TELEPORT_RANGE_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_CHARGING_TIME" ) )            		SetSkillAbilityMap( &luaManager, SA_CHARGING_TIME, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_HP_REL_TO_MP_ABS_1" ) )       		SetSkillAbilityMap( &luaManager, SA_HP_REL_TO_MP_ABS_1, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_HP_REL_TO_MP_ABS_2" ) )       		SetSkillAbilityMap( &luaManager, SA_HP_REL_TO_MP_ABS_2, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MP_CONSUME_REL" ) )           		SetSkillAbilityMap( &luaManager, SA_MP_CONSUME_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MP_GAIN_ON_HIT_REL" ) )       		SetSkillAbilityMap( &luaManager, SA_MP_GAIN_ON_HIT_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_SCOPE_ABS" ) )                		SetSkillAbilityMap( &luaManager, SA_SCOPE_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_PROJECTILE_FIRE_COUNT" ) )    		SetSkillAbilityMap( &luaManager, SA_PROJECTILE_FIRE_COUNT, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_PROJECTILE_RANGE_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_PROJECTILE_RANGE_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_PROJECTILE_SIZE" ) )          		SetSkillAbilityMap( &luaManager, SA_PROJECTILE_SIZE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_PROJECTILE_PIERCING" ) )      		SetSkillAbilityMap( &luaManager, SA_PROJECTILE_PIERCING, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MOVE_SPEED" ) )               		SetSkillAbilityMap( &luaManager, SA_MOVE_SPEED, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_JUMP_SPEED" ) )                   	SetSkillAbilityMap( &luaManager, SA_JUMP_SPEED, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_PHYSIC_TO_ATK_MAGIC" ) )      	SetSkillAbilityMap( &luaManager, SA_ATK_PHYSIC_TO_ATK_MAGIC, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_MAGIC_TO_ATK_PHYSIC" ) )      	SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_TO_ATK_PHYSIC, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_READY_TIME_REL" ) )               	SetSkillAbilityMap( &luaManager, SA_READY_TIME_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_FORCE_DOWN_REL" ) )               	SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_FORCE_DOWN_MELEE_REL" ) )         	SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_MELEE_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_FORCE_DOWN_RANGE_REL" ) )         	SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_RANGE_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_FORCE_DOWN_ABS" ) )               	SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MP_REGENERATION_ABS" ) )          	SetSkillAbilityMap( &luaManager, SA_MP_REGENERATION_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MP_INTAKE_ABS" ) )                	SetSkillAbilityMap( &luaManager, SA_MP_INTAKE_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_TARGET_ANI_SPEED" ) )             	SetSkillAbilityMap( &luaManager, SA_TARGET_ANI_SPEED, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_TARGET_MOVE_SPEED" ) )            	SetSkillAbilityMap( &luaManager, SA_TARGET_MOVE_SPEED, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_TARGET_JUMP_SPEED" ) )            	SetSkillAbilityMap( &luaManager, SA_TARGET_JUMP_SPEED, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_TARGET_ATK_REL" ) )               	SetSkillAbilityMap( &luaManager, SA_TARGET_ATK_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_HP_INTAKE_REL_DAMAGE" ) )         	SetSkillAbilityMap( &luaManager, SA_HP_INTAKE_REL_DAMAGE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_CRITICAL_DAM_ABS" ) )         	SetSkillAbilityMap( &luaManager, SA_ATK_CRITICAL_DAM_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_CRITICAL_RATE_ABS" ) )        	SetSkillAbilityMap( &luaManager, SA_ATK_CRITICAL_RATE_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_DEF_CRITICAL_DAM_ABS" ) )         	SetSkillAbilityMap( &luaManager, SA_DEF_CRITICAL_DAM_ABS, pSkillTemplet );
 	//{{ 2011-04 에 패치될 청 캐시 스킬
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04
-	if( true == luaManager.BeginTable( L"SA_DEF_CRITICAL_RATE_ABS" ) )        	SetSkillAbilityMap( &luaManager, SA_DEF_CRITICAL_RATE_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_DEF_CRITICAL_RATE_ABS" ) )        	SetSkillAbilityMap( &luaManager, SA_DEF_CRITICAL_RATE_ABS, pSkillTemplet );
 #endif	CASH_SKILL_FOR_CHUNG_2011_04				
 	//}} 2011-04 에 패치될 청 캐시 스킬
 #ifdef GUILD_SKILL
-	if( true == luaManager.BeginTable( L"SA_BACK_SPEED_X" ) )                 	SetSkillAbilityMap( &luaManager, SA_BACK_SPEED_X, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ITEM_SPECIAL_ABILITY_REL" ) )     	SetSkillAbilityMap( &luaManager, SA_ITEM_SPECIAL_ABILITY_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MP_GAIN_GET_HIT_REL" ) )          	SetSkillAbilityMap( &luaManager, SA_MP_GAIN_GET_HIT_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_SOUL_GAIN_ON_HIT_REL" ) )         	SetSkillAbilityMap( &luaManager, SA_SOUL_GAIN_ON_HIT_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_SOUL_GAIN_GET_HIT_REL" ) )        	SetSkillAbilityMap( &luaManager, SA_SOUL_GAIN_GET_HIT_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_BACK_SPEED_X" ) )                 	SetSkillAbilityMap( &luaManager, SA_BACK_SPEED_X, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ITEM_SPECIAL_ABILITY_REL" ) )     	SetSkillAbilityMap( &luaManager, SA_ITEM_SPECIAL_ABILITY_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MP_GAIN_GET_HIT_REL" ) )          	SetSkillAbilityMap( &luaManager, SA_MP_GAIN_GET_HIT_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_SOUL_GAIN_ON_HIT_REL" ) )         	SetSkillAbilityMap( &luaManager, SA_SOUL_GAIN_ON_HIT_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_SOUL_GAIN_GET_HIT_REL" ) )        	SetSkillAbilityMap( &luaManager, SA_SOUL_GAIN_GET_HIT_REL, pSkillTemplet );
 
-	if( true == luaManager.BeginTable( L"SA_HP_GAIN_REL_MAX_HP" ) )           	SetSkillAbilityMap( &luaManager, SA_HP_GAIN_REL_MAX_HP, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ED_GAIN_REL" ) )                  	SetSkillAbilityMap( &luaManager, SA_ED_GAIN_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_PHYSIC_PLUS_ATK_MAGIC_REL" ) )	SetSkillAbilityMap( &luaManager, SA_ATK_PHYSIC_PLUS_ATK_MAGIC_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_EXP_GAIN_REL" ) )                 	SetSkillAbilityMap( &luaManager, SA_EXP_GAIN_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_DAMAGE_ABSORB_REL_MAX_HP" ) )     	SetSkillAbilityMap( &luaManager, SA_DAMAGE_ABSORB_REL_MAX_HP, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_HP_GAIN_REL_MAX_HP" ) )           	SetSkillAbilityMap( &luaManager, SA_HP_GAIN_REL_MAX_HP, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ED_GAIN_REL" ) )                  	SetSkillAbilityMap( &luaManager, SA_ED_GAIN_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_PHYSIC_PLUS_ATK_MAGIC_REL" ) )	SetSkillAbilityMap( &luaManager, SA_ATK_PHYSIC_PLUS_ATK_MAGIC_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_EXP_GAIN_REL" ) )                 	SetSkillAbilityMap( &luaManager, SA_EXP_GAIN_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_DAMAGE_ABSORB_REL_MAX_HP" ) )     	SetSkillAbilityMap( &luaManager, SA_DAMAGE_ABSORB_REL_MAX_HP, pSkillTemplet );
 #endif GUILD_SKILL
 
 
 
-	if( true == luaManager.BeginTable( L"SA_STRONG_MIND_ACTIVE_REL" ) )     	SetSkillAbilityMap( &luaManager, SA_STRONG_MIND_ACTIVE_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_STRONG_MIND_SPECIAL_ACTIVE_REL" ) ) SetSkillAbilityMap( &luaManager, SA_STRONG_MIND_SPECIAL_ACTIVE_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_MP_RETAKE_ABS" ) )     				SetSkillAbilityMap( &luaManager, SA_MP_RETAKE_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_STRONG_MIND_ACTIVE_REL" ) )     	SetSkillAbilityMap( &luaManager, SA_STRONG_MIND_ACTIVE_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_STRONG_MIND_SPECIAL_ACTIVE_REL" ) ) SetSkillAbilityMap( &luaManager, SA_STRONG_MIND_SPECIAL_ACTIVE_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_MP_RETAKE_ABS" ) )     				SetSkillAbilityMap( &luaManager, SA_MP_RETAKE_ABS, pSkillTemplet );
 
 
-	if( true == luaManager.BeginTable( L"SA_RESIST_FIRE_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_FIRE_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_RESIST_WATER_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_WATER_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_RESIST_GREEN_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_GREEN_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_RESIST_WIND_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_WIND_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_RESIST_LIGHT_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_LIGHT_ABS, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_RESIST_DARK_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_DARK_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_RESIST_FIRE_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_FIRE_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_RESIST_WATER_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_WATER_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_RESIST_GREEN_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_GREEN_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_RESIST_WIND_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_WIND_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_RESIST_LIGHT_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_LIGHT_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_RESIST_DARK_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RESIST_DARK_ABS, pSkillTemplet );
 
-	if( true == luaManager.BeginTable( L"SA_ATK_MAGIC_FIRST_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_FIRST_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_MAGIC_SECOND_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_SECOND_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_ATK_MAGIC_THIRD_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_THIRD_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_MAGIC_FIRST_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_FIRST_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_MAGIC_SECOND_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_SECOND_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_MAGIC_THIRD_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_ATK_MAGIC_THIRD_REL, pSkillTemplet );
 
-	if( true == luaManager.BeginTable( L"SA_REMOTE_SPEED_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_REMOTE_SPEED_ABS, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_REMOTE_SPEED_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_REMOTE_SPEED_ABS, pSkillTemplet );
 
-	if( true == luaManager.BeginTable( L"SA_DAMAGE_TYPE_CHANGE" ) )     		SetSkillAbilityMap( &luaManager, SA_DAMAGE_TYPE_CHANGE, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_DAMAGE_TIME" ) )     				SetSkillAbilityMap( &luaManager, SA_DAMAGE_TIME, pSkillTemplet );	
+	if( true == luaManager.BeginTable( "SA_DAMAGE_TYPE_CHANGE" ) )     		SetSkillAbilityMap( &luaManager, SA_DAMAGE_TYPE_CHANGE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_DAMAGE_TIME" ) )     				SetSkillAbilityMap( &luaManager, SA_DAMAGE_TIME, pSkillTemplet );	
 
 	//{{ 김상훈 : 2010.11.12
 #ifdef NEW_SKILL_2010_11
-	if ( true == luaManager.BeginTable( L"SA_RECOVER_MP_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RECOVER_MP_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_TARGET_MANA" ) )     				SetSkillAbilityMap( &luaManager, SA_TARGET_MANA, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_RECOVER_MP_ABS" ) )     			SetSkillAbilityMap( &luaManager, SA_RECOVER_MP_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_TARGET_MANA" ) )     				SetSkillAbilityMap( &luaManager, SA_TARGET_MANA, pSkillTemplet );
 #endif NEW_SKILL_2010_11
 	//}} 김상훈 : 2010.11.12
 
 	//{{ JHKang / 강정훈 / 2010/11/22
 #ifdef NEW_SKILL_2010_11
-	if ( true == luaManager.BeginTable( L"SA_TARGET_MANA_REL" ) )				SetSkillAbilityMap( &luaManager, SA_TARGET_MANA_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_SIZE_ABS" ) )						SetSkillAbilityMap( &luaManager, SA_SIZE_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_TARGET_MANA_REL" ) )				SetSkillAbilityMap( &luaManager, SA_TARGET_MANA_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_SIZE_ABS" ) )						SetSkillAbilityMap( &luaManager, SA_SIZE_ABS, pSkillTemplet );
 #endif NEW_SKILL_2010_11
 	//}} JHKang / 강정훈 / 2010/11/22
 
 #ifdef NEW_SKILL_2010_11 // oasis907 : 김상윤 [2010.11.24] 
-	if ( true == luaManager.BeginTable( L"SA_REFLECT_REL" ) )					SetSkillAbilityMap( &luaManager, SA_REFLECT_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_EL_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_EL_DEFENCE_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_TARGET_HP_REL" ) )					SetSkillAbilityMap( &luaManager, SA_TARGET_HP_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_TARGET_HITRATE_REL" ) )			SetSkillAbilityMap( &luaManager, SA_TARGET_HITRATE_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_REFLECT_REL" ) )					SetSkillAbilityMap( &luaManager, SA_REFLECT_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EL_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_EL_DEFENCE_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_TARGET_HP_REL" ) )					SetSkillAbilityMap( &luaManager, SA_TARGET_HP_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_TARGET_HITRATE_REL" ) )			SetSkillAbilityMap( &luaManager, SA_TARGET_HITRATE_REL, pSkillTemplet );
 #endif NEW_SKILL_2010_11
 
 	//{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
-	if ( true == luaManager.BeginTable( L"SA_CHARGE_CANNONBALL" ) )				SetSkillAbilityMap( &luaManager, SA_CHARGE_CANNON_BALL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_CHARGE_CANNONBALL" ) )				SetSkillAbilityMap( &luaManager, SA_CHARGE_CANNON_BALL, pSkillTemplet );
 #endif	NEW_CHARACTER_CHUNG
 	//}} kimhc // 2010.12.14 //  2010-12-23 New Character CHUNG
 
 	//{{ kimhc // 2011.1.14 // 청 1차 전직
 #ifdef	CHUNG_FIRST_CLASS_CHANGE
-	if ( true == luaManager.BeginTable( L"SA_FIRE_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_FIRE_DEFENCE_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_WATER_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_WATER_DEFENCE_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_NATURE_DEFENCE_ABS" ) )			SetSkillAbilityMap( &luaManager, SA_NATURE_DEFENCE_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_WIND_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_WIND_DEFENCE_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_LIGHT_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_LIGHT_DEFENCE_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_DARK_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_DARK_DEFENCE_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_FIRE_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_FIRE_DEFENCE_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_WATER_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_WATER_DEFENCE_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_NATURE_DEFENCE_ABS" ) )			SetSkillAbilityMap( &luaManager, SA_NATURE_DEFENCE_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_WIND_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_WIND_DEFENCE_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_LIGHT_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_LIGHT_DEFENCE_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_DARK_DEFENCE_ABS" ) )				SetSkillAbilityMap( &luaManager, SA_DARK_DEFENCE_ABS, pSkillTemplet );
 
-	if ( true == luaManager.BeginTable( L"SA_EDT_FIRE_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_FIRE_RESIST_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_EDT_FROZEN_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_FROZEN_RESIST_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_EDT_ICE_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_ICE_RESIST_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_EDT_POISON_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_POISON_RESIST_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_EDT_Y_PRESSED_RESIST_REL" ) )		SetSkillAbilityMap( &luaManager, SA_EDT_Y_PRESSED_RESIST_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_EDT_LEG_WOUND_RESIST_REL" ) )		SetSkillAbilityMap( &luaManager, SA_EDT_LEG_WOUND_RESIST_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_EDT_STUN_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_STUN_RESIST_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_EDT_CURSE_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_CURSE_RESIST_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EDT_FIRE_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_FIRE_RESIST_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EDT_FROZEN_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_FROZEN_RESIST_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EDT_ICE_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_ICE_RESIST_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EDT_POISON_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_POISON_RESIST_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EDT_Y_PRESSED_RESIST_REL" ) )		SetSkillAbilityMap( &luaManager, SA_EDT_Y_PRESSED_RESIST_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EDT_LEG_WOUND_RESIST_REL" ) )		SetSkillAbilityMap( &luaManager, SA_EDT_LEG_WOUND_RESIST_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EDT_STUN_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_STUN_RESIST_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EDT_CURSE_RESIST_REL" ) )			SetSkillAbilityMap( &luaManager, SA_EDT_CURSE_RESIST_REL, pSkillTemplet );
 
-	if ( true == luaManager.BeginTable( L"SA_EXPAND_CB" ) )						SetSkillAbilityMap( &luaManager, SA_EXPAND_CB, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_ANI_SPEED" ) )						SetSkillAbilityMap( &luaManager, SA_ANI_SPEED, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_EXPAND_CB" ) )						SetSkillAbilityMap( &luaManager, SA_EXPAND_CB, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_ANI_SPEED" ) )						SetSkillAbilityMap( &luaManager, SA_ANI_SPEED, pSkillTemplet );
 #endif	CHUNG_FIRST_CLASS_CHANGE
 	//}} kimhc // 2011.1.14 // 청 1차 전직
 
 	//{{ kimhc // 2011-04-01 // 2011-04 에 패치될 청 캐시 스킬
 #ifdef	CASH_SKILL_FOR_CHUNG_2011_04
-	if ( true == luaManager.BeginTable( L"SA_ACCURACY_PERCENT_ABS" ) )			SetSkillAbilityMap( &luaManager, SA_ACCURACY_PERCENT_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_ACCURACY_PERCENT_ABS" ) )			SetSkillAbilityMap( &luaManager, SA_ACCURACY_PERCENT_ABS, pSkillTemplet );
 #endif	CASH_SKILL_FOR_CHUNG_2011_04
 	//}} kimhc // 2011-04-01 // 2011-04 에 패치될 청 캐시 스킬
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-	if ( true == luaManager.BeginTable( L"SA_CRITICAL_EVASION_REL" ) )			SetSkillAbilityMap( &luaManager, SA_CRITICAL_EVASION_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_CRITICAL_EVASION_REL" ) )			SetSkillAbilityMap( &luaManager, SA_CRITICAL_EVASION_REL, pSkillTemplet );
 #endif CHUNG_SECOND_CLASS_CHANGE
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
-	if ( true == luaManager.BeginTable( L"SA_DECREASE_REL" ) )					SetSkillAbilityMap( &luaManager, SA_DECREASE_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_DECREASE_REL" ) )					SetSkillAbilityMap( &luaManager, SA_DECREASE_REL, pSkillTemplet );
 #endif CHUNG_SECOND_CLASS_CHANGE
 
 #ifdef ELSWORD_SHEATH_KNIGHT
-	if ( true == luaManager.BeginTable( L"SA_ATK_ADD_DAMAGE_FIRST_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_FIRST_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_ATK_ADD_DAMAGE_SECOND_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_SECOND_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_ATK_ADD_DAMAGE_THIRD_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_THIRD_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_ATK_ADD_DAMAGE_FOURTH_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_FOURTH_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_ATK_ADD_DAMAGE_FIFTH_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_FIFTH_ABS, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_TELEPORT_SPEED_REL" ) )			SetSkillAbilityMap( &luaManager, SA_TELEPORT_SPEED_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"HP_CONSUME_REL" ) )					SetSkillAbilityMap( &luaManager, HP_CONSUME_REL, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_MP_BURN_ABS" ) )					SetSkillAbilityMap( &luaManager, SA_MP_BURN_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_ATK_ADD_DAMAGE_FIRST_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_FIRST_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_ATK_ADD_DAMAGE_SECOND_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_SECOND_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_ATK_ADD_DAMAGE_THIRD_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_THIRD_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_ATK_ADD_DAMAGE_FOURTH_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_FOURTH_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_ATK_ADD_DAMAGE_FIFTH_ABS" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_ADD_DAMAGE_FIFTH_ABS, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_TELEPORT_SPEED_REL" ) )			SetSkillAbilityMap( &luaManager, SA_TELEPORT_SPEED_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "HP_CONSUME_REL" ) )					SetSkillAbilityMap( &luaManager, HP_CONSUME_REL, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_MP_BURN_ABS" ) )					SetSkillAbilityMap( &luaManager, SA_MP_BURN_ABS, pSkillTemplet );
 #endif ELSWORD_SHEATH_KNIGHT
 
 #ifdef	SERV_TRAPPING_RANGER_TEST
-	if ( true == luaManager.BeginTable( L"SA_SKILLDAMAGE_MULTIPLE_01" ) )		SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_01, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_SKILLDAMAGE_MULTIPLE_02" ) )		SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_02, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_SKILLDAMAGE_MULTIPLE_03" ) )		SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_03, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_SKILLDAMAGE_MULTIPLE_04" ) )		SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_04, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_SKILLDAMAGE_MULTIPLE_01" ) )		SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_01, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_SKILLDAMAGE_MULTIPLE_02" ) )		SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_02, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_SKILLDAMAGE_MULTIPLE_03" ) )		SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_03, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_SKILLDAMAGE_MULTIPLE_04" ) )		SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_04, pSkillTemplet );
 
-	if ( true == luaManager.BeginTable( L"SA_SKILLDAMAGE_MULTIPLE_01_RATE" ) )	SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_01_RATE, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_SKILLDAMAGE_MULTIPLE_02_RATE" ) )	SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_02_RATE, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_SKILLDAMAGE_MULTIPLE_03_RATE" ) )	SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_03_RATE, pSkillTemplet );
-	if ( true == luaManager.BeginTable( L"SA_SKILLDAMAGE_MULTIPLE_04_RATE" ) )	SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_04_RATE, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_SKILLDAMAGE_MULTIPLE_01_RATE" ) )	SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_01_RATE, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_SKILLDAMAGE_MULTIPLE_02_RATE" ) )	SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_02_RATE, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_SKILLDAMAGE_MULTIPLE_03_RATE" ) )	SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_03_RATE, pSkillTemplet );
+	if ( true == luaManager.BeginTable( "SA_SKILLDAMAGE_MULTIPLE_04_RATE" ) )	SetSkillAbilityMap( &luaManager, SA_SKILLDAMAGE_MULTIPLE_04_RATE, pSkillTemplet );
 #endif	SERV_TRAPPING_RANGER_TEST
 
 #ifdef RAVEN_WEAPON_TAKER
-	if( true == luaManager.BeginTable( L"SA_EVASION_REL" ) )     				SetSkillAbilityMap( &luaManager, SA_EVASION_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_REDUCE_EDT_TIME_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_REDUCE_EDT_TIME_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_OVERHEAT_HP" ) )     				SetSkillAbilityMap( &luaManager, SA_OVERHEAT_HP, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_EVASION_REL" ) )     				SetSkillAbilityMap( &luaManager, SA_EVASION_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_REDUCE_EDT_TIME_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_REDUCE_EDT_TIME_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_OVERHEAT_HP" ) )     				SetSkillAbilityMap( &luaManager, SA_OVERHEAT_HP, pSkillTemplet );
 #endif RAVEN_WEAPON_TAKER
 
 #ifdef EVE_ELECTRA
-	if( true == luaManager.BeginTable( L"SA_SCOPE_ABS_HYPER" ) )     			SetSkillAbilityMap( &luaManager, SA_SCOPE_ABS_HYPER, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_EFFECTIVE_TIME_HYPER" ) )     		SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_TIME_HYPER, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_AIR_MOVE_COUNT" ) )     			SetSkillAbilityMap( &luaManager, SA_AIR_MOVE_COUNT, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_SCOPE_ABS_HYPER" ) )     			SetSkillAbilityMap( &luaManager, SA_SCOPE_ABS_HYPER, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_EFFECTIVE_TIME_HYPER" ) )     		SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_TIME_HYPER, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_AIR_MOVE_COUNT" ) )     			SetSkillAbilityMap( &luaManager, SA_AIR_MOVE_COUNT, pSkillTemplet );
 #endif EVE_ELECTRA
 
 #ifdef SERV_ADD_CHUNG_SHELLING_GUARDIAN
-	if( true == luaManager.BeginTable( L"SA_NOT_CANNONBALL_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_NOT_CANNONBALL_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_INSERT_CANNONBALL_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_INSERT_CANNONBALL_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_BE_SHOT_CANNONBALL_REL" ) )     	SetSkillAbilityMap( &luaManager, SA_BE_SHOT_CANNONBALL_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_CANNONBALL_DAMAGE_UP_REL" ) )     	SetSkillAbilityMap( &luaManager, SA_CANNONBALL_DAMAGE_UP_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_FORCE_DOWN_REL_DAMAGE_RATE_BASE" ) )SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_REL_DAMAGE_RATE_BASE, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_SIEGE_SHELLING_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_SIEGE_SHELLING_REL, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_EFFECTIVE_DAMAGED_ATTACK_BASE" ) )  SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_DAMAGED_ATTACK_BASE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_NOT_CANNONBALL_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_NOT_CANNONBALL_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_INSERT_CANNONBALL_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_INSERT_CANNONBALL_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_BE_SHOT_CANNONBALL_REL" ) )     	SetSkillAbilityMap( &luaManager, SA_BE_SHOT_CANNONBALL_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_CANNONBALL_DAMAGE_UP_REL" ) )     	SetSkillAbilityMap( &luaManager, SA_CANNONBALL_DAMAGE_UP_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_FORCE_DOWN_REL_DAMAGE_RATE_BASE" ) )SetSkillAbilityMap( &luaManager, SA_FORCE_DOWN_REL_DAMAGE_RATE_BASE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_SIEGE_SHELLING_REL" ) )     		SetSkillAbilityMap( &luaManager, SA_SIEGE_SHELLING_REL, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_EFFECTIVE_DAMAGED_ATTACK_BASE" ) )  SetSkillAbilityMap( &luaManager, SA_EFFECTIVE_DAMAGED_ATTACK_BASE, pSkillTemplet );
 #endif
 
 #ifdef SERV_CHUNG_TACTICAL_TROOPER
-	if( true == luaManager.BeginTable( L"SA_FIRST_HYPER_EFFECTIVE" ) )			SetSkillAbilityMap( &luaManager, SA_FIRST_HYPER_EFFECTIVE, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_SECOND_HYPER_EFFECTIVE" ) )     	SetSkillAbilityMap( &luaManager, SA_SECOND_HYPER_EFFECTIVE, pSkillTemplet );
-	if( true == luaManager.BeginTable( L"SA_THIRD_HYPER_EFFECTIVE" ) )			SetSkillAbilityMap( &luaManager, SA_THIRD_HYPER_EFFECTIVE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_FIRST_HYPER_EFFECTIVE" ) )			SetSkillAbilityMap( &luaManager, SA_FIRST_HYPER_EFFECTIVE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_SECOND_HYPER_EFFECTIVE" ) )     	SetSkillAbilityMap( &luaManager, SA_SECOND_HYPER_EFFECTIVE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_THIRD_HYPER_EFFECTIVE" ) )			SetSkillAbilityMap( &luaManager, SA_THIRD_HYPER_EFFECTIVE, pSkillTemplet );
 #endif SERV_CHUNG_TACTICAL_TROOPER
 
 #ifdef BALANCE_CODE_NEMESIS_20121213
-	if( true == luaManager.BeginTable( L"SA_ATK_CRITICAL_RATE_ATK_BASE" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_CRITICAL_RATE_ATK_BASE, pSkillTemplet );
+	if( true == luaManager.BeginTable( "SA_ATK_CRITICAL_RATE_ATK_BASE" ) )		SetSkillAbilityMap( &luaManager, SA_ATK_CRITICAL_RATE_ATK_BASE, pSkillTemplet );
 #endif //BALANCE_CODE_NEMESIS_20121213
-
+	if( true == luaManager.BeginTable( "SA_PROJECTILE_CURVE_SPEED_REL" ) )		SetSkillAbilityMap( &luaManager, SA_PROJECTILE_CURVE_SPEED_REL, pSkillTemplet );	
+	if( true == luaManager.BeginTable( "SA_DP_GAIN_REL" ) )					SetSkillAbilityMap( &luaManager, SA_DP_GAIN_REL, pSkillTemplet );	
+	if( true == luaManager.BeginTable( "SA_DP_USE_REL" ) )						SetSkillAbilityMap( &luaManager, SA_DP_USE_REL, pSkillTemplet );	
+	
 	CX2BuffTempletManager::GetInstance()->GetBuffFactorPtrFromBuffFactorList( luaManager, pSkillTemplet->m_vecBuffFactorPtr, pSkillTemplet->m_vecBuffFactorID );
 
 #else // UPGRADE_SKILL_SYSTEM_2013
@@ -692,7 +715,7 @@ bool CX2SkillTree::AddSkillTemplet_LUA()
 
 
 
-	if( luaManager.BeginTable( L"m_Stat" ) == true )
+	if( luaManager.BeginTable( "m_Stat" ) == true )
 	{
 		float fBaseHP;		
 		float fAtkPhysic;		
@@ -895,10 +918,6 @@ bool CX2SkillTree::AddSkillTemplet_LUA()
 	if ( true == luaManager.GetValue( L"SA_DECREASE_REL", fValue ) )					pSkillTemplet->m_mapSkillAbility[ SA_DECREASE_REL ]		= fValue;
 #endif CHUNG_SECOND_CLASS_CHANGE
 
-#ifdef ELSWORD_WAY_OF_SWORD
-	if ( true == luaManager.GetValue( L"SA_WAY_OF_SWORD_TYPE", fValue ) )				pSkillTemplet->m_mapSkillAbility[ SA_WAY_OF_SWORD_TYPE ]		= fValue;
-#endif ELSWORD_WAY_OF_SWORD
-
 #ifdef ELSWORD_SHEATH_KNIGHT
 	if ( true == luaManager.GetValue( L"SA_ATK_ADD_DAMAGE_FIRST_ABS", fValue ) )		pSkillTemplet->m_mapSkillAbility[ SA_ATK_ADD_DAMAGE_FIRST_ABS ]		= fValue;
 	if ( true == luaManager.GetValue( L"SA_ATK_ADD_DAMAGE_SECOND_ABS", fValue ) )		pSkillTemplet->m_mapSkillAbility[ SA_ATK_ADD_DAMAGE_SECOND_ABS ]	= fValue;
@@ -953,7 +972,9 @@ bool CX2SkillTree::AddSkillTemplet_LUA()
 #ifdef BALANCE_CODE_NEMESIS_20121213
 	if( true == luaManager.GetValue( L"SA_ATK_CRITICAL_RATE_ATK_BASE", fValue ) )			pSkillTemplet->m_mapSkillAbility[ SA_ATK_CRITICAL_RATE_ATK_BASE ]	= fValue;
 #endif //BALANCE_CODE_NEMESIS_20121213
-	
+	if( true == luaManager.GetValue( L"SA_PROJECTILE_CURVE_SPEED_REL", fValue ) )			pSkillTemplet->m_mapSkillAbility[ SA_PROJECTILE_CURVE_SPEED_REL ]	= fValue;	
+	if( true == luaManager.GetValue( L"SA_DP_GAIN_REL", fValue ) )							pSkillTemplet->m_mapSkillAbility[ SA_DP_GAIN_REL ]	= fValue;	
+	if( true == luaManager.GetValue( L"SA_DP_USE_REL", fValue ) )							pSkillTemplet->m_mapSkillAbility[ SA_DP_USE_REL ]	= fValue;	
 
 	CX2BuffTempletManager::GetInstance()->GetBuffFactorPtrFromBuffFactorList( luaManager, pSkillTemplet->m_vecBuffFactorPtr, pSkillTemplet->m_vecBuffFactorID );
 
@@ -963,6 +984,43 @@ bool CX2SkillTree::AddSkillTemplet_LUA()
 }
 
 #ifdef LUA_TRANS_DEVIDE
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
+bool CX2SkillTree::AddSkillTempletTrans_LUA()
+{
+	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+	
+	SkillTemplet* pSkillTemplet = new SkillTemplet();
+	
+	LUA_GET_VALUE_ENUM( luaManager,		"m_eID",						pSkillTemplet->m_eID,							SKILL_ID,			SI_NONE					);
+	LUA_GET_VALUE_ENUM( luaManager,		"m_eType",						pSkillTemplet->m_eType,							SKILL_TYPE,			ST_NONE					);
+	LUA_GET_VALUE( luaManager,			"m_wstrName",					pSkillTemplet->m_wstrName,						L""		);
+	LUA_GET_VALUE( luaManager,			"m_wstrMainDesc",				pSkillTemplet->m_wstrMainDesc,					L""		);
+	if( true == luaManager.BeginTable( L"m_EffectiveDesc" ) )			SetSkillVlaue( luaManager,						pSkillTemplet->m_vecEffectiveDesc		);
+	
+	// 여기서 치환 해주어야 함.
+	SkillTempletMap::iterator mit;
+	mit = m_mapSkillTemplet.find( pSkillTemplet->m_eID );
+	if( mit == m_mapSkillTemplet.end() )
+	{
+		wstringstream wstrStream;
+		wstrStream << L"NewSkillTempletVer2Trans.lua And NewSkillTempletVer2.lua Not Equal m_eID..." << (pSkillTemplet->m_eID) << L"_";
+		ErrorLogMsg( XEM_ERROR105, wstrStream.str().c_str() );	
+		// 에러로그 출력
+		SAFE_DELETE(pSkillTemplet); 
+		return false;	
+	}
+	else
+	{
+		mit->second->m_eType = pSkillTemplet->m_eType;
+		mit->second->m_wstrName = pSkillTemplet->m_wstrName;		
+		mit->second->m_wstrMainDesc = pSkillTemplet->m_wstrMainDesc;		
+		mit->second->m_vecEffectiveDesc = pSkillTemplet->m_vecEffectiveDesc;		
+	}
+
+	return true;
+}
+#else //UPGRADE_SKILL_SYSTEM_2013
 bool CX2SkillTree::AddSkillTempletTrans_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
@@ -1002,6 +1060,7 @@ bool CX2SkillTree::AddSkillTempletTrans_LUA()
 
 	return true;
 }
+#endif //UPGRADE_SKILL_SYSTEM_2013
 #endif LUA_TRANS_DEVIDE
 
 //{{ 2009. 8. 5  최육사		봉인 스킬 아이템 정보
@@ -1010,7 +1069,9 @@ bool CX2SkillTree::AddSkillTempletTrans_LUA()
 bool CX2SkillTree::AddSealSkillInfo_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	int							iUnsealItemID = 0;					/// 아이템 아이디
 	CX2Unit::UNIT_CLASS_TYPE	eUnitClassType = CX2Unit::UCT_NONE;	/// 사용 가능한 전직 클래스
@@ -1023,7 +1084,7 @@ bool CX2SkillTree::AddSealSkillInfo_LUA()
 	LUA_GET_VALUE_ENUM( luaManager, "m_eUnitClassType",	eUnitClassType,		CX2Unit::UNIT_CLASS_TYPE,		CX2Unit::UCT_NONE		);
 	
 	/// 봉인 스킬 아이디 파싱해서 컨테이너에 저장
-	if( true == luaManager.BeginTable( L"m_SkillID" ) )
+	if( true == luaManager.BeginTable( "m_SkillID" ) )
 	{
 		int iSkillID	= 0;	/// 스킬 아이디
 		int iTableIndex = 1;	/// 테이블 인덱스
@@ -1279,7 +1340,9 @@ bool CX2SkillTree::AddGuildSkillTreeTemplet_LUA()
 
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 
@@ -1389,7 +1452,6 @@ const CX2SkillTree::SkillTreeTempletMap& CX2SkillTree::GetGuildSkillTreeTempletM
 #endif GUILD_SKILL
 
 
-
 //{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
 /*
@@ -1409,7 +1471,7 @@ void CX2SkillTree::PrintSkillInfo_ToExcel()
 
 	of.close();
 }
-
+*/
 
 void CX2SkillTree::PrintSkillInfo_ToExcel()
 {
@@ -1439,13 +1501,9 @@ void CX2SkillTree::PrintSkillInfo_ToExcel()
 		cal++;
 	}
 	e.SaveAs("SKILL_LIST.xls");
-
 }
-*/
 #endif PRINT_INGAMEINFO_TO_EXCEL
 //}} 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
-
-
 
 //////////////////////////////////////////////////////////////////////////
 bool CX2SkillTree::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
@@ -1595,6 +1653,23 @@ bool CX2SkillTree::UIServerEventProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 //}} oasis907 : 김상윤 //// 2009-11-12 //// 
 #endif GUILD_SKILL
+
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	case EGS_GET_NEXT_SKILL_PAGE_ED_ACK:
+		{
+			return Handler_EGS_GET_NEXT_SKILL_PAGE_ED_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+
+	case EGS_EXPAND_SKILL_PAGE_ACK:
+		{
+			return Handler_EGS_EXPAND_SKILL_PAGE_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+
+	case EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK:
+		{
+			return Handler_EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK( hWnd, uMsg, wParam, lParam );
+		} break;
+#endif //SKILL_PAGE_SYSTEM
 	}
 
 	return false;
@@ -1629,10 +1704,18 @@ bool CX2SkillTree::Handler_EGS_CHANGE_SKILL_SLOT_REQ( int iSlotID, CX2SkillTree:
 
 	if ( g_pData->GetMyUser()->GetSelectUnit() == NULL )
 		return false;
+	
+#ifdef FIX_SKILL_SLOT_CHANGE_BUG
+	if( NULL != g_pX2Game && NULL != g_pX2Game->GetMyUnit() &&
+		false == g_pX2Game->GetMyUnit()->IsValideSlotChange() ) // 슬롯 변경 유효 여부 검사
+	{
+		return false;
+	}
+#endif // FIX_SKILL_SLOT_CHANGE_BUG
 
 	KEGS_CHANGE_SKILL_SLOT_REQ kPacket;
 	kPacket.m_iSlotID = iSlotID;
-	kPacket.m_iSkillID = (int)eSkillID;
+	kPacket.m_iSkillID = static_cast<int>(eSkillID);
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_CHANGE_SKILL_SLOT_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_CHANGE_SKILL_SLOT_ACK );
@@ -1658,7 +1741,17 @@ bool CX2SkillTree::Handler_EGS_CHANGE_SKILL_SLOT_ACK( HWND hWnd, UINT uMsg, WPAR
 
 	if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 	{
-		CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+
+// #ifdef FIX_SKILL_SLOT_CHANGE_BUG
+// 		if( NULL != g_pX2Game && NULL != g_pX2Game->GetMyUnit() && 
+// 			false == g_pX2Game->GetMyUnit()->IsValideSlotChange() ) // 슬롯 변경 유효 여부 검사
+// 		{
+// 			return true;
+// 		}
+// #endif // FIX_SKILL_SLOT_CHANGE_BUG
+
+
+		CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 //{{ kimhc // 2010.3.26 // 무한 스킬 버그 수정
 #ifdef MODIFY_INFINITE_SKILL_BUG
 		// 2010-03-23 // Change_state_Game_Start_Not를 받은 직후에는 바꿀 수 없음
@@ -1692,6 +1785,9 @@ bool CX2SkillTree::Handler_EGS_CHANGE_SKILL_SLOT_ACK( HWND hWnd, UINT uMsg, WPAR
 
 		if ( NULL != g_pX2Game && NULL != g_pX2Game->GetMyUnit() )
 		{
+#ifdef FIX_SKILL_SLOT_CHANGE_BUG
+			g_pX2Game->GetMyUnit()->SetCanNotInputTime_LUA(0.5f); // 일정 시간 스킬 사용 불가 상태로 변경
+#endif // FIX_SKILL_SLOT_CHANGE_BUG
 			g_pX2Game->GetMyUnit()->ChangeEquippedSkillState( kEvent.m_iSlotID, kEvent.m_iSkillID );
 
 #ifdef SERV_SKILL_SLOT_CHANGE_PACKET_INTEGRATE
@@ -1735,7 +1831,7 @@ bool CX2SkillTree::Handler_EGS_CHANGE_SKILL_SLOT_NOT( HWND hWnd, UINT uMsg, WPAR
 		CX2Room::SlotData* pkSlotData = g_pX2Room->GetSlotDataByUnitUID( kEvent.m_iUnitUID );
 		if ( pkSlotData != NULL )
 		{
-			pUnitData = pkSlotData->m_pUnit->GetUnitData();
+			pUnitData = &pkSlotData->m_pUnit->AccessUnitData();
 		}
 	}
 
@@ -1751,7 +1847,11 @@ bool CX2SkillTree::Handler_EGS_CHANGE_SKILL_SLOT_NOT( HWND hWnd, UINT uMsg, WPAR
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+bool CX2SkillTree::Handler_EGS_GET_SKILL_REQ( USHORT usPageNumber_/* = 0*/ )
+#else //SKILL_PAGE_SYSTEM
 bool CX2SkillTree::Handler_EGS_GET_SKILL_REQ()
+#endif //SKILL_PAGE_SYSTEM
 {
 #ifdef DISABLE_REDUDANT_PACKET_TEST
 	if( true == g_pMain->IsWaitingServerPacket( EGS_GET_SKILL_ACK ) )
@@ -1773,6 +1873,15 @@ bool CX2SkillTree::Handler_EGS_GET_SKILL_REQ()
 
 	KEGS_GET_SKILL_REQ kPacket;
 	kPacket.m_mapSkillList = mapSkillInfo;
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	USHORT usSkillPage = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.GetUsingPage() + 1;
+
+	if ( usPageNumber_ > 0 )
+		usSkillPage = usPageNumber_;
+
+	kPacket.m_iActiveSkillPageNumber = usSkillPage;
+#endif //SKILL_PAGE_SYSTEM
+
 #ifdef SERV_SUB_QUEST_LEARN_NEW_SKILL
 	kPacket.m_vecNowLearnSkill = m_vecNowLearnSkill;
 #endif SERV_SUB_QUEST_LEARN_NEW_SKILL
@@ -1837,21 +1946,23 @@ bool CX2SkillTree::Handler_EGS_GET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPara
 			if (	NULL == g_pData ||
 					NULL == g_pData->GetMyUser() ||
 					NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-					NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() ||
 					NULL == g_pData->GetUIManager() ||
 					NULL == g_pData->GetUIManager()->GetUISkillTree() )
 			{
 				return false;
 			}
 
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-
-			if( NULL == pUnitData )
-				return false;
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 
 			/// 남은 포인트 연산
 			pUnitData->m_iSPoint	= kEvent.m_iRemainSP;
 			pUnitData->m_iCSPoint	= kEvent.m_iRemainCSP;
+
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			pUnitData->m_UserSkillTree.SetUsingPage( kEvent.m_iActiveSkillPageNumber );
+			pUnitData->m_UserSkillTree.SetSkillPoint( pUnitData->m_iSPoint );
+			pUnitData->m_UserSkillTree.SetCashSkillPoint( pUnitData->m_iCSPoint );
+#endif //SKILL_PAGE_SYSTEM
 
 			std::map<int, KGetSkillInfo>::iterator it = kEvent.m_mapSkillList.begin();
 
@@ -1859,8 +1970,14 @@ bool CX2SkillTree::Handler_EGS_GET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPara
 			{
 				KGetSkillInfo getSkillInfo = it->second;
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
 				pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( getSkillInfo.m_iSkillID ), 
-																getSkillInfo.m_iSkillLevel, getSkillInfo.m_iSpendSkillCSPoint );
+																getSkillInfo.m_iSkillLevel, getSkillInfo.m_iSpendSkillCSPoint,
+																pUnitData->m_UserSkillTree.GetUsingPage() );
+#else //SKILL_PAGE_SYSTEM
+				pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( getSkillInfo.m_iSkillID ), 
+					getSkillInfo.m_iSkillLevel, getSkillInfo.m_iSpendSkillCSPoint );
+#endif //SKILL_PAGE_SYSTEM
 
 				bool bEnableSkillEquipped = true;
 				const CX2SkillTree::SKILL_ID eSkillId = static_cast<CX2SkillTree::SKILL_ID>( getSkillInfo.m_iSkillID );
@@ -1902,8 +2019,7 @@ bool CX2SkillTree::Handler_EGS_GET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPara
 			bool bEnableSkillEquipped = true;
 			const CX2SkillTree::SKILL_ID eSkillId = static_cast<CX2SkillTree::SKILL_ID>( kEvent.m_iSkillID );
 
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-			if( NULL != pUnitData )
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 			{
 				pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( eSkillId, kEvent.m_iSkillLevel, kEvent.m_iSkillCSPoint );
 				pUnitData->m_iSPoint	= kEvent.m_iSPoint;
@@ -1919,6 +2035,9 @@ bool CX2SkillTree::Handler_EGS_GET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPara
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 			case CX2SkillTree::ST_RELATIONSHIP_SKILL:
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+			case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 				{
 					// 장착 가능한 스킬을 새로 배웠다면
 					if( kEvent.m_iSkillLevel == 1 )
@@ -1986,7 +2105,7 @@ bool CX2SkillTree::Handler_EGS_GET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPara
 			if( NULL != g_pData->GetUIManager() &&
 				true == g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_SKILL) )
 			{
-				CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+				//CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 				g_pData->GetUIManager()->GetUISkillTree()->UpdateUI(true, true, true);
 
@@ -2045,6 +2164,10 @@ bool CX2SkillTree::Handler_EGS_RESET_SKILL_REQ( CX2SkillTree::SKILL_ID eSkillID 
 	kPacket.m_iSkillID = (int) eSkillID;
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	kPacket.m_iActiveSkillPageNumber = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.GetUsingPage() + 1;
+#endif //SKILL_PAGE_SYSTEM
+
 	g_pData->GetServerProtocol()->SendPacket( EGS_RESET_SKILL_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_RESET_SKILL_ACK );
 
@@ -2088,7 +2211,6 @@ bool CX2SkillTree::Handler_EGS_RESET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPa
 	if ( NULL == g_pData ||
 		 NULL == g_pData->GetMyUser() ||
 		 NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-		 NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() ||
 		 NULL == g_pData->GetSkillTree() )
 	{
 		return false;
@@ -2102,19 +2224,16 @@ bool CX2SkillTree::Handler_EGS_RESET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPa
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-
-			if ( NULL == pUnitData )
-				return false; 
 
 			/// 변경 안내 팝업
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_25108 ), g_pMain->GetNowState() );
 
 			CX2Unit::UNIT_CLASS		eUnitClass		= static_cast<CX2Unit::UNIT_CLASS>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );
 			CX2SkillTree::SKILL_ID	eDeleteSkillID	= static_cast<CX2SkillTree::SKILL_ID>( kEvent.m_iDelSkillID );
-			const CX2UserSkillTree& userSkillTree	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;
+			CX2UserSkillTree& userSkillTree	= pUnitData->m_UserSkillTree;
 
 			
 			/// 스킬 트리 템플릿 반환
@@ -2126,15 +2245,32 @@ bool CX2SkillTree::Handler_EGS_RESET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPa
 			/// 현재 스킬을 선행 스킬로 한 스킬이 찍혀 있는지 검사
 			const bool bHaveFollowingSkill = 0 < userSkillTree.GetSkillLevel( static_cast<CX2SkillTree::SKILL_ID>( pSkillTreeTemplet->m_iFollowingSkill ) ) ? true : false ;
 
+		#ifdef SKILL_PAGE_SYSTEM //JHKang
 			/// 초기화 될 스킬이 기본 스킬 이거나, 후행 스킬이 찍혀 있다면 1레벨로 초기화 시키자
 			if ( true == isDefaultSkill( eDeleteSkillID ) || true == bHaveFollowingSkill )
-				pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( kEvent.m_iDelSkillID ), 1, 0 );
+				userSkillTree.SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( kEvent.m_iDelSkillID ), 1, 0,
+													pUnitData->m_UserSkillTree.GetUsingPage() );
 			/// 그 외엔 0레벨로 초기화
 			else
-				pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( kEvent.m_iDelSkillID ), 0, 0 );
+				userSkillTree.SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( kEvent.m_iDelSkillID ), 0, 0,
+													pUnitData->m_UserSkillTree.GetUsingPage() );
+		#else //SKILL_PAGE_SYSTEM
+			/// 초기화 될 스킬이 기본 스킬 이거나, 후행 스킬이 찍혀 있다면 1레벨로 초기화 시키자
+			if ( true == isDefaultSkill( eDeleteSkillID ) || true == bHaveFollowingSkill )
+				userSkillTree.SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( kEvent.m_iDelSkillID ), 1, 0 );
+			/// 그 외엔 0레벨로 초기화
+			else
+				userSkillTree.SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( kEvent.m_iDelSkillID ), 0, 0 );
+		#endif //SKILL_PAGE_SYSTEM
 
 			pUnitData->m_iSPoint	= kEvent.m_iSPoint;
 			pUnitData->m_iCSPoint	= kEvent.m_iCSPoint;
+
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			pUnitData->m_UserSkillTree.SetUsingPage( kEvent.m_iActiveSkillPageNumber );
+			pUnitData->m_UserSkillTree.SetSkillPoint( pUnitData->m_iSPoint );
+			pUnitData->m_UserSkillTree.SetCashSkillPoint( pUnitData->m_iCSPoint );
+#endif //SKILL_PAGE_SYSTEM
 
 	#else // UPGRADE_SKILL_SYSTEM_2013
 
@@ -2157,10 +2293,9 @@ bool CX2SkillTree::Handler_EGS_RESET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPa
 			// 스킬 초기화 아이템을 사용했기 때문에 인벤 정보를 갱신한다
 			if( kEvent.m_vecInventorySlotInfo.size() > 0 )
 			{
-				if( NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-					NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+				if( NULL != g_pData->GetMyUser()->GetSelectUnit() )
 				{
-					g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+					g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 				}
 				// UI도..
 				if( NULL != g_pData->GetUIManager() &&
@@ -2203,6 +2338,9 @@ bool CX2SkillTree::Handler_EGS_RESET_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wPa
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 			case CX2SkillTree::ST_RELATIONSHIP_SKILL:
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+			case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 				{
 					for( int i=0; i<EQUIPPED_SKILL_SLOT_COUNT*2; i++ )
 					{
@@ -2255,6 +2393,9 @@ bool CX2SkillTree::Handler_EGS_INIT_SKILL_TREE_REQ( UidType itemUID )
 {
 	KEGS_INIT_SKILL_TREE_REQ kPacket;
 	kPacket.m_iItemUID = itemUID;
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	kPacket.m_iActiveSkillPageNumber = g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.GetUsingPage() + 1;
+#endif //SKILL_PAGE_SYSTEM
 
 	g_pData->GetServerProtocol()->SendPacket( EGS_INIT_SKILL_TREE_REQ, kPacket );
 	g_pMain->AddServerPacket( EGS_INIT_SKILL_TREE_ACK );
@@ -2273,15 +2414,14 @@ bool CX2SkillTree::Handler_EGS_INIT_SKILL_TREE_ACK( HWND hWnd, UINT uMsg, WPARAM
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 
 
 			if( kEvent.m_vecInventorySlotInfo.size() > 0 )
 			{
-				if( NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-					NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+				if( NULL != g_pData->GetMyUser()->GetSelectUnit() )
 				{
-					g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+					g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 				}
 				// UI도..
 				if( NULL != g_pData->GetUIManager() && 
@@ -2295,11 +2435,21 @@ bool CX2SkillTree::Handler_EGS_INIT_SKILL_TREE_ACK( HWND hWnd, UINT uMsg, WPARAM
 			pUnitData->m_iSPoint = kEvent.m_iSPoint;
 			pUnitData->m_iCSPoint = kEvent.m_iCSPoint;
 
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+			pUnitData->m_UserSkillTree.SetUsingPage( kEvent.m_iActiveSkillPageNumber );
+			pUnitData->m_UserSkillTree.SetSkillPoint( pUnitData->m_iSPoint );
+			pUnitData->m_UserSkillTree.SetCashSkillPoint( pUnitData->m_iCSPoint );
+#endif //SKILL_PAGE_SYSTEM
+
 			// 스킬트리및 장착스킬 초기화
 			pUnitData->m_UserSkillTree.Reset( true, true, false, false );
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
+		#ifdef SKILL_PAGE_SYSTEM //JHKang
+			pUnitData->m_UserSkillTree.SetDefaultSkill( pUnitData->m_UserSkillTree.GetUsingPage() );	// 각 전직별 기본 스킬 설정
+		#else //SKILL_PAGE_SYSTEM
 			pUnitData->m_UserSkillTree.SetDefaultSkill();		/// 각 전직별 기본 스킬 설정
+		#endif //SKILL_PAGE_SYSTEM
 
 			/// 퀵슬롯 갱신
 			if ( NULL != g_pData->GetUIManager() &&  NULL != g_pData->GetUIManager()->GetUISkillTree() )
@@ -2481,7 +2631,7 @@ bool CX2SkillTree::Handler_EGS_EXPIRE_CASH_SKILL_POINT_NOT( HWND hWnd, UINT uMsg
 			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_2687 ), (CKTDXStage*) g_pMain->GetNowState() );
 			g_pData->GetUIManager()->GetUISkillTree()->UpdateSkillEquipedSlotUI();
 			
-			pMyUnit->GetUnitData()->m_wstrCSPointEndDate.clear();
+			pMyUnit->AccessUnitData().m_wstrCSPointEndDate.clear();
 
 // 			if ( NULL != g_pX2Game )
 // 			{
@@ -2532,14 +2682,28 @@ bool CX2SkillTree::Handler_EGS_UPDATE_CASH_SKILL_POINT_NOT( HWND hWnd, UINT uMsg
 		NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		return false;
 
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 	if( pUnitData->m_UnitUID != kEvent.m_iUnitUID )
 		return false;
 
 
 	if( false == kEvent.m_bUpdateEndDateOnly )
 	{
+#ifdef SKILL_PAGE_SYSTEM //JHKang
 		pUnitData->m_iCSPoint = kEvent.m_iCSPoint;
+
+		int iUsingPage = pUnitData->m_UserSkillTree.GetUsingPage();
+
+		for ( int i = 0; i < pUnitData->m_UserSkillTree.GetOpenedPage(); ++i )
+		{
+			pUnitData->m_UserSkillTree.SetUsingPage( i + 1 );
+			pUnitData->m_UserSkillTree.SetCashSkillPoint( pUnitData->m_iCSPoint );
+		}
+
+		pUnitData->m_UserSkillTree.SetUsingPage( iUsingPage + 1 );
+#else //SKILL_PAGE_SYSTEM
+		pUnitData->m_iCSPoint = kEvent.m_iCSPoint;
+#endif //SKILL_PAGE_SYSTEM
 	}
 	pUnitData->m_wstrCSPointEndDate = kEvent.m_wstrCSPointEndDate;
 
@@ -2556,14 +2720,20 @@ bool CX2SkillTree::Handler_EGS_UPDATE_CASH_SKILL_POINT_NOT( HWND hWnd, UINT uMsg
 		|| kEvent.m_iSkillPointItemID  == SKILL_PLUS_ITEM_ID_JP 
 		|| kEvent.m_iSkillPointItemID  == SKILL_POINT_10_30DAY_USE_INVEN_JP 
 		|| kEvent.m_iSkillPointItemID  == SKILL_POINT_10_15DAY_USE_INVEN_JP 
-		|| kEvent.m_iSkillPointItemID  == SKILL_POINT_5_7DAY_USE_INVEN_JP 
 #endif //SERV_EVENT_CASH_SKILL_POINT_ITEM_JP	
 #ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
 		|| kEvent.m_iSkillPointItemID == SKILL_POINT_30_7DAY_USE_INVEN
 		|| kEvent.m_iSkillPointItemID == SKILL_POINT_60_7DAY_USE_INVEN
 		|| kEvent.m_iSkillPointItemID == SKILL_POINT_60_15DAY_USE_INVEN
 		|| kEvent.m_iSkillPointItemID == SKILL_POINT_60_30DAY_USE_INVEN
+		|| kEvent.m_iSkillPointItemID == SKILL_POINT_60_7DAY_USE_INVEN_2
+		|| kEvent.m_iSkillPointItemID == SKILL_POINT_30_7DAY_USE_INVEN_2
 #endif SERV_EVENT_CASH_SKILL_POINT_ITEM_TWHK
+
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+		|| kEvent.m_iSkillPointItemID == SKILL_POINT_30_7DAY_USE_INVEN_INT
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+
 #ifdef SERV_SKILL_5_POINT_7_DAY_EU
 		|| kEvent.m_iSkillPointItemID == EVENT_SKILL_5_POINT_7_DAY
 #endif SERV_SKILL_5_POINT_7_DAY_EU
@@ -2574,7 +2744,22 @@ bool CX2SkillTree::Handler_EGS_UPDATE_CASH_SKILL_POINT_NOT( HWND hWnd, UINT uMsg
 		|| kEvent.m_iSkillPointItemID == SKILL_POINT_30_1DAY_USE_INVEN
 		|| kEvent.m_iSkillPointItemID == SKILL_POINT_60_1DAY_USE_INVEN
 #endif SERV_EVENT_SKILL_POINT_1DAY_USE_INVEN
-		|| kEvent.m_iSkillPointItemID == SKILL_POINT_60_7DAY_USE_INVEN_2
+#ifdef SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+		|| kEvent.m_iSkillPointItemID == SKILL_POINT_30_14DAY_USE_INVEN	
+#endif SERV_EVENT_GNOSIS_HAPP_NEW_YEAR
+#ifdef SERV_LURIEL_GNOSIS
+		|| kEvent.m_iSkillPointItemID == LURIEL_GNOSIS_30_15DAY
+		|| kEvent.m_iSkillPointItemID == LURIEL_GNOSIS_30_30DAY
+		|| kEvent.m_iSkillPointItemID == LURIEL_GNOSIS_30_60DAY
+		|| kEvent.m_iSkillPointItemID == LURIEL_GNOSIS_60_15DAY
+		|| kEvent.m_iSkillPointItemID == LURIEL_GNOSIS_60_30DAY
+		|| kEvent.m_iSkillPointItemID == LURIEL_GNOSIS_60_60DAY
+		|| kEvent.m_iSkillPointItemID == LURIEL_GNOSIS_30_7DAY
+		|| kEvent.m_iSkillPointItemID == LURIEL_GNOSIS_60_7DAY
+#endif //SERV_LURIEL_GNOSIS
+#ifdef SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
+		|| kEvent.m_iSkillPointItemID == SKILL_POINT_30_7DAY_USE_INVEN_INT
+#endif SERV_EVENT_CASH_SKILL_POINT_ITEM_INT
 		)
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_9836 ), (CKTDXStage*) g_pMain->GetNowState() );
 #endif SKILL_PLUS_ITEM_USE_POPUP
@@ -2598,6 +2783,12 @@ bool CX2SkillTree::Handler_EGS_UPDATE_CASH_SKILL_POINT_NOT( HWND hWnd, UINT uMsg
 	if(kEvent.m_iSkillPointItemID  == EVENT_SKILL_POINT_10_USE_INVEN_15_DAY)
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_9836 ), (CKTDXStage*) g_pMain->GetNowState() );
 #endif SERV_CN_GNOSIS
+
+#ifdef SERV_GNOSIS_BR
+	if( kEvent.m_iSkillPointItemID  == EVENT_SKILL_POINT_5_USE_INVEN_7_DAY || kEvent.m_iSkillPointItemID  == EVENT_SKILL_POINT_5_USE_INVEN_15_DAY )
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_9836 ), (CKTDXStage*) g_pMain->GetNowState() );
+#endif SERV_GNOSIS_BR
+
 #ifdef SERV_US_GNOSIS
 	if(kEvent.m_iSkillPointItemID  == EVENT_SKILL_POINT_5_USE_INVEN_15_DAY)
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( 250, 300 ), GET_STRING( STR_ID_9836 ), (CKTDXStage*) g_pMain->GetNowState() );
@@ -2622,8 +2813,8 @@ bool CX2SkillTree::Handler_EGS_EXPAND_SKILL_SLOT_NOT( HWND hWnd, UINT uMsg, WPAR
 	if( g_pData->GetMyUser()->GetSelectUnit()->GetUID() != kEvent.m_iUnitUID )
 		return false;
 
-	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_cSkillSlotBExpirationState );
-	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_wstrSkillSlotBEndDate );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_cSkillSlotBExpirationState );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_wstrSkillSlotBEndDate );
 
 
 	// 갱신 
@@ -2654,28 +2845,28 @@ bool CX2SkillTree::Handler_EGS_EXPIRE_SKILL_SLOT_NOT( HWND hWnd, UINT uMsg, WPAR
 		return false;
 
 
-	if( CX2UserSkillTree::SSBES_PERMANENT != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetSkillSlotBExpirationState() )
+	if( CX2UserSkillTree::SSBES_PERMANENT != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetSkillSlotBExpirationState() )
 	{
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBExpirationState( CX2UserSkillTree::SSBES_EXPIRED );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBExpirationState( CX2UserSkillTree::SSBES_EXPIRED );
 
 		//{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 	#ifdef	NEW_CHARACTER_CHUNG
 	#ifdef ARA_CHARACTER_BASE
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
 	#else
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, 0, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, 0, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, 0, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, 0, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, 0, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, 0, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, 0, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, 0, true );
 	#endif
 	#else	NEW_CHARACTER_CHUNG
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, true );
 	#endif	NEW_CHARACTER_CHUNG
 		//}} kimhc // 2010.12.14 //  2010-12-23 New Character CHUNG
 		
@@ -2719,38 +2910,36 @@ bool CX2SkillTree::Handler_EGS_SKILL_SLOT_CHANGE_ITEM_NOT( HWND hWnd, UINT uMsg,
 	if( NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		return false;
 
-	if( NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
-		return false;
 
 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
 	KEGS_SKILL_SLOT_CHANGE_ITEM_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
-	if( CX2UserSkillTree::SSBES_PERMANENT != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetSkillSlotBExpirationState() )
+	if( CX2UserSkillTree::SSBES_PERMANENT != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetSkillSlotBExpirationState() )
 	{
 		if ( kEvent.m_cSkillSlotBExpirationState == CX2UserSkillTree::SSBES_EXPIRED )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBExpirationState( CX2UserSkillTree::SSBES_EXPIRED );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_wstrSkillSlotBEndDate );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBExpirationState( CX2UserSkillTree::SSBES_EXPIRED );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_wstrSkillSlotBEndDate );
 
 			//{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
 #ifdef ARA_CHARACTER_BASE
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, 0, 0, true );
 #else
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, 0, true );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, 0, true );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, 0, true );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, 0, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, 0, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, 0, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, 0, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, 0, true );
 #endif
 #else	NEW_CHARACTER_CHUNG
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, true );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, true );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, true );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, true );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, true );
 #endif	NEW_CHARACTER_CHUNG
 			//}} kimhc // 2010.12.14 //  2010-12-23 New Character CHUNG
 
@@ -2783,8 +2972,8 @@ bool CX2SkillTree::Handler_EGS_SKILL_SLOT_CHANGE_ITEM_NOT( HWND hWnd, UINT uMsg,
 		}
 		else if ( kEvent.m_cSkillSlotBExpirationState == CX2UserSkillTree::SSBES_NOT_EXPIRED )
 		{
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBExpirationState( CX2UserSkillTree::SSBES_NOT_EXPIRED );
-			g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_wstrSkillSlotBEndDate );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBExpirationState( CX2UserSkillTree::SSBES_NOT_EXPIRED );
+			g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_wstrSkillSlotBEndDate );
 
 			if( NULL != g_pData->GetUIManager() &&
 				true == g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_SKILL) )
@@ -2810,14 +2999,14 @@ bool CX2SkillTree::Handler_EGS_SKILL_SLOT_CHANGE_ITEM_NOT( HWND hWnd, UINT uMsg,
 #endif //REFORM_UI_SKILLSLOT
 
 #ifdef SKILL_SLOT_UI_TYPE_B
-	if( NULL != g_pMain && NULL != g_pMain->GetGameOption())
+	if( NULL != g_pMain)
 	{
-		g_pMain->GetGameOption()->SetIsSkillUITypeA( g_pMain->GetGameOption()->GetIsSkillUITypeA() );				
+		g_pMain->GetGameOption().SetIsSkillUITypeA( g_pMain->GetGameOption().GetIsSkillUITypeA() );				
 	}
 #endif //SKILL_SLOT_UI_TYPE_B
 
 	// 오현빈 // 2013-08-23 // 쿨타임 관리 벡터 초기화 구문 추가
-	CX2GageManager::GetInstance()->InitMySkillCoolTimeList( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree );
+	CX2GageManager::GetInstance()->InitMySkillCoolTimeList( g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree );
 
 	return true;
 }
@@ -2833,7 +3022,7 @@ bool CX2SkillTree::Handler_EGS_UNSEAL_SKILL_NOT( HWND hWnd, UINT uMsg, WPARAM wP
 	KEGS_UNSEAL_SKILL_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
-	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.AddSkillUnsealed( (CX2SkillTree::SKILL_ID) kEvent.m_iSkillID );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.AddSkillUnsealed( (CX2SkillTree::SKILL_ID) kEvent.m_iSkillID );
 
 
 	if( NULL != g_pData->GetUIManager() &&
@@ -2869,28 +3058,54 @@ void CX2SkillTree::On_EGS_EXPIRE_CASH_SKILL_POINT_NOT( KEGS_EXPIRE_CASH_SKILL_PO
 
 	if( pMyUnit->GetUID() == kEvent.m_iUnitUID )
 	{
-	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
+#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 		/// 스킬 습득 정보 초기화 하고, 패킷으로 온 인자로 설정 후 스킬 슬롯 내 레벨 0인 스킬 해제
-		if ( NULL != pMyUnit && NULL != pMyUnit->GetUnitData() )
-			pMyUnit->GetUnitData()->m_UserSkillTree.ExpireCashSkillPoint( kEvent.m_mapHaveSKill );
+		if ( NULL != pMyUnit )
+  	#ifdef SKILL_PAGE_SYSTEM //JHKang
+		{
+			int iUsingPage = pMyUnit->AccessUnitData().m_UserSkillTree.GetUsingPage();
 
-		pMyUnit->GetUnitData()->m_iSPoint += kEvent.m_iRetrievedSPoint;
-		pMyUnit->GetUnitData()->m_iCSPoint = 0;
+			for ( int i = 0; i < pMyUnit->AccessUnitData().m_UserSkillTree.GetOpenedPage(); ++i )
+			{
+				pMyUnit->AccessUnitData().m_UserSkillTree.SetUsingPage( i + 1 );
+				pMyUnit->AccessUnitData().m_UserSkillTree.ExpireCashSkillPoint( kEvent.m_vecMapHaveSKill[i] );
+				int iSP = kEvent.m_vecRetrievedSPoint[i];
+				pMyUnit->AccessUnitData().m_UserSkillTree.AddSkillPoint( iSP );
+				pMyUnit->AccessUnitData().m_UserSkillTree.SetCashSkillPoint( 0 );
+
+				if( NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUISkillTree() )
+					g_pData->GetUIManager()->GetUISkillTree()->UpdateUI(true, true, true);
+			}
+			pMyUnit->AccessUnitData().m_UserSkillTree.SetUsingPage( iUsingPage + 1 );
+			pMyUnit->AccessUnitData().m_iSPoint = pMyUnit->AccessUnitData().m_UserSkillTree.GetSkillPoint( iUsingPage + 1 );
+			pMyUnit->AccessUnitData().m_iCSPoint = pMyUnit->AccessUnitData().m_UserSkillTree.GetCashSkillPoint( iUsingPage + 1 );
+
+			if( NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUISkillTree() )
+				g_pData->GetUIManager()->GetUISkillTree()->UpdateUI(true, true, true);
+		}
+
+	#else //SKILL_PAGE_SYSTEM
+			pMyUnit->AccessUnitData().m_UserSkillTree.ExpireCashSkillPoint( kEvent.m_mapHaveSKill );
+			  
+		pMyUnit->AccessUnitData().m_iSPoint += kEvent.m_iRetrievedSPoint;
+		pMyUnit->AccessUnitData().m_iCSPoint = 0;
 
 		if( NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUISkillTree() )
 			g_pData->GetUIManager()->GetUISkillTree()->UpdateUI(true, true, true);
-	#else // UPGRADE_SKILL_SYSTEM_2013
-		pMyUnit->GetUnitData()->m_UserSkillTree.ExpireCashSkillPoint();
+	#endif //SKILL_PAGE_SYSTEM
 
-		pMyUnit->GetUnitData()->m_iSPoint += kEvent.m_iRetrievedSPoint;
-		pMyUnit->GetUnitData()->m_iCSPoint = 0;
+#else // UPGRADE_SKILL_SYSTEM_2013
+		pMyUnit->AccessUnitData().m_UserSkillTree.ExpireCashSkillPoint();
+
+		pMyUnit->AccessUnitData().m_iSPoint += kEvent.m_iRetrievedSPoint;
+		pMyUnit->AccessUnitData().m_iCSPoint = 0;
 
 		if( NULL != g_pData->GetUIManager() &&
 			true == g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_SKILL) )
 		{
 			g_pData->GetUIManager()->GetUISkillTree()->UpdateUI(true, true, true);
 		}
-	#endif // UPGRADE_SKILL_SYSTEM_2013
+#endif // UPGRADE_SKILL_SYSTEM_2013
 	}
 
 }
@@ -2909,7 +3124,7 @@ bool CX2SkillTree::Handler_EGS_GET_GUILD_SKILL_REQ( CX2SkillTree::SKILL_ID eSkil
 	// 서버 길드 스킬 작업 완료시까지 주석
 	
 	//{{ oasis907 : 김상윤 [2009.11.19] // 길드마스터 아닌 등급의 길드 스킬 조정 클라이언트 차단
-	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
+	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(300, 250), GET_STRING( STR_ID_4801 ), g_pMain->GetNowState() );
 		return true;
@@ -2984,10 +3199,14 @@ bool CX2SkillTree::Handler_EGS_GET_GUILD_SKILL_NOT( HWND hWnd, UINT uMsg, WPARAM
 
 	// oasis907 : 김상윤 [2009.11.19] // 던전 안에서의 실시간 스킬 변경 반영, 기존의 것으로도 가능
 	// 게임 룸 상태일 경우 처리
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-	if( NULL != pUnitData )
+	CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 	{
+	#ifdef SKILL_PAGE_SYSTEM //JHKang
+		pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( (CX2SkillTree::SKILL_ID) kEvent.m_iGuildSkillID, kEvent.m_iGuildSkillLv,
+			kEvent.m_iGuildSkillCSPoint, pUnitData->m_UserSkillTree.GetUsingPage() );
+	#else //SKILL_PAGE_SYSTEM
 		pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( (CX2SkillTree::SKILL_ID) kEvent.m_iGuildSkillID, kEvent.m_iGuildSkillLv, kEvent.m_iGuildSkillCSPoint );
+	#endif //SKILL_PAGE_SYSTEM
 		pUnitData->m_iGuildSPoint	= kEvent.m_iGuildSPoint;
 		pUnitData->m_iGuildCSPoint	= kEvent.m_iGuildCSPoint;
 	}
@@ -3005,6 +3224,9 @@ bool CX2SkillTree::Handler_EGS_GET_GUILD_SKILL_NOT( HWND hWnd, UINT uMsg, WPARAM
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	case CX2SkillTree::ST_RELATIONSHIP_SKILL:
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 		{
 			// oasis907 : 김상윤 [2009.11.27] // 길드 스킬에는 액티브 스킬 없으므로 주석
 			/*
@@ -3129,7 +3351,7 @@ bool CX2SkillTree::Handler_EGS_RESET_GUILD_SKILL_REQ( CX2SkillTree::SKILL_ID eSk
 #endif DISABLE_REDUDANT_PACKET_TEST
 
 
-	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
+	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(300, 250), GET_STRING( STR_ID_4801 ), g_pMain->GetNowState() );
 		return true;
@@ -3159,10 +3381,9 @@ bool CX2SkillTree::Handler_EGS_RESET_GUILD_SKILL_ACK( HWND hWnd, UINT uMsg, WPAR
 			// 스킬 초기화 아이템을 사용했기 때문에 인벤 정보를 갱신한다
 			if( kEvent.m_vecInventorySlotInfo.size() > 0 )
 			{
-				if( NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-					NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+				if( NULL != g_pData->GetMyUser()->GetSelectUnit() )
 				{
-					g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+					g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 				}
 				// UI도..
 				if( NULL != g_pData->GetUIManager() &&
@@ -3189,7 +3410,7 @@ bool CX2SkillTree::Handler_EGS_RESET_GUILD_SKILL_NOT( HWND hWnd, UINT uMsg, WPAR
 	DeSerialize( pBuff, &kEvent );
 
 
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 
 	// 스킬 트리 갱신
 	int iSkillLevel = 0;
@@ -3200,8 +3421,12 @@ bool CX2SkillTree::Handler_EGS_RESET_GUILD_SKILL_NOT( HWND hWnd, UINT uMsg, WPAR
 	{
 		iSkillCSPoint -= kEvent.m_iRestoreGuildCSPoint;
 	}
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+	pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( (CX2SkillTree::SKILL_ID) kEvent.m_iDelGuildSkillID, iSkillLevel, iSkillCSPoint,
+		pUnitData->m_UserSkillTree.GetUsingPage() ); 
+#else //SKILL_PAGE_SYSTEM
 	pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( (CX2SkillTree::SKILL_ID) kEvent.m_iDelGuildSkillID, iSkillLevel, iSkillCSPoint ); 
-
+#endif //SKILL_PAGE_SYSTEM
 
 	pUnitData->m_iGuildSPoint	+= kEvent.m_iRestoreGuildSPoint;
 	pUnitData->m_iGuildCSPoint	+= kEvent.m_iRestoreGuildCSPoint;
@@ -3237,6 +3462,9 @@ bool CX2SkillTree::Handler_EGS_RESET_GUILD_SKILL_NOT( HWND hWnd, UINT uMsg, WPAR
 #ifdef ADDED_RELATIONSHIP_SYSTEM
 	case CX2SkillTree::ST_RELATIONSHIP_SKILL:
 #endif // ADDED_RELATIONSHIP_SYSTEM
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 		{
 			// oasis907 : 김상윤 [2009.11.27] // 길드 스킬에는 액티브 스킬 없으므로 주석
 			/*
@@ -3293,7 +3521,7 @@ bool CX2SkillTree::Handler_EGS_RESET_GUILD_SKILL_NOT( HWND hWnd, UINT uMsg, WPAR
 // oasis907 : 김상윤 [2009.11.27] //
 bool CX2SkillTree::Handler_EGS_INIT_GUILD_SKILL_TREE_REQ( UidType itemUID )
 {
-	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
+	if(g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_byMemberShipGrade != CX2GuildManager::GUG_MASTER)
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(300, 250), GET_STRING( STR_ID_4801 ), g_pMain->GetNowState() );
 		return true;
@@ -3319,15 +3547,14 @@ bool CX2SkillTree::Handler_EGS_INIT_GUILD_SKILL_TREE_ACK( HWND hWnd, UINT uMsg, 
 	{
 		if( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
 		{
-			CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+			//CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
 
 			if( kEvent.m_vecInventorySlotInfo.size() > 0 )
 			{
-				if( NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-					NULL != g_pData->GetMyUser()->GetSelectUnit()->GetInventory() )
+				if( NULL != g_pData->GetMyUser()->GetSelectUnit() )
 				{
-					g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
+					g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventorySlotInfo );
 				}
 				// UI도..
 				if( NULL != g_pData->GetUIManager() && 
@@ -3360,7 +3587,7 @@ bool CX2SkillTree::Handler_EGS_INIT_GUILD_SKILL_TREE_NOT( HWND hWnd, UINT uMsg, 
 	DeSerialize( pBuff, &kEvent );
 
 
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
 
 	pUnitData->m_iGuildSPoint = kEvent.m_iGuildSPoint;
 	pUnitData->m_iGuildCSPoint = kEvent.m_iGuildCSPoint;
@@ -3405,14 +3632,14 @@ bool CX2SkillTree::Handler_EGS_EXPIRE_GUILD_CASH_SKILL_POINT_NOT( HWND hWnd, UIN
 
 	// oasis907 : 김상윤 [2009.12.4] // 길드 가입시
 	CX2Unit* pUnit = g_pData->GetMyUser()->GetSelectUnit();
-	pUnit->GetUnitData()->m_UserSkillTree.SetGuildClass(0);
-	pUnit->GetUnitData()->m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_vecGuildSkillData ); 
+	pUnit->AccessUnitData().m_UserSkillTree.SetGuildClass(0);
+	pUnit->AccessUnitData().m_UserSkillTree.SetAcquiredGuildSkill( kEvent.m_vecGuildSkillData ); 
 
 	// oasis907 : 김상윤 [2009.11.27] // 길드 스킬 포인트, 캐시 스킬 포인트 SET
-	pUnit->GetUnitData()->m_iGuildSPoint = kEvent.m_iGuildSPoint;
-	pUnit->GetUnitData()->m_iGuildCSPoint = kEvent.m_iGuildCSPoint;
-	pUnit->GetUnitData()->m_iMaxGuildCSPoint = 0;
-	pUnit->GetUnitData()->m_wstrGuildCSPointEndDate = L"";
+	pUnit->AccessUnitData().m_iGuildSPoint = kEvent.m_iGuildSPoint;
+	pUnit->AccessUnitData().m_iGuildCSPoint = kEvent.m_iGuildCSPoint;
+	pUnit->AccessUnitData().m_iMaxGuildCSPoint = 0;
+	pUnit->AccessUnitData().m_wstrGuildCSPointEndDate = L"";
 
 
 	//{{ oasis907 : 김상윤 [2009.12.8] // 길드 스킬에 의한 스탯 변경 
@@ -3448,8 +3675,8 @@ bool CX2SkillTree::Handler_EGS_EXPAND_GUILD_SKILL_SLOT_NOT( HWND hWnd, UINT uMsg
 	if( g_pData->GetMyUser()->GetSelectUnit()->GetUID() != kEvent.m_iUnitUID )
 		return false;
 
-	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_cSkillSlotBExpirationState );
-	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_wstrSkillSlotBEndDate );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBExpirationState( (CX2UserSkillTree::SKILL_SLOT_B_EXPIRATION_STATE) kEvent.m_cSkillSlotBExpirationState );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBEndDateString( kEvent.m_wstrSkillSlotBEndDate );
 
 
 	// 갱신 
@@ -3472,14 +3699,14 @@ bool CX2SkillTree::Handler_EGS_EXPIRE_GUILD_SKILL_SLOT_NOT( HWND hWnd, UINT uMsg
 		return false;
 
 
-	if( CX2UserSkillTree::SSBES_PERMANENT != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.GetSkillSlotBExpirationState() )
+	if( CX2UserSkillTree::SSBES_PERMANENT != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree.GetSkillSlotBExpirationState() )
 	{
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlotBExpirationState( CX2UserSkillTree::SSBES_EXPIRED );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlotBExpirationState( CX2UserSkillTree::SSBES_EXPIRED );
 
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, true );
-		g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 0, CX2SkillTree::SI_NONE, 0.f, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 1, CX2SkillTree::SI_NONE, 0.f, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 2, CX2SkillTree::SI_NONE, 0.f, true );
+		g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.SetSkillSlot( 3, CX2SkillTree::SI_NONE, 0.f, true );
 
 		if( g_pData->GetUIManager() != NULL &&
 			g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_SKILL))
@@ -3522,7 +3749,7 @@ bool CX2SkillTree::Handler_EGS_UNSEAL_GUILD_SKILL_NOT( HWND hWnd, UINT uMsg, WPA
 	KEGS_UNSEAL_SKILL_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
-	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree.AddSkillUnsealed( (CX2SkillTree::SKILL_ID) kEvent.m_iSkillID );
+	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_UserSkillTree.AddSkillUnsealed( (CX2SkillTree::SKILL_ID) kEvent.m_iSkillID );
 
 
 	if( NULL != g_pData->GetUIManager() &&
@@ -3547,7 +3774,221 @@ bool CX2SkillTree::Handler_EGS_UNSEAL_GUILD_SKILL_NOT( HWND hWnd, UINT uMsg, WPA
 //}} oasis907 : 김상윤 //// 2009-11-12 //// 
 #endif GUILD_SKILL
 
+#pragma region Skill Page System
+#ifdef SKILL_PAGE_SYSTEM //JHKang
+bool CX2SkillTree::Handler_EGS_GET_NEXT_SKILL_PAGE_ED_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>( lParam );
+	KEGS_GET_NEXT_SKILL_PAGE_ED_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
 
+	g_pMain->DeleteServerPacket( EGS_GET_NEXT_SKILL_PAGE_ED_ACK );
+	{
+		if (g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			if ( g_pData && g_pData->GetUIManager() && g_pData->GetUIManager()->GetUISkillTree() )
+			{
+				g_pData->GetUIManager()->GetUISkillTree()->BuySkillPageDialog( kEvent.m_iED );
+
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool CX2SkillTree::Handler_EGS_EXPAND_SKILL_PAGE_REQ()
+{
+	if( true == g_pMain->IsWaitingServerPacket( EGS_EXPAND_SKILL_PAGE_ACK ) )
+		return false;
+
+	if ( g_pData && g_pData->GetMyUser() && g_pData->GetMyUser()->GetSelectUnit() 
+		 && g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED >= 1000 )
+	{
+		g_pData->GetServerProtocol()->SendID( EGS_EXPAND_SKILL_PAGE_REQ );
+		g_pMain->AddServerPacket( EGS_EXPAND_SKILL_PAGE_ACK );
+
+		return true;
+	}
+	else
+	{
+		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_28961 ), g_pMain->GetNowState() );
+
+		return false;
+	}
+}
+
+bool CX2SkillTree::Handler_EGS_EXPAND_SKILL_PAGE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>( lParam );
+	KEGS_EXPAND_SKILL_PAGE_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	g_pMain->DeleteServerPacket( EGS_EXPAND_SKILL_PAGE_ACK );
+	{
+		if ( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			if ( NULL == g_pData ||
+				 NULL == g_pData->GetMyUser() ||
+				 NULL == g_pData->GetMyUser()->GetSelectUnit() ||
+				 NULL == g_pData->GetUIManager() ||
+				 NULL == g_pData->GetUIManager()->GetUISkillTree() )
+			{
+				return false;
+			}
+
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
+
+			if ( pUnitData == NULL )
+				return false;
+
+			int usDiffValue = kEvent.m_iTheNumberOfSkillPagesAvailable - pUnitData->m_UserSkillTree.GetOpenedPage();
+			
+			if ( usDiffValue > 1 )
+			{
+				pUnitData->m_UserSkillTree.AddSkillPage();
+				pUnitData->m_UserSkillTree.AddSkillPage();
+
+				pUnitData->m_UserSkillTree.SetOpenedPage( static_cast<USHORT>( kEvent.m_iTheNumberOfSkillPagesAvailable ) );
+				pUnitData->m_UserSkillTree.SetDefaultSkill( pUnitData->m_UserSkillTree.GetOpenedPage() - 1 );	// 각 전직별 기본 스킬 설정
+				pUnitData->m_UserSkillTree.SetDefaultSkill( pUnitData->m_UserSkillTree.GetOpenedPage() - 2 );	// 각 전직별 기본 스킬 설정
+
+				pUnitData->m_UserSkillTree.SetSkillPoint( kEvent.m_iSPointAvailable, pUnitData->m_UserSkillTree.GetOpenedPage() - 1 );
+				pUnitData->m_UserSkillTree.SetCashSkillPoint( kEvent.m_iCSPointAvailable, pUnitData->m_UserSkillTree.GetOpenedPage() - 1 );
+
+				pUnitData->m_UserSkillTree.SetSkillPoint( kEvent.m_iSPointAvailable, pUnitData->m_UserSkillTree.GetOpenedPage() - 2 );
+				pUnitData->m_UserSkillTree.SetCashSkillPoint( kEvent.m_iCSPointAvailable, pUnitData->m_UserSkillTree.GetOpenedPage() - 2 );
+			}
+			else
+			{
+				pUnitData->m_UserSkillTree.AddSkillPage();
+				pUnitData->m_UserSkillTree.SetOpenedPage( static_cast<USHORT>( kEvent.m_iTheNumberOfSkillPagesAvailable ) );
+				pUnitData->m_UserSkillTree.SetDefaultSkill( pUnitData->m_UserSkillTree.GetOpenedPage() - 1 );	// 각 전직별 기본 스킬 설정
+
+				pUnitData->m_UserSkillTree.SetSkillPoint( kEvent.m_iSPointAvailable, pUnitData->m_UserSkillTree.GetOpenedPage() - 1 );
+				pUnitData->m_UserSkillTree.SetCashSkillPoint( kEvent.m_iCSPointAvailable, pUnitData->m_UserSkillTree.GetOpenedPage() - 1 );
+			}
+
+			if( NULL != g_pData->GetUIManager() && NULL != g_pData->GetUIManager()->GetUISkillTree() )
+			{
+				g_pData->GetUIManager()->GetUISkillTree()->UpdateUI( true, true, true, true );
+			}
+
+			g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2( -999, -999 ), GET_STRING( STR_ID_29386 ), g_pMain->GetNowState() );
+
+			pUnitData->m_ED = kEvent.m_iED;
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CX2SkillTree::Handler_EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ( USHORT usPageNumber_ )
+{
+	if( true == g_pMain->IsWaitingServerPacket( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK ) )
+		return false;
+	
+	KEGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ kPacket;
+	kPacket.m_iSkillPagesNumberDecidedToUse = usPageNumber_;
+
+	g_pData->GetServerProtocol()->SendPacket( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_REQ, kPacket );
+	g_pMain->AddServerPacket( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK );
+
+	return true;
+}
+
+bool CX2SkillTree::Handler_EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
+{
+	KSerBuffer* pBuff = reinterpret_cast<KSerBuffer*>( lParam );
+	KEGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK kEvent;
+	DeSerialize( pBuff, &kEvent );
+
+	g_pMain->DeleteServerPacket( EGS_DECIDE_TO_USE_THIS_SKILL_PAGE_ACK );
+	{
+		if ( g_pMain->IsValidPacket( kEvent.m_iOK ) == true )
+		{
+			if ( NULL == g_pData ||
+				NULL == g_pData->GetMyUser() ||
+				NULL == g_pData->GetMyUser()->GetSelectUnit() ||
+				NULL == g_pData->GetUIManager() ||
+				NULL == g_pData->GetUIManager()->GetUISkillTree() )
+			{
+				return false;
+			}
+
+			CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData();
+
+			if ( pUnitData == NULL )
+				return false;
+
+			pUnitData->m_UserSkillTree.SetUsingPage( kEvent.m_iSkillPagesNumberDecidedToUse );
+			pUnitData->m_UserSkillTree.SetSelectPage( kEvent.m_iSkillPagesNumberDecidedToUse );
+			pUnitData->m_iSPoint = kEvent.m_iSPointAvailable;
+			pUnitData->m_iCSPoint = kEvent.m_iCSPointAvailable;
+			pUnitData->m_UserSkillTree.SetSkillPoint( pUnitData->m_iSPoint );
+			pUnitData->m_UserSkillTree.SetCashSkillPoint( pUnitData->m_iCSPoint );
+
+			BOOST_FOREACH( const KUserSkillData& userSkillData, kEvent.m_kUserSkillPageData.m_vecUserSkillData )
+			{
+				pUnitData->m_UserSkillTree.SetSkillLevelAndCSP( static_cast<CX2SkillTree::SKILL_ID>( userSkillData.m_iSkillID ), 
+					userSkillData.m_cSkillLevel, userSkillData.m_cSkillCSPoint, pUnitData->m_UserSkillTree.GetUsingPage() );
+
+				bool bEnableSkillEquipped = true;
+				const CX2SkillTree::SKILL_ID eSkillId = static_cast<CX2SkillTree::SKILL_ID>( userSkillData.m_iSkillID );
+
+				if ( eSkillId == CX2SkillTree::SI_NONE )
+					continue;
+
+				const CX2SkillTree::SkillTemplet* pSkillTemplet = GetSkillTemplet( eSkillId );
+
+				switch( pSkillTemplet->m_eType )
+				{
+				case CX2SkillTree::ST_PASSIVE_PHYSIC_ATTACK:
+				case CX2SkillTree::ST_PASSIVE_MAGIC_ATTACK:
+				case CX2SkillTree::ST_PASSIVE_MAGIC_DEFENCE:
+				case CX2SkillTree::ST_PASSIVE_PHYSIC_DEFENCE:
+				case CX2SkillTree::ST_PASSIVE:
+					{
+						if( g_pData != NULL && 
+							g_pData->GetUIManager() != NULL && 
+							g_pData->GetUIManager()->GetShow(CX2UIManager::UI_MENU_CHARINFO))
+						{
+							g_pData->GetUIManager()->GetUICharInfo()->ResetStat();
+						}
+					} break;
+				}
+			}
+
+			pUnitData->m_UserSkillTree.SetEquippedSkill( kEvent.m_kUserSkillPageData.m_aEquippedSkill, 
+				kEvent.m_kUserSkillPageData.m_aEquippedSkillSlotB );
+
+			if ( NULL != g_pTFieldGame && NULL != g_pData->GetMyUser() )
+			{
+				for ( int i = 0; i < EQUIPPED_SKILL_SLOT_COUNT; ++i )
+				{
+					g_pData->GetMyUser()->ChangeEquippedSkillState( i, kEvent.m_kUserSkillPageData.m_aEquippedSkill[i].m_iSkillID );
+					g_pData->GetMyUser()->ChangeEquippedSkillState( i, kEvent.m_kUserSkillPageData.m_aEquippedSkillSlotB[i].m_iSkillID );
+				}
+			}
+			
+			if ( true == g_pData->GetUIManager()->GetUISkillTree()->GetShow() )
+				g_pData->GetUIManager()->GetUISkillTree()->UpdateUI( true, true, true );
+
+			// 스킬 추가 레벨 효과 갱신
+			g_pData->GetMyUser()->GetSelectUnit()->ResetIncreaseSkillLevelByBuff();
+			g_pData->GetMyUser()->GetSelectUnit()->ResetIncreaseSkillLevelBySocket();
+
+			return true;
+		}
+	}
+
+	return false;
+}
+#endif //SKILL_PAGE_SYSTEM
+#pragma endregion 페이지 확장, 결정 패킷 처리
 
 
 
@@ -3643,8 +4084,7 @@ void CX2SkillTree::UnequipRelationSkill()
 		NULL != g_pData->GetMyUser() &&
 		NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
-		if( NULL != pUnitData )
+		const CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 		{
 			// A슬롯에서 검색
 			int iSlotIndex = pUnitData->m_UserSkillTree.GetSkillEquippedSlotIndex( CX2SkillTree::SI_ETC_WS_COMMON_LOVE, false );
@@ -3713,7 +4153,11 @@ void CX2SkillTree::SetSkillAbilityMap( KLuaManager* pLuaManager, SKILL_ABILITY_T
 	@param		: 저장할 컨테이너
 */
 template< typename T >
-void CX2SkillTree::SetSkillVlaue( KLuaManager& pLuaManager, vector<T>& vecValue )
+#ifdef HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC // 김태환
+	void CX2SkillTree::SetSkillVlaue( KLuaManager& pLuaManager, vector<T>& vecValue, bool bAutoFill /*= true*/ )
+#else //HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC
+	void CX2SkillTree::SetSkillVlaue( KLuaManager& pLuaManager, vector<T>& vecValue )
+#endif //HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC
 {
 	/*if ( NULL != pLuaManager )
 	{
@@ -3734,8 +4178,12 @@ void CX2SkillTree::SetSkillVlaue( KLuaManager& pLuaManager, vector<T>& vecValue 
 
 	pLuaManager.EndTable();				/// 테이블 닫기
 
-	/// 만약 인자수가 최대 레벨 만큼 없다면, 이전 인덱스의 인자로 채워 버리자.
-	if ( true != vecValue.empty() && MAX_LIMITED_SKILL_LEVEL >= iTableIndex )	/// 만약 인자수가 최대 레벨 만큼 없다면, 이전 인덱스의 인자로 채워 버리자.
+	/// 만약 인자수가 최대 레벨 만큼 없고, 자동 채우기를 설정 했다면 이전 인덱스의 인자로 채워 버리자.
+#ifdef HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC // 김태환
+	if ( true != vecValue.empty() && MAX_LIMITED_SKILL_LEVEL >= iTableIndex && true == bAutoFill )
+#else //HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC
+	if ( true != vecValue.empty() && MAX_LIMITED_SKILL_LEVEL >= iTableIndex )
+#endif //HIDE_DO_NOT_EXIST_SKILL_EFFECTIVE_DESC
 	{
 		for( iTableIndex = 1; iTableIndex < MAX_LIMITED_SKILL_LEVEL; ++iTableIndex )
 		{
@@ -3760,13 +4208,13 @@ void CX2SkillTree::SetSkillStat( KLuaManager& pLuaManager, vector<CX2Stat::Stat>
 	vecStat.clear();
 
 	/// 스탯 수치 파싱
-	if( pLuaManager.BeginTable( L"m_Stat" ) == true )
+	if( pLuaManager.BeginTable( "m_Stat" ) == true )
 	{
-		if( true == pLuaManager.BeginTable( L"m_BaseHP" ) )			SetSkillVlaue( pLuaManager, vecBaseHP );
-		if( true == pLuaManager.BeginTable( L"m_AtkPhysic" ) )		SetSkillVlaue( pLuaManager, vecAtkPhysic );
-		if( true == pLuaManager.BeginTable( L"m_AtkMagic" ) )		SetSkillVlaue( pLuaManager, vecAtkMagic );
-		if( true == pLuaManager.BeginTable( L"m_DefPhysic" ) )		SetSkillVlaue( pLuaManager, vecDefPhysic );
-		if( true == pLuaManager.BeginTable( L"m_DefMagic" ) )		SetSkillVlaue( pLuaManager, vecDefMagic );	
+		if( true == pLuaManager.BeginTable( "m_BaseHP" ) )			SetSkillVlaue( pLuaManager, vecBaseHP );
+		if( true == pLuaManager.BeginTable( "m_AtkPhysic" ) )		SetSkillVlaue( pLuaManager, vecAtkPhysic );
+		if( true == pLuaManager.BeginTable( "m_AtkMagic" ) )		SetSkillVlaue( pLuaManager, vecAtkMagic );
+		if( true == pLuaManager.BeginTable( "m_DefPhysic" ) )		SetSkillVlaue( pLuaManager, vecDefPhysic );
+		if( true == pLuaManager.BeginTable( "m_DefMagic" ) )		SetSkillVlaue( pLuaManager, vecDefMagic );	
 
 		pLuaManager.EndTable(); // m_Stat
 	}
@@ -3797,13 +4245,12 @@ void CX2SkillTree::FixOrInsertMapSkillInfoValue( CX2SkillTree::SKILL_ID eSkillID
 			NULL == g_pData->GetUIManager() ||
 			NULL == g_pData->GetUIManager()->GetUISkillTree() ||
 			NULL == g_pData->GetMyUser() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit() ||
-			NULL == g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+			NULL == g_pData->GetMyUser()->GetSelectUnit() )
 	{
 		return;
 	}
 
-	const CX2UserSkillTree&	refUserSkillTree	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_UserSkillTree;				/// 유저의 스킬 목록
+	const CX2UserSkillTree&	refUserSkillTree	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_UserSkillTree;				/// 유저의 스킬 목록
 	const int				iSkillLevel			= g_pData->GetUIManager()->GetUISkillTree()->GetSkillLevelInSkillWimdow( eSkillID );	/// 현재 스킬의 레벨
 
 	int						iUnitClass			= static_cast<int>( g_pData->GetMyUser()->GetSelectUnit()->GetClass() );				/// 유닛 클래스
@@ -3817,14 +4264,14 @@ void CX2SkillTree::FixOrInsertMapSkillInfoValue( CX2SkillTree::SKILL_ID eSkillID
 
 	if ( NULL != pSkillTemplet )
 	{
-		const int iUnitLevel	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_Level;						/// 현재 유저 레벨
+		const int iUnitLevel	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_Level;						/// 현재 유저 레벨
 
 		/// 만약 올릴 레벨의 스킬이 요구 레벨 제한에 걸리면, 패스
 		if ( pSkillTemplet->GetSkillRequireLevelValue( iSkillLevel + 1 ) > iUnitLevel )
 			return;
 
-		const int iHaveSPoint	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iSPoint - m_iUsedSPoint;		/// 남은 스킬 포인트
-		const int iHaveCSPoint	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_iCSPoint - m_iUsedCSPoint;	/// 남은 캐시 스킬 포인트
+		const int iHaveSPoint	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iSPoint - m_iUsedSPoint;		/// 남은 스킬 포인트
+		const int iHaveCSPoint	= g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_iCSPoint - m_iUsedCSPoint;	/// 남은 캐시 스킬 포인트
 
 		/// 소비 스킬 포인트 연산 ( 습득인지 강화인지 )
 		const int	iRequireSP			= 0 == iSkillLevel ? pSkillTemplet->m_iRequireLearnSkillPoint : pSkillTemplet->m_iRequireUpgradeSkillPoint;
@@ -3893,14 +4340,16 @@ void CX2SkillTree::FixOrInsertMapSkillInfoValue( CX2SkillTree::SKILL_ID eSkillID
 void CX2SkillTree::AddSkillPowerRate_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	SKILL_POWER_RATE_TYPE	eSkillPowerRateType = SPRT_NONE;	/// 데미지 배율 아이디
 	vector<float>			vecPoewrRate;						/// 데미지 배율 컨테이너
 
 	LUA_GET_VALUE_ENUM( luaManager,	"m_eID", eSkillPowerRateType, SKILL_POWER_RATE_TYPE, SPRT_NONE );
 
-	if( true == luaManager.BeginTable( L"m_Value" ) )
+	if( true == luaManager.BeginTable( "m_Value" ) )
 		SetSkillVlaue( luaManager, vecPoewrRate );
 
 	if ( SPRT_NONE != eSkillPowerRateType && true != vecPoewrRate.empty() )		/// 정보가 파싱 되었을 때만, 추가 한다.
@@ -3930,7 +4379,9 @@ void CX2SkillTree::SetSkillPowerRate( IN SKILL_POWER_RATE_TYPE eSkillPowerRateTy
 void CX2SkillTree::AddDefaultSkill_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
-	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING	
+    TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	int iTableIndex = 1;	/// 테이블 인덱스 ( Lua는 테이블 첫번째 인덱스가 1 )
 	int iValue		= -1;	/// 전달값
@@ -3965,10 +4416,8 @@ bool CX2SkillTree::isDefaultSkill( SKILL_ID eSkillID )
 		 NULL == g_pData->GetMyUser()->GetSelectUnit() )
 		 return false;
 
-	CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+	const CX2Unit::UnitData* pUnitData = &g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 
-	if ( NULL == pUnitData )
-		return false;
 
 	/// 해당 클래스의 기본 스킬 목록 반환
 	const std::map<int, std::vector<int>>::const_iterator mit = m_mapDefaultSkill.find( pUnitData->m_UnitClass );
@@ -4049,3 +4498,62 @@ const int CX2SkillTree::GetCalcInitSkillPoint( const int iUnitLevel ) const
 }
 
 #endif // UPGRADE_SKILL_SYSTEM_2013
+
+#ifdef SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+UINT CX2SkillTree::GetSkillLevelUpNumByPowerRateType( SKILL_POWER_RATE_TYPE eSkillPowerRateType_ )
+{
+	switch( eSkillPowerRateType_ )
+	{
+	case SPRT_BASIC_CLASS:			/// 기본 전직
+		{
+			return 4;
+		} break;
+	case SPRT_FIRST_CLASS:			/// 1차전직
+		{
+			return 3;
+		} break;
+	case SPRT_SECOND_CLASS:			/// 2차전직
+		{
+			return 2;
+		} break;
+	case SPRT_SECOND_CLASS2:			/// 2차전직2 (후반 스킬) 
+		{
+			return 1;
+		} break;
+	// 각성기는 레벨업 소켓에 고려되지 않았기 때문에 주석 처리
+// 	case SPRT_HYPER_SKILL:			/// 각성기
+// 		{
+// 			return 1;
+// 		} break;
+	default:
+		return 0;
+		break;
+	}
+	return 0;
+}
+#endif // SKILL_LEVEL_UP_BY_POWER_RATE_TYPE
+
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+bool CX2SkillTree::SkillTemplet::GetSkillEffectiveDescExpand ( OUT wstring & wstrSkillEffectiveDesc, int iLevel ) const
+{
+	// 스킬 설명을 확장해야 할 스킬 인가?
+	// Ex. 디멘션 위치, 에너지 스퍼트
+	switch ( m_eID )
+	{
+	case CX2SkillTree::SI_SA_ABM_ENERGY_SPURT:	
+		// 혹시 모를 크래시를 위해 예외 처리..
+		if ( NULL != g_pData && NULL != g_pData->GetMyUser() && NULL != g_pData->GetMyUser()->GetSelectUnit() )
+		{
+			float fEnergySpurtAddDamageValue = powf ( static_cast<float> ( g_pData->GetSelectUnitLevel() ), 2.f ) * 35.f * GetSkillPowerRateValue( iLevel );
+
+			wstrSkillEffectiveDesc = g_pMain->GetReplacedWstring ( wstrSkillEffectiveDesc, "i", static_cast<int> ( fEnergySpurtAddDamageValue ) );			
+			return true;
+		}			
+		break;
+	default :
+		return false;
+	}
+	return false;
+}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편

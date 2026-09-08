@@ -278,61 +278,49 @@ void KUserList::CheckUnauthorizedSession()
 			//{{ 2011. 07. 27    김민성    투니랜드 채널링
 #ifdef SERV_TOONILAND_CHANNELING
 			//{{ 2012. 04. 02	김민성		넥슨 auth soap
-#ifdef SERV_NEXON_AUTH_SOAP
-			int iRet = static_cast<int>( spGSUserInfo->m_wstrUserID.find( L"@tooni", 0 ) );
-			if( iRet != -1 ) // @가 없다
-			{
-				if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-				{
-					START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-						<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
-						<< END_LOG;
-					spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
-				}
-			}
-			else		// @가 있다
-			{
-				iRet = static_cast<int>( spGSUserInfo->m_wstrUserID.find( L"@nx", 0 ) );
-				if( iRet != -1 )
-				{
-					if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-					{
-						START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-							<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
-							<< END_LOG;
-						spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-					}
-				}
-				else
-				{
-					spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-				}
-			}
-#else
-			int iRet = static_cast<int>( spGSUserInfo->m_wstrUserID.find( L'@', 0 ) );
-			if( iRet == -1 ) // @가 없다
-			{
-				if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-				{
-					START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-						<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
-						<< END_LOG;
-					spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-				}
-			}
-			else		// @가 있다
-			{
-				if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-				{
-					START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-						<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
-						<< END_LOG;
-					spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
-				}
-			}
-#endif SERV_NEXON_AUTH_SOAP
-			//}}
-			
+//#ifdef SERV_NEXON_AUTH_SOAP
+
+            
+
+            int nRet1st = CheckUserIDAndSetChannelCode( spGSUserInfo->m_wstrUserID, L"@tooni", KNexonAccountInfo::CE_TOONILAND_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+            int nRet2nd = CheckUserIDAndSetChannelCode( spGSUserInfo->m_wstrUserID, L"@nx", KNexonAccountInfo::CE_NEXON_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+            int nRet3rd = CheckUserIDAndSetChannelCode( spGSUserInfo->m_wstrUserID, L"@naver", KNexonAccountInfo::CE_NAVER_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+
+            if ( nRet1st == -1 && nRet2nd == -1 && nRet3rd == -1 ) 
+            {
+                spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저 , 기본값
+            }
+
+			//int iRet = static_cast<int>( spGSUserInfo->m_wstrUserID.find( L"@tooni", 0 ) );
+			//if( iRet != -1 ) // @가 없다. 검색 결과가 있다
+			//{
+			//	if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
+			//	{
+			//		START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+			//			<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
+			//			<< END_LOG;
+			//		spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
+			//	}
+			//}
+			//else		// @가 있다
+			//{
+   //             //CheckUserIDAndSetChannelCode( spGSUserInfo->m_wstrUserID, L"@nx", KNexonAccountInfo::CE_NEXON_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+			//	iRet = static_cast<int>( spGSUserInfo->m_wstrUserID.find( L"@nx", 0 ) );
+			//	if( iRet != -1 )
+			//	{          
+			//		if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
+			//		{
+			//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+			//				<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
+			//				<< END_LOG;
+			//			spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+			//		}
+			//	}
+			//	else
+			//	{
+			//		spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+			//	}
+			//}
 
 			std::wstring wstrResult;
 			std::wstring wstrID;
@@ -359,6 +347,32 @@ void KUserList::CheckUnauthorizedSession()
 				<< BUILD_LOG( spGSUserInfo->m_bIsGuestUser );
 		}
 	}
+}
+
+int KUserList::CheckUserIDAndSetChannelCode( IN const std::wstring& wstrUserID_, IN const std::wstring& wstrPostfix_ , IN const int& nAcocuntType_, OUT UCHAR& ucChannelCode_ )
+{
+    int nRet = static_cast<int>( wstrUserID_.find( wstrPostfix_, 0 ) );
+
+    if ( nRet != -1 )
+    {
+        if( ucChannelCode_ != nAcocuntType_ )
+        {
+            START_LOG( cwarn, L"이상한 채널코드로 등록 되어 있다." )
+                << BUILD_LOG( ucChannelCode_ )
+                << BUILD_LOG( nAcocuntType_ )
+                << END_LOG;
+            ucChannelCode_ = nAcocuntType_;
+        }
+
+#ifdef SERV_NAVER_CHANNELING
+        if ( KNexonAccountInfo::CE_NAVER_ACCOUNT == nAcocuntType_ ) 
+        { // 넥슨-네이버 채널링은 세션 채널코드와  SSO 채널코드가 다르다. 여기서 세션 채널코드로 변환
+            ucChannelCode_ = KNexonAccountInfo::CE_NAVER_SESSION;
+        }
+#endif SERV_NAVER_CHANNELING
+    }
+
+    return nRet;
 }
 
 void KUserList::NexonAuthLogin( const KGSUserInfo& kUserInfo, bool bOnlyAuthentication /*= false*/ )
@@ -526,57 +540,67 @@ void KUserList::LoginTimeOut( const KELG_NEXON_USER_LOGIN_TIME_OUT_NOT& kInfo )
 #ifdef SERV_TOONILAND_CHANNELING
 	//{{ 2012. 04. 02	김민성		넥슨 auth soap
 #ifdef SERV_NEXON_AUTH_SOAP
-	int iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L"@tooni", 0 ) );
-	if( iRet != -1 ) // @tooni 가 있다
-	{
-		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-		{
-			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
-				<< END_LOG;
-			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
-		}
-	}
-	else		// @가 있다
-	{
-		iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L"@nx", 0 ) );
-		if( iRet != -1 ) // @nx 가 있다
-		{
-			if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-			{
-				START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-					<< BUILD_LOG( kUserInfo.m_ucChannelCode )
-					<< END_LOG;
-				kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-			}
-		}
-		else
-		{
-			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-		}
-	}
-#else
-	int iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L'@', 0 ) );
-	if( iRet == -1 ) // @가 없다
-	{
-		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-		{
-			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
-				<< END_LOG;
-			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-		}
-	}
-	else		// @가 있다
-	{
-		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-		{
-			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
-				<< END_LOG;
-			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
-		}
-	}
+	//int iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L"@tooni", 0 ) );
+	//if( iRet != -1 ) // @tooni 가 있다
+	//{
+	//	if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
+	//	{
+	//		START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+	//			<< BUILD_LOG( kUserInfo.m_ucChannelCode )
+	//			<< END_LOG;
+	//		kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
+	//	}
+	//}
+	//else		// @가 있다
+	//{
+	//	iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L"@nx", 0 ) );
+	//	if( iRet != -1 ) // @nx 가 있다
+	//	{
+	//		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
+	//		{
+	//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+	//				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
+	//				<< END_LOG;
+	//			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+	//		}
+	//	}
+	//	else
+	//	{
+	//		kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+	//	}
+	//}
+
+    int nRet1st = CheckUserIDAndSetChannelCode( kUserInfo.m_wstrUserID, L"@tooni", KNexonAccountInfo::CE_TOONILAND_ACCOUNT, kUserInfo.m_ucChannelCode );
+    int nRet2nd = CheckUserIDAndSetChannelCode( kUserInfo.m_wstrUserID, L"@nx", KNexonAccountInfo::CE_NEXON_ACCOUNT, kUserInfo.m_ucChannelCode );
+    int nRet3rd = CheckUserIDAndSetChannelCode( kUserInfo.m_wstrUserID, L"@naver", KNexonAccountInfo::CE_NAVER_ACCOUNT, kUserInfo.m_ucChannelCode );
+
+    if ( nRet1st == -1 && nRet2nd == -1 && nRet3rd == -1 ) 
+    {
+        kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저 , 기본값
+    }
+
+//#else
+//	int iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L'@', 0 ) );
+//	if( iRet == -1 ) // @가 없다
+//	{
+//		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
+//		{
+//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+//				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
+//				<< END_LOG;
+//			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+//		}
+//	}
+//	else		// @가 있다
+//	{
+//		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
+//		{
+//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+//				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
+//				<< END_LOG;
+//			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
+//		}
+//	}
 #endif SERV_NEXON_AUTH_SOAP
 	//}}
 
@@ -585,10 +609,10 @@ void KUserList::LoginTimeOut( const KELG_NEXON_USER_LOGIN_TIME_OUT_NOT& kInfo )
 	wstrResult = boost::str( boost::wformat( L"%d" ) % kUserInfo.m_ucChannelCode );
 	wstrResult += ';';
 	wstrID = boost::str( boost::wformat( L"%s" ) % kUserInfo.m_wstrUserID );
-	wstrResult += wstrID;
+	wstrResult += wstrID; // wstrResult 는 채널링코드(세션용);userid@naver 로 결합된 형태 -SSO채널링코드 아님-에 주의
 
 	// 인증서버로 로그아웃 요청
-	NexonAuthLogout( wstrResult, kUserInfo.m_iSessionNo );
+	NexonAuthLogout( wstrResult, kUserInfo.m_iSessionNo ); 
 #else
 	// 인증서버로 로그아웃 요청
 	NexonAuthLogout( kInfo.m_wstrUserID, kUserInfo.m_iSessionNo );
@@ -606,57 +630,67 @@ void KUserList::LoginTimeOut( const KELG_NEXON_USER_LOGIN_TIME_OUT_NOT& kInfo )
 #ifdef SERV_TOONILAND_CHANNELING
 	//{{ 2012. 04. 02	김민성		넥슨 auth soap
 #ifdef SERV_NEXON_AUTH_SOAP
-	iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L"@tooni", 0 ) );
-	if( iRet != -1 ) // @tooni가 있다
-	{
-		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-		{
-			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
-				<< END_LOG;
-			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
-		}
-	}
-	else		// @가 있다
-	{
-		iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L"@nx", 0 ) );
-		if( iRet != -1 ) // @nx가 있다
-		{
-			if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-			{
-				START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-					<< BUILD_LOG( kUserInfo.m_ucChannelCode )
-					<< END_LOG;
-				kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-			}
-		}
-		else
-		{
-			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 넥슨 유저
-		}
-	}
-#else
-	iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L'@', 0 ) );
-	if( iRet == -1 ) // @가 없다
-	{
-		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-		{
-			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
-				<< END_LOG;
-			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-		}
-	}
-	else		// @가 있다
-	{
-		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-		{
-			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
-				<< END_LOG;
-			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
-		}
-	}
+	//iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L"@tooni", 0 ) );
+	//if( iRet != -1 ) // @tooni가 있다
+	//{
+	//	if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
+	//	{
+	//		START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+	//			<< BUILD_LOG( kUserInfo.m_ucChannelCode )
+	//			<< END_LOG;
+	//		kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
+	//	}
+	//}
+	//else		// @가 있다
+	//{
+	//	iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L"@nx", 0 ) );
+	//	if( iRet != -1 ) // @nx가 있다
+	//	{
+	//		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
+	//		{
+	//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+	//				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
+	//				<< END_LOG;
+	//			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+	//		}
+	//	}
+	//	else
+	//	{
+	//		kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+	//	}
+	//}
+
+    nRet1st = nRet2nd = nRet3rd = -1;
+    nRet1st = CheckUserIDAndSetChannelCode( kUserInfo.m_wstrUserID, L"@tooni", KNexonAccountInfo::CE_TOONILAND_ACCOUNT, kUserInfo.m_ucChannelCode );
+    nRet2nd = CheckUserIDAndSetChannelCode( kUserInfo.m_wstrUserID, L"@nx", KNexonAccountInfo::CE_NEXON_ACCOUNT, kUserInfo.m_ucChannelCode );
+    nRet3rd = CheckUserIDAndSetChannelCode( kUserInfo.m_wstrUserID, L"@naver", KNexonAccountInfo::CE_NAVER_ACCOUNT, kUserInfo.m_ucChannelCode );  // TODO : 네이버 채널링의 경우에는 세션 채널링코드로 변환해야 한다. 
+
+    if ( nRet1st == -1 && nRet2nd == -1 && nRet3rd == -1 ) 
+    {
+        kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저 , 기본값
+    }
+//#else
+//	iRet = static_cast<int>( kUserInfo.m_wstrUserID.find( L'@', 0 ) );
+//	if( iRet == -1 ) // @가 없다
+//	{
+//		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
+//		{
+//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+//				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
+//				<< END_LOG;
+//			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+//		}
+//	}
+//	else		// @가 있다
+//	{
+//		if( kUserInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
+//		{
+//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+//				<< BUILD_LOG( kUserInfo.m_ucChannelCode )
+//				<< END_LOG;
+//			kUserInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
+//		}
+//	}
 #endif SERV_NEXON_AUTH_SOAP
 	//}}
 
@@ -738,57 +772,68 @@ int KUserList::RegUser( IN const UidType iUserUID, IN const UidType iGSUID, IN c
 #ifdef SERV_TOONILAND_CHANNELING
 	//{{ 2012. 04. 02	김민성		넥슨 auth soap
 #ifdef SERV_NEXON_AUTH_SOAP
-	int iRet = static_cast<int>( kInfo_.m_wstrUserID.find( L"@tooni", 0 ) );
-	if( iRet != -1 ) // @tooni 있다
-	{
-		if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-		{
-			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-				<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
-				<< END_LOG;
-			spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 투니랜드유저
-		}
-	}
-	else		
-	{
-		iRet = static_cast<int>( kInfo_.m_wstrUserID.find( L"@nx", 0 ) );
-		if( iRet != -1 ) // @nx 있다
-		{
-			if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-			{
-				START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-					<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
-					<< END_LOG;
-				spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-			}
-		}
-		else
-		{
-			spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT;	// 넥슨 유저
-		}
-	}
-#else
-	int iRet = static_cast<int>( kInfo_.m_wstrUserID.find( L'@', 0 ) );
-	if( iRet == -1 ) // @가 없다
-	{
-		if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-		{
-			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-				<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
-				<< END_LOG;
-			spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-		}
-	}
-	else		// @가 있다
-	{
-		if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-		{
-			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-				<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
-				<< END_LOG;
-			spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
-		}
-	}
+	//int iRet = static_cast<int>( kInfo_.m_wstrUserID.find( L"@tooni", 0 ) );
+	//if( iRet != -1 ) // @tooni 있다
+	//{
+	//	if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
+	//	{
+	//		START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+	//			<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
+	//			<< END_LOG;
+	//		spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 투니랜드유저
+	//	}
+	//}
+	//else		
+	//{
+	//	iRet = static_cast<int>( kInfo_.m_wstrUserID.find( L"@nx", 0 ) );
+	//	if( iRet != -1 ) // @nx 있다
+	//	{
+	//		if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
+	//		{
+	//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+	//				<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
+	//				<< END_LOG;
+	//			spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+	//		}
+	//	}
+	//	else
+	//	{
+	//		spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT;	// 넥슨 유저
+	//	}
+	//}
+
+    int nRet1st = CheckUserIDAndSetChannelCode( kInfo_.m_wstrUserID, L"@tooni", KNexonAccountInfo::CE_TOONILAND_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+    int nRet2nd = CheckUserIDAndSetChannelCode( kInfo_.m_wstrUserID, L"@nx", KNexonAccountInfo::CE_NEXON_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+    int nRet3rd = CheckUserIDAndSetChannelCode( kInfo_.m_wstrUserID, L"@naver", KNexonAccountInfo::CE_NAVER_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+
+    if ( nRet1st == -1 && nRet2nd == -1 && nRet3rd == -1 ) 
+    {
+        spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저 , 기본값
+    }
+
+
+//#else
+//	int iRet = static_cast<int>( kInfo_.m_wstrUserID.find( L'@', 0 ) );
+//	if( iRet == -1 ) // @가 없다
+//	{
+//		if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
+//		{
+//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+//				<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
+//				<< END_LOG;
+//			spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+//		}
+//	}
+//	else		// @가 있다
+//	{
+//		if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
+//		{
+//			START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+//				<< BUILD_LOG( spGSUserInfo->m_ucChannelCode )
+//				<< END_LOG;
+//			spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
+//		}
+//	}
 #endif SERV_NEXON_AUTH_SOAP
 	//}}
 
@@ -797,7 +842,6 @@ int KUserList::RegUser( IN const UidType iUserUID, IN const UidType iGSUID, IN c
 #ifdef SERV_JAPAN_CHANNELING
 	spGSUserInfo->m_ucChannelCode = kInfo_.m_ucChannelCode;
 #endif // SERV_JAPAN_CHANNELING
-
 
 	//{{ 2011. 08. 17	최육사	머신ID 중복 접속 차단
 #ifdef SERV_MACHINE_ID_DUPLICATE_CHECK
@@ -1116,7 +1160,7 @@ end_proc:
 //#ifdef SERV_TOONILAND_CHANNELING
 		//{{ 2012. 04. 02	김민성		넥슨 auth soap
 //#ifdef SERV_NEXON_AUTH_SOAP
-		int iRet = static_cast<int>( spGSUserInfo->m_wstrUserID.find( L"@tooni", 0 ) );
+		/*int iRet = static_cast<int>( spGSUserInfo->m_wstrUserID.find( L"@tooni", 0 ) );
 		if( iRet != -1 ) // @tooni 있다
 		{
 			if( spGSUserInfo->m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
@@ -1144,7 +1188,17 @@ end_proc:
 			{
 				spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
 			}
-		}
+		}*/
+
+        int nRet1st = CheckUserIDAndSetChannelCode( spGSUserInfo->m_wstrUserID, L"@tooni", KNexonAccountInfo::CE_TOONILAND_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+        int nRet2nd = CheckUserIDAndSetChannelCode( spGSUserInfo->m_wstrUserID, L"@nx", KNexonAccountInfo::CE_NEXON_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+        int nRet3rd = CheckUserIDAndSetChannelCode( spGSUserInfo->m_wstrUserID, L"@naver", KNexonAccountInfo::CE_NAVER_ACCOUNT, spGSUserInfo->m_ucChannelCode );
+
+        if ( nRet1st == -1 && nRet2nd == -1 && nRet3rd == -1 ) 
+        {
+            spGSUserInfo->m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저 , 기본값
+        }
+
 //#else
 //		int iRet = static_cast<int>( spGSUserInfo->m_wstrUserID.find( L'@', 0 ) );
 //		if( iRet == -1 ) // @가 없다
@@ -1221,14 +1275,11 @@ end_proc:
 	
 	else
 	{
-	
-
 		//{{ 2012. 09. 03	최육사		중복 접속 버그 수정
 #ifdef SERV_DUPLICATE_CONNECT_BUG_FIX
 		RegAuthWaitUser( *spGSUserInfo );
 #endif SERV_DUPLICATE_CONNECT_BUG_FIX
 		//}}
-
 #ifdef SERV_GLOBAL_AUTH
 #if defined(SERV_COUNTRY_TWHK) || defined(SERV_COUNTRY_JP)
 		RequestRegUser( iUserUID, *spGSUserInfo );	// 해외용 인증 요청
@@ -1410,7 +1461,7 @@ bool KUserList::UnRegUser( IN const UidType iUserUID )
 #ifdef SERV_TOONILAND_CHANNELING
 			//{{ 2012. 04. 02	김민성		넥슨 auth soap
 #ifdef SERV_NEXON_AUTH_SOAP
-			int iRet = static_cast<int>( kInfo.m_wstrUserID.find( L"@tooni", 0 ) );
+			/*int iRet = static_cast<int>( kInfo.m_wstrUserID.find( L"@tooni", 0 ) );
 			if( iRet != -1 ) // @tooni 있다
 			{
 				if( kInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
@@ -1438,29 +1489,38 @@ bool KUserList::UnRegUser( IN const UidType iUserUID )
 				{
 					kInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
 				}
-			}
-#else
-			int iRet = static_cast<int>( kInfo.m_wstrUserID.find( L'@', 0 ) );
-			if( iRet == -1 ) // @가 없다
-			{
-				if( kInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
-				{
-					START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-						<< BUILD_LOG( kInfo.m_ucChannelCode )
-						<< END_LOG;
-					kInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
-				}
-			}
-			else		// @가 있다
-			{
-				if( kInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
-				{
-					START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
-						<< BUILD_LOG( kInfo.m_ucChannelCode )
-						<< END_LOG;
-					kInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
-				}
-			}
+			}*/
+
+            int nRet1st = CheckUserIDAndSetChannelCode( kInfo.m_wstrUserID, L"@tooni", KNexonAccountInfo::CE_TOONILAND_ACCOUNT, kInfo.m_ucChannelCode );
+            int nRet2nd = CheckUserIDAndSetChannelCode( kInfo.m_wstrUserID, L"@nx", KNexonAccountInfo::CE_NEXON_ACCOUNT, kInfo.m_ucChannelCode );
+            int nRet3rd = CheckUserIDAndSetChannelCode( kInfo.m_wstrUserID, L"@naver", KNexonAccountInfo::CE_NAVER_ACCOUNT, kInfo.m_ucChannelCode );
+
+            if ( nRet1st == -1 && nRet2nd == -1 && nRet3rd == -1 ) 
+            {
+                kInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저 , 기본값
+            }
+//#else
+//			int iRet = static_cast<int>( kInfo.m_wstrUserID.find( L'@', 0 ) );
+//			if( iRet == -1 ) // @가 없다
+//			{
+//				if( kInfo.m_ucChannelCode != KNexonAccountInfo::CE_NEXON_ACCOUNT )
+//				{
+//					START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+//						<< BUILD_LOG( kInfo.m_ucChannelCode )
+//						<< END_LOG;
+//					kInfo.m_ucChannelCode = KNexonAccountInfo::CE_NEXON_ACCOUNT; // 넥슨 유저
+//				}
+//			}
+//			else		// @가 있다
+//			{
+//				if( kInfo.m_ucChannelCode != KNexonAccountInfo::CE_TOONILAND_ACCOUNT )
+//				{
+//					START_LOG( clog, L"이상한 채널코드로 동록 되어 있다." )
+//						<< BUILD_LOG( kInfo.m_ucChannelCode )
+//						<< END_LOG;
+//					kInfo.m_ucChannelCode = KNexonAccountInfo::CE_TOONILAND_ACCOUNT; // 투니랜드유저
+//				}
+//			}
 #endif SERV_NEXON_AUTH_SOAP
 			//}}
 		
@@ -1521,10 +1581,8 @@ bool KUserList::UnRegUser( IN const UidType iUserUID )
 #ifdef SERV_GLOBAL_AUTH
 #ifdef SERV_COUNTRY_TWHK
 	RequestUnRegUser(iUserUID, kInfo);
-
 #endif // SERV_COUNTRY_TWHK
 #endif // SERV_GLOBAL_AUTH
-
 
     return true;
 }
@@ -1931,7 +1989,11 @@ void KUserList::Tick()
 	std::map< UidType, KAuthWaitUser >::const_iterator mit;
 	for( mit = m_mapAuthWaitUser.begin(); mit != m_mapAuthWaitUser.end(); ++mit )
 	{
+#ifdef SERV_GLOBAL_AUTH
+		if( mit->second.m_tTimer.elapsed() > 30.0 )	// 해외는 통신 느려서 30초까지 대기 시간 늘림
+#else //SERV_GLOBAL_AUTH
 		if( mit->second.m_tTimer.elapsed() > 10.0 )
+#endif //SERV_GLOBAL_AUTH
 		{
 			vecDeleteUserList.push_back( mit->first );
 		}

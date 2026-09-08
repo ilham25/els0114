@@ -185,7 +185,7 @@ void KPvPRoom::SetRoomInfo( const KRoomInfo& kInfo )
 	m_mapAllPlayersSelectedMap = kInfo.m_mapAllPlayersSelectedMap;
 #endif SERV_PVP_REMATCH
     m_cDifficultyLevel	= static_cast<char>(CXSLDungeon::DL_NORMAL);
-    m_iDungeonID		= static_cast<int>(CXSLDungeon::DI_TUTORIAL_ELSWORD);
+    m_iDungeonID		= static_cast<int>(SEnum::DI_TUTORIAL_ELSWORD);
 	m_bCanIntrude		= kInfo.m_bCanIntrude;
 	m_iPVPChannelClass	= kInfo.m_iPVPChannelClass;	
 
@@ -892,14 +892,14 @@ bool KPvPRoom::CheckIfPlayEnd()
 
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-		bool bRedTeamBossDead = false;
-		bool bBlueTeamBossDead = false;
-		if( m_spRoomUserManager->IsAnyTeamBossDead( bRedTeamBossDead, bBlueTeamBossDead ) )
-		{
-			return true;
-		}
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		bool bRedTeamBossDead = false;
+//		bool bBlueTeamBossDead = false;
+//		if( m_spRoomUserManager->IsAnyTeamBossDead( bRedTeamBossDead, bBlueTeamBossDead ) )
+//		{
+//			return true;
+//		}
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 		//놀방이면 유닛이 die가 되어도 게임 종료체크를 하지 않는다.
@@ -2189,6 +2189,10 @@ void KPvPRoom::ProcessNativeEvent( const KEventPtr& spEvent_ )
 #endif SERV_WORLD_TRIGGER_RELOCATION
 	//}}
 
+#ifdef  SERV_OPTIMIZE_DETECT_ZOMBIE_HOST
+    CASE_NOPARAM( ERM_BATTLE_FIELD_ZOMBIE_ALERT_NOT );
+#endif  SERV_OPTIMIZE_DETECT_ZOMBIE_HOST
+
     default:
         START_LOG( cerr, L"이벤트 핸들러가 정의되지 않았음 - " << spEvent_->GetIDStr() )
             << BUILD_LOG( spEvent_->m_usEventID );
@@ -2231,6 +2235,10 @@ _IMPL_ON_FUNC( ERM_OPEN_PVP_ROOM_REQ, KERM_OPEN_ROOM_REQ )
 		m_spRoomUserManager->CloseSlot( 3 );
 		m_spRoomUserManager->CloseSlot( 6 );
 		m_spRoomUserManager->CloseSlot( 7 );
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		m_spRoomUserManager->CloseSlot( 1 );
+		m_spRoomUserManager->CloseSlot( 5 );
+#endif SERV_RELATIONSHIP_EVENT_INT
 	}
 	//}}
 
@@ -2407,6 +2415,14 @@ IMPL_ON_FUNC( ERM_GAME_START_REQ )
 			SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_GAME_START_ACK, kPacket );
 			return;
 		}
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		if( GetPVPChannelClass() == KPVPChannelInfo::PCC_TOURNAMENT && m_spRoomUserManager->CheckCouplePVP() == false )
+		{
+			kPacket.m_iOK = NetError::ERR_RELATIONSHIP_EVENT_07;
+			SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_GAME_START_ACK, kPacket );
+			return;
+		}
+#endif SERV_RELATIONSHIP_EVENT_INT
 	}	
 	//}}
 
@@ -2448,9 +2464,9 @@ IMPL_ON_FUNC( ERM_GAME_START_REQ )
 
 			DeathTeamBalance();
 
-#ifdef PVP_BOSS_COMBAT_TEST
-			m_spRoomUserManager->PickRandomBoss();
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//			m_spRoomUserManager->PickRandomBoss();
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 		}
@@ -2519,12 +2535,21 @@ IMPL_ON_FUNC( ERM_GAME_START_REQ )
 	//{{ 2010. 02. 10  최육사	대회 채널
 	if( GetPVPChannelClass() == KPVPChannelInfo::PCC_TOURNAMENT )
 	{
+#ifdef SERV_RELATIONSHIP_EVENT_INT
+		if( m_spRoomUserManager->GetNumReadyPlayer() != 2 )
+		{
+			kPacket.m_iOK = NetError::ERR_ROOM_38;
+			SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_GAME_START_ACK, kPacket );
+			return;
+		}
+#else
 		if( m_spRoomUserManager->GetNumReadyPlayer() != 4  &&  m_spRoomUserManager->CheckAuthLevel( FIRST_SENDER_UID ) == false )
 		{
 			kPacket.m_iOK = NetError::ERR_ROOM_38;
 			SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_GAME_START_ACK, kPacket );
 			return;
 		}
+#endif SERV_RELATIONSHIP_EVENT_INT
 	}
 	//}}
 
@@ -3075,33 +3100,38 @@ _IMPL_ON_FUNC( ERM_NPC_UNIT_CREATE_REQ, KEGS_NPC_UNIT_CREATE_REQ )
 
 	BOOST_TEST_FOREACH( const KNPCUnitReq&, kNpcUnitInfo, kPacket_.m_vecNPCUnitReq )
 	{
-		KNPCUnitNot kNPCInfo;
-		kNPCInfo.m_kNPCUnitReq = kNpcUnitInfo;
-
-		if( SiKPvpMatchManager()->IsPvpNpc( kNpcUnitInfo.m_NPCID ) == true  &&  IsOfficialMatch() == true )
+#ifdef NOT_CREATE_NPC_EXCEPT_FOR_SPECIFIC_NPC
+		/// 적군 몬스터 이거나
+		/// 아군 중 아래의 리스트 NPC 
+		/// 아군 중 PVP_NPC_KEY_CODE 가 지정된 PC만 부를 수 있음
+		if ( !kNpcUnitInfo.m_bAllyNpc ||
+			  CXSLUnitManager::CanCreateThisNpc( kNpcUnitInfo.m_NPCID ) ||
+			  kNpcUnitInfo.m_KeyCode == PVP_NPC_KEY_CODE )
+#endif // NOT_CREATE_NPC_EXCEPT_FOR_SPECIFIC_NPC
 		{
-			//KRoomUserPtr spRoomUser = m_spRoomUserManager->GetUser( (UidType)kNPCInfo.m_kNPCUnitReq.m_UID );
-			//if( spRoomUser == NULL )
-			//{
-			//	START_LOG( cerr, L"대전 NPC생성 실패!" )
-			//		<< BUILD_LOG( kNPCInfo.m_kNPCUnitReq.m_UID )
-			//		<< END_LOG;
-			//	continue;
-			//}			
-			if( m_kPvpMonsterManager.CreatePvpMonster( kNpcUnitInfo, kNPCInfo.m_kNPCUnitReq.m_UID ) == false )
+
+			KNPCUnitNot kNPCInfo;
+			kNPCInfo.m_kNPCUnitReq = kNpcUnitInfo;
+
+			if( SiKPvpMatchManager()->IsPvpNpc( kNpcUnitInfo.m_NPCID ) == true  &&  IsOfficialMatch() == true )
 			{
-				START_LOG( cerr, L"대전 NPC생성 실패!" )
-					<< BUILD_LOG( kNPCInfo.m_kNPCUnitReq.m_UID )
-					<< END_LOG;
-				continue;
-			}	
-		}
-		else
-		{
-			LIF( m_kPvpMonsterManager.CreateMonster( kNpcUnitInfo, kNPCInfo.m_kNPCUnitReq.m_UID ) );
+				if( m_kPvpMonsterManager.CreatePvpMonster( kNpcUnitInfo, kNPCInfo.m_kNPCUnitReq.m_UID ) == false )
+				{
+					START_LOG( cerr, L"대전 NPC생성 실패!" )
+						<< BUILD_LOG( kNPCInfo.m_kNPCUnitReq.m_UID )
+						<< END_LOG;
+					continue;
+				}	
+			}
+			else
+			{
+				LIF( m_kPvpMonsterManager.CreateMonster( kNpcUnitInfo, kNPCInfo.m_kNPCUnitReq.m_UID ) );
+			}
+
+			kPacketNot.m_vecNPCUnitAck.push_back( kNPCInfo );		
+
 		}
 
-		kPacketNot.m_vecNPCUnitAck.push_back( kNPCInfo );		
 	}
 
 	BroadCast( ERM_NPC_UNIT_CREATE_NOT, kPacketNot );
@@ -3835,7 +3865,36 @@ _IMPL_ON_FUNC( ERM_USER_UNIT_DIE_REQ, KEGS_USER_UNIT_DIE_REQ )
 #ifdef SERV_NEW_PVP_QUEST
 	kPacketNot.m_bOfficialMatch = IsOfficialMatch();
 #endif SERV_NEW_PVP_QUEST
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+	{	
+		KRoomUserPtr pkKilledUser	= m_spRoomUserManager->GetUser( FIRST_SENDER_UID );
+		if( pkKilledUser != NULL )
+		{
+			kPacketNot.m_killedUserUnitType			= pkKilledUser->GetUnitType();			
+		}
+		else
+		{
+			START_LOG( clog, L"[테스트로그] 죽은 유저 정보를 담는데 실패!" )
+				<< BUILD_LOG( kPacketNot.m_killedUserUnitType );		
+		}
+	}
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
 	//}} 
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+	{	
+		KRoomUserPtr pkKilledUser	= m_spRoomUserManager->GetUser( FIRST_SENDER_UID );
+		if( pkKilledUser != NULL )
+		{
+			kPacketNot.m_killedUserUnitClass			= pkKilledUser->GetUnitClass_LUA();		
+		}
+		else
+		{
+			START_LOG( clog, L"[테스트로그] 죽은 유저의 클래스를 담는데 실패" )
+				<< BUILD_LOG( kPacketNot.m_killedUserUnitClass );		
+		}
+	}
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
 
 	BroadCast( ERM_USER_UNIT_DIE_NOT, kPacketNot );
 
@@ -4173,6 +4232,17 @@ _IMPL_ON_FUNC( ERM_USER_UNIT_DIE_REQ, KEGS_USER_UNIT_DIE_REQ )
 		kPacketNot.m_MaxDamageKillerUserUnitUID = -1;
 		kPacketNot.m_KilledUserUnitUID			= FIRST_SENDER_UID;
 	}	
+
+#ifdef SERV_PVP_QUEST_OF_CHARCTER_KILL
+	if( pkKilledUser != NULL )
+		kPacketNot.m_killedUserUnitType			= pkKilledUser->GetUnitType();
+#endif //SERV_PVP_QUEST_OF_CHARCTER_KILL
+
+#ifdef SERV_EVENT_QUEST_CHUNG_PVP_KILL
+	if( pkKilledUser != NULL )
+		kPacketNot.m_killedUserUnitClass			= pkKilledUser->GetUnitClass_LUA();
+#endif SERV_EVENT_QUEST_CHUNG_PVP_KILL
+
 	BroadCast( ERM_USER_UNIT_DIE_NOT, kPacketNot );
 
 	if( GetStateID() == KRoomFSM::S_PLAY )
@@ -4674,6 +4744,24 @@ IMPL_ON_FUNC_NOPARAM( ERM_STATE_CHANGE_GAME_INTRUDE_REQ )
 			return;
 		}
 
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-10-08	// 박세훈
+		switch( GetPVPChannelClass() )
+		{
+		case KPVPChannelInfo::PCC_TOURNAMENT:
+			{
+				kPacket.m_iOK = NetError::ERR_ROOM_37;
+				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_STATE_CHANGE_GAME_INTRUDE_ACK, kPacket );
+				return;
+			}
+
+		case KPVPChannelInfo::PCC_OFFICIAL:
+			{
+				kPacket.m_iOK = NetError::ERR_ROOM_53;	// 공식 대전에는 난입할 수 없습니다.
+				SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_STATE_CHANGE_GAME_INTRUDE_ACK, kPacket );
+				return;
+			}
+		}
+#else // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
 		//{{ 2010. 02. 10  최육사	대회 채널에서는 난입 불가
 		if( GetPVPChannelClass() == KPVPChannelInfo::PCC_TOURNAMENT )
 		{
@@ -4682,6 +4770,7 @@ IMPL_ON_FUNC_NOPARAM( ERM_STATE_CHANGE_GAME_INTRUDE_REQ )
 			return;
 		}
 		//}}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
 	}
 
 	if( !m_spRoomUserManager->SetReady( FIRST_SENDER_UID, true, bObserver ) )
@@ -4739,6 +4828,15 @@ _IMPL_ON_FUNC( ERM_INTRUDE_START_REQ, KEGS_INTRUDE_START_REQ )
 	// 옵저버 체크
 	const bool bObserver = m_spRoomUserManager->IsObserver( FIRST_SENDER_UID );
 
+#ifdef SERV_FIX_JOIN_OFFICIAL_PVP_ROOM// 작업날짜: 2013-10-08	// 박세훈
+	if( ( bObserver == false ) && ( IsOfficialMatch() == true ) )
+	{
+		kPacket.m_iOK = NetError::ERR_ROOM_53;	// 공식 대전에는 난입할 수 없습니다.
+		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_INTRUDE_START_ACK, kPacket );
+		return;
+	}
+#endif // SERV_FIX_JOIN_OFFICIAL_PVP_ROOM
+
 	if( !m_spRoomUserManager->StartPlay( FIRST_SENDER_UID, bObserver ) )
 	{
 		kPacket.m_iOK = NetError::ERR_ROOM_18;
@@ -4780,6 +4878,26 @@ _IMPL_ON_FUNC( ERM_INTRUDE_START_REQ, KEGS_INTRUDE_START_REQ )
 		kPacket3.m_BlueTeamKill = m_spRoomUserManager->GetTeamScore( CXSLRoom::TN_BLUE );
 		SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ERM_CURRENT_TEAM_KILL_SCORE_NOT, kPacket3 );
 	}
+
+#ifdef SERV_FIX_REVENGE_BUFF// 작업날짜: 2013-08-09	// 박세훈
+#ifdef SERV_2012_PVP_SEASON2_2
+	if( GetStateID() == KRoomFSM::S_PLAY )
+	{
+		const int iRevengeBuffID = GetTeamRevengeBuffID( FIRST_SENDER_UID );
+		if( iRevengeBuffID != CXSLBuffManager::BTI_NONE )
+		{			
+			CTime tCurrentTime = CTime::GetCurrentTime();
+			KBuffInfo kBuffInfo;
+			kBuffInfo.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID	= iRevengeBuffID;
+			kBuffInfo.m_iBuffStartTime = tCurrentTime.GetTime();
+
+			KECN_PARTY_BUFF_UPDATE_NOT kPacket;
+			kPacket.m_mapActivateBuffList.insert( std::map<int, KBuffInfo>::value_type( kBuffInfo.m_kFactorInfo.m_BuffIdentity.m_eBuffTempletID, kBuffInfo ) );
+			SendToGSCharacter( LAST_SENDER_UID, FIRST_SENDER_UID, ECN_PARTY_BUFF_UPDATE_NOT, kPacket );
+		}
+	}
+#endif // SERV_2012_PVP_SEASON2_2
+#endif // SERV_FIX_REVENGE_BUFF
 }
 //////////////////////////////////////////////////////////////////////////
 #else
@@ -5716,6 +5834,22 @@ void KPvPRoom::RevengeBuffProcess( IN const UidType& iMyUnitUID, IN int iPrevMyT
 		}
 	}
 }
+
+#ifdef SERV_FIX_REVENGE_BUFF// 작업날짜: 2013-08-09	// 박세훈
+int	KPvPRoom::GetTeamRevengeBuffID( IN const UidType iMyUnitUID ) const
+{
+	int iNowMyTeamKillNumGab	= m_spRoomUserManager->GetMyTeamKillNum( iMyUnitUID ) - m_spRoomUserManager->GetEnemyTeamKillNum( iMyUnitUID );
+	iNowMyTeamKillNumGab		= max( -3, iNowMyTeamKillNumGab );
+
+	if( iNowMyTeamKillNumGab < 0 )
+	{
+		return CXSLBuffManager::BTI_BUFF_PVP_REVENGE_MODE_LEVEL_1 - 1 + abs( iNowMyTeamKillNumGab );
+	}
+
+	return CXSLBuffManager::BTI_NONE;
+}
+#endif // SERV_FIX_REVENGE_BUFF
+
 #endif SERV_2012_PVP_SEASON2_2
 //}}
 
@@ -6007,7 +6141,6 @@ _IMPL_ON_FUNC( ERM_UDP_CHECK_KICK_USER_NOT, KEGS_UDP_CHECK_KICK_USER_NOT )
 }
 #endif UDP_CAN_NOT_SEND_USER_KICK
 //}}
-
 
 #ifdef SERV_NEW_PVPROOM_PROCESS
 _IMPL_ON_FUNC( ERM_CHANGE_PVP_ROOM_PUBLIC_REQ, KEGS_CHANGE_PVP_ROOM_PUBLIC_REQ )

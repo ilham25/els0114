@@ -30,7 +30,11 @@ namespace _CONST_RAVEN_
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
 	/// Dash Jump XXX 콤보 카운트
 	const int MAX_DASH_JUMP_COMBO_XX_LOOP_COUNT = 9;
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	const int MAX_DASH_COMBO_ZZZPushZ_LOOP_COUNT = 20;
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	const int MAX_DASH_COMBO_ZZZPushZ_LOOP_COUNT = 10;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 
 	/// 섀도우 스텝 최대 동작 횟수
 	const int MAX_ACTIVE_SHADOW_STEP = 2;
@@ -118,6 +122,9 @@ frameBufferNum, pUnit )
 	m_fAddOverHeatBuffDurationTime ( 0.f ),				// 베커용 오버히트 지속시간 증가 ( 과열모드 작동! )
 	m_iAddOverHeatLevel ( 0 )							// 베커용 오버히트 레벨 설정	 ( 과열모드 작동! ) 
 #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	, m_fExtremBladeDelay( 0.001f )
+#endif //FINALITY_SKILL_SYSTEM
 {
 
 	m_bReAttackZ1Right					= false;
@@ -132,8 +139,8 @@ frameBufferNum, pUnit )
 //}}AFX
 #endif OLD_HAND_SLASH_TRACE
 
-	m_hSeqCannonBlade		= INVALID_PARTICLE_HANDLE;
-	m_hSeqMagnumBlaster1	= INVALID_PARTICLE_HANDLE;
+	m_hSeqCannonBlade		= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqMagnumBlaster1	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 	m_hMesh_MagnumBlaster2	= INVALID_MESH_INSTANCE_HANDLE;
 
 
@@ -142,21 +149,21 @@ frameBufferNum, pUnit )
 	InitializeRavenMajorParticleArray();
 	InitializeRavenMinorParticleArray();
 
-	m_hSeqBloodyAccel						= INVALID_PARTICLE_HANDLE;
+	m_hSeqBloodyAccel						= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	for( int i=0; i<ARRAY_SIZE( m_hSeqPowerAssault ); i++ )
 	{
-		m_hSeqPowerAssault[i] = INVALID_PARTICLE_HANDLE;
+		m_hSeqPowerAssault[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 
 	for( int i=0; i<ARRAY_SIZE( m_hSeqSevenBurst ); i++ )
 	{
-		m_hSeqSevenBurst[i] = INVALID_PARTICLE_HANDLE;
+		m_hSeqSevenBurst[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 	
 
-	m_hSeqSonicStab						= INVALID_PARTICLE_HANDLE;
-	m_hSeqSonicStab1					= INVALID_PARTICLE_HANDLE;
+	m_hSeqSonicStab						= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqSonicStab1					= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 	m_hMeshFlyingImpact					= INVALID_MESH_INSTANCE_HANDLE;
 
@@ -167,9 +174,9 @@ frameBufferNum, pUnit )
 
 	m_hMeshGuardianStrike1				= INVALID_MESH_INSTANCE_HANDLE;
 
-	m_hSeqGuardianStrike1				= INVALID_PARTICLE_HANDLE;
-	m_hSeqGuardianStrike2				= INVALID_PARTICLE_HANDLE;
-	m_hSeqGuardianStrike3				= INVALID_PARTICLE_HANDLE;
+	m_hSeqGuardianStrike1				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqGuardianStrike2				= INVALID_PARTICLE_SEQUENCE_HANDLE;
+	m_hSeqGuardianStrike3				= INVALID_PARTICLE_SEQUENCE_HANDLE;
 
 
 	m_iSuccessiveHit_OneZ				= 0;
@@ -184,7 +191,7 @@ frameBufferNum, pUnit )
 #ifdef RAVEN_SECOND_CLASS_CHANGE
 	m_iBlackHoleHitCount = 0;
 	m_fBlackHoleTime = 0.f;
-	m_hBlackHoleEffectSet = CX2EffectSet::INVALID_HANDLE;
+	m_hBlackHoleEffectSet = INVALID_EFFECTSET_HANDLE;
 
 	m_eDamageTypeRaven = CX2DamageManager::DT_PHYSIC;
 	m_fChangeDamageRelRaven = 1.f;
@@ -206,8 +213,8 @@ frameBufferNum, pUnit )
 	m_fNasodBallAttackTime = 0.f;
 	m_pNasodBall = NULL;
 	m_bHyperAura = false;
-	m_hHyperAuraEffectset = CX2EffectSet::INVALID_HANDLE;
-	m_hSeqHyperBall = INVALID_PARTICLE_HANDLE;
+	m_hHyperAuraEffectset = INVALID_EFFECTSET_HANDLE;
+	m_hSeqHyperBall = INVALID_PARTICLE_SEQUENCE_HANDLE;
 #ifndef FIX_AFTER_IMAGE
 	m_pAfterImageNasodBall = NULL;
 #endif
@@ -233,7 +240,7 @@ frameBufferNum, pUnit )
 #endif RAVEN_WEAPON_TAKER
 
 #ifdef BALANCE_PATCH_20120329
-	m_hEffectDashJumpComboX	= CX2EffectSet::INVALID_HANDLE;
+	m_hEffectDashJumpComboX	= INVALID_EFFECTSET_HANDLE;
 #endif
 #ifdef BALANCE_PATCH_20110303
 	m_fArcEnemyEachTime = 0.f;
@@ -242,7 +249,11 @@ frameBufferNum, pUnit )
 	m_iRVCComboLoopCount		= 0;							/// 연발 콤보 반복 횟수
 	m_iRVCComboLoopInputCount	= 0;							/// 연발 콤보 반복 입력 횟수
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectFrameThrow			= INVALID_DAMAGE_EFFECT_HANDLE;							/// 대시 zzzz용 화염 방사 동작 정지 여부 조사 방사 이펙트
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffectFrameThrow			= NULL;							/// 대시 zzzz용 화염 방사 동작 정지 여부 조사 방사 이펙트
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_bEndFrameThrow			= false;						/// 화염 방사 동작 정지 여부 조사
 
 	m_bEnableShadowBackSlide	= false;						/// 섀도우 백 슬라이드 패시브 적용 여부
@@ -262,8 +273,8 @@ frameBufferNum, pUnit )
 
 	m_bShowedOverheat1			= false;						/// 단계적 오버히트용 이모티콘 생성 확인 객체
 	m_bShowedOverheat2			= false;						/// 단계적 오버히트용 이모티콘 생성 확인 객체
-	m_hSeqOverHeatIcon			= INVALID_PARTICLE_HANDLE;		/// 단계적 오버히트용 이모티콘 핸들
-	m_hSeqOverHeatOverlapIcon	= INVALID_PARTICLE_HANDLE;		/// 단계적 오버히트 중첩 이모티콘 핸들
+	m_hSeqOverHeatIcon			= INVALID_PARTICLE_SEQUENCE_HANDLE;		/// 단계적 오버히트용 이모티콘 핸들
+	m_hSeqOverHeatOverlapIcon	= INVALID_PARTICLE_SEQUENCE_HANDLE;		/// 단계적 오버히트 중첩 이모티콘 핸들
 
 	m_fEDTBleedingTime			= 0.f;							/// 치명상 유지 시간
 
@@ -275,8 +286,13 @@ frameBufferNum, pUnit )
 
 	m_hOverHeatObject			= INVALID_MESH_INSTANCE_HANDLE;	/// 오버 히트 발동시 생성되는 구조물
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_hEffectOverHeatFire1		= INVALID_DAMAGE_EFFECT_HANDLE;							/// 오버 히트 발동시 생성되는 화염
+	m_hEffectOverHeatFire2		= INVALID_DAMAGE_EFFECT_HANDLE;							/// 오버 히트 발동시 생성되는 화염
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffectOverHeatFire1		= NULL;							/// 오버 히트 발동시 생성되는 화염
 	m_pEffectOverHeatFire2		= NULL;							/// 오버 히트 발동시 생성되는 화염
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
@@ -294,16 +310,16 @@ CX2GURaven::~CX2GURaven(void)
 	ClearNasodBall();
 	m_fRageGauge = 0.f;
 	SetFullHyperMode( false );
-	if( m_hHyperAuraEffectset != CX2EffectSet::INVALID_HANDLE )
+	if( m_hHyperAuraEffectset != INVALID_EFFECTSET_HANDLE )
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hHyperAuraEffectset );
-	if( m_hSeqHyperBall != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqHyperBall != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		g_pX2Game->GetMajorParticle()->DestroyInstanceHandle(m_hSeqHyperBall);
 	}
 #endif
 
 #ifdef BALANCE_PATCH_20120329
-	if( m_hEffectDashJumpComboX != CX2EffectSet::INVALID_HANDLE )
+	if( m_hEffectDashJumpComboX != INVALID_EFFECTSET_HANDLE )
 	{
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hEffectDashJumpComboX );
 	}
@@ -343,22 +359,29 @@ CX2GURaven::~CX2GURaven(void)
 #ifdef RAVEN_SECOND_CLASS_CHANGE
 	m_iBlackHoleHitCount = 0;
 	m_fBlackHoleTime = 0.f;
-	if( m_hBlackHoleEffectSet != CX2EffectSet::INVALID_HANDLE )
+	if( m_hBlackHoleEffectSet != INVALID_EFFECTSET_HANDLE )
 		g_pX2Game->GetEffectSet()->StopEffectSet( m_hBlackHoleEffectSet );
 #endif
 
 #ifdef RAVEN_WEAPON_TAKER
-	g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hBurstingBladeAttackBox );
+	g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hBurstingBladeAttackBox );
 #endif RAVEN_WEAPON_TAKER
 
 	m_fOldHp = 0.0f;
 	
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-	m_pEffectFrameThrow	   = NULL;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffectFrameThrow			= INVALID_DAMAGE_EFFECT_HANDLE;	
+	m_hEffectOverHeatFire1 = INVALID_DAMAGE_EFFECT_HANDLE;	
+	m_hEffectOverHeatFire2 = INVALID_DAMAGE_EFFECT_HANDLE;	
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	m_pEffectFrameThrow			= NULL;
 	m_pEffectOverHeatFire1 = NULL;
 	m_pEffectOverHeatFire2 = NULL;
 
-	g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hOverHeatObject );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+	g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hOverHeatObject );
 
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeqOverHeatIcon );
 	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeqOverHeatOverlapIcon );
@@ -460,18 +483,28 @@ void CX2GURaven::DamageReact( CX2DamageManager::DamageData* pDamageData )
 			return;
 
 		ArcEnemyData* pData = m_vecArcEnemyData[0];
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( pData == NULL )
+        {
+            ClearArcEnemyData();
+            return;
+        }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	
 		/// 아크 에너미 데이터 널처리 추가
-		if( NULL != pData && 
-			NULL != pData->m_pEffect &&
-			NULL != pData->m_pEffect->GetMainEffect() &&
-			true == g_pX2Game->GetDamageEffect()->IsLiveInstance( pData->m_pEffect ) ) 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->GetInstance( pData->m_hEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->IsLiveInstance( pData->m_pEffect ) ? pData->m_pEffect : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CKTDGXMeshPlayer::CXMeshInstance* pMainEffect = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL;
+		if( pMainEffect != NULL ) 
 		{
 			if( CX2DamageManager::AT_UNIT == m_DamageData.defenderType )
 			{
 				if( null != m_DamageData.optrDefenderGameUnit )
 				{
-					CX2DamageEffect::LockOnData* pLockOnData = pData->m_pEffect->GetLockOnData();
+					CX2DamageEffect::LockOnData* pLockOnData = &pEffect->GetLockOnData();
 					if( CX2GameUnit::GUT_USER == m_DamageData.optrDefenderGameUnit->GetGameUnitType() )
 					{
 						pLockOnData->m_LockOnUnitUID = m_DamageData.optrDefenderGameUnit->GetUnitUID();
@@ -485,17 +518,17 @@ void CX2GURaven::DamageReact( CX2DamageManager::DamageData* pDamageData )
 					if( true == GetIsRight() )
 						vDirVec *= -1;
 					
-					pData->m_pEffect->GetMainEffect()->SetPos( pData->m_pEffect->GetMainEffect()->GetPos() + vDirVec * 150.f + D3DXVECTOR3( 0, 0, 0 ) );
-					pData->m_pEffect->SetAttackTime( D3DXVECTOR2( 0, 9999 ) );
-					pData->m_pEffect->GetMainEffect()->SetDirSpeed( 3000.f );
-					pData->m_pEffect->GetMainEffect()->SetNowLifeTime( 0.f );	
-					pData->m_pEffect->GetMainEffect()->SetMaxLifeTime( 0.35f );
-					pData->m_pEffect->SetLandPos( 0.f );
+					pMainEffect->SetPos( pMainEffect->GetPos() + vDirVec * 150.f + D3DXVECTOR3( 0, 0, 0 ) );
+					pEffect->SetAttackTime( D3DXVECTOR2( 0, 9999 ) );
+					pMainEffect->SetDirSpeed( 3000.f );
+					pMainEffect->SetNowLifeTime( 0.f );	
+					pMainEffect->SetMaxLifeTime( 0.35f );
+					pEffect->SetLandPos( 0.f );
 
 					PlaySound( L"Raven_OT_SP2_FlyingImpact3.ogg" );
 
 					// kimhc // 2010-06-21 // 메모리해제 없이 erase 하는 부분에 메모리 해제 추가
-					pData->m_pEffect = NULL; // m_pEffect는 데미지이펙트에서 자동으로 메모리 해제 해줌
+					pData->m_hEffect = INVALID_DAMAGE_EFFECT_HANDLE; // m_pEffect는 데미지이펙트에서 자동으로 메모리 해제 해줌
 					SAFE_DELETE( pData );
 					m_vecArcEnemyData.erase( m_vecArcEnemyData.begin() );
 
@@ -565,52 +598,52 @@ void CX2GURaven::Draw()
 
 void CX2GURaven::ParseCommonRandomState()
 {
-	if( true == m_LuaManager.BeginTable( L"INIT_COMMON_RANDOM_STATE" ) )
+	if( true == m_LuaManager.BeginTable( "INIT_COMMON_RANDOM_STATE" ) )
 	{
 
-		std::wstring tableName = L"";
-		switch( m_pUnit->GetClass() )
+		const char* tableName = "";
+		switch( GetUnit()->GetClass() )
 		{
 		case CX2Unit::UC_RAVEN_FIGHTER:
 			{
-				tableName = L"RAVEN_FIGHTER";
+				tableName = "RAVEN_FIGHTER";
 			} break;
 
 		case CX2Unit::UC_RAVEN_SOUL_TAKER:
 			{
-				tableName = L"RAVEN_SOUL_TAKER";
+				tableName = "RAVEN_SOUL_TAKER";
 			} break;
 
 
 		case CX2Unit::UC_RAVEN_OVER_TAKER:
 			{
-				tableName = L"RAVEN_OVER_TAKER";
+				tableName = "RAVEN_OVER_TAKER";
 			} break;
 
 #ifdef RAVEN_WEAPON_TAKER
 		case CX2Unit::UC_RAVEN_WEAPON_TAKER:
 			{
-				tableName = L"RAVEN_WEAPON_TAKER";
+				tableName = "RAVEN_WEAPON_TAKER";
 			} break;
 #endif RAVEN_WEAPON_TAKER
 
 #ifdef RAVEN_SECOND_CLASS_CHANGE
 		case CX2Unit::UC_RAVEN_BLADE_MASTER:
 			{
-				tableName = L"RAVEN_BLADE_MASTER";
+				tableName = "RAVEN_BLADE_MASTER";
 			} break;
 
 
 		case CX2Unit::UC_RAVEN_RECKLESS_FIST:
 			{
-				tableName = L"RAVEN_RECKLESS_FIST";
+				tableName = "RAVEN_RECKLESS_FIST";
 			} break;
 #endif
 
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
 		case CX2Unit::UC_RAVEN_VETERAN_COMMANDER:
 			{
-				tableName = L"RAVEN_VETERAN_COMMANDER";
+				tableName = "RAVEN_VETERAN_COMMANDER";
 			} break;
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
@@ -629,10 +662,9 @@ void CX2GURaven::ParseCommonRandomState()
 
 void CX2GURaven::InitState()
 {
-	ASSERT( NULL != m_pUnit );
-	ASSERT( NULL != m_pUnit->GetUnitData() );
+	ASSERT( NULL != GetUnit() );
 
-	CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+	const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 	
 	switch( pUnitData->m_UnitClass )
 	{
@@ -687,24 +719,24 @@ void CX2GURaven::InitState()
 
 
 	// 공통으로 쓰는 랜덤한 상태 start, win, lose 상태 초기화
-	std::wstring tableNameStart	= L"";
-	std::wstring tableNameWin	= L"";
-	std::wstring tableNameLose	= L"";
-	InitStateCommonRandom( tableNameStart, tableNameWin, tableNameLose );
+	std::string tableNameStartUTF8;
+	std::string tableNameWinUTF8;
+	std::string tableNameLoseUTF8;
+	InitStateCommonRandom( tableNameStartUTF8, tableNameWinUTF8, tableNameLoseUTF8 );
 
 
 	UserUnitStateData stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_START;
-	m_LuaManager.MakeTableReference( tableNameStart.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameStartUTF8.c_str(), stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, StartEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_WIN;
-	m_LuaManager.MakeTableReference( tableNameWin.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameWinUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, WinStateStart );	
 #endif
@@ -712,12 +744,12 @@ void CX2GURaven::InitState()
 
 	stateData.Init();
 	stateData.stateID			= USI_LOSE;
-	m_LuaManager.MakeTableReference( tableNameLose.c_str(), stateData.stateID );
+	m_LuaManager.MakeTableReference( tableNameLoseUTF8.c_str(), stateData.stateID );
 #ifdef SERV_PET_SYSTEM
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, LoseStateStart );	
 #endif
 #ifdef RAVEN_WEAPON_TAKER
-	if( tableNameLose == L"RSI_RWT_LOSE2" )
+	if( tableNameLoseUTF8 == "RSI_RWT_LOSE2" )
 		stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_RWT_LOSE2_FrameMove );
 #endif RAVEN_WEAPON_TAKER
 	m_StateList[stateData.stateID] = stateData;
@@ -770,7 +802,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RSI_DASH_JUMP_COMBO_X;
-			m_LuaManager.MakeTableReference( L"RSI_DASH_JUMP_COMBO_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_DASH_JUMP_COMBO_X", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_COMBO_X_Init );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_COMBO_X_Start );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_COMBO_X_FrameMoveFuture );
@@ -785,7 +817,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RSI_DASH_JUMP_COMBO_X;
-			m_LuaManager.MakeTableReference( L"RRF_DASH_JUMP_COMBO_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RRF_DASH_JUMP_COMBO_X", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RRF_DASH_JUMP_COMBO_X_Init );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RRF_DASH_JUMP_COMBO_X_Start );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RRF_DASH_JUMP_COMBO_X_FrameMoveFuture );
@@ -800,7 +832,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RVC_DASH_JUMP_COMBO_X;
-			m_LuaManager.MakeTableReference( L"RVC_DASH_JUMP_COMBO_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RVC_DASH_JUMP_COMBO_X", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_X_Init );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_X_Start );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_X_FrameMoveFuture );
@@ -823,7 +855,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RSI_COMBO_ZZZX;
-			m_LuaManager.MakeTableReference( L"RSI_COMBO_ZZZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_COMBO_ZZZX", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZZX_Start );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZZX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZZX_EventProcess );
@@ -835,7 +867,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RSI_COMBO_ZZZX;
-			m_LuaManager.MakeTableReference( L"RBM_COMBO_ZZZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RBM_COMBO_ZZZX", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RBM_COMBO_ZZZX_Init );
 #ifdef BALANCE_BLADE_MASTER_20130117
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RBM_COMBO_ZZZX_StateStart );
@@ -854,7 +886,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RSI_COMBO_ZZZX;
-			m_LuaManager.MakeTableReference( L"RWT_COMBO_ZZZX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RWT_COMBO_ZZZX", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RWT_COMBO_ZZZX_Start );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RWT_COMBO_ZZZX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RWT_COMBO_ZZZX_EventProcess );
@@ -876,7 +908,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RSI_COMBO_X;
-			m_LuaManager.MakeTableReference( L"RWT_COMBO_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RWT_COMBO_X", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RWT_COMBO_X_Init );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RWT_COMBO_X_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RWT_COMBO_X_EventProcess );
@@ -887,7 +919,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RSI_COMBO_X;
-			m_LuaManager.MakeTableReference( L"RSI_COMBO_X", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_COMBO_X", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_X_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		}
@@ -903,33 +935,33 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RBM_COMBO_XZ;
-			m_LuaManager.MakeTableReference( L"RBM_COMBO_XZ", stateData.stateID );			
+			m_LuaManager.MakeTableReference( "RBM_COMBO_XZ", stateData.stateID );			
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RBM_Combo_XZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= RBM_COMBO_XZZ;
-			m_LuaManager.MakeTableReference( L"RBM_COMBO_XZZ", stateData.stateID );			
+			m_LuaManager.MakeTableReference( "RBM_COMBO_XZZ", stateData.stateID );			
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RBM_Combo_XZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= RBM_COMBO_XZZZ;
-			m_LuaManager.MakeTableReference( L"RBM_COMBO_XZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RBM_COMBO_XZZZ", stateData.stateID );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RBM_Combo_XZZZ_FrameMoveFuture );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RBM_Combo_XZZZ_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 			
 			stateData.Init();
 			stateData.stateID			= RBM_COMBO_ZZZXZ;
-			m_LuaManager.MakeTableReference( L"RBM_COMBO_ZZZXZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RBM_COMBO_ZZZXZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RBM_COMBO_ZZZXZ_Start );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RBM_COMBO_ZZZXZ_EventProcess );			
 			m_StateList[stateData.stateID] = stateData;
 
 			stateData.Init();
 			stateData.stateID			= RBM_COMBO_ZZZX_EXPLOSION;
-			m_LuaManager.MakeTableReference( L"RBM_COMBO_ZZZX_EXPLOSION", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RBM_COMBO_ZZZX_EXPLOSION", stateData.stateID );
 #ifdef BALANCE_BLADE_MASTER_20130117	/// 캔슬시 마법체 소멸시킬 수 있도록 종료 함수 추가
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RBM_COMBO_ZZZX_EXPLOSION_StateStart );
 #endif BALANCE_BLADE_MASTER_20130117
@@ -942,7 +974,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RRF_DASH_JUMP_COMBO_XX;
-			m_LuaManager.MakeTableReference( L"RRF_DASH_JUMP_COMBO_XX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RRF_DASH_JUMP_COMBO_XX", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RRF_DASH_JUMP_COMBO_XX_Init );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RRF_DASH_JUMP_COMBO_XX_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RRF_DASH_JUMP_COMBO_XX_FrameMove );
@@ -951,7 +983,7 @@ void CX2GURaven::InitState()
 
 			stateData.Init();
 			stateData.stateID			= RRF_DASH_JUMP_COMBO_XX_LANDING;
-			m_LuaManager.MakeTableReference( L"RRF_DASH_JUMP_COMBO_XX_LANDING", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RRF_DASH_JUMP_COMBO_XX_LANDING", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RRF_DASH_JUMP_COMBO_XX_LANDING_Start );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RRF_DASH_JUMP_COMBO_XX_LANDING_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RRF_DASH_JUMP_COMBO_XX_LANDING_EventProcess );
@@ -959,7 +991,7 @@ void CX2GURaven::InitState()
 
 			stateData.Init();
 			stateData.stateID			= RRF_COMBO_ZZXFRONTX;
-			m_LuaManager.MakeTableReference( L"RRF_COMBO_ZZXFRONTX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RRF_COMBO_ZZXFRONTX", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RRF_COMBO_ZZXFRONTX_Start );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RRF_COMBO_ZZXFRONTX_FrameMoveFuture );			
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RRF_COMBO_ZZXFRONTX_FrameMove );
@@ -969,7 +1001,7 @@ void CX2GURaven::InitState()
 
 			stateData.Init();
 			stateData.stateID			= RRF_COMBO_ZZXFRONTXX;
-			m_LuaManager.MakeTableReference( L"RRF_COMBO_ZZXFRONTXX", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RRF_COMBO_ZZXFRONTXX", stateData.stateID );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RRF_COMBO_ZZXFRONTXX_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RRF_COMBO_ZZXFRONTXX_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
@@ -981,7 +1013,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RVC_DASH_JUMP_COMBO_XX_START;
-			m_LuaManager.MakeTableReference( L"RVC_DASH_JUMP_COMBO_XX_START", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RVC_DASH_JUMP_COMBO_XX_START", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_XX_START_StateStart );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_XX_START_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_XX_START_FrameMove );
@@ -990,7 +1022,7 @@ void CX2GURaven::InitState()
 
 			stateData.Init();
 			stateData.stateID			= RVC_DASH_JUMP_COMBO_XX_LOOP;
-			m_LuaManager.MakeTableReference( L"RVC_DASH_JUMP_COMBO_XX_LOOP", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RVC_DASH_JUMP_COMBO_XX_LOOP", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_XX_LOOP_StateStart );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_XX_LOOP_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_XX_LOOP_FrameMove );
@@ -999,7 +1031,7 @@ void CX2GURaven::InitState()
 
 			stateData.Init();
 			stateData.stateID			= RVC_DASH_JUMP_COMBO_XX_FINISH;
-			m_LuaManager.MakeTableReference( L"RVC_DASH_JUMP_COMBO_XX_FINISH", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RVC_DASH_JUMP_COMBO_XX_FINISH", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_XX_FINISH_StateStart );
 			stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_XX_FINISH_FrameMoveFuture );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_DASH_JUMP_COMBO_XX_FINISH_FrameMove );
@@ -1009,7 +1041,7 @@ void CX2GURaven::InitState()
 
 			stateData.Init();
 			stateData.stateID			= RVC_DASH_COMBO_ZZZ;
-			m_LuaManager.MakeTableReference( L"RVC_DASH_COMBO_ZZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RVC_DASH_COMBO_ZZZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZ_StateStart );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZ_EventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZ_StateEnd );
@@ -1017,7 +1049,7 @@ void CX2GURaven::InitState()
 
 			stateData.Init();
 			stateData.stateID			= RVC_DASH_COMBO_ZZZPushZ_READY;
-			m_LuaManager.MakeTableReference( L"RVC_DASH_COMBO_ZZZPushZ_READY", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RVC_DASH_COMBO_ZZZPushZ_READY", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZPushZ_READY_StateStart );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZPushZ_READY_EventProcess );
 			stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZPushZ_READY_StateEnd );
@@ -1025,7 +1057,7 @@ void CX2GURaven::InitState()
 
 			stateData.Init();
 			stateData.stateID			= RVC_DASH_COMBO_ZZZPushZ;
-			m_LuaManager.MakeTableReference( L"RVC_DASH_COMBO_ZZZPushZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RVC_DASH_COMBO_ZZZPushZ", stateData.stateID );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZPushZ_StateStart );
 			stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZPushZ_FrameMove );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZPushZ_EventProcess );
@@ -1034,7 +1066,7 @@ void CX2GURaven::InitState()
 
 			stateData.Init();
 			stateData.stateID			= RVC_DASH_COMBO_ZZZZ_FINISH;
-			m_LuaManager.MakeTableReference( L"RVC_DASH_COMBO_ZZZZ_FINISH", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RVC_DASH_COMBO_ZZZZ_FINISH", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_DASH_COMBO_ZZZZ_FINISH_EventProcess );
 			m_StateList[stateData.stateID] = stateData;
 		}
@@ -1053,7 +1085,7 @@ void CX2GURaven::InitState()
 		{
 			stateData.Init();
 			stateData.stateID			= RSI_DASH_COMBO_ZZ;
-			m_LuaManager.MakeTableReference( L"RSI_SOUL_TAKER_DASH_COMBO_ZZ", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SOUL_TAKER_DASH_COMBO_ZZ", stateData.stateID );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SOUL_TAKER_DASH_COMBO_ZZ_EventProcess );
 			m_StateList[ stateData.stateID ] = stateData;
 		} break;
@@ -1089,7 +1121,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_DIE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DIE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_DIE_FRONT_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DIE_FRONT_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_DIE_FRONT_FrameMove );
@@ -1098,7 +1130,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DIE_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_DIE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DIE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_DIE_BACK_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DIE_BACK_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_DIE_BACK_FrameMove );
@@ -1107,7 +1139,7 @@ void CX2GURaven::InitStateCommon()
 	
 	stateData.Init();
 	stateData.stateID			= USI_START_INTRUDE;
-	m_LuaManager.MakeTableReference( L"RSI_START_INTRUDE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_START_INTRUDE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, StartIntrudeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, StartIntrudeFrameMove );	// 기존에 빠진듯 하여 추가함
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, StartIntrudeEventProcess );
@@ -1115,7 +1147,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WAIT;
-	m_LuaManager.MakeTableReference( L"RSI_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_WAIT_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_WAIT_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WAIT_EventProcess );
@@ -1123,7 +1155,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_WALK;
-	m_LuaManager.MakeTableReference( L"RSI_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WALK", stateData.stateID );
 #ifdef BALANCE_BLADE_MASTER_20130117
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_WALK_Start );
 #endif BALANCE_BLADE_MASTER_20130117
@@ -1133,34 +1165,34 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_READY;
-	m_LuaManager.MakeTableReference( L"RSI_JUMP_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_JUMP_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_JUMP_READY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"RSI_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_JUMP_UP", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_JUMP_UP_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"RSI_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_JUMP_DOWN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_JUMP_DOWN_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"RSI_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_JUMP_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_JUMP_LANDING_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH;
-	m_LuaManager.MakeTableReference( L"RSI_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -1169,7 +1201,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_END;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH_END", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_DASH_END_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DASH_END_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_DASH_END_FrameMove );
@@ -1178,7 +1210,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_Start );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_FrameMoveFuture );
@@ -1188,10 +1220,8 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_JUMP_LANDING", stateData.stateID );
-#ifdef MODIFY_DASH_JUMP_LANDING_SPEED
+	m_LuaManager.MakeTableReference( "RSI_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
-#endif
 #ifdef CONVERSION_VS
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, JumpLandingStart );
 #else CONVERSION_VS
@@ -1202,7 +1232,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_DASH_JUMP_POWER_LANDING;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_JUMP_POWER_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH_JUMP_POWER_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_POWER_LANDING_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_POWER_LANDING_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_POWER_LANDING_EventProcess );
@@ -1210,7 +1240,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"RSI_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_HYPER_MODE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, HyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, HyperModeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, HyperModeEventProcess );
@@ -1222,19 +1252,19 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_GROGGY;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_GROGGY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_GROGGY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DAMAGE_GROGGY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_SMALL_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_SMALL_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_SMALL_FRONT_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_SMALL_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_SMALL_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_SMALL_BACK", stateData.stateID );
 	//{{ JHKang / 강정훈 / 2010/11/02 / 긴급탈출
 #ifdef NEW_SKILL_2010_11
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_SMALL_BACK_Start );
@@ -1245,68 +1275,68 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_BIG_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_BIG_FRONT", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_BIG_FRONT_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_BIG_FRONT_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_BIG_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_BIG_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_BIG_BACK", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_BIG_BACK_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_BIG_BACK_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_DOWN_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_DOWN_FRONT", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_DOWN_FRONT_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_DOWN_FRONT_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_DOWN_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_DOWN_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_DOWN_BACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_DOWN_BACK_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_DOWN_BACK_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_STANDUP_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_STANDUP_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_STANDUP_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_STANDUP_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_STANDUP_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageStandUpEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, DamageStandUpEnd );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_SMALL;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_AIR_SMALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_AIR_SMALL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DamageAirSmallStartFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirSmallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_AIR_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_AIR_DOWN", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_INVINCIBLE;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_AIR_DOWN_INVINCIBLE", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirDownInvincibleEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_DOWN_LANDING;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_AIR_DOWN_LANDING", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, DamageAirDownLandingFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DAMAGE_AIR_DOWN_LANDING_EventProcess );
@@ -1314,31 +1344,31 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FALL;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_AIR_FALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_AIR_FALL", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFallEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_UP;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_AIR_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_AIR_UP", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirUpEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_AIR_FLY_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_AIR_FLY_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_AIR_FLY_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageAirFlyEventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_DAMAGE_REVENGE;
-	m_LuaManager.MakeTableReference( L"RSI_DAMAGE_REVENGE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DAMAGE_REVENGE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, DamageRevengeStart );
 	stateData.OnCameraMove		= SET_CB_FUNC( CX2GUUser, DamageRevengeCameraMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, DamageRevengeEventProcess );
@@ -1346,35 +1376,35 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_STANDUP_ROLLING_FRONT_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_STANDUP_ROLLING_FRONT_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ROLLING_FRONT_FRONT_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ROLLING_FRONT_FRONT_End );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_STANDUP_ROLLING_FRONT_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_STANDUP_ROLLING_FRONT_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ROLLING_FRONT_BACK_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ROLLING_FRONT_BACK_End );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_STANDUP_ROLLING_BACK_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_STANDUP_ROLLING_BACK_FRONT", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ROLLING_BACK_FRONT_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ROLLING_BACK_FRONT_End );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_STANDUP_ROLLING_BACK_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_STANDUP_ROLLING_BACK_BACK", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ROLLING_BACK_BACK_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ROLLING_BACK_BACK_End );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_STANDUP_ATTACK_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_STANDUP_ATTACK_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_STANDUP_ATTACK_FRONT", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_FRONT_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_FRONT_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_FRONT_End );
@@ -1382,7 +1412,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_STANDUP_ATTACK_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_STANDUP_ATTACK_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_STANDUP_ATTACK_BACK", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_BACK_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_BACK_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_BACK_End );
@@ -1392,7 +1422,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_STANDUP_ATTACK_FRONT_NO_DOWN;
-	m_LuaManager.MakeTableReference( L"RSI_STANDUP_ATTACK_FRONT_NO_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_STANDUP_ATTACK_FRONT_NO_DOWN", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_FRONT_NO_DOWN_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_FRONT_NO_DOWN_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_FRONT_NO_DOWN_End );
@@ -1400,7 +1430,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_STANDUP_ATTACK_BACK_NO_DOWN;
-	m_LuaManager.MakeTableReference( L"RSI_STANDUP_ATTACK_BACK_NO_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_STANDUP_ATTACK_BACK_NO_DOWN", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_BACK_NO_DOWN_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_BACK_NO_DOWN_EventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_STANDUP_ATTACK_BACK_NO_DOWN_End );
@@ -1410,25 +1440,25 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"RSI_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_COMBO_Z", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_Z_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_COMBO_ZZ;
-	m_LuaManager.MakeTableReference( L"RSI_COMBO_ZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_COMBO_ZZ", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZ_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_COMBO_ZZZ;
-	m_LuaManager.MakeTableReference( L"RSI_COMBO_ZZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_COMBO_ZZZ", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZZ_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_COMBO_ZZZZ;
-	m_LuaManager.MakeTableReference( L"RSI_COMBO_ZZZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_COMBO_ZZZZ", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZZZ_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZZZ_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1436,13 +1466,13 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_COMBO_ZZX;
-	m_LuaManager.MakeTableReference( L"RSI_COMBO_ZZX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_COMBO_ZZX", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_COMBO_ZZXX;
-	m_LuaManager.MakeTableReference( L"RSI_COMBO_ZZXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_COMBO_ZZXX", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZXX_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_ZZXX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1450,34 +1480,34 @@ void CX2GURaven::InitStateCommon()
 #ifndef RAVEN_WEAPON_TAKER
 	stateData.Init();
 	stateData.stateID			= RSI_COMBO_X;
-	m_LuaManager.MakeTableReference( L"RSI_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_COMBO_X", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_X_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 #endif RAVEN_WEAPON_TAKER
 
 	stateData.Init();
 	stateData.stateID			= RSI_COMBO_XX;
-	m_LuaManager.MakeTableReference( L"RSI_COMBO_XX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_COMBO_XX", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_XX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_COMBO_XXX;
-	m_LuaManager.MakeTableReference( L"RSI_COMBO_XXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_COMBO_XXX", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_COMBO_XXX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_COMBO_XXX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_DASH_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH_COMBO_Z", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DASH_COMBO_Z_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 
 	stateData.Init();
 	stateData.stateID			= RSI_DASH_COMBO_ZZ;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_COMBO_ZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH_COMBO_ZZ", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DASH_COMBO_ZZ_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
@@ -1487,20 +1517,20 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_DASH_COMBO_X;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH_COMBO_X", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_DASH_COMBO_X_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DASH_COMBO_X_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_DASH_JUMP_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_JUMP_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH_JUMP_COMBO_Z", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_COMBO_Z_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_DASH_JUMP_COMBO_ZZ;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_JUMP_COMBO_ZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH_JUMP_COMBO_ZZ", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_COMBO_ZZ_StateStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_COMBO_ZZ_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_COMBO_ZZ_EventProcess );
@@ -1508,7 +1538,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_DASH_JUMP_COMBO_ZZ_Landing;
-	m_LuaManager.MakeTableReference( L"RSI_DASH_JUMP_COMBO_ZZ_Landing", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_DASH_JUMP_COMBO_ZZ_Landing", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_COMBO_ZZ_Landing_StartFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_DASH_JUMP_COMBO_ZZ_Landing_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1516,14 +1546,14 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_JUMP_COMBO_Z;
-	m_LuaManager.MakeTableReference( L"RSI_JUMP_COMBO_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_JUMP_COMBO_Z", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_JUMP_COMBO_Z_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_JUMP_COMBO_Z_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_JUMP_COMBO_X;
-	m_LuaManager.MakeTableReference( L"RSI_JUMP_COMBO_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_JUMP_COMBO_X", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_JUMP_COMBO_X_StateStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_JUMP_COMBO_X_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_JUMP_COMBO_X_EventProcess );
@@ -1534,7 +1564,7 @@ void CX2GURaven::InitStateCommon()
 #ifdef WALL_JUMP_TEST
 	stateData.Init();
 	stateData.stateID			= RSI_WALL_LANDING;
-	m_LuaManager.MakeTableReference( L"RSI_WALL_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WALL_LANDING", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, WallLandingEventProcess );
 	stateData.StateEndFuture	= SET_CB_FUNC( CX2GUUser, WallLandingEndFuture );
 	m_StateList[stateData.stateID] = stateData;
@@ -1546,13 +1576,13 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_READY;
-	m_LuaManager.MakeTableReference( L"RSI_PEPPER_RUN_READY", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_PEPPER_RUN_READY", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_READY_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN;
-	m_LuaManager.MakeTableReference( L"RSI_PEPPER_RUN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_PEPPER_RUN", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1560,7 +1590,7 @@ void CX2GURaven::InitStateCommon()
 #ifdef SPECIAL_USE_ITEM
 	stateData.Init();
 	stateData.stateID			= USI_THROW_ITEM;
-	m_LuaManager.MakeTableReference( L"RSI_THROW_ITEM", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_THROW_ITEM", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_StateStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMoveFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, THROW_ITEM_FrameMove );
@@ -1574,7 +1604,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_START
 	stateData.Init();
 	stateData.stateID			= GetRidingStartStateID();
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_START", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_START", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingStartStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingStartStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingStartEventProcess );
@@ -1585,7 +1615,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_ON
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ON;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_ON", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_ON", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingOnStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingOnStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOnEventProcess );
@@ -1596,7 +1626,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_OFF
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_OFF;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_OFF", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_OFF", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingOffEventProcess );
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, RidingOffEnd );
 	m_StateList[stateData.stateID] = stateData;
@@ -1605,7 +1635,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_WAIT_HABIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT_HABIT;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_WAIT_HABIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_WAIT_HABIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitHabitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitHabitEventProcess );
@@ -1615,7 +1645,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_WAIT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WAIT;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_WAIT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_WAIT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWaitStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWaitStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingWaitEventProcess );
@@ -1625,7 +1655,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_WALK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_WALK;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_WALK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_WALK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingWalkStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingWalkStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, WalkFrameMoveFuture );
@@ -1636,7 +1666,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_JUMP_UP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpUpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpUpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -1647,7 +1677,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_JUMP_DOWN
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpDownStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpDownStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, JumpFrameMoveFuture );
@@ -1658,7 +1688,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingJumpLandingEventProcess );
@@ -1668,7 +1698,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_DASH
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_DASH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_DASH", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, DashFrameMoveFuture );
@@ -1679,7 +1709,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_DASH_END
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_END;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_DASH_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_DASH_END", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashEndStart );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashEndStartFuture );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingDashEndFrameMove );
@@ -1690,7 +1720,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_DASH_JUMP
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_DASH_JUMP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_DASH_JUMP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingDashJumpFrameMoveFuture );
@@ -1702,7 +1732,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_DASH_JUMP_LANDING
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DASH_JUMP_LANDING;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_DASH_JUMP_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, DashJumpLandingStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDashJumpLandingEventProcess );
@@ -1712,7 +1742,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_DAMAGE_FRONT
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_FRONT;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_DAMAGE_FRONT", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_DAMAGE_FRONT", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageFrontStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageFrontEventProcess );
@@ -1722,7 +1752,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_DAMAGE_BACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DAMAGE_BACK;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_DAMAGE_BACK", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_DAMAGE_BACK", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingDamageBackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingDamageBackStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingDamageBackEventProcess );
@@ -1732,7 +1762,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_DIE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_DIE;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_DIE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_DIE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_DIE_FRONT_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_DIE_FRONT_Start );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_DIE_FRONT_FrameMove );
@@ -1743,7 +1773,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackZStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackZEventProcess );
@@ -1753,7 +1783,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_JUMP_ATTACK_Z
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_JUMP_ATTACK_Z;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_JUMP_ATTACK_Z", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingJumpAttackZFrameMoveFuture );
@@ -1764,7 +1794,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_ATTACK_X
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_ATTACK_X;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_ATTACK_X", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_ATTACK_X", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingAttackXStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingAttackXStart );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingAttackXEventProcess );
@@ -1774,7 +1804,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_SPECIAL_ATTACK
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_ATTACK;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_ATTACK_SPECIAL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_ATTACK_SPECIAL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, RidingSpecialAttackFrameMove );
@@ -1785,7 +1815,7 @@ void CX2GURaven::InitStateCommon()
 	#pragma region RSI_RIDING_SPECIAL_MOVE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_SPECIAL_MOVE;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_SPECIAL_MOVE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_SPECIAL_MOVE", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveStart );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, RidingSpecialMoveFrameMoveFuture );
@@ -1800,7 +1830,7 @@ void CX2GURaven::InitStateCommon()
 #ifdef MODIFY_RIDING_PET_AWAKE
 	stateData.Init();
 	stateData.stateID			= USI_RIDING_HYPER_MODE;
-	m_LuaManager.MakeTableReference( L"RSI_RIDING_HYPER_MODE", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_RIDING_HYPER_MODE", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, RidingHyperModeStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RidingHyperModeFrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, RidingHyperModeEventProcess );
@@ -1809,18 +1839,19 @@ void CX2GURaven::InitStateCommon()
 	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, RidingHyperModeEnd );
 #endif HYPER_MODE_FIX
 	m_StateList[stateData.stateID] = stateData;
+
 #endif // MODIFY_RIDING_PET_AWAKE
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_END;
-	m_LuaManager.MakeTableReference( L"RSI_PEPPER_RUN_END", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_PEPPER_RUN_END", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_END_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_UP;
-	m_LuaManager.MakeTableReference( L"RSI_PEPPER_RUN_JUMP_UP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_PEPPER_RUN_JUMP_UP", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_UP_EventProcess );
@@ -1828,7 +1859,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= USI_PEPPER_RUN_JUMP_DOWN;
-	m_LuaManager.MakeTableReference( L"RSI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_PEPPER_RUN_JUMP_DOWN", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_StateStartFuture );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_FrameMoveFuture );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, PEPPER_RUN_JUMP_DOWN_EventProcess );
@@ -1837,7 +1868,7 @@ void CX2GURaven::InitStateCommon()
 #ifdef UPGRADE_RAVEN
 	stateData.Init();
 	stateData.stateID			= RSI_PARRYING_SMALL;
-	m_LuaManager.MakeTableReference( L"RSI_PARRYING_SMALL", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_PARRYING_SMALL", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_PARRYING_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_PARRYING_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_PARRYING_EventProcess );
@@ -1846,7 +1877,7 @@ void CX2GURaven::InitStateCommon()
 
 	stateData.Init();
 	stateData.stateID			= RSI_PARRYING;
-	m_LuaManager.MakeTableReference( L"RSI_PARRYING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_PARRYING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_PARRYING_StartFuture );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_PARRYING_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_PARRYING_EventProcess );
@@ -1856,25 +1887,25 @@ void CX2GURaven::InitStateCommon()
 
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-
-	stateData.Init();
-	stateData.stateID			= RSI_FROZEN;
-	m_LuaManager.MakeTableReference( L"RSI_FROZEN", stateData.stateID );
-	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
-	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
-	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
-	m_StateList[stateData.stateID] = stateData;
-
-	m_FrozenState = RSI_FROZEN;
-
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//
+//	stateData.Init();
+//	stateData.stateID			= RSI_FROZEN;
+//	m_LuaManager.MakeTableReference( "RSI_FROZEN", stateData.stateID );
+//	stateData.StateStart		= SET_CB_FUNC( CX2GUUser, Frozen_StateStart ); 
+//	stateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, Frozen_EventProcess );
+//	stateData.StateEnd			= SET_CB_FUNC( CX2GUUser, Frozen_StateEnd ); 
+//	m_StateList[stateData.stateID] = stateData;
+//
+//	m_FrozenState = RSI_FROZEN;
+//
+//#endif PVP_BOSS_COMBAT_TEST
 
 #ifdef TRANSFORMER_TEST
 
 	stateData.Init();
 	stateData.stateID			= RSI_TRANSFORMED;
-	m_LuaManager.MakeTableReference( L"RSI_TRANSFORMED", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_TRANSFORMED", stateData.stateID );
 	m_StateList[stateData.stateID] = stateData;
 
 
@@ -1890,21 +1921,21 @@ void CX2GURaven::InitStateSwordTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_SOUL_TAKER_COMBO_ZZZupZ;
-	m_LuaManager.MakeTableReference( L"RSI_SOUL_TAKER_COMBO_ZZZupZ", stateData.stateID );		
+	m_LuaManager.MakeTableReference( "RSI_SOUL_TAKER_COMBO_ZZZupZ", stateData.stateID );		
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SOUL_TAKER_COMBO_ZZZupZ_FrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SOUL_TAKER_COMBO_ZZZupZ_EventProcess );					
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_SOUL_TAKER_COMBO_XXZ;
-	m_LuaManager.MakeTableReference( L"RSI_SOUL_TAKER_COMBO_XXZ", stateData.stateID );			
+	m_LuaManager.MakeTableReference( "RSI_SOUL_TAKER_COMBO_XXZ", stateData.stateID );			
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SOUL_TAKER_COMBO_XXZ_EventProcess );					
 	m_StateList[stateData.stateID] = stateData;
 
 
 	stateData.Init();
 	stateData.stateID			= RSI_SOUL_TAKER_COMBO_XXZZ8;
-	m_LuaManager.MakeTableReference( L"RSI_SOUL_TAKER_COMBO_XXZZ8", stateData.stateID );	
+	m_LuaManager.MakeTableReference( "RSI_SOUL_TAKER_COMBO_XXZZ8", stateData.stateID );	
 #ifdef BALANCE_BLADE_MASTER_20130117		/// 슈퍼아머 색상 변경 때문에 추가
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SOUL_TAKER_COMBO_XXZZ8_StateStart );
 #endif BALANCE_BLADE_MASTER_20130117
@@ -1915,7 +1946,7 @@ void CX2GURaven::InitStateSwordTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_SOUL_TAKER_COMBO_XXZZ8Z;
-	m_LuaManager.MakeTableReference( L"RSI_SOUL_TAKER_COMBO_XXZZ8Z", stateData.stateID );	
+	m_LuaManager.MakeTableReference( "RSI_SOUL_TAKER_COMBO_XXZZ8Z", stateData.stateID );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SOUL_TAKER_COMBO_XXZZ8Z_EventProcess );					
 	m_StateList[stateData.stateID] = stateData;
 
@@ -1923,7 +1954,7 @@ void CX2GURaven::InitStateSwordTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_SOUL_TAKER_DASH_COMBO_ZZZ;
-	m_LuaManager.MakeTableReference( L"RSI_SOUL_TAKER_DASH_COMBO_ZZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_SOUL_TAKER_DASH_COMBO_ZZZ", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SOUL_TAKER_DASH_COMBO_ZZZ_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
@@ -1931,7 +1962,7 @@ void CX2GURaven::InitStateSwordTaker()
 #ifndef SERV_RAVEN_VETERAN_COMMANDER		/// 베테랑 커맨더와 공통으로 사용하기 위해 위치 이동
 	stateData.Init();
 	stateData.stateID			= RSI_DASH_COMBO_ZZ;
-	m_LuaManager.MakeTableReference( L"RSI_SOUL_TAKER_DASH_COMBO_ZZ", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_SOUL_TAKER_DASH_COMBO_ZZ", stateData.stateID );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SOUL_TAKER_DASH_COMBO_ZZ_EventProcess );
 	m_StateList[ stateData.stateID ] = stateData;
 #endif SERV_RAVEN_VETERAN_COMMANDER
@@ -1944,21 +1975,21 @@ void CX2GURaven::InitStateOverTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_OVER_TAKER_COMBO_XXdownX;
-	m_LuaManager.MakeTableReference( L"RSI_OVER_TAKER_COMBO_XXdownX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_OVER_TAKER_COMBO_XXdownX", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_COMBO_XXdownX_FrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_COMBO_XXdownX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_OVER_TAKER_COMBO_XXdownXdownX;
-	m_LuaManager.MakeTableReference( L"RSI_OVER_TAKER_COMBO_XXdownXdownX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_OVER_TAKER_COMBO_XXdownXdownX", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_COMBO_XXdownXdownX_FrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_COMBO_XXdownXdownX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_OVER_TAKER_COMBO_XXdownXdownXdownX;
-	m_LuaManager.MakeTableReference( L"RSI_OVER_TAKER_COMBO_XXdownXdownXdownX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_OVER_TAKER_COMBO_XXdownXdownXdownX", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_COMBO_XXdownXdownXdownX_FrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_COMBO_XXdownXdownXdownX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -1966,7 +1997,7 @@ void CX2GURaven::InitStateOverTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_OVER_TAKER_COMBO_XXfrontX;
-	m_LuaManager.MakeTableReference( L"RSI_OVER_TAKER_COMBO_XXfrontX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_OVER_TAKER_COMBO_XXfrontX", stateData.stateID );
 	stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_COMBO_XXfrontX_Init );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_COMBO_XXfrontX_FrameMove );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_COMBO_XXfrontX_EventProcess );
@@ -1975,7 +2006,7 @@ void CX2GURaven::InitStateOverTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX;
-	m_LuaManager.MakeTableReference( L"RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_FrameMoveFuture );	
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_EventProcess );
@@ -1984,7 +2015,7 @@ void CX2GURaven::InitStateOverTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_LANDING;
-	m_LuaManager.MakeTableReference( L"RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_LANDING", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_LANDING", stateData.stateID );
 	stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_LANDING_StartFuture );	
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_LANDING_Start );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_LANDING_EventProcess );
@@ -1993,7 +2024,7 @@ void CX2GURaven::InitStateOverTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_OVER_TAKER_DASH_JUMP_COMBO_ZXX;
-	m_LuaManager.MakeTableReference( L"RSI_OVER_TAKER_DASH_JUMP_COMBO_ZXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_OVER_TAKER_DASH_JUMP_COMBO_ZXX", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_DASH_JUMP_COMBO_ZXX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_OVER_TAKER_DASH_JUMP_COMBO_ZXX_EventProcess);
 	m_StateList[stateData.stateID] = stateData;
@@ -2009,14 +2040,14 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_WEAPON_TAKER_COMBO_XX;
-	m_LuaManager.MakeTableReference( L"RSI_WEAPON_TAKER_COMBO_XX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WEAPON_TAKER_COMBO_XX", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XX_FrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_WEAPON_TAKER_COMBO_XXX;
-	m_LuaManager.MakeTableReference( L"RSI_WEAPON_TAKER_COMBO_XXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WEAPON_TAKER_COMBO_XXX", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XXX_StateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XXX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XXX_EventProcess );
@@ -2024,7 +2055,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_WEAPON_TAKER_COMBO_XXX_LOOP;
-	m_LuaManager.MakeTableReference( L"RSI_WEAPON_TAKER_COMBO_XXX_LOOP", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WEAPON_TAKER_COMBO_XXX_LOOP", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XXX_LOOP_StateStart );	
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XXX_LOOP_FrameMove );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XXX_LOOP_EventProcess );
@@ -2033,7 +2064,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_WEAPON_TAKER_COMBO_XXX_FINISH;
-	m_LuaManager.MakeTableReference( L"RSI_WEAPON_TAKER_COMBO_XXX_FINISH", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WEAPON_TAKER_COMBO_XXX_FINISH", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XXX_FINISH_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_XXX_FINISH_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
@@ -2041,28 +2072,28 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_WEAPON_TAKER_COMBO_ZZZXX;
-	m_LuaManager.MakeTableReference( L"RSI_WEAPON_TAKER_COMBO_ZZZXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WEAPON_TAKER_COMBO_ZZZXX", stateData.stateID );
 	stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_ZZZXX_FrameMoveFuture );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_ZZZXX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_WEAPON_TAKER_COMBO_ZZZdownX;
-	m_LuaManager.MakeTableReference( L"RSI_WEAPON_TAKER_COMBO_ZZZdownX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WEAPON_TAKER_COMBO_ZZZdownX", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_ZZZdownX_FrameMove );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_ZZZdownX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_WEAPON_TAKER_COMBO_ZZZdownXX;
-	m_LuaManager.MakeTableReference( L"RSI_WEAPON_TAKER_COMBO_ZZZdownXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WEAPON_TAKER_COMBO_ZZZdownXX", stateData.stateID );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_ZZZdownXX_FrameMove );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_COMBO_ZZZdownXX_EventProcess );
 	m_StateList[stateData.stateID] = stateData;
 
 	stateData.Init();
 	stateData.stateID			= RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZX;
-	m_LuaManager.MakeTableReference( L"RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZX", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZX_StateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZX_FrameMove );
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZX_EventProcess );
@@ -2071,7 +2102,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	stateData.Init();
 	stateData.stateID			= RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZXX;
-	m_LuaManager.MakeTableReference( L"RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZXX", stateData.stateID );
+	m_LuaManager.MakeTableReference( "RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZXX", stateData.stateID );
 	stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZXX_StateStart );
 	stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZXX_FrameMove );	
 	stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_WEAPON_TAKER_DASH_JUMP_COMBO_ZXX_EventProcess );
@@ -2087,7 +2118,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	m_bEnableShadowStepThrust = false;
 	m_fAttackPowerRateShadowStepThrust = 1.f;
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	int iSkillLevel = userSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RF_SHADOW_PIERCING, true );
@@ -2096,10 +2127,10 @@ void CX2GURaven::InitStateWeaponTaker()
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_RF_SHADOW_PIERCING );
 
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit()  )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 		if( NULL != pSkillTemplet )
 		{
@@ -2141,7 +2172,7 @@ void CX2GURaven::InitStateWeaponTaker()
 			stateData.m_fPowerRate		= 1.f;	// note!!! 데미지 계산이 다른 active 필살기와 다르게 구현되어있으므로 주의. passive skill 의 데미지 증가 처리는 InitPassiveSkillState()에서.
 			stateData.m_eSkillID		= CX2SkillTree::SI_A_RF_SHADOW_STEP;
 			stateData.stateID			= RSI_SHADOW_STEP_THRUST;
-			m_LuaManager.MakeTableReference( L"RSI_SHADOW_STEP_THRUST", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SHADOW_STEP_THRUST", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SHADOW_STEP_THRUST_Init );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SHADOW_STEP_THRUST_Start );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SHADOW_STEP_THRUST_EventProcess );
@@ -2168,10 +2199,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		const CX2SkillTree::SkillTemplet* pSkillTempletEnhanceThrust = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_RBM_SHADOW_THRUST );
 		if( NULL != pSkillTempletEnhanceThrust )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 			m_bEnableShadowStepThrustEnhance = true;
 			m_fAttackPowerRateShadowStepThrustEnhance *= pSkillTempletEnhanceThrust->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iShadowThrustSkillLevel );
@@ -2184,7 +2215,7 @@ void CX2GURaven::InitStateWeaponTaker()
 			stateData.m_fPowerRate		= 1.f;	// note!!! 데미지 계산이 다른 active 필살기와 다르게 구현되어있으므로 주의. passive skill 의 데미지 증가 처리는 InitPassiveSkillState()에서.
 			stateData.m_eSkillID		= CX2SkillTree::SI_A_RF_SHADOW_STEP;
 			stateData.stateID			= RSI_SHADOW_STEP_THRUST_ENHANCE;
-			m_LuaManager.MakeTableReference( L"RSI_SHADOW_STEP_THRUST_ENHANCE", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SHADOW_STEP_THRUST_ENHANCE", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_P_RBM_SHADOW_STEP_THRUST_Init );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_P_RBM_SHADOW_STEP_THRUST_Start );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_P_RBM_SHADOW_STEP_THRUST_EventProcess );
@@ -2208,10 +2239,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		const CX2SkillTree::SkillTemplet* pSkillTempletShadowPunisher = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_RRF_SHADOW_PUNISHER );
 		if( NULL != pSkillTempletShadowPunisher )
 		{
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			m_bEnableShadowStepPunisher = true;
 			m_fAttackPowerRateShadowStepPunisher *= pSkillTempletShadowPunisher->GetSkillAbilityValue( CX2SkillTree::SA_DAMAGE_REL, iShadowPunisherSkillLevel );
@@ -2224,7 +2255,7 @@ void CX2GURaven::InitStateWeaponTaker()
 			stateData.m_fPowerRate		= 1.f;	// note!!! 데미지 계산이 다른 active 필살기와 다르게 구현되어있으므로 주의. passive skill 의 데미지 증가 처리는 InitPassiveSkillState()에서.
 			stateData.m_eSkillID		= CX2SkillTree::SI_A_RF_SHADOW_STEP;
 			stateData.stateID			= RSI_P_RRF_SHADOW_PUNISHER;
-			m_LuaManager.MakeTableReference( L"RSI_P_RRF_SHADOW_PUNISHER", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_P_RRF_SHADOW_PUNISHER", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_P_RRF_SHADOW_PUNISHER_Init );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_P_RRF_SHADOW_PUNISHER_Start );
 			stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_P_RRF_SHADOW_PUNISHER_EventProcess );
@@ -2333,9 +2364,9 @@ void CX2GURaven::InitStateWeaponTaker()
 	//{{ JHKang / 강정훈 / 2010/10/31 / 긴급탈출 패시브 추가
 #ifdef NEW_SKILL_2010_11
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RBM_EMERGENCY_ESCAPE, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RBM_EMERGENCY_ESCAPE, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RBM_EMERGENCY_ESCAPE );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RBM_EMERGENCY_ESCAPE );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevel > 0 )
@@ -2347,7 +2378,7 @@ void CX2GURaven::InitStateWeaponTaker()
 			stateData.Init();
 			stateData.m_SPLevel			= 1;
 			stateData.stateID			= RSI_SHADOW_STEP;
-			m_LuaManager.MakeTableReference( L"RSI_SI_A_RF_SHADOW_STEP", stateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI_A_RF_SHADOW_STEP", stateData.stateID );
 			stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI_A_RF_SHADOW_STEP_Init );
 			stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RBM_EMERGENCY_ESCAPE_StartFuture );
 			stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SI_A_RF_SHADOW_STEP_Start );
@@ -2457,9 +2488,9 @@ void CX2GURaven::InitStateWeaponTaker()
 	m_bEnableShadowBackSlide = false;
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RVC_SHADOW_BACK_SLIDE, true );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RVC_SHADOW_BACK_SLIDE, true );
 #else // UPGRADE_SKILL_SYSTEM_2013
-	iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RVC_SHADOW_BACK_SLIDE );
+	iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RVC_SHADOW_BACK_SLIDE );
 #endif // UPGRADE_SKILL_SYSTEM_2013
 	
 	if( iSkillLevel > 0 )
@@ -2476,7 +2507,7 @@ void CX2GURaven::InitStateWeaponTaker()
 		stateData.Init();
 		//stateData.m_SPLevel			 = 1;
 		stateData.stateID				 = RVC_SI_P_SHADOW_BACK_SLIDE;
-		m_LuaManager.MakeTableReference( L"RVC_SI_P_SHADOW_BACK_SLIDE", stateData.stateID );
+		m_LuaManager.MakeTableReference( "RVC_SI_P_SHADOW_BACK_SLIDE", stateData.stateID );
 		stateData.StateStartFuture		 = SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_BACK_SLIDE_StartFuture );
 		stateData.StateStart			 = SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_BACK_SLIDE_Start );
 		stateData.OnFrameMove			 = SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_BACK_SLIDE_FrameMove );
@@ -2490,7 +2521,7 @@ void CX2GURaven::InitStateWeaponTaker()
 		stateData.Init();
 		//stateData.m_SPLevel			 = 1;
 		stateData.stateID				 = RVC_SI_P_SHADOW_BACK_SLIDE_END;
-		m_LuaManager.MakeTableReference( L"RVC_SI_P_SHADOW_BACK_SLIDE_END", stateData.stateID );
+		m_LuaManager.MakeTableReference( "RVC_SI_P_SHADOW_BACK_SLIDE_END", stateData.stateID );
 		stateData.OnFrameMoveFuture		 = SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_BACK_SLIDE_END_FrameMoveFuture );
 		stateData.OnEventProcess		 = SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_BACK_SLIDE_END_EventProcess );
 		m_StateList[stateData.stateID] = stateData;
@@ -2501,7 +2532,7 @@ void CX2GURaven::InitStateWeaponTaker()
 		stateData.Init();
 		//stateData.m_SPLevel			 = 1;
 		stateData.stateID				 = RVC_SI_P_SHADOW_STEP_FINISH;
-		m_LuaManager.MakeTableReference( L"RSI_SI_A_RF_SHADOW_STEP", stateData.stateID );
+		m_LuaManager.MakeTableReference( "RSI_SI_A_RF_SHADOW_STEP", stateData.stateID );
 		stateData.StateInit				 = SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_STEP_FINISH_Init );
 		stateData.StateStartFuture		 = SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_STEP_FINISH_StartFuture );
 		stateData.StateStart			 = SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_STEP_FINISH_Start );
@@ -2518,7 +2549,7 @@ void CX2GURaven::InitStateWeaponTaker()
 		//stateData.m_fPowerRate		= 1.f;
 		//stateData.m_eSkillID		= CX2SkillTree::SI_A_RF_SHADOW_STEP;
 		stateData.stateID			= RVC_SI_P_SHADOW_BUSTER;
-		m_LuaManager.MakeTableReference( L"RVC_SI_P_SHADOW_BUSTER", stateData.stateID );
+		m_LuaManager.MakeTableReference( "RVC_SI_P_SHADOW_BUSTER", stateData.stateID );
 		stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_BUSTER_Init );
 		stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_BUSTER_Start );
 		stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_P_SHADOW_BUSTER_FrameMove );
@@ -2635,11 +2666,11 @@ void CX2GURaven::InitStateWeaponTaker()
 	{	
 		case CX2SkillTree::ST_BUFF:
 			{	// 버프 필살기
-				m_LuaManager.MakeTableReference( L"RSI_SI1_COMMON_BUFF", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SI1_COMMON_BUFF", normalStateData.stateID );
 				normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, COMMON_BUFF_FrameMove );	
 				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );	
 
-				m_LuaManager.MakeTableReference( L"RSI_SI1_COMMON_BUFF_HYPER", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SI1_COMMON_BUFF_HYPER", hyperStateData.stateID );
 				hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, COMMON_BUFF_FrameMove );	
 				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_BUFF_EventProcess );
 
@@ -2647,6 +2678,9 @@ void CX2GURaven::InitStateWeaponTaker()
 			} break;
 		case CX2SkillTree::ST_ACTIVE:
 		case CX2SkillTree::ST_SPECIAL_ACTIVE:
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		case CX2SkillTree::ST_HYPER_ACTIVE_SKILL:
+#endif //FINALITY_SKILL_SYSTEM
 			{
 				// ST_ACTIVE, ST_SPECIAL_ACTIVE는 아래 구문에서 수행
 			} break;
@@ -2657,11 +2691,11 @@ void CX2GURaven::InitStateWeaponTaker()
 				{
 				case CX2SkillTree::SI_ETC_WS_COMMON_LOVE:
 					{
-						m_LuaManager.MakeTableReference( L"RSI_THROW_ITEM", normalStateData.stateID );
+						m_LuaManager.MakeTableReference( "RSI_THROW_ITEM", normalStateData.stateID );
 						normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_FrameMove );	
 						normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, COMMON_RELATIONSHIP_SKILL_EventProcess );	
 
-						m_LuaManager.MakeTableReference( L"RSI_THROW_ITEM", hyperStateData.stateID );
+						m_LuaManager.MakeTableReference( "RSI_THROW_ITEM", hyperStateData.stateID );
 						hyperStateData.OnFrameMove		= normalStateData.OnFrameMove;
 						hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 					} break;
@@ -2688,13 +2722,13 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RF_MAXIMUM_CANNON:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI1_MAXIMUM_CANNON", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI1_MAXIMUM_CANNON", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI1_MAXIMUM_CANNON_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI1_MAXIMUM_CANNON_FrameMove );
 			//normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GURaven, RSI_SI1_MAXIMUM_CANNON_CameraMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI1_MAXIMUM_CANNON_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"RSI_SI1_MAXIMUM_CANNON_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI1_MAXIMUM_CANNON_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI1_MAXIMUM_CANNON_HYPER_FrameMove );
 			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GURaven, RSI_SI1_MAXIMUM_CANNON_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI1_MAXIMUM_CANNON_HYPER_EventProcess );
@@ -2706,13 +2740,13 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RF_EARTH_BREAKER:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI1_EARTH_BREAKER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI1_EARTH_BREAKER", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI1_EARTH_BREAKER_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI1_EARTH_BREAKER_FrameMove );
 			//normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GURaven, RSI_SI1_EARTH_BREAKER_CameraMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI1_EARTH_BREAKER_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"RSI_SI1_EARTH_BREAKER_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI1_EARTH_BREAKER_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI1_EARTH_BREAKER_HYPER_FrameMove );
 			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GURaven, RSI_SI1_EARTH_BREAKER_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI1_EARTH_BREAKER_HYPER_EventProcess );
@@ -2721,29 +2755,42 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_SA_RF_POWER_ASSAULT:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI2_POWER_ASSAULT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI2_POWER_ASSAULT", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_FrameMove );
 			//normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_CameraMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"RSI_SI2_POWER_ASSAULT_HYPER", hyperStateData.stateID );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 파워 어설트, 밸런스 패치 이후 Hyper State 삭제
+			m_LuaManager.MakeTableReference( "RSI_SI2_POWER_ASSAULT", hyperStateData.stateID );
+			hyperStateData.m_bHyperState		= true;
+			hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_Init );
+			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_FrameMoveFuture );
+			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_FrameMove );
+			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_CameraMove );
+			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_EventProcess );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			m_LuaManager.MakeTableReference( "RSI_SI2_POWER_ASSAULT_HYPER", hyperStateData.stateID );
+			hyperStateData.m_bHyperState		= true;
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_HYPER_FrameMove );
 			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_HYPER_CameraMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI2_POWER_ASSAULT_HYPER_EventProcess );
 
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 		} break;
 
 	case CX2SkillTree::SI_SA_RF_CANNON_BLADE:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI2_CANNON_BLADE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI2_CANNON_BLADE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI2_CANNON_BLADE_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI2_CANNON_BLADE_FrameMove );	
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI2_CANNON_BLADE_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"RSI_SI2_CANNON_BLADE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI2_CANNON_BLADE_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI2_CANNON_BLADE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI2_CANNON_BLADE_HYPER_EventProcess );
 
@@ -2752,14 +2799,14 @@ void CX2GURaven::InitStateWeaponTaker()
 #ifndef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	case CX2SkillTree::SI_SA_RF_MAGNUM_BLASTER:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI3_MAGNUM_BLASTER", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI3_MAGNUM_BLASTER", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI3_MAGNUM_BLASTER_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI3_MAGNUM_BLASTER_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI3_MAGNUM_BLASTER_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI3_MAGNUM_BLASTER_EventProcess );
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_SI3_MAGNUM_BLASTER_End );
 
-			m_LuaManager.MakeTableReference( L"RSI_SI3_MAGNUM_BLASTER_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI3_MAGNUM_BLASTER_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI3_MAGNUM_BLASTER_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI3_MAGNUM_BLASTER_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI3_MAGNUM_BLASTER_HYPER_EventProcess );
@@ -2770,14 +2817,14 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_SA_RF_SEVEN_BURST:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI3_SEVEN_BURST", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI3_SEVEN_BURST", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI3_SEVEN_BURST_Init );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI3_SEVEN_BURST_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI3_SEVEN_BURST_FrameMove );
 			//normalStateData.OnCameraMove		= SET_CB_FUNC( CX2GURaven, RSI_SI2_SEVEN_BURST_CameraMove );		
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI3_SEVEN_BURST_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"RSI_SI3_SEVEN_BURST_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI3_SEVEN_BURST_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI3_SEVEN_BURST_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI3_SEVEN_BURST_HYPER_FrameMove );
 			//hyperStateData.OnCameraMove		= SET_CB_FUNC( CX2GURaven, RSI_SI2_SEVEN_BURST_HYPER_CameraMove );
@@ -2791,12 +2838,12 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RST_BERSERKER_BLADE:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI1_SOUL_TAKER_BERSERKER_BLADE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI1_SOUL_TAKER_BERSERKER_BLADE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER_EventProcess );
 
@@ -2808,14 +2855,14 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RST_FLYING_IMPACT:		// 주의!! : 아크에너미와 플라잉임팩트 코드 내용이 서로 바뀌어있음, 이름 바꿔야함
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{											// 원래 이름대로 바꿈 ( 2013. 01. 09 )
-			m_LuaManager.MakeTableReference( L"RSI_SI2_SOUL_TAKER_FLYING_IMPACT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI2_SOUL_TAKER_FLYING_IMPACT", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI2_SOUL_TAKER_FLYING_IMPACT_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI2_SOUL_TAKER_FLYING_IMPACT_FrameMove );	
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI2_SOUL_TAKER_FLYING_IMPACT_EventProcess );	
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_SI2_SOUL_TAKER_FLYING_IMPACT_End );
 
 
-			m_LuaManager.MakeTableReference( L"RSI_SI2_SOUL_TAKER_FLYING_IMPACT_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI2_SOUL_TAKER_FLYING_IMPACT_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI2_SOUL_TAKER_FLYING_IMPACT_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI2_SOUL_TAKER_FLYING_IMPACT_HYPER_EventProcess );
 			hyperStateData.StateEnd				= SET_CB_FUNC( CX2GURaven, RSI_SI2_SOUL_TAKER_FLYING_IMPACT_HYPER_End );
@@ -2824,12 +2871,12 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_SA_RST_HYPER_SONIC_STAB:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB", normalStateData.stateID );
 			normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMoveFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER", hyperStateData.stateID );				
+			m_LuaManager.MakeTableReference( "RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER", hyperStateData.stateID );				
 			hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMoveFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_EventProcess );
@@ -2842,7 +2889,7 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_ROT_CHARGED_BOLT:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI1_OVER_TAKER_CHARGED_BOLT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI1_OVER_TAKER_CHARGED_BOLT", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI1_OVER_TAKER_CHARGED_BOLT_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI1_OVER_TAKER_CHARGED_BOLT_StateStartFuture );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_SI1_OVER_TAKER_CHARGED_BOLT_StateStart );
@@ -2850,7 +2897,7 @@ void CX2GURaven::InitStateWeaponTaker()
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI1_OVER_TAKER_CHARGED_BOLT_EventProcess );	
 			normalStateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_SI1_OVER_TAKER_CHARGED_BOLT_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"RSI_SI1_OVER_TAKER_CHARGED_BOLT_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI1_OVER_TAKER_CHARGED_BOLT_HYPER", hyperStateData.stateID );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GURaven, RSI_SI1_OVER_TAKER_CHARGED_BOLT_HYPER_StateStartFuture );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_SI1_OVER_TAKER_CHARGED_BOLT_HYPER_StateStart );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI1_OVER_TAKER_CHARGED_BOLT_HYPER_FrameMove );
@@ -2861,25 +2908,25 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_SA_ROT_ARC_ENEMY:		// 주의!! : 아크에너미와 플라잉임팩트 코드 내용이 서로 바뀌어있음, 이름 바꿔야함
 		{										// 원래 이름대로 바꿈 ( 2013. 01. 09 )
-			m_LuaManager.MakeTableReference( L"RSI_SI2_OVER_TAKER_ARC_ENEMY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI2_OVER_TAKER_ARC_ENEMY", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI2_OVER_TAKER_ARC_ENEMY_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI2_OVER_TAKER_ARC_ENEMY_FrameMove );	
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI2_OVER_TAKER_ARC_ENEMY_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"RSI_SI2_OVER_TAKER_ARC_ENEMY_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI2_OVER_TAKER_ARC_ENEMY_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI2_OVER_TAKER_ARC_ENEMY_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI2_OVER_TAKER_ARC_ENEMY_HYPER_EventProcess );
 		} break;
 
 	case CX2SkillTree::SI_SA_ROT_GUARDIAN_STRIKE:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_StateStartFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER", hyperStateData.stateID );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GURaven, RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_StateStartFuture );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_EventProcess );
@@ -2890,26 +2937,32 @@ void CX2GURaven::InitStateWeaponTaker()
 		{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 			// 버닝 러쉬 State 를 기존 3개에서 1개로 수정 ( 대쉬만 사용 )
-			m_LuaManager.MakeTableReference( L"RSI_SUPER_DASH", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SUPER_DASH", normalStateData.stateID );
+			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_Init );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_StateStart );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			normalStateData.OnFrameMoveFuture   = SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_FrameMoveFuture );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_EventProcess );	
 
-			m_LuaManager.MakeTableReference( L"RSI_SUPER_DASH", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SUPER_DASH", hyperStateData.stateID );
+			hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_Init );
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_StateStart );
-			normalStateData.OnFrameMoveFuture   = SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_FrameMoveFuture );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			hyperStateData.OnFrameMoveFuture   = SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_FrameMoveFuture );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_EventProcess );	
 
 			hyperStateData.m_bHyperState = true;
 
 #else // UPGRADE_SKILL_SYSTEM_2013
-			m_LuaManager.MakeTableReference( L"RSI_SUPER_DASH_READY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SUPER_DASH_READY", normalStateData.stateID );
 	#ifdef SERV_SKILL_NOTE
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_READY_StateStart );
 	#endif
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_READY_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"RSI_SUPER_DASH_READY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SUPER_DASH_READY", hyperStateData.stateID );
 	#ifdef SERV_SKILL_NOTE
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_READY_StateStart );
 	#endif
@@ -2924,7 +2977,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID				= RSI_SUPER_DASH;
-				m_LuaManager.MakeTableReference( L"RSI_SUPER_DASH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SUPER_DASH", stateData.stateID );
 				stateData.OnFrameMoveFuture		= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_FrameMoveFuture );
 				stateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
@@ -2932,7 +2985,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID				= RSI_SUPER_DASH_END;
-				m_LuaManager.MakeTableReference( L"RSI_SUPER_DASH_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SUPER_DASH_END", stateData.stateID );
 				stateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_END_FrameMove );
 				stateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SUPER_DASH_END_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
@@ -2946,7 +2999,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_A_RF_SHADOW_STEP:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SI_A_RF_SHADOW_STEP", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI_A_RF_SHADOW_STEP", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SI_A_RF_SHADOW_STEP_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_SI_A_RF_SHADOW_STEP_StartFuture );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_SI_A_RF_SHADOW_STEP_Start );
@@ -2956,7 +3009,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 
 
-			m_LuaManager.MakeTableReference( L"RSI_SI_A_RF_SHADOW_STEP", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SI_A_RF_SHADOW_STEP", hyperStateData.stateID );
 			hyperStateData.StateStartFuture		= SET_CB_FUNC( CX2GURaven, RSI_SI_A_RF_SHADOW_STEP_StartFuture );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_SI_A_RF_SHADOW_STEP_Start );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SI_A_RF_SHADOW_STEP_FrameMove );
@@ -2975,7 +3028,7 @@ void CX2GURaven::InitStateWeaponTaker()
 				stateData.m_fPowerRate		= 1.f;	// note!!! 데미지 계산이 다른 active 필살기와 다르게 구현되어있으므로 주의. passive skill 의 데미지 증가 처리는 InitPassiveSkillState()에서.
 				stateData.m_eSkillID		= CX2SkillTree::SI_A_RF_SHADOW_STEP;
 				stateData.stateID			= RSI_SHADOW_STEP_THRUST;
-				m_LuaManager.MakeTableReference( L"RSI_SHADOW_STEP_THRUST", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SHADOW_STEP_THRUST", stateData.stateID );
 				stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SHADOW_STEP_THRUST_Init );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SHADOW_STEP_THRUST_Start );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SHADOW_STEP_THRUST_EventProcess );
@@ -2992,7 +3045,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_SA_RST_SHOCKWAVE:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SA_RST_SHOCKWAVE", normalStateData.stateID ); 			
+			m_LuaManager.MakeTableReference( "RSI_SA_RST_SHOCKWAVE", normalStateData.stateID ); 			
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_FrameMove );				
@@ -3000,7 +3053,7 @@ void CX2GURaven::InitStateWeaponTaker()
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"RSI_SA_RST_SHOCKWAVE_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "RSI_SA_RST_SHOCKWAVE_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_HYPER_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_HYPER_FrameMove );		
@@ -3012,7 +3065,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_SA_ROT_VALKYRIESJAVELIN:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SA_ROT_VALKYRIESJAVELIN", normalStateData.stateID ); 	
+			m_LuaManager.MakeTableReference( "RSI_SA_ROT_VALKYRIESJAVELIN", normalStateData.stateID ); 	
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_FrameMove );				
@@ -3020,7 +3073,7 @@ void CX2GURaven::InitStateWeaponTaker()
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_StateEnd );
 
 
-			m_LuaManager.MakeTableReference( L"RSI_SA_ROT_VALKYRIESJAVELIN_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_ROT_VALKYRIESJAVELIN_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_HYPER_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_HYPER_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_HYPER_FrameMove );		
@@ -3033,14 +3086,14 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_ROT_VALKYRIESJAVELIN_LANDING;
-				m_LuaManager.MakeTableReference( L"RSI_SA_ROT_VALKYRIESJAVELIN_LANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_ROT_VALKYRIESJAVELIN_LANDING", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_LANDING_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_LANDING_EventProcess );										
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_ROT_VALKYRIESJAVELIN_HYPER_LANDING;
-				m_LuaManager.MakeTableReference( L"RSI_SA_ROT_VALKYRIESJAVELIN_HYPER_LANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_ROT_VALKYRIESJAVELIN_HYPER_LANDING", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_LANDING_HYPER_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_VALKYRIESJAVELIN_LANDING_HYPER_EventProcess );									
 				m_StateList[stateData.stateID] = stateData;
@@ -3052,12 +3105,12 @@ void CX2GURaven::InitStateWeaponTaker()
 	case CX2SkillTree::SI_A_RST_CUT_TENDON:
 		{
 
-			m_LuaManager.MakeTableReference( L"RSI_A_RST_CUT_TENDON", normalStateData.stateID ); 	
+			m_LuaManager.MakeTableReference( "RSI_A_RST_CUT_TENDON", normalStateData.stateID ); 	
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_RST_CUT_TENDON_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_RST_CUT_TENDON_StateStart );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RST_CUT_TENDON_EventProcess );				
 			
-			m_LuaManager.MakeTableReference( L"RSI_A_RST_CUT_TENDON_HYPER", hyperStateData.stateID ); 
+			m_LuaManager.MakeTableReference( "RSI_A_RST_CUT_TENDON_HYPER", hyperStateData.stateID ); 
 			hyperStateData.StateStart		= normalStateData.StateStart;
 			hyperStateData.OnEventProcess	= normalStateData.OnEventProcess;
 		} break;
@@ -3067,13 +3120,13 @@ void CX2GURaven::InitStateWeaponTaker()
 		{
 
 
-			m_LuaManager.MakeTableReference( L"RSI_A_ROT_WEAPON_BREAK", normalStateData.stateID ); 				
+			m_LuaManager.MakeTableReference( "RSI_A_ROT_WEAPON_BREAK", normalStateData.stateID ); 				
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_WEAPON_BREAK_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_WEAPON_BREAK_StateStart );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_WEAPON_BREAK_EventProcess );				
 			
 
-			m_LuaManager.MakeTableReference( L"RSI_A_ROT_WEAPON_BREAK_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_A_ROT_WEAPON_BREAK_HYPER", hyperStateData.stateID );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_WEAPON_BREAK_StateStart );
 			hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_WEAPON_BREAK_EventProcess );	
 			
@@ -3087,24 +3140,24 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_SA_RST_BLOODY_ACCEL:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_A_RST_BLOODY_ACCEL", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_A_RST_BLOODY_ACCEL", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_RST_BLOODY_ACCEL_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_A_RST_BLOODY_ACCEL_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_A_RST_BLOODY_ACCEL_EventProcess );
 			
-			m_LuaManager.MakeTableReference( L"RSI_A_RST_BLOODY_ACCEL_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_A_RST_BLOODY_ACCEL_HYPER", hyperStateData.stateID );
 			hyperStateData.OnFrameMove			= normalStateData.OnFrameMove;
 			hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;
 		} break;
 
 	case CX2SkillTree::SI_SA_ROT_NUCLEAR:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_A_ROT_NUCLEAR", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_A_ROT_NUCLEAR", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_NUCLEAR_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_NUCLEAR_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_NUCLEAR_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"RSI_A_ROT_NUCLEAR_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_A_ROT_NUCLEAR_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_NUCLEAR_Init );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_NUCLEAR_Hyper_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_NUCLEAR_Hyper_EventProcess );
@@ -3119,12 +3172,12 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_A_RRF_GROUND_IMPACT:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"SI_A_RRF_GROUND_IMPACT", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "SI_A_RRF_GROUND_IMPACT", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, SI_A_RRF_GROUND_IMPACT_Init );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, SI_A_RRF_GROUND_IMPACT_FrameMove );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, SI_A_RRF_GROUND_IMPACT_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"SI_A_RRF_GROUND_IMPACT", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "SI_A_RRF_GROUND_IMPACT", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, SI_A_RRF_GROUND_IMPACT_Init );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, SI_A_RRF_GROUND_IMPACT_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, SI_A_RRF_GROUND_IMPACT_EventProcess );
@@ -3136,12 +3189,12 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RRF_X_CRASH:		
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"SI_SA_RRF_X_CRASH", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "SI_SA_RRF_X_CRASH", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, SI_SA_RRF_X_CRASH_Init );		
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, SI_SA_RRF_X_CRASH_FrameMove );				
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, SI_SA_RRF_X_CRASH_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"SI_SA_RRF_X_CRASH_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "SI_SA_RRF_X_CRASH_HYPER", hyperStateData.stateID );
 			hyperStateData.m_bHyperState		= true;
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, SI_SA_RRF_X_CRASH_Init );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, SI_SA_RRF_X_CRASH_FrameMove );
@@ -3150,12 +3203,12 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_A_RBM_ONE_FLASH:		
 		{
-			m_LuaManager.MakeTableReference( L"SI_A_RBM_ONE_FLASH", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "SI_A_RBM_ONE_FLASH", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, SI_A_RBM_ONE_FLASH_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, SI_A_RBM_ONE_FLASH_StateStart );
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, SI_A_RBM_ONE_FLASH_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"SI_A_RBM_ONE_FLASH", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "SI_A_RBM_ONE_FLASH", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, SI_A_RBM_ONE_FLASH_Init );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, SI_A_RBM_ONE_FLASH_StateStart );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, SI_A_RBM_ONE_FLASH_EventProcess );
@@ -3167,13 +3220,13 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RBM_WOFL_FANG:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"SI_SA_RBM_WOLF_FANG_START", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "SI_SA_RBM_WOLF_FANG_START", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_START_Init );
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_START_StateStart );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_START_FrameMove );				
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_START_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"SI_SA_RBM_WOLF_FANG_START", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "SI_SA_RBM_WOLF_FANG_START", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_START_Init );
 			hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_START_StateStart );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_START_FrameMove );
@@ -3185,31 +3238,31 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= SI_SA_RBM_WOLF_FANG_STARTLANDING;
-				m_LuaManager.MakeTableReference( L"SI_SA_RBM_WOLF_FANG_STARTLANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "SI_SA_RBM_WOLF_FANG_STARTLANDING", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_STARTLANDING_EventProcess );										
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= SI_SA_RBM_WOLF_FANG_STARTLANDING_HYPER;
-				m_LuaManager.MakeTableReference( L"SI_SA_RBM_WOLF_FANG_STARTLANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "SI_SA_RBM_WOLF_FANG_STARTLANDING", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_STARTLANDING_EventProcess );										
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= SI_SA_RBM_WOLF_FANG_HIT;
-				m_LuaManager.MakeTableReference( L"SI_SA_RBM_WOLF_FANG_HIT", stateData.stateID );
+				m_LuaManager.MakeTableReference( "SI_SA_RBM_WOLF_FANG_HIT", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_HIT_EventProcess );									
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= SI_SA_RBM_WOLF_FANG_HIT_HYPER;
-				m_LuaManager.MakeTableReference( L"SI_SA_RBM_WOLF_FANG_HIT_HYPER", stateData.stateID );
+				m_LuaManager.MakeTableReference( "SI_SA_RBM_WOLF_FANG_HIT_HYPER", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_HIT_EventProcess );									
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= SI_SA_RBM_WOLF_FANG_HITLANDING;
-				m_LuaManager.MakeTableReference( L"SI_SA_RBM_WOLF_FANG_HITLANDING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "SI_SA_RBM_WOLF_FANG_HITLANDING", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, SI_SA_RBM_WOLF_FANG_HITLANDING_EventProcess );									
 				m_StateList[stateData.stateID] = stateData;
 			}
@@ -3226,12 +3279,12 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RBM_GIGA_DRIVE:		// 블마-기가드라이브
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SA_RBM_GIGA_DRIVE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RBM_GIGA_DRIVE", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_Init );		
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_FrameMove );				
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"RSI_SA_RBM_GIGA_DRIVE_HYPER", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RBM_GIGA_DRIVE_HYPER", hyperStateData.stateID );
 			hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_Init );
 			hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_FrameMove );
 			hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_EventProcess );
@@ -3239,14 +3292,14 @@ void CX2GURaven::InitStateWeaponTaker()
 
 	case CX2SkillTree::SI_SA_RRF_WILD_CHARGE:		// 레피-와일드차지
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SA_RRF_WILD_CHARGE_READY", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RRF_WILD_CHARGE_READY", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGE_READY_Init );		
 			normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGE_READY_StateStart );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGE_READY_StateStartFuture );
 			normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGE_READY_FrameMove );				
 			normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGE_READY_EventProcess );
 
-			m_LuaManager.MakeTableReference( L"RSI_SA_RRF_WILD_CHARGE_READY", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RRF_WILD_CHARGE_READY", hyperStateData.stateID );
 			//hyperStateData.stateID				= normalStateData.stateID;
 			hyperStateData.StateInit			= normalStateData.StateInit;
 			hyperStateData.StateStart			= normalStateData.StateStart;
@@ -3259,7 +3312,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RRF_WILD_CHARGING;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RRF_WILD_CHARGING", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RRF_WILD_CHARGING", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGING_StateStart );	
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGING_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGING_EventProcess );										
@@ -3268,7 +3321,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RRF_WILD_CHARGE_DASH;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RRF_WILD_CHARGE_DASH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RRF_WILD_CHARGE_DASH", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGE_DASH_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RRF_WILD_CHARGE_DASH_EventProcess );									
 				m_StateList[stateData.stateID] = stateData;
@@ -3277,8 +3330,10 @@ void CX2GURaven::InitStateWeaponTaker()
 			// 와일드차지가 상태 ID (ex: RSI_SPECIAL_ATTACK1a 등)
 			// slotB 주의!
 
+#ifndef X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 			if ( 0 > m_WildChargeDataPtr.use_count() )
 				m_WildChargeDataPtr.reset();
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 			m_WildChargeDataPtr = WildChargeData::CreateWildChargeData();
 			m_WildChargeDataPtr->SetSlotID_WildCharge( RAVEN_STATE_ID( iNormalStateID ) );
@@ -3292,7 +3347,7 @@ void CX2GURaven::InitStateWeaponTaker()
 #ifdef RAVEN_WEAPON_TAKER
 	case CX2SkillTree::SI_A_RF_BREAKING_FIST:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_A_RF_BREAKING_FIST", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_A_RF_BREAKING_FIST", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_RF_BREAKING_FIST_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_RF_BREAKING_FIST_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_A_RF_BREAKING_FIST_FrameMove );
@@ -3303,7 +3358,7 @@ void CX2GURaven::InitStateWeaponTaker()
 #endif BALANCE_BLADE_MASTER_20130117
 
 
-			m_LuaManager.MakeTableReference( L"RSI_A_RF_BREAKING_FIST", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_A_RF_BREAKING_FIST", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_RF_BREAKING_FIST_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_RF_BREAKING_FIST_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_A_RF_BREAKING_FIST_FrameMove );
@@ -3320,25 +3375,25 @@ void CX2GURaven::InitStateWeaponTaker()
 			// RSI_A_RWT_BARRAGE_ATTACK는 분기를 위한 가상 스테이트
 			// RSI_A_RWT_BARRAGE_ATTACK_STAND는 지상에서 사용될 스테이트
 			// RSI_A_RWT_BARRAGE_ATTACK_AIR는 공중에서 사용될 스테이트
-			m_LuaManager.MakeTableReference( L"RSI_A_RWT_BARRAGE_ATTACK", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_A_RWT_BARRAGE_ATTACK", normalStateData.stateID );
 			normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_BARRAGE_ATTACK_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_BARRAGE_ATTACK_StateStartFuture );
 				
-			m_LuaManager.MakeTableReference( L"RSI_A_RWT_BARRAGE_ATTACK", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_A_RWT_BARRAGE_ATTACK", hyperStateData.stateID );
 			hyperStateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_BARRAGE_ATTACK_StateStartFuture );
 			{
 				UserUnitStateData stateData;
 
 				stateData.Init();
 				stateData.stateID			= RSI_A_RWT_BARRAGE_ATTACK_STAND;
-				m_LuaManager.MakeTableReference( L"RSI_A_RWT_BARRAGE_ATTACK_STAND", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RWT_BARRAGE_ATTACK_STAND", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_BARRAGE_ATTACK_STAND_EventProcess );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_BARRAGE_ATTACK_STAND_FrameMove );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= RSI_A_RWT_BARRAGE_ATTACK_AIR;
-				m_LuaManager.MakeTableReference( L"RSI_A_RWT_BARRAGE_ATTACK_AIR", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RWT_BARRAGE_ATTACK_AIR", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_BARRAGE_ATTACK_AIR_EventProcess );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_BARRAGE_ATTACK_AIR_FrameMove );
 #ifdef RAVEN_LIMIT_AIR_COMBO		/// 공중 무한 채공 방지용
@@ -3354,11 +3409,11 @@ void CX2GURaven::InitStateWeaponTaker()
 			// RSI_A_RWT_BURSTING_BLADE_STAND는 지상에서 사용될 스테이트
 			// RSI_A_RWT_BURSTING_BLADE_AIR는 공중에서 사용될 스테이트
 			// 추가로 함수에서 할 행동은 같다고 보아 등록한 함수명은 같으며, 가상 스테이트와의 구별을 위해 _ATTACK 라고 붙여주었습니다.
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_BURSTING_BLADE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_BURSTING_BLADE", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_BURSTING_BLADE_Init );
 			normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_BURSTING_BLADE_StateStartFuture );
 				
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_BURSTING_BLADE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_BURSTING_BLADE", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_BURSTING_BLADE_Init );
 			hyperStateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_BURSTING_BLADE_StateStartFuture );
 			{
@@ -3366,7 +3421,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_BURSTING_BLADE_STAND;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_BURSTING_BLADE_STAND", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_BURSTING_BLADE_STAND", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_BURSTING_BLADE_ATTACK_StateStart );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_BURSTING_BLADE_ATTACK_EventProcess );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_BURSTING_BLADE_ATTACK_FrameMove );
@@ -3375,7 +3430,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_BURSTING_BLADE_AIR;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_BURSTING_BLADE_AIR", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_BURSTING_BLADE_AIR", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_BURSTING_BLADE_ATTACK_StateStart );
 #ifdef RAVEN_LIMIT_AIR_COMBO			/// 공중 채공 콤보 방지용
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_BURSTING_BLADE_ATTACK_AIR_EventProcess );
@@ -3394,14 +3449,14 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RWT_REVOLVER_CANNON:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_FrameMove );
@@ -3412,7 +3467,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_REVOLVER_CANNON_LOOP;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_LOOP", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_LOOP", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_LOOP_StateStart );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_LOOP_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_LOOP_EventProcess );
@@ -3421,33 +3476,33 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_REVOLVER_CANNON_FINISH;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_FINISH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_FINISH", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_LOOP_StateStart );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_LOOP_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_FINISH_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_REVOLVER_CANNON_END;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_END", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_END_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_REVOLVER_CANNON_OVER_END;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_OVER_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_OVER_END", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_END_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 			}
 		} break;
 	case CX2SkillTree::SI_SA_RWT_HARPOON_SPEAR:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_HARPOON_SPEAR", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_HARPOON_SPEAR", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_HARPOON_SPEAR", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_HARPOON_SPEAR", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_FrameMove );
@@ -3460,13 +3515,13 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();
 					stateData.stateID			= RSI_SA_RWT_HARPOON_SPEAR_FIRE;
-					m_LuaManager.MakeTableReference( L"RSI_SA_RWT_HARPOON_SPEAR_FIRE", stateData.stateID );				/// 일반 발사
+					m_LuaManager.MakeTableReference( "RSI_SA_RWT_HARPOON_SPEAR_FIRE", stateData.stateID );				/// 일반 발사
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_FIRE_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 
 					stateData.Init();
 					stateData.stateID			= RSI_SA_RWT_HARPOON_SPEAR_FIRE_OVERHEAT;
-					m_LuaManager.MakeTableReference( L"RSI_SA_RWT_HARPOON_SPEAR_FIRE_OVERHEAT", stateData.stateID );		/// 오버 히트 발사
+					m_LuaManager.MakeTableReference( "RSI_SA_RWT_HARPOON_SPEAR_FIRE_OVERHEAT", stateData.stateID );		/// 오버 히트 발사
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_FIRE_OVERHEAT_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_FIRE_OVERHEAT_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HARPOON_SPEAR_FIRE_OVERHEAT_EventProcess );
@@ -3476,14 +3531,14 @@ void CX2GURaven::InitStateWeaponTaker()
 		} break;
 	case CX2SkillTree::SI_SA_RWT_HELLFIRE_GATLING:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_HELLFIRE_GATLING", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_HELLFIRE_GATLING", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_HELLFIRE_GATLING", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_HELLFIRE_GATLING", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_FrameMove );
@@ -3494,7 +3549,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_HELLFIRE_GATLING_LOOP;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_HELLFIRE_GATLING_LOOP", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_HELLFIRE_GATLING_LOOP", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_LOOP_StateStart );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_LOOP_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_LOOP_EventProcess );
@@ -3503,27 +3558,27 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_HELLFIRE_GATLING_END;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_HELLFIRE_GATLING_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_HELLFIRE_GATLING_END", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_END_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_HELLFIRE_GATLING_OVER_END;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_HELLFIRE_GATLING_OVER_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_HELLFIRE_GATLING_OVER_END", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_HELLFIRE_GATLING_END_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 			}
 		} break;
 	case CX2SkillTree::SI_SA_RWT_GIGA_PROMINENCE:
 		{
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_GIGA_PROMINENCE", normalStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_GIGA_PROMINENCE", normalStateData.stateID );
 			normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_Init );
 			normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_StateStart );
 			normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_FrameMove );
 			normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_EventProcess );
 			normalStateData.StateEnd		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_StateEnd );
 
-			m_LuaManager.MakeTableReference( L"RSI_SA_RWT_GIGA_PROMINENCE", hyperStateData.stateID );
+			m_LuaManager.MakeTableReference( "RSI_SA_RWT_GIGA_PROMINENCE", hyperStateData.stateID );
 			hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_Init );
 			hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_StateStart );
 			hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_FrameMove );
@@ -3535,7 +3590,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_GIGA_PROMINENCE_LOOP;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_GIGA_PROMINENCE_LOOP", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_GIGA_PROMINENCE_LOOP", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_LOOP_StateStart );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_LOOP_EventProcess );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_LOOP_FrameMove );
@@ -3544,14 +3599,14 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_GIGA_PROMINENCE_FINISH;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_GIGA_PROMINENCE_FINISH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_GIGA_PROMINENCE_FINISH", stateData.stateID );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_FINISH_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_FINISH_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_GIGA_PROMINENCE_OVER_FINISH;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_GIGA_PROMINENCE_FINISH", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_GIGA_PROMINENCE_FINISH", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_OVER_FINISH_StateStart );
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_OVER_FINISH_FrameMove );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_OVER_FINISH_EventProcess );
@@ -3559,13 +3614,13 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_GIGA_PROMINENCE_END;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_GIGA_PROMINENCE_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_GIGA_PROMINENCE_END", stateData.stateID );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_END_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
 
 				stateData.Init();
 				stateData.stateID			= RSI_SA_RWT_GIGA_PROMINENCE_OVER_END;
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_GIGA_PROMINENCE_OVER_END", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_GIGA_PROMINENCE_OVER_END", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_OVER_END_StateStart );
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_GIGA_PROMINENCE_OVER_END_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
@@ -3576,13 +3631,13 @@ void CX2GURaven::InitStateWeaponTaker()
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
 		case CX2SkillTree::SI_SA_RVC_DEADLY_RAID:
 			{
-				m_LuaManager.MakeTableReference( L"RVC_SI_SA_DEADLY_RAID", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_SA_DEADLY_RAID", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_Init );
 				normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_StateStart );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_FrameMove );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_EventProcess );	
 
-				m_LuaManager.MakeTableReference( L"RVC_SI_SA_DEADLY_RAID", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_SA_DEADLY_RAID", hyperStateData.stateID );
 				hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_StateStart );
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_FrameMove );
 				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_EventProcess );
@@ -3592,7 +3647,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();		/// 일반 타격
 					stateData.stateID			= RVC_SI_SA_DEADLY_RAID_LOOP;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_DEADLY_RAID_LOOP", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_DEADLY_RAID_LOOP", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_EventProcess );
@@ -3600,7 +3655,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();		/// 오버 히트 타격
 					stateData.stateID			= RVC_SI_SA_DEADLY_RAID_LOOP_OVERHEAT;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_DEADLY_RAID_LOOP_OVERHEAT", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_DEADLY_RAID_LOOP_OVERHEAT", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_OVERHEAT_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_OVERHEAT_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_OVERHEAT_EventProcess );
@@ -3608,7 +3663,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();		/// 막타 전 일반 타격
 					stateData.stateID			= RVC_SI_SA_DEADLY_RAID_LOOP_END;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_DEADLY_RAID_LOOP_END", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_DEADLY_RAID_LOOP_END", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_END_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_END_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_END_EventProcess );
@@ -3616,7 +3671,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();		/// 막타 전 오버 히트 타격
 					stateData.stateID			= RVC_SI_SA_DEADLY_RAID_LOOP_END_OVERHEAT;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_DEADLY_RAID_LOOP_END_OVERHEAT", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_DEADLY_RAID_LOOP_END_OVERHEAT", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_END_OVERHEAT_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_END_OVERHEAT_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_LOOP_END_OVERHEAT_EventProcess );
@@ -3624,7 +3679,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();		/// 막타
 					stateData.stateID			= RVC_SI_SA_DEADLY_RAID_FINISH;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_DEADLY_RAID_FINISH", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_DEADLY_RAID_FINISH", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_FINISH_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_FINISH_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_FINISH_EventProcess );
@@ -3632,7 +3687,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();		/// 오버 히트 막타
 					stateData.stateID			= RVC_SI_SA_DEADLY_RAID_FINISH_OVERHEAT;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_DEADLY_RAID_FINISH_OVERHEAT", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_DEADLY_RAID_FINISH_OVERHEAT", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_FINISH_OVERHEAT_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_FINISH_OVERHEAT_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_FINISH_OVERHEAT_EventProcess );
@@ -3640,7 +3695,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();		/// 오버 히트 마무리 동작
 					stateData.stateID			= RVC_SI_SA_DEADLY_RAID_END;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_DEADLY_RAID_END", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_DEADLY_RAID_END", stateData.stateID );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_DEADLY_RAID_END_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 				}
@@ -3652,14 +3707,14 @@ void CX2GURaven::InitStateWeaponTaker()
 			case CX2SkillTree::SI_SA_RVC_IGNITION_CROW:
 #endif //UPGRADE_SKILL_SYSTEM_2013
 			{
-				m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_Init );
 				normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_StateStart );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_FrameMove );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_EventProcess );	
 				normalStateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_StateEnd );
 
-				m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW", hyperStateData.stateID );
 				hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_StateStart );
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_FrameMove );
 				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_EventProcess );
@@ -3670,14 +3725,14 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();
 					stateData.stateID			= RVC_SI_SA_IGNITION_CROW_FIRE;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW_FIRE", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW_FIRE", stateData.stateID );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_FIRE_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_FIRE_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 
 					stateData.Init();
 					stateData.stateID			= RVC_SI_SA_IGNITION_CROW_FIRE_OVERHEAT;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW_FIRE_OVERHEAT", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW_FIRE_OVERHEAT", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_FIRE_OVERHEAT_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_FIRE_OVERHEAT_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_FIRE_OVERHEAT_EventProcess );
@@ -3685,7 +3740,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();
 					stateData.stateID			= RVC_SI_SA_IGNITION_CROW_OVERHEAT_END;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW_OVERHEAT_END", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW_OVERHEAT_END", stateData.stateID );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_OVERHEAT_END_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 				}
@@ -3696,14 +3751,12 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_A_ROT_ARMOR_BREAK:
 			{
 				// 아머 브레이커 추가
-				m_LuaManager.MakeTableReference( L"RSI_A_ROT_ARMOR_BREAK", normalStateData.stateID ); 				
+				m_LuaManager.MakeTableReference( "RSI_A_ROT_ARMOR_BREAK", normalStateData.stateID ); 				
 				normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_ARMOR_BREAK_Init );
-				normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_ARMOR_BREAK_StateStart );
 				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_ARMOR_BREAK_EventProcess );				
 				
-				m_LuaManager.MakeTableReference( L"RSI_A_ROT_ARMOR_BREAK", hyperStateData.stateID ); 				
+				m_LuaManager.MakeTableReference( "RSI_A_ROT_ARMOR_BREAK", hyperStateData.stateID ); 				
 				hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_ARMOR_BREAK_Init );
-				hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_ARMOR_BREAK_StateStart );
 				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_ROT_ARMOR_BREAK_EventProcess );				
 				
 				hyperStateData.m_bHyperState = true;
@@ -3712,13 +3765,13 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RVC_IGNITION_CROW_INCINERATION:
 			{
 				// 이그니션 크로우 인시너레이션
-				m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW_INCINERATION", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW_INCINERATION", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_Init );
 				normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_StateStart );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_FrameMove );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_EventProcess );	
 
-				m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW_INCINERATION", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW_INCINERATION", hyperStateData.stateID );
 				hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_Init );
 				hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_StateStart );
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_FrameMove );
@@ -3731,13 +3784,13 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();
 					stateData.stateID			= RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE", stateData.stateID );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 
 					stateData.Init();
 					stateData.stateID			= RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE_OVERHEAT;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE_OVERHEAT", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE_OVERHEAT", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE_OVERHEAT_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE_OVERHEAT_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE_OVERHEAT_EventProcess );
@@ -3745,7 +3798,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();
 					stateData.stateID			= RVC_SI_SA_IGNITION_CROW_INCINERATION_OVERHEAT_END;
-					m_LuaManager.MakeTableReference( L"RVC_SI_SA_IGNITION_CROW_INCINERATION_OVERHEAT_END", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RVC_SI_SA_IGNITION_CROW_INCINERATION_OVERHEAT_END", stateData.stateID );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_SA_IGNITION_CROW_INCINERATION_OVERHEAT_END_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 				}
@@ -3754,13 +3807,13 @@ void CX2GURaven::InitStateWeaponTaker()
 		// 리볼버 캐논 HE
 		case CX2SkillTree::SI_SA_RWT_REVOLVER_CANNON_HIGH_EXPLOSIVE_SHELL:
 			{
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_HE", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_HE", normalStateData.stateID );
 				normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_Init );
 				normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_StateStart );
 				normalStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_FrameMove );
 				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_EventProcess );
 
-				m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_HE", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_HE", hyperStateData.stateID );
 				hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_Init );
 				hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_StateStart );
 				hyperStateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_FrameMove );
@@ -3773,7 +3826,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();
 					stateData.stateID			= RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP;
-					m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP_EventProcess );
@@ -3781,7 +3834,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();
 					stateData.stateID			= RSI_SA_RWT_REVOLVER_CANNON_HE_FINISH;
-					m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_HE_FINISH", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_HE_FINISH", stateData.stateID );
 					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP_StateStart );
 					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP_FrameMove );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_FINISH_EventProcess );
@@ -3789,13 +3842,13 @@ void CX2GURaven::InitStateWeaponTaker()
 				
 					stateData.Init();
 					stateData.stateID			= RSI_SA_RWT_REVOLVER_CANNON_HE_END;
-					m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_HE_END", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_HE_END", stateData.stateID );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_END_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 					
 					stateData.Init();
 					stateData.stateID			= RSI_SA_RWT_REVOLVER_CANNON_HE_OVER_END;
-					m_LuaManager.MakeTableReference( L"RSI_SA_RWT_REVOLVER_CANNON_HE_OVER_END", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RSI_SA_RWT_REVOLVER_CANNON_HE_OVER_END", stateData.stateID );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_SA_RWT_REVOLVER_CANNON_HE_END_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 				}
@@ -3803,14 +3856,14 @@ void CX2GURaven::InitStateWeaponTaker()
 		// 리미트 크러셔
 		case CX2SkillTree::SI_A_RRF_LIMIT_CRUSHER:
 			{
-				m_LuaManager.MakeTableReference( L"RSI_A_RRF_LIMIT_CRUSHER_CHARGE", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RRF_LIMIT_CRUSHER_CHARGE", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_LIMIT_CRUSHER_CHARGE_Init );
 				normalStateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_LIMIT_CRUSHER_CHARGE_StateStartFuture );
 				normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_LIMIT_CRUSHER_CHARGE_StateStart );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_LIMIT_CRUSHER_CHARGE_EventProcess );	
 				normalStateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_LIMIT_CRUSHER_CHARGE_StateEnd );
 
-				m_LuaManager.MakeTableReference( L"RSI_A_RRF_LIMIT_CRUSHER_CHARGE", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RRF_LIMIT_CRUSHER_CHARGE", hyperStateData.stateID );
 				hyperStateData.StateInit			= normalStateData.StateInit;
 				hyperStateData.OnEventProcess		= normalStateData.OnEventProcess;	
 				hyperStateData.m_bHyperState = true;
@@ -3820,13 +3873,13 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();
 					stateData.stateID			= RSI_A_RRF_LIMIT_CRUSHER_REVENGE_ATTACK;
-					m_LuaManager.MakeTableReference( L"RSI_A_RRF_LIMIT_CRUSHER_REVENGE_ATTACK", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RSI_A_RRF_LIMIT_CRUSHER_REVENGE_ATTACK", stateData.stateID );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_LIMIT_CRUSHER_REVENGE_ATTACK_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 
 					stateData.Init();
 					stateData.stateID			= RSI_A_RRF_LIMIT_CRUSHER_AVOID_ATTACK;
-					m_LuaManager.MakeTableReference( L"RSI_A_RRF_LIMIT_CRUSHER_AVOID_ATTACK", stateData.stateID );
+					m_LuaManager.MakeTableReference( "RSI_A_RRF_LIMIT_CRUSHER_AVOID_ATTACK", stateData.stateID );
 					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_LIMIT_CRUSHER_AVOID_ATTACK_EventProcess );
 					m_StateList[stateData.stateID] = stateData;
 				}
@@ -3836,12 +3889,12 @@ void CX2GURaven::InitStateWeaponTaker()
 		// 헬 다이브
 		case CX2SkillTree::SI_A_RRF_HELL_DIVE:
 			{
-				m_LuaManager.MakeTableReference( L"RSI_A_RRF_HELL_DIVE", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RRF_HELL_DIVE", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_HELL_DIVE_Init );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_HELL_DIVE_FrameMove );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_HELL_DIVE_EventProcess );	
 
-				m_LuaManager.MakeTableReference( L"RSI_A_RRF_HELL_DIVE", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RRF_HELL_DIVE", hyperStateData.stateID );
 				hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_HELL_DIVE_Init );
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_HELL_DIVE_FrameMove );
 				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_A_RRF_HELL_DIVE_EventProcess );	
@@ -3852,12 +3905,12 @@ void CX2GURaven::InitStateWeaponTaker()
 		// 네이팜 그레네이드
 		case CX2SkillTree::SI_A_RVC_NAPALM_GRENADE :
 			{
-				m_LuaManager.MakeTableReference( L"RSI_A_RVC_NAPALM_GRENADE", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RVC_NAPALM_GRENADE", normalStateData.stateID );
 				normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_RVC_NAPALM_GRENADE_Init );
 				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RVC_NAPALM_GRENADE_EventProcess );
 				normalStateData.OnFrameMove	= SET_CB_FUNC( CX2GURaven, RSI_A_RVC_NAPALM_GRENADE_FrameMove );
 
-				m_LuaManager.MakeTableReference( L"RSI_A_RVC_NAPALM_GRENADE", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RVC_NAPALM_GRENADE", hyperStateData.stateID );
 				hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_RVC_NAPALM_GRENADE_Init );
 				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RVC_NAPALM_GRENADE_EventProcess );
 				hyperStateData.OnFrameMove	= SET_CB_FUNC( CX2GURaven, RSI_A_RVC_NAPALM_GRENADE_FrameMove );
@@ -3869,11 +3922,11 @@ void CX2GURaven::InitStateWeaponTaker()
 		// 화염인
 		case CX2SkillTree::SI_A_RWT_FLAME_SWORD :
 			{
-				m_LuaManager.MakeTableReference( L"RSI_A_RWT_FLAME_SWORD", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RWT_FLAME_SWORD", normalStateData.stateID );
 				normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_Init );
 				normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_StateStart );
 				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_EventProcess );
-				m_LuaManager.MakeTableReference( L"RSI_A_RWT_FLAME_SWORD", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RWT_FLAME_SWORD", hyperStateData.stateID );
 				hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_Init );
 				hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_StateStart );
 				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_EventProcess );
@@ -3883,7 +3936,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_A_RWT_FLAME_SWORD_GROUND;
-				m_LuaManager.MakeTableReference( L"RSI_A_RWT_FLAME_SWORD_GROUND", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RWT_FLAME_SWORD_GROUND", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_GROUND_StateStart );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_GROUND_EventProcess );
 				m_StateList[stateData.stateID] = stateData;
@@ -3891,7 +3944,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RSI_A_RWT_FLAME_SWORD_FLY;
-				m_LuaManager.MakeTableReference( L"RSI_A_RWT_FLAME_SWORD_FLY", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RWT_FLAME_SWORD_FLY", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_AIR_StateStart );	
 				stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_AIR_FrameMoveFuture );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_A_RWT_FLAME_SWORD_AIR_EventProcess );		
@@ -3902,14 +3955,14 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RST_SHOCKWAVE_FRONT :
 			{
 				/// 쇼크 웨이브 - 속
-				m_LuaManager.MakeTableReference( L"RSI_SA_RST_SHOCKWAVE_FRONT", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RST_SHOCKWAVE_FRONT", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_Init );
 				normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_FRONT_StateStart );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_FRONT_FrameMove );				
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_FRONT_EventProcess );				
 				normalStateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_FRONT_StateEnd );
 
-				m_LuaManager.MakeTableReference( L"RSI_SA_RST_SHOCKWAVE_FRONT", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RST_SHOCKWAVE_FRONT", hyperStateData.stateID );
 				hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_Init );
 				hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_FRONT_StateStart );
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SA_RST_SHOCKWAVE_FRONT_FrameMove );				
@@ -3923,13 +3976,13 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_A_RBM_SONIC_SLASH :
 			{
 				/// 소닉 슬래시
-				m_LuaManager.MakeTableReference( L"RSI_A_RBM_SONIC_SLASH_LOOP", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RBM_SONIC_SLASH_LOOP", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_RBM_SONIC_SLASH_LOOP_Init );
 				normalStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_A_RBM_SONIC_SLASH_LOOP_StateStart );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_A_RBM_SONIC_SLASH_LOOP_FrameMove );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_A_RBM_SONIC_SLASH_LOOP_EventProcess );
 				
-				m_LuaManager.MakeTableReference( L"RSI_A_RBM_SONIC_SLASH_LOOP", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RBM_SONIC_SLASH_LOOP", hyperStateData.stateID );
 				hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_RBM_SONIC_SLASH_LOOP_Init );
 				hyperStateData.StateStart			= SET_CB_FUNC( CX2GURaven, RSI_A_RBM_SONIC_SLASH_LOOP_StateStart );
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_A_RBM_SONIC_SLASH_LOOP_FrameMove );
@@ -3941,7 +3994,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 					stateData.Init();
 					stateData.stateID				= RSI_A_RBM_SONIC_SLASH_FINISH;
-					m_LuaManager.MakeTableReference( L"RSI_A_RBM_SONIC_SLASH_FINISH", stateData.stateID );				/// 일반 발사
+					m_LuaManager.MakeTableReference( "RSI_A_RBM_SONIC_SLASH_FINISH", stateData.stateID );				/// 일반 발사
 					stateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_A_RBM_SONIC_SLASH_FINISH_EventProcess );
 					m_StateList[stateData.stateID]	= stateData;
 				}
@@ -3951,11 +4004,11 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_SA_RBM_GIGA_DRIVE_SEISMIC_TREMOR :
 			{
 				/// 기가 드라이브 - 폭
-				m_LuaManager.MakeTableReference( L"RSI_SA_RBM_GIGA_DRIVE_BURST", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RBM_GIGA_DRIVE_BURST", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_BURST_Init );		
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_BURST_FrameMove );				
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_BURST_EventProcess );
-				m_LuaManager.MakeTableReference( L"RSI_SA_RBM_GIGA_DRIVE_BURST", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_RBM_GIGA_DRIVE_BURST", hyperStateData.stateID );
 				hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_BURST_Init );		
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_BURST_FrameMove );				
 				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SA_RBM_GIGA_DRIVE_BURST_EventProcess );
@@ -3965,12 +4018,12 @@ void CX2GURaven::InitStateWeaponTaker()
 
 		case CX2SkillTree::SI_A_ROT_CHARGED_BOLT_BLOOD :
 			{
-				m_LuaManager.MakeTableReference( L"RSI_SA_ROT_CHARGED_BOLT_BLOOD", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_ROT_CHARGED_BOLT_BLOOD", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_CHARGED_BOLT_BLOOD_Init );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_CHARGED_BOLT_BLOOD_FrameMove );				
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_CHARGED_BOLT_BLOOD_EventProcess );
 				
-				m_LuaManager.MakeTableReference( L"RSI_SA_ROT_CHARGED_BOLT_BLOOD", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_SA_ROT_CHARGED_BOLT_BLOOD", hyperStateData.stateID );
 				hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_CHARGED_BOLT_BLOOD_Init );
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_CHARGED_BOLT_BLOOD_FrameMove );				
 				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_SA_ROT_CHARGED_BOLT_BLOOD_EventProcess );
@@ -3980,14 +4033,14 @@ void CX2GURaven::InitStateWeaponTaker()
 			break;
 		case CX2SkillTree::SI_A_RF_MEGADRILL_BREAK :
 			{
-				m_LuaManager.MakeTableReference( L"RSI_A_RF_MEGADRILL_BREAK", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RF_MEGADRILL_BREAK", normalStateData.stateID );
 				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_RF_MEGADRILL_BREAK_Init );
 				normalStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_A_RF_MEGADRILL_BREAK_FrameMoveFuture );
 				normalStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_A_RF_MEGADRILL_BREAK_FrameMove );
 				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_A_RF_MEGADRILL_BREAK_EventProcess );
 				normalStateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_A_RF_MEGADRILL_BREAK_End );
 				
-				m_LuaManager.MakeTableReference( L"RSI_A_RF_MEGADRILL_BREAK", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RSI_A_RF_MEGADRILL_BREAK", hyperStateData.stateID );
 				hyperStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_A_RF_MEGADRILL_BREAK_Init );
 				hyperStateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RSI_A_RF_MEGADRILL_BREAK_FrameMoveFuture );
 				hyperStateData.OnFrameMove			= SET_CB_FUNC( CX2GURaven, RSI_A_RF_MEGADRILL_BREAK_FrameMove );
@@ -4001,12 +4054,12 @@ void CX2GURaven::InitStateWeaponTaker()
 		case CX2SkillTree::SI_A_RVC_BLEEDING_SLICER:
 			{
 			
-				m_LuaManager.MakeTableReference( L"RVC_SI_A_BLEEDING_SLICER", normalStateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_A_BLEEDING_SLICER", normalStateData.stateID );
 				normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_Init );
 				normalStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_StateStart );
 				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_EventProcess );
 
-				m_LuaManager.MakeTableReference( L"RVC_SI_A_BLEEDING_SLICER", hyperStateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_A_BLEEDING_SLICER", hyperStateData.stateID );
 				hyperStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_Init );
 				hyperStateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_StateStart );
 				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_EventProcess );
@@ -4016,7 +4069,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RVC_SI_A_BLEEDING_SLICER_GROUND;
-				m_LuaManager.MakeTableReference( L"RVC_SI_A_BLEEDING_SLICER_GROUND", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_A_BLEEDING_SLICER_GROUND", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_GROUND_StateStart );	
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_GROUND_FrameMove );	
 				stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_GROUND_EventProcess );
@@ -4026,7 +4079,7 @@ void CX2GURaven::InitStateWeaponTaker()
 
 				stateData.Init();
 				stateData.stateID			= RVC_SI_A_BLEEDING_SLICER_FLY;
-				m_LuaManager.MakeTableReference( L"RVC_SI_A_BLEEDING_SLICER_FLY", stateData.stateID );
+				m_LuaManager.MakeTableReference( "RVC_SI_A_BLEEDING_SLICER_FLY", stateData.stateID );
 				stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_AIR_StateStart );	
 				stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_AIR_FrameMove );	
 				stateData.OnFrameMoveFuture	= SET_CB_FUNC( CX2GURaven, RVC_SI_A_BLEEDING_SLICER_AIR_FrameMoveFuture );	
@@ -4036,6 +4089,63 @@ void CX2GURaven::InitStateWeaponTaker()
 
 			} break;
 #endif SERV_RAVEN_VETERAN_COMMANDER
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+		case CX2SkillTree::SI_HA_RBM_EXTREM_BLADE:
+			{
+				m_LuaManager.MakeTableReference( "RSI_HA_RBM_EXTREM_BLADE_READY", normalStateData.stateID );
+				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_READY_Init );
+				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_READY_EventProcess );
+
+				m_LuaManager.MakeTableReference( "RSI_HA_RBM_EXTREM_BLADE_READY", hyperStateData.stateID );
+				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_READY_EventProcess );
+
+				{
+					UserUnitStateData stateData;
+
+					stateData.Init();
+					stateData.stateID			= RSI_HA_RBM_EXTREM_BLADE_ATTACK;
+					m_LuaManager.MakeTableReference( "RSI_HA_RBM_EXTREM_BLADE_ATTACK", stateData.stateID );
+					stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_ATTACK_Init );
+					stateData.StateStart		= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_ATTACK_StateStart );
+					stateData.OnFrameMove		= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_ATTACK_FrameMove );
+					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_ATTACK_EventProcess );
+					stateData.StateEnd			= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_ATTACK_StateEnd );
+					m_StateList[stateData.stateID] = stateData;
+
+					stateData.Init();
+					stateData.stateID			= RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH;
+					m_LuaManager.MakeTableReference( "RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH", stateData.stateID );
+					stateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH_Init );
+					stateData.StateStartFuture	= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH_StartFuture );
+					stateData.OnEventProcess	= SET_CB_FUNC( CX2GURaven, RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH_EventProcess );
+					m_StateList[stateData.stateID] = stateData;
+				}
+
+			} break;
+
+		case CX2SkillTree::SI_HA_RRF_INFERNAL_ARM:
+			{
+				m_LuaManager.MakeTableReference( "RSI_HA_RRF_INFERNAL_ARM", normalStateData.stateID );
+				normalStateData.StateInit			= SET_CB_FUNC( CX2GURaven, RSI_HA_RRF_INFERNAL_ARM_Init );
+				normalStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_HA_RRF_INFERNAL_ARM_EventProcess );	
+
+				m_LuaManager.MakeTableReference( "RSI_HA_RRF_INFERNAL_ARM", hyperStateData.stateID );
+				hyperStateData.OnEventProcess		= SET_CB_FUNC( CX2GURaven, RSI_HA_RRF_INFERNAL_ARM_EventProcess );
+			} break;
+
+		#pragma region SI_HA_RVC_BURNING_BUSTER
+		case CX2SkillTree::SI_HA_RVC_BURNING_BUSTER:
+			{
+				m_LuaManager.MakeTableReference( "RSI_HA_RVC_BURNING_BUSTER", normalStateData.stateID );
+				normalStateData.StateInit		= SET_CB_FUNC( CX2GURaven, RSI_HA_RVC_BURNING_BUSTER_Init );
+				normalStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+
+				m_LuaManager.MakeTableReference( "RSI_HA_RVC_BURNING_BUSTER", hyperStateData.stateID );
+				hyperStateData.m_bHyperState	= true;
+				hyperStateData.OnEventProcess	= SET_CB_FUNC( CX2GUUser, GenericSpecialActiveSkillEventProcess );
+			} break;
+		#pragma endregion 버닝 버스터 - 궁극기
+#endif //FINALITY_SKILL_SYSTEM
 	}
 }
 
@@ -4073,10 +4183,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4123,10 +4233,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4166,10 +4276,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if ( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4215,10 +4325,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4254,10 +4364,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4301,10 +4411,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4338,10 +4448,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4367,10 +4477,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4416,10 +4526,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4493,10 +4603,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4530,10 +4640,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4575,10 +4685,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4617,10 +4727,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4656,10 +4766,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4707,10 +4817,10 @@ void CX2GURaven::InitStateWeaponTaker()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -4760,6 +4870,15 @@ void CX2GURaven::InitStateWeaponTaker()
 	}
 
 #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	//익스트림 블레이드
+	if ( true == bChangeAll_ || CX2SkillTree::SI_HA_RBM_EXTREM_BLADE == eSkillID_ )
+	{
+		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_HA_RBM_EXTREM_BLADE );
+		SetEquippedSkillLevelStateData( pSkillTemplet, RSI_HA_RBM_EXTREM_BLADE_ATTACK );
+		SetEquippedSkillLevelStateData( pSkillTemplet, RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH );
+	}
+#endif //FINALITY_SKILL_SYSTEM
 }
 
 #ifdef	X2OPTIMIZE_GAME_CHARACTER_BACKGROUND_LOAD
@@ -4856,7 +4975,7 @@ void CX2GURaven::InitializeRavenMajorParticleArray()
 
 	for ( int index = 0; index < RAVEN_MAJOR_PII_END; index++ )
 	{
-		m_ahRavenMajorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahRavenMajorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -4918,7 +5037,7 @@ void	CX2GURaven::AppendMajorParticleToDeviceList( CKTDXDeviceDataList& listInOut
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GURaven::SetRavenMajorParticleByEnum( RAVEN_MAJOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ /*= -1*/ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleRavenMajorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleRavenMajorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), 0,0,0, 0, 0, iDrawCount_, 0 );
@@ -4938,7 +5057,7 @@ void CX2GURaven::InitializeRavenMinorParticleArray()
 
 	for ( int index = 0; index < RAVEN_MINOR_PII_END; index++ )
 	{
-		m_ahRavenMinorParticleInstance[index] = INVALID_PARTICLE_HANDLE;
+		m_ahRavenMinorParticleInstance[index] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 	}
 }
 
@@ -4957,7 +5076,7 @@ void	CX2GURaven::AppendMinorParticleToDeviceList( CKTDXDeviceDataList& listInOut
 
 CKTDGParticleSystem::CParticleEventSequence* CX2GURaven::SetRavenMinorParticleByEnum( RAVEN_MINOR_PARTICLE_INSTANCE_ID eVal_, wstring wstrParticleName_, int iDrawCount_ /*= -1*/ )
 {
-	if ( INVALID_PARTICLE_HANDLE == GetHandleRavenMinorParticleByEnum( eVal_ ) )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == GetHandleRavenMinorParticleByEnum( eVal_ ) )
 	{
 		ParticleEventSequenceHandle hHandle = 
 			g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  wstrParticleName_.c_str(), 0,0,0, 0, 0, iDrawCount_, 0 );
@@ -5043,7 +5162,11 @@ void CX2GURaven::CommonFrameMove()
 	bool bHandSlash = false;
 	LUA_GET_VALUE( m_LuaManager, "HAND_SLASH_TRACE", bHandSlash, false );
 
-	if( g_pMain->GetGameOption()->GetOptionList()->m_bEffect == true )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_bEffect == true )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	{
 		m_pHandSlashTrace->SetShowObject( true );
 		m_pHandSlashTraceTip->SetShowObject( true );
@@ -5060,7 +5183,11 @@ void CX2GURaven::CommonFrameMove()
 		m_pHandSlashTraceTip->SetShowObject( false );
 	}
 
-	if( g_pMain->GetGameOption()->GetOptionList()->m_bEffect == true )
+#ifdef X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_eEffect == CX2GameOption::OL_HIGH )
+#else//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
+	if( g_pMain->GetGameOption().GetOptionList().m_bEffect == true )
+#endif//X2OPTIMIZE_USER_DAMAGEEFFECT_SHOW_BY_GAMEOPTION
 	{
 		D3DXVECTOR3 up = GetBonePos( L"ATTACK_SPHERE1_Lhand1" );
 		D3DXVECTOR3 down = GetBonePos( L"Bip01_L_Hand" );
@@ -5072,7 +5199,11 @@ void CX2GURaven::CommonFrameMove()
 		{
 			D3DXVECTOR3 dirTip	= down - up;
 			D3DXVec3Normalize( &dirTip, &dirTip );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            D3DXVECTOR3 tipDown = up + dirTip * GetNowSlashTraceTipWide();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			D3DXVECTOR3 tipDown = up + dirTip * m_FrameDataNow.stateParam.fSlashTraceTipWide;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 			if( bHandSlash == true )
 			{
@@ -5115,11 +5246,19 @@ void CX2GURaven::CommonFrameMove()
 	for( UINT i=0; i<m_vecArcEnemyData.size(); i++ )
 	{
 		ArcEnemyData* pData = m_vecArcEnemyData[i];
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if( NULL != pData && INVALID_DAMAGE_EFFECT_HANDLE != pData->m_hEffect )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( NULL != pData && NULL != pData->m_pEffect )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
-			if( true == g_pX2Game->GetDamageEffect()->IsLiveInstance( pData->m_pEffect ) )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->GetInstance( pData->m_hEffect ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->IsLiveInstance( pData->m_pEffect ) ? pData->m_pEffect : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{
-				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pData->m_pEffect->GetMainEffect();
+				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pEffect->GetMainEffect();
 				if( NULL != pMeshInst )
 				{
 					D3DXVECTOR3 vTargetPos = GetPos();
@@ -5185,7 +5324,7 @@ void CX2GURaven::CommonFrameMove()
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 
-		if( m_hSeqHyperBall == INVALID_PARTICLE_HANDLE )
+		if( m_hSeqHyperBall == INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			D3DXVECTOR3 vHyperBallPos = D3DXVECTOR3(74.f * g_pKTDXApp->GetResolutionScaleX(), 60.f *g_pKTDXApp->GetResolutionScaleY(), 0.f);
 			m_hSeqHyperBall = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"raven_powrUp_UI_01", vHyperBallPos );
@@ -5217,7 +5356,7 @@ void CX2GURaven::CommonFrameMove()
 	}
 	else
 	{
-		if( m_hSeqHyperBall != INVALID_PARTICLE_HANDLE )
+		if( m_hSeqHyperBall != INVALID_PARTICLE_SEQUENCE_HANDLE )
 		{
 			g_pX2Game->GetMajorParticle()->DestroyInstanceHandle(m_hSeqHyperBall);
 		}	
@@ -5250,14 +5389,14 @@ void CX2GURaven::CommonFrameMove()
 	#ifdef BALANCE_BLADE_MASTER_20130117
 			m_eRavenCurrentStage = RSI_BASE;
 	#endif BALANCE_BLADE_MASTER_20130117
-			if( m_hBlackHoleEffectSet != CX2EffectSet::INVALID_HANDLE )
+			if( m_hBlackHoleEffectSet != INVALID_EFFECTSET_HANDLE )
 				g_pX2Game->GetEffectSet()->StopEffectSet( m_hBlackHoleEffectSet );
 		}
 	}
 	else
 	{
 		//m_iBlackHoleHitCount = 0;
-		if( m_hBlackHoleEffectSet != CX2EffectSet::INVALID_HANDLE )
+		if( m_hBlackHoleEffectSet != INVALID_EFFECTSET_HANDLE )
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_hBlackHoleEffectSet );
 	}
 	
@@ -5289,17 +5428,17 @@ void CX2GURaven::CommonFrameMove()
 		{
 			m_bActiveSurvivalTechniqueOfMercenary = true;			/// 용병의 생존술 설정
 			const CX2SkillTree::SkillTemplet* pSkillTempletSurvivalTechniqueOfMercenary 
-				= GetUnit()->GetUnitData()->m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RVC_SURVIVAL_TECHNIQUE_OF_MERCENARY );
+				= GetUnit()->GetUnitData().m_UserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RVC_SURVIVAL_TECHNIQUE_OF_MERCENARY );
 
 			if ( NULL != pSkillTempletSurvivalTechniqueOfMercenary && !pSkillTempletSurvivalTechniqueOfMercenary->m_vecBuffFactorPtr.empty() )
 			{
 				m_bEnableSurvivalTechniqueOfMercenary = true;
 
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit()  )
 					return;
 
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTempletSurvivalTechniqueOfMercenary->m_eID, true ) );	/// 스킬 레벨
 		
@@ -5337,14 +5476,22 @@ void CX2GURaven::CommonFrameMove()
 	}
 
 	/// 오버 히트 발생시 생성되는 구조물 위치 갱신
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* m_pEffectOverHeatFire1 = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectOverHeatFire1 ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL != m_pEffectOverHeatFire1 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		D3DXVECTOR3 vPosition = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Forearm" );
 
 		m_pEffectOverHeatFire1->SetPos( vPosition );
 	}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* m_pEffectOverHeatFire2 = g_pX2Game->GetDamageEffect()->GetInstance( m_hEffectOverHeatFire2 ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL != m_pEffectOverHeatFire2 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		D3DXVECTOR3 vPosition = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
@@ -5432,9 +5579,9 @@ RENDER_HINT CX2GURaven::CommonRender_Prepare()
 
 	int iPressedSkillSlotIndex = INVALID_SKILL_SLOT_INDEX;
 	const CX2UserSkillTree::SkillSlotData* pSkillSlotData = NULL;
-	CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;	// 유저가 배운 스킬 트리
+	CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree; // 유저가 배운 스킬 트리
 
-	if ( false == CommonSpecialAttackEventProcess( cUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
+	if ( false == CommonSpecialAttackEventProcess( accessUserSkillTree, pSkillSlotData, iPressedSkillSlotIndex ) )
 		return false;
 
 	if( NULL == pSkillSlotData )
@@ -5448,10 +5595,10 @@ RENDER_HINT CX2GURaven::CommonRender_Prepare()
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	const CX2SkillTree::SkillTemplet* pAirSlicerSkillTemplet 
-		= cUserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RVC_AIR_SLICER );
+		= accessUserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RVC_AIR_SLICER );
 	if ( NULL != pAirSlicerSkillTemplet )
 	{
-		const int iAirSlicerLevel = max( 1, cUserSkillTree.GetSkillLevel( pAirSlicerSkillTemplet->m_eID, true ) );	/// 스킬 레벨
+		const int iAirSlicerLevel = max( 1, accessUserSkillTree.GetSkillLevel( pAirSlicerSkillTemplet->m_eID, true ) );	/// 스킬 레벨
 
 		// 기존 에어슬라이서 레벨별 제한 조건을 모두 1로 변경
 		if ( NULL != pAirSlicerSkillTemplet && 
@@ -5467,7 +5614,7 @@ RENDER_HINT CX2GURaven::CommonRender_Prepare()
 	}
 #else //UPGRADE_SKILL_SYSTEM_2013
 	const CX2SkillTree::SkillTemplet* pAirSlicerSkillTemplet 
-		= cUserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RWT_AIR_SLICER );
+		= accessUserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RWT_AIR_SLICER );
 
 	if( NULL != pAirSlicerSkillTemplet &&
 		( pSkillTemplet->m_eID == CX2SkillTree::SI_A_RWT_BARRAGE_ATTACK && pAirSlicerSkillTemplet->m_iSkillLevel >= 1 ||
@@ -5480,7 +5627,11 @@ RENDER_HINT CX2GURaven::CommonRender_Prepare()
 
 #endif RAVEN_WEAPON_TAKER
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTemplet->m_eActiveSkillUseCondtion ) )
+#else //ADD_MEMO_1ST_CLASS
 	if( false == CheckSkillUseCondition( eActiveSkillUseCondition, pSkillTemplet ) )
+#endif //ADD_MEMO_1ST_CLASS
 		return false;
 
 	// 공식대전에서 사용 가능한 스킬인지 검사
@@ -5508,6 +5659,12 @@ RENDER_HINT CX2GURaven::CommonRender_Prepare()
 
 		if( false == FlushMp( 5.f ) )					/// 엠피 없어도 패스
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 
 			return false;
@@ -5527,7 +5684,7 @@ RENDER_HINT CX2GURaven::CommonRender_Prepare()
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-	const int iSkillTempletLevel = max( 1, cUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+	const int iSkillTempletLevel = max( 1, accessUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
 	float fMPConsume = GetActualMPConsume( pSkillTemplet->m_eID, iSkillTempletLevel );
 #else // UPGRADE_SKILL_SYSTEM_2013
@@ -5535,21 +5692,56 @@ RENDER_HINT CX2GURaven::CommonRender_Prepare()
 #endif // UPGRADE_SKILL_SYSTEM_2013
 
 
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+#if defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_OPERATOR ) || false == g_pMain->IsUnlimitedSkillUse() )
+#endif //defined( _IN_HOUSE_ ) || defined( _OPEN_TEST_ )
+#else //TOGGLE_UNLIMITED_SKILL_USE
 #ifndef _SERVICE_
 	if( false == g_pMain->IsMyAuthLevelHigherThan( CX2User::XUAL_DEV ) )
 #endif _SERVICE_
+#endif //TOGGLE_UNLIMITED_SKILL_USE
 	{
 		if( pSkillSlotData->m_fCoolTimeLeft > 0.f )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_226 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
 
 		if ( GetNowMp() < fMPConsume )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
 		}
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+		if ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+		{
+			const int iItemNum = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetNumItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+			if( iItemNum <= 0 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+				&& false == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence()
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+				)
+			{
+				g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_26119 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+				return false;
+			}
+		}
+#endif //FINALITY_SKILL_SYSTEM
 	}
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
@@ -5559,6 +5751,12 @@ RENDER_HINT CX2GURaven::CommonRender_Prepare()
 		NULL != g_pData->GetUIManager()->GetUISkillTree() &&
 		true == g_pData->GetUIManager()->GetUISkillTree()->GetNowLearnSkill() )
 		{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+			if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+			{
+				return false;
+			}
+#endif ALWAYS_SCREEN_SHOT_TEST
 			g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_25110 ), D3DXCOLOR(1,1,1,1),
 				D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 			return false;
@@ -5592,10 +5790,31 @@ RENDER_HINT CX2GURaven::CommonRender_Prepare()
 
 	UpNowMp( -fMPConsume );
 
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+	if ( pSkillTemplet->m_eType == CX2SkillTree::ST_HYPER_ACTIVE_SKILL && g_pMain->GetNowStateID() != CX2Main::XS_TRAINING_GAME )
+	{
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		if ( true == g_pData->GetMyUser()->GetSelectUnit()->IsInfinityElEssence() )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ();
+		else
+		{
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+		CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItemByTID( CX2EnchantItem::ATI_HYPER_SKILL_STONE );
+
+		if ( NULL != pItem )
+			g_pX2Game->Handler_EGS_USE_FINALITY_SKILL_REQ( pItem->GetItemData().m_ItemUID );
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		}
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+	}
+#endif //FINALITY_SKILL_SYSTEM
+
 #ifdef SERV_RAVEN_VETERAN_COMMANDER		//섀도우 스텝, 섀도우 백 슬라이드는 사용 횟수 한계 혹은 모션 종료, 공격 스킬 사용 전까진 쿨타임이 돌지 않는다.
 	if(  pSkillTemplet->m_eID != CX2SkillTree::SI_A_RF_SHADOW_STEP || true != m_bEnableShadowBackSlide )
 #endif SERV_RAVEN_VETERAN_COMMANDER
-		cUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, fSkillCoolTime );
+	{
+		accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, fSkillCoolTime );
+	}
 
 #ifdef UPGRADE_RAVEN
 	// 스페셜 어택에 대해서 본노게이지 누적
@@ -5949,14 +6168,10 @@ void CX2GURaven::RSI_JUMP_UP_EventProcess()
 {
 	if( m_InputData.pureDoubleLeft == true || m_InputData.pureDoubleRight == true )
 	{
-#ifdef FIX_CUT_TENDON
 		if( GetEnableDash() == true )
 		{
 			StateChange( USI_DASH_JUMP );
 		}
-#else
-		StateChange( USI_DASH_JUMP );
-#endif
 	}
 	else if( m_InputData.oneZ == true )
 	{
@@ -5999,14 +6214,10 @@ void CX2GURaven::RSI_JUMP_DOWN_EventProcess()
 #endif WALL_JUMP_TEST
 	else if( m_InputData.pureDoubleLeft == true || m_InputData.pureDoubleRight == true )
 	{
-#ifdef FIX_CUT_TENDON
 		if( GetEnableDash() == true )
 		{
 			StateChange( USI_DASH_JUMP );
 		}
-#else
-		StateChange( USI_DASH_JUMP );
-#endif
 	}
 	else if( m_InputData.oneZ == true )
 	{
@@ -6340,7 +6551,7 @@ void CX2GURaven::RSI_DASH_JUMP_EventProcess()
 	else if( m_InputData.oneX == true && m_fReDashJumpXTime <= 0.0f )
 	{
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-		if( CX2Unit::UC_RAVEN_VETERAN_COMMANDER == m_pUnit->GetUnitData()->m_UnitClass )
+		if( CX2Unit::UC_RAVEN_VETERAN_COMMANDER == GetUnit()->GetUnitData().m_UnitClass )
 			StateChange( RVC_DASH_JUMP_COMBO_X );
 		else
 			StateChange( RSI_DASH_JUMP_COMBO_X );
@@ -6546,7 +6757,7 @@ void CX2GURaven::HyperModeFrameMove()
 	//g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.05f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.05f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.05f ) == true && EventCheck(0.05f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -6556,7 +6767,7 @@ void CX2GURaven::HyperModeFrameMove()
 
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
+    if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.83f ) == true && EventCheck(0.83f, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -6565,7 +6776,7 @@ void CX2GURaven::HyperModeFrameMove()
 
 		UpDownCrashCamera( 30.0f, 0.4f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
-
+		
 		ShowMinorParticleHyperModeTrace();
 		ApplyHyperModeBuff();
 
@@ -6726,7 +6937,11 @@ void CX2GURaven::RSI_DAMAGE_BIG_BACK_EventProcess()
 //RSI_DAMAGE_DOWN_FRONT
 void CX2GURaven::RSI_DAMAGE_DOWN_FRONT_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.19f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.19f ) == true && EventCheck( 0.19f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		CreateStepDust();
@@ -7235,18 +7450,47 @@ void CX2GURaven::RSI_SUPER_DASH_Init()
 }
 #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+void CX2GURaven::RSI_SUPER_DASH_StateStart()
+{
+	CommonStateStart();
+
+	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO5 ) == true )
+	{   
+		CX2Unit* pUnit = GetUnit();
+		if ( NULL != pUnit )
+		{
+			const CX2SkillTree::SkillTemplet* pSkillTemplet = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_A_RF_BURNING_RUSH );
+			if ( NULL != pSkillTemplet )
+			{
+				CX2UserSkillTree& accessUserSkillTree = pUnit->AccessUnitData().m_UserSkillTree;
+				const int iSkillTempletLevel = max( 1, accessUserSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
+				
+				accessUserSkillTree.SetSkillCoolTimeLeft( pSkillTemplet->m_eID, pSkillTemplet->GetSkillCoolTimeValue( iSkillTempletLevel ) * 2 );
+			}
+		}
+	}
+	
+}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
 void CX2GURaven::RSI_SUPER_DASH_FrameMoveFuture()
 {
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
+#ifndef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 메모 효과 변경으로 인해 구문 삭제 
+
 	// 메모 적용 시, 대쉬 속도 2배로 변경
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO5 ) == true )
 	{   
 			ResetAnimSpeed( m_fAnimSpeed, true, true, 1.5f * 1.5f );
 	}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 #else // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 	m_PhysicParam.nowSpeed.x = GetDashSpeed() * 1.25f;
 #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈	
+
 
 	CommonFrameMoveFuture();
 }
@@ -7428,9 +7672,13 @@ void CX2GURaven::RSI_COMBO_Z_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.29f )
 	{
 		StateChange( RSI_COMBO_ZZ );
@@ -7540,9 +7788,13 @@ void CX2GURaven::RSI_COMBO_ZZZ_EventProcess()
 	{
 		StateChangeDashIfPossible();
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.59f )
 	{
 		StateChange( RSI_COMBO_ZZZZ );
@@ -7562,28 +7814,28 @@ void CX2GURaven::RSI_COMBO_ZZZ_EventProcess()
 #ifdef RAVEN_WEAPON_TAKER
 
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-		if( ( CX2Unit::UC_RAVEN_WEAPON_TAKER == m_pUnit->GetUnitData()->m_UnitClass || 
-			CX2Unit::UC_RAVEN_VETERAN_COMMANDER == m_pUnit->GetUnitData()->m_UnitClass ) &&
+		if( ( CX2Unit::UC_RAVEN_WEAPON_TAKER == GetUnit()->GetUnitData().m_UnitClass || 
+			CX2Unit::UC_RAVEN_VETERAN_COMMANDER == GetUnit()->GetUnitData().m_UnitClass ) &&
 #else  SERV_RAVEN_VETERAN_COMMANDER
-		if( CX2Unit::UC_RAVEN_WEAPON_TAKER == m_pUnit->GetUnitData()->m_UnitClass &&
+		if( CX2Unit::UC_RAVEN_WEAPON_TAKER == GetUnit()->GetUnitData().m_UnitClass &&
 #endif SERV_RAVEN_VETERAN_COMMANDER
 			( m_InputData.pureRight == true && m_FrameDataFuture.syncData.bIsRight == true ||
 			m_InputData.pureLeft == true && m_FrameDataFuture.syncData.bIsRight == false ) )
 			StateChange( RSI_COMBO_ZZZX );
 
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-		else if( CX2Unit::UC_RAVEN_WEAPON_TAKER == m_pUnit->GetUnitData()->m_UnitClass || 
-			CX2Unit::UC_RAVEN_VETERAN_COMMANDER == m_pUnit->GetUnitData()->m_UnitClass )
+		else if( CX2Unit::UC_RAVEN_WEAPON_TAKER == GetUnit()->GetUnitData().m_UnitClass || 
+			CX2Unit::UC_RAVEN_VETERAN_COMMANDER == GetUnit()->GetUnitData().m_UnitClass )
 #else  SERV_RAVEN_VETERAN_COMMANDER
-		else if( CX2Unit::UC_RAVEN_WEAPON_TAKER == m_pUnit->GetUnitData()->m_UnitClass )
+		else if( CX2Unit::UC_RAVEN_WEAPON_TAKER == GetUnit()->GetUnitData().m_UnitClass )
 #endif SERV_RAVEN_VETERAN_COMMANDER
 			StateChange( RSI_WEAPON_TAKER_COMBO_ZZZdownX );
 #endif RAVEN_WEAPON_TAKER
 	}
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-	else if( (CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass || CX2Unit::UC_RAVEN_BLADE_MASTER == m_pUnit->GetUnitData()->m_UnitClass) &&
+	else if( (CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass || CX2Unit::UC_RAVEN_BLADE_MASTER == GetUnit()->GetUnitData().m_UnitClass) &&
 #else
-	else if( CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass &&
+	else if( CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass &&
 #endif
 		m_FrameDataFuture.stateParam.bEventFlagList[2] == true && 
 		m_pXSkinAnimFuture->GetNowAnimationTime() > 0.59f )
@@ -7594,9 +7846,9 @@ void CX2GURaven::RSI_COMBO_ZZZ_EventProcess()
 		m_FrameDataFuture.stateParam.bEventFlagList[2] = false;
 	}
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-	else if( (CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass || CX2Unit::UC_RAVEN_BLADE_MASTER == m_pUnit->GetUnitData()->m_UnitClass) &&
+	else if( (CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass || CX2Unit::UC_RAVEN_BLADE_MASTER == GetUnit()->GetUnitData().m_UnitClass) &&
 #else
-	else if( CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass &&
+	else if( CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass &&
 #endif
 		m_InputData.oneZ == true && m_InputData.pureUp == true && 
 		m_pXSkinAnimFuture->GetNowAnimationTime() < 0.59f )
@@ -7635,7 +7887,11 @@ void CX2GURaven::RSI_COMBO_ZZZ_EventProcess()
 //RSI_COMBO_ZZZZ
 void CX2GURaven::RSI_COMBO_ZZZZ_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed() * 1.3f;
 	}
@@ -7682,7 +7938,11 @@ void CX2GURaven::RSI_COMBO_ZZZX_FrameMove()
 {
 	if( m_bZZZX == true )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.566f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.566f ) && EventCheck( 0.566f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 			if( GetIsRight() == true )
@@ -7695,7 +7955,11 @@ void CX2GURaven::RSI_COMBO_ZZZX_FrameMove()
 			pSeq->SetAddRotate( GetRotateDegree() );
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.57f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 0.57f ) && EventCheck( 0.57f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 			if( GetIsRight() == true )
@@ -7708,7 +7972,11 @@ void CX2GURaven::RSI_COMBO_ZZZX_FrameMove()
 			pSeq->SetAddRotate( GetRotateDegree() );
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 0.7f ) && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 			if( GetIsRight() == true )
@@ -7731,7 +7999,11 @@ void CX2GURaven::RSI_COMBO_ZZZX_FrameMove()
 			pSeq->SetAddRotate( GetRotateDegree() );
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		else if( m_pXSkinAnim->EventTimer( 0.83f ) && EventCheck( 0.83f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		{
 			D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 			if( GetIsRight() == true )
@@ -7834,7 +8106,11 @@ void CX2GURaven::RSI_COMBO_ZZZX_FrameMove()
 			m_bZZZX = false;
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 pos = m_pXSkinAnim->GetCloneFramePosition( L"Dummy2_Lhand" );
 
@@ -7895,9 +8171,13 @@ void CX2GURaven::RSI_COMBO_ZZX_EventProcess()
 	{
 		StateChangeDashIfPossible();
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 #ifdef RAVEN_SECOND_CLASS_CHANGE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.6f &&
 		GetUnit()->GetClass() == CX2Unit::UC_RAVEN_RECKLESS_FIST &&
@@ -7934,7 +8214,11 @@ void CX2GURaven::RSI_COMBO_ZZX_EventProcess()
 //RSI_COMBO_ZZXX
 void CX2GURaven::RSI_COMBO_ZZXX_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.35f ) == true && EventCheck( 0.35f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = GetWalkSpeed();
 	}
@@ -7981,9 +8265,13 @@ void CX2GURaven::RSI_COMBO_X_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.53f )
 	{
 		StateChange( RSI_COMBO_XX );
@@ -8024,15 +8312,19 @@ void CX2GURaven::RSI_COMBO_XX_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.55f )
 	{
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-		if( CX2Unit::UC_RAVEN_OVER_TAKER == m_pUnit->GetUnitData()->m_UnitClass || CX2Unit::UC_RAVEN_RECKLESS_FIST == m_pUnit->GetUnitData()->m_UnitClass )
+		if( CX2Unit::UC_RAVEN_OVER_TAKER == GetUnit()->GetUnitData().m_UnitClass || CX2Unit::UC_RAVEN_RECKLESS_FIST == GetUnit()->GetUnitData().m_UnitClass )
 #else
-		if( CX2Unit::UC_RAVEN_OVER_TAKER == m_pUnit->GetUnitData()->m_UnitClass )
+		if( CX2Unit::UC_RAVEN_OVER_TAKER == GetUnit()->GetUnitData().m_UnitClass )
 #endif
 		{
 			if( m_InputData.pureDown == true )
@@ -8054,9 +8346,9 @@ void CX2GURaven::RSI_COMBO_XX_EventProcess()
 
 	}
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-	else if( (CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass || CX2Unit::UC_RAVEN_BLADE_MASTER == m_pUnit->GetUnitData()->m_UnitClass) &&
+	else if( (CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass || CX2Unit::UC_RAVEN_BLADE_MASTER == GetUnit()->GetUnitData().m_UnitClass) &&
 #else
-	else if( CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass &&
+	else if( CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass &&
 #endif	
 		m_FrameDataFuture.stateParam.bEventFlagList[1] == true
 		&& m_pXSkinAnimFuture->GetNowAnimationTime() > 0.55f )
@@ -8072,9 +8364,9 @@ void CX2GURaven::RSI_COMBO_XX_EventProcess()
 		m_FrameDataFuture.stateParam.bEventFlagList[1] = false;
 	}
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-	else if( (CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass || CX2Unit::UC_RAVEN_BLADE_MASTER == m_pUnit->GetUnitData()->m_UnitClass) && 
+	else if( (CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass || CX2Unit::UC_RAVEN_BLADE_MASTER == GetUnit()->GetUnitData().m_UnitClass) && 
 #else
-	else if( CX2Unit::UC_RAVEN_SOUL_TAKER == m_pUnit->GetUnitData()->m_UnitClass && 
+	else if( CX2Unit::UC_RAVEN_SOUL_TAKER == GetUnit()->GetUnitData().m_UnitClass && 
 #endif
 		m_InputData.oneZ == true && m_pXSkinAnimFuture->GetNowAnimationTime() <= 0.55f )
 	{
@@ -8091,7 +8383,11 @@ void CX2GURaven::RSI_COMBO_XX_EventProcess()
 
 void CX2GURaven::RSI_COMBO_XXX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.16f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.16f ) && EventCheck( 0.16f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 7.0f ) == true )
 		{
@@ -8223,7 +8519,11 @@ void CX2GURaven::RSI_DASH_COMBO_ZZ_EventProcess()
 void CX2GURaven::RSI_DASH_COMBO_X_FrameMove()
 {
 #ifdef BALANCE_BLADE_MASTER_20130117		/// 스크립트에서 DAMAGE_DATA_NEXT로 분리
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -8232,12 +8532,18 @@ void CX2GURaven::RSI_DASH_COMBO_X_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
-			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );	
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	        m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );	
 			m_LuaManager.EndTable();		
 		}
 #else  BALANCE_BLADE_MASTER_20130117
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.63f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.63f ) == true && EventCheck( 0.63f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -8284,15 +8590,15 @@ void CX2GURaven::RSI_DASH_JUMP_COMBO_Z_EventProcess()
 	}
 	else if( m_InputData.oneX == true &&
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-		( CX2Unit::UC_RAVEN_OVER_TAKER == m_pUnit->GetUnitData()->m_UnitClass || CX2Unit::UC_RAVEN_RECKLESS_FIST == m_pUnit->GetUnitData()->m_UnitClass
+		( CX2Unit::UC_RAVEN_OVER_TAKER == GetUnit()->GetUnitData().m_UnitClass || CX2Unit::UC_RAVEN_RECKLESS_FIST == GetUnit()->GetUnitData().m_UnitClass
 #else
-		( CX2Unit::UC_RAVEN_OVER_TAKER == m_pUnit->GetUnitData()->m_UnitClass
+		( CX2Unit::UC_RAVEN_OVER_TAKER == GetUnit()->GetUnitData().m_UnitClass
 #endif
 #ifdef RAVEN_WEAPON_TAKER
-		|| CX2Unit::UC_RAVEN_WEAPON_TAKER == m_pUnit->GetUnitData()->m_UnitClass
+		|| CX2Unit::UC_RAVEN_WEAPON_TAKER == GetUnit()->GetUnitData().m_UnitClass
 #endif RAVEN_WEAPON_TAKER
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-		|| CX2Unit::UC_RAVEN_VETERAN_COMMANDER == m_pUnit->GetUnitData()->m_UnitClass
+		|| CX2Unit::UC_RAVEN_VETERAN_COMMANDER == GetUnit()->GetUnitData().m_UnitClass
 #endif SERV_RAVEN_VETERAN_COMMANDER
 		) )
 	{
@@ -8310,9 +8616,9 @@ void CX2GURaven::RSI_DASH_JUMP_COMBO_Z_EventProcess()
 			StateChange( RSI_DASH_JUMP_COMBO_ZZ );
 		}
 #ifdef RAVEN_SECOND_CLASS_CHANGE
-		else if( (CX2Unit::UC_RAVEN_OVER_TAKER == m_pUnit->GetUnitData()->m_UnitClass || CX2Unit::UC_RAVEN_RECKLESS_FIST == m_pUnit->GetUnitData()->m_UnitClass) &&
+		else if( (CX2Unit::UC_RAVEN_OVER_TAKER == GetUnit()->GetUnitData().m_UnitClass || CX2Unit::UC_RAVEN_RECKLESS_FIST == GetUnit()->GetUnitData().m_UnitClass) &&
 #else
-		else if( CX2Unit::UC_RAVEN_OVER_TAKER == m_pUnit->GetUnitData()->m_UnitClass &&
+		else if( CX2Unit::UC_RAVEN_OVER_TAKER == GetUnit()->GetUnitData().m_UnitClass &&
 #endif
 			m_FrameDataFuture.stateParam.bEventFlagList[1] == true )
 		{
@@ -8321,10 +8627,10 @@ void CX2GURaven::RSI_DASH_JUMP_COMBO_Z_EventProcess()
 #ifdef RAVEN_WEAPON_TAKER
 
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-		else if( (CX2Unit::UC_RAVEN_WEAPON_TAKER == m_pUnit->GetUnitData()->m_UnitClass ||
-				  CX2Unit::UC_RAVEN_VETERAN_COMMANDER == m_pUnit->GetUnitData()->m_UnitClass ) &&
+		else if( (CX2Unit::UC_RAVEN_WEAPON_TAKER == GetUnit()->GetUnitData().m_UnitClass ||
+				  CX2Unit::UC_RAVEN_VETERAN_COMMANDER == GetUnit()->GetUnitData().m_UnitClass ) &&
 #else  SERV_RAVEN_VETERAN_COMMANDER
-		else if( CX2Unit::UC_RAVEN_WEAPON_TAKER == m_pUnit->GetUnitData()->m_UnitClass &&
+		else if( CX2Unit::UC_RAVEN_WEAPON_TAKER == GetUnit()->GetUnitData().m_UnitClass &&
 #endif SERV_RAVEN_VETERAN_COMMANDER
 			m_FrameDataFuture.stateParam.bEventFlagList[1] == true )
 		{
@@ -8351,7 +8657,11 @@ void CX2GURaven::RSI_DASH_JUMP_COMBO_ZZ_StateStart()
 
 void CX2GURaven::RSI_DASH_JUMP_COMBO_ZZ_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.23f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.23f ) == true && EventCheck( 0.23f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.y = m_PhysicParam.fMaxGSpeed / 2.0f;
 	}
@@ -8449,7 +8759,11 @@ void CX2GURaven::RSI_DASH_JUMP_COMBO_X_FrameMoveFuture()
 
 void CX2GURaven::RSI_DASH_JUMP_COMBO_X_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 #ifdef RAVEN_WEAPON_TAKER
 		if ( FlushMp( 5.0f ) == true )
@@ -8604,7 +8918,11 @@ void CX2GURaven::RSI_SI1_MAXIMUM_CANNON_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -8687,7 +9005,11 @@ void CX2GURaven::RSI_SI1_MAXIMUM_CANNON_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_MAXIMUM_CANNON", GetPowerRate(), vPos, 
 															GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.55f ) == true && EventCheck( 1.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -8695,10 +9017,18 @@ void CX2GURaven::RSI_SI1_MAXIMUM_CANNON_FrameMove()
 		bool bIsRight = GetIsRight();
 
 		D3DXVECTOR3 vPos;
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// 데미지 이펙트 생성 위치를 120에서 180으로 조정
+		if( true == bIsRight )
+			vPos = vBonePos + vDirVec * 180.f;
+		else
+			vPos = vBonePos + vDirVec * -180.f;
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if( true == bIsRight )
 			vPos = vBonePos + vDirVec * 120.f;
 		else
 			vPos = vBonePos + vDirVec * -120.f;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		vPos.y += 15.f;
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_MAXIMUM_CANNON_FLY", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -8732,7 +9062,11 @@ void CX2GURaven::RSI_SI1_MAXIMUM_CANNON_HYPER_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -8815,19 +9149,32 @@ void CX2GURaven::RSI_SI1_MAXIMUM_CANNON_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_MAXIMUM_CANNON_HYPER", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.55f ) == true && EventCheck( 1.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vDirVec = GetDirVector();
 		bool bIsRight = GetIsRight();
-
 		D3DXVECTOR3 vPos;
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편		
+		// 데미지 이펙트 생성 위치 변경
+		if( true == bIsRight )
+			vPos = vBonePos + vDirVec * 180.f;
+		else
+			vPos = vBonePos + vDirVec * -180.f;
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		if( true == bIsRight )
 			vPos = vBonePos + vDirVec * 120.f;
 		else
 			vPos = vBonePos + vDirVec * -120.f;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		vPos.y += 15.f;
+
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_MAXIMUM_CANNON_FLY_HYPER", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
@@ -8862,11 +9209,19 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_Init()
 
 void CX2GURaven::RSI_SI2_POWER_ASSAULT_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.35f ) == true && EventCheck( 0.35f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.passiveSpeed.x = 1500.f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 0.9f ) == true && EventCheck( 0.9f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.passiveSpeed.x = 0.f;
 		m_PhysicParam.nowSpeed.x = 1000.f;
@@ -8881,17 +9236,25 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.08f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.08f ) == true && EventCheck( 0.08f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqPowerAssault[0] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Raven_PowerAssault01", D3DXVECTOR3(0, 0, 0) );
 		m_hSeqPowerAssault[1] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Raven_PowerAssault02", D3DXVECTOR3(0, 0, 0) );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.466f ) == true && EventCheck( 0.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqPowerAssault[2] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Raven_PowerAssault03", D3DXVECTOR3(0, 0, 0) );
 	}
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqPowerAssault[0] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqPowerAssault[0] )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqPowerAssault[0] );
 		if( NULL != pSeq )
@@ -8920,13 +9283,13 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_FrameMove()
 		}
 		else
 		{
-			m_hSeqPowerAssault[0]  = INVALID_PARTICLE_HANDLE;
+			m_hSeqPowerAssault[0]  = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 
 	}
 
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqPowerAssault[1] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqPowerAssault[1] )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqPowerAssault[1] );
 		if( NULL != pSeq )
@@ -8939,14 +9302,14 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_FrameMove()
 		}
 		else
 		{
-			m_hSeqPowerAssault[1]  = INVALID_PARTICLE_HANDLE;
+			m_hSeqPowerAssault[1]  = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 
 
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqPowerAssault[2] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqPowerAssault[2] )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqPowerAssault[2] );
 		if( NULL != pSeq )
@@ -8967,12 +9330,16 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_FrameMove()
 		}
 		else
 		{
-			m_hSeqPowerAssault[2]  = INVALID_PARTICLE_HANDLE;
+			m_hSeqPowerAssault[2]  = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 //#ifndef BALANCE_BLADE_MASTER_20130117		/// 데미지 이펙트로 변경
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.75f ) == true && EventCheck( 0.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -9007,11 +9374,19 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_EventProcess()
 //RSI_SI2_POWER_ASSAULT_HYPER
 void CX2GURaven::RSI_SI2_POWER_ASSAULT_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.35f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.35f ) == true && EventCheck( 0.35f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.passiveSpeed.x = 1500.f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 0.9f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 0.9f ) == true && EventCheck( 0.9f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.passiveSpeed.x = 0.f;
 		m_PhysicParam.nowSpeed.x = 1000.f;
@@ -9027,18 +9402,26 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.08f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.08f ) == true && EventCheck( 0.08f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqPowerAssault[0] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Raven_PowerAssault01", D3DXVECTOR3(0, 0, 0) );
 		m_hSeqPowerAssault[1] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Raven_PowerAssault02", D3DXVECTOR3(0, 0, 0) );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.466f ) == true && EventCheck( 0.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqPowerAssault[2] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Raven_PowerAssault03", D3DXVECTOR3(0, 0, 0) );
 	}
 
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqPowerAssault[0] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqPowerAssault[0] )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqPowerAssault[0] );
 		if( NULL != pSeq )
@@ -9067,13 +9450,13 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqPowerAssault[0]  = INVALID_PARTICLE_HANDLE;
+			m_hSeqPowerAssault[0]  = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 
 	}
 
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqPowerAssault[1] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqPowerAssault[1] )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqPowerAssault[1] );
 		if( NULL != pSeq )
@@ -9086,14 +9469,14 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqPowerAssault[1]  = INVALID_PARTICLE_HANDLE;
+			m_hSeqPowerAssault[1]  = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 
 
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqPowerAssault[2] )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqPowerAssault[2] )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqPowerAssault[2] );
 		if( NULL != pSeq )
@@ -9114,12 +9497,16 @@ void CX2GURaven::RSI_SI2_POWER_ASSAULT_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqPowerAssault[2]  = INVALID_PARTICLE_HANDLE;
+			m_hSeqPowerAssault[2]  = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 //#ifndef BALANCE_BLADE_MASTER_20130117		/// 데미지 이펙트로 변경
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.75f ) == true && EventCheck( 0.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -9161,7 +9548,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_Init()
 
 void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 2.633f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 2.633f ) == true && EventCheck( 2.633f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = -700.f;
 	}
@@ -9176,7 +9567,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.833f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.833f ) == true && EventCheck( 0.833f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -9196,7 +9591,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.033f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.033f ) == true && EventCheck( 1.033f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -9208,7 +9607,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.233f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.233f ) == true && EventCheck( 1.233f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9219,7 +9622,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.433f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.433f ) == true && EventCheck( 1.433f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9230,7 +9637,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.633f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.633f ) == true && EventCheck( 1.633f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9241,7 +9652,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.833f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.833f ) == true && EventCheck( 1.833f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9252,15 +9667,27 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.f ) == true && EventCheck( 2.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqSevenBurst[0] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Flare_Raven_SevenBurst04", D3DXVECTOR3(0, 0, 0) );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.3f ) == true && EventCheck( 2.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqSevenBurst[1] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Flare_Raven_SevenBurst04", D3DXVECTOR3(0, 0, 0) );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.566f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.566f ) == true && EventCheck( 2.566f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9272,7 +9699,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 		
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.633f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.633f ) == true && EventCheck( 2.633f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -9307,7 +9738,7 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 
 	for( int i=0; i<3; i++ )
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hSeqSevenBurst[i] )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqSevenBurst[i] )
 		{
 
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqSevenBurst[i]  );
@@ -9321,7 +9752,7 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_FrameMove()
 			}
 			else
 			{
-				m_hSeqSevenBurst[i] = INVALID_PARTICLE_HANDLE;
+				m_hSeqSevenBurst[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
@@ -9344,7 +9775,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_EventProcess()
 //RSI_SI3_SEVEN_BURST_HYPER
 void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 2.633f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 2.633f ) == true && EventCheck( 2.633f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = -700.f;
 	}
@@ -9358,7 +9793,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.833f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.833f ) == true && EventCheck( 0.833f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -9378,7 +9817,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.033f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.033f ) == true && EventCheck( 1.033f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -9390,7 +9833,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1_HYPER", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.233f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.233f ) == true && EventCheck( 1.233f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9401,7 +9848,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1_HYPER", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.433f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.433f ) == true && EventCheck( 1.433f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9412,7 +9863,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1_HYPER", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.633f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.633f ) == true && EventCheck( 1.633f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9423,7 +9878,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1_HYPER", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.833f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.833f ) == true && EventCheck( 1.833f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9434,15 +9893,27 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_SEVEN_BURST_1_HYPER", GetPowerRate(), vPos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.f ) == true && EventCheck( 2.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqSevenBurst[0] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Flare_Raven_SevenBurst04", D3DXVECTOR3(0, 0, 0) );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.3f ) == true && EventCheck( 2.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqSevenBurst[1] = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Flare_Raven_SevenBurst04", D3DXVECTOR3(0, 0, 0) );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.566f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.566f ) == true && EventCheck( 2.566f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
 		D3DXVECTOR3 vPos;
@@ -9454,7 +9925,11 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.633f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.633f ) == true && EventCheck( 2.633f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Dummy2_Lhand" );
@@ -9490,7 +9965,7 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 
 	for( int i=0; i<3; i++ )
 	{
-		if( INVALID_PARTICLE_HANDLE != m_hSeqSevenBurst[i] )
+		if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqSevenBurst[i] )
 		{
 
 			CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqSevenBurst[i] );
@@ -9504,7 +9979,7 @@ void CX2GURaven::RSI_SI3_SEVEN_BURST_HYPER_FrameMove()
 			}
 			else
 			{
-				m_hSeqSevenBurst[i] = INVALID_PARTICLE_HANDLE;
+				m_hSeqSevenBurst[i] = INVALID_PARTICLE_SEQUENCE_HANDLE;
 			}
 		}
 	}
@@ -9542,7 +10017,11 @@ void CX2GURaven::RSI_SI1_EARTH_BREAKER_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈	
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDirVec = GetDirVector();
 		bool bIsRight = GetIsRight();
@@ -9559,11 +10038,15 @@ void CX2GURaven::RSI_SI1_EARTH_BREAKER_FrameMove()
 		else
 			vEffPos = GetPos() + vDirVec * -40.f;
 		vEffPos += vZVec * -45.f;
-
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_EarthBreaker01_Mesh", vEffPos, GetRotateDegree(), GetRotateDegree() );
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_EarthBreaker01_Mesh", vEffPos, GetRotateDegree(), GetRotateDegree() );
 	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.433f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.433f ) == true && EventCheck( 0.433f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 10.0f, 0.4f );
 
@@ -9642,7 +10125,11 @@ void CX2GURaven::RSI_SI1_EARTH_BREAKER_FrameMove()
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.65f ) == true && EventCheck( 0.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 10.0f, 0.4f );
 
@@ -9694,7 +10181,11 @@ void CX2GURaven::RSI_SI1_EARTH_BREAKER_HYPER_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈	
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDirVec = GetDirVector();
 		bool bIsRight = GetIsRight();
@@ -9711,11 +10202,14 @@ void CX2GURaven::RSI_SI1_EARTH_BREAKER_HYPER_FrameMove()
 		else
 			vEffPos = GetPos() + vDirVec * -40.f;
 		vEffPos += vZVec * -45.f;
-
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_EarthBreaker01_Mesh", vEffPos, GetRotateDegree(), GetRotateDegree() );
-
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_EarthBreaker01_Mesh", vEffPos, GetRotateDegree(), GetRotateDegree() );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.433f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.433f ) == true && EventCheck( 0.433f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 10.0f, 0.4f );
 
@@ -9793,7 +10287,11 @@ void CX2GURaven::RSI_SI1_EARTH_BREAKER_HYPER_FrameMove()
 #endif
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.65f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.65f ) == true && EventCheck( 0.65f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 10.0f, 0.4f );
 
@@ -9849,24 +10347,36 @@ void CX2GURaven::RSI_SI2_CANNON_BLADE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.01f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqCannonBlade = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Flare_Raven_MaximumCanon05", GetBonePos( L"Bip01_L_Hand" ) );
 #ifdef SERV_SKILL_NOTE
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO1 ) == true )
 		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE_MEMO", GetPowerRate(), GetBonePos( L"Bip01" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE_MEMO", GetPowerRate(), GetBonePos( L"Bip01_L_Hand" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
 		else
 		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE", GetPowerRate(), GetBonePos( L"Bip01" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE", GetPowerRate(), GetBonePos( L"Bip01_L_Hand" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
 #else
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE", GetPowerRate(), GetBonePos( L"Bip01_L_Hand" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif
 	}
 
-	if( m_hSeqCannonBlade != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqCannonBlade != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqCannonBlade );
 		if( NULL != pSeq )
@@ -9875,7 +10385,7 @@ void CX2GURaven::RSI_SI2_CANNON_BLADE_FrameMove()
 		}
 		else
 		{
-			m_hSeqCannonBlade = INVALID_PARTICLE_HANDLE;
+			m_hSeqCannonBlade = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -9901,24 +10411,37 @@ void CX2GURaven::RSI_SI2_CANNON_BLADE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.53f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.53f ) == true && EventCheck( 0.53f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_hSeqCannonBlade = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Flare_Raven_MaximumCanon05", GetBonePos( L"Bip01_L_Hand" ) );
 #ifdef SERV_SKILL_NOTE
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO1 ) == true )
 		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE_MEMO", GetPowerRate(), GetBonePos( L"Bip01" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE_MEMO", GetPowerRate(), GetBonePos( L"Bip01_L_Hand" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		
 		}
 		else
 		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE", GetPowerRate(), GetBonePos( L"Bip01" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE", GetPowerRate(), GetBonePos( L"Bip01_L_Hand" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
 #else
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_CANNON_BLADE", GetPowerRate(), GetBonePos( L"Bip01_L_Hand" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 #endif
 	}
 
-	if( m_hSeqCannonBlade != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqCannonBlade != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqCannonBlade );
 		if( NULL != pSeq )
@@ -9927,7 +10450,7 @@ void CX2GURaven::RSI_SI2_CANNON_BLADE_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqCannonBlade = INVALID_PARTICLE_HANDLE;
+			m_hSeqCannonBlade = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -9956,15 +10479,27 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_Init()
 
 void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.27f ) == true && EventCheck( 0.27f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.2f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 0.7f ) == true && EventCheck( 0.7f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.2f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 1.2f ) == true && EventCheck( 1.2f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.2f;
 	}
@@ -9977,12 +10512,20 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.1f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -9992,7 +10535,11 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_FrameMove()
 		SetEnableAttackBox( L"Sword", false );
 		m_DamageData.backSpeed.x = 0.0f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.33f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.33f ) == true && EventCheck( 1.33f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Hand" );
 		m_hSeqMagnumBlaster1 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Flare_Raven_MagnumBlaster06", vBonePos );
@@ -10002,7 +10549,11 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_FrameMove()
 			m_hMesh_MagnumBlaster2 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.7f ) == true && EventCheck( 2.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"ATTACK_SPHERE1_Lhand1" );
 		D3DXVECTOR3 vDirVec = GetDirVector();
@@ -10017,13 +10568,17 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_FrameMove()
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Raven_MagnumBlaster04", vPos );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Raven_MagnumBlaster05", vPos );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.6f ) == true && EventCheck( 2.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_MAGNUM_BLASTER", GetPowerRate(), GetBonePos( L"Bip01_L_Hand" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
 
 
-	if( m_hSeqMagnumBlaster1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqMagnumBlaster1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqMagnumBlaster1 );
 		if( NULL != pSeq )
@@ -10032,7 +10587,7 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_FrameMove()
 		}
 		else
 		{
-			m_hSeqMagnumBlaster1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqMagnumBlaster1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -10076,15 +10631,27 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_End()
 //RSI_SI3_MAGNUM_BLASTER_HYPER
 void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_HYPER_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.27f ) == true && EventCheck( 0.27f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.2f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 0.7f ) == true && EventCheck( 0.7f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.2f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 1.2f ) == true && EventCheck( 1.2f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.2f;
 	}
@@ -10097,11 +10664,19 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.1f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -10112,7 +10687,11 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_HYPER_FrameMove()
 		SetEnableAttackBox( L"Sword", false );
 		m_DamageData.backSpeed.x = 0.0f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.33f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.33f ) == true && EventCheck( 1.33f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Hand" );
 		m_hSeqMagnumBlaster1 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Flare_Raven_MagnumBlaster06", vBonePos );
@@ -10122,7 +10701,11 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_HYPER_FrameMove()
 			m_hMesh_MagnumBlaster2 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.7f ) == true && EventCheck( 2.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"ATTACK_SPHERE1_Lhand1" );
 		D3DXVECTOR3 vDirVec = GetDirVector();
@@ -10137,14 +10720,18 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_HYPER_FrameMove()
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Raven_MagnumBlaster04", vPos );
 		g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_Raven_MagnumBlaster05", vPos );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.6f ) == true && EventCheck( 2.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_MAGNUM_BLASTER", GetPowerRate(), GetBonePos( L"Bip01_L_Hand" ), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 	}
 
 
 
-	if( m_hSeqMagnumBlaster1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqMagnumBlaster1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqMagnumBlaster1 );
 		if( NULL != pSeq )
@@ -10153,7 +10740,7 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqMagnumBlaster1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqMagnumBlaster1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -10207,21 +10794,29 @@ void CX2GURaven::RSI_SI3_MAGNUM_BLASTER_HYPER_End()
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.004f, 0 );
 #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.83f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.83f ) == true && EventCheck( 0.83f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		PlayCommonBuffMinorParticle();
 		UpDownCrashCamera( 30.0f, 0.4f );
 		g_pKTDXApp->GetDGManager()->ClearScreen();
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.85f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.85f ) == true && EventCheck( 0.85f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		int	iSkillSlotIndex = 0;
 		bool bSlotB = false;
 
 		if ( true == GetSkillSlotIndexUsed( iSkillSlotIndex, bSlotB ) )
 		{
-			CX2Unit::UnitData* pUnitData = m_pUnit->GetUnitData();
+			const CX2Unit::UnitData* pUnitData = &GetUnit()->GetUnitData();
 
 			const CX2UserSkillTree::SkillSlotData* pSkillSlotData = pUnitData->m_UserSkillTree.GetSkillSlot( iSkillSlotIndex, bSlotB );
 			CX2SkillTree::SKILL_ID eSkillID = CX2SkillTree::SI_NONE;
@@ -10240,7 +10835,7 @@ void CX2GURaven::RSI_SOUL_TAKER_DASH_COMBO_ZZ_EventProcess()
 {
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
 	if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.5f 
-		&& true == IsOnSomethingFuture() && CX2Unit::UC_RAVEN_VETERAN_COMMANDER != m_pUnit->GetUnitData()->m_UnitClass )
+		&& true == IsOnSomethingFuture() && CX2Unit::UC_RAVEN_VETERAN_COMMANDER != GetUnit()->GetUnitData().m_UnitClass )
 #else  SERV_RAVEN_VETERAN_COMMANDER
 	if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && m_pXSkinAnimFuture->GetNowAnimationTime() > 0.5f
 		&& true == IsOnSomethingFuture() )
@@ -10252,7 +10847,7 @@ void CX2GURaven::RSI_SOUL_TAKER_DASH_COMBO_ZZ_EventProcess()
 	}
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
 	else if( m_InputData.oneZ == true && m_pXSkinAnimFuture->GetNowAnimationTime() < 0.5f && 
-			 CX2Unit::UC_RAVEN_VETERAN_COMMANDER != m_pUnit->GetUnitData()->m_UnitClass )
+			 CX2Unit::UC_RAVEN_VETERAN_COMMANDER != GetUnit()->GetUnitData().m_UnitClass )
 #else  SERV_RAVEN_VETERAN_COMMANDER
 	else if( m_InputData.oneZ == true && m_pXSkinAnimFuture->GetNowAnimationTime() < 0.5f )
 #endif SERV_RAVEN_VETERAN_COMMANDER
@@ -10260,7 +10855,7 @@ void CX2GURaven::RSI_SOUL_TAKER_DASH_COMBO_ZZ_EventProcess()
 		m_FrameDataFuture.stateParam.bEventFlagList[0] = true;
 	}
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
-	ELSE_IF_STATE_CHANGE_ON_( 1, 100.f, 0.43f, m_InputData.oneZ && CX2Unit::UC_RAVEN_VETERAN_COMMANDER == m_pUnit->GetUnitData()->m_UnitClass, RVC_DASH_COMBO_ZZZ )
+	ELSE_IF_STATE_CHANGE_ON_( 1, 100.f, 0.43f, m_InputData.oneZ && CX2Unit::UC_RAVEN_VETERAN_COMMANDER == GetUnit()->GetUnitData().m_UnitClass, RVC_DASH_COMBO_ZZZ )
 #endif SERV_RAVEN_VETERAN_COMMANDER
 	ELSE_IF_KEY_PRESSED_AT_SKIP_POINT_C
 	{
@@ -10312,7 +10907,11 @@ void CX2GURaven::RSI_SOUL_TAKER_DASH_COMBO_ZZZ_EventProcess()
 
 void CX2GURaven::RSI_SOUL_TAKER_COMBO_ZZZupZ_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.5f ) == true && EventCheck( 0.5f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.y = 1500.f;
 	}
@@ -10420,9 +11019,14 @@ void CX2GURaven::RSI_SOUL_TAKER_COMBO_XXZZ8Z_EventProcess()
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
 #ifdef SKILL_BALANCE_PATCH
+
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.43f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_pXSkinAnimFuture->GetNowAnimationTime() >= 0.43f && SpecialAttackEventProcess() == true )			
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 #endif
 	else if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
 	{
@@ -10436,7 +11040,11 @@ void CX2GURaven::RSI_SOUL_TAKER_COMBO_XXZZ8Z_EventProcess()
 
 void CX2GURaven::RSI_OVER_TAKER_COMBO_XXdownX_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.38f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.38f ) == true && EventCheck( 0.38f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = 300.f;
 	}
@@ -10451,9 +11059,13 @@ void CX2GURaven::RSI_OVER_TAKER_COMBO_XXdownX_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )			
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && 
 		m_pXSkinAnimFuture->GetNowAnimationTime() > 0.57f )
 	{
@@ -10479,7 +11091,11 @@ void CX2GURaven::RSI_OVER_TAKER_COMBO_XXdownX_EventProcess()
 }
 void CX2GURaven::RSI_OVER_TAKER_COMBO_XXdownXdownX_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.46f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.46f ) == true && EventCheck( 0.46f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = 300.f;
 	}
@@ -10494,9 +11110,13 @@ void CX2GURaven::RSI_OVER_TAKER_COMBO_XXdownXdownX_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )			
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_FrameDataFuture.stateParam.bEventFlagList[0] == true && 
 		m_pXSkinAnimFuture->GetNowAnimationTime() > 0.733f )
 	{
@@ -10523,7 +11143,11 @@ void CX2GURaven::RSI_OVER_TAKER_COMBO_XXdownXdownX_EventProcess()
 
 void CX2GURaven::RSI_OVER_TAKER_COMBO_XXdownXdownXdownX_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.42f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.42f ) == true && EventCheck( 0.42f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = 0.f;		
 	}
@@ -10556,7 +11180,11 @@ void CX2GURaven::RSI_OVER_TAKER_COMBO_XXfrontX_Init()
 
 void CX2GURaven::RSI_OVER_TAKER_COMBO_XXfrontX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -10576,7 +11204,11 @@ void CX2GURaven::RSI_OVER_TAKER_COMBO_XXfrontX_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.3666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.3666f ) && EventCheck( 0.3666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 7.0f ) == true )
 		{
@@ -10620,7 +11252,11 @@ void CX2GURaven::RSI_OVER_TAKER_COMBO_XXfrontX_FrameMove()
 			}
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.4333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.4333f ) && EventCheck( 0.4333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 5.0f, 0.15f );	
 	}
@@ -10655,7 +11291,11 @@ void CX2GURaven::RSI_OVER_TAKER_COMBO_XXfrontX_EventProcess()
 
 void CX2GURaven::RSI_OVER_TAKER_DASH_JUMP_COMBO_ZX_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.267f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.267f ) == true && EventCheck( 0.267f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed = D3DXVECTOR2( 0, 0 );
 		m_PhysicParam.passiveSpeed = D3DXVECTOR2( 2200.f, -2200.f * 1.2f );
@@ -10790,15 +11430,17 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_FrameMove()
 
 	wstring wstrBerserkerBlade = L"RAVEN_SOUL_TAKER_BERSERKER_BLADE";
 	wstring wstrBerserkerBladeDown = L"RAVEN_SOUL_TAKER_BERSERKER_BLADE_DOWN";
-#ifdef NEW_MEMO_01	
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO9 ) == true )
 	{
 		wstrBerserkerBlade = L"RAVEN_SOUL_TAKER_BERSERKER_BLADE_MEMO";
 		wstrBerserkerBladeDown = L"RAVEN_SOUL_TAKER_BERSERKER_BLADE_DOWN_MEMO";
 	}
-#endif
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -10818,7 +11460,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_FrameMove()
 			m_hMeshBerserkerBlade = pEffectBerseker->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6333f ) == true && EventCheck( 0.6333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 		if( true == GetIsRight() )
@@ -10837,7 +11483,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_FrameMove()
 			m_hMeshBerserkerBlade1 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 
@@ -10848,7 +11498,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_FrameMove()
 			m_hMeshBerserkerBlade2 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.966f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.966f ) == true && EventCheck( 0.966f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 
@@ -10859,7 +11513,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_FrameMove()
 			m_hMeshBerserkerBlade3 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -10874,7 +11532,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_FrameMove()
 
 		UpDownCrashCamera( 10.0f, 0.5f );	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7333f ) == true && EventCheck( 0.7333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -10890,7 +11552,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_FrameMove()
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8666f ) == true && EventCheck( 0.8666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -11009,15 +11675,17 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER_FrameMove()
 
 	wstring wstrBerserkerBlade = L"RAVEN_SOUL_TAKER_BERSERKER_BLADE";
 	wstring wstrBerserkerBladeDown = L"RAVEN_SOUL_TAKER_BERSERKER_BLADE_DOWN";
-#ifdef NEW_MEMO_01	
 	if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO9 ) == true )
 	{
 		wstrBerserkerBlade = L"RAVEN_SOUL_TAKER_BERSERKER_BLADE_MEMO";
 		wstrBerserkerBladeDown = L"RAVEN_SOUL_TAKER_BERSERKER_BLADE_DOWN_MEMO";
 	}
-#endif
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6f ) == true && EventCheck( 0.6f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -11037,7 +11705,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER_FrameMove()
 			m_hMeshBerserkerBlade = pEffectBerseker->GetMainEffectHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.6333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.6333f ) == true && EventCheck( 0.6333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 		if( true == GetIsRight() )
@@ -11056,7 +11728,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER_FrameMove()
 			m_hMeshBerserkerBlade1 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 
@@ -11067,7 +11743,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER_FrameMove()
 			m_hMeshBerserkerBlade2 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.966f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.966f ) == true && EventCheck( 0.966f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 
@@ -11078,7 +11758,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER_FrameMove()
 			m_hMeshBerserkerBlade3 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -11093,7 +11777,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER_FrameMove()
 
 		UpDownCrashCamera( 10.0f, 0.5f );	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7333f ) == true && EventCheck( 0.7333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -11109,7 +11797,11 @@ void CX2GURaven::RSI_SI1_SOUL_TAKER_BERSERKER_BLADE_HYPER_FrameMove()
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8666f ) == true && EventCheck( 0.8666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		if( true == GetIsRight() )
@@ -11233,9 +11925,13 @@ void CX2GURaven::RSI_SI2_SOUL_TAKER_FLYING_IMPACT_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMeshFlyingImpact );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshFlyingImpact );
 
 #ifdef SERV_SKILL_NOTE
 		wstring wstrEffectName = L"RAVEN_SOUL_TAKER_FLYING_IMPACT";
@@ -11252,18 +11948,22 @@ void CX2GURaven::RSI_SI2_SOUL_TAKER_FLYING_IMPACT_FrameMove()
 		
 		if( NULL != pEffectFlyingImpact )
 		{
-			if( pEffectFlyingImpact->GetMainEffect() != NULL )
+            if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectFlyingImpact->GetMainEffect() )
 			{
-				m_hMeshFlyingImpact = pEffectFlyingImpact->GetMainEffect()->GetHandle();
-				pEffectFlyingImpact->GetMainEffect()->SetBoundingRadius( 0.f );
+				m_hMeshFlyingImpact = pMeshInstance->GetHandle();
+				pMeshInstance->SetBoundingRadius( 0.f );
 			}
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.8f ) == true && EventCheck( 2.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_hMeshFlyingImpact != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMeshFlyingImpact );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshFlyingImpact );
 		}
 	}
 
@@ -11317,7 +12017,7 @@ void CX2GURaven::RSI_SI2_SOUL_TAKER_FLYING_IMPACT_End()
 
 	if( m_hMeshFlyingImpact != INVALID_MESH_INSTANCE_HANDLE )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMeshFlyingImpact );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshFlyingImpact );
 	}
 }
 
@@ -11330,9 +12030,13 @@ void CX2GURaven::RSI_SI2_SOUL_TAKER_FLYING_IMPACT_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.2f ) == true && EventCheck( 0.2f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMeshFlyingImpact );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshFlyingImpact );
 
 #ifdef SERV_SKILL_NOTE
 		wstring wstrEffectName = L"RAVEN_SOUL_TAKER_FLYING_IMPACT";
@@ -11350,18 +12054,22 @@ void CX2GURaven::RSI_SI2_SOUL_TAKER_FLYING_IMPACT_HYPER_FrameMove()
 
 		if( NULL != pEffectFlyingImpact )
 		{
-			if( pEffectFlyingImpact->GetMainEffect() != NULL )
+			if ( CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = pEffectFlyingImpact->GetMainEffect() )
 			{
-				m_hMeshFlyingImpact = pEffectFlyingImpact->GetMainEffect()->GetHandle();
-				pEffectFlyingImpact->GetMainEffect()->SetBoundingRadius( 0.f );
+				m_hMeshFlyingImpact = pMeshInstance->GetHandle();
+				pMeshInstance->SetBoundingRadius( 0.f );
 			}
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 2.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 2.8f ) == true && EventCheck( 2.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_hMeshFlyingImpact != INVALID_MESH_INSTANCE_HANDLE )
 		{
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMeshFlyingImpact );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshFlyingImpact );
 		}
 	}
 
@@ -11419,7 +12127,7 @@ void CX2GURaven::RSI_SI2_SOUL_TAKER_FLYING_IMPACT_HYPER_End()
 
 	if( m_hMeshFlyingImpact != INVALID_MESH_INSTANCE_HANDLE )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMeshFlyingImpact );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshFlyingImpact );
 	}
 }
 
@@ -11427,7 +12135,11 @@ void CX2GURaven::RSI_SI2_SOUL_TAKER_FLYING_IMPACT_HYPER_End()
 
 void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.7f ) == true && EventCheck( 0.7f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.passiveSpeed.x = 1000.f;			
 	}
@@ -11446,7 +12158,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.7666f ) == true && EventCheck( 0.7666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Footsteps" );
 
@@ -11469,7 +12185,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMove()
 		}
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.75f ) == true && EventCheck( 0.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 		if( true == GetIsRight() )
@@ -11492,7 +12212,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMove()
 		g_pKTDXApp->GetDGManager()->ClearScreen( 10 );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.875f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.875f ) == true && EventCheck( 0.875f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 
@@ -11503,7 +12227,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMove()
 			m_hMeshBerserkerBlade2 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 
@@ -11514,7 +12242,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMove()
 			m_hMeshBerserkerBlade3 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.05f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.05f ) == true && EventCheck( 1.05f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 10.0f, 0.2f );	
 	}
@@ -11522,7 +12254,7 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMove()
 
 
 
-	if( m_hSeqSonicStab != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqSonicStab != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqSonicStab );
 		if( NULL != pSeq )
@@ -11532,14 +12264,14 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMove()
 		}
 		else
 		{
-			m_hSeqSonicStab = INVALID_PARTICLE_HANDLE;
+			m_hSeqSonicStab = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 
 
 
-	if( m_hSeqSonicStab1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqSonicStab1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqSonicStab1 );
 		if( NULL != pSeq )
@@ -11549,7 +12281,7 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_FrameMove()
 		}
 		else
 		{
-			m_hSeqSonicStab1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqSonicStab1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -11627,7 +12359,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_EventProcess()
 void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMoveFuture()
 {	
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.7f ) == true && EventCheck( 0.7f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.passiveSpeed.x = 1000.f;		
 	}
@@ -11645,7 +12381,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.7666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.7666f ) == true && EventCheck( 0.7666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Footsteps" );
 
@@ -11667,7 +12407,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMove()
 			pSeq->SetAxisAngle( GetRotateDegree() );
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.75f ) == true && EventCheck( 0.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 		if( true == GetIsRight() )
@@ -11688,7 +12432,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMove()
 
 		g_pKTDXApp->GetDGManager()->ClearScreen( 10 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.875f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.875f ) == true && EventCheck( 0.875f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 
@@ -11699,7 +12447,11 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMove()
 			m_hMeshBerserkerBlade2 = pMeshInst->GetHandle();
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Neck" );
 
@@ -11710,13 +12462,17 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMove()
 			m_hMeshBerserkerBlade3 = pMeshInst->GetHandle();
 		}	
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.05f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.05f ) == true && EventCheck( 1.05f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 10.0f, 0.2f );	
 	}
 
 
-	if( m_hSeqSonicStab != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqSonicStab != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqSonicStab );
 		if( NULL != pSeq )
@@ -11726,14 +12482,14 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqSonicStab = INVALID_PARTICLE_HANDLE;
+			m_hSeqSonicStab = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 
 
 
-	if( m_hSeqSonicStab1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqSonicStab1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqSonicStab1 );
 		if( NULL != pSeq )
@@ -11743,7 +12499,7 @@ void CX2GURaven::RSI_SI3_SOUL_TAKER_HYPERSONIC_STAB_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqSonicStab1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqSonicStab1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -11856,7 +12612,11 @@ void CX2GURaven::RSI_SI1_OVER_TAKER_CHARGED_BOLT_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // 청 스킬 개편, 김종훈
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vRotDegree = GetRotateDegree();
 		D3DXVECTOR3 vPos = GetPos();
@@ -11867,19 +12627,18 @@ void CX2GURaven::RSI_SI1_OVER_TAKER_CHARGED_BOLT_FrameMove()
 			vPos += GetDirVector() * 30.f;
 		}
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO10 ) == true )
 			g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_CHARGED_BOLT_MEMO", GetPowerRate(), vPos, 
 				vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
 		else
 			g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_CHARGED_BOLT", GetPowerRate(), vPos, 
 				vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
-#else
-		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_CHARGED_BOLT", GetPowerRate(), vPos, 
-			vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
-#endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vPos = GetPos();
@@ -11898,7 +12657,11 @@ void CX2GURaven::RSI_SI1_OVER_TAKER_CHARGED_BOLT_FrameMove()
 		pSeq->SetLandPosition( m_FrameDataNow.unitCondition.landPosition.y );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 4.f, 0.3333f );
 	}
@@ -11968,7 +12731,11 @@ void CX2GURaven::RSI_SI1_OVER_TAKER_CHARGED_BOLT_HYPER_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 0 );
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈	
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vRotDegree = GetRotateDegree();
 		D3DXVECTOR3 vPos = GetPos();
@@ -11979,19 +12746,18 @@ void CX2GURaven::RSI_SI1_OVER_TAKER_CHARGED_BOLT_HYPER_FrameMove()
 			vPos += GetDirVector() * 30.f;
 		}
 
-#ifdef NEW_MEMO_01
 		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO10 ) == true )
 			g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_CHARGED_BOLT_MEMO", GetPowerRate(), vPos, 
 				vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
 		else
 			g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_CHARGED_BOLT", GetPowerRate(), vPos, 
 				vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
-#else
-		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_CHARGED_BOLT", GetPowerRate(), vPos, 
-			vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
-#endif
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.7f ) == true && EventCheck( 0.7f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = NULL;
 		D3DXVECTOR3 vPos = GetPos();
@@ -12009,7 +12775,11 @@ void CX2GURaven::RSI_SI1_OVER_TAKER_CHARGED_BOLT_HYPER_FrameMove()
 		pSeq->SetAxisAngle( GetRotateDegree() );
 		pSeq->SetLandPosition( m_FrameDataNow.unitCondition.landPosition.y );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 4.f, 0.3333f );
 	}
@@ -12068,27 +12838,51 @@ void CX2GURaven::RSI_SI2_OVER_TAKER_ARC_ENEMY_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6666f ) == true && EventCheck( 0.6666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_01", 
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_01", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_02", 
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_02", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_03", 
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_03", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.1333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.1333f ) == true && EventCheck( 1.1333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_04", 
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_04", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		ClearArcEnemyData();
 
@@ -12122,12 +12916,18 @@ void CX2GURaven::RSI_SI2_OVER_TAKER_ARC_ENEMY_FrameMove()
 			pSpear = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_FLYING_IMPACT", GetPowerRate(), vPos, 
 				vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
 #endif
-			pSpear->GetMainEffect()->GetXSkinAnim()->Reset( (float) (rand()%10) * 0.1f );
+            CKTDGXMeshPlayer::CXMeshInstance* pSpearMeshInstance = pSpear->GetMainEffect();
+            if ( pSpearMeshInstance != NULL )
+			    pSpearMeshInstance->GetXSkinAnim()->Reset( (float) (rand()%10) * 0.1f );
 
 			if( NULL != pSpear )
 			{
 				ArcEnemyData* pData = new ArcEnemyData;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                pData->m_hEffect = pSpear->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				pData->m_pEffect = pSpear;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 				switch( i )
 				{
@@ -12157,9 +12957,11 @@ void CX2GURaven::RSI_SI2_OVER_TAKER_ARC_ENEMY_FrameMove()
 					} break;
 				}
 
-
-				pSpear->GetMainEffect()->SetMoveAxisAngleDegree( GetRotateDegree() );
-				pSpear->GetMainEffect()->SetRotateDegree( GetRotateDegree() + pData->m_vOffsetRotate );
+                if ( pSpearMeshInstance != NULL )
+                {
+				    pSpearMeshInstance->SetMoveAxisAngleDegree( GetRotateDegree() );
+				    pSpearMeshInstance->SetRotateDegree( GetRotateDegree() + pData->m_vOffsetRotate );
+                }
 
 				D3DXVECTOR3 vTargetPos = GetPos(); 
 				if( true == GetIsRight() )
@@ -12175,7 +12977,8 @@ void CX2GURaven::RSI_SI2_OVER_TAKER_ARC_ENEMY_FrameMove()
 					vTargetPos += pData->m_vOffsetPos.z * vZVec;
 				}
 
-				pSpear->GetMainEffect()->SetPos( vTargetPos );
+                if ( pSpearMeshInstance != NULL )
+				    pSpearMeshInstance->SetPos( vTargetPos );
 
 				m_vecArcEnemyData.push_back( pData );
 			}
@@ -12211,27 +13014,51 @@ void CX2GURaven::RSI_SI2_OVER_TAKER_ARC_ENEMY_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.6666f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.6666f ) == true && EventCheck( 0.6666f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_01", 
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_01", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.8f ) == true && EventCheck( 0.8f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_02", 
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_02", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_03", 
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_03", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.1333f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.1333f ) == true && EventCheck( 1.1333f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_04", 
+        CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = NULL;
+		pMeshInst  = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_Overtaker_Sp2a_FlyingImpact_Start_04", 
 			GetPos(), GetRotateDegree(), GetRotateDegree(), XL_EFFECT_0 );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.5f ) == true && EventCheck( 1.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		ClearArcEnemyData();
 
@@ -12264,12 +13091,19 @@ void CX2GURaven::RSI_SI2_OVER_TAKER_ARC_ENEMY_HYPER_FrameMove()
 			pSpear = g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_FLYING_IMPACT_HYPER", GetPowerRate(), vPos, 
 				vRotDegree, vRotDegree, m_FrameDataNow.unitCondition.landPosition.y );
 #endif
-			pSpear->GetMainEffect()->GetXSkinAnim()->Reset( (float) (rand()%10) * 0.1f );
+			ASSERT( pSpear != NULL );
+            CKTDGXMeshPlayer::CXMeshInstance* pSpearMeshInstance = pSpear->GetMainEffect();
+            if ( pSpearMeshInstance != NULL )
+			    pSpearMeshInstance->GetXSkinAnim()->Reset( (float) (rand()%10) * 0.1f );
 
 			if( NULL != pSpear )
 			{
 				ArcEnemyData* pData = new ArcEnemyData;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                pData->m_hEffect = pSpear->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				pData->m_pEffect = pSpear;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 				switch( i )
 				{
@@ -12299,9 +13133,11 @@ void CX2GURaven::RSI_SI2_OVER_TAKER_ARC_ENEMY_HYPER_FrameMove()
 					} break;
 				}
 
-
-				pSpear->GetMainEffect()->SetMoveAxisAngleDegree( GetRotateDegree() );
-				pSpear->GetMainEffect()->SetRotateDegree( GetRotateDegree() + pData->m_vOffsetRotate );
+                if ( pSpearMeshInstance != NULL )
+                {
+				    pSpearMeshInstance->SetMoveAxisAngleDegree( GetRotateDegree() );
+				    pSpearMeshInstance->SetRotateDegree( GetRotateDegree() + pData->m_vOffsetRotate );
+                }
 
 				D3DXVECTOR3 vTargetPos = GetPos(); 
 				if( true == GetIsRight() )
@@ -12317,7 +13153,8 @@ void CX2GURaven::RSI_SI2_OVER_TAKER_ARC_ENEMY_HYPER_FrameMove()
 					vTargetPos += pData->m_vOffsetPos.z * vZVec;
 				}
 
-				pSpear->GetMainEffect()->SetPos( vTargetPos );
+                if ( pSpearMeshInstance != NULL )
+				    pSpearMeshInstance->SetPos( vTargetPos );
 
 				m_vecArcEnemyData.push_back( pData );
 			}
@@ -12370,7 +13207,11 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Spine1" );
@@ -12400,7 +13241,11 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_FrameMove()
 		UpDownCrashCameraNoReset( 4.f, 0.53f );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.67f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.67f ) == true && EventCheck( 0.67f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01" );
 		if( true == GetIsRight() )
@@ -12414,9 +13259,11 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_FrameMove()
 		vBonePos += 50.f * GetZVector();
 		vBonePos.y -= 30.f;
 
+#ifndef ADD_MEMO_1ST_CLASS //김창한
+		//스크립트로 이동.
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_GUARDIAN_STRIKE", GetPowerRate(), vBonePos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-
+#endif //ADD_MEMO_1ST_CLASS
 
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_GuardianStrike01", vBonePos );
 		if( NULL != pSeq )
@@ -12451,7 +13298,7 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_FrameMove()
 	}
 
 
-	if( m_hSeqGuardianStrike1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqGuardianStrike1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqGuardianStrike1 );
 		if( NULL != pSeq )
@@ -12462,12 +13309,12 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_FrameMove()
 		}
 		else
 		{
-			m_hSeqGuardianStrike1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqGuardianStrike1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 
-	if( m_hSeqGuardianStrike2 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqGuardianStrike2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqGuardianStrike2 );
 		if( NULL != pSeq )
@@ -12478,11 +13325,11 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_FrameMove()
 		}
 		else
 		{
-			m_hSeqGuardianStrike2 = INVALID_PARTICLE_HANDLE;
+			m_hSeqGuardianStrike2 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
-	if( m_hSeqGuardianStrike3 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqGuardianStrike3 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqGuardianStrike3 );
 		if( NULL != pSeq )
@@ -12504,7 +13351,7 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_FrameMove()
 		}
 		else
 		{
-			m_hSeqGuardianStrike3 = INVALID_PARTICLE_HANDLE;
+			m_hSeqGuardianStrike3 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -12538,7 +13385,11 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_Spine1" );
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"Raven_OverTaker_Sp3_GuardianStrike02", 
@@ -12568,7 +13419,11 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_FrameMove()
 		UpDownCrashCameraNoReset( 4.f, 0.53f );
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.67f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.67f ) == true && EventCheck( 0.67f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01" );
 		if( true == GetIsRight() )
@@ -12582,9 +13437,11 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_FrameMove()
 		vBonePos += 50.f * GetZVector();
 		vBonePos.y -= 30.f;
 
+#ifndef ADD_MEMO_1ST_CLASS //김창한
+		//스크립트로 이동
 		g_pX2Game->GetDamageEffect()->CreateInstance( (CX2GameUnit*) this, L"RAVEN_OVER_TAKER_GUARDIAN_STRIKE_HYPER", GetPowerRate(), vBonePos, 
 			GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
-
+#endif //ADD_MEMO_1ST_CLASS
 
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->CreateSequence( (CKTDGObject*) this,  L"Light_GuardianStrike01", vBonePos );
 		if( NULL != pSeq )
@@ -12602,7 +13459,11 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_FrameMove()
 
 		UpDownCrashCameraNoReset( 25.f, 2.27f );
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 0.87f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 0.87f ) == true && EventCheck( 0.87f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = GetPos();
 		vPos.y += 130.f;
@@ -12657,7 +13518,7 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_FrameMove()
 
 
 
-	if( m_hSeqGuardianStrike1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqGuardianStrike1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqGuardianStrike1 );
 		if( NULL != pSeq )
@@ -12668,12 +13529,12 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqGuardianStrike1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqGuardianStrike1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
 
-	if( m_hSeqGuardianStrike2 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqGuardianStrike2 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqGuardianStrike2 );
 		if( NULL != pSeq )
@@ -12684,11 +13545,11 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqGuardianStrike2 = INVALID_PARTICLE_HANDLE;
+			m_hSeqGuardianStrike2 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
-	if( m_hSeqGuardianStrike3 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqGuardianStrike3 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqGuardianStrike3 );
 		if( NULL != pSeq )
@@ -12710,7 +13571,7 @@ void CX2GURaven::RSI_SI3_OVER_TAKER_GUARDIAN_STRIKE_HYPER_FrameMove()
 		}
 		else
 		{
-			m_hSeqGuardianStrike3 = INVALID_PARTICLE_HANDLE;
+			m_hSeqGuardianStrike3 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -12811,11 +13672,19 @@ void CX2GURaven::CreateNasodBall()
 		if( m_pNasodBall != NULL )
 			m_pNasodBall->m_vOffsetPos = D3DXVECTOR3( -180*0.9f, 42*3.f, 0.f );		
 	}
+    if ( m_pNasodBall == NULL )
+        return;
 
 	bool bNewNasodBall = false;
 		
-	if( m_pNasodBall != NULL && 
-		(m_pNasodBall->m_pEffect == NULL || g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) == false) )
+	if( 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        ( m_pNasodBall->m_hEffect == INVALID_DAMAGE_EFFECT_HANDLE
+          || g_pX2Game->GetDamageEffect()->IsLiveInstanceHandle( m_pNasodBall->m_hEffect ) == false ) 
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		(m_pNasodBall->m_pEffect == NULL || g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) == false) 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        )
 	{
 		D3DXVECTOR3 vRotDegree = GetRotateDegree();
 		D3DXVECTOR3 vDirVec = GetDirVector();
@@ -12838,10 +13707,18 @@ void CX2GURaven::CreateNasodBall()
 		}
 
 		bNewNasodBall = true;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_pNasodBall->m_hEffect = pNasodBall->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pNasodBall->m_pEffect = pNasodBall;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
-		pNasodBall->GetMainEffect()->SetMoveAxisAngleDegree( GetRotateDegree() );
-		pNasodBall->GetMainEffect()->SetRotateDegree( GetRotateDegree() + m_pNasodBall->m_vOffsetRotate );
+        CKTDGXMeshPlayer::CXMeshInstance* pNasodBallMeshInstance = pNasodBall->GetMainEffect();
+        if ( pNasodBallMeshInstance != NULL )
+        {
+		    pNasodBallMeshInstance->SetMoveAxisAngleDegree( GetRotateDegree() );
+		    pNasodBallMeshInstance->SetRotateDegree( GetRotateDegree() + m_pNasodBall->m_vOffsetRotate );
+        }
 
 		D3DXVECTOR3 vTargetPos = GetPos(); 
 		if( true == GetIsRight() )
@@ -12857,61 +13734,70 @@ void CX2GURaven::CreateNasodBall()
 			vTargetPos += m_pNasodBall->m_vOffsetPos.z * vZVec;
 		}
 
-		pNasodBall->GetMainEffect()->SetPos( vTargetPos );
+        if ( pNasodBallMeshInstance != NULL )
+		    pNasodBallMeshInstance->SetPos( vTargetPos );
 	}
 
-	if( NULL != m_pNasodBall->m_pEffect && NULL != m_pNasodBall->m_pEffect->GetMainEffect() )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pNasodBallEffect = m_pNasodBall->m_pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CKTDGXMeshPlayer::CXMeshInstance*  pNasodBallMeshInstance = ( pNasodBallEffect != NULL ) ? pNasodBallEffect->GetMainEffect() : NULL;
+	if( NULL != pNasodBallMeshInstance )
 	{
-		D3DXVECTOR3 vEffectPos = m_pNasodBall->m_pEffect->GetMainEffect()->GetPos();
+		D3DXVECTOR3 vEffectPos = pNasodBallMeshInstance->GetPos();
 		g_pX2Game->GetEffectSet()->PlayEffectSetWithCustomPos_LUA( "EffectSet_BEED_UP", (CX2GameUnit*)this, vEffectPos, GetRotateDegree() );
 
-		m_pNasodBall->m_pEffect->GetMainEffect()->SetOutlineColor( D3DXCOLOR(1.f, 0.333f, 0.0745f, 1.f) );
+		pNasodBallMeshInstance->SetOutlineColor( D3DXCOLOR(1.f, 0.333f, 0.0745f, 1.f) );
 
 		switch( m_iNaosdBallLv )
 		{
 		case 1:
 			{
-				m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.f, 1.f, 1.f);
+				pNasodBallMeshInstance->SetScale(1.f, 1.f, 1.f);
 			}
 			break;
 		case 2:
 			{
-				m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.3f, 1.3f, 1.3f);
+				pNasodBallMeshInstance->SetScale(1.3f, 1.3f, 1.3f);
 			}
 			break;
 		case 3:
 			{
-				m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.6f, 1.6f, 1.6f);
+				pNasodBallMeshInstance->SetScale(1.6f, 1.6f, 1.6f);
 			}
 			break;
 		case 4:
 			{
-				m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.9f, 1.9f, 1.9f);
+				pNasodBallMeshInstance->SetScale(1.9f, 1.9f, 1.9f);
 			}
 			break;
 		case 5:
 			{
-				m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(2.2f, 2.2f, 2.2f);
+				pNasodBallMeshInstance->SetScale(2.2f, 2.2f, 2.2f);
 			}
 			break;
 		default:
 			break;
 		}
-	}
 
 #ifndef FIX_AFTER_IMAGE
-	if( m_pAfterImageNasodBall == NULL && bNewNasodBall == true )
-	{
-		m_pAfterImageNasodBall = CKTDGXSkinAfterImage::CreateSkinAfterImage( m_pNasodBall->m_pEffect->GetMainEffect()->GetXSkinAnim(), 10, XL_EFFECT_0 );
-		if( m_pAfterImageNasodBall != NULL )
-		{
-			m_pAfterImageNasodBall->SetAfterImageColor( D3DXCOLOR(1.f, 0.608f, 0.482f, 1.f) );
-			m_pAfterImageNasodBall->AddMesh( m_pNasodBall->m_pEffect->GetMainEffect()->GetXSkinMesh() );
-			m_pAfterImageNasodBall->OnFrameMove(m_fTime, m_fElapsedTime);
-			m_pAfterImageNasodBall->Enable();
-		}	
-	}
+	    if( m_pAfterImageNasodBall == NULL && bNewNasodBall == true )
+	    {
+		    m_pAfterImageNasodBall = CKTDGXSkinAfterImage::CreateSkinAfterImage( pNasodBallMeshInstance->GetXSkinAnim(), 10, XL_EFFECT_0 );
+		    if( m_pAfterImageNasodBall != NULL )
+		    {
+			    m_pAfterImageNasodBall->SetAfterImageColor( D3DXCOLOR(1.f, 0.608f, 0.482f, 1.f) );
+			    m_pAfterImageNasodBall->AddMesh( pNasodBallMeshInstance->GetXSkinMesh() );
+			    m_pAfterImageNasodBall->OnFrameMove(m_fTime, m_fElapsedTime);
+			    m_pAfterImageNasodBall->Enable();
+		    }	
+	    }
 #endif
+
+	}
+
 }
 bool CX2GURaven::CanParryingState()
 {
@@ -12927,7 +13813,7 @@ bool CX2GURaven::CanParryingState()
 	default:
 		break;
 	}
-	if(	GetNowStateID() >= CX2GUUser::USI_DAMAGE_GROGGY && GetNowStateID() <= CX2GUUser::USI_DAMAGE_GRAPPLED_BACK )
+	if(	GetNowStateID() >= CX2GUUser::USI_DAMAGE_GROGGY && GetNowStateID() <= CX2GUUser::USI_DAMAGE_GRAPPLED_FRONT )
 		return false;
 
 	switch( GetNowStateID() )
@@ -12945,19 +13831,27 @@ bool CX2GURaven::CanParryingState()
 
 void CX2GURaven::DoParrying()
 {
-	if( m_pNasodBall != NULL && m_pNasodBall->m_pEffect != NULL &&
-		g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) == true ) 
+	if( m_pNasodBall == NULL )
+        return;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) ? m_pNasodBall->m_pEffect : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		D3DXVECTOR3 vDirVec = GetDirVector();
 		if( GetIsRight() == false )
 			vDirVec *= -1;
 
-		m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.3f, 1.3f, 1.3f);
-		m_pNasodBall->m_pEffect->GetMainEffect()->ChangeAnim(L"Guard", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
+        CKTDGXMeshPlayer::CXMeshInstance* pNasodBallMeshInstance = pNasodBallEffect->GetMainEffect();
+        if ( pNasodBallMeshInstance != NULL )
+        {
+		    pNasodBallMeshInstance->SetScale(1.3f, 1.3f, 1.3f);
+		    pNasodBallMeshInstance->ChangeAnim(L"Guard", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
 
-		m_pNasodBall->m_pEffect->GetMainEffect()->SetOutlineColor( D3DXCOLOR(0.968f, 0.443f, 0.f, 1.f) );
-
-		m_pNasodBall->m_pEffect->SetAttackTime( D3DXVECTOR2( 0, 0 ) );
+		    pNasodBallMeshInstance->SetOutlineColor( D3DXCOLOR(0.968f, 0.443f, 0.f, 1.f) );
+        }
+		pNasodBallEffect->SetAttackTime( D3DXVECTOR2( 0, 0 ) );
 
 #ifdef VERIFY_STAT_BY_BUFF
 		const PROTECT_VECTOR3 &vScale = GetScaleByUnit();
@@ -12968,9 +13862,12 @@ void CX2GURaven::DoParrying()
 		D3DXVECTOR3 vOffset = vScale.x * vDirVec * 100.f;
 		float fOffsetY = vScale.y * 170.f;
 
-		m_pNasodBall->m_pEffect->GetMainEffect()->SetPos( GetPos() +  vOffset + D3DXVECTOR3( 0.f, fOffsetY, 0.f ) );				
-		m_pNasodBall->m_pEffect->GetMainEffect()->SetDirSpeed( 0.f );						
-		m_pNasodBall->m_pEffect->SetLandPos( 0.f );	
+        if ( pNasodBallMeshInstance != NULL )
+        {
+		    pNasodBallMeshInstance->SetPos( GetPos() +  vOffset + D3DXVECTOR3( 0.f, fOffsetY, 0.f ) );				
+		    pNasodBallMeshInstance->SetDirSpeed( 0.f );						
+        }
+		pNasodBallEffect->SetLandPos( 0.f );	
 
 		PlaySound(L"Raven_NasodCore_Trans_Parry.ogg");
 		
@@ -12988,54 +13885,65 @@ void CX2GURaven::RestoreNasodBall()
 {
 	CreateNasodBall();
 
-	if( m_pNasodBall == NULL || m_pNasodBall->m_pEffect == NULL )
+    if ( m_pNasodBall == NULL )
+        return;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect );
+    if ( pNasodBallEffect == NULL )
+        return;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pNasodBallEffect = m_pNasodBall->m_pEffect;
+	if( pNasodBallEffect == NULL )
 		return;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	m_pNasodBall->m_vOffsetPos = D3DXVECTOR3( -180*0.9f, 42*3.f, 0.f);
 
-	CX2DamageEffect::LockOnData* pLockOnData = m_pNasodBall->m_pEffect->GetLockOnData();				
+	CX2DamageEffect::LockOnData* pLockOnData = &pNasodBallEffect->GetLockOnData();				
 	pLockOnData->m_LockOnUnitUID = GetUnitUID();
 	pLockOnData->m_fCurveSpeed = 10.f;
 	pLockOnData->m_fUnLockTime = 9999.f;
-
-	m_pNasodBall->m_pEffect->GetMainEffect()->ChangeAnim(L"Wait", CKTDGXSkinAnim::XAP_LOOP, 1.f);
-	
-	m_pNasodBall->m_pEffect->SetAttackTime( D3DXVECTOR2( 0, 0 ) );
-	m_pNasodBall->m_pEffect->GetMainEffect()->SetDirSpeed( 0.f );	
-	
-	m_pNasodBall->m_pEffect->GetMainEffect()->SetOutlineColor( D3DXCOLOR(1.f, 0.333f, 0.0745f, 1.f) );
-
-	switch( m_iNaosdBallLv )
-	{
-	case 1:
-		{
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.f, 1.f, 1.f);			
+    CKTDGXMeshPlayer::CXMeshInstance* pNasodBallEffectMeshInstance = pNasodBallEffect->GetMainEffect();
+	pNasodBallEffect->SetAttackTime( D3DXVECTOR2( 0, 0 ) );
+    if ( pNasodBallEffectMeshInstance != NULL )
+    {
+	    pNasodBallEffectMeshInstance->ChangeAnim(L"Wait", CKTDGXSkinAnim::XAP_LOOP, 1.f);
+	    pNasodBallEffectMeshInstance->SetDirSpeed( 0.f );	
+	    pNasodBallEffectMeshInstance->SetOutlineColor( D3DXCOLOR(1.f, 0.333f, 0.0745f, 1.f) );
+	    switch( m_iNaosdBallLv )
+	    {
+	    case 1:
+		    {
+			    pNasodBallEffectMeshInstance->SetScale(1.f, 1.f, 1.f);			
 			
-		}
-		break;
-	case 2:
-		{
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.3f, 1.3f, 1.3f);
-		}
-		break;
-	case 3:
-		{
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.6f, 1.6f, 1.6f);
-		}
-		break;
-	case 4:
-		{
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.9f, 1.9f, 1.9f);
-		}
-		break;
-	case 5:
-		{
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(2.2f, 2.2f, 2.2f);
-		}
-		break;
-	default:
-		break;
-	}
+		    }
+		    break;
+	    case 2:
+		    {
+			    pNasodBallEffectMeshInstance->SetScale(1.3f, 1.3f, 1.3f);
+		    }
+		    break;
+	    case 3:
+		    {
+			    pNasodBallEffectMeshInstance->SetScale(1.6f, 1.6f, 1.6f);
+		    }
+		    break;
+	    case 4:
+		    {
+			    pNasodBallEffectMeshInstance->SetScale(1.9f, 1.9f, 1.9f);
+		    }
+		    break;
+	    case 5:
+		    {
+			    pNasodBallEffectMeshInstance->SetScale(2.2f, 2.2f, 2.2f);
+		    }
+		    break;
+	    default:
+		    break;
+	    }
+    }
+
+
 
 #ifndef FIX_AFTER_IMAGE
 	if( m_pAfterImageNasodBall != NULL )
@@ -13066,16 +13974,23 @@ void CX2GURaven::AttackResultByType( CX2DamageManager::DamageData &pDamageData )
 	if( null != pDamageData.optrDefenderGameUnit && pDamageData.optrDefenderGameUnit->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 	{
 		CX2GUNPC *pNpc = (CX2GUNPC *)pDamageData.optrDefenderGameUnit.GetObservable();
-		if( pNpc != NULL && pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+		if( pNpc != NULL && pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 			return;
 	}
 	
-	if( m_bAttackNasodBall == false && m_bDelayAttackNasodBall == false &&
+
+
+	if( false == ( m_bAttackNasodBall == false && m_bDelayAttackNasodBall == false &&
 		pDamageData.m_eDamageTrigger == CX2DamageManager::DTT_RAVEN_RAGE_ATTACK &&
-		m_pNasodBall != NULL &&
-		m_pNasodBall->m_pEffect != NULL &&
-		m_bParrying == false &&	
-		g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) == true )
+        m_bParrying == false &&	
+		m_pNasodBall != NULL ) )
+        return;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) ? m_pNasodBall->m_pEffect : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE		
 	{
 		// 발사		
 		m_bDelayAttackNasodBall = true;
@@ -13098,29 +14013,40 @@ void CX2GURaven::AttackResultByType( CX2DamageManager::DamageData &pDamageData )
 				}
 			}
 		}		
-
-		m_pNasodBall->m_pEffect->GetMainEffect()->SetDirSpeed( 0.f );
+        CKTDGXMeshPlayer::CXMeshInstance* pNasodBallEffectMeshInstance = pNasodBallEffect->GetMainEffect();
+        if ( pNasodBallEffectMeshInstance != NULL )
+		    pNasodBallEffectMeshInstance->SetDirSpeed( 0.f );
 		switch( m_iNaosdBallLv )
 		{
 		case 1:			
-			m_pNasodBall->m_pEffect->GetMainEffect()->ChangeAnim(L"Attack1", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.f, 1.f, 1.f);			
+            if ( pNasodBallEffectMeshInstance == NULL )
+                break;
+			pNasodBallEffectMeshInstance->ChangeAnim(L"Attack1", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
+			pNasodBallEffectMeshInstance->SetScale(1.f, 1.f, 1.f);			
 			break;
-		case 2:					
-			m_pNasodBall->m_pEffect->GetMainEffect()->ChangeAnim(L"Attack2", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);	
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.6f, 1.6f, 1.6f);
+		case 2:	
+            if ( pNasodBallEffectMeshInstance == NULL )
+                break;
+			pNasodBallEffectMeshInstance->ChangeAnim(L"Attack2", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);	
+			pNasodBallEffectMeshInstance->SetScale(1.6f, 1.6f, 1.6f);
 			break;
 		case 3:
-			m_pNasodBall->m_pEffect->GetMainEffect()->ChangeAnim(L"Attack3", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.4f, 1.4f, 1.4f);
+            if ( pNasodBallEffectMeshInstance == NULL )
+                break;
+			pNasodBallEffectMeshInstance->ChangeAnim(L"Attack3", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
+			pNasodBallEffectMeshInstance->SetScale(1.4f, 1.4f, 1.4f);
 			break;
 		case 4:
-			m_pNasodBall->m_pEffect->GetMainEffect()->ChangeAnim(L"Attack4", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.6f, 1.6f, 1.6f);
+            if ( pNasodBallEffectMeshInstance == NULL )
+                break;
+			pNasodBallEffectMeshInstance->ChangeAnim(L"Attack4", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
+			pNasodBallEffectMeshInstance->SetScale(1.6f, 1.6f, 1.6f);
 			break;
 		case 5:
-			m_pNasodBall->m_pEffect->GetMainEffect()->ChangeAnim(L"Attack5", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetScale(1.5f, 1.5f, 1.5f);
+            if ( pNasodBallEffectMeshInstance == NULL )
+                break;
+			pNasodBallEffectMeshInstance->ChangeAnim(L"Attack5", CKTDGXSkinAnim::XAP_ONE_WAIT, 1.f);
+			pNasodBallEffectMeshInstance->SetScale(1.5f, 1.5f, 1.5f);
 			break;
 		default:
 			RestoreNasodBall();
@@ -13165,29 +14091,44 @@ void CX2GURaven::ChangePowerRateNasodBall()
 		return;
 	}	
 
-	m_pNasodBall->m_pEffect->GetDamageData()->damage.fPhysic = fPhysic * fBallPowerRate;
-	m_pNasodBall->m_pEffect->GetDamageData()->damage.fMagic = fMagic * fBallPowerRate;
+    if ( m_pNasodBall == NULL )
+        return;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pNasodBallEffect = m_pNasodBall->m_pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if (pNasodBallEffect == NULL )
+        return;
+	pNasodBallEffect->GetDamageData().damage.fPhysic = fPhysic * fBallPowerRate;
+	pNasodBallEffect->GetDamageData().damage.fMagic = fMagic * fBallPowerRate;
 }
 
 void CX2GURaven::AttackNasodBall( )
 {
-	if( m_pNasodBall != NULL && m_pNasodBall->m_pEffect != NULL &&
-		m_pNasodBall->m_pEffect->GetMainEffect() != NULL &&
-		g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) == true ) 
+    if ( m_pNasodBall == NULL )
+        return;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) ? m_pNasodBall->m_pEffect : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( CKTDGXMeshPlayer::CXMeshInstance* pNasodBallEffectMeshInstance = ( pNasodBallEffect != NULL ) ? pNasodBallEffect->GetMainEffect() : NULL )
 	{
-		CX2DamageEffect::LockOnData* pLockOnData = m_pNasodBall->m_pEffect->GetLockOnData();
-#ifdef FIX_AFTER_IMAGE
-		if ( NULL != pLockOnData )
-		{
-			pLockOnData->m_fCurveSpeed = 30.f;
-			pLockOnData->m_fUnLockTime = 0.06f;
-		}
-#else
+		CX2DamageEffect::LockOnData* pLockOnData = &pNasodBallEffect->GetLockOnData();
+//#ifdef FIX_AFTER_IMAGE
+//		//if ( NULL != pLockOnData )
+//		{
+//			pLockOnData->m_fCurveSpeed = 30.f;
+//			pLockOnData->m_fUnLockTime = 0.06f;
+//		}
+//#else
 		pLockOnData->m_fCurveSpeed = 30.f;
 		pLockOnData->m_fUnLockTime = 0.06f;
-#endif
+//#endif
 
-		if( (m_iLockOnUid >= 0 || m_iLockOnUid < -1) && pLockOnData != NULL )
+		if( (m_iLockOnUid >= 0 || m_iLockOnUid < -1) )
 		{			
 			if( m_bLockOnNpc == true )
 			{
@@ -13224,11 +14165,11 @@ void CX2GURaven::AttackNasodBall( )
 			if( true == GetIsRight() )
 				vDirVec *= -1;
 
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetPos( m_pNasodBall->m_pEffect->GetMainEffect()->GetPos() + vDirVec * 150.f + D3DXVECTOR3( 0, 0, 0 ) );
-			m_pNasodBall->m_pEffect->SetAttackTime( D3DXVECTOR2( 0, 9999 ) );
+			pNasodBallEffectMeshInstance->SetPos( pNasodBallEffectMeshInstance->GetPos() + vDirVec * 150.f + D3DXVECTOR3( 0, 0, 0 ) );
+			pNasodBallEffect->SetAttackTime( D3DXVECTOR2( 0, 9999 ) );
 
-			m_pNasodBall->m_pEffect->SetLandPos( 0.f );
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetDirSpeed( 3600.f );				
+			pNasodBallEffect->SetLandPos( 0.f );
+			pNasodBallEffectMeshInstance->SetDirSpeed( 3600.f );				
 						
 			ChangePowerRateNasodBall();
 
@@ -13253,8 +14194,7 @@ void CX2GURaven::DoFrameMoveNasodBall()
 				m_fParryingTime = 0.f;
 				m_bCanParrying = false;
 
-
-				//D3DXVECTOR3 vPos = m_pNasodBall->m_pEffect->GetMainEffect()->GetPos();
+				//D3DXVECTOR3 vPos = pNasodBallEffect->GetMainEffect()->GetPos();
 				//g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_PVP_BOT_CATASTROPHE_LASER", GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree() );			
 			}
 		}
@@ -13263,9 +14203,14 @@ void CX2GURaven::DoFrameMoveNasodBall()
 		if( m_pNasodBall != NULL )
 		{
 			CKTDGXMeshPlayer::CXMeshInstanceHandle hMeshPlayer = INVALID_MESH_INSTANCE_HANDLE;
-			if( m_pAfterImageNasodBall != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) == true )				
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) ? m_pNasodBall->m_pEffect : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( m_pAfterImageNasodBall != NULL && pNasodBallEffect != NULL )
 			{
-				hMeshPlayer = m_pNasodBall->m_pEffect->GetMainEffectHandle();
+				hMeshPlayer = pNasodBallEffect->GetMainEffectHandle();
 				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( hMeshPlayer );
 				
 				if( pMeshInst != NULL && pMeshInst->GetState() == CKTDGXMeshPlayer::IS_PLAY &&
@@ -13329,14 +14274,24 @@ void CX2GURaven::DoFrameMoveNasodBall()
 		D3DXVECTOR3 vDirVec = GetDirVector();
 
 		if( m_bAttackNasodBall == false && m_bDelayAttackNasodBall == false && GetParrying() == false &&
-			m_pNasodBall != NULL && m_pNasodBall->m_pEffect != NULL )
+			m_pNasodBall != NULL && 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_pNasodBall->m_hEffect != INVALID_DAMAGE_EFFECT_HANDLE
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_pNasodBall->m_pEffect != NULL 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            )
 		{
-			if( true == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) ? m_pNasodBall->m_pEffect : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{
 				D3DXVECTOR3 vZVec = GetZVector();
 				D3DXVec3Normalize( &vDirVec, &vDirVec );
 
-				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = m_pNasodBall->m_pEffect->GetMainEffect();
+				CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = pNasodBallEffect->GetMainEffect();
 				if( NULL != pMeshInst )
 				{
 					D3DXVECTOR3 vTargetPos = GetPos();
@@ -13373,26 +14328,39 @@ void CX2GURaven::DoFrameMoveNasodBall()
 			}			
 		}
 
-		if( m_bParrying == true && m_pNasodBall != NULL && m_pNasodBall->m_pEffect != NULL && m_pNasodBall->m_pEffect->GetMainEffect() != NULL )
+		if( m_bParrying == true && m_pNasodBall != NULL  )
 		{			
-			if( GetIsRight() == false )
-				vDirVec *= -1;			
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            CX2DamageEffect::CEffect* pNasodBallEffect = m_pNasodBall->m_pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CKTDGXMeshPlayer::CXMeshInstance* pNasodBallEffectMeshInstance = ( pNasodBallEffect != NULL ) ? pNasodBallEffect->GetMainEffect() : NULL )
+            {
+			    if( GetIsRight() == false )
+				    vDirVec *= -1;			
 
-#ifdef VERIFY_STAT_BY_BUFF
-			const PROTECT_VECTOR3 &vScale = GetScaleByUnit();
-#else	// VERIFY_STAT_BY_BUFF
-			const D3DXVECTOR3 &vScale = GetScaleByUnit();
-#endif // VERIFY_STAT_BY_BUFF
+    #ifdef VERIFY_STAT_BY_BUFF
+			    const PROTECT_VECTOR3 &vScale = GetScaleByUnit();
+    #else	// VERIFY_STAT_BY_BUFF
+			    const D3DXVECTOR3 &vScale = GetScaleByUnit();
+    #endif // VERIFY_STAT_BY_BUFF
 
-			D3DXVECTOR3 vOffset = vScale.x * vDirVec * 70.f;
-			float fOffsetY = vScale.y * 100.f;
+			    D3DXVECTOR3 vOffset = vScale.x * vDirVec * 70.f;
+			    float fOffsetY = vScale.y * 100.f;
 
-			m_pNasodBall->m_pEffect->GetMainEffect()->SetPos( GetPos() +  vOffset + D3DXVECTOR3( 0.f, fOffsetY, 0.f ) );			
+			    pNasodBallEffectMeshInstance->SetPos( GetPos() +  vOffset + D3DXVECTOR3( 0.f, fOffsetY, 0.f ) );		
+            }
 		}
 
 		m_fNasodBallAttackTime += m_fElapsedTime;
 #ifdef FIX_AFTER_IMAGE
-		if( m_pNasodBall != NULL && m_pNasodBall->m_pEffect != NULL && 
+		if( m_pNasodBall != NULL && 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_pNasodBall->m_hEffect != INVALID_DAMAGE_EFFECT_HANDLE &&
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            m_pNasodBall->m_pEffect != NULL && 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_bAttackNasodBall == true && m_bDelayAttackNasodBall == false && m_fNasodBallAttackTime >= 1.2f )
 #else
 		if( m_bAttackNasodBall == true && m_bDelayAttackNasodBall == false && m_fNasodBallAttackTime >= 1.2f )
@@ -13404,22 +14372,17 @@ void CX2GURaven::DoFrameMoveNasodBall()
 			m_bAttackNasodBall = false;
 			m_fDelayAttackTime = 0.f;
 			m_fNasodBallAttackTime = 0.f;
-			if( g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) == false )
-			{
-				// 타격한 경우이므로 정상적으로 제거
-				if( IsMyUnit() == true )
-				{
-					m_fRageGauge = m_fRageGauge - (m_iNaosdBallLv * 20.f);
-				}
-				ClearNasodBall();
-			}				
-			else
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->GetInstance( m_pNasodBall->m_hEffect ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( CX2DamageEffect::CEffect* pNasodBallEffect = g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pNasodBall->m_pEffect ) ? m_pNasodBall->m_pEffect : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{
 #ifndef FIX_AFTER_IMAGE
-				if( m_pNasodBall != NULL && m_pNasodBall->m_pEffect != NULL )
+				if( m_pNasodBall != NULL && pNasodBallEffect != NULL )
 #endif
 				{
-					if( m_pNasodBall->m_pEffect->GetDamageTimeNow() > 0 )
+					if( pNasodBallEffect->GetDamageTimeNow() > 0 )
 					{
 						// 타격한 경우이므로 정상적으로 제거
 						if( IsMyUnit() == true )
@@ -13436,6 +14399,15 @@ void CX2GURaven::DoFrameMoveNasodBall()
 					}
 				}				
 			}
+            else
+			{
+				// 타격한 경우이므로 정상적으로 제거
+				if( IsMyUnit() == true )
+				{
+					m_fRageGauge = m_fRageGauge - (m_iNaosdBallLv * 20.f);
+				}
+				ClearNasodBall();
+			}				
 		}
 	}	
 }
@@ -13463,7 +14435,7 @@ void CX2GURaven::AddRageGuage(float fVal)
 	{
 		float fTotalTime = 0.0f;
 
-		const CX2UserSkillTree& cUserSkillTree = m_pUnit->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& cUserSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const CX2SkillTree::SkillTemplet* pSkillTempletSpritualizedFury 
 			= cUserSkillTree.GetUserSkillTemplet( CX2SkillTree::SI_P_RRF_SPIRITUALIZED_FURY );
 
@@ -13510,10 +14482,10 @@ void CX2GURaven::RSI_SI_A_RF_SHADOW_STEP_StartFuture()
 		if( 0.f != m_PhysicParam.passiveSpeed.x )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -13557,10 +14529,10 @@ void CX2GURaven::RSI_SI_A_RF_SHADOW_STEP_Start()
 		if( NULL != pSkillTemplet && true == m_bEnableShadowBackSlide )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -13586,7 +14558,11 @@ void CX2GURaven::RSI_SI_A_RF_SHADOW_STEP_FrameMove()
 	{
 		if( m_fShadowStepTimeLeft > 0.f )
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_fShadowStepTimeLeft -= GetElapsedTime();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_fShadowStepTimeLeft -= g_pKTDXApp->GetElapsedTime();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if( m_fShadowStepTimeLeft < 0.f )
 				m_fShadowStepTimeLeft = 0.f;
 		}
@@ -13669,7 +14645,14 @@ void CX2GURaven::RSI_SI_A_RF_SHADOW_STEP_EventProcess()
 				}
 				else
 				{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+					if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == false)
+					{
+						g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+					}
+#else
 					g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+#endif ALWAYS_SCREEN_SHOT_TEST
 				}
 			}
 		}
@@ -13860,7 +14843,7 @@ bool CX2GURaven::CheckPressedSkillForCancel()
 
 	bool bSlotB = (iPressedSlot > 3) ? true : false;
 	int iSlotIndex = (iPressedSlot > 3) ? iPressedSlot-4 : iPressedSlot;
-	const CX2UserSkillTree::SkillSlotData* pSkillSlotData = m_pUnit->GetUnitData()->m_UserSkillTree.GetSkillSlot( iSlotIndex, bSlotB );	
+	const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( iSlotIndex, bSlotB );	
 
 	if( pSkillSlotData == NULL )
 		return false;	
@@ -13997,7 +14980,41 @@ void CX2GURaven::RSI_SA_ROT_VALKYRIESJAVELIN_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		float fUpPower = -1.f;
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO21 ) == true )
+		{
+			D3DXVECTOR3 vecMyPos = GetPos();
+			D3DXVECTOR3 vecLandPos = GetLandPosition();
+			
+			fUpPower = floor( (vecMyPos.y - vecLandPos.y) * 0.01f );
+			fUpPower = (fUpPower * 0.02f);
+			fUpPower = min( fUpPower, 0.1f );
+
+			fUpPower = fUpPower + GetPowerRate();
+		}
+		CX2EffectSet::Handle hGroundImpact = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RAVEN_VJAVELIN", this, NULL, false, fUpPower );
+		m_vecEffectSetToDeleteOnDamageReact.push_back(hGroundImpact);
+#else //ADD_MEMO_1ST_CLASS
+		CX2EffectSet::Handle hGroundImpact = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RAVEN_VJAVELIN", this );
+		m_vecEffectSetToDeleteOnDamageReact.push_back(hGroundImpact);
+#endif //ADD_MEMO_1ST_CLASS
+		
+	}
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.48f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.48f ) == true && EventCheck( 0.48f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;			
 		m_PhysicParam.fDownAccel = m_PhysicParam.fGAccel * 2.f;
@@ -14045,7 +15062,39 @@ void CX2GURaven::RSI_SA_ROT_VALKYRIESJAVELIN_HYPER_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		float fUpPower = -1.f;
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO21 ) == true )
+		{
+			D3DXVECTOR3 vecMyPos = GetPos();
+			D3DXVECTOR3 vecLandPos = GetLandPosition();
+
+			fUpPower = floor( (vecMyPos.y - vecLandPos.y) * 0.01f );
+			fUpPower = (fUpPower * 0.02f);
+			fUpPower = min( fUpPower, 0.1f );
+
+			fUpPower = fUpPower + GetPowerRate();
+		}
+		CX2EffectSet::Handle hGroundImpact = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RAVEN_VJAVELIN", this, NULL, true, fUpPower );
+		m_vecEffectSetToDeleteOnDamageReact.push_back(hGroundImpact);
+#else //ADD_MEMO_1ST_CLASS
+		CX2EffectSet::Handle hGroundImpact = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RAVEN_VJAVELIN", this );
+		m_vecEffectSetToDeleteOnDamageReact.push_back(hGroundImpact);
+#endif //ADD_MEMO_1ST_CLASS
+
+	}
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.48f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.48f ) == true && EventCheck( 0.48f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;			
 		m_PhysicParam.fDownAccel = m_PhysicParam.fGAccel * 2.f;
@@ -14127,10 +15176,10 @@ void CX2GURaven::RSI_A_RST_CUT_TENDON_StateStart()
 	if ( NULL != pSkillTemplet && pSkillTemplet->m_vecBuffFactorPtr.size() > 1 )
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit()  )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 		
 		if ( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO11 ) )
@@ -14180,10 +15229,10 @@ void CX2GURaven::RSI_A_ROT_WEAPON_BREAK_StateStart()
 	if ( NULL != pSkillTemplet && pSkillTemplet->m_vecBuffFactorPtr.size() > 1 )
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit()  )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
 		if ( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO12 ) )
@@ -14235,11 +15284,20 @@ void CX2GURaven::RSI_A_RST_BLOODY_ACCEL_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.f ) == true && EventCheck( 1.f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_RST_BLOODY_ACCEL );
 		if( NULL != pSkillTemplet )
 		{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO19 ) == true )
+				SetBuffFactorToGameUnit( pSkillTemplet, 1 );
+			else
+#endif //ADD_MEMO_1ST_CLASS
 			SetBuffFactorToGameUnit( pSkillTemplet, 0 );
 		}
 
@@ -14247,7 +15305,7 @@ void CX2GURaven::RSI_A_RST_BLOODY_ACCEL_FrameMove()
 		m_hSeqBloodyAccel = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"SpinLiner_Raven_Bloody_Accel01", vBonePos );
 	}
 
-	if( m_hSeqBloodyAccel != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqBloodyAccel != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqBloodyAccel );
 		if( NULL != pSeq )
@@ -14302,7 +15360,11 @@ void CX2GURaven::RSI_A_ROT_NUCLEAR_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.5f ) == true && EventCheck( 2.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 40.f, 1.6f );
 	}
@@ -14336,7 +15398,11 @@ void CX2GURaven::RSI_A_ROT_NUCLEAR_Hyper_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy1_Rhand", 0.01f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 2.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 2.5f ) == true && EventCheck( 2.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 40.f, 1.6f );
 	}
@@ -14392,7 +15458,11 @@ void CX2GURaven::RRF_DASH_JUMP_COMBO_X_FrameMoveFuture()
 
 void CX2GURaven::RRF_DASH_JUMP_COMBO_X_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.26f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.26f ) && EventCheck( 0.26f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp( 10.0f ) == true )
 		{
@@ -14404,7 +15474,7 @@ void CX2GURaven::RRF_DASH_JUMP_COMBO_X_FrameMove()
 			pos.y -= 10.0f;
 
 #ifdef BALANCE_PATCH_20120329
-			if( m_hEffectDashJumpComboX != CX2EffectSet::INVALID_HANDLE )
+			if( m_hEffectDashJumpComboX != INVALID_EFFECTSET_HANDLE )
 				g_pX2Game->GetEffectSet()->StopEffectSet( m_hEffectDashJumpComboX );
 				
 			m_hEffectDashJumpComboX = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RRF_DashJumpX", (CX2GameUnit*)this, (CX2GameUnit*)this );
@@ -14514,6 +15584,16 @@ void CX2GURaven::RRF_DASH_JUMP_COMBO_XX_LANDING_EventProcess()
 	{
 		StateChange( USI_WAIT );
 	}		
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	IF_SKILL_CANCEL_AFTER( 0.4f )
+	ELSE_IF_ARROW_ZXASDC_PRESSED_AFTER( 0.4f )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	ELSE_IF_ARROW_ZXASDC_PRESSED_AFTER( 0.4f )
 	{
 		if( SpecialAttackEventProcess() == true )
@@ -14524,6 +15604,7 @@ void CX2GURaven::RRF_DASH_JUMP_COMBO_XX_LANDING_EventProcess()
 		else
 			StateChange( USI_WAIT );
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 
 	CommonEventProcess();
 }
@@ -14575,9 +15656,13 @@ void CX2GURaven::RRF_COMBO_ZZXFRONTX_EventProcess()
 		StateChange( USI_JUMP_DOWN );
 		m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_InputData.pureDoubleRight == true || m_InputData.pureDoubleLeft == true )
 	{
 		StateChangeDashIfPossible();
@@ -14641,9 +15726,13 @@ void CX2GURaven::RBM_Combo_XZZ_EventProcess()
 	{
 		StateChange( USI_WAIT );
 	}		
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.01f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( SpecialAttackEventProcess() == true )
 	{
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_InputData.pureDoubleRight == true || m_InputData.pureDoubleLeft == true )
 	{
 		StateChangeDashIfPossible();
@@ -14702,9 +15791,13 @@ void CX2GURaven::RBM_COMBO_ZZZX_FrameMove()
 {
 	// To do...
 		
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.24f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.24f ) == true && EventCheck( 0.24f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		if( m_hBlackHoleEffectSet != CX2EffectSet::INVALID_HANDLE )
+		if( m_hBlackHoleEffectSet != INVALID_EFFECTSET_HANDLE )
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_hBlackHoleEffectSet );
 
 		m_iBlackHoleHitCount = 1;
@@ -14824,14 +15917,22 @@ void CX2GURaven::RBM_COMBO_ZZZX_EXPLOSION_FrameMove()
 {
 	// To do...
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 10.0f, 0.2f );
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		//if( m_hBlackHoleEffectSet != CX2EffectSet::INVALID_HANDLE )
+		//if( m_hBlackHoleEffectSet != INVALID_EFFECTSET_HANDLE )
 		//	g_pX2Game->GetEffectSet()->StopEffectSet( m_hBlackHoleEffectSet );
 
 		m_iBlackHoleHitCount = 0;
@@ -14885,7 +15986,11 @@ void CX2GURaven::SI_A_RRF_GROUND_IMPACT_FrameMove()
 {
 	// To do...
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.466f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.466f ) == true && EventCheck( 0.466f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		float fScale = 1.f;
 
@@ -14897,10 +16002,10 @@ void CX2GURaven::SI_A_RRF_GROUND_IMPACT_FrameMove()
 		if( NULL != pSkillTemplet )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -14911,13 +16016,13 @@ void CX2GURaven::SI_A_RRF_GROUND_IMPACT_FrameMove()
 		}
 
 		CX2EffectSet::Handle hGroundImpact = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RAVEN_GROUND_IMPACT", this, NULL, false, -1.f, 01.f, D3DXVECTOR3(fScale, fScale, fScale) );
-// 			if( hGroundImpact != CX2EffectSet::INVALID_HANDLE )
+// 			if( hGroundImpact != INVALID_EFFECTSET_HANDLE )
 // 			{				
 // 				CX2EffectSet::EffectSetInstance *pInst = g_pX2Game->GetEffectSet()->GetEffectSetInstance(hGroundImpact);				
 // 				pInst->SetEffectScale( D3DXVECTOR3(fScale, fScale, fScale) );
 // 			}		
 
-		//g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( 20.0f, 0.2f );
+		//g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( 20.0f, 0.2f );
 	}		
 
 	CommonFrameMove();
@@ -14969,11 +16074,19 @@ void CX2GURaven::SI_SA_RRF_X_CRASH_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 1 );
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.166f ) == true && EventCheck( 1.166f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_vXCrashPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 	}		
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.31f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.31f ) == true && EventCheck( 1.31f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		if( IsHyperState() == true )
 		{
@@ -15018,10 +16131,10 @@ void CX2GURaven::SI_A_RBM_ONE_FLASH_StateStart()
 	if( NULL != pSkillTemplet )
 	{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit()  )
 		return;
 	
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -15129,9 +16242,9 @@ void CX2GURaven::SI_SA_RBM_WOLF_FANG_STARTLANDING_EventProcess()
 		}
 
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_A_RBM_WOFL_FANG );
+		const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_A_RBM_WOFL_FANG );
 #else //UPGRADE_SKILL_SYSTEM_2013
-		const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_SA_RBM_WOFL_FANG );
+		const CX2UserSkillTree::SkillSlotData* pSkillSlotData = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillSlot( CX2SkillTree::SI_SA_RBM_WOFL_FANG );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		if( NULL != pSkillSlotData )
 		{
@@ -15199,7 +16312,7 @@ void CX2GURaven::RBM_EMERGENCY_ESCAPE()
 {
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RBM_EMERGENCY_ESCAPE, true );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RBM_EMERGENCY_ESCAPE, true );
 
 	/// 긴급 탈출 스킬 확인
 	if( iSkillLevel > 0 )
@@ -15216,6 +16329,12 @@ void CX2GURaven::RBM_EMERGENCY_ESCAPE()
 
 				if ( GetNowMp() < fMPConsume )
 				{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+					if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == true)
+					{
+						return;
+					}
+#endif ALWAYS_SCREEN_SHOT_TEST
 					g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
 					return;
 				}
@@ -15230,7 +16349,7 @@ void CX2GURaven::RBM_EMERGENCY_ESCAPE()
 
 	#else // UPGRADE_SKILL_SYSTEM_2013
 
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RBM_EMERGENCY_ESCAPE );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RBM_EMERGENCY_ESCAPE );
 
 	/// 긴급 탈출 스킬 확인
 	if( iSkillLevel > 0 )
@@ -15267,7 +16386,7 @@ void CX2GURaven::RBM_EMERGENCY_ESCAPE_StartFuture()
 		
 	CX2SkillTree::SkillTemplet* pSkillTemplet = NULL;
 
-	int iSkillLevel = GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_RF_SHADOW_STEP );
+	int iSkillLevel = GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_A_RF_SHADOW_STEP );
 
 	// 섀도우 스텝 스킬 포인트가 0일 때
 	if ( 0 == iSkillLevel )
@@ -15351,9 +16470,13 @@ void CX2GURaven::RSI_SA_RBM_GIGA_DRIVE_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( m_pXSkinAnim->EventTimerOneshot( 1.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( m_pXSkinAnim->EventTimer( 1.1f ) == true && EventCheck( 1.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
-		CX2UserSkillTree& cUserSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		//CX2UserSkillTree& cUserSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 		const CX2SkillTree::SkillTemplet* pSkillTempletGigaDrive = GetEquippedActiveSkillTemplet( CX2SkillTree::SI_SA_RBM_GIGA_DRIVE_LIMITER );
 #else //UPGRADE_SKILL_SYSTEM_2013
@@ -15460,7 +16583,11 @@ void CX2GURaven::RSI_SA_RRF_WILD_CHARGE_READY_FrameMove()
 
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_WildChargeDataPtr->SetHandleWildCharingEffectSet( g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RF_WILD_CHARGE_CHARGING", this ) );
 	}
@@ -15563,7 +16690,11 @@ void CX2GURaven::RSI_SA_RRF_WILD_CHARGING_StateEnd()
 
 void CX2GURaven::RSI_SA_RRF_WILD_CHARGE_DASH_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		const float MAX_CHARGE_POWER_RATE = 10.0f;
 		if ( MAX_CHARGE_POWER_RATE < m_WildChargeDataPtr->GetPowerRateWildCharging() )
@@ -15650,12 +16781,16 @@ void CX2GURaven::RSI_PARRYING_EventProcess()
 			StateChange( USI_WAIT );
 		}
 	}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+	SKILL_CANCEL_AFTER( 0.3f )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 	else if( m_pXSkinAnimFuture->GetNowAnimationTime() >= 0.3f ) 
 	{
 		if( SpecialAttackEventProcess() == true )
 		{
 		}
 	}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 
 	CommonEventProcess();
 }
@@ -15676,16 +16811,23 @@ CX2GURaven::ArcEnemyData::ArcEnemyData()
 {
 	m_vOffsetRotate = D3DXVECTOR3(0, 0, 0);
 	m_vOffsetPos = D3DXVECTOR3( 0, 0, 0 );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hEffect = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_pEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 CX2GURaven::ArcEnemyData::~ArcEnemyData()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( INVALID_DAMAGE_EFFECT_HANDLE != m_hEffect )
+		g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL != m_pEffect )
-	{
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pEffect );
-		m_pEffect = NULL;
-	}
+    m_pEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
@@ -15695,7 +16837,11 @@ CX2GURaven::ArcEnemyData::~ArcEnemyData()
 #ifdef RAVEN_WEAPON_TAKER
 void CX2GURaven::RSI_RWT_LOSE2_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.55f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.55f ) == true && EventCheck( 1.55f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		UpDownCrashCamera( 20.0f, 0.3f );
 	}
@@ -15717,7 +16863,11 @@ void CX2GURaven::RWT_COMBO_X_Init()
 }
 void CX2GURaven::RWT_COMBO_X_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.321f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.321f ) == true && EventCheck( 0.321f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp(2.0f) == true )
 		{
@@ -15926,7 +17076,7 @@ void CX2GURaven::_ShowOverheatIcon()
 
 #ifdef SERV_RAVEN_VETERAN_COMMANDER
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqOverHeatIcon )				/// 기존에 있던 오버 히트 이모티콘은 해제
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqOverHeatIcon )				/// 기존에 있던 오버 히트 이모티콘은 해제
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pEmoticon = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqOverHeatIcon );
 
@@ -15942,11 +17092,11 @@ void CX2GURaven::_ShowOverheatIcon()
 	/// 오버 히트 이모티콘 새로 생성
 	m_hSeqOverHeatIcon = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*)this, L"WeaponTaker_Overheat", vPos );
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqOverHeatIcon )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqOverHeatIcon )
 		g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqOverHeatIcon );
 
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqOverHeatOverlapIcon )		/// 기존에 있던 오버 히트 중첩 이모티콘은 해제
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqOverHeatOverlapIcon )		/// 기존에 있던 오버 히트 중첩 이모티콘은 해제
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pEmoticon = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqOverHeatOverlapIcon );
 
@@ -15971,7 +17121,7 @@ void CX2GURaven::_ShowOverheatIcon()
 	else if ( 1 == iSize )
 		m_hSeqOverHeatIcon = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*)this, L"Overlap_EDT_Emoticon_1_OverHeat", vPos );
 
-	if( INVALID_PARTICLE_HANDLE != m_hSeqOverHeatIcon )
+	if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hSeqOverHeatIcon )
 		g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqOverHeatIcon );
 
 #else  SERV_RAVEN_VETERAN_COMMANDER
@@ -16019,15 +17169,15 @@ bool CX2GURaven::_CanOverheat()
 }
 
 #ifdef SERV_RAVEN_VETERAN_COMMANDER		//HP 감소율을 추가( 데들리 레이드 )
-void CX2GURaven::_BurnOverheatHP( CX2DamageManager::DamageData* pAttDamageData, float fDecreaseHPRate /*= -1.f*/, float fDecreaseHPRate2 /*= 1.f*/ )
+void CX2GURaven::_BurnOverheatHP( const CX2DamageManager::DamageData& AttDamageData, float fDecreaseHPRate /*= -1.f*/, float fDecreaseHPRate2 /*= 1.f*/ )
 #else  SERV_RAVEN_VETERAN_COMMANDER
-void CX2GURaven::_BurnOverheatHP( CX2DamageManager::DamageData* pAttDamageData )
+void CX2GURaven::_BurnOverheatHP( const CX2DamageManager::DamageData& AttDamageData )
 #endif SERV_RAVEN_VETERAN_COMMANDER
 {
-	if( pAttDamageData == NULL )
-		return;
+	//if( pAttDamageData == NULL )
+	//	return;
 
-	CX2DamageManager::DamageData kOverheatDamageData = *pAttDamageData;
+	CX2DamageManager::DamageData kOverheatDamageData = AttDamageData;
 #ifdef SERV_RAVEN_VETERAN_COMMANDER		//인자로 받은 감소율에 따라, 받는 데미지 연산
 	if( -1.f == fDecreaseHPRate )
 		fDecreaseHPRate = _CONST_RAVEN_::DEFAULT_OVERHEAT_HP_PENALTY;
@@ -16138,7 +17288,11 @@ void CX2GURaven::RSI_WEAPON_TAKER_COMBO_XXX_LOOP_FrameMove()
 
 	// 데미지 이펙트로 공격할 시점
 	const float fAttackTime = 0.11f;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( fAttackTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( fAttackTime ) == true && EventCheck( fAttackTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_bOverheated )
 		{
@@ -16221,14 +17375,7 @@ void CX2GURaven::RSI_WEAPON_TAKER_COMBO_XXX_FINISH_EventProcess()
 	WALK_CANCEL_AFTER( m_fWalkCancelAfter )
 	SKILL_CANCEL_AFTER( m_fSkillCancelAfter )
 #else  SERV_RAVEN_VETERAN_COMMANDER
-#ifdef FIX_SKILL_CANCEL01
 	SKILL_CANCEL_AFTER( 0.67f )
-#else
-	ELSE_IF_ASDC_PRESSED_AFTER(  )
-	{
-		SpecialAttackEventProcess();
-	}
-#endif
 #endif SERV_RAVEN_VETERAN_COMMANDER
 	else if( true == m_pXSkinAnimFuture->IsAnimationEnd() )
 	{
@@ -16350,7 +17497,11 @@ void CX2GURaven::RSI_WEAPON_TAKER_COMBO_ZZZXX_EventProcess()
 }
 void CX2GURaven::RSI_WEAPON_TAKER_COMBO_ZZZdownX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.335f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.335f ) == true && EventCheck( 0.335f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp(2.0f) == true )
 		{
@@ -16414,11 +17565,15 @@ void CX2GURaven::RSI_WEAPON_TAKER_COMBO_ZZZdownX_EventProcess()
 			StateChangeDashIfPossible();
 			bCanChangeStateComboZZZdownXX = false;
 		}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+		SKILL_CANCEL_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 		ELSE_IF_ASDC_PRESSED_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
 		{
 			if( true == SpecialAttackEventProcess() )
 				bCanChangeStateComboZZZdownXX = false;
 		}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	}
 
 
@@ -16441,7 +17596,11 @@ void CX2GURaven::RSI_WEAPON_TAKER_COMBO_ZZZdownX_EventProcess()
 }
 void CX2GURaven::RSI_WEAPON_TAKER_COMBO_ZZZdownXX_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.225f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.225f ) == true && EventCheck( 0.225f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( FlushMp(2.0f) == true )
 		{
@@ -16478,10 +17637,14 @@ void CX2GURaven::RSI_WEAPON_TAKER_COMBO_ZZZdownXX_EventProcess()
 		{			
 			StateChange( USI_WALK );
 		}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+		SKILL_CANCEL_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 		ELSE_IF_ASDC_PRESSED_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
 		{
 			SpecialAttackEventProcess();
 		}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	}
 
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
@@ -16691,10 +17854,14 @@ void CX2GURaven::RSI_A_RWT_BARRAGE_ATTACK_STAND_EventProcess()
 		{			
 			StateChange( USI_WALK );
 		}
+#ifdef SKILL_CANCEL_BY_HYPER_MODE // 김태환
+		SKILL_CANCEL_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
+#else // SKILL_CANCEL_BY_HYPER_MODE
 		ELSE_IF_ASDC_PRESSED_AFTER( LOWER_BOUND_INPUT_TIME_CANCEL )
 		{
 			SpecialAttackEventProcess();
 		}
+#endif //SKILL_CANCEL_BY_HYPER_MODE
 	}
 
 	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
@@ -16710,7 +17877,11 @@ void CX2GURaven::RSI_A_RWT_BARRAGE_ATTACK_STAND_EventProcess()
 void CX2GURaven::RSI_A_RWT_BARRAGE_ATTACK_STAND_FrameMove()
 {
 	// 지상에서 딜레이는 0.4초
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// 지상에서의 이펙트 오프셋
 		D3DXVECTOR3 vDirVector = GetDirVector();
@@ -16735,16 +17906,16 @@ void CX2GURaven::RSI_A_RWT_BARRAGE_ATTACK_STAND_FrameMove()
 			if ( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			{
-				if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+				if ( NULL == GetUnit()  )
 					return;
 
-				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+				const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 				const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-				pDE->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+				pDE->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 			}
 #else //UPGRADE_SKILL_SYSTEM_2013
-				pDE->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+				pDE->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 		}
 	}
@@ -16775,7 +17946,11 @@ void CX2GURaven::RSI_A_RWT_BARRAGE_ATTACK_AIR_EventProcess()
 void CX2GURaven::RSI_A_RWT_BARRAGE_ATTACK_AIR_FrameMove()
 {
 	// 공중0.1초
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.1f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.1f ) == true && EventCheck( 0.1f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// 공중에서의 이펙트 오프셋
 		D3DXVECTOR3 vDirVector = GetDirVector();
@@ -16804,16 +17979,16 @@ void CX2GURaven::RSI_A_RWT_BARRAGE_ATTACK_AIR_FrameMove()
 				if ( NULL != pSkillTemplet && !pSkillTemplet->m_vecBuffFactorPtr.empty() )
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 				{
-					if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+					if ( NULL == GetUnit()  )
 						return;
 
-					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+					const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 					const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
-					pDE->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
+					pDE->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
 				}
 #else //UPGRADE_SKILL_SYSTEM_2013
-					pDE->GetDamageData()->PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
+					pDE->GetDamageData().PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0] );
 #endif //UPGRADE_SKILL_SYSTEM_2013
 			}
 		}
@@ -16876,13 +18051,16 @@ void CX2GURaven::RSI_SA_RWT_BURSTING_BLADE_ATTACK_StateStart()
 	// 버스팅블레이드가 이미 존재하면 삭제
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hBurstingBladeAttackBox )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hBurstingBladeAttackBox );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hBurstingBladeAttackBox );
 	}
 
 	// 이후 생성
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"BurstingBladeAttackBox", 0,0,0, 0,0,0, 0,0,0 );
 	if( pMeshInst != NULL )
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        pMeshInst->SetPerFrameSimulation( true );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 		m_hBurstingBladeAttackBox = pMeshInst->GetHandle();
 		pMeshInst->SetBoundingRadius( 0.0f );
 
@@ -16915,7 +18093,11 @@ void CX2GURaven::RSI_SA_RWT_BURSTING_BLADE_ATTACK_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.01f, 1 );
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈	ChangeWorldColorByHyperMode();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.8f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( 0.8f ) && true == EventCheck( 0.8f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -16924,8 +18106,10 @@ void CX2GURaven::RSI_SA_RWT_BURSTING_BLADE_ATTACK_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
-			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	        m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );
 			m_LuaManager.EndTable();
 
 #ifdef ADDITIONAL_MEMO
@@ -16942,7 +18126,11 @@ void CX2GURaven::RSI_SA_RWT_BURSTING_BLADE_ATTACK_FrameMove()
 #endif
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( true == m_pXSkinAnim->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( true == m_pXSkinAnim->EventTimer( 1.2f ) && true == EventCheck( 1.2f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -16951,8 +18139,10 @@ void CX2GURaven::RSI_SA_RWT_BURSTING_BLADE_ATTACK_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType				= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit		= this;
-			m_DamageData.pAttackerEffect			= NULL;
-			SetDamageData( L"DAMAGE_DATA_THIRD" );
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	        m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_THIRD" );
 			m_LuaManager.EndTable();
 
 #ifdef ADDITIONAL_MEMO
@@ -17006,7 +18196,7 @@ void CX2GURaven::RSI_SA_RWT_BURSTING_BLADE_ATTACK_StateEnd()
 	// 버스팅블레이드 삭제
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hBurstingBladeAttackBox )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hBurstingBladeAttackBox );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hBurstingBladeAttackBox );
 	}
 
 	CommonStateEnd();
@@ -17121,7 +18311,11 @@ void CX2GURaven::RSI_SA_RWT_REVOLVER_CANNON_LOOP_FrameMove()
 	// 이벤트 플래그가 무엇을 나타내는지 알기 쉽게 하도록
 	bool &bOverheat = m_FrameDataFuture.stateParam.bEventFlagList[0];
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_iRWTComboLoopCount == _CONST_RAVEN_::MIN_REVOLVER_CANNON_LOOP_COUNT + 1 )
 			PlaySound( L"RavenVoice_Shout12.ogg" );
@@ -17277,7 +18471,11 @@ void CX2GURaven::RSI_SA_RWT_HARPOON_SPEAR_FrameMove()
 	
 #ifndef SERV_RAVEN_VETERAN_COMMANDER		/// 주의 : 베테랑 커맨더 디파인 없을 때
 	// 0.75초에 중력을 다시 켠다.
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.75f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.75f ) == true && EventCheck( 0.75f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_bDisableGravity = false;
 	}
@@ -17361,7 +18559,11 @@ void CX2GURaven::RSI_SA_RWT_HARPOON_SPEAR_FIRE_OVERHEAT_StateStart()
 }
 void CX2GURaven::RSI_SA_RWT_HARPOON_SPEAR_FIRE_OVERHEAT_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		/// 오버 히트 데미지 처리
 		CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_HARPOON_SPEAR_SHELL_OVERHEAT_PENALTY",
@@ -17458,7 +18660,11 @@ void CX2GURaven::RSI_SA_RWT_HELLFIRE_GATLING_LOOP_StateStart()
 void CX2GURaven::RSI_SA_RWT_HELLFIRE_GATLING_LOOP_FrameMove()
 {
 	bool bFire = false;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.001f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.001f ) == true && EventCheck( 0.001f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Raven_Hellfire_Gatling", (CX2GameUnit*)this, (CX2GameUnit*)this );
 		bFire = true;
@@ -17466,13 +18672,21 @@ void CX2GURaven::RSI_SA_RWT_HELLFIRE_GATLING_LOOP_FrameMove()
 
 	if( m_iRWTComboLoopCount >= 4 && m_iRWTComboLoopCount <= 8 )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.09f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.09f ) == true && EventCheck( 0.09f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			bFire = true;
 	}
 	else if( m_iRWTComboLoopCount >= 9 )
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        if( m_pXSkinAnim->EventTimerOneshot( 0.06f ) || m_pXSkinAnim->EventTimerOneshot( 0.12f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		if( m_pXSkinAnim->EventTimer( 0.06f ) == true && EventCheck( 0.06f, false ) == true ||
-			m_pXSkinAnim->EventTimer( 0.12f ) == true && EventCheck( 0.12f, false ) == true )
+			m_pXSkinAnim->EventTimer( 0.12f ) == true && EventCheck( 0.12f, false ) == true ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			bFire = true;
 	}
 
@@ -17489,12 +18703,25 @@ void CX2GURaven::RSI_SA_RWT_HELLFIRE_GATLING_LOOP_FrameMove()
 
 		if( m_bOverheated )
 		{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO29 ) == true )
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_HELLFIRE_GATLING_BULLET_OVERHEAT_MEMO",
+				GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), GetYPos() );
+			else
+#endif //ADD_MEMO_1ST_CLASS
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_HELLFIRE_GATLING_BULLET_OVERHEAT",
 				GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), GetYPos() );
 
 			// 오버히트에 사용될 데미지 재현을 위한 임시 이펙트
-			CX2DamageEffect::CEffect* pEffect =
-				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_HELLFIRE_GATLING_IMPACT_OVERHEAT",
+			CX2DamageEffect::CEffect* pEffect = NULL;
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO29 ) == true )
+				pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_HELLFIRE_GATLING_IMPACT_OVERHEAT_MEMO",
+				GetPowerRate(), D3DXVECTOR3( 0.f, -1000.f, 0.f ), GetRotateDegree(), GetRotateDegree(), GetYPos() );
+			else
+#endif //ADD_MEMO_1ST_CLASS
+				pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_HELLFIRE_GATLING_IMPACT_OVERHEAT",
 				GetPowerRate(), D3DXVECTOR3( 0.f, -1000.f, 0.f ), GetRotateDegree(), GetRotateDegree(), GetYPos() );
 			if( pEffect != NULL )
 				_BurnOverheatHP( pEffect->GetDamageData() );
@@ -17503,6 +18730,12 @@ void CX2GURaven::RSI_SA_RWT_HELLFIRE_GATLING_LOOP_FrameMove()
 		}
 		else
 		{
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO29 ) == true )
+				g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_HELLFIRE_GATLING_BULLET_MEMO",
+				GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), GetYPos() );
+			else
+#endif //ADD_MEMO_1ST_CLASS
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_HELLFIRE_GATLING_BULLET",
 				GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), GetYPos() );
 		}
@@ -17682,8 +18915,12 @@ void CX2GURaven::_GetGigaProminencePosition( OUT bool& bRight, OUT float& fDista
 }
 void CX2GURaven::RSI_SA_RWT_GIGA_PROMINENCE_LOOP_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) || m_pXSkinAnim->EventTimerOneshot( 0.24f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true ||
 		m_pXSkinAnim->EventTimer( 0.24f ) == true && EventCheck( 0.24f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bRight = false;
 		float fDistance = 0.f;
@@ -17692,8 +18929,14 @@ void CX2GURaven::RSI_SA_RWT_GIGA_PROMINENCE_LOOP_FrameMove()
 		D3DXVECTOR3 vPos;
 		if( g_pX2Game->GetWorld()->GetLineMap()->GetFixedDistancePositionForWeaponTaker( &GetPos(), fDistance, bRight, vPos ) )
 		{
-			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Raven_Giga_Prominence_Flame",
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true )
+				g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Raven_Giga_Prominence_Flame_MEMO",
 				this, NULL, false, GetPowerRate(), -1.f, D3DXVECTOR3( 1, 1, 1 ), true, vPos, GetRotateDegree(), GetDirVector() );
+			else
+#endif //ADD_MEMO_1ST_CLASS
+				g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Raven_Giga_Prominence_Flame",
+					this, NULL, false, GetPowerRate(), -1.f, D3DXVECTOR3( 1, 1, 1 ), true, vPos, GetRotateDegree(), GetDirVector() );
 		}
 		else
 		{
@@ -17703,6 +18946,12 @@ void CX2GURaven::RSI_SA_RWT_GIGA_PROMINENCE_LOOP_FrameMove()
 
 			if( true == g_pX2Game->GetWorld()->GetLineMap()->GetFixedDistancePositionInAllLine( GetDirVector(), GetPos(), fDistance, bRight, vNewLinemapPos, iNewLineIndex ) )
 			{
+				#ifdef ADD_MEMO_1ST_CLASS //김창한
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true )
+				g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Raven_Giga_Prominence_Flame_MEMO",
+				this, NULL, false, GetPowerRate(), -1.f, D3DXVECTOR3( 1, 1, 1 ), true, vPos, GetRotateDegree(), GetDirVector() );
+			else
+#endif //ADD_MEMO_1ST_CLASS
 				g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Raven_Giga_Prominence_Flame",
 					this, NULL, false, GetPowerRate(), -1.f, D3DXVECTOR3( 1, 1, 1 ), true, vNewLinemapPos, GetRotateDegree(), GetDirVector() );
 			}
@@ -17753,32 +19002,59 @@ void CX2GURaven::RSI_SA_RWT_GIGA_PROMINENCE_LOOP_StateEnd()
 
 void CX2GURaven::RSI_SA_RWT_GIGA_PROMINENCE_FINISH_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// 왼쪽
-		CX2DamageEffect::CEffect* pLeft =
+		CX2DamageEffect::CEffect* pEffect =
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_GIGA_PROMINENCE_FINISH_STONE",
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), GetYPos() );
-		if( pLeft && pLeft->GetMainEffect() )
-			pLeft->GetMainEffect()->SetDirSpeed( -pLeft->GetMainEffect()->GetDirSpeed() );
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pLeftMeshInstance = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			pLeftMeshInstance->SetDirSpeed( -pLeftMeshInstance->GetDirSpeed() );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true && pEffect != NULL )
+			pEffect->SetScale(1.1f, 1.1f, 1.1f);
 
+		pEffect =
+#endif //ADD_MEMO_1ST_CLASS
 		// 오른쪽
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_GIGA_PROMINENCE_FINISH_STONE",
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), GetYPos() );
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true && pEffect != NULL )
+			pEffect->SetScale(1.1f, 1.1f, 1.1f);
+#endif //ADD_MEMO_1ST_CLASS
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// 왼쪽공격
-		CX2DamageEffect::CEffect* pLeft =
+		CX2DamageEffect::CEffect* pEffect =
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_GIGA_PROMINENCE_FINISH",
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), GetYPos() );
-		if( pLeft && pLeft->GetMainEffect() )
-			pLeft->GetMainEffect()->SetDirSpeed( -pLeft->GetMainEffect()->GetDirSpeed() );
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pLeftMeshInstance = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			pLeftMeshInstance->SetDirSpeed( -pLeftMeshInstance->GetDirSpeed() );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true && pEffect != NULL )
+			pEffect->SetScale(1.1f, 1.1f, 1.1f);
 
+		pEffect =
+#endif //ADD_MEMO_1ST_CLASS
 		// 오른쪽
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_GIGA_PROMINENCE_FINISH",
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), GetYPos() );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true && pEffect != NULL )
+			pEffect->SetScale(1.1f, 1.1f, 1.1f);
+#endif //ADD_MEMO_1ST_CLASS
 	}
 
 	CommonFrameMove();
@@ -17801,7 +19077,11 @@ void CX2GURaven::RSI_SA_RWT_GIGA_PROMINENCE_OVER_FINISH_StateStart()
 }
 void CX2GURaven::RSI_SA_RWT_GIGA_PROMINENCE_OVER_FINISH_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		PlaySound( L"RavenVoice_Shout12.ogg" );
 
@@ -17813,34 +19093,65 @@ void CX2GURaven::RSI_SA_RWT_GIGA_PROMINENCE_OVER_FINISH_FrameMove()
 		// 오버히트 데미지
 		if( pEffect )
 			_BurnOverheatHP( pEffect->GetDamageData() );
+
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true && pEffect != NULL )
+			pEffect->SetScale(1.1f, 1.1f, 1.1f);
+#endif //ADD_MEMO_1ST_CLASS
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.3f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.3f ) == true && EventCheck( 0.3f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// 왼쪽
-		CX2DamageEffect::CEffect* pLeft =
+		CX2DamageEffect::CEffect* pEffect =
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_GIGA_PROMINENCE_FINISH_STONE",
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), GetYPos() );
-		if( pLeft && pLeft->GetMainEffect() )
-			pLeft->GetMainEffect()->SetDirSpeed( -pLeft->GetMainEffect()->GetDirSpeed() );
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pLeftMeshInstance = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			pLeftMeshInstance->SetDirSpeed( -pLeftMeshInstance->GetDirSpeed() );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true && pEffect != NULL )
+			pEffect->SetScale(1.1f, 1.1f, 1.1f);
 
+		pEffect =
+#endif //ADD_MEMO_1ST_CLASS
 		// 오른쪽
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_GIGA_PROMINENCE_FINISH_STONE",
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), GetYPos() );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true && pEffect != NULL )
+			pEffect->SetScale(1.1f, 1.1f, 1.1f);
+#endif //ADD_MEMO_1ST_CLASS
 	}
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.4f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.4f ) == true && EventCheck( 0.4f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		// 왼쪽공격
-		CX2DamageEffect::CEffect* pLeft =
+		CX2DamageEffect::CEffect* pEffect =
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_GIGA_PROMINENCE_FINISH_OVERHEAT",
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), GetYPos() );
-		if( pLeft && pLeft->GetMainEffect() )
-			pLeft->GetMainEffect()->SetDirSpeed( -pLeft->GetMainEffect()->GetDirSpeed() );
+        if ( CKTDGXMeshPlayer::CXMeshInstance* pLeftMeshInstance = ( pEffect != NULL ) ? pEffect->GetMainEffect() : NULL )
+			pLeftMeshInstance->SetDirSpeed( -pLeftMeshInstance->GetDirSpeed() );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true && pEffect != NULL )
+			pEffect->SetScale(1.1f, 1.1f, 1.1f);
 
+		pEffect =
+#endif //ADD_MEMO_1ST_CLASS
 		// 오른쪽
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"RAVEN_GIGA_PROMINENCE_FINISH_OVERHEAT",
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), GetYPos() );
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO30 ) == true && pEffect != NULL )
+			pEffect->SetScale(1.1f, 1.1f, 1.1f);
+#endif //ADD_MEMO_1ST_CLASS
 	}
 
 	CommonFrameMove();
@@ -17954,7 +19265,11 @@ void CX2GURaven::RVC_DASH_JUMP_COMBO_X_FrameMoveFuture()
 
 void CX2GURaven::RVC_DASH_JUMP_COMBO_X_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.26f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.26f ) && EventCheck( 0.26f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDir = GetRotateDegree();
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
@@ -17970,7 +19285,7 @@ void CX2GURaven::RVC_DASH_JUMP_COMBO_X_FrameMove()
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_DASH_JUMP_X_BULLET",
 				GetPowerRate(), vPos, vDir, vDir, m_FrameDataNow.unitCondition.landPosition.y );
 
-			g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( 10.0f, 0.2f );
+			g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( 10.0f, 0.2f );
 		}
 		else
 		{
@@ -18066,7 +19381,11 @@ void CX2GURaven::RVC_DASH_JUMP_COMBO_XX_LOOP_StateStart()
 
 void CX2GURaven::RVC_DASH_JUMP_COMBO_XX_LOOP_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.006f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.006f ) && EventCheck( 0.006f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDir = GetRotateDegree();
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
@@ -18143,7 +19462,11 @@ void CX2GURaven::RVC_DASH_JUMP_COMBO_XX_FINISH_StateStart()
 
 void CX2GURaven::RVC_DASH_JUMP_COMBO_XX_FINISH_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.025f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.025f ) && EventCheck( 0.025f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vDir = GetRotateDegree();
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
@@ -18154,7 +19477,7 @@ void CX2GURaven::RVC_DASH_JUMP_COMBO_XX_FINISH_FrameMove()
 		/// 소이탄 데미지 이펙트
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_DASH_JUMP_X_BULLET", GetPowerRate(), vPos, vDir, vDir, m_FrameDataNow.unitCondition.landPosition.y );
 
-		g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCamera( 10.0f, 0.2f );
+		g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCamera( 10.0f, 0.2f );
 	}
 
 	CommonFrameMove();
@@ -18162,7 +19485,11 @@ void CX2GURaven::RVC_DASH_JUMP_COMBO_XX_FINISH_FrameMove()
 
 void CX2GURaven::RVC_DASH_JUMP_COMBO_XX_FINISH_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.03f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.03f ) == true && EventCheck( 0.03f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = -800.0f;
 		m_PhysicParam.nowSpeed.y = 1200.0f;
@@ -18219,7 +19546,11 @@ void CX2GURaven::RVC_DASH_COMBO_ZZZ_StateStart()
 
 void CX2GURaven::RVC_DASH_COMBO_ZZZ_EventProcess()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.501f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.501f ) == true && EventCheck( 0.501f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( true == m_InputData.pureZ )
 			StateChange( RVC_DASH_COMBO_ZZZPushZ_READY );
@@ -18276,10 +19607,19 @@ void CX2GURaven::RVC_DASH_COMBO_ZZZPushZ_StateStart()
 
 	m_bEndFrameThrow	 = false;	/// 10발 발사한 여부 조사
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffectFrameThrow != INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL !=m_pEffectFrameThrow )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        g_pX2Game->GetDamageEffect()->DestroyInstanceHandleSilently( m_hEffectFrameThrow );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		g_pX2Game->GetDamageEffect()->DestroyInstanceSilently( m_pEffectFrameThrow );
 		m_pEffectFrameThrow = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	}
 
 	if( true == _CanOverheat() )
@@ -18308,14 +19648,28 @@ void CX2GURaven::RVC_DASH_COMBO_ZZZPushZ_FrameMove()
 				vPos -= 30.0f * m_FrameDataNow.unitCondition.dirVector;
 
 			/// 화염 방사 데미지 이펙트
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if ( m_hEffectFrameThrow == INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			if( NULL == m_pEffectFrameThrow )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                CX2DamageEffect::CEffect* 
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				m_pEffectFrameThrow = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_RVC_FRAME_THROW",
 					GetPowerRate(), vPos, vDir, vDir, m_FrameDataNow.unitCondition.landPosition.y );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                m_hEffectFrameThrow = ( m_pEffectFrameThrow != NULL ) ? m_pEffectFrameThrow->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			}
 		}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		if( m_hEffectFrameThrow != INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		if( NULL != m_pEffectFrameThrow )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		{
 			CX2DamageEffect::CEffect* pCEffect = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_RVC_FRAME_THROW_OVERHEAT_PENALTY",
 												 GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree() );		/// 오버 히트 데미지용 이펙트
@@ -18334,7 +19688,12 @@ void CX2GURaven::RVC_DASH_COMBO_ZZZPushZ_FrameMove()
 	}
 
 	
-	if( false == m_bEndFrameThrow && 10 < m_iRVCComboLoopCount )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	// 웨폰 테이커, 베테랑 커맨더의 ZZZ State 의 Loop 를 2배 증가
+	if( false == m_bEndFrameThrow && _CONST_RAVEN_::MAX_DASH_COMBO_ZZZPushZ_LOOP_COUNT < m_iRVCComboLoopCount )		
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+	if( false == m_bEndFrameThrow && 10 < m_iRVCComboLoopCount )	
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		m_bEndFrameThrow = true;		/// 화염 방사 종료
 
 	CommonFrameMove();
@@ -18369,11 +19728,18 @@ void CX2GURaven::RVC_DASH_COMBO_ZZZPushZ_EventProcess()
 void CX2GURaven::RVC_DASH_COMBO_ZZZPushZ_StateEnd()
 {
 	/// 해당 State 종료시 화염 방사 이펙트 소멸 설정
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( m_hEffectFrameThrow != INVALID_DAMAGE_EFFECT_HANDLE )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL != m_pEffectFrameThrow && true == g_pX2Game->GetDamageEffect()->IsLiveInstance( m_pEffectFrameThrow ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectFrameThrow );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pEffectFrameThrow );
-
-		m_pEffectFrameThrow = NULL;
+        m_pEffectFrameThrow = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		m_bEndFrameThrow	= false;
 	}
@@ -18431,7 +19797,11 @@ void CX2GURaven::RVC_SI_SA_DEADLY_RAID_FrameMove()
 	ShowActiveSkillCutInAndLight( L"Dummy2_Lhand", 0.04f, 2 );
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
@@ -18504,7 +19874,11 @@ void CX2GURaven::RVC_SI_SA_DEADLY_RAID_LOOP_FrameMove()
 	}	
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
@@ -18588,7 +19962,11 @@ void CX2GURaven::RVC_SI_SA_DEADLY_RAID_LOOP_OVERHEAT_FrameMove()
 	}	
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
@@ -18661,7 +20039,11 @@ void CX2GURaven::RVC_SI_SA_DEADLY_RAID_LOOP_END_FrameMove()
 	}	
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
@@ -18718,7 +20100,11 @@ void CX2GURaven::RVC_SI_SA_DEADLY_RAID_LOOP_END_OVERHEAT_FrameMove()
 		g_pX2Game->GetWorld()->SetWorldColor( 0xff222222 );
 	}	
 // #endif // UPGRADE_SKILL_SYSTEM_2013
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
@@ -18739,10 +20125,16 @@ void CX2GURaven::RVC_SI_SA_DEADLY_RAID_LOOP_END_OVERHEAT_FrameMove()
 
 		if( NULL != pEffect )
 		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 오버 히트 횟수 증가에 따른 소모 hp 값 조절 ( 기존 0.2 ~ 0.4 -> 0.2 고정
+			_BurnOverheatHP( pEffect->GetDamageData(), 0.2f );
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			if( 4 >= m_iRVCComboLoopCount )
 				_BurnOverheatHP( pEffect->GetDamageData(), 0.2f );
 			else
 				_BurnOverheatHP( pEffect->GetDamageData(), 0.4f );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			
 		}
 	}
 }
@@ -18779,7 +20171,11 @@ void CX2GURaven::RVC_SI_SA_DEADLY_RAID_FINISH_FrameMove()
 		g_pX2Game->GetWorld()->SetWorldColor( 0xff222222 );
 	}	
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
@@ -18839,7 +20235,11 @@ void CX2GURaven::RVC_SI_SA_DEADLY_RAID_FINISH_OVERHEAT_FrameMove()
 		g_pX2Game->GetWorld()->SetWorldColor( 0xff222222 );
 	}	
 // #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
@@ -18860,12 +20260,18 @@ void CX2GURaven::RVC_SI_SA_DEADLY_RAID_FINISH_OVERHEAT_FrameMove()
 
 		if( NULL != pEffect )
 		{
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+			// 오버 히트 횟수 증가에 따른 소모 hp 값 조절 ( 기존 0.2 ~ 0.6 -> 0.2 고정
+			_BurnOverheatHP( pEffect->GetDamageData(), 0.2f );
+#else  // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 			if( 2 >= m_iRVCComboLoopCount )
 				_BurnOverheatHP( pEffect->GetDamageData(), 0.2f );
 			if( 4 >= m_iRVCComboLoopCount )
 				_BurnOverheatHP( pEffect->GetDamageData(), 0.4f );
 			else
 				_BurnOverheatHP( pEffect->GetDamageData(), 0.6f );
+
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 		}
 	}
 }
@@ -19033,7 +20439,11 @@ void CX2GURaven::RVC_SI_SA_IGNITION_CROW_StateEnd()
 
 void CX2GURaven::RVC_SI_SA_IGNITION_CROW_FIRE_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_IGNITION_CROW", 
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -19067,7 +20477,11 @@ void CX2GURaven::RVC_SI_SA_IGNITION_CROW_FIRE_OVERHEAT_StateStart()
 
 void CX2GURaven::RVC_SI_SA_IGNITION_CROW_FIRE_OVERHEAT_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_IGNITION_CROW_OVERHEAT", 
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -19126,10 +20540,10 @@ void CX2GURaven::RVC_SI_P_SHADOW_BACK_SLIDE_StartFuture()
 		if( 0.f != m_PhysicParam.passiveSpeed.x )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 				return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -19170,7 +20584,11 @@ void CX2GURaven::RVC_SI_P_SHADOW_BACK_SLIDE_FrameMove()
 	{
 		if( m_fShadowBackSlideTimeLeft > 0.f )
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_fShadowBackSlideTimeLeft -= GetElapsedTime();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_fShadowBackSlideTimeLeft -= g_pKTDXApp->GetElapsedTime();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if( m_fShadowBackSlideTimeLeft < 0.f )
 				m_fShadowBackSlideTimeLeft = 0.f;
 		}
@@ -19307,10 +20725,10 @@ void CX2GURaven::RVC_SI_P_SHADOW_STEP_FINISH_StartFuture()
 		if( 0.f != m_PhysicParam.passiveSpeed.x )
 		{
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
-			if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+			if ( NULL == GetUnit()  )
 			return;
 	
-			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	
 			const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
@@ -19355,7 +20773,11 @@ void CX2GURaven::RVC_SI_P_SHADOW_STEP_FINISH_FrameMove()
 	{
 		if( m_fShadowStepFinishTimeLeft > 0.f )
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_fShadowStepFinishTimeLeft -= GetElapsedTime();
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_fShadowStepFinishTimeLeft -= g_pKTDXApp->GetElapsedTime();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			if( m_fShadowStepFinishTimeLeft < 0.f )
 				m_fShadowStepFinishTimeLeft = 0.f;
 		}
@@ -19445,7 +20867,11 @@ void CX2GURaven::RVC_SI_P_SHADOW_BUSTER_Start()
 
 void CX2GURaven::RVC_SI_P_SHADOW_BUSTER_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		/// 네이팜탄 생성
 		g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_Raven_Shadow_Buster", (CX2GameUnit*)this, (CX2GameUnit*)this );
@@ -19485,7 +20911,16 @@ void CX2GURaven::SetShadowStepAttackSkill( RAVEN_STATE_ID eStateID /*= RSI_SHADO
 			if( true == FlushMp( 10.f ) )
 				StateChange( eStateID );
 			else
+			{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+				if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == false)
+				{
+					g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+				}
+#else
 				g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+#endif ALWAYS_SCREEN_SHOT_TEST
+			}
 		}
 
 		else if ( true == m_bEnableShadowStepThrustEnhance && RSI_SHADOW_STEP_THRUST_ENHANCE == eStateID)
@@ -19493,7 +20928,16 @@ void CX2GURaven::SetShadowStepAttackSkill( RAVEN_STATE_ID eStateID /*= RSI_SHADO
 			if( true == FlushMp( 10.f ) )
 				StateChange( eStateID );
 			else	
+			{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+				if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == false)
+				{
+					g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+				}
+#else
 				g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+#endif ALWAYS_SCREEN_SHOT_TEST
+			}
 		}
 		else
 #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈
@@ -19506,7 +20950,16 @@ void CX2GURaven::SetShadowStepAttackSkill( RAVEN_STATE_ID eStateID /*= RSI_SHADO
 					if( true == FlushMp( 10.f ) )
 						StateChange( eStateID );
 					else
+					{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+						if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == false)
+						{
+							g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+						}
+#else
 						g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+#endif ALWAYS_SCREEN_SHOT_TEST
+					}
 				}
 				else
 				{
@@ -19522,7 +20975,14 @@ void CX2GURaven::SetShadowStepAttackSkill( RAVEN_STATE_ID eStateID /*= RSI_SHADO
 				}
 				else
 				{
+#ifdef ALWAYS_SCREEN_SHOT_TEST
+					if( g_pInstanceData != NULL && g_pInstanceData->GetScreenShotTest() == false)
+					{
+						g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+					}
+#else
 					g_pX2Game->GetInfoTextManager().PushText( XUF_DODUM_20_BOLD, GET_STRING( STR_ID_2549 ), D3DXCOLOR(1,1,1,1), D3DXCOLOR(0,0,0,1), DT_CENTER, 1.f, 1.f );
+#endif ALWAYS_SCREEN_SHOT_TEST
 				}
 	#endif BALANCE_BLADE_MASTER_20130117
 			}
@@ -19536,9 +20996,9 @@ void CX2GURaven::InitShadowStep()
 	if( 0.f < m_fShadowStepCooTime )
 	{
 		m_fShadowStepCooTime -= m_iShadowBackSlideLevel;		/// 섀도우 백 슬라이드 습득시 쿨타임 1초 감소
-		CX2UserSkillTree& cUserSkillTree =  m_pUnit->GetUnitData()->m_UserSkillTree;
+		CX2UserSkillTree& accessUserSkillTree =  GetUnit()->AccessUnitData().m_UserSkillTree;
 
-		cUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_RF_SHADOW_STEP, m_fShadowStepCooTime );
+		accessUserSkillTree.SetSkillCoolTimeLeft( CX2SkillTree::SI_A_RF_SHADOW_STEP, m_fShadowStepCooTime );
 	}
 
 	m_fShadowStepCooTime	 = 0.f;			/// 쿨타임 초기화
@@ -19585,10 +21045,10 @@ void CX2GURaven::RVC_SI_A_BLEEDING_SLICER_GROUND_StateStart()
 	if ( NULL != pSkillTemplet && pSkillTemplet->m_vecBuffFactorPtr.size() >= 1 )
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit()  )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 		
 		m_DamageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
@@ -19600,13 +21060,16 @@ void CX2GURaven::RVC_SI_A_BLEEDING_SLICER_GROUND_StateStart()
 	// 버스팅블레이드가 이미 존재하면 삭제
 // 	if( INVALID_MESH_INSTANCE_HANDLE != m_hBurstingBladeAttackBox )
 // 	{
-// 		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hBurstingBladeAttackBox );
+// 		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hBurstingBladeAttackBox );
 // 	}
 // 
 // 	// 이후 생성
 // 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"BleedingSlicerAttackBox_Ground", 0,0,0, 0,0,0, 0,0,0 );
 // 	if( pMeshInst != NULL )
 // 	{
+//#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+//        pMeshInst->SetPerFrameSimulation( true );
+//#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 // 		m_hBurstingBladeAttackBox = pMeshInst->GetHandle();
 // 		pMeshInst->SetBoundingRadius( 0.0f );
 // 
@@ -19684,7 +21147,7 @@ void CX2GURaven::RVC_SI_A_BLEEDING_SLICER_GROUND_StateEnd()
 // 	// 버스팅블레이드 삭제
 // 	if( INVALID_MESH_INSTANCE_HANDLE != m_hBurstingBladeAttackBox )
 // 	{
-// 		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hBurstingBladeAttackBox );
+// 		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hBurstingBladeAttackBox );
 // 	}
 
 	CommonStateEnd();
@@ -19701,10 +21164,10 @@ void CX2GURaven::RVC_SI_A_BLEEDING_SLICER_AIR_StateStart()
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 	
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit()  )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 	
 		m_DamageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
@@ -19716,13 +21179,16 @@ void CX2GURaven::RVC_SI_A_BLEEDING_SLICER_AIR_StateStart()
 	//버스팅블레이드가 이미 존재하면 삭제
 // 	if( INVALID_MESH_INSTANCE_HANDLE != m_hBurstingBladeAttackBox )
 // 	{
-// 		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hBurstingBladeAttackBox );
+// 		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hBurstingBladeAttackBox );
 // 	}
 // 	
 // 	// 이후 생성
 // 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this,  L"BleedingSlicerAttackBox_Air", 0,0,0, 0,0,0, 0,0,0 );
 // 	if( pMeshInst != NULL )
 // 	{
+//#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
+        //pMeshInst->SetPerFrameSimulation( true );
+//#endif  X2OPTIMIZE_PARTICLE_AND_ETC_SIMULATION
 // 		m_hBurstingBladeAttackBox = pMeshInst->GetHandle();
 // 		pMeshInst->SetBoundingRadius( 0.0f );
 // 	
@@ -19817,7 +21283,7 @@ void CX2GURaven::RVC_SI_A_BLEEDING_SLICER_AIR_StateEnd()
 	// 버스팅블레이드 삭제
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hBurstingBladeAttackBox )
 	{
-		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hBurstingBladeAttackBox );
+		g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hBurstingBladeAttackBox );
 	}
 
 	CommonStateEnd();
@@ -19847,20 +21313,39 @@ void CX2GURaven::CreateOverHeatObject()
 	}
 
 	/// 오버 히트 이펙트 생성 ( 팔목, 팔뚝 두곳에서 생성 )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( INVALID_DAMAGE_EFFECT_HANDLE == m_hEffectOverHeatFire1 )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL == m_pEffectOverHeatFire1 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Forearm" );
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect*
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pEffectOverHeatFire1 = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_OVERHEAT_EFFECT",
 			GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectOverHeatFire1 = ( m_pEffectOverHeatFire1 != NULL ) ? m_pEffectOverHeatFire1->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    if ( INVALID_DAMAGE_EFFECT_HANDLE == m_hEffectOverHeatFire2 )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL == m_pEffectOverHeatFire2 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
 		D3DXVECTOR3 vPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01_L_Hand" );
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect*
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		m_pEffectOverHeatFire2 = g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_OVERHEAT_EFFECT",
 			GetPowerRate(), vPos, GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        m_hEffectOverHeatFire2 = ( m_pEffectOverHeatFire2 != NULL ) ? m_pEffectOverHeatFire2->GetHandle() : INVALID_DAMAGE_EFFECT_HANDLE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	}
 }
 void CX2GURaven::DeleteOverHeatObject()
@@ -19868,7 +21353,7 @@ void CX2GURaven::DeleteOverHeatObject()
 	if( CX2Unit::UC_RAVEN_VETERAN_COMMANDER == GetUnitClass() )		/// 베테랑 커맨더만 구조물 생성
 	{
 		if( INVALID_MESH_INSTANCE_HANDLE != m_hOverHeatObject )
-			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hOverHeatObject );
+			g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hOverHeatObject );
 
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInst = g_pX2Game->GetMajorXMeshPlayer()->CreateInstance( (CKTDGObject*) this, L"RVC_OverHeat_Object_End", GetPos(), GetRotateDegree(), GetRotateDegree() );
 
@@ -19885,23 +21370,29 @@ void CX2GURaven::DeleteOverHeatObject()
 		}
 	}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( INVALID_DAMAGE_EFFECT_HANDLE != m_hEffectOverHeatFire1 )
+		g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectOverHeatFire1 );
+	if( INVALID_DAMAGE_EFFECT_HANDLE != m_hEffectOverHeatFire2 )
+		g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hEffectOverHeatFire2 );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	if( NULL != m_pEffectOverHeatFire1 )
-	{
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pEffectOverHeatFire1 );
-		m_pEffectOverHeatFire1 = NULL;
-	}
-
 	if( NULL != m_pEffectOverHeatFire2 )
-	{
 		g_pX2Game->GetDamageEffect()->DestroyInstance( m_pEffectOverHeatFire2 );
-		m_pEffectOverHeatFire2 = NULL;
-	}
+    m_pEffectOverHeatFire1 = NULL;
+    m_pEffectOverHeatFire2 = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 #endif SERV_RAVEN_VETERAN_COMMANDER
 
 void CX2GURaven::ShowActiveSkillCutInAndLight( const WCHAR* szBoneName_, const float fTimeToShow_, const UINT uiCutInIndex_, const bool bOnlyLight_ /*= false */ )
 {	
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( fTimeToShow_ ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( true == m_pXSkinAnim->EventTimer( fTimeToShow_ ) && true == EventCheck( fTimeToShow_, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if ( GetShowCutInAndChangeWorldColor() && GetShowActiveSkillShow() )
 #ifdef SERV_APRIL_FOOLS_DAY
@@ -19925,7 +21416,7 @@ void CX2GURaven::CheckAndDoReversalSoldier()
 		CX2Unit* pUnit = GetUnit();
 		if ( NULL != pUnit )
 		{
-			const CX2UserSkillTree& cUserSkillTree = pUnit->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& cUserSkillTree = pUnit->GetUnitData().m_UserSkillTree;
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
 			const int iSkillLevel = cUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RBM_REVERSAL_SOLDIER, true );
 
@@ -19966,7 +21457,7 @@ void CX2GURaven::CheckAndDoServivalTechniqueOfMercenary()
 		CX2Unit* pUnit = GetUnit();
 		if ( NULL != pUnit )
 		{
-			const CX2UserSkillTree& cUserSkillTree = pUnit->GetUnitData()->m_UserSkillTree;
+			const CX2UserSkillTree& cUserSkillTree = pUnit->GetUnitData().m_UserSkillTree;
 	#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 			const int iSkillLevel = cUserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RVC_SURVIVAL_TECHNIQUE_OF_MERCENARY, true );
 	#else // UPGRADE_SKILL_SYSTEM_2013
@@ -20006,21 +21497,21 @@ void CX2GURaven::CheckAndDoServivalTechniqueOfMercenary()
 {
 	CX2GUUser::HyperModeBuffEffectStart();
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRFoot )
 		m_hHyperBoostRFoot	= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightBlack",	0,0,0, 0, 0 );
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLFoot )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLFoot )
 		m_hHyperBoostLFoot	= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftBlack",	0,0,0, 0, 0 );
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostRArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostRArm )
 		m_hHyperBoostRArm	= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostRightBlack",	0,0,0, 0, 0 );
 
-	if ( INVALID_PARTICLE_HANDLE == m_hHyperBoostLArm )
+	if ( INVALID_PARTICLE_SEQUENCE_HANDLE == m_hHyperBoostLArm )
 		m_hHyperBoostLArm	= g_pX2Game->GetMinorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"HyperBoostLeftBlack",	0,0,0, 0, 0 );
 
 	if ( IsFullHyperMode() )
 	{
-		if( CX2EffectSet::INVALID_HANDLE == m_hHyperAuraEffectset )
+		if( INVALID_EFFECTSET_HANDLE == m_hHyperAuraEffectset )
 			m_hHyperAuraEffectset = g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_RAVEN_HYPER_AURA", (CX2GameUnit*)this, (CX2GameUnit*)this );
 	}
 
@@ -20038,7 +21529,7 @@ void CX2GURaven::CheckAndDoServivalTechniqueOfMercenary()
 	/// 풀각성일 때 해제해야 할 것들
 	if ( IsFullHyperMode() )
 	{
-		if( m_hHyperAuraEffectset != CX2EffectSet::INVALID_HANDLE )
+		if( m_hHyperAuraEffectset != INVALID_EFFECTSET_HANDLE )
 		{
 			g_pX2Game->GetEffectSet()->StopEffectSet( m_hHyperAuraEffectset );
 			PlaySound(L"Raven_ElectricAura_Disappear.ogg");
@@ -20092,10 +21583,29 @@ void CX2GURaven::CheckAndDoServivalTechniqueOfMercenary()
 	case CX2SkillTree::SI_A_RF_BURNING_RUSH:	//  버닝 러시 마나 감소
 		{
 			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO5 ) == true )
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				// 메모 효과 변경 -> 메모 착용 시, 마나 소모 절반 감소 및 쿨타임 2배 증가
+				fMpConsumption = fMpConsumption / 2.f;
+#else // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 				fMpConsumption -= 10.f;
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+				
 		} break;
 #endif // UPGRADE_SKILL_SYSTEM_2013 // Raven 스킬 개편, 김종훈	
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+	case CX2SkillTree::SI_A_RST_BERSERKER_BLADE:
+		{
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO9 ) == true )
+				fMpConsumption *= 1.1f;
+		} break;
+
+	case CX2SkillTree::SI_SA_RWT_REVOLVER_CANNON_HIGH_EXPLOSIVE_SHELL:
+		{
+			if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO28 ) == true )
+				fMpConsumption *= 1.1f;
+		} break;
+#endif //ADD_MEMO_1ST_CLASS
 
 	default:
 		break;
@@ -20104,7 +21614,16 @@ void CX2GURaven::CheckAndDoServivalTechniqueOfMercenary()
 	if ( 0.0f > fMpConsumption )
 		fMpConsumption = 0.f;
 
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT	
+	const CX2SkillTree::SkillTemplet* pSkillTemplet = GetEquippedActiveSkillTemplet( eSkillID_ );
+	float fMpDecreaseRate = 1.0f;
+	if( NULL != pSkillTemplet )
+		fMpDecreaseRate  =  g_pData->GetMyUser()->GetSelectUnit()->GetSkillMpDecreaseRate(eSkillID_, pSkillTemplet->m_eType);
+
+	return fMpConsumption * fMpDecreaseRate;
+#else SERV_BALANCE_FINALITY_SKILL_EVENT
 	return fMpConsumption;
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
 }
 
 /** @function : AddUnitSlashData
@@ -20197,6 +21716,14 @@ void CX2GURaven::CheckAndDoServivalTechniqueOfMercenary()
 
 	if( m_fShadowStepTimeLeft > 0.f )
 		return;
+#ifdef FINALITY_SKILL_SYSTEM //김창한
+	else if( true == m_bInvisibility )
+	{
+		pRenderParam_->renderType		= CKTDGXRenderer::RT_CARTOON;
+		pRenderParam_->outLineColor.a	= 0;
+		m_RenderParam.color.a			= 0;
+	}
+#endif //FINALITY_SKILL_SYSTEM
 	else
 		CX2GameUnit::ApplyRenderParam( pRenderParam_ );
 }
@@ -20265,15 +21792,27 @@ void CX2GURaven::RSI_A_RF_MEGADRILL_BREAK_Init()
 
 void CX2GURaven::RSI_A_RF_MEGADRILL_BREAK_FrameMoveFuture()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnimFuture->EventTimerOneshot( 0.27f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnimFuture->EventTimer( 0.27f ) == true && EventCheck( 0.27f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.2f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 0.7f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 0.7f ) == true && EventCheck( 0.7f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.2f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnimFuture->EventTimerOneshot( 1.2f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnimFuture->EventTimer( 1.2f ) == true && EventCheck( 1.2f, true ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_PhysicParam.nowSpeed.x = m_OrgPhysicParam.GetDashSpeed() * 1.2f;
 	}
@@ -20282,12 +21821,20 @@ void CX2GURaven::RSI_A_RF_MEGADRILL_BREAK_FrameMoveFuture()
 
 void CX2GURaven::RSI_A_RF_MEGADRILL_BREAK_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.5f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.5f ) == true && EventCheck( 0.5f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.0f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.0f ) == true && EventCheck( 1.0f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_DamageData.hitUnitList.resize(0);
 
@@ -20297,7 +21844,11 @@ void CX2GURaven::RSI_A_RF_MEGADRILL_BREAK_FrameMove()
 		SetEnableAttackBox( L"Sword", false );
 		m_DamageData.backSpeed.x = 0.0f;
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( m_fDamageDataChangeTime ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( m_fDamageDataChangeTime ) == true && EventCheck( m_fDamageDataChangeTime, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		bool bTableOpen = m_LuaManager.BeginTableByReference( m_NowStateData.stateID );
 
@@ -20306,12 +21857,18 @@ void CX2GURaven::RSI_A_RF_MEGADRILL_BREAK_FrameMove()
 			m_DamageData.SimpleInit();
 			m_DamageData.attackerType			= CX2DamageManager::AT_UNIT;
 			m_DamageData.optrAttackerGameUnit	= this;
-			m_DamageData.pAttackerEffect		= NULL;
-			SetDamageData( L"DAMAGE_DATA_NEXT" );	
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	        m_DamageData.pAttackerEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			SetDamageData( "DAMAGE_DATA_NEXT" );	
 			m_LuaManager.EndTable();		
 		}
 	}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    else if( m_pXSkinAnim->EventTimerOneshot( 1.33f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	else if( m_pXSkinAnim->EventTimer( 1.33f ) == true && EventCheck( 1.33f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		D3DXVECTOR3 vBonePos = GetBonePos( L"Bip01_L_Hand" );
 		m_hSeqMagnumBlaster1 = g_pX2Game->GetMajorParticle()->CreateSequenceHandle( (CKTDGObject*) this,  L"Flare_Raven_MagnumBlaster06", vBonePos );
@@ -20322,7 +21879,7 @@ void CX2GURaven::RSI_A_RF_MEGADRILL_BREAK_FrameMove()
 		}
 	}
 
-	if( m_hSeqMagnumBlaster1 != INVALID_PARTICLE_HANDLE )
+	if( m_hSeqMagnumBlaster1 != INVALID_PARTICLE_SEQUENCE_HANDLE )
 	{
 		CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( m_hSeqMagnumBlaster1 );
 		if( NULL != pSeq )
@@ -20331,7 +21888,7 @@ void CX2GURaven::RSI_A_RF_MEGADRILL_BREAK_FrameMove()
 		}
 		else
 		{
-			m_hSeqMagnumBlaster1 = INVALID_PARTICLE_HANDLE;
+			m_hSeqMagnumBlaster1 = INVALID_PARTICLE_SEQUENCE_HANDLE;
 		}
 	}
 
@@ -20693,11 +22250,19 @@ void CX2GURaven::RSI_A_RRF_HELL_DIVE_Init()
 
 void CX2GURaven::RSI_A_RRF_HELL_DIVE_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.166f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.166f ) == true && EventCheck( 1.166f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		m_vXCrashPos = m_pXSkinAnim->GetCloneFramePosition( L"Bip01" );
 	}		
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 1.31f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 1.31f ) == true && EventCheck( 1.31f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{	
 			g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_RRF_HELL_DIVE_LAST_PUNCH", GetPowerRate(), m_vXCrashPos, GetRotateDegree(), GetRotateDegree() );				
 	}
@@ -20770,10 +22335,10 @@ void CX2GURaven::RSI_A_RWT_FLAME_SWORD_GROUND_StateStart ()
 	if ( NULL != pSkillTemplet && pSkillTemplet->m_vecBuffFactorPtr.size() >= 1 )
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit()  )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 		
 		m_DamageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
@@ -20813,10 +22378,10 @@ void CX2GURaven::RSI_A_RWT_FLAME_SWORD_AIR_StateStart ()
 	if ( NULL != pSkillTemplet && pSkillTemplet->m_vecBuffFactorPtr.size() >= 1 )
 	{
 #ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+		if ( NULL == GetUnit()  )
 			return;
 
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
 
 		m_DamageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
@@ -20906,7 +22471,11 @@ void CX2GURaven::RSI_A_RVC_NAPALM_GRENADE_EventProcess ()
 
 void CX2GURaven::RSI_A_RVC_NAPALM_GRENADE_FrameMove ()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.60f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.60f ) == true && EventCheck( 0.60f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		g_pX2Game->GetDamageEffect()->CreateInstance( this, L"DAMAGE_EFFECT_NAPALM_GRENADE_BULLET_1", 
 			GetPowerRate(), GetPos(), GetRotateDegree(), GetRotateDegree(), m_FrameDataNow.unitCondition.landPosition.y );
@@ -20990,7 +22559,11 @@ void CX2GURaven::RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP_FrameMove()
 	// 이벤트 플래그가 무엇을 나타내는지 알기 쉽게 하도록
 	bool &bOverheat = m_FrameDataFuture.stateParam.bEventFlagList[0];
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		if( m_iRWTComboLoopCount == _CONST_RAVEN_::MIN_REVOLVER_CANNON_LOOP_COUNT + 1 )
 			PlaySound( L"RavenVoice_Shout12.ogg" );
@@ -21073,6 +22646,10 @@ void CX2GURaven::RSI_SA_RWT_REVOLVER_CANNON_HE_LOOP_EventProcess()
 				m_bShowedOverheat = true;
 
 				m_iRWTMaxComboLoopCount = _CONST_RAVEN_::MAX_REVOLVER_CANNON_LOOP_COUNT;
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+				if( GetEqippedSkillMemo( CX2SkillTree::SMI_RAVEN_MEMO28 ) == true )
+					++m_iRWTMaxComboLoopCount;
+#endif //ADD_MEMO_1ST_CLASS
 			}
 		}
 
@@ -21219,7 +22796,11 @@ void CX2GURaven::RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE_OVERHEAT_StateStart()
 
 void CX2GURaven::RVC_SI_SA_IGNITION_CROW_INCINERATION_FIRE_OVERHEAT_FrameMove()
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( 0.01f ) == true && EventCheck( 0.01f, false ) == true )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 
 		/// 오버 히트 데미지 처리
@@ -21343,37 +22924,11 @@ void CX2GURaven::RSI_P_RRF_SHADOW_PUNISHER_EventProcess()
 	CommonEventProcess();
 }
 
-
-
-void CX2GURaven::RSI_SUPER_DASH_StateStart()
-{
-	CommonStateStart();
-}
-
 void CX2GURaven::RSI_A_ROT_ARMOR_BREAK_Init()
 {
 	TextureReadyInBackground( L"Break_Impact01.dds" );
 }
 
-void CX2GURaven::RSI_A_ROT_ARMOR_BREAK_StateStart()
-{
-	CommonStateStart();
-
-	const CX2SkillTree::SkillTemplet* pSkillTemplet 
-		= GetEquippedActiveSkillTemplet( CX2SkillTree::SI_A_ROT_ARMOR_BREAK );
-
-	if ( NULL != pSkillTemplet && pSkillTemplet->m_vecBuffFactorPtr.size() > 1 )
-	{
-#ifdef UPGRADE_SKILL_SYSTEM_2013 //JHKang
-		if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
-			return;
-
-		const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
-		const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet->m_eID ) );	/// 스킬 레벨
-		m_DamageData.PushBuffFactor( pSkillTemplet->m_vecBuffFactorPtr[0]->GetClonePtr( iSkillTempletLevel ) );
-#endif //UPGRADE_SKILL_SYSTEM_2013
-	}
-}
 
 void CX2GURaven::RSI_A_ROT_ARMOR_BREAK_EventProcess()
 {
@@ -21410,10 +22965,10 @@ void CX2GURaven::SetEquippedSkillLevelStateData( const CX2SkillTree::SkillTemple
 }
 void CX2GURaven::SetSkillLevelStateData( const CX2SkillTree::SkillTemplet* pSkillTemplet_, UserUnitStateData& stateData_ )
 {
-	if ( NULL == GetUnit() || NULL == GetUnit()->GetUnitData() )
+	if ( NULL == GetUnit()  )
 		return;
 	
-	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData()->m_UserSkillTree;
+	const CX2UserSkillTree& userSkillTree = GetUnit()->GetUnitData().m_UserSkillTree;
 	const int iSkillTempletLevel = max( 1, userSkillTree.GetSkillLevel( pSkillTemplet_->m_eID ) );	/// 스킬 레벨
 	
 	stateData_.m_SPLevel	= iSkillTempletLevel;
@@ -21428,6 +22983,266 @@ void CX2GURaven::SetSkillLevelStateData( const CX2SkillTree::SkillTemplet* pSkil
 }
 
 
+
+#ifdef FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+void CX2GURaven::RSI_HA_RRF_INFERNAL_ARM_Init()
+{	
+	TextureReadyInBackground(L"DarkGate_G_Baby_Potion2.dds");
+	TextureReadyInBackground(L"aisha_SA_MorningStar_circle.dds");
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"Sprriggan_Light_Ball_02.Tga");
+	TextureReadyInBackground(L"Sprriggan_Light_Ball_01.Tga");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Spark02_BCMI.dds");
+	TextureReadyInBackground(L"Particle_Blur.dds");
+	TextureReadyInBackground(L"SlashLight.dds");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	TextureReadyInBackground(L"RRF_Reckless_Fiste_Spark.tga");
+	TextureReadyInBackground(L"elsword_active_swordFall_downSpark.DDS");
+	TextureReadyInBackground(L"Pa_Ran_SpaD_Smoke02.DDS");
+	TextureReadyInBackground(L"Steam_BP.dds");
+	TextureReadyInBackground(L"RVC_SA_DeadlyRaid_spark.dds");
+	TextureReadyInBackground(L"Explosion_Sphere.dds");
+	TextureReadyInBackground(L"Condense_Pulse01.dds");
+	XMeshReadyInBackground(L"Ring_Plane.Y");
+	XSkinMeshReadyInBackground(L"RRF_Infernal_Arms_Effect.X");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50.X");
+	
+}
+void CX2GURaven::RSI_HA_RRF_INFERNAL_ARM_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		if( false == IsOnSomethingFuture() )
+			StateChange( USI_JUMP_DOWN );
+		else
+			StateChange( USI_WAIT );
+	}
+
+	CommonEventProcess();
+}
+
+
+// 익스트림 블레이드 FX
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_READY_Init()
+{
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"COMET_CRASHER_Explosion_02.tga");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"Colorballgray.dds");
+	TextureReadyInBackground(L"Condense_Pulse02.dds");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50.X");
+	TextureReadyInBackground(L"Explosion_Light02.dds");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	TextureReadyInBackground(L"GuideArrow01.dds");
+	TextureReadyInBackground(L"Inspector_State_Shield.tga");
+	XSkinMeshReadyInBackground(L"Raven_SI_A_RF_Shadow_Step_Mesh01.X");
+	XSkinMeshReadyInBackground(L"Raven_SI_SA_ShockWave_Blade_Mesh01.X");
+	XSkinMeshReadyInBackground(L"Sprriggan_AirCurren_02.X");
+	XSkinMeshReadyInBackground(L"Sprriggan_MagicAttackB.X");
+	TextureReadyInBackground(L"Whitecircle02.dds");
+}
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_READY_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{
+		StateChange( RSI_HA_RBM_EXTREM_BLADE_ATTACK );
+	}
+
+	CommonEventProcess();
+}
+
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_ATTACK_Init()
+{
+	TextureReadyInBackground(L"Condense_Pulse02.dds");
+	TextureReadyInBackground(L"Condense_pulse01.dds");
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"Sprriggan_Light_Ball_02.Tga");
+	TextureReadyInBackground(L"Sprriggan_Light_Ball_01.Tga");
+	TextureReadyInBackground(L"Inspector_State_Shield.tga");
+	TextureReadyInBackground(L"CenterLight_Gray01.dds");
+	TextureReadyInBackground(L"PET_SILVERFOX_MIHOEffect02.tga");
+	TextureReadyInBackground(L"Colorballgray.dds");
+	TextureReadyInBackground(L"Star.dds");
+	TextureReadyInBackground(L"SlashLight.dds");
+	TextureReadyInBackground(L"COMET_CRASHER_Explosion_02.tga");
+	XMeshReadyInBackground(L"Ring_Plane.Y");
+	XSkinMeshReadyInBackground(L"SA_RBM_Extrem_RAVEN_Motion01.X");	
+}
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_ATTACK_StateStart()
+{
+	m_fExtremBladeDelay = 0.0f;
+	CommonStateStart();
+}
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_ATTACK_FrameMove()
+{
+	m_fExtremBladeDelay += m_fElapsedTime;
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if( true == m_pXSkinAnim->EventTimerOneshot( 0.01f ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	if( true == m_pXSkinAnim->EventTimer( 0.01f ) && true == EventCheck( 0.01f, false ) )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	{
+		SetInvisibility( true );
+		TransformScale( PROTECT_VECTOR3( 0.01f, 0.01f, 0.01f ) );
+
+		CX2EffectSet::Handle hEffectSset =
+			g_pX2Game->GetEffectSet()->PlayEffectSet( L"EffectSet_SA_RBM_Extrem_Blade_Middle", this, NULL, false, GetPowerRate() );
+
+		D3DXVECTOR3 vMyPos = GetPos();
+		D3DXVECTOR3 vDestPos = vMyPos;
+		vDestPos.y += 350;
+		m_FrameDataFuture.syncData.position = vDestPos;
+	}
+	
+	CommonFrameMove();
+}
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_ATTACK_EventProcess()
+{
+	if( m_fExtremBladeDelay > 1.f )
+	{
+		StateChange( RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH );
+	}
+	CommonEventProcess();
+}
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_ATTACK_StateEnd()
+{
+	SetInvisibility(false);
+	
+	TransformScale( GetChangeUnitScaleByBuff() );
+
+	m_fExtremBladeDelay = 0.0f;
+	CommonStateEnd();
+}
+
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH_Init()
+{
+	TextureReadyInBackground(L"AeroTornado04.dds");
+	TextureReadyInBackground(L"Arme_Ring2.dds");
+	TextureReadyInBackground(L"COMET_CRASHER_Explosion_02.tga");
+	TextureReadyInBackground(L"Colorballgray.dds");
+	XSkinMeshReadyInBackground(L"DummyAttackBox_50x50x50.X");
+	TextureReadyInBackground(L"Explosion_Light02.dds");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	TextureReadyInBackground(L"GuideArrow01.dds");
+	TextureReadyInBackground(L"Inspector_State_Shield.tga");
+	XSkinMeshReadyInBackground(L"Lire_SI_SA_Gungnir_Mesh03.X");
+	TextureReadyInBackground(L"PET_SILVERFOX_MIHOEffect02.tga");
+	TextureReadyInBackground(L"PulseWave01.dds");
+	XSkinMeshReadyInBackground(L"Sprriggan_AirCurren_02.X");
+	TextureReadyInBackground(L"WhiteImage.dds");
+	TextureReadyInBackground(L"WhitePointSmall.dds");
+	TextureReadyInBackground(L"Whitecircle02.dds");
+}
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH_StartFuture()
+{
+	D3DXVECTOR3 vMyPos = GetPos();
+	D3DXVECTOR3 vDestPos = vMyPos;
+	vDestPos.y -= 350;
+	m_FrameDataFuture.syncData.position = vDestPos;
+
+	CommonStateStartFuture();
+}
+void CX2GURaven::RSI_HA_RBM_EXTREM_BLADE_ATTACK_FINISH_EventProcess()
+{
+	if( m_pXSkinAnimFuture->IsAnimationEnd() == true )
+	{	
+		if( false == IsOnSomethingFuture() )
+		{
+			StateChange( USI_JUMP_DOWN );
+			m_FrameDataFuture.syncData.position.y -= LINE_RADIUS * 1.5f;
+		}
+		else
+			StateChange( USI_WAIT );
+	}	
+
+	CommonEventProcess();
+}
+void CX2GURaven::SetInvisibility(bool bVal_)
+{
+	m_bInvisibility					= bVal_;
+	m_bAbsoluteInvisibility			= bVal_;
+
+	m_RenderParam.bAlphaBlend = bVal_;
+
+	if( false == m_bInvisibility )
+		m_RenderParam.color.a = 1.f;
+
+	m_RenderParam.bAlphaBlend = m_bInvisibility;
+	SetAlphaObject( m_bInvisibility );
+
+	m_pXSkinAnim->SetLayer(1);
+	// 장비에 부착된 파티클
+	BOOST_TEST_FOREACH( CX2EqipPtr, pEquip, m_ViewEqipList )
+	{
+		if( pEquip != NULL )
+			pEquip->SetShowAttachedParticle( !m_bInvisibility );
+	}
+
+	// 무기 속성 인챈트 파티클
+	SetShowEnchantWeaponParticle( !m_bInvisibility );
+	// 게이지 바
+	if ( false == IsMyUnit() && false == IsNullGageUI() )
+	{
+		if( true == m_bInvisibility )
+			m_pGageUI->SetAlpha( 0.f );
+		else
+			m_pGageUI->SetAlpha( 255.f );
+	}
+
+	// 각성 상태라면 각성 파티클 켜고/끄기
+	if( GetRemainHyperModeTime() > 0.f )
+	{
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostRFoot )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq_RFoot = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostRFoot );
+			if( NULL != pSeq_RFoot )
+				pSeq_RFoot->SetShowObject( !m_bInvisibility );
+		}
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostLFoot )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq_LFoot = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostLFoot );
+			if( NULL != pSeq_LFoot )
+				pSeq_LFoot->SetShowObject( !m_bInvisibility );
+		}
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostRArm )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq_RArm = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostRArm );
+			if( NULL != pSeq_RArm )
+				pSeq_RArm->SetShowObject( !m_bInvisibility );
+		}
+		if ( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hHyperBoostLArm )
+		{
+			CKTDGParticleSystem::CParticleEventSequence* pSeq_LArm = g_pX2Game->GetMinorParticle()->GetInstanceSequence( m_hHyperBoostLArm );
+			if( NULL != pSeq_LArm )
+				pSeq_LArm->SetShowObject( !m_bInvisibility );
+		}
+	}
+}
+
+#pragma region SI_HA_RVC_BURNING_BUSTER
+void CX2GURaven::RSI_HA_RVC_BURNING_BUSTER_Init()
+{
+	TextureReadyInBackground(L"Condense_Pulse01.dds");
+	XSkinMeshReadyInBackground(L"Elsword_SI_SA_Sonic_Blade_Mesh01.X");
+	TextureReadyInBackground(L"Explosion_Sphere.dds");
+	TextureReadyInBackground(L"GroundShockWave02.dds");
+	XSkinMeshReadyInBackground(L"IGNITION_CROW_BIRD.X");
+	TextureReadyInBackground(L"RRF_Reckless_Fiste_Spark.tga");
+	TextureReadyInBackground(L"RVC_SA_DeadlyRaid_spark.dds");
+	XSkinMeshReadyInBackground(L"SpiralBlast01.X");
+	TextureReadyInBackground(L"Steam_BP.dds");
+	XSkinMeshReadyInBackground(L"VANGUARD_MagicAttack_Explosion_03.X");
+	TextureReadyInBackground(L"WhitePointSmall.dds");
+	XSkinMeshReadyInBackground(L"aisha_active_energySpurt_circle.X");
+	XSkinMeshReadyInBackground(L"elsword_SA_SwordBlasting_circle.X");
+	TextureReadyInBackground(L"title_StarLight_Smash_spark.dds");
+}
+#pragma endregion 버닝 버스터 - 궁극기
+#endif // FINALITY_SKILL_SYSTEM // 김종훈, 궁극기 시스템
+
+
 #ifdef MODIFY_RIDING_PET_AWAKE
 void CX2GURaven::RidingHyperModeFrameMove()
 {
@@ -21439,7 +23254,7 @@ void CX2GURaven::CommonHyperModeFrameMove( float fTime1_, float fTime2_, bool bS
 	//g_pX2Game->GetWorld()->FadeWorldColor( g_pX2Game->GetWorld()->GetOriginColor(), 1.0f );
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( fTime1_ ) )
+    if( m_pXSkinAnim->EventTimerOneshot( fTime1_ ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( fTime1_ ) == true && EventCheck( fTime1_, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
@@ -21449,7 +23264,7 @@ void CX2GURaven::CommonHyperModeFrameMove( float fTime1_, float fTime2_, bool bS
 
 
 #ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
-	if( m_pXSkinAnim->EventTimerOneshot( fTime2_ ) )
+    if( m_pXSkinAnim->EventTimerOneshot( fTime2_ ) )
 #else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if( m_pXSkinAnim->EventTimer( fTime2_ ) == true && EventCheck( fTime2_, false) == true )
 #endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE

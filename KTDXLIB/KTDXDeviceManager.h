@@ -94,7 +94,11 @@ class CKTDXDeviceManager :
 		void SetTextureDetailLevel( CKTDXDeviceTexture::DETAIL_LEVEL detailLevel );
 		void AddHighTexName( const WCHAR* highTexName ){ m_HighTexName.push_back( highTexName ); }
 
-		CKTDXDeviceTexture*				OpenTexture( wstring deviceID, D3DFORMAT texFormat = D3DFMT_UNKNOWN, bool bAlwaysHigh = false );
+		CKTDXDeviceTexture*				OpenTexture( wstring deviceID, D3DFORMAT texFormat = D3DFMT_UNKNOWN, bool bAlwaysHigh = false 
+										#ifdef ADD_RESOURCE_ERROR_LOG
+													, bool bLog = true
+										#endif // ADD_RESOURCE_ERROR_LOG
+													);
 		CKTDXDeviceXSkinMesh*			OpenXSkinMesh( wstring deviceID, wstring moveBoneName = L"Bip01" );
 		CKTDXDeviceXMesh*               OpenXMesh( wstring deviceID );
 		CKTDXDeviceRenderTargetTexture*	OpenRenderTargetTexture( wstring deviceID, int width = 128, int height = 128, D3DFORMAT fmt = D3DFMT_UNKNOWN );
@@ -112,32 +116,23 @@ class CKTDXDeviceManager :
         CKTDXDeviceXMesh*               OpenXMeshInBackground( wstring deviceID, EPriority ePriority = PRIORITY_HIGH );
 		CKTDXDeviceXET*					OpenXETInBackground( wstring deviceID, EPriority ePriority = PRIORITY_HIGH, bool bWithoutFile = false );
 		CKTDXDeviceSound*				OpenSoundInBackground( wstring deviceID, 
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 			EPriority ePriority = PRIORITY_HIGH, 
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD	
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD	
 			int bufCount = 10, bool bUse3D = true );
 
-#ifdef X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
-		bool LoadLuaManager( KLuaManager* pLuaManager, const WCHAR* pFileName, bool bEncryption = true, bool bRealData = true, bool bReaFileOnly = false );
-#else//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
-		bool LoadLuaManager( KLuaManager* pLuaManager, const WCHAR* pFileName, bool bEncryption = true );
-#endif//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
 
-#ifdef  X2OPTIMIZE_VERIFY_NPC_SCRIPT_CONSISTENCY
-		int  LoadLuaManager_ErrorCode( KLuaManager* pLuaManager, const WCHAR* pFileName, bool bEncryption = true );
-#endif  X2OPTIMIZE_VERIFY_NPC_SCRIPT_CONSISTENCY
 
-#ifdef X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
-		bool LoadLuaTinker( const WCHAR* pFileName, bool bEncryption = true, bool bRealData = true, bool bReaFileOnly = false );
-#else//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
-		bool LoadLuaTinker( const WCHAR* pFileName, bool bEncryption = true );
-#endif//X2OPTIMIZE_MASS_FILE_FIRST_BUGFIX
 
 		void CloseDeviceDirectory( wstring wstrPath );
 		void OpenDeviceDirectory( wstring wstrPath );
 
 		CKTDXDeviceSound* PlaySound( const WCHAR* pFileName, bool bLoop = false, bool b3DSound = true );
 		void StopSound( const WCHAR* pFileName );
+
+#ifdef CHECK_VOICE_IN_SLIDESHOT
+		bool IsPlaying( const WCHAR* pFileName );
+#endif //CHECK_VOICE_IN_SLIDESHOT
 
 		void CloseDevice( wstring deviceID )
 		{
@@ -176,16 +171,16 @@ class CKTDXDeviceManager :
 		void			AppendSound( CKTDXDeviceDataList& listOut_, const std::wstring& wstrName_ );
 //#endif	X2OPTIMIZE_REFACTORING_RESOURCE_BACKGROUND_LOAD
 
-#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#ifdef	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 		void	ReleaseAllMemoryBuffers();
-#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
+//#endif	X2OPTIMIZE_MASS_FILE_BUFFER_MANAGER
 
 	private:
 
         void    LoadAndCloseDevice( CKTDXDevice* pDevice_
-#ifdef	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#ifdef	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 				, bool bBackgroundQueueing = false
-#endif	X2OPTIMIZE_SOUND_BACKROUND_LOAD
+#endif	X2OPTIMIZE_SOUND_BACKGROUND_LOAD
 			);
 
 		CKTDXDevice*    CreateAndOpenDevice( CKTDXDevice* pDevice );
@@ -206,22 +201,18 @@ class CKTDXDeviceManager :
         /// thread를 suspend 시킨다.
         void            _CheckFullSyncInDeviceThread();
     public:
-#ifdef NEW_VILLAGE_UNIT_BACKGROUND_LOADING_TEST
+//#ifdef NEW_VILLAGE_UNIT_BACKGROUND_LOADING_TEST
 		bool			IsValidDevice( CKTDXDevice* pDevice )
 		{
 			if( NULL == pDevice )
 				return false;
 
-#ifdef FIX_BL
 			CSLock  locker( m_DeviceLock );
 
 			map<wstring, CKTDXDevice*>::const_iterator iter = m_DeviceMap.find( pDevice->GetDeviceID() );
 			if ( iter == m_DeviceMap.end() || iter->second != pDevice )
 				return false;			
-#else
-			if( m_mapDeviceID.find( pDevice ) == m_mapDeviceID.end() )
-				return false;			
-#endif
+
 			return true;
 		}
 		bool			IsValidDevice( const wstring& deviceID )
@@ -229,18 +220,14 @@ class CKTDXDeviceManager :
 			if( true == deviceID.empty() )
 				return false;
 
-#ifdef FIX_BL
 			CSLock locker( m_DeviceLock );
 			map<wstring, CKTDXDevice*>::const_iterator iter = m_DeviceMap.find( deviceID );
 			if ( iter == m_DeviceMap.end() || iter->second == NULL )
 				return false;
-#else
-			if( m_DeviceMap.find( deviceID ) == m_DeviceMap.end() )
-				return false;
-#endif
+
 			return true;
 		}
-#endif NEW_VILLAGE_UNIT_BACKGROUND_LOADING_TEST
+//#endif NEW_VILLAGE_UNIT_BACKGROUND_LOADING_TEST
 
 
 
@@ -303,5 +290,18 @@ class CKTDXDeviceManager :
 		set<wstring>					m_setEmptyDeviceID;
 #endif //ADD_RESOURCE_ERROR_LOG
 
+#ifdef  X2OPTIMIZE_COOPERATIVE_BACKGROUND_RESOURCE_LOADING
+        DWORD                           m_dwBackgroundThreadLoadSize;
+#endif  X2OPTIMIZE_COOPERATIVE_BACKGROUND_RESOURCE_LOADING
 
 };//class CKTDXDeviceManager : public CKTDXStage, public KJohnThread
+
+
+
+
+
+
+
+
+
+

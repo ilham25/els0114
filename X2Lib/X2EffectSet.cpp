@@ -6,14 +6,26 @@
 
 #pragma DMLEE_NOTE( "effect set에 사운드 작업할 수 있게 기능 추가해야 함" )
 
-
+#ifndef X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 CKTDXSimpleHandleInterface< CX2EffectSet::EffectSetInstance > CX2EffectSet::s_HandleManager;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
-
-CX2EffectSet::CX2EffectSet(void)
+CX2EffectSet::CX2EffectSet(
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    unsigned char ucSystemID 
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK        
+    )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+: m_coInstanceHandleList( LIST_NUM, 64 )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 {
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    m_ucSystemID = ucSystemID & 0x3;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_vecpEffectSetInstance.reserve( 64 );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 CX2EffectSet::~CX2EffectSet(void)
@@ -26,11 +38,15 @@ CX2EffectSet::~CX2EffectSet(void)
 
 void CX2EffectSet::ClearTempletAndInstance()
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    StopEffectSetAll();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	BOOST_TEST_FOREACH( EffectSetInstance*, pEffectSetInstance, m_vecpEffectSetInstance )
 	{
 		SAFE_DELETE( pEffectSetInstance );
 	}
 	m_vecpEffectSetInstance.clear();
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 
 	BOOST_TEST_FOREACH( EffectSetDataMap::value_type&, value, m_mapEffectSetTemplet )
@@ -63,8 +79,22 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 	KTDXPROFILE();
 
 	// 이펙트 생성 및 effectsetinstance framemove
-	BOOST_TEST_FOREACH( EffectSetInstance*, pEffectSetInstance, m_vecpEffectSetInstance )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+    KInstanceHandleList::iterator iterNext;
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        iter = iterNext )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    BOOST_TEST_FOREACH( EffectSetInstance*, pEffectSetInstance, m_vecpEffectSetInstance )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        iterNext = iter; ++iterNext;
+        EffectSetInstance* pEffectSetInstance = iter->m_pInstance;
+        if ( pEffectSetInstance == NULL )
+            continue;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		pEffectSetInstance->OnFrameMove( fTime, fElapsedTime );
 
 		bool bTraceTargetDead = false;
@@ -127,11 +157,19 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 #endif //RIDING_SYSTEM
 						else
 						{
-							if( pEffectSetInstance->m_pXSkinAnim->GetNowAnimationTime() < pEffectData->m_fStartAnimTime + pEffectSetInstance->m_fDelayTime )
+							if( 
+#ifdef  X2OPTIMIZE_EFFECTSET_NULL_CHECK_BUG_FIX
+                                pEffectSetInstance->m_pXSkinAnim != NULL &&
+#endif  X2OPTIMIZE_EFFECTSET_NULL_CHECK_BUG_FIX
+                                pEffectSetInstance->m_pXSkinAnim->GetNowAnimationTime() < pEffectData->m_fStartAnimTime + pEffectSetInstance->m_fDelayTime )
 								continue;
 						}						
 #else
-						if( pEffectSetInstance->m_pXSkinAnim->GetNowAnimationTime() < pEffectData->m_fStartAnimTime + pEffectSetInstance->m_fDelayTime )
+						if( 
+#ifdef  X2OPTIMIZE_EFFECTSET_NULL_CHECK_BUG_FIX
+                                pEffectSetInstance->m_pXSkinAnim != NULL &&
+#endif  X2OPTIMIZE_EFFECTSET_NULL_CHECK_BUG_FIX                            
+                            pEffectSetInstance->m_pXSkinAnim->GetNowAnimationTime() < pEffectData->m_fStartAnimTime + pEffectSetInstance->m_fDelayTime )
 							continue;
 #endif						
 					} break;
@@ -199,7 +237,6 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 #ifdef SERV_PET_SYSTEM
 						if( NULL != pUnit )
 						{
-#ifdef PET_ATTACK_NOBUFF
 							if( bPetDamageEffect == true )
 							{
 								if( pUnit->GetRemainHyperModeTime() > 0.f )
@@ -208,7 +245,6 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 									fPowerRate = 1.f;
 							}
 							else
-#endif
 							{
 								fPowerRate = pUnit->GetPowerRate();
 							}							
@@ -240,11 +276,9 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 						if( bPetDamageEffect == true )
 						{
 						float fPowerRatePet = 1.f;
-#ifdef ADD_UPGRADE_PET01
 						// 펫 친밀도가 70%이상일 경우 배율 증가
 						if( pEffectSetInstance->m_pPet != NULL && pEffectSetInstance->m_pPet->GetNowIntimacy() >= 0.7f )
 							fPowerRatePet = ( pEffectSetInstance->m_pPet->GetNowIntimacy() - 0.6f + 1.f );
-#endif
 						pEffect = g_pX2Game->GetDamageEffect()->CreateInstance( pUnit, pEffectData->m_EffectName.c_str(), 
 								fPowerRate * fPowerRatePet, vEffectPos, vEffectRotation, vEffectRotation );
 						}
@@ -279,14 +313,43 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 
 					if( NULL != pEffect )
 					{
-						pEffect->SetScale( vEffectScale );
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+						CX2GameUnit* pOwnerGameUnit = pEffectSetInstance->GetOwnerUnit();
+
+						/// 행렬 안에 UnitScale 값이 들어 있기 때문에, 행렬 Trace 일때는 UnitScale 제외해주자.
+						if ( true == pEffectData->m_bTraceMatrix && NULL != pOwnerGameUnit )
+						{
+							const D3DXVECTOR3 vScaleAtTraceMatrix( vEffectScale.x / pOwnerGameUnit->GetScaleByUnit().x / pEffectSetInstance->m_vBoneTraceTargetMeshScale.x, 
+																   vEffectScale.y / pOwnerGameUnit->GetScaleByUnit().y / pEffectSetInstance->m_vBoneTraceTargetMeshScale.y, 
+																   vEffectScale.z / pOwnerGameUnit->GetScaleByUnit().z / pEffectSetInstance->m_vBoneTraceTargetMeshScale.z );
+
+							pEffect->SetScale( vScaleAtTraceMatrix );
+						}
+						else
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
+							pEffect->SetScale( vEffectScale );
 #ifdef RIDING_SYSTEM
-						if ( NULL != pEffect->GetLockOnData() )
+						//if ( NULL != pEffect->GetLockOnData() )
 						{
 							if ( NULL != pUnit && CX2GameUnit::GUT_USER == pUnit->GetGameUnitType() )
 							{
 								CX2GUUser* pUser = static_cast<CX2GUUser*>(pUnit);
+#ifdef LOT_NEARST_UID_VECTOR_IN_RANGE_ADD //김창한
+								pUser->SetLockOn( pEffect, 0, pEffect->GetLockOnData().m_LockOnType );
+#else //LOT_NEARST_UID_VECTOR_IN_RANGE_ADD
 								pUser->SetLockOn( pEffect );
+#endif //LOT_NEARST_UID_VECTOR_IN_RANGE_ADD
+
+#ifdef ADD_RENA_SYSTEM //김창한
+								//스킬 관련 데이터 값, 첫번째 타격인지 체크하는 값을 상속받음.
+								//관련 값들이 초기값이 아닐때만 상속 -> DamageEffect에서 CreateEffectSet이 된 경우가 해당됨.
+								if( CX2DamageManager::FAC_NONE != pEffectSetInstance->m_eFirstAttack )
+									pEffect->GetDamageData().m_eFirstAttack = pEffectSetInstance->m_eFirstAttack;
+
+								if( 0 != pEffectSetInstance->m_RelateSkillData.m_byteRelateData )
+									pEffect->GetDamageData().m_RelateSkillData = pEffectSetInstance->m_RelateSkillData;
+#endif //ADD_RENA_SYSTEM
+
 							}
 						}
 #endif //RIDING_SYSTEM
@@ -311,7 +374,21 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 
 					if( NULL != pMeshInstance )
 					{
-						pMeshInstance->SetScale( vEffectScale );
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+						CX2GameUnit* pOwnerGameUnit = pEffectSetInstance->GetOwnerUnit();
+
+						/// 행렬 안에 UnitScale 값이 들어 있기 때문에, 행렬 Trace 일때는 UnitScale 제외해주자.
+						if ( true == pEffectData->m_bTraceMatrix && NULL != pOwnerGameUnit )
+						{
+							const D3DXVECTOR3 vScaleAtTraceMatrix( vEffectScale.x / pOwnerGameUnit->GetScaleByUnit().x / pEffectSetInstance->m_vBoneTraceTargetMeshScale.x, 
+																   vEffectScale.y / pOwnerGameUnit->GetScaleByUnit().y / pEffectSetInstance->m_vBoneTraceTargetMeshScale.y, 
+																   vEffectScale.z / pOwnerGameUnit->GetScaleByUnit().z / pEffectSetInstance->m_vBoneTraceTargetMeshScale.z );
+
+							pMeshInstance->SetScale( vScaleAtTraceMatrix );
+						}
+						else
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
+							pMeshInstance->SetScale( vEffectScale );
 
 						if( true == pMeshInstance->GetIsSetLandHeightOnStart() )
 						{
@@ -351,7 +428,21 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 
 					if( NULL != pMeshInstance )
 					{
-						pMeshInstance->SetScale( vEffectScale );
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+						CX2GameUnit* pOwnerGameUnit = pEffectSetInstance->GetOwnerUnit();
+
+						/// 행렬 안에 UnitScale 값이 들어 있기 때문에, 행렬 Trace 일때는 UnitScale 제외해주자.
+						if ( true == pEffectData->m_bTraceMatrix && NULL != pOwnerGameUnit )
+						{
+							const D3DXVECTOR3 vScaleAtTraceMatrix( vEffectScale.x / pOwnerGameUnit->GetScaleByUnit().x / pEffectSetInstance->m_vBoneTraceTargetMeshScale.x, 
+																   vEffectScale.y / pOwnerGameUnit->GetScaleByUnit().y / pEffectSetInstance->m_vBoneTraceTargetMeshScale.y, 
+																   vEffectScale.z / pOwnerGameUnit->GetScaleByUnit().z / pEffectSetInstance->m_vBoneTraceTargetMeshScale.z );
+
+							pMeshInstance->SetScale( vScaleAtTraceMatrix );
+						}
+						else
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
+							pMeshInstance->SetScale( vEffectScale );
 
 						if( true == pMeshInstance->GetIsSetLandHeightOnStart() )
 						{
@@ -394,7 +485,19 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 
 						if( NULL != pMeshInstance )
 						{
-							pMeshInstance->SetScale( vEffectScale );
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+							/// 행렬 안에 UnitScale 값이 들어 있기 때문에, 행렬 Trace 일때는 UnitScale 제외해주자.
+							if ( true == pEffectData->m_bTraceMatrix )
+							{
+								const D3DXVECTOR3 vScaleAtTraceMatrix( vEffectScale.x / pOwnerGameUnit->GetScaleByUnit().x / pEffectSetInstance->m_vBoneTraceTargetMeshScale.x, 
+																	   vEffectScale.y / pOwnerGameUnit->GetScaleByUnit().y / pEffectSetInstance->m_vBoneTraceTargetMeshScale.y, 
+																	   vEffectScale.z / pOwnerGameUnit->GetScaleByUnit().z / pEffectSetInstance->m_vBoneTraceTargetMeshScale.z );
+
+								pMeshInstance->SetScale( vScaleAtTraceMatrix );
+							}
+							else
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
+								pMeshInstance->SetScale( vEffectScale );
 
 							if( true == pMeshInstance->GetIsSetLandHeightOnStart() )
 							{
@@ -427,7 +530,19 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 
 						if( NULL != pMeshInstance )
 						{
-							pMeshInstance->SetScale( vEffectScale );
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+							/// 행렬 안에 UnitScale 값이 들어 있기 때문에, 행렬 Trace 일때는 UnitScale 제외해주자.
+							if ( true == pEffectData->m_bTraceMatrix )
+							{
+								const D3DXVECTOR3 vScaleAtTraceMatrix( vEffectScale.x / pOwnerGameUnit->GetScaleByUnit().x / pEffectSetInstance->m_vBoneTraceTargetMeshScale.x, 
+																	   vEffectScale.y / pOwnerGameUnit->GetScaleByUnit().y / pEffectSetInstance->m_vBoneTraceTargetMeshScale.y, 
+																	   vEffectScale.z / pOwnerGameUnit->GetScaleByUnit().z / pEffectSetInstance->m_vBoneTraceTargetMeshScale.z );
+
+								pMeshInstance->SetScale( vScaleAtTraceMatrix );
+							}
+							else
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
+								pMeshInstance->SetScale( vEffectScale );
 
 							if( true == pMeshInstance->GetIsSetLandHeightOnStart() )
 							{
@@ -461,7 +576,21 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 							pParticleSequence->SetAddRotate( vEffectRotation );
 						}
 
-						pParticleSequence->SetScaleFactor( vEffectScale );
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+						CX2GameUnit* pOwnerGameUnit = pEffectSetInstance->GetOwnerUnit();
+
+						/// 행렬 안에 UnitScale 값이 들어 있기 때문에, 행렬 Trace 일때는 UnitScale 제외해주자.
+						if ( true == pEffectData->m_bTraceMatrix && NULL != pOwnerGameUnit )
+						{
+							const D3DXVECTOR3 vScaleAtTraceMatrix( vEffectScale.x / pOwnerGameUnit->GetScaleByUnit().x / pEffectSetInstance->m_vBoneTraceTargetMeshScale.x, 
+																   vEffectScale.y / pOwnerGameUnit->GetScaleByUnit().y / pEffectSetInstance->m_vBoneTraceTargetMeshScale.y, 
+																   vEffectScale.z / pOwnerGameUnit->GetScaleByUnit().z / pEffectSetInstance->m_vBoneTraceTargetMeshScale.z );
+
+							pParticleSequence->SetScaleFactor( vScaleAtTraceMatrix );
+						}
+						else
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
+							pParticleSequence->SetScaleFactor( vEffectScale );
 
 #ifdef FIX_ICE_HEATER_EVENT
 						/// 파티클에 대하여 Set Over UI 기능 추가
@@ -511,6 +640,21 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 							pParticleSequence->SetAddRotate( vEffectRotation );
 						}
 						
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+						CX2GameUnit* pOwnerGameUnit = pEffectSetInstance->GetOwnerUnit();
+
+						/// 행렬 안에 UnitScale 값이 들어 있기 때문에, 행렬 Trace 일때는 UnitScale 제외해주자.
+						if ( true == pEffectData->m_bTraceMatrix && NULL != pOwnerGameUnit )
+						{
+							const D3DXVECTOR3 vScaleAtTraceMatrix( vEffectScale.x / pOwnerGameUnit->GetScaleByUnit().x / pEffectSetInstance->m_vBoneTraceTargetMeshScale.x, 
+																   vEffectScale.y / pOwnerGameUnit->GetScaleByUnit().y / pEffectSetInstance->m_vBoneTraceTargetMeshScale.y, 
+															       vEffectScale.z / pOwnerGameUnit->GetScaleByUnit().z / pEffectSetInstance->m_vBoneTraceTargetMeshScale.z );
+
+							pParticleSequence->SetScaleFactor( vScaleAtTraceMatrix );
+						}
+						else
+							pParticleSequence->SetScaleFactor( vEffectScale );
+#else //FIX_EFFECT_SCALE_BY_UNIT_SCALE
 						//if( true == pEffectData->m_bApplyInstanceScale )
 						//{
 						//	pParticleSequence->SetScaleFactor( pEffectSetInstance->m_vScale );
@@ -518,6 +662,8 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 						// 위에 스케일은 effectset에서 지정한 scale을 적용시키지 않는다. 
 						// 구현이유는 모름.. 통일성있게 수정함.. 						
 						pParticleSequence->SetScaleFactor( vEffectScale ); // modified by wonpok. 2010.03.02
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
+						
 
 #ifdef FIX_ICE_HEATER_EVENT
 						/// 파티클에 대하여 Set Over UI 기능 추가
@@ -570,7 +716,19 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 								pParticleSequence->SetAddRotate( vEffectRotation );
 							}
 
-							pParticleSequence->SetScaleFactor( vEffectScale );
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+							/// 행렬 안에 UnitScale 값이 들어 있기 때문에, 행렬 Trace 일때는 UnitScale 제외해주자.
+							if ( true == pEffectData->m_bTraceMatrix )
+							{
+								const D3DXVECTOR3 vScaleAtTraceMatrix( vEffectScale.x / pOwnerGameUnit->GetScaleByUnit().x / pEffectSetInstance->m_vBoneTraceTargetMeshScale.x, 
+																	   vEffectScale.y / pOwnerGameUnit->GetScaleByUnit().y / pEffectSetInstance->m_vBoneTraceTargetMeshScale.y, 
+																	   vEffectScale.z / pOwnerGameUnit->GetScaleByUnit().z / pEffectSetInstance->m_vBoneTraceTargetMeshScale.z );
+
+								pParticleSequence->SetScaleFactor( vScaleAtTraceMatrix );
+							}
+							else
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
+								pParticleSequence->SetScaleFactor( vEffectScale );
 
 #ifdef FIX_ICE_HEATER_EVENT
 							/// 파티클에 대하여 Set Over UI 기능 추가
@@ -614,7 +772,19 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 								pParticleSequence->SetAddRotate( vEffectRotation );
 							}
 
-							pParticleSequence->SetScaleFactor( vEffectScale );
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+							/// 행렬 안에 UnitScale 값이 들어 있기 때문에, 행렬 Trace 일때는 UnitScale 제외해주자.
+							if ( true == pEffectData->m_bTraceMatrix )
+							{
+								const D3DXVECTOR3 vScaleAtTraceMatrix( vEffectScale.x / pOwnerGameUnit->GetScaleByUnit().x / pEffectSetInstance->m_vBoneTraceTargetMeshScale.x, 
+									vEffectScale.y / pOwnerGameUnit->GetScaleByUnit().y / pEffectSetInstance->m_vBoneTraceTargetMeshScale.y, 
+									vEffectScale.z / pOwnerGameUnit->GetScaleByUnit().z / pEffectSetInstance->m_vBoneTraceTargetMeshScale.z );
+
+								pParticleSequence->SetScaleFactor( vScaleAtTraceMatrix );
+							}
+							else
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
+								pParticleSequence->SetScaleFactor( vEffectScale );
 
 #ifdef FIX_ICE_HEATER_EVENT
 							/// 파티클에 대하여 Set Over UI 기능 추가
@@ -643,9 +813,13 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 					{
 						EffectInstance* pEffectInstance = new EffectInstance;
 						pEffectInstance->m_pEffectData			= pEffectData;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        pEffectInstance->m_hDamageEffect		= pEffect->GetHandle();
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						pEffectInstance->m_pDamageEffect		= pEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						pEffectInstance->m_hMeshPlayer			= INVALID_MESH_INSTANCE_HANDLE;
-						pEffectInstance->m_hParticleSequence	= INVALID_PARTICLE_HANDLE;
+						pEffectInstance->m_hParticleSequence	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 						pEffectInstance->m_optrGameUnit			= pEffectSetInstance->m_optrGameUnit;
 
 						pEffectSetInstance->m_vecpEffectInstance.push_back( pEffectInstance );
@@ -671,6 +845,14 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 					#endif // FIX_TARGET_MESH_OFFSET_POS
 							}
 		#endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+		#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+							/// 행렬 Trace일 때 BoneTraceTargetMesh의 스케일 값 빼주기 위하여, 스케일 값 저장
+							if ( true == IsSamef( 0.f, pEffectData->m_vScale.x ) )
+								pEffectSetInstance->m_vBoneTraceTargetMeshScale = D3DXVECTOR3( 1.f, 1.f, 1.f );
+							else
+								pEffectSetInstance->m_vBoneTraceTargetMeshScale = pEffectData->m_vScale;
+		#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
 						}
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
 					}
@@ -685,9 +867,13 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 					{
 						EffectInstance* pEffectInstance = new EffectInstance;
 						pEffectInstance->m_pEffectData			= pEffectData;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        pEffectInstance->m_hDamageEffect		= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						pEffectInstance->m_pDamageEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						pEffectInstance->m_hMeshPlayer			= pMeshInstance->GetHandle();
-						pEffectInstance->m_hParticleSequence	= INVALID_PARTICLE_HANDLE;
+						pEffectInstance->m_hParticleSequence	= INVALID_PARTICLE_SEQUENCE_HANDLE;
 						pEffectInstance->m_optrGameUnit			= pEffectSetInstance->m_optrGameUnit;
 
 						pEffectSetInstance->m_vecpEffectInstance.push_back( pEffectInstance );
@@ -733,6 +919,14 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 				#endif // FIX_TARGET_MESH_OFFSET_POS
 							}
 		#endif // SERV_ARA_CHANGE_CLASS_SECOND
+
+		#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+							/// 행렬 Trace일 때 BoneTraceTargetMesh의 스케일 값 빼주기 위하여, 스케일 값 저장
+							if ( true == IsSamef( 0.f, pEffectData->m_vScale.x ) )
+								pEffectSetInstance->m_vBoneTraceTargetMeshScale = D3DXVECTOR3( 1.f, 1.f, 1.f );
+							else
+								pEffectSetInstance->m_vBoneTraceTargetMeshScale = pEffectData->m_vScale;
+		#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
 						}
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
 
@@ -749,7 +943,11 @@ void CX2EffectSet::OnFrameMove_CreateEffect( double fTime, float fElapsedTime )
 					{
 						EffectInstance* pEffectInstance = new EffectInstance;
 						pEffectInstance->m_pEffectData			= pEffectData;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        pEffectInstance->m_hDamageEffect		= INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						pEffectInstance->m_pDamageEffect		= NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						pEffectInstance->m_hMeshPlayer			= INVALID_MESH_INSTANCE_HANDLE;
 						pEffectInstance->m_hParticleSequence	= pParticleSequence->GetHandle();
 						pEffectInstance->m_optrGameUnit			= pEffectSetInstance->m_optrGameUnit;
@@ -767,17 +965,39 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 	KTDXPROFILE();
 
 	// 이펙트 삭제
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+    KInstanceHandleList::iterator iterNext;
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        iter = iterNext )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	for( UINT j=0; j<m_vecpEffectSetInstance.size(); j++ )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
-		EffectSetInstance* pEffectSetInstance = m_vecpEffectSetInstance[j];
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        iterNext = iter;    ++iterNext;
+        EffectSetInstance* pEffectSetInstance = iter->m_pInstance;
+        if ( pEffectSetInstance == NULL )
+        {
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+            continue;
+        }
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        EffectSetInstance* pEffectSetInstance = m_vecpEffectSetInstance[j];
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE
 		if( true == pEffectSetInstance->m_bIsTargetMesh &&
 			INVALID_MESH_INSTANCE_HANDLE == pEffectSetInstance->m_hTargetMesh )
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            iter->m_pInstance = NULL;
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
 			--j;
-
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			SAFE_DELETE( pEffectSetInstance );
 			continue;
 		}
@@ -789,9 +1009,13 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 			( null == pEffectSetInstance->m_optrTraceTargetGameUnit || 
 			0 >= pEffectSetInstance->m_optrTraceTargetGameUnit->GetNowHp() ))
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            iter->m_pInstance = NULL;
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
 			--j;
-
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			SAFE_DELETE( pEffectSetInstance );
 			continue;
 		}
@@ -802,10 +1026,14 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 		{
 			if( NULL != g_pX2Game && null == pEffectSetInstance->m_optrGameUnit )
 			{
-				m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
-				--j;
-
-				SAFE_DELETE( pEffectSetInstance );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                iter->m_pInstance = NULL;
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			    m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
+			    --j;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			    SAFE_DELETE( pEffectSetInstance );
 				continue;
 			}
 		}
@@ -815,10 +1043,14 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 		{
 			if( g_pData->GetPetManager()->IsValidPet(pEffectSetInstance->m_pPet) == false )
 			{
-				m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
-				--j;
-
-				SAFE_DELETE( pEffectSetInstance );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                iter->m_pInstance = NULL;
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			    m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
+			    --j;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			    SAFE_DELETE( pEffectSetInstance );
 				continue;
 			}
 		}
@@ -828,10 +1060,14 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 		{
 			if( pEffectSetInstance->m_iCurrDeleteShakeCount >= pEffectSetInstance->m_pEffectSetData->m_iDeleteShakeCount )
 			{
-				m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
-				--j;
-
-				SAFE_DELETE( pEffectSetInstance );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                iter->m_pInstance = NULL;
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			    m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
+			    --j;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			    SAFE_DELETE( pEffectSetInstance );
 				continue;
 			}
 			else
@@ -877,10 +1113,14 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 		{
 			if( pEffectSetInstance->m_fElapsedTime > pEffectSetInstance->m_fLifeTime )
 			{
-				m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
-				--j;
-
-				SAFE_DELETE( pEffectSetInstance );
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                iter->m_pInstance = NULL;
+                m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			    m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
+			    --j;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			    SAFE_DELETE( pEffectSetInstance );
 				continue;
 			}
 		}
@@ -911,10 +1151,18 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 				} break;
 			case ET_DAMAGE_EFFECT:
 				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+					if( NULL != g_pX2Game && false == g_pX2Game->GetDamageEffect()->IsLiveInstanceHandle( pEffectInstance->m_hDamageEffect ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					if( NULL != g_pX2Game && false == g_pX2Game->GetDamageEffect()->IsLiveInstance( pEffectInstance->m_pDamageEffect ) )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					{
 						pEffectInstance->m_bAlive = false;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        pEffectInstance->m_hDamageEffect = INVALID_DAMAGE_EFFECT_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 						pEffectInstance->m_pDamageEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 					}
 				} break;
 
@@ -955,7 +1203,7 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 					if( false == g_pData->GetUIMajorParticle()->IsLiveInstanceHandle( pEffectInstance->m_hParticleSequence ) )
 					{
 						pEffectInstance->m_bAlive = false;
-						pEffectInstance->m_hParticleSequence = INVALID_PARTICLE_HANDLE;
+						pEffectInstance->m_hParticleSequence = INVALID_PARTICLE_SEQUENCE_HANDLE;
 					}
 				} break;
 			case ET_PARTICLE_UI_MINOR:
@@ -963,7 +1211,7 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 					if( false == g_pData->GetUIMinorParticle()->IsLiveInstanceHandle( pEffectInstance->m_hParticleSequence ) )
 					{
 						pEffectInstance->m_bAlive = false;
-						pEffectInstance->m_hParticleSequence = INVALID_PARTICLE_HANDLE;
+						pEffectInstance->m_hParticleSequence = INVALID_PARTICLE_SEQUENCE_HANDLE;
 					}
 				} break;
 			case ET_PARTICLE_GAME_MAJOR:
@@ -971,7 +1219,7 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 					if( NULL != g_pX2Game && false == g_pX2Game->GetMajorParticle()->IsLiveInstanceHandle( pEffectInstance->m_hParticleSequence ) )
 					{
 						pEffectInstance->m_bAlive = false;
-						pEffectInstance->m_hParticleSequence = INVALID_PARTICLE_HANDLE;
+						pEffectInstance->m_hParticleSequence = INVALID_PARTICLE_SEQUENCE_HANDLE;
 					}
 				} break;
 			case ET_PARTICLE_GAME_MINOR:
@@ -979,7 +1227,7 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 					if( NULL != g_pX2Game && false == g_pX2Game->GetMinorParticle()->IsLiveInstanceHandle( pEffectInstance->m_hParticleSequence ) )
 					{
 						pEffectInstance->m_bAlive = false;
-						pEffectInstance->m_hParticleSequence = INVALID_PARTICLE_HANDLE;
+						pEffectInstance->m_hParticleSequence = INVALID_PARTICLE_SEQUENCE_HANDLE;
 					}
 				} break;
 			}
@@ -994,9 +1242,13 @@ void CX2EffectSet::OnFrameMove_DeleteEffect()
 
 		if( false == bEffectSetInstanceAlive )
 		{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            iter->m_pInstance = NULL;
+            m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), iter );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			m_vecpEffectSetInstance.erase( m_vecpEffectSetInstance.begin() + j );
 			--j;
-
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			SAFE_DELETE( pEffectSetInstance );
 			continue;
 		}
@@ -1011,8 +1263,22 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 	KTDXPROFILE();
 
 	// 이펙트 위치 갱신	
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+    KInstanceHandleList::iterator iterNext;
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        iter = iterNext )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	BOOST_TEST_FOREACH( EffectSetInstance*, pEffectSetInstance, m_vecpEffectSetInstance )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        iterNext = iter; ++iterNext;
+        EffectSetInstance* pEffectSetInstance = iter->m_pInstance;
+        if ( pEffectSetInstance == NULL )
+            continue;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		for( UINT i=0; i<pEffectSetInstance->m_vecpEffectInstance.size(); i++ )
 		{
 			EffectInstance* pEffectInstance = pEffectSetInstance->m_vecpEffectInstance[i];
@@ -1021,9 +1287,7 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 			if( false == pEffectData->m_bTrace 
 				&& false == pEffectData->m_bTraceMore 
 				//{{kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
-#ifdef	TRACE_MAXTRIX_TEST
 				&& false == pEffectData->m_bTraceMatrix
-#endif	TRACE_MAXTRIX_TEST
 				//}}kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
 				)
 				continue;
@@ -1035,10 +1299,19 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 			D3DXVECTOR3 vEffectPos = pEffectSetInstance->GetEffectPosition( pEffectData );
 
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE
+
 			// 타겟 메시가 사라지면 더이상 위치 갱신 하지 않기
+	#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+			if( true == pEffectSetInstance->m_bIsTargetMesh &&
+				false == pEffectData->m_bTraceUserTargetForce &&
+				INVALID_MESH_INSTANCE_HANDLE == pEffectSetInstance->m_hTargetMesh )
+	#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 			if( true == pEffectSetInstance->m_bIsTargetMesh &&
 				INVALID_MESH_INSTANCE_HANDLE == pEffectSetInstance->m_hTargetMesh )
+	#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
+			
 				break;
+
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
 
 			switch( pEffectData->m_eEffectType )
@@ -1046,11 +1319,17 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 			case ET_DAMAGE_EFFECT:
 				{
 					if ( NULL != g_pX2Game &&
-						NULL != g_pX2Game->GetDamageEffect() &&
-						NULL != pEffectInstance->m_pDamageEffect )
-					{
-						pEffectInstance->m_pDamageEffect->SetPos( vEffectPos );
-					}
+						NULL != g_pX2Game->GetDamageEffect() )
+                    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                        if ( CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->GetInstance( pEffectInstance->m_hDamageEffect ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						if ( CX2DamageEffect::CEffect* pEffect = pEffectInstance->m_pDamageEffect )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+					    {
+						    pEffect->SetPos( vEffectPos );
+					    }
+                    }
 
 				} break;
 
@@ -1104,7 +1383,7 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 			case ET_PARTICLE_UI_MAJOR:
 				{
 					if( g_pData->GetUIMajorParticle() != NULL && 
-						pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_HANDLE )						
+						pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
 					{
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
 						if( pSeq != NULL )
@@ -1117,7 +1396,7 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 			case ET_PARTICLE_UI_MINOR:
 				{
 					if( g_pData->GetUIMinorParticle() != NULL && 
-						pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_HANDLE )						
+						pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
 					{
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMinorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
 						if( pSeq != NULL )
@@ -1129,7 +1408,7 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 
 			case ET_PARTICLE_GAME_MAJOR:
 				{
-					if( g_pX2Game != NULL && g_pX2Game->GetMajorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_HANDLE )						
+					if( g_pX2Game != NULL && g_pX2Game->GetMajorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
 					{
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
 						if( pSeq != NULL )
@@ -1142,7 +1421,7 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 
 			case ET_PARTICLE_GAME_MINOR:
 				{
-					if( g_pX2Game != NULL && g_pX2Game->GetMinorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_HANDLE )						
+					if( g_pX2Game != NULL && g_pX2Game->GetMinorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
 					{
 						CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
 						if( pSeq != NULL )
@@ -1155,10 +1434,9 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 			}			
 
 			//{{kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
-#ifdef	TRACE_MAXTRIX_TEST
 			if ( true == pEffectData->m_bTraceMatrix )
 			{
-				const D3DXMATRIX* pCombineMatrix = pEffectSetInstance->GetCombineMatrix( pEffectData );
+				const D3DXMATRIX* pCombineMatrix = pEffectSetInstance->GetCombineMatrix( pEffectData );			
 
 				if ( NULL != pCombineMatrix )
 				{
@@ -1167,15 +1445,21 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 					case ET_DAMAGE_EFFECT:
 						{
 							if( NULL != g_pX2Game &&
-								NULL != g_pX2Game->GetDamageEffect() &&
-								NULL != pEffectInstance->m_pDamageEffect )
-							{
-								CKTDGXMeshPlayer::CXMeshInstance* pInstance = pEffectInstance->m_pDamageEffect->GetMainEffect();
-								if( NULL != pInstance )
-								{
-									pInstance->SetUseDXMatrix( *pCombineMatrix );						
-								}
-							}
+								NULL != g_pX2Game->GetDamageEffect() )
+                            {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                                if ( CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->GetInstance( pEffectInstance->m_hDamageEffect ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+						        if ( CX2DamageEffect::CEffect* pEffect = pEffectInstance->m_pDamageEffect )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+							    {
+								    CKTDGXMeshPlayer::CXMeshInstance* pInstance = pEffect->GetMainEffect();
+								    if( NULL != pInstance )
+								    {
+									    pInstance->SetUseDXMatrix( *pCombineMatrix );						
+								    }
+							    }
+                            }
 						}
 						break;
 
@@ -1229,7 +1513,7 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 #ifdef NEW_HENIR_TEST
 					case ET_PARTICLE_GAME_MAJOR:
 						{
-							if( g_pX2Game != NULL && g_pX2Game->GetMajorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_HANDLE )						
+							if( g_pX2Game != NULL && g_pX2Game->GetMajorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
 							{
 								CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
 								if( pSeq != NULL )
@@ -1245,7 +1529,6 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 					}
 				} // if
 			} // if
-#endif	TRACE_MAXTRIX_TEST
 			//}}kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
 
 #ifdef ARA_CHANGE_CLASS_FIRST
@@ -1255,7 +1538,7 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 				{
 				case ET_PARTICLE_GAME_MAJOR:
 					{
-						if( g_pX2Game != NULL && g_pX2Game->GetMajorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_HANDLE )						
+						if( g_pX2Game != NULL && g_pX2Game->GetMajorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
 						{
 							CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
 
@@ -1267,7 +1550,12 @@ void CX2EffectSet::OnFrameMove_UpdateEffect()
 								if ( CKTDGMatrix::BT_NONE != eBillboardType )
 								{
 									/// 타겟 매시가 설정되어 있다면, 타겟 매시의 IsRight 값을 사용한다.
+					#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+									if ( INVALID_MESH_INSTANCE_HANDLE != pEffectSetInstance->m_hTargetMesh &&
+										 false == pEffectData->m_bTraceUserTargetForce )
+					#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 									if ( INVALID_MESH_INSTANCE_HANDLE != pEffectSetInstance->m_hTargetMesh )
+					#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 										pSeq->SetReverseY( !( pEffectSetInstance->m_bIsTargetMeshRight ) );
 									/// 타겟 매시가 설정되어 있지 않다면, 유저의 IsRight 값을 사용한다.
 									else if ( null != pEffectInstance->m_optrGameUnit )
@@ -1302,8 +1590,22 @@ void CX2EffectSet::OnFrameMove_StartCameraShake()
 		return;
 
 	//camera shake
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterNext;
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        iter = iterNext )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	BOOST_TEST_FOREACH( EffectSetInstance*, pEffectSetInstance, m_vecpEffectSetInstance )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        iterNext = iter; ++iterNext;
+        EffectSetInstance* pEffectSetInstance = iter->m_pInstance;
+        if ( pEffectSetInstance == NULL )
+            continue;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		EffectSetData* pEffectSetData = pEffectSetInstance->m_pEffectSetData;
 
 		for ( UINT i=0; i<pEffectSetData->m_vecpCameraShakeData.size(); i++ )
@@ -1344,12 +1646,20 @@ void CX2EffectSet::OnFrameMove_StartCameraShake()
 #endif //RIDING_SYSTEM
 						else
 						{
-							if( pEffectSetInstance->m_pXSkinAnim->GetNowAnimationTime() < pCameraShakeData->m_fStartAnimTime + pEffectSetInstance->m_fDelayTime )
+							if( 
+#ifdef  X2OPTIMIZE_EFFECTSET_NULL_CHECK_BUG_FIX
+                                pEffectSetInstance->m_pXSkinAnim != NULL &&
+#endif  X2OPTIMIZE_EFFECTSET_NULL_CHECK_BUG_FIX                           
+                                pEffectSetInstance->m_pXSkinAnim->GetNowAnimationTime() < pCameraShakeData->m_fStartAnimTime + pEffectSetInstance->m_fDelayTime )
 								continue;
 						}
 #else
 						//if( false == pEffectSetInstance->m_pXSkinAnim->EventTimer( pCameraShakeData->m_fStartAnimTime + pEffectSetInstance->m_fDelayTime ) )
-						if( pEffectSetInstance->m_pXSkinAnim->GetNowAnimationTime() < pCameraShakeData->m_fStartAnimTime + pEffectSetInstance->m_fDelayTime )
+						if( 
+#ifdef  X2OPTIMIZE_EFFECTSET_NULL_CHECK_BUG_FIX
+                                pEffectSetInstance->m_pXSkinAnim != NULL &&
+#endif  X2OPTIMIZE_EFFECTSET_NULL_CHECK_BUG_FIX                            
+                            pEffectSetInstance->m_pXSkinAnim->GetNowAnimationTime() < pCameraShakeData->m_fStartAnimTime + pEffectSetInstance->m_fDelayTime )
 							continue;
 #endif						
 					} break;
@@ -1369,56 +1679,59 @@ void CX2EffectSet::OnFrameMove_StartCameraShake()
 
 
 			pEffectSetInstance->m_vecCameraShakeDone[i] = true;
-
+#ifdef EFFECTSET_CAMERASHAKE_DISTANCE_IGNORE
+			if( ( NULL != g_pX2Game->GetMyUnit() && GetDistance3Sq( g_pX2Game->GetMyUnit()->GetPos(), pEffectSetInstance->m_vPosition ) < pCameraShakeData->m_iLimitDistanceSq ) || IGNORE_DISTANCE == pCameraShakeData->m_iLimitDistanceSq )
+#else //EFFECTSET_CAMERASHAKE_DISTANCE_IGNORE
 #ifdef FIX_OBSERVER_MODE_CRASH
 			if ( NULL != g_pX2Game->GetMyUnit() && GetDistance3Sq( g_pX2Game->GetMyUnit()->GetPos(), pEffectSetInstance->m_vPosition ) < pCameraShakeData->m_iLimitDistanceSq )
 #else  FIX_OBSERVER_MODE_CRASH
 			if ( GetDistance3Sq( g_pX2Game->GetMyUnit()->GetPos(), pEffectSetInstance->m_vPosition ) < pCameraShakeData->m_iLimitDistanceSq )
 #endif FIX_OBSERVER_MODE_CRASH
+#endif //EFFECTSET_CAMERASHAKE_DISTANCE_IGNORE
 			{
 				switch( pCameraShakeData->m_eShakeType )
 				{
 				case CKTDGCamera::DECT_UP:
 					{
-						g_pX2Game->GetX2Camera()->GetCamera()->UpCrashCamera( pCameraShakeData->m_fOneDirSpeed, pCameraShakeData->m_fOneDirAccel );
+						g_pX2Game->GetX2Camera()->GetCamera().UpCrashCamera( pCameraShakeData->m_fOneDirSpeed, pCameraShakeData->m_fOneDirAccel );
 					} break;
 				case CKTDGCamera::DECT_DOWN:
 					{
-						g_pX2Game->GetX2Camera()->GetCamera()->DownCrashCamera( pCameraShakeData->m_fOneDirSpeed, pCameraShakeData->m_fOneDirAccel );
+						g_pX2Game->GetX2Camera()->GetCamera().DownCrashCamera( pCameraShakeData->m_fOneDirSpeed, pCameraShakeData->m_fOneDirAccel );
 					} break;
 				case CKTDGCamera::DECT_UP_DOWN:
 					{
-						g_pX2Game->GetX2Camera()->GetCamera()->ShakeUpDown( pCameraShakeData->m_fTwoDirGap, pCameraShakeData->m_fTwoDirTime, pCameraShakeData->m_fTwoDirTimeGap );
+						g_pX2Game->GetX2Camera()->GetCamera().ShakeUpDown( pCameraShakeData->m_fTwoDirGap, pCameraShakeData->m_fTwoDirTime, pCameraShakeData->m_fTwoDirTimeGap );
 					} break;
 				case CKTDGCamera::DECT_UP_DOWN_NO_RESET:
 					{
-						g_pX2Game->GetX2Camera()->GetCamera()->UpDownCrashCameraNoReset( pCameraShakeData->m_fTwoDirGap, pCameraShakeData->m_fTwoDirTime );
+						g_pX2Game->GetX2Camera()->GetCamera().UpDownCrashCameraNoReset( pCameraShakeData->m_fTwoDirGap, pCameraShakeData->m_fTwoDirTime );
 					} break;
 
 				case CKTDGCamera::DECT_LEFT:
 					{
-						g_pX2Game->GetX2Camera()->GetCamera()->LeftCrashCamera( pCameraShakeData->m_fOneDirSpeed, pCameraShakeData->m_fOneDirAccel );
+						g_pX2Game->GetX2Camera()->GetCamera().LeftCrashCamera( pCameraShakeData->m_fOneDirSpeed, pCameraShakeData->m_fOneDirAccel );
 					} break;
 
 				case CKTDGCamera::DECT_RIGHT:
 					{
-						g_pX2Game->GetX2Camera()->GetCamera()->RightCrashCamera( pCameraShakeData->m_fOneDirSpeed, pCameraShakeData->m_fOneDirAccel );
+						g_pX2Game->GetX2Camera()->GetCamera().RightCrashCamera( pCameraShakeData->m_fOneDirSpeed, pCameraShakeData->m_fOneDirAccel );
 					} break;
 
 				case CKTDGCamera::DECT_LEFT_RIGHT:
 					{
-						g_pX2Game->GetX2Camera()->GetCamera()->ShakeLeftRight( pCameraShakeData->m_fTwoDirGap, pCameraShakeData->m_fTwoDirTime, pCameraShakeData->m_fTwoDirTimeGap );
+						g_pX2Game->GetX2Camera()->GetCamera().ShakeLeftRight( pCameraShakeData->m_fTwoDirGap, pCameraShakeData->m_fTwoDirTime, pCameraShakeData->m_fTwoDirTimeGap );
 					} break;
 				case CKTDGCamera::DECT_LEFT_RIGHT_NO_RESET:
 					{
-						g_pX2Game->GetX2Camera()->GetCamera()->LeftRightCrashCameraNoReset( pCameraShakeData->m_fTwoDirGap, pCameraShakeData->m_fTwoDirTime );
+						g_pX2Game->GetX2Camera()->GetCamera().LeftRightCrashCameraNoReset( pCameraShakeData->m_fTwoDirGap, pCameraShakeData->m_fTwoDirTime );
 					} break;
 
 
 
 				case CKTDGCamera::DECT_RANDOM:
 					{
-						g_pX2Game->GetX2Camera()->GetCamera()->ShakeRandom( pCameraShakeData->m_iEyeShakeCount, pCameraShakeData->m_EyeMoveSpeed.m_Min, pCameraShakeData->m_EyeMoveSpeed.m_Max, 
+						g_pX2Game->GetX2Camera()->GetCamera().ShakeRandom( pCameraShakeData->m_iEyeShakeCount, pCameraShakeData->m_EyeMoveSpeed.m_Min, pCameraShakeData->m_EyeMoveSpeed.m_Max, 
 							pCameraShakeData->m_EyeMoveRange.m_Min, pCameraShakeData->m_EyeMoveRange.m_Max, 
 							pCameraShakeData->m_iLookAtShakeCount, pCameraShakeData->m_LookAtMoveSpeed.m_Min, pCameraShakeData->m_LookAtMoveSpeed.m_Max, 
 							pCameraShakeData->m_LookAtMoveRange.m_Min, pCameraShakeData->m_LookAtMoveRange.m_Max, 
@@ -1431,18 +1744,71 @@ void CX2EffectSet::OnFrameMove_StartCameraShake()
 	}
 }
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+CX2EffectSet::EffectSetInstance*   CX2EffectSet::_CreateEffectSetInstance( 
+    EffectSetData* pEffectSetData, CKTDGXSkinAnimPtr skinAnimPtr, CX2GameUnit* pGameUnit, CX2GameUnit* pTraceTargetGameUnit, CX2SquareUnitPtr pSquareUnit,
+#ifdef  SERV_PET_SYSTEM
+    CX2PET *pPet
+#endif  SERV_PET_SYSTEM
+    )
+{
+    if ( pEffectSetData == NULL )
+        return NULL;
+
+    KInstanceHandleList::iterator iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+    if ( iterEmpty == m_coInstanceHandleList.end(LIST_FREE) )
+    {
+        if ( m_coInstanceHandleList.storage_size() >= 0x10000 )
+        {
+            return NULL;
+        }
+        m_coInstanceHandleList.push_back_default(LIST_FREE);
+        iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+        ASSERT( iterEmpty != m_coInstanceHandleList.end(LIST_FREE) );
+    }
+
+
+	EffectSetInstance* pEffectSetInstance = new EffectSetInstance( pEffectSetData, skinAnimPtr, pGameUnit, pTraceTargetGameUnit, pSquareUnit
+#ifdef  SERV_PET_SYSTEM
+        , pPet 
+#endif  SERV_PET_SYSTEM
+        );
+    ASSERT( pEffectSetInstance != NULL );
+    m_coInstanceHandleList.splice( m_coInstanceHandleList.end(LIST_LIVE), iterEmpty );
+    iterEmpty->m_pInstance = pEffectSetInstance;
+
+    WORD   wIndex = (WORD) iterEmpty.GetIndex();
+    Handle  handle;
+    DWORD   dwHandle = 0;
+    do
+    {
+        ++iterEmpty->m_wStamp;
+        dwHandle = ComposeHandle( wIndex, iterEmpty->m_wStamp );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle.SetValue( (int) dwHandle );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle = (int) dwHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    } while ( handle == INVALID_EFFECTSET_HANDLE );
+    pEffectSetInstance->SetHandle( handle );
+
+    return  pEffectSetInstance;
+}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 CX2EffectSet::Handle CX2EffectSet::PlayEffectSet( const wstring& wstrEffectSetName, CX2GameUnit* pGameUnit, CX2GameUnit* pTraceTargetGameUnit /*= NULL*/, 
 												 bool bHyper /*= false*/, float fPowerRate /*= -1.f*/, float fLifeTime /*= -1.f */, 
 												 D3DXVECTOR3 vScale /*= D3DXVECTOR3( 1, 1, 1 )*/, 
 												 bool bCustomPosition /*= false*/, const D3DXVECTOR3& vPosition/* = D3DXVECTOR3(0, 0, 0)*/, 
-												 const D3DXVECTOR3& vRotationDegree /*= D3DXVECTOR3(0, 0, 0)*/, const D3DXVECTOR3& vDirVector /*= D3DXVECTOR3(0, 0, 0)*/ )
+												 const D3DXVECTOR3& vRotationDegree /*= D3DXVECTOR3(0, 0, 0)*/, const D3DXVECTOR3& vDirVector /*= D3DXVECTOR3(0, 0, 0)*/)
 {
 	EffectSetData* pEffectSetData = GetEffectSetTemplet( wstrEffectSetName );
 	if( NULL == pEffectSetData )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
 	if( NULL == pGameUnit )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
 
 
@@ -1463,20 +1829,30 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSet( const wstring& wstrEffectSetNa
 	}
 
 	if( skinAnimPtr == NULL )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    EffectSetInstance* pEffectSetInstance = _CreateEffectSetInstance( pEffectSetData, skinAnimPtr, pGameUnit, pTraceTargetGameUnit, CX2SquareUnitPtr() );
+    if ( pEffectSetInstance == NULL )
+        return INVALID_EFFECTSET_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef SERV_PET_SYSTEM
-		EffectSetInstance* pEffectSetInstance = new EffectSetInstance( pEffectSetData, skinAnimPtr, pGameUnit, pTraceTargetGameUnit, CX2SquareUnitPtr(), NULL );
+	EffectSetInstance* pEffectSetInstance = new EffectSetInstance( pEffectSetData, skinAnimPtr, pGameUnit, pTraceTargetGameUnit, CX2SquareUnitPtr(), NULL );
 #else
 	EffectSetInstance* pEffectSetInstance = new EffectSetInstance( pEffectSetData, skinAnimPtr, pGameUnit, pTraceTargetGameUnit, CX2SquareUnitPtr() );
 #endif
-	
-	if( CX2EffectSet::INVALID_HANDLE == pEffectSetInstance->m_hHandle )
+
+	if( INVALID_EFFECTSET_HANDLE == pEffectSetInstance->m_hHandle )
 	{
 		SAFE_DELETE( pEffectSetInstance );
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 	}
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+
 
 #ifdef EFFECT_USE_LOG
 	if( NULL != g_pMain->GetGameEdit() &&
@@ -1491,6 +1867,9 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSet( const wstring& wstrEffectSetNa
 	pEffectSetInstance->m_fPowerRate = fPowerRate;
 	pEffectSetInstance->m_fLifeTime = fLifeTime;
 	pEffectSetInstance->m_vScale = vScale;
+
+/// 각 파티클 클래스 내에서 유닛 스케일을 적용해 주므로, 중복 적용 구문 제거
+#ifndef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
 
 #ifdef GIANT_UNIT_GIANT_EFFECT_TEST
 
@@ -1509,6 +1888,9 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSet( const wstring& wstrEffectSetNa
 
 #endif GIANT_UNIT_GIANT_EFFECT_TEST
 
+#endif // FIX_EFFECT_SCALE_BY_UNIT_SCALE
+
+
 
 	pEffectSetInstance->m_bCustomPosition = bCustomPosition;
 	if( true == bCustomPosition )
@@ -1521,7 +1903,9 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSet( const wstring& wstrEffectSetNa
 	else
 		pEffectSetInstance->m_vPosition = pGameUnit->GetPos();	// 커스텀포지션이 아닌 경우 이펙트를 발생 시킨 유저의 위치를 넣어줌
 	
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_vecpEffectSetInstance.push_back( pEffectSetInstance );	
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	return pEffectSetInstance->m_hHandle;
 }
 
@@ -1530,21 +1914,25 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSet( const wstring& wstrEffectSetNa
 {
 	EffectSetData* pEffectSetData = GetEffectSetTemplet( wstrEffectSetName );
 	if( NULL == pEffectSetData )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
 	if( pSquareUnit == NULL )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
 	if( pSquareUnit->GetUnitViewer() == NULL )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
 
 
 	CKTDGXSkinAnimPtr skinAnimPtr = pSquareUnit->GetUnitViewer()->GetXSkinAnimPtr();
 	if( skinAnimPtr == NULL )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
-
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    EffectSetInstance* pEffectSetInstance = _CreateEffectSetInstance( pEffectSetData, skinAnimPtr, NULL, NULL, pSquareUnit );
+    if ( pEffectSetInstance == NULL )
+        return INVALID_EFFECTSET_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 #ifdef SERV_PET_SYSTEM
 	EffectSetInstance* pEffectSetInstance = new EffectSetInstance( pEffectSetData, skinAnimPtr, NULL, NULL, pSquareUnit, NULL );
@@ -1552,11 +1940,13 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSet( const wstring& wstrEffectSetNa
 	EffectSetInstance* pEffectSetInstance = new EffectSetInstance( pEffectSetData, skinAnimPtr, NULL, NULL, pSquareUnit );
 #endif
 
-	if( CX2EffectSet::INVALID_HANDLE == pEffectSetInstance->m_hHandle )
+	if( INVALID_EFFECTSET_HANDLE == pEffectSetInstance->m_hHandle )
 	{
 		SAFE_DELETE( pEffectSetInstance );
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 #ifdef EFFECT_USE_LOG
 	if( NULL != g_pMain->GetGameEdit() &&
 		CX2GameEdit::ELL_EFFECT_LOG_1 <= g_pMain->GetGameEdit()->GetEffectLogLevel() )
@@ -1566,16 +1956,22 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSet( const wstring& wstrEffectSetNa
 	}
 #endif // EFFECT_USE_LOG
 
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_vecpEffectSetInstance.push_back( pEffectSetInstance );	
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	return pEffectSetInstance->m_hHandle;
 }
 CX2EffectSet::Handle CX2EffectSet::PlayEffectSetCustomPos( const wstring& wstrEffectSetName, CX2SquareUnitPtr pSquareUnit, const D3DXVECTOR3& vPos )
 {
 	CX2EffectSet::Handle hEffectset = PlayEffectSet(wstrEffectSetName, pSquareUnit );
-	if( CX2EffectSet::INVALID_HANDLE != hEffectset )
+	if( INVALID_EFFECTSET_HANDLE != hEffectset )
 	{
 		EffectSetInstance* pEffect = g_pData->GetGameEffectSet()->GetEffectSetInstance( hEffectset );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        if( NULL != pEffect )
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 		if( NULL != hEffectset)
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
 			pEffect->SetEffectPosition( vPos );
 	}
 
@@ -1593,30 +1989,40 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSetByPet( const wstring& wstrEffect
 {
 	EffectSetData* pEffectSetData = GetEffectSetTemplet( wstrEffectSetName );
 	if( NULL == pEffectSetData )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
 	if( pPet == NULL )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
 	CKTDGXSkinAnim* skinAnim = pPet->GetXSkinAnim();
 	if( skinAnim == NULL )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
 	CKTDGXSkinAnimPtr tempPtr;
 
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    EffectSetInstance* pEffectSetInstance = _CreateEffectSetInstance( pEffectSetData, tempPtr, NULL, NULL, CX2SquareUnitPtr(), pPet );
+    if ( pEffectSetInstance == NULL )
+        return INVALID_EFFECTSET_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	EffectSetInstance* pEffectSetInstance = new EffectSetInstance( pEffectSetData, tempPtr, NULL, NULL, CX2SquareUnitPtr(), pPet );
-	if( CX2EffectSet::INVALID_HANDLE == pEffectSetInstance->m_hHandle )
+	if( INVALID_EFFECTSET_HANDLE == pEffectSetInstance->m_hHandle )
 	{
 		SAFE_DELETE( pEffectSetInstance );
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	pEffectSetInstance->m_bHyper = false;
 	pEffectSetInstance->m_fPowerRate = -1.f;
 	pEffectSetInstance->m_fLifeTime = -1.f;
 	pEffectSetInstance->m_vScale = D3DXVECTOR3( 1.f, 1.f, 1.f );
 
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_vecpEffectSetInstance.push_back( pEffectSetInstance );	
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	return pEffectSetInstance->m_hHandle;
 }
 #endif
@@ -1626,10 +2032,42 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSetByPet( const wstring& wstrEffect
 
 void CX2EffectSet::StopEffectSet( CX2EffectSet::Handle& hHandle )
 {
-
-	if( CX2EffectSet::INVALID_HANDLE == hHandle )
+	if( INVALID_EFFECTSET_HANDLE == hHandle )
 		return;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = hHandle.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hHandle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        hHandle = INVALID_EFFECTSET_HANDLE;
+        return;
+    }
+    if ( wIndex >= m_coInstanceHandleList.storage_size() )
+    {
+        hHandle = INVALID_EFFECTSET_HANDLE;
+        return;
+    }
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    if ( info.m_pInstance == NULL || info.m_wStamp != wStamp )
+    {
+        hHandle = INVALID_EFFECTSET_HANDLE;
+        return;
+    }
+    EffectSetInstance* pEffectSetInstance = info.m_pInstance;
+    info.m_pInstance = NULL;
+    m_coInstanceHandleList.splice( m_coInstanceHandleList.begin( LIST_FREE ), wIndex );
+    hHandle = INVALID_EFFECTSET_HANDLE;
+    SAFE_DELETE( pEffectSetInstance );
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	for( UINT i=0; i<m_vecpEffectSetInstance.size(); i++ )
 	{
@@ -1646,19 +2084,34 @@ void CX2EffectSet::StopEffectSet( CX2EffectSet::Handle& hHandle )
 		}
 	}
 
-	hHandle = CX2EffectSet::INVALID_HANDLE;
+	hHandle = INVALID_EFFECTSET_HANDLE;
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 void CX2EffectSet::StopEffectSetAll()
 {
-	for ( UINT i = 0; i < m_vecpEffectSetInstance.size(); i++ )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterEnd = m_coInstanceHandleList.end( LIST_LIVE );
+    KInstanceHandleList::iterator iterNext;
+    for( KInstanceHandleList::iterator iter = m_coInstanceHandleList.begin( LIST_LIVE );
+        iter != iterEnd;
+        iter = iterNext )
+    {
+        iterNext = iter; ++iterNext;
+        KInstanceHandleInfo& info = *iter;
+        EffectSetInstance* pESInstance = info.m_pInstance;
+        info.m_pInstance = NULL;
+        SAFE_DELETE( pESInstance );
+    }
+    m_coInstanceHandleList.splice_list( m_coInstanceHandleList.begin( LIST_FREE ), LIST_LIVE );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	BOOST_TEST_FOREACH( EffectSetInstance*, pEffectSetInstance, m_vecpEffectSetInstance )
 	{
-		EffectSetInstance* pEffectSetInstance = m_vecpEffectSetInstance[i];
-		
 		SAFE_DELETE( pEffectSetInstance );
 	}
-
 	m_vecpEffectSetInstance.resize( 0 );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
@@ -1668,10 +2121,36 @@ void CX2EffectSet::StopEffectSetAll()
 
 CX2EffectSet::EffectSetInstance* CX2EffectSet::GetEffectSetInstance( CX2EffectSet::Handle hHandle )
 {
-	if( CX2EffectSet::INVALID_HANDLE == hHandle )
+	if( INVALID_EFFECTSET_HANDLE == hHandle )
 		return NULL;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = hHandle.GetValue();
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    DWORD   dwHandle = static_cast<DWORD>( hHandle );
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    WORD    wIndex = 0;
+    WORD    wStamp = 0;
+    if ( DecomposeHandle( dwHandle, wIndex, wStamp ) == false )
+    {
+        ASSERT( 0 );
+        return NULL;
+    }
+    if ( wIndex >= m_coInstanceHandleList.storage_size() )
+        return NULL;
+    KInstanceHandleInfo& info = m_coInstanceHandleList.data( wIndex );
+    EffectSetInstance* pInstance = info.m_pInstance;
+    if ( pInstance == NULL || info.m_wStamp != wStamp )
+        return NULL;
+    return  pInstance;
+
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+
 	return s_HandleManager.GetObjectByHandle( hHandle );
+
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 
@@ -1711,13 +2190,15 @@ bool CX2EffectSet::OpenScriptFile( const wstring& wstrFileName )
 	if( true == wstrFileName.empty() )
 		return false;
 
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( wstrFileName.c_str() );
+	return g_pKTDXApp->LoadLuaTinker( wstrFileName.c_str() );
 }
 
 bool CX2EffectSet::AddEffectSetTemplet_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 
 	EffectSetData* pEffectSetData = new EffectSetData;
@@ -1744,7 +2225,7 @@ bool CX2EffectSet::AddEffectSetTemplet_LUA()
 	
 	// damageeffect, meshplayer, particle 
 	int iEffectTableIndex = 0;
-	while( true == luaManager.BeginTable( L"EFFECT", iEffectTableIndex ) )
+	while( true == luaManager.BeginTable( "EFFECT", iEffectTableIndex ) )
 	{
 		EffectData* pEffectData = new EffectData;
 
@@ -1781,9 +2262,7 @@ bool CX2EffectSet::AddEffectSetTemplet_LUA()
 		LUA_GET_VALUE( luaManager,		"TRACE_MORE",				pEffectData->m_bTraceMore,					false	);
 
 		//{{kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
-#ifdef	TRACE_MAXTRIX_TEST
 		LUA_GET_VALUE( luaManager,		"TRACE_MATRIX",				pEffectData->m_bTraceMatrix,					false	);
-#endif	TRACE_MAXTRIX_TEST
 		//}}kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
 
 #ifdef ARA_CHANGE_CLASS_FIRST
@@ -1832,8 +2311,35 @@ bool CX2EffectSet::AddEffectSetTemplet_LUA()
 #endif FIX_ICE_HEATER_EVENT
 
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE // 오현빈
+		/*	
+			BONE_TRACE_TARGET_MESH로 설정되어 있는 EffectSet은 절대로 TRACE_MATRIX를 사용할 수 없다.
+			다만, TRACE_USER_TARGET_FORCE가 설정되어 있다면 위의 두 기능을 사용할 수 있다.
+			BONE_TRACE_TARGET_MESH를 설정하면 해당 이펙트 셋은 무조건 타겟 매시를 Trace 하는데,
+			TRACE_USER_TARGET_FORCE 를 통해 해당 유닛을 Trace 할 수 있게 된다.
+		*/
+
 		LUA_GET_VALUE( luaManager,		"BONE_TRACE_TARGET_MESH",		pEffectData->m_bBoneTraceTargetMesh,		false	);
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
+
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+		LUA_GET_VALUE( luaManager,		"TRACE_USER_TARGET_FORCE",		pEffectData->m_bTraceUserTargetForce,		false	);
+
+		/// BONE_TRACE_TARGET_MESH와 TRACE_MATRIX가 설정 되어 있는데, TRACE_USER_TARGET_FORCE가 설정 되어 있지 않다면 경고 발생
+		if ( false  == pEffectData->m_bBoneTraceTargetMesh && true == pEffectData->m_bTraceUserTargetForce )
+		{
+			/// TRACE_USER_TARGET_FORCE는 BONE_TRACE_TARGET_MESH 에서만 쓸 수 있어요!
+			//ASSERT( !"TRACE_USER_TARGET_FORCE is Only Can Use BONE_TRACE_TARGET_MESH !!!" );
+
+		}
+
+		/// BONE_TRACE_TARGET_MESH와 TRACE_MATRIX가 설정 되어 있는데, TRACE_USER_TARGET_FORCE가 설정 되어 있지 않다면 경고 발생
+		if ( true  == pEffectData->m_bBoneTraceTargetMesh && true == pEffectData->m_bTraceMatrix &&
+			 false == pEffectData->m_bTraceUserTargetForce )
+		{
+			/// BONE_TRACE_TARGET_MESH는 TRACE_MATRIX를 사용할 수 없어요!
+			//ASSERT( !"BONE_TRACE_TARGET_MESH is Do Not Use TRACE_MATRIX !!!" );
+		}
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 
 #ifdef MODIFY_CREATE_EFFECT_SET_LIMIT_DISTANCE
 		float fLimitDistance = -1.f;
@@ -1890,13 +2396,9 @@ effect_error_proc:
 		++iEffectTableIndex;
 	}
 
-
-
-
-
 	// camera shake
 	int iCameraShakeTableIndex = 0;
-	while( true == luaManager.BeginTable( L"CAMERA_SHAKE", iCameraShakeTableIndex ) )
+	while( true == luaManager.BeginTable( "CAMERA_SHAKE", iCameraShakeTableIndex ) )
 	{
 		CameraShakeData* pCameraShakeData = new CameraShakeData;
 
@@ -1909,8 +2411,15 @@ effect_error_proc:
 		/// 카메라 크래시 발생 거리제한
 		int iLimitDistance = 0;
 		LUA_GET_VALUE( luaManager,		"LIMIT_DISTANCE",			iLimitDistance,			0		);
+#ifdef EFFECTSET_CAMERASHAKE_DISTANCE_IGNORE
+		if ( IGNORE_DISTANCE == iLimitDistance )	//ignore인 경우에 해당 값을 그대로 대입
+			pCameraShakeData->m_iLimitDistanceSq = IGNORE_DISTANCE;
+		else if ( 0 != iLimitDistance )	// 입력 값이 있는 경우만 해당 값을 제곱하여 대입
+			pCameraShakeData->m_iLimitDistanceSq = iLimitDistance * iLimitDistance;
+#else //EFFECTSET_CAMERASHAKE_DISTANCE_IGNORE
 		if ( 0 != iLimitDistance )	// 입력 값이 있는 경우만 해당 값을 제곱하여 대입
 			pCameraShakeData->m_iLimitDistanceSq = iLimitDistance * iLimitDistance;
+#endif //EFFECTSET_CAMERASHAKE_DISTANCE_IGNORE
 
 		LUA_GET_VALUE( luaManager,		"ONE_DIR_SPEED",			pCameraShakeData->m_fOneDirSpeed,				0.f		);
 		LUA_GET_VALUE( luaManager,		"ONE_DIR_ACCEL",			pCameraShakeData->m_fOneDirAccel,				0.f		);
@@ -1933,7 +2442,6 @@ effect_error_proc:
 
 		LUA_GET_VALUE( luaManager,		"LOOK_AT_MOVE_RANGE_MIN",	pCameraShakeData->m_LookAtMoveRange.m_Min,		0.f	);
 		LUA_GET_VALUE( luaManager,		"LOOK_AT_MOVE_RANGE_MAX",	pCameraShakeData->m_LookAtMoveRange.m_Max,		0.f	);
-
 
 		pEffectSetData->m_vecpCameraShakeData.push_back( pCameraShakeData );
 		luaManager.EndTable();		// EFFECT(iCameraShakeTableIndex)
@@ -1981,10 +2489,14 @@ CX2EffectSet::EffectInstance::~EffectInstance()
 			if( NULL != g_pX2Game &&
 				NULL != g_pX2Game->GetDamageEffect() )
 			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                if ( m_hDamageEffect != INVALID_DAMAGE_EFFECT_HANDLE )
+                    g_pX2Game->GetDamageEffect()->DestroyInstanceHandle( m_hDamageEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 				if( NULL != m_pDamageEffect )
-				{
 					g_pX2Game->GetDamageEffect()->DestroyInstance( m_pDamageEffect );
-				}
+                m_pDamageEffect = NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			}
 		} break;
 
@@ -1997,7 +2509,7 @@ CX2EffectSet::EffectInstance::~EffectInstance()
 					if ( m_pEffectData->m_bUseSubAttackListSet && null != m_optrGameUnit )
 						m_optrGameUnit->ErasePairSubAttackListSet( m_hMeshPlayer );
 
-					g_pData->GetUIMajorXMeshPlayer()->DestroyInstance( m_hMeshPlayer );
+					g_pData->GetUIMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshPlayer );
 				}
 			}
 		} break;
@@ -2011,7 +2523,7 @@ CX2EffectSet::EffectInstance::~EffectInstance()
 					if ( m_pEffectData->m_bUseSubAttackListSet && null != m_optrGameUnit )
 						m_optrGameUnit->ErasePairSubAttackListSet( m_hMeshPlayer );
 
-					g_pData->GetUIMinorXMeshPlayer()->DestroyInstance( m_hMeshPlayer );
+					g_pData->GetUIMinorXMeshPlayer()->DestroyInstanceHandle( m_hMeshPlayer );
 				}
 			}
 		} break;
@@ -2026,7 +2538,7 @@ CX2EffectSet::EffectInstance::~EffectInstance()
 					if ( m_pEffectData->m_bUseSubAttackListSet && null != m_optrGameUnit )
 						m_optrGameUnit->ErasePairSubAttackListSet( m_hMeshPlayer );
 
-					g_pX2Game->GetMajorXMeshPlayer()->DestroyInstance( m_hMeshPlayer );
+					g_pX2Game->GetMajorXMeshPlayer()->DestroyInstanceHandle( m_hMeshPlayer );
 				}
 			}
 		} break;
@@ -2041,7 +2553,7 @@ CX2EffectSet::EffectInstance::~EffectInstance()
 					if ( m_pEffectData->m_bUseSubAttackListSet && null != m_optrGameUnit )
 						m_optrGameUnit->ErasePairSubAttackListSet( m_hMeshPlayer );
 
-					g_pX2Game->GetMinorXMeshPlayer()->DestroyInstance( m_hMeshPlayer );
+					g_pX2Game->GetMinorXMeshPlayer()->DestroyInstanceHandle( m_hMeshPlayer );
 				}
 			}
 		} break;
@@ -2050,7 +2562,7 @@ CX2EffectSet::EffectInstance::~EffectInstance()
 		{
 			if( NULL != g_pData->GetUIMajorParticle() )
 			{
-				if( INVALID_PARTICLE_HANDLE != m_hParticleSequence )
+				if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hParticleSequence )
 				{
 					g_pData->GetUIMajorParticle()->DestroyInstanceHandle( m_hParticleSequence );
 				}
@@ -2061,7 +2573,7 @@ CX2EffectSet::EffectInstance::~EffectInstance()
 		{
 			if( NULL != g_pData->GetUIMinorParticle() )
 			{
-				if( INVALID_PARTICLE_HANDLE != m_hParticleSequence )
+				if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hParticleSequence )
 				{
 					g_pData->GetUIMinorParticle()->DestroyInstanceHandle( m_hParticleSequence );
 				}
@@ -2073,7 +2585,7 @@ CX2EffectSet::EffectInstance::~EffectInstance()
 			if( NULL != g_pX2Game &&
 				NULL != g_pX2Game->GetMajorParticle() )
 			{
-				if( INVALID_PARTICLE_HANDLE != m_hParticleSequence )
+				if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hParticleSequence )
 				{
 					g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hParticleSequence );
 				}
@@ -2085,7 +2597,7 @@ CX2EffectSet::EffectInstance::~EffectInstance()
 			if( NULL != g_pX2Game &&
 				NULL != g_pX2Game->GetMinorParticle() )
 			{
-				if( INVALID_PARTICLE_HANDLE != m_hParticleSequence )
+				if( INVALID_PARTICLE_SEQUENCE_HANDLE != m_hParticleSequence )
 				{
 					g_pX2Game->GetMinorParticle()->DestroyInstanceHandle( m_hParticleSequence );
 				}
@@ -2105,7 +2617,11 @@ CX2EffectSet::EffectSetInstance::~EffectSetInstance()
 	//	g_pX2Game->GetMajorParticle()->DestroyInstanceHandle( m_hSeqStickShake );
 	//}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hHandle = INVALID_EFFECTSET_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	s_HandleManager.ReleaseHandle( m_hHandle );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	BOOST_TEST_FOREACH( EffectInstance*, pEffectInstance, m_vecpEffectInstance )
 	{
@@ -2119,7 +2635,7 @@ CX2EffectSet::EffectSetInstance::EffectSetInstance( EffectSetData* pEffectSetDat
 #else
 CX2EffectSet::EffectSetInstance::EffectSetInstance( EffectSetData* pEffectSetData, CKTDGXSkinAnimPtr pSkinAnim, CX2GameUnit* pGameUnit, CX2GameUnit* pTraceTargetGameUnit, CX2SquareUnitPtr pSquareUnit )
 #endif
-: m_hHandle( CX2EffectSet::INVALID_HANDLE )
+: m_hHandle( INVALID_EFFECTSET_HANDLE )
 , m_pXSkinAnim( pSkinAnim )
 , m_optrGameUnit( pGameUnit )
 , m_optrTraceTargetGameUnit( pTraceTargetGameUnit )
@@ -2144,9 +2660,7 @@ CX2EffectSet::EffectSetInstance::EffectSetInstance( EffectSetData* pEffectSetDat
 #ifdef SERV_PET_SYSTEM
 , m_pPet( pPet )
 #endif
-#ifdef ROTATE_EFFECTSET
 , m_vLocalRotateDegree( D3DXVECTOR3(0.f, 0.f, 0.f) )
-#endif
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE // 오현빈
 , m_eTargetMeshEffectType(ET_INVALID)
 , m_hTargetMesh ( INVALID_MESH_INSTANCE_HANDLE )
@@ -2163,7 +2677,13 @@ CX2EffectSet::EffectSetInstance::EffectSetInstance( EffectSetData* pEffectSetDat
 , m_bCreateEffectSetTraceUnit( false )
 , m_bTraceUnitDieDeleteEffectSet( true )
 #endif //TRACE_UNIT_DIE_DELETE_EFFECTSET
-//, m_hSeqStickShake( INVALID_PARTICLE_HANDLE )
+//, m_hSeqStickShake( INVALID_PARTICLE_SEQUENCE_HANDLE )
+#ifdef ADD_RENA_SYSTEM //김창한
+, m_eFirstAttack( CX2DamageManager::FAC_NONE )
+#endif //ADD_RENA_SYSTEM
+#ifdef FIX_EFFECT_SCALE_BY_UNIT_SCALE // 김태환
+, m_vBoneTraceTargetMeshScale( 1.f, 1.f, 1.f )
+#endif //FIX_EFFECT_SCALE_BY_UNIT_SCALE
 {
 //	if( NULL == pEffectSetData )
 //		return;
@@ -2209,8 +2729,12 @@ CX2EffectSet::EffectSetInstance::EffectSetInstance( EffectSetData* pEffectSetDat
 		m_vecCameraShakeDone.push_back( false );
 	}
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_hHandle = INVALID_EFFECTSET_HANDLE;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_hHandle = s_HandleManager.GetNextValidHandle();
 	s_HandleManager.AssignHandle( m_hHandle, this );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 }
 
 #ifdef GET_EFFECTSET_POSITION_IN_LUA
@@ -2232,7 +2756,6 @@ D3DXVECTOR3 CX2EffectSet::GetEffectPosition_LUA( CX2EffectSet::Handle hHandle, i
 }
 #endif GET_EFFECTSET_POSITION_IN_LUA
 
-
 D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEffectData )
 {
 	KTDXPROFILE();
@@ -2245,7 +2768,11 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEff
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE // 오현빈
 	if( true == GetEffectPositionByTargetMesh( vPos, pEffectData ) )
 	{
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+		SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset, pEffectData );
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset );
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		return vPos;
 	}
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
@@ -2253,7 +2780,11 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEff
 	if( true == m_bCustomPosition )
 	{
 		vPos = m_vPosition;
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+		SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset, pEffectData );
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset );
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		return vPos;
 	}
 
@@ -2280,12 +2811,7 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEff
 					}
 					else
 					{
-						if( false == m_optrTraceTargetGameUnit->GetBonePos( pEffectData->m_PositionBoneName.c_str(), vPos ) )
-						{// 본 얻기 실패
-#ifdef ADD_RESOURCE_ERROR_LOG
-							FindBoneErrorLog( pEffectData->m_EffectName.c_str() , pEffectData->m_PositionBoneName.c_str() );
-#endif // ADD_RESOURCE_ERROR_LOG
-						}
+						m_optrTraceTargetGameUnit->GetBonePos( pEffectData->m_PositionBoneName.c_str(), vPos );
 					}
 				}
 				else if( false == pEffectData->m_PositionWeaponBoneName.empty() )
@@ -2304,7 +2830,11 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEff
 					}
 				}
 
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+				SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset, pEffectData );
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 				SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset );
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 			}
 			else if( null != m_optrGameUnit )
 			{
@@ -2319,9 +2849,6 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEff
 					else if( false == m_optrGameUnit->GetBonePos( pEffectData->m_PositionBoneName.c_str(), vPos ) )
 					{
 						vPos = m_optrGameUnit->GetHeadBonePos();
-#ifdef ADD_RESOURCE_ERROR_LOG
-						FindBoneErrorLog( pEffectData->m_EffectName.c_str() , pEffectData->m_PositionBoneName.c_str() );
-#endif // ADD_RESOURCE_ERROR_LOG
 					}
 	#else
 					if( 0 == pEffectData->m_PositionBoneName.compare( L"_HEAD_BONE" ) )
@@ -2341,12 +2868,7 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEff
 #ifdef RIDING_SYSTEM
 				else if ( NULL != GetOwnerUnit() && NULL != GetOwnerUnit()->GetRidingPet() && false == pEffectData->m_PosRidingPetBoneName.empty() )
 				{
-					if( false == GetOwnerUnit()->GetRidingPet()->GetBonePos( pEffectData->m_PosRidingPetBoneName.c_str(), vPos ) )
-					{
-#ifdef ADD_RESOURCE_ERROR_LOG
-						FindBoneErrorLog( pEffectData->m_EffectName.c_str() , pEffectData->m_PosRidingPetBoneName.c_str() );
-#endif // ADD_RESOURCE_ERROR_LOG
-					}
+					GetOwnerUnit()->GetRidingPet()->GetBonePos( pEffectData->m_PosRidingPetBoneName.c_str(), vPos ) ;
 				}
 #endif //RIDING_SYSTEM
 				else 
@@ -2361,7 +2883,11 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEff
 					}
 				}
 
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+				SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset, pEffectData );
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 				SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset );
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 			}
 			else 
 			{
@@ -2390,7 +2916,11 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEff
 					}
 				}
 
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+				SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset, pEffectData );
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 				SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset );
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 			}
 			
 		} break;
@@ -2416,8 +2946,11 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectPosition( EffectData* pEff
 					}
 				}
 
-
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+				SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset, pEffectData );
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 				SetEffectSetOffset( vPos, pEffectData->m_vPositionOffset );
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 			}
 		}
 		break;
@@ -2471,7 +3004,11 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectRotation( EffectData* pEff
 	if( true == pEffectData->m_bApplyUnitRotation )
 	{
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE
+	#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+		if( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh && false == pEffectData->m_bTraceUserTargetForce )
+	#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		if( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh )
+	#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = GetMeshInstanceByTargetMesh();
 			if( NULL != pMeshInstance )
@@ -2490,7 +3027,11 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectRotation( EffectData* pEff
 	else if ( true == pEffectData->m_bApplyUnitRotationMirror )
 	{
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE
+	#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+		if( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh && false == pEffectData->m_bTraceUserTargetForce )
+	#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		if( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh )
+	#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		{
 			CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = GetMeshInstanceByTargetMesh();
 			if( NULL != pMeshInstance )
@@ -2511,9 +3052,7 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetEffectRotation( EffectData* pEff
 	}
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
 
-#ifdef ROTATE_EFFECTSET
 	vEffectRotation += m_vLocalRotateDegree;
-#endif
 
 	return vEffectRotation;
 }
@@ -2532,7 +3071,12 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetUnitRotation( EffectData* pEffec
 		return vRotation;
 
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE
+
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+	if( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh && false == pEffectData->m_bTraceUserTargetForce )
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 	if( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh )
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 	{
 		CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = GetMeshInstanceByTargetMesh();
 		if( NULL != pMeshInstance )
@@ -2540,6 +3084,7 @@ D3DXVECTOR3 CX2EffectSet::EffectSetInstance::GetUnitRotation( EffectData* pEffec
 			pMeshInstance->GetRotateDegree();
 		}
 	}
+
 #endif //MODIFY_EFFECT_SET_TRACE_BONE
 
 	if( true == m_bCustomPosition )
@@ -2630,14 +3175,34 @@ bool CX2EffectSet::EffectSetInstance::IsUnitRight()
 }
 
 //{{kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
-#ifdef	TRACE_MAXTRIX_TEST
 const D3DXMATRIX* CX2EffectSet::EffectSetInstance::GetCombineMatrix( const EffectData* pEffectData ) const
 {
 	if( ESM_GAME == m_eMode && null != m_optrGameUnit )
 	{
 		if( false == pEffectData->m_PositionBoneName.empty() )
 		{
-			return m_optrGameUnit->GetCombineMatrixFromBoneName( pEffectData->m_PositionBoneName );			
+			/// BONE_TRACE_TARGET_MESH가 설정 되어 있다면, 해당 매시의 본을 사용
+	#ifdef MODIFY_EFFECT_SET_TRACE_BONE
+		#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+			if( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh && false == pEffectData->m_bTraceUserTargetForce && 
+				 NULL != g_pX2Game && NULL != g_pX2Game->GetMajorXMeshPlayer() )
+		#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
+			if( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh && NULL != g_pX2Game && NULL != g_pX2Game->GetMajorXMeshPlayer() )
+		#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
+			{
+				CKTDGXMeshPlayer::CXMeshInstance* pMesh = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance( m_hTargetMesh );
+
+				if ( NULL != pMesh  )
+				{
+					CKTDXDeviceXSkinMesh::MultiAnimFrame* pMultiAnimFrame = pMesh->GetCloneFrame( pEffectData->m_PositionBoneName.c_str() );
+
+					if ( NULL != pMultiAnimFrame )
+						return &pMultiAnimFrame->combineMatrix;
+				}
+			}
+			else
+	#endif // MODIFY_EFFECT_SET_TRACE_BONE	
+				return m_optrGameUnit->GetCombineMatrixFromBoneName( pEffectData->m_PositionBoneName );			
 		}
 		else if( false == pEffectData->m_PositionWeaponBoneName.empty() )
 		{
@@ -2654,7 +3219,6 @@ const D3DXMATRIX* CX2EffectSet::EffectSetInstance::GetCombineMatrix( const Effec
 	return NULL;
 }
 
-#endif	TRACE_MAXTRIX_TEST
 //}}kimhc // 2011-01-17 // 지정한 Bone의 메트릭스 값을 Trace 함 (chung 코드 참고)
 
 CX2GameUnit* CX2EffectSet::EffectSetInstance::GetOwnerUnit() const
@@ -2689,6 +3253,23 @@ CX2GameUnit* CX2EffectSet::EffectSetInstance::GetOwnerUnit() const
 	}
 	return vZVector;
 }
+
+#ifdef CREATEINSTANCE_WITH_LIFETIME_IN_LUA
+CX2EffectSet::Handle CX2EffectSet::PlayEffectSetWithLifetime_LUA( const char* pEffectSetName, CX2GameUnit* pGameUnit, float fLifeTime  )
+{
+	wstring wstrEffectSetName;
+	ConvertUtf8ToWCHAR( wstrEffectSetName, pEffectSetName );
+
+	return PlayEffectSet( wstrEffectSetName, pGameUnit, NULL, false, -1.f, fLifeTime  );
+}
+CX2EffectSet::Handle CX2EffectSet::PlayEffectSetWithLifetimePos_LUA( const char* pEffectSetName, CX2GameUnit* pGameUnit, float fLifeTime, D3DXVECTOR3 vPosition  )
+{
+	wstring wstrEffectSetName;
+	ConvertUtf8ToWCHAR( wstrEffectSetName, pEffectSetName );
+	D3DXVECTOR3 vScale( 1.0, 1.0, 1.0 );
+	return PlayEffectSet( wstrEffectSetName, pGameUnit, NULL, false, -1.f, fLifeTime, vScale, true, vPosition  );
+}
+#endif //CREATEINSTANCE_WITH_LIFETIME_IN_LUA
 
 //{{ kimhc // 2010.4.19 // 비밀던전 작업
 #ifdef SERV_SECRET_HELL
@@ -2736,7 +3317,31 @@ void CX2EffectSet::StopEffectSet_LUA( CX2EffectSet::Handle hHandle )
 #endif SERV_SECRET_HELL
 //}} kimhc // 2010.4.19 // 비밀던전 작업
 
-#ifdef EFFECT_TOOL
+
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+bool CX2EffectSet::MergeEffectSetTemplet( EffectSetData* pNewEffectSetTemplet_, EffectSetData* pOrgEffectSetTemplet_ )
+{
+	if ( NULL != pNewEffectSetTemplet_ ) 
+	{
+		if ( NULL != pOrgEffectSetTemplet_ )
+		{
+			m_mapEffectSetTemplet.erase( pOrgEffectSetTemplet_->m_wstrEffectSetName );
+			KLOG("DevScriptTable_Log.txt")  << L"Merge : " << pNewEffectSetTemplet_->m_wstrEffectSetName.c_str() << L"\t: EffectSetTemplet 을 변경 하였습니다." << fileout;
+		}
+		else
+		{
+			KLOG("DevScriptTable_Log.txt")  << L"Merge : " << pNewEffectSetTemplet_->m_wstrEffectSetName.c_str() << L"\t: EffectSetTemplet 을 추가 하였습니다." << fileout;
+		}
+		m_mapEffectSetTemplet[pNewEffectSetTemplet_->m_wstrEffectSetName] = pNewEffectSetTemplet_;
+		return true;
+	}
+	return false;
+}
+#endif // EXPAND_DEVELOPER_SCRIPT  // 김종훈, 개발자 스크립트 확장 기능 추가
+
+#if defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
+// #ifdef EFFECT_TOOL
+
 bool CX2EffectSet::CreateEffectSetTemplet( EffectSetData* pEffectSetData_ )
 {
 	// 중복 체크.
@@ -2746,13 +3351,20 @@ bool CX2EffectSet::CreateEffectSetTemplet( EffectSetData* pEffectSetData_ )
 		return false;
 	}
 
+	EffectSetData * pNewEffectSetData = new EffectSetData();
+	(*pNewEffectSetData ) = (*pEffectSetData_);
 	// 맵 추가
-	m_mapEffectSetTemplet[ pEffectSetData_->m_wstrEffectSetName ] = pEffectSetData_;
+	m_mapEffectSetTemplet[ pNewEffectSetData->m_wstrEffectSetName ] = pNewEffectSetData;
 	// 벡터 추가.
+#ifdef EFFECT_TOOL
 	m_vecEffectSetTemplet.push_back( pEffectSetData_ );
-
+#endif // EFFECT_TOOL
 	return true;
 }
+
+#endif // defined(EFFECT_TOOL) || defined(EXPAND_DEVELOPER_SCRIPT)
+
+#ifdef EFFECT_TOOL
 bool CX2EffectSet::DeleteEffectSetTemplet( const wstring& wstrEffectSetName_ )
 {
 	// 존재 여부 체크.
@@ -2808,7 +3420,9 @@ bool CX2EffectSet::ChangeNameEffectSetTemplet( const wstring& wstrEffectSetName_
 void CX2EffectSet::AddEffectSet_Description_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	m_mapEffectSetDescription;
 
@@ -2823,7 +3437,9 @@ void CX2EffectSet::AddEffectSet_Description_LUA()
 void CX2EffectSet::SetEffectSetVersion_LUA()
 {
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	m_mapEffectSetDescription;
 
@@ -2888,6 +3504,23 @@ void CX2EffectSet::EffectSetInstance::SetEffectPoistion_EffectTool( IN const Eff
 		SetEffectSetOffset( vPos_, pEffectData_->m_vPositionOffset );
 	}
 }
+#else
+	#ifdef EXPAND_DEVELOPER_SCRIPT
+	bool CX2EffectSet::DeleteEffectSetTemplet( EffectSetData* pEffectSetData_ )
+	{
+		// 존재 여부 체크.
+		EffectSetDataMap::iterator mit = m_mapEffectSetTemplet.find( pEffectSetData_->m_wstrEffectSetName );
+		if( mit == m_mapEffectSetTemplet.end() )
+		{
+			return false;
+		}
+
+		//맵 제거.
+		m_mapEffectSetTemplet.erase( mit );
+
+		return true;
+	}
+	#endif // EXPAND_DEVELOPER_SCRIPT
 #endif //EFFECT_TOOL
 
 /** @function : SetEffectSetOffset
@@ -2895,14 +3528,28 @@ void CX2EffectSet::EffectSetInstance::SetEffectPoistion_EffectTool( IN const Eff
 	@param : vPos_  ( 현재 위치에 대한 위치값. OUT 인자)
 	         vOffsetPos_ ( EffectSet에 담겨있는 오프셋 정보 )
 */
+
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+void CX2EffectSet::EffectSetInstance::SetEffectSetOffset( OUT D3DXVECTOR3& vPos_, IN const D3DXVECTOR3& vOffsetPos_, IN const EffectData* pEffectData_ )
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 void CX2EffectSet::EffectSetInstance::SetEffectSetOffset( OUT D3DXVECTOR3& vPos_, IN const D3DXVECTOR3& vOffsetPos_ )
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 {
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+	if ( NULL == pEffectData_ )
+		return;
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 
 	if( null != m_optrGameUnit ) // ESM_GAME
 	{
 #ifdef SERV_ARA_CHANGE_CLASS_SECOND
 		/// 타겟 매시가 설정되어 있다면, 타겟 매시의 방향에 따라 OffSet 위치를 적용한다.
+	#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+		if ( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh &&
+			  false == pEffectData_->m_bTraceUserTargetForce )
+	#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		if ( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh )
+	#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		{
 	#ifdef FIX_TARGET_MESH_OFFSET_POS // 김태환
 			if ( false == IsSamef( vOffsetPos_.x, 0.f ) )
@@ -3028,12 +3675,18 @@ void CX2EffectSet::EffectSetInstance::SetEffectSetOffset( OUT D3DXVECTOR3& vPos_
 		}
 	}
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE
+
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+	else if ( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh && false == pEffectData_->m_bTraceUserTargetForce )
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 	else if ( INVALID_MESH_INSTANCE_HANDLE != m_hTargetMesh)
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 	{
 		vPos_.x += (0.f != vOffsetPos_.x) ? vOffsetPos_.x : 0.f;
 		vPos_.y += (0.f != vOffsetPos_.y) ? vOffsetPos_.y : 0.f;
 		vPos_.z += (0.f != vOffsetPos_.z) ? vOffsetPos_.z : 0.f;
 	}
+
 #endif //MODIFY_EFFECT_SET_TRACE_BONE
 }
 
@@ -3050,66 +3703,64 @@ CX2EffectSet::Handle CX2EffectSet::PlayEffectSetByMeshPlayer( const WCHAR* wstrE
 {
 	EffectSetData* pEffectSetData = GetEffectSetTemplet( wstrEffectSetName );
 	if( NULL == pEffectSetData )
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 
 	if( INVALID_MESH_INSTANCE_HANDLE == hTargetMesh)
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
+
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    KInstanceHandleList::iterator iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+    if ( iterEmpty == m_coInstanceHandleList.end(LIST_FREE) )
+    {
+        if ( m_coInstanceHandleList.storage_size() >= 0x10000 )
+        {
+            return INVALID_EFFECTSET_HANDLE;
+        }
+        m_coInstanceHandleList.push_back_default(LIST_FREE);
+        iterEmpty = m_coInstanceHandleList.begin(LIST_FREE);
+        ASSERT( iterEmpty != m_coInstanceHandleList.end(LIST_FREE) );
+    }
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	
 	EffectSetInstance* pEffectSetInstance = new EffectSetInstance( pEffectSetData, CKTDGXSkinAnimPtr(), NULL, NULL, CX2SquareUnitPtr(), NULL );
-	if( CX2EffectSet::INVALID_HANDLE == pEffectSetInstance->m_hHandle )
+#ifndef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( INVALID_EFFECTSET_HANDLE == pEffectSetInstance->m_hHandle )
 	{
 		SAFE_DELETE( pEffectSetInstance );
-		return CX2EffectSet::INVALID_HANDLE;
+		return INVALID_EFFECTSET_HANDLE;
 	}
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 	// 타겟 메쉬 정보 설정
 	pEffectSetInstance->m_hTargetMesh = hTargetMesh;
 	pEffectSetInstance->m_eTargetMeshEffectType = eTargetMeshType;
 	pEffectSetInstance->m_bIsTargetMesh = true;
 
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    m_coInstanceHandleList.splice( m_coInstanceHandleList.end(LIST_LIVE), iterEmpty );
+    iterEmpty->m_pInstance = pEffectSetInstance;
+    WORD   wIndex = (WORD) iterEmpty.GetIndex();
+    Handle handle;
+    DWORD   dwHandle = 0;
+    do
+    {
+        ++iterEmpty->m_wStamp;
+        dwHandle = ComposeHandle( wIndex, iterEmpty->m_wStamp );
+#ifdef  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle.SetValue( (int) dwHandle );
+#else   X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+        handle = (int) dwHandle;
+#endif  X2OPTIMIZE_HANDLE_VALIDITY_CHECK
+    } while ( handle == INVALID_EFFECTSET_HANDLE );
+    pEffectSetInstance->SetHandle( handle );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	m_vecpEffectSetInstance.push_back( pEffectSetInstance );	
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE	
 	return pEffectSetInstance->m_hHandle;
 }
 
 #endif // FIX_ICE_HEATER_EVENT
 
-
-
-#ifdef HANABI_VILLAGE
-CX2EffectSet::Handle CX2EffectSet::PlayEffectSetEvent( const wstring& wstrEffectSetName, CX2SquareUnitPtr pSquareUnit, D3DXVECTOR3 vPosition )
-{
-	EffectSetData* pEffectSetData = GetEffectSetTemplet( wstrEffectSetName );
-	if( NULL == pEffectSetData )
-		return CX2EffectSet::INVALID_HANDLE;
-
-	if( pSquareUnit == NULL )
-		return CX2EffectSet::INVALID_HANDLE;
-
-	if( pSquareUnit->GetUnitViewer() == NULL )
-		return CX2EffectSet::INVALID_HANDLE;
-
-	CKTDGXSkinAnimPtr skinAnimPtr = pSquareUnit->GetUnitViewer()->GetXSkinAnimPtr();
-	if( skinAnimPtr == NULL )
-		return CX2EffectSet::INVALID_HANDLE;
-
-	EffectSetInstance* pEffectSetInstance = new EffectSetInstance( pEffectSetData, skinAnimPtr, NULL, NULL, pSquareUnit, NULL );
-
-	if( CX2EffectSet::INVALID_HANDLE == pEffectSetInstance->m_hHandle )
-	{
-		SAFE_DELETE( pEffectSetInstance );
-		return CX2EffectSet::INVALID_HANDLE;
-	}
-
-	pEffectSetInstance->m_bCustomPosition = true;
-	pEffectSetInstance->m_vPosition			= vPosition;
-	pEffectSetInstance->m_vRotationDegree	= D3DXVECTOR3(0, 0, 0);
-	pEffectSetInstance->m_vDirVector		= D3DXVECTOR3(0, 0, 0);
-	pEffectSetInstance->m_vZVector			= CX2EffectSet::GetZVector( D3DXVECTOR3(0, 0, 0) );
-
-	m_vecpEffectSetInstance.push_back( pEffectSetInstance );	
-	return pEffectSetInstance->m_hHandle;
-}
-#endif HANABI_VILLAGE
 
 #ifdef MODIFY_EFFECT_SET_TRACE_BONE // 오현빈
 /** @function : GetMeshInstanceByTargetMesh
@@ -3163,8 +3814,14 @@ CKTDGXMeshPlayer::CXMeshInstance* CX2EffectSet::EffectSetInstance::GetMeshInstan
 }
 bool CX2EffectSet::EffectSetInstance::GetEffectPositionByTargetMesh( OUT D3DXVECTOR3& vPos, IN EffectData* pEffectData )
 {
+#ifdef FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE // 김태환
+	if( INVALID_MESH_INSTANCE_HANDLE == m_hTargetMesh ||
+		true == pEffectData->m_bTraceUserTargetForce ||
+		ET_INVALID == m_eTargetMeshEffectType )
+#else //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 	if( INVALID_MESH_INSTANCE_HANDLE == m_hTargetMesh ||
 		ET_INVALID == m_eTargetMeshEffectType )
+#endif //FIX_BONE_TRACE_TARGET_MESH_UNIT_TRACE
 		return false;
 
 	CKTDGXMeshPlayer::CXMeshInstance* pMeshInstance = GetMeshInstanceByTargetMesh();
@@ -3172,30 +3829,15 @@ bool CX2EffectSet::EffectSetInstance::GetEffectPositionByTargetMesh( OUT D3DXVEC
 	{
 		if( false == pEffectData->m_PositionBoneName.empty() )
 		{
-			if( false == pMeshInstance->GetBonePos( pEffectData->m_PositionBoneName.c_str(), vPos ) )
-			{
-#ifdef ADD_RESOURCE_ERROR_LOG
-				FindBoneErrorLog( pEffectData->m_EffectName.c_str() , pEffectData->m_PositionBoneName.c_str() );
-#endif // ADD_RESOURCE_ERROR_LOG
-			}
+			pMeshInstance->GetBonePos( pEffectData->m_PositionBoneName.c_str(), vPos ) ;
 		}
 		else if( false == pEffectData->m_PositionWeaponBoneName.empty() )
 		{
-			if( false == pMeshInstance->GetBonePos( pEffectData->m_PositionWeaponBoneName.c_str(), vPos ) )
-			{
-#ifdef ADD_RESOURCE_ERROR_LOG
-				FindBoneErrorLog( pEffectData->m_EffectName.c_str() , pEffectData->m_PositionWeaponBoneName.c_str() );
-#endif // ADD_RESOURCE_ERROR_LOG
-			}
+			pMeshInstance->GetBonePos( pEffectData->m_PositionWeaponBoneName.c_str(), vPos ) ;
 		}
 		else if ( false == pEffectData->m_PosRidingPetBoneName.empty() )
 		{
-			if( false == pMeshInstance->GetBonePos( pEffectData->m_PosRidingPetBoneName.c_str() ) )
-			{
-#ifdef ADD_RESOURCE_ERROR_LOG
-				FindBoneErrorLog( pEffectData->m_EffectName.c_str() , pEffectData->m_PosRidingPetBoneName.c_str() );
-#endif // ADD_RESOURCE_ERROR_LOG
-			}
+			pMeshInstance->GetBonePos( pEffectData->m_PosRidingPetBoneName.c_str() );
 		}
 		else
 		{
@@ -3213,19 +3855,155 @@ bool CX2EffectSet::EffectSetInstance::GetEffectPositionByTargetMesh( OUT D3DXVEC
 }
 #endif // MODIFY_EFFECT_SET_TRACE_BONE
 
-#ifdef ADD_RESOURCE_ERROR_LOG
-void CX2EffectSet::EffectSetInstance::FindBoneErrorLog( const WCHAR* EffectSetName, const WCHAR* wcBoneName_ )
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+/** @function	: SetPos
+	@brief		: 이펙트 셋의 위치를 강제로 바꾸는 함수 ( Trace가 설정되어 있다면, 바꿔도 원상태로 돌아옴 )
+	@param		: 변경 위치
+*/
+void CX2EffectSet::EffectSetInstance::SetPos( IN const D3DXVECTOR3& vOffsetPos_ )
 {
-	if( m_setEmptyBoneName.end() == m_setEmptyBoneName.find( wcBoneName_ ) )
+	BOOST_FOREACH( EffectInstance* pEffectInstance, m_vecpEffectInstance )
 	{
-		m_setEmptyBoneName.insert( wcBoneName_ );
+		if ( NULL == pEffectInstance )
+			continue;
 
-		wstring errorMsg;
-		errorMsg = L"Bone 찾기 실패. 이펙트셋 이름: ";
-		errorMsg += EffectSetName;
-		errorMsg += L" 본 이름: ";
-		errorMsg += wcBoneName_;
-		ErrorLogMsg( KEM_ERROR430, errorMsg.c_str() );
+		EffectData* pEffectData = pEffectInstance->m_pEffectData;
+
+		if( NULL == pEffectData )
+			continue;
+
+		/// Trace가 설정되어 있다면, 동작 시키지 말자.
+		if( true == pEffectData->m_bTrace ||
+			true == pEffectData->m_bTraceMore ||
+			true == pEffectData->m_bTraceMatrix )
+		{
+			ASSERT( ! "Can Not Change Position!!! This EffectSet is Setting Trace" );
+			continue;
+		}
+
+		if( false == pEffectInstance->m_bAlive )
+			continue;
+
+		switch( pEffectData->m_eEffectType )
+		{
+		case ET_DAMAGE_EFFECT:
+			{
+				if ( NULL != g_pX2Game &&
+					 NULL != g_pX2Game->GetDamageEffect() )
+				{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+					CX2DamageEffect::CEffect* pEffect = g_pX2Game->GetDamageEffect()->GetInstance( pEffectInstance->m_hDamageEffect );
+
+					if ( NULL != pEffect )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+					if ( CX2DamageEffect::CEffect* pEffect = pEffectInstance->m_pDamageEffect )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+					{
+						pEffect->SetPos( vOffsetPos_ );
+					}
+				}
+
+			} break;
+
+		case ET_MESH_PLAYER_UI_MAJOR:				
+			{
+				if( NULL != g_pData->GetUIMajorXMeshPlayer() &&
+					INVALID_MESH_INSTANCE_HANDLE != pEffectInstance->m_hMeshPlayer )
+				{
+					CKTDGXMeshPlayer::CXMeshInstance* pInstance = g_pData->GetUIMajorXMeshPlayer()->GetMeshInstance(pEffectInstance->m_hMeshPlayer);
+					if( NULL != pInstance )
+					{
+						pInstance->SetPos( vOffsetPos_ );
+					}
+				}
+			} break;
+		case ET_MESH_PLAYER_UI_MINOR:
+			{
+				if( NULL != g_pData->GetUIMinorXMeshPlayer() &&
+					INVALID_MESH_INSTANCE_HANDLE != pEffectInstance->m_hMeshPlayer )
+				{
+					CKTDGXMeshPlayer::CXMeshInstance* pInstance = g_pData->GetUIMinorXMeshPlayer()->GetMeshInstance(pEffectInstance->m_hMeshPlayer);
+					if( NULL != pInstance )
+					{
+						pInstance->SetPos( vOffsetPos_ );
+					}
+				}
+			} break;
+		case ET_MESH_PLAYER_GAME_MAJOR:
+			{
+				if( g_pX2Game != NULL && g_pX2Game->GetMajorXMeshPlayer() != NULL && pEffectInstance->m_hMeshPlayer != INVALID_MESH_INSTANCE_HANDLE )						
+				{
+					CKTDGXMeshPlayer::CXMeshInstance* pInstance = g_pX2Game->GetMajorXMeshPlayer()->GetMeshInstance(pEffectInstance->m_hMeshPlayer);
+					if( pInstance != NULL )
+					{
+						pInstance->SetPos( vOffsetPos_ );
+					}
+				}
+			}
+			break;
+		case ET_MESH_PLAYER_GAME_MINOR:
+			{
+				if( g_pX2Game != NULL && g_pX2Game->GetMinorXMeshPlayer() != NULL && pEffectInstance->m_hMeshPlayer != INVALID_MESH_INSTANCE_HANDLE )						
+				{
+					CKTDGXMeshPlayer::CXMeshInstance* pInstance = g_pX2Game->GetMinorXMeshPlayer()->GetMeshInstance(pEffectInstance->m_hMeshPlayer);
+					if( pInstance != NULL )
+					{
+						pInstance->SetPos( vOffsetPos_ );
+					}
+				}
+			} break;
+		case ET_PARTICLE_UI_MAJOR:
+			{
+				if( g_pData->GetUIMajorParticle() != NULL && 
+					pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMajorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
+					if( pSeq != NULL )
+					{
+						pSeq->SetPosition( vOffsetPos_, pEffectData->m_bTraceMore, pEffectData->m_bTraceMore );
+					}
+				}
+			} break;
+
+		case ET_PARTICLE_UI_MINOR:
+			{
+				if( g_pData->GetUIMinorParticle() != NULL && 
+					pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pData->GetUIMinorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
+					if( pSeq != NULL )
+					{
+						pSeq->SetPosition( vOffsetPos_, pEffectData->m_bTraceMore, pEffectData->m_bTraceMore );
+					}
+				}
+			} break;
+
+		case ET_PARTICLE_GAME_MAJOR:
+			{
+				if( g_pX2Game != NULL && g_pX2Game->GetMajorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMajorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
+					if( pSeq != NULL )
+					{
+						pSeq->SetPosition( vOffsetPos_, pEffectData->m_bTraceMore, pEffectData->m_bTraceMore );
+					}
+				}
+			}
+			break;
+
+		case ET_PARTICLE_GAME_MINOR:
+			{
+				if( g_pX2Game != NULL && g_pX2Game->GetMinorParticle() != NULL && pEffectInstance->m_hParticleSequence != INVALID_PARTICLE_SEQUENCE_HANDLE )						
+				{
+					CKTDGParticleSystem::CParticleEventSequence* pSeq = g_pX2Game->GetMinorParticle()->GetInstanceSequence( pEffectInstance->m_hParticleSequence );
+					if( pSeq != NULL )
+					{
+						pSeq->SetPosition( vOffsetPos_, pEffectData->m_bTraceMore, pEffectData->m_bTraceMore );
+					}
+				}						
+			}
+			break;
+		}		
 	}
 }
-#endif // ADD_RESOURCE_ERROR_LOG
+#endif //SERV_9TH_NEW_CHARACTER

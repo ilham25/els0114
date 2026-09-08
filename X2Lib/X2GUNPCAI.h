@@ -16,12 +16,12 @@ public:
 		float				targetSuccessRate;	
 		float				attackTargetRate;	/// 나를 공격한 유닛을 타겟팅할 확률
 		float				preserveLastTargetRate;	/// 이전에 타겟한 대상을 유지할 확률 (다른 유저가 공격을 했거나, 도망가고있다거나, 가까운유닛을 찾은경우 제외)
-		wstring				wstrLuaTargetingFunc;	/// Targeting 을 수행할 루아 함수를 지정할 수 있음 // X2GUNPCAI의 m_wstrLuaTargetingFunc에 셋팅됨
+		string				strLuaTargetingFunc;	/// Targeting 을 수행할 루아 함수를 지정할 수 있음 // X2GUNPCAI의 m_strLuaTargetingFunc에 셋팅됨
 
 		TargetData() : targetNPC( false ), targetPriority( CX2NPCAI::TP_RANDOM ), 
 			targetInterval( 0 ), targetHeightLimit( 1000 ), targetNearRange( 0 ), targetRange( 0 ),
 			targetLostRange( 0 ), targetSuccessRate( 0.0f ), attackTargetRate( 0.0f ), 
-			preserveLastTargetRate( 0.0f ), wstrLuaTargetingFunc()
+			preserveLastTargetRate( 0.0f ), strLuaTargetingFunc()
 		{
 		}
 	};
@@ -100,9 +100,7 @@ public:
 		float	fDestHeight;	/// DEGT_HEIGHT_GAP 으로 타겟과 유지할 높이
 		float	fDestArea;
 		float	fFlyMoveInterval;	/// FLY_MOVE_INTERVAL 로 이동 AI의 변경 Inverval 타임 (interval에 만족하지 못하면 이전의 이동을 사용)
-#ifdef UNDERWATER_LINEMAP
 		bool	bUnderWaterMode;
-#endif
 	};
 #endif
 
@@ -139,8 +137,8 @@ public:
 	void SetAITargetNPC( bool bTargetNPC ) { m_pAIData->targetData.targetNPC = bTargetNPC; }
 	bool GetEnableLuaTargetingFunc() const { return m_bEnableLuaTargetingFunc; }
 	void SetEnableLuaTargetingFunc(bool val) { m_bEnableLuaTargetingFunc = val; }
-	wstring GetLuaTargetingFunc() const { return m_wstrLuaTargetingFunc; }
-	void SetLuaTargetingFunc(wstring val) { m_wstrLuaTargetingFunc = val; }
+	const string& GetLuaTargetingFunc() const { return m_strLuaTargetingFunc; }
+	void SetLuaTargetingFunc( const std::string& val) { m_strLuaTargetingFunc = val; }
 	
 	bool EscapeFlagCheck( int iFlagIndex );		//09.04.16 태완
 
@@ -176,7 +174,12 @@ public:
 	float GetMaxJumpRight() const { return m_fMaxJumpRight; }
 
 protected:
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    void TargetUpdate( bool bAccumulate_ );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	void TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	void SetMasterUnitData();
 
 	void SetFinalDestLineIndex( const int iFinalDestLineIndex_ ) { m_iFinalDestLineIndex = iFinalDestLineIndex_; }
@@ -232,7 +235,7 @@ private:
 #endif RIDING_MONSTER
 
 	bool			m_bEnableLuaTargetingFunc;
-	wstring			m_wstrLuaTargetingFunc;			/// 타켓팅 Function으로 지정해줄 루아 함수 명
+	string			m_strLuaTargetingFunc;			/// 타켓팅 Function으로 지정해줄 루아 함수 명
 
 	float			m_fScanCloakingNearRange;		/// (T) 투명유닛이 이 거리내에 있으면 탐지 가능
 	float			m_fScanCloaking;				/// (T) 투명유닛을 탐지할 확률
@@ -241,6 +244,10 @@ private:
 #ifdef SEASON3_MONSTER_2010_12
 	bool			m_bTargetedOnlyOne;		/// 필요없을듯...(T) 하나의 타겟이 이미 선택되었는지 확인
 #endif
+
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    std::vector<CX2GameUnit*>   m_vecpTempGameUnit;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 };
 
 

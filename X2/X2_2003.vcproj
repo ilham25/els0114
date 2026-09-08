@@ -910,7 +910,7 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release_EU|Win32"
+			Name="Release_JP|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -992,7 +992,7 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release_US|Win32"
+			Name="Release_TW|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -1074,7 +1074,7 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release_CN|Win32"
+			Name="Release_HK|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -1156,7 +1156,7 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug_EU|Win32"
+			Name="Release_TH|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -1170,48 +1170,44 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="TRUE"
 				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories="../KTDXLIB;./Common;../X2Lib;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/socket;../KncWX2Server/Common;../NexonModule;../NexonModule/NMClass"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;PROFILE"
-				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="0"
-				RuntimeLibrary="3"
+				AdditionalIncludeDirectories="../KTDXLIB;./Common;../X2Lib;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/socket;../KncWX2Server/Common;../NexonModule/NMClass;../NexonModule"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_NEXON_KR_;_IN_HOUSE_"
+				StringPooling="TRUE"
+				ExceptionHandling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
 				TreatWChar_tAsBuiltInType="TRUE"
 				UsePrecompiledHeader="3"
 				PrecompiledHeaderThrough="dxstdafx.h"
-				ProgramDataBaseFileName="$(IntDir)/X2D.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="FALSE"
-				DebugInformationFormat="3"
-				ShowIncludes="FALSE"/>
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/IGNORE:4089"
-				AdditionalDependencies="iphlpapi.lib unicows.lib kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib comctl32.lib dxerr9.lib dxguid.lib d3dx9d.lib d3d9.lib HShield.lib"
-				LinkIncremental="1"
+				AdditionalDependencies="iphlpapi.lib unicows.lib kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib dxerr9.lib dxguid.lib d3dx9.lib d3d9.lib comctl32.lib ../HShield/HShield.lib"
+				OutputFile="$(OutDir)/X2.exe"
+				LinkIncremental="2"
 				AdditionalLibraryDirectories="../KTDXLIB;./Common;../X2Lib;../NexonModule;../NexonModule/NMClass"
 				IgnoreDefaultLibraryNames="libc"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/$(TargetName).pdb"
 				GenerateMapFile="TRUE"
-				MapFileName="$(OutDir)/$(TargetName).map"
+				MapFileName="$(OutDir)/$(ProjectName).map"
 				MapExports="TRUE"
 				MapLines="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
-				BaseAddress=""
-				SupportUnloadOfDelayLoadedDLL="TRUE"
-				TargetMachine="1"
-				FixedBaseAddress="1"/>
+				BaseAddress="0x32830000"
+				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="
-mkdir E:\Elsword_InHouse\Data\0
+mkdir &quot;E:\Elsword_InHouse\Data\0&quot;
 
 copy $(TargetPath) E:\Elsword_InHouse\Data\X2_Test.exe
 copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\Major\*.* E:\Elsword_InHouse\Data\0
@@ -1227,8 +1223,7 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 				Name="VCPreBuildEventTool"
 				ExcludedFromBuild="FALSE"/>
 			<Tool
-				Name="VCPreLinkEventTool"
-				ExcludedFromBuild="FALSE"/>
+				Name="VCPreLinkEventTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"/>
 			<Tool
@@ -1243,7 +1238,7 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Debug_CN|Win32"
+			Name="Release_ID|Win32"
 			OutputDirectory="$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
@@ -1257,48 +1252,44 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="TRUE"
 				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories="../KTDXLIB;./Common;../X2Lib;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/socket;../KncWX2Server/Common;../NexonModule;../NexonModule/NMClass"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;PROFILE"
-				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="0"
-				RuntimeLibrary="3"
+				AdditionalIncludeDirectories="../KTDXLIB;./Common;../X2Lib;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/socket;../KncWX2Server/Common;../NexonModule/NMClass;../NexonModule"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				StringPooling="TRUE"
+				ExceptionHandling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
 				TreatWChar_tAsBuiltInType="TRUE"
 				UsePrecompiledHeader="3"
 				PrecompiledHeaderThrough="dxstdafx.h"
-				ProgramDataBaseFileName="$(IntDir)/X2D.pdb"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="FALSE"
-				DebugInformationFormat="3"
-				ShowIncludes="FALSE"/>
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/IGNORE:4089"
-				AdditionalDependencies="iphlpapi.lib unicows.lib kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib comctl32.lib dxerr9.lib dxguid.lib d3dx9d.lib d3d9.lib HShield.lib"
-				LinkIncremental="1"
+				AdditionalDependencies="iphlpapi.lib unicows.lib kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib dxerr9.lib dxguid.lib d3dx9.lib d3d9.lib comctl32.lib ../HShield/HShield.lib"
+				OutputFile="$(OutDir)/X2.exe"
+				LinkIncremental="2"
 				AdditionalLibraryDirectories="../KTDXLIB;./Common;../X2Lib;../NexonModule;../NexonModule/NMClass"
 				IgnoreDefaultLibraryNames="libc"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/$(TargetName).pdb"
 				GenerateMapFile="TRUE"
-				MapFileName="$(OutDir)/$(TargetName).map"
+				MapFileName="$(OutDir)/$(ProjectName).map"
 				MapExports="TRUE"
 				MapLines="TRUE"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
-				BaseAddress=""
-				SupportUnloadOfDelayLoadedDLL="TRUE"
-				TargetMachine="1"
-				FixedBaseAddress="1"/>
+				BaseAddress="0x32830000"
+				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="
-mkdir E:\Elsword_InHouse\Data\0
+mkdir &quot;E:\Elsword_InHouse\Data\0&quot;
 
 copy $(TargetPath) E:\Elsword_InHouse\Data\X2_Test.exe
 copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\Major\*.* E:\Elsword_InHouse\Data\0
@@ -1314,8 +1305,89 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 				Name="VCPreBuildEventTool"
 				ExcludedFromBuild="FALSE"/>
 			<Tool
-				Name="VCPreLinkEventTool"
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Release_IN|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			CharacterSet="1">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="/Zm600"
+				Optimization="2"
+				GlobalOptimizations="TRUE"
+				InlineFunctionExpansion="2"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="TRUE"
+				OptimizeForWindowsApplication="TRUE"
+				AdditionalIncludeDirectories="../KTDXLIB;./Common;../X2Lib;../KTDXLIB/DXUT;../X2ServerProtocol;../X2ServerProtocol/socket;../KncWX2Server/Common;../NexonModule/NMClass;../NexonModule"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_NEXON_KR_;_IN_HOUSE_"
+				StringPooling="TRUE"
+				ExceptionHandling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				TreatWChar_tAsBuiltInType="TRUE"
+				UsePrecompiledHeader="3"
+				PrecompiledHeaderThrough="dxstdafx.h"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="FALSE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/IGNORE:4089"
+				AdditionalDependencies="iphlpapi.lib unicows.lib kernel32.lib advapi32.lib user32.lib gdi32.lib shell32.lib comdlg32.lib version.lib mpr.lib rasapi32.lib winmm.lib winspool.lib vfw32.lib secur32.lib oleacc.lib oledlg.lib sensapi.lib dxerr9.lib dxguid.lib d3dx9.lib d3d9.lib comctl32.lib ../HShield/HShield.lib"
+				OutputFile="$(OutDir)/X2.exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="../KTDXLIB;./Common;../X2Lib;../NexonModule;../NexonModule/NMClass"
+				IgnoreDefaultLibraryNames="libc"
+				GenerateDebugInformation="TRUE"
+				GenerateMapFile="TRUE"
+				MapFileName="$(OutDir)/$(ProjectName).map"
+				MapExports="TRUE"
+				MapLines="TRUE"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				BaseAddress="0x32830000"
+				TargetMachine="1"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="
+mkdir &quot;E:\Elsword_InHouse\Data\0&quot;
+
+copy $(TargetPath) E:\Elsword_InHouse\Data\X2_Test.exe
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\Major\*.* E:\Elsword_InHouse\Data\0
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\NPC\npctemplet.lua E:\Elsword_InHouse\Data\0
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\NPC\npcstat.lua E:\Elsword_InHouse\Data\0
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\World\worlddata.lua E:\Elsword_InHouse\Data\0
+copy D:\ProjectX2_SVN\resource\KR\Trunk\dat\script\Dungeon\dungeondata.lua E:\Elsword_InHouse\Data\0
+
+copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
+"
+				ExcludedFromBuild="TRUE"/>
+			<Tool
+				Name="VCPreBuildEventTool"
 				ExcludedFromBuild="FALSE"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
 			<Tool
 				Name="VCResourceCompilerTool"/>
 			<Tool
@@ -1436,31 +1508,37 @@ copy D:\ProjectX2_SVN\resource\KR\Trunk\General.ess E:\Elsword_InHouse\Data
 						UsePrecompiledHeader="1"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_EU|Win32">
+					Name="Release_JP|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_US|Win32">
+					Name="Release_TW|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Release_CN|Win32">
+					Name="Release_HK|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_EU|Win32">
+					Name="Release_TH|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug_CN|Win32">
+					Name="Release_ID|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release_IN|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="1"/>

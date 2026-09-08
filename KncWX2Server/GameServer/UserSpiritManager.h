@@ -14,7 +14,11 @@ public:
 	~KUserSpiritManager(void);
 
 	void	Clear();
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+	void	Init( IN const int iSpirit, IN const int iSpiritMax, IN const int iAccumulationSpirit );
+#else
 	void	Init( IN const int iSpirit, IN const int iSpiritMax );	
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
     
 	int		GetSpirit() const										{ return m_iSpirit; }
 	void	SetSpirit( IN const int iSpirit )						{ m_iSpirit = iSpirit; }
@@ -43,14 +47,30 @@ public:
 #if defined( SERV_LOCAL_RANKING_SYSTEM ) || defined( SERV_CHINA_SPIRIT_EVENT )
 						  , OUT int& iAbsoluteDecreaseSpirit
 #endif	// SERV_LOCAL_RANKING_SYSTEM
+#ifdef	SERV_ACCUMULATION_SPIRIT_SYSTEM
+						  , OUT bool& bReward
+#ifdef SERV_BURNING_CHAR_EVENT_SUB_QUEST
+						  ,IN const bool bCharQuest
+#endif //SERV_BURNING_CHAR_EVENT_SUB_QUEST
+#endif	SERV_ACCUMULATION_SPIRIT_SYSTEM
 						  );
 
 	void	GetDBUpdateInfo( OUT int& iSpirit, OUT bool& bIsSpiritUpdated );
+
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+	void	SetAccumulationSpirit( IN const int iAccumulationSpirit )	{ m_iAccumulationSpirit = iAccumulationSpirit; }
+	int		GetAccumulationSpirit() const								{ return m_iAccumulationSpirit; }
+	void	CalculateAccumulationSpirit( IN char cUserCount, IN short sStageNpcCount, IN bool bIsTutorial, IN bool bHalfDecreaseEvent, IN bool bIsBattleField, OUT bool& bReward );
+	void	GetDBUpdateInfo2( OUT int& iAccumulationSpirit );
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 
 private:
 	int								m_iSpiritMax;
 	int								m_iSpirit;
 	bool							m_bIsSpiritUpdated;		// 근성도 하루치를 다 썼을경우 true
+#ifdef SERV_ACCUMULATION_SPIRIT_SYSTEM
+	int								m_iAccumulationSpirit;
+#endif SERV_ACCUMULATION_SPIRIT_SYSTEM
 };
 
 

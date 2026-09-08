@@ -21,14 +21,16 @@ public:
 
 	struct StageData	
 	{
+	public:
 		int												m_WorldID;
 		//{{ 2010. 03. 24  최육사	비밀던전 헬모드
 		STAGE_TYPE										m_eStageType;
 		//}}
 		std::vector<CXSLUnitManager::NPC_UNIT_ID>		m_ReadyNPCList;
 		std::vector<CXSLDungeonSubStage::SubStageData*>	m_SubStageDataList;
-		std::map<int,char>								m_NPCRate;		
+		std::map<int,char>								m_NPCRate;
 
+	public:
 		~StageData()
 		{
 			m_ReadyNPCList.clear();

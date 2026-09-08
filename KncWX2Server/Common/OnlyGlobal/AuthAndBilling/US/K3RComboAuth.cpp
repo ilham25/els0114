@@ -819,7 +819,11 @@ IMPL_ON_FUNC( EPUBLISHER_AUTHENTICATION_REQ )
 		case 2:		kPacketAck.m_iOK = NetError::ERR_GAMEFORGE_01;	break;	// 2 = User not found
 		case 3: 	kPacketAck.m_iOK = NetError::ERR_GAMEFORGE_00;	break;	// 3 = Wrong Password
 		case 4: 	kPacketAck.m_iOK = NetError::ERR_GAMEFORGE_02;	break;	// 4 = User not validated
-		case 5: 	kPacketAck.m_iOK = NetError::ERR_VERIFY_11;		break;	// 5 = User account is blocked 
+#ifdef SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
+			case 5: 	kPacketAck.m_iOK = NetError::ERR_ACCOUNT_BLOCK_04;		break;	// 5 = User account is blocked 
+#else //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
+			case 5: 	kPacketAck.m_iOK = NetError::ERR_VERIFY_11;		break;	// 5 = User account is blocked 
+#endif //SERV_ACCOUNT_BLOCK_MESSAGE_RENEWAL
 		case 6: 	kPacketAck.m_iOK = NetError::ERR_K3RCOMBO_AUTH_01;	break;	// 6 = IP Block
 		case 7: // 7 = TOU Not Agreed 
 			{

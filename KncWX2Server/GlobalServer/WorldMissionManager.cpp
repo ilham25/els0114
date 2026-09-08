@@ -680,7 +680,7 @@ int KWorldMissionManager::CheckWorldBuff( void ) const
 	for( std::vector< KDefenseOpenTime >::const_reverse_iterator rit = vecTime.rbegin(); rit != vecTime.rend(); ++rit )
 	{
 		const KDefenseOpenTime& kDefenseOpenTime = *rit;
-		CTime tEndTime = CTime( tCurrent.GetYear(), tCurrent.GetMonth(), tCurrent.GetDay(), kDefenseOpenTime.m_iStartHour, kDefenseOpenTime.m_iStartMinute + kDefenseOpenTime.m_iDurationTime, 0 );
+		CTime tEndTime = CTime( tCurrent.GetYear(), tCurrent.GetMonth(), tCurrent.GetDay(), kDefenseOpenTime.m_iStartHour, kDefenseOpenTime.m_iStartMinute, 0 ) + CTimeSpan( 0,0, kDefenseOpenTime.m_iDurationTime, 0);
 		CTime tBuffEndTime = tEndTime + CTimeSpan( 0, 0, 0, static_cast<int>( m_usWorldBuffDurationTime ) );
 
 		std::wstring wstrEndTime = tEndTime.Format(_T("%Y-%m-%d %H:%M:%S"));
@@ -731,7 +731,7 @@ int KWorldMissionManager::CheckIndividualBuff( void ) const
 	for( std::vector< KDefenseOpenTime >::const_reverse_iterator rit = vecTime.rbegin(); rit != vecTime.rend(); ++rit )
 	{
 		const KDefenseOpenTime& kDefenseOpenTime = *rit;
-		CTime tBuffStartTime	= CTime( tCurrentTime.GetYear(), tCurrentTime.GetMonth(), tCurrentTime.GetDay(), kDefenseOpenTime.m_iStartHour, kDefenseOpenTime.m_iStartMinute + kDefenseOpenTime.m_iDurationTime, 0 );
+		CTime tBuffStartTime	= CTime( tCurrentTime.GetYear(), tCurrentTime.GetMonth(), tCurrentTime.GetDay(), 0, 0, 0 ) + CTimeSpan( 0,  kDefenseOpenTime.m_iStartHour, kDefenseOpenTime.m_iStartMinute + kDefenseOpenTime.m_iDurationTime, 0 );
 		CTime tBuffEndTime		= tBuffStartTime + CTimeSpan( 0, 0, 0, static_cast<int>( m_usWorldBuffDurationTime ) );
 
 		if( ( tBuffStartTime <= tCurrentTime ) && ( tCurrentTime < tBuffEndTime ) )

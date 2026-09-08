@@ -36,7 +36,7 @@ bool CXSLBuffManager::AddBuffInfo_LUA()
 	KLuaManager luaManager( GetLuaState() );
 
 	BuffTemplet kBuffInfo;
-	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eBuffID",				kBuffInfo.m_eBuffID,					BUFF_TEMPLET_ID,		BUFF_TEMPLET_ID::BTI_NONE,		goto end_proc );	
+	LUA_GET_VALUE_RETURN_ENUM(	luaManager, L"m_eBuffID",				kBuffInfo.m_eBuffID,					BUFF_TEMPLET_ID,		BTI_NONE,		goto end_proc );	
 	//LUA_GET_VALUE(			luaManager, L"m_TitleName",				kBuffInfo.m_wstrBuffName,				L"" );
 	LUA_GET_VALUE(				luaManager, L"m_fBuffPeriodSecond",		kBuffInfo.m_fBuffPeriodSecond,			0.0 );
 

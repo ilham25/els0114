@@ -77,9 +77,9 @@ void KRoomSlot::GetRoomSlotInfo( KRoomSlotInfo& kInfo )
 		kInfo.m_bPitIn	= m_spRoomUser->IsPitIn();
         kInfo.m_bTrade  = m_spRoomUser->IsInTrade();
 
-#ifdef PVP_BOSS_COMBAT_TEST
-		kInfo.m_bIsBoss = m_spRoomUser->GetIsBoss();
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		kInfo.m_bIsBoss = m_spRoomUser->GetIsBoss();
+//#endif PVP_BOSS_COMBAT_TEST
 
         m_spRoomUser->GetRoomUserInfo( kInfo.m_kRoomUserInfo );
     }

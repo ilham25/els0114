@@ -32,7 +32,6 @@
 #elif defined (SERV_COUNTRY_JP)
 #include "../Common/OnlyGlobal/AuthAndBilling/JP/LoginNetCafeManager.h"
 #endif // SERV_COUNTRY_XX
-
 #endif // SERV_GLOBAL_AUTH
 
 #ifdef SERV_GLOBAL_BILLING
@@ -117,6 +116,9 @@ KLoginSimLayer::KLoginSimLayer(void)
 #ifdef SERV_GLOBAL_AUTH
 	m_bPublisherCheckGameServerLogin = false;
 #endif //SERV_GLOBAL_AUTH
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	SetEnableCNDirectCharge_LUA(true);
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 }
 
 KLoginSimLayer::~KLoginSimLayer(void)
@@ -159,6 +161,10 @@ void KLoginSimLayer::RegToLua()
 #endif //SERV_GLOBAL_AUTH
 	lua_tinker::class_def<KLoginSimLayer>( g_pLua, "dump",				&KLoginSimLayer::Dump );
 
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+	lua_tinker::class_def<KLoginSimLayer>( g_pLua, "SetEnableCNDirectCharge", &KLoginSimLayer::SetEnableCNDirectCharge_LUA );
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
+
 	lua_tinker::decl( g_pLua, "SimLayer", this );
 
 	//{{ 2011. 04. 29	최육사	대리상인
@@ -175,16 +181,12 @@ void KLoginSimLayer::RegToLua()
 #endif SERV_PCBANG_AUTH_NEW
 	//}}	
 
-//////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GLOBAL_AUTH
-
 #if defined (SERV_COUNTRY_TWHK)
     SiKGASHAuthManager()->RegToLua();
 #elif defined (SERV_COUNTRY_JP)
 	SiKLoginNetCafeManager()->RegToLua();
 #endif // SERV_COUNTRY_XX
-
-
 #endif // SERV_GLOBAL_AUTH
 
 #ifdef SERV_GLOBAL_BILLING
@@ -199,8 +201,6 @@ void KLoginSimLayer::RegToLua()
 	SiKGiantCouponManager()->RegToLua();
 #endif SERV_COUNTRY_XX
 #endif // SERV_GLOBAL_BILLING
-//////////////////////////////////////////////////////////////////////////
-
 }
 
 //{{ 2012. 09. 03	최육사		중복 접속 버그 수정
@@ -319,7 +319,6 @@ void KLoginSimLayer::Init()
         break;
     }
 
-//////////////////////////////////////////////////////////////////////////
 #ifdef SERV_GLOBAL_AUTH
 #if defined (SERV_COUNTRY_TWHK)
 	m_vecpThreadMgr.push_back( SiKGASHAuthManager()->GetInstance() );
@@ -340,8 +339,6 @@ void KLoginSimLayer::Init()
 	m_vecpThreadMgr.push_back( SiKGiantCouponManager()->GetInstance() );
 #endif // SERV_COUNTRY_XX
 #endif // SERV_GLOBAL_BILLING
-//////////////////////////////////////////////////////////////////////////
-
 
     KSimLayer::Init();
 
@@ -368,6 +365,27 @@ void KLoginSimLayer::Init()
 		else
 		{
 			START_LOG( cout, L"Enum 정보 로드 성공.!" );
+		}
+	}
+
+	{
+		LoadingTimer lt( L"DungeonEnum.lua" );
+
+		//추후 ↓에서 이루어 지는 데이터 로딩이 실패할경우 서버를 종료 시켜야한다.
+		strFile = "DungeonEnum.lua";
+		kAutoPath.GetPullPath( strFile );
+		if( 0 != LUA_DOFILE( g_pLua, strFile.c_str() ) )
+		{
+			START_LOG( cerr, L"DungeonEnum 정보 로드 실패.!" )
+				<< BUILD_LOG( KncUtil::toWideString( strFile ) );
+
+			//{{ 2011. 02. 07	최육사	스크립트 파싱 오류 리포트
+			KBaseServer::GetKObj()->AddFailScriptFileName( L"DungeonEnum.lua" );
+			//}}
+		}
+		else
+		{
+			START_LOG( cout, L"DungeonEnum 정보 로드 성공.!" );
 		}
 	}
 
@@ -406,6 +424,10 @@ void KLoginSimLayer::Init()
 
 	//{{ 2009. 11. 30  최육사	길드스킬
 #ifdef GUILD_SKILL_TEST
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+	CXSLSkillTree::RegScriptName( "NewSkillTempletVer2.lua" );
+	OPEN_SCRIPT_FILE( CXSLSkillTree );
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	{
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 		LoadingTimer lt( L"NewSkillTempletVer2.lua" );
@@ -442,6 +464,7 @@ void KLoginSimLayer::Init()
 			START_LOG( cout, L"SKILL TEMPLET 정보 로드 성공.!" );
 		}
 	}
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 #endif GUILD_SKILL_TEST
 	//}}
 
@@ -469,6 +492,9 @@ void KLoginSimLayer::Init()
 		CXSLTitleManager::RegScriptName( "TitleTable.lua" );
 		CXSLTitleManager::RegScriptName( "TitleMission.lua" );
 		CXSLTitleManager::RegScriptName( "SubTitleMission.lua" );
+#ifdef SEPARATION_SUB_TITLE_SCRIPT
+		CXSLTitleManager::RegScriptName( "SubTitleOpenMission.lua" );
+#endif // SEPARATION_SUB_TITLE_SCRIPT
 		OPEN_SCRIPT_FILE( CXSLTitleManager );
 	}
 #endif SERV_HENIR_RANKING_TITLE_REWARD_FIX
@@ -635,8 +661,6 @@ void KLoginSimLayer::ShutDown()
 #endif // SERV_COUNTRY_TH
 #endif // SERV_GLOBAL_BILLING
 
-
-
 	//{{ 2009. 7. 6  최육사		랭킹 개편
 	KRankingManager::ReleaseInstance();
 	//}}
@@ -674,4 +698,13 @@ bool KLoginSimLayer::SetDenyFriendShip( UidType iUnitUID, bool bDenyFriendShip )
 }
 //}}
 
+#ifdef SERV_DIRECT_CHARGE_ELSWORD_CASH
+void KLoginSimLayer::SetEnableCNDirectCharge_LUA(bool bValue)
+{
+	m_bEnableCNDirectCharge = bValue;
+
+	START_LOG( cout, L"[CN] Direct Charge Enable Setting" )
+		<< BUILD_LOG( m_bEnableCNDirectCharge );
+}
+#endif // SERV_DIRECT_CHARGE_ELSWORD_CASH
 

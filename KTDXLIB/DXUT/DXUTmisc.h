@@ -529,43 +529,43 @@ protected:
 // Manages the mesh, direction, mouse events of a directional arrow that 
 // rotates around a radius controlled by an arcball 
 //--------------------------------------------------------------------------------------
-class CDXUTDirectionWidget
-{
-public:
-    CDXUTDirectionWidget();
-
-    static HRESULT StaticOnCreateDevice( IDirect3DDevice9* pd3dDevice );
-    HRESULT OnResetDevice( const D3DSURFACE_DESC* pBackBufferSurfaceDesc );
-    HRESULT OnRender( D3DXCOLOR color, const D3DXMATRIX* pmView, const D3DXMATRIX* pmProj, const D3DXVECTOR3* pEyePt );
-    LRESULT HandleMessages( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
-    static void StaticOnLostDevice();
-    static void StaticOnDestroyDevice();
-
-    D3DXVECTOR3 GetLightDirection()         { return m_vCurrentDir; };
-    void        SetLightDirection( D3DXVECTOR3 vDir ) { m_vDefaultDir = m_vCurrentDir = vDir; };
-    void        SetButtonMask( int nRotate = MOUSE_RIGHT_BUTTON ) { m_nRotateMask = nRotate; }
-
-    float GetRadius()                 { return m_fRadius; };
-    void  SetRadius( float fRadius )  { m_fRadius = fRadius; };
-
-    bool  IsBeingDragged() { return m_ArcBall.IsBeingDragged(); };
-
-protected:
-    HRESULT UpdateLightDir();
-
-    D3DXMATRIXA16  m_mRot;
-    D3DXMATRIXA16  m_mRotSnapshot;
-    static IDirect3DDevice9* s_pd3dDevice;
-    static ID3DXEffect* s_pEffect;       
-    static ID3DXMesh*   s_pMesh;    
-
-    float          m_fRadius;
-    int            m_nRotateMask;
-    CD3DArcBall    m_ArcBall;
-    D3DXVECTOR3    m_vDefaultDir;
-    D3DXVECTOR3    m_vCurrentDir;
-    D3DXMATRIX     m_mView;
-};
+//class CDXUTDirectionWidget
+//{
+//public:
+//    CDXUTDirectionWidget();
+//
+//    static HRESULT StaticOnCreateDevice( IDirect3DDevice9* pd3dDevice );
+//    HRESULT OnResetDevice( const D3DSURFACE_DESC* pBackBufferSurfaceDesc );
+//    HRESULT OnRender( D3DXCOLOR color, const D3DXMATRIX* pmView, const D3DXMATRIX* pmProj, const D3DXVECTOR3* pEyePt );
+//    LRESULT HandleMessages( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+//    static void StaticOnLostDevice();
+//    static void StaticOnDestroyDevice();
+//
+//    D3DXVECTOR3 GetLightDirection()         { return m_vCurrentDir; };
+//    void        SetLightDirection( D3DXVECTOR3 vDir ) { m_vDefaultDir = m_vCurrentDir = vDir; };
+//    void        SetButtonMask( int nRotate = MOUSE_RIGHT_BUTTON ) { m_nRotateMask = nRotate; }
+//
+//    float GetRadius()                 { return m_fRadius; };
+//    void  SetRadius( float fRadius )  { m_fRadius = fRadius; };
+//
+//    bool  IsBeingDragged() { return m_ArcBall.IsBeingDragged(); };
+//
+//protected:
+//    HRESULT UpdateLightDir();
+//
+//    D3DXMATRIXA16  m_mRot;
+//    D3DXMATRIXA16  m_mRotSnapshot;
+//    static IDirect3DDevice9* s_pd3dDevice;
+//    static ID3DXEffect* s_pEffect;       
+//    static ID3DXMesh*   s_pMesh;    
+//
+//    float          m_fRadius;
+//    int            m_nRotateMask;
+//    CD3DArcBall    m_ArcBall;
+//    D3DXVECTOR3    m_vDefaultDir;
+//    D3DXVECTOR3    m_vCurrentDir;
+//    D3DXMATRIX     m_mView;
+//};
 
 
 //--------------------------------------------------------------------------------------

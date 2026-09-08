@@ -13,6 +13,9 @@ m_bTrading(false),
 m_MovedPosition(0,0),					// D3DXVECTOR2
 m_DLGPosition(0,0),						// D3DXVECTOR2
 m_DLGSize(0,0),							// D3DXVECTOR2
+#ifdef ADJUST_THIRD_PERSON_BUG
+m_bTradeRequesting(false),
+#endif //ADJUST_PERSONAL_TRADE_BUG
 //m_vecTradeInvited.clear();
 m_pTradeInviting(NULL),
 m_iTradeUID(0),
@@ -210,6 +213,9 @@ HRESULT CX2UIPersonalTrade::OnFrameMove( double fTime, float fElapsedTime )
 		if( m_pTradeInviting->m_fTimeLeftForWaitingReply <= 0.f )
 		{
 			SAFE_DELETE( m_pTradeInviting );
+#ifdef ADJUST_THIRD_PERSON_BUG
+			m_bTradeRequesting = false;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 		}
 	}
 
@@ -422,9 +428,9 @@ bool CX2UIPersonalTrade::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_STRING( STR_ID_12256 ), g_pMain->GetNowState() );
 			}
 
-			if( iED > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+			if( iED > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 			{
-				iED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+				iED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 			}
 
 			wstring wstrED = g_pMain->GetEDString( iED );
@@ -537,9 +543,9 @@ bool CX2UIPersonalTrade::UICustomEventProc( HWND hWnd, UINT uMsg, WPARAM wParam,
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250, 300), GET_STRING( STR_ID_417 ), (CKTDXStage*) g_pMain->GetNowState() );
 			}
 
-			if( iTempED > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED )
+			if( iTempED > g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED )
 			{
-				iTempED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED;
+				iTempED = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData().m_ED;
 			}
 
 			if( m_bRegisteredTrade == true )
@@ -876,8 +882,8 @@ bool CX2UIPersonalTrade::OnDropAnyItem( D3DXVECTOR2 mousePos )
 	//*m_DraggingItemUID = ((CX2SlotItem*)(*m_pSlotBeforeDragging))->GetItemUID();
 	//}}
 
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	CX2Item* pDragItem = pInventory->GetItem( *m_DraggingItemUID );
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Item* pDragItem = kInventory.GetItem( *m_DraggingItemUID );
 	CX2SlotItem* pDragSlot = (CX2SlotItem*) *m_pSlotBeforeDragging;
 
 	CX2SlotItem* m_pTargetDragItemSlot = (CX2SlotItem*) GetSlotInMousePos( mousePos );
@@ -1112,10 +1118,9 @@ void CX2UIPersonalTrade::SetMyTradeED( int iED )
 
 	// fix!! 이부분 onstartpersonalTrade()로 옮겨야 될까?
 	if( NULL != g_pData->GetMyUser() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit() &&
-		NULL != g_pData->GetMyUser()->GetSelectUnit()->GetUnitData() )
+		NULL != g_pData->GetMyUser()->GetSelectUnit() )
 	{
-		CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
+		//CX2Unit::UnitData* pUnitData = g_pData->GetMyUser()->GetSelectUnit()->GetUnitData();
 		CKTDGUIStatic* pStatic_ED = (CKTDGUIStatic*) m_pDLGPersonalTrade->GetControl( L"Static_MyED" );	
 		if( NULL != pStatic_ED )
 		{
@@ -1488,7 +1493,9 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_ACK( HWND hWnd, UINT uMsg, WP
 					{
 						// 검색 성공했으면
 						m_pTradeInviting = new TradeInviting( wstrNickName, 10.f, g_pMain->GetNowState() );
-
+#ifdef ADJUST_THIRD_PERSON_BUG
+						m_bTradeRequesting = true;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 					}
 					else
 					{
@@ -1513,6 +1520,9 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_ACK( HWND hWnd, UINT uMsg, WP
 						if( NULL != pSquareUnit )
 						{
 							m_pTradeInviting = new TradeInviting( pSquareUnit->GetNickName(), 10.f, g_pMain->GetNowState() );
+#ifdef ADJUST_THIRD_PERSON_BUG
+							m_bTradeRequesting = true;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 						}
 						else
 						{
@@ -1531,6 +1541,9 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_ACK( HWND hWnd, UINT uMsg, WP
 					{
 						// 검색 성공했으면
 						m_pTradeInviting = new TradeInviting( wstrNickName, 10.f, g_pMain->GetNowState() );
+#ifdef ADJUST_THIRD_PERSON_BUG
+						m_bTradeRequesting = true;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 
 					}
 					else
@@ -1540,7 +1553,10 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_ACK( HWND hWnd, UINT uMsg, WP
 							CX2GUUser* pGUUser = g_pX2Game->GetUserUnitByUID(kEvent.m_iUnitUID);
 							if( NULL != pGUUser )
 							{
-								m_pTradeInviting = new TradeInviting( pGUUser->GetUnitName(), 10.f, g_pMain->GetNowState() );	
+								m_pTradeInviting = new TradeInviting( pGUUser->GetUnitName(), 10.f, g_pMain->GetNowState() );
+#ifdef ADJUST_THIRD_PERSON_BUG
+								m_bTradeRequesting = true;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 								return true;
 							}
 						}
@@ -1559,6 +1575,9 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_ACK( HWND hWnd, UINT uMsg, WP
 					{
 						wstring wstrNickName = pSlotData->m_pUnit->GetNickName();
 						m_pTradeInviting = new TradeInviting( wstrNickName, 10.f, g_pMain->GetNowState() );
+#ifdef ADJUST_THIRD_PERSON_BUG
+						m_bTradeRequesting = true;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 					}
 					else
 					{
@@ -1569,6 +1588,7 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_ACK( HWND hWnd, UINT uMsg, WP
 			}
 
 			return true;
+
 		}
 //		netError로 처리
 //		else
@@ -1585,8 +1605,13 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_ACK( HWND hWnd, UINT uMsg, WP
 bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
 	// 체험 아이디이면 거래 안됨
-	if( true == g_pData->GetMyUser()->GetUserData()->m_bIsGuestUser )
+	if( true == g_pData->GetMyUser()->GetUserData().m_bIsGuestUser )
 		return true;
+
+#ifdef ADJUST_THIRD_PERSON_BUG
+	if( true == m_bTradeRequesting )
+		return true;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 
 	KSerBuffer* pBuff = (KSerBuffer*)lParam;
 	KEGS_REQUEST_TRADE_NOT kEvent;
@@ -1680,7 +1705,9 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_DENY_NOT( HWND hWnd, UINT uMs
 	DeSerialize( pBuff, &kEvent );
 
 	SAFE_DELETE( m_pTradeInviting );
-
+#ifdef ADJUST_THIRD_PERSON_BUG
+	m_bTradeRequesting = false;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 	switch( g_pMain->GetNowStateID() )
 	{
 	case CX2Main::XS_VILLAGE_MAP:
@@ -1714,6 +1741,12 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_DENY_NOT( HWND hWnd, UINT uMs
 				wstrstm << NetError::GetErrStrF(NetError::NOT_REQUEST_TRADE_REPLY_02);
 				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), wstrstm.str().c_str(), g_pMain->GetNowState() );
 			}
+#ifdef SERV_CHANGE_MSG_BLOCK_TRADE_USER
+			else if( kEvent.m_iOK == NetError::NOT_REQUEST_TRADE_REPLY_05 )
+			{
+				g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_28412 ), g_pMain->GetNowState() );
+			}
+#endif //SERV_CHANGE_MSG_BLOCK_TRADE_USER			
 
 			//}
 
@@ -1737,6 +1770,12 @@ bool CX2UIPersonalTrade::Handler_EGS_REQUEST_TRADE_DENY_NOT( HWND hWnd, UINT uMs
 					wstrMsg = GET_REPLACED_STRING( ( STR_ID_879, "SS", pSlotData->m_pUnit->GetNickName(), NetError::GetErrStrF( NetError::NOT_REQUEST_TRADE_REPLY_02 ) ) );
 					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), wstrMsg.c_str(), g_pMain->GetNowState() );
 				}
+#ifdef SERV_CHANGE_MSG_BLOCK_TRADE_USER
+				else if( kEvent.m_iOK == NetError::NOT_REQUEST_TRADE_REPLY_05 )
+				{
+					g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(250,300), GET_STRING( STR_ID_28412 ), g_pMain->GetNowState() );
+				}
+#endif //SERV_CHANGE_MSG_BLOCK_TRADE_USER
 
 			}
 		} break;
@@ -1758,6 +1797,9 @@ bool CX2UIPersonalTrade::Handler_EGS_CREATE_TRADE_NOT( HWND hWnd, UINT uMsg, WPA
 	m_iTradeUID = kEvent.m_iTradeUID;
 
 	SAFE_DELETE(m_pTradeInviting);
+#ifdef ADJUST_THIRD_PERSON_BUG
+	m_bTradeRequesting = false;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 	return true;
 }
 
@@ -2179,14 +2221,14 @@ bool CX2UIPersonalTrade::Handler_EGS_TRADE_COMPLETE_NOT( HWND hWnd, UINT uMsg, W
 	KEGS_TRADE_COMPLETE_NOT kEvent;
 	DeSerialize( pBuff, &kEvent );
 
-	g_pData->GetMyUser()->GetSelectUnit()->GetUnitData()->m_ED		= kEvent.m_iED;
+	g_pData->GetMyUser()->GetSelectUnit()->AccessUnitData().m_ED		= kEvent.m_iED;
 
 	if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 	{		
 		g_pData->GetUIManager()->GetUIInventory()->UpdateInventorySlotList(kEvent.m_vecInventorySlotInfo);
 	}
 
-	//g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecInventoryItemInfo );
+	//g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecInventoryItemInfo );
 	//SetInventorySort();
 
 	switch( g_pMain->GetNowStateID() )
@@ -2261,7 +2303,7 @@ void CX2UIPersonalTrade::UpdateRegisterQuantityDLG( bool bReadIME )
 		m_iItemEnrollNum = g_pMain->GetEDFromString( pQuantity->GetText() );
 	}	
 	
-	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->GetItem( m_EnrollItemUid );
+	CX2Item* pItem = g_pData->GetMyUser()->GetSelectUnit()->GetInventory().GetItem( m_EnrollItemUid );
 	if ( m_iItemEnrollNum <= 0 )
 	{
 		if(bReadIME)				// 입력창으로 받아온 경우
@@ -2270,8 +2312,8 @@ void CX2UIPersonalTrade::UpdateRegisterQuantityDLG( bool bReadIME )
 			m_iItemEnrollNum = pItem->GetItemTemplet()->GetQuantity();	
 	}
 		
-	if ( m_iItemEnrollNum >= pItem->GetItemData()->m_Quantity )
-		m_iItemEnrollNum = pItem->GetItemData()->m_Quantity;
+	if ( m_iItemEnrollNum >= pItem->GetItemData().m_Quantity )
+		m_iItemEnrollNum = pItem->GetItemData().m_Quantity;
 
 	WCHAR buff[256] = {0};
 	_itow( m_iItemEnrollNum, buff, 10 );
@@ -2310,9 +2352,9 @@ wstring CX2UIPersonalTrade::GetSlotItemDesc()
 				KItemInfo iteminfo = SlotInfo.second;
 				if(TargetUid == SlotInfo.first)
 				{
-					CX2Item::ItemData* pItemData = new CX2Item::ItemData( iteminfo );
-					CX2Item* pItem = new CX2Item( pItemData, NULL );
-					itemDesc = GetSlotItemDescByTID( pItem, pItemData->m_ItemID, false );
+					CX2Item::ItemData kItemData( iteminfo );
+					CX2Item* pItem = new CX2Item( kItemData, NULL );
+					itemDesc = GetSlotItemDescByTID( pItem, kItemData.m_ItemID, false );
 					SAFE_DELETE( pItem );
 					break;
 				}
@@ -2338,11 +2380,10 @@ std::wstring CX2UIPersonalTrade::GetSlotItemDescExtra_RBtn( int itemTID, CX2Item
 bool CX2UIPersonalTrade::RegisterMyItem( UidType ItemUid, int iCount )
 {
 	// 아이템이 실제로 존재하는지-_- 확인해주고
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	if(pInventory == NULL) 
-		return false;
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
-	CX2Item* pItem = pInventory->GetItem( ItemUid );
+
+	CX2Item* pItem = kInventory.GetItem( ItemUid );
 	if(pItem == NULL) 
 		return false;
 
@@ -2351,17 +2392,15 @@ bool CX2UIPersonalTrade::RegisterMyItem( UidType ItemUid, int iCount )
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_882 ), (CKTDXStage*) g_pMain->GetNowState() );
 		return false;
 	}
-	else if( iCount > pItem->GetItemData()->m_Quantity )
+	else if( iCount > pItem->GetItemData().m_Quantity )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_871 ), (CKTDXStage*) g_pMain->GetNowState() );
 		return false;
 	}
 
     const CX2Item::ItemTemplet* pItemTemplet = pItem->GetItemTemplet();
-	CX2Item::ItemData* pItemData = pItem->GetItemData();
-	if(pItemData == NULL ||
-        pItemTemplet == NULL
-        )
+	//const CX2Item::ItemData* pItemData = &pItem->GetItemData();
+	if( pItemTemplet == NULL )
 		return false;
 
 	// 패킷을 날리자
@@ -2386,11 +2425,9 @@ void CX2UIPersonalTrade::ResetMyTradeSlot()
 				UidType itemUID = MySlotInfo.first;
 				int iCount = MySlotInfo.second;
 				
-				CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-				if(pInventory == NULL) 
-					continue;
+				const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
-				CX2Item* pItem = pInventory->GetItem( itemUID );
+				CX2Item* pItem = kInventory.GetItem( itemUID );
 				if(pItem == NULL) 
 					continue;
 
@@ -2399,7 +2436,7 @@ void CX2UIPersonalTrade::ResetMyTradeSlot()
 
 				//{{ kimhc // 2009-09-02 // 판매창에 봉인 이미지 보이도록
 #ifdef	SEAL_ITEM
-				if ( pItem->GetItemData() != NULL && pItem->GetItemData()->m_bIsSealed == true )
+				if ( pItem->GetItemData().m_bIsSealed == true )
 				{
 					pSlotItem->SetShowSealedImage( true );
 				}
@@ -2459,8 +2496,8 @@ void CX2UIPersonalTrade::ResetOpponentTradeSlot()
 
 bool CX2UIPersonalTrade::OnRegisterMyItem(UidType ItemUid )
 {
-	CX2Inventory* pInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
-	CX2Item* pItem = pInventory->GetItem( ItemUid );
+	const CX2Inventory& kInventory = g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+	CX2Item* pItem = kInventory.GetItem( ItemUid );
 
 	if ( pItem == NULL || 
         NULL == pItem->GetItemTemplet() 
@@ -2469,10 +2506,7 @@ bool CX2UIPersonalTrade::OnRegisterMyItem(UidType ItemUid )
 
 	//{{ kimhc // 2009-09-02 // 봉인된 아이템 등록 가능하도록
 #ifdef	SEAL_ITEM
-	if ( pItem->GetItemData() == NULL )
-		return true;
-	
-	if ( pItem->GetItemTemplet()->GetVested() == true && pItem->GetItemData()->m_bIsSealed == false )
+	if ( pItem->GetItemTemplet()->GetVested() == true && pItem->GetItemData().m_bIsSealed == false )
 #else	SEAL_ITEM
 	if( true == pItem->GetItemTemplet()->GetVested() )
 #endif	SEAL_ITEM
@@ -2492,7 +2526,7 @@ bool CX2UIPersonalTrade::OnRegisterMyItem(UidType ItemUid )
 #endif
 
 	if( pItem->GetItemTemplet()->GetPeriodType() == CX2Item::PT_ENDURANCE && 
-		pItem->GetItemData()->m_Endurance != pItem->GetItemTemplet()->GetEndurance() )
+		pItem->GetItemData().m_Endurance != pItem->GetItemTemplet()->GetEndurance() )
 	{
 		g_pMain->KTDGUIOKMsgBox( D3DXVECTOR2(-999,-999), GET_STRING( STR_ID_884 ), (CKTDXStage*) g_pMain->GetNowState() );
 		return true;
@@ -2552,6 +2586,9 @@ void CX2UIPersonalTrade::DestoryAllInviteMessage()
 	}
 	m_vecTradeInvited.clear();
 	SAFE_DELETE( m_pTradeInviting );
+#ifdef ADJUST_THIRD_PERSON_BUG
+	m_bTradeRequesting = false;
+#endif //ADJUST_PERSONAL_TRADE_BUG
 }
 
 //{{ kimhc // 2009-09-07 // 트레이드 할 품목에 봉인된 아이템이 있는지 체크
@@ -2559,20 +2596,17 @@ void CX2UIPersonalTrade::DestoryAllInviteMessage()
 bool CX2UIPersonalTrade::CheckIsSealedItemInTradeSlot()
 {
 	if ( g_pData->GetMyUser() != NULL &&
-		 g_pData->GetMyUser()->GetSelectUnit() != NULL &&
-		 g_pData->GetMyUser()->GetSelectUnit()->GetInventory() != NULL )
+		 g_pData->GetMyUser()->GetSelectUnit() != NULL )
 	{
-		CX2Inventory* pInventory	= NULL;
-		pInventory					= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
+		const CX2Inventory& kInventory	= g_pData->GetMyUser()->GetSelectUnit()->GetInventory();
 
 		CX2Item* pItem		= NULL;
 		
 		for ( UINT i = 0; i < m_vMyItemSlot.size(); i++ )
 		{
-			pItem	= pInventory->GetItem( m_vMyItemSlot[i].first );
+			pItem	= kInventory.GetItem( m_vMyItemSlot[i].first );
 
-			if ( pItem != NULL && pItem->GetItemData() != NULL &&
-				pItem->GetItemData()->m_bIsSealed == true )
+			if ( pItem != NULL && pItem->GetItemData().m_bIsSealed == true )
 			{
 				return true;				
 			}
@@ -2604,20 +2638,20 @@ void CX2UIPersonalTrade::PopPersonalTradeTalkBox( UidType iUnitUID, int iED, D3D
 
 #if defined(NUMBER_TO_LANGUAGE_JPN)
 	NumsToLang.TranslateDigits( CX2NumbersToLanguage::TL_JPN, iED, strOutED );
-#elif defined( NUMBER_TO_LANGUAGE_CN )
+#elif defined( _LANGUAGE_FIX_CHINESE_ )
 	NumsToLang.TranslateDigits( CX2NumbersToLanguage::TL_CHN_SIMPLIFIED, iED, wStrOutED );
-#elif defined(CLIENT_COUNTRY_TWHK) || defined(CLIENT_COUNTRY_EU) || defined(CLIENT_COUNTRY_ID) || defined(CLIENT_COUNTRY_US) || defined(CLIENT_COUNTRY_TH) || defined(CLIENT_COUNTRY_PH)
+#elif defined(CLIENT_COUNTRY_TWHK) || defined(CLIENT_COUNTRY_EU) || defined(CLIENT_COUNTRY_ID) || defined(CLIENT_COUNTRY_US) || defined(CLIENT_COUNTRY_TH) || defined(CLIENT_COUNTRY_PH) || defined(CLIENT_COUNTRY_BR)
 	strOutED = NumsToLang.ToString(iED);
 #else
 	NumsToLang.TranslateDigits( CX2NumbersToLanguage::TL_KOR, iED, strOutED );
 #endif // NUMBER_TO_LANGUAGE_JPN
 	
-#ifdef NUMBER_TO_LANGUAGE_CN
+#ifdef _LANGUAGE_FIX_CHINESE_
 	wStrOutED += L" ED";
-#else NUMBER_TO_LANGUAGE_CN
+#else _LANGUAGE_FIX_CHINESE_
 	strOutED += " ED";
 	ConvertCharToWCHAR( wStrOutED, strOutED );
-#endif NUMBER_TO_LANGUAGE_CN
+#endif _LANGUAGE_FIX_CHINESE_
 
 	CX2TalkBoxManagerImp::TalkBox talkBox;
 	talkBox.m_vPos				= vPos;

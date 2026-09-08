@@ -6,6 +6,7 @@
 
 #include "KTDX.h"
 #pragma warning(disable:4996)
+#include "../../KncWX2Server/Common/Enum/DungeonEnum.h"
 #include "../../KncWX2Server/Common/Enum/Enum.h"
 
 #include "./X2Define.h"
@@ -17,9 +18,7 @@
 
 #ifdef CLIENT_COUNTRY_ID
 #pragma comment(lib, "../X2Lib/OnlyGlobal/ID/NMClientAuthLib/NMClientAuthDLL_MT.lib")
-
 #include "../X2Lib/OnlyGlobal/ID/NMClientAuthLib/NMClientAuthLib.h"
-
 #include "../X2Lib/OnlyGlobal/ID/NMRunParamLib/NMRunParamLib.h"
 #include "../X2Lib/OnlyGlobal/ID/SSOWebLib/SSOWebLib.h"
 #endif // CLIENT_COUNTRY_ID
@@ -96,6 +95,9 @@
 	#include "./X2UserSkillTree.h"
 #endif NEW_SKILL_TREE
 
+#include "./X2Unit_PreHeader.h"
+#include "./X2Item_PreHeader.h"
+#include "./X2Inventory.h"
 #include "./X2Unit.h"
 
 #include "./X2UnitManager.h"
@@ -106,16 +108,13 @@
 #include "./X2SocketItem.h"
 #include "./X2Item.h"
 #include "./X2ItemManager.h"
-#include "./X2Inventory.h"
 #include "./X2SubEquip.h"
 #include "./X2Eqip.h"
 #include "./X2UnitViewerUI.h"
 #include "./X2NPCUnitViewerUI.h"
 #include "./X2User.h"
 
-#ifdef COMBO_GUIDE
 #include "./X2ComboGuide.h"
-#endif
 
 
 
@@ -157,9 +156,9 @@
 #include "./X2ChatWindow.h"
 #include "./x2unitslashtracemanager.h"
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 #include "./X2FrameUDPPack.h"
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #include "./X2GameUnit.h"
 
@@ -203,6 +202,10 @@
 #ifdef NEW_CHARACTER_EL
 #include "./X2GUEl.h"
 #endif // NEW_CHARACTER_EL
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+#include "./X2GUAdd.h"
+#endif //SERV_9TH_NEW_CHARACTER
 //}}AFX
 #endif REDUCED_PRECOMPILED_HEADER_TEST
 
@@ -227,9 +230,7 @@
 #include "./X2PageMgrItem.h"
 
 //{{ JHKang / 강정훈 / 2012.04.12 / 팝업 UI Class
-#ifdef REFORM_UI_CHARACTER_INFO
 #include "./X2PopupUIBase.h"
-#endif
 //}}
 
 //{{ 오현빈 // 2012-05-15 // 플레이 가이드 Class
@@ -284,6 +285,11 @@
 #ifdef SERV_EVENT_BINGO
 #include "./X2UIBingo.h"
 #endif  //SERV_EVENT_BINGO
+
+#ifdef COUPON_SYSTEM
+#include "X2UICouponBox.h"
+#endif // COUPON_SYSTEM
+
 #include "./X2CashShop.h"
 
 #ifdef NEW_VILLAGE_UI
@@ -298,9 +304,7 @@
 #include "./X2SecurityPad.h"
 #endif SERV_SECOND_SECURITY
 
-#ifdef REFORM_UI_KEYPAD
 #include "./X2KeyPad.h"
-#endif
 
 #include "./X2CharPopupMenu.h"
 
@@ -479,12 +483,12 @@
 #include "./X2LocationManager.h"
 #include "./X2TrainingCenterTable.h"
 
-#ifdef TITLE_SYSTEM
+//#ifdef TITLE_SYSTEM
 //{{ 2008. 10. 1  최육사
 #include "./X2TitleSystem.h"
 #include "./X2TitleManager.h"
 //}}
-#endif
+//#endif
 
 //{{ 2009. 6. 24  최육사	보상테이블
 #include "./X2RewardTable.h"
@@ -521,12 +525,9 @@
 #include "./X2MemoryHolder.h"
 #include "./X2LVUpEventMgr.h"
 
-#ifdef COUPON_SYSTEM
-#include "X2CouponSystem.h"
-#include "X2UICouponBox.h"
-#endif // COUPON_SYSTEM
-//#else	// COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 #include "./X2CouponBox.h"
+#endif // COUPON_SYSTEM
 
 
 #include "./X2TutorSystem.h"
@@ -616,14 +617,29 @@ using boost::mt19937;
 #include "./X2EmblemManager.h"
 #endif //NEW_EMBLEM_MANAGER
 
+#ifdef NEW_MAIL_LOG
+#include "./X2MailLog.h"
+#endif // NEW_MAIL_LOG
+
+#ifdef FIELD_BOSS_RAID
+#include "./X2BossRaidManager.h"
+#endif // FIELD_BOSS_RAID
+#ifdef REFORM_SKILL_NOTE_UI
+#include "./X2SkillNoteManager.h"
+#endif // REFORM_SKILL_NOTE_UI
 #ifdef ENUM_CHILD_WINDOW
-BOOL CALLBACK EnumChildProc(HWND , LPARAM);
+BOOL CALLBACK EnumChildProc_Thread(HWND , LPARAM);
 #endif
 
 #if defined( SERV_HACKING_TOOL_LIST ) 
-BOOL CALLBACK EnumWindowsProc(HWND , LPARAM);
+BOOL CALLBACK EnumWindowsProc_Thread(HWND , LPARAM);
 BOOL Pesudo_IsDebuggerPresent();
 #endif
+
+#ifdef SERV_KOM_FILE_CHECK_ADVANCED
+	#include <boost/random.hpp>
+	using boost::mt19937;
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
 
 template < typename T >
 inline void Serialize( KSerBuffer* pBuff, T* pData )
@@ -733,6 +749,7 @@ class CX2Main : public CKTDXStage
 			NF_ID			= 0x00000900,
 			NF_BR			= 0x00001000,
 			NF_PH			= 0x00001100,
+			NF_IN			= 0x00001200,
 		};
 #endif CLIENT_USE_NATION_FLAG
 
@@ -787,6 +804,7 @@ class CX2Main : public CKTDXStage
 			XP_CJ_ID = 8,
 			XP_LEVELUP_BR = 9,
 			XP_GARENA_PH = 10,
+			XP_FUNIZEN_IN = 11,
 		};
 
 
@@ -931,26 +949,35 @@ class CX2Main : public CKTDXStage
 		{
 		public:
 
-			CheckWindowInfo()
+			CheckWindowInfo( CKTDXApp* pKTDXApp, CX2InstanceData* pInstanceData
 #ifdef	CHECK_KOM_FILE_ON_LOAD
-				: m_pMain( NULL )
+                , CX2Main* pMain 
+#endif	CHECK_KOM_FILE_ON_LOAD
+                )
+                : m_pKTDXApp( pKTDXApp )
+                , m_pInstanceData( pInstanceData )
+#ifdef	CHECK_KOM_FILE_ON_LOAD
+				, m_pMain( NULL )
 #endif	CHECK_KOM_FILE_ON_LOAD
 			{
-				m_pKTDXApp = NULL;
-				m_pInstanceData = NULL;
 				m_bLoop = true;				
 #ifdef ENUM_CHILD_WINDOW
-				m_bSendedMail = false;
-				m_bFindChild = false;
+				m_bSendedMail_Thread = false;
+				m_bFindChild_Thread = false;
 #endif
 
 #ifdef DESK_THREAD_WINDOW
-				m_vecDeskThreadInfo.clear();
+				m_vecDeskThreadInfo_Thread.clear();
 #ifdef CHECK_ALL_WINDOW
-				m_vecTopWndInfo.clear();
+				m_vecTopWndInfo_Thread.clear();
 #endif
 #endif
 				m_bForceExitThread = false;
+
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+                m_fGetCheckKomTime_Thread = 200.f;
+                m_vecChangeCheckKom_Thread.clear();
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 			}
 			virtual ~CheckWindowInfo()
 			{	
@@ -958,12 +985,15 @@ class CX2Main : public CKTDXStage
 				EndThread(9000);
 			}
 
+			void SetNullToKtdxappAndInstanceData() { m_pKTDXApp = NULL; m_pInstanceData = NULL; }
+			void SetForceExitThread( const bool bForceExitThread_ ) { m_bForceExitThread = bForceExitThread_; }
+
 			bool GetIsLoop() { return m_bLoop; }
-			bool CheckProcess();
-			void ClearWindowInfo() { m_vecWindowInfo.clear(); }
-			void PushWindowInfo(KHackingToolInfo windowInfo) { m_vecWindowInfo.push_back(windowInfo); }
+			bool CheckProcess_Thread();
+			void ClearWindowInfo_Thread() { m_vecWindowInfo_Thread.clear(); }
+			void PushWindowInfo_Thread( const KHackingToolInfo& windowInfo) { m_vecWindowInfo_Thread.push_back(windowInfo); }
 #ifdef ENUM_CHILD_WINDOW
-			void SetChildWindow(bool bVal) { m_bFindChild = bVal; }
+			void SetChildWindow_Thread(bool bVal) { m_bFindChild_Thread = bVal; }
 #endif
 
 			virtual bool BeginThread()
@@ -984,6 +1014,11 @@ class CX2Main : public CKTDXStage
 #if defined( _SERVICE_ )
 				ELSWORD_VIRTUALIZER_START
 #endif
+
+#ifdef  X2OPTIMIZE_KTDXLOG_ENFORCE_THREAD_SAFETY
+                g_CKTDXLog.RegisterCurrentThread();
+#endif  X2OPTIMIZE_KTDXLOG_ENFORCE_THREAD_SAFETY
+
 				while(1)
 				{	
 					THEMIDA_ENCODE_START
@@ -993,39 +1028,71 @@ class CX2Main : public CKTDXStage
 
 					if( m_pInstanceData != NULL && m_pKTDXApp != NULL )
 					{
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+                        if ( m_pInstanceData->GetChangedHackList_ThreadSafe( m_vecHackList_Thread ) == true )
+                        {
+							// 주의 : CheckProcess 내부에 발생하는 연산은 오래 걸린다. 
+							// 멀티쓰레드 환경에서 오래 걸리는 연산은
+							// 게임종료시점에서 CheckProcess 이후에 객체 참조는 위험할수도 있다.
+							CheckProcess_Thread();
+                        }
+#else   X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 						if( m_pInstanceData->GetChangeHackList() == true )
-						{							
-							CheckProcess();
-							m_pInstanceData->SetChangeHackList(false);
-						}
-
-#ifdef CHECK_KOM_FILE_ON_LOAD
-						if( m_pMain != NULL )
 						{
+							m_pInstanceData->SetChangeHackList(false);
+
+							// 주의 : CheckProcess 내부에 발생하는 연산은 오래 걸린다. 
+							// 멀티쓰레드 환경에서 오래 걸리는 연산은
+							// 게임종료시점에서 CheckProcess 이후에 객체 참조는 위험할수도 있다.
+							CheckProcess_Thread();
+						}
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+
+						if( m_bForceExitThread == true )
+							break;
+
+#ifdef	CHECK_KOM_FILE_ON_LOAD
+						if(m_pMain != NULL)
+						{
+
 #ifdef SERV_KOM_FILE_CHECK_ADVANCED
 							static boost::mt19937 rng;
 							static boost::uniform_real<float> six(0.1f,0.9f);
 							static boost::variate_generator< boost::mt19937&, boost::uniform_real<float> > rand(rng,six);
 							float fRandomizeTimeCount = rand();
-							
+
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+                            m_fGetCheckKomTime_Thread = m_fGetCheckKomTime_Thread + 5.0f + fRandomizeTimeCount;
+                            if ( m_fGetCheckKomTime_Thread > 200.f )
+                            {
+                                m_pMain->GetCheckKomFileList_Thread( m_vecChangeCheckKom_Thread, m_fGetCheckKomTime_Thread );
+                            }
+                            m_pMain->CompareCheckKomList_Thread( m_vecChangeCheckKom_Thread );
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 							m_pMain->SetCheckKomTime( m_pMain->GetCheckKomTime() + 5.0f + fRandomizeTimeCount );
 							if( m_pMain->GetCheckKomTime() > 200.0f )
 							{
 								m_pMain->GetCheckKomFileList();
 							}
 							m_pMain->CompareCheckKomList();
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+
 #else
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+                           // m_pMain->CompareCheckKomList_Thread( m_vecCheckKomFileList_Thread );
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 							m_pMain->CompareCheckKomList();
-#endif SERV_KOM_FILE_CHECK_ADVANCED
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
 						}
-#endif CHECK_KOM_FILE_ON_LOAD
+#endif	CHECK_KOM_FILE_ON_LOAD
 					
 					}
 
-					if( m_bForceExitThread == true )
-						break;					
-
 					Sleep(5000);
+
+					if( m_bForceExitThread == true )
+						break;
 
 					THEMIDA_ENCODE_END
 				}
@@ -1037,29 +1104,141 @@ class CX2Main : public CKTDXStage
 				return 0;
 			}//RunThread()
 
+
+
+		private:
+
 			CKTDXApp* m_pKTDXApp;
 			CX2InstanceData *m_pInstanceData;
 #ifdef	CHECK_KOM_FILE_ON_LOAD
 			CX2Main* m_pMain;
 #endif	CHECK_KOM_FILE_ON_LOAD
-			std::vector<KHackingToolInfo>	m_vecWindowInfo;
+			std::vector<KHackingToolInfo>	m_vecWindowInfo_Thread;
+#ifdef  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
+            std::vector<KHackingToolInfo>   m_vecHackList_Thread;
+#endif  X2OPTIMIZE_HACKLIST_CHECK_MULTITHREAD_CRASH_BUG_FIX
 
-		private:
 			KProtectedType<bool> m_bLoop;
 			KProtectedType<bool> m_bForceExitThread;
 #ifdef ENUM_CHILD_WINDOW
-			bool m_bSendedMail;
-			bool m_bFindChild;
+			bool m_bSendedMail_Thread;
+			bool m_bFindChild_Thread;
 #endif
 
 #if defined(DESK_THREAD_WINDOW) && defined(CHECK_THREAD_WND)
-			vector<THREAD_WND_INFO> m_vecDeskThreadInfo;
+			vector<THREAD_WND_INFO> m_vecDeskThreadInfo_Thread;
 #ifdef CHECK_ALL_WINDOW
-			vector<THREAD_WND_INFO> m_vecTopWndInfo;
+			vector<THREAD_WND_INFO> m_vecTopWndInfo_Thread;
 #endif
 #endif //DESK_THREAD_WINDOW
+
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+            float   m_fGetCheckKomTime_Thread;
+            std::vector< pair<string, string> >	m_vecChangeCheckKom_Thread;
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+
 		};//class TThread : public KJohnThread
 #endif
+
+
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+		struct DeveloperScriptSet
+		{
+			enum DEVELOPER_SCRIPT_TYPE
+			{
+				DST_GAME_EFFECT_SET = 0,		// 게임 이펙트 셋
+				DST_DAMAGE_EFFECT,				// 데미지 이펙트
+				DST_GAME_MAJOR_XMESH_PLAYER,	// 게임 메이저 XMesh 
+				DST_END,
+			};
+			enum DEVELOPER_SCRIPT_REFRESH_TYPE
+			{
+				DSCRT_MERGE = 0,		// 머지 시켜줌 ( 우선권은 가장 늦게 불러오는 순 ), 부하가 심할 수 있다. 필요한 부분만 골라서 넣자.
+				DSCRT_SWAP,				// 해당 스크립트로 바꿔치기 함
+				DSCRT_END,
+			};
+			struct DeveloperScript
+			{
+				DeveloperScript () :
+					m_wstrDeveloperScriptFileName ( L"" ), 
+					m_eDeveloperScriptType ( DST_END ),
+					m_eDeveloperScriptRefreshType ( DSCRT_MERGE )	{ }
+				
+				wstring m_wstrDeveloperScriptFileName;	
+				DEVELOPER_SCRIPT_TYPE m_eDeveloperScriptType;
+				DEVELOPER_SCRIPT_REFRESH_TYPE m_eDeveloperScriptRefreshType;
+			};
+
+
+		public:
+			DeveloperScriptSet () { }
+
+			void Clear() { m_vecDeveloperScriptSet.clear(); }		// 초기화
+			bool OpenScriptFile( const wstring& wstrFileName )		// 스크립트 파일 불러오기
+			{
+				lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pDevScript", this );	
+
+				if( true == wstrFileName.empty() )
+					return false;
+
+				return g_pKTDXApp->LoadLuaTinker( wstrFileName.c_str() );
+			}
+			bool AddScriptSet ( DEVELOPER_SCRIPT_TYPE eDevScriptType )	// 타입 지정 스크립트 추가
+			{
+				KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+				TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+
+
+				DeveloperScript cDeveloperScript;
+				LUA_GET_VALUE(				luaManager,		"NAME",			cDeveloperScript.m_wstrDeveloperScriptFileName,		L""	);
+				LUA_GET_VALUE_ENUM(			luaManager,		"REFRESH_TYPE",	cDeveloperScript.m_eDeveloperScriptRefreshType,		DEVELOPER_SCRIPT_REFRESH_TYPE,	DSCRT_MERGE );
+
+				cDeveloperScript.m_eDeveloperScriptType = eDevScriptType;
+
+				m_vecDeveloperScriptSet.push_back( cDeveloperScript );
+				return true;
+			}
+			
+			bool AddEffectSetDevFileList_LUA ()	// 이펙트셋 타입 지정 스크립트 추가
+			{
+				return AddScriptSet ( DST_GAME_EFFECT_SET );
+			}
+			
+			bool AddDamageEffectDevFileList_LUA ()	// 데미지이펙트 타입 지정 스크립트 추가
+			{
+				return AddScriptSet ( DST_DAMAGE_EFFECT );
+			}
+			bool AddGameMajorXMeshPlayerDevFileList_LUA ()	// XMeshPlayer 타입 지정 스크립트 추가
+			{
+				return AddScriptSet ( DST_GAME_MAJOR_XMESH_PLAYER );
+			}
+			
+			bool AddDeveloperScript_LUA ()	// 스크립트 추가 기본형
+			{				
+				KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState() );
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+				TableBind( &luaManager, g_pKTDXApp->GetLuaBinder() );
+#endif  X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
+
+
+				DeveloperScript cDeveloperScript;
+				LUA_GET_VALUE(				luaManager,		"NAME",			cDeveloperScript.m_wstrDeveloperScriptFileName,		L""	);
+				LUA_GET_VALUE_ENUM(			luaManager,		"SCRIPT_TYPE",	cDeveloperScript.m_eDeveloperScriptType,			DEVELOPER_SCRIPT_TYPE,	DST_END );
+				LUA_GET_VALUE_ENUM(			luaManager,		"REFRESH_TYPE",	cDeveloperScript.m_eDeveloperScriptRefreshType,		DEVELOPER_SCRIPT_REFRESH_TYPE,	DSCRT_MERGE );
+				
+
+				m_vecDeveloperScriptSet.push_back( cDeveloperScript );
+				return true;
+			}
+
+			vector <DeveloperScript> & GetDeveloperScriptSet () { return m_vecDeveloperScriptSet; }
+		private :
+			vector <DeveloperScript> m_vecDeveloperScriptSet;				
+		};
+#endif // EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+
 
 	public:
 		CX2Main(void);
@@ -1068,20 +1247,47 @@ class CX2Main : public CKTDXStage
 		virtual HRESULT OnFrameMove( double fTime, float fElapsedTime );
 		virtual bool	MsgProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
-		CX2GameOption*	GetGameOption(){ return	&m_GameOption; }
-		CX2UnitLoader*	GetUnitLoader(){ return	&m_UnitLoader; }
+//{{ robobeg : 2013-09-17
+		//CX2GameOption*	GetGameOption(){ return	&m_GameOption; }
+        CX2GameOption&	GetGameOption(){ return	m_GameOption; }
+//}} robobeg : 2013-09-17
+		//CX2UnitLoader*	GetUnitLoader(){ return	&m_UnitLoader; }
 		CX2Data*		GetX2Data(){ return m_pData; }
 		CKTDXStage*		GetNowState(){ return m_pNowState; }
-		X2_STATE		GetNowStateID(){ return m_NowStateID; }
+		X2_STATE		GetNowStateID() const { return m_NowStateID; }
 #ifdef X2TOOL
 		void SetNowStateID(X2_STATE eState) { m_NowStateID = eState; }
 #endif
 		
 
 #ifdef ADDED_MESSAGEBOX_USING_CUSTOM_LUA
+	#ifdef GOOD_ELSWORD //김창한. 정훈이형이 수정하신 기능 okmsgbox에도 적용.
+		#ifdef REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh		
+		CKTDGUIDialogType	KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, int iOKMsg = -1, float fTimeLeft = -1.f, wstring wstrFileName = L"",IN const D3DXVECTOR2 vSize_ = D3DXVECTOR2( 0, 0 ), wstring wstrPopupSoundFileName = L"" );	
+		#else  // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+		CKTDGUIDialogType	KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, int iOKMsg = -1, float fTimeLeft = -1.f, wstring wstrFileName = L"",IN const D3DXVECTOR2 vSize_ = D3DXVECTOR2( 0, 0 ));	
+		#endif // REFORM_ENTRY_POINT	 	// 13-11-11, 진입 구조 개편, kimjh
+	
+	#else //GOOD_ELSWORD
 		CKTDGUIDialogType	KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, int iOKMsg = -1, float fTimeLeft = -1.f, wstring wstrFileName = L"" );
+	#endif //GOOD_ELSWORD
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		CKTDGUIDialogType	KTDGUIMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, wstring wstrFileName = L"", wstring wstrPopupSoundFileName = L"" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		CKTDGUIDialogType	KTDGUIMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, wstring wstrFileName = L""  );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+#ifdef GOOD_ELSWORD //JHKang
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		CKTDGUIDialogType	KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, int okMsg, CKTDXStage* pNowState, int cancelMsg = -1,	
+			wstring wstrFileName = L"", IN const D3DXVECTOR2 vSize_ = D3DXVECTOR2( 0, 0 ), wstring wstrPopupSoundFileName = L"" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+		CKTDGUIDialogType	KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, int okMsg, CKTDXStage* pNowState, int cancelMsg = -1,
+			wstring wstrFileName = L"", IN const D3DXVECTOR2 vSize_ = D3DXVECTOR2( 0, 0 ) );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
+
+#else //GOOD_ELSWORD
 		CKTDGUIDialogType	KTDGUIOkAndCancelMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, int okMsg, CKTDXStage* pNowState, int cancelMsg = -1, wstring wstrFileName = L"" );
+#endif //GOOD_ELSWORD
 
 #else  // ADDED_MESSAGEBOX_USING_CUSTOM_LUA
 		CKTDGUIDialogType	KTDGUIOKMsgBox( D3DXVECTOR2 pos, const WCHAR* pText, CKTDXStage* pNowState, int iOKMsg = -1, float fTimeLeft = -1.f );
@@ -1120,7 +1326,6 @@ class CX2Main : public CKTDXStage
 #ifdef SERV_GLOBAL_AUTH
 		void			AddChannelServerIP( const WCHAR* pServerIP );
 		void			AddChannelServerIP_LUA( const char* pServerIP, int iServerPort = 9400 );
-
 #else //SERV_GLOBAL_AUTH
 		void			AddChannelServerIP( const WCHAR* pServerIP )
 		{
@@ -1190,8 +1395,6 @@ class CX2Main : public CKTDXStage
 		}
 		wstring GetGameServerIPForCreateID(){ return m_wstrGameServerIPForCreateID; }
 #endif //!defined(_SERVICE_) || defined(SERV_JOIN_IN_CLIENT_FOR_TW_TEST_SERVER)
-
-
 
 #ifdef SERVER_GROUP_UI_ADVANCED
 		KServerGroupInfo GetPickedChannelServer() const;
@@ -1282,6 +1485,14 @@ class CX2Main : public CKTDXStage
 		const WCHAR*	GetSubClientVersion_LUA(){ return m_SubClientVersion.c_str(); }
 
 #ifdef _NEXON_KR_
+		void			SetNMVirtualKey( const NMGameCode uGameCode_, const UINT32 uVirtualIDCode_ )
+		{
+			m_NMKeyOfMineToBeDeleted.uGameCode = uGameCode_;
+			m_NMKeyOfMineToBeDeleted.uVirtualIDCode = uVirtualIDCode_;
+		}
+
+		NMVirtualKey	GetNMVirtualKey() const { return m_NMKeyOfMineToBeDeleted; }
+
 		void			SetNexonLogin( bool bLogin ){ m_bNexonLogin = bLogin; }
 		bool			GetNexonLogin(){ return m_bNexonLogin; }
 
@@ -1499,8 +1710,11 @@ class CX2Main : public CKTDXStage
 #endif KEYFRAME_CAMERA
 		D3DXVECTOR2		GetWindowPos( D3DXVECTOR2 windowSize, D3DXVECTOR2 wantMousePoint );
 		void			OpenURL( WCHAR* pURL );
-
+#ifdef REFORM_ENTRY_POINT		// 13-11-11, kimjh 진입 구조 개편
+		void			CreateStateChangeDLG( const WCHAR* szExplanation, wstring wstrCustomLuaFileName = L"", wstring wstrPlaySoundFileName = L"" );
+#else	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		void			CreateStateChangeDLG( const WCHAR* szExplanation );
+#endif	// REFORM_ENTRY_POINT	// 13-11-11, kimjh 진입 구조 개편
 		void			DeleteStateChangeDLG();
 
 		void			DeleteOtherFile( WCHAR* pExtention, vector<wstring>& fileList );
@@ -1522,19 +1736,36 @@ class CX2Main : public CKTDXStage
 
 		CX2LVUpEventMgr* GetLVUpEventMgr() { return m_pLVUpEventMgr; }
 
-		void			ResetLuaBinder( KLuabinder* pKLuabinder );
+		//void			ResetLuaBinder( KLuabinder* pKLuabinder );
 
-#ifdef	ADD_CRASH_INFO
 		void			AddMemoryInfo( stringstream& strstm );
-#endif	ADD_CRASH_INFO
 
 		void			AddSystemInfo(stringstream& strstm);
 		void			AddDLLInfo(stringstream& strstm);
 		void			AddProcessInfo(stringstream& strstm, bool bThreadInfo = true);
 		void 			UpdateProcessList();
 		void 			SetMailNameToFindHack( const WCHAR* wszMailName ) { m_MailNameToFindHack = wszMailName; }
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+        void            SetUserIdToFindHack_ThreadSafe( const std::string& strUserId )
+        {
+            CSLock      lock(m_csUserIdToFindHack);
+            m_strUserIdToFindHack_CS = strUserId;
+        }
+        void            GetUserIdToFindHackIfNotEmpty_ThreadSafe( std::string& strID )
+        {
+            CSLock      lock(m_csUserIdToFindHack);
+            if ( m_strUserIdToFindHack_CS.empty() == false )
+                strID = m_strUserIdToFindHack_CS;
+        }
+        bool            IsSameUserIdToFindHack_ThreadSafe( const std::string& strID )
+        {
+            CSLock      lock(m_csUserIdToFindHack);
+            return strID.compare( m_strUserIdToFindHack_CS ) == 0;
+        }
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		void			SetUserIdToFindHack( const WCHAR* wszUserId ) { m_strUserIdToFindHack = wszUserId; }
-		std::wstring&	GetUserIdToFindHack() { return m_strUserIdToFindHack; }
+		const std::wstring&	GetUserIdToFindHack() { return m_strUserIdToFindHack; }
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		void			SetHackingUser( bool b ) { m_bHackingUser = b; }
 		void 			SendHackMail();
 		void			SendHackMail_DamageHistory(const char *strComm);
@@ -1547,12 +1778,21 @@ class CX2Main : public CKTDXStage
 		void			SendHackMail_HackUserNot(const char *strComm);
 #endif
 
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+#ifdef HACK_USER_ATTACH_FILE		
+		void			SendHackMail_AttachFile(const char *strComm, const string& userId);
+#endif
+#ifdef SERACH_FOLDER_FILE
+		void			SendHackMail_FileList(const char *strComm, const string& userId);
+#endif
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 #ifdef HACK_USER_ATTACH_FILE		
 		void			SendHackMail_AttachFile(const char *strComm, wstring userId);
 #endif
 #ifdef SERACH_FOLDER_FILE
 		void			SendHackMail_FileList(const char *strComm, wstring userId);
 #endif
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		void			SendHackMail_VERIFYVALUE(const char *strComm);
 		void			SendHackMailGameStart(int iVal, bool bVal = false);
 
@@ -1767,12 +2007,14 @@ class CX2Main : public CKTDXStage
 //#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         void    SetUDPMode_LUA( const char* pszGameType, const char* pszUDPMode );
 //#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         void    SetUDPMode( CX2Game::GAME_TYPE eGameType, CKTDNUDP::EForceConnectMode eUDPMode );
         CKTDNUDP::EForceConnectMode GetUDPMode( CX2Game::GAME_TYPE eGameType );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
-#ifdef CHECK_KOM_FILE_ON_LOAD
+
+
+#ifdef	CHECK_KOM_FILE_ON_LOAD
 	public:
 		void ProcessSession();
 		bool CreateSession();
@@ -1783,21 +2025,31 @@ class CX2Main : public CKTDXStage
 		string GetCheckKomLocation( string strSrvList );
 #endif CHINA_PATH_SERVER_CONNECT
 		bool GetCheckInfoAndDisconnect();
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+        void CompareCheckKomList_Thread( std::vector< std::pair<string, string> >& vecChangeCheckKom );
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		void CompareCheckKomList();
-		bool CompareCheckKom( const std::pair<string, string>& pairCheckSum_ ) const;
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+		bool CompareCheckKom( const pair<string, string>& pairCheckSum_ ) const;
 		void Disconnect() { m_pSession->Disconnect(); }
 		void DestroySession() { SAFE_DELETE( m_pSession ) }
-		void ClearCheckKomList() { m_vecCheckKom.clear(); }
+		//void ClearCheckKomList() { m_vecCheckKom.clear(); }
 #ifdef SERV_KOM_FILE_CHECK_ADVANCED
+
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+        void GetCheckKomFileList_Thread( std::vector< std::pair<string, string> >& vecChangeCheckKom, float& fGetCheckKomTime );
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		inline void SetCheckKomTime( float GetTime ) { m_fGetCheckKomTime = GetTime; }
 		inline float GetCheckKomTime() { return m_fGetCheckKomTime; }
 		void GetCheckKomFileList();														// 변조 검사가 끝난 Kom 정보는 m_vecChangeCheckKom에서 제거되므로 모두 제거되면 다시 추가해주는 함수
 		void SetChangeCheckKom( std::vector< std::pair<string, string> > vecChangeCheckKom );
 		void GetChangeCheckKom( std::vector< std::pair<string, string> >& vecChangeCheckKom );
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+
 		void Handler_EGS_KOM_FILE_CHECK_LOG_REQ( const std::wstring wstrInvalidKomName );
 		bool Handler_EGS_KOM_FILE_CHECK_LOG_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
-#endif SERV_KOM_FILE_CHECK_ADVANCED
-#endif CHECK_KOM_FILE_ON_LOAD
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
+#endif	CHECK_KOM_FILE_ON_LOAD
 
 		
 		//{{ 2011.9.16	이준호  반디캠 동영상 캡쳐 지원
@@ -1881,9 +2133,7 @@ class CX2Main : public CKTDXStage
 		void SetShutDownInformation( bool bShutDownInfo ) { m_bProcessShutDownInformation = bShutDownInfo; }	//셧다운 생성 설정
 #endif CHECK_PLAY_TIME_INFORMATION
 		
-#ifdef REFORM_UI_KEYPAD
 		CX2KeyPad*	GetKeyPad() const { return m_pKeyPad; }
-#endif
 		bool GetSurveyUser() const { return m_bSurveyUser; }
 		void SetSurveyUser(bool val) { m_bSurveyUser = val; }
 
@@ -1939,14 +2189,29 @@ class CX2Main : public CKTDXStage
 		void SetIsJumpingCharacter(bool val) { m_bIsJumpingCharacter = val; }	// 점핑 캐릭터에 해당한다면 설정
 
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터		
+
+
+
 #ifdef SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
 		bool GetIsValideCheckKomScript() const { return m_bIsValideCheckKomScript; }
 		void SetIsValideCheckKomScript(bool val) { m_bIsValideCheckKomScript = val; }
 #endif // SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT		
 
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+		bool ResetDeveloperScriptSet ( const WCHAR* pFileName );	// DevScriptTable.lua 파싱
+		bool ResetDeveloperScriptSet_GameEffectSet ( DeveloperScriptSet::DeveloperScript devScript );
+		bool ResetDeveloperScriptSet_DamageEffect ( DeveloperScriptSet::DeveloperScript devScript );
+		bool ResetDeveloperScriptSet_GameMajorXMeshPlayer ( DeveloperScriptSet::DeveloperScript devScript );
+#endif // EXPAND_DEVELOPER_SCRIPT  // 김종훈, 개발자 스크립트 확장 기능 추가
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// Wstring 도 GET_REPLACED_STRING 사용 할 수 있도록 추가
+		// 스킬 설명 확장이 필요한 경우의 예외 처리, 에너지 스퍼트의 @1 ( 현재 레벨 표기 ) 때문에 추가				
+		wstring GetReplacedWstring( wstring & wstrModify, char* szParamTypeList, ... );
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
 	private:
-		void			RegisterLuabind( KLuabinder* pKLuabinder );
-		bool			OpenScriptFile( const WCHAR* pFileName, KLuabinder* pKLuabinder = NULL );
+		void			RegisterLuabind();
+        bool			OpenScriptFile( const WCHAR* pFileName );
 		bool			StateChange( int stateID, int iDetailStateID );
 		void			PostStateChange();
 		void			ReservedServerEventProc();
@@ -1961,7 +2226,7 @@ class CX2Main : public CKTDXStage
 		void			DeleteOtherFile( WCHAR* pExtention, vector<wstring>& fileList, WCHAR* wstrFolder );
 
 		void			DeleteNMCachData();
-		void			LoadLuaEnum( KLuabinder* pKLuabinder );
+		void			LoadLuaEnum();
 	
 #ifdef IN_HOUSE_PLAY_LOG_TEST
 		void SendInHousePlayLogMail( char* pReceiverAddress );
@@ -1991,6 +2256,11 @@ class CX2Main : public CKTDXStage
 		void StateChangeTimeSleep(float nSleepTime);
 #endif  SERV_SERVER_TIME_GET
 
+#ifdef CLOSE_ON_START_FOR_GAMEGUARD
+	public:
+		bool IsCloseOnStart() { return m_bCloseOnStart; }
+		void SetCloseOnStart(bool b) { m_bCloseOnStart = b; }
+#endif CLOSE_ON_START_FOR_GAMEGUARD
 #ifdef ALWAYS_INTERNAL_NPGE_PACKING
 		void SetClientArg(string TempArg) { ClientArg = TempArg; }
 		string GetClinetArg(void) { return ClientArg; }
@@ -2031,13 +2301,22 @@ class CX2Main : public CKTDXStage
 			ConvertUtf8ToWCHAR( m_wstrNEXONCashChargeURL, pCashChargeURL );
 		}
 		std::wstring	GetNEXONCashChargeURL(){ return m_wstrNEXONCashChargeURL; }
-
 #endif //CASH_CHARGE_URL_JP
 
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+		bool ToggleUnlimitedSkillUse();
+		bool IsUnlimitedSkillUse() { return m_bUnlimitedSkillUse; }
+#endif //TOGGLE_UNLIMITED_SKILL_USE
+
 	private:
+#ifdef TOGGLE_UNLIMITED_SKILL_USE
+		bool				m_bUnlimitedSkillUse;
+#endif //TOGGLE_UNLIMITED_SKILL_USE
+
 		wstring				m_ClientVersion;
 		wstring				m_SubClientVersion;
 #ifdef _NEXON_KR_		
+		NMVirtualKey		m_NMKeyOfMineToBeDeleted;		/// 삭제할 캐릭터의 넥슨메신저VirtualKey
 		bool				m_bNexonLogin;
 		bool				m_bNexonLoginMessenger;
 		bool				m_bNexonVirtualLogin;
@@ -2080,7 +2359,7 @@ class CX2Main : public CKTDXStage
 
 		CX2StringFilter*	m_pStringFilter;	
 		CX2GameOption		m_GameOption;
-		CX2UnitLoader		m_UnitLoader;
+		//CX2UnitLoader		m_UnitLoader;
 		
 		X2_PUBLISHER		m_X2Publisher;
 		bool				m_bManualLogin;
@@ -2130,7 +2409,7 @@ class CX2Main : public CKTDXStage
 		
 		CX2TutorSystem*				m_pTutorSystem;
 		
-#ifndef COUPON_SYSTEM
+#ifndef COUPON_SYSTEM // 이전 UI 제거
 		CX2CouponBox*				m_pCouponBox;		
 #endif // COUPON_SYSTEM
 
@@ -2173,10 +2452,22 @@ class CX2Main : public CKTDXStage
 		float						m_fTimeToUpdateProcessList;
 
 		wstring						m_MailNameToFindHack;
+#ifdef  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+        MemberCriticalSection       m_csUserIdToFindHack;
+        std::string                 m_strUserIdToFindHack_CS;
+#else   X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		wstring						m_strUserIdToFindHack;
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
 		bool						m_bHackingUser;
+#ifdef  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
+        MemberCriticalSection       m_csProcessNameToFindHack;
+		set<wstring>				m_setProcessNameToFindHack_CS;
+        MemberCriticalSection       m_csSendedProcessList;
+		set<wstring>				m_setSendedProcessList_CS;
+#else   X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 		set<wstring>				m_setProcessNameToFindHack;
 		set<wstring>				m_setSendedProcessList;
+#endif  X2OPTIMIZE_PROCESS_LIST_MULTITHREAD_CRASH_BUG_FIX
 		
 		queue< CX2StateMenu::PresentArrival > m_quePresentArrival;
 
@@ -2255,7 +2546,7 @@ class CX2Main : public CKTDXStage
 		wstring		m_wstrPublicIp;
 #endif
 
-#ifdef CHECK_KOM_FILE_ON_LOAD
+#ifdef	CHECK_KOM_FILE_ON_LOAD
 		KHttpSession*	m_pSession;						/// 세션 객체
 		vector<pair<string, string>> m_vecCheckKom;	/// first: kom 파일명, second: SHA-1
 #ifdef SERV_KOM_FILE_CHECK_ADVANCED
@@ -2272,13 +2563,16 @@ class CX2Main : public CKTDXStage
 			std::string m_strKomFileName;
 		};
 
-		float							m_fGetCheckKomTime;
-		vector< pair<string, string> >	m_vecChangeCheckKom;	// first: kom 파일명, second: SHA-1
 		vector< pair<string, string> >	m_vecImportantCheckKom;
-		std::wstring					m_wstrInvaildKomName;
+#ifndef X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+		float							m_fGetCheckKomTime;
 		mutable KncCriticalSection		m_csData_vec;
-#endif SERV_KOM_FILE_CHECK_ADVANCED
-#endif CHECK_KOM_FILE_ON_LOAD
+		vector< pair<string, string> >	m_vecChangeCheckKom;	// first: kom 파일명, second: SHA-1
+#endif  X2OPTIMIZE_GENERAL_MULTITHREAD_RACE_BUG_FIX
+		//std::wstring					m_wstrInvaildKomName;
+
+#endif // SERV_KOM_FILE_CHECK_ADVANCED
+#endif	CHECK_KOM_FILE_ON_LOAD
 
 #ifdef CLIENT_USE_NATION_FLAG
 		DWORD		m_dwNationFlag;
@@ -2318,6 +2612,10 @@ class CX2Main : public CKTDXStage
 #endif IDENTITY_CONFIRM
 #endif //USER_REGULATION_NOTICE
 
+#ifdef CLOSE_ON_START_FOR_GAMEGUARD
+		bool m_bCloseOnStart;
+#endif CLOSE_ON_START_FOR_GAMEGUARD
+
 #ifdef ALWAYS_INTERNAL_NPGE_PACKING
 		string ClientArg;
 #endif ALWAYS_INTERNAL_NPGE_PACKING
@@ -2337,9 +2635,7 @@ class CX2Main : public CKTDXStage
 		string		m_strMailAddress;		/// 클라이언트 메일 발송 주소 스트링
 #endif
 
-#ifdef REFORM_UI_KEYPAD
 		CX2KeyPad*		m_pKeyPad;
-#endif
 		bool		m_bSurveyUser;			/// 설문조사 대상 유저
 
 
@@ -2350,9 +2646,11 @@ class CX2Main : public CKTDXStage
 #ifdef FESTIVAL_UI
 		CKTDGParticleSystem::CParticleEventSequenceHandle m_SeqFestivalUI;
 #endif //FESTIVAL_UI
+
 #ifdef SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
 		bool m_bIsValideCheckKomScript;	// CheckKom.xml 유효 여부
 #endif // SERV_VALIDITY_CHECK_CEHCKKOM_SCRIPT
+
 
 #ifdef ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 public:
@@ -2386,7 +2684,7 @@ public:
 		bool				m_bOneChange;
 #endif  SERV_SERVER_TIME_GET
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 public:
 	void UdpPacketOverlapTest_LUA( bool bEnable );
 
@@ -2396,14 +2694,26 @@ private:
 	bool m_bUdpPacketOverlap;
 
     CKTDNUDP::EForceConnectMode m_aeUDPMode[CX2Game::GT_NUMS];
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-
-
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 #ifdef X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
 public:
 	void OneSimulOneRenderTest_LUA( bool bEnable );
 #endif//X2OPTIMIZE_ONE_SIMUL_ONE_RENDER_TEST
+
+#ifdef X2OPTIMIZE_DAMAGE_EFFECT_TEST
+public:
+	void DamageEffectTest_LUA( bool bEnable );
+	bool GetDamageEffectTest() { return m_bEnableDamageEffectTest; }
+
+private:
+	bool m_bEnableDamageEffectTest;
+#endif//X2OPTIMIZE_DAMAGE_EFFECT_TEST
+
+#ifdef X2OPTIMIZE_VIEWDISTANCE_TEST
+public:
+	void ViewDistanceTest_LUA( int iFar1, int iFar2 );
+#endif//X2OPTIMIZE_VIEWDISTANCE_TEST
 
 	//{{ 최민철 [2013/1/4]  게임내 정보 스트링을 엑셀파일로 출력
 #ifdef PRINT_INGAMEINFO_TO_EXCEL
@@ -2417,6 +2727,15 @@ public:
 #ifdef ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
 	bool				m_bIsJumpingCharacter;			// 점핑 캐릭터 대상 캐릭터인가?
 #endif // ADDED_EVENT_JUMPING_CHARACTER	// 김종훈, 여름방학 이벤트 점핑 캐릭터
+
+#ifdef EXPAND_DEVELOPER_SCRIPT	  // 김종훈, 개발자 스크립트 확장 기능 추가
+	DeveloperScriptSet			m_DeveloperScriptSet;
+#endif // EXPAND_DEVELOPER_SCRIPT  // 김종훈, 개발자 스크립트 확장 기능 추가
+
+#ifdef PLAY_PROMOTION_MOVIE //JHKang
+public:
+	bool	m_bPlayIntroMovie;
+#endif //PLAY_PROMOTION_MOVIE
 
 }; // CX2Main
 
@@ -2473,3 +2792,17 @@ inline void OpenGlobalURL( WCHAR* pURL )
 
 
 
+__forceinline bool CX2Main::OpenScriptFile( const WCHAR* pFileName )
+{
+
+	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pMain", this );
+
+
+    if ( g_pKTDXApp->LoadLuaTinker( pFileName ) == false )
+    {
+		ErrorLogMsg( XEM_ERROR14, pFileName );
+		return false;
+    }
+
+	return true;
+}

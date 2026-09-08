@@ -79,7 +79,6 @@ void KChannelUser::RequestPublisherLogin(const KECH_VERIFY_ACCOUNT_REQ& kPacket_
 	kPacketReq.m_bServerUseKogOTP = KSimLayer::GetKObj()->GetUseKogOTP();
 #endif // SERV_KOG_OTP_VERIFY
 
-
 	KEventPtr spEvent( new KEvent );
 	UidType anTrace[2] = { GetUID(), -1 };
 	spEvent->SetData(PI_NULL, anTrace, EPUBLISHER_AUTHENTICATION_REQ, kPacketReq );
@@ -93,7 +92,7 @@ void KChannelUser::HandlePublisherLoginAck(const KEPUBLISHER_AUTHENTICATION_ACK&
 
 	if( kPacket_.m_iOK == NetError::ERR_GAMEFORGE_00 ||
 		kPacket_.m_iOK == NetError::ERR_GAMEFORGE_01 ||
-		kPacket_.m_iOK == NetError::ERR_GAMEFORGE_02 )
+		kPacket_.m_iOK == NetError::ERR_LEVELUP_01 )
 	{
 		bDoNotDisconnect = true;
 	}
@@ -101,7 +100,6 @@ void KChannelUser::HandlePublisherLoginAck(const KEPUBLISHER_AUTHENTICATION_ACK&
 	{
 		bDoNotDisconnect = false;
 	}
-
 	
 }
 
@@ -115,6 +113,9 @@ void KChannelUser::RequestKOGOTPLogin(const KECH_VERIFY_ACCOUNT_REQ& kPacket_)
 #ifdef SERV_PURCHASE_TOKEN
 	kPacketReq.m_wstrPurchaseTok = L"";
 #endif SERV_PURCHASE_TOKEN
+#if defined( SERV_STEAM ) || defined( SERV_ALL_RENEWAL_SP )
+	kPacketReq.m_iChannelingCode = kPacket_.m_iChannelingCode;
+#endif //( SERV_STEAM ) || ( SERV_ALL_RENEWAL_SP )
 
 	SendToAccountDB( DBE_CH_USER_KOGOTP_LOGIN_REQ, kPacketReq );
 }

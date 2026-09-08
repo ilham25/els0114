@@ -19,6 +19,17 @@ KGameEventScriptManager::KGameEventScriptManager(void)
 	m_bNotifyMSGEvent	 = false;
 #endif SERV_EVENT_SCRIPT_REFRESH
 	//}}
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+	m_iTemp_1 = 0;
+	m_iTemp_2 = 0;
+	m_iTemp_3 = 0;
+	m_cTimeNextDay = CTime::GetCurrentTime();
+	m_iItemID = 0;
+	m_iItemNum_1 = 0;
+	m_iItemNum_2 = 0;
+	m_iItemNum_3 = 0;
+	m_iItemGetCount = 0;
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 }
 
 KGameEventScriptManager::~KGameEventScriptManager(void)
@@ -65,6 +76,12 @@ ImplementLuaScriptParser( KGameEventScriptManager )
 #ifdef SERV_ADVERTISEMENT_EVENT
 	lua_tinker::class_def<KGameEventScriptManager>( GetLuaState(), "AddAdvertisement",		&KGameEventScriptManager::AddAdvertisement_LUA );
 #endif SERV_ADVERTISEMENT_EVENT
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+	lua_tinker::class_def<KGameEventScriptManager>( GetLuaState(), "AddCoboEventData",		&KGameEventScriptManager::AddCoboEventData_LUA );
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+	lua_tinker::class_def<KGameEventScriptManager>( GetLuaState(), "AddValenTineEventData",		&KGameEventScriptManager::AddValenTineEventData_LUA );
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
 
 	lua_tinker::decl( GetLuaState(), "GameEvent", this );
 }
@@ -117,10 +134,7 @@ bool KGameEventScriptManager::AddEventMonsterInfo_LUA()
 		int buf		= -1;
 		while( luaManager.GetValue( index, buf ) == S_OK )
 		{
-			if( buf > 0 )
-			{
-				kInfo.m_setAdventDungeon.insert( buf );
-			}				
+			kInfo.m_setAdventDungeon.insert( buf );
 			index++;
 		}
 
@@ -133,10 +147,7 @@ bool KGameEventScriptManager::AddEventMonsterInfo_LUA()
 		int buf		= -1;
 		while( luaManager.GetValue( index, buf ) == S_OK )
 		{
-			if( buf > 0 )
-			{
-				kInfo.m_setNoAdventDungeon.insert( buf );
-			}				
+			kInfo.m_setNoAdventDungeon.insert( buf );
 			index++;
 		}
 
@@ -267,9 +278,16 @@ void KGameEventScriptManager::AddReward_LUA( IN int iID )
 	LUA_GET_VALUE( luaMgr,		"bHenirRewardUnLimited",		sData.m_bHenirRewardUnLimited,	false );
 #endif SERV_NEW_HENIR_TEST
 	//}}
+
 	//{{ 2010. 07. 09  최육사	드롭률 이벤트 확장
 #ifdef SERV_PC_BANG_DROP_EVENT
+
+#ifdef SERV_DROP_EVENT_RENEWAL// 작업날짜: 2013-09-09	// 박세훈
+	LUA_GET_VALUE( luaMgr,		"fDropRate",		sData.m_fDropRate,		1.0f );
+#else // SERV_DROP_EVENT_RENEWAL
 	LUA_GET_VALUE( luaMgr,		"iDropCount",		sData.m_iDropCount,		1 );
+#endif // SERV_DROP_EVENT_RENEWAL
+
 	LUA_GET_VALUE( luaMgr,		"bWithPlayPcBang",	sData.m_bWithPlayPcBang, false );
 #endif SERV_PC_BANG_DROP_EVENT
 	//}}	
@@ -295,58 +313,15 @@ void KGameEventScriptManager::AddReward_LUA( IN int iID )
 	LUA_GET_VALUE( luaMgr,		"bAccumulateEXP",	sData.m_bAccumulateEXP, false );
 #endif SERV_NOT_ACCUMULATE_EVENT_EXP
 	//}}
-	//{{ 2012. 04. 04	박세훈	아리엘의 복귀 용사님을 위한 선물! ( 복귀 유저 표시 )
-#ifdef SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//char* pszMailAddr = NULL;
-	//LUA_GET_VALUE( luaMgr, "wstrLastConnectDate", pszMailAddr,	0 );	// 레벨 범위 제한 시작 레벨
-	//sData.m_wstrLastConnectDate = KncUtil::toWideString( pszMailAddr );
-#endif SERV_EVENT_RETURN_USER_MARK_SCRIPT
-	//}}
 	//{{ 2012. 06. 29	김민성       접속 시간에 따라 아이템 반복 지급
 #ifdef SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
 	LUA_GET_VALUE( luaMgr,		"bRepeatEvent",	sData.m_bRepeatEvent, false );
 #endif SERV_REPEAT_CONNECT__REWARD_ITEM_EVENT
 	//}}
-
 #ifdef SERV_CONNECT_EVENT_CONSECUTIVELY_REWARD
 	LUA_GET_VALUE( luaMgr,		"bRepeatRewardEvent",	sData.m_bRepeatRewardEvent, false );
 	LUA_GET_VALUE( luaMgr,		"iBeforeEventID",		sData.m_iBeforeEventID, -1 );
 #endif //SERV_CONNECT_EVENT_CONSECUTIVELY_REWARD
-
-
-	//{{ 2012. 10. 13	박세훈	필드 전야 이벤트 ( 천사의 깃털 재활용 )
-#ifdef SERV_THE_PREVIOUS_FIELD_EVENT
-	LUA_GET_VALUE( luaMgr,		"bComeBackUserEvent",	sData.m_bComeBackUserEvent, false );
-#endif SERV_THE_PREVIOUS_FIELD_EVENT
-	//}}
-
-	//{{ 2012. 12. 11	박세훈	기준 일자 이벤트 작업
-#ifdef SERV_FIXED_DATE_EVENT
-	LUA_GET_VALUE( luaMgr,		L"wstrFixedDate",	sData.m_wstrFixedDate, L"" );
-	if( sData.m_wstrFixedDate.empty() == false )
-	{
-		CTime tFixedDate;
-		if( KncUtil::ConvertStringToCTime( sData.m_wstrFixedDate, tFixedDate ) == false )
-		{
-			START_LOG( cerr, L"이벤트 기준 일자 설정이 잘못되었습니다.")
-				<< BUILD_LOG( iID )
-				<< BUILD_LOG( sData.m_wstrFixedDate )
-				<< END_LOG;
-			return;
-		}
-	}
-	
-	LUA_GET_VALUE( luaMgr,		"iEventUserType",	sData.m_iEventUserType, EUT_NONE );
-	if( ( sData.m_iEventUserType <= EUT_NONE ) || ( EUT_MAX <= sData.m_iEventUserType ) )
-	{
-		START_LOG( cerr, L"이벤트 유저 타입 설정이 잘못되었습니다.")
-			<< BUILD_LOG( iID )
-			<< BUILD_LOG( sData.m_iEventUserType )
-			<< END_LOG;
-		return;
-	}
-#endif SERV_FIXED_DATE_EVENT
-	//}}
 
 	//{{ 2012. 12. 17	최육사	아라 파티 플레이 보너스 경험치
 #ifdef SERV_PLAY_WITH_CHAR_PARTY_BONUS_EXP
@@ -396,6 +371,7 @@ void KGameEventScriptManager::AddReward_LUA( IN int iID )
 #ifdef SERV_ITEM_IN_INVENTORY_CONNECT_EVENT 
 	LUA_GET_VALUE( luaMgr, "iEventItemID", sData.m_iEventItemID, 0 );
 #endif 
+
 #ifdef SERV_CUSTOM_CONNECT_EVENT
 	LUA_GET_VALUE( luaMgr, "iCustomEventID", sData.m_iCustomEventID, 0 );
 #endif SERV_CUSTOM_CONNECT_EVENT
@@ -446,6 +422,10 @@ void KGameEventScriptManager::AddReward_LUA( IN int iID )
 	LUA_GET_VALUE( luaMgr, "iUnitClassLevel", sData.m_iUnitClassLevel, -1 );
 #endif SERV_UNIT_CLASS_LEVEL_EVENT
 
+#ifdef SERV_HENIR_REWARD_EVENT// 작업날짜: 2013-09-09	// 박세훈
+	LUA_GET_VALUE( luaMgr,		"bAccumulate",		sData.m_bAccumulate,	false );
+#endif // SERV_HENIR_REWARD_EVENT
+
 	m_mapEventData.insert( std::make_pair( iID, sData ) );
 }
 
@@ -470,7 +450,11 @@ void KGameEventScriptManager::Init()
 	}
 }
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+const EVENT_DATA* KGameEventScriptManager::GetEventData( IN int iScriptID ) const
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 const KGameEventScriptManager::EVENT_DATA* KGameEventScriptManager::GetEventData( IN int iScriptID ) const
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 {
 	std::map< int, EVENT_DATA >::const_iterator mit = m_mapEventData.find( iScriptID );
 	if( mit == m_mapEventData.end() )
@@ -563,7 +547,11 @@ void KGameEventScriptManager::AddAdvertisement_LUA( IN int iID )
 	m_mapAdvertisementData.insert( std::make_pair( iID, sData ) );
 }
 
+#ifdef SERV_EVENT_DB_CONTROL_SYSTEM
+const EVENT_DATA* KGameEventScriptManager::GetAdvertisementData( IN int iScriptID ) const
+#else //SERV_EVENT_DB_CONTROL_SYSTEM
 const KGameEventScriptManager::EVENT_DATA* KGameEventScriptManager::GetAdvertisementData( IN int iScriptID ) const
+#endif //SERV_EVENT_DB_CONTROL_SYSTEM
 {
 	std::map< int, EVENT_DATA >::const_iterator mit = m_mapAdvertisementData.find( iScriptID );
 	if( mit == m_mapEventData.end() )
@@ -578,3 +566,143 @@ const KGameEventScriptManager::EVENT_DATA* KGameEventScriptManager::GetAdvertise
 	return &mit->second;
 }
 #endif SERV_ADVERTISEMENT_EVENT
+
+#ifdef SERV_EVENT_COBO_DUNGEON_AND_FIELD
+///스크립트에서 정보 받을 함수
+void KGameEventScriptManager::AddCoboEventData_LUA(const char* szChangeEventDate, const char* szWeekEndStartDate_One, const char* szWeekEndEndDate_One,const char* szWeekEndStartDate_Two, const char* szWeekEndEndDate_Two, const char* szWeekNextDay,int remaind)
+{
+	std::wstring ChangeEventDate = KncUtil::toWideString(szChangeEventDate);
+	std::wstring WeekEndStartDate_One = KncUtil::toWideString(szWeekEndStartDate_One);
+	std::wstring WeekEndEndDate_One = KncUtil::toWideString(szWeekEndEndDate_One);
+	std::wstring WeekEndStartDate_Two = KncUtil::toWideString(szWeekEndStartDate_Two);
+	std::wstring WeekEndEndDate_Two = KncUtil::toWideString(szWeekEndEndDate_Two);
+	std::wstring NextDay =  KncUtil::toWideString(szWeekNextDay);
+
+	//시간으로 변환하자
+	CTime EventTime;
+	if( KncUtil::ConvertStringToCTime( ChangeEventDate, EventTime ) == false)
+	{
+		START_LOG( cerr, L"ChangeEventDate CTime 형식으로 치환 실패" )
+			<< BUILD_LOG( ChangeEventDate )
+			<< END_LOG;
+		CTime TempTime(2013,12,11,0,0,0);
+		m_vecCoboEventTimeData.push_back(TempTime);
+	}
+	m_vecCoboEventTimeData.push_back(EventTime);
+	if( KncUtil::ConvertStringToCTime( WeekEndStartDate_One, EventTime ) == false)
+	{
+		START_LOG( cerr, L"WeekEndStartDate_One CTime 형식으로 치환 실패" )
+			<< BUILD_LOG( WeekEndStartDate_One )
+			<< END_LOG;
+		CTime TempTime(2013,12,7,0,0,0);
+		m_vecCoboEventTimeData.push_back(TempTime);
+	}
+	m_vecCoboEventTimeData.push_back(EventTime);
+	if( KncUtil::ConvertStringToCTime( WeekEndEndDate_One, EventTime ) == false)
+	{
+		START_LOG( cerr, L"WeekEndEndDate_One CTime 형식으로 치환 실패" )
+			<< BUILD_LOG( WeekEndEndDate_One )
+			<< END_LOG;
+		CTime TempTime(2013,12,8,23,59,59);
+		m_vecCoboEventTimeData.push_back(TempTime);
+	}
+	m_vecCoboEventTimeData.push_back(EventTime);
+	if( KncUtil::ConvertStringToCTime( WeekEndStartDate_Two, EventTime ) == false)
+	{
+		START_LOG( cerr, L"WeekEndStartDate_Two CTime 형식으로 치환 실패" )
+			<< BUILD_LOG( WeekEndStartDate_Two )
+			<< END_LOG;
+		CTime TempTime(2013,12,14,0,0,0);
+		m_vecCoboEventTimeData.push_back(TempTime);
+	}
+	m_vecCoboEventTimeData.push_back(EventTime);
+	if( KncUtil::ConvertStringToCTime( WeekEndEndDate_Two, EventTime ) == false)
+	{
+		START_LOG( cerr, L"WeekEndEndDate_Two CTime 형식으로 치환 실패" )
+			<< BUILD_LOG( WeekEndEndDate_Two )
+			<< END_LOG;
+		CTime TempTime(2013,12,15,23,59,59);
+		m_vecCoboEventTimeData.push_back(TempTime);
+	}
+	m_vecCoboEventTimeData.push_back(EventTime);
+	if( KncUtil::ConvertStringToCTime( NextDay, EventTime ) == false)
+	{
+		START_LOG( cerr, L"NextDay CTime 형식으로 치환 실패" )
+			<< BUILD_LOG( NextDay )
+			<< END_LOG;
+		CTime TempTime(2013,12,15,0,0,1);
+		m_vecCoboEventTimeData.push_back(TempTime);
+	}
+	m_vecCoboEventTimeData.push_back(EventTime);
+
+	///남은 시간 체크
+	m_iRemaindTime = remaind;
+}
+std::vector<CTime> KGameEventScriptManager::GetCoboEventData(void)
+{
+	return m_vecCoboEventTimeData;
+}
+int KGameEventScriptManager::GetRemainTime(void)
+{
+	return m_iRemaindTime;
+}
+#endif SERV_EVENT_COBO_DUNGEON_AND_FIELD
+
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM
+void KGameEventScriptManager::AddValenTineEventData_LUA( int iTemp_1, int iTemp_2, int iTemp_3, const char* szChangeEventDate, int iItemID,int iItemNum_1,int iItemNum_2,int iItemNum_3, int iItemGetCount )
+{
+	m_iTemp_1 = iTemp_1; //초급자 시간
+	m_iTemp_2 = iTemp_2; //중급자 시간
+	m_iTemp_3 = iTemp_3; //상급자 시간
+	std::wstring ChangeEventDate = KncUtil::toWideString(szChangeEventDate);
+	if( KncUtil::ConvertStringToCTime( ChangeEventDate, m_cTimeNextDay ) == false)
+	{
+		START_LOG( cerr, L"ChangeEventDate CTime 형식으로 치환 실패" )
+			<< BUILD_LOG( ChangeEventDate )
+			<< END_LOG;
+			CTime TempTime(2014,01,01,0,0,1);
+			m_cTimeNextDay = TempTime;
+	}
+	m_iItemID = iItemID;
+	m_iItemNum_1 = iItemNum_1;
+	m_iItemNum_2 = iItemNum_2;
+	m_iItemNum_3 = iItemNum_3;
+	m_iItemGetCount = iItemGetCount;
+}
+int	KGameEventScriptManager::GetBeginnerTime(void)
+{
+	return m_iTemp_1;
+}
+int	KGameEventScriptManager::GetIntermediateTime(void)
+{
+	return m_iTemp_2;
+}
+int	KGameEventScriptManager::GetExpertTime(void)
+{
+	return m_iTemp_3;
+}
+CTime KGameEventScriptManager::GetNextDayTime(void)
+{
+	return m_cTimeNextDay;
+}
+int	KGameEventScriptManager::GetValenItemID(void)
+{
+	return m_iItemID;
+}
+int KGameEventScriptManager::GetValenItemNum_1(void)
+{
+	return m_iItemNum_1;
+}
+int KGameEventScriptManager::GetValenItemNum_2(void)
+{
+	return m_iItemNum_2;
+}
+int KGameEventScriptManager::GetValenItemNum_3(void)
+{
+	return m_iItemNum_3;
+}
+int KGameEventScriptManager::GetValenTinePlayCount(void)
+{
+	return m_iItemGetCount;
+}
+#endif SERV_EVENT_VALENTINE_DUNGEON_GIVE_ITEM

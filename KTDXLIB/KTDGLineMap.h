@@ -6,6 +6,31 @@ class CKTDGLineMap : public CKTDGObject
 {
 	public:
 
+#ifdef	X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+        struct  StartInfo
+        {
+            D3DXVECTOR3             m_vStartPos;
+            bool                    m_bStartRight;
+            int                     m_iStartLineIndex;
+
+            StartInfo()
+                : m_vStartPos(0,0,0)
+                , m_bStartRight( true )
+                , m_iStartLineIndex( -1 )
+            {
+            }
+            StartInfo( const D3DXVECTOR3& vPos, bool bRight, int iLineIndex )
+                : m_vStartPos(vPos)
+                , m_bStartRight( bRight )
+                , m_iStartLineIndex( iLineIndex )
+            {
+            }
+        };//StartInfo
+
+        typedef std::map<int,StartInfo>
+                                    StartInfoMap;
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+
 		struct LINE_MAP_VERTEX
 		{
 			D3DXVECTOR3	pos;
@@ -14,6 +39,7 @@ class CKTDGLineMap : public CKTDGObject
 
 		enum LINE_TYPE
 		{
+			LT_INVALID = -1,
 			LT_NORMAL = 0,
 			LT_WALL,
 			LT_POTAL,
@@ -21,15 +47,15 @@ class CKTDGLineMap : public CKTDGObject
 			LT_JUMP_UP_REL,
 			LT_JUMP_UP_ABS,
 			LT_BUNGEE,
-#ifdef MONSTER_ROAD
+//#ifdef MONSTER_ROAD
             LT_MONSTER_ROAD,
-#endif
-#ifdef UNIT_ROAD
+//#endif
+//#ifdef UNIT_ROAD
             LT_UNIT_ROAD,
-#endif
-#ifdef OTHER_ROAD
+//#endif
+//#ifdef OTHER_ROAD
 			LT_OTHER_ROAD,
-#endif
+//#endif
 			LT_CLIFF,
 		};
 
@@ -267,6 +293,10 @@ class CKTDGLineMap : public CKTDGObject
 
 			D3DXVECTOR3			startPos;
 			D3DXVECTOR3			endPos;
+#ifdef	X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+            D3DXVECTOR3         m_vPosMin;
+            D3DXVECTOR3         m_vPosMax;
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			D3DXVECTOR3			dirVector;
 			D3DXVECTOR3			dirDegree;
 			D3DXVECTOR3			dirRadian;
@@ -292,16 +322,16 @@ class CKTDGLineMap : public CKTDGObject
 			LineAnimData*		m_pLineAnimData;
 
 
-#ifdef LINEMAP_SLOW_WIND_TEST
-			D3DXVECTOR2			m_vWindSpeed;
-			float				m_fWindRange;	// m_vWindSpeed가 적용되는 높이제한
-#endif LINEMAP_SLOW_WIND_TEST
-			
+//#ifdef LINEMAP_SLOW_WIND_TEST
+//			D3DXVECTOR2			m_vWindSpeed;
+//			float				m_fWindRange;	// m_vWindSpeed가 적용되는 높이제한
+//#endif LINEMAP_SLOW_WIND_TEST
+//			
 
-#ifdef LINEMAP_FAST_WIND_TEST
-			float m_fUpsideWindAccelaration;
-			float m_fUpsideWindRange;			// m_fUpsideWindAccelaration가 적용되는 높이 제한
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//			float m_fUpsideWindAccelaration;
+//			float m_fUpsideWindRange;			// m_fUpsideWindAccelaration가 적용되는 높이 제한
+//#endif LINEMAP_FAST_WIND_TEST
 
 
 
@@ -320,7 +350,6 @@ class CKTDGLineMap : public CKTDGObject
 #endif	LINE_MAP_CREATED_BY_MONSTER
 //}} kimhc // 2010.7.6 // 몬스터가 생성한 라인맵
 
-#ifdef UNDERWATER_LINEMAP
 			bool	m_bUnderWater;		// 수중라인맵여부
 			float	m_fWaterHeight;		// 수중높이(월드상의 절대Y위치)
 			float	m_fBuoyancy;		// 부력값
@@ -329,7 +358,6 @@ class CKTDGLineMap : public CKTDGObject
 			float	m_fVarianceOxyen;	// 산소변동량
 			D3DXCOLOR m_cLineColor;		// 라인에 따른 유닛칼라
 			bool	m_bForceChangeColor; // 해당 라인맵에 위치할시 강제로 유닛색상 변경
-#endif
 #ifdef WORLD_TRIGGER
 			int			m_iTriggerId;
 			bool		m_bFootOnLine;
@@ -352,10 +380,20 @@ class CKTDGLineMap : public CKTDGObject
 			float						m_fKeyStopTime;
 #endif
 
+#ifdef DYNAMIC_PORTAL_LINE_MAP
+			LINE_TYPE		m_eLineTypeAfterClearStage; // 지정한 스테이지 클리어 이 후 변경할 라인 타입
+			int				m_iChangeAfterClearStage;	// 클리어 이후 라인타입 변경 할 스테이지
+			int				m_iChangeAfterClearSubStage;// 크리어 이후 라인타입 변경 할 서브 스테이지
+#endif // DYNAMIC_PORTAL_LINE_MAP
+
+
 #ifdef	X2OPTIMIZE_LINEMAP_LINEGROUP
             LineGroupID             m_lineGroupID;			
 #endif	X2OPTIMIZE_LINEMAP_LINEGROUP
 
+#ifdef FIELD_BOSS_RAID
+			bool			m_bIsPortalWhenActiveRaid;	// 레이드 활성화 됐을 때 포탈로 변경되야 하는 라인맵 여부 
+#endif // FIELD_BOSS_RAID
 
 			LineData()
 			{
@@ -375,6 +413,10 @@ class CKTDGLineMap : public CKTDGObject
 
 				startPos		= D3DXVECTOR3(0,0,0);
 				endPos			= D3DXVECTOR3(0,0,0);
+#ifdef	X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+                m_vPosMin       = D3DXVECTOR3(0,0,0);
+                m_vPosMax       = D3DXVECTOR3(0,0,0);
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 				dirVector		= D3DXVECTOR3(0,0,0);
 				dirDegree		= D3DXVECTOR3(0,0,0);
 				dirRadian		= D3DXVECTOR3(0,0,0);
@@ -405,16 +447,16 @@ class CKTDGLineMap : public CKTDGObject
 #endif
 
 
-#ifdef LINEMAP_SLOW_WIND_TEST
-				m_vWindSpeed		= D3DXVECTOR2( 0, 0 );
-				m_fWindRange		= 0.f;
-#endif LINEMAP_SLOW_WIND_TEST
+//#ifdef LINEMAP_SLOW_WIND_TEST
+//				m_vWindSpeed		= D3DXVECTOR2( 0, 0 );
+//				m_fWindRange		= 0.f;
+//#endif LINEMAP_SLOW_WIND_TEST
 				
 				
-#ifdef LINEMAP_FAST_WIND_TEST
-				m_fUpsideWindAccelaration	= 0.f;
-				m_fUpsideWindRange			= 0.f;
-#endif LINEMAP_FAST_WIND_TEST
+//#ifdef LINEMAP_FAST_WIND_TEST
+//				m_fUpsideWindAccelaration	= 0.f;
+//				m_fUpsideWindRange			= 0.f;
+//#endif LINEMAP_FAST_WIND_TEST
 				
 
 
@@ -432,7 +474,6 @@ class CKTDGLineMap : public CKTDGObject
 #endif	LINE_MAP_CREATED_BY_MONSTER
 //}} kimhc // 2010.7.6 // 몬스터가 생성한 라인맵
 
-#ifdef UNDERWATER_LINEMAP
 				m_bUnderWater = false;
 				m_fWaterHeight	= 0.f;
 				m_fBuoyancy	= 0.f;
@@ -440,7 +481,6 @@ class CKTDGLineMap : public CKTDGObject
 				m_fAnimSpeed = 1.f;
 				m_fVarianceOxyen = 0.f;
 				m_bForceChangeColor = false;
-#endif
 
 #if defined(WORLD_TOOL) || defined(X2TOOL)
 				m_bSelected = false;
@@ -464,6 +504,13 @@ class CKTDGLineMap : public CKTDGObject
 				m_eDirection = LDO_NONE;
 				m_fKeyStopTime = 0.f;
 #endif
+
+#ifdef DYNAMIC_PORTAL_LINE_MAP
+				m_eLineTypeAfterClearStage = LT_INVALID;
+				m_iChangeAfterClearStage	= -1;
+				m_iChangeAfterClearSubStage = -1;
+#endif // DYNAMIC_PORTAL_LINE_MAP
+
 
 #ifdef	X2OPTIMIZE_LINEMAP_LINEGROUP
             	m_lineGroupID.Init();
@@ -684,7 +731,7 @@ class CKTDGLineMap : public CKTDGObject
 
 		struct LineGroup
 		{
-			vector<LineData*> vecpLineData;			
+			vector<const LineData*> vecpLineData;			
 			D3DXVECTOR3 vStartPos;
 			D3DXVECTOR3 vEndPos;
 			
@@ -731,7 +778,7 @@ class CKTDGLineMap : public CKTDGObject
 			KTDXPROFILE();
 			D3DXVECTOR3	temp;
 			float		length;
-			LineData*	pLineData;
+			const LineData*	pLineData;
 
             pLineData = m_LineList[*pLastLineIndex];
 #ifdef MONSTER_ROAD
@@ -781,17 +828,33 @@ class CKTDGLineMap : public CKTDGObject
 				fDistanceToStart	= GetDistance( pos, pLineData->startPos );
 				fDistanceToEnd		= GetDistance( pos, pLineData->endPos );
 
-				LineData*	pBeforeLineData = m_LineList[pLineData->beforeLine];
-				LineData*	pNextLineData   = m_LineList[pLineData->nextLine];
+#ifdef  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
+                int iNumLineList = (int) m_LineList.size();
+#else   X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
+				const LineData*	pBeforeLineData = m_LineList[pLineData->beforeLine];
+				const LineData*	pNextLineData   = m_LineList[pLineData->nextLine];
+#endif  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
 
 				if( fDistanceToStart < fDistanceToEnd )
 				{
+#ifdef  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
+                    if ( pLineData->beforeLine >= 0
+                        && pLineData->beforeLine < iNumLineList
+                        && true == m_LineList[pLineData->beforeLine]->bEnable )
+#else   X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
 					if( pLineData->beforeLine != -1
 						&& pLineData->beforeLine != -2 
 						&& true == pBeforeLineData->bEnable )
+#endif  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
 					{
 #ifdef MONSTER_ROAD
-                        if( bIsMonster == false && pBeforeLineData->lineType == LT_MONSTER_ROAD )
+                        if( bIsMonster == false && 
+#ifdef  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
+                            m_LineList[pLineData->beforeLine]->lineType  == LT_MONSTER_ROAD
+#else   X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
+                            pBeforeLineData->lineType == LT_MONSTER_ROAD 
+#endif  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX                            
+                            )
                             return false;
 #endif
 #ifdef UNIT_ROAD
@@ -831,12 +894,26 @@ class CKTDGLineMap : public CKTDGObject
 				}
 				else
 				{
+#ifdef  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
+                    if ( pLineData->nextLine >= 0
+                        && pLineData->nextLine < iNumLineList
+                        && true == m_LineList[pLineData->nextLine]->bEnable )
+#else   X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
 					if( pLineData->nextLine != -1
 						&& pLineData->nextLine != -2 
 						&& true == pNextLineData->bEnable )
+#endif  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
 					{
 #ifdef MONSTER_ROAD
-                        if( bIsMonster == false && pNextLineData->lineType == LT_MONSTER_ROAD )
+
+
+                        if( bIsMonster == false && 
+#ifdef  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
+                            m_LineList[pLineData->nextLine]->lineType == LT_MONSTER_ROAD 
+#else   X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
+                            pNextLineData->lineType == LT_MONSTER_ROAD 
+#endif  X2OPTIMIZE_KTDGLINEMAP_BUFFER_OVERRUN_BUG_FIX
+                            )
                             return false;
 #endif
 #ifdef UNIT_ROAD
@@ -877,29 +954,31 @@ class CKTDGLineMap : public CKTDGObject
 			}
 		}
 
-#ifdef X2OPTIMIZE_LINEMAP_GETNEAREST
+#ifdef X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		__forceinline bool IsOnLine( D3DXVECTOR3 pos, float fRadius, D3DXVECTOR3* pOutPos, int* pLineIndex, bool bIsMonster = false )
-#else//X2OPTIMIZE_LINEMAP_GETNEAREST
+#else//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		__forceinline bool IsOnLine( D3DXVECTOR3 pos, float fRadius = 1.0f, D3DXVECTOR3* pOutPos = NULL, int* pLineIndex = NULL, bool bIsMonster = false )
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
+#endif//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		{
 			KTDXPROFILE();
 			D3DXVECTOR3	temp;
-			float		length;
-#ifdef X2OPTIMIZE_LINEMAP_GETNEAREST
+
+#ifdef X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			int			index = 0;
 			if( pLineIndex != NULL )
 				index = *pLineIndex;
-#else//X2OPTIMIZE_LINEMAP_GETNEAREST
+			bool bFound = GetNearestWithBound( pos, fRadius, &temp, &index, bIsMonster );
+            if ( bFound == false )
+                return false;
+			if( pOutPos != NULL )
+				*pOutPos = temp;
+			if( pLineIndex != NULL )
+				*pLineIndex = index;
+            return true;
+#else//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+			float		length;
 			int			index;
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
-
-#ifdef X2OPTIMIZE_LINEMAP_GETNEAREST
-			length = GetNearest( pos, fRadius, &temp, &index, bIsMonster );
-#else//X2OPTIMIZE_LINEMAP_GETNEAREST
 			length = GetNearest( pos, &temp, &index, bIsMonster );
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
-
 			if( length < fRadius )
 			{
 				if( pOutPos != NULL )
@@ -908,19 +987,30 @@ class CKTDGLineMap : public CKTDGObject
 					*pLineIndex = index;
 				return true;
 			}
-			else
-			{
-				return false;
-			}
+			return false;
+#endif//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		}
 
 		__forceinline bool IsDownLine( D3DXVECTOR3 pos, float fRadius = 1.0f, D3DXVECTOR3* pOutPos = NULL, int* pLineIndex = NULL, bool bIsMonster = false )
 		{
 			KTDXPROFILE();
 			D3DXVECTOR3	temp;
+
+#ifdef X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+			int			index = 0;
+			if( pLineIndex != NULL )
+				index = *pLineIndex;
+			bool bFound = GetDownNearestWithBound( pos, fRadius, &temp, &index );
+            if ( bFound == false )
+                return false;
+			if( pOutPos != NULL )
+				*pOutPos = temp;
+			if( pLineIndex != NULL )
+				*pLineIndex = index;
+			return true;
+#else//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			float		length;
 			int			index;
-
 			length = GetDownNearest( pos, &temp, &index );
 
 			if( length < fRadius )
@@ -935,6 +1025,7 @@ class CKTDGLineMap : public CKTDGObject
 			{
 				return false;
 			}
+#endif//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		}
 
 
@@ -944,7 +1035,7 @@ class CKTDGLineMap : public CKTDGObject
 		}
 
 		
-		__forceinline D3DXVECTOR3 GetLandPosition( D3DXVECTOR3 pos, float fRadius = 1.0f, unsigned char* pLineIndex = NULL )
+		__forceinline D3DXVECTOR3 GetLandPosition( D3DXVECTOR3 pos, float fRadius = 1.0f, unsigned char* pLineIndex = NULL ) const
 		{
 			if( pLineIndex != NULL )
 			{
@@ -959,7 +1050,7 @@ class CKTDGLineMap : public CKTDGObject
 				return GetLandPosition( pos, fRadius, pTemp );
 			}
 		}
-		__forceinline D3DXVECTOR3 GetLandPosition( D3DXVECTOR3 pos, float fRadius = 1.0f, int* pLineIndex = NULL );
+		__forceinline D3DXVECTOR3 GetLandPosition( D3DXVECTOR3 pos, float fRadius = 1.0f, int* pLineIndex = NULL ) const;
 
 		bool CanPassUp( const D3DXVECTOR3& pos );
 
@@ -998,7 +1089,17 @@ class CKTDGLineMap : public CKTDGObject
 			m_LineList.swap( vecLineDataList );
 		}
 #endif
-        __forceinline const LineData* CKTDGLineMap::GetLineData( int index ) const
+        __forceinline const LineData* GetLineData( int index ) const
+        { 
+	        KTDXPROFILE();
+	        if ( index < 0 || index >= (int)m_LineList.size() )
+	        {
+		        return NULL;
+	        }
+
+	        return m_LineList[index]; 
+        }
+        __forceinline LineData* AccessLineData( int index )
         { 
 	        KTDXPROFILE();
 	        if ( index < 0 || index >= (int)m_LineList.size() )
@@ -1009,16 +1110,6 @@ class CKTDGLineMap : public CKTDGObject
 	        return m_LineList[index]; 
         }
 
-        __forceinline LineData* CKTDGLineMap::GetLineData( int index )
-        { 
-	        KTDXPROFILE();
-	        if ( index < 0 || index >= (int)m_LineList.size() )
-	        {
-		        return NULL;
-	        }
-
-	        return m_LineList[index]; 
-        }
 
 		__forceinline const int GetNumLineData() { return (int)m_LineList.size(); }
 		__forceinline const float GetLandHeight() { return m_fLandHeight; }		
@@ -1052,85 +1143,134 @@ class CKTDGLineMap : public CKTDGObject
 		}
 #endif
 
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+		int GetRedTeamStartPosNum(){ return (int) m_vecRedTeamStartInfo.size(); }
+		int GetBlueTeamStartPosNum(){ return (int) m_vecBlueTeamStartInfo.size(); }
+		int GetStartPosNum(){ return (int) m_mapStartInfo.size(); }
+		const StartInfoMap& GetStartInfoMap() { return m_mapStartInfo; }
+		D3DXVECTOR3 GetRedTeamStartPosition( int index )
+		{
+			if( index < 0 || index >= (int)m_vecRedTeamStartInfo.size() )
+				return D3DXVECTOR3( 0, 0, 0 );
+			return m_vecRedTeamStartInfo[index].m_vStartPos;
+		}
+		D3DXVECTOR3 GetBlueTeamStartPosition( int index )
+		{ 
+			if( index < 0 || index >= (int)m_vecBlueTeamStartInfo.size() )
+				return D3DXVECTOR3( 0, 0, 0 );
+			return m_vecBlueTeamStartInfo[index].m_vStartPos;
+		}
+		bool GetRedTeamStartRight( int index )
+		{ 
+			if( index < 0 || index >= (int)m_vecRedTeamStartInfo.size() )
+				return true;
+            return m_vecRedTeamStartInfo[index].m_bStartRight;
+		}
+		bool GetBlueTeamStartRight( int index )
+		{ 
+			if( index < 0 || index >= (int)m_vecBlueTeamStartInfo.size() )
+				return true;
+			return m_vecBlueTeamStartInfo[index].m_bStartRight;
+		}
+		int GetRedTeamStartLineIndex( int index )
+		{ 
+			if( index < 0 || index >= (int)m_vecRedTeamStartInfo.size() )
+				return -1;
+            return m_vecRedTeamStartInfo[index].m_iStartLineIndex;
+		}
+		int GetBlueTeamStartLineIndex( int index )
+		{ 
+			if( index < 0 || index >= (int)m_vecBlueTeamStartInfo.size() )
+				return -1;
+            return m_vecBlueTeamStartInfo[index].m_iStartLineIndex;
+		}
+		D3DXVECTOR3 GetStartPosition( int key )
+		{ 
+			StartInfoMap::const_iterator it = m_mapStartInfo.find( key );
+			if( it != m_mapStartInfo.end() )
+                return it->second.m_vStartPos;
+			return D3DXVECTOR3( 0, 0, 0 );
+		}
+		bool GetStartRight( int key )
+		{ 
+			StartInfoMap::const_iterator it = m_mapStartInfo.find( key );
+			if( it != m_mapStartInfo.end() )
+                return  it->second.m_bStartRight;
+			return true;
+		}
+		int GetStartLineIndex( int key )
+		{
+			StartInfoMap::const_iterator it = m_mapStartInfo.find( key );
+			if( it != m_mapStartInfo.end() )
+                return  it->second.m_iStartLineIndex;
+			return -1;
+		}
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		int GetRedTeamStartPosNum(){ return m_RedTeamStartPos.size(); }
 		int GetBlueTeamStartPosNum(){ return m_BlueTeamStartPos.size(); }
 		int GetStartPosNum(){ return m_mapStartPos.size(); }
 		map<int, D3DXVECTOR3>& GetStartPosMap() { return m_mapStartPos; }
-		
 		D3DXVECTOR3 GetRedTeamStartPosition( int index )
 		{
 			if( index < 0 || index >= (int)m_RedTeamStartPos.size() )
 				return D3DXVECTOR3( 0, 0, 0 );
-
 			return m_RedTeamStartPos[index];
 		}
 		D3DXVECTOR3 GetBlueTeamStartPosition( int index )
 		{ 
 			if( index < 0 || index >= (int)m_BlueTeamStartPos.size() )
 				return D3DXVECTOR3( 0, 0, 0 );
-
-			return m_BlueTeamStartPos[index]; 
+			return m_BlueTeamStartPos[index];
 		}
-		D3DXVECTOR3 GetStartPosition( int key )
-		{ 
-			map<int, D3DXVECTOR3>::iterator it = m_mapStartPos.find( key );
-			if( it != m_mapStartPos.end() )
-			{
-				return it->second;
-			}
-
-			return D3DXVECTOR3( 0, 0, 0 );
-		}
-
 		bool GetRedTeamStartRight( int index )
 		{ 
 			if( index < 0 || index >= (int)m_RedTeamStartRight.size() )
 				return true;
-
 			return m_RedTeamStartRight[index]; 
 		}
 		bool GetBlueTeamStartRight( int index )
 		{ 
 			if( index < 0 || index >= (int)m_BlueTeamStartRight.size() )
 				return true;
-
 			return m_BlueTeamStartRight[index]; 
 		}
-		bool GetStartRight( int key )
-		{ 
-			map<int, bool>::iterator it = m_mapStartRight.find( key );
-			if( it != m_mapStartRight.end() )
-			{
-				return it->second;
-			}
-
-			return true;
-		}
-
 		int GetRedTeamStartLineIndex( int index )
 		{ 
 			if( index < 0 || index >= (int)m_RedTeamStartLineIndex.size() )
 				return -1;
-
 			return m_RedTeamStartLineIndex[index]; 
 		}
 		int GetBlueTeamStartLineIndex( int index )
 		{ 
 			if( index < 0 || index >= (int)m_BlueTeamStartLineIndex.size() )
 				return -1;
-
 			return m_BlueTeamStartLineIndex[index]; 
+		}
+		D3DXVECTOR3 GetStartPosition( int key )
+		{ 
+			map<int, D3DXVECTOR3>::iterator it = m_mapStartPos.find( key );
+			if( it != m_mapStartPos.end() )
+				return it->second;
+			return D3DXVECTOR3( 0, 0, 0 );
+		}
+		bool GetStartRight( int key )
+		{ 
+			map<int, bool>::iterator it = m_mapStartRight.find( key );
+			if( it != m_mapStartRight.end() )
+				return it->second;
+			return true;
 		}
 		int GetStartLineIndex( int key )
 		{
 			map<int, int>::iterator it = m_mapStartLineIndex.find( key );
 			if( it != m_mapStartLineIndex.end() )
-			{
 				return it->second;
-			}
-
 			return -1;
 		}
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+		
+
+
 
 		int GetRandomStartPosIndex();
 
@@ -1184,7 +1324,7 @@ class CKTDGLineMap : public CKTDGObject
 		void ReleaseLineGroup();
 		void ReBuildLineGroup();	
 
-		LineGroup* GetLineGroupIncludesLineData( CKTDGLineMap::LineData* pLineData );
+		LineGroup* GetLineGroupIncludesLineData( const LineData* pLineData );
 		LineGroup* GetLineGroup(int index) { return m_vecLineGroupList[index]; }
 		void EnableLineData( CKTDGLineMap::LineData* pLineData, bool bEnable );
 
@@ -1197,24 +1337,44 @@ class CKTDGLineMap : public CKTDGObject
 		void SetLandHeight( float fLandHeight ){ m_fLandHeight = fLandHeight; }
 		void SetTeamStartPos( bool bRed, D3DXVECTOR3 pos, bool bRight, int iLineIndex )
 		{
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+            StartInfo   kInfo;
+            kInfo.m_vStartPos = pos;
+            kInfo.m_bStartRight = bRight;
+            kInfo.m_iStartLineIndex = iLineIndex;
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+
 			if( bRed == true )
 			{
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+                m_vecRedTeamStartInfo.push_back( kInfo );
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 				m_RedTeamStartPos.push_back( pos );
 				m_RedTeamStartRight.push_back( bRight );
 				m_RedTeamStartLineIndex.push_back( iLineIndex );
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			}
 			else
 			{
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+                m_vecBlueTeamStartInfo.push_back( kInfo );
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 				m_BlueTeamStartPos.push_back( pos );
 				m_BlueTeamStartRight.push_back( bRight );
 				m_BlueTeamStartLineIndex.push_back( iLineIndex );
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			}
 		}
 		void AddStartPos( int key, D3DXVECTOR3 pos, bool bRight, int iLineIndex )
 		{
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+            StartInfo   kInfo( pos, bRight, iLineIndex );
+            m_mapStartInfo[key] = kInfo;
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			m_mapStartPos[key]			= pos;
 			m_mapStartRight[key]		= bRight;
 			m_mapStartLineIndex[key]	= iLineIndex;
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		}		
 		bool AddLine_LUA();
 #ifdef X2TOOL
@@ -1224,7 +1384,7 @@ class CKTDGLineMap : public CKTDGObject
 			m_WallList.clear();
 			for(int i=0; i<GetNumLineData(); ++i)
 			{
-				CKTDGLineMap::LineData *pLineData = GetLineData(i);
+				LineData *pLineData = m_LineList[i];
 				if( pLineData != NULL && pLineData->lineType == LT_WALL )
 					m_WallList.push_back( pLineData );
 			}
@@ -1258,7 +1418,7 @@ class CKTDGLineMap : public CKTDGObject
 				return NULL;
 			}
 
-			LineData* pLineData = m_LineList[ iLineIndex ];
+			const LineData* pLineData = m_LineList[ iLineIndex ];
 			
 			if( NULL == pLineData )
 				return NULL;
@@ -1288,7 +1448,7 @@ class CKTDGLineMap : public CKTDGObject
             //디딜 곳이 없다면 모든 선을 검색한다
             for( int i = 0; i < (int)m_LineList.size(); i++ )
             {
-                LineData* pLineData = m_LineList[i];
+                const LineData* pLineData = m_LineList[i];
 
                 //정상적인 발판만 확인한다
 #if defined(MONSTER_ROAD) || defined(UNIT_ROAD)
@@ -1319,7 +1479,7 @@ class CKTDGLineMap : public CKTDGObject
         }
 		bool	UpdateLineVB( bool bOnlyAnimLine = false );
 
-		LineData* GetAnyEnabledNormalLine();
+		const LineData* GetAnyEnabledNormalLine();
 
 		bool GetAnyEnabledLine();	// SERV_PET_SYSTEM
 
@@ -1333,7 +1493,9 @@ class CKTDGLineMap : public CKTDGObject
 		float GetStopTime() const { return m_fStopTime; }
 		void SetStopTime(float val) { m_fStopTime = val; }
 
-
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+        bool    UpdateLineData( int iIndex, const D3DXVECTOR3& vStart, const D3DXVECTOR3& vEnd );
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		static void	MakeLine( LineData* pLineData );
 
 //{{ kimhc // 2010.7.6 // 몬스터가 생성한 라인맵
@@ -1342,10 +1504,12 @@ class CKTDGLineMap : public CKTDGObject
 #ifndef	X2OPTIMIZE_LINEMAP_LINEGROUP
 		void EnableLineData( int iIndex, bool bEnable )
 		{
-			LineData* pLineData =  GetLineData( iIndex );
-
-			if ( pLineData != NULL )
-				EnableLineData( pLineData, bEnable );
+            if ( iIndex >= 0 && iIndex < (int) m_LineList.size() )
+            {
+			    LineData* pLineData =  m_LineList[ iIndex ];
+			    if ( pLineData != NULL )
+				    EnableLineData( pLineData, bEnable );
+            }
 		}
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
 		void EnableLineData_LUA( int iIndex, bool bEnable )
@@ -1367,10 +1531,8 @@ class CKTDGLineMap : public CKTDGObject
 		}
 #endif
 
-#ifdef REFORM_UI_MINIMAP
 		virtual HRESULT OnResetDevice();
 		virtual HRESULT OnLostDevice();
-#endif
 
 	private:
 	
@@ -1389,7 +1551,7 @@ class CKTDGLineMap : public CKTDGObject
 			if( lineIndex < 0 || (int)m_LineList.size() <= lineIndex )
 				return false;
 
-			LineData* pLineData = m_LineList[lineIndex];
+			const LineData* pLineData = m_LineList[lineIndex];
 
             if( !pLineData->bEnable )
             {
@@ -1429,7 +1591,7 @@ class CKTDGLineMap : public CKTDGObject
         //          리턴한다.
 		__forceinline float	GetLengthToLine( IN const D3DXVECTOR3& pos, IN int lineIndex, OUT D3DXVECTOR3* pOutPos = NULL )
 		{
-			LineData* pLineData = m_LineList[lineIndex];
+			const LineData* pLineData = m_LineList[lineIndex];
 
 			//정상적인 발판만 확인한다
 			if( VerifyLine( lineIndex ) == false )
@@ -1466,7 +1628,7 @@ class CKTDGLineMap : public CKTDGObject
         // MONSTER_ROAD 가 정의되어 있으면 bIsMonster 가 false 일 때 몬스터 로드 타입의 라인들을 배제하고,
         // UNIT_ROAD 가 정의되어 있으면 bIsMonster가 true 일 때 유닛 로드 타입의 라인들을 배제한다.
         // 리턴값 : inPos부터 pOutPos까지의 거리를 리턴한다.
-#ifndef X2OPTIMIZE_LINEMAP_GETNEAREST
+#ifndef X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		__forceinline float GetNearest( IN D3DXVECTOR3 inPos, OUT D3DXVECTOR3* pOutPos, IN bool bIsMonster = false )
 		{
 			D3DXVECTOR3 target;
@@ -1477,7 +1639,7 @@ class CKTDGLineMap : public CKTDGObject
 
 			for( int i = 0; i < (int)m_LineList.size(); i++ )
 			{
-				LineData* pLineData = m_LineList[i];
+				const LineData* pLineData = m_LineList[i];
 				if( false == pLineData->bEnable )
 					continue;
 
@@ -1538,34 +1700,35 @@ class CKTDGLineMap : public CKTDGObject
 			}
 			return outLength;
 		}
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
+#endif//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 
         // inPos에서 가장 가까운 라인을 찾고 그 라인상의 점들 중 inPos와 가장 가까운 점을 pOutPos로 출력한다.
         // MONSTER_ROAD 가 정의되어 있으면 bIsMonster 가 false 일 때 몬스터 로드 타입의 라인들을 배제하고,
         // UNIT_ROAD 가 정의되어 있으면 bIsMonster가 true 일 때 유닛 로드 타입의 라인들을 배제한다.
         // 리턴값 : 만약 inPos가 라인의 범위에 있다면 inPos부터 pOutPos까지의 거리를 리턴한다.
         //          그렇지 않으면 999999를 리턴한다.
-#ifdef X2OPTIMIZE_LINEMAP_GETNEAREST
-		__forceinline float GetNearest( IN D3DXVECTOR3 inPos, IN float fRadius, OUT D3DXVECTOR3* pOutPos, IN OUT int* pLlineIndex, IN bool bIsMonster = false )
-#else//X2OPTIMIZE_LINEMAP_GETNEAREST
+#ifdef X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+		__forceinline bool GetNearestWithBound( IN D3DXVECTOR3 inPos, IN float fRadius, OUT D3DXVECTOR3* pOutPos, IN OUT int* pLlineIndex, IN bool bIsMonster = false )
+#else//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		__forceinline float GetNearest( IN D3DXVECTOR3 inPos, OUT D3DXVECTOR3* pOutPos, OUT int* pLlineIndex, IN bool bIsMonster = false )
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
+#endif//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		{
 			KTDXPROFILE();
 			D3DXVECTOR3 target;
 			float		fProjectionLength;
-#ifdef X2OPTIMIZE_LINEMAP_GETNEAREST
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			D3DXVECTOR3 outPos;
 			int			iOutIndex = 0;
 			bool		bFound = false;
-			float      fminx, fmaxx, fminy, fmaxy, fminz, fmaxz;
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
-			float		outLength = 999999;
+            float		outLength = fRadius;
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+            float		outLength = 999999;
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			float		tempLength;
 			D3DXVECTOR3	tempPos;
 
 			//*lineIndex = -1;
-#ifdef X2OPTIMIZE_LINEMAP_GETNEAREST
+#ifdef X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			int iOffset = 0;
 			int iSize = m_LineList.size();			
 			if( pLlineIndex != NULL && *pLlineIndex >= 0 && *pLlineIndex < iSize )
@@ -1573,25 +1736,21 @@ class CKTDGLineMap : public CKTDGObject
 				iOffset = *pLlineIndex;
 			}
 			for( int iBase = 0; iBase < iSize; iBase++ )
-#else//X2OPTIMIZE_LINEMAP_GETNEAREST
+#else//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			for( int i = 0; i < (int)m_LineList.size(); i++ )
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
+#endif//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			{
-#ifdef  X2OPTIMIZE_LINEMAP_GETNEAREST
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
                 int i = iBase + iOffset;
                 if ( i >= iSize )
                     i -= iSize;
-#endif  X2OPTIMIZE_LINEMAP_GETNEAREST
-				LineData* pLineData = m_LineList[i];
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+				const LineData* pLineData = m_LineList[i];
 				if( false == pLineData->bEnable )
-				{
 					continue;
-				}
 #ifdef MONSTER_ROAD
                 if( bIsMonster == false && pLineData->lineType == LT_MONSTER_ROAD )
-                 {
 					 continue;
-				}
 #endif
 #ifdef UNIT_ROAD
 				if( bIsMonster == true )
@@ -1611,67 +1770,33 @@ class CKTDGLineMap : public CKTDGObject
 #endif
 
 				//{{ kimhc // 2010.8.3 // WALL 타입의 라인맵 처리 변경
-			#ifdef	FIX_LINE_TYPE_WALL
+#ifdef	FIX_LINE_TYPE_WALL
 				if ( LT_WALL == pLineData->lineType )
-				{
 					continue;
-				}
-			#endif	FIX_LINE_TYPE_WALL
+#endif	FIX_LINE_TYPE_WALL
 				//}} kimhc // 2010.8.3 // WALL 타입의 라인맵 처리 변경
 
-#ifdef X2OPTIMIZE_LINEMAP_GETNEAREST
-				if ( bFound == false )
+#ifdef X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+
+				if( inPos.x < pLineData->m_vPosMin.x || inPos.x > pLineData->m_vPosMax.x )
 				{
-					if( inPos.x < __min( pLineData->startPos.x, pLineData->endPos.x) || inPos.x > __max( pLineData->startPos.x, pLineData->endPos.x ) )
+					if( inPos.y < pLineData->m_vPosMin.y || inPos.y > pLineData->m_vPosMax.y )
 					{
-						if( inPos.y < __min( pLineData->startPos.y, pLineData->endPos.y ) || inPos.y > __max( pLineData->startPos.y, pLineData->endPos.y ) )
+						if( inPos.z < pLineData->m_vPosMin.z || inPos.z > pLineData->m_vPosMax.z )
 						{
-							if( inPos.z < __min( pLineData->startPos.z, pLineData->endPos.z ) || inPos.z > __max( pLineData->startPos.z, pLineData->endPos.z ) )
-							{
-								continue;
-							}
+							continue;
 						}
 					}
-
-					//애초에 너무 멀리있는 LineData는 무시하게 한다.
-					if( abs( inPos.x - pLineData->startPos.x ) - pLineData->fLength > fRadius ||
-						abs( inPos.y - pLineData->startPos.y ) - pLineData->fLength > fRadius ||
-						abs( inPos.z - pLineData->startPos.z ) - pLineData->fLength > fRadius )
-					{
-						continue;
-					}
-
 				}
-				else
-				{
-					fminx = __min( pLineData->startPos.x, pLineData->endPos.x);
-					fmaxx = __max( pLineData->startPos.x, pLineData->endPos.x );
 
-					fminy = __min( pLineData->startPos.y, pLineData->endPos.y );
-					fmaxy = __max( pLineData->startPos.y, pLineData->endPos.y );
+				if ( inPos.x + outLength <= pLineData->m_vPosMin.x || pLineData->m_vPosMax.x + outLength <= inPos.x )
+					continue;
+				if ( inPos.y + outLength <= pLineData->m_vPosMin.y || pLineData->m_vPosMax.y + outLength <= inPos.y )
+					continue;
+				if ( inPos.z + outLength <= pLineData->m_vPosMin.z || pLineData->m_vPosMax.z + outLength <= inPos.z )
+					continue;
 
-					fminz = __min( pLineData->startPos.z, pLineData->endPos.z );
-					fmaxz = __max( pLineData->startPos.z, pLineData->endPos.z );
-
-					if( inPos.x < fminx || inPos.x > fmaxx )
-					{
-						if( inPos.y < fminy || inPos.y > fmaxy )
-						{
-							if( inPos.z < fminz || inPos.z > fmaxz )
-							{
-								continue;
-							}
-						}
-					}
-
-					if ( inPos.x + outLength <= fminx || fmaxx + outLength <= inPos.x )
-						continue;
-					if ( inPos.y + outLength <= fminy || fmaxy + outLength <= inPos.y )
-						continue;
-					if ( inPos.z + outLength <= fminz || fmaxz + outLength <= inPos.z )
-						continue;
-				}//if
-#else//X2OPTIMIZE_LINEMAP_GETNEAREST
+#else//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 				if( (inPos.x < pLineData->startPos.x && inPos.x < pLineData->endPos.x)
 					|| (inPos.x > pLineData->startPos.x && inPos.x > pLineData->endPos.x) )
 				{
@@ -1685,35 +1810,29 @@ class CKTDGLineMap : public CKTDGObject
 						}
 					}
 				}
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
+#endif//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 
 				KTDXPROFILE_BEGIN("MATH");
-#ifdef X2OPTIMIZE_LINEMAP_GETNEAREST
+#ifdef X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 				target				= inPos - pLineData->startPos;
 				fProjectionLength	= D3DXVec3Dot( &pLineData->dirVector, &target );
 				if( fProjectionLength >= 0.0f && fProjectionLength < pLineData->fLength )
 				{
 					tempPos		= fProjectionLength * pLineData->dirVector + pLineData->startPos;
 					tempLength	= GetDistance( tempPos, inPos );
-					if ( bFound == false )
-					{
-						bFound = true;
-						outLength = tempLength;
-						outPos = tempPos;
-						iOutIndex = i;
-					}
-					else if ( tempLength < outLength )
+                    if ( tempLength < outLength )
 					{
 						outLength = tempLength;
 						outPos = tempPos;
 						iOutIndex = i;
+                        bFound = true;
 					}//if
 
 					if( tempLength == 0 )
 						break;
 				}
 
-#else//X2OPTIMIZE_LINEMAP_GETNEAREST
+#else//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 				target				= inPos - pLineData->startPos;
 				fProjectionLength	= D3DXVec3Dot( &pLineData->dirVector, &target );
 				if( fProjectionLength >= 0.0f && fProjectionLength < pLineData->fLength )
@@ -1727,18 +1846,22 @@ class CKTDGLineMap : public CKTDGObject
 						*pLlineIndex	= i;
 					}
 				}
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
+#endif//X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 				KTDXPROFILE_END();
 			}
-#ifdef X2OPTIMIZE_LINEMAP_GETNEAREST
-			if( bFound )
+#ifdef X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+			if( bFound == true )
 			{
-				*pOutPos = outPos;
-				if ( pLlineIndex )
+                if ( pOutPos != NULL )
+				    *pOutPos = outPos;
+				if ( pLlineIndex != NULL )
 					*pLlineIndex = iOutIndex;
+                return true;
 			}
-#endif//X2OPTIMIZE_LINEMAP_GETNEAREST
-			return outLength;
+            return false;
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+            return outLength;
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		}
 
         // lineIndex의 라인상에서 inPos 와 가장 가까운 점을 찾아 pOutPos로 출력한다.
@@ -1779,23 +1902,71 @@ class CKTDGLineMap : public CKTDGObject
         // inPos보다 아래에 있는 라인들 중에서 가장 가까운 라인을 찾고 그 라인상의 점들 중 inPos와 가장 가까운 점을 pOutPos로 출력한다.
         // 리턴값 : 만약 inPos가 라인의 범위에 있다면 inPos부터 pOutPos까지의 거리를 리턴한다.
         //          그렇지 않으면 999999를 리턴한다.
+
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+        __forceinline bool GetDownNearestWithBound( IN D3DXVECTOR3 inPos, IN float fBound_, OUT D3DXVECTOR3* pOutPos, OUT int* pLlineIndex )
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		__forceinline float GetDownNearest( IN D3DXVECTOR3 inPos, OUT D3DXVECTOR3* pOutPos, OUT int* pLlineIndex )
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		{
 			KTDXPROFILE();
 			D3DXVECTOR3 target;
 			float		fProjectionLength;
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+			D3DXVECTOR3 outPos;
+            int         iOutIndex = 0;
+            float       outLength = fBound_;
+            bool        bFound = false;
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			float		outLength = 999999;
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			float		tempLength;
 			D3DXVECTOR3	tempPos;
 
 			//*lineIndex = -1;
 
-			for( int i = 0; i < (int)m_LineList.size(); i++ )
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+			int iOffset = 0;
+			int iSize = m_LineList.size();			
+			if( pLlineIndex != NULL && *pLlineIndex >= 0 && *pLlineIndex < iSize )
 			{
-				LineData* pLineData = m_LineList[i];
+				iOffset = *pLlineIndex;
+			}
+			for( int iBase = 0; iBase < iSize; iBase++ )
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+			for( int i = 0; i < (int)m_LineList.size(); i++ )
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+			{
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+                int i = iBase + iOffset;
+                if ( i >= iSize )
+                    i -= iSize;
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+				const LineData* pLineData = m_LineList[i];
 				if( false == pLineData->bEnable )
 					continue;
 
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+				if( inPos.y < pLineData->m_vPosMin.y )
+					continue;
+
+				if( inPos.x < pLineData->m_vPosMin.x || inPos.x > pLineData->m_vPosMax.x )
+				{
+					if( inPos.y > pLineData->m_vPosMax.y )
+					{
+						if( inPos.z < pLineData->m_vPosMin.z || inPos.z > pLineData->m_vPosMax.z )
+						{
+							continue;
+						}
+					}
+				}
+                if ( inPos.x + outLength <= pLineData->m_vPosMin.x || pLineData->m_vPosMax.x + outLength <= inPos.x )
+                    continue;
+                if ( pLineData->m_vPosMax.y + outLength <= inPos.y )
+                    continue;
+                if ( inPos.z + outLength <= pLineData->m_vPosMin.z|| pLineData->m_vPosMax.z + outLength <= inPos.z )
+                    continue;
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 				if( inPos.y < pLineData->startPos.y && inPos.y < pLineData->endPos.y )
 					continue;
 
@@ -1812,7 +1983,24 @@ class CKTDGLineMap : public CKTDGObject
 						}
 					}
 				}
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+				target				= inPos - pLineData->startPos;
+				fProjectionLength	= D3DXVec3Dot( &pLineData->dirVector, &target );
+				if( fProjectionLength >= 0.0f && fProjectionLength < pLineData->fLength )
+				{
+					tempPos		= fProjectionLength * pLineData->dirVector + pLineData->startPos;
+					tempLength	= GetDistance( tempPos, inPos );
+					if( tempLength < outLength )
+					{
+						outLength		= tempLength;
+						outPos		= tempPos;
+						iOutIndex	= i;
+                        bFound = true;
+					}
+				}
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 				target				= inPos - pLineData->startPos;
 				fProjectionLength	= D3DXVec3Dot( &pLineData->dirVector, &target );
 				if( fProjectionLength >= 0.0f && fProjectionLength < pLineData->fLength )
@@ -1826,8 +2014,21 @@ class CKTDGLineMap : public CKTDGObject
 						*pLlineIndex	= i;
 					}
 				}
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			}
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+            if ( bFound == true )
+            {
+                if ( pOutPos != NULL )
+                    *pOutPos = outPos;
+                if ( pLlineIndex != NULL )
+                    *pLlineIndex = iOutIndex;
+                return true;
+            }
+            return false;
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 			return outLength;
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		}
 
 #ifdef WORLD_TRIGGER
@@ -1881,7 +2082,7 @@ class CKTDGLineMap : public CKTDGObject
 			float fMinDist = 99999.f;
 			for(int i=0; i<GetNumLineData(); ++i)
 			{
-				CKTDGLineMap::LineData *pLineData = GetLineData(i);
+				const LineData *pLineData = GetLineData(i);
 				if( pLineData != NULL && pLineData->lineType != LT_WALL && pLineData->lineType != LT_BUNGEE )
 				{
 					float fDist = GetNearestByTool( inPos, pOutPos, i );
@@ -1905,7 +2106,6 @@ class CKTDGLineMap : public CKTDGObject
 #endif // SHOW_LINEMAP_FILE_NAME
 
 
-#ifdef REFORM_UI_MINIMAP
 		void CheckNearLines( const D3DXVECTOR3& vPos_, bool bRight_ = true, float fDist_ = 1800.f )
 		{
 			D3DXVECTOR3 target;
@@ -1913,7 +2113,7 @@ class CKTDGLineMap : public CKTDGObject
 
 			for( int i = 0; i < (int)m_LineList.size(); i++ )
 			{
-				LineData* pLineData = m_LineList[i];
+				const LineData* pLineData = m_LineList[i];
 				if( false == pLineData->bEnable )
 					continue;
 
@@ -1934,10 +2134,22 @@ class CKTDGLineMap : public CKTDGObject
 // 					pLineData->m_bNear = false;
 			}
 		}
-#endif
 
 
 	private:
+
+        __forceinline LineData* CKTDGLineMap::_AccessLineData( int index )
+        { 
+	        KTDXPROFILE();
+	        if ( index < 0 || index >= (int)m_LineList.size() )
+	        {
+		        return NULL;
+	        }
+	        return m_LineList[index]; 
+        }
+
+	private:
+
 		vector<LineData*>			m_LineList;
 		vector<LineData*>			m_WallList;
 
@@ -1948,6 +2160,11 @@ class CKTDGLineMap : public CKTDGObject
 		LPDIRECT3DVERTEXBUFFER9		m_pLineMapVB;
 
 		float						m_fLandHeight;
+#ifdef  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
+        std::vector<StartInfo>      m_vecRedTeamStartInfo;
+        std::vector<StartInfo>      m_vecBlueTeamStartInfo;
+        StartInfoMap                m_mapStartInfo;
+#else   X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 		vector<D3DXVECTOR3>			m_RedTeamStartPos;
 		vector<D3DXVECTOR3>			m_BlueTeamStartPos;
 		vector<bool>				m_RedTeamStartRight;
@@ -1958,11 +2175,12 @@ class CKTDGLineMap : public CKTDGObject
 		map<int, D3DXVECTOR3>		m_mapStartPos;
 		map<int, bool>				m_mapStartRight;
 		map<int, int>				m_mapStartLineIndex;
-	
+#endif  X2OPTIMIZE_LINEMAP_OPTIMIZE_AND_BUG_FIX
 #ifndef X2OPTIMIZE_LINEMAP_LINEGROUP
 		vector<LineGroup*>							m_vecLineGroupList;
-		map<CKTDGLineMap::LineData*, LineGroup*>	m_mapLineData2LineGroup;
+		map<const LineData*, LineGroup*>	m_mapLineData2LineGroup;
 #endif  X2OPTIMIZE_LINEMAP_LINEGROUP
+
 
 #ifdef NEW_VILLAGE_RENDERING_TEST
 		vector<CameraData>			m_vecCameraData;
@@ -1991,9 +2209,7 @@ class CKTDGLineMap : public CKTDGObject
 		CKTDGLineMap::LINEMAP_TRIGGER				m_LineMapTrigger;
 #endif
 
-#ifdef REFORM_UI_MINIMAP
 		LPD3DXLINE		m_pLine;
-#endif
 
 #ifdef SHOW_LINEMAP_FILE_NAME
 		wstring m_wstrLineFullName;

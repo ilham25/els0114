@@ -15,10 +15,17 @@ KSimObject::KSimObject(void) : m_nUID( 0 )
 
     static unsigned __int64 sSeedNum = 0;
 
+#ifdef _CONVERT_VS_2010
+    swprintf_s( buff3, L"SOB_%s_%s_%020d", 
+        _wstrdate_s( buff1 ), 
+        _wstrtime_s( buff2 ), 
+        sSeedNum++);
+#else
     swprintf( buff3, L"SOB_%s_%s_%020d", 
         _wstrdate( buff1 ), 
         _wstrtime( buff2 ), 
         sSeedNum++);
+#endif _CONVERT_VS_2010
 
     
     m_strName = buff3 ;

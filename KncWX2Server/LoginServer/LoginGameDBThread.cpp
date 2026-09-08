@@ -21,7 +21,17 @@ IMPL_PROFILER_DUMP( KLoginGameDBThread )
 	{
 		unsigned int iAvg = 0;
 		if( vecDump[ui].m_iQueryCount > 0 )	iAvg = vecDump[ui].m_iTotalTime / vecDump[ui].m_iQueryCount;		
-
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY_NO_PROFILE( L"exec dbo.P_QueryStats_INS", L"N\'%s\', %d, %d, %d, %d, %d, %d",
+			% vecDump[ui].m_wstrQuery
+			% vecDump[ui].m_iMinTime
+			% iAvg
+			% vecDump[ui].m_iMaxTime
+			% vecDump[ui].m_iOver1Sec
+			% vecDump[ui].m_iQueryCount
+			% vecDump[ui].m_iQueryFail
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY_NO_PROFILE( L"exec dbo.gup_insert_querystats", L"N\'%s\', %d, %d, %d, %d, %d, %d",
 			% vecDump[ui].m_wstrQuery
 			% vecDump[ui].m_iMinTime
@@ -31,7 +41,7 @@ IMPL_PROFILER_DUMP( KLoginGameDBThread )
 			% vecDump[ui].m_iQueryCount
 			% vecDump[ui].m_iQueryFail
 			);
-
+#endif //SERV_ALL_RENEWAL_SP
 		continue;
 
 end_proc:
@@ -110,11 +120,6 @@ void KLoginGameDBThread::ProcessEvent( const KEventPtr& spEvent_ )
 		CASE( DBE_PICK_UP_FROM_PSHOP_AGENCY_REQ );
 #endif SERV_PSHOP_AGENCY
 		//}}
-		//{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-		CASE_NOPARAM( DBE_CHECK_DB_HACKING_TRAP_REQ );
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
-		//}}
 		//{{ 2011. 11. 3	최육사	헤니르 시공 랭킹 보상 안전성 패치
 #ifdef SERV_HENIR_RANKING_TITLE_REWARD_FIX
 		CASE( DBE_INSERT_TITLE_REQ );
@@ -181,8 +186,11 @@ bool KLoginGameDBThread::DeleteApplyJoinGuildList( IN int iGuildUID, IN UidType 
 	int iOK = NetError::ERR_ODBC_01;
 
 	// 길드 가입 신청 삭제
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_BBS_Join_DEL", L"%d, %d", % iGuildUID % iUnitUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_delete_guild_bbs_join", L"%d, %d", % iGuildUID % iUnitUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( iOK );
@@ -235,7 +243,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_GET_WEB_RANKING_INFO_REQ )
 
 	//////////////////////////////////////////////////////////////////////////
 	// 던전 랭킹 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_GRank_SEL_Exp" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.gup_get_rank_exp" );
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KDungeonRankingInfo kInfo;
@@ -254,7 +266,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_GET_WEB_RANKING_INFO_REQ )
 	// 대전 랭킹 얻기
 	//{{ 2011. 07. 26	최육사	대전 개편
 #ifdef SERV_PVP_NEW_SYSTEM
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_GRank_Vs" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.gup_get_rank_vs" );
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KPvpRankingInfo kInfo;
@@ -280,7 +296,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_GET_WEB_RANKING_INFO_REQ )
 		kPacket.m_vecPvpRanking.push_back( kInfo );
 	}
 #else
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_GRank_Vs" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.gup_get_rank_vs" );
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KPvpRankingInfo kInfo;
@@ -316,8 +336,11 @@ IMPL_ON_FUNC( DBE_GET_GUILD_INFO_REQ )
 
 	//////////////////////////////////////////////////////////////////////////
 	// 길드 정보 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SEL", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_get_guild_info", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK
@@ -350,8 +373,11 @@ IMPL_ON_FUNC( DBE_GET_GUILD_INFO_REQ )
 	//////////////////////////////////////////////////////////////////////////
 	// 길드원 리스트 얻기
 #ifdef	SERV_LOCAL_RANKING_SYSTEM // 적용날짜: 2013-03-26
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_Member_SEL_ByGuildNo", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_GGuild_Member_GET", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KGuildMemberInfo kInfo;
@@ -385,8 +411,11 @@ IMPL_ON_FUNC( DBE_GET_GUILD_INFO_REQ )
 		kPacket.m_mapRankerUIDInfo.insert( std::map<UidType, UidType>::value_type( kUnitInfo.m_iUnitUID, iUserUID ) );
 	}
 #else	// SERV_LOCAL_RANKING_SYSTEM
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_Member_SEL_Info", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_get_guild_member_info", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KGuildMemberInfo kInfo;
@@ -415,8 +444,11 @@ IMPL_ON_FUNC( DBE_GET_GUILD_INFO_REQ )
 
 	//////////////////////////////////////////////////////////////////////////
 	// 캐시스킬 포인트 관련 정보 받아오기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_SEL", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_get_guild_skill_point_info", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_kGuildSkillInfo.m_iGuildSPoint
@@ -439,8 +471,11 @@ IMPL_ON_FUNC( DBE_GET_GUILD_INFO_REQ )
 	}
 	
 	// GUILD SKILL LIST 받아오기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_Skill_SEL", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_get_guild_skill_list_new", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KGuildSkillData kInfo;
@@ -480,11 +515,17 @@ IMPL_ON_FUNC( DBE_GUILD_LEVEL_UP_REQ )
 
 	//////////////////////////////////////////////////////////////////////////
 	// 길드 LEVEL 업데이트
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_UPD_Level", L"%d, %d",
+		% kPacket_.m_iGuildUID
+		% kPacket_.m_ucGuildLevel
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_guild_level", L"%d, %d",
 		% kPacket_.m_iGuildUID
 		% kPacket_.m_ucGuildLevel
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -511,9 +552,11 @@ IMPL_ON_FUNC( DBE_GUILD_LEVEL_UP_REQ )
 
 	//{{ 2009. 11. 26  최육사	길드스킬
 #ifdef GUILD_SKILL_TEST
-
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_MER", L"%d, %d", % kPacket_.m_iGuildUID % kPacket_.m_iGuildSPoint );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_guild_skill_point", L"%d, %d", % kPacket_.m_iGuildUID % kPacket_.m_iGuildSPoint );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -564,12 +607,19 @@ IMPL_ON_FUNC( DBE_GET_GUILD_SKILL_REQ )
 	// 캐시 스킬 포인트 정보를 갱신
 	if( kPacket_.m_iGuildCSPoint >= 0 )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_UPD", L"%d, %d, %d",
+			% kPacket_.m_iGuildUID
+			% kPacket_.m_iGuildCSPoint
+			% kPacket_.m_iMaxGuildCSPoint
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_update_guild_cash_skill_point_info", L"%d, %d, %d",
 			% kPacket_.m_iGuildUID
 			% kPacket_.m_iGuildCSPoint
 			% kPacket_.m_iMaxGuildCSPoint
 			);
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_iOK );
@@ -598,10 +648,15 @@ IMPL_ON_FUNC( DBE_GET_GUILD_SKILL_REQ )
 	// 스킬 포인트 업데이트
 	else
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_MER", L"%d, %d",
+			% kPacket_.m_iGuildUID
+			% kPacket_.m_iGuildSPoint );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_update_guild_skill_point", L"%d, %d",
 			% kPacket_.m_iGuildUID
 			% kPacket_.m_iGuildSPoint );
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_iOK );
@@ -629,12 +684,19 @@ IMPL_ON_FUNC( DBE_GET_GUILD_SKILL_REQ )
 	}
 	
 	// 스킬 획득 정보를 갱신
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_Skill_MER", L"%d, %d, %d, %d",
+		% kPacket_.m_iGuildUID
+		% kPacket_.m_iGuildSkillID
+		% kPacket_.m_iGuildSkillLevel
+		% kPacket_.m_iGuildSkillCSPoint );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_guild_skill_info_new", L"%d, %d, %d, %d",
 		% kPacket_.m_iGuildUID
 		% kPacket_.m_iGuildSkillID
 		% kPacket_.m_iGuildSkillLevel
 		% kPacket_.m_iGuildSkillCSPoint );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -679,11 +741,17 @@ IMPL_ON_FUNC( DBE_INSERT_GUILD_CASH_SKILL_POINT_REQ )
 	// 기간 연장인지? 새로 추가인지?
 	if( kPacket_.m_bUpdateEndDateOnly )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_UPD_Period", L"%d, %d",
+			% kPacket_.m_iGuildUID
+			% kPacket_.m_iPeriod
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_update_guild_cash_skill_period", L"%d, %d",
 			% kPacket_.m_iGuildUID
 			% kPacket_.m_iPeriod
 			);
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_iOK
@@ -713,12 +781,19 @@ IMPL_ON_FUNC( DBE_INSERT_GUILD_CASH_SKILL_POINT_REQ )
 	}
 	else
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_MER_Cash", L"%d, %d, %d",
+			% kPacket_.m_iGuildUID
+			% kPacket_.m_iGuildCSPoint
+			% kPacket_.m_iPeriod
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_insert_guild_cash_skill_point_info", L"%d, %d, %d",
 			% kPacket_.m_iGuildUID
 			% kPacket_.m_iGuildCSPoint
 			% kPacket_.m_iPeriod
 			);
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_iOK
@@ -757,12 +832,19 @@ IMPL_ON_FUNC( DBE_EXPIRE_GUILD_CASH_SKILL_POINT_REQ )
 	kPacket.m_iRetrievedSPoint	= kPacket_.m_iRetrievedSPoint;
 
 	// guild cash skill point 정보를 초기화 한다
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_UPD", L"%d, %d, %d", 
+		% kPacket_.m_iGuildUID 
+		% 0 
+		% 0
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_guild_cash_skill_point_info", L"%d, %d, %d", 
 		% kPacket_.m_iGuildUID 
 		% 0 
 		% 0
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -787,8 +869,11 @@ IMPL_ON_FUNC( DBE_EXPIRE_GUILD_CASH_SKILL_POINT_REQ )
 	}
 
 	// SP정보도 DB에 업데이트!
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_MER", L"%d, %d", % kPacket_.m_iGuildUID % kPacket_.m_iGuildSPoint );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_guild_skill_point", L"%d, %d", % kPacket_.m_iGuildUID % kPacket_.m_iGuildSPoint );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -823,13 +908,19 @@ IMPL_ON_FUNC( DBE_EXPIRE_GUILD_CASH_SKILL_POINT_REQ )
 	for( u_int ui = 0; ui < kPacket_.m_vecGuildSkillData.size(); ++ui )
 	{
 		const KGuildSkillData& kGuildSkillData = kPacket_.m_vecGuildSkillData[ui];
-
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GGuild_Skill_MER", L"%d, %d, %d, %d",
+			% kPacket_.m_iGuildUID
+			% kGuildSkillData.m_iSkillID
+			% kGuildSkillData.m_cSkillLevel
+			% kGuildSkillData.m_cSkillCSPoint );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_update_guild_skill_info_new", L"%d, %d, %d, %d",
 			% kPacket_.m_iGuildUID
 			% kGuildSkillData.m_iSkillID
 			% kGuildSkillData.m_cSkillLevel
 			% kGuildSkillData.m_cSkillCSPoint );
-
+#endif //SERV_ALL_RENEWAL_SP
 		int iResult = NetError::ERR_UNKNOWN;
 		if( m_kODBC.BeginFetch() )
 		{
@@ -869,8 +960,11 @@ _IMPL_ON_FUNC( DBE_ADMIN_GET_GUILD_SKILL_POINT_REQ, KELG_ADMIN_GET_GUILD_SKILL_P
 	kPacket.m_iGuildSPoint = kPacket_.m_iGuildSPoint;
 
 	// 길드 스킬 포인트 올리자!
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_MER", L"%d, %d", % kPacket_.m_iGuildUID % kPacket_.m_iGuildSPoint );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_guild_skill_point", L"%d, %d", % kPacket_.m_iGuildUID % kPacket_.m_iGuildSPoint );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -910,7 +1004,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_GET_GUILD_BOARD_INFO_REQ )
 	KDBE_GET_GUILD_BOARD_INFO_ACK kPacket;	
 
 	// 길드 광고 리스트 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_GGuild_BBS_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.gup_get_guild_bbs_list" );
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KGuildAdInfo kInfo;
@@ -931,7 +1029,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_GET_GUILD_BOARD_INFO_REQ )
 	}
 
 	// 길드 광고 등록 유저 얻기	
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_GGuild_BBS_Join_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.gup_get_guild_bbs_join_list" );
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KApplyJoinGuildInfo kInfo;
@@ -963,8 +1065,11 @@ _IMPL_ON_FUNC( DBE_GET_GUILD_SKILL_IN_BOARD_REQ, KELG_GET_GUILD_SKILL_IN_BOARD_R
 
 	//////////////////////////////////////////////////////////////////////////
 	// 캐시스킬 포인트 관련 정보 받아오기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_SEL", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_get_guild_skill_point_info", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_kGuildSkillInfo.m_iGuildSPoint
@@ -987,8 +1092,11 @@ _IMPL_ON_FUNC( DBE_GET_GUILD_SKILL_IN_BOARD_REQ, KELG_GET_GUILD_SKILL_IN_BOARD_R
 	}
 
 	// GUILD SKILL LIST 받아오기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_Skill_SEL", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_get_guild_skill_list_new", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KGuildSkillData kInfo;
@@ -1024,8 +1132,11 @@ IMPL_ON_FUNC( DBE_REGISTRATION_GUILD_AD_REQ )
 	if( kPacket_.m_bExistExpiredAd )
 	{
 		// 길드 광고 삭제
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GGuild_BBS_DEL", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_delete_guild_bbs", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_iOK );
@@ -1045,7 +1156,11 @@ IMPL_ON_FUNC( DBE_REGISTRATION_GUILD_AD_REQ )
 	}
 
 	// 길드 광고를 등록하자!
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_BBS_INS", L"%d, N\'%s\', %d", % kPacket_.m_iGuildUID % kPacket_.m_wstrAdMessage % kPacket_.m_sPeriod );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_insert_guild_bbs", L"%d, N\'%s\', %d", % kPacket_.m_iGuildUID % kPacket_.m_wstrAdMessage % kPacket_.m_sPeriod );
+#endif //SERV_ALL_RENEWAL_SP
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1089,8 +1204,11 @@ _IMPL_ON_FUNC( DBE_MODIFY_REG_GUILD_AD_REQ, KELG_MODIFY_REG_GUILD_AD_REQ )
 	kPacket.m_iCost = kPacket_.m_iCost;
 
 	// 길드 광고 삭제
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_BBS_DEL", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_delete_guild_bbs", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -1108,8 +1226,11 @@ _IMPL_ON_FUNC( DBE_MODIFY_REG_GUILD_AD_REQ, KELG_MODIFY_REG_GUILD_AD_REQ )
 	}
 
 	// 길드 광고를 등록하자!
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_BBS_INS", L"%d, N\'%s\', %d", % kPacket_.m_iGuildUID % kPacket_.m_wstrAdMessage % kPacket_.m_sPeriod );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_insert_guild_bbs", L"%d, N\'%s\', %d", % kPacket_.m_iGuildUID % kPacket_.m_wstrAdMessage % kPacket_.m_sPeriod );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK
@@ -1159,11 +1280,17 @@ IMPL_ON_FUNC( DBE_APPLY_JOIN_GUILD_REQ )
 	}
 
 	// 길드 가입 신청을 등록하자!
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_BBS_Join_INS", L"%d, %d, N\'%s\'",
+		% kPacket_.m_kApplyJoinGuildInfo.m_iApplyJoinGuildUID
+		% kPacket_.m_kApplyJoinGuildInfo.m_iUnitUID
+		% kPacket_.m_kApplyJoinGuildInfo.m_wstrMessage );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_insert_guild_bbs_join", L"%d, %d, N\'%s\'",
 		% kPacket_.m_kApplyJoinGuildInfo.m_iApplyJoinGuildUID
 		% kPacket_.m_kApplyJoinGuildInfo.m_iUnitUID
 		% kPacket_.m_kApplyJoinGuildInfo.m_wstrMessage );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK
@@ -1228,12 +1355,19 @@ IMPL_ON_FUNC( DBE_ACCEPT_JOIN_GUILD_REQ )
 
 	//////////////////////////////////////////////////////////////////////////
 	// 길드 가입
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuildMember_INS", L"%d, %d, N\'%s\'", 
+		% kPacket_.m_kJoinGuildMemberInfo.m_iUnitUID
+		% kPacket_.m_iGuildUID
+		% L""
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_create_guild_member", L"%d, %d, N\'%s\'", 
 		% kPacket_.m_kJoinGuildMemberInfo.m_iUnitUID
 		% kPacket_.m_iGuildUID
 		% L""
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -1304,8 +1438,11 @@ IMPL_ON_FUNC( DBE_DELETE_GUILD_AD_LIST_NOT )
 			int iOK = NetError::ERR_ODBC_01;
 
 			// 길드 광고 삭제
+#ifdef SERV_ALL_RENEWAL_SP
+			DO_QUERY( L"exec dbo.P_GGuild_BBS_DEL", L"%d", % *vit );
+#else //SERV_ALL_RENEWAL_SP
 			DO_QUERY( L"exec dbo.gup_delete_guild_bbs", L"%d", % *vit );
-
+#endif //SERV_ALL_RENEWAL_SP
 			if( m_kODBC.BeginFetch() )
 			{
 				FETCH_DATA( iOK );
@@ -1344,8 +1481,11 @@ _IMPL_ON_FUNC( DBE_GET_WEB_POINT_REWARD_CHECK_NICKNAME_REQ, KDBE_GET_WEB_POINT_R
 	std::vector< KWebPointRewardInfo >::iterator vit;
 	for( vit = kPacket_.m_vecWebPointReward.begin(); vit != kPacket_.m_vecWebPointReward.end(); ++vit )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GUnitNickName_SEL_UnitUIDByNickname", L"N\'%s\'", % vit->m_wstrNickName );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_get_unit_uid", L"N\'%s\'", % vit->m_wstrNickName );
-
+#endif //SERV_ALL_RENEWAL_SP
 		UidType iUnitUID = 0;
 		if( m_kODBC.BeginFetch() )
 		{
@@ -1382,6 +1522,16 @@ IMPL_ON_FUNC( DBE_INSERT_REWARD_TO_POST_REQ )
 	kPacket.m_iRewardLetter.m_wstrMessage  = kPacket_.m_wstrMessage;
 
 	// 보상
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GPost_INS", L"%d, %d, %d, %d, %d, N\'%s\'",
+		% kPacket_.m_iFromUnitUID
+		% kPacket_.m_iToUnitUID
+		% kPacket_.m_sQuantity
+		% kPacket_.m_iRewardType
+		% kPacket_.m_iRewardID
+		% kPacket_.m_wstrMessage
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_insert_post_item", L"%d, %d, %d, %d, %d, N\'%s\'",
 		% kPacket_.m_iFromUnitUID
 		% kPacket_.m_iToUnitUID
@@ -1390,7 +1540,7 @@ IMPL_ON_FUNC( DBE_INSERT_REWARD_TO_POST_REQ )
 		% kPacket_.m_iRewardID
 		% kPacket_.m_wstrMessage
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK
@@ -1418,7 +1568,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_LOAD_PSHOP_AGENCY_REQ )
 	KDBE_LOAD_PSHOP_AGENCY_ACK kPacket;
 
 	// 대리 상점 정보 얻기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_GPShopInfo_SEL_All" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.gup_get_PShop_info" );
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		KERM_OPEN_PSHOP_AGENCY_BY_SERVER_NOT kInfo;
@@ -1453,7 +1607,13 @@ IMPL_ON_FUNC_NOPARAM( DBE_LOAD_PSHOP_AGENCY_REQ )
 				
 				//{{ 2011. 07. 25    김민성    아이템 옵션ID 데이터 사이즈 증가
 #ifdef SERV_ITEM_OPTION_DATA_SIZE
-				int arrSocketOption[4] = {0};
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+				const byte byteArraySize = 5;
+#else // SERV_BATTLE_FIELD_BOSS
+				const byte byteArraySize = 4;
+#endif // SERV_BATTLE_FIELD_BOSS
+				int arrSocketOption[byteArraySize];
+				memset( arrSocketOption, 0, sizeof(int) * byteArraySize );
 #else
 				short arrSocketOption[4] = {0};
 #endif SERV_ITEM_OPTION_DATA_SIZE
@@ -1462,6 +1622,36 @@ IMPL_ON_FUNC_NOPARAM( DBE_LOAD_PSHOP_AGENCY_REQ )
 #ifdef SERV_AGENCY_SHOP_ITEM_EVALUATE_FIX // 김민성 // 적용날짜: 2013-07-11
 				int arrRandomSocketOption[5] = {0};
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+				FETCH_DATA( kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_iItemUID
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iItemID
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_cUsageType
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iQuantity
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_sEndurance
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_ucSealData
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_cEnchantLevel
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant0
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant1
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant2
+					>> arrSocketOption[0]
+					>> arrSocketOption[1]
+					>> arrSocketOption[2]
+					>> arrSocketOption[3]
+					>> arrSocketOption[4]
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_byteExpandedSocketNum
+					>> arrRandomSocketOption[0]
+					>> arrRandomSocketOption[1]
+					>> arrRandomSocketOption[2]
+					>> arrRandomSocketOption[3]
+					>> arrRandomSocketOption[4]
+					>> kItemInfo.m_kSellPShopItemInfo.m_iPricePerOne
+					>> kItemInfo.m_kSellPShopItemInfo.m_iFeePerOne
+					>> kItemInfo.m_kSellPShopItemInfo.m_iTotalSellEDIn
+					>> kItemInfo.m_iTotalSoldItemQuantity
+					>> kItemInfo.m_iTotalSellCommissionED
+					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_cSlotCategory					
+					);
+#else // SERV_BATTLE_FIELD_BOSS
 				FETCH_DATA( kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_iItemUID
 					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iItemID
 					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_cUsageType
@@ -1488,6 +1678,7 @@ IMPL_ON_FUNC_NOPARAM( DBE_LOAD_PSHOP_AGENCY_REQ )
 					>> kItemInfo.m_iTotalSellCommissionED
 					>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_cSlotCategory					
 					);
+#endif // SERV_BATTLE_FIELD_BOSS
 
 					int iCheckRandomIdx;
 					for( iCheckRandomIdx = 4; iCheckRandomIdx >= 0; --iCheckRandomIdx )
@@ -1526,8 +1717,8 @@ IMPL_ON_FUNC_NOPARAM( DBE_LOAD_PSHOP_AGENCY_REQ )
 					);
 #endif	// SERV_AGENCY_SHOP_ITEM_EVALUATE_FIX
 
-				int iCheckIdx;
-				for( iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
+				int iCheckIdx = byteArraySize;
+				while( 0 <= --iCheckIdx )
 				{
 					if( arrSocketOption[iCheckIdx] != 0 )
 						break;
@@ -1562,11 +1753,17 @@ IMPL_ON_FUNC_NOPARAM( DBE_LOAD_PSHOP_AGENCY_REQ )
 			int iOK = NetError::ERR_ODBC_01;
 
 			// 대리 상인 닫기
+#ifdef SERV_ALL_RENEWAL_SP
+			DO_QUERY( L"exec dbo.P_GPShopInfo_UPD_IsPShopOpen", L"%d, %d", 
+				% kInfo.m_iUnitUID
+				% false
+				);
+#else //SERV_ALL_RENEWAL_SP
 			DO_QUERY( L"exec dbo.gup_update_PShop_info_IsPShopOpen", L"%d, %d", 
 				% kInfo.m_iUnitUID
 				% false
 				);
-
+#endif //SERV_ALL_RENEWAL_SP
 			if( m_kODBC.BeginFetch() )
 			{
 				FETCH_DATA( iOK );
@@ -1593,6 +1790,15 @@ _IMPL_ON_FUNC( DBE_OPEN_PSHOP_AGENCY_REQ, KERM_OPEN_PERSONAL_SHOP_ACK )
 
 	//////////////////////////////////////////////////////////////////////////
 	// 대리 상인 UID 등록
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GPShopInfo_UPD_PShopInfo", L"%d, %d, N\'%s\', %d, %d",
+		% kPacket_.m_iUnitUID
+		% true
+		% kPacket_.m_wstrAgencyOpenDate
+		% true
+		% (int)kPacket_.m_cPersonalShopType
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_PShopinfo", L"%d, %d, N\'%s\', %d, %d",
 		% kPacket_.m_iUnitUID
 		% true
@@ -1600,7 +1806,7 @@ _IMPL_ON_FUNC( DBE_OPEN_PSHOP_AGENCY_REQ, KERM_OPEN_PERSONAL_SHOP_ACK )
 		% true
 		% (int)kPacket_.m_cPersonalShopType
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket_.m_iOK );
@@ -1630,11 +1836,17 @@ _IMPL_ON_FUNC( DBE_BREAK_PSHOP_AGENCY_REQ, KERM_BREAK_PSHOP_AGENCY_NOT )
 	int iOK = NetError::ERR_ODBC_01;
 
 	// 대리 상인 닫기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GPShopInfo_UPD_IsPShopOpen", L"%d, %d", 
+		% kPacket_.m_iHostUID
+		% false
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_PShop_info_IsPShopOpen", L"%d, %d", 
 		% kPacket_.m_iHostUID
 		% false
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( iOK );
@@ -1662,7 +1874,11 @@ _IMPL_ON_FUNC( DBE_REG_PSHOP_AGENCY_ITEM_REQ, KERM_REG_PERSONAL_SHOP_ITEM_ACK )
 	// SP 쿼리를 만들어 보자
 	//{{ 2013. 05. 28	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef SERV_ALL_RENEWAL_SP
+	std::wstring wstrQuerySP = L"exec dbo.P_GPShopInfo_INS_TradeNew ";
+#else //SERV_ALL_RENEWAL_SP
 	std::wstring wstrQuerySP = L"exec dbo.P_GItem_Total_Pshop_New ";
+#endif //SERV_ALL_RENEWAL_SP
 #else
 	std::wstring wstrQuerySP = L"exec dbo.P_GItem_Total_Pshop ";
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
@@ -1671,11 +1887,17 @@ _IMPL_ON_FUNC( DBE_REG_PSHOP_AGENCY_ITEM_REQ, KERM_REG_PERSONAL_SHOP_ITEM_ACK )
 	int iTemp_Zero = 0;
 
 	// 대리 상점 이름 등록
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GPShopInfo_UPD_PShopName", L"%d, N\'%s\'",
+		% kPacket_.m_iUnitUID
+		% kPacket_.m_wstrPersonalShopName
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_PShop_info_PShopName", L"%d, N\'%s\'",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_wstrPersonalShopName
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket_.m_iOK );
@@ -1717,7 +1939,7 @@ _IMPL_ON_FUNC( DBE_REG_PSHOP_AGENCY_ITEM_REQ, KERM_REG_PERSONAL_SHOP_ITEM_ACK )
 		wstrQuerySP += boost::str( boost::wformat( L", %d" ) % static_cast<int>(kSellItemInfo.m_kInventoryItemInfo.m_cSlotCategory) );		// category
 	}
 
-	for(int i = static_cast<int>(kPacket_.m_vecSellItemInfo.size()) ; i < SEnum::PAE_SELL_ITEM_LIMIT_NUM ; ++i )
+	for(int i = static_cast<int>(kPacket_.m_vecSellItemInfo.size()) ; i < SEnum::PAE_SELL_ITEM_LIMIT_NUM ; ++i )// 아이템이 빈 곳을 채워주는 곳
 	{
 		wstrQuerySP += boost::str( boost::wformat( L", %d" ) % iTemp_Zero );		// ItemUID	
 		wstrQuerySP += boost::str( boost::wformat( L", %d" ) % iTemp_Zero );		// Quantity
@@ -1731,7 +1953,7 @@ _IMPL_ON_FUNC( DBE_REG_PSHOP_AGENCY_ITEM_REQ, KERM_REG_PERSONAL_SHOP_ITEM_ACK )
 	DO_QUERY_NO_ARG( wstrQuerySP.c_str() );
 	
 	// 아이템은 9개 이므로 9개로 고정한다.
-	UidType iItemUID[9] = {0,};
+	UidType iItemUID[SEnum::PAE_SELL_ITEM_LIMIT_NUM] = {0,};
 
 	if( m_kODBC.BeginFetch() )
 	{
@@ -1744,16 +1966,31 @@ _IMPL_ON_FUNC( DBE_REG_PSHOP_AGENCY_ITEM_REQ, KERM_REG_PERSONAL_SHOP_ITEM_ACK )
 			>> iItemUID[5]
 			>> iItemUID[6]
 			>> iItemUID[7]
-			>> iItemUID[8]	);
+			>> iItemUID[8]	
+            >> iItemUID[9]
+            >> iItemUID[10]
+            >> iItemUID[11]
+            >> iItemUID[12]
+            >> iItemUID[13]
+            >> iItemUID[14]
+            );
 
 		m_kODBC.EndFetch();
 
 		if( kPacket_.m_iOK != NetError::NET_OK )
 		{
-			START_LOG( cerr, L"대리상점 등록 SP 호출이 실패 했습니다." )
-				<< BUILD_LOG( kPacket_.m_iOK )
-				<< END_LOG;
+            // slect pshopitem..
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 해외팀 추가
+            GetPShopItem( kPacket_.m_iUnitUID, kPacket_.m_vecAddCompleteItemInfo );
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 
+            START_LOG( cerr, L"대리상점 등록 SP 호출이 실패 했습니다." )
+                << BUILD_LOG( kPacket_.m_iOK )
+                << BUILD_LOG( kPacket_.m_iUnitUID )
+                << BUILD_LOG( GET_LAST_QUERY() )
+                << BUILD_LOG( kPacket_.m_vecAddCompleteItemInfo.size() )
+                << END_LOG;
+            
 			goto end_proc;
 		}
 
@@ -1775,11 +2012,17 @@ end_proc:
 _IMPL_ON_FUNC( DBE_REG_PSHOP_AGENCY_ITEM_REQ, KERM_REG_PERSONAL_SHOP_ITEM_ACK )
 {
 	// 대리 상점 이름 등록
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GPShopInfo_UPD_PShopName", L"%d, N\'%s\'",
+		% kPacket_.m_iUnitUID
+		% kPacket_.m_wstrPersonalShopName
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_PShop_info_PShopName", L"%d, N\'%s\'",
 		% kPacket_.m_iUnitUID
 		% kPacket_.m_wstrPersonalShopName
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket_.m_iOK );
@@ -1822,7 +2065,6 @@ _IMPL_ON_FUNC( DBE_REG_PSHOP_AGENCY_ITEM_REQ, KERM_REG_PERSONAL_SHOP_ITEM_ACK )
 			arrSocketInfo[iIdx] = *vit;
 			++vit;
 		}
-
 		DO_QUERY( L"exec dbo.gup_insert_PShopItem", 
 			L"%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
 			L"%d, %d, %d, %d, %d, %d, %d, %d",
@@ -1902,7 +2144,11 @@ IMPL_ON_FUNC( DBE_BUY_PSHOP_AGENCY_ITEM_REQ )
 	int iTemp_Zero = 0;
 	//{{ 2013. 05. 28	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef SERV_ALL_RENEWAL_SP
+	std::wstring wstrQuerySP = L"exec dbo.P_GPShopInfo_INS_TradeNew ";
+#else //SERV_ALL_RENEWAL_SP
 	std::wstring wstrQuerySP = L"exec dbo.P_GItem_Total_Pshop_New ";
+#endif //SERV_ALL_RENEWAL_SP
 #else
 	std::wstring wstrQuerySP = L"exec dbo.P_GItem_Total_Pshop ";
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
@@ -1943,20 +2189,28 @@ IMPL_ON_FUNC( DBE_BUY_PSHOP_AGENCY_ITEM_REQ )
 	DO_QUERY_NO_ARG( wstrQuerySP.c_str() );
 
 	// 아이템은 9개 이므로 9개로 고정한다.
-	UidType iItemUID[9] = {0,};
+	UidType iItemUID[SEnum::PAE_SELL_ITEM_LIMIT_NUM] = {0,};
 
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket_.m_iOK
-			>> iItemUID[0]
-			>> iItemUID[1]
-			>> iItemUID[2]
-			>> iItemUID[3]
-			>> iItemUID[4]
-			>> iItemUID[5]
-			>> iItemUID[6]
-			>> iItemUID[7]
-			>> iItemUID[8]    );
+            >> iItemUID[0]
+            >> iItemUID[1]
+            >> iItemUID[2]
+            >> iItemUID[3]
+            >> iItemUID[4]
+            >> iItemUID[5]
+            >> iItemUID[6]
+            >> iItemUID[7]
+            >> iItemUID[8]	
+            >> iItemUID[9]
+            >> iItemUID[10]
+            >> iItemUID[11]
+            >> iItemUID[12]
+            >> iItemUID[13]
+            >> iItemUID[14]
+            
+            );
 
 		m_kODBC.EndFetch();
 
@@ -1986,7 +2240,16 @@ end_proc:
 IMPL_ON_FUNC( DBE_BUY_PSHOP_AGENCY_ITEM_REQ )
 {
 	kPacket_.m_iOK = NetError::ERR_ODBC_01;
-
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GPShopItem_UPD", L"%d, %d, %d, %d, %d, %d",
+		% kPacket_.m_iHostUnitUID
+		% kPacket_.m_kSellItemDBUpdate.m_iItemUID
+		% kPacket_.m_kSellItemDBUpdate.m_iQuantity
+		% kPacket_.m_kSellItemDBUpdate.m_iTotalSellEDIn
+		% kPacket_.m_kSellItemDBUpdate.m_iTotalSoldItemQuantity
+		% kPacket_.m_kSellItemDBUpdate.m_iTotalSellCommissionED
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_PShopItem", L"%d, %d, %d, %d, %d, %d",
 		% kPacket_.m_iHostUnitUID
 		% kPacket_.m_kSellItemDBUpdate.m_iItemUID
@@ -1995,7 +2258,7 @@ IMPL_ON_FUNC( DBE_BUY_PSHOP_AGENCY_ITEM_REQ )
 		% kPacket_.m_kSellItemDBUpdate.m_iTotalSoldItemQuantity
 		% kPacket_.m_kSellItemDBUpdate.m_iTotalSellCommissionED
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket_.m_iOK );
@@ -2032,11 +2295,17 @@ IMPL_ON_FUNC( DBE_STOP_SALE_PSHOP_AGENCY_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
 	// 대리상점 거래 중지 요청
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GPShopInfo_UPD_OnOff", L"%d, %d",
+		% kPacket_.m_iUnitUID
+		% false
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_PShop_info_On_Off", L"%d, %d",
 		% kPacket_.m_iUnitUID
 		% false
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -2071,7 +2340,11 @@ IMPL_ON_FUNC( DBE_PICK_UP_FROM_PSHOP_AGENCY_REQ )
 	// SP 쿼리를 만들어 보자
 	//{{ 2013. 05. 28	최육사	아이템 개편
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef SERV_ALL_RENEWAL_SP
+	std::wstring wstrQuerySP = L"exec dbo.P_GPShopInfo_INS_TradeNew ";
+#else //SERV_ALL_RENEWAL_SP
 	std::wstring wstrQuerySP = L"exec dbo.P_GItem_Total_Pshop_New ";
+#endif //SERV_ALL_RENEWAL_SP
 #else
 	std::wstring wstrQuerySP = L"exec dbo.P_GItem_Total_Pshop ";
 #endif SERV_NEW_ITEM_SYSTEM_2013_05
@@ -2119,20 +2392,27 @@ IMPL_ON_FUNC( DBE_PICK_UP_FROM_PSHOP_AGENCY_REQ )
 	DO_QUERY_NO_ARG( wstrQuerySP.c_str() );
 
 	// 아이템은 9개 이므로 9개로 고정한다.
-	UidType iItemUID[9] = {0,};
+	UidType iItemUID[SEnum::PAE_SELL_ITEM_LIMIT_NUM] = {0,};
 
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK
-			>> iItemUID[0]			// 판매되는 아이템
-			>> iItemUID[1]
-			>> iItemUID[2]
-			>> iItemUID[3]
-			>> iItemUID[4]
-			>> iItemUID[5]
-			>> iItemUID[6]
-			>> iItemUID[7]
-			>> iItemUID[8]	);
+            >> iItemUID[0]
+            >> iItemUID[1]
+            >> iItemUID[2]
+            >> iItemUID[3]
+            >> iItemUID[4]
+            >> iItemUID[5]
+            >> iItemUID[6]
+            >> iItemUID[7]
+            >> iItemUID[8]	
+            >> iItemUID[9]
+            >> iItemUID[10]
+            >> iItemUID[11]
+            >> iItemUID[12]
+            >> iItemUID[13]
+            >> iItemUID[14]
+            );
 
 		m_kODBC.EndFetch();
 
@@ -2140,6 +2420,7 @@ IMPL_ON_FUNC( DBE_PICK_UP_FROM_PSHOP_AGENCY_REQ )
 		{
 			START_LOG( cerr, L"대리상점 회수 SP 호출이 실패 했습니다." )
 				<< BUILD_LOG( kPacket.m_iOK )
+                << BUILD_LOG( GET_LAST_QUERY() )
 				<< END_LOG;
 
 			// 실패 처리
@@ -2184,11 +2465,17 @@ IMPL_ON_FUNC( DBE_PICK_UP_FROM_PSHOP_AGENCY_REQ )
 
 	BOOST_TEST_FOREACH( const UidType, iItemUID, kPacket_.m_vecPickUpItemList )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GPShopItem_UPD_Delete", L"%d, %d",
+			% iItemUID
+			% SEnum::PIDR_PICK_UP
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_delete_GPShop_Item", L"%d, %d",
 			% iItemUID
 			% SEnum::PIDR_PICK_UP
 			);
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			FETCH_DATA( kPacket.m_iOK );
@@ -2219,27 +2506,6 @@ end_proc:
 #endif SERV_PSHOP_AGENCY
 //}}
 
-//{{ 2011. 10. 26	최육사	DB해킹 트랩
-#ifdef SERV_DB_HACKING_ED_UPDATE_TRAP
-IMPL_ON_FUNC_NOPARAM( DBE_CHECK_DB_HACKING_TRAP_REQ )
-{
-	int iRowCount = 0;
-
-	// 대리상점 거래 중지 요청
-	DO_QUERY_NO_ARG( L"exec dbo.gup_get_scl_count" );
-
-	if( m_kODBC.BeginFetch() )
-	{
-		FETCH_DATA( iRowCount );
-		m_kODBC.EndFetch();
-	}
-
-end_proc:
-	SendToServer( DBE_CHECK_DB_HACKING_TRAP_ACK, iRowCount );
-}
-#endif SERV_DB_HACKING_ED_UPDATE_TRAP
-//}}
-
 //{{ 2011. 11. 3	최육사	헤니르 시공 랭킹 보상 안전성 패치
 #ifdef SERV_HENIR_RANKING_TITLE_REWARD_FIX
 IMPL_ON_FUNC( DBE_INSERT_TITLE_REQ )
@@ -2253,21 +2519,37 @@ IMPL_ON_FUNC( DBE_INSERT_TITLE_REQ )
 #ifdef SERV_TITLE_ITEM_NEW
 	if( kPacket_.m_bExpandPeriod )
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GTitle_Complete_UPD_EndDate", L"%d, %d, %d",
+			% kPacket_.m_iUnitUID
+			% kPacket_.m_iTitleID
+			% kPacket_.m_sPeriod
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_update_title", L"%d, %d, %d",
 			% kPacket_.m_iUnitUID
 			% kPacket_.m_iTitleID
 			% kPacket_.m_sPeriod
 			);
+#endif //SERV_ALL_RENEWAL_SP
 	}
 	else
 #endif SERV_TITLE_ITEM_NEW
 		//}}
 	{
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GTitle_Complete_MER", L"%d, %d, %d",
+			% kPacket_.m_iUnitUID
+			% kPacket_.m_iTitleID
+			% kPacket_.m_sPeriod
+			);
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.gup_insert_Title", L"%d, %d, %d",
 			% kPacket_.m_iUnitUID
 			% kPacket_.m_iTitleID
 			% kPacket_.m_sPeriod
 			);
+#endif //SERV_ALL_RENEWAL_SP
 	}
 
 	if( m_kODBC.BeginFetch() )
@@ -2304,8 +2586,11 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 	kPacket.m_iItemUID = kPacket_.m_iItemUID;
 
 	// 1. 길드 창단 가능한지 체크
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuildMember_SEL_Check", L"%d, N\'%s\'", % kPacket_.m_iUnitUID % kPacket_.m_wstrGuildName );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_create_guild_check", L"%d, N\'%s\'", % kPacket_.m_iUnitUID % kPacket_.m_wstrGuildName );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -2343,19 +2628,37 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 
 	// 2. 길드 생성
 #ifdef SERV_CREATE_GUILD_EVENT
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_INS", L"%d, N\'%s\', %d, N\'%s\'", 
+		% kPacket_.m_iUnitUID 
+		% kPacket_.m_wstrGuildName
+		% 30
+		% kPacket_.m_wstrGuildMessage
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_create_guild", L"%d, N\'%s\', %d, N\'%s\'", 
 		% kPacket_.m_iUnitUID 
 		% kPacket_.m_wstrGuildName
 		% 30
 		% kPacket_.m_wstrGuildMessage
 		);
+#endif //SERV_ALL_RENEWAL_SP
 #else //SERV_CREATE_GUILD_EVENT
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_INS", L"%d, N\'%s\', %d, N\'%s\'", 
+		% kPacket_.m_iUnitUID 
+		% kPacket_.m_wstrGuildName
+		% 20
+		% kPacket_.m_wstrGuildMessage
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_create_guild", L"%d, N\'%s\', %d, N\'%s\'", 
 		% kPacket_.m_iUnitUID 
 		% kPacket_.m_wstrGuildName
 		% 20
 		% kPacket_.m_wstrGuildMessage
 		);
+#endif //SERV_ALL_RENEWAL_SP
 #endif //SERV_CREATE_GUILD_EVENT
 
 	if( m_kODBC.BeginFetch() )
@@ -2406,12 +2709,17 @@ IMPL_ON_FUNC( DBE_CREATE_GUILD_REQ )
 	//{{ 2009. 12. 3  최육사	길드스킬
 	// 3. 길드 스킬 포인트
 #ifdef GUILD_SKILL_TEST
-
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SkillPoint_MER", L"%d, %d",
+		% kPacket.m_kCreatedGuildInfo.m_iGuildUID
+		% 1
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_update_guild_skill_point", L"%d, %d",
 		% kPacket.m_kCreatedGuildInfo.m_iGuildUID
 		% 1
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -2454,8 +2762,11 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_NAME_CHECK_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
 	// 길드 이름 유효성 검사
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SEL_CheckName", L"N\'%s\'", % kPacket_.m_wstrNewGuildName );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_GGuild_Name_CHK", L"N\'%s\'", % kPacket_.m_wstrNewGuildName );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -2486,11 +2797,17 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_NAME_REQ )
 
 	// 길드 이름 변경
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_UPD_Name", L"%d, N\'%s\'", 
+		% kPacket_.m_iGuildUID
+		% kPacket_.m_wstrNewGuildName
+		);
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_GGuild_Name_UPT", L"%d, N\'%s\'", 
 		% kPacket_.m_iGuildUID
 		% kPacket_.m_wstrNewGuildName
 		);
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK );
@@ -2519,8 +2836,11 @@ IMPL_ON_FUNC( DBE_CHANGE_GUILD_NAME_REQ )
 	kPacket.m_wstrOldGuildName = kPacket_.m_wstrOldGuildName;
 
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GGuild_SEL", L"%d", % kPacket_.m_iGuildUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_get_guild_info", L"%d", % kPacket_.m_iGuildUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK
@@ -2562,8 +2882,11 @@ _IMPL_ON_FUNC( DBE_CHECK_NICKNAME_FOR_INVITE_PARTY_REQ, KELG_INVITE_PARTY_FIND_R
 	kPacket.m_iHostUnitUID = kPacket_.m_iHostUnitUID;
 
 	// 닉네임 찾기!
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GUnitNickName_SEL_UnitUIDByNickname", L"N\'%s\'", % kPacket_.m_wstrReceiverNickName );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.gup_get_unit_uid", L"N\'%s\'", % kPacket_.m_wstrReceiverNickName );
-
+#endif //SERV_ALL_RENEWAL_SP
 	UidType iUnitUID = 0;
 	if( m_kODBC.BeginFetch() )
 	{
@@ -2594,8 +2917,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_GAME_LOCAL_RANKING_INIT_INFO_REQ )
 	kPacket.m_iOK = NetError::ERR_ODBC_01;
 
 	// 시스템 정보 읽기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_GFriendSystem_LastReset_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.P_GFriendSystem_LastReset_GET" );
-
+#endif //SERV_ALL_RENEWAL_SP
 	// 최초라서 데이터가 없다면, DB가 알아서 당일 정보를 기록한 뒤 되돌려 준다.
 	if( m_kODBC.BeginFetch() )
 	{
@@ -2607,8 +2933,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_GAME_LOCAL_RANKING_INIT_INFO_REQ )
 	}
 
 	// 랭커 정보 읽기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_GFriendSystem_Ranker_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.P_GFriendSystem_RankerInfo_GET" );
-
+#endif //SERV_ALL_RENEWAL_SP
 	while( m_kODBC.Fetch() )
 	{
 		UidType iUnitUID;
@@ -2623,8 +2952,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_GAME_LOCAL_RANKING_INIT_INFO_REQ )
 	for( std::map<UidType, UidType>::const_iterator it = kPacket.m_mapRankerUIDInfo.begin(); it != kPacket.m_mapRankerUIDInfo.end(); ++it )
 	{
 		// 랭커 유닛 정보 읽기
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GFriendSystem_UnitInfo_SEL", L"%d", % it->first );
+#else //SERV_ALL_RENEWAL_SP
 		DO_QUERY( L"exec dbo.P_GFriendSystem_UnitInfo_GET", L"%d", % it->first );
-
+#endif //SERV_ALL_RENEWAL_SP
 		if( m_kODBC.BeginFetch() )
 		{
 			KLocalRankingUnitInfo kUnitInfo;
@@ -2660,8 +2992,11 @@ _IMPL_ON_FUNC( DBE_LOCAL_RANKING_RESET_REQ, int )
 	kPacket.m_iUID	= kPacket_;
 
 	// 초기화 작업 및 UID 갱신
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GFriendSystem_Ranker_DEL_Weekly", L"%d", % kPacket_ );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_GFriendSystem_Reset", L"%d", % kPacket_ );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK
@@ -2707,8 +3042,11 @@ IMPL_ON_FUNC_NOPARAM( DBE_LOCAL_RANKING_RESET_CHECK_REQ )
 	std::wstring	wstrResetTime;
 
 	// 시스템 정보 읽기
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY_NO_ARG( L"exec dbo.P_GFriendSystem_LastReset_SEL" );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY_NO_ARG( L"exec dbo.P_GFriendSystem_LastReset_GET" );
-
+#endif //SERV_ALL_RENEWAL_SP
 	// 최초라서 데이터가 없다면, DB가 알아서 당일 정보를 기록한 뒤 되돌려 준다.
 	if( m_kODBC.BeginFetch() )
 	{
@@ -2732,8 +3070,11 @@ _IMPL_ON_FUNC( DBE_GAME_LOCAL_RANKING_WATCH_UNIT_REQ, KELG_LOCAL_RANKING_WATCH_U
 	kPacket.m_iRequestUnitUID		= kPacket_.m_iRequestUnitUID;
 
 	// 유저 정보
+#ifdef SERV_ALL_RENEWAL_SP
+	DO_QUERY( L"exec dbo.P_GFriendSystem_LogoffUserInfo_SEL", L"%d", % kPacket_.m_iTargetUnitUID );
+#else //SERV_ALL_RENEWAL_SP
 	DO_QUERY( L"exec dbo.P_GFriendSystem_LogoffUserInfo_GET", L"%d", % kPacket_.m_iTargetUnitUID );
-
+#endif //SERV_ALL_RENEWAL_SP
 	if( m_kODBC.BeginFetch() )
 	{
 		FETCH_DATA( kPacket.m_iOK
@@ -2784,17 +3125,6 @@ IMPL_ON_FUNC_NOPARAM( DBE_LOAD_WEDDING_HALL_INFO_REQ )
 				 >> kWedding.m_cOfficiantNPC
 				 >> kWedding.m_wstrWeddingDate
 				 >> kWedding.m_wstrWeddingMsg );
-
-		// 받아온 정보가 유효한지에 대한 
-		START_LOG( cerr, L"[테스트]결혼 예약 데이터 확인" )
-			<< BUILD_LOG( kWedding.m_iWeddingUID )
-			<< BUILD_LOG( kWedding.m_iGroom )
-			<< BUILD_LOG( kWedding.m_iBride )
-			<< BUILD_LOGc( kWedding.m_cWeddingHallType )
-			<< BUILD_LOGc( kWedding.m_cOfficiantNPC )
-			<< BUILD_LOG( kWedding.m_wstrWeddingDate )
-			<< BUILD_LOG( kWedding.m_wstrWeddingMsg )
-			<< END_LOG;
 
 		kPacket.m_mapWeddingInfo.insert( std::make_pair(kWedding.m_iWeddingUID, kWedding ) );
 
@@ -2893,13 +3223,47 @@ _IMPL_ON_FUNC( DBE_RELATIONSHIP_INFO_GAME_DB_REQ, KELG_RELATIONSHIP_INFO_REQ )
 		kAck.m_iOK = NetError::ERR_ODBC_01;
 
 		// 보유 아이템을 얻는다.
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+#ifdef SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GItem_SEL_EquippedItemList", L"%d", % kPacket_.m_iAcceptUnitUID );
+#else //SERV_ALL_RENEWAL_SP
+		DO_QUERY( L"exec dbo.P_GItem_Equipped_Item_SEL", L"%d", % kPacket_.m_iAcceptUnitUID );
+#endif //SERV_ALL_RENEWAL_SP
+#else // SERV_BATTLE_FIELD_BOSS
 		DO_QUERY( L"exec dbo.gup_get_equipped_item_list", L"%d", % kPacket_.m_iAcceptUnitUID );
+#endif // SERV_BATTLE_FIELD_BOSS
 		while( m_kODBC.Fetch() )
 		{
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+			const byte byteArraySize = 5;
+#else // SERV_BATTLE_FIELD_BOSS
+			const byte byteArraySize = 4;
+#endif // SERV_BATTLE_FIELD_BOSS
+			int arrSocketOption[byteArraySize];
+			memset( arrSocketOption, 0, sizeof(int) * byteArraySize );
+
 			int iEnchantLevel = 0;
-			int arrSocketOption[4] = {0,0,0,0};
 			KInventoryItemInfo kInventoryItemInfo;
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+			FETCH_DATA( kInventoryItemInfo.m_iItemUID
+				>> kInventoryItemInfo.m_kItemInfo.m_iItemID
+				>> kInventoryItemInfo.m_kItemInfo.m_cUsageType
+				>> kInventoryItemInfo.m_kItemInfo.m_iQuantity
+				>> kInventoryItemInfo.m_kItemInfo.m_sEndurance
+				>> kInventoryItemInfo.m_kItemInfo.m_sPeriod
+				>> kInventoryItemInfo.m_kItemInfo.m_wstrExpirationDate
+				>> iEnchantLevel
+				>> arrSocketOption[0]
+				>> arrSocketOption[1]
+				>> arrSocketOption[2]
+				>> arrSocketOption[3]
+				>> arrSocketOption[4]
+				>> kInventoryItemInfo.m_kItemInfo.m_byteExpandedSocketNum
+				>> kInventoryItemInfo.m_cSlotCategory
+				>> kInventoryItemInfo.m_sSlotID
+				);
+#else // SERV_BATTLE_FIELD_BOSS
 			FETCH_DATA( kInventoryItemInfo.m_iItemUID
 				>> kInventoryItemInfo.m_kItemInfo.m_iItemID
 				>> kInventoryItemInfo.m_kItemInfo.m_cUsageType
@@ -2914,6 +3278,7 @@ _IMPL_ON_FUNC( DBE_RELATIONSHIP_INFO_GAME_DB_REQ, KELG_RELATIONSHIP_INFO_REQ )
 				>> arrSocketOption[3]
 				>> kInventoryItemInfo.m_cSlotCategory
 					>> kInventoryItemInfo.m_sSlotID );
+#endif // SERV_BATTLE_FIELD_BOSS
 
 
 				//{{ 2008. 2. 20  최육사  강화
@@ -2921,8 +3286,8 @@ _IMPL_ON_FUNC( DBE_RELATIONSHIP_INFO_GAME_DB_REQ, KELG_RELATIONSHIP_INFO_REQ )
 				//}}
 
 				//{{ 2008. 3. 7  최육사  소켓
-				int iCheckIdx;
-				for( iCheckIdx = 3; iCheckIdx >= 0; --iCheckIdx )
+				int iCheckIdx = byteArraySize;
+				while( 0 <= --iCheckIdx )
 				{
 					if( arrSocketOption[iCheckIdx] != 0 )
 						break;
@@ -2977,8 +3342,11 @@ _IMPL_ON_FUNC( DBE_WEDDING_ITEM_FIND_INFO_REQ, KELG_WEDDING_ITEM_FIND_INFO_REQ )
 		if( mit->second.m_wstrGroom.empty() == true && mit->second.m_iGroom > 0 )
 		{
 			int iOK = 0;
+#ifdef SERV_ALL_RENEWAL_SP
+			DO_QUERY( L"exec dbo.P_GUnitNickName_SEL_ByUnitUID", L"%d", % mit->second.m_iGroom );
+#else //SERV_ALL_RENEWAL_SP
 			DO_QUERY( L"exec dbo.P_GUnitNickName_SEL_UnitUID", L"%d", % mit->second.m_iGroom );
-
+#endif //SERV_ALL_RENEWAL_SP
 			if( m_kODBC.BeginFetch() )
 			{
 				FETCH_DATA( iOK
@@ -2998,8 +3366,11 @@ _IMPL_ON_FUNC( DBE_WEDDING_ITEM_FIND_INFO_REQ, KELG_WEDDING_ITEM_FIND_INFO_REQ )
 		if( mit->second.m_wstrBride.empty() == true && mit->second.m_iBride > 0 )
 		{
 			int iOK = 0;
+#ifdef SERV_ALL_RENEWAL_SP
+			DO_QUERY( L"exec dbo.P_GUnitNickName_SEL_ByUnitUID", L"%d", % mit->second.m_iBride );
+#else //SERV_ALL_RENEWAL_SP
 			DO_QUERY( L"exec dbo.P_GUnitNickName_SEL_UnitUID", L"%d", % mit->second.m_iBride );
-
+#endif //SERV_ALL_RENEWAL_SP
 			if( m_kODBC.BeginFetch() )
 			{
 				FETCH_DATA( iOK
@@ -3028,3 +3399,149 @@ end_proc:
 }
 #endif SERV_RELATIONSHIP_SYSTEM
 //}
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM
+void KLoginGameDBThread::GetPShopItem( IN const UidType& iUnitUID_, OUT std::vector< KSellPersonalShopItemInfo >& vecSellItemInfo_ )
+{
+#ifdef SERV_AGENCY_SHOP_ITEM_EVALUATE_FIX // 김민성 // 적용날짜: 2013-07-11
+    DO_QUERY( L"exec dbo.P_GPShopItem_SEL", L"%d", % iUnitUID_ );
+#else	// SERV_AGENCY_SHOP_ITEM_EVALUATE_FIX
+    DO_QUERY( L"exec dbo.gup_get_PShopItem_Inventory_by_UnitUID", L"%d", % kInfo.m_iUnitUID );
+#endif // SERV_AGENCY_SHOP_ITEM_EVALUATE_FIX
+    while( m_kODBC.Fetch() )
+    {
+        KSellPShopItemBackupData kItemInfo;
+        kItemInfo.m_kSellPShopItemInfo.m_cPShopItemType = KSellPersonalShopItemInfo::SPIT_PSHOP_AGENCY;
+
+        //{{ 2011. 07. 25    김민성    아이템 옵션ID 데이터 사이즈 증가
+#ifdef SERV_ITEM_OPTION_DATA_SIZE
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+		const byte byteArraySize = 5;
+#else // SERV_BATTLE_FIELD_BOSS
+		const byte byteArraySize = 4;
+#endif // SERV_BATTLE_FIELD_BOSS
+		int arrSocketOption[byteArraySize];
+		memset( arrSocketOption, 0, sizeof(int) * byteArraySize );
+#else
+        short arrSocketOption[4] = {0};
+#endif SERV_ITEM_OPTION_DATA_SIZE
+        //}} 
+
+#ifdef SERV_AGENCY_SHOP_ITEM_EVALUATE_FIX // 김민성 // 적용날짜: 2013-07-11
+        int arrRandomSocketOption[5] = {0};
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-11-20	// 박세훈
+		FETCH_DATA( kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_iItemUID
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iItemID
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_cUsageType
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iQuantity
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_sEndurance
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_ucSealData
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_cEnchantLevel
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant0
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant1
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant2
+			>> arrSocketOption[0]
+			>> arrSocketOption[1]
+			>> arrSocketOption[2]
+			>> arrSocketOption[3]
+			>> arrSocketOption[4]
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_byteExpandedSocketNum
+			>> arrRandomSocketOption[0]
+			>> arrRandomSocketOption[1]
+			>> arrRandomSocketOption[2]
+			>> arrRandomSocketOption[3]
+			>> arrRandomSocketOption[4]
+			>> kItemInfo.m_kSellPShopItemInfo.m_iPricePerOne
+			>> kItemInfo.m_kSellPShopItemInfo.m_iFeePerOne
+			>> kItemInfo.m_kSellPShopItemInfo.m_iTotalSellEDIn
+			>> kItemInfo.m_iTotalSoldItemQuantity
+			>> kItemInfo.m_iTotalSellCommissionED
+			>> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_cSlotCategory					
+			);
+#else // SERV_BATTLE_FIELD_BOSS
+        FETCH_DATA( kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_iItemUID
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iItemID
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_cUsageType
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iQuantity
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_sEndurance
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_ucSealData
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_cEnchantLevel
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant0
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant1
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant2
+            >> arrSocketOption[0]
+        >> arrSocketOption[1]
+        >> arrSocketOption[2]
+        >> arrSocketOption[3]
+        >> arrRandomSocketOption[0]
+        >> arrRandomSocketOption[1]
+        >> arrRandomSocketOption[2]
+        >> arrRandomSocketOption[3]
+        >> arrRandomSocketOption[4]
+        >> kItemInfo.m_kSellPShopItemInfo.m_iPricePerOne
+            >> kItemInfo.m_kSellPShopItemInfo.m_iFeePerOne
+            >> kItemInfo.m_kSellPShopItemInfo.m_iTotalSellEDIn
+            >> kItemInfo.m_iTotalSoldItemQuantity
+            >> kItemInfo.m_iTotalSellCommissionED
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_cSlotCategory					
+            );
+#endif // SERV_BATTLE_FIELD_BOSS
+
+        int iCheckRandomIdx;
+        for( iCheckRandomIdx = 4; iCheckRandomIdx >= 0; --iCheckRandomIdx )
+        {
+            if( arrRandomSocketOption[iCheckRandomIdx] != 0 )
+                break;
+        }
+
+        for( int iIdx = 0; iIdx <= iCheckRandomIdx; ++iIdx )
+        {
+            kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_vecRandomSocket.push_back( arrRandomSocketOption[iIdx] );
+        }
+
+#else	// SERV_AGENCY_SHOP_ITEM_EVALUATE_FIX
+
+        FETCH_DATA( kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_iItemUID
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iItemID
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_cUsageType
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_iQuantity
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_sEndurance
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_ucSealData
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_cEnchantLevel
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant0
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant1
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_kAttribEnchantInfo.m_cAttribEnchant2
+            >> arrSocketOption[0]
+        >> arrSocketOption[1]
+        >> arrSocketOption[2]
+        >> arrSocketOption[3]
+        >> kItemInfo.m_kSellPShopItemInfo.m_iPricePerOne
+            >> kItemInfo.m_kSellPShopItemInfo.m_iFeePerOne
+            >> kItemInfo.m_kSellPShopItemInfo.m_iTotalSellEDIn
+            >> kItemInfo.m_iTotalSoldItemQuantity
+            >> kItemInfo.m_iTotalSellCommissionED
+            >> kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_cSlotCategory
+            );
+#endif	// SERV_AGENCY_SHOP_ITEM_EVALUATE_FIX
+
+		int iCheckIdx = byteArraySize;
+		while( 0 <= --iCheckIdx )
+		{
+			if( arrSocketOption[iCheckIdx] != 0 )
+				break;
+		}
+
+        for( int iIdx = 0; iIdx <= iCheckIdx; ++iIdx )
+        {
+            kItemInfo.m_kSellPShopItemInfo.m_kInventoryItemInfo.m_kItemInfo.m_vecItemSocket.push_back( arrSocketOption[iIdx] );
+        }
+
+        vecSellItemInfo_.push_back( kItemInfo.m_kSellPShopItemInfo );
+    }
+
+end_proc:
+    ;
+
+}
+#endif

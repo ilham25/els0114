@@ -1,12 +1,18 @@
 #include "XSLSkillTree.h"
 
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+ImplementRefreshSingleton( CXSLSkillTree );
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 ImplementSingleton( CXSLSkillTree );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 
 
 
 #ifdef SERV_UPGRADE_SKILL_SYSTEM_2013 // 적용날짜: 2013-06-27
 CXSLSkillTree::CXSLSkillTree(void)
 {
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	lua_tinker::class_add<CXSLSkillTree>( g_pLua, "CXSLSkillTree" );
 	lua_tinker::class_def<CXSLSkillTree>( g_pLua, "AddSkillTemplet_LUA",			&CXSLSkillTree::AddSkillTemplet_LUA );
 	lua_tinker::class_def<CXSLSkillTree>( g_pLua, "AddSkillTreeTemplet_LUA",		&CXSLSkillTree::AddSkillTreeTemplet_LUA );
@@ -16,6 +22,7 @@ CXSLSkillTree::CXSLSkillTree(void)
 	lua_tinker::class_def<CXSLSkillTree>( g_pLua, "AddDefaultSkill_LUA",			&CXSLSkillTree::AddDefaultSkill_LUA );
 
 	lua_tinker::decl( g_pLua, "g_pSkillTree", this );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 }
 
 CXSLSkillTree::~CXSLSkillTree(void)
@@ -32,7 +39,20 @@ ImplToStringW( CXSLSkillTree )
 	return stm_;
 }
 
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-12	// 박세훈
+ImplementLuaScriptParser( CXSLSkillTree )
+{
+	lua_tinker::class_add<CXSLSkillTree>( GetLuaState(), "CXSLSkillTree" );
+	lua_tinker::class_def<CXSLSkillTree>( GetLuaState(), "AddSkillTemplet_LUA",			&CXSLSkillTree::AddSkillTemplet_LUA );
+	lua_tinker::class_def<CXSLSkillTree>( GetLuaState(), "AddSkillTreeTemplet_LUA",		&CXSLSkillTree::AddSkillTreeTemplet_LUA );
+	lua_tinker::class_def<CXSLSkillTree>( GetLuaState(), "AddSealSkillInfo",				&CXSLSkillTree::AddSealSkillInfo_LUA );
+	lua_tinker::class_def<CXSLSkillTree>( GetLuaState(), "AddGuildSkillTreeTemplet_LUA",	&CXSLSkillTree::AddGuildSkillTreeTemplet_LUA );	
+	lua_tinker::class_def<CXSLSkillTree>( GetLuaState(), "AddSkillPowerRate_LUA",			&CXSLSkillTree::AddSkillPowerRate_LUA );
+	lua_tinker::class_def<CXSLSkillTree>( GetLuaState(), "AddDefaultSkill_LUA",			&CXSLSkillTree::AddDefaultSkill_LUA );
 
+	lua_tinker::decl( GetLuaState(), "g_pSkillTree", this );
+}
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 bool CXSLSkillTree::OpenScriptFile( const char* pFileName )
 {	
 	_JIF( 0 == LUA_DOFILE( g_pLua, pFileName ), return false );
@@ -41,6 +61,7 @@ bool CXSLSkillTree::OpenScriptFile( const char* pFileName )
 
 	return true;
 }
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 
 void CXSLSkillTree::OpenScriptFilePostProcess()
 {
@@ -117,7 +138,11 @@ void CXSLSkillTree::OpenScriptFilePostProcess()
 
 bool CXSLSkillTree::AddSkillTreeTemplet_LUA()
 {
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-14	// 박세훈
+	KLuaManager luaManager( GetLuaState() );
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	KLuaManager luaManager( g_pLua );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 
 	int iSkillID = 0;
 	LUA_GET_VALUE( luaManager, 		L"m_iSkillID",				iSkillID,				0 );
@@ -158,7 +183,11 @@ bool CXSLSkillTree::AddSkillTreeTemplet_LUA()
 
 bool CXSLSkillTree::AddGuildSkillTreeTemplet_LUA()
 {
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-14	// 박세훈
+	KLuaManager luaManager( GetLuaState() );
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	KLuaManager luaManager( g_pLua );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 
 	int iSkillID = 0;
 	LUA_GET_VALUE( luaManager, 		L"m_iSkillID",				iSkillID,				0 );
@@ -194,7 +223,11 @@ bool CXSLSkillTree::AddGuildSkillTreeTemplet_LUA()
 
 bool CXSLSkillTree::AddSkillTemplet_LUA()
 {
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-14	// 박세훈
+	KLuaManager luaManager( GetLuaState() );
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	KLuaManager luaManager( g_pLua );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 
 	SkillTemplet skillTemplet;
 	
@@ -634,7 +667,11 @@ int CXSLSkillTree::GetMasterGuildSkillLevel( int iGuildSkillID )
 
 bool CXSLSkillTree::AddSealSkillInfo_LUA()
 {
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-14	// 박세훈
+	KLuaManager luaManager( GetLuaState() );
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	KLuaManager luaManager( g_pLua );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	
 	int iItemID = 0;
 	int iUnitClassType = CXSLUnit::UCT_NONE;
@@ -781,7 +818,7 @@ bool CXSLSkillTree::GetCalcLevelUpIncreaseSkillPoint( IN u_char ucLevel, OUT int
 	return true;
 }
 
-bool CXSLSkillTree::GetCalcInitSkillPoint( IN u_char ucLevel, OUT int& iSkillPoint )
+bool CXSLSkillTree::GetCalcInitSkillPoint( IN u_char ucLevel, OUT int& iSkillPoint ) const
 {
 	iSkillPoint = 0;
 
@@ -1014,7 +1051,11 @@ void CXSLSkillTree::AddSkillPowerRate_LUA()
 
 bool CXSLSkillTree::AddDefaultSkill_LUA()
 {
+#ifdef SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2// 작업날짜: 2013-08-14	// 박세훈
+	KLuaManager luaManager( GetLuaState() );
+#else // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 	KLuaManager luaManager( g_pLua );
+#endif // SERV_REALTIME_SCRIPT_NEWSKILLTEMPLETVER2
 
 	int iTableIndex = 1;	/// 테이블 인덱스 ( Lua는 테이블 첫번째 인덱스가 1 )
 	int iValue		= -1;	/// 전달값

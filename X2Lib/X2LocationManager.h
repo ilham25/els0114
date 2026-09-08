@@ -66,13 +66,13 @@ class CX2LocationManager
 		//}} 김상훈 : 2010.11.19
 
 			//{{ JHKang / 강정훈 / 2011/01/19 / 하멜 하우스
-			#ifdef SEASON3_MONSTER_2010_12
+		//#ifdef SEASON3_MONSTER_2010_12
 			HI_HORATIO,		/// 호레이쇼(대장장이)
 			HI_LUCY,		/// 루시(액세서리)
 			HI_DAISY,		/// 데이지(비서)
 			HI_PENENSIO,	/// 페넨시오(붉은기사단 십부장)
 			HI_DENKA,		/// 덴카(연금술사)
-			#endif SEASON3_MONSTER_2010_12
+		//#endif SEASON3_MONSTER_2010_12
 			//}} JHKang / 강정훈 / 2011/01/19 / 하멜 하우스
 
 			//{{ JHKang / 강정훈 / 2011/03/29 / 식목일 만드라실
@@ -89,33 +89,41 @@ class CX2LocationManager
 			HI_APINK,
 			HI_APINK_ARCHANGEL,	// 에이핑크 대천사 NPC
 
-			HI_DARKMOON,	/// JHKang / 강정훈 / 2012.09.24 / 한가위 마을 NPC
+			HI_DARKMOON,			/// JHKang / 강정훈 / 2012.09.24 / 한가위 마을 NPC
 
-			HI_MEGUPOID,	/// 40052,	// 일본 이벤트 NPC 메구포이드
-			HI_ROSEANG,		/// 40053,	// 샌더 액세사리  로즈앙
-			HI_EMIRATE,		/// 40054,	// 샌더 촌장 에미리트
-			HI_VAPOR,		/// 40055,	// 샌더 연금술사 바포르
-			HI_DAPPAR,		/// 40056,	// 샌더 대장상인 다파르
+			HI_MEGUPOID,			///	일본 이벤트 NPC 메구포이드
+			
+			HI_ROSEANG,				/// 샌더 액세사리  로즈앙
+			HI_EMIRATE,				/// 샌더 촌장 에미리트
+			HI_VAPOR,				/// 샌더 연금술사 바포르
+			HI_DAPPAR,				/// 샌더 대장상인 다파르
 
-			HI_EVENT_GRAIL,	/// 그레일 이벤트
+			HI_EVENT_GRAIL,			/// 그레일 이벤트
 
-			HI_EVENT_BENDERS,  //이벤트 앙드레 벤더스
+			HI_EVENT_BENDERS,		/// 이벤트 앙드레 벤더스
 
-			HI_EVENT_CRAYONPOP,	/// 이벤트 크래용팝
+			HI_EVENT_CRAYONPOP,		/// 이벤트 크래용팝
+
+			HI_EVENT_MOON_RABBIT,	/// 이벤트 달토끼
+			HI_EVENT_SHEATH_NIGHT = 40061, //EVENT_NPC_STANDING_VILLAGE
+			HI_EVENT_INFINITY_SWORD = 40062, //EVENT_NPC_STANDING_VILLAGE
+			HI_EVENT_LIRE_NIGHT_WATCHER	=   40063, //--ALWAYS_EVENT_LIRE_NIGHT_WATCHER_NPC
+			HI_EVENT_ADAMS_UI_SHOP	= 40064, // --ALWAYS_EVENT_ADAMS_UI_SHOP
+			HI_EVENT_DIMENSION_WITCH = 40065, //EVENT_NPC_STANDING_VILLAGE
 		};
 
 		enum LOCAL_MAP_ID
 		{
 			LMI_INVALID = 0,
-			LMI_VELDER_NORTH = 10000,	/// 루벤
-			LMI_VELDER_EAST,			/// 엘더
-			LMI_VELDER_SOUTH,			/// 베스마
-			LMI_ALTERA_ISLAND,			/// 알테라
-			LMI_PEITA,					/// 페이타
-			LMI_VELDER,					/// 벨더
-			LMI_HAMEL,					/// 하멜
-			LMI_SANDER,					/// 샌더
-			LMI_CHINA,					/// 중국이벤트 천조
+			LMI_RUBEN = 10000,	/// 루벤
+			LMI_ELDER,			/// 엘더
+			LMI_BESMA,			/// 베스마
+			LMI_ALTERA_ISLAND,	/// 알테라
+			LMI_PEITA,			/// 페이타
+			LMI_VELDER,			/// 벨더
+			LMI_HAMEL,			/// 하멜
+			LMI_SANDER,			/// 샌더
+			LMI_CHINA,			/// 중국이벤트 천조
 		};
 
 		enum WORLD_MAP_ID
@@ -280,13 +288,11 @@ class CX2LocationManager
 			wstring m_strPersonalShopTalk;
 			//}}
 #endif DEF_TRADE_BOARD
-
 			//{{ 2011.05.04   임규수 아바타 합성 시스템
 #ifdef SERV_SYNTHESIS_AVATAR
 			wstring	m_strSynthesisTalk;
 #endif SERV_SYNTHESIS_AVATAR
 			//}}
-
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 			wstring m_strExchangeNewItemTalk;
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
@@ -304,6 +310,12 @@ class CX2LocationManager
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 			bool m_bExchangeNewItem;
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
+
+#ifdef ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_NEAR // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
+			wstring m_wstrNearSoundFileName;		// 사운드 파일 이름
+			float	m_fPlayNearSoundCoolTime;		// 사운드 출력 재사용 시간
+			float	m_fPlayNearSoundDistance;		// 사운드 출력 조건 ( 거리 )
+#endif // ADD_PLAY_MUSIC_WHEN_VILLAGE_NPC_CLOSE // 마을 NPC 에 일정 거리 이상 가까워지면 n초 간격으로 사운드를 출력하는 기능 추가
 		};
 
 
@@ -335,23 +347,19 @@ class CX2LocationManager
 			SEnum::VILLAGE_MAP_ID					m_DungeonLoungeID;
 			SEnum::VILLAGE_MAP_ID					m_eBattleFieldRestID;
 			int								m_RequireUnitLevel;
-			vector<CX2Dungeon::DUNGEON_ID>	m_DungeonList;
+			vector<SEnum::DUNGEON_ID>	m_DungeonList;
 			wstring							m_ScriptFileName;
 			vector<int>						m_vecRequireClearDungeonID;
 			bool							m_bEnable;
-#ifdef REFORM_UI_WORLDMAP
 			vector<SEnum::VILLAGE_MAP_ID>	m_vecFieldList;
-#endif
 
 
 
 			LocalMapTemplet( const LOCAL_MAP_ID eLocalMapID_, 
 				const SEnum::VILLAGE_MAP_ID eVillageID_, const SEnum::VILLAGE_MAP_ID eDungeonGageID_, 
 				const SEnum::VILLAGE_MAP_ID eDungeonLoungeID_, const SEnum::VILLAGE_MAP_ID eBattleFieldRestID_,
-				const vector<CX2Dungeon::DUNGEON_ID>& vecDungeonIdList_, 
-#ifdef REFORM_UI_WORLDMAP
+				const vector<SEnum::DUNGEON_ID>& vecDungeonIdList_, 
 				const vector<SEnum::VILLAGE_MAP_ID>& vecBattleFieldList_, 
-#endif
 				const wstring& wstrScriptFileName_, const bool bEnable_ )
 				: m_LocalMapID( eLocalMapID_ ), m_VillageID( eVillageID_ ), m_DungeonGateID( eDungeonGageID_ ),
 				m_DungeonLoungeID( eDungeonLoungeID_ ), m_eBattleFieldRestID( eBattleFieldRestID_ ),
@@ -359,9 +367,7 @@ class CX2LocationManager
 				m_ScriptFileName( wstrScriptFileName_ ), m_bEnable( bEnable_ )
 			{
 				m_DungeonList = vecDungeonIdList_;
-#ifdef REFORM_UI_WORLDMAP
 				m_vecFieldList = vecBattleFieldList_;
-#endif
 			}
 		};	
 
@@ -418,14 +424,14 @@ class CX2LocationManager
 		VillageTemplet*		GetVillageMapTemplet( SEnum::VILLAGE_MAP_ID villageMapTemplet );
 		HouseTemplet*		GetHouseTemplet( HOUSE_ID houseID );
 
-		SEnum::VILLAGE_MAP_ID GetDungeonLoungeIDByDungeonID( const CX2Dungeon::DUNGEON_ID eDungeonId_ );
+		SEnum::VILLAGE_MAP_ID GetDungeonLoungeIDByDungeonID( const SEnum::DUNGEON_ID eDungeonId_ );
 
 		SEnum::VILLAGE_MAP_ID GetVillageID( LOCAL_MAP_ID eLocalMapID );	
 		SEnum::VILLAGE_MAP_ID GetDungeonGateID( LOCAL_MAP_ID eLocalMapID );
 		SEnum::VILLAGE_MAP_ID GetDungeonLoungeID( LOCAL_MAP_ID eLocalMapID );
 
 
-		CX2LocationManager::LOCAL_MAP_ID GetLocalMapID( CX2Dungeon::DUNGEON_ID eDungeonID, WORLD_MAP_ID eWorldID = WMI_INVALID );
+		CX2LocationManager::LOCAL_MAP_ID GetLocalMapID( SEnum::DUNGEON_ID eDungeonID, WORLD_MAP_ID eWorldID = WMI_INVALID );
 		CX2LocationManager::LOCAL_MAP_ID GetLocalMapID( SEnum::VILLAGE_MAP_ID eVillageMapID, WORLD_MAP_ID eWorldID = WMI_INVALID );
 
 

@@ -30,7 +30,7 @@ bool CX2CubeOpenImageManager::OpenScriptFile( const WCHAR* pFileName )
 {
 	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pCubeOpenImageManager", this );
 
-	return g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName );
+	return g_pKTDXApp->LoadLuaTinker( pFileName );
 }
 
 
@@ -42,7 +42,9 @@ bool CX2CubeOpenImageManager::AddImageInfo_LUA()
 	std::vector<std::wstring>	vecResultImageName; // 결과 템에 따른 이미지 이름
 
 	KLuaManager luaManager(g_pKTDXApp->GetLuaBinder()->GetLuaState());
+#ifndef X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 	TableBind( &luaManager, g_pKTDXApp->GetLuaBinder());
+#endif X2OPTIMIZE_AVOID_LUA_RUNTIME_INTERPRETING
 
 	LUA_GET_VALUE_RETURN(	luaManager, "ID",			iID,			0,	return false; );
 

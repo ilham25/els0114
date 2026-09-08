@@ -10,13 +10,14 @@ CX2BattleFieldNpcAi::CX2BattleFieldNpcAi( CX2GUNPC* pMasterNpc_, const CNpcCreat
 	: CX2GUNPCAI( pMasterNpc_ ), m_bAggressive( NpcCreatedInfoPtr_->GetAggressive() ), m_bCanTargeting( NpcCreatedInfoPtr_->GetAggressive() ), 
 	m_bCanPatrol( true ), m_bBackState01( false ), m_bBackState02( false ), m_bArriveAtDest( false ), 
  	m_vecPatrolLineMapIndex( NpcCreatedInfoPtr_->GetPetrolLineIndexList() ), 
-	m_ElapsedTimeCheckOnLineMap( 5.0f ), m_ElapsedTimeAfterSuccessToPatrol( 0.0f ), m_ElapsedTimeUpNowHp( 1.0f ),
+	m_ElapsedTimeCheckOnLineMap( 5.0f ), m_ElapsedTimeAfterSuccessToPatrol( 0.0f ), //m_ElapsedTimeUpNowHp( 1.0f ),
  	m_ElapsedTimeComeBackState( 5.0f ), m_vecPlayLineMapIndex( NpcCreatedInfoPtr_->GetPlayLineIndexList() ), 
 	m_fIncreaseHpPercentBySecond( BASIC_INCREASE_HP_PERCENT_BY_SECOND ), m_iCheckLineMapAtFirst( -1 )
 
 #ifdef	BATTLE_FIELD_TEST
 	, m_uiGroupId( NpcCreatedInfoPtr_->GetGroupId() )
 #endif	BATTLE_FIELD_TEST
+
 {
 	SetAIType( NAT_FIELD );
 }
@@ -46,7 +47,11 @@ CX2BattleFieldNpcAi::~CX2BattleFieldNpcAi()
 
 	CheckArrivedDestination();
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    UpNowHpBySecondProcess( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	UpNowHpBySecondProcess();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	// 백스테이트면 Moving만 수행
 	if ( GetBackState01() )
@@ -54,7 +59,11 @@ CX2BattleFieldNpcAi::~CX2BattleFieldNpcAi()
 	
 	if ( GetBackState02() ) 
 	{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_ElapsedTimeComeBackState.OnFrameMove( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_ElapsedTimeComeBackState.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 		if ( m_ElapsedTimeComeBackState.CheckAndResetElapsedTime() )
 		{
@@ -66,11 +75,21 @@ CX2BattleFieldNpcAi::~CX2BattleFieldNpcAi()
 	}
 	
 	// 패트롤 라인맵과 플레이 라인맵의 체크 시간 갱신
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_ElapsedTimeCheckOnLineMap.OnFrameMove( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	m_ElapsedTimeCheckOnLineMap.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	// 패트롤 중이 아니면 경과시간 갱신
 	if ( false == GetNowPatroling() )
+    {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        m_ElapsedTimeAfterSuccessToPatrol.OnFrameMove( fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		m_ElapsedTimeAfterSuccessToPatrol.OnFrameMove();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    }
 
 	if ( m_ElapsedTimeCheckOnLineMap.CheckAndResetElapsedTime() )	// 라인맵 체크시간 검사 및 갱신
 	{
@@ -146,9 +165,14 @@ CX2BattleFieldNpcAi::~CX2BattleFieldNpcAi()
 
 		// 이전 패트롤을 끝내지 않았으면 다시 패트롤 목적지를 갱신하지 않는다.
 		if ( false == GetNowPatroling() && 
-			 RandomInt() < GetAIData()->patrolMoveData.patrolBeginRate && 
-			 m_ElapsedTimeAfterSuccessToPatrol.CheckElapsedTime() &&
-			 Patroling() )
+            m_ElapsedTimeAfterSuccessToPatrol.CheckElapsedTime() && 
+			 Patroling() &&
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+			 CX2GUNPC::EstimateFrameOneshotPercent( GetAIData()->patrolMoveData.patrolBeginRate ) == true
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+             RandomInt() < GetAIData()->patrolMoveData.patrolBeginRate 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            )
 		{
 			m_ElapsedTimeAfterSuccessToPatrol.ResetSumOfElapsedTime();
 			return Moving( fElapsedTime );
@@ -163,15 +187,19 @@ CX2BattleFieldNpcAi::~CX2BattleFieldNpcAi()
 		if( m_fElapsedTimeAfterLastTargeting > GetAIData()->targetData.targetInterval )
 		{
 			m_fElapsedTimeAfterLastTargeting = 0.f;
-			string func = "";
-			ConvertWCHARToChar( func, GetLuaTargetingFunc().c_str() );
+			//string func = "";
+			//ConvertWCHARToChar( func, GetLuaTargetingFunc().c_str() );
 //#ifdef	X2OPTIMIZE_NPC_LUASPACE_SHARING
-			lua_tinker::call<void>( m_pMasterNPC->GetFunctionLuaState(),  func.c_str(), g_pKTDXApp, g_pX2Game, m_pMasterNPC );
+			lua_tinker::call<void>( m_pMasterNPC->GetFunctionLuaState(),  GetLuaTargetingFunc().c_str(), g_pKTDXApp, g_pX2Game, m_pMasterNPC );
 //#else	X2OPTIMIZE_NPC_LUASPACE_SHARING
 //			lua_tinker::call<void>( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  func.c_str(), g_pKTDXApp, g_pX2Game, m_pMasterNPC );
 //#endif	X2OPTIMIZE_NPC_LUASPACE_SHARING
 		}
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        TargetUpdate( true );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		TargetUpdate();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	}
 	else
 	{
@@ -204,6 +232,9 @@ CX2BattleFieldNpcAi::~CX2BattleFieldNpcAi()
 	// TargetingInterval을 체크한다.
 	if ( m_fElapsedTimeAfterLastTargeting < GetAIData()->targetData.targetInterval )
 		return;
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    m_fElapsedTimeAfterLastTargeting = 0.0f;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	// 현재 타겟이 있는 경우 타겟을 유지 할 것인지 처리
 	if ( CanPreserveLastTargetUnit() )
@@ -218,7 +249,13 @@ CX2BattleFieldNpcAi::~CX2BattleFieldNpcAi()
 	// GetAIData()->targetData.targetSuccessRate 확률조건에 성공하면 일반적인 Range 내의 유닛들을 타겟 대상으로 삼는다
 	if ( !m_vecTargetGameUnitListInRange.empty() )
 	{
-		if ( m_vecTargetGameUnitListInNearRange.empty() || RandomInt() < GetAIData()->targetData.targetSuccessRate )
+		if ( m_vecTargetGameUnitListInNearRange.empty() 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            || CX2GUNPC::EstimateFrameOneshotPercent( GetAIData()->targetData.targetSuccessRate ) == true 
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            || RandomInt() < GetAIData()->targetData.targetSuccessRate 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            )
 			SearchingTargetUnit( m_vecTargetGameUnitListInRange );
 		else	// 아니면 무조건 Target이 가능한 유닛들을 대상으로 타겟 유닛을 찾는다.
 			SearchingTargetUnit( m_vecTargetGameUnitListInNearRange );
@@ -284,7 +321,12 @@ bool CX2BattleFieldNpcAi::TargetingGameUnitWhichAttackMe()
 	if ( null != m_optrAttackerGameUnit )	// 자신을 공격한 유닛이 있으면
 	{
 		if ( null == m_optrTargetGameUnit	// 기존에 타겟 중인 유닛이 없거나
-			|| RandomInt() < GetAIData()->targetData.attackTargetRate )	// 공격한 유닛을 타겟할 확률 체크에 성공하면
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            || m_pMasterNPC->EstimateFrameAccumPercent( GetAIData()->targetData.attackTargetRate ) == true
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+			|| RandomInt() < GetAIData()->targetData.attackTargetRate 
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            )	// 공격한 유닛을 타겟할 확률 체크에 성공하면
 		{
 			m_optrTargetGameUnit = m_optrAttackerGameUnit;	// 타겟팅 함
 
@@ -307,7 +349,11 @@ bool CX2BattleFieldNpcAi::CanPreserveLastTargetUnit()
 		return false;	// 타겟이 없는 경우
 
 	// 현재의 타겟을 유지할 확률
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( CX2GUNPC::EstimateFrameOneshotPercent( GetAIData()->targetData.preserveLastTargetRate ) )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	if ( RandomInt() < GetAIData()->targetData.preserveLastTargetRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	{
 		return true;	// 기존의 타겟을 유지 하므로 다시 타겟팅 할 필요 없음
 		
@@ -348,7 +394,11 @@ void CX2BattleFieldNpcAi::GetTargetListInNearRangeOrRange()
 			continue;
 
 		// 타겟이 가능한 거리에 있는데 유닛이 클로킹 중이고, 내가 스캔을 할 수 없으면
-		if ( pGameUnit->GetInvisibility() && false == GetCanScanCloaking( fDistance3Sq ) )
+		if ( pGameUnit->GetInvisibility() && false == GetCanScanCloaking( fDistance3Sq
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            , false
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            ) )
 			continue;
 
 		// 타겟이 가능 하다면
@@ -386,7 +436,11 @@ bool CX2BattleFieldNpcAi::CheckAndResetTargetLost()
 
 	// 타겟중인 유닛이 클로킹 인데 내가 스캔 할 수 없으면
 	if ( m_optrTargetGameUnit->GetInvisibility() && 
-		 GetCanScanCloaking( fDistance3Sq ) )
+		 GetCanScanCloaking( fDistance3Sq
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+         , true
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+         ) )
 		return true;
 
 	return false;
@@ -394,6 +448,10 @@ bool CX2BattleFieldNpcAi::CheckAndResetTargetLost()
 
 void CX2BattleFieldNpcAi::SearchingTargetUnit( IN vector<CX2GameUnit*>& vecTargetCandidateUnitList_ )
 {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    if ( vecTargetCandidateUnitList_.empty() == true )
+        return;
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	switch ( GetAIData()->targetData.targetPriority )
 	{
 	case TP_HIGH_LEVEL_FIRST: 
@@ -464,8 +522,25 @@ void CX2BattleFieldNpcAi::SearchingTargetUnit( IN vector<CX2GameUnit*>& vecTarge
 			}
 		} break;
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+    default:
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 	case TP_RANDOM:
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            float fRate = 0.f;
+            BOOST_FOREACH( CX2GameUnit* pNewTargetCandidateGameUnit_, vecTargetCandidateUnitList_ )
+            {
+                fRate = fRate * 0.5f + 0.5f;
+            }
+            if ( CX2GUNPC::EstimateFrameOneshotPercent( fRate * 100.f ) == true )
+            {
+                if ( vecTargetCandidateUnitList_.size() == 1 )
+                    m_optrTargetGameUnit = vecTargetCandidateUnitList_.front();
+                else
+                    m_optrTargetGameUnit = vecTargetCandidateUnitList_[ rand() % vecTargetCandidateUnitList_.size() ];
+            }
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			BOOST_FOREACH( CX2GameUnit* pNewTargetCandidateGameUnit_, vecTargetCandidateUnitList_ )
 			{
 				if ( RandomInt() < 50 )
@@ -473,11 +548,21 @@ void CX2BattleFieldNpcAi::SearchingTargetUnit( IN vector<CX2GameUnit*>& vecTarge
 					m_optrTargetGameUnit = pNewTargetCandidateGameUnit_;
 					break;
 				}
-			}				
+			}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		} break;
 
 	case TP_ONLY_ONE:
 		{
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            if ( m_optrTargetGameUnit == null )
+            {
+                if ( vecTargetCandidateUnitList_.size() == 1 )
+                    m_optrTargetGameUnit = vecTargetCandidateUnitList_.front();
+                else
+                    m_optrTargetGameUnit = vecTargetCandidateUnitList_[ rand() % vecTargetCandidateUnitList_.size() ];
+            }
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			BOOST_FOREACH( CX2GameUnit* pNewTargetCandidateGameUnit_, vecTargetCandidateUnitList_ )
 			{
 				if ( null == m_optrTargetGameUnit )
@@ -486,6 +571,7 @@ void CX2BattleFieldNpcAi::SearchingTargetUnit( IN vector<CX2GameUnit*>& vecTarge
 					break;
 				}
 			}
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		} break;
 	}
 }
@@ -576,7 +662,11 @@ bool CX2BattleFieldNpcAi::CheckOnPlayLineMap()
 		SetFinalDestinationPosAndLineMapIndex( m_optrTargetGameUnit->GetPos(), m_optrTargetGameUnit->GetLastTouchLineIndex() );
 
 	bool bAiIsRight = false;
-	GetAIMessageAndUnitDirection( OUT eSctMessage, OUT bAiIsRight );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	    GetAIMessageAndUnitDirection( fElapsedTime, OUT eSctMessage, OUT bAiIsRight );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+		GetAIMessageAndUnitDirection( OUT eSctMessage, OUT bAiIsRight );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
 	// 이전 AI 메시지와 지금 AI 메시지와 다른게 없다면 SCT_NO_CHANGE
 	if( m_PrevAIMessage == eSctMessage || CX2GUNPC::SCT_NO_CHANGE == eSctMessage )
@@ -590,15 +680,21 @@ bool CX2BattleFieldNpcAi::CheckOnPlayLineMap()
 	}
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2BattleFieldNpcAi::GetAIMessageAndUnitDirection( float fElapsedTime, OUT CX2GUNPC::STATE_CHANGE_TYPE& eSctMessage_, OUT bool& bAilsRight_ )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2BattleFieldNpcAi::GetAIMessageAndUnitDirection( OUT CX2GUNPC::STATE_CHANGE_TYPE& eSctMessage_, OUT bool& bAilsRight_ )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	CKTDGLineMap* pLineMap = g_pX2Game->GetWorld()->GetLineMap();
 	ASSERT( NULL != pLineMap );
 
 	// 일단 필드 몬스터는 LineGroup 무시
-	const float& fElpasedTime = g_pKTDXApp->GetElapsedTime();
+#ifndef X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+	const float& fElapsedTime = g_pKTDXApp->GetElapsedTime();
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 
-// 	m_fElapsedTimeAfterLastRandomJump += fElpasedTime;
+// 	m_fElapsedTimeAfterLastRandomJump += fElapsedTime;
 // 	if ( m_fElapsedTimeAfterLastRandomJump > GetAIData()->chaseMoveData.jumpInterval )
 // 	{
 // 		m_fElapsedTimeAfterLastRandomJump = 0.0f;
@@ -629,7 +725,6 @@ void CX2BattleFieldNpcAi::GetAIMessageAndUnitDirection( OUT CX2GUNPC::STATE_CHAN
 // 		GetMaxJumpUp(), GetMaxJumpRight(), pLineMap, static_cast<float>( GetAIData()->chaseMoveData.destGap ), 
 // 		static_cast<float>( GetAIData()->chaseMoveData.moveGap ), GetFootOnLine(), false, OUT bIsTargetOnRight, 
 // 		GetAIData()->chaseMoveData.m_fLineEndDetectRange );
-
 	m_PathFinder.FollowTargetPathInBattleField( this, pLineMap, bIsTargetOnRight );
 
 	if( IsRight() != bIsTargetOnRight )
@@ -659,7 +754,7 @@ void CX2BattleFieldNpcAi::GetAIMessageAndUnitDirection( OUT CX2GUNPC::STATE_CHAN
 					CX2GUNPC::SCT_AI_DASH	== m_PrevAIMessage )
 				{	
 					// CHASE_MOVE의 DIR_CHANGE_INTERVAL 체크
-					m_fElapsedTimeAfterLastDirChange += fElpasedTime;
+					m_fElapsedTimeAfterLastDirChange += fElapsedTime;
 					if( m_fElapsedTimeAfterLastDirChange > GetAIData()->chaseMoveData.dirChangeInterval ) 
 					{
 						m_fElapsedTimeAfterLastDirChange = 0.f;
@@ -684,7 +779,7 @@ void CX2BattleFieldNpcAi::GetAIMessageAndUnitDirection( OUT CX2GUNPC::STATE_CHAN
 					CX2GUNPC::SCT_AI_WALK	== m_PrevAIMessage ||
 					CX2GUNPC::SCT_AI_DASH	== m_PrevAIMessage )
 				{
-					m_fElapsedTimeAfterLastDirChange += fElpasedTime;
+					m_fElapsedTimeAfterLastDirChange += fElapsedTime;
 					if( m_fElapsedTimeAfterLastDirChange > GetAIData()->chaseMoveData.dirChangeInterval )
 					{
 						m_fElapsedTimeAfterLastDirChange = 0.f;
@@ -741,7 +836,7 @@ void CX2BattleFieldNpcAi::GetAIMessageAndUnitDirection( OUT CX2GUNPC::STATE_CHAN
 		CX2GUNPC::SCT_AI_DASH	== m_PrevAIMessage ) &&
 		( CX2GUNPC::SCT_AI_WALK == eSctMessage_ || CX2GUNPC::SCT_AI_DASH == eSctMessage_ ) )
 	{
-		m_fElapsedTimeAfterLastWalkRunUpdate += fElpasedTime;
+		m_fElapsedTimeAfterLastWalkRunUpdate += fElapsedTime;
 
 		/// walkInterval 만큼 경과 됐으면
 		if( m_fElapsedTimeAfterLastWalkRunUpdate > GetAIData()->chaseMoveData.walkInterval )
@@ -755,7 +850,11 @@ void CX2BattleFieldNpcAi::GetAIMessageAndUnitDirection( OUT CX2GUNPC::STATE_CHAN
 			if( fFinalDestDistance3Sq < GetAIData()->chaseMoveData.moveSplitRange * GetAIData()->chaseMoveData.moveSplitRange )
 			{
 				// NEAR_WALK_RATE 확률에 따라서
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                if ( CX2GUNPC::EstimateFrameOneshotPercent( GetAIData()->chaseMoveData.nearWalkRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				if( RandomFloat( 0.f, 100.f ) < GetAIData()->chaseMoveData.nearWalkRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				{
 					eSctMessage_ = CX2GUNPC::SCT_AI_WALK;	// 걷던지..
 				}
@@ -767,7 +866,11 @@ void CX2BattleFieldNpcAi::GetAIMessageAndUnitDirection( OUT CX2GUNPC::STATE_CHAN
 			else	// MOVE_SPLIT_RANGE 보다 작지 않으면
 			{
 				// FAR_WALK_RATE 확률에 따라서
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                if ( CX2GUNPC::EstimateFrameOneshotPercent( GetAIData()->chaseMoveData.farWalkRate ) == true )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				if( RandomFloat( 0.f, 100.f ) < GetAIData()->chaseMoveData.farWalkRate )
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 				{
 					eSctMessage_ = CX2GUNPC::SCT_AI_WALK;	// 걷던지..
 				}
@@ -865,14 +968,27 @@ void CX2BattleFieldNpcAi::CheckArrivedDestination()
 	}
 }
 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+void CX2BattleFieldNpcAi::UpNowHpBySecondProcess( float fElapsedTime )
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 void CX2BattleFieldNpcAi::UpNowHpBySecondProcess()
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 {
 	//m_ElapsedTimeUpNowHp.OnFrameMove();
 	//if ( m_ElapsedTimeUpNowHp.CheckAndResetElapsedTime() )
+#ifdef FIELD_BOSS_RAID // 보스 NPC는 체력 회복 제거
+	if( false == m_pMasterNPC->GetIsBosRaidNPC() )
+#endif // FIELD_BOSS_RAID
 	{
 		const float fMaxHp = m_pMasterNPC->GetMaxHp();
 		const float fNowHp = m_pMasterNPC->GetNowHp();
 		if ( fNowHp < fMaxHp && 0.0f < fNowHp )
+        {
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+            m_pMasterNPC->UpNowHp( fMaxHp * GetIncreaseHpPercentBySecond() * fElapsedTime );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 			m_pMasterNPC->UpNowHp( fMaxHp * GetIncreaseHpPercentBySecond() * g_pKTDXApp->GetElapsedTime() );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        }
 	}
 }

@@ -63,7 +63,11 @@ void CX2DamageManager::SetExtraDamageData( DamageData* pDamageData, bool bApplyE
 }
 #endif
 
-bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManager& luaManager, const WCHAR* pTableName, float fPowerRate )
+#ifdef ADD_MEMO_1ST_CLASS
+bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManager& luaManager, const char* pTableName, float fPowerRate, const bool IsEqippedMemo_ )
+#else //ADD_MEMO_1ST_CLASS
+bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManager& luaManager, const char* pTableName, float fPowerRate )
+#endif //ADD_MEMO_1ST_CLASS
 {
 	if( luaManager.BeginTable( pTableName ) == true )
 	{
@@ -104,8 +108,17 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 #endif //TRACE_UNIT_DIE_DELETE_EFFECTSET
 
 #ifdef ELSWORD_WAY_OF_SWORD
-		LUA_GET_VALUE_ENUM( luaManager, "WAY_OF_SWORD_TYPE",		pDamageData->m_WayofSwordType,		WAY_OF_SWORD_TYPE,	WST_NONE );
+		LUA_GET_VALUE_ENUM( luaManager, "WAY_OF_SWORD_TYPE",			pDamageData->m_WayofSwordType,		WAY_OF_SWORD_TYPE,			WST_NONE );
 #endif ELSWORD_WAY_OF_SWORD
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		/// DP 변동 배율
+		LUA_GET_VALUE_ENUM( luaManager, "DYNAMO_PARTICLE_RATE_TYPE",	pDamageData->m_DPRateType,			DYNAMO_PARTICLE_RATE_TYPE,	DPRT_NONE );
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef ADD_RENA_SYSTEM //김창한
+		LUA_GET_VALUE_ENUM( luaManager, "NATURAL_FORCE_TYPE",			pDamageData->m_NaturalForceType,	NATURAL_FORCE_TYPE,			NFT_NONE );
+#endif //ADD_RENA_SYSTEM
 
 		if( luaManager.BeginTable( "DAMAGE" ) == true )
 		{
@@ -127,7 +140,11 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 		PushSocketAndTemporaryBuffFactor( pDamageData );
 
 #ifdef DAMAGE_DATA_BUFF_FACTOR_RELATIVE_SKILL_LEVEL
-		ParsingBuffFactorID( luaManager, pDamageData );
+	#ifdef ADD_MEMO_1ST_CLASS //김창한
+			ParsingBuffFactorID( luaManager, pDamageData, IsEqippedMemo_ );
+	#else //ADD_MEMO_1ST_CLASS
+			ParsingBuffFactorID( luaManager, pDamageData );
+	#endif //ADD_MEMO_1ST_CLASS
 #endif //DAMAGE_DATA_BUFF_FACTOR_RELATIVE_SKILL_LEVEL
 
 #ifdef PVP_SEASON2
@@ -186,9 +203,7 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 			pDamageData->m_ExtraDamage.m_fAnimSpeedRate = fValue;			
 #endif
 
-#ifdef FIXED_DAMAGE
 			LUA_GET_VALUE( luaManager, "FIXED_DAMAGE",	pDamageData->m_ExtraDamage.m_bFixedDamage,	false );		
-#endif
 
 #ifdef CHUNG_SECOND_CLASS_CHANGE
 			LUA_GET_VALUE( luaManager, "JUMP_SPEED_RATE",		fValue,	0.f );
@@ -200,11 +215,9 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 		if( luaManager.BeginTable( "ENABLE_ATTACKBOX" ) == true )
 		{
 			int index = 1;
-			string name;
 			wstring wname;
-			while( luaManager.GetValue( index, name ) == true )
+			while( luaManager.GetValue( index, wname ) == true )
 			{
-				ConvertCharToWCHAR( wname, name.c_str() );
 				if( null != pDamageData->optrAttackerGameUnit )
 					pDamageData->optrAttackerGameUnit->SetEnableAttackBox( wname.c_str(), true );
 
@@ -217,11 +230,9 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 		if( luaManager.BeginTable( "DISABLE_ATTACKBOX" ) == true )
 		{
 			int index = 1;
-			string name;
 			wstring wname;
-			while( luaManager.GetValue( index, name ) == true )
+			while( luaManager.GetValue( index, wname ) == true )
 			{
-				ConvertCharToWCHAR( wname, name.c_str() );
 				if( null != pDamageData->optrAttackerGameUnit )
 					pDamageData->optrAttackerGameUnit->SetEnableAttackBox( wname.c_str(), false );
 
@@ -236,7 +247,7 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 			int index = 0;
 			std::wstring wstrParticleName = L"";
 			pDamageData->m_vecHitParticleName.resize(0);
-			while( luaManager.BeginTable( L"CUSTOM_HIT_PARTICLE", index ) == true )
+			while( luaManager.BeginTable( "CUSTOM_HIT_PARTICLE", index ) == true )
 			{
 				LUA_GET_VALUE( luaManager, "PARTICLE_NAME",		wstrParticleName, 		L""			);
 				if( false == wstrParticleName.empty() )
@@ -268,6 +279,7 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 		/// 공격 성공시, 공격자의 체력 회복 ( 전체 체력의 회복 배율 )
 		LUA_GET_VALUE( luaManager, "HIT_ADD_HP_PERCENT",	pDamageData->fHitAddHPPer,				0.0f );
 #endif // SERV_ARA_CHANGE_CLASS_SECOND
+
 		LUA_GET_VALUE( luaManager, "STOP_TIME_ATT",			pDamageData->fStopTimeAtt,			0.0f );
 		LUA_GET_VALUE( luaManager, "STOP_TIME_DEF",			pDamageData->fStopTimeDef,			0.0f );
 
@@ -336,17 +348,13 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 		LUA_GET_VALUE( luaManager, "DECREASE_FORCE_DOWN",	pDamageData->m_fDecreaseForceDown, 0.f );
 #endif
 
-#ifdef FIX_DUNGEON_ITEM
 		LUA_GET_VALUE( luaManager, "NO_BUFF",				pDamageData->m_bNoBuff,		false );		
-#endif
 
 #ifdef DAMAGEDATA_RATE_MODIFIER
 		LUA_GET_VALUE( luaManager, "RATE_MODIFIER",			pDamageData->m_fRateModifier,	1.f );
 #endif DAMAGEDATA_RATE_MODIFIER
 
-#ifdef NEW_MEMO_01
 		LUA_GET_VALUE( luaManager, "IGNORE_DEFENCE",			pDamageData->m_bIgnoreDefence,	false );				
-#endif
 
 #ifdef WIDE_BUFF_ANI_SPEED_UP
 		LUA_GET_VALUE( luaManager, "ANIMATION_SPEED_UP",			pDamageData->m_bAnimationSpeedUp, false );
@@ -387,6 +395,11 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
         LUA_GET_VALUE( luaManager, "RELAX_NPC_REACTION_STATE_CHECK",		pDamageData->m_bRelaxNPCReactionStateCheck,	false );
 #endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
 
+#ifdef ADD_MEMO_1ST_CLASS //김창한
+		LUA_GET_VALUE( luaManager, "APPLY_CRITICAL_DAMAGE_PERCENT",			pDamageData->m_fApplyCriticalDamage,	0.0f );
+		LUA_GET_VALUE( luaManager, "HIT_ADD_HP_PERCENT_ATTACKPOWER",		pDamageData->fHitAddHPbyAttackPower,	0.0f );
+#endif //ADD_MEMO_1ST_CLASS
+
 		luaManager.EndTable();
 
 #ifndef MODIFY_SET_DAMAGE_DATA
@@ -422,9 +435,7 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 		DAMAGE_TYPE eDamageType;
 		float fDamageRel;		
 
-#ifdef MODIFY_EVE_NASODWEAPON
-		pUser->SetHitNasodWeapon(false);		
-#endif
+		pUser->SetHitNasodWeapon(false);
 
 		bool bChange = pUser->GetChangeDamageType(eDamageType, fDamageRel);
 		if( bChange == true )
@@ -454,14 +465,12 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 				break;
 
 	//{{ kimhc // 2010.7.30 // 스탯을 제외한 무기만의 데미지
-	#ifdef	WEAPON_DAMAGE_WITHOUT_STAT
 			case DT_WEAPON_PHYSIC:
 				pDamageData->damage.fPhysic = fDamageRelOri * fDamageRel;
 				break;
 			case DT_WEAPON_MAGIC:
 				pDamageData->damage.fMagic = fDamageRelOri * fDamageRel;
 				break;
-	#endif	WEAPON_DAMAGE_WITHOUT_STAT
 	//}} kimhc // 2010.7.30 // 스탯을 제외한 무기만의 데미지
 			default:
 				break;
@@ -477,7 +486,7 @@ bool CX2DamageManager::SetDamageDataFromLUA( DamageData* pDamageData, KLuaManage
 if( null != pDamageData->optrAttackerGameUnit && pDamageData->optrAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
 {
  	CX2GUUser *pUser = static_cast<CX2GUUser*>( pDamageData->optrAttackerGameUnit.GetObservable() );
- 	int iSkillLevelFitness = pUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ABM_FITNESS );
+ 	int iSkillLevelFitness = pUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_ABM_FITNESS );
  	if( iSkillLevelFitness > 0 )
  	{
  		const CX2SkillTree::SkillTemplet* pSkillTempletFitness = g_pData->GetSkillTree()->GetSkillTemplet( CX2SkillTree::SI_P_ABM_FITNESS, iSkillLevelFitness );
@@ -501,7 +510,7 @@ if( null != pDamageData->optrAttackerGameUnit && pDamageData->optrAttackerGameUn
 		{
 			CX2GUUser *pAttackerUser = static_cast<CX2GUUser*>( pDamageData->optrAttackerGameUnit.GetObservable() );
 
-			const float	fSkillDamage  = pAttackerUser->GetSocketData()->m_fSkillDamageUpRate;
+			const float	fSkillDamage  = pAttackerUser->GetSocketData().m_fSkillDamageUpRate;
 
 			fPowerRate *= 1.f + fSkillDamage;
 
@@ -543,17 +552,25 @@ if( null != pDamageData->optrAttackerGameUnit && pDamageData->optrAttackerGameUn
 	pDamageData->damage.fPhysic					*= fPowerRate;
 	pDamageData->damage.fMagic					*= fPowerRate;		
 
-#ifdef FIXED_DAMAGE
 	if( pDamageData->m_ExtraDamage.m_bFixedDamage == false )
 	{
 		pDamageData->m_ExtraDamage.m_DamagePerSec	*= fPowerRate;
 		pDamageData->m_ExtraDamage.m_Damage			*= fPowerRate;
 	}	
-#else
-	pDamageData->m_ExtraDamage.m_DamagePerSec	*= fPowerRate;
-	pDamageData->m_ExtraDamage.m_Damage			*= fPowerRate;
-#endif
 #endif //MODIFY_SET_DAMAGE_DATA
+
+
+#ifdef ADD_RENA_SYSTEM //김창한
+	//DamageData에 유저의 현재 스킬관련 데이터 값을 저장
+	if ( null != pDamageData->optrAttackerGameUnit && CX2GameUnit::GUT_USER == pDamageData->optrAttackerGameUnit->GetGameUnitType() )
+	{
+		CX2GUUser *pUser = static_cast<CX2GUUser*>( pDamageData->optrAttackerGameUnit.GetObservable() );
+		if( NULL != pUser )
+		{
+			pDamageData->m_RelateSkillData = pUser->GetNowDamageRelateSkillData();
+		}
+	}
+#endif //ADD_RENA_SYSTEM
 
 	return true;
 }
@@ -584,7 +601,11 @@ bool CX2DamageManager::DamageCheck( DamageData* pDamageData, bool bAttackOnlyThi
 			break;
 
 		case AT_EFFECT:
-			if( pDamageData->pAttackerEffect != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( (CX2DamageEffect::CEffect*)pDamageData->pAttackerEffect ) == true )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+            if( NULL != g_pX2Game->GetDamageEffect()->GetInstance( pDamageData->hAttackerEffect ) )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			if( g_pX2Game->GetDamageEffect()->IsLiveInstance( pDamageData->pAttackerEffect )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			{
 				retval = EffectToUnit( pDamageData );
 			}
@@ -823,7 +844,11 @@ wstring CX2DamageManager::GetExtraDamageName( CX2DamageManager::EXTRA_DAMAGE_TYP
 #ifdef GROUND_HIT
 bool CX2DamageManager::GroundHit( DamageData* pDamageData, bool bAttackOnlyThisUnit, UidType attackUnitUID )
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect *pAttackerEffect = g_pX2Game->GetDamageEffect()->GetInstance( pDamageData->hAttackerEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CX2DamageEffect::CEffect *pAttackerEffect = (CX2DamageEffect::CEffect*)pDamageData->pAttackerEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
     CX2GameUnit*	pAttacker = pDamageData->optrAttackerGameUnit.GetObservable();
     CX2GameUnit*	pDefender = NULL;
     bool firstHit = true;
@@ -920,15 +945,15 @@ bool CX2DamageManager::GroundHit( DamageData* pDamageData, bool bAttackOnlyThisU
 						continue;
 				}
 
-#ifdef PVP_BOSS_COMBAT_TEST
-				if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
-				{
-					if( NULL != pAttacker && pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
-					{
-						continue;
-					}
-				}
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//				if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
+//				{
+//					if( NULL != pAttacker && pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
+//					{
+//						continue;
+//					}
+//				}
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 				if( pDefender->GetGameUnitState() == CX2GameUnit::GUSI_DIE )
@@ -949,7 +974,7 @@ bool CX2DamageManager::GroundHit( DamageData* pDamageData, bool bAttackOnlyThisU
 				if(pDefender->GetGameUnitType() == CX2GameUnit::GUT_USER)
 				{
 					CX2GUUser *pUser = (CX2GUUser*)pDefender;
-					if( pUser->GetUnitCondition()->bFootOnLine == false ) 
+					if( pUser->GetUnitCondition().bFootOnLine == false ) 
 						continue;            
 
 					if( pDamageData->DamageLineGroup == true )
@@ -960,14 +985,12 @@ bool CX2DamageManager::GroundHit( DamageData* pDamageData, bool bAttackOnlyThisU
 				else
 				{
 					CX2GUNPC *pNPC = (CX2GUNPC*)pDefender;
-					if( pNPC->GetUnitCondition()->bFootOnLine == false )
+					if( pNPC->GetUnitCondition().bFootOnLine == false )
 						continue;
 
-					if( pNPC->GetNPCTemplet()->m_ClassType == CX2UnitManager::NCT_THING_TRAP || 
-						pNPC->GetNPCTemplet()->m_ClassType == CX2UnitManager::NCT_THING_DEVICE 
-#ifdef DUNGEON_CHECKER_NPC
-						|| pNPC->GetNPCTemplet()->m_ClassType == CX2UnitManager::NCT_THING_CHECKER 
-#endif
+					if( pNPC->GetNPCTemplet().m_ClassType == CX2UnitManager::NCT_THING_TRAP || 
+						pNPC->GetNPCTemplet().m_ClassType == CX2UnitManager::NCT_THING_DEVICE 
+						|| pNPC->GetNPCTemplet().m_ClassType == CX2UnitManager::NCT_THING_CHECKER 
 						)
 						continue;
 
@@ -1013,7 +1036,12 @@ bool CX2DamageManager::GroundHit( DamageData* pDamageData, bool bAttackOnlyThisU
 				pDamageData->impactPoint	= pDefender->GetPos();
 				pDamageData->optrDefenderGameUnit	= pDefender;
 				pDamageData->reActResult	= pDamageData->reActType;            
-
+#ifdef ADD_RENA_SYSTEM //김창한
+				//첫번째 타격인지 체크
+				//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+				if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK )
+					pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 				HitUnit hitUnit;
 				hitUnit.fRemainGap	= pDamageData->fHitGap;
 				hitUnit.optrHitGameUnit	= pDamageData->optrDefenderGameUnit;
@@ -1043,7 +1071,11 @@ bool AreaHitCmpFar(CX2DamageManager::sAreaHitUnit a1, CX2DamageManager::sAreaHit
 
 bool CX2DamageManager::AreaHit( DamageData* pDamageData, bool bAttackOnlyThisUnit, UidType attackUnitUID )
 {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect *pAttackerEffect = g_pX2Game->GetDamageEffect()->GetInstance( pDamageData->hAttackerEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CX2DamageEffect::CEffect *pAttackerEffect = (CX2DamageEffect::CEffect*)pDamageData->pAttackerEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	CX2GameUnit*	pAttacker = pDamageData->optrAttackerGameUnit.GetObservable();
 	CX2GameUnit*	pDefender = NULL;
 	bool firstHit = true;
@@ -1101,15 +1133,15 @@ bool CX2DamageManager::AreaHit( DamageData* pDamageData, bool bAttackOnlyThisUni
 				continue;
 		}
 
-#ifdef PVP_BOSS_COMBAT_TEST
-		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
-		{
-			if( pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
-			{
-				continue;
-			}
-		}
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
+//		{
+//			if( pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
+//			{
+//				continue;
+//			}
+//		}
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 		if( pDefender->GetGameUnitState() == CX2GameUnit::GUSI_DIE )
@@ -1131,7 +1163,7 @@ bool CX2DamageManager::AreaHit( DamageData* pDamageData, bool bAttackOnlyThisUni
 		{
 			CX2GUNPC *pNPC = (CX2GUNPC*)pDefender;
 
-			if( pNPC->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+			if( pNPC->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 				continue;
 			if( pNPC->IsImmuneToExtraDamage() == true && 
 				( pDamageData->m_ExtraDamage.m_ExtraDamageType != CX2DamageManager::EDT_NONE || pDamageData->m_BufExtraDamage.m_ExtraDamageType != CX2DamageManager::EDT_NONE ) )
@@ -1172,6 +1204,12 @@ bool CX2DamageManager::AreaHit( DamageData* pDamageData, bool bAttackOnlyThisUni
 			pDamageData->optrDefenderGameUnit	= pDefender;
 			pDamageData->reActResult	= pDamageData->reActType;            
 
+#ifdef ADD_RENA_SYSTEM //김창한
+			//첫번째 타격인지 체크
+			//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+			if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK )
+				pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 			HitUnit hitUnit;
 			hitUnit.fRemainGap	= pDamageData->fHitGap;
 			hitUnit.optrHitGameUnit	= pDamageData->optrDefenderGameUnit;
@@ -1299,7 +1337,7 @@ bool CX2DamageManager::UnitToUnit( DamageData* pDamageData, bool bAttackOnlyThis
 			if ( pDefender->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 			{
 				CX2GUNPC* pNpc = (CX2GUNPC*)pDefender;
-				if( pNpc != NULL && pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+				if( pNpc != NULL && pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 					continue;
 			}
 		}
@@ -1357,15 +1395,15 @@ bool CX2DamageManager::UnitToUnit( DamageData* pDamageData, bool bAttackOnlyThis
 		}
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
-		{
-			if( pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
-			{
-				continue;
-			}
-		}
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
+//		{
+//			if( pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
+//			{
+//				continue;
+//			}
+//		}
+//#endif PVP_BOSS_COMBAT_TEST
 
 		
 
@@ -1435,6 +1473,15 @@ bool CX2DamageManager::UnitToUnit( DamageData* pDamageData, bool bAttackOnlyThis
 
 			if( bMiss == false )
 			{
+#ifdef ADD_RENA_SYSTEM //김창한
+				//DamageReact 함수가 실행되어 State등이 바뀌기 전에 적용될 DamageData를 수정
+				if ( pAttacker->GetGameUnitType() == CX2GameUnit::GUT_USER )
+				{
+					CX2GUUser* pUser = static_cast<CX2GUUser*>(pAttacker);
+					if( NULL != pUser )
+						pUser->AdjustDamageDataBeforeDamageReact(pDamageData);
+				}
+#endif //ADD_RENA_SYSTEM
 				pDefender->DamageReact( pDamageData );
 			}
 #else
@@ -1477,10 +1524,17 @@ bool CX2DamageManager::UnitToUnit( DamageData* pDamageData, bool bAttackOnlyThis
 #endif	GUILD_SKILL_PART_2
 					//}} kimhc // 2009-11-18 // 길드스킬 역전의 기회
 
+#ifdef ADD_RENA_SYSTEM //김창한
+					//첫번째 타격인지 체크
+					//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+					if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK)
+						pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 					HitUnit hitUnit;
 					hitUnit.fRemainGap	= pDamageData->fHitGap;
 					hitUnit.optrHitGameUnit	= pDamageData->optrDefenderGameUnit;
 					pDamageData->hitUnitList.push_back( hitUnit );
+
 					continue;
 				}
 
@@ -1488,11 +1542,17 @@ bool CX2DamageManager::UnitToUnit( DamageData* pDamageData, bool bAttackOnlyThis
 				retval = true;
 			}
 
+#ifdef ADD_RENA_SYSTEM //김창한
+			//첫번째 타격인지 체크
+			//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+			if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK)
+				pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 			HitUnit hitUnit;
 			hitUnit.fRemainGap	= pDamageData->fHitGap;
 			hitUnit.optrHitGameUnit	= pDamageData->optrDefenderGameUnit;
 			pDamageData->hitUnitList.push_back( hitUnit );
-			
+
 			pAttacker->AttackResult();
 
 #ifdef UPGRADE_RAVEN
@@ -1506,6 +1566,13 @@ bool CX2DamageManager::UnitToUnit( DamageData* pDamageData, bool bAttackOnlyThis
 #endif	SERV_TRAPPING_RANGER_TEST
 			}
 #endif
+#ifdef ADD_RENA_SYSTEM //김창한
+			else
+			{
+				CX2GUNPC* pNpc = static_cast<CX2GUNPC*>( pAttacker );
+				pNpc->AttackResultByType(*pDamageData);
+			}
+#endif //ADD_RENA_SYSTEM
 
 #ifdef GRAPPLING_TEST
 
@@ -1529,11 +1596,16 @@ bool CX2DamageManager::EffectToUnit( DamageData* pDamageData )
 	bool			retval = false;
 
 	D3DXVECTOR3		impactPos;
-	CX2DamageEffect::CEffect*	pAttacker = (CX2DamageEffect::CEffect*)pDamageData->pAttackerEffect;
-	CX2GameUnit*				pDefender = NULL;
-
-	if( pAttacker != NULL && g_pX2Game->GetDamageEffect()->IsLiveInstance( pAttacker ) == false )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    CX2DamageEffect::CEffect *pAttacker = g_pX2Game->GetDamageEffect()->GetInstance( pDamageData->hAttackerEffect );
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	CX2DamageEffect::CEffect *pAttacker = ( g_pX2Game->GetDamageEffect()->IsLiveInstance( (CX2DamageEffect::CEffect*)pDamageData->pAttackerEffect ) == true )
+        ? (CX2DamageEffect::CEffect*)pDamageData->pAttackerEffect : NULL;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+	if( pAttacker == NULL )
 		return retval;
+
+	CX2GameUnit*				pDefender = NULL;
 
 	bool firstHit = true;
 	for( int i = 0; i < g_pX2Game->GetUnitNum(); i++ )
@@ -1555,7 +1627,7 @@ bool CX2DamageManager::EffectToUnit( DamageData* pDamageData )
 			if ( pDefender->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 			{
 				CX2GUNPC* pNpc = (CX2GUNPC*)pDefender;
-				if( pNpc != NULL && pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+				if( pNpc != NULL && pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 					continue;
 			}
 		}
@@ -1621,16 +1693,26 @@ bool CX2DamageManager::EffectToUnit( DamageData* pDamageData )
 		}
 #endif //ADDED_RELATIONSHIP_SYSTEM
 
-
-#ifdef PVP_BOSS_COMBAT_TEST
-		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
+#ifdef LOCK_ON_USER_ONLY_ON
+		if( true == pAttacker->GetLockOnData().m_bIsOnlyTargetAttack )
 		{
-			if( pDefender->GetTeamNumOriginal() != pAttacker->GetOwnerUnit()->GetTeam() )
-			{
+			CX2GUUser* pUser = static_cast<CX2GUUser*>( pDefender );
+			if( pUser == NULL )
 				continue;
-			}
+
+			if( pUser->GetUnitUID() != pAttacker->GetLockOnUnitUID() )
+				continue;
 		}
-#endif PVP_BOSS_COMBAT_TEST		
+#endif //LOCK_ON_USER_ONLY_ON
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
+//		{
+//			if( pDefender->GetTeamNumOriginal() != pAttacker->GetOwnerUnit()->GetTeam() )
+//			{
+//				continue;
+//			}
+//		}
+//#endif PVP_BOSS_COMBAT_TEST		
 
 		if( pDefender->GetGameUnitState() == CX2GameUnit::GUSI_DIE
 			|| pAttacker->GetLive() == false )
@@ -1649,12 +1731,13 @@ bool CX2DamageManager::EffectToUnit( DamageData* pDamageData )
 			continue;
 
 #ifdef FIX_EFFECTTOUNIT01
-		if( pAttacker == NULL || pAttacker->GetMainEffect() == NULL || pAttacker->GetMainEffect()->GetXSkinAnim() == NULL )
+        CKTDGXMeshPlayer::CXMeshInstance *pAttackerMainEffect = ( pAttacker != NULL ) ? pAttacker->GetMainEffect() : NULL;
+		if( pAttackerMainEffect == NULL || pAttackerMainEffect->GetXSkinAnim() == NULL )
 			continue;
 #endif
 
         CKTDXCollision::CollisionType collType;
-		if( m_pCollision->CollisionDataCheck( pAttacker->GetMainEffect()->GetXSkinAnim()->GetAttackDataList(), 
+		if( m_pCollision->CollisionDataCheck( pAttackerMainEffect->GetXSkinAnim()->GetAttackDataList(), 
 												pDefender->GetCollisionListSet(), collType, &impactPos ) == true )
 		{
 			pDamageData->impactPoint	= impactPos;
@@ -1708,6 +1791,15 @@ bool CX2DamageManager::EffectToUnit( DamageData* pDamageData )
 
 			if( bMiss == false )
 			{
+#ifdef ADD_RENA_SYSTEM //김창한
+				//DamageReact 함수가 실행되어 State등이 바뀌기 전에 적용될 DamageData를 수정
+				if ( pAttackerGameUnit->GetGameUnitType() == CX2GameUnit::GUT_USER )
+				{
+					CX2GUUser* pUser = static_cast<CX2GUUser*>(pAttackerGameUnit);
+					if( NULL != pUser )
+						pUser->AdjustDamageDataBeforeDamageReact(pDamageData);
+				}
+#endif //ADD_RENA_SYSTEM
 				pDefender->DamageReact( pDamageData );
 			}
 #else
@@ -1765,6 +1857,12 @@ bool CX2DamageManager::EffectToUnit( DamageData* pDamageData )
 					}
 					else
 					{
+#ifdef ADD_RENA_SYSTEM //김창한
+						//첫번째 타격인지 체크
+						//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+						if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK )
+							pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 						pDamageData->hitUnitList.push_back( hitUnit );
 					}
 #else
@@ -1787,6 +1885,12 @@ bool CX2DamageManager::EffectToUnit( DamageData* pDamageData )
 			}
 			else
 			{
+#ifdef ADD_RENA_SYSTEM //김창한
+				//첫번째 타격인지 체크
+				//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+				if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK)
+					pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 				pDamageData->hitUnitList.push_back( hitUnit );
 			}
 #else
@@ -1805,29 +1909,48 @@ bool CX2DamageManager::UnitToEffect( DamageData* pDamageData )
 {
 	bool						retval = false;
 
-	D3DXVECTOR3					impactPos;
 	CX2GameUnit*				pAttacker = pDamageData->optrAttackerGameUnit.GetObservable();
-	CX2DamageEffect::CEffect*	pDefender = NULL;
-
 	//{{ 09.05.07 태완 : 조건체크 위치 변경
+#ifdef  X2OPTIMIZE_EFFECT_TO_UNIT_BUG_FIX
+	if( NULL == pAttacker )
+	{
+		return retval;
+	}
+#else   X2OPTIMIZE_EFFECT_TO_UNIT_BUG_FIX
 	if( NULL != pAttacker )
 	{
 		return retval;
 	}
+#endif  X2OPTIMIZE_EFFECT_TO_UNIT_BUG_FIX
 	//}}
 
-	bool firstHit = true;
+	//bool firstHit = true;
+    CKTDXCollision*			pCollision = m_pCollision;
+    if ( pCollision == NULL )
+        return retval;
+#ifdef  LAMBDA_RETURN_OR_LOOP_CONTINUE      
+#undef  LAMBDA_RETURN_OR_LOOP_CONTINUE      
+#endif  LAMBDA_RETURN_OR_LOOP_CONTINUE      
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    #define LAMBDA_RETURN_OR_LOOP_CONTINUE return
+    auto UnitToEffectCB = [&retval, pDamageData, pAttacker, pCollision]( CX2DamageEffect::CEffect& kEffect )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    #define LAMBDA_RETURN_OR_LOOP_CONTINUE continue
 	for( int i = 0; i < g_pX2Game->GetDamageEffect()->GetInstanceNum(); i++ )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	{
-		firstHit = true;
-		pDefender = g_pX2Game->GetDamageEffect()->GetInstance( i );
-
+		//firstHit = true;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect*	pDefender = &kEffect;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+		CX2DamageEffect::CEffect*   pDefender = g_pX2Game->GetDamageEffect()->GetInstance( i );
 		if( pDefender == NULL )
-			continue;
+			LAMBDA_RETURN_OR_LOOP_CONTINUE;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 		if( NULL == pDefender->GetOwnerUnit() )
 		{
-			continue;
+            LAMBDA_RETURN_OR_LOOP_CONTINUE;
 		}
 		
 #ifdef UPGRADE_RAVEN
@@ -1836,8 +1959,8 @@ bool CX2DamageManager::UnitToEffect( DamageData* pDamageData )
 			if ( pDefender->GetOwnerUnit()->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 			{
 				CX2GUNPC* pNpc = (CX2GUNPC*)pDefender->GetOwnerUnit();
-				if(  pNpc != NULL && pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
-					continue;
+				if(  pNpc != NULL && pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
+                    LAMBDA_RETURN_OR_LOOP_CONTINUE;
 			}
 		}
 #endif
@@ -1846,44 +1969,69 @@ bool CX2DamageManager::UnitToEffect( DamageData* pDamageData )
 		if( pDamageData->m_bAttackOurTeam == true )
 		{
 			if( pAttacker->GetTeam() != pDefender->GetOwnerUnit()->GetTeam() )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
 		}
 		else
 #endif
 		if( pDamageData->m_bAttackAllTeam == false )
 		{
 			if( pAttacker->GetTeam() == pDefender->GetOwnerUnit()->GetTeam() )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
 		}
 		else
 		{
 			if( pAttacker == pDefender->GetOwnerUnit() )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
 		}
 
-#ifdef PVP_BOSS_COMBAT_TEST
-		if( pDefender->GetOwnerUnit()->GetTeam() != pDefender->GetOwnerUnit()->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
-		{
-			if( pDefender->GetOwnerUnit()->GetTeamNumOriginal() != pAttacker->GetTeam() )
-			{
-				continue;
-			}
-		}
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		if( pDefender->GetOwnerUnit()->GetTeam() != pDefender->GetOwnerUnit()->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
+//		{
+//			if( pDefender->GetOwnerUnit()->GetTeamNumOriginal() != pAttacker->GetTeam() )
+//			{
+//				continue;
+//			}
+//		}
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 
 		if( pDefender->GetLive() == false
 			|| pDefender->GetAttackedByUnit() == false )
-			continue;
+			LAMBDA_RETURN_OR_LOOP_CONTINUE;
 
-		if ( m_pCollision == NULL || pDefender->GetMainEffect() == NULL || pDefender->GetMainEffect()->GetXSkinAnim() == NULL )
-			continue;
+        CKTDGXMeshPlayer::CXMeshInstance *pDefenderManiEffect = pDefender->GetMainEffect();
+		if ( pDefenderManiEffect == NULL || pDefenderManiEffect->GetXSkinAnim() == NULL )
+			LAMBDA_RETURN_OR_LOOP_CONTINUE;
 
         CKTDXCollision::CollisionType collType;
 		const CKTDXCollision::CollisionDataList& listDefenderCollisionData 
-			= pDefender->GetMainEffect()->GetXSkinAnim()->GetCollisionDataList();
-		if( CollisionDataCheckFromUnitToEffect( pAttacker, listDefenderCollisionData, collType, &impactPos ) )
+			= pDefenderManiEffect->GetXSkinAnim()->GetCollisionDataList();
+
+        // CollisionDataCheckFromUnitToEffect 본문을 풀어헤침, lambda function 구문 활용을 위해, robobeg 
+	    D3DXVECTOR3					impactPos;
+        bool bCollisionDataCheckFromUnitToEffect = false;
+	    if( pCollision->CollisionDataCheck( pAttacker->GetAttackListSet(), listDefenderCollisionData, collType, &impactPos ) )
+		    bCollisionDataCheckFromUnitToEffect = true;
+	    else if ( pCollision->CollisionDataCheck( pAttacker->GetSubAttackListSet(), listDefenderCollisionData, collType, &impactPos ) )
+		    bCollisionDataCheckFromUnitToEffect = true;
+	    else
+	    {
+		    const UINT uiSize = pAttacker->GetSizeOfPairSubAttackListSet();
+		    for ( UINT uiIndex = 0; uiIndex < uiSize; ++uiIndex )
+		    {
+			    const CKTDXCollision::CollisionDataListSet* pSetSubAttackList = NULL;
+
+			    if ( pAttacker->GetSubAttackListGetFromPair( uiIndex, &pSetSubAttackList ) 
+				     && pCollision->CollisionDataCheck( *pSetSubAttackList, listDefenderCollisionData, collType, &impactPos ) )
+                {
+                    bCollisionDataCheckFromUnitToEffect = true;
+                    break;
+                }
+		    }			
+	    }
+		//if( CollisionDataCheckFromUnitToEffect( pAttacker, listDefenderCollisionData, collType, &impactPos ) )
+        if ( bCollisionDataCheckFromUnitToEffect == true )
 		{
 			pDamageData->impactPoint	= impactPos;
 
@@ -1897,12 +2045,14 @@ bool CX2DamageManager::UnitToEffect( DamageData* pDamageData )
 			pDefender->DamageReact( pDamageData );
 
 			if( pDamageData->reActResult == CX2DamageManager::RT_NO_DAMAGE )
-				continue;
+				LAMBDA_RETURN_OR_LOOP_CONTINUE;
 			else
 				retval = true;
 		}
-	}
-
+	};
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+    g_pX2Game->GetDamageEffect()->ApplyFunctionToLiveInstances( UnitToEffectCB );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 	return retval;
 }
 
@@ -1936,7 +2086,7 @@ bool CX2DamageManager::MeshToUnit( DamageData* pDamageData )
 			if ( pDefender->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 			{
 				CX2GUNPC* pNpc = (CX2GUNPC*)pDefender;
-				if(  pNpc != NULL && pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+				if(  pNpc != NULL && pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 					continue;
 			}
 		}
@@ -1962,15 +2112,15 @@ bool CX2DamageManager::MeshToUnit( DamageData* pDamageData )
 		}
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
-		{
-			if( pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
-			{
-				continue;
-			}
-		}
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
+//		{
+//			if( pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
+//			{
+//				continue;
+//			}
+//		}
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 
@@ -2033,6 +2183,15 @@ bool CX2DamageManager::MeshToUnit( DamageData* pDamageData )
 
 			if( bMiss == false )
 			{
+#ifdef ADD_RENA_SYSTEM //김창한
+				//DamageReact 함수가 실행되어 State등이 바뀌기 전에 적용될 DamageData를 수정
+				if ( pAttacker->GetGameUnitType() == CX2GameUnit::GUT_USER )
+				{
+					CX2GUUser* pUser = static_cast<CX2GUUser*>(pAttacker);
+					if( NULL != pUser )
+						pUser->AdjustDamageDataBeforeDamageReact(pDamageData);
+				}
+#endif //ADD_RENA_SYSTEM
 				pDefender->DamageReact( pDamageData );
 			}
 #else
@@ -2082,16 +2241,29 @@ bool CX2DamageManager::MeshToUnit( DamageData* pDamageData )
 #endif	GUILD_SKILL_PART_2
 					//{{ kimhc // 2009-11-18 // 길드스킬 역전의 기회
 
+#ifdef ADD_RENA_SYSTEM //김창한
+					//첫번째 타격인지 체크
+					//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+					if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK )
+						pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 					HitUnit hitUnit;
 					hitUnit.fRemainGap	= pDamageData->fHitGap;
 					hitUnit.optrHitGameUnit	= pDamageData->optrDefenderGameUnit;
 					pDamageData->hitUnitList.push_back( hitUnit );
+
 					continue;
 				}
 
 				retval = true;
 			}
 
+#ifdef ADD_RENA_SYSTEM //김창한
+			//첫번째 타격인지 체크
+			//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+			if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK)
+				pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 			HitUnit hitUnit;
 			hitUnit.fRemainGap	= pDamageData->fHitGap;
 			hitUnit.optrHitGameUnit	= pDamageData->optrDefenderGameUnit;
@@ -2134,7 +2306,7 @@ bool CX2DamageManager::CollisionDataToUnit( DamageData* pDamageData )
 			if ( pDefender->GetGameUnitType() == CX2GameUnit::GUT_NPC )
 			{
 				CX2GUNPC* pNpc = (CX2GUNPC*)pDefender;
-				if(  pNpc != NULL && pNpc->GetNPCTemplet()->m_ClassType != CX2UnitManager::NCT_BASIC )
+				if(  pNpc != NULL && pNpc->GetNPCTemplet().m_ClassType != CX2UnitManager::NCT_BASIC )
 					continue;
 			}
 		}
@@ -2160,15 +2332,15 @@ bool CX2DamageManager::CollisionDataToUnit( DamageData* pDamageData )
 		}
 
 
-#ifdef PVP_BOSS_COMBAT_TEST
-		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
-		{
-			if( pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
-			{
-				continue;
-			}
-		}
-#endif PVP_BOSS_COMBAT_TEST
+//#ifdef PVP_BOSS_COMBAT_TEST
+//		if( pDefender->GetTeam() != pDefender->GetTeamNumOriginal() )		// 얼음땡 게임에서 얼음인 사람은 자기편만 때릴 수 있다
+//		{
+//			if( pDefender->GetTeamNumOriginal() != pAttacker->GetTeam() )
+//			{
+//				continue;
+//			}
+//		}
+//#endif PVP_BOSS_COMBAT_TEST
 
 
 
@@ -2270,10 +2442,17 @@ bool CX2DamageManager::CollisionDataToUnit( DamageData* pDamageData )
 #endif	GUILD_SKILL_PART_2
 					//{{ kimhc // 2009-11-18 // 길드스킬 역전의 기회
 
+#ifdef ADD_RENA_SYSTEM //김창한
+					//첫번째 타격인지 체크
+					//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+					if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK )
+						pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 					HitUnit hitUnit;
 					hitUnit.fRemainGap	= pDamageData->fHitGap;
 					hitUnit.optrHitGameUnit	= pDamageData->optrDefenderGameUnit;
 					pDamageData->hitUnitList.push_back( hitUnit );
+
 					continue;
 				}
 
@@ -2281,6 +2460,12 @@ bool CX2DamageManager::CollisionDataToUnit( DamageData* pDamageData )
 				retval = true;
 			}
 
+#ifdef ADD_RENA_SYSTEM //김창한
+			//첫번째 타격인지 체크
+			//UnitList가 비어있는 상태에서 FAC_NOT_CHECK 상태라면 첫번째 타격
+			if( pDamageData->hitUnitList.empty() == true && pDamageData->m_eFirstAttack != FAC_NOT_CHECK )
+				pDamageData->m_eFirstAttack = FAC_FIRST_ATTACK;
+#endif //ADD_RENA_SYSTEM
 			HitUnit hitUnit;
 			hitUnit.fRemainGap	= pDamageData->fHitGap;
 			hitUnit.optrHitGameUnit	= pDamageData->optrDefenderGameUnit;
@@ -2310,11 +2495,11 @@ bool CX2DamageManager::OpenDamageSoundScript( const WCHAR* wszFileName )
 //{{ robobeg : 2008-10-28
 	//KLuaManager luaManager;
     KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-// 	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( wszFileName ) )
+// 	if( false == g_pKTDXApp->LoadLuaTinker( wszFileName ) )
 // 		return false;
-	//if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, L"Enum.lua" ) )
+	//if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, L"Enum.lua" ) )
 		//return false;
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, wszFileName ) )
+	if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, wszFileName ) )
 		return false;
 
 	if ( false == luaManager.ExportFunctionsToGlobalEnv() )
@@ -2323,72 +2508,83 @@ bool CX2DamageManager::OpenDamageSoundScript( const WCHAR* wszFileName )
 //}} robobeg : 2008-10-28
 
 
-	ParseDamageSoundBlock( luaManager, HT_DEFAULT,			L"HT_DEFAULT" );
-	ParseDamageSoundBlock( luaManager, HT_SWORD_SLASH,		L"HT_SWORD_SLASH" );
-	ParseDamageSoundBlock( luaManager, HT_SWORD_SLASH2,		L"HT_SWORD_SLASH2" );
-	ParseDamageSoundBlock( luaManager, HT_SWORD_HIT,		L"HT_SWORD_HIT" );
-	ParseDamageSoundBlock( luaManager, HT_SWORD_CRASH,		L"HT_SWORD_CRASH" );
-	ParseDamageSoundBlock( luaManager, HT_ROD_SLASH,		L"HT_ROD_SLASH" );
-	ParseDamageSoundBlock( luaManager, HT_ROD_SLASH2,		L"HT_ROD_SLASH2" );
-	ParseDamageSoundBlock( luaManager, HT_ROD_HIT,			L"HT_ROD_HIT" );
-	ParseDamageSoundBlock( luaManager, HT_ROD_CRASH,		L"HT_ROD_CRASH" );
-	ParseDamageSoundBlock( luaManager, HT_PUNCH_HIT,		L"HT_PUNCH_HIT" );
-	ParseDamageSoundBlock( luaManager, HT_PUNCH_HIT2,		L"HT_PUNCH_HIT2" );
-	ParseDamageSoundBlock( luaManager, HT_PUNCH_CRASH,		L"HT_PUNCH_CRASH" );
-	ParseDamageSoundBlock( luaManager, HT_KICK_SLASH,		L"HT_KICK_SLASH" );
-	ParseDamageSoundBlock( luaManager, HT_KICK_SLASH2,		L"HT_KICK_SLASH2" );
-	ParseDamageSoundBlock( luaManager, HT_KICK_HIT,			L"HT_KICK_HIT" );
-	ParseDamageSoundBlock( luaManager, HT_KICK_CRASH,		L"HT_KICK_CRASH" );
-	ParseDamageSoundBlock( luaManager, HT_ARROW_HIT,		L"HT_ARROW_HIT" );
-	ParseDamageSoundBlock( luaManager, HT_ARROW_HIT2,		L"HT_ARROW_HIT2" );
-	ParseDamageSoundBlock( luaManager, HT_ARROW_CRASH,		L"HT_ARROW_CRASH" );
-	ParseDamageSoundBlock( luaManager, HT_FIRE,				L"HT_FIRE" );
-	ParseDamageSoundBlock( luaManager, HT_FIRE2,			L"HT_FIRE2" );
-	ParseDamageSoundBlock( luaManager, HT_BOMB,				L"HT_BOMB" );
-	ParseDamageSoundBlock( luaManager, HT_WOOD,				L"HT_WOOD" );
-	ParseDamageSoundBlock( luaManager, HT_LIGHTNING,		L"HT_LIGHTNING" );
-	ParseDamageSoundBlock( luaManager, HT_NASOD_KING,		L"HT_NASOD_KING" );
-	ParseDamageSoundBlock( luaManager, HT_METAL_PUNCH_HIT,	L"HT_METAL_PUNCH_HIT" );
+	ParseDamageSoundBlock( luaManager, HT_DEFAULT,			"HT_DEFAULT" );
+	ParseDamageSoundBlock( luaManager, HT_SWORD_SLASH,		"HT_SWORD_SLASH" );
+	ParseDamageSoundBlock( luaManager, HT_SWORD_SLASH2,		"HT_SWORD_SLASH2" );
+	ParseDamageSoundBlock( luaManager, HT_SWORD_HIT,		"HT_SWORD_HIT" );
+	ParseDamageSoundBlock( luaManager, HT_SWORD_CRASH,		"HT_SWORD_CRASH" );
+	ParseDamageSoundBlock( luaManager, HT_ROD_SLASH,		"HT_ROD_SLASH" );
+	ParseDamageSoundBlock( luaManager, HT_ROD_SLASH2,		"HT_ROD_SLASH2" );
+	ParseDamageSoundBlock( luaManager, HT_ROD_HIT,			"HT_ROD_HIT" );
+	ParseDamageSoundBlock( luaManager, HT_ROD_CRASH,		"HT_ROD_CRASH" );
+	ParseDamageSoundBlock( luaManager, HT_PUNCH_HIT,		"HT_PUNCH_HIT" );
+	ParseDamageSoundBlock( luaManager, HT_PUNCH_HIT2,		"HT_PUNCH_HIT2" );
+	ParseDamageSoundBlock( luaManager, HT_PUNCH_CRASH,		"HT_PUNCH_CRASH" );
+	ParseDamageSoundBlock( luaManager, HT_KICK_SLASH,		"HT_KICK_SLASH" );
+	ParseDamageSoundBlock( luaManager, HT_KICK_SLASH2,		"HT_KICK_SLASH2" );
+	ParseDamageSoundBlock( luaManager, HT_KICK_HIT,			"HT_KICK_HIT" );
+	ParseDamageSoundBlock( luaManager, HT_KICK_CRASH,		"HT_KICK_CRASH" );
+	ParseDamageSoundBlock( luaManager, HT_ARROW_HIT,		"HT_ARROW_HIT" );
+	ParseDamageSoundBlock( luaManager, HT_ARROW_HIT2,		"HT_ARROW_HIT2" );
+	ParseDamageSoundBlock( luaManager, HT_ARROW_CRASH,		"HT_ARROW_CRASH" );
+	ParseDamageSoundBlock( luaManager, HT_FIRE,				"HT_FIRE" );
+	ParseDamageSoundBlock( luaManager, HT_FIRE2,			"HT_FIRE2" );
+	ParseDamageSoundBlock( luaManager, HT_BOMB,				"HT_BOMB" );
+	ParseDamageSoundBlock( luaManager, HT_WOOD,				"HT_WOOD" );
+	ParseDamageSoundBlock( luaManager, HT_LIGHTNING,		"HT_LIGHTNING" );
+	ParseDamageSoundBlock( luaManager, HT_NASOD_KING,		"HT_NASOD_KING" );
+	ParseDamageSoundBlock( luaManager, HT_METAL_PUNCH_HIT,	"HT_METAL_PUNCH_HIT" );
 #ifdef GROUND_HIT
-	ParseDamageSoundBlock( luaManager, HT_GROUND_HIT,		L"HT_GROUND_HIT" );
+	ParseDamageSoundBlock( luaManager, HT_GROUND_HIT,		"HT_GROUND_HIT" );
 #endif GROUND_HIT
-	ParseDamageSoundBlock( luaManager, HT_SLAP,				L"HT_SLAP" );
-	ParseDamageSoundBlock( luaManager, HT_EVE_SLASH1, 		L"HT_EVE_SLASH1" );
-	ParseDamageSoundBlock( luaManager, HT_EVE_SLASH2, 		L"HT_EVE_SLASH2" );
+	ParseDamageSoundBlock( luaManager, HT_SLAP,				"HT_SLAP" );
+	ParseDamageSoundBlock( luaManager, HT_EVE_SLASH1, 		"HT_EVE_SLASH1" );
+	ParseDamageSoundBlock( luaManager, HT_EVE_SLASH2, 		"HT_EVE_SLASH2" );
 
 //{{ kimhc // 2010.12.14 // 2010-12-23 New Character CHUNG
 #ifdef	NEW_CHARACTER_CHUNG
-	ParseDamageSoundBlock( luaManager, HT_CHUNG_SLASH1,		L"HT_CHUNG_SLASH1" );
-	ParseDamageSoundBlock( luaManager, HT_CHUNG_SLASH2, 	L"HT_CHUNG_SLASH2" );
-	ParseDamageSoundBlock( luaManager, HT_CHUNG_SLASH3, 	L"HT_CHUNG_SLASH3" );
+	ParseDamageSoundBlock( luaManager, HT_CHUNG_SLASH1,		"HT_CHUNG_SLASH1" );
+	ParseDamageSoundBlock( luaManager, HT_CHUNG_SLASH2, 	"HT_CHUNG_SLASH2" );
+	ParseDamageSoundBlock( luaManager, HT_CHUNG_SLASH3, 	"HT_CHUNG_SLASH3" );
 #endif	NEW_CHARACTER_CHUNG
 //}} kimhc // 2010.12.14 //  2010-12-23 New Character CHUNG
 
 //{{ kimhc // 2011.1.21 // 청 1차 전직
 #ifdef	CHUNG_FIRST_CLASS_CHANGE
-	ParseDamageSoundBlock( luaManager, HT_HANDGUN_HIT1,		L"HT_HANDGUN_HIT1" );
-	ParseDamageSoundBlock( luaManager, HT_HANDGUN_HIT2, 	L"HT_HANDGUN_HIT2" );
+	ParseDamageSoundBlock( luaManager, HT_HANDGUN_HIT1,		"HT_HANDGUN_HIT1" );
+	ParseDamageSoundBlock( luaManager, HT_HANDGUN_HIT2, 	"HT_HANDGUN_HIT2" );
 #endif	CHUNG_FIRST_CLASS_CHANGE
 //}} kimhc // 2011.1.21 // 청 1차 전직
 
 #ifdef AREA_HIT
-	ParseDamageSoundBlock( luaManager, HT_AREA_HIT,			L"HT_AREA_HIT" );
+	ParseDamageSoundBlock( luaManager, HT_AREA_HIT,			"HT_AREA_HIT" );
 #endif AREA_HIT
-	ParseDamageSoundBlock( luaManager, HT_SPEAR_HIT,		L"HT_SPEAR_HIT" );
+	ParseDamageSoundBlock( luaManager, HT_SPEAR_HIT,		"HT_SPEAR_HIT" );
 
 #ifdef ARA_CHARACTER_BASE	/// 아라 무기 사운드
-	ParseDamageSoundBlock( luaManager, HT_POLE_BRANDISH_WEAK,	L"HT_POLE_BRANDISH_WEAK"	);
-	ParseDamageSoundBlock( luaManager, HT_POLE_BRANDISH_STRONG,	L"HT_POLE_BRANDISH_STRONG"	);
-	ParseDamageSoundBlock( luaManager, HT_SHORTSWORD_SLASH,		L"HT_SHORTSWORD_SLASH"		);
-	ParseDamageSoundBlock( luaManager, HT_SHORTSWORD_PIERCE,	L"HT_SHORTSWORD_PIERCE"		);
+	ParseDamageSoundBlock( luaManager, HT_POLE_BRANDISH_WEAK,	"HT_POLE_BRANDISH_WEAK"	);
+	ParseDamageSoundBlock( luaManager, HT_POLE_BRANDISH_STRONG,	"HT_POLE_BRANDISH_STRONG"	);
+	ParseDamageSoundBlock( luaManager, HT_SHORTSWORD_SLASH,		"HT_SHORTSWORD_SLASH"		);
+	ParseDamageSoundBlock( luaManager, HT_SHORTSWORD_PIERCE,	"HT_SHORTSWORD_PIERCE"		);
 #endif
 
-#ifdef CHECK_SOUND_LOADING_TIME
-	FILE* pfile = fopen( "SOUND_LOADING_TIME.txt", "w" );
-	fprintf( pfile, "DamageSound Loading Time : ");
-	DWORD dwStartTime, dwTickCount; 
-	dwStartTime = timeGetTime();
-#endif // CHECK_SOUND_LOADING_TIME
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+	ParseDamageSoundBlock( luaManager, HT_ELECTRIC_1,			"HT_ELECTRIC_1"			);
+	ParseDamageSoundBlock( luaManager, HT_ELECTRIC_2,			"HT_ELECTRIC_2"			);
+	ParseDamageSoundBlock( luaManager, HT_PLASMA_1,				"HT_PLASMA_1"				);
+	ParseDamageSoundBlock( luaManager, HT_PLASMA_2,				"HT_PLASMA_2"				);
+	ParseDamageSoundBlock( luaManager, HT_PRESSURE_1,			"HT_PRESSURE_1"			);
+	ParseDamageSoundBlock( luaManager, HT_PRESSURE_2,			"HT_PRESSURE_2"			);
+	ParseDamageSoundBlock( luaManager, HT_WATER_1,				"HT_WATER_1"				);
+	ParseDamageSoundBlock( luaManager, HT_WATER_2,				"HT_WATER_2"				);
+	ParseDamageSoundBlock( luaManager, HT_WATER_3,				"HT_WATER_3"				);
+	ParseDamageSoundBlock( luaManager, HT_ICE,					"HT_ICE"					);
+	ParseDamageSoundBlock( luaManager, HT_METAL,				"HT_METAL"					);
+	ParseDamageSoundBlock( luaManager, HT_WIND,					"HT_WIND"					);
+	ParseDamageSoundBlock( luaManager, HT_STONE,				"HT_STONE"					);
+#endif //SERV_9TH_NEW_CHARACTER
+
+
 	for( int i=0; i<(int)HIT_TYPE_COUNT; i++ )
 	{
 		for( int j=0; j<(int)HITTED_TYPE_COUNT; j++ )
@@ -2404,11 +2600,6 @@ bool CX2DamageManager::OpenDamageSoundScript( const WCHAR* wszFileName )
 			}
 		}
 	}
-#ifdef CHECK_SOUND_LOADING_TIME
-	dwTickCount = timeGetTime()- dwStartTime;
-	fprintf(pfile, " %dms\n", dwTickCount);
-	fclose( pfile );
-#endif // CHECK_SOUND_LOADING_TIME
 
 	return true;
 	
@@ -2417,12 +2608,12 @@ bool CX2DamageManager::OpenDamageSoundScript( const WCHAR* wszFileName )
 
 
 
-bool CX2DamageManager::ParseDamageSoundBlock( KLuaManager& luaManager, HIT_TYPE eHitType, const wstring& tableName )
+bool CX2DamageManager::ParseDamageSoundBlock( KLuaManager& luaManager, HIT_TYPE eHitType, const char* pszTableNameUTF8 )
 {
-	if( true == tableName.empty() )
+	if( pszTableNameUTF8 == NULL || pszTableNameUTF8[0] == NULL )
 		return false;
 
-	if( true == luaManager.BeginTable( tableName.c_str() ) )
+	if( true == luaManager.BeginTable( pszTableNameUTF8 ) )
 	{
 		LUA_GET_VALUE( luaManager, "HTD_DEFAULT",		m_DamageSoundName[eHitType][HTD_DEFAULT],		L"" );
 		LUA_GET_VALUE( luaManager, "HTD_MEAT",			m_DamageSoundName[eHitType][HTD_MEAT],			L"" );
@@ -2509,22 +2700,22 @@ float CX2DamageManager::CalcHitDodgePercent( CX2GameUnit* pAttacker, CX2GameUnit
 	{
 		CX2GUUser *pUser = (CX2GUUser*)pDefender;
 		
-		CX2GUUser::FrameData *pFrameData = pUser->GetNowFrameData();
+		const CX2GUUser::FrameData& kFrameData = pUser->GetNowFrameData();
 		const CKTDGXSkinAnim *pSkinAnim = pUser->GetXSkinAnim();
-		if( pFrameData == NULL || pSkinAnim == NULL )
+		if( pSkinAnim == NULL )
 			return 1.f;
 
 		// 반격여부검사
-		if( pFrameData->stateParam.fRevengeStartTime < pSkinAnim->GetNowAnimationTime() 
-			&& pFrameData->stateParam.fRevengeEndTime > pSkinAnim->GetNowAnimationTime() 
-			&& pFrameData->unitCondition.bAttackerFront == true )
+		if( kFrameData.stateParam.fRevengeStartTime < pSkinAnim->GetNowAnimationTime() 
+			&& kFrameData.stateParam.fRevengeEndTime > pSkinAnim->GetNowAnimationTime() 
+			&& kFrameData.unitCondition.bAttackerFront == true )
 		{
 			return 1.f;
 		}	
 		// 마법반사여부 검사
-		if( pFrameData->stateParam.fReflexMagicStartTime < pSkinAnim->GetNowAnimationTime() 
-			&& pFrameData->stateParam.fReflexMagicEndTime > pSkinAnim->GetNowAnimationTime() 
-			&& pFrameData->unitCondition.bAttackerFront == true )
+		if( kFrameData.stateParam.fReflexMagicStartTime < pSkinAnim->GetNowAnimationTime() 
+			&& kFrameData.stateParam.fReflexMagicEndTime > pSkinAnim->GetNowAnimationTime() 
+			&& kFrameData.unitCondition.bAttackerFront == true )
 		{
 			return 1.f;
 		}
@@ -2544,7 +2735,7 @@ float CX2DamageManager::CalcHitDodgePercent( CX2GameUnit* pAttacker, CX2GameUnit
 		if ( pDefender != NULL )
 		{
 			CX2GUNPC* pGUNPC = (CX2GUNPC*)pAttacker;
-			fExtraEvadeRate = pDefender->GetEvadeUpPerBySMA( pGUNPC->GetNPCTemplet()->m_nNPCUnitID );
+			fExtraEvadeRate = pDefender->GetEvadeUpPerBySMA( pGUNPC->GetNPCTemplet().m_nNPCUnitID );
 		}
 	}
 	
@@ -2567,7 +2758,7 @@ float CX2DamageManager::CalcHitDodgePercent( CX2GameUnit* pAttacker, CX2GameUnit
 
 		if ( pUser->GetUnitClass() == CX2Unit::UC_CHUNG_DEADLY_CHASER )
 		{
-			CX2Unit::UnitData*	pUnitData	= pUser->GetUnit()->GetUnitData();
+			const CX2Unit::UnitData*	pUnitData	= &pUser->GetUnit()->GetUnitData();
 
 		#ifdef UPGRADE_SKILL_SYSTEM_2013 // 김태환 - 스킬 시스템 변경
 			int iSkillLevel = pUnitData->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_CDC_ACCURATE_MARKMANSHIP, true );
@@ -2607,7 +2798,7 @@ float CX2DamageManager::CalcHitDodgePercent( CX2GameUnit* pAttacker, CX2GameUnit
 
 		if ( pUser->GetUnitClass() == CX2Unit::UC_RAVEN_BLADE_MASTER )
 		{
-			CX2Unit::UnitData*	pUnitData	= pUser->GetUnit()->GetUnitData();
+			const CX2Unit::UnitData*	pUnitData	= &pUser->GetUnit()->GetUnitData();
 			// Raven 스킬 개편, 섬세한 검술
 			// 명중율 증가
 			int iSkillLevel = pUnitData->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_RST_EXQUISITE_SWORDMANSHIP, true );
@@ -2635,7 +2826,7 @@ float CX2DamageManager::CalcHitDodgePercent( CX2GameUnit* pAttacker, CX2GameUnit
 	//		if ( CX2Unit::UT_ELSWORD == pUser->GetUnit()->GetType() || CX2Unit::UT_RAVEN == pUser->GetUnit()->GetType() )
 	//		if( CX2Unit::UC_ELSWORD_INFINITY_SWORD == pUser->GetUnitClass() || CX2Unit::UC_ELSWORD_SHEATH_KNIGHT == pUser->GetUnitClass() )
 			{
-				CX2Unit::UnitData* pUnitData = pUser->GetUnit()->GetUnitData();
+				const CX2Unit::UnitData* pUnitData = &pUser->GetUnit()->GetUnitData();
 
 				int iSkillLevel = pUnitData->m_UserSkillTree.GetSkillLevel( CX2SkillTree::SI_P_COMMON_GET_CHANCE, true );
 				if( iSkillLevel > 0 )
@@ -2673,7 +2864,7 @@ float CX2DamageManager::CalcHitDodgePercent( CX2GameUnit* pAttacker, CX2GameUnit
 }
 
 #ifdef NEW_EXTRA_DAMAGE
-float CX2DamageManager::ExtraDamageData::GetCalcPerDamage(int iUnitLevel, float fResist)
+float CX2DamageManager::ExtraDamageData::GetCalcPerDamage(int iUnitLevel, float fResist) const
 {	
 	// 초당 데미지 변경 (레벨별/타입별 데미지로 변환)
 	float fPerDamage = 0.f;	
@@ -3000,10 +3191,10 @@ bool CX2DamageManager::OpenWayOfSwordScript( const WCHAR* wszFileName )
 		return false;
 
 	KLuaManager luaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( wszFileName ) )
+	if( false == g_pKTDXApp->LoadLuaTinker( wszFileName ) )
 		return false;
 
-	if( false == g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &luaManager, wszFileName ) )
+	if( false == g_pKTDXApp->LoadAndDoMemory( &luaManager, wszFileName ) )
 		return false;
 	
 	if( true == luaManager.BeginTable( "WAY_OF_SWORD" ) )
@@ -3086,29 +3277,29 @@ bool CX2DamageManager::CollisionDataCheckFromUnitToUnit( CX2GameUnit* pAttackerG
 	return false;
 }
 
-bool CX2DamageManager::CollisionDataCheckFromUnitToEffect( CX2GameUnit* pAttackerGameUnit_,
-	const CKTDXCollision::CollisionDataList& listDefenderCollisionData_,
-	CKTDXCollision::CollisionType& collisionType_, D3DXVECTOR3* pImpactPos_ )
-{
-	if( m_pCollision->CollisionDataCheck( pAttackerGameUnit_->GetAttackListSet(), listDefenderCollisionData_, collisionType_, pImpactPos_ ) )
-		return true;
-	else if ( m_pCollision->CollisionDataCheck( pAttackerGameUnit_->GetSubAttackListSet(), listDefenderCollisionData_, collisionType_, pImpactPos_ ) )
-		return true;
-	else
-	{
-		const UINT uiSize = pAttackerGameUnit_->GetSizeOfPairSubAttackListSet();
-		for ( UINT uiIndex = 0; uiIndex < uiSize; ++uiIndex )
-		{
-			const CKTDXCollision::CollisionDataListSet* pSetSubAttackList = NULL;
-
-			if ( pAttackerGameUnit_->GetSubAttackListGetFromPair( uiIndex, &pSetSubAttackList ) 
-				 && m_pCollision->CollisionDataCheck( *pSetSubAttackList, listDefenderCollisionData_, collisionType_, pImpactPos_ ) )
-				return true;
-		}			
-	}
-
-	return false;
-}
+//bool CX2DamageManager::CollisionDataCheckFromUnitToEffect( CX2GameUnit* pAttackerGameUnit_,
+//	const CKTDXCollision::CollisionDataList& listDefenderCollisionData_,
+//	CKTDXCollision::CollisionType& collisionType_, D3DXVECTOR3* pImpactPos_ )
+//{
+//	if( m_pCollision->CollisionDataCheck( pAttackerGameUnit_->GetAttackListSet(), listDefenderCollisionData_, collisionType_, pImpactPos_ ) )
+//		return true;
+//	else if ( m_pCollision->CollisionDataCheck( pAttackerGameUnit_->GetSubAttackListSet(), listDefenderCollisionData_, collisionType_, pImpactPos_ ) )
+//		return true;
+//	else
+//	{
+//		const UINT uiSize = pAttackerGameUnit_->GetSizeOfPairSubAttackListSet();
+//		for ( UINT uiIndex = 0; uiIndex < uiSize; ++uiIndex )
+//		{
+//			const CKTDXCollision::CollisionDataListSet* pSetSubAttackList = NULL;
+//
+//			if ( pAttackerGameUnit_->GetSubAttackListGetFromPair( uiIndex, &pSetSubAttackList ) 
+//				 && m_pCollision->CollisionDataCheck( *pSetSubAttackList, listDefenderCollisionData_, collisionType_, pImpactPos_ ) )
+//				return true;
+//		}			
+//	}
+//
+//	return false;
+//}
 
 /** @function : ParsingBuffFactor
 	@brief : DamageData내의 BUFF_FACTOR 테이블 파싱
@@ -3189,13 +3380,13 @@ bool CX2DamageManager::CheckActiveGroupDamage( const wstring& wstrDamageEffectNa
 		return true;
 
 	/// 피격자의 그룹 데미지 정보 컨테이너
-	vector<CX2GameUnit::DamageEffectGroupDataPtr> vecDamageEffectGroupData	= pDamageData_->optrDefenderGameUnit->GetDamageEffectGroupData();
+	const vector<CX2GameUnit::DamageEffectGroupDataPtr>& vecDamageEffectGroupData	= pDamageData_->optrDefenderGameUnit->GetDamageEffectGroupData();
 	/// 공격자 유닛 타입
 	CX2GameUnit::GAME_UNIT_TYPE					  eAttackerGameUnitType		= pDamageData_->optrAttackerGameUnit->GetGameUnitType();
 	/// 공격자 유닛 아이디
 	UidType										  uidAttackerUID			= pDamageData_->optrAttackerGameUnit->GetUnitUID();
 
-	BOOST_FOREACH( CX2GameUnit::DamageEffectGroupDataPtr pDamageEffectGroupData, vecDamageEffectGroupData )
+	BOOST_FOREACH( const CX2GameUnit::DamageEffectGroupDataPtr& pDamageEffectGroupData, vecDamageEffectGroupData )
 	{
 		if( NULL					!= pDamageEffectGroupData &&
 			uidAttackerUID			== pDamageEffectGroupData->m_uidAttackerUID &&			/// 공격자의 유닛 아이디도 같으며
@@ -3220,7 +3411,7 @@ void CX2DamageManager::SetGroupDamage( const wstring& wstrDamageEffectName_, CX2
 		return;
 
 	/// 그룹 데미지 정보 컨테이너
-	vector<CX2GameUnit::DamageEffectGroupDataPtr>&	vecDamageEffectGroupData	= pDamageData_->optrDefenderGameUnit->GetDamageEffectGroupData();
+	vector<CX2GameUnit::DamageEffectGroupDataPtr>&	vecDamageEffectGroupData	= pDamageData_->optrDefenderGameUnit->AccessDamageEffectGroupData();
 	/// 공격자 유닛 타입
 	CX2GameUnit::GAME_UNIT_TYPE						eAttackerGameUnitType		= pDamageData_->optrAttackerGameUnit->GetGameUnitType();
 	/// 공격자 유닛 아이디
@@ -3250,9 +3441,9 @@ bool CX2DamageManager::GetPossibleAttackOurTeamID( CX2GameUnit* pNPCUnit_ )
 	{
 		CX2GUNPC* pNPC = static_cast<CX2GUNPC*>( pNPCUnit_ );
 
-		if( NULL != pNPC && NULL != pNPC->GetNPCTemplet() )
+		if( NULL != pNPC )
 		{
-			switch( pNPC->GetNPCTemplet()->m_nNPCUnitID )
+			switch( pNPC->GetNPCTemplet().m_nNPCUnitID )
 			{
 			case CX2UnitManager::NUI_EVENT_TEACHER_HAGERS:
 				{
@@ -3288,24 +3479,84 @@ bool CX2DamageManager::SetBuffFactorToDamageDataByBuffFactorID( OUT DamageData* 
 /** @function : ParsingBuffFactorID
 	@brief : DamageData에 ID로 정의된 버프팩터 파싱
 */
+#ifdef ADD_MEMO_1ST_CLASS
+void CX2DamageManager::ParsingBuffFactorID( KLuaManager& luaManager_, DamageData* pDamageData_, const bool IsEqippedMemo_ /*= false*/ )
+#else //ADD_MEMO_1ST_CLASS
 void CX2DamageManager::ParsingBuffFactorID( KLuaManager& luaManager_, DamageData* pDamageData_ )
+#endif //ADD_MEMO_1ST_CLASS
 {
 	// DamageData에 추가 할 BuffFactorID 파싱
 	vector<UINT> vecUiBuffFactor;
-	if( luaManager_.BeginTable( "BUFF_FACTOR_ID" ) == true )
+
+#ifdef BALANCE_PATCH_20131107
+
+#ifdef ADD_MEMO_1ST_CLASS
+	bool bMemoCheck = IsEqippedMemo_;
+#else //ADD_MEMO_1ST_CLASS
+	bool bMemoCheck = false;
+#endif //ADD_MEMO_1ST_CLASS
+
+	// 유저 일 경우 버프팩터 연동 메모 체크
+	if( null != pDamageData_->optrAttackerGameUnit &&
+		CX2GameUnit::GUT_USER == pDamageData_->optrAttackerGameUnit->GetGameUnitType() 
+#ifdef ADD_MEMO_1ST_CLASS
+		&& bMemoCheck == false
+#endif //ADD_MEMO_1ST_CLASS
+		)
 	{
-		int index = 1;
-		UINT uiBuffFactorID = 0;
-		while( true == luaManager_.GetValue( index, uiBuffFactorID ) )
+		const CX2GUUser* pGUUser = static_cast<CX2GUUser*>(pDamageData_->optrAttackerGameUnit.GetObservable());
+		if( NULL != pGUUser )
 		{
-			if( 0 != uiBuffFactorID )
+			CX2SkillTree::SKILL_MEMO_ID eMemoID = CX2SkillTree::SMI_NONE;
+			LUA_GET_VALUE_ENUM( luaManager_, "BUFF_FACTOR_RELATIVE_MEMO_ID", eMemoID,	CX2SkillTree::SKILL_MEMO_ID,	CX2SkillTree::SMI_NONE );
+
+			if( CX2SkillTree::SMI_NONE != eMemoID )
 			{
-				vecUiBuffFactor.push_back( uiBuffFactorID );
+				if( NULL != pGUUser->GetUnit() )
+				{
+					// 메모 습득 여부  
+					bMemoCheck =  pGUUser->GetUnit()->GetUnitData().m_UserSkillTree.GetEqipSkillMemo( eMemoID );
+				}
 			}
-			index++;
 		}
-		luaManager_.EndTable();
 	}
+
+	if( true == bMemoCheck )
+	{
+		if( luaManager_.BeginTable( "BUFF_FACTOR_ID_MEMO" ) == true )
+		{
+			int index = 1;
+			UINT uiBuffFactorID = 0;
+			while( true == luaManager_.GetValue( index, uiBuffFactorID ) )
+			{
+				if( 0 != uiBuffFactorID )
+				{
+					vecUiBuffFactor.push_back( uiBuffFactorID );
+				}
+				index++;
+			}
+			luaManager_.EndTable();
+		}
+	}
+	else
+#endif //BALANCE_PATCH_20131107
+	{
+		if( luaManager_.BeginTable( "BUFF_FACTOR_ID" ) == true )
+		{
+			int index = 1;
+			UINT uiBuffFactorID = 0;
+			while( true == luaManager_.GetValue( index, uiBuffFactorID ) )
+			{
+				if( 0 != uiBuffFactorID )
+				{
+					vecUiBuffFactor.push_back( uiBuffFactorID );
+				}
+				index++;
+			}
+			luaManager_.EndTable();
+		}
+	}
+
 
 	if( false == vecUiBuffFactor.empty() )
 	{
@@ -3322,25 +3573,124 @@ void CX2DamageManager::ParsingBuffFactorID( KLuaManager& luaManager_, DamageData
 				// BuffFactor 레벨 연동 스킬 ID 파싱
 				CX2SkillTree::SKILL_ID eSkillID = CX2SkillTree::SI_NONE;
 				LUA_GET_VALUE_ENUM( luaManager_, "BUFF_FACTOR_RELATIVE_SKILL_ID", eSkillID,	CX2SkillTree::SKILL_ID,	pGUUser->GetNowStateSkillID() );
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+				//유저가 해당 skill을 배웠는지를 체크하는 구문입니다.
+				//유저가 해당 skill을 배우지 않았다면 buff를 1레벨이라도 적용하지 않습니다.
+				bool CheckSkillLevel = false;
+				LUA_GET_VALUE( luaManager_, "RELATIVE_SKILL_LEARN_CHECK", CheckSkillLevel,	false );
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 
 				if( CX2SkillTree::SI_NONE != eSkillID )
 				{
-					if( NULL != pGUUser->GetUnit() &&
-						NULL != pGUUser->GetUnit()->GetUnitData() )
+					if( NULL != pGUUser->GetUnit() )
 					{
 						// 스킬트리의 레벨 체크.( 스킬 습득 여부 ) 
-						const UINT iSkillLevel = static_cast<UINT>( pGUUser->GetUnit()->GetUnitData()->m_UserSkillTree.GetSkillLevel( eSkillID ) );
+						const UINT iSkillLevel = static_cast<UINT>( pGUUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( eSkillID ) );
 
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+						//CheckSkillLevel 값이 false이거나 스킬을 배웠다면 iBuffFactorLV에 현재 스킬레벨을 적용시킵니다.
+						//아니라면 iBuffFactorLV을 0으로 만들어 버프를 적용시키지 않습니다.
+						if( false == CheckSkillLevel || 1 <= iSkillLevel )
+							iBuffFactorLV = 0 < iSkillLevel ? iSkillLevel : 1;
+						else
+							iBuffFactorLV = 0;
+#else //SERV_ELESIS_SECOND_CLASS_CHANGE
 						iBuffFactorLV = 0 < iSkillLevel ? iSkillLevel : 1;
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 					}
 				}
 			}
 		}
 
+
+
+#ifdef BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+		// BUFF_FACTOR_RELATIVE_SKILL_ID 가 true 일 경우, Master Unit 의 UID 를 받아 해당 스킬을 배웠는지 하고
+		// 배웠다면, 해당 버프 팩터의 레벨을 가져 옵니다. Ex. 이브:코드 네메시스, 아토믹 실드
+		else if( null != pDamageData_->optrAttackerGameUnit &&
+			CX2GameUnit::GUT_NPC == pDamageData_->optrAttackerGameUnit->GetGameUnitType() )
+		{
+			bool bBuffFactorRelativeMasterUnit = false;
+			CX2SkillTree::SKILL_ID eSkillID = CX2SkillTree::SI_NONE;
+			LUA_GET_VALUE_ENUM( luaManager_, "BUFF_FACTOR_RELATIVE_SKILL_ID", eSkillID,	CX2SkillTree::SKILL_ID,	CX2SkillTree::SI_NONE );
+			LUA_GET_VALUE( luaManager_, "BUFF_FACTOR_RELATIVE_MASTER_UNIT", bBuffFactorRelativeMasterUnit, false );
+			
+
+			if ( true == bBuffFactorRelativeMasterUnit && eSkillID != CX2SkillTree::SI_NONE )
+			{	// 스킬 ID 가 지정되어 있고, NPC Unit 이 AllyUnitUID 가 존재할 때
+				// 마스터 유저를 찾아서 해당 버프 팩터의 레벨을 받아온다.
+				CX2GUNPC* pGUNPC = static_cast<CX2GUNPC*>(pDamageData_->optrAttackerGameUnit.GetObservable());
+				if ( NULL != pGUNPC )
+				{	
+					CX2AllyNPCAI* pAllyAI = static_cast<CX2AllyNPCAI*> ( pGUNPC->GetNPCAI() );
+			
+					if( NULL != pAllyAI && pAllyAI->GetAllyUnitUID() > -1 )
+					{
+						CX2GUUser * pMasterUser = g_pX2Game->GetUserUnitByUID( pAllyAI->GetAllyUnitUID() );
+			
+						if ( NULL != pMasterUser && NULL != pMasterUser->GetUnit() )
+						{
+							const UINT iSkillLevel = static_cast<UINT>( pMasterUser->GetUnit()->GetUnitData().m_UserSkillTree.GetSkillLevel( eSkillID ) );
+							iBuffFactorLV = 0 < iSkillLevel ? iSkillLevel : 0;
+						}
+					}
+				}
+			}
+		}
+#endif // BALANCE_PATCH_20131107					// 김종훈 / 13-10-16, 2013년 후반기 밸런스 개편
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE //김창한
+		if( iBuffFactorLV > 0 )
+#endif //SERV_ELESIS_SECOND_CLASS_CHANGE
 		BOOST_FOREACH( UINT uiBuffFactorID, vecUiBuffFactor )
 		{
 			SetBuffFactorToDamageDataByBuffFactorID( pDamageData_, uiBuffFactorID, iBuffFactorLV );
 		}
 	}
+
+
 }
 #endif // DAMAGE_DATA_BUFF_FACTOR_RELATIVE_SKILL_LEVEL
+
+#ifdef SERV_ELESIS_SECOND_CLASS_CHANGE	  // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+bool CX2DamageManager::GetIsPossibleProvokeExtraDamage ( DamageData * pDamageData )
+{	// Extra 데미지 중 엘리시스의 도발에 반응하는 데미지 인지 아닌지를 처리하는 함수
+	if ( NULL != pDamageData )
+	{
+		switch( pDamageData->m_ExtraDamage.m_ExtraDamageType )
+		{
+			case EDT_MANA_DAMAGE:
+			case EDT_DAMAGE_RATE:
+			case EDT_WATER_HOLD:
+			case EDT_ATTACK_ALL_TEAM:
+				return false;
+		}
+	}
+	return true;
+}
+#endif // SERV_ELESIS_SECOND_CLASS_CHANGE // 김종훈, 엘리시스 1-2 그랜드 마스터, 2-2 블레이징 하트
+
+//{{ robobeg : 2013-09-17
+bool    CX2DamageManager::DamageData::IsAttackedByMyUnit()
+{
+    CX2GameUnit*    pAttackerUnit = ( null != optrAttackerGameUnit )
+        ? optrAttackerGameUnit.GetObservable() : NULL;
+
+    if ( pAttackerUnit != NULL )
+    {
+        return  pAttackerUnit->IsMyUnit();
+    }
+    else
+    {
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        CX2DamageEffect::CEffect*   pAttackerEffect = g_pX2Game->GetDamageEffect()->GetInstance( hAttackerEffect );
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        if ( pAttackerEffect != NULL && pAttackerEffect->GetOwnerUnit() != NULL )
+        {
+            return  pAttackerEffect->GetOwnerUnit()->IsMyUnit();
+        }
+    }
+    return false;
+}
+//}} robobeg : 2013-09-17
+

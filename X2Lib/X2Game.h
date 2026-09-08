@@ -62,9 +62,9 @@ class CX2Game : public CKTDXStage
 			GT_PVP,
 			GT_DUNGEON,
 			GT_BATTLE_FIELD,
-#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 			GT_NUMS
-#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif//SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		};
 
 		enum CONNECT_TYPE
@@ -75,7 +75,6 @@ class CX2Game : public CKTDXStage
 			CT_CONNECT_TO_INTRUDER,
 		};
 
-#ifdef DUNGEON_ALARM_SYSTEM
 		enum ALARM_COLOR_TYPE
 		{
 			ACT_BLACK = 0,
@@ -96,6 +95,9 @@ class CX2Game : public CKTDXStage
 			bool				m_bDanger;
 			bool				m_bRepeat;
 			wstring				m_wstrMessage;
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+			X2_UK_FONT			m_eFontType;
+#endif //SERV_HALLOWEEN_EVENT_2013
 
 
 			DangerAlarm()
@@ -113,9 +115,11 @@ class CX2Game : public CKTDXStage
 				m_eColor = ACT_BLACK;
 				m_fShowTime = 0.f;
 				m_iStateId = -1;
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+				m_eFontType = XUF_DODUM_20_BOLD;
+#endif //SERV_HALLOWEEN_EVENT_2013
 			}
 		};
-#endif
 
 	public:
 		struct CreateNPCData
@@ -263,7 +267,11 @@ class CX2Game : public CKTDXStage
 			{
 			}
 
-			bool IsInRange( const D3DXVECTOR3& vPos, float& fSpeeYDelta, D3DXVECTOR3& vSpeedRotateDelta, int iTeamNumber );
+			bool IsInRange( 
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                float   fElapsedTime,
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+                const D3DXVECTOR3& vPos, float& fSpeeYDelta, D3DXVECTOR3& vSpeedRotateDelta, int iTeamNumber );
 
 			void OnFrameMove( double fTime, float fElapsedTime )
 			{
@@ -332,8 +340,13 @@ class CX2Game : public CKTDXStage
 
 			CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hCinematicTop;
 			CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hCinematicBottom;
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+			CKTDGParticleSystem::CParticleHandle				m_hCinematicTopParticle;			
+			CKTDGParticleSystem::CParticleHandle				m_hCinematicBottomParticle;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 			CKTDGParticleSystem::CParticle*						m_pCinematicTopParticle;			
 			CKTDGParticleSystem::CParticle*						m_pCinematicBottomParticle;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 
 			HRESULT OnFrameMove ( double fTime, float fElapsedTime );
 
@@ -374,17 +387,17 @@ class CX2Game : public CKTDXStage
 		void						SetBuffInfoPacketToNpc( const KEGS_UPDATE_NPC_UNIT_BUFF_INFO_BROAD_NOT& kEvent_ );
 		void						SetBuffInfoPacketToGUUser( const KEGS_UPDATE_USER_UNIT_BUFF_INFO_BROAD_NOT& kEvent_ );
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         WORD                        Handler_P2P_UnitUserSyncPack( const BYTE* pbyData, BYTE byNumPacks, WORD wMaxSize, UidType uidUnitUID, DWORD dwFrameMoveCount );
 		WORD                        Handler_P2P_UnitNpcSyncPack( const BYTE* pData, BYTE byNumNPCs, WORD wMaxSize, UidType uidUnitUID, DWORD dwFrameMoveCount );
 		WORD                        Handler_P2P_UnitPetSyncPack( const BYTE* pData, BYTE byNumNPCs, WORD wMaxSize );
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
         WORD                        Handler_P2P_UnitNpcMiniSyncPack( const BYTE* pData, BYTE byNumNPCs, WORD wMaxSize, UidType uidUnitUID, DWORD dwFrameMoveCount );
 #endif  X2OPTIMIZE_NPC_NONHOST_SIMULATION
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		virtual void				Handler_P2P_UnitNpcSyncPack( CKTDNUDP::RecvData* pRecvData, bool bFirst_ = false );
-		virtual void				Handler_P2P_UnitPetSyncPack( CKTDNUDP::RecvData* pRecvData );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		virtual void				Handler_P2P_UnitNpcSyncPack( CKTDNUDP::RecvData* pRecvData, bool bFirst_ = false );
+//		virtual void				Handler_P2P_UnitPetSyncPack( CKTDNUDP::RecvData* pRecvData );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 		virtual void				P2PPacketHandler();
 		virtual bool				P2PPacketHandler( CKTDNUDP::RecvData* pRecvData );
@@ -431,26 +444,31 @@ class CX2Game : public CKTDXStage
 		virtual void				SetTimerFocusUnit( CX2GameUnit* pFocusUnit, float fFocusTime = 0.f, float fDistacne = -1.f );
 #ifdef INIT_FOCUS_UNIT
 		virtual void				InitFocusUnit();
-#endif // INIT_FOCUS_UNIT
+#endif // INIT_FOCUS_UN
 
-		CKTDGLineMap*				GetLineMap()				{ return GetWorld()->GetLineMap(); }
+		CKTDGLineMap*				GetLineMap()				
+		{ 
+			if( NULL != GetWorld() ) 
+				return GetWorld()->GetLineMap(); 
+
+			return NULL;
+		}
 #ifdef X2TOOL
 		void						SetWorld(CX2World* pWorld)	{ m_pWorld = pWorld; }
 #endif
 		virtual CX2World*			GetWorld()					{ return m_pWorld; }
 		virtual CX2Camera*			GetX2Camera()				{ return m_pCamera; }
-		virtual CX2DamageEffect*	GetDamageEffect()			{ return m_pDamageEffect; }
-
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+		CX2DamageEffect*	        GetDamageEffect()			{ return m_pDamageEffect; }
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         bool				        IsHost()					{ return m_uidHostSlotUID != 0 && m_uidHostSlotUID == m_uidMySlotUID; }
         UidType                     GetHostSlotUID()            { return m_uidHostSlotUID; }
         UidType                     GetMySlotUID()              { return m_uidMySlotUID; }
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		virtual bool				IsHost()					{ return m_bHost; }
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		virtual bool				IsHost()					{ return m_bHost; }
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
         bool                        IsPacketSendFrame()         { return m_iPacketSendFrameMoveCount == 0; }
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 		
 		virtual CX2GUUser*			GetMyUnit()	const			{ return ( null != m_optrMyUnit ? static_cast<CX2GUUser*>( m_optrMyUnit.GetObservable() ) : NULL ); }
 		virtual CX2GameUnit*		GetFocusUnit() const		{ return ( null != m_optrFocusUnit ? m_optrFocusUnit.GetObservable() : NULL ); }
@@ -608,90 +626,6 @@ class CX2Game : public CKTDXStage
 		void						PushCreateNPCReq_Lua( int unitID, int level, bool bActive, D3DXVECTOR3 vPos, bool bRight, float fDelayTime, bool bNoDrop, int iKeyCode );
 		void						FlushCreateNPCReq();
 
-#ifdef SERV_IRUHADEV_OFFLINE
-		/// AI_PARTY_PLAN.md phase 1. Spawn the AI party members the offline
-		/// server put in this dungeon room's bot slots, on the player's team
-		/// with ally AI. Called from CX2DungeonGame::SubStageStart(), beside
-		/// the studio's own CreateAllyEventMonster() - NOT from
-		/// Handler_EGS_PLAY_START_NOT, which a dungeon never reaches. A
-		/// dungeon room with no bot slots spawns nothing, which is what keeps
-		/// the solo button solo. Idempotent: it re-spawns only the bots that
-		/// are not in the world.
-		void						CreateOfflinePartyBots();
-
-		/// AI_PARTY_PLAN.md phase 2. Bring a dead AI party member back after
-		/// a delay. Called every frame from CX2DungeonGame::OnFrameMove while
-		/// the dungeon is in GS_PLAY. Needed because nothing else in an
-		/// offline dungeon ever revives a bot - see the comment on the
-		/// definition for why RebirthUserUnit's own bot branch is unreachable
-		/// on this path.
-		void						TickOfflinePartyBots( float fElapsedTime );
-
-		/// AI_PARTY_PLAN.md phase 4b. Take the AI party down: delete what is
-		/// left of it, remove its HP bars, and stop tending it. Called from
-		/// CX2DungeonGame::Handler_EGS_END_GAME_DUNGEON_RESULT_DATA_NOT - the
-		/// packet that fills the reward screen in, so the party leaves at the
-		/// moment the run is being paid out. One-way for the life of this
-		/// CX2DungeonGame; a new dungeon builds a new one.
-		void						EndOfflinePartyBots();
-
-		/// True once EndOfflinePartyBots has run. The whole of what it does to
-		/// TickOfflinePartyBots is stop it: with the dungeon over there is
-		/// nothing to respawn into, and the tick would otherwise notice the
-		/// party is dead and ask for it back once a second until the result
-		/// screen takes the state away. It did exactly that in the 2026-09-06
-		/// run - nine spawn requests in four seconds, every one answered and
-		/// none of them ever arriving.
-		bool						m_bOfflinePartyOver;
-
-		/// Seconds each bot has been at 0 HP, keyed by its negative room-slot
-		/// UID. Only TickOfflinePartyBots reads or writes it; an entry is
-		/// erased the moment the bot is alive again, so the map is empty for
-		/// a party that is not currently down and absent entirely for a solo
-		/// run.
-		std::map< int, float >		m_mapOfflineBotDeadTime;
-
-		/// Seconds left on a spawn request that has been sent but whose NPC
-		/// has not turned up yet, keyed the same way. A spawn is not
-		/// synchronous - CreateNPCReq sends a packet and the unit is built
-		/// several frames later off the offline server's queued
-		/// EGS_NPC_UNIT_CREATE_NOT - so "GetNPCUnitByUID returned NULL" does
-		/// not mean "ask again". Without this, the per-frame tick asked four
-		/// times over and put six bots in the room.
-		std::map< int, float >		m_mapOfflineBotSpawnGrace;
-
-		/// Seconds until the next AI party member may be asked for. The party
-		/// spawns one at a time: building a CX2GUNPC loads the hero's meshes
-		/// and lua state machine, and three of those on one frame is a visible
-		/// hitch at every stage change. Counted down in TickOfflinePartyBots,
-		/// armed in CreateOfflinePartyBots.
-		float						m_fOfflineBotSpawnCooldown;
-
-		/// Where AI party member iBotIndex_ belongs on the stage the client is
-		/// standing in: the line map's own party start slot 1..n when it has
-		/// them, a fan-out around the player when it does not. False when there
-		/// is no player unit to place anything beside. Shared by the spawn and
-		/// by the stage-change reposition so the two cannot drift apart.
-		bool						GetOfflinePartyBotPos( int iBotIndex_, D3DXVECTOR3& vPosOut_, bool& bRightOut_ );
-
-#ifdef SERV_IRUHADEV_AIPARTY_PERSIST
-		/// True only while CX2DungeonGame::StageLoading is tearing the old
-		/// stage down, and the one thing that makes DeleteAllNPCUnit spare a
-		/// living AI party member. Deliberately not a blanket exemption: every
-		/// other caller of DeleteAllNPCUnit still means all of them.
-		bool						m_bOfflineKeepPartyBots;
-
-		/// True if iUID_ is one of this dungeon room's AI party slot UIDs.
-		bool						IsOfflinePartyBotUID( int iUID_ );
-
-		/// Put the AI party members that survived a stage change onto the new
-		/// stage's line map, in the wait state. Called from
-		/// CX2DungeonGame::StageLoading beside the m_UserUnitList reposition
-		/// loop it deliberately mirrors.
-		void						RepositionOfflinePartyBots();
-#endif SERV_IRUHADEV_AIPARTY_PERSIST
-#endif SERV_IRUHADEV_OFFLINE
-
 #ifdef CREATE_NPC_REQ_FULL_ARGUMENTS
 		void						CreateNPCReq_LUA3( int unitID, int level, bool bActive, D3DXVECTOR3 vPos, bool bRight, D3DXVECTOR3 vfDelayTimeNKeyCode, bool bNoDrop, int iTeam, int iAIType, UidType iAllyUID );
 		void						PushCreateNPCReq_LUA3( int unitID, int level, bool bActive, D3DXVECTOR3 vPos, bool bRight, D3DXVECTOR3 vfDelayTimeNKeyCode, bool bNoDrop, int iTeam, int iAIType, UidType iAllyUID );
@@ -796,6 +730,15 @@ class CX2Game : public CKTDXStage
 
 		virtual bool 				Handler_EGS_NPC_UNIT_CREATE_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 		virtual bool 				Handler_EGS_NPC_UNIT_CREATE_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+
+#ifdef FINALITY_SKILL_SYSTEM //JHKang
+#ifdef SERV_BALANCE_FINALITY_SKILL_EVENT
+		bool						Handler_EGS_USE_FINALITY_SKILL_REQ();
+#endif //SERV_BALANCE_FINALITY_SKILL_EVENT
+		bool						Handler_EGS_USE_FINALITY_SKILL_REQ( UidType itemUID_ );
+		virtual bool				Handler_EGS_USE_FINALITY_SKILL_ACK( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
+#endif //FINALITY_SKILL_SYSTEM
+
 #ifdef SERV_INSERT_GLOBAL_SERVER
 		virtual bool 				Handler_EGS_CREATE_ATTRIB_NPC_NOT( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 #endif SERV_INSERT_GLOBAL_SERVER
@@ -1012,13 +955,16 @@ class CX2Game : public CKTDXStage
 		CX2GameUnit*				GetNearestNPCUnitOnSameDirection_LUA( D3DXVECTOR3 pos, float fMinRange, float fMaxRange, D3DXVECTOR3 vDir );
 #endif NEAREST_NPC_ON_SAME_DIRECTION
 
-
 		bool						ChangeRebirthStateNPCUnit_LUA( int NPCUID );
 
 
 		int							GetNPCCountAt( D3DXVECTOR3 vPosition, float fRadius = 30.f, CX2UnitManager::NPC_UNIT_ID eNPCID = CX2UnitManager::NUI_NONE );
 		D3DXVECTOR3					GetEmptyStartPos();
+#ifdef SKILLSTRING_IN_SKILLTEMPLET
+		void						SetStateString( const wstring pStr ){ m_StateString = pStr; }
+#else //SKILLSTRING_IN_SKILLTEMPLET
 		void						SetStateString( const WCHAR* pStr ){ m_StateString = pStr; }
+#endif //#ifdef SKILLSTRING_IN_SKILLTEMPLET
 
 		CX2Game::InfoTextManager&	GetInfoTextManager() { return m_InfoTextManager; }
 		CX2GUNPCFunc*				GetNPCFunc(){ return m_pNPCFunc; }
@@ -1083,14 +1029,18 @@ class CX2Game : public CKTDXStage
 #ifdef REVERSE_GRAVITY_TEST
 
 		void ReverseGravityFrameMove( double fTime, float fElapsedTime );
+#ifdef  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
+        bool IsInReverseGravityRegion( float fElapsedTime, const D3DXVECTOR3& vPos, float& fSpeedYDelta, D3DXVECTOR3& vSpeedRotateDelta, int iTeamNumber );
+#else   X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		bool IsInReverseGravityRegion( const D3DXVECTOR3& vPos, float& fSpeedYDelta, D3DXVECTOR3& vSpeedRotateDelta, int iTeamNumber );
+#endif  X2OPTIMIZE_NPC_ADAPTIVE_FRAME_MOVE
 		void AddReverseGravityRegion( const D3DXVECTOR3& vPos, const float fRange, const float fTime, const float fGravity, int iTeamNumber );
 
 #endif REVERSE_GRAVITY_TEST
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		std::vector<UidType>& GetVecUserUIDforSyncPacket() { return m_vecUserUIDforSyncPacket; }
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		std::vector<UidType>& GetVecUserUIDforSyncPacket() { return m_vecUserUIDforSyncPacket; }
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 		void						ResetReBirthStoneNumUI(); // protected에서 옮겨옴
 
@@ -1156,11 +1106,9 @@ class CX2Game : public CKTDXStage
 #endif SERV_SHARING_BANK_TEST
 
 		//{{ kimhc // 2011-07-28 // 옵션수치화
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		// 1레벨 보정 던전인가?
 		bool IsDamageFreeGame() const { return m_bIsDamageFreeGame; }
 		void SetIsDamageFreeGame( const bool bIsDamageFreeGame_ ) { m_bIsDamageFreeGame = bIsDamageFreeGame_; }	
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-28 // 옵션수치화
 #ifdef NEW_HENIR_TEST
 		int							GetStartSecretStageEnteringEvent();
@@ -1180,8 +1128,12 @@ class CX2Game : public CKTDXStage
 	#ifdef SERV_RAVEN_VETERAN_COMMANDER
 		void						UpdateVeteranCommanderSkillSlotIcon();
 	#endif //SERV_RAVEN_VETERAN_COMMANDER
-
-#ifdef DUNGEON_ALARM_SYSTEM				
+	#ifdef FINALITY_SKILL_SYSTEM //김창한
+		void						UpdateCodeEmpressSkillSlotIcon();
+	#endif //FINALITY_SKILL_SYSTEM
+	#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		void						UpdateAddNasodRulerSkillSlotIcon();
+	#endif //SERV_9TH_NEW_CHARACTER			
 		void ShowDangerAlarm_LUA( int iAlarmId, float fShowTime, ALARM_COLOR_TYPE eColor, bool bDanger, int iStringIndex );
 		void ShowDangerAlarm( int iIndex );
 		int LoadDangerAlarm( KLuaManager &luaManager, UidType iUid, int iStateId = -1 );
@@ -1224,10 +1176,42 @@ class CX2Game : public CKTDXStage
 
 			return 0.f;
 		}
-#endif
+
+#ifdef SERV_HALLOWEEN_EVENT_2013 // 2013.10.14 / JHKang
+void ShowTimerAlarm_LUA( int iAlarmId, float fShowTime, ALARM_COLOR_TYPE eColor, bool bDanger, float fValue_ );
+void ShowTimerAlarm( int iIndex, float fValue_ );
+#endif //SERV_HALLOWEEN_EVENT_2013
 
 #ifdef ADD_GAME_STAGE_DELETE_DAMAGEEFFECT
-		void AddRemoveDamageEffect( CX2DamageEffect::CEffect *pDamage )
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        void AddRemoveDamageEffect( CX2DamageEffect::CEffectHandle hDamage )
+		{
+			m_vecRemoveDamageEffect.push_back( hDamage );
+		}
+		void RemoveDamageEffect()
+		{
+			for(UINT i=0; i<m_vecRemoveDamageEffect.size(); ++i)
+			{
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                if ( CX2DamageEffect::CEffect* pDamage = ( GetDamageEffect() != NULL ) 
+                    ? GetDamageEffect()->GetInstance( m_vecRemoveDamageEffect[i] ) : NULL )
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+                if ( CX2DamageEffect::CEffect* pDamage = ( GetDamageEffect() != NULL && GetDamageEffect()->IsLiveInstance( m_vecRemoveDamageEffect[i] ) == true )
+                    ? m_vecRemoveDamageEffect[i] : NULL )
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+				{
+					for ( UINT j = 0; j < pDamage->GetDamageEffectDataInLua().m_vecCreateDamageEffect.size(); ++j )
+					{
+						CX2DamageEffect::DamageEffectData* pData = pDamage->GetDamageEffectDataInLua().m_vecCreateDamageEffect[j];
+						if ( NULL != pData && true == pData->bAutoDie )
+							GetDamageEffect()->DestroyInstanceHandleSilently(m_vecRemoveDamageEffect[i]); //DestroyInstance( pDamage );
+					}
+				}
+			}
+			m_vecRemoveDamageEffect.clear();
+		}
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        void AddRemoveDamageEffect( CX2DamageEffect::CEffect *pDamage )
 		{
 			m_vecRemoveDamageEffect.push_back( pDamage );
 		}
@@ -1249,7 +1233,8 @@ class CX2Game : public CKTDXStage
 			}
 			m_vecRemoveDamageEffect.clear();
 		}
-#endif //ADD_GAME_STAGE_DELETE_DAMAGEEFFECT
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+#endif  ADD_GAME_STAGE_DELETE_DAMAGEEFFECT
 
 
 #ifdef NEXON_QA_CHEAT_REQ
@@ -1277,9 +1262,9 @@ class CX2Game : public CKTDXStage
 
 		void						SendNpcUnitFirstSyncPacketImmediateForce( vector<UidType>& vecNonNpcSyncUserList_, OUT KEGS_UPDATE_NPC_UNIT_BUFF_INFO_NOT& kPacket_ );
 
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		void						SetPetFirstSyncPacketImmediateForce( vector<UidType>& vecNonNpcSyncUserList_ );
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		void						SetPetFirstSyncPacketImmediateForce( vector<UidType>& vecNonNpcSyncUserList_ );
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 //#ifdef	BATTLE_FIELD_TEST
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
@@ -1371,7 +1356,7 @@ class CX2Game : public CKTDXStage
 #endif FIX_OBSERVER_MODE
 
 #ifdef BALANCE_GRAND_ARCHER_20121213
-		bool GetNearUnitUidList( IN CX2Room::TEAM_NUM eMyTeamNum_, IN const D3DXVECTOR3& vMyPos_, OUT std::map<float, UidType>& mapNearUnitUid_);
+		bool GetNearUnitUidList( IN CX2Room::TEAM_NUM eMyTeamNum_, IN const D3DXVECTOR3& vMyPos_, OUT std::map<float, UidType>& mapNearUnitUid_, bool bIgnoreDistanceLimit = false);
 #endif //BALANCE_GRAND_ARCHER_20121213
 
 		void SetNpcHardLevel( CX2GUNPC* pNpcUnit_, const int iLevel_ );
@@ -1385,26 +1370,94 @@ class CX2Game : public CKTDXStage
 		void						NotfiyCreateValentimeCupCake();
 #endif //SERV_EVENT_VALENTINE_DUNGEON
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+#ifdef EFFECT_TOOL
+		void RefreshDamageEffectScript();
+#endif //EFFECT_TOOL
+
+#ifdef ADDED_GET_SUBSTAGE_INDEX_IN_SCRIPT
+		int		GetNowSubStageIndex();
+#endif // ADDED_GET_SUBSTAGE_NUMBER_IN_SCRIPT
+
+#ifdef ADDED_NPC_REMAINING_WHEN_SUBSTAGE_CLEAR
+		void    DeleteRemainingNpcWhenSubStageClear ();
+#endif // ADDED_NPC_REMAINING_WHEN_SUBSTAGE_CLEAR
+
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         void                        UpdateHostGameUnit();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+
+		// 지정된 범위 안의 UnitUID 를 제외한 가장 가까운 NPC 를 가져옴
+		// 범위를 -1 로 지정하면 범위 체크를 하지 않고 모든 NPC 를 검색함
+		// MyTeam 을 지정하면 해당 Team 과 같으면 검색하지 않음
+		// Check Invincible 을 지정하면 무적 상태를 검색하지 않음
+		// 이쿠스, 인쿨로드 카드 NPC 적용 함수, kimjh
+		CX2GUNPC*	GetNearestNpcInSpecificRangeAndExceptUnitUID( const D3DXVECTOR3& vPos_, const UidType UnitUid_, const float fMaxRange_ /* = 1000 */, const int iMyTeam /* = -1*/ , const bool bCheckInvincible /* = false */ );
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+		/// 해로운 효과라고 정의된 공식적인 디버프 리스트 ( 기획 파트에서 제공 )
+		const vector<BUFF_TEMPLET_ID>& GetOfficiallyDebuffList() const { return m_vecPossibleOfficiallyDebuffList; }
+		void SetOfficiallyDebuffList();
+
+		void DisplayAddHPInformation( IN const float fAddHPValue, IN const D3DXVECTOR3 vPos, IN const D3DXVECTOR3 vDirVector, IN bool bDisplayPercent = true );		/// HP 회복량 표시
+		void DisplayAddMPInformation( IN const float fAddMPValue, IN const D3DXVECTOR3 vPos, IN const D3DXVECTOR3 vDirVector );		/// MP 회복량 표시
+#endif // HAMEL_SECRET_DUNGEON
+
+#ifdef SERV_9TH_NEW_CHARACTER // 김태환
+		void DisplayDamageInformation( IN const float fDamageValue_, IN const D3DXVECTOR3 vHeadBonePos_, IN const D3DXVECTOR3 vDirVector );	/// 데미지 표시
+#endif //SERV_9TH_NEW_CHARACTER
+
+#ifdef NOT_RENDER_NPC_GAME_EDIT
+		bool						GetShowNpcByGameEdit() const { return m_bShowNpcByGameEdit; }
+		void						SetShowNpcByGameEdit(bool val)
+		{ 
+			m_bShowNpcByGameEdit = val; 
+
+			for( UINT i = 0; i < m_NPCUnitList.size(); ++i )
+			{
+				CX2GUNPC* pGUNPC = m_NPCUnitList[i];
+				if( NULL != pGUNPC )
+				{
+					pGUNPC->SetShowObject( val, true );
+				}
+			}
+		}
+#endif // NOT_RENDER_NPC_GAME_EDIT
+
+#ifdef MODFIY_LOG_IN_NPC_SCRIPT_FUNCTION
+		void ChatBoxLog( const CHAR* pLog, float fLog );
+#endif // MODFIY_LOG_IN_NPC_SCRIPT_FUNCTION
+
+#ifdef  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+        void FlushSendFrameAverage();
+#else   SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		void SendFrameAverage();
+#endif  SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+
+#ifdef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		void SetAlreadySendingFrame(bool bVal_) { m_bIsAlreadySendingFrame = bVal_; }
+		bool GetAlreadySendingFrame() const  { return m_bIsAlreadySendingFrame; }
+#endif // SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 #ifdef SERV_CODE_EVENT
 		bool						IsEnableCodeEvent_LUA( int iScriptID );
 #endif SERV_CODE_EVENT
 
- 	protected:
+#ifdef SERV_EVENT_VALENTINE_DUNGEON_INT
+		void SetValentineEventTrigger_LUA( D3DXVECTOR3 vPos );
+#endif SERV_EVENT_VALENTINE_DUNGEON_INT
+
+protected:
 
 #ifdef	SHOW_UDP_NETWORK_INFO_IN_ROOM
 		void						IncreaseUserPacketCountToReceive( const UidType uidGameUnit_ );
 #endif	// SHOW_UDP_NETWORK_INFO_IN_ROOM
 
 		void						KeyProcess();
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		void						UpdateMyGameUnit( const CX2Room::SlotData* pSlotData_, CX2GUUser* pUser );
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-        void                        CheckAmIHost();
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//        void                        CheckAmIHost();
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		virtual void				UpdateUnitPointer();
 		virtual void				AddUserUnit();
 
@@ -1483,12 +1536,12 @@ class CX2Game : public CKTDXStage
 
 		GAME_TYPE					m_GameType;			/// 게임 타입
 		GAME_STATE					m_GameState;		/// 게임 상태 (INIT, PLAY, LOADING, END)
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
         UidType                     m_uidMySlotUID;
         UidType                     m_uidHostSlotUID;
-#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		bool						m_bHost;			/// 다수의 방장이 존재하게될 필드라면 필요없을듯
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#else   SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		bool						m_bHost;			/// 다수의 방장이 존재하게될 필드라면 필요없을듯
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 		CX2Room*					m_pRoom;			/// 룸이 존재해야하는 경우 포인터말고...참조로..
 		float						m_fTime;			/// 필요 없음
 		float						m_fElapsedTime;		/// 필요없음
@@ -1529,14 +1582,14 @@ class CX2Game : public CKTDXStage
 		bool						m_bEnableCommandKeyProcess;			/// 훈련소, 인탱글등에 의해서 공격키 입력 못하게 할 때 
 		bool						m_bEnableAllKeyProcess;				/// 훈련소, Extra 데미지 등에 의해 키입력을 받을 수 없게 하는 용도록 사용
 
-#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#ifdef  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
         int                         m_iPacketSendFrameMoveCount;
         int                         m_iNPCRobustPacketSendIndex;
         DWORD                       m_dwNPCRobustPacketSendBaseFrameMoveCount;
-#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
-		float						m_NPCPacketSendInterval;			/// NPC Packet 전송 간격
-		float						m_NPCPacketSendIntervalNow;			/// NPC Packet 전송 타이머
-#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//#else   SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
+//		float						m_NPCPacketSendInterval;			/// NPC Packet 전송 간격
+//		float						m_NPCPacketSendIntervalNow;			/// NPC Packet 전송 타이머
+//#endif  SERV_OPTIMIZE_ROBUST_USER_NPC_PACKET_SEND
 
 		float						m_LineSyncPacketSendInterval;		/// MOVING_LINE_MAP_TEST 비활성으로 사용하지 않음
 		float						m_LineSyncPacketSendIntervalNow;	/// MOVING_LINE_MAP_TEST 비활성으로 사용하지 않음
@@ -1605,9 +1658,7 @@ class CX2Game : public CKTDXStage
 		bool						m_bWorldCameraEdit;				/// 월드카메라
 #endif KEYFRAME_CAMERA
 
-#ifdef ADD_CHECK_NPC_DIE_PACKET
 		KProtectedType<int>			m_iNpcDiePacket;
-#endif //ADD_CHECK_NPC_DIE_PACKET
 
 		CKTDGUIDialogType				m_pDLGMyScore;				/// 부활석 과 Score를 나타내는 다이얼로그
 		CKTDGUIDialogType				m_pDLGSkillSlot;			/// 스킬 슬롯인데... Gage매니저에 있는게 아니었군...
@@ -1666,14 +1717,14 @@ class CX2Game : public CKTDXStage
 
 
 		
-#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
-		KXPT_UNIT_NPC_SYNC_PACK		m_kXPT_UNIT_NPC_SYNC_PACK;	/// npc싱크패킷을 모아 놓은 구조체
-		std::vector<UidType>		m_vecUserUIDforSyncPacket;	/// 매 프레임 유저리스트에 있는 UID를 가져와서 Broad 캐스트 때 사용 함
-
-#ifdef SERV_PET_SYSTEM
-		KXPT_UNIT_PET_SYNC_PACK		m_kXPT_UNIT_PET_SYNC_PACK;	/// Pet 싱크 패킷을 모아 놓은 구조체
-#endif
-#endif SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifndef SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//		KXPT_UNIT_NPC_SYNC_PACK		m_kXPT_UNIT_NPC_SYNC_PACK;	/// npc싱크패킷을 모아 놓은 구조체
+//		std::vector<UidType>		m_vecUserUIDforSyncPacket;	/// 매 프레임 유저리스트에 있는 UID를 가져와서 Broad 캐스트 때 사용 함
+//
+//#ifdef SERV_PET_SYSTEM
+//		KXPT_UNIT_PET_SYNC_PACK		m_kXPT_UNIT_PET_SYNC_PACK;	/// Pet 싱크 패킷을 모아 놓은 구조체
+//#endif
+//#endif SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 		bool m_bShowTeleportEffectOnStageStart;		/// 서브스테이지, 스테이지 등이 있는 던전에서만 필요할 지도... 서브스테이지 클리어 후 다른 라인맵으로 보낼때 포탈효과를 보여줌 (그와 동시에 유저들은 보이지 않다가 substagestart 일 때 다시 보이도록 처리함)
 
@@ -1715,17 +1766,13 @@ class CX2Game : public CKTDXStage
 #endif
 		
 		//{{ kimhc // 2011-07-28 // 옵션수치화
-#ifdef	NOT_USE_PERCENT_IN_OPTION_DATA
 		bool		m_bIsDamageFreeGame;	/// 이 값을 얻어오는 것을 고쳐야 함. 1레벨 보정 던전인가?
-#endif	NOT_USE_PERCENT_IN_OPTION_DATA
 		//}} kimhc // 2011-07-28 // 옵션수치화
 
-#ifdef DUNGEON_ALARM_SYSTEM
 		float m_fShowAlarmTime;
 		std::vector<DangerAlarm*> m_vecDangerAlarm;
 		DangerAlarm *m_pShowAlarm;
 		CKTDGParticleSystem::CParticleEventSequenceHandle 	m_hDangerAlarm;
-#endif
 //#ifdef	BATTLE_FIELD_TEST
 #ifdef  X2OPTIMIZE_NPC_NONHOST_SIMULATION
         CX2GUUseroPtr			m_optrHostGameUnit;		// 필드 테스트용
@@ -1735,7 +1782,11 @@ class CX2Game : public CKTDXStage
 //#endif	BATTLE_FIELD_TEST
 		
 #ifdef ADD_GAME_STAGE_DELETE_DAMAGEEFFECT
+#ifdef  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
+        std::vector<CX2DamageEffect::CEffectHandle>      m_vecRemoveDamageEffect;
+#else   X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 		std::vector<CX2DamageEffect::CEffect *> m_vecRemoveDamageEffect;
+#endif  X2OPTIMIZE_PARTICLE_AND_ETC_HANDLE
 #endif
 
 		//{{ 2012. 10. 31	박세훈	Merge 랜선랙 방지 작업-릴레이를 기본적으로 사용한다.
@@ -1749,7 +1800,6 @@ class CX2Game : public CKTDXStage
 		bool		m_bCanNotInputAndPauseNPCAI;
 #endif //MODIFY_DUNGEON_STAGING
 
-#ifdef REFORM_UI_KEYPAD
 		/** @function : InpuData
 			@brief : 키입력 체크
 		*///오현빈//2012-10-17//코드 길이 조금이라도 줄이기 위해 추가
@@ -1772,7 +1822,6 @@ class CX2Game : public CKTDXStage
 				one = true;
 			}
 		}
-#endif //REFORM_UI_KEYPAD
 
 #ifdef FIX_OBSERVER_MODE
 		UINT m_uiPositionIndexRed;	/// 옵저버 화면에 표시될 PVP 레드 팀 유저 UI 표시 순서 인덱스
@@ -1782,6 +1831,14 @@ class CX2Game : public CKTDXStage
 #ifdef BALANCE_DEADLY_CHASER_20130214
 		std::set<UidType>	m_setPreLockOnTargetList;
 #endif //BALANCE_DEADLY_CHASER_20130214
+
+#ifdef HAMEL_SECRET_DUNGEON // 김태환
+		vector<BUFF_TEMPLET_ID> m_vecPossibleOfficiallyDebuffList;	/// 해로운 효과라고 정의된 공식적인 디버프 리스트 ( 기획 파트에서 제공 )
+#endif // HAMEL_SECRET_DUNGEON
+
+#ifdef SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
+		bool				m_bIsAlreadySendingFrame;
+#endif // SERV_OPTIMIZE_MOVE_TO_BATTLEFIELD_LOGIC_FIX
 
 #ifdef SERV_GATE_OF_DARKNESS_SUPPORT_EVENT
 		UidType m_UnitUIDOut;
@@ -1801,7 +1858,7 @@ class CX2Game : public CKTDXStage
 #endif//ACTIVE_KOG_GAME_PERFORMANCE_CHECK
 
 
-#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#ifdef  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
 public:
     CX2FrameUDPPack&    GetFrameUDPPack() { return m_kFrameUDPPack; }
@@ -1810,6 +1867,10 @@ protected:
 
     CX2FrameUDPPack m_kFrameUDPPack;
 
-#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
+//#endif  SERV_KTDX_OPTIMIZE_UDP_PACKET_PACK
 
+
+#ifdef NOT_RENDER_NPC_GAME_EDIT
+	bool			m_bShowNpcByGameEdit;		///	kimhc // 20131011 // GameEdit 에서 몬스터들 보이게 또는 안보이게 할 수 있는 치트
+#endif // NOT_RENDER_NPC_GAME_EDIT
 };

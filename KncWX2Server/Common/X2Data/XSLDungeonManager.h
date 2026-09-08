@@ -24,6 +24,10 @@ public:
 	int		GetNPCDropTime( IN const int nDungeonID, IN const int iStageIndex, IN const int iSubStageIndex, IN const int iNPCID );
 #endif SERV_CREATED_NPC_LIMITED_DROPS
 
+#ifdef SERV_DUNGEON_NPC_DATA_EXP_RATE		// 적용날짜: 2013-08-13
+	float	GetNPCExpRate( IN const int nDungeonID, IN const int iStageIndex, IN const int iSubStageIndex, IN const int iNPCID );
+#endif // SERV_DUNGEON_NPC_DATA_EXP_RATE
+
 	//{{ 2012. 05. 10	최육사	던전 몬스터 레벨 지정
 #ifdef SERV_DUNGEON_NPC_LEVEL
 	bool	GetNPCData( IN const int nDungeonID, IN const int nStageNum, IN const int iRelativeMonsterLevel, OUT KEGS_DUNGEON_STAGE_LOAD_NOT& kNot, OUT bool& bIsBossStage );
@@ -73,7 +77,7 @@ public:
 	float	GetPlayTimeLimit( IN int nDungeonID );
 
 	//{{ 2009. 4. 28  최육사	던전id검사
-	bool	VerifyDungeonID( IN int nDungeonID ) { return ( m_mapDungeonData.find( static_cast<CXSLDungeon::DUNGEON_ID>(nDungeonID) ) != m_mapDungeonData.end() ); }
+	bool	VerifyDungeonID( IN int nDungeonID ) { return ( m_mapDungeonData.find( static_cast<SEnum::DUNGEON_ID>(nDungeonID) ) != m_mapDungeonData.end() ); }
 	//}}
 
 	//{{ 2009. 7. 3  최육사		헤니르던전
@@ -118,10 +122,10 @@ public:
 #endif SERV_BATTLE_FIELD_SYSTEM
 	//}}
 
-#ifdef SERV_STAGE_CLEAR_IN_SERVER
+#ifdef SERV_STAGE_CLEAR_IN_SERVER// 작업날짜: 2013-10-30	// 박세훈
 	int		GetSecretStageEnteringEvent( IN const int nDungeonID, IN const int iStageIndex, IN const int iSubStageIndex, IN int iClearConditionIndex );
 	bool	GetNextStage( OUT CXSLDungeonSubStage::NextStageData& kNextStageData, IN const int nDungeonID, IN const int iStageIndex, IN const int iSubStageIndex, IN int iClearConditionIndex, IN int iSecretPadIndex = 0 );
-#endif SERV_STAGE_CLEAR_IN_SERVER
+#endif // SERV_STAGE_CLEAR_IN_SERVER
 
 #ifdef SERV_LIMITED_DUNGEON_PLAY_TIMES
 	bool	GetLimitedPlayTimes( IN const int nDungeonID, OUT int& iPlayTimes );
@@ -129,8 +133,8 @@ public:
 #endif SERV_LIMITED_DUNGEON_PLAY_TIMES
 
 private:
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon >				m_mapDungeon;
-	std::map< CXSLDungeon::DUNGEON_ID, CXSLDungeon::DungeonData >	m_mapDungeonData;
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon >				m_mapDungeon;
+	std::map< SEnum::DUNGEON_ID, CXSLDungeon::DungeonData >	m_mapDungeonData;
 
 #ifdef SERV_NEW_EVENT_TYPES
 	std::map< int, bool >						m_mapEventDungeonEnable;

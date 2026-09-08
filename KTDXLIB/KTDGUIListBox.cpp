@@ -8,6 +8,9 @@ CKTDGUIListBox::CKTDGUIListBox()
 : m_rcBoundingBox( RECT() )
 , m_rcSelection( RECT() )
 , m_rcText( RECT() )
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+, m_bIsSelectItemAtMouseMove( false )
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 {
 	m_ControlType = UCT_LISTBOX;
 
@@ -91,19 +94,19 @@ CKTDGUIListBox::CKTDGUIListBox()
 	KLuaManager kLuaManager( g_pKTDXApp->GetLuaBinder()->GetLuaState(), 0, true );
 	//}} robobeg : 2008-10-28
 
-	if(  g_pKTDXApp->GetDeviceManager()->LoadLuaManager( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
+	if(  g_pKTDXApp->LoadAndDoMemory( &kLuaManager, L"UI_Control_Sound.lua" ) == false )
 	{
 		return;
 	}
 
-	string checkSndFileName;
+	wstring checkSndFileName;
+	LUA_GET_VALUE( kLuaManager, "ListBox_Mouse_Down", checkSndFileName, L"" );
+	m_pSndMouseDown = g_pKTDXApp->GetDeviceManager()->OpenSound( checkSndFileName );
 
-	LUA_GET_VALUE( kLuaManager, "ListBox_Mouse_Down", checkSndFileName, "" );
-
-	wstring sndFileName;
-
-	ConvertUtf8ToWCHAR( sndFileName, checkSndFileName.c_str() );
-	m_pSndMouseDown = g_pKTDXApp->GetDeviceManager()->OpenSound( sndFileName );
+#ifdef DLL_BUILD
+	m_pCheckedEdgeTexture = g_pKTDXApp->GetDeviceManager()->OpenTexture( L"UIEdge.tga" );
+	m_bEditEdge = false;
+#endif
 }
 
 
@@ -132,6 +135,10 @@ CKTDGUIListBox::~CKTDGUIListBox()
 	SAFE_CLOSE( m_pSndMouseDown );
 
 	SAFE_DELETE( m_pGroupMark );
+
+#ifdef DLL_BUILD
+	SAFE_CLOSE( m_pCheckedEdgeTexture );
+#endif
 
 	m_pUKFont		= NULL;
 	m_pGroupUKFont	= NULL;
@@ -215,6 +222,10 @@ HRESULT CKTDGUIListBox::OnFrameRender()
 	if( m_bShow == false )
 		return S_OK;
 
+#ifdef DLL_BUILD
+	DrawEditEdge();
+#endif
+
 	CKTDGFontManager::CUKFont* pFont = g_pKTDXApp->GetDGManager()->GetDialogManager()->GetUKFont( m_pStringData->fontIndex ); 
 	if ( pFont == NULL )
 	{
@@ -294,7 +305,6 @@ HRESULT CKTDGUIListBox::OnFrameRender()
 			//}} dmlee 2008.04.10 - 일단 뻗지는 않게 막자
 
 			//{{ 허상형 : [2009/7/22] //	나소드 메가폰 마우스오버 대상인지 검사
-#ifdef NASOD_SCOPE
 			for( int i = m_pScrollBar->GetTrackPos(); i < (int)m_Items.GetSize(); ++i )
 			{
 				if( rc.bottom > m_rcText.bottom )
@@ -377,7 +387,6 @@ HRESULT CKTDGUIListBox::OnFrameRender()
 			else
 				rc.bottom = rc.top + m_nTextHeight;
 
-#endif			
 			//}} 허상형 : [2009/7/22] //	나소드 메가폰 마우스오버 대상인지 검사
 
 			for( int i = m_pScrollBar->GetTrackPos(); i < (int)m_Items.GetSize(); ++i )
@@ -399,7 +408,6 @@ HRESULT CKTDGUIListBox::OnFrameRender()
 
 
 				//{{ 허상형 : [2009/7/21] //	메가폰 마우스 클릭 여부에 따라 랜더링 할지 
-#ifdef NASOD_SCOPE
 				if( !( m_dwStyle & MULTISELECTION ) && pItem->m_bMegaSelect == true )
 				{
 					bSelectedStyle = true;
@@ -411,7 +419,6 @@ HRESULT CKTDGUIListBox::OnFrameRender()
 				}
 				
 				else
-#endif
 				//}} 허상형 : [2009/7/21] //	메가폰 마우스 클릭 여부에 따라 랜더링 할지 
 
 				if( !( m_dwStyle & MULTISELECTION ) && i == m_nSelected )
@@ -445,13 +452,12 @@ HRESULT CKTDGUIListBox::OnFrameRender()
 							FromRectToPoint(rcSel, m_TempPoint);
 
 							//{{ 허상형 : [2009/7/22] //	채팅창 클릭 렌더의 경우 렌더 폭을 고정시켜 준다
-#ifdef NASOD_SCOPE
 							if( pItem->m_bMegaSelect == true || pItem->m_bMegaOver == true )
 							{
 								m_TempPoint.rightTopPoint.x = GetPos().x + GetWidth();
 								m_TempPoint.rightBottomPoint.x = GetPos().x + GetWidth();
 							}
-#endif
+
 							//}} 허상형 : [2009/7/22] //	채팅창 클릭 렌더의 경우 렌더 폭을 고정시켜 준다
 
 							if ( m_pTextTex != NULL )
@@ -459,15 +465,13 @@ HRESULT CKTDGUIListBox::OnFrameRender()
 								m_TempPoint.pUITextureData = m_pTextTex;
 							}
 
-#ifdef NASOD_SCOPE
 							//{{ 허상형 : [2009/7/22] //	마우스 오버 텍스처
 							if ( m_pButtonMouseOverTex != NULL && pItem->m_bMegaOver == true && pItem->m_bMegaSelect != true )
 							{
-                                m_TempPoint.pUITextureData = m_pButtonMouseOverTex;
+								m_TempPoint.pUITextureData = m_pButtonMouseOverTex;
 							}
 							
 							//}} 허상형 : [2009/7/22] //	마우스 오버 텍스처
-#endif
 
 							UpdateVertex( m_Vertex[CKTDGUIControl::VP_LEFT_TOP], 
 								m_Vertex[CKTDGUIControl::VP_RIGHT_TOP], 
@@ -873,7 +877,9 @@ bool CKTDGUIListBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lPa
 						nClicked < (int)m_Items.GetSize() &&
 						nClicked < m_pScrollBar->GetTrackPos() + m_pScrollBar->GetPageSize() )
 					{
+#ifndef DLL_BUILD
 						SetCapture( DXUTGetHWND() );
+#endif
 						m_bDrag = true;
 
 						// If this is a double click, fire off an event and exit
@@ -1044,7 +1050,9 @@ bool CKTDGUIListBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lPa
 						nClicked < (int)m_Items.GetSize() &&
 						nClicked < m_pScrollBar->GetTrackPos() + m_pScrollBar->GetPageSize() )
 					{
+#ifndef DLL_BUILD
 						SetCapture( DXUTGetHWND() );
+#endif
 						m_bDrag = true;
 
 						m_nSelected = nClicked;
@@ -1178,8 +1186,14 @@ bool CKTDGUIListBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lPa
 				// the same state as m_nSelStart
 				int nEnd = __max( m_nSelStart, m_nSelected );
 
+				if ( nEnd >= m_Items.GetSize() || NULL == m_Items[m_nSelected] || NULL == m_Items[m_nSelStart] )
+					return false;
+
 				for( int n = __min( m_nSelStart, m_nSelected ) + 1; n < nEnd; ++n )
-					m_Items[n]->bSelected = m_Items[m_nSelStart]->bSelected;
+				{
+					if ( n < m_Items.GetSize() && NULL != m_Items[n] )
+						m_Items[n]->bSelected = m_Items[m_nSelStart]->bSelected;
+				}
 				m_Items[m_nSelected]->bSelected = m_Items[m_nSelStart]->bSelected;
 
 				// If m_nSelStart and m_nSelected are not the same,
@@ -1223,8 +1237,14 @@ bool CKTDGUIListBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lPa
 				// the same state as m_nSelStart
 				int nEnd = __max( m_nSelStart, m_nSelected );
 
+				if ( nEnd >= m_Items.GetSize() || NULL == m_Items[m_nSelected] || NULL == m_Items[m_nSelStart] )
+					return false;
+
 				for( int n = __min( m_nSelStart, m_nSelected ) + 1; n < nEnd; ++n )
-					m_Items[n]->bSelected = m_Items[m_nSelStart]->bSelected;
+				{
+					if ( n < m_Items.GetSize() && NULL != m_Items[n] )
+						m_Items[n]->bSelected = m_Items[m_nSelStart]->bSelected;
+				}
 				m_Items[m_nSelected]->bSelected = m_Items[m_nSelStart]->bSelected;
 
 				// If m_nSelStart and m_nSelected are not the same,
@@ -1250,6 +1270,39 @@ bool CKTDGUIListBox::HandleMouse( UINT uMsg, POINT pt, WPARAM wParam, LPARAM lPa
 
 	case WM_MOUSEMOVE:
 		{
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+			/// 마우스 오버를 통해 아이템 선택 가능하게 하도록 설정시, 해당 기능 연산
+			if ( true == m_bIsSelectItemAtMouseMove )
+			{
+				if ( PtInRect( &m_rcSelection, pt ) == TRUE && m_Items.GetSize() > 0 )
+				// Check for clicks in the text area
+				{
+					int iMouseOverIndex;
+
+					if( m_nTextHeight && m_pScrollBar != NULL )
+						iMouseOverIndex = m_pScrollBar->GetTrackPos() + ( pt.y - m_rcText.top ) / m_nTextHeight;
+					else
+						iMouseOverIndex = -1;
+
+					CKTDGUIListBox::ListBoxItem* pListBoxItem = GetItem( iMouseOverIndex );
+					if ( pListBoxItem == NULL )
+						return true;
+
+					// Only proceed if the click falls on top of an item.
+
+					if( m_pScrollBar != NULL && iMouseOverIndex >= m_pScrollBar->GetTrackPos() &&
+						iMouseOverIndex < (int)m_Items.GetSize() &&
+						iMouseOverIndex < m_pScrollBar->GetTrackPos() + m_pScrollBar->GetPageSize() )
+					{
+						m_nSelected = iMouseOverIndex;
+					}
+				}
+				else
+				{
+					m_nSelected = -1;
+				}
+			}
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 		/*	
 			if( m_bDrag )
 			{
@@ -1456,7 +1509,6 @@ HRESULT CKTDGUIListBox::AddItem( const WCHAR *wszText, void *pData, int itemDept
 }
 
 //{{ 허상형 : [2009/7/20] //	메가폰 아이템 추가
-#ifdef NASOD_SCOPE
 HRESULT CKTDGUIListBox::AddItem( const WCHAR *wszText, void *pData, int iMessageID, wstring wstrName, bool bIsMine)
 {
 	ListBoxItem *pNewItem = new ListBoxItem;
@@ -1492,7 +1544,6 @@ HRESULT CKTDGUIListBox::AddItem( const WCHAR *wszText, void *pData, int iMessage
 
 	return hr;
 }
-#endif
 //}} 허상형 : [2009/7/20] //
 
 //bool CKTDGUIListBox::OpenItemScript( const WCHAR* pFileName )
@@ -1516,7 +1567,7 @@ HRESULT CKTDGUIListBox::AddItem( const WCHAR *wszText, void *pData, int iMessage
 //	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUIListBox", this );
 //	lua_tinker::decl( g_pKTDXApp->GetLuaBinder()->GetLuaState(),  "g_pUIDialog", m_pDialog );
 //
-//	bool bResult = g_pKTDXApp->GetDeviceManager()->LoadLuaTinker( pFileName );
+//	bool bResult = g_pKTDXApp->LoadLuaTinker( pFileName );
 //
 //
 //
@@ -1902,7 +1953,12 @@ int CKTDGUIListBox::GetSelectedIndex( int nPreviousSelected )
 
 
 //--------------------------------------------------------------------------------------
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+/// 선택 아이템 설정 후, 메시지 전송 시킬지 여부 추가를 위해 수정
+void CKTDGUIListBox::SelectItem( IN int nNewIndex, IN bool bSendMessage /*= true*/ )
+#else // UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 void CKTDGUIListBox::SelectItem( int nNewIndex )
+#endif // UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 {
 	KTDXPROFILE();
 
@@ -1939,14 +1995,19 @@ void CKTDGUIListBox::SelectItem( int nNewIndex )
 		}
 	}
 
-
-	if( m_CustomMsgSelection != -1 )
+#ifdef UPGRADE_TRADE_SYSTEM_ADD_FUNCTION // 김태환
+	/// 선택 아이템 설정 후, 메시지 전송 여부에 따라 처리
+	if ( true == bSendMessage )
+#endif //UPGRADE_TRADE_SYSTEM_ADD_FUNCTION
 	{
-		SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_EVENT, m_CustomMsgSelection, (LPARAM)this );
-	}
-	else
-	{
-		SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_EVENT, LBEM_SELECTION, (LPARAM)this );
+		if( m_CustomMsgSelection != -1 )
+		{
+			SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_CUSTOM_EVENT, m_CustomMsgSelection, (LPARAM)this );
+		}
+		else
+		{
+			SendInternelEvent( g_pKTDXApp->GetHWND(), CKTDXApp::KM_UI_CONTROL_EVENT, LBEM_SELECTION, (LPARAM)this );
+		}
 	}
 }
 
@@ -2022,7 +2083,6 @@ bool CKTDGUIListBox::ContainsPoint( POINT pt )
 }
 
 //{{ 허상형 : [2009/7/22] //	선택 해제 함수
-#ifdef NASOD_SCOPE
 void	CKTDGUIListBox::ClearSelect()
 { 
 	m_nSelected = -1; 
@@ -2036,5 +2096,90 @@ void	CKTDGUIListBox::ClearSelect()
 		}
 	}
 }
-#endif
 //}} 허상형 : [2009/7/22] //	선택 해제 함수
+
+#ifdef DLL_BUILD
+void CKTDGUIListBox::MoveControl( float fx, float fy )
+{
+	m_x += fx;
+	m_y += fy;
+
+	UpdateRects();
+}
+
+void CKTDGUIListBox::SetEditGUI( bool bEdit )
+{
+	SetColor( D3DXCOLOR(0xffffffff) );
+
+	m_bEditEdge = bEdit;
+}
+
+vector<D3DXVECTOR2> CKTDGUIListBox::GetPosList()
+{
+	vector<D3DXVECTOR2> ret;
+
+	ret.push_back( GetPos() );
+
+	return ret;
+}
+
+void CKTDGUIListBox::DrawEditEdge()
+{
+	if( false == m_bEditEdge )
+		return;	
+
+	if ( m_pCheckedEdgeTexture == NULL )
+		return;	
+
+	//const CKTDGUIControl::UIPointData & point = *m_pEditEdgePoint;
+	D3DXCOLOR tempColor;
+
+	int edgeWidth = 2;
+	D3DXCOLOR edgeColor = D3DXCOLOR(0xffff0000);
+
+	tempColor.a = edgeColor.a * m_pDialog->GetColor().a * m_Color.a;
+	tempColor.r = edgeColor.r * m_pDialog->GetColor().r * m_Color.r;
+	tempColor.g = edgeColor.g * m_pDialog->GetColor().g * m_Color.g;
+	tempColor.b = edgeColor.b * m_pDialog->GetColor().b * m_Color.b;
+
+	RECT edgeRect;
+	edgeRect.left = m_NowPoint.leftTopPoint.x;
+	edgeRect.top = m_NowPoint.leftTopPoint.y;
+	edgeRect.right = m_NowPoint.rightBottomPoint.x;
+	edgeRect.bottom = m_NowPoint.rightBottomPoint.y;
+
+	int _width = (int)(edgeRect.right - edgeRect.left);
+	int _height = (int)(edgeRect.bottom - edgeRect.top);
+
+	//if ( m_bDrawEdgeOut == true )
+	{
+		// 좌 left/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth), 
+			edgeWidth , 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 하left/bottom
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left - edgeWidth), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.bottom ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+
+		// 우right/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.right ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top ), 
+			edgeWidth, 
+			_height + edgeWidth, 
+			tempColor );
+
+		// 상left/top
+		m_pCheckedEdgeTexture->Draw( (int)(m_pDialog->GetPos().x + m_OffsetPos.x + edgeRect.left ), 
+			(int)(m_pDialog->GetPos().y + m_OffsetPos.y + edgeRect.top - edgeWidth ), 
+			_width + edgeWidth, 
+			edgeWidth, 
+			tempColor );
+	}
+}
+#endif

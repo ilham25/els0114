@@ -101,9 +101,16 @@ private:
 };
 
 class CX2ComboAndSkillChainInfoList;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef  boost::intrusive_ptr<CX2ComboAndSkillChainInfoList> CX2ComboAndSkillChainInfoListPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef  boost::shared_ptr<CX2ComboAndSkillChainInfoList> CX2ComboAndSkillChainInfoListPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 class CX2ComboAndSkillChainInfoList
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 {
 public:
 	static CX2ComboAndSkillChainInfoListPtr CreateComboAndSkillChainInfoTemplet()
@@ -181,9 +188,21 @@ public:
 		}
 	}
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 private:
 	CX2ComboAndSkillChainInfoList() : m_iSecretSkillStateId( 0 ), m_iTriggerStateIdToSecretSkill( 0 ), m_fTriggerTimeToSecretSkill( 100.0f )
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        , m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 	{}
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 	vector<CX2ComboAndSkillChainInfoPtr>		m_vecComboAndSkillChainInfoPtr;
 	int											m_iSecretSkillStateId;
@@ -191,15 +210,28 @@ private:
 	float										m_fTriggerTimeToSecretSkill;
 };
 
+IMPLEMENT_INTRUSIVE_PTR( CX2ComboAndSkillChainInfoList );
+
 class CX2ComboAndSkillChainSystem;
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+typedef boost::intrusive_ptr<CX2ComboAndSkillChainSystem> CX2ComboAndSkillChainSystemPtr;
+#else   X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 typedef boost::shared_ptr<CX2ComboAndSkillChainSystem> CX2ComboAndSkillChainSystemPtr;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 
 class CX2ComboAndSkillChainSystem
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    : private boost::noncopyable
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
 {
 public:
 	typedef std::vector<CX2ComboAndSkillChainInfoListPtr> VecComboAndSkillChainListPtr;
 	
-	CX2ComboAndSkillChainSystem() {}
+	CX2ComboAndSkillChainSystem()
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+        : m_uRefCount(0)
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR    
+    {}
 
 	bool	CreateComboAndSkillChain( KLuaManager& luaManager_ );
 	void	InitSkillStateChained( CX2GUUser* pCX2GUUser_ );
@@ -243,8 +275,20 @@ public:
 
 	int GetTriggerSecretSkillState( const CX2GUUser* pCX2GUUser_ );
 
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    void    AddRef()    {   ++m_uRefCount; }
+    void    Release()   { if ( (--m_uRefCount) == 0 )   delete this; }
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 private:
+
+#ifdef  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+    unsigned                                        m_uRefCount;
+#endif  X2OPTIMIZE_REMOVE_UNNECESSARY_SHARED_PTR
+
 	VecComboAndSkillChainListPtr								m_vecComboAndSkillChainListPtr;
 	vector<CX2ComboAndSkillChainInfoPtr>						m_vecComboAndSkillChainInfoPtrInSystem;
 	CX2ComboAndSkillChainInfoPtr								m_ptrNowUseChainInfo;
 };
+
+IMPLEMENT_INTRUSIVE_PTR( CX2ComboAndSkillChainSystem );

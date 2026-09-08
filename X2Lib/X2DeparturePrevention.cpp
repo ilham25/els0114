@@ -403,7 +403,7 @@ bool CX2DeparturePrevention::Handler_EGS_RETAINING_SELECT_REWARD_ACK( HWND hWnd,
 					}
 				}
 
-				g_pData->GetMyUser()->GetSelectUnit()->GetInventory()->UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
+				g_pData->GetMyUser()->GetSelectUnit()->AccessInventory().UpdateInventorySlotList( kEvent.m_vecKInventorySlotInfo );
 
 				if(g_pData->GetUIManager()->GetUIInventory() != NULL)
 				{		

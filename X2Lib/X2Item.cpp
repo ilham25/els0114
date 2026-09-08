@@ -5,7 +5,8 @@
 
 CX2Item::CX2Item( int itemID )
 {
-	m_pItemData		= NULL;
+//	m_pItemData		= NULL;
+    m_kItemData.m_ItemID = itemID;
 	m_pItemTemplet	= g_pData->GetItemManager()->GetItemTemplet( itemID );
 	m_pOwnerUnit	= NULL;
 
@@ -13,10 +14,11 @@ CX2Item::CX2Item( int itemID )
 
 }
 
-CX2Item::CX2Item( ItemData* pItemData, CX2Unit* pOwnerUnit )
+CX2Item::CX2Item( const ItemData& kItemData, CX2Unit* pOwnerUnit )
+    : m_kItemData( kItemData )
 {
-	m_pItemData		= pItemData;
-	m_pItemTemplet	= g_pData->GetItemManager()->GetItemTemplet( m_pItemData->m_ItemID );
+	//m_pItemData		= pItemData;
+	m_pItemTemplet	= g_pData->GetItemManager()->GetItemTemplet( m_kItemData.m_ItemID );
 	m_pOwnerUnit	= pOwnerUnit;
 
 	m_bEqip			= false;
@@ -24,7 +26,7 @@ CX2Item::CX2Item( ItemData* pItemData, CX2Unit* pOwnerUnit )
 
 CX2Item::~CX2Item(void)
 {
-	SAFE_DELETE( m_pItemData );
+	//SAFE_DELETE( m_pItemData );
 	m_pItemTemplet = NULL;
 }
 
@@ -38,7 +40,7 @@ CX2Item::~CX2Item(void)
 //	{
 //		for( UINT i=0; i<m_pItemTemplet->m_vecSocketOption.size(); i++ )
 //		{
-//			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( m_pItemTemplet->m_vecSocketOption[i] );
+//			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( m_pItemTemplet->m_vecSocketOption[i] );
 //			if( NULL == pSocketData )
 //				continue;
 //
@@ -46,14 +48,13 @@ CX2Item::~CX2Item(void)
 //		}
 //	}
 //	
-//	if ( m_pItemData != NULL )
 //	{
-//		for ( int i = 0; i < (int)m_pItemData->m_SocketOption.size(); i++ )
+//		for ( int i = 0; i < (int)m_kItemData.m_SocketOption.size(); i++ )
 //		{
-//			int socketOption = m_pItemData->m_SocketOption[i];
+//			int socketOption = m_kItemData.m_SocketOption[i];
 //			if ( socketOption != 0 )
 //			{
-//				CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData(socketOption);
+//				const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData(socketOption);
 //				if ( pSocketData != NULL )
 //				{
 //					if ( pSocketData->m_fRepairPriceSale != 0.0f )
@@ -86,7 +87,7 @@ int CX2Item::GetEDToRepair()
 		return 0;
 	}
 
-	float repairED = (float) ( m_pItemTemplet->GetEndurance() - GetItemData()->m_Endurance ) * m_pItemTemplet->GetRepairED();
+	float repairED = (float) ( m_pItemTemplet->GetEndurance() - GetItemData().m_Endurance ) * m_pItemTemplet->GetRepairED();
 	//float fDiscountRate = GetRepairPriceDiscountRate();
 	//repairED = repairED * ( 1.f - fDiscountRate );
 
@@ -104,15 +105,13 @@ int CX2Item::GetVPToRepair()
 
 int CX2Item::GetEDToSell()
 {
-	if( 
-        NULL == m_pItemTemplet || 
-		NULL == GetItemData() )
+	if( NULL == m_pItemTemplet )
 		return 0;
 
 	float enduranceRate = 1.f;
 	if( CX2Item::PT_ENDURANCE == m_pItemTemplet->GetPeriodType() )
 	{
-		enduranceRate = (float)GetItemData()->m_Endurance / (float)m_pItemTemplet->GetEndurance();
+		enduranceRate = (float)GetItemData().m_Endurance / (float)m_pItemTemplet->GetEndurance();
 	}
 
 	float sellED = (float)m_pItemTemplet->GetPrice() * 0.2f * enduranceRate;
@@ -212,11 +211,10 @@ int CX2Item::GetSocketOptionNum() const
 {
 	int optionNum = 0;
 
-	if ( m_pItemData != NULL )
 	{
-		for ( UINT i = 0; i < m_pItemData->m_SocketOption.size(); i++ )
+		for ( UINT i = 0; i < m_kItemData.m_SocketOption.size(); i++ )
 		{
-			int socketOption = m_pItemData->m_SocketOption[i];
+			int socketOption = m_kItemData.m_SocketOption[i];
 			if ( socketOption != 0 )
 				optionNum++;
 		}
@@ -252,16 +250,15 @@ CX2Stat::Stat CX2Item::GetStat( bool bIncludeSocketOption /*= false*/ )
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 	// 아이템의 기본 stat
-	if( NULL != m_pItemData )
 	{
 		GetEnchantStat( stat );
 
 		if( true == bIncludeSocketOption )
 		{
 			// 유저가 설치한 소켓에 의한 stat증가
-			for( UINT i=0; i<m_pItemData->m_SocketOption.size(); i++ )
+			for( UINT i=0; i<m_kItemData.m_SocketOption.size(); i++ )
 			{
-				CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( m_pItemData->m_SocketOption[i] );
+				const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( m_kItemData.m_SocketOption[i] );
 				if( NULL == pSocketData )
 					continue;
 
@@ -287,7 +284,7 @@ CX2Stat::Stat CX2Item::GetStat( bool bIncludeSocketOption /*= false*/ )
             DWORD   dwNumSO = m_pItemTemplet->GetNumSocketOption();
 			for( UINT i=0; i<dwNumSO; i++ )
 			{
-                CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( m_pItemTemplet->GetSocketOption(i) );
+                const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( m_pItemTemplet->GetSocketOption(i) );
 				if( NULL == pSocketData )
 					continue;
 
@@ -305,9 +302,9 @@ CX2Stat::Stat CX2Item::GetStat( bool bIncludeSocketOption /*= false*/ )
 
 #ifdef SERV_NEW_ITEM_SYSTEM_2013_05
 		// 감정을 통해 얻는 랜덤 소켓 옵션
-		BOOST_FOREACH( int iSocketID, m_pItemData->m_vecRandomSocket )
+		BOOST_FOREACH( int iSocketID, m_kItemData.m_vecRandomSocket )
 		{
-			CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
+			const CX2SocketItem::SocketData* pSocketData = g_pData->GetSocketItem()->GetSocketData( iSocketID );
 			if( NULL == pSocketData )
 				continue;
 
@@ -327,13 +324,36 @@ CX2Stat::Stat CX2Item::GetStat( bool bIncludeSocketOption /*= false*/ )
 	return stat;
 }
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+/// 접두어 출력 여부 추가
+wstring CX2Item::GetFullName( IN const bool bAddRandomSocketName_ /*= false*/ )
+#else // SERV_UPGRADE_TRADE_SYSTEM
 wstring CX2Item::GetFullName()
+#endif // SERV_UPGRADE_TRADE_SYSTEM
 {
 	wstring fullName = L"";
 	if (
         NULL != m_pItemTemplet 
-        && NULL != m_pItemData && NULL != g_pData->GetItemManager() )
+        && NULL != g_pData->GetItemManager() )
 	{
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		/// 접두어 반환
+		wstring wstrRandomSocketName = L"";
+
+	#ifdef SERV_NEW_ITEM_SYSTEM_2013_05
+		if( true == bAddRandomSocketName_ &&
+			true == GetItemData().m_bIsEvaluation &&
+			false == GetItemData().m_vecRandomSocket.empty() &&
+			NULL != g_pData->GetSocketItem() )
+		{
+			const int iSocketID = GetItemData().m_vecRandomSocket.front();
+			g_pData->GetSocketItem()->GetSocketPrefix( iSocketID , wstrRandomSocketName );
+		}
+	#endif // SERV_NEW_ITEM_SYSTEM_2013_05
+
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
+
 		if ( ( m_pItemTemplet->GetItemType() == CX2Item::IT_WEAPON || m_pItemTemplet->GetItemType() == CX2Item::IT_DEFENCE ) &&
 			m_pItemTemplet->GetFashion() == false )
 		{
@@ -343,8 +363,8 @@ wstring CX2Item::GetFullName()
 			if ( m_pItemTemplet->GetItemType() == CX2Item::IT_WEAPON )
 			{
 				vector< int > vecEnchantType;
-				vecEnchantType.push_back( GetItemData()->m_EnchantOption1 );
-				vecEnchantType.push_back( GetItemData()->m_EnchantOption2 );
+				vecEnchantType.push_back( GetItemData().m_EnchantOption1 );
+				vecEnchantType.push_back( GetItemData().m_EnchantOption2 );
 				wstring tempDamageName = g_pData->GetDamageManager()->GetExtraDamageName( g_pData->GetEnchantItem()->GetExtraDamageType( vecEnchantType ) );
 				if ( tempDamageName.empty() == false )
 				{
@@ -354,7 +374,7 @@ wstring CX2Item::GetFullName()
 			}
 			else
 			{
-				wstring tempDamageName = g_pData->GetEnchantItem()->GetEnchantResistName( (CX2EnchantItem::ENCHANT_TYPE)GetItemData()->m_EnchantOption1 );
+				wstring tempDamageName = g_pData->GetEnchantItem()->GetEnchantResistName( (CX2EnchantItem::ENCHANT_TYPE)GetItemData().m_EnchantOption1 );
 				if ( tempDamageName.empty() == false )
 				{
 					slotItemDesc += tempDamageName;
@@ -367,17 +387,29 @@ wstring CX2Item::GetFullName()
 			wstringstream wstrstm;
 
 #ifdef ITEM_RECOVERY_TEST
-			wstrstm << L"+" << abs(m_pItemData->m_EnchantLevel) << L" " << slotItemDesc << 
-                m_pItemTemplet->GetFullName_();
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			/// 아이템 이름에 접두어 추가
+			wstrstm << L"+" << abs(m_kItemData.m_EnchantLevel) << L" "  << wstrRandomSocketName << slotItemDesc << 
+				m_pItemTemplet->GetFullName_();
+	#else //SERV_UPGRADE_TRADE_SYSTEM
+				wstrstm << L"+" << abs(m_kItemData.m_EnchantLevel) << L" " << slotItemDesc << 
+				m_pItemTemplet->GetFullName_();
+	#endif //SERV_UPGRADE_TRADE_SYSTEM
 #else
-			wstrstm << L"+" << m_pItemData->m_EnchantLevel << L" " << slotItemDesc << 
+			wstrstm << L"+" << m_kItemData.m_EnchantLevel << L" " << slotItemDesc << 
                 m_pItemTemplet->GetFullName_();
 #endif
 			fullName = wstrstm.str().c_str();
 		}
 		else
 		{
-            fullName = m_pItemTemplet->GetFullName_();
+	#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+			fullName = wstrRandomSocketName;			/// 접두어
+			fullName += L"";
+			fullName += m_pItemTemplet->GetFullName_();	/// 아이템 이름
+	#else // SERV_UPGRADE_TRADE_SYSTEM
+			fullName = m_pItemTemplet->GetFullName_();
+	#endif // SERV_UPGRADE_TRADE_SYSTEM
 		}
 	}
 
@@ -529,13 +561,29 @@ const wchar_t* CX2Item::ItemTemplet::GetFullName_() const
 
 
 
-CX2Item::ItemData* CX2Item::CreateItemData( const KPostItemInfo& kPostItemInfo )
+//CX2Item::ItemData* CX2Item::CreateItemData( const KPostItemInfo& kPostItemInfo )
+//{
+//    const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( kPostItemInfo.m_iScriptIndex );
+//    if( pItemTemplet == NULL )
+//        return NULL;
+//    return new CX2Item::ItemData( kPostItemInfo, pItemTemplet->GetPeriodType(), pItemTemplet->GetEndurance() );
+//}
+
+//{{ robobeg : 2013-11-04
+bool    CX2Item::ItemData::Initialize( const KPostItemInfo& data )
 {
-    const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( kPostItemInfo.m_iScriptIndex );
+    const CX2Item::ItemTemplet* pItemTemplet = g_pData->GetItemManager()->GetItemTemplet( data.m_iScriptIndex );
     if( pItemTemplet == NULL )
-        return NULL;
-    return new CX2Item::ItemData( kPostItemInfo, pItemTemplet->GetPeriodType(), pItemTemplet->GetEndurance() );
+    {
+        Init();
+        return false;
+    }
+    Init( data );
+    m_PeriodType            = pItemTemplet->GetPeriodType();
+    m_Endurance             = pItemTemplet->GetEndurance();
+    return true;
 }
+//}} robobeg : 2013-11-04
 
 
 
@@ -546,7 +594,7 @@ bool CX2Item::IsDisabled()
 	if ( ( m_pItemTemplet->GetItemType() == CX2Item::IT_WEAPON || m_pItemTemplet->GetItemType() == CX2Item::IT_DEFENCE ) &&
 		m_pItemTemplet->GetFashion() == false )
 	{
-		if(m_pItemData != NULL && m_pItemData->m_EnchantLevel < 0)
+		if( m_kItemData.m_EnchantLevel < 0)
 			return true;
 	}
 
@@ -578,7 +626,7 @@ bool CX2Item::GetEnchantStat( OUT CX2Stat::Stat& stat_ ) const
 				// 스탯 추가 레벨 소켓 옵션 적용
 				CX2SocketItem::KItemStatRelLVData kItemStatRelLVData;
 				if( true == GetIsEvaluation() )
-					g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_pItemData, m_pItemTemplet);
+					g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_kItemData, m_pItemTemplet);
 
 				// 스탯테이블을 통해 스탯 계산
 				CX2Item::KItemFormatStatData kCalculateStat;
@@ -593,22 +641,22 @@ bool CX2Item::GetEnchantStat( OUT CX2Stat::Stat& stat_ ) const
 #endif  //X2OPTIMIZE_ITEM_TEMPLET_PREPROCESSING
 
 #ifdef ITEM_RECOVERY_TEST
-				if( abs(m_pItemData->m_EnchantLevel) >= sizeof(ENCHANT_STAT_SCALE) )
+				if( abs(m_kItemData.m_EnchantLevel) >= sizeof(ENCHANT_STAT_SCALE) )
 				{
 					ASSERT( !"invalid enchant level" );
 				}
 				else
 				{
-					stat_.MultiplyStat( ENCHANT_STAT_SCALE[ abs(m_pItemData->m_EnchantLevel) ] );
+					stat_.MultiplyStat( ENCHANT_STAT_SCALE[ abs(m_kItemData.m_EnchantLevel) ] );
 				}
 #else
-				if( m_pItemData->m_EnchantLevel < 0 || m_pItemData->m_EnchantLevel >= sizeof(ENCHANT_STAT_SCALE) )
+				if( m_kItemData.m_EnchantLevel < 0 || m_kItemData.m_EnchantLevel >= sizeof(ENCHANT_STAT_SCALE) )
 				{
 					ASSERT( !"invalid enchant level" );
 				}
 				else
 				{
-					stat_.MultiplyStat( ENCHANT_STAT_SCALE[ m_pItemData->m_EnchantLevel ] );
+					stat_.MultiplyStat( ENCHANT_STAT_SCALE[ m_kItemData.m_EnchantLevel ] );
 				}
 #endif	// ITEM_RECOVERY_TEST
 
@@ -630,7 +678,7 @@ int CX2Item::GetIEchantedItemLevel() const
 	float fIncreasedItemLevelByEnchant = 0;	/// 인챈트에 의해 증가된 아이템 레벨
 	if (
         NULL != m_pItemTemplet && 
-        NULL != m_pItemData && 0 < m_pItemData->m_EnchantLevel )
+        0 < m_kItemData.m_EnchantLevel )
 	{
 		CX2Stat::Stat stat;
 		if ( GetEnchantStat( stat ) )
@@ -641,7 +689,7 @@ int CX2Item::GetIEchantedItemLevel() const
 			// 스탯 추가 레벨 소켓 옵션 적용
 			CX2SocketItem::KItemStatRelLVData kItemStatRelLVData;
 			if( true == GetIsEvaluation() )
-				g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_pItemData, m_pItemTemplet);
+				g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_kItemData, m_pItemTemplet);
 
 			// 스탯테이블을 통해 스탯 계산
 			CX2Item::KItemFormatStatData kCalculateStat;
@@ -683,7 +731,7 @@ CX2Stat::Stat CX2Item::GetStat( IN CX2Unit::UNIT_TYPE eUnitType_, IN CX2Unit::UN
 	// 스탯 추가 레벨 소켓 옵션 적용
 	CX2SocketItem::KItemStatRelLVData kItemStatRelLVData;
 	if( true == GetIsEvaluation() )
-		g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_pItemData, m_pItemTemplet);
+		g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_kItemData, m_pItemTemplet);
 
 	// 스탯테이블을 통해 스탯 계산
 	CX2Item::KItemFormatStatData kCalculateStat;
@@ -691,7 +739,6 @@ CX2Stat::Stat CX2Item::GetStat( IN CX2Unit::UNIT_TYPE eUnitType_, IN CX2Unit::UN
 	kCalculateStat.AddToStat( stat );
 
 	// 아이템의 기본 stat
-	if( NULL != m_pItemData )
 		GetEnchantStat( stat, eUnitType_, eUnitClass_ );
 	return stat;
 }
@@ -714,7 +761,7 @@ bool CX2Item::GetEnchantStat( OUT CX2Stat::Stat& stat_, IN CX2Unit::UNIT_TYPE eU
 				// 스탯 추가 레벨 소켓 옵션 적용
 				CX2SocketItem::KItemStatRelLVData kItemStatRelLVData;
 				if( true == GetIsEvaluation() )
-					g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_pItemData, m_pItemTemplet);
+					g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_kItemData, m_pItemTemplet);
 
 				// 아이템의 기본 stat
 				CX2Item::KItemFormatStatData kCalculateStat;
@@ -723,22 +770,22 @@ bool CX2Item::GetEnchantStat( OUT CX2Stat::Stat& stat_, IN CX2Unit::UNIT_TYPE eU
 				kCalculateStat.AssignToStat( stat_ );
 
 #ifdef ITEM_RECOVERY_TEST
-				if( abs(m_pItemData->m_EnchantLevel) >= sizeof(ENCHANT_STAT_SCALE) )
+				if( abs(m_kItemData.m_EnchantLevel) >= sizeof(ENCHANT_STAT_SCALE) )
 				{
 					ASSERT( !"invalid enchant level" );
 				}
 				else
 				{
-					stat_.MultiplyStat( ENCHANT_STAT_SCALE[ abs(m_pItemData->m_EnchantLevel) ] );
+					stat_.MultiplyStat( ENCHANT_STAT_SCALE[ abs(m_kItemData.m_EnchantLevel) ] );
 				}
 #else
-				if( m_pItemData->m_EnchantLevel < 0 || m_pItemData->m_EnchantLevel >= sizeof(ENCHANT_STAT_SCALE) )
+				if( m_kItemData.m_EnchantLevel < 0 || m_kItemData.m_EnchantLevel >= sizeof(ENCHANT_STAT_SCALE) )
 				{
 					ASSERT( !"invalid enchant level" );
 				}
 				else
 				{
-					stat_.MultiplyStat( ENCHANT_STAT_SCALE[ m_pItemData->m_EnchantLevel ] );
+					stat_.MultiplyStat( ENCHANT_STAT_SCALE[ m_kItemData.m_EnchantLevel ] );
 				}
 #endif	// ITEM_RECOVERY_TEST
 
@@ -757,7 +804,7 @@ int CX2Item::GetIEchantedItemLevel( IN CX2Unit::UNIT_TYPE eUnitType_, IN CX2Unit
 	float fIncreasedItemLevelByEnchant = 0;	/// 인챈트에 의해 증가된 아이템 레벨
 	if (
         NULL != m_pItemTemplet && 
-        NULL != m_pItemData && 0 < m_pItemData->m_EnchantLevel )
+        0 < m_kItemData.m_EnchantLevel )
 	{
 		CX2Stat::Stat stat;
 		if ( GetEnchantStat( stat ) )
@@ -765,7 +812,7 @@ int CX2Item::GetIEchantedItemLevel( IN CX2Unit::UNIT_TYPE eUnitType_, IN CX2Unit
 			// 스탯 추가 레벨 소켓 옵션 적용
 			CX2SocketItem::KItemStatRelLVData kItemStatRelLVData;
 			if( true == GetIsEvaluation() )
-				g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_pItemData, m_pItemTemplet);
+				g_pData->GetItemStatCalculator().GetSocketOptionStatRelLV(kItemStatRelLVData, m_kItemData, m_pItemTemplet);
 
 		// 스탯테이블을 통해 스탯 계산
 			CX2Item::KItemFormatStatData kCalculateStat;
@@ -785,5 +832,21 @@ int CX2Item::GetIEchantedItemLevel( IN CX2Unit::UNIT_TYPE eUnitType_, IN CX2Unit
 	return static_cast<int>(fIncreasedItemLevelByEnchant);	
 }
 #endif // SERV_NEW_ITEM_SYSTEM_2013_05
+#ifdef ADD_SOCKET_SLOT
+/** @function : GetbyAddedSocketSlot
+	@brief : 추가 소켓 슬롯 수 반환.
+			 현재는 2개 이상 될 수 없기 때문에 어썰트 처리 함.
+*/
+BYTE CX2Item::GetbyAddedSocketSlot() const 
+{ 
+#ifdef _IN_HOUSE_
+	if( m_kItemData.m_byAddedSocketSlot > 1 )
+	{
+		ASSERT(!L"m_byAddedSocketSlot Error!");
+	}
+#endif // _IN_HOUSE_
 
+	return m_kItemData.m_byAddedSocketSlot;
+} 
+#endif // ADD_SOCKET_SLOT 
 

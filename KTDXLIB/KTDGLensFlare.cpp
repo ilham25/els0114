@@ -29,10 +29,10 @@ CKTDGLensFlare::CKTDGLensFlare( HWND hWnd,
 	m_LightPosition = D3DXVECTOR3(0,0,0);
 	m_vScreen		= D3DXVECTOR3(0,0,0);
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	m_pVBSpots		= NULL;
-	m_iVBSize		= 0;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	m_pVBSpots		= NULL;
+//	m_iVBSize		= 0;
+//#endif
 
 	SetIntensity(CMinMax<float>(0.0f, 1.0f));
 	SetIntensityBorder(300);
@@ -46,7 +46,7 @@ CKTDGLensFlare::CKTDGLensFlare( HWND hWnd,
     SetRenderStateID( s_akStates );
 //}} robobeg : 2008-10-13
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	AddSpot(CLensFlareSpot(m_pTexHalo, 0.40f,  1.0f, D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f)));
 	AddSpot(CLensFlareSpot(m_pTex2, 0.5f,		0.8f, D3DXCOLOR(0.7f, 0.5f, 0.0f, 0.2f)));
 	AddSpot(CLensFlareSpot(m_pTex2, 0.005f,		0.7f, D3DXCOLOR(1.0f, 0.0f, 0.0f, 0.7f)));
@@ -60,9 +60,9 @@ CKTDGLensFlare::CKTDGLensFlare( HWND hWnd,
 	AddSpot(CLensFlareSpot(m_pTex3, 0.07f,		-0.7f, D3DXCOLOR(1.0f, 0.5f, 0.0f, 0.2f)));
 	AddSpot(CLensFlareSpot(m_pTex2, 0.16f,		-1.0f, D3DXCOLOR(1.0f, 0.7f, 0.0f, 0.4f)));
 	AddSpot(CLensFlareSpot(m_pTex3, 0.20f,		-1.3f, D3DXCOLOR(1.0f, 0.0f, 0.0f, 0.7f)));
-#else
-	OnResetDevice();
-#endif
+//#else
+//	OnResetDevice();
+//#endif
 }
 
 CKTDGLensFlare::~CKTDGLensFlare(void)
@@ -72,9 +72,9 @@ CKTDGLensFlare::~CKTDGLensFlare(void)
 	SAFE_CLOSE( m_pTex2 );
 	SAFE_CLOSE( m_pTex3 );
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-	SAFE_RELEASE( m_pVBSpots );
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//	SAFE_RELEASE( m_pVBSpots );
+//#endif
 
 	m_Spots.clear();
 }
@@ -141,15 +141,15 @@ RENDER_HINT CKTDGLensFlare::OnFrameRender_Prepare()
 		int iDistanceX = iCenterOfScreenX - (int)m_vScreen.x;
 		int iDistanceY = iCenterOfScreenY - (int)m_vScreen.y;
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		VERTEX_LENSFLARE *pVertices = &m_vertices[0];
-#else
-		// lock the vertex buffer
-		VERTEX_LENSFLARE *pVertices;
-
-		if(FAILED(m_pVBSpots->Lock( 0, m_iVBSize*6*sizeof(VERTEX_LENSFLARE), (void**)&pVertices, 0)))
-            return RENDER_HINT_NORENDER;
-#endif
+//#else
+//		// lock the vertex buffer
+//		VERTEX_LENSFLARE *pVertices;
+//
+//		if(FAILED(m_pVBSpots->Lock( 0, m_iVBSize*6*sizeof(VERTEX_LENSFLARE), (void**)&pVertices, 0)))
+//            return RENDER_HINT_NORENDER;
+//#endif
 
 		// for each spot in this flare...
 		for (std::vector<CLensFlareSpot>::iterator i = m_Spots.begin(); i != m_Spots.end(); i++) 
@@ -206,10 +206,10 @@ RENDER_HINT CKTDGLensFlare::OnFrameRender_Prepare()
 		} // next spot
 
 		
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		// unlock VB
-		m_pVBSpots->Unlock();
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		// unlock VB
+//		m_pVBSpots->Unlock();
+//#endif
 	}
 
     return RENDER_HINT_DEFAULT;
@@ -221,7 +221,7 @@ void            CKTDGLensFlare::OnFrameRender_Draw()
 {
     KD3DPUSH( GetRenderStateID() )
 
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		BOOST_STATIC_ASSERT( D3DFVF_LENSFLARE == D3DFVF_XYZRHW_DIFFUSE_TEX1 );
 		for( int q = 0; q < (int) m_Spots.size(); q++ )
 		{
@@ -229,22 +229,22 @@ void            CKTDGLensFlare::OnFrameRender_Draw()
 			g_pKTDXApp->GetDVBManager()->DrawPrimitive( CKTDGDynamicVBManager::DVB_TYPE_XYZRHW_DIFFUSE_TEX1
 				, D3DPT_TRIANGLELIST, 2, &m_vertices[ q * 6 ] );
 		}//for
-#else
-	    // set custom vertex shader
-	    g_pKTDXApp->GetDevice()->SetStreamSource(0, m_pVBSpots, 0, sizeof(VERTEX_LENSFLARE));
-
-	    g_pKTDXApp->GetDevice()->SetFVF(D3DFVF_LENSFLARE);
-
-
-	    // this isn't the fastest way to do things, but it's easy to understand.
-	    // optimization left as an exercise for the reader :)
-	    for( int q = 0; q < (int)m_Spots.size(); q++ ) 
-	    {
-		    m_Spots[q].GetTexture()->SetDeviceTexture();
-		    g_pKTDXApp->GetDevice()->DrawPrimitive(D3DPT_TRIANGLELIST, q*6, 2);
-
-	    }
-#endif
+//#else
+//	    // set custom vertex shader
+//	    g_pKTDXApp->GetDevice()->SetStreamSource(0, m_pVBSpots, 0, sizeof(VERTEX_LENSFLARE));
+//
+//	    g_pKTDXApp->GetDevice()->SetFVF(D3DFVF_LENSFLARE);
+//
+//
+//	    // this isn't the fastest way to do things, but it's easy to understand.
+//	    // optimization left as an exercise for the reader :)
+//	    for( int q = 0; q < (int)m_Spots.size(); q++ ) 
+//	    {
+//		    m_Spots[q].GetTexture()->SetDeviceTexture();
+//		    g_pKTDXApp->GetDevice()->DrawPrimitive(D3DPT_TRIANGLELIST, q*6, 2);
+//
+//	    }
+//#endif
 
     KD3DEND()
 }//CKTDGLensFlare::OnFrameRender_Draw()
@@ -255,64 +255,64 @@ void            CKTDGLensFlare::OnFrameRender_Draw()
 
 
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-HRESULT CKTDGLensFlare::OnResetDevice()
-{
-	m_pVBSpots = NULL;
-	m_iVBSize = 1;
-
-	AddSpot(CLensFlareSpot(m_pTexHalo, 0.40f,  1.0f, D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f)));
-
-	AddSpot(CLensFlareSpot(m_pTex2, 0.5f,		0.8f, D3DXCOLOR(0.7f, 0.5f, 0.0f, 0.2f)));
-	AddSpot(CLensFlareSpot(m_pTex2, 0.005f,		0.7f, D3DXCOLOR(1.0f, 0.0f, 0.0f, 0.7f)));
-	AddSpot(CLensFlareSpot(m_pTex1, 0.025f,		0.6f, D3DXCOLOR(1.0f, 1.0f, 0.0f, 0.5f)));
-	AddSpot(CLensFlareSpot(m_pTex3, 0.05f,		0.5f, D3DXCOLOR(1.0f, 1.0f, 0.0f, 0.5f)));
-	AddSpot(CLensFlareSpot(m_pTex1, 0.025f,		0.4f, D3DXCOLOR(1.0f, 0.5f, 0.0f, 1.0f)));
-	AddSpot(CLensFlareSpot(m_pTex2, 0.025f,		0.1f, D3DXCOLOR(1.0f, 1.0f, 0.5f, 0.5f)));
-	AddSpot(CLensFlareSpot(m_pTex1, 0.025f,		-0.2f, D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f)));
-	AddSpot(CLensFlareSpot(m_pTex2, 0.045f,		-0.3f, D3DXCOLOR(1.0f, 1.0f, 0.6f, 0.5f)));
-	AddSpot(CLensFlareSpot(m_pTex1, 0.07f,		-0.4f, D3DXCOLOR(1.0f, 0.7f, 0.0f, 0.3f)));
-	AddSpot(CLensFlareSpot(m_pTex3, 0.07f,		-0.7f, D3DXCOLOR(1.0f, 0.5f, 0.0f, 0.2f)));
-	AddSpot(CLensFlareSpot(m_pTex2, 0.16f,		-1.0f, D3DXCOLOR(1.0f, 0.7f, 0.0f, 0.4f)));
-	AddSpot(CLensFlareSpot(m_pTex3, 0.20f,		-1.3f, D3DXCOLOR(1.0f, 0.0f, 0.0f, 0.7f)));
-
-	return RecreateVB();
-}
-
-HRESULT CKTDGLensFlare::OnLostDevice()
-{
-	return S_OK;
-}
-
-HRESULT CKTDGLensFlare::RecreateVB()
-{
-	HRESULT hr = S_OK;
-
-	SAFE_RELEASE(m_pVBSpots);
-
-	if (m_iVBSize) 
-	{
-		hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize*sizeof(VERTEX_LENSFLARE)*6,	0, 
-			D3DFVF_LENSFLARE, D3DPOOL_SYSTEMMEM, &m_pVBSpots, NULL);
-
-		if (FAILED(hr)) 
-		{
-			ErrorLog( KEM_ERROR18 );
-			m_pVBSpots = NULL;
-		}
-	}
-	return hr;
-}
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//HRESULT CKTDGLensFlare::OnResetDevice()
+//{
+//	m_pVBSpots = NULL;
+//	m_iVBSize = 1;
+//
+//	AddSpot(CLensFlareSpot(m_pTexHalo, 0.40f,  1.0f, D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f)));
+//
+//	AddSpot(CLensFlareSpot(m_pTex2, 0.5f,		0.8f, D3DXCOLOR(0.7f, 0.5f, 0.0f, 0.2f)));
+//	AddSpot(CLensFlareSpot(m_pTex2, 0.005f,		0.7f, D3DXCOLOR(1.0f, 0.0f, 0.0f, 0.7f)));
+//	AddSpot(CLensFlareSpot(m_pTex1, 0.025f,		0.6f, D3DXCOLOR(1.0f, 1.0f, 0.0f, 0.5f)));
+//	AddSpot(CLensFlareSpot(m_pTex3, 0.05f,		0.5f, D3DXCOLOR(1.0f, 1.0f, 0.0f, 0.5f)));
+//	AddSpot(CLensFlareSpot(m_pTex1, 0.025f,		0.4f, D3DXCOLOR(1.0f, 0.5f, 0.0f, 1.0f)));
+//	AddSpot(CLensFlareSpot(m_pTex2, 0.025f,		0.1f, D3DXCOLOR(1.0f, 1.0f, 0.5f, 0.5f)));
+//	AddSpot(CLensFlareSpot(m_pTex1, 0.025f,		-0.2f, D3DXCOLOR(1.0f, 0.0f, 0.0f, 1.0f)));
+//	AddSpot(CLensFlareSpot(m_pTex2, 0.045f,		-0.3f, D3DXCOLOR(1.0f, 1.0f, 0.6f, 0.5f)));
+//	AddSpot(CLensFlareSpot(m_pTex1, 0.07f,		-0.4f, D3DXCOLOR(1.0f, 0.7f, 0.0f, 0.3f)));
+//	AddSpot(CLensFlareSpot(m_pTex3, 0.07f,		-0.7f, D3DXCOLOR(1.0f, 0.5f, 0.0f, 0.2f)));
+//	AddSpot(CLensFlareSpot(m_pTex2, 0.16f,		-1.0f, D3DXCOLOR(1.0f, 0.7f, 0.0f, 0.4f)));
+//	AddSpot(CLensFlareSpot(m_pTex3, 0.20f,		-1.3f, D3DXCOLOR(1.0f, 0.0f, 0.0f, 0.7f)));
+//
+//	return RecreateVB();
+//}
+//
+//HRESULT CKTDGLensFlare::OnLostDevice()
+//{
+//	return S_OK;
+//}
+//
+//HRESULT CKTDGLensFlare::RecreateVB()
+//{
+//	HRESULT hr = S_OK;
+//
+//	SAFE_RELEASE(m_pVBSpots);
+//
+//	if (m_iVBSize) 
+//	{
+//		hr = g_pKTDXApp->GetDevice()->CreateVertexBuffer(m_iVBSize*sizeof(VERTEX_LENSFLARE)*6,	0, 
+//			D3DFVF_LENSFLARE, D3DPOOL_SYSTEMMEM, &m_pVBSpots, NULL);
+//
+//		if (FAILED(hr)) 
+//		{
+//			ErrorLog( KEM_ERROR18 );
+//			m_pVBSpots = NULL;
+//		}
+//	}
+//	return hr;
+//}
+//#endif
 
 void CKTDGLensFlare::AddSpot( CLensFlareSpot &spot )
 {
 	m_Spots.push_back(spot);
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 	m_vertices.resize( m_Spots.size() * 6 );
-#else
-	m_iVBSize = (int)m_Spots.size();
-#endif
+//#else
+//	m_iVBSize = (int)m_Spots.size();
+//#endif
 }
 
 void CKTDGLensFlare::CalcLightSourceScreenCoords()

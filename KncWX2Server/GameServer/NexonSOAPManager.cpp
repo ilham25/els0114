@@ -43,8 +43,18 @@ void KNexonSOAPManager::RegToLua()
 	lua_tinker::decl( g_pLua, "NexonSOAP", this );
 }
 
-void KNexonSOAPManager::Init( int nThreadNum )
+void KNexonSOAPManager::Init( IN int nThreadNum
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-11-06	// 박세훈
+							, IN char* szSoapServerAddressForUser
+							, IN char* szSoapServerAddressForCoupon
+#endif // SERV_NEXON_COUPON_SYSTEM
+							)
 {
+#ifdef SERV_NEXON_COUPON_SYSTEM// 작업날짜: 2013-11-06	// 박세훈
+	KNexonSOAP::SetSoapServerAddressForUser( std::string( szSoapServerAddressForUser ) );
+	KNexonSOAP::SetSoapServerAddressForCoupon( std::string( szSoapServerAddressForCoupon ) );
+#endif // SERV_NEXON_COUPON_SYSTEM
+
 	// Init 호출 시점은 항상 AddWebServiceAddress 지정후여야 함 //
 	// 그 이유는 바로 아래 CreateThread에서 sdlFile과 smlFile이 입력되어야 하기 때문이다.
 	KThreadManager::Init( nThreadNum );

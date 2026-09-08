@@ -9,6 +9,9 @@ ImplementRefreshSingleton( KGSContentManager );
 
 KGSContentManager::KGSContentManager(void)
 {
+#ifdef SERV_CONTENT_MANAGER_INT
+	Init();
+#endif SERV_CONTENT_MANAGER_INT
 }
 
 KGSContentManager::~KGSContentManager(void)
@@ -40,6 +43,23 @@ void KGSContentManager::SetEnableCashShop_LUA( bool bVal )
 	START_LOG( cout, L"[ÄÁÅÙÃ÷ ¸Å´ÏÀú] Ä³½¬¼¥ ±â´É : " << m_bEnableCashShop );
 }
 
+#ifdef SERV_CONTENT_MANAGER_INT
+void KGSContentManager::SetEnableCashShop( bool bVal )
+{
+	if( m_bEnableCashShop != bVal )
+	{
+		START_LOG( cout, L"[ÄÁÅÙÃ÷ ¸Å´ÏÀú] Ä³½¬¼¥ ±â´É : " << bVal );
+	}
+
+	m_bEnableCashShop = bVal;
+}
+
+void KGSContentManager::Init()
+{
+	m_iReleaseTick = -1;
+	m_bEnableCashShop = true;
+}
+#endif SERV_CONTENT_MANAGER_INT
 
 //#endif SERV_CONTENT_MANAGER
 //}}

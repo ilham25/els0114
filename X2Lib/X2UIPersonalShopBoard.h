@@ -4,13 +4,14 @@
 
 namespace		_CONST_UIPERSONALSHOPBOARD_INFO_
 {
-	const	int		g_iNumItemPerPage			= 7;
-	const	int		g_iNumPagePerBoard			= 10;
-	const	float	g_fWidthPage				= 100.f;
-	const	double	g_dPersonalShopBoardFee		= 0.03;
-
-	USE_MAXLEVEL_LIMIT_VAL
-
+	const	int		g_iNumItemPerPage				= 7;
+	const	int		g_iNumPagePerBoard				= 10;
+	const	float	g_fWidthPage					= 100.f;
+	const	double	g_dPersonalShopBoardFee			= 0.03;
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	const	int		g_iNextActiveIntervalFrame		= 5;		/// 다음 동작까지의 간격 ( 프레임 )
+	const	float	g_fSearchKeywordIntervalTime	= 0.2f;		/// 다음 자동 완성 기능 동작까지의 간격	
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 }
 
 class CX2UIPersonalShopBoard : public CX2ItemSlotManager
@@ -52,6 +53,12 @@ public:
 		UPSBCM_PUSH_INIT_SEARCH_CONDITION,
 		UPSBCM_PUSH_BUY_ITEM,
 		UPSBCM_MOUSE_OUT_ITEM_NAME,
+//#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+		UPSBCM_CHANGE_ITEM_NAME,
+		UPSBCM_SELECT_SEARCH_KEYWORD,
+		UPSBCM_CHECK_STRICT_SEARCH_OPTION,
+		UPSBCM_CHECK_ALL
+//#endif //SERV_UPGRADE_TRADE_SYSTEM
 	};
 
 
@@ -73,6 +80,12 @@ public:
 	UidType				GetSelectedPersonalShopUid(){ return m_iSelectedPersonalShopUid; }
 
 	wstring				GetSlotItemDesc();
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	void				AddBanItemNameList_LUA();
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
+
 private:
 	void				InitSearchCondition();
 
@@ -94,6 +107,16 @@ private:
 	bool				MouseRButtonUp( const D3DXVECTOR2& v2MousePos );
 #endif	PRE_EQUIP_PERSONAL_SHOP_BOARD
 	//}} kimhc // 2011-03-27 // 상점검색에서 미리 입어보기
+
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	void				UpdateSearchKewordList( IN const wstring& wstrSearchKeyword_ );
+	void				SetSearchKeywordList( IN const wstring wstrSearchKeyword, OUT vector<wstring>& vevSearchKeyword_ );
+	void				SetShowSearchKeywordList( IN bool bShow_ );
+	void				SetSearchKeywordBySelectedItem();
+	void				SetFocusOutSearchKeyword();
+	bool				CheckSelectCategoryOption( IN const CX2Item::ItemTemplet* pItemTemplet_ );
+	bool				OpenScriptFile( const WCHAR* pFileName );
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 	
 
 public:
@@ -180,6 +203,10 @@ private:
 	CKTDGUICheckBox*					m_pCheckNormal;
 	CKTDGUICheckBox*					m_pCheckLow;
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
+	CKTDGUICheckBox*					m_pCheckALL;
+#endif //SERV_UPGRADE_TRADE_SYSTEM
+
 	CKTDGUICheckBox*					m_pCheckUsable;
 
 	CKTDGUIIMEEditBox*					m_pIMEEditItemName;
@@ -205,6 +232,19 @@ private:
 
 //}} oasis907 : 김상윤 [2009.12.28] //
 
+#ifdef SERV_UPGRADE_TRADE_SYSTEM // 김태환
 
+	CKTDGUIDialogType					m_pDLGAutoSearchKeyword;			/// 검색어 자동 완성창 다이얼로그
+	CKTDGUIListBox*						m_pListboxSearchKeyword;			/// 검색어 자동 완성창 리스트 박스 객체
+	int									m_iCloseSearchKeywordListTime;		/// 검색어 자동 완성창 닫기까지의 대기 시간 ( 프레임 단위 )
+	int									m_iFocusOutSearchKeywordBoxTime;	/// 검색어 입력창 포커스 이탈시, 관련 처리까지의 대기 시간 ( 프레임 단위 )
+	int									m_iFocusInSearchKeywordBoxTime;		/// 검색어 입력창 포커스 설정까지의 대기 시간 ( 프레임 단위 )
+	float								m_fActiveSearchKeywordListTime;		/// 검색어 자동 완성창 동작 간격  ( 초 단위 )
+
+	CKTDGUICheckBox*					m_pStrictSearchOption;				/// 일치하는 아이템 검색 체크 박스
+	bool								m_bIsStrictSearchOption;			/// 일치하는 아이템 검색 설정 여부
+
+	vector<wstring>					m_vecBanItemList;					/// 검색어 자동 완성 창에 나오면 않되는 아이템 리스트
+#endif //SERV_UPGRADE_TRADE_SYSTEM
 };
 #endif DEF_TRADE_BOARD

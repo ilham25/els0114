@@ -23,6 +23,8 @@ m_vOldLookAtPt(0.0f,0.0f,0.0f)
 	XSkinMeshReady( L"Mesh_Raven_Base_SD.x" );
 	XSkinMeshReady( L"Mesh_CHUNG_Base_SD.x" );
 	XSkinMeshReady( L"Mesh_Ara_Base_SD.x" );
+	XSkinMeshReady( L"Mesh_Add_Base_SD.x" );
+	
 
 	SetEnableShortCutKey(false);
 
@@ -431,8 +433,8 @@ void CX2StateWeddingGame::SetShowStateDLG( bool bShow )
 {
 	if ( bShow == true )
 	{
-		g_pKTDXApp->GetDGManager()->GetCamera()->Move( m_vOldEyePt.x, m_vOldEyePt.y, m_vOldEyePt.z );
-		g_pKTDXApp->GetDGManager()->GetCamera()->LookAt( m_vOldLookAtPt.x, m_vOldLookAtPt.y, m_vOldLookAtPt.z );
+		g_pKTDXApp->GetDGManager()->GetCamera().Move( m_vOldEyePt.x, m_vOldEyePt.y, m_vOldEyePt.z );
+		g_pKTDXApp->GetDGManager()->GetCamera().LookAt( m_vOldLookAtPt.x, m_vOldLookAtPt.y, m_vOldLookAtPt.z );
 
 		g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), true );
 
@@ -449,7 +451,7 @@ void CX2StateWeddingGame::SetShowStateDLG( bool bShow )
 			if( NULL != g_pWeddingGame->GetWorld()	)			
 			{
 				g_pWeddingGame->GetWorld()->SetShowObject( true ); 
-				g_pWeddingGame->GetWorld()->SetMapDetail( g_pMain->GetGameOption()->GetOptionList()->m_MapDetail );
+				g_pWeddingGame->GetWorld()->SetMapDetail( g_pMain->GetGameOption().GetOptionList().m_MapDetail );
 			}
 
 			if ( g_pWeddingGame->GetTalkBoxManager() != NULL )
@@ -466,10 +468,10 @@ void CX2StateWeddingGame::SetShowStateDLG( bool bShow )
 	}
 	else
 	{
-		m_vOldEyePt		= g_pKTDXApp->GetDGManager()->GetCamera()->GetEye();
-		m_vOldLookAtPt	= g_pKTDXApp->GetDGManager()->GetCamera()->GetLookAt();
+		m_vOldEyePt		= g_pKTDXApp->GetDGManager()->GetCamera().GetEye();
+		m_vOldLookAtPt	= g_pKTDXApp->GetDGManager()->GetCamera().GetLookAt();
 
-		g_pKTDXApp->GetDGManager()->GetCamera()->Point( 0,0,-1300, 0,0,0 );
+		g_pKTDXApp->GetDGManager()->GetCamera().Point( 0,0,-1300, 0,0,0 );
 		g_pKTDXApp->GetDGManager()->SetProjection( g_pKTDXApp->GetDGManager()->GetNear(), g_pKTDXApp->GetDGManager()->GetFar(), false );
 
 		if( NULL != g_pChatBox )
@@ -543,8 +545,7 @@ bool CX2StateWeddingGame::ShortCutKeyProcess()
 {
 	if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState( DIK_F6 ) == TRUE )
 	{
-		if( NULL != g_pMain->GetGameOption() )
-			g_pMain->GetGameOption()->ToggleFieldSD();
+			g_pMain->GetGameOption().ToggleFieldSD();
 		return true;
 	}
 	else if ( g_pKTDXApp->GetDIManager()->Getkeyboard()->GetKeyState(DIK_DELETE) == TRUE )

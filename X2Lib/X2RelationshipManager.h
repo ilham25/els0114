@@ -259,7 +259,12 @@ private :
 		CX2GameUnitoPtr	m_optrGameUnitRelationPartner;	// 나의 인연
 		CX2SquareUnitPtr m_pSquareUnitRelationPartner;
 		
-
+#ifdef ADJUST_THIRD_PERSON_BUG
+		bool	m_bPropose;	//현재 내가 커플 신청을 한 상태임을 체크하기 위한 변수.
+#endif //ADJUST_THIRD_PERSON_BUG
+#ifdef RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
+		bool	m_bInviteGuildMember;
+#endif //RELATIONSHIP_SHOW_GUILD_MEMBER_FIX
 };
 
 
@@ -426,7 +431,7 @@ class CX2RelationshipEffectManager
 		{
 			return it->second;
 		}
-		return NULL;
+		return INVALID_EFFECTSET_HANDLE;
 	}
 
 	void		SetShowRelationshipAttachEffect ( RELATION_EFFECT_SHOW_TYPE eREST_ );

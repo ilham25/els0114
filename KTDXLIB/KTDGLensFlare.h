@@ -82,10 +82,10 @@ class CKTDGLensFlare : public CKTDGObject
         virtual void            OnFrameRender_Draw();
 //}} robobeg : 2008-10-28
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		virtual HRESULT OnResetDevice();
-		virtual HRESULT OnLostDevice();
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		virtual HRESULT OnResetDevice();
+//		virtual HRESULT OnLostDevice();
+//#endif
 
 		void	AddSpot( CLensFlareSpot &spot );
 
@@ -96,9 +96,9 @@ class CKTDGLensFlare : public CKTDGObject
 
 
 	private:
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		HRESULT	RecreateVB();
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		HRESULT	RecreateVB();
+//#endif
 		void	CalcLightSourceScreenCoords();
 
 
@@ -109,10 +109,10 @@ class CKTDGLensFlare : public CKTDGObject
 		D3DXVECTOR3					m_LightPosition;
 		D3DXVECTOR3					m_vScreen;
 
-#ifndef DYNAMIC_VERTEX_BUFFER_OPT
-		LPDIRECT3DVERTEXBUFFER9		m_pVBSpots;
-		int							m_iVBSize;
-#endif
+//#ifndef DYNAMIC_VERTEX_BUFFER_OPT
+//		LPDIRECT3DVERTEXBUFFER9		m_pVBSpots;
+//		int							m_iVBSize;
+//#endif
 
 		CKTDXDeviceTexture*			m_pTexHalo;
 		CKTDXDeviceTexture*			m_pTex1;
@@ -120,7 +120,7 @@ class CKTDGLensFlare : public CKTDGObject
 		CKTDXDeviceTexture*			m_pTex3;
 
 		std::vector<CLensFlareSpot>	m_Spots;
-#ifdef DYNAMIC_VERTEX_BUFFER_OPT
+//#ifdef DYNAMIC_VERTEX_BUFFER_OPT
 		std::vector<VERTEX_LENSFLARE> m_vertices;
-#endif
+//#endif
 };

@@ -27,9 +27,12 @@ public:
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
 	KDangerousEventInfo& GetDangerousEventInfo()	{ return m_kDangerousEvent; }
+
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-28	// 박세훈
+	void	UpdateDangerousValue( IN const int iDangerousValue );
+#else // SERV_BATTLE_FIELD_BOSS
 	void	IncreaseDangerousValue( IN const int iIncreaseValue );
 	
-
 	// 처리 함수
 	void	OnNpcUnitDie( IN const int iPlayerCount,
 						  IN const bool bIsAttribNpc, 
@@ -41,9 +44,21 @@ public:
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 						  //}
 						  );
+#endif // SERV_BATTLE_FIELD_BOSS
 
 	bool	CheckAndDeleteReservedDangerousEvent( IN const KDangerousEventInfo::DANGEROUS_EVENT eEventEnum );
 
+#ifdef SERV_BATTLE_FIELD_BOSS// 작업날짜: 2013-10-28	// 박세훈
+public:
+	void	CheckReserveWarningEvent( IN const int iBeforeDangerousValue );
+	void	CheckReserveEliteMonsterDropEvent( IN const int iBeforeDangerousValue );
+	void	CheckReserveBossDropEvent( IN const int iPlayerCount );
+	//{{ 2013. 02. 15   필드 중간 보스 - 김민성
+#ifdef SERV_BATTLEFIELD_MIDDLE_BOSS
+	void	CheckReserveMiddleBossDropEvent( IN const int iPlayerCount );
+#endif SERV_BATTLEFIELD_MIDDLE_BOSS
+	//}
+#else // SERV_BATTLE_FIELD_BOSS
 protected:
 	void	CheckReserveWarningEvent( IN const int iBeforeDangerousValue );
 	void	CheckReserveEliteMonsterDropEvent( IN const int iBeforeDangerousValue );
@@ -53,7 +68,10 @@ protected:
 	void	CheckReserveMiddleBossDropEvent( IN const int iPlayerCount );
 #endif SERV_BATTLEFIELD_MIDDLE_BOSS
 	//}
-		
+#endif // SERV_BATTLE_FIELD_BOSS
+#ifdef SERV_BATTLEFIELD_EVENT_BOSS_INT
+	void	CheckReserveEventBossDropEvent( IN const int iPlayerCount );
+#endif SERV_BATTLEFIELD_EVENT_BOSS_INT			
 protected:
 	int								m_iDangerousValue;			// 위험도
 	//{{ 2013. 02. 15   필드 중간 보스 - 김민성

@@ -5,7 +5,6 @@
 #include "XSLItem.h"
 
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
-
 struct RANDOMITEM_MAPPING_DATA
 {
 	int		 iCubeID;
@@ -85,11 +84,10 @@ public:
 		RID_MINI_ATTRACTION_ITEM				= 160656,	// 미니 봉인된 얼음 조각상
 #endif SERV_SERV_MINI_RANDOM_CUBE_REWARD
 		//}}
-		
 		//{{ 2012. 10. 08  할로윈 가열기
 #ifdef SERV_HALLOWEEN_ICE_HEATER
-		RID_HALLOWEEN_ICE_HEATER_ITEM				= 85003498,	// 할로윈 몬스터의 영혼
-		RID_SHINE_HALLOWEEN_ICE_HEATER_ITEM				= 85003500,	// 빛나는 할로윈 몬스터의 영혼
+		RID_HALLOWEEN_ICE_HEATER_ITEM			= 85003498,	// 할로윈 몬스터의 영혼
+		RID_SHINE_HALLOWEEN_ICE_HEATER_ITEM		= 85003500,	// 빛나는 할로윈 몬스터의 영혼
 #endif SERV_HALLOWEEN_ICE_HEATER
 		//}}
 		RID_ATTRACTION_ITEM_EVELUN_ARA			= 160666,   // 봉인된 얼음 조각상(아라 살바토르 이벨른)	- 박세훈
@@ -109,7 +107,7 @@ public:
 		RID_ATTRANTION_BONUS					= 91610,
 		
 #ifdef SERV_ATTRACTION_ITEM_ARC_DEVIL
-		RID_ATTRACTION_ITEM_ARC_DEVIL		= 70005100,	// 아크데빌 봉인 조각상 ( 가열기 아님! )
+		RID_ATTRACTION_ITEM_ARC_DEVIL			= 70005100,	// 아크데빌 봉인 조각상 ( 가열기 아님! )
 #endif
 #ifdef SERV_ATTRACTION_ITEM_EU
 		RID_ATTRACTION_ITEM_OFFICER_EU			= 85001530, // 봉인된 얼음 조각상(엘소드, 레나, 아이샤, 레이븐, 이브, 청 엘 수색대 장교)
@@ -261,9 +259,7 @@ public:
 	bool	AddRandomItemTemplet_LUA();
 	bool	AddRandomItemGroup_LUA( int iGroupID, int iItemID, float fRate, int iPeriod, int iQuantity );
 
-
 #ifdef SERV_CUBE_IN_ITEM_MAPPING
-
 	bool	AddRandomItemMappingData_LUA( int nIndex, int iCubeID, int iKeyItemID, int iBeforeGroupID, int iAfterGroupID );
 #ifdef SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 	bool    AddRandomItemMappingTime_LUA( int nIndex, std::wstring wstrScriptStartDate, std::wstring wstrScriptEndDate );
@@ -271,12 +267,11 @@ public:
 	bool	AddRandomItemMappingTime_LUA( int nIndex, const char* szStartDate, const char* szEndDate );
 #endif SERV_CUBE_IN_ITEM_MAPPING_BY_DBTIME_SETTING
 
-	void	ModifyMapItemGroup(RANDOMITEM_MAPPING_DATA randItemMappingData);
-	void	RestoreMapItemGroup(RANDOMITEM_MAPPING_DATA randItemMappingData);
+	bool	ModifyMapItemGroup(RANDOMITEM_MAPPING_DATA randItemMappingData);
+	bool	RestoreMapItemGroup(RANDOMITEM_MAPPING_DATA randItemMappingData);
 
 	std::map<int, RANDOMITEM_MAPPING_DATA>		m_mapRandomItemMappingData;
 	std::map<int, RANDOMITEM_MAPPING_TIME>		m_mapRandomItemMappingTime;
-
 #endif SERV_CUBE_IN_ITEM_MAPPING
 
 	//{{ 2009. 6. 22  최육사	매력아이템 리스트
